@@ -1,7 +1,7 @@
 ## 클러스터 설정
 
-* username은 둘다 edp1096으로 간주
 * Source: https://github.com/nvidia/dgx-spark-playbooks/tree/main/nvidia/connect-two-sparks
+* username은 둘다 edp1096으로 간주
 
 * 물리 연결 확인
     * `enp1s0f0np0`와 `enp1s0f1np1` 사용
@@ -21,7 +21,7 @@ ifconfig enp1s0f0np0
 #
 ```
 
-* netplan 설정 - avahi로 자동으로 찾기
+* netplan 설정 - SQFP daisy-chain
 ```sh
 sudo tee /etc/netplan/40-cx7.yaml > /dev/null <<EOF
 network:
