@@ -6,7 +6,7 @@
 
 ## 설정
 
-* 그냥 `compose.yaml`만 제대로 놓고 `docker compose up -d` 하면 됨
+* 그냥 `compose.yaml`만 제대로 놓고 `docker compose up -d` 실행
 * 내 경우 1번컴 `~/workspace/arcane` 메인, 2번컴 `~/workspace/arcane_agent` 에이전트로 폴더를 만들어서 각각 넣고 실행함
 
 
