@@ -1,0 +1,18 @@
+services:
+  pytorch-base:
+    container_name: pytorch-base
+    image: nvcr.io/nvidia/pytorch:26.01-py3
+    ports:
+    - 7860:7860
+    - 8001:8001
+    volumes:
+      - "/home/edp1096/workspace/models:/root/.cache/huggingface"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    stdin_open: true
+    tty: true
