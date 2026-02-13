@@ -1,0 +1,36 @@
+services:
+  vllm-worker:
+    image: "nvcr.io/nvidia/vllm:26.01-py3"
+    container_name: vllm-worker
+    depends_on:
+      - vllm-head
+    shm_size: '10.24gb'
+    network_mode: "host"
+    ipc: "host"
+    volumes:
+      - "/home/edp1096/workspace/models:/root/.cache/huggingface"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    environment:
+      - VLLM_HOST_IP=169.254.44.172
+      - RAY_GCS_STORAGE=memory
+      - UCX_NET_DEVICES=enp1s0f0np0
+      - NCCL_SOCKET_IFNAME=enp1s0f0np0
+      - GLOO_SOCKET_IFNAME=enp1s0f0np0
+      - TP_SOCKET_IFNAME=enp1s0f0np0
+      - OMPI_MCA_btl_tcp_if_include=enp1s0f0np0
+      - MASTER_ADDR=169.254.141.58
+      - RAY_memory_monitor_refresh_ms=0
+      - RAY_memory_usage_threshold=0.99
+      - TORCH_NCCL_ASYNC_ERROR_HANDLING=1
+      # - HF_TOKEN=YOUR_HF_TOKEN_HERE
+    command: >
+      bash -c "ray start
+      --address='169.254.141.58:6379'
+      --node-ip-address=169.254.44.172
+      --block"

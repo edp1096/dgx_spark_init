@@ -1,0 +1,19 @@
+name: dgx_dashboard
+services:
+  dgx_dashboard:
+    container_name: dashboard
+    image: ghcr.io/tildahh/dgx_dashboard:latest
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities:
+                - gpu
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 11003:8080
+    pull_policy: always
+    restart: unless-stopped

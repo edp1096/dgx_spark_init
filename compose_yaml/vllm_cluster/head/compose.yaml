@@ -1,0 +1,46 @@
+services:
+  vllm-head:
+    image: "nvcr.io/nvidia/vllm:26.01-py3"
+    container_name: vllm-head
+    shm_size: 10.24g
+    network_mode: "host"
+    ipc: "host"
+    volumes:
+      - "/home/edp1096/workspace/models:/root/.cache/huggingface"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    environment:
+      - VLLM_HOST_IP=169.254.141.58
+      - RAY_GCS_STORAGE=memory
+      - UCX_NET_DEVICES=enp1s0f0np0
+      - NCCL_SOCKET_IFNAME=enp1s0f0np0
+      - GLOO_SOCKET_IFNAME=enp1s0f0np0
+      - TP_SOCKET_IFNAME=enp1s0f0np0
+      - OMPI_MCA_btl_tcp_if_include=enp1s0f0np0
+      - MASTER_ADDR=169.254.141.58
+      - RAY_memory_monitor_refresh_ms=0
+      - RAY_memory_usage_threshold=0.99
+      - TORCH_NCCL_ASYNC_ERROR_HANDLING=1
+      # - HF_TOKEN=YOUR_HF_TOKEN_HERE
+    command: >
+      bash -c "ray start
+      --head
+      --node-ip-address=169.254.141.58 --port=6379
+      --disable-usage-stats
+      --include-dashboard=True --dashboard-host=0.0.0.0 --dashboard-port=8265 &&
+      python3 -m vllm.entrypoints.openai.api_server
+      --host 0.0.0.0
+      --tensor-parallel-size 2
+      --max-model-len 2048
+      --gpu-memory-utilization 0.8
+      --max-num-seqs 256
+      --disable-log-requests
+      --model nvidia/Llama-3.3-70B-Instruct-NVFP4
+      "
+    # --model openai/gpt-oss-120b
+    # --model nvidia/Qwen3-8B-NVFP4

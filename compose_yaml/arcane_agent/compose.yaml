@@ -1,0 +1,18 @@
+services:
+  arcane-agent:
+    image: ghcr.io/getarcaneapp/arcane-headless:latest
+    container_name: arcane-agent
+    restart: unless-stopped
+    environment:
+      - AGENT_MODE=true
+      # - AGENT_TOKEN=arc_a7571ee3d01634e1a346cf95a7d90598415a536f4614edad00e5ca30bee21729
+      - AGENT_TOKEN=arc_KEY_MUST_BE_CHANGED
+      - MANAGER_API_URL=http://192.168.100.60:3552
+    ports:
+      - "3553:3553"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - arcane-data:/app/data
+
+volumes:
+  arcane-data:
