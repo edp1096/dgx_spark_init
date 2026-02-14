@@ -15,4 +15,5 @@ services:
               count: 1
               capabilities: [gpu]
     stdin_open: true
-    tty: true
+    # tty: true
+    command: /bin/bash -c "cd ~ && ./run.sh && /bin/bash"
