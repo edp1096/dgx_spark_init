@@ -5,6 +5,10 @@ services:
     ports:
     - 7860:7860
     - 8001:8001
+    environment:
+      - PIP_ROOT_USER_ACTION=ignore
+    # volumes:
+    #   - "/home/edp1096/workspace/models:/root/.cache/huggingface"
     deploy:
       resources:
         reservations:
