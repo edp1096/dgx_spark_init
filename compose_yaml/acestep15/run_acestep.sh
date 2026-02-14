@@ -4,11 +4,16 @@ apt install -y ffmpeg libavcodec60 libavformat60 libavutil58 libavfilter9 libsws
 pip3 install --break-system-packages https://github.com/edp1096/dgx_spark_init/raw/refs/heads/main/compose_yaml/acestep15/torchcodec-0.10.0a0-cp312-cp312-linux_aarch64.whl
 # python3 -c "import torchcodec; print(torchcodec.__version__)"
 
+cd ~/play
+
+# git clone https://github.com/ace-step/ACE-Step-1.5.git -b v0.1.0-beta.2
 git clone https://github.com/ace-step/ACE-Step-1.5.git
 cd ACE-Step-1.5
 
-sed -i '/torchcodec/d' pyproject.toml
-uv sync
+git reset --hard
+git pull
+
+sed -i '/torchcodec/d' pyproject.toml && uv sync
 
 # Those are maybe not needed.
 export VLLM_ATTENTION_BACKEND=XFORMERS
