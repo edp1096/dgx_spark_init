@@ -1,0 +1,42 @@
+services:
+  comfyui:
+    container_name: comfyui-spark-base
+    image: nvcr.io/nvidia/pytorch:26.01-py3
+    ports:
+      - "8188:8188"
+    environment:
+      - PIP_ROOT_USER_ACTION=ignore
+    volumes:
+      - "/home/edp1096/workspace/comfyui/model:/root/play/ComfyUI/models"
+      - "/home/edp1096/workspace/comfyui/custom_node:/root/play/ComfyUI/custom_nodes"
+      - "/home/edp1096/workspace/comfyui/user:/root/play/ComfyUI/user"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    # stdin_open: true
+    # tty: true
+    entrypoint: >
+      /bin/bash -c "
+      mkdir -p /root/play && cd /root/play;
+
+      if [ ! -f 'ComfyUI/main.py' ]; then
+        mkdir -p ComfyUI && cd ComfyUI;
+        git init;
+        git remote add origin https://github.com/Comfy-Org/ComfyUI;
+        # git fetch origin master;
+        git fetch origin v0.13.0;
+        git checkout -f FETCH_HEAD;
+        cd ..;
+      fi;
+
+      cd ComfyUI;
+      pip install --upgrade pip;
+      pip install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu130;
+      pip install -r requirements.txt;
+
+      python3 main.py --listen 0.0.0.0 --port 8188
+      "
