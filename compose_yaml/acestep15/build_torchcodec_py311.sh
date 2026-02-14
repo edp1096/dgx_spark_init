@@ -3,7 +3,6 @@ set -e
 
 python3.11 --version
 
-# Build torchcodec with system Python 3.11
 cd /tmp
 rm -rf build_venv
 python3.11 -m venv build_venv
@@ -26,11 +25,14 @@ export CMAKE_BUILD_PARALLEL_LEVEL=8
 python -m build --wheel --no-isolation
 
 cd dist
-WHEEL=$(ls torchcodec-*.whl)
+ORIGINAL_WHEEL=$(ls torchcodec-*.whl)
+echo "Original wheel: $ORIGINAL_WHEEL"
 
+# Unpack wheel
 mkdir temp && cd temp
-unzip ../$WHEEL
+unzip ../$ORIGINAL_WHEEL
 
+# Add FFmpeg libraries
 mkdir -p torchcodec/.libs
 cp /usr/lib/aarch64-linux-gnu/libavcodec.so.* torchcodec/.libs/
 cp /usr/lib/aarch64-linux-gnu/libavformat.so.* torchcodec/.libs/
@@ -39,21 +41,34 @@ cp /usr/lib/aarch64-linux-gnu/libavfilter.so.* torchcodec/.libs/
 cp /usr/lib/aarch64-linux-gnu/libswscale.so.* torchcodec/.libs/
 cp /usr/lib/aarch64-linux-gnu/libswresample.so.* torchcodec/.libs/
 
-rm ../$WHEEL
-zip -r ../$WHEEL *
+# Verify .dist-info exists
+ls -la | grep dist-info
+if [ ! -d "torchcodec-"*".dist-info" ]; then
+    echo "ERROR: .dist-info directory not found!"
+    exit 1
+fi
+
+# Repack with ALL files (including .dist-info)
 cd ..
+rm $ORIGINAL_WHEEL
+cd temp
+zip -r ../$ORIGINAL_WHEEL * -i '*'
+cd ..
+
+# Verify repacked wheel
+unzip -l $ORIGINAL_WHEEL | grep dist-info
 rm -rf temp
 
-WHEEL_PATH=$(pwd)/$WHEEL
+WHEEL_PATH=$(pwd)/$ORIGINAL_WHEEL
 echo "================================"
-echo "Wheel: $WHEEL_PATH"
-ls -lh $WHEEL
+echo "Final wheel: $WHEEL_PATH"
+ls -lh $ORIGINAL_WHEEL
 echo "================================"
 
-# Install to ACE-Step using uv
+# Install to ACE-Step
 deactivate
 cd /root/play/ACE-Step-1.5
-uv pip install $WHEEL_PATH
+uv pip install $WHEEL_PATH --force-reinstall
 
 # Test
-uv run python -c "import torchcodec; print(torchcodec.__version__)"
+uv run python -c "import torchcodec; print(f'torchcodec {torchcodec.__version__}')"
