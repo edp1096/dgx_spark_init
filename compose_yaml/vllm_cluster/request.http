@@ -2,8 +2,8 @@
 # @model = Qwen/Qwen2.5-Math-1.5B-Instruct
 # @model = openai/gpt-oss-120b
 # @model = nvidia/Llama-3.3-70B-Instruct-NVFP4
-# @model = nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4
 # @model = nvidia/Llama-3.3-70B-Instruct-NVFP4
+# @model = nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-FP8
 @model = nvidia/Qwen3-8B-NVFP4
 
 ### Korean greeting test
