@@ -1,6 +1,6 @@
 services:
   comfyui:
-    container_name: comfyui-spark-base
+    container_name: comfyui-spark-builder
     image: nvcr.io/nvidia/pytorch:26.01-py3
     ports:
       - "8188:8188"
