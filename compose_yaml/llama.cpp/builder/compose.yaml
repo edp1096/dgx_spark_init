@@ -1,0 +1,59 @@
+services:
+  builder:
+    container_name: llama-cpp-builder
+    image: nvcr.io/nvidia/cuda:13.1.1-devel-ubuntu22.04
+    volumes:
+      - llama-binaries:/output
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    command: >
+      bash -c "
+      apt update && apt install -y cmake git build-essential libgomp1 libcurl4-openssl-dev libssl-dev &&
+      cd /tmp &&
+      if [ ! -d 'llama.cpp' ]; then
+        git clone https://github.com/ggml-org/llama.cpp.git;
+      fi &&
+      cd llama.cpp &&
+      mkdir -p build &&
+      cmake -B build -DGGML_CUDA=ON -DLLAMA_CURL=ON -DCMAKE_CUDA_ARCHITECTURES=121a-real &&
+      cmake --build build --config Release -j 20 &&
+      rm -f /output/* &&
+      cp -r build/bin/* /output/ &&
+      echo '====== BUILD COMPLETE ======' &&
+      tail -f /dev/null
+      "
+
+  runtime:
+    container_name: llama-cpp-spark
+    image: nvcr.io/nvidia/cuda:13.1.1-runtime-ubuntu22.04
+    volumes:
+      - llama-binaries:/tmp/binaries:ro
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    command: >
+      bash -c "
+      echo 'Waiting for build to complete...' &&
+      while [ ! -f /tmp/binaries/llama-server ]; do
+        echo 'Build not ready, waiting 5 seconds...' &&
+        sleep 5;
+      done &&
+      echo 'Build detected! Starting copy...' &&
+      apt update && apt install -y libgomp1 &&
+      mkdir -p /llama.cpp &&
+      cp -r /tmp/binaries/* /llama.cpp/ &&
+      echo '====== READY FOR COMMIT ======' &&
+      tail -f /dev/null
+      "
+
+volumes:
+  llama-binaries:

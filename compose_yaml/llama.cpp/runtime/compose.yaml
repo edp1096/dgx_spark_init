@@ -1,0 +1,29 @@
+services:
+  llama-server:
+    container_name: llama-cpp-spark
+    image: edp1096/llama.cpp-spark:b8061-v1
+    ports:
+      - 5000:5000
+    environment:
+      - PIP_ROOT_USER_ACTION=ignore
+      # - HF_TOKEN=YOUR_HF_TOKEN_HERE
+    volumes:
+      - "/home/edp1096/workspace/gguf:/root/.cache/llama.cpp"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    working_dir: /llama.cpp
+    # stdin_open: true
+    # tty: true
+    command: >
+      bash -c "
+      ./llama-server -hf unsloth/Qwen3-VL-8B-Instruct-GGUF:Q4_0 \
+      --no-mmap \
+      --jinja -c 64000 \
+      --host 0.0.0.0 --port 5000 \
+      -ngl 999 -fa 1
+      "
