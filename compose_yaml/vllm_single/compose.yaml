@@ -1,5 +1,5 @@
 services:
-  vllm-head:
+  vllm:
     image: "nvcr.io/nvidia/vllm:26.01-py3"
     container_name: vllm-single
     network_mode: "host"
@@ -14,25 +14,19 @@ services:
               count: all
               capabilities: [gpu]
     environment:
-      - RAY_GCS_STORAGE=memory
-      - RAY_memory_monitor_refresh_ms=0
-      - RAY_memory_usage_threshold=0.99
       - TORCH_NCCL_ASYNC_ERROR_HANDLING=1
       # - HF_TOKEN=YOUR_HF_TOKEN_HERE
     command: >
-      bash -c "ray start
-      --head
-      --node-ip-address=169.254.141.58 --port=6379
-      --disable-usage-stats
-      --include-dashboard=True --dashboard-host=0.0.0.0 --dashboard-port=8265 &&
       python3 -m vllm.entrypoints.openai.api_server
       --host 0.0.0.0
+      --port 8000
       --max-model-len 2048
       --gpu-memory-utilization 0.8
       --max-num-seqs 256
       --disable-log-requests
+      --trust-remote-code
       --model nvidia/Qwen3-8B-NVFP4
-      "
-    # --tensor-parallel-size 2 # For cluster
+    # --model nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4
+    # --model Qwen/Qwen2.5-Math-1.5B-Instruct
     # --model openai/gpt-oss-120b
     # --model nvidia/Llama-3.3-70B-Instruct-NVFP4
