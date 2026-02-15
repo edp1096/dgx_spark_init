@@ -2,7 +2,7 @@ services:
   llama-server:
     container_name: llama-cpp-spark
     image: edp1096/llama.cpp-spark:b8061-v1
-    pull_policy: never
+    # pull_policy: never
     ports:
       - 5000:5000
     environment:
