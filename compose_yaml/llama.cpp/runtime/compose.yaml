@@ -1,13 +1,17 @@
 services:
   llama-server:
     container_name: llama-cpp-spark
-    image: edp1096/llama.cpp-spark:b8061-v1
-    # pull_policy: never
+    image: edp1096/llama.cpp-spark:b8067-v1
     ports:
       - 5000:5000
     environment:
       - PIP_ROOT_USER_ACTION=ignore
       # - HF_TOKEN=YOUR_HF_TOKEN_HERE
+      # - MODEL_REPO=unsloth/Qwen3-VL-8B-Instruct-GGUF
+      - MODEL_REPO=unsloth/Qwen3-Coder-Next-GGUF 
+      - MODEL_TAG=Q4_0
+      - CONTEXT_SIZE=64000
+      - SERVER_PORT=5000
     volumes:
       - "/home/edp1096/workspace/gguf:/root/.cache/llama.cpp"
     deploy:
@@ -22,9 +26,9 @@ services:
     # tty: true
     command: >
       bash -c "
-      ./llama-server -hf unsloth/Qwen3-VL-8B-Instruct-GGUF:Q4_0 \
+      ./llama-server -hf $${MODEL_REPO}:$${MODEL_TAG} \
       --no-mmap \
-      --jinja -c 64000 \
-      --host 0.0.0.0 --port 5000 \
+      --jinja -c $${CONTEXT_SIZE} \
+      --host 0.0.0.0 --port $${SERVER_PORT} \
       -ngl 999 -fa 1
       "
