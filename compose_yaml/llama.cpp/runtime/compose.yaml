@@ -9,6 +9,7 @@ services:
       # - HF_TOKEN=YOUR_HF_TOKEN_HERE
       # - MODEL_REPO=unsloth/Qwen3-VL-8B-Instruct-GGUF
       - MODEL_REPO=unsloth/Qwen3-Coder-Next-GGUF 
+      # - MODEL_TAG=UD-Q4_K_XL
       - MODEL_TAG=Q4_0
       - CONTEXT_SIZE=64000
       - SERVER_PORT=5000
