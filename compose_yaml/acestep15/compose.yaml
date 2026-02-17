@@ -6,7 +6,7 @@ services:
     - 7860:7860
     - 8001:8001
     volumes:
-      - "/home/edp1096/workspace/models:/root/.cache/huggingface"
+      - "/home/edp1096/workspace/hf_models:/root/.cache/huggingface"
     deploy:
       resources:
         reservations:

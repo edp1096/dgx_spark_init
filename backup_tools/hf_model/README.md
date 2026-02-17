@@ -12,5 +12,5 @@ pip install -U "huggingface_hub"
 
 * 모델 수동 다운로드
 ```sh
-hf download Qwen/Qwen2.5-Math-1.5B-Instruct --local-dir ./models 
+hf download Qwen/Qwen2.5-Math-1.5B-Instruct --local-dir ./hf_models 
 ```

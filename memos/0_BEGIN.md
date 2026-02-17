@@ -23,5 +23,5 @@ newgrp docker
 
 * `backup_tools`로 도커 이미지와 허깅페이스(hf) 모델 백업 및 복원
 * 모델은 가급적 자동 말고 수동으로 다운로드
-* hf 모델 다운로드시 폴더명은 `models/hub` 밑에 `models--account--model_name-params` 식으로 생성.
+* hf 모델 다운로드시 폴더명은 `hf_models/hub` 밑에 `models--account--model_name-params` 식으로 생성.
     * -- = /

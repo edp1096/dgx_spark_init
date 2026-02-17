@@ -1,7 +1,7 @@
 #!/bin/bash
 # restore.sh - Restore with skip-existing logic
 
-SOURCE_DIR="/home/edp1096/workspace/models/hub"
+SOURCE_DIR="/home/edp1096/workspace/hf_models/hub"
 BACKUP_DIR="/mnt/ssd_t5/huggingface_backup"
 SKIPPED_ITEMS=()
 
