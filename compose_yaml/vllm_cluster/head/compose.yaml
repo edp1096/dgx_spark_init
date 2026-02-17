@@ -22,6 +22,8 @@ services:
       - GLOO_SOCKET_IFNAME=enp1s0f0np0
       - TP_SOCKET_IFNAME=enp1s0f0np0
       - OMPI_MCA_btl_tcp_if_include=enp1s0f0np0
+      - NCCL_IB_HCA=rocep1s0f0,roceP2p1s0f0
+      - NCCL_IB_GID_INDEX=3
       - MASTER_ADDR=169.254.141.58
       - RAY_memory_monitor_refresh_ms=0
       - RAY_memory_usage_threshold=0.99
