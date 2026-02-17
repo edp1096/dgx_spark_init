@@ -37,4 +37,6 @@ rm /tmp/split_aa /tmp/split_ab
 
 DGX Spark Connectx-7 Infiniband 연결은 NCCL같은 특수목적용이 아닌 단순 파일 전송에서는 그냥 100GbE라고 간주해야겠다.
 
-Source: https://www.servethehome.com/the-nvidia-gb10-connectx-7-200gbe-networking-is-really-different
+Source:
+* https://forums.developer.nvidia.com/t/connectx-7-nic-in-dgx-spark/350417
+* https://www.servethehome.com/the-nvidia-gb10-connectx-7-200gbe-networking-is-really-different
