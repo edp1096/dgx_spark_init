@@ -4,7 +4,9 @@
 # @model = nvidia/Llama-3.3-70B-Instruct-NVFP4
 # @model = nvidia/Llama-3.3-70B-Instruct-NVFP4
 # @model = nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-FP8
-@model = nvidia/Qwen3-8B-NVFP4
+# @model = nvidia/Qwen3-8B-NVFP4
+# @model = QuantTrio/MiniMax-M2-AWQ
+@model = Qwen/Qwen3.5-27B
 
 ### Korean greeting test
 POST {{uri}}/v1/chat/completions
