@@ -3,9 +3,9 @@ services:
     # image: "nvcr.io/nvidia/vllm:26.01-py3"
     image: "vllm/vllm-openai:cu130-nightly-aarch64"
     container_name: vllm-worker
-    depends_on:
-      - vllm-head
-    shm_size: '10.24gb'
+    # depends_on:
+    #   - vllm-head
+    # shm_size: '10.24gb'
     network_mode: "host"
     ipc: "host"
     volumes:

@@ -16,10 +16,11 @@ services:
               capabilities: [gpu]
     environment:
       - TORCH_NCCL_ASYNC_ERROR_HANDLING=1
-      - VLLM_USE_FLASHINFER_MOE_FP4=0 
-      - VLLM_TEST_FORCE_FP8_MARLIN=1 
-      - VLLM_NVFP4_GEMM_BACKEND=marlin 
-      - PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True 
+      - VLLM_USE_FLASHINFER_MOE_FP4=0
+      - VLLM_TEST_FORCE_FP8_MARLIN=1
+      - VLLM_NVFP4_GEMM_BACKEND=marlin
+      - VLLM_MARLIN_USE_ATOMIC_ADD=1
+      - PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
       # - HF_TOKEN=YOUR_HF_TOKEN_HERE
     entrypoint: vllm serve
     command: >
@@ -38,7 +39,11 @@ services:
       --enable-prefix-caching
       --reasoning-parser qwen3
       --disable-log-requests
-      --trust-remote-code
+    # --trust-remote-code
+
+    # txn545/Qwen3.5-27B-NVFP4
+    # txn545/Qwen3.5-35B-A3B-NVFP4
+    # Qwen/Qwen3.5-35B-A3B
     # txn545/Qwen3.5-122B-A10B-NVFP4
     # nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-FP8
     # nvidia/Qwen3-8B-NVFP4

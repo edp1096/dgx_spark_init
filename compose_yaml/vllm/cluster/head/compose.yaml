@@ -3,7 +3,7 @@ services:
     # image: "nvcr.io/nvidia/vllm:26.01-py3"
     image: "vllm/vllm-openai:cu130-nightly-aarch64"
     container_name: vllm-head
-    shm_size: 10.24g
+    # shm_size: 10.24g
     network_mode: "host"
     ipc: "host"
     volumes:
@@ -36,30 +36,39 @@ services:
       # - HF_TOKEN=YOUR_HF_TOKEN_HERE
     entrypoint: ""
     command: >
-      bash -c "ray start
+      bash -c "pip install vllm[fastsafetensors] &&
+      ray start
       --head
       --node-ip-address=169.254.141.58 --port=6379
       --disable-usage-stats
-      --include-dashboard=True --dashboard-host=0.0.0.0 --dashboard-port=8265 &&
+      --include-dashboard=False --dashboard-host=0.0.0.0 --dashboard-port=8265 &&
       vllm serve txn545/Qwen3.5-35B-A3B-NVFP4
       --host 0.0.0.0
       --port 8000
-      --tensor-parallel-size 2
-      --max-model-len 262144
-      --gpu-memory-utilization 0.8
+      --pipeline-parallel-size 1 \
+      --enable-expert-parallel
+      --distributed-executor-backend ray
+      --max-model-len 32768
+      --gpu-memory-utilization 0.7
       --max-num-seqs 256
       --max-num-batched-tokens 8192
       --attention-backend flashinfer
-      --kv-cache-dtype fp8
+      --load-format fastsafetensors
       --served-model-name my-model
       --enable-auto-tool-choice
       --tool-call-parser qwen3_coder
       --enable-prefix-caching
       --reasoning-parser qwen3
       --disable-log-requests
-      --trust-remote-code
       "
+    # --trust-remote-code
+    # --kv-cache-dtype fp8
+    # --max-model-len 262144
+    # Qwen/Qwen3.5-35B-A3B
+    # txn545/Qwen3.5-35B-A3B-NVFP4
     # txn545/Qwen3.5-122B-A10B-NVFP4
-    # nvidia/Llama-3.3-70B-Instruct-NVFP4
-    # openai/gpt-oss-120b
+    # nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-FP8
     # nvidia/Qwen3-8B-NVFP4
+    # Qwen/Qwen2.5-Math-1.5B-Instruct
+    # openai/gpt-oss-120b
+    # nvidia/Llama-3.3-70B-Instruct-NVFP4
