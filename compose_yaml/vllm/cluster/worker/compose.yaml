@@ -1,6 +1,7 @@
 services:
   vllm-worker:
-    image: "nvcr.io/nvidia/vllm:26.01-py3"
+    # image: "nvcr.io/nvidia/vllm:26.01-py3"
+    image: "vllm/vllm-openai:cu130-nightly-aarch64"
     container_name: vllm-worker
     depends_on:
       - vllm-head
@@ -8,7 +9,7 @@ services:
     network_mode: "host"
     ipc: "host"
     volumes:
-      - "/home/edp1096/workspace/hf_models:/root/.cache/huggingface"
+      - "/home/edp1096/.cache/huggingface:/root/.cache/huggingface"
     deploy:
       resources:
         reservations:
@@ -30,7 +31,12 @@ services:
       - RAY_memory_monitor_refresh_ms=0
       - RAY_memory_usage_threshold=0.99
       - TORCH_NCCL_ASYNC_ERROR_HANDLING=1
+      - VLLM_USE_FLASHINFER_MOE_FP4=0
+      - VLLM_TEST_FORCE_FP8_MARLIN=1
+      - VLLM_NVFP4_GEMM_BACKEND=marlin
+      - PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
       # - HF_TOKEN=YOUR_HF_TOKEN_HERE
+    entrypoint: ""
     command: >
       bash -c "ray start
       --address='169.254.141.58:6379'

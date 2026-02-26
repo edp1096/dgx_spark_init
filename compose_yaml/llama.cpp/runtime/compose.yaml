@@ -15,7 +15,7 @@ services:
       - CONTEXT_SIZE=64000
       - SERVER_PORT=5000
     volumes:
-      - "/home/edp1096/workspace/gguf:/root/.cache/llama.cpp"
+      - "/home/edp1096/.cache/gguf:/root/.cache/llama.cpp"
     deploy:
       resources:
         reservations:

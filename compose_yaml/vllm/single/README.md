@@ -9,7 +9,7 @@ services:
     network_mode: "host"
     ipc: "host"
     volumes:
-      - "/home/edp1096/workspace/hf_models:/root/.cache/huggingface"
+      - "/home/edp1096/.cache/huggingface:/root/.cache/huggingface"
     deploy:
       resources:
         reservations:
