@@ -1,0 +1,1 @@
+https://github.com/edp1096/file-transfer-sparks 셸스크립트 대신 이거 사용.
