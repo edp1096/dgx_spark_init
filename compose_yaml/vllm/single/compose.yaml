@@ -24,7 +24,7 @@ services:
       # - HF_TOKEN=YOUR_HF_TOKEN_HERE
     entrypoint: vllm serve
     command: >
-      txn545/Qwen3.5-35B-A3B-NVFP4
+      Qwen/Qwen3.5-35B-A3B-FP8
       --host 0.0.0.0
       --port 8000
       --max-model-len 262144
@@ -39,11 +39,14 @@ services:
       --enable-prefix-caching
       --reasoning-parser qwen3
       --disable-log-requests
-    # --trust-remote-code
+      --trust-remote-code
 
-    # txn545/Qwen3.5-27B-NVFP4
+    # Kbenkhaled/Qwen3.5-35B-A3B-quantized.w4a16
+    # Ankushbl6/Qwen3.5-35B-A3B-AWQ-4bit
     # txn545/Qwen3.5-35B-A3B-NVFP4
+    # txn545/Qwen3.5-27B-NVFP4
     # Qwen/Qwen3.5-35B-A3B
+    # Qwen/Qwen3.5-35B-A3B-FP8
     # txn545/Qwen3.5-122B-A10B-NVFP4
     # nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-FP8
     # nvidia/Qwen3-8B-NVFP4

@@ -28,12 +28,13 @@ services:
       - MASTER_ADDR=169.254.141.58
       - RAY_memory_monitor_refresh_ms=0
       - RAY_memory_usage_threshold=0.99
-      - TORCH_NCCL_ASYNC_ERROR_HANDLING=1
-      - VLLM_USE_FLASHINFER_MOE_FP4=0
-      - VLLM_TEST_FORCE_FP8_MARLIN=1
-      - VLLM_NVFP4_GEMM_BACKEND=marlin
-      - VLLM_MARLIN_USE_ATOMIC_ADD=1
-      - PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+      # - TORCH_NCCL_ASYNC_ERROR_HANDLING=1
+      # - VLLM_USE_FLASHINFER_MOE_FP4=0
+      # - VLLM_TEST_FORCE_FP8_MARLIN=1
+      # - VLLM_NVFP4_GEMM_BACKEND=marlin
+      # - VLLM_MARLIN_USE_ATOMIC_ADD=1
+      # - PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+
       # - HF_TOKEN=YOUR_HF_TOKEN_HERE
     entrypoint: ""
     command: >
@@ -43,16 +44,15 @@ services:
       --disable-usage-stats
       --include-dashboard=False --dashboard-host=0.0.0.0 --dashboard-port=8265 &&
       sleep 5 &&
-      vllm serve txn545/Qwen3.5-35B-A3B-NVFP4
+      vllm serve
+      Qwen/Qwen3.5-35B-A3B-FP8
       --host 0.0.0.0
       --port 8000
-      --tensor-parallel-size 1
-      --pipeline-parallel-size 2
-      --enforce-eager
+      --tensor-parallel-size 2
       --enable-expert-parallel
       --distributed-executor-backend ray
       --max-model-len 32768
-      --gpu-memory-utilization 0.7
+      --gpu-memory-utilization 0.8
       --max-num-seqs 256
       --max-num-batched-tokens 8192
       --attention-backend flashinfer
@@ -62,11 +62,15 @@ services:
       --enable-prefix-caching
       --reasoning-parser qwen3
       --disable-log-requests
+      --enforce-eager
       "
+    # --pipeline-parallel-size 2
     # --load-format fastsafetensors
     # --trust-remote-code
     # --kv-cache-dtype fp8
     # --max-model-len 262144
+
+    # Kbenkhaled/Qwen3.5-35B-A3B-quantized.w4a16
     # Qwen/Qwen3.5-35B-A3B
     # txn545/Qwen3.5-35B-A3B-NVFP4
     # txn545/Qwen3.5-122B-A10B-NVFP4
