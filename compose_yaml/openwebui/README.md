@@ -6,3 +6,9 @@
 
 * `edge://flags/#unsafely-treat-insecure-origin-as-secure`
 * `chrome://flags/#unsafely-treat-insecure-origin-as-secure`
+
+
+## vllm 연결
+
+* 관리자 설정 > 연결 > OpenAI API 예. http://192.168.100.60:8000/v1
+* API Type: Chat Coimpletions (Responses로 하면 안됨)
