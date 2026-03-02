@@ -1,0 +1,31 @@
+# Download karpathy/fineweb-edu-100b-shuffle dataset
+
+services:
+  hf-downloader:
+    image: python:3.12-slim
+    container_name: hf-downloader
+    volumes:
+      - /home/edp1096/workspace/data:/data
+      - /home/edp1096/.cache/huggingface:/root/.cache/huggingface
+    environment:
+      - HF_HUB_ENABLE_HF_TRANSFER=1
+    restart: "no"
+    deploy:
+      resources:
+        limits:
+          memory: 4g
+    working_dir: /data
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        pip install -q huggingface-hub hf_transfer &&
+        echo "=== Starting download ===" &&
+        huggingface-cli download \
+          --repo-type dataset \
+          karpathy/fineweb-edu-100b-shuffle \
+          --local-dir /data/fineweb-edu-100b \
+          --local-dir-use-symlinks False &&
+        echo "=== Download complete ==="
+
+# Download log watching:
+# docker logs -f hf-downloader
