@@ -21,7 +21,6 @@ services:
       - |
         pip install -q -U huggingface-hub hf_transfer &&
         echo "=== Starting download ===" &&
-        # 최신 'hf' 커맨드 사용
         hf download \
           karpathy/fineweb-edu-100b-shuffle \
           --repo-type dataset \
