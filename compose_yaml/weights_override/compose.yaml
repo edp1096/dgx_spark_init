@@ -1,14 +1,20 @@
 services:
   heretic:
-    image: nvcr.io/nvidia/pytorch:26.02-py3
+    image: "vllm/vllm-openai:cu130-nightly-aarch64"
     container_name: heretic_abliterator
     ipc: host
     environment:
       - PIP_ROOT_USER_ACTION=ignore
       - PIP_USE_FEATURE=build-constraint
+
+      - ORIGINAL_MODEL=Qwen/Qwen3.5-35B-A3B
+      - ABLITERATED_MODEL=huihui-ai/Huihui-Qwen3.5-35B-A3B-abliterated
+      - FP8_MODEL=Qwen/Qwen3.5-35B-A3B-FP8
+      - OUTPUT_NAME=Huihui-Qwen3.5-35B-A3B-abliterated-FP8
     volumes:
       - "/home/edp1096/.cache/huggingface:/root/.cache/huggingface"
       - "/home/edp1096/workspace/heretic_models:/root/output"
+      - "/home/edp1096/workspace/scripts:/root/scripts"
     deploy:
       resources:
         reservations:
@@ -19,9 +25,4 @@ services:
     stdin_open: true
     # tty: true
     working_dir: /root
-    command: >
-      /bin/bash -c "
-        pip install git+https://github.com/farolone/heretic.git@feat/qwen3.5-moe-support &&
-        pip install git+https://github.com/huggingface/transformers.git &&
-        heretic --model Qwen/Qwen3.5-35B-A3B-FP8 --save-path /root/output/Qwen3.5-35B-A3B-FP8-heretic
-      "
+    command: python3 /root/scripts/quantize_fp8.py
