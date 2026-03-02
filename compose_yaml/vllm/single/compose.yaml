@@ -7,6 +7,7 @@ services:
     ipc: "host"
     volumes:
       - "/home/edp1096/.cache/huggingface:/root/.cache/huggingface"
+      # - "/home/edp1096/workspace/heretic_models:/root/models"
     deploy:
       resources:
         reservations:
@@ -24,7 +25,7 @@ services:
       # - HF_TOKEN=YOUR_HF_TOKEN_HERE
     entrypoint: vllm serve
     command: >
-      Qwen/Qwen3.5-35B-A3B-FP8
+      edp1096/Huihui-Qwen3.5-35B-A3B-abliterated-FP8
       --host 0.0.0.0
       --port 8000
       --max-model-len 262144
@@ -38,9 +39,12 @@ services:
       --tool-call-parser qwen3_coder
       --enable-prefix-caching
       --reasoning-parser qwen3
+      --default-chat-template-kwargs '{"enable_thinking": false}'
       --disable-log-requests
       --trust-remote-code
 
+    # edp1096/Huihui-Qwen3.5-35B-A3B-abliterated-FP8
+    # /root/models/Huihui-Qwen3.5-35B-A3B-abliterated-FP8
     # Kbenkhaled/Qwen3.5-35B-A3B-quantized.w4a16
     # Ankushbl6/Qwen3.5-35B-A3B-AWQ-4bit
     # txn545/Qwen3.5-35B-A3B-NVFP4
