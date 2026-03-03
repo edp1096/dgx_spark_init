@@ -1,0 +1,45 @@
+services:
+  nanochat-single:
+    container_name: nanochat-single
+    image: nvcr.io/nvidia/pytorch:26.02-py3
+    network_mode: "host"
+    ipc: "host"
+    volumes:
+      - "/home/edp1096/.cache/huggingface:/root/.cache/huggingface"
+      - "/home/edp1096/.cache/nanochat:/root/.cache/nanochat"
+      - "/home/edp1096/workspace/dataset/fineweb-edu-100b:/root/.cache/nanochat/base_data"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    environment:
+      - PIP_ROOT_USER_ACTION=ignore
+      - PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+      - WANDB_MODE=offline
+      - WANDB_MODE=disabled
+    working_dir: /root
+    # stdin_open: true
+    # tty: true
+    # command: /bin/bash
+    command:
+      - bash
+      - -c
+      - |
+        git clone https://github.com/karpathy/nanochat.git && cd nanochat &&
+        sed -i 's/(\["5090"\], 209.5e12),/(["gb10"], 100e12),\n        (["5090"], 209.5e12),/' nanochat/common.py &&
+        pip install -U pandas pyarrow wandb tokenizers tiktoken rustbpe &&
+
+        python -m nanochat.dataset -n 240 &&
+        python -m scripts.tok_train &&
+        python -m scripts.tok_eval &&
+
+        torchrun \
+          --nproc_per_node=1 \
+          -m scripts.base_train -- \
+          --depth=20 \
+          --device-batch-size=32 \
+          --window-pattern=L \
+          --run=nanochat-single
