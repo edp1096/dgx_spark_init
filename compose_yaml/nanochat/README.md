@@ -1,6 +1,8 @@
 ## 사전 준비
 
-카파시/파인웹-에듀-100b - [hf_download](../hf_download/compose.yaml) 참고
+* 2 Spark인 경우 양쪽 모두 동일하게 복제
+* NGC pytorch 이미지
+* 데이타셋 카파시/파인웹-에듀-100b - [hf_download](../hf_download/compose.yaml) 참고
 
 
 ## 로그 한줄만
