@@ -1,3 +1,7 @@
+NanoChat d(epth)20 Pretraining on 2 DGX Sparks
+
+WIP.
+
 ## 사전 준비
 
 * 2 Spark인 경우 양쪽 모두 동일하게 복제
