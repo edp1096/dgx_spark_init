@@ -21,7 +21,7 @@ compose.shell.yaml           # interactive shell (chat_cli 등)
 - `~/.cache/nanochat` — 체크포인트, 데이터, 토크나이저, 평가 결과
 - `~/workspace/nanochat` — nanochat 소스코드 (download 시 자동 clone + gb10 패치 + FA2 fallback 패치)
 
-## 파이프라인 - Single (DGX Spark 1대)
+## Single (DGX Spark 1대)
 
 ### 1. 데이터 다운로드
 `compose.download.yaml` 실행
@@ -47,7 +47,7 @@ compose.shell.yaml           # interactive shell (chat_cli 등)
 python -m scripts.chat_cli -i sft
 ```
 
-## 파이프라인 - Cluster (DGX Spark 2대)
+## Cluster (DGX Spark 2대)
 
 ### 1. 데이터 다운로드 (양쪽 노드 각각)
 `compose.download.yaml` 실행 (위와 동일)
