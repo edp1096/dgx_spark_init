@@ -33,5 +33,5 @@ services:
       - -c
       - |
         pip install -U pandas pyarrow wandb tokenizers tiktoken rustbpe datasets &&
-        python -m scripts.base_eval --eval core,sample &&
-        python -m scripts.chat_eval -i sft
+        python -m scripts.base_eval --eval core,sample --model-tag d16 &&
+        python -m scripts.chat_eval -i sft --model-tag d16
