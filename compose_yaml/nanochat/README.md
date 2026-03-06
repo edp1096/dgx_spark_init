@@ -1,7 +1,10 @@
 # Nanochat on DGX Spark
 
 Karpathy's nanochat (GPT-2 grade) 학습 파이프라인.
+
 데이터셋: ClimbMix-400B (karpathy/climbmix-400b-shuffle)
+
+Wandb 안씀.
 
 ## 파일 구조
 
