@@ -9,12 +9,14 @@ speedrun.sh, Wandb 안씀.
 ## 파일 구조
 
 ```
-compose.download.yaml        # 모든 데이터 다운로드 + 토크나이저 (양쪽 노드 각각 1회)
-compose.train.head.yaml      # pretrain → sft (rank 0, 2-node)
-compose.train.worker.yaml    # pretrain → sft (rank 1, 2-node)
-compose.train.single.yaml    # pretrain → sft (single node)
-compose.eval.yaml            # base_eval → chat_eval (head 단독)
-compose.shell.yaml           # interactive shell (chat_cli 등)
+compose.download.yaml          # 모든 데이터 다운로드 + 토크나이저 (각 노드 1회)
+compose.pretrain.head.yaml     # pretrain (rank 0, 2-node)
+compose.pretrain.worker.yaml   # pretrain (rank 1, 2-node)
+compose.sft.head.yaml          # sft (rank 0, 2-node)
+compose.sft.worker.yaml        # sft (rank 1, 2-node)
+compose.train.single.yaml      # pretrain → sft (single node)
+compose.eval.yaml              # base_eval → chat_eval (head 단독)
+compose.shell.yaml             # interactive shell (chat_cli 등)
 ```
 
 ## 사전 준비
@@ -55,16 +57,24 @@ python -m scripts.chat_cli -i sft
 ### 1. 데이터 다운로드 (양쪽 노드 각각)
 `compose.download.yaml` 실행 (위와 동일)
 
-### 2. Pretrain + SFT (양쪽 동시)
-- Head: `compose.train.head.yaml` 실행
-- Worker: `compose.train.worker.yaml` 실행
-- pretrain 완료 후 자동으로 sft 시작
+### 2. Pretrain (양쪽 동시)
+- Head: `compose.pretrain.head.yaml` 실행
+- Worker: `compose.pretrain.worker.yaml` 실행
 
-### 3. Evaluation (head만)
+### 3. 체크포인트 복사 (head → worker)
+```bash
+scp ~/.cache/nanochat/base_checkpoints/d{N}/{model_*,meta_*} worker:~/.cache/nanochat/base_checkpoints/d{N}/
+```
+
+### 4. SFT (양쪽 동시)
+- Head: `compose.sft.head.yaml` 실행
+- Worker: `compose.sft.worker.yaml` 실행
+
+### 5. Evaluation (head만)
 `compose.eval.yaml` 실행
 - base_eval (CORE) → chat_eval (ChatCORE) 순차 실행
 
-### 4. Interactive Shell (필요시)
+### 6. Interactive Shell (필요시)
 `compose.shell.yaml` 실행
 ```bash
 # 컨테이너 내부에서:

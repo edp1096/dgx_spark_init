@@ -1,10 +1,12 @@
 # ============================================================
-# Nanochat - Head Node (rank 0) : pretrain → sft
+# Nanochat - Head Node (rank 0) : sft
 # ============================================================
+# pretrain 완료 후 체크포인트를 worker로 복사한 뒤 실행:
+#   scp ~/.cache/nanochat/base_checkpoints/d{N}/{model_*,meta_*} worker:~/.cache/nanochat/base_checkpoints/d{N}/
 
 services:
-  train:
-    container_name: nanochat-train-head
+  sft:
+    container_name: nanochat-sft-head
     image: nvcr.io/nvidia/pytorch:26.02-py3
     network_mode: host
     ipc: host
@@ -48,20 +50,7 @@ services:
           --node_rank=0 \
           --master_addr=169.254.141.58 \
           --master_port=12345 \
-          -m scripts.base_train -- \
-          --depth=16 \
-          --device-batch-size=64 \
-          --fp8 \
-          --run=nanochat-2spark &&
-
-        torchrun \
-          --nproc_per_node=1 \
-          --nnodes=2 \
-          --node_rank=0 \
-          --master_addr=169.254.141.58 \
-          --master_port=12345 \
           -m scripts.chat_sft -- \
-          --model-tag=d16 \
           --device-batch-size=4 \
           --load-optimizer=0 \
           --chatcore-every=-1 \

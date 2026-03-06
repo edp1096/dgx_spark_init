@@ -1,0 +1,55 @@
+# ============================================================
+# Nanochat - Head Node (rank 0) : pretrain
+# ============================================================
+
+services:
+  pretrain:
+    container_name: nanochat-pretrain-head
+    image: nvcr.io/nvidia/pytorch:26.02-py3
+    network_mode: host
+    ipc: host
+    ulimits:
+      memlock: { soft: -1, hard: -1 }
+      stack: { soft: 67108864, hard: 67108864 }
+    devices:
+      - /dev/infiniband:/dev/infiniband
+    volumes:
+      - /home/edp1096/.cache/huggingface:/root/.cache/huggingface       # HuggingFace 캐시
+      - /home/edp1096/.cache/nanochat:/root/.cache/nanochat             # 체크포인트, 데이터, 토크나이저
+      - /home/edp1096/workspace/nanochat:/root/nanochat                 # nanochat 소스코드
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    environment:
+      PIP_ROOT_USER_ACTION: ignore
+      PYTORCH_CUDA_ALLOC_CONF: "expandable_segments:True"
+      TORCHINDUCTOR_COMPILE_THREADS: "1"
+      WANDB_MODE: disabled
+      MASTER_ADDR: 169.254.141.58
+      MASTER_PORT: "12345"
+      NCCL_SOCKET_IFNAME: enp1s0f0np0
+      GLOO_SOCKET_IFNAME: enp1s0f0np0
+      NCCL_IB_HCA: rocep1s0f0,roceP2p1s0f0
+      NCCL_DEBUG: ERROR
+    working_dir: /root/nanochat
+    command:
+      - bash
+      - -c
+      - |
+        pip install -U pandas pyarrow wandb tokenizers tiktoken rustbpe &&
+
+        torchrun \
+          --nproc_per_node=1 \
+          --nnodes=2 \
+          --node_rank=0 \
+          --master_addr=169.254.141.58 \
+          --master_port=12345 \
+          -m scripts.base_train -- \
+          --depth=16 \
+          --device-batch-size=64 \
+          --fp8 \
+          --run=nanochat-2spark
