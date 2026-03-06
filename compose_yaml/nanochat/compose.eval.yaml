@@ -1,0 +1,37 @@
+# ============================================================
+# Nanochat - Evaluation (head 단독, base_eval → chat_eval)
+# ============================================================
+
+services:
+  eval:
+    container_name: nanochat-eval
+    image: nvcr.io/nvidia/pytorch:26.02-py3
+    network_mode: host
+    ipc: host
+    ulimits:
+      memlock: { soft: -1, hard: -1 }
+      stack: { soft: 67108864, hard: 67108864 }
+    volumes:
+      - /home/edp1096/.cache/huggingface:/root/.cache/huggingface       # HuggingFace 캐시
+      - /home/edp1096/.cache/nanochat:/root/.cache/nanochat             # 체크포인트, 데이터, 토크나이저
+      - /home/edp1096/workspace/nanochat:/root/nanochat                 # nanochat 소스코드
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    environment:
+      PIP_ROOT_USER_ACTION: ignore
+      PYTORCH_CUDA_ALLOC_CONF: "expandable_segments:True"
+      TORCHINDUCTOR_COMPILE_THREADS: "1"
+      WANDB_MODE: disabled
+    working_dir: /root/nanochat
+    command:
+      - bash
+      - -c
+      - |
+        pip install -U pandas pyarrow wandb tokenizers tiktoken rustbpe datasets &&
+        python -m scripts.base_eval --eval core,sample &&
+        python -m scripts.chat_eval -i sft

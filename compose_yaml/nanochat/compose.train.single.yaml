@@ -1,0 +1,51 @@
+# ============================================================
+# Nanochat - Single Node : pretrain → sft
+# ============================================================
+
+services:
+  train:
+    container_name: nanochat-train
+    image: nvcr.io/nvidia/pytorch:26.02-py3
+    network_mode: host
+    ipc: host
+    ulimits:
+      memlock: { soft: -1, hard: -1 }
+      stack: { soft: 67108864, hard: 67108864 }
+    volumes:
+      - /home/edp1096/.cache/huggingface:/root/.cache/huggingface       # HuggingFace 캐시
+      - /home/edp1096/.cache/nanochat:/root/.cache/nanochat             # 체크포인트, 데이터, 토크나이저
+      - /home/edp1096/workspace/nanochat:/root/nanochat                 # nanochat 소스코드
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    environment:
+      PIP_ROOT_USER_ACTION: ignore
+      PYTORCH_CUDA_ALLOC_CONF: "expandable_segments:True"
+      TORCHINDUCTOR_COMPILE_THREADS: "1"
+      WANDB_MODE: disabled
+    working_dir: /root/nanochat
+    command:
+      - bash
+      - -c
+      - |
+        pip install -U pandas pyarrow wandb tokenizers tiktoken rustbpe &&
+
+        torchrun \
+          --nproc_per_node=1 \
+          -m scripts.base_train -- \
+          --depth=16 \
+          --device-batch-size=64 \
+          --fp8 \
+          --run=nanochat-single &&
+
+        torchrun \
+          --nproc_per_node=1 \
+          -m scripts.chat_sft -- \
+          --device-batch-size=4 \
+          --load-optimizer=0 \
+          --chatcore-every=-1 \
+          --run=nanochat-sft-single
