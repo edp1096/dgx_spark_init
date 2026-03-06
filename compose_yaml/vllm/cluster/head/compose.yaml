@@ -24,7 +24,8 @@ services:
       - TP_SOCKET_IFNAME=enp1s0f0np0
       - OMPI_MCA_btl_tcp_if_include=enp1s0f0np0
       - NCCL_IB_HCA=rocep1s0f0,roceP2p1s0f0
-      - NCCL_IB_GID_INDEX=3
+      - NCCL_IB_DISABLE=0
+      # - NCCL_IB_GID_INDEX=3
       - MASTER_ADDR=169.254.141.58
       - RAY_memory_monitor_refresh_ms=0
       - RAY_memory_usage_threshold=0.99
@@ -45,13 +46,13 @@ services:
       --include-dashboard=False --dashboard-host=0.0.0.0 --dashboard-port=8265 &&
       sleep 5 &&
       vllm serve
-      Qwen/Qwen3.5-35B-A3B-FP8
+      edp1096/Huihui-Qwen3.5-35B-A3B-abliterated-FP8
       --host 0.0.0.0
       --port 8000
       --tensor-parallel-size 2
       --enable-expert-parallel
       --distributed-executor-backend ray
-      --max-model-len 32768
+      --max-model-len 128000
       --gpu-memory-utilization 0.8
       --max-num-seqs 256
       --max-num-batched-tokens 8192
@@ -61,9 +62,8 @@ services:
       --tool-call-parser qwen3_coder
       --enable-prefix-caching
       --reasoning-parser qwen3
-      --disable-log-requests
-      --enforce-eager
       "
+    # --enforce-eager
     # --pipeline-parallel-size 2
     # --load-format fastsafetensors
     # --trust-remote-code
