@@ -61,6 +61,7 @@ services:
           --master_addr=169.254.141.58 \
           --master_port=12345 \
           -m scripts.chat_sft -- \
+          --model-tag=d16 \
           --device-batch-size=4 \
           --load-optimizer=0 \
           --chatcore-every=-1 \

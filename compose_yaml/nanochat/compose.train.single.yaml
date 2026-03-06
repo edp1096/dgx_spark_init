@@ -45,6 +45,7 @@ services:
         torchrun \
           --nproc_per_node=1 \
           -m scripts.chat_sft -- \
+          --model-tag=d16 \
           --device-batch-size=4 \
           --load-optimizer=0 \
           --chatcore-every=-1 \
