@@ -87,6 +87,16 @@ eval_bundle/              # CORE 평가 데이터
 report/                   # 평가 결과
 ```
 
+## Pretrain 시 메모리 / device-batch-size=64 대비 depth 적정값
+
+* 주로 쓰이는 d20 / batch 32 에서 메모리 약 80GB, pretrain 33시간 가량 소요.
+* d8 / batch 64 설정시 약 37분 소요.
+
+| Args           | Prams | Ram    |
+|----------------|:-----:|-------:|
+| d8 / batch 64  | 125M  | ~57GB  |
+| d16 / batch 64 | 537M  | ~106GB |
+
 ## 비고
 
 - window pattern: SSSL (기본값, sliding window + full context 혼합)
