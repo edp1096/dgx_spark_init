@@ -70,16 +70,17 @@ python -m scripts.chat_cli -i sft
 
 ## Volume 구조
 
-| 호스트 경로 | 컨테이너 경로 | 용도 |
-|---|---|---|
-| `~/.cache/huggingface` | `/root/.cache/huggingface` | HuggingFace 캐시 |
-| `~/.cache/nanochat` | `/root/.cache/nanochat` | 체크포인트, 데이터, 토크나이저, 평가 결과 |
-| `~/workspace/nanochat` | `/root/nanochat` | nanochat 소스코드 (호스트에서 관리) |
+| 호스트 경로            | 컨테이너 경로              | 용도                                      |
+|------------------------|----------------------------|-------------------------------------------|
+| `~/.cache/huggingface` | `/root/.cache/huggingface` | HuggingFace 캐시                          |
+| `~/.cache/nanochat`    | `/root/.cache/nanochat`    | 체크포인트, 데이터, 토크나이저, 평가 결과 |
+| `~/workspace/nanochat` | `/root/nanochat`           | nanochat 소스코드 (호스트에서 관리)       |
 
-## 체크포인트 위치 (~/.cache/nanochat/)
+## 데이터/체크포인트 위치 (~/.cache/nanochat/)
 
 ```
-base_data_climbmix/       # ClimbMix pretrain 데이터셋
+base_data/                # FineWeb-Edu-100B pretrain 데이터셋 (레거시 폴백)
+base_data_climbmix/       # ClimbMix-400B pretrain 데이터셋
 tokenizer/                # 토크나이저
 base_checkpoints/d{N}/    # pretrain 모델 (N=depth)
 chatsft_checkpoints/d{N}/ # SFT 모델
@@ -93,7 +94,7 @@ report/                   # 평가 결과
 * d8 / batch 64 설정시 약 37분 소요.
 
 | Args           | Prams | Ram    |
-|----------------|:-----:|-------:|
+|----------------|-------|--------|
 | d8 / batch 64  | 125M  | ~57GB  |
 | d16 / batch 64 | 537M  | ~106GB |
 
