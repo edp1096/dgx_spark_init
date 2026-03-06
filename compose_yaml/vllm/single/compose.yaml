@@ -41,7 +41,6 @@ services:
       --enable-prefix-caching
       --reasoning-parser qwen3
       --default-chat-template-kwargs '{"enable_thinking": false}'
-      --disable-log-requests
       --trust-remote-code
 
     # edp1096/Huihui-Qwen3.5-35B-A3B-abliterated-FP8
