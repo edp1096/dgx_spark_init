@@ -1,7 +1,8 @@
 services:
   vllm-head:
     # image: "nvcr.io/nvidia/vllm:26.01-py3"
-    image: "vllm/vllm-openai:cu130-nightly-aarch64"
+    # image: "vllm/vllm-openai:cu130-nightly-aarch64"
+    image: "edp1096/vllm-node:v1"
     container_name: vllm-head
     # shm_size: 10.24g
     network_mode: "host"
@@ -62,7 +63,6 @@ services:
       --enable-auto-tool-choice
       --tool-call-parser qwen3_coder
       --reasoning-parser qwen3
-      --compilation-config '{\"cudagraph_mode\":\"none\"}'
       "
     # --enforce-eager
     # --pipeline-parallel-size 2
