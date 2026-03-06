@@ -1,7 +1,8 @@
 services:
   vllm:
     # image: "nvcr.io/nvidia/vllm:26.01-py3"
-    image: "vllm/vllm-openai:cu130-nightly-aarch64"
+    # image: "vllm/vllm-openai:cu130-nightly-aarch64"
+    image: "edp1096/vllm-node:v1"
     container_name: vllm-single
     network_mode: "host"
     ipc: "host"
