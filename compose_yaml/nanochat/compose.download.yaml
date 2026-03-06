@@ -39,7 +39,7 @@ services:
         cd /root/nanochat &&
         sed -i '/\["gb10"\]/!s/(\["5090"\], 209.5e12),/(["gb10"], 100e12),\n        (["5090"], 209.5e12),/' nanochat/common.py &&
         cp -n nanochat/flash_attention.py nanochat/flash_attention_original.py &&
-        curl -sL https://gist.githubusercontent.com/edp1096/8670b744d88fddf89da0d0bc4ac56f95/raw/266749c746b1ba7857634e1706fea06befca58a8/flash_attention_1076f97.py -o nanochat/flash_attention.py &&
+        curl -sL https://raw.githubusercontent.com/edp1096/dgx_spark_init/refs/heads/main/compose_yaml/nanochat/flash_attention_patch.py -o nanochat/flash_attention.py &&
 
         pip install -U pandas pyarrow wandb tokenizers tiktoken rustbpe datasets &&
 
