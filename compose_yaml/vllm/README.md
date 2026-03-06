@@ -1,11 +1,8 @@
-## whl, image 직접 빌드
+## 이미지 빌드
 
-* [builder/Dockerfile](builder/Dockerfile) - 1~2시간 걸림
-* 
-* 빌드
+* [builder/Dockerfile](builder/Dockerfile) - FlashInfer + vLLM 소스 빌드, 첫 빌드 1~2시간
+
 ```sh
 cd builder
-
-VLLM_VERSION=v0.16.0
-docker build -t edp1096/vllm-spark:${VLLM_VERSION}-v1 --build-arg VLLM_VERSION=${VLLM_VERSION} --build-arg MAX_JOBS=20 .
+docker build -t vllm-node .
 ```
