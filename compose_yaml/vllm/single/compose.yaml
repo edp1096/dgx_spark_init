@@ -32,7 +32,7 @@ services:
       --max-model-len 262144
       --gpu-memory-utilization 0.8
       --max-num-seqs 256
-      --max-num-batched-tokens 8192
+      --max-num-batched-tokens 16384
       --attention-backend flashinfer
       --kv-cache-dtype fp8
       --served-model-name my-model
