@@ -40,9 +40,9 @@ services:
       --tool-call-parser qwen3_coder
       --enable-prefix-caching
       --reasoning-parser qwen3
-      --default-chat-template-kwargs '{"enable_thinking": false}'
       --trust-remote-code
 
+    # --default-chat-template-kwargs '{"enable_thinking": false}'
     # edp1096/Huihui-Qwen3.5-35B-A3B-abliterated-FP8
     # /root/models/Huihui-Qwen3.5-35B-A3B-abliterated-FP8
     # Qwen/Qwen3.5-9B
