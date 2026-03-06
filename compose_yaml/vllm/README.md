@@ -6,3 +6,9 @@
 cd builder
 docker build -t vllm-node .
 ```
+
+* 캐시 무시하고 재빌드
+
+```sh
+docker build -t vllm-node --build-arg CACHEBUST_VLLM=$(date +%s) .
+```
