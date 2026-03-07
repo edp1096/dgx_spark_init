@@ -8,7 +8,10 @@
 * `chrome://flags/#unsafely-treat-insecure-origin-as-secure`
 
 
-## vllm 연결
+## vLLM 연결
 
 * 관리자 설정 > 연결 > OpenAI API 예. http://192.168.100.60:8000/v1
 * API Type: Chat Coimpletions (Responses로 하면 안됨)
+
+## 웹검색 기능
+* [searxng](searxng) 도커로 실행 후, openwebui 설정에서 웹검색 서비스로 선택
