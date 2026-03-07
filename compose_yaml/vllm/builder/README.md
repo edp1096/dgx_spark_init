@@ -21,4 +21,6 @@ docker build -t vllm-node \
 docker build -t edp1096/vllm-node:v1 \
   --build-arg CACHEBUST_VLLM=$(date +%s) \
   --build-arg CACHEBUST_FLASHINFER=$(date +%s) .
+
+docker push edp1096/vllm-node:v1
 ```
