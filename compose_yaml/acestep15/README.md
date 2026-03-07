@@ -4,8 +4,8 @@
   * [NGC Pytorch 26.02-py3](https://catalog.ngc.nvidia.com/orgs/nvidia/containers/pytorch?version=26.02-py3)
   * [ACE-Step1.5 v0.1.4](https://github.com/ace-step/ACE-Step-1.5/releases/tag/v0.1.4)
 * Mods
-  * Flash attention 2 enabled
-  * Add Korean to i18n
+  * Flash attention 2, CUDA Graph enabled
+  * Add Korean to i18n - Add `--language ko` option to command in compose.yaml
 * Docker image: https://hub.docker.com/repository/docker/edp1096/ace-step-spark
 
 
