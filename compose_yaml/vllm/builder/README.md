@@ -10,5 +10,15 @@ docker build -t vllm-node .
 * 캐시 무시하고 재빌드
 
 ```sh
-docker build -t vllm-node --build-arg CACHEBUST_VLLM=$(date +%s) .
+docker build -t vllm-node \
+  --build-arg CACHEBUST_VLLM=$(date +%s) \
+  --build-arg CACHEBUST_FLASHINFER=$(date +%s) .
+```
+
+* 내꺼
+
+```sh
+docker build -t edp1096/vllm-node:v1 \
+  --build-arg CACHEBUST_VLLM=$(date +%s) \
+  --build-arg CACHEBUST_FLASHINFER=$(date +%s) .
 ```

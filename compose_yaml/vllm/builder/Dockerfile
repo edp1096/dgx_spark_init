@@ -124,7 +124,7 @@ RUN --mount=type=cache,id=ccache,target=/root/.ccache \
 # =========================================================
 # Stage 4: Runner
 # =========================================================
-FROM nvcr.io/nvidia/pytorch:26.01-py3 AS runner
+FROM nvcr.io/nvidia/pytorch:26.02-py3 AS runner
 
 ARG BUILD_JOBS=16
 ARG GPU_ARCH=12.1a

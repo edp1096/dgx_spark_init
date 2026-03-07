@@ -32,13 +32,12 @@ services:
       - MASTER_ADDR=169.254.141.58
       - RAY_memory_monitor_refresh_ms=0
       - RAY_memory_usage_threshold=0.99
+      - VLLM_MARLIN_USE_ATOMIC_ADD=1
+      - PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
       # - TORCH_NCCL_ASYNC_ERROR_HANDLING=1
       # - VLLM_USE_FLASHINFER_MOE_FP4=0
       # - VLLM_TEST_FORCE_FP8_MARLIN=1
       # - VLLM_NVFP4_GEMM_BACKEND=marlin
-      - VLLM_MARLIN_USE_ATOMIC_ADD=1
-      # - PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
-
       # - HF_TOKEN=YOUR_HF_TOKEN_HERE
     entrypoint: ""
     command: >
