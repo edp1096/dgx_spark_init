@@ -46,5 +46,12 @@ sed -i "s/server_name=args.server_name/server_name='0.0.0.0'/g" acestep/acestep_
 # enforce_eager: prevent CUDA graph capture failure on GB10
 sed -i 's/enforce_eager=enforce_eager,/enforce_eager=True,/g' acestep/llm_inference.py
 
+# ACESTEP_SKIP_VRAM_CHECK: use CUDA allocator stats instead of mem_get_info on unified memory (GB10)
+# mem_get_info reports system RAM usage as GPU usage, giving misleadingly low free values
+# Patch get_effective_free_vram_gb()
+sed -i 's/device_free_bytes, total_bytes = torch.cuda.mem_get_info(device_index)/device_free_bytes, total_bytes = torch.cuda.mem_get_info(device_index)\n            if os.environ.get("ACESTEP_SKIP_VRAM_CHECK"):\n                total_bytes = torch.cuda.get_device_properties(device_index).total_memory\n                device_free_bytes = total_bytes - torch.cuda.memory_allocated(device_index)/' acestep/gpu_config.py
+# Patch get_lm_gpu_memory_ratio() - also calls mem_get_info directly
+sed -i 's/free_bytes, total_bytes = torch.cuda.mem_get_info()/free_bytes, total_bytes = torch.cuda.mem_get_info()\n            if os.environ.get("ACESTEP_SKIP_VRAM_CHECK"):\n                total_bytes = torch.cuda.get_device_properties(0).total_memory\n                free_bytes = total_bytes - torch.cuda.memory_allocated(0)/' acestep/gpu_config.py
+
 # Run command:
 # acestep --port 7860 --server-name 0.0.0.0 --config_path acestep-v15-turbo --lm_model_path acestep-5Hz-lm-0.6B --init_service true  --offload_to_cpu true
