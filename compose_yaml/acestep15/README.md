@@ -1,40 +1,28 @@
+# ACE-Step 1.5 for DGX Spark
 
-## 도커 이미지
+* Based on
+  * [NGC Pytorch 26.02-py3](https://catalog.ngc.nvidia.com/orgs/nvidia/containers/pytorch?version=26.02-py3)
+  * [ACE-Step1.5 v0.1.4](https://github.com/ace-step/ACE-Step-1.5/releases/tag/v0.1.4)
+* Docker image: https://hub.docker.com/repository/docker/edp1096/ace-step-spark
 
-https://hub.docker.com/repository/docker/edp1096/ace-step-spark
 
+## Run
 
-## 실행
-
-* `edp1096/ace-step-spark` 이미지로 실행
+* Docker Run
 ```sh
-docker pull edp1096/ace-step-spark
-docker run --gpus all -it --rm --network host edp1096/ace-step-spark
-docker exec -it <container_id> "cd ~/play/ACE-Step-1.5/ && ./start_gradio_ui.sh"
+docker run --gpus all -it --rm \
+  -p 7860:7860 \
+  -v /home/edp1096/.cache/huggingface:/root/.cache/huggingface \
+  edp1096/ace-step-spark:1.5-arm64 \
+  bash -c "cd ~/ACE-Step-1.5 && acestep --port 7860 --server-name 0.0.0.0 --config_path acestep-v15-turbo --lm_model_path acestep-5Hz-lm-0.6B --init_service true --offload_to_cpu true"
 ```
 
-* `nvidia/pytorch` 이미지에서 실행
+* Docker Compose - See [compose.yaml](./compose.yaml)
 ```sh
-docker pull nvidia/pytorch:26.01-py3
-docker run --gpus all -it --rm --network host nvidia/pytorch:26.01-py3
-docker exec -it <container_id> bash
-
-# copy run_acestep15.sh into the container and run
-docker mkdir /workspace
-docker cp ./run_acestep15.sh <container_id>:/workspace/run_acestep15.sh
-docker exec -it <container_id> bash -c "cd /workspace && ./run_acestep15.sh"
+docker compose up -d
 ```
 
 
-## torchcodec 직접 빌드
+## Build
 
-* 도커 먼저 올리고 `build_torchcodec.sh` 스크립트 복사 후 실행
-```sh
-docker pull nvidia/pytorch:26.01-py3
-docker run --gpus all -it --rm --network host nvidia/pytorch:26.01-py3
-docker exec -it <container_id> bash
-# copy build_torchcodec.sh into the container and run
-docker mkdir /workspace
-docker cp ./build_torchcodec.sh <container_id>:/workspace/build_torchcodec.sh
-docker exec -it <container_id> bash -c "cd /workspace && ./build_torchcodec.sh"
-```
+See [build_acestep.sh](builder/build_acestep.sh)

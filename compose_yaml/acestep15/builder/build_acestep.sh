@@ -37,6 +37,9 @@ pip install -e .
 # torchcodec: pre-built aarch64 cp312 wheel
 pip install https://github.com/edp1096/dgx_spark_init/raw/refs/heads/main/compose_yaml/acestep15/builder/torchcodec-0.10.0a0-cp312-cp312-linux_aarch64.whl
 
+# ko.json: Korean i18n
+curl -sL https://raw.githubusercontent.com/edp1096/dgx_spark_init/refs/heads/main/compose_yaml/acestep15/builder/ko.json -o acestep/ui/gradio/i18n/ko.json
+
 # server_name: bind to 0.0.0.0 for container access
 sed -i "s/server_name=args.server_name/server_name='0.0.0.0'/g" acestep/acestep_v15_pipeline.py
 

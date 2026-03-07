@@ -16,4 +16,4 @@ services:
               capabilities: [gpu]
     stdin_open: true
     # tty: true
-    command: /bin/bash -c "cd ~ && ./run.sh && /bin/bash"
+    command: /bin/bash -c "cd ~/ACE-Step-1.5 && acestep --port 7860 --server-name 0.0.0.0 --config_path acestep-v15-turbo --lm_model_path acestep-5Hz-lm-0.6B --init_service true --offload_to_cpu true"
