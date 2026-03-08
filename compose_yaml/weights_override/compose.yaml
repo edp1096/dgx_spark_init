@@ -1,20 +1,26 @@
 services:
   heretic:
-    image: "vllm/vllm-openai:cu130-nightly-aarch64"
-    container_name: heretic_abliterator
+    # image: "vllm/vllm-openai:cu130-nightly-aarch64"
+    image: "edp1096/vllm-node:v1"
+    container_name: weights_abliterator
     ipc: host
     environment:
       - PIP_ROOT_USER_ACTION=ignore
       - PIP_USE_FEATURE=build-constraint
 
-      - ORIGINAL_MODEL=Qwen/Qwen3.5-35B-A3B
-      - ABLITERATED_MODEL=huihui-ai/Huihui-Qwen3.5-35B-A3B-abliterated
-      - FP8_MODEL=Qwen/Qwen3.5-35B-A3B-FP8
-      - OUTPUT_NAME=Huihui-Qwen3.5-35B-A3B-abliterated-FP8
+      - ORIGINAL_MODEL=Qwen/Qwen3.5-27B
+      - ABLITERATED_MODEL=huihui-ai/Huihui-Qwen3.5-27B-abliterated
+      - FP8_MODEL=Qwen/Qwen3.5-27B-FP8
+      - OUTPUT_NAME=Huihui-Qwen3.5-27B-abliterated-FP8
+
+      # - ORIGINAL_MODEL=Qwen/Qwen3.5-35B-A3B
+      # - ABLITERATED_MODEL=huihui-ai/Huihui-Qwen3.5-35B-A3B-abliterated
+      # - FP8_MODEL=Qwen/Qwen3.5-35B-A3B-FP8
+      # - OUTPUT_NAME=Huihui-Qwen3.5-35B-A3B-abliterated-FP8
     volumes:
       - "/home/edp1096/.cache/huggingface:/root/.cache/huggingface"
       - "/home/edp1096/workspace/heretic_models:/root/output"
-      - "/home/edp1096/workspace/scripts:/root/scripts"
+      - "/home/edp1096/workspace/weights_override/scripts:/root/scripts"
     deploy:
       resources:
         reservations:
@@ -25,4 +31,5 @@ services:
     stdin_open: true
     # tty: true
     working_dir: /root
-    command: python3 /root/scripts/quantize_fp8.py
+    command: >
+      python3 /root/scripts/quantize_fp8.py
