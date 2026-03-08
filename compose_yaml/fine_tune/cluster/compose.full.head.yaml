@@ -1,0 +1,59 @@
+# ============================================================
+# Fine-tune Cluster - Head Node (rank 0) : Full SFT
+# ============================================================
+
+services:
+  full-sft:
+    container_name: ft-full-head
+    image: nvcr.io/nvidia/pytorch:26.02-py3
+    network_mode: host
+    ipc: host
+    ulimits:
+      memlock: { soft: -1, hard: -1 }
+      stack: { soft: 67108864, hard: 67108864 }
+    devices:
+      - /dev/infiniband:/dev/infiniband
+    volumes:
+      - /home/edp1096/.cache/huggingface:/root/.cache/huggingface
+      - /home/edp1096/workspace/finetune/scripts:/workspace/scripts
+      - /home/edp1096/workspace/finetune/output:/workspace/output
+      - /home/edp1096/workspace/finetune/logs:/workspace/logs
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    environment:
+      - HF_TOKEN=${HF_TOKEN}
+      - PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+      - MASTER_ADDR=169.254.141.58
+      - MASTER_PORT=29500
+      - NCCL_SOCKET_IFNAME=enp1s0f0np0
+      - GLOO_SOCKET_IFNAME=enp1s0f0np0
+      - NCCL_IB_HCA=rocep1s0f0,roceP2p1s0f0
+      - NCCL_DEBUG=INFO
+      - TORCH_NCCL_ASYNC_ERROR_HANDLING=1
+      - CUDA_DEVICE_MAX_CONNECTIONS=1
+    # stdin_open: true
+    # tty: true
+    command:
+      - bash
+      - -c
+      - |
+        pip install transformers "trl>=0.25.1" &&
+
+        accelerate launch \
+          --config_file=/workspace/scripts/configs/accelerate_full.yaml \
+          --machine_rank=0 \
+          /workspace/scripts/Llama3_full_finetuning.py \
+          --model_name meta-llama/Llama-3.2-3B-Instruct \
+          --batch_size 8 \
+          --seq_length 2048 \
+          --num_epochs 1 \
+          --learning_rate 5e-5 \
+          --dataset_size 512 \
+          --gradient_checkpointing \
+          --output_dir /workspace/output/llama3-3b-cluster-full-sft \
+          --log_dir /workspace/logs
