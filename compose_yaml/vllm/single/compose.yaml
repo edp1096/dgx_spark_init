@@ -26,7 +26,7 @@ services:
       # - HF_TOKEN=YOUR_HF_TOKEN_HERE
     entrypoint: vllm serve
     command: >
-      edp1096/Huihui-Qwen3.5-35B-A3B-abliterated-FP8
+      edp1096/Huihui-Qwen3.5-27B-abliterated-FP8
       --host 0.0.0.0
       --port 8000
       --max-model-len 262144
@@ -43,6 +43,7 @@ services:
       --trust-remote-code
 
     # --default-chat-template-kwargs '{"enable_thinking": false}'
+    # edp1096/Huihui-Qwen3.5-27B-abliterated-FP8
     # edp1096/Huihui-Qwen3.5-35B-A3B-abliterated-FP8
     # /root/models/Huihui-Qwen3.5-35B-A3B-abliterated-FP8
     # Qwen/Qwen3.5-9B

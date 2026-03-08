@@ -47,7 +47,7 @@ services:
       --include-dashboard=False --dashboard-host=0.0.0.0 --dashboard-port=8265 &&
       sleep 5 &&
       vllm serve
-      edp1096/Huihui-Qwen3.5-35B-A3B-abliterated-FP8
+      txn545/Qwen3.5-122B-A10B-NVFP4
       --host 0.0.0.0
       --port 8000
       --distributed-executor-backend ray
