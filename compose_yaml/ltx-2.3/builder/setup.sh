@@ -12,7 +12,9 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 LTX_DIR="$SCRIPT_DIR/LTX-2"
+UI_DIR="$SCRIPT_DIR/ui"
 MODEL_DIR="$SCRIPT_DIR/models/ltx-2.3"
+LTX_COMMIT="9e8a28e"
 SKIP_Q8=false
 
 for arg in "$@"; do
@@ -25,13 +27,59 @@ echo "=============================================="
 echo "  LTX-2.3 Gradio UI Setup"
 echo "=============================================="
 echo "  LTX-2 source: $LTX_DIR"
+echo "  UI files:     $UI_DIR"
 echo "  Models:       $MODEL_DIR"
 echo ""
 
 # -----------------------------------------------
-# 1. Install Python packages (NGC torch 보존)
+# 0. Clone LTX-2 if not present
 # -----------------------------------------------
-echo "[1/4] Installing Python packages..."
+if [ ! -d "$LTX_DIR" ]; then
+    echo "[0] Cloning LTX-2 (commit $LTX_COMMIT)..."
+    git clone https://github.com/Lightricks/LTX-2.git "$LTX_DIR"
+    cd "$LTX_DIR"
+    git checkout "$LTX_COMMIT"
+    cd "$SCRIPT_DIR"
+else
+    echo "[0] LTX-2 already exists — skipping clone"
+    # Verify commit
+    CURRENT=$(cd "$LTX_DIR" && git rev-parse --short HEAD)
+    echo "  Current commit: $CURRENT (expected: $LTX_COMMIT)"
+fi
+
+# -----------------------------------------------
+# 1. Extract UI files & apply patches
+# -----------------------------------------------
+echo "[1/5] Applying patches and copying UI files..."
+
+# Extract tarball if ui/ directory is missing (fresh clone from repo)
+UI_TARBALL="$SCRIPT_DIR/ltx2-ui-files.tar.gz"
+if [ ! -d "$UI_DIR" ] && [ -f "$UI_TARBALL" ]; then
+    echo "  Extracting $UI_TARBALL..."
+    tar xzf "$UI_TARBALL" -C "$SCRIPT_DIR"
+fi
+
+# Apply LTX-2 compatibility patches (transformers >=5.0, lazy imports, etc.)
+PATCH_FILE="$SCRIPT_DIR/patches/ltx2-compat.patch"
+if [ -f "$PATCH_FILE" ]; then
+    cd "$LTX_DIR"
+    if git apply --check "$PATCH_FILE" 2>/dev/null; then
+        git apply "$PATCH_FILE"
+        echo "  Applied: ltx2-compat.patch"
+    else
+        echo "  Patch already applied or conflicts — skipping"
+    fi
+    cd "$SCRIPT_DIR"
+fi
+
+# Copy UI files into LTX-2 directory (where packages are importable)
+cp "$UI_DIR"/*.py "$LTX_DIR/"
+echo "  Copied UI files: $(ls "$UI_DIR"/*.py | xargs -n1 basename | tr '\n' ' ')"
+
+# -----------------------------------------------
+# 2. Install Python packages (NGC torch 보존)
+# -----------------------------------------------
+echo "[2/5] Installing Python packages..."
 pip install -q \
     gradio \
     accelerate \
@@ -42,19 +90,19 @@ pip install -q \
     scipy
 
 # -----------------------------------------------
-# 2. Install ltx-core and ltx-pipelines
+# 3. Install ltx-core and ltx-pipelines
 #    --no-deps: NGC의 custom torch(2.11.0a0+nv26.2)를 보존
 #    ltx-core가 torch~=2.7을 요구해서 pip이 torch를 다운그레이드함
 # -----------------------------------------------
-echo "[2/4] Installing ltx-core and ltx-pipelines..."
+echo "[3/5] Installing ltx-core and ltx-pipelines..."
 pip install -q --no-deps -e "$LTX_DIR/packages/ltx-core"
 pip install -q --no-deps -e "$LTX_DIR/packages/ltx-pipelines"
 
 # -----------------------------------------------
-# 3. Install q8_kernels (native FP8 GEMM)
+# 4. Install q8_kernels (native FP8 GEMM)
 # -----------------------------------------------
 if [ "$SKIP_Q8" = false ]; then
-    echo "[3/4] Installing q8_kernels..."
+    echo "[4/5] Installing q8_kernels..."
     Q8_WHEEL="$SCRIPT_DIR/q8_kernels-0.0.5-cp312-cp312-linux_aarch64.whl"
     if [ -f "$Q8_WHEEL" ]; then
         echo "  Using pre-built wheel: $Q8_WHEEL"
@@ -68,13 +116,13 @@ if [ "$SKIP_Q8" = false ]; then
         pip install -q "$Q8_SRC"
     fi
 else
-    echo "[3/4] Skipping q8_kernels (--skip-q8)"
+    echo "[4/5] Skipping q8_kernels (--skip-q8)"
 fi
 
 # -----------------------------------------------
-# 4. Verify
+# 5. Verify
 # -----------------------------------------------
-echo "[4/4] Verifying installation..."
+echo "[5/5] Verifying installation..."
 
 # Check torch version (should be NGC's 2.11.0a0)
 TORCH_VER=$(python3 -c "import torch; print(torch.__version__)")
