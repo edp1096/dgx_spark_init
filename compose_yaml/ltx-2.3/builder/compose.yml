@@ -1,14 +1,9 @@
 services:
   ltx2-ui:
-    container_name: ltx2-ui
+    container_name: ltx2-ui-spark-builder
     image: nvcr.io/nvidia/pytorch:26.02-py3
-    ports:
-      - "7860:7860"
     environment:
       - PIP_ROOT_USER_ACTION=ignore
-    volumes:
-      - "/home/edp1096/.cache/huggingface:/root/.cache/huggingface"
-      - "/home/edp1096/workspace/ltx2-ui:/root/ltx2-ui"
     deploy:
       resources:
         reservations:
@@ -16,5 +11,60 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [gpu]
-    stdin_open: true
-    tty: true
+    # stdin_open: true
+    # tty: true
+    entrypoint: >
+      /bin/bash -c "
+      GITHUB_RAW=https://raw.githubusercontent.com/edp1096/dgx_spark_init/main/compose_yaml/ltx-2.3/builder;
+
+      mkdir -p ~/ltx2-ui/ui ~/ltx2-ui/patches ~/ltx2-ui/logs;
+
+      echo '=== [1/5] Cloning LTX-2 ===';
+      if [ ! -d ~/ltx2-ui/LTX-2 ]; then
+        git clone https://github.com/Lightricks/LTX-2.git ~/ltx2-ui/LTX-2;
+        cd ~/ltx2-ui/LTX-2 && git checkout 9e8a28e && cd ~;
+      fi;
+
+      echo '=== [2/5] Downloading UI files & patches ===';
+      for f in config.py app.py generators.py pipeline_manager.py i18n.py download_models.py convert_fp8.py test_pipeline.py test_memory_profile.py; do
+        curl -sfL $${GITHUB_RAW}/ui/$$f -o ~/ltx2-ui/ui/$$f;
+      done;
+      curl -sfL $${GITHUB_RAW}/patches/ltx2-compat.patch -o ~/ltx2-ui/patches/ltx2-compat.patch;
+
+      cd ~/ltx2-ui/LTX-2;
+      git apply --check ~/ltx2-ui/patches/ltx2-compat.patch 2>/dev/null && git apply ~/ltx2-ui/patches/ltx2-compat.patch && echo '  Patch applied' || echo '  Patch skipped';
+      cp ~/ltx2-ui/ui/*.py ~/ltx2-ui/LTX-2/;
+      cd ~;
+
+      echo '=== [3/5] System libraries ===';
+      apt-get update -qq && apt-get install -y -qq --no-install-recommends
+        ffmpeg libavcodec-dev libavformat-dev libavdevice-dev libavutil-dev
+        libswscale-dev libswresample-dev libavfilter-dev libpostproc-dev
+        sox libsox-dev libsox-fmt-all;
+      apt-get clean && rm -rf /var/lib/apt/lists/*;
+
+      echo '=== [4/5] Python packages ===';
+      pip install -q gradio accelerate safetensors huggingface_hub transformers einops scipy psutil fastsafetensors av;
+      if ! python3 -c 'import torchaudio' 2>/dev/null; then
+        echo '  Building torchaudio from source...';
+        git clone --recursive https://github.com/pytorch/audio.git /tmp/torchaudio-src;
+        pip install -q -e /tmp/torchaudio-src --no-deps --no-build-isolation;
+        rm -rf /tmp/torchaudio-src;
+      fi;
+
+      echo '=== [5/5] LTX packages + q8_kernels ===';
+      pip install -q --no-deps -e ~/ltx2-ui/LTX-2/packages/ltx-core;
+      pip install -q --no-deps -e ~/ltx2-ui/LTX-2/packages/ltx-pipelines;
+      pip install -q $${GITHUB_RAW}/q8_kernels-0.0.5-cp312-cp312-linux_aarch64.whl;
+
+      python3 -c \"import torch; print(f'torch: {torch.__version__}')\" ;
+      python3 -c \"import torch; print(f'CUDA: {torch.cuda.is_available()}, {torch.cuda.get_device_name(0)}')\" ;
+      python3 -c \"import gradio; print(f'gradio: {gradio.__version__}')\" ;
+      python3 -c \"import torchaudio; print(f'torchaudio: {torchaudio.__version__}')\" ;
+      python3 -c \"import q8_kernels; print('q8_kernels: ok')\" ;
+      rm -rf /root/.cache/pip;
+
+      echo '=== Build complete! ===' ;
+      echo 'Commit: docker commit ltx2-ui-spark-builder edp1096/ltx2-ui-spark:2.3-arm64' ;
+      tail -f /dev/null
+      "
