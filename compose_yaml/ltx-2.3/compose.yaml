@@ -1,11 +1,13 @@
 services:
-  ltx2-ui:
-    container_name: ltx2-ui-spark
-    image: edp1096/ltx2-ui-spark:2.3-arm64
+  ltx2-gradio:
+    container_name: ltx23-gradio-spark
+    image: edp1096/ltx23-gradio-spark:v1
     ports:
       - "7860:7860"
     environment:
       - PIP_ROOT_USER_ACTION=ignore
+      - PYTHONUNBUFFERED=1
+      - HF_TOKEN=${HF_TOKEN}
     volumes:
       - "/home/edp1096/.cache/huggingface:/root/.cache/huggingface"
     deploy:
@@ -17,9 +19,10 @@ services:
               capabilities: [gpu]
     # stdin_open: true
     # tty: true
+    entrypoint: ""
     command: >
       /bin/bash -c "
       cd ~/ltx2-ui/LTX-2 &&
       python download_models.py &&
-      PYTHONUNBUFFERED=1 python app.py --server-name 0.0.0.0
+      python app.py --server-name 0.0.0.0
       "

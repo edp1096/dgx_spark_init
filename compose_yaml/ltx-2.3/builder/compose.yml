@@ -1,9 +1,12 @@
 services:
   ltx2-ui:
-    container_name: ltx2-ui-spark-builder
+    container_name: ltx23-ui-spark-builder
     image: nvcr.io/nvidia/pytorch:26.02-py3
     environment:
       - PIP_ROOT_USER_ACTION=ignore
+      - GITHUB_RAW=https://raw.githubusercontent.com/edp1096/dgx_spark_init/main/compose_yaml/ltx-2.3/builder
+      - LTX2_COMMIT=9e8a28e
+      - TORCHAUDIO_COMMIT=11ed357
     deploy:
       resources:
         reservations:
@@ -15,14 +18,13 @@ services:
     # tty: true
     entrypoint: >
       /bin/bash -c "
-      GITHUB_RAW=https://raw.githubusercontent.com/edp1096/dgx_spark_init/main/compose_yaml/ltx-2.3/builder;
 
       mkdir -p ~/ltx2-ui/ui ~/ltx2-ui/patches ~/ltx2-ui/logs;
 
       echo '=== [1/5] Cloning LTX-2 ===';
       if [ ! -d ~/ltx2-ui/LTX-2 ]; then
         git clone https://github.com/Lightricks/LTX-2.git ~/ltx2-ui/LTX-2;
-        cd ~/ltx2-ui/LTX-2 && git checkout 9e8a28e && cd ~;
+        cd ~/ltx2-ui/LTX-2 && git checkout $${LTX2_COMMIT} && cd ~;
       fi;
 
       echo '=== [2/5] Downloading UI files & patches ===';
@@ -37,17 +39,14 @@ services:
       cd ~;
 
       echo '=== [3/5] System libraries ===';
-      apt-get update -qq && apt-get install -y -qq --no-install-recommends
-        ffmpeg libavcodec-dev libavformat-dev libavdevice-dev libavutil-dev
-        libswscale-dev libswresample-dev libavfilter-dev libpostproc-dev
-        sox libsox-dev libsox-fmt-all;
+      apt-get update -qq && apt-get install -y -qq --no-install-recommends ffmpeg libavcodec-dev libavformat-dev libavdevice-dev libavutil-dev libswscale-dev libswresample-dev libavfilter-dev libpostproc-dev sox libsox-dev libsox-fmt-all;
       apt-get clean && rm -rf /var/lib/apt/lists/*;
 
       echo '=== [4/5] Python packages ===';
       pip install -q gradio accelerate safetensors huggingface_hub transformers einops scipy psutil fastsafetensors av;
       if ! python3 -c 'import torchaudio' 2>/dev/null; then
         echo '  Building torchaudio from source...';
-        git clone --recursive https://github.com/pytorch/audio.git /tmp/torchaudio-src;
+        git clone --depth 250 https://github.com/pytorch/audio.git /tmp/torchaudio-src && cd /tmp/torchaudio-src && git checkout $${TORCHAUDIO_COMMIT} && cd ~;
         pip install -q /tmp/torchaudio-src --no-deps --no-build-isolation;
         rm -rf /tmp/torchaudio-src;
       fi;
@@ -65,6 +64,6 @@ services:
       rm -rf /root/.cache/pip;
 
       echo '=== Build complete! ===' ;
-      echo 'Commit: docker commit ltx2-ui-spark-builder edp1096/ltx2-ui-spark:2.3-arm64' ;
+      echo 'Commit: docker commit ltx23-ui-spark-builder edp1096/ltx23-gradio-spark:v1' ;
       tail -f /dev/null
       "

@@ -1,4 +1,7 @@
 #!/bin/bash
+
+# Not required. Just use compose.yml
+
 # LTX-2.3 Gradio UI — Setup Script for NGC PyTorch 26.02-py3 Container
 # Downloads all dependencies from GitHub, installs packages, prepares environment.
 #
@@ -123,7 +126,7 @@ TORCHAUDIO_SRC="/tmp/torchaudio-src"
 if ! python3 -c "import torchaudio" 2>/dev/null; then
     echo "  Building torchaudio from source..."
     if [ ! -d "$TORCHAUDIO_SRC" ]; then
-        git clone --recursive https://github.com/pytorch/audio.git "$TORCHAUDIO_SRC"
+        git clone --depth 250 https://github.com/pytorch/audio.git "$TORCHAUDIO_SRC" && cd "$TORCHAUDIO_SRC" && git checkout 11ed357 && cd "$SCRIPT_DIR"
     fi
     pip install -q "$TORCHAUDIO_SRC" --no-deps --no-build-isolation
 fi
