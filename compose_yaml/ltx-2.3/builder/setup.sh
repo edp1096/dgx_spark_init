@@ -1,6 +1,6 @@
 #!/bin/bash
 # LTX-2.3 Gradio UI — Setup Script for NGC PyTorch 26.02-py3 Container
-# Run this after `docker compose up` to install dependencies.
+# Downloads all dependencies from GitHub, installs packages, prepares environment.
 #
 # IMPORTANT: Uses --no-deps for ltx packages to preserve NGC's custom torch.
 #
@@ -16,6 +16,24 @@ UI_DIR="$SCRIPT_DIR/ui"
 MODEL_DIR="${LTX_MODEL_DIR:-$HOME/.cache/huggingface/hub/ltx23}"
 LTX_COMMIT="9e8a28e"
 SKIP_Q8=false
+
+# GitHub raw URL base
+GITHUB_REPO="edp1096/dgx_spark_init"
+GITHUB_BRANCH="main"
+GITHUB_RAW="https://raw.githubusercontent.com/${GITHUB_REPO}/${GITHUB_BRANCH}/compose_yaml/ltx-2.3/builder"
+
+# UI Python files to download
+UI_FILES=(
+    config.py
+    app.py
+    generators.py
+    pipeline_manager.py
+    i18n.py
+    download_models.py
+    convert_fp8.py
+    test_pipeline.py
+    test_memory_profile.py
+)
 
 for arg in "$@"; do
     case $arg in
@@ -42,18 +60,29 @@ if [ ! -d "$LTX_DIR" ]; then
     cd "$SCRIPT_DIR"
 else
     echo "[0] LTX-2 already exists — skipping clone"
-    # Verify commit
     CURRENT=$(cd "$LTX_DIR" && git rev-parse --short HEAD)
     echo "  Current commit: $CURRENT (expected: $LTX_COMMIT)"
 fi
 
 # -----------------------------------------------
-# 1. Extract UI files & apply patches
+# 1. Download UI files, patches & apply
 # -----------------------------------------------
-echo "[1/5] Applying patches and copying UI files..."
+echo "[1/5] Downloading UI files and applying patches..."
 mkdir -p "$SCRIPT_DIR/logs"
+mkdir -p "$UI_DIR"
+mkdir -p "$SCRIPT_DIR/patches"
 
-# Apply LTX-2 compatibility patches (transformers >=5.0, lazy imports, etc.)
+# Download UI Python files
+for fname in "${UI_FILES[@]}"; do
+    echo "  Downloading: ui/$fname"
+    curl -sfL "${GITHUB_RAW}/ui/${fname}" -o "$UI_DIR/$fname"
+done
+
+# Download patch
+echo "  Downloading: patches/ltx2-compat.patch"
+curl -sfL "${GITHUB_RAW}/patches/ltx2-compat.patch" -o "$SCRIPT_DIR/patches/ltx2-compat.patch"
+
+# Apply patch
 PATCH_FILE="$SCRIPT_DIR/patches/ltx2-compat.patch"
 if [ -f "$PATCH_FILE" ]; then
     cd "$LTX_DIR"
@@ -68,7 +97,7 @@ fi
 
 # Copy UI files into LTX-2 directory (where packages are importable)
 cp "$UI_DIR"/*.py "$LTX_DIR/"
-echo "  Copied UI files: $(ls "$UI_DIR"/*.py | xargs -n1 basename | tr '\n' ' ')"
+echo "  Copied UI files to LTX-2/"
 
 # -----------------------------------------------
 # 2. Install Python packages (NGC torch 보존)
@@ -123,17 +152,12 @@ pip install -q --no-deps -e "$LTX_DIR/packages/ltx-pipelines"
 # -----------------------------------------------
 if [ "$SKIP_Q8" = false ]; then
     echo "[4/5] Installing q8_kernels..."
-    Q8_WHEEL="$SCRIPT_DIR/q8_kernels-0.0.5-cp312-cp312-linux_aarch64.whl"
-    if [ -f "$Q8_WHEEL" ]; then
-        echo "  Using pre-built wheel: $Q8_WHEEL"
-        pip install -q "$Q8_WHEEL"
+    Q8_WHEEL_URL="${GITHUB_RAW}/q8_kernels-0.0.5-cp312-cp312-linux_aarch64.whl"
+    if ! python3 -c "import q8_kernels" 2>/dev/null; then
+        echo "  Installing from GitHub: $Q8_WHEEL_URL"
+        pip install -q "$Q8_WHEEL_URL"
     else
-        echo "  No pre-built wheel found. Building from source (~5min)..."
-        Q8_SRC="/tmp/LTX-Video-Q8-Kernels"
-        if [ ! -d "$Q8_SRC" ]; then
-            git clone --recursive https://github.com/Lightricks/LTX-Video-Q8-Kernels.git "$Q8_SRC"
-        fi
-        pip install -q "$Q8_SRC"
+        echo "  q8_kernels already installed — skipping"
     fi
 else
     echo "[4/5] Skipping q8_kernels (--skip-q8)"
@@ -155,8 +179,9 @@ fi
 python3 -c "import torch; print(f'  CUDA: {torch.cuda.is_available()}, {torch.cuda.get_device_name(0) if torch.cuda.is_available() else \"N/A\"}')"
 
 # Check models
+mkdir -p "$MODEL_DIR"
 echo ""
-echo "  Model files:"
+echo "  Model files ($MODEL_DIR):"
 MISSING=0
 check_file() {
     if [ -e "$MODEL_DIR/$1" ]; then
@@ -187,7 +212,7 @@ echo "=============================================="
 echo "  Setup complete!"
 echo "=============================================="
 echo ""
-echo "  To run UI:   cd $LTX_DIR && PYTHONUNBUFFERED=1 python app.py"
+echo "  To run UI:   cd $LTX_DIR && PYTHONUNBUFFERED=1 python app.py --server-name 0.0.0.0"
 echo "  With log:    cd $LTX_DIR && PYTHONUNBUFFERED=1 nohup python app.py --server-name 0.0.0.0 > $SCRIPT_DIR/logs/gradio.log 2>&1 &"
 echo "  To test:     cd $LTX_DIR && python test_pipeline.py --pipeline distilled --fp8 --frames 9"
 echo ""
