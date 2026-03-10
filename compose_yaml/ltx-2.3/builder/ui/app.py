@@ -532,7 +532,8 @@ def build_ui() -> gr.Blocks:
                 """)
 
                 gr.Markdown("## Log")
-                LOG_FILE = Path(__file__).resolve().parent.parent / "logs" / "gradio.log"
+                from config import LOG_DIR
+                LOG_FILE = LOG_DIR / "gradio.log"
                 with gr.Row():
                     s_log_toggle = gr.Button("Show Log", variant="secondary")
                     s_log_download = gr.DownloadButton("Download Log", variant="secondary")

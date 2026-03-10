@@ -13,7 +13,7 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 LTX_DIR="$SCRIPT_DIR/LTX-2"
 UI_DIR="$SCRIPT_DIR/ui"
-MODEL_DIR="$SCRIPT_DIR/models/ltx-2.3"
+MODEL_DIR="${LTX_MODEL_DIR:-$HOME/.cache/huggingface/hub/ltx23}"
 LTX_COMMIT="9e8a28e"
 SKIP_Q8=false
 

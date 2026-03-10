@@ -16,7 +16,7 @@ import torch
 from safetensors import safe_open
 from safetensors.torch import load_file, save_file
 
-MODEL_DIR = Path(__file__).resolve().parent.parent / "models" / "ltx-2.3"
+from config import MODEL_DIR
 
 # Same prefixes/suffixes as TRANSFORMER_LINEAR_DOWNCAST_MAP in fp8_cast.py
 SUFFIXES = [

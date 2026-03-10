@@ -16,7 +16,7 @@ from pathlib import Path
 
 import torch
 
-MODEL_DIR = Path(__file__).resolve().parent.parent / "models" / "ltx-2.3"
+from config import MODEL_DIR
 
 
 def mem_gb() -> tuple[float, float]:

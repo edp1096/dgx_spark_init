@@ -13,7 +13,7 @@ import argparse
 import sys
 from pathlib import Path
 
-MODEL_DIR = Path(__file__).resolve().parent.parent / "models" / "ltx-2.3"
+from config import MODEL_DIR
 
 # (filename, repo_id, description)
 DOWNLOADS = {

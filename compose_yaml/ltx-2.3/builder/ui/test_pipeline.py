@@ -17,7 +17,7 @@ from pathlib import Path
 
 import torch
 
-MODEL_DIR = Path(__file__).resolve().parent.parent / "models" / "ltx-2.3"
+from config import MODEL_DIR
 OUTPUT_DIR = Path("/tmp/ltx2-test-outputs")
 
 

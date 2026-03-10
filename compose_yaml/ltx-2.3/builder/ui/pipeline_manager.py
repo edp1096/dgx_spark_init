@@ -125,10 +125,10 @@ def _wrap_model_ledger(mgr, ledger, stage_prefix: str = ""):
 # Defaults & Constants
 # ---------------------------------------------------------------------------
 DEFAULTS = LTX_2_3_PARAMS
-DEFAULT_MODEL_DIR = os.environ.get("LTX_MODEL_DIR", str(Path(__file__).resolve().parent.parent / "models" / "ltx-2.3"))
+from config import MODEL_DIR as DEFAULT_MODEL_DIR, OUTPUT_DIR
 
-OUTPUT_DIR = os.environ.get("LTX_OUTPUT_DIR", "/tmp/ltx2-outputs")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
+os.makedirs(str(DEFAULT_MODEL_DIR), exist_ok=True)
 
 RESOLUTION_CHOICES = [
     "1024x1536", "1536x1024",
@@ -179,7 +179,7 @@ class PipelineManager:
     def __init__(self) -> None:
         self.current_pipeline = None
         self.current_type: str | None = None
-        self.model_dir: str = DEFAULT_MODEL_DIR
+        self.model_dir: str = str(DEFAULT_MODEL_DIR)
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self._iclora_path: str | None = None
         # Loading progress state
