@@ -48,7 +48,7 @@ services:
       if ! python3 -c 'import torchaudio' 2>/dev/null; then
         echo '  Building torchaudio from source...';
         git clone --recursive https://github.com/pytorch/audio.git /tmp/torchaudio-src;
-        pip install -q -e /tmp/torchaudio-src --no-deps --no-build-isolation;
+        pip install -q /tmp/torchaudio-src --no-deps --no-build-isolation;
         rm -rf /tmp/torchaudio-src;
       fi;
 

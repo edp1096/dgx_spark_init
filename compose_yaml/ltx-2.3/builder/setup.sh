@@ -125,7 +125,7 @@ if ! python3 -c "import torchaudio" 2>/dev/null; then
     if [ ! -d "$TORCHAUDIO_SRC" ]; then
         git clone --recursive https://github.com/pytorch/audio.git "$TORCHAUDIO_SRC"
     fi
-    pip install -q -e "$TORCHAUDIO_SRC" --no-deps --no-build-isolation
+    pip install -q "$TORCHAUDIO_SRC" --no-deps --no-build-isolation
 fi
 
 # PyAV (av) — 시스템 라이브러리 필요
