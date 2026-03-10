@@ -1,0 +1,23 @@
+services:
+  ace-step15:
+    container_name: ace-step15
+    image: edp1096/ace-step-spark:1.5-arm64
+    ports:
+    - 7860:7860
+    - 8001:8001
+    environment:
+      - PIP_ROOT_USER_ACTION=ignore
+      - ACESTEP_SKIP_VRAM_CHECK=1
+    volumes:
+      - "/home/edp1096/.cache/huggingface:/root/.cache/huggingface"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    stdin_open: true
+    # tty: true
+    # command: /bin/bash -c "cd ~/ACE-Step-1.5 && acestep --port 7860 --server-name 0.0.0.0 --config_path acestep-v15-turbo --lm_model_path acestep-5Hz-lm-0.6B --init_service true --language ko"
+    command: /bin/bash -c "cd ~/ACE-Step-1.5 && acestep --port 7860 --server-name 0.0.0.0 --config_path acestep-v15-turbo --lm_model_path acestep-5Hz-lm-0.6B --init_service true"
