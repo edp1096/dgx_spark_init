@@ -9,8 +9,6 @@ services:
     volumes:
       - "/home/edp1096/.cache/huggingface:/root/.cache/huggingface"
       - "/home/edp1096/workspace/ltx2-ui:/root/ltx2-ui"
-      # - "/home/edp1096/workspace/.claude:/root/.claude"
-      # - "/home/edp1096/workspace/.claude.json:/root/.claude.json"
     deploy:
       resources:
         reservations:
