@@ -52,13 +52,6 @@ fi
 # -----------------------------------------------
 echo "[1/5] Applying patches and copying UI files..."
 
-# Extract tarball if ui/ directory is missing (fresh clone from repo)
-UI_TARBALL="$SCRIPT_DIR/ltx2-ui-files.tar.gz"
-if [ ! -d "$UI_DIR" ] && [ -f "$UI_TARBALL" ]; then
-    echo "  Extracting $UI_TARBALL..."
-    tar xzf "$UI_TARBALL" -C "$SCRIPT_DIR"
-fi
-
 # Apply LTX-2 compatibility patches (transformers >=5.0, lazy imports, etc.)
 PATCH_FILE="$SCRIPT_DIR/patches/ltx2-compat.patch"
 if [ -f "$PATCH_FILE" ]; then
@@ -78,6 +71,8 @@ echo "  Copied UI files: $(ls "$UI_DIR"/*.py | xargs -n1 basename | tr '\n' ' ')
 
 # -----------------------------------------------
 # 2. Install Python packages (NGC torch 보존)
+#    WARNING: torch/torchaudio/torchvision은 절대 일반 pip install 금지!
+#    반드시 --no-deps 사용. 안 하면 NGC torch가 CPU 버전으로 다운그레이드됨.
 # -----------------------------------------------
 echo "[2/5] Installing Python packages..."
 pip install -q \
@@ -87,7 +82,31 @@ pip install -q \
     huggingface_hub \
     transformers \
     einops \
-    scipy
+    scipy \
+    psutil \
+    fastsafetensors
+
+# torchaudio — 소스 빌드 필수 (PyPI wheel은 CPU-only, NGC torch 다운그레이드 유발)
+# --no-deps: torch 의존성 끌어오기 방지
+# --no-build-isolation: NGC torch를 직접 참조하여 SM 12.1 CUDA 커널 포함
+TORCHAUDIO_SRC="/tmp/torchaudio-src"
+if ! python3 -c "import torchaudio" 2>/dev/null; then
+    echo "  Building torchaudio from source..."
+    if [ ! -d "$TORCHAUDIO_SRC" ]; then
+        git clone --recursive https://github.com/pytorch/audio.git "$TORCHAUDIO_SRC"
+    fi
+    pip install -q -e "$TORCHAUDIO_SRC" --no-deps --no-build-isolation
+fi
+
+# PyAV (av) — 시스템 라이브러리 필요
+if ! python3 -c "import av" 2>/dev/null; then
+    echo "  Installing system libs for PyAV..."
+    apt-get update -qq && apt-get install -y -qq --no-install-recommends \
+        ffmpeg libavcodec-dev libavformat-dev libavdevice-dev libavutil-dev \
+        libswscale-dev libswresample-dev libavfilter-dev libpostproc-dev \
+        sox libsox-dev libsox-fmt-all
+    pip install -q av
+fi
 
 # -----------------------------------------------
 # 3. Install ltx-core and ltx-pipelines
@@ -167,6 +186,6 @@ echo "=============================================="
 echo "  Setup complete!"
 echo "=============================================="
 echo ""
-echo "  To run UI:   cd $LTX_DIR && python app.py"
+echo "  To run UI:   cd $LTX_DIR && PYTHONUNBUFFERED=1 python app.py"
 echo "  To test:     cd $LTX_DIR && python test_pipeline.py --pipeline distilled --fp8 --frames 9"
 echo ""
