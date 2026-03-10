@@ -51,6 +51,7 @@ fi
 # 1. Extract UI files & apply patches
 # -----------------------------------------------
 echo "[1/5] Applying patches and copying UI files..."
+mkdir -p "$SCRIPT_DIR/logs"
 
 # Apply LTX-2 compatibility patches (transformers >=5.0, lazy imports, etc.)
 PATCH_FILE="$SCRIPT_DIR/patches/ltx2-compat.patch"
@@ -187,5 +188,6 @@ echo "  Setup complete!"
 echo "=============================================="
 echo ""
 echo "  To run UI:   cd $LTX_DIR && PYTHONUNBUFFERED=1 python app.py"
+echo "  With log:    cd $LTX_DIR && PYTHONUNBUFFERED=1 nohup python app.py --server-name 0.0.0.0 > $SCRIPT_DIR/logs/gradio.log 2>&1 &"
 echo "  To test:     cd $LTX_DIR && python test_pipeline.py --pipeline distilled --fp8 --frames 9"
 echo ""

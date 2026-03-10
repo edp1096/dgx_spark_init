@@ -18,6 +18,7 @@ from generators import (
     generate_retake,
     generate_ti2vid,
 )
+from i18n import LANGUAGES, get_i18n_js
 from pipeline_manager import (
     DEFAULTS,
     IC_LORA_MAP,
@@ -45,7 +46,7 @@ def _duration_to_frames(duration, fps):
     """Convert seconds → nearest valid 8k+1 frame count (clamped to 9..257)."""
     raw = duration * fps
     frames = round(raw / 8) * 8 + 1
-    return max(9, min(257, frames))
+    return max(9, frames)
 
 
 def _switch_frame_mode(mode, frames, fps):
@@ -62,7 +63,7 @@ def create_frame_controls(default_frames=121, default_fps=25):
     """Create frame/duration toggle with synced inputs. Returns (frame_mode, frames, duration)."""
     with gr.Row():
         frame_mode = gr.Radio(["Frames", "Duration (sec)"], value="Frames", label="Length", scale=1)
-        frames = gr.Number(value=default_frames, label="Frames (8k+1)", precision=0, minimum=9, maximum=257, visible=True, scale=1)
+        frames = gr.Number(value=default_frames, label="Frames (8k+1)", precision=0, minimum=9, visible=True, scale=1)
         duration = gr.Number(
             value=_frames_to_duration(default_frames, default_fps),
             label="Duration (sec)", minimum=0.1, step=0.1, visible=False, scale=1,
@@ -112,7 +113,9 @@ def create_guidance_accordion(
                 v_rescale = gr.Slider(0.0, 1.0, value=v_defaults.rescale_scale, step=0.05, label="Rescale")
                 v_modality = gr.Slider(1.0, 10.0, value=v_defaults.modality_scale, step=0.1, label="Modality Scale")
                 v_stg_blocks = gr.Textbox(value=",".join(str(b) for b in v_defaults.stg_blocks), label="STG Blocks")
-                components.extend([v_cfg, v_stg, v_rescale, v_modality, v_stg_blocks])
+                v_skip_step = gr.Slider(0, 5, value=0, step=1, label="Skip Step",
+                                        info="Skip STG guidance every N steps (0=none, higher=faster)")
+                components.extend([v_cfg, v_stg, v_rescale, v_modality, v_stg_blocks, v_skip_step])
             if show_audio:
                 with gr.Column():
                     gr.Markdown("**Audio Guidance**")
@@ -121,7 +124,9 @@ def create_guidance_accordion(
                     a_rescale = gr.Slider(0.0, 1.0, value=a_defaults.rescale_scale, step=0.05, label="Rescale")
                     a_modality = gr.Slider(1.0, 10.0, value=a_defaults.modality_scale, step=0.1, label="Modality Scale")
                     a_stg_blocks = gr.Textbox(value=",".join(str(b) for b in a_defaults.stg_blocks), label="STG Blocks")
-                    components.extend([a_cfg, a_stg, a_rescale, a_modality, a_stg_blocks])
+                    a_skip_step = gr.Slider(0, 5, value=0, step=1, label="Skip Step",
+                                            info="Skip STG guidance every N steps (0=none, higher=faster)")
+                    components.extend([a_cfg, a_stg, a_rescale, a_modality, a_stg_blocks, a_skip_step])
     return components
 
 
@@ -136,7 +141,11 @@ def build_ui() -> gr.Blocks:
         total = vm.total / 1024**3
         return f"Memory: **{used:.1f}GB/{total:.0f}GB** ({vm.percent:.0f}% used)"
 
-    with gr.Blocks(title="LTX-2 Video Generator", css=".memory-status { text-align: right; }") as app:
+    with gr.Blocks(
+        title="LTX-2 Video Generator",
+        css=".memory-status { text-align: right; }",
+        js=get_i18n_js(),
+    ) as app:
         with gr.Row():
             gr.Markdown("# LTX-2 Video Generator")
             gr.Markdown(value=get_memory_status, every=3, elem_classes=["memory-status"])
@@ -159,6 +168,8 @@ def build_ui() -> gr.Blocks:
                         with gr.Accordion("Conditioning Image", open=False):
                             t1_image = gr.Image(label="Image (optional)", type="numpy")
                             t1_img_strength = gr.Slider(0.0, 1.0, value=1.0, step=0.05, label="Image Strength")
+                            t1_img_crf = gr.Slider(0, 51, value=33, step=1, label="Image CRF",
+                                                   info="Compression quality (0=lossless, 51=worst)")
                         t1_resolution = gr.Dropdown(RESOLUTION_CHOICES, value="768x512", label="Resolution (WxH)", allow_custom_value=True)
                         t1_frame_mode, t1_frames, t1_duration = create_frame_controls()
                         with gr.Row():
@@ -186,7 +197,7 @@ def build_ui() -> gr.Blocks:
                 ).then(
                     fn=generate_ti2vid,
                     inputs=[
-                        t1_prompt, t1_neg, t1_image, t1_img_strength,
+                        t1_prompt, t1_neg, t1_image, t1_img_strength, t1_img_crf,
                         t1_resolution, t1_frames, t1_fps, t1_steps, t1_seed, t1_sampler,
                         t1_enhance, t1_fp8,
                         *t1_guidance,
@@ -211,6 +222,8 @@ def build_ui() -> gr.Blocks:
                         with gr.Accordion("Conditioning Image", open=False):
                             t2_image = gr.Image(label="Image (optional)", type="numpy")
                             t2_img_strength = gr.Slider(0.0, 1.0, value=1.0, step=0.05, label="Image Strength")
+                            t2_img_crf = gr.Slider(0, 51, value=33, step=1, label="Image CRF",
+                                                   info="Compression quality (0=lossless, 51=worst)")
                         t2_resolution = gr.Dropdown(RESOLUTION_CHOICES, value="768x512", label="Resolution (WxH)", allow_custom_value=True)
                         t2_frame_mode, t2_frames, t2_duration = create_frame_controls()
                         with gr.Row():
@@ -235,7 +248,7 @@ def build_ui() -> gr.Blocks:
                 ).then(
                     fn=generate_distilled,
                     inputs=[
-                        t2_prompt, t2_image, t2_img_strength,
+                        t2_prompt, t2_image, t2_img_strength, t2_img_crf,
                         t2_resolution, t2_frames, t2_fps, t2_seed,
                         t2_enhance, t2_fp8,
                     ],
@@ -262,6 +275,8 @@ def build_ui() -> gr.Blocks:
                         with gr.Accordion("Conditioning Image", open=False):
                             t3_image = gr.Image(label="Image (optional)", type="numpy")
                             t3_img_strength = gr.Slider(0.0, 1.0, value=1.0, step=0.05, label="Image Strength")
+                            t3_img_crf = gr.Slider(0, 51, value=33, step=1, label="Image CRF",
+                                                   info="Compression quality (0=lossless, 51=worst)")
                         t3_resolution = gr.Dropdown(RESOLUTION_CHOICES, value="768x512", label="Resolution (WxH)", allow_custom_value=True)
                         t3_frame_mode, t3_frames, t3_duration = create_frame_controls()
                         with gr.Row():
@@ -288,7 +303,7 @@ def build_ui() -> gr.Blocks:
                     fn=generate_iclora,
                     inputs=[
                         t3_prompt, t3_ref_video, t3_ref_strength, t3_lora, t3_attn_strength,
-                        t3_image, t3_img_strength,
+                        t3_image, t3_img_strength, t3_img_crf,
                         t3_resolution, t3_frames, t3_fps, t3_seed,
                         t3_skip_stage2, t3_enhance, t3_fp8,
                     ],
@@ -307,6 +322,8 @@ def build_ui() -> gr.Blocks:
                         t4_keyframes = gr.File(label="Keyframe Images", file_count="multiple", file_types=["image"])
                         t4_indices = gr.Textbox(label="Frame Indices (comma-separated)", value="0,120", placeholder="0,60,120")
                         t4_img_strength = gr.Slider(0.0, 1.0, value=1.0, step=0.05, label="Keyframe Strength")
+                        t4_img_crf = gr.Slider(0, 51, value=33, step=1, label="Image CRF",
+                                               info="Compression quality (0=lossless, 51=worst)")
                         t4_resolution = gr.Dropdown(RESOLUTION_CHOICES, value="768x512", label="Resolution (WxH)", allow_custom_value=True)
                         t4_frame_mode, t4_frames, t4_duration = create_frame_controls()
                         with gr.Row():
@@ -334,7 +351,7 @@ def build_ui() -> gr.Blocks:
                     fn=generate_keyframe,
                     inputs=[
                         t4_prompt, t4_neg,
-                        t4_keyframes, t4_indices, t4_img_strength,
+                        t4_keyframes, t4_indices, t4_img_strength, t4_img_crf,
                         t4_resolution, t4_frames, t4_fps, t4_steps, t4_seed,
                         t4_enhance, t4_fp8,
                         *t4_guidance,
@@ -357,6 +374,8 @@ def build_ui() -> gr.Blocks:
                         with gr.Accordion("Conditioning Image", open=False):
                             t5_image = gr.Image(label="Image (optional)", type="numpy")
                             t5_img_strength = gr.Slider(0.0, 1.0, value=1.0, step=0.05, label="Image Strength")
+                            t5_img_crf = gr.Slider(0, 51, value=33, step=1, label="Image CRF",
+                                                   info="Compression quality (0=lossless, 51=worst)")
                         t5_resolution = gr.Dropdown(RESOLUTION_CHOICES, value="768x512", label="Resolution (WxH)", allow_custom_value=True)
                         t5_frame_mode, t5_frames, t5_duration = create_frame_controls()
                         with gr.Row():
@@ -385,7 +404,7 @@ def build_ui() -> gr.Blocks:
                     inputs=[
                         t5_prompt, t5_neg,
                         t5_audio, t5_audio_start, t5_audio_max,
-                        t5_image, t5_img_strength,
+                        t5_image, t5_img_strength, t5_img_crf,
                         t5_resolution, t5_frames, t5_fps, t5_steps, t5_seed,
                         t5_enhance, t5_fp8,
                         *t5_guidance,
@@ -492,6 +511,50 @@ def build_ui() -> gr.Blocks:
                 s_apply.click(fn=apply_settings, inputs=[s_model_dir], outputs=[s_status])
                 s_check.click(fn=check_models, inputs=[s_model_dir], outputs=[s_status])
 
+                gr.Markdown("## Language")
+                _lang_names = list(LANGUAGES.values())
+                _lang_codes = list(LANGUAGES.keys())
+                s_lang = gr.Radio(
+                    _lang_names, value=_lang_names[0],
+                    label="UI Language", elem_id="lang-selector",
+                )
+                # Build JS name→code mapping from Python LANGUAGES dict
+                _name_to_code = {v: k for k, v in LANGUAGES.items()}
+                import json as _json
+                _map_json = _json.dumps(_name_to_code, ensure_ascii=False)
+                s_lang.change(fn=lambda x: None, inputs=[s_lang], js=f"""
+                    (val) => {{
+                        const map = {_map_json};
+                        const lang = map[val] || 'en';
+                        if (window._ltx2_setLang) window._ltx2_setLang(lang);
+                        return val;
+                    }}
+                """)
+
+                gr.Markdown("## Log")
+                LOG_FILE = Path(__file__).resolve().parent.parent / "logs" / "gradio.log"
+                with gr.Row():
+                    s_log_toggle = gr.Button("Show Log", variant="secondary")
+                    s_log_download = gr.DownloadButton("Download Log", variant="secondary")
+                s_log_text = gr.Textbox(label="Log", interactive=False, lines=15, visible=False)
+                _log_visible = gr.State(False)
+
+                def toggle_log(visible):
+                    if visible:
+                        return gr.update(visible=False, value=""), not visible, gr.update(value="Show Log")
+                    if not LOG_FILE.exists():
+                        return gr.update(visible=True, value="Log file not found."), not visible, gr.update(value="Hide Log")
+                    lines = LOG_FILE.read_text().splitlines()
+                    return gr.update(visible=True, value="\n".join(lines[-50:])), not visible, gr.update(value="Hide Log")
+
+                def download_log():
+                    if LOG_FILE.exists():
+                        return str(LOG_FILE)
+                    return None
+
+                s_log_toggle.click(fn=toggle_log, inputs=[_log_visible], outputs=[s_log_text, _log_visible, s_log_toggle])
+                s_log_download.click(fn=download_log, outputs=[s_log_download])
+
             # ==============================================================
             # History Tab
             # ==============================================================
@@ -545,7 +608,7 @@ def build_ui() -> gr.Blocks:
                 h_delete.click(fn=delete_file, inputs=[h_file_list], outputs=[h_file_list, h_video, h_file_info])
                 h_flush.click(
                     fn=flush_all, outputs=[h_file_list, h_video, h_file_info],
-                    js="(()=>{if(!confirm('Delete ALL generated videos?'))throw new Error('cancelled')})",
+                    js="(()=>{const msg=window._ltx2_confirm_msg||'Delete ALL generated videos?';if(!confirm(msg))throw new Error('cancelled')})",
                 )
 
                 # Auto-refresh on tab load

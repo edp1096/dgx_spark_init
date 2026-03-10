@@ -41,7 +41,7 @@ def resolve_seed(seed: int) -> int:
     return int(seed)
 
 
-def build_guider(cfg_scale, stg_scale, rescale_scale, modality_scale, stg_blocks_str) -> MultiModalGuiderParams:
+def build_guider(cfg_scale, stg_scale, rescale_scale, modality_scale, stg_blocks_str, skip_step=0) -> MultiModalGuiderParams:
     stg_blocks = [int(x.strip()) for x in stg_blocks_str.split(",") if x.strip()]
     return MultiModalGuiderParams(
         cfg_scale=cfg_scale,
@@ -49,6 +49,7 @@ def build_guider(cfg_scale, stg_scale, rescale_scale, modality_scale, stg_blocks
         rescale_scale=rescale_scale,
         modality_scale=modality_scale,
         stg_blocks=stg_blocks,
+        skip_step=int(skip_step),
     )
 
 
@@ -94,11 +95,11 @@ def validate_and_run(pipeline_type: str, prompt: str, generate_fn, required_file
 # Generation functions
 # ---------------------------------------------------------------------------
 def generate_ti2vid(
-    prompt, negative_prompt, image, image_strength,
+    prompt, negative_prompt, image, image_strength, image_crf,
     resolution, num_frames, frame_rate, num_steps, seed, sampler,
     enhance_prompt, fp8,
-    v_cfg, v_stg, v_rescale, v_modality, v_stg_blocks,
-    a_cfg, a_stg, a_rescale, a_modality, a_stg_blocks,
+    v_cfg, v_stg, v_rescale, v_modality, v_stg_blocks, v_skip_step,
+    a_cfg, a_stg, a_rescale, a_modality, a_stg_blocks, a_skip_step,
     progress=gr.Progress(track_tqdm=True),
 ):
     def _generate(prog):
@@ -110,10 +111,10 @@ def generate_ti2vid(
 
             images = []
             if image is not None:
-                images = [ImageConditioningInput(save_temp_image(image), 0, image_strength, 33)]
+                images = [ImageConditioningInput(save_temp_image(image), 0, image_strength, int(image_crf))]
 
-            video_guider = build_guider(v_cfg, v_stg, v_rescale, v_modality, v_stg_blocks)
-            audio_guider = build_guider(a_cfg, a_stg, a_rescale, a_modality, a_stg_blocks)
+            video_guider = build_guider(v_cfg, v_stg, v_rescale, v_modality, v_stg_blocks, v_skip_step)
+            audio_guider = build_guider(a_cfg, a_stg, a_rescale, a_modality, a_stg_blocks, a_skip_step)
 
             pipeline_mgr.start_loading_bar()
             video_frames, audio = pipeline(
@@ -139,7 +140,7 @@ def generate_ti2vid(
 
 
 def generate_distilled(
-    prompt, image, image_strength,
+    prompt, image, image_strength, image_crf,
     resolution, num_frames, frame_rate, seed,
     enhance_prompt, fp8,
     progress=gr.Progress(track_tqdm=True),
@@ -153,7 +154,7 @@ def generate_distilled(
 
             images = []
             if image is not None:
-                images = [ImageConditioningInput(save_temp_image(image), 0, image_strength, 33)]
+                images = [ImageConditioningInput(save_temp_image(image), 0, image_strength, int(image_crf))]
 
             pipeline_mgr.start_loading_bar()
             video_frames, audio = pipeline(
@@ -176,7 +177,7 @@ def generate_distilled(
 
 def generate_iclora(
     prompt, ref_video, ref_strength, lora_choice, attention_strength,
-    image, image_strength,
+    image, image_strength, image_crf,
     resolution, num_frames, frame_rate, seed,
     skip_stage2, enhance_prompt, fp8,
     progress=gr.Progress(track_tqdm=True),
@@ -196,7 +197,7 @@ def generate_iclora(
 
             images = []
             if image is not None:
-                images = [ImageConditioningInput(save_temp_image(image), 0, image_strength, 33)]
+                images = [ImageConditioningInput(save_temp_image(image), 0, image_strength, int(image_crf))]
 
             video_conditioning = []
             if ref_video is not None:
@@ -227,11 +228,11 @@ def generate_iclora(
 
 def generate_keyframe(
     prompt, negative_prompt,
-    keyframe_files, frame_indices_str, image_strength,
+    keyframe_files, frame_indices_str, image_strength, image_crf,
     resolution, num_frames, frame_rate, num_steps, seed,
     enhance_prompt, fp8,
-    v_cfg, v_stg, v_rescale, v_modality, v_stg_blocks,
-    a_cfg, a_stg, a_rescale, a_modality, a_stg_blocks,
+    v_cfg, v_stg, v_rescale, v_modality, v_stg_blocks, v_skip_step,
+    a_cfg, a_stg, a_rescale, a_modality, a_stg_blocks, a_skip_step,
     progress=gr.Progress(track_tqdm=True),
 ):
     if not keyframe_files or len(keyframe_files) < 2:
@@ -248,10 +249,10 @@ def generate_keyframe(
             images = []
             for i, kf in enumerate(keyframe_files):
                 idx = indices[i] if i < len(indices) else i * (num_frames // max(len(keyframe_files) - 1, 1))
-                images.append(ImageConditioningInput(kf, idx, image_strength, 33))
+                images.append(ImageConditioningInput(kf, idx, image_strength, int(image_crf)))
 
-            video_guider = build_guider(v_cfg, v_stg, v_rescale, v_modality, v_stg_blocks)
-            audio_guider = build_guider(a_cfg, a_stg, a_rescale, a_modality, a_stg_blocks)
+            video_guider = build_guider(v_cfg, v_stg, v_rescale, v_modality, v_stg_blocks, v_skip_step)
+            audio_guider = build_guider(a_cfg, a_stg, a_rescale, a_modality, a_stg_blocks, a_skip_step)
 
             pipeline_mgr.start_loading_bar()
             video_frames, audio = pipeline(
@@ -279,10 +280,10 @@ def generate_keyframe(
 def generate_a2vid(
     prompt, negative_prompt,
     audio_file, audio_start, audio_max_duration,
-    image, image_strength,
+    image, image_strength, image_crf,
     resolution, num_frames, frame_rate, num_steps, seed,
     enhance_prompt, fp8,
-    v_cfg, v_stg, v_rescale, v_modality, v_stg_blocks,
+    v_cfg, v_stg, v_rescale, v_modality, v_stg_blocks, v_skip_step,
     progress=gr.Progress(track_tqdm=True),
 ):
     def _generate(prog):
@@ -296,7 +297,7 @@ def generate_a2vid(
             if image is not None:
                 images = [(save_temp_image(image), 0, image_strength)]
 
-            video_guider = build_guider(v_cfg, v_stg, v_rescale, v_modality, v_stg_blocks)
+            video_guider = build_guider(v_cfg, v_stg, v_rescale, v_modality, v_stg_blocks, v_skip_step)
             audio_max = audio_max_duration if audio_max_duration > 0 else None
 
             pipeline_mgr.start_loading_bar()
@@ -331,8 +332,8 @@ def generate_retake(
     regenerate_video, regenerate_audio,
     num_steps, seed, distilled_mode,
     enhance_prompt, fp8,
-    v_cfg, v_stg, v_rescale, v_modality, v_stg_blocks,
-    a_cfg, a_stg, a_rescale, a_modality, a_stg_blocks,
+    v_cfg, v_stg, v_rescale, v_modality, v_stg_blocks, v_skip_step,
+    a_cfg, a_stg, a_rescale, a_modality, a_stg_blocks, a_skip_step,
     progress=gr.Progress(track_tqdm=True),
 ):
     if start_time >= end_time:
@@ -344,8 +345,8 @@ def generate_retake(
             quantization = "fp8" if fp8 else None
             pipeline = pipeline_mgr.get_retake(distilled=distilled_mode, quantization=quantization)
 
-            video_guider = build_guider(v_cfg, v_stg, v_rescale, v_modality, v_stg_blocks)
-            audio_guider = build_guider(a_cfg, a_stg, a_rescale, a_modality, a_stg_blocks)
+            video_guider = build_guider(v_cfg, v_stg, v_rescale, v_modality, v_stg_blocks, v_skip_step)
+            audio_guider = build_guider(a_cfg, a_stg, a_rescale, a_modality, a_stg_blocks, a_skip_step)
 
             pipeline_mgr.start_loading_bar()
             video_frames, audio_tensor = pipeline(
