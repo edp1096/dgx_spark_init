@@ -82,6 +82,13 @@ for fname in "${UI_FILES[@]}"; do
     curl -sfL "${GITHUB_RAW}/ui/${fname}" -o "$UI_DIR/$fname"
 done
 
+# Download mod/ subdirectory files
+mkdir -p "$UI_DIR/mod"
+for fname in __init__.py nag.py; do
+    echo "  Downloading: ui/mod/$fname"
+    curl -sfL "${GITHUB_RAW}/ui/mod/${fname}" -o "$UI_DIR/mod/$fname"
+done
+
 # Download patch
 echo "  Downloading: patches/ltx2-compat.patch"
 curl -sfL "${GITHUB_RAW}/patches/ltx2-compat.patch" -o "$SCRIPT_DIR/patches/ltx2-compat.patch"
