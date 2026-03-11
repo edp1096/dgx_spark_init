@@ -124,13 +124,13 @@ def test_ti2vid(mgr, frames: int = 9, steps: int = 10) -> bool:
         modality_scale=3.0, stg_blocks=[28],
     )
 
-    print(f"Generating... ({frames} frames, {steps} steps, 512x768)")
+    print(f"Generating... ({frames} frames, {steps} steps, 1024x768)")
     t0 = time.time()
     video_frames, audio = pipeline(
         prompt="A golden retriever puppy runs through a sunlit meadow.",
         negative_prompt="low quality, blurry",
         seed=42,
-        height=512, width=768,
+        height=768, width=1024,
         num_frames=frames,
         frame_rate=25.0,
         num_inference_steps=steps,
@@ -294,13 +294,13 @@ def test_keyframe(mgr, frames: int = 9, steps: int = 10) -> bool:
         modality_scale=3.0, stg_blocks=[28],
     )
 
-    print(f"Generating... ({frames} frames, {steps} steps, 2 keyframes)")
+    print(f"Generating... ({frames} frames, {steps} steps, 2 keyframes, 1024x768)")
     t0 = time.time()
     video_frames, audio = pipeline(
         prompt="Smooth transition between two scenes in a natural landscape.",
         negative_prompt="low quality, blurry",
         seed=42,
-        height=512, width=768,
+        height=768, width=1024,
         num_frames=frames,
         frame_rate=25.0,
         num_inference_steps=steps,
@@ -349,13 +349,13 @@ def test_a2vid(mgr, frames: int = 9, steps: int = 10) -> bool:
         modality_scale=3.0, stg_blocks=[28],
     )
 
-    print(f"Generating... ({frames} frames, {steps} steps, audio-conditioned)")
+    print(f"Generating... ({frames} frames, {steps} steps, audio-conditioned, 1024x768)")
     t0 = time.time()
     video_frames, audio = pipeline(
         prompt="A person playing piano in a concert hall.",
         negative_prompt="low quality, blurry",
         seed=42,
-        height=512, width=768,
+        height=768, width=1024,
         num_frames=frames,
         frame_rate=25.0,
         num_inference_steps=steps,
