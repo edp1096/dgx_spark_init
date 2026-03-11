@@ -22,6 +22,11 @@ services:
     entrypoint: ""
     command: >
       /bin/bash -c "
+      cd ~/ltx2-ui &&
+      wget -q https://raw.githubusercontent.com/edp1096/dgx_spark_init/main/compose_yaml/ltx-2.3/builder/update.sh -O update.sh &&
+      chmod +x update.sh &&
+      ./update.sh --no-restart &&
+
       cd ~/ltx2-ui/LTX-2 &&
       python download_models.py &&
       python app.py --server-name 0.0.0.0
