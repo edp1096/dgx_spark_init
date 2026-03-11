@@ -1,6 +1,6 @@
 """Download LTX-2.3 model files from HuggingFace (FP8 mode).
 
-Downloads dev-fp8 from official repo, distilled BF16 + auto-converts to FP8.
+Downloads BF16 checkpoints from Lightricks/LTX-2.3 and converts to FP8 locally.
 Downloads sequentially (ISP QoS limits parallel connections).
 
 Usage:
@@ -17,7 +17,7 @@ from config import MODEL_DIR
 
 # (filename, repo_id, description)
 DOWNLOADS = {
-    "dev-fp8": ("ltx-2.3-22b-dev-fp8.safetensors", "Lightricks/LTX-2.3-fp8", "Official dev FP8 (~29GB)"),
+    "dev": ("ltx-2.3-22b-dev.safetensors", "Lightricks/LTX-2.3", "Dev BF16 (~44GB, for FP8 conversion)"),
     "distilled": ("ltx-2.3-22b-distilled.safetensors", "Lightricks/LTX-2.3", "Distilled BF16 (~44GB, for FP8 conversion)"),
     "upscaler": ("ltx-2.3-spatial-upscaler-x2-1.0.safetensors", "Lightricks/LTX-2.3", "2x Spatial upscaler (~950MB)"),
     "lora": ("ltx-2.3-22b-distilled-lora-384.safetensors", "Lightricks/LTX-2.3", "Distilled LoRA (~7.1GB)"),
@@ -105,24 +105,24 @@ def download_gemma() -> bool:
         return False
 
 
-def convert_distilled_fp8() -> bool:
-    """Download distilled BF16, convert to FP8, delete BF16."""
-    dst = MODEL_DIR / "ltx-2.3-22b-distilled-fp8.safetensors"
+def _convert_bf16_to_fp8(name: str, src_filename: str, dst_filename: str) -> bool:
+    """Download BF16 checkpoint, convert to FP8, delete BF16 source."""
+    dst = MODEL_DIR / dst_filename
     if dst.exists():
         print(f"  Already exists: {dst.name} ({format_size(dst.stat().st_size)})")
         return True
 
-    src = MODEL_DIR / "ltx-2.3-22b-distilled.safetensors"
+    src = MODEL_DIR / src_filename
 
     # Download BF16 if not present
     if not src.exists():
-        print("  Downloading distilled BF16 for FP8 conversion...")
+        print(f"  Downloading {name} BF16 for FP8 conversion...")
         ok = download_file(src.name, "Lightricks/LTX-2.3")
         if not ok:
             return False
 
     # Convert
-    print("  Converting distilled BF16 → FP8...")
+    print(f"  Converting {name} BF16 → FP8...")
     try:
         import time
 
@@ -160,6 +160,16 @@ def convert_distilled_fp8() -> bool:
         return False
 
 
+def convert_dev_fp8() -> bool:
+    """Download dev BF16, convert to FP8, delete BF16."""
+    return _convert_bf16_to_fp8("dev", "ltx-2.3-22b-dev.safetensors", "ltx-2.3-22b-dev-fp8.safetensors")
+
+
+def convert_distilled_fp8() -> bool:
+    """Download distilled BF16, convert to FP8, delete BF16."""
+    return _convert_bf16_to_fp8("distilled", "ltx-2.3-22b-distilled.safetensors", "ltx-2.3-22b-distilled-fp8.safetensors")
+
+
 def main() -> None:
     global MODEL_DIR
 
@@ -180,9 +190,11 @@ def main() -> None:
         key = args.only.lower().replace("-", "_")
         if key == "gemma":
             sys.exit(0 if download_gemma() else 1)
+        elif key == "dev_fp8":
+            sys.exit(0 if convert_dev_fp8() else 1)
         elif key == "distilled_fp8":
             sys.exit(0 if convert_distilled_fp8() else 1)
-        elif key in {"dev_fp8", "upscaler", "lora"}:
+        elif key in {"upscaler", "lora"}:
             fname, repo, _ = DOWNLOADS[key.replace("_", "-")]
             sys.exit(0 if download_file(fname, repo) else 1)
         elif key.replace("_", "-") in IC_LORA_DOWNLOADS:
@@ -197,9 +209,8 @@ def main() -> None:
     print(f"Downloading all models to: {MODEL_DIR}\n")
     results = {}
 
-    # 1. Dev FP8 (official)
-    fname, repo, _ = DOWNLOADS["dev-fp8"]
-    results["dev-fp8"] = download_file(fname, repo)
+    # 1. Dev FP8 (download BF16 + convert)
+    results["dev-fp8"] = convert_dev_fp8()
 
     # 2. Distilled FP8 (download BF16 + convert)
     results["distilled-fp8"] = convert_distilled_fp8()
