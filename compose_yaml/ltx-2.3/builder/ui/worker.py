@@ -264,11 +264,26 @@ def _worker_loop(
             )
             return output_path, seed
 
+    def _ensure_stereo(audio_path):
+        """Convert mono audio to stereo — the audio encoder expects 2 channels."""
+        import soundfile as sf
+        data, sr = sf.read(audio_path)
+        if data.ndim == 1:
+            import numpy as np
+            stereo = np.stack([data, data], axis=-1)
+            stereo_path = str(Path(OUTPUT_DIR) / f"_stereo_tmp{Path(audio_path).suffix}")
+            sf.write(stereo_path, stereo, sr)
+            log.info("Converted mono audio to stereo: %s", stereo_path)
+            return stereo_path
+        return audio_path
+
     def _run_a2vid(kwargs, task_id):
         with torch.inference_mode():
             seed = resolve_seed(kwargs["seed"])
             height, width = parse_resolution(kwargs["resolution"])
             pipeline = mgr.get_a2vid(quantization="fp8")
+
+            audio_path = _ensure_stereo(kwargs["audio_path"])
 
             images = []
             if kwargs.get("image_path"):
@@ -288,7 +303,7 @@ def _worker_loop(
                 num_inference_steps=kwargs["num_steps"],
                 video_guider_params=video_guider,
                 images=images,
-                audio_path=kwargs["audio_path"],
+                audio_path=audio_path,
                 audio_start_time=kwargs.get("audio_start", 0),
                 audio_max_duration=audio_max,
                 enhance_prompt=kwargs.get("enhance_prompt", False),
