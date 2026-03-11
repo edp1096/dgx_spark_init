@@ -8,7 +8,7 @@ from pathlib import Path
 import gradio as gr
 from PIL import Image
 
-from pipeline_manager import IC_LORA_MAP, OUTPUT_DIR, REQUIRED_MODELS
+from pipeline_manager import IC_LORA_MAP, MIN_DEV_RESOLUTION_DIM, OUTPUT_DIR, REQUIRED_MODELS
 from worker import WorkerProcessManager
 
 logger = logging.getLogger("ltx2-ui")
@@ -256,7 +256,8 @@ def _submit_and_wait(gen_type: str, kwargs: dict, progress) -> tuple[str, str]:
         raise
 
 
-def _validate(pipeline_type: str, prompt: str, required_files: dict | None = None):
+def _validate(pipeline_type: str, prompt: str, required_files: dict | None = None,
+              resolution: str | None = None):
     """Input validation (runs in main process, no GPU needed)."""
     if not prompt or not prompt.strip():
         raise gr.Error("Prompt is required.")
@@ -270,6 +271,22 @@ def _validate(pipeline_type: str, prompt: str, required_files: dict | None = Non
         for name, value in required_files.items():
             if value is None:
                 raise gr.Error(f"{name} is required.")
+
+    # Two-stage dev model pipelines need sufficient resolution for Stage 1
+    if resolution and pipeline_type in ("ti2vid", "keyframe", "a2vid"):
+        try:
+            w, h = (int(x) for x in resolution.split("x"))
+            min_dim = min(w, h)
+            if min_dim < MIN_DEV_RESOLUTION_DIM:
+                raise gr.Error(
+                    f"Resolution {resolution} is too small for the dev model two-stage pipeline. "
+                    f"Stage 1 runs at half resolution ({w//2}x{h//2}), which produces a latent "
+                    f"grid too small for the 22B transformer. "
+                    f"Minimum dimension must be >= {MIN_DEV_RESOLUTION_DIM}. "
+                    f"Use the distilled tab for lower resolutions."
+                )
+        except ValueError:
+            raise gr.Error(f"Invalid resolution format: {resolution}. Expected WxH (e.g. 1024x768).")
 
 
 # ---------------------------------------------------------------------------
@@ -293,7 +310,7 @@ def generate_ti2vid(
         a_cfg, a_stg, a_rescale, a_modality, a_stg_blocks, a_skip_step,
         frame_mode, duration, disable_audio,
     ]}
-    _validate("ti2vid", prompt)
+    _validate("ti2vid", prompt, resolution=resolution)
     image_path = save_temp_image(image) if image is not None else None
     kwargs = {
         "prompt": prompt, "negative_prompt": negative_prompt,
@@ -406,7 +423,7 @@ def generate_keyframe(
     ]}
     if not keyframe_files or len(keyframe_files) < 2:
         raise gr.Error("At least 2 keyframe images are required.")
-    _validate("keyframe", prompt)
+    _validate("keyframe", prompt, resolution=resolution)
     kwargs = {
         "prompt": prompt, "negative_prompt": negative_prompt,
         "keyframe_paths": [str(f) for f in keyframe_files],
@@ -443,7 +460,7 @@ def generate_a2vid(
         v_cfg, v_stg, v_rescale, v_modality, v_stg_blocks, v_skip_step,
         frame_mode, duration,
     ]}
-    _validate("a2vid", prompt, required_files={"Audio File": audio_file})
+    _validate("a2vid", prompt, required_files={"Audio File": audio_file}, resolution=resolution)
     image_path = save_temp_image(image) if image is not None else None
     kwargs = {
         "prompt": prompt, "negative_prompt": negative_prompt,

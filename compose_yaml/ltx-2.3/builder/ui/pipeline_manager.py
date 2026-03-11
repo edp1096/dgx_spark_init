@@ -159,6 +159,15 @@ RESOLUTION_CHOICES = [
     "512x768", "768x512",
     "544x960", "960x544",
 ]
+
+# Two-stage dev model pipelines (ti2vid, keyframe, a2vid) run Stage 1 at
+# half resolution.  If the final resolution is too small the Stage 1 latent
+# grid becomes tiny (e.g. 12x8 tokens at 768x512) and the 22B transformer
+# cannot produce coherent output.  Require min(W,H) >= 768 for these tabs.
+RESOLUTION_CHOICES_DEV = [r for r in RESOLUTION_CHOICES
+                          if min(int(r.split("x")[0]), int(r.split("x")[1])) >= 768]
+
+MIN_DEV_RESOLUTION_DIM = 768  # minimum dimension for dev two-stage pipelines
 FRAME_CHOICES = [9, 17, 25, 33, 41, 49, 57, 65, 73, 81, 89, 97, 121, 161, 193]
 
 SAMPLE_PROMPTS = [
