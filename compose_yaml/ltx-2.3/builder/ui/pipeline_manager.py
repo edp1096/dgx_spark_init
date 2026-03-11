@@ -185,10 +185,7 @@ REQUIRED_MODELS = {
 
 IC_LORA_MAP = {
     "Union Control": "ltx-2.3-22b-ic-lora-union-control-ref0.5.safetensors",
-    "Inpainting": "ltx-2.3-22b-ic-lora-inpainting.safetensors",
     "Motion Track": "ltx-2.3-22b-ic-lora-motion-track-control-ref0.5.safetensors",
-    "Detailer": "ltx-2-19b-ic-lora-detailer.safetensors",
-    "Pose Control": "ltx-2-19b-ic-lora-pose-control.safetensors",
 }
 
 

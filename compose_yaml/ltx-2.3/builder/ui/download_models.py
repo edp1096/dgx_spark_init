@@ -23,6 +23,11 @@ DOWNLOADS = {
     "lora": ("ltx-2.3-22b-distilled-lora-384.safetensors", "Lightricks/LTX-2.3", "Distilled LoRA (~7.1GB)"),
 }
 
+IC_LORA_DOWNLOADS = {
+    "ic-union": ("ltx-2.3-22b-ic-lora-union-control-ref0.5.safetensors", "Lightricks/LTX-2.3-22b-IC-LoRA-Union-Control", "IC-LoRA Union Control (~654MB)"),
+    "ic-motion": ("ltx-2.3-22b-ic-lora-motion-track-control-ref0.5.safetensors", "Lightricks/LTX-2.3-22b-IC-LoRA-Motion-Track-Control", "IC-LoRA Motion Track (~327MB)"),
+}
+
 GEMMA_REPO = "google/gemma-3-12b-it-qat-q4_0-unquantized"
 
 
@@ -52,6 +57,14 @@ def check_status() -> None:
                 print(f"  [  OK  ] {fname}/ (dir)")
             else:
                 print(f"  [  OK  ] {fname} ({format_size(path.stat().st_size)})")
+        else:
+            print(f"  [MISSING] {fname}")
+
+    print("\n  --- IC-LoRA (optional) ---")
+    for key, (fname, repo, desc) in IC_LORA_DOWNLOADS.items():
+        path = MODEL_DIR / fname
+        if path.exists():
+            print(f"  [  OK  ] {fname} ({format_size(path.stat().st_size)})")
         else:
             print(f"  [MISSING] {fname}")
 
@@ -152,7 +165,7 @@ def main() -> None:
 
     parser = argparse.ArgumentParser(description="Download LTX-2.3 models (FP8)")
     parser.add_argument("--status", action="store_true", help="Check download status")
-    parser.add_argument("--only", type=str, help="Download specific: dev-fp8, distilled-fp8, upscaler, lora, gemma")
+    parser.add_argument("--only", type=str, help="Download specific: dev-fp8, distilled-fp8, upscaler, lora, gemma, ic-union, ic-motion")
     parser.add_argument("--model-dir", type=str, default=str(MODEL_DIR))
     args = parser.parse_args()
 
@@ -172,9 +185,12 @@ def main() -> None:
         elif key in {"dev_fp8", "upscaler", "lora"}:
             fname, repo, _ = DOWNLOADS[key.replace("_", "-")]
             sys.exit(0 if download_file(fname, repo) else 1)
+        elif key.replace("_", "-") in IC_LORA_DOWNLOADS:
+            fname, repo, _ = IC_LORA_DOWNLOADS[key.replace("_", "-")]
+            sys.exit(0 if download_file(fname, repo) else 1)
         else:
             print(f"Unknown: {args.only}")
-            print("Available: dev-fp8, distilled-fp8, upscaler, lora, gemma")
+            print("Available: dev-fp8, distilled-fp8, upscaler, lora, gemma, ic-union, ic-motion")
             sys.exit(1)
 
     # Download all sequentially
@@ -198,6 +214,11 @@ def main() -> None:
 
     # 5. Gemma
     results["gemma"] = download_gemma()
+
+    # 6. IC-LoRA (optional)
+    print("\n--- IC-LoRA (optional) ---")
+    for key, (fname, repo, desc) in IC_LORA_DOWNLOADS.items():
+        results[key] = download_file(fname, repo)
 
     print("\n" + "=" * 50)
     for name, ok in results.items():

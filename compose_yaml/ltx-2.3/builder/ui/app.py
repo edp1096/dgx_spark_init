@@ -375,7 +375,7 @@ def build_ui() -> gr.Blocks:
                         t3_lora = gr.Dropdown(
                             list(IC_LORA_MAP.keys()),
                             value="Union Control", label="IC-LoRA Type",
-                            info="Union Control: Preserve overall structure of reference video | Inpainting: Regenerate partial regions | Motion Track: Follow motion trajectory | Detailer: Enhance fine details | Pose Control: Control body poses",
+                            info="Union Control: Preserve overall structure of reference video | Motion Track: Follow motion trajectory",
                         )
                         t3_attn_strength = gr.Slider(0.0, 1.0, value=1.0, step=0.05, label="Attention Strength")
                         with gr.Accordion("Conditioning Image", open=False):
@@ -592,10 +592,7 @@ def build_ui() -> gr.Blocks:
                     ]
                     ic_loras = [
                         ("ltx-2.3-22b-ic-lora-union-control-ref0.5.safetensors", "IC-LoRA Union Control"),
-                        ("ltx-2.3-22b-ic-lora-inpainting.safetensors", "IC-LoRA Inpainting"),
                         ("ltx-2.3-22b-ic-lora-motion-track-control-ref0.5.safetensors", "IC-LoRA Motion Track"),
-                        ("ltx-2-19b-ic-lora-detailer.safetensors", "IC-LoRA Detailer"),
-                        ("ltx-2-19b-ic-lora-pose-control.safetensors", "IC-LoRA Pose Control"),
                     ]
 
                     lines = [f"Model directory: {model_dir}\n", "=== Required ==="]

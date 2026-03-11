@@ -103,8 +103,8 @@ STRINGS = {
     "reference_video":           {"en": "Reference Video",             "ko": "참조 영상"},
     "reference_strength":        {"en": "Reference Strength",          "ko": "참조 강도"},
     "iclora_type":               {"en": "IC-LoRA Type",                "ko": "IC-LoRA 유형"},
-    "iclora_type_info":          {"en": "Union Control: Preserve overall structure of reference video | Inpainting: Regenerate partial regions | Motion Track: Follow motion trajectory | Detailer: Enhance fine details | Pose Control: Control body poses",
-                                  "ko": "Union Control: 참조 영상의 전체 구조 유지 | Inpainting: 부분 영역 재생성 | Motion Track: 모션 궤적 추적 | Detailer: 세부 디테일 향상 | Pose Control: 신체 포즈 제어"},
+    "iclora_type_info":          {"en": "Union Control: Preserve overall structure of reference video | Motion Track: Follow motion trajectory",
+                                  "ko": "Union Control: 참조 영상의 전체 구조 유지 | Motion Track: 모션 궤적 추적"},
     "attention_strength":        {"en": "Attention Strength",          "ko": "어텐션 강도"},
     "skip_upscale":              {"en": "Skip Upscale (half res)",     "ko": "업스케일 건너뛰기 (절반 해상도)"},
 
