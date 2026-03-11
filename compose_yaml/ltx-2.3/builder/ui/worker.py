@@ -53,6 +53,7 @@ def _worker_loop(
     from ltx_pipelines.utils.media_io import encode_video
 
     from pipeline_manager import PipelineManager, IC_LORA_MAP, OUTPUT_DIR
+    from mod.nag import encode_negative_prompt, get_model_ledger, nag_guidance
 
     mgr = PipelineManager(progress_queue=progress_queue)
     mgr.model_dir = model_dir
@@ -82,6 +83,19 @@ def _worker_loop(
             stg_blocks=stg_blocks,
             skip_step=int(skip_step),
         )
+
+    # --- NAG helper ---
+    def _run_pipeline_with_nag(pipeline, kwargs, gen_kwargs):
+        """Run pipeline with optional NAG guidance for distilled models."""
+        neg_prompt = kwargs.get("negative_prompt", "")
+        nag_scale = kwargs.get("nag_scale", 1.0)
+
+        if neg_prompt.strip() and nag_scale > 1.0:
+            ledger = get_model_ledger(pipeline)
+            neg_v, neg_a = encode_negative_prompt(ledger, neg_prompt)
+            with nag_guidance(neg_v, neg_a, scale=nag_scale):
+                return pipeline(**gen_kwargs)
+        return pipeline(**gen_kwargs)
 
     # --- Generation handlers ---
     def _run_ti2vid(kwargs, task_id):
@@ -153,7 +167,7 @@ def _worker_loop(
             if kwargs.get("disable_audio"):
                 gen_kwargs["generate_audio"] = False
 
-            video_frames, audio = pipeline(**gen_kwargs)
+            video_frames, audio = _run_pipeline_with_nag(pipeline, kwargs, gen_kwargs)
             output_path = make_output_path()
             encode_video(
                 video=video_frames, fps=kwargs["frame_rate"],
@@ -198,7 +212,7 @@ def _worker_loop(
             if kwargs.get("disable_audio"):
                 gen_kwargs["generate_audio"] = False
 
-            video_frames, audio = pipeline(**gen_kwargs)
+            video_frames, audio = _run_pipeline_with_nag(pipeline, kwargs, gen_kwargs)
             output_path = make_output_path()
             encode_video(
                 video=video_frames, fps=kwargs["frame_rate"],
@@ -297,7 +311,7 @@ def _worker_loop(
             audio_guider = build_guider(kwargs["a_guidance"])
 
             mgr.start_loading_bar()
-            video_frames, audio_tensor = pipeline(
+            retake_kwargs = dict(
                 video_path=kwargs["video_path"],
                 prompt=kwargs["prompt"],
                 start_time=kwargs["start_time"],
@@ -312,6 +326,12 @@ def _worker_loop(
                 enhance_prompt=kwargs.get("enhance_prompt", False),
                 distilled=distilled,
             )
+            if distilled:
+                video_frames, audio_tensor = _run_pipeline_with_nag(
+                    pipeline, kwargs, retake_kwargs,
+                )
+            else:
+                video_frames, audio_tensor = pipeline(**retake_kwargs)
             from ltx_pipelines.utils.media_io import get_videostream_metadata
             src_fps, src_num_frames, _, _ = get_videostream_metadata(kwargs["video_path"])
             output_path = make_output_path()

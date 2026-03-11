@@ -48,6 +48,21 @@ for item in items:
 " 2>/dev/null
 }
 
+# List subdirectories under a remote path
+list_remote_subdirs() {
+    local api_path="$1"
+    curl -sf "${GITHUB_API}/${api_path}?ref=${GITHUB_BRANCH}" | python3 -c "
+import sys, json
+items = json.load(sys.stdin)
+for item in items:
+    name = item['name']
+    if name == '__pycache__':
+        continue
+    if item['type'] == 'dir':
+        print(name)
+" 2>/dev/null
+}
+
 # ---------------------------------------------------------------------------
 # Print summary — called at the end of update or diff
 # ---------------------------------------------------------------------------
@@ -117,7 +132,24 @@ if [ ${#UI_FILES[@]} -eq 0 ]; then
     exit 1
 fi
 
+# Discover UI subdirectories (mod/ etc.)
+UI_SUBDIRS=()
+while IFS= read -r d; do
+    [ -n "$d" ] && UI_SUBDIRS+=("$d")
+done < <(list_remote_subdirs "ui")
+
+# Fetch file lists for each subdirectory
+declare -A UI_SUBDIR_FILES
+for subdir in "${UI_SUBDIRS[@]}"; do
+    subfiles=()
+    while IFS= read -r f; do
+        [ -n "$f" ] && subfiles+=("$f")
+    done < <(list_remote_files "ui/${subdir}")
+    UI_SUBDIR_FILES[$subdir]="${subfiles[*]}"
+done
+
 echo "  UI files: ${#UI_FILES[@]} (${UI_FILES[*]})"
+echo "  UI subdirs: ${UI_SUBDIRS[*]:-none}"
 echo "  Patches:  ${#PATCH_FILES[@]} (${PATCH_FILES[*]})"
 echo ""
 
@@ -149,6 +181,28 @@ if [ "$DIFF_ONLY" = true ]; then
             echo "  NEW: ui/${fname}"
             changed=$((changed + 1))
         fi
+    done
+
+    # Check UI subdirectory files
+    for subdir in "${UI_SUBDIRS[@]}"; do
+        for fname in ${UI_SUBDIR_FILES[$subdir]}; do
+            if ! curl -sfL "${GITHUB_RAW}/ui/${subdir}/${fname}" -o "${TEMP_DIR}/${fname}" 2>/dev/null; then
+                fail "ui/${subdir}/${fname} (download)"
+                continue
+            fi
+            current="${LTX_DIR}/${subdir}/${fname}"
+            if [ -f "$current" ]; then
+                if ! diff -q "$current" "${TEMP_DIR}/${fname}" > /dev/null 2>&1; then
+                    echo ""
+                    echo "--- CHANGED: ui/${subdir}/${fname} ---"
+                    diff --color=auto -u "$current" "${TEMP_DIR}/${fname}" || true
+                    changed=$((changed + 1))
+                fi
+            else
+                echo "  NEW: ui/${subdir}/${fname}"
+                changed=$((changed + 1))
+            fi
+        done
     done
 
     # Check patch files
@@ -215,6 +269,12 @@ if [ "$FORCE" = false ] && [ -d "$LTX_DIR" ]; then
             cp "${LTX_DIR}/${fname}" "${BACKUP_DIR}/${fname}"
         fi
     done
+    for subdir in "${UI_SUBDIRS[@]}"; do
+        if [ -d "${LTX_DIR}/${subdir}" ]; then
+            mkdir -p "${BACKUP_DIR}/${subdir}"
+            cp "${LTX_DIR}/${subdir}"/*.py "${BACKUP_DIR}/${subdir}/" 2>/dev/null || true
+        fi
+    done
     for fname in "${PATCH_FILES[@]}"; do
         if [ -f "${PATCH_DIR}/${fname}" ]; then
             mkdir -p "${BACKUP_DIR}/patches"
@@ -236,6 +296,19 @@ for fname in "${UI_FILES[@]}"; do
         echo "  FAIL: ui/${fname}"
         fail "ui/${fname}"
     fi
+done
+
+# Download UI subdirectory files
+for subdir in "${UI_SUBDIRS[@]}"; do
+    mkdir -p "${UI_DIR}/${subdir}"
+    for fname in ${UI_SUBDIR_FILES[$subdir]}; do
+        if curl -sfL "${GITHUB_RAW}/ui/${subdir}/${fname}" -o "${UI_DIR}/${subdir}/${fname}"; then
+            echo "  OK: ui/${subdir}/${fname}"
+        else
+            echo "  FAIL: ui/${subdir}/${fname}"
+            fail "ui/${subdir}/${fname}"
+        fi
+    done
 done
 
 # [3/4] Download patches
@@ -264,6 +337,13 @@ fi
 echo "[4/4] Applying updates..."
 if [ -d "$LTX_DIR" ]; then
     cp "${UI_DIR}"/*.py "${LTX_DIR}/"
+    # Copy subdirectories (mod/ etc.)
+    for subdir in "${UI_SUBDIRS[@]}"; do
+        if [ -d "${UI_DIR}/${subdir}" ]; then
+            mkdir -p "${LTX_DIR}/${subdir}"
+            cp "${UI_DIR}/${subdir}"/*.py "${LTX_DIR}/${subdir}/" 2>/dev/null || true
+        fi
+    done
     echo "  Copied ${#UI_FILES[@]} UI files to LTX-2/"
 
     # Re-apply patches if needed

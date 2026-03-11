@@ -101,6 +101,12 @@ fi
 
 # Copy UI files into LTX-2 directory (where packages are importable)
 cp "$UI_DIR"/*.py "$LTX_DIR/"
+# Copy subdirectories (mod/ etc.)
+find "$UI_DIR" -mindepth 1 -type d ! -name '__pycache__' | while read -r subdir; do
+    rel="${subdir#$UI_DIR/}"
+    mkdir -p "$LTX_DIR/$rel"
+    cp "$subdir"/*.py "$LTX_DIR/$rel/" 2>/dev/null || true
+done
 echo "  Copied UI files to LTX-2/"
 
 # -----------------------------------------------

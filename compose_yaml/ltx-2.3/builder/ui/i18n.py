@@ -19,8 +19,8 @@ STRINGS = {
     "header_title":              {"en": "LTX-2 Video Generator",       "ko": "LTX-2 영상 생성기"},
 
     # Tab names
-    "tab_ti2vid":                {"en": "Text/Image → Video",          "ko": "텍스트/이미지 → 영상"},
-    "tab_distilled":             {"en": "Distilled (Fast)",            "ko": "Distilled (빠른 생성)"},
+    "tab_distilled":             {"en": "ti2vid (distilled)",          "ko": "ti2vid (distilled)"},
+    "tab_ti2vid":                {"en": "ti2vid",                      "ko": "ti2vid"},
     "tab_iclora":                {"en": "IC-LoRA",                     "ko": "IC-LoRA"},
     "tab_keyframe":              {"en": "Keyframe Interpolation",      "ko": "키프레임 보간"},
     "tab_a2vid":                 {"en": "Audio → Video",               "ko": "오디오 → 영상"},
@@ -31,10 +31,10 @@ STRINGS = {
     # Tab descriptions
     "desc_ti2vid":               {"en": "2-stage generation (dev model). Supports negative prompt and guidance parameters.",
                                   "ko": "2단계 생성 (dev 모델). 네거티브 프롬프트 및 가이던스 파라미터 지원."},
-    "desc_distilled":            {"en": "Fast 8-step generation. No negative prompt or guidance parameters.",
-                                  "ko": "빠른 8스텝 생성. 네거티브 프롬프트/가이던스 파라미터 없음."},
-    "desc_iclora":               {"en": "Reference video conditioned generation (distilled model). No negative prompt.",
-                                  "ko": "참조 영상 기반 생성 (distilled 모델). 네거티브 프롬프트 없음."},
+    "desc_distilled":            {"en": "Fast 8-step generation. Negative prompt via NAG guidance (2x slower when enabled).",
+                                  "ko": "빠른 8스텝 생성. NAG 가이던스로 네거티브 프롬프트 지원 (사용 시 2배 느림)."},
+    "desc_iclora":               {"en": "Reference video conditioned generation (distilled model). Negative prompt via NAG guidance.",
+                                  "ko": "참조 영상 기반 생성 (distilled 모델). NAG 가이던스로 네거티브 프롬프트 지원."},
     "desc_keyframe":             {"en": "Interpolate between keyframe images (dev model). Supports negative prompt.",
                                   "ko": "키프레임 이미지 간 보간 (dev 모델). 네거티브 프롬프트 지원."},
     "desc_a2vid":                {"en": "Audio-conditioned video generation (dev model). Supports negative prompt.",
@@ -110,8 +110,13 @@ STRINGS = {
     "sample_5":                  {"en": "Sample 5",                    "ko": "샘플 5"},
 
     # Distilled tab
-    "distilled_note":            {"en": "Fixed 8-step distilled schedule. No guidance parameters.",
-                                  "ko": "고정 8스텝 distilled 스케줄. 가이던스 파라미터 없음."},
+    "distilled_note":            {"en": "Fixed 8-step distilled schedule. NAG guidance available.",
+                                  "ko": "고정 8스텝 distilled 스케줄. NAG 가이던스 사용 가능."},
+
+    # NAG
+    "nag_scale":                 {"en": "NAG Scale",                    "ko": "NAG 스케일"},
+    "nag_scale_info":            {"en": "Guidance strength (1.0=off, higher=stronger, doubles inference time)",
+                                  "ko": "가이던스 강도 (1.0=비활성, 높을수록 강함, 추론 시간 2배)"},
 
     # IC-LoRA tab
     "reference_video":           {"en": "Reference Video",             "ko": "참조 영상"},

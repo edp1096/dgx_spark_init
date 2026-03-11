@@ -31,11 +31,16 @@ services:
       for f in config.py app.py generators.py worker.py pipeline_manager.py i18n.py download_models.py convert_fp8.py test_pipeline.py test_memory_profile.py; do
         curl -sfL $${GITHUB_RAW}/ui/$$f -o ~/ltx2-ui/ui/$$f;
       done;
+      mkdir -p ~/ltx2-ui/ui/mod;
+      for f in __init__.py nag.py; do
+        curl -sfL $${GITHUB_RAW}/ui/mod/$$f -o ~/ltx2-ui/ui/mod/$$f;
+      done;
       curl -sfL $${GITHUB_RAW}/patches/ltx2-compat.patch -o ~/ltx2-ui/patches/ltx2-compat.patch;
 
       cd ~/ltx2-ui/LTX-2;
       git apply --check ~/ltx2-ui/patches/ltx2-compat.patch 2>/dev/null && git apply ~/ltx2-ui/patches/ltx2-compat.patch && echo '  Patch applied' || echo '  Patch skipped';
       cp ~/ltx2-ui/ui/*.py ~/ltx2-ui/LTX-2/;
+      mkdir -p ~/ltx2-ui/LTX-2/mod && cp ~/ltx2-ui/ui/mod/*.py ~/ltx2-ui/LTX-2/mod/;
       cd ~;
 
       echo '=== [3/5] System libraries ===';

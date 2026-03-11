@@ -310,7 +310,8 @@ def generate_ti2vid(
 
 
 def generate_distilled(
-    prompt, image, image_strength, image_crf,
+    prompt, negative_prompt, nag_scale,
+    image, image_strength, image_crf,
     resolution, num_frames, frame_rate, seed,
     enhance_prompt, fp8,
     frame_mode="Frames", duration=4.8, disable_audio=False,
@@ -318,7 +319,8 @@ def generate_distilled(
 ):
     global _active_gen_inputs
     _active_gen_inputs = {"gen_type": "distilled", "values": [
-        prompt, image, image_strength, image_crf,
+        prompt, negative_prompt, nag_scale,
+        image, image_strength, image_crf,
         resolution, num_frames, frame_rate, seed,
         enhance_prompt, fp8,
         frame_mode, duration, disable_audio,
@@ -327,6 +329,7 @@ def generate_distilled(
     image_path = save_temp_image(image) if image is not None else None
     kwargs = {
         "prompt": prompt,
+        "negative_prompt": negative_prompt, "nag_scale": float(nag_scale),
         "image_path": image_path, "image_strength": float(image_strength),
         "image_crf": int(image_crf), "resolution": resolution,
         "num_frames": int(num_frames), "frame_rate": int(frame_rate),
@@ -338,7 +341,8 @@ def generate_distilled(
 
 
 def generate_iclora(
-    prompt, ref_video, ref_strength, lora_choice, attention_strength,
+    prompt, negative_prompt, nag_scale,
+    ref_video, ref_strength, lora_choice, attention_strength,
     image, image_strength, image_crf,
     resolution, num_frames, frame_rate, seed,
     skip_stage2, enhance_prompt, fp8,
@@ -347,7 +351,8 @@ def generate_iclora(
 ):
     global _active_gen_inputs
     _active_gen_inputs = {"gen_type": "iclora", "values": [
-        prompt, ref_video, ref_strength, lora_choice, attention_strength,
+        prompt, negative_prompt, nag_scale,
+        ref_video, ref_strength, lora_choice, attention_strength,
         image, image_strength, image_crf,
         resolution, num_frames, frame_rate, seed,
         skip_stage2, enhance_prompt, fp8,
@@ -364,7 +369,9 @@ def generate_iclora(
 
     image_path = save_temp_image(image) if image is not None else None
     kwargs = {
-        "prompt": prompt, "ref_video": ref_video,
+        "prompt": prompt,
+        "negative_prompt": negative_prompt, "nag_scale": float(nag_scale),
+        "ref_video": ref_video,
         "ref_strength": float(ref_strength),
         "lora_choice": lora_choice, "attention_strength": float(attention_strength),
         "image_path": image_path, "image_strength": float(image_strength),
@@ -453,7 +460,7 @@ def generate_a2vid(
 
 
 def generate_retake(
-    video_path, prompt, negative_prompt,
+    video_path, prompt, negative_prompt, nag_scale,
     start_time, end_time,
     regenerate_video, regenerate_audio,
     num_steps, seed, distilled_mode,
@@ -464,7 +471,7 @@ def generate_retake(
 ):
     global _active_gen_inputs
     _active_gen_inputs = {"gen_type": "retake", "values": [
-        video_path, prompt, negative_prompt,
+        video_path, prompt, negative_prompt, nag_scale,
         start_time, end_time,
         regenerate_video, regenerate_audio,
         num_steps, seed, distilled_mode,
@@ -477,6 +484,7 @@ def generate_retake(
     _validate("retake", prompt, required_files={"Source Video": video_path})
     kwargs = {
         "prompt": prompt, "negative_prompt": negative_prompt,
+        "nag_scale": float(nag_scale),
         "video_path": video_path,
         "start_time": float(start_time), "end_time": float(end_time),
         "regenerate_video": bool(regenerate_video),

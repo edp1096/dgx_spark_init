@@ -255,9 +255,65 @@ def build_ui() -> gr.Blocks:
 
         with gr.Tabs():
             # ==============================================================
-            # Tab 1: Text/Image -> Video
+            # Tab 1: ti2vid (distilled) — Fast 8-step
             # ==============================================================
-            with gr.Tab("Text/Image -> Video"):
+            with gr.Tab("ti2vid (distilled)"):
+                gr.Markdown("*Fast 8-step generation. Negative prompt via NAG guidance (2x slower when enabled).*")
+                with gr.Row():
+                    with gr.Column(scale=1):
+                        with gr.Group():
+                            t2_prompt = gr.Textbox(label="Prompt", lines=4, placeholder="Describe your video...")
+                            with gr.Row():
+                                t2_sample_btns = []
+                                for i in range(len(SAMPLE_PROMPTS)):
+                                    t2_sample_btns.append(gr.Button(f"Sample {i+1}", size="sm", min_width=60))
+                        create_prompt_constructor(t2_prompt)
+                        with gr.Accordion("Negative Prompt (NAG)", open=False):
+                            t2_neg = gr.Textbox(label="Negative Prompt", value="", lines=2, show_label=False)
+                            t2_nag_scale = gr.Slider(1.0, 15.0, value=5.0, step=0.5, label="NAG Scale",
+                                                     info="Guidance strength (1.0=off, higher=stronger, doubles inference time)")
+                        with gr.Accordion("Conditioning Image", open=False):
+                            t2_image = gr.Image(label="Image (optional)", type="numpy")
+                            t2_img_strength = gr.Slider(0.0, 1.0, value=1.0, step=0.05, label="Image Strength")
+                            t2_img_crf = gr.Slider(0, 51, value=33, step=1, label="Image CRF",
+                                                   info="Compression quality (0=lossless, 51=worst)")
+                        t2_resolution = gr.Dropdown(RESOLUTION_CHOICES, value="768x512", label="Resolution (WxH)", allow_custom_value=True)
+                        t2_frame_mode, t2_frames, t2_duration = create_frame_controls()
+                        with gr.Row():
+                            t2_fps = gr.Slider(1, 60, value=25, step=1, label="FPS")
+                            t2_seed = gr.Number(value=-1, label="Seed (-1=random)", precision=0)
+                        with gr.Row():
+                            t2_enhance = gr.Checkbox(value=False, label="Enhance Prompt")
+                            t2_fp8 = gr.Checkbox(value=True, label="FP8 Quantization", interactive=False)
+                            t2_no_audio = gr.Checkbox(value=False, label="Disable Audio")
+                        t2_btn = gr.Button("Generate", variant="primary", size="lg")
+
+                    with gr.Column(scale=1):
+                        t2_video, t2_info = create_output_column("distilled")
+
+                wire_frame_sync(t2_frame_mode, t2_frames, t2_duration, t2_fps)
+
+                t2_btn.click(
+                    fn=lambda: (None, ""),
+                    outputs=[t2_video, t2_info],
+                ).then(
+                    fn=generate_distilled,
+                    inputs=[
+                        t2_prompt, t2_neg, t2_nag_scale,
+                        t2_image, t2_img_strength, t2_img_crf,
+                        t2_resolution, t2_frames, t2_fps, t2_seed,
+                        t2_enhance, t2_fp8,
+                        t2_frame_mode, t2_duration, t2_no_audio,
+                    ],
+                    outputs=[t2_video, t2_info],
+                )
+                for i, btn in enumerate(t2_sample_btns):
+                    btn.click(fn=lambda idx=i: SAMPLE_PROMPTS[idx], outputs=[t2_prompt])
+
+            # ==============================================================
+            # Tab 2: ti2vid — Full dev model
+            # ==============================================================
+            with gr.Tab("ti2vid"):
                 gr.Markdown("*2-stage generation (dev model). Supports negative prompt and guidance parameters.*")
                 with gr.Row():
                     with gr.Column(scale=1):
@@ -313,65 +369,18 @@ def build_ui() -> gr.Blocks:
                     btn.click(fn=lambda idx=i: SAMPLE_PROMPTS[idx], outputs=[t1_prompt])
 
             # ==============================================================
-            # Tab 2: Distilled (Fast)
-            # ==============================================================
-            with gr.Tab("Distilled (Fast)"):
-                gr.Markdown("*Fast 8-step generation. No negative prompt or guidance parameters.*")
-                with gr.Row():
-                    with gr.Column(scale=1):
-                        with gr.Group():
-                            t2_prompt = gr.Textbox(label="Prompt", lines=4, placeholder="Describe your video...")
-                            with gr.Row():
-                                t2_sample_btns = []
-                                for i in range(len(SAMPLE_PROMPTS)):
-                                    t2_sample_btns.append(gr.Button(f"Sample {i+1}", size="sm", min_width=60))
-                        create_prompt_constructor(t2_prompt)
-                        with gr.Accordion("Conditioning Image", open=False):
-                            t2_image = gr.Image(label="Image (optional)", type="numpy")
-                            t2_img_strength = gr.Slider(0.0, 1.0, value=1.0, step=0.05, label="Image Strength")
-                            t2_img_crf = gr.Slider(0, 51, value=33, step=1, label="Image CRF",
-                                                   info="Compression quality (0=lossless, 51=worst)")
-                        t2_resolution = gr.Dropdown(RESOLUTION_CHOICES, value="768x512", label="Resolution (WxH)", allow_custom_value=True)
-                        t2_frame_mode, t2_frames, t2_duration = create_frame_controls()
-                        with gr.Row():
-                            t2_fps = gr.Slider(1, 60, value=25, step=1, label="FPS")
-                            t2_seed = gr.Number(value=-1, label="Seed (-1=random)", precision=0)
-                        with gr.Row():
-                            t2_enhance = gr.Checkbox(value=False, label="Enhance Prompt")
-                            t2_fp8 = gr.Checkbox(value=True, label="FP8 Quantization", interactive=False)
-                            t2_no_audio = gr.Checkbox(value=False, label="Disable Audio")
-                        t2_btn = gr.Button("Generate", variant="primary", size="lg")
-
-                    with gr.Column(scale=1):
-                        t2_video, t2_info = create_output_column("distilled")
-
-                wire_frame_sync(t2_frame_mode, t2_frames, t2_duration, t2_fps)
-
-                t2_btn.click(
-                    fn=lambda: (None, ""),
-                    outputs=[t2_video, t2_info],
-                ).then(
-                    fn=generate_distilled,
-                    inputs=[
-                        t2_prompt, t2_image, t2_img_strength, t2_img_crf,
-                        t2_resolution, t2_frames, t2_fps, t2_seed,
-                        t2_enhance, t2_fp8,
-                        t2_frame_mode, t2_duration, t2_no_audio,
-                    ],
-                    outputs=[t2_video, t2_info],
-                )
-                for i, btn in enumerate(t2_sample_btns):
-                    btn.click(fn=lambda idx=i: SAMPLE_PROMPTS[idx], outputs=[t2_prompt])
-
-            # ==============================================================
             # Tab 3: IC-LoRA
             # ==============================================================
             with gr.Tab("IC-LoRA"):
-                gr.Markdown("*Reference video conditioned generation (distilled model). No negative prompt.*")
+                gr.Markdown("*Reference video conditioned generation (distilled model). Negative prompt via NAG guidance.*")
                 with gr.Row():
                     with gr.Column(scale=1):
                         t3_prompt = gr.Textbox(label="Prompt", lines=4, placeholder="Describe the transformation...")
                         create_prompt_constructor(t3_prompt)
+                        with gr.Accordion("Negative Prompt (NAG)", open=False):
+                            t3_neg = gr.Textbox(label="Negative Prompt", value="", lines=2, show_label=False)
+                            t3_nag_scale = gr.Slider(1.0, 15.0, value=5.0, step=0.5, label="NAG Scale",
+                                                     info="Guidance strength (1.0=off, higher=stronger, doubles inference time)")
                         t3_ref_video = gr.Video(label="Reference Video", sources=["upload"])
                         t3_ref_strength = gr.Slider(0.0, 1.0, value=1.0, step=0.05, label="Reference Strength")
                         t3_lora = gr.Dropdown(
@@ -408,7 +417,8 @@ def build_ui() -> gr.Blocks:
                 ).then(
                     fn=generate_iclora,
                     inputs=[
-                        t3_prompt, t3_ref_video, t3_ref_strength, t3_lora, t3_attn_strength,
+                        t3_prompt, t3_neg, t3_nag_scale,
+                        t3_ref_video, t3_ref_strength, t3_lora, t3_attn_strength,
                         t3_image, t3_img_strength, t3_img_crf,
                         t3_resolution, t3_frames, t3_fps, t3_seed,
                         t3_skip_stage2, t3_enhance, t3_fp8,
@@ -532,6 +542,9 @@ def build_ui() -> gr.Blocks:
                         t6_prompt = gr.Textbox(label="Prompt", lines=4, placeholder="Describe the regenerated section...")
                         with gr.Accordion("Negative Prompt", open=False):
                             t6_neg = gr.Textbox(label="Negative Prompt", value="", lines=2, show_label=False)
+                            t6_nag_scale = gr.Slider(1.0, 15.0, value=5.0, step=0.5, label="NAG Scale",
+                                                     info="Guidance for distilled mode (1.0=off, ignored in full mode)",
+                                                     visible=True)
                         with gr.Row():
                             t6_start = gr.Number(value=0.0, label="Start Time (sec)")
                             t6_end = gr.Number(value=2.0, label="End Time (sec)")
@@ -557,7 +570,7 @@ def build_ui() -> gr.Blocks:
                 ).then(
                     fn=generate_retake,
                     inputs=[
-                        t6_video_in, t6_prompt, t6_neg,
+                        t6_video_in, t6_prompt, t6_neg, t6_nag_scale,
                         t6_start, t6_end,
                         t6_regen_video, t6_regen_audio,
                         t6_steps, t6_seed, t6_distilled,
