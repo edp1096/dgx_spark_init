@@ -89,8 +89,18 @@ def _wrap_model_ledger(mgr, ledger, stage_prefix: str = ""):
                 mgr._current_loading = current
                 logger.info("Loading %s (%d/%d)...", current, idx + 1, total)
 
+                # Send "loading_start" to main process via IPC
+                if mgr.progress_queue is not None and mgr._current_task_id is not None:
+                    try:
+                        mgr.progress_queue.put_nowait({
+                            "task_id": mgr._current_task_id,
+                            "type": "loading_start",
+                            "data": {"name": current, "index": idx + 1, "total": total},
+                        })
+                    except Exception:
+                        pass
+
                 # tqdm 바 — gr.Progress(track_tqdm=True)가 캡처
-                # Gradio는 생성 시점의 desc만 반영 → 매번 새 bar (total=전체 모델수, initial=완료수)
                 desc = f"Loading {current} ({idx + 1}/{total})"
                 if mgr._loading_bar is not None:
                     mgr._loading_bar.close()
@@ -106,6 +116,18 @@ def _wrap_model_ledger(mgr, ledger, stage_prefix: str = ""):
                 mgr._load_times.append(elapsed)
                 mgr._current_loading = None
                 logger.info("%s loaded in %.0fs (%d/%d)", current, elapsed, idx + 1, total)
+
+                # Send "loading_done" to main process via IPC queue
+                if mgr.progress_queue is not None and mgr._current_task_id is not None:
+                    try:
+                        mgr.progress_queue.put_nowait({
+                            "task_id": mgr._current_task_id,
+                            "type": "loading_done",
+                            "data": {"name": current, "index": idx + 1,
+                                     "total": total, "elapsed": elapsed},
+                        })
+                    except Exception:
+                        pass
 
                 # 모델 해제 감지 — del 시 상태 업데이트
                 model_name = current
@@ -176,7 +198,7 @@ IC_LORA_MAP = {
 class PipelineManager:
     """Manages pipeline lifecycle — one active pipeline at a time."""
 
-    def __init__(self) -> None:
+    def __init__(self, progress_queue=None) -> None:
         self.current_pipeline = None
         self.current_type: str | None = None
         self.model_dir: str = str(DEFAULT_MODEL_DIR)
@@ -189,6 +211,9 @@ class PipelineManager:
         self._is_generating: bool = False
         self._unloaded_names: set[str] = set()
         self._loading_bar = None
+        # IPC progress queue (set by worker process)
+        self.progress_queue = progress_queue
+        self._current_task_id: str | None = None
 
     def start_loading_bar(self):
         """Reset loading state before pipeline call."""
@@ -198,6 +223,18 @@ class PipelineManager:
         self._unloaded_names = set()
         self._is_generating = True
         self._loading_bar = None
+
+        # Send loading plan to main process via IPC
+        load_order = _PIPELINE_LOAD_ORDER.get(self.current_type, [])
+        if self.progress_queue is not None and self._current_task_id is not None and load_order:
+            try:
+                self.progress_queue.put_nowait({
+                    "task_id": self._current_task_id,
+                    "type": "loading_plan",
+                    "data": {"plan": load_order, "total": len(load_order)},
+                })
+            except Exception:
+                pass
 
     def stop_loading_bar(self):
         """Clear loading state after pipeline call."""

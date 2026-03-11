@@ -30,6 +30,7 @@ UI_FILES=(
     config.py
     app.py
     generators.py
+    worker.py
     pipeline_manager.py
     i18n.py
     download_models.py

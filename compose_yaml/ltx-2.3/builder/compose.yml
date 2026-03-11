@@ -28,7 +28,7 @@ services:
       fi;
 
       echo '=== [2/5] Downloading UI files & patches ===';
-      for f in config.py app.py generators.py pipeline_manager.py i18n.py download_models.py convert_fp8.py test_pipeline.py test_memory_profile.py; do
+      for f in config.py app.py generators.py worker.py pipeline_manager.py i18n.py download_models.py convert_fp8.py test_pipeline.py test_memory_profile.py; do
         curl -sfL $${GITHUB_RAW}/ui/$$f -o ~/ltx2-ui/ui/$$f;
       done;
       curl -sfL $${GITHUB_RAW}/patches/ltx2-compat.patch -o ~/ltx2-ui/patches/ltx2-compat.patch;

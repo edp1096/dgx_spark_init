@@ -1,58 +1,43 @@
-"""Video generation functions — bridge between UI inputs and pipeline calls."""
+"""Video generation functions — thin shims that submit tasks to the worker process."""
 
 import logging
 import tempfile
 import time
-import traceback
 from pathlib import Path
 
 import gradio as gr
-import torch
 from PIL import Image
 
-from ltx_core.components.guiders import MultiModalGuiderParams
-from ltx_core.model.video_vae import get_video_chunks_number
-from ltx_pipelines.utils.args import ImageConditioningInput
-from ltx_pipelines.utils.media_io import encode_video
-
-from pipeline_manager import IC_LORA_MAP, OUTPUT_DIR, pipeline_mgr
+from pipeline_manager import IC_LORA_MAP, OUTPUT_DIR, REQUIRED_MODELS
+from worker import WorkerProcessManager
 
 logger = logging.getLogger("ltx2-ui")
+
+# ---------------------------------------------------------------------------
+# Worker process singleton
+# ---------------------------------------------------------------------------
+_worker_mgr: WorkerProcessManager | None = None
+
+
+def get_worker_mgr() -> WorkerProcessManager:
+    global _worker_mgr
+    if _worker_mgr is None:
+        from config import MODEL_DIR
+        _worker_mgr = WorkerProcessManager(str(MODEL_DIR))
+    return _worker_mgr
+
+
+def set_model_dir(model_dir: str):
+    """Update model dir — kills worker so next generation uses new dir."""
+    mgr = get_worker_mgr()
+    mgr.model_dir = model_dir
+    if mgr.is_alive():
+        mgr.kill()
 
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
-def parse_resolution(res_str: str) -> tuple[int, int]:
-    """Parse 'WxH' string → (height, width), rounded to nearest multiple of 64."""
-    w, h = res_str.split("x")
-    w, h = round(int(w) / 64) * 64, round(int(h) / 64) * 64
-    return h, w
-
-
-def make_output_path() -> str:
-    ts = time.strftime("%Y%m%d_%H%M%S")
-    return str(Path(OUTPUT_DIR) / f"ltx2_{ts}.mp4")
-
-
-def resolve_seed(seed: int) -> int:
-    if seed < 0:
-        return torch.randint(0, 2**31, (1,)).item()
-    return int(seed)
-
-
-def build_guider(cfg_scale, stg_scale, rescale_scale, modality_scale, stg_blocks_str, skip_step=0) -> MultiModalGuiderParams:
-    stg_blocks = [int(x.strip()) for x in stg_blocks_str.split(",") if x.strip()]
-    return MultiModalGuiderParams(
-        cfg_scale=cfg_scale,
-        stg_scale=stg_scale,
-        rescale_scale=rescale_scale,
-        modality_scale=modality_scale,
-        stg_blocks=stg_blocks,
-        skip_step=int(skip_step),
-    )
-
-
 def save_temp_image(image_array) -> str:
     """Save numpy image array to a temp file. Returns path."""
     f = tempfile.NamedTemporaryFile(suffix=".png", delete=False, dir=OUTPUT_DIR)
@@ -61,12 +46,223 @@ def save_temp_image(image_array) -> str:
     return f.name
 
 
-def validate_and_run(pipeline_type: str, prompt: str, generate_fn, required_files=None, progress=None):
-    """Wrapper: validate inputs, check models, run generation, handle errors."""
+# ---------------------------------------------------------------------------
+# Shared loading status (updated from progress_queue)
+# ---------------------------------------------------------------------------
+_loading_status = ""
+_loading_plan: list[str] = []       # full load order from worker
+_loading_done: dict[str, float] = {}  # name -> elapsed seconds
+_loading_current: str | None = None   # currently loading model name
+
+
+def get_loading_status() -> str:
+    """Called by gr.Markdown(every=1) to show progress."""
+    return _loading_status
+
+
+# ---------------------------------------------------------------------------
+# Generation result tracking (for UI reconnection after browser refresh)
+# ---------------------------------------------------------------------------
+_gen_active = False
+_last_gen_result: dict | None = None   # {"path", "info", "gen_type", "time", "consumed"}
+_result_version = 0
+
+
+def get_result_version() -> int:
+    """Polled by hidden UI monitor. Increments on each generation completion."""
+    return _result_version
+
+
+def get_last_gen_result() -> dict | None:
+    return _last_gen_result
+
+
+def consume_last_gen_result() -> None:
+    """Mark the last result as consumed so it won't be restored on refresh."""
+    if _last_gen_result is not None:
+        _last_gen_result["consumed"] = True
+
+
+def is_generation_active() -> bool:
+    return _gen_active
+
+
+def get_gen_info_for_tab(gen_type: str) -> str:
+    """Return info text for a specific tab. Safe for every=N polling."""
+    if _gen_active:
+        snap = _active_gen_inputs
+        if snap and snap["gen_type"] == gen_type:
+            return "Generating..."
+        return ""
+    result = _last_gen_result
+    if result is None:
+        return ""
+    if result.get("consumed"):
+        return ""
+    if result["gen_type"] != gen_type:
+        return ""
+    if time.time() - result["time"] > 600:
+        return ""
+    return result["info"]
+
+
+# ---------------------------------------------------------------------------
+# Active generation input snapshot (for refresh-persistence)
+# ---------------------------------------------------------------------------
+_active_gen_inputs: dict | None = None  # {"gen_type": str, "values": list}
+
+
+def get_active_gen_inputs() -> dict | None:
+    """Return saved inputs if generation is active, else None."""
+    if _gen_active and _active_gen_inputs:
+        return _active_gen_inputs
+    return None
+
+
+def _build_loading_status(plan: list[str], done: dict[str, float], current: str | None) -> str:
+    """Build Markdown status showing all model loading steps."""
+    if not plan:
+        return ""
+    total = len(plan)
+    done_count = len(done)
+    lines = []
+    for name in plan:
+        if name in done:
+            elapsed = done[name]
+            if elapsed == 0:
+                lines.append(f"- **{name}**: cached")
+            else:
+                lines.append(f"- **{name}**: ok ({elapsed:.0f}s)")
+        elif name == current:
+            lines.append(f"- **{name}**: loading...")
+        else:
+            lines.append(f"- {name}: wait")
+    header = f"**Model Loading [{done_count}/{total}]**"
+    if done_count == total:
+        total_time = sum(done.values())
+        if total_time > 0:
+            header += f" — done in {total_time:.0f}s"
+        else:
+            header += " — all cached"
+    return header + "\n" + "\n".join(lines)
+
+
+def _submit_and_wait(gen_type: str, kwargs: dict, progress) -> tuple[str, str]:
+    """Submit task to worker, poll progress, wait for result."""
+    global _loading_status, _loading_plan, _loading_done, _loading_current
+    global _gen_active, _last_gen_result, _result_version
+
+    _gen_active = True
+
+    mgr = get_worker_mgr()
+    mgr.ensure_running()
+    task_id = mgr.submit_task(gen_type, kwargs)
+
+    _loading_status = "**Starting generation...**"
+    _loading_plan = []
+    _loading_done = {}
+    _loading_current = None
+    start = time.time()
+
+    try:
+        while True:
+            # Check worker alive
+            if not mgr.is_alive():
+                _loading_status = ""
+                raise gr.Error("Worker process crashed. Click Generate to restart.")
+
+            # Drain progress messages
+            for msg in mgr.poll_progress():
+                if msg.get("task_id") != task_id:
+                    continue
+                mtype = msg.get("type")
+                data = msg.get("data", {})
+
+                if mtype == "loading_plan":
+                    _loading_plan = data.get("plan", [])
+                    _loading_done = {}
+                    _loading_current = None
+                    _loading_status = _build_loading_status(_loading_plan, _loading_done, _loading_current)
+
+                elif mtype == "loading_start":
+                    name = data.get("name", "?")
+                    idx = data.get("index", 0)
+                    total = data.get("total", 1)
+                    _loading_current = name
+                    if progress:
+                        progress((idx - 1) / max(total, 1), desc=f"Loading {name} ({idx}/{total})")
+                    _loading_status = _build_loading_status(_loading_plan, _loading_done, _loading_current)
+
+                elif mtype == "loading_done":
+                    name = data.get("name", "?")
+                    idx = data.get("index", 0)
+                    total = data.get("total", 1)
+                    elapsed = data.get("elapsed", 0)
+                    _loading_done[name] = elapsed
+                    _loading_current = None
+                    if progress:
+                        progress(idx / max(total, 1), desc=f"Loading {name} ({idx}/{total})")
+                    _loading_status = _build_loading_status(_loading_plan, _loading_done, _loading_current)
+
+                elif mtype == "loading":
+                    # Legacy fallback
+                    name = data.get("name", "?")
+                    idx = data.get("index", 0)
+                    total = data.get("total", 1)
+                    elapsed = data.get("elapsed", 0)
+                    _loading_done[name] = elapsed
+                    _loading_current = None
+                    if progress:
+                        progress(idx / max(total, 1), desc=f"Loading {name} ({idx}/{total})")
+                    _loading_status = _build_loading_status(_loading_plan, _loading_done, _loading_current)
+
+                elif mtype == "step":
+                    current = data.get("current", 0)
+                    total = data.get("total", 1)
+                    desc = data.get("desc", "Denoising")
+                    if progress and total > 0:
+                        progress(current / max(total, 1), desc=f"{desc} [{current}/{total}]")
+                    _loading_status = f"**Denoising** [{current}/{total}] {desc}"
+
+            # Check for result (short timeout)
+            result = mgr.get_result(timeout=0.2)
+            if result and result.get("task_id") == task_id:
+                elapsed = time.time() - start
+                _loading_status = ""
+
+                if result["status"] == "ok":
+                    payload = result["payload"]
+                    path = payload["path"]
+                    seed = payload["seed"]
+                    info = f"Seed: {seed} | Time: {elapsed:.1f}s | Output: {Path(path).name}"
+                    logger.info("Generation complete: %s", info)
+                    _gen_active = False
+                    _active_gen_inputs = None
+                    _result_version += 1
+                    _last_gen_result = {
+                        "path": path, "info": info,
+                        "gen_type": gen_type, "time": time.time(),
+                        "consumed": False,
+                    }
+                    return path, info
+                elif result["status"] == "cancelled":
+                    raise gr.Error("Generation cancelled.")
+                else:
+                    raise gr.Error(f"Generation failed: {result['payload']}")
+    except Exception:
+        _gen_active = False
+        _active_gen_inputs = None
+        _loading_status = ""
+        raise
+
+
+def _validate(pipeline_type: str, prompt: str, required_files: dict | None = None):
+    """Input validation (runs in main process, no GPU needed)."""
     if not prompt or not prompt.strip():
         raise gr.Error("Prompt is required.")
 
-    missing = pipeline_mgr.check_models(pipeline_type)
+    mgr = get_worker_mgr()
+    missing = mgr.check_models(pipeline_type)
     if missing:
         raise gr.Error(f"Missing model files: {', '.join(missing)}\nCheck Settings tab for model directory.")
 
@@ -75,24 +271,9 @@ def validate_and_run(pipeline_type: str, prompt: str, generate_fn, required_file
             if value is None:
                 raise gr.Error(f"{name} is required.")
 
-    start = time.time()
-    try:
-        result_path, seed = generate_fn(progress)
-        elapsed = time.time() - start
-        info = f"Seed: {seed} | Time: {elapsed:.1f}s | Output: {Path(result_path).name}"
-        logger.info("Generation complete: %s", info)
-        return result_path, info
-    except gr.Error:
-        raise
-    except Exception as e:
-        logger.error("Generation failed: %s\n%s", e, traceback.format_exc())
-        raise gr.Error(f"Generation failed: {e}")
-    finally:
-        pipeline_mgr.stop_loading_bar()
-
 
 # ---------------------------------------------------------------------------
-# Generation functions
+# Generation functions — each one validates, packs kwargs, calls _submit_and_wait
 # ---------------------------------------------------------------------------
 def generate_ti2vid(
     prompt, negative_prompt, image, image_strength, image_crf,
@@ -100,79 +281,60 @@ def generate_ti2vid(
     enhance_prompt, fp8,
     v_cfg, v_stg, v_rescale, v_modality, v_stg_blocks, v_skip_step,
     a_cfg, a_stg, a_rescale, a_modality, a_stg_blocks, a_skip_step,
+    frame_mode="Frames", duration=4.8, disable_audio=False,
     progress=gr.Progress(track_tqdm=True),
 ):
-    def _generate(prog):
-        with torch.inference_mode():
-            _seed = resolve_seed(seed)
-            height, width = parse_resolution(resolution)
-            quantization = "fp8" if fp8 else None
-            pipeline = pipeline_mgr.get_ti2vid(sampler=sampler, quantization=quantization)
-
-            images = []
-            if image is not None:
-                images = [ImageConditioningInput(save_temp_image(image), 0, image_strength, int(image_crf))]
-
-            video_guider = build_guider(v_cfg, v_stg, v_rescale, v_modality, v_stg_blocks, v_skip_step)
-            audio_guider = build_guider(a_cfg, a_stg, a_rescale, a_modality, a_stg_blocks, a_skip_step)
-
-            pipeline_mgr.start_loading_bar()
-            video_frames, audio = pipeline(
-                prompt=prompt,
-                negative_prompt=negative_prompt,
-                seed=_seed,
-                height=height, width=width,
-                num_frames=int(num_frames), frame_rate=frame_rate,
-                num_inference_steps=num_steps,
-                video_guider_params=video_guider,
-                audio_guider_params=audio_guider,
-                images=images,
-                enhance_prompt=enhance_prompt,
-            )
-            if prog:
-                prog(0.9, desc="Encoding video...")
-            output_path = make_output_path()
-            encode_video(video=video_frames, fps=frame_rate, audio=audio, output_path=output_path,
-                         video_chunks_number=get_video_chunks_number(num_frames))
-            return output_path, _seed
-
-    return validate_and_run("ti2vid", prompt, _generate, progress=progress)
+    global _active_gen_inputs
+    _active_gen_inputs = {"gen_type": "ti2vid", "values": [
+        prompt, negative_prompt, image, image_strength, image_crf,
+        resolution, num_frames, frame_rate, num_steps, seed, sampler,
+        enhance_prompt, fp8,
+        v_cfg, v_stg, v_rescale, v_modality, v_stg_blocks, v_skip_step,
+        a_cfg, a_stg, a_rescale, a_modality, a_stg_blocks, a_skip_step,
+        frame_mode, duration, disable_audio,
+    ]}
+    _validate("ti2vid", prompt)
+    image_path = save_temp_image(image) if image is not None else None
+    kwargs = {
+        "prompt": prompt, "negative_prompt": negative_prompt,
+        "image_path": image_path, "image_strength": float(image_strength),
+        "image_crf": int(image_crf), "resolution": resolution,
+        "num_frames": int(num_frames), "frame_rate": int(frame_rate),
+        "num_steps": int(num_steps), "seed": int(seed), "sampler": sampler,
+        "enhance_prompt": bool(enhance_prompt), "fp8": bool(fp8),
+        "v_guidance": [v_cfg, v_stg, v_rescale, v_modality, str(v_stg_blocks), v_skip_step],
+        "a_guidance": [a_cfg, a_stg, a_rescale, a_modality, str(a_stg_blocks), a_skip_step],
+        "disable_audio": bool(disable_audio),
+    }
+    return _submit_and_wait("ti2vid", kwargs, progress)
 
 
 def generate_distilled(
     prompt, image, image_strength, image_crf,
     resolution, num_frames, frame_rate, seed,
     enhance_prompt, fp8,
+    frame_mode="Frames", duration=4.8, disable_audio=False,
     progress=gr.Progress(track_tqdm=True),
 ):
-    def _generate(prog):
-        with torch.inference_mode():
-            _seed = resolve_seed(seed)
-            height, width = parse_resolution(resolution)
-            quantization = "fp8" if fp8 else None
-            pipeline = pipeline_mgr.get_distilled(quantization=quantization)
-
-            images = []
-            if image is not None:
-                images = [ImageConditioningInput(save_temp_image(image), 0, image_strength, int(image_crf))]
-
-            pipeline_mgr.start_loading_bar()
-            video_frames, audio = pipeline(
-                prompt=prompt,
-                seed=_seed,
-                height=height, width=width,
-                num_frames=int(num_frames), frame_rate=frame_rate,
-                images=images,
-                enhance_prompt=enhance_prompt,
-            )
-            if prog:
-                prog(0.9, desc="Encoding video...")
-            output_path = make_output_path()
-            encode_video(video=video_frames, fps=frame_rate, audio=audio, output_path=output_path,
-                         video_chunks_number=get_video_chunks_number(num_frames))
-            return output_path, _seed
-
-    return validate_and_run("distilled", prompt, _generate, progress=progress)
+    global _active_gen_inputs
+    _active_gen_inputs = {"gen_type": "distilled", "values": [
+        prompt, image, image_strength, image_crf,
+        resolution, num_frames, frame_rate, seed,
+        enhance_prompt, fp8,
+        frame_mode, duration, disable_audio,
+    ]}
+    _validate("distilled", prompt)
+    image_path = save_temp_image(image) if image is not None else None
+    kwargs = {
+        "prompt": prompt,
+        "image_path": image_path, "image_strength": float(image_strength),
+        "image_crf": int(image_crf), "resolution": resolution,
+        "num_frames": int(num_frames), "frame_rate": int(frame_rate),
+        "seed": int(seed),
+        "enhance_prompt": bool(enhance_prompt), "fp8": bool(fp8),
+        "disable_audio": bool(disable_audio),
+    }
+    return _submit_and_wait("distilled", kwargs, progress)
 
 
 def generate_iclora(
@@ -180,50 +342,39 @@ def generate_iclora(
     image, image_strength, image_crf,
     resolution, num_frames, frame_rate, seed,
     skip_stage2, enhance_prompt, fp8,
+    frame_mode="Frames", duration=4.8, disable_audio=False,
     progress=gr.Progress(track_tqdm=True),
 ):
-    def _generate(prog):
-        with torch.inference_mode():
-            _seed = resolve_seed(seed)
-            height, width = parse_resolution(resolution)
+    global _active_gen_inputs
+    _active_gen_inputs = {"gen_type": "iclora", "values": [
+        prompt, ref_video, ref_strength, lora_choice, attention_strength,
+        image, image_strength, image_crf,
+        resolution, num_frames, frame_rate, seed,
+        skip_stage2, enhance_prompt, fp8,
+        frame_mode, duration, disable_audio,
+    ]}
+    _validate("iclora", prompt, required_files={"Reference Video": ref_video})
 
-            lora_filename = IC_LORA_MAP.get(lora_choice, IC_LORA_MAP["Union Control"])
-            lora_path = str(Path(pipeline_mgr.model_dir) / lora_filename)
-            if not Path(lora_path).exists():
-                raise gr.Error(f"IC-LoRA file not found: {lora_filename}")
+    # Check LoRA file exists
+    lora_filename = IC_LORA_MAP.get(lora_choice, IC_LORA_MAP["Union Control"])
+    mgr = get_worker_mgr()
+    lora_path = Path(mgr.model_dir) / lora_filename
+    if not lora_path.exists():
+        raise gr.Error(f"IC-LoRA file not found: {lora_filename}")
 
-            quantization = "fp8" if fp8 else None
-            pipeline = pipeline_mgr.get_iclora(lora_path=lora_path, quantization=quantization)
-
-            images = []
-            if image is not None:
-                images = [ImageConditioningInput(save_temp_image(image), 0, image_strength, int(image_crf))]
-
-            video_conditioning = []
-            if ref_video is not None:
-                video_conditioning = [(ref_video, ref_strength)]
-
-            pipeline_mgr.start_loading_bar()
-            video_frames, audio = pipeline(
-                prompt=prompt,
-                seed=_seed,
-                height=height, width=width,
-                num_frames=int(num_frames), frame_rate=frame_rate,
-                images=images,
-                video_conditioning=video_conditioning,
-                conditioning_attention_strength=attention_strength,
-                skip_stage_2=skip_stage2,
-                enhance_prompt=enhance_prompt,
-            )
-            if prog:
-                prog(0.9, desc="Encoding video...")
-            output_path = make_output_path()
-            encode_video(video=video_frames, fps=frame_rate, audio=audio, output_path=output_path,
-                         video_chunks_number=get_video_chunks_number(num_frames))
-            return output_path, _seed
-
-    return validate_and_run("iclora", prompt, _generate,
-                            required_files={"Reference Video": ref_video}, progress=progress)
+    image_path = save_temp_image(image) if image is not None else None
+    kwargs = {
+        "prompt": prompt, "ref_video": ref_video,
+        "ref_strength": float(ref_strength),
+        "lora_choice": lora_choice, "attention_strength": float(attention_strength),
+        "image_path": image_path, "image_strength": float(image_strength),
+        "image_crf": int(image_crf), "resolution": resolution,
+        "num_frames": int(num_frames), "frame_rate": int(frame_rate),
+        "seed": int(seed), "skip_stage2": bool(skip_stage2),
+        "enhance_prompt": bool(enhance_prompt), "fp8": bool(fp8),
+        "disable_audio": bool(disable_audio),
+    }
+    return _submit_and_wait("iclora", kwargs, progress)
 
 
 def generate_keyframe(
@@ -233,48 +384,36 @@ def generate_keyframe(
     enhance_prompt, fp8,
     v_cfg, v_stg, v_rescale, v_modality, v_stg_blocks, v_skip_step,
     a_cfg, a_stg, a_rescale, a_modality, a_stg_blocks, a_skip_step,
+    frame_mode="Frames", duration=4.8, disable_audio=False,
     progress=gr.Progress(track_tqdm=True),
 ):
+    global _active_gen_inputs
+    _active_gen_inputs = {"gen_type": "keyframe", "values": [
+        prompt, negative_prompt,
+        keyframe_files, frame_indices_str, image_strength, image_crf,
+        resolution, num_frames, frame_rate, num_steps, seed,
+        enhance_prompt, fp8,
+        v_cfg, v_stg, v_rescale, v_modality, v_stg_blocks, v_skip_step,
+        a_cfg, a_stg, a_rescale, a_modality, a_stg_blocks, a_skip_step,
+        frame_mode, duration, disable_audio,
+    ]}
     if not keyframe_files or len(keyframe_files) < 2:
         raise gr.Error("At least 2 keyframe images are required.")
-
-    def _generate(prog):
-        with torch.inference_mode():
-            _seed = resolve_seed(seed)
-            height, width = parse_resolution(resolution)
-            quantization = "fp8" if fp8 else None
-            pipeline = pipeline_mgr.get_keyframe(quantization=quantization)
-
-            indices = [int(x.strip()) for x in frame_indices_str.split(",") if x.strip()]
-            images = []
-            for i, kf in enumerate(keyframe_files):
-                idx = indices[i] if i < len(indices) else i * (num_frames // max(len(keyframe_files) - 1, 1))
-                images.append(ImageConditioningInput(kf, idx, image_strength, int(image_crf)))
-
-            video_guider = build_guider(v_cfg, v_stg, v_rescale, v_modality, v_stg_blocks, v_skip_step)
-            audio_guider = build_guider(a_cfg, a_stg, a_rescale, a_modality, a_stg_blocks, a_skip_step)
-
-            pipeline_mgr.start_loading_bar()
-            video_frames, audio = pipeline(
-                prompt=prompt,
-                negative_prompt=negative_prompt,
-                seed=_seed,
-                height=height, width=width,
-                num_frames=int(num_frames), frame_rate=frame_rate,
-                num_inference_steps=num_steps,
-                video_guider_params=video_guider,
-                audio_guider_params=audio_guider,
-                images=images,
-                enhance_prompt=enhance_prompt,
-            )
-            if prog:
-                prog(0.9, desc="Encoding video...")
-            output_path = make_output_path()
-            encode_video(video=video_frames, fps=frame_rate, audio=audio, output_path=output_path,
-                         video_chunks_number=get_video_chunks_number(num_frames))
-            return output_path, _seed
-
-    return validate_and_run("keyframe", prompt, _generate, progress=progress)
+    _validate("keyframe", prompt)
+    kwargs = {
+        "prompt": prompt, "negative_prompt": negative_prompt,
+        "keyframe_paths": [str(f) for f in keyframe_files],
+        "frame_indices": frame_indices_str,
+        "image_strength": float(image_strength), "image_crf": int(image_crf),
+        "resolution": resolution,
+        "num_frames": int(num_frames), "frame_rate": int(frame_rate),
+        "num_steps": int(num_steps), "seed": int(seed),
+        "enhance_prompt": bool(enhance_prompt), "fp8": bool(fp8),
+        "v_guidance": [v_cfg, v_stg, v_rescale, v_modality, str(v_stg_blocks), v_skip_step],
+        "a_guidance": [a_cfg, a_stg, a_rescale, a_modality, str(a_stg_blocks), a_skip_step],
+        "disable_audio": bool(disable_audio),
+    }
+    return _submit_and_wait("keyframe", kwargs, progress)
 
 
 def generate_a2vid(
@@ -284,46 +423,33 @@ def generate_a2vid(
     resolution, num_frames, frame_rate, num_steps, seed,
     enhance_prompt, fp8,
     v_cfg, v_stg, v_rescale, v_modality, v_stg_blocks, v_skip_step,
+    frame_mode="Frames", duration=4.8,
     progress=gr.Progress(track_tqdm=True),
 ):
-    def _generate(prog):
-        with torch.inference_mode():
-            _seed = resolve_seed(seed)
-            height, width = parse_resolution(resolution)
-            quantization = "fp8" if fp8 else None
-            pipeline = pipeline_mgr.get_a2vid(quantization=quantization)
-
-            images = []
-            if image is not None:
-                images = [(save_temp_image(image), 0, image_strength)]
-
-            video_guider = build_guider(v_cfg, v_stg, v_rescale, v_modality, v_stg_blocks, v_skip_step)
-            audio_max = audio_max_duration if audio_max_duration > 0 else None
-
-            pipeline_mgr.start_loading_bar()
-            video_frames, audio = pipeline(
-                prompt=prompt,
-                negative_prompt=negative_prompt,
-                seed=_seed,
-                height=height, width=width,
-                num_frames=int(num_frames), frame_rate=frame_rate,
-                num_inference_steps=num_steps,
-                video_guider_params=video_guider,
-                images=images,
-                audio_path=audio_file,
-                audio_start_time=audio_start,
-                audio_max_duration=audio_max,
-                enhance_prompt=enhance_prompt,
-            )
-            if prog:
-                prog(0.9, desc="Encoding video...")
-            output_path = make_output_path()
-            encode_video(video=video_frames, fps=frame_rate, audio=audio, output_path=output_path,
-                         video_chunks_number=get_video_chunks_number(num_frames))
-            return output_path, _seed
-
-    return validate_and_run("a2vid", prompt, _generate,
-                            required_files={"Audio File": audio_file}, progress=progress)
+    global _active_gen_inputs
+    _active_gen_inputs = {"gen_type": "a2vid", "values": [
+        prompt, negative_prompt,
+        audio_file, audio_start, audio_max_duration,
+        image, image_strength, image_crf,
+        resolution, num_frames, frame_rate, num_steps, seed,
+        enhance_prompt, fp8,
+        v_cfg, v_stg, v_rescale, v_modality, v_stg_blocks, v_skip_step,
+        frame_mode, duration,
+    ]}
+    _validate("a2vid", prompt, required_files={"Audio File": audio_file})
+    image_path = save_temp_image(image) if image is not None else None
+    kwargs = {
+        "prompt": prompt, "negative_prompt": negative_prompt,
+        "audio_path": audio_file, "audio_start": float(audio_start),
+        "audio_max_duration": float(audio_max_duration),
+        "image_path": image_path, "image_strength": float(image_strength),
+        "image_crf": int(image_crf), "resolution": resolution,
+        "num_frames": int(num_frames), "frame_rate": int(frame_rate),
+        "num_steps": int(num_steps), "seed": int(seed),
+        "enhance_prompt": bool(enhance_prompt), "fp8": bool(fp8),
+        "v_guidance": [v_cfg, v_stg, v_rescale, v_modality, str(v_stg_blocks), v_skip_step],
+    }
+    return _submit_and_wait("a2vid", kwargs, progress)
 
 
 def generate_retake(
@@ -336,42 +462,29 @@ def generate_retake(
     a_cfg, a_stg, a_rescale, a_modality, a_stg_blocks, a_skip_step,
     progress=gr.Progress(track_tqdm=True),
 ):
+    global _active_gen_inputs
+    _active_gen_inputs = {"gen_type": "retake", "values": [
+        video_path, prompt, negative_prompt,
+        start_time, end_time,
+        regenerate_video, regenerate_audio,
+        num_steps, seed, distilled_mode,
+        enhance_prompt, fp8,
+        v_cfg, v_stg, v_rescale, v_modality, v_stg_blocks, v_skip_step,
+        a_cfg, a_stg, a_rescale, a_modality, a_stg_blocks, a_skip_step,
+    ]}
     if start_time >= end_time:
         raise gr.Error("Start time must be less than end time.")
-
-    def _generate(prog):
-        with torch.inference_mode():
-            _seed = resolve_seed(seed)
-            quantization = "fp8" if fp8 else None
-            pipeline = pipeline_mgr.get_retake(distilled=distilled_mode, quantization=quantization)
-
-            video_guider = build_guider(v_cfg, v_stg, v_rescale, v_modality, v_stg_blocks, v_skip_step)
-            audio_guider = build_guider(a_cfg, a_stg, a_rescale, a_modality, a_stg_blocks, a_skip_step)
-
-            pipeline_mgr.start_loading_bar()
-            video_frames, audio_tensor = pipeline(
-                video_path=video_path,
-                prompt=prompt,
-                start_time=start_time,
-                end_time=end_time,
-                seed=_seed,
-                negative_prompt=negative_prompt,
-                num_inference_steps=num_steps,
-                video_guider_params=video_guider if not distilled_mode else None,
-                audio_guider_params=audio_guider if not distilled_mode else None,
-                regenerate_video=regenerate_video,
-                regenerate_audio=regenerate_audio,
-                enhance_prompt=enhance_prompt,
-                distilled=distilled_mode,
-            )
-            if prog:
-                prog(0.9, desc="Encoding video...")
-            from ltx_pipelines.utils.media_io import get_videostream_metadata
-            src_fps, src_num_frames, _, _ = get_videostream_metadata(video_path)
-            output_path = make_output_path()
-            encode_video(video=video_frames, fps=src_fps, audio=audio_tensor, output_path=output_path,
-                         video_chunks_number=get_video_chunks_number(src_num_frames))
-            return output_path, _seed
-
-    return validate_and_run("retake", prompt, _generate,
-                            required_files={"Source Video": video_path}, progress=progress)
+    _validate("retake", prompt, required_files={"Source Video": video_path})
+    kwargs = {
+        "prompt": prompt, "negative_prompt": negative_prompt,
+        "video_path": video_path,
+        "start_time": float(start_time), "end_time": float(end_time),
+        "regenerate_video": bool(regenerate_video),
+        "regenerate_audio": bool(regenerate_audio),
+        "num_steps": int(num_steps), "seed": int(seed),
+        "distilled": bool(distilled_mode),
+        "enhance_prompt": bool(enhance_prompt), "fp8": bool(fp8),
+        "v_guidance": [v_cfg, v_stg, v_rescale, v_modality, str(v_stg_blocks), v_skip_step],
+        "a_guidance": [a_cfg, a_stg, a_rescale, a_modality, str(a_stg_blocks), a_skip_step],
+    }
+    return _submit_and_wait("retake", kwargs, progress)

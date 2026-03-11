@@ -68,6 +68,19 @@ STRINGS = {
     "image_crf_info":            {"en": "Compression quality (0=lossless, 51=worst)",
                                   "ko": "압축 품질 (0=무손실, 51=최저)"},
 
+    # Prompt Constructor
+    "prompt_constructor":        {"en": "Prompt Constructor",            "ko": "프롬프트 구성기"},
+    "pc_style":                  {"en": "Style",                         "ko": "스타일"},
+    "pc_shot":                   {"en": "Shot Type",                     "ko": "샷 타입"},
+    "pc_subject":                {"en": "Subject & Action",              "ko": "주제 & 동작"},
+    "pc_environment":            {"en": "Environment",                   "ko": "환경"},
+    "pc_lighting":               {"en": "Lighting",                      "ko": "조명"},
+    "pc_camera":                 {"en": "Camera Movement",               "ko": "카메라 움직임"},
+    "pc_insert":                 {"en": "Insert into Prompt",            "ko": "프롬프트에 삽입"},
+
+    # Disable Audio
+    "disable_audio":             {"en": "Disable Audio",                 "ko": "오디오 비활성화"},
+
     # Placeholders
     "ph_video":                  {"en": "Describe your video...",                  "ko": "영상을 설명하세요..."},
     "ph_transform":              {"en": "Describe the transformation...",          "ko": "변환 내용을 설명하세요..."},
@@ -79,6 +92,8 @@ STRINGS = {
     "sample_1":                  {"en": "Sample 1",                    "ko": "샘플 1"},
     "sample_2":                  {"en": "Sample 2",                    "ko": "샘플 2"},
     "sample_3":                  {"en": "Sample 3",                    "ko": "샘플 3"},
+    "sample_4":                  {"en": "Sample 4",                    "ko": "샘플 4"},
+    "sample_5":                  {"en": "Sample 5",                    "ko": "샘플 5"},
 
     # Distilled tab
     "distilled_note":            {"en": "Fixed 8-step distilled schedule. No guidance parameters.",
@@ -88,6 +103,8 @@ STRINGS = {
     "reference_video":           {"en": "Reference Video",             "ko": "참조 영상"},
     "reference_strength":        {"en": "Reference Strength",          "ko": "참조 강도"},
     "iclora_type":               {"en": "IC-LoRA Type",                "ko": "IC-LoRA 유형"},
+    "iclora_type_info":          {"en": "Union Control: Preserve overall structure of reference video | Inpainting: Regenerate partial regions | Motion Track: Follow motion trajectory | Detailer: Enhance fine details | Pose Control: Control body poses",
+                                  "ko": "Union Control: 참조 영상의 전체 구조 유지 | Inpainting: 부분 영역 재생성 | Motion Track: 모션 궤적 추적 | Detailer: 세부 디테일 향상 | Pose Control: 신체 포즈 제어"},
     "attention_strength":        {"en": "Attention Strength",          "ko": "어텐션 강도"},
     "skip_upscale":              {"en": "Skip Upscale (half res)",     "ko": "업스케일 건너뛰기 (절반 해상도)"},
 
@@ -177,7 +194,7 @@ def get_i18n_js() -> str:
         const targetMap = LANG_STRINGS[lang] || {};
 
         document.querySelectorAll(
-            'label, button, span, h1, h2, h3, p'
+            'label, button, span, h1, h2, h3, p, em'
         ).forEach(el => {
             // Skip the language selector radio labels
             if (el.closest('#lang-selector')) return;
