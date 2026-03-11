@@ -28,6 +28,20 @@ STRINGS = {
     "tab_settings":              {"en": "Settings",                    "ko": "설정"},
     "tab_history":               {"en": "History",                     "ko": "히스토리"},
 
+    # Tab descriptions
+    "desc_ti2vid":               {"en": "2-stage generation (dev model). Supports negative prompt and guidance parameters.",
+                                  "ko": "2단계 생성 (dev 모델). 네거티브 프롬프트 및 가이던스 파라미터 지원."},
+    "desc_distilled":            {"en": "Fast 8-step generation. No negative prompt or guidance parameters.",
+                                  "ko": "빠른 8스텝 생성. 네거티브 프롬프트/가이던스 파라미터 없음."},
+    "desc_iclora":               {"en": "Reference video conditioned generation (distilled model). No negative prompt.",
+                                  "ko": "참조 영상 기반 생성 (distilled 모델). 네거티브 프롬프트 없음."},
+    "desc_keyframe":             {"en": "Interpolate between keyframe images (dev model). Supports negative prompt.",
+                                  "ko": "키프레임 이미지 간 보간 (dev 모델). 네거티브 프롬프트 지원."},
+    "desc_a2vid":                {"en": "Audio-conditioned video generation (dev model). Supports negative prompt.",
+                                  "ko": "오디오 기반 영상 생성 (dev 모델). 네거티브 프롬프트 지원."},
+    "desc_retake":               {"en": "Re-generate sections of existing video. Distilled mode disables negative prompt.",
+                                  "ko": "기존 영상 구간 재생성. Distilled 모드에서는 네거티브 프롬프트 비활성."},
+
     # Common controls
     "prompt":                    {"en": "Prompt",                      "ko": "프롬프트"},
     "negative_prompt":           {"en": "Negative Prompt",             "ko": "네거티브 프롬프트"},

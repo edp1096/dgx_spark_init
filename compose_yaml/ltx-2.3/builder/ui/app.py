@@ -258,6 +258,7 @@ def build_ui() -> gr.Blocks:
             # Tab 1: Text/Image -> Video
             # ==============================================================
             with gr.Tab("Text/Image -> Video"):
+                gr.Markdown("*2-stage generation (dev model). Supports negative prompt and guidance parameters.*")
                 with gr.Row():
                     with gr.Column(scale=1):
                         with gr.Group():
@@ -315,6 +316,7 @@ def build_ui() -> gr.Blocks:
             # Tab 2: Distilled (Fast)
             # ==============================================================
             with gr.Tab("Distilled (Fast)"):
+                gr.Markdown("*Fast 8-step generation. No negative prompt or guidance parameters.*")
                 with gr.Row():
                     with gr.Column(scale=1):
                         with gr.Group():
@@ -338,7 +340,6 @@ def build_ui() -> gr.Blocks:
                             t2_enhance = gr.Checkbox(value=False, label="Enhance Prompt")
                             t2_fp8 = gr.Checkbox(value=True, label="FP8 Quantization", interactive=False)
                             t2_no_audio = gr.Checkbox(value=False, label="Disable Audio")
-                        gr.Markdown("*Fixed 8-step distilled schedule. No guidance parameters.*")
                         t2_btn = gr.Button("Generate", variant="primary", size="lg")
 
                     with gr.Column(scale=1):
@@ -366,6 +367,7 @@ def build_ui() -> gr.Blocks:
             # Tab 3: IC-LoRA
             # ==============================================================
             with gr.Tab("IC-LoRA"):
+                gr.Markdown("*Reference video conditioned generation (distilled model). No negative prompt.*")
                 with gr.Row():
                     with gr.Column(scale=1):
                         t3_prompt = gr.Textbox(label="Prompt", lines=4, placeholder="Describe the transformation...")
@@ -419,6 +421,7 @@ def build_ui() -> gr.Blocks:
             # Tab 4: Keyframe Interpolation
             # ==============================================================
             with gr.Tab("Keyframe Interpolation"):
+                gr.Markdown("*Interpolate between keyframe images (dev model). Supports negative prompt.*")
                 with gr.Row():
                     with gr.Column(scale=1):
                         t4_prompt = gr.Textbox(label="Prompt", lines=4, placeholder="Describe the interpolation...")
@@ -468,6 +471,7 @@ def build_ui() -> gr.Blocks:
             # Tab 5: Audio -> Video
             # ==============================================================
             with gr.Tab("Audio -> Video"):
+                gr.Markdown("*Audio-conditioned video generation (dev model). Supports negative prompt.*")
                 with gr.Row():
                     with gr.Column(scale=1):
                         t5_prompt = gr.Textbox(label="Prompt", lines=4, placeholder="Describe the video for this audio...")
@@ -521,6 +525,7 @@ def build_ui() -> gr.Blocks:
             # Tab 6: Retake
             # ==============================================================
             with gr.Tab("Retake"):
+                gr.Markdown("*Re-generate sections of existing video. Distilled mode disables negative prompt.*")
                 with gr.Row():
                     with gr.Column(scale=1):
                         t6_video_in = gr.Video(label="Source Video", sources=["upload"])
