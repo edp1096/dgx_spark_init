@@ -270,7 +270,7 @@ def build_ui() -> gr.Blocks:
                         create_prompt_constructor(t2_prompt)
                         with gr.Accordion("Negative Prompt (NAG)", open=False):
                             t2_neg = gr.Textbox(label="Negative Prompt", value="", lines=2, show_label=False)
-                            t2_nag_scale = gr.Slider(1.0, 15.0, value=5.0, step=0.5, label="NAG Scale",
+                            t2_nag_scale = gr.Slider(1.0, 15.0, value=1.0, step=0.5, label="NAG Scale",
                                                      info="Guidance strength (1.0=off, higher=stronger, doubles inference time)")
                         with gr.Accordion("Conditioning Image", open=False):
                             t2_image = gr.Image(label="Image (optional)", type="numpy")
@@ -379,7 +379,7 @@ def build_ui() -> gr.Blocks:
                         create_prompt_constructor(t3_prompt)
                         with gr.Accordion("Negative Prompt (NAG)", open=False):
                             t3_neg = gr.Textbox(label="Negative Prompt", value="", lines=2, show_label=False)
-                            t3_nag_scale = gr.Slider(1.0, 15.0, value=5.0, step=0.5, label="NAG Scale",
+                            t3_nag_scale = gr.Slider(1.0, 15.0, value=1.0, step=0.5, label="NAG Scale",
                                                      info="Guidance strength (1.0=off, higher=stronger, doubles inference time)")
                         t3_ref_video = gr.Video(label="Reference Video", sources=["upload"])
                         t3_ref_strength = gr.Slider(0.0, 1.0, value=1.0, step=0.05, label="Reference Strength")
@@ -542,7 +542,7 @@ def build_ui() -> gr.Blocks:
                         t6_prompt = gr.Textbox(label="Prompt", lines=4, placeholder="Describe the regenerated section...")
                         with gr.Accordion("Negative Prompt", open=False):
                             t6_neg = gr.Textbox(label="Negative Prompt", value="", lines=2, show_label=False)
-                            t6_nag_scale = gr.Slider(1.0, 15.0, value=5.0, step=0.5, label="NAG Scale",
+                            t6_nag_scale = gr.Slider(1.0, 15.0, value=1.0, step=0.5, label="NAG Scale",
                                                      info="Guidance for distilled mode (1.0=off, ignored in full mode)",
                                                      visible=True)
                         with gr.Row():
