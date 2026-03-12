@@ -13,7 +13,8 @@
 set -e
 
 # === Configuration ===
-BASE="/mnt/d/dev/asus_ascent_gx10_dgx_spark"
+# BASE="/mnt/d/dev/asus_ascent_gx10_dgx_spark"
+BASE="$(cd "." && pwd)" # Current directory as base
 RECOVERY_TAR="$BASE/dgx-spark-recovery-image-1.120.36.tar.gz"
 USB_PATH="$BASE/dgx_usb"
 OUTPUT_IMG="$BASE/dgx_img/dgx_spark_recovery_ventoy.img"
@@ -68,7 +69,7 @@ echo "  OK"
 
 # === [3/6] Extract and patch initrd ===
 echo "[3/6] Patching initrd for Ventoy compatibility..."
-rm -rf "$WORK_DIR"
+rm -rf "$WORK_DIR/initrd_extract" "$WORK_DIR/initrd2.zst" "$WORK_DIR/initrd2.cpio" "$WORK_DIR/initrd2_new.zst" "$WORK_DIR/initrd_patched" "$WORK_DIR/part.img"
 mkdir -p "$WORK_DIR/initrd_extract"
 
 # Auto-detect initrd structure
@@ -96,7 +97,7 @@ cd "$WORK_DIR/initrd_extract"
 cpio -idm < "$WORK_DIR/initrd2.cpio" 2>/dev/null
 echo "  Extracted $(find . -type f | wc -l) files"
 
-# --- Patch init_mount: add NTFS Ventoy support (ntfs-3g -> find .img -> loop-mount) ---
+# --- Patch init_mount: add NTFS/ext4 Ventoy support (find .img -> loop-mount) ---
 if [ ! -f init_mount ]; then
     echo "ERROR: init_mount not found in initramfs"
     exit 1
@@ -110,7 +111,7 @@ with open(sys.argv[1], 'r') as f:
     content = f.read()
 
 ventoy_block = r'''
-        # --- Ventoy: mount NTFS USB via ntfs-3g, find .img, loop-mount FAT32 ---
+        # --- Ventoy: mount NTFS/ext4 USB, find .img, loop-mount FAT32 ---
         echo "  [Ventoy] blkid:"
         blkid 2>/dev/null || true
         mkdir -p /mnt/ventoy
@@ -118,9 +119,14 @@ ventoy_block = r'''
             [ -e "$usbdev" ] || continue
             FSTYPE=$(blkid -s TYPE -o value "$usbdev" 2>/dev/null)
             echo "  [Ventoy] $usbdev: type=$FSTYPE"
+            VMOUNTED=false
             if [ "$FSTYPE" = "ntfs" ]; then
-                if ntfs-3g "$usbdev" /mnt/ventoy -o ro 2>/dev/null; then
-                    echo "  [Ventoy] Mounted $usbdev (NTFS)"
+                ntfs-3g "$usbdev" /mnt/ventoy -o ro 2>/dev/null && VMOUNTED=true
+            elif [ "$FSTYPE" = "ext4" ] || [ "$FSTYPE" = "ext3" ] || [ "$FSTYPE" = "ext2" ]; then
+                mount -o ro "$usbdev" /mnt/ventoy 2>/dev/null && VMOUNTED=true
+            fi
+            if [ "$VMOUNTED" = "true" ]; then
+                    echo "  [Ventoy] Mounted $usbdev ($FSTYPE)"
                     for imgfile in /mnt/ventoy/*.img; do
                         [ -f "$imgfile" ] || continue
                         echo "  [Ventoy] Checking $imgfile"
@@ -144,7 +150,6 @@ ventoy_block = r'''
                     if [ "$mounted" != "true" ]; then
                         umount /mnt/ventoy 2>/dev/null
                     fi
-                fi
             fi
             [ "$mounted" = "true" ] && break
         done
@@ -326,6 +331,7 @@ echo "    fastos.partab OK"
 echo "  Partition image: $(du -h "$PART_IMG" | cut -f1)"
 
 # === [6/6] Assemble disk image with MBR ===
+mkdir -p "$(dirname "$OUTPUT_IMG")"
 echo "[6/6] Assembling disk image with MBR partition table..."
 
 python3 - "$PART_IMG" "$OUTPUT_IMG" << 'PYEOF'
@@ -388,7 +394,7 @@ echo ""
 echo "IMG saved to: $OUTPUT_IMG"
 echo ""
 echo "Usage:"
-echo "  1. Install Ventoy on USB with NTFS filesystem (NOT exFAT)"
+echo "  1. Install Ventoy on USB with NTFS or ext4 filesystem (NOT exFAT)"
 echo "  2. Copy the .img file to the Ventoy USB drive"
 echo "  3. Boot from Ventoy and select the .img file"
 echo ""
