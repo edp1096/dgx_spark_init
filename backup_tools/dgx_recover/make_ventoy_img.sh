@@ -14,6 +14,7 @@ set -e
 
 # === Configuration ===
 BASE="/mnt/d/dev/asus_ascent_gx10_dgx_spark"
+RECOVERY_TAR="$BASE/dgx-spark-recovery-image-1.120.36.tar.gz"
 USB_PATH="$BASE/dgx_usb"
 OUTPUT_IMG="$BASE/dgx_img/dgx_spark_recovery_ventoy.img"
 WORK_DIR="$BASE/dgx_ventoy_work"
@@ -37,6 +38,19 @@ if [ -n "$MISSING" ]; then
     sudo apt install -y mtools dosfstools zstd
 fi
 echo "  OK"
+
+# === Extract from tar.gz if specified ===
+if [ -n "$RECOVERY_TAR" ]; then
+    if [ ! -f "$RECOVERY_TAR" ]; then
+        echo "ERROR: Recovery tar.gz not found: $RECOVERY_TAR"
+        exit 1
+    fi
+    echo "[*] Extracting USB contents from $(basename "$RECOVERY_TAR")..."
+    USB_PATH="$WORK_DIR/usbimg.customer/usb"
+    mkdir -p "$WORK_DIR"
+    tar xzf "$RECOVERY_TAR" -C "$WORK_DIR" usbimg.customer/usb/
+    echo "  Extracted to $USB_PATH"
+fi
 
 # === [2/6] Verify USB backup ===
 echo "[2/6] Verifying USB backup at $USB_PATH ..."

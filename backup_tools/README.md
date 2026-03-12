@@ -1,36 +1,25 @@
 * docker_image, hf_model: https://github.com/edp1096/file-transfer-sparks 셸스크립트 대신 이거 사용.
 
 
-## dgx_recover/main_ventoy_img.sh
+## dgx_recover/make_ventoy_img.sh
 
 * 개요
-    * `VenToy`로 DGX FastOS를 이미지화해서 설치
-    * wsl에서 테스트
+    * `VenToy`로 DGX FastOS 복구이미지를 부팅하여 설치
+    * WSL에서 실행
 
 * 주의사항
-    * USB는 E드라이브로 가정하며 USB 드라이브를 쓰지 않고 ssd로 복사하여 작업
-    * `VenToy`는 반드시 `ext4`나 `ntfs`로 설치. **iso나 exfat, fat32 불가**
-        * MBR/GPT는 뭘해도 상관없음
+    * `VenToy`는 반드시 `ntfs`로 설치. **exfat, fat32, iso 불가**
+        * MBR/GPT는 뭘 해도 상관없음
     * 원본 복구이미지와 다르게 TUI 같은거 없이 **아무것도 묻지 않고 바로 복구 진행함**
-    * 보안부팅 `Disbled`
+    * 보안부팅 `Disabled`
 
-* [System Recovery](https://docs.nvidia.com/dgx/dgx-spark/system-recovery.html) 내용대로 복구 usb 생성
-* wsl에서 usb드라이브 마운트 및 테스트
-```sh
-sudo mkdir -p /mnt/e
-sudo mount -t drvfs E: /mnt/e
-ls /mnt/e/
-sudo umount /mnt/e
-```
-* cmd에서 복구usb ssd로 복사
-    * 아래 첫 줄 cd는 복사할 위치로 변경. **chkdsk 실행시 /mnt/e 마운트 해제됨**
-```cmd
-cd D:\dev\asus_ascent_gx10_dgx_spark\dgx_usb
+* 사용법
 
-chkdsk E: /F
-xcopy E:\* .\ /E /H
-```
-* img 생성 스크립트 내용 상단의 **경로 수정 후** 실행
+1. [System Recovery](https://docs.nvidia.com/dgx/dgx-spark/system-recovery.html)에서 복구 이미지 다운로드 (`dgx-spark-recovery-image-*.tar.gz`)
+
+2. `make_ventoy_img.sh` 상단의 `BASE`, `RECOVERY_TAR` 경로 확인 후 실행 (tar.gz에서 자동 추출)
 ```sh
 ./make_ventoy_img.sh
 ```
+
+3. 생성된 `.img` 파일을 Ventoy USB(NTFS)에 복사 후 부팅
