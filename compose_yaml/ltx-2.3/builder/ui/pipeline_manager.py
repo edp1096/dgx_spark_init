@@ -1,5 +1,6 @@
 """Pipeline lifecycle management and model configuration."""
 
+import dataclasses
 import gc
 import logging
 import os
@@ -146,11 +147,16 @@ def _wrap_model_ledger(mgr, ledger, stage_prefix: str = ""):
 # ---------------------------------------------------------------------------
 # Defaults & Constants
 # ---------------------------------------------------------------------------
-DEFAULTS = LTX_2_3_PARAMS
-DEFAULTS.video_guider_params.cfg_scale = 2.0
-DEFAULTS.video_guider_params.stg_scale = 0.4
-DEFAULTS.video_guider_params.rescale_scale = 0.85
-DEFAULTS.num_inference_steps = 25
+DEFAULTS = dataclasses.replace(
+    LTX_2_3_PARAMS,
+    video_guider_params=dataclasses.replace(
+        LTX_2_3_PARAMS.video_guider_params,
+        cfg_scale=2.0,
+        stg_scale=0.4,
+        rescale_scale=0.85,
+    ),
+    num_inference_steps=25,
+)
 from config import MODEL_DIR as DEFAULT_MODEL_DIR, OUTPUT_DIR
 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
