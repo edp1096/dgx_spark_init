@@ -83,7 +83,8 @@ def _worker_loop(
                 max_new_tokens=max_new_tokens,
                 do_sample=True,
                 temperature=0.7,
-                repetition_penalty=1.2,
+                repetition_penalty=1.3,
+                no_repeat_ngram_size=3,
             )
             generated_ids = outputs[0][len(model_inputs.input_ids[0]):]
             enhanced_prompt = self.processor.tokenizer.decode(
@@ -91,7 +92,7 @@ def _worker_loop(
         return enhanced_prompt
 
     GemmaTextEncoder._enhance = _patched_enhance
-    log.info("Patched GemmaTextEncoder._enhance with repetition_penalty=1.2")
+    log.info("Patched GemmaTextEncoder._enhance with repetition_penalty=1.3, no_repeat_ngram_size=3")
 
     mgr = PipelineManager(progress_queue=progress_queue)
 
