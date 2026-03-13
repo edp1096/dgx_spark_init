@@ -48,7 +48,7 @@ services:
       apt-get clean && rm -rf /var/lib/apt/lists/*;
 
       echo '=== [4/5] Python packages ===';
-      pip install -q gradio accelerate safetensors huggingface_hub transformers bitsandbytes einops scipy psutil fastsafetensors av;
+      pip install -q gradio accelerate safetensors huggingface_hub transformers einops scipy psutil fastsafetensors av;
       if ! python3 -c 'import torchaudio' 2>/dev/null; then
         echo '  Building torchaudio from source...';
         git clone --depth 250 https://github.com/pytorch/audio.git /tmp/torchaudio-src && cd /tmp/torchaudio-src && git checkout $${TORCHAUDIO_COMMIT} && cd ~;
