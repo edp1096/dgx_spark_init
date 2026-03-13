@@ -264,18 +264,63 @@ def _worker_loop(
             )
             return output_path, seed
 
-    def _ensure_stereo(audio_path):
-        """Convert mono audio to stereo — the audio encoder expects 2 channels."""
+    def _preprocess_audio(audio_path, num_frames, frame_rate):
+        """Preprocess audio for the LTX audio encoder.
+
+        Handles three issues that cause latent shape mismatches:
+        1. Channel count: encoder expects stereo (2ch)
+        2. Sample rate: encoder expects 16 kHz
+        3. Duration: audio must be >= video duration, pad with silence if shorter
+        """
         import soundfile as sf
-        data, sr = sf.read(audio_path)
+        import numpy as np
+
+        TARGET_SR = 16000
+        video_duration = num_frames / frame_rate + 1.0  # +1s safety margin
+
+        # Try native soundfile first, fall back to ffmpeg for mp3 etc.
+        try:
+            data, sr = sf.read(audio_path)
+        except Exception:
+            import subprocess, tempfile
+            tmp_wav = str(Path(OUTPUT_DIR) / "_ffmpeg_tmp.wav")
+            subprocess.run(
+                ["ffmpeg", "-y", "-i", audio_path, "-ar", str(TARGET_SR),
+                 "-ac", "2", "-f", "wav", tmp_wav],
+                capture_output=True, check=True,
+            )
+            data, sr = sf.read(tmp_wav)
+
+        # Ensure 2D array (samples, channels)
         if data.ndim == 1:
-            import numpy as np
-            stereo = np.stack([data, data], axis=-1)
-            stereo_path = str(Path(OUTPUT_DIR) / f"_stereo_tmp{Path(audio_path).suffix}")
-            sf.write(stereo_path, stereo, sr)
-            log.info("Converted mono audio to stereo: %s", stereo_path)
-            return stereo_path
-        return audio_path
+            data = np.stack([data, data], axis=-1)
+        elif data.shape[-1] != 2:
+            # Downmix N channels to stereo (take first two or average)
+            if data.shape[-1] >= 2:
+                data = data[:, :2]
+            else:
+                data = np.stack([data[:, 0], data[:, 0]], axis=-1)
+
+        # Resample to 16 kHz if needed
+        if sr != TARGET_SR:
+            from scipy.signal import resample
+            num_samples_new = int(len(data) * TARGET_SR / sr)
+            data = resample(data, num_samples_new, axis=0).astype(np.float64)
+            sr = TARGET_SR
+
+        # Pad with silence if audio is shorter than video
+        required_samples = int(video_duration * sr)
+        if len(data) < required_samples:
+            pad = np.zeros((required_samples - len(data), 2), dtype=data.dtype)
+            data = np.concatenate([data, pad], axis=0)
+            log.info("Padded audio with %.1fs silence (video=%.1fs)",
+                     (required_samples - len(data)) / sr, video_duration)
+
+        out_path = str(Path(OUTPUT_DIR) / "_preproc_audio.wav")
+        sf.write(out_path, data, sr, subtype="PCM_16")
+        log.info("Preprocessed audio: %s → %s (%d ch, %d Hz, %.1fs)",
+                 audio_path, out_path, data.shape[-1], sr, len(data) / sr)
+        return out_path
 
     def _run_a2vid(kwargs, task_id):
         with torch.inference_mode():
@@ -283,7 +328,9 @@ def _worker_loop(
             height, width = parse_resolution(kwargs["resolution"])
             pipeline = mgr.get_a2vid(quantization="fp8")
 
-            audio_path = _ensure_stereo(kwargs["audio_path"])
+            audio_path = _preprocess_audio(
+                kwargs["audio_path"], kwargs["num_frames"], kwargs["frame_rate"]
+            )
 
             images = []
             if kwargs.get("image_path"):
