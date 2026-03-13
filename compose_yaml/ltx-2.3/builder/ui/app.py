@@ -243,8 +243,9 @@ def create_preset_row(tab_key, param_pairs):
 
     with gr.Accordion("Presets", open=False):
         with gr.Row():
-            p_export = gr.DownloadButton("Export", variant="secondary", size="sm")
+            p_export_btn = gr.Button("Export", variant="secondary", size="sm")
             p_import = gr.File(label="Import (.json)", file_types=[".json"], type="filepath")
+        p_export_file = gr.File(label="Preset file", visible=False, interactive=False)
         p_status = gr.Textbox(label="", interactive=False, visible=False, max_lines=1)
         p_lang = gr.Textbox(value="en", visible=False, elem_id=f"preset-lang-{tab_key}")
 
@@ -255,7 +256,7 @@ def create_preset_row(tab_key, param_pairs):
             data[name] = val
         path = Path(_tf.mkdtemp()) / f"ltx2_{tab_key}.json"
         path.write_text(_pjson.dumps(data, indent=2, ensure_ascii=False))
-        return str(path)
+        return gr.File(value=str(path), visible=True)
 
     def _do_import(file_path, lang):
         if file_path is None:
@@ -274,7 +275,7 @@ def create_preset_row(tab_key, param_pairs):
         except Exception as e:
             return [gr.update(visible=True, value=f"Error: {e}")] + [gr.update()] * len(param_pairs)
 
-    p_export.click(fn=_do_export, inputs=comps, outputs=[p_export])
+    p_export_btn.click(fn=_do_export, inputs=comps, outputs=[p_export_file])
     p_import.change(
         fn=_do_import, inputs=[p_import, p_lang], outputs=[p_status] + comps,
         js=f"(file, lang) => [file, localStorage.getItem('ltx2-lang') || 'en']",
