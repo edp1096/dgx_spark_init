@@ -216,6 +216,56 @@ def create_guidance_accordion(
     return components
 
 
+_GUIDANCE_NAMES_VA = [
+    "v_cfg", "v_stg", "v_rescale", "v_modality", "v_stg_blocks", "v_skip_step",
+    "a_cfg", "a_stg", "a_rescale", "a_modality", "a_stg_blocks", "a_skip_step",
+]
+_GUIDANCE_NAMES_V = _GUIDANCE_NAMES_VA[:6]
+
+
+def create_preset_row(tab_key, param_pairs):
+    """Create per-tab preset import/export controls.
+
+    param_pairs: list of (param_name, gr_component).
+    """
+    import json as _pjson
+
+    comps = [c for _, c in param_pairs]
+
+    with gr.Accordion("Presets", open=False):
+        with gr.Row():
+            p_export = gr.DownloadButton("Export", variant="secondary", size="sm")
+            p_import = gr.File(label="Import (.json)", file_types=[".json"], type="filepath")
+        p_status = gr.Textbox(label="", interactive=False, visible=False, max_lines=1)
+
+    def _do_export(*values):
+        import tempfile as _tf
+        data = {"tab": tab_key}
+        for (name, _), val in zip(param_pairs, values):
+            data[name] = val
+        path = Path(_tf.mkdtemp()) / f"ltx2_{tab_key}.json"
+        path.write_text(_pjson.dumps(data, indent=2, ensure_ascii=False))
+        return str(path)
+
+    def _do_import(file_path):
+        if file_path is None:
+            return [gr.update(visible=False)] + [gr.update()] * len(param_pairs)
+        try:
+            data = _pjson.loads(Path(file_path).read_text())
+            file_tab = data.get("tab", "")
+            if file_tab != tab_key:
+                return [gr.update(visible=True, value=f"Tab mismatch: '{file_tab}' != '{tab_key}'")] + [gr.update()] * len(param_pairs)
+            result = []
+            for name, _ in param_pairs:
+                result.append(data[name] if name in data else gr.update())
+            return [gr.update(visible=True, value="Preset loaded.")] + result
+        except Exception as e:
+            return [gr.update(visible=True, value=f"Error: {e}")] + [gr.update()] * len(param_pairs)
+
+    p_export.click(fn=_do_export, inputs=comps, outputs=[p_export])
+    p_import.change(fn=_do_import, inputs=[p_import], outputs=[p_status] + comps)
+
+
 def create_output_column(gen_type: str):
     """Create standardised output column with video, info, kill button, and status."""
     video = gr.Video(label="Generated Video")
@@ -286,6 +336,15 @@ def build_ui() -> gr.Blocks:
                             t2_enhance = gr.Checkbox(value=False, label="Enhance Prompt")
                             t2_fp8 = gr.Checkbox(value=True, label="FP8 Quantization", interactive=False)
                             t2_no_audio = gr.Checkbox(value=False, label="Disable Audio")
+                        create_preset_row("distilled", [
+                            ("prompt", t2_prompt), ("negative_prompt", t2_neg),
+                            ("nag_scale", t2_nag_scale),
+                            ("img_strength", t2_img_strength), ("img_crf", t2_img_crf),
+                            ("resolution", t2_resolution), ("frames", t2_frames),
+                            ("fps", t2_fps), ("seed", t2_seed),
+                            ("enhance", t2_enhance), ("no_audio", t2_no_audio),
+                            ("frame_mode", t2_frame_mode), ("duration", t2_duration),
+                        ])
                         t2_btn = gr.Button("Generate", variant="primary", size="lg")
 
                     with gr.Column(scale=1):
@@ -344,6 +403,15 @@ def build_ui() -> gr.Blocks:
                             t1_fp8 = gr.Checkbox(value=True, label="FP8 Quantization", interactive=False)
                             t1_no_audio = gr.Checkbox(value=False, label="Disable Audio")
                         t1_guidance = create_guidance_accordion("t1")
+                        create_preset_row("ti2vid", [
+                            ("prompt", t1_prompt), ("negative_prompt", t1_neg),
+                            ("img_strength", t1_img_strength), ("img_crf", t1_img_crf),
+                            ("resolution", t1_resolution), ("frames", t1_frames),
+                            ("fps", t1_fps), ("steps", t1_steps),
+                            ("seed", t1_seed), ("sampler", t1_sampler),
+                            ("enhance", t1_enhance), ("no_audio", t1_no_audio),
+                            ("frame_mode", t1_frame_mode), ("duration", t1_duration),
+                        ] + [(_n, t1_guidance[_i]) for _i, _n in enumerate(_GUIDANCE_NAMES_VA)])
                         t1_btn = gr.Button("Generate", variant="primary", size="lg")
 
                     with gr.Column(scale=1):
@@ -404,6 +472,18 @@ def build_ui() -> gr.Blocks:
                             t3_enhance = gr.Checkbox(value=False, label="Enhance Prompt")
                             t3_fp8 = gr.Checkbox(value=True, label="FP8 Quantization", interactive=False)
                             t3_no_audio = gr.Checkbox(value=False, label="Disable Audio")
+                        create_preset_row("iclora", [
+                            ("prompt", t3_prompt), ("negative_prompt", t3_neg),
+                            ("nag_scale", t3_nag_scale),
+                            ("ref_strength", t3_ref_strength), ("lora_type", t3_lora),
+                            ("attn_strength", t3_attn_strength),
+                            ("img_strength", t3_img_strength), ("img_crf", t3_img_crf),
+                            ("resolution", t3_resolution), ("frames", t3_frames),
+                            ("fps", t3_fps), ("seed", t3_seed),
+                            ("skip_stage2", t3_skip_stage2),
+                            ("enhance", t3_enhance), ("no_audio", t3_no_audio),
+                            ("frame_mode", t3_frame_mode), ("duration", t3_duration),
+                        ])
                         t3_btn = gr.Button("Generate", variant="primary", size="lg")
 
                     with gr.Column(scale=1):
@@ -455,6 +535,15 @@ def build_ui() -> gr.Blocks:
                             t4_fp8 = gr.Checkbox(value=True, label="FP8 Quantization", interactive=False)
                             t4_no_audio = gr.Checkbox(value=False, label="Disable Audio")
                         t4_guidance = create_guidance_accordion("t4")
+                        create_preset_row("keyframe", [
+                            ("prompt", t4_prompt), ("negative_prompt", t4_neg),
+                            ("indices", t4_indices),
+                            ("img_strength", t4_img_strength), ("img_crf", t4_img_crf),
+                            ("resolution", t4_resolution), ("frames", t4_frames),
+                            ("fps", t4_fps), ("steps", t4_steps), ("seed", t4_seed),
+                            ("enhance", t4_enhance), ("no_audio", t4_no_audio),
+                            ("frame_mode", t4_frame_mode), ("duration", t4_duration),
+                        ] + [(_n, t4_guidance[_i]) for _i, _n in enumerate(_GUIDANCE_NAMES_VA)])
                         t4_btn = gr.Button("Generate", variant="primary", size="lg")
 
                     with gr.Column(scale=1):
@@ -508,6 +597,15 @@ def build_ui() -> gr.Blocks:
                             t5_enhance = gr.Checkbox(value=False, label="Enhance Prompt")
                             t5_fp8 = gr.Checkbox(value=True, label="FP8 Quantization", interactive=False)
                         t5_guidance = create_guidance_accordion("t5", show_audio=False)
+                        create_preset_row("a2vid", [
+                            ("prompt", t5_prompt), ("negative_prompt", t5_neg),
+                            ("audio_start", t5_audio_start), ("audio_max", t5_audio_max),
+                            ("img_strength", t5_img_strength), ("img_crf", t5_img_crf),
+                            ("resolution", t5_resolution), ("frames", t5_frames),
+                            ("fps", t5_fps), ("steps", t5_steps), ("seed", t5_seed),
+                            ("enhance", t5_enhance),
+                            ("frame_mode", t5_frame_mode), ("duration", t5_duration),
+                        ] + [(_n, t5_guidance[_i]) for _i, _n in enumerate(_GUIDANCE_NAMES_V)])
                         t5_btn = gr.Button("Generate", variant="primary", size="lg")
 
                     with gr.Column(scale=1):
@@ -559,6 +657,14 @@ def build_ui() -> gr.Blocks:
                             t6_enhance = gr.Checkbox(value=False, label="Enhance Prompt")
                             t6_fp8 = gr.Checkbox(value=True, label="FP8 Quantization", interactive=False)
                         t6_guidance = create_guidance_accordion("t6")
+                        create_preset_row("retake", [
+                            ("prompt", t6_prompt), ("negative_prompt", t6_neg),
+                            ("nag_scale", t6_nag_scale),
+                            ("start_time", t6_start), ("end_time", t6_end),
+                            ("regen_video", t6_regen_video), ("regen_audio", t6_regen_audio),
+                            ("steps", t6_steps), ("seed", t6_seed),
+                            ("distilled", t6_distilled), ("enhance", t6_enhance),
+                        ] + [(_n, t6_guidance[_i]) for _i, _n in enumerate(_GUIDANCE_NAMES_VA)])
                         t6_btn = gr.Button("Generate", variant="primary", size="lg")
 
                     with gr.Column(scale=1):
