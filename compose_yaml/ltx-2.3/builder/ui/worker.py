@@ -93,7 +93,9 @@ def _worker_loop(
             {"role": "system", "content": _QWEN_SYSTEM_PROMPT},
             {"role": "user", "content": (
                 "Output ONLY the enhanced prompt as a single paragraph. "
-                "Do NOT include any thinking process, reasoning, analysis, or step-by-step explanation.\n\n"
+                "Do NOT include any thinking process, reasoning, analysis, or step-by-step explanation.\n"
+                "IMPORTANT: Preserve all character dialogue/speech EXACTLY in its original language. "
+                "Do NOT translate dialogue into English. For example, if dialogue is in Korean, keep it in Korean within quotes.\n\n"
                 f"user prompt: {prompt}"
             )},
         ]
