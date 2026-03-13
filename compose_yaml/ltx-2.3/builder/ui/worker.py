@@ -60,13 +60,47 @@ def _worker_loop(
     from pipeline_manager import PipelineManager, IC_LORA_MAP, OUTPUT_DIR
     from mod.nag import encode_negative_prompt, get_model_ledger, nag_guidance
 
-    # --- Monkey-patch: add repetition_penalty to Gemma prompt enhancement ---
+    # --- Monkey-patch: harden Gemma prompt enhancement against degeneration ---
+    import re as _re
     from ltx_core.text_encoders.gemma.encoders.base_encoder import (
         GemmaTextEncoder, _pad_inputs_for_attention_alignment,
     )
-    _orig_enhance = GemmaTextEncoder._enhance
 
-    def _patched_enhance(self, messages, image=None, max_new_tokens=512, seed=10):
+    def _is_degenerate(text: str) -> bool:
+        """Detect degenerated output from Gemma."""
+        if not text or len(text.strip()) < 20:
+            return True
+        words = text.split()
+        if len(words) < 5:
+            return True
+        # Check ratio of unique words — degenerate text repeats heavily
+        unique_ratio = len(set(w.lower() for w in words)) / len(words)
+        if unique_ratio < 0.25:
+            return True
+        # Check for long runs of special characters / punctuation
+        if _re.search(r'[—–\-\*\/#\|]{10,}', text):
+            return True
+        # Check for excessive non-alphanumeric density in latter half
+        latter = text[len(text)//2:]
+        alnum = sum(c.isalnum() or c.isspace() for c in latter)
+        if len(latter) > 50 and alnum / len(latter) < 0.5:
+            return True
+        return False
+
+    def _patched_enhance(self, messages, image=None, max_new_tokens=300, seed=10):
+        # Extract original user prompt for fallback
+        original_prompt = None
+        for msg in messages:
+            if msg.get("role") == "user":
+                content = msg.get("content", "")
+                if isinstance(content, str):
+                    original_prompt = content.replace("user prompt: ", "").replace("User Raw Input Prompt: ", "").rstrip(".")
+                elif isinstance(content, list):
+                    for part in content:
+                        if isinstance(part, dict) and part.get("type") == "text":
+                            original_prompt = part["text"].replace("User Raw Input Prompt: ", "").rstrip(".")
+                break
+
         text = self.processor.tokenizer.apply_chat_template(
             messages, tokenize=False, add_generation_prompt=True)
         model_inputs = self.processor(
@@ -82,17 +116,25 @@ def _worker_loop(
                 **model_inputs,
                 max_new_tokens=max_new_tokens,
                 do_sample=True,
-                temperature=0.7,
-                repetition_penalty=1.3,
-                no_repeat_ngram_size=3,
+                temperature=0.6,
+                repetition_penalty=1.5,
+                no_repeat_ngram_size=4,
+                top_k=50,
+                top_p=0.9,
             )
             generated_ids = outputs[0][len(model_inputs.input_ids[0]):]
             enhanced_prompt = self.processor.tokenizer.decode(
                 generated_ids, skip_special_tokens=True)
+
+        # Degeneration guard: fall back to original prompt if output is garbage
+        if _is_degenerate(enhanced_prompt):
+            log.warning("Gemma enhancement degenerated, falling back to original prompt")
+            return original_prompt or enhanced_prompt
+
         return enhanced_prompt
 
     GemmaTextEncoder._enhance = _patched_enhance
-    log.info("Patched GemmaTextEncoder._enhance with repetition_penalty=1.3, no_repeat_ngram_size=3")
+    log.info("Patched GemmaTextEncoder._enhance with degeneration guard (rep=1.5, ngram=4, top_k=50, top_p=0.9)")
 
     mgr = PipelineManager(progress_queue=progress_queue)
 
