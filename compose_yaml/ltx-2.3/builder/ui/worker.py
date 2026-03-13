@@ -61,6 +61,26 @@ def _worker_loop(
     from mod.nag import encode_negative_prompt, get_model_ledger, nag_guidance
 
     mgr = PipelineManager(progress_queue=progress_queue)
+
+    def make_preview_callback(task_id, fps, num_frames):
+        """Create a callback that saves Stage 1 preview and sends it via progress_queue."""
+        def callback(video_frames, audio, frame_rate, n_frames):
+            try:
+                preview_path = str(Path(OUTPUT_DIR) / f"_preview_{task_id[:8]}.mp4")
+                encode_video(
+                    video=video_frames, fps=fps,
+                    audio=audio, output_path=preview_path,
+                    video_chunks_number=get_video_chunks_number(num_frames),
+                )
+                progress_queue.put_nowait({
+                    "task_id": task_id,
+                    "type": "stage1_preview",
+                    "data": {"path": preview_path},
+                })
+                log.info("Task %s: Stage 1 preview saved -> %s", task_id[:8], preview_path)
+            except Exception as e:
+                log.warning("Task %s: Stage 1 preview failed: %s", task_id[:8], e)
+        return callback
     mgr.model_dir = model_dir
 
     def parse_resolution(res_str):
@@ -136,6 +156,8 @@ def _worker_loop(
             )
             if kwargs.get("disable_audio"):
                 gen_kwargs["generate_audio"] = False
+            gen_kwargs["stage1_preview_callback"] = make_preview_callback(
+                task_id, kwargs["frame_rate"], kwargs["num_frames"])
 
             video_frames, audio = pipeline(**gen_kwargs)
             output_path = make_output_path()
@@ -171,6 +193,8 @@ def _worker_loop(
             )
             if kwargs.get("disable_audio"):
                 gen_kwargs["generate_audio"] = False
+            gen_kwargs["stage1_preview_callback"] = make_preview_callback(
+                task_id, kwargs["frame_rate"], kwargs["num_frames"])
 
             video_frames, audio = _run_pipeline_with_nag(pipeline, kwargs, gen_kwargs)
             output_path = make_output_path()
@@ -216,6 +240,9 @@ def _worker_loop(
             )
             if kwargs.get("disable_audio"):
                 gen_kwargs["generate_audio"] = False
+            if not kwargs.get("skip_stage2", False):
+                gen_kwargs["stage1_preview_callback"] = make_preview_callback(
+                    task_id, kwargs["frame_rate"], kwargs["num_frames"])
 
             video_frames, audio = _run_pipeline_with_nag(pipeline, kwargs, gen_kwargs)
             output_path = make_output_path()
@@ -259,6 +286,8 @@ def _worker_loop(
             )
             if kwargs.get("disable_audio"):
                 gen_kwargs["generate_audio"] = False
+            gen_kwargs["stage1_preview_callback"] = make_preview_callback(
+                task_id, kwargs["frame_rate"], kwargs["num_frames"])
 
             video_frames, audio = pipeline(**gen_kwargs)
             output_path = make_output_path()
@@ -362,6 +391,8 @@ def _worker_loop(
                 audio_start_time=kwargs.get("audio_start", 0),
                 audio_max_duration=audio_max,
                 enhance_prompt=kwargs.get("enhance_prompt", False),
+                stage1_preview_callback=make_preview_callback(
+                    task_id, kwargs["frame_rate"], kwargs["num_frames"]),
             )
             output_path = make_output_path()
             encode_video(

@@ -1,0 +1,185 @@
+diff --git a/packages/ltx-pipelines/src/ltx_pipelines/a2vid_two_stage.py b/packages/ltx-pipelines/src/ltx_pipelines/a2vid_two_stage.py
+index 8dcc8c4..e788f6b 100644
+--- a/packages/ltx-pipelines/src/ltx_pipelines/a2vid_two_stage.py
++++ b/packages/ltx-pipelines/src/ltx_pipelines/a2vid_two_stage.py
+@@ -94,6 +94,7 @@ class A2VidPipelineTwoStage:
+         audio_max_duration: float | None = None,
+         tiling_config: TilingConfig | None = None,
+         enhance_prompt: bool = False,
++        stage1_preview_callback=None,
+     ) -> tuple[Iterator[torch.Tensor], Audio]:
+         assert_resolution(height=height, width=width, is_two_stage=True)
+ 
+@@ -181,6 +182,17 @@ class A2VidPipelineTwoStage:
+         del transformer
+         cleanup_memory()
+ 
++        # Stage 1 preview callback — VAE decode the low-res video for preview
++        if stage1_preview_callback is not None:
++            _pv_decoder = self.stage_1_model_ledger.video_decoder()
++            preview_video = vae_decode_video(video_state.latent, _pv_decoder, tiling_config, generator)
++            # A2Vid uses original audio, pass it for preview too
++            preview_audio = Audio(waveform=decoded_audio.waveform.squeeze(0), sampling_rate=decoded_audio.sampling_rate)
++            stage1_preview_callback(preview_video, preview_audio, frame_rate, num_frames)
++            del _pv_decoder
++            torch.cuda.synchronize()
++            cleanup_memory()
++
+         # Stage 2: Upsample and refine the video at higher resolution with distilled LoRA.
+         video_encoder = self.stage_1_model_ledger.video_encoder()
+         upscaled_video_latent = upsample_video(
+diff --git a/packages/ltx-pipelines/src/ltx_pipelines/distilled.py b/packages/ltx-pipelines/src/ltx_pipelines/distilled.py
+index aa01e8d..a9873e6 100644
+--- a/packages/ltx-pipelines/src/ltx_pipelines/distilled.py
++++ b/packages/ltx-pipelines/src/ltx_pipelines/distilled.py
+@@ -84,6 +84,7 @@ class DistilledPipeline:
+         images: list[ImageConditioningInput],
+         tiling_config: TilingConfig | None = None,
+         enhance_prompt: bool = False,
++        stage1_preview_callback=None,
+     ) -> tuple[Iterator[torch.Tensor], Audio]:
+         assert_resolution(height=height, width=width, is_two_stage=True)
+ 
+@@ -148,6 +149,18 @@ class DistilledPipeline:
+             device=self.device,
+         )
+ 
++        # Stage 1 preview callback — VAE decode the low-res latent for preview
++        if stage1_preview_callback is not None:
++            _pv_decoder = self.model_ledger.video_decoder()
++            _pv_audio_dec = self.model_ledger.audio_decoder()
++            _pv_vocoder = self.model_ledger.vocoder()
++            preview_video = vae_decode_video(video_state.latent, _pv_decoder, tiling_config, generator)
++            preview_audio = vae_decode_audio(audio_state.latent, _pv_audio_dec, _pv_vocoder)
++            stage1_preview_callback(preview_video, preview_audio, frame_rate, num_frames)
++            del _pv_decoder, _pv_audio_dec, _pv_vocoder
++            torch.cuda.synchronize()
++            cleanup_memory()
++
+         # Stage 2: Upsample and refine the video at higher resolution with distilled LORA.
+         upscaled_video_latent = upsample_video(
+             latent=video_state.latent[:1], video_encoder=video_encoder, upsampler=self.model_ledger.spatial_upsampler()
+diff --git a/packages/ltx-pipelines/src/ltx_pipelines/ic_lora.py b/packages/ltx-pipelines/src/ltx_pipelines/ic_lora.py
+index 2fa7e87..090a14b 100644
+--- a/packages/ltx-pipelines/src/ltx_pipelines/ic_lora.py
++++ b/packages/ltx-pipelines/src/ltx_pipelines/ic_lora.py
+@@ -124,6 +124,7 @@ class ICLoraPipeline:
+         conditioning_attention_strength: float = 1.0,
+         skip_stage_2: bool = False,
+         conditioning_attention_mask: torch.Tensor | None = None,
++        stage1_preview_callback=None,
+     ) -> tuple[Iterator[torch.Tensor], Audio]:
+         """
+         Generate video with IC-LoRA conditioning.
+@@ -233,6 +234,18 @@ class ICLoraPipeline:
+         del transformer
+         cleanup_memory()
+ 
++        # Stage 1 preview callback — VAE decode the low-res latent for preview
++        if stage1_preview_callback is not None and not skip_stage_2:
++            _pv_decoder = self.stage_1_model_ledger.video_decoder()
++            _pv_audio_dec = self.stage_1_model_ledger.audio_decoder()
++            _pv_vocoder = self.stage_1_model_ledger.vocoder()
++            preview_video = vae_decode_video(video_state.latent, _pv_decoder, tiling_config, generator)
++            preview_audio = vae_decode_audio(audio_state.latent, _pv_audio_dec, _pv_vocoder)
++            stage1_preview_callback(preview_video, preview_audio, frame_rate, num_frames)
++            del _pv_decoder, _pv_audio_dec, _pv_vocoder
++            torch.cuda.synchronize()
++            cleanup_memory()
++
+         if skip_stage_2:
+             # Skip Stage 2: Decode directly from Stage 1 output at half resolution
+             logging.info("[IC-LoRA] Skipping Stage 2 (--skip-stage-2 enabled)")
+diff --git a/packages/ltx-pipelines/src/ltx_pipelines/keyframe_interpolation.py b/packages/ltx-pipelines/src/ltx_pipelines/keyframe_interpolation.py
+index 77d18ac..4720bfa 100644
+--- a/packages/ltx-pipelines/src/ltx_pipelines/keyframe_interpolation.py
++++ b/packages/ltx-pipelines/src/ltx_pipelines/keyframe_interpolation.py
+@@ -93,6 +93,7 @@ class KeyframeInterpolationPipeline:
+         images: list[ImageConditioningInput],
+         tiling_config: TilingConfig | None = None,
+         enhance_prompt: bool = False,
++        stage1_preview_callback=None,
+     ) -> tuple[Iterator[torch.Tensor], Audio]:
+         assert_resolution(height=height, width=width, is_two_stage=True)
+ 
+@@ -170,6 +171,18 @@ class KeyframeInterpolationPipeline:
+         del transformer
+         cleanup_memory()
+ 
++        # Stage 1 preview callback — VAE decode the low-res latent for preview
++        if stage1_preview_callback is not None:
++            _pv_decoder = self.stage_1_model_ledger.video_decoder()
++            _pv_audio_dec = self.stage_1_model_ledger.audio_decoder()
++            _pv_vocoder = self.stage_1_model_ledger.vocoder()
++            preview_video = vae_decode_video(video_state.latent, _pv_decoder, tiling_config, generator)
++            preview_audio = vae_decode_audio(audio_state.latent, _pv_audio_dec, _pv_vocoder)
++            stage1_preview_callback(preview_video, preview_audio, frame_rate, num_frames)
++            del _pv_decoder, _pv_audio_dec, _pv_vocoder
++            torch.cuda.synchronize()
++            cleanup_memory()
++
+         # Stage 2: Upsample and refine the video at higher resolution with distilled LORA.
+         upscaled_video_latent = upsample_video(
+             latent=video_state.latent[:1],
+diff --git a/packages/ltx-pipelines/src/ltx_pipelines/ti2vid_two_stages.py b/packages/ltx-pipelines/src/ltx_pipelines/ti2vid_two_stages.py
+index b486d53..cd1b017 100644
+--- a/packages/ltx-pipelines/src/ltx_pipelines/ti2vid_two_stages.py
++++ b/packages/ltx-pipelines/src/ltx_pipelines/ti2vid_two_stages.py
+@@ -94,6 +94,7 @@ class TI2VidTwoStagesPipeline:
+         images: list[ImageConditioningInput],
+         tiling_config: TilingConfig | None = None,
+         enhance_prompt: bool = False,
++        stage1_preview_callback=None,
+     ) -> tuple[Iterator[torch.Tensor], Audio]:
+         assert_resolution(height=height, width=width, is_two_stage=True)
+ 
+@@ -176,6 +177,18 @@ class TI2VidTwoStagesPipeline:
+         del transformer
+         cleanup_memory()
+ 
++        # Stage 1 preview callback — VAE decode the low-res latent for preview
++        if stage1_preview_callback is not None:
++            _pv_decoder = self.stage_1_model_ledger.video_decoder()
++            _pv_audio_dec = self.stage_1_model_ledger.audio_decoder()
++            _pv_vocoder = self.stage_1_model_ledger.vocoder()
++            preview_video = vae_decode_video(video_state.latent, _pv_decoder, tiling_config, generator)
++            preview_audio = vae_decode_audio(audio_state.latent, _pv_audio_dec, _pv_vocoder)
++            stage1_preview_callback(preview_video, preview_audio, frame_rate, num_frames)
++            del _pv_decoder, _pv_audio_dec, _pv_vocoder
++            torch.cuda.synchronize()
++            cleanup_memory()
++
+         # Stage 2: Upsample and refine the video at higher resolution with distilled LORA.
+         video_encoder = self.stage_1_model_ledger.video_encoder()
+         upscaled_video_latent = upsample_video(
+diff --git a/packages/ltx-pipelines/src/ltx_pipelines/ti2vid_two_stages_hq.py b/packages/ltx-pipelines/src/ltx_pipelines/ti2vid_two_stages_hq.py
+index 0db9cf3..bbcc93d 100644
+--- a/packages/ltx-pipelines/src/ltx_pipelines/ti2vid_two_stages_hq.py
++++ b/packages/ltx-pipelines/src/ltx_pipelines/ti2vid_two_stages_hq.py
+@@ -107,6 +107,7 @@ class TI2VidTwoStagesHQPipeline:
+         images: list[ImageConditioningInput],
+         tiling_config: TilingConfig | None = None,
+         enhance_prompt: bool = False,
++        stage1_preview_callback=None,
+     ) -> tuple[Iterator[torch.Tensor], Audio]:
+         assert_resolution(height=height, width=width, is_two_stage=True)
+ 
+@@ -195,6 +196,18 @@ class TI2VidTwoStagesHQPipeline:
+         del transformer
+         cleanup_memory()
+ 
++        # Stage 1 preview callback — VAE decode the low-res latent for preview
++        if stage1_preview_callback is not None:
++            _pv_decoder = self.stage_1_model_ledger.video_decoder()
++            _pv_audio_dec = self.stage_1_model_ledger.audio_decoder()
++            _pv_vocoder = self.stage_1_model_ledger.vocoder()
++            preview_video = vae_decode_video(video_state.latent, _pv_decoder, tiling_config, generator)
++            preview_audio = vae_decode_audio(audio_state.latent, _pv_audio_dec, _pv_vocoder)
++            stage1_preview_callback(preview_video, preview_audio, frame_rate, num_frames)
++            del _pv_decoder, _pv_audio_dec, _pv_vocoder
++            torch.cuda.synchronize()
++            cleanup_memory()
++
+         # Stage 2: Upsample and refine the video at higher resolution with distilled LORA.
+         video_encoder = self.stage_1_model_ledger.video_encoder()
+         upscaled_video_latent = upsample_video(

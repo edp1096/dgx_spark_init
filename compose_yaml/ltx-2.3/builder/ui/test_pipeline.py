@@ -63,6 +63,26 @@ def cleanup():
         torch.cuda.synchronize()
 
 
+class PreviewCapture:
+    """Captures Stage 1 preview callback data for testing."""
+    def __init__(self):
+        self.called = False
+        self.preview_path = None
+
+    def callback(self, video_frames, audio, frame_rate, num_frames):
+        from ltx_core.model.video_vae import get_video_chunks_number
+        from ltx_pipelines.utils.media_io import encode_video
+        self.called = True
+        self.preview_path = str(OUTPUT_DIR / "_stage1_preview.mp4")
+        encode_video(
+            video=video_frames, fps=frame_rate,
+            audio=audio, output_path=self.preview_path,
+            video_chunks_number=get_video_chunks_number(num_frames),
+        )
+        size_kb = Path(self.preview_path).stat().st_size / 1024
+        print(f"  [PREVIEW] Stage 1 preview saved: {self.preview_path} ({size_kb:.0f}KB)")
+
+
 def mem_log(label: str):
     if torch.cuda.is_available():
         alloc = torch.cuda.memory_allocated() / 1024**3
@@ -124,6 +144,7 @@ def test_ti2vid(mgr, frames: int = 9, steps: int = 10) -> bool:
         modality_scale=3.0, stg_blocks=[28],
     )
 
+    preview = PreviewCapture()
     print(f"Generating... ({frames} frames, {steps} steps, 768x512)")
     t0 = time.time()
     video_frames, audio = pipeline(
@@ -138,8 +159,10 @@ def test_ti2vid(mgr, frames: int = 9, steps: int = 10) -> bool:
         audio_guider_params=audio_guider,
         images=[],
         enhance_prompt=False,
+        stage1_preview_callback=preview.callback,
     )
     print(f"  Generated in {time.time() - t0:.1f}s")
+    print(f"  Stage 1 preview callback fired: {preview.called}")
 
     output_path = str(OUTPUT_DIR / "test_ti2vid.mp4")
     encode_video(video=video_frames, fps=25.0, audio=audio, output_path=output_path,
@@ -168,6 +191,7 @@ def test_distilled(mgr, frames: int = 9, height: int = 512, width: int = 768) ->
     pipeline = mgr.get_distilled()
     mem_log("after pipeline init")
 
+    preview = PreviewCapture()
     print(f"Generating... ({frames} frames, 8 steps fixed, {height}x{width})")
     t0 = time.time()
     video_frames, audio = pipeline(
@@ -178,8 +202,10 @@ def test_distilled(mgr, frames: int = 9, height: int = 512, width: int = 768) ->
         frame_rate=25.0,
         images=[],
         enhance_prompt=False,
+        stage1_preview_callback=preview.callback,
     )
     print(f"  Generated in {time.time() - t0:.1f}s")
+    print(f"  Stage 1 preview callback fired: {preview.called}")
     mem_log("after generation")
 
     output_path = str(OUTPUT_DIR / "test_distilled.mp4")
@@ -231,6 +257,7 @@ def test_iclora(mgr, frames: int = 9, lora_choice: str | None = None) -> bool:
     pipeline = mgr.get_iclora(lora_path=lora_path)
     mem_log("after pipeline init")
 
+    preview = PreviewCapture()
     print(f"Generating... ({frames} frames, ref={Path(ref_video).name})")
     t0 = time.time()
     video_frames, audio = pipeline(
@@ -244,8 +271,10 @@ def test_iclora(mgr, frames: int = 9, lora_choice: str | None = None) -> bool:
         conditioning_attention_strength=1.0,
         skip_stage_2=False,
         enhance_prompt=False,
+        stage1_preview_callback=preview.callback,
     )
     print(f"  Generated in {time.time() - t0:.1f}s")
+    print(f"  Stage 1 preview callback fired: {preview.called}")
     mem_log("after generation")
 
     output_path = str(OUTPUT_DIR / "test_iclora.mp4")
@@ -294,6 +323,7 @@ def test_keyframe(mgr, frames: int = 9, steps: int = 10) -> bool:
         modality_scale=3.0, stg_blocks=[28],
     )
 
+    preview = PreviewCapture()
     print(f"Generating... ({frames} frames, {steps} steps, 2 keyframes, 768x512)")
     t0 = time.time()
     video_frames, audio = pipeline(
@@ -308,8 +338,10 @@ def test_keyframe(mgr, frames: int = 9, steps: int = 10) -> bool:
         audio_guider_params=audio_guider,
         images=images,
         enhance_prompt=False,
+        stage1_preview_callback=preview.callback,
     )
     print(f"  Generated in {time.time() - t0:.1f}s")
+    print(f"  Stage 1 preview callback fired: {preview.called}")
     mem_log("after generation")
 
     output_path = str(OUTPUT_DIR / "test_keyframe.mp4")
@@ -349,6 +381,7 @@ def test_a2vid(mgr, frames: int = 9, steps: int = 10) -> bool:
         modality_scale=3.0, stg_blocks=[28],
     )
 
+    preview = PreviewCapture()
     print(f"Generating... ({frames} frames, {steps} steps, audio-conditioned, 768x512)")
     t0 = time.time()
     video_frames, audio = pipeline(
@@ -365,8 +398,10 @@ def test_a2vid(mgr, frames: int = 9, steps: int = 10) -> bool:
         audio_start_time=0,
         audio_max_duration=None,
         enhance_prompt=False,
+        stage1_preview_callback=preview.callback,
     )
     print(f"  Generated in {time.time() - t0:.1f}s")
+    print(f"  Stage 1 preview callback fired: {preview.called}")
     mem_log("after generation")
 
     output_path = str(OUTPUT_DIR / "test_a2vid.mp4")

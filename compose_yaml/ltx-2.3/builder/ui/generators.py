@@ -216,6 +216,12 @@ def _submit_and_wait(gen_type: str, kwargs: dict, progress) -> tuple[str, str]:
                         progress(idx / max(total, 1), desc=f"Loading {name} ({idx}/{total})")
                     _loading_status = _build_loading_status(_loading_plan, _loading_done, _loading_current)
 
+                elif mtype == "stage1_preview":
+                    preview_path = data.get("path")
+                    if preview_path:
+                        _loading_status = "**Upscaling (Stage 2)...**"
+                        yield preview_path, "⏳ Stage 1 미리보기 (절반 해상도) — 업스케일 진행 중..."
+
                 elif mtype == "step":
                     current = data.get("current", 0)
                     total = data.get("total", 1)
@@ -244,7 +250,8 @@ def _submit_and_wait(gen_type: str, kwargs: dict, progress) -> tuple[str, str]:
                         "gen_type": gen_type, "time": time.time(),
                         "consumed": False,
                     }
-                    return path, info
+                    yield path, info
+                    return
                 elif result["status"] == "cancelled":
                     raise gr.Error("Generation cancelled.")
                 else:
@@ -308,7 +315,7 @@ def generate_ti2vid(
         "a_guidance": [a_cfg, a_stg, a_rescale, a_modality, str(a_stg_blocks), a_skip_step],
         "disable_audio": bool(disable_audio),
     }
-    return _submit_and_wait("ti2vid", kwargs, progress)
+    yield from _submit_and_wait("ti2vid", kwargs, progress)
 
 
 def generate_distilled(
@@ -339,7 +346,7 @@ def generate_distilled(
         "enhance_prompt": bool(enhance_prompt), "fp8": bool(fp8),
         "disable_audio": bool(disable_audio),
     }
-    return _submit_and_wait("distilled", kwargs, progress)
+    yield from _submit_and_wait("distilled", kwargs, progress)
 
 
 def generate_iclora(
@@ -383,7 +390,7 @@ def generate_iclora(
         "enhance_prompt": bool(enhance_prompt), "fp8": bool(fp8),
         "disable_audio": bool(disable_audio),
     }
-    return _submit_and_wait("iclora", kwargs, progress)
+    yield from _submit_and_wait("iclora", kwargs, progress)
 
 
 def generate_keyframe(
@@ -422,7 +429,7 @@ def generate_keyframe(
         "a_guidance": [a_cfg, a_stg, a_rescale, a_modality, str(a_stg_blocks), a_skip_step],
         "disable_audio": bool(disable_audio),
     }
-    return _submit_and_wait("keyframe", kwargs, progress)
+    yield from _submit_and_wait("keyframe", kwargs, progress)
 
 
 def generate_a2vid(
@@ -458,7 +465,7 @@ def generate_a2vid(
         "enhance_prompt": bool(enhance_prompt), "fp8": bool(fp8),
         "v_guidance": [v_cfg, v_stg, v_rescale, v_modality, str(v_stg_blocks), v_skip_step],
     }
-    return _submit_and_wait("a2vid", kwargs, progress)
+    yield from _submit_and_wait("a2vid", kwargs, progress)
 
 
 def generate_retake(
@@ -497,4 +504,4 @@ def generate_retake(
         "v_guidance": [v_cfg, v_stg, v_rescale, v_modality, str(v_stg_blocks), v_skip_step],
         "a_guidance": [a_cfg, a_stg, a_rescale, a_modality, str(a_stg_blocks), a_skip_step],
     }
-    return _submit_and_wait("retake", kwargs, progress)
+    yield from _submit_and_wait("retake", kwargs, progress)
