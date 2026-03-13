@@ -150,6 +150,7 @@ DEFAULTS = LTX_2_3_PARAMS
 DEFAULTS.video_guider_params.cfg_scale = 2.0
 DEFAULTS.video_guider_params.stg_scale = 0.4
 DEFAULTS.video_guider_params.rescale_scale = 0.85
+DEFAULTS.num_inference_steps = 25
 from config import MODEL_DIR as DEFAULT_MODEL_DIR, OUTPUT_DIR
 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
