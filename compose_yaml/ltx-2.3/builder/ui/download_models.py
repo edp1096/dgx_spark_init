@@ -29,6 +29,7 @@ IC_LORA_DOWNLOADS = {
 }
 
 GEMMA_REPO = "google/gemma-3-12b-it-qat-q4_0-unquantized"
+QWEN_REPO = "huihui-ai/Huihui-Qwen3.5-4B-abliterated"
 
 
 def format_size(size_bytes: int) -> str:
@@ -49,6 +50,7 @@ def check_status() -> None:
         "ltx-2.3-spatial-upscaler-x2-1.0.safetensors",
         "ltx-2.3-22b-distilled-lora-384.safetensors",
         "gemma-3-12b-it-qat-q4_0-unquantized",
+        "Huihui-Qwen3.5-4B-abliterated",
     ]
     for fname in required:
         path = MODEL_DIR / fname
@@ -102,6 +104,24 @@ def download_gemma() -> bool:
         return True
     except Exception as e:
         print(f"  FAILED: gemma — {e}")
+        return False
+
+
+def download_qwen() -> bool:
+    from huggingface_hub import snapshot_download
+
+    qwen_path = MODEL_DIR / "Huihui-Qwen3.5-4B-abliterated"
+    if qwen_path.exists():
+        print(f"  Already exists: Huihui-Qwen3.5-4B-abliterated/")
+        return True
+
+    print(f"  Downloading: {QWEN_REPO} (excluding *.gguf)...")
+    try:
+        snapshot_download(QWEN_REPO, local_dir=str(qwen_path), ignore_patterns=["*.gguf"])
+        print(f"  Done: Huihui-Qwen3.5-4B-abliterated/")
+        return True
+    except Exception as e:
+        print(f"  FAILED: qwen — {e}")
         return False
 
 
@@ -175,7 +195,7 @@ def main() -> None:
 
     parser = argparse.ArgumentParser(description="Download LTX-2.3 models (FP8)")
     parser.add_argument("--status", action="store_true", help="Check download status")
-    parser.add_argument("--only", type=str, help="Download specific: dev-fp8, distilled-fp8, upscaler, lora, gemma, ic-union, ic-motion")
+    parser.add_argument("--only", type=str, help="Download specific: dev-fp8, distilled-fp8, upscaler, lora, gemma, qwen, ic-union, ic-motion")
     parser.add_argument("--model-dir", type=str, default=str(MODEL_DIR))
     args = parser.parse_args()
 
@@ -190,6 +210,8 @@ def main() -> None:
         key = args.only.lower().replace("-", "_")
         if key == "gemma":
             sys.exit(0 if download_gemma() else 1)
+        elif key == "qwen":
+            sys.exit(0 if download_qwen() else 1)
         elif key == "dev_fp8":
             sys.exit(0 if convert_dev_fp8() else 1)
         elif key == "distilled_fp8":
@@ -226,7 +248,10 @@ def main() -> None:
     # 5. Gemma
     results["gemma"] = download_gemma()
 
-    # 6. IC-LoRA (optional)
+    # 6. Qwen (prompt enhancement)
+    results["qwen"] = download_qwen()
+
+    # 7. IC-LoRA (optional)
     print("\n--- IC-LoRA (optional) ---")
     for key, (fname, repo, desc) in IC_LORA_DOWNLOADS.items():
         results[key] = download_file(fname, repo)

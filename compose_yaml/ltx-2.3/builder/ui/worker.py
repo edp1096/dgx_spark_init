@@ -60,97 +60,64 @@ def _worker_loop(
     from pipeline_manager import PipelineManager, IC_LORA_MAP, OUTPUT_DIR
     from mod.nag import encode_negative_prompt, get_model_ledger, nag_guidance
 
-    # --- Monkey-patch: harden Gemma prompt enhancement against degeneration ---
-    import re as _re
-    from ltx_core.text_encoders.gemma.encoders.base_encoder import (
-        GemmaTextEncoder, _pad_inputs_for_attention_alignment,
-    )
+    # --- Qwen prompt enhancement (replaces Gemma monkey-patch) ---
+    _qwen_model = None
+    _qwen_tokenizer = None
 
-    def _is_degenerate(text: str) -> bool:
-        """Detect degenerated output from Gemma."""
-        if not text or len(text.strip()) < 20:
-            return True
-        words = text.split()
-        if len(words) < 5:
-            return True
-        # Check ratio of unique words — degenerate text repeats heavily
-        unique_ratio = len(set(w.lower() for w in words)) / len(words)
-        if unique_ratio < 0.25:
-            return True
-        # Check for long runs of special characters / punctuation
-        if _re.search(r'[—–\-\*\/#\|]{10,}', text):
-            return True
-        # Check for excessive non-alphanumeric density in latter half
-        latter = text[len(text)//2:]
-        alnum = sum(c.isalnum() or c.isspace() for c in latter)
-        if len(latter) > 50 and alnum / len(latter) < 0.5:
-            return True
-        return False
+    # Use same system prompt as LTX's Gemma t2v enhancement
+    _QWEN_SYSTEM_PROMPT = (Path(__file__).resolve().parent.parent
+        / "LTX-2" / "packages" / "ltx-core" / "src" / "ltx_core"
+        / "text_encoders" / "gemma" / "encoders" / "prompts"
+        / "gemma_t2v_system_prompt.txt").read_text()
 
-    def _patched_enhance(self, messages, image=None, max_new_tokens=300, seed=10):
-        # Extract original user prompt for fallback
-        original_prompt = None
-        for msg in messages:
-            if msg.get("role") == "user":
-                content = msg.get("content", "")
-                if isinstance(content, str):
-                    original_prompt = content.replace("user prompt: ", "").replace("User Raw Input Prompt: ", "").rstrip(".")
-                elif isinstance(content, list):
-                    for part in content:
-                        if isinstance(part, dict) and part.get("type") == "text":
-                            original_prompt = part["text"].replace("User Raw Input Prompt: ", "").rstrip(".")
-                break
+    def _load_qwen():
+        nonlocal _qwen_model, _qwen_tokenizer
+        if _qwen_model is not None:
+            return
+        from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
-        text = self.processor.tokenizer.apply_chat_template(
+        qwen_path = str(Path(model_dir) / "Huihui-Qwen3.5-4B-abliterated")
+        log.info("Loading Qwen3.5-4B for prompt enhancement (%s)...", qwen_path)
+        _qwen_tokenizer = AutoTokenizer.from_pretrained(qwen_path)
+        _qwen_model = AutoModelForCausalLM.from_pretrained(
+            qwen_path,
+            torch_dtype=torch.bfloat16,
+            quantization_config=BitsAndBytesConfig(
+                load_in_4bit=True,
+                bnb_4bit_compute_dtype=torch.bfloat16,
+            ),
+            device_map="auto",
+        )
+        log.info("Qwen3.5-4B loaded (4bit, ~3GB)")
+
+    def _enhance_prompt_qwen(prompt: str) -> str:
+        """Enhance a prompt using Qwen3.5-4B with the LTX system prompt."""
+        _load_qwen()
+        messages = [
+            {"role": "system", "content": _QWEN_SYSTEM_PROMPT},
+            {"role": "user", "content": f"user prompt: {prompt}"},
+        ]
+        text = _qwen_tokenizer.apply_chat_template(
             messages, tokenize=False, add_generation_prompt=True)
-        model_inputs = self.processor(
-            text=text, images=image, return_tensors="pt",
-        ).to(self.model.device)
-        pad_token_id = (self.processor.tokenizer.pad_token_id
-                        if self.processor.tokenizer.pad_token_id is not None else 0)
-        model_inputs = _pad_inputs_for_attention_alignment(model_inputs, pad_token_id=pad_token_id)
-
-        with torch.inference_mode(), torch.random.fork_rng(devices=[self.model.device]):
-            torch.manual_seed(seed)
-            outputs = self.model.generate(
-                **model_inputs,
-                max_new_tokens=max_new_tokens,
+        inputs = _qwen_tokenizer(text, return_tensors="pt").to(_qwen_model.device)
+        with torch.inference_mode():
+            outputs = _qwen_model.generate(
+                **inputs,
+                max_new_tokens=512,
                 do_sample=True,
-                temperature=0.6,
-                repetition_penalty=1.5,
-                no_repeat_ngram_size=4,
-                top_k=50,
+                temperature=0.7,
                 top_p=0.9,
+                repetition_penalty=1.2,
             )
-            generated_ids = outputs[0][len(model_inputs.input_ids[0]):]
-            enhanced_prompt = self.processor.tokenizer.decode(
-                generated_ids, skip_special_tokens=True)
-
-        # Degeneration guard: fall back to original prompt if output is garbage
-        if _is_degenerate(enhanced_prompt):
-            log.warning("Gemma enhancement degenerated, falling back to original prompt")
-            return original_prompt or enhanced_prompt
-
-        return enhanced_prompt
-
-    GemmaTextEncoder._enhance = _patched_enhance
-    log.info("Patched GemmaTextEncoder._enhance with degeneration guard (rep=1.5, ngram=4, top_k=50, top_p=0.9)")
+        generated = outputs[0][len(inputs.input_ids[0]):]
+        enhanced = _qwen_tokenizer.decode(generated, skip_special_tokens=True)
+        # Strip /think tags if present (Qwen thinking mode)
+        import re as _re
+        enhanced = _re.sub(r'<think>.*?</think>\s*', '', enhanced, flags=_re.DOTALL).strip()
+        return enhanced
+    log.info("Qwen3.5-4B prompt enhancement configured (lazy load)")
 
     mgr = PipelineManager(progress_queue=progress_queue)
-
-    # Capture enhanced prompt from pipeline logging and forward via progress_queue
-    class _EnhancedPromptHandler(logging.Handler):
-        def emit(self, record):
-            msg = record.getMessage()
-            if msg.startswith("Enhanced prompt: "):
-                tid = getattr(mgr, "_current_task_id", None)
-                if tid:
-                    progress_queue.put_nowait({
-                        "task_id": tid,
-                        "type": "enhanced_prompt",
-                        "data": {"text": msg[len("Enhanced prompt: "):]},
-                    })
-    logging.getLogger().addHandler(_EnhancedPromptHandler())
 
     def make_preview_callback(task_id, fps, num_frames):
         """Create a callback that saves Stage 1 preview and sends it via progress_queue."""
@@ -556,6 +523,23 @@ def _worker_loop(
 
             mgr._current_task_id = task_id
             log.info("Task %s: %s started", task_id[:8], gen_type)
+
+            # --- Qwen prompt enhancement (before pipeline call) ---
+            if kwargs.get("enhance_prompt", False):
+                try:
+                    original = kwargs["prompt"]
+                    enhanced = _enhance_prompt_qwen(original)
+                    kwargs["prompt"] = enhanced
+                    kwargs["enhance_prompt"] = False  # bypass Gemma enhancement
+                    log.info("Task %s: Qwen enhanced prompt: %s", task_id[:8], enhanced[:100])
+                    progress_queue.put_nowait({
+                        "task_id": task_id,
+                        "type": "enhanced_prompt",
+                        "data": {"text": enhanced},
+                    })
+                except Exception as e:
+                    log.warning("Task %s: Qwen enhancement failed (%s), using original prompt", task_id[:8], e)
+                    kwargs["enhance_prompt"] = False
 
             handler = HANDLERS.get(gen_type)
             if handler is None:
