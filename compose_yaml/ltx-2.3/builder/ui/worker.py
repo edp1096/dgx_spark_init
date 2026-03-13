@@ -60,6 +60,39 @@ def _worker_loop(
     from pipeline_manager import PipelineManager, IC_LORA_MAP, OUTPUT_DIR
     from mod.nag import encode_negative_prompt, get_model_ledger, nag_guidance
 
+    # --- Monkey-patch: add repetition_penalty to Gemma prompt enhancement ---
+    from ltx_core.text_encoders.gemma.encoders.base_encoder import (
+        GemmaTextEncoder, _pad_inputs_for_attention_alignment,
+    )
+    _orig_enhance = GemmaTextEncoder._enhance
+
+    def _patched_enhance(self, messages, image=None, max_new_tokens=512, seed=10):
+        text = self.processor.tokenizer.apply_chat_template(
+            messages, tokenize=False, add_generation_prompt=True)
+        model_inputs = self.processor(
+            text=text, images=image, return_tensors="pt",
+        ).to(self.model.device)
+        pad_token_id = (self.processor.tokenizer.pad_token_id
+                        if self.processor.tokenizer.pad_token_id is not None else 0)
+        model_inputs = _pad_inputs_for_attention_alignment(model_inputs, pad_token_id=pad_token_id)
+
+        with torch.inference_mode(), torch.random.fork_rng(devices=[self.model.device]):
+            torch.manual_seed(seed)
+            outputs = self.model.generate(
+                **model_inputs,
+                max_new_tokens=max_new_tokens,
+                do_sample=True,
+                temperature=0.7,
+                repetition_penalty=1.2,
+            )
+            generated_ids = outputs[0][len(model_inputs.input_ids[0]):]
+            enhanced_prompt = self.processor.tokenizer.decode(
+                generated_ids, skip_special_tokens=True)
+        return enhanced_prompt
+
+    GemmaTextEncoder._enhance = _patched_enhance
+    log.info("Patched GemmaTextEncoder._enhance with repetition_penalty=1.2")
+
     mgr = PipelineManager(progress_queue=progress_queue)
 
     # Capture enhanced prompt from pipeline logging and forward via progress_queue
