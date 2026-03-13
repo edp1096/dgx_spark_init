@@ -155,6 +155,16 @@ STRINGS = {
     "language":                  {"en": "Language",                    "ko": "언어"},
     "ui_language":               {"en": "UI Language",                 "ko": "UI 언어"},
 
+    # Presets
+    "presets":                   {"en": "Presets",                      "ko": "프리셋"},
+    "export":                    {"en": "Export",                       "ko": "내보내기"},
+    "import_json":               {"en": "Import (.json)",               "ko": "가져오기 (.json)"},
+    "preset_loaded":             {"en": "Preset loaded.",               "ko": "프리셋을 불러왔습니다."},
+    "preset_tab_mismatch":       {"en": "This preset is for '{tab}' tab. Please import it in the correct tab.",
+                                  "ko": "이 프리셋은 '{tab}' 탭용입니다. 해당 탭에서 가져와 주세요."},
+    "preset_tab_mismatch_short": {"en": "Tab mismatch: '{tab}' → use '{tab}' tab",
+                                  "ko": "탭 불일치: '{tab}' → '{tab}' 탭에서 사용"},
+
     # History tab
     "generation_history":        {"en": "Generation History",          "ko": "생성 히스토리"},
     "refresh":                   {"en": "Refresh",                     "ko": "새로고침"},

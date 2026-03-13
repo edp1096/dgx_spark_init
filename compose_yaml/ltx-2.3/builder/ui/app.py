@@ -27,7 +27,7 @@ from generators import (
     is_generation_active,
     set_model_dir,
 )
-from i18n import LANGUAGES, get_i18n_js
+from i18n import LANGUAGES, STRINGS, get_i18n_js
 from pipeline_manager import (
     DEFAULTS,
     IC_LORA_MAP,
@@ -223,6 +223,15 @@ _GUIDANCE_NAMES_VA = [
 _GUIDANCE_NAMES_V = _GUIDANCE_NAMES_VA[:6]
 
 
+def _i18n_msg(key, lang="en", **kwargs):
+    """Return translated string for the given language."""
+    texts = STRINGS.get(key, {})
+    msg = texts.get(lang, texts.get("en", key))
+    if kwargs:
+        msg = msg.format(**kwargs)
+    return msg
+
+
 def create_preset_row(tab_key, param_pairs):
     """Create per-tab preset import/export controls.
 
@@ -237,6 +246,7 @@ def create_preset_row(tab_key, param_pairs):
             p_export = gr.DownloadButton("Export", variant="secondary", size="sm")
             p_import = gr.File(label="Import (.json)", file_types=[".json"], type="filepath")
         p_status = gr.Textbox(label="", interactive=False, visible=False, max_lines=1)
+        p_lang = gr.Textbox(value="en", visible=False, elem_id=f"preset-lang-{tab_key}")
 
     def _do_export(*values):
         import tempfile as _tf
@@ -247,23 +257,28 @@ def create_preset_row(tab_key, param_pairs):
         path.write_text(_pjson.dumps(data, indent=2, ensure_ascii=False))
         return str(path)
 
-    def _do_import(file_path):
+    def _do_import(file_path, lang):
         if file_path is None:
             return [gr.update(visible=False)] + [gr.update()] * len(param_pairs)
+        lang = lang or "en"
         try:
             data = _pjson.loads(Path(file_path).read_text())
             file_tab = data.get("tab", "")
             if file_tab != tab_key:
-                return [gr.update(visible=True, value=f"Tab mismatch: '{file_tab}' != '{tab_key}'")] + [gr.update()] * len(param_pairs)
+                gr.Warning(_i18n_msg("preset_tab_mismatch", lang=lang, tab=file_tab))
+                return [gr.update(visible=True, value=_i18n_msg("preset_tab_mismatch_short", lang=lang, tab=file_tab))] + [gr.update()] * len(param_pairs)
             result = []
             for name, _ in param_pairs:
                 result.append(data[name] if name in data else gr.update())
-            return [gr.update(visible=True, value="Preset loaded.")] + result
+            return [gr.update(visible=True, value=_i18n_msg("preset_loaded", lang=lang))] + result
         except Exception as e:
             return [gr.update(visible=True, value=f"Error: {e}")] + [gr.update()] * len(param_pairs)
 
     p_export.click(fn=_do_export, inputs=comps, outputs=[p_export])
-    p_import.change(fn=_do_import, inputs=[p_import], outputs=[p_status] + comps)
+    p_import.change(
+        fn=_do_import, inputs=[p_import, p_lang], outputs=[p_status] + comps,
+        js=f"(file, lang) => [file, localStorage.getItem('ltx2-lang') || 'en']",
+    )
 
 
 def create_output_column(gen_type: str):
