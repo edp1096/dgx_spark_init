@@ -163,6 +163,8 @@ os.makedirs(OUTPUT_DIR, exist_ok=True)
 os.makedirs(str(DEFAULT_MODEL_DIR), exist_ok=True)
 
 RESOLUTION_CHOICES = [
+    "1920x1080", "1080x1920",
+    "1280x720", "720x1280",
     "1024x1536", "1536x1024",
     "1024x1024",
     "768x1024", "1024x768",
