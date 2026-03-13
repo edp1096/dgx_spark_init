@@ -339,7 +339,10 @@ def _worker_loop(
 
             images = []
             if kwargs.get("image_path"):
-                images = [(kwargs["image_path"], 0, kwargs["image_strength"])]
+                images = [ImageConditioningInput(
+                    kwargs["image_path"], 0,
+                    kwargs["image_strength"], kwargs["image_crf"],
+                )]
 
             video_guider = build_guider(kwargs["v_guidance"])
             audio_max = kwargs["audio_max_duration"] if kwargs["audio_max_duration"] > 0 else None
