@@ -113,6 +113,11 @@ def _worker_loop(
         generated = outputs[0][len(inputs.input_ids[0]):]
         enhanced = _qwen_tokenizer.decode(generated, skip_special_tokens=True)
         enhanced = enhanced.strip()
+        # Strip thinking/reasoning text: take from "Style:" if present
+        style_idx = enhanced.find("Style:")
+        if style_idx > 0:
+            enhanced = enhanced[style_idx:]
+            log.info("Stripped %d chars of thinking text before 'Style:'", style_idx)
         return enhanced
     log.info("Qwen3.5-4B prompt enhancement configured (lazy load)")
 
