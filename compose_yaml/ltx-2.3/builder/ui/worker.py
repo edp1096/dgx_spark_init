@@ -57,17 +57,6 @@ def _worker_loop(
     torch.backends.cuda.matmul.allow_tf32 = True
     torch.backends.cudnn.allow_tf32 = True
 
-    # torch.compile transformer for faster denoising loop
-    from ltx_pipelines.utils.model_ledger import ModelLedger
-    _orig_transformer = ModelLedger.transformer
-
-    def _compiled_transformer(self):
-        model = _orig_transformer(self)
-        log.info("Compiling transformer with torch.compile (mode=max-autotune-no-cudagraphs)...")
-        return torch.compile(model, mode="max-autotune-no-cudagraphs")
-
-    ModelLedger.transformer = _compiled_transformer
-
     from pipeline_manager import PipelineManager, IC_LORA_MAP, OUTPUT_DIR
     from mod.nag import encode_negative_prompt, get_model_ledger, nag_guidance
 
