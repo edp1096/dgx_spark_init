@@ -81,7 +81,7 @@ def _worker_loop(
         _qwen_tokenizer = AutoTokenizer.from_pretrained(qwen_path)
         _qwen_model = AutoModelForCausalLM.from_pretrained(
             qwen_path,
-            torch_dtype=torch.bfloat16,
+            dtype=torch.bfloat16,
             device_map="auto",
         )
         log.info("Qwen3.5-4B loaded (bf16, ~8GB)")
@@ -91,10 +91,15 @@ def _worker_loop(
         _load_qwen()
         messages = [
             {"role": "system", "content": _QWEN_SYSTEM_PROMPT},
-            {"role": "user", "content": f"user prompt: {prompt}"},
+            {"role": "user", "content": (
+                "Output ONLY the enhanced prompt as a single paragraph. "
+                "Do NOT include any thinking process, reasoning, analysis, or step-by-step explanation.\n\n"
+                f"user prompt: {prompt}"
+            )},
         ]
         text = _qwen_tokenizer.apply_chat_template(
-            messages, tokenize=False, add_generation_prompt=True)
+            messages, tokenize=False, add_generation_prompt=True,
+            enable_thinking=False)
         inputs = _qwen_tokenizer(text, return_tensors="pt").to(_qwen_model.device)
         with torch.inference_mode():
             outputs = _qwen_model.generate(
@@ -107,9 +112,7 @@ def _worker_loop(
             )
         generated = outputs[0][len(inputs.input_ids[0]):]
         enhanced = _qwen_tokenizer.decode(generated, skip_special_tokens=True)
-        # Strip /think tags if present (Qwen thinking mode)
-        import re as _re
-        enhanced = _re.sub(r'<think>.*?</think>\s*', '', enhanced, flags=_re.DOTALL).strip()
+        enhanced = enhanced.strip()
         return enhanced
     log.info("Qwen3.5-4B prompt enhancement configured (lazy load)")
 
