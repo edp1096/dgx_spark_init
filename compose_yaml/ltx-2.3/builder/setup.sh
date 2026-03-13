@@ -128,6 +128,7 @@ pip install -q \
     safetensors \
     huggingface_hub \
     transformers \
+    bitsandbytes \
     einops \
     scipy \
     psutil \
