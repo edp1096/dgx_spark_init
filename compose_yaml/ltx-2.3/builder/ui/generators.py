@@ -98,8 +98,6 @@ def get_gen_info_for_tab(gen_type: str) -> str:
     result = _last_gen_result
     if result is None:
         return ""
-    if result.get("consumed"):
-        return ""
     if result["gen_type"] != gen_type:
         return ""
     if time.time() - result["time"] > 600:
