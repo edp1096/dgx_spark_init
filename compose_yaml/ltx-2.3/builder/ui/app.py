@@ -282,11 +282,15 @@ def create_preset_row(tab_key, param_pairs):
 
 
 def create_output_column(gen_type: str):
-    """Create standardised output column with video, info, kill button, and status."""
+    """Create standardised output column with video, info, enhanced prompt, kill button, and status."""
     video = gr.Video(label="Generated Video")
     info = gr.Textbox(
         label="Info", interactive=False,
         value=lambda: get_gen_info_for_tab(gen_type), every=2,
+    )
+    enhanced = gr.Textbox(
+        label="Enhanced Prompt", interactive=False, lines=4,
+        placeholder="보정된 프롬프트가 여기에 표시됩니다 (Enhance Prompt 활성화 시)",
     )
     with gr.Row():
         kill_btn = gr.Button("Kill (emergency stop)", variant="stop", size="sm", elem_classes=["kill-btn"])
@@ -295,7 +299,7 @@ def create_output_column(gen_type: str):
 
     kill_btn.click(fn=_do_kill, outputs=[kill_msg])
 
-    return video, info
+    return video, info, enhanced
 
 
 # ---------------------------------------------------------------------------
@@ -363,13 +367,13 @@ def build_ui() -> gr.Blocks:
                         t2_btn = gr.Button("Generate", variant="primary", size="lg")
 
                     with gr.Column(scale=1):
-                        t2_video, t2_info = create_output_column("distilled")
+                        t2_video, t2_info, t2_enhanced = create_output_column("distilled")
 
                 wire_frame_sync(t2_frame_mode, t2_frames, t2_duration, t2_fps)
 
                 t2_btn.click(
-                    fn=lambda: (None, ""),
-                    outputs=[t2_video, t2_info],
+                    fn=lambda: (None, "", ""),
+                    outputs=[t2_video, t2_info, t2_enhanced],
                 ).then(
                     fn=generate_distilled,
                     inputs=[
@@ -379,7 +383,7 @@ def build_ui() -> gr.Blocks:
                         t2_enhance, t2_fp8,
                         t2_frame_mode, t2_duration, t2_no_audio,
                     ],
-                    outputs=[t2_video, t2_info],
+                    outputs=[t2_video, t2_info, t2_enhanced],
                 )
                 for i, btn in enumerate(t2_sample_btns):
                     btn.click(fn=lambda idx=i: SAMPLE_PROMPTS[idx], outputs=[t2_prompt])
@@ -430,13 +434,13 @@ def build_ui() -> gr.Blocks:
                         t1_btn = gr.Button("Generate", variant="primary", size="lg")
 
                     with gr.Column(scale=1):
-                        t1_video, t1_info = create_output_column("ti2vid")
+                        t1_video, t1_info, t1_enhanced = create_output_column("ti2vid")
 
                 wire_frame_sync(t1_frame_mode, t1_frames, t1_duration, t1_fps)
 
                 t1_btn.click(
-                    fn=lambda: (None, ""),
-                    outputs=[t1_video, t1_info],
+                    fn=lambda: (None, "", ""),
+                    outputs=[t1_video, t1_info, t1_enhanced],
                 ).then(
                     fn=generate_ti2vid,
                     inputs=[
@@ -446,7 +450,7 @@ def build_ui() -> gr.Blocks:
                         *t1_guidance,
                         t1_frame_mode, t1_duration, t1_no_audio,
                     ],
-                    outputs=[t1_video, t1_info],
+                    outputs=[t1_video, t1_info, t1_enhanced],
                 )
                 for i, btn in enumerate(t1_sample_btns):
                     btn.click(fn=lambda idx=i: SAMPLE_PROMPTS[idx], outputs=[t1_prompt])
@@ -502,13 +506,13 @@ def build_ui() -> gr.Blocks:
                         t3_btn = gr.Button("Generate", variant="primary", size="lg")
 
                     with gr.Column(scale=1):
-                        t3_video, t3_info = create_output_column("iclora")
+                        t3_video, t3_info, t3_enhanced = create_output_column("iclora")
 
                 wire_frame_sync(t3_frame_mode, t3_frames, t3_duration, t3_fps)
 
                 t3_btn.click(
-                    fn=lambda: (None, ""),
-                    outputs=[t3_video, t3_info],
+                    fn=lambda: (None, "", ""),
+                    outputs=[t3_video, t3_info, t3_enhanced],
                 ).then(
                     fn=generate_iclora,
                     inputs=[
@@ -519,7 +523,7 @@ def build_ui() -> gr.Blocks:
                         t3_skip_stage2, t3_enhance, t3_fp8,
                         t3_frame_mode, t3_duration, t3_no_audio,
                     ],
-                    outputs=[t3_video, t3_info],
+                    outputs=[t3_video, t3_info, t3_enhanced],
                 )
 
             # ==============================================================
@@ -562,13 +566,13 @@ def build_ui() -> gr.Blocks:
                         t4_btn = gr.Button("Generate", variant="primary", size="lg")
 
                     with gr.Column(scale=1):
-                        t4_video, t4_info = create_output_column("keyframe")
+                        t4_video, t4_info, t4_enhanced = create_output_column("keyframe")
 
                 wire_frame_sync(t4_frame_mode, t4_frames, t4_duration, t4_fps)
 
                 t4_btn.click(
-                    fn=lambda: (None, ""),
-                    outputs=[t4_video, t4_info],
+                    fn=lambda: (None, "", ""),
+                    outputs=[t4_video, t4_info, t4_enhanced],
                 ).then(
                     fn=generate_keyframe,
                     inputs=[
@@ -579,7 +583,7 @@ def build_ui() -> gr.Blocks:
                         *t4_guidance,
                         t4_frame_mode, t4_duration, t4_no_audio,
                     ],
-                    outputs=[t4_video, t4_info],
+                    outputs=[t4_video, t4_info, t4_enhanced],
                 )
             # ==============================================================
             # Tab 5: Audio -> Video
@@ -624,13 +628,13 @@ def build_ui() -> gr.Blocks:
                         t5_btn = gr.Button("Generate", variant="primary", size="lg")
 
                     with gr.Column(scale=1):
-                        t5_video, t5_info = create_output_column("a2vid")
+                        t5_video, t5_info, t5_enhanced = create_output_column("a2vid")
 
                 wire_frame_sync(t5_frame_mode, t5_frames, t5_duration, t5_fps)
 
                 t5_btn.click(
-                    fn=lambda: (None, ""),
-                    outputs=[t5_video, t5_info],
+                    fn=lambda: (None, "", ""),
+                    outputs=[t5_video, t5_info, t5_enhanced],
                 ).then(
                     fn=generate_a2vid,
                     inputs=[
@@ -642,7 +646,7 @@ def build_ui() -> gr.Blocks:
                         *t5_guidance,
                         t5_frame_mode, t5_duration,
                     ],
-                    outputs=[t5_video, t5_info],
+                    outputs=[t5_video, t5_info, t5_enhanced],
                 )
             # ==============================================================
             # Tab 6: Retake
@@ -683,11 +687,11 @@ def build_ui() -> gr.Blocks:
                         t6_btn = gr.Button("Generate", variant="primary", size="lg")
 
                     with gr.Column(scale=1):
-                        t6_video_out, t6_info = create_output_column("retake")
+                        t6_video_out, t6_info, t6_enhanced = create_output_column("retake")
 
                 t6_btn.click(
-                    fn=lambda: (None, ""),
-                    outputs=[t6_video_out, t6_info],
+                    fn=lambda: (None, "", ""),
+                    outputs=[t6_video_out, t6_info, t6_enhanced],
                 ).then(
                     fn=generate_retake,
                     inputs=[
@@ -698,7 +702,7 @@ def build_ui() -> gr.Blocks:
                         t6_enhance, t6_fp8,
                         *t6_guidance,
                     ],
-                    outputs=[t6_video_out, t6_info],
+                    outputs=[t6_video_out, t6_info, t6_enhanced],
                 )
             # ==============================================================
             # Settings Tab

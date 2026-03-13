@@ -62,6 +62,20 @@ def _worker_loop(
 
     mgr = PipelineManager(progress_queue=progress_queue)
 
+    # Capture enhanced prompt from pipeline logging and forward via progress_queue
+    class _EnhancedPromptHandler(logging.Handler):
+        def emit(self, record):
+            msg = record.getMessage()
+            if msg.startswith("Enhanced prompt: "):
+                tid = getattr(mgr, "_current_task_id", None)
+                if tid:
+                    progress_queue.put_nowait({
+                        "task_id": tid,
+                        "type": "enhanced_prompt",
+                        "data": {"text": msg[len("Enhanced prompt: "):]},
+                    })
+    logging.getLogger().addHandler(_EnhancedPromptHandler())
+
     def make_preview_callback(task_id, fps, num_frames):
         """Create a callback that saves Stage 1 preview and sends it via progress_queue."""
         def callback(video_frames, audio, frame_rate, n_frames):

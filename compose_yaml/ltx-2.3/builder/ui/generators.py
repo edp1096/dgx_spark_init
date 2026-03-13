@@ -53,6 +53,7 @@ _loading_status = ""
 _loading_plan: list[str] = []       # full load order from worker
 _loading_done: dict[str, float] = {}  # name -> elapsed seconds
 _loading_current: str | None = None   # currently loading model name
+_last_enhanced_prompt: str = ""
 
 
 def get_loading_status() -> str:
@@ -150,9 +151,10 @@ def _build_loading_status(plan: list[str], done: dict[str, float], current: str 
 def _submit_and_wait(gen_type: str, kwargs: dict, progress) -> tuple[str, str]:
     """Submit task to worker, poll progress, wait for result."""
     global _loading_status, _loading_plan, _loading_done, _loading_current
-    global _gen_active, _last_gen_result, _result_version
+    global _gen_active, _last_gen_result, _result_version, _last_enhanced_prompt
 
     _gen_active = True
+    _last_enhanced_prompt = ""
 
     mgr = get_worker_mgr()
     mgr.ensure_running()
@@ -216,11 +218,14 @@ def _submit_and_wait(gen_type: str, kwargs: dict, progress) -> tuple[str, str]:
                         progress(idx / max(total, 1), desc=f"Loading {name} ({idx}/{total})")
                     _loading_status = _build_loading_status(_loading_plan, _loading_done, _loading_current)
 
+                elif mtype == "enhanced_prompt":
+                    _last_enhanced_prompt = data.get("text", "")
+
                 elif mtype == "stage1_preview":
                     preview_path = data.get("path")
                     if preview_path:
                         _loading_status = "**Upscaling (Stage 2)...**"
-                        yield preview_path, "⏳ Stage 1 미리보기 (절반 해상도) — 업스케일 진행 중..."
+                        yield preview_path, "⏳ Stage 1 미리보기 (절반 해상도) — 업스케일 진행 중...", _last_enhanced_prompt
 
                 elif mtype == "step":
                     current = data.get("current", 0)
@@ -250,7 +255,7 @@ def _submit_and_wait(gen_type: str, kwargs: dict, progress) -> tuple[str, str]:
                         "gen_type": gen_type, "time": time.time(),
                         "consumed": False,
                     }
-                    yield path, info
+                    yield path, info, _last_enhanced_prompt
                     return
                 elif result["status"] == "cancelled":
                     raise gr.Error("Generation cancelled.")
