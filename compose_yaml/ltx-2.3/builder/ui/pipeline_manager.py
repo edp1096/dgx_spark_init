@@ -589,7 +589,6 @@ class PipelineManager:
             loras=all_loras,
             device=self.device,
             quantization=FP8_QUANTIZATION,
-            distilled_lora=tuple(self._distilled_lora(distilled_lora_strength)),
         )
         self.current_type = "iclora"
         self._iclora_cache_key = cache_key
