@@ -18,6 +18,50 @@ FP8_QUANTIZATION = QuantizationPolicy.fp8_cast()
 
 logger = logging.getLogger("ltx2-ui")
 
+# ---------------------------------------------------------------------------
+# q8_kernels FP8 matmul — native FP8 GEMM (replaces BF16 upcast approach)
+# ---------------------------------------------------------------------------
+_Q8_AVAILABLE = False
+try:
+    from q8_kernels.modules.linear import FP8Linear as _Q8FP8Linear
+    _Q8_AVAILABLE = True
+except ImportError:
+    pass
+
+
+def _patch_transformer_q8(model):
+    """Replace FP8 nn.Linear layers with q8_kernels FP8Linear for native FP8 GEMM.
+
+    Called after transformer is loaded with fp8_cast. Swaps the upcast-forward
+    Linear layers for FP8Linear which runs matmul directly in FP8.
+    """
+    count = 0
+    for name, module in list(model.named_modules()):
+        if not isinstance(module, torch.nn.Linear) or isinstance(module, _Q8FP8Linear):
+            continue
+        if module.weight.dtype != torch.float8_e4m3fn:
+            continue
+        fp8 = _Q8FP8Linear(
+            module.in_features, module.out_features,
+            bias=module.bias is not None, device=module.weight.device,
+        )
+        fp8.weight.data.copy_(module.weight.data)
+        if module.bias is not None:
+            # fp8_gemm requires fp32 bias when IS_FP8_FAST_ACC_AVAILABLE
+            fp8.bias = torch.nn.Parameter(
+                module.bias.data.to(torch.float32), requires_grad=False,
+            )
+        # Replace in parent module
+        parts = name.split(".")
+        parent = model
+        for part in parts[:-1]:
+            parent = getattr(parent, part)
+        setattr(parent, parts[-1], fp8)
+        count += 1
+    if count > 0:
+        torch.cuda.empty_cache()
+        logger.info("q8_kernels: replaced %d Linear → FP8Linear (native FP8 GEMM)", count)
+
 
 # ---------------------------------------------------------------------------
 # Model loading progress — gr.Markdown 폴링 방식
@@ -109,6 +153,11 @@ def _wrap_model_ledger(mgr, ledger, stage_prefix: str = ""):
 
                 t0 = time.time()
                 result = orig(*args, **kwargs)
+
+                # Apply q8_kernels FP8 matmul optimization for transformer
+                if mname == "transformer" and _Q8_AVAILABLE:
+                    _patch_transformer_q8(result)
+
                 elapsed = time.time() - t0
 
                 mgr._loading_bar.update(1)

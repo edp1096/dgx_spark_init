@@ -410,7 +410,7 @@ def build_ui() -> gr.Blocks:
                             t1_img_strength = gr.Slider(0.0, 1.0, value=1.0, step=0.05, label="Image Strength")
                             t1_img_crf = gr.Slider(0, 51, value=33, step=1, label="Image CRF",
                                                    info="Compression quality (0=lossless, 51=worst)")
-                        t1_resolution = gr.Dropdown(RESOLUTION_CHOICES, value="1024x768", label="Resolution (WxH)", allow_custom_value=True)
+                        t1_resolution = gr.Dropdown(RESOLUTION_CHOICES, value="768x512", label="Resolution (WxH)", allow_custom_value=True)
                         t1_frame_mode, t1_frames, t1_duration = create_frame_controls()
                         with gr.Row():
                             t1_fps = gr.Slider(1, 60, value=25, step=1, label="FPS")
@@ -543,7 +543,7 @@ def build_ui() -> gr.Blocks:
                         t4_img_strength = gr.Slider(0.0, 1.0, value=1.0, step=0.05, label="Keyframe Strength")
                         t4_img_crf = gr.Slider(0, 51, value=33, step=1, label="Image CRF",
                                                info="Compression quality (0=lossless, 51=worst)")
-                        t4_resolution = gr.Dropdown(RESOLUTION_CHOICES, value="1024x768", label="Resolution (WxH)", allow_custom_value=True)
+                        t4_resolution = gr.Dropdown(RESOLUTION_CHOICES, value="768x512", label="Resolution (WxH)", allow_custom_value=True)
                         t4_frame_mode, t4_frames, t4_duration = create_frame_controls()
                         with gr.Row():
                             t4_fps = gr.Slider(1, 60, value=25, step=1, label="FPS")
@@ -606,7 +606,7 @@ def build_ui() -> gr.Blocks:
                             t5_img_strength = gr.Slider(0.0, 1.0, value=1.0, step=0.05, label="Image Strength")
                             t5_img_crf = gr.Slider(0, 51, value=33, step=1, label="Image CRF",
                                                    info="Compression quality (0=lossless, 51=worst)")
-                        t5_resolution = gr.Dropdown(RESOLUTION_CHOICES, value="1024x768", label="Resolution (WxH)", allow_custom_value=True)
+                        t5_resolution = gr.Dropdown(RESOLUTION_CHOICES, value="768x512", label="Resolution (WxH)", allow_custom_value=True)
                         t5_frame_mode, t5_frames, t5_duration = create_frame_controls()
                         with gr.Row():
                             t5_fps = gr.Slider(1, 60, value=25, step=1, label="FPS")
