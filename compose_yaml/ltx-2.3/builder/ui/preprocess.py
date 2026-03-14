@@ -65,16 +65,11 @@ def preprocess_video_canny(video_path: str, low: int = 100, high: int = 200,
     return out_path
 
 
-def preview_canny(video_path: str, low: int = 100, high: int = 200) -> np.ndarray | None:
-    """Extract first frame and apply Canny for preview. Returns RGB numpy array."""
+def preview_canny(video_path: str, low: int = 100, high: int = 200,
+                   output_dir: str = "/tmp/ltx2-outputs") -> str | None:
+    """Apply Canny to full video for preview. Returns output video path."""
     try:
-        container = av.open(video_path)
-        stream = next(s for s in container.streams if s.type == "video")
-        frame = next(container.decode(stream))
-        rgb = frame.to_rgb().to_ndarray()
-        container.close()
+        return preprocess_video_canny(video_path, low, high, output_dir)
     except Exception:
+        logger.exception("Canny preview failed")
         return None
-    gray = np.dot(rgb[..., :3], [0.2989, 0.5870, 0.1140]).astype(np.uint8)
-    edges = _canny_frame(gray, low, high)
-    return np.stack([edges, edges, edges], axis=-1)

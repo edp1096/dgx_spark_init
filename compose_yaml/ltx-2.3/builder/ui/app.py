@@ -793,7 +793,7 @@ def build_ui() -> gr.Blocks:
                             )
                             t3_canny_lo = gr.Slider(50, 300, value=100, step=10, label="Canny Low", visible=False, scale=1)
                             t3_canny_hi = gr.Slider(50, 300, value=200, step=10, label="Canny High", visible=False, scale=1)
-                        t3_preprocess_preview = gr.Image(label="Preprocessing Preview", visible=False, interactive=False, height=200)
+                        t3_preprocess_preview = gr.Video(label="Preprocessing Preview", visible=False, interactive=False, height=200)
                         t3_lora = gr.Dropdown(
                             list(IC_LORA_MAP.keys()) + ["Both"],
                             value="Union Control", label="IC-LoRA Type",

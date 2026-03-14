@@ -66,40 +66,64 @@ def _worker_loop(
     from pipeline_manager import PipelineManager, IC_LORA_MAP, OUTPUT_DIR
     from mod.nag import encode_negative_prompt, get_model_ledger, nag_guidance
 
-    # --- Qwen prompt enhancement (replaces Gemma monkey-patch) ---
+    # --- Qwen prompt enhancement + vision (replaces Gemma monkey-patch) ---
     _qwen_model = None
-    _qwen_tokenizer = None
+    _qwen_processor = None
 
-    # Use same system prompt as LTX's Gemma t2v enhancement
-    _QWEN_SYSTEM_PROMPT = (Path(__file__).resolve().parent.parent
+    # System prompts from LTX's Gemma prompts
+    _prompts_dir = (Path(__file__).resolve().parent.parent
         / "LTX-2" / "packages" / "ltx-core" / "src" / "ltx_core"
-        / "text_encoders" / "gemma" / "encoders" / "prompts"
-        / "gemma_t2v_system_prompt.txt").read_text()
+        / "text_encoders" / "gemma" / "encoders" / "prompts")
+    _QWEN_T2V_SYSTEM_PROMPT = (_prompts_dir / "gemma_t2v_system_prompt.txt").read_text()
+    _QWEN_I2V_SYSTEM_PROMPT = (_prompts_dir / "gemma_i2v_system_prompt.txt").read_text()
 
     def _load_qwen():
-        nonlocal _qwen_model, _qwen_tokenizer
+        nonlocal _qwen_model, _qwen_processor
         if _qwen_model is not None:
             return
-        from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
+        from transformers import Qwen3_5ForConditionalGeneration, AutoProcessor, BitsAndBytesConfig
 
         qwen_path = str(Path(model_dir) / "Huihui-Qwen3.5-4B-abliterated")
-        log.info("Loading Qwen3.5-4B-8bit for prompt enhancement (%s)...", qwen_path)
-        _qwen_tokenizer = AutoTokenizer.from_pretrained(qwen_path)
+        log.info("Loading Qwen3.5-4B VLM 8bit (%s)...", qwen_path)
+        _qwen_processor = AutoProcessor.from_pretrained(qwen_path)
         bnb_config = BitsAndBytesConfig(
             load_in_8bit=True,
         )
-        _qwen_model = AutoModelForCausalLM.from_pretrained(
+        _qwen_model = Qwen3_5ForConditionalGeneration.from_pretrained(
             qwen_path,
             quantization_config=bnb_config,
             device_map="auto",
         )
-        log.info("Qwen3.5-4B loaded (8bit, ~4.5GB)")
+        log.info("Qwen3.5-4B VLM loaded (8bit, ~4.5GB)")
+
+    def _qwen_generate(messages, images=None, max_new_tokens=512):
+        """Shared generate helper for Qwen VLM (text-only or vision)."""
+        _load_qwen()
+        text = _qwen_processor.tokenizer.apply_chat_template(
+            messages, tokenize=False, add_generation_prompt=True,
+            enable_thinking=False)
+        inputs = _qwen_processor(
+            text=text,
+            images=images,
+            return_tensors="pt",
+        ).to(_qwen_model.device)
+        with torch.inference_mode():
+            outputs = _qwen_model.generate(
+                **inputs,
+                max_new_tokens=max_new_tokens,
+                do_sample=True,
+                temperature=0.7,
+                top_p=0.9,
+                repetition_penalty=1.2,
+            )
+        generated = outputs[0][len(inputs.input_ids[0]):]
+        result = _qwen_processor.tokenizer.decode(generated, skip_special_tokens=True)
+        return result.strip()
 
     def _enhance_prompt_qwen(prompt: str) -> str:
-        """Enhance a prompt using Qwen3.5-4B-8bit with the LTX system prompt."""
-        _load_qwen()
+        """Enhance a text prompt using Qwen3.5-4B VLM."""
         messages = [
-            {"role": "system", "content": _QWEN_SYSTEM_PROMPT},
+            {"role": "system", "content": _QWEN_T2V_SYSTEM_PROMPT},
             {"role": "user", "content": (
                 "Output ONLY the enhanced prompt as a single paragraph. "
                 "Do NOT include any thinking process, reasoning, analysis, or step-by-step explanation.\n"
@@ -108,29 +132,29 @@ def _worker_loop(
                 f"user prompt: {prompt}"
             )},
         ]
-        text = _qwen_tokenizer.apply_chat_template(
-            messages, tokenize=False, add_generation_prompt=True,
-            enable_thinking=False)
-        inputs = _qwen_tokenizer(text, return_tensors="pt").to(_qwen_model.device)
-        with torch.inference_mode():
-            outputs = _qwen_model.generate(
-                **inputs,
-                max_new_tokens=512,
-                do_sample=True,
-                temperature=0.7,
-                top_p=0.9,
-                repetition_penalty=1.2,
-            )
-        generated = outputs[0][len(inputs.input_ids[0]):]
-        enhanced = _qwen_tokenizer.decode(generated, skip_special_tokens=True)
-        enhanced = enhanced.strip()
+        enhanced = _qwen_generate(messages)
         # Strip thinking/reasoning text: take from "Style:" if present
         style_idx = enhanced.find("Style:")
         if style_idx > 0:
             enhanced = enhanced[style_idx:]
             log.info("Stripped %d chars of thinking text before 'Style:'", style_idx)
         return enhanced
-    log.info("Qwen3.5-4B-4bit prompt enhancement configured (lazy load)")
+
+    def _describe_image_qwen(image_path: str, hint: str = "") -> str:
+        """Describe an image using Qwen3.5-4B VLM for prompt suggestion."""
+        from PIL import Image as PILImage
+        image = PILImage.open(image_path).convert("RGB")
+        user_text = hint if hint.strip() else "Describe this image in detail for video generation."
+        messages = [
+            {"role": "system", "content": _QWEN_I2V_SYSTEM_PROMPT},
+            {"role": "user", "content": [
+                {"type": "image"},
+                {"type": "text", "text": f"User Raw Input Prompt: {user_text}"},
+            ]},
+        ]
+        return _qwen_generate(messages, images=[image])
+
+    log.info("Qwen3.5-4B VLM prompt enhancement configured (lazy load)")
 
     mgr = PipelineManager(progress_queue=progress_queue)
 
@@ -531,42 +555,12 @@ def _worker_loop(
             return output_path, seed
 
     def _run_describe_frame(kwargs, task_id):
-        """Use Gemma vision to describe an image for prompt suggestion."""
-        with torch.inference_mode():
-            image_path = kwargs["image_path"]
-            hint = kwargs.get("hint", "")
-
-            # Get a model_ledger from any loaded pipeline, or load a minimal one
-            pipeline = mgr.current_pipeline
-            if pipeline is None:
-                # Load distilled pipeline minimally to access Gemma
-                pipeline = mgr.get_distilled()
-
-            ledger = None
-            for attr in ("stage_1_model_ledger", "model_ledger"):
-                if hasattr(pipeline, attr):
-                    ledger = getattr(pipeline, attr)
-                    break
-            if ledger is None:
-                raise RuntimeError("No model ledger available for text encoding")
-
-            from ltx_pipelines.utils.helpers import generate_enhanced_prompt
-            text_encoder = ledger.text_encoder()
-            from ltx_pipelines.utils.helpers import decode_image, resize_aspect_ratio_preserving
-            image = decode_image(image_path=image_path)
-            image = torch.tensor(image)
-            image = resize_aspect_ratio_preserving(image, 896).to(torch.uint8)
-
-            prompt = hint if hint.strip() else "Describe this image in detail for video generation."
-            description = text_encoder.enhance_i2v(prompt, image, seed=42)
-
-            torch.cuda.synchronize()
-            del text_encoder
-            from ltx_pipelines.utils import cleanup_memory
-            cleanup_memory()
-
-            log.info("Task %s: Gemma described frame: %s", task_id[:8], description[:100])
-            return description, 0
+        """Use Qwen3.5 VLM to describe an image for prompt suggestion."""
+        image_path = kwargs["image_path"]
+        hint = kwargs.get("hint", "")
+        description = _describe_image_qwen(image_path, hint)
+        log.info("Task %s: Qwen described frame: %s", task_id[:8], description[:100])
+        return description, 0
 
     HANDLERS = {
         "ti2vid": _run_ti2vid,

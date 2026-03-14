@@ -660,7 +660,7 @@ def suggest_prompt_from_image(image_array, hint: str = "") -> str:
     task_id = mgr.submit_task("describe_frame", {"image_path": str(tmp_path), "hint": hint})
 
     start_t = time.time()
-    while time.time() - start_t < 60:
+    while time.time() - start_t < 180:
         result = mgr.get_result(timeout=0.5)
         if result and result.get("task_id") == task_id:
             if result["status"] == "ok":
