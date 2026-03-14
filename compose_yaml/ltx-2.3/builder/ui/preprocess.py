@@ -38,6 +38,7 @@ def preprocess_video_canny(video_path: str, low: int = 100, high: int = 200,
     w = in_stream.codec_context.width
     h = in_stream.codec_context.height
 
+    Path(output_dir).mkdir(parents=True, exist_ok=True)
     out_path = str(Path(output_dir) / f"_canny_{Path(video_path).stem}.mp4")
     out_container = av.open(out_path, "w", format="mp4")
     out_stream = out_container.add_stream("libx264", rate=int(fps),

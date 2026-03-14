@@ -842,23 +842,33 @@ def build_ui() -> gr.Blocks:
 
                 wire_frame_sync(t3_frame_mode, t3_frames, t3_duration, t3_fps)
 
-                # Canny preprocessing visibility + preview
-                def _toggle_canny_vis(cond_type):
+                # Canny preprocessing visibility + preview (combined handler)
+                def _toggle_canny_and_preview(ref_video, cond_type, lo, hi):
                     show = cond_type == "Canny Edge"
-                    return gr.update(visible=show), gr.update(visible=show), gr.update(visible=show)
+                    slider_upd = gr.update(visible=show)
+                    if not show:
+                        return slider_upd, slider_upd, gr.update(value=None, visible=False)
+                    if not ref_video:
+                        return slider_upd, slider_upd, gr.update(value=None, visible=True)
+                    from preprocess import preview_canny
+                    preview = preview_canny(ref_video, int(lo), int(hi))
+                    return slider_upd, slider_upd, gr.update(value=preview, visible=True)
+
+                _canny_inputs = [t3_ref_video, t3_cond_type, t3_canny_lo, t3_canny_hi]
+                _canny_outputs = [t3_canny_lo, t3_canny_hi, t3_preprocess_preview]
                 t3_cond_type.change(
-                    fn=_toggle_canny_vis, inputs=[t3_cond_type],
-                    outputs=[t3_canny_lo, t3_canny_hi, t3_preprocess_preview],
+                    fn=_toggle_canny_and_preview, inputs=_canny_inputs,
+                    outputs=_canny_outputs,
                 )
-                def _preview_canny(ref_video, cond_type, lo, hi):
+                def _preview_canny_only(ref_video, cond_type, lo, hi):
                     if not ref_video or cond_type != "Canny Edge":
-                        return gr.update(value=None, visible=cond_type != "None")
+                        return gr.update()
                     from preprocess import preview_canny
                     preview = preview_canny(ref_video, int(lo), int(hi))
                     return gr.update(value=preview, visible=True)
-                for _trig in [t3_cond_type.change, t3_canny_lo.release, t3_canny_hi.release, t3_ref_video.change]:
-                    _trig(fn=_preview_canny,
-                          inputs=[t3_ref_video, t3_cond_type, t3_canny_lo, t3_canny_hi],
+                for _trig in [t3_canny_lo.release, t3_canny_hi.release, t3_ref_video.change]:
+                    _trig(fn=_preview_canny_only,
+                          inputs=_canny_inputs,
                           outputs=[t3_preprocess_preview])
 
                 t3_btn.click(
@@ -1520,21 +1530,40 @@ def build_ui() -> gr.Blocks:
 
                 def _clear_cache():
                     import shutil
-                    cache_dir = Path("/tmp/gradio")
-                    if not cache_dir.exists():
-                        return "No cache to clear."
                     count = 0
                     total_bytes = 0
-                    for d in cache_dir.iterdir():
-                        if d.is_dir():
-                            for f in d.iterdir():
+
+                    # 1) Gradio cache
+                    gradio_dir = Path("/tmp/gradio")
+                    if gradio_dir.exists():
+                        for d in gradio_dir.iterdir():
+                            if d.is_dir():
+                                for f in d.rglob("*"):
+                                    if f.is_file():
+                                        total_bytes += f.stat().st_size
+                                shutil.rmtree(d)
+                                count += 1
+                            elif d.is_file():
+                                total_bytes += d.stat().st_size
+                                d.unlink()
+                                count += 1
+
+                    # 2) Temp files in output dir (previews, canny, thumbnails)
+                    out_dir = Path(OUTPUT_DIR)
+                    if out_dir.exists():
+                        for f in out_dir.iterdir():
+                            if not f.is_file():
+                                continue
+                            name = f.name
+                            if (name.startswith("_preview_")
+                                    or name.startswith("_canny_")
+                                    or (name.startswith("tmp") and name.endswith(".png"))):
                                 total_bytes += f.stat().st_size
-                            shutil.rmtree(d)
-                            count += 1
-                        elif d.is_file():
-                            total_bytes += d.stat().st_size
-                            d.unlink()
-                            count += 1
+                                f.unlink()
+                                count += 1
+
+                    if count == 0:
+                        return "No cache to clear."
                     mb = total_bytes / (1024 * 1024)
                     msg = f"Cleared {count} items ({mb:.1f} MB)"
                     logger.info(msg)
