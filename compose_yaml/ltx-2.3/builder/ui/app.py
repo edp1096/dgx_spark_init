@@ -842,32 +842,29 @@ def build_ui() -> gr.Blocks:
 
                 wire_frame_sync(t3_frame_mode, t3_frames, t3_duration, t3_fps)
 
-                # Canny preprocessing visibility + preview (combined handler)
-                def _toggle_canny_and_preview(ref_video, cond_type, lo, hi):
+                # Canny preprocessing: visibility toggle (instant) + preview (heavy, chained)
+                def _toggle_canny_visibility(cond_type):
                     show = cond_type == "Canny Edge"
-                    slider_upd = gr.update(visible=show)
-                    if not show:
-                        return slider_upd, slider_upd, gr.update(value=None, visible=False)
-                    if not ref_video:
-                        return slider_upd, slider_upd, gr.update(value=None, visible=True)
-                    from preprocess import preview_canny
-                    preview = preview_canny(ref_video, int(lo), int(hi))
-                    return slider_upd, slider_upd, gr.update(value=preview, visible=True)
+                    return gr.update(visible=show), gr.update(visible=show), gr.update(value=None, visible=show)
 
-                _canny_inputs = [t3_ref_video, t3_cond_type, t3_canny_lo, t3_canny_hi]
-                _canny_outputs = [t3_canny_lo, t3_canny_hi, t3_preprocess_preview]
-                t3_cond_type.change(
-                    fn=_toggle_canny_and_preview, inputs=_canny_inputs,
-                    outputs=_canny_outputs,
-                )
-                def _preview_canny_only(ref_video, cond_type, lo, hi):
+                def _generate_canny_preview(ref_video, cond_type, lo, hi):
                     if not ref_video or cond_type != "Canny Edge":
                         return gr.update()
                     from preprocess import preview_canny
                     preview = preview_canny(ref_video, int(lo), int(hi))
                     return gr.update(value=preview, visible=True)
+
+                _canny_inputs = [t3_ref_video, t3_cond_type, t3_canny_lo, t3_canny_hi]
+                _canny_outputs = [t3_canny_lo, t3_canny_hi, t3_preprocess_preview]
+                t3_cond_type.change(
+                    fn=_toggle_canny_visibility, inputs=[t3_cond_type],
+                    outputs=_canny_outputs,
+                ).then(
+                    fn=_generate_canny_preview, inputs=_canny_inputs,
+                    outputs=[t3_preprocess_preview],
+                )
                 for _trig in [t3_canny_lo.release, t3_canny_hi.release, t3_ref_video.change]:
-                    _trig(fn=_preview_canny_only,
+                    _trig(fn=_generate_canny_preview,
                           inputs=_canny_inputs,
                           outputs=[t3_preprocess_preview])
 
