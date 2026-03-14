@@ -416,7 +416,7 @@ class PipelineManager:
         return str(Path(self.model_dir) / filename)
 
     def _gemma_root(self) -> str:
-        return self._model_path("gemma-3-12b-it-qat-q4_0-unquantized")
+        return self._model_path("gemma-3-12b-it")
 
     def _distilled_lora(self, strength: float = 0.8) -> list[LoraPathStrengthAndSDOps]:
         return [LoraPathStrengthAndSDOps(
