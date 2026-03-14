@@ -10,6 +10,7 @@
 # Usage:
 #   bash /root/ltx2-ui/setup.sh            # Full setup
 #   bash /root/ltx2-ui/setup.sh --skip-q8  # Skip q8_kernels
+#   bash /root/ltx2-ui/setup.sh --skip-bnb # Skip bitsandbytes
 
 set -e
 
@@ -18,7 +19,9 @@ LTX_DIR="$SCRIPT_DIR/LTX-2"
 UI_DIR="$SCRIPT_DIR/ui"
 MODEL_DIR="${LTX_MODEL_DIR:-$HOME/.cache/huggingface/hub/ltx23}"
 LTX_COMMIT="9e8a28e"
+BNB_COMMIT="925d83e"
 SKIP_Q8=false
+SKIP_BNB=false
 
 # GitHub raw URL base
 GITHUB_REPO="edp1096/dgx_spark_init"
@@ -41,7 +44,8 @@ UI_FILES=(
 
 for arg in "$@"; do
     case $arg in
-        --skip-q8) SKIP_Q8=true ;;
+        --skip-q8)  SKIP_Q8=true ;;
+        --skip-bnb) SKIP_BNB=true ;;
     esac
 done
 
@@ -71,7 +75,7 @@ fi
 # -----------------------------------------------
 # 1. Download UI files, patches & apply
 # -----------------------------------------------
-echo "[1/5] Downloading UI files and applying patches..."
+echo "[1/6] Downloading UI files and applying patches..."
 mkdir -p "$SCRIPT_DIR/logs"
 mkdir -p "$UI_DIR"
 mkdir -p "$SCRIPT_DIR/patches"
@@ -121,7 +125,7 @@ echo "  Copied UI files to LTX-2/"
 #    WARNING: torch/torchaudio/torchvision은 절대 일반 pip install 금지!
 #    반드시 --no-deps 사용. 안 하면 NGC torch가 CPU 버전으로 다운그레이드됨.
 # -----------------------------------------------
-echo "[2/5] Installing Python packages..."
+echo "[2/6] Installing Python packages..."
 pip install -q \
     gradio \
     accelerate \
@@ -160,7 +164,7 @@ fi
 #    --no-deps: NGC의 custom torch(2.11.0a0+nv26.2)를 보존
 #    ltx-core가 torch~=2.7을 요구해서 pip이 torch를 다운그레이드함
 # -----------------------------------------------
-echo "[3/5] Installing ltx-core and ltx-pipelines..."
+echo "[3/6] Installing ltx-core and ltx-pipelines..."
 pip install -q --no-deps -e "$LTX_DIR/packages/ltx-core"
 pip install -q --no-deps -e "$LTX_DIR/packages/ltx-pipelines"
 
@@ -168,7 +172,7 @@ pip install -q --no-deps -e "$LTX_DIR/packages/ltx-pipelines"
 # 4. Install q8_kernels (native FP8 GEMM)
 # -----------------------------------------------
 if [ "$SKIP_Q8" = false ]; then
-    echo "[4/5] Installing q8_kernels..."
+    echo "[4/6] Installing q8_kernels..."
     Q8_WHEEL_URL="${GITHUB_RAW}/q8_kernels-0.0.5-cp312-cp312-linux_aarch64.whl"
     if ! python3 -c "import q8_kernels" 2>/dev/null; then
         echo "  Installing from GitHub: $Q8_WHEEL_URL"
@@ -177,13 +181,37 @@ if [ "$SKIP_Q8" = false ]; then
         echo "  q8_kernels already installed — skipping"
     fi
 else
-    echo "[4/5] Skipping q8_kernels (--skip-q8)"
+    echo "[4/6] Skipping q8_kernels (--skip-q8)"
 fi
 
 # -----------------------------------------------
-# 5. Verify
+# 5. Install bitsandbytes (소스 빌드)
+#    PyPI wheel은 aarch64 미지원, 소스에서 CUDA 포함 빌드 필요
 # -----------------------------------------------
-echo "[5/5] Verifying installation..."
+if [ "$SKIP_BNB" = false ]; then
+    echo "[5/6] Installing bitsandbytes from source..."
+    if ! python3 -c "import bitsandbytes" 2>/dev/null; then
+        BNB_SRC="/tmp/bitsandbytes-src"
+        if [ ! -d "$BNB_SRC" ]; then
+            git clone --depth 250 https://github.com/bitsandbytes-foundation/bitsandbytes.git "$BNB_SRC" && cd "$BNB_SRC" && git checkout "$BNB_COMMIT" && cd "$SCRIPT_DIR"
+        fi
+        cd "$BNB_SRC"
+        cmake -DCOMPUTE_BACKEND=cuda -S . -B build
+        cmake --build build -j$(nproc)
+        pip install -q .
+        cd "$SCRIPT_DIR"
+        echo "  bitsandbytes installed from source"
+    else
+        echo "  bitsandbytes already installed — skipping"
+    fi
+else
+    echo "[5/6] Skipping bitsandbytes (--skip-bnb)"
+fi
+
+# -----------------------------------------------
+# 6. Verify
+# -----------------------------------------------
+echo "[6/6] Verifying installation..."
 
 # Check torch version (should be NGC's 2.11.0a0)
 TORCH_VER=$(python3 -c "import torch; print(torch.__version__)")
