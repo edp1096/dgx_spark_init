@@ -69,9 +69,10 @@ STRINGS = {
     "image_optional":            {"en": "Image (optional)",            "ko": "이미지 (선택)"},
     "image_strength":            {"en": "Image Strength",              "ko": "이미지 강도"},
     "additional_images":         {"en": "Additional Conditioning Images", "ko": "추가 조건 이미지"},
-    "extra_images":              {"en": "Extra Images",                "ko": "추가 이미지"},
-    "extra_frame_indices":       {"en": "Frame Indices (comma-separated)", "ko": "프레임 인덱스 (쉼표 구분)"},
-    "extra_strengths":           {"en": "Strengths (comma-separated, optional)", "ko": "강도 (쉼표 구분, 선택)"},
+    "add_cond_image":            {"en": "+ Add Conditioning Image",    "ko": "+ 조건 이미지 추가"},
+    "extra_image_n":             {"en": "Image {n}",                   "ko": "이미지 {n}"},
+    "extra_frame_index":         {"en": "Frame Index",                 "ko": "프레임 인덱스"},
+    "extra_strength":            {"en": "Strength",                    "ko": "강도"},
 
     # Guidance
     "guidance":                  {"en": "Guidance (advanced)",          "ko": "가이던스 (고급)"},

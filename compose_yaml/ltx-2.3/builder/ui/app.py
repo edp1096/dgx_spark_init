@@ -222,6 +222,64 @@ _GUIDANCE_NAMES_VA = [
 ]
 _GUIDANCE_NAMES_V = _GUIDANCE_NAMES_VA[:6]
 
+MAX_EXTRA_COND = 5
+
+
+def create_extra_conditioning_section():
+    """Create per-image conditioning slots with preview, frame index, and strength.
+
+    Returns a gr.State that holds a list of dicts:
+      [{"path": str, "frame_idx": int, "strength": float}, ...]
+    """
+    slots_imgs = []
+    slots_idxs = []
+    slots_strs = []
+    rows = []
+
+    add_btn = gr.Button("+ Add Conditioning Image", size="sm", variant="secondary")
+
+    for i in range(MAX_EXTRA_COND):
+        with gr.Group(visible=False) as grp:
+            with gr.Row():
+                img = gr.Image(
+                    label=f"Image {i + 1}",
+                    type="filepath",
+                    height=120,
+                    scale=1,
+                )
+                with gr.Column(scale=1, min_width=160):
+                    idx = gr.Number(label="Frame Index", value=0, minimum=0, precision=0)
+                    stren = gr.Slider(0.0, 1.0, value=1.0, step=0.05, label="Strength")
+        slots_imgs.append(img)
+        slots_idxs.append(idx)
+        slots_strs.append(stren)
+        rows.append(grp)
+
+    count_state = gr.State(0)
+    extra_state = gr.State([])
+
+    def _add_slot(n):
+        n = min(n + 1, MAX_EXTRA_COND)
+        return [n] + [gr.Group(visible=(i < n)) for i in range(MAX_EXTRA_COND)]
+
+    def _sync_state(*vals):
+        imgs = vals[:MAX_EXTRA_COND]
+        idxs = vals[MAX_EXTRA_COND:2 * MAX_EXTRA_COND]
+        strs_ = vals[2 * MAX_EXTRA_COND:]
+        result = []
+        for im, ix, st in zip(imgs, idxs, strs_):
+            if im is not None:
+                result.append({"path": str(im), "frame_idx": int(ix), "strength": float(st)})
+        return result
+
+    add_btn.click(fn=_add_slot, inputs=[count_state], outputs=[count_state] + rows)
+
+    all_inputs = slots_imgs + slots_idxs + slots_strs
+    for comp in all_inputs:
+        comp.change(fn=_sync_state, inputs=all_inputs, outputs=[extra_state])
+
+    return extra_state
+
 
 def _i18n_msg(key, lang="en", **kwargs):
     """Return translated string for the given language."""
@@ -350,9 +408,7 @@ def build_ui() -> gr.Blocks:
                             t2_img_crf = gr.Slider(0, 51, value=33, step=1, label="Image CRF",
                                                    info="Compression quality (0=lossless, 51=worst)")
                             with gr.Accordion("Additional Conditioning Images", open=False):
-                                t2_extra_images = gr.File(label="Extra Images", file_count="multiple", file_types=["image"])
-                                t2_extra_indices = gr.Textbox(label="Frame Indices (comma-separated)", value="", placeholder="60,120")
-                                t2_extra_strengths = gr.Textbox(label="Strengths (comma-separated, optional)", value="", placeholder="1.0,0.8 (default=primary)")
+                                t2_extra_state = create_extra_conditioning_section()
                         t2_resolution = gr.Dropdown(RESOLUTION_CHOICES, value="768x512", label="Resolution (WxH)", allow_custom_value=True)
                         t2_frame_mode, t2_frames, t2_duration = create_frame_controls()
                         with gr.Row():
@@ -366,7 +422,6 @@ def build_ui() -> gr.Blocks:
                             ("prompt", t2_prompt), ("negative_prompt", t2_neg),
                             ("nag_scale", t2_nag_scale), ("nag_alpha", t2_nag_alpha),
                             ("img_strength", t2_img_strength), ("img_crf", t2_img_crf),
-                            ("extra_indices", t2_extra_indices), ("extra_strengths", t2_extra_strengths),
                             ("resolution", t2_resolution), ("frames", t2_frames),
                             ("fps", t2_fps), ("seed", t2_seed),
                             ("enhance", t2_enhance), ("no_audio", t2_no_audio),
@@ -387,7 +442,7 @@ def build_ui() -> gr.Blocks:
                     inputs=[
                         t2_prompt, t2_neg, t2_nag_scale, t2_nag_alpha,
                         t2_image, t2_img_strength, t2_img_crf,
-                        t2_extra_images, t2_extra_indices, t2_extra_strengths,
+                        t2_extra_state,
                         t2_resolution, t2_frames, t2_fps, t2_seed,
                         t2_enhance, t2_fp8,
                         t2_frame_mode, t2_duration, t2_no_audio,
@@ -419,9 +474,7 @@ def build_ui() -> gr.Blocks:
                             t1_img_crf = gr.Slider(0, 51, value=33, step=1, label="Image CRF",
                                                    info="Compression quality (0=lossless, 51=worst)")
                             with gr.Accordion("Additional Conditioning Images", open=False):
-                                t1_extra_images = gr.File(label="Extra Images", file_count="multiple", file_types=["image"])
-                                t1_extra_indices = gr.Textbox(label="Frame Indices (comma-separated)", value="", placeholder="60,120")
-                                t1_extra_strengths = gr.Textbox(label="Strengths (comma-separated, optional)", value="", placeholder="1.0,0.8 (default=primary)")
+                                t1_extra_state = create_extra_conditioning_section()
                         t1_resolution = gr.Dropdown(RESOLUTION_CHOICES, value="768x512", label="Resolution (WxH)", allow_custom_value=True)
                         t1_frame_mode, t1_frames, t1_duration = create_frame_controls()
                         with gr.Row():
@@ -440,7 +493,6 @@ def build_ui() -> gr.Blocks:
                         create_preset_row("ti2vid", [
                             ("prompt", t1_prompt), ("negative_prompt", t1_neg),
                             ("img_strength", t1_img_strength), ("img_crf", t1_img_crf),
-                            ("extra_indices", t1_extra_indices), ("extra_strengths", t1_extra_strengths),
                             ("resolution", t1_resolution), ("frames", t1_frames),
                             ("fps", t1_fps), ("steps", t1_steps),
                             ("seed", t1_seed), ("sampler", t1_sampler),
@@ -462,7 +514,7 @@ def build_ui() -> gr.Blocks:
                     fn=generate_ti2vid,
                     inputs=[
                         t1_prompt, t1_neg, t1_image, t1_img_strength, t1_img_crf,
-                        t1_extra_images, t1_extra_indices, t1_extra_strengths,
+                        t1_extra_state,
                         t1_resolution, t1_frames, t1_fps, t1_steps, t1_seed, t1_sampler,
                         t1_enhance, t1_fp8, t1_lora_strength,
                         *t1_guidance,
@@ -502,9 +554,7 @@ def build_ui() -> gr.Blocks:
                             t3_img_crf = gr.Slider(0, 51, value=33, step=1, label="Image CRF",
                                                    info="Compression quality (0=lossless, 51=worst)")
                             with gr.Accordion("Additional Conditioning Images", open=False):
-                                t3_extra_images = gr.File(label="Extra Images", file_count="multiple", file_types=["image"])
-                                t3_extra_indices = gr.Textbox(label="Frame Indices (comma-separated)", value="", placeholder="60,120")
-                                t3_extra_strengths = gr.Textbox(label="Strengths (comma-separated, optional)", value="", placeholder="1.0,0.8 (default=primary)")
+                                t3_extra_state = create_extra_conditioning_section()
                         t3_resolution = gr.Dropdown(RESOLUTION_CHOICES, value="768x512", label="Resolution (WxH)", allow_custom_value=True)
                         t3_frame_mode, t3_frames, t3_duration = create_frame_controls()
                         with gr.Row():
@@ -521,7 +571,6 @@ def build_ui() -> gr.Blocks:
                             ("ref_strength", t3_ref_strength), ("lora_type", t3_lora),
                             ("attn_strength", t3_attn_strength),
                             ("img_strength", t3_img_strength), ("img_crf", t3_img_crf),
-                            ("extra_indices", t3_extra_indices), ("extra_strengths", t3_extra_strengths),
                             ("resolution", t3_resolution), ("frames", t3_frames),
                             ("fps", t3_fps), ("seed", t3_seed),
                             ("skip_stage2", t3_skip_stage2),
@@ -544,7 +593,7 @@ def build_ui() -> gr.Blocks:
                         t3_prompt, t3_neg, t3_nag_scale, t3_nag_alpha,
                         t3_ref_video, t3_ref_strength, t3_lora, t3_attn_strength,
                         t3_image, t3_img_strength, t3_img_crf,
-                        t3_extra_images, t3_extra_indices, t3_extra_strengths,
+                        t3_extra_state,
                         t3_resolution, t3_frames, t3_fps, t3_seed,
                         t3_skip_stage2, t3_enhance, t3_fp8,
                         t3_frame_mode, t3_duration, t3_no_audio,
@@ -635,9 +684,7 @@ def build_ui() -> gr.Blocks:
                             t5_img_crf = gr.Slider(0, 51, value=33, step=1, label="Image CRF",
                                                    info="Compression quality (0=lossless, 51=worst)")
                             with gr.Accordion("Additional Conditioning Images", open=False):
-                                t5_extra_images = gr.File(label="Extra Images", file_count="multiple", file_types=["image"])
-                                t5_extra_indices = gr.Textbox(label="Frame Indices (comma-separated)", value="", placeholder="60,120")
-                                t5_extra_strengths = gr.Textbox(label="Strengths (comma-separated, optional)", value="", placeholder="1.0,0.8 (default=primary)")
+                                t5_extra_state = create_extra_conditioning_section()
                         t5_resolution = gr.Dropdown(RESOLUTION_CHOICES, value="768x512", label="Resolution (WxH)", allow_custom_value=True)
                         t5_frame_mode, t5_frames, t5_duration = create_frame_controls()
                         with gr.Row():
@@ -655,7 +702,6 @@ def build_ui() -> gr.Blocks:
                             ("prompt", t5_prompt), ("negative_prompt", t5_neg),
                             ("audio_start", t5_audio_start), ("audio_max", t5_audio_max),
                             ("img_strength", t5_img_strength), ("img_crf", t5_img_crf),
-                            ("extra_indices", t5_extra_indices), ("extra_strengths", t5_extra_strengths),
                             ("resolution", t5_resolution), ("frames", t5_frames),
                             ("fps", t5_fps), ("steps", t5_steps), ("seed", t5_seed),
                             ("enhance", t5_enhance), ("lora_strength", t5_lora_strength),
@@ -677,7 +723,7 @@ def build_ui() -> gr.Blocks:
                         t5_prompt, t5_neg,
                         t5_audio, t5_audio_start, t5_audio_max,
                         t5_image, t5_img_strength, t5_img_crf,
-                        t5_extra_images, t5_extra_indices, t5_extra_strengths,
+                        t5_extra_state,
                         t5_resolution, t5_frames, t5_fps, t5_steps, t5_seed,
                         t5_enhance, t5_fp8, t5_lora_strength,
                         *t5_guidance,
@@ -842,60 +888,161 @@ def build_ui() -> gr.Blocks:
             # History Tab
             # ==============================================================
             with gr.Tab("History"):
-                gr.Markdown("## Generation History")
-                gr.Markdown(f"Output directory: `{OUTPUT_DIR}`")
+                HISTORY_PAGE_SIZE = 12
 
-                with gr.Row():
-                    h_refresh = gr.Button("Refresh", variant="secondary")
-                    h_delete = gr.Button("Delete Selected", variant="stop")
-                    h_flush = gr.Button("Delete All", variant="stop")
+                _thumb_dir = Path(OUTPUT_DIR) / ".thumbs"
+                _thumb_dir.mkdir(parents=True, exist_ok=True)
 
-                h_file_list = gr.Dropdown(label="Generated Videos", choices=[], interactive=True)
-                h_video = gr.Video(label="Preview")
-                h_file_info = gr.Textbox(label="File Info", interactive=False)
+                def _get_thumbnail(video_path: Path) -> str:
+                    """Generate or return cached thumbnail for a video."""
+                    thumb_path = _thumb_dir / f"{video_path.stem}.jpg"
+                    if thumb_path.exists() and thumb_path.stat().st_mtime >= video_path.stat().st_mtime:
+                        return str(thumb_path)
+                    import subprocess
+                    try:
+                        subprocess.run(
+                            ["ffmpeg", "-y", "-i", str(video_path),
+                             "-vf", "thumbnail=n=30,scale=320:-1",
+                             "-frames:v", "1", str(thumb_path)],
+                            capture_output=True, timeout=10,
+                        )
+                    except Exception:
+                        return None
+                    return str(thumb_path) if thumb_path.exists() else None
 
-                def list_outputs():
-                    files = sorted(Path(OUTPUT_DIR).glob("ltx2_*.mp4"), key=lambda p: p.stat().st_mtime, reverse=True)
-                    choices = [f.name for f in files]
-                    return gr.update(choices=choices, value=choices[0] if choices else None)
+                def _list_video_files():
+                    return sorted(
+                        Path(OUTPUT_DIR).glob("ltx2_*.mp4"),
+                        key=lambda p: p.stat().st_mtime, reverse=True,
+                    )
 
-                def preview_file(filename):
-                    if not filename:
-                        return None, ""
-                    path = Path(OUTPUT_DIR) / filename
+                def _build_gallery_page(page: int):
+                    """Return (gallery_items, page_label, total_pages) for given page."""
+                    files = _list_video_files()
+                    total = len(files)
+                    total_pages = max(1, (total + HISTORY_PAGE_SIZE - 1) // HISTORY_PAGE_SIZE)
+                    page = max(0, min(page, total_pages - 1))
+                    start = page * HISTORY_PAGE_SIZE
+                    page_files = files[start:start + HISTORY_PAGE_SIZE]
+
+                    items = []
+                    for f in page_files:
+                        thumb = _get_thumbnail(f)
+                        size_mb = f.stat().st_size / 1024 / 1024
+                        mtime = time.strftime("%m/%d %H:%M", time.localtime(f.stat().st_mtime))
+                        caption = f"{f.stem}  ({size_mb:.1f}MB, {mtime})"
+                        if thumb:
+                            items.append((thumb, caption))
+                    label = f"Page {page + 1} / {total_pages}  ({total} videos)"
+                    return items, label, page, total_pages
+
+                def _refresh_gallery(page):
+                    items, label, page, _ = _build_gallery_page(int(page))
+                    return items, label, page
+
+                def _go_page(page, delta):
+                    items, label, page, _ = _build_gallery_page(int(page) + int(delta))
+                    return items, label, page
+
+                def _select_video(evt: gr.SelectData):
+                    if evt is None:
+                        return None, "", -1
+                    caption = evt.value.get("caption", "") if isinstance(evt.value, dict) else str(evt.value)
+                    stem = caption.split("  (")[0].strip() if caption else ""
+                    if not stem:
+                        return None, "", -1
+                    path = Path(OUTPUT_DIR) / f"{stem}.mp4"
                     if not path.exists():
-                        return None, "File not found."
+                        return None, "File not found.", -1
                     size_mb = path.stat().st_size / 1024 / 1024
                     mtime = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(path.stat().st_mtime))
-                    return str(path), f"Size: {size_mb:.1f}MB | Created: {mtime}"
+                    return str(path), f"{path.name} | {size_mb:.1f}MB | {mtime}", evt.index
 
-                def delete_file(filename):
-                    if not filename:
-                        return list_outputs(), None, "No file selected."
-                    path = Path(OUTPUT_DIR) / filename
+                def _delete_selected(gallery, evt_idx, page):
+                    """Delete the video whose index was last selected."""
+                    if evt_idx < 0 or gallery is None:
+                        return *_refresh_gallery(page), None, "No file selected.", -1
+                    if evt_idx >= len(gallery):
+                        return *_refresh_gallery(page), None, "No file selected.", -1
+                    item = gallery[evt_idx]
+                    caption = item[1] if isinstance(item, (list, tuple)) else ""
+                    stem = caption.split("  (")[0].strip() if caption else ""
+                    path = Path(OUTPUT_DIR) / f"{stem}.mp4"
+                    thumb = _thumb_dir / f"{stem}.jpg"
                     if path.exists():
                         path.unlink()
-                        logger.info("Deleted: %s", filename)
-                    return list_outputs(), None, f"Deleted: {filename}"
+                        if thumb.exists():
+                            thumb.unlink()
+                        logger.info("Deleted: %s", path.name)
+                    items, label, pg = _refresh_gallery(page)
+                    return items, label, pg, None, f"Deleted: {stem}.mp4", -1
 
-                def flush_all():
-                    files = list(Path(OUTPUT_DIR).glob("ltx2_*.mp4"))
+                def _flush_all():
+                    files = _list_video_files()
                     count = len(files)
                     for f in files:
                         f.unlink()
+                    for t in _thumb_dir.glob("*.jpg"):
+                        t.unlink()
                     logger.info("Flushed %d files", count)
-                    return list_outputs(), None, f"Deleted {count} files."
+                    items, label, pg = _refresh_gallery(0)
+                    return items, label, pg, None, f"Deleted {count} files.", -1
 
-                h_refresh.click(fn=list_outputs, outputs=[h_file_list])
-                h_file_list.change(fn=preview_file, inputs=[h_file_list], outputs=[h_video, h_file_info])
-                h_delete.click(fn=delete_file, inputs=[h_file_list], outputs=[h_file_list, h_video, h_file_info])
-                h_flush.click(
-                    fn=flush_all, outputs=[h_file_list, h_video, h_file_info],
-                    js="(()=>{const msg=window._ltx2_confirm_msg||'Delete ALL generated videos?';if(!confirm(msg))throw new Error('cancelled')})",
+                # --- UI ---
+                with gr.Row():
+                    h_refresh = gr.Button("Refresh", variant="secondary", size="sm")
+                    h_prev = gr.Button("< Prev", size="sm", min_width=80)
+                    h_page_label = gr.Textbox(
+                        value="Page 1 / 1  (0 videos)", interactive=False,
+                        show_label=False, max_lines=1, scale=2,
+                    )
+                    h_next = gr.Button("Next >", size="sm", min_width=80)
+                    h_delete = gr.Button("Delete Selected", variant="stop", size="sm")
+                    h_flush = gr.Button("Delete All", variant="stop", size="sm")
+
+                h_page_state = gr.State(0)
+                h_sel_idx = gr.State(-1)
+
+                h_gallery = gr.Gallery(
+                    label="Generation History",
+                    columns=4, height="auto",
+                    object_fit="cover", preview=False,
+                )
+                h_video = gr.Video(label="Preview")
+                h_file_info = gr.Textbox(label="File Info", interactive=False)
+
+                h_gallery.select(
+                    fn=_select_video,
+                    outputs=[h_video, h_file_info, h_sel_idx],
                 )
 
-                # Auto-refresh on tab load
-                app.load(fn=list_outputs, outputs=[h_file_list])
+                h_refresh.click(
+                    fn=_refresh_gallery, inputs=[h_page_state],
+                    outputs=[h_gallery, h_page_label, h_page_state],
+                )
+                h_prev.click(
+                    fn=lambda p: _go_page(p, -1), inputs=[h_page_state],
+                    outputs=[h_gallery, h_page_label, h_page_state],
+                )
+                h_next.click(
+                    fn=lambda p: _go_page(p, 1), inputs=[h_page_state],
+                    outputs=[h_gallery, h_page_label, h_page_state],
+                )
+                h_delete.click(
+                    fn=_delete_selected,
+                    inputs=[h_gallery, h_sel_idx, h_page_state],
+                    outputs=[h_gallery, h_page_label, h_page_state, h_video, h_file_info, h_sel_idx],
+                )
+                h_flush.click(
+                    fn=_flush_all,
+                    outputs=[h_gallery, h_page_label, h_page_state, h_video, h_file_info, h_sel_idx],
+                    js="(()=>{if(!confirm('Delete ALL generated videos?'))throw new Error('cancelled')})",
+                )
+
+                app.load(
+                    fn=_refresh_gallery, inputs=[h_page_state],
+                    outputs=[h_gallery, h_page_label, h_page_state],
+                )
 
         # ==============================================================
         # Hidden result monitor — reconnects video output after refresh
@@ -940,7 +1087,7 @@ def build_ui() -> gr.Blocks:
         _tab_inputs = {
             "ti2vid": [
                 t1_prompt, t1_neg, t1_image, t1_img_strength, t1_img_crf,
-                t1_extra_images, t1_extra_indices, t1_extra_strengths,
+                t1_extra_state,
                 t1_resolution, t1_frames, t1_fps, t1_steps, t1_seed, t1_sampler,
                 t1_enhance, t1_fp8,
                 *t1_guidance,
@@ -948,7 +1095,7 @@ def build_ui() -> gr.Blocks:
             ],
             "distilled": [
                 t2_prompt, t2_image, t2_img_strength, t2_img_crf,
-                t2_extra_images, t2_extra_indices, t2_extra_strengths,
+                t2_extra_state,
                 t2_resolution, t2_frames, t2_fps, t2_seed,
                 t2_enhance, t2_fp8,
                 t2_frame_mode, t2_duration, t2_no_audio,
@@ -956,7 +1103,7 @@ def build_ui() -> gr.Blocks:
             "iclora": [
                 t3_prompt, t3_ref_video, t3_ref_strength, t3_lora, t3_attn_strength,
                 t3_image, t3_img_strength, t3_img_crf,
-                t3_extra_images, t3_extra_indices, t3_extra_strengths,
+                t3_extra_state,
                 t3_resolution, t3_frames, t3_fps, t3_seed,
                 t3_skip_stage2, t3_enhance, t3_fp8,
                 t3_frame_mode, t3_duration, t3_no_audio,
@@ -972,7 +1119,7 @@ def build_ui() -> gr.Blocks:
                 t5_prompt, t5_neg,
                 t5_audio, t5_audio_start, t5_audio_max,
                 t5_image, t5_img_strength, t5_img_crf,
-                t5_extra_images, t5_extra_indices, t5_extra_strengths,
+                t5_extra_state,
                 t5_resolution, t5_frames, t5_fps, t5_steps, t5_seed,
                 t5_enhance, t5_fp8, *t5_guidance,
                 t5_frame_mode, t5_duration,

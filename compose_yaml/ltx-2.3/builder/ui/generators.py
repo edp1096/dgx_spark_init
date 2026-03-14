@@ -47,26 +47,25 @@ def save_temp_image(image_array) -> str:
 
 
 def _build_image_conditionings(primary_image, primary_strength, crf,
-                                extra_files=None, extra_indices_str="",
-                                extra_strengths_str=""):
-    """Build list of image conditioning dicts from UI inputs."""
+                                extra_conditionings=None):
+    """Build list of image conditioning dicts from UI inputs.
+
+    extra_conditionings: list of {"path": str, "frame_idx": int, "strength": float}
+                         from gr.State (assembled by create_extra_conditioning_section).
+    """
     conditionings = []
     if primary_image is not None:
         path = save_temp_image(primary_image)
         conditionings.append({"path": path, "frame_idx": 0,
                               "strength": float(primary_strength), "crf": int(crf)})
-    if extra_files:
-        indices = [int(x.strip()) for x in extra_indices_str.split(",") if x.strip()]
-        if len(indices) != len(extra_files):
-            raise gr.Error(
-                f"프레임 인덱스 개수({len(indices)})가 "
-                f"추가 이미지 개수({len(extra_files)})와 일치하지 않습니다.")
-        strengths_parts = [x.strip() for x in extra_strengths_str.split(",") if x.strip()]
-        for i, fpath in enumerate(extra_files):
-            idx = indices[i]
-            strength = float(strengths_parts[i]) if i < len(strengths_parts) else float(primary_strength)
-            conditionings.append({"path": str(fpath), "frame_idx": idx,
-                                  "strength": strength, "crf": int(crf)})
+    if extra_conditionings:
+        for ec in extra_conditionings:
+            conditionings.append({
+                "path": ec["path"],
+                "frame_idx": int(ec["frame_idx"]),
+                "strength": float(ec["strength"]),
+                "crf": int(crf),
+            })
     return conditionings
 
 
@@ -313,7 +312,7 @@ def _validate(pipeline_type: str, prompt: str, required_files: dict | None = Non
 # ---------------------------------------------------------------------------
 def generate_ti2vid(
     prompt, negative_prompt, image, image_strength, image_crf,
-    extra_images, extra_indices, extra_strengths,
+    extra_conditionings,
     resolution, num_frames, frame_rate, num_steps, seed, sampler,
     enhance_prompt, fp8, lora_strength,
     v_cfg, v_stg, v_rescale, v_modality, v_stg_blocks, v_skip_step,
@@ -324,7 +323,7 @@ def generate_ti2vid(
     global _active_gen_inputs
     _active_gen_inputs = {"gen_type": "ti2vid", "values": [
         prompt, negative_prompt, image, image_strength, image_crf,
-        extra_images, extra_indices, extra_strengths,
+        extra_conditionings,
         resolution, num_frames, frame_rate, num_steps, seed, sampler,
         enhance_prompt, fp8, lora_strength,
         v_cfg, v_stg, v_rescale, v_modality, v_stg_blocks, v_skip_step,
@@ -333,7 +332,7 @@ def generate_ti2vid(
     ]}
     _validate("ti2vid", prompt, resolution=resolution)
     image_conditionings = _build_image_conditionings(
-        image, image_strength, image_crf, extra_images, extra_indices, extra_strengths)
+        image, image_strength, image_crf, extra_conditionings)
     kwargs = {
         "prompt": prompt, "negative_prompt": negative_prompt,
         "image_conditionings": image_conditionings, "resolution": resolution,
@@ -351,7 +350,7 @@ def generate_ti2vid(
 def generate_distilled(
     prompt, negative_prompt, nag_scale, nag_alpha,
     image, image_strength, image_crf,
-    extra_images, extra_indices, extra_strengths,
+    extra_conditionings,
     resolution, num_frames, frame_rate, seed,
     enhance_prompt, fp8,
     frame_mode="Frames", duration=4.8, disable_audio=False,
@@ -361,14 +360,14 @@ def generate_distilled(
     _active_gen_inputs = {"gen_type": "distilled", "values": [
         prompt, negative_prompt, nag_scale, nag_alpha,
         image, image_strength, image_crf,
-        extra_images, extra_indices, extra_strengths,
+        extra_conditionings,
         resolution, num_frames, frame_rate, seed,
         enhance_prompt, fp8,
         frame_mode, duration, disable_audio,
     ]}
     _validate("distilled", prompt)
     image_conditionings = _build_image_conditionings(
-        image, image_strength, image_crf, extra_images, extra_indices, extra_strengths)
+        image, image_strength, image_crf, extra_conditionings)
     kwargs = {
         "prompt": prompt,
         "negative_prompt": negative_prompt, "nag_scale": float(nag_scale),
@@ -386,7 +385,7 @@ def generate_iclora(
     prompt, negative_prompt, nag_scale, nag_alpha,
     ref_video, ref_strength, lora_choice, attention_strength,
     image, image_strength, image_crf,
-    extra_images, extra_indices, extra_strengths,
+    extra_conditionings,
     resolution, num_frames, frame_rate, seed,
     skip_stage2, enhance_prompt, fp8,
     frame_mode="Frames", duration=4.8, disable_audio=False,
@@ -397,7 +396,7 @@ def generate_iclora(
         prompt, negative_prompt, nag_scale, nag_alpha,
         ref_video, ref_strength, lora_choice, attention_strength,
         image, image_strength, image_crf,
-        extra_images, extra_indices, extra_strengths,
+        extra_conditionings,
         resolution, num_frames, frame_rate, seed,
         skip_stage2, enhance_prompt, fp8,
         frame_mode, duration, disable_audio,
@@ -412,7 +411,7 @@ def generate_iclora(
         raise gr.Error(f"IC-LoRA file not found: {lora_filename}")
 
     image_conditionings = _build_image_conditionings(
-        image, image_strength, image_crf, extra_images, extra_indices, extra_strengths)
+        image, image_strength, image_crf, extra_conditionings)
     kwargs = {
         "prompt": prompt,
         "negative_prompt": negative_prompt, "nag_scale": float(nag_scale),
@@ -473,7 +472,7 @@ def generate_a2vid(
     prompt, negative_prompt,
     audio_file, audio_start, audio_max_duration,
     image, image_strength, image_crf,
-    extra_images, extra_indices, extra_strengths,
+    extra_conditionings,
     resolution, num_frames, frame_rate, num_steps, seed,
     enhance_prompt, fp8, lora_strength,
     v_cfg, v_stg, v_rescale, v_modality, v_stg_blocks, v_skip_step,
@@ -485,7 +484,7 @@ def generate_a2vid(
         prompt, negative_prompt,
         audio_file, audio_start, audio_max_duration,
         image, image_strength, image_crf,
-        extra_images, extra_indices, extra_strengths,
+        extra_conditionings,
         resolution, num_frames, frame_rate, num_steps, seed,
         enhance_prompt, fp8, lora_strength,
         v_cfg, v_stg, v_rescale, v_modality, v_stg_blocks, v_skip_step,
@@ -493,7 +492,7 @@ def generate_a2vid(
     ]}
     _validate("a2vid", prompt, required_files={"Audio File": audio_file}, resolution=resolution)
     image_conditionings = _build_image_conditionings(
-        image, image_strength, image_crf, extra_images, extra_indices, extra_strengths)
+        image, image_strength, image_crf, extra_conditionings)
     kwargs = {
         "prompt": prompt, "negative_prompt": negative_prompt,
         "audio_path": audio_file, "audio_start": float(audio_start),
