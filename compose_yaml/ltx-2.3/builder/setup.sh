@@ -197,7 +197,7 @@ if [ "$SKIP_BNB" = false ]; then
             git clone --depth 250 https://github.com/bitsandbytes-foundation/bitsandbytes.git "$BNB_SRC" && cd "$BNB_SRC" && git checkout "$BNB_COMMIT" && cd "$SCRIPT_DIR"
         fi
         cd "$BNB_SRC"
-        cmake -DCOMPUTE_BACKEND=cuda -DCMAKE_CUDA_ARCHITECTURES=native -S . -B build
+        cmake -DCOMPUTE_BACKEND=cuda -DCOMPUTE_CAPABILITY="121" -S . -B build
         cmake --build build -j$(nproc)
         pip install -q .
         cd "$SCRIPT_DIR"

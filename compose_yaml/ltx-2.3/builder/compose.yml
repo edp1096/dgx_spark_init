@@ -65,7 +65,7 @@ services:
       BNB_COMMIT=925d83e;
       if ! python3 -c 'import bitsandbytes' 2>/dev/null; then
         git clone --depth 250 https://github.com/bitsandbytes-foundation/bitsandbytes.git /tmp/bnb-src && cd /tmp/bnb-src && git checkout $${BNB_COMMIT} && cd ~;
-        cd /tmp/bnb-src && cmake -DCOMPUTE_BACKEND=cuda -DCMAKE_CUDA_ARCHITECTURES=native -S . -B build && cmake --build build -j$$(nproc) && pip install -q . && cd ~;
+        cd /tmp/bnb-src && cmake -DCOMPUTE_BACKEND=cuda -DCOMPUTE_CAPABILITY=121 -S . -B build && cmake --build build -j$$(nproc) && pip install -q . && cd ~;
         rm -rf /tmp/bnb-src;
         echo '  bitsandbytes installed from source';
       else
