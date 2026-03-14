@@ -131,6 +131,11 @@ STRINGS = {
     "lora_strength":             {"en": "Distilled LoRA Strength",       "ko": "Distilled LoRA 강도"},
     "lora_strength_info":        {"en": "Stage 2 distilled LoRA strength (lower=less distilled artifacts)",
                                   "ko": "Stage 2 distilled LoRA 강도 (낮을수록 잡티 감소)"},
+    "custom_lora":               {"en": "Custom LoRA",                  "ko": "커스텀 LoRA"},
+    "add_lora":                  {"en": "+ Add LoRA",                   "ko": "+ LoRA 추가"},
+    "refresh_loras":             {"en": "Refresh",                      "ko": "새로고침"},
+    "lora_file":                 {"en": "LoRA File",                    "ko": "LoRA 파일"},
+    "lora_strength_custom":      {"en": "Strength",                     "ko": "강도"},
 
     # IC-LoRA tab
     "reference_video":           {"en": "Reference Video",             "ko": "참조 영상"},

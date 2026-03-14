@@ -216,7 +216,9 @@ def _worker_loop(
             height, width = parse_resolution(kwargs["resolution"])
             sampler = kwargs.get("sampler", "euler")
             lora_strength = kwargs.get("lora_strength", 0.8)
-            pipeline = mgr.get_ti2vid(sampler=sampler, lora_strength=lora_strength, quantization="fp8")
+            custom_loras = kwargs.get("custom_loras", [])
+            pipeline = mgr.get_ti2vid(sampler=sampler, lora_strength=lora_strength,
+                                      custom_loras=custom_loras, quantization="fp8")
 
             images = _build_images(kwargs)
 
@@ -331,7 +333,9 @@ def _worker_loop(
             seed = resolve_seed(kwargs["seed"])
             height, width = parse_resolution(kwargs["resolution"])
             lora_strength = kwargs.get("lora_strength", 0.8)
-            pipeline = mgr.get_keyframe(lora_strength=lora_strength, quantization="fp8")
+            custom_loras = kwargs.get("custom_loras", [])
+            pipeline = mgr.get_keyframe(lora_strength=lora_strength,
+                                        custom_loras=custom_loras, quantization="fp8")
 
             images = []
             crf = kwargs["image_crf"]
@@ -434,7 +438,9 @@ def _worker_loop(
             seed = resolve_seed(kwargs["seed"])
             height, width = parse_resolution(kwargs["resolution"])
             lora_strength = kwargs.get("lora_strength", 0.8)
-            pipeline = mgr.get_a2vid(lora_strength=lora_strength, quantization="fp8")
+            custom_loras = kwargs.get("custom_loras", [])
+            pipeline = mgr.get_a2vid(lora_strength=lora_strength,
+                                     custom_loras=custom_loras, quantization="fp8")
 
             audio_path = _preprocess_audio(
                 kwargs["audio_path"], kwargs["num_frames"], kwargs["frame_rate"]

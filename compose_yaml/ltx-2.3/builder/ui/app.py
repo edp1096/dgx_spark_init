@@ -34,6 +34,7 @@ from pipeline_manager import (
     OUTPUT_DIR,
     RESOLUTION_CHOICES,
     SAMPLE_PROMPTS,
+    scan_lora_files,
 )
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -421,6 +422,95 @@ def create_extra_conditioning_section():
     return extra_state
 
 
+# ---------------------------------------------------------------------------
+# Custom LoRA section (multi-LoRA loader)
+# ---------------------------------------------------------------------------
+MAX_CUSTOM_LORAS = 3
+
+
+def create_custom_lora_section():
+    """Create multi-LoRA loader slots with file dropdown and strength slider.
+
+    Returns a gr.State that holds a list of dicts:
+      [{"filename": str, "strength": float}, ...]
+    """
+    slots_dd = []    # dropdowns
+    slots_str = []   # strength sliders
+    slots_del = []   # delete buttons
+    rows = []
+
+    L = MAX_CUSTOM_LORAS
+    initial_choices = scan_lora_files()
+
+    with gr.Row():
+        add_btn = gr.Button("+ Add LoRA", size="sm", variant="secondary")
+        refresh_btn = gr.Button("Refresh", size="sm", variant="secondary", min_width=80)
+
+    for i in range(L):
+        with gr.Group(visible=False) as grp:
+            with gr.Row():
+                dd = gr.Dropdown(
+                    choices=initial_choices, label=f"LoRA {i + 1}",
+                    scale=3, allow_custom_value=False,
+                )
+                stren = gr.Slider(0.0, 2.0, value=1.0, step=0.05, label="Strength", scale=1)
+                d_btn = gr.Button("✕", size="sm", variant="stop", min_width=40, scale=0)
+        slots_dd.append(dd)
+        slots_str.append(stren)
+        slots_del.append(d_btn)
+        rows.append(grp)
+
+    count_state = gr.State(0)
+    lora_state = gr.State([])
+
+    def _add_slot(n):
+        n = min(n + 1, L)
+        return [n] + [gr.Group(visible=(i < n)) for i in range(L)]
+
+    def _sync_state(*vals):
+        dds = vals[:L]
+        strs_ = vals[L:]
+        result = []
+        for dd_val, st in zip(dds, strs_):
+            if dd_val:
+                result.append({"filename": str(dd_val), "strength": float(st)})
+        return result
+
+    def _make_delete(slot_idx):
+        def _delete(n, *vals):
+            dds = list(vals[:L])
+            strs_ = list(vals[L:])
+            for j in range(slot_idx, n - 1):
+                dds[j], strs_[j] = dds[j + 1], strs_[j + 1]
+            last = n - 1
+            dds[last], strs_[last] = None, 1.0
+            n = max(n - 1, 0)
+            vis = [gr.Group(visible=(i < n)) for i in range(L)]
+            result = []
+            for dd_val, st in zip(dds, strs_):
+                if dd_val:
+                    result.append({"filename": str(dd_val), "strength": float(st)})
+            return [n] + vis + dds + strs_ + [result]
+        return _delete
+
+    def _refresh():
+        new_choices = scan_lora_files()
+        return [gr.Dropdown(choices=new_choices) for _ in range(L)]
+
+    add_btn.click(fn=_add_slot, inputs=[count_state], outputs=[count_state] + rows)
+    refresh_btn.click(fn=_refresh, inputs=[], outputs=slots_dd)
+
+    all_inputs = slots_dd + slots_str
+    all_outputs = [count_state] + rows + slots_dd + slots_str + [lora_state]
+    for i in range(L):
+        slots_del[i].click(fn=_make_delete(i), inputs=[count_state] + all_inputs, outputs=all_outputs)
+
+    for comp in all_inputs:
+        comp.change(fn=_sync_state, inputs=all_inputs, outputs=[lora_state])
+
+    return lora_state
+
+
 def _i18n_msg(key, lang="en", **kwargs):
     """Return translated string for the given language."""
     texts = STRINGS.get(key, {})
@@ -629,6 +719,8 @@ def build_ui() -> gr.Blocks:
                             t1_no_audio = gr.Checkbox(value=False, label="Disable Audio")
                         t1_lora_strength = gr.Slider(0.1, 1.5, value=0.8, step=0.05, label="Distilled LoRA Strength",
                                                      info="Stage 2 distilled LoRA strength (lower=less distilled artifacts)")
+                        with gr.Accordion("Custom LoRA", open=False):
+                            t1_custom_loras = create_custom_lora_section()
                         t1_guidance = create_guidance_accordion("t1")
                         create_preset_row("ti2vid", [
                             ("prompt", t1_prompt), ("negative_prompt", t1_neg),
@@ -656,7 +748,7 @@ def build_ui() -> gr.Blocks:
                         t1_prompt, t1_neg, t1_image, t1_img_strength, t1_img_crf,
                         t1_extra_state,
                         t1_resolution, t1_frames, t1_fps, t1_steps, t1_seed, t1_sampler,
-                        t1_enhance, t1_fp8, t1_lora_strength,
+                        t1_enhance, t1_fp8, t1_lora_strength, t1_custom_loras,
                         *t1_guidance,
                         t1_frame_mode, t1_duration, t1_no_audio,
                     ],
@@ -769,6 +861,8 @@ def build_ui() -> gr.Blocks:
                             t4_no_audio = gr.Checkbox(value=False, label="Disable Audio")
                         t4_lora_strength = gr.Slider(0.1, 1.5, value=0.8, step=0.05, label="Distilled LoRA Strength",
                                                      info="Stage 2 distilled LoRA strength (lower=less distilled artifacts)")
+                        with gr.Accordion("Custom LoRA", open=False):
+                            t4_custom_loras = create_custom_lora_section()
                         t4_guidance = create_guidance_accordion("t4")
                         create_preset_row("keyframe", [
                             ("prompt", t4_prompt), ("negative_prompt", t4_neg),
@@ -795,7 +889,7 @@ def build_ui() -> gr.Blocks:
                         t4_prompt, t4_neg,
                         t4_kf_state, t4_img_crf,
                         t4_resolution, t4_frames, t4_fps, t4_steps, t4_seed,
-                        t4_enhance, t4_fp8, t4_lora_strength,
+                        t4_enhance, t4_fp8, t4_lora_strength, t4_custom_loras,
                         *t4_guidance,
                         t4_frame_mode, t4_duration, t4_no_audio,
                     ],
@@ -835,6 +929,8 @@ def build_ui() -> gr.Blocks:
                             t5_fp8 = gr.Checkbox(value=True, label="FP8 Quantization", interactive=False)
                         t5_lora_strength = gr.Slider(0.1, 1.5, value=0.8, step=0.05, label="Distilled LoRA Strength",
                                                      info="Stage 2 distilled LoRA strength (lower=less distilled artifacts)")
+                        with gr.Accordion("Custom LoRA", open=False):
+                            t5_custom_loras = create_custom_lora_section()
                         t5_guidance = create_guidance_accordion("t5", show_audio=False)
                         create_preset_row("a2vid", [
                             ("prompt", t5_prompt), ("negative_prompt", t5_neg),
@@ -863,7 +959,7 @@ def build_ui() -> gr.Blocks:
                         t5_image, t5_img_strength, t5_img_crf,
                         t5_extra_state,
                         t5_resolution, t5_frames, t5_fps, t5_steps, t5_seed,
-                        t5_enhance, t5_fp8, t5_lora_strength,
+                        t5_enhance, t5_fp8, t5_lora_strength, t5_custom_loras,
                         *t5_guidance,
                         t5_frame_mode, t5_duration,
                     ],

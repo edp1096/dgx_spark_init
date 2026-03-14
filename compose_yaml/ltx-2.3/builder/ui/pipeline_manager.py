@@ -281,6 +281,17 @@ IC_LORA_MAP = {
     "Motion Track": "ltx-2.3-22b-ic-lora-motion-track-control-ref0.5.safetensors",
 }
 
+LORAS_DIR = Path(DEFAULT_MODEL_DIR) / "loras"
+os.makedirs(str(LORAS_DIR), exist_ok=True)
+
+
+def scan_lora_files() -> list[str]:
+    """Scan {model_dir}/loras/ for .safetensors files. Returns sorted filenames."""
+    loras_dir = Path(DEFAULT_MODEL_DIR) / "loras"
+    if not loras_dir.exists():
+        return []
+    return sorted(f.name for f in loras_dir.glob("*.safetensors"))
+
 
 # ---------------------------------------------------------------------------
 # Pipeline Manager
@@ -295,6 +306,7 @@ class PipelineManager:
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self._iclora_path: str | None = None
         self._lora_strength: float = 0.8
+        self._custom_loras: tuple = ()
         # Loading progress state
         self._loaded_names: list[str] = []
         self._load_times: list[float] = []
@@ -384,6 +396,7 @@ class PipelineManager:
             self.current_pipeline = None
             self.current_type = None
             self._iclora_path = None
+            self._custom_loras = ()
             gc.collect()
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
@@ -412,12 +425,36 @@ class PipelineManager:
             LTXV_LORA_COMFY_RENAMING_MAP,
         )]
 
-    def get_ti2vid(self, sampler: str = "euler", lora_strength: float = 0.8, quantization=None):
+    def _build_custom_lora_list(self, custom_loras: list[dict]) -> list[LoraPathStrengthAndSDOps]:
+        """Convert UI custom LoRA dicts to pipeline LoRA specs."""
+        result = []
+        loras_dir = Path(self.model_dir) / "loras"
+        for entry in custom_loras:
+            path = loras_dir / entry["filename"]
+            if path.exists():
+                result.append(LoraPathStrengthAndSDOps(
+                    str(path), entry["strength"], LTXV_LORA_COMFY_RENAMING_MAP,
+                ))
+            else:
+                logger.warning("Custom LoRA not found: %s", path)
+        return result
+
+    @staticmethod
+    def _lora_cache_key(custom_loras: list[dict]) -> tuple:
+        return tuple((d["filename"], d["strength"]) for d in custom_loras) if custom_loras else ()
+
+    def get_ti2vid(self, sampler: str = "euler", lora_strength: float = 0.8,
+                   custom_loras: list[dict] | None = None, quantization=None):
+        custom_loras = custom_loras or []
+        lora_key = self._lora_cache_key(custom_loras)
         target = "ti2vid_hq" if sampler == "res_2s" else "ti2vid"
-        if self.current_type == target and self._lora_strength == lora_strength:
+        if (self.current_type == target and self._lora_strength == lora_strength
+                and self._custom_loras == lora_key):
             return self.current_pipeline
         self._cleanup()
         self._lora_strength = lora_strength
+        self._custom_loras = lora_key
+        custom_lora_list = self._build_custom_lora_list(custom_loras)
         if sampler == "res_2s":
             from ltx_pipelines.ti2vid_two_stages_hq import TI2VidTwoStagesHQPipeline
             self.current_pipeline = TI2VidTwoStagesHQPipeline(
@@ -427,7 +464,7 @@ class PipelineManager:
                 distilled_lora_strength_stage_2=lora_strength,
                 spatial_upsampler_path=self._model_path("ltx-2.3-spatial-upscaler-x2-1.0.safetensors"),
                 gemma_root=self._gemma_root(),
-                loras=(),
+                loras=custom_lora_list,
                 device=self.device,
                 quantization=FP8_QUANTIZATION,
             )
@@ -438,7 +475,7 @@ class PipelineManager:
                 distilled_lora=self._distilled_lora(lora_strength),
                 spatial_upsampler_path=self._model_path("ltx-2.3-spatial-upscaler-x2-1.0.safetensors"),
                 gemma_root=self._gemma_root(),
-                loras=[],
+                loras=custom_lora_list,
                 device=self.device,
                 quantization=FP8_QUANTIZATION,
             )
@@ -481,18 +518,24 @@ class PipelineManager:
         self._wrap_current_pipeline()
         return self.current_pipeline
 
-    def get_keyframe(self, lora_strength: float = 0.8, quantization=None):
-        if self.current_type == "keyframe" and self._lora_strength == lora_strength:
+    def get_keyframe(self, lora_strength: float = 0.8,
+                     custom_loras: list[dict] | None = None, quantization=None):
+        custom_loras = custom_loras or []
+        lora_key = self._lora_cache_key(custom_loras)
+        if (self.current_type == "keyframe" and self._lora_strength == lora_strength
+                and self._custom_loras == lora_key):
             return self.current_pipeline
         self._cleanup()
         self._lora_strength = lora_strength
+        self._custom_loras = lora_key
+        custom_lora_list = self._build_custom_lora_list(custom_loras)
         from ltx_pipelines.keyframe_interpolation import KeyframeInterpolationPipeline
         self.current_pipeline = KeyframeInterpolationPipeline(
             checkpoint_path=self._model_path("ltx-2.3-22b-dev-fp8.safetensors"),
             distilled_lora=self._distilled_lora(lora_strength),
             spatial_upsampler_path=self._model_path("ltx-2.3-spatial-upscaler-x2-1.0.safetensors"),
             gemma_root=self._gemma_root(),
-            loras=[],
+            loras=custom_lora_list,
             device=self.device,
             quantization=FP8_QUANTIZATION,
         )
@@ -500,18 +543,24 @@ class PipelineManager:
         self._wrap_current_pipeline()
         return self.current_pipeline
 
-    def get_a2vid(self, lora_strength: float = 0.8, quantization=None):
-        if self.current_type == "a2vid" and self._lora_strength == lora_strength:
+    def get_a2vid(self, lora_strength: float = 0.8,
+                  custom_loras: list[dict] | None = None, quantization=None):
+        custom_loras = custom_loras or []
+        lora_key = self._lora_cache_key(custom_loras)
+        if (self.current_type == "a2vid" and self._lora_strength == lora_strength
+                and self._custom_loras == lora_key):
             return self.current_pipeline
         self._cleanup()
         self._lora_strength = lora_strength
+        self._custom_loras = lora_key
+        custom_lora_list = self._build_custom_lora_list(custom_loras)
         from ltx_pipelines.a2vid_two_stage import A2VidPipelineTwoStage
         self.current_pipeline = A2VidPipelineTwoStage(
             checkpoint_path=self._model_path("ltx-2.3-22b-dev-fp8.safetensors"),
             distilled_lora=self._distilled_lora(lora_strength),
             spatial_upsampler_path=self._model_path("ltx-2.3-spatial-upscaler-x2-1.0.safetensors"),
             gemma_root=self._gemma_root(),
-            loras=[],
+            loras=custom_lora_list,
             device=self.device,
             quantization=FP8_QUANTIZATION,
         )
