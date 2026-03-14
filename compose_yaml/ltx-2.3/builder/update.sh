@@ -377,11 +377,11 @@ if ! python3 -c 'import bitsandbytes' 2>/dev/null; then
     BNB_COMMIT=925d83e
     BNB_SRC="/tmp/bnb-src"
     rm -rf "$BNB_SRC"
-    if git clone --depth 250 https://github.com/bitsandbytes-foundation/bitsandbytes.git "$BNB_SRC" 2>/dev/null && \
-       cd "$BNB_SRC" && git checkout "$BNB_COMMIT" 2>/dev/null && \
-       cmake -DCOMPUTE_BACKEND=cuda -S . -B build 2>/dev/null && \
-       cmake --build build -j$(nproc) 2>/dev/null && \
-       pip install -q . 2>/dev/null; then
+    if git clone --depth 250 https://github.com/bitsandbytes-foundation/bitsandbytes.git "$BNB_SRC" && \
+       cd "$BNB_SRC" && git checkout "$BNB_COMMIT" && \
+       cmake -DCOMPUTE_BACKEND=cuda -S . -B build && \
+       cmake --build build -j$(nproc) && \
+       pip install -q .; then
         echo "  bitsandbytes installed from source"
     else
         echo "  WARNING: bitsandbytes build failed (Enhance Prompt will not work)"
