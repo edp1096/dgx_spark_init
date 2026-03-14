@@ -195,6 +195,20 @@ def _worker_loop(
                 return pipeline(**gen_kwargs)
         return pipeline(**gen_kwargs)
 
+    # --- Image conditioning helper ---
+    def _build_images(kwargs):
+        """Build ImageConditioningInput list from kwargs."""
+        conds = kwargs.get("image_conditionings", [])
+        if not conds:
+            # legacy fallback
+            if kwargs.get("image_path"):
+                return [ImageConditioningInput(
+                    kwargs["image_path"], 0,
+                    kwargs["image_strength"], kwargs["image_crf"])]
+            return []
+        return [ImageConditioningInput(c["path"], c["frame_idx"], c["strength"], c["crf"])
+                for c in conds]
+
     # --- Generation handlers ---
     def _run_ti2vid(kwargs, task_id):
         with torch.inference_mode():
@@ -204,12 +218,7 @@ def _worker_loop(
             lora_strength = kwargs.get("lora_strength", 0.8)
             pipeline = mgr.get_ti2vid(sampler=sampler, lora_strength=lora_strength, quantization="fp8")
 
-            images = []
-            if kwargs.get("image_path"):
-                images = [ImageConditioningInput(
-                    kwargs["image_path"], 0,
-                    kwargs["image_strength"], kwargs["image_crf"],
-                )]
+            images = _build_images(kwargs)
 
             video_guider = build_guider(kwargs["v_guidance"])
             audio_guider = build_guider(kwargs["a_guidance"])
@@ -248,12 +257,7 @@ def _worker_loop(
             height, width = parse_resolution(kwargs["resolution"])
             pipeline = mgr.get_distilled(quantization="fp8")
 
-            images = []
-            if kwargs.get("image_path"):
-                images = [ImageConditioningInput(
-                    kwargs["image_path"], 0,
-                    kwargs["image_strength"], kwargs["image_crf"],
-                )]
+            images = _build_images(kwargs)
 
             mgr.start_loading_bar()
             gen_kwargs = dict(
@@ -288,12 +292,7 @@ def _worker_loop(
             lora_path = str(Path(mgr.model_dir) / lora_filename)
             pipeline = mgr.get_iclora(lora_path=lora_path, quantization="fp8")
 
-            images = []
-            if kwargs.get("image_path"):
-                images = [ImageConditioningInput(
-                    kwargs["image_path"], 0,
-                    kwargs["image_strength"], kwargs["image_crf"],
-                )]
+            images = _build_images(kwargs)
 
             video_conditioning = []
             if kwargs.get("ref_video"):
@@ -442,12 +441,7 @@ def _worker_loop(
                 kwargs["audio_path"], kwargs["num_frames"], kwargs["frame_rate"]
             )
 
-            images = []
-            if kwargs.get("image_path"):
-                images = [ImageConditioningInput(
-                    kwargs["image_path"], 0,
-                    kwargs["image_strength"], kwargs["image_crf"],
-                )]
+            images = _build_images(kwargs)
 
             video_guider = build_guider(kwargs["v_guidance"])
             audio_max = kwargs["audio_max_duration"] if kwargs["audio_max_duration"] > 0 else None

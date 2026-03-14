@@ -344,11 +344,15 @@ def build_ui() -> gr.Blocks:
                                                      info="Guidance strength (1.0=off, higher=stronger, doubles inference time)")
                             t2_nag_alpha = gr.Slider(0.0, 1.0, value=0.0, step=0.05, label="NAG Alpha (Rescale)",
                                                      info="CFG rescale factor (0=off, higher=reduce artifacts)")
-                        with gr.Accordion("Conditioning Image", open=False):
-                            t2_image = gr.Image(label="Image (optional)", type="numpy")
-                            t2_img_strength = gr.Slider(0.0, 1.0, value=1.0, step=0.05, label="Image Strength")
+                        with gr.Accordion("Conditioning Images", open=False):
+                            t2_image = gr.Image(label="Primary Image (Frame 0)", type="numpy")
+                            t2_img_strength = gr.Slider(0.0, 1.0, value=1.0, step=0.05, label="Primary Strength")
                             t2_img_crf = gr.Slider(0, 51, value=33, step=1, label="Image CRF",
                                                    info="Compression quality (0=lossless, 51=worst)")
+                            with gr.Accordion("Additional Conditioning Images", open=False):
+                                t2_extra_images = gr.File(label="Extra Images", file_count="multiple", file_types=["image"])
+                                t2_extra_indices = gr.Textbox(label="Frame Indices (comma-separated)", value="", placeholder="60,120")
+                                t2_extra_strengths = gr.Textbox(label="Strengths (comma-separated, optional)", value="", placeholder="1.0,0.8 (default=primary)")
                         t2_resolution = gr.Dropdown(RESOLUTION_CHOICES, value="768x512", label="Resolution (WxH)", allow_custom_value=True)
                         t2_frame_mode, t2_frames, t2_duration = create_frame_controls()
                         with gr.Row():
@@ -362,6 +366,7 @@ def build_ui() -> gr.Blocks:
                             ("prompt", t2_prompt), ("negative_prompt", t2_neg),
                             ("nag_scale", t2_nag_scale), ("nag_alpha", t2_nag_alpha),
                             ("img_strength", t2_img_strength), ("img_crf", t2_img_crf),
+                            ("extra_indices", t2_extra_indices), ("extra_strengths", t2_extra_strengths),
                             ("resolution", t2_resolution), ("frames", t2_frames),
                             ("fps", t2_fps), ("seed", t2_seed),
                             ("enhance", t2_enhance), ("no_audio", t2_no_audio),
@@ -382,6 +387,7 @@ def build_ui() -> gr.Blocks:
                     inputs=[
                         t2_prompt, t2_neg, t2_nag_scale, t2_nag_alpha,
                         t2_image, t2_img_strength, t2_img_crf,
+                        t2_extra_images, t2_extra_indices, t2_extra_strengths,
                         t2_resolution, t2_frames, t2_fps, t2_seed,
                         t2_enhance, t2_fp8,
                         t2_frame_mode, t2_duration, t2_no_audio,
@@ -407,11 +413,15 @@ def build_ui() -> gr.Blocks:
                         create_prompt_constructor(t1_prompt)
                         with gr.Accordion("Negative Prompt", open=False):
                             t1_neg = gr.Textbox(label="Negative Prompt", value=DEFAULT_NEGATIVE_PROMPT, lines=2, show_label=False)
-                        with gr.Accordion("Conditioning Image", open=False):
-                            t1_image = gr.Image(label="Image (optional)", type="numpy")
-                            t1_img_strength = gr.Slider(0.0, 1.0, value=1.0, step=0.05, label="Image Strength")
+                        with gr.Accordion("Conditioning Images", open=False):
+                            t1_image = gr.Image(label="Primary Image (Frame 0)", type="numpy")
+                            t1_img_strength = gr.Slider(0.0, 1.0, value=1.0, step=0.05, label="Primary Strength")
                             t1_img_crf = gr.Slider(0, 51, value=33, step=1, label="Image CRF",
                                                    info="Compression quality (0=lossless, 51=worst)")
+                            with gr.Accordion("Additional Conditioning Images", open=False):
+                                t1_extra_images = gr.File(label="Extra Images", file_count="multiple", file_types=["image"])
+                                t1_extra_indices = gr.Textbox(label="Frame Indices (comma-separated)", value="", placeholder="60,120")
+                                t1_extra_strengths = gr.Textbox(label="Strengths (comma-separated, optional)", value="", placeholder="1.0,0.8 (default=primary)")
                         t1_resolution = gr.Dropdown(RESOLUTION_CHOICES, value="768x512", label="Resolution (WxH)", allow_custom_value=True)
                         t1_frame_mode, t1_frames, t1_duration = create_frame_controls()
                         with gr.Row():
@@ -430,6 +440,7 @@ def build_ui() -> gr.Blocks:
                         create_preset_row("ti2vid", [
                             ("prompt", t1_prompt), ("negative_prompt", t1_neg),
                             ("img_strength", t1_img_strength), ("img_crf", t1_img_crf),
+                            ("extra_indices", t1_extra_indices), ("extra_strengths", t1_extra_strengths),
                             ("resolution", t1_resolution), ("frames", t1_frames),
                             ("fps", t1_fps), ("steps", t1_steps),
                             ("seed", t1_seed), ("sampler", t1_sampler),
@@ -451,6 +462,7 @@ def build_ui() -> gr.Blocks:
                     fn=generate_ti2vid,
                     inputs=[
                         t1_prompt, t1_neg, t1_image, t1_img_strength, t1_img_crf,
+                        t1_extra_images, t1_extra_indices, t1_extra_strengths,
                         t1_resolution, t1_frames, t1_fps, t1_steps, t1_seed, t1_sampler,
                         t1_enhance, t1_fp8, t1_lora_strength,
                         *t1_guidance,
@@ -477,18 +489,22 @@ def build_ui() -> gr.Blocks:
                             t3_nag_alpha = gr.Slider(0.0, 1.0, value=0.0, step=0.05, label="NAG Alpha (Rescale)",
                                                      info="CFG rescale factor (0=off, higher=reduce artifacts)")
                         t3_ref_video = gr.Video(label="Reference Video", sources=["upload"])
-                        t3_ref_strength = gr.Slider(0.0, 1.0, value=1.0, step=0.05, label="Reference Strength")
                         t3_lora = gr.Dropdown(
                             list(IC_LORA_MAP.keys()),
                             value="Union Control", label="IC-LoRA Type",
                             info="Union Control: Preserve overall structure of reference video | Motion Track: Follow motion trajectory",
                         )
+                        t3_ref_strength = gr.Slider(0.0, 1.0, value=1.0, step=0.05, label="Reference Strength")
                         t3_attn_strength = gr.Slider(0.0, 1.0, value=1.0, step=0.05, label="Attention Strength")
-                        with gr.Accordion("Conditioning Image", open=False):
-                            t3_image = gr.Image(label="Image (optional)", type="numpy")
-                            t3_img_strength = gr.Slider(0.0, 1.0, value=1.0, step=0.05, label="Image Strength")
+                        with gr.Accordion("Conditioning Images", open=False):
+                            t3_image = gr.Image(label="Primary Image (Frame 0)", type="numpy")
+                            t3_img_strength = gr.Slider(0.0, 1.0, value=1.0, step=0.05, label="Primary Strength")
                             t3_img_crf = gr.Slider(0, 51, value=33, step=1, label="Image CRF",
                                                    info="Compression quality (0=lossless, 51=worst)")
+                            with gr.Accordion("Additional Conditioning Images", open=False):
+                                t3_extra_images = gr.File(label="Extra Images", file_count="multiple", file_types=["image"])
+                                t3_extra_indices = gr.Textbox(label="Frame Indices (comma-separated)", value="", placeholder="60,120")
+                                t3_extra_strengths = gr.Textbox(label="Strengths (comma-separated, optional)", value="", placeholder="1.0,0.8 (default=primary)")
                         t3_resolution = gr.Dropdown(RESOLUTION_CHOICES, value="768x512", label="Resolution (WxH)", allow_custom_value=True)
                         t3_frame_mode, t3_frames, t3_duration = create_frame_controls()
                         with gr.Row():
@@ -505,6 +521,7 @@ def build_ui() -> gr.Blocks:
                             ("ref_strength", t3_ref_strength), ("lora_type", t3_lora),
                             ("attn_strength", t3_attn_strength),
                             ("img_strength", t3_img_strength), ("img_crf", t3_img_crf),
+                            ("extra_indices", t3_extra_indices), ("extra_strengths", t3_extra_strengths),
                             ("resolution", t3_resolution), ("frames", t3_frames),
                             ("fps", t3_fps), ("seed", t3_seed),
                             ("skip_stage2", t3_skip_stage2),
@@ -527,6 +544,7 @@ def build_ui() -> gr.Blocks:
                         t3_prompt, t3_neg, t3_nag_scale, t3_nag_alpha,
                         t3_ref_video, t3_ref_strength, t3_lora, t3_attn_strength,
                         t3_image, t3_img_strength, t3_img_crf,
+                        t3_extra_images, t3_extra_indices, t3_extra_strengths,
                         t3_resolution, t3_frames, t3_fps, t3_seed,
                         t3_skip_stage2, t3_enhance, t3_fp8,
                         t3_frame_mode, t3_duration, t3_no_audio,
@@ -611,11 +629,15 @@ def build_ui() -> gr.Blocks:
                         with gr.Row():
                             t5_audio_start = gr.Number(value=0.0, label="Audio Start (sec)")
                             t5_audio_max = gr.Number(value=0.0, label="Max Duration (0=all)")
-                        with gr.Accordion("Conditioning Image", open=False):
-                            t5_image = gr.Image(label="Image (optional)", type="numpy")
-                            t5_img_strength = gr.Slider(0.0, 1.0, value=1.0, step=0.05, label="Image Strength")
+                        with gr.Accordion("Conditioning Images", open=False):
+                            t5_image = gr.Image(label="Primary Image (Frame 0)", type="numpy")
+                            t5_img_strength = gr.Slider(0.0, 1.0, value=1.0, step=0.05, label="Primary Strength")
                             t5_img_crf = gr.Slider(0, 51, value=33, step=1, label="Image CRF",
                                                    info="Compression quality (0=lossless, 51=worst)")
+                            with gr.Accordion("Additional Conditioning Images", open=False):
+                                t5_extra_images = gr.File(label="Extra Images", file_count="multiple", file_types=["image"])
+                                t5_extra_indices = gr.Textbox(label="Frame Indices (comma-separated)", value="", placeholder="60,120")
+                                t5_extra_strengths = gr.Textbox(label="Strengths (comma-separated, optional)", value="", placeholder="1.0,0.8 (default=primary)")
                         t5_resolution = gr.Dropdown(RESOLUTION_CHOICES, value="768x512", label="Resolution (WxH)", allow_custom_value=True)
                         t5_frame_mode, t5_frames, t5_duration = create_frame_controls()
                         with gr.Row():
@@ -633,6 +655,7 @@ def build_ui() -> gr.Blocks:
                             ("prompt", t5_prompt), ("negative_prompt", t5_neg),
                             ("audio_start", t5_audio_start), ("audio_max", t5_audio_max),
                             ("img_strength", t5_img_strength), ("img_crf", t5_img_crf),
+                            ("extra_indices", t5_extra_indices), ("extra_strengths", t5_extra_strengths),
                             ("resolution", t5_resolution), ("frames", t5_frames),
                             ("fps", t5_fps), ("steps", t5_steps), ("seed", t5_seed),
                             ("enhance", t5_enhance), ("lora_strength", t5_lora_strength),
@@ -654,6 +677,7 @@ def build_ui() -> gr.Blocks:
                         t5_prompt, t5_neg,
                         t5_audio, t5_audio_start, t5_audio_max,
                         t5_image, t5_img_strength, t5_img_crf,
+                        t5_extra_images, t5_extra_indices, t5_extra_strengths,
                         t5_resolution, t5_frames, t5_fps, t5_steps, t5_seed,
                         t5_enhance, t5_fp8, t5_lora_strength,
                         *t5_guidance,
@@ -916,6 +940,7 @@ def build_ui() -> gr.Blocks:
         _tab_inputs = {
             "ti2vid": [
                 t1_prompt, t1_neg, t1_image, t1_img_strength, t1_img_crf,
+                t1_extra_images, t1_extra_indices, t1_extra_strengths,
                 t1_resolution, t1_frames, t1_fps, t1_steps, t1_seed, t1_sampler,
                 t1_enhance, t1_fp8,
                 *t1_guidance,
@@ -923,6 +948,7 @@ def build_ui() -> gr.Blocks:
             ],
             "distilled": [
                 t2_prompt, t2_image, t2_img_strength, t2_img_crf,
+                t2_extra_images, t2_extra_indices, t2_extra_strengths,
                 t2_resolution, t2_frames, t2_fps, t2_seed,
                 t2_enhance, t2_fp8,
                 t2_frame_mode, t2_duration, t2_no_audio,
@@ -930,6 +956,7 @@ def build_ui() -> gr.Blocks:
             "iclora": [
                 t3_prompt, t3_ref_video, t3_ref_strength, t3_lora, t3_attn_strength,
                 t3_image, t3_img_strength, t3_img_crf,
+                t3_extra_images, t3_extra_indices, t3_extra_strengths,
                 t3_resolution, t3_frames, t3_fps, t3_seed,
                 t3_skip_stage2, t3_enhance, t3_fp8,
                 t3_frame_mode, t3_duration, t3_no_audio,
@@ -945,6 +972,7 @@ def build_ui() -> gr.Blocks:
                 t5_prompt, t5_neg,
                 t5_audio, t5_audio_start, t5_audio_max,
                 t5_image, t5_img_strength, t5_img_crf,
+                t5_extra_images, t5_extra_indices, t5_extra_strengths,
                 t5_resolution, t5_frames, t5_fps, t5_steps, t5_seed,
                 t5_enhance, t5_fp8, *t5_guidance,
                 t5_frame_mode, t5_duration,

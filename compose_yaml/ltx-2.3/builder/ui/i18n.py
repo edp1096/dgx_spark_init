@@ -62,9 +62,16 @@ STRINGS = {
     "info":                      {"en": "Info",                        "ko": "정보"},
 
     # Conditioning image
+    "conditioning_images":       {"en": "Conditioning Images",         "ko": "조건 이미지"},
     "conditioning_image":        {"en": "Conditioning Image",          "ko": "조건 이미지"},
+    "primary_image":             {"en": "Primary Image (Frame 0)",     "ko": "기본 이미지 (프레임 0)"},
+    "primary_strength":          {"en": "Primary Strength",            "ko": "기본 강도"},
     "image_optional":            {"en": "Image (optional)",            "ko": "이미지 (선택)"},
     "image_strength":            {"en": "Image Strength",              "ko": "이미지 강도"},
+    "additional_images":         {"en": "Additional Conditioning Images", "ko": "추가 조건 이미지"},
+    "extra_images":              {"en": "Extra Images",                "ko": "추가 이미지"},
+    "extra_frame_indices":       {"en": "Frame Indices (comma-separated)", "ko": "프레임 인덱스 (쉼표 구분)"},
+    "extra_strengths":           {"en": "Strengths (comma-separated, optional)", "ko": "강도 (쉼표 구분, 선택)"},
 
     # Guidance
     "guidance":                  {"en": "Guidance (advanced)",          "ko": "가이던스 (고급)"},
