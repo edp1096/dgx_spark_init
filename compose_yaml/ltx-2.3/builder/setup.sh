@@ -38,6 +38,7 @@ UI_FILES=(
     i18n.py
     download_models.py
     convert_fp8.py
+    preprocess.py
     test_pipeline.py
     test_memory_profile.py
 )

@@ -260,9 +260,9 @@ echo "  Source: ${GITHUB_RAW}"
 echo "  Target: ${LTX_DIR}"
 echo ""
 
-# [1/4] Backup current files (unless --force)
+# [1/5] Backup current files (unless --force)
 if [ "$FORCE" = false ] && [ -d "$LTX_DIR" ]; then
-    echo "[1/4] Backing up current files..."
+    echo "[1/5] Backing up current files..."
     mkdir -p "$BACKUP_DIR"
     for fname in "${UI_FILES[@]}"; do
         if [ -f "${LTX_DIR}/${fname}" ]; then
@@ -283,11 +283,11 @@ if [ "$FORCE" = false ] && [ -d "$LTX_DIR" ]; then
     done
     echo "  Backup: ${BACKUP_DIR}"
 else
-    echo "[1/4] Skipping backup (--force)"
+    echo "[1/5] Skipping backup (--force)"
 fi
 
-# [2/4] Download UI files
-echo "[2/4] Downloading UI files..."
+# [2/5] Download UI files
+echo "[2/5] Downloading UI files..."
 mkdir -p "$UI_DIR"
 for fname in "${UI_FILES[@]}"; do
     if curl -sfL "${GITHUB_RAW}/ui/${fname}" -o "${UI_DIR}/${fname}"; then
@@ -311,8 +311,8 @@ for subdir in "${UI_SUBDIRS[@]}"; do
     done
 done
 
-# [3/4] Download patches
-echo "[3/4] Downloading patches..."
+# [3/5] Download patches
+echo "[3/5] Downloading patches..."
 mkdir -p "$PATCH_DIR"
 for fname in "${PATCH_FILES[@]}"; do
     if curl -sfL "${GITHUB_RAW}/patches/${fname}" -o "${PATCH_DIR}/${fname}"; then
@@ -333,8 +333,8 @@ else
     fail "update.sh (self-update)"
 fi
 
-# [4/4] Copy to LTX-2 directory
-echo "[4/4] Applying updates..."
+# [4/5] Copy to LTX-2 directory
+echo "[4/5] Applying updates..."
 if [ -d "$LTX_DIR" ]; then
     cp "${UI_DIR}"/*.py "${LTX_DIR}/"
     # Copy subdirectories (mod/ etc.)
@@ -363,6 +363,34 @@ else
     echo "  WARNING: LTX-2 directory not found: ${LTX_DIR}"
     echo "  Files downloaded to ${UI_DIR} but not deployed."
     fail "LTX-2 directory not found"
+fi
+
+# ---------------------------------------------------------------------------
+# Dependency check — install packages missing from the base image
+# ---------------------------------------------------------------------------
+echo ""
+echo "[5/5] Checking dependencies..."
+
+# bitsandbytes: aarch64 has no PyPI wheel, must build from source
+if ! python3 -c 'import bitsandbytes' 2>/dev/null; then
+    echo "  bitsandbytes not found — building from source (aarch64)..."
+    BNB_COMMIT=925d83e
+    BNB_SRC="/tmp/bnb-src"
+    rm -rf "$BNB_SRC"
+    if git clone --depth 250 https://github.com/bitsandbytes-foundation/bitsandbytes.git "$BNB_SRC" 2>/dev/null && \
+       cd "$BNB_SRC" && git checkout "$BNB_COMMIT" 2>/dev/null && \
+       cmake -DCOMPUTE_BACKEND=cuda -S . -B build 2>/dev/null && \
+       cmake --build build -j$(nproc) 2>/dev/null && \
+       pip install -q . 2>/dev/null; then
+        echo "  bitsandbytes installed from source"
+    else
+        echo "  WARNING: bitsandbytes build failed (Enhance Prompt will not work)"
+        fail "bitsandbytes (source build)"
+    fi
+    cd "$SCRIPT_DIR"
+    rm -rf "$BNB_SRC"
+else
+    echo "  bitsandbytes: ok"
 fi
 
 # ---------------------------------------------------------------------------

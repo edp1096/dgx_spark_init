@@ -28,7 +28,7 @@ services:
       fi;
 
       echo '=== [2/5] Downloading UI files & patches ===';
-      for f in config.py app.py generators.py worker.py pipeline_manager.py i18n.py download_models.py convert_fp8.py test_pipeline.py test_memory_profile.py; do
+      for f in config.py app.py generators.py worker.py pipeline_manager.py i18n.py download_models.py convert_fp8.py preprocess.py test_pipeline.py test_memory_profile.py; do
         curl -sfL $${GITHUB_RAW}/ui/$$f -o ~/ltx2-ui/ui/$$f;
       done;
       mkdir -p ~/ltx2-ui/ui/mod;
@@ -56,16 +56,28 @@ services:
         rm -rf /tmp/torchaudio-src;
       fi;
 
-      echo '=== [5/5] LTX packages + q8_kernels ===';
+      echo '=== [5/6] LTX packages + q8_kernels ===';
       pip install -q --no-deps -e ~/ltx2-ui/LTX-2/packages/ltx-core;
       pip install -q --no-deps -e ~/ltx2-ui/LTX-2/packages/ltx-pipelines;
       pip install -q $${GITHUB_RAW}/q8_kernels-0.0.5-cp312-cp312-linux_aarch64.whl;
+
+      echo '=== [6/6] bitsandbytes (source build for aarch64) ===';
+      BNB_COMMIT=925d83e;
+      if ! python3 -c 'import bitsandbytes' 2>/dev/null; then
+        git clone --depth 250 https://github.com/bitsandbytes-foundation/bitsandbytes.git /tmp/bnb-src && cd /tmp/bnb-src && git checkout $${BNB_COMMIT} && cd ~;
+        cd /tmp/bnb-src && cmake -DCOMPUTE_BACKEND=cuda -S . -B build && cmake --build build -j$$(nproc) && pip install -q . && cd ~;
+        rm -rf /tmp/bnb-src;
+        echo '  bitsandbytes installed from source';
+      else
+        echo '  bitsandbytes already installed';
+      fi;
 
       python3 -c \"import torch; print(f'torch: {torch.__version__}')\" ;
       python3 -c \"import torch; print(f'CUDA: {torch.cuda.is_available()}, {torch.cuda.get_device_name(0)}')\" ;
       python3 -c \"import gradio; print(f'gradio: {gradio.__version__}')\" ;
       python3 -c \"import torchaudio; print(f'torchaudio: {torchaudio.__version__}')\" ;
       python3 -c \"import q8_kernels; print('q8_kernels: ok')\" ;
+      python3 -c \"import bitsandbytes; print(f'bitsandbytes: {bitsandbytes.__version__}')\" ;
       rm -rf /root/.cache/pip;
 
       echo '=== Build complete! ===' ;
