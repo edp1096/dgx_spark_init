@@ -1373,6 +1373,7 @@ def build_ui() -> gr.Blocks:
                     label="Generation History",
                     columns=4, height=280,
                     object_fit="cover", preview=False,
+                    interactive=False,
                 )
                 with gr.Row():
                     h_video = gr.Video(label="Preview", height=260)
