@@ -235,6 +235,7 @@ def create_keyframe_section():
     """
     slots_imgs = []
     slots_idxs = []
+    slots_units = []
     slots_strs = []
     rows = []
 
@@ -253,12 +254,15 @@ def create_keyframe_section():
                     scale=1,
                 )
                 with gr.Column(scale=1, min_width=160):
-                    default_idx = "0" if i == 0 else ""
-                    idx = gr.Textbox(label="Frame / Time", value=default_idx,
-                                      placeholder="0, 60, 2.5s …", max_lines=1)
+                    with gr.Row():
+                        idx = gr.Number(label="Index", value=0 if i == 0 else None,
+                                        precision=2, minimum=0)
+                        unit = gr.Radio(["Frame", "Time(s)"], value="Frame",
+                                        label="Unit", container=False)
                     stren = gr.Slider(0.0, 1.0, value=0.8, step=0.05, label="Strength")
         slots_imgs.append(img)
         slots_idxs.append(idx)
+        slots_units.append(unit)
         slots_strs.append(stren)
         rows.append(grp)
 
@@ -272,16 +276,18 @@ def create_keyframe_section():
     def _sync_state(*vals):
         imgs = vals[:MAX_KEYFRAME_SLOTS]
         idxs = vals[MAX_KEYFRAME_SLOTS:2 * MAX_KEYFRAME_SLOTS]
-        strs_ = vals[2 * MAX_KEYFRAME_SLOTS:]
+        units = vals[2 * MAX_KEYFRAME_SLOTS:3 * MAX_KEYFRAME_SLOTS]
+        strs_ = vals[3 * MAX_KEYFRAME_SLOTS:]
         result = []
-        for im, ix, st in zip(imgs, idxs, strs_):
+        for im, ix, un, st in zip(imgs, idxs, units, strs_):
             if im is not None:
-                result.append({"path": str(im), "frame_idx": str(ix).strip(), "strength": float(st)})
+                raw = f"{ix}s" if un == "Time(s)" and ix is not None else str(ix or 0)
+                result.append({"path": str(im), "frame_idx": raw, "strength": float(st)})
         return result
 
     add_btn.click(fn=_add_slot, inputs=[count_state], outputs=[count_state] + rows)
 
-    all_inputs = slots_imgs + slots_idxs + slots_strs
+    all_inputs = slots_imgs + slots_idxs + slots_units + slots_strs
     for comp in all_inputs:
         comp.change(fn=_sync_state, inputs=all_inputs, outputs=[kf_state])
 
@@ -292,10 +298,11 @@ def create_extra_conditioning_section():
     """Create per-image conditioning slots with preview, frame index, and strength.
 
     Returns a gr.State that holds a list of dicts:
-      [{"path": str, "frame_idx": int, "strength": float}, ...]
+      [{"path": str, "frame_idx": str, "strength": float}, ...]
     """
     slots_imgs = []
     slots_idxs = []
+    slots_units = []
     slots_strs = []
     rows = []
 
@@ -312,11 +319,15 @@ def create_extra_conditioning_section():
                     scale=1,
                 )
                 with gr.Column(scale=1, min_width=160):
-                    idx = gr.Textbox(label="Frame / Time", value="0",
-                                      placeholder="0, 10, 1.5s …", max_lines=1)
+                    with gr.Row():
+                        idx = gr.Number(label="Index", value=0,
+                                        precision=2, minimum=0)
+                        unit = gr.Radio(["Frame", "Time(s)"], value="Frame",
+                                        label="Unit", container=False)
                     stren = gr.Slider(0.0, 1.0, value=0.8, step=0.05, label="Strength")
         slots_imgs.append(img)
         slots_idxs.append(idx)
+        slots_units.append(unit)
         slots_strs.append(stren)
         rows.append(grp)
 
@@ -330,16 +341,18 @@ def create_extra_conditioning_section():
     def _sync_state(*vals):
         imgs = vals[:MAX_EXTRA_COND]
         idxs = vals[MAX_EXTRA_COND:2 * MAX_EXTRA_COND]
-        strs_ = vals[2 * MAX_EXTRA_COND:]
+        units = vals[2 * MAX_EXTRA_COND:3 * MAX_EXTRA_COND]
+        strs_ = vals[3 * MAX_EXTRA_COND:]
         result = []
-        for im, ix, st in zip(imgs, idxs, strs_):
+        for im, ix, un, st in zip(imgs, idxs, units, strs_):
             if im is not None:
-                result.append({"path": str(im), "frame_idx": str(ix).strip(), "strength": float(st)})
+                raw = f"{ix}s" if un == "Time(s)" and ix is not None else str(ix or 0)
+                result.append({"path": str(im), "frame_idx": raw, "strength": float(st)})
         return result
 
     add_btn.click(fn=_add_slot, inputs=[count_state], outputs=[count_state] + rows)
 
-    all_inputs = slots_imgs + slots_idxs + slots_strs
+    all_inputs = slots_imgs + slots_idxs + slots_units + slots_strs
     for comp in all_inputs:
         comp.change(fn=_sync_state, inputs=all_inputs, outputs=[extra_state])
 

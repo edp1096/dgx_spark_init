@@ -62,14 +62,14 @@ STRINGS = {
     "info":                      {"en": "Info",                        "ko": "정보"},
 
     # Conditioning image
-    "conditioning_images":       {"en": "Conditioning Images",         "ko": "조건 이미지"},
-    "conditioning_image":        {"en": "Conditioning Image",          "ko": "조건 이미지"},
+    "conditioning_images":       {"en": "Conditioning Images",         "ko": "이미지 컨디셔닝"},
+    "conditioning_image":        {"en": "Conditioning Image",          "ko": "이미지 컨디셔닝"},
     "primary_image":             {"en": "Primary Image (Frame 0)",     "ko": "기본 이미지 (프레임 0)"},
     "primary_strength":          {"en": "Primary Strength",            "ko": "기본 강도"},
     "image_optional":            {"en": "Image (optional)",            "ko": "이미지 (선택)"},
     "image_strength":            {"en": "Image Strength",              "ko": "이미지 강도"},
-    "additional_images":         {"en": "Additional Conditioning Images", "ko": "추가 조건 이미지"},
-    "add_cond_image":            {"en": "+ Add Conditioning Image",    "ko": "+ 조건 이미지 추가"},
+    "additional_images":         {"en": "Additional Conditioning Images", "ko": "추가 이미지 컨디셔닝"},
+    "add_cond_image":            {"en": "+ Add Conditioning Image",    "ko": "+ 이미지 컨디셔닝 추가"},
     "extra_image_n":             {"en": "Image {n}",                   "ko": "이미지 {n}"},
     "extra_frame_index":         {"en": "Frame Index",                 "ko": "프레임 인덱스"},
     "extra_strength":            {"en": "Strength",                    "ko": "강도"},
