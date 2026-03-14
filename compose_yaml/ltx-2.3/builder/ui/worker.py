@@ -226,12 +226,12 @@ def _worker_loop(
                 images=images,
                 enhance_prompt=kwargs.get("enhance_prompt", False),
             )
-            if kwargs.get("disable_audio"):
-                gen_kwargs["generate_audio"] = False
             gen_kwargs["stage1_preview_callback"] = make_preview_callback(
                 task_id, kwargs["frame_rate"], kwargs["num_frames"])
 
             video_frames, audio = pipeline(**gen_kwargs)
+            if kwargs.get("disable_audio"):
+                audio = None
             output_path = make_output_path()
             encode_video(
                 video=video_frames, fps=kwargs["frame_rate"],
@@ -263,12 +263,12 @@ def _worker_loop(
                 images=images,
                 enhance_prompt=kwargs.get("enhance_prompt", False),
             )
-            if kwargs.get("disable_audio"):
-                gen_kwargs["generate_audio"] = False
             gen_kwargs["stage1_preview_callback"] = make_preview_callback(
                 task_id, kwargs["frame_rate"], kwargs["num_frames"])
 
             video_frames, audio = _run_pipeline_with_nag(pipeline, kwargs, gen_kwargs)
+            if kwargs.get("disable_audio"):
+                audio = None
             output_path = make_output_path()
             encode_video(
                 video=video_frames, fps=kwargs["frame_rate"],
@@ -310,13 +310,13 @@ def _worker_loop(
                 skip_stage_2=kwargs.get("skip_stage2", False),
                 enhance_prompt=kwargs.get("enhance_prompt", False),
             )
-            if kwargs.get("disable_audio"):
-                gen_kwargs["generate_audio"] = False
             if not kwargs.get("skip_stage2", False):
                 gen_kwargs["stage1_preview_callback"] = make_preview_callback(
                     task_id, kwargs["frame_rate"], kwargs["num_frames"])
 
             video_frames, audio = _run_pipeline_with_nag(pipeline, kwargs, gen_kwargs)
+            if kwargs.get("disable_audio"):
+                audio = None
             output_path = make_output_path()
             encode_video(
                 video=video_frames, fps=kwargs["frame_rate"],
@@ -356,12 +356,12 @@ def _worker_loop(
                 images=images,
                 enhance_prompt=kwargs.get("enhance_prompt", False),
             )
-            if kwargs.get("disable_audio"):
-                gen_kwargs["generate_audio"] = False
             gen_kwargs["stage1_preview_callback"] = make_preview_callback(
                 task_id, kwargs["frame_rate"], kwargs["num_frames"])
 
             video_frames, audio = pipeline(**gen_kwargs)
+            if kwargs.get("disable_audio"):
+                audio = None
             output_path = make_output_path()
             encode_video(
                 video=video_frames, fps=kwargs["frame_rate"],
