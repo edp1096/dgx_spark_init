@@ -67,12 +67,13 @@ def preprocess_video_canny(video_path: str, low: int = 100, high: int = 200,
 
 
 def preview_canny(video_path: str, low: int = 100, high: int = 200,
-                   num_frames: int = 3) -> list[np.ndarray] | None:
-    """Extract a few sample frames, apply Canny, return as image list."""
+                   num_frames: int = 3) -> list[tuple[np.ndarray, str]] | None:
+    """Extract a few sample frames, apply Canny, return as (image, caption) list."""
     try:
         container = av.open(video_path)
         stream = next(s for s in container.streams if s.type == "video")
         total = stream.frames or 0
+        fps = float(stream.average_rate) if stream.average_rate else 24.0
         # Decode all frame indices if total unknown
         if total < num_frames:
             # Short video: just grab everything
@@ -87,7 +88,9 @@ def preview_canny(video_path: str, low: int = 100, high: int = 200,
                 rgb = frame.to_rgb().to_ndarray()
                 gray = np.dot(rgb[..., :3], [0.2989, 0.5870, 0.1140]).astype(np.uint8)
                 edges = _canny_frame(gray, low, high)
-                results.append(np.stack([edges, edges, edges], axis=-1))
+                img = np.stack([edges, edges, edges], axis=-1)
+                caption = f"Frame {idx} ({idx / fps:.2f}s)"
+                results.append((img, caption))
                 if len(results) >= num_frames:
                     break
         container.close()
