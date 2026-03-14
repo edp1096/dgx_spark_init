@@ -1,0 +1,30 @@
+services:
+  zimage-gradio:
+    container_name: zimage-gradio-spark
+    image: edp1096/zimage-gradio-spark:v1
+    ports:
+      - "7861:7861"
+    environment:
+      - PIP_ROOT_USER_ACTION=ignore
+      - PYTHONUNBUFFERED=1
+      - HF_TOKEN=${HF_TOKEN}
+    volumes:
+      - "/home/edp1096/.cache/huggingface:/root/.cache/huggingface"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    entrypoint: ""
+    command: >
+      /bin/bash -c "
+      cd ~/zimage-ui &&
+      wget -q https://raw.githubusercontent.com/edp1096/dgx_spark_init/main/compose_yaml/z-image/builder/update.sh -O update.sh &&
+      chmod +x update.sh &&
+      ./update.sh --no-restart &&
+
+      python download_models.py &&
+      python app.py --server-name 0.0.0.0 --port 7861
+      "

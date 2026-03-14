@@ -1,0 +1,60 @@
+services:
+  zimage-ui:
+    container_name: zimage-ui-spark-builder
+    image: nvcr.io/nvidia/pytorch:26.02-py3
+    environment:
+      - PIP_ROOT_USER_ACTION=ignore
+      - GITHUB_RAW=https://raw.githubusercontent.com/edp1096/dgx_spark_init/main/compose_yaml/z-image/builder
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    entrypoint: >
+      /bin/bash -c "
+
+      mkdir -p ~/zimage-ui/ui ~/zimage-ui/logs;
+
+      echo '=== [1/4] Downloading UI files ===';
+      for f in config.py app.py generators.py worker.py pipeline_manager.py download_models.py; do
+        curl -sfL $${GITHUB_RAW}/ui/$$f -o ~/zimage-ui/ui/$$f;
+      done;
+      cp ~/zimage-ui/ui/*.py ~/zimage-ui/;
+
+      echo '=== [2/4] Python packages ===';
+      pip install -q gradio accelerate safetensors huggingface_hub psutil loguru;
+      pip install -q git+https://github.com/huggingface/diffusers;
+      pip install -q transformers peft;
+
+      echo '=== [3/4] q8_kernels (aarch64 FP8 GEMM) ===';
+      Q8_WHEEL_URL=https://raw.githubusercontent.com/edp1096/dgx_spark_init/main/compose_yaml/ltx-2.3/builder/q8_kernels-0.0.5-cp312-cp312-linux_aarch64.whl;
+      if ! python3 -c 'import q8_kernels' 2>/dev/null; then
+        pip install -q $$Q8_WHEEL_URL;
+      else
+        echo '  q8_kernels already installed';
+      fi;
+
+      echo '=== [4/4] bitsandbytes (source build for aarch64) ===';
+      BNB_COMMIT=925d83e;
+      if ! python3 -c 'import bitsandbytes' 2>/dev/null; then
+        git clone --depth 250 https://github.com/bitsandbytes-foundation/bitsandbytes.git /tmp/bnb-src && cd /tmp/bnb-src && git checkout $${BNB_COMMIT} && cd ~;
+        cd /tmp/bnb-src && cmake -DCOMPUTE_BACKEND=cuda -DCOMPUTE_CAPABILITY=121 -S . -B build && cmake --build build -j$$(nproc) && pip install -q . && cd ~;
+        rm -rf /tmp/bnb-src;
+      else
+        echo '  bitsandbytes already installed';
+      fi;
+
+      python3 -c \"import torch; print(f'torch: {torch.__version__}')\" ;
+      python3 -c \"import torch; print(f'CUDA: {torch.cuda.is_available()}, {torch.cuda.get_device_name(0)}')\" ;
+      python3 -c \"import gradio; print(f'gradio: {gradio.__version__}')\" ;
+      python3 -c \"import diffusers; print(f'diffusers: {diffusers.__version__}')\" ;
+      python3 -c \"import q8_kernels; print('q8_kernels: ok')\" ;
+      python3 -c \"import bitsandbytes; print(f'bitsandbytes: {bitsandbytes.__version__}')\" ;
+      rm -rf /root/.cache/pip;
+
+      echo '=== Build complete! ===' ;
+      echo 'Commit: docker commit zimage-ui-spark-builder edp1096/zimage-gradio-spark:v1' ;
+      tail -f /dev/null
+      "
