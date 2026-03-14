@@ -19,6 +19,7 @@ import warnings
 warnings.filterwarnings(
     "ignore", message="MatMul8bitLt: inputs will be cast from torch.bfloat16 to float16 during quantization"
 )
+logging.getLogger("bitsandbytes").setLevel(logging.ERROR)
 import os
 import signal
 import time
