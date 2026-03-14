@@ -77,22 +77,20 @@ def _worker_loop(
         from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
         qwen_path = str(Path(model_dir) / "Huihui-Qwen3.5-4B-abliterated")
-        log.info("Loading Qwen3.5-4B-4bit for prompt enhancement (%s)...", qwen_path)
+        log.info("Loading Qwen3.5-4B-8bit for prompt enhancement (%s)...", qwen_path)
         _qwen_tokenizer = AutoTokenizer.from_pretrained(qwen_path)
         bnb_config = BitsAndBytesConfig(
-            load_in_4bit=True,
-            bnb_4bit_compute_dtype=torch.bfloat16,
-            bnb_4bit_quant_type="nf4",
+            load_in_8bit=True,
         )
         _qwen_model = AutoModelForCausalLM.from_pretrained(
             qwen_path,
             quantization_config=bnb_config,
             device_map="auto",
         )
-        log.info("Qwen3.5-4B loaded (4bit nf4, ~2GB)")
+        log.info("Qwen3.5-4B loaded (8bit, ~4.5GB)")
 
     def _enhance_prompt_qwen(prompt: str) -> str:
-        """Enhance a prompt using Qwen3.5-4B-4bit with the LTX system prompt."""
+        """Enhance a prompt using Qwen3.5-4B-8bit with the LTX system prompt."""
         _load_qwen()
         messages = [
             {"role": "system", "content": _QWEN_SYSTEM_PROMPT},
