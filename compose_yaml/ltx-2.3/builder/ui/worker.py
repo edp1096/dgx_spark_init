@@ -188,9 +188,10 @@ def _worker_loop(
         nag_scale = kwargs.get("nag_scale", 1.0)
 
         if neg_prompt.strip() and nag_scale > 1.0:
+            nag_alpha = kwargs.get("nag_alpha", 0.0)
             ledger = get_model_ledger(pipeline)
             neg_v, neg_a = encode_negative_prompt(ledger, neg_prompt)
-            with nag_guidance(neg_v, neg_a, scale=nag_scale):
+            with nag_guidance(neg_v, neg_a, scale=nag_scale, alpha=nag_alpha):
                 return pipeline(**gen_kwargs)
         return pipeline(**gen_kwargs)
 
@@ -200,7 +201,8 @@ def _worker_loop(
             seed = resolve_seed(kwargs["seed"])
             height, width = parse_resolution(kwargs["resolution"])
             sampler = kwargs.get("sampler", "euler")
-            pipeline = mgr.get_ti2vid(sampler=sampler, quantization="fp8")
+            lora_strength = kwargs.get("lora_strength", 0.8)
+            pipeline = mgr.get_ti2vid(sampler=sampler, lora_strength=lora_strength, quantization="fp8")
 
             images = []
             if kwargs.get("image_path"):
@@ -329,7 +331,8 @@ def _worker_loop(
         with torch.inference_mode():
             seed = resolve_seed(kwargs["seed"])
             height, width = parse_resolution(kwargs["resolution"])
-            pipeline = mgr.get_keyframe(quantization="fp8")
+            lora_strength = kwargs.get("lora_strength", 0.8)
+            pipeline = mgr.get_keyframe(lora_strength=lora_strength, quantization="fp8")
 
             indices = [int(x.strip()) for x in kwargs["frame_indices"].split(",") if x.strip()]
             images = []
@@ -432,7 +435,8 @@ def _worker_loop(
         with torch.inference_mode():
             seed = resolve_seed(kwargs["seed"])
             height, width = parse_resolution(kwargs["resolution"])
-            pipeline = mgr.get_a2vid(quantization="fp8")
+            lora_strength = kwargs.get("lora_strength", 0.8)
+            pipeline = mgr.get_a2vid(lora_strength=lora_strength, quantization="fp8")
 
             audio_path = _preprocess_audio(
                 kwargs["audio_path"], kwargs["num_frames"], kwargs["frame_rate"]

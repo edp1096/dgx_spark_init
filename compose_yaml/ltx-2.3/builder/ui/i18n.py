@@ -117,6 +117,12 @@ STRINGS = {
     "nag_scale":                 {"en": "NAG Scale",                    "ko": "NAG 스케일"},
     "nag_scale_info":            {"en": "Guidance strength (1.0=off, higher=stronger, doubles inference time)",
                                   "ko": "가이던스 강도 (1.0=비활성, 높을수록 강함, 추론 시간 2배)"},
+    "nag_alpha":                 {"en": "NAG Alpha (Rescale)",           "ko": "NAG 알파 (리스케일)"},
+    "nag_alpha_info":            {"en": "CFG rescale factor (0=off, higher=reduce artifacts)",
+                                  "ko": "CFG 리스케일 계수 (0=비활성, 높을수록 아티팩트 감소)"},
+    "lora_strength":             {"en": "Distilled LoRA Strength",       "ko": "Distilled LoRA 강도"},
+    "lora_strength_info":        {"en": "Stage 2 distilled LoRA strength (lower=less distilled artifacts)",
+                                  "ko": "Stage 2 distilled LoRA 강도 (낮을수록 잡티 감소)"},
 
     # IC-LoRA tab
     "reference_video":           {"en": "Reference Video",             "ko": "참조 영상"},

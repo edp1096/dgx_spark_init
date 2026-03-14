@@ -50,7 +50,15 @@ def encode_negative_prompt(model_ledger, negative_prompt: str):
     return ctx_n.video_encoding, ctx_n.audio_encoding
 
 
-def _make_guided_denoising_func(original_factory, neg_video_ctx, neg_audio_ctx, scale):
+def _cfg_rescale(pos, guided, alpha):
+    """Apply CFG rescale to prevent over-saturation from guidance."""
+    pos_std = pos.std()
+    guided_std = guided.std()
+    rescaled = guided * (pos_std / (guided_std + 1e-8))
+    return alpha * rescaled + (1 - alpha) * guided
+
+
+def _make_guided_denoising_func(original_factory, neg_video_ctx, neg_audio_ctx, scale, alpha):
     """Wrap simple_denoising_func to add CFG-style guidance."""
     from ltx_pipelines.utils.helpers import modality_from_latent_state
 
@@ -73,6 +81,11 @@ def _make_guided_denoising_func(original_factory, neg_video_ctx, neg_audio_ctx, 
             guided_video = neg_video + scale * (pos_video - neg_video)
             guided_audio = neg_audio + scale * (pos_audio - neg_audio)
 
+            # CFG Rescale: prevent over-saturation artifacts
+            if alpha > 0:
+                guided_video = _cfg_rescale(pos_video, guided_video, alpha)
+                guided_audio = _cfg_rescale(pos_audio, guided_audio, alpha)
+
             return guided_video, guided_audio
 
         return guided_step
@@ -81,13 +94,14 @@ def _make_guided_denoising_func(original_factory, neg_video_ctx, neg_audio_ctx, 
 
 
 @contextmanager
-def nag_guidance(neg_video_ctx, neg_audio_ctx, scale=5.0):
+def nag_guidance(neg_video_ctx, neg_audio_ctx, scale=5.0, alpha=0.0):
     """Context manager: patches simple_denoising_func for guidance on distilled models.
 
     Args:
         neg_video_ctx: Negative video context from encode_negative_prompt.
         neg_audio_ctx: Negative audio context from encode_negative_prompt.
         scale: Guidance scale (1.0 = no effect, higher = stronger). Default 5.0.
+        alpha: CFG rescale factor (0.0 = off, higher = more rescaling). Default 0.0.
     """
     if scale <= 1.0:
         yield
@@ -96,7 +110,7 @@ def nag_guidance(neg_video_ctx, neg_audio_ctx, scale=5.0):
     from ltx_pipelines.utils import helpers as _helpers
 
     original = _helpers.simple_denoising_func
-    patched = _make_guided_denoising_func(original, neg_video_ctx, neg_audio_ctx, scale)
+    patched = _make_guided_denoising_func(original, neg_video_ctx, neg_audio_ctx, scale, alpha)
 
     # Patch in helpers module and all modules that imported the function directly
     patched_modules = [_helpers]
@@ -108,7 +122,7 @@ def nag_guidance(neg_video_ctx, neg_audio_ctx, scale=5.0):
     for mod in patched_modules:
         setattr(mod, "simple_denoising_func", patched)
 
-    logger.info("NAG guidance enabled (scale=%.1f)", scale)
+    logger.info("NAG guidance enabled (scale=%.1f, alpha=%.2f)", scale, alpha)
 
     try:
         yield

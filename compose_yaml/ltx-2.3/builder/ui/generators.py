@@ -290,7 +290,7 @@ def _validate(pipeline_type: str, prompt: str, required_files: dict | None = Non
 def generate_ti2vid(
     prompt, negative_prompt, image, image_strength, image_crf,
     resolution, num_frames, frame_rate, num_steps, seed, sampler,
-    enhance_prompt, fp8,
+    enhance_prompt, fp8, lora_strength,
     v_cfg, v_stg, v_rescale, v_modality, v_stg_blocks, v_skip_step,
     a_cfg, a_stg, a_rescale, a_modality, a_stg_blocks, a_skip_step,
     frame_mode="Frames", duration=4.8, disable_audio=False,
@@ -300,7 +300,7 @@ def generate_ti2vid(
     _active_gen_inputs = {"gen_type": "ti2vid", "values": [
         prompt, negative_prompt, image, image_strength, image_crf,
         resolution, num_frames, frame_rate, num_steps, seed, sampler,
-        enhance_prompt, fp8,
+        enhance_prompt, fp8, lora_strength,
         v_cfg, v_stg, v_rescale, v_modality, v_stg_blocks, v_skip_step,
         a_cfg, a_stg, a_rescale, a_modality, a_stg_blocks, a_skip_step,
         frame_mode, duration, disable_audio,
@@ -314,6 +314,7 @@ def generate_ti2vid(
         "num_frames": int(num_frames), "frame_rate": int(frame_rate),
         "num_steps": int(num_steps), "seed": int(seed), "sampler": sampler,
         "enhance_prompt": bool(enhance_prompt), "fp8": bool(fp8),
+        "lora_strength": float(lora_strength),
         "v_guidance": [v_cfg, v_stg, v_rescale, v_modality, str(v_stg_blocks), v_skip_step],
         "a_guidance": [a_cfg, a_stg, a_rescale, a_modality, str(a_stg_blocks), a_skip_step],
         "disable_audio": bool(disable_audio),
@@ -322,7 +323,7 @@ def generate_ti2vid(
 
 
 def generate_distilled(
-    prompt, negative_prompt, nag_scale,
+    prompt, negative_prompt, nag_scale, nag_alpha,
     image, image_strength, image_crf,
     resolution, num_frames, frame_rate, seed,
     enhance_prompt, fp8,
@@ -331,7 +332,7 @@ def generate_distilled(
 ):
     global _active_gen_inputs
     _active_gen_inputs = {"gen_type": "distilled", "values": [
-        prompt, negative_prompt, nag_scale,
+        prompt, negative_prompt, nag_scale, nag_alpha,
         image, image_strength, image_crf,
         resolution, num_frames, frame_rate, seed,
         enhance_prompt, fp8,
@@ -342,6 +343,7 @@ def generate_distilled(
     kwargs = {
         "prompt": prompt,
         "negative_prompt": negative_prompt, "nag_scale": float(nag_scale),
+        "nag_alpha": float(nag_alpha),
         "image_path": image_path, "image_strength": float(image_strength),
         "image_crf": int(image_crf), "resolution": resolution,
         "num_frames": int(num_frames), "frame_rate": int(frame_rate),
@@ -353,7 +355,7 @@ def generate_distilled(
 
 
 def generate_iclora(
-    prompt, negative_prompt, nag_scale,
+    prompt, negative_prompt, nag_scale, nag_alpha,
     ref_video, ref_strength, lora_choice, attention_strength,
     image, image_strength, image_crf,
     resolution, num_frames, frame_rate, seed,
@@ -363,7 +365,7 @@ def generate_iclora(
 ):
     global _active_gen_inputs
     _active_gen_inputs = {"gen_type": "iclora", "values": [
-        prompt, negative_prompt, nag_scale,
+        prompt, negative_prompt, nag_scale, nag_alpha,
         ref_video, ref_strength, lora_choice, attention_strength,
         image, image_strength, image_crf,
         resolution, num_frames, frame_rate, seed,
@@ -383,6 +385,7 @@ def generate_iclora(
     kwargs = {
         "prompt": prompt,
         "negative_prompt": negative_prompt, "nag_scale": float(nag_scale),
+        "nag_alpha": float(nag_alpha),
         "ref_video": ref_video,
         "ref_strength": float(ref_strength),
         "lora_choice": lora_choice, "attention_strength": float(attention_strength),
@@ -400,7 +403,7 @@ def generate_keyframe(
     prompt, negative_prompt,
     keyframe_files, frame_indices_str, image_strength, image_crf,
     resolution, num_frames, frame_rate, num_steps, seed,
-    enhance_prompt, fp8,
+    enhance_prompt, fp8, lora_strength,
     v_cfg, v_stg, v_rescale, v_modality, v_stg_blocks, v_skip_step,
     a_cfg, a_stg, a_rescale, a_modality, a_stg_blocks, a_skip_step,
     frame_mode="Frames", duration=4.8, disable_audio=False,
@@ -411,7 +414,7 @@ def generate_keyframe(
         prompt, negative_prompt,
         keyframe_files, frame_indices_str, image_strength, image_crf,
         resolution, num_frames, frame_rate, num_steps, seed,
-        enhance_prompt, fp8,
+        enhance_prompt, fp8, lora_strength,
         v_cfg, v_stg, v_rescale, v_modality, v_stg_blocks, v_skip_step,
         a_cfg, a_stg, a_rescale, a_modality, a_stg_blocks, a_skip_step,
         frame_mode, duration, disable_audio,
@@ -428,6 +431,7 @@ def generate_keyframe(
         "num_frames": int(num_frames), "frame_rate": int(frame_rate),
         "num_steps": int(num_steps), "seed": int(seed),
         "enhance_prompt": bool(enhance_prompt), "fp8": bool(fp8),
+        "lora_strength": float(lora_strength),
         "v_guidance": [v_cfg, v_stg, v_rescale, v_modality, str(v_stg_blocks), v_skip_step],
         "a_guidance": [a_cfg, a_stg, a_rescale, a_modality, str(a_stg_blocks), a_skip_step],
         "disable_audio": bool(disable_audio),
@@ -440,7 +444,7 @@ def generate_a2vid(
     audio_file, audio_start, audio_max_duration,
     image, image_strength, image_crf,
     resolution, num_frames, frame_rate, num_steps, seed,
-    enhance_prompt, fp8,
+    enhance_prompt, fp8, lora_strength,
     v_cfg, v_stg, v_rescale, v_modality, v_stg_blocks, v_skip_step,
     frame_mode="Frames", duration=4.8,
     progress=gr.Progress(track_tqdm=True),
@@ -451,7 +455,7 @@ def generate_a2vid(
         audio_file, audio_start, audio_max_duration,
         image, image_strength, image_crf,
         resolution, num_frames, frame_rate, num_steps, seed,
-        enhance_prompt, fp8,
+        enhance_prompt, fp8, lora_strength,
         v_cfg, v_stg, v_rescale, v_modality, v_stg_blocks, v_skip_step,
         frame_mode, duration,
     ]}
@@ -466,13 +470,14 @@ def generate_a2vid(
         "num_frames": int(num_frames), "frame_rate": int(frame_rate),
         "num_steps": int(num_steps), "seed": int(seed),
         "enhance_prompt": bool(enhance_prompt), "fp8": bool(fp8),
+        "lora_strength": float(lora_strength),
         "v_guidance": [v_cfg, v_stg, v_rescale, v_modality, str(v_stg_blocks), v_skip_step],
     }
     yield from _submit_and_wait("a2vid", kwargs, progress)
 
 
 def generate_retake(
-    video_path, prompt, negative_prompt, nag_scale,
+    video_path, prompt, negative_prompt, nag_scale, nag_alpha,
     start_time, end_time,
     regenerate_video, regenerate_audio,
     num_steps, seed, distilled_mode,
@@ -483,7 +488,7 @@ def generate_retake(
 ):
     global _active_gen_inputs
     _active_gen_inputs = {"gen_type": "retake", "values": [
-        video_path, prompt, negative_prompt, nag_scale,
+        video_path, prompt, negative_prompt, nag_scale, nag_alpha,
         start_time, end_time,
         regenerate_video, regenerate_audio,
         num_steps, seed, distilled_mode,
@@ -496,7 +501,7 @@ def generate_retake(
     _validate("retake", prompt, required_files={"Source Video": video_path})
     kwargs = {
         "prompt": prompt, "negative_prompt": negative_prompt,
-        "nag_scale": float(nag_scale),
+        "nag_scale": float(nag_scale), "nag_alpha": float(nag_alpha),
         "video_path": video_path,
         "start_time": float(start_time), "end_time": float(end_time),
         "regenerate_video": bool(regenerate_video),

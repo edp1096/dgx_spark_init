@@ -342,6 +342,8 @@ def build_ui() -> gr.Blocks:
                             t2_neg = gr.Textbox(label="Negative Prompt", value="", lines=2, show_label=False)
                             t2_nag_scale = gr.Slider(1.0, 15.0, value=1.0, step=0.5, label="NAG Scale",
                                                      info="Guidance strength (1.0=off, higher=stronger, doubles inference time)")
+                            t2_nag_alpha = gr.Slider(0.0, 1.0, value=0.0, step=0.05, label="NAG Alpha (Rescale)",
+                                                     info="CFG rescale factor (0=off, higher=reduce artifacts)")
                         with gr.Accordion("Conditioning Image", open=False):
                             t2_image = gr.Image(label="Image (optional)", type="numpy")
                             t2_img_strength = gr.Slider(0.0, 1.0, value=1.0, step=0.05, label="Image Strength")
@@ -358,7 +360,7 @@ def build_ui() -> gr.Blocks:
                             t2_no_audio = gr.Checkbox(value=False, label="Disable Audio")
                         create_preset_row("distilled", [
                             ("prompt", t2_prompt), ("negative_prompt", t2_neg),
-                            ("nag_scale", t2_nag_scale),
+                            ("nag_scale", t2_nag_scale), ("nag_alpha", t2_nag_alpha),
                             ("img_strength", t2_img_strength), ("img_crf", t2_img_crf),
                             ("resolution", t2_resolution), ("frames", t2_frames),
                             ("fps", t2_fps), ("seed", t2_seed),
@@ -378,7 +380,7 @@ def build_ui() -> gr.Blocks:
                 ).then(
                     fn=generate_distilled,
                     inputs=[
-                        t2_prompt, t2_neg, t2_nag_scale,
+                        t2_prompt, t2_neg, t2_nag_scale, t2_nag_alpha,
                         t2_image, t2_img_strength, t2_img_crf,
                         t2_resolution, t2_frames, t2_fps, t2_seed,
                         t2_enhance, t2_fp8,
@@ -422,6 +424,8 @@ def build_ui() -> gr.Blocks:
                             t1_enhance = gr.Checkbox(value=False, label="Enhance Prompt")
                             t1_fp8 = gr.Checkbox(value=True, label="FP8 Quantization", interactive=False)
                             t1_no_audio = gr.Checkbox(value=False, label="Disable Audio")
+                        t1_lora_strength = gr.Slider(0.1, 1.5, value=0.8, step=0.05, label="Distilled LoRA Strength",
+                                                     info="Stage 2 distilled LoRA strength (lower=less distilled artifacts)")
                         t1_guidance = create_guidance_accordion("t1")
                         create_preset_row("ti2vid", [
                             ("prompt", t1_prompt), ("negative_prompt", t1_neg),
@@ -430,6 +434,7 @@ def build_ui() -> gr.Blocks:
                             ("fps", t1_fps), ("steps", t1_steps),
                             ("seed", t1_seed), ("sampler", t1_sampler),
                             ("enhance", t1_enhance), ("no_audio", t1_no_audio),
+                            ("lora_strength", t1_lora_strength),
                             ("frame_mode", t1_frame_mode), ("duration", t1_duration),
                         ] + [(_n, t1_guidance[_i]) for _i, _n in enumerate(_GUIDANCE_NAMES_VA)])
                         t1_btn = gr.Button("Generate", variant="primary", size="lg")
@@ -447,7 +452,7 @@ def build_ui() -> gr.Blocks:
                     inputs=[
                         t1_prompt, t1_neg, t1_image, t1_img_strength, t1_img_crf,
                         t1_resolution, t1_frames, t1_fps, t1_steps, t1_seed, t1_sampler,
-                        t1_enhance, t1_fp8,
+                        t1_enhance, t1_fp8, t1_lora_strength,
                         *t1_guidance,
                         t1_frame_mode, t1_duration, t1_no_audio,
                     ],
@@ -469,6 +474,8 @@ def build_ui() -> gr.Blocks:
                             t3_neg = gr.Textbox(label="Negative Prompt", value="", lines=2, show_label=False)
                             t3_nag_scale = gr.Slider(1.0, 15.0, value=1.0, step=0.5, label="NAG Scale",
                                                      info="Guidance strength (1.0=off, higher=stronger, doubles inference time)")
+                            t3_nag_alpha = gr.Slider(0.0, 1.0, value=0.0, step=0.05, label="NAG Alpha (Rescale)",
+                                                     info="CFG rescale factor (0=off, higher=reduce artifacts)")
                         t3_ref_video = gr.Video(label="Reference Video", sources=["upload"])
                         t3_ref_strength = gr.Slider(0.0, 1.0, value=1.0, step=0.05, label="Reference Strength")
                         t3_lora = gr.Dropdown(
@@ -494,7 +501,7 @@ def build_ui() -> gr.Blocks:
                             t3_no_audio = gr.Checkbox(value=False, label="Disable Audio")
                         create_preset_row("iclora", [
                             ("prompt", t3_prompt), ("negative_prompt", t3_neg),
-                            ("nag_scale", t3_nag_scale),
+                            ("nag_scale", t3_nag_scale), ("nag_alpha", t3_nag_alpha),
                             ("ref_strength", t3_ref_strength), ("lora_type", t3_lora),
                             ("attn_strength", t3_attn_strength),
                             ("img_strength", t3_img_strength), ("img_crf", t3_img_crf),
@@ -517,7 +524,7 @@ def build_ui() -> gr.Blocks:
                 ).then(
                     fn=generate_iclora,
                     inputs=[
-                        t3_prompt, t3_neg, t3_nag_scale,
+                        t3_prompt, t3_neg, t3_nag_scale, t3_nag_alpha,
                         t3_ref_video, t3_ref_strength, t3_lora, t3_attn_strength,
                         t3_image, t3_img_strength, t3_img_crf,
                         t3_resolution, t3_frames, t3_fps, t3_seed,
@@ -554,6 +561,8 @@ def build_ui() -> gr.Blocks:
                             t4_enhance = gr.Checkbox(value=False, label="Enhance Prompt")
                             t4_fp8 = gr.Checkbox(value=True, label="FP8 Quantization", interactive=False)
                             t4_no_audio = gr.Checkbox(value=False, label="Disable Audio")
+                        t4_lora_strength = gr.Slider(0.1, 1.5, value=0.8, step=0.05, label="Distilled LoRA Strength",
+                                                     info="Stage 2 distilled LoRA strength (lower=less distilled artifacts)")
                         t4_guidance = create_guidance_accordion("t4")
                         create_preset_row("keyframe", [
                             ("prompt", t4_prompt), ("negative_prompt", t4_neg),
@@ -562,6 +571,7 @@ def build_ui() -> gr.Blocks:
                             ("resolution", t4_resolution), ("frames", t4_frames),
                             ("fps", t4_fps), ("steps", t4_steps), ("seed", t4_seed),
                             ("enhance", t4_enhance), ("no_audio", t4_no_audio),
+                            ("lora_strength", t4_lora_strength),
                             ("frame_mode", t4_frame_mode), ("duration", t4_duration),
                         ] + [(_n, t4_guidance[_i]) for _i, _n in enumerate(_GUIDANCE_NAMES_VA)])
                         t4_btn = gr.Button("Generate", variant="primary", size="lg")
@@ -580,7 +590,7 @@ def build_ui() -> gr.Blocks:
                         t4_prompt, t4_neg,
                         t4_keyframes, t4_indices, t4_img_strength, t4_img_crf,
                         t4_resolution, t4_frames, t4_fps, t4_steps, t4_seed,
-                        t4_enhance, t4_fp8,
+                        t4_enhance, t4_fp8, t4_lora_strength,
                         *t4_guidance,
                         t4_frame_mode, t4_duration, t4_no_audio,
                     ],
@@ -616,6 +626,8 @@ def build_ui() -> gr.Blocks:
                         with gr.Row():
                             t5_enhance = gr.Checkbox(value=False, label="Enhance Prompt")
                             t5_fp8 = gr.Checkbox(value=True, label="FP8 Quantization", interactive=False)
+                        t5_lora_strength = gr.Slider(0.1, 1.5, value=0.8, step=0.05, label="Distilled LoRA Strength",
+                                                     info="Stage 2 distilled LoRA strength (lower=less distilled artifacts)")
                         t5_guidance = create_guidance_accordion("t5", show_audio=False)
                         create_preset_row("a2vid", [
                             ("prompt", t5_prompt), ("negative_prompt", t5_neg),
@@ -623,7 +635,7 @@ def build_ui() -> gr.Blocks:
                             ("img_strength", t5_img_strength), ("img_crf", t5_img_crf),
                             ("resolution", t5_resolution), ("frames", t5_frames),
                             ("fps", t5_fps), ("steps", t5_steps), ("seed", t5_seed),
-                            ("enhance", t5_enhance),
+                            ("enhance", t5_enhance), ("lora_strength", t5_lora_strength),
                             ("frame_mode", t5_frame_mode), ("duration", t5_duration),
                         ] + [(_n, t5_guidance[_i]) for _i, _n in enumerate(_GUIDANCE_NAMES_V)])
                         t5_btn = gr.Button("Generate", variant="primary", size="lg")
@@ -643,7 +655,7 @@ def build_ui() -> gr.Blocks:
                         t5_audio, t5_audio_start, t5_audio_max,
                         t5_image, t5_img_strength, t5_img_crf,
                         t5_resolution, t5_frames, t5_fps, t5_steps, t5_seed,
-                        t5_enhance, t5_fp8,
+                        t5_enhance, t5_fp8, t5_lora_strength,
                         *t5_guidance,
                         t5_frame_mode, t5_duration,
                     ],
@@ -663,6 +675,8 @@ def build_ui() -> gr.Blocks:
                             t6_nag_scale = gr.Slider(1.0, 15.0, value=1.0, step=0.5, label="NAG Scale",
                                                      info="Guidance for distilled mode (1.0=off, ignored in full mode)",
                                                      visible=True)
+                            t6_nag_alpha = gr.Slider(0.0, 1.0, value=0.0, step=0.05, label="NAG Alpha (Rescale)",
+                                                     info="CFG rescale factor (0=off, higher=reduce artifacts)")
                         with gr.Row():
                             t6_start = gr.Number(value=0.0, label="Start Time (sec)")
                             t6_end = gr.Number(value=2.0, label="End Time (sec)")
@@ -679,7 +693,7 @@ def build_ui() -> gr.Blocks:
                         t6_guidance = create_guidance_accordion("t6")
                         create_preset_row("retake", [
                             ("prompt", t6_prompt), ("negative_prompt", t6_neg),
-                            ("nag_scale", t6_nag_scale),
+                            ("nag_scale", t6_nag_scale), ("nag_alpha", t6_nag_alpha),
                             ("start_time", t6_start), ("end_time", t6_end),
                             ("regen_video", t6_regen_video), ("regen_audio", t6_regen_audio),
                             ("steps", t6_steps), ("seed", t6_seed),
@@ -696,7 +710,7 @@ def build_ui() -> gr.Blocks:
                 ).then(
                     fn=generate_retake,
                     inputs=[
-                        t6_video_in, t6_prompt, t6_neg, t6_nag_scale,
+                        t6_video_in, t6_prompt, t6_neg, t6_nag_scale, t6_nag_alpha,
                         t6_start, t6_end,
                         t6_regen_video, t6_regen_audio,
                         t6_steps, t6_seed, t6_distilled,

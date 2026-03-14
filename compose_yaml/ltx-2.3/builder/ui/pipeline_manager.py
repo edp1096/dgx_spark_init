@@ -294,6 +294,7 @@ class PipelineManager:
         self.model_dir: str = str(DEFAULT_MODEL_DIR)
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self._iclora_path: str | None = None
+        self._lora_strength: float = 0.8
         # Loading progress state
         self._loaded_names: list[str] = []
         self._load_times: list[float] = []
@@ -411,18 +412,19 @@ class PipelineManager:
             LTXV_LORA_COMFY_RENAMING_MAP,
         )]
 
-    def get_ti2vid(self, sampler: str = "euler", quantization=None):
+    def get_ti2vid(self, sampler: str = "euler", lora_strength: float = 0.8, quantization=None):
         target = "ti2vid_hq" if sampler == "res_2s" else "ti2vid"
-        if self.current_type == target:
+        if self.current_type == target and self._lora_strength == lora_strength:
             return self.current_pipeline
         self._cleanup()
+        self._lora_strength = lora_strength
         if sampler == "res_2s":
             from ltx_pipelines.ti2vid_two_stages_hq import TI2VidTwoStagesHQPipeline
             self.current_pipeline = TI2VidTwoStagesHQPipeline(
                 checkpoint_path=self._model_path("ltx-2.3-22b-dev-fp8.safetensors"),
-                distilled_lora=self._distilled_lora(),
-                distilled_lora_strength_stage_1=0.3,
-                distilled_lora_strength_stage_2=0.8,
+                distilled_lora=self._distilled_lora(lora_strength),
+                distilled_lora_strength_stage_1=lora_strength * 0.375,
+                distilled_lora_strength_stage_2=lora_strength,
                 spatial_upsampler_path=self._model_path("ltx-2.3-spatial-upscaler-x2-1.0.safetensors"),
                 gemma_root=self._gemma_root(),
                 loras=(),
@@ -433,7 +435,7 @@ class PipelineManager:
             from ltx_pipelines.ti2vid_two_stages import TI2VidTwoStagesPipeline
             self.current_pipeline = TI2VidTwoStagesPipeline(
                 checkpoint_path=self._model_path("ltx-2.3-22b-dev-fp8.safetensors"),
-                distilled_lora=self._distilled_lora(),
+                distilled_lora=self._distilled_lora(lora_strength),
                 spatial_upsampler_path=self._model_path("ltx-2.3-spatial-upscaler-x2-1.0.safetensors"),
                 gemma_root=self._gemma_root(),
                 loras=[],
@@ -479,14 +481,15 @@ class PipelineManager:
         self._wrap_current_pipeline()
         return self.current_pipeline
 
-    def get_keyframe(self, quantization=None):
-        if self.current_type == "keyframe":
+    def get_keyframe(self, lora_strength: float = 0.8, quantization=None):
+        if self.current_type == "keyframe" and self._lora_strength == lora_strength:
             return self.current_pipeline
         self._cleanup()
+        self._lora_strength = lora_strength
         from ltx_pipelines.keyframe_interpolation import KeyframeInterpolationPipeline
         self.current_pipeline = KeyframeInterpolationPipeline(
             checkpoint_path=self._model_path("ltx-2.3-22b-dev-fp8.safetensors"),
-            distilled_lora=self._distilled_lora(),
+            distilled_lora=self._distilled_lora(lora_strength),
             spatial_upsampler_path=self._model_path("ltx-2.3-spatial-upscaler-x2-1.0.safetensors"),
             gemma_root=self._gemma_root(),
             loras=[],
@@ -497,14 +500,15 @@ class PipelineManager:
         self._wrap_current_pipeline()
         return self.current_pipeline
 
-    def get_a2vid(self, quantization=None):
-        if self.current_type == "a2vid":
+    def get_a2vid(self, lora_strength: float = 0.8, quantization=None):
+        if self.current_type == "a2vid" and self._lora_strength == lora_strength:
             return self.current_pipeline
         self._cleanup()
+        self._lora_strength = lora_strength
         from ltx_pipelines.a2vid_two_stage import A2VidPipelineTwoStage
         self.current_pipeline = A2VidPipelineTwoStage(
             checkpoint_path=self._model_path("ltx-2.3-22b-dev-fp8.safetensors"),
-            distilled_lora=self._distilled_lora(),
+            distilled_lora=self._distilled_lora(lora_strength),
             spatial_upsampler_path=self._model_path("ltx-2.3-spatial-upscaler-x2-1.0.safetensors"),
             gemma_root=self._gemma_root(),
             loras=[],
