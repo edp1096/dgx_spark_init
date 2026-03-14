@@ -315,12 +315,12 @@ def build_ui() -> gr.Blocks:
         return f"Memory: **{used:.1f}GB/{total:.0f}GB** ({vm.percent:.0f}% used)"
 
     with gr.Blocks(
-        title="LTX-2 Video Generator",
+        title="LTX-2 Gradio UI",
         css=".memory-status { text-align: right; } .kill-btn { background: #dc2626 !important; color: white !important; border: none !important; } .kill-btn:hover { background: #b91c1c !important; }",
         js=get_i18n_js(),
     ) as app:
         with gr.Row():
-            gr.Markdown("# LTX-2 Video Generator")
+            gr.Markdown("# LTX-2 Gradio UI")
             gr.Markdown(value=get_memory_status, every=3, elem_classes=["memory-status"])
 
         with gr.Tabs():

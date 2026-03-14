@@ -16,7 +16,7 @@ LANGUAGES = {
 # "en" values are also the default labels used in Gradio components.
 STRINGS = {
     # Header
-    "header_title":              {"en": "LTX-2 Video Generator",       "ko": "LTX-2 영상 생성기"},
+    "header_title":              {"en": "LTX-2 Gradio UI",             "ko": "LTX-2 Gradio UI"},
 
     # Tab names
     "tab_distilled":             {"en": "ti2vid (distilled)",          "ko": "ti2vid (distilled)"},
