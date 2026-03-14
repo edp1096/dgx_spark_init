@@ -237,13 +237,15 @@ def create_keyframe_section():
     slots_idxs = []
     slots_units = []
     slots_strs = []
+    slots_del = []
     rows = []
 
     INITIAL_VISIBLE = 2
+    S = MAX_KEYFRAME_SLOTS
 
     add_btn = gr.Button("+ Add Keyframe", size="sm", variant="secondary")
 
-    for i in range(MAX_KEYFRAME_SLOTS):
+    for i in range(S):
         with gr.Group(visible=(i < INITIAL_VISIBLE)) as grp:
             with gr.Row():
                 img = gr.Image(
@@ -259,25 +261,28 @@ def create_keyframe_section():
                                         precision=2, minimum=0)
                         unit = gr.Radio(["Frame", "Time(s)"], value="Frame",
                                         label="Unit", container=False)
-                    stren = gr.Slider(0.0, 1.0, value=0.8, step=0.05, label="Strength")
+                    with gr.Row():
+                        stren = gr.Slider(0.0, 1.0, value=0.8, step=0.05, label="Strength")
+                        d_btn = gr.Button("✕", size="sm", variant="stop", min_width=40)
         slots_imgs.append(img)
         slots_idxs.append(idx)
         slots_units.append(unit)
         slots_strs.append(stren)
+        slots_del.append(d_btn)
         rows.append(grp)
 
     count_state = gr.State(INITIAL_VISIBLE)
     kf_state = gr.State([])
 
     def _add_slot(n):
-        n = min(n + 1, MAX_KEYFRAME_SLOTS)
-        return [n] + [gr.Group(visible=(i < n)) for i in range(MAX_KEYFRAME_SLOTS)]
+        n = min(n + 1, S)
+        return [n] + [gr.Group(visible=(i < n)) for i in range(S)]
 
     def _sync_state(*vals):
-        imgs = vals[:MAX_KEYFRAME_SLOTS]
-        idxs = vals[MAX_KEYFRAME_SLOTS:2 * MAX_KEYFRAME_SLOTS]
-        units = vals[2 * MAX_KEYFRAME_SLOTS:3 * MAX_KEYFRAME_SLOTS]
-        strs_ = vals[3 * MAX_KEYFRAME_SLOTS:]
+        imgs = vals[:S]
+        idxs = vals[S:2 * S]
+        units = vals[2 * S:3 * S]
+        strs_ = vals[3 * S:]
         result = []
         for im, ix, un, st in zip(imgs, idxs, units, strs_):
             if im is not None:
@@ -285,9 +290,36 @@ def create_keyframe_section():
                 result.append({"path": str(im), "frame_idx": raw, "strength": float(st)})
         return result
 
+    def _make_delete(slot_idx):
+        def _delete(n, *vals):
+            imgs = list(vals[:S])
+            idxs = list(vals[S:2 * S])
+            units = list(vals[2 * S:3 * S])
+            strs_ = list(vals[3 * S:])
+            # Shift slots above deleted index down
+            for j in range(slot_idx, n - 1):
+                imgs[j], idxs[j], units[j], strs_[j] = imgs[j + 1], idxs[j + 1], units[j + 1], strs_[j + 1]
+            # Clear last visible slot
+            last = n - 1
+            imgs[last], idxs[last], units[last], strs_[last] = None, None, "Frame", 0.8
+            n = max(n - 1, INITIAL_VISIBLE)
+            vis = [gr.Group(visible=(i < n)) for i in range(S)]
+            # Rebuild state
+            result = []
+            for im, ix, un, st in zip(imgs, idxs, units, strs_):
+                if im is not None:
+                    raw = f"{ix}s" if un == "Time(s)" and ix is not None else str(ix or 0)
+                    result.append({"path": str(im), "frame_idx": raw, "strength": float(st)})
+            return [n] + vis + imgs + idxs + units + strs_ + [result]
+        return _delete
+
     add_btn.click(fn=_add_slot, inputs=[count_state], outputs=[count_state] + rows)
 
     all_inputs = slots_imgs + slots_idxs + slots_units + slots_strs
+    all_outputs = [count_state] + rows + slots_imgs + slots_idxs + slots_units + slots_strs + [kf_state]
+    for i in range(S):
+        slots_del[i].click(fn=_make_delete(i), inputs=[count_state] + all_inputs, outputs=all_outputs)
+
     for comp in all_inputs:
         comp.change(fn=_sync_state, inputs=all_inputs, outputs=[kf_state])
 
@@ -304,11 +336,14 @@ def create_extra_conditioning_section():
     slots_idxs = []
     slots_units = []
     slots_strs = []
+    slots_del = []
     rows = []
+
+    E = MAX_EXTRA_COND
 
     add_btn = gr.Button("+ Add Conditioning Image", size="sm", variant="secondary")
 
-    for i in range(MAX_EXTRA_COND):
+    for i in range(E):
         with gr.Group(visible=False) as grp:
             with gr.Row():
                 img = gr.Image(
@@ -324,25 +359,28 @@ def create_extra_conditioning_section():
                                         precision=2, minimum=0)
                         unit = gr.Radio(["Frame", "Time(s)"], value="Frame",
                                         label="Unit", container=False)
-                    stren = gr.Slider(0.0, 1.0, value=0.8, step=0.05, label="Strength")
+                    with gr.Row():
+                        stren = gr.Slider(0.0, 1.0, value=0.8, step=0.05, label="Strength")
+                        d_btn = gr.Button("✕", size="sm", variant="stop", min_width=40)
         slots_imgs.append(img)
         slots_idxs.append(idx)
         slots_units.append(unit)
         slots_strs.append(stren)
+        slots_del.append(d_btn)
         rows.append(grp)
 
     count_state = gr.State(0)
     extra_state = gr.State([])
 
     def _add_slot(n):
-        n = min(n + 1, MAX_EXTRA_COND)
-        return [n] + [gr.Group(visible=(i < n)) for i in range(MAX_EXTRA_COND)]
+        n = min(n + 1, E)
+        return [n] + [gr.Group(visible=(i < n)) for i in range(E)]
 
     def _sync_state(*vals):
-        imgs = vals[:MAX_EXTRA_COND]
-        idxs = vals[MAX_EXTRA_COND:2 * MAX_EXTRA_COND]
-        units = vals[2 * MAX_EXTRA_COND:3 * MAX_EXTRA_COND]
-        strs_ = vals[3 * MAX_EXTRA_COND:]
+        imgs = vals[:E]
+        idxs = vals[E:2 * E]
+        units = vals[2 * E:3 * E]
+        strs_ = vals[3 * E:]
         result = []
         for im, ix, un, st in zip(imgs, idxs, units, strs_):
             if im is not None:
@@ -350,9 +388,33 @@ def create_extra_conditioning_section():
                 result.append({"path": str(im), "frame_idx": raw, "strength": float(st)})
         return result
 
+    def _make_delete(slot_idx):
+        def _delete(n, *vals):
+            imgs = list(vals[:E])
+            idxs = list(vals[E:2 * E])
+            units = list(vals[2 * E:3 * E])
+            strs_ = list(vals[3 * E:])
+            for j in range(slot_idx, n - 1):
+                imgs[j], idxs[j], units[j], strs_[j] = imgs[j + 1], idxs[j + 1], units[j + 1], strs_[j + 1]
+            last = n - 1
+            imgs[last], idxs[last], units[last], strs_[last] = None, None, "Frame", 0.8
+            n = max(n - 1, 0)
+            vis = [gr.Group(visible=(i < n)) for i in range(E)]
+            result = []
+            for im, ix, un, st in zip(imgs, idxs, units, strs_):
+                if im is not None:
+                    raw = f"{ix}s" if un == "Time(s)" and ix is not None else str(ix or 0)
+                    result.append({"path": str(im), "frame_idx": raw, "strength": float(st)})
+            return [n] + vis + imgs + idxs + units + strs_ + [result]
+        return _delete
+
     add_btn.click(fn=_add_slot, inputs=[count_state], outputs=[count_state] + rows)
 
     all_inputs = slots_imgs + slots_idxs + slots_units + slots_strs
+    all_outputs = [count_state] + rows + slots_imgs + slots_idxs + slots_units + slots_strs + [extra_state]
+    for i in range(E):
+        slots_del[i].click(fn=_make_delete(i), inputs=[count_state] + all_inputs, outputs=all_outputs)
+
     for comp in all_inputs:
         comp.change(fn=_sync_state, inputs=all_inputs, outputs=[extra_state])
 
