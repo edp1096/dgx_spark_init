@@ -35,6 +35,7 @@ from pipeline_manager import (
     RESOLUTION_CHOICES,
     SAMPLE_PROMPTS,
     scan_lora_files,
+    LORAS_DIR,
 )
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -1073,6 +1074,137 @@ def build_ui() -> gr.Blocks:
 
                 s_apply.click(fn=apply_settings, inputs=[s_model_dir], outputs=[s_status])
                 s_check.click(fn=check_models, inputs=[s_model_dir], outputs=[s_status])
+
+                # --- Custom LoRA Download ---
+                gr.Markdown("## Custom LoRA Download")
+                s_lora_source = gr.Textbox(
+                    label="HuggingFace Repo ID or Direct URL",
+                    placeholder="e.g. Lightricks/LTX-2.3  or  https://huggingface.co/.../resolve/main/xxx.safetensors",
+                )
+                with gr.Row():
+                    s_lora_filename = gr.Textbox(
+                        label="Filename in Repo (HF repo only)",
+                        placeholder="e.g. model.safetensors",
+                        scale=2,
+                    )
+                    s_lora_savename = gr.Textbox(
+                        label="Save As (optional)",
+                        placeholder="auto-detect if empty",
+                        scale=2,
+                    )
+                with gr.Row():
+                    s_lora_dl_btn = gr.Button("Download", variant="primary", min_width=120)
+                    s_lora_refresh_btn = gr.Button("Refresh List", variant="secondary", min_width=120)
+                    s_lora_del_btn = gr.Button("Delete Selected", variant="stop", min_width=120)
+
+                s_lora_dl_status = gr.Textbox(label="Download Status", interactive=False, lines=3)
+
+                _installed = scan_lora_files()
+                s_lora_list = gr.CheckboxGroup(
+                    choices=_installed, value=[],
+                    label=f"Installed Custom LoRAs  ({LORAS_DIR})",
+                )
+
+                def _download_lora(source, filename, savename, progress=gr.Progress()):
+                    source = (source or "").strip()
+                    if not source:
+                        return "Error: source is empty."
+
+                    import re
+                    is_url = source.startswith("http://") or source.startswith("https://")
+
+                    if is_url:
+                        # Direct URL download
+                        import urllib.request
+                        import urllib.error
+
+                        if savename and savename.strip():
+                            dst_name = savename.strip()
+                        else:
+                            # Extract filename from URL
+                            url_path = source.split("?")[0]
+                            dst_name = url_path.split("/")[-1]
+
+                        if not dst_name.endswith(".safetensors"):
+                            dst_name += ".safetensors"
+
+                        dst = LORAS_DIR / dst_name
+                        if dst.exists():
+                            return f"Already exists: {dst_name}"
+
+                        progress(0, desc=f"Downloading {dst_name}...")
+                        try:
+                            tmp = dst.with_suffix(".tmp")
+                            urllib.request.urlretrieve(source, str(tmp))
+                            tmp.rename(dst)
+                            size_mb = dst.stat().st_size / (1024 * 1024)
+                            return f"OK: {dst_name} ({size_mb:.1f} MB)"
+                        except Exception as e:
+                            if tmp.exists():
+                                tmp.unlink()
+                            return f"Error: {e}"
+                    else:
+                        # HuggingFace repo
+                        repo_id = source.strip().strip("/")
+                        fname = (filename or "").strip()
+                        if not fname:
+                            return "Error: Filename in Repo is required for HF repo download."
+
+                        if savename and savename.strip():
+                            dst_name = savename.strip()
+                        else:
+                            dst_name = fname.split("/")[-1]
+
+                        if not dst_name.endswith(".safetensors"):
+                            dst_name += ".safetensors"
+
+                        dst = LORAS_DIR / dst_name
+                        if dst.exists():
+                            return f"Already exists: {dst_name}"
+
+                        progress(0, desc=f"Downloading {dst_name} from {repo_id}...")
+                        try:
+                            from huggingface_hub import hf_hub_download
+                            hf_hub_download(
+                                repo_id, fname,
+                                local_dir=str(LORAS_DIR),
+                                local_dir_use_symlinks=False,
+                            )
+                            # hf_hub_download saves with original name; rename if needed
+                            downloaded = LORAS_DIR / fname
+                            if downloaded.exists() and downloaded.name != dst_name:
+                                downloaded.rename(dst)
+                            size_mb = dst.stat().st_size / (1024 * 1024)
+                            return f"OK: {dst_name} ({size_mb:.1f} MB)"
+                        except Exception as e:
+                            return f"Error: {e}"
+
+                def _refresh_lora_list():
+                    files = scan_lora_files()
+                    return gr.CheckboxGroup(choices=files, value=[])
+
+                def _delete_loras(selected):
+                    if not selected:
+                        return "No files selected.", _refresh_lora_list()
+                    deleted = []
+                    for fname in selected:
+                        path = LORAS_DIR / fname
+                        if path.exists():
+                            path.unlink()
+                            deleted.append(fname)
+                    return f"Deleted: {', '.join(deleted)}", _refresh_lora_list()
+
+                s_lora_dl_btn.click(
+                    fn=_download_lora,
+                    inputs=[s_lora_source, s_lora_filename, s_lora_savename],
+                    outputs=[s_lora_dl_status],
+                ).then(fn=_refresh_lora_list, outputs=[s_lora_list])
+
+                s_lora_refresh_btn.click(fn=_refresh_lora_list, outputs=[s_lora_list])
+                s_lora_del_btn.click(
+                    fn=_delete_loras, inputs=[s_lora_list],
+                    outputs=[s_lora_dl_status, s_lora_list],
+                )
 
                 gr.Markdown("## Language")
                 _lang_names = list(LANGUAGES.values())

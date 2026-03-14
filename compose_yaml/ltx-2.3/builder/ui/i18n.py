@@ -174,6 +174,20 @@ STRINGS = {
     "language":                  {"en": "Language",                    "ko": "언어"},
     "ui_language":               {"en": "UI Language",                 "ko": "UI 언어"},
 
+    # Custom LoRA download
+    "custom_lora_download":      {"en": "Custom LoRA Download",        "ko": "커스텀 LoRA 다운로드"},
+    "lora_download_source":      {"en": "HuggingFace Repo ID or Direct URL (.safetensors)",
+                                  "ko": "HuggingFace Repo ID 또는 직접 URL (.safetensors)"},
+    "lora_download_filename":    {"en": "Filename in Repo (for HF repo, e.g. model.safetensors)",
+                                  "ko": "레포 내 파일명 (HF repo인 경우, 예: model.safetensors)"},
+    "lora_download_savename":    {"en": "Save As (optional, auto-detected if empty)",
+                                  "ko": "저장 파일명 (선택, 비우면 자동 감지)"},
+    "lora_download_btn":         {"en": "Download",                    "ko": "다운로드"},
+    "lora_download_status":      {"en": "Download Status",             "ko": "다운로드 상태"},
+    "lora_installed_list":       {"en": "Installed Custom LoRAs",      "ko": "설치된 커스텀 LoRA 목록"},
+    "lora_delete_btn":           {"en": "Delete Selected",             "ko": "선택 삭제"},
+    "lora_refresh_list":         {"en": "Refresh List",                "ko": "목록 새로고침"},
+
     # Presets
     "presets":                   {"en": "Presets",                      "ko": "프리셋"},
     "export":                    {"en": "Export",                       "ko": "내보내기"},
