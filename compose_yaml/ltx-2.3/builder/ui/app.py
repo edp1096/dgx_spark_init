@@ -223,6 +223,69 @@ _GUIDANCE_NAMES_VA = [
 _GUIDANCE_NAMES_V = _GUIDANCE_NAMES_VA[:6]
 
 MAX_EXTRA_COND = 5
+MAX_KEYFRAME_SLOTS = 8
+
+
+def create_keyframe_section():
+    """Create per-keyframe image slots with preview, frame/time index, and strength.
+
+    Returns a gr.State that holds a list of dicts:
+      [{"path": str, "frame_idx": str, "strength": float}, ...]
+    Starts with 2 visible slots (minimum for keyframe interpolation).
+    """
+    slots_imgs = []
+    slots_idxs = []
+    slots_strs = []
+    rows = []
+
+    INITIAL_VISIBLE = 2
+
+    add_btn = gr.Button("+ Add Keyframe", size="sm", variant="secondary")
+
+    for i in range(MAX_KEYFRAME_SLOTS):
+        with gr.Group(visible=(i < INITIAL_VISIBLE)) as grp:
+            with gr.Row():
+                img = gr.Image(
+                    label=f"Keyframe {i + 1}",
+                    type="filepath",
+                    sources=["upload"],
+                    height=120,
+                    scale=1,
+                )
+                with gr.Column(scale=1, min_width=160):
+                    default_idx = "0" if i == 0 else ""
+                    idx = gr.Textbox(label="Frame / Time", value=default_idx,
+                                      placeholder="0, 60, 2.5s …", max_lines=1)
+                    stren = gr.Slider(0.0, 1.0, value=0.8, step=0.05, label="Strength")
+        slots_imgs.append(img)
+        slots_idxs.append(idx)
+        slots_strs.append(stren)
+        rows.append(grp)
+
+    count_state = gr.State(INITIAL_VISIBLE)
+    kf_state = gr.State([])
+
+    def _add_slot(n):
+        n = min(n + 1, MAX_KEYFRAME_SLOTS)
+        return [n] + [gr.Group(visible=(i < n)) for i in range(MAX_KEYFRAME_SLOTS)]
+
+    def _sync_state(*vals):
+        imgs = vals[:MAX_KEYFRAME_SLOTS]
+        idxs = vals[MAX_KEYFRAME_SLOTS:2 * MAX_KEYFRAME_SLOTS]
+        strs_ = vals[2 * MAX_KEYFRAME_SLOTS:]
+        result = []
+        for im, ix, st in zip(imgs, idxs, strs_):
+            if im is not None:
+                result.append({"path": str(im), "frame_idx": str(ix).strip(), "strength": float(st)})
+        return result
+
+    add_btn.click(fn=_add_slot, inputs=[count_state], outputs=[count_state] + rows)
+
+    all_inputs = slots_imgs + slots_idxs + slots_strs
+    for comp in all_inputs:
+        comp.change(fn=_sync_state, inputs=all_inputs, outputs=[kf_state])
+
+    return kf_state
 
 
 def create_extra_conditioning_section():
@@ -244,12 +307,14 @@ def create_extra_conditioning_section():
                 img = gr.Image(
                     label=f"Image {i + 1}",
                     type="filepath",
+                    sources=["upload"],
                     height=120,
                     scale=1,
                 )
                 with gr.Column(scale=1, min_width=160):
-                    idx = gr.Number(label="Frame Index", value=0, minimum=0, precision=0)
-                    stren = gr.Slider(0.0, 1.0, value=1.0, step=0.05, label="Strength")
+                    idx = gr.Textbox(label="Frame / Time", value="0",
+                                      placeholder="0, 10, 1.5s …", max_lines=1)
+                    stren = gr.Slider(0.0, 1.0, value=0.8, step=0.05, label="Strength")
         slots_imgs.append(img)
         slots_idxs.append(idx)
         slots_strs.append(stren)
@@ -269,7 +334,7 @@ def create_extra_conditioning_section():
         result = []
         for im, ix, st in zip(imgs, idxs, strs_):
             if im is not None:
-                result.append({"path": str(im), "frame_idx": int(ix), "strength": float(st)})
+                result.append({"path": str(im), "frame_idx": str(ix).strip(), "strength": float(st)})
         return result
 
     add_btn.click(fn=_add_slot, inputs=[count_state], outputs=[count_state] + rows)
@@ -404,7 +469,7 @@ def build_ui() -> gr.Blocks:
                                                      info="CFG rescale factor (0=off, higher=reduce artifacts)")
                         with gr.Accordion("Conditioning Images", open=False):
                             t2_image = gr.Image(label="Primary Image (Frame 0)", type="numpy")
-                            t2_img_strength = gr.Slider(0.0, 1.0, value=1.0, step=0.05, label="Primary Strength")
+                            t2_img_strength = gr.Slider(0.0, 1.0, value=0.8, step=0.05, label="Primary Strength")
                             t2_img_crf = gr.Slider(0, 51, value=33, step=1, label="Image CRF",
                                                    info="Compression quality (0=lossless, 51=worst)")
                             with gr.Accordion("Additional Conditioning Images", open=False):
@@ -470,7 +535,7 @@ def build_ui() -> gr.Blocks:
                             t1_neg = gr.Textbox(label="Negative Prompt", value=DEFAULT_NEGATIVE_PROMPT, lines=2, show_label=False)
                         with gr.Accordion("Conditioning Images", open=False):
                             t1_image = gr.Image(label="Primary Image (Frame 0)", type="numpy")
-                            t1_img_strength = gr.Slider(0.0, 1.0, value=1.0, step=0.05, label="Primary Strength")
+                            t1_img_strength = gr.Slider(0.0, 1.0, value=0.8, step=0.05, label="Primary Strength")
                             t1_img_crf = gr.Slider(0, 51, value=33, step=1, label="Image CRF",
                                                    info="Compression quality (0=lossless, 51=worst)")
                             with gr.Accordion("Additional Conditioning Images", open=False):
@@ -550,7 +615,7 @@ def build_ui() -> gr.Blocks:
                         t3_attn_strength = gr.Slider(0.0, 1.0, value=1.0, step=0.05, label="Attention Strength")
                         with gr.Accordion("Conditioning Images", open=False):
                             t3_image = gr.Image(label="Primary Image (Frame 0)", type="numpy")
-                            t3_img_strength = gr.Slider(0.0, 1.0, value=1.0, step=0.05, label="Primary Strength")
+                            t3_img_strength = gr.Slider(0.0, 1.0, value=0.8, step=0.05, label="Primary Strength")
                             t3_img_crf = gr.Slider(0, 51, value=33, step=1, label="Image CRF",
                                                    info="Compression quality (0=lossless, 51=worst)")
                             with gr.Accordion("Additional Conditioning Images", open=False):
@@ -612,9 +677,8 @@ def build_ui() -> gr.Blocks:
                         create_prompt_constructor(t4_prompt)
                         with gr.Accordion("Negative Prompt", open=False):
                             t4_neg = gr.Textbox(label="Negative Prompt", value=DEFAULT_NEGATIVE_PROMPT, lines=2, show_label=False)
-                        t4_keyframes = gr.File(label="Keyframe Images", file_count="multiple", file_types=["image"])
-                        t4_indices = gr.Textbox(label="Frame Indices (comma-separated)", value="0,120", placeholder="0,60,120")
-                        t4_img_strength = gr.Slider(0.0, 1.0, value=1.0, step=0.05, label="Keyframe Strength")
+                        with gr.Accordion("Keyframe Images (min 2)", open=True):
+                            t4_kf_state = create_keyframe_section()
                         t4_img_crf = gr.Slider(0, 51, value=33, step=1, label="Image CRF",
                                                info="Compression quality (0=lossless, 51=worst)")
                         t4_resolution = gr.Dropdown(RESOLUTION_CHOICES, value="768x512", label="Resolution (WxH)", allow_custom_value=True)
@@ -633,8 +697,7 @@ def build_ui() -> gr.Blocks:
                         t4_guidance = create_guidance_accordion("t4")
                         create_preset_row("keyframe", [
                             ("prompt", t4_prompt), ("negative_prompt", t4_neg),
-                            ("indices", t4_indices),
-                            ("img_strength", t4_img_strength), ("img_crf", t4_img_crf),
+                            ("img_crf", t4_img_crf),
                             ("resolution", t4_resolution), ("frames", t4_frames),
                             ("fps", t4_fps), ("steps", t4_steps), ("seed", t4_seed),
                             ("enhance", t4_enhance), ("no_audio", t4_no_audio),
@@ -655,7 +718,7 @@ def build_ui() -> gr.Blocks:
                     fn=generate_keyframe,
                     inputs=[
                         t4_prompt, t4_neg,
-                        t4_keyframes, t4_indices, t4_img_strength, t4_img_crf,
+                        t4_kf_state, t4_img_crf,
                         t4_resolution, t4_frames, t4_fps, t4_steps, t4_seed,
                         t4_enhance, t4_fp8, t4_lora_strength,
                         *t4_guidance,
@@ -680,7 +743,7 @@ def build_ui() -> gr.Blocks:
                             t5_audio_max = gr.Number(value=0.0, label="Max Duration (0=all)")
                         with gr.Accordion("Conditioning Images", open=False):
                             t5_image = gr.Image(label="Primary Image (Frame 0)", type="numpy")
-                            t5_img_strength = gr.Slider(0.0, 1.0, value=1.0, step=0.05, label="Primary Strength")
+                            t5_img_strength = gr.Slider(0.0, 1.0, value=0.8, step=0.05, label="Primary Strength")
                             t5_img_crf = gr.Slider(0, 51, value=33, step=1, label="Image CRF",
                                                    info="Compression quality (0=lossless, 51=worst)")
                             with gr.Accordion("Additional Conditioning Images", open=False):
@@ -1005,11 +1068,12 @@ def build_ui() -> gr.Blocks:
 
                 h_gallery = gr.Gallery(
                     label="Generation History",
-                    columns=4, height="auto",
+                    columns=4, height=280,
                     object_fit="cover", preview=False,
                 )
-                h_video = gr.Video(label="Preview")
-                h_file_info = gr.Textbox(label="File Info", interactive=False)
+                with gr.Row():
+                    h_video = gr.Video(label="Preview", height=260)
+                    h_file_info = gr.Textbox(label="File Info", interactive=False, lines=4)
 
                 h_gallery.select(
                     fn=_select_video,
@@ -1110,7 +1174,7 @@ def build_ui() -> gr.Blocks:
             ],
             "keyframe": [
                 t4_prompt, t4_neg,
-                t4_keyframes, t4_indices, t4_img_strength, t4_img_crf,
+                t4_kf_state, t4_img_crf,
                 t4_resolution, t4_frames, t4_fps, t4_steps, t4_seed,
                 t4_enhance, t4_fp8, *t4_guidance,
                 t4_frame_mode, t4_duration, t4_no_audio,

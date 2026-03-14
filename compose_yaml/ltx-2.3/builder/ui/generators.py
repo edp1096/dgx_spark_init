@@ -46,11 +46,31 @@ def save_temp_image(image_array) -> str:
     return f.name
 
 
+def _resolve_frame_idx(raw, frame_rate, num_frames, label="Extra image"):
+    """Parse a frame index value that may be a plain number or a time string (e.g. '1.5s').
+
+    Returns an int frame index.  Raises gr.Error when out of range.
+    """
+    raw = str(raw).strip()
+    if raw.lower().endswith("s"):
+        seconds = float(raw[:-1])
+        idx = round(seconds * frame_rate)
+    else:
+        idx = int(float(raw))
+    if idx < 0 or idx >= num_frames:
+        raise gr.Error(
+            f"{label}: frame index {idx} is out of range "
+            f"(0–{num_frames - 1}, {num_frames} frames at {frame_rate} fps)."
+        )
+    return idx
+
+
 def _build_image_conditionings(primary_image, primary_strength, crf,
-                                extra_conditionings=None):
+                                extra_conditionings=None,
+                                frame_rate=25, num_frames=97):
     """Build list of image conditioning dicts from UI inputs.
 
-    extra_conditionings: list of {"path": str, "frame_idx": int, "strength": float}
+    extra_conditionings: list of {"path": str, "frame_idx": str|int, "strength": float}
                          from gr.State (assembled by create_extra_conditioning_section).
     """
     conditionings = []
@@ -59,10 +79,14 @@ def _build_image_conditionings(primary_image, primary_strength, crf,
         conditionings.append({"path": path, "frame_idx": 0,
                               "strength": float(primary_strength), "crf": int(crf)})
     if extra_conditionings:
-        for ec in extra_conditionings:
+        for i, ec in enumerate(extra_conditionings):
+            idx = _resolve_frame_idx(
+                ec["frame_idx"], frame_rate, num_frames,
+                label=f"Conditioning image {i + 1}",
+            )
             conditionings.append({
                 "path": ec["path"],
-                "frame_idx": int(ec["frame_idx"]),
+                "frame_idx": idx,
                 "strength": float(ec["strength"]),
                 "crf": int(crf),
             })
@@ -332,7 +356,8 @@ def generate_ti2vid(
     ]}
     _validate("ti2vid", prompt, resolution=resolution)
     image_conditionings = _build_image_conditionings(
-        image, image_strength, image_crf, extra_conditionings)
+        image, image_strength, image_crf, extra_conditionings,
+        frame_rate=int(frame_rate), num_frames=int(num_frames))
     kwargs = {
         "prompt": prompt, "negative_prompt": negative_prompt,
         "image_conditionings": image_conditionings, "resolution": resolution,
@@ -367,7 +392,8 @@ def generate_distilled(
     ]}
     _validate("distilled", prompt)
     image_conditionings = _build_image_conditionings(
-        image, image_strength, image_crf, extra_conditionings)
+        image, image_strength, image_crf, extra_conditionings,
+        frame_rate=int(frame_rate), num_frames=int(num_frames))
     kwargs = {
         "prompt": prompt,
         "negative_prompt": negative_prompt, "nag_scale": float(nag_scale),
@@ -411,7 +437,8 @@ def generate_iclora(
         raise gr.Error(f"IC-LoRA file not found: {lora_filename}")
 
     image_conditionings = _build_image_conditionings(
-        image, image_strength, image_crf, extra_conditionings)
+        image, image_strength, image_crf, extra_conditionings,
+        frame_rate=int(frame_rate), num_frames=int(num_frames))
     kwargs = {
         "prompt": prompt,
         "negative_prompt": negative_prompt, "nag_scale": float(nag_scale),
@@ -430,7 +457,7 @@ def generate_iclora(
 
 def generate_keyframe(
     prompt, negative_prompt,
-    keyframe_files, frame_indices_str, image_strength, image_crf,
+    keyframe_conditionings, image_crf,
     resolution, num_frames, frame_rate, num_steps, seed,
     enhance_prompt, fp8, lora_strength,
     v_cfg, v_stg, v_rescale, v_modality, v_stg_blocks, v_skip_step,
@@ -441,23 +468,35 @@ def generate_keyframe(
     global _active_gen_inputs
     _active_gen_inputs = {"gen_type": "keyframe", "values": [
         prompt, negative_prompt,
-        keyframe_files, frame_indices_str, image_strength, image_crf,
+        keyframe_conditionings, image_crf,
         resolution, num_frames, frame_rate, num_steps, seed,
         enhance_prompt, fp8, lora_strength,
         v_cfg, v_stg, v_rescale, v_modality, v_stg_blocks, v_skip_step,
         a_cfg, a_stg, a_rescale, a_modality, a_stg_blocks, a_skip_step,
         frame_mode, duration, disable_audio,
     ]}
-    if not keyframe_files or len(keyframe_files) < 2:
+    if not keyframe_conditionings or len(keyframe_conditionings) < 2:
         raise gr.Error("At least 2 keyframe images are required.")
     _validate("keyframe", prompt, resolution=resolution)
+    # Resolve frame indices (supports time values like "2.5s")
+    fr = int(frame_rate)
+    nf = int(num_frames)
+    resolved = []
+    for i, kc in enumerate(keyframe_conditionings):
+        idx = _resolve_frame_idx(
+            kc["frame_idx"], fr, nf,
+            label=f"Keyframe {i + 1}",
+        )
+        resolved.append({
+            "path": kc["path"], "frame_idx": idx,
+            "strength": float(kc["strength"]),
+        })
     kwargs = {
         "prompt": prompt, "negative_prompt": negative_prompt,
-        "keyframe_paths": [str(f) for f in keyframe_files],
-        "frame_indices": frame_indices_str,
-        "image_strength": float(image_strength), "image_crf": int(image_crf),
+        "keyframe_conditionings": resolved,
+        "image_crf": int(image_crf),
         "resolution": resolution,
-        "num_frames": int(num_frames), "frame_rate": int(frame_rate),
+        "num_frames": nf, "frame_rate": fr,
         "num_steps": int(num_steps), "seed": int(seed),
         "enhance_prompt": bool(enhance_prompt), "fp8": bool(fp8),
         "lora_strength": float(lora_strength),
@@ -492,7 +531,8 @@ def generate_a2vid(
     ]}
     _validate("a2vid", prompt, required_files={"Audio File": audio_file}, resolution=resolution)
     image_conditionings = _build_image_conditionings(
-        image, image_strength, image_crf, extra_conditionings)
+        image, image_strength, image_crf, extra_conditionings,
+        frame_rate=int(frame_rate), num_frames=int(num_frames))
     kwargs = {
         "prompt": prompt, "negative_prompt": negative_prompt,
         "audio_path": audio_file, "audio_start": float(audio_start),

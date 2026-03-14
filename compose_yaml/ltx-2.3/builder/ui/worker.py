@@ -333,12 +333,11 @@ def _worker_loop(
             lora_strength = kwargs.get("lora_strength", 0.8)
             pipeline = mgr.get_keyframe(lora_strength=lora_strength, quantization="fp8")
 
-            indices = [int(x.strip()) for x in kwargs["frame_indices"].split(",") if x.strip()]
             images = []
-            for i, kf_path in enumerate(kwargs["keyframe_paths"]):
-                idx = indices[i] if i < len(indices) else i * (kwargs["num_frames"] // max(len(kwargs["keyframe_paths"]) - 1, 1))
+            crf = kwargs["image_crf"]
+            for kc in kwargs["keyframe_conditionings"]:
                 images.append(ImageConditioningInput(
-                    kf_path, idx, kwargs["image_strength"], kwargs["image_crf"],
+                    kc["path"], kc["frame_idx"], kc["strength"], crf,
                 ))
 
             video_guider = build_guider(kwargs["v_guidance"])
