@@ -14,6 +14,11 @@ Architecture:
 
 import logging
 import multiprocessing as mp
+import warnings
+
+warnings.filterwarnings(
+    "ignore", message="MatMul8bitLt: inputs will be cast from torch.bfloat16 to float16 during quantization"
+)
 import os
 import signal
 import time
