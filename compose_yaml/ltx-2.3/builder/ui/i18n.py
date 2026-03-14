@@ -209,6 +209,7 @@ STRINGS = {
     "refresh":                   {"en": "Refresh",                     "ko": "새로고침"},
     "delete_selected":           {"en": "Delete Selected",             "ko": "선택 삭제"},
     "delete_all":                {"en": "Delete All",                  "ko": "전체 삭제"},
+    "clear_cache":               {"en": "Clear Cache",                 "ko": "캐시 정리"},
     "generated_videos":          {"en": "Generated Videos",            "ko": "생성 영상 목록"},
     "preview":                   {"en": "Preview",                     "ko": "미리보기"},
     "file_info":                 {"en": "File Info",                   "ko": "파일 정보"},

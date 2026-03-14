@@ -884,13 +884,15 @@ def build_ui() -> gr.Blocks:
                 def _suggest_iclora(ref_video, current_prompt):
                     if not ref_video:
                         raise gr.Error("Upload a reference video first.")
-                    import cv2
-                    cap = cv2.VideoCapture(ref_video)
-                    ret, frame = cap.read()
-                    cap.release()
-                    if not ret:
+                    import av
+                    try:
+                        container = av.open(ref_video)
+                        stream = next(s for s in container.streams if s.type == "video")
+                        frame = next(container.decode(stream))
+                        frame_rgb = frame.to_rgb().to_ndarray()
+                        container.close()
+                    except Exception:
                         raise gr.Error("Could not read video frame.")
-                    frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                     return suggest_prompt_from_image(frame_rgb, hint=current_prompt)
                 t3_suggest_btn.click(fn=_suggest_iclora, inputs=[t3_ref_video, t3_prompt], outputs=[t3_prompt])
 
@@ -1473,6 +1475,7 @@ def build_ui() -> gr.Blocks:
                     h_next = gr.Button("Next >", size="sm", min_width=80)
                     h_delete = gr.Button("Delete Selected", variant="stop", size="sm")
                     h_flush = gr.Button("Delete All", variant="stop", size="sm")
+                    h_clear_cache = gr.Button("Clear Cache", variant="stop", size="sm")
 
                 h_page_state = gr.State(0)
                 h_sel_idx = gr.State(-1)
@@ -1513,6 +1516,34 @@ def build_ui() -> gr.Blocks:
                     fn=_flush_all,
                     outputs=[h_gallery, h_page_label, h_page_state, h_video, h_file_info, h_sel_idx],
                     js="(()=>{if(!confirm('Delete ALL generated videos?'))throw new Error('cancelled')})",
+                )
+
+                def _clear_cache():
+                    import shutil
+                    cache_dir = Path("/tmp/gradio")
+                    if not cache_dir.exists():
+                        return "No cache to clear."
+                    count = 0
+                    total_bytes = 0
+                    for d in cache_dir.iterdir():
+                        if d.is_dir():
+                            for f in d.iterdir():
+                                total_bytes += f.stat().st_size
+                            shutil.rmtree(d)
+                            count += 1
+                        elif d.is_file():
+                            total_bytes += d.stat().st_size
+                            d.unlink()
+                            count += 1
+                    mb = total_bytes / (1024 * 1024)
+                    msg = f"Cleared {count} items ({mb:.1f} MB)"
+                    logger.info(msg)
+                    return msg
+
+                h_clear_cache.click(
+                    fn=_clear_cache,
+                    outputs=[h_file_info],
+                    js="(()=>{if(!confirm('Clear all temporary/cached files?'))throw new Error('cancelled')})",
                 )
 
                 app.load(
