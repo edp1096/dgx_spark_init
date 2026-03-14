@@ -98,15 +98,18 @@ _WRAPPABLE_METHODS = [
 _PIPELINE_LOAD_ORDER = {
     "distilled": [
         "TextEnc", "Embed", "VAEEnc", "Transformer",
+        "VAEDec✱", "AudioDec✱", "Vocoder✱",
         "SpatialUp", "VAEDec", "AudioDec", "Vocoder",
     ],
     "ti2vid": [
         "[S1]TextEnc", "[S1]Embed", "[S1]VAEEnc", "[S1]Transformer",
+        "[S1]VAEDec✱", "[S1]AudioDec✱", "[S1]Vocoder✱",
         "[S1]VAEEnc", "[S2]SpatialUp", "[S2]Transformer",
         "[S2]VAEDec", "[S2]AudioDec", "[S2]Vocoder",
     ],
     "ti2vid_hq": [
         "[S1]TextEnc", "[S1]Embed", "[S1]VAEEnc", "[S1]Transformer",
+        "[S1]VAEDec✱", "[S1]AudioDec✱", "[S1]Vocoder✱",
         "[S1]VAEEnc", "[S2]SpatialUp", "[S2]Transformer",
         "[S2]VAEDec", "[S2]AudioDec", "[S2]Vocoder",
     ],
@@ -120,16 +123,19 @@ _PIPELINE_LOAD_ORDER = {
     ],
     "keyframe": [
         "[S1]TextEnc", "[S1]Embed", "[S1]VAEEnc", "[S1]Transformer",
+        "[S1]VAEDec✱", "[S1]AudioDec✱", "[S1]Vocoder✱",
         "[S2]SpatialUp", "[S2]Transformer",
         "[S2]VAEDec", "[S2]AudioDec", "[S2]Vocoder",
     ],
     "a2vid": [
         "[S1]TextEnc", "[S1]Embed", "[S1]AudioEnc", "[S1]VAEEnc", "[S1]Transformer",
+        "[S1]VAEDec✱",
         "[S1]VAEEnc", "[S2]SpatialUp", "[S2]Transformer",
         "[S2]VAEDec",
     ],
     "iclora": [
         "[S1]TextEnc", "[S1]Embed", "[S1]VAEEnc", "[S1]Transformer",
+        "[S1]VAEDec✱", "[S1]AudioDec✱", "[S1]Vocoder✱",
         "[S2]SpatialUp", "[S2]Transformer",
         "[S2]VAEDec", "[S2]AudioDec", "[S2]Vocoder",
     ],
@@ -183,7 +189,7 @@ def _wrap_model_ledger(mgr, ledger, stage_prefix: str = ""):
 
                 mgr._loading_bar.update(1)
 
-                mgr._loaded_names.append(f"{current}({elapsed:.0f}s)")
+                mgr._loaded_names.append(current)
                 mgr._load_times.append(elapsed)
                 mgr._current_loading = None
                 logger.info("%s loaded in %.0fs (%d/%d)", current, elapsed, idx + 1, total)
