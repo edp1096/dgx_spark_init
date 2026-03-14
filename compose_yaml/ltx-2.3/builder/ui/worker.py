@@ -290,9 +290,21 @@ def _worker_loop(
             seed = resolve_seed(kwargs["seed"])
             height, width = parse_resolution(kwargs["resolution"])
 
-            lora_filename = IC_LORA_MAP.get(kwargs["lora_choice"], IC_LORA_MAP["Union Control"])
-            lora_path = str(Path(mgr.model_dir) / lora_filename)
-            pipeline = mgr.get_iclora(lora_path=lora_path, quantization="fp8")
+            lora_choices = kwargs.get("lora_choices", [])
+            if not lora_choices:
+                # Backward compat: single lora_choice string
+                choice = kwargs.get("lora_choice", "Union Control")
+                lora_choices = [choice]
+            lora_paths = [str(Path(mgr.model_dir) / IC_LORA_MAP.get(c, IC_LORA_MAP["Union Control"]))
+                          for c in lora_choices]
+            distilled_lora_strength = kwargs.get("lora_strength", 0.8)
+            custom_loras = kwargs.get("custom_loras", [])
+            pipeline = mgr.get_iclora(
+                lora_paths=lora_paths,
+                distilled_lora_strength=distilled_lora_strength,
+                custom_loras=custom_loras,
+                quantization="fp8",
+            )
 
             images = _build_images(kwargs)
 

@@ -252,10 +252,10 @@ def get_i18n_js() -> str:
         return 'en';
     }
 
-    function translateDOM(lang) {
+    function translateNodes(lang, root) {
         const targetMap = LANG_STRINGS[lang] || {};
 
-        document.querySelectorAll(
+        root.querySelectorAll(
             'label, button, span, h1, h2, h3, p, em'
         ).forEach(el => {
             // Skip the language selector radio labels
@@ -274,7 +274,7 @@ def get_i18n_js() -> str:
             });
         });
 
-        document.querySelectorAll('textarea[placeholder], input[placeholder]').forEach(el => {
+        root.querySelectorAll('textarea[placeholder], input[placeholder]').forEach(el => {
             const ph = el.getAttribute('placeholder');
             if (!ph) return;
             const enKey = ALL_TO_EN[ph] || ph;
@@ -282,6 +282,8 @@ def get_i18n_js() -> str:
             if (target !== ph) el.setAttribute('placeholder', target);
         });
     }
+
+    function translateDOM(lang) { translateNodes(lang, document); }
 
     function applyLang(lang) {
         if (applying) return;
@@ -317,14 +319,27 @@ def get_i18n_js() -> str:
         return true;
     }
 
-    const observer = new MutationObserver(() => {
-        if (applying) return;
+    const observer = new MutationObserver((mutations) => {
+        if (applying || currentLang === 'en') return;
         // Try to sync radio once when lang-selector appears in DOM
-        if (!radioSynced && currentLang !== 'en') {
+        if (!radioSynced) {
             radioSynced = syncRadio(currentLang);
         }
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => { if (currentLang !== 'en') applyLang(currentLang); }, 200);
+        // Translate only added nodes instead of full DOM scan
+        let hasNew = false;
+        for (const m of mutations) {
+            for (const node of m.addedNodes) {
+                if (node.nodeType === Node.ELEMENT_NODE) {
+                    hasNew = true;
+                    translateNodes(currentLang, node);
+                }
+            }
+        }
+        // Fallback: if no element nodes were added but DOM changed, debounce full scan
+        if (!hasNew) {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => { applyLang(currentLang); }, 100);
+        }
     });
 
     function init() {
@@ -337,9 +352,9 @@ def get_i18n_js() -> str:
     }
 
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => setTimeout(init, 300));
+        document.addEventListener('DOMContentLoaded', init);
     } else {
-        setTimeout(init, 500);
+        init();
     }
 })();
 """

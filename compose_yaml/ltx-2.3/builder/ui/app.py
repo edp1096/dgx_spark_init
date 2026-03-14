@@ -775,12 +775,16 @@ def build_ui() -> gr.Blocks:
                                                      info="CFG rescale factor (0=off, higher=reduce artifacts)")
                         t3_ref_video = gr.Video(label="Reference Video", sources=["upload"])
                         t3_lora = gr.Dropdown(
-                            list(IC_LORA_MAP.keys()),
+                            list(IC_LORA_MAP.keys()) + ["Both"],
                             value="Union Control", label="IC-LoRA Type",
-                            info="Union Control: Preserve overall structure of reference video | Motion Track: Follow motion trajectory",
+                            info="Union Control: Preserve structure | Motion Track: Follow motion | Both: Combined",
                         )
                         t3_ref_strength = gr.Slider(0.0, 1.0, value=1.0, step=0.05, label="Reference Strength")
                         t3_attn_strength = gr.Slider(0.0, 1.0, value=1.0, step=0.05, label="Attention Strength")
+                        t3_lora_strength = gr.Slider(0.1, 1.5, value=0.8, step=0.05, label="Distilled LoRA Strength",
+                                                     info="Stage 2 distilled LoRA strength (lower=less distilled artifacts)")
+                        with gr.Accordion("Custom LoRA", open=False):
+                            t3_custom_loras = create_custom_lora_section()
                         with gr.Accordion("Conditioning Images", open=False):
                             t3_image = gr.Image(label="Primary Image (Frame 0)", type="numpy")
                             t3_img_strength = gr.Slider(0.0, 1.0, value=0.8, step=0.05, label="Primary Strength")
@@ -803,6 +807,7 @@ def build_ui() -> gr.Blocks:
                             ("nag_scale", t3_nag_scale), ("nag_alpha", t3_nag_alpha),
                             ("ref_strength", t3_ref_strength), ("lora_type", t3_lora),
                             ("attn_strength", t3_attn_strength),
+                            ("lora_strength", t3_lora_strength),
                             ("img_strength", t3_img_strength), ("img_crf", t3_img_crf),
                             ("resolution", t3_resolution), ("frames", t3_frames),
                             ("fps", t3_fps), ("seed", t3_seed),
@@ -830,6 +835,7 @@ def build_ui() -> gr.Blocks:
                         t3_resolution, t3_frames, t3_fps, t3_seed,
                         t3_skip_stage2, t3_enhance, t3_fp8,
                         t3_frame_mode, t3_duration, t3_no_audio,
+                        t3_lora_strength, t3_custom_loras,
                     ],
                     outputs=[t3_video, t3_info, t3_enhanced],
                 )

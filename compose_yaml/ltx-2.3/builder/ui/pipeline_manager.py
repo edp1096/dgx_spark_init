@@ -568,23 +568,31 @@ class PipelineManager:
         self._wrap_current_pipeline()
         return self.current_pipeline
 
-    def get_iclora(self, lora_path: str, lora_strength: float = 1.0, quantization=None):
-        # Reuse if same LoRA is already loaded
-        if self.current_type == "iclora" and self._iclora_path == lora_path:
+    def get_iclora(self, lora_paths: list[str], lora_strength: float = 1.0,
+                   distilled_lora_strength: float = 0.8,
+                   custom_loras: list[dict] | None = None, quantization=None):
+        custom_loras = custom_loras or []
+        lora_key = self._lora_cache_key(custom_loras)
+        cache_key = (tuple(lora_paths), distilled_lora_strength, lora_key)
+        if self.current_type == "iclora" and self._iclora_cache_key == cache_key:
             return self.current_pipeline
         self._cleanup()
         from ltx_pipelines.ic_lora import ICLoraPipeline
-        loras = [LoraPathStrengthAndSDOps(lora_path, lora_strength, LTXV_LORA_COMFY_RENAMING_MAP)]
+        ic_loras = [LoraPathStrengthAndSDOps(p, lora_strength, LTXV_LORA_COMFY_RENAMING_MAP)
+                    for p in lora_paths]
+        custom_lora_list = self._build_custom_lora_list(custom_loras)
+        all_loras = ic_loras + custom_lora_list
         self.current_pipeline = ICLoraPipeline(
             distilled_checkpoint_path=self._model_path("ltx-2.3-22b-distilled-fp8.safetensors"),
             spatial_upsampler_path=self._model_path("ltx-2.3-spatial-upscaler-x2-1.0.safetensors"),
             gemma_root=self._gemma_root(),
-            loras=loras,
+            loras=all_loras,
             device=self.device,
             quantization=FP8_QUANTIZATION,
+            distilled_lora=tuple(self._distilled_lora(distilled_lora_strength)),
         )
         self.current_type = "iclora"
-        self._iclora_path = lora_path
+        self._iclora_cache_key = cache_key
         self._wrap_current_pipeline()
         return self.current_pipeline
 

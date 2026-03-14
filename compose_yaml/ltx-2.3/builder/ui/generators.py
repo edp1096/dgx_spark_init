@@ -416,8 +416,10 @@ def generate_iclora(
     resolution, num_frames, frame_rate, seed,
     skip_stage2, enhance_prompt, fp8,
     frame_mode="Frames", duration=4.8, disable_audio=False,
+    lora_strength=0.8, custom_loras=None,
     progress=gr.Progress(track_tqdm=True),
 ):
+    custom_loras = custom_loras or []
     global _active_gen_inputs
     _active_gen_inputs = {"gen_type": "iclora", "values": [
         prompt, negative_prompt, nag_scale, nag_alpha,
@@ -427,15 +429,23 @@ def generate_iclora(
         resolution, num_frames, frame_rate, seed,
         skip_stage2, enhance_prompt, fp8,
         frame_mode, duration, disable_audio,
+        lora_strength, custom_loras,
     ]}
     _validate("iclora", prompt, required_files={"Reference Video": ref_video})
 
-    # Check LoRA file exists
-    lora_filename = IC_LORA_MAP.get(lora_choice, IC_LORA_MAP["Union Control"])
+    # Resolve IC-LoRA choices (may be multiple for "Both")
+    if lora_choice == "Both":
+        lora_choices = ["Union Control", "Motion Track"]
+    else:
+        lora_choices = [lora_choice]
+
+    # Check all IC-LoRA files exist
     mgr = get_worker_mgr()
-    lora_path = Path(mgr.model_dir) / lora_filename
-    if not lora_path.exists():
-        raise gr.Error(f"IC-LoRA file not found: {lora_filename}")
+    for choice in lora_choices:
+        lora_filename = IC_LORA_MAP.get(choice, IC_LORA_MAP["Union Control"])
+        lora_path = Path(mgr.model_dir) / lora_filename
+        if not lora_path.exists():
+            raise gr.Error(f"IC-LoRA file not found: {lora_filename}")
 
     image_conditionings = _build_image_conditionings(
         image, image_strength, image_crf, extra_conditionings,
@@ -446,12 +456,14 @@ def generate_iclora(
         "nag_alpha": float(nag_alpha),
         "ref_video": ref_video,
         "ref_strength": float(ref_strength),
-        "lora_choice": lora_choice, "attention_strength": float(attention_strength),
+        "lora_choices": lora_choices, "attention_strength": float(attention_strength),
         "image_conditionings": image_conditionings, "resolution": resolution,
         "num_frames": int(num_frames), "frame_rate": int(frame_rate),
         "seed": int(seed), "skip_stage2": bool(skip_stage2),
         "enhance_prompt": bool(enhance_prompt), "fp8": bool(fp8),
         "disable_audio": bool(disable_audio),
+        "lora_strength": float(lora_strength),
+        "custom_loras": [d for d in custom_loras if d.get("filename")],
     }
     yield from _submit_and_wait("iclora", kwargs, progress)
 
