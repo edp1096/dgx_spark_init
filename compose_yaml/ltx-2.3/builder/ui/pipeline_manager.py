@@ -22,11 +22,28 @@ logger = logging.getLogger("ltx2-ui")
 # q8_kernels FP8 matmul — native FP8 GEMM (replaces BF16 upcast approach)
 # ---------------------------------------------------------------------------
 _Q8_AVAILABLE = False
+_fp8_mm = None
 try:
     from q8_kernels.modules.linear import FP8Linear as _Q8FP8Linear
+    from q8_kernels.functional.linear import fp8_mm as _fp8_mm
     _Q8_AVAILABLE = True
 except ImportError:
     pass
+
+
+def _fp8_forward_no_hadamard(self, x, x_scales=None, out_dtype=None):
+    """FP8 forward WITHOUT Hadamard rotation on input.
+
+    q8_kernels' default FP8LinearFunc always applies Hadamard rotation to
+    16-bit inputs before quantizing to FP8, but fp8_gemm does NOT apply the
+    inverse transform — producing ~500% relative error. This forward simply
+    casts the input to FP8 and calls fp8_gemm directly.
+    """
+    orig_shape = x.shape
+    x_fp8 = x.to(torch.float8_e4m3fn).view(-1, orig_shape[-1])
+    bias = self.bias.data if self.bias is not None else None
+    o = _fp8_mm(x_fp8, self.weight.data, bias, False)
+    return o.view(*orig_shape[:-1], self.weight.shape[0])
 
 
 def _patch_transformer_q8(model):
@@ -34,6 +51,7 @@ def _patch_transformer_q8(model):
 
     Called after transformer is loaded with fp8_cast. Swaps the upcast-forward
     Linear layers for FP8Linear which runs matmul directly in FP8.
+    Uses a custom forward that skips the Hadamard rotation (see above).
     """
     count = 0
     for name, module in list(model.named_modules()):
@@ -51,6 +69,9 @@ def _patch_transformer_q8(model):
             fp8.bias = torch.nn.Parameter(
                 module.bias.data.to(torch.float32), requires_grad=False,
             )
+        # Override forward to skip Hadamard rotation
+        import types
+        fp8.forward = types.MethodType(_fp8_forward_no_hadamard, fp8)
         # Replace in parent module
         parts = name.split(".")
         parent = model
@@ -60,7 +81,7 @@ def _patch_transformer_q8(model):
         count += 1
     if count > 0:
         torch.cuda.empty_cache()
-        logger.info("q8_kernels: replaced %d Linear → FP8Linear (native FP8 GEMM)", count)
+        logger.info("q8_kernels: replaced %d Linear → FP8Linear (native FP8 GEMM, no Hadamard)", count)
 
 
 # ---------------------------------------------------------------------------
