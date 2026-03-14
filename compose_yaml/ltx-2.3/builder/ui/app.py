@@ -793,7 +793,8 @@ def build_ui() -> gr.Blocks:
                             )
                             t3_canny_lo = gr.Slider(50, 300, value=100, step=10, label="Canny Low", visible=False, scale=1)
                             t3_canny_hi = gr.Slider(50, 300, value=200, step=10, label="Canny High", visible=False, scale=1)
-                        t3_preprocess_preview = gr.Video(label="Preprocessing Preview", visible=False, interactive=False, height=200)
+                        t3_preprocess_preview = gr.Gallery(label="Preprocessing Preview", visible=False,
+                                                                  columns=3, rows=1, height=200, object_fit="contain")
                         t3_lora = gr.Dropdown(
                             list(IC_LORA_MAP.keys()) + ["Both"],
                             value="Union Control", label="IC-LoRA Type",
@@ -851,8 +852,10 @@ def build_ui() -> gr.Blocks:
                     if not ref_video or cond_type != "Canny Edge":
                         return gr.update()
                     from preprocess import preview_canny
-                    preview = preview_canny(ref_video, int(lo), int(hi))
-                    return gr.update(value=preview, visible=True)
+                    frames = preview_canny(ref_video, int(lo), int(hi))
+                    if not frames:
+                        return gr.update()
+                    return gr.update(value=frames, visible=True)
 
                 _canny_inputs = [t3_ref_video, t3_cond_type, t3_canny_lo, t3_canny_hi]
                 _canny_outputs = [t3_canny_lo, t3_canny_hi, t3_preprocess_preview]

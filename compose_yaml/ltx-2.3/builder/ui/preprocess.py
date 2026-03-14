@@ -67,10 +67,32 @@ def preprocess_video_canny(video_path: str, low: int = 100, high: int = 200,
 
 
 def preview_canny(video_path: str, low: int = 100, high: int = 200,
-                   output_dir: str = "/tmp/ltx2-outputs") -> str | None:
-    """Apply Canny to full video for preview. Returns output video path."""
+                   num_frames: int = 3) -> list[np.ndarray] | None:
+    """Extract a few sample frames, apply Canny, return as image list."""
     try:
-        return preprocess_video_canny(video_path, low, high, output_dir)
+        container = av.open(video_path)
+        stream = next(s for s in container.streams if s.type == "video")
+        total = stream.frames or 0
+        # Decode all frame indices if total unknown
+        if total < num_frames:
+            # Short video: just grab everything
+            indices = set(range(max(total, 999)))
+        else:
+            # Evenly spaced: first, middle, last
+            indices = set(int(i * (total - 1) / (num_frames - 1)) for i in range(num_frames))
+
+        results = []
+        for idx, frame in enumerate(container.decode(stream)):
+            if idx in indices:
+                rgb = frame.to_rgb().to_ndarray()
+                gray = np.dot(rgb[..., :3], [0.2989, 0.5870, 0.1140]).astype(np.uint8)
+                edges = _canny_frame(gray, low, high)
+                results.append(np.stack([edges, edges, edges], axis=-1))
+                if len(results) >= num_frames:
+                    break
+        container.close()
+        logger.info("Canny preview: %d sample frames from %s", len(results), video_path)
+        return results if results else None
     except Exception:
         logger.exception("Canny preview failed")
         return None
