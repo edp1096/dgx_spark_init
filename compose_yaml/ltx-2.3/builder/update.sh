@@ -379,7 +379,7 @@ if ! python3 -c 'import bitsandbytes' 2>/dev/null; then
     rm -rf "$BNB_SRC"
     if git clone --depth 250 https://github.com/bitsandbytes-foundation/bitsandbytes.git "$BNB_SRC" && \
        cd "$BNB_SRC" && git checkout "$BNB_COMMIT" && \
-       cmake -DCOMPUTE_BACKEND=cuda -S . -B build && \
+       cmake -DCOMPUTE_BACKEND=cuda -DCMAKE_CUDA_ARCHITECTURES=native -S . -B build && \
        cmake --build build -j$(nproc) && \
        pip install -q .; then
         echo "  bitsandbytes installed from source"
