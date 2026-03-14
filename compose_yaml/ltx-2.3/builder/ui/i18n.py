@@ -144,6 +144,12 @@ STRINGS = {
     "iclora_type_info":          {"en": "Union Control: Preserve overall structure of reference video | Motion Track: Follow motion trajectory",
                                   "ko": "Union Control: 참조 영상의 전체 구조 유지 | Motion Track: 모션 궤적 추적"},
     "attention_strength":        {"en": "Attention Strength",          "ko": "어텐션 강도"},
+    "cond_preprocess":           {"en": "Conditioning Preprocess",    "ko": "컨디셔닝 전처리"},
+    "canny_low":                 {"en": "Canny Low",                  "ko": "Canny 하한"},
+    "canny_high":                {"en": "Canny High",                 "ko": "Canny 상한"},
+    "preprocess_preview":        {"en": "Preprocessing Preview",      "ko": "전처리 미리보기"},
+    "suggest_prompt_image":      {"en": "Suggest Prompt from Image",  "ko": "이미지에서 프롬프트 제안"},
+    "suggest_prompt_ref":        {"en": "Suggest Prompt from Reference", "ko": "레퍼런스에서 프롬프트 제안"},
     "skip_upscale":              {"en": "Skip Upscale (half res)",     "ko": "업스케일 건너뛰기 (절반 해상도)"},
 
     # Keyframe tab

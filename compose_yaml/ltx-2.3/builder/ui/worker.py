@@ -530,6 +530,44 @@ def _worker_loop(
             )
             return output_path, seed
 
+    def _run_describe_frame(kwargs, task_id):
+        """Use Gemma vision to describe an image for prompt suggestion."""
+        with torch.inference_mode():
+            image_path = kwargs["image_path"]
+            hint = kwargs.get("hint", "")
+
+            # Get a model_ledger from any loaded pipeline, or load a minimal one
+            pipeline = mgr.current_pipeline
+            if pipeline is None:
+                # Load distilled pipeline minimally to access Gemma
+                pipeline = mgr.get_distilled()
+
+            ledger = None
+            for attr in ("stage_1_model_ledger", "model_ledger"):
+                if hasattr(pipeline, attr):
+                    ledger = getattr(pipeline, attr)
+                    break
+            if ledger is None:
+                raise RuntimeError("No model ledger available for text encoding")
+
+            from ltx_pipelines.utils.helpers import generate_enhanced_prompt
+            text_encoder = ledger.text_encoder()
+            from ltx_pipelines.utils.helpers import decode_image, resize_aspect_ratio_preserving
+            image = decode_image(image_path=image_path)
+            image = torch.tensor(image)
+            image = resize_aspect_ratio_preserving(image, 896).to(torch.uint8)
+
+            prompt = hint if hint.strip() else "Describe this image in detail for video generation."
+            description = text_encoder.enhance_i2v(prompt, image, seed=42)
+
+            torch.cuda.synchronize()
+            del text_encoder
+            from ltx_pipelines.utils import cleanup_memory
+            cleanup_memory()
+
+            log.info("Task %s: Gemma described frame: %s", task_id[:8], description[:100])
+            return description, 0
+
     HANDLERS = {
         "ti2vid": _run_ti2vid,
         "distilled": _run_distilled,
@@ -537,6 +575,7 @@ def _worker_loop(
         "keyframe": _run_keyframe,
         "a2vid": _run_a2vid,
         "retake": _run_retake,
+        "describe_frame": _run_describe_frame,
     }
 
     # --- Main loop ---
@@ -554,8 +593,8 @@ def _worker_loop(
             mgr._current_task_id = task_id
             log.info("Task %s: %s started", task_id[:8], gen_type)
 
-            # --- Qwen prompt enhancement (before pipeline call) ---
-            if kwargs.get("enhance_prompt", False):
+            # --- Qwen prompt enhancement (before pipeline call, skip for describe_frame) ---
+            if gen_type != "describe_frame" and kwargs.get("enhance_prompt", False):
                 try:
                     original = kwargs["prompt"]
                     enhanced = _enhance_prompt_qwen(original)

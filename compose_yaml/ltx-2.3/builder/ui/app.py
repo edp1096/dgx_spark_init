@@ -26,6 +26,7 @@ from generators import (
     get_worker_mgr,
     is_generation_active,
     set_model_dir,
+    suggest_prompt_from_image,
 )
 from i18n import LANGUAGES, STRINGS, get_i18n_js
 from pipeline_manager import (
@@ -628,7 +629,7 @@ def build_ui() -> gr.Blocks:
                                     t2_sample_btns.append(gr.Button(f"Sample {i+1}", size="sm", min_width=60))
                         create_prompt_constructor(t2_prompt)
                         with gr.Accordion("Negative Prompt (NAG)", open=False):
-                            t2_neg = gr.Textbox(label="Negative Prompt", value="", lines=2, show_label=False)
+                            t2_neg = gr.Textbox(label="Negative Prompt", value=DEFAULT_NEGATIVE_PROMPT, lines=2, show_label=False)
                             t2_nag_scale = gr.Slider(1.0, 15.0, value=1.0, step=0.5, label="NAG Scale",
                                                      info="Guidance strength (1.0=off, higher=stronger, doubles inference time)")
                             t2_nag_alpha = gr.Slider(0.0, 1.0, value=0.0, step=0.05, label="NAG Alpha (Rescale)",
@@ -697,6 +698,7 @@ def build_ui() -> gr.Blocks:
                                 for i in range(len(SAMPLE_PROMPTS)):
                                     t1_sample_btns.append(gr.Button(f"Sample {i+1}", size="sm", min_width=60))
                         create_prompt_constructor(t1_prompt)
+                        t1_suggest_btn = gr.Button("Suggest Prompt from Image", size="sm", variant="secondary")
                         with gr.Accordion("Negative Prompt", open=False):
                             t1_neg = gr.Textbox(label="Negative Prompt", value=DEFAULT_NEGATIVE_PROMPT, lines=2, show_label=False)
                         with gr.Accordion("Conditioning Images", open=False):
@@ -758,6 +760,13 @@ def build_ui() -> gr.Blocks:
                 for i, btn in enumerate(t1_sample_btns):
                     btn.click(fn=lambda idx=i: SAMPLE_PROMPTS[idx], outputs=[t1_prompt])
 
+                # Suggest Prompt from Image (ti2vid)
+                def _suggest_ti2vid(image, current_prompt):
+                    if image is None:
+                        raise gr.Error("Upload a conditioning image first.")
+                    return suggest_prompt_from_image(image, hint=current_prompt)
+                t1_suggest_btn.click(fn=_suggest_ti2vid, inputs=[t1_image, t1_prompt], outputs=[t1_prompt])
+
             # ==============================================================
             # Tab 3: IC-LoRA
             # ==============================================================
@@ -767,13 +776,24 @@ def build_ui() -> gr.Blocks:
                     with gr.Column(scale=1):
                         t3_prompt = gr.Textbox(label="Prompt", lines=4, placeholder="Describe the transformation...")
                         create_prompt_constructor(t3_prompt)
+                        t3_suggest_btn = gr.Button("Suggest Prompt from Reference", size="sm", variant="secondary")
                         with gr.Accordion("Negative Prompt (NAG)", open=False):
-                            t3_neg = gr.Textbox(label="Negative Prompt", value="", lines=2, show_label=False)
+                            t3_neg = gr.Textbox(label="Negative Prompt", value=DEFAULT_NEGATIVE_PROMPT, lines=2, show_label=False)
                             t3_nag_scale = gr.Slider(1.0, 15.0, value=1.0, step=0.5, label="NAG Scale",
                                                      info="Guidance strength (1.0=off, higher=stronger, doubles inference time)")
                             t3_nag_alpha = gr.Slider(0.0, 1.0, value=0.0, step=0.05, label="NAG Alpha (Rescale)",
                                                      info="CFG rescale factor (0=off, higher=reduce artifacts)")
                         t3_ref_video = gr.Video(label="Reference Video", sources=["upload"])
+                        with gr.Row():
+                            t3_cond_type = gr.Dropdown(
+                                ["None", "Canny Edge"],
+                                value="None", label="Conditioning Preprocess",
+                                info="Preprocess reference video before IC-LoRA",
+                                scale=2,
+                            )
+                            t3_canny_lo = gr.Slider(50, 300, value=100, step=10, label="Canny Low", visible=False, scale=1)
+                            t3_canny_hi = gr.Slider(50, 300, value=200, step=10, label="Canny High", visible=False, scale=1)
+                        t3_preprocess_preview = gr.Image(label="Preprocessing Preview", visible=False, interactive=False, height=200)
                         t3_lora = gr.Dropdown(
                             list(IC_LORA_MAP.keys()) + ["Both"],
                             value="Union Control", label="IC-LoRA Type",
@@ -822,6 +842,25 @@ def build_ui() -> gr.Blocks:
 
                 wire_frame_sync(t3_frame_mode, t3_frames, t3_duration, t3_fps)
 
+                # Canny preprocessing visibility + preview
+                def _toggle_canny_vis(cond_type):
+                    show = cond_type == "Canny Edge"
+                    return gr.update(visible=show), gr.update(visible=show), gr.update(visible=show)
+                t3_cond_type.change(
+                    fn=_toggle_canny_vis, inputs=[t3_cond_type],
+                    outputs=[t3_canny_lo, t3_canny_hi, t3_preprocess_preview],
+                )
+                def _preview_canny(ref_video, cond_type, lo, hi):
+                    if not ref_video or cond_type != "Canny Edge":
+                        return gr.update(value=None, visible=cond_type != "None")
+                    from preprocess import preview_canny
+                    preview = preview_canny(ref_video, int(lo), int(hi))
+                    return gr.update(value=preview, visible=True)
+                for _trig in [t3_cond_type.change, t3_canny_lo.release, t3_canny_hi.release, t3_ref_video.change]:
+                    _trig(fn=_preview_canny,
+                          inputs=[t3_ref_video, t3_cond_type, t3_canny_lo, t3_canny_hi],
+                          outputs=[t3_preprocess_preview])
+
                 t3_btn.click(
                     fn=lambda: (None, "", ""),
                     outputs=[t3_video, t3_info, t3_enhanced],
@@ -836,9 +875,24 @@ def build_ui() -> gr.Blocks:
                         t3_skip_stage2, t3_enhance, t3_fp8,
                         t3_frame_mode, t3_duration, t3_no_audio,
                         t3_lora_strength, t3_custom_loras,
+                        t3_cond_type, t3_canny_lo, t3_canny_hi,
                     ],
                     outputs=[t3_video, t3_info, t3_enhanced],
                 )
+
+                # Suggest Prompt from Reference Video (IC-LoRA)
+                def _suggest_iclora(ref_video, current_prompt):
+                    if not ref_video:
+                        raise gr.Error("Upload a reference video first.")
+                    import cv2
+                    cap = cv2.VideoCapture(ref_video)
+                    ret, frame = cap.read()
+                    cap.release()
+                    if not ret:
+                        raise gr.Error("Could not read video frame.")
+                    frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                    return suggest_prompt_from_image(frame_rgb, hint=current_prompt)
+                t3_suggest_btn.click(fn=_suggest_iclora, inputs=[t3_ref_video, t3_prompt], outputs=[t3_prompt])
 
             # ==============================================================
             # Tab 4: Keyframe Interpolation
@@ -982,7 +1036,7 @@ def build_ui() -> gr.Blocks:
                         t6_video_in = gr.Video(label="Source Video", sources=["upload"])
                         t6_prompt = gr.Textbox(label="Prompt", lines=4, placeholder="Describe the regenerated section...")
                         with gr.Accordion("Negative Prompt", open=False):
-                            t6_neg = gr.Textbox(label="Negative Prompt", value="", lines=2, show_label=False)
+                            t6_neg = gr.Textbox(label="Negative Prompt", value=DEFAULT_NEGATIVE_PROMPT, lines=2, show_label=False)
                             t6_nag_scale = gr.Slider(1.0, 15.0, value=1.0, step=0.5, label="NAG Scale",
                                                      info="Guidance for distilled mode (1.0=off, ignored in full mode)",
                                                      visible=True)
@@ -1288,6 +1342,22 @@ def build_ui() -> gr.Blocks:
                         key=lambda p: p.stat().st_mtime, reverse=True,
                     )
 
+                def _build_take_index():
+                    """Scan JSON sidecars and return {take_group: [sorted stems]}."""
+                    groups = {}
+                    for jf in Path(OUTPUT_DIR).glob("ltx2_*.json"):
+                        try:
+                            import json as _json
+                            meta = _json.loads(jf.read_text())
+                            tg = meta.get("take_group", "")
+                            if tg:
+                                groups.setdefault(tg, []).append(jf.stem)
+                        except Exception:
+                            pass
+                    for tg in groups:
+                        groups[tg].sort()
+                    return groups
+
                 def _build_gallery_page(page: int):
                     """Return (gallery_items, page_label, total_pages) for given page."""
                     files = _list_video_files()
@@ -1297,12 +1367,25 @@ def build_ui() -> gr.Blocks:
                     start = page * HISTORY_PAGE_SIZE
                     page_files = files[start:start + HISTORY_PAGE_SIZE]
 
+                    take_index = _build_take_index()
                     items = []
                     for f in page_files:
                         thumb = _get_thumbnail(f)
                         size_mb = f.stat().st_size / 1024 / 1024
                         mtime = time.strftime("%m/%d %H:%M", time.localtime(f.stat().st_mtime))
-                        caption = f"{f.stem}  ({size_mb:.1f}MB, {mtime})"
+                        take_num = ""
+                        json_path = f.with_suffix(".json")
+                        if json_path.exists():
+                            try:
+                                import json as _json
+                                meta = _json.loads(json_path.read_text())
+                                tg = meta.get("take_group", "")
+                                if tg in take_index and len(take_index[tg]) > 1:
+                                    idx = take_index[tg].index(f.stem) + 1
+                                    take_num = f" [T{idx}/{len(take_index[tg])}]"
+                            except Exception:
+                                pass
+                        caption = f"{f.stem}{take_num}  ({size_mb:.1f}MB, {mtime})"
                         if thumb:
                             items.append((thumb, caption))
                     label = f"Page {page + 1} / {total_pages}  ({total} videos)"
@@ -1328,7 +1411,20 @@ def build_ui() -> gr.Blocks:
                         return None, "File not found.", -1
                     size_mb = path.stat().st_size / 1024 / 1024
                     mtime = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(path.stat().st_mtime))
-                    return str(path), f"{path.name} | {size_mb:.1f}MB | {mtime}", evt.index
+                    info_text = f"{path.name} | {size_mb:.1f}MB | {mtime}"
+                    # Load metadata from JSON sidecar
+                    json_path = path.with_suffix(".json")
+                    if json_path.exists():
+                        try:
+                            import json as _json
+                            meta = _json.loads(json_path.read_text())
+                            kw = meta.get("kwargs", {})
+                            info_text += f"\nType: {meta.get('gen_type', '?')} | Seed: {meta.get('seed', '?')} | Time: {meta.get('elapsed', '?')}s"
+                            info_text += f"\nPrompt: {kw.get('prompt', '')[:120]}"
+                            info_text += f"\nResolution: {kw.get('resolution', '?')} | Frames: {kw.get('num_frames', '?')} @ {kw.get('frame_rate', '?')}fps"
+                        except Exception:
+                            pass
+                    return str(path), info_text, evt.index
 
                 def _delete_selected(gallery, evt_idx, page):
                     """Delete the video whose index was last selected."""
@@ -1345,6 +1441,9 @@ def build_ui() -> gr.Blocks:
                         path.unlink()
                         if thumb.exists():
                             thumb.unlink()
+                        json_f = path.with_suffix(".json")
+                        if json_f.exists():
+                            json_f.unlink()
                         logger.info("Deleted: %s", path.name)
                     items, label, pg = _refresh_gallery(page)
                     return items, label, pg, None, f"Deleted: {stem}.mp4", -1
@@ -1354,6 +1453,9 @@ def build_ui() -> gr.Blocks:
                     count = len(files)
                     for f in files:
                         f.unlink()
+                        jf = f.with_suffix(".json")
+                        if jf.exists():
+                            jf.unlink()
                     for t in _thumb_dir.glob("*.jpg"):
                         t.unlink()
                     logger.info("Flushed %d files", count)

@@ -1,5 +1,8 @@
 """Video generation functions — thin shims that submit tasks to the worker process."""
 
+import copy
+import hashlib
+import json
 import logging
 import tempfile
 import time
@@ -193,6 +196,36 @@ def _build_loading_status(plan: list[str], done: dict[str, float], current: str 
     return header + "\n" + "\n".join(lines)
 
 
+def _sanitize_kwargs(kwargs: dict) -> dict:
+    """Make kwargs JSON-serializable for metadata sidecar."""
+    data = copy.deepcopy(kwargs)
+    for key, val in list(data.items()):
+        if isinstance(val, (bytes, bytearray)):
+            data[key] = "<binary>"
+        elif hasattr(val, "tolist"):  # numpy array
+            data[key] = "<array>"
+    return data
+
+
+def _save_metadata(path: str, gen_type: str, seed: int, elapsed: float, kwargs: dict):
+    """Save generation metadata as JSON sidecar alongside the output video."""
+    try:
+        prompt = kwargs.get("prompt", "").strip().lower()[:200]
+        take_group = hashlib.md5(f"{gen_type}:{prompt}".encode()).hexdigest()[:12]
+        metadata = {
+            "gen_type": gen_type,
+            "seed": seed,
+            "elapsed": round(elapsed, 1),
+            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"),
+            "take_group": take_group,
+            "kwargs": _sanitize_kwargs(kwargs),
+        }
+        json_path = Path(path).with_suffix(".json")
+        json_path.write_text(json.dumps(metadata, indent=2, ensure_ascii=False))
+    except Exception as e:
+        logger.warning("Failed to save metadata: %s", e)
+
+
 def _submit_and_wait(gen_type: str, kwargs: dict, progress) -> tuple[str, str]:
     """Submit task to worker, poll progress, wait for result."""
     global _loading_status, _loading_plan, _loading_done, _loading_current
@@ -292,6 +325,7 @@ def _submit_and_wait(gen_type: str, kwargs: dict, progress) -> tuple[str, str]:
                     seed = payload["seed"]
                     info = f"Seed: {seed} | Time: {elapsed:.1f}s | Output: {Path(path).name}"
                     logger.info("Generation complete: %s", info)
+                    _save_metadata(path, gen_type, seed, elapsed, kwargs)
                     _gen_active = False
                     _active_gen_inputs = None
                     _result_version += 1
@@ -417,6 +451,7 @@ def generate_iclora(
     skip_stage2, enhance_prompt, fp8,
     frame_mode="Frames", duration=4.8, disable_audio=False,
     lora_strength=0.8, custom_loras=None,
+    cond_type="None", canny_lo=100, canny_hi=200,
     progress=gr.Progress(track_tqdm=True),
 ):
     custom_loras = custom_loras or []
@@ -447,6 +482,12 @@ def generate_iclora(
         if not lora_path.exists():
             raise gr.Error(f"IC-LoRA file not found: {lora_filename}")
 
+    # Preprocess reference video if conditioning type selected
+    actual_ref_video = ref_video
+    if ref_video and cond_type == "Canny Edge":
+        from preprocess import preprocess_video_canny
+        actual_ref_video = preprocess_video_canny(ref_video, int(canny_lo), int(canny_hi))
+
     image_conditionings = _build_image_conditionings(
         image, image_strength, image_crf, extra_conditionings,
         frame_rate=int(frame_rate), num_frames=int(num_frames))
@@ -454,7 +495,7 @@ def generate_iclora(
         "prompt": prompt,
         "negative_prompt": negative_prompt, "nag_scale": float(nag_scale),
         "nag_alpha": float(nag_alpha),
-        "ref_video": ref_video,
+        "ref_video": actual_ref_video,
         "ref_strength": float(ref_strength),
         "lora_choices": lora_choices, "attention_strength": float(attention_strength),
         "image_conditionings": image_conditionings, "resolution": resolution,
@@ -599,3 +640,31 @@ def generate_retake(
         "a_guidance": [a_cfg, a_stg, a_rescale, a_modality, str(a_stg_blocks), a_skip_step],
     }
     yield from _submit_and_wait("retake", kwargs, progress)
+
+
+def suggest_prompt_from_image(image_array, hint: str = "") -> str:
+    """Submit image to worker for Gemma vision description. Returns description text."""
+    import numpy as np
+    from PIL import Image as PILImage
+
+    # Save image to temp file
+    if isinstance(image_array, np.ndarray):
+        img = PILImage.fromarray(image_array)
+    else:
+        img = image_array
+    tmp_path = Path(tempfile.mkdtemp()) / "suggest_frame.jpg"
+    img.save(str(tmp_path), quality=90)
+
+    mgr = get_worker_mgr()
+    mgr.ensure_running()
+    task_id = mgr.submit_task("describe_frame", {"image_path": str(tmp_path), "hint": hint})
+
+    start_t = time.time()
+    while time.time() - start_t < 60:
+        result = mgr.get_result(timeout=0.5)
+        if result and result.get("task_id") == task_id:
+            if result["status"] == "ok":
+                return result["payload"]["path"]  # description text stored in "path" field
+            else:
+                raise gr.Error(f"Prompt suggestion failed: {result['payload']}")
+    raise gr.Error("Timeout waiting for prompt suggestion.")
