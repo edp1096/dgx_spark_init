@@ -255,19 +255,19 @@ SAMPLE_PROMPTS = [
 REQUIRED_MODELS = {
     "ti2vid": ["ltx-2.3-22b-dev-fp8.safetensors", "ltx-2.3-spatial-upscaler-x2-1.0.safetensors",
                "ltx-2.3-22b-distilled-lora-384.safetensors", "gemma-3-12b-it-qat-q4_0-unquantized",
-               "Huihui-Qwen3.5-2B-abliterated"],
+               "Huihui-Qwen3.5-4B-abliterated"],
     "distilled": ["ltx-2.3-22b-distilled-fp8.safetensors", "ltx-2.3-spatial-upscaler-x2-1.0.safetensors",
-                  "gemma-3-12b-it-qat-q4_0-unquantized", "Huihui-Qwen3.5-2B-abliterated"],
+                  "gemma-3-12b-it-qat-q4_0-unquantized", "Huihui-Qwen3.5-4B-abliterated"],
     "iclora": ["ltx-2.3-22b-distilled-fp8.safetensors", "ltx-2.3-spatial-upscaler-x2-1.0.safetensors",
-               "gemma-3-12b-it-qat-q4_0-unquantized", "Huihui-Qwen3.5-2B-abliterated"],
+               "gemma-3-12b-it-qat-q4_0-unquantized", "Huihui-Qwen3.5-4B-abliterated"],
     "keyframe": ["ltx-2.3-22b-dev-fp8.safetensors", "ltx-2.3-spatial-upscaler-x2-1.0.safetensors",
                  "ltx-2.3-22b-distilled-lora-384.safetensors", "gemma-3-12b-it-qat-q4_0-unquantized",
-                 "Huihui-Qwen3.5-2B-abliterated"],
+                 "Huihui-Qwen3.5-4B-abliterated"],
     "a2vid": ["ltx-2.3-22b-dev-fp8.safetensors", "ltx-2.3-spatial-upscaler-x2-1.0.safetensors",
               "ltx-2.3-22b-distilled-lora-384.safetensors", "gemma-3-12b-it-qat-q4_0-unquantized",
-              "Huihui-Qwen3.5-2B-abliterated"],
+              "Huihui-Qwen3.5-4B-abliterated"],
     "retake": ["ltx-2.3-22b-dev-fp8.safetensors", "gemma-3-12b-it-qat-q4_0-unquantized",
-               "Huihui-Qwen3.5-2B-abliterated"],
+               "Huihui-Qwen3.5-4B-abliterated"],
 }
 
 IC_LORA_MAP = {

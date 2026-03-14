@@ -29,7 +29,7 @@ IC_LORA_DOWNLOADS = {
 }
 
 GEMMA_REPO = "google/gemma-3-12b-it-qat-q4_0-unquantized"
-QWEN_REPO = "huihui-ai/Huihui-Qwen3.5-2B-abliterated"
+QWEN_REPO = "huihui-ai/Huihui-Qwen3.5-4B-abliterated"
 
 
 def format_size(size_bytes: int) -> str:
@@ -50,7 +50,7 @@ def check_status() -> None:
         "ltx-2.3-spatial-upscaler-x2-1.0.safetensors",
         "ltx-2.3-22b-distilled-lora-384.safetensors",
         "gemma-3-12b-it-qat-q4_0-unquantized",
-        "Huihui-Qwen3.5-2B-abliterated",
+        "Huihui-Qwen3.5-4B-abliterated",
     ]
     for fname in required:
         path = MODEL_DIR / fname
@@ -110,15 +110,15 @@ def download_gemma() -> bool:
 def download_qwen() -> bool:
     from huggingface_hub import snapshot_download
 
-    qwen_path = MODEL_DIR / "Huihui-Qwen3.5-2B-abliterated"
+    qwen_path = MODEL_DIR / "Huihui-Qwen3.5-4B-abliterated"
     if qwen_path.exists():
-        print(f"  Already exists: Huihui-Qwen3.5-2B-abliterated/")
+        print(f"  Already exists: Huihui-Qwen3.5-4B-abliterated/")
         return True
 
     print(f"  Downloading: {QWEN_REPO} (excluding *.gguf)...")
     try:
         snapshot_download(QWEN_REPO, local_dir=str(qwen_path), ignore_patterns=["*.gguf"])
-        print(f"  Done: Huihui-Qwen3.5-2B-abliterated/")
+        print(f"  Done: Huihui-Qwen3.5-4B-abliterated/")
         return True
     except Exception as e:
         print(f"  FAILED: qwen — {e}")

@@ -74,20 +74,25 @@ def _worker_loop(
         nonlocal _qwen_model, _qwen_tokenizer
         if _qwen_model is not None:
             return
-        from transformers import AutoModelForCausalLM, AutoTokenizer
+        from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
-        qwen_path = str(Path(model_dir) / "Huihui-Qwen3.5-2B-abliterated")
-        log.info("Loading Qwen3.5-2B for prompt enhancement (%s)...", qwen_path)
+        qwen_path = str(Path(model_dir) / "Huihui-Qwen3.5-4B-abliterated")
+        log.info("Loading Qwen3.5-4B-4bit for prompt enhancement (%s)...", qwen_path)
         _qwen_tokenizer = AutoTokenizer.from_pretrained(qwen_path)
+        bnb_config = BitsAndBytesConfig(
+            load_in_4bit=True,
+            bnb_4bit_compute_dtype=torch.bfloat16,
+            bnb_4bit_quant_type="nf4",
+        )
         _qwen_model = AutoModelForCausalLM.from_pretrained(
             qwen_path,
-            dtype=torch.bfloat16,
+            quantization_config=bnb_config,
             device_map="auto",
         )
-        log.info("Qwen3.5-2B loaded (bf16, ~4GB)")
+        log.info("Qwen3.5-4B loaded (4bit nf4, ~2GB)")
 
     def _enhance_prompt_qwen(prompt: str) -> str:
-        """Enhance a prompt using Qwen3.5-2B with the LTX system prompt."""
+        """Enhance a prompt using Qwen3.5-4B-4bit with the LTX system prompt."""
         _load_qwen()
         messages = [
             {"role": "system", "content": _QWEN_SYSTEM_PROMPT},
@@ -121,7 +126,7 @@ def _worker_loop(
             enhanced = enhanced[style_idx:]
             log.info("Stripped %d chars of thinking text before 'Style:'", style_idx)
         return enhanced
-    log.info("Qwen3.5-2B prompt enhancement configured (lazy load)")
+    log.info("Qwen3.5-4B-4bit prompt enhancement configured (lazy load)")
 
     mgr = PipelineManager(progress_queue=progress_queue)
 
