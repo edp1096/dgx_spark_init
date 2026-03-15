@@ -49,20 +49,25 @@ def download_zimage_turbo(model_dir: Path | None = None):
 
 
 def download_zimage_base(model_dir: Path | None = None):
+    """Download Z-Image Base — kept as BF16 (no FP8 conversion).
+
+    FP8 quantization causes unacceptable quality loss over 28 denoising steps
+    due to per-step input quantization error accumulation. BF16 is used as-is.
+    """
     model_dir = model_dir or MODEL_DIR
     dest = model_dir / ZIMAGE_BASE_DIR
-    fp8_file = dest / "transformer" / FP8_TRANSFORMER_FILENAME
-    if fp8_file.exists():
-        print(f"[OK] Z-Image-Base (FP8) already exists")
+    transformer_dir = dest / "transformer"
+    has_weights = transformer_dir.exists() and any(transformer_dir.glob("*.safetensors"))
+    if has_weights:
+        print(f"[OK] Z-Image-Base already exists")
         return
     if not dest.exists() or not any(dest.rglob("*.safetensors")):
-        print(f"[DL] Downloading Z-Image-Base -> {dest}")
+        print(f"[DL] Downloading Z-Image-Base (BF16) -> {dest}")
         snapshot_download(
             ZIMAGE_BASE_REPO,
             local_dir=str(dest),
             ignore_patterns=["*.md", ".gitattributes"],
         )
-    convert_zimage_fp8(dest, "Z-Image-Base")
 
 
 # ---------------------------------------------------------------------------
@@ -142,12 +147,17 @@ def convert_zimage_fp8(model_path: Path, label: str):
             and any(key.endswith(s) for s in LINEAR_WEIGHT_SUFFIXES)
         )
         if is_linear_weight:
-            fp8_dict[key] = tensor.to(torch.float8_e4m3fn)
+            # Normalized FP8 quantization: scale weight to fill FP8 range
+            w_float = tensor.float()
+            w_absmax = w_float.abs().amax().clamp(min=1e-12)
+            weight_scale = w_absmax / 448.0
+            fp8_dict[key] = (w_float / weight_scale).to(torch.float8_e4m3fn)
+            fp8_dict[key.replace(".weight", ".weight_scale")] = weight_scale
             converted += 1
         else:
             fp8_dict[key] = tensor
 
-    print(f"  Converted {converted} Linear weights to FP8, kept {len(fp8_dict) - converted} tensors in original dtype")
+    print(f"  Converted {converted} Linear weights to FP8 (normalized), kept {len(fp8_dict) - converted - converted} tensors + {converted} weight_scales")
 
     # Save FP8 file
     save_file(fp8_dict, str(fp8_file))
@@ -233,17 +243,27 @@ def check_status(model_dir: Path | None = None):
     print(f"Model directory: {model_dir}")
     print()
 
-    # Z-Image: check for FP8 transformer inside model folder
-    for label, subdir in [("Z-Image-Turbo", ZIMAGE_TURBO_DIR), ("Z-Image-Base", ZIMAGE_BASE_DIR)]:
-        model_path = model_dir / subdir
-        fp8_file = model_path / "transformer" / FP8_TRANSFORMER_FILENAME
-        if fp8_file.exists():
-            size = fp8_file.stat().st_size / 1024**3
-            print(f"  [OK] {label} (FP8, {size:.1f} GB)")
-        elif model_path.exists():
-            print(f"  [WARN] {label} (BF16 — needs FP8 conversion)")
-        else:
-            print(f"  [MISSING] {label}")
+    # Z-Image Turbo: FP8
+    turbo_path = model_dir / ZIMAGE_TURBO_DIR
+    turbo_fp8 = turbo_path / "transformer" / FP8_TRANSFORMER_FILENAME
+    if turbo_fp8.exists():
+        size = turbo_fp8.stat().st_size / 1024**3
+        print(f"  [OK] Z-Image-Turbo (FP8, {size:.1f} GB)")
+    elif turbo_path.exists():
+        print(f"  [WARN] Z-Image-Turbo (BF16 — needs FP8 conversion)")
+    else:
+        print(f"  [MISSING] Z-Image-Turbo")
+
+    # Z-Image Base: BF16 (FP8 not used due to quality loss over 28 steps)
+    base_path = model_dir / ZIMAGE_BASE_DIR
+    base_transformer = base_path / "transformer"
+    if base_transformer.exists() and any(base_transformer.glob("*.safetensors")):
+        total = sum(f.stat().st_size for f in base_transformer.glob("*.safetensors")) / 1024**3
+        print(f"  [OK] Z-Image-Base (BF16, {total:.1f} GB)")
+    elif base_path.exists():
+        print(f"  [WARN] Z-Image-Base (missing transformer weights)")
+    else:
+        print(f"  [MISSING] Z-Image-Base")
 
     # Klein
     for label, fname in [

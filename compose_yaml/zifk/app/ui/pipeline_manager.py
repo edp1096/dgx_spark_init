@@ -73,7 +73,12 @@ def _scaled_fp8_forward(self, x, x_scales=None, out_dtype=None):
     if not hasattr(self, '_weight_t'):
         self._weight_t = self.weight.data.t().contiguous()
 
-    scale_b = torch.tensor(1.0, device=x.device, dtype=torch.float32)
+    # Use stored weight_scale if available (normalized FP8 quantization),
+    # otherwise 1.0 (simple BF16→FP8 cast)
+    if hasattr(self, '_weight_scale'):
+        scale_b = self._weight_scale
+    else:
+        scale_b = torch.tensor(1.0, device=x.device, dtype=torch.float32)
     result = torch._scaled_mm(
         x_fp8, self._weight_t,
         scale_a, scale_b,
@@ -89,15 +94,39 @@ def _scaled_fp8_forward(self, x, x_scales=None, out_dtype=None):
     return result.reshape(orig_shape[:-1] + (self.weight.shape[0],))
 
 
-def _patch_transformer_q8(model):
+def _load_fp8_weight_scales(filepath):
+    """Load weight_scale values from an FP8 checkpoint (if present).
+
+    Returns a dict mapping layer name → weight_scale tensor, e.g.
+    {"double_blocks.0.img_attn.proj": tensor(0.0006)}.
+    """
+    from safetensors.torch import load_file
+    sd = load_file(filepath, device="cpu")
+    scales = {}
+    for key in sd:
+        if key.endswith(".weight_scale"):
+            layer_name = key[: -len(".weight_scale")]
+            scales[layer_name] = sd[key]
+    del sd
+    return scales
+
+
+def _patch_transformer_q8(model, weight_scales=None):
     """Replace FP8 nn.Linear layers with q8_kernels FP8Linear for native FP8 GEMM.
 
     Uses a corrected forward (per-tensor dynamic scaling, no Hadamard rotation)
     instead of q8_kernels' broken default which applies Hadamard without inverse.
     After patching, casts ALL non-FP8Linear floating-point params to BF16 so that
     every dtype matches fp8_mm's BF16 output (index_put, add, etc. require matching).
+
+    Args:
+        weight_scales: optional dict of layer_name → weight_scale tensor, for
+            FP8 checkpoints that use normalized quantization (weight/scale → FP8).
     """
     import types
+
+    if weight_scales is None:
+        weight_scales = {}
 
     count = 0
     for name, module in list(model.named_modules()):
@@ -113,6 +142,11 @@ def _patch_transformer_q8(model):
         if module.bias is not None:
             fp8.bias = torch.nn.Parameter(
                 module.bias.data.to(torch.bfloat16), requires_grad=False,
+            )
+        # Store weight_scale for normalized FP8 quantization
+        if name in weight_scales:
+            fp8._weight_scale = weight_scales[name].to(
+                device=module.weight.device, dtype=torch.float32,
             )
         # Replace broken default forward with corrected scaled version
         fp8.forward = types.MethodType(_scaled_fp8_forward, fp8)
@@ -303,10 +337,11 @@ class PipelineManager:
             compile=False,
         )
 
-        # Re-load transformer weights as FP8 (bypassing dtype cast) + apply q8_kernels
+        # Apply FP8 GEMM for Turbo only — Base uses BF16 due to FP8 quality loss
+        # over 28 denoising steps (per-step quantization error accumulation).
         transformer_dir = Path(self.model_dir) / model_dir_name / "transformer"
         fp8_file = transformer_dir / "model_fp8.safetensors"
-        if fp8_file.exists() and _Q8_AVAILABLE:
+        if model_type == "turbo" and fp8_file.exists() and _Q8_AVAILABLE:
             logger.info("Re-loading FP8 transformer for q8_kernels native GEMM...")
             from safetensors.torch import load_file
             fp8_state = load_file(str(fp8_file), device=str(self.device))
@@ -315,13 +350,12 @@ class PipelineManager:
             )
             del fp8_state
             self._gpu_cleanup()
-            _patch_transformer_q8(self.zimage_components["transformer"])
-            # Set explicit dtype so pipeline.py uses BF16 for inputs
+            weight_scales = _load_fp8_weight_scales(str(fp8_file))
+            _patch_transformer_q8(self.zimage_components["transformer"], weight_scales=weight_scales)
             self.zimage_components["transformer"].dtype = torch.bfloat16
             logger.info("FP8 transformer loaded with q8_kernels native GEMM")
-        elif fp8_file.exists():
-            # q8_kernels not available — load_from_local_dir already cast to BF16, use as-is
-            logger.warning("q8_kernels not available — using BF16 (cast from FP8 file)")
+        else:
+            logger.info("Using BF16 transformer (no FP8 GEMM)")
 
         self.zimage_type = model_type
         self.current_family = "zimage"
@@ -369,7 +403,9 @@ class PipelineManager:
             for p in self.klein_model.parameters()
         )
         if has_fp8 and _Q8_AVAILABLE:
-            _patch_transformer_q8(self.klein_model)
+            # Load weight_scale values from the FP8 checkpoint for proper dequantization
+            weight_scales = _load_fp8_weight_scales(self._model_path(model_file))
+            _patch_transformer_q8(self.klein_model, weight_scales=weight_scales)
             self.klein_model.dtype = torch.bfloat16
             logger.info("Klein flow model: q8_kernels FP8 GEMM applied")
         elif has_fp8:
