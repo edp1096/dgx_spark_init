@@ -48,11 +48,21 @@ def get_loading_status() -> str:
     return _loading_status
 
 
+_GEN_TAB_TYPES = {"generate": {"zit_t2i", "zib_t2i", "klein_t2i", "klein_base_t2i"},
+                   "edit": {"klein_edit", "klein_multiref"}}
+
+
 def get_gen_info_for_tab(gen_type: str) -> str:
     if _gen_active:
         return "Generating..."
     result = _last_gen_result
-    if result is None or result["gen_type"] != gen_type:
+    if result is None:
+        return ""
+    allowed = _GEN_TAB_TYPES.get(gen_type)
+    if allowed:
+        if result["gen_type"] not in allowed:
+            return ""
+    elif result["gen_type"] != gen_type:
         return ""
     if time.time() - result["time"] > 600:
         return ""

@@ -133,7 +133,14 @@ def build_ui() -> gr.Blocks:
         total = vm.total / 1024**3
         return f"Memory: **{used:.1f}GB/{total:.0f}GB** ({vm.percent:.0f}% used)"
 
-    with gr.Blocks(title="ZIFK", css=".memory-status { text-align: right; }", js=get_i18n_js()) as app:
+    custom_css = """
+.memory-status { text-align: right; }
+#gen-gallery .thumbnail-item img { max-height: 120px !important; width: auto !important; }
+@media (max-width: 768px) {
+  #history-gallery .thumbnails { grid-template-columns: repeat(2, 1fr) !important; }
+}
+"""
+    with gr.Blocks(title="ZIFK", css=custom_css, js=get_i18n_js()) as app:
         with gr.Row():
             gr.Markdown("# ZIFK")
             gr.Markdown(value=get_memory_status, every=3, elem_classes=["memory-status"])
@@ -179,7 +186,7 @@ def build_ui() -> gr.Blocks:
                         g_generate = gr.Button("Generate", variant="primary")
 
                     with gr.Column(scale=1):
-                        g_gallery = gr.Gallery(label="Generated Images", columns=2, height=100, object_fit="contain")
+                        g_gallery = gr.Gallery(label="Generated Images", columns=2, height=500, object_fit="contain", elem_id="gen-gallery")
                         g_info = gr.Textbox(label="Info", interactive=False,
                                             value=lambda: get_gen_info_for_tab("generate"), every=2)
                         with gr.Row():
@@ -568,7 +575,8 @@ def build_ui() -> gr.Blocks:
 
                 h_gallery = gr.Gallery(
                     label="Generated Images", value=_list_outputs,
-                    columns=4, height=400, object_fit="contain", every=10,
+                    columns=4, height=600, object_fit="contain", every=10,
+                    elem_id="history-gallery",
                 )
                 h_selected = gr.Textbox(label="Selected File", interactive=False, visible=False)
                 h_file_info = gr.Textbox(label="File Info", interactive=False, lines=8)
