@@ -25,7 +25,7 @@ GITHUB_BRANCH="main"
 GITHUB_RAW="https://raw.githubusercontent.com/${GITHUB_REPO}/${GITHUB_BRANCH}/compose_yaml/zifk"
 
 APP_FILES=(app.py)
-UI_FILES=(zifk_config.py pipeline_manager.py worker.py generators.py download_models.py)
+UI_FILES=(zifk_config.py pipeline_manager.py worker.py generators.py download_models.py i18n.py)
 
 for arg in "$@"; do
     case $arg in

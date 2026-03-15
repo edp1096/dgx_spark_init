@@ -25,6 +25,7 @@ from generators import (
     match_image_resolution,
     set_model_dir,
 )
+from i18n import LANGUAGES, get_i18n_js
 from pipeline_manager import OUTPUT_DIR, scan_lora_files
 from zifk_config import MODEL_DIR, RESOLUTION_CHOICES, SAMPLE_PROMPTS
 
@@ -132,7 +133,7 @@ def build_ui() -> gr.Blocks:
         total = vm.total / 1024**3
         return f"Memory: **{used:.1f}GB/{total:.0f}GB** ({vm.percent:.0f}% used)"
 
-    with gr.Blocks(title="ZIFK", css=".memory-status { text-align: right; }") as app:
+    with gr.Blocks(title="ZIFK", css=".memory-status { text-align: right; }", js=get_i18n_js()) as app:
         with gr.Row():
             gr.Markdown("# ZIFK")
             gr.Markdown(value=get_memory_status, every=3, elem_classes=["memory-status"])
@@ -433,6 +434,22 @@ def build_ui() -> gr.Blocks:
             # Tab 4: Settings
             # ==============================================================
             with gr.Tab("Settings", id="settings"):
+                gr.Markdown("### Language")
+                with gr.Group():
+                    s_lang = gr.Radio(
+                        list(LANGUAGES.values()), value="English",
+                        label="Language", elem_id="lang-selector",
+                    )
+                    s_lang.change(
+                        fn=None,
+                        inputs=[s_lang],
+                        js="""(lang) => {
+                            const map = {""" + ", ".join(f'"{v}": "{k}"' for k, v in LANGUAGES.items()) + """};
+                            const code = map[lang] || 'en';
+                            if (window._zifk_setLang) window._zifk_setLang(code);
+                        }""",
+                    )
+
                 gr.Markdown("### Model Settings")
                 with gr.Group():
                     s_model_dir = gr.Textbox(label="Model Directory", value=str(MODEL_DIR))

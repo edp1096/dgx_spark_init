@@ -32,7 +32,7 @@ services:
 
       echo '=== [3/6] Downloading UI files ===';
       curl -sfL $${GITHUB_RAW}/app/app.py -o ~/zifk-ui/app/app.py;
-      for f in zifk_config.py pipeline_manager.py worker.py generators.py download_models.py; do
+      for f in zifk_config.py pipeline_manager.py worker.py generators.py download_models.py i18n.py; do
         curl -sfL $${GITHUB_RAW}/app/ui/$$f -o ~/zifk-ui/app/ui/$$f;
       done;
 
