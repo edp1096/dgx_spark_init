@@ -118,79 +118,24 @@ def _patch_transformer_q8(model):
 # These patches fix the specific incompatible methods.
 # ---------------------------------------------------------------------------
 def _patch_zimage_fp8_compat(model):
-    """Monkey-patch Z-Image transformer methods for FP8 dtype compatibility."""
+    """Monkey-patch Z-Image transformer forward for FP8 dtype compatibility.
 
-    # 1. TimestepEmbedder: uses weight.dtype to cast input → FP8 if weight is FP8
-    for name, module in model.named_modules():
-        if type(module).__name__ == "TimestepEmbedder":
-            _orig_te_forward = module.forward
+    The Z-Image source assumes uniform BF16 dtype throughout, but FP8Linear
+    outputs float32. Instead of patching individual methods, we wrap the
+    entire transformer forward to cast inputs to float32, ensuring all
+    internal operations run in float32 (matching FP8Linear output).
+    """
+    _orig_forward = model.forward
 
-            def _te_forward_patched(self_te, t, _orig=_orig_te_forward):
-                t_freq = self_te.timestep_embedding(t, self_te.frequency_embedding_size)
-                # Original: casts to weight.dtype which may be FP8
-                # Fix: always use bfloat16 for timestep frequency input
-                t_freq = t_freq.to(torch.bfloat16)
-                t_emb = self_te.mlp(t_freq)
-                return t_emb
+    def _forward_fp32(self, x, t, cap_feats, patch_size=2, f_patch_size=1):
+        # Cast all inputs to float32 so every internal op matches FP8Linear output
+        x_f32 = [xi.float() for xi in x]
+        cap_feats_f32 = [cf.float() for cf in cap_feats]
+        t_f32 = t.float() if t.is_floating_point() else t
+        return _orig_forward(x_f32, t_f32, cap_feats_f32, patch_size, f_patch_size)
 
-            module.forward = types.MethodType(_te_forward_patched, module)
-            logger.debug("Patched TimestepEmbedder.forward for FP8 compat")
-
-    # 2. ZImageAttention: value not cast to query.dtype after QK norm
-    for name, module in model.named_modules():
-        if type(module).__name__ == "ZImageAttention":
-            _orig_attn_forward = module.forward
-
-            def _attn_forward_patched(self_attn, hidden_states, attention_mask=None, freqs_cis=None):
-                from utils.attention import dispatch_attention
-
-                query = self_attn.to_q(hidden_states)
-                key = self_attn.to_k(hidden_states)
-                value = self_attn.to_v(hidden_states)
-
-                query = query.unflatten(-1, (self_attn.n_heads, -1))
-                key = key.unflatten(-1, (self_attn.n_kv_heads, -1))
-                value = value.unflatten(-1, (self_attn.n_kv_heads, -1))
-
-                if self_attn.norm_q is not None:
-                    query = self_attn.norm_q(query)
-                if self_attn.norm_k is not None:
-                    key = self_attn.norm_k(key)
-
-                if freqs_cis is not None:
-                    from zimage.transformer import apply_rotary_emb
-                    query = apply_rotary_emb(query, freqs_cis)
-                    key = apply_rotary_emb(key, freqs_cis)
-
-                # Fix: cast ALL of q/k/v to the same dtype
-                dtype = query.dtype
-                query = query.to(dtype)
-                key = key.to(dtype)
-                value = value.to(dtype)  # ← Original code misses this
-
-                hidden_states = dispatch_attention(
-                    query, key, value,
-                    attn_mask=attention_mask, dropout_p=0.0, is_causal=False,
-                    backend=self_attn._attention_backend,
-                )
-                hidden_states = hidden_states.flatten(2, 3).to(dtype)
-                output = self_attn.to_out[0](hidden_states)
-                return output
-
-            module.forward = types.MethodType(_attn_forward_patched, module)
-
-    # 3. Pad tokens (x_pad_token, cap_pad_token): BF16 but x is float32 from FP8Linear
-    #    Fix: cast pad tokens to float32
-    for attr_name in ("x_pad_token", "cap_pad_token"):
-        if hasattr(model, attr_name):
-            param = getattr(model, attr_name)
-            if isinstance(param, torch.nn.Parameter):
-                param.data = param.data.to(torch.float32)
-            elif isinstance(param, torch.Tensor):
-                setattr(model, attr_name, param.to(torch.float32))
-
-    attn_count = sum(1 for _, m in model.named_modules() if type(m).__name__ == "ZImageAttention")
-    logger.info("Patched %d ZImageAttention + TimestepEmbedder + pad tokens for FP8 compat", attn_count)
+    model.forward = types.MethodType(_forward_fp32, model)
+    logger.info("Patched transformer.forward for FP8 compat (all inputs cast to float32)")
 
 
 # ---------------------------------------------------------------------------
