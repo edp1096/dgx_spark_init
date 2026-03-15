@@ -92,14 +92,22 @@ while IFS= read -r f; do
     [ -n "$f" ] && UI_FILES+=("$f")
 done < <(list_remote_files "app/ui")
 
+# Fetch tests/ files
+TESTS_DIR="${SCRIPT_DIR}/tests"
+TEST_FILES=()
+while IFS= read -r f; do
+    [ -n "$f" ] && TEST_FILES+=("$f")
+done < <(list_remote_files "tests")
+
 if [ ${#APP_FILES[@]} -eq 0 ] && [ ${#UI_FILES[@]} -eq 0 ]; then
     echo "ERROR: Failed to fetch file list from GitHub API."
     echo "  Check network or API rate limit."
     exit 1
 fi
 
-echo "  App files: ${#APP_FILES[@]} (${APP_FILES[*]})"
-echo "  UI files:  ${#UI_FILES[@]} (${UI_FILES[*]})"
+echo "  App files:  ${#APP_FILES[@]} (${APP_FILES[*]})"
+echo "  UI files:   ${#UI_FILES[@]} (${UI_FILES[*]})"
+echo "  Test files: ${#TEST_FILES[@]} (${TEST_FILES[*]})"
 echo ""
 
 if [ "$DIFF_ONLY" = true ]; then
@@ -145,6 +153,25 @@ if [ "$DIFF_ONLY" = true ]; then
         fi
     done
 
+    mkdir -p "$TEMP_DIR/tests"
+    for fname in "${TEST_FILES[@]}"; do
+        if ! curl -sfL "${GITHUB_RAW}/tests/${fname}" -o "${TEMP_DIR}/tests/${fname}" 2>/dev/null; then
+            fail "tests/${fname} (download)"
+            continue
+        fi
+        current="${TESTS_DIR}/${fname}"
+        if [ -f "$current" ]; then
+            if ! diff -q "$current" "${TEMP_DIR}/tests/${fname}" > /dev/null 2>&1; then
+                echo "--- CHANGED: tests/${fname} ---"
+                diff --color=auto -u "$current" "${TEMP_DIR}/tests/${fname}" || true
+                changed=$((changed + 1))
+            fi
+        else
+            echo "  NEW: tests/${fname}"
+            changed=$((changed + 1))
+        fi
+    done
+
     if [ $changed -eq 0 ] && [ ${#FAILED_FILES[@]} -eq 0 ]; then
         echo "  No changes detected."
     else
@@ -160,12 +187,15 @@ echo "=============================================="
 # [1/3] Backup
 if [ "$FORCE" = false ]; then
     echo "[1/3] Backing up current files..."
-    mkdir -p "$BACKUP_DIR/ui"
+    mkdir -p "$BACKUP_DIR/ui" "$BACKUP_DIR/tests"
     for fname in "${APP_FILES[@]}"; do
         [ -f "${APP_DIR}/${fname}" ] && cp "${APP_DIR}/${fname}" "${BACKUP_DIR}/${fname}"
     done
     for fname in "${UI_FILES[@]}"; do
         [ -f "${UI_DIR}/${fname}" ] && cp "${UI_DIR}/${fname}" "${BACKUP_DIR}/ui/${fname}"
+    done
+    for fname in "${TEST_FILES[@]}"; do
+        [ -f "${TESTS_DIR}/${fname}" ] && cp "${TESTS_DIR}/${fname}" "${BACKUP_DIR}/tests/${fname}"
     done
     echo "  Backup: ${BACKUP_DIR}"
 else
@@ -174,7 +204,7 @@ fi
 
 # [2/3] Download
 echo "[2/3] Downloading files..."
-mkdir -p "$APP_DIR" "$UI_DIR"
+mkdir -p "$APP_DIR" "$UI_DIR" "$TESTS_DIR"
 
 for fname in "${APP_FILES[@]}"; do
     if curl -sfL "${GITHUB_RAW}/app/${fname}" -o "${APP_DIR}/${fname}"; then
@@ -191,6 +221,15 @@ for fname in "${UI_FILES[@]}"; do
     else
         echo "  FAIL: app/ui/${fname}"
         fail "app/ui/${fname}"
+    fi
+done
+
+for fname in "${TEST_FILES[@]}"; do
+    if curl -sfL "${GITHUB_RAW}/tests/${fname}" -o "${TESTS_DIR}/${fname}"; then
+        echo "  OK: tests/${fname}"
+    else
+        echo "  FAIL: tests/${fname}"
+        fail "tests/${fname}"
     fi
 done
 
