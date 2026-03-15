@@ -17,12 +17,17 @@ services:
 
       mkdir -p ~/zifk-ui/app/ui ~/zifk-ui/logs;
 
+      ZIMAGE_COMMIT=26f23ed;
+      FLUX2_COMMIT=50fe516;
+
       echo '=== [1/6] Cloning source repos ===';
       if [ ! -d ~/zifk-ui/Z-Image ]; then
         git clone https://github.com/Tongyi-MAI/Z-Image.git ~/zifk-ui/Z-Image;
+        cd ~/zifk-ui/Z-Image && git checkout $${ZIMAGE_COMMIT} && cd ~;
       fi;
       if [ ! -d ~/zifk-ui/flux2 ]; then
         git clone https://github.com/black-forest-labs/flux2.git ~/zifk-ui/flux2;
+        cd ~/zifk-ui/flux2 && git checkout $${FLUX2_COMMIT} && cd ~;
       fi;
 
       echo '=== [2/6] Installing source repos ===';

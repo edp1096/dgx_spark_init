@@ -55,13 +55,13 @@ def _fp8_forward_no_hadamard(self, x, x_scales=None, out_dtype=None):
     16-bit inputs before quantizing to FP8, but fp8_gemm does NOT apply the
     inverse transform — producing ~500% relative error. This forward simply
     casts the input to FP8 and calls fp8_gemm directly.
-    Output is cast to BF16 to match the rest of the model's dtype.
+    Output stays as fp8_mm's natural dtype (float32) to match QK normalization.
     """
     orig_shape = x.shape
     x_fp8 = x.to(torch.float8_e4m3fn).view(-1, orig_shape[-1])
     bias = self.bias.data if self.bias is not None else None
     o = _fp8_mm(x_fp8, self.weight.data, bias, False)
-    return o.to(torch.bfloat16).view(*orig_shape[:-1], self.weight.shape[0])
+    return o.view(*orig_shape[:-1], self.weight.shape[0])
 
 
 def _patch_transformer_q8(model):
@@ -108,6 +108,89 @@ def _patch_transformer_q8(model):
     if count > 0 or cast_count > 0:
         torch.cuda.empty_cache()
         logger.info("q8_kernels: %d Linear → FP8Linear, %d non-Linear params cast to BF16", count, cast_count)
+
+
+# ---------------------------------------------------------------------------
+# Z-Image FP8 compatibility monkey-patches
+#
+# The Z-Image source code assumes uniform dtype (BF16) throughout.
+# With FP8Linear (float32 output) + BF16 norms, dtype mismatches occur.
+# These patches fix the specific incompatible methods.
+# ---------------------------------------------------------------------------
+def _patch_zimage_fp8_compat(model):
+    """Monkey-patch Z-Image transformer methods for FP8 dtype compatibility."""
+
+    # 1. TimestepEmbedder: uses weight.dtype to cast input → FP8 if weight is FP8
+    for name, module in model.named_modules():
+        if type(module).__name__ == "TimestepEmbedder":
+            _orig_te_forward = module.forward
+
+            def _te_forward_patched(self_te, t, _orig=_orig_te_forward):
+                t_freq = self_te.timestep_embedding(t, self_te.frequency_embedding_size)
+                # Original: casts to weight.dtype which may be FP8
+                # Fix: always use bfloat16 for timestep frequency input
+                t_freq = t_freq.to(torch.bfloat16)
+                t_emb = self_te.mlp(t_freq)
+                return t_emb
+
+            module.forward = types.MethodType(_te_forward_patched, module)
+            logger.debug("Patched TimestepEmbedder.forward for FP8 compat")
+
+    # 2. ZImageAttention: value not cast to query.dtype after QK norm
+    for name, module in model.named_modules():
+        if type(module).__name__ == "ZImageAttention":
+            _orig_attn_forward = module.forward
+
+            def _attn_forward_patched(self_attn, hidden_states, attention_mask=None, freqs_cis=None):
+                from utils.attention import dispatch_attention
+
+                query = self_attn.to_q(hidden_states)
+                key = self_attn.to_k(hidden_states)
+                value = self_attn.to_v(hidden_states)
+
+                query = query.unflatten(-1, (self_attn.n_heads, -1))
+                key = key.unflatten(-1, (self_attn.n_kv_heads, -1))
+                value = value.unflatten(-1, (self_attn.n_kv_heads, -1))
+
+                if self_attn.norm_q is not None:
+                    query = self_attn.norm_q(query)
+                if self_attn.norm_k is not None:
+                    key = self_attn.norm_k(key)
+
+                if freqs_cis is not None:
+                    from zimage.transformer import apply_rotary_emb
+                    query = apply_rotary_emb(query, freqs_cis)
+                    key = apply_rotary_emb(key, freqs_cis)
+
+                # Fix: cast ALL of q/k/v to the same dtype
+                dtype = query.dtype
+                query = query.to(dtype)
+                key = key.to(dtype)
+                value = value.to(dtype)  # ← Original code misses this
+
+                hidden_states = dispatch_attention(
+                    query, key, value,
+                    attn_mask=attention_mask, dropout_p=0.0, is_causal=False,
+                    backend=self_attn._attention_backend,
+                )
+                hidden_states = hidden_states.flatten(2, 3).to(dtype)
+                output = self_attn.to_out[0](hidden_states)
+                return output
+
+            module.forward = types.MethodType(_attn_forward_patched, module)
+
+    # 3. Pad tokens (x_pad_token, cap_pad_token): BF16 but x is float32 from FP8Linear
+    #    Fix: cast pad tokens to float32
+    for attr_name in ("x_pad_token", "cap_pad_token"):
+        if hasattr(model, attr_name):
+            param = getattr(model, attr_name)
+            if isinstance(param, torch.nn.Parameter):
+                param.data = param.data.to(torch.float32)
+            elif isinstance(param, torch.Tensor):
+                setattr(model, attr_name, param.to(torch.float32))
+
+    attn_count = sum(1 for _, m in model.named_modules() if type(m).__name__ == "ZImageAttention")
+    logger.info("Patched %d ZImageAttention + TimestepEmbedder + pad tokens for FP8 compat", attn_count)
 
 
 # ---------------------------------------------------------------------------
@@ -286,6 +369,7 @@ class PipelineManager:
             del fp8_state
             self._gpu_cleanup()
             _patch_transformer_q8(self.zimage_components["transformer"])
+            _patch_zimage_fp8_compat(self.zimage_components["transformer"])
             # Set explicit dtype so pipeline.py uses BF16 for inputs, not FP8
             self.zimage_components["transformer"].dtype = torch.bfloat16
             logger.info("FP8 transformer loaded with q8_kernels native GEMM")

@@ -15,6 +15,8 @@ APP_DIR="$SCRIPT_DIR/app"
 UI_DIR="$APP_DIR/ui"
 ZIMAGE_DIR="$SCRIPT_DIR/Z-Image"
 FLUX2_DIR="$SCRIPT_DIR/flux2"
+ZIMAGE_COMMIT="26f23ed"
+FLUX2_COMMIT="50fe516"
 MODEL_DIR="${ZIFK_MODEL_DIR:-$HOME/.cache/huggingface/hub/zifk}"
 BNB_COMMIT="925d83e"
 SKIP_Q8=false
@@ -49,17 +51,23 @@ echo ""
 echo "[1/6] Cloning source repos..."
 
 if [ ! -d "$ZIMAGE_DIR" ]; then
-    echo "  Cloning Z-Image..."
+    echo "  Cloning Z-Image (commit $ZIMAGE_COMMIT)..."
     git clone https://github.com/Tongyi-MAI/Z-Image.git "$ZIMAGE_DIR"
+    cd "$ZIMAGE_DIR" && git checkout "$ZIMAGE_COMMIT" && cd "$SCRIPT_DIR"
 else
     echo "  Z-Image already exists — skipping"
+    CURRENT=$(cd "$ZIMAGE_DIR" && git rev-parse --short HEAD)
+    echo "  Current commit: $CURRENT (expected: $ZIMAGE_COMMIT)"
 fi
 
 if [ ! -d "$FLUX2_DIR" ]; then
-    echo "  Cloning flux2..."
+    echo "  Cloning flux2 (commit $FLUX2_COMMIT)..."
     git clone https://github.com/black-forest-labs/flux2.git "$FLUX2_DIR"
+    cd "$FLUX2_DIR" && git checkout "$FLUX2_COMMIT" && cd "$SCRIPT_DIR"
 else
     echo "  flux2 already exists — skipping"
+    CURRENT=$(cd "$FLUX2_DIR" && git rev-parse --short HEAD)
+    echo "  Current commit: $CURRENT (expected: $FLUX2_COMMIT)"
 fi
 
 # -----------------------------------------------
