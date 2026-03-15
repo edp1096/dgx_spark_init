@@ -67,6 +67,5 @@ services:
       rm -rf /root/.cache/pip;
 
       echo '=== Build complete! ===' ;
-      echo 'Commit: docker commit zifk-ui-spark-builder edp1096/zifk-gradio-spark:v1' ;
       tail -f /dev/null
       "
