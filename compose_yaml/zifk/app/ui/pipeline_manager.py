@@ -10,6 +10,7 @@ Klein:   native pipeline via black-forest-labs/flux2 (denoise functions)
 import gc
 import logging
 import os
+import types
 from pathlib import Path
 
 import torch
@@ -34,6 +35,67 @@ logger = logging.getLogger("zifk-ui")
 
 os.makedirs(str(OUTPUT_DIR), exist_ok=True)
 os.makedirs(str(DEFAULT_MODEL_DIR), exist_ok=True)
+
+
+# ---------------------------------------------------------------------------
+# q8_kernels FP8 matmul — native FP8 GEMM
+# ---------------------------------------------------------------------------
+_Q8_AVAILABLE = False
+_fp8_mm = None
+try:
+    from q8_kernels.modules.linear import FP8Linear as _Q8FP8Linear
+    from q8_kernels.functional.linear import fp8_mm as _fp8_mm
+    _Q8_AVAILABLE = True
+except ImportError:
+    pass
+
+
+def _fp8_forward_no_hadamard(self, x, x_scales=None, out_dtype=None):
+    """FP8 forward WITHOUT Hadamard rotation on input.
+
+    q8_kernels' default FP8LinearFunc always applies Hadamard rotation to
+    16-bit inputs before quantizing to FP8, but fp8_gemm does NOT apply the
+    inverse transform — producing ~500% relative error. This forward simply
+    casts the input to FP8 and calls fp8_gemm directly.
+    """
+    orig_shape = x.shape
+    x_fp8 = x.to(torch.float8_e4m3fn).view(-1, orig_shape[-1])
+    bias = self.bias.data if self.bias is not None else None
+    o = _fp8_mm(x_fp8, self.weight.data, bias, False)
+    return o.view(*orig_shape[:-1], self.weight.shape[0])
+
+
+def _patch_transformer_q8(model):
+    """Replace FP8 nn.Linear layers with q8_kernels FP8Linear for native FP8 GEMM.
+
+    Swaps upcast-forward Linear layers for FP8Linear which runs matmul directly in FP8.
+    Uses a custom forward that skips the Hadamard rotation.
+    """
+    count = 0
+    for name, module in list(model.named_modules()):
+        if not isinstance(module, torch.nn.Linear) or isinstance(module, _Q8FP8Linear):
+            continue
+        if module.weight.dtype != torch.float8_e4m3fn:
+            continue
+        fp8 = _Q8FP8Linear(
+            module.in_features, module.out_features,
+            bias=module.bias is not None, device=module.weight.device,
+        )
+        fp8.weight.data.copy_(module.weight.data)
+        if module.bias is not None:
+            fp8.bias = torch.nn.Parameter(
+                module.bias.data.to(torch.float32), requires_grad=False,
+            )
+        fp8.forward = types.MethodType(_fp8_forward_no_hadamard, fp8)
+        parts = name.split(".")
+        parent = model
+        for part in parts[:-1]:
+            parent = getattr(parent, part)
+        setattr(parent, parts[-1], fp8)
+        count += 1
+    if count > 0:
+        torch.cuda.empty_cache()
+        logger.info("q8_kernels: replaced %d Linear → FP8Linear (native FP8 GEMM)", count)
 
 
 # ---------------------------------------------------------------------------
@@ -72,7 +134,7 @@ class PipelineManager:
         self.klein_text_encoder = None
         self.klein_ae = None
         self.klein_loaded: bool = False
-        self.klein_variant: str | None = None  # "flux.2-klein-4b" or "flux.2-klein-base-4b"
+        self.klein_variant: str | None = None
 
         # Current state
         self.current_family: str | None = None  # "zimage" or "klein"
@@ -163,10 +225,12 @@ class PipelineManager:
     # Z-Image loading
     # -------------------------------------------------------------------
     def load_zimage(self, model_type: str = "turbo"):
-        """Load Z-Image native pipeline components.
+        """Load Z-Image native pipeline components with FP8 q8_kernels GEMM.
 
-        Args:
-            model_type: "turbo" or "base"
+        Flow:
+        1. load_from_local_dir() → BF16 components (config, VAE, text_encoder, scheduler)
+        2. Load FP8 transformer weights from single file
+        3. Patch nn.Linear → FP8Linear via q8_kernels (native FP8 GEMM)
         """
         if self.current_family == "zimage" and self.zimage_type == model_type:
             return self.zimage_components
@@ -195,17 +259,28 @@ class PipelineManager:
             compile=False,
         )
 
-        # Replace transformer weights with FP8 if available
+        # Load FP8 transformer weights + apply q8_kernels native FP8 GEMM
         fp8_file = ZIMAGE_TURBO_FP8_FILE if model_type == "turbo" else ZIMAGE_BASE_FP8_FILE
         fp8_path = Path(self.model_dir) / fp8_file
         if fp8_path.exists():
             logger.info("Loading FP8 transformer weights from %s", fp8_file)
             from safetensors.torch import load_file
             fp8_state = load_file(str(fp8_path), device=str(self.device))
-            self.zimage_components["transformer"].load_state_dict(fp8_state, strict=False, assign=True)
+            self.zimage_components["transformer"].load_state_dict(
+                fp8_state, strict=False, assign=True,
+            )
             del fp8_state
             self._gpu_cleanup()
-            logger.info("FP8 transformer weights loaded (%s)", fp8_file)
+
+            if _Q8_AVAILABLE:
+                _patch_transformer_q8(self.zimage_components["transformer"])
+                logger.info("FP8 transformer loaded with q8_kernels native GEMM")
+            else:
+                # Fallback: cast FP8 → BF16 (disk savings only, no compute speedup)
+                logger.warning("q8_kernels not available — casting FP8 weights to BF16")
+                for name, param in self.zimage_components["transformer"].named_parameters():
+                    if param.dtype == torch.float8_e4m3fn:
+                        param.data = param.data.to(torch.bfloat16)
 
         self.zimage_type = model_type
         self.current_family = "zimage"
@@ -226,7 +301,6 @@ class PipelineManager:
         if self.current_family == "klein" and self.klein_loaded and self.klein_variant == variant:
             return
 
-        # Different Klein variant → reload
         if self.klein_loaded and self.klein_variant != variant:
             self.cleanup_klein()
 
@@ -239,23 +313,33 @@ class PipelineManager:
 
         from flux2.util import load_ae, load_flow_model, load_text_encoder
 
-        # Set model paths via environment variables
         model_file = KLEIN_MODEL_FILE if variant == KLEIN_DISTILLED else KLEIN_BASE_MODEL_FILE
         env_key = "KLEIN_4B_MODEL_PATH" if variant == KLEIN_DISTILLED else "KLEIN_4B_BASE_MODEL_PATH"
         os.environ[env_key] = self._model_path(model_file)
         os.environ["AE_MODEL_PATH"] = self._model_path(KLEIN_AE_FILE)
 
-        # Load flow model
         self._send_progress("loading_start", {"name": "Klein Flow Model", "index": 1, "total": 3})
         self.klein_model = load_flow_model(variant, device=str(self.device))
         self.klein_model.eval()
 
-        # Load text encoder
+        # Apply q8_kernels FP8 GEMM if FP8 weights detected
+        has_fp8 = any(
+            p.dtype == torch.float8_e4m3fn
+            for p in self.klein_model.parameters()
+        )
+        if has_fp8 and _Q8_AVAILABLE:
+            _patch_transformer_q8(self.klein_model)
+            logger.info("Klein flow model: q8_kernels FP8 GEMM applied")
+        elif has_fp8:
+            logger.warning("Klein FP8 weights detected but q8_kernels not available — casting to BF16")
+            for name, param in self.klein_model.named_parameters():
+                if param.dtype == torch.float8_e4m3fn:
+                    param.data = param.data.to(torch.bfloat16)
+
         self._send_progress("loading_start", {"name": "Klein Text Encoder", "index": 2, "total": 3})
         self.klein_text_encoder = load_text_encoder(variant, device=str(self.device))
         self.klein_text_encoder.eval()
 
-        # Load autoencoder
         self._send_progress("loading_start", {"name": "Klein AutoEncoder", "index": 3, "total": 3})
         self.klein_ae = load_ae(variant)
         self.klein_ae.eval()
