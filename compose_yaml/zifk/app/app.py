@@ -179,8 +179,16 @@ def build_ui() -> gr.Blocks:
                         g_generate = gr.Button("Generate", variant="primary")
 
                     with gr.Column(scale=1):
-                        g_image, g_info = create_output_column("generate")
-                        g_send_edit = gr.Button("Send to Edit", size="sm", variant="secondary")
+                        g_gallery = gr.Gallery(label="Generated Images", columns=2, height=500, object_fit="contain")
+                        g_info = gr.Textbox(label="Info", interactive=False,
+                                            value=lambda: get_gen_info_for_tab("generate"), every=2)
+                        with gr.Row():
+                            g_kill_btn = gr.Button("Kill (emergency stop)", variant="stop", size="sm")
+                            g_send_edit = gr.Button("Send to Edit", size="sm", variant="secondary")
+                        g_kill_msg = gr.Textbox(label="", interactive=False, visible=False)
+                        gr.Markdown(value=get_loading_status, every=1)
+                        g_kill_btn.click(fn=_do_kill, outputs=[g_kill_msg])
+                        g_gen_paths = gr.State([])
 
                 # Model switch: show/hide params, update defaults
                 def _on_model_change(model):
@@ -198,13 +206,14 @@ def build_ui() -> gr.Blocks:
                     kl_guidance = gr.Slider(value=4.0 if is_klein_base else 1.0)
                     # ZIB defaults
                     zi_steps = gr.Slider(value=8 if model == "ZIT (Fast)" else 28)
-                    zi_cfg = gr.Slider(value=0.0 if model == "ZIT (Fast)" else 3.5)
+                    zi_cfg = gr.Slider(value=0.5 if model == "ZIT (Fast)" else 3.5)
+                    zi_cfg_trunc = gr.Slider(value=0.9 if model == "ZIT (Fast)" else 1.0)
 
-                    return [zi_vis, kl_vis, kl_steps, kl_guidance, zi_steps, zi_cfg]
+                    return [zi_vis, kl_vis, kl_steps, kl_guidance, zi_steps, zi_cfg, zi_cfg_trunc]
 
                 g_model.change(
                     fn=_on_model_change, inputs=[g_model],
-                    outputs=[g_zi_adv, g_kl_adv, g_kl_steps, g_kl_guidance, g_steps, g_cfg],
+                    outputs=[g_zi_adv, g_kl_adv, g_kl_steps, g_kl_guidance, g_steps, g_cfg, g_cfg_trunc],
                 )
 
                 # Generate dispatch
@@ -213,32 +222,33 @@ def build_ui() -> gr.Blocks:
                                        kl_steps, kl_guidance,
                                        progress=gr.Progress(track_tqdm=True)):
                     if model == "Klein (Distilled)":
-                        return generate_klein_t2i(
+                        paths, info = generate_klein_t2i(
                             prompt, resolution, seed,
                             num_steps=kl_steps, guidance=kl_guidance,
                             progress=progress,
                         )
                     elif model == "Klein Base":
-                        return generate_klein_base_t2i(
+                        paths, info = generate_klein_base_t2i(
                             prompt, resolution, seed,
                             num_steps=kl_steps, guidance=kl_guidance,
                             progress=progress,
                         )
                     else:
-                        return generate_zimage_t2i(
+                        paths, info = generate_zimage_t2i(
                             prompt, model, resolution, seed, num_images,
                             negative_prompt=neg, num_steps=steps, guidance_scale=cfg,
                             cfg_normalization=cfg_norm, cfg_truncation=cfg_trunc,
                             max_sequence_length=max_seq,
                             progress=progress,
                         )
+                    return paths, info, paths
 
                 g_generate.click(
                     fn=_generate_dispatch,
                     inputs=[g_model, g_prompt, g_resolution, g_seed, g_num,
                             g_neg, g_steps, g_cfg, g_cfg_norm, g_cfg_trunc, g_max_seq,
                             g_kl_steps, g_kl_guidance],
-                    outputs=[g_image, g_info],
+                    outputs=[g_gallery, g_info, g_gen_paths],
                 )
 
             # ==============================================================
@@ -342,19 +352,20 @@ def build_ui() -> gr.Blocks:
                     if mode == "Multi-Reference":
                         if not multi_images:
                             raise gr.Error("Add reference images first.")
-                        return generate_klein_multiref(
+                        paths, info = generate_klein_multiref(
                             prompt, multi_images, resolution, seed,
                             klein_variant=variant,
                             num_steps=kl_steps, guidance=kl_guidance,
                             progress=progress,
                         )
                     else:
-                        return generate_klein_edit(
+                        paths, info = generate_klein_edit(
                             prompt, image, resolution, seed,
                             klein_variant=variant,
                             num_steps=kl_steps, guidance=kl_guidance,
                             progress=progress,
                         )
+                    return paths[0], info
 
                 e_generate.click(
                     fn=_edit_dispatch,
@@ -381,6 +392,9 @@ def build_ui() -> gr.Blocks:
                             c_klein = gr.Checkbox(label="Klein", value=True)
                             c_klein_base = gr.Checkbox(label="Klein Base", value=False)
                         with gr.Accordion("Model Parameters", open=False):
+                            with gr.Row():
+                                c_zit_steps = gr.Slider(1, 20, value=8, step=1, label="ZIT Steps")
+                                c_zit_guidance = gr.Slider(0.0, 10.0, value=0.0, step=0.5, label="ZIT Guidance")
                             c_neg = gr.Textbox(label="ZIB Negative Prompt", lines=2)
                             with gr.Row():
                                 c_zib_steps = gr.Slider(10, 100, value=28, step=1, label="ZIB Steps")
@@ -401,13 +415,15 @@ def build_ui() -> gr.Blocks:
 
                 def _run_compare(prompt, resolution, seed,
                                  use_zit, use_zib, use_klein, use_klein_base,
+                                 zit_steps, zit_guidance,
                                  neg, zib_steps, zib_cfg,
                                  kl_steps, kl_guidance,
                                  klb_steps, klb_guidance,
                                  progress=gr.Progress(track_tqdm=True)):
                     results = generate_compare(
                         prompt, resolution, seed, use_zit, use_zib, use_klein, use_klein_base,
-                        negative_prompt=neg, zib_steps=zib_steps, zib_cfg=zib_cfg,
+                        negative_prompt=neg, zit_steps=zit_steps, zit_guidance=zit_guidance,
+                        zib_steps=zib_steps, zib_cfg=zib_cfg,
                         klein_steps=kl_steps, klein_guidance=kl_guidance,
                         klein_base_steps=klb_steps, klein_base_guidance=klb_guidance,
                         progress=progress,
@@ -424,6 +440,7 @@ def build_ui() -> gr.Blocks:
                     fn=_run_compare,
                     inputs=[c_prompt, c_resolution, c_seed,
                             c_zit, c_zib, c_klein, c_klein_base,
+                            c_zit_steps, c_zit_guidance,
                             c_neg, c_zib_steps, c_zib_cfg,
                             c_kl_steps, c_kl_guidance,
                             c_klb_steps, c_klb_guidance],
@@ -582,8 +599,13 @@ def build_ui() -> gr.Blocks:
             res = match_image_resolution(img)
             return gr.Tabs(selected="edit"), np.array(img), res
 
+        def _send_to_edit_from_gen(paths):
+            if not paths:
+                return gr.Tabs(), None, "1024x1024"
+            return _send_to_edit(paths[0])
+
         g_send_edit.click(
-            fn=_send_to_edit, inputs=[g_image],
+            fn=_send_to_edit_from_gen, inputs=[g_gen_paths],
             outputs=[tabs, e_image, e_resolution],
         )
         h_send_edit.click(

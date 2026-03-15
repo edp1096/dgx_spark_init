@@ -130,18 +130,21 @@ def _submit_and_wait(gen_type: str, kwargs: dict, progress) -> tuple[str, str]:
 
                 if result["status"] == "ok":
                     payload = result["payload"]
-                    path = payload["path"]
+                    paths = payload["paths"]
                     seed = payload["seed"]
-                    info = f"Seed: {seed} | Time: {elapsed:.1f}s | Output: {Path(path).name}"
+                    if len(paths) == 1:
+                        info = f"Seed: {seed} | Time: {elapsed:.1f}s | Output: {Path(paths[0]).name}"
+                    else:
+                        info = f"Seed: {seed} | Time: {elapsed:.1f}s | Images: {len(paths)}"
                     logger.info("Generation complete: %s", info)
-                    _save_metadata(path, gen_type, seed, elapsed, kwargs)
+                    _save_metadata(paths[0], gen_type, seed, elapsed, kwargs)
                     _gen_active = False
                     _result_version += 1
                     _last_gen_result = {
-                        "path": path, "info": info,
+                        "paths": paths, "info": info,
                         "gen_type": gen_type, "time": time.time(),
                     }
-                    return path, info
+                    return paths, info
                 else:
                     raise gr.Error(f"Generation failed: {result['payload']}")
     except Exception:
@@ -317,7 +320,8 @@ def generate_klein_multiref(
 # ---------------------------------------------------------------------------
 def generate_compare(
     prompt, resolution, seed, use_zit, use_zib, use_klein, use_klein_base,
-    negative_prompt="", zib_steps=28, zib_cfg=3.5,
+    negative_prompt="", zit_steps=8, zit_guidance=0.0,
+    zib_steps=28, zib_cfg=3.5,
     klein_steps=4, klein_guidance=1.0,
     klein_base_steps=50, klein_base_guidance=4.0,
     progress=gr.Progress(track_tqdm=True),
@@ -331,44 +335,46 @@ def generate_compare(
 
     if use_zit:
         try:
-            path, info = generate_zimage_t2i(
-                prompt, "ZIT (Fast)", resolution, seed, 1, progress=progress,
+            paths, info = generate_zimage_t2i(
+                prompt, "ZIT (Fast)", resolution, seed, 1,
+                num_steps=zit_steps, guidance_scale=zit_guidance,
+                progress=progress,
             )
-            results.append((path, f"ZIT | {info}"))
+            results.append((paths[0], f"ZIT | {info}"))
         except Exception as e:
             results.append((None, f"ZIT | Error: {e}"))
 
     if use_zib:
         try:
-            path, info = generate_zimage_t2i(
+            paths, info = generate_zimage_t2i(
                 prompt, "ZIB (Creative)", resolution, seed, 1,
                 negative_prompt=negative_prompt,
                 num_steps=zib_steps, guidance_scale=zib_cfg,
                 progress=progress,
             )
-            results.append((path, f"ZIB | {info}"))
+            results.append((paths[0], f"ZIB | {info}"))
         except Exception as e:
             results.append((None, f"ZIB | Error: {e}"))
 
     if use_klein:
         try:
-            path, info = generate_klein_t2i(
+            paths, info = generate_klein_t2i(
                 prompt, resolution, seed,
                 num_steps=klein_steps, guidance=klein_guidance,
                 progress=progress,
             )
-            results.append((path, f"Klein | {info}"))
+            results.append((paths[0], f"Klein | {info}"))
         except Exception as e:
             results.append((None, f"Klein | Error: {e}"))
 
     if use_klein_base:
         try:
-            path, info = generate_klein_base_t2i(
+            paths, info = generate_klein_base_t2i(
                 prompt, resolution, seed,
                 num_steps=klein_base_steps, guidance=klein_base_guidance,
                 progress=progress,
             )
-            results.append((path, f"Klein Base | {info}"))
+            results.append((paths[0], f"Klein Base | {info}"))
         except Exception as e:
             results.append((None, f"Klein Base | Error: {e}"))
 

@@ -66,7 +66,7 @@ RESOLUTION_CHOICES = [
 # Sample prompts
 # ---------------------------------------------------------------------------
 SAMPLE_PROMPTS = [
-    "Young Korean woman in red Hanbok, intricate embroidery. Impeccable makeup, red floral forehead pattern. Elaborate high bun, golden phoenix headdress, red flowers, beads. Soft-lit outdoor night background, silhouetted tiered pagoda, blurred colorful distant lights.",
+    "Young Korean woman in red Hanbok is smile, intricate embroidery. Impeccable makeup. Soft-lit outdoor night background, silhouetted tiered pagoda, blurred colorful distant lights.",
     "A golden retriever puppy sitting on a wooden porch at sunset, warm golden light creating a soft glow on its fur, shallow depth of field, shot on 35mm film, Kodak Portra 800, slight film grain.",
     "Aerial view of a winding river through autumn mountains, vibrant orange and red foliage reflecting on the water surface, morning mist rising, cinematic landscape photography.",
     "A steaming cup of matcha latte with intricate foam art on a marble countertop, soft window light, minimalist Japanese cafe interior, shallow focus, clean aesthetic.",

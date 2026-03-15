@@ -184,9 +184,13 @@ def _worker_loop(
             generator=torch.Generator(mgr.device).manual_seed(seed),
         )
 
-        output_path = make_output_path("zit" if model_type == "turbo" else "zib")
-        images[0].save(output_path)
-        return output_path, seed
+        prefix = "zit" if model_type == "turbo" else "zib"
+        paths = []
+        for i, img in enumerate(images):
+            p = make_output_path(f"{prefix}_{i}" if len(images) > 1 else prefix)
+            img.save(p)
+            paths.append(p)
+        return paths, seed
 
     # -------------------------------------------------------------------
     # Handler: Klein T2I (Distilled)
@@ -348,13 +352,14 @@ def _worker_loop(
                 continue
 
             try:
-                path, seed = handler(kwargs, task_id)
+                result, seed = handler(kwargs, task_id)
+                paths = result if isinstance(result, list) else [result]
                 result_queue.put({
                     "task_id": task_id,
                     "status": "ok",
-                    "payload": {"path": path, "seed": seed},
+                    "payload": {"paths": paths, "seed": seed},
                 })
-                log.info("Task %s: completed -> %s", task_id[:8], path)
+                log.info("Task %s: completed -> %s (%d images)", task_id[:8], paths[0], len(paths))
             except Exception as e:
                 log.error("Task %s failed: %s\n%s", task_id[:8], e, traceback.format_exc())
                 result_queue.put({

@@ -243,16 +243,26 @@ class PipelineManager:
     # Cleanup
     # -------------------------------------------------------------------
     def _gpu_cleanup(self):
-        gc.collect()
+        for _ in range(3):
+            gc.collect()
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
             torch.cuda.synchronize()
 
+    @staticmethod
+    def _release_module(module):
+        """Move module to meta device to immediately release CUDA tensor storage."""
+        if isinstance(module, torch.nn.Module):
+            try:
+                module.to("meta")
+            except Exception:
+                pass
+
     def cleanup_zimage(self):
         if self.zimage_components is not None:
             logger.info("Cleaning up Z-Image components")
-            for key in list(self.zimage_components.keys()):
-                del self.zimage_components[key]
+            for key, val in list(self.zimage_components.items()):
+                self._release_module(val)
             self.zimage_components = None
             self.zimage_type = None
             if self.current_family == "zimage":
@@ -262,9 +272,9 @@ class PipelineManager:
     def cleanup_klein(self):
         if self.klein_loaded:
             logger.info("Cleaning up Klein components")
-            del self.klein_model
-            del self.klein_text_encoder
-            del self.klein_ae
+            self._release_module(self.klein_model)
+            self._release_module(self.klein_text_encoder)
+            self._release_module(self.klein_ae)
             self.klein_model = None
             self.klein_text_encoder = None
             self.klein_ae = None
