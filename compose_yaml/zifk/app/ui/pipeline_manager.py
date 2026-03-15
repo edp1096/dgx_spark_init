@@ -94,15 +94,16 @@ def _patch_transformer_q8(model):
         setattr(parent, parts[-1], fp8)
         count += 1
 
-    # Cast remaining FP8 parameters (non-Linear: embeddings, norms, pad tokens, etc.) to BF16
+    # Cast remaining FP8 parameters (non-Linear: embeddings, norms, pad tokens, etc.) to float32
+    # Must match the forward wrapper's float32 dtype (index_put requires exact match)
     cast_count = 0
     for name, param in model.named_parameters():
         if param.dtype == torch.float8_e4m3fn:
-            param.data = param.data.to(torch.bfloat16)
+            param.data = param.data.to(torch.float32)
             cast_count += 1
     for name, buf in model.named_buffers():
         if buf.dtype == torch.float8_e4m3fn:
-            buf.data = buf.data.to(torch.bfloat16)
+            buf.data = buf.data.to(torch.float32)
             cast_count += 1
 
     if count > 0 or cast_count > 0:
