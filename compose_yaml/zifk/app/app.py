@@ -135,7 +135,7 @@ def build_ui() -> gr.Blocks:
 
     custom_css = """
 .memory-status { text-align: right; }
-#gen-gallery .thumbnail-item img { max-height: 120px !important; width: auto !important; }
+#history-gallery { min-height: 400px; }
 @media (max-width: 768px) {
   #history-gallery .thumbnails { grid-template-columns: repeat(2, 1fr) !important; }
 }
@@ -186,7 +186,7 @@ def build_ui() -> gr.Blocks:
                         g_generate = gr.Button("Generate", variant="primary")
 
                     with gr.Column(scale=1):
-                        g_gallery = gr.Gallery(label="Generated Images", columns=2, height=500, object_fit="contain", elem_id="gen-gallery")
+                        g_gallery = gr.Gallery(label="Generated Images", columns=2, height=500, object_fit="contain", elem_id="gen-gallery", preview=True, selected_index=0)
                         g_info = gr.Textbox(label="Info", interactive=False,
                                             value=lambda: get_gen_info_for_tab("generate"), every=2)
                         with gr.Row():
@@ -248,7 +248,7 @@ def build_ui() -> gr.Blocks:
                             max_sequence_length=max_seq,
                             progress=progress,
                         )
-                    return paths, info, paths
+                    return gr.Gallery(value=paths, selected_index=0), info, paths
 
                 g_generate.click(
                     fn=_generate_dispatch,
@@ -415,7 +415,7 @@ def build_ui() -> gr.Blocks:
                         c_compare = gr.Button("Compare", variant="primary")
 
                     with gr.Column(scale=1):
-                        c_gallery = gr.Gallery(label="Comparison Results", columns=4, height=500, object_fit="contain")
+                        c_gallery = gr.Gallery(label="Comparison Results", columns=4, height=500, object_fit="contain", preview=True, selected_index=0)
                         c_info = gr.Textbox(label="Info", interactive=False, lines=6)
                         kill_btn = gr.Button("Kill (emergency stop)", variant="stop", size="sm")
                         kill_btn.click(fn=_do_kill, outputs=[gr.Textbox(visible=False)])
@@ -441,7 +441,7 @@ def build_ui() -> gr.Blocks:
                         if path:
                             images.append((path, label.split("|")[0].strip()))
                         info_lines.append(label)
-                    return images, "\n".join(info_lines)
+                    return gr.Gallery(value=images, selected_index=0), "\n".join(info_lines)
 
                 c_compare.click(
                     fn=_run_compare,
@@ -573,19 +573,38 @@ def build_ui() -> gr.Blocks:
                     h_delete_all = gr.Button("Delete All", size="sm", variant="stop")
                     h_clear_cache = gr.Button("Clear Cache", size="sm")
 
-                h_gallery = gr.Gallery(
-                    label="Generated Images", value=_list_outputs,
-                    columns=4, height=600, object_fit="contain", every=10,
-                    elem_id="history-gallery",
-                )
-                h_selected = gr.Textbox(label="Selected File", interactive=False, visible=False)
-                h_file_info = gr.Textbox(label="File Info", interactive=False, lines=8)
-                h_cache_msg = gr.Textbox(label="", interactive=False, visible=False)
-                h_send_edit = gr.Button("Send to Edit", size="sm", variant="secondary")
+                with gr.Row():
+                    with gr.Column(scale=3):
+                        h_gallery = gr.Gallery(
+                            label="Generated Images", value=_list_outputs,
+                            columns=4, height=None, object_fit="contain", every=10,
+                            elem_id="history-gallery", preview=True,
+                        )
+                    with gr.Column(scale=1):
+                        h_selected = gr.Textbox(label="Selected File", interactive=False, visible=False)
+                        h_file_info = gr.Textbox(label="File Info", interactive=False, lines=12)
+                        h_cache_msg = gr.Textbox(label="", interactive=False, visible=False)
+                        h_send_edit = gr.Button("Send to Edit", size="sm", variant="secondary")
+
+                def _extract_gallery_path(evt_value):
+                    """Extract file path from Gallery select event value (Gradio 6.9+)."""
+                    if not evt_value:
+                        return None
+                    # Gradio 6.9: {"image": {"path": "..."}, "caption": "..."}
+                    if isinstance(evt_value, dict):
+                        if "image" in evt_value and isinstance(evt_value["image"], dict):
+                            return evt_value["image"].get("path")
+                        if "path" in evt_value:
+                            return evt_value["path"]
+                        if "name" in evt_value:
+                            return evt_value["name"]
+                    if isinstance(evt_value, str):
+                        return evt_value
+                    return None
 
                 def _on_gallery_select(evt: gr.SelectData):
-                    if evt.value and "name" in evt.value:
-                        path = evt.value["name"]
+                    path = _extract_gallery_path(evt.value)
+                    if path:
                         return path, _get_file_info(path)
                     return "", ""
 
