@@ -55,12 +55,13 @@ def _fp8_forward_no_hadamard(self, x, x_scales=None, out_dtype=None):
     16-bit inputs before quantizing to FP8, but fp8_gemm does NOT apply the
     inverse transform — producing ~500% relative error. This forward simply
     casts the input to FP8 and calls fp8_gemm directly.
+    Output is cast to BF16 to match the rest of the model's dtype.
     """
     orig_shape = x.shape
     x_fp8 = x.to(torch.float8_e4m3fn).view(-1, orig_shape[-1])
     bias = self.bias.data if self.bias is not None else None
     o = _fp8_mm(x_fp8, self.weight.data, bias, False)
-    return o.view(*orig_shape[:-1], self.weight.shape[0])
+    return o.to(torch.bfloat16).view(*orig_shape[:-1], self.weight.shape[0])
 
 
 def _patch_transformer_q8(model):
@@ -285,6 +286,8 @@ class PipelineManager:
             del fp8_state
             self._gpu_cleanup()
             _patch_transformer_q8(self.zimage_components["transformer"])
+            # Set explicit dtype so pipeline.py uses BF16 for inputs, not FP8
+            self.zimage_components["transformer"].dtype = torch.bfloat16
             logger.info("FP8 transformer loaded with q8_kernels native GEMM")
         elif fp8_file.exists():
             # q8_kernels not available — load_from_local_dir already cast to BF16, use as-is
@@ -337,6 +340,7 @@ class PipelineManager:
         )
         if has_fp8 and _Q8_AVAILABLE:
             _patch_transformer_q8(self.klein_model)
+            self.klein_model.dtype = torch.bfloat16
             logger.info("Klein flow model: q8_kernels FP8 GEMM applied")
         elif has_fp8:
             logger.warning("Klein FP8 weights detected but q8_kernels not available — casting to BF16")
