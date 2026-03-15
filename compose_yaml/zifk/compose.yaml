@@ -1,7 +1,7 @@
 services:
-  zimage-gradio:
-    container_name: zimage-gradio-spark
-    image: edp1096/zimage-gradio-spark:v1
+  zifk-gradio:
+    container_name: zifk-gradio-spark
+    image: edp1096/zifk-gradio-spark:v1
     ports:
       - "7861:7861"
     environment:
@@ -20,11 +20,11 @@ services:
     entrypoint: ""
     command: >
       /bin/bash -c "
-      cd ~/zimage-ui &&
-      wget -q https://raw.githubusercontent.com/edp1096/dgx_spark_init/main/compose_yaml/z-image/builder/update.sh -O update.sh &&
+      cd ~/zifk-ui &&
+      wget -q https://raw.githubusercontent.com/edp1096/dgx_spark_init/main/compose_yaml/zifk/builder/update.sh -O update.sh &&
       chmod +x update.sh &&
       ./update.sh --no-restart &&
 
-      python download_models.py &&
-      python app.py --server-name 0.0.0.0 --port 7861
+      cd app/ui && python download_models.py &&
+      cd ~/zifk-ui && python app/app.py --server-name 0.0.0.0 --port 7861
       "
