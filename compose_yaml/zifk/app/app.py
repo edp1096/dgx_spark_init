@@ -155,7 +155,7 @@ def build_ui() -> gr.Blocks:
                                 gr.Button(f"Sample {i+1}", size="sm", min_width=60).click(
                                     fn=lambda s=sp: s, outputs=[g_prompt])
                         g_resolution = gr.Dropdown(
-                            RESOLUTION_CHOICES, value="1024x1024",
+                            RESOLUTION_CHOICES, value="512x768",
                             label="Resolution (WxH)", allow_custom_value=True,
                         )
                         with gr.Row():
@@ -165,10 +165,10 @@ def build_ui() -> gr.Blocks:
                         # Advanced: Z-Image params
                         with gr.Accordion("Z-Image Advanced", open=False, visible=True) as g_zi_adv:
                             g_neg = gr.Textbox(label="Negative Prompt", lines=2)
-                            g_steps = gr.Slider(1, 100, value=28, step=1, label="Steps")
-                            g_cfg = gr.Slider(0.0, 10.0, value=3.5, step=0.5, label="Guidance Scale")
+                            g_steps = gr.Slider(1, 100, value=8, step=1, label="Steps")
+                            g_cfg = gr.Slider(0.0, 10.0, value=0.5, step=0.5, label="Guidance Scale")
                             g_cfg_norm = gr.Checkbox(label="CFG Normalization", value=False)
-                            g_cfg_trunc = gr.Slider(0.0, 1.0, value=1.0, step=0.05, label="CFG Truncation")
+                            g_cfg_trunc = gr.Slider(0.0, 1.0, value=0.9, step=0.05, label="CFG Truncation")
                             g_max_seq = gr.Slider(64, 1024, value=512, step=64, label="Max Sequence Length")
 
                         # Advanced: Klein params
@@ -179,7 +179,7 @@ def build_ui() -> gr.Blocks:
                         g_generate = gr.Button("Generate", variant="primary")
 
                     with gr.Column(scale=1):
-                        g_gallery = gr.Gallery(label="Generated Images", columns=2, height=500, object_fit="contain")
+                        g_gallery = gr.Gallery(label="Generated Images", columns=2, height=100, object_fit="contain")
                         g_info = gr.Textbox(label="Info", interactive=False,
                                             value=lambda: get_gen_info_for_tab("generate"), every=2)
                         with gr.Row():
@@ -269,7 +269,7 @@ def build_ui() -> gr.Blocks:
                         e_add_ref = gr.UploadButton("+ Add Reference", file_types=["image"], visible=False)
                         e_clear_refs = gr.Button("Clear References", size="sm", visible=False)
                         e_resolution = gr.Dropdown(
-                            RESOLUTION_CHOICES, value="1024x1024",
+                            RESOLUTION_CHOICES, value="512x768",
                             label="Resolution (WxH)", allow_custom_value=True,
                         )
                         e_match_res = gr.Button("Match Image Size", size="sm", variant="secondary")
@@ -382,7 +382,7 @@ def build_ui() -> gr.Blocks:
                     with gr.Column(scale=1):
                         c_prompt = gr.Textbox(label="Prompt", lines=4, placeholder="Same prompt across models...")
                         c_resolution = gr.Dropdown(
-                            RESOLUTION_CHOICES, value="1024x1024",
+                            RESOLUTION_CHOICES, value="512x768",
                             label="Resolution (WxH)", allow_custom_value=True,
                         )
                         c_seed = gr.Number(value=42, label="Seed (fixed recommended)", precision=0)
@@ -592,7 +592,7 @@ def build_ui() -> gr.Blocks:
         # ---------------------------------------------------------------
         def _send_to_edit(image_path):
             if not image_path:
-                return gr.Tabs(), None, "1024x1024"
+                return gr.Tabs(), None, "512x768"
             from PIL import Image as PILImage
             import numpy as np
             img = PILImage.open(image_path)
@@ -601,7 +601,7 @@ def build_ui() -> gr.Blocks:
 
         def _send_to_edit_from_gen(paths):
             if not paths:
-                return gr.Tabs(), None, "1024x1024"
+                return gr.Tabs(), None, "512x768"
             return _send_to_edit(paths[0])
 
         g_send_edit.click(
