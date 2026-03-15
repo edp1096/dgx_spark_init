@@ -11,13 +11,11 @@ OUTPUT_DIR = Path(os.environ.get("ZIFK_OUTPUT_DIR", "/tmp/zifk-outputs"))
 LOG_DIR = Path(os.environ.get("ZIFK_LOG_DIR", "./logs"))
 
 # ---------------------------------------------------------------------------
-# Z-Image model subdirectories (inside MODEL_DIR, BF16 diffusers format)
-# FP8 transformer files are generated from these via convert_zimage_fp8()
+# Z-Image model subdirectories (inside MODEL_DIR)
+# Each folder contains transformer/ (FP8 in-place), vae/, text_encoder/, etc.
 # ---------------------------------------------------------------------------
 ZIMAGE_TURBO_DIR = "Z-Image-Turbo"
 ZIMAGE_BASE_DIR = "Z-Image"
-ZIMAGE_TURBO_FP8_FILE = "z-image-turbo-fp8.safetensors"
-ZIMAGE_BASE_FP8_FILE = "z-image-base-fp8.safetensors"
 
 # ---------------------------------------------------------------------------
 # FLUX.2 Klein model files (inside MODEL_DIR, FP8 official)

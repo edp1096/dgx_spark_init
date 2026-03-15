@@ -1,6 +1,7 @@
 """Model download, FP8 conversion, and status checker for ZIFK.
 
-Downloads Z-Image Turbo/Base (BF16 → FP8 convert) and FLUX.2 Klein 4B (official FP8).
+Downloads Z-Image Turbo/Base (BF16 → in-place FP8 convert, delete BF16 shards)
+and FLUX.2 Klein 4B (official FP8).
 """
 
 import os
@@ -19,114 +20,124 @@ from zifk_config import (
     KLEIN_TEXT_ENCODER_REPO,
     MODEL_DIR,
     ZIMAGE_BASE_DIR,
-    ZIMAGE_BASE_FP8_FILE,
     ZIMAGE_BASE_REPO,
     ZIMAGE_TURBO_DIR,
-    ZIMAGE_TURBO_FP8_FILE,
     ZIMAGE_TURBO_REPO,
 )
 
+FP8_TRANSFORMER_FILENAME = "model_fp8.safetensors"
+
 
 # ---------------------------------------------------------------------------
-# Z-Image downloads (BF16 diffusers format — for config/VAE/text_encoder + FP8 conversion)
+# Z-Image downloads (BF16 → in-place FP8 conversion)
 # ---------------------------------------------------------------------------
 def download_zimage_turbo(model_dir: Path | None = None):
     model_dir = model_dir or MODEL_DIR
     dest = model_dir / ZIMAGE_TURBO_DIR
-    if dest.exists() and any(dest.rglob("*.safetensors")):
-        print(f"[OK] Z-Image-Turbo (BF16) already exists: {dest}")
+    fp8_file = dest / "transformer" / FP8_TRANSFORMER_FILENAME
+    if fp8_file.exists():
+        print(f"[OK] Z-Image-Turbo (FP8) already exists")
         return
-    print(f"[DL] Downloading Z-Image-Turbo (BF16) -> {dest}")
-    snapshot_download(
-        ZIMAGE_TURBO_REPO,
-        local_dir=str(dest),
-        ignore_patterns=["*.md", ".gitattributes"],
-    )
-    print(f"[OK] Z-Image-Turbo (BF16) downloaded")
+    if not dest.exists() or not any(dest.rglob("*.safetensors")):
+        print(f"[DL] Downloading Z-Image-Turbo -> {dest}")
+        snapshot_download(
+            ZIMAGE_TURBO_REPO,
+            local_dir=str(dest),
+            ignore_patterns=["*.md", ".gitattributes"],
+        )
+    convert_zimage_fp8(dest, "Z-Image-Turbo")
 
 
 def download_zimage_base(model_dir: Path | None = None):
     model_dir = model_dir or MODEL_DIR
     dest = model_dir / ZIMAGE_BASE_DIR
-    if dest.exists() and any(dest.rglob("*.safetensors")):
-        print(f"[OK] Z-Image-Base (BF16) already exists: {dest}")
+    fp8_file = dest / "transformer" / FP8_TRANSFORMER_FILENAME
+    if fp8_file.exists():
+        print(f"[OK] Z-Image-Base (FP8) already exists")
         return
-    print(f"[DL] Downloading Z-Image-Base (BF16) -> {dest}")
-    snapshot_download(
-        ZIMAGE_BASE_REPO,
-        local_dir=str(dest),
-        ignore_patterns=["*.md", ".gitattributes"],
-    )
-    print(f"[OK] Z-Image-Base (BF16) downloaded")
+    if not dest.exists() or not any(dest.rglob("*.safetensors")):
+        print(f"[DL] Downloading Z-Image-Base -> {dest}")
+        snapshot_download(
+            ZIMAGE_BASE_REPO,
+            local_dir=str(dest),
+            ignore_patterns=["*.md", ".gitattributes"],
+        )
+    convert_zimage_fp8(dest, "Z-Image-Base")
 
 
 # ---------------------------------------------------------------------------
-# Z-Image FP8 conversion (BF16 transformer → FP8 e4m3fn single file)
+# Z-Image FP8 in-place conversion
 # ---------------------------------------------------------------------------
-def convert_zimage_fp8(model_dir: Path | None = None, model_type: str = "turbo"):
-    """Convert Z-Image transformer weights from BF16 to FP8 (e4m3fn).
+def convert_zimage_fp8(model_path: Path, label: str):
+    """Convert transformer BF16 → FP8 in-place, delete BF16 shards.
 
-    Reads all transformer safetensors from the BF16 folder,
-    casts to float8_e4m3fn, saves as a single file.
-    VAE/text_encoder/scheduler remain in original precision.
+    Result: model_path/transformer/ contains only config.json + model_fp8.safetensors
     """
     import torch
     from safetensors.torch import load_file, save_file
 
-    model_dir = model_dir or MODEL_DIR
+    transformer_dir = model_path / "transformer"
+    fp8_file = transformer_dir / FP8_TRANSFORMER_FILENAME
 
-    if model_type == "turbo":
-        src_dir = model_dir / ZIMAGE_TURBO_DIR / "transformer"
-        dst_file = model_dir / ZIMAGE_TURBO_FP8_FILE
-        label = "Z-Image-Turbo"
-    else:
-        src_dir = model_dir / ZIMAGE_BASE_DIR / "transformer"
-        dst_file = model_dir / ZIMAGE_BASE_FP8_FILE
-        label = "Z-Image-Base"
-
-    if dst_file.exists():
-        print(f"[OK] {label} FP8 already exists: {dst_file}")
+    if fp8_file.exists():
+        print(f"[OK] {label} FP8 already converted")
         return
 
-    if not src_dir.exists():
-        print(f"[SKIP] {label} BF16 not found — download first")
+    if not transformer_dir.exists():
+        print(f"[SKIP] {label} transformer dir not found")
         return
 
-    print(f"[CVT] Converting {label} transformer to FP8...")
+    print(f"[CVT] Converting {label} transformer to FP8 (in-place)...")
 
-    # Load all transformer safetensors (may be sharded)
+    # Load all BF16 transformer safetensors (may be sharded)
     state_dict = {}
-    index_files = list(src_dir.glob("*.safetensors.index.json"))
+    index_files = list(transformer_dir.glob("*.safetensors.index.json"))
+    bf16_files = []
+
     if index_files:
         import json
         with open(index_files[0]) as f:
             index = json.load(f)
         shard_files = set(index.get("weight_map", {}).values())
         for shard in shard_files:
-            shard_dict = load_file(str(src_dir / shard), device="cpu")
+            shard_path = transformer_dir / shard
+            shard_dict = load_file(str(shard_path), device="cpu")
             state_dict.update(shard_dict)
+            bf16_files.append(shard_path)
+        bf16_files.extend(index_files)
     else:
-        for sf in src_dir.glob("*.safetensors"):
+        for sf in transformer_dir.glob("*.safetensors"):
+            if sf.name == FP8_TRANSFORMER_FILENAME:
+                continue
             shard_dict = load_file(str(sf), device="cpu")
             state_dict.update(shard_dict)
+            bf16_files.append(sf)
 
     if not state_dict:
-        print(f"[ERR] No safetensors files found in {src_dir}")
+        print(f"[ERR] No safetensors files found in {transformer_dir}")
         return
 
-    # Cast to FP8 e4m3fn
+    # Cast to FP8 e4m3fn (2D+ weights only, keep norms/biases in original dtype)
     fp8_dict = {}
     for key, tensor in state_dict.items():
         if tensor.is_floating_point() and tensor.ndim >= 2:
             fp8_dict[key] = tensor.to(torch.float8_e4m3fn)
         else:
-            # Keep non-floating (int) and 1D tensors (norms, biases) in original dtype
             fp8_dict[key] = tensor
 
-    save_file(fp8_dict, str(dst_file))
-    size_gb = dst_file.stat().st_size / 1024**3
-    print(f"[OK] {label} FP8 saved: {dst_file} ({size_gb:.1f} GB)")
+    # Save FP8 file
+    save_file(fp8_dict, str(fp8_file))
+    size_gb = fp8_file.stat().st_size / 1024**3
+    print(f"[OK] {label} FP8 saved: {fp8_file.name} ({size_gb:.1f} GB)")
     del state_dict, fp8_dict
+
+    # Delete BF16 shards and index files
+    deleted = 0
+    for f in bf16_files:
+        if f.exists():
+            f.unlink()
+            deleted += 1
+    print(f"[OK] Deleted {deleted} BF16 file(s) from {transformer_dir.name}/")
 
 
 # ---------------------------------------------------------------------------
@@ -198,31 +209,32 @@ def check_status(model_dir: Path | None = None):
     print(f"Model directory: {model_dir}")
     print()
 
-    checks = [
-        ("Z-Image-Turbo (BF16)", model_dir / ZIMAGE_TURBO_DIR, True),
-        ("Z-Image-Turbo (FP8)", model_dir / ZIMAGE_TURBO_FP8_FILE, False),
-        ("Z-Image-Base (BF16)", model_dir / ZIMAGE_BASE_DIR, True),
-        ("Z-Image-Base (FP8)", model_dir / ZIMAGE_BASE_FP8_FILE, False),
-        ("Klein 4B (FP8)", model_dir / KLEIN_MODEL_FILE, False),
-        ("Klein Base 4B (FP8)", model_dir / KLEIN_BASE_MODEL_FILE, False),
-        ("Klein AE", model_dir / KLEIN_AE_FILE, False),
-    ]
-
-    for name, path, is_dir in checks:
-        if is_dir:
-            ok = path.exists() and any(path.rglob("*.safetensors"))
+    # Z-Image: check for FP8 transformer inside model folder
+    for label, subdir in [("Z-Image-Turbo", ZIMAGE_TURBO_DIR), ("Z-Image-Base", ZIMAGE_BASE_DIR)]:
+        model_path = model_dir / subdir
+        fp8_file = model_path / "transformer" / FP8_TRANSFORMER_FILENAME
+        if fp8_file.exists():
+            size = fp8_file.stat().st_size / 1024**3
+            print(f"  [OK] {label} (FP8, {size:.1f} GB)")
+        elif model_path.exists():
+            print(f"  [WARN] {label} (BF16 — needs FP8 conversion)")
         else:
-            ok = path.exists()
-        status = "OK" if ok else "MISSING"
-        size = ""
-        if ok and not is_dir:
-            size = f" ({path.stat().st_size / 1024**3:.1f} GB)"
-        elif ok and is_dir:
-            total = sum(f.stat().st_size for f in path.rglob("*.safetensors"))
-            size = f" ({total / 1024**3:.1f} GB)"
-        print(f"  [{status}] {name}{size}")
+            print(f"  [MISSING] {label}")
 
-    # Klein text encoder cache check
+    # Klein
+    for label, fname in [
+        ("Klein 4B (FP8)", KLEIN_MODEL_FILE),
+        ("Klein Base 4B (FP8)", KLEIN_BASE_MODEL_FILE),
+        ("Klein AE", KLEIN_AE_FILE),
+    ]:
+        path = model_dir / fname
+        if path.exists():
+            size = path.stat().st_size / 1024**3
+            print(f"  [OK] {label} ({size:.1f} GB)")
+        else:
+            print(f"  [MISSING] {label}")
+
+    # Klein text encoder cache
     try:
         from huggingface_hub import scan_cache_dir
         cache_info = scan_cache_dir()
@@ -232,7 +244,7 @@ def check_status(model_dir: Path | None = None):
         else:
             print(f"  [MISSING] Klein Text Encoder (Qwen3-4B-FP8)")
     except Exception:
-        print(f"  [?] Klein Text Encoder (Qwen3-4B-FP8) — cannot check cache")
+        print(f"  [?] Klein Text Encoder — cannot check cache")
 
 
 # ---------------------------------------------------------------------------
@@ -242,17 +254,11 @@ def download_all(model_dir: Path | None = None):
     model_dir = model_dir or MODEL_DIR
     model_dir.mkdir(parents=True, exist_ok=True)
 
-    # LoRA dirs
     (model_dir / "loras" / "zimage").mkdir(parents=True, exist_ok=True)
     (model_dir / "loras" / "klein").mkdir(parents=True, exist_ok=True)
 
-    # Z-Image: download BF16 + convert to FP8
     download_zimage_turbo(model_dir)
-    convert_zimage_fp8(model_dir, "turbo")
     download_zimage_base(model_dir)
-    convert_zimage_fp8(model_dir, "base")
-
-    # Klein: download official FP8
     download_klein_model(model_dir)
     download_klein_base_model(model_dir)
     download_klein_ae(model_dir)
@@ -265,9 +271,5 @@ def download_all(model_dir: Path | None = None):
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "status":
         check_status()
-    elif len(sys.argv) > 1 and sys.argv[1] == "convert":
-        # Convert only (BF16 already downloaded)
-        convert_zimage_fp8(MODEL_DIR, "turbo")
-        convert_zimage_fp8(MODEL_DIR, "base")
     else:
         download_all()

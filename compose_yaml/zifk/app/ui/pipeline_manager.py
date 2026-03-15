@@ -26,9 +26,7 @@ from zifk_config import (
     MODEL_DIR as DEFAULT_MODEL_DIR,
     OUTPUT_DIR,
     ZIMAGE_BASE_DIR,
-    ZIMAGE_BASE_FP8_FILE,
     ZIMAGE_TURBO_DIR,
-    ZIMAGE_TURBO_FP8_FILE,
 )
 
 logger = logging.getLogger("zifk-ui")
@@ -70,6 +68,7 @@ def _patch_transformer_q8(model):
 
     Swaps upcast-forward Linear layers for FP8Linear which runs matmul directly in FP8.
     Uses a custom forward that skips the Hadamard rotation.
+    After patching, casts remaining FP8 parameters (embeddings, norms, tokens) to BF16.
     """
     count = 0
     for name, module in list(model.named_modules()):
@@ -93,17 +92,29 @@ def _patch_transformer_q8(model):
             parent = getattr(parent, part)
         setattr(parent, parts[-1], fp8)
         count += 1
-    if count > 0:
+
+    # Cast remaining FP8 parameters (non-Linear: embeddings, norms, pad tokens, etc.) to BF16
+    cast_count = 0
+    for name, param in model.named_parameters():
+        if param.dtype == torch.float8_e4m3fn:
+            param.data = param.data.to(torch.bfloat16)
+            cast_count += 1
+    for name, buf in model.named_buffers():
+        if buf.dtype == torch.float8_e4m3fn:
+            buf.data = buf.data.to(torch.bfloat16)
+            cast_count += 1
+
+    if count > 0 or cast_count > 0:
         torch.cuda.empty_cache()
-        logger.info("q8_kernels: replaced %d Linear → FP8Linear (native FP8 GEMM)", count)
+        logger.info("q8_kernels: %d Linear → FP8Linear, %d non-Linear params cast to BF16", count, cast_count)
 
 
 # ---------------------------------------------------------------------------
 # Required models per generation type
 # ---------------------------------------------------------------------------
 REQUIRED_MODELS = {
-    "zit_t2i": [ZIMAGE_TURBO_DIR, ZIMAGE_TURBO_FP8_FILE],
-    "zib_t2i": [ZIMAGE_BASE_DIR, ZIMAGE_BASE_FP8_FILE],
+    "zit_t2i": [ZIMAGE_TURBO_DIR],
+    "zib_t2i": [ZIMAGE_BASE_DIR],
     "klein_t2i": [KLEIN_MODEL_FILE, KLEIN_AE_FILE],
     "klein_base_t2i": [KLEIN_BASE_MODEL_FILE, KLEIN_AE_FILE],
     "klein_edit": [KLEIN_MODEL_FILE, KLEIN_AE_FILE],
@@ -225,12 +236,11 @@ class PipelineManager:
     # Z-Image loading
     # -------------------------------------------------------------------
     def load_zimage(self, model_type: str = "turbo"):
-        """Load Z-Image native pipeline components with FP8 q8_kernels GEMM.
+        """Load Z-Image native pipeline components.
 
-        Flow:
-        1. load_from_local_dir() → BF16 components (config, VAE, text_encoder, scheduler)
-        2. Load FP8 transformer weights from single file
-        3. Patch nn.Linear → FP8Linear via q8_kernels (native FP8 GEMM)
+        The model folder contains FP8 transformer (in-place converted) + BF16 VAE/text_encoder.
+        load_from_local_dir() loads everything, then we apply q8_kernels FP8 GEMM
+        to the transformer's Linear layers.
         """
         if self.current_family == "zimage" and self.zimage_type == model_type:
             return self.zimage_components
@@ -251,6 +261,9 @@ class PipelineManager:
 
         set_attention_backend(self.attention_backend)
 
+        # Load all components. Transformer dir now has FP8 weights (model_fp8.safetensors).
+        # load_from_local_dir casts to dtype=bfloat16 which upcasts FP8→BF16,
+        # but we immediately replace with FP8 + q8_kernels patch below.
         self.zimage_components = load_from_local_dir(
             self._model_path(model_dir_name),
             device=str(self.device),
@@ -259,28 +272,23 @@ class PipelineManager:
             compile=False,
         )
 
-        # Load FP8 transformer weights + apply q8_kernels native FP8 GEMM
-        fp8_file = ZIMAGE_TURBO_FP8_FILE if model_type == "turbo" else ZIMAGE_BASE_FP8_FILE
-        fp8_path = Path(self.model_dir) / fp8_file
-        if fp8_path.exists():
-            logger.info("Loading FP8 transformer weights from %s", fp8_file)
+        # Re-load transformer weights as FP8 (bypassing dtype cast) + apply q8_kernels
+        transformer_dir = Path(self.model_dir) / model_dir_name / "transformer"
+        fp8_file = transformer_dir / "model_fp8.safetensors"
+        if fp8_file.exists() and _Q8_AVAILABLE:
+            logger.info("Re-loading FP8 transformer for q8_kernels native GEMM...")
             from safetensors.torch import load_file
-            fp8_state = load_file(str(fp8_path), device=str(self.device))
+            fp8_state = load_file(str(fp8_file), device=str(self.device))
             self.zimage_components["transformer"].load_state_dict(
                 fp8_state, strict=False, assign=True,
             )
             del fp8_state
             self._gpu_cleanup()
-
-            if _Q8_AVAILABLE:
-                _patch_transformer_q8(self.zimage_components["transformer"])
-                logger.info("FP8 transformer loaded with q8_kernels native GEMM")
-            else:
-                # Fallback: cast FP8 → BF16 (disk savings only, no compute speedup)
-                logger.warning("q8_kernels not available — casting FP8 weights to BF16")
-                for name, param in self.zimage_components["transformer"].named_parameters():
-                    if param.dtype == torch.float8_e4m3fn:
-                        param.data = param.data.to(torch.bfloat16)
+            _patch_transformer_q8(self.zimage_components["transformer"])
+            logger.info("FP8 transformer loaded with q8_kernels native GEMM")
+        elif fp8_file.exists():
+            # q8_kernels not available — load_from_local_dir already cast to BF16, use as-is
+            logger.warning("q8_kernels not available — using BF16 (cast from FP8 file)")
 
         self.zimage_type = model_type
         self.current_family = "zimage"
