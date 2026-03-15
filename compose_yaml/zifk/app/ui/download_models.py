@@ -117,13 +117,37 @@ def convert_zimage_fp8(model_path: Path, label: str):
         print(f"[ERR] No safetensors files found in {transformer_dir}")
         return
 
-    # Cast to FP8 e4m3fn (2D+ weights only, keep norms/biases in original dtype)
+    # Cast ONLY Linear layer weights to FP8 e4m3fn.
+    # Keep everything else (norms, biases, embeddings, RoPE freqs) in original dtype.
+    # Linear weight keys end with ".weight" and are 2D, but we also need to exclude
+    # non-Linear .weight keys (e.g. RMSNorm.weight is 1D, already excluded by ndim check).
+    # We identify Linear weights by: 2D tensor + key matches known Linear patterns.
+    LINEAR_WEIGHT_SUFFIXES = (
+        ".to_q.weight", ".to_k.weight", ".to_v.weight",      # attention projections
+        ".to_out.0.weight",                                    # attention output
+        ".w1.weight", ".w2.weight", ".w3.weight",              # feedforward
+        ".linear.weight",                                      # final layer
+        "adaLN_modulation.0.weight",                           # adaptive norm modulation
+        "cap_embedder.0.weight",                               # caption embedder
+        "x_embedder.weight",                                   # patch embedder
+        "mlp.0.weight", "mlp.2.weight",                        # timestep embedder MLP
+    )
+
     fp8_dict = {}
+    converted = 0
     for key, tensor in state_dict.items():
-        if tensor.is_floating_point() and tensor.ndim >= 2:
+        is_linear_weight = (
+            tensor.is_floating_point()
+            and tensor.ndim == 2
+            and any(key.endswith(s) for s in LINEAR_WEIGHT_SUFFIXES)
+        )
+        if is_linear_weight:
             fp8_dict[key] = tensor.to(torch.float8_e4m3fn)
+            converted += 1
         else:
             fp8_dict[key] = tensor
+
+    print(f"  Converted {converted} Linear weights to FP8, kept {len(fp8_dict) - converted} tensors in original dtype")
 
     # Save FP8 file
     save_file(fp8_dict, str(fp8_file))
