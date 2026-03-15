@@ -35,7 +35,7 @@ os.makedirs(str(DEFAULT_MODEL_DIR), exist_ok=True)
 
 
 # ---------------------------------------------------------------------------
-# q8_kernels FP8 matmul — native FP8 GEMM
+# q8_kernels FP8 — only need FP8Linear class for weight container
 # ---------------------------------------------------------------------------
 _Q8_AVAILABLE = False
 try:
@@ -45,13 +45,60 @@ except ImportError:
     pass
 
 
+def _scaled_fp8_forward(self, x, x_scales=None, out_dtype=None):
+    """Corrected FP8 forward: per-tensor dynamic scaling via torch._scaled_mm.
+
+    q8_kernels' FP8LinearFunc has two bugs:
+      1. Applies Hadamard rotation without inverse/scale compensation (cos_sim ≈ 0)
+      2. fp8_gemm kernel overflows to inf on certain weight rows (accumulation bug)
+
+    Uses torch._scaled_mm which handles scaling and accumulation correctly.
+    """
+    if x.dtype in (torch.float8_e4m3fn, torch.float8_e5m2):
+        x = x.to(torch.bfloat16)
+
+    # Always output BF16 — FP8 output is not useful for downstream ops
+    out_dtype = torch.bfloat16
+
+    orig_shape = x.shape
+    x_2d = x.reshape(-1, x.shape[-1])
+
+    # Per-tensor dynamic quantization
+    x_abs_max = x_2d.abs().amax().clamp(min=1e-12)
+    scale_a = (x_abs_max / 448.0).float()  # must be float32 for _scaled_mm
+
+    x_fp8 = (x_2d / scale_a).to(torch.float8_e4m3fn)
+
+    # Cache transposed weight to avoid repeated .t().contiguous()
+    if not hasattr(self, '_weight_t'):
+        self._weight_t = self.weight.data.t().contiguous()
+
+    scale_b = torch.tensor(1.0, device=x.device, dtype=torch.float32)
+    result = torch._scaled_mm(
+        x_fp8, self._weight_t,
+        scale_a, scale_b,
+        out_dtype=out_dtype, use_fast_accum=True,
+    )
+    if isinstance(result, tuple):
+        result = result[0]
+
+    if self.bias is not None:
+        bias = self.bias.to(result.dtype) if self.bias.dtype != result.dtype else self.bias
+        result = result + bias
+
+    return result.reshape(orig_shape[:-1] + (self.weight.shape[0],))
+
+
 def _patch_transformer_q8(model):
     """Replace FP8 nn.Linear layers with q8_kernels FP8Linear for native FP8 GEMM.
 
-    Uses FP8Linear's default forward (with Hadamard rotation).
+    Uses a corrected forward (per-tensor dynamic scaling, no Hadamard rotation)
+    instead of q8_kernels' broken default which applies Hadamard without inverse.
     After patching, casts ALL non-FP8Linear floating-point params to BF16 so that
     every dtype matches fp8_mm's BF16 output (index_put, add, etc. require matching).
     """
+    import types
+
     count = 0
     for name, module in list(model.named_modules()):
         if not isinstance(module, torch.nn.Linear) or isinstance(module, _Q8FP8Linear):
@@ -67,6 +114,8 @@ def _patch_transformer_q8(model):
             fp8.bias = torch.nn.Parameter(
                 module.bias.data.to(torch.bfloat16), requires_grad=False,
             )
+        # Replace broken default forward with corrected scaled version
+        fp8.forward = types.MethodType(_scaled_fp8_forward, fp8)
         parts = name.split(".")
         parent = model
         for part in parts[:-1]:
