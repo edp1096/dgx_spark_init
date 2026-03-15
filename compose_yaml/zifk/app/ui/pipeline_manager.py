@@ -10,7 +10,6 @@ Klein:   native pipeline via black-forest-labs/flux2 (denoise functions)
 import gc
 import logging
 import os
-import types
 from pathlib import Path
 
 import torch
@@ -39,37 +38,19 @@ os.makedirs(str(DEFAULT_MODEL_DIR), exist_ok=True)
 # q8_kernels FP8 matmul — native FP8 GEMM
 # ---------------------------------------------------------------------------
 _Q8_AVAILABLE = False
-_fp8_mm = None
 try:
     from q8_kernels.modules.linear import FP8Linear as _Q8FP8Linear
-    from q8_kernels.functional.linear import fp8_mm as _fp8_mm
     _Q8_AVAILABLE = True
 except ImportError:
     pass
 
 
-def _fp8_forward_no_hadamard(self, x, x_scales=None, out_dtype=None):
-    """FP8 forward WITHOUT Hadamard rotation on input.
-
-    q8_kernels' default FP8LinearFunc always applies Hadamard rotation to
-    16-bit inputs before quantizing to FP8, but fp8_gemm does NOT apply the
-    inverse transform — producing ~500% relative error. This forward simply
-    casts the input to FP8 and calls fp8_gemm directly.
-    Output stays as fp8_mm's natural dtype (float32) to match QK normalization.
-    """
-    orig_shape = x.shape
-    x_fp8 = x.to(torch.float8_e4m3fn).view(-1, orig_shape[-1])
-    bias = self.bias.data if self.bias is not None else None
-    o = _fp8_mm(x_fp8, self.weight.data, bias, False)
-    return o.view(*orig_shape[:-1], self.weight.shape[0])
-
-
 def _patch_transformer_q8(model):
     """Replace FP8 nn.Linear layers with q8_kernels FP8Linear for native FP8 GEMM.
 
-    Swaps upcast-forward Linear layers for FP8Linear which runs matmul directly in FP8.
-    Uses a custom forward that skips the Hadamard rotation.
-    After patching, casts remaining FP8 parameters (embeddings, norms, tokens) to BF16.
+    Uses FP8Linear's default forward (with Hadamard rotation).
+    After patching, casts ALL non-FP8Linear floating-point params to BF16 so that
+    every dtype matches fp8_mm's BF16 output (index_put, add, etc. require matching).
     """
     count = 0
     for name, module in list(model.named_modules()):
@@ -84,9 +65,8 @@ def _patch_transformer_q8(model):
         fp8.weight.data.copy_(module.weight.data)
         if module.bias is not None:
             fp8.bias = torch.nn.Parameter(
-                module.bias.data.to(torch.float32), requires_grad=False,
+                module.bias.data.to(torch.bfloat16), requires_grad=False,
             )
-        fp8.forward = types.MethodType(_fp8_forward_no_hadamard, fp8)
         parts = name.split(".")
         parent = model
         for part in parts[:-1]:
@@ -94,49 +74,21 @@ def _patch_transformer_q8(model):
         setattr(parent, parts[-1], fp8)
         count += 1
 
-    # Cast remaining FP8 parameters (non-Linear: embeddings, norms, pad tokens, etc.) to float32
-    # Must match the forward wrapper's float32 dtype (index_put requires exact match)
+    # Cast ALL non-FP8Linear-weight floating-point params to BF16.
+    # fp8_mm returns BF16, so everything must be BF16 for consistency
+    # (index_put, element-wise ops, etc. require matching dtypes).
+    # FP8Linear weights must stay FP8 for GEMM.
+    fp8_linear_names = {n for n, m in model.named_modules() if isinstance(m, _Q8FP8Linear)}
     cast_count = 0
     for name, param in model.named_parameters():
-        if param.dtype == torch.float8_e4m3fn:
-            param.data = param.data.to(torch.float32)
-            cast_count += 1
-    for name, buf in model.named_buffers():
-        if buf.dtype == torch.float8_e4m3fn:
-            buf.data = buf.data.to(torch.float32)
+        if any(name.startswith(p + ".") for p in fp8_linear_names) and name.endswith(".weight"):
+            continue
+        if param.is_floating_point() and param.dtype != torch.bfloat16:
+            param.data = param.data.to(torch.bfloat16)
             cast_count += 1
 
     if count > 0 or cast_count > 0:
-        torch.cuda.empty_cache()
-        logger.info("q8_kernels: %d Linear → FP8Linear, %d non-Linear params cast to BF16", count, cast_count)
-
-
-# ---------------------------------------------------------------------------
-# Z-Image FP8 compatibility monkey-patches
-#
-# The Z-Image source code assumes uniform dtype (BF16) throughout.
-# With FP8Linear (float32 output) + BF16 norms, dtype mismatches occur.
-# These patches fix the specific incompatible methods.
-# ---------------------------------------------------------------------------
-def _patch_zimage_fp8_compat(model):
-    """Monkey-patch Z-Image transformer forward for FP8 dtype compatibility.
-
-    The Z-Image source assumes uniform BF16 dtype throughout, but FP8Linear
-    outputs float32. Instead of patching individual methods, we wrap the
-    entire transformer forward to cast inputs to float32, ensuring all
-    internal operations run in float32 (matching FP8Linear output).
-    """
-    _orig_forward = model.forward
-
-    def _forward_fp32(self, x, t, cap_feats, patch_size=2, f_patch_size=1):
-        # Cast all inputs to float32 so every internal op matches FP8Linear output
-        x_f32 = [xi.float() for xi in x]
-        cap_feats_f32 = [cf.float() for cf in cap_feats]
-        t_f32 = t.float() if t.is_floating_point() else t
-        return _orig_forward(x_f32, t_f32, cap_feats_f32, patch_size, f_patch_size)
-
-    model.forward = types.MethodType(_forward_fp32, model)
-    logger.info("Patched transformer.forward for FP8 compat (all inputs cast to float32)")
+        logger.info("q8_kernels: %d Linear → FP8Linear, %d params cast to BF16", count, cast_count)
 
 
 # ---------------------------------------------------------------------------
@@ -315,8 +267,7 @@ class PipelineManager:
             del fp8_state
             self._gpu_cleanup()
             _patch_transformer_q8(self.zimage_components["transformer"])
-            _patch_zimage_fp8_compat(self.zimage_components["transformer"])
-            # Set explicit dtype so pipeline.py uses BF16 for inputs, not FP8
+            # Set explicit dtype so pipeline.py uses BF16 for inputs
             self.zimage_components["transformer"].dtype = torch.bfloat16
             logger.info("FP8 transformer loaded with q8_kernels native GEMM")
         elif fp8_file.exists():
