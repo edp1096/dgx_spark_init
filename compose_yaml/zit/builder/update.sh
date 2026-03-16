@@ -13,6 +13,28 @@ GITHUB_BRANCH="main"
 GITHUB_RAW="https://raw.githubusercontent.com/${GITHUB_REPO}/${GITHUB_BRANCH}/compose_yaml/zit"
 GITHUB_API="https://api.github.com/repos/${GITHUB_REPO}/contents/compose_yaml/zit"
 
+# GitHub API auth — raises rate limit from 60/h to 5000/h
+if [ -n "${GITHUB_TOKEN}" ]; then
+    echo "Using GITHUB_TOKEN for API authentication"
+fi
+
+# Authenticated curl wrappers
+api_curl() {
+    if [ -n "${GITHUB_TOKEN}" ]; then
+        curl -sf -H "Authorization: token ${GITHUB_TOKEN}" "$@"
+    else
+        curl -sf "$@"
+    fi
+}
+
+raw_curl() {
+    if [ -n "${GITHUB_TOKEN}" ]; then
+        curl -sfL -H "Authorization: token ${GITHUB_TOKEN}" "$@"
+    else
+        curl -sfL "$@"
+    fi
+}
+
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 APP_DIR="${SCRIPT_DIR}/app"
 UI_DIR="${APP_DIR}/ui"
@@ -30,7 +52,7 @@ list_remote_files_recursive() {
     local api_path="$1"
     local prefix="$2"  # relative prefix for output paths
 
-    curl -sf "${GITHUB_API}/${api_path}?ref=${GITHUB_BRANCH}" | python3 -c "
+    api_curl "${GITHUB_API}/${api_path}?ref=${GITHUB_BRANCH}" | python3 -c "
 import sys, json
 items = json.load(sys.stdin)
 for item in items:
@@ -153,7 +175,7 @@ if [ "$DIFF_ONLY" = true ]; then
     changed=0
     for fname in "${APP_FILES[@]}"; do
         mkdir -p "${TEMP_DIR}/app/$(dirname "$fname")"
-        if ! curl -sfL "${GITHUB_RAW}/app/${fname}" -o "${TEMP_DIR}/app/${fname}" 2>/dev/null; then
+        if ! raw_curl "${GITHUB_RAW}/app/${fname}" -o "${TEMP_DIR}/app/${fname}" 2>/dev/null; then
             fail "app/${fname} (download)"
             continue
         fi
@@ -172,7 +194,7 @@ if [ "$DIFF_ONLY" = true ]; then
 
     for fname in "${UI_FILES[@]}"; do
         mkdir -p "${TEMP_DIR}/ui/$(dirname "$fname")"
-        if ! curl -sfL "${GITHUB_RAW}/app/ui/${fname}" -o "${TEMP_DIR}/ui/${fname}" 2>/dev/null; then
+        if ! raw_curl "${GITHUB_RAW}/app/ui/${fname}" -o "${TEMP_DIR}/ui/${fname}" 2>/dev/null; then
             fail "app/ui/${fname} (download)"
             continue
         fi
@@ -191,7 +213,7 @@ if [ "$DIFF_ONLY" = true ]; then
 
     for fname in "${TEST_FILES[@]}"; do
         mkdir -p "${TEMP_DIR}/tests/$(dirname "$fname")"
-        if ! curl -sfL "${GITHUB_RAW}/tests/${fname}" -o "${TEMP_DIR}/tests/${fname}" 2>/dev/null; then
+        if ! raw_curl "${GITHUB_RAW}/tests/${fname}" -o "${TEMP_DIR}/tests/${fname}" 2>/dev/null; then
             fail "tests/${fname} (download)"
             continue
         fi
@@ -252,7 +274,7 @@ echo "[2/3] Downloading files..."
 
 for fname in "${APP_FILES[@]}"; do
     mkdir -p "${APP_DIR}/$(dirname "$fname")"
-    if curl -sfL "${GITHUB_RAW}/app/${fname}" -o "${APP_DIR}/${fname}"; then
+    if raw_curl "${GITHUB_RAW}/app/${fname}" -o "${APP_DIR}/${fname}"; then
         echo "  OK: app/${fname}"
     else
         echo "  FAIL: app/${fname}"
@@ -262,7 +284,7 @@ done
 
 for fname in "${UI_FILES[@]}"; do
     mkdir -p "${UI_DIR}/$(dirname "$fname")"
-    if curl -sfL "${GITHUB_RAW}/app/ui/${fname}" -o "${UI_DIR}/${fname}"; then
+    if raw_curl "${GITHUB_RAW}/app/ui/${fname}" -o "${UI_DIR}/${fname}"; then
         echo "  OK: app/ui/${fname}"
     else
         echo "  FAIL: app/ui/${fname}"
@@ -274,7 +296,7 @@ TESTS_DIR="${SCRIPT_DIR}/tests"
 mkdir -p "$TESTS_DIR"
 for fname in "${TEST_FILES[@]}"; do
     mkdir -p "${TESTS_DIR}/$(dirname "$fname")"
-    if curl -sfL "${GITHUB_RAW}/tests/${fname}" -o "${TESTS_DIR}/${fname}"; then
+    if raw_curl "${GITHUB_RAW}/tests/${fname}" -o "${TESTS_DIR}/${fname}"; then
         echo "  OK: tests/${fname}"
     else
         echo "  FAIL: tests/${fname}"
@@ -283,7 +305,7 @@ for fname in "${TEST_FILES[@]}"; do
 done
 
 # Self-update
-if curl -sfL "${GITHUB_RAW}/builder/update.sh" -o "${SCRIPT_DIR}/update.sh.new"; then
+if raw_curl "${GITHUB_RAW}/builder/update.sh" -o "${SCRIPT_DIR}/update.sh.new"; then
     mv "${SCRIPT_DIR}/update.sh.new" "${SCRIPT_DIR}/update.sh"
     chmod +x "${SCRIPT_DIR}/update.sh"
     echo "  OK: update.sh (self-updated)"

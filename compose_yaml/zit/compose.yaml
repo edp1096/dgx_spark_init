@@ -8,6 +8,7 @@ services:
       - PIP_ROOT_USER_ACTION=ignore
       - PYTHONUNBUFFERED=1
       - HF_TOKEN=${HF_TOKEN}
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
     volumes:
       - "/home/edp1096/.cache/huggingface:/root/.cache/huggingface"
     deploy:
