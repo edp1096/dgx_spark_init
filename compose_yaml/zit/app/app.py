@@ -145,11 +145,13 @@ def build_ui() -> gr.Blocks:
     custom_css = """
 .memory-status { text-align: right; }
 #gen-gallery .thumbnails button,
+#cn-gallery .thumbnails button,
 #history-gallery .thumbnails button {
   max-height: 200px;
   max-width: 200px;
 }
 #gen-gallery .thumbnails button img,
+#cn-gallery .thumbnails button img,
 #history-gallery .thumbnails button img {
   max-height: 180px;
   object-fit: contain;
@@ -262,7 +264,7 @@ def build_ui() -> gr.Blocks:
                         cn_generate = gr.Button("Generate", variant="primary")
 
                     with gr.Column(scale=1):
-                        cn_gallery = gr.Gallery(label="Generated Images", columns=2, height=500, object_fit="contain", preview=True, selected_index=0)
+                        cn_gallery = gr.Gallery(label="Generated Images", columns=2, height=500, object_fit="contain", elem_id="cn-gallery", preview=True, selected_index=0)
                         cn_info = gr.Textbox(label="Info", interactive=False,
                                              value=lambda: get_gen_info_for_tab("controlnet"), every=2)
                         cn_kill_btn = gr.Button("Kill (emergency stop)", variant="stop", size="sm")
