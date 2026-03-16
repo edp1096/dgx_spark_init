@@ -41,7 +41,6 @@ from zit_config import (
     DEFAULT_INPAINT_GUIDANCE,
     DEFAULT_INPAINT_CFG_TRUNCATION,
     DEFAULT_INPAINT_CONTROL_SCALE,
-    DEFAULT_CODEFORMER_FIDELITY,
 )
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -444,7 +443,7 @@ def build_ui() -> gr.Blocks:
                         fs_source = gr.Image(label="Source Face (reference)", type="numpy")
                         with gr.Accordion("Enhancement", open=True):
                             fs_enable_restore = gr.Checkbox(value=True, label="Face Restoration (CodeFormer)")
-                            fs_codeformer_w = gr.Slider(0.0, 1.0, value=DEFAULT_CODEFORMER_FIDELITY, step=0.05, label="Fidelity (0=quality, 1=identity)")
+                            fs_codeformer_w = gr.Slider(0.0, 1.0, value=0.7, step=0.05, label="Fidelity (0=quality, 1=identity)")
                             fs_enable_refine = gr.Checkbox(value=True, label="Inpaint Refinement")
                             fs_refine_prompt = gr.Textbox(
                                 label="Refinement Prompt",
