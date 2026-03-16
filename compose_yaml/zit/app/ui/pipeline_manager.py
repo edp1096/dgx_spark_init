@@ -338,7 +338,6 @@ class PipelineManager:
             self._gpu_cleanup()
             weight_scales = _load_fp8_weight_scales(str(fp8_file))
             _patch_transformer_q8(transformer, weight_scales=weight_scales)
-            transformer.dtype = torch.bfloat16
             logger.info("FP8 transformer loaded with q8_kernels native GEMM")
         else:
             logger.info("Using BF16 transformer (no FP8 GEMM)")

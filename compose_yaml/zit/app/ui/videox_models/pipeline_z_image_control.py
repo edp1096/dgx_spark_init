@@ -421,6 +421,7 @@ class ZImageControlPipeline(DiffusionPipeline, FromSingleFileMixin):
 
         device = self._execution_device
         weight_dtype = self.text_encoder.dtype
+        vae_dtype = self.vae.dtype
         num_channels_latents = self.transformer.in_channels
 
         # Prepare mask latent variables
@@ -436,17 +437,19 @@ class ZImageControlPipeline(DiffusionPipeline, FromSingleFileMixin):
 
             if image is not None:
                 init_image = self.image_processor.preprocess(image, height=height, width=width)
-                init_image = init_image.to(dtype=weight_dtype, device=device) * (mask_condition < 0.5)
+                init_image = init_image.to(dtype=vae_dtype, device=device) * (mask_condition.to(dtype=vae_dtype) < 0.5)
                 inpaint_latent = self.vae.encode(init_image)[0].mode()
                 inpaint_latent = (inpaint_latent - self.vae.config.shift_factor) * self.vae.config.scaling_factor
+                inpaint_latent = inpaint_latent.to(dtype=weight_dtype)
             else:
                 inpaint_latent = torch.zeros((batch_size, num_channels_latents, 2 * (int(height) // (self.vae_scale_factor * 2)), 2 * (int(width) // (self.vae_scale_factor * 2)))).to(device, weight_dtype)
 
         if control_image is not None:
             control_image = self.image_processor.preprocess(control_image, height=height, width=width)
-            control_image = control_image.to(dtype=weight_dtype, device=device)
+            control_image = control_image.to(dtype=vae_dtype, device=device)
             control_latents = self.vae.encode(control_image)[0].mode()
             control_latents = (control_latents - self.vae.config.shift_factor) * self.vae.config.scaling_factor
+            control_latents = control_latents.to(dtype=weight_dtype)
         else:
             control_latents = torch.zeros_like(inpaint_latent)
 

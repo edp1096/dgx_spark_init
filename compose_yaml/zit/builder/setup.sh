@@ -113,7 +113,10 @@ pip install -q \
     fire \
     transformers \
     peft \
-    timm
+    timm \
+    diffusers \
+    sentencepiece \
+    opencv-python-headless
 
 # -----------------------------------------------
 # 5. Install q8_kernels
