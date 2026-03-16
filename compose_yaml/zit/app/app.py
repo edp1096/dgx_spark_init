@@ -380,9 +380,12 @@ def build_ui() -> gr.Blocks:
                                  steps, time_shift, control_scale, guidance, cfg_trunc, max_seq,
                                  progress=gr.Progress(track_tqdm=True)):
                     import logging as _log
-                    _log.getLogger("zit-ui").info(
-                        "_ip_generate called: mode=%s out_image_type=%s direction=%s",
-                        mode, type(out_image).__name__, direction)
+                    _logger = _log.getLogger("zit-ui")
+                    _logger.info(
+                        "_ip_generate called: mode=%s out_image_type=%s out_image_is_none=%s "
+                        "direction=%s expand_px=%s prompt=%r",
+                        mode, type(out_image).__name__, out_image is None,
+                        direction, expand_px, prompt[:50] if prompt else None)
                     if mode == "Inpaint":
                         paths, info = generate_inpaint(
                             prompt, editor_val, resolution, seed,
@@ -392,6 +395,9 @@ def build_ui() -> gr.Blocks:
                             progress=progress,
                         )
                     else:
+                        _logger.info("Outpaint: image shape=%s direction=%s expand=%s",
+                                     out_image.shape if hasattr(out_image, 'shape') else 'N/A',
+                                     direction, expand_px)
                         paths, info = generate_outpaint(
                             prompt, out_image, direction, expand_px, resolution, seed,
                             negative_prompt=neg, num_steps=steps, guidance_scale=guidance,
@@ -399,6 +405,7 @@ def build_ui() -> gr.Blocks:
                             max_sequence_length=max_seq, time_shift=time_shift,
                             progress=progress,
                         )
+                    _logger.info("_ip_generate done: paths=%s", paths)
                     return paths[0] if paths else None, info
 
                 ip_generate.click(
@@ -596,6 +603,7 @@ def main():
         server_name=args.server_name,
         server_port=args.port,
         share=args.share,
+        show_error=True,
     )
 
 
