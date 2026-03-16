@@ -5,6 +5,7 @@ Components:
   - SCRFD: Face detection (bounding boxes + 5-point landmarks)
   - ArcFace: Face embedding extraction (512-dim)
   - inswapper: Face replacement (128x128 aligned face + source embedding → swapped face)
+  - CodeFormer: Face restoration (128px → 512px quality enhancement)
 
 ONNX → TRT engine conversion is done on first use and cached as .engine files.
 """
@@ -15,6 +16,7 @@ from pathlib import Path
 
 import cv2
 import numpy as np
+import torch
 
 logger = logging.getLogger("zit-ui")
 
@@ -172,24 +174,181 @@ def align_face(image: np.ndarray, landmarks: np.ndarray, size: int = 112) -> tup
     return aligned, M
 
 
-def paste_back(swapped_face: np.ndarray, target: np.ndarray, M: np.ndarray, size: int = 128) -> np.ndarray:
-    """Paste swapped face back onto target image using inverse affine transform."""
+# ---------------------------------------------------------------------------
+# CodeFormer face restoration
+# ---------------------------------------------------------------------------
+class CodeFormerRestorer:
+    """Load and run CodeFormer for face restoration."""
+
+    def __init__(self, model_path: str, device: str = "cuda"):
+        self.model_path = model_path
+        self.device = device
+        self._model = None
+
+    def _ensure_loaded(self):
+        if self._model is not None:
+            return
+        from codeformer import CodeFormer
+        self._model = CodeFormer(
+            dim_embd=512, n_head=8, n_layers=9,
+            codebook_size=1024, latent_size=256,
+            connect_list=['32', '64', '128', '256'],
+            fix_modules=['quantize', 'generator'],
+        )
+        ckpt = torch.load(self.model_path, map_location="cpu", weights_only=False)
+        if "params_ema" in ckpt:
+            self._model.load_state_dict(ckpt["params_ema"])
+        elif "params" in ckpt:
+            self._model.load_state_dict(ckpt["params"])
+        else:
+            self._model.load_state_dict(ckpt)
+        self._model.eval().to(self.device)
+        logger.info("CodeFormer loaded from %s", self.model_path)
+
+    @torch.no_grad()
+    def restore(self, face_rgb: np.ndarray, w: float = 0.7) -> np.ndarray:
+        """Restore a face image (any size RGB) → 512x512 restored RGB.
+
+        Args:
+            face_rgb: Input face crop (RGB, uint8)
+            w: Fidelity weight (0=quality, 1=identity preservation)
+        """
+        self._ensure_loaded()
+        # Resize to 512x512 (CodeFormer's native resolution)
+        inp = cv2.resize(face_rgb, (512, 512), interpolation=cv2.INTER_LINEAR)
+        # Normalize to [-1, 1], BCHW
+        inp_t = torch.from_numpy(inp.astype(np.float32) / 255.0).permute(2, 0, 1).unsqueeze(0)
+        inp_t = (inp_t - 0.5) / 0.5
+        inp_t = inp_t.to(self.device)
+        output, _, _ = self._model(inp_t, w=w, adain=True)
+        # Back to uint8 RGB
+        output = (output.squeeze(0).clamp(-1, 1) * 0.5 + 0.5) * 255.0
+        output = output.permute(1, 2, 0).cpu().numpy().clip(0, 255).astype(np.uint8)
+        return output
+
+
+# ---------------------------------------------------------------------------
+# Face mask utilities (for inpaint refinement)
+# ---------------------------------------------------------------------------
+def create_face_mask(image_shape: tuple, bbox: np.ndarray, landmarks: np.ndarray,
+                     padding: float = 1.5) -> np.ndarray:
+    """Create a soft face mask for inpaint refinement.
+
+    Args:
+        image_shape: (H, W, C) of the target image
+        bbox: [x1, y1, x2, y2] face bounding box
+        landmarks: 5x2 landmarks
+        padding: bbox expansion factor
+
+    Returns:
+        L-mode mask (uint8, 0=keep, 255=inpaint) suitable for ZIT inpaint pipeline
+    """
+    h, w = image_shape[:2]
+    x1, y1, x2, y2 = bbox
+    bw, bh = x2 - x1, y2 - y1
+    cx, cy = (x1 + x2) / 2, (y1 + y2) / 2
+    # Expand bbox
+    bw *= padding
+    bh *= padding
+    x1 = max(0, int(cx - bw / 2))
+    y1 = max(0, int(cy - bh / 2))
+    x2 = min(w, int(cx + bw / 2))
+    y2 = min(h, int(cy + bh / 2))
+
+    mask = np.zeros((h, w), dtype=np.uint8)
+    # Draw filled ellipse in expanded bbox
+    ecx, ecy = (x1 + x2) // 2, (y1 + y2) // 2
+    eax, eay = (x2 - x1) // 2, (y2 - y1) // 2
+    cv2.ellipse(mask, (ecx, ecy), (eax, eay), 0, 0, 360, 255, -1)
+    # Feather edges
+    ksize = max(3, int(min(eax, eay) * 0.3) | 1)
+    mask = cv2.GaussianBlur(mask, (ksize, ksize), 0)
+    return mask
+
+
+def create_detail_masks(landmarks: np.ndarray, image_shape: tuple) -> list[np.ndarray]:
+    """Create individual masks for eyes, nose, mouth from 5-point landmarks.
+
+    Returns list of (mask, label) tuples for FaceDetailer.
+    """
+    h, w = image_shape[:2]
+    # landmarks: [left_eye, right_eye, nose, left_mouth, right_mouth]
+    le, re, nose, lm, rm = landmarks
+
+    eye_dist = np.linalg.norm(re - le)
+    eye_r = int(eye_dist * 0.35)
+    nose_r = int(eye_dist * 0.3)
+    mouth_cx = int((lm[0] + rm[0]) / 2)
+    mouth_cy = int((lm[1] + rm[1]) / 2)
+    mouth_rx = int(np.linalg.norm(rm - lm) * 0.5)
+    mouth_ry = int(mouth_rx * 0.6)
+
+    parts = []
+    # Left eye
+    m = np.zeros((h, w), dtype=np.uint8)
+    cv2.circle(m, (int(le[0]), int(le[1])), eye_r, 255, -1)
+    m = cv2.GaussianBlur(m, (0, 0), eye_r * 0.3)
+    parts.append((m, "left_eye"))
+    # Right eye
+    m = np.zeros((h, w), dtype=np.uint8)
+    cv2.circle(m, (int(re[0]), int(re[1])), eye_r, 255, -1)
+    m = cv2.GaussianBlur(m, (0, 0), eye_r * 0.3)
+    parts.append((m, "right_eye"))
+    # Nose
+    m = np.zeros((h, w), dtype=np.uint8)
+    cv2.circle(m, (int(nose[0]), int(nose[1])), nose_r, 255, -1)
+    m = cv2.GaussianBlur(m, (0, 0), nose_r * 0.3)
+    parts.append((m, "nose"))
+    # Mouth
+    m = np.zeros((h, w), dtype=np.uint8)
+    cv2.ellipse(m, (mouth_cx, mouth_cy), (mouth_rx, mouth_ry), 0, 0, 360, 255, -1)
+    m = cv2.GaussianBlur(m, (0, 0), mouth_ry * 0.3)
+    parts.append((m, "mouth"))
+
+    return parts
+
+
+def paste_back(
+    swapped_face: np.ndarray, target: np.ndarray, M: np.ndarray,
+    size: int = 128, blend_mode: str = "seamless", mask_blur: float = 0.3,
+) -> np.ndarray:
+    """Paste swapped face back onto target image.
+
+    Args:
+        blend_mode: "seamless" (Poisson) or "alpha" (feathered alpha blend)
+        mask_blur: blur strength for mask edges (0.0 ~ 1.0, maps to GaussianBlur sigma)
+    """
     M_inv = cv2.invertAffineTransform(M)
-    face_back = cv2.warpAffine(swapped_face, M_inv, (target.shape[1], target.shape[0]))
 
-    # Create mask from warped face
-    mask = np.zeros(swapped_face.shape[:2], dtype=np.float32)
-    # Feathered mask (elliptical, softer edges)
+    # Create elliptical mask on aligned face space
+    mask = np.zeros((size, size), dtype=np.uint8)
     center = (size // 2, size // 2)
-    axes = (int(size * 0.4), int(size * 0.45))
-    cv2.ellipse(mask, center, axes, 0, 0, 360, 1.0, -1)
-    mask = cv2.GaussianBlur(mask, (0, 0), size * 0.05)
+    axes = (int(size * 0.42), int(size * 0.48))
+    cv2.ellipse(mask, center, axes, 0, 0, 360, 255, -1)
 
+    # Apply blur to mask edges
+    blur_sigma = max(1.0, mask_blur * size * 0.15)
+    mask = cv2.GaussianBlur(mask, (0, 0), blur_sigma)
+
+    # Warp swapped face and mask back to target space
+    face_back = cv2.warpAffine(swapped_face, M_inv, (target.shape[1], target.shape[0]))
     mask_back = cv2.warpAffine(mask, M_inv, (target.shape[1], target.shape[0]))
-    mask_back = mask_back[:, :, np.newaxis]
 
-    result = target.astype(np.float32) * (1 - mask_back) + face_back.astype(np.float32) * mask_back
-    return result.clip(0, 255).astype(np.uint8)
+    ys, xs = np.where(mask_back > 0)
+    if len(xs) == 0 or len(ys) == 0:
+        return target
+
+    if blend_mode == "seamless":
+        clone_center = (int((xs.min() + xs.max()) // 2), int((ys.min() + ys.max()) // 2))
+        target_bgr = cv2.cvtColor(target, cv2.COLOR_RGB2BGR)
+        face_back_bgr = cv2.cvtColor(face_back, cv2.COLOR_RGB2BGR)
+        result_bgr = cv2.seamlessClone(face_back_bgr, target_bgr, mask_back, clone_center, cv2.NORMAL_CLONE)
+        return cv2.cvtColor(result_bgr, cv2.COLOR_BGR2RGB)
+    else:
+        # Alpha blend
+        mask_f = mask_back.astype(np.float32)[:, :, np.newaxis] / 255.0
+        result = target.astype(np.float32) * (1 - mask_f) + face_back.astype(np.float32) * mask_f
+        return result.clip(0, 255).astype(np.uint8)
 
 
 # ---------------------------------------------------------------------------
@@ -199,7 +358,7 @@ class FaceSwapPipeline:
     """Complete face swap: detect → align → recognize → swap → paste back."""
 
     def __init__(self, model_dir: str):
-        from zit_config import FACESWAP_DIR, SCRFD_FILE, ARCFACE_FILE, INSWAPPER_FILE
+        from zit_config import FACESWAP_DIR, SCRFD_FILE, ARCFACE_FILE, INSWAPPER_FILE, CODEFORMER_FILE
 
         self.model_dir = model_dir
         fs_dir = os.path.join(model_dir, FACESWAP_DIR)
@@ -207,11 +366,13 @@ class FaceSwapPipeline:
         self.scrfd_path = os.path.join(fs_dir, SCRFD_FILE)
         self.arcface_path = os.path.join(fs_dir, ARCFACE_FILE)
         self.inswapper_path = os.path.join(fs_dir, INSWAPPER_FILE)
+        self.codeformer_path = os.path.join(fs_dir, CODEFORMER_FILE)
 
         self._scrfd = None
         self._arcface = None
         self._inswapper = None
         self._emap = None
+        self._codeformer = None
 
     def _ensure_loaded(self):
         if self._scrfd is not None:
@@ -234,6 +395,14 @@ class FaceSwapPipeline:
         del onnx_model
 
         logger.info("FaceSwap engines loaded")
+
+    def _ensure_codeformer_loaded(self):
+        if self._codeformer is not None:
+            return
+        if not os.path.exists(self.codeformer_path):
+            logger.warning("CodeFormer model not found at %s — face restoration disabled", self.codeformer_path)
+            return
+        self._codeformer = CodeFormerRestorer(self.codeformer_path)
 
     def detect_faces(self, image: np.ndarray, threshold: float = 0.5):
         """Detect faces using SCRFD. Returns list of (bbox, landmarks_5)."""
@@ -387,21 +556,36 @@ class FaceSwapPipeline:
         self,
         target_image: np.ndarray,
         source_image: np.ndarray,
-    ) -> np.ndarray:
+        det_thresh: float = 0.5,
+        blend_mode: str = "seamless",
+        mask_blur: float = 0.3,
+        face_index: int = 0,
+        enable_restore: bool = True,
+        codeformer_w: float = 0.7,
+    ) -> tuple[np.ndarray, list]:
         """Swap face from source onto target.
 
         Args:
             target_image: RGB image with face to replace
             source_image: RGB image with source face
+            det_thresh: SCRFD detection confidence threshold
+            blend_mode: "seamless" (Poisson) or "alpha" (feathered)
+            mask_blur: mask edge blur strength (0.0~1.0)
+            face_index: which target face to swap (0=largest, -1=all)
+            enable_restore: run CodeFormer on swapped face before paste
+            codeformer_w: fidelity weight (0=quality, 1=identity)
 
         Returns:
-            RGB image with swapped face
+            (result_image, swapped_face_info) — info contains (bbox, landmarks) for each swapped face
         """
         self._ensure_loaded()
 
+        if enable_restore:
+            self._ensure_codeformer_loaded()
+
         # Detect faces
-        target_faces = self.detect_faces(target_image)
-        source_faces = self.detect_faces(source_image)
+        target_faces = self.detect_faces(target_image, threshold=det_thresh)
+        source_faces = self.detect_faces(source_image, threshold=det_thresh)
 
         if not target_faces:
             raise ValueError("No face detected in target image")
@@ -414,12 +598,20 @@ class FaceSwapPipeline:
         latent = np.dot(source_embedding.reshape(1, -1), self._emap)
         latent /= (np.linalg.norm(latent) + 1e-8)
 
-        # Swap each target face
+        # Select target faces
+        if face_index >= 0 and face_index < len(target_faces):
+            swap_targets = [target_faces[face_index]]
+        else:
+            swap_targets = target_faces
+
+        # Swap selected target faces
         result = target_image.copy()
-        for bbox, landmarks in target_faces:
+        swapped_faces_info = []
+
+        for bbox, landmarks in swap_targets:
             aligned, M = align_face(result, landmarks, size=128)
 
-            # Prepare inswapper input: blobFromImage with mean=0, std=255, swapRB
+            # Prepare inswapper input
             aligned_bgr = cv2.cvtColor(aligned, cv2.COLOR_RGB2BGR)
             face_blob = cv2.dnn.blobFromImage(
                 aligned_bgr, 1.0 / 255.0, (128, 128),
@@ -436,7 +628,14 @@ class FaceSwapPipeline:
             swapped = list(outputs.values())[0][0].transpose(1, 2, 0)
             swapped = (swapped * 255).clip(0, 255).astype(np.uint8)
 
-            # Paste back
-            result = paste_back(swapped, result, M, size=128)
+            # CodeFormer restoration: 128px → 512px → resize back to 128 for paste
+            if enable_restore and self._codeformer is not None:
+                logger.info("Running CodeFormer restoration (w=%.2f)...", codeformer_w)
+                restored_512 = self._codeformer.restore(swapped, w=codeformer_w)
+                swapped = cv2.resize(restored_512, (128, 128), interpolation=cv2.INTER_LANCZOS4)
 
-        return result
+            # Paste back
+            result = paste_back(swapped, result, M, size=128, blend_mode=blend_mode, mask_blur=mask_blur)
+            swapped_faces_info.append((bbox, landmarks))
+
+        return result, swapped_faces_info

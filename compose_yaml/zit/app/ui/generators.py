@@ -297,8 +297,8 @@ def generate_controlnet(
 # ---------------------------------------------------------------------------
 def generate_inpaint(
     prompt, editor_value, resolution, seed,
-    negative_prompt="", num_steps=8, guidance_scale=0.5,
-    cfg_truncation=0.9, control_scale=0.9,
+    negative_prompt="", num_steps=25, guidance_scale=4.0,
+    cfg_truncation=1.0, control_scale=0.9,
     max_sequence_length=512, time_shift=3.0,
     progress=gr.Progress(track_tqdm=True),
 ):
@@ -366,8 +366,8 @@ def generate_inpaint(
 # ---------------------------------------------------------------------------
 def generate_outpaint(
     prompt, image, direction, expand_px, resolution, seed,
-    negative_prompt="", num_steps=8, guidance_scale=0.5,
-    cfg_truncation=0.9, control_scale=0.9,
+    negative_prompt="", num_steps=25, guidance_scale=4.0,
+    cfg_truncation=1.0, control_scale=0.9,
     max_sequence_length=512, time_shift=3.0,
     progress=gr.Progress(track_tqdm=True),
 ):
@@ -410,7 +410,14 @@ def generate_outpaint(
 # ---------------------------------------------------------------------------
 # Generation: FaceSwap
 # ---------------------------------------------------------------------------
-def generate_faceswap(target_image, source_image, progress=gr.Progress(track_tqdm=True)):
+def generate_faceswap(
+    target_image, source_image,
+    det_thresh=0.5, blend_mode="seamless", mask_blur=0.3, face_index=0,
+    enable_restore=True, codeformer_w=0.7,
+    enable_refine=True, refine_prompt="", refine_steps=15,
+    enable_detailer=False,
+    progress=gr.Progress(track_tqdm=True),
+):
     if target_image is None:
         raise gr.Error("Target image is required.")
     if source_image is None:
@@ -431,6 +438,16 @@ def generate_faceswap(target_image, source_image, progress=gr.Progress(track_tqd
     kwargs = {
         "target_path": tmp_target.name,
         "source_path": tmp_source.name,
+        "det_thresh": float(det_thresh),
+        "blend_mode": str(blend_mode),
+        "mask_blur": float(mask_blur),
+        "face_index": int(face_index),
+        "enable_restore": bool(enable_restore),
+        "codeformer_w": float(codeformer_w),
+        "enable_refine": bool(enable_refine),
+        "refine_prompt": str(refine_prompt) if refine_prompt else "a person with natural skin texture, highly detailed face, photorealistic",
+        "refine_steps": int(refine_steps),
+        "enable_detailer": bool(enable_detailer),
         "seed": 0,
     }
     return _submit_and_wait("faceswap", kwargs, progress)

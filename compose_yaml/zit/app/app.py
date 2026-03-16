@@ -37,6 +37,11 @@ from zit_config import (
     DEFAULT_CFG_TRUNCATION,
     DEFAULT_MAX_SEQ_LENGTH,
     CONTROL_MODES,
+    DEFAULT_INPAINT_STEPS,
+    DEFAULT_INPAINT_GUIDANCE,
+    DEFAULT_INPAINT_CFG_TRUNCATION,
+    DEFAULT_INPAINT_CONTROL_SCALE,
+    DEFAULT_CODEFORMER_FIDELITY,
 )
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -53,7 +58,7 @@ def _do_kill():
 
 
 def create_output_column(gen_type: str):
-    image = gr.Image(label="Generated Image", type="filepath")
+    image = gr.Image(label="Generated Image", type="filepath", show_share_button=False)
     info = gr.Textbox(label="Info", interactive=False,
                       value=lambda: get_gen_info_for_tab(gen_type), every=2)
     with gr.Row():
@@ -253,7 +258,7 @@ def build_ui() -> gr.Blocks:
                         )
                         cn_image = gr.Image(label="Input Image", type="numpy")
                         cn_preview_btn = gr.Button("Preview Preprocessor", variant="secondary", size="sm")
-                        cn_preview = gr.Image(label="Control Preview", interactive=False)
+                        cn_preview = gr.Image(label="Control Preview", interactive=False, show_share_button=False)
                         cn_prompt = gr.Textbox(label="Prompt", lines=3, placeholder="Describe your image...")
                         cn_neg = gr.Textbox(label="Negative Prompt", lines=2)
                         cn_resolution = gr.Dropdown(
@@ -348,17 +353,17 @@ def build_ui() -> gr.Blocks:
                             label="Resolution (WxH)", allow_custom_value=True,
                         )
                         ip_seed = gr.Number(value=-1, label="Seed (-1=random)", precision=0)
-                        ip_steps = gr.Slider(1, 100, value=DEFAULT_STEPS, step=1, label="Steps")
+                        ip_steps = gr.Slider(1, 100, value=DEFAULT_INPAINT_STEPS, step=1, label="Steps")
                         ip_time_shift = gr.Slider(1.0, 12.0, value=DEFAULT_TIME_SHIFT, step=0.5, label="Time Shift")
-                        ip_control_scale = gr.Slider(0.0, 1.0, value=0.9, step=0.05, label="Control Scale")
-                        ip_guidance = gr.Slider(0.0, 10.0, value=DEFAULT_GUIDANCE, step=0.5, label="Guidance Scale")
-                        ip_cfg_trunc = gr.Slider(0.0, 1.0, value=DEFAULT_CFG_TRUNCATION, step=0.05, label="CFG Truncation")
+                        ip_control_scale = gr.Slider(0.0, 1.0, value=DEFAULT_INPAINT_CONTROL_SCALE, step=0.05, label="Control Scale")
+                        ip_guidance = gr.Slider(0.0, 10.0, value=DEFAULT_INPAINT_GUIDANCE, step=0.5, label="Guidance Scale")
+                        ip_cfg_trunc = gr.Slider(0.0, 1.0, value=DEFAULT_INPAINT_CFG_TRUNCATION, step=0.05, label="CFG Truncation")
                         ip_max_seq = gr.Slider(64, 1024, value=DEFAULT_MAX_SEQ_LENGTH, step=64, label="Max Sequence Length")
                         ip_gen_inpaint = gr.Button("Generate", variant="primary", visible=True)
                         ip_gen_outpaint = gr.Button("Generate", variant="primary", visible=False)
 
                     with gr.Column(scale=1):
-                        ip_result = gr.Image(label="Result", type="filepath")
+                        ip_result = gr.Image(label="Result", type="filepath", show_share_button=False)
                         ip_info = gr.Textbox(label="Info", interactive=False,
                                              value=lambda: get_gen_info_for_tab("inpaint"), every=2)
                         ip_kill_btn = gr.Button("Kill (emergency stop)", variant="stop", size="sm")
@@ -437,21 +442,49 @@ def build_ui() -> gr.Blocks:
                     with gr.Column(scale=1):
                         fs_target = gr.Image(label="Target Image (face to replace)", type="numpy")
                         fs_source = gr.Image(label="Source Face (reference)", type="numpy")
+                        with gr.Accordion("Enhancement", open=True):
+                            fs_enable_restore = gr.Checkbox(value=True, label="Face Restoration (CodeFormer)")
+                            fs_codeformer_w = gr.Slider(0.0, 1.0, value=DEFAULT_CODEFORMER_FIDELITY, step=0.05, label="Fidelity (0=quality, 1=identity)")
+                            fs_enable_refine = gr.Checkbox(value=True, label="Inpaint Refinement")
+                            fs_refine_prompt = gr.Textbox(
+                                label="Refinement Prompt",
+                                value="a person with natural skin texture, highly detailed face, photorealistic",
+                                lines=2,
+                            )
+                            fs_refine_steps = gr.Slider(5, 25, value=15, step=1, label="Refinement Steps")
+                            fs_enable_detailer = gr.Checkbox(value=False, label="FaceDetailer (eyes/nose/mouth, slow)")
+                        with gr.Accordion("Detection", open=False):
+                            fs_det_thresh = gr.Slider(0.1, 0.9, value=0.4, step=0.05, label="Detection Threshold")
+                            fs_blend_mode = gr.Radio(["seamless", "alpha"], value="seamless", label="Blend Mode")
+                            fs_mask_blur = gr.Slider(0.0, 1.0, value=0.3, step=0.05, label="Mask Blur")
+                            fs_face_index = gr.Number(value=0, label="Target Face Index (-1=all)", precision=0, minimum=-1)
                         fs_swap = gr.Button("Swap Face", variant="primary")
                     with gr.Column(scale=1):
-                        fs_result = gr.Image(label="Result")
+                        fs_result = gr.Image(label="Result", show_share_button=False)
                         fs_info = gr.Textbox(label="Info", interactive=False)
 
-                def _swap_face(target, source, progress=gr.Progress(track_tqdm=True)):
+                def _swap_face(target, source, det_thresh, blend_mode, mask_blur, face_index,
+                               enable_restore, codeformer_w, enable_refine, refine_prompt, refine_steps,
+                               enable_detailer, progress=gr.Progress(track_tqdm=True)):
                     try:
-                        paths, info = generate_faceswap(target, source, progress=progress)
+                        paths, info = generate_faceswap(
+                            target, source,
+                            det_thresh=det_thresh, blend_mode=blend_mode,
+                            mask_blur=mask_blur, face_index=int(face_index),
+                            enable_restore=enable_restore, codeformer_w=codeformer_w,
+                            enable_refine=enable_refine, refine_prompt=refine_prompt,
+                            refine_steps=refine_steps, enable_detailer=enable_detailer,
+                            progress=progress,
+                        )
                         return paths[0] if paths else None, info
                     except Exception as e:
                         return None, f"Error: {e}"
 
                 fs_swap.click(
                     fn=_swap_face,
-                    inputs=[fs_target, fs_source],
+                    inputs=[fs_target, fs_source, fs_det_thresh, fs_blend_mode, fs_mask_blur, fs_face_index,
+                            fs_enable_restore, fs_codeformer_w, fs_enable_refine, fs_refine_prompt, fs_refine_steps,
+                            fs_enable_detailer],
                     outputs=[fs_result, fs_info],
                     concurrency_limit=1,
                 )

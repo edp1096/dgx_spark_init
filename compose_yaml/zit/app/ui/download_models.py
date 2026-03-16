@@ -12,6 +12,8 @@ from huggingface_hub import hf_hub_download, snapshot_download
 
 from zit_config import (
     ARCFACE_FILE,
+    CODEFORMER_FILE,
+    CODEFORMER_URL,
     CONTROLNET_DIR,
     CONTROLNET_FILENAME,
     CONTROLNET_REPO,
@@ -219,6 +221,7 @@ def download_faceswap(model_dir: Path | None = None):
         (SCRFD_FILE, SCRFD_URL),
         (ARCFACE_FILE, ARCFACE_URL),
         (INSWAPPER_FILE, INSWAPPER_URL),
+        (CODEFORMER_FILE, CODEFORMER_URL),
     ]:
         dest = fs_dir / fname
         if dest.exists():
@@ -264,9 +267,9 @@ def check_status(model_dir: Path | None = None):
         else:
             print(f"  [MISSING] {fname}")
 
-    # FaceSwap
+    # FaceSwap + CodeFormer
     fs_dir = model_dir / FACESWAP_DIR
-    for fname in [SCRFD_FILE, ARCFACE_FILE, INSWAPPER_FILE]:
+    for fname in [SCRFD_FILE, ARCFACE_FILE, INSWAPPER_FILE, CODEFORMER_FILE]:
         path = fs_dir / fname
         if path.exists():
             size = path.stat().st_size / 1024**2

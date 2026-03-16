@@ -79,6 +79,19 @@ DEFAULT_CFG_TRUNCATION = 0.9
 DEFAULT_MAX_SEQ_LENGTH = 512
 DEFAULT_CONTROL_SCALE = 0.65
 
+# Inpaint-specific defaults (aligned with official predict_i2i_inpaint_2.1.py)
+DEFAULT_INPAINT_STEPS = 25
+DEFAULT_INPAINT_GUIDANCE = 4.0
+DEFAULT_INPAINT_CFG_TRUNCATION = 1.0
+DEFAULT_INPAINT_CONTROL_SCALE = 0.9
+
+# ---------------------------------------------------------------------------
+# CodeFormer (face restoration, inside MODEL_DIR/faceswap/)
+# ---------------------------------------------------------------------------
+CODEFORMER_FILE = "codeformer.pth"
+CODEFORMER_URL = "https://github.com/sczhou/CodeFormer/releases/download/v0.1.0/codeformer.pth"
+DEFAULT_CODEFORMER_FIDELITY = 0.7
+
 # ---------------------------------------------------------------------------
 # Resolution presets
 # ---------------------------------------------------------------------------

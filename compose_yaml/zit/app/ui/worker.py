@@ -161,9 +161,11 @@ def _worker_loop(
         image = PILImage.open(kwargs["image_path"]).convert("RGB")
         mask = PILImage.open(kwargs["mask_path"]).convert("L")
 
-        log.info("Inpaint %sx%s scale=%.2f seed=%d",
+        log.info("Inpaint %sx%s scale=%.2f guidance=%.1f steps=%d seed=%d",
                  kwargs["width"], kwargs["height"],
-                 float(kwargs.get("control_scale", 0.9)), seed)
+                 float(kwargs.get("control_scale", 0.9)),
+                 float(kwargs.get("guidance_scale", 4.0)),
+                 int(kwargs.get("num_steps", 25)), seed)
 
         result = pipeline(
             prompt=kwargs["prompt"],
@@ -172,10 +174,11 @@ def _worker_loop(
             width=int(kwargs["width"]),
             image=image,
             mask_image=mask,
+            control_image=image,
             control_context_scale=float(kwargs.get("control_scale", 0.9)),
-            num_inference_steps=int(kwargs.get("num_steps", 8)),
-            guidance_scale=float(kwargs.get("guidance_scale", 0.5)),
-            cfg_truncation=float(kwargs.get("cfg_truncation", 0.9)),
+            num_inference_steps=int(kwargs.get("num_steps", 25)),
+            guidance_scale=float(kwargs.get("guidance_scale", 4.0)),
+            cfg_truncation=float(kwargs.get("cfg_truncation", 1.0)),
             max_sequence_length=int(kwargs.get("max_sequence_length", 512)),
             generator=torch.Generator(mgr.device).manual_seed(seed),
         )
@@ -247,23 +250,119 @@ def _worker_loop(
         return _run_inpaint(inpaint_kwargs, task_id)
 
     # -------------------------------------------------------------------
-    # Handler: FaceSwap
+    # Handler: FaceSwap (multi-stage: swap → restore → inpaint refine → detailer)
     # -------------------------------------------------------------------
     def _run_faceswap(kwargs, task_id):
         import numpy as np
         from PIL import Image as PILImage
+        from face_swap import create_face_mask, create_detail_masks
 
         seed = resolve_seed(kwargs["seed"])
 
         mgr.load_faceswap()
-        pipeline = mgr.faceswap_pipeline
+        fs_pipeline = mgr.faceswap_pipeline
 
         target = np.array(PILImage.open(kwargs["target_path"]).convert("RGB"))
         source = np.array(PILImage.open(kwargs["source_path"]).convert("RGB"))
 
-        log.info("FaceSwap seed=%d target=%s source=%s", seed, target.shape, source.shape)
+        det_thresh = kwargs.get("det_thresh", 0.5)
+        blend_mode = kwargs.get("blend_mode", "seamless")
+        mask_blur = kwargs.get("mask_blur", 0.3)
+        face_index = kwargs.get("face_index", 0)
+        enable_restore = kwargs.get("enable_restore", True)
+        codeformer_w = kwargs.get("codeformer_w", 0.7)
+        enable_refine = kwargs.get("enable_refine", True)
+        refine_prompt = kwargs.get("refine_prompt", "a person with natural skin texture, highly detailed face, photorealistic")
+        refine_steps = kwargs.get("refine_steps", 15)
+        enable_detailer = kwargs.get("enable_detailer", False)
 
-        result = pipeline.swap_face(target, source)
+        log.info("FaceSwap seed=%d target=%s source=%s det=%.2f blend=%s blur=%.2f idx=%d restore=%s refine=%s detailer=%s",
+                 seed, target.shape, source.shape, det_thresh, blend_mode, mask_blur, face_index,
+                 enable_restore, enable_refine, enable_detailer)
+
+        # --- Stage 1+2: Face swap + CodeFormer restoration ---
+        result, swapped_faces_info = fs_pipeline.swap_face(
+            target, source,
+            det_thresh=det_thresh, blend_mode=blend_mode,
+            mask_blur=mask_blur, face_index=face_index,
+            enable_restore=enable_restore, codeformer_w=codeformer_w,
+        )
+
+        # --- Stage 3: Inpaint refinement via ZIT pipeline ---
+        if enable_refine and swapped_faces_info:
+            log.info("FaceSwap: running inpaint refinement (steps=%d)...", refine_steps)
+            mgr.load_zit()
+            zit_pipeline = mgr.zit_components["pipeline"]
+
+            time_shift = 3.0
+            zit_pipeline.scheduler = type(zit_pipeline.scheduler).from_config(
+                zit_pipeline.scheduler.config, shift=time_shift,
+            )
+
+            for bbox, landmarks in swapped_faces_info:
+                face_mask = create_face_mask(result.shape, bbox, landmarks, padding=1.3)
+                result_pil = PILImage.fromarray(result)
+                mask_pil = PILImage.fromarray(face_mask)
+
+                h, w = result.shape[:2]
+                out = zit_pipeline(
+                    prompt=refine_prompt,
+                    negative_prompt="blurry, low quality, artifacts, unnatural skin, wax-like",
+                    height=h, width=w,
+                    image=result_pil,
+                    mask_image=mask_pil,
+                    control_image=result_pil,
+                    control_context_scale=0.95,
+                    num_inference_steps=int(refine_steps),
+                    guidance_scale=4.0,
+                    cfg_truncation=1.0,
+                    max_sequence_length=512,
+                    generator=torch.Generator(mgr.device).manual_seed(seed),
+                )
+                result = np.array(out.images[0])
+
+        # --- Stage 4: FaceDetailer (optional) ---
+        if enable_detailer and swapped_faces_info:
+            log.info("FaceSwap: running FaceDetailer...")
+            if not enable_refine:
+                mgr.load_zit()
+                zit_pipeline = mgr.zit_components["pipeline"]
+                zit_pipeline.scheduler = type(zit_pipeline.scheduler).from_config(
+                    zit_pipeline.scheduler.config, shift=3.0,
+                )
+
+            detail_prompts = {
+                "left_eye": "detailed realistic eye with natural iris texture, photorealistic",
+                "right_eye": "detailed realistic eye with natural iris texture, photorealistic",
+                "nose": "natural nose with realistic skin pores, photorealistic",
+                "mouth": "natural lips and mouth with realistic skin texture, photorealistic",
+            }
+
+            for bbox, landmarks in swapped_faces_info:
+                detail_parts = create_detail_masks(landmarks, result.shape)
+                for part_mask, label in detail_parts:
+                    if part_mask.max() == 0:
+                        continue
+                    result_pil = PILImage.fromarray(result)
+                    mask_pil = PILImage.fromarray(part_mask)
+                    prompt = detail_prompts.get(label, refine_prompt)
+
+                    h, w = result.shape[:2]
+                    out = zit_pipeline(
+                        prompt=prompt,
+                        negative_prompt="blurry, artifacts, unnatural",
+                        height=h, width=w,
+                        image=result_pil,
+                        mask_image=mask_pil,
+                        control_image=result_pil,
+                        control_context_scale=0.95,
+                        num_inference_steps=10,
+                        guidance_scale=4.0,
+                        cfg_truncation=1.0,
+                        max_sequence_length=512,
+                        generator=torch.Generator(mgr.device).manual_seed(seed),
+                    )
+                    result = np.array(out.images[0])
 
         output_path = make_output_path("faceswap")
         PILImage.fromarray(result).save(output_path, quality=95)

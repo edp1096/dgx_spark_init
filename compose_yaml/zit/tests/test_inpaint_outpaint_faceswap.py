@@ -311,15 +311,15 @@ class TestFaceSwapStatus:
         assert face_swap_path.exists(), f"face_swap.py not found at {face_swap_path}"
         print("  PASS: test_faceswap_module_exists")
 
-    def test_faceswap_generator_raises_not_implemented(self):
-        """generate_faceswap should raise (placeholder)."""
+    def test_faceswap_generator_raises_on_none_input(self):
+        """generate_faceswap should raise on None inputs."""
         from generators import generate_faceswap
         try:
             generate_faceswap(None, None)
             assert False, "Should have raised"
         except Exception as e:
-            assert "not yet implemented" in str(e).lower() or "FaceSwap" in str(e)
-        print("  PASS: test_faceswap_generator_raises_not_implemented")
+            assert "required" in str(e).lower() or "Target" in str(e) or "image" in str(e).lower()
+        print("  PASS: test_faceswap_generator_raises_on_none_input")
 
     def test_faceswap_module_importable(self):
         """face_swap.py should be importable (syntax check)."""
