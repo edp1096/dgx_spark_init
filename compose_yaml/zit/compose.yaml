@@ -1,0 +1,30 @@
+services:
+  zit-gradio:
+    container_name: zit-gradio-spark
+    image: edp1096/zit-gradio-spark:v1
+    ports:
+      - "7862:7862"
+    environment:
+      - PIP_ROOT_USER_ACTION=ignore
+      - PYTHONUNBUFFERED=1
+      - HF_TOKEN=${HF_TOKEN}
+    volumes:
+      - "/home/edp1096/.cache/huggingface:/root/.cache/huggingface"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    entrypoint: ""
+    command: >
+      /bin/bash -c "
+      cd ~/zit-ui &&
+      wget -q https://raw.githubusercontent.com/edp1096/dgx_spark_init/main/compose_yaml/zit/builder/update.sh -O update.sh &&
+      chmod +x update.sh &&
+      ./update.sh --no-restart &&
+
+      cd app/ui && python download_models.py &&
+      cd ~/zit-ui && python app/app.py --server-name 0.0.0.0 --port 7862
+      "
