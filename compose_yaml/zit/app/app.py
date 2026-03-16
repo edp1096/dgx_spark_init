@@ -233,6 +233,7 @@ def build_ui() -> gr.Blocks:
                             g_neg, g_steps, g_time_shift, g_cfg, g_cfg_norm, g_cfg_trunc,
                             g_max_seq, g_attn],
                     outputs=[g_gallery, g_info, g_gen_paths],
+                    concurrency_limit=1,
                 )
 
             # ==============================================================
@@ -277,6 +278,7 @@ def build_ui() -> gr.Blocks:
                     fn=lambda img, mode: preview_preprocessor(mode, img),
                     inputs=[cn_image, cn_mode],
                     outputs=[cn_preview],
+                    concurrency_limit=1,
                 )
 
                 # Match image size
@@ -306,6 +308,7 @@ def build_ui() -> gr.Blocks:
                     inputs=[cn_mode, cn_prompt, cn_neg, cn_image, cn_resolution, cn_seed,
                             cn_steps, cn_time_shift, cn_control_scale, cn_guidance, cn_cfg_trunc, cn_max_seq],
                     outputs=[cn_gallery, cn_info],
+                    concurrency_limit=1,
                 )
 
             # ==============================================================
@@ -404,6 +407,7 @@ def build_ui() -> gr.Blocks:
                             ip_prompt, ip_neg, ip_resolution, ip_seed,
                             ip_steps, ip_time_shift, ip_control_scale, ip_guidance, ip_cfg_trunc, ip_max_seq],
                     outputs=[ip_result, ip_info],
+                    concurrency_limit=1,
                 )
 
             # ==============================================================
@@ -429,6 +433,7 @@ def build_ui() -> gr.Blocks:
                     fn=_swap_face,
                     inputs=[fs_target, fs_source],
                     outputs=[fs_result, fs_info],
+                    concurrency_limit=1,
                 )
 
             # ==============================================================
@@ -586,7 +591,7 @@ def main():
         mgr.stop()
     atexit.register(_cleanup)
 
-    app.queue()
+    app.queue(default_concurrency_limit=None)
     app.launch(
         server_name=args.server_name,
         server_port=args.port,
