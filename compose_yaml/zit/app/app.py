@@ -348,7 +348,8 @@ def build_ui() -> gr.Blocks:
                         ip_guidance = gr.Slider(0.0, 10.0, value=DEFAULT_GUIDANCE, step=0.5, label="Guidance Scale")
                         ip_cfg_trunc = gr.Slider(0.0, 1.0, value=DEFAULT_CFG_TRUNCATION, step=0.05, label="CFG Truncation")
                         ip_max_seq = gr.Slider(64, 1024, value=DEFAULT_MAX_SEQ_LENGTH, step=64, label="Max Sequence Length")
-                        ip_generate = gr.Button("Generate", variant="primary")
+                        ip_gen_inpaint = gr.Button("Generate", variant="primary", visible=True)
+                        ip_gen_outpaint = gr.Button("Generate", variant="primary", visible=False)
 
                     with gr.Column(scale=1):
                         ip_result = gr.Image(label="Result", type="filepath")
@@ -367,50 +368,55 @@ def build_ui() -> gr.Blocks:
                         gr.Image(visible=not is_inpaint),
                         gr.CheckboxGroup(visible=not is_inpaint),
                         gr.Slider(visible=not is_inpaint),
+                        gr.Button(visible=is_inpaint),
+                        gr.Button(visible=not is_inpaint),
                     ]
 
                 ip_mode.change(
                     fn=_on_ip_mode, inputs=[ip_mode],
-                    outputs=[ip_editor, ip_out_image, ip_direction, ip_expand],
+                    outputs=[ip_editor, ip_out_image, ip_direction, ip_expand,
+                             ip_gen_inpaint, ip_gen_outpaint],
                 )
 
-                # Generate inpaint/outpaint
-                def _ip_generate(mode, editor_val, out_image, direction, expand_px,
+                # Generate inpaint
+                def _do_inpaint(editor_val, prompt, neg, resolution, seed,
+                                steps, time_shift, control_scale, guidance, cfg_trunc, max_seq,
+                                progress=gr.Progress(track_tqdm=True)):
+                    paths, info = generate_inpaint(
+                        prompt, editor_val, resolution, seed,
+                        negative_prompt=neg, num_steps=steps, guidance_scale=guidance,
+                        cfg_truncation=cfg_trunc, control_scale=control_scale,
+                        max_sequence_length=max_seq, time_shift=time_shift,
+                        progress=progress,
+                    )
+                    return paths[0] if paths else None, info
+
+                ip_gen_inpaint.click(
+                    fn=_do_inpaint,
+                    inputs=[ip_editor,
+                            ip_prompt, ip_neg, ip_resolution, ip_seed,
+                            ip_steps, ip_time_shift, ip_control_scale, ip_guidance, ip_cfg_trunc, ip_max_seq],
+                    outputs=[ip_result, ip_info],
+                    concurrency_limit=1,
+                )
+
+                # Generate outpaint
+                def _do_outpaint(out_image, direction, expand_px,
                                  prompt, neg, resolution, seed,
                                  steps, time_shift, control_scale, guidance, cfg_trunc, max_seq,
                                  progress=gr.Progress(track_tqdm=True)):
-                    import logging as _log
-                    _logger = _log.getLogger("zit-ui")
-                    _logger.info(
-                        "_ip_generate called: mode=%s out_image_type=%s out_image_is_none=%s "
-                        "direction=%s expand_px=%s prompt=%r",
-                        mode, type(out_image).__name__, out_image is None,
-                        direction, expand_px, prompt[:50] if prompt else None)
-                    if mode == "Inpaint":
-                        paths, info = generate_inpaint(
-                            prompt, editor_val, resolution, seed,
-                            negative_prompt=neg, num_steps=steps, guidance_scale=guidance,
-                            cfg_truncation=cfg_trunc, control_scale=control_scale,
-                            max_sequence_length=max_seq, time_shift=time_shift,
-                            progress=progress,
-                        )
-                    else:
-                        _logger.info("Outpaint: image shape=%s direction=%s expand=%s",
-                                     out_image.shape if hasattr(out_image, 'shape') else 'N/A',
-                                     direction, expand_px)
-                        paths, info = generate_outpaint(
-                            prompt, out_image, direction, expand_px, resolution, seed,
-                            negative_prompt=neg, num_steps=steps, guidance_scale=guidance,
-                            cfg_truncation=cfg_trunc, control_scale=control_scale,
-                            max_sequence_length=max_seq, time_shift=time_shift,
-                            progress=progress,
-                        )
-                    _logger.info("_ip_generate done: paths=%s", paths)
+                    paths, info = generate_outpaint(
+                        prompt, out_image, direction, expand_px, resolution, seed,
+                        negative_prompt=neg, num_steps=steps, guidance_scale=guidance,
+                        cfg_truncation=cfg_trunc, control_scale=control_scale,
+                        max_sequence_length=max_seq, time_shift=time_shift,
+                        progress=progress,
+                    )
                     return paths[0] if paths else None, info
 
-                ip_generate.click(
-                    fn=_ip_generate,
-                    inputs=[ip_mode, ip_editor, ip_out_image, ip_direction, ip_expand,
+                ip_gen_outpaint.click(
+                    fn=_do_outpaint,
+                    inputs=[ip_out_image, ip_direction, ip_expand,
                             ip_prompt, ip_neg, ip_resolution, ip_seed,
                             ip_steps, ip_time_shift, ip_control_scale, ip_guidance, ip_cfg_trunc, ip_max_seq],
                     outputs=[ip_result, ip_info],
