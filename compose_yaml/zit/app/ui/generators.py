@@ -51,6 +51,7 @@ _GEN_TAB_TYPES = {
     "generate": {"zit_t2i"},
     "controlnet": {"controlnet"},
     "inpaint": {"inpaint", "outpaint"},
+    "faceswap": {"faceswap"},
 }
 
 
@@ -203,6 +204,7 @@ def generate_zit_t2i(
     cfg_normalization=False, cfg_truncation=1.0,
     max_sequence_length=512, attention_backend=None,
     time_shift=3.0,
+    lora_name=None, lora_scale=1.0,
     progress=gr.Progress(track_tqdm=True),
 ):
     gen_type = "zit_t2i"
@@ -212,7 +214,7 @@ def generate_zit_t2i(
     kwargs = {
         "prompt": prompt,
         "model_type": "turbo",
-        "negative_prompt": None,
+        "negative_prompt": negative_prompt or None,
         "width": int(w), "height": int(h),
         "num_steps": int(num_steps),
         "guidance_scale": float(guidance_scale),
@@ -222,6 +224,8 @@ def generate_zit_t2i(
         "max_sequence_length": int(max_sequence_length),
         "time_shift": float(time_shift),
         "seed": int(seed),
+        "lora_name": lora_name or None,
+        "lora_scale": float(lora_scale),
     }
     if attention_backend:
         kwargs["attention_backend"] = attention_backend
@@ -255,6 +259,7 @@ def generate_controlnet(
     negative_prompt="", num_steps=8, guidance_scale=0.5,
     cfg_truncation=0.9, control_scale=0.65,
     max_sequence_length=512, time_shift=3.0,
+    lora_name=None, lora_scale=1.0,
     progress=gr.Progress(track_tqdm=True),
 ):
     _validate("controlnet", prompt)
@@ -288,6 +293,8 @@ def generate_controlnet(
         "max_sequence_length": int(max_sequence_length),
         "time_shift": float(time_shift),
         "seed": int(seed),
+        "lora_name": lora_name or None,
+        "lora_scale": float(lora_scale),
     }
     return _submit_and_wait("controlnet", kwargs, progress)
 
@@ -411,44 +418,46 @@ def generate_outpaint(
 # Generation: FaceSwap
 # ---------------------------------------------------------------------------
 def generate_faceswap(
-    target_image, source_image,
-    det_thresh=0.5, blend_mode="seamless", mask_blur=0.3, face_index=0,
-    enable_restore=True, codeformer_w=0.7,
-    enable_refine=True, refine_prompt="", refine_steps=15,
-    enable_detailer=False,
+    image, prompt, face_index=0, padding=1.3, det_threshold=0.5,
+    resolution="768x1024", seed=-1,
+    negative_prompt="blurry, low quality, artifacts, unnatural skin",
+    num_steps=25, guidance_scale=4.0,
+    cfg_truncation=1.0, control_scale=0.9,
+    max_sequence_length=512, time_shift=3.0,
     progress=gr.Progress(track_tqdm=True),
 ):
-    if target_image is None:
-        raise gr.Error("Target image is required.")
-    if source_image is None:
-        raise gr.Error("Source face image is required.")
+    """Auto-mask face via SCRFD + ZIT Inpaint for face regeneration."""
+    if image is None:
+        raise gr.Error("Image is required.")
+    _validate("faceswap", prompt)
 
     import tempfile
     from PIL import Image as PILImage
+    import numpy as np
 
-    # Save images to temp files for IPC
-    tmp_target = tempfile.NamedTemporaryFile(suffix=".png", delete=False, dir=str(OUTPUT_DIR))
-    PILImage.fromarray(target_image).save(tmp_target.name)
-    tmp_target.close()
+    if isinstance(image, np.ndarray):
+        img = PILImage.fromarray(image)
+    else:
+        img = image
 
-    tmp_source = tempfile.NamedTemporaryFile(suffix=".png", delete=False, dir=str(OUTPUT_DIR))
-    PILImage.fromarray(source_image).save(tmp_source.name)
-    tmp_source.close()
+    tmp_img = tempfile.NamedTemporaryFile(suffix=".png", delete=False, dir=str(OUTPUT_DIR))
+    img.save(tmp_img.name)
+    tmp_img.close()
 
     kwargs = {
-        "target_path": tmp_target.name,
-        "source_path": tmp_source.name,
-        "det_thresh": float(det_thresh),
-        "blend_mode": str(blend_mode),
-        "mask_blur": float(mask_blur),
+        "prompt": prompt,
+        "negative_prompt": negative_prompt or None,
+        "image_path": tmp_img.name,
         "face_index": int(face_index),
-        "enable_restore": bool(enable_restore),
-        "codeformer_w": float(codeformer_w),
-        "enable_refine": bool(enable_refine),
-        "refine_prompt": str(refine_prompt) if refine_prompt else "a person with natural skin texture, highly detailed face, photorealistic",
-        "refine_steps": int(refine_steps),
-        "enable_detailer": bool(enable_detailer),
-        "seed": 0,
+        "padding": float(padding),
+        "det_threshold": float(det_threshold),
+        "control_scale": float(control_scale),
+        "num_steps": int(num_steps),
+        "guidance_scale": float(guidance_scale),
+        "cfg_truncation": float(cfg_truncation),
+        "max_sequence_length": int(max_sequence_length),
+        "time_shift": float(time_shift),
+        "seed": int(seed),
     }
     return _submit_and_wait("faceswap", kwargs, progress)
 

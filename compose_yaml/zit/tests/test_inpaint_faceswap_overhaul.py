@@ -1,11 +1,10 @@
-"""Tests for inpaint parameter overhaul + faceswap enhancement (no GPU required).
+"""Tests for inpaint parameter overhaul + faceswap Phase 5 (no GPU required).
 
 Covers:
   - Inpaint default parameters alignment with official VideoX-Fun
   - CodeFormer vendored architecture import + model structure
-  - FaceSwap pipeline new parameters (restore, refine, detailer)
-  - Face mask / detail mask utilities
-  - Worker kwargs flow for new multi-stage faceswap
+  - FaceSwap Phase 5: SCRFD + auto-mask + inpaint delegation
+  - Generator kwargs flow for new faceswap
   - Pipeline parameter compatibility (control_image for inpaint)
 
 Usage:
@@ -85,7 +84,6 @@ class TestInpaintDefaults:
     def test_guidance_over_1_enables_cfg(self):
         """guidance_scale > 1 should enable classifier-free guidance in pipeline."""
         from videox_models.pipeline_z_image_control import ZImageControlPipeline
-        # Check the do_classifier_free_guidance property
         assert hasattr(ZImageControlPipeline, "do_classifier_free_guidance"), \
             "Pipeline must have do_classifier_free_guidance property"
         print("  PASS: test_guidance_over_1_enables_cfg")
@@ -123,7 +121,6 @@ class TestCodeFormerArch:
             codebook_size=1024, latent_size=256,
         )
         assert isinstance(model, torch.nn.Module)
-        # Check key components exist
         assert hasattr(model, "encoder")
         assert hasattr(model, "generator")
         assert hasattr(model, "quantize")
@@ -154,179 +151,117 @@ class TestCodeFormerArch:
             out_q, _, _ = model(x, w=0)
             out_f, _, _ = model(x, w=1)
         assert out_q.shape == out_f.shape
-        # Outputs should differ when w changes
         assert not torch.allclose(out_q, out_f, atol=1e-3), "w=0 and w=1 should produce different outputs"
         print("  PASS: test_codeformer_w_parameter")
 
 
 # ===========================================================================
-# Test 3: CodeFormerRestorer class
+# Test 3: FaceSwap Phase 5 — SCRFD + auto-mask
 # ===========================================================================
-class TestCodeFormerRestorer:
-    """Test the CodeFormerRestorer wrapper."""
+class TestFaceSwapPhase5:
+    """Test the new SCRFD-based face detection and auto-mask approach."""
 
-    def test_restorer_class_exists(self):
-        from face_swap import CodeFormerRestorer
-        assert CodeFormerRestorer is not None
-        print("  PASS: test_restorer_class_exists")
+    def test_scrfd_detector_class_exists(self):
+        from face_swap import SCRFDDetector
+        assert SCRFDDetector is not None
+        print("  PASS: test_scrfd_detector_class_exists")
 
-    def test_restorer_init_no_crash(self):
-        from face_swap import CodeFormerRestorer
-        r = CodeFormerRestorer("/nonexistent/path.pth", device="cpu")
-        assert r._model is None, "Model should not be loaded at init"
-        print("  PASS: test_restorer_init_no_crash")
-
-
-# ===========================================================================
-# Test 4: Face mask utilities
-# ===========================================================================
-class TestFaceMaskUtils:
-    """Test face mask creation utilities."""
-
-    def test_create_face_mask_shape(self):
+    def test_create_face_mask_function_exists(self):
         from face_swap import create_face_mask
-        bbox = np.array([100, 80, 200, 220])
-        landmarks = np.array([
-            [130, 120], [170, 120], [150, 150], [135, 180], [165, 180]
-        ], dtype=np.float32)
-        mask = create_face_mask((300, 300, 3), bbox, landmarks, padding=1.5)
-        assert mask.shape == (300, 300), f"Expected (300,300), got {mask.shape}"
-        assert mask.dtype == np.uint8
-        print("  PASS: test_create_face_mask_shape")
+        sig = inspect.signature(create_face_mask)
+        params = set(sig.parameters.keys())
+        assert "image" in params
+        assert "model_dir" in params
+        assert "face_index" in params
+        assert "padding" in params
+        assert "det_threshold" in params
+        print("  PASS: test_create_face_mask_function_exists")
 
-    def test_create_face_mask_center_nonzero(self):
-        from face_swap import create_face_mask
-        bbox = np.array([100, 80, 200, 220])
-        landmarks = np.array([
-            [130, 120], [170, 120], [150, 150], [135, 180], [165, 180]
-        ], dtype=np.float32)
-        mask = create_face_mask((300, 300, 3), bbox, landmarks, padding=1.5)
-        # Center of face should be masked
-        assert mask[150, 150] > 0, f"Center should be masked, got {mask[150, 150]}"
-        # Far corner should not
-        assert mask[5, 5] == 0, f"Corner should be unmasked, got {mask[5, 5]}"
-        print("  PASS: test_create_face_mask_center_nonzero")
+    def test_preview_face_detection_exists(self):
+        from face_swap import preview_face_detection
+        sig = inspect.signature(preview_face_detection)
+        params = set(sig.parameters.keys())
+        assert "image" in params
+        assert "model_dir" in params
+        print("  PASS: test_preview_face_detection_exists")
 
-    def test_create_face_mask_clipping(self):
-        """Mask should not go outside image bounds."""
-        from face_swap import create_face_mask
-        # Face near edge
-        bbox = np.array([0, 0, 50, 50])
-        landmarks = np.array([
-            [15, 20], [35, 20], [25, 30], [18, 40], [32, 40]
-        ], dtype=np.float32)
-        mask = create_face_mask((100, 100, 3), bbox, landmarks, padding=2.0)
-        assert mask.shape == (100, 100)
-        assert mask.max() <= 255
-        print("  PASS: test_create_face_mask_clipping")
+    def test_get_detector_singleton_exists(self):
+        from face_swap import get_detector
+        assert callable(get_detector)
+        print("  PASS: test_get_detector_singleton_exists")
 
-    def test_create_detail_masks_count(self):
-        from face_swap import create_detail_masks
-        landmarks = np.array([
-            [130, 120], [170, 120], [150, 150], [135, 180], [165, 180]
-        ], dtype=np.float32)
-        parts = create_detail_masks(landmarks, (300, 300, 3))
-        assert len(parts) == 4, f"Expected 4 parts (2 eyes, nose, mouth), got {len(parts)}"
-        labels = [label for _, label in parts]
-        assert "left_eye" in labels
-        assert "right_eye" in labels
-        assert "nose" in labels
-        assert "mouth" in labels
-        print("  PASS: test_create_detail_masks_count")
-
-    def test_create_detail_masks_shapes(self):
-        from face_swap import create_detail_masks
-        landmarks = np.array([
-            [130, 120], [170, 120], [150, 150], [135, 180], [165, 180]
-        ], dtype=np.float32)
-        parts = create_detail_masks(landmarks, (300, 300, 3))
-        for mask, label in parts:
-            assert mask.shape == (300, 300), f"{label} mask shape {mask.shape} != (300,300)"
-            assert mask.dtype == np.uint8
-            assert mask.max() > 0, f"{label} mask is all zeros"
-        print("  PASS: test_create_detail_masks_shapes")
+    def test_no_old_trt_classes(self):
+        """Old TRT classes should be removed from face_swap."""
+        import face_swap
+        assert not hasattr(face_swap, "FaceSwapPipeline"), "FaceSwapPipeline should be removed"
+        assert not hasattr(face_swap, "CodeFormerRestorer"), "CodeFormerRestorer should be removed"
+        assert not hasattr(face_swap, "TRTEngine"), "TRTEngine should be removed"
+        assert not hasattr(face_swap, "paste_back"), "paste_back should be removed"
+        assert not hasattr(face_swap, "create_detail_masks"), "create_detail_masks should be removed"
+        print("  PASS: test_no_old_trt_classes")
 
 
 # ===========================================================================
-# Test 5: FaceSwap pipeline new signature
-# ===========================================================================
-class TestFaceSwapNewSignature:
-    """Test that FaceSwapPipeline.swap_face accepts new parameters."""
-
-    def test_swap_face_accepts_restore_params(self):
-        from face_swap import FaceSwapPipeline
-        sig = inspect.signature(FaceSwapPipeline.swap_face)
-        params = set(sig.parameters.keys()) - {"self"}
-        expected = {"target_image", "source_image", "det_thresh", "blend_mode",
-                    "mask_blur", "face_index", "enable_restore", "codeformer_w"}
-        missing = expected - params
-        assert not missing, f"swap_face missing params: {missing}"
-        print("  PASS: test_swap_face_accepts_restore_params")
-
-    def test_swap_face_returns_tuple(self):
-        """swap_face should return (result, swapped_faces_info) tuple."""
-        from face_swap import FaceSwapPipeline
-        sig = inspect.signature(FaceSwapPipeline.swap_face)
-        # Check return type annotation if available
-        ret = sig.return_annotation
-        # At minimum, the function signature should indicate it returns tuple
-        assert "tuple" in str(ret).lower() or ret is inspect.Parameter.empty, \
-            "swap_face should return tuple"
-        print("  PASS: test_swap_face_returns_tuple")
-
-
-# ===========================================================================
-# Test 6: Generator kwargs flow
+# Test 4: Generator kwargs flow
 # ===========================================================================
 class TestGeneratorKwargs:
-    """Test that generate_faceswap builds correct kwargs for worker."""
+    """Test that generate_faceswap builds correct kwargs for new pipeline."""
 
     def test_generate_faceswap_new_params(self):
         from generators import generate_faceswap
         sig = inspect.signature(generate_faceswap)
         params = set(sig.parameters.keys())
-        expected_new = {"enable_restore", "codeformer_w", "enable_refine",
-                        "refine_prompt", "refine_steps", "enable_detailer"}
+        expected_new = {"image", "prompt", "face_index", "padding", "det_threshold",
+                        "num_steps", "guidance_scale", "control_scale", "seed"}
         missing = expected_new - params
         assert not missing, f"generate_faceswap missing params: {missing}"
         print("  PASS: test_generate_faceswap_new_params")
 
-    def test_generate_faceswap_default_restore_on(self):
+    def test_generate_faceswap_no_old_params(self):
         from generators import generate_faceswap
         sig = inspect.signature(generate_faceswap)
-        assert sig.parameters["enable_restore"].default is True
-        assert sig.parameters["enable_refine"].default is True
-        assert sig.parameters["enable_detailer"].default is False
-        print("  PASS: test_generate_faceswap_default_restore_on")
+        params = set(sig.parameters.keys())
+        old_params = {"target_image", "source_image", "enable_restore",
+                      "codeformer_w", "enable_refine", "enable_detailer",
+                      "blend_mode", "mask_blur"}
+        unexpected = old_params & params
+        assert not unexpected, f"Old TRT params still present: {unexpected}"
+        print("  PASS: test_generate_faceswap_no_old_params")
 
-    def test_generate_faceswap_codeformer_w_default(self):
+    def test_generate_faceswap_defaults(self):
         from generators import generate_faceswap
         sig = inspect.signature(generate_faceswap)
-        assert sig.parameters["codeformer_w"].default == 0.7
-        print("  PASS: test_generate_faceswap_codeformer_w_default")
+        assert sig.parameters["face_index"].default == 0
+        assert sig.parameters["padding"].default == 1.3
+        assert sig.parameters["det_threshold"].default == 0.5
+        assert sig.parameters["num_steps"].default == 25
+        assert sig.parameters["guidance_scale"].default == 4.0
+        print("  PASS: test_generate_faceswap_defaults")
 
-    def test_generate_faceswap_refine_steps_default(self):
+    def test_generate_faceswap_raises_on_none_image(self):
         from generators import generate_faceswap
-        sig = inspect.signature(generate_faceswap)
-        assert sig.parameters["refine_steps"].default == 15
-        print("  PASS: test_generate_faceswap_refine_steps_default")
+        try:
+            generate_faceswap(None, "a face")
+            assert False, "Should have raised"
+        except Exception as e:
+            assert "image" in str(e).lower() or "required" in str(e).lower()
+        print("  PASS: test_generate_faceswap_raises_on_none_image")
 
 
 # ===========================================================================
-# Test 7: Config completeness
+# Test 5: Config completeness
 # ===========================================================================
 class TestConfigCompleteness:
-    """Test all new config values exist and are reasonable."""
+    """Test all config values exist and are reasonable."""
 
-    def test_codeformer_config(self):
-        from zit_config import CODEFORMER_FILE, CODEFORMER_URL, DEFAULT_CODEFORMER_FIDELITY
-        assert CODEFORMER_FILE == "codeformer.pth"
-        assert "github.com" in CODEFORMER_URL
-        assert 0 <= DEFAULT_CODEFORMER_FIDELITY <= 1
-        print("  PASS: test_codeformer_config")
+    def test_scrfd_config(self):
+        from zit_config import SCRFD_FILE, SCRFD_URL
+        assert SCRFD_FILE == "scrfd_10g_bnkps.onnx"
+        assert "huggingface.co" in SCRFD_URL
+        print("  PASS: test_scrfd_config")
 
     def test_t2i_defaults_unchanged(self):
-        """T2I defaults should NOT be affected by inpaint changes."""
+        """T2I defaults should NOT be affected by faceswap changes."""
         from zit_config import DEFAULT_STEPS, DEFAULT_GUIDANCE, DEFAULT_CFG_TRUNCATION
         assert DEFAULT_STEPS == 8, "T2I steps should still be 8"
         assert DEFAULT_GUIDANCE == 0.5, "T2I guidance should still be 0.5"
@@ -343,63 +278,33 @@ class TestConfigCompleteness:
         assert DEFAULT_GUIDANCE != DEFAULT_INPAINT_GUIDANCE, "Inpaint guidance should differ from T2I"
         print("  PASS: test_inpaint_defaults_separate_from_t2i")
 
-
-# ===========================================================================
-# Test 8: Paste back modes
-# ===========================================================================
-class TestPasteBack:
-    """Test paste_back function with different blend modes."""
-
-    def test_paste_back_seamless(self):
-        import cv2
-        from face_swap import paste_back
-        # Create simple test data
-        face = np.full((128, 128, 3), 200, dtype=np.uint8)
-        target = np.full((256, 256, 3), 100, dtype=np.uint8)
-        M = np.array([[1.0, 0, 64], [0, 1.0, 64]], dtype=np.float64)  # translate to (64,64)
-        result = paste_back(face, target, M, size=128, blend_mode="seamless", mask_blur=0.3)
-        assert result.shape == (256, 256, 3)
-        assert result.dtype == np.uint8
-        print("  PASS: test_paste_back_seamless")
-
-    def test_paste_back_alpha(self):
-        from face_swap import paste_back
-        face = np.full((128, 128, 3), 200, dtype=np.uint8)
-        target = np.full((256, 256, 3), 100, dtype=np.uint8)
-        M = np.array([[1.0, 0, 64], [0, 1.0, 64]], dtype=np.float64)
-        result = paste_back(face, target, M, size=128, blend_mode="alpha", mask_blur=0.3)
-        assert result.shape == (256, 256, 3)
-        assert result.dtype == np.uint8
-        # Alpha blended center should be between face and target values
-        center_val = result[128, 128, 0]
-        assert 100 <= center_val <= 200, f"Alpha blend center should be between 100-200, got {center_val}"
-        print("  PASS: test_paste_back_alpha")
-
-    def test_paste_back_empty_mask(self):
-        """Warping face entirely outside target should return target unchanged."""
-        from face_swap import paste_back
-        face = np.full((128, 128, 3), 200, dtype=np.uint8)
-        target = np.full((256, 256, 3), 100, dtype=np.uint8)
-        # M that places face way outside
-        M = np.array([[1.0, 0, 1000], [0, 1.0, 1000]], dtype=np.float64)
-        result = paste_back(face, target, M, size=128, blend_mode="seamless")
-        # Should return target unchanged
-        assert np.array_equal(result, target)
-        print("  PASS: test_paste_back_empty_mask")
+    def test_required_models_faceswap(self):
+        from pipeline_manager import REQUIRED_MODELS
+        required = REQUIRED_MODELS.get("faceswap", [])
+        assert any("scrfd" in r for r in required), f"Should require SCRFD: {required}"
+        assert not any("faceswap/" in r for r in required), "Should not require old faceswap/ dir"
+        print("  PASS: test_required_models_faceswap")
 
 
 # ===========================================================================
-# Test 9: Download models includes CodeFormer
+# Test 6: Download models includes SCRFD
 # ===========================================================================
 class TestDownloadModels:
-    """Test that download_models.py includes CodeFormer."""
+    """Test that download_models.py includes SCRFD."""
 
-    def test_download_faceswap_includes_codeformer(self):
+    def test_download_includes_scrfd(self):
         download_path = Path(__file__).resolve().parent.parent / "app" / "ui" / "download_models.py"
         content = download_path.read_text()
-        assert "CODEFORMER_FILE" in content, "download_models.py should reference CODEFORMER_FILE"
-        assert "CODEFORMER_URL" in content, "download_models.py should reference CODEFORMER_URL"
-        print("  PASS: test_download_faceswap_includes_codeformer")
+        assert "SCRFD_FILE" in content or "scrfd" in content.lower(), \
+            "download_models.py should reference SCRFD"
+        print("  PASS: test_download_includes_scrfd")
+
+    def test_download_no_old_faceswap(self):
+        download_path = Path(__file__).resolve().parent.parent / "app" / "ui" / "download_models.py"
+        content = download_path.read_text()
+        assert "ARCFACE" not in content, "download_models.py should not reference ARCFACE"
+        assert "INSWAPPER" not in content, "download_models.py should not reference INSWAPPER"
+        print("  PASS: test_download_no_old_faceswap")
 
 
 # ===========================================================================
@@ -409,12 +314,9 @@ def run_all():
     test_classes = [
         TestInpaintDefaults,
         TestCodeFormerArch,
-        TestCodeFormerRestorer,
-        TestFaceMaskUtils,
-        TestFaceSwapNewSignature,
+        TestFaceSwapPhase5,
         TestGeneratorKwargs,
         TestConfigCompleteness,
-        TestPasteBack,
         TestDownloadModels,
     ]
 

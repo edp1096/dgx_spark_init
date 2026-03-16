@@ -333,13 +333,13 @@ class TestFaceSwapStatus:
             else:
                 print(f"  WARN: test_faceswap_module_importable (ImportError: {e})")
 
-    def test_faceswap_trt_engine_class(self):
-        """Check if TRTEngine class is defined in face_swap.py."""
+    def test_faceswap_scrfd_detector_class(self):
+        """Check if SCRFDDetector class is defined in face_swap.py."""
         face_swap_path = Path(__file__).resolve().parent.parent / "app" / "ui" / "face_swap.py"
         content = face_swap_path.read_text()
-        assert "class TRTEngine" in content or "class FaceSwapPipeline" in content, \
-            "face_swap.py should define TRTEngine or FaceSwapPipeline"
-        print("  PASS: test_faceswap_trt_engine_class")
+        assert "class SCRFDDetector" in content, \
+            "face_swap.py should define SCRFDDetector"
+        print("  PASS: test_faceswap_scrfd_detector_class")
 
 
 # ===========================================================================

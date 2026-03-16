@@ -1,6 +1,6 @@
 """Model download, FP8 conversion, and status checker for ZIT.
 
-Downloads Z-Image Turbo (BF16 → in-place FP8 convert, delete BF16 shards),
+Downloads Z-Image Turbo (BF16 → FP8 convert, keep BF16 for LoRA training),
 ControlNet Union, preprocessor weights, and FaceSwap models.
 """
 
@@ -58,9 +58,9 @@ def download_zimage_turbo(model_dir: Path | None = None):
 # Z-Image FP8 in-place conversion
 # ---------------------------------------------------------------------------
 def convert_zimage_fp8(model_path: Path, label: str):
-    """Convert transformer BF16 → FP8 in-place, delete BF16 shards.
+    """Convert transformer BF16 → FP8, keep BF16 originals for LoRA training.
 
-    Result: model_path/transformer/ contains only config.json + model_fp8.safetensors
+    Result: model_path/transformer/ contains config.json + model_fp8.safetensors + BF16 shards
     """
     import torch
     from safetensors.torch import load_file, save_file
@@ -142,12 +142,9 @@ def convert_zimage_fp8(model_path: Path, label: str):
     print(f"[OK] {label} FP8 saved: {fp8_file.name} ({size_gb:.1f} GB)")
     del state_dict, fp8_dict
 
-    deleted = 0
-    for f in bf16_files:
-        if f.exists():
-            f.unlink()
-            deleted += 1
-    print(f"[OK] Deleted {deleted} BF16 file(s) from {transformer_dir.name}/")
+    # Keep BF16 originals for LoRA training (BF16 weights needed for gradient flow)
+    bf16_size = sum(f.stat().st_size for f in bf16_files if f.exists() and f.suffix == ".safetensors") / 1024**3
+    print(f"[OK] BF16 originals kept for LoRA training ({bf16_size:.1f} GB)")
 
 
 # ---------------------------------------------------------------------------

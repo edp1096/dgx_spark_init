@@ -33,7 +33,7 @@ class SCRFDDetector:
         self._output_names = self.net.getUnconnectedOutLayersNames()
         logger.info("SCRFD loaded (%d outputs)", len(self._output_names))
 
-    def detect(self, image: np.ndarray, threshold: float = 0.5, det_size: tuple = (640, 640)):
+    def detect(self, image: np.ndarray, threshold: float = 0.5, det_size: tuple = (320, 320)):
         """Detect faces in RGB image.
 
         Returns:
@@ -56,10 +56,10 @@ class SCRFDDetector:
         resized = cv2.resize(image, (new_width, new_height))
         det_img[:new_height, :new_width, :] = resized
 
-        # SCRFD expects BGR, normalized (x - 127.5) / 128
-        det_img_bgr = cv2.cvtColor(det_img, cv2.COLOR_RGB2BGR)
+        # SCRFD expects RGB, normalized (x - 127.5) / 128
+        # Input is already RGB; blobFromImage with swapRB=False keeps it as-is
         blob = cv2.dnn.blobFromImage(
-            det_img_bgr, 1.0 / 128.0, det_size,
+            det_img, 1.0 / 128.0, det_size,
             (127.5, 127.5, 127.5), swapRB=False,
         )
 

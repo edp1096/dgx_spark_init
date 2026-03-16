@@ -27,6 +27,11 @@ from generators import (
 )
 from i18n import LANGUAGES, get_i18n_js
 from pipeline_manager import OUTPUT_DIR, scan_lora_files
+
+
+def _lora_choices():
+    """LoRA dropdown choices: None + available files."""
+    return ["None"] + scan_lora_files()
 from zit_config import (
     MODEL_DIR,
     RESOLUTION_CHOICES,
@@ -207,6 +212,17 @@ def build_ui() -> gr.Blocks:
                             label="Attention Backend",
                             info="native=SDPA(auto FA2), flash=FA2, _native_flash=force SDPA flash",
                         )
+                        with gr.Accordion("LoRA", open=False):
+                            g_lora = gr.Dropdown(
+                                _lora_choices(), value="None", label="LoRA",
+                                allow_custom_value=False,
+                            )
+                            g_lora_scale = gr.Slider(0.0, 1.5, value=1.0, step=0.05, label="LoRA Scale")
+                            g_lora_refresh = gr.Button("Refresh", size="sm", variant="secondary")
+                            g_lora_refresh.click(
+                                fn=lambda: gr.Dropdown(choices=_lora_choices(), value="None"),
+                                outputs=[g_lora],
+                            )
                         g_generate = gr.Button("Generate", variant="primary")
 
                     with gr.Column(scale=1):
@@ -223,7 +239,7 @@ def build_ui() -> gr.Blocks:
                 # Generate dispatch — ZIT only
                 def _generate_dispatch(prompt, resolution, seed, num_images,
                                        neg, steps, time_shift, cfg, cfg_norm, cfg_trunc,
-                                       max_seq, attn_backend,
+                                       max_seq, attn_backend, lora, lora_scale,
                                        progress=gr.Progress(track_tqdm=True)):
                     paths, info = generate_zit_t2i(
                         prompt, resolution, seed, num_images,
@@ -233,6 +249,8 @@ def build_ui() -> gr.Blocks:
                         cfg_normalization=cfg_norm, cfg_truncation=cfg_trunc,
                         max_sequence_length=max_seq,
                         attention_backend=attn_backend,
+                        lora_name=lora if lora != "None" else None,
+                        lora_scale=lora_scale,
                         progress=progress,
                     )
                     return gr.Gallery(value=paths, selected_index=0), info, paths
@@ -241,7 +259,7 @@ def build_ui() -> gr.Blocks:
                     fn=_generate_dispatch,
                     inputs=[g_prompt, g_resolution, g_seed, g_num,
                             g_neg, g_steps, g_time_shift, g_cfg, g_cfg_norm, g_cfg_trunc,
-                            g_max_seq, g_attn],
+                            g_max_seq, g_attn, g_lora, g_lora_scale],
                     outputs=[g_gallery, g_info, g_gen_paths],
                     concurrency_limit=1,
                 )
@@ -272,6 +290,17 @@ def build_ui() -> gr.Blocks:
                         cn_guidance = gr.Slider(0.0, 10.0, value=DEFAULT_GUIDANCE, step=0.5, label="Guidance Scale")
                         cn_cfg_trunc = gr.Slider(0.0, 1.0, value=DEFAULT_CFG_TRUNCATION, step=0.05, label="CFG Truncation")
                         cn_max_seq = gr.Slider(64, 1024, value=DEFAULT_MAX_SEQ_LENGTH, step=64, label="Max Sequence Length")
+                        with gr.Accordion("LoRA", open=False):
+                            cn_lora = gr.Dropdown(
+                                _lora_choices(), value="None", label="LoRA",
+                                allow_custom_value=False,
+                            )
+                            cn_lora_scale = gr.Slider(0.0, 1.5, value=1.0, step=0.05, label="LoRA Scale")
+                            cn_lora_refresh = gr.Button("Refresh", size="sm", variant="secondary")
+                            cn_lora_refresh.click(
+                                fn=lambda: gr.Dropdown(choices=_lora_choices(), value="None"),
+                                outputs=[cn_lora],
+                            )
                         cn_generate = gr.Button("Generate", variant="primary")
 
                     with gr.Column(scale=1):
@@ -301,6 +330,7 @@ def build_ui() -> gr.Blocks:
                 # Generate with ControlNet
                 def _cn_generate(mode, prompt, neg, image, resolution, seed,
                                  steps, time_shift, control_scale, guidance, cfg_trunc, max_seq,
+                                 lora, lora_scale,
                                  progress=gr.Progress(track_tqdm=True)):
                     # Use preview image (preprocessed) if available, else preprocess now
                     preprocessed = preview_preprocessor(mode, image)
@@ -309,6 +339,8 @@ def build_ui() -> gr.Blocks:
                         negative_prompt=neg, num_steps=steps, guidance_scale=guidance,
                         cfg_truncation=cfg_trunc, control_scale=control_scale,
                         max_sequence_length=max_seq, time_shift=time_shift,
+                        lora_name=lora if lora != "None" else None,
+                        lora_scale=lora_scale,
                         progress=progress,
                     )
                     return gr.Gallery(value=paths, selected_index=0), info
@@ -316,7 +348,8 @@ def build_ui() -> gr.Blocks:
                 cn_generate.click(
                     fn=_cn_generate,
                     inputs=[cn_mode, cn_prompt, cn_neg, cn_image, cn_resolution, cn_seed,
-                            cn_steps, cn_time_shift, cn_control_scale, cn_guidance, cn_cfg_trunc, cn_max_seq],
+                            cn_steps, cn_time_shift, cn_control_scale, cn_guidance, cn_cfg_trunc, cn_max_seq,
+                            cn_lora, cn_lora_scale],
                     outputs=[cn_gallery, cn_info],
                     concurrency_limit=1,
                 )
@@ -434,62 +467,208 @@ def build_ui() -> gr.Blocks:
                 )
 
             # ==============================================================
-            # Tab 4: FaceSwap
+            # Tab 4: FaceSwap (SCRFD auto-mask → ZIT Inpaint)
             # ==============================================================
             with gr.Tab("FaceSwap", id="faceswap"):
                 with gr.Row():
                     with gr.Column(scale=1):
-                        fs_target = gr.Image(label="Target Image (face to replace)", type="numpy")
-                        fs_source = gr.Image(label="Source Face (reference)", type="numpy")
-                        with gr.Accordion("Enhancement", open=True):
-                            fs_enable_restore = gr.Checkbox(value=True, label="Face Restoration (CodeFormer)")
-                            fs_codeformer_w = gr.Slider(0.0, 1.0, value=0.7, step=0.05, label="Fidelity (0=quality, 1=identity)")
-                            fs_enable_refine = gr.Checkbox(value=True, label="Inpaint Refinement")
-                            fs_refine_prompt = gr.Textbox(
-                                label="Refinement Prompt",
-                                value="a person with natural skin texture, highly detailed face, photorealistic",
-                                lines=2,
-                            )
-                            fs_refine_steps = gr.Slider(5, 25, value=15, step=1, label="Refinement Steps")
-                            fs_enable_detailer = gr.Checkbox(value=False, label="FaceDetailer (eyes/nose/mouth, slow)")
+                        fs_image = gr.Image(label="Input Image", type="numpy")
+                        with gr.Row():
+                            fs_detect_btn = gr.Button("Detect Faces", variant="secondary", size="sm")
+                        fs_preview = gr.Image(label="Detection Preview", interactive=False)
                         with gr.Accordion("Detection", open=False):
-                            fs_det_thresh = gr.Slider(0.1, 0.9, value=0.4, step=0.05, label="Detection Threshold")
-                            fs_blend_mode = gr.Radio(["seamless", "alpha"], value="seamless", label="Blend Mode")
-                            fs_mask_blur = gr.Slider(0.0, 1.0, value=0.3, step=0.05, label="Mask Blur")
-                            fs_face_index = gr.Number(value=0, label="Target Face Index (-1=all)", precision=0, minimum=-1)
-                        fs_swap = gr.Button("Swap Face", variant="primary")
-                    with gr.Column(scale=1):
-                        fs_result = gr.Image(label="Result", buttons=["download", "fullscreen"])
-                        fs_info = gr.Textbox(label="Info", interactive=False)
+                            fs_face_index = gr.Number(value=0, label="Face Index (0=largest, -1=all)", precision=0, minimum=-1)
+                            fs_padding = gr.Slider(1.0, 2.0, value=1.3, step=0.1, label="Mask Padding")
+                            fs_det_thresh = gr.Slider(0.1, 0.9, value=0.5, step=0.05, label="Detection Threshold")
+                        fs_prompt = gr.Textbox(
+                            label="Prompt (describe the face to generate)",
+                            lines=3,
+                            value="beautiful face with natural skin texture, photorealistic, sharp focus",
+                        )
+                        fs_neg = gr.Textbox(label="Negative Prompt", lines=2,
+                                            value="blurry, low quality, artifacts, unnatural skin, wax-like")
+                        fs_resolution = gr.Dropdown(
+                            RESOLUTION_CHOICES, value="768x1024",
+                            label="Resolution (WxH)", allow_custom_value=True,
+                        )
+                        fs_match_res = gr.Button("Match Image Size", size="sm", variant="secondary")
+                        fs_seed = gr.Number(value=-1, label="Seed (-1=random)", precision=0)
+                        fs_steps = gr.Slider(1, 100, value=DEFAULT_INPAINT_STEPS, step=1, label="Steps")
+                        fs_time_shift = gr.Slider(1.0, 12.0, value=DEFAULT_TIME_SHIFT, step=0.5, label="Time Shift")
+                        fs_control_scale = gr.Slider(0.0, 1.0, value=DEFAULT_INPAINT_CONTROL_SCALE, step=0.05, label="Control Scale")
+                        fs_guidance = gr.Slider(0.0, 10.0, value=DEFAULT_INPAINT_GUIDANCE, step=0.5, label="Guidance Scale")
+                        fs_cfg_trunc = gr.Slider(0.0, 1.0, value=DEFAULT_INPAINT_CFG_TRUNCATION, step=0.05, label="CFG Truncation")
+                        fs_max_seq = gr.Slider(64, 1024, value=DEFAULT_MAX_SEQ_LENGTH, step=64, label="Max Sequence Length")
+                        fs_generate = gr.Button("Generate", variant="primary")
 
-                def _swap_face(target, source, det_thresh, blend_mode, mask_blur, face_index,
-                               enable_restore, codeformer_w, enable_refine, refine_prompt, refine_steps,
-                               enable_detailer, progress=gr.Progress(track_tqdm=True)):
+                    with gr.Column(scale=1):
+                        fs_result = gr.Image(label="Result", type="filepath", buttons=["download", "fullscreen"])
+                        fs_info = gr.Textbox(label="Info", interactive=False,
+                                             value=lambda: get_gen_info_for_tab("faceswap"), every=2)
+                        fs_kill_btn = gr.Button("Kill (emergency stop)", variant="stop", size="sm")
+                        fs_kill_msg = gr.Textbox(label="", interactive=False, visible=False)
+                        gr.Markdown(value=get_loading_status, every=1)
+                        fs_kill_btn.click(fn=_do_kill, outputs=[fs_kill_msg])
+
+                # Detect faces preview
+                def _detect_faces(image):
+                    if image is None:
+                        raise gr.Error("Upload an image first.")
+                    from face_swap import preview_face_detection
+                    return preview_face_detection(image, str(MODEL_DIR))
+
+                fs_detect_btn.click(
+                    fn=_detect_faces,
+                    inputs=[fs_image],
+                    outputs=[fs_preview],
+                )
+
+                # Match image size
+                fs_match_res.click(
+                    fn=match_image_resolution,
+                    inputs=[fs_image],
+                    outputs=[fs_resolution],
+                )
+
+                # Generate faceswap
+                def _do_faceswap(image, prompt, neg, face_index, padding, det_threshold,
+                                 resolution, seed, steps, time_shift, control_scale,
+                                 guidance, cfg_trunc, max_seq,
+                                 progress=gr.Progress(track_tqdm=True)):
                     try:
                         paths, info = generate_faceswap(
-                            target, source,
-                            det_thresh=det_thresh, blend_mode=blend_mode,
-                            mask_blur=mask_blur, face_index=int(face_index),
-                            enable_restore=enable_restore, codeformer_w=codeformer_w,
-                            enable_refine=enable_refine, refine_prompt=refine_prompt,
-                            refine_steps=refine_steps, enable_detailer=enable_detailer,
+                            image, prompt,
+                            face_index=int(face_index), padding=padding, det_threshold=det_threshold,
+                            resolution=resolution, seed=seed,
+                            negative_prompt=neg, num_steps=steps, guidance_scale=guidance,
+                            cfg_truncation=cfg_trunc, control_scale=control_scale,
+                            max_sequence_length=max_seq, time_shift=time_shift,
                             progress=progress,
                         )
                         return paths[0] if paths else None, info
                     except Exception as e:
                         return None, f"Error: {e}"
 
-                fs_swap.click(
-                    fn=_swap_face,
-                    inputs=[fs_target, fs_source, fs_det_thresh, fs_blend_mode, fs_mask_blur, fs_face_index,
-                            fs_enable_restore, fs_codeformer_w, fs_enable_refine, fs_refine_prompt, fs_refine_steps,
-                            fs_enable_detailer],
+                fs_generate.click(
+                    fn=_do_faceswap,
+                    inputs=[fs_image, fs_prompt, fs_neg, fs_face_index, fs_padding, fs_det_thresh,
+                            fs_resolution, fs_seed, fs_steps, fs_time_shift, fs_control_scale,
+                            fs_guidance, fs_cfg_trunc, fs_max_seq],
                     outputs=[fs_result, fs_info],
                     concurrency_limit=1,
                 )
 
             # ==============================================================
-            # Tab 5: Settings
+            # Tab 5: Train LoRA
+            # ==============================================================
+            with gr.Tab("Train", id="train"):
+                with gr.Row():
+                    with gr.Column(scale=1):
+                        gr.Markdown("### LoRA Training")
+                        tr_dataset = gr.Textbox(
+                            label="Dataset Directory",
+                            placeholder="/path/to/images_and_captions/",
+                            info="Folder with .jpg/.png images + matching .txt caption files",
+                        )
+                        tr_name = gr.Textbox(label="LoRA Name", value="my_lora",
+                                             info="Output: loras/<name>.safetensors")
+                        with gr.Row():
+                            tr_steps = gr.Number(value=2000, label="Steps", precision=0, minimum=100, maximum=50000)
+                            tr_rank = gr.Dropdown([4, 8, 16, 32, 64, 128], value=16, label="Rank")
+                        with gr.Row():
+                            tr_lr = gr.Number(value=1e-4, label="Learning Rate")
+                            tr_resolution = gr.Dropdown(
+                                [256, 384, 512, 768, 1024], value=512, label="Resolution",
+                            )
+                        tr_batch = gr.Number(value=1, label="Batch Size", precision=0, minimum=1, maximum=4)
+                        tr_grad_accum = gr.Number(value=1, label="Gradient Accumulation", precision=0, minimum=1, maximum=8)
+                        tr_save_every = gr.Number(value=500, label="Save Checkpoint Every N Steps", precision=0)
+                        tr_targets = gr.Textbox(
+                            label="Target Modules",
+                            value="to_q, to_k, to_v, to_out.0",
+                            info="Comma-separated Linear layer names to train",
+                        )
+                        with gr.Row():
+                            tr_start = gr.Button("Start Training", variant="primary")
+                            tr_stop = gr.Button("Stop", variant="stop")
+                    with gr.Column(scale=1):
+                        tr_status = gr.Textbox(label="Status", interactive=False, lines=3)
+                        tr_log = gr.Textbox(label="Training Log", interactive=False, lines=15)
+                        tr_progress = gr.Markdown("Ready")
+
+                # Train state (module-level to survive across calls)
+                _trainer_ref = gr.State(None)
+
+                def _start_training(dataset, name, steps, rank, lr, resolution,
+                                    batch, grad_accum, save_every, targets, trainer_ref):
+                    try:
+                        if not dataset or not Path(dataset).is_dir():
+                            return "Error: Invalid dataset directory", "", "Error", trainer_ref
+                        if not name:
+                            return "Error: LoRA name required", "", "Error", trainer_ref
+
+                        # Kill worker to free GPU
+                        mgr = get_worker_mgr()
+                        if mgr.is_alive():
+                            mgr.kill()
+
+                        from trainer import LoRATrainer
+                        trainer = LoRATrainer(
+                            model_dir=str(MODEL_DIR),
+                            dataset_dir=dataset,
+                            output_name=name,
+                        )
+
+                        target_list = [t.strip() for t in targets.split(",") if t.strip()]
+
+                        log_lines = []
+                        def on_progress(step, total, loss):
+                            if step % 50 == 0 or step == 1:
+                                log_lines.append(f"Step {step}/{total}  loss={loss:.4f}")
+
+                        trainer.progress_callback = on_progress
+
+                        output_path = trainer.train(
+                            steps=int(steps),
+                            lr=float(lr),
+                            rank=int(rank),
+                            batch_size=int(batch),
+                            resolution=int(resolution),
+                            gradient_accumulation=int(grad_accum),
+                            save_every=int(save_every),
+                            target_modules=target_list,
+                        )
+
+                        status = f"Training complete! Saved: {Path(output_path).name}"
+                        log_text = "\n".join(log_lines[-30:])
+                        return status, log_text, f"Done: {Path(output_path).name}", None
+
+                    except Exception as e:
+                        import traceback
+                        tb = traceback.format_exc()
+                        return f"Error: {e}", tb, "Failed", None
+
+                def _stop_training(trainer_ref):
+                    if trainer_ref and hasattr(trainer_ref, 'stop'):
+                        trainer_ref.stop()
+                        return "Stop requested..."
+                    return "No training in progress"
+
+                tr_start.click(
+                    fn=_start_training,
+                    inputs=[tr_dataset, tr_name, tr_steps, tr_rank, tr_lr, tr_resolution,
+                            tr_batch, tr_grad_accum, tr_save_every, tr_targets, _trainer_ref],
+                    outputs=[tr_status, tr_log, tr_progress, _trainer_ref],
+                    concurrency_limit=1,
+                )
+                tr_stop.click(
+                    fn=_stop_training,
+                    inputs=[_trainer_ref],
+                    outputs=[tr_status],
+                )
+
+            # ==============================================================
+            # Tab 6: Settings
             # ==============================================================
             with gr.Tab("Settings", id="settings"):
                 gr.Markdown("### Language")

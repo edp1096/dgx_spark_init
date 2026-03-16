@@ -59,9 +59,19 @@ def _worker_loop(
     # -------------------------------------------------------------------
     # Handler: ZIT T2I (VideoX-Fun pipeline)
     # -------------------------------------------------------------------
+    def _apply_lora(kwargs):
+        """Load/unload LoRA based on kwargs."""
+        lora_name = kwargs.get("lora_name")
+        lora_scale = float(kwargs.get("lora_scale", 1.0))
+        if lora_name and lora_name != "None":
+            mgr.load_lora(lora_name, lora_scale)
+        else:
+            mgr.unload_lora()
+
     def _run_zit_t2i(kwargs, task_id):
         seed = resolve_seed(kwargs["seed"])
         mgr.load_zit()
+        _apply_lora(kwargs)
 
         pipeline = mgr.zit_components["pipeline"]
 
@@ -106,6 +116,7 @@ def _worker_loop(
 
         seed = resolve_seed(kwargs["seed"])
         mgr.load_zit()
+        _apply_lora(kwargs)
 
         pipeline = mgr.zit_components["pipeline"]
 
@@ -149,6 +160,7 @@ def _worker_loop(
 
         seed = resolve_seed(kwargs["seed"])
         mgr.load_zit()
+        _apply_lora(kwargs)
 
         pipeline = mgr.zit_components["pipeline"]
 
@@ -250,123 +262,70 @@ def _worker_loop(
         return _run_inpaint(inpaint_kwargs, task_id)
 
     # -------------------------------------------------------------------
-    # Handler: FaceSwap (multi-stage: swap → restore → inpaint refine → detailer)
+    # Handler: FaceSwap (SCRFD auto-mask → ZIT Inpaint)
     # -------------------------------------------------------------------
     def _run_faceswap(kwargs, task_id):
+        import tempfile
         import numpy as np
         from PIL import Image as PILImage
-        from face_swap import create_face_mask, create_detail_masks
+        from face_swap import create_face_mask
 
         seed = resolve_seed(kwargs["seed"])
 
+        # Load SCRFD detector
         mgr.load_faceswap()
-        fs_pipeline = mgr.faceswap_pipeline
 
-        target = np.array(PILImage.open(kwargs["target_path"]).convert("RGB"))
-        source = np.array(PILImage.open(kwargs["source_path"]).convert("RGB"))
+        # Load image
+        image = PILImage.open(kwargs["image_path"]).convert("RGB")
+        image_np = np.array(image)
 
-        det_thresh = kwargs.get("det_thresh", 0.5)
-        blend_mode = kwargs.get("blend_mode", "seamless")
-        mask_blur = kwargs.get("mask_blur", 0.3)
-        face_index = kwargs.get("face_index", 0)
-        enable_restore = kwargs.get("enable_restore", True)
-        codeformer_w = kwargs.get("codeformer_w", 0.7)
-        enable_refine = kwargs.get("enable_refine", True)
-        refine_prompt = kwargs.get("refine_prompt", "a person with natural skin texture, highly detailed face, photorealistic")
-        refine_steps = kwargs.get("refine_steps", 15)
-        enable_detailer = kwargs.get("enable_detailer", False)
+        face_index = int(kwargs.get("face_index", 0))
+        padding = float(kwargs.get("padding", 1.3))
+        det_threshold = float(kwargs.get("det_threshold", 0.5))
 
-        log.info("FaceSwap seed=%d target=%s source=%s det=%.2f blend=%s blur=%.2f idx=%d restore=%s refine=%s detailer=%s",
-                 seed, target.shape, source.shape, det_thresh, blend_mode, mask_blur, face_index,
-                 enable_restore, enable_refine, enable_detailer)
+        log.info("FaceSwap seed=%d image=%s face_index=%d padding=%.2f det=%.2f",
+                 seed, image_np.shape, face_index, padding, det_threshold)
 
-        # --- Stage 1+2: Face swap + CodeFormer restoration ---
-        result, swapped_faces_info = fs_pipeline.swap_face(
-            target, source,
-            det_thresh=det_thresh, blend_mode=blend_mode,
-            mask_blur=mask_blur, face_index=face_index,
-            enable_restore=enable_restore, codeformer_w=codeformer_w,
+        # Generate auto-mask from SCRFD face detection
+        mask, faces = create_face_mask(
+            image_np, mgr.model_dir,
+            face_index=face_index,
+            padding=padding,
+            det_threshold=det_threshold,
         )
+        if mask is None:
+            raise ValueError(f"No face detected (threshold={det_threshold}). Try lowering the threshold or use a clearer face image.")
 
-        # --- Stage 3: Inpaint refinement via ZIT pipeline ---
-        if enable_refine and swapped_faces_info:
-            log.info("FaceSwap: running inpaint refinement (steps=%d)...", refine_steps)
-            mgr.load_zit()
-            zit_pipeline = mgr.zit_components["pipeline"]
+        log.info("FaceSwap: detected %d faces, mask generated", len(faces))
 
-            time_shift = 3.0
-            zit_pipeline.scheduler = type(zit_pipeline.scheduler).from_config(
-                zit_pipeline.scheduler.config, shift=time_shift,
-            )
+        # Save mask to temp file for inpaint IPC
+        mask_pil = PILImage.fromarray(mask)
+        tmp_mask = tempfile.NamedTemporaryFile(suffix=".png", delete=False, dir=str(OUTPUT_DIR))
+        mask_pil.save(tmp_mask.name)
+        tmp_mask.close()
 
-            for bbox, landmarks in swapped_faces_info:
-                face_mask = create_face_mask(result.shape, bbox, landmarks, padding=1.3)
-                result_pil = PILImage.fromarray(result)
-                mask_pil = PILImage.fromarray(face_mask)
+        # Align dimensions to 16px
+        h, w = image_np.shape[:2]
+        aligned_w = (w // 16) * 16
+        aligned_h = (h // 16) * 16
 
-                h, w = result.shape[:2]
-                out = zit_pipeline(
-                    prompt=refine_prompt,
-                    negative_prompt="blurry, low quality, artifacts, unnatural skin, wax-like",
-                    height=h, width=w,
-                    image=result_pil,
-                    mask_image=mask_pil,
-                    control_image=result_pil,
-                    control_context_scale=0.95,
-                    num_inference_steps=int(refine_steps),
-                    guidance_scale=4.0,
-                    cfg_truncation=1.0,
-                    max_sequence_length=512,
-                    generator=torch.Generator(mgr.device).manual_seed(seed),
-                )
-                result = np.array(out.images[0])
-
-        # --- Stage 4: FaceDetailer (optional) ---
-        if enable_detailer and swapped_faces_info:
-            log.info("FaceSwap: running FaceDetailer...")
-            if not enable_refine:
-                mgr.load_zit()
-                zit_pipeline = mgr.zit_components["pipeline"]
-                zit_pipeline.scheduler = type(zit_pipeline.scheduler).from_config(
-                    zit_pipeline.scheduler.config, shift=3.0,
-                )
-
-            detail_prompts = {
-                "left_eye": "detailed realistic eye with natural iris texture, photorealistic",
-                "right_eye": "detailed realistic eye with natural iris texture, photorealistic",
-                "nose": "natural nose with realistic skin pores, photorealistic",
-                "mouth": "natural lips and mouth with realistic skin texture, photorealistic",
-            }
-
-            for bbox, landmarks in swapped_faces_info:
-                detail_parts = create_detail_masks(landmarks, result.shape)
-                for part_mask, label in detail_parts:
-                    if part_mask.max() == 0:
-                        continue
-                    result_pil = PILImage.fromarray(result)
-                    mask_pil = PILImage.fromarray(part_mask)
-                    prompt = detail_prompts.get(label, refine_prompt)
-
-                    h, w = result.shape[:2]
-                    out = zit_pipeline(
-                        prompt=prompt,
-                        negative_prompt="blurry, artifacts, unnatural",
-                        height=h, width=w,
-                        image=result_pil,
-                        mask_image=mask_pil,
-                        control_image=result_pil,
-                        control_context_scale=0.95,
-                        num_inference_steps=10,
-                        guidance_scale=4.0,
-                        cfg_truncation=1.0,
-                        max_sequence_length=512,
-                        generator=torch.Generator(mgr.device).manual_seed(seed),
-                    )
-                    result = np.array(out.images[0])
-
-        output_path = make_output_path("faceswap")
-        PILImage.fromarray(result).save(output_path, quality=95)
-        return output_path, seed
+        # Delegate to inpaint pipeline
+        inpaint_kwargs = {
+            "prompt": kwargs.get("prompt", ""),
+            "negative_prompt": kwargs.get("negative_prompt", "blurry, low quality, artifacts, unnatural skin"),
+            "image_path": kwargs["image_path"],
+            "mask_path": tmp_mask.name,
+            "width": aligned_w,
+            "height": aligned_h,
+            "control_scale": float(kwargs.get("control_scale", 0.9)),
+            "num_steps": int(kwargs.get("num_steps", 25)),
+            "guidance_scale": float(kwargs.get("guidance_scale", 4.0)),
+            "cfg_truncation": float(kwargs.get("cfg_truncation", 1.0)),
+            "max_sequence_length": int(kwargs.get("max_sequence_length", 512)),
+            "time_shift": float(kwargs.get("time_shift", 3.0)),
+            "seed": seed,
+        }
+        return _run_inpaint(inpaint_kwargs, task_id)
 
     # -------------------------------------------------------------------
     # Handler dispatch
