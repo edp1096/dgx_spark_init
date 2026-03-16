@@ -334,7 +334,7 @@ class PipelineManager:
             logger.warning("ControlNet model not found at %s — T2I only", cn_path)
 
         # --- Step 1c: Apply FP8 q8_kernels GEMM ---
-        fp8_file = transformer_dir / "model_fp8.safetensors"
+        fp8_file = model_path / "model_fp8.safetensors"
         if fp8_file.exists() and _Q8_AVAILABLE:
             logger.info("Re-loading FP8 transformer for q8_kernels native GEMM...")
             from safetensors.torch import load_file
@@ -422,14 +422,14 @@ class PipelineManager:
         logger.info("SCRFD face detector ready")
 
     # -------------------------------------------------------------------
-    # LoRA loading / unloading (peft-based)
+    # LoRA loading / unloading (forward-hook based)
     # -------------------------------------------------------------------
     def load_lora(self, lora_name: str, lora_scale: float = 1.0):
-        """Load a LoRA adapter onto the transformer via peft.
+        """Load LoRA via forward hooks — works with FP8Linear, no PEFT needed.
 
-        Args:
-            lora_name: filename in LORAS_DIR (e.g. "my_face.safetensors")
-            lora_scale: LoRA strength (0.0 = off, 1.0 = full)
+        Registers a forward hook on each target module that adds the LoRA
+        contribution: output += scale * (input @ A^T @ B^T).
+        FP8 weights stay untouched; LoRA A/B are stored in BF16.
         """
         if not lora_name or lora_name == "None":
             self.unload_lora()
@@ -444,11 +444,9 @@ class PipelineManager:
             logger.error("LoRA file not found: %s", lora_path)
             return
 
-        transformer = self.zit_components["transformer"]
-
         # If same LoRA already loaded, just update scale
         if self._current_lora == lora_name:
-            self._set_lora_scale(transformer, lora_scale)
+            self._lora_scale = lora_scale
             logger.info("LoRA scale updated: %.2f", lora_scale)
             return
 
@@ -457,124 +455,109 @@ class PipelineManager:
             self.unload_lora()
 
         try:
-            from peft import LoraConfig, get_peft_model, set_peft_model_state_dict
             from safetensors.torch import load_file
 
             logger.info("Loading LoRA: %s (scale=%.2f)", lora_name, lora_scale)
 
-            # Load LoRA state dict to determine target modules
             lora_sd = load_file(str(lora_path), device=str(self.device))
 
-            # Extract target module names from LoRA keys
-            # LoRA keys look like: "base_model.model.blocks.0.attn.to_q.lora_A.weight"
-            # or simpler: "blocks.0.attn.to_q.lora_A.weight"
-            target_modules = set()
-            for key in lora_sd:
-                if ".lora_A." in key or ".lora_B." in key:
-                    # Extract module name before .lora_A/.lora_B
-                    parts = key.split(".lora_A.")[0] if ".lora_A." in key else key.split(".lora_B.")[0]
-                    module_suffix = parts.split(".")[-1]
-                    target_modules.add(module_suffix)
-
-            if not target_modules:
-                # Fallback: standard attention targets
-                target_modules = {"to_q", "to_k", "to_v"}
-
-            # Detect rank from LoRA weights
-            rank = 16  # default
+            # Parse LoRA state dict: group A/B pairs by module path
+            # Keys: "context_refiner.0.attention.to_q.lora_A.default.weight"
+            #    or "base_model.model.blocks.0.attn.to_q.lora_A.weight"
+            lora_pairs = {}  # module_path -> {"A": tensor, "B": tensor}
             for key, tensor in lora_sd.items():
-                if ".lora_A." in key and tensor.ndim == 2:
-                    rank = tensor.shape[0]
+                if ".lora_A." not in key and ".lora_B." not in key:
+                    continue
+                if ".lora_A." in key:
+                    module_path = key.split(".lora_A.")[0]
+                    ab = "A"
+                else:
+                    module_path = key.split(".lora_B.")[0]
+                    ab = "B"
+                # Strip base_model.model. prefix
+                module_path = module_path.removeprefix("base_model.model.")
+                if module_path not in lora_pairs:
+                    lora_pairs[module_path] = {}
+                lora_pairs[module_path][ab] = tensor.to(torch.bfloat16)
+
+            del lora_sd
+
+            if not lora_pairs:
+                logger.warning("No LoRA A/B pairs found in %s", lora_name)
+                return
+
+            # Detect rank
+            rank = 16
+            for pair in lora_pairs.values():
+                if "A" in pair:
+                    rank = pair["A"].shape[0]
                     break
 
-            logger.info("LoRA config: rank=%d, targets=%s", rank, target_modules)
+            logger.info("LoRA: rank=%d, %d module(s)", rank, len(lora_pairs))
 
-            lora_config = LoraConfig(
-                r=rank,
-                lora_alpha=rank,
-                target_modules=list(target_modules),
-                lora_dropout=0.0,
-                bias="none",
-            )
+            # Register forward hooks on target modules
+            transformer = self.zit_components["transformer"]
+            self._lora_scale = lora_scale
+            self._lora_hooks = []
+            self._lora_params = []  # keep references to prevent GC
+            hook_count = 0
 
-            # Wrap transformer with peft
-            peft_model = get_peft_model(transformer, lora_config)
+            for module_path, pair in lora_pairs.items():
+                if "A" not in pair or "B" not in pair:
+                    logger.warning("Incomplete LoRA pair for %s, skipping", module_path)
+                    continue
 
-            # Load the actual LoRA weights
-            # Remap keys to match peft's expected format
-            peft_sd = {}
-            for key, tensor in lora_sd.items():
-                # Ensure keys start with base_model.model.
-                if not key.startswith("base_model."):
-                    peft_sd[f"base_model.model.{key}"] = tensor
-                else:
-                    peft_sd[key] = tensor
+                # Navigate to the target module
+                try:
+                    target = transformer
+                    for part in module_path.split("."):
+                        target = getattr(target, part)
+                except AttributeError:
+                    logger.warning("Module not found: %s, skipping", module_path)
+                    continue
 
-            missing, unexpected = peft_model.load_state_dict(peft_sd, strict=False)
-            if missing:
-                # Try loading without prefix remapping
-                set_peft_model_state_dict(peft_model, lora_sd)
+                lora_A = pair["A"]  # shape: (rank, in_features)
+                lora_B = pair["B"]  # shape: (out_features, rank)
+                self._lora_params.extend([lora_A, lora_B])
 
-            del lora_sd, peft_sd
+                # Closure to capture A/B per module
+                def _make_hook(A, B):
+                    def hook(module, input, output):
+                        x = input[0] if isinstance(input, tuple) else input
+                        # LoRA contribution: x @ A^T @ B^T * scale
+                        lora_out = x.to(torch.bfloat16) @ A.t() @ B.t()
+                        return output + lora_out * self._lora_scale
+                    return hook
 
-            # Apply scale
-            self._set_lora_scale(peft_model, lora_scale)
+                handle = target.register_forward_hook(_make_hook(lora_A, lora_B))
+                self._lora_hooks.append(handle)
+                hook_count += 1
 
-            # Replace transformer in pipeline
-            self.zit_components["transformer"] = peft_model
-            self.zit_components["pipeline"].transformer = peft_model
             self._current_lora = lora_name
-
-            self._gpu_cleanup()
-            logger.info("LoRA loaded: %s", lora_name)
+            logger.info("LoRA loaded: %s (%d hooks, rank=%d)", lora_name, hook_count, rank)
 
         except Exception as e:
             logger.error("Failed to load LoRA %s: %s", lora_name, e)
             import traceback
             traceback.print_exc()
+            # Clean up partial state
+            self._cleanup_lora_hooks()
 
     def unload_lora(self):
-        """Remove LoRA adapter, restore original transformer (without merging)."""
+        """Remove LoRA forward hooks, restoring original behavior."""
         if self._current_lora is None:
             return
+        self._cleanup_lora_hooks()
+        logger.info("LoRA unloaded: %s", self._current_lora)
+        self._current_lora = None
+        self._gpu_cleanup()
 
-        if self.zit_components is None:
-            self._current_lora = None
-            return
-
-        try:
-            transformer = self.zit_components["transformer"]
-            if hasattr(transformer, "disable_adapter_layers"):
-                # Disable and remove peft adapters without merging
-                transformer.disable_adapter_layers()
-                base_model = transformer.base_model.model if hasattr(transformer, "base_model") else transformer
-                self.zit_components["transformer"] = base_model
-                self.zit_components["pipeline"].transformer = base_model
-                logger.info("LoRA unloaded (no merge): %s", self._current_lora)
-            elif hasattr(transformer, "merge_and_unload"):
-                # Fallback: merge and unload
-                base_model = transformer.merge_and_unload()
-                self.zit_components["transformer"] = base_model
-                self.zit_components["pipeline"].transformer = base_model
-                logger.info("LoRA unloaded (merged): %s", self._current_lora)
-            self._current_lora = None
-            self._gpu_cleanup()
-        except Exception as e:
-            logger.error("Failed to unload LoRA: %s", e)
-            self._current_lora = None
-
-    @staticmethod
-    def _set_lora_scale(model, scale: float):
-        """Set LoRA scaling factor on all LoRA layers."""
-        try:
-            if hasattr(model, "set_adapter"):
-                # peft >= 0.6
-                for name, module in model.named_modules():
-                    if hasattr(module, "scaling"):
-                        for key in module.scaling:
-                            module.scaling[key] = scale
-        except Exception:
-            pass
+    def _cleanup_lora_hooks(self):
+        """Remove all registered LoRA hooks and free A/B params."""
+        for handle in getattr(self, "_lora_hooks", []):
+            handle.remove()
+        self._lora_hooks = []
+        self._lora_params = []
 
     # -------------------------------------------------------------------
     # Preprocessor (lazy loading)

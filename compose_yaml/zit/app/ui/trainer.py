@@ -199,6 +199,8 @@ class LoRATrainer:
             logger.info("Loading transformer (BF16 for training)...")
             from videox_models.z_image_transformer2d import ZImageTransformer2DModel
 
+            # FP8 file lives in model_path/ (not transformer/), so from_pretrained
+            # naturally loads the BF16 shards from transformer/
             transformer = ZImageTransformer2DModel.from_pretrained(
                 str(model_path / "transformer"),
                 torch_dtype=torch.bfloat16,
@@ -299,6 +301,12 @@ class LoRATrainer:
                 # --- Loss ---
                 loss = F.mse_loss(model_pred.float(), target.float())
 
+                # NaN guard: skip step if loss is NaN/inf
+                if not torch.isfinite(loss):
+                    logger.warning("Step %d: NaN/inf loss detected, skipping", step)
+                    optimizer.zero_grad()
+                    continue
+
                 # Gradient accumulation
                 loss = loss / gradient_accumulation
                 loss.backward()
@@ -308,6 +316,16 @@ class LoRATrainer:
                         [p for p in transformer.parameters() if p.requires_grad],
                         max_norm=1.0,
                     )
+                    # NaN guard: check params before optimizer step
+                    has_nan = False
+                    for p in transformer.parameters():
+                        if p.requires_grad and p.grad is not None and not torch.isfinite(p.grad).all():
+                            has_nan = True
+                            break
+                    if has_nan:
+                        logger.warning("Step %d: NaN gradient detected, skipping optimizer step", step)
+                        optimizer.zero_grad()
+                        continue
                     optimizer.step()
                     optimizer.zero_grad()
 

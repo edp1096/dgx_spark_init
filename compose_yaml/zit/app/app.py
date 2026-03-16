@@ -2,8 +2,10 @@
 
 import argparse
 import atexit
+import json
 import logging
 import os
+import shutil
 import sys
 import time
 from pathlib import Path
@@ -147,6 +149,108 @@ def _lora_list():
 
 
 # ---------------------------------------------------------------------------
+# Examples helpers
+# ---------------------------------------------------------------------------
+EXAMPLES_DIR = Path(__file__).parent / "examples"
+
+
+def _list_examples():
+    """List example images that have matching JSON metadata."""
+    try:
+        if not EXAMPLES_DIR.exists():
+            return []
+        files = sorted(f for f in EXAMPLES_DIR.glob("*.png") if f.with_suffix(".json").exists())
+        return [str(f) for f in files]
+    except Exception:
+        return []
+
+
+def _load_example_params(evt: gr.SelectData):
+    """Load example parameters from JSON when user clicks an example image."""
+    try:
+        path = _extract_gallery_path(evt.value)
+        if not path:
+            return [gr.update()] * 10
+        json_path = Path(path).with_suffix(".json")
+        if not json_path.exists():
+            return [gr.update()] * 10
+        data = json.loads(json_path.read_text())
+        kw = data.get("kwargs", data)
+        w = kw.get("width", 512)
+        h = kw.get("height", 768)
+        return [
+            kw.get("prompt", ""),
+            kw.get("negative_prompt", "") or "",
+            f"{w}x{h}",
+            kw.get("seed", -1),
+            kw.get("num_steps", DEFAULT_STEPS),
+            kw.get("time_shift", DEFAULT_TIME_SHIFT),
+            kw.get("guidance_scale", DEFAULT_GUIDANCE),
+            kw.get("cfg_normalization", False),
+            kw.get("cfg_truncation", DEFAULT_CFG_TRUNCATION),
+            kw.get("max_sequence_length", DEFAULT_MAX_SEQ_LENGTH),
+        ]
+    except Exception:
+        return [gr.update()] * 10
+
+
+def _save_as_example(gen_paths, prompt, neg, resolution, seed,
+                     steps, time_shift, cfg, cfg_norm, cfg_trunc, max_seq):
+    """Save current generation as an example."""
+    try:
+        if not gen_paths:
+            return _list_examples(), "No image to save."
+        src = Path(gen_paths[0])
+        if not src.exists():
+            return _list_examples(), "Image file not found."
+        EXAMPLES_DIR.mkdir(parents=True, exist_ok=True)
+        existing = list(EXAMPLES_DIR.glob("*.png"))
+        idx = len(existing) + 1
+        name = f"example_{idx:03d}"
+        dst = EXAMPLES_DIR / f"{name}.png"
+        while dst.exists():
+            idx += 1
+            name = f"example_{idx:03d}"
+            dst = EXAMPLES_DIR / f"{name}.png"
+        shutil.copy2(str(src), str(dst))
+        w, h = (resolution.split("x") + ["768", "512"])[:2]
+        meta = {
+            "kwargs": {
+                "prompt": prompt,
+                "negative_prompt": neg or None,
+                "width": int(w), "height": int(h),
+                "seed": int(seed),
+                "num_steps": int(steps),
+                "time_shift": float(time_shift),
+                "guidance_scale": float(cfg),
+                "cfg_normalization": bool(cfg_norm),
+                "cfg_truncation": float(cfg_trunc),
+                "max_sequence_length": int(max_seq),
+            }
+        }
+        dst.with_suffix(".json").write_text(json.dumps(meta, indent=2, ensure_ascii=False))
+        return _list_examples(), f"Saved: {name}.png"
+    except Exception as e:
+        return _list_examples(), f"Error: {e}"
+
+
+def _extract_gallery_path(evt_value):
+    """Extract file path from Gallery select event value (Gradio 6.9+)."""
+    if not evt_value:
+        return None
+    if isinstance(evt_value, dict):
+        if "image" in evt_value and isinstance(evt_value["image"], dict):
+            return evt_value["image"].get("path")
+        if "path" in evt_value:
+            return evt_value["path"]
+        if "name" in evt_value:
+            return evt_value["name"]
+    if isinstance(evt_value, str):
+        return evt_value
+    return None
+
+
+# ---------------------------------------------------------------------------
 # UI Builder
 # ---------------------------------------------------------------------------
 def build_ui() -> gr.Blocks:
@@ -186,6 +290,13 @@ def build_ui() -> gr.Blocks:
             # Tab 1: Generate
             # ==============================================================
             with gr.Tab("Generate", id="generate"):
+                with gr.Accordion("Examples", open=False):
+                    ex_gallery = gr.Gallery(
+                        label="Click to load prompt & settings",
+                        value=_list_examples,
+                        columns=5, height=200, object_fit="contain",
+                        preview=False, elem_id="examples-gallery",
+                    )
                 with gr.Row():
                     with gr.Column(scale=1):
                         g_prompt = gr.Textbox(label="Prompt", lines=4, placeholder="Describe your image...")
@@ -234,6 +345,9 @@ def build_ui() -> gr.Blocks:
                         g_kill_msg = gr.Textbox(label="", interactive=False, visible=False)
                         gr.Markdown(value=get_loading_status, every=1)
                         g_kill_btn.click(fn=_do_kill, outputs=[g_kill_msg])
+                        with gr.Row():
+                            g_save_example = gr.Button("Save as Example", size="sm", variant="secondary")
+                        g_save_status = gr.Textbox(label="", interactive=False, visible=False)
                         g_gen_paths = gr.State([])
 
                 # Generate dispatch — ZIT only
@@ -262,6 +376,21 @@ def build_ui() -> gr.Blocks:
                             g_max_seq, g_attn, g_lora, g_lora_scale],
                     outputs=[g_gallery, g_info, g_gen_paths],
                     concurrency_limit=1,
+                )
+
+                # Examples: click to load params
+                ex_gallery.select(
+                    fn=_load_example_params,
+                    outputs=[g_prompt, g_neg, g_resolution, g_seed,
+                             g_steps, g_time_shift, g_cfg, g_cfg_norm, g_cfg_trunc, g_max_seq],
+                )
+
+                # Save current generation as example
+                g_save_example.click(
+                    fn=_save_as_example,
+                    inputs=[g_gen_paths, g_prompt, g_neg, g_resolution, g_seed,
+                            g_steps, g_time_shift, g_cfg, g_cfg_norm, g_cfg_trunc, g_max_seq],
+                    outputs=[ex_gallery, g_save_status],
                 )
 
             # ==============================================================
@@ -748,11 +877,41 @@ def build_ui() -> gr.Blocks:
                     )
 
                 gr.Markdown("### Installed LoRAs")
-                gr.Dataframe(
-                    headers=["Filename", "Size"],
-                    value=lambda: _lora_list(),
-                    interactive=False, every=10,
-                )
+                with gr.Group():
+                    s_lora_table = gr.Dataframe(
+                        headers=["Filename", "Size"],
+                        value=lambda: _lora_list(),
+                        interactive=False, every=10,
+                    )
+                    with gr.Row():
+                        s_lora_del_name = gr.Textbox(
+                            label="Filename to delete",
+                            placeholder="e.g. my_lora.safetensors",
+                        )
+                        s_lora_del_btn = gr.Button("Delete", variant="stop", size="sm")
+                    s_lora_del_status = gr.Textbox(label="", interactive=False, visible=False)
+
+                    def _delete_lora(filename):
+                        try:
+                            if not filename or not filename.strip():
+                                return _lora_list(), "No filename specified."
+                            filename = filename.strip()
+                            if not filename.endswith(".safetensors"):
+                                return _lora_list(), "Only .safetensors files can be deleted."
+                            from zit_config import LORAS_DIR
+                            lora_path = Path(MODEL_DIR) / LORAS_DIR / filename
+                            if not lora_path.exists():
+                                return _lora_list(), f"Not found: {filename}"
+                            lora_path.unlink()
+                            return _lora_list(), f"Deleted: {filename}"
+                        except Exception as e:
+                            return _lora_list(), f"Error: {e}"
+
+                    s_lora_del_btn.click(
+                        fn=_delete_lora,
+                        inputs=[s_lora_del_name],
+                        outputs=[s_lora_table, s_lora_del_status],
+                    )
 
             # ==============================================================
             # Tab 3: History
@@ -776,22 +935,6 @@ def build_ui() -> gr.Blocks:
                         h_selected = gr.Textbox(label="Selected File", interactive=False, visible=False)
                         h_file_info = gr.Textbox(label="File Info", interactive=False, lines=12)
                         h_cache_msg = gr.Textbox(label="", interactive=False, visible=False)
-
-                def _extract_gallery_path(evt_value):
-                    """Extract file path from Gallery select event value (Gradio 6.9+)."""
-                    if not evt_value:
-                        return None
-                    # Gradio 6.9: {"image": {"path": "..."}, "caption": "..."}
-                    if isinstance(evt_value, dict):
-                        if "image" in evt_value and isinstance(evt_value["image"], dict):
-                            return evt_value["image"].get("path")
-                        if "path" in evt_value:
-                            return evt_value["path"]
-                        if "name" in evt_value:
-                            return evt_value["name"]
-                    if isinstance(evt_value, str):
-                        return evt_value
-                    return None
 
                 def _on_gallery_select(evt: gr.SelectData):
                     path = _extract_gallery_path(evt.value)

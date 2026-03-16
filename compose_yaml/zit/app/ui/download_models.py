@@ -40,7 +40,7 @@ FP8_TRANSFORMER_FILENAME = "model_fp8.safetensors"
 def download_zimage_turbo(model_dir: Path | None = None):
     model_dir = model_dir or MODEL_DIR
     dest = model_dir / ZIMAGE_TURBO_DIR
-    fp8_file = dest / "transformer" / FP8_TRANSFORMER_FILENAME
+    fp8_file = dest / FP8_TRANSFORMER_FILENAME
     if fp8_file.exists():
         print(f"[OK] Z-Image-Turbo (FP8) already exists")
         return
@@ -60,13 +60,13 @@ def download_zimage_turbo(model_dir: Path | None = None):
 def convert_zimage_fp8(model_path: Path, label: str):
     """Convert transformer BF16 → FP8, keep BF16 originals for LoRA training.
 
-    Result: model_path/transformer/ contains config.json + model_fp8.safetensors + BF16 shards
+    Result: model_path/model_fp8.safetensors (FP8) + model_path/transformer/ (BF16 shards)
     """
     import torch
     from safetensors.torch import load_file, save_file
 
     transformer_dir = model_path / "transformer"
-    fp8_file = transformer_dir / FP8_TRANSFORMER_FILENAME
+    fp8_file = model_path / FP8_TRANSFORMER_FILENAME
 
     if fp8_file.exists():
         print(f"[OK] {label} FP8 already converted")
@@ -222,7 +222,7 @@ def check_status(model_dir: Path | None = None):
 
     # Z-Image Turbo
     turbo_path = model_dir / ZIMAGE_TURBO_DIR
-    turbo_fp8 = turbo_path / "transformer" / FP8_TRANSFORMER_FILENAME
+    turbo_fp8 = turbo_path / FP8_TRANSFORMER_FILENAME
     if turbo_fp8.exists():
         size = turbo_fp8.stat().st_size / 1024**3
         print(f"  [OK] Z-Image-Turbo (FP8, {size:.1f} GB)")
