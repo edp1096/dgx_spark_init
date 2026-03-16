@@ -192,20 +192,25 @@ def _worker_loop(
         from PIL import Image as PILImage
 
         seed = resolve_seed(kwargs["seed"])
+        direction = kwargs.get("direction", "Right")
+        dirs = direction if isinstance(direction, list) else [direction]
+        expand_px = int(kwargs.get("expand_px", 256))
+
+        log.info("Outpaint direction=%s expand=%dpx seed=%d", dirs, expand_px, seed)
 
         # Expand canvas
+        log.info("Outpaint: preparing expanded canvas...")
         image = PILImage.open(kwargs["image_path"]).convert("RGB")
         w, h = image.size
-        expand_px = int(kwargs.get("expand_px", 256))
-        direction = kwargs.get("direction", "Right")
 
         # Calculate new canvas
         pad = {"Left": 0, "Right": 0, "Up": 0, "Down": 0}
-        for d in (direction if isinstance(direction, list) else [direction]):
+        for d in dirs:
             pad[d] = expand_px
 
         new_w = w + pad["Left"] + pad["Right"]
         new_h = h + pad["Up"] + pad["Down"]
+        log.info("Outpaint: %sx%s -> %sx%s", w, h, new_w, new_h)
 
         # Create expanded canvas + mask
         canvas = PILImage.new("RGB", (new_w, new_h), (0, 0, 0))
@@ -230,6 +235,7 @@ def _worker_loop(
         new_w = (new_w // 16) * 16
         new_h = (new_h // 16) * 16
 
+        log.info("Outpaint: running inpaint pipeline at %sx%s...", new_w, new_h)
         inpaint_kwargs = {
             **kwargs,
             "image_path": tmp_img.name,
