@@ -354,6 +354,8 @@ def generate_outpaint(
     max_sequence_length=512, time_shift=3.0,
     progress=gr.Progress(track_tqdm=True),
 ):
+    logger.info("generate_outpaint called: direction=%s expand_px=%s image_type=%s",
+                direction, expand_px, type(image).__name__)
     _validate("outpaint", prompt)
     if image is None:
         raise gr.Error("Image is required.")

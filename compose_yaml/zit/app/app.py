@@ -376,6 +376,10 @@ def build_ui() -> gr.Blocks:
                                  prompt, neg, resolution, seed,
                                  steps, time_shift, control_scale, guidance, cfg_trunc, max_seq,
                                  progress=gr.Progress(track_tqdm=True)):
+                    import logging as _log
+                    _log.getLogger("zit-ui").info(
+                        "_ip_generate called: mode=%s out_image_type=%s direction=%s",
+                        mode, type(out_image).__name__, direction)
                     if mode == "Inpaint":
                         paths, info = generate_inpaint(
                             prompt, editor_val, resolution, seed,
