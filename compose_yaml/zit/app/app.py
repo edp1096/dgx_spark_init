@@ -58,7 +58,7 @@ def _do_kill():
 
 
 def create_output_column(gen_type: str):
-    image = gr.Image(label="Generated Image", type="filepath", show_share_button=False)
+    image = gr.Image(label="Generated Image", type="filepath", buttons=["download", "fullscreen"])
     info = gr.Textbox(label="Info", interactive=False,
                       value=lambda: get_gen_info_for_tab(gen_type), every=2)
     with gr.Row():
@@ -258,7 +258,7 @@ def build_ui() -> gr.Blocks:
                         )
                         cn_image = gr.Image(label="Input Image", type="numpy")
                         cn_preview_btn = gr.Button("Preview Preprocessor", variant="secondary", size="sm")
-                        cn_preview = gr.Image(label="Control Preview", interactive=False, show_share_button=False)
+                        cn_preview = gr.Image(label="Control Preview", interactive=False, buttons=["download", "fullscreen"])
                         cn_prompt = gr.Textbox(label="Prompt", lines=3, placeholder="Describe your image...")
                         cn_neg = gr.Textbox(label="Negative Prompt", lines=2)
                         cn_resolution = gr.Dropdown(
@@ -363,7 +363,7 @@ def build_ui() -> gr.Blocks:
                         ip_gen_outpaint = gr.Button("Generate", variant="primary", visible=False)
 
                     with gr.Column(scale=1):
-                        ip_result = gr.Image(label="Result", type="filepath", show_share_button=False)
+                        ip_result = gr.Image(label="Result", type="filepath", buttons=["download", "fullscreen"])
                         ip_info = gr.Textbox(label="Info", interactive=False,
                                              value=lambda: get_gen_info_for_tab("inpaint"), every=2)
                         ip_kill_btn = gr.Button("Kill (emergency stop)", variant="stop", size="sm")
@@ -460,7 +460,7 @@ def build_ui() -> gr.Blocks:
                             fs_face_index = gr.Number(value=0, label="Target Face Index (-1=all)", precision=0, minimum=-1)
                         fs_swap = gr.Button("Swap Face", variant="primary")
                     with gr.Column(scale=1):
-                        fs_result = gr.Image(label="Result", show_share_button=False)
+                        fs_result = gr.Image(label="Result", buttons=["download", "fullscreen"])
                         fs_info = gr.Textbox(label="Info", interactive=False)
 
                 def _swap_face(target, source, det_thresh, blend_mode, mask_blur, face_index,
