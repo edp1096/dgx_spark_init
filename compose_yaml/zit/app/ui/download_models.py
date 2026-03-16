@@ -1,7 +1,7 @@
 """Model download, FP8 conversion, and status checker for ZIT.
 
 Downloads Z-Image Turbo (BF16 → FP8 convert, keep BF16 for LoRA training),
-ControlNet Union, preprocessor weights, and FaceSwap models.
+ControlNet Union, and preprocessor weights.
 """
 
 import os
@@ -23,8 +23,6 @@ from zit_config import (
     LORAS_DIR,
     MODEL_DIR,
     PREPROCESSORS_DIR,
-    SCRFD_FILE,
-    SCRFD_URL,
     ZOEDEPTH_FILE,
     ZOEDEPTH_URL,
     ZIMAGE_TURBO_DIR,
@@ -199,20 +197,6 @@ def download_preprocessors(model_dir: Path | None = None):
 
 
 # ---------------------------------------------------------------------------
-# SCRFD face detection model (for auto-mask in FaceSwap/Inpaint)
-# ---------------------------------------------------------------------------
-def download_scrfd(model_dir: Path | None = None):
-    model_dir = model_dir or MODEL_DIR
-    prep_dir = model_dir / PREPROCESSORS_DIR
-    prep_dir.mkdir(parents=True, exist_ok=True)
-    dest = prep_dir / SCRFD_FILE
-    if dest.exists():
-        print(f"[OK] {SCRFD_FILE} already exists")
-    else:
-        _download_url(SCRFD_URL, dest)
-
-
-# ---------------------------------------------------------------------------
 # Status check
 # ---------------------------------------------------------------------------
 def check_status(model_dir: Path | None = None):
@@ -249,14 +233,6 @@ def check_status(model_dir: Path | None = None):
         else:
             print(f"  [MISSING] {fname}")
 
-    # SCRFD (face detection for auto-mask)
-    scrfd_path = prep_dir / SCRFD_FILE
-    if scrfd_path.exists():
-        size = scrfd_path.stat().st_size / 1024**2
-        print(f"  [OK] {SCRFD_FILE} ({size:.0f} MB)")
-    else:
-        print(f"  [MISSING] {SCRFD_FILE}")
-
 
 # ---------------------------------------------------------------------------
 # Download all
@@ -269,7 +245,6 @@ def download_all(model_dir: Path | None = None):
     download_zimage_turbo(model_dir)
     download_controlnet(model_dir)
     download_preprocessors(model_dir)
-    download_scrfd(model_dir)
 
     print()
     check_status(model_dir)

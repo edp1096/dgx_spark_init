@@ -33,17 +33,10 @@ ZOEDEPTH_FILE = "ZoeD_M12_N.pt"
 HED_FILE = "ControlNetHED.pth"
 
 # ---------------------------------------------------------------------------
-# FaceSwap models (inside MODEL_DIR/faceswap/)
-# ---------------------------------------------------------------------------
-# Face detection for auto-mask (inside MODEL_DIR/preprocessors/)
-# SCRFD is used to detect face bbox + landmarks → generate inpaint mask automatically
-SCRFD_FILE = "scrfd_10g_bnkps.onnx"
-SCRFD_URL = "https://huggingface.co/DIAMONIK7777/antelopev2/resolve/main/scrfd_10g_bnkps.onnx"
-
-# ---------------------------------------------------------------------------
 # LoRA directories (inside MODEL_DIR)
 # ---------------------------------------------------------------------------
 LORAS_DIR = "loras"
+DATASETS_DIR = "datasets"
 
 # ---------------------------------------------------------------------------
 # HuggingFace repo IDs for preprocessor weights

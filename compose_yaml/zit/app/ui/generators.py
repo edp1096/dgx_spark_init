@@ -51,7 +51,6 @@ _GEN_TAB_TYPES = {
     "generate": {"zit_t2i"},
     "controlnet": {"controlnet"},
     "inpaint": {"inpaint", "outpaint"},
-    "faceswap": {"faceswap"},
 }
 
 
@@ -412,54 +411,6 @@ def generate_outpaint(
         "seed": int(seed),
     }
     return _submit_and_wait("outpaint", kwargs, progress)
-
-
-# ---------------------------------------------------------------------------
-# Generation: FaceSwap
-# ---------------------------------------------------------------------------
-def generate_faceswap(
-    image, prompt, face_index=0, padding=1.3, det_threshold=0.5,
-    resolution="768x1024", seed=-1,
-    negative_prompt="blurry, low quality, artifacts, unnatural skin",
-    num_steps=25, guidance_scale=4.0,
-    cfg_truncation=1.0, control_scale=0.9,
-    max_sequence_length=512, time_shift=3.0,
-    progress=gr.Progress(track_tqdm=True),
-):
-    """Auto-mask face via SCRFD + ZIT Inpaint for face regeneration."""
-    if image is None:
-        raise gr.Error("Image is required.")
-    _validate("faceswap", prompt)
-
-    import tempfile
-    from PIL import Image as PILImage
-    import numpy as np
-
-    if isinstance(image, np.ndarray):
-        img = PILImage.fromarray(image)
-    else:
-        img = image
-
-    tmp_img = tempfile.NamedTemporaryFile(suffix=".png", delete=False, dir=str(OUTPUT_DIR))
-    img.save(tmp_img.name)
-    tmp_img.close()
-
-    kwargs = {
-        "prompt": prompt,
-        "negative_prompt": negative_prompt or None,
-        "image_path": tmp_img.name,
-        "face_index": int(face_index),
-        "padding": float(padding),
-        "det_threshold": float(det_threshold),
-        "control_scale": float(control_scale),
-        "num_steps": int(num_steps),
-        "guidance_scale": float(guidance_scale),
-        "cfg_truncation": float(cfg_truncation),
-        "max_sequence_length": int(max_sequence_length),
-        "time_shift": float(time_shift),
-        "seed": int(seed),
-    }
-    return _submit_and_wait("faceswap", kwargs, progress)
 
 
 # ---------------------------------------------------------------------------

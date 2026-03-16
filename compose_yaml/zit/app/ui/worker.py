@@ -262,72 +262,6 @@ def _worker_loop(
         return _run_inpaint(inpaint_kwargs, task_id)
 
     # -------------------------------------------------------------------
-    # Handler: FaceSwap (SCRFD auto-mask → ZIT Inpaint)
-    # -------------------------------------------------------------------
-    def _run_faceswap(kwargs, task_id):
-        import tempfile
-        import numpy as np
-        from PIL import Image as PILImage
-        from face_swap import create_face_mask
-
-        seed = resolve_seed(kwargs["seed"])
-
-        # Load SCRFD detector
-        mgr.load_faceswap()
-
-        # Load image
-        image = PILImage.open(kwargs["image_path"]).convert("RGB")
-        image_np = np.array(image)
-
-        face_index = int(kwargs.get("face_index", 0))
-        padding = float(kwargs.get("padding", 1.3))
-        det_threshold = float(kwargs.get("det_threshold", 0.5))
-
-        log.info("FaceSwap seed=%d image=%s face_index=%d padding=%.2f det=%.2f",
-                 seed, image_np.shape, face_index, padding, det_threshold)
-
-        # Generate auto-mask from SCRFD face detection
-        mask, faces = create_face_mask(
-            image_np, mgr.model_dir,
-            face_index=face_index,
-            padding=padding,
-            det_threshold=det_threshold,
-        )
-        if mask is None:
-            raise ValueError(f"No face detected (threshold={det_threshold}). Try lowering the threshold or use a clearer face image.")
-
-        log.info("FaceSwap: detected %d faces, mask generated", len(faces))
-
-        # Save mask to temp file for inpaint IPC
-        mask_pil = PILImage.fromarray(mask)
-        tmp_mask = tempfile.NamedTemporaryFile(suffix=".png", delete=False, dir=str(OUTPUT_DIR))
-        mask_pil.save(tmp_mask.name)
-        tmp_mask.close()
-
-        # Align dimensions to 16px
-        h, w = image_np.shape[:2]
-        aligned_w = (w // 16) * 16
-        aligned_h = (h // 16) * 16
-
-        # Delegate to inpaint pipeline
-        inpaint_kwargs = {
-            "prompt": kwargs.get("prompt", ""),
-            "negative_prompt": kwargs.get("negative_prompt", "blurry, low quality, artifacts, unnatural skin"),
-            "image_path": kwargs["image_path"],
-            "mask_path": tmp_mask.name,
-            "width": aligned_w,
-            "height": aligned_h,
-            "control_scale": float(kwargs.get("control_scale", 0.9)),
-            "num_steps": int(kwargs.get("num_steps", 25)),
-            "guidance_scale": float(kwargs.get("guidance_scale", 4.0)),
-            "cfg_truncation": float(kwargs.get("cfg_truncation", 1.0)),
-            "max_sequence_length": int(kwargs.get("max_sequence_length", 512)),
-            "time_shift": float(kwargs.get("time_shift", 3.0)),
-            "seed": seed,
-        }
-        return _run_inpaint(inpaint_kwargs, task_id)
-
-    # -------------------------------------------------------------------
     # Handler dispatch
     # -------------------------------------------------------------------
     HANDLERS = {
@@ -335,7 +269,6 @@ def _worker_loop(
         "controlnet": _run_controlnet,
         "inpaint": _run_inpaint,
         "outpaint": _run_outpaint,
-        "faceswap": _run_faceswap,
     }
 
     # -------------------------------------------------------------------

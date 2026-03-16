@@ -19,7 +19,6 @@ from generators import (
     generate_controlnet,
     generate_inpaint,
     generate_outpaint,
-    generate_faceswap,
     match_image_resolution,
     preview_preprocessor,
     get_gen_info_for_tab,
@@ -48,6 +47,7 @@ from zit_config import (
     DEFAULT_INPAINT_GUIDANCE,
     DEFAULT_INPAINT_CFG_TRUNCATION,
     DEFAULT_INPAINT_CONTROL_SCALE,
+    DATASETS_DIR,
 )
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -149,6 +149,70 @@ def _lora_list():
 
 
 # ---------------------------------------------------------------------------
+# Dataset helpers
+# ---------------------------------------------------------------------------
+DATASETS_BASE = Path(MODEL_DIR) / DATASETS_DIR
+
+
+def _scan_datasets():
+    """Return list of dataset folder names under DATASETS_BASE."""
+    DATASETS_BASE.mkdir(parents=True, exist_ok=True)
+    return sorted(
+        [d.name for d in DATASETS_BASE.iterdir() if d.is_dir() and any(d.iterdir())],
+    )
+
+
+def _dataset_choices():
+    """Dropdown choices for dataset selector."""
+    return _scan_datasets()
+
+
+def _create_dataset(name: str):
+    """Create a new empty dataset folder, return updated choices + selection."""
+    name = name.strip().replace(" ", "_")
+    if not name:
+        return gr.update(), gr.update(), "Error: name is empty"
+    ds_path = DATASETS_BASE / name
+    ds_path.mkdir(parents=True, exist_ok=True)
+    choices = _dataset_choices()
+    return gr.update(choices=choices, value=name), "", f"Created: {ds_path}"
+
+
+def _upload_to_dataset(files, dataset_name: str):
+    """Copy uploaded files into the selected dataset folder."""
+    if not dataset_name:
+        return "Error: select a dataset first"
+    ds_path = DATASETS_BASE / dataset_name
+    ds_path.mkdir(parents=True, exist_ok=True)
+    if not files:
+        return "No files uploaded"
+    count = 0
+    for f in files:
+        src = Path(f)
+        dst = ds_path / src.name
+        shutil.copy2(str(src), str(dst))
+        count += 1
+    return f"Uploaded {count} file(s) to {dataset_name}/"
+
+
+def _dataset_contents(dataset_name: str):
+    """Return file listing for selected dataset."""
+    if not dataset_name:
+        return "No dataset selected"
+    ds_path = DATASETS_BASE / dataset_name
+    if not ds_path.is_dir():
+        return "Dataset not found"
+    files = sorted(ds_path.iterdir())
+    if not files:
+        return "(empty)"
+    imgs = [f.name for f in files if f.suffix.lower() in (".jpg", ".jpeg", ".png", ".webp")]
+    txts = [f.name for f in files if f.suffix.lower() == ".txt"]
+    return f"Images: {len(imgs)}, Captions: {len(txts)}\n" + "\n".join(
+        f.name for f in files
+    )
+
+
+# ---------------------------------------------------------------------------
 # Examples helpers
 # ---------------------------------------------------------------------------
 EXAMPLES_DIR = Path(__file__).parent / "examples"
@@ -234,19 +298,31 @@ def _save_as_example(gen_paths, prompt, neg, resolution, seed,
         return _list_examples(), f"Error: {e}"
 
 
-def _extract_gallery_path(evt_value):
-    """Extract file path from Gallery select event value (Gradio 6.9+)."""
-    if not evt_value:
+def _extract_gallery_path(evt: "gr.SelectData"):
+    """Extract original file path from Gallery select event using index.
+
+    Gradio 6.9 caches gallery images under /tmp/gradio/, so evt.value
+    contains a cache path, not the original.  We use evt.index to look up
+    the original path from the current output listing instead.
+    """
+    try:
+        outputs = _list_outputs()
+        idx = evt.index
+        if isinstance(idx, int) and 0 <= idx < len(outputs):
+            return outputs[idx]
+    except Exception:
+        pass
+    # Fallback: try value-based extraction
+    val = evt.value
+    if not val:
         return None
-    if isinstance(evt_value, dict):
-        if "image" in evt_value and isinstance(evt_value["image"], dict):
-            return evt_value["image"].get("path")
-        if "path" in evt_value:
-            return evt_value["path"]
-        if "name" in evt_value:
-            return evt_value["name"]
-    if isinstance(evt_value, str):
-        return evt_value
+    if isinstance(val, dict):
+        if "image" in val and isinstance(val["image"], dict):
+            return val["image"].get("path")
+        if "path" in val:
+            return val["path"]
+    if isinstance(val, str):
+        return val
     return None
 
 
@@ -495,6 +571,7 @@ def build_ui() -> gr.Blocks:
                         ip_editor = gr.ImageEditor(
                             label="Draw Mask (white = regenerate)",
                             type="numpy",
+                            image_mode="RGB",
                             brush=gr.Brush(colors=["#ffffff"], default_size=20),
                             eraser=gr.Eraser(default_size=20),
                         )
@@ -596,109 +673,33 @@ def build_ui() -> gr.Blocks:
                 )
 
             # ==============================================================
-            # Tab 4: FaceSwap (SCRFD auto-mask → ZIT Inpaint)
-            # ==============================================================
-            with gr.Tab("FaceSwap", id="faceswap"):
-                with gr.Row():
-                    with gr.Column(scale=1):
-                        fs_image = gr.Image(label="Input Image", type="numpy")
-                        with gr.Row():
-                            fs_detect_btn = gr.Button("Detect Faces", variant="secondary", size="sm")
-                        fs_preview = gr.Image(label="Detection Preview", interactive=False)
-                        with gr.Accordion("Detection", open=False):
-                            fs_face_index = gr.Number(value=0, label="Face Index (0=largest, -1=all)", precision=0, minimum=-1)
-                            fs_padding = gr.Slider(1.0, 2.0, value=1.3, step=0.1, label="Mask Padding")
-                            fs_det_thresh = gr.Slider(0.1, 0.9, value=0.5, step=0.05, label="Detection Threshold")
-                        fs_prompt = gr.Textbox(
-                            label="Prompt (describe the face to generate)",
-                            lines=3,
-                            value="beautiful face with natural skin texture, photorealistic, sharp focus",
-                        )
-                        fs_neg = gr.Textbox(label="Negative Prompt", lines=2,
-                                            value="blurry, low quality, artifacts, unnatural skin, wax-like")
-                        fs_resolution = gr.Dropdown(
-                            RESOLUTION_CHOICES, value="768x1024",
-                            label="Resolution (WxH)", allow_custom_value=True,
-                        )
-                        fs_match_res = gr.Button("Match Image Size", size="sm", variant="secondary")
-                        fs_seed = gr.Number(value=-1, label="Seed (-1=random)", precision=0)
-                        fs_steps = gr.Slider(1, 100, value=DEFAULT_INPAINT_STEPS, step=1, label="Steps")
-                        fs_time_shift = gr.Slider(1.0, 12.0, value=DEFAULT_TIME_SHIFT, step=0.5, label="Time Shift")
-                        fs_control_scale = gr.Slider(0.0, 1.0, value=DEFAULT_INPAINT_CONTROL_SCALE, step=0.05, label="Control Scale")
-                        fs_guidance = gr.Slider(0.0, 10.0, value=DEFAULT_INPAINT_GUIDANCE, step=0.5, label="Guidance Scale")
-                        fs_cfg_trunc = gr.Slider(0.0, 1.0, value=DEFAULT_INPAINT_CFG_TRUNCATION, step=0.05, label="CFG Truncation")
-                        fs_max_seq = gr.Slider(64, 1024, value=DEFAULT_MAX_SEQ_LENGTH, step=64, label="Max Sequence Length")
-                        fs_generate = gr.Button("Generate", variant="primary")
-
-                    with gr.Column(scale=1):
-                        fs_result = gr.Image(label="Result", type="filepath", buttons=["download", "fullscreen"])
-                        fs_info = gr.Textbox(label="Info", interactive=False,
-                                             value=lambda: get_gen_info_for_tab("faceswap"), every=2)
-                        fs_kill_btn = gr.Button("Kill (emergency stop)", variant="stop", size="sm")
-                        fs_kill_msg = gr.Textbox(label="", interactive=False, visible=False)
-                        gr.Markdown(value=get_loading_status, every=1)
-                        fs_kill_btn.click(fn=_do_kill, outputs=[fs_kill_msg])
-
-                # Detect faces preview
-                def _detect_faces(image):
-                    if image is None:
-                        raise gr.Error("Upload an image first.")
-                    from face_swap import preview_face_detection
-                    return preview_face_detection(image, str(MODEL_DIR))
-
-                fs_detect_btn.click(
-                    fn=_detect_faces,
-                    inputs=[fs_image],
-                    outputs=[fs_preview],
-                )
-
-                # Match image size
-                fs_match_res.click(
-                    fn=match_image_resolution,
-                    inputs=[fs_image],
-                    outputs=[fs_resolution],
-                )
-
-                # Generate faceswap
-                def _do_faceswap(image, prompt, neg, face_index, padding, det_threshold,
-                                 resolution, seed, steps, time_shift, control_scale,
-                                 guidance, cfg_trunc, max_seq,
-                                 progress=gr.Progress(track_tqdm=True)):
-                    try:
-                        paths, info = generate_faceswap(
-                            image, prompt,
-                            face_index=int(face_index), padding=padding, det_threshold=det_threshold,
-                            resolution=resolution, seed=seed,
-                            negative_prompt=neg, num_steps=steps, guidance_scale=guidance,
-                            cfg_truncation=cfg_trunc, control_scale=control_scale,
-                            max_sequence_length=max_seq, time_shift=time_shift,
-                            progress=progress,
-                        )
-                        return paths[0] if paths else None, info
-                    except Exception as e:
-                        return None, f"Error: {e}"
-
-                fs_generate.click(
-                    fn=_do_faceswap,
-                    inputs=[fs_image, fs_prompt, fs_neg, fs_face_index, fs_padding, fs_det_thresh,
-                            fs_resolution, fs_seed, fs_steps, fs_time_shift, fs_control_scale,
-                            fs_guidance, fs_cfg_trunc, fs_max_seq],
-                    outputs=[fs_result, fs_info],
-                    concurrency_limit=1,
-                )
-
-            # ==============================================================
-            # Tab 5: Train LoRA
+            # Tab 4: Train LoRA
             # ==============================================================
             with gr.Tab("Train", id="train"):
                 with gr.Row():
                     with gr.Column(scale=1):
                         gr.Markdown("### LoRA Training")
-                        tr_dataset = gr.Textbox(
-                            label="Dataset Directory",
-                            placeholder="/path/to/images_and_captions/",
-                            info="Folder with .jpg/.png images + matching .txt caption files",
-                        )
+                        # --- Dataset selector ---
+                        with gr.Group():
+                            tr_dataset = gr.Dropdown(
+                                choices=_dataset_choices(),
+                                label="Dataset",
+                                info="Select a dataset or create a new one below",
+                                allow_custom_value=False,
+                            )
+                            tr_ds_info = gr.Textbox(label="Dataset Contents", interactive=False, lines=3)
+                            with gr.Accordion("Manage Dataset", open=False):
+                                with gr.Row():
+                                    tr_new_name = gr.Textbox(label="New Dataset Name", placeholder="my_face_dataset", scale=3)
+                                    tr_create_btn = gr.Button("Create", scale=1)
+                                tr_upload = gr.File(
+                                    label="Upload Images & Captions",
+                                    file_count="multiple",
+                                    file_types=["image", ".txt"],
+                                )
+                                tr_upload_btn = gr.Button("Upload to Dataset")
+                                tr_ds_status = gr.Textbox(label="", interactive=False, lines=1, show_label=False)
+                        # --- Training params ---
                         tr_name = gr.Textbox(label="LoRA Name", value="my_lora",
                                              info="Output: loras/<name>.safetensors")
                         with gr.Row():
@@ -725,14 +726,38 @@ def build_ui() -> gr.Blocks:
                         tr_log = gr.Textbox(label="Training Log", interactive=False, lines=15)
                         tr_progress = gr.Markdown("Ready")
 
+                # --- Dataset management events ---
+                tr_dataset.change(
+                    fn=_dataset_contents,
+                    inputs=[tr_dataset],
+                    outputs=[tr_ds_info],
+                )
+                tr_create_btn.click(
+                    fn=_create_dataset,
+                    inputs=[tr_new_name],
+                    outputs=[tr_dataset, tr_new_name, tr_ds_status],
+                )
+                tr_upload_btn.click(
+                    fn=_upload_to_dataset,
+                    inputs=[tr_upload, tr_dataset],
+                    outputs=[tr_ds_status],
+                ).then(
+                    fn=_dataset_contents,
+                    inputs=[tr_dataset],
+                    outputs=[tr_ds_info],
+                )
+
                 # Train state (module-level to survive across calls)
                 _trainer_ref = gr.State(None)
 
-                def _start_training(dataset, name, steps, rank, lr, resolution,
+                def _start_training(dataset_name, name, steps, rank, lr, resolution,
                                     batch, grad_accum, save_every, targets, trainer_ref):
                     try:
-                        if not dataset or not Path(dataset).is_dir():
-                            return "Error: Invalid dataset directory", "", "Error", trainer_ref
+                        if not dataset_name:
+                            return "Error: Select a dataset", "", "Error", trainer_ref
+                        dataset = str(DATASETS_BASE / dataset_name)
+                        if not Path(dataset).is_dir():
+                            return "Error: Dataset folder not found", "", "Error", trainer_ref
                         if not name:
                             return "Error: LoRA name required", "", "Error", trainer_ref
 
@@ -937,7 +962,8 @@ def build_ui() -> gr.Blocks:
                         h_cache_msg = gr.Textbox(label="", interactive=False, visible=False)
 
                 def _on_gallery_select(evt: gr.SelectData):
-                    path = _extract_gallery_path(evt.value)
+                    path = _extract_gallery_path(evt)
+                    logger.info("Gallery select index=%r path=%r", evt.index, path)
                     if path:
                         return path, _get_file_info(path)
                     return "", ""

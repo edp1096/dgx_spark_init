@@ -19,7 +19,6 @@ from zit_config import (
     MODEL_DIR as DEFAULT_MODEL_DIR,
     OUTPUT_DIR,
     PREPROCESSORS_DIR,
-    SCRFD_FILE,
     ZIMAGE_TURBO_DIR,
 )
 
@@ -177,7 +176,6 @@ REQUIRED_MODELS = {
     "controlnet": [ZIMAGE_TURBO_DIR, f"{CONTROLNET_DIR}/{CONTROLNET_FILENAME}"],
     "inpaint": [ZIMAGE_TURBO_DIR, f"{CONTROLNET_DIR}/{CONTROLNET_FILENAME}"],
     "outpaint": [ZIMAGE_TURBO_DIR, f"{CONTROLNET_DIR}/{CONTROLNET_FILENAME}"],
-    "faceswap": [f"{PREPROCESSORS_DIR}/{SCRFD_FILE}"],
 }
 
 
@@ -199,9 +197,6 @@ class PipelineManager:
 
         # ControlNet (co-resident with ZIT)
         self.controlnet_loaded: bool = False
-
-        # FaceSwap (on-demand)
-        self.faceswap_pipeline = None
 
         # LoRA state
         self._current_lora: str | None = None
@@ -404,22 +399,6 @@ class PipelineManager:
         self._send_progress("loading_done", {"name": "ZIT", "index": 4, "total": 4, "elapsed": 0})
         logger.info("ZIT pipeline ready (ControlNet=%s)", "loaded" if self.controlnet_loaded else "not found")
         return self.zit_components
-
-    # -------------------------------------------------------------------
-    # FaceSwap loading (SCRFD cv2.dnn face detector)
-    # -------------------------------------------------------------------
-    def load_faceswap(self):
-        """Load SCRFD face detector (cv2.dnn)."""
-        if self.faceswap_pipeline is not None:
-            return
-
-        self._send_progress("loading_start", {"name": "FaceSwap (SCRFD)"})
-        logger.info("Loading SCRFD face detector...")
-        from face_swap import get_detector
-        get_detector(self.model_dir)
-        self.faceswap_pipeline = True  # flag — detector is a singleton
-        self._send_progress("loading_done", {"name": "FaceSwap (SCRFD)"})
-        logger.info("SCRFD face detector ready")
 
     # -------------------------------------------------------------------
     # LoRA loading / unloading (forward-hook based)

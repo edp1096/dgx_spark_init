@@ -22,7 +22,8 @@ STRINGS = {
     "tab_generate":              {"en": "Generate",                        "ko": "생성"},
     "tab_controlnet":            {"en": "ControlNet",                      "ko": "컨트롤넷"},
     "tab_inpaint":               {"en": "Inpaint",                         "ko": "인페인트"},
-    "tab_faceswap":              {"en": "FaceSwap",                        "ko": "페이스스왑"},
+    "tab_train":                 {"en": "Train",                           "ko": "학습"},
+    "tab_train_header":          {"en": "LoRA Training",                   "ko": "LoRA 학습"},
     "tab_settings":              {"en": "Settings",                        "ko": "설정"},
     "tab_history":               {"en": "History",                         "ko": "히스토리"},
 
@@ -62,11 +63,27 @@ STRINGS = {
     "expand_direction":          {"en": "Expand Direction",                "ko": "확장 방향"},
     "expand_size":               {"en": "Expand Size",                     "ko": "확장 크기"},
 
-    # FaceSwap tab
-    "target_image":              {"en": "Target Image",                    "ko": "대상 이미지"},
-    "source_face":               {"en": "Source Face",                     "ko": "원본 얼굴"},
-    "swap_face":                 {"en": "Swap Face",                       "ko": "얼굴 교체"},
-    "result":                    {"en": "Result",                          "ko": "결과"},
+    # Train tab
+    "dataset":                   {"en": "Dataset",                         "ko": "데이터셋"},
+    "dataset_info":              {"en": "Select a dataset or create a new one below",
+                                  "ko": "데이터셋을 선택하거나 아래에서 새로 만드세요"},
+    "dataset_contents":          {"en": "Dataset Contents",                "ko": "데이터셋 내용"},
+    "manage_dataset":            {"en": "Manage Dataset",                  "ko": "데이터셋 관리"},
+    "new_dataset_name":          {"en": "New Dataset Name",                "ko": "새 데이터셋 이름"},
+    "create":                    {"en": "Create",                          "ko": "생성"},
+    "upload_images_captions":    {"en": "Upload Images & Captions",        "ko": "이미지 & 캡션 업로드"},
+    "upload_to_dataset":         {"en": "Upload to Dataset",               "ko": "데이터셋에 업로드"},
+    "lora_name":                 {"en": "LoRA Name",                       "ko": "LoRA 이름"},
+    "rank":                      {"en": "Rank",                            "ko": "랭크"},
+    "learning_rate":             {"en": "Learning Rate",                   "ko": "학습률"},
+    "batch_size":                {"en": "Batch Size",                      "ko": "배치 크기"},
+    "gradient_accumulation":     {"en": "Gradient Accumulation",           "ko": "그래디언트 누적"},
+    "save_checkpoint_every":     {"en": "Save Checkpoint Every N Steps",   "ko": "N 스텝마다 체크포인트 저장"},
+    "target_modules":            {"en": "Target Modules",                  "ko": "대상 모듈"},
+    "start_training":            {"en": "Start Training",                  "ko": "학습 시작"},
+    "stop":                      {"en": "Stop",                            "ko": "중지"},
+    "training_log":              {"en": "Training Log",                    "ko": "학습 로그"},
+    "ready":                     {"en": "Ready",                           "ko": "대기 중"},
 
     # Sample prompts
     "sample_1":                  {"en": "Sample 1",                        "ko": "샘플 1"},
