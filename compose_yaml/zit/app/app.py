@@ -326,9 +326,9 @@ def build_ui() -> gr.Blocks:
 
                         # Outpaint controls
                         ip_out_image = gr.Image(label="Image", type="numpy", visible=False)
-                        ip_direction = gr.Radio(
+                        ip_direction = gr.CheckboxGroup(
                             ["Left", "Right", "Up", "Down"],
-                            value="Right", label="Expand Direction", visible=False,
+                            value=["Right"], label="Expand Direction", visible=False,
                         )
                         ip_expand = gr.Slider(64, 512, value=256, step=64, label="Expand Size (px)", visible=False)
 
@@ -362,7 +362,7 @@ def build_ui() -> gr.Blocks:
                     return [
                         gr.ImageEditor(visible=is_inpaint),
                         gr.Image(visible=not is_inpaint),
-                        gr.Radio(visible=not is_inpaint),
+                        gr.CheckboxGroup(visible=not is_inpaint),
                         gr.Slider(visible=not is_inpaint),
                     ]
 
