@@ -35,10 +35,10 @@ HED_FILE = "ControlNetHED.pth"
 # ---------------------------------------------------------------------------
 # FaceSwap models (inside MODEL_DIR/faceswap/)
 # ---------------------------------------------------------------------------
-FACESWAP_DIR = "faceswap"
+# Face detection for auto-mask (inside MODEL_DIR/preprocessors/)
+# SCRFD is used to detect face bbox + landmarks → generate inpaint mask automatically
 SCRFD_FILE = "scrfd_10g_bnkps.onnx"
-ARCFACE_FILE = "w600k_r50.onnx"
-INSWAPPER_FILE = "inswapper_128.onnx"
+SCRFD_URL = "https://huggingface.co/DIAMONIK7777/antelopev2/resolve/main/scrfd_10g_bnkps.onnx"
 
 # ---------------------------------------------------------------------------
 # LoRA directories (inside MODEL_DIR)
@@ -84,13 +84,6 @@ DEFAULT_INPAINT_STEPS = 25
 DEFAULT_INPAINT_GUIDANCE = 4.0
 DEFAULT_INPAINT_CFG_TRUNCATION = 1.0
 DEFAULT_INPAINT_CONTROL_SCALE = 0.9
-
-# ---------------------------------------------------------------------------
-# CodeFormer (face restoration, inside MODEL_DIR/faceswap/)
-# ---------------------------------------------------------------------------
-CODEFORMER_FILE = "codeformer.pth"
-CODEFORMER_URL = "https://github.com/sczhou/CodeFormer/releases/download/v0.1.0/codeformer.pth"
-DEFAULT_CODEFORMER_FIDELITY = 0.7
 
 # ---------------------------------------------------------------------------
 # Resolution presets
