@@ -500,11 +500,13 @@ class ZImageControlPipeline(DiffusionPipeline, FromSingleFileMixin):
             latents,
         )
 
-        # Repeat prompt_embeds for num_images_per_prompt
+        # Repeat prompt_embeds and control_context for num_images_per_prompt
         if num_images_per_prompt > 1:
             prompt_embeds = [pe for pe in prompt_embeds for _ in range(num_images_per_prompt)]
             if self.do_classifier_free_guidance and negative_prompt_embeds:
                 negative_prompt_embeds = [npe for npe in negative_prompt_embeds for _ in range(num_images_per_prompt)]
+            # Repeat control_context along batch dimension
+            control_context = control_context.repeat(num_images_per_prompt, 1, 1, 1, 1)
 
         actual_batch_size = batch_size * num_images_per_prompt
         image_seq_len = (latents.shape[2] // 2) * (latents.shape[3] // 2)
