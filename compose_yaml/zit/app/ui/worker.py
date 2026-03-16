@@ -415,11 +415,12 @@ def _worker_loop(
                 })
                 log.info("Task %s: completed -> %s (%d images)", task_id[:8], paths[0], len(paths))
             except Exception as e:
-                log.error("Task %s failed: %s\n%s", task_id[:8], e, traceback.format_exc())
+                tb = traceback.format_exc()
+                log.error("Task %s failed: %s\n%s", task_id[:8], e, tb)
                 result_queue.put({
                     "task_id": task_id,
                     "status": "error",
-                    "payload": str(e),
+                    "payload": f"{e}\n\n{tb}",
                 })
             finally:
                 mgr._is_generating = False
