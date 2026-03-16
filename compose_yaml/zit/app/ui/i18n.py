@@ -110,6 +110,7 @@ STRINGS = {
     # History tab
     "generation_history":        {"en": "Generation History",              "ko": "생성 히스토리"},
     "refresh":                   {"en": "Refresh",                         "ko": "새로고침"},
+    "download_all":              {"en": "Download All",                    "ko": "일괄 다운로드"},
     "delete_selected":           {"en": "Delete Selected",                 "ko": "선택 삭제"},
     "delete_all":                {"en": "Delete All",                      "ko": "전체 삭제"},
     "clear_cache":               {"en": "Clear Cache",                     "ko": "캐시 정리"},

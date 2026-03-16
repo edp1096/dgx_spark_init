@@ -8,6 +8,7 @@ import os
 import shutil
 import sys
 import time
+import zipfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent / "ui"))
@@ -103,14 +104,25 @@ def _get_file_info(file_path):
 
 def _delete_selected(file_path):
     if not file_path:
-        return _list_outputs()
+        return _list_outputs(), "", ""
     p = Path(file_path)
     if p.exists():
         p.unlink()
     json_p = p.with_suffix(".json")
     if json_p.exists():
         json_p.unlink()
-    return _list_outputs()
+    return _list_outputs(), "", ""
+
+
+def _download_all():
+    images = _list_outputs()
+    if not images:
+        return gr.update(value=None, visible=False)
+    zip_path = Path(OUTPUT_DIR) / "_download_all.zip"
+    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_STORED) as zf:
+        for img in images:
+            zf.write(img, Path(img).name)
+    return gr.update(value=str(zip_path), visible=True)
 
 
 def _delete_all():
@@ -158,7 +170,7 @@ def _scan_datasets():
     """Return list of dataset folder names under DATASETS_BASE."""
     DATASETS_BASE.mkdir(parents=True, exist_ok=True)
     return sorted(
-        [d.name for d in DATASETS_BASE.iterdir() if d.is_dir() and any(d.iterdir())],
+        [d.name for d in DATASETS_BASE.iterdir() if d.is_dir()],
     )
 
 
@@ -181,18 +193,18 @@ def _create_dataset(name: str):
 def _upload_to_dataset(files, dataset_name: str):
     """Copy uploaded files into the selected dataset folder."""
     if not dataset_name:
-        return "Error: select a dataset first"
+        return "Error: select a dataset first", gr.update()
     ds_path = DATASETS_BASE / dataset_name
     ds_path.mkdir(parents=True, exist_ok=True)
     if not files:
-        return "No files uploaded"
+        return "No files uploaded", gr.update()
     count = 0
     for f in files:
         src = Path(f)
         dst = ds_path / src.name
         shutil.copy2(str(src), str(dst))
         count += 1
-    return f"Uploaded {count} file(s) to {dataset_name}/"
+    return f"Uploaded {count} file(s) to {dataset_name}/", None
 
 
 def _dataset_contents(dataset_name: str):
@@ -740,7 +752,7 @@ def build_ui() -> gr.Blocks:
                 tr_upload_btn.click(
                     fn=_upload_to_dataset,
                     inputs=[tr_upload, tr_dataset],
-                    outputs=[tr_ds_status],
+                    outputs=[tr_ds_status, tr_upload],
                 ).then(
                     fn=_dataset_contents,
                     inputs=[tr_dataset],
@@ -945,6 +957,7 @@ def build_ui() -> gr.Blocks:
                 gr.Markdown("### Generation History")
                 with gr.Row():
                     h_refresh = gr.Button("Refresh", size="sm")
+                    h_download_all = gr.Button("Download All", size="sm", variant="secondary")
                     h_delete = gr.Button("Delete Selected", size="sm", variant="stop")
                     h_delete_all = gr.Button("Delete All", size="sm", variant="stop")
                     h_clear_cache = gr.Button("Clear Cache", size="sm")
@@ -959,6 +972,7 @@ def build_ui() -> gr.Blocks:
                     with gr.Column(scale=1):
                         h_selected = gr.Textbox(label="Selected File", interactive=False, visible=False)
                         h_file_info = gr.Textbox(label="File Info", interactive=False, lines=12)
+                        h_download_file = gr.File(label="Download", visible=False, interactive=False)
                         h_cache_msg = gr.Textbox(label="", interactive=False, visible=False)
 
                 def _on_gallery_select(evt: gr.SelectData):
@@ -970,7 +984,8 @@ def build_ui() -> gr.Blocks:
 
                 h_gallery.select(fn=_on_gallery_select, outputs=[h_selected, h_file_info])
                 h_refresh.click(fn=_list_outputs, outputs=[h_gallery])
-                h_delete.click(fn=_delete_selected, inputs=[h_selected], outputs=[h_gallery])
+                h_delete.click(fn=_delete_selected, inputs=[h_selected], outputs=[h_gallery, h_selected, h_file_info])
+                h_download_all.click(fn=_download_all, outputs=[h_download_file])
                 h_delete_all.click(fn=_delete_all, outputs=[h_gallery])
                 h_clear_cache.click(fn=_clear_cache, outputs=[h_cache_msg])
 
