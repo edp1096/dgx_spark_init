@@ -19,9 +19,12 @@
 import glob
 import inspect
 import json
+import logging
 import os
 import math
 from typing import Any, Dict, List, Optional, Tuple, Union
+
+logger = logging.getLogger(__name__)
 
 import torch
 import torch.nn as nn
@@ -981,10 +984,10 @@ class ZImageTransformer2DModel(ModelMixin, ConfigMixin, FromOriginalModelMixin):
                             param_dtype = torch_dtype if torch_dtype is not None else model_state_dict[key].dtype
                             if "control" in key and key.replace("control_", "") in filtered_state_dict.keys() and model.state_dict()[key].size() == filtered_state_dict[key.replace("control_", "")].size():
                                 initialized_dict[key] = filtered_state_dict[key.replace("control_", "")].clone()
-                                print(f"Initializing missing parameter '{key}' with model.state_dict().")
+                                logger.debug("Initializing missing parameter '%s' with model.state_dict().", key)
                             elif "after_proj" in key or "before_proj" in key:
                                 initialized_dict[key] = torch.zeros(param_shape, dtype=param_dtype)
-                                print(f"Initializing missing parameter '{key}' with zero.")
+                                logger.debug("Initializing missing parameter '%s' with zero.", key)
                             elif 'weight' in key:
                                 if any(norm_type in key for norm_type in ['norm', 'ln_', 'layer_norm', 'group_norm', 'batch_norm']):
                                     initialized_dict[key] = torch.ones(param_shape, dtype=param_dtype)
@@ -1011,7 +1014,7 @@ class ZImageTransformer2DModel(ModelMixin, ConfigMixin, FromOriginalModelMixin):
                     return initialized_dict
 
                 if missing_keys:
-                    print(f"Missing keys will be initialized: {sorted(missing_keys)}")
+                    logger.debug("Missing keys will be initialized: %s", sorted(missing_keys))
                     initialized_params = initialize_missing_parameters(
                         missing_keys,
                         model.state_dict(),
@@ -1041,19 +1044,20 @@ class ZImageTransformer2DModel(ModelMixin, ConfigMixin, FromOriginalModelMixin):
                             unexpected_keys = [k for k in unexpected_keys if re.search(pat, k) is None]
 
                     if len(unexpected_keys) > 0:
-                        print(
-                            f"Some weights of the model checkpoint were not used when initializing {cls.__name__}: \n {[', '.join(unexpected_keys)]}"
+                        logger.debug(
+                            "Some weights of the model checkpoint were not used when initializing %s: \n %s",
+                            cls.__name__, [', '.join(unexpected_keys)]
                         )
 
                 params = [p.numel() if "." in n else 0 for n, p in model.named_parameters()]
-                print(f"### All Parameters: {sum(params) / 1e6} M")
+                logger.debug("### All Parameters: %s M", sum(params) / 1e6)
 
                 params = [p.numel() if "attn1." in n else 0 for n, p in model.named_parameters()]
-                print(f"### attn1 Parameters: {sum(params) / 1e6} M")
+                logger.debug("### attn1 Parameters: %s M", sum(params) / 1e6)
                 return model
             except Exception as e:
-                print(
-                    f"The low_cpu_mem_usage mode is not work because {e}. Use low_cpu_mem_usage=False instead."
+                logger.debug(
+                    "The low_cpu_mem_usage mode is not work because %s. Use low_cpu_mem_usage=False instead.", e
                 )
 
         model = cls.from_config(config, **transformer_additional_kwargs)
@@ -1076,24 +1080,24 @@ class ZImageTransformer2DModel(ModelMixin, ConfigMixin, FromOriginalModelMixin):
             if key in model.state_dict().keys() and model.state_dict()[key].size() == state_dict[key].size():
                 tmp_state_dict[key] = state_dict[key]
             else:
-                print(key, "Size don't match, skip")
+                logger.debug("%s Size don't match, skip", key)
 
         for key in model.state_dict():
             if "control" in key and key.replace("control_", "") in state_dict.keys() and model.state_dict()[key].size() == state_dict[key.replace("control_", "")].size():
                 tmp_state_dict[key] = state_dict[key.replace("control_", "")].clone()
-                print(f"Initializing missing parameter '{key}' with model.state_dict().")
+                logger.debug("Initializing missing parameter '%s' with model.state_dict().", key)
 
         state_dict = tmp_state_dict
 
         m, u = model.load_state_dict(state_dict, strict=False)
-        print(f"### missing keys: {len(m)}; \n### unexpected keys: {len(u)};")
-        print(m)
+        logger.debug("### missing keys: %d; \n### unexpected keys: %d;", len(m), len(u))
+        logger.debug("%s", m)
 
         params = [p.numel() if "." in n else 0 for n, p in model.named_parameters()]
-        print(f"### All Parameters: {sum(params) / 1e6} M")
+        logger.debug("### All Parameters: %s M", sum(params) / 1e6)
 
         params = [p.numel() if "attn1." in n else 0 for n, p in model.named_parameters()]
-        print(f"### attn1 Parameters: {sum(params) / 1e6} M")
+        logger.debug("### attn1 Parameters: %s M", sum(params) / 1e6)
 
         model = model.to(torch_dtype)
         return model

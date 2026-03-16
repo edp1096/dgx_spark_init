@@ -100,6 +100,20 @@ def _save_metadata(path: str, gen_type: str, seed: int, elapsed: float, kwargs: 
 
 
 # ---------------------------------------------------------------------------
+# Temp file cleanup
+# ---------------------------------------------------------------------------
+def _cleanup_temp_files(kwargs: dict):
+    """Remove temp files created for IPC (image_path, mask_path, etc.)."""
+    for key in ("image_path", "mask_path", "target_path", "source_path"):
+        path = kwargs.get(key)
+        if path and Path(path).name.startswith("tmp"):
+            try:
+                Path(path).unlink(missing_ok=True)
+            except Exception:
+                pass
+
+
+# ---------------------------------------------------------------------------
 # Submit and wait
 # ---------------------------------------------------------------------------
 def _submit_and_wait(gen_type: str, kwargs: dict, progress) -> tuple[str, str]:
@@ -156,12 +170,15 @@ def _submit_and_wait(gen_type: str, kwargs: dict, progress) -> tuple[str, str]:
                         "paths": paths, "info": info,
                         "gen_type": gen_type, "time": time.time(),
                     }
+                    _cleanup_temp_files(kwargs)
                     return paths, info
                 else:
+                    _cleanup_temp_files(kwargs)
                     raise gr.Error(f"Generation failed: {result['payload']}")
     except Exception:
         _gen_active = False
         _loading_status = ""
+        _cleanup_temp_files(kwargs)
         raise
 
 
@@ -391,10 +408,32 @@ def generate_outpaint(
 
 
 # ---------------------------------------------------------------------------
-# Generation: FaceSwap (Phase 5 placeholder)
+# Generation: FaceSwap
 # ---------------------------------------------------------------------------
 def generate_faceswap(target_image, source_image, progress=gr.Progress(track_tqdm=True)):
-    raise gr.Error("FaceSwap not yet implemented (Phase 5).")
+    if target_image is None:
+        raise gr.Error("Target image is required.")
+    if source_image is None:
+        raise gr.Error("Source face image is required.")
+
+    import tempfile
+    from PIL import Image as PILImage
+
+    # Save images to temp files for IPC
+    tmp_target = tempfile.NamedTemporaryFile(suffix=".png", delete=False, dir=str(OUTPUT_DIR))
+    PILImage.fromarray(target_image).save(tmp_target.name)
+    tmp_target.close()
+
+    tmp_source = tempfile.NamedTemporaryFile(suffix=".png", delete=False, dir=str(OUTPUT_DIR))
+    PILImage.fromarray(source_image).save(tmp_source.name)
+    tmp_source.close()
+
+    kwargs = {
+        "target_path": tmp_target.name,
+        "source_path": tmp_source.name,
+        "seed": 0,
+    }
+    return _submit_and_wait("faceswap", kwargs, progress)
 
 
 # ---------------------------------------------------------------------------

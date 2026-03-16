@@ -11,6 +11,7 @@ from pathlib import Path
 from huggingface_hub import hf_hub_download, snapshot_download
 
 from zit_config import (
+    ARCFACE_FILE,
     CONTROLNET_DIR,
     CONTROLNET_FILENAME,
     CONTROLNET_REPO,
@@ -25,11 +26,16 @@ from zit_config import (
     LORAS_DIR,
     MODEL_DIR,
     PREPROCESSORS_DIR,
+    SCRFD_FILE,
     ZOEDEPTH_FILE,
     ZOEDEPTH_URL,
     ZIMAGE_TURBO_DIR,
     ZIMAGE_TURBO_REPO,
 )
+
+SCRFD_URL = "https://huggingface.co/DIAMONIK7777/antelopev2/resolve/main/scrfd_10g_bnkps.onnx"
+ARCFACE_URL = "https://huggingface.co/Aitrepreneur/insightface/resolve/main/models/buffalo_l/w600k_r50.onnx"
+INSWAPPER_URL = "https://huggingface.co/ashleykleynhans/inswapper/resolve/main/inswapper_128.onnx"
 
 FP8_TRANSFORMER_FILENAME = "model_fp8.safetensors"
 
@@ -209,13 +215,16 @@ def download_faceswap(model_dir: Path | None = None):
     fs_dir = model_dir / FACESWAP_DIR
     fs_dir.mkdir(parents=True, exist_ok=True)
 
-    # TODO: Phase 5 — add actual download URLs for SCRFD, ArcFace, inswapper
-    for fname in [INSWAPPER_FILE]:
+    for fname, url in [
+        (SCRFD_FILE, SCRFD_URL),
+        (ARCFACE_FILE, ARCFACE_URL),
+        (INSWAPPER_FILE, INSWAPPER_URL),
+    ]:
         dest = fs_dir / fname
         if dest.exists():
             print(f"[OK] {fname} already exists")
         else:
-            print(f"[MISSING] {fname} — manual download required")
+            _download_url(url, dest)
 
 
 # ---------------------------------------------------------------------------
@@ -257,7 +266,7 @@ def check_status(model_dir: Path | None = None):
 
     # FaceSwap
     fs_dir = model_dir / FACESWAP_DIR
-    for fname in [INSWAPPER_FILE]:
+    for fname in [SCRFD_FILE, ARCFACE_FILE, INSWAPPER_FILE]:
         path = fs_dir / fname
         if path.exists():
             size = path.stat().st_size / 1024**2

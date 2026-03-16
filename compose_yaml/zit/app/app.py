@@ -71,7 +71,10 @@ def _list_outputs():
     out_dir = Path(OUTPUT_DIR)
     if not out_dir.exists():
         return []
-    files = sorted(out_dir.glob("*.png"), key=lambda f: f.stat().st_mtime, reverse=True)
+    files = sorted(
+        (f for f in out_dir.glob("*.png") if not f.name.startswith("tmp")),
+        key=lambda f: f.stat().st_mtime, reverse=True,
+    )
     return [str(f) for f in files[:50]]
 
 
@@ -110,11 +113,14 @@ def _delete_all():
 
 def _clear_cache():
     out_dir = Path(OUTPUT_DIR)
+    # Remove temp files (masks, IPC images) from output dir
+    for f in out_dir.glob("tmp*"):
+        try:
+            f.unlink()
+        except Exception:
+            pass
+    # Remove underscore-prefixed cache files
     for f in out_dir.glob("_*"):
-        f.unlink()
-    import tempfile
-    tmp = Path(tempfile.gettempdir())
-    for f in tmp.glob("tmp*.png"):
         try:
             f.unlink()
         except Exception:
@@ -438,7 +444,8 @@ def build_ui() -> gr.Blocks:
 
                 def _swap_face(target, source, progress=gr.Progress(track_tqdm=True)):
                     try:
-                        return generate_faceswap(target, source, progress=progress), "Face swap complete"
+                        paths, info = generate_faceswap(target, source, progress=progress)
+                        return paths[0] if paths else None, info
                     except Exception as e:
                         return None, f"Error: {e}"
 

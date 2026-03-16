@@ -12,12 +12,16 @@ from pathlib import Path
 import torch
 
 from zit_config import (
+    ARCFACE_FILE,
     CONTROLNET_CONFIG,
     CONTROLNET_DIR,
     CONTROLNET_FILENAME,
+    FACESWAP_DIR,
+    INSWAPPER_FILE,
     LORAS_DIR,
     MODEL_DIR as DEFAULT_MODEL_DIR,
     OUTPUT_DIR,
+    SCRFD_FILE,
     ZIMAGE_TURBO_DIR,
 )
 
@@ -175,6 +179,7 @@ REQUIRED_MODELS = {
     "controlnet": [ZIMAGE_TURBO_DIR, f"{CONTROLNET_DIR}/{CONTROLNET_FILENAME}"],
     "inpaint": [ZIMAGE_TURBO_DIR, f"{CONTROLNET_DIR}/{CONTROLNET_FILENAME}"],
     "outpaint": [ZIMAGE_TURBO_DIR, f"{CONTROLNET_DIR}/{CONTROLNET_FILENAME}"],
+    "faceswap": [f"{FACESWAP_DIR}/{SCRFD_FILE}", f"{FACESWAP_DIR}/{ARCFACE_FILE}", f"{FACESWAP_DIR}/{INSWAPPER_FILE}"],
 }
 
 
@@ -403,17 +408,16 @@ class PipelineManager:
     # FaceSwap loading (Phase 5 will implement)
     # -------------------------------------------------------------------
     def load_faceswap(self):
-        """Load FaceSwap pipeline (TensorRT).
-
-        TODO: Phase 5 — implement TRT-based FaceSwap.
-        """
+        """Load FaceSwap pipeline (TensorRT)."""
         if self.faceswap_pipeline is not None:
             return
 
+        self._send_progress("loading_start", {"name": "FaceSwap"})
         logger.info("Loading FaceSwap pipeline...")
-        # TODO: Phase 5
-        # from face_swap import FaceSwapPipeline
-        # self.faceswap_pipeline = FaceSwapPipeline(self.model_dir)
+        from face_swap import FaceSwapPipeline
+        self.faceswap_pipeline = FaceSwapPipeline(self.model_dir)
+        self.faceswap_pipeline._ensure_loaded()
+        self._send_progress("loading_done", {"name": "FaceSwap"})
         logger.info("FaceSwap ready")
 
     # -------------------------------------------------------------------

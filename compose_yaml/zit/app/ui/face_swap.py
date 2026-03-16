@@ -76,9 +76,36 @@ class TRTEngine:
                 raise RuntimeError(f"Failed to parse ONNX: {onnx_path}")
 
         config = builder.create_builder_config()
-        config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, 1 << 30)  # 1GB
+        config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, 8 << 30)  # 8GB
+        config.clear_flag(trt.BuilderFlag.TF32)  # GB10 compatibility
         if fp16:
             config.set_flag(trt.BuilderFlag.FP16)
+
+        # Add optimization profile for dynamic input shapes
+        has_dynamic = False
+        for i in range(network.num_inputs):
+            inp = network.get_input(i)
+            shape = inp.shape
+            if -1 in shape:
+                has_dynamic = True
+                break
+
+        if has_dynamic:
+            profile = builder.create_optimization_profile()
+            for i in range(network.num_inputs):
+                inp = network.get_input(i)
+                shape = list(inp.shape)
+                # Replace dynamic dims: batch → 1, spatial → 640
+                concrete = []
+                for j, s in enumerate(shape):
+                    if s != -1:
+                        concrete.append(s)
+                    elif j == 0:
+                        concrete.append(1)  # batch dim
+                    else:
+                        concrete.append(640)  # spatial dim
+                profile.set_shape(inp.name, concrete, concrete, concrete)
+            config.add_optimization_profile(profile)
 
         engine_bytes = builder.build_serialized_network(network, config)
         if engine_bytes is None:
@@ -92,24 +119,22 @@ class TRTEngine:
         """Run inference with numpy arrays."""
         import torch
 
-        # Allocate output buffers
-        output_buffers = {}
-        for name, info in self.outputs.items():
-            shape = info["shape"]
-            # Handle dynamic dims (-1) by using context binding shape
-            output_buffers[name] = torch.empty(
-                shape, dtype=torch.float32, device="cuda"
-            )
-
-        # Set input tensors
+        # Keep input tensors alive during inference
+        input_tensors = {}
         for name, arr in inputs.items():
             t = torch.from_numpy(arr).cuda()
-            self.context.set_input_shape(name, t.shape)
+            self.context.set_input_shape(name, tuple(t.shape))
             self.context.set_tensor_address(name, t.data_ptr())
+            input_tensors[name] = t
 
-        # Set output addresses
-        for name, buf in output_buffers.items():
-            self.context.set_tensor_address(name, buf.data_ptr())
+        # Allocate output buffers using resolved shapes from context
+        output_buffers = {}
+        for name in self.outputs:
+            shape = self.context.get_tensor_shape(name)
+            output_buffers[name] = torch.empty(
+                tuple(shape), dtype=torch.float32, device="cuda"
+            )
+            self.context.set_tensor_address(name, output_buffers[name].data_ptr())
 
         # Execute
         self.context.execute_async_v3(torch.cuda.current_stream().cuda_stream)
@@ -186,6 +211,7 @@ class FaceSwapPipeline:
         self._scrfd = None
         self._arcface = None
         self._inswapper = None
+        self._emap = None
 
     def _ensure_loaded(self):
         if self._scrfd is not None:
@@ -196,33 +222,151 @@ class FaceSwapPipeline:
                 raise FileNotFoundError(f"FaceSwap model not found: {path}")
 
         logger.info("Loading FaceSwap TRT engines...")
-        self._scrfd = TRTEngine(self.scrfd_path)
-        self._arcface = TRTEngine(self.arcface_path)
-        self._inswapper = TRTEngine(self.inswapper_path)
+        self._scrfd = TRTEngine(self.scrfd_path, fp16=False)
+        self._arcface = TRTEngine(self.arcface_path, fp16=False)
+        self._inswapper = TRTEngine(self.inswapper_path, fp16=False)
+
+        # Load emap matrix from inswapper ONNX (embedding transform)
+        import onnx
+        from onnx import numpy_helper
+        onnx_model = onnx.load(self.inswapper_path)
+        self._emap = numpy_helper.to_array(onnx_model.graph.initializer[-1])
+        del onnx_model
+
         logger.info("FaceSwap engines loaded")
 
     def detect_faces(self, image: np.ndarray, threshold: float = 0.5):
         """Detect faces using SCRFD. Returns list of (bbox, landmarks_5)."""
         self._ensure_loaded()
 
-        # Preprocess: resize to 640x640, normalize
+        # Preprocess: resize keeping aspect ratio, zero-pad to 640x640
         h, w = image.shape[:2]
-        scale = min(640 / w, 640 / h)
-        nw, nh = int(w * scale), int(h * scale)
-        resized = cv2.resize(image, (nw, nh))
-        padded = np.zeros((640, 640, 3), dtype=np.float32)
-        padded[:nh, :nw] = resized.astype(np.float32)
-        blob = padded.transpose(2, 0, 1)[np.newaxis] / 255.0  # NCHW, [0-1]
+        det_size = (640, 640)
+        im_ratio = float(h) / w
+        model_ratio = float(det_size[1]) / det_size[0]
+        if im_ratio > model_ratio:
+            new_height = det_size[1]
+            new_width = int(new_height / im_ratio)
+        else:
+            new_width = det_size[0]
+            new_height = int(new_width * im_ratio)
+        scale = float(new_height) / h
+
+        det_img = np.zeros((det_size[1], det_size[0], 3), dtype=np.uint8)
+        resized = cv2.resize(image, (new_width, new_height))
+        det_img[:new_height, :new_width, :] = resized
+
+        # BGR input for blobFromImage (swapRB=True converts to RGB)
+        det_img_bgr = cv2.cvtColor(det_img, cv2.COLOR_RGB2BGR)
+        blob = cv2.dnn.blobFromImage(
+            det_img_bgr, 1.0 / 128.0, det_size,
+            (127.5, 127.5, 127.5), swapRB=True,
+        )
 
         # Run SCRFD
         input_name = list(self._scrfd.inputs.keys())[0]
-        outputs = self._scrfd.infer({input_name: blob.astype(np.float32)})
+        raw = self._scrfd.infer({input_name: blob})
 
-        # TODO: Parse SCRFD outputs (bboxes, scores, landmarks)
-        # This is model-specific and depends on the exact SCRFD variant.
-        # For now, return placeholder — needs testing on DGX.
-        logger.warning("SCRFD output parsing not yet implemented — needs DGX testing")
-        return []
+        # Parse SCRFD 10g_bnkps outputs: 9 tensors, sorted by name →
+        # stride-grouped: (score_s8, bbox_s8, kps_s8, score_s16, bbox_s16, kps_s16, score_s32, bbox_s32, kps_s32)
+        out_names = sorted(raw.keys())
+        num_anchors = 2  # scrfd_10g uses 2 anchors per position
+        strides = [8, 16, 32]
+
+        all_scores = []
+        all_bboxes = []
+        all_kps = []
+
+        for idx, stride in enumerate(strides):
+            scores = raw[out_names[idx * 3 + 0]].reshape(-1)
+            bbox_preds = raw[out_names[idx * 3 + 1]].reshape(-1, 4)
+            kps_preds = raw[out_names[idx * 3 + 2]].reshape(-1, 10)
+
+            fh = det_size[1] // stride
+            fw = det_size[0] // stride
+
+            # Generate anchor centers (insightface style)
+            anchor_centers = np.stack(
+                np.mgrid[:fh, :fw][::-1], axis=-1
+            ).astype(np.float32).reshape(-1, 2)
+            anchor_centers = (anchor_centers * stride)
+            if num_anchors > 1:
+                anchor_centers = np.stack(
+                    [anchor_centers] * num_anchors, axis=1
+                ).reshape(-1, 2)
+
+            # Filter by threshold
+            mask = scores > threshold
+            if not mask.any():
+                continue
+
+            scores = scores[mask]
+            bbox_preds = bbox_preds[mask]
+            kps_preds = kps_preds[mask]
+            centers = anchor_centers[mask]
+
+            # Decode bboxes: distance2bbox (left, top, right, bottom) × stride
+            bboxes = np.column_stack([
+                centers[:, 0] - bbox_preds[:, 0] * stride,
+                centers[:, 1] - bbox_preds[:, 1] * stride,
+                centers[:, 0] + bbox_preds[:, 2] * stride,
+                centers[:, 1] + bbox_preds[:, 3] * stride,
+            ])
+
+            # Decode landmarks: distance2kps × stride
+            kps = np.zeros_like(kps_preds)
+            for k in range(kps_preds.shape[1]):
+                kps[:, k] = centers[:, k % 2] + kps_preds[:, k] * stride
+
+            all_scores.append(scores)
+            all_bboxes.append(bboxes)
+            all_kps.append(kps)
+
+        if not all_scores:
+            return []
+
+        all_scores = np.concatenate(all_scores)
+        all_bboxes = np.concatenate(all_bboxes)
+        all_kps = np.concatenate(all_kps)
+
+        # NMS
+        order = all_scores.argsort()[::-1]
+        all_scores = all_scores[order]
+        all_bboxes = all_bboxes[order]
+        all_kps = all_kps[order]
+
+        keep = self._nms(all_bboxes, all_scores, iou_threshold=0.4)
+        all_bboxes = all_bboxes[keep]
+        all_kps = all_kps[keep]
+
+        # Scale back to original image coords
+        faces = []
+        for bbox, kps in zip(all_bboxes, all_kps):
+            bbox = bbox / scale
+            kps = kps.reshape(5, 2) / scale
+            faces.append((bbox, kps))
+
+        return faces
+
+    @staticmethod
+    def _nms(bboxes: np.ndarray, scores: np.ndarray, iou_threshold: float = 0.4) -> list[int]:
+        """Non-maximum suppression."""
+        x1, y1, x2, y2 = bboxes[:, 0], bboxes[:, 1], bboxes[:, 2], bboxes[:, 3]
+        areas = (x2 - x1) * (y2 - y1)
+        order = scores.argsort()[::-1]
+        keep = []
+        while order.size > 0:
+            i = order[0]
+            keep.append(i)
+            xx1 = np.maximum(x1[i], x1[order[1:]])
+            yy1 = np.maximum(y1[i], y1[order[1:]])
+            xx2 = np.minimum(x2[i], x2[order[1:]])
+            yy2 = np.minimum(y2[i], y2[order[1:]])
+            inter = np.maximum(0, xx2 - xx1) * np.maximum(0, yy2 - yy1)
+            iou = inter / (areas[i] + areas[order[1:]] - inter + 1e-6)
+            inds = np.where(iou <= iou_threshold)[0]
+            order = order[inds + 1]
+        return keep
 
     def get_embedding(self, image: np.ndarray, landmarks: np.ndarray) -> np.ndarray:
         """Extract face embedding using ArcFace."""
@@ -264,18 +408,24 @@ class FaceSwapPipeline:
         if not source_faces:
             raise ValueError("No face detected in source image")
 
-        # Get source embedding
+        # Get source embedding and transform via emap
         src_bbox, src_landmarks = source_faces[0]
         source_embedding = self.get_embedding(source_image, src_landmarks)
+        latent = np.dot(source_embedding.reshape(1, -1), self._emap)
+        latent /= (np.linalg.norm(latent) + 1e-8)
 
         # Swap each target face
         result = target_image.copy()
         for bbox, landmarks in target_faces:
             aligned, M = align_face(result, landmarks, size=128)
 
-            # Prepare inswapper input
-            face_blob = aligned.astype(np.float32).transpose(2, 0, 1)[np.newaxis] / 255.0
-            emb_blob = source_embedding[np.newaxis].astype(np.float32)
+            # Prepare inswapper input: blobFromImage with mean=0, std=255, swapRB
+            aligned_bgr = cv2.cvtColor(aligned, cv2.COLOR_RGB2BGR)
+            face_blob = cv2.dnn.blobFromImage(
+                aligned_bgr, 1.0 / 255.0, (128, 128),
+                (0.0, 0.0, 0.0), swapRB=True,
+            )
+            emb_blob = latent.astype(np.float32)
 
             # Run inswapper
             input_names = list(self._inswapper.inputs.keys())

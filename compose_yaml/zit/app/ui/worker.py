@@ -247,10 +247,27 @@ def _worker_loop(
         return _run_inpaint(inpaint_kwargs, task_id)
 
     # -------------------------------------------------------------------
-    # Handler: FaceSwap (Phase 5 — placeholder)
+    # Handler: FaceSwap
     # -------------------------------------------------------------------
     def _run_faceswap(kwargs, task_id):
-        raise NotImplementedError("FaceSwap not yet implemented (Phase 5)")
+        import numpy as np
+        from PIL import Image as PILImage
+
+        seed = resolve_seed(kwargs["seed"])
+
+        mgr.load_faceswap()
+        pipeline = mgr.faceswap_pipeline
+
+        target = np.array(PILImage.open(kwargs["target_path"]).convert("RGB"))
+        source = np.array(PILImage.open(kwargs["source_path"]).convert("RGB"))
+
+        log.info("FaceSwap seed=%d target=%s source=%s", seed, target.shape, source.shape)
+
+        result = pipeline.swap_face(target, source)
+
+        output_path = make_output_path("faceswap")
+        PILImage.fromarray(result).save(output_path, quality=95)
+        return output_path, seed
 
     # -------------------------------------------------------------------
     # Handler dispatch
