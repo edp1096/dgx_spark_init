@@ -611,12 +611,10 @@ class FaceSwapPipeline:
         for bbox, landmarks in swap_targets:
             aligned, M = align_face(result, landmarks, size=128)
 
-            # Prepare inswapper input
+            # Prepare inswapper input — BGR, normalized to [-1, 1]
             aligned_bgr = cv2.cvtColor(aligned, cv2.COLOR_RGB2BGR)
-            face_blob = cv2.dnn.blobFromImage(
-                aligned_bgr, 1.0 / 255.0, (128, 128),
-                (0.0, 0.0, 0.0), swapRB=True,
-            )
+            face_blob = (aligned_bgr.astype(np.float32) / 255.0 - 0.5) / 0.5  # [-1, 1]
+            face_blob = face_blob.transpose(2, 0, 1)[np.newaxis]  # NCHW
             emb_blob = latent.astype(np.float32)
 
             # Run inswapper
@@ -625,8 +623,10 @@ class FaceSwapPipeline:
                 input_names[0]: face_blob,
                 input_names[1]: emb_blob,
             })
-            swapped = list(outputs.values())[0][0].transpose(1, 2, 0)
-            swapped = (swapped * 255).clip(0, 255).astype(np.uint8)
+            # Output is BGR [-1, 1] → RGB uint8
+            swapped_bgr = list(outputs.values())[0][0].transpose(1, 2, 0)
+            swapped_bgr = ((swapped_bgr + 1) / 2 * 255).clip(0, 255).astype(np.uint8)
+            swapped = cv2.cvtColor(swapped_bgr, cv2.COLOR_BGR2RGB)
 
             # CodeFormer restoration: 128px → 512px → resize back to 128 for paste
             if enable_restore and self._codeformer is not None:
