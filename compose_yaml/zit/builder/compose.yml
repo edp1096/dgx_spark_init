@@ -49,7 +49,7 @@ services:
       done;
 
       echo '=== [4/7] Python packages ===';
-      pip install -q gradio accelerate safetensors huggingface_hub psutil loguru einops fire transformers peft timm;
+      pip install -q gradio accelerate safetensors huggingface_hub psutil loguru einops fire transformers peft timm diffusers sentencepiece opencv-python-headless;
 
       echo '=== [5/7] q8_kernels (aarch64 FP8 GEMM) ===';
       Q8_WHEEL_URL=https://raw.githubusercontent.com/edp1096/dgx_spark_init/main/compose_yaml/ltx-2.3/builder/q8_kernels-0.0.5-cp312-cp312-linux_aarch64.whl;
