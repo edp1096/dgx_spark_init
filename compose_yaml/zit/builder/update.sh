@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ZIT UI Hot-Update Script
-# Downloads latest UI files from GitHub API (dynamic file list).
+# Downloads latest UI files from GitHub API (recursive directory traversal).
 #
 # Usage (inside container):
 #   bash ~/zit-ui/update.sh              # Update & restart Gradio
@@ -24,8 +24,12 @@ fail() {
     FAILED_FILES+=("$1")
 }
 
-list_remote_files() {
+# List remote files recursively via GitHub API.
+# Outputs relative paths (e.g. "depth.py", "zoe/__init__.py", "zoe/zoedepth/models/builder.py").
+list_remote_files_recursive() {
     local api_path="$1"
+    local prefix="$2"  # relative prefix for output paths
+
     curl -sf "${GITHUB_API}/${api_path}?ref=${GITHUB_BRANCH}" | python3 -c "
 import sys, json
 items = json.load(sys.stdin)
@@ -35,9 +39,37 @@ for item in items:
         continue
     if name.endswith(('.pyc', '.whl')):
         continue
+    prefix = '${prefix}'
+    rel = (prefix + '/' + name) if prefix else name
     if item['type'] == 'file':
-        print(name)
+        print('FILE ' + rel)
+    elif item['type'] == 'dir':
+        print('DIR ' + rel)
 " 2>/dev/null
+}
+
+# Collect all files under an API path recursively.
+# Results stored in the global ALL_FILES array.
+ALL_FILES=()
+collect_files() {
+    local api_path="$1"
+    local prefix="$2"
+
+    while IFS= read -r line; do
+        [ -z "$line" ] && continue
+        local kind="${line%% *}"
+        local rel="${line#* }"
+        if [ "$kind" = "FILE" ]; then
+            ALL_FILES+=("$rel")
+        elif [ "$kind" = "DIR" ]; then
+            # Recurse into subdirectory
+            if [ -n "$prefix" ]; then
+                collect_files "${api_path%/}/${rel#${prefix}/}" "$rel"
+            else
+                collect_files "${api_path}/${rel}" "$rel"
+            fi
+        fi
+    done < <(list_remote_files_recursive "$api_path" "$prefix")
 }
 
 print_summary() {
@@ -78,26 +110,22 @@ for arg in "$@"; do
     esac
 done
 
-echo "Fetching file lists from GitHub API..."
+echo "Fetching file lists from GitHub API (recursive)..."
 
-# Fetch app/ files
-APP_FILES=()
-while IFS= read -r f; do
-    [ -n "$f" ] && APP_FILES+=("$f")
-done < <(list_remote_files "app")
+# Fetch app/ files (flat — app.py only)
+ALL_FILES=()
+collect_files "app" ""
+APP_FILES=("${ALL_FILES[@]}")
 
-# Fetch app/ui/ files
-UI_FILES=()
-while IFS= read -r f; do
-    [ -n "$f" ] && UI_FILES+=("$f")
-done < <(list_remote_files "app/ui")
+# Fetch app/ui/ files (recursive — includes videox_models/, preprocessors/zoe/ etc.)
+ALL_FILES=()
+collect_files "app/ui" ""
+UI_FILES=("${ALL_FILES[@]}")
 
 # Fetch tests/ files
-TESTS_DIR="${SCRIPT_DIR}/tests"
-TEST_FILES=()
-while IFS= read -r f; do
-    [ -n "$f" ] && TEST_FILES+=("$f")
-done < <(list_remote_files "tests")
+ALL_FILES=()
+collect_files "tests" ""
+TEST_FILES=("${ALL_FILES[@]}")
 
 if [ ${#APP_FILES[@]} -eq 0 ] && [ ${#UI_FILES[@]} -eq 0 ]; then
     echo "ERROR: Failed to fetch file list from GitHub API."
@@ -105,28 +133,35 @@ if [ ${#APP_FILES[@]} -eq 0 ] && [ ${#UI_FILES[@]} -eq 0 ]; then
     exit 1
 fi
 
-echo "  App files:  ${#APP_FILES[@]} (${APP_FILES[*]})"
-echo "  UI files:   ${#UI_FILES[@]} (${UI_FILES[*]})"
-echo "  Test files: ${#TEST_FILES[@]} (${TEST_FILES[*]})"
+echo "  App files:  ${#APP_FILES[@]}"
+echo "  UI files:   ${#UI_FILES[@]}"
+echo "  Test files: ${#TEST_FILES[@]}"
 echo ""
+
+# Helper: ensure parent directory exists for a relative path
+ensure_parent() {
+    local dir
+    dir="$(dirname "$1")"
+    [ "$dir" != "." ] && mkdir -p "$dir"
+}
 
 if [ "$DIFF_ONLY" = true ]; then
     echo "=== Checking for changes ==="
     TEMP_DIR=$(mktemp -d)
     trap "rm -rf $TEMP_DIR" EXIT
-    mkdir -p "$TEMP_DIR/ui"
 
     changed=0
     for fname in "${APP_FILES[@]}"; do
-        if ! curl -sfL "${GITHUB_RAW}/app/${fname}" -o "${TEMP_DIR}/${fname}" 2>/dev/null; then
+        mkdir -p "${TEMP_DIR}/app/$(dirname "$fname")"
+        if ! curl -sfL "${GITHUB_RAW}/app/${fname}" -o "${TEMP_DIR}/app/${fname}" 2>/dev/null; then
             fail "app/${fname} (download)"
             continue
         fi
         current="${APP_DIR}/${fname}"
         if [ -f "$current" ]; then
-            if ! diff -q "$current" "${TEMP_DIR}/${fname}" > /dev/null 2>&1; then
+            if ! diff -q "$current" "${TEMP_DIR}/app/${fname}" > /dev/null 2>&1; then
                 echo "--- CHANGED: app/${fname} ---"
-                diff --color=auto -u "$current" "${TEMP_DIR}/${fname}" || true
+                diff --color=auto -u "$current" "${TEMP_DIR}/app/${fname}" || true
                 changed=$((changed + 1))
             fi
         else
@@ -136,6 +171,7 @@ if [ "$DIFF_ONLY" = true ]; then
     done
 
     for fname in "${UI_FILES[@]}"; do
+        mkdir -p "${TEMP_DIR}/ui/$(dirname "$fname")"
         if ! curl -sfL "${GITHUB_RAW}/app/ui/${fname}" -o "${TEMP_DIR}/ui/${fname}" 2>/dev/null; then
             fail "app/ui/${fname} (download)"
             continue
@@ -153,13 +189,13 @@ if [ "$DIFF_ONLY" = true ]; then
         fi
     done
 
-    mkdir -p "$TEMP_DIR/tests"
     for fname in "${TEST_FILES[@]}"; do
+        mkdir -p "${TEMP_DIR}/tests/$(dirname "$fname")"
         if ! curl -sfL "${GITHUB_RAW}/tests/${fname}" -o "${TEMP_DIR}/tests/${fname}" 2>/dev/null; then
             fail "tests/${fname} (download)"
             continue
         fi
-        current="${TESTS_DIR}/${fname}"
+        current="${SCRIPT_DIR}/tests/${fname}"
         if [ -f "$current" ]; then
             if ! diff -q "$current" "${TEMP_DIR}/tests/${fname}" > /dev/null 2>&1; then
                 echo "--- CHANGED: tests/${fname} ---"
@@ -187,15 +223,24 @@ echo "=============================================="
 # [1/3] Backup
 if [ "$FORCE" = false ]; then
     echo "[1/3] Backing up current files..."
-    mkdir -p "$BACKUP_DIR/ui" "$BACKUP_DIR/tests"
+    mkdir -p "$BACKUP_DIR"
     for fname in "${APP_FILES[@]}"; do
-        [ -f "${APP_DIR}/${fname}" ] && cp "${APP_DIR}/${fname}" "${BACKUP_DIR}/${fname}"
+        if [ -f "${APP_DIR}/${fname}" ]; then
+            mkdir -p "${BACKUP_DIR}/app/$(dirname "$fname")"
+            cp "${APP_DIR}/${fname}" "${BACKUP_DIR}/app/${fname}"
+        fi
     done
     for fname in "${UI_FILES[@]}"; do
-        [ -f "${UI_DIR}/${fname}" ] && cp "${UI_DIR}/${fname}" "${BACKUP_DIR}/ui/${fname}"
+        if [ -f "${UI_DIR}/${fname}" ]; then
+            mkdir -p "${BACKUP_DIR}/ui/$(dirname "$fname")"
+            cp "${UI_DIR}/${fname}" "${BACKUP_DIR}/ui/${fname}"
+        fi
     done
     for fname in "${TEST_FILES[@]}"; do
-        [ -f "${TESTS_DIR}/${fname}" ] && cp "${TESTS_DIR}/${fname}" "${BACKUP_DIR}/tests/${fname}"
+        if [ -f "${SCRIPT_DIR}/tests/${fname}" ]; then
+            mkdir -p "${BACKUP_DIR}/tests/$(dirname "$fname")"
+            cp "${SCRIPT_DIR}/tests/${fname}" "${BACKUP_DIR}/tests/${fname}"
+        fi
     done
     echo "  Backup: ${BACKUP_DIR}"
 else
@@ -204,9 +249,9 @@ fi
 
 # [2/3] Download
 echo "[2/3] Downloading files..."
-mkdir -p "$APP_DIR" "$UI_DIR" "$TESTS_DIR"
 
 for fname in "${APP_FILES[@]}"; do
+    mkdir -p "${APP_DIR}/$(dirname "$fname")"
     if curl -sfL "${GITHUB_RAW}/app/${fname}" -o "${APP_DIR}/${fname}"; then
         echo "  OK: app/${fname}"
     else
@@ -216,6 +261,7 @@ for fname in "${APP_FILES[@]}"; do
 done
 
 for fname in "${UI_FILES[@]}"; do
+    mkdir -p "${UI_DIR}/$(dirname "$fname")"
     if curl -sfL "${GITHUB_RAW}/app/ui/${fname}" -o "${UI_DIR}/${fname}"; then
         echo "  OK: app/ui/${fname}"
     else
@@ -224,7 +270,10 @@ for fname in "${UI_FILES[@]}"; do
     fi
 done
 
+TESTS_DIR="${SCRIPT_DIR}/tests"
+mkdir -p "$TESTS_DIR"
 for fname in "${TEST_FILES[@]}"; do
+    mkdir -p "${TESTS_DIR}/$(dirname "$fname")"
     if curl -sfL "${GITHUB_RAW}/tests/${fname}" -o "${TESTS_DIR}/${fname}"; then
         echo "  OK: tests/${fname}"
     else
