@@ -39,6 +39,12 @@ LORAS_DIR = "loras"
 DATASETS_DIR = "datasets"
 
 # ---------------------------------------------------------------------------
+# Translator model (MADLAD-400-3B-MT, inside MODEL_DIR)
+# ---------------------------------------------------------------------------
+MADLAD_DIR = "madlad400-3b-mt"
+MADLAD_REPO = "google/madlad400-3b-mt"
+
+# ---------------------------------------------------------------------------
 # HuggingFace repo IDs for preprocessor weights
 # ---------------------------------------------------------------------------
 DWPOSE_DET_URL = "https://huggingface.co/yzd-v/DWPose/resolve/main/yolox_l.onnx"

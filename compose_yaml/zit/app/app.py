@@ -418,22 +418,28 @@ def build_ui() -> gr.Blocks:
 .memory-status { text-align: right; }
 #gen-gallery .grid-container,
 #cn-gallery .grid-container,
-#history-gallery .grid-container {
+#history-gallery .grid-container,
+#presets-gallery .grid-container {
   grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)) !important;
 }
 #gen-gallery .thumbnails button,
 #cn-gallery .thumbnails button,
-#history-gallery .thumbnails button {
+#history-gallery .thumbnails button,
+#presets-gallery .thumbnails button {
   max-height: 200px;
   max-width: 200px;
 }
 #gen-gallery .thumbnails button img,
 #cn-gallery .thumbnails button img,
-#history-gallery .thumbnails button img {
+#history-gallery .thumbnails button img,
+#presets-gallery .thumbnails button img {
   max-height: 180px;
   object-fit: contain;
 }
 #history-gallery { min-height: 400px; }
+@media (min-width: 769px) {
+  #history-gallery { height: calc(100vh - 260px) !important; overflow-y: auto; }
+}
 @media (max-width: 768px) {
   #history-gallery .thumbnails { grid-template-columns: repeat(2, 1fr) !important; }
 }
@@ -493,6 +499,21 @@ def build_ui() -> gr.Blocks:
                         g_generate = gr.Button("Generate", variant="primary")
 
                     with gr.Column(scale=1):
+                        with gr.Accordion("Presets", open=False):
+                            preset_gallery = gr.Gallery(
+                                label="Click to load preset",
+                                value=_list_presets,
+                                columns=3, height=480, object_fit="contain",
+                                preview=False, elem_id="presets-gallery",
+                            )
+                            with gr.Row():
+                                g_save_preset = gr.Button("Save as Preset", size="sm", variant="primary")
+                            g_save_status = gr.Textbox(label="", interactive=False, visible=False)
+                            gr.Markdown("### JSON")
+                            with gr.Row():
+                                g_preset_export = gr.Button("Export JSON", size="sm", variant="secondary")
+                                g_preset_import = gr.UploadButton("Import JSON", size="sm", variant="secondary", file_types=[".json"])
+                            g_preset_download = gr.File(visible=False)
                         g_gallery = gr.Gallery(label="Generated Images", columns=2, height=500, object_fit="contain", elem_id="gen-gallery", preview=True, selected_index=0)
                         g_info = gr.Textbox(label="Info", interactive=False,
                                             value=lambda: get_gen_info_for_tab("generate"), every=2)
@@ -502,23 +523,6 @@ def build_ui() -> gr.Blocks:
                         gr.Markdown(value=get_loading_status, every=1)
                         g_kill_btn.click(fn=_do_kill, outputs=[g_kill_msg])
                         g_gen_paths = gr.State([])
-
-                    with gr.Column(scale=1):
-                        gr.Markdown("### Presets")
-                        preset_gallery = gr.Gallery(
-                            label="Click to load preset",
-                            value=_list_presets,
-                            columns=3, height=480, object_fit="contain",
-                            preview=False, elem_id="presets-gallery",
-                        )
-                        with gr.Row():
-                            g_save_preset = gr.Button("Save as Preset", size="sm", variant="primary")
-                        g_save_status = gr.Textbox(label="", interactive=False, visible=False)
-                        gr.Markdown("### JSON")
-                        with gr.Row():
-                            g_preset_export = gr.Button("Export JSON", size="sm", variant="secondary")
-                            g_preset_import = gr.UploadButton("Import JSON", size="sm", variant="secondary", file_types=[".json"])
-                        g_preset_download = gr.File(visible=False)
 
                 # Generate dispatch — ZIT only
                 def _generate_dispatch(prompt, resolution, seed, num_images,

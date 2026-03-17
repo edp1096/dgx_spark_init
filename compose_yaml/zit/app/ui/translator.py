@@ -3,6 +3,8 @@
 import logging
 import torch
 
+from zit_config import MADLAD_DIR, MADLAD_REPO, MODEL_DIR
+
 logger = logging.getLogger(__name__)
 
 _model = None
@@ -14,11 +16,12 @@ def _load():
     if _model is not None:
         return
     from transformers import T5ForConditionalGeneration, T5Tokenizer
-    model_id = "google/madlad400-3b-mt"
-    logger.info("Loading translator: %s (INT8)...", model_id)
-    _tokenizer = T5Tokenizer.from_pretrained(model_id)
+    local_path = MODEL_DIR / MADLAD_DIR
+    model_src = str(local_path) if local_path.exists() else MADLAD_REPO
+    logger.info("Loading translator: %s (INT8)...", model_src)
+    _tokenizer = T5Tokenizer.from_pretrained(model_src)
     _model = T5ForConditionalGeneration.from_pretrained(
-        model_id,
+        model_src,
         device_map="auto",
         load_in_8bit=True,
     )

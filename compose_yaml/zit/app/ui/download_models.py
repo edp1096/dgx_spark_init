@@ -21,6 +21,8 @@ from zit_config import (
     HED_FILE,
     HED_URL,
     LORAS_DIR,
+    MADLAD_DIR,
+    MADLAD_REPO,
     MODEL_DIR,
     PREPROCESSORS_DIR,
     ZOEDEPTH_FILE,
@@ -197,6 +199,24 @@ def download_preprocessors(model_dir: Path | None = None):
 
 
 # ---------------------------------------------------------------------------
+# MADLAD-400 translator download
+# ---------------------------------------------------------------------------
+def download_madlad(model_dir: Path | None = None):
+    model_dir = model_dir or MODEL_DIR
+    dest = model_dir / MADLAD_DIR
+    if dest.exists() and any(dest.rglob("*.safetensors")) or any(dest.rglob("*.bin")):
+        print(f"[OK] MADLAD-400-3B-MT already exists")
+        return
+    print(f"[DL] Downloading MADLAD-400-3B-MT -> {dest}")
+    snapshot_download(
+        MADLAD_REPO,
+        local_dir=str(dest),
+        ignore_patterns=["*.md", ".gitattributes"],
+    )
+    print(f"[OK] MADLAD-400-3B-MT downloaded")
+
+
+# ---------------------------------------------------------------------------
 # Status check
 # ---------------------------------------------------------------------------
 def check_status(model_dir: Path | None = None):
@@ -223,6 +243,14 @@ def check_status(model_dir: Path | None = None):
     else:
         print(f"  [MISSING] ControlNet Union")
 
+    # MADLAD-400 translator
+    madlad_path = model_dir / MADLAD_DIR
+    if madlad_path.exists() and (any(madlad_path.rglob("*.safetensors")) or any(madlad_path.rglob("*.bin"))):
+        size = sum(f.stat().st_size for f in madlad_path.rglob("*.safetensors")) + sum(f.stat().st_size for f in madlad_path.rglob("*.bin"))
+        print(f"  [OK] MADLAD-400-3B-MT ({size / 1024**3:.1f} GB)")
+    else:
+        print(f"  [MISSING] MADLAD-400-3B-MT")
+
     # Preprocessors
     prep_dir = model_dir / PREPROCESSORS_DIR
     for fname in [DWPOSE_DET_FILE, DWPOSE_POSE_FILE, ZOEDEPTH_FILE, HED_FILE]:
@@ -245,6 +273,7 @@ def download_all(model_dir: Path | None = None):
     download_zimage_turbo(model_dir)
     download_controlnet(model_dir)
     download_preprocessors(model_dir)
+    download_madlad(model_dir)
 
     print()
     check_status(model_dir)
