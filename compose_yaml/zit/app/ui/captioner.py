@@ -18,15 +18,13 @@ _model_name = None
 
 
 def _patch_florence2_cache():
-    """Fix Florence-2 processing_florence2.py for transformers 5.x compatibility.
+    """Fix Florence-2 cached files for transformers 5.x compatibility.
 
-    The cached file calls tokenizer.additional_special_tokens which was removed
-    in transformers 5.x. Replace with getattr() fallback.
+    1. processing_florence2.py: tokenizer.additional_special_tokens removed
+    2. configuration_florence2.py: forced_bos_token_id removed from PretrainedConfig
     """
-    import importlib
-    cache_dir = Path(importlib.util.find_spec("transformers").origin).parent.parent
-    # HuggingFace modules cache
     modules_dir = Path.home() / ".cache" / "huggingface" / "modules" / "transformers_modules"
+    # Patch 1: processing_florence2.py — additional_special_tokens
     for proc_file in modules_dir.rglob("processing_florence2.py"):
         try:
             text = proc_file.read_text(encoding="utf-8")
@@ -37,6 +35,18 @@ def _patch_florence2_cache():
                 logger.info("Patched Florence-2 processing: %s", proc_file)
         except Exception as e:
             logger.warning("Failed to patch Florence-2 processing: %s", e)
+    # Patch 2: configuration_florence2.py — forced_bos_token_id
+    for cfg_file in modules_dir.rglob("configuration_florence2.py"):
+        try:
+            text = cfg_file.read_text(encoding="utf-8")
+            old = "if self.forced_bos_token_id is None"
+            new = "if getattr(self, 'forced_bos_token_id', None) is None"
+            if old in text and "getattr(self, 'forced_bos_token_id'" not in text:
+                text = text.replace(old, new)
+                cfg_file.write_text(text, encoding="utf-8")
+                logger.info("Patched Florence-2 config: %s", cfg_file)
+        except Exception as e:
+            logger.warning("Failed to patch Florence-2 config: %s", e)
 
 
 def _load_model(model_id: str = CAPTION_MODEL_ID):
