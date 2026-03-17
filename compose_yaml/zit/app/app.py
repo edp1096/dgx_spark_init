@@ -23,9 +23,11 @@ from generators import (
     match_image_resolution,
     preview_preprocessor,
     get_gen_info_for_tab,
-    get_latest_gallery,
     get_loading_status,
     get_worker_mgr,
+    save_gen_ui_params,
+    get_gen_ui_params,
+    wait_for_gen_completion,
     set_model_dir,
 )
 from i18n import LANGUAGES, get_i18n_js
@@ -781,6 +783,15 @@ def build_ui() -> gr.Blocks:
                                        max_seq, use_fp8, attn_backend,
                                        lora_enable, lora, lora_scale,
                                        progress=gr.Progress(track_tqdm=True)):
+                    save_gen_ui_params({
+                        "tab": "generate",
+                        "prompt": prompt, "neg": neg, "resolution": resolution,
+                        "seed": seed, "num_images": num_images,
+                        "steps": steps, "time_shift": time_shift,
+                        "cfg": cfg, "cfg_norm": cfg_norm, "cfg_trunc": cfg_trunc,
+                        "max_seq": max_seq, "use_fp8": use_fp8, "attn": attn_backend,
+                        "lora_enable": lora_enable, "lora": lora, "lora_scale": lora_scale,
+                    })
                     effective_lora = lora if lora_enable and lora != "None" else None
                     paths, info = generate_zit_t2i(
                         prompt, resolution, seed, num_images,
@@ -955,6 +966,15 @@ def build_ui() -> gr.Blocks:
                                  steps, time_shift, control_scale, guidance, cfg_trunc, max_seq,
                                  use_fp8, lora, lora_scale,
                                  progress=gr.Progress(track_tqdm=True)):
+                    save_gen_ui_params({
+                        "tab": "controlnet",
+                        "prompt": prompt, "neg": neg, "resolution": resolution,
+                        "seed": seed, "mode": mode,
+                        "steps": steps, "time_shift": time_shift,
+                        "control_scale": control_scale, "guidance": guidance,
+                        "cfg_trunc": cfg_trunc, "max_seq": max_seq,
+                        "use_fp8": use_fp8, "lora": lora, "lora_scale": lora_scale,
+                    })
                     # Use preview image (preprocessed) if available, else preprocess now
                     preprocessed = preview_preprocessor(mode, image)
                     effective_lora = lora if lora != "None" else None
@@ -1121,6 +1141,16 @@ def build_ui() -> gr.Blocks:
                                 steps, time_shift, control_scale, guidance, cfg_trunc, max_seq,
                                 use_controlnet, lora_enable, lora, lora_scale,
                                 progress=gr.Progress(track_tqdm=True)):
+                    save_gen_ui_params({
+                        "tab": "inpaint",
+                        "prompt": prompt, "neg": neg, "resolution": resolution,
+                        "seed": seed,
+                        "steps": steps, "time_shift": time_shift,
+                        "control_scale": control_scale, "guidance": guidance,
+                        "cfg_trunc": cfg_trunc, "max_seq": max_seq,
+                        "use_controlnet": use_controlnet,
+                        "lora_enable": lora_enable, "lora": lora, "lora_scale": lora_scale,
+                    })
                     effective_lora = lora if lora_enable and lora != "None" else None
                     paths, info = generate_inpaint(
                         prompt, editor_val, resolution, seed,
@@ -1149,6 +1179,16 @@ def build_ui() -> gr.Blocks:
                                  steps, time_shift, control_scale, guidance, cfg_trunc, max_seq,
                                  use_controlnet, lora_enable, lora, lora_scale,
                                  progress=gr.Progress(track_tqdm=True)):
+                    save_gen_ui_params({
+                        "tab": "inpaint",
+                        "prompt": prompt, "neg": neg, "resolution": resolution,
+                        "seed": seed,
+                        "steps": steps, "time_shift": time_shift,
+                        "control_scale": control_scale, "guidance": guidance,
+                        "cfg_trunc": cfg_trunc, "max_seq": max_seq,
+                        "use_controlnet": use_controlnet,
+                        "lora_enable": lora_enable, "lora": lora, "lora_scale": lora_scale,
+                    })
                     effective_lora = lora if lora_enable and lora != "None" else None
                     paths, info = generate_outpaint(
                         prompt, out_image, direction, expand_px, resolution, seed,
@@ -1177,6 +1217,7 @@ def build_ui() -> gr.Blocks:
             with gr.Tab("Train", id="train") as tr_tab:
                 # Train state — defined before UI so lambda polling can reference them
                 _active_trainer = {"mgr": None}
+                _train_ui_params = {"p": None}  # UI params for refresh recovery
                 _train_state = {
                     "yield_active": False,
                     "status": "Ready",
@@ -1252,6 +1293,7 @@ def build_ui() -> gr.Blocks:
                             ts["log"] = tb
                             ts["progress_md"] = "**Failed**"
                         _active_trainer["mgr"] = None
+                        _train_ui_params["p"] = None
 
                 def _get_train_status():
                     if _active_trainer.get("mgr") and not _train_state["yield_active"]:
@@ -1448,6 +1490,13 @@ def build_ui() -> gr.Blocks:
                 def _start_training(dataset_name, name, steps, rank, lr, lora_alpha,
                                     resolution,
                                     batch, grad_accum, save_every, targets):
+                    _train_ui_params["p"] = {
+                        "dataset": dataset_name, "name": name,
+                        "steps": steps, "rank": rank, "lr": lr,
+                        "lora_alpha": lora_alpha, "resolution": resolution,
+                        "batch": batch, "grad_accum": grad_accum,
+                        "save_every": save_every, "targets": targets,
+                    }
                     ts = _train_state
                     try:
                         if not dataset_name:
@@ -1726,21 +1775,120 @@ def build_ui() -> gr.Blocks:
                 h_delete_all.click(fn=_delete_all, outputs=[h_gallery])
                 h_clear_cache.click(fn=_clear_cache, outputs=[h_cache_msg])
 
-        # Page load: recover last generation results
-        def _on_page_load():
-            g = get_latest_gallery("generate")
-            cn = get_latest_gallery("controlnet")
-            ip_paths = get_latest_gallery("inpaint")
-            ip = ip_paths[0] if ip_paths else None
+        # Page load: restore params if generation is in progress
+        def _restore_gen_params():
+            """Restore Generate tab params on refresh during generation."""
+            skip = tuple([gr.update()] * 16)
+            is_active, gen_type, p = get_gen_ui_params()
+            if not is_active or not p or p.get("tab") != "generate":
+                return skip
             return (
-                gr.Gallery(value=g) if g else gr.Gallery(),
-                gr.Gallery(value=cn) if cn else gr.Gallery(),
-                ip,
+                p["prompt"], p["neg"], p["resolution"],
+                p["seed"], p["num_images"],
+                p["steps"], p["time_shift"],
+                p["cfg"], p["cfg_norm"], p["cfg_trunc"],
+                p["max_seq"], p["use_fp8"], p["attn"],
+                p["lora_enable"], p["lora"], p["lora_scale"],
+            )
+
+        def _restore_cn_params():
+            """Restore ControlNet tab params on refresh during generation."""
+            skip = tuple([gr.update()] * 14)
+            is_active, gen_type, p = get_gen_ui_params()
+            if not is_active or not p or p.get("tab") != "controlnet":
+                return skip
+            return (
+                p["prompt"], p["neg"], p["resolution"],
+                p["seed"], p["mode"],
+                p["steps"], p["time_shift"],
+                p["control_scale"], p["guidance"],
+                p["cfg_trunc"], p["max_seq"], p["use_fp8"],
+                p["lora"], p["lora_scale"],
+            )
+
+        def _restore_ip_params():
+            """Restore Inpaint tab params on refresh during generation."""
+            skip = tuple([gr.update()] * 14)
+            is_active, gen_type, p = get_gen_ui_params()
+            if not is_active or not p or p.get("tab") != "inpaint":
+                return skip
+            return (
+                p["prompt"], p["neg"], p["resolution"],
+                p["seed"],
+                p["steps"], p["time_shift"],
+                p["control_scale"], p["guidance"],
+                p["cfg_trunc"], p["max_seq"],
+                p["use_controlnet"],
+                p["lora_enable"], p["lora"], p["lora_scale"],
+            )
+
+        def _recover_gallery():
+            """Block until ongoing generation completes, then update gallery.
+            Shows Gradio spinner on output components while waiting.
+            No-op (instant return) if no generation is in progress.
+            """
+            is_active, _, _ = get_gen_ui_params()
+            if not is_active:
+                return gr.update(), gr.update(), gr.update()
+
+            result = wait_for_gen_completion(timeout=600)
+            if not result:
+                return gr.update(), gr.update(), gr.update()
+
+            paths = result["paths"]
+            gen_type = result["gen_type"]
+            if gen_type == "zit_t2i":
+                return gr.Gallery(value=paths, selected_index=0), gr.update(), gr.update()
+            elif gen_type == "controlnet":
+                return gr.update(), gr.Gallery(value=paths, selected_index=0), gr.update()
+            elif gen_type in ("inpaint", "outpaint"):
+                return gr.update(), gr.update(), paths[0] if paths else None
+            return gr.update(), gr.update(), gr.update()
+
+        app.load(
+            fn=_restore_gen_params,
+            outputs=[g_prompt, g_neg, g_resolution, g_seed, g_num,
+                     g_steps, g_time_shift, g_cfg, g_cfg_norm, g_cfg_trunc,
+                     g_max_seq, g_use_fp8, g_attn,
+                     g_lora_enable, g_lora, g_lora_scale],
+        )
+        app.load(
+            fn=_restore_cn_params,
+            outputs=[cn_prompt, cn_neg, cn_resolution, cn_seed, cn_mode,
+                     cn_steps, cn_time_shift, cn_control_scale, cn_guidance,
+                     cn_cfg_trunc, cn_max_seq, cn_use_fp8,
+                     cn_lora, cn_lora_scale],
+        )
+        app.load(
+            fn=_restore_ip_params,
+            outputs=[ip_prompt, ip_neg, ip_resolution, ip_seed,
+                     ip_steps, ip_time_shift, ip_control_scale, ip_guidance,
+                     ip_cfg_trunc, ip_max_seq,
+                     ip_use_controlnet,
+                     ip_lora_enable, ip_lora, ip_lora_scale],
+        )
+        def _restore_train_params():
+            """Restore Train tab params on refresh during training."""
+            skip = tuple([gr.update()] * 11)
+            p = _train_ui_params.get("p")
+            if not p or not _active_trainer.get("mgr"):
+                return skip
+            return (
+                p["dataset"], p["name"],
+                p["steps"], p["rank"], p["lr"], p["lora_alpha"],
+                p["resolution"],
+                p["batch"], p["grad_accum"], p["save_every"], p["targets"],
             )
 
         app.load(
-            fn=_on_page_load,
+            fn=_recover_gallery,
             outputs=[g_gallery, cn_gallery, ip_result],
+        )
+        app.load(
+            fn=_restore_train_params,
+            outputs=[tr_dataset, tr_name, tr_steps, tr_rank, tr_lr, tr_lora_alpha,
+                     tr_resolution,
+                     tr_batch, tr_grad_accum, tr_save_every, tr_targets],
         )
 
     return app

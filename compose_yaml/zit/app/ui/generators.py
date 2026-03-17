@@ -43,11 +43,12 @@ _last_gen_result: dict | None = None
 _result_version = 0
 _handler_active = False   # True while _submit_and_wait is running
 _active_gen_type = ""     # gen_type of current/last generation
+_active_gen_ui_params: dict | None = None  # UI params saved at generation start
 
 
 def _poll_gen_recovery():
     """Drain worker queues when handler died (browser refresh) but gen is active."""
-    global _loading_status, _gen_active, _last_gen_result, _result_version
+    global _loading_status, _gen_active, _last_gen_result, _result_version, _active_gen_ui_params
 
     mgr = _worker_mgr
     if mgr is None:
@@ -81,6 +82,7 @@ def _poll_gen_recovery():
             info = f"Seed: {seed} | Images: {len(paths)}"
         _loading_status = ""
         _gen_active = False
+        _active_gen_ui_params = None
         _result_version += 1
         _last_gen_result = {
             "paths": paths, "info": info,
@@ -89,12 +91,39 @@ def _poll_gen_recovery():
     else:
         _loading_status = ""
         _gen_active = False
+        _active_gen_ui_params = None
 
 
 def get_loading_status() -> str:
     if _gen_active and not _handler_active:
         _poll_gen_recovery()
     return _loading_status
+
+
+def save_gen_ui_params(params: dict):
+    """Save UI parameter values at generation start for refresh recovery."""
+    global _active_gen_ui_params
+    _active_gen_ui_params = params
+
+
+def get_gen_ui_params() -> tuple[bool, str, dict | None]:
+    """Return (is_active, gen_type, ui_params) for page-load recovery."""
+    if _gen_active:
+        return True, _active_gen_type, _active_gen_ui_params
+    return False, "", None
+
+
+def wait_for_gen_completion(timeout: int = 600):
+    """Block until generation completes (for page-load gallery recovery).
+    Returns _last_gen_result or None.
+    """
+    if not _gen_active:
+        return None
+    for _ in range(timeout):
+        if not _gen_active:
+            break
+        time.sleep(1)
+    return _last_gen_result
 
 
 def get_latest_gallery(gen_type: str):
@@ -182,7 +211,7 @@ def _cleanup_temp_files(kwargs: dict):
 def _submit_and_wait(gen_type: str, kwargs: dict, progress,
                      need_controlnet: bool = True) -> tuple[str, str]:
     global _loading_status, _gen_active, _last_gen_result, _result_version
-    global _handler_active, _active_gen_type
+    global _handler_active, _active_gen_type, _active_gen_ui_params
 
     _gen_active = True
     _handler_active = True
@@ -233,6 +262,7 @@ def _submit_and_wait(gen_type: str, kwargs: dict, progress,
                     logger.info("Generation complete: %s", info)
                     _save_metadata(paths[0], gen_type, seed, elapsed, kwargs)
                     _gen_active = False
+                    _active_gen_ui_params = None
                     _result_version += 1
                     _last_gen_result = {
                         "paths": paths, "info": info,
@@ -246,6 +276,7 @@ def _submit_and_wait(gen_type: str, kwargs: dict, progress,
     except Exception:
         _gen_active = False
         _handler_active = False
+        _active_gen_ui_params = None
         _loading_status = ""
         _cleanup_temp_files(kwargs)
         raise
