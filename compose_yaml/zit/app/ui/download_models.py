@@ -21,8 +21,8 @@ from zit_config import (
     HED_FILE,
     HED_URL,
     LORAS_DIR,
-    MADLAD_DIR,
-    MADLAD_REPO,
+    TRANSLATOR_DIR,
+    TRANSLATOR_REPO,
     MODEL_DIR,
     PREPROCESSORS_DIR,
     ZOEDEPTH_FILE,
@@ -199,21 +199,21 @@ def download_preprocessors(model_dir: Path | None = None):
 
 
 # ---------------------------------------------------------------------------
-# MADLAD-400 translator download
+# NLLB-200 translator download
 # ---------------------------------------------------------------------------
-def download_madlad(model_dir: Path | None = None):
+def download_translator(model_dir: Path | None = None):
     model_dir = model_dir or MODEL_DIR
-    dest = model_dir / MADLAD_DIR
-    if dest.exists() and any(dest.rglob("*.safetensors")) or any(dest.rglob("*.bin")):
-        print(f"[OK] MADLAD-400-3B-MT already exists")
+    dest = model_dir / TRANSLATOR_DIR
+    if dest.exists() and (any(dest.rglob("*.safetensors")) or any(dest.rglob("*.bin"))):
+        print(f"[OK] NLLB-200-distilled-600M already exists")
         return
-    print(f"[DL] Downloading MADLAD-400-3B-MT -> {dest}")
+    print(f"[DL] Downloading NLLB-200-distilled-600M -> {dest}")
     snapshot_download(
-        MADLAD_REPO,
+        TRANSLATOR_REPO,
         local_dir=str(dest),
         ignore_patterns=["*.md", ".gitattributes"],
     )
-    print(f"[OK] MADLAD-400-3B-MT downloaded")
+    print(f"[OK] NLLB-200-distilled-600M downloaded")
 
 
 # ---------------------------------------------------------------------------
@@ -243,13 +243,13 @@ def check_status(model_dir: Path | None = None):
     else:
         print(f"  [MISSING] ControlNet Union")
 
-    # MADLAD-400 translator
-    madlad_path = model_dir / MADLAD_DIR
-    if madlad_path.exists() and (any(madlad_path.rglob("*.safetensors")) or any(madlad_path.rglob("*.bin"))):
-        size = sum(f.stat().st_size for f in madlad_path.rglob("*.safetensors")) + sum(f.stat().st_size for f in madlad_path.rglob("*.bin"))
-        print(f"  [OK] MADLAD-400-3B-MT ({size / 1024**3:.1f} GB)")
+    # NLLB-200 translator
+    nllb_path = model_dir / TRANSLATOR_DIR
+    if nllb_path.exists() and (any(nllb_path.rglob("*.safetensors")) or any(nllb_path.rglob("*.bin"))):
+        size = sum(f.stat().st_size for f in nllb_path.rglob("*.safetensors")) + sum(f.stat().st_size for f in nllb_path.rglob("*.bin"))
+        print(f"  [OK] NLLB-200-distilled-600M ({size / 1024**3:.1f} GB)")
     else:
-        print(f"  [MISSING] MADLAD-400-3B-MT")
+        print(f"  [MISSING] NLLB-200-distilled-600M")
 
     # Preprocessors
     prep_dir = model_dir / PREPROCESSORS_DIR
@@ -273,7 +273,7 @@ def download_all(model_dir: Path | None = None):
     download_zimage_turbo(model_dir)
     download_controlnet(model_dir)
     download_preprocessors(model_dir)
-    download_madlad(model_dir)
+    download_translator(model_dir)
 
     print()
     check_status(model_dir)

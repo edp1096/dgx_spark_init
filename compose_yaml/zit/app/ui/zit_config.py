@@ -39,10 +39,10 @@ LORAS_DIR = "loras"
 DATASETS_DIR = "datasets"
 
 # ---------------------------------------------------------------------------
-# Translator model (MADLAD-400-3B-MT, inside MODEL_DIR)
+# Translator model (NLLB-200-distilled-600M, inside MODEL_DIR)
 # ---------------------------------------------------------------------------
-MADLAD_DIR = "madlad400-3b-mt"
-MADLAD_REPO = "google/madlad400-3b-mt"
+TRANSLATOR_DIR = "nllb-200-distilled-600M"
+TRANSLATOR_REPO = "facebook/nllb-200-distilled-600M"
 
 # ---------------------------------------------------------------------------
 # HuggingFace repo IDs for preprocessor weights
