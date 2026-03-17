@@ -384,15 +384,37 @@ class LoRATrainer:
         finally:
             self._training = False
             self._stop_requested = False
-            # Cleanup GPU memory
+            # Cleanup GPU memory — delete ALL local refs holding tensors/models
             try:
-                del transformer, text_encoder, vae, optimizer
+                del transformer
             except NameError:
                 pass
-            for _ in range(3):
-                gc.collect()
+            try:
+                del text_encoder
+            except NameError:
+                pass
+            try:
+                del vae
+            except NameError:
+                pass
+            try:
+                del optimizer
+            except NameError:
+                pass
+            try:
+                del dataloader, data_iter, dataset
+            except NameError:
+                pass
+            try:
+                del tokenizer
+            except NameError:
+                pass
+            gc.collect()
+            gc.collect()
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
+            gc.collect()
+            logger.info("Training cleanup complete — GPU memory released")
 
     @staticmethod
     def _encode_text(captions, tokenizer, text_encoder, device, max_length=512):

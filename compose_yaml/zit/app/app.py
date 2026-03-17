@@ -704,7 +704,7 @@ def build_ui() -> gr.Blocks:
                         )
                         with gr.Row():
                             g_seed = gr.Number(value=-1, label="Seed (-1=random)", precision=0)
-                            g_num = gr.Number(value=1, label="Num Images", precision=0, minimum=1, maximum=4)
+                            g_num = gr.Number(value=1, label="Num Images", precision=0, minimum=1, maximum=32)
                         g_steps = gr.Slider(1, 100, value=DEFAULT_STEPS, step=1, label="Steps")
                         g_time_shift = gr.Slider(1.0, 12.0, value=DEFAULT_TIME_SHIFT, step=0.5, label="Time Shift")
                         g_cfg = gr.Slider(0.0, 10.0, value=DEFAULT_GUIDANCE, step=0.5, label="Guidance Scale")
@@ -1247,7 +1247,7 @@ def build_ui() -> gr.Blocks:
                             tr_resolution = gr.Dropdown(
                                 [256, 384, 512, 768, 1024], value=512, label="Resolution",
                             )
-                        tr_batch = gr.Number(value=1, label="Batch Size", precision=0, minimum=1, maximum=4)
+                        tr_batch = gr.Number(value=1, label="Batch Size", precision=0, minimum=1, maximum=32)
                         tr_grad_accum = gr.Number(value=1, label="Gradient Accumulation", precision=0, minimum=1, maximum=8)
                         tr_save_every = gr.Number(value=500, label="Save Checkpoint Every N Steps", precision=0)
                         tr_targets = gr.Textbox(
