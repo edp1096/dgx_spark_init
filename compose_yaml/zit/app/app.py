@@ -300,8 +300,14 @@ def _delete_single_image(image_path: str, dataset_name: str):
         return f"Error: {e}", gallery, summary, "", ""
 
 
+def _dedupe_tokens(existing: str, new_text: str) -> list[str]:
+    """Return tokens from new_text that are not already in existing (comma-separated, case-insensitive)."""
+    existing_tokens = {t.strip().lower() for t in existing.split(",") if t.strip()}
+    return [t.strip() for t in new_text.split(",") if t.strip() and t.strip().lower() not in existing_tokens]
+
+
 def _batch_prepend(text: str, dataset_name: str):
-    """Prepend text to all caption .txt files (creates if missing)."""
+    """Prepend text to all caption .txt files (creates if missing). Skips duplicate tokens."""
     try:
         if not dataset_name or not text.strip():
             gallery, summary = _dataset_contents(dataset_name)
@@ -309,12 +315,18 @@ def _batch_prepend(text: str, dataset_name: str):
         ds_path = DATASETS_BASE / dataset_name
         img_exts = {".jpg", ".jpeg", ".png", ".webp", ".bmp"}
         imgs = sorted(f for f in ds_path.iterdir() if f.suffix.lower() in img_exts)
+        modified = 0
         for img in imgs:
             txt_path = img.with_suffix(".txt")
             existing = txt_path.read_text(encoding="utf-8").strip() if txt_path.exists() else ""
-            txt_path.write_text(f"{text.strip()} {existing}".strip(), encoding="utf-8")
+            new_tokens = _dedupe_tokens(existing, text)
+            if new_tokens:
+                prepend_str = ", ".join(new_tokens)
+                combined = f"{prepend_str}, {existing}" if existing else prepend_str
+                txt_path.write_text(combined, encoding="utf-8")
+                modified += 1
         gallery, summary = _dataset_contents(dataset_name)
-        return f"Prepended to {len(imgs)} files", gallery, summary
+        return f"Prepended to {modified}/{len(imgs)} files (duplicates skipped)", gallery, summary
     except Exception as e:
         logger.error("Batch prepend error: %s", e)
         gallery, summary = _dataset_contents(dataset_name)
@@ -322,7 +334,7 @@ def _batch_prepend(text: str, dataset_name: str):
 
 
 def _batch_append(text: str, dataset_name: str):
-    """Append text to all caption .txt files (creates if missing)."""
+    """Append text to all caption .txt files (creates if missing). Skips duplicate tokens."""
     try:
         if not dataset_name or not text.strip():
             gallery, summary = _dataset_contents(dataset_name)
@@ -330,12 +342,18 @@ def _batch_append(text: str, dataset_name: str):
         ds_path = DATASETS_BASE / dataset_name
         img_exts = {".jpg", ".jpeg", ".png", ".webp", ".bmp"}
         imgs = sorted(f for f in ds_path.iterdir() if f.suffix.lower() in img_exts)
+        modified = 0
         for img in imgs:
             txt_path = img.with_suffix(".txt")
             existing = txt_path.read_text(encoding="utf-8").strip() if txt_path.exists() else ""
-            txt_path.write_text(f"{existing} {text.strip()}".strip(), encoding="utf-8")
+            new_tokens = _dedupe_tokens(existing, text)
+            if new_tokens:
+                append_str = ", ".join(new_tokens)
+                combined = f"{existing}, {append_str}" if existing else append_str
+                txt_path.write_text(combined, encoding="utf-8")
+                modified += 1
         gallery, summary = _dataset_contents(dataset_name)
-        return f"Appended to {len(imgs)} files", gallery, summary
+        return f"Appended to {modified}/{len(imgs)} files (duplicates skipped)", gallery, summary
     except Exception as e:
         logger.error("Batch append error: %s", e)
         gallery, summary = _dataset_contents(dataset_name)
