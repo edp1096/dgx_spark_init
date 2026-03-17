@@ -60,6 +60,12 @@ ATTENTION_BACKENDS = ["native", "flash", "flash_varlen", "_native_flash", "_nati
 def _do_kill():
     mgr = get_worker_mgr()
     msg = mgr.kill()
+    try:
+        from app.ui.translator import unload as unload_translator
+        unload_translator()
+        msg += " | Translator unloaded."
+    except Exception:
+        pass
     logger.info("Kill: %s", msg)
     return msg
 
@@ -473,6 +479,11 @@ def build_ui() -> gr.Blocks:
                             for i, sp in enumerate(SAMPLE_PROMPTS[:3]):
                                 gr.Button(f"Sample {i+1}", size="sm", min_width=60).click(
                                     fn=lambda s=sp: s, outputs=[g_prompt])
+                        with gr.Accordion("Translate to English", open=False):
+                            with gr.Row():
+                                g_translate_btn = gr.Button("Translate", size="sm", variant="secondary")
+                                g_translate_use = gr.Button("Use Translation", size="sm", variant="secondary")
+                            g_translate_result = gr.Textbox(label="Translation", lines=3, interactive=False)
                         g_neg = gr.Textbox(label="Negative Prompt", lines=2)
                         g_resolution = gr.Dropdown(
                             RESOLUTION_CHOICES, value="512x768",
@@ -576,6 +587,21 @@ def build_ui() -> gr.Blocks:
                              g_steps, g_time_shift, g_cfg, g_cfg_norm, g_cfg_trunc, g_max_seq],
                 )
 
+                # Translate prompt
+                def _translate(text):
+                    try:
+                        from app.ui.translator import translate_to_en
+                        return translate_to_en(text)
+                    except Exception as e:
+                        return f"Error: {e}"
+
+                g_translate_btn.click(
+                    fn=_translate, inputs=[g_prompt], outputs=[g_translate_result],
+                )
+                g_translate_use.click(
+                    fn=lambda t: t, inputs=[g_translate_result], outputs=[g_prompt],
+                )
+
             # ==============================================================
             # Tab 2: ControlNet
             # ==============================================================
@@ -589,6 +615,11 @@ def build_ui() -> gr.Blocks:
                         cn_preview_btn = gr.Button("Preview Preprocessor", variant="secondary", size="sm")
                         cn_preview = gr.Image(label="Control Preview", interactive=False, buttons=["download", "fullscreen"])
                         cn_prompt = gr.Textbox(label="Prompt", lines=3, placeholder="Describe your image...")
+                        with gr.Accordion("Translate to English", open=False):
+                            with gr.Row():
+                                cn_translate_btn = gr.Button("Translate", size="sm", variant="secondary")
+                                cn_translate_use = gr.Button("Use Translation", size="sm", variant="secondary")
+                            cn_translate_result = gr.Textbox(label="Translation", lines=3, interactive=False)
                         cn_neg = gr.Textbox(label="Negative Prompt", lines=2)
                         cn_resolution = gr.Dropdown(
                             RESOLUTION_CHOICES, value="512x768",
@@ -664,6 +695,14 @@ def build_ui() -> gr.Blocks:
                             cn_lora, cn_lora_scale],
                     outputs=[cn_gallery, cn_info],
                     concurrency_limit=1,
+                )
+
+                # Translate prompt (ControlNet)
+                cn_translate_btn.click(
+                    fn=_translate, inputs=[cn_prompt], outputs=[cn_translate_result],
+                )
+                cn_translate_use.click(
+                    fn=lambda t: t, inputs=[cn_translate_result], outputs=[cn_prompt],
                 )
 
             # ==============================================================
