@@ -311,16 +311,16 @@ def _list_presets():
 def _load_preset_params(evt: gr.SelectData):
     """Load preset parameters from JSON when user clicks a preset image."""
     try:
-        # Use index to find original preset path (evt.value may be a cache path)
+        idx = evt.index if isinstance(evt.index, int) else -1
         examples = _list_presets()
         path = None
-        if isinstance(evt.index, int) and 0 <= evt.index < len(examples):
-            path = examples[evt.index]
+        if 0 <= idx < len(examples):
+            path = examples[idx]
         if not path:
-            return [gr.update()] * 10
+            return *([gr.update()] * 10), -1
         json_path = Path(path).with_suffix(".json")
         if not json_path.exists():
-            return [gr.update()] * 10
+            return *([gr.update()] * 10), -1
         data = json.loads(json_path.read_text())
         kw = data.get("kwargs", data)
         w = kw.get("width", 512)
@@ -336,9 +336,32 @@ def _load_preset_params(evt: gr.SelectData):
             kw.get("cfg_normalization", False),
             kw.get("cfg_truncation", DEFAULT_CFG_TRUNCATION),
             kw.get("max_sequence_length", DEFAULT_MAX_SEQ_LENGTH),
+            idx,
         ]
     except Exception:
-        return [gr.update()] * 10
+        return *([gr.update()] * 10), -1
+
+
+def _delete_preset(selected_idx):
+    """Delete preset image (.png) and its metadata (.json) by index."""
+    try:
+        if selected_idx is None or selected_idx < 0:
+            return _list_presets(), "No preset selected."
+        presets = _list_presets()
+        if selected_idx >= len(presets):
+            return _list_presets(), "Invalid preset index."
+        path = Path(presets[selected_idx])
+        json_path = path.with_suffix(".json")
+        deleted = []
+        if path.exists():
+            path.unlink()
+            deleted.append(path.name)
+        if json_path.exists():
+            json_path.unlink()
+            deleted.append(json_path.name)
+        return _list_presets(), f"Deleted: {', '.join(deleted)}" if deleted else (_list_presets(), "Files not found.")
+    except Exception as e:
+        return _list_presets(), f"Error: {e}"
 
 
 def _save_as_preset(gen_paths, prompt, neg, resolution, seed,
@@ -577,6 +600,7 @@ def build_ui() -> gr.Blocks:
                     with gr.Column(scale=1):
                         with gr.Accordion("Presets", open=False, elem_id="presets-section"):
                             preset_height = gr.State(200)
+                            preset_sel_idx = gr.State(-1)
                             with gr.Row(elem_id="presets-toggle-row"):
                                 g_preset_expand = gr.Button("Expand", size="sm", variant="secondary")
                                 g_save_preset = gr.Button("Save as Preset", size="sm", variant="primary")
@@ -586,7 +610,8 @@ def build_ui() -> gr.Blocks:
                                 columns=3, height=200, object_fit="contain",
                                 preview=False, elem_id="presets-gallery",
                             )
-                            g_save_status = gr.Textbox(label="", interactive=False, visible=False)
+                            g_save_status = gr.Textbox(label="", interactive=False, lines=1, show_label=False)
+                            g_delete_preset = gr.Button("Delete Selected Preset", size="sm", variant="stop")
                             gr.Markdown("### JSON")
                             with gr.Row():
                                 g_preset_export = gr.Button("Export JSON", size="sm", variant="secondary")
@@ -642,11 +667,12 @@ def build_ui() -> gr.Blocks:
                     concurrency_limit=1,
                 )
 
-                # Presets: click to load params
+                # Presets: click to load params + track selected index
                 preset_gallery.select(
                     fn=_load_preset_params,
                     outputs=[g_prompt, g_neg, g_resolution, g_seed,
-                             g_steps, g_time_shift, g_cfg, g_cfg_norm, g_cfg_trunc, g_max_seq],
+                             g_steps, g_time_shift, g_cfg, g_cfg_norm, g_cfg_trunc, g_max_seq,
+                             preset_sel_idx],
                 )
 
                 # Save current generation as preset
@@ -654,6 +680,13 @@ def build_ui() -> gr.Blocks:
                     fn=_save_as_preset,
                     inputs=[g_gen_paths, g_prompt, g_neg, g_resolution, g_seed,
                             g_steps, g_time_shift, g_cfg, g_cfg_norm, g_cfg_trunc, g_max_seq],
+                    outputs=[preset_gallery, g_save_status],
+                )
+
+                # Delete selected preset (.png + .json)
+                g_delete_preset.click(
+                    fn=_delete_preset,
+                    inputs=[preset_sel_idx],
                     outputs=[preset_gallery, g_save_status],
                 )
 
@@ -998,7 +1031,7 @@ def build_ui() -> gr.Blocks:
             # ==============================================================
             # Tab 4: Train LoRA
             # ==============================================================
-            with gr.Tab("Train", id="train"):
+            with gr.Tab("Train", id="train") as tr_tab:
                 with gr.Row():
                     with gr.Column(scale=1):
                         gr.Markdown("### LoRA Training")
@@ -1057,6 +1090,20 @@ def build_ui() -> gr.Blocks:
                         tr_status = gr.Textbox(label="Status", interactive=False, lines=3)
                         tr_log = gr.Textbox(label="Training Log", interactive=False, lines=15)
                         tr_progress = gr.Markdown("Ready")
+
+                # --- Tab select: auto-load first dataset ---
+                def _on_train_tab():
+                    datasets = _scan_datasets()
+                    if not datasets:
+                        return gr.update(choices=[], value=None), [], "No dataset selected"
+                    first = datasets[0]
+                    gallery, summary = _dataset_contents(first)
+                    return gr.update(choices=datasets, value=first), gallery, summary
+
+                tr_tab.select(
+                    fn=_on_train_tab,
+                    outputs=[tr_dataset, tr_ds_gallery, tr_ds_summary],
+                )
 
                 # --- Dataset management events ---
                 tr_dataset.change(
