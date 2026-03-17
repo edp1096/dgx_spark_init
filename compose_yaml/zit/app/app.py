@@ -29,6 +29,7 @@ from generators import (
 )
 from i18n import LANGUAGES, get_i18n_js
 from pipeline_manager import OUTPUT_DIR, scan_lora_files
+from translator import LANG_CHOICES as _translate_choices, DEFAULT_LANG as _translate_default
 
 
 def _lora_choices():
@@ -197,37 +198,53 @@ def _create_dataset(name: str):
 
 
 def _upload_to_dataset(files, dataset_name: str):
-    """Copy uploaded files into the selected dataset folder."""
+    """Auto-copy uploaded files into the selected dataset folder.
+
+    Called on gr.File.upload event — copies files immediately and clears
+    the drop zone so it stays ready for more files.
+    """
     if not dataset_name:
-        return "Error: select a dataset first", gr.update()
+        gallery, summary = _dataset_contents(dataset_name)
+        return "Error: select a dataset first", None, gallery, summary
     ds_path = DATASETS_BASE / dataset_name
     ds_path.mkdir(parents=True, exist_ok=True)
     if not files:
-        return "No files uploaded", gr.update()
+        gallery, summary = _dataset_contents(dataset_name)
+        return "No files uploaded", None, gallery, summary
     count = 0
     for f in files:
         src = Path(f)
         dst = ds_path / src.name
         shutil.copy2(str(src), str(dst))
         count += 1
-    return f"Uploaded {count} file(s) to {dataset_name}/", None
+    gallery, summary = _dataset_contents(dataset_name)
+    return f"Uploaded {count} file(s) to {dataset_name}/", None, gallery, summary
 
 
 def _dataset_contents(dataset_name: str):
-    """Return file listing for selected dataset."""
+    """Return (gallery_images, summary_text) for selected dataset."""
     if not dataset_name:
-        return "No dataset selected"
+        return [], "No dataset selected"
     ds_path = DATASETS_BASE / dataset_name
     if not ds_path.is_dir():
-        return "Dataset not found"
+        return [], "Dataset not found"
     files = sorted(ds_path.iterdir())
     if not files:
-        return "(empty)"
-    imgs = [f.name for f in files if f.suffix.lower() in (".jpg", ".jpeg", ".png", ".webp")]
-    txts = [f.name for f in files if f.suffix.lower() == ".txt"]
-    return f"Images: {len(imgs)}, Captions: {len(txts)}\n" + "\n".join(
-        f.name for f in files
-    )
+        return [], "(empty)"
+    img_exts = (".jpg", ".jpeg", ".png", ".webp")
+    imgs = [f for f in files if f.suffix.lower() in img_exts]
+    txts = [f for f in files if f.suffix.lower() == ".txt"]
+    # Gallery: (filepath, caption) pairs — caption from matching .txt if exists
+    gallery = []
+    for img in imgs:
+        caption_file = img.with_suffix(".txt")
+        if caption_file.exists():
+            caption = caption_file.read_text(encoding="utf-8").strip()[:80]
+        else:
+            caption = img.stem
+        gallery.append((str(img), caption))
+    summary = f"Images: {len(imgs)}, Captions: {len(txts)}"
+    return gallery, summary
 
 
 # ---------------------------------------------------------------------------
@@ -419,20 +436,23 @@ def build_ui() -> gr.Blocks:
 #gen-gallery .grid-container,
 #cn-gallery .grid-container,
 #history-gallery .grid-container,
-#presets-gallery .grid-container {
+#presets-gallery .grid-container,
+#dataset-gallery .grid-container {
   grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)) !important;
 }
 #gen-gallery .thumbnails button,
 #cn-gallery .thumbnails button,
 #history-gallery .thumbnails button,
-#presets-gallery .thumbnails button {
+#presets-gallery .thumbnails button,
+#dataset-gallery .thumbnails button {
   max-height: 200px;
   max-width: 200px;
 }
 #gen-gallery .thumbnails button img,
 #cn-gallery .thumbnails button img,
 #history-gallery .thumbnails button img,
-#presets-gallery .thumbnails button img {
+#presets-gallery .thumbnails button img,
+#dataset-gallery .thumbnails button img {
   max-height: 180px;
   object-fit: contain;
 }
@@ -464,10 +484,14 @@ def build_ui() -> gr.Blocks:
                             for i, sp in enumerate(SAMPLE_PROMPTS[:3]):
                                 gr.Button(f"Sample {i+1}", size="sm", min_width=60).click(
                                     fn=lambda s=sp: s, outputs=[g_prompt])
-                        with gr.Accordion("Translate to English", open=False):
+                        with gr.Accordion("Translate", open=False):
                             with gr.Row():
-                                g_translate_btn = gr.Button("Translate", size="sm", variant="secondary")
-                                g_translate_use = gr.Button("Use Translation", size="sm", variant="secondary")
+                                g_translate_lang = gr.Dropdown(
+                                    choices=_translate_choices, value=_translate_default,
+                                    label="Target", scale=2, min_width=160,
+                                )
+                                g_translate_btn = gr.Button("Translate", size="sm", variant="secondary", scale=1)
+                                g_translate_use = gr.Button("Use", size="sm", variant="secondary", scale=1)
                             g_translate_result = gr.Textbox(label="Translation", lines=3, interactive=False)
                         g_neg = gr.Textbox(label="Negative Prompt", lines=2)
                         g_resolution = gr.Dropdown(
@@ -601,15 +625,15 @@ def build_ui() -> gr.Blocks:
                 )
 
                 # Translate prompt
-                def _translate(text):
+                def _translate(text, target_lang):
                     try:
-                        from translator import translate_to_en
-                        return translate_to_en(text)
+                        from translator import translate
+                        return translate(text, target_lang)
                     except Exception as e:
                         return f"Error: {e}"
 
                 g_translate_btn.click(
-                    fn=_translate, inputs=[g_prompt], outputs=[g_translate_result],
+                    fn=_translate, inputs=[g_prompt, g_translate_lang], outputs=[g_translate_result],
                 )
                 g_translate_use.click(
                     fn=lambda t: t, inputs=[g_translate_result], outputs=[g_prompt],
@@ -628,10 +652,14 @@ def build_ui() -> gr.Blocks:
                         cn_preview_btn = gr.Button("Preview Preprocessor", variant="secondary", size="sm")
                         cn_preview = gr.Image(label="Control Preview", interactive=False, buttons=["download", "fullscreen"])
                         cn_prompt = gr.Textbox(label="Prompt", lines=3, placeholder="Describe your image...")
-                        with gr.Accordion("Translate to English", open=False):
+                        with gr.Accordion("Translate", open=False):
                             with gr.Row():
-                                cn_translate_btn = gr.Button("Translate", size="sm", variant="secondary")
-                                cn_translate_use = gr.Button("Use Translation", size="sm", variant="secondary")
+                                cn_translate_lang = gr.Dropdown(
+                                    choices=_translate_choices, value=_translate_default,
+                                    label="Target", scale=2, min_width=160,
+                                )
+                                cn_translate_btn = gr.Button("Translate", size="sm", variant="secondary", scale=1)
+                                cn_translate_use = gr.Button("Use", size="sm", variant="secondary", scale=1)
                             cn_translate_result = gr.Textbox(label="Translation", lines=3, interactive=False)
                         cn_neg = gr.Textbox(label="Negative Prompt", lines=2)
                         cn_resolution = gr.Dropdown(
@@ -715,7 +743,7 @@ def build_ui() -> gr.Blocks:
 
                 # Translate prompt (ControlNet)
                 cn_translate_btn.click(
-                    fn=_translate, inputs=[cn_prompt], outputs=[cn_translate_result],
+                    fn=_translate, inputs=[cn_prompt, cn_translate_lang], outputs=[cn_translate_result],
                 )
                 cn_translate_use.click(
                     fn=lambda t: t, inputs=[cn_translate_result], outputs=[cn_prompt],
@@ -747,6 +775,15 @@ def build_ui() -> gr.Blocks:
                         ip_expand = gr.Slider(64, 512, value=256, step=64, label="Expand Size (px)", visible=False)
 
                         ip_prompt = gr.Textbox(label="Prompt", lines=3, placeholder="Describe what to fill...")
+                        with gr.Accordion("Translate", open=False):
+                            with gr.Row():
+                                ip_translate_lang = gr.Dropdown(
+                                    choices=_translate_choices, value=_translate_default,
+                                    label="Target", scale=2, min_width=160,
+                                )
+                                ip_translate_btn = gr.Button("Translate", size="sm", variant="secondary", scale=1)
+                                ip_translate_use = gr.Button("Use", size="sm", variant="secondary", scale=1)
+                            ip_translate_result = gr.Textbox(label="Translation", lines=3, interactive=False)
                         ip_neg = gr.Textbox(label="Negative Prompt", lines=2)
                         ip_resolution = gr.Dropdown(
                             RESOLUTION_CHOICES, value="512x768",
@@ -771,6 +808,30 @@ def build_ui() -> gr.Blocks:
                         gr.Markdown(value=get_loading_status, every=1)
                         ip_kill_btn.click(fn=_do_kill, outputs=[ip_kill_msg])
 
+                # Fix: force RGB conversion on image upload (Gradio 6.9 white canvas bug)
+                def _fix_editor_upload(editor_val):
+                    import numpy as np
+                    if editor_val is None:
+                        return editor_val
+                    if isinstance(editor_val, dict):
+                        bg = editor_val.get("background")
+                        if bg is not None and isinstance(bg, np.ndarray):
+                            if bg.ndim == 3 and bg.shape[2] == 4:
+                                # RGBA → RGB: composite alpha onto white background
+                                alpha = bg[:, :, 3:4].astype(np.float32) / 255.0
+                                rgb = bg[:, :, :3].astype(np.float32)
+                                white = np.full_like(rgb, 255.0)
+                                bg = (rgb * alpha + white * (1 - alpha)).astype(np.uint8)
+                                editor_val["background"] = bg
+                            elif bg.ndim == 2:
+                                # Grayscale → RGB
+                                editor_val["background"] = np.stack([bg]*3, axis=-1)
+                    return editor_val
+
+                ip_editor.upload(
+                    fn=_fix_editor_upload, inputs=[ip_editor], outputs=[ip_editor],
+                )
+
                 # Mode switch: show/hide inpaint vs outpaint controls
                 def _on_ip_mode(mode):
                     is_inpaint = mode == "Inpaint"
@@ -787,6 +848,14 @@ def build_ui() -> gr.Blocks:
                     fn=_on_ip_mode, inputs=[ip_mode],
                     outputs=[ip_editor, ip_out_image, ip_direction, ip_expand,
                              ip_gen_inpaint, ip_gen_outpaint],
+                )
+
+                # Translate for inpaint
+                ip_translate_btn.click(
+                    fn=_translate, inputs=[ip_prompt, ip_translate_lang], outputs=[ip_translate_result],
+                )
+                ip_translate_use.click(
+                    fn=lambda t: t, inputs=[ip_translate_result], outputs=[ip_prompt],
                 )
 
                 # Generate inpaint
@@ -849,17 +918,21 @@ def build_ui() -> gr.Blocks:
                                 info="Select a dataset or create a new one below",
                                 allow_custom_value=False,
                             )
-                            tr_ds_info = gr.Textbox(label="Dataset Contents", interactive=False, lines=3)
+                            tr_ds_summary = gr.Textbox(label="Dataset", interactive=False, lines=1, show_label=False)
+                            tr_ds_gallery = gr.Gallery(
+                                label="Dataset Images", columns=4, height=200,
+                                object_fit="cover", preview=False,
+                                elem_id="dataset-gallery",
+                            )
                             with gr.Accordion("Manage Dataset", open=False):
                                 with gr.Row():
                                     tr_new_name = gr.Textbox(label="New Dataset Name", placeholder="my_face_dataset", scale=3)
                                     tr_create_btn = gr.Button("Create", scale=1)
                                 tr_upload = gr.File(
-                                    label="Upload Images & Captions",
+                                    label="Drop Images & Captions here (auto-upload)",
                                     file_count="multiple",
                                     file_types=["image", ".txt"],
                                 )
-                                tr_upload_btn = gr.Button("Upload to Dataset")
                                 tr_ds_status = gr.Textbox(label="", interactive=False, lines=1, show_label=False)
                         # --- Training params ---
                         tr_name = gr.Textbox(label="LoRA Name", value="my_lora",
@@ -892,21 +965,17 @@ def build_ui() -> gr.Blocks:
                 tr_dataset.change(
                     fn=_dataset_contents,
                     inputs=[tr_dataset],
-                    outputs=[tr_ds_info],
+                    outputs=[tr_ds_gallery, tr_ds_summary],
                 )
                 tr_create_btn.click(
                     fn=_create_dataset,
                     inputs=[tr_new_name],
                     outputs=[tr_dataset, tr_new_name, tr_ds_status],
                 )
-                tr_upload_btn.click(
+                tr_upload.upload(
                     fn=_upload_to_dataset,
                     inputs=[tr_upload, tr_dataset],
-                    outputs=[tr_ds_status, tr_upload],
-                ).then(
-                    fn=_dataset_contents,
-                    inputs=[tr_dataset],
-                    outputs=[tr_ds_info],
+                    outputs=[tr_ds_status, tr_upload, tr_ds_gallery, tr_ds_summary],
                 )
 
                 # Train state (module-level to survive across calls)
