@@ -1012,7 +1012,7 @@ def build_ui() -> gr.Blocks:
                             )
                             tr_ds_summary = gr.Textbox(label="Dataset", interactive=False, lines=1, show_label=False)
                             tr_ds_gallery = gr.Gallery(
-                                label="Dataset Images (click to delete)", columns=4, max_height=200,
+                                label="Dataset Images (click to delete)", columns=4, height=200,
                                 object_fit="cover", preview=False,
                                 elem_id="dataset-gallery",
                             )
