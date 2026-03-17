@@ -1190,12 +1190,27 @@ def build_ui() -> gr.Blocks:
                                 allow_custom_value=False,
                             )
                             tr_ds_summary = gr.Textbox(label="Dataset", interactive=False, lines=1, show_label=False, value=_ds_summary_init)
-                            tr_ds_gallery = gr.Gallery(
-                                label="Dataset Images (click to edit caption)", columns=4, height=200,
-                                object_fit="cover", preview=False,
-                                elem_id="dataset-gallery",
-                                value=_ds_gallery_init,
-                            )
+                            with gr.Accordion("Data Images", open=True, elem_id="data-images-section"):
+                                tr_ds_gallery_height = gr.State(200)
+                                with gr.Row():
+                                    tr_ds_expand = gr.Button("Expand", size="sm", variant="secondary")
+                                tr_ds_gallery = gr.Gallery(
+                                    label="Dataset Images (click to edit caption)", columns=4, height=200,
+                                    object_fit="cover", preview=False,
+                                    elem_id="dataset-gallery",
+                                    value=_ds_gallery_init,
+                                )
+
+                                def _toggle_ds_gallery_height(current_h):
+                                    if current_h <= 200:
+                                        return 600, gr.Gallery(height=600), gr.Button(value="Collapse")
+                                    else:
+                                        return 200, gr.Gallery(height=200), gr.Button(value="Expand")
+                                tr_ds_expand.click(
+                                    fn=_toggle_ds_gallery_height,
+                                    inputs=[tr_ds_gallery_height],
+                                    outputs=[tr_ds_gallery_height, tr_ds_gallery, tr_ds_expand],
+                                )
                             with gr.Accordion("Caption Editor", open=True):
                                 tr_selected_image = gr.Textbox(visible=False)
                                 tr_caption_edit = gr.Textbox(

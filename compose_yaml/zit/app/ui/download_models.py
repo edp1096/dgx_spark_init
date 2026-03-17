@@ -199,21 +199,21 @@ def download_preprocessors(model_dir: Path | None = None):
 
 
 # ---------------------------------------------------------------------------
-# NLLB-200 translator download
+# Translator model download
 # ---------------------------------------------------------------------------
 def download_translator(model_dir: Path | None = None):
     model_dir = model_dir or MODEL_DIR
     dest = model_dir / TRANSLATOR_DIR
     if dest.exists() and (any(dest.rglob("*.safetensors")) or any(dest.rglob("*.bin"))):
-        print(f"[OK] NLLB-200-distilled-600M already exists")
+        print(f"[OK] {TRANSLATOR_DIR} already exists")
         return
-    print(f"[DL] Downloading NLLB-200-distilled-600M -> {dest}")
+    print(f"[DL] Downloading {TRANSLATOR_DIR} -> {dest}")
     snapshot_download(
         TRANSLATOR_REPO,
         local_dir=str(dest),
         ignore_patterns=["*.md", ".gitattributes"],
     )
-    print(f"[OK] NLLB-200-distilled-600M downloaded")
+    print(f"[OK] {TRANSLATOR_DIR} downloaded")
 
 
 # ---------------------------------------------------------------------------
@@ -243,13 +243,13 @@ def check_status(model_dir: Path | None = None):
     else:
         print(f"  [MISSING] ControlNet Union")
 
-    # NLLB-200 translator
-    nllb_path = model_dir / TRANSLATOR_DIR
-    if nllb_path.exists() and (any(nllb_path.rglob("*.safetensors")) or any(nllb_path.rglob("*.bin"))):
-        size = sum(f.stat().st_size for f in nllb_path.rglob("*.safetensors")) + sum(f.stat().st_size for f in nllb_path.rglob("*.bin"))
-        print(f"  [OK] NLLB-200-distilled-600M ({size / 1024**3:.1f} GB)")
+    # Translator
+    translator_path = model_dir / TRANSLATOR_DIR
+    if translator_path.exists() and (any(translator_path.rglob("*.safetensors")) or any(translator_path.rglob("*.bin"))):
+        size = sum(f.stat().st_size for f in translator_path.rglob("*.safetensors")) + sum(f.stat().st_size for f in translator_path.rglob("*.bin"))
+        print(f"  [OK] {TRANSLATOR_DIR} ({size / 1024**3:.1f} GB)")
     else:
-        print(f"  [MISSING] NLLB-200-distilled-600M")
+        print(f"  [MISSING] {TRANSLATOR_DIR}")
 
     # Preprocessors
     prep_dir = model_dir / PREPROCESSORS_DIR
