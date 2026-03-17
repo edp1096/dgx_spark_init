@@ -266,15 +266,15 @@ def _delete_dataset_image(evt: "gr.SelectData", dataset_name: str):
 
 
 def _dataset_contents(dataset_name: str):
-    """Return (gallery_images, summary_text) for selected dataset."""
+    """Return (gallery_update, summary_text) for selected dataset."""
     if not dataset_name:
-        return [], "No dataset selected"
+        return gr.update(value=[]), "No dataset selected"
     ds_path = DATASETS_BASE / dataset_name
     if not ds_path.is_dir():
-        return [], "Dataset not found"
+        return gr.update(value=[]), "Dataset not found"
     files = sorted(ds_path.iterdir())
     if not files:
-        return [], "(empty)"
+        return gr.update(value=[]), "(empty)"
     img_exts = (".jpg", ".jpeg", ".png", ".webp")
     imgs = [f for f in files if f.suffix.lower() in img_exts]
     txts = [f for f in files if f.suffix.lower() == ".txt"]
@@ -288,7 +288,7 @@ def _dataset_contents(dataset_name: str):
             caption = img.stem
         gallery.append((str(img), caption))
     summary = f"Images: {len(imgs)}, Captions: {len(txts)}"
-    return gallery, summary
+    return gr.update(value=gallery), summary
 
 
 # ---------------------------------------------------------------------------
