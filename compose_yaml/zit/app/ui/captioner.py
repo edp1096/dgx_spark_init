@@ -17,6 +17,28 @@ _processor = None
 _model_name = None
 
 
+def _patch_florence2_cache():
+    """Fix Florence-2 processing_florence2.py for transformers 5.x compatibility.
+
+    The cached file calls tokenizer.additional_special_tokens which was removed
+    in transformers 5.x. Replace with getattr() fallback.
+    """
+    import importlib
+    cache_dir = Path(importlib.util.find_spec("transformers").origin).parent.parent
+    # HuggingFace modules cache
+    modules_dir = Path.home() / ".cache" / "huggingface" / "modules" / "transformers_modules"
+    for proc_file in modules_dir.rglob("processing_florence2.py"):
+        try:
+            text = proc_file.read_text(encoding="utf-8")
+            old = "tokenizer.additional_special_tokens + \\"
+            new = "getattr(tokenizer, 'additional_special_tokens', []) + \\"
+            if old in text:
+                proc_file.write_text(text.replace(old, new), encoding="utf-8")
+                logger.info("Patched Florence-2 processing: %s", proc_file)
+        except Exception as e:
+            logger.warning("Failed to patch Florence-2 processing: %s", e)
+
+
 def _load_model(model_id: str = CAPTION_MODEL_ID):
     global _model, _processor, _model_name
     if _model is not None and _model_name == model_id:
@@ -24,6 +46,7 @@ def _load_model(model_id: str = CAPTION_MODEL_ID):
     _unload_model()
     from transformers import AutoModelForCausalLM, AutoProcessor
 
+    _patch_florence2_cache()
     logger.info("Loading caption model: %s", model_id)
     _processor = AutoProcessor.from_pretrained(model_id, trust_remote_code=True)
     _model = AutoModelForCausalLM.from_pretrained(

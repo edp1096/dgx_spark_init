@@ -166,7 +166,8 @@ def _worker_loop(
         from PIL import Image as PILImage
 
         seed = resolve_seed(kwargs["seed"])
-        _apply_precision(kwargs)
+        need_cn = kwargs.get("need_controlnet", True)
+        _apply_precision(kwargs, need_controlnet=need_cn)
         _apply_lora(kwargs)
 
         pipeline = mgr.zit_components["pipeline"]

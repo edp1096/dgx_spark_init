@@ -310,6 +310,8 @@ def generate_inpaint(
     negative_prompt="", num_steps=25, guidance_scale=4.0,
     cfg_truncation=1.0, control_scale=0.9,
     max_sequence_length=512, time_shift=3.0,
+    lora_name=None, lora_scale=1.0,
+    need_controlnet=True,
     progress=gr.Progress(track_tqdm=True),
 ):
     _validate("inpaint", prompt)
@@ -367,6 +369,9 @@ def generate_inpaint(
         "max_sequence_length": int(max_sequence_length),
         "time_shift": float(time_shift),
         "seed": int(seed),
+        "lora_name": lora_name or None,
+        "lora_scale": float(lora_scale),
+        "need_controlnet": bool(need_controlnet),
     }
     return _submit_and_wait("inpaint", kwargs, progress)
 
@@ -379,6 +384,8 @@ def generate_outpaint(
     negative_prompt="", num_steps=25, guidance_scale=4.0,
     cfg_truncation=1.0, control_scale=0.9,
     max_sequence_length=512, time_shift=3.0,
+    lora_name=None, lora_scale=1.0,
+    need_controlnet=True,
     progress=gr.Progress(track_tqdm=True),
 ):
     logger.info("generate_outpaint called: direction=%s expand_px=%s image_type=%s",
@@ -413,6 +420,9 @@ def generate_outpaint(
         "max_sequence_length": int(max_sequence_length),
         "time_shift": float(time_shift),
         "seed": int(seed),
+        "lora_name": lora_name or None,
+        "lora_scale": float(lora_scale),
+        "need_controlnet": bool(need_controlnet),
     }
     return _submit_and_wait("outpaint", kwargs, progress)
 

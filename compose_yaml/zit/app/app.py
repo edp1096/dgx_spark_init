@@ -360,6 +360,24 @@ def _batch_append(text: str, dataset_name: str):
         return f"Error: {e}", gallery, summary
 
 
+def _batch_delete_captions(dataset_name: str):
+    """Delete all .txt caption files in the dataset."""
+    try:
+        if not dataset_name:
+            gallery, summary = _dataset_contents(dataset_name)
+            return "No dataset selected", gallery, summary
+        ds_path = DATASETS_BASE / dataset_name
+        txt_files = sorted(f for f in ds_path.iterdir() if f.suffix.lower() == ".txt")
+        for f in txt_files:
+            f.unlink()
+        gallery, summary = _dataset_contents(dataset_name)
+        return f"Deleted {len(txt_files)} caption file(s)", gallery, summary
+    except Exception as e:
+        logger.error("Batch delete captions error: %s", e)
+        gallery, summary = _dataset_contents(dataset_name)
+        return f"Error: {e}", gallery, summary
+
+
 def _auto_caption(dataset_name: str, overwrite: bool):
     """Generator: auto-caption all images, yielding progress."""
     try:
@@ -1031,6 +1049,19 @@ def build_ui() -> gr.Blocks:
                         ip_guidance = gr.Slider(0.0, 10.0, value=DEFAULT_INPAINT_GUIDANCE, step=0.5, label="Guidance Scale")
                         ip_cfg_trunc = gr.Slider(0.0, 1.0, value=DEFAULT_INPAINT_CFG_TRUNCATION, step=0.05, label="CFG Truncation")
                         ip_max_seq = gr.Slider(64, 1024, value=DEFAULT_MAX_SEQ_LENGTH, step=64, label="Max Sequence Length")
+                        ip_use_controlnet = gr.Checkbox(label="Enable ControlNet", value=True)
+                        with gr.Accordion("LoRA", open=False):
+                            ip_lora_enable = gr.Checkbox(label="Enable LoRA", value=False)
+                            ip_lora = gr.Dropdown(
+                                _lora_choices(), value="None", label="LoRA",
+                                allow_custom_value=False,
+                            )
+                            ip_lora_scale = gr.Slider(0.0, 1.5, value=1.0, step=0.05, label="LoRA Scale")
+                            ip_lora_refresh = gr.Button("Refresh", size="sm", variant="secondary")
+                            ip_lora_refresh.click(
+                                fn=lambda: gr.Dropdown(choices=_lora_choices(), value="None"),
+                                outputs=[ip_lora],
+                            )
                         ip_gen_inpaint = gr.Button("Generate", variant="primary", visible=True)
                         ip_gen_outpaint = gr.Button("Generate", variant="primary", visible=False)
 
@@ -1086,12 +1117,16 @@ def build_ui() -> gr.Blocks:
                 # Generate inpaint
                 def _do_inpaint(editor_val, prompt, neg, resolution, seed,
                                 steps, time_shift, control_scale, guidance, cfg_trunc, max_seq,
+                                use_controlnet, lora_enable, lora, lora_scale,
                                 progress=gr.Progress(track_tqdm=True)):
+                    effective_lora = lora if lora_enable and lora != "None" else None
                     paths, info = generate_inpaint(
                         prompt, editor_val, resolution, seed,
                         negative_prompt=neg, num_steps=steps, guidance_scale=guidance,
                         cfg_truncation=cfg_trunc, control_scale=control_scale,
                         max_sequence_length=max_seq, time_shift=time_shift,
+                        lora_name=effective_lora, lora_scale=lora_scale,
+                        need_controlnet=use_controlnet,
                         progress=progress,
                     )
                     return paths[0] if paths else None, info
@@ -1100,7 +1135,8 @@ def build_ui() -> gr.Blocks:
                     fn=_do_inpaint,
                     inputs=[ip_editor,
                             ip_prompt, ip_neg, ip_resolution, ip_seed,
-                            ip_steps, ip_time_shift, ip_control_scale, ip_guidance, ip_cfg_trunc, ip_max_seq],
+                            ip_steps, ip_time_shift, ip_control_scale, ip_guidance, ip_cfg_trunc, ip_max_seq,
+                            ip_use_controlnet, ip_lora_enable, ip_lora, ip_lora_scale],
                     outputs=[ip_result, ip_info],
                     concurrency_limit=1,
                 )
@@ -1109,12 +1145,16 @@ def build_ui() -> gr.Blocks:
                 def _do_outpaint(out_image, direction, expand_px,
                                  prompt, neg, resolution, seed,
                                  steps, time_shift, control_scale, guidance, cfg_trunc, max_seq,
+                                 use_controlnet, lora_enable, lora, lora_scale,
                                  progress=gr.Progress(track_tqdm=True)):
+                    effective_lora = lora if lora_enable and lora != "None" else None
                     paths, info = generate_outpaint(
                         prompt, out_image, direction, expand_px, resolution, seed,
                         negative_prompt=neg, num_steps=steps, guidance_scale=guidance,
                         cfg_truncation=cfg_trunc, control_scale=control_scale,
                         max_sequence_length=max_seq, time_shift=time_shift,
+                        lora_name=effective_lora, lora_scale=lora_scale,
+                        need_controlnet=use_controlnet,
                         progress=progress,
                     )
                     return paths[0] if paths else None, info
@@ -1123,7 +1163,8 @@ def build_ui() -> gr.Blocks:
                     fn=_do_outpaint,
                     inputs=[ip_out_image, ip_direction, ip_expand,
                             ip_prompt, ip_neg, ip_resolution, ip_seed,
-                            ip_steps, ip_time_shift, ip_control_scale, ip_guidance, ip_cfg_trunc, ip_max_seq],
+                            ip_steps, ip_time_shift, ip_control_scale, ip_guidance, ip_cfg_trunc, ip_max_seq,
+                            ip_use_controlnet, ip_lora_enable, ip_lora, ip_lora_scale],
                     outputs=[ip_result, ip_info],
                     concurrency_limit=1,
                 )
@@ -1179,6 +1220,8 @@ def build_ui() -> gr.Blocks:
                                     tr_autocap_btn = gr.Button("Auto-Caption (AI)", variant="primary", size="sm")
                                     tr_autocap_overwrite = gr.Checkbox(label="Overwrite existing", value=False)
                                 tr_autocap_status = gr.Textbox(label="Progress", interactive=False, lines=3)
+                                gr.Markdown("---")
+                                tr_delete_captions_btn = gr.Button("Delete All Captions", variant="stop", size="sm")
                             with gr.Accordion("Manage Dataset", open=False):
                                 with gr.Row():
                                     tr_new_name = gr.Textbox(label="New Dataset Name", placeholder="my_face_dataset", scale=3)
@@ -1275,6 +1318,11 @@ def build_ui() -> gr.Blocks:
                     fn=_auto_caption,
                     inputs=[tr_dataset, tr_autocap_overwrite],
                     outputs=[tr_autocap_status, tr_ds_gallery, tr_ds_summary],
+                )
+                tr_delete_captions_btn.click(
+                    fn=_batch_delete_captions,
+                    inputs=[tr_dataset],
+                    outputs=[tr_caption_status, tr_ds_gallery, tr_ds_summary],
                 )
 
                 # Train state (module-level to survive across calls)
