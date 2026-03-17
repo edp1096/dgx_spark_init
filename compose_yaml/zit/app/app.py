@@ -1003,18 +1003,23 @@ def build_ui() -> gr.Blocks:
                     with gr.Column(scale=1):
                         gr.Markdown("### LoRA Training")
                         # --- Dataset selector ---
+                        _ds_choices = _dataset_choices()
+                        _ds_initial = _ds_choices[0] if _ds_choices else None
+                        _ds_gallery_init, _ds_summary_init = _dataset_contents(_ds_initial) if _ds_initial else ([], "No dataset selected")
                         with gr.Group():
                             tr_dataset = gr.Dropdown(
-                                choices=_dataset_choices(),
+                                choices=_ds_choices,
+                                value=_ds_initial,
                                 label="Dataset",
                                 info="Select a dataset or create a new one below",
                                 allow_custom_value=False,
                             )
-                            tr_ds_summary = gr.Textbox(label="Dataset", interactive=False, lines=1, show_label=False)
+                            tr_ds_summary = gr.Textbox(label="Dataset", interactive=False, lines=1, show_label=False, value=_ds_summary_init)
                             tr_ds_gallery = gr.Gallery(
                                 label="Dataset Images (click to delete)", columns=4, height=200,
                                 object_fit="cover", preview=False,
                                 elem_id="dataset-gallery",
+                                value=_ds_gallery_init,
                             )
                             with gr.Accordion("Manage Dataset", open=False):
                                 with gr.Row():
