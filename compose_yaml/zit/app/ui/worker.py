@@ -342,6 +342,7 @@ class WorkerProcessManager:
         self._task_queue: _ctx.Queue | None = None
         self._result_queue: _ctx.Queue | None = None
         self._progress_queue: _ctx.Queue | None = None
+        self._current_need_controlnet: bool | None = None  # track ControlNet mode
 
     def ensure_running(self):
         if self._process is not None and self._process.is_alive():
@@ -401,6 +402,7 @@ class WorkerProcessManager:
         self._task_queue = None
         self._result_queue = None
         self._progress_queue = None
+        self._current_need_controlnet = None  # reset mode tracking
         return f"Worker killed (pid={pid}). Will restart on next generation."
 
     def stop(self):
@@ -419,6 +421,21 @@ class WorkerProcessManager:
         self._task_queue = None
         self._result_queue = None
         self._progress_queue = None
+
+    def ensure_mode(self, need_controlnet: bool):
+        """Kill and restart worker if ControlNet mode changed.
+
+        Avoids peak memory from old+new transformer coexisting during
+        in-process reload (~97GB on unified memory).
+        """
+        if self._current_need_controlnet is not None and \
+           self._current_need_controlnet != need_controlnet and \
+           self.is_alive():
+            logger.info("ControlNet mode changed (%s → %s), killing worker for clean restart",
+                        "with CN" if self._current_need_controlnet else "without CN",
+                        "with CN" if need_controlnet else "without CN")
+            self.kill()
+        self._current_need_controlnet = need_controlnet
 
     def check_models(self, pipeline_type: str) -> list[str]:
         from pipeline_manager import REQUIRED_MODELS

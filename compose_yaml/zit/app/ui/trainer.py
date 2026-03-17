@@ -127,6 +127,7 @@ class LoRATrainer:
         steps: int = 2000,
         lr: float = 1e-4,
         rank: int = 16,
+        lora_alpha: int | None = None,
         batch_size: int = 1,
         resolution: int = 512,
         gradient_accumulation: int = 1,
@@ -139,12 +140,17 @@ class LoRATrainer:
             steps: total training steps
             lr: learning rate
             rank: LoRA rank
+            lora_alpha: LoRA scaling numerator (default: rank).
+                PEFT applies scaling = lora_alpha / rank during forward.
+                Lower alpha → smaller LoRA contribution → safer at scale 1.0.
             batch_size: images per step (usually 1)
             resolution: training image size
             gradient_accumulation: accumulate gradients over N steps
             save_every: save checkpoint every N steps
             target_modules: which Linear layers to train (default: attention)
         """
+        if lora_alpha is None:
+            lora_alpha = 1  # Low alpha → safe at scale 1.0 (scaling = 1/rank)
         from peft import LoraConfig, get_peft_model
         from diffusers import AutoencoderKL, FlowMatchEulerDiscreteScheduler
         from transformers import AutoTokenizer, AutoModelForCausalLM
@@ -211,7 +217,7 @@ class LoRATrainer:
             logger.info("Applying LoRA (rank=%d, targets=%s)...", rank, target_modules)
             lora_config = LoraConfig(
                 r=rank,
-                lora_alpha=rank,
+                lora_alpha=lora_alpha,
                 target_modules=target_modules,
                 lora_dropout=0.0,
                 bias="none",
@@ -357,11 +363,13 @@ class LoRATrainer:
                 # Save checkpoint
                 if save_every > 0 and step % save_every == 0 and step < steps:
                     ckpt_path = output_dir / f"{self.output_name}_step{step}.safetensors"
-                    self._save_lora(transformer, str(ckpt_path))
+                    self._save_lora(transformer, str(ckpt_path),
+                                    lora_alpha=lora_alpha, rank=rank)
                     logger.info("Checkpoint saved: %s", ckpt_path.name)
 
             # --- Save final LoRA ---
-            self._save_lora(transformer, str(output_path))
+            self._save_lora(transformer, str(output_path),
+                            lora_alpha=lora_alpha, rank=rank)
             elapsed = time.time() - start_time
             e_m, e_s = int(elapsed) // 60, int(elapsed) % 60
             logger.info("Training complete: %d steps in %dm%02ds → %s", step, e_m, e_s, output_path.name)
@@ -421,8 +429,9 @@ class LoRATrainer:
         return embeds_list
 
     @staticmethod
-    def _save_lora(peft_model, output_path: str):
-        """Save only LoRA weights as safetensors."""
+    def _save_lora(peft_model, output_path: str, lora_alpha: int | None = None,
+                   rank: int | None = None):
+        """Save only LoRA weights as safetensors with metadata."""
         from safetensors.torch import save_file
 
         state_dict = {}
@@ -434,6 +443,13 @@ class LoRATrainer:
                     clean_name = clean_name[len("base_model.model."):]
                 state_dict[clean_name] = param.data.cpu()
 
-        save_file(state_dict, output_path)
+        # Store alpha/rank in metadata so inference can auto-scale
+        metadata = {}
+        if lora_alpha is not None:
+            metadata["lora_alpha"] = str(lora_alpha)
+        if rank is not None:
+            metadata["rank"] = str(rank)
+
+        save_file(state_dict, output_path, metadata=metadata)
         size_mb = os.path.getsize(output_path) / 1024**2
         logger.info("LoRA saved: %s (%.1f MB, %d tensors)", output_path, size_mb, len(state_dict))

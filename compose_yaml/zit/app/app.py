@@ -724,7 +724,7 @@ def build_ui() -> gr.Blocks:
                                 _lora_choices(), value="None", label="LoRA",
                                 allow_custom_value=False,
                             )
-                            g_lora_scale = gr.Slider(0.0, 1.5, value=1.0, step=0.05, label="LoRA Scale")
+                            g_lora_scale = gr.Slider(0.0, 1.5, value=0.7, step=0.05, label="LoRA Scale")
                             g_lora_refresh = gr.Button("Refresh", size="sm", variant="secondary")
                             g_lora_refresh.click(
                                 fn=lambda: gr.Dropdown(choices=_lora_choices(), value="None"),
@@ -916,7 +916,7 @@ def build_ui() -> gr.Blocks:
                                 _lora_choices(), value="None", label="LoRA",
                                 allow_custom_value=False,
                             )
-                            cn_lora_scale = gr.Slider(0.0, 1.5, value=1.0, step=0.05, label="LoRA Scale")
+                            cn_lora_scale = gr.Slider(0.0, 1.5, value=0.7, step=0.05, label="LoRA Scale")
                             cn_lora_refresh = gr.Button("Refresh", size="sm", variant="secondary")
                             cn_lora_refresh.click(
                                 fn=lambda: gr.Dropdown(choices=_lora_choices(), value="None"),
@@ -1056,7 +1056,7 @@ def build_ui() -> gr.Blocks:
                                 _lora_choices(), value="None", label="LoRA",
                                 allow_custom_value=False,
                             )
-                            ip_lora_scale = gr.Slider(0.0, 1.5, value=1.0, step=0.05, label="LoRA Scale")
+                            ip_lora_scale = gr.Slider(0.0, 1.5, value=0.7, step=0.05, label="LoRA Scale")
                             ip_lora_refresh = gr.Button("Refresh", size="sm", variant="secondary")
                             ip_lora_refresh.click(
                                 fn=lambda: gr.Dropdown(choices=_lora_choices(), value="None"),
@@ -1236,10 +1236,14 @@ def build_ui() -> gr.Blocks:
                         tr_name = gr.Textbox(label="LoRA Name", value="my_lora",
                                              info="Output: loras/<name>.safetensors")
                         with gr.Row():
-                            tr_steps = gr.Number(value=2000, label="Steps", precision=0, minimum=100, maximum=50000)
+                            tr_steps = gr.Number(value=1000, label="Steps", precision=0, minimum=100, maximum=50000)
                             tr_rank = gr.Dropdown([4, 8, 16, 32, 64, 128], value=16, label="Rank")
                         with gr.Row():
                             tr_lr = gr.Number(value=1e-4, label="Learning Rate")
+                            tr_lora_alpha = gr.Number(value=1, label="LoRA Alpha", precision=0,
+                                                      minimum=1, maximum=128,
+                                                      info="PEFT scaling = alpha/rank")
+                        with gr.Row():
                             tr_resolution = gr.Dropdown(
                                 [256, 384, 512, 768, 1024], value=512, label="Resolution",
                             )
@@ -1328,7 +1332,8 @@ def build_ui() -> gr.Blocks:
                 # Train state (module-level to survive across calls)
                 _trainer_ref = gr.State(None)
 
-                def _start_training(dataset_name, name, steps, rank, lr, resolution,
+                def _start_training(dataset_name, name, steps, rank, lr, lora_alpha,
+                                    resolution,
                                     batch, grad_accum, save_every, targets, trainer_ref):
                     try:
                         if not dataset_name:
@@ -1364,6 +1369,7 @@ def build_ui() -> gr.Blocks:
                             steps=int(steps),
                             lr=float(lr),
                             rank=int(rank),
+                            lora_alpha=int(lora_alpha),
                             batch_size=int(batch),
                             resolution=int(resolution),
                             gradient_accumulation=int(grad_accum),
@@ -1388,7 +1394,8 @@ def build_ui() -> gr.Blocks:
 
                 tr_start.click(
                     fn=_start_training,
-                    inputs=[tr_dataset, tr_name, tr_steps, tr_rank, tr_lr, tr_resolution,
+                    inputs=[tr_dataset, tr_name, tr_steps, tr_rank, tr_lr, tr_lora_alpha,
+                            tr_resolution,
                             tr_batch, tr_grad_accum, tr_save_every, tr_targets, _trainer_ref],
                     outputs=[tr_status, tr_log, tr_progress, _trainer_ref],
                     concurrency_limit=1,

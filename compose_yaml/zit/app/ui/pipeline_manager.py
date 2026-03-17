@@ -528,8 +528,21 @@ class PipelineManager:
 
         try:
             from safetensors.torch import load_file
+            from safetensors import safe_open
 
             logger.info("Loading LoRA: %s (scale=%.2f)", lora_name, lora_scale)
+
+            # Read metadata for alpha/rank auto-scaling
+            with safe_open(str(lora_path), framework="pt") as f:
+                meta = f.metadata() or {}
+            file_alpha = int(meta["lora_alpha"]) if "lora_alpha" in meta else None
+            file_rank = int(meta["rank"]) if "rank" in meta else None
+            if file_alpha is not None and file_rank is not None and file_rank > 0:
+                alpha_scale = file_alpha / file_rank
+                logger.info("LoRA metadata: alpha=%d, rank=%d → alpha_scale=%.4f",
+                            file_alpha, file_rank, alpha_scale)
+            else:
+                alpha_scale = 1.0
 
             lora_sd = load_file(str(lora_path), device=str(self.device))
 
@@ -570,6 +583,7 @@ class PipelineManager:
             # Register forward hooks on target modules
             transformer = self.zit_components["transformer"]
             self._lora_scale = lora_scale
+            self._lora_alpha_scale = alpha_scale
             self._lora_hooks = []
             self._lora_params = []  # keep references to prevent GC
             hook_count = 0
@@ -596,9 +610,9 @@ class PipelineManager:
                 def _make_hook(A, B):
                     def hook(module, input, output):
                         x = input[0] if isinstance(input, tuple) else input
-                        # LoRA contribution: x @ A^T @ B^T * scale
+                        # LoRA: x @ A^T @ B^T * (alpha/rank) * user_scale
                         lora_out = x.to(torch.bfloat16) @ A.t() @ B.t()
-                        return output + lora_out * self._lora_scale
+                        return output + lora_out * (self._lora_alpha_scale * self._lora_scale)
                     return hook
 
                 handle = target.register_forward_hook(_make_hook(lora_A, lora_B))

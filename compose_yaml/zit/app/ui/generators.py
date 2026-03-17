@@ -116,11 +116,13 @@ def _cleanup_temp_files(kwargs: dict):
 # ---------------------------------------------------------------------------
 # Submit and wait
 # ---------------------------------------------------------------------------
-def _submit_and_wait(gen_type: str, kwargs: dict, progress) -> tuple[str, str]:
+def _submit_and_wait(gen_type: str, kwargs: dict, progress,
+                     need_controlnet: bool = True) -> tuple[str, str]:
     global _loading_status, _gen_active, _last_gen_result, _result_version
 
     _gen_active = True
     mgr = get_worker_mgr()
+    mgr.ensure_mode(need_controlnet)
     mgr.ensure_running()
     task_id = mgr.submit_task(gen_type, kwargs)
 
@@ -230,7 +232,7 @@ def generate_zit_t2i(
     }
     if attention_backend:
         kwargs["attention_backend"] = attention_backend
-    return _submit_and_wait(gen_type, kwargs, progress)
+    return _submit_and_wait(gen_type, kwargs, progress, need_controlnet=False)
 
 
 # ---------------------------------------------------------------------------
@@ -299,7 +301,7 @@ def generate_controlnet(
         "lora_scale": float(lora_scale),
         "use_fp8": bool(use_fp8),
     }
-    return _submit_and_wait("controlnet", kwargs, progress)
+    return _submit_and_wait("controlnet", kwargs, progress, need_controlnet=True)
 
 
 # ---------------------------------------------------------------------------
@@ -373,7 +375,8 @@ def generate_inpaint(
         "lora_scale": float(lora_scale),
         "need_controlnet": bool(need_controlnet),
     }
-    return _submit_and_wait("inpaint", kwargs, progress)
+    return _submit_and_wait("inpaint", kwargs, progress,
+                            need_controlnet=bool(need_controlnet))
 
 
 # ---------------------------------------------------------------------------
@@ -424,7 +427,8 @@ def generate_outpaint(
         "lora_scale": float(lora_scale),
         "need_controlnet": bool(need_controlnet),
     }
-    return _submit_and_wait("outpaint", kwargs, progress)
+    return _submit_and_wait("outpaint", kwargs, progress,
+                            need_controlnet=bool(need_controlnet))
 
 
 # ---------------------------------------------------------------------------
