@@ -245,24 +245,119 @@ def _upload_to_dataset(files, dataset_name: str):
     return f"Uploaded {count} file(s) to {dataset_name}/", gallery, summary, None
 
 
-def _delete_dataset_image(evt: "gr.SelectData", dataset_name: str):
-    """Delete a single image (and its caption) from the dataset."""
-    if not dataset_name:
-        return [], "No dataset selected", ""
-    ds_path = DATASETS_BASE / dataset_name
-    gallery, _ = _dataset_contents(dataset_name)
-    idx = evt.index
-    if not isinstance(idx, int) or idx < 0 or idx >= len(gallery):
-        return [g for g in gallery], _, ""
-    img_path = Path(gallery[idx][0])
-    deleted_name = img_path.name
-    if img_path.exists():
-        img_path.unlink()
-    txt_path = img_path.with_suffix(".txt")
-    if txt_path.exists():
-        txt_path.unlink()
-    gallery, summary = _dataset_contents(dataset_name)
-    return gallery, summary, f"Deleted: {deleted_name}"
+def _select_dataset_image(evt: "gr.SelectData", dataset_name: str):
+    """Gallery click → return image path + existing caption for editing."""
+    try:
+        if not dataset_name:
+            return "", ""
+        gallery, _ = _dataset_contents(dataset_name)
+        idx = evt.index
+        if not isinstance(idx, int) or idx < 0 or idx >= len(gallery):
+            return "", ""
+        img_path = Path(gallery[idx][0])
+        txt_path = img_path.with_suffix(".txt")
+        caption = txt_path.read_text(encoding="utf-8").strip() if txt_path.exists() else ""
+        return str(img_path), caption
+    except Exception as e:
+        logger.error("Select image error: %s", e)
+        return "", ""
+
+
+def _save_caption(image_path: str, caption_text: str, dataset_name: str):
+    """Save caption text to .txt file alongside image."""
+    try:
+        if not image_path:
+            gallery, summary = _dataset_contents(dataset_name)
+            return "No image selected", gallery, summary
+        txt_path = Path(image_path).with_suffix(".txt")
+        txt_path.write_text(caption_text.strip(), encoding="utf-8")
+        gallery, summary = _dataset_contents(dataset_name)
+        return f"Saved: {Path(image_path).name}", gallery, summary
+    except Exception as e:
+        logger.error("Save caption error: %s", e)
+        gallery, summary = _dataset_contents(dataset_name)
+        return f"Error: {e}", gallery, summary
+
+
+def _delete_single_image(image_path: str, dataset_name: str):
+    """Delete selected image + its caption .txt file."""
+    try:
+        if not image_path:
+            gallery, summary = _dataset_contents(dataset_name)
+            return "No image selected", gallery, summary, "", ""
+        p = Path(image_path)
+        name = p.name
+        if p.exists():
+            p.unlink()
+        txt = p.with_suffix(".txt")
+        if txt.exists():
+            txt.unlink()
+        gallery, summary = _dataset_contents(dataset_name)
+        return f"Deleted: {name}", gallery, summary, "", ""
+    except Exception as e:
+        logger.error("Delete image error: %s", e)
+        gallery, summary = _dataset_contents(dataset_name)
+        return f"Error: {e}", gallery, summary, "", ""
+
+
+def _batch_prepend(text: str, dataset_name: str):
+    """Prepend text to all caption .txt files (creates if missing)."""
+    try:
+        if not dataset_name or not text.strip():
+            gallery, summary = _dataset_contents(dataset_name)
+            return "Need dataset and text", gallery, summary
+        ds_path = DATASETS_BASE / dataset_name
+        img_exts = {".jpg", ".jpeg", ".png", ".webp", ".bmp"}
+        imgs = sorted(f for f in ds_path.iterdir() if f.suffix.lower() in img_exts)
+        for img in imgs:
+            txt_path = img.with_suffix(".txt")
+            existing = txt_path.read_text(encoding="utf-8").strip() if txt_path.exists() else ""
+            txt_path.write_text(f"{text.strip()} {existing}".strip(), encoding="utf-8")
+        gallery, summary = _dataset_contents(dataset_name)
+        return f"Prepended to {len(imgs)} files", gallery, summary
+    except Exception as e:
+        logger.error("Batch prepend error: %s", e)
+        gallery, summary = _dataset_contents(dataset_name)
+        return f"Error: {e}", gallery, summary
+
+
+def _batch_append(text: str, dataset_name: str):
+    """Append text to all caption .txt files (creates if missing)."""
+    try:
+        if not dataset_name or not text.strip():
+            gallery, summary = _dataset_contents(dataset_name)
+            return "Need dataset and text", gallery, summary
+        ds_path = DATASETS_BASE / dataset_name
+        img_exts = {".jpg", ".jpeg", ".png", ".webp", ".bmp"}
+        imgs = sorted(f for f in ds_path.iterdir() if f.suffix.lower() in img_exts)
+        for img in imgs:
+            txt_path = img.with_suffix(".txt")
+            existing = txt_path.read_text(encoding="utf-8").strip() if txt_path.exists() else ""
+            txt_path.write_text(f"{existing} {text.strip()}".strip(), encoding="utf-8")
+        gallery, summary = _dataset_contents(dataset_name)
+        return f"Appended to {len(imgs)} files", gallery, summary
+    except Exception as e:
+        logger.error("Batch append error: %s", e)
+        gallery, summary = _dataset_contents(dataset_name)
+        return f"Error: {e}", gallery, summary
+
+
+def _auto_caption(dataset_name: str, overwrite: bool):
+    """Generator: auto-caption all images, yielding progress."""
+    try:
+        if not dataset_name:
+            yield "No dataset selected", [], "No dataset"
+            return
+        from captioner import auto_caption_dataset
+        dataset_path = str(DATASETS_BASE / dataset_name)
+        for status in auto_caption_dataset(dataset_path, overwrite=overwrite):
+            gallery, summary = _dataset_contents(dataset_name)
+            yield status, gallery, summary
+    except Exception as e:
+        import traceback
+        logger.error("Auto-caption error: %s", traceback.format_exc())
+        gallery, summary = _dataset_contents(dataset_name)
+        yield f"Error: {e}", gallery, summary
 
 
 def _dataset_contents(dataset_name: str):
@@ -534,7 +629,7 @@ def build_ui() -> gr.Blocks:
 #presets-toggle-row { margin-bottom: 4px; }
 #presets-toggle-row button { min-width: 80px !important; }
 """
-    with gr.Blocks(title="ZIT Gradio", css=custom_css, js=get_i18n_js()) as app:
+    with gr.Blocks(title="ZIT Gradio", analytics_enabled=False) as app:
         with gr.Row():
             gr.Markdown("# ZIT Gradio")
             gr.Markdown(value=get_memory_status, every=3, elem_classes=["memory-status"])
@@ -544,6 +639,7 @@ def build_ui() -> gr.Blocks:
             # Tab 1: Generate
             # ==============================================================
             with gr.Tab("Generate", id="generate"):
+                gr.Markdown("### Generate")
                 with gr.Row():
                     with gr.Column(scale=1):
                         g_prompt = gr.Textbox(label="Prompt", lines=4, placeholder="Describe your image...")
@@ -585,6 +681,7 @@ def build_ui() -> gr.Blocks:
                             info="native=SDPA(auto FA2), flash=FA2, _native_flash=force SDPA flash",
                         )
                         with gr.Accordion("LoRA", open=False):
+                            g_lora_enable = gr.Checkbox(label="Enable LoRA", value=False)
                             g_lora = gr.Dropdown(
                                 _lora_choices(), value="None", label="LoRA",
                                 allow_custom_value=False,
@@ -641,8 +738,10 @@ def build_ui() -> gr.Blocks:
                 # Generate dispatch — ZIT only
                 def _generate_dispatch(prompt, resolution, seed, num_images,
                                        neg, steps, time_shift, cfg, cfg_norm, cfg_trunc,
-                                       max_seq, use_fp8, attn_backend, lora, lora_scale,
+                                       max_seq, use_fp8, attn_backend,
+                                       lora_enable, lora, lora_scale,
                                        progress=gr.Progress(track_tqdm=True)):
+                    effective_lora = lora if lora_enable and lora != "None" else None
                     paths, info = generate_zit_t2i(
                         prompt, resolution, seed, num_images,
                         negative_prompt=neg, num_steps=steps,
@@ -651,7 +750,7 @@ def build_ui() -> gr.Blocks:
                         cfg_normalization=cfg_norm, cfg_truncation=cfg_trunc,
                         max_sequence_length=max_seq,
                         attention_backend=attn_backend,
-                        lora_name=lora if lora != "None" else None,
+                        lora_name=effective_lora,
                         lora_scale=lora_scale,
                         use_fp8=use_fp8,
                         progress=progress,
@@ -662,7 +761,8 @@ def build_ui() -> gr.Blocks:
                     fn=_generate_dispatch,
                     inputs=[g_prompt, g_resolution, g_seed, g_num,
                             g_neg, g_steps, g_time_shift, g_cfg, g_cfg_norm, g_cfg_trunc,
-                            g_max_seq, g_use_fp8, g_attn, g_lora, g_lora_scale],
+                            g_max_seq, g_use_fp8, g_attn,
+                            g_lora_enable, g_lora, g_lora_scale],
                     outputs=[g_gallery, g_info, g_gen_paths],
                     concurrency_limit=1,
                 )
@@ -736,6 +836,7 @@ def build_ui() -> gr.Blocks:
             # Tab 2: ControlNet
             # ==============================================================
             with gr.Tab("ControlNet", id="controlnet"):
+                gr.Markdown("### ControlNet")
                 with gr.Row():
                     with gr.Column(scale=1):
                         cn_mode = gr.Radio(
@@ -816,12 +917,13 @@ def build_ui() -> gr.Blocks:
                                  progress=gr.Progress(track_tqdm=True)):
                     # Use preview image (preprocessed) if available, else preprocess now
                     preprocessed = preview_preprocessor(mode, image)
+                    effective_lora = lora if lora != "None" else None
                     paths, info = generate_controlnet(
                         prompt, mode, preprocessed, resolution, seed,
                         negative_prompt=neg, num_steps=steps, guidance_scale=guidance,
                         cfg_truncation=cfg_trunc, control_scale=control_scale,
                         max_sequence_length=max_seq, time_shift=time_shift,
-                        lora_name=lora if lora != "None" else None,
+                        lora_name=effective_lora,
                         lora_scale=lora_scale,
                         use_fp8=use_fp8,
                         progress=progress,
@@ -862,6 +964,7 @@ def build_ui() -> gr.Blocks:
             # Tab 3: Inpaint/Outpaint
             # ==============================================================
             with gr.Tab("Inpaint", id="inpaint"):
+                gr.Markdown("### Inpaint / Outpaint")
                 with gr.Row():
                     with gr.Column(scale=1):
                         ip_mode = gr.Radio(["Inpaint", "Outpaint"], value="Inpaint", label="Mode")
@@ -920,29 +1023,6 @@ def build_ui() -> gr.Blocks:
                         gr.Markdown(value=get_loading_status, every=1)
                         ip_kill_btn.click(fn=_do_kill, outputs=[ip_kill_msg])
 
-                # Fix: force RGB conversion on image upload (Gradio 6.9 white canvas bug)
-                def _fix_editor_upload(editor_val):
-                    import numpy as np
-                    if editor_val is None:
-                        return editor_val
-                    if isinstance(editor_val, dict):
-                        bg = editor_val.get("background")
-                        if bg is not None and isinstance(bg, np.ndarray):
-                            if bg.ndim == 3 and bg.shape[2] == 4:
-                                # RGBA → RGB: composite alpha onto white background
-                                alpha = bg[:, :, 3:4].astype(np.float32) / 255.0
-                                rgb = bg[:, :, :3].astype(np.float32)
-                                white = np.full_like(rgb, 255.0)
-                                bg = (rgb * alpha + white * (1 - alpha)).astype(np.uint8)
-                                editor_val["background"] = bg
-                            elif bg.ndim == 2:
-                                # Grayscale → RGB
-                                editor_val["background"] = np.stack([bg]*3, axis=-1)
-                    return editor_val
-
-                ip_editor.upload(
-                    fn=_fix_editor_upload, inputs=[ip_editor], outputs=[ip_editor],
-                )
 
                 # Mode switch: show/hide inpaint vs outpaint controls
                 def _on_ip_mode(mode):
@@ -1032,9 +1112,9 @@ def build_ui() -> gr.Blocks:
             # Tab 4: Train LoRA
             # ==============================================================
             with gr.Tab("Train", id="train") as tr_tab:
+                gr.Markdown("### LoRA Training")
                 with gr.Row():
                     with gr.Column(scale=1):
-                        gr.Markdown("### LoRA Training")
                         # --- Dataset selector ---
                         _ds_choices = _dataset_choices()
                         _ds_initial = _ds_choices[0] if _ds_choices else None
@@ -1049,11 +1129,36 @@ def build_ui() -> gr.Blocks:
                             )
                             tr_ds_summary = gr.Textbox(label="Dataset", interactive=False, lines=1, show_label=False, value=_ds_summary_init)
                             tr_ds_gallery = gr.Gallery(
-                                label="Dataset Images (click to delete)", columns=4, height=200,
+                                label="Dataset Images (click to edit caption)", columns=4, height=200,
                                 object_fit="cover", preview=False,
                                 elem_id="dataset-gallery",
                                 value=_ds_gallery_init,
                             )
+                            with gr.Accordion("Caption Editor", open=True):
+                                tr_selected_image = gr.Textbox(visible=False)
+                                tr_caption_edit = gr.Textbox(
+                                    label="Caption", lines=3,
+                                    placeholder="Click an image above to edit its caption",
+                                    interactive=True,
+                                )
+                                with gr.Row():
+                                    tr_save_caption = gr.Button("Save Caption", variant="primary", size="sm")
+                                    tr_delete_image = gr.Button("Delete Image", variant="stop", size="sm")
+                                tr_caption_status = gr.Textbox(label="", interactive=False, lines=1, show_label=False)
+                            with gr.Accordion("Caption Tools", open=False):
+                                tr_batch_text = gr.Textbox(
+                                    label="Keywords to add",
+                                    placeholder="e.g. a photo of sks person,",
+                                    lines=1,
+                                )
+                                with gr.Row():
+                                    tr_prepend_btn = gr.Button("Prepend to All", size="sm")
+                                    tr_append_btn = gr.Button("Append to All", size="sm")
+                                gr.Markdown("---")
+                                with gr.Row():
+                                    tr_autocap_btn = gr.Button("Auto-Caption (AI)", variant="primary", size="sm")
+                                    tr_autocap_overwrite = gr.Checkbox(label="Overwrite existing", value=False)
+                                tr_autocap_status = gr.Textbox(label="Progress", interactive=False, lines=3)
                             with gr.Accordion("Manage Dataset", open=False):
                                 with gr.Row():
                                     tr_new_name = gr.Textbox(label="New Dataset Name", placeholder="my_face_dataset", scale=3)
@@ -1122,9 +1227,34 @@ def build_ui() -> gr.Blocks:
                     outputs=[tr_ds_status, tr_ds_gallery, tr_ds_summary, tr_upload],
                 )
                 tr_ds_gallery.select(
-                    fn=_delete_dataset_image,
+                    fn=_select_dataset_image,
                     inputs=[tr_dataset],
-                    outputs=[tr_ds_gallery, tr_ds_summary, tr_ds_status],
+                    outputs=[tr_selected_image, tr_caption_edit],
+                )
+                tr_save_caption.click(
+                    fn=_save_caption,
+                    inputs=[tr_selected_image, tr_caption_edit, tr_dataset],
+                    outputs=[tr_caption_status, tr_ds_gallery, tr_ds_summary],
+                )
+                tr_delete_image.click(
+                    fn=_delete_single_image,
+                    inputs=[tr_selected_image, tr_dataset],
+                    outputs=[tr_caption_status, tr_ds_gallery, tr_ds_summary, tr_selected_image, tr_caption_edit],
+                )
+                tr_prepend_btn.click(
+                    fn=_batch_prepend,
+                    inputs=[tr_batch_text, tr_dataset],
+                    outputs=[tr_caption_status, tr_ds_gallery, tr_ds_summary],
+                )
+                tr_append_btn.click(
+                    fn=_batch_append,
+                    inputs=[tr_batch_text, tr_dataset],
+                    outputs=[tr_caption_status, tr_ds_gallery, tr_ds_summary],
+                )
+                tr_autocap_btn.click(
+                    fn=_auto_caption,
+                    inputs=[tr_dataset, tr_autocap_overwrite],
+                    outputs=[tr_autocap_status, tr_ds_gallery, tr_ds_summary],
                 )
 
                 # Train state (module-level to survive across calls)
@@ -1399,6 +1529,8 @@ def main():
         share=args.share,
         show_error=True,
         allowed_paths=["/root/.cache/huggingface/hub/zit/datasets"],
+        css=custom_css,
+        js=get_i18n_js(),
     )
 
 
