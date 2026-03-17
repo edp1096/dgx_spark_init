@@ -61,7 +61,7 @@ def _do_kill():
     mgr = get_worker_mgr()
     msg = mgr.kill()
     try:
-        from app.ui.translator import unload as unload_translator
+        from translator import unload as unload_translator
         unload_translator()
         msg += " | Translator unloaded."
     except Exception:
@@ -343,10 +343,10 @@ def _export_preset(prompt, neg, resolution, seed,
         tmp = tempfile.NamedTemporaryFile(suffix=".json", prefix="preset_", delete=False, mode="w")
         json.dump(meta, tmp, indent=2, ensure_ascii=False)
         tmp.close()
-        return tmp.name
+        return gr.File(value=tmp.name, visible=True)
     except Exception as e:
         logger.error("Export preset error: %s", e)
-        return None
+        return gr.File(value=None, visible=False)
 
 
 def _import_preset(file):
@@ -354,7 +354,8 @@ def _import_preset(file):
     try:
         if file is None:
             return [gr.update()] * 10
-        data = json.loads(Path(file).read_text())
+        file_path = str(file.name) if hasattr(file, 'name') else str(file)
+        data = json.loads(Path(file_path).read_text())
         kw = data.get("kwargs", data)
         w = kw.get("width", 512)
         h = kw.get("height", 768)
@@ -415,6 +416,11 @@ def build_ui() -> gr.Blocks:
 
     custom_css = """
 .memory-status { text-align: right; }
+#gen-gallery .grid-container,
+#cn-gallery .grid-container,
+#history-gallery .grid-container {
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)) !important;
+}
 #gen-gallery .thumbnails button,
 #cn-gallery .thumbnails button,
 #history-gallery .thumbnails button {
@@ -428,11 +434,6 @@ def build_ui() -> gr.Blocks:
   object-fit: contain;
 }
 #history-gallery { min-height: 400px; }
-#gen-gallery .grid-container img,
-#cn-gallery .grid-container img {
-  max-width: 256px;
-  margin: 0 auto;
-}
 @media (max-width: 768px) {
   #history-gallery .thumbnails { grid-template-columns: repeat(2, 1fr) !important; }
 }
@@ -447,31 +448,6 @@ def build_ui() -> gr.Blocks:
             # Tab 1: Generate
             # ==============================================================
             with gr.Tab("Generate", id="generate"):
-                with gr.Accordion("Presets", open=False):
-                    preset_gallery = gr.Gallery(
-                        label="Click to load preset",
-                        value=_list_presets,
-                        columns=5, height=256, object_fit="contain",
-                        preview=False, elem_id="presets-gallery",
-                    )
-                    with gr.Row():
-                        g_preset_expand = gr.Button("Expand", size="sm", variant="secondary")
-                        g_preset_export = gr.Button("Export JSON", size="sm", variant="secondary")
-                        g_preset_import = gr.UploadButton("Import JSON", size="sm", variant="secondary", file_types=[".json"])
-                    g_preset_download = gr.File(visible=False)
-                    g_preset_expanded = gr.State(False)
-
-                    def _toggle_preset_height(expanded):
-                        if expanded:
-                            return gr.Gallery(height=256), False, gr.Button(value="Expand")
-                        else:
-                            return gr.Gallery(height=720), True, gr.Button(value="Collapse")
-
-                    g_preset_expand.click(
-                        fn=_toggle_preset_height,
-                        inputs=[g_preset_expanded],
-                        outputs=[preset_gallery, g_preset_expanded, g_preset_expand],
-                    )
                 with gr.Row():
                     with gr.Column(scale=1):
                         g_prompt = gr.Textbox(label="Prompt", lines=4, placeholder="Describe your image...")
@@ -525,10 +501,24 @@ def build_ui() -> gr.Blocks:
                         g_kill_msg = gr.Textbox(label="", interactive=False, visible=False)
                         gr.Markdown(value=get_loading_status, every=1)
                         g_kill_btn.click(fn=_do_kill, outputs=[g_kill_msg])
-                        with gr.Row():
-                            g_save_preset = gr.Button("Save as Preset", size="sm", variant="secondary")
-                        g_save_status = gr.Textbox(label="", interactive=False, visible=False)
                         g_gen_paths = gr.State([])
+
+                    with gr.Column(scale=1):
+                        gr.Markdown("### Presets")
+                        preset_gallery = gr.Gallery(
+                            label="Click to load preset",
+                            value=_list_presets,
+                            columns=3, height=480, object_fit="contain",
+                            preview=False, elem_id="presets-gallery",
+                        )
+                        with gr.Row():
+                            g_save_preset = gr.Button("Save as Preset", size="sm", variant="primary")
+                        g_save_status = gr.Textbox(label="", interactive=False, visible=False)
+                        gr.Markdown("### JSON")
+                        with gr.Row():
+                            g_preset_export = gr.Button("Export JSON", size="sm", variant="secondary")
+                            g_preset_import = gr.UploadButton("Import JSON", size="sm", variant="secondary", file_types=[".json"])
+                        g_preset_download = gr.File(visible=False)
 
                 # Generate dispatch — ZIT only
                 def _generate_dispatch(prompt, resolution, seed, num_images,
@@ -590,7 +580,7 @@ def build_ui() -> gr.Blocks:
                 # Translate prompt
                 def _translate(text):
                     try:
-                        from app.ui.translator import translate_to_en
+                        from translator import translate_to_en
                         return translate_to_en(text)
                     except Exception as e:
                         return f"Error: {e}"
