@@ -479,7 +479,7 @@ class PipelineManager:
             self.controlnet_loaded = True
             logger.info("ControlNet adapter re-applied")
         else:
-            self.controlnet_loaded = not self._need_controlnet or not cn_path.exists()
+            self.controlnet_loaded = False
             if not self._need_controlnet:
                 logger.info("Skipping ControlNet adapter (pure T2I mode)")
 
