@@ -1231,6 +1231,7 @@ def main():
         server_port=args.port,
         share=args.share,
         show_error=True,
+        allowed_paths=["/root/.cache/huggingface/hub/zit/datasets"],
     )
 
 

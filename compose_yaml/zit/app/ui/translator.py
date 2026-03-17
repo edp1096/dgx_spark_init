@@ -1,4 +1,4 @@
-"""Lightweight translation module using NLLB-200-distilled-600M (BF16)."""
+"""Lightweight translation module using Qwen3.5-2B (BF16, Apache 2.0)."""
 
 import logging
 import torch
@@ -10,45 +10,45 @@ logger = logging.getLogger(__name__)
 _model = None
 _tokenizer = None
 
-# NLLB-200 language codes mapping: (display_code, display_name, nllb_code)
+# Supported languages (display_code, display_name)
 # Order: English first, then CJK, then alphabetical
 LANGUAGES = [
-    ("en", "English", "eng_Latn"),
-    ("zh", "Chinese (中文)", "zho_Hans"),
-    ("ja", "Japanese (日本語)", "jpn_Jpan"),
-    ("ko", "Korean (한국어)", "kor_Hang"),
-    ("ar", "Arabic (العربية)", "arb_Arab"),
-    ("bn", "Bengali (বাংলা)", "ben_Beng"),
-    ("cs", "Czech (Čeština)", "ces_Latn"),
-    ("da", "Danish (Dansk)", "dan_Latn"),
-    ("de", "German (Deutsch)", "deu_Latn"),
-    ("el", "Greek (Ελληνικά)", "ell_Grek"),
-    ("es", "Spanish (Español)", "spa_Latn"),
-    ("fi", "Finnish (Suomi)", "fin_Latn"),
-    ("fr", "French (Français)", "fra_Latn"),
-    ("he", "Hebrew (עברית)", "heb_Hebr"),
-    ("hi", "Hindi (हिन्दी)", "hin_Deva"),
-    ("hu", "Hungarian (Magyar)", "hun_Latn"),
-    ("id", "Indonesian (Bahasa)", "ind_Latn"),
-    ("it", "Italian (Italiano)", "ita_Latn"),
-    ("ms", "Malay (Melayu)", "zsm_Latn"),
-    ("nl", "Dutch (Nederlands)", "nld_Latn"),
-    ("no", "Norwegian (Norsk)", "nob_Latn"),
-    ("pl", "Polish (Polski)", "pol_Latn"),
-    ("pt", "Portuguese (Português)", "por_Latn"),
-    ("ro", "Romanian (Română)", "ron_Latn"),
-    ("ru", "Russian (Русский)", "rus_Cyrl"),
-    ("sv", "Swedish (Svenska)", "swe_Latn"),
-    ("th", "Thai (ไทย)", "tha_Thai"),
-    ("tr", "Turkish (Türkçe)", "tur_Latn"),
-    ("uk", "Ukrainian (Українська)", "ukr_Cyrl"),
-    ("vi", "Vietnamese (Tiếng Việt)", "vie_Latn"),
+    ("en", "English"),
+    ("zh", "Chinese (中文)"),
+    ("ja", "Japanese (日本語)"),
+    ("ko", "Korean (한국어)"),
+    ("ar", "Arabic (العربية)"),
+    ("bn", "Bengali (বাংলা)"),
+    ("cs", "Czech (Čeština)"),
+    ("da", "Danish (Dansk)"),
+    ("de", "German (Deutsch)"),
+    ("el", "Greek (Ελληνικά)"),
+    ("es", "Spanish (Español)"),
+    ("fi", "Finnish (Suomi)"),
+    ("fr", "French (Français)"),
+    ("he", "Hebrew (עברית)"),
+    ("hi", "Hindi (हिन्दी)"),
+    ("hu", "Hungarian (Magyar)"),
+    ("id", "Indonesian (Bahasa)"),
+    ("it", "Italian (Italiano)"),
+    ("ms", "Malay (Melayu)"),
+    ("nl", "Dutch (Nederlands)"),
+    ("no", "Norwegian (Norsk)"),
+    ("pl", "Polish (Polski)"),
+    ("pt", "Portuguese (Português)"),
+    ("ro", "Romanian (Română)"),
+    ("ru", "Russian (Русский)"),
+    ("sv", "Swedish (Svenska)"),
+    ("th", "Thai (ไทย)"),
+    ("tr", "Turkish (Türkçe)"),
+    ("uk", "Ukrainian (Українська)"),
+    ("vi", "Vietnamese (Tiếng Việt)"),
 ]
 
-# Lookup: short code -> NLLB code
-_NLLB_MAP = {code: nllb for code, _, nllb in LANGUAGES}
+# Full language name lookup for prompt
+_LANG_NAME = {code: name.split(" (")[0] for code, name in LANGUAGES}
 
-LANG_CHOICES = [f"{name} [{code}]" for code, name, _ in LANGUAGES]
+LANG_CHOICES = [f"{name} [{code}]" for code, name in LANGUAGES]
 DEFAULT_LANG = LANG_CHOICES[0]  # English
 
 
@@ -63,12 +63,12 @@ def _load():
     global _model, _tokenizer
     if _model is not None:
         return
-    from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
+    from transformers import AutoModelForCausalLM, AutoTokenizer
     local_path = MODEL_DIR / TRANSLATOR_DIR
     model_src = str(local_path) if local_path.exists() else TRANSLATOR_REPO
     logger.info("Loading translator: %s (BF16)...", model_src)
     _tokenizer = AutoTokenizer.from_pretrained(model_src)
-    _model = AutoModelForSeq2SeqLM.from_pretrained(
+    _model = AutoModelForCausalLM.from_pretrained(
         model_src,
         dtype=torch.bfloat16,
         device_map="auto",
@@ -83,17 +83,28 @@ def translate(text: str, target_lang: str = "English [en]") -> str:
         return ""
     _load()
     lang_code = _parse_lang_code(target_lang)
-    nllb_code = _NLLB_MAP.get(lang_code, "eng_Latn")
-    forced_bos_token_id = _tokenizer.convert_tokens_to_ids(nllb_code)
-    inputs = _tokenizer(text, return_tensors="pt", max_length=512, truncation=True)
+    lang_name = _LANG_NAME.get(lang_code, "English")
+    prompt = (
+        f"Translate the following text to {lang_name}. "
+        f"Output ONLY the translation, nothing else.\n\n{text.strip()}"
+    )
+    messages = [{"role": "user", "content": prompt}]
+    chat_text = _tokenizer.apply_chat_template(
+        messages, tokenize=False, add_generation_prompt=True,
+    )
+    inputs = _tokenizer(chat_text, return_tensors="pt", max_length=1024, truncation=True)
     inputs = {k: v.to(_model.device) for k, v in inputs.items()}
     with torch.no_grad():
         outputs = _model.generate(
             **inputs,
-            forced_bos_token_id=forced_bos_token_id,
             max_new_tokens=512,
+            do_sample=False,
+            temperature=None,
+            top_p=None,
         )
-    result = _tokenizer.decode(outputs[0], skip_special_tokens=True)
+    result = _tokenizer.decode(
+        outputs[0][inputs["input_ids"].shape[1]:], skip_special_tokens=True,
+    )
     return result
 
 

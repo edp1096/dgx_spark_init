@@ -39,10 +39,10 @@ LORAS_DIR = "loras"
 DATASETS_DIR = "datasets"
 
 # ---------------------------------------------------------------------------
-# Translator model (NLLB-200-distilled-600M, inside MODEL_DIR)
+# Translator model (Qwen3.5-2B, Apache 2.0 license)
 # ---------------------------------------------------------------------------
-TRANSLATOR_DIR = "nllb-200-distilled-600M"
-TRANSLATOR_REPO = "facebook/nllb-200-distilled-600M"
+TRANSLATOR_DIR = "Huihui-Qwen3.5-2B-abliterated"
+TRANSLATOR_REPO = "huihui-ai/Huihui-Qwen3.5-2B-abliterated"
 
 # ---------------------------------------------------------------------------
 # HuggingFace repo IDs for preprocessor weights
