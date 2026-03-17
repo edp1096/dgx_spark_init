@@ -197,6 +197,7 @@ class PipelineManager:
 
         # ControlNet (co-resident with ZIT)
         self.controlnet_loaded: bool = False
+        self._need_controlnet: bool = True  # whether current load includes CN adapter
 
         # LoRA state
         self._current_lora: str | None = None
@@ -282,30 +283,39 @@ class PipelineManager:
     # -------------------------------------------------------------------
     # ZIT loading (VideoX-Fun model classes)
     # -------------------------------------------------------------------
-    def load_zit(self, use_fp8: bool | None = None):
-        """Load Z-Image-Turbo + ControlNet Union as unified pipeline.
+    def load_zit(self, use_fp8: bool | None = None, need_controlnet: bool = True):
+        """Load Z-Image-Turbo pipeline, optionally with ControlNet adapter.
 
         Uses VideoX-Fun's ZImageControlTransformer2DModel which handles both
         pure T2I (with zero control_context) and ControlNet (with control_image).
         FP8 via q8_kernels patch (same approach as zifk).
 
-        Loading order:
-        1. Load base ZIT transformer weights into ZImageControlTransformer2DModel
-        2. Load ControlNet adapter weights on top (strict=False)
-        3. Apply FP8 q8_kernels GEMM patch (if use_fp8=True)
-        4. Load VAE, text_encoder, tokenizer, scheduler (diffusers standard)
+        Args:
+            need_controlnet: If False, skip loading ControlNet adapter weights
+                into the transformer. This improves LoRA face quality for pure T2I.
         """
         if use_fp8 is not None:
             self.use_fp8 = use_fp8
 
-        # If already loaded but precision changed, reload transformer only
+        # If already loaded, check if we need to reload transformer
         if self.zit_components is not None:
+            need_reload = False
             if self._loaded_fp8 is not None and self._loaded_fp8 != self.use_fp8:
-                logger.info("Precision changed (%s → %s), reloading transformer only...",
+                logger.info("Precision changed (%s → %s), reloading transformer...",
                             "FP8" if self._loaded_fp8 else "BF16",
                             "FP8" if self.use_fp8 else "BF16")
+                need_reload = True
+            if self._need_controlnet != need_controlnet:
+                logger.info("ControlNet mode changed (%s → %s), reloading transformer...",
+                            "with CN" if self._need_controlnet else "without CN",
+                            "with CN" if need_controlnet else "without CN")
+                need_reload = True
+                self._need_controlnet = need_controlnet
+            if need_reload:
                 self._reload_transformer()
             return self.zit_components
+
+        self._need_controlnet = need_controlnet
 
         from diffusers import FlowMatchEulerDiscreteScheduler
         from transformers import AutoTokenizer, AutoModelForCausalLM
@@ -326,9 +336,9 @@ class PipelineManager:
         transformer = transformer.to(self.device)
         transformer.eval()
 
-        # --- Step 1b: Load ControlNet adapter weights on top ---
+        # --- Step 1b: Load ControlNet adapter weights on top (skip for pure T2I) ---
         cn_path = Path(self.model_dir) / CONTROLNET_DIR / CONTROLNET_FILENAME
-        if cn_path.exists():
+        if self._need_controlnet and cn_path.exists():
             self._send_progress("loading_start", {"name": "ControlNet Adapter", "index": 1, "total": 4})
             logger.info("Loading ControlNet adapter from %s...", cn_path)
             from safetensors.torch import load_file
@@ -338,6 +348,9 @@ class PipelineManager:
             self._gpu_cleanup()
             logger.info("ControlNet adapter loaded (missing=%d, unexpected=%d)", len(missing), len(unexpected))
             self.controlnet_loaded = True
+        elif not self._need_controlnet:
+            logger.info("Skipping ControlNet adapter (pure T2I mode)")
+            self.controlnet_loaded = False
         else:
             logger.warning("ControlNet model not found at %s — T2I only", cn_path)
 
@@ -399,7 +412,7 @@ class PipelineManager:
 
         self._send_progress("loading_done", {"name": "ZIT", "index": 4, "total": 4, "elapsed": 0})
         logger.info("ZIT pipeline ready (ControlNet=%s, precision=%s)",
-                     "loaded" if self.controlnet_loaded else "not found",
+                     "loaded" if self.controlnet_loaded else "skipped/not found",
                      "FP8" if self._loaded_fp8 else "BF16")
         return self.zit_components
 
@@ -455,14 +468,20 @@ class PipelineManager:
         transformer = transformer.to(self.device)
         transformer.eval()
 
-        # Re-apply ControlNet adapter
+        # Re-apply ControlNet adapter (only if needed)
         cn_path = Path(self.model_dir) / CONTROLNET_DIR / CONTROLNET_FILENAME
-        if cn_path.exists():
+        if self._need_controlnet and cn_path.exists():
             from safetensors.torch import load_file
             cn_state = load_file(str(cn_path), device=str(self.device))
             transformer.load_state_dict(cn_state, strict=False)
             del cn_state
             self._gpu_cleanup()
+            self.controlnet_loaded = True
+            logger.info("ControlNet adapter re-applied")
+        else:
+            self.controlnet_loaded = not self._need_controlnet or not cn_path.exists()
+            if not self._need_controlnet:
+                logger.info("Skipping ControlNet adapter (pure T2I mode)")
 
         # Apply FP8 if needed
         self._apply_fp8_if_needed(transformer, model_path)

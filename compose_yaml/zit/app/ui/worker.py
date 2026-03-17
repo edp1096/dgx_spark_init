@@ -68,16 +68,16 @@ def _worker_loop(
         else:
             mgr.unload_lora()
 
-    def _apply_precision(kwargs):
+    def _apply_precision(kwargs, need_controlnet=True):
         """Set FP8/BF16 precision from kwargs."""
         if "use_fp8" in kwargs:
-            mgr.load_zit(use_fp8=kwargs["use_fp8"])
+            mgr.load_zit(use_fp8=kwargs["use_fp8"], need_controlnet=need_controlnet)
         else:
-            mgr.load_zit()
+            mgr.load_zit(need_controlnet=need_controlnet)
 
     def _run_zit_t2i(kwargs, task_id):
         seed = resolve_seed(kwargs["seed"])
-        _apply_precision(kwargs)
+        _apply_precision(kwargs, need_controlnet=False)
         _apply_lora(kwargs)
 
         pipeline = mgr.zit_components["pipeline"]
