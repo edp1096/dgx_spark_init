@@ -1329,20 +1329,23 @@ def build_ui() -> gr.Blocks:
                     outputs=[tr_caption_status, tr_ds_gallery, tr_ds_summary],
                 )
 
-                # Train state (module-level to survive across calls)
-                _trainer_ref = gr.State(None)
+                # Train state (module-level so stop button can access it)
+                _active_trainer = {"ref": None}
 
                 def _start_training(dataset_name, name, steps, rank, lr, lora_alpha,
                                     resolution,
-                                    batch, grad_accum, save_every, targets, trainer_ref):
+                                    batch, grad_accum, save_every, targets):
                     try:
                         if not dataset_name:
-                            return "Error: Select a dataset", "", "Error", trainer_ref
+                            yield "Error: Select a dataset", "", "Error"
+                            return
                         dataset = str(DATASETS_BASE / dataset_name)
                         if not Path(dataset).is_dir():
-                            return "Error: Dataset folder not found", "", "Error", trainer_ref
+                            yield "Error: Dataset folder not found", "", "Error"
+                            return
                         if not name:
-                            return "Error: LoRA name required", "", "Error", trainer_ref
+                            yield "Error: LoRA name required", "", "Error"
+                            return
 
                         # Kill worker to free GPU
                         mgr = get_worker_mgr()
@@ -1355,6 +1358,7 @@ def build_ui() -> gr.Blocks:
                             dataset_dir=dataset,
                             output_name=name,
                         )
+                        _active_trainer["ref"] = trainer
 
                         target_list = [t.strip() for t in targets.split(",") if t.strip()]
 
@@ -1364,6 +1368,8 @@ def build_ui() -> gr.Blocks:
                                 log_lines.append(f"Step {step}/{total}  loss={loss:.4f}")
 
                         trainer.progress_callback = on_progress
+
+                        yield "Training...", "", "Training..."
 
                         output_path = trainer.train(
                             steps=int(steps),
@@ -1379,16 +1385,19 @@ def build_ui() -> gr.Blocks:
 
                         status = f"Training complete! Saved: {Path(output_path).name}"
                         log_text = "\n".join(log_lines[-30:])
-                        return status, log_text, f"Done: {Path(output_path).name}", None
+                        yield status, log_text, f"Done: {Path(output_path).name}"
 
                     except Exception as e:
                         import traceback
                         tb = traceback.format_exc()
-                        return f"Error: {e}", tb, "Failed", None
+                        yield f"Error: {e}", tb, "Failed"
+                    finally:
+                        _active_trainer["ref"] = None
 
-                def _stop_training(trainer_ref):
-                    if trainer_ref and hasattr(trainer_ref, 'stop'):
-                        trainer_ref.stop()
+                def _stop_training():
+                    trainer = _active_trainer.get("ref")
+                    if trainer and hasattr(trainer, 'stop'):
+                        trainer.stop()
                         return "Stop requested..."
                     return "No training in progress"
 
@@ -1396,13 +1405,13 @@ def build_ui() -> gr.Blocks:
                     fn=_start_training,
                     inputs=[tr_dataset, tr_name, tr_steps, tr_rank, tr_lr, tr_lora_alpha,
                             tr_resolution,
-                            tr_batch, tr_grad_accum, tr_save_every, tr_targets, _trainer_ref],
-                    outputs=[tr_status, tr_log, tr_progress, _trainer_ref],
+                            tr_batch, tr_grad_accum, tr_save_every, tr_targets],
+                    outputs=[tr_status, tr_log, tr_progress],
                     concurrency_limit=1,
                 )
                 tr_stop.click(
                     fn=_stop_training,
-                    inputs=[_trainer_ref],
+                    inputs=[],
                     outputs=[tr_status],
                 )
 
