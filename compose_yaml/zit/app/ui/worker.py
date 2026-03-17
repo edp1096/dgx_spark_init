@@ -68,9 +68,16 @@ def _worker_loop(
         else:
             mgr.unload_lora()
 
+    def _apply_precision(kwargs):
+        """Set FP8/BF16 precision from kwargs."""
+        if "use_fp8" in kwargs:
+            mgr.load_zit(use_fp8=kwargs["use_fp8"])
+        else:
+            mgr.load_zit()
+
     def _run_zit_t2i(kwargs, task_id):
         seed = resolve_seed(kwargs["seed"])
-        mgr.load_zit()
+        _apply_precision(kwargs)
         _apply_lora(kwargs)
 
         pipeline = mgr.zit_components["pipeline"]
@@ -115,7 +122,7 @@ def _worker_loop(
         from PIL import Image as PILImage
 
         seed = resolve_seed(kwargs["seed"])
-        mgr.load_zit()
+        _apply_precision(kwargs)
         _apply_lora(kwargs)
 
         pipeline = mgr.zit_components["pipeline"]
@@ -159,7 +166,7 @@ def _worker_loop(
         from PIL import Image as PILImage
 
         seed = resolve_seed(kwargs["seed"])
-        mgr.load_zit()
+        _apply_precision(kwargs)
         _apply_lora(kwargs)
 
         pipeline = mgr.zit_components["pipeline"]

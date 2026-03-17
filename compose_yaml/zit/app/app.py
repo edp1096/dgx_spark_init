@@ -443,6 +443,9 @@ def build_ui() -> gr.Blocks:
 @media (max-width: 768px) {
   #history-gallery .thumbnails { grid-template-columns: repeat(2, 1fr) !important; }
 }
+#presets-section .gallery { transition: max-height 0.3s ease; }
+#presets-toggle-row { margin-bottom: 4px; }
+#presets-toggle-row button { min-width: 80px !important; }
 """
     with gr.Blocks(title="ZIT", css=custom_css, js=get_i18n_js()) as app:
         with gr.Row():
@@ -480,6 +483,8 @@ def build_ui() -> gr.Blocks:
                         g_cfg_norm = gr.Checkbox(label="CFG Normalization", value=False)
                         g_cfg_trunc = gr.Slider(0.0, 1.0, value=DEFAULT_CFG_TRUNCATION, step=0.05, label="CFG Truncation")
                         g_max_seq = gr.Slider(64, 1024, value=DEFAULT_MAX_SEQ_LENGTH, step=64, label="Max Sequence Length")
+                        g_use_fp8 = gr.Checkbox(label="FP8 Precision", value=True,
+                            info="FP8: fast+low VRAM / OFF: BF16 original quality (reload required)")
                         g_attn = gr.Dropdown(
                             ATTENTION_BACKENDS, value="native",
                             label="Attention Backend",
@@ -499,21 +504,34 @@ def build_ui() -> gr.Blocks:
                         g_generate = gr.Button("Generate", variant="primary")
 
                     with gr.Column(scale=1):
-                        with gr.Accordion("Presets", open=False):
+                        with gr.Accordion("Presets", open=False, elem_id="presets-section"):
+                            preset_height = gr.State(200)
+                            with gr.Row(elem_id="presets-toggle-row"):
+                                g_preset_expand = gr.Button("Expand", size="sm", variant="secondary")
+                                g_save_preset = gr.Button("Save as Preset", size="sm", variant="primary")
                             preset_gallery = gr.Gallery(
                                 label="Click to load preset",
                                 value=_list_presets,
-                                columns=3, height=480, object_fit="contain",
+                                columns=3, height=200, object_fit="contain",
                                 preview=False, elem_id="presets-gallery",
                             )
-                            with gr.Row():
-                                g_save_preset = gr.Button("Save as Preset", size="sm", variant="primary")
                             g_save_status = gr.Textbox(label="", interactive=False, visible=False)
                             gr.Markdown("### JSON")
                             with gr.Row():
                                 g_preset_export = gr.Button("Export JSON", size="sm", variant="secondary")
                                 g_preset_import = gr.UploadButton("Import JSON", size="sm", variant="secondary", file_types=[".json"])
                             g_preset_download = gr.File(visible=False)
+
+                            def _toggle_preset_height(current_h):
+                                if current_h <= 200:
+                                    return 600, gr.Gallery(height=600), gr.Button(value="Collapse")
+                                else:
+                                    return 200, gr.Gallery(height=200), gr.Button(value="Expand")
+                            g_preset_expand.click(
+                                fn=_toggle_preset_height,
+                                inputs=[preset_height],
+                                outputs=[preset_height, preset_gallery, g_preset_expand],
+                            )
                         g_gallery = gr.Gallery(label="Generated Images", columns=2, height=500, object_fit="contain", elem_id="gen-gallery", preview=True, selected_index=0)
                         g_info = gr.Textbox(label="Info", interactive=False,
                                             value=lambda: get_gen_info_for_tab("generate"), every=2)
@@ -527,7 +545,7 @@ def build_ui() -> gr.Blocks:
                 # Generate dispatch — ZIT only
                 def _generate_dispatch(prompt, resolution, seed, num_images,
                                        neg, steps, time_shift, cfg, cfg_norm, cfg_trunc,
-                                       max_seq, attn_backend, lora, lora_scale,
+                                       max_seq, use_fp8, attn_backend, lora, lora_scale,
                                        progress=gr.Progress(track_tqdm=True)):
                     paths, info = generate_zit_t2i(
                         prompt, resolution, seed, num_images,
@@ -539,6 +557,7 @@ def build_ui() -> gr.Blocks:
                         attention_backend=attn_backend,
                         lora_name=lora if lora != "None" else None,
                         lora_scale=lora_scale,
+                        use_fp8=use_fp8,
                         progress=progress,
                     )
                     return gr.Gallery(value=paths, selected_index=0), info, paths
@@ -547,7 +566,7 @@ def build_ui() -> gr.Blocks:
                     fn=_generate_dispatch,
                     inputs=[g_prompt, g_resolution, g_seed, g_num,
                             g_neg, g_steps, g_time_shift, g_cfg, g_cfg_norm, g_cfg_trunc,
-                            g_max_seq, g_attn, g_lora, g_lora_scale],
+                            g_max_seq, g_use_fp8, g_attn, g_lora, g_lora_scale],
                     outputs=[g_gallery, g_info, g_gen_paths],
                     concurrency_limit=1,
                 )
@@ -627,6 +646,8 @@ def build_ui() -> gr.Blocks:
                         cn_guidance = gr.Slider(0.0, 10.0, value=DEFAULT_GUIDANCE, step=0.5, label="Guidance Scale")
                         cn_cfg_trunc = gr.Slider(0.0, 1.0, value=DEFAULT_CFG_TRUNCATION, step=0.05, label="CFG Truncation")
                         cn_max_seq = gr.Slider(64, 1024, value=DEFAULT_MAX_SEQ_LENGTH, step=64, label="Max Sequence Length")
+                        cn_use_fp8 = gr.Checkbox(label="FP8 Precision", value=True,
+                            info="FP8: fast+low VRAM / OFF: BF16 original quality")
                         with gr.Accordion("LoRA", open=False):
                             cn_lora = gr.Dropdown(
                                 _lora_choices(), value="None", label="LoRA",
@@ -667,7 +688,7 @@ def build_ui() -> gr.Blocks:
                 # Generate with ControlNet
                 def _cn_generate(mode, prompt, neg, image, resolution, seed,
                                  steps, time_shift, control_scale, guidance, cfg_trunc, max_seq,
-                                 lora, lora_scale,
+                                 use_fp8, lora, lora_scale,
                                  progress=gr.Progress(track_tqdm=True)):
                     # Use preview image (preprocessed) if available, else preprocess now
                     preprocessed = preview_preprocessor(mode, image)
@@ -678,6 +699,7 @@ def build_ui() -> gr.Blocks:
                         max_sequence_length=max_seq, time_shift=time_shift,
                         lora_name=lora if lora != "None" else None,
                         lora_scale=lora_scale,
+                        use_fp8=use_fp8,
                         progress=progress,
                     )
                     return gr.Gallery(value=paths, selected_index=0), info
@@ -686,7 +708,7 @@ def build_ui() -> gr.Blocks:
                     fn=_cn_generate,
                     inputs=[cn_mode, cn_prompt, cn_neg, cn_image, cn_resolution, cn_seed,
                             cn_steps, cn_time_shift, cn_control_scale, cn_guidance, cn_cfg_trunc, cn_max_seq,
-                            cn_lora, cn_lora_scale],
+                            cn_use_fp8, cn_lora, cn_lora_scale],
                     outputs=[cn_gallery, cn_info],
                     concurrency_limit=1,
                 )

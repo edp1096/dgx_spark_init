@@ -201,6 +201,10 @@ class PipelineManager:
         # LoRA state
         self._current_lora: str | None = None
 
+        # Precision state
+        self.use_fp8: bool = True  # default: FP8 if available
+        self._loaded_fp8: bool | None = None  # track what was actually loaded
+
         # Preprocessors (lazy-loaded)
         self._preprocessors: dict = {}
 
@@ -278,7 +282,7 @@ class PipelineManager:
     # -------------------------------------------------------------------
     # ZIT loading (VideoX-Fun model classes)
     # -------------------------------------------------------------------
-    def load_zit(self):
+    def load_zit(self, use_fp8: bool | None = None):
         """Load Z-Image-Turbo + ControlNet Union as unified pipeline.
 
         Uses VideoX-Fun's ZImageControlTransformer2DModel which handles both
@@ -288,10 +292,19 @@ class PipelineManager:
         Loading order:
         1. Load base ZIT transformer weights into ZImageControlTransformer2DModel
         2. Load ControlNet adapter weights on top (strict=False)
-        3. Apply FP8 q8_kernels GEMM patch
+        3. Apply FP8 q8_kernels GEMM patch (if use_fp8=True)
         4. Load VAE, text_encoder, tokenizer, scheduler (diffusers standard)
         """
+        if use_fp8 is not None:
+            self.use_fp8 = use_fp8
+
+        # If already loaded but precision changed, reload transformer only
         if self.zit_components is not None:
+            if self._loaded_fp8 is not None and self._loaded_fp8 != self.use_fp8:
+                logger.info("Precision changed (%s → %s), reloading transformer only...",
+                            "FP8" if self._loaded_fp8 else "BF16",
+                            "FP8" if self.use_fp8 else "BF16")
+                self._reload_transformer()
             return self.zit_components
 
         from diffusers import FlowMatchEulerDiscreteScheduler
@@ -328,20 +341,8 @@ class PipelineManager:
         else:
             logger.warning("ControlNet model not found at %s — T2I only", cn_path)
 
-        # --- Step 1c: Apply FP8 q8_kernels GEMM ---
-        fp8_file = model_path / "model_fp8.safetensors"
-        if fp8_file.exists() and _Q8_AVAILABLE:
-            logger.info("Re-loading FP8 transformer for q8_kernels native GEMM...")
-            from safetensors.torch import load_file
-            fp8_state = load_file(str(fp8_file), device=str(self.device))
-            transformer.load_state_dict(fp8_state, strict=False, assign=True)
-            del fp8_state
-            self._gpu_cleanup()
-            weight_scales = _load_fp8_weight_scales(str(fp8_file))
-            _patch_transformer_q8(transformer, weight_scales=weight_scales)
-            logger.info("FP8 transformer loaded with q8_kernels native GEMM")
-        else:
-            logger.info("Using BF16 transformer (no FP8 GEMM)")
+        # --- Step 1c: Apply FP8 q8_kernels GEMM (if enabled) ---
+        self._apply_fp8_if_needed(transformer, model_path)
 
         # --- Step 2: Load VAE ---
         self._send_progress("loading_start", {"name": "VAE", "index": 2, "total": 4})
@@ -397,8 +398,81 @@ class PipelineManager:
         }
 
         self._send_progress("loading_done", {"name": "ZIT", "index": 4, "total": 4, "elapsed": 0})
-        logger.info("ZIT pipeline ready (ControlNet=%s)", "loaded" if self.controlnet_loaded else "not found")
+        logger.info("ZIT pipeline ready (ControlNet=%s, precision=%s)",
+                     "loaded" if self.controlnet_loaded else "not found",
+                     "FP8" if self._loaded_fp8 else "BF16")
         return self.zit_components
+
+    def _apply_fp8_if_needed(self, transformer, model_path: Path):
+        """Apply FP8 q8_kernels patch to transformer if enabled."""
+        fp8_file = model_path / "model_fp8.safetensors"
+        if self.use_fp8 and fp8_file.exists() and _Q8_AVAILABLE:
+            logger.info("Loading FP8 weights + q8_kernels GEMM patch...")
+            from safetensors.torch import load_file
+            fp8_state = load_file(str(fp8_file), device=str(self.device))
+            transformer.load_state_dict(fp8_state, strict=False, assign=True)
+            del fp8_state
+            self._gpu_cleanup()
+            weight_scales = _load_fp8_weight_scales(str(fp8_file))
+            _patch_transformer_q8(transformer, weight_scales=weight_scales)
+            self._loaded_fp8 = True
+            logger.info("FP8 transformer ready")
+        else:
+            self._loaded_fp8 = False
+            if not self.use_fp8:
+                logger.info("Using BF16 transformer (FP8 disabled by user)")
+            else:
+                logger.info("Using BF16 transformer (no FP8 GEMM)")
+
+    def _reload_transformer(self):
+        """Reload transformer only (keep VAE/text_encoder/tokenizer).
+
+        ~2x faster than full reload since VAE+text_encoder stay resident.
+        """
+        from videox_models.z_image_transformer2d_control import ZImageControlTransformer2DModel
+
+        # Unload LoRA hooks first
+        self._cleanup_lora_hooks()
+        self._current_lora = None
+
+        # Release old transformer
+        old_transformer = self.zit_components["transformer"]
+        self._release_module(old_transformer)
+        del old_transformer
+        self._gpu_cleanup()
+
+        model_path = Path(self.model_dir) / ZIMAGE_TURBO_DIR
+        transformer_dir = model_path / "transformer"
+
+        self._send_progress("loading_start", {"name": "Transformer reload", "index": 1, "total": 1})
+        logger.info("Reloading transformer from %s...", transformer_dir)
+
+        transformer = ZImageControlTransformer2DModel.from_pretrained(
+            str(transformer_dir),
+            torch_dtype=torch.bfloat16,
+            transformer_additional_kwargs=CONTROLNET_CONFIG,
+        )
+        transformer = transformer.to(self.device)
+        transformer.eval()
+
+        # Re-apply ControlNet adapter
+        cn_path = Path(self.model_dir) / CONTROLNET_DIR / CONTROLNET_FILENAME
+        if cn_path.exists():
+            from safetensors.torch import load_file
+            cn_state = load_file(str(cn_path), device=str(self.device))
+            transformer.load_state_dict(cn_state, strict=False)
+            del cn_state
+            self._gpu_cleanup()
+
+        # Apply FP8 if needed
+        self._apply_fp8_if_needed(transformer, model_path)
+
+        # Update pipeline and components
+        self.zit_components["transformer"] = transformer
+        self.zit_components["pipeline"].transformer = transformer
+
+        self._send_progress("loading_done", {"name": "Transformer reload", "index": 1, "total": 1, "elapsed": 0})
+        logger.info("Transformer reloaded (precision=%s)", "FP8" if self._loaded_fp8 else "BF16")
 
     # -------------------------------------------------------------------
     # LoRA loading / unloading (forward-hook based)

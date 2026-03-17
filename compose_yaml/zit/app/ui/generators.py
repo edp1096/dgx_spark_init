@@ -204,6 +204,7 @@ def generate_zit_t2i(
     max_sequence_length=512, attention_backend=None,
     time_shift=3.0,
     lora_name=None, lora_scale=1.0,
+    use_fp8=True,
     progress=gr.Progress(track_tqdm=True),
 ):
     gen_type = "zit_t2i"
@@ -225,6 +226,7 @@ def generate_zit_t2i(
         "seed": int(seed),
         "lora_name": lora_name or None,
         "lora_scale": float(lora_scale),
+        "use_fp8": bool(use_fp8),
     }
     if attention_backend:
         kwargs["attention_backend"] = attention_backend
@@ -259,6 +261,7 @@ def generate_controlnet(
     cfg_truncation=0.9, control_scale=0.65,
     max_sequence_length=512, time_shift=3.0,
     lora_name=None, lora_scale=1.0,
+    use_fp8=True,
     progress=gr.Progress(track_tqdm=True),
 ):
     _validate("controlnet", prompt)
@@ -294,6 +297,7 @@ def generate_controlnet(
         "seed": int(seed),
         "lora_name": lora_name or None,
         "lora_scale": float(lora_scale),
+        "use_fp8": bool(use_fp8),
     }
     return _submit_and_wait("controlnet", kwargs, progress)
 
