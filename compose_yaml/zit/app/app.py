@@ -23,6 +23,7 @@ from generators import (
     match_image_resolution,
     preview_preprocessor,
     get_gen_info_for_tab,
+    get_latest_gallery,
     get_loading_status,
     get_worker_mgr,
     set_model_dir,
@@ -1269,7 +1270,7 @@ def build_ui() -> gr.Blocks:
                             tr_resolution = gr.Dropdown(
                                 [256, 384, 512, 768, 1024], value=512, label="Resolution",
                             )
-                        tr_batch = gr.Number(value=1, label="Batch Size", precision=0, minimum=1, maximum=32)
+                        tr_batch = gr.Number(value=3, label="Batch Size", precision=0, minimum=1, maximum=32)
                         tr_grad_accum = gr.Number(value=1, label="Gradient Accumulation", precision=0, minimum=1, maximum=8)
                         tr_save_every = gr.Number(value=500, label="Save Checkpoint Every N Steps", precision=0)
                         tr_targets = gr.Textbox(
@@ -1281,9 +1282,11 @@ def build_ui() -> gr.Blocks:
                             tr_start = gr.Button("Start Training", variant="primary")
                             tr_stop = gr.Button("Stop", variant="stop")
                     with gr.Column(scale=1):
-                        tr_status = gr.Textbox(label="Status", interactive=False, lines=3)
-                        tr_log = gr.Textbox(label="Training Log", interactive=False, lines=15)
-                        tr_progress = gr.Markdown("Ready")
+                        tr_status = gr.Textbox(label="Status", interactive=False, lines=3,
+                                               value=lambda: _get_train_status(), every=2)
+                        tr_log = gr.Textbox(label="Training Log", interactive=False, lines=15,
+                                            value=lambda: _get_train_log(), every=2)
+                        tr_progress = gr.Markdown(value=lambda: _get_train_progress(), every=1)
 
                 # --- Tab select: auto-load first dataset ---
                 def _on_train_tab():
@@ -1351,12 +1354,101 @@ def build_ui() -> gr.Blocks:
                     outputs=[tr_caption_status, tr_ds_gallery, tr_ds_summary],
                 )
 
-                # Train state (module-level so stop button can access it)
+                # Train state — module-level so polling and stop button can access
                 _active_trainer = {"mgr": None}
+                _train_state = {
+                    "yield_active": False,
+                    "status": "Ready",
+                    "log": "",
+                    "progress_md": "Ready",
+                    "log_lines": [],
+                    "step": 0,
+                    "total": 0,
+                    "loss": 0.0,
+                    "elapsed": 0.0,
+                    "eta": 0.0,
+                    "msg": "",
+                }
+
+                def _fmt_time(secs):
+                    m, s = int(secs) // 60, int(secs) % 60
+                    return f"{m}:{s:02d}"
+
+                def _drain_train_queue():
+                    """Drain progress messages and update _train_state."""
+                    tmgr = _active_trainer.get("mgr")
+                    if tmgr is None:
+                        return
+                    ts = _train_state
+                    for msg in tmgr.poll_progress():
+                        if msg.get("type") == "status":
+                            ts["msg"] = msg["message"]
+                        elif msg.get("type") == "progress":
+                            ts["step"] = msg["step"]
+                            ts["total"] = msg["total"]
+                            ts["loss"] = msg["loss"]
+                            ts["elapsed"] = msg["elapsed"]
+                            ts["eta"] = msg["eta"]
+                            if ts["step"] % 50 == 0 or ts["step"] == 1:
+                                ts["log_lines"].append(
+                                    f"Step {ts['step']}/{ts['total']}  loss={ts['loss']:.4f}")
+
+                    # Build display strings
+                    if ts["step"] > 0 and ts["total"] > 0:
+                        pct = ts["step"] / ts["total"] * 100
+                        bar_len = 20
+                        filled = int(bar_len * ts["step"] / ts["total"])
+                        bar = "\u2593" * filled + "\u2591" * (bar_len - filled)
+                        ts["progress_md"] = (
+                            f"### Step {ts['step']} / {ts['total']} ({pct:.1f}%)\n"
+                            f"`{bar}`\n\n"
+                            f"**Loss:** {ts['loss']:.4f} | "
+                            f"**Elapsed:** {_fmt_time(ts['elapsed'])} | "
+                            f"**ETA:** {_fmt_time(ts['eta'])}"
+                        )
+                        ts["status"] = f"Training... step {ts['step']}/{ts['total']}"
+                    elif ts["msg"]:
+                        ts["progress_md"] = f"**{ts['msg']}**"
+                        ts["status"] = ts["msg"]
+                    ts["log"] = "\n".join(ts["log_lines"][-30:])
+
+                    # Check completion (process died)
+                    if not tmgr.is_alive():
+                        result = tmgr.get_result()
+                        if result is None:
+                            ts["status"] = "Training stopped"
+                            ts["progress_md"] = "**Stopped**"
+                        elif result["status"] == "done":
+                            output_path = result["path"]
+                            ts["status"] = f"Training complete! Saved: {Path(output_path).name}"
+                            ts["progress_md"] = (
+                                f"### Done\n**{Path(output_path).name}** | "
+                                f"{ts['step']} steps | {_fmt_time(ts['elapsed'])}"
+                            )
+                        else:
+                            tb = result.get("traceback", str(result.get("error", "Unknown")))
+                            ts["status"] = f"Error: {result.get('error', 'Unknown')}"
+                            ts["log"] = tb
+                            ts["progress_md"] = "**Failed**"
+                        _active_trainer["mgr"] = None
+
+                def _get_train_status():
+                    if _active_trainer.get("mgr") and not _train_state["yield_active"]:
+                        _drain_train_queue()
+                    return _train_state["status"]
+
+                def _get_train_log():
+                    return _train_state["log"]
+
+                def _get_train_progress():
+                    if _active_trainer.get("mgr") and not _train_state["yield_active"]:
+                        _drain_train_queue()
+                    return _train_state["progress_md"]
 
                 def _start_training(dataset_name, name, steps, rank, lr, lora_alpha,
                                     resolution,
                                     batch, grad_accum, save_every, targets):
+                    ts = _train_state
                     try:
                         if not dataset_name:
                             yield "Error: Select a dataset", "", "Error"
@@ -1378,6 +1470,19 @@ def build_ui() -> gr.Blocks:
                         tmgr = TrainProcessManager()
                         _active_trainer["mgr"] = tmgr
 
+                        # Reset state
+                        ts["yield_active"] = True
+                        ts["step"] = 0
+                        ts["total"] = int(steps)
+                        ts["loss"] = 0.0
+                        ts["elapsed"] = 0.0
+                        ts["eta"] = 0.0
+                        ts["msg"] = "Preparing..."
+                        ts["log_lines"] = []
+                        ts["status"] = "Preparing..."
+                        ts["log"] = ""
+                        ts["progress_md"] = "**Preparing...**"
+
                         target_list = [t.strip() for t in targets.split(",") if t.strip()]
 
                         tmgr.start(
@@ -1395,94 +1500,42 @@ def build_ui() -> gr.Blocks:
                             target_modules=target_list,
                         )
 
-                        yield "Preparing...", "", "**Preparing...**"
-
-                        def _fmt_time(secs):
-                            m, s = int(secs) // 60, int(secs) % 60
-                            return f"{m}:{s:02d}"
-
-                        # State for UI
-                        cur_step = 0
-                        cur_total = int(steps)
-                        cur_loss = 0.0
-                        cur_elapsed = 0.0
-                        cur_eta = 0.0
-                        cur_msg = "Preparing..."
-                        log_lines = []
+                        yield ts["status"], ts["log"], ts["progress_md"]
 
                         import time as _time
 
                         while tmgr.is_alive():
                             _time.sleep(1.0)
+                            _drain_train_queue()
+                            yield ts["status"], ts["log"], ts["progress_md"]
 
-                            # Drain progress messages from subprocess
-                            for msg in tmgr.poll_progress():
-                                if msg.get("type") == "status":
-                                    cur_msg = msg["message"]
-                                elif msg.get("type") == "progress":
-                                    cur_step = msg["step"]
-                                    cur_total = msg["total"]
-                                    cur_loss = msg["loss"]
-                                    cur_elapsed = msg["elapsed"]
-                                    cur_eta = msg["eta"]
-                                    if cur_step % 50 == 0 or cur_step == 1:
-                                        log_lines.append(
-                                            f"Step {cur_step}/{cur_total}  loss={cur_loss:.4f}")
-
-                            # Build UI
-                            if cur_step > 0 and cur_total > 0:
-                                pct = cur_step / cur_total * 100
-                                bar_len = 20
-                                filled = int(bar_len * cur_step / cur_total)
-                                bar = "\u2593" * filled + "\u2591" * (bar_len - filled)
-                                progress_md = (
-                                    f"### Step {cur_step} / {cur_total} ({pct:.1f}%)\n"
-                                    f"`{bar}`\n\n"
-                                    f"**Loss:** {cur_loss:.4f} | "
-                                    f"**Elapsed:** {_fmt_time(cur_elapsed)} | "
-                                    f"**ETA:** {_fmt_time(cur_eta)}"
-                                )
-                                status_text = f"Training... step {cur_step}/{cur_total}"
-                            else:
-                                progress_md = f"**{cur_msg}**"
-                                status_text = cur_msg
-
-                            log_text = "\n".join(log_lines[-30:])
-                            yield status_text, log_text, progress_md
-
-                        # Process finished — check result
-                        result = tmgr.get_result()
-                        final_log = "\n".join(log_lines[-30:])
-
-                        if result is None:
-                            # Process was killed (stop button)
-                            yield "Training stopped", final_log, "**Stopped**"
-                        elif result["status"] == "done":
-                            output_path = result["path"]
-                            yield (
-                                f"Training complete! Saved: {Path(output_path).name}",
-                                final_log,
-                                f"### Done\n**{Path(output_path).name}** | "
-                                f"{cur_step} steps | {_fmt_time(cur_elapsed)}",
-                            )
-                        else:
-                            tb = result.get("traceback", str(result.get("error", "Unknown")))
-                            yield f"Error: {result.get('error', 'Unknown')}", tb, "**Failed**"
+                        # Process finished — drain remaining messages
+                        _drain_train_queue()
+                        yield ts["status"], ts["log"], ts["progress_md"]
 
                     except Exception as e:
                         import traceback
                         tb = traceback.format_exc()
-                        yield f"Error: {e}", tb, "**Failed**"
+                        ts["status"] = f"Error: {e}"
+                        ts["log"] = tb
+                        ts["progress_md"] = "**Failed**"
+                        yield ts["status"], ts["log"], ts["progress_md"]
                     finally:
+                        ts["yield_active"] = False
+                        # Do NOT kill training process here — it should continue
+                        # after browser refresh. Cleanup only if process already dead.
                         mgr = _active_trainer.get("mgr")
-                        if mgr and mgr.is_alive():
-                            mgr.kill()
-                        _active_trainer["mgr"] = None
+                        if mgr and not mgr.is_alive():
+                            _active_trainer["mgr"] = None
 
                 def _stop_training():
                     tmgr = _active_trainer.get("mgr")
                     if tmgr and tmgr.is_alive():
-                        return tmgr.kill()
+                        msg = tmgr.kill()
+                        _active_trainer["mgr"] = None
+                        _train_state["status"] = "Training stopped"
+                        _train_state["progress_md"] = "**Stopped**"
+                        return msg
                     return "No training in progress"
 
                 tr_start.click(
@@ -1672,6 +1725,23 @@ def build_ui() -> gr.Blocks:
                 h_download_all.click(fn=_download_all, outputs=[h_download_file])
                 h_delete_all.click(fn=_delete_all, outputs=[h_gallery])
                 h_clear_cache.click(fn=_clear_cache, outputs=[h_cache_msg])
+
+        # Page load: recover last generation results
+        def _on_page_load():
+            g = get_latest_gallery("generate")
+            cn = get_latest_gallery("controlnet")
+            ip_paths = get_latest_gallery("inpaint")
+            ip = ip_paths[0] if ip_paths else None
+            return (
+                gr.Gallery(value=g) if g else gr.Gallery(),
+                gr.Gallery(value=cn) if cn else gr.Gallery(),
+                ip,
+            )
+
+        app.load(
+            fn=_on_page_load,
+            outputs=[g_gallery, cn_gallery, ip_result],
+        )
 
     return app
 

@@ -41,10 +41,73 @@ _loading_status = ""
 _gen_active = False
 _last_gen_result: dict | None = None
 _result_version = 0
+_handler_active = False   # True while _submit_and_wait is running
+_active_gen_type = ""     # gen_type of current/last generation
+
+
+def _poll_gen_recovery():
+    """Drain worker queues when handler died (browser refresh) but gen is active."""
+    global _loading_status, _gen_active, _last_gen_result, _result_version
+
+    mgr = _worker_mgr
+    if mgr is None:
+        _gen_active = False
+        _loading_status = ""
+        return
+
+    if not mgr.is_alive():
+        _gen_active = False
+        _loading_status = "**Worker crashed — click Generate to restart**"
+        return
+
+    for msg in mgr.poll_progress():
+        mtype = msg.get("type")
+        data = msg.get("data", {})
+        if mtype == "loading_start":
+            _loading_status = f"**Loading {data.get('name', '?')}...**"
+        elif mtype == "loading_done":
+            _loading_status = f"**{data.get('name', '?')} loaded**"
+
+    result = mgr.get_result(timeout=0.05)
+    if result is None:
+        return
+    if result.get("status") == "ok":
+        payload = result["payload"]
+        paths = payload["paths"]
+        seed = payload["seed"]
+        if len(paths) == 1:
+            info = f"Seed: {seed} | Output: {Path(paths[0]).name}"
+        else:
+            info = f"Seed: {seed} | Images: {len(paths)}"
+        _loading_status = ""
+        _gen_active = False
+        _result_version += 1
+        _last_gen_result = {
+            "paths": paths, "info": info,
+            "gen_type": _active_gen_type, "time": time.time(),
+        }
+    else:
+        _loading_status = ""
+        _gen_active = False
 
 
 def get_loading_status() -> str:
+    if _gen_active and not _handler_active:
+        _poll_gen_recovery()
     return _loading_status
+
+
+def get_latest_gallery(gen_type: str):
+    """Return latest result image paths for app.load() recovery."""
+    result = _last_gen_result
+    if result is None:
+        return None
+    allowed = _GEN_TAB_TYPES.get(gen_type)
+    if allowed and result["gen_type"] not in allowed:
+        return None
+    if time.time() - result["time"] > 600:
+        return None
+    return result["paths"]
 
 
 _GEN_TAB_TYPES = {
@@ -119,8 +182,11 @@ def _cleanup_temp_files(kwargs: dict):
 def _submit_and_wait(gen_type: str, kwargs: dict, progress,
                      need_controlnet: bool = True) -> tuple[str, str]:
     global _loading_status, _gen_active, _last_gen_result, _result_version
+    global _handler_active, _active_gen_type
 
     _gen_active = True
+    _handler_active = True
+    _active_gen_type = gen_type
     mgr = get_worker_mgr()
     mgr.ensure_mode(need_controlnet)
     mgr.ensure_running()
@@ -179,9 +245,12 @@ def _submit_and_wait(gen_type: str, kwargs: dict, progress,
                     raise gr.Error(f"Generation failed: {result['payload']}")
     except Exception:
         _gen_active = False
+        _handler_active = False
         _loading_status = ""
         _cleanup_temp_files(kwargs)
         raise
+    finally:
+        _handler_active = False
 
 
 # ---------------------------------------------------------------------------
