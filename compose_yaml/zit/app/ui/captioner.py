@@ -1,4 +1,8 @@
-"""Auto-captioning for LoRA training datasets using Florence-2."""
+"""Auto-captioning for LoRA training datasets using Qwen3.5-2B (native multimodal).
+
+Reuses the same Qwen3.5-2B model already cached for translation.
+Loads with Qwen3_5ForConditionalGeneration + Qwen3VLProcessor for image input.
+"""
 
 import gc
 import logging
@@ -7,96 +11,120 @@ from pathlib import Path
 import torch
 from PIL import Image
 
-logger = logging.getLogger("zit-ui")
+from zit_config import TRANSLATOR_DIR, TRANSLATOR_REPO, MODEL_DIR
 
-CAPTION_MODEL_ID = "microsoft/Florence-2-large"
-CAPTION_TASK = "<DETAILED_CAPTION>"
+logger = logging.getLogger("zit-ui")
 
 _model = None
 _processor = None
-_model_name = None
+
+# ---------------------------------------------------------------------------
+# Captioning prompt — detailed enough for LoRA training quality
+# ---------------------------------------------------------------------------
+CAPTION_SYSTEM = """\
+You are an expert image captioning assistant for AI image generation training datasets.
+Your job is to produce a single, highly detailed, comma-separated caption describing everything visible in the photograph."""
+
+CAPTION_USER = """\
+Describe this image in exhaustive detail for AI image generation model training.
+
+Include ALL of the following in order:
+1. **Subject**: gender, estimated age range, ethnicity if apparent, facial features (face shape, eye shape/color, eyebrows, nose, lips, skin tone, freckles/moles), facial expression, gaze direction
+2. **Hair**: color, length, texture (straight/wavy/curly), style (up/down/braided/bangs), parting
+3. **Clothing & accessories**: garment type, color, pattern, fabric texture, neckline, sleeves, jewelry, glasses, hats
+4. **Pose & body**: head tilt, shoulder orientation, hand position, body posture, cropping (headshot/bust/half-body/full-body)
+5. **Background & environment**: setting (indoor/outdoor/studio), background elements, depth of field (blurred/sharp), colors
+6. **Lighting**: direction (front/side/back/rim), quality (soft/hard/diffused), color temperature (warm/cool/neutral), shadows, highlights, catchlights in eyes
+7. **Photography**: apparent camera angle (eye-level/low/high), lens type (wide/normal/telephoto), bokeh quality, overall mood/atmosphere
+8. **Image quality**: resolution feel (sharp/soft), color grading, contrast level
+
+Output a single paragraph of comma-separated descriptive phrases. No bullet points, no numbering, no line breaks.
+Do NOT start with "This image shows" or "A photo of". Start directly with the subject description.
+Do NOT include any speculative or uncertain language like "possibly", "might be", "appears to".
+Be specific and concrete."""
 
 
-def _patch_florence2_cache():
-    """Fix Florence-2 cached files for transformers 5.x compatibility.
-
-    1. processing_florence2.py: tokenizer.additional_special_tokens removed
-    2. configuration_florence2.py: forced_bos_token_id removed from PretrainedConfig
-    """
-    modules_dir = Path.home() / ".cache" / "huggingface" / "modules" / "transformers_modules"
-    # Patch 1: processing_florence2.py — additional_special_tokens
-    for proc_file in modules_dir.rglob("processing_florence2.py"):
-        try:
-            text = proc_file.read_text(encoding="utf-8")
-            old = "tokenizer.additional_special_tokens + \\"
-            new = "getattr(tokenizer, 'additional_special_tokens', []) + \\"
-            if old in text:
-                proc_file.write_text(text.replace(old, new), encoding="utf-8")
-                logger.info("Patched Florence-2 processing: %s", proc_file)
-        except Exception as e:
-            logger.warning("Failed to patch Florence-2 processing: %s", e)
-    # Patch 2: configuration_florence2.py — forced_bos_token_id
-    for cfg_file in modules_dir.rglob("configuration_florence2.py"):
-        try:
-            text = cfg_file.read_text(encoding="utf-8")
-            old = "if self.forced_bos_token_id is None"
-            new = "if getattr(self, 'forced_bos_token_id', None) is None"
-            if old in text and "getattr(self, 'forced_bos_token_id'" not in text:
-                text = text.replace(old, new)
-                cfg_file.write_text(text, encoding="utf-8")
-                logger.info("Patched Florence-2 config: %s", cfg_file)
-        except Exception as e:
-            logger.warning("Failed to patch Florence-2 config: %s", e)
-
-
-def _load_model(model_id: str = CAPTION_MODEL_ID):
-    global _model, _processor, _model_name
-    if _model is not None and _model_name == model_id:
+def _load():
+    global _model, _processor
+    if _model is not None:
         return
-    _unload_model()
-    from transformers import AutoModelForCausalLM, AutoProcessor
+    from transformers import Qwen3_5ForConditionalGeneration, AutoProcessor
 
-    _patch_florence2_cache()
-    logger.info("Loading caption model: %s", model_id)
-    _processor = AutoProcessor.from_pretrained(model_id, trust_remote_code=True)
-    _model = AutoModelForCausalLM.from_pretrained(
-        model_id,
-        torch_dtype=torch.float16,
-        trust_remote_code=True,
-    ).to("cuda" if torch.cuda.is_available() else "cpu").eval()
-    _model_name = model_id
+    local_path = MODEL_DIR / TRANSLATOR_DIR
+    model_src = str(local_path) if local_path.exists() else TRANSLATOR_REPO
+    logger.info("Loading captioner: %s ...", model_src)
+    _processor = AutoProcessor.from_pretrained(model_src)
+    _model = Qwen3_5ForConditionalGeneration.from_pretrained(
+        model_src,
+        torch_dtype=torch.bfloat16,
+        device_map="auto",
+    )
+    _model.eval()
+    logger.info("Captioner loaded.")
 
 
-def _unload_model():
-    global _model, _processor, _model_name
+def _unload():
+    global _model, _processor
     if _model is None:
         return
     del _model, _processor
-    _model = _processor = _model_name = None
+    _model = _processor = None
     gc.collect()
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
-    logger.info("Caption model unloaded")
+    logger.info("Captioner unloaded.")
 
 
 def caption_image(image_path: str) -> str:
-    """Generate a caption for a single image. Model must be loaded first."""
+    """Generate a detailed caption for a single image."""
+    _load()
     img = Image.open(image_path).convert("RGB")
-    inputs = _processor(text=CAPTION_TASK, images=img, return_tensors="pt")
-    inputs = {k: v.to(_model.device) for k, v in inputs.items()}
+
+    messages = [
+        {
+            "role": "user",
+            "content": [
+                {"type": "image", "image": img},
+                {"type": "text", "text": CAPTION_SYSTEM + "\n\n" + CAPTION_USER},
+            ],
+        },
+    ]
+
+    inputs = _processor.apply_chat_template(
+        messages,
+        tokenize=True,
+        add_generation_prompt=True,
+        return_dict=True,
+        return_tensors="pt",
+    ).to(_model.device)
+
     with torch.no_grad():
-        output_ids = _model.generate(**inputs, max_new_tokens=200, num_beams=3)
-    result = _processor.batch_decode(output_ids, skip_special_tokens=False)[0]
-    parsed = _processor.post_process_generation(result, task=CAPTION_TASK)
-    if isinstance(parsed, dict):
-        return parsed.get(CAPTION_TASK, str(parsed)).strip()
-    return str(parsed).strip()
+        output_ids = _model.generate(
+            **inputs,
+            max_new_tokens=512,
+            do_sample=False,
+            temperature=None,
+            top_p=None,
+        )
+
+    # Trim input tokens to get only the generated part
+    generated = output_ids[0][inputs["input_ids"].shape[1]:]
+    caption = _processor.decode(generated, skip_special_tokens=True).strip()
+
+    # Remove thinking tags if present (Qwen3.5 thinking mode)
+    if "<think>" in caption:
+        import re
+        caption = re.sub(r"<think>.*?</think>\s*", "", caption, flags=re.DOTALL).strip()
+
+    return caption
 
 
-def auto_caption_dataset(dataset_path: str, overwrite: bool = False):
+def auto_caption_dataset(dataset_path: str, overwrite: bool = False,
+                         trigger_word: str = ""):
     """Generator: caption all images, yielding status strings.
 
     Loads model on first call, unloads after completion.
+    If trigger_word is set, it is prepended to every caption.
     """
     ds = Path(dataset_path)
     img_exts = {".jpg", ".jpeg", ".png", ".webp", ".bmp"}
@@ -112,12 +140,16 @@ def auto_caption_dataset(dataset_path: str, overwrite: bool = False):
         return
 
     try:
-        yield f"Loading caption model ({CAPTION_MODEL_ID})..."
-        _load_model()
+        yield f"Loading captioner (Qwen3.5-2B)..."
+        _load()
+
+        trigger = trigger_word.strip().rstrip(",").strip()
 
         for i, img_path in enumerate(to_caption, 1):
             try:
                 cap = caption_image(str(img_path))
+                if trigger:
+                    cap = f"{trigger}, {cap}"
                 img_path.with_suffix(".txt").write_text(cap, encoding="utf-8")
                 yield f"[{i}/{len(to_caption)}] {img_path.name}: {cap[:80]}"
             except Exception as e:
@@ -128,4 +160,4 @@ def auto_caption_dataset(dataset_path: str, overwrite: bool = False):
     except Exception as e:
         yield f"Error: {e}"
     finally:
-        _unload_model()
+        _unload()

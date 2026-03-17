@@ -378,7 +378,7 @@ def _batch_delete_captions(dataset_name: str):
         return f"Error: {e}", gallery, summary
 
 
-def _auto_caption(dataset_name: str, overwrite: bool):
+def _auto_caption(dataset_name: str, overwrite: bool, trigger_word: str = ""):
     """Generator: auto-caption all images, yielding progress."""
     try:
         if not dataset_name:
@@ -386,7 +386,8 @@ def _auto_caption(dataset_name: str, overwrite: bool):
             return
         from captioner import auto_caption_dataset
         dataset_path = str(DATASETS_BASE / dataset_name)
-        for status in auto_caption_dataset(dataset_path, overwrite=overwrite):
+        for status in auto_caption_dataset(dataset_path, overwrite=overwrite,
+                                           trigger_word=trigger_word):
             gallery, summary = _dataset_contents(dataset_name)
             yield status, gallery, summary
     except Exception as e:
@@ -1216,6 +1217,12 @@ def build_ui() -> gr.Blocks:
                                     tr_prepend_btn = gr.Button("Prepend to All", size="sm")
                                     tr_append_btn = gr.Button("Append to All", size="sm")
                                 gr.Markdown("---")
+                                tr_trigger_word = gr.Textbox(
+                                    label="Trigger Word",
+                                    placeholder="e.g. lya",
+                                    info="Auto-prepended to every generated caption",
+                                    lines=1,
+                                )
                                 with gr.Row():
                                     tr_autocap_btn = gr.Button("Auto-Caption (AI)", variant="primary", size="sm")
                                     tr_autocap_overwrite = gr.Checkbox(label="Overwrite existing", value=False)
@@ -1320,7 +1327,7 @@ def build_ui() -> gr.Blocks:
                 )
                 tr_autocap_btn.click(
                     fn=_auto_caption,
-                    inputs=[tr_dataset, tr_autocap_overwrite],
+                    inputs=[tr_dataset, tr_autocap_overwrite, tr_trigger_word],
                     outputs=[tr_autocap_status, tr_ds_gallery, tr_ds_summary],
                 )
                 tr_delete_captions_btn.click(
@@ -1330,7 +1337,7 @@ def build_ui() -> gr.Blocks:
                 )
 
                 # Train state (module-level so stop button can access it)
-                _active_trainer = {"ref": None}
+                _active_trainer = {"mgr": None}
 
                 def _start_training(dataset_name, name, steps, rank, lr, lora_alpha,
                                     resolution,
@@ -1347,31 +1354,21 @@ def build_ui() -> gr.Blocks:
                             yield "Error: LoRA name required", "", "Error"
                             return
 
-                        # Kill worker to free GPU
-                        mgr = get_worker_mgr()
-                        if mgr.is_alive():
-                            mgr.kill()
+                        # Kill inference worker to free GPU
+                        wmgr = get_worker_mgr()
+                        if wmgr.is_alive():
+                            wmgr.kill()
 
-                        from trainer import LoRATrainer
-                        trainer = LoRATrainer(
-                            model_dir=str(MODEL_DIR),
-                            dataset_dir=dataset,
-                            output_name=name,
-                        )
-                        _active_trainer["ref"] = trainer
+                        from trainer import TrainProcessManager
+                        tmgr = TrainProcessManager()
+                        _active_trainer["mgr"] = tmgr
 
                         target_list = [t.strip() for t in targets.split(",") if t.strip()]
 
-                        log_lines = []
-                        def on_progress(step, total, loss):
-                            if step % 50 == 0 or step == 1:
-                                log_lines.append(f"Step {step}/{total}  loss={loss:.4f}")
-
-                        trainer.progress_callback = on_progress
-
-                        yield "Training...", "", "Training..."
-
-                        output_path = trainer.train(
+                        tmgr.start(
+                            model_dir=str(MODEL_DIR),
+                            dataset_dir=dataset,
+                            output_name=name,
                             steps=int(steps),
                             lr=float(lr),
                             rank=int(rank),
@@ -1383,22 +1380,94 @@ def build_ui() -> gr.Blocks:
                             target_modules=target_list,
                         )
 
-                        status = f"Training complete! Saved: {Path(output_path).name}"
-                        log_text = "\n".join(log_lines[-30:])
-                        yield status, log_text, f"Done: {Path(output_path).name}"
+                        yield "Preparing...", "", "**Preparing...**"
+
+                        def _fmt_time(secs):
+                            m, s = int(secs) // 60, int(secs) % 60
+                            return f"{m}:{s:02d}"
+
+                        # State for UI
+                        cur_step = 0
+                        cur_total = int(steps)
+                        cur_loss = 0.0
+                        cur_elapsed = 0.0
+                        cur_eta = 0.0
+                        cur_msg = "Preparing..."
+                        log_lines = []
+
+                        import time as _time
+
+                        while tmgr.is_alive():
+                            _time.sleep(1.0)
+
+                            # Drain progress messages from subprocess
+                            for msg in tmgr.poll_progress():
+                                if msg.get("type") == "status":
+                                    cur_msg = msg["message"]
+                                elif msg.get("type") == "progress":
+                                    cur_step = msg["step"]
+                                    cur_total = msg["total"]
+                                    cur_loss = msg["loss"]
+                                    cur_elapsed = msg["elapsed"]
+                                    cur_eta = msg["eta"]
+                                    if cur_step % 50 == 0 or cur_step == 1:
+                                        log_lines.append(
+                                            f"Step {cur_step}/{cur_total}  loss={cur_loss:.4f}")
+
+                            # Build UI
+                            if cur_step > 0 and cur_total > 0:
+                                pct = cur_step / cur_total * 100
+                                bar_len = 20
+                                filled = int(bar_len * cur_step / cur_total)
+                                bar = "\u2593" * filled + "\u2591" * (bar_len - filled)
+                                progress_md = (
+                                    f"### Step {cur_step} / {cur_total} ({pct:.1f}%)\n"
+                                    f"`{bar}`\n\n"
+                                    f"**Loss:** {cur_loss:.4f} | "
+                                    f"**Elapsed:** {_fmt_time(cur_elapsed)} | "
+                                    f"**ETA:** {_fmt_time(cur_eta)}"
+                                )
+                                status_text = f"Training... step {cur_step}/{cur_total}"
+                            else:
+                                progress_md = f"**{cur_msg}**"
+                                status_text = cur_msg
+
+                            log_text = "\n".join(log_lines[-30:])
+                            yield status_text, log_text, progress_md
+
+                        # Process finished — check result
+                        result = tmgr.get_result()
+                        final_log = "\n".join(log_lines[-30:])
+
+                        if result is None:
+                            # Process was killed (stop button)
+                            yield "Training stopped", final_log, "**Stopped**"
+                        elif result["status"] == "done":
+                            output_path = result["path"]
+                            yield (
+                                f"Training complete! Saved: {Path(output_path).name}",
+                                final_log,
+                                f"### Done\n**{Path(output_path).name}** | "
+                                f"{cur_step} steps | {_fmt_time(cur_elapsed)}",
+                            )
+                        else:
+                            tb = result.get("traceback", str(result.get("error", "Unknown")))
+                            yield f"Error: {result.get('error', 'Unknown')}", tb, "**Failed**"
 
                     except Exception as e:
                         import traceback
                         tb = traceback.format_exc()
-                        yield f"Error: {e}", tb, "Failed"
+                        yield f"Error: {e}", tb, "**Failed**"
                     finally:
-                        _active_trainer["ref"] = None
+                        mgr = _active_trainer.get("mgr")
+                        if mgr and mgr.is_alive():
+                            mgr.kill()
+                        _active_trainer["mgr"] = None
 
                 def _stop_training():
-                    trainer = _active_trainer.get("ref")
-                    if trainer and hasattr(trainer, 'stop'):
-                        trainer.stop()
-                        return "Stop requested..."
+                    tmgr = _active_trainer.get("mgr")
+                    if tmgr and tmgr.is_alive():
+                        return tmgr.kill()
                     return "No training in progress"
 
                 tr_start.click(

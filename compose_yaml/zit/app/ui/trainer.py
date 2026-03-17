@@ -3,15 +3,13 @@
 Trains LoRA adapters on the transformer using peft. Supports any use case
 (face, style, object, etc.) — just provide images + captions.
 
-Usage:
-    from trainer import LoRATrainer
-    trainer = LoRATrainer(model_dir, dataset_dir, output_name="my_lora")
-    trainer.train(steps=2000, lr=1e-4, rank=16)
+Training runs in a **separate process** (like the inference worker) so that
+stopping it via process.kill() instantly frees all GPU memory.
 """
 
 import gc
 import logging
-import math
+import multiprocessing as _mp
 import os
 import time
 from pathlib import Path
@@ -22,6 +20,8 @@ from PIL import Image
 from torch.utils.data import Dataset, DataLoader
 
 logger = logging.getLogger("zit-ui")
+
+_ctx = _mp.get_context("spawn")
 
 
 # ---------------------------------------------------------------------------
@@ -81,7 +81,134 @@ class ImageCaptionDataset(Dataset):
 
 
 # ---------------------------------------------------------------------------
-# LoRA Trainer
+# Subprocess entry point
+# ---------------------------------------------------------------------------
+def _train_process_entry(progress_queue, result_queue, model_dir, dataset_dir,
+                         output_name, train_kwargs):
+    """Runs in a child process. All GPU memory is freed when this process exits."""
+    import logging as _logging
+    _logging.basicConfig(
+        level=_logging.INFO,
+        format="%(asctime)s %(name)s %(levelname)s %(message)s",
+        datefmt="%H:%M:%S",
+    )
+    _logger = _logging.getLogger("zit-ui")
+
+    def _send(msg):
+        try:
+            progress_queue.put_nowait(msg)
+        except Exception:
+            pass
+
+    try:
+        trainer = LoRATrainer(model_dir, dataset_dir, output_name)
+
+        # Status callback — fires when loading stage changes
+        def on_status(msg):
+            _send({"type": "status", "message": msg})
+
+        trainer.status_callback = on_status
+
+        # Progress callback — fires every training step, throttled to ~1/sec
+        _last_send = [0.0]
+
+        def on_progress(step, total, loss):
+            now = time.time()
+            if now - _last_send[0] >= 1.0 or step == 1 or step == total:
+                _last_send[0] = now
+                _send({
+                    "type": "progress",
+                    "step": step,
+                    "total": total,
+                    "loss": loss,
+                    "elapsed": trainer.elapsed,
+                    "eta": trainer.eta,
+                })
+
+        trainer.progress_callback = on_progress
+
+        path = trainer.train(**train_kwargs)
+        result_queue.put({"status": "done", "path": path})
+
+    except Exception as e:
+        import traceback
+        result_queue.put({
+            "status": "error",
+            "error": str(e),
+            "traceback": traceback.format_exc(),
+        })
+
+
+# ---------------------------------------------------------------------------
+# TrainProcessManager — used by Gradio main process
+# ---------------------------------------------------------------------------
+class TrainProcessManager:
+    """Spawns/kills the training subprocess. Kill = instant GPU memory release."""
+
+    def __init__(self):
+        self._process = None
+        self._progress_queue = None
+        self._result_queue = None
+
+    def start(self, model_dir: str, dataset_dir: str, output_name: str,
+              **train_kwargs):
+        if self.is_alive():
+            raise RuntimeError("Training already in progress")
+        self._progress_queue = _ctx.Queue()
+        self._result_queue = _ctx.Queue()
+        self._process = _ctx.Process(
+            target=_train_process_entry,
+            args=(self._progress_queue, self._result_queue,
+                  model_dir, dataset_dir, output_name, train_kwargs),
+            daemon=True,
+            name="zit-trainer",
+        )
+        self._process.start()
+        logger.info("Training process started (pid=%d)", self._process.pid)
+
+    def is_alive(self) -> bool:
+        return self._process is not None and self._process.is_alive()
+
+    def kill(self) -> str:
+        """Kill training process — all GPU memory freed instantly."""
+        if self._process is None or not self._process.is_alive():
+            return "No training in progress"
+        pid = self._process.pid
+        self._process.kill()
+        self._process.join(timeout=5)
+        logger.info("Training process killed (pid=%d)", pid)
+        self._cleanup()
+        return f"Training stopped (pid={pid})"
+
+    def poll_progress(self) -> list[dict]:
+        """Drain all pending progress messages from the queue."""
+        messages = []
+        if self._progress_queue is None:
+            return messages
+        while True:
+            try:
+                messages.append(self._progress_queue.get_nowait())
+            except Exception:
+                break
+        return messages
+
+    def get_result(self) -> dict | None:
+        """Check if training finished. Returns result dict or None."""
+        if self._result_queue is None:
+            return None
+        try:
+            return self._result_queue.get_nowait()
+        except Exception:
+            return None
+
+    def _cleanup(self):
+        self._process = None
+        self._progress_queue = None
+        self._result_queue = None
+
+
+# ---------------------------------------------------------------------------
+# LoRA Trainer (runs inside subprocess)
 # ---------------------------------------------------------------------------
 class LoRATrainer:
     """Train LoRA adapters on Z-Image-Turbo transformer."""
@@ -104,7 +231,16 @@ class LoRATrainer:
         self.current_step = 0
         self.total_steps = 0
         self.current_loss = 0.0
-        self.progress_callback = None  # optional: fn(step, total, loss)
+        self.elapsed = 0.0
+        self.eta = 0.0
+        self.status_message = ""
+        self.progress_callback = None   # fn(step, total, loss)
+        self.status_callback = None     # fn(message)
+
+    def _set_status(self, msg: str):
+        self.status_message = msg
+        if self.status_callback:
+            self.status_callback(msg)
 
     def stop(self):
         """Request training to stop after current step."""
@@ -113,14 +249,6 @@ class LoRATrainer:
     @property
     def is_training(self):
         return self._training
-
-    def get_status(self) -> dict:
-        return {
-            "training": self._training,
-            "step": self.current_step,
-            "total": self.total_steps,
-            "loss": self.current_loss,
-        }
 
     def train(
         self,
@@ -134,25 +262,11 @@ class LoRATrainer:
         save_every: int = 500,
         target_modules: list[str] | None = None,
     ) -> str:
-        """Run LoRA training. Returns path to saved LoRA.
-
-        Args:
-            steps: total training steps
-            lr: learning rate
-            rank: LoRA rank
-            lora_alpha: LoRA scaling numerator (default: rank).
-                PEFT applies scaling = lora_alpha / rank during forward.
-                Lower alpha → smaller LoRA contribution → safer at scale 1.0.
-            batch_size: images per step (usually 1)
-            resolution: training image size
-            gradient_accumulation: accumulate gradients over N steps
-            save_every: save checkpoint every N steps
-            target_modules: which Linear layers to train (default: attention)
-        """
+        """Run LoRA training. Returns path to saved LoRA."""
         if lora_alpha is None:
-            lora_alpha = 1  # Low alpha → safe at scale 1.0 (scaling = 1/rank)
+            lora_alpha = 1
         from peft import LoraConfig, get_peft_model
-        from diffusers import AutoencoderKL, FlowMatchEulerDiscreteScheduler
+        from diffusers import AutoencoderKL
         from transformers import AutoTokenizer, AutoModelForCausalLM
         from zit_config import ZIMAGE_TURBO_DIR, LORAS_DIR
 
@@ -172,6 +286,7 @@ class LoRATrainer:
 
         try:
             # --- Load dataset ---
+            self._set_status("Loading dataset...")
             logger.info("Loading dataset from %s...", self.dataset_dir)
             dataset = ImageCaptionDataset(self.dataset_dir, resolution=resolution)
             dataloader = DataLoader(
@@ -180,6 +295,7 @@ class LoRATrainer:
             )
 
             # --- Load VAE (frozen, float32 for precision) ---
+            self._set_status("Loading VAE...")
             logger.info("Loading VAE...")
             vae = AutoencoderKL.from_pretrained(
                 str(model_path / "vae"), torch_dtype=torch.float32,
@@ -189,6 +305,7 @@ class LoRATrainer:
             vae_scale = vae.config.scaling_factor
 
             # --- Load text encoder (frozen) ---
+            self._set_status("Loading text encoder...")
             logger.info("Loading text encoder...")
             text_encoder = AutoModelForCausalLM.from_pretrained(
                 str(model_path / "text_encoder"), torch_dtype=torch.bfloat16,
@@ -202,11 +319,10 @@ class LoRATrainer:
             tokenizer = AutoTokenizer.from_pretrained(str(tokenizer_dir))
 
             # --- Load transformer (BF16, base model without ControlNet) ---
+            self._set_status("Loading transformer...")
             logger.info("Loading transformer (BF16 for training)...")
             from videox_models.z_image_transformer2d import ZImageTransformer2DModel
 
-            # FP8 file lives in model_path/ (not transformer/), so from_pretrained
-            # naturally loads the BF16 shards from transformer/
             transformer = ZImageTransformer2DModel.from_pretrained(
                 str(model_path / "transformer"),
                 torch_dtype=torch.bfloat16,
@@ -214,6 +330,7 @@ class LoRATrainer:
             transformer.eval()
 
             # --- Apply LoRA ---
+            self._set_status("Applying LoRA...")
             logger.info("Applying LoRA (rank=%d, targets=%s)...", rank, target_modules)
             lora_config = LoraConfig(
                 r=rank,
@@ -236,6 +353,7 @@ class LoRATrainer:
             )
 
             # --- Training loop ---
+            self._set_status("Training...")
             logger.info("Starting training: %d steps, lr=%.1e, rank=%d, res=%d",
                         steps, lr, rank, resolution)
             start_time = time.time()
@@ -270,26 +388,19 @@ class LoRATrainer:
                     )
 
                 # --- Add frame dimension: (B,C,H,W) → (B,C,1,H,W) ---
-                latents = latents.unsqueeze(2)  # F=1 for images
+                latents = latents.unsqueeze(2)
 
                 # --- Flow matching noise ---
                 noise = torch.randn_like(latents)
-                # Uniform timestep in [0, 1]
                 t = torch.rand(latents.shape[0], device=self.device, dtype=torch.bfloat16)
 
-                # Interpolate: noisy = (1-t) * latents + t * noise
-                t_expanded = t.view(-1, 1, 1, 1, 1)  # 5D: (B,1,1,1,1) for (B,C,F,H,W)
+                t_expanded = t.view(-1, 1, 1, 1, 1)
                 noisy_latents = (1 - t_expanded) * latents + t_expanded * noise
-
-                # Target: velocity = noise - latents
                 target = noise - latents
 
                 # --- Forward pass ---
-                # Timestep: scale to match scheduler convention (0-1000)
                 timestep = t * 1000.0
 
-                # Z-Image transformer uses: x, t, cap_feats
-                # cap_feats must be a single tensor (padded), not a list
                 max_len = max(e.shape[0] for e in prompt_embeds)
                 cap_dim = prompt_embeds[0].shape[-1]
                 cap_feats = torch.zeros(
@@ -309,13 +420,11 @@ class LoRATrainer:
                 # --- Loss ---
                 loss = F.mse_loss(model_pred.float(), target.float())
 
-                # NaN guard: skip step if loss is NaN/inf
                 if not torch.isfinite(loss):
                     logger.warning("Step %d: NaN/inf loss detected, skipping", step)
                     optimizer.zero_grad()
                     continue
 
-                # Gradient accumulation
                 loss = loss / gradient_accumulation
                 loss.backward()
 
@@ -324,7 +433,6 @@ class LoRATrainer:
                         [p for p in transformer.parameters() if p.requires_grad],
                         max_norm=1.0,
                     )
-                    # NaN guard: check params before optimizer step
                     has_nan = False
                     for p in transformer.parameters():
                         if p.requires_grad and p.grad is not None and not torch.isfinite(p.grad).all():
@@ -341,18 +449,21 @@ class LoRATrainer:
                 running_loss = 0.9 * running_loss + 0.1 * loss.item() * gradient_accumulation
                 self.current_step = step
                 self.current_loss = running_loss
+                self.elapsed = time.time() - start_time
+
+                # EMA-smoothed step time for stable ETA
+                now = time.time()
+                step_time = self.elapsed / step if step == 1 else (now - _prev_log_time) / max(step - _prev_log_step, 1)
+                _ema_step_time = step_time if step == 1 else 0.3 * step_time + 0.7 * _ema_step_time
+                self.eta = _ema_step_time * (steps - step)
 
                 if self.progress_callback:
                     self.progress_callback(step, steps, running_loss)
 
                 if step % 50 == 0 or step == 1:
-                    now = time.time()
-                    elapsed = now - start_time
-                    # EMA-smoothed step time for stable ETA
-                    step_time = elapsed / step if step == 1 else (now - _prev_log_time) / (step - _prev_log_step)
-                    _ema_step_time = step_time if step == 1 else 0.3 * step_time + 0.7 * _ema_step_time
-                    eta = _ema_step_time * (steps - step)
                     _prev_log_time, _prev_log_step = now, step
+                    elapsed = self.elapsed
+                    eta = self.eta
                     total = elapsed + eta
                     e_m, e_s = int(elapsed) // 60, int(elapsed) % 60
                     eta_m, eta_s = int(eta) // 60, int(eta) % 60
@@ -368,6 +479,7 @@ class LoRATrainer:
                     logger.info("Checkpoint saved: %s", ckpt_path.name)
 
             # --- Save final LoRA ---
+            self._set_status("Saving LoRA...")
             self._save_lora(transformer, str(output_path),
                             lora_alpha=lora_alpha, rank=rank)
             elapsed = time.time() - start_time
@@ -383,43 +495,12 @@ class LoRATrainer:
             raise
         finally:
             self._training = False
-            self._stop_requested = False
-            # Cleanup GPU memory — delete ALL local refs holding tensors/models
-            try:
-                del transformer
-            except NameError:
-                pass
-            try:
-                del text_encoder
-            except NameError:
-                pass
-            try:
-                del vae
-            except NameError:
-                pass
-            try:
-                del optimizer
-            except NameError:
-                pass
-            try:
-                del dataloader, data_iter, dataset
-            except NameError:
-                pass
-            try:
-                del tokenizer
-            except NameError:
-                pass
-            gc.collect()
-            gc.collect()
-            if torch.cuda.is_available():
-                torch.cuda.empty_cache()
-            gc.collect()
-            logger.info("Training cleanup complete — GPU memory released")
+            # Process exit will free all GPU memory — minimal cleanup only
+            logger.info("Training process will exit — GPU memory released automatically")
 
     @staticmethod
     def _encode_text(captions, tokenizer, text_encoder, device, max_length=512):
         """Encode captions to text embeddings (matching pipeline's method)."""
-        # Apply chat template like the pipeline does
         formatted = []
         for caption in captions:
             messages = [{"role": "user", "content": caption}]
@@ -443,7 +524,6 @@ class LoRATrainer:
         )
         hidden = outputs.hidden_states[-2]
 
-        # Pack: keep only non-padded tokens per sample
         embeds_list = []
         for i in range(len(hidden)):
             embeds_list.append(hidden[i][attention_mask[i]])
@@ -459,13 +539,11 @@ class LoRATrainer:
         state_dict = {}
         for name, param in peft_model.named_parameters():
             if param.requires_grad:
-                # Strip "base_model.model." prefix for cleaner keys
                 clean_name = name
                 if clean_name.startswith("base_model.model."):
                     clean_name = clean_name[len("base_model.model."):]
                 state_dict[clean_name] = param.data.cpu()
 
-        # Store alpha/rank in metadata so inference can auto-scale
         metadata = {}
         if lora_alpha is not None:
             metadata["lora_alpha"] = str(lora_alpha)
