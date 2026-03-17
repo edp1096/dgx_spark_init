@@ -1229,33 +1229,36 @@ def build_ui() -> gr.Blocks:
                         interactive=False, every=10,
                     )
                     with gr.Row():
-                        s_lora_del_name = gr.Textbox(
-                            label="Filename to delete",
-                            placeholder="e.g. my_lora.safetensors",
-                        )
-                        s_lora_del_btn = gr.Button("Delete", variant="stop", size="sm")
+                        s_lora_selected = gr.Textbox(label="Selected", interactive=False, scale=3)
+                        s_lora_del_btn = gr.Button("Delete Selected", variant="stop", size="sm", scale=1)
                     s_lora_del_status = gr.Textbox(label="", interactive=False, visible=False)
+
+                    def _on_lora_select(evt: gr.SelectData):
+                        loras = _lora_list()
+                        idx = evt.index[0] if isinstance(evt.index, (list, tuple)) else evt.index
+                        if isinstance(idx, int) and 0 <= idx < len(loras):
+                            return loras[idx][0]
+                        return ""
 
                     def _delete_lora(filename):
                         try:
                             if not filename or not filename.strip():
-                                return _lora_list(), "No filename specified."
+                                return _lora_list(), "", "No file selected."
                             filename = filename.strip()
-                            if not filename.endswith(".safetensors"):
-                                return _lora_list(), "Only .safetensors files can be deleted."
                             from zit_config import LORAS_DIR
                             lora_path = Path(MODEL_DIR) / LORAS_DIR / filename
                             if not lora_path.exists():
-                                return _lora_list(), f"Not found: {filename}"
+                                return _lora_list(), "", f"Not found: {filename}"
                             lora_path.unlink()
-                            return _lora_list(), f"Deleted: {filename}"
+                            return _lora_list(), "", f"Deleted: {filename}"
                         except Exception as e:
-                            return _lora_list(), f"Error: {e}"
+                            return _lora_list(), "", f"Error: {e}"
 
+                    s_lora_table.select(fn=_on_lora_select, outputs=[s_lora_selected])
                     s_lora_del_btn.click(
                         fn=_delete_lora,
-                        inputs=[s_lora_del_name],
-                        outputs=[s_lora_table, s_lora_del_status],
+                        inputs=[s_lora_selected],
+                        outputs=[s_lora_table, s_lora_selected, s_lora_del_status],
                     )
 
             # ==============================================================
