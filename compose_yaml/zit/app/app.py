@@ -1175,6 +1175,97 @@ def build_ui() -> gr.Blocks:
             # Tab 4: Train LoRA
             # ==============================================================
             with gr.Tab("Train", id="train") as tr_tab:
+                # Train state — defined before UI so lambda polling can reference them
+                _active_trainer = {"mgr": None}
+                _train_state = {
+                    "yield_active": False,
+                    "status": "Ready",
+                    "log": "",
+                    "progress_md": "Ready",
+                    "log_lines": [],
+                    "step": 0,
+                    "total": 0,
+                    "loss": 0.0,
+                    "elapsed": 0.0,
+                    "eta": 0.0,
+                    "msg": "",
+                }
+
+                def _fmt_time(secs):
+                    m, s = int(secs) // 60, int(secs) % 60
+                    return f"{m}:{s:02d}"
+
+                def _drain_train_queue():
+                    """Drain progress messages and update _train_state."""
+                    tmgr = _active_trainer.get("mgr")
+                    if tmgr is None:
+                        return
+                    ts = _train_state
+                    for msg in tmgr.poll_progress():
+                        if msg.get("type") == "status":
+                            ts["msg"] = msg["message"]
+                        elif msg.get("type") == "progress":
+                            ts["step"] = msg["step"]
+                            ts["total"] = msg["total"]
+                            ts["loss"] = msg["loss"]
+                            ts["elapsed"] = msg["elapsed"]
+                            ts["eta"] = msg["eta"]
+                            if ts["step"] % 50 == 0 or ts["step"] == 1:
+                                ts["log_lines"].append(
+                                    f"Step {ts['step']}/{ts['total']}  loss={ts['loss']:.4f}")
+
+                    # Build display strings
+                    if ts["step"] > 0 and ts["total"] > 0:
+                        pct = ts["step"] / ts["total"] * 100
+                        bar_len = 20
+                        filled = int(bar_len * ts["step"] / ts["total"])
+                        bar = "\u2593" * filled + "\u2591" * (bar_len - filled)
+                        ts["progress_md"] = (
+                            f"### Step {ts['step']} / {ts['total']} ({pct:.1f}%)\n"
+                            f"`{bar}`\n\n"
+                            f"**Loss:** {ts['loss']:.4f} | "
+                            f"**Elapsed:** {_fmt_time(ts['elapsed'])} | "
+                            f"**ETA:** {_fmt_time(ts['eta'])}"
+                        )
+                        ts["status"] = f"Training... step {ts['step']}/{ts['total']}"
+                    elif ts["msg"]:
+                        ts["progress_md"] = f"**{ts['msg']}**"
+                        ts["status"] = ts["msg"]
+                    ts["log"] = "\n".join(ts["log_lines"][-30:])
+
+                    # Check completion (process died)
+                    if not tmgr.is_alive():
+                        result = tmgr.get_result()
+                        if result is None:
+                            ts["status"] = "Training stopped"
+                            ts["progress_md"] = "**Stopped**"
+                        elif result["status"] == "done":
+                            output_path = result["path"]
+                            ts["status"] = f"Training complete! Saved: {Path(output_path).name}"
+                            ts["progress_md"] = (
+                                f"### Done\n**{Path(output_path).name}** | "
+                                f"{ts['step']} steps | {_fmt_time(ts['elapsed'])}"
+                            )
+                        else:
+                            tb = result.get("traceback", str(result.get("error", "Unknown")))
+                            ts["status"] = f"Error: {result.get('error', 'Unknown')}"
+                            ts["log"] = tb
+                            ts["progress_md"] = "**Failed**"
+                        _active_trainer["mgr"] = None
+
+                def _get_train_status():
+                    if _active_trainer.get("mgr") and not _train_state["yield_active"]:
+                        _drain_train_queue()
+                    return _train_state["status"]
+
+                def _get_train_log():
+                    return _train_state["log"]
+
+                def _get_train_progress():
+                    if _active_trainer.get("mgr") and not _train_state["yield_active"]:
+                        _drain_train_queue()
+                    return _train_state["progress_md"]
+
                 gr.Markdown("### LoRA Training")
                 with gr.Row():
                     with gr.Column(scale=1):
@@ -1353,97 +1444,6 @@ def build_ui() -> gr.Blocks:
                     inputs=[tr_dataset],
                     outputs=[tr_caption_status, tr_ds_gallery, tr_ds_summary],
                 )
-
-                # Train state — module-level so polling and stop button can access
-                _active_trainer = {"mgr": None}
-                _train_state = {
-                    "yield_active": False,
-                    "status": "Ready",
-                    "log": "",
-                    "progress_md": "Ready",
-                    "log_lines": [],
-                    "step": 0,
-                    "total": 0,
-                    "loss": 0.0,
-                    "elapsed": 0.0,
-                    "eta": 0.0,
-                    "msg": "",
-                }
-
-                def _fmt_time(secs):
-                    m, s = int(secs) // 60, int(secs) % 60
-                    return f"{m}:{s:02d}"
-
-                def _drain_train_queue():
-                    """Drain progress messages and update _train_state."""
-                    tmgr = _active_trainer.get("mgr")
-                    if tmgr is None:
-                        return
-                    ts = _train_state
-                    for msg in tmgr.poll_progress():
-                        if msg.get("type") == "status":
-                            ts["msg"] = msg["message"]
-                        elif msg.get("type") == "progress":
-                            ts["step"] = msg["step"]
-                            ts["total"] = msg["total"]
-                            ts["loss"] = msg["loss"]
-                            ts["elapsed"] = msg["elapsed"]
-                            ts["eta"] = msg["eta"]
-                            if ts["step"] % 50 == 0 or ts["step"] == 1:
-                                ts["log_lines"].append(
-                                    f"Step {ts['step']}/{ts['total']}  loss={ts['loss']:.4f}")
-
-                    # Build display strings
-                    if ts["step"] > 0 and ts["total"] > 0:
-                        pct = ts["step"] / ts["total"] * 100
-                        bar_len = 20
-                        filled = int(bar_len * ts["step"] / ts["total"])
-                        bar = "\u2593" * filled + "\u2591" * (bar_len - filled)
-                        ts["progress_md"] = (
-                            f"### Step {ts['step']} / {ts['total']} ({pct:.1f}%)\n"
-                            f"`{bar}`\n\n"
-                            f"**Loss:** {ts['loss']:.4f} | "
-                            f"**Elapsed:** {_fmt_time(ts['elapsed'])} | "
-                            f"**ETA:** {_fmt_time(ts['eta'])}"
-                        )
-                        ts["status"] = f"Training... step {ts['step']}/{ts['total']}"
-                    elif ts["msg"]:
-                        ts["progress_md"] = f"**{ts['msg']}**"
-                        ts["status"] = ts["msg"]
-                    ts["log"] = "\n".join(ts["log_lines"][-30:])
-
-                    # Check completion (process died)
-                    if not tmgr.is_alive():
-                        result = tmgr.get_result()
-                        if result is None:
-                            ts["status"] = "Training stopped"
-                            ts["progress_md"] = "**Stopped**"
-                        elif result["status"] == "done":
-                            output_path = result["path"]
-                            ts["status"] = f"Training complete! Saved: {Path(output_path).name}"
-                            ts["progress_md"] = (
-                                f"### Done\n**{Path(output_path).name}** | "
-                                f"{ts['step']} steps | {_fmt_time(ts['elapsed'])}"
-                            )
-                        else:
-                            tb = result.get("traceback", str(result.get("error", "Unknown")))
-                            ts["status"] = f"Error: {result.get('error', 'Unknown')}"
-                            ts["log"] = tb
-                            ts["progress_md"] = "**Failed**"
-                        _active_trainer["mgr"] = None
-
-                def _get_train_status():
-                    if _active_trainer.get("mgr") and not _train_state["yield_active"]:
-                        _drain_train_queue()
-                    return _train_state["status"]
-
-                def _get_train_log():
-                    return _train_state["log"]
-
-                def _get_train_progress():
-                    if _active_trainer.get("mgr") and not _train_state["yield_active"]:
-                        _drain_train_queue()
-                    return _train_state["progress_md"]
 
                 def _start_training(dataset_name, name, steps, rank, lr, lora_alpha,
                                     resolution,
