@@ -227,24 +227,28 @@ def _dataset_contents(dataset_name: str):
 # ---------------------------------------------------------------------------
 # Examples helpers
 # ---------------------------------------------------------------------------
-EXAMPLES_DIR = Path(__file__).parent / "examples"
+PRESETS_DIR = Path(__file__).parent / "presets"
 
 
-def _list_examples():
-    """List example images that have matching JSON metadata."""
+def _list_presets():
+    """List preset images that have matching JSON metadata."""
     try:
-        if not EXAMPLES_DIR.exists():
+        if not PRESETS_DIR.exists():
             return []
-        files = sorted(f for f in EXAMPLES_DIR.glob("*.png") if f.with_suffix(".json").exists())
+        files = sorted(f for f in PRESETS_DIR.glob("*.png") if f.with_suffix(".json").exists())
         return [str(f) for f in files]
     except Exception:
         return []
 
 
-def _load_example_params(evt: gr.SelectData):
-    """Load example parameters from JSON when user clicks an example image."""
+def _load_preset_params(evt: gr.SelectData):
+    """Load preset parameters from JSON when user clicks a preset image."""
     try:
-        path = _extract_gallery_path(evt.value)
+        # Use index to find original preset path (evt.value may be a cache path)
+        examples = _list_presets()
+        path = None
+        if isinstance(evt.index, int) and 0 <= evt.index < len(examples):
+            path = examples[evt.index]
         if not path:
             return [gr.update()] * 10
         json_path = Path(path).with_suffix(".json")
@@ -270,24 +274,24 @@ def _load_example_params(evt: gr.SelectData):
         return [gr.update()] * 10
 
 
-def _save_as_example(gen_paths, prompt, neg, resolution, seed,
+def _save_as_preset(gen_paths, prompt, neg, resolution, seed,
                      steps, time_shift, cfg, cfg_norm, cfg_trunc, max_seq):
-    """Save current generation as an example."""
+    """Save current generation as a preset."""
     try:
         if not gen_paths:
-            return _list_examples(), "No image to save."
+            return _list_presets(), "No image to save."
         src = Path(gen_paths[0])
         if not src.exists():
-            return _list_examples(), "Image file not found."
-        EXAMPLES_DIR.mkdir(parents=True, exist_ok=True)
-        existing = list(EXAMPLES_DIR.glob("*.png"))
+            return _list_presets(), "Image file not found."
+        PRESETS_DIR.mkdir(parents=True, exist_ok=True)
+        existing = list(PRESETS_DIR.glob("*.png"))
         idx = len(existing) + 1
-        name = f"example_{idx:03d}"
-        dst = EXAMPLES_DIR / f"{name}.png"
+        name = f"preset_{idx:03d}"
+        dst = PRESETS_DIR / f"{name}.png"
         while dst.exists():
             idx += 1
-            name = f"example_{idx:03d}"
-            dst = EXAMPLES_DIR / f"{name}.png"
+            name = f"preset_{idx:03d}"
+            dst = PRESETS_DIR / f"{name}.png"
         shutil.copy2(str(src), str(dst))
         w, h = (resolution.split("x") + ["768", "512"])[:2]
         meta = {
@@ -305,9 +309,63 @@ def _save_as_example(gen_paths, prompt, neg, resolution, seed,
             }
         }
         dst.with_suffix(".json").write_text(json.dumps(meta, indent=2, ensure_ascii=False))
-        return _list_examples(), f"Saved: {name}.png"
+        return _list_presets(), f"Saved: {name}.png"
     except Exception as e:
-        return _list_examples(), f"Error: {e}"
+        return _list_presets(), f"Error: {e}"
+
+
+def _export_preset(prompt, neg, resolution, seed,
+                   steps, time_shift, cfg, cfg_norm, cfg_trunc, max_seq):
+    """Export current settings as a JSON file for download."""
+    try:
+        w, h = (resolution.split("x") + ["768", "512"])[:2]
+        meta = {
+            "kwargs": {
+                "prompt": prompt,
+                "negative_prompt": neg or None,
+                "width": int(w), "height": int(h),
+                "seed": int(seed),
+                "num_steps": int(steps),
+                "time_shift": float(time_shift),
+                "guidance_scale": float(cfg),
+                "cfg_normalization": bool(cfg_norm),
+                "cfg_truncation": float(cfg_trunc),
+                "max_sequence_length": int(max_seq),
+            }
+        }
+        import tempfile
+        tmp = tempfile.NamedTemporaryFile(suffix=".json", prefix="preset_", delete=False, mode="w")
+        json.dump(meta, tmp, indent=2, ensure_ascii=False)
+        tmp.close()
+        return tmp.name
+    except Exception as e:
+        logger.error("Export preset error: %s", e)
+        return None
+
+
+def _import_preset(file):
+    """Import settings from an uploaded JSON file."""
+    try:
+        if file is None:
+            return [gr.update()] * 10
+        data = json.loads(Path(file).read_text())
+        kw = data.get("kwargs", data)
+        w = kw.get("width", 512)
+        h = kw.get("height", 768)
+        return [
+            kw.get("prompt", ""),
+            kw.get("negative_prompt", "") or "",
+            f"{w}x{h}",
+            kw.get("seed", -1),
+            kw.get("num_steps", DEFAULT_STEPS),
+            kw.get("time_shift", DEFAULT_TIME_SHIFT),
+            kw.get("guidance_scale", DEFAULT_GUIDANCE),
+            kw.get("cfg_normalization", False),
+            kw.get("cfg_truncation", DEFAULT_CFG_TRUNCATION),
+            kw.get("max_sequence_length", DEFAULT_MAX_SEQ_LENGTH),
+        ]
+    except Exception:
+        return [gr.update()] * 10
 
 
 def _extract_gallery_path(evt: "gr.SelectData"):
@@ -364,6 +422,11 @@ def build_ui() -> gr.Blocks:
   object-fit: contain;
 }
 #history-gallery { min-height: 400px; }
+#gen-gallery .grid-container img,
+#cn-gallery .grid-container img {
+  max-width: 256px;
+  margin: 0 auto;
+}
 @media (max-width: 768px) {
   #history-gallery .thumbnails { grid-template-columns: repeat(2, 1fr) !important; }
 }
@@ -378,12 +441,30 @@ def build_ui() -> gr.Blocks:
             # Tab 1: Generate
             # ==============================================================
             with gr.Tab("Generate", id="generate"):
-                with gr.Accordion("Examples", open=False):
-                    ex_gallery = gr.Gallery(
-                        label="Click to load prompt & settings",
-                        value=_list_examples,
-                        columns=5, height=200, object_fit="contain",
-                        preview=False, elem_id="examples-gallery",
+                with gr.Accordion("Presets", open=False):
+                    preset_gallery = gr.Gallery(
+                        label="Click to load preset",
+                        value=_list_presets,
+                        columns=5, height=256, object_fit="contain",
+                        preview=False, elem_id="presets-gallery",
+                    )
+                    with gr.Row():
+                        g_preset_expand = gr.Button("Expand", size="sm", variant="secondary")
+                        g_preset_export = gr.Button("Export JSON", size="sm", variant="secondary")
+                        g_preset_import = gr.UploadButton("Import JSON", size="sm", variant="secondary", file_types=[".json"])
+                    g_preset_download = gr.File(visible=False)
+                    g_preset_expanded = gr.State(False)
+
+                    def _toggle_preset_height(expanded):
+                        if expanded:
+                            return gr.Gallery(height=256), False, gr.Button(value="Expand")
+                        else:
+                            return gr.Gallery(height=720), True, gr.Button(value="Collapse")
+
+                    g_preset_expand.click(
+                        fn=_toggle_preset_height,
+                        inputs=[g_preset_expanded],
+                        outputs=[preset_gallery, g_preset_expanded, g_preset_expand],
                     )
                 with gr.Row():
                     with gr.Column(scale=1):
@@ -434,7 +515,7 @@ def build_ui() -> gr.Blocks:
                         gr.Markdown(value=get_loading_status, every=1)
                         g_kill_btn.click(fn=_do_kill, outputs=[g_kill_msg])
                         with gr.Row():
-                            g_save_example = gr.Button("Save as Example", size="sm", variant="secondary")
+                            g_save_preset = gr.Button("Save as Preset", size="sm", variant="secondary")
                         g_save_status = gr.Textbox(label="", interactive=False, visible=False)
                         g_gen_paths = gr.State([])
 
@@ -466,19 +547,33 @@ def build_ui() -> gr.Blocks:
                     concurrency_limit=1,
                 )
 
-                # Examples: click to load params
-                ex_gallery.select(
-                    fn=_load_example_params,
+                # Presets: click to load params
+                preset_gallery.select(
+                    fn=_load_preset_params,
                     outputs=[g_prompt, g_neg, g_resolution, g_seed,
                              g_steps, g_time_shift, g_cfg, g_cfg_norm, g_cfg_trunc, g_max_seq],
                 )
 
-                # Save current generation as example
-                g_save_example.click(
-                    fn=_save_as_example,
+                # Save current generation as preset
+                g_save_preset.click(
+                    fn=_save_as_preset,
                     inputs=[g_gen_paths, g_prompt, g_neg, g_resolution, g_seed,
                             g_steps, g_time_shift, g_cfg, g_cfg_norm, g_cfg_trunc, g_max_seq],
-                    outputs=[ex_gallery, g_save_status],
+                    outputs=[preset_gallery, g_save_status],
+                )
+
+                # Export / Import presets
+                g_preset_export.click(
+                    fn=_export_preset,
+                    inputs=[g_prompt, g_neg, g_resolution, g_seed,
+                            g_steps, g_time_shift, g_cfg, g_cfg_norm, g_cfg_trunc, g_max_seq],
+                    outputs=[g_preset_download],
+                )
+                g_preset_import.upload(
+                    fn=_import_preset,
+                    inputs=[g_preset_import],
+                    outputs=[g_prompt, g_neg, g_resolution, g_seed,
+                             g_steps, g_time_shift, g_cfg, g_cfg_norm, g_cfg_trunc, g_max_seq],
                 )
 
             # ==============================================================

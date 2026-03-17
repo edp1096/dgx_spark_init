@@ -9,6 +9,7 @@ services:
       - PYTHONUNBUFFERED=1
       - HF_TOKEN=${HF_TOKEN}
       - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - GRADIO_ANALYTICS_ENABLED=false
     volumes:
       - "/home/edp1096/.cache/huggingface:/root/.cache/huggingface"
     deploy:

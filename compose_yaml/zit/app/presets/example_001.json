@@ -1,0 +1,15 @@
+{
+  "kwargs": {
+    "prompt": "Young Korean woman in red Hanbok is smile, intricate embroidery. Impeccable makeup. Soft-lit outdoor night background, silhouetted tiered pagoda, blurred colorful distant lights.",
+    "negative_prompt": null,
+    "width": 512,
+    "height": 768,
+    "seed": -1,
+    "num_steps": 8,
+    "time_shift": 3.0,
+    "guidance_scale": 1.0,
+    "cfg_normalization": false,
+    "cfg_truncation": 0.9,
+    "max_sequence_length": 512
+  }
+}
