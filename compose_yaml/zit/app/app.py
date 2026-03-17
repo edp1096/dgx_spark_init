@@ -266,15 +266,15 @@ def _delete_dataset_image(evt: "gr.SelectData", dataset_name: str):
 
 
 def _dataset_contents(dataset_name: str):
-    """Return (gallery_update, summary_text) for selected dataset."""
+    """Return (gallery_list, summary_text) for selected dataset."""
     if not dataset_name:
-        return gr.update(value=[]), "No dataset selected"
+        return [], "No dataset selected"
     ds_path = DATASETS_BASE / dataset_name
     if not ds_path.is_dir():
-        return gr.update(value=[]), "Dataset not found"
+        return [], "Dataset not found"
     files = sorted(ds_path.iterdir())
     if not files:
-        return gr.update(value=[]), "(empty)"
+        return [], "(empty)"
     img_exts = (".jpg", ".jpeg", ".png", ".webp")
     imgs = [f for f in files if f.suffix.lower() in img_exts]
     txts = [f for f in files if f.suffix.lower() == ".txt"]
@@ -288,7 +288,7 @@ def _dataset_contents(dataset_name: str):
             caption = img.stem
         gallery.append((str(img), caption))
     summary = f"Images: {len(imgs)}, Captions: {len(txts)}"
-    return gr.update(value=gallery), summary
+    return gallery, summary
 
 
 # ---------------------------------------------------------------------------
@@ -1012,7 +1012,7 @@ def build_ui() -> gr.Blocks:
                             )
                             tr_ds_summary = gr.Textbox(label="Dataset", interactive=False, lines=1, show_label=False)
                             tr_ds_gallery = gr.Gallery(
-                                label="Dataset Images (click to delete)", columns=4, height=200,
+                                label="Dataset Images (click to delete)", columns=4, max_height=200,
                                 object_fit="cover", preview=False,
                                 elem_id="dataset-gallery",
                             )
