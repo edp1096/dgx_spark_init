@@ -585,15 +585,7 @@ def _extract_gallery_path(evt: "gr.SelectData"):
 # ---------------------------------------------------------------------------
 # UI Builder
 # ---------------------------------------------------------------------------
-def build_ui() -> gr.Blocks:
-    def get_memory_status():
-        import psutil
-        vm = psutil.virtual_memory()
-        used = vm.used / 1024**3
-        total = vm.total / 1024**3
-        return f"Memory: **{used:.1f}GB/{total:.0f}GB** ({vm.percent:.0f}% used)"
-
-    custom_css = """
+_CUSTOM_CSS = """
 .memory-status { text-align: right; }
 #gen-gallery .grid-container,
 #cn-gallery .grid-container,
@@ -629,6 +621,16 @@ def build_ui() -> gr.Blocks:
 #presets-toggle-row { margin-bottom: 4px; }
 #presets-toggle-row button { min-width: 80px !important; }
 """
+
+
+def build_ui() -> gr.Blocks:
+    def get_memory_status():
+        import psutil
+        vm = psutil.virtual_memory()
+        used = vm.used / 1024**3
+        total = vm.total / 1024**3
+        return f"Memory: **{used:.1f}GB/{total:.0f}GB** ({vm.percent:.0f}% used)"
+
     with gr.Blocks(title="ZIT Gradio", analytics_enabled=False) as app:
         with gr.Row():
             gr.Markdown("# ZIT Gradio")
@@ -1529,7 +1531,7 @@ def main():
         share=args.share,
         show_error=True,
         allowed_paths=["/root/.cache/huggingface/hub/zit/datasets"],
-        css=custom_css,
+        css=_CUSTOM_CSS,
         js=get_i18n_js(),
     )
 
