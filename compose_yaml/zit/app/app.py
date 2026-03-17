@@ -1235,7 +1235,7 @@ def build_ui() -> gr.Blocks:
                         headers=["Filename", "Size"],
                         value=lambda: _lora_list(),
                         interactive=False, every=10,
-                        height=200,
+                        max_height=200,
                     )
                     with gr.Row():
                         s_lora_selected = gr.Textbox(label="Selected", interactive=False, scale=3)
