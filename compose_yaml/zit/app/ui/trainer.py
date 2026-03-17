@@ -233,6 +233,8 @@ class LoRATrainer:
             logger.info("Starting training: %d steps, lr=%.1e, rank=%d, res=%d",
                         steps, lr, rank, resolution)
             start_time = time.time()
+            _prev_log_time, _prev_log_step = start_time, 0
+            _ema_step_time = 0.0
             data_iter = iter(dataloader)
             running_loss = 0.0
 
@@ -338,10 +340,19 @@ class LoRATrainer:
                     self.progress_callback(step, steps, running_loss)
 
                 if step % 50 == 0 or step == 1:
-                    elapsed = time.time() - start_time
-                    eta = elapsed / step * (steps - step)
-                    logger.info("Step %d/%d  loss=%.4f  elapsed=%.0fs  eta=%.0fs",
-                                step, steps, running_loss, elapsed, eta)
+                    now = time.time()
+                    elapsed = now - start_time
+                    # EMA-smoothed step time for stable ETA
+                    step_time = elapsed / step if step == 1 else (now - _prev_log_time) / (step - _prev_log_step)
+                    _ema_step_time = step_time if step == 1 else 0.3 * step_time + 0.7 * _ema_step_time
+                    eta = _ema_step_time * (steps - step)
+                    _prev_log_time, _prev_log_step = now, step
+                    total = elapsed + eta
+                    e_m, e_s = int(elapsed) // 60, int(elapsed) % 60
+                    eta_m, eta_s = int(eta) // 60, int(eta) % 60
+                    t_m, t_s = int(total) // 60, int(total) % 60
+                    logger.info("Step %d/%d  loss=%.4f  elapsed=%dm%02ds  eta=%dm%02ds  total=%dm%02ds",
+                                step, steps, running_loss, e_m, e_s, eta_m, eta_s, t_m, t_s)
 
                 # Save checkpoint
                 if save_every > 0 and step % save_every == 0 and step < steps:
@@ -352,7 +363,8 @@ class LoRATrainer:
             # --- Save final LoRA ---
             self._save_lora(transformer, str(output_path))
             elapsed = time.time() - start_time
-            logger.info("Training complete: %d steps in %.0fs → %s", step, elapsed, output_path.name)
+            e_m, e_s = int(elapsed) // 60, int(elapsed) % 60
+            logger.info("Training complete: %d steps in %dm%02ds → %s", step, e_m, e_s, output_path.name)
 
             return str(output_path)
 
