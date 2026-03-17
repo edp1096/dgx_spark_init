@@ -218,23 +218,31 @@ def _upload_to_dataset(files, dataset_name: str):
 
     Called on gr.File.upload event — copies files immediately and clears
     the drop zone so it stays ready for more files.
+    Handles duplicate filenames by appending _1, _2, etc.
     """
     if not dataset_name:
         gallery, summary = _dataset_contents(dataset_name)
-        return "Error: select a dataset first", gallery, summary
+        return "Error: select a dataset first", gallery, summary, None
     ds_path = DATASETS_BASE / dataset_name
     ds_path.mkdir(parents=True, exist_ok=True)
     if not files:
         gallery, summary = _dataset_contents(dataset_name)
-        return "No files uploaded", gallery, summary
+        return "No files uploaded", gallery, summary, None
     count = 0
     for f in files:
         src = Path(f)
         dst = ds_path / src.name
+        # Avoid overwriting existing files — append _1, _2, ...
+        if dst.exists():
+            stem, suffix = dst.stem, dst.suffix
+            i = 1
+            while dst.exists():
+                dst = ds_path / f"{stem}_{i}{suffix}"
+                i += 1
         shutil.copy2(str(src), str(dst))
         count += 1
     gallery, summary = _dataset_contents(dataset_name)
-    return f"Uploaded {count} file(s) to {dataset_name}/", gallery, summary
+    return f"Uploaded {count} file(s) to {dataset_name}/", gallery, summary, None
 
 
 def _delete_dataset_image(evt: "gr.SelectData", dataset_name: str):
@@ -1059,7 +1067,7 @@ def build_ui() -> gr.Blocks:
                 tr_upload.upload(
                     fn=_upload_to_dataset,
                     inputs=[tr_upload, tr_dataset],
-                    outputs=[tr_ds_status, tr_ds_gallery, tr_ds_summary],
+                    outputs=[tr_ds_status, tr_ds_gallery, tr_ds_summary, tr_upload],
                 )
                 tr_ds_gallery.select(
                     fn=_delete_dataset_image,
@@ -1227,6 +1235,7 @@ def build_ui() -> gr.Blocks:
                         headers=["Filename", "Size"],
                         value=lambda: _lora_list(),
                         interactive=False, every=10,
+                        height=200,
                     )
                     with gr.Row():
                         s_lora_selected = gr.Textbox(label="Selected", interactive=False, scale=3)
