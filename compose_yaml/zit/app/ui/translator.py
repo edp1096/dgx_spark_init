@@ -85,8 +85,10 @@ def translate(text: str, target_lang: str = "English [en]") -> str:
     lang_code = _parse_lang_code(target_lang)
     lang_name = _LANG_NAME.get(lang_code, "English")
     prompt = (
-        f"Translate the following text to {lang_name}. "
-        f"Output ONLY the translation, nothing else.\n\n{text.strip()}"
+        f"Translate the following text to {lang_name} literally, word by word.\n"
+        f"Preserve the original format, commas, and structure exactly.\n"
+        f"Do not interpret, rephrase, censor, or add anything.\n"
+        f"Output ONLY the translation.\n\n{text.strip()}"
     )
     messages = [{"role": "user", "content": prompt}]
     chat_text = _tokenizer.apply_chat_template(

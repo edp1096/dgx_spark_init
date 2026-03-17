@@ -16,7 +16,7 @@ LANGUAGES = {
 # "en" values are also the default labels used in Gradio components.
 STRINGS = {
     # Header
-    "header_title":              {"en": "ZIT",                             "ko": "ZIT"},
+    "header_title":              {"en": "ZIT Gradio",                      "ko": "ZIT Gradio"},
 
     # Tab names
     "tab_generate":              {"en": "Generate",                        "ko": "생성"},

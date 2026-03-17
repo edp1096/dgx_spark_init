@@ -109,16 +109,32 @@ def _get_file_info(file_path):
     return f"File: {p.name}\nSize: {p.stat().st_size / 1024:.0f} KB"
 
 
-def _delete_selected(file_path):
+def _delete_selected(file_path, sel_idx):
     if not file_path:
-        return _list_outputs(), "", ""
+        outputs = _list_outputs()
+        if outputs:
+            return gr.Gallery(value=outputs, selected_index=0), outputs[0], sel_idx, _get_file_info(outputs[0])
+        return gr.Gallery(value=[]), "", 0, ""
+    # Find index of the file being deleted before removal
+    old_outputs = _list_outputs()
+    del_idx = None
+    for i, p_str in enumerate(old_outputs):
+        if p_str == file_path:
+            del_idx = i
+            break
     p = Path(file_path)
     if p.exists():
         p.unlink()
     json_p = p.with_suffix(".json")
     if json_p.exists():
         json_p.unlink()
-    return _list_outputs(), "", ""
+    outputs = _list_outputs()
+    if not outputs:
+        return gr.Gallery(value=[]), "", 0, ""
+    # Select the image at the same position (or last if we deleted the last one)
+    new_idx = min(del_idx if del_idx is not None else 0, len(outputs) - 1)
+    new_path = outputs[new_idx]
+    return gr.Gallery(value=outputs, selected_index=new_idx), new_path, new_idx, _get_file_info(new_path)
 
 
 def _download_all():
@@ -205,12 +221,12 @@ def _upload_to_dataset(files, dataset_name: str):
     """
     if not dataset_name:
         gallery, summary = _dataset_contents(dataset_name)
-        return "Error: select a dataset first", None, gallery, summary
+        return "Error: select a dataset first", gallery, summary
     ds_path = DATASETS_BASE / dataset_name
     ds_path.mkdir(parents=True, exist_ok=True)
     if not files:
         gallery, summary = _dataset_contents(dataset_name)
-        return "No files uploaded", None, gallery, summary
+        return "No files uploaded", gallery, summary
     count = 0
     for f in files:
         src = Path(f)
@@ -218,7 +234,27 @@ def _upload_to_dataset(files, dataset_name: str):
         shutil.copy2(str(src), str(dst))
         count += 1
     gallery, summary = _dataset_contents(dataset_name)
-    return f"Uploaded {count} file(s) to {dataset_name}/", None, gallery, summary
+    return f"Uploaded {count} file(s) to {dataset_name}/", gallery, summary
+
+
+def _delete_dataset_image(evt: "gr.SelectData", dataset_name: str):
+    """Delete a single image (and its caption) from the dataset."""
+    if not dataset_name:
+        return [], "No dataset selected", ""
+    ds_path = DATASETS_BASE / dataset_name
+    gallery, _ = _dataset_contents(dataset_name)
+    idx = evt.index
+    if not isinstance(idx, int) or idx < 0 or idx >= len(gallery):
+        return [g for g in gallery], _, ""
+    img_path = Path(gallery[idx][0])
+    deleted_name = img_path.name
+    if img_path.exists():
+        img_path.unlink()
+    txt_path = img_path.with_suffix(".txt")
+    if txt_path.exists():
+        txt_path.unlink()
+    gallery, summary = _dataset_contents(dataset_name)
+    return gallery, summary, f"Deleted: {deleted_name}"
 
 
 def _dataset_contents(dataset_name: str):
@@ -467,9 +503,9 @@ def build_ui() -> gr.Blocks:
 #presets-toggle-row { margin-bottom: 4px; }
 #presets-toggle-row button { min-width: 80px !important; }
 """
-    with gr.Blocks(title="ZIT", css=custom_css, js=get_i18n_js()) as app:
+    with gr.Blocks(title="ZIT Gradio", css=custom_css, js=get_i18n_js()) as app:
         with gr.Row():
-            gr.Markdown("# ZIT")
+            gr.Markdown("# ZIT Gradio")
             gr.Markdown(value=get_memory_status, every=3, elem_classes=["memory-status"])
 
         with gr.Tabs() as tabs:
@@ -485,6 +521,9 @@ def build_ui() -> gr.Blocks:
                                 gr.Button(f"Sample {i+1}", size="sm", min_width=60).click(
                                     fn=lambda s=sp: s, outputs=[g_prompt])
                         with gr.Accordion("Translate", open=False):
+                            g_translate_target = gr.Radio(
+                                ["Prompt", "Negative"], value="Prompt", label="Source", type="value",
+                            )
                             with gr.Row():
                                 g_translate_lang = gr.Dropdown(
                                     choices=_translate_choices, value=_translate_default,
@@ -632,11 +671,24 @@ def build_ui() -> gr.Blocks:
                     except Exception as e:
                         return f"Error: {e}"
 
+                def _g_translate(prompt, neg, target_sel, lang):
+                    src = prompt if target_sel == "Prompt" else neg
+                    return _translate(src, lang)
+
+                def _g_use(result, prompt, neg, target_sel):
+                    if target_sel == "Prompt":
+                        return result, neg
+                    return prompt, result
+
                 g_translate_btn.click(
-                    fn=_translate, inputs=[g_prompt, g_translate_lang], outputs=[g_translate_result],
+                    fn=_g_translate,
+                    inputs=[g_prompt, g_neg, g_translate_target, g_translate_lang],
+                    outputs=[g_translate_result],
                 )
                 g_translate_use.click(
-                    fn=lambda t: t, inputs=[g_translate_result], outputs=[g_prompt],
+                    fn=_g_use,
+                    inputs=[g_translate_result, g_prompt, g_neg, g_translate_target],
+                    outputs=[g_prompt, g_neg],
                 )
 
             # ==============================================================
@@ -653,6 +705,9 @@ def build_ui() -> gr.Blocks:
                         cn_preview = gr.Image(label="Control Preview", interactive=False, buttons=["download", "fullscreen"])
                         cn_prompt = gr.Textbox(label="Prompt", lines=3, placeholder="Describe your image...")
                         with gr.Accordion("Translate", open=False):
+                            cn_translate_target = gr.Radio(
+                                ["Prompt", "Negative"], value="Prompt", label="Source", type="value",
+                            )
                             with gr.Row():
                                 cn_translate_lang = gr.Dropdown(
                                     choices=_translate_choices, value=_translate_default,
@@ -742,11 +797,24 @@ def build_ui() -> gr.Blocks:
                 )
 
                 # Translate prompt (ControlNet)
+                def _cn_translate(prompt, neg, target_sel, lang):
+                    src = prompt if target_sel == "Prompt" else neg
+                    return _translate(src, lang)
+
+                def _cn_use(result, prompt, neg, target_sel):
+                    if target_sel == "Prompt":
+                        return result, neg
+                    return prompt, result
+
                 cn_translate_btn.click(
-                    fn=_translate, inputs=[cn_prompt, cn_translate_lang], outputs=[cn_translate_result],
+                    fn=_cn_translate,
+                    inputs=[cn_prompt, cn_neg, cn_translate_target, cn_translate_lang],
+                    outputs=[cn_translate_result],
                 )
                 cn_translate_use.click(
-                    fn=lambda t: t, inputs=[cn_translate_result], outputs=[cn_prompt],
+                    fn=_cn_use,
+                    inputs=[cn_translate_result, cn_prompt, cn_neg, cn_translate_target],
+                    outputs=[cn_prompt, cn_neg],
                 )
 
             # ==============================================================
@@ -776,6 +844,9 @@ def build_ui() -> gr.Blocks:
 
                         ip_prompt = gr.Textbox(label="Prompt", lines=3, placeholder="Describe what to fill...")
                         with gr.Accordion("Translate", open=False):
+                            ip_translate_target = gr.Radio(
+                                ["Prompt", "Negative"], value="Prompt", label="Source", type="value",
+                            )
                             with gr.Row():
                                 ip_translate_lang = gr.Dropdown(
                                     choices=_translate_choices, value=_translate_default,
@@ -851,11 +922,24 @@ def build_ui() -> gr.Blocks:
                 )
 
                 # Translate for inpaint
+                def _ip_translate(prompt, neg, target_sel, lang):
+                    src = prompt if target_sel == "Prompt" else neg
+                    return _translate(src, lang)
+
+                def _ip_use(result, prompt, neg, target_sel):
+                    if target_sel == "Prompt":
+                        return result, neg
+                    return prompt, result
+
                 ip_translate_btn.click(
-                    fn=_translate, inputs=[ip_prompt, ip_translate_lang], outputs=[ip_translate_result],
+                    fn=_ip_translate,
+                    inputs=[ip_prompt, ip_neg, ip_translate_target, ip_translate_lang],
+                    outputs=[ip_translate_result],
                 )
                 ip_translate_use.click(
-                    fn=lambda t: t, inputs=[ip_translate_result], outputs=[ip_prompt],
+                    fn=_ip_use,
+                    inputs=[ip_translate_result, ip_prompt, ip_neg, ip_translate_target],
+                    outputs=[ip_prompt, ip_neg],
                 )
 
                 # Generate inpaint
@@ -920,7 +1004,7 @@ def build_ui() -> gr.Blocks:
                             )
                             tr_ds_summary = gr.Textbox(label="Dataset", interactive=False, lines=1, show_label=False)
                             tr_ds_gallery = gr.Gallery(
-                                label="Dataset Images", columns=4, height=200,
+                                label="Dataset Images (click to delete)", columns=4, height=200,
                                 object_fit="cover", preview=False,
                                 elem_id="dataset-gallery",
                             )
@@ -975,7 +1059,12 @@ def build_ui() -> gr.Blocks:
                 tr_upload.upload(
                     fn=_upload_to_dataset,
                     inputs=[tr_upload, tr_dataset],
-                    outputs=[tr_ds_status, tr_upload, tr_ds_gallery, tr_ds_summary],
+                    outputs=[tr_ds_status, tr_ds_gallery, tr_ds_summary],
+                )
+                tr_ds_gallery.select(
+                    fn=_delete_dataset_image,
+                    inputs=[tr_dataset],
+                    outputs=[tr_ds_gallery, tr_ds_summary, tr_ds_status],
                 )
 
                 # Train state (module-level to survive across calls)
@@ -1172,7 +1261,7 @@ def build_ui() -> gr.Blocks:
             # ==============================================================
             # Tab 3: History
             # ==============================================================
-            with gr.Tab("History", id="history"):
+            with gr.Tab("History", id="history") as h_tab:
                 gr.Markdown("### Generation History")
                 with gr.Row():
                     h_refresh = gr.Button("Refresh", size="sm")
@@ -1187,23 +1276,37 @@ def build_ui() -> gr.Blocks:
                             label="Generated Images", value=_list_outputs,
                             columns=4, height=None, object_fit="contain", every=10,
                             elem_id="history-gallery", preview=True,
+                            selected_index=0,
                         )
                     with gr.Column(scale=1):
                         h_selected = gr.Textbox(label="Selected File", interactive=False, visible=False)
+                        h_sel_idx = gr.State(0)
                         h_file_info = gr.Textbox(label="File Info", interactive=False, lines=12)
                         h_download_file = gr.File(label="Download", visible=False, interactive=False)
                         h_cache_msg = gr.Textbox(label="", interactive=False, visible=False)
 
                 def _on_gallery_select(evt: gr.SelectData):
                     path = _extract_gallery_path(evt)
+                    idx = evt.index if isinstance(evt.index, int) else 0
                     logger.info("Gallery select index=%r path=%r", evt.index, path)
                     if path:
-                        return path, _get_file_info(path)
-                    return "", ""
+                        return path, idx, _get_file_info(path)
+                    return "", idx, ""
 
-                h_gallery.select(fn=_on_gallery_select, outputs=[h_selected, h_file_info])
+                def _on_history_tab():
+                    """Auto-select first image when entering History tab."""
+                    outputs = _list_outputs()
+                    if outputs:
+                        return outputs[0], 0, _get_file_info(outputs[0])
+                    return "", 0, ""
+
+                h_gallery.select(fn=_on_gallery_select, outputs=[h_selected, h_sel_idx, h_file_info])
+                h_tab.select(fn=_on_history_tab, outputs=[h_selected, h_sel_idx, h_file_info])
                 h_refresh.click(fn=_list_outputs, outputs=[h_gallery])
-                h_delete.click(fn=_delete_selected, inputs=[h_selected], outputs=[h_gallery, h_selected, h_file_info])
+                h_delete.click(
+                    fn=_delete_selected, inputs=[h_selected, h_sel_idx],
+                    outputs=[h_gallery, h_selected, h_sel_idx, h_file_info],
+                )
                 h_download_all.click(fn=_download_all, outputs=[h_download_file])
                 h_delete_all.click(fn=_delete_all, outputs=[h_gallery])
                 h_clear_cache.click(fn=_clear_cache, outputs=[h_cache_msg])
