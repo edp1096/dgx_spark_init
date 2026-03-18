@@ -29,8 +29,12 @@ logger = logging.getLogger("zit-ui")
 def fast_load_file(filepath, device="cpu"):
     """Load safetensors file using fastsafetensors for faster GPU loading."""
     from fastsafetensors import fastsafe_open
+    # fastsafetensors requires device index (e.g. "cuda:0"), not bare "cuda"
+    dev_str = str(device)
+    if dev_str == "cuda":
+        dev_str = "cuda:0"
     state_dict = {}
-    with fastsafe_open(str(filepath), device=str(device), nogds=True) as f:
+    with fastsafe_open(str(filepath), device=dev_str, nogds=True) as f:
         for key in f.keys():
             state_dict[key] = f.get_tensor(key).clone()
     return state_dict
