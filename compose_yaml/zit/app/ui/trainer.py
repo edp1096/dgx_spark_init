@@ -264,7 +264,7 @@ class LoRATrainer:
     ) -> str:
         """Run LoRA training. Returns path to saved LoRA."""
         if lora_alpha is None:
-            lora_alpha = 1
+            lora_alpha = rank
         from peft import LoraConfig, get_peft_model
         from diffusers import AutoencoderKL
         from transformers import AutoTokenizer, AutoModelForCausalLM

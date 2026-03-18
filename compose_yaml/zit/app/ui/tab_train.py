@@ -161,7 +161,7 @@ def build_train_tab(tab_ref):
                         label="Dataset Images (click to edit caption)", columns=4, height=200,
                         object_fit="cover", preview=False,
                         elem_id="dataset-gallery",
-                        value=_ds_gallery_init,
+                        value=_ds_gallery_init, buttons=["download", "fullscreen"],
                     )
 
                     def _toggle_ds_gallery_height(current_h):
@@ -225,9 +225,9 @@ def build_train_tab(tab_ref):
                 tr_rank = gr.Dropdown([4, 8, 16, 32, 64, 128], value=16, label="Rank")
             with gr.Row():
                 tr_lr = gr.Number(value=1e-4, label="Learning Rate")
-                tr_lora_alpha = gr.Number(value=1, label="LoRA Alpha", precision=0,
+                tr_lora_alpha = gr.Number(value=16, label="LoRA Alpha", precision=0,
                                           minimum=1, maximum=128,
-                                          info="PEFT scaling = alpha/rank")
+                                          info="PEFT scaling = alpha/rank (default=rank)")
             with gr.Row():
                 tr_resolution = gr.Dropdown(
                     [256, 384, 512, 768, 1024], value=512, label="Resolution",

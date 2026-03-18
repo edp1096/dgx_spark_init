@@ -98,7 +98,7 @@ def build_generate_tab():
                 g_cn_mode = gr.Radio(
                     CONTROL_MODES, value="canny", label="Control Mode",
                 )
-                g_cn_image = gr.Image(label="Control Image", type="numpy")
+                g_cn_image = gr.Image(label="Control Image", type="numpy", buttons=["download", "fullscreen"])
                 with gr.Row():
                     g_cn_preview_btn = gr.Button(
                         "Preview Preprocessor", variant="secondary", size="sm",
@@ -144,7 +144,7 @@ def build_generate_tab():
                 )
 
             # --- Gallery & status ---
-            g_gallery = gr.Gallery(label="Generated Images", columns=2, height=500, object_fit="contain", elem_id="gen-gallery", preview=True, selected_index=0)
+            g_gallery = gr.Gallery(label="Generated Images", columns=2, height=500, object_fit="contain", elem_id="gen-gallery", preview=True, selected_index=0, buttons=["download", "fullscreen"])
             g_info = gr.Textbox(label="Info", interactive=False,
                                 value=lambda: get_gen_info_for_tab("generate"), every=2)
             with gr.Row():

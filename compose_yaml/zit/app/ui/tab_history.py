@@ -28,7 +28,7 @@ def build_history_tab(tab_ref):
                 label="Generated Images", value=list_outputs,
                 columns=4, height=None, object_fit="contain", every=10,
                 elem_id="history-gallery", preview=True,
-                selected_index=0,
+                selected_index=0, buttons=["download", "fullscreen"],
             )
         with gr.Column(scale=1):
             h_selected = gr.Textbox(label="Selected File", interactive=False, visible=False)
