@@ -952,15 +952,15 @@ class ZImageTransformer2DModel(ModelMixin, ConfigMixin, FromOriginalModelMixin):
                 if os.path.exists(model_file):
                     state_dict = torch.load(model_file, map_location="cpu")
                 elif os.path.exists(model_file_safetensors):
-                    from safetensors.torch import load_file, safe_open
-                    state_dict = load_file(model_file_safetensors)
+                    from helpers import fast_load_file
+                    state_dict = fast_load_file(model_file_safetensors)
                 else:
-                    from safetensors.torch import load_file, safe_open
+                    from helpers import fast_load_file
                     model_files_safetensors = glob.glob(os.path.join(pretrained_model_path, "*.safetensors"))
                     state_dict = {}
                     print(model_files_safetensors)
                     for _model_file_safetensors in model_files_safetensors:
-                        _state_dict = load_file(_model_file_safetensors)
+                        _state_dict = fast_load_file(_model_file_safetensors)
                         for key in _state_dict:
                             state_dict[key] = _state_dict[key]
 
@@ -1064,14 +1064,14 @@ class ZImageTransformer2DModel(ModelMixin, ConfigMixin, FromOriginalModelMixin):
         if os.path.exists(model_file):
             state_dict = torch.load(model_file, map_location="cpu")
         elif os.path.exists(model_file_safetensors):
-            from safetensors.torch import load_file, safe_open
-            state_dict = load_file(model_file_safetensors)
+            from helpers import fast_load_file
+            state_dict = fast_load_file(model_file_safetensors)
         else:
-            from safetensors.torch import load_file, safe_open
+            from helpers import fast_load_file
             model_files_safetensors = glob.glob(os.path.join(pretrained_model_path, "*.safetensors"))
             state_dict = {}
             for _model_file_safetensors in model_files_safetensors:
-                _state_dict = load_file(_model_file_safetensors)
+                _state_dict = fast_load_file(_model_file_safetensors)
                 for key in _state_dict:
                     state_dict[key] = _state_dict[key]
 

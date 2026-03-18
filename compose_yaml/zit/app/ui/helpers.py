@@ -24,6 +24,30 @@ logger = logging.getLogger("zit-ui")
 
 
 # ---------------------------------------------------------------------------
+# Fast safetensors loader
+# ---------------------------------------------------------------------------
+def fast_load_file(filepath, device="cpu"):
+    """Load safetensors file using fastsafetensors for faster GPU loading."""
+    from fastsafetensors import fastsafe_open
+    state_dict = {}
+    with fastsafe_open(str(filepath), device=str(device), nogds=True) as f:
+        for key in f.keys():
+            state_dict[key] = f.get_tensor(key).clone()
+    return state_dict
+
+
+def fast_safe_metadata(filepath):
+    """Read safetensors metadata using fastsafetensors."""
+    from fastsafetensors import fastsafe_open
+    with fastsafe_open(str(filepath), device="cpu", nogds=True) as f:
+        meta_dict = f.metadata()
+    # fastsafetensors returns {filepath: OrderedDict(...)} — unwrap
+    if meta_dict:
+        return dict(next(iter(meta_dict.values())))
+    return {}
+
+
+# ---------------------------------------------------------------------------
 # Shared utilities
 # ---------------------------------------------------------------------------
 def lora_choices():

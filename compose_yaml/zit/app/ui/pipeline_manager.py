@@ -94,8 +94,8 @@ def _load_fp8_weight_scales(filepath):
     Returns a dict mapping layer name → weight_scale tensor, e.g.
     {"double_blocks.0.img_attn.proj": tensor(0.0006)}.
     """
-    from safetensors.torch import load_file
-    sd = load_file(filepath, device="cpu")
+    from helpers import fast_load_file
+    sd = fast_load_file(filepath, device="cpu")
     scales = {}
     for key in sd:
         if key.endswith(".weight_scale"):
@@ -341,8 +341,8 @@ class PipelineManager:
         if self._need_controlnet and cn_path.exists():
             self._send_progress("loading_start", {"name": "ControlNet Adapter", "index": 1, "total": 4})
             logger.info("Loading ControlNet adapter from %s...", cn_path)
-            from safetensors.torch import load_file
-            cn_state = load_file(str(cn_path), device=str(self.device))
+            from helpers import fast_load_file
+            cn_state = fast_load_file(str(cn_path), device=str(self.device))
             missing, unexpected = transformer.load_state_dict(cn_state, strict=False)
             del cn_state
             self._gpu_cleanup()
@@ -421,8 +421,8 @@ class PipelineManager:
         fp8_file = model_path / "model_fp8.safetensors"
         if self.use_fp8 and fp8_file.exists() and _Q8_AVAILABLE:
             logger.info("Loading FP8 weights + q8_kernels GEMM patch...")
-            from safetensors.torch import load_file
-            fp8_state = load_file(str(fp8_file), device=str(self.device))
+            from helpers import fast_load_file
+            fp8_state = fast_load_file(str(fp8_file), device=str(self.device))
             transformer.load_state_dict(fp8_state, strict=False, assign=True)
             del fp8_state
             self._gpu_cleanup()
@@ -471,8 +471,8 @@ class PipelineManager:
         # Re-apply ControlNet adapter (only if needed)
         cn_path = Path(self.model_dir) / CONTROLNET_DIR / CONTROLNET_FILENAME
         if self._need_controlnet and cn_path.exists():
-            from safetensors.torch import load_file
-            cn_state = load_file(str(cn_path), device=str(self.device))
+            from helpers import fast_load_file
+            cn_state = fast_load_file(str(cn_path), device=str(self.device))
             transformer.load_state_dict(cn_state, strict=False)
             del cn_state
             self._gpu_cleanup()
@@ -527,14 +527,12 @@ class PipelineManager:
             self.unload_lora()
 
         try:
-            from safetensors.torch import load_file
-            from safetensors import safe_open
+            from helpers import fast_load_file, fast_safe_metadata
 
             logger.info("Loading LoRA: %s (scale=%.2f)", lora_name, lora_scale)
 
             # Read metadata for alpha/rank auto-scaling
-            with safe_open(str(lora_path), framework="pt") as f:
-                meta = f.metadata() or {}
+            meta = fast_safe_metadata(str(lora_path))
             file_alpha = int(meta["lora_alpha"]) if "lora_alpha" in meta else None
             file_rank = int(meta["rank"]) if "rank" in meta else None
             if file_alpha is not None and file_rank is not None and file_rank > 0:
@@ -544,7 +542,7 @@ class PipelineManager:
             else:
                 alpha_scale = 1.0
 
-            lora_sd = load_file(str(lora_path), device=str(self.device))
+            lora_sd = fast_load_file(str(lora_path), device=str(self.device))
 
             # Parse LoRA state dict: group A/B pairs by module path
             # Keys: "context_refiner.0.attention.to_q.lora_A.default.weight"

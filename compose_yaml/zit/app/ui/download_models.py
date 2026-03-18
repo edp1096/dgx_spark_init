@@ -63,7 +63,8 @@ def convert_zimage_fp8(model_path: Path, label: str):
     Result: model_path/model_fp8.safetensors (FP8) + model_path/transformer/ (BF16 shards)
     """
     import torch
-    from safetensors.torch import load_file, save_file
+    from safetensors.torch import save_file
+    from helpers import fast_load_file
 
     transformer_dir = model_path / "transformer"
     fp8_file = model_path / FP8_TRANSFORMER_FILENAME
@@ -90,7 +91,7 @@ def convert_zimage_fp8(model_path: Path, label: str):
         shard_files = set(index.get("weight_map", {}).values())
         for shard in shard_files:
             shard_path = transformer_dir / shard
-            shard_dict = load_file(str(shard_path), device="cpu")
+            shard_dict = fast_load_file(str(shard_path), device="cpu")
             state_dict.update(shard_dict)
             bf16_files.append(shard_path)
         bf16_files.extend(index_files)
@@ -98,7 +99,7 @@ def convert_zimage_fp8(model_path: Path, label: str):
         for sf in transformer_dir.glob("*.safetensors"):
             if sf.name == FP8_TRANSFORMER_FILENAME:
                 continue
-            shard_dict = load_file(str(sf), device="cpu")
+            shard_dict = fast_load_file(str(sf), device="cpu")
             state_dict.update(shard_dict)
             bf16_files.append(sf)
 

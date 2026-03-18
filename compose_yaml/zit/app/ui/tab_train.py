@@ -221,7 +221,7 @@ def build_train_tab(tab_ref):
             tr_name = gr.Textbox(label="LoRA Name", value="my_lora",
                                  info="Output: loras/<name>.safetensors")
             with gr.Row():
-                tr_steps = gr.Number(value=1000, label="Steps", precision=0, minimum=100, maximum=50000)
+                tr_steps = gr.Number(value=2000, label="Steps", precision=0, minimum=100, maximum=50000)
                 tr_rank = gr.Dropdown([4, 8, 16, 32, 64, 128], value=16, label="Rank")
             with gr.Row():
                 tr_lr = gr.Number(value=1e-4, label="Learning Rate")
