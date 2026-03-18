@@ -20,7 +20,6 @@ STRINGS = {
 
     # Tab names
     "tab_generate":              {"en": "Generate",                        "ko": "생성"},
-    "tab_controlnet":            {"en": "ControlNet",                      "ko": "컨트롤넷"},
     "tab_inpaint":               {"en": "Inpaint",                         "ko": "인페인트"},
     "tab_inpaint_header":        {"en": "Inpaint / Outpaint",             "ko": "인페인트 / 아웃페인트"},
     "tab_train":                 {"en": "Train",                           "ko": "학습"},

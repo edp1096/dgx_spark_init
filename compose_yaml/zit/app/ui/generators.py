@@ -140,8 +140,7 @@ def get_latest_gallery(gen_type: str):
 
 
 _GEN_TAB_TYPES = {
-    "generate": {"zit_t2i"},
-    "controlnet": {"controlnet"},
+    "generate": {"zit_t2i", "controlnet"},
     "inpaint": {"inpaint", "outpaint"},
 }
 
@@ -360,8 +359,9 @@ def match_image_resolution(image) -> str:
 def generate_controlnet(
     prompt, control_mode, control_image, resolution, seed,
     negative_prompt="", num_steps=8, guidance_scale=0.5,
-    cfg_truncation=0.9, control_scale=0.65,
+    cfg_normalization=False, cfg_truncation=0.9, control_scale=0.65,
     max_sequence_length=512, time_shift=3.0,
+    num_images=1, attention_backend=None,
     lora_name=None, lora_scale=1.0,
     use_fp8=True,
     progress=gr.Progress(track_tqdm=True),
@@ -393,7 +393,9 @@ def generate_controlnet(
         "width": int(w), "height": int(h),
         "num_steps": int(num_steps),
         "guidance_scale": float(guidance_scale),
+        "cfg_normalization": bool(cfg_normalization),
         "cfg_truncation": float(cfg_truncation),
+        "num_images": int(num_images),
         "max_sequence_length": int(max_sequence_length),
         "time_shift": float(time_shift),
         "seed": int(seed),
@@ -401,6 +403,8 @@ def generate_controlnet(
         "lora_scale": float(lora_scale),
         "use_fp8": bool(use_fp8),
     }
+    if attention_backend:
+        kwargs["attention_backend"] = attention_backend
     return _submit_and_wait("controlnet", kwargs, progress, need_controlnet=True)
 
 

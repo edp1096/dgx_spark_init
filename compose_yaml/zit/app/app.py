@@ -18,7 +18,6 @@ from generators import (
 from helpers import get_memory_status
 from i18n import get_i18n_js
 from tab_generate import build_generate_tab
-from tab_controlnet import build_controlnet_tab
 from tab_inpaint import build_inpaint_tab
 from tab_train import build_train_tab, get_restore_train_params
 from tab_settings import build_settings_tab
@@ -34,14 +33,12 @@ logger = logging.getLogger("zit-ui")
 _CUSTOM_CSS = """
 .memory-status { text-align: right; }
 #gen-gallery .grid-container,
-#cn-gallery .grid-container,
 #history-gallery .grid-container,
 #presets-gallery .grid-container,
 #dataset-gallery .grid-container {
   grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)) !important;
 }
 #gen-gallery .thumbnails button,
-#cn-gallery .thumbnails button,
 #history-gallery .thumbnails button,
 #presets-gallery .thumbnails button,
 #dataset-gallery .thumbnails button {
@@ -49,7 +46,6 @@ _CUSTOM_CSS = """
   max-width: 200px;
 }
 #gen-gallery .thumbnails button img,
-#cn-gallery .thumbnails button img,
 #history-gallery .thumbnails button img,
 #presets-gallery .thumbnails button img,
 #dataset-gallery .thumbnails button img {
@@ -82,9 +78,6 @@ def build_ui() -> gr.Blocks:
             with gr.Tab("Generate", id="generate"):
                 gen = build_generate_tab()
 
-            with gr.Tab("ControlNet", id="controlnet"):
-                cn = build_controlnet_tab()
-
             with gr.Tab("Inpaint", id="inpaint"):
                 ip = build_inpaint_tab()
 
@@ -115,21 +108,6 @@ def build_ui() -> gr.Blocks:
                 p["lora_enable"], p["lora"], p["lora_scale"],
             )
 
-        def _restore_cn_params():
-            """Restore ControlNet tab params on refresh during generation."""
-            skip = tuple([gr.update()] * 14)
-            is_active, gen_type, p = get_gen_ui_params()
-            if not is_active or not p or p.get("tab") != "controlnet":
-                return skip
-            return (
-                p["prompt"], p["neg"], p["resolution"],
-                p["seed"], p["mode"],
-                p["steps"], p["time_shift"],
-                p["control_scale"], p["guidance"],
-                p["cfg_trunc"], p["max_seq"], p["use_fp8"],
-                p["lora"], p["lora_scale"],
-            )
-
         def _restore_ip_params():
             """Restore Inpaint tab params on refresh during generation."""
             skip = tuple([gr.update()] * 14)
@@ -150,21 +128,19 @@ def build_ui() -> gr.Blocks:
             """Block until ongoing generation completes, then update gallery."""
             is_active, _, _ = get_gen_ui_params()
             if not is_active:
-                return gr.update(), gr.update(), gr.update()
+                return gr.update(), gr.update()
 
             result = wait_for_gen_completion(timeout=600)
             if not result:
-                return gr.update(), gr.update(), gr.update()
+                return gr.update(), gr.update()
 
             paths = result["paths"]
             gen_type = result["gen_type"]
-            if gen_type == "zit_t2i":
-                return gr.Gallery(value=paths, selected_index=0), gr.update(), gr.update()
-            elif gen_type == "controlnet":
-                return gr.update(), gr.Gallery(value=paths, selected_index=0), gr.update()
+            if gen_type in ("zit_t2i", "controlnet"):
+                return gr.Gallery(value=paths, selected_index=0), gr.update()
             elif gen_type in ("inpaint", "outpaint"):
-                return gr.update(), gr.update(), paths[0] if paths else None
-            return gr.update(), gr.update(), gr.update()
+                return gr.update(), paths[0] if paths else None
+            return gr.update(), gr.update()
 
         app.load(
             fn=_restore_gen_params,
@@ -174,15 +150,6 @@ def build_ui() -> gr.Blocks:
                      gen["cfg"], gen["cfg_norm"], gen["cfg_trunc"],
                      gen["max_seq"], gen["use_fp8"], gen["attn"],
                      gen["lora_enable"], gen["lora"], gen["lora_scale"]],
-        )
-        app.load(
-            fn=_restore_cn_params,
-            outputs=[cn["prompt"], cn["neg"], cn["resolution"],
-                     cn["seed"], cn["mode"],
-                     cn["steps"], cn["time_shift"],
-                     cn["control_scale"], cn["guidance"],
-                     cn["cfg_trunc"], cn["max_seq"], cn["use_fp8"],
-                     cn["lora"], cn["lora_scale"]],
         )
         app.load(
             fn=_restore_ip_params,
@@ -196,7 +163,7 @@ def build_ui() -> gr.Blocks:
         )
         app.load(
             fn=_recover_gallery,
-            outputs=[gen["gallery"], cn["gallery"], ip["result"]],
+            outputs=[gen["gallery"], ip["result"]],
         )
         app.load(
             fn=get_restore_train_params,

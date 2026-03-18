@@ -151,13 +151,19 @@ def _worker_loop(
             guidance_scale=float(kwargs.get("guidance_scale", 0.5)),
             cfg_normalization=bool(kwargs.get("cfg_normalization", False)),
             cfg_truncation=float(kwargs.get("cfg_truncation", 0.9)),
+            num_images_per_prompt=int(kwargs.get("num_images", 1)),
             max_sequence_length=int(kwargs.get("max_sequence_length", 512)),
             generator=torch.Generator(mgr.device).manual_seed(seed),
         )
 
-        output_path = make_output_path(f"cn_{kwargs.get('control_mode', 'ctrl')}")
-        result.images[0].save(output_path, quality=95)
-        return output_path, seed
+        images = result.images
+        mode_tag = kwargs.get("control_mode", "ctrl")
+        paths = []
+        for i, img in enumerate(images):
+            p = make_output_path(f"cn_{mode_tag}_{i}" if len(images) > 1 else f"cn_{mode_tag}")
+            img.save(p, quality=95)
+            paths.append(p)
+        return paths, seed
 
     # -------------------------------------------------------------------
     # Handler: Inpaint
