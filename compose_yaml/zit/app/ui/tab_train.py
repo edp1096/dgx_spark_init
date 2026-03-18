@@ -232,14 +232,38 @@ def build_train_tab(tab_ref):
                 tr_resolution = gr.Dropdown(
                     [256, 384, 512, 768, 1024], value=512, label="Resolution",
                 )
-            tr_batch = gr.Number(value=3, label="Batch Size", precision=0, minimum=1, maximum=32)
+            tr_batch = gr.Number(value=1, label="Batch Size", precision=0, minimum=1, maximum=32)
             tr_grad_accum = gr.Number(value=1, label="Gradient Accumulation", precision=0, minimum=1, maximum=8)
             tr_save_every = gr.Number(value=500, label="Save Checkpoint Every N Steps", precision=0)
             tr_targets = gr.Textbox(
                 label="Target Modules",
-                value="to_q, to_k, to_v, to_out.0",
+                value="to_q, to_k, to_v, to_out.0, w1, w2, w3, adaLN_modulation.0",
                 info="Comma-separated Linear layer names to train",
             )
+            with gr.Accordion("Advanced", open=False):
+                tr_use_deturbo = gr.Checkbox(label="Use De-Turbo model", value=True,
+                                             info="Use de-distilled model for training")
+                tr_caption_dropout = gr.Slider(0.0, 0.5, value=0.1, step=0.05,
+                                               label="Caption Dropout")
+                tr_noise_offset = gr.Slider(0.0, 0.1, value=0.0, step=0.01,
+                                            label="Noise Offset")
+                tr_diff_guidance = gr.Slider(0.0, 10.0, value=0.0, step=0.5,
+                                             label="Differential Guidance",
+                                             info="0=off, 3.0=ostris default")
+                tr_module_dropout = gr.Slider(0.0, 0.5, value=0.0, step=0.05,
+                                              label="Module Dropout")
+                tr_rank_dropout = gr.Slider(0.0, 0.5, value=0.0, step=0.05,
+                                            label="Rank Dropout")
+                tr_timestep_sampling = gr.Dropdown(
+                    ["sigmoid", "uniform"], value="sigmoid",
+                    label="Timestep Sampling",
+                    info="sigmoid=중간 타임스텝 집중 (권장)",
+                )
+                tr_prefix_filter = gr.Dropdown(
+                    ["layers.", ""], value="layers.",
+                    label="Prefix Filter",
+                    info="layers.=메인 블록만 (권장), 빈값=전체",
+                )
             with gr.Row():
                 tr_start = gr.Button("Start Training", variant="primary")
                 tr_stop = gr.Button("Stop", variant="stop")
@@ -319,7 +343,10 @@ def build_train_tab(tab_ref):
     # --- Training ---
     def _start_training(dataset_name, name, steps, rank, lr, lora_alpha,
                         resolution,
-                        batch, grad_accum, save_every, targets):
+                        batch, grad_accum, save_every, targets,
+                        use_deturbo, caption_dropout, noise_offset,
+                        diff_guidance, module_dropout, rank_dropout,
+                        timestep_sampling, prefix_filter):
         _train_ui_params["p"] = {
             "dataset": dataset_name, "name": name,
             "steps": steps, "rank": rank, "lr": lr,
@@ -378,6 +405,14 @@ def build_train_tab(tab_ref):
                 gradient_accumulation=int(grad_accum),
                 save_every=int(save_every),
                 target_modules=target_list,
+                use_deturbo=bool(use_deturbo),
+                caption_dropout=float(caption_dropout),
+                noise_offset=float(noise_offset),
+                differential_guidance=float(diff_guidance),
+                module_dropout=float(module_dropout),
+                rank_dropout=float(rank_dropout),
+                timestep_sampling=str(timestep_sampling),
+                prefix_filter=str(prefix_filter) if prefix_filter else None,
             )
 
             yield ts["status"], ts["log"], ts["progress_md"]
@@ -422,7 +457,10 @@ def build_train_tab(tab_ref):
         fn=_start_training,
         inputs=[tr_dataset, tr_name, tr_steps, tr_rank, tr_lr, tr_lora_alpha,
                 tr_resolution,
-                tr_batch, tr_grad_accum, tr_save_every, tr_targets],
+                tr_batch, tr_grad_accum, tr_save_every, tr_targets,
+                tr_use_deturbo, tr_caption_dropout, tr_noise_offset,
+                tr_diff_guidance, tr_module_dropout, tr_rank_dropout,
+                tr_timestep_sampling, tr_prefix_filter],
         outputs=[tr_status, tr_log, tr_progress],
         concurrency_limit=1,
     )

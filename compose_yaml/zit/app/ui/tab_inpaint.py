@@ -78,7 +78,7 @@ def build_inpaint_tab():
                     lora_choices(), value="None", label="LoRA",
                     allow_custom_value=False,
                 )
-                ip_lora_scale = gr.Slider(0.0, 1.5, value=0.7, step=0.05, label="LoRA Scale")
+                ip_lora_scale = gr.Slider(0.0, 3.0, value=1.0, step=0.05, label="LoRA Scale")
                 ip_lora_refresh = gr.Button("Refresh", size="sm", variant="secondary")
                 ip_lora_refresh.click(
                     fn=lambda: gr.Dropdown(choices=lora_choices(), value="None"),

@@ -75,10 +75,10 @@ def build_ui() -> gr.Blocks:
             gr.Markdown(value=get_memory_status, every=3, elem_classes=["memory-status"])
 
         with gr.Tabs() as tabs:
-            with gr.Tab("Generate", id="generate"):
+            with gr.Tab("Generate", id="generate") as gen_tab:
                 gen = build_generate_tab()
 
-            with gr.Tab("Inpaint", id="inpaint"):
+            with gr.Tab("Inpaint", id="inpaint") as ip_tab:
                 ip = build_inpaint_tab()
 
             with gr.Tab("Train", id="train") as tr_tab:
@@ -89,6 +89,17 @@ def build_ui() -> gr.Blocks:
 
             with gr.Tab("History", id="history") as h_tab:
                 build_history_tab(h_tab)
+
+        # ---------------------------------------------------------------
+        # Tab select: refresh LoRA list when switching to Generate/Inpaint
+        # ---------------------------------------------------------------
+        from helpers import lora_choices
+
+        def _refresh_lora_dropdown():
+            return gr.Dropdown(choices=lora_choices())
+
+        gen_tab.select(fn=_refresh_lora_dropdown, outputs=[gen["lora"]])
+        ip_tab.select(fn=_refresh_lora_dropdown, outputs=[ip["lora"]])
 
         # ---------------------------------------------------------------
         # Page load: restore params if generation/training is in progress

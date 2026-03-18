@@ -1,20 +1,23 @@
-"""LoRA training for Z-Image-Turbo — flow matching objective.
+"""LoRA training for Z-Image-Turbo — kohya-style (no PEFT).
 
-Trains LoRA adapters on the transformer using peft. Supports any use case
-(face, style, object, etc.) — just provide images + captions.
+Trains LoRA adapters using direct A/B matrix decomposition, matching
+the ostris/ai-toolkit approach. Forward hooks inject LoRA output during
+training, and saved weights are directly compatible with inference hooks.
 
-Training runs in a **separate process** (like the inference worker) so that
-stopping it via process.kill() instantly frees all GPU memory.
+Training runs in a **separate process** so that stopping it via
+process.kill() instantly frees all GPU memory.
 """
 
 import gc
 import logging
+import math
 import multiprocessing as _mp
 import os
 import time
 from pathlib import Path
 
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
 from PIL import Image
 from torch.utils.data import Dataset, DataLoader
@@ -72,12 +75,154 @@ class ImageCaptionDataset(Dataset):
         img = img.crop((left, top, left + min_dim, top + min_dim))
         img = img.resize((self.resolution, self.resolution), Image.LANCZOS)
 
-        # To tensor: [0, 255] → [-1, 1]
+        # To tensor: [0, 255] → [0, 1] (ostris/ToTensor convention)
         import numpy as np
-        arr = np.array(img, dtype=np.float32) / 127.5 - 1.0
+        arr = np.array(img, dtype=np.float32) / 255.0
         tensor = torch.from_numpy(arr).permute(2, 0, 1)  # CHW
 
         return tensor, caption
+
+
+# ---------------------------------------------------------------------------
+# Kohya-style LoRA module
+# ---------------------------------------------------------------------------
+class LoRAModule(nn.Module):
+    """Single LoRA adapter: down (in→rank) + up (rank→out).
+
+    Matches ostris/kohya convention:
+      - down init: kaiming uniform
+      - up init: zeros
+      - alpha stored as buffer (saved in state_dict)
+      - scale = alpha / rank
+    """
+
+    def __init__(self, orig_module: nn.Linear, rank: int, alpha: float,
+                 module_dropout: float = 0.0, rank_dropout: float = 0.0):
+        super().__init__()
+        in_features = orig_module.in_features
+        out_features = orig_module.out_features
+
+        self.lora_down = nn.Linear(in_features, rank, bias=False)
+        self.lora_up = nn.Linear(rank, out_features, bias=False)
+
+        # Kaiming for down, zeros for up (ostris convention)
+        nn.init.kaiming_uniform_(self.lora_down.weight, a=math.sqrt(5))
+        nn.init.zeros_(self.lora_up.weight)
+
+        self.register_buffer("alpha", torch.tensor(alpha))
+        self.scale = alpha / rank
+        self.rank = rank
+        self.module_dropout = module_dropout
+        self.rank_dropout = rank_dropout
+
+    def forward(self, x):
+        # Module dropout: skip entire LoRA (ostris convention)
+        if self.module_dropout > 0 and self.training:
+            if torch.rand(1).item() < self.module_dropout:
+                # Return zeros — hook adds this to output, so net effect = no LoRA
+                return torch.zeros(
+                    *x.shape[:-1], self.lora_up.out_features,
+                    device=x.device, dtype=x.dtype,
+                )
+
+        lx = self.lora_down(x)
+
+        # Rank dropout: zero out random rank dimensions (ostris convention)
+        if self.rank_dropout > 0 and self.training:
+            mask = torch.rand(lx.shape[-1], device=lx.device) > self.rank_dropout
+            lx = lx * mask
+            scale = self.scale * (1.0 / (1.0 - self.rank_dropout))
+        else:
+            scale = self.scale
+
+        return self.lora_up(lx) * scale
+
+
+def apply_lora_modules(
+    transformer: nn.Module,
+    rank: int,
+    alpha: float,
+    target_names: list[str],
+    device: torch.device,
+    dtype: torch.dtype = torch.bfloat16,
+    prefix_filter: str | None = None,
+    module_dropout: float = 0.0,
+    rank_dropout: float = 0.0,
+) -> list[tuple[str, LoRAModule]]:
+    """Attach LoRA modules to target Linear layers via forward hooks.
+
+    Args:
+        prefix_filter: If set, only apply to modules whose path starts with
+                       this prefix (e.g. "layers." to skip noise_refiner/context_refiner).
+
+    Returns list of (module_path, lora_module) for optimizer and saving.
+    """
+    lora_modules = []
+    hooks = []
+
+    for name, module in transformer.named_modules():
+        # Prefix filter (e.g. only "layers.*")
+        if prefix_filter and not name.startswith(prefix_filter):
+            continue
+        # Check if this module's name ends with any target name
+        # Support multi-part targets like "adaLN_modulation.0"
+        matched = False
+        for t in target_names:
+            if name == t or name.endswith("." + t):
+                matched = True
+                break
+        if not matched:
+            continue
+        if not isinstance(module, nn.Linear):
+            continue
+
+        lora = LoRAModule(module, rank, alpha,
+                          module_dropout=module_dropout,
+                          rank_dropout=rank_dropout).to(device=device, dtype=dtype)
+        lora.train()
+
+        # Forward hook: output += lora(input)
+        def _make_hook(lora_mod):
+            def hook(mod, input, output):
+                x = input[0] if isinstance(input, tuple) else input
+                return output + lora_mod(x.to(lora_mod.lora_down.weight.dtype))
+            return hook
+
+        handle = module.register_forward_hook(_make_hook(lora))
+        hooks.append(handle)
+        lora_modules.append((name, lora))
+
+    return lora_modules, hooks
+
+
+def save_kohya_lora(
+    lora_modules: list[tuple[str, LoRAModule]],
+    output_path: str,
+    alpha: float,
+    rank: int,
+):
+    """Save LoRA weights in format compatible with inference hooks.
+
+    Keys: "{module_path}.lora_A.weight", "{module_path}.lora_B.weight"
+    Metadata: lora_alpha, rank
+    """
+    from safetensors.torch import save_file
+
+    state_dict = {}
+    for module_path, lora in lora_modules:
+        # A = down weight (rank, in_features) — matches inference hook expectation
+        state_dict[f"{module_path}.lora_A.weight"] = lora.lora_down.weight.data.cpu()
+        # B = up weight (out_features, rank)
+        state_dict[f"{module_path}.lora_B.weight"] = lora.lora_up.weight.data.cpu()
+
+    metadata = {
+        "lora_alpha": str(int(alpha)),
+        "rank": str(rank),
+    }
+
+    save_file(state_dict, output_path, metadata=metadata)
+    size_mb = os.path.getsize(output_path) / 1024**2
+    logger.info("LoRA saved: %s (%.1f MB, %d pairs)", output_path, size_mb, len(lora_modules))
 
 
 # ---------------------------------------------------------------------------
@@ -211,7 +356,7 @@ class TrainProcessManager:
 # LoRA Trainer (runs inside subprocess)
 # ---------------------------------------------------------------------------
 class LoRATrainer:
-    """Train LoRA adapters on Z-Image-Turbo transformer."""
+    """Train LoRA adapters on Z-Image-Turbo transformer (kohya-style)."""
 
     def __init__(
         self,
@@ -250,6 +395,12 @@ class LoRATrainer:
     def is_training(self):
         return self._training
 
+    @staticmethod
+    def _sample_timesteps_sigmoid(batch_size: int, device: torch.device) -> torch.Tensor:
+        """Sigmoid timestep sampling (ostris style) — biases toward middle timesteps."""
+        t = torch.sigmoid(torch.randn(batch_size, device=device))
+        return t
+
     def train(
         self,
         steps: int = 2000,
@@ -261,11 +412,18 @@ class LoRATrainer:
         gradient_accumulation: int = 1,
         save_every: int = 500,
         target_modules: list[str] | None = None,
+        prefix_filter: str | None = "layers.",
+        use_deturbo: bool = False,
+        caption_dropout: float = 0.0,
+        timestep_sampling: str = "sigmoid",
+        noise_offset: float = 0.0,
+        module_dropout: float = 0.0,
+        rank_dropout: float = 0.0,
+        differential_guidance: float = 0.0,
     ) -> str:
         """Run LoRA training. Returns path to saved LoRA."""
         if lora_alpha is None:
             lora_alpha = rank
-        from peft import LoraConfig, get_peft_model
         from diffusers import AutoencoderKL
         from transformers import AutoTokenizer, AutoModelForCausalLM
         from zit_config import ZIMAGE_TURBO_DIR, LORAS_DIR
@@ -277,7 +435,11 @@ class LoRATrainer:
         self.current_loss = 0.0
 
         if target_modules is None:
-            target_modules = ["to_q", "to_k", "to_v", "to_out.0"]
+            target_modules = [
+                "to_q", "to_k", "to_v", "to_out.0",
+                "w1", "w2", "w3",
+                "adaLN_modulation.0",
+            ]
 
         model_path = self.model_dir / ZIMAGE_TURBO_DIR
         output_dir = self.model_dir / LORAS_DIR
@@ -319,48 +481,133 @@ class LoRATrainer:
             tokenizer = AutoTokenizer.from_pretrained(str(tokenizer_dir))
 
             # --- Load transformer (BF16, base model without ControlNet) ---
-            self._set_status("Loading transformer...")
-            logger.info("Loading transformer (BF16 for training)...")
             from videox_models.z_image_transformer2d import ZImageTransformer2DModel
 
-            transformer = ZImageTransformer2DModel.from_pretrained(
-                str(model_path / "transformer"),
-                torch_dtype=torch.bfloat16,
-            ).to(self.device)
-            transformer.eval()
+            deturbo_path = self.model_dir / "Z-Image-De-Turbo" / "transformer"
+            if use_deturbo and deturbo_path.exists():
+                self._set_status("Loading De-Turbo transformer...")
+                logger.info("Loading De-Turbo transformer (no adapter needed)...")
+                transformer = ZImageTransformer2DModel.from_pretrained(
+                    str(deturbo_path),
+                    torch_dtype=torch.bfloat16,
+                ).to(self.device)
+            else:
+                self._set_status("Loading transformer...")
+                logger.info("Loading transformer (BF16 for training)...")
+                transformer = ZImageTransformer2DModel.from_pretrained(
+                    str(model_path / "transformer"),
+                    torch_dtype=torch.bfloat16,
+                ).to(self.device)
 
-            # --- Apply LoRA ---
-            self._set_status("Applying LoRA...")
-            logger.info("Applying LoRA (rank=%d, targets=%s)...", rank, target_modules)
-            lora_config = LoraConfig(
-                r=rank,
-                lora_alpha=lora_alpha,
-                target_modules=target_modules,
-                lora_dropout=0.0,
-                bias="none",
-            )
-            transformer = get_peft_model(transformer, lora_config)
+            # Freeze transformer weights but keep train mode (ostris convention)
+            # train() keeps Dropout active; requires_grad_(False) prevents base weight updates
             transformer.train()
+            transformer.requires_grad_(False)
 
-            trainable = sum(p.numel() for p in transformer.parameters() if p.requires_grad)
-            total_params = sum(p.numel() for p in transformer.parameters())
-            logger.info("Trainable: %d / %d (%.2f%%)", trainable, total_params, 100 * trainable / total_params)
+            # --- Merge training adapter (de-distillation) — skip if using De-Turbo ---
+            adapter_dir = self.model_dir / "training_adapter"
+            if use_deturbo and deturbo_path.exists():
+                logger.info("Using De-Turbo model — skipping adapter merge")
+                adapter_dir = None  # skip adapter
+            adapter_file = adapter_dir / "zimage_turbo_training_adapter_v2.safetensors" if adapter_dir else None
+            if adapter_file is not None and not adapter_file.exists():
+                adapter_file = adapter_dir / "zimage_turbo_training_adapter_v1.safetensors"
+            if adapter_file is not None and adapter_file.exists():
+                self._set_status("Merging training adapter (de-distill)...")
+                logger.info("Loading training adapter: %s", adapter_file.name)
+                from safetensors.torch import load_file as safe_load
+                adapter_sd = safe_load(str(adapter_file), device=str(self.device))
+                # Adapter is a LoRA — merge A*B into base weights
+                lora_pairs = {}
+                for key, tensor in adapter_sd.items():
+                    clean_key = key.removeprefix("diffusion_model.")
+                    if ".lora_A." in clean_key:
+                        module_path = clean_key.split(".lora_A.")[0]
+                        lora_pairs.setdefault(module_path, {})["A"] = tensor.to(torch.bfloat16)
+                    elif ".lora_B." in clean_key:
+                        module_path = clean_key.split(".lora_B.")[0]
+                        lora_pairs.setdefault(module_path, {})["B"] = tensor.to(torch.bfloat16)
+                merged = 0
+                for module_path, pair in lora_pairs.items():
+                    if "A" not in pair or "B" not in pair:
+                        continue
+                    try:
+                        target = transformer
+                        for part in module_path.split("."):
+                            target = getattr(target, part)
+                        with torch.no_grad():
+                            target.weight.data += (pair["B"] @ pair["A"]).to(target.weight.dtype)
+                        merged += 1
+                    except AttributeError:
+                        logger.warning("Adapter module not found: %s", module_path)
+                del adapter_sd
+                logger.info("Training adapter merged: %d layers", merged)
+            elif adapter_dir is not None:
+                logger.warning("No training adapter found at %s — training without de-distillation", adapter_dir)
 
-            # --- Optimizer ---
-            optimizer = torch.optim.AdamW(
-                [p for p in transformer.parameters() if p.requires_grad],
-                lr=lr, weight_decay=1e-2,
+            # --- Apply kohya-style LoRA modules ---
+            self._set_status("Applying LoRA (kohya-style)...")
+            logger.info("Applying LoRA (kohya-style, rank=%d, alpha=%d, targets=%s)...",
+                        rank, lora_alpha, target_modules)
+
+            lora_modules, lora_hooks = apply_lora_modules(
+                transformer, rank=rank, alpha=lora_alpha,
+                target_names=target_modules,
+                device=self.device, dtype=torch.bfloat16,
+                prefix_filter=prefix_filter,
+                module_dropout=module_dropout,
+                rank_dropout=rank_dropout,
             )
+
+            trainable = sum(
+                p.numel() for _, lora in lora_modules
+                for p in lora.parameters()
+            )
+            total_params = sum(p.numel() for p in transformer.parameters())
+            logger.info("LoRA modules: %d, Trainable: %d / %d (%.2f%%)",
+                        len(lora_modules), trainable, total_params,
+                        100 * trainable / total_params)
+
+            # --- Optimizer (only LoRA params) ---
+            lora_params = []
+            for _, lora in lora_modules:
+                lora_params.extend(lora.parameters())
+
+            optimizer = torch.optim.AdamW(lora_params, lr=lr, weight_decay=1e-2, eps=1e-6)
+
+            # --- Pre-encode captions if dataset is small (saves time) ---
+            self._set_status("Pre-encoding captions...")
+            logger.info("Pre-encoding %d captions...", len(dataset.samples))
+            caption_cache = {}
+            all_captions = list(set(cap for _, cap in dataset.samples))
+            for cap in all_captions:
+                with torch.no_grad():
+                    embeds = self._encode_text([cap], tokenizer, text_encoder, self.device)
+                    caption_cache[cap] = embeds[0].detach()
+
+            # Also encode empty caption for dropout
+            if caption_dropout > 0:
+                with torch.no_grad():
+                    empty_embeds = self._encode_text([""], tokenizer, text_encoder, self.device)
+                    caption_cache[""] = empty_embeds[0].detach()
+
+            # Free text encoder after pre-encoding
+            del text_encoder
+            gc.collect()
+            torch.cuda.empty_cache()
+            logger.info("Text encoder freed (captions pre-encoded)")
 
             # --- Training loop ---
             self._set_status("Training...")
-            logger.info("Starting training: %d steps, lr=%.1e, rank=%d, res=%d",
-                        steps, lr, rank, resolution)
+            logger.info("Starting training: %d steps, lr=%.1e, rank=%d, alpha=%d, res=%d, ts=%s",
+                        steps, lr, rank, lora_alpha, resolution, timestep_sampling)
             start_time = time.time()
             _prev_log_time, _prev_log_step = start_time, 0
             _ema_step_time = 0.0
             data_iter = iter(dataloader)
             running_loss = 0.0
+
+            import random
 
             for step in range(1, steps + 1):
                 if self._stop_requested:
@@ -376,46 +623,77 @@ class LoRATrainer:
 
                 images = images.to(self.device, dtype=torch.float32)
 
-                # --- Encode image to latents ---
+                # --- Encode image to latents (B,C,H,W) ---
                 with torch.no_grad():
-                    latents = vae.encode(images).latent_dist.sample() * vae_scale
+                    raw_latents = vae.encode(images).latent_dist.sample()
+                    # ostris formula: scaling_factor * (latents - shift_factor)
+                    vae_shift = getattr(vae.config, 'shift_factor', 0.0) or 0.0
+                    latents = vae_scale * (raw_latents - vae_shift)
                     latents = latents.to(torch.bfloat16)
 
-                # --- Encode text ---
-                with torch.no_grad():
-                    prompt_embeds = self._encode_text(
-                        captions, tokenizer, text_encoder, self.device,
+                # --- Get text embeddings (from cache, with optional dropout) ---
+                prompt_embeds = []
+                for cap in captions:
+                    if caption_dropout > 0 and random.random() < caption_dropout:
+                        prompt_embeds.append(caption_cache[""])
+                    else:
+                        prompt_embeds.append(caption_cache[cap])
+
+                # --- Flow matching noise (B,C,H,W) — no frame dim yet (ostris order) ---
+                noise = torch.randn_like(latents)
+                if noise_offset > 0:
+                    # Per-channel noise offset (ostris convention)
+                    noise += noise_offset * torch.randn(
+                        latents.shape[0], latents.shape[1], 1, 1,
+                        device=self.device, dtype=latents.dtype,
                     )
 
-                # --- Add frame dimension: (B,C,H,W) → (B,C,1,H,W) ---
-                latents = latents.unsqueeze(2)
+                if timestep_sampling == "sigmoid":
+                    t = self._sample_timesteps_sigmoid(latents.shape[0], self.device)
+                else:
+                    t = torch.rand(latents.shape[0], device=self.device)
+                t = t.to(torch.bfloat16)
 
-                # --- Flow matching noise ---
-                noise = torch.randn_like(latents)
-                t = torch.rand(latents.shape[0], device=self.device, dtype=torch.bfloat16)
+                # Timestep: ostris uses (1-t)*1000 scale
+                timestep_1000 = (1 - t) * 1000.0
 
-                t_expanded = t.view(-1, 1, 1, 1, 1)
-                noisy_latents = (1 - t_expanded) * latents + t_expanded * noise
-                target = noise - latents
+                # add_noise: t_01 = timestep/1000, noisy = (1-t_01)*x + t_01*noise
+                t_01 = (timestep_1000 / 1000.0).view(-1, 1, 1, 1)
+                noisy_latents = (1.0 - t_01) * latents + t_01 * noise
+
+                # Loss target (B,C,H,W)
+                target = (noise - latents).detach()
 
                 # --- Forward pass ---
-                timestep = t * 1000.0
+                # Add frame dim AFTER add_noise (ostris order)
+                noisy_latents = noisy_latents.unsqueeze(2)  # (B,C,H,W) → (B,C,1,H,W)
 
-                max_len = max(e.shape[0] for e in prompt_embeds)
-                cap_dim = prompt_embeds[0].shape[-1]
-                cap_feats = torch.zeros(
-                    len(prompt_embeds), max_len, cap_dim,
-                    device=self.device, dtype=torch.bfloat16,
-                )
-                for i, emb in enumerate(prompt_embeds):
-                    cap_feats[i, :emb.shape[0]] = emb
+                # Model timestep: ostris inverts: (1000 - timestep) / 1000
+                timestep_model = (1000.0 - timestep_1000) / 1000.0
 
+                # Match inference format: List of individual tensors
+                x_list = list(noisy_latents.unbind(dim=0))  # List[(C,1,H,W)]
+                cap_list = prompt_embeds  # List[Tensor(seq_len, dim)]
+
+                # Full forward with LoRA hooks active
                 output = transformer(
-                    x=noisy_latents,
-                    t=timestep,
-                    cap_feats=cap_feats,
+                    x=x_list,
+                    t=timestep_model,
+                    cap_feats=cap_list,
                 )
                 model_pred = output[0] if isinstance(output, (tuple, list)) else output
+                model_pred = model_pred.squeeze(2)  # Remove frame dim: (B,C,1,H,W) → (B,C,H,W)
+
+                # Negate output (ostris convention for ZImage flow matching)
+                model_pred = -model_pred
+
+                # Differential guidance: adjust target toward model prediction
+                # target = noise_pred + scale * (target - noise_pred)
+                if differential_guidance > 0:
+                    with torch.no_grad():
+                        target = model_pred.detach() + differential_guidance * (
+                            target - model_pred.detach()
+                        )
 
                 # --- Loss ---
                 loss = F.mse_loss(model_pred.float(), target.float())
@@ -429,13 +707,10 @@ class LoRATrainer:
                 loss.backward()
 
                 if step % gradient_accumulation == 0:
-                    torch.nn.utils.clip_grad_norm_(
-                        [p for p in transformer.parameters() if p.requires_grad],
-                        max_norm=1.0,
-                    )
+                    torch.nn.utils.clip_grad_norm_(lora_params, max_norm=1.0)
                     has_nan = False
-                    for p in transformer.parameters():
-                        if p.requires_grad and p.grad is not None and not torch.isfinite(p.grad).all():
+                    for p in lora_params:
+                        if p.grad is not None and not torch.isfinite(p.grad).all():
                             has_nan = True
                             break
                     if has_nan:
@@ -474,14 +749,14 @@ class LoRATrainer:
                 # Save checkpoint
                 if save_every > 0 and step % save_every == 0 and step < steps:
                     ckpt_path = output_dir / f"{self.output_name}_step{step}.safetensors"
-                    self._save_lora(transformer, str(ckpt_path),
-                                    lora_alpha=lora_alpha, rank=rank)
+                    save_kohya_lora(lora_modules, str(ckpt_path),
+                                    alpha=lora_alpha, rank=rank)
                     logger.info("Checkpoint saved: %s", ckpt_path.name)
 
             # --- Save final LoRA ---
             self._set_status("Saving LoRA...")
-            self._save_lora(transformer, str(output_path),
-                            lora_alpha=lora_alpha, rank=rank)
+            save_kohya_lora(lora_modules, str(output_path),
+                            alpha=lora_alpha, rank=rank)
             elapsed = time.time() - start_time
             e_m, e_s = int(elapsed) // 60, int(elapsed) % 60
             logger.info("Training complete: %d steps in %dm%02ds → %s", step, e_m, e_s, output_path.name)
@@ -495,7 +770,6 @@ class LoRATrainer:
             raise
         finally:
             self._training = False
-            # Process exit will free all GPU memory — minimal cleanup only
             logger.info("Training process will exit — GPU memory released automatically")
 
     @staticmethod
@@ -529,27 +803,3 @@ class LoRATrainer:
             embeds_list.append(hidden[i][attention_mask[i]])
 
         return embeds_list
-
-    @staticmethod
-    def _save_lora(peft_model, output_path: str, lora_alpha: int | None = None,
-                   rank: int | None = None):
-        """Save only LoRA weights as safetensors with metadata."""
-        from safetensors.torch import save_file
-
-        state_dict = {}
-        for name, param in peft_model.named_parameters():
-            if param.requires_grad:
-                clean_name = name
-                if clean_name.startswith("base_model.model."):
-                    clean_name = clean_name[len("base_model.model."):]
-                state_dict[clean_name] = param.data.cpu()
-
-        metadata = {}
-        if lora_alpha is not None:
-            metadata["lora_alpha"] = str(lora_alpha)
-        if rank is not None:
-            metadata["rank"] = str(rank)
-
-        save_file(state_dict, output_path, metadata=metadata)
-        size_mb = os.path.getsize(output_path) / 1024**2
-        logger.info("LoRA saved: %s (%.1f MB, %d tensors)", output_path, size_mb, len(state_dict))
