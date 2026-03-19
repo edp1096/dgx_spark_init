@@ -369,12 +369,10 @@ def build_settings_tab():
         current = navId;
       }
 
-      // initial highlight
       highlight(pairs[0][1]);
 
-      // --- Scroll-based sticky TOC (bypass CSS sticky entirely) ---
-      // Find the real scroll container — Gradio wraps everything in a
-      // scrollable div that is NOT document.body.
+      // Find the real scroll container (Gradio wraps content in a
+      // scrollable div that is NOT document.body).
       function findScrollParent(el) {
         while (el && el !== document.documentElement) {
           const ov = getComputedStyle(el).overflowY;
@@ -384,18 +382,36 @@ def build_settings_tab():
         return document.documentElement;
       }
 
+      let _cleanup = null;
+
       function setup() {
         const toc = document.getElementById('settings-toc');
-        if (!toc) { setTimeout(setup, 500); return; }
-
         const row = document.getElementById('settings-row');
-        if (!row) { setTimeout(setup, 500); return; }
+        if (!toc || !row) { setTimeout(setup, 500); return; }
 
         const scroller = findScrollParent(row);
+        const scrollerRect = () => scroller === document.documentElement
+          ? { top: 0, bottom: window.innerHeight, left: 0 }
+          : scroller.getBoundingClientRect();
 
-        // Remove CSS sticky — we handle it via JS
-        toc.style.position = 'relative';
-        toc.style.top = 'auto';
+        // --- position: fixed approach ---
+        // Insert a placeholder so the Row layout doesn't collapse.
+        let ph = document.getElementById('toc-ph');
+        if (!ph) {
+          ph = document.createElement('div');
+          ph.id = 'toc-ph';
+          row.insertBefore(ph, toc);
+        }
+        const tocW = toc.offsetWidth;
+        ph.style.width = tocW + 'px';
+        ph.style.minWidth = tocW + 'px';
+        ph.style.flexShrink = '0';
+
+        toc.style.position = 'fixed';
+        toc.style.zIndex = '999';
+        toc.style.width = tocW + 'px';
+        toc.style.transition = 'none';
+        toc.style.transform = 'none';
 
         let ticking = false;
         function onScroll() {
@@ -403,33 +419,22 @@ def build_settings_tab():
           ticking = true;
           requestAnimationFrame(() => {
             ticking = false;
+            const sr = scrollerRect();
             const rowRect = row.getBoundingClientRect();
-            const scrollerRect = scroller === document.documentElement
-              ? { top: 0, bottom: window.innerHeight }
-              : scroller.getBoundingClientRect();
+            const phRect = ph.getBoundingClientRect();
 
-            // How far the row's top is above the scroller's top edge
-            const offset = scrollerRect.top - rowRect.top;
-
-            if (offset > 0 && offset < row.scrollHeight - toc.offsetHeight) {
-              // Row is partially scrolled — pin TOC
-              toc.style.transform = 'translateY(' + offset + 'px)';
-            } else if (offset >= row.scrollHeight - toc.offsetHeight) {
-              // Row is almost gone — clamp to bottom
-              toc.style.transform = 'translateY(' + (row.scrollHeight - toc.offsetHeight) + 'px)';
-            } else {
-              // Row fully visible — no offset
-              toc.style.transform = 'translateY(0px)';
-            }
+            // Vertical: stick to scroller top, but clamp within row bounds
+            const minTop = Math.max(sr.top, rowRect.top);
+            const maxTop = rowRect.bottom - toc.offsetHeight;
+            toc.style.top = Math.max(Math.min(minTop, maxTop), sr.top) + 'px';
+            toc.style.left = phRect.left + 'px';
 
             // --- Highlight active section ---
             let active = pairs[0][1];
             for (const [sid, nid] of pairs) {
               const sec = document.getElementById(sid);
               if (!sec) continue;
-              const secRect = sec.getBoundingClientRect();
-              // Section top is above 20% of viewport
-              if (secRect.top <= scrollerRect.top + (scrollerRect.bottom - scrollerRect.top) * 0.2) {
+              if (sec.getBoundingClientRect().top <= sr.top + (sr.bottom - sr.top) * 0.2) {
                 active = nid;
               }
             }
@@ -438,17 +443,25 @@ def build_settings_tab():
         }
 
         scroller.addEventListener('scroll', onScroll, { passive: true });
-        // Also handle window scroll in case scroller is documentElement
+        window.addEventListener('resize', onScroll, { passive: true });
         if (scroller === document.documentElement) {
           window.addEventListener('scroll', onScroll, { passive: true });
         }
         onScroll();
 
-        // Re-run setup if Gradio re-renders (tab switch etc.)
+        // Cleanup function for re-init
+        _cleanup = () => {
+          scroller.removeEventListener('scroll', onScroll);
+          window.removeEventListener('resize', onScroll);
+          window.removeEventListener('scroll', onScroll);
+        };
+
+        // Re-run setup if Gradio re-renders (tab switch, etc.)
         const mo = new MutationObserver(() => {
           if (!document.getElementById('settings-toc')) {
             mo.disconnect();
-            scroller.removeEventListener('scroll', onScroll);
+            if (_cleanup) _cleanup();
+            _cleanup = null;
             setTimeout(setup, 500);
           }
         });
