@@ -23,6 +23,7 @@ services:
     command: >
       /bin/bash -c "
       pip install -q diffusers sentencepiece opencv-python-headless &&
+      pip install -q safetensors &&
 
       cd ~/zit-ui &&
       wget -q https://raw.githubusercontent.com/edp1096/dgx_spark_init/main/compose_yaml/zit/builder/update.sh -O update.sh &&
