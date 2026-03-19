@@ -24,6 +24,7 @@ from tab_inpaint import build_inpaint_tab
 from tab_train import build_train_tab, get_restore_train_params
 from tab_settings import build_settings_tab
 from tab_history import build_history_tab
+from tab_editor_test import build_editor_test_tab
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("zit-ui")
@@ -104,6 +105,9 @@ def build_ui() -> gr.Blocks:
             with gr.Tab("Settings", id="settings") as settings_tab:
                 build_settings_tab(settings_sidebar)
 
+            with gr.Tab("Editor Test", id="editor_test") as et_tab:
+                build_editor_test_tab()
+
         # ---------------------------------------------------------------
         # Tab select: refresh LoRA list when switching to Generate/Inpaint
         # ---------------------------------------------------------------
@@ -146,6 +150,7 @@ def build_ui() -> gr.Blocks:
         ip_tab.select(fn=_hide_sidebar, outputs=[settings_sidebar])
         tr_tab.select(fn=_hide_sidebar, outputs=[settings_sidebar])
         h_tab.select(fn=_hide_sidebar, outputs=[settings_sidebar])
+        et_tab.select(fn=_hide_sidebar, outputs=[settings_sidebar])
 
         # ---------------------------------------------------------------
         # Page load: restore params if generation/training is in progress
