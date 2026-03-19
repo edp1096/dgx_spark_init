@@ -413,7 +413,6 @@ class LoRATrainer:
         save_every: int = 500,
         target_modules: list[str] | None = None,
         prefix_filter: str | None = "layers.",
-        use_deturbo: bool = False,
         caption_dropout: float = 0.0,
         timestep_sampling: str = "sigmoid",
         noise_offset: float = 0.0,
@@ -483,36 +482,24 @@ class LoRATrainer:
             # --- Load transformer (BF16, base model without ControlNet) ---
             from videox_models.z_image_transformer2d import ZImageTransformer2DModel
 
-            deturbo_path = self.model_dir / "Z-Image-De-Turbo" / "transformer"
-            if use_deturbo and deturbo_path.exists():
-                self._set_status("Loading De-Turbo transformer...")
-                logger.info("Loading De-Turbo transformer (no adapter needed)...")
-                transformer = ZImageTransformer2DModel.from_pretrained(
-                    str(deturbo_path),
-                    torch_dtype=torch.bfloat16,
-                ).to(self.device)
-            else:
-                self._set_status("Loading transformer...")
-                logger.info("Loading transformer (BF16 for training)...")
-                transformer = ZImageTransformer2DModel.from_pretrained(
-                    str(model_path / "transformer"),
-                    torch_dtype=torch.bfloat16,
-                ).to(self.device)
+            self._set_status("Loading transformer...")
+            logger.info("Loading transformer (BF16 for training)...")
+            transformer = ZImageTransformer2DModel.from_pretrained(
+                str(model_path / "transformer"),
+                torch_dtype=torch.bfloat16,
+            ).to(self.device)
 
             # Freeze transformer weights but keep train mode (ostris convention)
             # train() keeps Dropout active; requires_grad_(False) prevents base weight updates
             transformer.train()
             transformer.requires_grad_(False)
 
-            # --- Merge training adapter (de-distillation) — skip if using De-Turbo ---
+            # --- Merge training adapter (de-distillation) ---
             adapter_dir = self.model_dir / "training_adapter"
-            if use_deturbo and deturbo_path.exists():
-                logger.info("Using De-Turbo model — skipping adapter merge")
-                adapter_dir = None  # skip adapter
-            adapter_file = adapter_dir / "zimage_turbo_training_adapter_v2.safetensors" if adapter_dir else None
-            if adapter_file is not None and not adapter_file.exists():
+            adapter_file = adapter_dir / "zimage_turbo_training_adapter_v2.safetensors"
+            if not adapter_file.exists():
                 adapter_file = adapter_dir / "zimage_turbo_training_adapter_v1.safetensors"
-            if adapter_file is not None and adapter_file.exists():
+            if adapter_file.exists():
                 self._set_status("Merging training adapter (de-distill)...")
                 logger.info("Loading training adapter: %s", adapter_file.name)
                 from safetensors.torch import load_file as safe_load
@@ -542,7 +529,7 @@ class LoRATrainer:
                         logger.warning("Adapter module not found: %s", module_path)
                 del adapter_sd
                 logger.info("Training adapter merged: %d layers", merged)
-            elif adapter_dir is not None:
+            else:
                 logger.warning("No training adapter found at %s — training without de-distillation", adapter_dir)
 
             # --- Apply kohya-style LoRA modules ---

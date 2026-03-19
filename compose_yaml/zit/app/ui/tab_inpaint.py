@@ -105,11 +105,9 @@ def build_inpaint_tab():
 
                 def _ip_add_lora(count):
                     count = min(count + 1, MAX_LORA_STACK)
-                    updates = [count]
-                    for i in range(MAX_LORA_STACK):
-                        updates.append(gr.Row(visible=(i < count)))
-                        updates.append(gr.Textbox(visible=(i < count)))
-                    return updates
+                    row_vis = [gr.Row(visible=(i < count)) for i in range(MAX_LORA_STACK)]
+                    tw_vis = [gr.Textbox(visible=(i < count)) for i in range(MAX_LORA_STACK)]
+                    return [count] + row_vis + tw_vis
 
                 ip_lora_add.click(
                     fn=_ip_add_lora, inputs=[ip_lora_count],
@@ -118,14 +116,11 @@ def build_inpaint_tab():
 
                 def _ip_remove_lora(count, idx):
                     count = max(count - 1, 1)
-                    updates = [count]
-                    for i in range(MAX_LORA_STACK):
-                        updates.append(gr.Row(visible=(i < count)))
-                        updates.append(gr.Textbox(visible=(i < count)))
+                    row_vis = [gr.Row(visible=(i < count)) for i in range(MAX_LORA_STACK)]
+                    tw_vis = [gr.Textbox(visible=(i < count)) for i in range(MAX_LORA_STACK)]
                     dd_updates = [gr.update()] * MAX_LORA_STACK
                     dd_updates[idx] = gr.Dropdown(value="None")
-                    updates.extend(dd_updates)
-                    return updates
+                    return [count] + row_vis + tw_vis + dd_updates
 
                 for idx, rm_btn in enumerate(ip_lora_remove_btns):
                     rm_btn.click(

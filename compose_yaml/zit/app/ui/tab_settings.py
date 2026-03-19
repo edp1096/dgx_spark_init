@@ -61,148 +61,154 @@ def build_settings_tab():
         s_check.click(fn=_check_models, outputs=[s_check_status])
 
     # ------------------------------------------------------------------
-    # LoRA Download — HuggingFace
+    # LoRA Download (unified: HuggingFace / direct URL / CivitAI)
     # ------------------------------------------------------------------
     gr.Markdown("### LoRA Download")
     with gr.Group():
-        s_lora_url = gr.Textbox(label="HuggingFace Repo ID or URL")
-        s_lora_fname = gr.Textbox(label="Filename in Repo (e.g. model.safetensors)")
-        s_lora_save = gr.Textbox(label="Save As (optional)")
-        s_lora_trigger = gr.Textbox(label="Trigger Words",
-                                     placeholder="e.g. lya, lee young-ae")
-        s_lora_dl = gr.Button("Download", variant="secondary", size="sm")
-        s_lora_status = gr.Textbox(label="Download Status", interactive=False)
+        s_dl_url = gr.Textbox(
+            label="URL / HuggingFace Repo ID / CivitAI URL",
+            placeholder="https://civitai.com/models/... or user/repo or https://...",
+        )
+        s_dl_fname = gr.Textbox(
+            label="Filename in Repo",
+            placeholder="e.g. model.safetensors (HuggingFace only)",
+        )
+        s_dl_save = gr.Textbox(label="Save As (optional)")
+        s_dl_trigger = gr.Textbox(label="Trigger Words",
+                                   placeholder="e.g. lya, lee young-ae (CivitAI: auto-filled)")
+        s_dl_rec_scale = gr.Slider(0.0, 3.0, value=1.0, step=0.05,
+                                    label="Recommend Scale")
+        s_dl_civitai_key = gr.Textbox(
+            label="CivitAI API Key (CivitAI only)",
+            type="password",
+            value=os.environ.get("CIVITAI_API_KEY", ""),
+            placeholder="Required for CivitAI downloads",
+        )
+        s_dl_btn = gr.Button("Download", variant="primary", size="sm")
+        s_dl_status = gr.Textbox(label="Status", interactive=False, lines=3)
 
-        def _download_lora(source, fname, save_as, trigger_words):
+        def _is_civitai(source: str) -> bool:
+            return "civitai.com" in source or source.strip().isdigit()
+
+        def _download_lora(source, fname, save_as, trigger_words, rec_scale, api_key):
             from zit_config import LORAS_DIR
+            import urllib.request
+
+            source = source.strip()
+            if not source:
+                return "Error: URL or Repo ID required", ""
+
             loras_dir = Path(MODEL_DIR) / LORAS_DIR
             loras_dir.mkdir(parents=True, exist_ok=True)
+
             try:
+                if _is_civitai(source):
+                    return _download_civitai(
+                        source, api_key, save_as, trigger_words, rec_scale, loras_dir,
+                    )
+
+                # HuggingFace repo or direct URL
                 if source.startswith("http"):
-                    import urllib.request
-                    out_name = save_as or source.split("/")[-1]
+                    out_name = save_as.strip() if save_as.strip() else source.split("/")[-1]
                     dest = loras_dir / out_name
                     urllib.request.urlretrieve(source, str(dest))
                 else:
                     from huggingface_hub import hf_hub_download
-                    filename = fname or "model.safetensors"
-                    out_name = save_as or filename
+                    filename = fname.strip() if fname.strip() else "model.safetensors"
+                    out_name = save_as.strip() if save_as.strip() else filename
                     hf_hub_download(source, filename, local_dir=str(loras_dir))
-                    if fname and save_as and fname != save_as:
-                        (loras_dir / fname).rename(loras_dir / save_as)
+                    if filename != out_name:
+                        src = loras_dir / filename
+                        if src.exists():
+                            src.rename(loras_dir / out_name)
                     dest = loras_dir / out_name
-                # Save metadata
+
                 _auto_populate_metadata(dest.name, dest)
+                meta_updates = {}
                 if trigger_words.strip():
-                    update_lora_info(dest.name, {"trigger_words": trigger_words.strip()})
-                return f"Downloaded: {dest.name}"
+                    meta_updates["trigger_words"] = trigger_words.strip()
+                if rec_scale != 1.0:
+                    meta_updates["recommend_scale"] = float(rec_scale)
+                if meta_updates:
+                    update_lora_info(dest.name, meta_updates)
+
+                return f"Downloaded: {dest.name}", ""
+
             except Exception as e:
-                return f"Error: {e}"
+                logger.error("LoRA download error: %s", e)
+                return f"Error: {e}", ""
 
-        s_lora_dl.click(
-            fn=_download_lora,
-            inputs=[s_lora_url, s_lora_fname, s_lora_save, s_lora_trigger],
-            outputs=[s_lora_status],
-        )
-
-    # ------------------------------------------------------------------
-    # LoRA Download — CivitAI
-    # ------------------------------------------------------------------
-    gr.Markdown("### CivitAI Download")
-    with gr.Group():
-        s_civitai_key = gr.Textbox(label="CivitAI API Key", type="password",
-                                    value=os.environ.get("CIVITAI_API_KEY", ""),
-                                    placeholder="Your CivitAI API key")
-        s_civitai_url = gr.Textbox(label="CivitAI URL or Model Version ID",
-                                    placeholder="https://civitai.com/models/12345 or version ID")
-        s_civitai_save = gr.Textbox(label="Save As (optional)")
-        s_civitai_trigger = gr.Textbox(label="Trigger Words (auto-filled from API if available)")
-        s_civitai_dl = gr.Button("Download from CivitAI", variant="primary", size="sm")
-        s_civitai_status = gr.Textbox(label="Status", interactive=False, lines=3)
-
-        def _download_civitai(civitai_url, api_key, save_as, trigger_words):
-            from zit_config import LORAS_DIR
+        def _download_civitai(civitai_url, api_key, save_as, trigger_words,
+                              rec_scale, loras_dir):
             import urllib.request
             import json as _json
-
-            loras_dir = Path(MODEL_DIR) / LORAS_DIR
-            loras_dir.mkdir(parents=True, exist_ok=True)
 
             if not api_key.strip():
                 return "Error: CivitAI API key required", ""
 
-            try:
-                # Parse URL to get model version ID
-                version_id = _parse_civitai_url(civitai_url.strip())
-                if not version_id:
-                    return "Error: Could not parse CivitAI URL/ID", ""
+            version_id = _parse_civitai_url(civitai_url.strip())
+            if not version_id:
+                return "Error: Could not parse CivitAI URL/ID", ""
 
-                # Get model version info from API
-                api_url = f"{CIVITAI_API_BASE}/model-versions/{version_id}"
-                req = urllib.request.Request(api_url)
-                req.add_header("Authorization", f"Bearer {api_key.strip()}")
-                with urllib.request.urlopen(req, timeout=30) as resp:
-                    api_data = _json.loads(resp.read())
+            api_url = f"{CIVITAI_API_BASE}/model-versions/{version_id}"
+            req = urllib.request.Request(api_url)
+            req.add_header("Authorization", f"Bearer {api_key.strip()}")
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                api_data = _json.loads(resp.read())
 
-                # Find primary safetensors file
-                dl_url = None
-                dl_name = None
-                for f in api_data.get("files", []):
-                    if f.get("name", "").endswith(".safetensors"):
-                        dl_url = f.get("downloadUrl")
-                        dl_name = f.get("name")
-                        break
+            # Find primary safetensors file
+            dl_url = dl_name = None
+            for f in api_data.get("files", []):
+                if f.get("name", "").endswith(".safetensors"):
+                    dl_url = f.get("downloadUrl")
+                    dl_name = f.get("name")
+                    break
+            if not dl_url:
+                return "Error: No safetensors file found in this model version", ""
 
-                if not dl_url:
-                    return "Error: No safetensors file found in this model version", ""
+            out_name = save_as.strip() if save_as.strip() else dl_name
+            if not out_name.endswith(".safetensors"):
+                out_name += ".safetensors"
 
-                out_name = save_as.strip() if save_as.strip() else dl_name
-                if not out_name.endswith(".safetensors"):
-                    out_name += ".safetensors"
+            # Trigger words from API
+            api_triggers = [tw.strip() for tw in api_data.get("trainedWords", []) if tw.strip()]
+            api_trigger_str = ", ".join(api_triggers)
 
-                # Get trigger words from API
-                api_triggers = []
-                for tw in api_data.get("trainedWords", []):
-                    if tw.strip():
-                        api_triggers.append(tw.strip())
-                api_trigger_str = ", ".join(api_triggers)
+            # Download
+            dest = loras_dir / out_name
+            dl_req = urllib.request.Request(dl_url)
+            dl_req.add_header("Authorization", f"Bearer {api_key.strip()}")
+            with urllib.request.urlopen(dl_req, timeout=600) as resp:
+                with open(dest, "wb") as f:
+                    while True:
+                        chunk = resp.read(1024 * 1024)
+                        if not chunk:
+                            break
+                        f.write(chunk)
 
-                # Download the file
-                dest = loras_dir / out_name
-                dl_req = urllib.request.Request(dl_url)
-                dl_req.add_header("Authorization", f"Bearer {api_key.strip()}")
-                with urllib.request.urlopen(dl_req, timeout=600) as resp:
-                    with open(dest, "wb") as f:
-                        while True:
-                            chunk = resp.read(1024 * 1024)
-                            if not chunk:
-                                break
-                            f.write(chunk)
+            _auto_populate_metadata(out_name, dest)
+            final_triggers = trigger_words.strip() if trigger_words.strip() else api_trigger_str
+            model_name = api_data.get("model", {}).get("name", "")
+            meta_updates = {
+                "trigger_words": final_triggers,
+                "description": model_name,
+                "source_url": civitai_url.strip(),
+            }
+            if rec_scale != 1.0:
+                meta_updates["recommend_scale"] = float(rec_scale)
+            update_lora_info(out_name, meta_updates)
 
-                # Save metadata
-                _auto_populate_metadata(out_name, dest)
-                final_triggers = trigger_words.strip() if trigger_words.strip() else api_trigger_str
-                model_name = api_data.get("model", {}).get("name", "")
-                update_lora_info(out_name, {
-                    "trigger_words": final_triggers,
-                    "description": model_name,
-                    "source_url": civitai_url.strip(),
-                })
+            size_mb = dest.stat().st_size / 1024 / 1024
+            status = f"Downloaded: {out_name} ({size_mb:.1f} MB)"
+            if api_trigger_str:
+                status += f"\nAPI trigger words: {api_trigger_str}"
+            return status, final_triggers
 
-                size_mb = dest.stat().st_size / 1024 / 1024
-                status = f"Downloaded: {out_name} ({size_mb:.1f} MB)"
-                if api_trigger_str:
-                    status += f"\nAPI trigger words: {api_trigger_str}"
-                return status, final_triggers
-
-            except Exception as e:
-                logger.error("CivitAI download error: %s", e)
-                return f"Error: {e}", ""
-
-        s_civitai_dl.click(
-            fn=_download_civitai,
-            inputs=[s_civitai_url, s_civitai_key, s_civitai_save, s_civitai_trigger],
-            outputs=[s_civitai_status, s_civitai_trigger],
+        s_dl_btn.click(
+            fn=_download_lora,
+            inputs=[s_dl_url, s_dl_fname, s_dl_save, s_dl_trigger,
+                    s_dl_rec_scale, s_dl_civitai_key],
+            outputs=[s_dl_status, s_dl_trigger],
         )
 
     # ------------------------------------------------------------------

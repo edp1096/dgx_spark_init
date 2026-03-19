@@ -21,6 +21,9 @@ from zit_config import (
     HED_FILE,
     HED_URL,
     LORAS_DIR,
+    TRAINING_ADAPTER_DIR,
+    TRAINING_ADAPTER_FILENAME,
+    TRAINING_ADAPTER_URL,
     TRANSLATOR_DIR,
     TRANSLATOR_REPO,
     MODEL_DIR,
@@ -200,6 +203,20 @@ def download_preprocessors(model_dir: Path | None = None):
 
 
 # ---------------------------------------------------------------------------
+# Training adapter download (de-distillation)
+# ---------------------------------------------------------------------------
+def download_training_adapter(model_dir: Path | None = None):
+    model_dir = model_dir or MODEL_DIR
+    adapter_dir = model_dir / TRAINING_ADAPTER_DIR
+    adapter_dir.mkdir(parents=True, exist_ok=True)
+    dest = adapter_dir / TRAINING_ADAPTER_FILENAME
+    if dest.exists():
+        print(f"[OK] Training adapter already exists")
+        return
+    _download_url(TRAINING_ADAPTER_URL, dest)
+
+
+# ---------------------------------------------------------------------------
 # Translator model download
 # ---------------------------------------------------------------------------
 def download_translator(model_dir: Path | None = None):
@@ -252,6 +269,14 @@ def check_status(model_dir: Path | None = None):
     else:
         print(f"  [MISSING] {TRANSLATOR_DIR}")
 
+    # Training adapter
+    adapter_path = model_dir / TRAINING_ADAPTER_DIR / TRAINING_ADAPTER_FILENAME
+    if adapter_path.exists():
+        size = adapter_path.stat().st_size / 1024**2
+        print(f"  [OK] Training adapter ({size:.0f} MB)")
+    else:
+        print(f"  [MISSING] Training adapter")
+
     # Preprocessors
     prep_dir = model_dir / PREPROCESSORS_DIR
     for fname in [DWPOSE_DET_FILE, DWPOSE_POSE_FILE, ZOEDEPTH_FILE, HED_FILE]:
@@ -273,6 +298,7 @@ def download_all(model_dir: Path | None = None):
 
     download_zimage_turbo(model_dir)
     download_controlnet(model_dir)
+    download_training_adapter(model_dir)
     download_preprocessors(model_dir)
     download_translator(model_dir)
 

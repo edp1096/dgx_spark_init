@@ -33,6 +33,13 @@ ZOEDEPTH_FILE = "ZoeD_M12_N.pt"
 HED_FILE = "ControlNetHED.pth"
 
 # ---------------------------------------------------------------------------
+# Training adapter (de-distillation, inside MODEL_DIR/training_adapter/)
+# ---------------------------------------------------------------------------
+TRAINING_ADAPTER_DIR = "training_adapter"
+TRAINING_ADAPTER_FILENAME = "zimage_turbo_training_adapter_v2.safetensors"
+TRAINING_ADAPTER_URL = "https://huggingface.co/ostris/zimage_turbo_training_adapter/resolve/main/zimage_turbo_training_adapter_v2.safetensors?download=true"
+
+# ---------------------------------------------------------------------------
 # LoRA directories (inside MODEL_DIR)
 # ---------------------------------------------------------------------------
 LORAS_DIR = "loras"
