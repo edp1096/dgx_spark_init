@@ -67,6 +67,17 @@ STRINGS = {
     "enable_lora":               {"en": "Enable LoRA",                     "ko": "LoRA 활성화"},
     "lora":                      {"en": "LoRA",                            "ko": "LoRA"},
     "lora_scale":                {"en": "LoRA Scale",                      "ko": "LoRA 강도"},
+    "add_lora":                  {"en": "+ Add LoRA",                      "ko": "+ LoRA 추가"},
+    "trigger_words":             {"en": "Trigger Words",                   "ko": "트리거 워드"},
+    "civitai_api_key":           {"en": "CivitAI API Key",                 "ko": "CivitAI API 키"},
+    "civitai_url":               {"en": "CivitAI URL or Model ID",         "ko": "CivitAI URL 또는 모델 ID"},
+    "download_civitai":          {"en": "Download from CivitAI",           "ko": "CivitAI에서 다운로드"},
+    "lora_description":          {"en": "Description",                     "ko": "설명"},
+    "lora_dataset":              {"en": "Dataset",                         "ko": "데이터셋"},
+    "lora_source":               {"en": "Source URL",                      "ko": "소스 URL"},
+    "lora_notes":                {"en": "Notes",                           "ko": "메모"},
+    "save_metadata":             {"en": "Save Metadata",                   "ko": "메타데이터 저장"},
+    "lora_detail":               {"en": "LoRA Detail",                     "ko": "LoRA 상세"},
 
     # Presets section
     "presets":                   {"en": "Presets",                         "ko": "프리셋"},

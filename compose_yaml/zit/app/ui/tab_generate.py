@@ -12,7 +12,8 @@ from generators import (
     save_gen_ui_params,
 )
 from helpers import (
-    lora_choices, do_kill, do_translate, translate_use,
+    lora_choices, get_trigger_words, get_recommend_scale,
+    do_kill, do_translate, translate_use,
     list_presets, load_preset_params, delete_preset,
     save_as_preset, export_preset, import_preset,
 )
@@ -21,6 +22,7 @@ from zit_config import (
     RESOLUTION_CHOICES, SAMPLE_PROMPTS, CONTROL_MODES,
     DEFAULT_STEPS, DEFAULT_TIME_SHIFT, DEFAULT_GUIDANCE,
     DEFAULT_CFG_TRUNCATION, DEFAULT_MAX_SEQ_LENGTH,
+    MAX_LORA_STACK,
 )
 
 ATTENTION_BACKENDS = ["native", "flash", "flash_varlen", "_native_flash", "_native_math"]
@@ -71,16 +73,71 @@ def build_generate_tab():
             )
             with gr.Accordion("LoRA", open=False):
                 g_lora_enable = gr.Checkbox(label="Enable LoRA", value=False)
-                g_lora = gr.Dropdown(
-                    lora_choices(), value="None", label="LoRA",
-                    allow_custom_value=False,
+                g_lora_count = gr.State(1)
+                g_lora_rows = []
+                g_lora_dropdowns = []
+                g_lora_scales = []
+                g_lora_triggers = []
+                g_lora_remove_btns = []
+                for i in range(MAX_LORA_STACK):
+                    with gr.Row(visible=(i == 0)) as row:
+                        dd = gr.Dropdown(lora_choices(), value="None", label=f"LoRA {i+1}",
+                                         allow_custom_value=False, scale=3)
+                        sl = gr.Slider(0.0, 3.0, value=1.0, step=0.05, label="Scale", scale=1, min_width=80)
+                        rm = gr.Button("✕", size="sm", variant="stop", scale=0, min_width=30,
+                                       visible=(i > 0))
+                    tw = gr.Textbox(label="", interactive=False, lines=1, max_lines=1,
+                                    show_label=False, visible=(i == 0),
+                                    placeholder="Trigger words")
+                    g_lora_rows.append(row)
+                    g_lora_dropdowns.append(dd)
+                    g_lora_scales.append(sl)
+                    g_lora_triggers.append(tw)
+                    g_lora_remove_btns.append(rm)
+                    def _on_lora_select_gen(name):
+                        return get_trigger_words(name), get_recommend_scale(name)
+                    dd.change(fn=_on_lora_select_gen, inputs=[dd], outputs=[tw, sl])
+                with gr.Row():
+                    g_lora_add = gr.Button("+ Add LoRA", size="sm", variant="secondary")
+                    g_lora_refresh = gr.Button("Refresh", size="sm", variant="secondary")
+
+                def _add_lora_slot(count):
+                    count = min(count + 1, MAX_LORA_STACK)
+                    updates = [count]
+                    for i in range(MAX_LORA_STACK):
+                        updates.append(gr.Row(visible=(i < count)))
+                        updates.append(gr.Textbox(visible=(i < count)))
+                    return updates
+
+                g_lora_add.click(
+                    fn=_add_lora_slot, inputs=[g_lora_count],
+                    outputs=[g_lora_count] + g_lora_rows + g_lora_triggers,
                 )
-                g_lora_scale = gr.Slider(0.0, 3.0, value=1.0, step=0.05, label="LoRA Scale")
-                g_lora_refresh = gr.Button("Refresh", size="sm", variant="secondary")
-                g_lora_refresh.click(
-                    fn=lambda: gr.Dropdown(choices=lora_choices(), value="None"),
-                    outputs=[g_lora],
-                )
+
+                def _remove_lora_slot(count, idx):
+                    count = max(count - 1, 1)
+                    updates = [count]
+                    for i in range(MAX_LORA_STACK):
+                        updates.append(gr.Row(visible=(i < count)))
+                        updates.append(gr.Textbox(visible=(i < count)))
+                    # Reset removed slot dropdown
+                    dd_updates = [gr.update()] * MAX_LORA_STACK
+                    dd_updates[idx] = gr.Dropdown(value="None")
+                    updates.extend(dd_updates)
+                    return updates
+
+                for idx, rm_btn in enumerate(g_lora_remove_btns):
+                    rm_btn.click(
+                        fn=lambda cnt, i=idx: _remove_lora_slot(cnt, i),
+                        inputs=[g_lora_count],
+                        outputs=[g_lora_count] + g_lora_rows + g_lora_triggers + g_lora_dropdowns,
+                    )
+
+                def _refresh_all_loras():
+                    choices = lora_choices()
+                    return [gr.Dropdown(choices=choices)] * MAX_LORA_STACK
+
+                g_lora_refresh.click(fn=_refresh_all_loras, outputs=g_lora_dropdowns)
             g_cn_enable = gr.Checkbox(
                 label="Enable ControlNet", value=False,
                 info="ON: load ControlNet adapter (pose/depth control) / OFF: pure T2I (better face quality)",
@@ -176,12 +233,32 @@ def build_generate_tab():
     )
 
     # --- Generate dispatch ---
+    def _build_lora_stack(enable, count, *dd_and_scales):
+        """Collect active LoRA entries into a stack list."""
+        if not enable:
+            return []
+        stack = []
+        count = int(count)
+        for i in range(min(count, MAX_LORA_STACK)):
+            name = dd_and_scales[i]
+            scale = dd_and_scales[MAX_LORA_STACK + i]
+            if name and name != "None":
+                stack.append({"name": name, "scale": float(scale)})
+        return stack
+
     def _generate_dispatch(prompt, resolution, seed, num_images,
                            neg, steps, time_shift, cfg, cfg_norm, cfg_trunc,
                            max_seq, use_fp8, attn_backend,
-                           lora_enable, lora, lora_scale,
-                           cn_enable, cn_mode, cn_image, cn_scale,
+                           lora_enable, lora_count,
+                           *lora_and_cn_args,
                            progress=gr.Progress(track_tqdm=True)):
+        # Unpack: MAX_LORA_STACK dropdowns + MAX_LORA_STACK scales + cn args
+        lora_dds = list(lora_and_cn_args[:MAX_LORA_STACK])
+        lora_sls = list(lora_and_cn_args[MAX_LORA_STACK:MAX_LORA_STACK*2])
+        cn_enable, cn_mode, cn_image, cn_scale = lora_and_cn_args[MAX_LORA_STACK*2:]
+
+        lora_stack = _build_lora_stack(lora_enable, lora_count, *lora_dds, *lora_sls)
+
         save_gen_ui_params({
             "tab": "generate",
             "prompt": prompt, "neg": neg, "resolution": resolution,
@@ -189,15 +266,13 @@ def build_generate_tab():
             "steps": steps, "time_shift": time_shift,
             "cfg": cfg, "cfg_norm": cfg_norm, "cfg_trunc": cfg_trunc,
             "max_seq": max_seq, "use_fp8": use_fp8, "attn": attn_backend,
-            "lora_enable": lora_enable, "lora": lora, "lora_scale": lora_scale,
+            "lora_enable": lora_enable, "lora_stack": lora_stack,
             "cn_enable": cn_enable, "cn_mode": cn_mode, "cn_scale": cn_scale,
         })
-        effective_lora = lora if lora_enable and lora != "None" else None
 
         if cn_enable:
             if cn_image is None:
                 raise gr.Error("ControlNet is enabled but no control image uploaded.")
-            # ControlNet mode: preprocess + generate with CN adapter
             preprocessed = preview_preprocessor(cn_mode, cn_image)
             paths, info = generate_controlnet(
                 prompt, cn_mode, preprocessed, resolution, seed,
@@ -206,13 +281,11 @@ def build_generate_tab():
                 cfg_truncation=cfg_trunc, control_scale=cn_scale,
                 max_sequence_length=max_seq, time_shift=time_shift,
                 num_images=num_images, attention_backend=attn_backend,
-                lora_name=effective_lora,
-                lora_scale=lora_scale,
+                lora_stack=lora_stack,
                 use_fp8=use_fp8,
                 progress=progress,
             )
         else:
-            # Pure T2I mode: no ControlNet adapter
             paths, info = generate_zit_t2i(
                 prompt, resolution, seed, num_images,
                 negative_prompt=neg, num_steps=steps,
@@ -221,8 +294,7 @@ def build_generate_tab():
                 cfg_normalization=cfg_norm, cfg_truncation=cfg_trunc,
                 max_sequence_length=max_seq,
                 attention_backend=attn_backend,
-                lora_name=effective_lora,
-                lora_scale=lora_scale,
+                lora_stack=lora_stack,
                 use_fp8=use_fp8,
                 progress=progress,
             )
@@ -233,7 +305,8 @@ def build_generate_tab():
         inputs=[g_prompt, g_resolution, g_seed, g_num,
                 g_neg, g_steps, g_time_shift, g_cfg, g_cfg_norm, g_cfg_trunc,
                 g_max_seq, g_use_fp8, g_attn,
-                g_lora_enable, g_lora, g_lora_scale,
+                g_lora_enable, g_lora_count,
+                *g_lora_dropdowns, *g_lora_scales,
                 g_cn_enable, g_cn_mode, g_cn_image, g_cn_scale],
         outputs=[g_gallery, g_info, g_gen_paths],
         concurrency_limit=1,
@@ -292,7 +365,8 @@ def build_generate_tab():
         "steps": g_steps, "time_shift": g_time_shift,
         "cfg": g_cfg, "cfg_norm": g_cfg_norm, "cfg_trunc": g_cfg_trunc,
         "max_seq": g_max_seq, "use_fp8": g_use_fp8, "attn": g_attn,
-        "lora_enable": g_lora_enable, "lora": g_lora, "lora_scale": g_lora_scale,
+        "lora_enable": g_lora_enable,
+        "lora_dropdowns": g_lora_dropdowns, "lora_scales": g_lora_scales,
         "cn_enable": g_cn_enable, "cn_mode": g_cn_mode,
         "cn_image": g_cn_image, "cn_scale": g_cn_scale,
         "gallery": g_gallery,

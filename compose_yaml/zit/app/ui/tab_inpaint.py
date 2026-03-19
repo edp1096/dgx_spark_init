@@ -9,7 +9,7 @@ from generators import (
     get_loading_status,
     save_gen_ui_params,
 )
-from helpers import lora_choices, do_kill, do_translate, translate_use
+from helpers import lora_choices, get_trigger_words, get_recommend_scale, do_kill, do_translate, translate_use
 from translator import LANG_CHOICES, DEFAULT_LANG
 from zit_config import (
     RESOLUTION_CHOICES,
@@ -19,6 +19,7 @@ from zit_config import (
     DEFAULT_INPAINT_CFG_TRUNCATION,
     DEFAULT_INPAINT_CONTROL_SCALE,
     DEFAULT_MAX_SEQ_LENGTH,
+    MAX_LORA_STACK,
 )
 
 
@@ -74,16 +75,70 @@ def build_inpaint_tab():
             ip_use_controlnet = gr.Checkbox(label="Enable ControlNet", value=True)
             with gr.Accordion("LoRA", open=False):
                 ip_lora_enable = gr.Checkbox(label="Enable LoRA", value=False)
-                ip_lora = gr.Dropdown(
-                    lora_choices(), value="None", label="LoRA",
-                    allow_custom_value=False,
+                ip_lora_count = gr.State(1)
+                ip_lora_rows = []
+                ip_lora_dropdowns = []
+                ip_lora_scales = []
+                ip_lora_triggers = []
+                ip_lora_remove_btns = []
+                for i in range(MAX_LORA_STACK):
+                    with gr.Row(visible=(i == 0)) as row:
+                        dd = gr.Dropdown(lora_choices(), value="None", label=f"LoRA {i+1}",
+                                         allow_custom_value=False, scale=3)
+                        sl = gr.Slider(0.0, 3.0, value=1.0, step=0.05, label="Scale", scale=1, min_width=80)
+                        rm = gr.Button("✕", size="sm", variant="stop", scale=0, min_width=30,
+                                       visible=(i > 0))
+                    tw = gr.Textbox(label="", interactive=False, lines=1, max_lines=1,
+                                    show_label=False, visible=(i == 0),
+                                    placeholder="Trigger words")
+                    ip_lora_rows.append(row)
+                    ip_lora_dropdowns.append(dd)
+                    ip_lora_scales.append(sl)
+                    ip_lora_triggers.append(tw)
+                    ip_lora_remove_btns.append(rm)
+                    def _on_lora_select_ip(name):
+                        return get_trigger_words(name), get_recommend_scale(name)
+                    dd.change(fn=_on_lora_select_ip, inputs=[dd], outputs=[tw, sl])
+                with gr.Row():
+                    ip_lora_add = gr.Button("+ Add LoRA", size="sm", variant="secondary")
+                    ip_lora_refresh = gr.Button("Refresh", size="sm", variant="secondary")
+
+                def _ip_add_lora(count):
+                    count = min(count + 1, MAX_LORA_STACK)
+                    updates = [count]
+                    for i in range(MAX_LORA_STACK):
+                        updates.append(gr.Row(visible=(i < count)))
+                        updates.append(gr.Textbox(visible=(i < count)))
+                    return updates
+
+                ip_lora_add.click(
+                    fn=_ip_add_lora, inputs=[ip_lora_count],
+                    outputs=[ip_lora_count] + ip_lora_rows + ip_lora_triggers,
                 )
-                ip_lora_scale = gr.Slider(0.0, 3.0, value=1.0, step=0.05, label="LoRA Scale")
-                ip_lora_refresh = gr.Button("Refresh", size="sm", variant="secondary")
-                ip_lora_refresh.click(
-                    fn=lambda: gr.Dropdown(choices=lora_choices(), value="None"),
-                    outputs=[ip_lora],
-                )
+
+                def _ip_remove_lora(count, idx):
+                    count = max(count - 1, 1)
+                    updates = [count]
+                    for i in range(MAX_LORA_STACK):
+                        updates.append(gr.Row(visible=(i < count)))
+                        updates.append(gr.Textbox(visible=(i < count)))
+                    dd_updates = [gr.update()] * MAX_LORA_STACK
+                    dd_updates[idx] = gr.Dropdown(value="None")
+                    updates.extend(dd_updates)
+                    return updates
+
+                for idx, rm_btn in enumerate(ip_lora_remove_btns):
+                    rm_btn.click(
+                        fn=lambda cnt, i=idx: _ip_remove_lora(cnt, i),
+                        inputs=[ip_lora_count],
+                        outputs=[ip_lora_count] + ip_lora_rows + ip_lora_triggers + ip_lora_dropdowns,
+                    )
+
+                def _ip_refresh_loras():
+                    choices = lora_choices()
+                    return [gr.Dropdown(choices=choices)] * MAX_LORA_STACK
+
+                ip_lora_refresh.click(fn=_ip_refresh_loras, outputs=ip_lora_dropdowns)
             ip_gen_inpaint = gr.Button("Generate", variant="primary", visible=True)
             ip_gen_outpaint = gr.Button("Generate", variant="primary", visible=False)
 
@@ -130,11 +185,28 @@ def build_inpaint_tab():
         outputs=[ip_prompt, ip_neg],
     )
 
+    # --- Helper: build LoRA stack ---
+    def _ip_build_lora_stack(enable, count, *dd_and_scales):
+        if not enable:
+            return []
+        stack = []
+        count = int(count)
+        for i in range(min(count, MAX_LORA_STACK)):
+            name = dd_and_scales[i]
+            scale = dd_and_scales[MAX_LORA_STACK + i]
+            if name and name != "None":
+                stack.append({"name": name, "scale": float(scale)})
+        return stack
+
     # --- Generate inpaint ---
     def _do_inpaint(editor_val, prompt, neg, resolution, seed,
                     steps, time_shift, control_scale, guidance, cfg_trunc, max_seq,
-                    use_controlnet, lora_enable, lora, lora_scale,
+                    use_controlnet, lora_enable, lora_count,
+                    *lora_args,
                     progress=gr.Progress(track_tqdm=True)):
+        lora_dds = list(lora_args[:MAX_LORA_STACK])
+        lora_sls = list(lora_args[MAX_LORA_STACK:])
+        lora_stack = _ip_build_lora_stack(lora_enable, lora_count, *lora_dds, *lora_sls)
         save_gen_ui_params({
             "tab": "inpaint",
             "prompt": prompt, "neg": neg, "resolution": resolution,
@@ -143,15 +215,14 @@ def build_inpaint_tab():
             "control_scale": control_scale, "guidance": guidance,
             "cfg_trunc": cfg_trunc, "max_seq": max_seq,
             "use_controlnet": use_controlnet,
-            "lora_enable": lora_enable, "lora": lora, "lora_scale": lora_scale,
+            "lora_enable": lora_enable, "lora_stack": lora_stack,
         })
-        effective_lora = lora if lora_enable and lora != "None" else None
         paths, info = generate_inpaint(
             prompt, editor_val, resolution, seed,
             negative_prompt=neg, num_steps=steps, guidance_scale=guidance,
             cfg_truncation=cfg_trunc, control_scale=control_scale,
             max_sequence_length=max_seq, time_shift=time_shift,
-            lora_name=effective_lora, lora_scale=lora_scale,
+            lora_stack=lora_stack,
             need_controlnet=use_controlnet,
             progress=progress,
         )
@@ -162,7 +233,8 @@ def build_inpaint_tab():
         inputs=[ip_editor,
                 ip_prompt, ip_neg, ip_resolution, ip_seed,
                 ip_steps, ip_time_shift, ip_control_scale, ip_guidance, ip_cfg_trunc, ip_max_seq,
-                ip_use_controlnet, ip_lora_enable, ip_lora, ip_lora_scale],
+                ip_use_controlnet, ip_lora_enable, ip_lora_count,
+                *ip_lora_dropdowns, *ip_lora_scales],
         outputs=[ip_result, ip_info],
         concurrency_limit=1,
     )
@@ -171,8 +243,12 @@ def build_inpaint_tab():
     def _do_outpaint(out_image, direction, expand_px,
                      prompt, neg, resolution, seed,
                      steps, time_shift, control_scale, guidance, cfg_trunc, max_seq,
-                     use_controlnet, lora_enable, lora, lora_scale,
+                     use_controlnet, lora_enable, lora_count,
+                     *lora_args,
                      progress=gr.Progress(track_tqdm=True)):
+        lora_dds = list(lora_args[:MAX_LORA_STACK])
+        lora_sls = list(lora_args[MAX_LORA_STACK:])
+        lora_stack = _ip_build_lora_stack(lora_enable, lora_count, *lora_dds, *lora_sls)
         save_gen_ui_params({
             "tab": "inpaint",
             "prompt": prompt, "neg": neg, "resolution": resolution,
@@ -181,15 +257,14 @@ def build_inpaint_tab():
             "control_scale": control_scale, "guidance": guidance,
             "cfg_trunc": cfg_trunc, "max_seq": max_seq,
             "use_controlnet": use_controlnet,
-            "lora_enable": lora_enable, "lora": lora, "lora_scale": lora_scale,
+            "lora_enable": lora_enable, "lora_stack": lora_stack,
         })
-        effective_lora = lora if lora_enable and lora != "None" else None
         paths, info = generate_outpaint(
             prompt, out_image, direction, expand_px, resolution, seed,
             negative_prompt=neg, num_steps=steps, guidance_scale=guidance,
             cfg_truncation=cfg_trunc, control_scale=control_scale,
             max_sequence_length=max_seq, time_shift=time_shift,
-            lora_name=effective_lora, lora_scale=lora_scale,
+            lora_stack=lora_stack,
             need_controlnet=use_controlnet,
             progress=progress,
         )
@@ -200,7 +275,8 @@ def build_inpaint_tab():
         inputs=[ip_out_image, ip_direction, ip_expand,
                 ip_prompt, ip_neg, ip_resolution, ip_seed,
                 ip_steps, ip_time_shift, ip_control_scale, ip_guidance, ip_cfg_trunc, ip_max_seq,
-                ip_use_controlnet, ip_lora_enable, ip_lora, ip_lora_scale],
+                ip_use_controlnet, ip_lora_enable, ip_lora_count,
+                *ip_lora_dropdowns, *ip_lora_scales],
         outputs=[ip_result, ip_info],
         concurrency_limit=1,
     )
@@ -212,6 +288,7 @@ def build_inpaint_tab():
         "control_scale": ip_control_scale, "guidance": ip_guidance,
         "cfg_trunc": ip_cfg_trunc, "max_seq": ip_max_seq,
         "use_controlnet": ip_use_controlnet,
-        "lora_enable": ip_lora_enable, "lora": ip_lora, "lora_scale": ip_lora_scale,
+        "lora_enable": ip_lora_enable,
+        "lora_dropdowns": ip_lora_dropdowns, "lora_scales": ip_lora_scales,
         "result": ip_result,
     }

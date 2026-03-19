@@ -305,6 +305,7 @@ def generate_zit_t2i(
     max_sequence_length=512, attention_backend=None,
     time_shift=3.0,
     lora_name=None, lora_scale=1.0,
+    lora_stack=None,
     use_fp8=True,
     progress=gr.Progress(track_tqdm=True),
 ):
@@ -325,10 +326,13 @@ def generate_zit_t2i(
         "max_sequence_length": int(max_sequence_length),
         "time_shift": float(time_shift),
         "seed": int(seed),
-        "lora_name": lora_name or None,
-        "lora_scale": float(lora_scale),
         "use_fp8": bool(use_fp8),
     }
+    # Multi-LoRA stack (preferred) or single LoRA (backward compat)
+    if lora_stack:
+        kwargs["lora_stack"] = lora_stack
+    elif lora_name:
+        kwargs["lora_stack"] = [{"name": lora_name, "scale": float(lora_scale)}]
     if attention_backend:
         kwargs["attention_backend"] = attention_backend
     return _submit_and_wait(gen_type, kwargs, progress, need_controlnet=False)
@@ -363,6 +367,7 @@ def generate_controlnet(
     max_sequence_length=512, time_shift=3.0,
     num_images=1, attention_backend=None,
     lora_name=None, lora_scale=1.0,
+    lora_stack=None,
     use_fp8=True,
     progress=gr.Progress(track_tqdm=True),
 ):
@@ -374,7 +379,6 @@ def generate_controlnet(
     from PIL import Image as PILImage
     import numpy as np
 
-    # Save preprocessed control image to temp file for IPC
     if isinstance(control_image, np.ndarray):
         img = PILImage.fromarray(control_image)
     else:
@@ -399,10 +403,12 @@ def generate_controlnet(
         "max_sequence_length": int(max_sequence_length),
         "time_shift": float(time_shift),
         "seed": int(seed),
-        "lora_name": lora_name or None,
-        "lora_scale": float(lora_scale),
         "use_fp8": bool(use_fp8),
     }
+    if lora_stack:
+        kwargs["lora_stack"] = lora_stack
+    elif lora_name:
+        kwargs["lora_stack"] = [{"name": lora_name, "scale": float(lora_scale)}]
     if attention_backend:
         kwargs["attention_backend"] = attention_backend
     return _submit_and_wait("controlnet", kwargs, progress, need_controlnet=True)
@@ -417,6 +423,7 @@ def generate_inpaint(
     cfg_truncation=1.0, control_scale=0.9,
     max_sequence_length=512, time_shift=3.0,
     lora_name=None, lora_scale=1.0,
+    lora_stack=None,
     need_controlnet=True,
     progress=gr.Progress(track_tqdm=True),
 ):
@@ -475,10 +482,12 @@ def generate_inpaint(
         "max_sequence_length": int(max_sequence_length),
         "time_shift": float(time_shift),
         "seed": int(seed),
-        "lora_name": lora_name or None,
-        "lora_scale": float(lora_scale),
         "need_controlnet": bool(need_controlnet),
     }
+    if lora_stack:
+        kwargs["lora_stack"] = lora_stack
+    elif lora_name:
+        kwargs["lora_stack"] = [{"name": lora_name, "scale": float(lora_scale)}]
     return _submit_and_wait("inpaint", kwargs, progress,
                             need_controlnet=bool(need_controlnet))
 
@@ -492,6 +501,7 @@ def generate_outpaint(
     cfg_truncation=1.0, control_scale=0.9,
     max_sequence_length=512, time_shift=3.0,
     lora_name=None, lora_scale=1.0,
+    lora_stack=None,
     need_controlnet=True,
     progress=gr.Progress(track_tqdm=True),
 ):
@@ -527,10 +537,12 @@ def generate_outpaint(
         "max_sequence_length": int(max_sequence_length),
         "time_shift": float(time_shift),
         "seed": int(seed),
-        "lora_name": lora_name or None,
-        "lora_scale": float(lora_scale),
         "need_controlnet": bool(need_controlnet),
     }
+    if lora_stack:
+        kwargs["lora_stack"] = lora_stack
+    elif lora_name:
+        kwargs["lora_stack"] = [{"name": lora_name, "scale": float(lora_scale)}]
     return _submit_and_wait("outpaint", kwargs, progress,
                             need_controlnet=bool(need_controlnet))
 

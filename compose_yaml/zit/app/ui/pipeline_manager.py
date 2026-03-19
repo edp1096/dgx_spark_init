@@ -199,8 +199,11 @@ class PipelineManager:
         self.controlnet_loaded: bool = False
         self._need_controlnet: bool = True  # whether current load includes CN adapter
 
-        # LoRA state
-        self._current_lora: str | None = None
+        # LoRA state (multi-LoRA stack)
+        self._current_lora: str | None = None  # backward compat
+        self._current_lora_stack: list[dict] = []  # [{"name": str, "scale": float}, ...]
+        self._lora_scales: dict[str, float] = {}  # name -> user scale
+        self._lora_alpha_scales: dict[str, float] = {}  # name -> alpha/rank scale
 
         # Precision state
         self.use_fp8: bool = True  # default: FP8 if available
@@ -494,146 +497,171 @@ class PipelineManager:
         logger.info("Transformer reloaded (precision=%s)", "FP8" if self._loaded_fp8 else "BF16")
 
     # -------------------------------------------------------------------
-    # LoRA loading / unloading (forward-hook based)
+    # LoRA loading / unloading (forward-hook based, multi-LoRA stack)
     # -------------------------------------------------------------------
     def load_lora(self, lora_name: str, lora_scale: float = 1.0):
-        """Load LoRA via forward hooks — works with FP8Linear, no PEFT needed.
-
-        Registers a forward hook on each target module that adds the LoRA
-        contribution: output += scale * (input @ A^T @ B^T).
-        FP8 weights stay untouched; LoRA A/B are stored in BF16.
-        """
+        """Backward-compatible single LoRA loader."""
         if not lora_name or lora_name == "None":
-            self.unload_lora()
+            self.unload_all_loras()
+            return
+        self.load_lora_stack([{"name": lora_name, "scale": lora_scale}])
+
+    def load_lora_stack(self, lora_stack: list[dict]):
+        """Load multiple LoRAs via forward hooks. Each entry: {"name": str, "scale": float}.
+
+        - If only scales changed (same names), update scales without reload.
+        - If names changed, full unload + reload.
+        - FP8 weights stay untouched; LoRA A/B stored in BF16.
+        """
+        if not lora_stack:
+            self.unload_all_loras()
             return
 
         if self.zit_components is None:
             logger.warning("Cannot load LoRA — ZIT pipeline not loaded yet")
             return
 
-        lora_path = Path(self.model_dir) / LORAS_DIR / lora_name
-        if not lora_path.exists():
-            logger.error("LoRA file not found: %s", lora_path)
+        # Normalize stack
+        new_stack = [{"name": e["name"], "scale": float(e.get("scale", 1.0))}
+                     for e in lora_stack if e.get("name") and e["name"] != "None"]
+        if not new_stack:
+            self.unload_all_loras()
             return
 
-        # If same LoRA already loaded, just update scale
-        if self._current_lora == lora_name:
-            self._lora_scale = lora_scale
-            logger.info("LoRA scale updated: %.2f", lora_scale)
+        # Check if only scales changed (same LoRA names in same order)
+        old_names = [e["name"] for e in self._current_lora_stack]
+        new_names = [e["name"] for e in new_stack]
+        if old_names == new_names:
+            # Scale-only update — no reload needed
+            for entry in new_stack:
+                self._lora_scales[entry["name"]] = entry["scale"]
+            self._current_lora_stack = new_stack
+            self._current_lora = new_stack[0]["name"] if new_stack else None
+            logger.info("LoRA scales updated: %s",
+                        ", ".join(f"{e['name']}={e['scale']:.2f}" for e in new_stack))
             return
 
-        # Unload previous LoRA first
-        if self._current_lora is not None:
-            self.unload_lora()
+        # Names differ — full reload
+        self.unload_all_loras()
 
-        try:
-            from helpers import fast_load_file, fast_safe_metadata
+        from helpers import fast_load_file, fast_safe_metadata
+        transformer = self.zit_components["transformer"]
+        self._lora_hooks = []
+        self._lora_params = []
+        self._lora_scales = {}
+        self._lora_alpha_scales = {}
+        total_hooks = 0
 
-            logger.info("Loading LoRA: %s (scale=%.2f)", lora_name, lora_scale)
+        for entry in new_stack:
+            lora_name = entry["name"]
+            lora_scale = entry["scale"]
+            lora_path = Path(self.model_dir) / LORAS_DIR / lora_name
 
-            # Read metadata for alpha/rank auto-scaling
-            meta = fast_safe_metadata(str(lora_path))
-            file_alpha = int(meta["lora_alpha"]) if "lora_alpha" in meta else None
-            file_rank = int(meta["rank"]) if "rank" in meta else None
-            if file_alpha is not None and file_rank is not None and file_rank > 0:
-                alpha_scale = file_alpha / file_rank
-                logger.info("LoRA metadata: alpha=%d, rank=%d → alpha_scale=%.4f",
-                            file_alpha, file_rank, alpha_scale)
-            else:
-                alpha_scale = 1.0
+            if not lora_path.exists():
+                logger.error("LoRA file not found: %s", lora_path)
+                continue
 
-            lora_sd = fast_load_file(str(lora_path), device=str(self.device))
+            try:
+                logger.info("Loading LoRA: %s (scale=%.2f)", lora_name, lora_scale)
 
-            # Parse LoRA state dict: group A/B pairs by module path
-            # Keys: "context_refiner.0.attention.to_q.lora_A.default.weight"
-            #    or "base_model.model.blocks.0.attn.to_q.lora_A.weight"
-            lora_pairs = {}  # module_path -> {"A": tensor, "B": tensor}
-            for key, tensor in lora_sd.items():
-                if ".lora_A." not in key and ".lora_B." not in key:
-                    continue
-                if ".lora_A." in key:
-                    module_path = key.split(".lora_A.")[0]
-                    ab = "A"
+                # Read metadata for alpha/rank auto-scaling
+                meta = fast_safe_metadata(str(lora_path))
+                file_alpha = int(meta["lora_alpha"]) if "lora_alpha" in meta else None
+                file_rank = int(meta["rank"]) if "rank" in meta else None
+                if file_alpha is not None and file_rank is not None and file_rank > 0:
+                    alpha_scale = file_alpha / file_rank
                 else:
-                    module_path = key.split(".lora_B.")[0]
-                    ab = "B"
-                # Strip base_model.model. prefix
-                module_path = module_path.removeprefix("base_model.model.")
-                if module_path not in lora_pairs:
-                    lora_pairs[module_path] = {}
-                lora_pairs[module_path][ab] = tensor.to(torch.bfloat16)
+                    alpha_scale = 1.0
 
-            del lora_sd
+                self._lora_scales[lora_name] = lora_scale
+                self._lora_alpha_scales[lora_name] = alpha_scale
 
-            if not lora_pairs:
-                logger.warning("No LoRA A/B pairs found in %s", lora_name)
-                return
+                lora_sd = fast_load_file(str(lora_path), device=str(self.device))
 
-            # Detect rank
-            rank = 16
-            for pair in lora_pairs.values():
-                if "A" in pair:
-                    rank = pair["A"].shape[0]
-                    break
+                # Parse LoRA state dict: group A/B pairs by module path
+                lora_pairs = {}
+                for key, tensor in lora_sd.items():
+                    if ".lora_A." not in key and ".lora_B." not in key:
+                        continue
+                    if ".lora_A." in key:
+                        module_path = key.split(".lora_A.")[0]
+                        ab = "A"
+                    else:
+                        module_path = key.split(".lora_B.")[0]
+                        ab = "B"
+                    module_path = module_path.removeprefix("base_model.model.")
+                    if module_path not in lora_pairs:
+                        lora_pairs[module_path] = {}
+                    lora_pairs[module_path][ab] = tensor.to(torch.bfloat16)
 
-            logger.info("LoRA: rank=%d, %d module(s)", rank, len(lora_pairs))
+                del lora_sd
 
-            # Register forward hooks on target modules
-            transformer = self.zit_components["transformer"]
-            self._lora_scale = lora_scale
-            self._lora_alpha_scale = alpha_scale
-            self._lora_hooks = []
-            self._lora_params = []  # keep references to prevent GC
-            hook_count = 0
-
-            for module_path, pair in lora_pairs.items():
-                if "A" not in pair or "B" not in pair:
-                    logger.warning("Incomplete LoRA pair for %s, skipping", module_path)
+                if not lora_pairs:
+                    logger.warning("No LoRA A/B pairs found in %s", lora_name)
                     continue
 
-                # Navigate to the target module
-                try:
-                    target = transformer
-                    for part in module_path.split("."):
-                        target = getattr(target, part)
-                except AttributeError:
-                    logger.warning("Module not found: %s, skipping", module_path)
-                    continue
+                rank = 16
+                for pair in lora_pairs.values():
+                    if "A" in pair:
+                        rank = pair["A"].shape[0]
+                        break
 
-                lora_A = pair["A"]  # shape: (rank, in_features)
-                lora_B = pair["B"]  # shape: (out_features, rank)
-                self._lora_params.extend([lora_A, lora_B])
+                hook_count = 0
+                for module_path, pair in lora_pairs.items():
+                    if "A" not in pair or "B" not in pair:
+                        continue
+                    try:
+                        target = transformer
+                        for part in module_path.split("."):
+                            target = getattr(target, part)
+                    except AttributeError:
+                        continue
 
-                # Closure to capture A/B per module
-                def _make_hook(A, B):
-                    def hook(module, input, output):
-                        x = input[0] if isinstance(input, tuple) else input
-                        # LoRA: x @ A^T @ B^T * (alpha/rank) * user_scale
-                        lora_out = x.to(torch.bfloat16) @ A.t() @ B.t()
-                        return output + lora_out * (self._lora_alpha_scale * self._lora_scale)
-                    return hook
+                    lora_A = pair["A"]
+                    lora_B = pair["B"]
+                    self._lora_params.extend([lora_A, lora_B])
 
-                handle = target.register_forward_hook(_make_hook(lora_A, lora_B))
-                self._lora_hooks.append(handle)
-                hook_count += 1
+                    def _make_hook(A, B, name):
+                        def hook(module, input, output):
+                            x = input[0] if isinstance(input, tuple) else input
+                            lora_out = x.to(torch.bfloat16) @ A.t() @ B.t()
+                            scale = self._lora_scales.get(name, 1.0)
+                            alpha_s = self._lora_alpha_scales.get(name, 1.0)
+                            return output + lora_out * (alpha_s * scale)
+                        return hook
 
-            self._current_lora = lora_name
-            logger.info("LoRA loaded: %s (%d hooks, rank=%d)", lora_name, hook_count, rank)
+                    handle = target.register_forward_hook(_make_hook(lora_A, lora_B, lora_name))
+                    self._lora_hooks.append(handle)
+                    hook_count += 1
 
-        except Exception as e:
-            logger.error("Failed to load LoRA %s: %s", lora_name, e)
-            import traceback
-            traceback.print_exc()
-            # Clean up partial state
-            self._cleanup_lora_hooks()
+                total_hooks += hook_count
+                logger.info("LoRA loaded: %s (%d hooks, rank=%d, alpha_scale=%.4f)",
+                            lora_name, hook_count, rank, alpha_scale)
+
+            except Exception as e:
+                logger.error("Failed to load LoRA %s: %s", lora_name, e)
+                import traceback
+                traceback.print_exc()
+
+        self._current_lora_stack = new_stack
+        self._current_lora = new_stack[0]["name"] if new_stack else None
+        logger.info("LoRA stack loaded: %d LoRA(s), %d total hooks", len(new_stack), total_hooks)
 
     def unload_lora(self):
-        """Remove LoRA forward hooks, restoring original behavior."""
-        if self._current_lora is None:
+        """Backward-compatible unload."""
+        self.unload_all_loras()
+
+    def unload_all_loras(self):
+        """Remove all LoRA forward hooks, restoring original behavior."""
+        if not self._current_lora_stack and self._current_lora is None:
             return
         self._cleanup_lora_hooks()
-        logger.info("LoRA unloaded: %s", self._current_lora)
+        names = [e["name"] for e in self._current_lora_stack] or [self._current_lora]
+        logger.info("LoRA unloaded: %s", ", ".join(n for n in names if n))
         self._current_lora = None
+        self._current_lora_stack = []
+        self._lora_scales = {}
+        self._lora_alpha_scales = {}
         self._gpu_cleanup()
 
     def _cleanup_lora_hooks(self):

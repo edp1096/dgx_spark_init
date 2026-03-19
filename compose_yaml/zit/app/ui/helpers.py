@@ -13,6 +13,7 @@ from zit_config import (
     MODEL_DIR,
     DATASETS_DIR,
     LORAS_DIR,
+    LORA_METADATA_FILE,
     DEFAULT_STEPS,
     DEFAULT_TIME_SHIFT,
     DEFAULT_GUIDANCE,
@@ -66,6 +67,97 @@ def lora_list():
         return []
     return [[f.name, f"{f.stat().st_size / 1024 / 1024:.1f} MB"]
             for f in sorted(loras_dir.glob("*.safetensors"))]
+
+
+# ---------------------------------------------------------------------------
+# LoRA metadata management
+# ---------------------------------------------------------------------------
+def _lora_metadata_path() -> Path:
+    return Path(MODEL_DIR) / LORAS_DIR / LORA_METADATA_FILE
+
+
+def load_lora_metadata() -> dict:
+    """Read lora_metadata.json. Returns empty dict if missing."""
+    p = _lora_metadata_path()
+    if not p.exists():
+        return {}
+    try:
+        return json.loads(p.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+
+def save_lora_metadata(metadata: dict):
+    """Write metadata dict to lora_metadata.json."""
+    p = _lora_metadata_path()
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(json.dumps(metadata, indent=2, ensure_ascii=False), encoding="utf-8")
+
+
+def get_lora_info(filename: str) -> dict:
+    """Return metadata entry for a LoRA file. Auto-reads safetensor header if no entry."""
+    meta = load_lora_metadata()
+    if filename in meta:
+        return meta[filename]
+    # Auto-populate from safetensor header
+    info = {"trigger_words": "", "description": "", "source_url": "",
+            "dataset": "", "notes": "", "rank": 0, "alpha": 0,
+            "recommend_scale": 1.0}
+    lora_path = Path(MODEL_DIR) / LORAS_DIR / filename
+    if lora_path.exists():
+        try:
+            header = fast_safe_metadata(str(lora_path))
+            info["rank"] = int(header.get("rank", 0))
+            info["alpha"] = int(header.get("lora_alpha", 0))
+        except Exception:
+            pass
+    return info
+
+
+def update_lora_info(filename: str, updates: dict):
+    """Merge updates into metadata entry and save."""
+    meta = load_lora_metadata()
+    if filename not in meta:
+        meta[filename] = get_lora_info(filename)
+    meta[filename].update(updates)
+    save_lora_metadata(meta)
+
+
+def lora_list_with_info() -> list[list]:
+    """Enhanced LoRA list: [[name, size, trigger_words, source], ...]."""
+    loras_dir = Path(MODEL_DIR) / LORAS_DIR
+    if not loras_dir.exists():
+        return []
+    meta = load_lora_metadata()
+    result = []
+    for f in sorted(loras_dir.glob("*.safetensors")):
+        info = meta.get(f.name, {})
+        result.append([
+            f.name,
+            f"{f.stat().st_size / 1024 / 1024:.1f} MB",
+            info.get("trigger_words", ""),
+            info.get("source_url", ""),
+        ])
+    return result
+
+
+def get_trigger_words(lora_name: str) -> str:
+    """Get trigger words for a LoRA file from metadata."""
+    if not lora_name or lora_name == "None":
+        return ""
+    info = get_lora_info(lora_name)
+    return info.get("trigger_words", "")
+
+
+def get_recommend_scale(lora_name: str) -> float:
+    """Get recommended scale for a LoRA file from metadata."""
+    if not lora_name or lora_name == "None":
+        return 1.0
+    info = get_lora_info(lora_name)
+    try:
+        return float(info.get("recommend_scale", 1.0))
+    except (ValueError, TypeError):
+        return 1.0
 
 
 def do_kill():

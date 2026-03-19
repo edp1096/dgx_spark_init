@@ -36,7 +36,14 @@ HED_FILE = "ControlNetHED.pth"
 # LoRA directories (inside MODEL_DIR)
 # ---------------------------------------------------------------------------
 LORAS_DIR = "loras"
+LORA_METADATA_FILE = "lora_metadata.json"
+MAX_LORA_STACK = 5
 DATASETS_DIR = "datasets"
+
+# ---------------------------------------------------------------------------
+# CivitAI
+# ---------------------------------------------------------------------------
+CIVITAI_API_BASE = "https://civitai.com/api/v1"
 
 # ---------------------------------------------------------------------------
 # Translator model (Qwen3.5-2B, Apache 2.0 license)

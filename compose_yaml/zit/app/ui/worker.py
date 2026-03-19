@@ -60,13 +60,18 @@ def _worker_loop(
     # Handler: ZIT T2I (VideoX-Fun pipeline)
     # -------------------------------------------------------------------
     def _apply_lora(kwargs):
-        """Load/unload LoRA based on kwargs."""
-        lora_name = kwargs.get("lora_name")
-        lora_scale = float(kwargs.get("lora_scale", 1.0))
-        if lora_name and lora_name != "None":
-            mgr.load_lora(lora_name, lora_scale)
+        """Load/unload LoRA stack based on kwargs."""
+        lora_stack = kwargs.get("lora_stack")
+        if lora_stack:
+            mgr.load_lora_stack(lora_stack)
         else:
-            mgr.unload_lora()
+            # Backward compatibility: single lora_name/lora_scale
+            lora_name = kwargs.get("lora_name")
+            lora_scale = float(kwargs.get("lora_scale", 1.0))
+            if lora_name and lora_name != "None":
+                mgr.load_lora_stack([{"name": lora_name, "scale": lora_scale}])
+            else:
+                mgr.unload_all_loras()
 
     def _apply_precision(kwargs, need_controlnet=True):
         """Set FP8/BF16 precision from kwargs."""
