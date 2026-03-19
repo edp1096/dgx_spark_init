@@ -31,16 +31,17 @@ def build_settings_tab():
     """Build Settings tab UI and wire events."""
 
     # ==================================================================
-    # Layout: left nav + right content
+    # Layout: left TOC + right content (all sections visible)
     # ==================================================================
     with gr.Row():
-        # --- Left nav column ---
+        # --- Left TOC column ---
         with gr.Column(scale=0, min_width=160):
             gr.Markdown("### Settings")
             nav_buttons = {}
             for item_id, label in _MENU_ITEMS:
                 nav_buttons[item_id] = gr.Button(
                     label, variant="secondary", size="sm",
+                    elem_id=f"nav-{item_id}",
                 )
 
         # --- Right content column ---
@@ -49,7 +50,7 @@ def build_settings_tab():
             # ============================================================
             # Section: Language
             # ============================================================
-            with gr.Column(visible=True) as sec_lang:
+            with gr.Column(elem_id="sec-lang") as sec_lang:
                 gr.Markdown("### Language")
                 with gr.Group():
                     s_lang = gr.Radio(
@@ -71,7 +72,7 @@ def build_settings_tab():
             # ============================================================
             # Section: Model Settings
             # ============================================================
-            with gr.Column(visible=False) as sec_model:
+            with gr.Column(elem_id="sec-model") as sec_model:
                 gr.Markdown("### Model Settings")
                 with gr.Group():
                     s_model_dir = gr.Textbox(label="Model Directory", value=str(MODEL_DIR))
@@ -99,7 +100,7 @@ def build_settings_tab():
             # ============================================================
             # Section: LoRA Download
             # ============================================================
-            with gr.Column(visible=False) as sec_lora_dl:
+            with gr.Column(elem_id="sec-lora-dl") as sec_lora_dl:
                 gr.Markdown("### LoRA Download")
                 with gr.Group():
                     s_dl_url = gr.Textbox(
@@ -254,7 +255,7 @@ def build_settings_tab():
             # ============================================================
             # Section: LoRA Upload
             # ============================================================
-            with gr.Column(visible=False) as sec_lora_up:
+            with gr.Column(elem_id="sec-lora-up") as sec_lora_up:
                 gr.Markdown("### LoRA Upload")
                 with gr.Group():
                     s_upload_file = gr.File(
@@ -290,7 +291,7 @@ def build_settings_tab():
             # ============================================================
             # Section: Installed LoRAs
             # ============================================================
-            with gr.Column(visible=False) as sec_lora_list:
+            with gr.Column(elem_id="sec-lora-list") as sec_lora_list:
                 gr.Markdown("### Installed LoRAs")
                 with gr.Row():
                     with gr.Column(scale=1):
@@ -326,21 +327,74 @@ def build_settings_tab():
                         s_detail_status = gr.Textbox(label="", interactive=False, show_label=False)
 
     # ==================================================================
-    # Navigation: show/hide sections
+    # Navigation: TOC scroll-into-view via JS
     # ==================================================================
-    sections = [sec_lang, sec_model, sec_lora_dl, sec_lora_up, sec_lora_list]
-    section_keys = [item_id for item_id, _ in _MENU_ITEMS]
-
-    def _make_nav_fn(active_key):
-        def _nav():
-            return [gr.update(visible=(k == active_key)) for k in section_keys]
-        return _nav
+    _SEC_ELEM_IDS = {
+        "lang": "sec-lang",
+        "model": "sec-model",
+        "lora_dl": "sec-lora-dl",
+        "lora_up": "sec-lora-up",
+        "lora_list": "sec-lora-list",
+    }
 
     for item_id, _ in _MENU_ITEMS:
+        elem_id = _SEC_ELEM_IDS[item_id]
         nav_buttons[item_id].click(
-            fn=_make_nav_fn(item_id),
-            outputs=sections,
+            fn=None,
+            js=f"""() => {{
+                const el = document.getElementById('{elem_id}');
+                if (el) el.scrollIntoView({{ behavior: 'smooth', block: 'start' }});
+            }}""",
         )
+
+    # ==================================================================
+    # TOC: IntersectionObserver — highlight active section in sidebar
+    # ==================================================================
+    _toc_nav_ids = [f"nav-{item_id}" for item_id, _ in _MENU_ITEMS]
+    _toc_sec_ids = [_SEC_ELEM_IDS[item_id] for item_id, _ in _MENU_ITEMS]
+    _toc_pairs = list(zip(_toc_sec_ids, _toc_nav_ids))
+
+    _observer_js = """
+    <script>
+    (function() {
+      const pairs = """ + str([[s, n] for s, n in _toc_pairs]) + """;
+      let current = pairs[0][1];
+
+      function highlight(navId) {
+        if (current === navId) return;
+        pairs.forEach(([_, nid]) => {
+          const btn = document.getElementById(nid);
+          if (btn) btn.classList.toggle('toc-active', nid === navId);
+        });
+        current = navId;
+      }
+
+      // initial highlight
+      highlight(pairs[0][1]);
+
+      const observer = new IntersectionObserver((entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            const pair = pairs.find(([sid]) => sid === entry.target.id);
+            if (pair) highlight(pair[1]);
+          }
+        }
+      }, { rootMargin: '-10% 0px -80% 0px', threshold: 0 });
+
+      // Observe after DOM is ready
+      function attach() {
+        let found = 0;
+        pairs.forEach(([sid]) => {
+          const el = document.getElementById(sid);
+          if (el) { observer.observe(el); found++; }
+        });
+        if (found < pairs.length) setTimeout(attach, 500);
+      }
+      attach();
+    })();
+    </script>
+    """
+    gr.HTML(_observer_js, visible=False)
 
     # ==================================================================
     # Events: Installed LoRAs

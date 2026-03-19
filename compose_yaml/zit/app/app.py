@@ -62,6 +62,10 @@ _CUSTOM_CSS = """
 #presets-section .gallery { transition: max-height 0.3s ease; }
 #presets-toggle-row { margin-bottom: 4px; }
 #presets-toggle-row button { min-width: 80px !important; }
+/* Settings TOC active highlight */
+.toc-active { background: var(--button-primary-background-fill) !important;
+  color: var(--button-primary-text-color) !important;
+  border-color: var(--button-primary-border-color) !important; }
 """
 
 
