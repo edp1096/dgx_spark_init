@@ -34,8 +34,8 @@ def build_settings_tab():
     # Layout: left TOC + right content (all sections visible)
     # ==================================================================
     with gr.Row():
-        # --- Left TOC column ---
-        with gr.Column(scale=0, min_width=160):
+        # --- Left TOC column (sticky) ---
+        with gr.Column(scale=0, min_width=160, elem_id="settings-toc"):
             gr.Markdown("### Settings")
             nav_buttons = {}
             for item_id, label in _MENU_ITEMS:
@@ -353,6 +353,26 @@ def build_settings_tab():
     _toc_nav_ids = [f"nav-{item_id}" for item_id, _ in _MENU_ITEMS]
     _toc_sec_ids = [_SEC_ELEM_IDS[item_id] for item_id, _ in _MENU_ITEMS]
     _toc_pairs = list(zip(_toc_sec_ids, _toc_nav_ids))
+
+    # Sticky TOC CSS (desktop only)
+    _sticky_css = """
+    <style>
+    #settings-toc {
+        position: sticky;
+        top: 0;
+        align-self: flex-start;
+        max-height: 100vh;
+        overflow-y: auto;
+    }
+    @media (max-width: 768px) {
+        #settings-toc {
+            position: static;
+            max-height: none;
+        }
+    }
+    </style>
+    """
+    gr.HTML(_sticky_css, visible=False)
 
     _observer_js = """
     <script>
