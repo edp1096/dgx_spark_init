@@ -26,317 +26,322 @@ _MENU_ITEMS = [
     ("lora_list", "Installed LoRAs"),
 ]
 
+_SEC_ELEM_IDS = {
+    "lang": "sec-lang",
+    "model": "sec-model",
+    "lora_dl": "sec-lora-dl",
+    "lora_up": "sec-lora-up",
+    "lora_list": "sec-lora-list",
+}
 
-def build_settings_tab():
+
+def build_settings_sidebar(sidebar):
+    """Populate the settings sidebar with TOC navigation buttons."""
+    nav_buttons = {}
+    with sidebar:
+        gr.Markdown("### Settings")
+        for item_id, label in _MENU_ITEMS:
+            nav_buttons[item_id] = gr.Button(
+                label, variant="secondary", size="sm",
+                elem_id=f"nav-{item_id}",
+            )
+    return nav_buttons
+
+
+def build_settings_tab(sidebar):
     """Build Settings tab UI and wire events."""
 
     # ==================================================================
-    # Layout: left TOC + right content (all sections visible)
+    # Populate sidebar TOC
     # ==================================================================
-    with gr.Row(elem_id="settings-row"):
-        # --- Left TOC column ---
-        with gr.Column(scale=0, min_width=160, elem_id="settings-toc"):
-            gr.Markdown("### Settings")
-            nav_buttons = {}
-            for item_id, label in _MENU_ITEMS:
-                nav_buttons[item_id] = gr.Button(
-                    label, variant="secondary", size="sm",
-                    elem_id=f"nav-{item_id}",
-                )
+    nav_buttons = build_settings_sidebar(sidebar)
 
-        # --- Right content column ---
-        with gr.Column(scale=4):
+    # ==================================================================
+    # Content (all sections visible, full width)
+    # ==================================================================
 
-            # ============================================================
-            # Section: Language
-            # ============================================================
-            with gr.Column(elem_id="sec-lang") as sec_lang:
-                gr.Markdown("### Language")
-                with gr.Group():
-                    s_lang = gr.Radio(
-                        list(LANGUAGES.values()), value="English",
-                        label="Language", elem_id="lang-selector",
-                    )
-                    s_lang.change(
-                        fn=None,
-                        inputs=[s_lang],
-                        js="""(lang) => {
-                            const map = {""" + ", ".join(
-                                f'"{v}": "{k}"' for k, v in LANGUAGES.items()
-                            ) + """};
-                            const code = map[lang] || 'en';
-                            if (window._zit_setLang) window._zit_setLang(code);
-                        }""",
-                    )
+    # ============================================================
+    # Section: Language
+    # ============================================================
+    with gr.Column(elem_id="sec-lang"):
+        gr.Markdown("### Language")
+        with gr.Group():
+            s_lang = gr.Radio(
+                list(LANGUAGES.values()), value="English",
+                label="Language", elem_id="lang-selector",
+            )
+            s_lang.change(
+                fn=None,
+                inputs=[s_lang],
+                js="""(lang) => {
+                    const map = {""" + ", ".join(
+                        f'"{v}": "{k}"' for k, v in LANGUAGES.items()
+                    ) + """};
+                    const code = map[lang] || 'en';
+                    if (window._zit_setLang) window._zit_setLang(code);
+                }""",
+            )
 
-            # ============================================================
-            # Section: Model Settings
-            # ============================================================
-            with gr.Column(elem_id="sec-model") as sec_model:
-                gr.Markdown("### Model Settings")
-                with gr.Group():
-                    s_model_dir = gr.Textbox(label="Model Directory", value=str(MODEL_DIR))
-                    s_apply = gr.Button("Apply", variant="secondary", size="sm")
-                    s_status = gr.Textbox(label="Status", interactive=False)
+    # ============================================================
+    # Section: Model Settings
+    # ============================================================
+    with gr.Column(elem_id="sec-model"):
+        gr.Markdown("### Model Settings")
+        with gr.Group():
+            s_model_dir = gr.Textbox(label="Model Directory", value=str(MODEL_DIR))
+            s_apply = gr.Button("Apply", variant="secondary", size="sm")
+            s_status = gr.Textbox(label="Status", interactive=False)
 
-                    def _apply_model_dir(d):
-                        set_model_dir(d)
-                        return f"Model dir set to: {d}"
-                    s_apply.click(fn=_apply_model_dir, inputs=[s_model_dir], outputs=[s_status])
+            def _apply_model_dir(d):
+                set_model_dir(d)
+                return f"Model dir set to: {d}"
+            s_apply.click(fn=_apply_model_dir, inputs=[s_model_dir], outputs=[s_status])
 
-                with gr.Group():
-                    s_check = gr.Button("Check Models", variant="secondary", size="sm")
-                    s_check_status = gr.Textbox(label="Model Status", interactive=False, lines=8)
+        with gr.Group():
+            s_check = gr.Button("Check Models", variant="secondary", size="sm")
+            s_check_status = gr.Textbox(label="Model Status", interactive=False, lines=8)
 
-                    def _check_models():
-                        from download_models import check_status as _cs
-                        import io, contextlib
-                        buf = io.StringIO()
-                        with contextlib.redirect_stdout(buf):
-                            _cs()
-                        return buf.getvalue()
-                    s_check.click(fn=_check_models, outputs=[s_check_status])
+            def _check_models():
+                from download_models import check_status as _cs
+                import io, contextlib
+                buf = io.StringIO()
+                with contextlib.redirect_stdout(buf):
+                    _cs()
+                return buf.getvalue()
+            s_check.click(fn=_check_models, outputs=[s_check_status])
 
-            # ============================================================
-            # Section: LoRA Download
-            # ============================================================
-            with gr.Column(elem_id="sec-lora-dl") as sec_lora_dl:
-                gr.Markdown("### LoRA Download")
-                with gr.Group():
-                    s_dl_url = gr.Textbox(
-                        label="URL / HuggingFace Repo ID / CivitAI URL",
-                        placeholder="https://civitai.com/models/... or user/repo or https://...",
-                    )
-                    s_dl_fname = gr.Textbox(
-                        label="Filename in Repo",
-                        placeholder="e.g. model.safetensors (HuggingFace only)",
-                    )
-                    s_dl_save = gr.Textbox(label="Save As (optional)")
-                    s_dl_trigger = gr.Textbox(
-                        label="Trigger Words",
-                        placeholder="e.g. lya, lee young-ae (CivitAI: auto-filled)",
-                    )
-                    s_dl_rec_scale = gr.Slider(
-                        0.0, 3.0, value=1.0, step=0.05, label="Recommend Scale",
-                    )
-                    s_dl_civitai_key = gr.Textbox(
-                        label="CivitAI API Key (CivitAI only)",
-                        type="password",
-                        value=os.environ.get("CIVITAI_API_KEY", ""),
-                        placeholder="Required for CivitAI downloads",
-                    )
-                    s_dl_btn = gr.Button("Download", variant="primary", size="sm")
-                    s_dl_status = gr.Textbox(label="Status", interactive=False, lines=3)
+    # ============================================================
+    # Section: LoRA Download
+    # ============================================================
+    with gr.Column(elem_id="sec-lora-dl"):
+        gr.Markdown("### LoRA Download")
+        with gr.Group():
+            s_dl_url = gr.Textbox(
+                label="URL / HuggingFace Repo ID / CivitAI URL",
+                placeholder="https://civitai.com/models/... or user/repo or https://...",
+            )
+            s_dl_fname = gr.Textbox(
+                label="Filename in Repo",
+                placeholder="e.g. model.safetensors (HuggingFace only)",
+            )
+            s_dl_save = gr.Textbox(label="Save As (optional)")
+            s_dl_trigger = gr.Textbox(
+                label="Trigger Words",
+                placeholder="e.g. lya, lee young-ae (CivitAI: auto-filled)",
+            )
+            s_dl_rec_scale = gr.Slider(
+                0.0, 3.0, value=1.0, step=0.05, label="Recommend Scale",
+            )
+            s_dl_civitai_key = gr.Textbox(
+                label="CivitAI API Key (CivitAI only)",
+                type="password",
+                value=os.environ.get("CIVITAI_API_KEY", ""),
+                placeholder="Required for CivitAI downloads",
+            )
+            s_dl_btn = gr.Button("Download", variant="primary", size="sm")
+            s_dl_status = gr.Textbox(label="Status", interactive=False, lines=3)
 
-                    def _is_civitai(source: str) -> bool:
-                        return "civitai.com" in source or source.strip().isdigit()
+            def _is_civitai(source: str) -> bool:
+                return "civitai.com" in source or source.strip().isdigit()
 
-                    def _download_lora(source, fname, save_as, trigger_words, rec_scale, api_key):
-                        from zit_config import LORAS_DIR
-                        import urllib.request
+            def _download_lora(source, fname, save_as, trigger_words, rec_scale, api_key):
+                from zit_config import LORAS_DIR
+                import urllib.request
 
-                        source = source.strip()
-                        if not source:
-                            return "Error: URL or Repo ID required", ""
+                source = source.strip()
+                if not source:
+                    return "Error: URL or Repo ID required", ""
 
-                        loras_dir = Path(MODEL_DIR) / LORAS_DIR
-                        loras_dir.mkdir(parents=True, exist_ok=True)
+                loras_dir = Path(MODEL_DIR) / LORAS_DIR
+                loras_dir.mkdir(parents=True, exist_ok=True)
 
-                        try:
-                            if _is_civitai(source):
-                                return _download_civitai(
-                                    source, api_key, save_as, trigger_words, rec_scale, loras_dir,
-                                )
+                try:
+                    if _is_civitai(source):
+                        return _download_civitai(
+                            source, api_key, save_as, trigger_words, rec_scale, loras_dir,
+                        )
 
-                            # HuggingFace repo or direct URL
-                            if source.startswith("http"):
-                                out_name = save_as.strip() if save_as.strip() else source.split("/")[-1]
-                                dest = loras_dir / out_name
-                                urllib.request.urlretrieve(source, str(dest))
-                            else:
-                                from huggingface_hub import hf_hub_download
-                                filename = fname.strip() if fname.strip() else "model.safetensors"
-                                out_name = save_as.strip() if save_as.strip() else filename
-                                hf_hub_download(source, filename, local_dir=str(loras_dir))
-                                if filename != out_name:
-                                    src = loras_dir / filename
-                                    if src.exists():
-                                        src.rename(loras_dir / out_name)
-                                dest = loras_dir / out_name
-
-                            _auto_populate_metadata(dest.name, dest)
-                            meta_updates = {}
-                            if trigger_words.strip():
-                                meta_updates["trigger_words"] = trigger_words.strip()
-                            if rec_scale != 1.0:
-                                meta_updates["recommend_scale"] = float(rec_scale)
-                            if meta_updates:
-                                update_lora_info(dest.name, meta_updates)
-
-                            return f"Downloaded: {dest.name}", ""
-
-                        except Exception as e:
-                            logger.error("LoRA download error: %s", e)
-                            return f"Error: {e}", ""
-
-                    def _download_civitai(civitai_url, api_key, save_as, trigger_words,
-                                          rec_scale, loras_dir):
-                        import urllib.request
-                        import json as _json
-
-                        if not api_key.strip():
-                            return "Error: CivitAI API key required", ""
-
-                        version_id = _parse_civitai_url(civitai_url.strip())
-                        if not version_id:
-                            return "Error: Could not parse CivitAI URL/ID", ""
-
-                        api_url = f"{CIVITAI_API_BASE}/model-versions/{version_id}"
-                        req = urllib.request.Request(api_url)
-                        req.add_header("Authorization", f"Bearer {api_key.strip()}")
-                        with urllib.request.urlopen(req, timeout=30) as resp:
-                            api_data = _json.loads(resp.read())
-
-                        # Find primary safetensors file
-                        dl_url = dl_name = None
-                        for f in api_data.get("files", []):
-                            if f.get("name", "").endswith(".safetensors"):
-                                dl_url = f.get("downloadUrl")
-                                dl_name = f.get("name")
-                                break
-                        if not dl_url:
-                            return "Error: No safetensors file found in this model version", ""
-
-                        out_name = save_as.strip() if save_as.strip() else dl_name
-                        if not out_name.endswith(".safetensors"):
-                            out_name += ".safetensors"
-
-                        # Trigger words from API
-                        api_triggers = [tw.strip() for tw in api_data.get("trainedWords", []) if tw.strip()]
-                        api_trigger_str = ", ".join(api_triggers)
-
-                        # Download
+                    # HuggingFace repo or direct URL
+                    if source.startswith("http"):
+                        out_name = save_as.strip() if save_as.strip() else source.split("/")[-1]
                         dest = loras_dir / out_name
-                        dl_req = urllib.request.Request(dl_url)
-                        dl_req.add_header("Authorization", f"Bearer {api_key.strip()}")
-                        with urllib.request.urlopen(dl_req, timeout=600) as resp:
-                            with open(dest, "wb") as f:
-                                while True:
-                                    chunk = resp.read(1024 * 1024)
-                                    if not chunk:
-                                        break
-                                    f.write(chunk)
+                        urllib.request.urlretrieve(source, str(dest))
+                    else:
+                        from huggingface_hub import hf_hub_download
+                        filename = fname.strip() if fname.strip() else "model.safetensors"
+                        out_name = save_as.strip() if save_as.strip() else filename
+                        hf_hub_download(source, filename, local_dir=str(loras_dir))
+                        if filename != out_name:
+                            src = loras_dir / filename
+                            if src.exists():
+                                src.rename(loras_dir / out_name)
+                        dest = loras_dir / out_name
 
-                        _auto_populate_metadata(out_name, dest)
-                        final_triggers = trigger_words.strip() if trigger_words.strip() else api_trigger_str
-                        model_name = api_data.get("model", {}).get("name", "")
-                        meta_updates = {
-                            "trigger_words": final_triggers,
-                            "description": model_name,
-                            "source_url": civitai_url.strip(),
-                        }
-                        if rec_scale != 1.0:
-                            meta_updates["recommend_scale"] = float(rec_scale)
-                        update_lora_info(out_name, meta_updates)
+                    _auto_populate_metadata(dest.name, dest)
+                    meta_updates = {}
+                    if trigger_words.strip():
+                        meta_updates["trigger_words"] = trigger_words.strip()
+                    if rec_scale != 1.0:
+                        meta_updates["recommend_scale"] = float(rec_scale)
+                    if meta_updates:
+                        update_lora_info(dest.name, meta_updates)
 
-                        size_mb = dest.stat().st_size / 1024 / 1024
-                        status = f"Downloaded: {out_name} ({size_mb:.1f} MB)"
-                        if api_trigger_str:
-                            status += f"\nAPI trigger words: {api_trigger_str}"
-                        return status, final_triggers
+                    return f"Downloaded: {dest.name}", ""
 
-                    s_dl_btn.click(
-                        fn=_download_lora,
-                        inputs=[s_dl_url, s_dl_fname, s_dl_save, s_dl_trigger,
-                                s_dl_rec_scale, s_dl_civitai_key],
-                        outputs=[s_dl_status, s_dl_trigger],
-                    )
+                except Exception as e:
+                    logger.error("LoRA download error: %s", e)
+                    return f"Error: {e}", ""
 
-            # ============================================================
-            # Section: LoRA Upload
-            # ============================================================
-            with gr.Column(elem_id="sec-lora-up") as sec_lora_up:
-                gr.Markdown("### LoRA Upload")
-                with gr.Group():
-                    s_upload_file = gr.File(
-                        label="Upload .safetensors file",
-                        file_types=[".safetensors"],
-                        file_count="single",
-                    )
-                    s_upload_status = gr.Textbox(label="Status", interactive=False)
+            def _download_civitai(civitai_url, api_key, save_as, trigger_words,
+                                  rec_scale, loras_dir):
+                import urllib.request
+                import json as _json
 
-                    def _upload_lora(file):
-                        if file is None:
-                            return None, "No file selected"
-                        import shutil
-                        from zit_config import LORAS_DIR
+                if not api_key.strip():
+                    return "Error: CivitAI API key required", ""
 
-                        src = Path(file.name if hasattr(file, "name") else file)
-                        if not src.name.endswith(".safetensors"):
-                            return None, "Error: only .safetensors files are supported"
+                version_id = _parse_civitai_url(civitai_url.strip())
+                if not version_id:
+                    return "Error: Could not parse CivitAI URL/ID", ""
 
-                        loras_dir = Path(MODEL_DIR) / LORAS_DIR
-                        loras_dir.mkdir(parents=True, exist_ok=True)
-                        dest = loras_dir / src.name
+                api_url = f"{CIVITAI_API_BASE}/model-versions/{version_id}"
+                req = urllib.request.Request(api_url)
+                req.add_header("Authorization", f"Bearer {api_key.strip()}")
+                with urllib.request.urlopen(req, timeout=30) as resp:
+                    api_data = _json.loads(resp.read())
 
-                        if dest.exists():
-                            return None, f"Error: {src.name} already exists. Delete existing file first or rename."
+                # Find primary safetensors file
+                dl_url = dl_name = None
+                for f in api_data.get("files", []):
+                    if f.get("name", "").endswith(".safetensors"):
+                        dl_url = f.get("downloadUrl")
+                        dl_name = f.get("name")
+                        break
+                if not dl_url:
+                    return "Error: No safetensors file found in this model version", ""
 
-                        shutil.copy2(str(src), str(dest))
-                        _auto_populate_metadata(dest.name, dest)
+                out_name = save_as.strip() if save_as.strip() else dl_name
+                if not out_name.endswith(".safetensors"):
+                    out_name += ".safetensors"
 
-                        size_mb = dest.stat().st_size / 1024 / 1024
-                        return None, f"Uploaded: {dest.name} ({size_mb:.1f} MB)"
+                # Trigger words from API
+                api_triggers = [tw.strip() for tw in api_data.get("trainedWords", []) if tw.strip()]
+                api_trigger_str = ", ".join(api_triggers)
 
-            # ============================================================
-            # Section: Installed LoRAs
-            # ============================================================
-            with gr.Column(elem_id="sec-lora-list") as sec_lora_list:
-                gr.Markdown("### Installed LoRAs")
+                # Download
+                dest = loras_dir / out_name
+                dl_req = urllib.request.Request(dl_url)
+                dl_req.add_header("Authorization", f"Bearer {api_key.strip()}")
+                with urllib.request.urlopen(dl_req, timeout=600) as resp:
+                    with open(dest, "wb") as f:
+                        while True:
+                            chunk = resp.read(1024 * 1024)
+                            if not chunk:
+                                break
+                            f.write(chunk)
+
+                _auto_populate_metadata(out_name, dest)
+                final_triggers = trigger_words.strip() if trigger_words.strip() else api_trigger_str
+                model_name = api_data.get("model", {}).get("name", "")
+                meta_updates = {
+                    "trigger_words": final_triggers,
+                    "description": model_name,
+                    "source_url": civitai_url.strip(),
+                }
+                if rec_scale != 1.0:
+                    meta_updates["recommend_scale"] = float(rec_scale)
+                update_lora_info(out_name, meta_updates)
+
+                size_mb = dest.stat().st_size / 1024 / 1024
+                status = f"Downloaded: {out_name} ({size_mb:.1f} MB)"
+                if api_trigger_str:
+                    status += f"\nAPI trigger words: {api_trigger_str}"
+                return status, final_triggers
+
+            s_dl_btn.click(
+                fn=_download_lora,
+                inputs=[s_dl_url, s_dl_fname, s_dl_save, s_dl_trigger,
+                        s_dl_rec_scale, s_dl_civitai_key],
+                outputs=[s_dl_status, s_dl_trigger],
+            )
+
+    # ============================================================
+    # Section: LoRA Upload
+    # ============================================================
+    with gr.Column(elem_id="sec-lora-up"):
+        gr.Markdown("### LoRA Upload")
+        with gr.Group():
+            s_upload_file = gr.File(
+                label="Upload .safetensors file",
+                file_types=[".safetensors"],
+                file_count="single",
+            )
+            s_upload_status = gr.Textbox(label="Status", interactive=False)
+
+            def _upload_lora(file):
+                if file is None:
+                    return None, "No file selected"
+                import shutil
+                from zit_config import LORAS_DIR
+
+                src = Path(file.name if hasattr(file, "name") else file)
+                if not src.name.endswith(".safetensors"):
+                    return None, "Error: only .safetensors files are supported"
+
+                loras_dir = Path(MODEL_DIR) / LORAS_DIR
+                loras_dir.mkdir(parents=True, exist_ok=True)
+                dest = loras_dir / src.name
+
+                if dest.exists():
+                    return None, f"Error: {src.name} already exists. Delete existing file first or rename."
+
+                shutil.copy2(str(src), str(dest))
+                _auto_populate_metadata(dest.name, dest)
+
+                size_mb = dest.stat().st_size / 1024 / 1024
+                return None, f"Uploaded: {dest.name} ({size_mb:.1f} MB)"
+
+    # ============================================================
+    # Section: Installed LoRAs
+    # ============================================================
+    with gr.Column(elem_id="sec-lora-list"):
+        gr.Markdown("### Installed LoRAs")
+        with gr.Row():
+            with gr.Column(scale=1):
+                s_lora_table = gr.Dataframe(
+                    headers=["Filename", "Size", "Trigger Words", "Source"],
+                    value=lambda: lora_list_with_info(),
+                    interactive=False, every=10,
+                    max_height=250,
+                )
                 with gr.Row():
-                    with gr.Column(scale=1):
-                        s_lora_table = gr.Dataframe(
-                            headers=["Filename", "Size", "Trigger Words", "Source"],
-                            value=lambda: lora_list_with_info(),
-                            interactive=False, every=10,
-                            max_height=250,
-                        )
-                        with gr.Row():
-                            s_lora_selected = gr.Textbox(label="Selected", interactive=False, scale=3)
-                            s_lora_del_btn = gr.Button("Delete", variant="stop", size="sm", scale=1)
-                            s_lora_refresh_btn = gr.Button("Refresh", variant="secondary", size="sm", scale=1)
-                        s_lora_del_status = gr.Textbox(label="", interactive=False, visible=False)
+                    s_lora_selected = gr.Textbox(label="Selected", interactive=False, scale=3)
+                    s_lora_del_btn = gr.Button("Delete", variant="stop", size="sm", scale=1)
+                    s_lora_refresh_btn = gr.Button("Refresh", variant="secondary", size="sm", scale=1)
+                s_lora_del_status = gr.Textbox(label="", interactive=False, visible=False)
 
-                    with gr.Column(scale=1):
-                        gr.Markdown("#### LoRA Detail")
-                        s_detail_name = gr.Textbox(label="Filename", interactive=False)
-                        s_detail_trigger = gr.Textbox(label="Trigger Words")
-                        s_detail_desc = gr.Textbox(label="Description", lines=2)
-                        s_detail_dataset = gr.Textbox(label="Dataset")
-                        s_detail_source = gr.Textbox(label="Source URL", interactive=False)
-                        with gr.Row():
-                            s_detail_rank = gr.Textbox(label="Rank", interactive=False, scale=1)
-                            s_detail_alpha = gr.Textbox(label="Alpha", interactive=False, scale=1)
-                        s_detail_rec_scale = gr.Slider(
-                            0.0, 3.0, value=1.0, step=0.05,
-                            label="Recommend Scale",
-                            info="LoRA 선택 시 자동 적용되는 기본 강도",
-                        )
-                        s_detail_notes = gr.Textbox(label="Notes", lines=3)
-                        s_detail_save = gr.Button("Save Metadata", variant="primary", size="sm")
-                        s_detail_status = gr.Textbox(label="", interactive=False, show_label=False)
+            with gr.Column(scale=1):
+                gr.Markdown("#### LoRA Detail")
+                s_detail_name = gr.Textbox(label="Filename", interactive=False)
+                s_detail_trigger = gr.Textbox(label="Trigger Words")
+                s_detail_desc = gr.Textbox(label="Description", lines=2)
+                s_detail_dataset = gr.Textbox(label="Dataset")
+                s_detail_source = gr.Textbox(label="Source URL", interactive=False)
+                with gr.Row():
+                    s_detail_rank = gr.Textbox(label="Rank", interactive=False, scale=1)
+                    s_detail_alpha = gr.Textbox(label="Alpha", interactive=False, scale=1)
+                s_detail_rec_scale = gr.Slider(
+                    0.0, 3.0, value=1.0, step=0.05,
+                    label="Recommend Scale",
+                    info="LoRA select default strength",
+                )
+                s_detail_notes = gr.Textbox(label="Notes", lines=3)
+                s_detail_save = gr.Button("Save Metadata", variant="primary", size="sm")
+                s_detail_status = gr.Textbox(label="", interactive=False, show_label=False)
 
     # ==================================================================
     # Navigation: TOC scroll-into-view via JS
     # ==================================================================
-    _SEC_ELEM_IDS = {
-        "lang": "sec-lang",
-        "model": "sec-model",
-        "lora_dl": "sec-lora-dl",
-        "lora_up": "sec-lora-up",
-        "lora_list": "sec-lora-list",
-    }
-
     for item_id, _ in _MENU_ITEMS:
         elem_id = _SEC_ELEM_IDS[item_id]
         nav_buttons[item_id].click(
@@ -348,7 +353,7 @@ def build_settings_tab():
         )
 
     # ==================================================================
-    # TOC: IntersectionObserver — highlight active section in sidebar
+    # TOC: highlight active section on scroll
     # ==================================================================
     _toc_nav_ids = [f"nav-{item_id}" for item_id, _ in _MENU_ITEMS]
     _toc_sec_ids = [_SEC_ELEM_IDS[item_id] for item_id, _ in _MENU_ITEMS]
@@ -371,103 +376,25 @@ def build_settings_tab():
 
       highlight(pairs[0][1]);
 
-      // Find the real scroll container (Gradio wraps content in a
-      // scrollable div that is NOT document.body).
-      function findScrollParent(el) {
-        while (el && el !== document.documentElement) {
-          const ov = getComputedStyle(el).overflowY;
-          if (ov === 'auto' || ov === 'scroll') return el;
-          el = el.parentElement;
-        }
-        return document.documentElement;
-      }
-
-      let _cleanup = null;
-
-      function setup() {
-        const toc = document.getElementById('settings-toc');
-        const row = document.getElementById('settings-row');
-        if (!toc || !row) { setTimeout(setup, 500); return; }
-
-        const scroller = findScrollParent(row);
-        const scrollerRect = () => scroller === document.documentElement
-          ? { top: 0, bottom: window.innerHeight, left: 0 }
-          : scroller.getBoundingClientRect();
-
-        // --- position: fixed approach ---
-        // Insert a placeholder so the Row layout doesn't collapse.
-        let ph = document.getElementById('toc-ph');
-        if (!ph) {
-          ph = document.createElement('div');
-          ph.id = 'toc-ph';
-          row.insertBefore(ph, toc);
-        }
-        const tocW = toc.offsetWidth;
-        ph.style.width = tocW + 'px';
-        ph.style.minWidth = tocW + 'px';
-        ph.style.flexShrink = '0';
-
-        toc.style.position = 'fixed';
-        toc.style.zIndex = '999';
-        toc.style.width = tocW + 'px';
-        toc.style.transition = 'none';
-        toc.style.transform = 'none';
-
-        let ticking = false;
-        function onScroll() {
-          if (ticking) return;
-          ticking = true;
-          requestAnimationFrame(() => {
-            ticking = false;
-            const sr = scrollerRect();
-            const rowRect = row.getBoundingClientRect();
-            const phRect = ph.getBoundingClientRect();
-
-            // Vertical: stick to scroller top, but clamp within row bounds
-            const minTop = Math.max(sr.top, rowRect.top);
-            const maxTop = rowRect.bottom - toc.offsetHeight;
-            toc.style.top = Math.max(Math.min(minTop, maxTop), sr.top) + 'px';
-            toc.style.left = phRect.left + 'px';
-
-            // --- Highlight active section ---
-            let active = pairs[0][1];
-            for (const [sid, nid] of pairs) {
-              const sec = document.getElementById(sid);
-              if (!sec) continue;
-              if (sec.getBoundingClientRect().top <= sr.top + (sr.bottom - sr.top) * 0.2) {
-                active = nid;
-              }
-            }
-            highlight(active);
-          });
-        }
-
-        scroller.addEventListener('scroll', onScroll, { passive: true });
-        window.addEventListener('resize', onScroll, { passive: true });
-        if (scroller === document.documentElement) {
-          window.addEventListener('scroll', onScroll, { passive: true });
-        }
-        onScroll();
-
-        // Cleanup function for re-init
-        _cleanup = () => {
-          scroller.removeEventListener('scroll', onScroll);
-          window.removeEventListener('resize', onScroll);
-          window.removeEventListener('scroll', onScroll);
-        };
-
-        // Re-run setup if Gradio re-renders (tab switch, etc.)
-        const mo = new MutationObserver(() => {
-          if (!document.getElementById('settings-toc')) {
-            mo.disconnect();
-            if (_cleanup) _cleanup();
-            _cleanup = null;
-            setTimeout(setup, 500);
+      function onScroll() {
+        let active = pairs[0][1];
+        for (const [sid, nid] of pairs) {
+          const sec = document.getElementById(sid);
+          if (!sec) continue;
+          if (sec.getBoundingClientRect().top <= window.innerHeight * 0.2) {
+            active = nid;
           }
-        });
-        mo.observe(row.parentElement || document.body, { childList: true, subtree: true });
+        }
+        highlight(active);
       }
-      setup();
+
+      window.addEventListener('scroll', onScroll, { passive: true });
+      // Also listen on the main Gradio scroll container
+      setTimeout(() => {
+        const main = document.querySelector('.main');
+        if (main) main.addEventListener('scroll', onScroll, { passive: true });
+      }, 1000);
+      onScroll();
     })();
     </script>
     """

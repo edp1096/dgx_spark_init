@@ -62,13 +62,10 @@ _CUSTOM_CSS = """
 #presets-section .gallery { transition: max-height 0.3s ease; }
 #presets-toggle-row { margin-bottom: 4px; }
 #presets-toggle-row button { min-width: 80px !important; }
-/* Settings TOC active highlight */
+/* Settings sidebar TOC active highlight */
 .toc-active { background: var(--button-primary-background-fill) !important;
   color: var(--button-primary-text-color) !important;
   border-color: var(--button-primary-border-color) !important; }
-/* Settings TOC layout — sticky is handled via JS position:fixed */
-#settings-row { align-items: flex-start !important; }
-#settings-toc { max-height: calc(100vh - 20px); overflow-y: auto !important; }
 """
 
 
@@ -81,6 +78,12 @@ def build_ui() -> gr.Blocks:
             gr.Markdown("# ZIT Gradio")
             gr.Markdown(value=get_memory_status, every=3, elem_classes=["memory-status"])
 
+        # Settings sidebar (gr.Sidebar stays fixed on screen)
+        settings_sidebar = gr.Sidebar(
+            open=False, visible=False, width=180,
+            elem_id="settings-sidebar",
+        )
+
         with gr.Tabs() as tabs:
             with gr.Tab("Generate", id="generate") as gen_tab:
                 gen = build_generate_tab()
@@ -91,8 +94,8 @@ def build_ui() -> gr.Blocks:
             with gr.Tab("Train", id="train") as tr_tab:
                 tr = build_train_tab(tr_tab)
 
-            with gr.Tab("Settings", id="settings"):
-                build_settings_tab()
+            with gr.Tab("Settings", id="settings") as settings_tab:
+                build_settings_tab(settings_sidebar)
 
             with gr.Tab("History", id="history") as h_tab:
                 build_history_tab(h_tab)
@@ -109,6 +112,21 @@ def build_ui() -> gr.Blocks:
 
         gen_tab.select(fn=_refresh_lora_dropdowns, outputs=gen["lora_dropdowns"])
         ip_tab.select(fn=_refresh_lora_dropdowns, outputs=ip["lora_dropdowns"])
+
+        # ---------------------------------------------------------------
+        # Settings sidebar: show only when Settings tab is active
+        # ---------------------------------------------------------------
+        def _show_sidebar():
+            return gr.Sidebar(open=True, visible=True)
+
+        def _hide_sidebar():
+            return gr.Sidebar(open=False, visible=False)
+
+        settings_tab.select(fn=_show_sidebar, outputs=[settings_sidebar])
+        gen_tab.select(fn=_hide_sidebar, outputs=[settings_sidebar])
+        ip_tab.select(fn=_hide_sidebar, outputs=[settings_sidebar])
+        tr_tab.select(fn=_hide_sidebar, outputs=[settings_sidebar])
+        h_tab.select(fn=_hide_sidebar, outputs=[settings_sidebar])
 
         # ---------------------------------------------------------------
         # Page load: restore params if generation/training is in progress
