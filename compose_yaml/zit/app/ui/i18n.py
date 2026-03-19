@@ -158,7 +158,9 @@ STRINGS = {
     "training_log":              {"en": "Training Log",                    "ko": "학습 로그"},
     "ready":                     {"en": "Ready",                           "ko": "대기 중"},
 
-    # Train tab — advanced
+    # Train tab — accordions
+    "training":                  {"en": "Training",                        "ko": "학습"},
+    "lora_architecture":         {"en": "LoRA Architecture",               "ko": "LoRA 구조"},
     "advanced":                  {"en": "Advanced",                        "ko": "고급"},
     "caption_dropout":           {"en": "Caption Dropout",                 "ko": "캡션 드롭아웃"},
     "noise_offset":              {"en": "Noise Offset",                    "ko": "노이즈 오프셋"},

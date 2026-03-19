@@ -52,10 +52,9 @@ _CUSTOM_CSS = """
   max-height: 180px;
   object-fit: contain;
 }
-#history-gallery { min-height: 400px; }
-@media (min-width: 769px) {
-  #history-gallery { height: calc(100vh - 260px) !important; overflow-y: auto; }
-}
+#history-info-col { display: flex; flex-direction: column; }
+#history-file-info { flex: 1; }
+#history-file-info textarea { height: 100% !important; }
 @media (max-width: 768px) {
   #history-gallery .thumbnails { grid-template-columns: repeat(2, 1fr) !important; }
 }

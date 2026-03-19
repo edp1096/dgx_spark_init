@@ -218,28 +218,31 @@ def build_train_tab(tab_ref):
                     )
                     tr_ds_status = gr.Textbox(label="", interactive=False, lines=1, show_label=False)
             # --- Training params ---
-            tr_name = gr.Textbox(label="LoRA Name", value="my_lora",
+            tr_name = gr.Textbox(label="LoRA Name", value="",
+                                 placeholder="e.g. my_face_lora",
                                  info="Output: loras/<name>.safetensors")
-            with gr.Row():
-                tr_steps = gr.Number(value=2000, label="Steps", precision=0, minimum=100, maximum=50000)
-                tr_rank = gr.Dropdown([4, 8, 16, 32, 64, 128], value=16, label="Rank")
-            with gr.Row():
+            with gr.Accordion("Training", open=False):
+                with gr.Row():
+                    tr_steps = gr.Number(value=2000, label="Steps", precision=0, minimum=100, maximum=50000)
+                    tr_save_every = gr.Number(value=500, label="Save Checkpoint Every N Steps", precision=0)
                 tr_lr = gr.Number(value=1e-4, label="Learning Rate")
-                tr_lora_alpha = gr.Number(value=16, label="LoRA Alpha", precision=0,
-                                          minimum=1, maximum=128,
-                                          info="PEFT scaling = alpha/rank (default=rank)",)
-            with gr.Row():
-                tr_resolution = gr.Dropdown(
-                    [256, 384, 512, 768, 1024], value=512, label="Resolution",
+                with gr.Row():
+                    tr_resolution = gr.Dropdown(
+                        [256, 384, 512, 768, 1024], value=512, label="Resolution",
+                    )
+                    tr_batch = gr.Number(value=1, label="Batch Size", precision=0, minimum=1, maximum=32)
+                    tr_grad_accum = gr.Number(value=1, label="Gradient Accumulation", precision=0, minimum=1, maximum=8)
+            with gr.Accordion("LoRA Architecture", open=False):
+                with gr.Row():
+                    tr_rank = gr.Dropdown([4, 8, 16, 32, 64, 128], value=16, label="Rank")
+                    tr_lora_alpha = gr.Number(value=16, label="LoRA Alpha", precision=0,
+                                              minimum=1, maximum=128,
+                                              info="PEFT scaling = alpha/rank (default=rank)")
+                tr_targets = gr.Textbox(
+                    label="Target Modules",
+                    value="to_q, to_k, to_v, to_out.0, w1, w2, w3, adaLN_modulation.0",
+                    info="Comma-separated Linear layer names to train",
                 )
-            tr_batch = gr.Number(value=1, label="Batch Size", precision=0, minimum=1, maximum=32)
-            tr_grad_accum = gr.Number(value=1, label="Gradient Accumulation", precision=0, minimum=1, maximum=8)
-            tr_save_every = gr.Number(value=500, label="Save Checkpoint Every N Steps", precision=0)
-            tr_targets = gr.Textbox(
-                label="Target Modules",
-                value="to_q, to_k, to_v, to_out.0, w1, w2, w3, adaLN_modulation.0",
-                info="Comma-separated Linear layer names to train",
-            )
             with gr.Accordion("Advanced", open=False):
                 tr_caption_dropout = gr.Slider(0.0, 0.5, value=0.1, step=0.05,
                                                label="Caption Dropout")
@@ -354,16 +357,14 @@ def build_train_tab(tab_ref):
         }
         ts = _train_state
         try:
+            if not name or not name.strip():
+                raise gr.Error("LoRA 이름을 입력하세요")
+            name = name.strip()
             if not dataset_name:
-                yield "Error: Select a dataset", "", "Error"
-                return
+                raise gr.Error("데이터셋을 선택하세요")
             dataset = str(DATASETS_BASE / dataset_name)
             if not Path(dataset).is_dir():
-                yield "Error: Dataset folder not found", "", "Error"
-                return
-            if not name:
-                yield "Error: LoRA name required", "", "Error"
-                return
+                raise gr.Error("데이터셋 폴더를 찾을 수 없습니다")
 
             # Kill inference worker to free GPU
             from generators import get_worker_mgr
