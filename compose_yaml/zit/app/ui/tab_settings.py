@@ -311,7 +311,7 @@ def build_settings_tab(sidebar):
                 s_lora_table = gr.Dataframe(
                     headers=["Filename", "Size", "Trigger Words", "Source"],
                     value=lambda: lora_list_with_info(),
-                    interactive=False, every=10,
+                    interactive=False,
                     max_height=250,
                 )
                 with gr.Row():
@@ -492,6 +492,10 @@ def build_settings_tab(sidebar):
         inputs=[s_upload_file],
         outputs=[s_upload_file, s_upload_status, s_lora_table],
     )
+
+    # Polling via gr.Timer (every=N on components resets ImageEditor internal state)
+    _s_lora_timer = gr.Timer(10)
+    _s_lora_timer.tick(fn=lora_list_with_info, outputs=[s_lora_table])
 
 
 # ---------------------------------------------------------------------------

@@ -26,7 +26,7 @@ def build_history_tab(tab_ref):
         with gr.Column(scale=3):
             h_gallery = gr.Gallery(
                 label="Generated Images", value=list_outputs,
-                columns=4, height="calc(100vh - 260px)", object_fit="contain", every=10,
+                columns=4, height="calc(100vh - 260px)", object_fit="contain",
                 elem_id="history-gallery", preview=True,
                 selected_index=0, buttons=["download", "fullscreen"],
             )
@@ -63,3 +63,7 @@ def build_history_tab(tab_ref):
     h_download_all.click(fn=download_all, outputs=[h_download_file])
     h_delete_all.click(fn=delete_all, outputs=[h_gallery])
     h_clear_cache.click(fn=clear_cache, outputs=[h_cache_msg])
+
+    # Polling via gr.Timer (every=N on components resets ImageEditor internal state)
+    _h_timer = gr.Timer(10)
+    _h_timer.tick(fn=list_outputs, outputs=[h_gallery])

@@ -145,17 +145,16 @@ def build_inpaint_tab():
 
                 def _ip_refresh_loras():
                     choices = lora_choices()
-                    return [gr.Dropdown(choices=choices)] * MAX_LORA_STACK
+                    return [gr.update(choices=choices)] * MAX_LORA_STACK
 
                 ip_lora_refresh.click(fn=_ip_refresh_loras, outputs=ip_lora_dropdowns)
 
         with gr.Column(scale=1):
             ip_result = gr.Image(label="Result", type="filepath", buttons=["download", "fullscreen"])
-            ip_info = gr.Textbox(label="Info", interactive=False,
-                                 value=lambda: get_gen_info_for_tab("inpaint"), every=2)
+            ip_info = gr.Textbox(label="Info", interactive=False)
             ip_kill_btn = gr.Button("Kill (emergency stop)", variant="stop", size="sm")
             ip_kill_msg = gr.Textbox(label="", interactive=False, visible=False)
-            gr.Markdown(value=get_loading_status, every=1)
+            ip_loading_md = gr.Markdown()
             ip_kill_btn.click(fn=do_kill, outputs=[ip_kill_msg])
 
     # --- Translate ---
@@ -280,4 +279,5 @@ def build_inpaint_tab():
         "lora_enable": ip_lora_enable,
         "lora_dropdowns": ip_lora_dropdowns, "lora_scales": ip_lora_scales,
         "result": ip_result,
+        "info": ip_info, "loading_md": ip_loading_md,
     }

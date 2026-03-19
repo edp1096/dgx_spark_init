@@ -269,11 +269,16 @@ def build_train_tab(tab_ref):
                 tr_start = gr.Button("Start Training", variant="primary")
                 tr_stop = gr.Button("Stop", variant="stop")
         with gr.Column(scale=1):
-            tr_status = gr.Textbox(label="Status", interactive=False, lines=3,
-                                   value=lambda: _get_train_status(), every=2)
-            tr_log = gr.Textbox(label="Training Log", interactive=False, lines=15,
-                                value=lambda: _get_train_log(), every=2)
-            tr_progress = gr.Markdown(value=lambda: _get_train_progress(), every=1)
+            tr_status = gr.Textbox(label="Status", interactive=False, lines=3)
+            tr_log = gr.Textbox(label="Training Log", interactive=False, lines=15)
+            tr_progress = gr.Markdown()
+
+    # Polling via gr.Timer (every=N on components resets ImageEditor internal state)
+    _tr_timer_2s = gr.Timer(2)
+    _tr_timer_1s = gr.Timer(1)
+    _tr_timer_2s.tick(fn=_get_train_status, outputs=[tr_status])
+    _tr_timer_2s.tick(fn=_get_train_log, outputs=[tr_log])
+    _tr_timer_1s.tick(fn=_get_train_progress, outputs=[tr_progress])
 
     # --- Tab select: auto-load first dataset ---
     def _on_train_tab():

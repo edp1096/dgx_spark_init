@@ -141,7 +141,7 @@ def build_generate_tab():
 
                 def _refresh_all_loras():
                     choices = lora_choices()
-                    return [gr.Dropdown(choices=choices)] * MAX_LORA_STACK
+                    return [gr.update(choices=choices)] * MAX_LORA_STACK
 
                 g_lora_refresh.click(fn=_refresh_all_loras, outputs=g_lora_dropdowns)
             g_cn_enable = gr.Checkbox(
@@ -208,12 +208,11 @@ def build_generate_tab():
 
             # --- Gallery & status ---
             g_gallery = gr.Gallery(label="Generated Images", columns=2, height=500, object_fit="contain", elem_id="gen-gallery", preview=True, selected_index=0, buttons=["download", "fullscreen"])
-            g_info = gr.Textbox(label="Info", interactive=False,
-                                value=lambda: get_gen_info_for_tab("generate"), every=2)
+            g_info = gr.Textbox(label="Info", interactive=False)
             with gr.Row():
                 g_kill_btn = gr.Button("Kill (emergency stop)", variant="stop", size="sm")
             g_kill_msg = gr.Textbox(label="", interactive=False, visible=False)
-            gr.Markdown(value=get_loading_status, every=1)
+            g_loading_md = gr.Markdown()
             g_kill_btn.click(fn=do_kill, outputs=[g_kill_msg])
             g_gen_paths = gr.State([])
 
@@ -376,4 +375,5 @@ def build_generate_tab():
         "cn_enable": g_cn_enable, "cn_mode": g_cn_mode,
         "cn_image": g_cn_image, "cn_scale": g_cn_scale,
         "gallery": g_gallery,
+        "info": g_info, "loading_md": g_loading_md,
     }

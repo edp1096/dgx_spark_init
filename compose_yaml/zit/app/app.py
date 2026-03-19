@@ -11,7 +11,9 @@ sys.path.insert(0, str(Path(__file__).parent / "ui"))
 import gradio as gr
 
 from generators import (
+    get_gen_info_for_tab,
     get_gen_ui_params,
+    get_loading_status,
     get_worker_mgr,
     wait_for_gen_completion,
 )
@@ -78,7 +80,7 @@ def build_ui() -> gr.Blocks:
     with gr.Blocks(title="ZIT Gradio", analytics_enabled=False) as app:
         with gr.Row():
             gr.Markdown("# ZIT Gradio")
-            gr.Markdown(value=get_memory_status, every=3, elem_classes=["memory-status"])
+            memory_md = gr.Markdown(elem_classes=["memory-status"])
 
         # Settings sidebar (gr.Sidebar stays fixed on screen)
         settings_sidebar = gr.Sidebar(
@@ -110,7 +112,7 @@ def build_ui() -> gr.Blocks:
 
         def _refresh_lora_dropdowns():
             choices = lora_choices()
-            return [gr.Dropdown(choices=choices)] * MAX_LORA_STACK
+            return [gr.update(choices=choices)] * MAX_LORA_STACK
 
         gen_tab.select(fn=_refresh_lora_dropdowns, outputs=gen["lora_dropdowns"])
         ip_tab.select(fn=_refresh_lora_dropdowns, outputs=ip["lora_dropdowns"])
@@ -119,7 +121,7 @@ def build_ui() -> gr.Blocks:
         # Settings sidebar: show only when Settings tab is active
         # ---------------------------------------------------------------
         def _show_sidebar():
-            return gr.Sidebar(open=False, visible=True)
+            return gr.update(open=False, visible=True)
 
         _open_sidebar_js = """
         () => {
@@ -136,7 +138,7 @@ def build_ui() -> gr.Blocks:
         """
 
         def _hide_sidebar():
-            return gr.Sidebar(open=False, visible=False)
+            return gr.update(open=False, visible=False)
 
         settings_tab.select(fn=_show_sidebar, outputs=[settings_sidebar],
                             js=_open_sidebar_js)
@@ -226,6 +228,20 @@ def build_ui() -> gr.Blocks:
                      tr["lr"], tr["lora_alpha"], tr["resolution"],
                      tr["batch"], tr["grad_accum"], tr["save_every"], tr["targets"]],
         )
+
+        # ---------------------------------------------------------------
+        # Polling via gr.Timer — MUST be outside Tab context.
+        # Timer inside a Tab causes Gradio to re-render the entire tab
+        # on each tick, resetting ImageEditor internal state (brush size).
+        # ---------------------------------------------------------------
+        _timer_3s = gr.Timer(3)
+        _timer_2s = gr.Timer(2)
+        _timer_1s = gr.Timer(1)
+        _timer_3s.tick(fn=get_memory_status, outputs=[memory_md])
+        _timer_2s.tick(fn=lambda: get_gen_info_for_tab("generate"), outputs=[gen["info"]])
+        _timer_2s.tick(fn=lambda: get_gen_info_for_tab("inpaint"), outputs=[ip["info"]])
+        _timer_1s.tick(fn=get_loading_status, outputs=[gen["loading_md"]])
+        _timer_1s.tick(fn=get_loading_status, outputs=[ip["loading_md"]])
 
     return app
 
