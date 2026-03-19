@@ -276,7 +276,7 @@ def main():
         show_error=True,
         allowed_paths=["/root/.cache/huggingface/hub/zit/datasets"],
         css=_CUSTOM_CSS,
-        js=get_i18n_js(),
+        # js=get_i18n_js(),  # i18n disabled for debugging
     )
 
 
