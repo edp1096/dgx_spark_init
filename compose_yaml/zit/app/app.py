@@ -52,16 +52,22 @@ _CUSTOM_CSS = """
   max-height: 180px;
   object-fit: contain;
 }
-#history-gallery { min-height: 400px; }
-@media (min-width: 769px) {
-  #history-gallery { height: calc(100vh - 260px) !important; overflow-y: auto; }
-}
+#history-info-col { display: flex; flex-direction: column; min-height: calc(100vh - 260px); }
+#history-info-col > div { width: 100%; }
+#history-file-info { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+#history-file-info > label { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+#history-file-info .input-container { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+#history-file-info textarea { flex: 1; height: 100% !important; min-height: 0; }
 @media (max-width: 768px) {
   #history-gallery .thumbnails { grid-template-columns: repeat(2, 1fr) !important; }
 }
 #presets-section .gallery { transition: max-height 0.3s ease; }
 #presets-toggle-row { margin-bottom: 4px; }
 #presets-toggle-row button { min-width: 80px !important; }
+/* Settings sidebar TOC active highlight */
+.toc-active { background: var(--button-primary-background-fill) !important;
+  color: var(--button-primary-text-color) !important;
+  border-color: var(--button-primary-border-color) !important; }
 """
 
 
@@ -74,6 +80,12 @@ def build_ui() -> gr.Blocks:
             gr.Markdown("# ZIT Gradio")
             gr.Markdown(value=get_memory_status, every=3, elem_classes=["memory-status"])
 
+        # Settings sidebar (gr.Sidebar stays fixed on screen)
+        settings_sidebar = gr.Sidebar(
+            open=False, visible=False, width=180,
+            elem_id="settings-sidebar",
+        )
+
         with gr.Tabs() as tabs:
             with gr.Tab("Generate", id="generate") as gen_tab:
                 gen = build_generate_tab()
@@ -81,14 +93,14 @@ def build_ui() -> gr.Blocks:
             with gr.Tab("Inpaint", id="inpaint") as ip_tab:
                 ip = build_inpaint_tab()
 
+            with gr.Tab("History", id="history") as h_tab:
+                build_history_tab(h_tab)
+
             with gr.Tab("Train", id="train") as tr_tab:
                 tr = build_train_tab(tr_tab)
 
-            with gr.Tab("Settings", id="settings"):
-                build_settings_tab()
-
-            with gr.Tab("History", id="history") as h_tab:
-                build_history_tab(h_tab)
+            with gr.Tab("Settings", id="settings") as settings_tab:
+                build_settings_tab(settings_sidebar)
 
         # ---------------------------------------------------------------
         # Tab select: refresh LoRA list when switching to Generate/Inpaint
@@ -102,6 +114,36 @@ def build_ui() -> gr.Blocks:
 
         gen_tab.select(fn=_refresh_lora_dropdowns, outputs=gen["lora_dropdowns"])
         ip_tab.select(fn=_refresh_lora_dropdowns, outputs=ip["lora_dropdowns"])
+
+        # ---------------------------------------------------------------
+        # Settings sidebar: show only when Settings tab is active
+        # ---------------------------------------------------------------
+        def _show_sidebar():
+            return gr.Sidebar(open=False, visible=True)
+
+        _open_sidebar_js = """
+        () => {
+            if (window.innerWidth > 768) {
+                requestAnimationFrame(() => {
+                    const sb = document.querySelector('#settings-sidebar');
+                    if (sb && !sb.classList.contains('open')) {
+                        const btn = sb.querySelector('button.toggle-button');
+                        if (btn) btn.click();
+                    }
+                });
+            }
+        }
+        """
+
+        def _hide_sidebar():
+            return gr.Sidebar(open=False, visible=False)
+
+        settings_tab.select(fn=_show_sidebar, outputs=[settings_sidebar],
+                            js=_open_sidebar_js)
+        gen_tab.select(fn=_hide_sidebar, outputs=[settings_sidebar])
+        ip_tab.select(fn=_hide_sidebar, outputs=[settings_sidebar])
+        tr_tab.select(fn=_hide_sidebar, outputs=[settings_sidebar])
+        h_tab.select(fn=_hide_sidebar, outputs=[settings_sidebar])
 
         # ---------------------------------------------------------------
         # Page load: restore params if generation/training is in progress

@@ -28,7 +28,45 @@ _ctx = _mp.get_context("spawn")
 
 
 # ---------------------------------------------------------------------------
-# Dataset: images + captions from folder
+# Aspect-ratio bucketing (adapted from ostris/ai-toolkit)
+# ---------------------------------------------------------------------------
+# Base resolutions at 1024x1024 scale — scaled to target resolution
+_RESOLUTIONS_1024 = [
+    (1024, 1024),
+    # Landscape
+    (1344, 768), (1280, 768), (1216, 832), (1152, 832), (1152, 896),
+    (1088, 896), (1088, 960), (1024, 960),
+    # Portrait
+    (960, 1024), (960, 1088), (896, 1088), (896, 1152), (832, 1152),
+    (832, 1216), (768, 1280), (768, 1344),
+]
+
+
+def _get_bucket_sizes(resolution: int) -> list[tuple[int, int]]:
+    """Scale 1024-base buckets to target resolution, divisible by 8."""
+    scaler = resolution / 1024
+    buckets = []
+    for bw, bh in _RESOLUTIONS_1024:
+        w = int(bw * scaler) // 8 * 8
+        h = int(bh * scaler) // 8 * 8
+        buckets.append((w, h))
+    return buckets
+
+
+def _find_bucket(w: int, h: int, buckets: list[tuple[int, int]]) -> tuple[int, int]:
+    """Find best-matching bucket (minimize cropped pixels)."""
+    best, best_cost = buckets[0], float("inf")
+    for bw, bh in buckets:
+        scale = max(bw / w, bh / h)
+        nw, nh = int(w * scale), int(h * scale)
+        cost = (nw - bw) * nh + (nh - bh) * nw
+        if cost < best_cost:
+            best, best_cost = (bw, bh), cost
+    return best
+
+
+# ---------------------------------------------------------------------------
+# Dataset: images + captions from folder (with aspect-ratio bucketing)
 # ---------------------------------------------------------------------------
 class ImageCaptionDataset(Dataset):
     """Load images with paired .txt caption files.
@@ -46,34 +84,49 @@ class ImageCaptionDataset(Dataset):
     def __init__(self, dataset_dir: str, resolution: int = 512):
         self.dataset_dir = Path(dataset_dir)
         self.resolution = resolution
+        self.buckets = _get_bucket_sizes(resolution)
 
         # Find all image files with matching .txt caption
-        self.samples = []
+        self.samples = []       # (path, caption)
+        self.bucket_wh = []     # (target_w, target_h) per sample
+        self.bucket_map = {}    # (w,h) → [indices]
+
         for f in sorted(self.dataset_dir.iterdir()):
             if f.suffix.lower() in self.EXTENSIONS:
                 txt = f.with_suffix(".txt")
                 caption = txt.read_text().strip() if txt.exists() else ""
+                # Read image size without full decode
+                with Image.open(f) as img:
+                    iw, ih = img.size
+                bucket = _find_bucket(iw, ih, self.buckets)
+                idx = len(self.samples)
                 self.samples.append((str(f), caption))
+                self.bucket_wh.append(bucket)
+                self.bucket_map.setdefault(bucket, []).append(idx)
 
         if not self.samples:
             raise ValueError(f"No images found in {dataset_dir}")
 
-        logger.info("Dataset: %d images from %s", len(self.samples), dataset_dir)
+        bucket_info = ", ".join(f"{w}x{h}({len(ids)})" for (w, h), ids in self.bucket_map.items())
+        logger.info("Dataset: %d images from %s — buckets: %s",
+                     len(self.samples), dataset_dir, bucket_info)
 
     def __len__(self):
         return len(self.samples)
 
     def __getitem__(self, idx):
         img_path, caption = self.samples[idx]
+        target_w, target_h = self.bucket_wh[idx]
         img = Image.open(img_path).convert("RGB")
 
-        # Resize to resolution (center crop to square)
+        # Scale so that both dims >= bucket, then center-crop to bucket
         w, h = img.size
-        min_dim = min(w, h)
-        left = (w - min_dim) // 2
-        top = (h - min_dim) // 2
-        img = img.crop((left, top, left + min_dim, top + min_dim))
-        img = img.resize((self.resolution, self.resolution), Image.LANCZOS)
+        scale = max(target_w / w, target_h / h)
+        new_w, new_h = int(w * scale + 0.5), int(h * scale + 0.5)
+        img = img.resize((new_w, new_h), Image.LANCZOS)
+        left = (new_w - target_w) // 2
+        top = (new_h - target_h) // 2
+        img = img.crop((left, top, left + target_w, top + target_h))
 
         # To tensor: [0, 255] → [0, 1] (ostris/ToTensor convention)
         import numpy as np
@@ -81,6 +134,40 @@ class ImageCaptionDataset(Dataset):
         tensor = torch.from_numpy(arr).permute(2, 0, 1)  # CHW
 
         return tensor, caption
+
+
+class BucketBatchSampler:
+    """Yield batches of indices from the same bucket."""
+
+    def __init__(self, dataset: ImageCaptionDataset, batch_size: int, shuffle: bool = True):
+        self.batch_size = batch_size
+        self.shuffle = shuffle
+        # Flatten bucket_map into list of index-lists per bucket
+        self.bucket_indices = list(dataset.bucket_map.values())
+
+    def __iter__(self):
+        import random
+        all_batches = []
+        for indices in self.bucket_indices:
+            pool = list(indices)
+            if self.shuffle:
+                random.shuffle(pool)
+            for i in range(0, len(pool), self.batch_size):
+                batch = pool[i:i + self.batch_size]
+                if len(batch) == self.batch_size:
+                    all_batches.append(batch)
+                elif len(batch) > 0:
+                    # Pad incomplete batch by repeating from same bucket
+                    while len(batch) < self.batch_size:
+                        batch.append(random.choice(indices))
+                    all_batches.append(batch)
+        if self.shuffle:
+            random.shuffle(all_batches)
+        yield from all_batches
+
+    def __len__(self):
+        total = sum(len(ids) for ids in self.bucket_indices)
+        return math.ceil(total / self.batch_size)
 
 
 # ---------------------------------------------------------------------------
@@ -450,9 +537,10 @@ class LoRATrainer:
             self._set_status("Loading dataset...")
             logger.info("Loading dataset from %s...", self.dataset_dir)
             dataset = ImageCaptionDataset(self.dataset_dir, resolution=resolution)
+            bucket_sampler = BucketBatchSampler(dataset, batch_size=batch_size, shuffle=True)
             dataloader = DataLoader(
-                dataset, batch_size=batch_size, shuffle=True,
-                num_workers=0, pin_memory=True, drop_last=True,
+                dataset, batch_sampler=bucket_sampler,
+                num_workers=0, pin_memory=True,
             )
 
             # --- Load VAE (frozen, float32 for precision) ---

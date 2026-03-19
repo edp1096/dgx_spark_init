@@ -103,8 +103,8 @@ def build_generate_tab():
 
                 def _add_lora_slot(count):
                     count = min(count + 1, MAX_LORA_STACK)
-                    row_vis = [gr.Row(visible=(i < count)) for i in range(MAX_LORA_STACK)]
-                    tw_vis = [gr.Textbox(visible=(i < count)) for i in range(MAX_LORA_STACK)]
+                    row_vis = [gr.update(visible=(i < count)) for i in range(MAX_LORA_STACK)]
+                    tw_vis = [gr.update(visible=(i < count)) for i in range(MAX_LORA_STACK)]
                     return [count] + row_vis + tw_vis
 
                 g_lora_add.click(
@@ -112,18 +112,30 @@ def build_generate_tab():
                     outputs=[g_lora_count] + g_lora_rows + g_lora_triggers,
                 )
 
-                def _remove_lora_slot(count, idx):
+                def _remove_lora_slot(count, idx, *all_dd_and_tw):
+                    """Remove slot idx, shift subsequent slots up."""
+                    dds = list(all_dd_and_tw[:MAX_LORA_STACK])
+                    tws = list(all_dd_and_tw[MAX_LORA_STACK:])
+                    # Shift values from idx+1.. into idx..
+                    for j in range(idx, count - 1):
+                        if j + 1 < MAX_LORA_STACK:
+                            dds[j] = dds[j + 1]
+                            tws[j] = tws[j + 1]
+                    # Clear the last visible slot
+                    last = count - 1
+                    if last < MAX_LORA_STACK:
+                        dds[last] = "None"
+                        tws[last] = ""
                     count = max(count - 1, 1)
-                    row_vis = [gr.Row(visible=(i < count)) for i in range(MAX_LORA_STACK)]
-                    tw_vis = [gr.Textbox(visible=(i < count)) for i in range(MAX_LORA_STACK)]
-                    dd_updates = [gr.update()] * MAX_LORA_STACK
-                    dd_updates[idx] = gr.Dropdown(value="None")
-                    return [count] + row_vis + tw_vis + dd_updates
+                    row_vis = [gr.update(visible=(i < count)) for i in range(MAX_LORA_STACK)]
+                    tw_updates = [gr.update(visible=(i < count), value=tws[i]) for i in range(MAX_LORA_STACK)]
+                    dd_updates = [gr.update(value=dds[i]) for i in range(MAX_LORA_STACK)]
+                    return [count] + row_vis + tw_updates + dd_updates
 
                 for idx, rm_btn in enumerate(g_lora_remove_btns):
                     rm_btn.click(
-                        fn=lambda cnt, i=idx: _remove_lora_slot(cnt, i),
-                        inputs=[g_lora_count],
+                        fn=lambda cnt, *args, i=idx: _remove_lora_slot(cnt, i, *args),
+                        inputs=[g_lora_count] + g_lora_dropdowns + g_lora_triggers,
                         outputs=[g_lora_count] + g_lora_rows + g_lora_triggers + g_lora_dropdowns,
                     )
 

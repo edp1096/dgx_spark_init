@@ -22,18 +22,19 @@ def build_history_tab(tab_ref):
         h_delete_all = gr.Button("Delete All", size="sm", variant="stop")
         h_clear_cache = gr.Button("Clear Cache", size="sm")
 
-    with gr.Row():
+    with gr.Row(equal_height=True, elem_id="history-row"):
         with gr.Column(scale=3):
             h_gallery = gr.Gallery(
                 label="Generated Images", value=list_outputs,
-                columns=4, height=None, object_fit="contain", every=10,
+                columns=4, height="calc(100vh - 260px)", object_fit="contain", every=10,
                 elem_id="history-gallery", preview=True,
                 selected_index=0, buttons=["download", "fullscreen"],
             )
-        with gr.Column(scale=1):
+        with gr.Column(scale=1, elem_id="history-info-col"):
             h_selected = gr.Textbox(label="Selected File", interactive=False, visible=False)
             h_sel_idx = gr.State(0)
-            h_file_info = gr.Textbox(label="File Info", interactive=False, lines=12)
+            h_file_info = gr.Textbox(label="File Info", interactive=False, lines=12,
+                                     elem_id="history-file-info")
             h_download_file = gr.File(label="Download", visible=False, interactive=False)
             h_cache_msg = gr.Textbox(label="", interactive=False, visible=False)
 
