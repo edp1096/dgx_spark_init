@@ -372,47 +372,93 @@ def build_settings_tab():
       // initial highlight
       highlight(pairs[0][1]);
 
-      const observer = new IntersectionObserver((entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            const pair = pairs.find(([sid]) => sid === entry.target.id);
-            if (pair) highlight(pair[1]);
-          }
-        }
-      }, { rootMargin: '-10% 0px -80% 0px', threshold: 0 });
-
-      // Unblock position:sticky — walk up from #settings-toc and
-      // change any ancestor overflow:hidden/auto/scroll to clip
-      function fixStickyAncestors() {
-        const toc = document.getElementById('settings-toc');
-        if (!toc) { setTimeout(fixStickyAncestors, 500); return; }
-        let el = toc.parentElement;
-        while (el && el !== document.body) {
-          const ov = getComputedStyle(el).overflow + ' ' + getComputedStyle(el).overflowY;
-          if (/hidden|auto|scroll/.test(ov)) {
-            el.style.overflow = 'clip';
-            el.style.overflowX = 'clip';
-            el.style.overflowY = 'clip';
-          }
+      // --- Scroll-based sticky TOC (bypass CSS sticky entirely) ---
+      // Find the real scroll container — Gradio wraps everything in a
+      // scrollable div that is NOT document.body.
+      function findScrollParent(el) {
+        while (el && el !== document.documentElement) {
+          const ov = getComputedStyle(el).overflowY;
+          if (ov === 'auto' || ov === 'scroll') return el;
           el = el.parentElement;
         }
+        return document.documentElement;
       }
 
-      // Observe after DOM is ready
-      function attach() {
-        let found = 0;
-        pairs.forEach(([sid]) => {
-          const el = document.getElementById(sid);
-          if (el) { observer.observe(el); found++; }
+      function setup() {
+        const toc = document.getElementById('settings-toc');
+        if (!toc) { setTimeout(setup, 500); return; }
+
+        const row = document.getElementById('settings-row');
+        if (!row) { setTimeout(setup, 500); return; }
+
+        const scroller = findScrollParent(row);
+
+        // Remove CSS sticky — we handle it via JS
+        toc.style.position = 'relative';
+        toc.style.top = 'auto';
+
+        let ticking = false;
+        function onScroll() {
+          if (ticking) return;
+          ticking = true;
+          requestAnimationFrame(() => {
+            ticking = false;
+            const rowRect = row.getBoundingClientRect();
+            const scrollerRect = scroller === document.documentElement
+              ? { top: 0, bottom: window.innerHeight }
+              : scroller.getBoundingClientRect();
+
+            // How far the row's top is above the scroller's top edge
+            const offset = scrollerRect.top - rowRect.top;
+
+            if (offset > 0 && offset < row.scrollHeight - toc.offsetHeight) {
+              // Row is partially scrolled — pin TOC
+              toc.style.transform = 'translateY(' + offset + 'px)';
+            } else if (offset >= row.scrollHeight - toc.offsetHeight) {
+              // Row is almost gone — clamp to bottom
+              toc.style.transform = 'translateY(' + (row.scrollHeight - toc.offsetHeight) + 'px)';
+            } else {
+              // Row fully visible — no offset
+              toc.style.transform = 'translateY(0px)';
+            }
+
+            // --- Highlight active section ---
+            let active = pairs[0][1];
+            for (const [sid, nid] of pairs) {
+              const sec = document.getElementById(sid);
+              if (!sec) continue;
+              const secRect = sec.getBoundingClientRect();
+              // Section top is above 20% of viewport
+              if (secRect.top <= scrollerRect.top + (scrollerRect.bottom - scrollerRect.top) * 0.2) {
+                active = nid;
+              }
+            }
+            highlight(active);
+          });
+        }
+
+        scroller.addEventListener('scroll', onScroll, { passive: true });
+        // Also handle window scroll in case scroller is documentElement
+        if (scroller === document.documentElement) {
+          window.addEventListener('scroll', onScroll, { passive: true });
+        }
+        onScroll();
+
+        // Re-run setup if Gradio re-renders (tab switch etc.)
+        const mo = new MutationObserver(() => {
+          if (!document.getElementById('settings-toc')) {
+            mo.disconnect();
+            scroller.removeEventListener('scroll', onScroll);
+            setTimeout(setup, 500);
+          }
         });
-        if (found < pairs.length) setTimeout(attach, 500);
+        mo.observe(row.parentElement || document.body, { childList: true, subtree: true });
       }
-      fixStickyAncestors();
-      attach();
+      setup();
     })();
     </script>
     """
-    gr.HTML(_observer_js, visible=False)
+    gr.HTML(_observer_js)
 
     # ==================================================================
     # Events: Installed LoRAs
