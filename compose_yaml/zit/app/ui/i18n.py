@@ -272,12 +272,16 @@ def get_i18n_js() -> str:
         return 'en';
     }
 
+    const SKIP_SELECTORS = '.image_editor, .image-editor, .pixi-canvas, canvas';
+
     function translateNodes(lang, root) {
+        if (root.closest && root.closest(SKIP_SELECTORS)) return;
         const targetMap = LANG_STRINGS[lang] || {};
 
         root.querySelectorAll(
             'label, button, span, h1, h2, h3, h4, p, em'
         ).forEach(el => {
+            if (el.closest(SKIP_SELECTORS)) return;
             if (el.closest('#lang-selector')) return;
             el.childNodes.forEach(node => {
                 if (node.nodeType !== Node.TEXT_NODE) return;
@@ -342,8 +346,10 @@ def get_i18n_js() -> str:
         }
         let hasNew = false;
         for (const m of mutations) {
+            if (m.target.closest && m.target.closest(SKIP_SELECTORS)) continue;
             for (const node of m.addedNodes) {
                 if (node.nodeType === Node.ELEMENT_NODE) {
+                    if (node.closest && node.closest(SKIP_SELECTORS)) continue;
                     hasNew = true;
                     translateNodes(currentLang, node);
                 }
