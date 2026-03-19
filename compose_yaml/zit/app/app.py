@@ -55,9 +55,9 @@ _CUSTOM_CSS = """
 #history-info-col { display: flex; flex-direction: column; min-height: calc(100vh - 260px); }
 #history-info-col > div { width: 100%; }
 #history-file-info { flex: 1; display: flex; flex-direction: column; min-height: 0; }
-#history-file-info > label { flex-shrink: 0; }
-#history-file-info .wrap { flex: 1; min-height: 0; }
-#history-file-info textarea { height: 100% !important; min-height: 0; }
+#history-file-info > label { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+#history-file-info .input-container { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+#history-file-info textarea { flex: 1; height: 100% !important; min-height: 0; }
 @media (max-width: 768px) {
   #history-gallery .thumbnails { grid-template-columns: repeat(2, 1fr) !important; }
 }
@@ -119,12 +119,27 @@ def build_ui() -> gr.Blocks:
         # Settings sidebar: show only when Settings tab is active
         # ---------------------------------------------------------------
         def _show_sidebar():
-            return gr.Sidebar(open=True, visible=True)
+            return gr.Sidebar(open=False, visible=True)
+
+        _open_sidebar_js = """
+        () => {
+            if (window.innerWidth > 768) {
+                requestAnimationFrame(() => {
+                    const sb = document.querySelector('#settings-sidebar');
+                    if (sb && !sb.classList.contains('open')) {
+                        const btn = sb.querySelector('button.toggle-button');
+                        if (btn) btn.click();
+                    }
+                });
+            }
+        }
+        """
 
         def _hide_sidebar():
             return gr.Sidebar(open=False, visible=False)
 
-        settings_tab.select(fn=_show_sidebar, outputs=[settings_sidebar])
+        settings_tab.select(fn=_show_sidebar, outputs=[settings_sidebar],
+                            js=_open_sidebar_js)
         gen_tab.select(fn=_hide_sidebar, outputs=[settings_sidebar])
         ip_tab.select(fn=_hide_sidebar, outputs=[settings_sidebar])
         tr_tab.select(fn=_hide_sidebar, outputs=[settings_sidebar])
