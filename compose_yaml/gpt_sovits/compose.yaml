@@ -1,0 +1,36 @@
+# services:
+#   gpt-sovits:
+#     image: nvcr.io/nvidia/pytorch:26.02-py3
+#     container_name: gpt-sovits
+#     ports:
+#       - "9874:9874"
+#       - "9872:9872"
+#     environment:
+#       - NVIDIA_VISIBLE_DEVICES=all
+#       - TORCH_CUDA_ARCH_LIST=12.1a
+#       - TRITON_PTXAS_PATH=/usr/local/cuda/bin/ptxas
+#       - HF_TOKEN=${HF_TOKEN}
+#     volumes:
+#       - "/home/edp1096/.cache/huggingface:/root/.cache/huggingface"
+#       - "/home/edp1096/workspace/gpt_sovits/audio:/root/audio"
+#       - "/home/edp1096/workspace/gpt_sovits/output:/root/output"
+#     deploy:
+#       resources:
+#         reservations:
+#           devices:
+#             - driver: nvidia
+#               count: 1
+#               capabilities: [gpu]
+#     working_dir: /workspace
+#     stdin_open: true
+#     tty: true
+#     entrypoint: ""
+#     command: >
+#       /bin/bash -c "
+#       apt-get update && apt-get install -y ffmpeg &&
+#       git clone https://github.com/RVC-Boss/GPT-SoVITS.git /workspace/GPT-SoVITS &&
+#       cd /workspace/GPT-SoVITS &&
+#       pip install -r requirements.txt &&
+#       echo '=== GPT-SoVITS ready ===' &&
+#       exec /bin/bash
+#       "
