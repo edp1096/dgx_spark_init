@@ -67,6 +67,7 @@ _CUSTOM_CSS = """
   color: var(--button-primary-text-color) !important;
   border-color: var(--button-primary-border-color) !important; }
 /* Settings TOC sticky positioning */
+#settings-row { overflow: visible !important; align-items: flex-start !important; }
 #settings-toc { position: sticky; top: 0; align-self: flex-start; max-height: 100vh; overflow-y: auto; }
 @media (max-width: 768px) { #settings-toc { position: static; max-height: none; } }
 """

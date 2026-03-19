@@ -33,7 +33,7 @@ def build_settings_tab():
     # ==================================================================
     # Layout: left TOC + right content (all sections visible)
     # ==================================================================
-    with gr.Row():
+    with gr.Row(elem_id="settings-row"):
         # --- Left TOC column ---
         with gr.Column(scale=0, min_width=160, elem_id="settings-toc"):
             gr.Markdown("### Settings")
