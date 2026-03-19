@@ -94,19 +94,21 @@ def build_ui() -> gr.Blocks:
         # Tab select: refresh LoRA list when switching to Generate/Inpaint
         # ---------------------------------------------------------------
         from helpers import lora_choices
+        from zit_config import MAX_LORA_STACK
 
-        def _refresh_lora_dropdown():
-            return gr.Dropdown(choices=lora_choices())
+        def _refresh_lora_dropdowns():
+            choices = lora_choices()
+            return [gr.Dropdown(choices=choices)] * MAX_LORA_STACK
 
-        gen_tab.select(fn=_refresh_lora_dropdown, outputs=[gen["lora"]])
-        ip_tab.select(fn=_refresh_lora_dropdown, outputs=[ip["lora"]])
+        gen_tab.select(fn=_refresh_lora_dropdowns, outputs=gen["lora_dropdowns"])
+        ip_tab.select(fn=_refresh_lora_dropdowns, outputs=ip["lora_dropdowns"])
 
         # ---------------------------------------------------------------
         # Page load: restore params if generation/training is in progress
         # ---------------------------------------------------------------
         def _restore_gen_params():
             """Restore Generate tab params on refresh during generation."""
-            skip = tuple([gr.update()] * 16)
+            skip = tuple([gr.update()] * 14)
             is_active, gen_type, p = get_gen_ui_params()
             if not is_active or not p or p.get("tab") != "generate":
                 return skip
@@ -116,12 +118,12 @@ def build_ui() -> gr.Blocks:
                 p["steps"], p["time_shift"],
                 p["cfg"], p["cfg_norm"], p["cfg_trunc"],
                 p["max_seq"], p["use_fp8"], p["attn"],
-                p["lora_enable"], p["lora"], p["lora_scale"],
+                p["lora_enable"],
             )
 
         def _restore_ip_params():
             """Restore Inpaint tab params on refresh during generation."""
-            skip = tuple([gr.update()] * 14)
+            skip = tuple([gr.update()] * 12)
             is_active, gen_type, p = get_gen_ui_params()
             if not is_active or not p or p.get("tab") != "inpaint":
                 return skip
@@ -132,7 +134,7 @@ def build_ui() -> gr.Blocks:
                 p["control_scale"], p["guidance"],
                 p["cfg_trunc"], p["max_seq"],
                 p["use_controlnet"],
-                p["lora_enable"], p["lora"], p["lora_scale"],
+                p["lora_enable"],
             )
 
         def _recover_gallery():
@@ -160,7 +162,7 @@ def build_ui() -> gr.Blocks:
                      gen["steps"], gen["time_shift"],
                      gen["cfg"], gen["cfg_norm"], gen["cfg_trunc"],
                      gen["max_seq"], gen["use_fp8"], gen["attn"],
-                     gen["lora_enable"], gen["lora"], gen["lora_scale"]],
+                     gen["lora_enable"]],
         )
         app.load(
             fn=_restore_ip_params,
@@ -170,7 +172,7 @@ def build_ui() -> gr.Blocks:
                      ip["control_scale"], ip["guidance"],
                      ip["cfg_trunc"], ip["max_seq"],
                      ip["use_controlnet"],
-                     ip["lora_enable"], ip["lora"], ip["lora_scale"]],
+                     ip["lora_enable"]],
         )
         app.load(
             fn=_recover_gallery,
