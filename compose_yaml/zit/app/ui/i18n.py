@@ -37,7 +37,6 @@ STRINGS = {
     "seed":                      {"en": "Seed (-1=random)",                "ko": "시드 (-1=랜덤)"},
     "num_images":                {"en": "Num Images",                      "ko": "이미지 수"},
     "generate":                  {"en": "Generate",                        "ko": "생성"},
-    "generated_image":           {"en": "Generated Image",                 "ko": "생성 이미지"},
     "info":                      {"en": "Info",                            "ko": "정보"},
     "result":                    {"en": "Result",                          "ko": "결과"},
 
@@ -58,22 +57,17 @@ STRINGS = {
     "fp8_precision":             {"en": "FP8 Precision",                    "ko": "FP8 정밀도"},
     "fp8_info":                  {"en": "FP8: fast+low VRAM / OFF: BF16 original quality (reload required)",
                                   "ko": "FP8: 빠름+저 VRAM / OFF: BF16 원본 품질 (리로드 필요)"},
-    "fp8_info_short":            {"en": "FP8: fast+low VRAM / OFF: BF16 original quality",
-                                  "ko": "FP8: 빠름+저 VRAM / OFF: BF16 원본 품질"},
     "attention_backend":         {"en": "Attention Backend",                "ko": "어텐션 백엔드"},
+    "attn_info":                 {"en": "native=SDPA(auto FA2), flash=FA2, _native_flash=force SDPA flash",
+                                  "ko": "native=SDPA(자동 FA2), flash=FA2, _native_flash=강제 SDPA flash"},
 
     # LoRA section (shared across tabs)
     "lora_accordion":            {"en": "LoRA",                            "ko": "LoRA"},
     "enable_lora":               {"en": "Enable LoRA",                     "ko": "LoRA 활성화"},
-    "lora":                      {"en": "LoRA",                            "ko": "LoRA"},
-    "lora_scale":                {"en": "LoRA Scale",                      "ko": "LoRA 강도"},
+    "scale":                     {"en": "Scale",                           "ko": "강도"},
     "add_lora":                  {"en": "+ Add LoRA",                      "ko": "+ LoRA 추가"},
     "trigger_words":             {"en": "Trigger Words",                   "ko": "트리거 워드"},
-    "civitai_api_key":           {"en": "CivitAI API Key",                 "ko": "CivitAI API 키"},
-    "civitai_url":               {"en": "CivitAI URL or Model ID",         "ko": "CivitAI URL 또는 모델 ID"},
-    "download_civitai":          {"en": "Download from CivitAI",           "ko": "CivitAI에서 다운로드"},
     "lora_description":          {"en": "Description",                     "ko": "설명"},
-    "lora_dataset":              {"en": "Dataset",                         "ko": "데이터셋"},
     "lora_source":               {"en": "Source URL",                      "ko": "소스 URL"},
     "lora_notes":                {"en": "Notes",                           "ko": "메모"},
     "save_metadata":             {"en": "Save Metadata",                   "ko": "메타데이터 저장"},
@@ -89,13 +83,16 @@ STRINGS = {
     "expand":                    {"en": "Expand",                          "ko": "확장"},
     "collapse":                  {"en": "Collapse",                        "ko": "축소"},
 
-    # ControlNet tab
+    # ControlNet section
     "control_mode":              {"en": "Control Mode",                    "ko": "제어 모드"},
-    "input_image":               {"en": "Input Image",                     "ko": "입력 이미지"},
+    "control_image":             {"en": "Control Image",                   "ko": "제어 이미지"},
     "control_preview":           {"en": "Control Preview",                 "ko": "제어 미리보기"},
     "preview_preprocessor":      {"en": "Preview Preprocessor",            "ko": "전처리 미리보기"},
     "control_scale":             {"en": "Control Scale",                   "ko": "제어 강도"},
     "match_image_size":          {"en": "Match Image Size",                "ko": "이미지 크기 맞추기"},
+    "enable_controlnet":         {"en": "Enable ControlNet",               "ko": "ControlNet 활성화"},
+    "cn_enable_info":            {"en": "ON: load ControlNet adapter (pose/depth control) / OFF: pure T2I (better face quality)",
+                                  "ko": "ON: ControlNet 어댑터 로드 (포즈/뎁스 제어) / OFF: 순수 T2I (얼굴 품질 향상)"},
 
     # Inpaint tab
     "mode":                      {"en": "Mode",                            "ko": "모드"},
@@ -105,7 +102,6 @@ STRINGS = {
     "image":                     {"en": "Image",                           "ko": "이미지"},
     "expand_direction":          {"en": "Expand Direction",                "ko": "확장 방향"},
     "expand_size":               {"en": "Expand Size (px)",                "ko": "확장 크기 (px)"},
-    "enable_controlnet":         {"en": "Enable ControlNet",               "ko": "ControlNet 활성화"},
     "left":                      {"en": "Left",                            "ko": "왼쪽"},
     "right":                     {"en": "Right",                           "ko": "오른쪽"},
     "up":                        {"en": "Up",                              "ko": "위"},
@@ -148,7 +144,8 @@ STRINGS = {
     "rank":                      {"en": "Rank",                            "ko": "랭크"},
     "learning_rate":             {"en": "Learning Rate",                   "ko": "학습률"},
     "lora_alpha":                {"en": "LoRA Alpha",                      "ko": "LoRA 알파"},
-    "lora_alpha_info":           {"en": "PEFT scaling = alpha/rank",       "ko": "PEFT 스케일링 = alpha/rank"},
+    "lora_alpha_info":           {"en": "PEFT scaling = alpha/rank (default=rank)",
+                                  "ko": "PEFT 스케일링 = alpha/rank (기본값=rank)"},
     "train_resolution":          {"en": "Resolution",                      "ko": "해상도"},
     "batch_size":                {"en": "Batch Size",                      "ko": "배치 크기"},
     "gradient_accumulation":     {"en": "Gradient Accumulation",           "ko": "그래디언트 누적"},
@@ -161,32 +158,66 @@ STRINGS = {
     "training_log":              {"en": "Training Log",                    "ko": "학습 로그"},
     "ready":                     {"en": "Ready",                           "ko": "대기 중"},
 
+    # Train tab — advanced
+    "advanced":                  {"en": "Advanced",                        "ko": "고급"},
+    "caption_dropout":           {"en": "Caption Dropout",                 "ko": "캡션 드롭아웃"},
+    "noise_offset":              {"en": "Noise Offset",                    "ko": "노이즈 오프셋"},
+    "diff_guidance":             {"en": "Differential Guidance",           "ko": "디퍼런셜 가이던스"},
+    "diff_guidance_info":        {"en": "0=off, 3.0=ostris default",      "ko": "0=끄기, 3.0=ostris 기본값"},
+    "module_dropout":            {"en": "Module Dropout",                  "ko": "모듈 드롭아웃"},
+    "rank_dropout":              {"en": "Rank Dropout",                    "ko": "랭크 드롭아웃"},
+    "timestep_sampling":         {"en": "Timestep Sampling",               "ko": "타임스텝 샘플링"},
+    "timestep_sampling_info":    {"en": "sigmoid=focus on middle timesteps (recommended)",
+                                  "ko": "sigmoid=중간 타임스텝 집중 (권장)"},
+    "prefix_filter":             {"en": "Prefix Filter",                   "ko": "프리픽스 필터"},
+    "prefix_filter_info":        {"en": "layers.=main blocks only (recommended), empty=all",
+                                  "ko": "layers.=메인 블록만 (권장), 빈값=전체"},
+
     # Sample prompts
     "sample_1":                  {"en": "Sample 1",                        "ko": "샘플 1"},
     "sample_2":                  {"en": "Sample 2",                        "ko": "샘플 2"},
     "sample_3":                  {"en": "Sample 3",                        "ko": "샘플 3"},
 
-    # Settings tab
+    # Settings tab — general
     "model_settings":            {"en": "Model Settings",                  "ko": "모델 설정"},
     "model_directory":           {"en": "Model Directory",                 "ko": "모델 디렉토리"},
     "apply":                     {"en": "Apply",                           "ko": "적용"},
     "status":                    {"en": "Status",                          "ko": "상태"},
     "check_models":              {"en": "Check Models",                    "ko": "모델 확인"},
     "model_status":              {"en": "Model Status",                    "ko": "모델 상태"},
-    "lora_download":             {"en": "LoRA Download",                   "ko": "LoRA 다운로드"},
-    "hf_repo_or_url":            {"en": "HuggingFace Repo ID or URL",     "ko": "HuggingFace 레포 ID 또는 URL"},
-    "filename_in_repo":          {"en": "Filename in Repo (e.g. model.safetensors)",
-                                  "ko": "레포 내 파일명 (예: model.safetensors)"},
-    "save_as":                   {"en": "Save As (optional)",              "ko": "저장 이름 (선택)"},
-    "download":                  {"en": "Download",                        "ko": "다운로드"},
-    "download_status":           {"en": "Download Status",                 "ko": "다운로드 상태"},
-    "installed_loras":           {"en": "Installed LoRAs",                 "ko": "설치된 LoRA"},
-    "selected":                  {"en": "Selected",                        "ko": "선택됨"},
     "language":                  {"en": "Language",                        "ko": "언어"},
+
+    # Settings tab — LoRA download
+    "lora_download":             {"en": "LoRA Download",                   "ko": "LoRA 다운로드"},
+    "lora_download_url":         {"en": "URL / HuggingFace Repo ID / CivitAI URL",
+                                  "ko": "URL / HuggingFace 레포 ID / CivitAI URL"},
+    "filename_in_repo":          {"en": "Filename in Repo",                "ko": "레포 내 파일명"},
+    "dl_fname_placeholder":      {"en": "e.g. model.safetensors (HuggingFace only)",
+                                  "ko": "예: model.safetensors (HuggingFace 전용)"},
+    "save_as":                   {"en": "Save As (optional)",              "ko": "저장 이름 (선택)"},
+    "recommend_scale":           {"en": "Recommend Scale",                 "ko": "추천 강도"},
+    "recommend_scale_info":      {"en": "LoRA select default strength",    "ko": "LoRA 선택 시 기본 강도"},
+    "civitai_api_key":           {"en": "CivitAI API Key (CivitAI only)",  "ko": "CivitAI API 키 (CivitAI 전용)"},
+    "civitai_key_placeholder":   {"en": "Required for CivitAI downloads",  "ko": "CivitAI 다운로드에 필요"},
+    "dl_trigger_placeholder":    {"en": "e.g. lya, lee young-ae (CivitAI: auto-filled)",
+                                  "ko": "예: lya, lee young-ae (CivitAI: 자동 입력)"},
+    "download":                  {"en": "Download",                        "ko": "다운로드"},
+
+    # Settings tab — LoRA upload
+    "lora_upload":               {"en": "LoRA Upload",                     "ko": "LoRA 업로드"},
+    "upload_safetensors":        {"en": "Upload .safetensors file",        "ko": ".safetensors 파일 업로드"},
+
+    # Settings tab — installed LoRAs
+    "installed_loras":           {"en": "Installed LoRAs",                 "ko": "설치된 LoRA"},
+    "filename":                  {"en": "Filename",                        "ko": "파일명"},
+    "size":                      {"en": "Size",                            "ko": "크기"},
+    "alpha":                     {"en": "Alpha",                           "ko": "알파"},
+    "selected":                  {"en": "Selected",                        "ko": "선택됨"},
+    "delete":                    {"en": "Delete",                          "ko": "삭제"},
+    "refresh":                   {"en": "Refresh",                         "ko": "새로고침"},
 
     # History tab
     "generation_history":        {"en": "Generation History",              "ko": "생성 히스토리"},
-    "refresh":                   {"en": "Refresh",                         "ko": "새로고침"},
     "download_all":              {"en": "Download All",                    "ko": "일괄 다운로드"},
     "delete_selected":           {"en": "Delete Selected",                 "ko": "선택 삭제"},
     "delete_all":                {"en": "Delete All",                      "ko": "전체 삭제"},
@@ -243,7 +274,7 @@ def get_i18n_js() -> str:
         const targetMap = LANG_STRINGS[lang] || {};
 
         root.querySelectorAll(
-            'label, button, span, h1, h2, h3, p, em'
+            'label, button, span, h1, h2, h3, h4, p, em'
         ).forEach(el => {
             if (el.closest('#lang-selector')) return;
             el.childNodes.forEach(node => {

@@ -91,14 +91,14 @@ def build_ui() -> gr.Blocks:
             with gr.Tab("Inpaint", id="inpaint") as ip_tab:
                 ip = build_inpaint_tab()
 
+            with gr.Tab("History", id="history") as h_tab:
+                build_history_tab(h_tab)
+
             with gr.Tab("Train", id="train") as tr_tab:
                 tr = build_train_tab(tr_tab)
 
             with gr.Tab("Settings", id="settings") as settings_tab:
                 build_settings_tab(settings_sidebar)
-
-            with gr.Tab("History", id="history") as h_tab:
-                build_history_tab(h_tab)
 
         # ---------------------------------------------------------------
         # Tab select: refresh LoRA list when switching to Generate/Inpaint

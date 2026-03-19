@@ -227,7 +227,7 @@ def build_train_tab(tab_ref):
                 tr_lr = gr.Number(value=1e-4, label="Learning Rate")
                 tr_lora_alpha = gr.Number(value=16, label="LoRA Alpha", precision=0,
                                           minimum=1, maximum=128,
-                                          info="PEFT scaling = alpha/rank (default=rank)")
+                                          info="PEFT scaling = alpha/rank (default=rank)",)
             with gr.Row():
                 tr_resolution = gr.Dropdown(
                     [256, 384, 512, 768, 1024], value=512, label="Resolution",
@@ -255,12 +255,12 @@ def build_train_tab(tab_ref):
                 tr_timestep_sampling = gr.Dropdown(
                     ["sigmoid", "uniform"], value="sigmoid",
                     label="Timestep Sampling",
-                    info="sigmoid=중간 타임스텝 집중 (권장)",
+                    info="sigmoid=focus on middle timesteps (recommended)",
                 )
                 tr_prefix_filter = gr.Dropdown(
                     ["layers.", ""], value="layers.",
                     label="Prefix Filter",
-                    info="layers.=메인 블록만 (권장), 빈값=전체",
+                    info="layers.=main blocks only (recommended), empty=all",
                 )
             with gr.Row():
                 tr_start = gr.Button("Start Training", variant="primary")
