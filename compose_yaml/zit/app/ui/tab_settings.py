@@ -381,6 +381,23 @@ def build_settings_tab():
         }
       }, { rootMargin: '-10% 0px -80% 0px', threshold: 0 });
 
+      // Unblock position:sticky — walk up from #settings-toc and
+      // change any ancestor overflow:hidden/auto/scroll to clip
+      function fixStickyAncestors() {
+        const toc = document.getElementById('settings-toc');
+        if (!toc) { setTimeout(fixStickyAncestors, 500); return; }
+        let el = toc.parentElement;
+        while (el && el !== document.body) {
+          const ov = getComputedStyle(el).overflow + ' ' + getComputedStyle(el).overflowY;
+          if (/hidden|auto|scroll/.test(ov)) {
+            el.style.overflow = 'clip';
+            el.style.overflowX = 'clip';
+            el.style.overflowY = 'clip';
+          }
+          el = el.parentElement;
+        }
+      }
+
       // Observe after DOM is ready
       function attach() {
         let found = 0;
@@ -390,6 +407,7 @@ def build_settings_tab():
         });
         if (found < pairs.length) setTimeout(attach, 500);
       }
+      fixStickyAncestors();
       attach();
     })();
     </script>
