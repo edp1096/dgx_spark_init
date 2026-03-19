@@ -102,9 +102,8 @@ echo "  Note: ZoeDepth zoe/ directory must be copied manually or via update.sh"
 # 4. Install Python packages
 # -----------------------------------------------
 echo "[4/6] Installing Python packages..."
-GRADIO_WHEEL_URL=https://raw.githubusercontent.com/edp1096/dgx_spark_init/main/compose_yaml/zit/builder/gradio-6.9.0-py3-none-any.whl
 pip install -q \
-    "${GRADIO_WHEEL_URL}" \
+    gradio \
     accelerate \
     safetensors \
     huggingface_hub \

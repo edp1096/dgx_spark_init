@@ -24,7 +24,6 @@ services:
       /bin/bash -c "
       pip install -q diffusers sentencepiece opencv-python-headless &&
       pip install -q safetensors &&
-      pip install -q --force-reinstall --no-deps https://github.com/edp1096/dgx_spark_init/raw/refs/heads/main/compose_yaml/zit/builder/gradio-6.9.0-py3-none-any.whl &&
 
       cd ~/zit-ui &&
       wget -q https://raw.githubusercontent.com/edp1096/dgx_spark_init/main/compose_yaml/zit/builder/update.sh -O update.sh &&

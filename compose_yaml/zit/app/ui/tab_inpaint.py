@@ -28,24 +28,28 @@ def build_inpaint_tab():
     gr.Markdown("### Inpaint / Outpaint")
     with gr.Row():
         with gr.Column(scale=1):
-            ip_mode = gr.Radio(["Inpaint", "Outpaint"], value="Inpaint", label="Mode")
+            # Sub-tabs for Inpaint / Outpaint — preserves PixiJS canvas state
+            # (Gradio visible=False unmounts DOM, destroying canvas)
+            with gr.Tabs():
+                with gr.Tab("Inpaint", id="ip_inpaint"):
+                    ip_editor = gr.ImageEditor(
+                        label="Draw Mask (white = regenerate)",
+                        type="numpy",
+                        image_mode="RGB",
+                        sources=["upload", "clipboard"],
+                        brush=gr.Brush(colors=["#ffffff", "#000000"], default_size=20),
+                        eraser=gr.Eraser(default_size=20),
+                    )
+                    ip_gen_inpaint = gr.Button("Generate", variant="primary")
 
-            # Inpaint controls
-            ip_editor = gr.ImageEditor(
-                label="Draw Mask (white = regenerate)",
-                type="numpy",
-                image_mode="RGB",
-                brush=gr.Brush(colors=["#ffffff"], default_size=20),
-                eraser=gr.Eraser(default_size=20),
-            )
-
-            # Outpaint controls
-            ip_out_image = gr.Image(label="Image", type="numpy", visible=False)
-            ip_direction = gr.CheckboxGroup(
-                ["Left", "Right", "Up", "Down"],
-                value=["Right"], label="Expand Direction", visible=False,
-            )
-            ip_expand = gr.Slider(64, 512, value=256, step=64, label="Expand Size (px)", visible=False)
+                with gr.Tab("Outpaint", id="ip_outpaint"):
+                    ip_out_image = gr.Image(label="Image", type="numpy")
+                    ip_direction = gr.CheckboxGroup(
+                        ["Left", "Right", "Up", "Down"],
+                        value=["Right"], label="Expand Direction",
+                    )
+                    ip_expand = gr.Slider(64, 512, value=256, step=64, label="Expand Size (px)")
+                    ip_gen_outpaint = gr.Button("Generate", variant="primary")
 
             ip_prompt = gr.Textbox(label="Prompt", lines=3, placeholder="Describe what to fill...")
             with gr.Accordion("Translate", open=False):
@@ -144,8 +148,6 @@ def build_inpaint_tab():
                     return [gr.Dropdown(choices=choices)] * MAX_LORA_STACK
 
                 ip_lora_refresh.click(fn=_ip_refresh_loras, outputs=ip_lora_dropdowns)
-            ip_gen_inpaint = gr.Button("Generate", variant="primary", visible=True)
-            ip_gen_outpaint = gr.Button("Generate", variant="primary", visible=False)
 
         with gr.Column(scale=1):
             ip_result = gr.Image(label="Result", type="filepath", buttons=["download", "fullscreen"])
@@ -155,24 +157,6 @@ def build_inpaint_tab():
             ip_kill_msg = gr.Textbox(label="", interactive=False, visible=False)
             gr.Markdown(value=get_loading_status, every=1)
             ip_kill_btn.click(fn=do_kill, outputs=[ip_kill_msg])
-
-    # --- Mode switch ---
-    def _on_ip_mode(mode):
-        is_inpaint = mode == "Inpaint"
-        return [
-            gr.ImageEditor(visible=is_inpaint),
-            gr.Image(visible=not is_inpaint),
-            gr.CheckboxGroup(visible=not is_inpaint),
-            gr.Slider(visible=not is_inpaint),
-            gr.Button(visible=is_inpaint),
-            gr.Button(visible=not is_inpaint),
-        ]
-
-    ip_mode.change(
-        fn=_on_ip_mode, inputs=[ip_mode],
-        outputs=[ip_editor, ip_out_image, ip_direction, ip_expand,
-                 ip_gen_inpaint, ip_gen_outpaint],
-    )
 
     # --- Translate ---
     def _ip_translate(prompt, neg, target_sel, lang):
