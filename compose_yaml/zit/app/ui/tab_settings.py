@@ -310,7 +310,7 @@ def build_settings_tab(sidebar):
             with gr.Column(scale=1):
                 s_lora_table = gr.Dataframe(
                     headers=["Filename", "Size", "Trigger Words", "Source"],
-                    value=lambda: lora_list_with_info(),
+                    value=lora_list_with_info(),
                     interactive=False,
                     max_height=250,
                 )

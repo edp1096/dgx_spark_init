@@ -363,13 +363,13 @@ def build_train_tab(tab_ref):
         ts = _train_state
         try:
             if not name or not name.strip():
-                raise gr.Error("LoRA 이름을 입력하세요")
+                raise gr.Error("LoRA name is required")
             name = name.strip()
             if not dataset_name:
-                raise gr.Error("데이터셋을 선택하세요")
+                raise gr.Error("Select a dataset")
             dataset = str(DATASETS_BASE / dataset_name)
             if not Path(dataset).is_dir():
-                raise gr.Error("데이터셋 폴더를 찾을 수 없습니다")
+                raise gr.Error("Dataset folder not found")
 
             # Kill inference worker to free GPU
             from generators import get_worker_mgr

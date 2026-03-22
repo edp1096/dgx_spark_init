@@ -20,7 +20,7 @@ ZIMAGE_TURBO_REPO = "Tongyi-MAI/Z-Image-Turbo"
 # ControlNet Union (inside MODEL_DIR/controlnet/)
 # ---------------------------------------------------------------------------
 CONTROLNET_DIR = "controlnet"
-CONTROLNET_FILENAME = "Z-Image-Turbo-Fun-Controlnet-Union-2.1-lite-2602-8steps.safetensors"
+CONTROLNET_FILENAME = "Z-Image-Turbo-Fun-Controlnet-Union-2.1-8steps.safetensors"
 CONTROLNET_REPO = "alibaba-pai/Z-Image-Turbo-Fun-Controlnet-Union-2.1"
 
 # ---------------------------------------------------------------------------
@@ -87,16 +87,28 @@ CONTROLNET_CONFIG = {
 # ---------------------------------------------------------------------------
 DEFAULT_STEPS = 8
 DEFAULT_TIME_SHIFT = 3.0
-DEFAULT_GUIDANCE = 0.5
-DEFAULT_CFG_TRUNCATION = 0.9
+DEFAULT_GUIDANCE = 1.0
+DEFAULT_CFG_TRUNCATION = 1.0
 DEFAULT_MAX_SEQ_LENGTH = 512
-DEFAULT_CONTROL_SCALE = 0.65
+DEFAULT_CONTROL_SCALE = 0.7
 
-# Inpaint-specific defaults (aligned with official predict_i2i_inpaint_2.1.py)
-DEFAULT_INPAINT_STEPS = 25
-DEFAULT_INPAINT_GUIDANCE = 4.0
+# ControlNet T2I defaults (8-step lite model)
+DEFAULT_CN_STEPS = 8
+DEFAULT_CN_GUIDANCE = 1.0
+DEFAULT_CN_CFG_TRUNCATION = 1.0
+DEFAULT_CN_CONTROL_SCALE = 0.7  # 0.7 for canny/hed, up to 1.0 for depth/pose with cutoff
+DEFAULT_CN_STEP_CUTOFF = 0.5  # Apply CN for first 50% of steps (4/8), then disable
+                               # spacepxl fix: CN partially breaks turbo distillation
+
+# Inpaint defaults (JoPD workflow: depth control + strength 0.7)
+DEFAULT_INPAINT_STEPS = 8
+DEFAULT_INPAINT_GUIDANCE = 1.0
 DEFAULT_INPAINT_CFG_TRUNCATION = 1.0
-DEFAULT_INPAINT_CONTROL_SCALE = 0.9
+DEFAULT_INPAINT_CONTROL_SCALE = 0.7
+
+# Outpaint defaults (needs more steps for new content generation)
+DEFAULT_OUTPAINT_STEPS = 15
+DEFAULT_OUTPAINT_CONTROL_SCALE = 0.5
 
 # ---------------------------------------------------------------------------
 # Resolution presets

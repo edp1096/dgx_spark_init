@@ -22,6 +22,8 @@ from zit_config import (
     RESOLUTION_CHOICES, SAMPLE_PROMPTS, CONTROL_MODES,
     DEFAULT_STEPS, DEFAULT_TIME_SHIFT, DEFAULT_GUIDANCE,
     DEFAULT_CFG_TRUNCATION, DEFAULT_MAX_SEQ_LENGTH,
+    DEFAULT_CN_STEPS, DEFAULT_CN_GUIDANCE, DEFAULT_CN_CFG_TRUNCATION, DEFAULT_CN_CONTROL_SCALE,
+    DEFAULT_CONTROL_SCALE,
     MAX_LORA_STACK,
 )
 
@@ -50,27 +52,28 @@ def build_generate_tab():
                     g_translate_btn = gr.Button("Translate", size="sm", variant="secondary", scale=1)
                     g_translate_use = gr.Button("Use", size="sm", variant="secondary", scale=1)
                 g_translate_result = gr.Textbox(label="Translation", lines=3, interactive=False)
-            g_neg = gr.Textbox(label="Negative Prompt", lines=2)
-            g_resolution = gr.Dropdown(
-                RESOLUTION_CHOICES, value="512x768",
-                label="Resolution (WxH)", allow_custom_value=True,
-            )
-            with gr.Row():
-                g_seed = gr.Number(value=-1, label="Seed (-1=random)", precision=0)
-                g_num = gr.Number(value=1, label="Num Images", precision=0, minimum=1, maximum=32)
-            g_steps = gr.Slider(1, 100, value=DEFAULT_STEPS, step=1, label="Steps")
-            g_time_shift = gr.Slider(1.0, 12.0, value=DEFAULT_TIME_SHIFT, step=0.5, label="Time Shift")
-            g_cfg = gr.Slider(0.0, 10.0, value=DEFAULT_GUIDANCE, step=0.5, label="Guidance Scale")
-            g_cfg_norm = gr.Checkbox(label="CFG Normalization", value=False)
-            g_cfg_trunc = gr.Slider(0.0, 1.0, value=DEFAULT_CFG_TRUNCATION, step=0.05, label="CFG Truncation")
-            g_max_seq = gr.Slider(64, 1024, value=DEFAULT_MAX_SEQ_LENGTH, step=64, label="Max Sequence Length")
-            g_use_fp8 = gr.Checkbox(label="FP8 Precision", value=True,
-                info="FP8: fast+low VRAM / OFF: BF16 original quality (reload required)")
-            g_attn = gr.Dropdown(
-                ATTENTION_BACKENDS, value="native",
-                label="Attention Backend",
-                info="native=SDPA(auto FA2), flash=FA2, _native_flash=force SDPA flash",
-            )
+            with gr.Accordion("Parameters", open=False):
+                with gr.Row():
+                    g_neg = gr.Textbox(label="Negative Prompt", lines=2, scale=3,
+                        info="Only works when guidance > 1. Doubles generation time, may reduce quality")
+                    g_resolution = gr.Dropdown(
+                        RESOLUTION_CHOICES, value="512x768",
+                        label="Resolution (WxH)", allow_custom_value=True, scale=1,
+                    )
+                with gr.Row():
+                    g_seed = gr.Number(value=-1, label="Seed (-1=random)", precision=0, scale=2)
+                    g_num = gr.Number(value=1, label="Num Images", precision=0, minimum=1, maximum=32, scale=1)
+                g_steps = gr.Slider(1, 100, value=DEFAULT_STEPS, step=1, label="Steps")
+                g_time_shift = gr.Slider(1.0, 12.0, value=DEFAULT_TIME_SHIFT, step=0.5, label="Time Shift")
+                g_cfg = gr.Slider(0.0, 10.0, value=DEFAULT_GUIDANCE, step=0.5, label="Guidance Scale")
+                g_cfg_norm = gr.Checkbox(label="CFG Normalization", value=False)
+                g_cfg_trunc = gr.Slider(0.0, 1.0, value=DEFAULT_CFG_TRUNCATION, step=0.05, label="CFG Truncation")
+                g_max_seq = gr.Slider(64, 1024, value=DEFAULT_MAX_SEQ_LENGTH, step=64, label="Max Sequence Length")
+                g_attn = gr.Dropdown(
+                    ATTENTION_BACKENDS, value="native",
+                    label="Attention Backend",
+                    info="native=SDPA(auto FA2), flash=FA2, _native_flash=force SDPA flash",
+                )
             with gr.Accordion("LoRA", open=False):
                 g_lora_enable = gr.Checkbox(label="Enable LoRA", value=False)
                 g_lora_count = gr.State(1)
@@ -149,7 +152,7 @@ def build_generate_tab():
                 info="ON: load ControlNet adapter (pose/depth control) / OFF: pure T2I (better face quality)",
             )
             g_cn_scale = gr.Slider(
-                0.0, 1.0, value=0.65, step=0.05, label="Control Scale",
+                0.0, 1.0, value=DEFAULT_CONTROL_SCALE, step=0.05, label="Control Scale",
                 visible=False,
             )
             g_generate = gr.Button("Generate", variant="primary")
@@ -183,7 +186,7 @@ def build_generate_tab():
                     g_save_preset = gr.Button("Save as Preset", size="sm", variant="primary")
                 preset_gallery = gr.Gallery(
                     label="Click to load preset",
-                    value=list_presets,
+                    value=list_presets(),
                     columns=3, height=200, object_fit="contain",
                     preview=False, elem_id="presets-gallery",
                 )
@@ -216,14 +219,29 @@ def build_generate_tab():
             g_kill_btn.click(fn=do_kill, outputs=[g_kill_msg])
             g_gen_paths = gr.State([])
 
-    # --- ControlNet toggle: show/hide panel + scale ---
+    # --- ControlNet toggle: show/hide panel + scale + adjust defaults ---
     def _toggle_cn(enabled):
-        return gr.update(visible=enabled), gr.update(visible=enabled)
+        if enabled:
+            return (
+                gr.update(visible=True), gr.update(visible=True),
+                gr.update(value=DEFAULT_CN_STEPS),
+                gr.update(value=DEFAULT_CN_GUIDANCE),
+                gr.update(value=DEFAULT_CN_CFG_TRUNCATION),
+                gr.update(value=DEFAULT_CN_CONTROL_SCALE),
+            )
+        else:
+            return (
+                gr.update(visible=False), gr.update(visible=False),
+                gr.update(value=DEFAULT_STEPS),
+                gr.update(value=DEFAULT_GUIDANCE),
+                gr.update(value=DEFAULT_CFG_TRUNCATION),
+                gr.update(value=DEFAULT_CONTROL_SCALE),
+            )
 
     g_cn_enable.change(
         fn=_toggle_cn,
         inputs=[g_cn_enable],
-        outputs=[g_cn_panel, g_cn_scale],
+        outputs=[g_cn_panel, g_cn_scale, g_steps, g_cfg, g_cfg_trunc, g_cn_scale],
     )
     g_cn_preview_btn.click(
         fn=lambda img, mode: preview_preprocessor(mode, img),
@@ -253,11 +271,10 @@ def build_generate_tab():
 
     def _generate_dispatch(prompt, resolution, seed, num_images,
                            neg, steps, time_shift, cfg, cfg_norm, cfg_trunc,
-                           max_seq, use_fp8, attn_backend,
+                           max_seq, attn_backend,
                            lora_enable, lora_count,
                            *lora_and_cn_args,
                            progress=gr.Progress(track_tqdm=True)):
-        # Unpack: MAX_LORA_STACK dropdowns + MAX_LORA_STACK scales + cn args
         lora_dds = list(lora_and_cn_args[:MAX_LORA_STACK])
         lora_sls = list(lora_and_cn_args[MAX_LORA_STACK:MAX_LORA_STACK*2])
         cn_enable, cn_mode, cn_image, cn_scale = lora_and_cn_args[MAX_LORA_STACK*2:]
@@ -270,7 +287,7 @@ def build_generate_tab():
             "seed": seed, "num_images": num_images,
             "steps": steps, "time_shift": time_shift,
             "cfg": cfg, "cfg_norm": cfg_norm, "cfg_trunc": cfg_trunc,
-            "max_seq": max_seq, "use_fp8": use_fp8, "attn": attn_backend,
+            "max_seq": max_seq, "attn": attn_backend,
             "lora_enable": lora_enable, "lora_stack": lora_stack,
             "cn_enable": cn_enable, "cn_mode": cn_mode, "cn_scale": cn_scale,
         })
@@ -287,7 +304,7 @@ def build_generate_tab():
                 max_sequence_length=max_seq, time_shift=time_shift,
                 num_images=num_images, attention_backend=attn_backend,
                 lora_stack=lora_stack,
-                use_fp8=use_fp8,
+                original_image=cn_image,
                 progress=progress,
             )
         else:
@@ -300,7 +317,6 @@ def build_generate_tab():
                 max_sequence_length=max_seq,
                 attention_backend=attn_backend,
                 lora_stack=lora_stack,
-                use_fp8=use_fp8,
                 progress=progress,
             )
         return gr.Gallery(value=paths, selected_index=0), info, paths
@@ -309,7 +325,7 @@ def build_generate_tab():
         fn=_generate_dispatch,
         inputs=[g_prompt, g_resolution, g_seed, g_num,
                 g_neg, g_steps, g_time_shift, g_cfg, g_cfg_norm, g_cfg_trunc,
-                g_max_seq, g_use_fp8, g_attn,
+                g_max_seq, g_attn,
                 g_lora_enable, g_lora_count,
                 *g_lora_dropdowns, *g_lora_scales,
                 g_cn_enable, g_cn_mode, g_cn_image, g_cn_scale],
@@ -369,7 +385,7 @@ def build_generate_tab():
         "seed": g_seed, "num_images": g_num,
         "steps": g_steps, "time_shift": g_time_shift,
         "cfg": g_cfg, "cfg_norm": g_cfg_norm, "cfg_trunc": g_cfg_trunc,
-        "max_seq": g_max_seq, "use_fp8": g_use_fp8, "attn": g_attn,
+        "max_seq": g_max_seq, "attn": g_attn,
         "lora_enable": g_lora_enable,
         "lora_dropdowns": g_lora_dropdowns, "lora_scales": g_lora_scales,
         "cn_enable": g_cn_enable, "cn_mode": g_cn_mode,

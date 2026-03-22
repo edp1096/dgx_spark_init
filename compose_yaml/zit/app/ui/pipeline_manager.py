@@ -29,146 +29,6 @@ os.makedirs(str(DEFAULT_MODEL_DIR), exist_ok=True)
 
 
 # ---------------------------------------------------------------------------
-# q8_kernels FP8 — only need FP8Linear class for weight container
-# ---------------------------------------------------------------------------
-_Q8_AVAILABLE = False
-try:
-    from q8_kernels.modules.linear import FP8Linear as _Q8FP8Linear
-    _Q8_AVAILABLE = True
-except ImportError:
-    pass
-
-
-def _scaled_fp8_forward(self, x, x_scales=None, out_dtype=None):
-    """Corrected FP8 forward: per-tensor dynamic scaling via torch._scaled_mm.
-
-    q8_kernels' FP8LinearFunc has two bugs:
-      1. Applies Hadamard rotation without inverse/scale compensation (cos_sim ≈ 0)
-      2. fp8_gemm kernel overflows to inf on certain weight rows (accumulation bug)
-
-    Uses torch._scaled_mm which handles scaling and accumulation correctly.
-    """
-    if x.dtype in (torch.float8_e4m3fn, torch.float8_e5m2):
-        x = x.to(torch.bfloat16)
-
-    # Always output BF16 — FP8 output is not useful for downstream ops
-    out_dtype = torch.bfloat16
-
-    orig_shape = x.shape
-    x_2d = x.reshape(-1, x.shape[-1])
-
-    # Per-tensor dynamic quantization
-    x_abs_max = x_2d.abs().amax().clamp(min=1e-12)
-    scale_a = (x_abs_max / 448.0).float()  # must be float32 for _scaled_mm
-
-    x_fp8 = (x_2d / scale_a).to(torch.float8_e4m3fn)
-
-    # Cache transposed weight to avoid repeated .t().contiguous()
-    if not hasattr(self, '_weight_t'):
-        self._weight_t = self.weight.data.t().contiguous()
-
-    # Use stored weight_scale if available (normalized FP8 quantization),
-    # otherwise 1.0 (simple BF16→FP8 cast)
-    if hasattr(self, '_weight_scale'):
-        scale_b = self._weight_scale
-    else:
-        scale_b = torch.tensor(1.0, device=x.device, dtype=torch.float32)
-    result = torch._scaled_mm(
-        x_fp8, self._weight_t,
-        scale_a, scale_b,
-        out_dtype=out_dtype, use_fast_accum=True,
-    )
-    if isinstance(result, tuple):
-        result = result[0]
-
-    if self.bias is not None:
-        bias = self.bias.to(result.dtype) if self.bias.dtype != result.dtype else self.bias
-        result = result + bias
-
-    return result.reshape(orig_shape[:-1] + (self.weight.shape[0],))
-
-
-def _load_fp8_weight_scales(filepath):
-    """Load weight_scale values from an FP8 checkpoint (if present).
-
-    Returns a dict mapping layer name → weight_scale tensor, e.g.
-    {"double_blocks.0.img_attn.proj": tensor(0.0006)}.
-    """
-    from helpers import fast_load_file
-    sd = fast_load_file(filepath, device="cpu")
-    scales = {}
-    for key in sd:
-        if key.endswith(".weight_scale"):
-            layer_name = key[: -len(".weight_scale")]
-            scales[layer_name] = sd[key]
-    del sd
-    return scales
-
-
-def _patch_transformer_q8(model, weight_scales=None):
-    """Replace FP8 nn.Linear layers with q8_kernels FP8Linear for native FP8 GEMM.
-
-    Uses a corrected forward (per-tensor dynamic scaling, no Hadamard rotation)
-    instead of q8_kernels' broken default which applies Hadamard without inverse.
-    After patching, casts ALL non-FP8Linear floating-point params to BF16 so that
-    every dtype matches fp8_mm's BF16 output (index_put, add, etc. require matching).
-
-    Args:
-        weight_scales: optional dict of layer_name → weight_scale tensor, for
-            FP8 checkpoints that use normalized quantization (weight/scale → FP8).
-    """
-    import types
-
-    if weight_scales is None:
-        weight_scales = {}
-
-    count = 0
-    for name, module in list(model.named_modules()):
-        if not isinstance(module, torch.nn.Linear) or isinstance(module, _Q8FP8Linear):
-            continue
-        if module.weight.dtype != torch.float8_e4m3fn:
-            continue
-        fp8 = _Q8FP8Linear(
-            module.in_features, module.out_features,
-            bias=module.bias is not None, device=module.weight.device,
-        )
-        fp8.weight.data.copy_(module.weight.data)
-        if module.bias is not None:
-            fp8.bias = torch.nn.Parameter(
-                module.bias.data.to(torch.bfloat16), requires_grad=False,
-            )
-        # Store weight_scale for normalized FP8 quantization
-        if name in weight_scales:
-            fp8._weight_scale = weight_scales[name].to(
-                device=module.weight.device, dtype=torch.float32,
-            )
-        # Replace broken default forward with corrected scaled version
-        fp8.forward = types.MethodType(_scaled_fp8_forward, fp8)
-        parts = name.split(".")
-        parent = model
-        for part in parts[:-1]:
-            parent = getattr(parent, part)
-        setattr(parent, parts[-1], fp8)
-        count += 1
-
-    # Cast ALL non-FP8Linear-weight floating-point params to BF16.
-    # fp8_mm returns BF16, so everything must be BF16 for consistency
-    # (index_put, element-wise ops, etc. require matching dtypes).
-    # FP8Linear weights must stay FP8 for GEMM.
-    fp8_linear_names = {n for n, m in model.named_modules() if isinstance(m, _Q8FP8Linear)}
-    cast_count = 0
-    for name, param in model.named_parameters():
-        if any(name.startswith(p + ".") for p in fp8_linear_names) and name.endswith(".weight"):
-            continue
-        if param.is_floating_point() and param.dtype != torch.bfloat16:
-            param.data = param.data.to(torch.bfloat16)
-            cast_count += 1
-
-    if count > 0 or cast_count > 0:
-        logger.info("q8_kernels: %d Linear → FP8Linear, %d params cast to BF16", count, cast_count)
-
-
-# ---------------------------------------------------------------------------
 # Required models per generation type
 # ---------------------------------------------------------------------------
 REQUIRED_MODELS = {
@@ -206,8 +66,7 @@ class PipelineManager:
         self._lora_alpha_scales: dict[str, float] = {}  # name -> alpha/rank scale
 
         # Precision state
-        self.use_fp8: bool = True  # default: FP8 if available
-        self._loaded_fp8: bool | None = None  # track what was actually loaded
+        self._loaded_precision = "BF16"
 
         # Preprocessors (lazy-loaded)
         self._preprocessors: dict = {}
@@ -286,35 +145,20 @@ class PipelineManager:
     # -------------------------------------------------------------------
     # ZIT loading (VideoX-Fun model classes)
     # -------------------------------------------------------------------
-    def load_zit(self, use_fp8: bool | None = None, need_controlnet: bool = True):
-        """Load Z-Image-Turbo pipeline, optionally with ControlNet adapter.
-
-        Uses VideoX-Fun's ZImageControlTransformer2DModel which handles both
-        pure T2I (with zero control_context) and ControlNet (with control_image).
-        FP8 via q8_kernels patch (same approach as zifk).
+    def load_zit(self, need_controlnet: bool = True):
+        """Load Z-Image-Turbo pipeline (BF16), optionally with ControlNet adapter.
 
         Args:
             need_controlnet: If False, skip loading ControlNet adapter weights
                 into the transformer. This improves LoRA face quality for pure T2I.
         """
-        if use_fp8 is not None:
-            self.use_fp8 = use_fp8
-
-        # If already loaded, check if we need to reload transformer
+        # If already loaded, check if ControlNet mode changed
         if self.zit_components is not None:
-            need_reload = False
-            if self._loaded_fp8 is not None and self._loaded_fp8 != self.use_fp8:
-                logger.info("Precision changed (%s → %s), reloading transformer...",
-                            "FP8" if self._loaded_fp8 else "BF16",
-                            "FP8" if self.use_fp8 else "BF16")
-                need_reload = True
             if self._need_controlnet != need_controlnet:
                 logger.info("ControlNet mode changed (%s → %s), reloading transformer...",
                             "with CN" if self._need_controlnet else "without CN",
                             "with CN" if need_controlnet else "without CN")
-                need_reload = True
                 self._need_controlnet = need_controlnet
-            if need_reload:
                 self._reload_transformer()
             return self.zit_components
 
@@ -327,38 +171,39 @@ class PipelineManager:
         model_path = Path(self.model_dir) / ZIMAGE_TURBO_DIR
         transformer_dir = model_path / "transformer"
 
-        # --- Step 1: Load transformer ---
-        self._send_progress("loading_start", {"name": "ZIT Transformer", "index": 1, "total": 4})
-        logger.info("Loading ZIT transformer from %s...", transformer_dir)
+        # --- Step 1: Load transformer (BF16 from_pretrained + ControlNet adapter) ---
+        self._send_progress("loading_start", {"name": "ZIT Transformer (BF16)", "index": 1, "total": 4})
+        from helpers import fast_load_file
 
+        logger.info("Loading BF16 transformer from %s ...", transformer_dir)
         transformer = ZImageControlTransformer2DModel.from_pretrained(
-            str(transformer_dir),
+            str(model_path),
+            subfolder="transformer",
             torch_dtype=torch.bfloat16,
+            low_cpu_mem_usage=True,
             transformer_additional_kwargs=CONTROLNET_CONFIG,
-        )
-        transformer = transformer.to(self.device)
-        transformer.eval()
+        ).to(self.device)
 
-        # --- Step 1b: Load ControlNet adapter weights on top (skip for pure T2I) ---
+        # Load ControlNet adapter weights
         cn_path = Path(self.model_dir) / CONTROLNET_DIR / CONTROLNET_FILENAME
         if self._need_controlnet and cn_path.exists():
-            self._send_progress("loading_start", {"name": "ControlNet Adapter", "index": 1, "total": 4})
-            logger.info("Loading ControlNet adapter from %s...", cn_path)
-            from helpers import fast_load_file
+            logger.info("Loading ControlNet adapter from %s ...", cn_path)
             cn_state = fast_load_file(str(cn_path), device=str(self.device))
-            missing, unexpected = transformer.load_state_dict(cn_state, strict=False)
+            m, u = transformer.load_state_dict(cn_state, strict=False)
             del cn_state
-            self._gpu_cleanup()
-            logger.info("ControlNet adapter loaded (missing=%d, unexpected=%d)", len(missing), len(unexpected))
+            logger.info("ControlNet adapter loaded (missing=%d, unexpected=%d)", len(m), len(u))
             self.controlnet_loaded = True
         elif not self._need_controlnet:
             logger.info("Skipping ControlNet adapter (pure T2I mode)")
             self.controlnet_loaded = False
         else:
-            logger.warning("ControlNet model not found at %s — T2I only", cn_path)
+            logger.warning("ControlNet model not found at %s", cn_path)
+            self.controlnet_loaded = False
 
-        # --- Step 1c: Apply FP8 q8_kernels GEMM (if enabled) ---
-        self._apply_fp8_if_needed(transformer, model_path)
+        self._gpu_cleanup()
+        transformer.eval()
+        self._loaded_precision = "BF16"
+        logger.info("BF16 transformer ready (ControlNet=%s)", "loaded" if self.controlnet_loaded else "skipped")
 
         # --- Step 2: Load VAE ---
         self._send_progress("loading_start", {"name": "VAE", "index": 2, "total": 4})
@@ -416,29 +261,8 @@ class PipelineManager:
         self._send_progress("loading_done", {"name": "ZIT", "index": 4, "total": 4, "elapsed": 0})
         logger.info("ZIT pipeline ready (ControlNet=%s, precision=%s)",
                      "loaded" if self.controlnet_loaded else "skipped/not found",
-                     "FP8" if self._loaded_fp8 else "BF16")
+                     self._loaded_precision)
         return self.zit_components
-
-    def _apply_fp8_if_needed(self, transformer, model_path: Path):
-        """Apply FP8 q8_kernels patch to transformer if enabled."""
-        fp8_file = model_path / "model_fp8.safetensors"
-        if self.use_fp8 and fp8_file.exists() and _Q8_AVAILABLE:
-            logger.info("Loading FP8 weights + q8_kernels GEMM patch...")
-            from helpers import fast_load_file
-            fp8_state = fast_load_file(str(fp8_file), device=str(self.device))
-            transformer.load_state_dict(fp8_state, strict=False, assign=True)
-            del fp8_state
-            self._gpu_cleanup()
-            weight_scales = _load_fp8_weight_scales(str(fp8_file))
-            _patch_transformer_q8(transformer, weight_scales=weight_scales)
-            self._loaded_fp8 = True
-            logger.info("FP8 transformer ready")
-        else:
-            self._loaded_fp8 = False
-            if not self.use_fp8:
-                logger.info("Using BF16 transformer (FP8 disabled by user)")
-            else:
-                logger.info("Using BF16 transformer (no FP8 GEMM)")
 
     def _reload_transformer(self):
         """Reload transformer only (keep VAE/text_encoder/tokenizer).
@@ -460,41 +284,37 @@ class PipelineManager:
         model_path = Path(self.model_dir) / ZIMAGE_TURBO_DIR
         transformer_dir = model_path / "transformer"
 
-        self._send_progress("loading_start", {"name": "Transformer reload", "index": 1, "total": 1})
-        logger.info("Reloading transformer from %s...", transformer_dir)
+        self._send_progress("loading_start", {"name": "Transformer reload (BF16)", "index": 1, "total": 1})
+        from helpers import fast_load_file
+        from videox_models.z_image_transformer2d_control import ZImageControlTransformer2DModel
 
+        logger.info("Reloading BF16 transformer...")
         transformer = ZImageControlTransformer2DModel.from_pretrained(
-            str(transformer_dir),
+            str(model_path),
+            subfolder="transformer",
             torch_dtype=torch.bfloat16,
+            low_cpu_mem_usage=True,
             transformer_additional_kwargs=CONTROLNET_CONFIG,
-        )
-        transformer = transformer.to(self.device)
-        transformer.eval()
+        ).to(self.device)
 
-        # Re-apply ControlNet adapter (only if needed)
         cn_path = Path(self.model_dir) / CONTROLNET_DIR / CONTROLNET_FILENAME
         if self._need_controlnet and cn_path.exists():
-            from helpers import fast_load_file
             cn_state = fast_load_file(str(cn_path), device=str(self.device))
             transformer.load_state_dict(cn_state, strict=False)
             del cn_state
-            self._gpu_cleanup()
             self.controlnet_loaded = True
-            logger.info("ControlNet adapter re-applied")
         else:
             self.controlnet_loaded = False
-            if not self._need_controlnet:
-                logger.info("Skipping ControlNet adapter (pure T2I mode)")
-
-        # Apply FP8 if needed
-        self._apply_fp8_if_needed(transformer, model_path)
+        self._gpu_cleanup()
+        transformer.eval()
+        self._loaded_precision = "BF16"
 
         # Update pipeline and components
         self.zit_components["transformer"] = transformer
         self.zit_components["pipeline"].transformer = transformer
 
         self._send_progress("loading_done", {"name": "Transformer reload", "index": 1, "total": 1, "elapsed": 0})
-        logger.info("Transformer reloaded (precision=%s)", "FP8" if self._loaded_fp8 else "BF16")
+        logger.info("Transformer reloaded (precision=%s)", self._loaded_precision)
 
     # -------------------------------------------------------------------
     # LoRA loading / unloading (forward-hook based, multi-LoRA stack)
@@ -511,7 +331,7 @@ class PipelineManager:
 
         - If only scales changed (same names), update scales without reload.
         - If names changed, full unload + reload.
-        - FP8 weights stay untouched; LoRA A/B stored in BF16.
+        - LoRA A/B stored in BF16.
         """
         if not lora_stack:
             self.unload_all_loras()

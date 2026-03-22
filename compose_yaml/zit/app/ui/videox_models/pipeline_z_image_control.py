@@ -319,9 +319,11 @@ class ZImageControlPipeline(DiffusionPipeline, FromSingleFileMixin):
 
         image: Union[torch.FloatTensor] = None,
         mask_image: Union[torch.FloatTensor] = None,
+        diffdiff_mask: Union[torch.FloatTensor] = None,  # separate mask for DiffDiff (grow/blur differs from CN mask)
         control_image: Union[torch.FloatTensor] = None,
         control_context_scale: float = 1.0,
-
+        control_step_cutoff: float = 1.0,  # fraction of steps to apply CN (0.5 = first half only)
+        denoise: float = 1.0,  # 1.0=full noise, <1.0=blend original latent
         num_inference_steps: int = 50,
         sigmas: Optional[List[float]] = None,
         guidance_scale: float = 5.0,
@@ -425,22 +427,33 @@ class ZImageControlPipeline(DiffusionPipeline, FromSingleFileMixin):
         num_channels_latents = self.transformer.in_channels
 
         # Prepare mask latent variables
+        # Use GRADIENT mask (not binary) for smooth ControlNet conditioning transition.
+        # Binary mask creates a hard boundary in control_context → visible seam.
         if num_channels_latents != self.transformer.control_in_dim:
+            # Gradient mask [0,1]: 0=keep original, 1=full inpaint
+            _grad_proc = VaeImageProcessor(
+                vae_scale_factor=self.vae_scale_factor,
+                do_normalize=False, do_binarize=False, do_convert_grayscale=True,
+            )
             if mask_image is not None:
-                mask_condition = self.mask_processor.preprocess(mask_image, height=height, width=width)
-                mask_condition = torch.where(mask_condition >= 0.5,
-                                            torch.ones_like(mask_condition),
-                                            torch.zeros_like(mask_condition))
-                mask_condition = torch.tile(mask_condition, [1, 3, 1, 1]).to(dtype=weight_dtype, device=device)
+                _grad_mask = _grad_proc.preprocess(mask_image, height=height, width=width)
+                _grad_mask = _grad_mask[:, :1].to(dtype=weight_dtype, device=device).clamp(0, 1)
             else:
-                mask_condition = torch.ones([batch_size, 3, height, width]).to(dtype=weight_dtype, device=device)
+                _grad_mask = torch.ones([batch_size, 1, height, width]).to(dtype=weight_dtype, device=device)
 
             if image is not None:
                 init_image = self.image_processor.preprocess(image, height=height, width=width)
-                init_image = init_image.to(dtype=vae_dtype, device=device) * (mask_condition.to(dtype=vae_dtype) < 0.5)
+                init_image = init_image.to(dtype=vae_dtype, device=device)
+                # Encode full image WITHOUT masking (like ComfyUI VAEEncode, not
+                # VAEEncodeForInpainting).  Masking the image zeros out the expansion
+                # area, creating a latent-space discontinuity that the VAE's
+                # non-linearity turns into a visible seam.  The mask_condition in
+                # control_context already tells the model where to generate; the
+                # DiffDiff per-step blending handles preservation of the original area.
                 inpaint_latent = self.vae.encode(init_image)[0].mode()
                 inpaint_latent = (inpaint_latent - self.vae.config.shift_factor) * self.vae.config.scaling_factor
                 inpaint_latent = inpaint_latent.to(dtype=weight_dtype)
+
             else:
                 inpaint_latent = torch.zeros((batch_size, num_channels_latents, 2 * (int(height) // (self.vae_scale_factor * 2)), 2 * (int(width) // (self.vae_scale_factor * 2)))).to(device, weight_dtype)
 
@@ -453,10 +466,13 @@ class ZImageControlPipeline(DiffusionPipeline, FromSingleFileMixin):
         else:
             control_latents = torch.zeros_like(inpaint_latent)
 
-        # Unsqueeze
+        # Unsqueeze + gradient mask for control_context (smooth transition, no seam)
         if num_channels_latents != self.transformer.control_in_dim:
             inpaint_latent = inpaint_latent.unsqueeze(2)
-            mask_condition = F.interpolate(1 - mask_condition[:, :1], size=inpaint_latent.size()[-2:], mode='nearest').to(device, weight_dtype)
+            # Gradient mask: 1=keep original, 0=inpaint (smooth transition)
+            mask_condition = F.interpolate(1 - _grad_mask[:, :1].to(weight_dtype),
+                                           size=inpaint_latent.size()[-2:],
+                                           mode='bilinear', align_corners=False).to(device, weight_dtype)
             mask_condition = mask_condition.unsqueeze(2)
 
         control_latents = control_latents.unsqueeze(2)
@@ -500,6 +516,10 @@ class ZImageControlPipeline(DiffusionPipeline, FromSingleFileMixin):
             latents,
         )
 
+        # Store inpaint data for latent noise masking (applied after timesteps are prepared)
+        _do_latent_mask = (image is not None and mask_image is not None
+                           and num_channels_latents != self.transformer.control_in_dim)
+
         # Repeat prompt_embeds and control_context for num_images_per_prompt
         if num_images_per_prompt > 1:
             prompt_embeds = [pe for pe in prompt_embeds for _ in range(num_images_per_prompt)]
@@ -542,6 +562,49 @@ class ZImageControlPipeline(DiffusionPipeline, FromSingleFileMixin):
             pbar = ProgressBar(num_inference_steps + 1)
             pbar.update(1)
 
+        # 5b. Inpaint: encode original image and prepare mask for differential diffusion
+        if _do_latent_mask:
+            init_image_full = self.image_processor.preprocess(image, height=height, width=width)
+            init_image_full = init_image_full.to(dtype=self.vae.dtype, device=device)
+            _original_latent = self.vae.encode(init_image_full)[0].mode()
+            _original_latent = (_original_latent - self.vae.config.shift_factor) * self.vae.config.scaling_factor
+            _original_latent = _original_latent.to(dtype=torch.float32)
+            # DiffDiff mask: use separate diffdiff_mask if provided (different
+            # grow/blur than CN mask), otherwise fall back to mask_image.
+            _dd_mask_source = diffdiff_mask if diffdiff_mask is not None else mask_image
+            _dd_mask_processor = VaeImageProcessor(
+                vae_scale_factor=self.vae_scale_factor, do_normalize=False,
+                do_binarize=False, do_convert_grayscale=True,
+            )
+            _mask_for_latent = _dd_mask_processor.preprocess(
+                _dd_mask_source, height=height, width=width,
+            )[:, :1].to(device, torch.float32)
+            _latent_mask = F.interpolate(
+                _mask_for_latent,
+                size=(_original_latent.shape[-2], _original_latent.shape[-1]),
+                mode='bilinear', align_corners=False,
+            )
+
+            # Differential diffusion: pre-compute thresholds and noised originals
+            _dd_thresholds = torch.arange(num_inference_steps, dtype=torch.float32) / num_inference_steps
+            _dd_noise = torch.randn_like(_original_latent)
+            _dd_noised_originals = []
+            for t_step in timesteps:
+                noised = self.scheduler.scale_noise(
+                    _original_latent, torch.tensor([t_step]), _dd_noise,
+                )
+                _dd_noised_originals.append(noised)
+
+            # denoise < 1.0: blend starting latents with noised original for continuity
+            if denoise < 1.0:
+                noised_first = _dd_noised_originals[0]
+                latents = denoise * latents + (1 - denoise) * noised_first
+
+            del init_image_full
+        else:
+            _original_latent = None
+            _latent_mask = None
+
         # 6. Denoising loop
         with self.progress_bar(total=num_inference_steps) as progress_bar:
             for i, t in enumerate(timesteps):
@@ -582,12 +645,18 @@ class ZImageControlPipeline(DiffusionPipeline, FromSingleFileMixin):
                 latent_model_input = latent_model_input.unsqueeze(2)
                 latent_model_input_list = list(latent_model_input.unbind(dim=0))
 
+                # Step cutoff: apply ControlNet at full strength for first N steps,
+                # then disable it so the base turbo model refines details.
+                # (spacepxl fix: CN partially breaks turbo distillation)
+                cutoff_step = int(num_inference_steps * control_step_cutoff)
+                current_cn_scale = control_context_scale if i < cutoff_step else 0.0
+
                 model_out_list = self.transformer(
                     latent_model_input_list,
                     timestep_model_input,
                     prompt_embeds_model_input,
                     control_context=control_context_input,
-                    control_context_scale=control_context_scale,
+                    control_context_scale=current_cn_scale,
                 )[0]
 
                 if apply_cfg:
@@ -623,6 +692,23 @@ class ZImageControlPipeline(DiffusionPipeline, FromSingleFileMixin):
                 latents = self.scheduler.step(noise_pred.to(torch.float32), t, latents, return_dict=False)[0]
                 assert latents.dtype == torch.float32
 
+                # Differential diffusion: per-step soft mask blending
+                # Smooth transition instead of binary threshold (reduces seam)
+                if _do_latent_mask and _original_latent is not None:
+                    threshold = _dd_thresholds[i]
+                    # Soft ramp: linear transition over 15% mask range around threshold
+                    # mask >> threshold → 1.0 (use generated)
+                    # mask << threshold → 0.0 (keep original)
+                    # mask ≈ threshold → smooth gradient (no hard boundary)
+                    tw = 0.25
+                    dd_mask = ((_latent_mask - threshold + tw / 2) / tw).clamp(0, 1)
+                    # Use next step's noised original, or clean original at last step
+                    if i < len(timesteps) - 1:
+                        noised_orig = _dd_noised_originals[i + 1]
+                    else:
+                        noised_orig = _original_latent
+                    latents = dd_mask * latents + (1 - dd_mask) * noised_orig
+
                 if callback_on_step_end is not None:
                     callback_kwargs = {}
                     for k in callback_on_step_end_tensor_inputs:
@@ -647,6 +733,7 @@ class ZImageControlPipeline(DiffusionPipeline, FromSingleFileMixin):
             latents = (latents / self.vae.config.scaling_factor) + self.vae.config.shift_factor
 
             image = self.vae.decode(latents, return_dict=False)[0]
+
             image = self.image_processor.postprocess(image, output_type=output_type)
 
         # Offload all models

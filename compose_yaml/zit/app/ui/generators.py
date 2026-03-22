@@ -195,7 +195,7 @@ def _save_metadata(path: str, gen_type: str, seed: int, elapsed: float, kwargs: 
 # ---------------------------------------------------------------------------
 def _cleanup_temp_files(kwargs: dict):
     """Remove temp files created for IPC (image_path, mask_path, etc.)."""
-    for key in ("image_path", "mask_path", "target_path", "source_path"):
+    for key in ("image_path", "mask_path", "target_path", "source_path", "original_image_path"):
         path = kwargs.get(key)
         if path and Path(path).name.startswith("tmp"):
             try:
@@ -306,7 +306,6 @@ def generate_zit_t2i(
     time_shift=3.0,
     lora_name=None, lora_scale=1.0,
     lora_stack=None,
-    use_fp8=True,
     progress=gr.Progress(track_tqdm=True),
 ):
     gen_type = "zit_t2i"
@@ -326,7 +325,6 @@ def generate_zit_t2i(
         "max_sequence_length": int(max_sequence_length),
         "time_shift": float(time_shift),
         "seed": int(seed),
-        "use_fp8": bool(use_fp8),
     }
     # Multi-LoRA stack (preferred) or single LoRA (backward compat)
     if lora_stack:
@@ -362,13 +360,13 @@ def match_image_resolution(image) -> str:
 # ---------------------------------------------------------------------------
 def generate_controlnet(
     prompt, control_mode, control_image, resolution, seed,
-    negative_prompt="", num_steps=8, guidance_scale=0.5,
-    cfg_normalization=False, cfg_truncation=0.9, control_scale=0.65,
+    negative_prompt="", num_steps=8, guidance_scale=1.0,
+    cfg_normalization=False, cfg_truncation=1.0, control_scale=0.7,
     max_sequence_length=512, time_shift=3.0,
     num_images=1, attention_backend=None,
     lora_name=None, lora_scale=1.0,
     lora_stack=None,
-    use_fp8=True,
+    original_image=None,
     progress=gr.Progress(track_tqdm=True),
 ):
     _validate("controlnet", prompt)
@@ -387,11 +385,24 @@ def generate_controlnet(
     img.save(tmp.name)
     tmp.close()
 
+    # Save original image for harmony (provides inpaint_latent reference)
+    original_path = None
+    if original_image is not None:
+        if isinstance(original_image, np.ndarray):
+            orig_img = PILImage.fromarray(original_image)
+        else:
+            orig_img = original_image
+        tmp_orig = tempfile.NamedTemporaryFile(suffix=".png", delete=False, dir=str(OUTPUT_DIR))
+        orig_img.save(tmp_orig.name)
+        tmp_orig.close()
+        original_path = tmp_orig.name
+
     w, h = resolution.split("x")
     kwargs = {
         "prompt": prompt,
         "negative_prompt": negative_prompt or None,
         "control_image_path": tmp.name,
+        "original_image_path": original_path,
         "control_mode": control_mode,
         "control_scale": float(control_scale),
         "width": int(w), "height": int(h),
@@ -403,7 +414,6 @@ def generate_controlnet(
         "max_sequence_length": int(max_sequence_length),
         "time_shift": float(time_shift),
         "seed": int(seed),
-        "use_fp8": bool(use_fp8),
     }
     if lora_stack:
         kwargs["lora_stack"] = lora_stack
@@ -419,12 +429,17 @@ def generate_controlnet(
 # ---------------------------------------------------------------------------
 def generate_inpaint(
     prompt, editor_value, resolution, seed,
-    negative_prompt="", num_steps=25, guidance_scale=4.0,
-    cfg_truncation=1.0, control_scale=0.9,
+    negative_prompt="", num_steps=8, guidance_scale=1.0,
+    cfg_truncation=1.0, control_scale=0.7,
     max_sequence_length=512, time_shift=3.0,
     lora_name=None, lora_scale=1.0,
     lora_stack=None,
     need_controlnet=True,
+    step_cutoff=0.5,
+    denoise=1.0,
+    mask_grow=15,
+    mask_blur=14,
+    crop_stitch=False,
     progress=gr.Progress(track_tqdm=True),
 ):
     _validate("inpaint", prompt)
@@ -434,6 +449,7 @@ def generate_inpaint(
     import tempfile
     from PIL import Image as PILImage
     import numpy as np
+    import cv2
 
     # Extract image and mask from gr.ImageEditor output
     # Format: {"background": ndarray, "layers": [ndarray], "composite": ndarray}
@@ -454,10 +470,63 @@ def generate_inpaint(
                     mask = np.maximum(mask, layer_gray)
         else:
             raise gr.Error("Draw a mask on the image first.")
+        # Grow mask then blur edges — ComfyUI best practice
+        grow_px = int(mask_grow)
+        blur_radius = int(mask_blur)
+        kernel = cv2.getStructuringElement(
+            cv2.MORPH_ELLIPSE, (2 * grow_px + 1, 2 * grow_px + 1)
+        )
+        mask = cv2.dilate(mask, kernel, iterations=1)
+        # GaussianBlur needs odd kernel size
+        blur_k = blur_radius * 2 + 1
+        mask = cv2.GaussianBlur(mask, (blur_k, blur_k), 0)
+        logger.info("Mask processed: grow=%dpx, blur_radius=%d", grow_px, blur_radius)
+
         image = PILImage.fromarray(background)
         mask_img = PILImage.fromarray(mask)
     else:
         raise gr.Error("Unexpected editor format.")
+
+    # --- Crop & Stitch: crop to mask bounding box before sending to pipeline ---
+    mask_np = np.array(mask_img)
+    crop_info = None
+
+    if crop_stitch:
+        extend_factor = 1.2
+
+        # Find bounding box of non-zero mask pixels
+        nonzero_rows = np.any(mask_np > 0, axis=1)
+        nonzero_cols = np.any(mask_np > 0, axis=0)
+        if nonzero_rows.any() and nonzero_cols.any():
+            r_min, r_max = np.where(nonzero_rows)[0][[0, -1]]
+            c_min, c_max = np.where(nonzero_cols)[0][[0, -1]]
+
+            # Expand bounding box by extend_factor
+            bbox_h = r_max - r_min + 1
+            bbox_w = c_max - c_min + 1
+            expand_h = int(bbox_h * (extend_factor - 1) / 2)
+            expand_w = int(bbox_w * (extend_factor - 1) / 2)
+
+            img_h, img_w = mask_np.shape[:2]
+            crop_y1 = max(0, r_min - expand_h)
+            crop_y2 = min(img_h, r_max + 1 + expand_h)
+            crop_x1 = max(0, c_min - expand_w)
+            crop_x2 = min(img_w, c_max + 1 + expand_w)
+
+            # Only crop if the crop region is meaningfully smaller than the full image
+            crop_area = (crop_y2 - crop_y1) * (crop_x2 - crop_x1)
+            full_area = img_h * img_w
+            if crop_area < full_area * 0.85:
+                crop_info = {
+                    "x1": crop_x1, "y1": crop_y1,
+                    "x2": crop_x2, "y2": crop_y2,
+                    "orig_image": image.copy(),
+                    "orig_w": img_w, "orig_h": img_h,
+                }
+                image = image.crop((crop_x1, crop_y1, crop_x2, crop_y2))
+                mask_img = mask_img.crop((crop_x1, crop_y1, crop_x2, crop_y2))
+                logger.info("Crop & Stitch: cropped to (%d,%d)-(%d,%d) from %dx%d",
+                            crop_x1, crop_y1, crop_x2, crop_y2, img_w, img_h)
 
     # Save to temp files for IPC
     tmp_img = tempfile.NamedTemporaryFile(suffix=".png", delete=False, dir=str(OUTPUT_DIR))
@@ -483,13 +552,67 @@ def generate_inpaint(
         "time_shift": float(time_shift),
         "seed": int(seed),
         "need_controlnet": bool(need_controlnet),
+        "control_step_cutoff": float(step_cutoff),
+        "denoise": float(denoise),
     }
     if lora_stack:
         kwargs["lora_stack"] = lora_stack
     elif lora_name:
         kwargs["lora_stack"] = [{"name": lora_name, "scale": float(lora_scale)}]
-    return _submit_and_wait("inpaint", kwargs, progress,
-                            need_controlnet=bool(need_controlnet))
+    result = _submit_and_wait("inpaint", kwargs, progress,
+                              need_controlnet=bool(need_controlnet))
+
+    # --- Crop & Stitch: paste result back into original image ---
+    # ComfyUI standard: feathered alpha blending with wide stitch mask blur
+    if crop_info is not None and result is not None:
+        paths, info = result
+        if paths and len(paths) > 0:
+            result_img = PILImage.open(paths[0]).convert("RGB")
+            orig_image = crop_info["orig_image"]
+            x1, y1 = crop_info["x1"], crop_info["y1"]
+            x2, y2 = crop_info["x2"], crop_info["y2"]
+            crop_w, crop_h = x2 - x1, y2 - y1
+
+            # Resize result to match crop region
+            result_resized = np.array(
+                result_img.resize((crop_w, crop_h), PILImage.LANCZOS)
+            )
+
+            # Stitch mask: grow 24px + blur 48px (ComfyUI standard: wide feather)
+            raw_mask = np.array(
+                mask_img if mask_img.size == (crop_w, crop_h)
+                else PILImage.fromarray(mask_np[y1:y2, x1:x2])
+            )
+            stitch_grow = 24
+            stitch_blur = 48
+            grow_k = cv2.getStructuringElement(
+                cv2.MORPH_ELLIPSE, (2 * stitch_grow + 1, 2 * stitch_grow + 1)
+            )
+            stitch_mask = cv2.dilate(raw_mask, grow_k, iterations=1)
+            blur_k = stitch_blur * 2 + 1
+            alpha = cv2.GaussianBlur(
+                stitch_mask.astype(np.float32) / 255.0,
+                (blur_k, blur_k), 0
+            )[:, :, np.newaxis]
+
+            original_crop = np.array(orig_image.crop((x1, y1, x2, y2)))
+
+            # Feathered alpha blend (ComfyUI standard)
+            blended = np.clip(
+                alpha * result_resized.astype(np.float32)
+                + (1 - alpha) * original_crop.astype(np.float32),
+                0, 255
+            ).astype(np.uint8)
+            logger.info("Crop & Stitch: feathered alpha blend (grow=%d, blur=%d)",
+                        stitch_grow, stitch_blur)
+
+            # Paste back into full original image
+            final = orig_image.copy()
+            final.paste(PILImage.fromarray(blended), (x1, y1))
+            final.save(paths[0])
+            logger.info("Crop & Stitch: composited into full image")
+
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -497,12 +620,16 @@ def generate_inpaint(
 # ---------------------------------------------------------------------------
 def generate_outpaint(
     prompt, image, direction, expand_px, resolution, seed,
-    negative_prompt="", num_steps=25, guidance_scale=4.0,
-    cfg_truncation=1.0, control_scale=0.9,
+    negative_prompt="", num_steps=15, guidance_scale=1.0,
+    cfg_truncation=1.0, control_scale=0.5,
     max_sequence_length=512, time_shift=3.0,
     lora_name=None, lora_scale=1.0,
     lora_stack=None,
     need_controlnet=True,
+    step_cutoff=0.7,
+    mask_grow=120,
+    mask_blur=90,
+    denoise=1.0,
     progress=gr.Progress(track_tqdm=True),
 ):
     logger.info("generate_outpaint called: direction=%s expand_px=%s image_type=%s",
@@ -538,6 +665,10 @@ def generate_outpaint(
         "time_shift": float(time_shift),
         "seed": int(seed),
         "need_controlnet": bool(need_controlnet),
+        "control_step_cutoff": float(step_cutoff),
+        "mask_grow": int(mask_grow),
+        "mask_blur": int(mask_blur),
+        "denoise": float(denoise),
     }
     if lora_stack:
         kwargs["lora_stack"] = lora_stack

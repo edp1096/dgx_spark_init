@@ -50,13 +50,10 @@ STRINGS = {
     # Generate tab parameters
     "steps":                     {"en": "Steps",                           "ko": "스텝 수"},
     "time_shift":                {"en": "Time Shift",                      "ko": "타임 시프트"},
-    "guidance_scale":            {"en": "Guidance Scale",                   "ko": "가이던스 스케일"},
+    "guidance_scale":            {"en": "Guidance Scale",                   "ko": "Guidance Scale"},
     "cfg_normalization":         {"en": "CFG Normalization",                "ko": "CFG 정규화"},
-    "cfg_truncation":            {"en": "CFG Truncation",                   "ko": "CFG 절삭"},
+    "cfg_truncation":            {"en": "CFG Truncation",                   "ko": "CFG Truncation"},
     "max_sequence_length":       {"en": "Max Sequence Length",              "ko": "최대 시퀀스 길이"},
-    "fp8_precision":             {"en": "FP8 Precision",                    "ko": "FP8 정밀도"},
-    "fp8_info":                  {"en": "FP8: fast+low VRAM / OFF: BF16 original quality (reload required)",
-                                  "ko": "FP8: 빠름+저 VRAM / OFF: BF16 원본 품질 (리로드 필요)"},
     "attention_backend":         {"en": "Attention Backend",                "ko": "어텐션 백엔드"},
     "attn_info":                 {"en": "native=SDPA(auto FA2), flash=FA2, _native_flash=force SDPA flash",
                                   "ko": "native=SDPA(자동 FA2), flash=FA2, _native_flash=강제 SDPA flash"},
@@ -88,7 +85,7 @@ STRINGS = {
     "control_image":             {"en": "Control Image",                   "ko": "제어 이미지"},
     "control_preview":           {"en": "Control Preview",                 "ko": "제어 미리보기"},
     "preview_preprocessor":      {"en": "Preview Preprocessor",            "ko": "전처리 미리보기"},
-    "control_scale":             {"en": "Control Scale",                   "ko": "제어 강도"},
+    "control_scale":             {"en": "Control Scale",                   "ko": "Control Scale"},
     "match_image_size":          {"en": "Match Image Size",                "ko": "이미지 크기 맞추기"},
     "enable_controlnet":         {"en": "Enable ControlNet",               "ko": "ControlNet 활성화"},
     "cn_enable_info":            {"en": "ON: load ControlNet adapter (pose/depth control) / OFF: pure T2I (better face quality)",
@@ -231,6 +228,51 @@ STRINGS = {
 
     # Kill button
     "kill":                      {"en": "Kill (emergency stop)",           "ko": "중지 (긴급 정지)"},
+
+    "parameters":                {"en": "Parameters",                      "ko": "파라미터"},
+
+    # Inpaint — Mask & Denoise
+    "mask_denoise":              {"en": "Mask & Denoise",                  "ko": "마스크 & 디노이즈"},
+    "cn_step_cutoff":            {"en": "CN Step Cutoff",                  "ko": "CN Step Cutoff"},
+    "cn_step_cutoff_info":       {"en": "CN applies for this fraction of steps (0.5=first half)",
+                                  "ko": "CN이 적용되는 스텝 비율 (0.5=전반부)"},
+    "denoise_strength":          {"en": "Denoise Strength",                "ko": "Denoise Strength"},
+    "denoise_strength_info":     {"en": "1.0=full regenerate, lower=preserve more original",
+                                  "ko": "1.0=완전 재생성, 낮을수록 원본 유지"},
+    "mask_grow":                 {"en": "Mask Grow (px)",                  "ko": "Mask Grow (px)"},
+    "mask_blur_radius":          {"en": "Mask Blur Radius",                "ko": "Mask Blur Radius"},
+    "crop_stitch":               {"en": "Crop & Stitch",                   "ko": "Crop & Stitch"},
+    "crop_stitch_info":          {"en": "Crop mask region, inpaint at optimal res, stitch back (community standard)",
+                                  "ko": "마스크 영역 크롭, 최적 해상도 인페인트, 다시 합성 (커뮤니티 표준)"},
+    "outpaint_mask_grow":        {"en": "Outpaint Mask Grow (px)",         "ko": "Outpaint Mask Grow (px)"},
+    "outpaint_mask_grow_info":   {"en": "GrowMaskWithBlur expand",         "ko": "GrowMaskWithBlur 확장"},
+    "outpaint_mask_blur":        {"en": "Outpaint Mask Blur",              "ko": "Outpaint Mask Blur"},
+    "outpaint_mask_blur_info":   {"en": "GrowMaskWithBlur blur",           "ko": "GrowMaskWithBlur 블러"},
+
+    # Inpaint — Describe & Guide
+    "describe_image":            {"en": "Describe Image (AI)",             "ko": "이미지 설명 (AI)"},
+    "neg_prompt_warning":        {"en": "Only works when guidance > 1. Doubles generation time, may reduce quality",
+                                  "ko": "guidance > 1일 때만 작동. 생성 시간 2배, 품질 저하 주의"},
+    "inpaint_guide":             {"en": "**Inpaint Guide** | Mask: paint generously (small mask = new element won't appear) | "
+                                        "Control Scale 0.7 default, lower to 0.3\\~0.5 if new element is hard to add | "
+                                        "Step Cutoff 0.5\\~0.7",
+                                  "ko": "**Inpaint Guide** | Mask: 넉넉하게 칠할 것 (작으면 새 요소 안 생김) | "
+                                        "Control Scale 0.7 기본, 새 요소 추가 어려우면 0.3\\~0.5로 낮출 것 | "
+                                        "Step Cutoff 0.5\\~0.7"},
+    "outpaint_guide":            {"en": "**Param Guide** | Textured BG (grass/indoor/night): defaults OK | "
+                                        "Mixed BG (desert/landscape+sky): Control Scale=0.3\\~0.5, Step Cutoff=0.5 | "
+                                        "Uniform BG (sky/ocean): Control Scale=0.5, Step Cutoff=0.5, Denoise=0.85",
+                                  "ko": "**Param Guide** | 텍스처 배경 (잔디/실내/야경): 기본값 OK | "
+                                        "혼합 배경 (사막/풍경+하늘): Control Scale=0.3\\~0.5, Step Cutoff=0.5 | "
+                                        "균일 배경 (하늘/바다): Control Scale=0.5, Step Cutoff=0.5, Denoise=0.85"},
+
+    # History — pagination
+    "first_page":                {"en": "<<",                              "ko": "<<"},
+    "prev_3":                    {"en": "-3",                              "ko": "-3"},
+    "prev_page":                 {"en": "<",                               "ko": "<"},
+    "next_page":                 {"en": ">",                               "ko": ">"},
+    "next_3":                    {"en": "+3",                              "ko": "+3"},
+    "last_page":                 {"en": ">>",                              "ko": ">>"},
 }
 
 
@@ -249,15 +291,33 @@ def get_i18n_js() -> str:
             lang_strings.setdefault(lang, {})[en_text] = translated
             all_to_en[translated] = en_text
 
+    # Markdown blocks: elem_id → {lang: html}
+    # These are translated by replacing innerHTML instead of text node matching
+    md_blocks = {}
+    md_keys = {"inpaint_guide": "inpaint-guide", "outpaint_guide": "outpaint-guide"}
+    for str_key, elem_id in md_keys.items():
+        if str_key in STRINGS:
+            texts = STRINGS[str_key]
+            import re
+            block = {}
+            for lang, raw in texts.items():
+                # Convert markdown bold to HTML
+                html = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', raw)
+                html = html.replace('\\~', '~')
+                block[lang] = html
+            md_blocks[elem_id] = block
+
     lang_strings_json = json.dumps(lang_strings, ensure_ascii=False)
     all_to_en_json = json.dumps(all_to_en, ensure_ascii=False)
     languages_json = json.dumps(LANGUAGES, ensure_ascii=False)
+    md_blocks_json = json.dumps(md_blocks, ensure_ascii=False)
 
     return """
 (function() {
     const LANG_STRINGS = """ + lang_strings_json + """;
     const ALL_TO_EN = """ + all_to_en_json + """;
     const LANGUAGES = """ + languages_json + """;
+    const MD_BLOCKS = """ + md_blocks_json + """;
 
     let currentLang = 'en';
     let applying = false;
@@ -304,7 +364,21 @@ def get_i18n_js() -> str:
         });
     }
 
-    function translateDOM(lang) { translateNodes(lang, document); }
+    function translateMdBlocks(lang) {
+        for (const [elemId, texts] of Object.entries(MD_BLOCKS)) {
+            const el = document.getElementById(elemId);
+            if (!el) continue;
+            const span = el.querySelector('.md');
+            if (!span) continue;
+            const html = texts[lang] || texts['en'] || '';
+            if (html) span.innerHTML = '<p>' + html + '</p>';
+        }
+    }
+
+    function translateDOM(lang) {
+        translateNodes(lang, document);
+        translateMdBlocks(lang);
+    }
 
     function applyLang(lang) {
         if (applying) return;

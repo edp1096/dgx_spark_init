@@ -74,11 +74,8 @@ def _worker_loop(
                 mgr.unload_all_loras()
 
     def _apply_precision(kwargs, need_controlnet=True):
-        """Set FP8/BF16 precision from kwargs."""
-        if "use_fp8" in kwargs:
-            mgr.load_zit(use_fp8=kwargs["use_fp8"], need_controlnet=need_controlnet)
-        else:
-            mgr.load_zit(need_controlnet=need_controlnet)
+        """Load pipeline (BF16)."""
+        mgr.load_zit(need_controlnet=need_controlnet)
 
     def _run_zit_t2i(kwargs, task_id):
         seed = resolve_seed(kwargs["seed"])
@@ -103,9 +100,9 @@ def _worker_loop(
             height=int(kwargs["height"]),
             width=int(kwargs["width"]),
             num_inference_steps=int(kwargs.get("num_steps", 8)),
-            guidance_scale=float(kwargs.get("guidance_scale", 0.5)),
+            guidance_scale=float(kwargs.get("guidance_scale", 1.0)),
             cfg_normalization=bool(kwargs.get("cfg_normalization", False)),
-            cfg_truncation=float(kwargs.get("cfg_truncation", 0.9)),
+            cfg_truncation=float(kwargs.get("cfg_truncation", 1.0)),
             num_images_per_prompt=int(kwargs.get("num_images", 1)),
             max_sequence_length=int(kwargs.get("max_sequence_length", 512)),
             generator=torch.Generator(mgr.device).manual_seed(seed),
@@ -140,22 +137,30 @@ def _worker_loop(
         # Load pre-processed control image
         control_img = PILImage.open(kwargs["control_image_path"]).convert("RGB")
 
-        log.info("ControlNet %sx%s mode=%s scale=%.2f seed=%d",
+        # Load original image (if provided) for style/color harmony
+        original_img = None
+        if kwargs.get("original_image_path"):
+            original_img = PILImage.open(kwargs["original_image_path"]).convert("RGB")
+
+        log.info("ControlNet %sx%s mode=%s scale=%.2f seed=%d original=%s",
                  kwargs["width"], kwargs["height"],
                  kwargs.get("control_mode", "?"),
-                 float(kwargs.get("control_scale", 0.65)), seed)
+                 float(kwargs.get("control_scale", 0.7)), seed,
+                 "yes" if original_img else "no")
 
         result = pipeline(
             prompt=kwargs["prompt"],
             negative_prompt=kwargs.get("negative_prompt"),
             height=int(kwargs["height"]),
             width=int(kwargs["width"]),
+            image=original_img,
             control_image=control_img,
-            control_context_scale=float(kwargs.get("control_scale", 0.65)),
+            control_context_scale=float(kwargs.get("control_scale", 0.7)),
+            control_step_cutoff=float(kwargs.get("control_step_cutoff", 0.5)),
             num_inference_steps=int(kwargs.get("num_steps", 8)),
-            guidance_scale=float(kwargs.get("guidance_scale", 0.5)),
+            guidance_scale=float(kwargs.get("guidance_scale", 1.0)),
             cfg_normalization=bool(kwargs.get("cfg_normalization", False)),
-            cfg_truncation=float(kwargs.get("cfg_truncation", 0.9)),
+            cfg_truncation=float(kwargs.get("cfg_truncation", 1.0)),
             num_images_per_prompt=int(kwargs.get("num_images", 1)),
             max_sequence_length=int(kwargs.get("max_sequence_length", 512)),
             generator=torch.Generator(mgr.device).manual_seed(seed),
@@ -194,9 +199,21 @@ def _worker_loop(
 
         log.info("Inpaint %sx%s scale=%.2f guidance=%.1f steps=%d seed=%d",
                  kwargs["width"], kwargs["height"],
-                 float(kwargs.get("control_scale", 0.9)),
-                 float(kwargs.get("guidance_scale", 4.0)),
-                 int(kwargs.get("num_steps", 25)), seed)
+                 float(kwargs.get("control_scale", 0.7)),
+                 float(kwargs.get("guidance_scale", 1.0)),
+                 int(kwargs.get("num_steps", 8)), seed)
+
+        # control_image: None for inpaint (aistudynow workflow)
+        # Optional: control_image_path for explicit pose/canny/depth
+        if kwargs.get("control_image_path"):
+            ctrl_img = PILImage.open(kwargs["control_image_path"]).convert("RGB")
+            log.info("Inpaint: using explicit control_image from %s", kwargs["control_image_path"])
+        else:
+            ctrl_img = None
+        # Load separate DiffDiff mask if provided
+        dd_mask = None
+        if kwargs.get("diffdiff_mask_path"):
+            dd_mask = PILImage.open(kwargs["diffdiff_mask_path"]).convert("L")
 
         result = pipeline(
             prompt=kwargs["prompt"],
@@ -205,10 +222,13 @@ def _worker_loop(
             width=int(kwargs["width"]),
             image=image,
             mask_image=mask,
-            control_image=image,
-            control_context_scale=float(kwargs.get("control_scale", 0.9)),
-            num_inference_steps=int(kwargs.get("num_steps", 25)),
-            guidance_scale=float(kwargs.get("guidance_scale", 4.0)),
+            diffdiff_mask=dd_mask,
+            control_image=ctrl_img,
+            control_context_scale=float(kwargs.get("control_scale", 0.7)),
+            control_step_cutoff=float(kwargs.get("control_step_cutoff", 0.5)),
+            denoise=float(kwargs.get("denoise", 1.0)),
+            num_inference_steps=int(kwargs.get("num_steps", 8)),
+            guidance_scale=float(kwargs.get("guidance_scale", 1.0)),
             cfg_truncation=float(kwargs.get("cfg_truncation", 1.0)),
             max_sequence_length=int(kwargs.get("max_sequence_length", 512)),
             generator=torch.Generator(mgr.device).manual_seed(seed),
@@ -219,10 +239,15 @@ def _worker_loop(
         return output_path, seed
 
     # -------------------------------------------------------------------
-    # Handler: Outpaint (canvas expand → inpaint)
+    # Handler: Outpaint (Crop & Stitch inpaint approach)
+    # Expand canvas → crop boundary region → inpaint as "surrounded" mask
+    # → stitch back. Treats outpaint as inpaint so mask has context on all sides.
     # -------------------------------------------------------------------
     def _run_outpaint(kwargs, task_id):
+        """JoPD-style outpainting: PadImage + GrowMaskWithBlur + single inpaint."""
         import numpy as np
+        import cv2
+        import tempfile
         from PIL import Image as PILImage
 
         seed = resolve_seed(kwargs["seed"])
@@ -232,53 +257,110 @@ def _worker_loop(
 
         log.info("Outpaint direction=%s expand=%dpx seed=%d", dirs, expand_px, seed)
 
-        # Expand canvas
-        log.info("Outpaint: preparing expanded canvas...")
         image = PILImage.open(kwargs["image_path"]).convert("RGB")
         w, h = image.size
+        img_arr = np.array(image)
 
-        # Calculate new canvas
+        # --- Step 1: Pad Image — replicate edge pixels for tone continuity ---
         pad = {"Left": 0, "Right": 0, "Up": 0, "Down": 0}
         for d in dirs:
             pad[d] = expand_px
 
         new_w = w + pad["Left"] + pad["Right"]
         new_h = h + pad["Up"] + pad["Down"]
-        log.info("Outpaint: %sx%s -> %sx%s", w, h, new_w, new_h)
 
-        # Create expanded canvas + mask
-        canvas = PILImage.new("RGB", (new_w, new_h), (0, 0, 0))
-        canvas.paste(image, (pad["Left"], pad["Up"]))
+        canvas = cv2.copyMakeBorder(
+            img_arr, pad["Up"], pad["Down"], pad["Left"], pad["Right"],
+            cv2.BORDER_REPLICATE,
+        )
 
-        mask = PILImage.new("L", (new_w, new_h), 255)  # all white = regenerate
-        mask_arr = np.array(mask)
-        mask_arr[pad["Up"]:pad["Up"]+h, pad["Left"]:pad["Left"]+w] = 0  # original area = preserve
-        mask = PILImage.fromarray(mask_arr)
+        # Binary mask: 255=expansion (generate), 0=original (keep)
+        binary_mask = np.zeros((new_h, new_w), dtype=np.uint8)
+        if pad["Right"] > 0:
+            binary_mask[:, pad["Left"] + w:] = 255
+        if pad["Left"] > 0:
+            binary_mask[:, :pad["Left"]] = 255
+        if pad["Down"] > 0:
+            binary_mask[pad["Up"] + h:, :] = 255
+        if pad["Up"] > 0:
+            binary_mask[:pad["Up"], :] = 255
 
-        # Save temp files and delegate to inpaint
-        import tempfile
+        # --- Step 2: GrowMaskWithBlur (JoPD core technique) ---
+        mask_grow = int(kwargs.get("mask_grow", 40))
+        mask_blur = int(kwargs.get("mask_blur", 30))
+
+        if mask_grow > 0:
+            kernel = cv2.getStructuringElement(
+                cv2.MORPH_ELLIPSE, (2 * mask_grow + 1, 2 * mask_grow + 1)
+            )
+            mask = cv2.dilate(binary_mask, kernel, iterations=1)
+        else:
+            mask = binary_mask.copy()
+
+        if mask_blur > 0:
+            blur_k = mask_blur * 2 + 1
+            mask = cv2.GaussianBlur(mask, (blur_k, blur_k), 0)
+
+        log.info("Outpaint: %sx%s -> %sx%s GrowMask(grow=%d, blur=%d)",
+                 w, h, new_w, new_h, mask_grow, mask_blur)
+
+        # --- Step 3: Single inpaint pass ---
+        gen_w = (new_w // 16) * 16
+        gen_h = (new_h // 16) * 16
+
         tmp_img = tempfile.NamedTemporaryFile(suffix=".png", delete=False, dir=str(OUTPUT_DIR))
-        canvas.save(tmp_img.name)
+        PILImage.fromarray(canvas).save(tmp_img.name)
         tmp_img.close()
-
         tmp_mask = tempfile.NamedTemporaryFile(suffix=".png", delete=False, dir=str(OUTPUT_DIR))
-        mask.save(tmp_mask.name)
+        PILImage.fromarray(mask).save(tmp_mask.name)
         tmp_mask.close()
 
-        # Align to 16px multiples
-        new_w = (new_w // 16) * 16
-        new_h = (new_h // 16) * 16
-
-        log.info("Outpaint: running inpaint pipeline at %sx%s...", new_w, new_h)
         inpaint_kwargs = {
-            **kwargs,
+            "prompt": kwargs["prompt"],
+            "negative_prompt": kwargs.get("negative_prompt"),
             "image_path": tmp_img.name,
             "mask_path": tmp_mask.name,
-            "width": new_w,
-            "height": new_h,
+            "width": gen_w, "height": gen_h,
             "seed": seed,
+            "denoise": float(kwargs.get("denoise", 1.0)),
+            "num_steps": int(kwargs.get("num_steps", 8)),
+            "guidance_scale": float(kwargs.get("guidance_scale", 1.0)),
+            "cfg_truncation": float(kwargs.get("cfg_truncation", 1.0)),
+            "control_scale": float(kwargs.get("control_scale", 0.7)),
+            "control_step_cutoff": float(kwargs.get("control_step_cutoff", 0.7)),
+            "time_shift": float(kwargs.get("time_shift", 3.0)),
+            "max_sequence_length": int(kwargs.get("max_sequence_length", 512)),
+            "need_controlnet": True,
         }
-        return _run_inpaint(inpaint_kwargs, task_id)
+        if kwargs.get("lora_stack"):
+            inpaint_kwargs["lora_stack"] = kwargs["lora_stack"]
+
+        result_path, _ = _run_inpaint(inpaint_kwargs, task_id)
+        result_path = result_path if isinstance(result_path, str) else result_path[0]
+
+        for f in [tmp_img.name, tmp_mask.name]:
+            try: Path(f).unlink(missing_ok=True)
+            except: pass
+
+        result_img = PILImage.open(result_path).convert("RGB")
+        result_arr = np.array(result_img)
+        if result_arr.shape[0] != new_h or result_arr.shape[1] != new_w:
+            result_arr = cv2.resize(result_arr, (new_w, new_h), interpolation=cv2.INTER_LANCZOS4)
+
+        # Remove intermediate inpaint file (outpaint saves its own)
+        try:
+            Path(result_path).unlink(missing_ok=True)
+            json_p = Path(result_path).with_suffix(".json")
+            if json_p.exists():
+                json_p.unlink()
+        except Exception:
+            pass
+
+        output_path = make_output_path("outpaint")
+        PILImage.fromarray(result_arr).save(output_path, quality=95)
+        log.info("Outpaint: complete -> %s", output_path)
+
+        return output_path, seed
 
     # -------------------------------------------------------------------
     # Handler dispatch

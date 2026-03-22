@@ -203,16 +203,33 @@ def get_memory_status():
 # ---------------------------------------------------------------------------
 # History helpers
 # ---------------------------------------------------------------------------
+HISTORY_PAGE_SIZE = 50
+
+
+_IMAGE_EXTS = {"*.png", "*.jpg", "*.jpeg", "*.webp"}
+
+
 def list_outputs():
-    """List PNG output files sorted by modification time (newest first)."""
+    """List image output files sorted by modification time (newest first)."""
     out_dir = Path(OUTPUT_DIR)
     if not out_dir.exists():
         return []
-    files = sorted(
-        (f for f in out_dir.glob("*.png") if not f.name.startswith("tmp")),
-        key=lambda f: f.stat().st_mtime, reverse=True,
-    )
-    return [str(f) for f in files[:50]]
+    files = []
+    for ext in _IMAGE_EXTS:
+        files.extend(f for f in out_dir.glob(ext) if not f.name.startswith("tmp") and not f.name.startswith("_"))
+    files.sort(key=lambda f: f.stat().st_mtime, reverse=True)
+    return [str(f) for f in files]
+
+
+def list_outputs_paged(page: int = 0):
+    """Return one page of outputs + total page count."""
+    all_files = list_outputs()
+    total = len(all_files)
+    total_pages = max(1, (total + HISTORY_PAGE_SIZE - 1) // HISTORY_PAGE_SIZE)
+    page = max(0, min(page, total_pages - 1))
+    start = page * HISTORY_PAGE_SIZE
+    end = start + HISTORY_PAGE_SIZE
+    return all_files[start:end], page, total_pages, total
 
 
 def get_file_info(file_path):

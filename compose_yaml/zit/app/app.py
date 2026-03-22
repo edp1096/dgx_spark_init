@@ -12,16 +12,14 @@ import gradio as gr
 
 from generators import (
     get_gen_info_for_tab,
-    get_gen_ui_params,
     get_loading_status,
     get_worker_mgr,
-    wait_for_gen_completion,
 )
 from helpers import get_memory_status
 from i18n import get_i18n_js
 from tab_generate import build_generate_tab
 from tab_inpaint import build_inpaint_tab
-from tab_train import build_train_tab, get_restore_train_params
+from tab_train import build_train_tab
 from tab_settings import build_settings_tab
 from tab_history import build_history_tab
 
@@ -54,12 +52,22 @@ _CUSTOM_CSS = """
   max-height: 180px;
   object-fit: contain;
 }
-#history-info-col { display: flex; flex-direction: column; min-height: calc(100vh - 260px); }
-#history-info-col > div { width: 100%; }
-#history-file-info { flex: 1; display: flex; flex-direction: column; min-height: 0; }
-#history-file-info > label { flex: 1; display: flex; flex-direction: column; min-height: 0; }
-#history-file-info .input-container { flex: 1; display: flex; flex-direction: column; min-height: 0; }
-#history-file-info textarea { flex: 1; height: 100% !important; min-height: 0; }
+#history-page-info { text-align: right !important; }
+#history-page-info .prose { text-align: right !important; }
+#history-info-col { display: flex; flex-direction: column; height: 100%; }
+#history-file-info { flex: 1; display: flex; flex-direction: column; height: 100% !important; }
+#history-file-info label { flex: 1; display: flex; flex-direction: column; height: 100%; }
+#history-file-info textarea { flex: 1; height: 100% !important; }
+/* History: remove bottom dead space — target gallery container only */
+#history-gallery .grid-wrap.fixed-height {
+  max-height: calc(100vh - 300px) !important;
+  overflow-y: auto !important;
+}
+#history-gallery .preview img {
+  max-height: calc(100vh - 300px) !important;
+  object-fit: contain;
+}
+#history-file-info textarea { height: calc(100vh - 400px) !important; min-height: 100px; }
 @media (max-width: 768px) {
   #history-gallery .thumbnails { grid-template-columns: repeat(2, 1fr) !important; }
 }
@@ -148,86 +156,10 @@ def build_ui() -> gr.Blocks:
         h_tab.select(fn=_hide_sidebar, outputs=[settings_sidebar])
 
         # ---------------------------------------------------------------
-        # Page load: restore params if generation/training is in progress
+        # NOTE: No app.load() — it triggers full Gradio re-render on
+        # page load, destroying ImageEditor's PixiJS canvas.
+        # Refresh recovery is not supported; use History tab instead.
         # ---------------------------------------------------------------
-        def _restore_gen_params():
-            """Restore Generate tab params on refresh during generation."""
-            skip = tuple([gr.update()] * 14)
-            is_active, gen_type, p = get_gen_ui_params()
-            if not is_active or not p or p.get("tab") != "generate":
-                return skip
-            return (
-                p["prompt"], p["neg"], p["resolution"],
-                p["seed"], p["num_images"],
-                p["steps"], p["time_shift"],
-                p["cfg"], p["cfg_norm"], p["cfg_trunc"],
-                p["max_seq"], p["use_fp8"], p["attn"],
-                p["lora_enable"],
-            )
-
-        def _restore_ip_params():
-            """Restore Inpaint tab params on refresh during generation."""
-            skip = tuple([gr.update()] * 12)
-            is_active, gen_type, p = get_gen_ui_params()
-            if not is_active or not p or p.get("tab") != "inpaint":
-                return skip
-            return (
-                p["prompt"], p["neg"], p["resolution"],
-                p["seed"],
-                p["steps"], p["time_shift"],
-                p["control_scale"], p["guidance"],
-                p["cfg_trunc"], p["max_seq"],
-                p["use_controlnet"],
-                p["lora_enable"],
-            )
-
-        def _recover_gallery():
-            """Block until ongoing generation completes, then update gallery."""
-            is_active, _, _ = get_gen_ui_params()
-            if not is_active:
-                return gr.update(), gr.update()
-
-            result = wait_for_gen_completion(timeout=600)
-            if not result:
-                return gr.update(), gr.update()
-
-            paths = result["paths"]
-            gen_type = result["gen_type"]
-            if gen_type in ("zit_t2i", "controlnet"):
-                return gr.Gallery(value=paths, selected_index=0), gr.update()
-            elif gen_type in ("inpaint", "outpaint"):
-                return gr.update(), paths[0] if paths else None
-            return gr.update(), gr.update()
-
-        app.load(
-            fn=_restore_gen_params,
-            outputs=[gen["prompt"], gen["neg"], gen["resolution"],
-                     gen["seed"], gen["num_images"],
-                     gen["steps"], gen["time_shift"],
-                     gen["cfg"], gen["cfg_norm"], gen["cfg_trunc"],
-                     gen["max_seq"], gen["use_fp8"], gen["attn"],
-                     gen["lora_enable"]],
-        )
-        app.load(
-            fn=_restore_ip_params,
-            outputs=[ip["prompt"], ip["neg"], ip["resolution"],
-                     ip["seed"],
-                     ip["steps"], ip["time_shift"],
-                     ip["control_scale"], ip["guidance"],
-                     ip["cfg_trunc"], ip["max_seq"],
-                     ip["use_controlnet"],
-                     ip["lora_enable"]],
-        )
-        app.load(
-            fn=_recover_gallery,
-            outputs=[gen["gallery"], ip["result"]],
-        )
-        app.load(
-            fn=get_restore_train_params,
-            outputs=[tr["dataset"], tr["name"], tr["steps"], tr["rank"],
-                     tr["lr"], tr["lora_alpha"], tr["resolution"],
-                     tr["batch"], tr["grad_accum"], tr["save_every"], tr["targets"]],
-        )
 
         # ---------------------------------------------------------------
         # Polling via gr.Timer — MUST be outside Tab context.
