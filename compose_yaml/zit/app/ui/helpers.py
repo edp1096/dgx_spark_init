@@ -272,7 +272,7 @@ def delete_selected(file_path, sel_idx):
 
 
 def download_all():
-    """Zip all output images for download."""
+    """Zip all output images + metadata for download."""
     images = list_outputs()
     if not images:
         return gr.update(value=None, visible=False)
@@ -280,6 +280,9 @@ def download_all():
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_STORED) as zf:
         for img in images:
             zf.write(img, Path(img).name)
+            json_path = Path(img).with_suffix(".json")
+            if json_path.exists():
+                zf.write(str(json_path), json_path.name)
     return gr.update(value=str(zip_path), visible=True)
 
 
