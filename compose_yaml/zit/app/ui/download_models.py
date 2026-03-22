@@ -1,7 +1,6 @@
-"""Model download, FP8 conversion, and status checker for ZIT.
+"""Model download and status checker for ZIT.
 
-Downloads Z-Image Turbo (BF16 → FP8 convert, keep BF16 for LoRA training),
-ControlNet Union, and preprocessor weights.
+Downloads Z-Image Turbo (BF16), ControlNet Union, and preprocessor weights.
 """
 
 import os
@@ -34,121 +33,19 @@ from zit_config import (
     ZIMAGE_TURBO_REPO,
 )
 
-FP8_TRANSFORMER_FILENAME = "model_fp8.safetensors"
-
-
-# ---------------------------------------------------------------------------
-# Z-Image Turbo download (BF16 → in-place FP8 conversion)
-# ---------------------------------------------------------------------------
 def download_zimage_turbo(model_dir: Path | None = None):
     model_dir = model_dir or MODEL_DIR
     dest = model_dir / ZIMAGE_TURBO_DIR
-    fp8_file = dest / FP8_TRANSFORMER_FILENAME
-    if fp8_file.exists():
-        print(f"[OK] Z-Image-Turbo (FP8) already exists")
+    if dest.exists() and any(dest.rglob("*.safetensors")):
+        print(f"[OK] Z-Image-Turbo (BF16) already exists")
         return
-    if not dest.exists() or not any(dest.rglob("*.safetensors")):
-        print(f"[DL] Downloading Z-Image-Turbo -> {dest}")
-        snapshot_download(
-            ZIMAGE_TURBO_REPO,
-            local_dir=str(dest),
-            ignore_patterns=["*.md", ".gitattributes"],
-        )
-    convert_zimage_fp8(dest, "Z-Image-Turbo")
-
-
-# ---------------------------------------------------------------------------
-# Z-Image FP8 in-place conversion
-# ---------------------------------------------------------------------------
-def convert_zimage_fp8(model_path: Path, label: str):
-    """Convert transformer BF16 → FP8, keep BF16 originals for LoRA training.
-
-    Result: model_path/model_fp8.safetensors (FP8) + model_path/transformer/ (BF16 shards)
-    """
-    import torch
-    from safetensors.torch import save_file
-    from helpers import fast_load_file
-
-    transformer_dir = model_path / "transformer"
-    fp8_file = model_path / FP8_TRANSFORMER_FILENAME
-
-    if fp8_file.exists():
-        print(f"[OK] {label} FP8 already converted")
-        return
-
-    if not transformer_dir.exists():
-        print(f"[SKIP] {label} transformer dir not found")
-        return
-
-    print(f"[CVT] Converting {label} transformer to FP8 (in-place)...")
-
-    # Load all BF16 transformer safetensors (may be sharded)
-    state_dict = {}
-    index_files = list(transformer_dir.glob("*.safetensors.index.json"))
-    bf16_files = []
-
-    if index_files:
-        import json
-        with open(index_files[0]) as f:
-            index = json.load(f)
-        shard_files = set(index.get("weight_map", {}).values())
-        for shard in shard_files:
-            shard_path = transformer_dir / shard
-            shard_dict = fast_load_file(str(shard_path), device="cpu")
-            state_dict.update(shard_dict)
-            bf16_files.append(shard_path)
-        bf16_files.extend(index_files)
-    else:
-        for sf in transformer_dir.glob("*.safetensors"):
-            if sf.name == FP8_TRANSFORMER_FILENAME:
-                continue
-            shard_dict = fast_load_file(str(sf), device="cpu")
-            state_dict.update(shard_dict)
-            bf16_files.append(sf)
-
-    if not state_dict:
-        print(f"[ERR] No safetensors files found in {transformer_dir}")
-        return
-
-    LINEAR_WEIGHT_SUFFIXES = (
-        ".to_q.weight", ".to_k.weight", ".to_v.weight",
-        ".to_out.0.weight",
-        ".w1.weight", ".w2.weight", ".w3.weight",
-        ".linear.weight",
-        "adaLN_modulation.0.weight",
-        "cap_embedder.0.weight",
-        "x_embedder.weight",
-        "mlp.0.weight", "mlp.2.weight",
+    print(f"[DL] Downloading Z-Image-Turbo -> {dest}")
+    snapshot_download(
+        ZIMAGE_TURBO_REPO,
+        local_dir=str(dest),
+        ignore_patterns=["*.md", ".gitattributes"],
     )
-
-    fp8_dict = {}
-    converted = 0
-    for key, tensor in state_dict.items():
-        is_linear_weight = (
-            tensor.is_floating_point()
-            and tensor.ndim == 2
-            and any(key.endswith(s) for s in LINEAR_WEIGHT_SUFFIXES)
-        )
-        if is_linear_weight:
-            w_float = tensor.float()
-            w_absmax = w_float.abs().amax().clamp(min=1e-12)
-            weight_scale = w_absmax / 448.0
-            fp8_dict[key] = (w_float / weight_scale).to(torch.float8_e4m3fn)
-            fp8_dict[key.replace(".weight", ".weight_scale")] = weight_scale
-            converted += 1
-        else:
-            fp8_dict[key] = tensor
-
-    print(f"  Converted {converted} Linear weights to FP8 (normalized)")
-
-    save_file(fp8_dict, str(fp8_file))
-    size_gb = fp8_file.stat().st_size / 1024**3
-    print(f"[OK] {label} FP8 saved: {fp8_file.name} ({size_gb:.1f} GB)")
-    del state_dict, fp8_dict
-
-    # Keep BF16 originals for LoRA training (BF16 weights needed for gradient flow)
-    bf16_size = sum(f.stat().st_size for f in bf16_files if f.exists() and f.suffix == ".safetensors") / 1024**3
-    print(f"[OK] BF16 originals kept for LoRA training ({bf16_size:.1f} GB)")
+    print(f"[OK] Z-Image-Turbo downloaded")
 
 
 # ---------------------------------------------------------------------------
@@ -244,12 +141,9 @@ def check_status(model_dir: Path | None = None):
 
     # Z-Image Turbo
     turbo_path = model_dir / ZIMAGE_TURBO_DIR
-    turbo_fp8 = turbo_path / FP8_TRANSFORMER_FILENAME
-    if turbo_fp8.exists():
-        size = turbo_fp8.stat().st_size / 1024**3
-        print(f"  [OK] Z-Image-Turbo (FP8, {size:.1f} GB)")
-    elif turbo_path.exists():
-        print(f"  [WARN] Z-Image-Turbo (BF16 — needs FP8 conversion)")
+    if turbo_path.exists() and any(turbo_path.rglob("*.safetensors")):
+        size = sum(f.stat().st_size for f in turbo_path.rglob("*.safetensors")) / 1024**3
+        print(f"  [OK] Z-Image-Turbo (BF16, {size:.1f} GB)")
     else:
         print(f"  [MISSING] Z-Image-Turbo")
 
