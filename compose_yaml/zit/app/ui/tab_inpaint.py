@@ -343,6 +343,7 @@ def build_inpaint_tab():
             step_cutoff=float(step_cutoff),
             mask_grow=int(outpaint_grow),
             mask_blur=int(outpaint_blur),
+            denoise=float(denoise),
             progress=progress,
         )
         return paths[0] if paths else None, info
