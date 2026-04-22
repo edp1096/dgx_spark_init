@@ -236,7 +236,7 @@ ENV PATH=$VLLM_BASE_DIR:$PATH
 
 # Runtime deps
 RUN --mount=type=cache,id=uv-cache,target=/root/.cache/uv \
-    uv pip install ray[default] fastsafetensors
+    uv pip install ray[default] fastsafetensors instanttensor
 
 # Fix NCCL symlink (custom build vs pip-installed nvidia-nccl)
 RUN rm -f /usr/local/lib/python3.12/dist-packages/nvidia/nccl/lib/libnccl.so.2 && \
