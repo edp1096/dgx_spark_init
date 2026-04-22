@@ -1,7 +1,7 @@
 services:
   heretic:
     # image: "vllm/vllm-openai:cu130-nightly-aarch64"
-    image: "edp1096/vllm-node:v1"
+    image: "edp1096/vllm-qwen36:v1"
     container_name: weights_abliterator
     ipc: host
     environment:
