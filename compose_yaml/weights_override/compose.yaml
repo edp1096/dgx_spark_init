@@ -11,7 +11,7 @@ services:
       - ORIGINAL_MODEL=Qwen/Qwen3.6-35B-A3B
       - ABLITERATED_MODEL=huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated
       - FP8_MODEL=Qwen/Qwen3.6-35B-A3B-FP8
-      - OUTPUT_NAME=Huihui-Qwen3.5-27B-abliterated-FP8
+      - OUTPUT_NAME=Huihui-Qwen3.6-35B-A3B-abliterated-FP8
 
       # - ORIGINAL_MODEL=Qwen/Qwen3.5-35B-A3B
       # - ABLITERATED_MODEL=huihui-ai/Huihui-Qwen3.5-35B-A3B-abliterated
