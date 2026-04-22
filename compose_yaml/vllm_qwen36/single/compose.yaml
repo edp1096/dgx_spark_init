@@ -1,0 +1,47 @@
+services:
+  vllm:
+    image: "edp1096/vllm-qwen36:v1"
+    container_name: vllm-qwen36
+    network_mode: "host"
+    ipc: "host"
+    volumes:
+      - "/home/edp1096/.cache/huggingface:/root/.cache/huggingface"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    environment:
+      - VLLM_USE_V1=1
+      - NCCL_IGNORE_CPU_AFFINITY=1
+      - VLLM_MARLIN_USE_ATOMIC_ADD=1
+      - PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+      # - HF_TOKEN=YOUR_HF_TOKEN_HERE
+    entrypoint: vllm serve
+    command: >
+      Qwen/Qwen3.6-35B-A3B-FP8
+      --host 0.0.0.0
+      --port 8000
+      --max-model-len 131072
+      --gpu-memory-utilization 0.85
+      --max-num-seqs 8
+      --max-num-batched-tokens 8192
+      --quantization fp8
+      --kv-cache-dtype fp8
+      --attention-backend flashinfer
+      --distributed-executor-backend mp
+      --served-model-name my-model
+      --enable-prefix-caching
+      --enable-auto-tool-choice
+      --tool-call-parser qwen3_xml
+      --reasoning-parser qwen3
+      --default-chat-template-kwargs '{"preserve_thinking": true}'
+      --trust-remote-code
+
+    # max-model-len / max-num-seqs 조합 가이드 (120GiB 기준, FP8 KV cache):
+    #   131072 (128K) + max-num-seqs 8  = 안전 (기본값)
+    #   262144 (256K) + max-num-seqs 4  = 빠듯, 모델 네이티브 풀 컨텍스트
+    #   65536  (64K)  + max-num-seqs 16 = 동시접속 우선
+    # max-model-len을 올리면 max-num-seqs를 낮춰야 OOM 방지
