@@ -9,7 +9,11 @@
 # @model = nvidia/Qwen3-8B-NVFP4
 # @model = QuantTrio/MiniMax-M2-AWQ
 # @model = Qwen/Qwen3.5-27B
-@model = Qwen/Qwen3.6-35B-A3B-FP8
+# @model = Qwen/Qwen3.6-35B-A3B-FP8
+# @model = /root/.cache/huggingface/hub/models--edp1096--Huihui-Qwen3.6-35B-A3B-abliterated-FP8
+
+# @model = RedHatAI/gemma-4-31B-it-FP8-block
+@model = edp1096/Huihui-Qwen3.6-35B-A3B-abliterated-FP8
 
 ### Korean greeting test
 POST {{uri}}/v1/chat/completions
