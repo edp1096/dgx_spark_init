@@ -241,3 +241,18 @@ RUN --mount=type=cache,id=uv-cache,target=/root/.cache/uv \
 # Fix NCCL symlink (custom build vs pip-installed nvidia-nccl)
 RUN rm -f /usr/local/lib/python3.12/dist-packages/nvidia/nccl/lib/libnccl.so.2 && \
     ln -s /usr/lib/aarch64-linux-gnu/libnccl.so.2 /usr/local/lib/python3.12/dist-packages/nvidia/nccl/lib/libnccl.so.2
+
+# Cleanup build-time ENV (keep DG_JIT_USE_NVRTC for DeepGemm runtime JIT)
+ENV VLLM_BASE_DIR= \
+    MAX_JOBS= \
+    CMAKE_BUILD_PARALLEL_LEVEL= \
+    NINJAFLAGS= \
+    MAKEFLAGS= \
+    USE_CUDNN= \
+    DEBIAN_FRONTEND= \
+    PIP_BREAK_SYSTEM_PACKAGES= \
+    PIP_CACHE_DIR= \
+    UV_CACHE_DIR= \
+    UV_SYSTEM_PYTHON= \
+    UV_BREAK_SYSTEM_PACKAGES= \
+    UV_LINK_MODE=
