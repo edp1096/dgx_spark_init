@@ -1,0 +1,66 @@
+services:
+  vllm-head:
+    image: "edp1096/vllm-qwen36:v1"
+    container_name: vllm-qwen36-head
+    network_mode: "host"
+    ipc: "host"
+    volumes:
+      - "/home/edp1096/.cache/huggingface:/root/.cache/huggingface"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    environment:
+      - VLLM_HOST_IP=169.254.141.58
+      - RAY_GCS_STORAGE=memory
+      - UCX_NET_DEVICES=enp1s0f0np0
+      - NCCL_SOCKET_IFNAME=enp1s0f0np0
+      - GLOO_SOCKET_IFNAME=enp1s0f0np0
+      - TP_SOCKET_IFNAME=enp1s0f0np0
+      - OMPI_MCA_btl_tcp_if_include=enp1s0f0np0
+      - NCCL_IB_HCA=rocep1s0f0,roceP2p1s0f0
+      - NCCL_IB_DISABLE=0
+      - NCCL_IGNORE_CPU_AFFINITY=1
+      - MASTER_ADDR=169.254.141.58
+      - RAY_memory_monitor_refresh_ms=0
+      - RAY_memory_usage_threshold=0.99
+      - VLLM_MARLIN_USE_ATOMIC_ADD=1
+      - PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+      # - HF_TOKEN=YOUR_HF_TOKEN_HERE
+    entrypoint: ""
+    command: >
+      bash -c "
+      ray start
+      --head
+      --node-ip-address=169.254.141.58 --port=6379
+      --disable-usage-stats
+      --include-dashboard=False --dashboard-host=0.0.0.0 --dashboard-port=8265 &&
+      sleep 5 &&
+      vllm serve
+      Qwen/Qwen3.6-35B-A3B-FP8
+      --host 0.0.0.0
+      --port 8000
+      --distributed-executor-backend ray
+      --tensor-parallel-size 2
+      --max-model-len 131072
+      --gpu-memory-utilization 0.85
+      --max-num-seqs 8
+      --max-num-batched-tokens 8192
+      --quantization fp8
+      --kv-cache-dtype fp8
+      --attention-backend flashinfer
+      --enable-prefix-caching
+      --enable-auto-tool-choice
+      --tool-call-parser qwen3_xml
+      --reasoning-parser qwen3
+      --default-chat-template-kwargs '{\"preserve_thinking\": true}'
+      --trust-remote-code
+      "
+
+    # max-model-len / max-num-seqs 조합 가이드 (tp=2, 240GiB 총 메모리 기준):
+    #   131072 (128K) + max-num-seqs 8  = 안전 (기본값)
+    #   262144 (256K) + max-num-seqs 8  = tp=2라 여유 있음
+    #   524288 (512K) + max-num-seqs 4  = 대용량 컨텍스트

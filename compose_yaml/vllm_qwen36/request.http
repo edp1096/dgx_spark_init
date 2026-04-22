@@ -1,4 +1,6 @@
 @uri = http://192.168.100.60:8000
+
+# @model = my-model
 # @model = Qwen/Qwen2.5-Math-1.5B-Instruct
 # @model = openai/gpt-oss-120b
 # @model = nvidia/Llama-3.3-70B-Instruct-NVFP4
@@ -7,8 +9,7 @@
 # @model = nvidia/Qwen3-8B-NVFP4
 # @model = QuantTrio/MiniMax-M2-AWQ
 # @model = Qwen/Qwen3.5-27B
-# @model = Qwen/Qwen3.6-35B-A3B-FP8
-@model = my-model
+@model = Qwen/Qwen3.6-35B-A3B-FP8
 
 ### Korean greeting test
 POST {{uri}}/v1/chat/completions
