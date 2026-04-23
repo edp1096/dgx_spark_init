@@ -24,7 +24,7 @@ services:
     command: >
       sakamakismile/Huihui-Qwen3.6-35B-A3B-abliterated-NVFP4
       --host 0.0.0.0
-      --port 8000
+      --port 8001
       --max-model-len 131072
       --max-num-seqs 128
       --gpu-memory-utilization 0.60

@@ -1,4 +1,5 @@
-@uri = http://192.168.100.60:8000
+# @uri = http://192.168.100.60:8000
+@uri = http://192.168.100.60:8001
 
 # @model = my-model
 # @model = Qwen/Qwen2.5-Math-1.5B-Instruct
@@ -29,7 +30,7 @@ Content-Type: application/json
   "messages": [
     {
         "role": "user",
-        "content": "안녕? 너는 누구야? DGX Spark에서 잘 돌아가고 있어?"
+        "content": "안녕? 너는 누구야? DGX Spark에서 잘 돌아가고 있어? 윈도우 기준 dir 실행."
     }
   ]
 }

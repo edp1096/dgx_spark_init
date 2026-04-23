@@ -29,7 +29,7 @@ Content-Type: application/json
   "messages": [
     {
         "role": "user",
-        "content": "나는 구멍가게 사장이다. Cadence OrCAD와 Siemens Pads, Siemens Expedition, Zuken CR Series 그리고 KiCAD 중에서 어떤 툴이 PCB 설계에 더 적합할까?"
+        "content": "나는 좋소기업 사장이다. Cadence OrCAD와 Siemens Pads, Siemens Expedition, Zuken CR Series 그리고 KiCAD 중에서 어떤 툴이 PCB 설계에 더 적합할까?"
     }
   ]
 }
