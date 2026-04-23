@@ -13,7 +13,12 @@
 # @model = /root/.cache/huggingface/hub/models--edp1096--Huihui-Qwen3.6-35B-A3B-abliterated-FP8
 
 # @model = RedHatAI/gemma-4-31B-it-FP8-block
-@model = edp1096/Huihui-Qwen3.6-35B-A3B-abliterated-FP8
+# @model = RedHatAI/Qwen3.6-35B-A3B-NVFP4
+# @model = edp1096/Huihui-Qwen3.6-35B-A3B-abliterated-FP8
+@model = sakamakismile/Huihui-Qwen3.6-35B-A3B-abliterated-NVFP4
+
+### List models
+GET {{uri}}/v1/models
 
 ### Korean greeting test
 POST {{uri}}/v1/chat/completions

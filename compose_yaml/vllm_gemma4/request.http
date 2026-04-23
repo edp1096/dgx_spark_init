@@ -3,6 +3,9 @@
 @model = RedHatAI/gemma-4-26B-A4B-it-NVFP4
 # @model = AEON-7/Gemma-4-26B-A4B-it-Uncensored-NVFP4
 
+### List models
+GET {{uri}}/v1/models
+
 ### Korean greeting test
 POST {{uri}}/v1/chat/completions
 Content-Type: application/json
@@ -13,6 +16,20 @@ Content-Type: application/json
     {
         "role": "user",
         "content": "안녕? 너는 누구야? DGX Spark에서 잘 돌아가고 있어?"
+    }
+  ]
+}
+
+### Korean PCB question
+POST {{uri}}/v1/chat/completions
+Content-Type: application/json
+
+{
+  "model": "{{model}}",
+  "messages": [
+    {
+        "role": "user",
+        "content": "나는 구멍가게 사장이다. Cadence OrCAD와 Siemens Pads, Siemens Expedition, Zuken CR Series 그리고 KiCAD 중에서 어떤 툴이 PCB 설계에 더 적합할까?"
     }
   ]
 }

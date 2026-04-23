@@ -1,0 +1,57 @@
+services:
+  vllm:
+    image: "ghcr.io/aeon-7/vllm-spark-gemma4-nvfp4:latest"
+    container_name: vllm-qwen36-nvfp4
+    network_mode: "host"
+    ipc: "host"
+    environment:
+      - PYTHONWARNINGS=ignore
+      - PYTHONUNBUFFERED=1
+      - HF_TOKEN=${HF_TOKEN}
+      - NCCL_IGNORE_CPU_AFFINITY=1
+      - VLLM_MARLIN_USE_ATOMIC_ADD=1
+      - PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+    volumes:
+      - "/home/edp1096/.cache/huggingface:/root/.cache/huggingface"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    entrypoint: vllm serve
+    command: >
+      sakamakismile/Huihui-Qwen3.6-35B-A3B-abliterated-NVFP4
+      --host 0.0.0.0
+      --port 8000
+      --max-model-len 131072
+      --max-num-seqs 128
+      --gpu-memory-utilization 0.60
+      --kv-cache-dtype fp8
+      --enable-chunked-prefill
+      --max-num-batched-tokens 131072
+      --load-format safetensors
+      --attention-backend flashinfer
+      --distributed-executor-backend mp
+      --enable-prefix-caching
+      --enable-auto-tool-choice
+      --tool-call-parser qwen3_xml
+      --reasoning-parser qwen3
+      --default-chat-template-kwargs '{"preserve_thinking": true}'
+      --trust-remote-code
+
+    # 모델 선택:
+    #   sakamakismile/Huihui-Qwen3.6-35B-A3B-abliterated-NVFP4 — Abliterated NVFP4 (compressed-tensors, ~22GB)
+    #   RedHatAI/Qwen3.6-35B-A3B-NVFP4                        — RedHat NVFP4 (compressed-tensors, ~22GB)
+
+    # FP8 대비 변경점:
+    #   --quantization fp8 제거 (compressed-tensors 자동 감지)
+    #   --load-format safetensors (fastsafetensors 불가, compressed-tensors 포맷)
+    #   --gpu-memory-utilization 0.60 (모델 ~22GB로 작아져서 여유, 0.80 초과 금지)
+    #   이미지: AEON-7 (SM 12.1 NVFP4 GEMM 지원)
+
+    # gpu-memory-utilization 조정:
+    #   0.60 = 안전 (기본)
+    #   0.70 = 더 많은 KV cache, 동시접속 증가
+    #   0.80 초과 금지 (DGX Spark 시스템 프리즈 위험)

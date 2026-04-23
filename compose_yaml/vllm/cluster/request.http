@@ -10,6 +10,9 @@
 # @model = QuantTrio/MiniMax-M2-AWQ
 @model = Qwen/Qwen3.5-27B
 
+### List models
+GET {{uri}}/v1/models
+
 ### Korean greeting test
 POST {{uri}}/v1/chat/completions
 Content-Type: application/json
