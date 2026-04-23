@@ -7,20 +7,9 @@ DGX Spark (GB10, sm_121a) 전용. AEON-7 커뮤니티 이미지 기반.
 - 예상 성능: Single ~45 tok/s, Dual ~55+ tok/s
 
 
-## 사전 준비
+## 사전 준비 (선택)
 
-### 1. 패치 파일 다운로드
-
-```sh
-cd patches
-curl -fLO https://raw.githubusercontent.com/ZengboJamesWang/dgx-spark-vllm-gemma4-26b-uncensored/main/patches/gemma4_patched.py
-```
-
-NVFP4 compressed-tensors 포맷 로딩에 필요한 vLLM gemma4.py 패치.
-
-
-### 2. 모델 다운로드 (선택)
-
+모델 사전 다운로드:
 ```sh
 huggingface-cli download RedHatAI/gemma-4-26B-A4B-it-NVFP4
 ```

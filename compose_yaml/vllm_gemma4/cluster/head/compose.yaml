@@ -6,7 +6,6 @@ services:
     ipc: "host"
     volumes:
       - "/home/edp1096/.cache/huggingface:/root/.cache/huggingface"
-      - "../../patches/gemma4_patched.py:/usr/local/lib/python3.12/dist-packages/vllm/model_executor/models/gemma4.py"
     deploy:
       resources:
         reservations:
@@ -34,6 +33,10 @@ services:
     entrypoint: ""
     command: >
       bash -c "
+      echo 'Applying gemma4_patched.py...' &&
+      curl -fsL -o /usr/local/lib/python3.12/dist-packages/vllm/model_executor/models/gemma4.py
+        https://raw.githubusercontent.com/edp1096/dgx_spark_init/refs/heads/main/compose_yaml/vllm_gemma4/patches/gemma4_patched.py &&
+      echo '- Done' &&
       cd /usr/local/lib/python3.12/dist-packages &&
       echo 'Applying PR #38909 (gemma4 tool parser fix)...' &&
       (curl -fsL https://patch-diff.githubusercontent.com/raw/vllm-project/vllm/pull/38909.diff | git apply --exclude='tests/*' 2>/dev/null && echo '- Applied' || echo '- Already applied or skipped') &&

@@ -6,7 +6,6 @@ services:
     ipc: "host"
     volumes:
       - "/home/edp1096/.cache/huggingface:/root/.cache/huggingface"
-      - "../../patches/gemma4_patched.py:/usr/local/lib/python3.12/dist-packages/vllm/model_executor/models/gemma4.py"
     deploy:
       resources:
         reservations:
