@@ -29,13 +29,12 @@ services:
       - RAY_memory_usage_threshold=0.99
       - VLLM_MARLIN_USE_ATOMIC_ADD=1
       - PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
-      # - HF_TOKEN=YOUR_HF_TOKEN_HERE
+      - HF_TOKEN=${HF_TOKEN}
     entrypoint: ""
     command: >
       bash -c "
       echo 'Applying gemma4_patched.py...' &&
-      curl -fsL -o /usr/local/lib/python3.12/dist-packages/vllm/model_executor/models/gemma4.py
-        https://raw.githubusercontent.com/edp1096/dgx_spark_init/refs/heads/main/compose_yaml/vllm_gemma4/patches/gemma4_patched.py &&
+      curl -fsL -o /usr/local/lib/python3.12/dist-packages/vllm/model_executor/models/gemma4.py https://raw.githubusercontent.com/edp1096/dgx_spark_init/refs/heads/main/compose_yaml/vllm_gemma4/patches/gemma4_patched.py &&
       echo '- Done' &&
       cd /usr/local/lib/python3.12/dist-packages &&
       echo 'Applying PR #38909 (gemma4 tool parser fix)...' &&
