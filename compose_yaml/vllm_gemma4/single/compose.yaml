@@ -1,0 +1,55 @@
+services:
+  vllm:
+    image: "ghcr.io/aeon-7/vllm-spark-gemma4-nvfp4:latest"
+    container_name: vllm-gemma4
+    network_mode: "host"
+    ipc: "host"
+    environment:
+      - PYTHONWARNINGS=ignore
+      - PYTHONUNBUFFERED=1
+      - NCCL_IGNORE_CPU_AFFINITY=1
+      - VLLM_MARLIN_USE_ATOMIC_ADD=1
+      - PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+      # - HF_TOKEN=YOUR_HF_TOKEN_HERE
+    volumes:
+      - "/home/edp1096/.cache/huggingface:/root/.cache/huggingface"
+      - "../patches/gemma4_patched.py:/usr/local/lib/python3.12/dist-packages/vllm/model_executor/models/gemma4.py"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    entrypoint: ""
+    command: >
+      bash -c "
+      cd /usr/local/lib/python3.12/dist-packages &&
+      echo 'Applying PR #38909 (gemma4 tool parser fix)...' &&
+      (curl -fsL https://patch-diff.githubusercontent.com/raw/vllm-project/vllm/pull/38909.diff | git apply --exclude='tests/*' 2>/dev/null && echo '- Applied' || echo '- Already applied or skipped') &&
+      exec vllm serve
+      RedHatAI/gemma-4-26B-A4B-it-NVFP4
+      --host 0.0.0.0
+      --port 8000
+      --tensor-parallel-size 1
+      --max-model-len 262000
+      --max-num-seqs 128
+      --gpu-memory-utilization 0.60
+      --kv-cache-dtype fp8
+      --enable-chunked-prefill
+      --max-num-batched-tokens 131072
+      --load-format safetensors
+      --enable-prefix-caching
+      --enable-auto-tool-choice
+      --tool-call-parser gemma4
+      --reasoning-parser gemma4
+      --trust-remote-code
+      "
+
+    # 모델 선택:
+    #   RedHatAI/gemma-4-26B-A4B-it-NVFP4          — RedHat NVFP4 (compressed-tensors, ~16GB)
+    #   AEON-7/Gemma-4-26B-A4B-it-Uncensored-NVFP4 — Uncensored NVFP4
+
+    # gpu-memory-utilization 0.60 = ~47GB 사용, 262K 컨텍스트 유지
+    # 기본 0.7로 올리면 더 많은 동시접속 가능하지만 시스템 프리즈 위험
+    # 0.80 초과 금지 (DGX Spark C2C 이슈로 시스템 프리즈 가능)

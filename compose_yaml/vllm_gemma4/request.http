@@ -1,0 +1,79 @@
+@uri = http://192.168.100.60:8000
+
+@model = RedHatAI/gemma-4-26B-A4B-it-NVFP4
+# @model = AEON-7/Gemma-4-26B-A4B-it-Uncensored-NVFP4
+
+### Korean greeting test
+POST {{uri}}/v1/chat/completions
+Content-Type: application/json
+
+{
+  "model": "{{model}}",
+  "messages": [
+    {
+        "role": "user",
+        "content": "안녕? 너는 누구야? DGX Spark에서 잘 돌아가고 있어?"
+    }
+  ]
+}
+
+### GPU haiku in English
+POST {{uri}}/v1/chat/completions
+Content-Type: application/json
+
+{
+  "model": "{{model}}",
+  "messages": [
+    {
+        "role": "user",
+        "content": "Write a haiku about a GPU"
+    }
+  ]
+}
+
+### GPU haiku in Korean
+POST {{uri}}/v1/chat/completions
+Content-Type: application/json
+
+{
+  "model": "{{model}}",
+  "messages": [
+    {
+        "role": "user",
+        "content": "Write a haiku about a GPU. 한국말로 답해라."
+    }
+  ]
+}
+
+### Tool calling test
+POST {{uri}}/v1/chat/completions
+Content-Type: application/json
+
+{
+  "model": "{{model}}",
+  "messages": [
+    {
+        "role": "user",
+        "content": "What's the weather in Seoul?"
+    }
+  ],
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "get_weather",
+        "description": "Get weather for a location",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "location": { "type": "string" }
+          },
+          "required": ["location"]
+        }
+      }
+    }
+  ]
+}
+
+### Health check
+GET {{uri}}/health

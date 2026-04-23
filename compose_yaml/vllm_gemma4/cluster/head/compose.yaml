@@ -1,0 +1,68 @@
+services:
+  vllm-head:
+    image: "ghcr.io/aeon-7/vllm-spark-gemma4-nvfp4:latest"
+    container_name: vllm-gemma4-head
+    network_mode: "host"
+    ipc: "host"
+    volumes:
+      - "/home/edp1096/.cache/huggingface:/root/.cache/huggingface"
+      - "../../patches/gemma4_patched.py:/usr/local/lib/python3.12/dist-packages/vllm/model_executor/models/gemma4.py"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    environment:
+      - VLLM_HOST_IP=169.254.141.58
+      - RAY_GCS_STORAGE=memory
+      - UCX_NET_DEVICES=enp1s0f0np0
+      - NCCL_SOCKET_IFNAME=enp1s0f0np0
+      - GLOO_SOCKET_IFNAME=enp1s0f0np0
+      - TP_SOCKET_IFNAME=enp1s0f0np0
+      - OMPI_MCA_btl_tcp_if_include=enp1s0f0np0
+      - NCCL_IB_HCA=rocep1s0f0,roceP2p1s0f0
+      - NCCL_IB_DISABLE=0
+      - NCCL_IGNORE_CPU_AFFINITY=1
+      - MASTER_ADDR=169.254.141.58
+      - RAY_memory_monitor_refresh_ms=0
+      - RAY_memory_usage_threshold=0.99
+      - VLLM_MARLIN_USE_ATOMIC_ADD=1
+      - PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+      # - HF_TOKEN=YOUR_HF_TOKEN_HERE
+    entrypoint: ""
+    command: >
+      bash -c "
+      cd /usr/local/lib/python3.12/dist-packages &&
+      echo 'Applying PR #38909 (gemma4 tool parser fix)...' &&
+      (curl -fsL https://patch-diff.githubusercontent.com/raw/vllm-project/vllm/pull/38909.diff | git apply --exclude='tests/*' 2>/dev/null && echo '- Applied' || echo '- Already applied or skipped') &&
+      ray start
+      --head
+      --node-ip-address=169.254.141.58 --port=6379
+      --disable-usage-stats
+      --include-dashboard=False --dashboard-host=0.0.0.0 --dashboard-port=8265 &&
+      sleep 5 &&
+      exec vllm serve
+      RedHatAI/gemma-4-26B-A4B-it-NVFP4
+      --host 0.0.0.0
+      --port 8000
+      --distributed-executor-backend ray
+      --tensor-parallel-size 2
+      --max-model-len 262000
+      --max-num-seqs 128
+      --gpu-memory-utilization 0.60
+      --kv-cache-dtype fp8
+      --enable-chunked-prefill
+      --max-num-batched-tokens 131072
+      --load-format safetensors
+      --enable-prefix-caching
+      --enable-auto-tool-choice
+      --tool-call-parser gemma4
+      --reasoning-parser gemma4
+      --trust-remote-code
+      "
+
+    # TP=2 듀얼 노드:
+    #   모델 ~16GB가 2노드에 분산 → KV cache 여유 극대화
+    #   gpu-memory-utilization을 0.70까지 올려도 안전할 수 있음 (테스트 필요)
