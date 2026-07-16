@@ -1,10 +1,72 @@
 services:
   vllm:
-    image: "ghcr.io/aeon-7/vllm-spark-gemma4-nvfp4:latest"
+    image: "${VLLM_IMAGE:-vllm-node-tf5:latest}"
     container_name: vllm-gemma4
     network_mode: "host"
     ipc: "host"
     environment:
+      - VLLM_NVFP4_GEMM_BACKEND=FLASHINFER_CUTLASS
+      - PYTHONWARNINGS=ignore
+      - PYTHONUNBUFFERED=1
+      - NCCL_IGNORE_CPU_AFFINITY=1
+      - VLLM_MARLIN_USE_ATOMIC_ADD=1
+      - PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+      - HF_TOKEN=${HF_TOKEN}
+    volumes:
+      - "/home/edp1096/.cache/huggingface:/root/.cache/huggingface"
+      - "../patches/gemma4_patched.py:/opt/gemma4_patched.py:ro"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    entrypoint: ""
+    command: >
+      bash -c "
+      echo 'Applying gemma4_patched.py...' &&
+      cp /opt/gemma4_patched.py /usr/local/lib/python3.12/dist-packages/vllm/model_executor/models/gemma4.py &&
+      echo '- Done' &&
+      cd /usr/local/lib/python3.12/dist-packages &&
+      echo 'Applying PR #38909 (gemma4 tool parser fix)...' &&
+      (curl -fsL https://patch-diff.githubusercontent.com/raw/vllm-project/vllm/pull/38909.diff | git apply --exclude='tests/*' 2>/dev/null && echo '- Applied' || echo '- Already applied or skipped') &&
+      exec vllm serve
+      bg-digitalservices/Gemma-4-26B-A4B-it-NVFP4
+      --host 0.0.0.0
+      --port 8000
+      --tensor-parallel-size 1
+      --max-model-len 262144
+      --max-num-seqs 4
+      --gpu-memory-utilization 0.70
+      --quantization modelopt
+      --dtype auto
+      --kv-cache-dtype fp8
+      --max-num-batched-tokens 8192
+      --moe-backend marlin
+      --attention-backend TRITON_ATTN
+      --enable-prefix-caching
+      --enable-auto-tool-choice
+      --tool-call-parser gemma4
+      --reasoning-parser gemma4
+      --trust-remote-code
+      "
+
+    # 모델 선택:
+    #   bg-digitalservices/Gemma-4-26B-A4B-it-NVFP4 — MoE, 256K context, requires gemma4_patched.py
+    #   bg-digitalservices/Gemma-4-E4B-it-NVFP4     — Dense+PLE, 128K context, use the vllm-e4b profile below
+
+    # gpu-memory-utilization 0.70 = 256K 컨텍스트 + FP8 KV cache 기준의 보수 설정
+    # 0.80 초과 금지 (DGX Spark C2C 이슈로 시스템 프리즈 가능)
+
+  vllm-e4b:
+    profiles: ["e4b"]
+    image: "${VLLM_IMAGE:-vllm-node-tf5:latest}"
+    container_name: vllm-gemma4-e4b
+    network_mode: "host"
+    ipc: "host"
+    environment:
+      - VLLM_NVFP4_GEMM_BACKEND=FLASHINFER_CUTLASS
       - PYTHONWARNINGS=ignore
       - PYTHONUNBUFFERED=1
       - NCCL_IGNORE_CPU_AFFINITY=1
@@ -20,38 +82,16 @@ services:
             - driver: nvidia
               count: all
               capabilities: [gpu]
-    entrypoint: ""
+    entrypoint: vllm serve
     command: >
-      bash -c "
-      echo 'Applying gemma4_patched.py...' &&
-      curl -fsL -o /usr/local/lib/python3.12/dist-packages/vllm/model_executor/models/gemma4.py https://raw.githubusercontent.com/edp1096/dgx_spark_init/refs/heads/main/compose_yaml/vllm_gemma4/patches/gemma4_patched.py &&
-      echo '- Done' &&
-      cd /usr/local/lib/python3.12/dist-packages &&
-      echo 'Applying PR #38909 (gemma4 tool parser fix)...' &&
-      (curl -fsL https://patch-diff.githubusercontent.com/raw/vllm-project/vllm/pull/38909.diff | git apply --exclude='tests/*' 2>/dev/null && echo '- Applied' || echo '- Already applied or skipped') &&
-      exec vllm serve
-      RedHatAI/gemma-4-26B-A4B-it-NVFP4
+      bg-digitalservices/Gemma-4-E4B-it-NVFP4
       --host 0.0.0.0
       --port 8000
       --tensor-parallel-size 1
-      --max-model-len 262000
-      --max-num-seqs 128
-      --gpu-memory-utilization 0.60
+      --max-model-len 131072
+      --gpu-memory-utilization 0.30
+      --quantization modelopt
+      --dtype auto
       --kv-cache-dtype fp8
-      --enable-chunked-prefill
-      --max-num-batched-tokens 131072
-      --load-format safetensors
       --enable-prefix-caching
-      --enable-auto-tool-choice
-      --tool-call-parser gemma4
-      --reasoning-parser gemma4
       --trust-remote-code
-      "
-
-    # 모델 선택:
-    #   RedHatAI/gemma-4-26B-A4B-it-NVFP4          — RedHat NVFP4 (compressed-tensors, ~16GB)
-    #   AEON-7/Gemma-4-26B-A4B-it-Uncensored-NVFP4 — Uncensored NVFP4
-
-    # gpu-memory-utilization 0.60 = ~47GB 사용, 262K 컨텍스트 유지
-    # 기본 0.7로 올리면 더 많은 동시접속 가능하지만 시스템 프리즈 위험
-    # 0.80 초과 금지 (DGX Spark C2C 이슈로 시스템 프리즈 가능)

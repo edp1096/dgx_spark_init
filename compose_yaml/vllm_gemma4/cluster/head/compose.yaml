@@ -1,11 +1,12 @@
 services:
   vllm-head:
-    image: "ghcr.io/aeon-7/vllm-spark-gemma4-nvfp4:latest"
+    image: "${VLLM_IMAGE:-vllm-node-tf5:latest}"
     container_name: vllm-gemma4-head
     network_mode: "host"
     ipc: "host"
     volumes:
       - "/home/edp1096/.cache/huggingface:/root/.cache/huggingface"
+      - "../../patches/gemma4_patched.py:/opt/gemma4_patched.py:ro"
     deploy:
       resources:
         reservations:
@@ -14,6 +15,7 @@ services:
               count: all
               capabilities: [gpu]
     environment:
+      - VLLM_NVFP4_GEMM_BACKEND=FLASHINFER_CUTLASS
       - VLLM_HOST_IP=169.254.141.58
       - RAY_GCS_STORAGE=memory
       - UCX_NET_DEVICES=enp1s0f0np0
@@ -34,7 +36,7 @@ services:
     command: >
       bash -c "
       echo 'Applying gemma4_patched.py...' &&
-      curl -fsL -o /usr/local/lib/python3.12/dist-packages/vllm/model_executor/models/gemma4.py https://raw.githubusercontent.com/edp1096/dgx_spark_init/refs/heads/main/compose_yaml/vllm_gemma4/patches/gemma4_patched.py &&
+      cp /opt/gemma4_patched.py /usr/local/lib/python3.12/dist-packages/vllm/model_executor/models/gemma4.py &&
       echo '- Done' &&
       cd /usr/local/lib/python3.12/dist-packages &&
       echo 'Applying PR #38909 (gemma4 tool parser fix)...' &&
@@ -46,18 +48,20 @@ services:
       --include-dashboard=False --dashboard-host=0.0.0.0 --dashboard-port=8265 &&
       sleep 5 &&
       exec vllm serve
-      RedHatAI/gemma-4-26B-A4B-it-NVFP4
+      bg-digitalservices/Gemma-4-26B-A4B-it-NVFP4
       --host 0.0.0.0
       --port 8000
       --distributed-executor-backend ray
       --tensor-parallel-size 2
-      --max-model-len 262000
-      --max-num-seqs 128
-      --gpu-memory-utilization 0.60
+      --max-model-len 262144
+      --max-num-seqs 4
+      --gpu-memory-utilization 0.70
+      --quantization modelopt
+      --dtype auto
       --kv-cache-dtype fp8
-      --enable-chunked-prefill
-      --max-num-batched-tokens 131072
-      --load-format safetensors
+      --max-num-batched-tokens 8192
+      --moe-backend marlin
+      --attention-backend TRITON_ATTN
       --enable-prefix-caching
       --enable-auto-tool-choice
       --tool-call-parser gemma4
@@ -66,5 +70,4 @@ services:
       "
 
     # TP=2 듀얼 노드:
-    #   모델 ~16GB가 2노드에 분산 → KV cache 여유 극대화
-    #   gpu-memory-utilization을 0.70까지 올려도 안전할 수 있음 (테스트 필요)
+    #   26B MoE NVFP4 모델을 2노드에 분산해 256K 컨텍스트와 KV cache 여유 확보

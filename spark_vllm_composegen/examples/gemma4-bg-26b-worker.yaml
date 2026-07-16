@@ -1,0 +1,15 @@
+mode: ray-worker
+service: vllm-worker
+container_name: vllm-gemma4-worker
+image: ${VLLM_IMAGE:-vllm-node-tf5:latest}
+hf_cache: /home/edp1096/.cache/huggingface
+eth_if: enp1s0f0np0
+ib_hca: rocep1s0f0,roceP2p1s0f0
+head_ip: 169.254.141.58
+node_ip: 169.254.44.172
+master_port: 6379
+env:
+  HF_TOKEN: ${HF_TOKEN}
+  PYTORCH_CUDA_ALLOC_CONF: expandable_segments:True
+  VLLM_MARLIN_USE_ATOMIC_ADD: "1"
+  VLLM_NVFP4_GEMM_BACKEND: FLASHINFER_CUTLASS

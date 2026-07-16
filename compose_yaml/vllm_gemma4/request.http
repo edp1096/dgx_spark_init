@@ -1,7 +1,7 @@
 @uri = http://192.168.100.60:8000
 
-@model = RedHatAI/gemma-4-26B-A4B-it-NVFP4
-# @model = AEON-7/Gemma-4-26B-A4B-it-Uncensored-NVFP4
+@model = bg-digitalservices/Gemma-4-26B-A4B-it-NVFP4
+# @model = bg-digitalservices/Gemma-4-E4B-it-NVFP4
 
 ### List models
 GET {{uri}}/v1/models
