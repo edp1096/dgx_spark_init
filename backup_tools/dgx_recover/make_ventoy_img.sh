@@ -15,7 +15,8 @@ set -e
 # === Configuration ===
 # BASE="/mnt/d/dev/asus_ascent_gx10_dgx_spark"
 BASE="$(cd "." && pwd)" # Current directory as base
-RECOVERY_TAR="$BASE/dgx-spark-recovery-image-1.120.36.tar.gz"
+# RECOVERY_TAR="$BASE/dgx-spark-recovery-image-1.120.36.tar.gz"
+RECOVERY_TAR="$BASE/dgx-spark-recovery-image-1.145.33.tar.gz"
 USB_PATH="$BASE/dgx_usb"
 OUTPUT_IMG="$BASE/dgx_img/dgx_spark_recovery_ventoy.img"
 WORK_DIR="$BASE/dgx_ventoy_work"
