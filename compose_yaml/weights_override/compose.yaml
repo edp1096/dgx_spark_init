@@ -1,7 +1,7 @@
 services:
   heretic:
     # image: "vllm/vllm-openai:cu130-nightly-aarch64"
-    image: "edp1096/vllm-qwen36:v1"
+    image: "edp1096/weights-override:cu133-v1"
     container_name: weights_abliterator
     ipc: host
     environment:
@@ -9,10 +9,10 @@ services:
       - PIP_USE_FEATURE=build-constraint
       - HF_TOKEN=${HF_TOKEN:-}
 
-      - ORIGINAL_MODEL=Qwen/Qwen3.6-35B-A3B
-      - ABLITERATED_MODEL=huihui-ai/Huihui-Qwen3.6-35B-A3B-abliterated
-      - FP8_MODEL=Qwen/Qwen3.6-35B-A3B-FP8
-      - OUTPUT_NAME=Huihui-Qwen3.6-35B-A3B-abliterated-FP8
+      - ORIGINAL_MODEL=Qwen/Qwen3.8-27B
+      - ABLITERATED_MODEL=huihui-ai/Huihui-Qwen3.8-27B-abliterated
+      - FP8_MODEL=Qwen/Qwen3.8-27B-FP8
+      - OUTPUT_NAME=Huihui-Qwen3.8-27B-abliterated-FP8
 
       # - ORIGINAL_MODEL=Qwen/Qwen3.5-35B-A3B
       # - ABLITERATED_MODEL=huihui-ai/Huihui-Qwen3.5-35B-A3B-abliterated
@@ -21,7 +21,7 @@ services:
     volumes:
       - "/home/edp1096/.cache/huggingface:/root/.cache/huggingface"
       - "/home/edp1096/workspace/heretic_models:/root/output"
-      - "/home/edp1096/workspace/weights_override/scripts:/root/scripts"
+      - "/home/edp1096/workspace/dgx_spark_init/compose_yaml/weights_override:/root/scripts:ro"
     deploy:
       resources:
         reservations:
