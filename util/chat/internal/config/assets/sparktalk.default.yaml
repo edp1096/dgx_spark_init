@@ -1,0 +1,28 @@
+# SparkTalk 설정
+# 이 파일은 최초 실행 시 작업 디렉터리에 sparktalk.yaml로 생성됩니다.
+
+server:
+  # 다른 PC에서도 접속하려면 0.0.0.0을 사용합니다.
+  listen_addr: 0.0.0.0:8585
+  database: sparktalk.db
+
+model:
+  # OpenAI 호환 API의 기본 URL입니다. /v1은 붙이지 않습니다.
+  endpoint: http://192.168.100.61:8000
+  # 비워두면 /v1/models의 첫 모델을 사용합니다.
+  default_model: ""
+  api_key: ""
+  # 자유 입력: none, minimal, low, medium, high, xhigh, max 또는 0.0~0.99
+  reasoning_effort: medium
+  # 모든 대화에 공통 적용할 지침입니다. 비워두면 사용하지 않습니다.
+  system_prompt: ""
+  # 설정 화면에서 관리하는 시스템 프롬프트 프리셋입니다.
+  system_prompt_preset: ""
+  system_prompt_presets: []
+
+tools:
+  # 모델이 필요할 때 내장 web_search/web_fetch를 호출합니다.
+  enabled: true
+  max_rounds: 3
+  search_results: 5
+  timeout: 15s

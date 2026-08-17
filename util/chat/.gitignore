@@ -1,0 +1,8 @@
+/dist/
+/web/dist/*
+!/web/dist/placeholder.txt
+/web/node_modules/
+*.db
+*.db-shm
+*.db-wal
+/sparktalk.yaml
