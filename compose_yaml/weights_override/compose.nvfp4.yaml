@@ -1,0 +1,34 @@
+services:
+  quantize-nvfp4:
+    build:
+      context: .
+      dockerfile: Dockerfile.nvfp4
+    image: local/qwen38-modelopt:87c9f8c
+    container_name: qwen38-modelopt-quantize
+    ipc: host
+    shm_size: "16gb"
+    ulimits:
+      memlock: -1
+      stack: 67108864
+    environment:
+      PYTHONUNBUFFERED: "1"
+      HF_HOME: /root/.cache/huggingface
+      HF_DATASETS_CACHE: /root/.cache/huggingface/datasets
+      PYTORCH_CUDA_ALLOC_CONF: expandable_segments:True
+    volumes:
+      - ./quantize_nvfp4.py:/workspace/quantize_nvfp4.py:ro
+      - ./qwen38_radix_nvfp4.yaml:/workspace/qwen38_radix_nvfp4.yaml:ro
+      - /home/edp1096/.cache/huggingface:/root/.cache/huggingface
+      - /home/edp1096/workspace/heretic_models:/models/output
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    command:
+      - --input
+      - /root/.cache/huggingface/hub/models--huihui-ai--Huihui-Qwen3.8-27B-abliterated/snapshots/d42ca8978c5a66e92c3446d46e8adfe03ef692ff
+      - --name
+      - Huihui-RadixArk-Qwen3.8-27B-abliterated-NVFP4

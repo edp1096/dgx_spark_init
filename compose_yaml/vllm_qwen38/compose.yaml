@@ -1,0 +1,90 @@
+services:
+  vllm:
+    image: "edp1096/weights-override:cu133-v1"
+    container_name: vllm-qwen38
+    ipc: host
+    ports:
+      - "8000:8000"
+    environment:
+      PIP_ROOT_USER_ACTION: ignore
+      PYTHONWARNINGS: ignore
+      PYTHONUNBUFFERED: "1"
+      NCCL_IGNORE_CPU_AFFINITY: "1"
+      VLLM_MARLIN_USE_ATOMIC_ADD: "1"
+      PYTORCH_CUDA_ALLOC_CONF: expandable_segments:True
+    volumes:
+      - "/home/edp1096/workspace/heretic_models/Huihui-Qwen3.8-27B-abliterated-FP8:/models/Huihui-Qwen3.8-27B-abliterated-FP8:ro"
+      - "/home/edp1096/.cache/huggingface:/root/.cache/huggingface"
+      - "/home/edp1096/.cache/vllm-qwen38:/root/.cache/vllm"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    entrypoint: ["vllm", "serve"]
+    command:
+      - /models/Huihui-Qwen3.8-27B-abliterated-FP8
+      - --served-model-name
+      - Huihui-Qwen3.8-27B-abliterated-FP8
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8000"
+      - --max-model-len
+      - "32768"
+      - --gpu-memory-utilization
+      - "0.85"
+      - --max-num-seqs
+      - "8"
+      - --max-num-batched-tokens
+      - "8192"
+      - --quantization
+      - fp8
+      - --kv-cache-dtype
+      - fp8
+      - --load-format
+      - safetensors
+      - --attention-backend
+      - flashinfer
+      - --enable-prefix-caching
+      - --enable-auto-tool-choice
+      - --tool-call-parser
+      - qwen3_xml
+      - --reasoning-parser
+      - qwen3
+      - --default-chat-template-kwargs
+      - '{"preserve_thinking": true}'
+      - --speculative-config
+      - '{"method":"dspark","model":"Doopeworld/Qwen3.8-27B-DSpark-vLLM","num_speculative_tokens":7,"draft_sample_method":"probabilistic"}'
+      - --trust-remote-code
+    healthcheck:
+      test:
+        - CMD
+        - python3
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=5)"
+      interval: 15s
+      timeout: 10s
+      retries: 40
+      start_period: 5m
+    restart: unless-stopped
+
+  open-webui:
+    image: "ghcr.io/open-webui/open-webui:main"
+    container_name: open-webui-qwen38
+    ports:
+      - "0.0.0.0:12000:8080"
+    environment:
+      ENABLE_OLLAMA_API: "false"
+      ENABLE_OPENAI_API: "true"
+      OPENAI_API_BASE_URLS: "http://vllm:8000/v1"
+      OPENAI_API_KEYS: "local-vllm"
+      WEBUI_AUTH: "false"
+    volumes:
+      - "/home/edp1096/.cache/openwebui-qwen38:/app/backend/data"
+    depends_on:
+      vllm:
+        condition: service_healthy
+    restart: unless-stopped

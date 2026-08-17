@@ -1,0 +1,8 @@
+FROM lmsysorg/sglang@sha256:febfb971c7352570fc445c466ebd6ffc9d896024958e544a60f2137fd85856b1
+
+COPY vendor/Model-Optimizer /opt/Model-Optimizer
+RUN python3 -m pip install --no-deps -e /opt/Model-Optimizer \
+    && python3 -m pip install --no-deps accelerate
+
+WORKDIR /workspace
+ENTRYPOINT ["python3", "/workspace/quantize_nvfp4.py"]

@@ -1,0 +1,3 @@
+[submodule "compose_yaml/weights_override/vendor/Model-Optimizer"]
+	path = compose_yaml/weights_override/vendor/Model-Optimizer
+	url = https://github.com/NVIDIA/Model-Optimizer.git
