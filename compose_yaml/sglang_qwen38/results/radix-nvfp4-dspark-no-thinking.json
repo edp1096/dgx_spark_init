@@ -1,0 +1,14 @@
+{
+  "label": "radix-nvfp4-dspark-no-thinking",
+  "model": "Qwen3.8-27B-NVFP4",
+  "thinking": false,
+  "cases": [
+    {"case": "code_en", "elapsed_seconds": 17.855, "completion_tokens": 512, "client_tokens_per_second": 28.676, "accept_length": 3.5, "accept_rate": 0.3571},
+    {"case": "math_en", "elapsed_seconds": 19.911, "completion_tokens": 512, "client_tokens_per_second": 25.714, "accept_length": 3.025, "accept_rate": 0.2893},
+    {"case": "technical_ko", "elapsed_seconds": 37.089, "completion_tokens": 512, "client_tokens_per_second": 13.805, "accept_length": 2.5714, "accept_rate": 0.2245},
+    {"case": "prose_ko", "elapsed_seconds": 47.146, "completion_tokens": 512, "client_tokens_per_second": 10.86, "accept_length": 2.0, "accept_rate": 0.1429}
+  ],
+  "completion_tokens": 2048,
+  "elapsed_seconds": 122.001,
+  "client_tokens_per_second": 16.787
+}
