@@ -1,5 +1,0 @@
-services:
-  sglang:
-    environment:
-      TORCHINDUCTOR_CACHE_DIR: /root/.cache/sglang/inductor-huihui-clean-20260817
-      SGLANG_CACHE_DIR: /root/.cache/sglang/huihui-clean-20260817
