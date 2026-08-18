@@ -132,6 +132,13 @@ docker compose \
 ```sh
 docker rm -f sglang-qwen38
 ```
+* 컨테이너? 아몰랑~ 걍 실행
+```sh
+docker compose down --remove-orphans
+docker compose up -d --force-recreate
+# or
+docker compose rm -sf && docker compose up -d --force-recreate --remove-orphans
+```
 
 ## 2026-08-17 DGX Spark 단일 실행 실측
 
