@@ -14,7 +14,7 @@ import (
 
 const DefaultPath = "sparktalk.yaml"
 
-//go:embed assets/sparktalk.default.yaml
+//go:embed assets/sparktalk.default.yaml assets/system_prompt_presets.default.yaml
 var assets embed.FS
 
 type Config struct {
@@ -70,7 +70,7 @@ func Load(path string) (Config, bool, error) {
 	}
 	generated := false
 	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
-		data, readErr := assets.ReadFile("assets/sparktalk.default.yaml")
+		data, readErr := generatedDefaultConfig()
 		if readErr != nil {
 			return Config{}, false, readErr
 		}
@@ -104,6 +104,56 @@ func Load(path string) (Config, bool, error) {
 		return Config{}, generated, err
 	}
 	return cfg, generated, nil
+}
+
+func generatedDefaultConfig() ([]byte, error) {
+	data, err := assets.ReadFile("assets/sparktalk.default.yaml")
+	if err != nil {
+		return nil, fmt.Errorf("read embedded default config: %w", err)
+	}
+	presetData, err := assets.ReadFile("assets/system_prompt_presets.default.yaml")
+	if err != nil {
+		return nil, fmt.Errorf("read embedded system prompt presets: %w", err)
+	}
+
+	var document yaml.Node
+	if err := yaml.Unmarshal(data, &document); err != nil {
+		return nil, fmt.Errorf("parse embedded default config: %w", err)
+	}
+	var presetDocument yaml.Node
+	if err := yaml.Unmarshal(presetData, &presetDocument); err != nil {
+		return nil, fmt.Errorf("parse embedded system prompt presets: %w", err)
+	}
+	if len(document.Content) != 1 || document.Content[0].Kind != yaml.MappingNode {
+		return nil, errors.New("embedded default config must be a YAML mapping")
+	}
+	if len(presetDocument.Content) != 1 || presetDocument.Content[0].Kind != yaml.SequenceNode {
+		return nil, errors.New("embedded system prompt presets must be a YAML sequence")
+	}
+	modelNode := mappingNodeValue(document.Content[0], "model")
+	if modelNode == nil || modelNode.Kind != yaml.MappingNode {
+		return nil, errors.New("embedded default config is missing model mapping")
+	}
+	presetNode := mappingNodeValue(modelNode, "system_prompt_presets")
+	if presetNode == nil {
+		return nil, errors.New("embedded default config is missing model.system_prompt_presets")
+	}
+	*presetNode = *presetDocument.Content[0]
+
+	generated, err := yaml.Marshal(&document)
+	if err != nil {
+		return nil, fmt.Errorf("generate default config: %w", err)
+	}
+	return generated, nil
+}
+
+func mappingNodeValue(mapping *yaml.Node, key string) *yaml.Node {
+	for i := 0; i+1 < len(mapping.Content); i += 2 {
+		if mapping.Content[i].Value == key {
+			return mapping.Content[i+1]
+		}
+	}
+	return nil
 }
 
 func Save(path string, cfg Config) error {

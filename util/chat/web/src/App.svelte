@@ -9,9 +9,12 @@
   import { createStreamHandlers } from './lib/chat-stream.js';
   import {
     listSessions, createSession, deleteSession, renameSession, listMessages, streamChat,
-    getHealth, getModels, getConfig, retryMessage, editMessage as editChatMessage, uploadImage,
+    getHealth, getModels, getConfig, retryMessage, editMessage as editChatMessage, uploadAttachment,
     setSessionGroup, listGroups, createGroup, renameGroup, moveGroup, deleteGroup,
   } from './api.js';
+  import {
+    attachmentKind, hasFileDrag, isSupportedAttachmentFile, maxAttachmentBytes, maxImageBytes, maxMessageBytes,
+  } from './lib/attachments.js';
 
   let sessions = [];
   let groups = [];
@@ -41,13 +44,13 @@
   let settings = null;
   let editingMessageId = null;
   let editInput = '';
-  let pendingImages = [];
-  let uploadingImages = false;
-  let imageDrafts = {};
-  let imageInput;
+  let pendingAttachments = [];
+  let uploadingAttachments = false;
+  let attachmentDrafts = {};
+  let attachmentInput;
   let dragActive = false;
   let dragResetTimer;
-  let imageQueue = [];
+  let attachmentQueue = [];
   let queueProcessing = false;
   let uploadingSessionId = '';
   let editingTitle = false;
@@ -76,12 +79,14 @@
     window.addEventListener('dragenter', onWindowDragEnter, true);
     window.addEventListener('dragover', onWindowDragOver, true);
     window.addEventListener('dragleave', onWindowDragLeave, true);
+    window.addEventListener('drop', onWindowDrop, true);
     return () => {
       clearInterval(timer);
       clearTimeout(dragResetTimer);
       window.removeEventListener('dragenter', onWindowDragEnter, true);
       window.removeEventListener('dragover', onWindowDragOver, true);
       window.removeEventListener('dragleave', onWindowDragLeave, true);
+      window.removeEventListener('drop', onWindowDrop, true);
     };
   });
 
@@ -185,7 +190,7 @@
   async function select(id) {
     if (activeId && messages) messageCache = { ...messageCache, [activeId]: messages };
     activeId = id;
-    syncActiveImageState();
+    syncActiveAttachmentState();
     reasoningOpen = {};
     editingMessageId = null;
     editInput = '';
@@ -215,10 +220,10 @@
     sessions = sessions.filter((item) => item.id !== id);
     try {
       await deleteSession(id);
-      const nextDrafts = { ...imageDrafts };
+      const nextDrafts = { ...attachmentDrafts };
       delete nextDrafts[id];
-      imageDrafts = nextDrafts;
-      imageQueue = imageQueue.filter((item) => item.sessionId !== id);
+      attachmentDrafts = nextDrafts;
+      attachmentQueue = attachmentQueue.filter((item) => item.sessionId !== id);
       const nextCache = { ...messageCache };
       delete nextCache[id];
       messageCache = nextCache;
@@ -230,7 +235,7 @@
         else {
           activeId = '';
           messages = [];
-          pendingImages = [];
+          pendingAttachments = [];
           error = '';
         }
       }
@@ -273,11 +278,11 @@
 
   async function send() {
     const content = input.trim();
-    if (!content || running || uploadingImages || !activeId) return;
+    if (!content || running || uploadingAttachments || !activeId) return;
     const sessionId = activeId;
-    const attachments = pendingImages;
+    const attachments = pendingAttachments;
     input = '';
-    setPendingImages(sessionId, []);
+    setPendingAttachments(sessionId, []);
     setSessionError(sessionId, '');
     const chatMessages = [...messages,
       { role: 'user', content, reasoning_content: '', attachments },
@@ -450,80 +455,84 @@
   function streamHandlersFor(message, sessionId = activeId, messageList = messages) {
     return createStreamHandlers(message, () => publishMessages(sessionId, messageList));
   }
-  function addImageFiles(files) {
+  function addAttachmentFiles(files) {
     const dropped = Array.from(files || []);
-    const images = dropped.filter(isSupportedImageFile);
-    if (!images.length || running || !activeId) {
-      if (dropped.length && !running) error = 'PNG, JPEG, WebP 이미지 파일만 첨부할 수 있습니다.';
+    const mediaFiles = dropped.filter(isSupportedAttachmentFile);
+    if (!mediaFiles.length || running || !activeId) {
+      if (dropped.length && !running) error = '지원되는 이미지·음성·비디오 파일만 첨부할 수 있습니다.';
+      return;
+    }
+    const oversized = mediaFiles.find((file) => file.size > (attachmentKind(file) === 'image' ? maxImageBytes : maxAttachmentBytes));
+    if (oversized) {
+      error = `${oversized.name}: ${attachmentKind(oversized) === 'image' ? '이미지는 15MB' : '음성·비디오는 64MB'} 이하여야 합니다.`;
       return;
     }
     const sessionId = activeId;
-    const draft = imageDrafts[sessionId] || [];
-    const queued = imageQueue.filter((item) => item.sessionId === sessionId).length;
-    if (draft.length + queued + images.length > 6) {
-      error = '이미지는 한 메시지에 최대 6개까지 첨부할 수 있습니다.';
+    const draft = attachmentDrafts[sessionId] || [];
+    const queued = attachmentQueue.filter((item) => item.sessionId === sessionId).length;
+    if (draft.length + queued + mediaFiles.length > 6) {
+      error = '미디어는 한 메시지에 최대 6개까지 첨부할 수 있습니다.';
       return;
     }
-    imageDrafts = { ...imageDrafts, [sessionId]: draft };
-    imageQueue = [...imageQueue, ...images.map((file) => ({ file, sessionId }))];
-    syncActiveImageState();
-    processImageQueue();
+    const totalBytes = draft.reduce((sum, item) => sum + (item.size || 0), 0)
+      + attachmentQueue.filter((item) => item.sessionId === sessionId).reduce((sum, item) => sum + (item.file.size || 0), 0)
+      + mediaFiles.reduce((sum, file) => sum + (file.size || 0), 0);
+    if (totalBytes > maxMessageBytes) {
+      error = '한 메시지의 첨부 파일 합계는 96MB 이하여야 합니다.';
+      return;
+    }
+    attachmentDrafts = { ...attachmentDrafts, [sessionId]: draft };
+    attachmentQueue = [...attachmentQueue, ...mediaFiles.map((file) => ({ file, sessionId }))];
+    syncActiveAttachmentState();
+    processAttachmentQueue();
   }
-  function isSupportedImageFile(file) {
-    const mime = (file.type || '').toLowerCase();
-    const supportedMime = ['image/png', 'image/jpeg', 'image/webp'].includes(mime);
-    const supportedExtension = /\.(png|jpe?g|webp)$/i.test(file.name || '');
-    // Linux file managers and Chromium variants sometimes report a generic or
-    // incorrect MIME type. The server validates the actual file bytes.
-    return supportedMime || supportedExtension;
-  }
-  async function processImageQueue() {
+  async function processAttachmentQueue() {
     if (queueProcessing) return;
     queueProcessing = true;
     try {
-      while (imageQueue.length) {
-        const item = imageQueue[0];
+      while (attachmentQueue.length) {
+        const item = attachmentQueue[0];
         uploadingSessionId = item.sessionId;
-        syncActiveImageState();
+        syncActiveAttachmentState();
         if (item.sessionId === activeId) error = '';
         const uploadController = new AbortController();
-        const timeout = setTimeout(() => uploadController.abort(), 30000);
+        const timeout = setTimeout(() => uploadController.abort(), 120000);
         try {
-          const attachment = await uploadImage(item.file, uploadController.signal);
-          if (Object.prototype.hasOwnProperty.call(imageDrafts, item.sessionId)) {
-            setPendingImages(item.sessionId, [...(imageDrafts[item.sessionId] || []), attachment]);
+          const attachment = await uploadAttachment(item.file, uploadController.signal);
+          if (Object.prototype.hasOwnProperty.call(attachmentDrafts, item.sessionId)) {
+            setPendingAttachments(item.sessionId, [...(attachmentDrafts[item.sessionId] || []), attachment]);
           }
         } catch (e) {
-          if (item.sessionId === activeId) error = e.name === 'AbortError' ? '이미지 업로드 시간이 초과되었습니다.' : e.message;
+          if (item.sessionId === activeId) error = e.name === 'AbortError' ? '미디어 업로드 시간이 초과되었습니다.' : e.message;
         } finally {
           clearTimeout(timeout);
-          imageQueue = imageQueue.filter((queued) => queued !== item);
+          attachmentQueue = attachmentQueue.filter((queued) => queued !== item);
           uploadingSessionId = '';
-          syncActiveImageState();
+          syncActiveAttachmentState();
         }
       }
     } finally {
       queueProcessing = false;
       uploadingSessionId = '';
-      syncActiveImageState();
-      if (imageInput) imageInput.value = '';
+      syncActiveAttachmentState();
+      if (attachmentInput) attachmentInput.value = '';
     }
   }
-  function setPendingImages(sessionId, items) {
-    imageDrafts = { ...imageDrafts, [sessionId]: items };
-    if (sessionId === activeId) pendingImages = items;
+  function setPendingAttachments(sessionId, items) {
+    attachmentDrafts = { ...attachmentDrafts, [sessionId]: items };
+    if (sessionId === activeId) pendingAttachments = items;
   }
-  function syncActiveImageState() {
-    pendingImages = imageDrafts[activeId] || [];
-    uploadingImages = Boolean(activeId) && (uploadingSessionId === activeId || imageQueue.some((item) => item.sessionId === activeId));
+  function syncActiveAttachmentState() {
+    pendingAttachments = attachmentDrafts[activeId] || [];
+    uploadingAttachments = Boolean(activeId) && (uploadingSessionId === activeId || attachmentQueue.some((item) => item.sessionId === activeId));
   }
-  function removePendingImage(id) {
+  function removePendingAttachment(id) {
     if (running) return;
-    setPendingImages(activeId, pendingImages.filter((item) => item.id !== id));
+    setPendingAttachments(activeId, pendingAttachments.filter((item) => item.id !== id));
   }
   function onPaste(event) {
     const files = Array.from(event.clipboardData?.files || []);
-    if (files.some((file) => file.type.startsWith('image/'))) addImageFiles(files);
+    if (files.some(isSupportedAttachmentFile)) addAttachmentFiles(files);
   }
   function showDropOverlay() {
     clearTimeout(dragResetTimer);
@@ -534,15 +543,15 @@
     dragResetTimer = setTimeout(() => { dragActive = false; }, 30000);
   }
   function onWindowDragEnter(event) {
-    if (settingsOpen || running) return;
-    if (event.target !== imageInput) event.preventDefault();
+    if (!hasFileDrag(event.dataTransfer)) return;
+    event.preventDefault();
+    if (settingsOpen || running || !activeId) return;
     showDropOverlay();
   }
   function onWindowDragOver(event) {
-    if (settingsOpen || running) return;
-    // Once the native file input covers the viewport, let Chromium perform
-    // its built-in file drop rather than cancelling that default action.
-    if (event.target !== imageInput) event.preventDefault();
+    if (!hasFileDrag(event.dataTransfer)) return;
+    event.preventDefault();
+    if (settingsOpen || running || !activeId) return;
     showDropOverlay();
     if (event.dataTransfer) event.dataTransfer.dropEffect = 'copy';
   }
@@ -554,11 +563,22 @@
       dragActive = false;
     }
   }
-  function onImageInputChange(event) {
+  function onWindowDrop(event) {
+    if (!hasFileDrag(event.dataTransfer)) return;
+    // Process DataTransfer.files directly. Native drops onto a transparent
+    // file input do not reliably emit change in Chromium/Linux.
+    event.preventDefault();
+    event.stopPropagation();
+    clearTimeout(dragResetTimer);
+    dragActive = false;
+    const files = Array.from(event.dataTransfer?.files || []);
+    if (!settingsOpen && !running && activeId && files.length) addAttachmentFiles(files);
+  }
+  function onAttachmentInputChange(event) {
     const files = Array.from(event.currentTarget.files || []);
     clearTimeout(dragResetTimer);
     dragActive = false;
-    addImageFiles(files);
+    addAttachmentFiles(files);
   }
   async function scrollBottom(force = false) {
     if (!messagePane) return;
@@ -697,17 +717,16 @@
     />
     {#if error}<div class="error">{error}</div>{/if}
     <Composer
-      {pendingImages}
-      {uploadingImages}
+      {pendingAttachments}
+      {uploadingAttachments}
       {running}
       {activeId}
       bind:input
-      bind:imageInput
-      {dragActive}
+      bind:attachmentInput
       {reasoningEffort}
       {webToolsEnabled}
-      onRemoveImage={removePendingImage}
-      {onImageInputChange}
+      onRemoveAttachment={removePendingAttachment}
+      {onAttachmentInputChange}
       {onKeydown}
       {onPaste}
       onStop={stop}
@@ -717,14 +736,14 @@
 </div>
 
 {#if dragActive}
-  <div class="drop-overlay" role="region" aria-label="이미지 드롭 영역"><div><span>＋</span><strong>이미지를 여기에 놓으세요</strong><small>PNG, JPEG, WebP · 최대 6개</small></div></div>
+  <div class="drop-overlay" role="region" aria-label="미디어 드롭 영역"><div><span>＋</span><strong>미디어를 여기에 놓으세요</strong><small>이미지 · MP3/WAV/OGG · AVI/MOV/MP4/OGG/WMV/WebM · 최대 6개</small></div></div>
 {/if}
 
 {#if settingsOpen && settings}
   <SettingsModal
     {settings}
     {models}
-    keepImageIds={Object.values(imageDrafts).flat().map((item) => item.id)}
+    keepMediaIds={Object.values(attachmentDrafts).flat().map((item) => item.id)}
     onclose={() => settingsOpen = false}
     onsaved={applySavedSettings}
   />

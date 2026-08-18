@@ -272,11 +272,15 @@ func (s *Server) llmMessages(items []db.Message) ([]llm.Message, error) {
 		for _, attachment := range item.Attachments {
 			dataURL, err := s.media.DataURL(attachment)
 			if err != nil {
-				return nil, fmt.Errorf("read image %s: %w", attachment.Name, err)
+				return nil, fmt.Errorf("read media %s: %w", attachment.Name, err)
 			}
-			parts = append(parts, map[string]any{
-				"type": "image_url", "image_url": map[string]string{"url": dataURL},
-			})
+			typeName, fieldName := "image_url", "image_url"
+			if strings.HasPrefix(attachment.MIME, "video/") {
+				typeName, fieldName = "video_url", "video_url"
+			} else if strings.HasPrefix(attachment.MIME, "audio/") {
+				typeName, fieldName = "audio_url", "audio_url"
+			}
+			parts = append(parts, map[string]any{"type": typeName, fieldName: map[string]string{"url": dataURL}})
 		}
 		parts = append(parts, map[string]any{"type": "text", "text": item.Content})
 		messages = append(messages, llm.Message{Role: item.Role, Content: parts})

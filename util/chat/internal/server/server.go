@@ -34,7 +34,7 @@ func New(cfg config.Config, configPath string, store *db.DB, client *llm.Client,
 	}
 	mediaStore, err := media.New(cfg.Server.Database)
 	if err != nil {
-		return nil, fmt.Errorf("image storage: %w", err)
+		return nil, fmt.Errorf("media storage: %w", err)
 	}
 	s := &Server{cfg: cfg, startup: cfg.Server, configPath: configPath, db: store, llm: client, media: mediaStore}
 	mux := http.NewServeMux()
@@ -43,6 +43,8 @@ func New(cfg config.Config, configPath string, store *db.DB, client *llm.Client,
 	mux.HandleFunc("/api/models", s.models)
 	mux.HandleFunc("/api/images", s.uploadImage)
 	mux.HandleFunc("/api/images/", s.image)
+	mux.HandleFunc("/api/files", s.uploadFile)
+	mux.HandleFunc("/api/files/", s.file)
 	mux.HandleFunc("/api/media", s.mediaUsage)
 	mux.HandleFunc("/api/messages/", s.messageAction)
 	mux.HandleFunc("/api/groups", s.groups)

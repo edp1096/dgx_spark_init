@@ -6,7 +6,7 @@
 
   export let settings;
   export let models = [];
-  export let keepImageIds = [];
+  export let keepMediaIds = [];
   export let onclose = () => {};
   export let onsaved = async () => {};
 
@@ -38,13 +38,13 @@
 
   async function removeUnusedMedia() {
     if (cleaningMedia || !mediaUsage?.unused_files) return;
-    if (!confirm(`대화에서 사용하지 않는 이미지 ${mediaUsage.unused_files}개를 삭제할까요?`)) return;
+    if (!confirm(`대화에서 사용하지 않는 미디어 ${mediaUsage.unused_files}개를 삭제할까요?`)) return;
     cleaningMedia = true;
     settingsNotice = '';
     try {
-      const result = await cleanupMedia([...keepImageIds, ...avatarKeepIds]);
+      const result = await cleanupMedia([...keepMediaIds, ...avatarKeepIds]);
       mediaUsage = result.usage;
-      settingsNotice = `미사용 이미지 ${result.removed.files}개(${formatBytes(result.removed.bytes)})를 정리했습니다.`;
+      settingsNotice = `미사용 미디어 ${result.removed.files}개(${formatBytes(result.removed.bytes)})를 정리했습니다.`;
     } catch (error) { settingsNotice = error.message; }
     finally { cleaningMedia = false; }
   }
@@ -91,12 +91,12 @@
     <label>Listen address<input bind:value={settings.server.listen_addr} placeholder="0.0.0.0:8585" /></label>
     <label>SQLite 파일<input bind:value={settings.server.database} placeholder="sparktalk.db" /></label>
     <fieldset>
-      <legend>이미지 보관</legend>
+      <legend>미디어 보관</legend>
       {#if mediaUsage}
         <div class="media-usage"><span>전체 {mediaUsage.files}개 · {formatBytes(mediaUsage.bytes)}</span><span>미사용 {mediaUsage.unused_files}개 · {formatBytes(mediaUsage.unused_bytes)}</span></div>
-        <button class="media-cleanup" onclick={removeUnusedMedia} disabled={cleaningMedia || !mediaUsage.unused_files}>{cleaningMedia ? '정리 중…' : '미사용 이미지 정리'}</button>
+        <button class="media-cleanup" onclick={removeUnusedMedia} disabled={cleaningMedia || !mediaUsage.unused_files}>{cleaningMedia ? '정리 중…' : '미사용 미디어 정리'}</button>
       {:else}<span class="media-loading">보관 현황을 불러오는 중…</span>{/if}
-      <small>현재 대화에 첨부됐거나 전송 대기 중인 이미지는 유지합니다.</small>
+      <small>현재 대화에 첨부됐거나 전송 대기 중인 이미지·음성·비디오는 유지합니다.</small>
     </fieldset>
     <p class="settings-help">Endpoint·모델·reasoning·시스템 프롬프트는 즉시 반영됩니다. Listen address와 DB 파일 변경은 재시작 후 반영됩니다.</p>
     {#if settingsNotice}<p class="settings-notice">{settingsNotice}</p>{/if}

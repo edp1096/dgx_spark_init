@@ -2,6 +2,7 @@
   import DOMPurify from 'dompurify';
   import { marked } from 'marked';
   import Avatar from './Avatar.svelte';
+  import MediaAttachments from './MediaAttachments.svelte';
 
   export let messages = [];
   export let running = false;
@@ -87,11 +88,7 @@
           </div>
         {:else}
           {#if message.attachments?.length}
-            <div class="image-gallery">
-              {#each message.attachments as attachment}
-                <a href={attachment.url} target="_blank" rel="noreferrer" title={attachment.name}><img src={attachment.url} alt={attachment.name} loading="lazy" /></a>
-              {/each}
-            </div>
+            <MediaAttachments attachments={message.attachments} />
           {/if}
           <div class="bubble prose">{@html render(message.content || (running && (index === messages.length - 1 || index === retryingIndex) ? '▍' : ''))}</div>
         {/if}

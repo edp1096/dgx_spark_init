@@ -46,6 +46,12 @@ export const uploadImage = (file, signal) => {
   return request('/api/images', { method: 'POST', body, signal });
 };
 
+export const uploadAttachment = (file, signal) => {
+  const body = new FormData();
+  body.append('file', file);
+  return request('/api/files', { method: 'POST', body, signal });
+};
+
 export async function streamChat(sessionId, content, attachments, model, reasoningEffort, toolsEnabled, signal, handlers) {
   const response = await fetch('/api/chat', {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
