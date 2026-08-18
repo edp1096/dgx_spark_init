@@ -74,6 +74,8 @@
   <div class="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settings-title">
     <div class="modal-title"><h2 id="settings-title">설정</h2><button onclick={onclose} aria-label="닫기">×</button></div>
     <label>API endpoint<input bind:value={settings.model.endpoint} placeholder="http://192.168.100.61:8000" /></label>
+    <label>Endpoint API key (선택)<input type="password" bind:value={settingsAPIKey} placeholder={settings.api_key_set ? '설정됨 — 변경할 때만 입력' : '인증이 필요할 때만 입력'} /></label>
+    {#if settings.api_key_set}<label class="check"><input type="checkbox" bind:checked={clearAPIKey} /> 저장된 Endpoint API key 제거</label>{/if}
     <label>기본 모델<input bind:value={settings.model.default_model} list="model-list" placeholder="비우면 첫 모델 자동 선택" /></label>
     <datalist id="model-list">{#each models as model}<option value={model}></option>{/each}</datalist>
     <label>기본 reasoning effort<input bind:value={settings.model.reasoning_effort} list="reasoning-levels" placeholder="medium 또는 0.0~0.99" /></label>
@@ -96,8 +98,6 @@
       {:else}<span class="media-loading">보관 현황을 불러오는 중…</span>{/if}
       <small>현재 대화에 첨부됐거나 전송 대기 중인 이미지는 유지합니다.</small>
     </fieldset>
-    <label>API key<input type="password" bind:value={settingsAPIKey} placeholder={settings.api_key_set ? '설정됨 — 변경할 때만 입력' : '선택 사항'} /></label>
-    {#if settings.api_key_set}<label class="check"><input type="checkbox" bind:checked={clearAPIKey} /> 저장된 API key 제거</label>{/if}
     <p class="settings-help">Endpoint·모델·reasoning·시스템 프롬프트는 즉시 반영됩니다. Listen address와 DB 파일 변경은 재시작 후 반영됩니다.</p>
     {#if settingsNotice}<p class="settings-notice">{settingsNotice}</p>{/if}
     <div class="modal-actions"><button class="secondary" onclick={onclose}>닫기</button><button class="primary" onclick={persistSettings}>저장</button></div>
