@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build"
+    "build": "vite build",
+    "test": "node --test src/lib/*.test.js"
   },
   "dependencies": {
     "@sveltejs/vite-plugin-svelte": "^7.0.0",

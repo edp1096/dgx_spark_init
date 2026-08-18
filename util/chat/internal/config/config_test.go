@@ -18,6 +18,9 @@ func TestLoadCreatesEmbeddedDefaultAndSaveReloads(t *testing.T) {
 	if cfg.Server.ListenAddr == "" || cfg.Model.Endpoint == "" {
 		t.Fatalf("generated config is incomplete: %+v", cfg)
 	}
+	if cfg.Appearance.AssistantAvatar != "preset:spark" || cfg.Appearance.UserAvatar != "preset:person-blue" {
+		t.Fatalf("generated avatar defaults are incomplete: %+v", cfg.Appearance)
+	}
 	cfg.Model.ReasoningEffort = "xhigh"
 	cfg.Model.SystemPrompt = "항상 존댓말로 답변합니다."
 	cfg.Model.SystemPromptPreset = "존댓말"
@@ -47,5 +50,24 @@ func TestLoadOldConfigDefaultsToolsToEnabled(t *testing.T) {
 	}
 	if !cfg.Tools.Enabled || cfg.Tools.MaxRounds != 3 || cfg.Tools.SearchResults != 5 {
 		t.Fatalf("old config did not receive tool defaults: %+v", cfg.Tools)
+	}
+	if cfg.Appearance.AssistantAvatar != "preset:spark" || cfg.Appearance.UserAvatar != "preset:person-blue" {
+		t.Fatalf("old config did not receive avatar defaults: %+v", cfg.Appearance)
+	}
+}
+
+func TestNormalizeAvatarAcceptsPreset(t *testing.T) {
+	cfg := Config{Appearance: AppearanceConfig{AssistantAvatar: "preset:saturn", UserAvatar: "invalid"}}
+	cfg.Normalize()
+	if cfg.Appearance.AssistantAvatar != "preset:saturn" || cfg.Appearance.UserAvatar != "preset:person-blue" {
+		t.Fatalf("unexpected normalized avatars: %+v", cfg.Appearance)
+	}
+}
+
+func TestNormalizeAvatarMigratesComputerPreset(t *testing.T) {
+	cfg := Config{Appearance: AppearanceConfig{AssistantAvatar: "preset:computer"}}
+	cfg.Normalize()
+	if cfg.Appearance.AssistantAvatar != "preset:quantum-computer" {
+		t.Fatalf("legacy computer preset was not migrated: %+v", cfg.Appearance)
 	}
 }

@@ -18,9 +18,10 @@ const DefaultPath = "sparktalk.yaml"
 var assets embed.FS
 
 type Config struct {
-	Server ServerConfig `yaml:"server" json:"server"`
-	Model  ModelConfig  `yaml:"model" json:"model"`
-	Tools  ToolsConfig  `yaml:"tools" json:"tools"`
+	Server     ServerConfig     `yaml:"server" json:"server"`
+	Model      ModelConfig      `yaml:"model" json:"model"`
+	Tools      ToolsConfig      `yaml:"tools" json:"tools"`
+	Appearance AppearanceConfig `yaml:"appearance" json:"appearance"`
 }
 
 type ServerConfig struct {
@@ -50,11 +51,17 @@ type ToolsConfig struct {
 	Timeout       string `yaml:"timeout" json:"timeout"`
 }
 
+type AppearanceConfig struct {
+	AssistantAvatar string `yaml:"assistant_avatar" json:"assistant_avatar"`
+	UserAvatar      string `yaml:"user_avatar" json:"user_avatar"`
+}
+
 type PublicConfig struct {
-	Server    ServerConfig `json:"server"`
-	Model     ModelConfig  `json:"model"`
-	Tools     ToolsConfig  `json:"tools"`
-	APIKeySet bool         `json:"api_key_set"`
+	Server     ServerConfig     `json:"server"`
+	Model      ModelConfig      `json:"model"`
+	Tools      ToolsConfig      `json:"tools"`
+	Appearance AppearanceConfig `json:"appearance"`
+	APIKeySet  bool             `json:"api_key_set"`
 }
 
 func Load(path string) (Config, bool, error) {
@@ -147,6 +154,8 @@ func (c *Config) Normalize() {
 	if c.Tools.Timeout == "" {
 		c.Tools.Timeout = "15s"
 	}
+	c.Appearance.AssistantAvatar = normalizeAvatar(c.Appearance.AssistantAvatar, "preset:spark")
+	c.Appearance.UserAvatar = normalizeAvatar(c.Appearance.UserAvatar, "preset:person-blue")
 }
 
 func (c Config) Validate() error {
@@ -159,8 +168,8 @@ func (c Config) Validate() error {
 	if filepath.Clean(c.Server.Database) == "." {
 		return errors.New("server.database is required")
 	}
-	if len(c.Model.SystemPromptPresets) > 50 {
-		return errors.New("model.system_prompt_presets supports at most 50 presets")
+	if len(c.Model.SystemPromptPresets) > 200 {
+		return errors.New("model.system_prompt_presets supports at most 200 presets")
 	}
 	presetNames := make(map[string]struct{}, len(c.Model.SystemPromptPresets))
 	for _, preset := range c.Model.SystemPromptPresets {
@@ -187,7 +196,36 @@ func (c Config) Validate() error {
 }
 
 func (c Config) Public() PublicConfig {
-	public := PublicConfig{Server: c.Server, Model: c.Model, Tools: c.Tools, APIKeySet: c.Model.APIKey != ""}
+	public := PublicConfig{Server: c.Server, Model: c.Model, Tools: c.Tools, Appearance: c.Appearance, APIKeySet: c.Model.APIKey != ""}
 	public.Model.APIKey = ""
 	return public
+}
+
+func normalizeAvatar(value, fallback string) string {
+	value = strings.TrimSpace(value)
+	if value == "preset:computer" {
+		return "preset:quantum-computer"
+	}
+	presets := map[string]struct{}{
+		"preset:spark": {}, "preset:orbit": {}, "preset:earth": {}, "preset:saturn": {},
+		"preset:robot":            {},
+		"preset:quantum-computer": {}, "preset:person-blue": {}, "preset:person-warm": {},
+		"preset:cat": {}, "preset:dog": {}, "preset:bear": {}, "preset:rabbit": {},
+	}
+	if _, ok := presets[value]; ok {
+		return value
+	}
+	if id := strings.TrimPrefix(value, "/api/images/"); id != value && len(id) == 32 && isLowerHex(id) {
+		return value
+	}
+	return fallback
+}
+
+func isLowerHex(value string) bool {
+	for _, character := range value {
+		if (character < '0' || character > '9') && (character < 'a' || character > 'f') {
+			return false
+		}
+	}
+	return true
 }

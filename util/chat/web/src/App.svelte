@@ -1,11 +1,16 @@
 <script>
   import { onMount, tick } from 'svelte';
-  import DOMPurify from 'dompurify';
-  import { marked } from 'marked';
+  import SettingsModal from './components/SettingsModal.svelte';
+  import Sidebar from './components/Sidebar.svelte';
+  import ChatHeader from './components/ChatHeader.svelte';
+  import Composer from './components/Composer.svelte';
+  import MessageList from './components/MessageList.svelte';
+  import { hydrateMessages, variantIndices as getVariantIndices, applyVariant as applyMessageVariant } from './lib/message-variants.js';
+  import { createStreamHandlers } from './lib/chat-stream.js';
   import {
     listSessions, createSession, deleteSession, renameSession, listMessages, streamChat,
-    getHealth, getModels, getConfig, saveConfig, retryMessage, editMessage as editChatMessage, uploadImage,
-    getMediaUsage, cleanupMedia, setSessionGroup, listGroups, createGroup, renameGroup, moveGroup, deleteGroup,
+    getHealth, getModels, getConfig, retryMessage, editMessage as editChatMessage, uploadImage,
+    setSessionGroup, listGroups, createGroup, renameGroup, moveGroup, deleteGroup,
   } from './api.js';
 
   let sessions = [];
@@ -13,7 +18,6 @@
   let ungroupedSessions = [];
   let sessionsByGroup = {};
   let collapsedGroups = {};
-  let sessionMenuId = '';
   let activeId = '';
   let messages = [];
   let reasoningOpen = {};
@@ -21,6 +25,7 @@
   let selectedModel = '';
   let reasoningEffort = '';
   let webToolsEnabled = false;
+  let appearance = { assistant_avatar: 'preset:spark', user_avatar: 'preset:person-blue' };
   let input = '';
   let running = false;
   let retryingIndex = -1;
@@ -34,9 +39,6 @@
   let sidebarWidth = 260;
   let settingsOpen = false;
   let settings = null;
-  let settingsAPIKey = '';
-  let clearAPIKey = false;
-  let settingsNotice = '';
   let editingMessageId = null;
   let editInput = '';
   let pendingImages = [];
@@ -48,8 +50,6 @@
   let imageQueue = [];
   let queueProcessing = false;
   let uploadingSessionId = '';
-  let mediaUsage = null;
-  let cleaningMedia = false;
   let editingTitle = false;
   let titleInput = '';
   let titleEditor;
@@ -92,6 +92,7 @@
       settings = cfg;
       reasoningEffort = cfg.model.reasoning_effort || '';
       webToolsEnabled = cfg.tools?.enabled ?? false;
+      appearance = cfg.appearance || appearance;
       await Promise.all([refreshModels(), refreshHealth()]);
       selectedModel = cfg.model.default_model || models[0] || '';
       [groups, sessions] = await Promise.all([listGroups(), listSessions()]);
@@ -162,7 +163,6 @@
   }
 
   async function changeSessionGroup(session, groupId) {
-    sessionMenuId = '';
     const previousGroupId = session.group_id || '';
     if (previousGroupId === groupId) return;
     sessions = sessions.map((item) => item.id === session.id ? { ...item, group_id: groupId } : item);
@@ -211,7 +211,6 @@
   async function remove(id) {
     if (sessionRuns[id]) return;
     if (!confirm('이 대화를 삭제할까요?')) return;
-    sessionMenuId = '';
     const previousSessions = sessions;
     sessions = sessions.filter((item) => item.id !== id);
     try {
@@ -288,22 +287,8 @@
     const run = startSessionRun(sessionId, chatMessages, replyIndex);
     await scrollBottom(true);
     try {
-      await streamChat(sessionId, content, attachments, selectedModel, reasoningEffort, webToolsEnabled, run.controller.signal, {
-        reasoning(delta) {
-          const reply = run.messages[replyIndex];
-          reply.activity = 'reasoning';
-          reply.reasoning_content += delta;
-          publishMessages(sessionId, run.messages);
-        },
-        delta(delta) {
-          const reply = run.messages[replyIndex];
-          reply.activity = 'answer';
-          reply.content += delta;
-          publishMessages(sessionId, run.messages);
-        },
-        toolStart(data) { addToolStart(run.messages[replyIndex], data, sessionId, run.messages); },
-        toolResult(data) { finishTool(run.messages[replyIndex], data, sessionId, run.messages); },
-      });
+      await streamChat(sessionId, content, attachments, selectedModel, reasoningEffort, webToolsEnabled, run.controller.signal,
+        streamHandlersFor(run.messages[replyIndex], sessionId, run.messages));
       publishMessages(sessionId, hydrateMessages(await listMessages(sessionId)));
       await refreshSessions();
       setTimeout(refreshSessions, 1800);
@@ -333,20 +318,8 @@
     reasoningOpen = { ...reasoningOpen, [index]: false };
     try {
       const userVariant = run.messages[index - 1]?.role === 'user' ? (run.messages[index - 1].variant_index ?? 0) : 0;
-      await retryMessage(message.id, selectedModel, reasoningEffort, webToolsEnabled, userVariant, run.controller.signal, {
-        reasoning(delta) {
-          message.activity = 'reasoning';
-          message.reasoning_content += delta;
-          publishMessages(sessionId, run.messages);
-        },
-        delta(delta) {
-          message.activity = 'answer';
-          message.content += delta;
-          publishMessages(sessionId, run.messages);
-        },
-        toolStart(data) { addToolStart(message, data, sessionId, run.messages); },
-        toolResult(data) { finishTool(message, data, sessionId, run.messages); },
-      });
+      await retryMessage(message.id, selectedModel, reasoningEffort, webToolsEnabled, userVariant, run.controller.signal,
+        streamHandlersFor(message, sessionId, run.messages));
       const updated = hydrateMessages(await listMessages(sessionId));
       const parent = updated[index - 1];
       const answer = updated[index];
@@ -409,20 +382,8 @@
     reasoningOpen = { ...reasoningOpen, [replyIndex]: false };
     const run = startSessionRun(sessionId, messages, replyIndex);
     try {
-      await editChatMessage(message.id, content, message.attachments || [], selectedModel, reasoningEffort, webToolsEnabled, run.controller.signal, {
-        reasoning(delta) {
-          run.messages[replyIndex].activity = 'reasoning';
-          run.messages[replyIndex].reasoning_content += delta;
-          publishMessages(sessionId, run.messages);
-        },
-        delta(delta) {
-          run.messages[replyIndex].activity = 'answer';
-          run.messages[replyIndex].content += delta;
-          publishMessages(sessionId, run.messages);
-        },
-        toolStart(data) { addToolStart(run.messages[replyIndex], data, sessionId, run.messages); },
-        toolResult(data) { finishTool(run.messages[replyIndex], data, sessionId, run.messages); },
-      });
+      await editChatMessage(message.id, content, message.attachments || [], selectedModel, reasoningEffort, webToolsEnabled, run.controller.signal,
+        streamHandlersFor(run.messages[replyIndex], sessionId, run.messages));
       publishMessages(sessionId, hydrateMessages(await listMessages(sessionId)));
       await refreshSessions();
       setTimeout(refreshSessions, 1800);
@@ -458,37 +419,8 @@
     sessionErrors = { ...sessionErrors, [sessionId]: message };
     if (activeId === sessionId) error = message;
   }
-  function setReasoningOpen(index, open) {
-    reasoningOpen = { ...reasoningOpen, [index]: open };
-  }
-  function hydrateMessages(items) {
-    const hydrated = items.map((item) => ({
-      ...item,
-      variant_index: Math.max(0, (item.variants?.length || 1) - 1),
-      activity: '',
-    }));
-    for (let index = 1; index < hydrated.length; index += 1) {
-      const message = hydrated[index];
-      const parent = hydrated[index - 1];
-      if (message.role !== 'assistant' || parent?.role !== 'user' || !message.variants?.length) continue;
-      const matching = message.variants
-        .map((variant, variantIndex) => ({ variant, variantIndex }))
-        .filter(({ variant }) => (variant.parent_variant ?? 0) === (parent.variant_index ?? 0));
-      if (!matching.length) continue;
-      const selected = matching[matching.length - 1];
-      message.variant_index = selected.variantIndex;
-      message.content = selected.variant.content || '';
-      message.reasoning_content = selected.variant.reasoning_content || '';
-      message.tool_trace = selected.variant.tool_trace || [];
-    }
-    return hydrated;
-  }
   function variantIndices(message, messageIndex, messageList = messages) {
-    const indices = (message.variants || []).map((_, index) => index);
-    if (message.role !== 'assistant') return indices;
-    const parent = messageList[messageIndex - 1];
-    if (parent?.role !== 'user') return indices;
-    return indices.filter((index) => (message.variants[index].parent_variant ?? 0) === (parent.variant_index ?? 0));
+    return getVariantIndices(message, messageIndex, messageList);
   }
   function variantPosition(message, messageIndex) {
     return variantIndices(message, messageIndex).indexOf(message.variant_index);
@@ -500,13 +432,7 @@
     if (next !== undefined) showVariant(message, next, messageIndex);
   }
   function applyVariant(message, variantIndex, messageIndex, sessionId = activeId) {
-    const variant = message.variants?.[variantIndex];
-    if (!variant) return;
-    message.content = variant.content || '';
-    message.reasoning_content = variant.reasoning_content || '';
-    message.tool_trace = variant.tool_trace || [];
-    message.attachments = variant.attachments || [];
-    message.variant_index = variantIndex;
+    if (!applyMessageVariant(message, variantIndex)) return;
     if (sessionId === activeId) reasoningOpen = { ...reasoningOpen, [messageIndex]: false };
   }
   function showVariant(message, variantIndex, messageIndex) {
@@ -521,19 +447,8 @@
     }
     messages = messages;
   }
-  function addToolStart(message, data, sessionId = activeId, messageList = messages) {
-    message.activity = 'tool';
-    message.tool_trace = [...(message.tool_trace || []), { ...data, result: '', error: '', running: true }];
-    publishMessages(sessionId, messageList);
-  }
-  function finishTool(message, data, sessionId = activeId, messageList = messages) {
-    const trace = [...(message.tool_trace || [])];
-    const index = trace.findIndex((item) => item.id === data.id && item.running);
-    if (index >= 0) trace[index] = { ...trace[index], ...data, running: false };
-    else trace.push({ ...data, running: false });
-    message.tool_trace = trace;
-    message.activity = 'reasoning';
-    publishMessages(sessionId, messageList);
+  function streamHandlersFor(message, sessionId = activeId, messageList = messages) {
+    return createStreamHandlers(message, () => publishMessages(sessionId, messageList));
   }
   function addImageFiles(files) {
     const dropped = Array.from(files || []);
@@ -645,28 +560,6 @@
     dragActive = false;
     addImageFiles(files);
   }
-  function collapseDetails(event) {
-    const details = event.currentTarget.closest('details');
-    if (details) details.open = false;
-  }
-  function toolArgument(tool) {
-    try {
-      const args = JSON.parse(tool.arguments || '{}');
-      return args.query || args.url || tool.arguments;
-    } catch (e) { return tool.arguments || ''; }
-  }
-  function toolPreview(tool) {
-    if (!tool.result) return '';
-    try {
-      const result = JSON.parse(tool.result);
-      if (Array.isArray(result.results)) {
-        return result.results.map((item) => `${item.title}\n${item.url}`).join('\n\n').slice(0, 1800);
-      }
-      if (result.content) return result.content.slice(0, 1800);
-    } catch (e) {}
-    return tool.result.slice(0, 1800);
-  }
-  function render(text) { return DOMPurify.sanitize(marked.parse(text || '')); }
   async function scrollBottom(force = false) {
     if (!messagePane) return;
     const nearBottom = messagePane.scrollHeight - messagePane.scrollTop - messagePane.clientHeight < 90;
@@ -713,16 +606,13 @@
   }
 
   async function openSettings() {
-    settingsNotice = '';
-    settingsAPIKey = '';
-    clearAPIKey = false;
-    settings = await getConfig();
-    normalizePromptPresetSettings(settings);
-    settingsOpen = true;
-    closeSidebarOnMobile();
-    closeControls();
-    try { mediaUsage = await getMediaUsage(); }
-    catch (e) { settingsNotice = e.message; }
+    try {
+      settings = await getConfig();
+      normalizePromptPresetSettings(settings);
+      settingsOpen = true;
+      closeSidebarOnMobile();
+      closeControls();
+    } catch (e) { error = e.message; }
   }
 
   function normalizePromptPresetSettings(config) {
@@ -731,315 +621,98 @@
     if (!config.model.system_prompt_preset) config.model.system_prompt_preset = '';
   }
 
-  function selectPromptPreset(event) {
-    const name = event.currentTarget.value;
-    settings.model.system_prompt_preset = name;
-    if (!name) return;
-    const preset = settings.model.system_prompt_presets.find((item) => item.name === name);
-    if (preset) settings.model.system_prompt = preset.prompt;
-  }
-
-  function addPromptPreset() {
-    const name = window.prompt('새 시스템 프롬프트 프리셋 이름을 입력하세요.');
-    if (name === null || !name.trim()) return;
-    const trimmed = name.trim();
-    if (settings.model.system_prompt_presets.some((item) => item.name === trimmed)) {
-      settingsNotice = '같은 이름의 시스템 프롬프트 프리셋이 있습니다.';
-      return;
-    }
-    settings.model.system_prompt_presets = [
-      ...settings.model.system_prompt_presets,
-      { name: trimmed, prompt: settings.model.system_prompt || '' },
-    ];
-    settings.model.system_prompt_preset = trimmed;
-    settingsNotice = `'${trimmed}' 프리셋을 추가했습니다. 설정 저장을 누르면 반영됩니다.`;
-  }
-
-  function savePromptPreset() {
-    const name = settings.model.system_prompt_preset;
-    if (!name) {
-      addPromptPreset();
-      return;
-    }
-    settings.model.system_prompt_presets = settings.model.system_prompt_presets.map((item) =>
-      item.name === name ? { ...item, prompt: settings.model.system_prompt || '' } : item);
-    settingsNotice = `'${name}' 프리셋의 내용을 갱신했습니다. 설정 저장을 누르면 반영됩니다.`;
-  }
-
-  function renamePromptPreset() {
-    const current = settings.model.system_prompt_preset;
-    if (!current) return;
-    const name = window.prompt('프리셋 이름을 수정하세요.', current);
-    if (name === null || !name.trim() || name.trim() === current) return;
-    const trimmed = name.trim();
-    if (settings.model.system_prompt_presets.some((item) => item.name === trimmed)) {
-      settingsNotice = '같은 이름의 시스템 프롬프트 프리셋이 있습니다.';
-      return;
-    }
-    settings.model.system_prompt_presets = settings.model.system_prompt_presets.map((item) =>
-      item.name === current ? { ...item, name: trimmed } : item);
-    settings.model.system_prompt_preset = trimmed;
-    settingsNotice = `'${trimmed}'으로 이름을 변경했습니다. 설정 저장을 누르면 반영됩니다.`;
-  }
-
-  function removePromptPreset() {
-    const name = settings.model.system_prompt_preset;
-    if (!name || !confirm(`'${name}' 시스템 프롬프트 프리셋을 삭제할까요? 현재 프롬프트 내용은 유지됩니다.`)) return;
-    settings.model.system_prompt_presets = settings.model.system_prompt_presets.filter((item) => item.name !== name);
-    settings.model.system_prompt_preset = '';
-    settingsNotice = `'${name}' 프리셋을 삭제했습니다. 설정 저장을 누르면 반영됩니다.`;
-  }
-
-  function promptPresetDirty() {
-    const name = settings?.model?.system_prompt_preset;
-    if (!name) return false;
-    const preset = settings.model.system_prompt_presets.find((item) => item.name === name);
-    return Boolean(preset) && preset.prompt !== (settings.model.system_prompt || '');
-  }
-
-  function formatBytes(value) {
-    if (!value) return '0 B';
-    const units = ['B', 'KB', 'MB', 'GB'];
-    const index = Math.min(Math.floor(Math.log(value) / Math.log(1024)), units.length - 1);
-    return `${(value / (1024 ** index)).toFixed(index ? 1 : 0)} ${units[index]}`;
-  }
-
-  async function removeUnusedMedia() {
-    if (cleaningMedia || !mediaUsage?.unused_files) return;
-    if (!confirm(`대화에서 사용하지 않는 이미지 ${mediaUsage.unused_files}개를 삭제할까요?`)) return;
-    cleaningMedia = true;
-    settingsNotice = '';
-    try {
-      const keepIds = Object.values(imageDrafts).flat().map((item) => item.id);
-      const result = await cleanupMedia(keepIds);
-      mediaUsage = result.usage;
-      settingsNotice = `미사용 이미지 ${result.removed.files}개(${formatBytes(result.removed.bytes)})를 정리했습니다.`;
-    } catch (e) { settingsNotice = e.message; }
-    finally { cleaningMedia = false; }
-  }
-
-  async function persistSettings() {
-    try {
-      const result = await saveConfig({
-        server: settings.server,
-        model: settings.model,
-        tools: settings.tools,
-        api_key: settingsAPIKey,
-        clear_api_key: clearAPIKey,
-      });
-      settings = result.config;
-      reasoningEffort = settings.model.reasoning_effort || reasoningEffort;
-      webToolsEnabled = settings.tools?.enabled ?? false;
-      await Promise.all([refreshModels(), refreshHealth()]);
-      if (settings.model.default_model) selectedModel = settings.model.default_model;
-      settingsNotice = result.restart_required
-        ? '저장했습니다. 주소 또는 DB 변경은 앱을 재시작하면 반영됩니다.'
-        : '저장했으며 즉시 반영했습니다.';
-      settingsAPIKey = '';
-      clearAPIKey = false;
-    } catch (e) { settingsNotice = e.message; }
+  async function applySavedSettings(next) {
+    settings = next;
+    reasoningEffort = settings.model.reasoning_effort || reasoningEffort;
+    webToolsEnabled = settings.tools?.enabled ?? false;
+    appearance = settings.appearance || appearance;
+    await Promise.all([refreshModels(), refreshHealth()]);
+    if (settings.model.default_model) selectedModel = settings.model.default_model;
   }
 </script>
 
 <div class="shell" style:grid-template-columns={sidebarOpen ? `${sidebarWidth}px 1fr` : '1fr'}>
   {#if sidebarOpen}
-    <aside>
-      <div class="brand"><span class="mark">S</span><strong>SparkTalk</strong><button class="sidebar-close" onclick={closeSidebar} aria-label="사이드바 닫기">×</button></div>
-      <div class="sidebar-actions">
-        <button class="new-chat" onclick={addSession}>＋ 새 대화</button>
-        <button class="new-group" onclick={addGroup} title="그룹 만들기" aria-label="그룹 만들기">＋ 폴더</button>
-      </div>
-      <nav>
-        {#each groups as group, groupIndex}
-          <section class="chat-group">
-            <div class="group-heading">
-              <button class="group-toggle" onclick={() => toggleGroup(group.id)} aria-expanded={!collapsedGroups[group.id]}>
-                <span>{collapsedGroups[group.id] ? '▸' : '▾'} 📁 {group.name}</span><small>{(sessionsByGroup[group.id] || []).length}</small>
-              </button>
-              <div class="group-actions">
-                <button onclick={() => reorderGroup(group, 'up')} disabled={groupIndex === 0} title="위로 이동">↑</button>
-                <button onclick={() => reorderGroup(group, 'down')} disabled={groupIndex === groups.length - 1} title="아래로 이동">↓</button>
-                <button onclick={() => editGroup(group)} title="이름 변경">✎</button>
-                <button class="danger" onclick={() => removeGroup(group)} title="그룹 삭제">×</button>
-              </div>
-            </div>
-            {#if !collapsedGroups[group.id]}
-              {#each sessionsByGroup[group.id] || [] as session}
-                <div class="session-row" class:active={session.id === activeId} class:generating={Boolean(sessionRuns[session.id])}>
-                  <button class="session-select" onclick={() => select(session.id)}>{session.title}</button>
-                  {#if sessionRuns[session.id]}<span class="session-running" title="답변 생성 중" aria-label="답변 생성 중">●</span>{/if}
-                  <button class="session-more" onclick={() => sessionMenuId = sessionMenuId === session.id ? '' : session.id} aria-label={`${session.title} 메뉴`}>⋯</button>
-                  {#if sessionMenuId === session.id}
-                    <div class="session-menu">
-                      <strong>그룹 이동</strong>
-                      <button onclick={() => changeSessionGroup(session, '')}>그룹 없음</button>
-                      {#each groups as target}<button class:current={target.id === session.group_id} onclick={() => changeSessionGroup(session, target.id)}>▸ {target.name}</button>{/each}
-                      <hr /><button class="danger" onclick={() => remove(session.id)} disabled={Boolean(sessionRuns[session.id])}>대화 삭제</button>
-                    </div>
-                  {/if}
-                </div>
-              {/each}
-            {/if}
-          </section>
-        {/each}
-        <section class="chat-group ungrouped">
-          <button class="group-toggle" onclick={() => toggleGroup('__ungrouped__')} aria-expanded={!collapsedGroups.__ungrouped__}>
-            <span>{collapsedGroups.__ungrouped__ ? '▸' : '▾'} 대화</span><small>{ungroupedSessions.length}</small>
-          </button>
-          {#if !collapsedGroups.__ungrouped__}
-            {#each ungroupedSessions as session}
-              <div class="session-row" class:active={session.id === activeId} class:generating={Boolean(sessionRuns[session.id])}>
-                <button class="session-select" onclick={() => select(session.id)}>{session.title}</button>
-                {#if sessionRuns[session.id]}<span class="session-running" title="답변 생성 중" aria-label="답변 생성 중">●</span>{/if}
-                <button class="session-more" onclick={() => sessionMenuId = sessionMenuId === session.id ? '' : session.id} aria-label={`${session.title} 메뉴`}>⋯</button>
-                {#if sessionMenuId === session.id}
-                  <div class="session-menu">
-                    <strong>그룹 이동</strong>
-                    <button class:current={!session.group_id} onclick={() => changeSessionGroup(session, '')}>그룹 없음</button>
-                    {#each groups as group}<button onclick={() => changeSessionGroup(session, group.id)}>▸ {group.name}</button>{/each}
-                    <hr /><button class="danger" onclick={() => remove(session.id)} disabled={Boolean(sessionRuns[session.id])}>대화 삭제</button>
-                  </div>
-                {/if}
-              </div>
-            {/each}
-          {/if}
-        </section>
-      </nav>
-      <button class="settings-button" onclick={openSettings}>⚙ 설정</button>
-      <button class="resize-handle" onpointerdown={startResize} aria-label="사이드바 폭 조절"></button>
-    </aside>
-    <button class="sidebar-backdrop" onclick={closeSidebar} aria-label="사이드바 닫기"></button>
+    <Sidebar
+      {groups}
+      {sessionsByGroup}
+      {ungroupedSessions}
+      {collapsedGroups}
+      {activeId}
+      {sessionRuns}
+      assistantAvatar={appearance.assistant_avatar}
+      onclose={closeSidebar}
+      onAddSession={addSession}
+      onAddGroup={addGroup}
+      onToggleGroup={toggleGroup}
+      onEditGroup={editGroup}
+      onReorderGroup={reorderGroup}
+      onRemoveGroup={removeGroup}
+      onSelect={select}
+      onChangeSessionGroup={changeSessionGroup}
+      onRemoveSession={remove}
+      onOpenSettings={openSettings}
+      onStartResize={startResize}
+    />
   {/if}
 
   <main>
-    <header>
-      <button class="sidebar-toggle" onclick={toggleSidebar} aria-label="사이드바 열기 또는 닫기">☰</button>
-      <div class="chat-heading">
-        {#if editingTitle}
-          <input class="title-editor" bind:this={titleEditor} bind:value={titleInput} maxlength="120" onkeydown={titleKeydown} onblur={saveTitle} aria-label="대화 제목" />
-        {:else}
-          <button class="chat-title" onclick={beginTitleEdit} disabled={!activeSession || running} title="대화 제목 수정"><span>{activeSession?.title || '새 대화'}</span><i>✎</i></button>
-        {/if}
-      </div>
-      <div class="model-controls">
-        <select bind:value={selectedModel} aria-label="모델 선택">
-          {#if !models.length}<option value={selectedModel}>{selectedModel || '모델 없음'}</option>{/if}
-          {#each models as model}<option value={model}>{model}</option>{/each}
-        </select>
-        <input bind:value={reasoningEffort} list="reasoning-levels" placeholder="reasoning effort" aria-label="Reasoning effort" />
-        <button class:active={webToolsEnabled} class="web-toggle" onclick={() => webToolsEnabled = !webToolsEnabled} title="모델이 필요할 때 웹검색 사용">{webToolsEnabled ? '웹검색 자동' : '웹검색 꺼짐'}</button>
-        <datalist id="reasoning-levels">
-          <option value="none"></option><option value="minimal"></option><option value="low"></option>
-          <option value="medium"></option><option value="high"></option><option value="xhigh"></option><option value="max"></option>
-        </datalist>
-        <span class:offline={health.status !== 'ok'} class="status">● {health.status === 'ok' ? '연결됨' : '연결 오류'}</span>
-      </div>
-      <button class="mobile-controls-toggle" class:active={controlsOpen} onclick={toggleControls} aria-label="모델 및 대화 설정" aria-expanded={controlsOpen}>☷</button>
-    </header>
-    {#if controlsOpen}
-      <button class="controls-backdrop" onclick={closeControls} aria-label="모델 설정 패널 닫기"></button>
-      <div class="controls-drawer" role="dialog" aria-modal="true" aria-label="모델 및 대화 설정">
-        <div class="controls-title"><strong>대화 설정</strong><button onclick={closeControls} aria-label="닫기">×</button></div>
-        <label>모델
-          <select bind:value={selectedModel} aria-label="모델 선택">
-            {#if !models.length}<option value={selectedModel}>{selectedModel || '모델 없음'}</option>{/if}
-            {#each models as model}<option value={model}>{model}</option>{/each}
-          </select>
-        </label>
-        <label>Reasoning effort<input bind:value={reasoningEffort} list="reasoning-levels" placeholder="reasoning effort" /></label>
-        <button class:active={webToolsEnabled} class="drawer-web-toggle" onclick={() => webToolsEnabled = !webToolsEnabled}>{webToolsEnabled ? '웹검색 자동' : '웹검색 꺼짐'}</button>
-        <div class="drawer-status"><span class:offline={health.status !== 'ok'}>● {health.status === 'ok' ? '연결됨' : '연결 오류'}</span><small>{selectedModel || health.model || '모델 확인 중'}</small></div>
-      </div>
-    {/if}
-    <section class="messages" bind:this={messagePane}>
-      {#if !messages.length}
-        <div class="welcome"><div class="mark large">S</div><h1>무엇을 도와드릴까요?</h1><p>연결된 모델에 메시지를 보내보세요.</p></div>
-      {/if}
-      {#each messages as message, index}
-        <article class:mine={message.role === 'user'}>
-          <div class="avatar">{message.role === 'user' ? '나' : 'S'}</div>
-          <div class="message-body">
-            {#if message.reasoning_content}
-              <details class="reasoning" open={reasoningOpen[index] ?? false} ontoggle={(event) => setReasoningOpen(index, event.currentTarget.open)}>
-                <summary class:activity-pulse={running && message.activity === 'reasoning'}>생각 과정</summary>
-                <div class="reasoning-text">{@html render(message.reasoning_content)}</div>
-                <div class="collapse-row"><button onclick={(event) => { setReasoningOpen(index, false); collapseDetails(event); }}>↑ 생각 과정 접기</button></div>
-              </details>
-            {/if}
-            {#if message.tool_trace?.length}
-              <details class="tool-trace">
-                <summary class:activity-pulse={running && message.activity === 'tool'}>{message.tool_trace.some((tool) => tool.running) ? '웹 도구 실행 중…' : `웹 도구 ${message.tool_trace.length}회`}</summary>
-                <div class="tool-list">
-                  {#each message.tool_trace as tool}
-                    <div class="tool-item">
-                      <div class="tool-heading"><strong>{tool.name === 'web_search' ? '웹 검색' : '페이지 읽기'}</strong><span>{toolArgument(tool)}</span></div>
-                      {#if tool.running}<p class="tool-running">실행 중…</p>{:else if tool.error}<p class="tool-error">{tool.error}</p>{:else if tool.result}<pre>{toolPreview(tool)}</pre>{/if}
-                    </div>
-                  {/each}
-                </div>
-                <div class="collapse-row"><button onclick={collapseDetails}>↑ 웹 도구 접기</button></div>
-              </details>
-            {/if}
-            {#if message.role === 'user' && editingMessageId === message.id}
-              <div class="message-editor">
-                <textarea bind:value={editInput} rows="3" onkeydown={(event) => onEditKeydown(event, message, index)}></textarea>
-                <div><button onclick={cancelEdit}>취소</button><button class="edit-submit" onclick={() => submitEdit(message, index)} disabled={!editInput.trim() || editInput.trim() === message.content}>수정 후 전송</button></div>
-              </div>
-            {:else}
-              {#if message.attachments?.length}
-                <div class="image-gallery">
-                  {#each message.attachments as attachment}
-                    <a href={attachment.url} target="_blank" rel="noreferrer" title={attachment.name}><img src={attachment.url} alt={attachment.name} loading="lazy" /></a>
-                  {/each}
-                </div>
-              {/if}
-              <div class="bubble prose">{@html render(message.content || (running && (index === messages.length - 1 || index === retryingIndex) ? '▍' : ''))}</div>
-            {/if}
-            {#if message.role === 'assistant'}
-              <div class="message-actions">
-                {#if variantIndices(message, index).length > 1}
-                  <div class="variant-pager" aria-label="답변 버전 선택">
-                    <button onclick={() => showAdjacentVariant(message, index, -1)} disabled={running || variantPosition(message, index) <= 0} aria-label="이전 답변">‹</button>
-                    <span>{variantPosition(message, index) + 1}/{variantIndices(message, index).length}</span>
-                    <button onclick={() => showAdjacentVariant(message, index, 1)} disabled={running || variantPosition(message, index) >= variantIndices(message, index).length - 1} aria-label="다음 답변">›</button>
-                  </div>
-                {/if}
-                <button onclick={() => retry(message, index)} disabled={running || !message.id}>↻ 재시도</button>
-              </div>
-            {:else if message.id && editingMessageId !== message.id}
-              <div class="message-actions user-actions">
-                {#if message.variants?.length > 1}
-                  <div class="variant-pager" aria-label="질문 버전 선택">
-                    <button onclick={() => showAdjacentVariant(message, index, -1)} disabled={running || message.variant_index <= 0} aria-label="이전 질문">‹</button>
-                    <span>{message.variant_index + 1}/{message.variants.length}</span>
-                    <button onclick={() => showAdjacentVariant(message, index, 1)} disabled={running || message.variant_index >= message.variants.length - 1} aria-label="다음 질문">›</button>
-                  </div>
-                {/if}
-                <button onclick={() => beginEdit(message)} disabled={running}>✎ 수정</button>
-              </div>
-            {/if}
-          </div>
-        </article>
-      {/each}
-    </section>
+    <ChatHeader
+      {activeSession}
+      {running}
+      {editingTitle}
+      bind:titleInput
+      bind:titleEditor
+      {models}
+      bind:selectedModel
+      bind:reasoningEffort
+      bind:webToolsEnabled
+      {health}
+      {controlsOpen}
+      onToggleSidebar={toggleSidebar}
+      onBeginTitleEdit={beginTitleEdit}
+      onTitleKeydown={titleKeydown}
+      onSaveTitle={saveTitle}
+      onToggleControls={toggleControls}
+      onCloseControls={closeControls}
+    />
+    <MessageList
+      {messages}
+      {running}
+      {retryingIndex}
+      bind:reasoningOpen
+      {editingMessageId}
+      bind:editInput
+      bind:element={messagePane}
+      assistantAvatar={appearance.assistant_avatar}
+      userAvatar={appearance.user_avatar}
+      {variantIndices}
+      {variantPosition}
+      onShowAdjacentVariant={showAdjacentVariant}
+      onRetry={retry}
+      {onEditKeydown}
+      onCancelEdit={cancelEdit}
+      onSubmitEdit={submitEdit}
+      onBeginEdit={beginEdit}
+    />
     {#if error}<div class="error">{error}</div>{/if}
-    <footer>
-      {#if pendingImages.length || uploadingImages}
-        <div class="pending-images">
-          {#each pendingImages as attachment}
-            <div><img src={attachment.url} alt={attachment.name} /><button onclick={() => removePendingImage(attachment.id)} disabled={running} aria-label={`${attachment.name} 첨부 제거`}>×</button></div>
-          {/each}
-          {#if uploadingImages}<span class="uploading">이미지 업로드 중…</span>{/if}
-        </div>
-      {/if}
-      <div class="composer" role="group" aria-label="메시지와 이미지 입력">
-        <input class="image-input" class:drop-active={dragActive} bind:this={imageInput} type="file" accept="image/png,image/jpeg,image/webp" multiple onchange={onImageInputChange} />
-        <button class="attach" onclick={() => imageInput?.click()} disabled={!activeId || running || uploadingImages || pendingImages.length >= 6} aria-label="이미지 첨부" title="이미지 첨부">＋</button>
-        <textarea bind:value={input} onkeydown={onKeydown} onpaste={onPaste} placeholder={activeId ? '메시지를 입력하세요' : '새 대화를 만든 뒤 메시지를 입력하세요'} rows="1" disabled={!activeId || running}></textarea>
-        {#if running}<button class="send stop" onclick={stop}>■</button>{:else}<button class="send" onclick={send} disabled={!activeId || !input.trim() || uploadingImages}>↑</button>{/if}
-      </div>
-      <small>이미지 붙여넣기·드래그 가능 · Enter 전송 · Shift+Enter 줄바꿈 · reasoning: {reasoningEffort || '서버 기본값'} · 웹: {webToolsEnabled ? '자동' : '꺼짐'}</small>
-    </footer>
+    <Composer
+      {pendingImages}
+      {uploadingImages}
+      {running}
+      {activeId}
+      bind:input
+      bind:imageInput
+      {dragActive}
+      {reasoningEffort}
+      {webToolsEnabled}
+      onRemoveImage={removePendingImage}
+      {onImageInputChange}
+      {onKeydown}
+      {onPaste}
+      onStop={stop}
+      onSend={send}
+    />
   </main>
 </div>
 
@@ -1048,52 +721,11 @@
 {/if}
 
 {#if settingsOpen && settings}
-  <div class="modal-backdrop" role="presentation" onclick={(e) => e.target === e.currentTarget && (settingsOpen = false)}>
-    <div class="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settings-title">
-      <div class="modal-title"><h2 id="settings-title">설정</h2><button onclick={() => settingsOpen = false} aria-label="닫기">×</button></div>
-      <label>API endpoint<input bind:value={settings.model.endpoint} placeholder="http://192.168.100.61:8000" /></label>
-      <label>기본 모델<input bind:value={settings.model.default_model} list="model-list" placeholder="비우면 첫 모델 자동 선택" /></label>
-      <datalist id="model-list">{#each models as model}<option value={model}></option>{/each}</datalist>
-      <label>기본 reasoning effort<input bind:value={settings.model.reasoning_effort} list="reasoning-levels" placeholder="medium 또는 0.0~0.99" /></label>
-      <fieldset class="prompt-presets">
-        <legend>전역 시스템 프롬프트</legend>
-        <label>프리셋
-          <select value={settings.model.system_prompt_preset || ''} onchange={selectPromptPreset}>
-            <option value="">직접 입력</option>
-            {#each settings.model.system_prompt_presets as preset}<option value={preset.name}>{preset.name}</option>{/each}
-          </select>
-        </label>
-        <textarea class="system-prompt" bind:value={settings.model.system_prompt} rows="6" placeholder="예: 모든 답변은 한국어 존댓말로 작성한다."></textarea>
-        {#if promptPresetDirty()}<small class="preset-dirty">선택한 프리셋에서 내용이 변경되었습니다.</small>{/if}
-        <div class="preset-actions">
-          <button onclick={addPromptPreset}>＋ 새 프리셋</button>
-          <button onclick={savePromptPreset}>{settings.model.system_prompt_preset ? '현재 내용 저장' : '현재 내용으로 만들기'}</button>
-          <button onclick={renamePromptPreset} disabled={!settings.model.system_prompt_preset}>이름 변경</button>
-          <button class="danger" onclick={removePromptPreset} disabled={!settings.model.system_prompt_preset}>삭제</button>
-        </div>
-      </fieldset>
-      <fieldset>
-        <legend>웹 도구</legend>
-        <label class="check"><input type="checkbox" bind:checked={settings.tools.enabled} /> web_search / web_fetch 활성화</label>
-        <label>최대 호출 라운드<input type="number" min="1" max="8" bind:value={settings.tools.max_rounds} /></label>
-        <label>검색 결과 수<input type="number" min="1" max="10" bind:value={settings.tools.search_results} /></label>
-        <label>도구 타임아웃<input bind:value={settings.tools.timeout} placeholder="15s" /></label>
-      </fieldset>
-      <label>Listen address<input bind:value={settings.server.listen_addr} placeholder="0.0.0.0:8585" /></label>
-      <label>SQLite 파일<input bind:value={settings.server.database} placeholder="sparktalk.db" /></label>
-      <fieldset>
-        <legend>이미지 보관</legend>
-        {#if mediaUsage}
-          <div class="media-usage"><span>전체 {mediaUsage.files}개 · {formatBytes(mediaUsage.bytes)}</span><span>미사용 {mediaUsage.unused_files}개 · {formatBytes(mediaUsage.unused_bytes)}</span></div>
-          <button class="media-cleanup" onclick={removeUnusedMedia} disabled={cleaningMedia || !mediaUsage.unused_files}>{cleaningMedia ? '정리 중…' : '미사용 이미지 정리'}</button>
-        {:else}<span class="media-loading">보관 현황을 불러오는 중…</span>{/if}
-        <small>현재 대화에 첨부됐거나 전송 대기 중인 이미지는 유지합니다.</small>
-      </fieldset>
-      <label>API key<input type="password" bind:value={settingsAPIKey} placeholder={settings.api_key_set ? '설정됨 — 변경할 때만 입력' : '선택 사항'} /></label>
-      {#if settings.api_key_set}<label class="check"><input type="checkbox" bind:checked={clearAPIKey} /> 저장된 API key 제거</label>{/if}
-      <p class="settings-help">Endpoint·모델·reasoning·시스템 프롬프트는 즉시 반영됩니다. Listen address와 DB 파일 변경은 재시작 후 반영됩니다.</p>
-      {#if settingsNotice}<p class="settings-notice">{settingsNotice}</p>{/if}
-      <div class="modal-actions"><button class="secondary" onclick={() => settingsOpen = false}>닫기</button><button class="primary" onclick={persistSettings}>저장</button></div>
-    </div>
-  </div>
+  <SettingsModal
+    {settings}
+    {models}
+    keepImageIds={Object.values(imageDrafts).flat().map((item) => item.id)}
+    onclose={() => settingsOpen = false}
+    onsaved={applySavedSettings}
+  />
 {/if}
