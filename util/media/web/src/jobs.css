@@ -1,0 +1,71 @@
+.quiet.danger {
+  border-color: #4a3437;
+  color: #d68c92;
+}
+
+.quiet.danger:hover {
+  background: #3a2226;
+}
+
+.quiet.danger:disabled {
+  opacity: .45;
+}
+
+.video-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.video-list article {
+  overflow: hidden;
+  border-radius: 10px;
+  background: #111419;
+}
+
+.video-list video,
+.video-placeholder {
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  background: #0b0d10;
+}
+
+.video-list video {
+  object-fit: contain;
+}
+
+.video-placeholder {
+  display: grid;
+  place-items: center;
+  background: linear-gradient(120deg, #1c2126, #282e34, #1c2126);
+  background-size: 200%;
+  animation: shimmer 1.8s infinite;
+}
+
+.video-list p {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 9px 9px 4px;
+  font-size: 11px;
+  line-height: 1.4;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.video-list small {
+  display: block;
+  margin: 0 9px 9px;
+  color: #737b83;
+  font-size: 9px;
+}
+
+.video-list .job-delete {
+  margin: 0 9px 10px;
+}
+
+@media (max-width: 460px) {
+  .video-list {
+    grid-template-columns: 1fr;
+  }
+}

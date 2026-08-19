@@ -1,0 +1,21 @@
+services:
+  api:
+    build: .
+    image: dgx-qwen3-asr-native:1.7b
+    container_name: qwen3-asr-api
+    restart: unless-stopped
+    network_mode: host
+    ipc: host
+    gpus: all
+    environment:
+      ASR_MODEL: ${ASR_MODEL:-Qwen/Qwen3-ASR-1.7B-hf}
+      ASR_MAX_CONCURRENCY: ${ASR_MAX_CONCURRENCY:-1}
+      ASR_MAX_NEW_TOKENS: ${ASR_MAX_NEW_TOKENS:-2048}
+      HF_TOKEN: ${HF_TOKEN:-}
+    volumes:
+      - hf-cache:/root/.cache/huggingface
+
+volumes:
+  hf-cache:
+    name: media-hf-cache
+    external: true

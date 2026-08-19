@@ -1,0 +1,14 @@
+.audio-list a {
+  color: #b7ed75;
+  font-size: 11px;
+  text-decoration: none;
+}
+
+.transcript {
+  padding: 12px;
+  border-radius: 8px;
+  background: #181d22;
+  color: #dce1e4;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}

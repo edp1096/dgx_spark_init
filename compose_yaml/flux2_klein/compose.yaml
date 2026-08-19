@@ -1,0 +1,29 @@
+services:
+  api:
+    image: dgx-vllm-omni:v0.26.0
+    container_name: flux2-klein-api
+    restart: unless-stopped
+    network_mode: host
+    ipc: host
+    gpus: all
+    environment:
+      HF_TOKEN: ${HF_TOKEN:-}
+    volumes:
+      - hf-cache:/root/.cache/huggingface
+    command:
+      - vllm
+      - serve
+      - ${MEDIA_IMAGE_MODEL:-/root/.cache/huggingface/local/flux2-klein-4b-uncensored}
+      - --served-model-name
+      - flux2-klein-4b-uncensored
+      - black-forest-labs/FLUX.2-klein-4B
+      - --omni
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8691"
+
+volumes:
+  hf-cache:
+    name: media-hf-cache
+    external: true

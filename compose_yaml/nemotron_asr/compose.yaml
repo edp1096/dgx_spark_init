@@ -1,0 +1,20 @@
+services:
+  api:
+    build: .
+    image: dgx-nemotron-asr-native:0.6b
+    container_name: nemotron-asr-api
+    restart: unless-stopped
+    network_mode: host
+    ipc: host
+    gpus: all
+    environment:
+      ASR_MODEL: ${ASR_MODEL:-nvidia/nemotron-3.5-asr-streaming-0.6b}
+      ASR_MAX_CONCURRENCY: ${ASR_MAX_CONCURRENCY:-1}
+      HF_TOKEN: ${HF_TOKEN:-}
+    volumes:
+      - hf-cache:/root/.cache/huggingface
+
+volumes:
+  hf-cache:
+    name: media-hf-cache
+    external: true

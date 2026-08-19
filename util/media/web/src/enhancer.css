@@ -1,0 +1,95 @@
+.enhancer-control {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin: 0 0 12px;
+  padding: 12px;
+  border: 1px solid #30373d;
+  border-radius: 11px;
+  background: #12161a;
+}
+
+.enhancer-control > div:first-child {
+  display: grid;
+  gap: 4px;
+}
+
+.enhancer-control strong {
+  font-size: 12px;
+}
+
+.enhancer-control small,
+.enhanced-prompt small {
+  color: #747c84;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.segmented.compact {
+  flex: none;
+  width: 128px;
+  margin: 0;
+}
+
+.segmented.compact button {
+  padding: 7px 10px;
+  font-size: 10px;
+}
+
+.enhanced-prompt {
+  margin: 0 0 18px;
+  padding: 12px;
+  border: 1px solid #3c4934;
+  border-radius: 11px;
+  background: #151b14;
+}
+
+.enhanced-prompt > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 9px;
+}
+
+.enhanced-prompt > div > span {
+  color: #b9d69a;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.enhanced-prompt textarea {
+  margin-bottom: 7px;
+  background: #10150f;
+}
+
+.enhanced-prompt p {
+  margin: 2px 0;
+  color: #747c84;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.prompt-settings {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #2d3339;
+}
+
+.prompt-settings > small {
+  display: block;
+  color: #777f87;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+@media (max-width: 460px) {
+  .enhancer-control {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .segmented.compact {
+    width: 100%;
+  }
+}

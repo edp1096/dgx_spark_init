@@ -1,0 +1,107 @@
+.settings {
+  padding: 24px;
+  border: 1px solid #2a3036;
+  border-radius: 16px;
+  background: #171b20;
+}
+
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.settings-card {
+  margin-bottom: 16px;
+  padding: 18px;
+  border: 1px solid #2d3339;
+  border-radius: 12px;
+  background: #13171b;
+}
+
+.settings-grid .settings-card {
+  margin-bottom: 0;
+}
+
+.settings-card h3 {
+  margin: 0 0 6px;
+  color: #dce1e4;
+  font-size: 13px;
+}
+
+.settings-card > p {
+  margin: 0 0 18px;
+  color: #737b83;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.endpoint-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 14px;
+}
+
+.endpoint-list label > span {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.endpoint-list small {
+  color: #777f87;
+  font: 700 9px ui-monospace;
+}
+
+.endpoint-list small.online {
+  color: #a8e56d;
+}
+
+.settings-save {
+  max-width: 320px;
+  margin-top: 20px;
+}
+
+.success {
+  margin-bottom: 18px;
+  padding: 12px 14px;
+  border: 1px solid #486239;
+  border-radius: 10px;
+  background: #1d2c18;
+  color: #ccefaa;
+  font-size: 12px;
+}
+
+nav {
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+nav::-webkit-scrollbar {
+  display: none;
+}
+
+nav button {
+  flex: none;
+}
+
+@media (max-width: 850px) {
+  header .engine-strip {
+    display: flex;
+  }
+
+  .settings-grid,
+  .endpoint-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 460px) {
+  .settings {
+    padding: 18px;
+  }
+
+  header .engine-strip span {
+    font-size: 10px;
+  }
+}

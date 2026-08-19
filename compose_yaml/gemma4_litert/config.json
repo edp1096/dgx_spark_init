@@ -1,0 +1,19 @@
+{
+  "default": {
+    "backend": "gpu",
+    "cache": "disk",
+    "max_num_tokens": 4096,
+    "temperature": 0.1,
+    "top_p": 0.95,
+    "top_k": 64,
+    "thinking": false
+  },
+  "models": {
+    "huihui-gemma4-e2b": {
+      "backend": "gpu",
+      "vision_backend": "gpu",
+      "max_num_tokens": 4096,
+      "thinking": false
+    }
+  }
+}

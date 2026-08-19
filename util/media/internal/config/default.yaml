@@ -1,0 +1,43 @@
+listen: 0.0.0.0:8686
+data_dir: data
+
+engines:
+  image:
+    endpoint: http://127.0.0.1:8691
+  speech:
+    endpoint: http://127.0.0.1:8692
+  recognition:
+    endpoint: http://127.0.0.1:8694
+  video:
+    endpoint: http://127.0.0.1:8695
+  prompt:
+    endpoint: http://127.0.0.1:8696
+
+image:
+  model: flux2-klein-4b-nvfp4
+  default_width: 1024
+  default_height: 1024
+  max_reference_images: 4
+
+speech:
+  custom_voice_model: Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice
+  default_language: Korean
+  default_speaker: Sohee
+
+recognition:
+  model: Qwen/Qwen3-ASR-1.7B-hf
+  default_language: Auto
+  max_upload_mb: 500
+
+video:
+  model: Lightricks/LTX-2.5-distilled-nvfp4
+  default_width: 768
+  default_height: 512
+  default_frames: 121
+  default_fps: 24
+
+prompt_enhancement:
+  model: huihui-gemma4-e2b
+  default_enabled: true
+  vision_enabled: false
+  max_tokens: 600

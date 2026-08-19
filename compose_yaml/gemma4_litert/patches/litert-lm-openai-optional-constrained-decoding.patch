@@ -1,0 +1,38 @@
+diff --git a/python/litert_lm_cli/commands/openai_handler.py b/python/litert_lm_cli/commands/openai_handler.py
+index e3888f6..76c0ab5 100644
+--- a/python/litert_lm_cli/commands/openai_handler.py
++++ b/python/litert_lm_cli/commands/openai_handler.py
+@@ -1254,7 +1254,7 @@ class OpenAIHandler(http.server.BaseHTTPRequestHandler):
+           else None
+       )
+       constrained_decoding_config = litert_lm.ConstrainedDecodingConfig(
+-          enable=True,
++          enable=response_format is not None,
+           provider=provider,
+       )
+       with engine.create_conversation(
+@@ -1351,7 +1351,7 @@ class OpenAIHandler(http.server.BaseHTTPRequestHandler):
+           else None
+       )
+       constrained_decoding_config = litert_lm.ConstrainedDecodingConfig(
+-          enable=True,
++          enable=response_format is not None,
+           provider=provider,
+       )
+       with engine.create_conversation(
+*** Update File: /home/edp1096/workspace/dgx_spark_init/compose_yaml/gemma4_litert/scripts/setup_conversion_env.sh
+@@
+ clone_at_ref https://github.com/google-ai-edge/LiteRT-LM.git "${LITERT_LM_REF}" "${BUILDER_DIR}/LiteRT-LM"
+
+ patch_file="${PROJECT_DIR}/patches/litert-torch-transformers5-heterogeneous-cache.patch"
+@@
+   exit 1
+ fi
++
++server_patch_file="${PROJECT_DIR}/patches/litert-lm-openai-optional-constrained-decoding.patch"
++if git -C "${BUILDER_DIR}/LiteRT-LM" apply --check "${server_patch_file}" 2>/dev/null; then
++  git -C "${BUILDER_DIR}/LiteRT-LM" apply "${server_patch_file}"
++elif ! git -C "${BUILDER_DIR}/LiteRT-LM" apply --reverse --check "${server_patch_file}" 2>/dev/null; then
++  echo "LiteRT-LM OpenAI server patch cannot be applied cleanly." >&2
++  exit 1
++fi

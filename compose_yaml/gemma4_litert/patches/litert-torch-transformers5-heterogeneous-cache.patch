@@ -1,0 +1,30 @@
+diff --git a/litert_torch/generative/export_hf/core/cache.py b/litert_torch/generative/export_hf/core/cache.py
+index fe5219b..ec20c8f 100644
+--- a/litert_torch/generative/export_hf/core/cache.py
++++ b/litert_torch/generative/export_hf/core/cache.py
+@@ -401,7 +401,13 @@ class LiteRTLMCacheLayer(
+     batch_size = export_config.batch_size
+     k_ts_idx = export_config.k_ts_idx
+     v_ts_idx = export_config.v_ts_idx
+-    num_kv_heads = model_config.num_key_value_heads
++    # Transformers 5 models can expose heterogeneous per-layer attributes.
++    # Read the concrete layer config instead of opting back into ambiguous
++    # global access. Gemma 4 currently varies RoPE settings by attention type.
++    layer_config = model_config
++    if getattr(model_config, "is_heterogeneous", False):
++      layer_config = model_config.per_layer_config[layer_index]
++    num_kv_heads = layer_config.num_key_value_heads
+     layer_type = "full_attention"
+     if hasattr(model_config, "layer_types"):
+       layer_type = model_config.layer_types[layer_index]
+@@ -413,8 +419,8 @@ class LiteRTLMCacheLayer(
+       if layer_type == "full_attention":
+         num_kv_heads = model_config.num_global_key_value_heads or num_kv_heads
+     embed_size_per_head = (
+-        getattr(model_config, "head_dim", None)
+-        or model_config.hidden_size // model_config.num_attention_heads
++        getattr(layer_config, "head_dim", None)
++        or layer_config.hidden_size // layer_config.num_attention_heads
+     )
+     if hasattr(model_config, "global_head_dim"):
+       if layer_type == "full_attention":
