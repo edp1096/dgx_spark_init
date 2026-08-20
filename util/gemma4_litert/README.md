@@ -99,11 +99,36 @@ ${GEMMA4_LITERT_RUNTIME_ROOT:-$HOME/.local/share/gemma4-litert}/venv/bin/litert-
 make install-service
 ```
 
+서비스를 중지하고 자동 시작 등록과 사용자 unit 파일을 제거하려면 다음을 실행한다.
+
+```bash
+make uninstall-service
+```
+
+서비스 해제는 `${GEMMA4_LITERT_RUNTIME_ROOT:-$HOME/.local/share/gemma4-litert}`의
+LiteRT-LM 실행 환경과 `$HOME/.litert-lm`의 등록 모델·GPU 캐시를 삭제하지 않는다.
+따라서 `make install-service`로 같은 모델을 다시 등록할 필요 없이 서비스를 복구할
+수 있다.
+
 빌드가 끝난 뒤 원본 모델, 소스 checkout, 변환 중간물과 로그를 제거하려면 다음을
 실행한다. 이미 `$HOME/.litert-lm`에 등록한 모델과 실행 환경은 삭제하지 않는다.
 
 ```bash
 make clean-build
+```
+
+8696 서비스를 해제하고 이 프로젝트가 등록한 `huihui-gemma4-e2b` 모델과 전용
+LiteRT-LM 실행 환경까지 제거하려면 다음을 실행한다. 다른 LiteRT-LM 등록 모델과
+공용 데이터 디렉터리는 보존한다.
+
+```bash
+make clean-runtime
+```
+
+변환 산출물과 런타임·등록 모델을 모두 정리하려면 다음을 실행한다.
+
+```bash
+make clean-all
 ```
 
 OpenAI 호환 API는 `http://127.0.0.1:8696/v1/chat/completions`, 모델 ID는

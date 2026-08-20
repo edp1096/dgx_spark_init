@@ -5,8 +5,8 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-WorkingDirectory=%h/workspace/dgx_spark_init/compose_yaml/gemma4_litert
-ExecStart=%h/workspace/dgx_spark_init/compose_yaml/gemma4_litert/scripts/run_server.sh
+WorkingDirectory=%h/workspace/dgx_spark_init/util/gemma4_litert
+ExecStart=%h/workspace/dgx_spark_init/util/gemma4_litert/scripts/run_server.sh
 Restart=on-failure
 RestartSec=3
 TimeoutStopSec=20

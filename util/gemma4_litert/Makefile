@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-.PHONY: converter env runtime download convert verify install-service upload clean-build all
+.PHONY: converter env runtime download convert verify install-service uninstall-service upload clean-build clean-runtime clean-all all
 
 converter:
 	./scripts/build_converter_arm64.sh
@@ -23,10 +23,18 @@ verify:
 install-service: runtime
 	./scripts/install_user_service.sh
 
+uninstall-service:
+	./scripts/uninstall_user_service.sh
+
 upload:
 	./scripts/upload_huggingface.sh
 
 clean-build:
 	rm -rf -- ./builder ./models ./output ./artifacts ./*.log
+
+clean-runtime: uninstall-service
+	./scripts/clean_runtime.sh
+
+clean-all: clean-runtime clean-build
 
 all: convert verify

@@ -9,7 +9,7 @@ API 서버는 별도 프로젝트로 운영합니다.
 - 음성 API: `compose_yaml/qwen3_tts`
 - 음성 인식 API: `compose_yaml/qwen3_asr`
 - 영상 API: `compose_yaml/ltx-2.5_api`
-- 프롬프트 향상 API: `compose_yaml/gemma4_litert`
+- 프롬프트 향상 API: `util/gemma4_litert`
 - 미디어 접근 API: `compose_yaml/media_access_api`
 
 ## 클라이언트 빌드
@@ -62,12 +62,10 @@ docker compose up -d
 cd ../ltx-2.5_api
 docker compose up -d
 
-cd ../gemma4_litert
-VK_DRIVER_FILES=/usr/share/vulkan/icd.d/nvidia_icd.json \
-uvx --from litert-lm litert-lm serve \
-  --config ./config.json --host 0.0.0.0 --port 8696
+cd ../../util/gemma4_litert
+make install-service
 
-cd ../media_access_api
+cd ../../compose_yaml/media_access_api
 docker compose build
 docker compose up -d
 ```
