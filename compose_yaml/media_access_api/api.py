@@ -814,42 +814,60 @@ def probe_media(path: Path) -> dict:
     return probe
 
 
-def persist_video_asset(source: Path, source_name: str) -> dict | None:
+def persist_media_asset(source: Path, source_name: str) -> dict | None:
     probe = probe_media(source)
     video_streams = [
         stream for stream in probe.get("streams", [])
         if stream.get("codec_type") == "video" and not stream.get("disposition", {}).get("attached_pic")
     ]
-    if not video_streams:
+    audio_streams = [stream for stream in probe.get("streams", []) if stream.get("codec_type") == "audio"]
+    if not video_streams and not audio_streams:
         return None
 
+    media_type = "video" if video_streams else "audio"
     asset_id = uuid.uuid4().hex
     staging = ASSET_DIR / f".{asset_id}.tmp"
     destination_dir = ASSET_DIR / asset_id
     staging.mkdir(parents=True, exist_ok=False)
-    destination = staging / "video.mp4"
     try:
-        # 웹 재생과 Range 탐색을 위해 가능한 경우 재인코딩 없이 MP4로 remux한다.
-        try:
+        if media_type == "video":
+            destination = staging / "video.mp4"
+            # 웹 재생과 Range 탐색을 위해 가능한 경우 재인코딩 없이 MP4로 remux한다.
+            try:
+                run([
+                    "ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", str(source),
+                    "-map", "0:v:0", "-map", "0:a?", "-map_metadata", "0",
+                    "-c", "copy", "-movflags", "+faststart", str(destination),
+                ], timeout=7200)
+            except Exception:
+                suffix = source.suffix.lower() if source.suffix else ".bin"
+                destination = staging / f"video{suffix}"
+                shutil.copy2(source, destination)
+            content_type = mimetypes.guess_type(destination.name)[0] or "application/octet-stream"
+            width = int(video_streams[0].get("width") or 0)
+            height = int(video_streams[0].get("height") or 0)
+        else:
+            destination = staging / "audio.m4a"
+            codec = str(audio_streams[0].get("codec_name") or "").lower()
+            codec_args = ["-c:a", "copy"] if codec == "aac" else ["-c:a", "aac", "-b:a", "192k"]
             run([
                 "ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", str(source),
-                "-map", "0:v:0", "-map", "0:a?", "-map_metadata", "0",
-                "-c", "copy", "-movflags", "+faststart", str(destination),
+                "-map", "0:a:0", "-vn", "-map_metadata", "0", *codec_args,
+                "-movflags", "+faststart", str(destination),
             ], timeout=7200)
-        except Exception:
-            suffix = source.suffix.lower() if source.suffix else ".bin"
-            destination = staging / f"video{suffix}"
-            shutil.copy2(source, destination)
-        first_video = video_streams[0]
+            content_type = "audio/mp4"
+            width = 0
+            height = 0
         metadata = {
             "id": asset_id,
             "filename": destination.name,
             "source_name": source_name,
-            "content_type": mimetypes.guess_type(destination.name)[0] or "application/octet-stream",
+            "media_type": media_type,
+            "content_type": content_type,
             "size": destination.stat().st_size,
             "duration": probe_duration(destination),
-            "width": int(first_video.get("width") or 0),
-            "height": int(first_video.get("height") or 0),
+            "width": width,
+            "height": height,
         }
         (staging / "metadata.json").write_text(json.dumps(metadata, ensure_ascii=False, indent=2), encoding="utf-8")
         staging.rename(destination_dir)
@@ -1109,7 +1127,7 @@ async def prepare_media(
         asset = reusable_asset(work_dir)
         if asset is None:
             set_progress(request_id, "storing")
-            asset = await asyncio.to_thread(persist_video_asset, source, source_name)
+            asset = await asyncio.to_thread(persist_media_asset, source, source_name)
             if asset:
                 write_recovery(work_dir, asset_id=asset["id"], stage="stored")
         set_progress(request_id, "extracting_audio")

@@ -75,6 +75,24 @@
     return `${bytes} B`
   }
 
+  function isAudioMedia(job) {
+    const media = job.params?.media || {}
+    return media.media_type === 'audio' || String(media.content_type || '').startsWith('audio/')
+  }
+
+  function mediaToggleLabel(job, expanded) {
+    if (!job.media_url) return expanded ? '자막 접기' : '자막 보기'
+    const kind = isAudioMedia(job) ? '음성' : '영상'
+    return expanded ? `${kind}·자막 접기` : `${kind}·자막 보기`
+  }
+
+  function mediaSummary(job) {
+    const media = job.params?.media
+    if (!media) return ''
+    const dimensions = !isAudioMedia(job) && media.width && media.height ? `${media.width}×${media.height} · ` : ''
+    return `${dimensions}${formatDuration(media.duration)} · ${formatBytes(media.size)}`
+  }
+
   function durationFromFrames(frames, fps) {
     return Math.round(Math.max(0, (Number(frames) - 1) / Math.max(1, Number(fps))) * 1000) / 1000
   }
@@ -103,13 +121,13 @@
     if (params.stage === 'media') {
       const labels = {
         starting: '미디어 준비 시작 중', resuming: '저장된 원본에서 작업 재개 중', receiving: '파일 전송 중', resolving: '영상 페이지 분석 중',
-        storing: '영상 저장·MP4 정리 중', extracting_audio: '음성 추출·분할 중', complete: '미디어 준비 마무리 중'
+        storing: '미디어 저장·재생 형식 정리 중', extracting_audio: '음성 추출·분할 중', complete: '미디어 준비 마무리 중'
       }
       if (params.media_stage === 'downloading') {
         const percent = Number(params.media_percent) || 0
         const amount = params.media_total_bytes ? ` · ${formatBytes(params.media_downloaded_bytes)} / ${formatBytes(params.media_total_bytes)}` : ''
         const eta = params.media_eta_seconds ? ` · 약 ${params.media_eta_seconds}초 남음` : ''
-        return `영상 다운로드 ${percent.toFixed(1)}%${amount}${eta}`
+        return `미디어 다운로드 ${percent.toFixed(1)}%${amount}${eta}`
       }
       return labels[params.media_stage] || '미디어 준비 중'
     }
@@ -662,35 +680,43 @@
         {#each pagedJobs('recognition') as job (job.id)}
           <article>
             {#if subtitleView === 'list'}
-              <div class="subtitle-list-thumb" class:empty-thumb={!job.media_url}>
-                {#if job.media_url}
+              <div class="subtitle-list-thumb" class:empty-thumb={!job.media_url || isAudioMedia(job)}>
+                {#if job.media_url && !isAudioMedia(job)}
                   <!-- svelte-ignore a11y_media_has_caption -->
                   <video preload="metadata" muted playsinline src={job.media_url}></video>
-                {:else}<span>{job.status}</span>{/if}
+                {:else}<span>{job.media_url && isAudioMedia(job) ? 'AUDIO' : job.status}</span>{/if}
               </div>
             {/if}
             <div class="subtitle-result-title"><span>{job.params?.detected_language || job.params?.language}{#if job.params?.segments} · {job.params.segments}구간{/if}{#if job.params?.media_part} · 파트 {job.params.media_part}{/if}{#if job.params?.media_source} · {job.params.media_source}{/if}</span><p>{job.prompt}</p></div>
             {#if subtitleView === 'gallery' && job.media_url}
               <div class="subtitle-player">
-                <video controls preload="metadata">
-                  <source src={job.media_url}>
-                  {#if job.caption_url}<track kind="subtitles" src={job.caption_url} srclang={captionLanguage(job)} label={job.params?.translation_mode === 'none' ? '원문' : job.params?.target_language || '번역'} default>{/if}
-                </video>
-                {#if job.params?.media}<small>{job.params.media.width}×{job.params.media.height} · {Math.round(job.params.media.duration / 60)}분 · {(job.params.media.size / 1073741824).toFixed(2)} GB</small>{/if}
+                {#if isAudioMedia(job)}
+                  <audio controls preload="metadata" src={job.media_url}></audio>
+                {:else}
+                  <video controls preload="metadata">
+                    <source src={job.media_url}>
+                    {#if job.caption_url}<track kind="subtitles" src={job.caption_url} srclang={captionLanguage(job)} label={job.params?.translation_mode === 'none' ? '원문' : job.params?.target_language || '번역'} default>{/if}
+                  </video>
+                {/if}
+                {#if job.params?.media}<small>{mediaSummary(job)}</small>{/if}
               </div>
             {/if}
             {#if subtitleView === 'gallery' && job.params?.text}
               <details class="transcript-details"><summary>자막 미리보기</summary><p class="transcript">{job.params.text}</p></details>
             {:else if subtitleView === 'list' && (job.media_url || job.params?.text)}
-              <button type="button" class="subtitle-list-preview-toggle" aria-expanded={expandedSubtitleJobs.has(job.id)} onclick={() => toggleExpandedJob('subtitle', job.id)}>{expandedSubtitleJobs.has(job.id) ? (job.media_url ? '영상·자막 접기' : '자막 접기') : (job.media_url ? '영상·자막 보기' : '자막 보기')}</button>
+              <button type="button" class="subtitle-list-preview-toggle" aria-expanded={expandedSubtitleJobs.has(job.id)} onclick={() => toggleExpandedJob('subtitle', job.id)}>{mediaToggleLabel(job, expandedSubtitleJobs.has(job.id))}</button>
               {#if expandedSubtitleJobs.has(job.id)}<div class="subtitle-list-expanded">
                 {#if job.media_url}
                   <div class="subtitle-player">
-                    <video controls preload="metadata">
-                      <source src={job.media_url}>
-                      {#if job.caption_url}<track kind="subtitles" src={job.caption_url} srclang={captionLanguage(job)} label={job.params?.translation_mode === 'none' ? '원문' : job.params?.target_language || '번역'} default>{/if}
-                    </video>
-                    {#if job.params?.media}<small>{job.params.media.width}×{job.params.media.height} · {Math.round(job.params.media.duration / 60)}분 · {(job.params.media.size / 1073741824).toFixed(2)} GB</small>{/if}
+                    {#if isAudioMedia(job)}
+                      <audio controls preload="metadata" src={job.media_url}></audio>
+                    {:else}
+                      <video controls preload="metadata">
+                        <source src={job.media_url}>
+                        {#if job.caption_url}<track kind="subtitles" src={job.caption_url} srclang={captionLanguage(job)} label={job.params?.translation_mode === 'none' ? '원문' : job.params?.target_language || '번역'} default>{/if}
+                      </video>
+                    {/if}
+                    {#if job.params?.media}<small>{mediaSummary(job)}</small>{/if}
                   </div>
                 {/if}
                 {#if job.params?.text}<details class="subtitle-expanded-transcript"><summary>자막 보기</summary><p class="transcript">{job.params.text}</p></details>{/if}

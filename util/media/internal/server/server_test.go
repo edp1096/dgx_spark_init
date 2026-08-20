@@ -410,7 +410,7 @@ func TestRecognitionUsesOpenAICompatibleRequest(t *testing.T) {
 		}
 		archive := zip.NewWriter(archiveFile)
 		manifest, _ := archive.Create("manifest.json")
-		_, _ = manifest.Write([]byte(`{"source_name":"sample.mp4","asset":{"id":"0123456789abcdef0123456789abcdef","filename":"video.mp4","content_type":"video/mp4","size":1024,"duration":1,"width":640,"height":360},"segments":[{"name":"segment-00000.wav","start":0,"end":1,"duration":1}]}`))
+		_, _ = manifest.Write([]byte(`{"source_name":"sample.mp4","asset":{"id":"0123456789abcdef0123456789abcdef","filename":"video.mp4","media_type":"video","content_type":"video/mp4","size":1024,"duration":1,"width":640,"height":360},"segments":[{"name":"segment-00000.wav","start":0,"end":1,"duration":1}]}`))
 		segment, _ := archive.Create("segment-00000.wav")
 		_, _ = segment.Write([]byte("fake audio"))
 		_ = archive.Close()
@@ -455,6 +455,10 @@ func TestRecognitionUsesOpenAICompatibleRequest(t *testing.T) {
 			}
 			if list[0].MediaAssetID != "0123456789abcdef0123456789abcdef" || list[0].MediaURL == "" || list[0].CaptionURL == "" {
 				t.Fatalf("missing media result %#v", list[0])
+			}
+			media, ok := list[0].Params["media"].(map[string]any)
+			if !ok || media["media_type"] != "video" || media["content_type"] != "video/mp4" {
+				t.Fatalf("missing media metadata %#v", list[0].Params["media"])
 			}
 			got, err := os.ReadFile(store.OutputPath(list[0].ID + ".txt"))
 			if err != nil || string(got) != "인식 결과\n" {

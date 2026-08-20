@@ -323,13 +323,18 @@
   margin: 10px 0 2px;
 }
 
-.subtitle-player video {
+.subtitle-player video,
+.subtitle-player audio {
   display: block;
   width: 100%;
   max-height: 360px;
   border: 1px solid #30373e;
   border-radius: 9px;
   background: #050607;
+}
+
+.subtitle-player audio {
+  min-height: 48px;
 }
 
 .subtitle-player small {

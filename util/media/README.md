@@ -82,15 +82,16 @@ Gemma 4 E2B LiteRT는 LTX 캡션 형식으로 한국어 원문을 번역·확장
 자동으로 건너뛰고 원문을 그대로 사용합니다. 비전 입력이 포함된 호환 번들을 사용할
 때만 설정에서 `prompt_enhancement.vision_enabled`를 켭니다.
 
-자막 탭은 로컬 영상·음성 파일을 디스크로 스트리밍 업로드하거나 URL에서 영상을
-가져옵니다. Media Access API가 yt-dlp, FFmpeg, Playwright를 담당하고 영상 입력은
-`compose_yaml/media_access_api/data/media`에 영구 보관하여 웹에서 Range 스트리밍합니다.
-Go 앱은 영상 자산 ID만 기록하고 Media Access API의 스트림을 프록시합니다. Qwen3-ASR은
+자막 탭은 로컬 영상·음성 파일을 디스크로 스트리밍 업로드하거나 URL에서 미디어를
+가져옵니다. Media Access API가 yt-dlp, FFmpeg, Playwright를 담당하고 영상과 음성 입력은
+기본적으로 `${HOME}/.local/share/media-access-api/media`에 영구 보관하여 웹에서 Range 스트리밍합니다.
+Go 앱은 미디어 자산 ID와 종류만 기록하고 Media Access API의 스트림을 프록시합니다. Qwen3-ASR은
 최대 180초 WAV 구간만 받습니다. Forced Aligner가 반환한 어절 시각에 각 구간의
 원본 오프셋을 더해 실제 영상 시간축의 자막 큐를 만듭니다. 결과는 SRT, VTT,
 타임코드 TXT, 일반 TXT 중에서 복수 선택할
 수 있으며 Gemma 4 E2B 번역문 또는 원문·번역문 병기도 선택할 수 있습니다. 영상
-결과에는 플레이어용 VTT가 자동 생성되며 작업 삭제 시 영상과 자막도 함께 삭제됩니다.
+영상 결과에는 플레이어용 VTT가 자동 생성되고, 음성 전용 결과는 오디오 플레이어로
+재생할 수 있습니다. 작업 삭제 시 원본 미디어와 자막도 함께 삭제됩니다.
 URL 작업은 영상 다운로드 바이트·퍼센트·ETA, MP4 저장, 음성 분리, ASR 구간,
 번역 배치, 자막 파일 생성 단계를 각각 화면에 표시합니다.
 

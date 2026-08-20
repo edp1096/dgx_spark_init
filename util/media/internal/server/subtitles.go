@@ -28,6 +28,7 @@ type preparedManifest struct {
 type preparedAsset struct {
 	ID          string  `json:"id"`
 	Filename    string  `json:"filename"`
+	MediaType   string  `json:"media_type"`
 	ContentType string  `json:"content_type"`
 	Size        int64   `json:"size"`
 	Duration    float64 `json:"duration"`
@@ -251,6 +252,7 @@ func (s *Server) runSubtitle(j jobs.Job, inputDir, inputPath, sourceURL, languag
 		j.Params["media"] = map[string]any{
 			"duration": manifest.Asset.Duration, "width": manifest.Asset.Width,
 			"height": manifest.Asset.Height, "size": manifest.Asset.Size,
+			"media_type": manifest.Asset.MediaType, "content_type": manifest.Asset.ContentType,
 		}
 		_ = s.jobs.Save(j)
 	}

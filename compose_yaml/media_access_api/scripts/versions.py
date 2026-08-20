@@ -201,8 +201,9 @@ def checked_tag(tag):
 
 def snapshot(tag):
     tag = checked_tag(tag)
-    run("docker", "tag", "dgx-media-access-api:latest", f"dgx-media-access-api:{tag}")
-    print(f"Saved dgx-media-access-api:{tag}")
+    image = "ghcr.io/edp1096/media-access-api"
+    run("docker", "tag", f"{image}:latest", f"{image}:{tag}")
+    print(f"Saved {image}:{tag}")
 
 
 def rollback(tag):
@@ -210,7 +211,7 @@ def rollback(tag):
     environment = os.environ.copy()
     environment["MEDIA_ACCESS_IMAGE_TAG"] = tag
     run("docker", "compose", "--env-file", "versions.env", "up", "-d", "--no-build", env=environment)
-    print(f"Running dgx-media-access-api:{tag}")
+    print(f"Running ghcr.io/edp1096/media-access-api:{tag}")
 
 
 def main():

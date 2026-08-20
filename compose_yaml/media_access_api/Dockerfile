@@ -15,6 +15,8 @@ FROM ghcr.io/nczz/browseforge:${BROWSEFORGE_VERSION}@${BROWSEFORGE_DIGEST} AS br
 
 FROM mcr.microsoft.com/playwright/python:v${PLAYWRIGHT_VERSION}-noble@${PLAYWRIGHT_DIGEST}
 
+LABEL org.opencontainers.image.source="https://github.com/edp1096/dgx_spark_init"
+
 ARG POT_PROVIDER_VERSION
 ARG PLAYWRIGHT_VERSION
 ARG YTDLP_VERSION

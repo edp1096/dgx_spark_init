@@ -32,6 +32,33 @@ class ProbeTest(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "invalid JSON"):
             api.probe_media(Path("source.mp4"))
 
+    def test_audio_only_media_is_persisted_as_playable_asset(self):
+        with tempfile.TemporaryDirectory() as root:
+            asset_dir = Path(root) / "media"
+            asset_dir.mkdir()
+            source = Path(root) / "source.m4a"
+            source.write_bytes(b"source-audio")
+
+            def fake_run(command, timeout=None):
+                Path(command[-1]).write_bytes(b"playable-audio")
+                return ""
+
+            probe = {"streams": [{"codec_type": "audio", "codec_name": "aac"}], "format": {}}
+            with (
+                patch.object(api, "ASSET_DIR", asset_dir),
+                patch.object(api, "probe_media", return_value=probe),
+                patch.object(api, "probe_duration", return_value=12.5),
+                patch.object(api, "run", side_effect=fake_run) as run,
+            ):
+                asset = api.persist_media_asset(source, "https://soundcloud.com/example/track")
+
+            self.assertEqual(asset["media_type"], "audio")
+            self.assertEqual(asset["content_type"], "audio/mp4")
+            self.assertEqual(asset["width"], 0)
+            self.assertEqual(asset["height"], 0)
+            self.assertTrue((asset_dir / asset["id"] / "audio.m4a").is_file())
+            self.assertIn("copy", run.call_args.args[0])
+
 
 class TemporaryStorageTest(unittest.TestCase):
     def test_cleanup_skips_active_prepare_directory(self):

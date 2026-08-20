@@ -14,7 +14,7 @@ services:
         PLAYWRIGHT_CAPTCHA_VERSION: ${PLAYWRIGHT_CAPTCHA_VERSION:-0.1.5}
         CAMOUFOX_BROWSER_VERSION: ${CAMOUFOX_BROWSER_VERSION:-152.0.4-beta.28}
         CAMOUFOX_BROWSER_SHA256: ${CAMOUFOX_BROWSER_SHA256:-3a105a2fc929e80a79b4b7fce2c93ed62c4fb2c877f3c1ed2a5d66a1c4fe968f}
-    image: dgx-media-access-api:${MEDIA_ACCESS_IMAGE_TAG:-latest}
+    image: ghcr.io/edp1096/media-access-api:${MEDIA_ACCESS_IMAGE_TAG:-latest}
     container_name: media-access-api
     restart: unless-stopped
     init: true

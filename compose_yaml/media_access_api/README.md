@@ -1,12 +1,17 @@
 # Media Access API
 
+배포 이미지는 `ghcr.io/edp1096/media-access-api:v1.0.1`이다. 현재 이미지는
+Linux ARM64용이며 `latest`, `v1`, 정확한 릴리스 태그와 소스 커밋 태그를 함께
+제공한다.
+
 AI 모델과 분리된 미디어 입력·전처리 API다. 파일 또는 URL을 받아 `ffmpeg`로
 16kHz mono WAV 구간을 만들고 manifest와 함께 ZIP 스트림으로 반환한다. 구간은
 설정된 최대 길이 안에서 FFmpeg가 찾은 무음의 중앙을 우선 경계로 사용한다.
-영상 입력은 재인코딩 없는 MP4 remux를 우선 시도하고 컨테이너의
+영상 입력은 재인코딩 없는 MP4 remux를 우선 시도하고, 음성 전용 입력은 웹 재생이
+안정적인 M4A(AAC)로 보관한다. 자산은 컨테이너의
 `/data/media/<asset-id>`에 영구 보관한다. 기본 호스트 경로는
 `${HOME}/.local/share/media-access-api`이며 `MEDIA_ACCESS_DATA_DIR`로 바꿀 수 있다.
-컨테이너를 교체해도 bind mount된 영상과 브라우저 세션은 유지된다.
+컨테이너를 교체해도 bind mount된 미디어와 브라우저 세션은 유지된다.
 
 URL 처리는 `yt-dlp + Deno/EJS`를 우선 사용한다. 일반 추출에 실패하면 Chromium을
 일반 프로세스로 먼저 실행한 뒤 고정 로컬 CDP 포트에 Playwright가 후접속하여
@@ -146,8 +151,9 @@ curl -o prepared.zip \
   http://127.0.0.1:8697/v1/media/prepare
 ```
 
-manifest의 `asset.id`가 존재하면 영상 스트리밍과 삭제가 가능하다. Range 응답을
-사용하므로 긴 영상도 웹 플레이어에서 임의 위치로 탐색할 수 있다.
+manifest의 `asset.id`가 존재하면 영상 또는 음성 스트리밍과 삭제가 가능하다.
+`asset.media_type`은 `video` 또는 `audio`이고, Range 응답을 사용하므로 긴 미디어도
+웹 플레이어에서 임의 위치로 탐색할 수 있다.
 `/v1/media/prepare`에 `request_id`를 함께 보내면
 `/v1/media/progress/<request_id>`에서 다운로드 바이트·총량·퍼센트·ETA와 저장 및
 음성 분리 단계를 조회할 수 있다. 이 경우 `prepare-<request_id>` 폴더에 원본과
