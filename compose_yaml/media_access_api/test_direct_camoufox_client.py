@@ -9,6 +9,7 @@ from direct_camoufox_client import (
     RESULT_PREFIX,
     source_state,
 )
+from direct_camoufox_worker import user_agent
 
 
 class Completed:
@@ -19,6 +20,14 @@ class Completed:
 
 
 class DirectCamoufoxClientTest(unittest.TestCase):
+    def test_user_agent_ignores_sandbox_pid_prefix(self):
+        output = "[10271] Sandbox warning\nCamoufox Camoufox 152.0.4-beta.28\n"
+        with patch("direct_camoufox_worker.subprocess.run", return_value=Completed(stdout=output)):
+            self.assertEqual(
+                user_agent(),
+                "Mozilla/5.0 (X11; Linux x86_64; rv:152.0) Gecko/20100101 Firefox/152.0",
+            )
+
     def test_source_state_extracts_supjav_servers(self):
         state = source_state({
             "url": "https://supjav.com/1.html",

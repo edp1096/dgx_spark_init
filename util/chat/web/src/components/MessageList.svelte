@@ -57,7 +57,7 @@
     <div class="welcome"><div class="mark large"><Avatar value={assistantAvatar} alt="SparkTalk" /></div><h1>무엇을 도와드릴까요?</h1><p>연결된 모델에 메시지를 보내보세요.</p></div>
   {/if}
   {#each messages as message, index}
-    <article class:mine={message.role === 'user'}>
+    <article class:mine={message.role === 'user'} class:message-failed={message.status === 'failed'} class:message-cancelled={message.status === 'cancelled'} data-message-id={message.id || ''}>
       <div class="avatar"><Avatar value={message.role === 'user' ? userAvatar : assistantAvatar} fallback={message.role === 'user' ? 'person-blue' : 'spark'} alt={message.role === 'user' ? '나' : 'AI'} /></div>
       <div class="message-body">
         {#if message.reasoning_content}
@@ -84,13 +84,19 @@
         {#if message.role === 'user' && editingMessageId === message.id}
           <div class="message-editor">
             <textarea bind:value={editInput} rows="3" onkeydown={(event) => onEditKeydown(event, message, index)}></textarea>
-            <div><button onclick={onCancelEdit}>취소</button><button class="edit-submit" onclick={() => onSubmitEdit(message, index)} disabled={!editInput.trim() || editInput.trim() === message.content}>수정 후 전송</button></div>
+            <div><button onclick={onCancelEdit}>취소</button><button class="edit-submit" onclick={() => onSubmitEdit(message, index)} disabled={!editInput.trim() || (editInput.trim() === message.content && !['failed', 'cancelled'].includes(message.status))}>수정 후 전송</button></div>
           </div>
         {:else}
           {#if message.attachments?.length}
             <MediaAttachments attachments={message.attachments} />
           {/if}
           <div class="bubble prose">{@html render(message.content || (running && (index === messages.length - 1 || index === retryingIndex) ? '▍' : ''))}</div>
+        {/if}
+        {#if message.status === 'failed' || message.status === 'cancelled'}
+          <div class="message-status" class:cancelled={message.status === 'cancelled'}>
+            <strong>{message.status === 'cancelled' ? (message.role === 'assistant' ? '불완전한 답변' : '중지됨') : (message.role === 'assistant' ? '불완전한 답변' : '실패')}</strong>
+            {#if message.error}<span>{message.error}</span>{/if}
+          </div>
         {/if}
         {#if message.role === 'assistant'}
           <div class="message-actions">
@@ -112,7 +118,7 @@
                 <button onclick={() => onShowAdjacentVariant(message, index, 1)} disabled={running || message.variant_index >= message.variants.length - 1} aria-label="다음 질문">›</button>
               </div>
             {/if}
-            <button onclick={() => onBeginEdit(message)} disabled={running}>✎ 수정</button>
+            <button onclick={() => onBeginEdit(message)} disabled={running}>✎ {message.status === 'failed' || message.status === 'cancelled' ? '수정·재시도' : '수정'}</button>
           </div>
         {/if}
       </div>

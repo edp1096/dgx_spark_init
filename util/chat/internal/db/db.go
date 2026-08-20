@@ -32,6 +32,8 @@ type Message struct {
 	ID          int64             `json:"id"`
 	SessionID   string            `json:"session_id"`
 	Role        string            `json:"role"`
+	Status      string            `json:"status"`
+	Error       string            `json:"error,omitempty"`
 	Content     string            `json:"content"`
 	Reasoning   string            `json:"reasoning_content,omitempty"`
 	ToolTrace   []ToolEvent       `json:"tool_trace,omitempty"`
@@ -64,6 +66,18 @@ type ResponseVariant struct {
 	CreatedAt     time.Time    `json:"created_at"`
 }
 
+type ContextSegment struct {
+	ID              int64     `json:"id"`
+	SessionID       string    `json:"session_id"`
+	StartMessageID  int64     `json:"start_message_id"`
+	EndMessageID    int64     `json:"end_message_id"`
+	Summary         string    `json:"summary"`
+	Checkpoint      string    `json:"-"`
+	EstimatedTokens int       `json:"estimated_tokens"`
+	Model           string    `json:"model"`
+	CreatedAt       time.Time `json:"created_at"`
+}
+
 func Open(path string) (*DB, error) {
 	conn, err := sql.Open("sqlite", path)
 	if err != nil {
@@ -88,11 +102,25 @@ func Open(path string) (*DB, error) {
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			session_id TEXT NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
 			role TEXT NOT NULL, content TEXT NOT NULL,
+			status TEXT NOT NULL DEFAULT 'completed', error TEXT NOT NULL DEFAULT '',
 			reasoning_content TEXT NOT NULL DEFAULT '', tool_trace TEXT NOT NULL DEFAULT '[]',
 			response_variants TEXT NOT NULL DEFAULT '[]',
 			created_at DATETIME NOT NULL
 		);
 		CREATE INDEX IF NOT EXISTS idx_messages_session ON messages(session_id, id);
+		CREATE TABLE IF NOT EXISTS context_segments (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			session_id TEXT NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
+			start_message_id INTEGER NOT NULL,
+			end_message_id INTEGER NOT NULL,
+			summary TEXT NOT NULL,
+			checkpoint TEXT NOT NULL,
+			estimated_tokens INTEGER NOT NULL DEFAULT 0,
+			model TEXT NOT NULL DEFAULT '',
+			created_at DATETIME NOT NULL,
+			UNIQUE(session_id, end_message_id)
+		);
+		CREATE INDEX IF NOT EXISTS idx_context_segments_session ON context_segments(session_id, end_message_id);
 	`); err != nil {
 		conn.Close()
 		return nil, fmt.Errorf("migrate: %w", err)
@@ -105,6 +133,22 @@ func Open(path string) (*DB, error) {
 	_, _ = conn.Exec(`ALTER TABLE messages ADD COLUMN reasoning_content TEXT NOT NULL DEFAULT ''`)
 	_, _ = conn.Exec(`ALTER TABLE messages ADD COLUMN tool_trace TEXT NOT NULL DEFAULT '[]'`)
 	_, _ = conn.Exec(`ALTER TABLE messages ADD COLUMN response_variants TEXT NOT NULL DEFAULT '[]'`)
+	_, _ = conn.Exec(`ALTER TABLE messages ADD COLUMN status TEXT NOT NULL DEFAULT 'completed'`)
+	_, _ = conn.Exec(`ALTER TABLE messages ADD COLUMN error TEXT NOT NULL DEFAULT ''`)
+	// A process restart turns abandoned in-flight requests into failures. Older
+	// databases had no status column; a user request without an immediately
+	// following assistant response is a request that never completed.
+	_, _ = conn.Exec(`UPDATE messages SET status='failed', error=CASE WHEN error='' THEN '이 요청은 완료되지 않았습니다.' ELSE error END WHERE status='pending'`)
+	_, _ = conn.Exec(`
+		UPDATE messages AS user_message
+		SET status='failed', error=CASE WHEN error='' THEN '이전 모델 요청이 완료되지 않았습니다.' ELSE error END
+		WHERE role='user' AND status='completed'
+		  AND NOT EXISTS (
+			SELECT 1 FROM messages AS answer
+			WHERE answer.id=(SELECT MIN(next_message.id) FROM messages AS next_message WHERE next_message.session_id=user_message.session_id AND next_message.id>user_message.id)
+			  AND answer.role='assistant' AND answer.status='completed'
+		  )
+	`)
 	return d, nil
 }
 

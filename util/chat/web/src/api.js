@@ -29,6 +29,9 @@ export const moveGroup = (id, direction) => request(`/api/groups/${id}/move`, {
 });
 export const deleteGroup = (id) => request(`/api/groups/${id}`, { method: 'DELETE' });
 export const listMessages = (id) => request(`/api/sessions/${id}/messages`);
+export const getContextState = (id) => request(`/api/sessions/${id}/context`);
+export const compactContext = (id) => request(`/api/sessions/${id}/context/compact`, { method: 'POST' });
+export const clearContext = (id) => request(`/api/sessions/${id}/context`, { method: 'DELETE' });
 export const getHealth = () => request('/api/health');
 export const getModels = () => request('/api/models');
 export const getConfig = () => request('/api/config');
@@ -51,6 +54,11 @@ export const uploadAttachment = (file, signal) => {
   body.append('file', file);
   return request('/api/files', { method: 'POST', body, signal });
 };
+
+export const uploadMediaURL = (url, signal) => request('/api/media/source', {
+  method: 'POST', headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ url }), signal,
+});
 
 export async function streamChat(sessionId, content, attachments, model, reasoningEffort, toolsEnabled, signal, handlers) {
   const response = await fetch('/api/chat', {
@@ -96,6 +104,7 @@ async function consumeSSE(response, handlers) {
       if (event === 'reasoning') handlers.reasoning?.(data.delta || '');
       if (event === 'tool_start') handlers.toolStart?.(data);
       if (event === 'tool_result') handlers.toolResult?.(data);
+      if (event === 'context') handlers.context?.(data);
       if (event === 'error') throw new Error(data.error || '응답 오류');
       if (event === 'done') handlers.done?.();
     }

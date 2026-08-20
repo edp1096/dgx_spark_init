@@ -4,6 +4,7 @@ import (
 	"archive/zip"
 	"bufio"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -18,6 +19,10 @@ import (
 
 	"mediaapp/internal/jobs"
 )
+
+var errJobCancelled = errors.New("job cancelled")
+
+const autoMultilingualLanguage = "AutoMultilingual"
 
 type preparedManifest struct {
 	SourceName string            `json:"source_name"`
@@ -212,6 +217,9 @@ func parseOutputFormats(value string, defaults []string) ([]string, error) {
 }
 
 func (s *Server) runSubtitle(j jobs.Job, inputDir, inputPath, sourceURL, language, context string, formats []string, translationMode, targetLanguage, mediaPart, mediaSource string) {
+	if s.jobCancelled(j.ID) {
+		return
+	}
 	j.Status = "running"
 	j.Params["stage"] = "media"
 	j.Params["media_stage"] = "starting"
@@ -233,6 +241,9 @@ func (s *Server) runSubtitle(j jobs.Job, inputDir, inputPath, sourceURL, languag
 	fields["request_id"] = j.ID
 	endpoint := s.config().Engines["media"].Endpoint + "/v1/media/prepare"
 	if err := s.prepareMediaWithProgress(&j, endpoint, fields, paths, archivePath); err != nil {
+		if errors.Is(err, errJobCancelled) || s.jobCancelled(j.ID) {
+			return
+		}
 		s.fail(j, fmt.Errorf("media preparation: %w", err))
 		return
 	}
@@ -267,16 +278,22 @@ func (s *Server) runSubtitle(j jobs.Job, inputDir, inputPath, sourceURL, languag
 	lockedLanguage := ""
 	cues := make([]subtitleCue, 0, len(manifest.Segments))
 	for index := range manifest.Segments {
+		if s.jobCancelled(j.ID) {
+			return
+		}
 		segmentLanguage := language
-		if strings.EqualFold(language, "auto") && lockedLanguage != "" {
+		if isSingleLanguageAuto(language) && lockedLanguage != "" {
 			segmentLanguage = lockedLanguage
 		}
 		text, detected, words, transcribeErr := s.transcribeSegment(filepath.Join(preparedDir, manifest.Segments[index].Name), segmentLanguage, context)
+		if s.jobCancelled(j.ID) {
+			return
+		}
 		if transcribeErr != nil {
 			s.fail(j, fmt.Errorf("segment %d/%d: %w", index+1, len(manifest.Segments), transcribeErr))
 			return
 		}
-		qualityErr := validateAlignedResult(text, words, manifest.Segments[index].Duration)
+		qualityErr := validateAlignedResult(text, words, manifest.Segments[index].Duration, isMultilingualAuto(language))
 		var segmentCues []subtitleCue
 		if qualityErr != nil {
 			segmentCues, detected, transcribeErr = s.recoverSubtitleSegment(
@@ -294,10 +311,12 @@ func (s *Server) runSubtitle(j jobs.Job, inputDir, inputPath, sourceURL, languag
 			}
 		}
 		cues = append(cues, segmentCues...)
-		if detectedLanguage == "" && detected != "" {
+		if isMultilingualAuto(language) {
+			detectedLanguage = mergeDetectedLanguages(detectedLanguage, detected)
+		} else if detectedLanguage == "" && detected != "" {
 			detectedLanguage = detected
 		}
-		if lockedLanguage == "" && detected != "" && !strings.Contains(detected, ",") {
+		if isSingleLanguageAuto(language) && lockedLanguage == "" && detected != "" && !strings.Contains(detected, ",") {
 			lockedLanguage = detected
 		}
 		j.Params["progress"] = index + 1
@@ -314,15 +333,24 @@ func (s *Server) runSubtitle(j jobs.Job, inputDir, inputPath, sourceURL, languag
 		j.Params["translation_total"] = (len(cues) + 7) / 8
 		_ = s.jobs.Save(j)
 		if err := s.translateSubtitleSegments(cues, targetLanguage, func(done, total int) {
+			if s.jobCancelled(j.ID) {
+				return
+			}
 			j.Params["translation_progress"] = done
 			j.Params["translation_total"] = total
 			_ = s.jobs.Save(j)
-		}); err != nil {
+		}, func() bool { return s.jobCancelled(j.ID) }); err != nil {
+			if errors.Is(err, errJobCancelled) || s.jobCancelled(j.ID) {
+				return
+			}
 			s.fail(j, fmt.Errorf("translation: %w", err))
 			return
 		}
 	}
 	j.Params["stage"] = "finalizing"
+	if s.jobCancelled(j.ID) {
+		return
+	}
 	_ = s.jobs.Save(j)
 	outputs, err := s.writeSubtitleOutputs(j.ID, cues, formats, translationMode)
 	if err != nil {
@@ -350,7 +378,7 @@ func (s *Server) runSubtitle(j jobs.Job, inputDir, inputPath, sourceURL, languag
 	delete(j.Params, "translation_total")
 	if detectedLanguage != "" {
 		j.Params["detected_language"] = detectedLanguage
-		if strings.EqualFold(language, "auto") && lockedLanguage != "" {
+		if isSingleLanguageAuto(language) && lockedLanguage != "" {
 			j.Params["locked_language"] = lockedLanguage
 		}
 	}
@@ -462,8 +490,14 @@ func (s *Server) prepareMediaWithProgress(j *jobs.Job, endpoint string, fields m
 	for {
 		select {
 		case err := <-done:
+			if s.jobCancelled(j.ID) {
+				return errJobCancelled
+			}
 			return err
 		case <-ticker.C:
+			if s.jobCancelled(j.ID) {
+				return errJobCancelled
+			}
 			progress, err := s.getMediaProgress(j.ID)
 			if err != nil || progress == last {
 				continue
@@ -553,11 +587,13 @@ func (s *Server) recoverSubtitleSegment(inputDir, sourcePath string, absoluteOff
 				err = transcribeErr
 				break
 			}
-			if validationErr := validateAlignedResult(text, words, segment.Duration); validationErr != nil {
+			if validationErr := validateAlignedResult(text, words, segment.Duration, isMultilingualAuto(language)); validationErr != nil {
 				err = validationErr
 				break
 			}
-			if detectedLanguage == "" && detected != "" {
+			if isMultilingualAuto(language) {
+				detectedLanguage = mergeDetectedLanguages(detectedLanguage, detected)
+			} else if detectedLanguage == "" && detected != "" {
 				detectedLanguage = detected
 			}
 			segmentCues := cuesFromTimestamps(text, words, absoluteOffset+segment.Start)
@@ -585,7 +621,7 @@ func (s *Server) recoverSubtitleSegment(inputDir, sourcePath string, absoluteOff
 func (s *Server) transcribeSegment(path, language, context string) (string, string, []timedWord, error) {
 	cfg := s.config()
 	fields := map[string]string{"model": cfg.Recognition.Model}
-	if language != "" && !strings.EqualFold(language, "auto") {
+	if language != "" && !isAutomaticLanguage(language) {
 		fields["language"] = language
 	}
 	if context != "" {
@@ -637,7 +673,7 @@ func cuesFromTimestamps(transcript string, words []timedWord, offset float64) []
 	return cues
 }
 
-func validateAlignedResult(transcript string, words []timedWord, duration float64) error {
+func validateAlignedResult(transcript string, words []timedWord, duration float64, allowRepeatedLyrics bool) error {
 	if strings.TrimSpace(transcript) == "" || len(words) == 0 {
 		return nil
 	}
@@ -664,15 +700,46 @@ func validateAlignedResult(transcript string, words []timedWord, duration float6
 			return fmt.Errorf("aligner collapsed %d words into %.3fs", len(words), maximum-minimum)
 		}
 	}
-	for _, sentence := range strings.FieldsFunc(transcript, func(r rune) bool {
-		return strings.ContainsRune(".!?。！？\n", r)
-	}) {
-		sentence = strings.TrimSpace(sentence)
-		if utf8.RuneCountInString(sentence) >= 8 && strings.Count(transcript, sentence) >= 5 {
-			return fmt.Errorf("ASR repeated the same sentence at least five times")
+	if !allowRepeatedLyrics {
+		for _, sentence := range strings.FieldsFunc(transcript, func(r rune) bool {
+			return strings.ContainsRune(".!?。！？\n", r)
+		}) {
+			sentence = strings.TrimSpace(sentence)
+			if utf8.RuneCountInString(sentence) >= 8 && strings.Count(transcript, sentence) >= 5 {
+				return fmt.Errorf("ASR repeated the same sentence at least five times")
+			}
 		}
 	}
 	return nil
+}
+
+func isSingleLanguageAuto(language string) bool {
+	return strings.EqualFold(strings.TrimSpace(language), "auto")
+}
+
+func isMultilingualAuto(language string) bool {
+	return strings.EqualFold(strings.TrimSpace(language), autoMultilingualLanguage)
+}
+
+func isAutomaticLanguage(language string) bool {
+	return isSingleLanguageAuto(language) || isMultilingualAuto(language)
+}
+
+func mergeDetectedLanguages(current, next string) string {
+	seen := make(map[string]bool)
+	merged := make([]string, 0, 4)
+	for _, value := range []string{current, next} {
+		for _, language := range strings.Split(value, ",") {
+			language = strings.TrimSpace(language)
+			key := strings.ToLower(language)
+			if language == "" || seen[key] {
+				continue
+			}
+			seen[key] = true
+			merged = append(merged, language)
+		}
+	}
+	return strings.Join(merged, ",")
 }
 
 // Forced Aligner는 문장부호를 제거한 어절을 반환한다. 원문에서 다음 어절까지의
@@ -719,11 +786,14 @@ func hasSentenceEnding(value string) bool {
 	return false
 }
 
-func (s *Server) translateSubtitleSegments(segments []subtitleCue, targetLanguage string, progress func(done, total int)) error {
+func (s *Server) translateSubtitleSegments(segments []subtitleCue, targetLanguage string, progress func(done, total int), cancelled func() bool) error {
 	cfg := s.config()
 	total := (len(segments) + 7) / 8
 	done := 0
 	for start := 0; start < len(segments); start += 8 {
+		if cancelled != nil && cancelled() {
+			return errJobCancelled
+		}
 		end := start + 8
 		if end > len(segments) {
 			end = len(segments)
@@ -745,6 +815,9 @@ func (s *Server) translateSubtitleSegments(segments []subtitleCue, targetLanguag
 			"max_completion_tokens": 2048, "temperature": 0, "top_k": 1, "reasoning_effort": "none",
 		}
 		data, _, err := s.callJSON(cfg.Engines["prompt"].Endpoint+"/v1/chat/completions", payload)
+		if cancelled != nil && cancelled() {
+			return errJobCancelled
+		}
 		if err != nil {
 			return err
 		}

@@ -6,6 +6,13 @@ import (
 	"time"
 )
 
+const (
+	MessagePending   = "pending"
+	MessageCompleted = "completed"
+	MessageFailed    = "failed"
+	MessageCancelled = "cancelled"
+)
+
 func (d *DB) CreateSession(id, title, model, reasoning string) (Session, error) {
 	now := time.Now()
 	_, err := d.conn.Exec(`INSERT INTO sessions(id,title,model,reasoning_effort,created_at,updated_at) VALUES(?,?,?,?,?,?)`, id, title, model, reasoning, now, now)
@@ -29,13 +36,20 @@ func (d *DB) Sessions() ([]Session, error) {
 	return out, rows.Err()
 }
 
+func (d *DB) Session(id string) (Session, error) {
+	var item Session
+	err := d.conn.QueryRow(`SELECT id,title,model,reasoning_effort,COALESCE(group_id,''),created_at,updated_at FROM sessions WHERE id=?`, id).
+		Scan(&item.ID, &item.Title, &item.Model, &item.Reasoning, &item.GroupID, &item.CreatedAt, &item.UpdatedAt)
+	return item, err
+}
+
 func (d *DB) DeleteSession(id string) error {
 	_, err := d.conn.Exec(`DELETE FROM sessions WHERE id=?`, id)
 	return err
 }
 
 func (d *DB) Messages(sessionID string) ([]Message, error) {
-	rows, err := d.conn.Query(`SELECT id,session_id,role,content,reasoning_content,tool_trace,response_variants,created_at FROM messages WHERE session_id=? ORDER BY id`, sessionID)
+	rows, err := d.conn.Query(`SELECT id,session_id,role,status,error,content,reasoning_content,tool_trace,response_variants,created_at FROM messages WHERE session_id=? ORDER BY id`, sessionID)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +58,7 @@ func (d *DB) Messages(sessionID string) ([]Message, error) {
 	for rows.Next() {
 		var item Message
 		var traceJSON, variantsJSON string
-		if err := rows.Scan(&item.ID, &item.SessionID, &item.Role, &item.Content, &item.Reasoning, &traceJSON, &variantsJSON, &item.CreatedAt); err != nil {
+		if err := rows.Scan(&item.ID, &item.SessionID, &item.Role, &item.Status, &item.Error, &item.Content, &item.Reasoning, &traceJSON, &variantsJSON, &item.CreatedAt); err != nil {
 			return nil, err
 		}
 		_ = json.Unmarshal([]byte(traceJSON), &item.ToolTrace)
@@ -57,17 +71,86 @@ func (d *DB) Messages(sessionID string) ([]Message, error) {
 }
 
 func (d *DB) AddMessage(sessionID, role, content, reasoning string, toolTrace []ToolEvent, attachments []Attachment) (Message, error) {
+	return d.addMessage(sessionID, role, MessageCompleted, "", content, reasoning, toolTrace, attachments)
+}
+
+func (d *DB) AddPendingMessage(sessionID, content string, attachments []Attachment) (Message, error) {
+	return d.addMessage(sessionID, "user", MessagePending, "", content, "", nil, attachments)
+}
+
+func (d *DB) addMessage(sessionID, role, status, failure, content, reasoning string, toolTrace []ToolEvent, attachments []Attachment) (Message, error) {
 	now := time.Now()
 	traceJSON, _ := json.Marshal(toolTrace)
 	variants := []ResponseVariant{{Content: content, Reasoning: reasoning, ToolTrace: toolTrace, Attachments: attachments, CreatedAt: now}}
 	variantsJSON, _ := json.Marshal(variants)
-	result, err := d.conn.Exec(`INSERT INTO messages(session_id,role,content,reasoning_content,tool_trace,response_variants,created_at) VALUES(?,?,?,?,?,?,?)`, sessionID, role, content, reasoning, string(traceJSON), string(variantsJSON), now)
+	result, err := d.conn.Exec(`INSERT INTO messages(session_id,role,status,error,content,reasoning_content,tool_trace,response_variants,created_at) VALUES(?,?,?,?,?,?,?,?,?)`, sessionID, role, status, failure, content, reasoning, string(traceJSON), string(variantsJSON), now)
 	if err != nil {
 		return Message{}, err
 	}
 	id, _ := result.LastInsertId()
 	_, _ = d.conn.Exec(`UPDATE sessions SET updated_at=? WHERE id=?`, now, sessionID)
-	return Message{ID: id, SessionID: sessionID, Role: role, Content: content, Reasoning: reasoning, ToolTrace: toolTrace, Attachments: attachments, Variants: variants, CreatedAt: now}, nil
+	return Message{ID: id, SessionID: sessionID, Role: role, Status: status, Error: failure, Content: content, Reasoning: reasoning, ToolTrace: toolTrace, Attachments: attachments, Variants: variants, CreatedAt: now}, nil
+}
+
+// CompletePendingTurn atomically commits the pending user request and its
+// assistant answer. A model-facing turn is never half-completed.
+func (d *DB) CompletePendingTurn(userMessageID int64, content, reasoning string, toolTrace []ToolEvent) (Message, error) {
+	tx, err := d.conn.Begin()
+	if err != nil {
+		return Message{}, err
+	}
+	defer tx.Rollback()
+	var sessionID string
+	if err := tx.QueryRow(`SELECT session_id FROM messages WHERE id=? AND role='user' AND status='pending'`, userMessageID).Scan(&sessionID); err != nil {
+		return Message{}, err
+	}
+	now := time.Now()
+	if _, err := tx.Exec(`UPDATE messages SET status='completed',error='' WHERE id=?`, userMessageID); err != nil {
+		return Message{}, err
+	}
+	traceJSON, _ := json.Marshal(toolTrace)
+	variants := []ResponseVariant{{Content: content, Reasoning: reasoning, ToolTrace: toolTrace, CreatedAt: now}}
+	variantsJSON, _ := json.Marshal(variants)
+	result, err := tx.Exec(`INSERT INTO messages(session_id,role,status,error,content,reasoning_content,tool_trace,response_variants,created_at) VALUES(?,'assistant','completed','',?,?,?,?,?)`, sessionID, content, reasoning, string(traceJSON), string(variantsJSON), now)
+	if err != nil {
+		return Message{}, err
+	}
+	id, _ := result.LastInsertId()
+	if _, err := tx.Exec(`UPDATE sessions SET updated_at=? WHERE id=?`, now, sessionID); err != nil {
+		return Message{}, err
+	}
+	if err := tx.Commit(); err != nil {
+		return Message{}, err
+	}
+	return Message{ID: id, SessionID: sessionID, Role: "assistant", Status: MessageCompleted, Content: content, Reasoning: reasoning, ToolTrace: toolTrace, Variants: variants, CreatedAt: now}, nil
+}
+
+func (d *DB) FailPendingTurn(userMessageID int64, status, failure, partialContent, partialReasoning string, toolTrace []ToolEvent) error {
+	if status != MessageCancelled {
+		status = MessageFailed
+	}
+	tx, err := d.conn.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	var sessionID string
+	if err := tx.QueryRow(`SELECT session_id FROM messages WHERE id=? AND role='user' AND status='pending'`, userMessageID).Scan(&sessionID); err != nil {
+		return err
+	}
+	if _, err := tx.Exec(`UPDATE messages SET status=?,error=? WHERE id=?`, status, failure, userMessageID); err != nil {
+		return err
+	}
+	if partialContent != "" || partialReasoning != "" || len(toolTrace) > 0 {
+		now := time.Now()
+		traceJSON, _ := json.Marshal(toolTrace)
+		variants := []ResponseVariant{{Content: partialContent, Reasoning: partialReasoning, ToolTrace: toolTrace, CreatedAt: now}}
+		variantsJSON, _ := json.Marshal(variants)
+		if _, err := tx.Exec(`INSERT INTO messages(session_id,role,status,error,content,reasoning_content,tool_trace,response_variants,created_at) VALUES(?,'assistant',?,?, ?,?,?,?,?)`, sessionID, status, failure, partialContent, partialReasoning, string(traceJSON), string(variantsJSON), now); err != nil {
+			return err
+		}
+	}
+	return tx.Commit()
 }
 
 func (d *DB) UpdateSession(id, title, model, reasoning string) error {
@@ -95,6 +178,12 @@ func (d *DB) RenameSession(id, title string) error {
 func (d *DB) MessageCount(sessionID string) (int, error) {
 	var count int
 	err := d.conn.QueryRow(`SELECT COUNT(*) FROM messages WHERE session_id=?`, sessionID).Scan(&count)
+	return count, err
+}
+
+func (d *DB) CompletedUserMessageCount(sessionID string) (int, error) {
+	var count int
+	err := d.conn.QueryRow(`SELECT COUNT(*) FROM messages WHERE session_id=? AND role='user' AND status='completed'`, sessionID).Scan(&count)
 	return count, err
 }
 

@@ -113,6 +113,48 @@ class RecoveryTest(unittest.TestCase):
                 Path(root) / "prepare-job-123",
             )
 
+    def test_cancel_prepare_terminates_only_registered_process(self):
+        class FakeProcess:
+            def __init__(self):
+                self.terminated = False
+                self.waited = False
+
+            def poll(self):
+                return None
+
+            def terminate(self):
+                self.terminated = True
+
+            def wait(self, timeout=None):
+                self.waited = True
+                return 0
+
+        with tempfile.TemporaryDirectory() as root:
+            data_dir = Path(root)
+            progress_dir = data_dir / "progress"
+            progress_dir.mkdir()
+            work_dir = data_dir / "prepare-job-123"
+            work_dir.mkdir()
+            process = FakeProcess()
+            with (
+                patch.object(api, "DATA_DIR", data_dir),
+                patch.object(api, "PROGRESS_DIR", progress_dir),
+            ):
+                with api.active_prepare_lock:
+                    api.active_prepare_dirs.add(work_dir)
+                    api.active_prepare_processes["job-123"] = process
+                try:
+                    result = api.cancel_media_prepare("job-123")
+                    self.assertEqual(result["status"], "cancelling")
+                    self.assertTrue(process.terminated)
+                    self.assertTrue(process.waited)
+                    self.assertEqual(
+                        json.loads((progress_dir / "job-123.json").read_text())["stage"],
+                        "cancelled",
+                    )
+                finally:
+                    api.finish_prepare("job-123", work_dir)
+
     @patch("api.probe_duration", return_value=12.5)
     def test_reusable_source_uses_completed_media(self, _probe_duration):
         with tempfile.TemporaryDirectory() as root:

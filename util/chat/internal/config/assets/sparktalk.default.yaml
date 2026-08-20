@@ -20,6 +20,29 @@ model:
   system_prompt_preset: ""
   system_prompt_presets: []
 
+asr:
+  # 음성은 전사 텍스트로, 영상은 영상과 음성 전사를 함께 모델에 전달합니다.
+  enabled: true
+  ffmpeg_endpoint: http://127.0.0.1:8698
+  endpoint: http://127.0.0.1:8694
+  model: qwen3-asr
+  # auto 또는 Qwen3-ASR이 지원하는 언어명을 입력합니다.
+  language: auto
+  # 노래·전문용어 등 문맥 힌트가 필요할 때만 입력합니다.
+  prompt: ""
+  timeout: 30m
+
+context:
+  # 전체 대화는 보존하고 모델 입력만 구간별로 요약합니다. 0은 백엔드 자동 감지입니다.
+  enabled: true
+  window_tokens: 0
+  compact_at_percent: 80
+  output_reserve: 8192
+  safety_margin: 4096
+  recent_tokens: 32768
+  # 자동 감지가 어려운 멀티모달 입력의 보수적인 장당 추정치입니다.
+  image_tokens: 2048
+
 tools:
   # 모델이 필요할 때 내장 web_search/web_fetch를 호출합니다.
   enabled: true

@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"sparktalk/internal/asr"
 	"sparktalk/internal/config"
 	"sparktalk/internal/db"
 	"sparktalk/internal/llm"
@@ -17,14 +18,19 @@ import (
 )
 
 type Server struct {
-	mu         sync.RWMutex
-	cfg        config.Config
-	startup    config.ServerConfig
-	configPath string
-	db         *db.DB
-	llm        *llm.Client
-	media      *media.Store
-	server     *http.Server
+	mu             sync.RWMutex
+	cfg            config.Config
+	startup        config.ServerConfig
+	configPath     string
+	db             *db.DB
+	llm            *llm.Client
+	asr            *asr.Client
+	media          *media.Store
+	server         *http.Server
+	contextMu      sync.Mutex
+	contextWindows map[string]int
+	compactionMu   sync.Mutex
+	asrMu          sync.Mutex
 }
 
 func New(cfg config.Config, configPath string, store *db.DB, client *llm.Client, embedded fs.FS) (*Server, error) {
@@ -36,7 +42,7 @@ func New(cfg config.Config, configPath string, store *db.DB, client *llm.Client,
 	if err != nil {
 		return nil, fmt.Errorf("media storage: %w", err)
 	}
-	s := &Server{cfg: cfg, startup: cfg.Server, configPath: configPath, db: store, llm: client, media: mediaStore}
+	s := &Server{cfg: cfg, startup: cfg.Server, configPath: configPath, db: store, llm: client, asr: asr.New(cfg.ASR), media: mediaStore, contextWindows: make(map[string]int)}
 	mux := http.NewServeMux()
 	mux.HandleFunc("/api/health", s.health)
 	mux.HandleFunc("/api/config", s.configuration)
@@ -46,6 +52,7 @@ func New(cfg config.Config, configPath string, store *db.DB, client *llm.Client,
 	mux.HandleFunc("/api/files", s.uploadFile)
 	mux.HandleFunc("/api/files/", s.file)
 	mux.HandleFunc("/api/media", s.mediaUsage)
+	mux.HandleFunc("/api/media/source", s.uploadSource)
 	mux.HandleFunc("/api/messages/", s.messageAction)
 	mux.HandleFunc("/api/groups", s.groups)
 	mux.HandleFunc("/api/groups/", s.group)
@@ -63,6 +70,12 @@ func (s *Server) snapshot() (config.Config, *llm.Client) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.cfg, s.llm
+}
+
+func (s *Server) asrSnapshot() *asr.Client {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.asr
 }
 
 func spaHandler(web fs.FS) http.Handler {

@@ -7,11 +7,28 @@ import (
 	"image/png"
 	"mime/multipart"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
 	"sparktalk/internal/db"
 )
+
+func TestSaveReader(t *testing.T) {
+	store, err := New(t.TempDir() + "/chat.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	data := append([]byte{0, 0, 0, 24}, []byte("ftypisom0000")...)
+	item, err := store.SaveReader(bytes.NewReader(data), "remote.mp4", "video/mp4", MaxAttachmentBytes)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if item.Name != "remote.mp4" || item.MIME != "video/mp4" || item.Size != int64(len(data)) {
+		t.Fatalf("unexpected attachment: %+v", item)
+	}
+}
 
 func TestImageLifecycle(t *testing.T) {
 	store, err := New(t.TempDir() + "/chat.db")
@@ -107,5 +124,30 @@ func TestSupportedAudioAndVideoSignatures(t *testing.T) {
 func TestRejectsDisguisedMedia(t *testing.T) {
 	if _, err := classifyMedia([]byte("not a video"), "fake.mp4", "video/mp4", false); err == nil {
 		t.Fatal("disguised MP4 was accepted")
+	}
+}
+
+func TestTranscriptCacheFollowsMediaCleanup(t *testing.T) {
+	store, err := New(t.TempDir() + "/chat.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	id := "0123456789abcdef0123456789abcdef"
+	if err := os.WriteFile(filepath.Join(store.dir, id), []byte("media"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	want := TranscriptCache{Fingerprint: "v1", Text: "전사문", Language: "Korean"}
+	if err := store.SaveTranscript(id, want); err != nil {
+		t.Fatal(err)
+	}
+	got, ok, err := store.LoadTranscript(id, "v1")
+	if err != nil || !ok || got.Text != want.Text {
+		t.Fatalf("load transcript: got=%+v ok=%v err=%v", got, ok, err)
+	}
+	if _, err := store.Cleanup(nil, nil); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(store.transcriptPath(id)); !os.IsNotExist(err) {
+		t.Fatalf("transcript cache was not removed with media: %v", err)
 	}
 }

@@ -12,7 +12,7 @@ DGX Spark에서 Qwen3.8 27B target과 RadixArk DSpark 조합을 실행한다.
 명령은 이 디렉터리에서 실행한다.
 
 ```bash
-cd ~/workspace/dgx_spark_init/compose_yaml/sgl_qwen38
+cd ~/workspace/dgx_spark_init/compose_yaml/sglang_qwen38
 ```
 
 Huihui FP8 target, DSpark, Open WebUI를 함께 실행한다.
@@ -32,6 +32,21 @@ docker compose \
   -f compose.huihui-radixark-nvfp4-local.yaml \
   up -d
 ```
+
+동일한 Huihui-RadixArk NVFP4 target에 DFlash2를 붙여 SGLang만 실행한다.
+DFlash2 지원을 위해 upstream SGLang 고정 커밋을 기존 Qwen3.8 이미지 위에 적용한
+전용 이미지를 자동으로 빌드한다.
+
+```bash
+docker compose \
+  -f compose.yaml \
+  -f compose.huihui-radixark-nvfp4-dflash2-local.yaml \
+  up -d --build --force-recreate sglang
+```
+
+첫 실행에는 DFlash2 BF16 draft 약 3.85GB 다운로드와 target/draft CUDA graph
+컴파일이 필요하다. DFlash는 `extra_buffer_lazy`를 지원하지 않으므로 전용 override는
+Mamba radix cache를 `extra_buffer`로 사용한다.
 
 Open WebUI는 SGLang이 healthy 상태가 된 뒤 기동된다.
 
@@ -54,6 +69,15 @@ docker compose \
   -f compose.yaml \
   -f compose.huihui-radixark-nvfp4-local.yaml \
   up -d --force-recreate sglang
+```
+
+NVFP4 DFlash2 설정으로 교체하려면 다음을 실행한다.
+
+```bash
+docker compose \
+  -f compose.yaml \
+  -f compose.huihui-radixark-nvfp4-dflash2-local.yaml \
+  up -d --build --force-recreate sglang
 ```
 
 이 경우 기존 Open WebUI 컨테이너는 유지된다. Compose의 `-f` 옵션은 반드시 `up`
@@ -155,3 +179,18 @@ docker compose rm -sf && docker compose up -d --force-recreate --remove-orphans
 섞였으므로, abliterated 여부와 사실 정확성은 별개로 평가해야 한다.
 
 기존 vLLM 구성과 8000/12000 포트를 공유하므로 두 구성을 동시에 실행하지 않는다.
+
+## 2026-08-21 DFlash2 실측
+
+Huihui-RadixArk Qwen3.8 27B abliterated NVFP4 target에서 동일한 4개 프롬프트와
+thinking 비활성화, 요청당 최대 512토큰 조건으로 비교했다.
+
+| 방식 | code_en | math_en | technical_ko | prose_ko | 전체 |
+|---|---:|---:|---:|---:|---:|
+| DSpark + compile | 27.072 | 37.483 | 15.058 | 11.181 | 18.226 tok/s |
+| DFlash2 + compile | 40.983 | 58.978 | 27.392 | 14.533 | 27.272 tok/s |
+
+DFlash2가 전체 기준 약 49.6% 빨랐다. accept length는 코드 4.65, 수학 6.75,
+기술 한국어 6.75, 한국어 산문 2.575였다. DFlash2 기동 후 유휴 GPU 프로세스
+할당은 약 52.5GiB였으며 텍스트와 이미지 입력을 모두 확인했다. 원본 결과는
+`results/huihui-radixstyle-nvfp4-dflash2-compile-no-thinking.jsonl`에 있다.

@@ -144,6 +144,14 @@ func (s *Server) session(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	id := parts[0]
+	if len(parts) == 2 && parts[1] == "context" {
+		s.contextSession(w, r, id, false)
+		return
+	}
+	if len(parts) == 3 && parts[1] == "context" && parts[2] == "compact" {
+		s.contextSession(w, r, id, true)
+		return
+	}
 	if len(parts) == 2 && parts[1] == "messages" && r.Method == http.MethodGet {
 		items, err := s.db.Messages(id)
 		if err != nil {
@@ -205,4 +213,50 @@ func (s *Server) session(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	http.NotFound(w, r)
+}
+
+func (s *Server) contextSession(w http.ResponseWriter, r *http.Request, sessionID string, force bool) {
+	if !force && r.Method == http.MethodDelete {
+		if err := s.db.ClearContextSegments(sessionID); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+	if (!force && r.Method != http.MethodGet) || (force && r.Method != http.MethodPost) {
+		methodNotAllowed(w)
+		return
+	}
+	session, err := s.db.Session(sessionID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.NotFound(w, r)
+		} else {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		return
+	}
+	items, err := s.db.Messages(sessionID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	items = modelHistory(items, 0)
+	cfg, client := s.snapshot()
+	model := session.Model
+	if model == "" {
+		model = cfg.Model.DefaultModel
+	}
+	var state contextState
+	if force {
+		_, state, err = s.prepareContext(r.Context(), sessionID, items, model, cfg, client, true)
+	} else {
+		state, err = s.inspectContext(r.Context(), sessionID, model, items, cfg, client)
+	}
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadGateway)
+		return
+	}
+	writeJSON(w, http.StatusOK, state)
 }

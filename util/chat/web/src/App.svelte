@@ -5,12 +5,14 @@
   import ChatHeader from './components/ChatHeader.svelte';
   import Composer from './components/Composer.svelte';
   import MessageList from './components/MessageList.svelte';
+  import ContextRail from './components/ContextRail.svelte';
   import { hydrateMessages, variantIndices as getVariantIndices, applyVariant as applyMessageVariant } from './lib/message-variants.js';
   import { createStreamHandlers } from './lib/chat-stream.js';
   import {
     listSessions, createSession, deleteSession, renameSession, listMessages, streamChat,
-    getHealth, getModels, getConfig, retryMessage, editMessage as editChatMessage, uploadAttachment,
+    getHealth, getModels, getConfig, retryMessage, editMessage as editChatMessage, uploadAttachment, uploadMediaURL,
     setSessionGroup, listGroups, createGroup, renameGroup, moveGroup, deleteGroup,
+    getContextState, compactContext, clearContext,
   } from './api.js';
   import {
     attachmentKind, hasFileDrag, isSupportedAttachmentFile, maxAttachmentBytes, maxImageBytes, maxMessageBytes,
@@ -53,11 +55,15 @@
   let attachmentQueue = [];
   let queueProcessing = false;
   let uploadingSessionId = '';
+  let sourceDownloadingSessionId = '';
   let editingTitle = false;
   let titleInput = '';
   let titleEditor;
   let titleSaving = false;
   let controlsOpen = false;
+  let contextState = null;
+  let contextOpen = false;
+  let contextLoading = false;
 
   $: activeSession = sessions.find((item) => item.id === activeId);
   $: ungroupedSessions = sessions.filter((session) => !session.group_id);
@@ -68,6 +74,7 @@
   $: activeRun = sessionRuns[activeId] || null;
   $: running = Boolean(activeRun);
   $: retryingIndex = activeRun?.retryingIndex ?? -1;
+  $: sourceDownloading = Boolean(activeId) && sourceDownloadingSessionId === activeId;
 
   onMount(() => {
     const mobile = window.matchMedia('(max-width: 600px)').matches;
@@ -208,9 +215,46 @@
       if (activeId === id) messages = loaded;
     }
     if (activeId !== id) return;
+    await refreshContext(id);
     error = sessionErrors[id] || '';
     await scrollBottom(true);
     closeSidebarOnMobile();
+  }
+
+  async function refreshContext(sessionId = activeId) {
+    if (!sessionId) { contextState = null; return; }
+    try {
+      const next = await getContextState(sessionId);
+      if (activeId === sessionId) contextState = next;
+    } catch (e) {
+      if (activeId === sessionId) contextState = { notice: e.message, segments: [] };
+    }
+  }
+
+  async function compactActiveContext() {
+    if (!activeId || running || contextLoading) return;
+    contextLoading = true;
+    try {
+      contextState = await compactContext(activeId);
+      error = contextState.notice || '';
+    } catch (e) { error = e.message; }
+    finally { contextLoading = false; }
+  }
+
+  async function resetActiveContext() {
+    if (!activeId || running || contextLoading || !confirm('저장된 문맥 요약을 초기화할까요? 대화 원본은 삭제되지 않습니다.')) return;
+    contextLoading = true;
+    try {
+      await clearContext(activeId);
+      await refreshContext(activeId);
+      error = '';
+    } catch (e) { error = e.message; }
+    finally { contextLoading = false; }
+  }
+
+  function jumpToMessage(messageId) {
+    contextOpen = false;
+    requestAnimationFrame(() => document.querySelector(`[data-message-id="${messageId}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
   }
 
   async function remove(id) {
@@ -285,8 +329,8 @@
     setPendingAttachments(sessionId, []);
     setSessionError(sessionId, '');
     const chatMessages = [...messages,
-      { role: 'user', content, reasoning_content: '', attachments },
-      { role: 'assistant', content: '', reasoning_content: '', tool_trace: [], activity: '' },
+      { role: 'user', status: 'pending', content, reasoning_content: '', attachments },
+      { role: 'assistant', status: 'pending', content: '', reasoning_content: '', tool_trace: [], activity: '' },
     ];
     const replyIndex = chatMessages.length - 1;
     const run = startSessionRun(sessionId, chatMessages, replyIndex);
@@ -295,10 +339,16 @@
       await streamChat(sessionId, content, attachments, selectedModel, reasoningEffort, webToolsEnabled, run.controller.signal,
         streamHandlersFor(run.messages[replyIndex], sessionId, run.messages));
       publishMessages(sessionId, hydrateMessages(await listMessages(sessionId)));
+      await refreshContext(sessionId);
       await refreshSessions();
       setTimeout(refreshSessions, 1800);
     } catch (e) {
       if (e.name !== 'AbortError') setSessionError(sessionId, e.message);
+      if (e.name === 'AbortError') await new Promise((resolve) => setTimeout(resolve, 80));
+      try {
+        publishMessages(sessionId, hydrateMessages(await listMessages(sessionId)));
+        await refreshContext(sessionId);
+      } catch { /* keep the optimistic transcript if the refresh also fails */ }
     } finally {
       finishSessionRun(sessionId, run);
     }
@@ -334,6 +384,7 @@
         if (matching.length) applyVariant(answer, matching[matching.length - 1], index, sessionId);
       }
       publishMessages(sessionId, updated);
+      await refreshContext(sessionId);
       await refreshSessions();
     } catch (e) {
       message.content = original.content;
@@ -367,8 +418,10 @@
   }
   async function submitEdit(message, index) {
     const content = editInput.trim();
-    if (!content || running || !message.id || content === message.content) return;
-    if (index < messages.length - 2 && !confirm('이 질문을 수정하면 이후 대화가 새 분기로 바뀝니다. 계속할까요?')) return;
+    if (!content || running || !message.id || (content === message.content && !['failed', 'cancelled'].includes(message.status))) return;
+    const hasPairedAnswer = messages[index + 1]?.role === 'assistant';
+    const firstDiscardedIndex = index + (hasPairedAnswer ? 2 : 1);
+    if (firstDiscardedIndex < messages.length && !confirm('이 질문을 수정하면 이후 대화가 새 분기로 바뀝니다. 계속할까요?')) return;
     const sessionId = activeId;
     const originalMessages = structuredClone(messages);
     setSessionError(sessionId, '');
@@ -390,6 +443,7 @@
       await editChatMessage(message.id, content, message.attachments || [], selectedModel, reasoningEffort, webToolsEnabled, run.controller.signal,
         streamHandlersFor(run.messages[replyIndex], sessionId, run.messages));
       publishMessages(sessionId, hydrateMessages(await listMessages(sessionId)));
+      await refreshContext(sessionId);
       await refreshSessions();
       setTimeout(refreshSessions, 1800);
       editInput = '';
@@ -453,7 +507,9 @@
     messages = messages;
   }
   function streamHandlersFor(message, sessionId = activeId, messageList = messages) {
-    return createStreamHandlers(message, () => publishMessages(sessionId, messageList));
+    const handlers = createStreamHandlers(message, () => publishMessages(sessionId, messageList));
+    handlers.context = (next) => { if (activeId === sessionId) contextState = next; };
+    return handlers;
   }
   function addAttachmentFiles(files) {
     const dropped = Array.from(files || []);
@@ -516,6 +572,47 @@
       uploadingSessionId = '';
       syncActiveAttachmentState();
       if (attachmentInput) attachmentInput.value = '';
+    }
+  }
+  async function addMediaURL(rawURL) {
+    if (!activeId || running || uploadingAttachments) return false;
+    try {
+      const parsed = new URL(rawURL);
+      if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') throw new Error('HTTP 또는 HTTPS 주소를 입력하세요.');
+    } catch (e) {
+      error = e.message === 'HTTP 또는 HTTPS 주소를 입력하세요.' ? e.message : '올바른 영상 주소를 입력하세요.';
+      return false;
+    }
+    const sessionId = activeId;
+    const draft = attachmentDrafts[sessionId] || [];
+    if (draft.length >= 6) {
+      error = '미디어는 한 메시지에 최대 6개까지 첨부할 수 있습니다.';
+      return false;
+    }
+    uploadingSessionId = sessionId;
+    sourceDownloadingSessionId = sessionId;
+    syncActiveAttachmentState();
+    error = '';
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30 * 60 * 1000);
+    try {
+      const attachment = await uploadMediaURL(rawURL, controller.signal);
+      const current = attachmentDrafts[sessionId] || [];
+      const totalBytes = current.reduce((sum, item) => sum + (item.size || 0), 0) + (attachment.size || 0);
+      if (current.length >= 6 || totalBytes > maxMessageBytes) {
+        error = '한 메시지의 첨부 파일 합계는 96MB 이하여야 합니다.';
+        return false;
+      }
+      setPendingAttachments(sessionId, [...current, attachment]);
+      return true;
+    } catch (e) {
+      if (sessionId === activeId) error = e.name === 'AbortError' ? 'URL 미디어 취득 시간이 초과되었습니다.' : e.message;
+      return false;
+    } finally {
+      clearTimeout(timeout);
+      uploadingSessionId = '';
+      sourceDownloadingSessionId = '';
+      syncActiveAttachmentState();
     }
   }
   function setPendingAttachments(sessionId, items) {
@@ -639,6 +736,8 @@
     if (!config?.model) return;
     if (!Array.isArray(config.model.system_prompt_presets)) config.model.system_prompt_presets = [];
     if (!config.model.system_prompt_preset) config.model.system_prompt_preset = '';
+    if (!config.context) config.context = { enabled: true, window_tokens: 0, compact_at_percent: 80, output_reserve: 8192, safety_margin: 4096, recent_tokens: 32768, image_tokens: 2048 };
+    if (!config.asr) config.asr = { enabled: true, ffmpeg_endpoint: 'http://127.0.0.1:8698', endpoint: 'http://127.0.0.1:8694', model: 'qwen3-asr', language: 'auto', prompt: '', timeout: '30m' };
   }
 
   async function applySavedSettings(next) {
@@ -715,10 +814,21 @@
       onSubmitEdit={submitEdit}
       onBeginEdit={beginEdit}
     />
+    <ContextRail
+      state={contextState}
+      open={contextOpen}
+      loading={contextLoading}
+      disabled={running || !activeId}
+      onToggle={() => contextOpen = !contextOpen}
+      onCompact={compactActiveContext}
+      onReset={resetActiveContext}
+      onJump={jumpToMessage}
+    />
     {#if error}<div class="error">{error}</div>{/if}
     <Composer
       {pendingAttachments}
       {uploadingAttachments}
+      {sourceDownloading}
       {running}
       {activeId}
       bind:input
@@ -727,6 +837,7 @@
       {webToolsEnabled}
       onRemoveAttachment={removePendingAttachment}
       {onAttachmentInputChange}
+      onAttachURL={addMediaURL}
       {onKeydown}
       {onPaste}
       onStop={stop}

@@ -1,0 +1,23 @@
+# Third-party notices
+
+This container installs Ubuntu's FFmpeg packages and their codec libraries.
+The Go HTTP wrapper in this directory does not change the licenses of those
+components.
+
+- Ubuntu package copyright files are installed in `/usr/share/doc/*/copyright`
+  inside the image.
+- Ubuntu package source search: https://packages.ubuntu.com/source/noble/ffmpeg
+- FFmpeg legal and license information:
+  https://ffmpeg.org/legal.html
+- FFmpeg source:
+  https://ffmpeg.org/download.html#get-sources
+
+When redistributing the built image, retain the installed copyright files and
+comply with the exact Ubuntu FFmpeg build configuration's LGPL/GPL source
+requirements.
+
+The container also includes the official yt-dlp standalone executable and Deno.
+
+- yt-dlp source and license information: https://github.com/yt-dlp/yt-dlp
+- yt-dlp bundled third-party licenses are embedded in the official executable.
+- Deno source and MIT license: https://github.com/denoland/deno

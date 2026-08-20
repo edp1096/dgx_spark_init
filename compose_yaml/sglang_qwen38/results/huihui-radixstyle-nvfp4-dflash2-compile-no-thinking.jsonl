@@ -1,0 +1,5 @@
+{"case": "code_en", "elapsed_seconds": 12.493, "completion_tokens": 512, "client_tokens_per_second": 40.983, "finish_reason": "length", "accept_length": 4.65, "accept_rate": 0.5214, "cap_length": 0.0, "block_accept_length": 0.0}
+{"case": "math_en", "elapsed_seconds": 8.681, "completion_tokens": 512, "client_tokens_per_second": 58.978, "finish_reason": "length", "accept_length": 6.75, "accept_rate": 0.8214, "cap_length": 0.0, "block_accept_length": 0.0}
+{"case": "technical_ko", "elapsed_seconds": 18.691, "completion_tokens": 512, "client_tokens_per_second": 27.392, "finish_reason": "length", "accept_length": 6.75, "accept_rate": 0.8214, "cap_length": 0.0, "block_accept_length": 0.0}
+{"case": "prose_ko", "elapsed_seconds": 35.231, "completion_tokens": 512, "client_tokens_per_second": 14.533, "finish_reason": "length", "accept_length": 2.575, "accept_rate": 0.225, "cap_length": 0.0, "block_accept_length": 0.0}
+SUMMARY {"label": "huihui-radixstyle-nvfp4-dflash2-compile-no-thinking", "model": "Huihui-RadixArk-Qwen3.8-27B-abliterated-NVFP4", "thinking": false, "cases": 4, "completion_tokens": 2048, "elapsed_seconds": 75.096, "client_tokens_per_second": 27.272}

@@ -43,11 +43,21 @@ func runCompletionLoop(
 	if useTools {
 		systemParts = append(systemParts, webToolSystemPrompt)
 	}
+	// SGLang accepts only one system message and requires it to be the first
+	// message. Context checkpoints arrive as a leading system message, so merge
+	// them with the global/tool instructions instead of emitting a second one.
+	leadingSystems := 0
+	for leadingSystems < len(messages) && messages[leadingSystems].Role == "system" {
+		if content, ok := messages[leadingSystems].Content.(string); ok && strings.TrimSpace(content) != "" {
+			systemParts = append(systemParts, content)
+		}
+		leadingSystems++
+	}
 	conversation := make([]llm.Message, 0, len(messages)+1+toolConfig.MaxRounds*3)
 	if len(systemParts) > 0 {
 		conversation = append(conversation, llm.Message{Role: "system", Content: strings.Join(systemParts, "\n\n")})
 	}
-	conversation = append(conversation, messages...)
+	conversation = append(conversation, messages[leadingSystems:]...)
 
 	if !useTools {
 		result, err := client.Stream(ctx, conversation, model, reasoningEffort, nil, textEmitter(emit))

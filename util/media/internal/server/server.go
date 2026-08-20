@@ -64,6 +64,7 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("DELETE /api/jobs", s.deleteFinishedJobs)
 	mux.HandleFunc("GET /api/jobs/{id}", s.getJob)
 	mux.HandleFunc("DELETE /api/jobs/{id}", s.deleteJob)
+	mux.HandleFunc("POST /api/jobs/{id}/cancel", s.cancelJob)
 	mux.HandleFunc("POST /api/jobs/image", s.createImage)
 	mux.HandleFunc("POST /api/jobs/speech", s.createSpeech)
 	mux.HandleFunc("POST /api/jobs/recognition", s.createSubtitle)
@@ -525,10 +526,18 @@ func (s *Server) do(req *http.Request) ([]byte, string, error) {
 }
 
 func (s *Server) fail(j jobs.Job, err error) {
+	if current, ok := s.jobs.Get(j.ID); ok && current.Status == "cancelled" {
+		return
+	}
 	log.Printf("job %s failed: %v", j.ID, err)
 	j.Status = "failed"
 	j.Error = err.Error()
 	_ = s.jobs.Save(j)
+}
+
+func (s *Server) jobCancelled(id string) bool {
+	j, ok := s.jobs.Get(id)
+	return ok && j.Status == "cancelled"
 }
 func (s *Server) engineStates(w http.ResponseWriter, _ *http.Request) {
 	cfg := s.config()
@@ -589,6 +598,41 @@ func (s *Server) deleteJob(w http.ResponseWriter, r *http.Request) {
 	default:
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
+}
+
+func (s *Server) cancelJob(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	j, ok := s.jobs.Get(id)
+	if !ok {
+		http.NotFound(w, r)
+		return
+	}
+	if j.Status != "queued" && j.Status != "running" {
+		http.Error(w, "job is not active", http.StatusConflict)
+		return
+	}
+	if j.Kind != "recognition" {
+		http.Error(w, "cancellation is currently supported for subtitle jobs", http.StatusConflict)
+		return
+	}
+	j.Status = "cancelled"
+	j.Error = ""
+	j.Params["stage"] = "cancelled"
+	delete(j.Params, "media_eta_seconds")
+	if err := s.jobs.Save(j); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	endpoint := strings.TrimRight(s.config().Engines["media"].Endpoint, "/") + "/v1/media/prepare/" + id
+	request, err := http.NewRequest(http.MethodDelete, endpoint, nil)
+	if err == nil {
+		response, requestErr := s.health.Do(request)
+		if requestErr == nil {
+			_ = response.Body.Close()
+		}
+	}
+	writeJSON(w, http.StatusOK, j)
 }
 
 func (s *Server) deleteFinishedJobs(w http.ResponseWriter, _ *http.Request) {

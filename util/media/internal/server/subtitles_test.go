@@ -51,22 +51,37 @@ func TestCuesFromTimestampsRestorePunctuationAndOffset(t *testing.T) {
 }
 
 func TestValidateAlignedResultRejectsHallucinatedTimingAndRepetition(t *testing.T) {
-	if err := validateAlignedResult("정상 문장입니다.", []timedWord{{Text: "정상", Start: 0.2, End: 1.0}}, 2); err != nil {
+	if err := validateAlignedResult("정상 문장입니다.", []timedWord{{Text: "정상", Start: 0.2, End: 1.0}}, 2, false); err != nil {
 		t.Fatalf("valid result rejected: %v", err)
 	}
-	if err := validateAlignedResult("bad", []timedWord{{Text: "bad", Start: 0, End: 88}}, 30); err == nil {
+	if err := validateAlignedResult("bad", []timedWord{{Text: "bad", Start: 0, End: 88}}, 30, false); err == nil {
 		t.Fatal("out-of-range timestamp was accepted")
 	}
 	repeated := strings.Repeat("You're the one who's been lying to me. ", 6)
-	if err := validateAlignedResult(repeated, []timedWord{{Text: "You're", Start: 0, End: 1}}, 30); err == nil {
+	if err := validateAlignedResult(repeated, []timedWord{{Text: "You're", Start: 0, End: 1}}, 30, false); err == nil {
 		t.Fatal("repeated hallucination was accepted")
+	}
+	if err := validateAlignedResult(repeated, []timedWord{{Text: "You're", Start: 0, End: 1}}, 30, true); err != nil {
+		t.Fatalf("repeated song lyrics were rejected in multilingual mode: %v", err)
 	}
 	collapsed := make([]timedWord, 20)
 	for index := range collapsed {
 		collapsed[index] = timedWord{Text: "word", Start: 0, End: 0}
 	}
-	if err := validateAlignedResult("many aligned words", collapsed, 30); err == nil {
+	if err := validateAlignedResult("many aligned words", collapsed, 30, true); err == nil {
 		t.Fatal("collapsed timestamps were accepted")
+	}
+}
+
+func TestAutomaticLanguageModesAndDetectedLanguageMerge(t *testing.T) {
+	if !isSingleLanguageAuto("Auto") || !isAutomaticLanguage("auto") {
+		t.Fatal("single-language auto mode was not recognized")
+	}
+	if !isMultilingualAuto("AutoMultilingual") || !isAutomaticLanguage("automultilingual") {
+		t.Fatal("multilingual auto mode was not recognized")
+	}
+	if got := mergeDetectedLanguages("Japanese,English", "English, Korean"); got != "Japanese,English,Korean" {
+		t.Fatalf("unexpected detected-language merge: %q", got)
 	}
 }
 

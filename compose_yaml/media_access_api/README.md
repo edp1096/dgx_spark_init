@@ -162,6 +162,16 @@ manifest의 `asset.id`가 존재하면 영상 또는 음성 스트리밍과 삭�
 재개한다. 중단 시 남은 불완전한 WAV 조각은 재사용하지 않고 원본에서 다시 만든다.
 작업 관리자가 조회를 마치면 progress 항목을 DELETE로 정리한다.
 
+진행 중인 준비 작업 하나만 취소하려면 같은 `request_id`로 다음 API를 호출한다.
+해당 요청에 등록된 yt-dlp 또는 FFmpeg 프로세스만 종료하며 다른 작업과 영구 보관된
+미디어에는 영향을 주지 않는다. 중간 파일이 든 `prepare-<request_id>` 폴더는
+비활성 임시 폴더로 남아 저장소 정리 API에서 회수할 수 있다.
+
+```bash
+curl -X DELETE \
+  http://127.0.0.1:8697/v1/media/prepare/REQUEST_ID
+```
+
 ```bash
 curl -H 'Range: bytes=0-1048575' \
   http://127.0.0.1:8697/v1/media/assets/ASSET_ID

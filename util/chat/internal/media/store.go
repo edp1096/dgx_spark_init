@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"image"
 	_ "image/gif"
@@ -36,6 +37,12 @@ var mediaIDPattern = regexp.MustCompile(`^[a-f0-9]{32}$`)
 
 type Store struct{ dir string }
 
+type TranscriptCache struct {
+	Fingerprint string `json:"fingerprint"`
+	Text        string `json:"text"`
+	Language    string `json:"language,omitempty"`
+}
+
 type Usage struct {
 	Files       int   `json:"files"`
 	Bytes       int64 `json:"bytes"`
@@ -65,15 +72,25 @@ func (s *Store) save(header *multipart.FileHeader, limit int64, imageOnly bool) 
 		return db.Attachment{}, err
 	}
 	defer file.Close()
-	data, err := io.ReadAll(io.LimitReader(file, limit+1))
+	return s.saveReader(file, header.Filename, header.Header.Get("Content-Type"), limit, imageOnly)
+}
+
+// SaveReader stores a trusted media response while enforcing the same limits
+// and signature checks as a browser file upload.
+func (s *Store) SaveReader(reader io.Reader, name, declaredMIME string, limit int64) (db.Attachment, error) {
+	return s.saveReader(reader, name, declaredMIME, limit, false)
+}
+
+func (s *Store) saveReader(reader io.Reader, originalName, declaredMIME string, limit int64, imageOnly bool) (db.Attachment, error) {
+	data, err := io.ReadAll(io.LimitReader(reader, limit+1))
 	if err != nil {
 		return db.Attachment{}, err
 	}
 	if len(data) == 0 || int64(len(data)) > limit {
 		return db.Attachment{}, fmt.Errorf("file must be between 1 byte and %d MB", limit>>20)
 	}
-	name := cleanName(header.Filename)
-	mimeType, err := classifyMedia(data, name, header.Header.Get("Content-Type"), imageOnly)
+	name := cleanName(originalName)
+	mimeType, err := classifyMedia(data, name, declaredMIME, imageOnly)
 	if err != nil {
 		return db.Attachment{}, err
 	}
@@ -117,6 +134,80 @@ func (s *Store) DataURL(item db.Attachment) (string, error) {
 		return "", err
 	}
 	return "data:" + mimeType + ";base64," + base64.StdEncoding.EncodeToString(data), nil
+}
+
+// Open returns the stored attachment without loading it into memory. Callers
+// use this to stream large audio/video files to local processing services.
+func (s *Store) Open(item db.Attachment) (*os.File, error) {
+	if !mediaIDPattern.MatchString(item.ID) {
+		return nil, fmt.Errorf("invalid media id")
+	}
+	file, err := os.Open(filepath.Join(s.dir, item.ID))
+	if err != nil {
+		return nil, err
+	}
+	info, err := file.Stat()
+	if err != nil || info.Size() < 1 {
+		file.Close()
+		if err == nil {
+			err = fmt.Errorf("empty stored media")
+		}
+		return nil, err
+	}
+	return file, nil
+}
+
+func (s *Store) LoadTranscript(id, fingerprint string) (TranscriptCache, bool, error) {
+	if !mediaIDPattern.MatchString(id) {
+		return TranscriptCache{}, false, fmt.Errorf("invalid media id")
+	}
+	data, err := os.ReadFile(s.transcriptPath(id))
+	if os.IsNotExist(err) {
+		return TranscriptCache{}, false, nil
+	}
+	if err != nil {
+		return TranscriptCache{}, false, err
+	}
+	var cached TranscriptCache
+	if err := json.Unmarshal(data, &cached); err != nil {
+		return TranscriptCache{}, false, err
+	}
+	if cached.Fingerprint != fingerprint || strings.TrimSpace(cached.Text) == "" {
+		return TranscriptCache{}, false, nil
+	}
+	return cached, true, nil
+}
+
+func (s *Store) SaveTranscript(id string, cached TranscriptCache) error {
+	if !mediaIDPattern.MatchString(id) {
+		return fmt.Errorf("invalid media id")
+	}
+	data, err := json.Marshal(cached)
+	if err != nil {
+		return err
+	}
+	temporary, err := os.CreateTemp(s.dir, id+".asr-*")
+	if err != nil {
+		return err
+	}
+	temporaryName := temporary.Name()
+	defer os.Remove(temporaryName)
+	if err := temporary.Chmod(0600); err != nil {
+		temporary.Close()
+		return err
+	}
+	if _, err := temporary.Write(data); err != nil {
+		temporary.Close()
+		return err
+	}
+	if err := temporary.Close(); err != nil {
+		return err
+	}
+	return os.Rename(temporaryName, s.transcriptPath(id))
+}
+
+func (s *Store) transcriptPath(id string) string {
+	return filepath.Join(s.dir, id+".asr.json")
 }
 
 func (s *Store) Serve(w http.ResponseWriter, r *http.Request, id, name, mimeHint string) {
@@ -170,6 +261,15 @@ func (s *Store) Cleanup(referenced map[string]struct{}, keep map[string]struct{}
 	}
 	for _, entry := range entries {
 		id := entry.Name()
+		if strings.HasSuffix(id, ".asr.json") {
+			mediaID := strings.TrimSuffix(id, ".asr.json")
+			if mediaIDPattern.MatchString(mediaID) {
+				if _, statErr := os.Stat(filepath.Join(s.dir, mediaID)); os.IsNotExist(statErr) {
+					_ = os.Remove(filepath.Join(s.dir, id))
+				}
+			}
+			continue
+		}
 		if entry.IsDir() || !mediaIDPattern.MatchString(id) {
 			continue
 		}
@@ -180,6 +280,9 @@ func (s *Store) Cleanup(referenced map[string]struct{}, keep map[string]struct{}
 			continue
 		}
 		if err := os.Remove(filepath.Join(s.dir, id)); err != nil && !os.IsNotExist(err) {
+			return Usage{}, err
+		}
+		if err := os.Remove(s.transcriptPath(id)); err != nil && !os.IsNotExist(err) {
 			return Usage{}, err
 		}
 	}

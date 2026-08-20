@@ -32,6 +32,7 @@
   let videoEnhancedImageKey = ''
   let enhancingPrompt = false
   let deletingJob = ''
+  let cancellingJob = ''
   let storage = null
   let cleaningStorage = false
   let subtitleView = 'gallery'
@@ -59,6 +60,15 @@
     'Arabic', 'Hindi', 'Vietnamese', 'Thai', 'Indonesian', 'Turkish',
     'Dutch', 'Polish', 'Ukrainian'
   ]
+  const recognitionLanguages = [
+    ['Auto', 'Auto · 단일 언어'],
+    ['AutoMultilingual', 'Auto · 다중 언어'],
+    ['Korean', 'Korean'], ['English', 'English'], ['Chinese', 'Chinese'], ['Japanese', 'Japanese']
+  ]
+
+  function recognitionLanguageLabel(language) {
+    return recognitionLanguages.find(([value]) => value === language)?.[1] || language
+  }
 
   function captionLanguage(job) {
     const language = job.params?.translation_mode === 'none'
@@ -118,6 +128,7 @@
 
   function recognitionProgressText(job) {
     const params = job.params || {}
+    if (job.status === 'cancelled') return '중지됨'
     if (params.stage === 'media') {
       const labels = {
         starting: '미디어 준비 시작 중', resuming: '저장된 원본에서 작업 재개 중', receiving: '파일 전송 중', resolving: '영상 페이지 분석 중',
@@ -400,6 +411,13 @@
     finally { deletingJob = '' }
   }
 
+  async function cancelJob(job) {
+    cancellingJob = job.id; error = ''
+    try { await api.cancelJob(job.id); await refresh() }
+    catch (e) { error = e.message }
+    finally { cancellingJob = '' }
+  }
+
   async function clearFinishedJobs() {
     const count = jobs.filter((job) => job.status !== 'queued' && job.status !== 'running').length
     if (!count || !confirm(`완료·실패 작업 ${count}개와 저장 파일을 모두 삭제할까요?`)) return
@@ -650,7 +668,7 @@
           {/if}
         {/if}
         <div class="fields">
-          <label>언어<select bind:value={recognitionForm.language}><option>Auto</option><option>Korean</option><option>English</option><option>Chinese</option><option>Japanese</option></select></label>
+          <label>언어<select bind:value={recognitionForm.language}>{#each recognitionLanguages as option}<option value={option[0]}>{option[1]}</option>{/each}</select></label>
           <label>구간 길이<input value={`${config?.recognition.segment_seconds || 180}초`} disabled></label>
         </div>
         <label>문맥·전문용어<textarea bind:value={recognitionForm.context} rows="4" placeholder="선택 사항 · 인명, 제품명, 전문용어 등을 입력하세요."></textarea></label>
@@ -687,7 +705,7 @@
                 {:else}<span>{job.media_url && isAudioMedia(job) ? 'AUDIO' : job.status}</span>{/if}
               </div>
             {/if}
-            <div class="subtitle-result-title"><span>{job.params?.detected_language || job.params?.language}{#if job.params?.segments} · {job.params.segments}구간{/if}{#if job.params?.media_part} · 파트 {job.params.media_part}{/if}{#if job.params?.media_source} · {job.params.media_source}{/if}</span><p>{job.prompt}</p></div>
+            <div class="subtitle-result-title"><span>{job.params?.detected_language || recognitionLanguageLabel(job.params?.language)}{#if job.params?.segments} · {job.params.segments}구간{/if}{#if job.params?.media_part} · 파트 {job.params.media_part}{/if}{#if job.params?.media_source} · {job.params.media_source}{/if}</span><p>{job.prompt}</p></div>
             {#if subtitleView === 'gallery' && job.media_url}
               <div class="subtitle-player">
                 {#if isAudioMedia(job)}
@@ -725,7 +743,7 @@
             {#if job.status === 'queued' || job.status === 'running'}<div class="recognition-progress" aria-label={recognitionProgressText(job)}><i style={`width: ${recognitionProgressPercent(job)}%`}></i></div>{/if}
             {#if job.outputs}<div class="output-links">{#each Object.entries(job.outputs) as output}<a href={output[1]} target="_blank">{outputLabels[output[0]] || output[0]} ↗</a>{/each}</div>{:else if job.output_url}<a href={job.output_url} target="_blank">결과 열기 ↗</a>{/if}
             {#if job.error}<em>{job.error}</em>{/if}
-            {#if job.status === 'completed' || job.status === 'failed'}<button class="job-delete" disabled={deletingJob === job.id} onclick={() => deleteJob(job)}>삭제</button>{/if}
+            {#if job.status === 'queued' || job.status === 'running'}<button class="job-stop" disabled={cancellingJob === job.id} onclick={() => cancelJob(job)}>{cancellingJob === job.id ? '중지 중…' : '중지'}</button>{:else}<button class="job-delete" disabled={deletingJob === job.id} onclick={() => deleteJob(job)}>삭제</button>{/if}
           </article>
         {:else}<div class="empty">첫 자막 작업이 여기에 나타납니다.</div>{/each}
       </div></aside>
@@ -813,7 +831,7 @@
           <h3>자막</h3>
           <label>ASR 모델<input bind:value={settings.recognition.model} required></label>
           <div class="fields">
-            <label>기본 언어<input bind:value={settings.recognition.default_language} required></label>
+            <label>기본 언어<select bind:value={settings.recognition.default_language}>{#each recognitionLanguages as option}<option value={option[0]}>{option[1]}</option>{/each}</select></label>
             <label>최대 업로드 MB<input type="number" min="1" bind:value={settings.recognition.max_upload_mb}></label>
             <label>구간 길이(초)<input type="number" min="5" max="180" bind:value={settings.recognition.segment_seconds}></label>
             <label>기본 번역<select bind:value={settings.recognition.default_translation_mode}><option value="none">번역 안 함</option><option value="translated">번역문만</option><option value="bilingual">원문과 번역문</option></select></label>
@@ -833,7 +851,7 @@
   {:else}
     <section class="history"><div class="section-title"><div><span>05</span><h2>생성 기록</h2></div>{#if jobs.some((job) => job.status !== 'queued' && job.status !== 'running')}<button class="quiet danger" disabled={deletingJob === 'all'} onclick={clearFinishedJobs}>모두 비우기</button>{/if}</div>
       <ResultPagination label="생성 기록" total={jobsForList('history').length} page={listPages.history} pageSize={listPageSizes.history} pageSizes={pageSizeOptions} onPageChange={(page) => setListPage('history', page)} onPageSizeChange={(size) => setListPageSize('history', size)} />
-      {#each pagedJobs('history') as job (job.id)}<article><span class="kind">{kindLabels[job.kind] || job.kind}</span><div><strong>{job.prompt}</strong><small>{new Date(job.created_at).toLocaleString()} · {job.status}</small>{#if job.error}<em>{job.error}</em>{/if}</div><div class="job-actions">{#if job.output_url}<a href={job.output_url} target="_blank">열기 ↗</a>{/if}{#if job.status === 'completed' || job.status === 'failed'}<button class="job-delete" disabled={deletingJob === job.id} onclick={() => deleteJob(job)}>삭제</button>{/if}</div></article>{:else}<div class="empty">아직 생성 기록이 없습니다.</div>{/each}
+      {#each pagedJobs('history') as job (job.id)}<article><span class="kind">{kindLabels[job.kind] || job.kind}</span><div><strong>{job.prompt}</strong><small>{new Date(job.created_at).toLocaleString()} · {job.status === 'cancelled' ? '중지됨' : job.status}</small>{#if job.error}<em>{job.error}</em>{/if}</div><div class="job-actions">{#if job.output_url}<a href={job.output_url} target="_blank">열기 ↗</a>{/if}{#if job.status !== 'queued' && job.status !== 'running'}<button class="job-delete" disabled={deletingJob === job.id} onclick={() => deleteJob(job)}>삭제</button>{/if}</div></article>{:else}<div class="empty">아직 생성 기록이 없습니다.</div>{/each}
     </section>
   {/if}
 </main>

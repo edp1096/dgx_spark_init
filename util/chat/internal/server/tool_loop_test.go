@@ -98,3 +98,45 @@ func TestCompletionLoopUsesCustomSystemPromptWithoutTools(t *testing.T) {
 		t.Fatalf("custom system prompt was not sent: role=%q content=%q result=%+v", firstRole, firstContent, result)
 	}
 }
+
+func TestCompletionLoopMergesContextCheckpointIntoFirstSystemMessage(t *testing.T) {
+	var roles []string
+	var systemContent string
+	modelServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var request struct {
+			Messages []struct {
+				Role    string `json:"role"`
+				Content string `json:"content"`
+			} `json:"messages"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+			t.Fatal(err)
+		}
+		for _, message := range request.Messages {
+			roles = append(roles, message.Role)
+			if message.Role == "system" {
+				systemContent = message.Content
+			}
+		}
+		w.Header().Set("Content-Type", "text/event-stream")
+		fmt.Fprintln(w, `data: {"choices":[{"delta":{"content":"ok"}}]}`)
+		fmt.Fprintln(w, "data: [DONE]")
+	}))
+	defer modelServer.Close()
+
+	_, err := runCompletionLoop(
+		context.Background(), llm.New(modelServer.URL, "test-model", ""),
+		[]llm.Message{
+			{Role: "system", Content: "Conversation checkpoint: old facts"},
+			{Role: "user", Content: "new question"},
+		},
+		"test-model", "none", "global instruction", config.ToolsConfig{}, false,
+		func(string, any) error { return nil },
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Join(roles, ",") != "system,user" || !strings.Contains(systemContent, "global instruction") || !strings.Contains(systemContent, "Conversation checkpoint") {
+		t.Fatalf("system messages were not merged: roles=%v content=%q", roles, systemContent)
+	}
+}

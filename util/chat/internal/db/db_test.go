@@ -168,6 +168,75 @@ func TestManualSessionTitleIsNotOverwrittenByGeneratedTitle(t *testing.T) {
 	}
 }
 
+func TestPendingTurnCompletesOrFailsAtomically(t *testing.T) {
+	store, err := Open(filepath.Join(t.TempDir(), "status.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer store.Close()
+	if _, err := store.CreateSession("s1", "status", "model", "low"); err != nil {
+		t.Fatal(err)
+	}
+	first, err := store.AddPendingMessage("s1", "성공 요청", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := store.CompletePendingTurn(first.ID, "성공 답변", "", nil); err != nil {
+		t.Fatal(err)
+	}
+	second, err := store.AddPendingMessage("s1", "실패 요청", []Attachment{{ID: "bad", Name: "bad.mp4", MIME: "video/mp4"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := store.FailPendingTurn(second.ID, MessageFailed, "decode failed", "", "", nil); err != nil {
+		t.Fatal(err)
+	}
+	messages, err := store.Messages("s1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(messages) != 3 || messages[0].Status != MessageCompleted || messages[1].Role != "assistant" || messages[2].Status != MessageFailed || messages[2].Error != "decode failed" {
+		t.Fatalf("unexpected message states: %+v", messages)
+	}
+	count, err := store.CompletedUserMessageCount("s1")
+	if err != nil || count != 1 {
+		t.Fatalf("completed user count=%d err=%v", count, err)
+	}
+}
+
+func TestOpenMarksLegacyOrphanUserRequestsFailed(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "orphan.db")
+	legacy, err := sql.Open("sqlite", path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	now := time.Now()
+	_, err = legacy.Exec(`
+		CREATE TABLE sessions (id TEXT PRIMARY KEY, title TEXT NOT NULL, model TEXT NOT NULL DEFAULT '', reasoning_effort TEXT NOT NULL DEFAULT '', created_at DATETIME NOT NULL, updated_at DATETIME NOT NULL);
+		CREATE TABLE messages (id INTEGER PRIMARY KEY AUTOINCREMENT, session_id TEXT NOT NULL, role TEXT NOT NULL, content TEXT NOT NULL, reasoning_content TEXT NOT NULL DEFAULT '', tool_trace TEXT NOT NULL DEFAULT '[]', created_at DATETIME NOT NULL);
+		INSERT INTO sessions(id,title,model,reasoning_effort,created_at,updated_at) VALUES('s1','legacy','','',?,?);
+		INSERT INTO messages(session_id,role,content,reasoning_content,tool_trace,created_at) VALUES('s1','user','completed request','','[]',?);
+		INSERT INTO messages(session_id,role,content,reasoning_content,tool_trace,created_at) VALUES('s1','assistant','answer','','[]',?);
+		INSERT INTO messages(session_id,role,content,reasoning_content,tool_trace,created_at) VALUES('s1','user','orphan request','','[]',?);
+	`, now, now, now, now, now)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_ = legacy.Close()
+	store, err := Open(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer store.Close()
+	messages, err := store.Messages("s1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if messages[0].Status != MessageCompleted || messages[2].Status != MessageFailed {
+		t.Fatalf("legacy statuses were not inferred: %+v", messages)
+	}
+}
+
 func TestGroupLifecycleAndSessionMembership(t *testing.T) {
 	store, err := Open(filepath.Join(t.TempDir(), "groups.db"))
 	if err != nil {

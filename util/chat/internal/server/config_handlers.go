@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"sparktalk/internal/asr"
 	"sparktalk/internal/config"
 	"sparktalk/internal/llm"
 )
@@ -21,6 +22,7 @@ func (s *Server) health(w http.ResponseWriter, r *http.Request) {
 	}
 	writeJSON(w, http.StatusOK, map[string]any{
 		"status": status, "endpoint": cfg.Model.Endpoint, "model": model, "error": errorText(err),
+		"asr": s.asrSnapshot().Health(r.Context()),
 	})
 }
 
@@ -33,6 +35,8 @@ func (s *Server) configuration(w http.ResponseWriter, r *http.Request) {
 		var req struct {
 			Server      config.ServerConfig     `json:"server"`
 			Model       config.ModelConfig      `json:"model"`
+			ASR         config.ASRConfig        `json:"asr"`
+			Context     config.ContextConfig    `json:"context"`
 			Tools       config.ToolsConfig      `json:"tools"`
 			Appearance  config.AppearanceConfig `json:"appearance"`
 			APIKey      string                  `json:"api_key"`
@@ -43,7 +47,7 @@ func (s *Server) configuration(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		old, _ := s.snapshot()
-		next := config.Config{Server: req.Server, Model: req.Model, Tools: req.Tools, Appearance: req.Appearance}
+		next := config.Config{Server: req.Server, Model: req.Model, ASR: req.ASR, Context: req.Context, Tools: req.Tools, Appearance: req.Appearance}
 		if req.ClearAPIKey {
 			next.Model.APIKey = ""
 		} else if req.APIKey != "" {
@@ -60,7 +64,11 @@ func (s *Server) configuration(w http.ResponseWriter, r *http.Request) {
 		s.mu.Lock()
 		s.cfg = next
 		s.llm = llm.New(next.Model.Endpoint, next.Model.DefaultModel, next.Model.APIKey)
+		s.asr = asr.New(next.ASR)
 		s.mu.Unlock()
+		s.contextMu.Lock()
+		s.contextWindows = make(map[string]int)
+		s.contextMu.Unlock()
 		writeJSON(w, http.StatusOK, map[string]any{
 			"config": next.Public(), "restart_required": restartRequired,
 		})

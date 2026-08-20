@@ -1,13 +1,88 @@
 package server
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
+	"io"
+	"mime"
 	"net/http"
 	"net/url"
+	"path/filepath"
 	"strings"
+	"time"
 
 	"sparktalk/internal/media"
 )
+
+func (s *Server) uploadSource(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		methodNotAllowed(w)
+		return
+	}
+	var input struct {
+		URL string `json:"url"`
+	}
+	decoder := json.NewDecoder(http.MaxBytesReader(w, r.Body, 64<<10))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&input); err != nil || strings.TrimSpace(input.URL) == "" {
+		http.Error(w, "url is required", http.StatusBadRequest)
+		return
+	}
+	cfg, _ := s.snapshot()
+	endpoint := strings.TrimRight(cfg.ASR.FFmpegEndpoint, "/")
+	if endpoint == "" {
+		http.Error(w, "SparkTalk Media API endpoint is not configured", http.StatusServiceUnavailable)
+		return
+	}
+	payload, _ := json.Marshal(map[string]any{
+		"url":             input.URL,
+		"max_download_mb": media.MaxAttachmentBytes >> 20,
+		"max_height":      720,
+	})
+	request, err := http.NewRequestWithContext(r.Context(), http.MethodPost, endpoint+"/v1/source/download", bytes.NewReader(payload))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	request.Header.Set("Content-Type", "application/json")
+	timeout, _ := time.ParseDuration(cfg.ASR.Timeout)
+	if timeout <= 0 {
+		timeout = 30 * time.Minute
+	}
+	response, err := (&http.Client{Timeout: timeout}).Do(request)
+	if err != nil {
+		http.Error(w, "SparkTalk Media API: "+err.Error(), http.StatusBadGateway)
+		return
+	}
+	defer response.Body.Close()
+	if response.StatusCode != http.StatusOK {
+		detail, _ := io.ReadAll(io.LimitReader(response.Body, 64<<10))
+		http.Error(w, fmt.Sprintf("SparkTalk Media API HTTP %d: %s", response.StatusCode, strings.TrimSpace(string(detail))), http.StatusBadGateway)
+		return
+	}
+	name := sourceResponseName(response)
+	item, err := s.media.SaveReader(response.Body, name, response.Header.Get("Content-Type"), media.MaxAttachmentBytes)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	writeJSON(w, http.StatusCreated, item)
+}
+
+func sourceResponseName(response *http.Response) string {
+	name := "remote-media"
+	if disposition, params, err := mime.ParseMediaType(response.Header.Get("Content-Disposition")); err == nil && disposition == "attachment" && params["filename"] != "" {
+		name = filepath.Base(params["filename"])
+	}
+	extension := filepath.Ext(name)
+	if encoded := response.Header.Get("X-Media-Title"); encoded != "" {
+		if title, err := url.QueryUnescape(encoded); err == nil && strings.TrimSpace(title) != "" {
+			name = strings.TrimSpace(title) + extension
+		}
+	}
+	return name
+}
 
 func (s *Server) mediaUsage(w http.ResponseWriter, r *http.Request) {
 	referenced, err := s.db.ReferencedAttachmentIDs()

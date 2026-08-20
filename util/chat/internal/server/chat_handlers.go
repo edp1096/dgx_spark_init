@@ -3,12 +3,14 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
 	"unicode/utf8"
 
+	"sparktalk/internal/config"
 	"sparktalk/internal/db"
 	"sparktalk/internal/llm"
 )
@@ -47,8 +49,9 @@ func (s *Server) chat(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	count, _ := s.db.MessageCount(req.SessionID)
-	if _, err := s.db.AddMessage(req.SessionID, "user", req.Content, "", nil, attachments); err != nil {
+	count, _ := s.db.CompletedUserMessageCount(req.SessionID)
+	pending, err := s.db.AddPendingMessage(req.SessionID, req.Content, attachments)
+	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
 	}
@@ -58,12 +61,6 @@ func (s *Server) chat(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), 500)
 		return
 	}
-	messages, err := s.llmMessages(history)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("X-Accel-Buffering", "no")
@@ -80,19 +77,30 @@ func (s *Server) chat(w http.ResponseWriter, r *http.Request) {
 		flusher.Flush()
 		return nil
 	}
-	result, err := runCompletionLoop(r.Context(), client, messages, req.Model, req.ReasoningEffort, cfg.Model.SystemPrompt, cfg.Tools, req.ToolsEnabled, emit)
-	if result.Content != "" || result.Reasoning != "" || len(result.ToolTrace) > 0 {
-		_, _ = s.db.AddMessage(req.SessionID, "assistant", result.Content, result.Reasoning, result.ToolTrace, nil)
-	}
+	result, err := s.runContextCompletion(r.Context(), req.SessionID, modelHistory(history, pending.ID), req.Model, req.ReasoningEffort, cfg, client, req.ToolsEnabled, emit)
 	if err != nil {
-		payload, _ := json.Marshal(map[string]string{"error": err.Error()})
+		status := db.MessageFailed
+		failure := compactHistoryText(err.Error(), 2000)
+		if errors.Is(err, context.Canceled) || errors.Is(r.Context().Err(), context.Canceled) {
+			status = db.MessageCancelled
+			failure = "사용자가 생성을 중지했습니다."
+		}
+		_ = s.db.FailPendingTurn(pending.ID, status, failure, result.Content, result.Reasoning, result.ToolTrace)
+		payload, _ := json.Marshal(map[string]string{"error": failure})
 		fmt.Fprintf(w, "event: error\ndata: %s\n\n", payload)
 	} else {
-		fmt.Fprint(w, "event: done\ndata: {}\n\n")
+		if _, completeErr := s.db.CompletePendingTurn(pending.ID, result.Content, result.Reasoning, result.ToolTrace); completeErr != nil {
+			_ = s.db.FailPendingTurn(pending.ID, db.MessageFailed, compactHistoryText(completeErr.Error(), 2000), result.Content, result.Reasoning, result.ToolTrace)
+			payload, _ := json.Marshal(map[string]string{"error": completeErr.Error()})
+			fmt.Fprintf(w, "event: error\ndata: %s\n\n", payload)
+			err = completeErr
+		} else {
+			fmt.Fprint(w, "event: done\ndata: {}\n\n")
+		}
 	}
 	flusher.Flush()
 
-	if count == 0 {
+	if err == nil && count == 0 {
 		userText, sessionID, model := req.Content, req.SessionID, req.Model
 		go s.generateTitle(client, sessionID, model, userText)
 	}
@@ -140,12 +148,6 @@ func (s *Server) messageAction(w http.ResponseWriter, r *http.Request) {
 	if req.ReasoningEffort == "" {
 		req.ReasoningEffort = cfg.Model.ReasoningEffort
 	}
-	messages, err := s.llmMessages(history)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("X-Accel-Buffering", "no")
@@ -162,7 +164,7 @@ func (s *Server) messageAction(w http.ResponseWriter, r *http.Request) {
 		flusher.Flush()
 		return nil
 	}
-	result, err := runCompletionLoop(r.Context(), client, messages, req.Model, req.ReasoningEffort, cfg.Model.SystemPrompt, cfg.Tools, req.ToolsEnabled, emit)
+	result, err := s.runContextCompletion(r.Context(), target.SessionID, modelHistory(history, 0), req.Model, req.ReasoningEffort, cfg, client, req.ToolsEnabled, emit)
 	if err == nil {
 		err = s.db.ReplaceAssistant(target.ID, result.Content, result.Reasoning, result.ToolTrace, userVariant)
 		_ = s.db.UpdateSession(target.SessionID, "", req.Model, req.ReasoningEffort)
@@ -214,12 +216,6 @@ func (s *Server) editMessage(w http.ResponseWriter, r *http.Request, messageID i
 		}
 	}
 	requestHistory := append(append([]db.Message{}, history...), db.Message{Role: "user", Content: req.Content, Attachments: attachments})
-	messages, err := s.llmMessages(requestHistory)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("X-Accel-Buffering", "no")
@@ -236,7 +232,7 @@ func (s *Server) editMessage(w http.ResponseWriter, r *http.Request, messageID i
 		flusher.Flush()
 		return nil
 	}
-	result, err := runCompletionLoop(r.Context(), client, messages, req.Model, req.ReasoningEffort, cfg.Model.SystemPrompt, cfg.Tools, req.ToolsEnabled, emit)
+	result, err := s.runContextCompletion(r.Context(), target.SessionID, modelHistory(requestHistory, 0), req.Model, req.ReasoningEffort, cfg, client, req.ToolsEnabled, emit)
 	if err == nil {
 		err = s.db.AppendEditedBranch(messageID, req.Content, attachments, result.Content, result.Reasoning, result.ToolTrace)
 		_ = s.db.UpdateSession(target.SessionID, "", req.Model, req.ReasoningEffort)
@@ -261,7 +257,7 @@ func (s *Server) generateTitle(client *llm.Client, sessionID, model, userText st
 	_ = s.db.UpdateSessionTitle(sessionID, title)
 }
 
-func (s *Server) llmMessages(items []db.Message) ([]llm.Message, error) {
+func (s *Server) llmMessages(ctx context.Context, items []db.Message, cfg config.Config) ([]llm.Message, error) {
 	messages := make([]llm.Message, 0, len(items))
 	for _, item := range items {
 		if len(item.Attachments) == 0 {
@@ -269,20 +265,40 @@ func (s *Server) llmMessages(items []db.Message) ([]llm.Message, error) {
 			continue
 		}
 		parts := make([]map[string]any, 0, len(item.Attachments)+1)
+		textParts := []string{item.Content}
 		for _, attachment := range item.Attachments {
-			dataURL, err := s.media.DataURL(attachment)
+			isAudio := strings.HasPrefix(attachment.MIME, "audio/")
+			isVideo := strings.HasPrefix(attachment.MIME, "video/")
+			if !isAudio {
+				dataURL, err := s.media.DataURL(attachment)
+				if err != nil {
+					return nil, fmt.Errorf("read media %s: %w", attachment.Name, err)
+				}
+				typeName, fieldName := "image_url", "image_url"
+				if isVideo {
+					typeName, fieldName = "video_url", "video_url"
+				}
+				parts = append(parts, map[string]any{"type": typeName, fieldName: map[string]string{"url": dataURL}})
+			}
+			if !isAudio && !isVideo {
+				continue
+			}
+			if !cfg.ASR.Enabled {
+				if isAudio {
+					return nil, fmt.Errorf("음성 첨부를 처리하려면 설정에서 ASR을 활성화해야 합니다")
+				}
+				continue
+			}
+			cached, err := s.transcribeAttachment(ctx, attachment, cfg.ASR)
 			if err != nil {
-				return nil, fmt.Errorf("read media %s: %w", attachment.Name, err)
+				if isVideo && isNoAudio(err) {
+					continue
+				}
+				return nil, err
 			}
-			typeName, fieldName := "image_url", "image_url"
-			if strings.HasPrefix(attachment.MIME, "video/") {
-				typeName, fieldName = "video_url", "video_url"
-			} else if strings.HasPrefix(attachment.MIME, "audio/") {
-				typeName, fieldName = "audio_url", "audio_url"
-			}
-			parts = append(parts, map[string]any{"type": typeName, fieldName: map[string]string{"url": dataURL}})
+			textParts = append(textParts, transcriptBlock(attachment, cached))
 		}
-		parts = append(parts, map[string]any{"type": "text", "text": item.Content})
+		parts = append(parts, map[string]any{"type": "text", "text": strings.Join(textParts, "\n\n")})
 		messages = append(messages, llm.Message{Role: item.Role, Content: parts})
 	}
 	return messages, nil

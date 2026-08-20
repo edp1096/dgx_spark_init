@@ -22,6 +22,12 @@ func TestLoadCreatesEmbeddedDefaultAndSaveReloads(t *testing.T) {
 	if cfg.Appearance.AssistantAvatar != "preset:spark" || cfg.Appearance.UserAvatar != "preset:person-blue" {
 		t.Fatalf("generated avatar defaults are incomplete: %+v", cfg.Appearance)
 	}
+	if !cfg.Context.Enabled || cfg.Context.CompactAtPercent != 80 || cfg.Context.OutputReserve != 8192 {
+		t.Fatalf("generated context defaults are incomplete: %+v", cfg.Context)
+	}
+	if !cfg.ASR.Enabled || cfg.ASR.FFmpegEndpoint != "http://127.0.0.1:8698" || cfg.ASR.Endpoint != "http://127.0.0.1:8694" {
+		t.Fatalf("generated ASR defaults are incomplete: %+v", cfg.ASR)
+	}
 	wantPresetNames := []string{"없음", "보좌관", "언니여동생", "오빠여동생"}
 	if len(cfg.Model.SystemPromptPresets) != len(wantPresetNames) {
 		t.Fatalf("generated prompt presets are incomplete: %+v", cfg.Model.SystemPromptPresets)
@@ -113,6 +119,12 @@ func TestLoadOldConfigDefaultsToolsToEnabled(t *testing.T) {
 	}
 	if !cfg.Tools.Enabled || cfg.Tools.MaxRounds != 3 || cfg.Tools.SearchResults != 5 {
 		t.Fatalf("old config did not receive tool defaults: %+v", cfg.Tools)
+	}
+	if !cfg.Context.Enabled || cfg.Context.RecentTokens != 32768 {
+		t.Fatalf("old config did not receive context defaults: %+v", cfg.Context)
+	}
+	if !cfg.ASR.Enabled || cfg.ASR.Model != "qwen3-asr" || cfg.ASR.Timeout != "30m" {
+		t.Fatalf("old config did not receive ASR defaults: %+v", cfg.ASR)
 	}
 	if cfg.Appearance.AssistantAvatar != "preset:spark" || cfg.Appearance.UserAvatar != "preset:person-blue" {
 		t.Fatalf("old config did not receive avatar defaults: %+v", cfg.Appearance)

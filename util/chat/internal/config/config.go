@@ -20,8 +20,23 @@ var assets embed.FS
 type Config struct {
 	Server     ServerConfig     `yaml:"server" json:"server"`
 	Model      ModelConfig      `yaml:"model" json:"model"`
+	ASR        ASRConfig        `yaml:"asr" json:"asr"`
+	Context    ContextConfig    `yaml:"context" json:"context"`
 	Tools      ToolsConfig      `yaml:"tools" json:"tools"`
 	Appearance AppearanceConfig `yaml:"appearance" json:"appearance"`
+}
+
+// ASRConfig connects local media preparation and speech recognition services.
+// Audio attachments become text; video attachments keep their visual stream and
+// gain a transcript of their audio track.
+type ASRConfig struct {
+	Enabled        bool   `yaml:"enabled" json:"enabled"`
+	FFmpegEndpoint string `yaml:"ffmpeg_endpoint" json:"ffmpeg_endpoint"`
+	Endpoint       string `yaml:"endpoint" json:"endpoint"`
+	Model          string `yaml:"model" json:"model"`
+	Language       string `yaml:"language" json:"language"`
+	Prompt         string `yaml:"prompt" json:"prompt"`
+	Timeout        string `yaml:"timeout" json:"timeout"`
 }
 
 type ServerConfig struct {
@@ -44,6 +59,19 @@ type PromptPreset struct {
 	Prompt string `yaml:"prompt" json:"prompt"`
 }
 
+// ContextConfig controls the model-facing working set. The complete transcript
+// always remains in SQLite and in the browser; only the payload sent to the
+// model is compacted.
+type ContextConfig struct {
+	Enabled          bool `yaml:"enabled" json:"enabled"`
+	WindowTokens     int  `yaml:"window_tokens" json:"window_tokens"`
+	CompactAtPercent int  `yaml:"compact_at_percent" json:"compact_at_percent"`
+	OutputReserve    int  `yaml:"output_reserve" json:"output_reserve"`
+	SafetyMargin     int  `yaml:"safety_margin" json:"safety_margin"`
+	RecentTokens     int  `yaml:"recent_tokens" json:"recent_tokens"`
+	ImageTokens      int  `yaml:"image_tokens" json:"image_tokens"`
+}
+
 type ToolsConfig struct {
 	Enabled       bool   `yaml:"enabled" json:"enabled"`
 	MaxRounds     int    `yaml:"max_rounds" json:"max_rounds"`
@@ -59,6 +87,8 @@ type AppearanceConfig struct {
 type PublicConfig struct {
 	Server     ServerConfig     `json:"server"`
 	Model      ModelConfig      `json:"model"`
+	ASR        ASRConfig        `json:"asr"`
+	Context    ContextConfig    `json:"context"`
 	Tools      ToolsConfig      `json:"tools"`
 	Appearance AppearanceConfig `json:"appearance"`
 	APIKeySet  bool             `json:"api_key_set"`
@@ -91,11 +121,23 @@ func Load(path string) (Config, bool, error) {
 		return Config{}, generated, fmt.Errorf("parse %s: %w", path, err)
 	}
 	var presence struct {
+		ASR *struct {
+			Enabled *bool `yaml:"enabled"`
+		} `yaml:"asr"`
+		Context *struct {
+			Enabled *bool `yaml:"enabled"`
+		} `yaml:"context"`
 		Tools *struct {
 			Enabled *bool `yaml:"enabled"`
 		} `yaml:"tools"`
 	}
 	_ = yaml.Unmarshal(data, &presence)
+	if presence.ASR == nil || presence.ASR.Enabled == nil {
+		cfg.ASR.Enabled = true
+	}
+	if presence.Context == nil || presence.Context.Enabled == nil {
+		cfg.Context.Enabled = true
+	}
 	if presence.Tools == nil || presence.Tools.Enabled == nil {
 		cfg.Tools.Enabled = true
 	}
@@ -179,6 +221,12 @@ func (c *Config) Normalize() {
 	c.Model.ReasoningEffort = strings.TrimSpace(c.Model.ReasoningEffort)
 	c.Model.SystemPrompt = strings.TrimSpace(c.Model.SystemPrompt)
 	c.Model.SystemPromptPreset = strings.TrimSpace(c.Model.SystemPromptPreset)
+	c.ASR.FFmpegEndpoint = strings.TrimRight(strings.TrimSpace(c.ASR.FFmpegEndpoint), "/")
+	c.ASR.Endpoint = strings.TrimRight(strings.TrimSpace(c.ASR.Endpoint), "/")
+	c.ASR.Model = strings.TrimSpace(c.ASR.Model)
+	c.ASR.Language = strings.TrimSpace(c.ASR.Language)
+	c.ASR.Prompt = strings.TrimSpace(c.ASR.Prompt)
+	c.ASR.Timeout = strings.TrimSpace(c.ASR.Timeout)
 	for i := range c.Model.SystemPromptPresets {
 		c.Model.SystemPromptPresets[i].Name = strings.TrimSpace(c.Model.SystemPromptPresets[i].Name)
 		c.Model.SystemPromptPresets[i].Prompt = strings.TrimSpace(c.Model.SystemPromptPresets[i].Prompt)
@@ -188,6 +236,21 @@ func (c *Config) Normalize() {
 	}
 	if c.Server.Database == "" {
 		c.Server.Database = "sparktalk.db"
+	}
+	if c.ASR.FFmpegEndpoint == "" {
+		c.ASR.FFmpegEndpoint = "http://127.0.0.1:8698"
+	}
+	if c.ASR.Endpoint == "" {
+		c.ASR.Endpoint = "http://127.0.0.1:8694"
+	}
+	if c.ASR.Model == "" {
+		c.ASR.Model = "qwen3-asr"
+	}
+	if c.ASR.Language == "" {
+		c.ASR.Language = "auto"
+	}
+	if c.ASR.Timeout == "" {
+		c.ASR.Timeout = "30m"
 	}
 	if c.Tools.MaxRounds <= 0 {
 		c.Tools.MaxRounds = 3
@@ -204,6 +267,21 @@ func (c *Config) Normalize() {
 	if c.Tools.Timeout == "" {
 		c.Tools.Timeout = "15s"
 	}
+	if c.Context.CompactAtPercent <= 0 {
+		c.Context.CompactAtPercent = 80
+	}
+	if c.Context.OutputReserve <= 0 {
+		c.Context.OutputReserve = 8192
+	}
+	if c.Context.SafetyMargin <= 0 {
+		c.Context.SafetyMargin = 4096
+	}
+	if c.Context.RecentTokens <= 0 {
+		c.Context.RecentTokens = 32768
+	}
+	if c.Context.ImageTokens <= 0 {
+		c.Context.ImageTokens = 2048
+	}
 	c.Appearance.AssistantAvatar = normalizeAvatar(c.Appearance.AssistantAvatar, "preset:spark")
 	c.Appearance.UserAvatar = normalizeAvatar(c.Appearance.UserAvatar, "preset:person-blue")
 }
@@ -214,6 +292,19 @@ func (c Config) Validate() error {
 	}
 	if !strings.HasPrefix(c.Model.Endpoint, "http://") && !strings.HasPrefix(c.Model.Endpoint, "https://") {
 		return errors.New("model.endpoint must start with http:// or https://")
+	}
+	if c.ASR.Enabled {
+		for name, endpoint := range map[string]string{"asr.ffmpeg_endpoint": c.ASR.FFmpegEndpoint, "asr.endpoint": c.ASR.Endpoint} {
+			if !strings.HasPrefix(endpoint, "http://") && !strings.HasPrefix(endpoint, "https://") {
+				return fmt.Errorf("%s must start with http:// or https://", name)
+			}
+		}
+	}
+	if timeout, err := time.ParseDuration(c.ASR.Timeout); err != nil || timeout <= 0 {
+		if err == nil {
+			err = errors.New("must be greater than zero")
+		}
+		return fmt.Errorf("asr.timeout: %w", err)
 	}
 	if filepath.Clean(c.Server.Database) == "." {
 		return errors.New("server.database is required")
@@ -242,11 +333,20 @@ func (c Config) Validate() error {
 		}
 		return fmt.Errorf("tools.timeout: %w", err)
 	}
+	if c.Context.WindowTokens < 0 {
+		return errors.New("context.window_tokens must be zero (auto) or greater")
+	}
+	if c.Context.CompactAtPercent < 50 || c.Context.CompactAtPercent > 95 {
+		return errors.New("context.compact_at_percent must be between 50 and 95")
+	}
+	if c.Context.OutputReserve < 256 || c.Context.SafetyMargin < 256 || c.Context.RecentTokens < 256 || c.Context.ImageTokens < 1 {
+		return errors.New("context token budgets are too small")
+	}
 	return nil
 }
 
 func (c Config) Public() PublicConfig {
-	public := PublicConfig{Server: c.Server, Model: c.Model, Tools: c.Tools, Appearance: c.Appearance, APIKeySet: c.Model.APIKey != ""}
+	public := PublicConfig{Server: c.Server, Model: c.Model, ASR: c.ASR, Context: c.Context, Tools: c.Tools, Appearance: c.Appearance, APIKeySet: c.Model.APIKey != ""}
 	public.Model.APIKey = ""
 	return public
 }

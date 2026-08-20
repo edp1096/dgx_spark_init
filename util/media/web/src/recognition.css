@@ -283,6 +283,30 @@
   margin: 0;
 }
 
+.subtitle-results.list-view .job-stop {
+  grid-column: 3;
+  grid-row: 1;
+  align-self: start;
+  margin: 0;
+}
+
+.job-stop {
+  border: 1px solid #73523b;
+  border-radius: 7px;
+  padding: 5px 9px;
+  background: transparent;
+  color: #e7ad72;
+  font-size: 10px;
+}
+
+.job-stop:hover {
+  background: #39291f;
+}
+
+.job-stop:disabled {
+  opacity: .45;
+}
+
 .subtitle-results.list-view .subtitle-list-expanded {
   display: grid !important;
   grid-column: 1 / -1;

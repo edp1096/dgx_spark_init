@@ -46,6 +46,13 @@ type StreamResult struct {
 	Content   string
 	Reasoning string
 	ToolCalls []ToolCall
+	Usage     Usage
+}
+
+type Usage struct {
+	PromptTokens     int `json:"prompt_tokens"`
+	CompletionTokens int `json:"completion_tokens"`
+	TotalTokens      int `json:"total_tokens"`
 }
 
 type toolCallAccum struct {
@@ -125,6 +132,7 @@ func (c *Client) Stream(ctx context.Context, messages []Message, model, reasonin
 	payload := map[string]any{
 		"model": model, "messages": messages, "stream": true, "temperature": 0.7,
 		"separate_reasoning": true, "stream_reasoning": true,
+		"stream_options": map[string]bool{"include_usage": true},
 	}
 	if len(tools) > 0 {
 		payload["tools"] = tools
@@ -148,6 +156,7 @@ func (c *Client) Stream(ctx context.Context, messages []Message, model, reasonin
 	}
 
 	var answer, reasoning strings.Builder
+	var usage Usage
 	toolCalls := make(map[int]*toolCallAccum)
 	var toolOrder []int
 	scanner := bufio.NewScanner(resp.Body)
@@ -162,6 +171,7 @@ func (c *Client) Stream(ctx context.Context, messages []Message, model, reasonin
 			continue
 		}
 		var chunk struct {
+			Usage   Usage `json:"usage"`
 			Choices []struct {
 				Delta struct {
 					Content          string `json:"content"`
@@ -179,7 +189,13 @@ func (c *Client) Stream(ctx context.Context, messages []Message, model, reasonin
 				} `json:"delta"`
 			} `json:"choices"`
 		}
-		if err := json.Unmarshal([]byte(data), &chunk); err != nil || len(chunk.Choices) == 0 {
+		if err := json.Unmarshal([]byte(data), &chunk); err != nil {
+			continue
+		}
+		if chunk.Usage.TotalTokens > 0 || chunk.Usage.PromptTokens > 0 {
+			usage = chunk.Usage
+		}
+		if len(chunk.Choices) == 0 {
 			continue
 		}
 		delta := chunk.Choices[0].Delta
@@ -219,7 +235,116 @@ func (c *Client) Stream(ctx context.Context, messages []Message, model, reasonin
 	if err := scanner.Err(); err != nil {
 		return StreamResult{Content: answer.String(), Reasoning: reasoning.String(), ToolCalls: assembleToolCalls(toolOrder, toolCalls)}, err
 	}
-	return StreamResult{Content: answer.String(), Reasoning: reasoning.String(), ToolCalls: assembleToolCalls(toolOrder, toolCalls)}, nil
+	return StreamResult{Content: answer.String(), Reasoning: reasoning.String(), ToolCalls: assembleToolCalls(toolOrder, toolCalls), Usage: usage}, nil
+}
+
+func (c *Client) ContextWindow(ctx context.Context) (int, error) {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+	errors := make([]string, 0, 3)
+	for _, path := range []string{"/v1/models", "/model_info", "/get_model_info"} {
+		value, err := c.contextWindowFrom(ctx, c.endpoint+path)
+		if value > 0 {
+			return value, nil
+		}
+		if err != nil {
+			errors = append(errors, err.Error())
+		}
+	}
+	return 0, fmt.Errorf("context window discovery failed: %s", strings.Join(errors, "; "))
+}
+
+func (c *Client) contextWindowFrom(ctx context.Context, endpoint string) (int, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
+	if err != nil {
+		return 0, err
+	}
+	c.authorize(req)
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return 0, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return 0, fmt.Errorf("model info: HTTP %d", resp.StatusCode)
+	}
+	var payload any
+	if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
+		return 0, err
+	}
+	return findContextWindow(payload), nil
+}
+
+func findContextWindow(value any) int {
+	if values, ok := value.([]any); ok {
+		for _, item := range values {
+			if found := findContextWindow(item); found > 0 {
+				return found
+			}
+		}
+		return 0
+	}
+	info, ok := value.(map[string]any)
+	if !ok {
+		return 0
+	}
+	for _, key := range []string{"context_len", "max_model_len", "max_total_num_tokens", "max_num_tokens"} {
+		if value, ok := info[key].(float64); ok && value > 0 {
+			return int(value)
+		}
+	}
+	for _, key := range []string{"data", "models", "model_info"} {
+		if found := findContextWindow(info[key]); found > 0 {
+			return found
+		}
+	}
+	return 0
+}
+
+func (c *Client) SummarizeContext(ctx context.Context, model, previous, transcript string) (string, error) {
+	if model == "" {
+		var err error
+		model, err = c.Model(ctx)
+		if err != nil {
+			return "", err
+		}
+	}
+	prompt := `Update a durable conversation checkpoint from the supplied previous checkpoint and transcript.
+Return concise Markdown with exactly these headings: Objective, Decisions, Constraints, Facts, Artifacts, Completed, Unresolved, Next Steps.
+Preserve exact file paths, commands, URLs, numbers, user preferences, failures, and message references. Do not invent information. Attachments must be represented by their names, types, and any conclusions stated in the transcript.`
+	content := "Previous checkpoint:\n" + strings.TrimSpace(previous) + "\n\nNew transcript:\n" + transcript
+	payload := map[string]any{
+		"model":    model,
+		"messages": []Message{{Role: "system", Content: prompt}, {Role: "user", Content: content}},
+		"stream":   false, "temperature": 0.1, "max_completion_tokens": 2048,
+		"reasoning_effort": "none",
+	}
+	body, _ := json.Marshal(payload)
+	ctx, cancel := context.WithTimeout(ctx, 3*time.Minute)
+	defer cancel()
+	resp, err := c.post(ctx, body)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		detail, _ := io.ReadAll(io.LimitReader(resp.Body, 8192))
+		return "", fmt.Errorf("context summary: HTTP %d: %s", resp.StatusCode, strings.TrimSpace(string(detail)))
+	}
+	var result struct {
+		Choices []struct {
+			Message struct {
+				Content string `json:"content"`
+			} `json:"message"`
+		} `json:"choices"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return "", err
+	}
+	if len(result.Choices) == 0 || strings.TrimSpace(result.Choices[0].Message.Content) == "" {
+		return "", fmt.Errorf("context summary returned no content")
+	}
+	return strings.TrimSpace(result.Choices[0].Message.Content), nil
 }
 
 func assembleToolCalls(order []int, accs map[int]*toolCallAccum) []ToolCall {

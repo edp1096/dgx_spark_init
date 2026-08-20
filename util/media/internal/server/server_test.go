@@ -751,3 +751,55 @@ func TestRestartRecoveryFailsJobsWithoutRecoverableInputs(t *testing.T) {
 		}
 	}
 }
+
+func TestCancelSubtitleJobStopsMediaPreparation(t *testing.T) {
+	cancelled := make(chan string, 1)
+	mediaWorker := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodDelete && strings.HasPrefix(r.URL.Path, "/v1/media/prepare/") {
+			cancelled <- strings.TrimPrefix(r.URL.Path, "/v1/media/prepare/")
+			_ = json.NewEncoder(w).Encode(map[string]string{"status": "cancelling"})
+			return
+		}
+		http.NotFound(w, r)
+	}))
+	defer mediaWorker.Close()
+
+	dataDir := t.TempDir()
+	store, err := jobs.New(dataDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	job := jobs.Job{
+		ID: "subtitle-cancel-test", Kind: "recognition", Status: "running",
+		Params: map[string]any{"stage": "media", "media_eta_seconds": 30}, CreatedAt: time.Now(),
+	}
+	if err := store.Save(job); err != nil {
+		t.Fatal(err)
+	}
+	handler := New(config.Config{
+		DataDir: dataDir,
+		Engines: map[string]config.Engine{"media": {Endpoint: mediaWorker.URL}},
+	}, store, nil).Handler()
+
+	request := httptest.NewRequest(http.MethodPost, "/api/jobs/"+job.ID+"/cancel", nil)
+	response := httptest.NewRecorder()
+	handler.ServeHTTP(response, request)
+	if response.Code != http.StatusOK {
+		t.Fatalf("status=%d body=%s", response.Code, response.Body.String())
+	}
+	select {
+	case id := <-cancelled:
+		if id != job.ID {
+			t.Fatalf("cancelled id=%q", id)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("media cancellation request was not sent")
+	}
+	persisted, ok := store.Get(job.ID)
+	if !ok || persisted.Status != "cancelled" || persisted.Params["stage"] != "cancelled" {
+		t.Fatalf("job was not cancelled: %#v", persisted)
+	}
+	if _, ok := persisted.Params["media_eta_seconds"]; ok {
+		t.Fatalf("stale ETA remained after cancellation: %#v", persisted.Params)
+	}
+}

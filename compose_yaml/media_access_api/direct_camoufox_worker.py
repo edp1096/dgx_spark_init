@@ -168,7 +168,10 @@ def user_agent() -> str:
         timeout=10,
         check=False,
     )
-    match = re.search(r"(\d+)(?:\.\d+)*", completed.stdout)
+    # Sandbox diagnostics may prefix the version line with a numeric PID such
+    # as "[10271]". Only accept the version following the Camoufox product
+    # name; using the first number produced impossible Firefox/10271 UAs.
+    match = re.search(r"Camoufox(?:\s+Camoufox)?\s+(\d+)(?:\.\d+)*", completed.stdout, re.I)
     major = match.group(1) if match else "152"
     return f"Mozilla/5.0 (X11; Linux x86_64; rv:{major}.0) Gecko/20100101 Firefox/{major}.0"
 

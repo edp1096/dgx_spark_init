@@ -51,6 +51,12 @@ camoufox = CamoufoxClient()
 direct_camoufox = DirectCamoufoxClient()
 active_prepare_dirs: set[Path] = set()
 active_prepare_lock = threading.Lock()
+active_prepare_processes: dict[str, subprocess.Popen] = {}
+cancelled_prepare_ids: set[str] = set()
+
+
+class PrepareCancelled(RuntimeError):
+    pass
 
 
 @app.on_event("startup")
@@ -107,6 +113,41 @@ def request_work_dir(request_id: str | None) -> Path:
         return Path(tempfile.mkdtemp(prefix="prepare-", dir=DATA_DIR))
     progress_path(request_id)  # validate before using it as a directory name
     return DATA_DIR / f"prepare-{request_id}"
+
+
+def ensure_prepare_active(request_id: str | None):
+    if not request_id:
+        return
+    with active_prepare_lock:
+        if request_id in cancelled_prepare_ids:
+            raise PrepareCancelled("media preparation cancelled")
+
+
+def register_prepare_process(request_id: str | None, process: subprocess.Popen):
+    if not request_id:
+        return
+    with active_prepare_lock:
+        if request_id in cancelled_prepare_ids:
+            process.terminate()
+            process.wait(timeout=5)
+            raise PrepareCancelled("media preparation cancelled")
+        active_prepare_processes[request_id] = process
+
+
+def unregister_prepare_process(request_id: str | None, process: subprocess.Popen):
+    if not request_id:
+        return
+    with active_prepare_lock:
+        if active_prepare_processes.get(request_id) is process:
+            active_prepare_processes.pop(request_id, None)
+
+
+def finish_prepare(request_id: str | None, work_dir: Path):
+    with active_prepare_lock:
+        active_prepare_dirs.discard(work_dir)
+        if request_id:
+            active_prepare_processes.pop(request_id, None)
+            cancelled_prepare_ids.discard(request_id)
 
 
 def recovery_path(work_dir: Path) -> Path:
@@ -239,7 +280,53 @@ def delete_media_progress(request_id: str):
         raise HTTPException(404, "progress not found") from exc
 
 
-def run(command: list[str], timeout: int | None = None):
+@app.delete("/v1/media/prepare/{request_id}", status_code=202)
+def cancel_media_prepare(request_id: str):
+    try:
+        progress_path(request_id)
+    except ValueError as exc:
+        raise HTTPException(404, "media preparation not found") from exc
+    work_dir = request_work_dir(request_id)
+    with active_prepare_lock:
+        if work_dir not in active_prepare_dirs:
+            return {"status": "not_active", "request_id": request_id}
+        cancelled_prepare_ids.add(request_id)
+        process = active_prepare_processes.get(request_id)
+    set_progress(request_id, "cancelled")
+    if process and process.poll() is None:
+        process.terminate()
+        try:
+            process.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait()
+    return {"status": "cancelling", "request_id": request_id}
+
+
+def run(command: list[str], timeout: int | None = None, request_id: str | None = None):
+    if request_id:
+        ensure_prepare_active(request_id)
+        process = subprocess.Popen(
+            command,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
+        register_prepare_process(request_id, process)
+        try:
+            output, _ = process.communicate(timeout=timeout)
+        except Exception:
+            if process.poll() is None:
+                process.kill()
+                process.wait()
+            raise
+        finally:
+            unregister_prepare_process(request_id, process)
+        ensure_prepare_active(request_id)
+        if process.returncode:
+            message = output.strip()[-4000:]
+            raise RuntimeError(message or f"command failed with exit code {process.returncode}")
+        return output
     completed = subprocess.run(
         command,
         stdout=subprocess.PIPE,
@@ -270,6 +357,12 @@ def run_stdout(command: list[str], timeout: int | None = None):
     return completed.stdout
 
 
+def run_prepare_command(command: list[str], timeout: int, request_id: str | None):
+    if request_id:
+        return run(command, timeout=timeout, request_id=request_id)
+    return run(command, timeout=timeout)
+
+
 def progress_number(value: str) -> int:
     try:
         return max(0, int(float(value)))
@@ -286,6 +379,7 @@ def run_download(command: list[str], request_id: str | None, timeout: int | None
         stderr=subprocess.STDOUT,
         text=True,
     )
+    register_prepare_process(request_id, process)
     output = []
     try:
         assert process.stdout is not None
@@ -304,9 +398,13 @@ def run_download(command: list[str], request_id: str | None, timeout: int | None
                     output = output[-200:]
         return_code = process.wait(timeout=timeout)
     except Exception:
-        process.kill()
-        process.wait()
+        if process.poll() is None:
+            process.kill()
+            process.wait()
         raise
+    finally:
+        unregister_prepare_process(request_id, process)
+    ensure_prepare_active(request_id)
     if return_code:
         message = "\n".join(output).strip()[-4000:]
         raise RuntimeError(message or f"command failed with exit code {return_code}")
@@ -443,6 +541,8 @@ def yt_dlp_download(url: str, work_dir: Path, cookies: Path | None = None, heade
                 probe_duration(result)
                 return result
             errors.append(f"{quality_label}: completed without a media file")
+        except PrepareCancelled:
+            raise
         except Exception as exc:
             summary = yt_dlp_error_summary(str(exc))
             errors.append(f"{quality_label}: {summary}")
@@ -814,7 +914,7 @@ def probe_media(path: Path) -> dict:
     return probe
 
 
-def persist_media_asset(source: Path, source_name: str) -> dict | None:
+def persist_media_asset(source: Path, source_name: str, request_id: str | None = None) -> dict | None:
     probe = probe_media(source)
     video_streams = [
         stream for stream in probe.get("streams", [])
@@ -834,11 +934,13 @@ def persist_media_asset(source: Path, source_name: str) -> dict | None:
             destination = staging / "video.mp4"
             # 웹 재생과 Range 탐색을 위해 가능한 경우 재인코딩 없이 MP4로 remux한다.
             try:
-                run([
+                run_prepare_command([
                     "ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", str(source),
                     "-map", "0:v:0", "-map", "0:a?", "-map_metadata", "0",
                     "-c", "copy", "-movflags", "+faststart", str(destination),
-                ], timeout=7200)
+                ], 7200, request_id)
+            except PrepareCancelled:
+                raise
             except Exception:
                 suffix = source.suffix.lower() if source.suffix else ".bin"
                 destination = staging / f"video{suffix}"
@@ -850,11 +952,11 @@ def persist_media_asset(source: Path, source_name: str) -> dict | None:
             destination = staging / "audio.m4a"
             codec = str(audio_streams[0].get("codec_name") or "").lower()
             codec_args = ["-c:a", "copy"] if codec == "aac" else ["-c:a", "aac", "-b:a", "192k"]
-            run([
+            run_prepare_command([
                 "ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", str(source),
                 "-map", "0:a:0", "-vn", "-map_metadata", "0", *codec_args,
                 "-movflags", "+faststart", str(destination),
-            ], timeout=7200)
+            ], 7200, request_id)
             content_type = "audio/mp4"
             width = 0
             height = 0
@@ -892,17 +994,17 @@ def asset_paths(asset_id: str) -> tuple[Path, Path, dict]:
     return directory, media_path, metadata
 
 
-def prepare_segments(source: Path, work_dir: Path, segment_seconds: int) -> list[dict]:
+def prepare_segments(source: Path, work_dir: Path, segment_seconds: int, request_id: str | None = None) -> list[dict]:
     segment_dir = work_dir / "segments"
     # A killed ffmpeg can leave empty or partial WAV files. They are never safe
     # to append to, so restart segmentation from the preserved source media.
     shutil.rmtree(segment_dir, ignore_errors=True)
     segment_dir.mkdir()
     duration = probe_duration(source)
-    silence_output = run([
+    silence_output = run_prepare_command([
         "ffmpeg", "-hide_banner", "-nostats", "-i", str(source),
         "-map", "0:a:0", "-af", "silencedetect=noise=-35dB:d=0.6", "-f", "null", "-",
-    ], timeout=7200)
+    ], 7200, request_id)
     silence_starts = [float(value) for value in re.findall(r"silence_start:\s*([0-9.]+)", silence_output)]
     silence_ends = [float(value) for value in re.findall(r"silence_end:\s*([0-9.]+)", silence_output)]
     silence_midpoints = []
@@ -928,7 +1030,7 @@ def prepare_segments(source: Path, work_dir: Path, segment_seconds: int) -> list
     else:
         command += ["-segment_time", str(segment_seconds)]
     command += [str(segment_dir / "segment-%05d.wav")]
-    run(command, timeout=7200)
+    run_prepare_command(command, 7200, request_id)
     segments = []
     cursor = 0.0
     for path in sorted(segment_dir.glob("segment-*.wav")):
@@ -1049,11 +1151,14 @@ async def prepare_media(
     set_progress(request_id, "starting")
     work_dir = request_work_dir(request_id)
     with active_prepare_lock:
+        if request_id:
+            cancelled_prepare_ids.discard(request_id)
         work_dir.mkdir(parents=True, exist_ok=True)
         active_prepare_dirs.add(work_dir)
     source_name = file.filename if file else url.strip()
     asset = None
     try:
+        ensure_prepare_active(request_id)
         source = reusable_source(work_dir, source_name)
         if source is not None:
             set_progress(request_id, "resuming")
@@ -1078,13 +1183,17 @@ async def prepare_media(
                 selection_errors = []
                 for resolver_name, resolver in (
                     ("direct Camoufox", download_via_direct_camoufox),
+                    ("direct Camoufox retry", download_via_direct_camoufox),
                     ("browser", download_via_browser),
                     ("BrowseForge", download_via_browseforge),
                     ("Camoufox", download_via_camoufox),
                 ):
+                    ensure_prepare_active(request_id)
                     try:
                         source = await resolver(target_url, work_dir, request_id, selection)
                         break
+                    except PrepareCancelled:
+                        raise
                     except Exception as resolver_error:
                         selection_errors.append(f"{resolver_name}: {resolver_error}")
                 else:
@@ -1094,6 +1203,8 @@ async def prepare_media(
                     source = await asyncio.to_thread(
                         yt_dlp_download, target_url, work_dir, session_cookies, {"Referer": target_url}, request_id
                     )
+                except PrepareCancelled:
+                    raise
                 except Exception as primary_error:
                     set_progress(request_id, "resolving")
                     adapter = adapter_for_url(target_url)
@@ -1114,45 +1225,53 @@ async def prepare_media(
                     )
                     fallback_errors = []
                     for fallback_name, fallback in fallback_order:
+                        ensure_prepare_active(request_id)
                         try:
                             source = await fallback(target_url, work_dir, request_id)
                             break
+                        except PrepareCancelled:
+                            raise
                         except Exception as fallback_error:
                             fallback_errors.append(f"{fallback_name}: {fallback_error}")
                     else:
                         raise RuntimeError(
                             f"yt-dlp failed: {primary_error}; fallback failed: {'; '.join(fallback_errors)}"
                         ) from primary_error
+        ensure_prepare_active(request_id)
         write_recovery(work_dir, source_name=source_name, source_file=source.name, stage="downloaded")
         asset = reusable_asset(work_dir)
         if asset is None:
             set_progress(request_id, "storing")
-            asset = await asyncio.to_thread(persist_media_asset, source, source_name)
+            asset = await asyncio.to_thread(persist_media_asset, source, source_name, request_id)
             if asset:
                 write_recovery(work_dir, asset_id=asset["id"], stage="stored")
+        ensure_prepare_active(request_id)
         set_progress(request_id, "extracting_audio")
         write_recovery(work_dir, stage="extracting_audio")
-        segments = await asyncio.to_thread(prepare_segments, source, work_dir, segment_seconds)
+        segments = await asyncio.to_thread(prepare_segments, source, work_dir, segment_seconds, request_id)
         archive = await asyncio.to_thread(build_archive, work_dir, source_name, segments, asset)
+    except PrepareCancelled as exc:
+        set_progress(request_id, "cancelled")
+        if asset:
+            shutil.rmtree(ASSET_DIR / asset["id"], ignore_errors=True)
+        finish_prepare(request_id, work_dir)
+        raise HTTPException(409, str(exc)) from exc
     except ValueError as exc:
         set_progress(request_id, "failed", error=str(exc))
         if asset:
             shutil.rmtree(ASSET_DIR / asset["id"], ignore_errors=True)
         shutil.rmtree(work_dir, ignore_errors=True)
-        with active_prepare_lock:
-            active_prepare_dirs.discard(work_dir)
+        finish_prepare(request_id, work_dir)
         raise HTTPException(400, str(exc)) from exc
     except Exception as exc:
         set_progress(request_id, "failed", error=str(exc)[-1000:])
         if asset:
             shutil.rmtree(ASSET_DIR / asset["id"], ignore_errors=True)
         shutil.rmtree(work_dir, ignore_errors=True)
-        with active_prepare_lock:
-            active_prepare_dirs.discard(work_dir)
+        finish_prepare(request_id, work_dir)
         raise HTTPException(422, str(exc)) from exc
     shutil.rmtree(work_dir, ignore_errors=True)
-    with active_prepare_lock:
-        active_prepare_dirs.discard(work_dir)
+    finish_prepare(request_id, work_dir)
     set_progress(request_id, "complete")
     background.add_task(remove_path, archive)
     return FileResponse(archive, media_type="application/zip", filename="prepared.zip", background=background)

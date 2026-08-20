@@ -15,6 +15,7 @@ export const api = {
   deleteJob: (id) => fetch(`/api/jobs/${encodeURIComponent(id)}`, { method: 'DELETE' }).then(async (response) => {
     if (!response.ok) throw new Error((await response.text()) || `HTTP ${response.status}`)
   }),
+  cancelJob: (id) => fetch(`/api/jobs/${encodeURIComponent(id)}/cancel`, { method: 'POST' }).then(checked),
   deleteFinishedJobs: () => fetch('/api/jobs', { method: 'DELETE' }).then(checked),
   image: (form) => fetch('/api/jobs/image', { method: 'POST', body: form }).then(checked),
   speech: (form) => fetch('/api/jobs/speech', { method: 'POST', body: form }).then(checked),
