@@ -17,6 +17,8 @@ engines:
     endpoint: http://example.invalid:8692
   recognition:
     endpoint: http://example.invalid:8694
+recognition:
+  model: Qwen/Qwen3-ASR-1.7B-hf
 `)
 	if err := os.WriteFile(path, legacy, 0o644); err != nil {
 		t.Fatal(err)
@@ -39,5 +41,8 @@ engines:
 	}
 	if cfg.PromptEnhancement.Model != "huihui-gemma4-e2b" || cfg.PromptEnhancement.MaxTokens != 600 {
 		t.Fatalf("prompt enhancement defaults=%#v", cfg.PromptEnhancement)
+	}
+	if cfg.Recognition.Model != "Qwen/Qwen3-ASR-1.7B" {
+		t.Fatalf("legacy ASR model was not migrated: %q", cfg.Recognition.Model)
 	}
 }

@@ -6,6 +6,8 @@ PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BUILDER_DIR="${PROJECT_DIR}/builder"
 ARTIFACT_DIR="${PROJECT_DIR}/artifacts"
 VENV_DIR="${BUILDER_DIR}/venv"
+RUNTIME_ROOT="${GEMMA4_LITERT_RUNTIME_ROOT:-${HOME}/.local/share/gemma4-litert}"
+RUNTIME_VENV_DIR="${RUNTIME_ROOT}/venv"
 SOURCE_MODEL_DIR="${PROJECT_DIR}/models/source-huihui-gemma4-e2b"
 OUTPUT_DIR="${PROJECT_DIR}/output/Huihui-gemma-4-E2B-it-abliterated-litert-lm"
 

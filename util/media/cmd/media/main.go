@@ -26,7 +26,20 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	srv := &http.Server{Addr: cfg.Listen, Handler: server.New(cfg, store, webassets.Files(), configPath).Handler()}
+	mediaServer := server.New(cfg, store, webassets.Files(), configPath)
+	resumed, failed := mediaServer.ResumeInterruptedJobs()
+	if resumed > 0 || failed > 0 {
+		log.Printf("restart recovery: resumed %d subtitle jobs, marked %d other jobs failed", resumed, failed)
+	}
+	srv := &http.Server{Addr: cfg.Listen, Handler: mediaServer.Handler()}
+	go func() {
+		result, cleanupErr := mediaServer.CleanupStaleMediaTemp()
+		if cleanupErr != nil {
+			log.Printf("temporary media cleanup skipped: %v", cleanupErr)
+		} else if result.RemovedDirectories > 0 {
+			log.Printf("removed %d stale temporary media directories (%d bytes)", result.RemovedDirectories, result.RemovedBytes)
+		}
+	}()
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 	go func() { <-stop; _ = srv.Close() }()

@@ -1,15 +1,18 @@
 package server
 
 import (
+	"archive/zip"
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -158,12 +161,12 @@ func TestConfigUpdatePersistsAndAppliesImmediately(t *testing.T) {
 		DataDir: t.TempDir(),
 		Engines: map[string]config.Engine{
 			"image": {Endpoint: first.URL}, "video": {Endpoint: first.URL},
-			"speech": {Endpoint: first.URL}, "recognition": {Endpoint: first.URL}, "prompt": {Endpoint: first.URL},
+			"speech": {Endpoint: first.URL}, "recognition": {Endpoint: first.URL}, "prompt": {Endpoint: first.URL}, "media": {Endpoint: first.URL},
 		},
 		Image:             config.Image{Model: "image", DefaultWidth: 512, DefaultHeight: 512, MaxReferenceImages: 4},
 		Video:             config.Video{Model: "video", DefaultWidth: 768, DefaultHeight: 512, DefaultFrames: 121, DefaultFPS: 24},
 		Speech:            config.Speech{CustomVoiceModel: "speech", DefaultLanguage: "Korean", DefaultSpeaker: "Sohee"},
-		Recognition:       config.Recognition{Model: "asr", DefaultLanguage: "Auto", MaxUploadMB: 500},
+		Recognition:       config.Recognition{Model: "asr", DefaultLanguage: "Auto", MaxUploadMB: 500, SegmentSeconds: 30, DefaultOutputFormats: []string{"txt"}, DefaultTranslationMode: "none"},
 		PromptEnhancement: config.PromptEnhancement{Model: "enhancer", DefaultEnabled: true, MaxTokens: 600},
 	}
 	configPath := filepath.Join(t.TempDir(), "media.yaml")
@@ -179,7 +182,7 @@ func TestConfigUpdatePersistsAndAppliesImmediately(t *testing.T) {
 	next := cfg
 	next.Engines = map[string]config.Engine{
 		"image": {Endpoint: second.URL}, "video": {Endpoint: second.URL},
-		"speech": {Endpoint: second.URL}, "recognition": {Endpoint: second.URL}, "prompt": {Endpoint: second.URL},
+		"speech": {Endpoint: second.URL}, "recognition": {Endpoint: second.URL}, "prompt": {Endpoint: second.URL}, "media": {Endpoint: second.URL},
 	}
 	next.Video.DefaultFrames = 65
 	body, _ := json.Marshal(next)
@@ -369,7 +372,7 @@ func TestCustomVoiceUsesOpenAICompatibleRequest(t *testing.T) {
 }
 
 func TestRecognitionUsesOpenAICompatibleRequest(t *testing.T) {
-	worker := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	asrWorker := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/v1/audio/transcriptions" {
 			http.NotFound(w, r)
 			return
@@ -391,12 +394,36 @@ func TestRecognitionUsesOpenAICompatibleRequest(t *testing.T) {
 		}
 		_ = json.NewEncoder(w).Encode(map[string]string{"text": "인식 결과", "language": "Korean"})
 	}))
-	defer worker.Close()
+	defer asrWorker.Close()
+	mediaWorker := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/v1/media/prepare" {
+			http.NotFound(w, r)
+			return
+		}
+		if err := r.ParseMultipartForm(1 << 20); err != nil {
+			t.Fatal(err)
+		}
+		archivePath := filepath.Join(t.TempDir(), "prepared.zip")
+		archiveFile, err := os.Create(archivePath)
+		if err != nil {
+			t.Fatal(err)
+		}
+		archive := zip.NewWriter(archiveFile)
+		manifest, _ := archive.Create("manifest.json")
+		_, _ = manifest.Write([]byte(`{"source_name":"sample.mp4","asset":{"id":"0123456789abcdef0123456789abcdef","filename":"video.mp4","content_type":"video/mp4","size":1024,"duration":1,"width":640,"height":360},"segments":[{"name":"segment-00000.wav","start":0,"end":1,"duration":1}]}`))
+		segment, _ := archive.Create("segment-00000.wav")
+		_, _ = segment.Write([]byte("fake audio"))
+		_ = archive.Close()
+		_ = archiveFile.Close()
+		w.Header().Set("Content-Type", "application/zip")
+		http.ServeFile(w, r, archivePath)
+	}))
+	defer mediaWorker.Close()
 
 	cfg := config.Config{
 		DataDir:     t.TempDir(),
-		Engines:     map[string]config.Engine{"recognition": {Endpoint: worker.URL}},
-		Recognition: config.Recognition{Model: "test-asr", DefaultLanguage: "Auto", MaxUploadMB: 1},
+		Engines:     map[string]config.Engine{"recognition": {Endpoint: asrWorker.URL}, "media": {Endpoint: mediaWorker.URL}},
+		Recognition: config.Recognition{Model: "test-asr", DefaultLanguage: "Auto", MaxUploadMB: 1, SegmentSeconds: 30, DefaultOutputFormats: []string{"txt"}, DefaultTranslationMode: "none"},
 	}
 	store, err := jobs.New(cfg.DataDir)
 	if err != nil {
@@ -426,13 +453,297 @@ func TestRecognitionUsesOpenAICompatibleRequest(t *testing.T) {
 			if list[0].Params["text"] != "인식 결과" || list[0].Params["detected_language"] != "Korean" {
 				t.Fatalf("unexpected result %#v", list[0])
 			}
+			if list[0].MediaAssetID != "0123456789abcdef0123456789abcdef" || list[0].MediaURL == "" || list[0].CaptionURL == "" {
+				t.Fatalf("missing media result %#v", list[0])
+			}
 			got, err := os.ReadFile(store.OutputPath(list[0].ID + ".txt"))
 			if err != nil || string(got) != "인식 결과\n" {
 				t.Fatalf("output=%q err=%v", got, err)
+			}
+			caption, err := os.ReadFile(store.OutputPath(list[0].ID + ".player.vtt"))
+			if err != nil || !bytes.HasPrefix(caption, []byte("WEBVTT\n")) {
+				t.Fatalf("caption=%q err=%v", caption, err)
 			}
 			return
 		}
 		time.Sleep(10 * time.Millisecond)
 	}
 	t.Fatalf("job did not complete: %#v", store.List())
+}
+
+func TestMediaAssetProxyPreservesRangeAndJobDeleteRemovesAsset(t *testing.T) {
+	const assetID = "0123456789abcdef0123456789abcdef"
+	deleted := false
+	mediaWorker := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/v1/media/assets/"+assetID {
+			http.NotFound(w, r)
+			return
+		}
+		switch r.Method {
+		case http.MethodGet:
+			if got := r.Header.Get("Range"); got != "bytes=2-4" {
+				t.Fatalf("Range = %q", got)
+			}
+			w.Header().Set("Accept-Ranges", "bytes")
+			w.Header().Set("Content-Range", "bytes 2-4/6")
+			w.Header().Set("Content-Type", "video/mp4")
+			w.WriteHeader(http.StatusPartialContent)
+			_, _ = w.Write([]byte("cde"))
+		case http.MethodDelete:
+			deleted = true
+			w.WriteHeader(http.StatusNoContent)
+		default:
+			w.WriteHeader(http.StatusMethodNotAllowed)
+		}
+	}))
+	defer mediaWorker.Close()
+
+	cfg := config.Config{DataDir: t.TempDir(), Engines: map[string]config.Engine{"media": {Endpoint: mediaWorker.URL}}}
+	store, err := jobs.New(cfg.DataDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	job := jobs.Job{ID: "media-job", Kind: "recognition", Status: "completed", MediaAssetID: assetID, CreatedAt: time.Now()}
+	if err := store.Save(job); err != nil {
+		t.Fatal(err)
+	}
+	handler := New(cfg, store, nil).Handler()
+
+	streamReq := httptest.NewRequest(http.MethodGet, "/api/media/assets/"+assetID, nil)
+	streamReq.Header.Set("Range", "bytes=2-4")
+	streamRes := httptest.NewRecorder()
+	handler.ServeHTTP(streamRes, streamReq)
+	if streamRes.Code != http.StatusPartialContent || streamRes.Body.String() != "cde" {
+		t.Fatalf("stream status=%d body=%q", streamRes.Code, streamRes.Body.String())
+	}
+	if got := streamRes.Header().Get("Content-Range"); got != "bytes 2-4/6" {
+		t.Fatalf("Content-Range = %q", got)
+	}
+
+	deleteReq := httptest.NewRequest(http.MethodDelete, "/api/jobs/"+job.ID, nil)
+	deleteRes := httptest.NewRecorder()
+	handler.ServeHTTP(deleteRes, deleteReq)
+	if deleteRes.Code != http.StatusNoContent || !deleted {
+		t.Fatalf("delete status=%d remote deleted=%v", deleteRes.Code, deleted)
+	}
+	if _, ok := store.Get(job.ID); ok {
+		t.Fatal("job remains after delete")
+	}
+}
+
+func TestMediaOptionsAndSubtitleSelectionAreForwarded(t *testing.T) {
+	selectionReceived := make(chan struct{}, 1)
+	mediaWorker := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/v1/media/options":
+			if err := r.ParseMultipartForm(1 << 20); err != nil {
+				t.Fatal(err)
+			}
+			if r.FormValue("url") != "https://supjav.com/206680.html" {
+				t.Fatalf("options url = %q", r.FormValue("url"))
+			}
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte(`{"site":"supjav.com","parts":[{"id":"1","label":"1","sources":[{"id":"ST","label":"ST"}]}]}`))
+		case "/v1/media/prepare":
+			if err := r.ParseMultipartForm(1 << 20); err != nil {
+				t.Fatal(err)
+			}
+			if r.FormValue("url") != "https://supjav.com/206680.html" || r.FormValue("media_part") != "2" || r.FormValue("media_source") != "DS" {
+				t.Fatalf("unexpected selection fields: %#v", r.MultipartForm.Value)
+			}
+			selectionReceived <- struct{}{}
+			http.Error(w, "test stop", http.StatusUnprocessableEntity)
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer mediaWorker.Close()
+
+	cfg := config.Config{
+		DataDir:     t.TempDir(),
+		Engines:     map[string]config.Engine{"media": {Endpoint: mediaWorker.URL}},
+		Recognition: config.Recognition{MaxUploadMB: 1, SegmentSeconds: 30, DefaultOutputFormats: []string{"txt"}, DefaultTranslationMode: "none"},
+	}
+	store, err := jobs.New(cfg.DataDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	handler := New(cfg, store, nil).Handler()
+
+	optionsReq := httptest.NewRequest(http.MethodPost, "/api/media/options", strings.NewReader("url=https%3A%2F%2Fsupjav.com%2F206680.html"))
+	optionsReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	optionsRes := httptest.NewRecorder()
+	handler.ServeHTTP(optionsRes, optionsReq)
+	if optionsRes.Code != http.StatusOK || !strings.Contains(optionsRes.Body.String(), `"site":"supjav.com"`) {
+		t.Fatalf("options status=%d body=%s", optionsRes.Code, optionsRes.Body.String())
+	}
+
+	var body bytes.Buffer
+	form := multipart.NewWriter(&body)
+	_ = form.WriteField("url", "https://supjav.com/206680.html")
+	_ = form.WriteField("media_part", "2")
+	_ = form.WriteField("media_source", "DS")
+	_ = form.WriteField("output_formats", "txt")
+	_ = form.Close()
+	req := httptest.NewRequest(http.MethodPost, "/api/jobs/recognition", &body)
+	req.Header.Set("Content-Type", form.FormDataContentType())
+	res := httptest.NewRecorder()
+	handler.ServeHTTP(res, req)
+	if res.Code != http.StatusAccepted {
+		t.Fatalf("status=%d body=%s", res.Code, res.Body.String())
+	}
+	select {
+	case <-selectionReceived:
+	case <-time.After(time.Second):
+		t.Fatal("media selection was not forwarded")
+	}
+	deadline := time.Now().Add(time.Second)
+	var job jobs.Job
+	for time.Now().Before(deadline) {
+		job = store.List()[0]
+		if job.Status == "failed" {
+			break
+		}
+		time.Sleep(5 * time.Millisecond)
+	}
+	if job.Status != "failed" {
+		t.Fatalf("job did not finish: %#v", job)
+	}
+	if job.Params["media_part"] != "2" || job.Params["media_source"] != "DS" {
+		t.Fatalf("selection not persisted: %#v", job.Params)
+	}
+}
+
+func TestRecoverSubtitleSegmentUsesMediaAPISubsegments(t *testing.T) {
+	mediaWorker := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/v1/media/prepare" {
+			http.NotFound(w, r)
+			return
+		}
+		if err := r.ParseMultipartForm(1 << 20); err != nil {
+			t.Fatal(err)
+		}
+		if got := r.FormValue("segment_seconds"); got != "10" {
+			t.Fatalf("segment_seconds = %q", got)
+		}
+		w.Header().Set("Content-Type", "application/zip")
+		archive := zip.NewWriter(w)
+		manifest, _ := archive.Create("manifest.json")
+		_, _ = manifest.Write([]byte(`{"source_name":"retry.wav","segments":[{"name":"segment-00000.wav","start":0,"end":10,"duration":10},{"name":"segment-00001.wav","start":10,"end":20,"duration":10},{"name":"segment-00002.wav","start":20,"end":30,"duration":10}]}`))
+		for index := 0; index < 3; index++ {
+			segment, _ := archive.Create(fmt.Sprintf("segment-%05d.wav", index))
+			_, _ = segment.Write([]byte("fake audio"))
+		}
+		_ = archive.Close()
+	}))
+	defer mediaWorker.Close()
+
+	requestCount := 0
+	asrWorker := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requestCount++
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"text": "Shadow line.", "language": "English",
+			"timestamps": []map[string]any{{"text": "Shadow", "start": 1.0, "end": 1.5}, {"text": "line", "start": 1.5, "end": 2.0}},
+		})
+	}))
+	defer asrWorker.Close()
+
+	dataDir := t.TempDir()
+	store, err := jobs.New(dataDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	server := New(config.Config{
+		DataDir: dataDir,
+		Engines: map[string]config.Engine{
+			"media": {Endpoint: mediaWorker.URL}, "recognition": {Endpoint: asrWorker.URL},
+		},
+		Recognition: config.Recognition{Model: "test-asr"},
+	}, store, nil)
+	inputDir := filepath.Join(dataDir, "inputs", "retry-test")
+	if err := os.MkdirAll(inputDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	source := filepath.Join(inputDir, "source.wav")
+	if err := os.WriteFile(source, []byte("fake audio"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	cues, detected, err := server.recoverSubtitleSegment(inputDir, source, 210, "English", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if requestCount != 3 || detected != "English" || len(cues) != 3 {
+		t.Fatalf("requests=%d detected=%q cues=%#v", requestCount, detected, cues)
+	}
+	for index, want := range []float64{211, 221, 231} {
+		if cues[index].Start != want {
+			t.Fatalf("cue %d start=%f want=%f", index, cues[index].Start, want)
+		}
+	}
+}
+
+func TestPrepareMediaPollsDownloadProgress(t *testing.T) {
+	mediaWorker := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case r.Method == http.MethodPost && r.URL.Path == "/v1/media/prepare":
+			if err := r.ParseMultipartForm(1 << 20); err != nil {
+				t.Fatal(err)
+			}
+			time.Sleep(1200 * time.Millisecond)
+			_, _ = w.Write([]byte("prepared"))
+		case r.Method == http.MethodGet && strings.HasPrefix(r.URL.Path, "/v1/media/progress/"):
+			_ = json.NewEncoder(w).Encode(map[string]any{
+				"stage": "downloading", "downloaded_bytes": 50, "total_bytes": 100,
+				"percent": 50.0, "eta_seconds": 3,
+			})
+		case r.Method == http.MethodDelete && strings.HasPrefix(r.URL.Path, "/v1/media/progress/"):
+			w.WriteHeader(http.StatusNoContent)
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer mediaWorker.Close()
+
+	dataDir := t.TempDir()
+	store, err := jobs.New(dataDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	server := New(config.Config{DataDir: dataDir, Engines: map[string]config.Engine{"media": {Endpoint: mediaWorker.URL}}}, store, nil)
+	job := jobs.Job{ID: "progress-test", Params: map[string]any{}}
+	output := filepath.Join(dataDir, "prepared.zip")
+	err = server.prepareMediaWithProgress(&job, mediaWorker.URL+"/v1/media/prepare", map[string]string{"request_id": job.ID}, nil, output)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if job.Params["media_stage"] != "downloading" || job.Params["media_percent"] != 50.0 || job.Params["media_eta_seconds"] != 3 {
+		t.Fatalf("progress not applied: %#v", job.Params)
+	}
+}
+
+func TestRestartRecoveryFailsJobsWithoutRecoverableInputs(t *testing.T) {
+	dataDir := t.TempDir()
+	store, err := jobs.New(dataDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, job := range []jobs.Job{
+		{ID: "image-job", Kind: "image", Status: "running", Params: map[string]any{}, CreatedAt: time.Now()},
+		{ID: "missing-file", Kind: "recognition", Status: "running", Params: map[string]any{"source": "file"}, CreatedAt: time.Now()},
+	} {
+		if err := store.Save(job); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	mediaServer := New(config.Config{DataDir: dataDir}, store, nil)
+	resumed, failed := mediaServer.ResumeInterruptedJobs()
+	if resumed != 0 || failed != 2 {
+		t.Fatalf("resumed=%d failed=%d", resumed, failed)
+	}
+	for _, job := range store.List() {
+		if job.Status != "failed" || job.Error == "" {
+			t.Fatalf("job was not reconciled after restart: %#v", job)
+		}
+	}
 }

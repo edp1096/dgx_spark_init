@@ -17,11 +17,18 @@ Gemma 4 비전 encoder/adapter를 포함하므로 이미지 prompt enhancement�
 - `scripts/download_model.sh`: 고정 리비전의 Huihui 원본 모델 다운로드
 - `scripts/convert_multimodal.sh`: INT8 텍스트/비전 모델 변환 및 `.litertlm` 패키징
 - `scripts/verify_bundle.sh`: 번들을 다시 풀어 필수 멀티모달 section 검증
+- `scripts/setup_runtime_env.sh`: 변환 도구와 분리된 경량 LiteRT-LM 실행 환경 구성
 - `scripts/run_server.sh`: 패치된 LiteRT-LM OpenAI 호환 서버 실행
 - `systemd/media-prompt-enhancer.service`: 8696 포트의 사용자 서비스
 
-소스 체크아웃, Bazel 캐시, Python 환경, 원본/완성 모델은 각각 `builder/`,
-`artifacts/`, `models/`, `output/`에 두며 Git에는 포함하지 않는다.
+소스 체크아웃, Bazel 캐시, 변환용 Python 환경, 원본/완성 모델은 각각
+`builder/`, `artifacts/`, `models/`, `output/`에 두며 Git에는 포함하지 않는다.
+이들은 모두 재생성 가능한 빌드 산출물이며 `make clean-build`로 제거한다.
+
+실행 환경은 저장소 밖
+`${GEMMA4_LITERT_RUNTIME_ROOT:-$HOME/.local/share/gemma4-litert}/venv`에 둔다.
+등록 모델과 GPU 캐시는 LiteRT-LM 기본 데이터 경로인 `$HOME/.litert-lm`에
+보관하므로 저장소를 정리하거나 다시 받아도 유지된다.
 
 ## 빌드
 
@@ -71,10 +78,17 @@ make verify
 
 ## 실행
 
+경량 실행 환경을 준비한다. 변환용 환경의 Torch/JAX/Transformers는 서버에
+설치되지 않는다.
+
+```bash
+make runtime
+```
+
 완성 번들을 등록한다.
 
 ```bash
-builder/venv/bin/litert-lm import \
+${GEMMA4_LITERT_RUNTIME_ROOT:-$HOME/.local/share/gemma4-litert}/venv/bin/litert-lm import \
   output/Huihui-gemma-4-E2B-it-abliterated-litert-lm/model.litertlm \
   huihui-gemma4-e2b
 ```
@@ -83,6 +97,13 @@ builder/venv/bin/litert-lm import \
 
 ```bash
 make install-service
+```
+
+빌드가 끝난 뒤 원본 모델, 소스 checkout, 변환 중간물과 로그를 제거하려면 다음을
+실행한다. 이미 `$HOME/.litert-lm`에 등록한 모델과 실행 환경은 삭제하지 않는다.
+
+```bash
+make clean-build
 ```
 
 OpenAI 호환 API는 `http://127.0.0.1:8696/v1/chat/completions`, 모델 ID는

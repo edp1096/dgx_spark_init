@@ -16,15 +16,19 @@ var (
 )
 
 type Job struct {
-	ID        string         `json:"id"`
-	Kind      string         `json:"kind"`
-	Status    string         `json:"status"`
-	Prompt    string         `json:"prompt"`
-	Params    map[string]any `json:"params,omitempty"`
-	OutputURL string         `json:"output_url,omitempty"`
-	Error     string         `json:"error,omitempty"`
-	CreatedAt time.Time      `json:"created_at"`
-	UpdatedAt time.Time      `json:"updated_at"`
+	ID           string            `json:"id"`
+	Kind         string            `json:"kind"`
+	Status       string            `json:"status"`
+	Prompt       string            `json:"prompt"`
+	Params       map[string]any    `json:"params,omitempty"`
+	OutputURL    string            `json:"output_url,omitempty"`
+	Outputs      map[string]string `json:"outputs,omitempty"`
+	MediaAssetID string            `json:"media_asset_id,omitempty"`
+	MediaURL     string            `json:"media_url,omitempty"`
+	CaptionURL   string            `json:"caption_url,omitempty"`
+	Error        string            `json:"error,omitempty"`
+	CreatedAt    time.Time         `json:"created_at"`
+	UpdatedAt    time.Time         `json:"updated_at"`
 }
 
 type Store struct {
@@ -100,6 +104,22 @@ func (s *Store) Delete(id string) error {
 			}
 		}
 	}
+	for _, outputURL := range j.Outputs {
+		name := filepath.Base(outputURL)
+		if name != "." && name != string(filepath.Separator) {
+			if err := os.Remove(filepath.Join(s.OutputDir(), name)); err != nil && !errors.Is(err, os.ErrNotExist) {
+				return err
+			}
+		}
+	}
+	if j.CaptionURL != "" {
+		name := filepath.Base(j.CaptionURL)
+		if name != "." && name != string(filepath.Separator) {
+			if err := os.Remove(filepath.Join(s.OutputDir(), name)); err != nil && !errors.Is(err, os.ErrNotExist) {
+				return err
+			}
+		}
+	}
 	return nil
 }
 
@@ -140,7 +160,15 @@ func (s *Store) List() []Job {
 	for _, j := range s.jobs {
 		out = append(out, j)
 	}
-	sort.Slice(out, func(i, k int) bool { return out[i].CreatedAt.After(out[k].CreatedAt) })
+	sort.Slice(out, func(i, k int) bool {
+		if !out[i].CreatedAt.Equal(out[k].CreatedAt) {
+			return out[i].CreatedAt.After(out[k].CreatedAt)
+		}
+		if !out[i].UpdatedAt.Equal(out[k].UpdatedAt) {
+			return out[i].UpdatedAt.After(out[k].UpdatedAt)
+		}
+		return out[i].ID > out[k].ID
+	})
 	return out
 }
 

@@ -25,7 +25,10 @@ func TestDeleteRemovesFinishedJobAndFiles(t *testing.T) {
 	if err = os.WriteFile(store.OutputPath(id+".txt"), []byte("text"), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	job := Job{ID: id, Kind: "recognition", Status: "completed", OutputURL: "/api/outputs/" + id + ".txt", CreatedAt: time.Now()}
+	if err = os.WriteFile(store.OutputPath(id+".player.vtt"), []byte("WEBVTT\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	job := Job{ID: id, Kind: "recognition", Status: "completed", OutputURL: "/api/outputs/" + id + ".txt", CaptionURL: "/api/outputs/" + id + ".player.vtt", CreatedAt: time.Now()}
 	if err = store.Save(job); err != nil {
 		t.Fatal(err)
 	}
@@ -41,6 +44,9 @@ func TestDeleteRemovesFinishedJobAndFiles(t *testing.T) {
 	}
 	if _, err = os.Stat(store.OutputPath(id + ".txt")); !errors.Is(err, os.ErrNotExist) {
 		t.Fatalf("output still exists: %v", err)
+	}
+	if _, err = os.Stat(store.OutputPath(id + ".player.vtt")); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("caption still exists: %v", err)
 	}
 }
 
@@ -91,5 +97,34 @@ func TestDeleteFinishedKeepsActiveJobs(t *testing.T) {
 	}
 	if _, ok := store.Get("running"); !ok {
 		t.Fatal("running job was deleted")
+	}
+}
+
+func TestListOrdersNewestFirstDeterministically(t *testing.T) {
+	store, err := New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	old := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
+	newest := old.Add(time.Second)
+	for _, job := range []Job{
+		{ID: "old", CreatedAt: old},
+		{ID: "same-a", CreatedAt: newest},
+		{ID: "same-b", CreatedAt: newest},
+	} {
+		if err = store.Save(job); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	list := store.List()
+	if len(list) != 3 {
+		t.Fatalf("jobs = %d, want 3", len(list))
+	}
+	if list[2].ID != "old" {
+		t.Fatalf("oldest job = %q, want old", list[2].ID)
+	}
+	if !list[0].UpdatedAt.After(list[1].UpdatedAt) {
+		t.Fatalf("equal creation times were not ordered by latest update: %q then %q", list[0].ID, list[1].ID)
 	}
 }

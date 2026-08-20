@@ -39,6 +39,7 @@ type Server struct {
 }
 
 func New(cfg config.Config, store *jobs.Store, web fs.FS, configPath ...string) *Server {
+	cfg = config.Normalize(cfg)
 	path := ""
 	if len(configPath) > 0 {
 		path = configPath[0]
@@ -65,9 +66,14 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("DELETE /api/jobs/{id}", s.deleteJob)
 	mux.HandleFunc("POST /api/jobs/image", s.createImage)
 	mux.HandleFunc("POST /api/jobs/speech", s.createSpeech)
-	mux.HandleFunc("POST /api/jobs/recognition", s.createRecognition)
+	mux.HandleFunc("POST /api/jobs/recognition", s.createSubtitle)
+	mux.HandleFunc("POST /api/media/options", s.mediaOptions)
+	mux.HandleFunc("GET /api/storage", s.mediaStorage)
+	mux.HandleFunc("DELETE /api/storage/temp", s.cleanupMediaTemp)
 	mux.HandleFunc("POST /api/jobs/video", s.createVideo)
 	mux.HandleFunc("POST /api/prompts/enhance", s.enhancePrompt)
+	mux.HandleFunc("GET /api/media/assets/{id}", s.proxyMediaAsset)
+	mux.HandleFunc("HEAD /api/media/assets/{id}", s.proxyMediaAsset)
 	mux.Handle("GET /api/outputs/", http.StripPrefix("/api/outputs/", http.FileServer(http.Dir(s.jobs.OutputDir()))))
 	if s.web != nil {
 		mux.Handle("/", spaHandler(s.web))
@@ -160,58 +166,6 @@ func (s *Server) createVideo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	go s.runVideo(j, effectivePrompt, imagePath, width, height, frames, fps, seed, strength)
-	writeJSON(w, http.StatusAccepted, j)
-}
-
-func (s *Server) createRecognition(w http.ResponseWriter, r *http.Request) {
-	cfg := s.config()
-	maxBytes := cfg.Recognition.MaxUploadMB << 20
-	if maxBytes <= 0 {
-		maxBytes = 500 << 20
-	}
-	r.Body = http.MaxBytesReader(w, r.Body, maxBytes+(1<<20))
-	if err := r.ParseMultipartForm(maxBytes); err != nil {
-		http.Error(w, "invalid or oversized form", http.StatusBadRequest)
-		return
-	}
-	file, header, err := r.FormFile("audio")
-	if err != nil {
-		http.Error(w, "audio file is required", http.StatusBadRequest)
-		return
-	}
-	defer file.Close()
-	id := newID()
-	inputDir := filepath.Join(s.dataDir, "inputs", id)
-	if err = os.MkdirAll(inputDir, 0o755); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	ext := strings.ToLower(filepath.Ext(header.Filename))
-	if ext == "" {
-		ext = ".audio"
-	}
-	inputPath := filepath.Join(inputDir, "audio"+ext)
-	dst, err := os.Create(inputPath)
-	if err == nil {
-		var written int64
-		written, err = io.Copy(dst, io.LimitReader(file, maxBytes+1))
-		if err == nil && written > maxBytes {
-			err = fmt.Errorf("audio file is too large (max %d MB)", cfg.Recognition.MaxUploadMB)
-		}
-		dst.Close()
-	}
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	language := valueOr(r.FormValue("language"), cfg.Recognition.DefaultLanguage)
-	context := strings.TrimSpace(r.FormValue("context"))
-	j := jobs.Job{ID: id, Kind: "recognition", Status: "queued", Prompt: header.Filename, Params: map[string]any{"language": language, "context": context}, CreatedAt: time.Now()}
-	if err := s.jobs.Save(j); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	go s.runRecognition(j, inputPath, language, context)
 	writeJSON(w, http.StatusAccepted, j)
 }
 
@@ -338,48 +292,6 @@ func (s *Server) runSpeech(j jobs.Job, language, speaker, instructions string, s
 	if err = os.WriteFile(s.jobs.OutputPath(name), data, 0o644); err != nil {
 		s.fail(j, err)
 		return
-	}
-	j.Status = "completed"
-	j.OutputURL = "/api/outputs/" + name
-	_ = s.jobs.Save(j)
-}
-
-func (s *Server) runRecognition(j jobs.Job, inputPath, language, context string) {
-	cfg := s.config()
-	j.Status = "running"
-	_ = s.jobs.Save(j)
-	fields := map[string]string{"model": cfg.Recognition.Model}
-	if language != "" && !strings.EqualFold(language, "auto") {
-		fields["language"] = language
-	}
-	if context != "" {
-		fields["prompt"] = context
-	}
-	endpoint := cfg.Engines["recognition"].Endpoint
-	data, _, err := s.callMultipart(endpoint+"/v1/audio/transcriptions", fields, "file", []string{inputPath})
-	if err != nil {
-		s.fail(j, err)
-		return
-	}
-	var response struct {
-		Text     string `json:"text"`
-		Language string `json:"language"`
-	}
-	if err = json.Unmarshal(data, &response); err != nil || strings.TrimSpace(response.Text) == "" {
-		if err == nil {
-			err = fmt.Errorf("recognition engine returned no text")
-		}
-		s.fail(j, err)
-		return
-	}
-	name := j.ID + ".txt"
-	if err = os.WriteFile(s.jobs.OutputPath(name), []byte(response.Text+"\n"), 0o644); err != nil {
-		s.fail(j, err)
-		return
-	}
-	j.Params["text"] = response.Text
-	if response.Language != "" {
-		j.Params["detected_language"] = response.Language
 	}
 	j.Status = "completed"
 	j.OutputURL = "/api/outputs/" + name
@@ -624,8 +536,8 @@ func (s *Server) engineStates(w http.ResponseWriter, _ *http.Request) {
 		Kind   string `json:"kind"`
 		Status string `json:"status"`
 	}
-	states := make([]state, 0, 5)
-	for _, kind := range []string{"image", "speech", "recognition", "video", "prompt"} {
+	states := make([]state, 0, 6)
+	for _, kind := range []string{"image", "speech", "recognition", "video", "prompt", "media"} {
 		status := "offline"
 		healthPath := "/health"
 		if kind == "prompt" {
@@ -652,7 +564,21 @@ func (s *Server) getJob(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) deleteJob(w http.ResponseWriter, r *http.Request) {
-	err := s.jobs.Delete(r.PathValue("id"))
+	id := r.PathValue("id")
+	j, ok := s.jobs.Get(id)
+	if !ok {
+		http.NotFound(w, r)
+		return
+	}
+	if j.Status == "queued" || j.Status == "running" {
+		http.Error(w, jobs.ErrActive.Error(), http.StatusConflict)
+		return
+	}
+	if err := s.deleteMediaAsset(j.MediaAssetID); err != nil {
+		http.Error(w, err.Error(), http.StatusBadGateway)
+		return
+	}
+	err := s.jobs.Delete(id)
 	switch {
 	case err == nil:
 		w.WriteHeader(http.StatusNoContent)
@@ -666,12 +592,92 @@ func (s *Server) deleteJob(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) deleteFinishedJobs(w http.ResponseWriter, _ *http.Request) {
-	deleted, err := s.jobs.DeleteFinished()
+	deleted := 0
+	for _, j := range s.jobs.List() {
+		if j.Status == "queued" || j.Status == "running" {
+			continue
+		}
+		if err := s.deleteMediaAsset(j.MediaAssetID); err != nil {
+			http.Error(w, err.Error(), http.StatusBadGateway)
+			return
+		}
+		if err := s.jobs.Delete(j.ID); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		deleted++
+	}
+	writeJSON(w, http.StatusOK, map[string]int{"deleted": deleted})
+}
+
+func validAssetID(id string) bool {
+	if len(id) != 32 {
+		return false
+	}
+	for _, char := range id {
+		if !strings.ContainsRune("0123456789abcdef", char) {
+			return false
+		}
+	}
+	return true
+}
+
+func (s *Server) proxyMediaAsset(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	if !validAssetID(id) {
+		http.NotFound(w, r)
+		return
+	}
+	target := strings.TrimRight(s.config().Engines["media"].Endpoint, "/") + "/v1/media/assets/" + id
+	request, err := http.NewRequestWithContext(r.Context(), r.Method, target, nil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	writeJSON(w, http.StatusOK, map[string]int{"deleted": deleted})
+	for _, header := range []string{"Range", "If-Range", "If-Modified-Since", "If-None-Match"} {
+		if value := r.Header.Get(header); value != "" {
+			request.Header.Set(header, value)
+		}
+	}
+	response, err := http.DefaultTransport.RoundTrip(request)
+	if err != nil {
+		http.Error(w, "media stream: "+err.Error(), http.StatusBadGateway)
+		return
+	}
+	defer response.Body.Close()
+	for _, header := range []string{"Accept-Ranges", "Content-Disposition", "Content-Length", "Content-Range", "Content-Type", "ETag", "Last-Modified"} {
+		if values := response.Header.Values(header); len(values) > 0 {
+			w.Header()[header] = append([]string(nil), values...)
+		}
+	}
+	w.WriteHeader(response.StatusCode)
+	if r.Method != http.MethodHead {
+		_, _ = io.Copy(w, response.Body)
+	}
+}
+
+func (s *Server) deleteMediaAsset(id string) error {
+	if id == "" {
+		return nil
+	}
+	if !validAssetID(id) {
+		return fmt.Errorf("invalid media asset id")
+	}
+	target := strings.TrimRight(s.config().Engines["media"].Endpoint, "/") + "/v1/media/assets/" + id
+	request, err := http.NewRequest(http.MethodDelete, target, nil)
+	if err != nil {
+		return err
+	}
+	response, err := s.health.Do(request)
+	if err != nil {
+		return fmt.Errorf("delete media asset: %w", err)
+	}
+	defer response.Body.Close()
+	if response.StatusCode != http.StatusNoContent && response.StatusCode != http.StatusNotFound {
+		body, _ := io.ReadAll(io.LimitReader(response.Body, 1<<20))
+		return fmt.Errorf("delete media asset: engine returned %d: %s", response.StatusCode, strings.TrimSpace(string(body)))
+	}
+	return nil
 }
 
 func saveUploads(r *http.Request, field, dir string, max int) ([]string, error) {

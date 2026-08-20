@@ -28,9 +28,12 @@ python3.12 -m venv "${VENV_DIR}"
 "${VENV_DIR}/bin/pip" install --no-deps -e "${BUILDER_DIR}/litert-torch"
 
 site_packages="$("${VENV_DIR}/bin/python" -c 'import site; print(site.getsitepackages()[0])')"
-if patch --dry-run --silent -p2 -d "${site_packages}" < "${server_patch_file}"; then
-  patch --silent -p2 -d "${site_packages}" < "${server_patch_file}"
-elif ! patch --dry-run --silent -R -p2 -d "${site_packages}" < "${server_patch_file}"; then
+server_patch_file="${PROJECT_DIR}/patches/litert-lm-openai-optional-constrained-decoding.patch"
+if patch --batch --dry-run --silent -R -p2 -d "${site_packages}" < "${server_patch_file}"; then
+  : # Already applied.
+elif patch --batch --dry-run --silent -p2 -d "${site_packages}" < "${server_patch_file}"; then
+  patch --batch --silent -p2 -d "${site_packages}" < "${server_patch_file}"
+else
   echo "Installed LiteRT-LM server patch cannot be applied cleanly." >&2
   exit 1
 fi

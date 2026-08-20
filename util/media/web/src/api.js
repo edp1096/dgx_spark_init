@@ -19,6 +19,13 @@ export const api = {
   image: (form) => fetch('/api/jobs/image', { method: 'POST', body: form }).then(checked),
   speech: (form) => fetch('/api/jobs/speech', { method: 'POST', body: form }).then(checked),
   recognition: (form) => fetch('/api/jobs/recognition', { method: 'POST', body: form }).then(checked),
+  mediaOptions: (url) => fetch('/api/media/options', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ url })
+  }).then(checked),
+  storage: () => fetch('/api/storage').then(checked),
+  cleanupTemporaryStorage: () => fetch('/api/storage/temp', { method: 'DELETE' }).then(checked),
   video: (form) => fetch('/api/jobs/video', { method: 'POST', body: form }).then(checked),
   enhancePrompt: (form) => fetch('/api/prompts/enhance', { method: 'POST', body: form }).then(checked)
 }

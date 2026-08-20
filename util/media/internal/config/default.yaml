@@ -12,6 +12,8 @@ engines:
     endpoint: http://127.0.0.1:8695
   prompt:
     endpoint: http://127.0.0.1:8696
+  media:
+    endpoint: http://127.0.0.1:8697
 
 image:
   model: flux2-klein-4b-nvfp4
@@ -25,9 +27,13 @@ speech:
   default_speaker: Sohee
 
 recognition:
-  model: Qwen/Qwen3-ASR-1.7B-hf
+  model: Qwen/Qwen3-ASR-1.7B
   default_language: Auto
-  max_upload_mb: 500
+  max_upload_mb: 16384
+  segment_seconds: 180
+  default_output_formats: [srt, txt]
+  default_translation_mode: bilingual
+  default_translation_language: Korean
 
 video:
   model: Lightricks/LTX-2.5-distilled-nvfp4
@@ -41,3 +47,7 @@ prompt_enhancement:
   default_enabled: true
   vision_enabled: false
   max_tokens: 600
+
+storage:
+  cleanup_on_startup: true
+  temp_retention_hours: 24
