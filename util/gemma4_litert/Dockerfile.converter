@@ -1,0 +1,35 @@
+FROM ubuntu:24.04@sha256:33ceb71981b602c1a7443a53469e4dba065f7503eab3078a2d7a57a2ab987517
+
+LABEL org.opencontainers.image.source="https://github.com/edp1096/dgx_spark_init"
+LABEL org.opencontainers.image.title="Gemma4 LiteRT ARM64 converter"
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        build-essential \
+        ca-certificates \
+        clang \
+        cmake \
+        curl \
+        file \
+        git \
+        golang-go \
+        lld \
+        ninja-build \
+        openjdk-21-jdk-headless \
+        patch \
+        patchelf \
+        pkg-config \
+        python3 \
+        python3.12 \
+        python3.12-dev \
+        python3.12-venv \
+        unzip \
+        zip \
+        zlib1g-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /project
+
+CMD ["make", "container-help"]

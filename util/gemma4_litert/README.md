@@ -30,10 +30,59 @@ Gemma 4 비전 encoder/adapter를 포함하므로 이미지 prompt enhancement�
 등록 모델과 GPU 캐시는 LiteRT-LM 기본 데이터 경로인 `$HOME/.litert-lm`에
 보관하므로 저장소를 정리하거나 다시 받아도 유지된다.
 
-## 빌드
+## 컨테이너 빌드·변환
 
-Ubuntu 24.04 ARM64, Python 3.12, Clang, Go가 필요하다. 전체 절차는 다음 한
-명령으로 재현할 수 있다.
+권장 경로는 컴파일러와 대규모 Python 변환 환경을 ARM64 컨테이너 안에 격리하는
+방식이다. 호스트에는 Docker만 필요하며 Go, Bazel, Clang, PyTorch, Transformers를
+설치하지 않는다. wheel·다운로드 모델·완성 번들과 재사용 캐시는 기본적으로 저장소
+밖의 `$HOME/.local/share/gemma4-litert-build`에 bind mount로 보존한다.
+
+```bash
+make container-build    # 도구 이미지 빌드 + custom converter wheel 컴파일
+make container-convert  # wheel 준비 + 원본 모델 다운로드 + .litertlm 변환
+make container-verify   # 호스트에 생성된 번들 검증
+make container-all      # 변환 후 검증
+make container-paths    # 호스트 결과 경로 표시
+make container-ps       # 현재 실행 중인 변환 컨테이너 확인
+make container-logs     # 현재 실행의 Docker 로그 실시간 확인
+```
+
+각 작업의 전체 출력은 `$HOME/.local/share/gemma4-litert-build/logs`에도 저장한다.
+따라서 `--rm` 컨테이너가 끝난 뒤에도 `container-build.log`,
+`container-convert.log`, `container-verify.log`를 확인할 수 있다. 실행 중에는 위의
+`make container-logs` 또는 `docker logs -f <container-name>`을 사용한다.
+
+`make container-build`가 생성한 wheel은 추가 복사 작업 없이 다음 경로에 남는다.
+
+```text
+$HOME/.local/share/gemma4-litert-build/artifacts/wheels/
+```
+
+완성 모델은 다음 경로에 생긴다.
+
+```text
+$HOME/.local/share/gemma4-litert-build/output/Huihui-gemma-4-E2B-it-abliterated-litert-lm/model.litertlm
+```
+
+다른 디스크를 사용하려면 `CONTAINER_DATA_DIR=/path make container-all`처럼 지정한다.
+Hugging Face 인증이 필요하면 호스트의 `HF_TOKEN`만 컨테이너에 전달한다. 토큰과 모델은
+이미지 레이어에 들어가지 않는다. 컨테이너는 작업마다 `--rm`으로 제거되며 8696
+LiteRT-LM 런타임과 systemd 서비스에는 영향을 주지 않는다.
+컨테이너 베이스는 Ubuntu 24.04 ARM64 digest로, Bazelisk는 Go 1.22와 실제 의존성이
+호환되는 v1.25.0으로 고정한다.
+
+컨테이너 빌드 데이터 전체를 지우려면 다음을 실행한다. 전용 marker가 있는 정확한
+빌드 루트만 삭제하며 호스트 런타임과 `$HOME/.litert-lm` 등록 모델은 보존한다.
+
+```bash
+make clean-container-build
+```
+
+## 호스트 네이티브 빌드·변환
+
+컨테이너를 사용할 수 없을 때만 호스트 네이티브 경로를 사용한다. Ubuntu 24.04
+ARM64, Python 3.12, Clang, Go가 필요하다. 전체 절차는 다음 한 명령으로 재현할 수
+있다.
 
 ```bash
 make all
@@ -87,9 +136,19 @@ make runtime
 
 완성 번들을 등록한다.
 
+호스트 네이티브 변환 결과:
+
 ```bash
 ${GEMMA4_LITERT_RUNTIME_ROOT:-$HOME/.local/share/gemma4-litert}/venv/bin/litert-lm import \
   output/Huihui-gemma-4-E2B-it-abliterated-litert-lm/model.litertlm \
+  huihui-gemma4-e2b
+```
+
+컨테이너 변환 결과:
+
+```bash
+${GEMMA4_LITERT_RUNTIME_ROOT:-$HOME/.local/share/gemma4-litert}/venv/bin/litert-lm import \
+  ${CONTAINER_DATA_DIR:-$HOME/.local/share/gemma4-litert-build}/output/Huihui-gemma-4-E2B-it-abliterated-litert-lm/model.litertlm \
   huihui-gemma4-e2b
 ```
 

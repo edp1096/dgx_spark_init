@@ -14,26 +14,30 @@ if ! command -v go >/dev/null; then
   echo "Go is required to install Bazelisk." >&2
   exit 1
 fi
-if [[ ! -x "${BUILDER_DIR}/bin/bazelisk" ]]; then
-  GOBIN="${BUILDER_DIR}/bin" go install github.com/bazelbuild/bazelisk@latest
+BAZELISK_VERSION="${BAZELISK_VERSION:-v1.25.0}"
+bazelisk_bin="${BUILDER_DIR}/bin/bazelisk-${BAZELISK_VERSION}"
+if [[ ! -x "${bazelisk_bin}" ]]; then
+  GOBIN="${BUILDER_DIR}/bin" go install "github.com/bazelbuild/bazelisk@${BAZELISK_VERSION}"
+  mv "${BUILDER_DIR}/bin/bazelisk" "${bazelisk_bin}"
 fi
-ln -sfn "${BUILDER_DIR}/bin/bazelisk" "${BUILDER_DIR}/bin/bazel"
+ln -sfn "${bazelisk_bin}" "${BUILDER_DIR}/bin/bazel"
 
 cd "${BUILDER_DIR}/LiteRT"
 export PATH="${BUILDER_DIR}/bin:${PATH}"
 export HERMETIC_PYTHON_VERSION=3.12
-export PYTHON_BIN_PATH=/usr/bin/python3.12
-export PYTHON_LIB_PATH=/usr/local/lib/python3.12/dist-packages
+export PYTHON_BIN_PATH="$(command -v python3.12)"
+export PYTHON_LIB_PATH="$(python3.12 -c 'import site; print(site.getsitepackages()[0])')"
 export TF_NEED_ROCM=0
 export TF_NEED_CUDA=0
 export TF_SET_ANDROID_WORKSPACE=0
 export CC_OPT_FLAGS='-Wno-sign-compare -Wno-c++20-designator -Wno-gnu-inline-cpp-without-extern'
 
 if [[ ! -f .litert_configure.bazelrc ]]; then
-  yes '' | python3 configure.py
+  python3.12 configure.py <<< $'\n\n'
 fi
 
-bazel build -c opt \
+bazel_output_root="${BAZEL_OUTPUT_ROOT:-${BUILD_ROOT}/cache/bazel}"
+bazel --output_user_root="${bazel_output_root}" build -c opt \
   --cxxopt=-std=gnu++17 \
   --copt=-O3 \
   --repo_env=USE_PYWRAP_RULES=True \
@@ -42,5 +46,6 @@ bazel build -c opt \
   --jobs="${BUILD_JOBS:-10}" \
   //ci/tools/python/wheel:litert_converter_wheel
 
-cp -f bazel-bin/ci/tools/python/wheel/dist/litert_converter-*-aarch64.whl \
+bazel_bin_dir="$(bazel --output_user_root="${bazel_output_root}" info bazel-bin)"
+cp -f "${bazel_bin_dir}"/ci/tools/python/wheel/dist/litert_converter-*aarch64.whl \
   "${ARTIFACT_DIR}/wheels/"

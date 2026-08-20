@@ -1,0 +1,6 @@
+artifacts/
+builder/
+models/
+output/
+*.log
+.venv/
