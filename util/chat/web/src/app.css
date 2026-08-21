@@ -260,10 +260,20 @@ textarea::placeholder { color: #646b79; }
 footer > small { display: block; margin-top: 8px; color: #555c69; }
 footer > small.voice-active { color: #9eb7e8; animation: activity-pulse 1.45s ease-in-out infinite; }
 .modal-backdrop { position: fixed; z-index: 20; inset: 0; display: grid; place-items: center; padding: 20px; background: #050609bb; backdrop-filter: blur(5px); }
-.settings-modal { width: min(560px, 100%); max-height: calc(100dvh - 40px); overflow: auto; padding: 22px; border: 1px solid #343948; border-radius: 16px; background: #151821; box-shadow: 0 25px 80px #000a; }
-.modal-title { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+.settings-modal { display: grid; width: min(680px, 100%); height: min(780px, calc(100dvh - 40px)); max-height: calc(100dvh - 40px); grid-template-rows: auto auto minmax(0, 1fr) auto; overflow: hidden; border: 1px solid #343948; border-radius: 16px; background: #151821; box-shadow: 0 25px 80px #000a; }
+.modal-title { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px 12px; }
 .modal-title h2 { margin: 0; font-size: 20px; }
 .modal-title button { width: 32px; height: 32px; border: 0; border-radius: 8px; color: #9ca3b2; background: #222631; font-size: 20px; }
+.settings-tabs { display: flex; gap: 4px; padding: 0 20px 10px; overflow-x: auto; border-bottom: 1px solid #292e3a; scrollbar-width: none; }
+.settings-tabs::-webkit-scrollbar { display: none; }
+.settings-tabs button { position: relative; flex: 1 0 auto; min-width: 74px; height: 34px; padding: 0 12px; border: 0; border-radius: 8px; color: #7f8899; background: transparent; font-size: 12px; white-space: nowrap; }
+.settings-tabs button:hover { color: #c5ccda; background: #20242e; }
+.settings-tabs button.active { color: #e5ebf7; background: #252b38; }
+.settings-tabs button.active::after { position: absolute; right: 12px; bottom: -10px; left: 12px; height: 2px; border-radius: 2px 2px 0 0; background: #6d8ff0; content: ''; }
+.settings-tabs button:focus-visible { outline: 2px solid #6689ed; outline-offset: -2px; }
+.settings-content { min-height: 0; overflow-y: auto; padding: 16px 20px 4px; scrollbar-gutter: stable; }
+.settings-tab-panel { display: none; }
+.settings-tab-panel.active { display: block; }
 .settings-toast-stack { position: fixed; z-index: 24; top: max(18px, env(safe-area-inset-top)); left: 50%; width: min(500px, calc(100vw - 32px)); transform: translateX(-50%); pointer-events: none; }
 .settings-toast { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 11px 12px 11px 14px; border: 1px solid #3f6b56; border-radius: 10px; color: #b9e5ca; background: #14231c; box-shadow: 0 12px 38px #000b; font-size: 12px; line-height: 1.5; pointer-events: auto; animation: settings-toast-in .18s ease-out; }
 .settings-toast.error { border-color: #75434b; color: #f0b3ba; background: #29191d; }
@@ -271,7 +281,7 @@ footer > small.voice-active { color: #9eb7e8; animation: activity-pulse 1.45s ea
 .settings-toast button { flex: 0 0 25px; width: 25px; height: 25px; margin-top: -3px; padding: 0; border: 0; border-radius: 6px; color: currentColor; background: transparent; font-size: 18px; opacity: .72; }
 .settings-toast button:hover { background: #ffffff12; opacity: 1; }
 @keyframes settings-toast-in { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
-.settings-modal > label { display: flex; flex-direction: column; gap: 7px; margin: 0 0 14px; color: #aeb4c1; font-size: 13px; }
+.settings-tab-panel > label { display: flex; flex-direction: column; gap: 7px; margin: 0 0 14px; color: #aeb4c1; font-size: 13px; }
 .settings-modal label input { height: 40px; padding: 0 11px; border: 1px solid #343948; border-radius: 9px; outline: 0; color: #edf0f5; background: #0e1117; }
 .settings-modal label input:focus { border-color: #5c83f1; }
 .settings-modal textarea.system-prompt { width: 100%; min-height: 120px; padding: 10px 11px; border: 1px solid #343948; border-radius: 9px; outline: 0; color: #edf0f5; background: #0e1117; resize: vertical; line-height: 1.5; }
@@ -284,6 +294,8 @@ footer > small.voice-active { color: #9eb7e8; animation: activity-pulse 1.45s ea
 .settings-modal fieldset label.check { flex-direction: row; align-items: center; }
 .settings-modal fieldset input:not([type="checkbox"]) { height: 36px; padding: 0 10px; border: 1px solid #343948; border-radius: 8px; color: #edf0f5; background: #0e1117; }
 .settings-modal fieldset select { width: 100%; height: 36px; padding: 0 10px; border: 1px solid #343948; border-radius: 8px; color: #edf0f5; background: #0e1117; }
+.settings-modal fieldset textarea { width: 100%; min-height: 68px; padding: 9px 10px; border: 1px solid #343948; border-radius: 8px; color: #edf0f5; background: #0e1117; resize: vertical; }
+.settings-modal fieldset textarea:focus { border-color: #5c83f1; }
 .settings-section-title { margin-top: 2px; color: #c5cbd7; font-size: 12px; font-weight: 650; }
 .settings-modal fieldset .settings-inline-help { margin-top: -6px; color: #737c8e; font-size: 11px; line-height: 1.45; }
 .settings-inline-help code { color: #9aa9cc; font-family: inherit; }
@@ -386,7 +398,7 @@ footer > small.voice-active { color: #9eb7e8; animation: activity-pulse 1.45s ea
 }
 .settings-help, .settings-notice { padding: 10px 12px; border-radius: 8px; color: #8991a2; background: #10131a; font-size: 12px; line-height: 1.5; }
 .settings-notice { color: #8fcda9; }
-.modal-actions { display: flex; justify-content: flex-end; gap: 6px; margin-top: 12px; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 6px; padding: 12px 20px 16px; border-top: 1px solid #292e3a; background: #151821; }
 .modal-actions button { min-height: 30px; padding: 5px 11px; border-radius: 7px; font-size: 12px; }
 .secondary { border: 1px solid #343948; color: #aeb4c1; background: transparent; }
 .primary { border: 1px solid #6488f1; color: white; background: #567bea; }
@@ -400,6 +412,13 @@ footer > small.voice-active { color: #9eb7e8; animation: activity-pulse 1.45s ea
 }
 @media (max-width: 600px) {
 	.settings-form-row, .settings-form-row.three { grid-template-columns: 1fr; }
+	.modal-backdrop { padding: 8px; }
+	.settings-modal { height: calc(100dvh - 16px); max-height: calc(100dvh - 16px); border-radius: 12px; }
+	.modal-title { padding: 13px 14px 9px; }
+	.settings-tabs { padding: 0 10px 9px; }
+	.settings-tabs button { min-width: 68px; padding: 0 9px; }
+	.settings-content { padding: 13px 12px 2px; scrollbar-gutter: auto; }
+	.modal-actions { padding: 10px 12px 12px; }
 	.context-rail { right: 6px; }
   aside { position: fixed; z-index: 12; inset: 0 auto 0 0; width: min(82vw, 320px); box-shadow: 15px 0 40px #0009; animation: sidebar-in .18s ease-out; }
   .sidebar-close { display: grid; width: 30px; height: 30px; margin-left: auto; place-items: center; padding: 0; border: 0; border-radius: 8px; color: #9ba3b3; background: #1b1f29; font-size: 21px; }

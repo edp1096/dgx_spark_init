@@ -3,6 +3,8 @@ import { expect, test } from '@playwright/test';
 test('keeps the app header fixed while only the message pane scrolls on mobile resize', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
+  await expect(page.locator('.composer')).toBeVisible();
+  await page.waitForTimeout(250);
 
   await page.locator('.messages').evaluate((messages) => {
     const filler = document.createElement('div');
