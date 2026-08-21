@@ -179,6 +179,7 @@ async function consumeSSE(response, handlers) {
       if (event === 'tool_execution') handlers.toolExecution?.(data);
       if (event === 'tool_output') handlers.toolOutput?.(data);
       if (event === 'tool_result') handlers.toolResult?.(data);
+      if (event === 'media_attached') handlers.mediaAttached?.(data);
       if (event === 'ssh_grant_changed') handlers.sshGrantChanged?.(data);
       if (event === 'context') handlers.context?.(data);
       if (event === 'error') throw new Error(data.error || '응답 오류');

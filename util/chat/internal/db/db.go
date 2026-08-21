@@ -50,11 +50,12 @@ type ToolEvent struct {
 }
 
 type Attachment struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
-	MIME string `json:"mime"`
-	Size int64  `json:"size"`
-	URL  string `json:"url"`
+	ID        string `json:"id"`
+	Name      string `json:"name"`
+	MIME      string `json:"mime"`
+	Size      int64  `json:"size"`
+	URL       string `json:"url"`
+	SourceURL string `json:"source_url,omitempty"`
 }
 
 type ResponseVariant struct {

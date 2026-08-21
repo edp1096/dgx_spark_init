@@ -2,6 +2,7 @@ package server
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -12,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"sparktalk/internal/db"
 	"sparktalk/internal/media"
 )
 
@@ -29,21 +31,32 @@ func (s *Server) uploadSource(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "url is required", http.StatusBadRequest)
 		return
 	}
+	item, err := s.importMediaSource(r.Context(), input.URL)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadGateway)
+		return
+	}
+	writeJSON(w, http.StatusCreated, item)
+}
+
+func (s *Server) importMediaSource(ctx context.Context, rawURL string) (db.Attachment, error) {
+	parsed, err := url.Parse(strings.TrimSpace(rawURL))
+	if err != nil || (parsed.Scheme != "http" && parsed.Scheme != "https") || parsed.Host == "" {
+		return db.Attachment{}, fmt.Errorf("media URL must use http or https")
+	}
 	cfg, _ := s.snapshot()
 	endpoint := strings.TrimRight(cfg.ASR.FFmpegEndpoint, "/")
 	if endpoint == "" {
-		http.Error(w, "SparkTalk Extra Media endpoint is not configured", http.StatusServiceUnavailable)
-		return
+		return db.Attachment{}, fmt.Errorf("SparkTalk Extra Media endpoint is not configured")
 	}
 	payload, _ := json.Marshal(map[string]any{
-		"url":             input.URL,
+		"url":             parsed.String(),
 		"max_download_mb": media.MaxAttachmentBytes >> 20,
 		"max_height":      720,
 	})
-	request, err := http.NewRequestWithContext(r.Context(), http.MethodPost, endpoint+"/v1/source/download", bytes.NewReader(payload))
+	request, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint+"/v1/source/download", bytes.NewReader(payload))
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+		return db.Attachment{}, err
 	}
 	request.Header.Set("Content-Type", "application/json")
 	timeout, _ := time.ParseDuration(cfg.ASR.Timeout)
@@ -52,22 +65,20 @@ func (s *Server) uploadSource(w http.ResponseWriter, r *http.Request) {
 	}
 	response, err := (&http.Client{Timeout: timeout}).Do(request)
 	if err != nil {
-		http.Error(w, "SparkTalk Extra Media: "+err.Error(), http.StatusBadGateway)
-		return
+		return db.Attachment{}, fmt.Errorf("SparkTalk Extra Media: %w", err)
 	}
 	defer response.Body.Close()
 	if response.StatusCode != http.StatusOK {
 		detail, _ := io.ReadAll(io.LimitReader(response.Body, 64<<10))
-		http.Error(w, fmt.Sprintf("SparkTalk Extra Media HTTP %d: %s", response.StatusCode, strings.TrimSpace(string(detail))), http.StatusBadGateway)
-		return
+		return db.Attachment{}, fmt.Errorf("SparkTalk Extra Media HTTP %d: %s", response.StatusCode, strings.TrimSpace(string(detail)))
 	}
 	name := sourceResponseName(response)
 	item, err := s.media.SaveReader(response.Body, name, response.Header.Get("Content-Type"), media.MaxAttachmentBytes)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+		return db.Attachment{}, err
 	}
-	writeJSON(w, http.StatusCreated, item)
+	item.SourceURL = parsed.String()
+	return item, nil
 }
 
 func sourceResponseName(response *http.Response) string {

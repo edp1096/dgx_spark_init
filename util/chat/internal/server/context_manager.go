@@ -178,13 +178,14 @@ func (s *Server) runContextCompletion(
 	client *llm.Client,
 	toolsEnabled bool,
 	emit eventEmitter,
+	mediaSink mediaAttachmentSink,
 ) (completionResult, error) {
 	messages, state, err := s.prepareContext(ctx, sessionID, items, model, cfg, client, false)
 	if err != nil {
 		return completionResult{}, err
 	}
 	_ = emit("context", state)
-	result, err := runCompletionLoopForSession(s, sessionID, ctx, client, messages, model, reasoningEffort, cfg.Model.SystemPrompt, cfg.Tools, toolsEnabled, emit)
+	result, err := runCompletionLoopForSessionWithMedia(s, sessionID, ctx, client, messages, model, reasoningEffort, cfg.Model.SystemPrompt, cfg.Tools, toolsEnabled, emit, mediaSink)
 	if err == nil || result.Content != "" || result.Reasoning != "" || len(result.ToolTrace) > 0 || !isContextOverflow(err) {
 		return result, err
 	}
@@ -195,7 +196,7 @@ func (s *Server) runContextCompletion(
 	}
 	state.Notice = "문맥 한도 초과를 감지해 오래된 구간을 정리하고 자동 재시도했습니다."
 	_ = emit("context", state)
-	return runCompletionLoopForSession(s, sessionID, ctx, client, messages, model, reasoningEffort, cfg.Model.SystemPrompt, cfg.Tools, toolsEnabled, emit)
+	return runCompletionLoopForSessionWithMedia(s, sessionID, ctx, client, messages, model, reasoningEffort, cfg.Model.SystemPrompt, cfg.Tools, toolsEnabled, emit, mediaSink)
 }
 
 func isContextOverflow(err error) bool {

@@ -63,6 +63,8 @@ context:
 tools:
   # 모델이 필요할 때 내장 web_search/web_fetch를 호출합니다.
   enabled: true
+  # 사용자가 분석을 요청한 URL의 영상·음성을 자동으로 가져와 현재 대화에 첨부합니다.
+  media_import_enabled: true
   max_rounds: 3
   search_results: 5
   timeout: 15s

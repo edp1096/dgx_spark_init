@@ -71,6 +71,7 @@
     if (!settings.asr) settings.asr = { enabled: true, ffmpeg_endpoint: 'http://127.0.0.1:8698', endpoint: 'http://127.0.0.1:8694', model: 'qwen3-asr', language: 'auto', prompt: '', filter_fillers: true, timeout: '30m' };
     if (settings.asr.filter_fillers === undefined) settings.asr.filter_fillers = true;
     if (!settings.tts) settings.tts = { enabled: true, endpoint: 'http://127.0.0.1:8692', model: 'Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice', language: 'Korean', voice: 'Sohee', instructions: '', seed: -1, auto_play: false, timeout: '10m' };
+    if (settings.tools && settings.tools.media_import_enabled === undefined) settings.tools.media_import_enabled = true;
     if (!settings.extra) settings.extra = { ssh_enabled: false, ssh_endpoint: 'http://127.0.0.1:8699' };
   }
 
@@ -196,8 +197,9 @@
 
       <div id="settings-panel-tools" class="settings-tab-panel" class:active={activeTab === 'tools'} role="tabpanel" aria-labelledby="settings-tab-tools">
         <fieldset>
-          <legend>웹 도구</legend>
+          <legend>웹·미디어 도구</legend>
           <label class="check"><input type="checkbox" bind:checked={settings.tools.enabled} /> web_search / web_fetch 활성화</label>
+          <label class="check"><input type="checkbox" bind:checked={settings.tools.media_import_enabled} /> URL 미디어 자동 가져오기</label>
           <label>최대 호출 라운드<input type="number" min="1" max="8" bind:value={settings.tools.max_rounds} /></label>
           <label>검색 결과 수<input type="number" min="1" max="10" bind:value={settings.tools.search_results} /></label>
           <label>도구 타임아웃<input bind:value={settings.tools.timeout} placeholder="15s" /></label>

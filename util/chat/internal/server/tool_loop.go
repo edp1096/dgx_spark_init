@@ -74,6 +74,22 @@ func runCompletionLoopForSession(
 	toolsEnabled bool,
 	emit eventEmitter,
 ) (completionResult, error) {
+	return runCompletionLoopForSessionWithMedia(server, sessionID, ctx, client, messages, model, reasoningEffort, systemPrompt, toolConfig, toolsEnabled, emit, nil)
+}
+
+func runCompletionLoopForSessionWithMedia(
+	server *Server,
+	sessionID string,
+	ctx context.Context,
+	client *llm.Client,
+	messages []llm.Message,
+	model, reasoningEffort string,
+	systemPrompt string,
+	toolConfig config.ToolsConfig,
+	toolsEnabled bool,
+	emit eventEmitter,
+	mediaSink mediaAttachmentSink,
+) (completionResult, error) {
 	useWebTools := toolsEnabled && toolConfig.Enabled
 	sshHosts := []db.SSHHost{}
 	useSSHTools := false
@@ -88,8 +104,9 @@ func runCompletionLoopForSession(
 			useSSHTools = false
 		}
 	}
-	useTools := useWebTools || useSSHTools
-	systemParts := make([]string, 0, 2)
+	useMediaTools := server != nil && mediaSink != nil && toolConfig.MediaImportEnabled
+	useTools := useWebTools || useSSHTools || useMediaTools
+	systemParts := make([]string, 0, 3)
 	if prompt := strings.TrimSpace(systemPrompt); prompt != "" {
 		systemParts = append(systemParts, prompt)
 	}
@@ -102,6 +119,9 @@ func runCompletionLoopForSession(
 			aliases = append(aliases, fmt.Sprintf("%s (%s)", host.Alias, host.Name))
 		}
 		systemParts = append(systemParts, sshToolSystemPrompt+" Registered hosts: "+strings.Join(aliases, ", ")+".")
+	}
+	if useMediaTools {
+		systemParts = append(systemParts, mediaToolSystemPrompt)
 	}
 	// SGLang accepts only one system message and requires it to be the first
 	// message. Context checkpoints arrive as a leading system message, so merge
@@ -132,6 +152,9 @@ func runCompletionLoopForSession(
 	}
 	if useSSHTools {
 		definitions = append(definitions, sshToolDefinition(sshHosts))
+	}
+	if useMediaTools {
+		definitions = append(definitions, mediaImportToolDefinition())
 	}
 	var allReasoning strings.Builder
 	trace := []db.ToolEvent{}
@@ -176,6 +199,7 @@ func runCompletionLoopForSession(
 		conversation = append(conversation, llm.Message{
 			Role: "assistant", Content: result.Content, ToolCalls: result.ToolCalls,
 		})
+		mediaFollowups := make([]llm.Message, 0, 1)
 		for _, call := range result.ToolCalls {
 			if err := emit("tool_start", map[string]any{
 				"id": call.ID, "name": call.Function.Name, "arguments": call.Function.Arguments,
@@ -186,6 +210,19 @@ func runCompletionLoopForSession(
 			var toolErr error
 			if call.Function.Name == "ssh_exec" && useSSHTools {
 				toolResult, toolErr = server.executeSSHTool(ctx, sessionID, call, emit)
+			} else if call.Function.Name == "media_import" && useMediaTools {
+				var execution mediaToolExecution
+				execution, toolErr = server.executeMediaImportTool(ctx, call, conversation)
+				if toolErr == nil {
+					toolErr = mediaSink(execution.Attachment)
+				}
+				if toolErr == nil {
+					toolResult = execution.Result
+					mediaFollowups = append(mediaFollowups, execution.Followup)
+					if emitErr := emit("media_attached", execution.Attachment); emitErr != nil {
+						return completionResult{Reasoning: allReasoning.String(), ToolTrace: trace}, emitErr
+					}
+				}
 			} else {
 				toolResult, toolErr = runner.Execute(ctx, call.Function.Name, call.Function.Arguments)
 			}
@@ -206,6 +243,10 @@ func runCompletionLoopForSession(
 				Role: "tool", Content: toolResult, ToolCallID: call.ID,
 			})
 		}
+		// Every tool result must immediately follow the assistant tool_calls
+		// message. Add model-facing media only after all results, otherwise a
+		// multi-tool response would produce an invalid role sequence.
+		conversation = append(conversation, mediaFollowups...)
 		toolRounds++
 	}
 }

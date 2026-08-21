@@ -95,3 +95,29 @@ func TestSelectDownloadFormatSupportsAudioOnly(t *testing.T) {
 		t.Fatalf("selected %q at %dp", format, height)
 	}
 }
+
+func TestSelectDownloadFormatPrefersModelSafeH264AtLowerResolution(t *testing.T) {
+	info := sourceInfo{Language: "ko", Formats: []sourceFormat{
+		{ID: "av1-720", Extension: "mp4", Height: 720, FPS: 60, VideoCodec: "av01.0.08M.08", AudioCodec: "none", FileSize: 26 << 20},
+		{ID: "h264-480", Extension: "mp4", Height: 480, FPS: 30, VideoCodec: "avc1.4d401f", AudioCodec: "none", FileSize: 14 << 20},
+		{ID: "audio", Extension: "m4a", VideoCodec: "none", AudioCodec: "mp4a.40.2", Language: "ko", LanguagePref: 10, FileSize: 8 << 20},
+	}}
+	format, height := selectDownloadFormat(info, 64, 720)
+	if format != "h264-480+audio" || height != 480 {
+		t.Fatalf("selected %q at %dp", format, height)
+	}
+}
+
+func TestSourceNeedsVideoNormalization(t *testing.T) {
+	info := sourceInfo{Formats: []sourceFormat{
+		{ID: "safe", VideoCodec: "avc1.4d401f", FPS: 30},
+		{ID: "fast", VideoCodec: "avc1.4d4020", FPS: 60},
+		{ID: "av1", VideoCodec: "av01.0.08M.08", FPS: 30},
+	}}
+	if sourceNeedsVideoNormalization(info, "safe+audio") {
+		t.Fatal("ordinary H.264 30fps should only be remuxed")
+	}
+	if !sourceNeedsVideoNormalization(info, "fast+audio") || !sourceNeedsVideoNormalization(info, "av1+audio") {
+		t.Fatal("high-fps H.264 and AV1 must be normalized")
+	}
+}

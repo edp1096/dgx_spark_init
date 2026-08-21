@@ -116,7 +116,11 @@ func (a *api) downloadSource(w http.ResponseWriter, r *http.Request) {
 			return err
 		}
 		if selectedHeight > 0 {
-			path, err = a.remuxVideo(ctx, path)
+			if sourceNeedsVideoNormalization(info, format) {
+				path, err = a.normalizeSourceVideo(ctx, path)
+			} else {
+				path, err = a.remuxVideo(ctx, path)
+			}
 			if err != nil {
 				return err
 			}
@@ -154,6 +158,23 @@ func (a *api) remuxVideo(ctx context.Context, input string) (string, error) {
 		"-movflags", "+faststart", output)
 	if err != nil {
 		return "", processError("ffmpeg remux", err, stderr)
+	}
+	return output, nil
+}
+
+// normalizeSourceVideo converts formats that are fragile in model-side video
+// readers (notably AV1/VP9 and high-frame-rate streams) to a conservative MP4.
+func (a *api) normalizeSourceVideo(ctx context.Context, input string) (string, error) {
+	output := filepath.Join(filepath.Dir(input), "ready.mp4")
+	_, stderr, err := run(ctx, a.cfg.FFmpegPath,
+		"-nostdin", "-hide_banner", "-loglevel", "error", "-y",
+		"-i", input, "-map", "0:v:0", "-map", "0:a:0?",
+		"-vf", "fps=30", "-c:v", "libx264", "-preset", "veryfast", "-crf", "23",
+		"-pix_fmt", "yuv420p", "-profile:v", "high", "-level", "4.0",
+		"-c:a", "aac", "-b:a", "128k", "-ar", "48000",
+		"-shortest", "-avoid_negative_ts", "make_zero", "-movflags", "+faststart", output)
+	if err != nil {
+		return "", processError("ffmpeg normalize", err, stderr)
 	}
 	return output, nil
 }
@@ -289,8 +310,13 @@ func knownFormatSize(format sourceFormat) int64 {
 }
 
 func formatScore(video, audio sourceFormat) int64 {
-	score := int64(video.Height) * 1_000_000_000
 	codec := strings.ToLower(video.VideoCodec)
+	// Model-side FFmpeg/Decord is much more reliable with ordinary H.264 at
+	// 30fps or below. Prefer compatible 480p over 720p AV1/VP9 or 60fps.
+	score := int64(video.Height) * 1_000_000_000
+	if isModelSafeVideo(codec, video.FPS) {
+		score += 2_000_000_000_000
+	}
 	if video.Extension == "mp4" {
 		score += 100_000_000
 	}
@@ -305,6 +331,23 @@ func formatScore(video, audio sourceFormat) int64 {
 	}
 	score += knownFormatSize(audio) / 1024
 	return score
+}
+
+func isModelSafeVideo(codec string, fps float64) bool {
+	codec = strings.ToLower(codec)
+	isH264 := strings.HasPrefix(codec, "avc1") || strings.HasPrefix(codec, "h264")
+	return isH264 && (fps <= 0 || fps <= 30.5)
+}
+
+func sourceNeedsVideoNormalization(info sourceInfo, selected string) bool {
+	videoID := strings.SplitN(selected, "+", 2)[0]
+	for _, format := range info.Formats {
+		if format.ID == videoID {
+			return !isModelSafeVideo(format.VideoCodec, format.FPS)
+		}
+	}
+	// A fallback selector expression does not identify one metadata entry.
+	return true
 }
 
 func (a *api) sourceMetadata(ctx context.Context, rawURL string) (sourceInfo, error) {

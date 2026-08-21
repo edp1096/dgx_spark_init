@@ -123,6 +123,9 @@ func TestLoadOldConfigDefaultsToolsToEnabled(t *testing.T) {
 	if !cfg.Tools.Enabled || cfg.Tools.MaxRounds != 3 || cfg.Tools.SearchResults != 5 {
 		t.Fatalf("old config did not receive tool defaults: %+v", cfg.Tools)
 	}
+	if !cfg.Tools.MediaImportEnabled {
+		t.Fatalf("old config did not enable URL media import: %+v", cfg.Tools)
+	}
 	if !cfg.Context.Enabled || cfg.Context.RecentTokens != 32768 {
 		t.Fatalf("old config did not receive context defaults: %+v", cfg.Context)
 	}

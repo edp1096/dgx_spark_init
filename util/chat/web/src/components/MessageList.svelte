@@ -54,6 +54,7 @@
       const parsed = JSON.parse(tool.result);
       if (parsed.results) return parsed.results.map((item) => `${item.title}\n${item.url}\n${item.snippet || ''}`).join('\n\n');
       if (parsed.content) return parsed.content;
+      if (tool.name === 'media_import' && parsed.attachment) return `${parsed.attachment.name} · ${(parsed.attachment.size / 1024 / 1024).toFixed(1)} MB`;
       if (tool.name === 'ssh_exec') {
         const output = [parsed.stdout, parsed.stderr].filter(Boolean).join('');
         const meta = `\n\n종료 코드 ${parsed.exit_code} · ${parsed.duration_ms || 0}ms${parsed.truncated ? ' · 출력 잘림' : ''}`;
@@ -76,7 +77,13 @@
     if (tool.name === 'web_search') return '웹 검색';
     if (tool.name === 'web_fetch') return '페이지 읽기';
     if (tool.name === 'ssh_exec') return 'SSH 실행';
+    if (tool.name === 'media_import') return '미디어 가져오기';
     return tool.name || '도구';
+  }
+
+  function toolRunningLabel(tool) {
+    if (tool.name === 'media_import') return '미디어 다운로드·분석 준비 중…';
+    return tool.execution_status === 'running' ? '명령 실행 중…' : '실행 준비 중…';
   }
 
   function render(text) {
@@ -138,7 +145,7 @@
                   <div class="tool-heading"><strong>{toolLabel(tool)}</strong><span>{toolArgument(tool)}</span></div>
                   {#if tool.approval_required}<p class="tool-running">사용자 승인 대기 중…</p>
                   {:else if tool.approval_answered && !tool.approved}<p class="tool-error">사용자가 실행을 거부했습니다.</p>
-                  {:else if tool.running && !tool.output}<p class="tool-running">{tool.execution_status === 'running' ? '명령 실행 중…' : '실행 준비 중…'}</p>{/if}
+                  {:else if tool.running && !tool.output}<p class="tool-running">{toolRunningLabel(tool)}</p>{/if}
                   {#if toolPreview(tool)}<pre class:ssh-output={tool.name === 'ssh_exec'}>{toolPreview(tool)}</pre>{/if}
                   {#if tool.output && sshResultMeta(tool)}<small class="tool-exit-meta">{sshResultMeta(tool)}</small>{/if}
                   {#if !tool.running && tool.error}<p class="tool-error">{tool.error}</p>{/if}

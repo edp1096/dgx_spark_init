@@ -204,6 +204,75 @@ func TestPendingTurnCompletesOrFailsAtomically(t *testing.T) {
 	}
 }
 
+func TestAppendMessageVariantAttachmentTargetsSelectedVariant(t *testing.T) {
+	store, err := Open(filepath.Join(t.TempDir(), "attachments.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer store.Close()
+	if _, err := store.CreateSession("s1", "test", "model", "low"); err != nil {
+		t.Fatal(err)
+	}
+	message, err := store.AddPendingMessage("s1", "URL 분석", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	attachment := Attachment{ID: "media-1", Name: "clip.mp4", MIME: "video/mp4", Size: 123}
+	if err := store.AppendMessageVariantAttachment(message.ID, 0, attachment); err != nil {
+		t.Fatal(err)
+	}
+	messages, err := store.Messages("s1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(messages) != 1 || len(messages[0].Attachments) != 1 || messages[0].Attachments[0].ID != attachment.ID {
+		t.Fatalf("attachment was not persisted: %+v", messages)
+	}
+	replacement := Attachment{ID: "media-2", Name: "clip.mp4", MIME: "video/mp4", Size: 100, SourceURL: "https://example.com/clip"}
+	if err := store.ReplaceMessageVariantAttachment(message.ID, 0, attachment.ID, replacement); err != nil {
+		t.Fatal(err)
+	}
+	messages, err = store.Messages("s1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(messages[0].Attachments) != 1 || messages[0].Attachments[0].ID != replacement.ID {
+		t.Fatalf("attachment was not replaced atomically: %+v", messages[0].Attachments)
+	}
+}
+
+func TestSuccessfulRetryRestoresFailedUserRequest(t *testing.T) {
+	store, err := Open(filepath.Join(t.TempDir(), "retry-failure.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer store.Close()
+	if _, err := store.CreateSession("s1", "test", "model", "low"); err != nil {
+		t.Fatal(err)
+	}
+	request, err := store.AddPendingMessage("s1", "analyze media", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := store.FailPendingTurn(request.ID, MessageFailed, "decoder failed", "partial", "", nil); err != nil {
+		t.Fatal(err)
+	}
+	messages, err := store.Messages("s1")
+	if err != nil || len(messages) != 2 {
+		t.Fatalf("failed turn=%+v err=%v", messages, err)
+	}
+	if err := store.ReplaceAssistant(messages[1].ID, "recovered", "", nil, 0); err != nil {
+		t.Fatal(err)
+	}
+	messages, err = store.Messages("s1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if messages[0].Status != MessageCompleted || messages[0].Error != "" || messages[1].Status != MessageCompleted {
+		t.Fatalf("successful retry did not restore turn: %+v", messages)
+	}
+}
+
 func TestOpenMarksLegacyOrphanUserRequestsFailed(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "orphan.db")
 	legacy, err := sql.Open("sqlite", path)

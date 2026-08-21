@@ -307,7 +307,7 @@
   }
 
   async function resetActiveContext() {
-    if (!activeId || running || contextLoading || !confirm('저장된 문맥 요약을 초기화할까요? 대화 원본은 삭제되지 않습니다.')) return;
+    if (!activeId || running || contextLoading || !confirm('저장된 컨텍스트 요약을 초기화할까요? 대화 원본은 삭제되지 않습니다.')) return;
     contextLoading = true;
     try {
       await clearContext(activeId);
@@ -811,6 +811,15 @@
     };
     handlers.context = (next) => { if (activeId === sessionId) contextState = next; };
     handlers.sshGrantChanged = () => { refreshSSHGrants(sessionId); };
+    handlers.mediaAttached = (attachment) => {
+      const assistantIndex = messageList.indexOf(message);
+      const userMessage = assistantIndex > 0 ? messageList[assistantIndex - 1] : null;
+      if (!userMessage || userMessage.role !== 'user') return;
+      if (!(userMessage.attachments || []).some((item) => item.id === attachment.id)) {
+        userMessage.attachments = [...(userMessage.attachments || []), attachment];
+        publishMessages(sessionId, messageList);
+      }
+    };
     return handlers;
   }
 
@@ -1058,6 +1067,7 @@
     if (!Array.isArray(config.model.system_prompt_presets)) config.model.system_prompt_presets = [];
     if (!config.model.system_prompt_preset) config.model.system_prompt_preset = '';
     if (!config.context) config.context = { enabled: true, window_tokens: 0, compact_at_percent: 80, output_reserve: 8192, safety_margin: 4096, recent_tokens: 32768, image_tokens: 2048 };
+    if (config.tools && config.tools.media_import_enabled === undefined) config.tools.media_import_enabled = true;
     if (!config.asr) config.asr = { enabled: true, ffmpeg_endpoint: 'http://127.0.0.1:8698', endpoint: 'http://127.0.0.1:8694', model: 'qwen3-asr', language: 'auto', prompt: '', filter_fillers: true, timeout: '30m' };
     if (config.asr.filter_fillers === undefined) config.asr.filter_fillers = true;
     if (!config.tts) config.tts = { enabled: true, endpoint: 'http://127.0.0.1:8692', model: 'Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice', language: 'Korean', voice: 'Sohee', instructions: '', seed: -1, auto_play: false, timeout: '10m' };

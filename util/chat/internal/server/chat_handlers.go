@@ -77,7 +77,8 @@ func (s *Server) chat(w http.ResponseWriter, r *http.Request) {
 		flusher.Flush()
 		return nil
 	}
-	result, err := s.runContextCompletion(r.Context(), req.SessionID, modelHistory(history, pending.ID), req.Model, req.ReasoningEffort, cfg, client, req.ToolsEnabled, emit)
+	mediaSink := s.persistMediaAttachments(pending.ID, 0, attachments, nil)
+	result, err := s.runContextCompletion(r.Context(), req.SessionID, modelHistory(history, pending.ID), req.Model, req.ReasoningEffort, cfg, client, req.ToolsEnabled, emit, mediaSink)
 	if err != nil {
 		status := db.MessageFailed
 		failure := compactHistoryText(err.Error(), 2000)
@@ -164,7 +165,13 @@ func (s *Server) messageAction(w http.ResponseWriter, r *http.Request) {
 		flusher.Flush()
 		return nil
 	}
-	result, err := s.runContextCompletion(r.Context(), target.SessionID, modelHistory(history, 0), req.Model, req.ReasoningEffort, cfg, client, req.ToolsEnabled, emit)
+	parent := history[len(history)-1]
+	selectedUserVariant := userVariant
+	if selectedUserVariant < 0 {
+		selectedUserVariant = len(parent.Variants) - 1
+	}
+	mediaSink := s.persistMediaAttachments(parent.ID, selectedUserVariant, parent.Attachments, importedMediaReplacements(target.ToolTrace))
+	result, err := s.runContextCompletion(r.Context(), target.SessionID, modelHistory(history, 0), req.Model, req.ReasoningEffort, cfg, client, req.ToolsEnabled, emit, mediaSink)
 	if err == nil {
 		err = s.db.ReplaceAssistant(target.ID, result.Content, result.Reasoning, result.ToolTrace, userVariant)
 		_ = s.db.UpdateSession(target.SessionID, "", req.Model, req.ReasoningEffort)
@@ -232,7 +239,15 @@ func (s *Server) editMessage(w http.ResponseWriter, r *http.Request, messageID i
 		flusher.Flush()
 		return nil
 	}
-	result, err := s.runContextCompletion(r.Context(), target.SessionID, modelHistory(requestHistory, 0), req.Model, req.ReasoningEffort, cfg, client, req.ToolsEnabled, emit)
+	mediaSink := func(item db.Attachment) error {
+		validated, validateErr := s.media.Validate(append(append([]db.Attachment{}, attachments...), item))
+		if validateErr != nil {
+			return validateErr
+		}
+		attachments = validated
+		return nil
+	}
+	result, err := s.runContextCompletion(r.Context(), target.SessionID, modelHistory(requestHistory, 0), req.Model, req.ReasoningEffort, cfg, client, req.ToolsEnabled, emit, mediaSink)
 	if err == nil {
 		err = s.db.AppendEditedBranch(messageID, req.Content, attachments, result.Content, result.Reasoning, result.ToolTrace)
 		_ = s.db.UpdateSession(target.SessionID, "", req.Model, req.ReasoningEffort)
@@ -310,4 +325,45 @@ func fallbackTitle(text string) string {
 		return text
 	}
 	return string([]rune(text)[:28]) + "…"
+}
+
+func (s *Server) persistMediaAttachments(messageID int64, variantIndex int, initial []db.Attachment, replacements map[string]string) mediaAttachmentSink {
+	attachments := append([]db.Attachment{}, initial...)
+	return func(item db.Attachment) error {
+		replaceID := replacements[item.SourceURL]
+		candidate := make([]db.Attachment, 0, len(attachments)+1)
+		for _, existing := range attachments {
+			if replaceID == "" || existing.ID != replaceID {
+				candidate = append(candidate, existing)
+			}
+		}
+		validated, err := s.media.Validate(append(candidate, item))
+		if err != nil {
+			return err
+		}
+		canonical := validated[len(validated)-1]
+		if err := s.db.ReplaceMessageVariantAttachment(messageID, variantIndex, replaceID, canonical); err != nil {
+			return err
+		}
+		attachments = validated
+		delete(replacements, item.SourceURL)
+		return nil
+	}
+}
+
+func importedMediaReplacements(trace []db.ToolEvent) map[string]string {
+	replacements := make(map[string]string)
+	for _, event := range trace {
+		if event.Name != "media_import" || event.Result == "" {
+			continue
+		}
+		var result struct {
+			SourceURL  string        `json:"source_url"`
+			Attachment db.Attachment `json:"attachment"`
+		}
+		if json.Unmarshal([]byte(event.Result), &result) == nil && result.SourceURL != "" && result.Attachment.ID != "" {
+			replacements[result.SourceURL] = result.Attachment.ID
+		}
+	}
+	return replacements
 }

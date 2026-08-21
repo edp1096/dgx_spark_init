@@ -236,6 +236,12 @@ func (d *DB) ReplaceAssistant(messageID int64, content, reasoning string, toolTr
 	if _, err := tx.Exec(`UPDATE messages SET content=?, reasoning_content=?, tool_trace=?, response_variants=?, status='completed', error='', created_at=? WHERE id=?`, content, reasoning, string(traceJSON), string(variantsJSONBytes), now, messageID); err != nil {
 		return err
 	}
+	// A retry can target a partial assistant response whose user request was
+	// marked failed/cancelled. Once the retry succeeds, restore that request to
+	// the normal completed history so later turns retain it and its media.
+	if _, err := tx.Exec(`UPDATE messages SET status='completed',error='' WHERE id=(SELECT id FROM messages WHERE session_id=? AND role='user' AND id<? ORDER BY id DESC LIMIT 1)`, sessionID, messageID); err != nil {
+		return err
+	}
 	if _, err := tx.Exec(`DELETE FROM messages WHERE session_id=? AND id>?`, sessionID, messageID); err != nil {
 		return err
 	}

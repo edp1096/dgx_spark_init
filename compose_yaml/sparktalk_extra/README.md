@@ -181,6 +181,11 @@ curl -H 'Content-Type: application/json' \
   http://127.0.0.1:8698/v1/source/download -o media.mp4
 ```
 
+모델 영상 디코더와의 호환성을 위해 URL 영상은 용량 한도 안에서 H.264
+30fps 이하 포맷을 우선한다. 적합한 스트림이 없으면
+H.264/yuv420p/AAC MP4로 자동 정규화한다. AV1·VP9·고프레임률
+영상에서 발생하는 SGLang/Decord 디코더 오류를 피하기 위한 처리다.
+
 재생목록·라이브·사설망 URL은 받지 않으며 유료·DRM·로그인 전용 콘텐츠를
 우회하지 않는다. 기존 `sparktalk_media_api_ytdlp-data` Docker 볼륨을 명시적으로
 재사용하므로 프로젝트 이름을 바꿔도 yt-dlp override는 유지된다.

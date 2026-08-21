@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"time"
 )
 
@@ -86,6 +87,58 @@ func (d *DB) AddMessage(sessionID, role, content, reasoning string, toolTrace []
 
 func (d *DB) AddPendingMessage(sessionID, content string, attachments []Attachment) (Message, error) {
 	return d.addMessage(sessionID, "user", MessagePending, "", content, "", nil, attachments)
+}
+
+// AppendMessageVariantAttachment persists media imported during a model tool
+// call on the exact user-message variant that requested it.
+func (d *DB) AppendMessageVariantAttachment(messageID int64, variantIndex int, attachment Attachment) error {
+	return d.ReplaceMessageVariantAttachment(messageID, variantIndex, "", attachment)
+}
+
+// ReplaceMessageVariantAttachment appends an attachment, or atomically swaps
+// a previous download when retrying the same media_import call.
+func (d *DB) ReplaceMessageVariantAttachment(messageID int64, variantIndex int, replaceID string, attachment Attachment) error {
+	tx, err := d.conn.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	var role, variantsJSON string
+	if err := tx.QueryRow(`SELECT role,response_variants FROM messages WHERE id=?`, messageID).Scan(&role, &variantsJSON); err != nil {
+		return err
+	}
+	if role != "user" {
+		return fmt.Errorf("message %d is not a user message", messageID)
+	}
+	var variants []ResponseVariant
+	if err := json.Unmarshal([]byte(variantsJSON), &variants); err != nil || len(variants) == 0 {
+		return fmt.Errorf("message %d has no response variants", messageID)
+	}
+	if variantIndex < 0 {
+		variantIndex = len(variants) - 1
+	}
+	if variantIndex < 0 || variantIndex >= len(variants) {
+		return fmt.Errorf("invalid user variant %d", variantIndex)
+	}
+	attachments := variants[variantIndex].Attachments[:0]
+	for _, existing := range variants[variantIndex].Attachments {
+		if existing.ID == attachment.ID {
+			return nil
+		}
+		if replaceID != "" && existing.ID == replaceID {
+			continue
+		}
+		attachments = append(attachments, existing)
+	}
+	variants[variantIndex].Attachments = append(attachments, attachment)
+	updated, err := json.Marshal(variants)
+	if err != nil {
+		return err
+	}
+	if _, err := tx.Exec(`UPDATE messages SET response_variants=? WHERE id=?`, string(updated), messageID); err != nil {
+		return err
+	}
+	return tx.Commit()
 }
 
 func (d *DB) addMessage(sessionID, role, status, failure, content, reasoning string, toolTrace []ToolEvent, attachments []Attachment) (Message, error) {

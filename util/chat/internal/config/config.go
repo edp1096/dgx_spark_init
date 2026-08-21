@@ -90,10 +90,11 @@ type ContextConfig struct {
 }
 
 type ToolsConfig struct {
-	Enabled       bool   `yaml:"enabled" json:"enabled"`
-	MaxRounds     int    `yaml:"max_rounds" json:"max_rounds"`
-	SearchResults int    `yaml:"search_results" json:"search_results"`
-	Timeout       string `yaml:"timeout" json:"timeout"`
+	Enabled            bool   `yaml:"enabled" json:"enabled"`
+	MediaImportEnabled bool   `yaml:"media_import_enabled" json:"media_import_enabled"`
+	MaxRounds          int    `yaml:"max_rounds" json:"max_rounds"`
+	SearchResults      int    `yaml:"search_results" json:"search_results"`
+	Timeout            string `yaml:"timeout" json:"timeout"`
 }
 
 type ExtraConfig struct {
@@ -157,7 +158,8 @@ func Load(path string) (Config, bool, error) {
 			Enabled *bool `yaml:"enabled"`
 		} `yaml:"context"`
 		Tools *struct {
-			Enabled *bool `yaml:"enabled"`
+			Enabled            *bool `yaml:"enabled"`
+			MediaImportEnabled *bool `yaml:"media_import_enabled"`
 		} `yaml:"tools"`
 	}
 	_ = yaml.Unmarshal(data, &presence)
@@ -178,6 +180,9 @@ func Load(path string) (Config, bool, error) {
 	}
 	if presence.Tools == nil || presence.Tools.Enabled == nil {
 		cfg.Tools.Enabled = true
+	}
+	if presence.Tools == nil || presence.Tools.MediaImportEnabled == nil {
+		cfg.Tools.MediaImportEnabled = true
 	}
 	cfg.Normalize()
 	if err := cfg.Validate(); err != nil {
