@@ -12,7 +12,8 @@
     listSessions, createSession, deleteSession, renameSession, listMessages, streamChat,
     getHealth, getModels, getConfig, retryMessage, editMessage as editChatMessage, uploadAttachment, uploadMediaURL,
     setSessionGroup, listGroups, createGroup, renameGroup, moveGroup, deleteGroup,
-    getContextState, compactContext, clearContext,
+    getContextState, compactContext, clearContext, answerToolApproval,
+    listSSHConversationGrants, revokeSSHConversationGrant, clearSSHConversationGrants,
   } from './api.js';
   import {
     attachmentKind, hasFileDrag, isSupportedAttachmentFile, maxAttachmentBytes, maxImageBytes, maxMessageBytes,
@@ -64,6 +65,8 @@
   let contextState = null;
   let contextOpen = false;
   let contextLoading = false;
+  let sshConversationGrants = [];
+  let composerInput;
 
   $: activeSession = sessions.find((item) => item.id === activeId);
   $: ungroupedSessions = sessions.filter((session) => !session.group_id);
@@ -112,6 +115,7 @@
       else {
         activeId = '';
         messages = [];
+        sshConversationGrants = [];
       }
     } catch (e) { error = e.message; }
   }
@@ -215,10 +219,11 @@
       if (activeId === id) messages = loaded;
     }
     if (activeId !== id) return;
-    await refreshContext(id);
+    await Promise.all([refreshContext(id), refreshSSHGrants(id)]);
     error = sessionErrors[id] || '';
     await scrollBottom(true);
     closeSidebarOnMobile();
+    await focusComposer(id);
   }
 
   async function refreshContext(sessionId = activeId) {
@@ -229,6 +234,36 @@
     } catch (e) {
       if (activeId === sessionId) contextState = { notice: e.message, segments: [] };
     }
+  }
+
+  async function refreshSSHGrants(sessionId = activeId) {
+    if (!sessionId) { sshConversationGrants = []; return; }
+    try {
+      const grants = await listSSHConversationGrants(sessionId);
+      if (activeId === sessionId) sshConversationGrants = grants;
+    } catch (e) {
+      if (activeId === sessionId) sshConversationGrants = [];
+    }
+  }
+
+  async function revokeSSHGrant(hostId) {
+    if (!activeId) return;
+    const sessionId = activeId;
+    try {
+      await revokeSSHConversationGrant(sessionId, hostId);
+      if (activeId === sessionId) sshConversationGrants = sshConversationGrants.filter((grant) => grant.host_id !== hostId);
+      error = '';
+    } catch (e) { error = e.message; }
+  }
+
+  async function revokeAllSSHGrants() {
+    if (!activeId || !sshConversationGrants.length || !confirm('이 대화의 SSH 자동 허용을 모두 해제할까요?')) return;
+    const sessionId = activeId;
+    try {
+      await clearSSHConversationGrants(sessionId);
+      if (activeId === sessionId) sshConversationGrants = [];
+      error = '';
+    } catch (e) { error = e.message; }
   }
 
   async function compactActiveContext() {
@@ -280,6 +315,7 @@
           activeId = '';
           messages = [];
           pendingAttachments = [];
+          sshConversationGrants = [];
           error = '';
         }
       }
@@ -461,11 +497,19 @@
     publishMessages(sessionId, runMessages);
     return run;
   }
-  function finishSessionRun(sessionId, run) {
+  async function finishSessionRun(sessionId, run) {
     if (sessionRuns[sessionId] !== run) return;
     const next = { ...sessionRuns };
     delete next[sessionId];
     sessionRuns = next;
+    await focusComposer(sessionId);
+  }
+
+  async function focusComposer(sessionId = activeId) {
+    await tick();
+    if (activeId === sessionId && !sessionRuns[sessionId] && !settingsOpen && !controlsOpen) {
+      composerInput?.focus({ preventScroll: true });
+    }
   }
   function publishMessages(sessionId, nextMessages) {
     messageCache = { ...messageCache, [sessionId]: nextMessages };
@@ -508,8 +552,33 @@
   }
   function streamHandlersFor(message, sessionId = activeId, messageList = messages) {
     const handlers = createStreamHandlers(message, () => publishMessages(sessionId, messageList));
+    const handleToolApproval = handlers.toolApproval;
+    handlers.toolApproval = (data) => {
+      handleToolApproval(data);
+      if (activeId === sessionId) requestAnimationFrame(() => document.querySelector(`[data-approval-id="${data.approval_id}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+    };
     handlers.context = (next) => { if (activeId === sessionId) contextState = next; };
+    handlers.sshGrantChanged = () => { refreshSSHGrants(sessionId); };
     return handlers;
+  }
+
+  async function respondToToolApproval(tool, decision) {
+    if (!tool.approval_id || tool.approving) return;
+    tool.approving = true;
+    tool.approval_error = '';
+    messages = messages;
+    try {
+      await answerToolApproval(tool.approval_id, decision);
+      tool.approval_required = false;
+      tool.approval_answered = true;
+      tool.approved = decision !== 'reject';
+      tool.approval_decision = decision;
+    } catch (approvalError) {
+      tool.approval_error = approvalError.message;
+    } finally {
+      tool.approving = false;
+      messages = messages;
+    }
   }
   function addAttachmentFiles(files) {
     const dropped = Array.from(files || []);
@@ -787,6 +856,7 @@
       bind:reasoningEffort
       bind:webToolsEnabled
       {health}
+      sshGrants={sshConversationGrants}
       {controlsOpen}
       onToggleSidebar={toggleSidebar}
       onBeginTitleEdit={beginTitleEdit}
@@ -794,6 +864,8 @@
       onSaveTitle={saveTitle}
       onToggleControls={toggleControls}
       onCloseControls={closeControls}
+      onRevokeSSHGrant={revokeSSHGrant}
+      onClearSSHGrants={revokeAllSSHGrants}
     />
     <MessageList
       {messages}
@@ -813,6 +885,7 @@
       onCancelEdit={cancelEdit}
       onSubmitEdit={submitEdit}
       onBeginEdit={beginEdit}
+      onToolApproval={respondToToolApproval}
     />
     <ContextRail
       state={contextState}
@@ -832,6 +905,7 @@
       {running}
       {activeId}
       bind:input
+      bind:element={composerInput}
       bind:attachmentInput
       {reasoningEffort}
       {webToolsEnabled}

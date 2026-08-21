@@ -184,7 +184,7 @@ func (s *Server) runContextCompletion(
 		return completionResult{}, err
 	}
 	_ = emit("context", state)
-	result, err := runCompletionLoop(ctx, client, messages, model, reasoningEffort, cfg.Model.SystemPrompt, cfg.Tools, toolsEnabled, emit)
+	result, err := runCompletionLoopForSession(s, sessionID, ctx, client, messages, model, reasoningEffort, cfg.Model.SystemPrompt, cfg.Tools, toolsEnabled, emit)
 	if err == nil || result.Content != "" || result.Reasoning != "" || len(result.ToolTrace) > 0 || !isContextOverflow(err) {
 		return result, err
 	}
@@ -195,7 +195,7 @@ func (s *Server) runContextCompletion(
 	}
 	state.Notice = "문맥 한도 초과를 감지해 오래된 구간을 정리하고 자동 재시도했습니다."
 	_ = emit("context", state)
-	return runCompletionLoop(ctx, client, messages, model, reasoningEffort, cfg.Model.SystemPrompt, cfg.Tools, toolsEnabled, emit)
+	return runCompletionLoopForSession(s, sessionID, ctx, client, messages, model, reasoningEffort, cfg.Model.SystemPrompt, cfg.Tools, toolsEnabled, emit)
 }
 
 func isContextOverflow(err error) bool {

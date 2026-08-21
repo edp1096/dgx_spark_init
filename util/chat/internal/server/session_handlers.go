@@ -144,6 +144,10 @@ func (s *Server) session(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	id := parts[0]
+	if len(parts) >= 2 && parts[1] == "ssh-grants" {
+		s.sshConversationGrants(w, r, id, parts)
+		return
+	}
 	if len(parts) == 2 && parts[1] == "context" {
 		s.contextSession(w, r, id, false)
 		return

@@ -107,7 +107,7 @@ func (c *Client) Transcribe(ctx context.Context, source io.Reader, filename, mim
 	ffmpegReq.Header.Set("Content-Type", mimeType)
 	ffmpegResp, err := c.http.Do(ffmpegReq)
 	if err != nil {
-		return Result{}, fmt.Errorf("SparkTalk Media API: %w", err)
+		return Result{}, fmt.Errorf("SparkTalk Extra Media: %w", err)
 	}
 	defer ffmpegResp.Body.Close()
 	if ffmpegResp.StatusCode != http.StatusOK {
@@ -116,7 +116,7 @@ func (c *Client) Transcribe(ctx context.Context, source io.Reader, filename, mim
 		if strings.Contains(strings.ToLower(message), "matches no streams") || strings.Contains(strings.ToLower(message), "no audio") {
 			return Result{}, ErrNoAudio
 		}
-		return Result{}, fmt.Errorf("SparkTalk Media API HTTP %d: %s", ffmpegResp.StatusCode, message)
+		return Result{}, fmt.Errorf("SparkTalk Extra Media HTTP %d: %s", ffmpegResp.StatusCode, message)
 	}
 
 	pipeReader, pipeWriter := io.Pipe()

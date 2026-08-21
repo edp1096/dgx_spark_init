@@ -21,3 +21,6 @@ The container also includes the official yt-dlp standalone executable and Deno.
 - yt-dlp source and license information: https://github.com/yt-dlp/yt-dlp
 - yt-dlp bundled third-party licenses are embedded in the official executable.
 - Deno source and MIT license: https://github.com/denoland/deno
+
+The SSH service uses Go's `golang.org/x/crypto/ssh` package under the BSD
+3-Clause license. Source and license: https://pkg.go.dev/golang.org/x/crypto

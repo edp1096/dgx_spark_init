@@ -50,6 +50,11 @@ tools:
   search_results: 5
   timeout: 15s
 
+extra:
+  # 등록한 서버에 대한 SSH 명령은 항상 화면 승인을 받은 뒤 실행합니다.
+  ssh_enabled: false
+  ssh_endpoint: http://127.0.0.1:8699
+
 appearance:
   # 내장 프리셋은 preset:이 붙으며, 커스텀 업로드는 /api/images/...로 저장됩니다.
   assistant_avatar: preset:spark

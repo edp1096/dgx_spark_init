@@ -9,6 +9,7 @@
   export let reasoningEffort = '';
   export let webToolsEnabled = false;
   export let health = { status: 'checking', model: '' };
+  export let sshGrants = [];
   export let controlsOpen = false;
   export let onToggleSidebar = () => {};
   export let onBeginTitleEdit = () => {};
@@ -16,6 +17,8 @@
   export let onSaveTitle = () => {};
   export let onToggleControls = () => {};
   export let onCloseControls = () => {};
+  export let onRevokeSSHGrant = () => {};
+  export let onClearSSHGrants = () => {};
 </script>
 
 <header>
@@ -34,6 +37,17 @@
     </select>
     <input bind:value={reasoningEffort} list="reasoning-levels" placeholder="reasoning effort" aria-label="Reasoning effort" />
     <button class:active={webToolsEnabled} class="web-toggle" onclick={() => webToolsEnabled = !webToolsEnabled} title="모델이 필요할 때 웹검색 사용">{webToolsEnabled ? '웹검색 자동' : '웹검색 꺼짐'}</button>
+    {#if sshGrants.length}
+      <details class="ssh-grants-menu">
+        <summary title="이 대화에서 자동 허용된 SSH 서버">SSH 허용 {sshGrants.length}</summary>
+        <div class="ssh-grants-popover">
+          <div class="ssh-grants-heading"><strong>이 대화에서 허용</strong><button onclick={onClearSSHGrants}>모두 해제</button></div>
+          {#each sshGrants as grant}
+            <div class="ssh-grant-row"><span><b>{grant.host_name}</b><small>{grant.host_alias}</small></span><button onclick={() => onRevokeSSHGrant(grant.host_id)}>해제</button></div>
+          {/each}
+        </div>
+      </details>
+    {/if}
     <datalist id="reasoning-levels">
       <option value="none"></option><option value="minimal"></option><option value="low"></option>
       <option value="medium"></option><option value="high"></option><option value="xhigh"></option><option value="max"></option>
@@ -54,6 +68,14 @@
     </label>
     <label>Reasoning effort<input bind:value={reasoningEffort} list="reasoning-levels" placeholder="reasoning effort" /></label>
     <button class:active={webToolsEnabled} class="drawer-web-toggle" onclick={() => webToolsEnabled = !webToolsEnabled}>{webToolsEnabled ? '웹검색 자동' : '웹검색 꺼짐'}</button>
+    {#if sshGrants.length}
+      <section class="drawer-ssh-grants">
+        <div><strong>SSH 자동 허용</strong><button onclick={onClearSSHGrants}>모두 해제</button></div>
+        {#each sshGrants as grant}
+          <p><span><b>{grant.host_name}</b><small>{grant.host_alias}</small></span><button onclick={() => onRevokeSSHGrant(grant.host_id)}>해제</button></p>
+        {/each}
+      </section>
+    {/if}
     <div class="drawer-status"><span class:offline={health.status !== 'ok'}>● {health.status === 'ok' ? '연결됨' : '연결 오류'}</span><small>{selectedModel || health.model || '모델 확인 중'}</small></div>
   </div>
 {/if}

@@ -99,6 +99,47 @@ func TestCompletionLoopUsesCustomSystemPromptWithoutTools(t *testing.T) {
 	}
 }
 
+func TestCompletionLoopHidesToolProtocolAfterRoundLimit(t *testing.T) {
+	var requests atomic.Int32
+	var finalInstructionSeen atomic.Bool
+	modelServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var request struct {
+			Messages []struct {
+				Role    string `json:"role"`
+				Content string `json:"content"`
+			} `json:"messages"`
+			Tools []any `json:"tools"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+			t.Error(err)
+		}
+		w.Header().Set("Content-Type", "text/event-stream")
+		if requests.Add(1) == 1 {
+			fmt.Fprintln(w, `data: {"choices":[{"delta":{"tool_calls":[{"index":0,"id":"call_limit","type":"function","function":{"name":"not_allowed","arguments":"{}"}}]}}]}`)
+		} else {
+			if len(request.Tools) == 0 && len(request.Messages) > 0 && strings.Contains(request.Messages[len(request.Messages)-1].Content, "tool execution limit") {
+				finalInstructionSeen.Store(true)
+			}
+			fmt.Fprintln(w, `data: {"choices":[{"delta":{"content":"<tool_call><function=ssh_exec>leaked</function></tool_call>"}}]}`)
+		}
+		fmt.Fprintln(w, "data: [DONE]")
+	}))
+	defer modelServer.Close()
+
+	result, err := runCompletionLoop(
+		context.Background(), llm.New(modelServer.URL, "test-model", ""),
+		[]llm.Message{{Role: "user", Content: "test"}}, "test-model", "low", "",
+		config.ToolsConfig{Enabled: true, MaxRounds: 1, SearchResults: 1, Timeout: "1s"}, true,
+		func(string, any) error { return nil },
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !finalInstructionSeen.Load() || strings.Contains(result.Content, "tool_call") || !strings.Contains(result.Content, "실행 한도") {
+		t.Fatalf("instruction=%v result=%+v", finalInstructionSeen.Load(), result)
+	}
+}
+
 func TestCompletionLoopMergesContextCheckpointIntoFirstSystemMessage(t *testing.T) {
 	var roles []string
 	var systemContent string

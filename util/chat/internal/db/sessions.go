@@ -44,8 +44,18 @@ func (d *DB) Session(id string) (Session, error) {
 }
 
 func (d *DB) DeleteSession(id string) error {
-	_, err := d.conn.Exec(`DELETE FROM sessions WHERE id=?`, id)
-	return err
+	tx, err := d.conn.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	if _, err := tx.Exec(`DELETE FROM ssh_conversation_grants WHERE session_id=?`, id); err != nil {
+		return err
+	}
+	if _, err := tx.Exec(`DELETE FROM sessions WHERE id=?`, id); err != nil {
+		return err
+	}
+	return tx.Commit()
 }
 
 func (d *DB) Messages(sessionID string) ([]Message, error) {

@@ -1,6 +1,11 @@
 async function request(url, options) {
   const response = await fetch(url, options);
-  if (!response.ok) throw new Error((await response.text()) || `HTTP ${response.status}`);
+  if (!response.ok) {
+    const text = await response.text();
+    let message = text;
+    try { message = JSON.parse(text)?.error || text; } catch { /* plain text error */ }
+    throw new Error(message || `HTTP ${response.status}`);
+  }
   if (response.status === 204) return null;
   return response.json();
 }
@@ -32,6 +37,9 @@ export const listMessages = (id) => request(`/api/sessions/${id}/messages`);
 export const getContextState = (id) => request(`/api/sessions/${id}/context`);
 export const compactContext = (id) => request(`/api/sessions/${id}/context/compact`, { method: 'POST' });
 export const clearContext = (id) => request(`/api/sessions/${id}/context`, { method: 'DELETE' });
+export const listSSHConversationGrants = (id) => request(`/api/sessions/${id}/ssh-grants`);
+export const revokeSSHConversationGrant = (sessionId, hostId) => request(`/api/sessions/${sessionId}/ssh-grants/${encodeURIComponent(hostId)}`, { method: 'DELETE' });
+export const clearSSHConversationGrants = (id) => request(`/api/sessions/${id}/ssh-grants`, { method: 'DELETE' });
 export const getHealth = () => request('/api/health');
 export const getModels = () => request('/api/models');
 export const getConfig = () => request('/api/config');
@@ -42,6 +50,46 @@ export const getMediaUsage = () => request('/api/media');
 export const cleanupMedia = (keepIds = []) => request('/api/media', {
   method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ keep_ids: keepIds }),
 });
+
+export const listSSHHosts = () => request('/api/ssh/hosts');
+export const createSSHHost = (host) => request('/api/ssh/hosts', {
+  method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(host),
+});
+export const updateSSHHost = (id, host) => request(`/api/ssh/hosts/${id}`, {
+  method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(host),
+});
+export const deleteSSHHost = (id) => request(`/api/ssh/hosts/${id}`, { method: 'DELETE' });
+export const listSSHKeys = () => request('/api/ssh/keys');
+export const generateSSHKey = (keyId) => request('/api/ssh/keys/generate', {
+  method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key_id: keyId }),
+});
+export const importSSHKey = (keyId, file) => {
+  const body = new FormData();
+  body.append('key_id', keyId);
+  body.append('key', file);
+  return request('/api/ssh/keys', { method: 'POST', body });
+};
+export const deleteSSHKey = (keyId) => request(`/api/ssh/keys/${encodeURIComponent(keyId)}`, { method: 'DELETE' });
+export const trustSSHHost = (id, publicKey) => request(`/api/ssh/hosts/${id}/trust`, {
+  method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ public_key: publicKey }),
+});
+export const answerToolApproval = (id, decision) => request(`/api/tool-approvals/${id}`, {
+  method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ decision }),
+});
+
+export async function testSSHHost(id) {
+  const response = await fetch(`/api/ssh/hosts/${id}/test`, { method: 'POST' });
+  const text = await response.text();
+  let details = null;
+  try { details = JSON.parse(text); } catch { details = null; }
+  if (!response.ok) {
+    const error = new Error(details?.error || text || `HTTP ${response.status}`);
+    error.status = response.status;
+    error.details = details;
+    throw error;
+  }
+  return details || {};
+}
 
 export const uploadImage = (file, signal) => {
   const body = new FormData();
@@ -103,7 +151,12 @@ async function consumeSSE(response, handlers) {
       if (event === 'delta') handlers.delta?.(data.delta || '');
       if (event === 'reasoning') handlers.reasoning?.(data.delta || '');
       if (event === 'tool_start') handlers.toolStart?.(data);
+      if (event === 'tool_approval') handlers.toolApproval?.(data);
+      if (event === 'tool_approval_resolved') handlers.toolApprovalResolved?.(data);
+      if (event === 'tool_execution') handlers.toolExecution?.(data);
+      if (event === 'tool_output') handlers.toolOutput?.(data);
       if (event === 'tool_result') handlers.toolResult?.(data);
+      if (event === 'ssh_grant_changed') handlers.sshGrantChanged?.(data);
       if (event === 'context') handlers.context?.(data);
       if (event === 'error') throw new Error(data.error || '응답 오류');
       if (event === 'done') handlers.done?.();

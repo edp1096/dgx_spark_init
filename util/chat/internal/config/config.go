@@ -23,6 +23,7 @@ type Config struct {
 	ASR        ASRConfig        `yaml:"asr" json:"asr"`
 	Context    ContextConfig    `yaml:"context" json:"context"`
 	Tools      ToolsConfig      `yaml:"tools" json:"tools"`
+	Extra      ExtraConfig      `yaml:"extra" json:"extra"`
 	Appearance AppearanceConfig `yaml:"appearance" json:"appearance"`
 }
 
@@ -79,6 +80,11 @@ type ToolsConfig struct {
 	Timeout       string `yaml:"timeout" json:"timeout"`
 }
 
+type ExtraConfig struct {
+	SSHEnabled  bool   `yaml:"ssh_enabled" json:"ssh_enabled"`
+	SSHEndpoint string `yaml:"ssh_endpoint" json:"ssh_endpoint"`
+}
+
 type AppearanceConfig struct {
 	AssistantAvatar string `yaml:"assistant_avatar" json:"assistant_avatar"`
 	UserAvatar      string `yaml:"user_avatar" json:"user_avatar"`
@@ -90,6 +96,7 @@ type PublicConfig struct {
 	ASR        ASRConfig        `json:"asr"`
 	Context    ContextConfig    `json:"context"`
 	Tools      ToolsConfig      `json:"tools"`
+	Extra      ExtraConfig      `json:"extra"`
 	Appearance AppearanceConfig `json:"appearance"`
 	APIKeySet  bool             `json:"api_key_set"`
 }
@@ -227,6 +234,7 @@ func (c *Config) Normalize() {
 	c.ASR.Language = strings.TrimSpace(c.ASR.Language)
 	c.ASR.Prompt = strings.TrimSpace(c.ASR.Prompt)
 	c.ASR.Timeout = strings.TrimSpace(c.ASR.Timeout)
+	c.Extra.SSHEndpoint = strings.TrimRight(strings.TrimSpace(c.Extra.SSHEndpoint), "/")
 	for i := range c.Model.SystemPromptPresets {
 		c.Model.SystemPromptPresets[i].Name = strings.TrimSpace(c.Model.SystemPromptPresets[i].Name)
 		c.Model.SystemPromptPresets[i].Prompt = strings.TrimSpace(c.Model.SystemPromptPresets[i].Prompt)
@@ -266,6 +274,9 @@ func (c *Config) Normalize() {
 	}
 	if c.Tools.Timeout == "" {
 		c.Tools.Timeout = "15s"
+	}
+	if c.Extra.SSHEndpoint == "" {
+		c.Extra.SSHEndpoint = "http://127.0.0.1:8699"
 	}
 	if c.Context.CompactAtPercent <= 0 {
 		c.Context.CompactAtPercent = 80
@@ -333,6 +344,9 @@ func (c Config) Validate() error {
 		}
 		return fmt.Errorf("tools.timeout: %w", err)
 	}
+	if c.Extra.SSHEnabled && !strings.HasPrefix(c.Extra.SSHEndpoint, "http://") && !strings.HasPrefix(c.Extra.SSHEndpoint, "https://") {
+		return errors.New("extra.ssh_endpoint must start with http:// or https://")
+	}
 	if c.Context.WindowTokens < 0 {
 		return errors.New("context.window_tokens must be zero (auto) or greater")
 	}
@@ -346,7 +360,7 @@ func (c Config) Validate() error {
 }
 
 func (c Config) Public() PublicConfig {
-	public := PublicConfig{Server: c.Server, Model: c.Model, ASR: c.ASR, Context: c.Context, Tools: c.Tools, Appearance: c.Appearance, APIKeySet: c.Model.APIKey != ""}
+	public := PublicConfig{Server: c.Server, Model: c.Model, ASR: c.ASR, Context: c.Context, Tools: c.Tools, Extra: c.Extra, Appearance: c.Appearance, APIKeySet: c.Model.APIKey != ""}
 	public.Model.APIKey = ""
 	return public
 }

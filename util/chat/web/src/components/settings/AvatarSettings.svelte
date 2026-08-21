@@ -3,7 +3,7 @@
   import { avatarPresets, avatarURL } from '../../lib/avatars.js';
 
   export let appearance;
-  export let notice = '';
+  export let onnotify = () => {};
   export let onuploaded = () => {};
 
   let assistantInput;
@@ -27,7 +27,6 @@
     event.currentTarget.value = '';
     if (!file || uploadingRole) return;
     uploadingRole = role;
-    notice = '';
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 30000);
     try {
@@ -35,9 +34,9 @@
       appearance = { ...appearance, [`${role}_avatar`]: attachment.url };
       expandedRole = '';
       onuploaded(attachment.id);
-      notice = `${role === 'assistant' ? 'AI' : '내'} 커스텀 아바타를 올렸습니다. 설정 저장을 누르면 반영됩니다.`;
+      onnotify(`${role === 'assistant' ? 'AI' : '내'} 커스텀 아바타를 올렸습니다. 설정 저장을 누르면 반영됩니다.`);
     } catch (error) {
-      notice = error.name === 'AbortError' ? '아바타 업로드 시간이 초과되었습니다.' : error.message;
+      onnotify(error.name === 'AbortError' ? '아바타 업로드 시간이 초과되었습니다.' : error.message, 'error');
     } finally {
       clearTimeout(timeout);
       uploadingRole = '';

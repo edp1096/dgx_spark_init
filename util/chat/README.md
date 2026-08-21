@@ -35,16 +35,17 @@ Svelte UI가 Go 바이너리에 포함되므로 배포할 때 `dist/`의 운영�
 ## 필요한 API와 Docker 기동
 
 SparkTalk 자체는 Go 바이너리이며 Docker 컨테이너가 아니다. 전체 기능을 사용하려면
-다음 세 API를 별도로 실행한다.
+다음 API를 별도로 실행한다.
 
 | 역할 | 위치 | 기본 주소 | 필요 여부 |
 |---|---|---|---|
 | 채팅·이미지·영상 인식 모델 | `compose_yaml/sglang_qwen38` | `http://127.0.0.1:8000` | 필수 |
 | 음성 전사 | `compose_yaml/qwen3_asr` | `http://127.0.0.1:8694` | 음성·영상 첨부 시 필요 |
-| FFmpeg·yt-dlp 변환/취득 | `compose_yaml/sparktalk_media_api` | `http://127.0.0.1:8698` | 음성·영상·URL 첨부 시 필요 |
+| SparkTalk Extra Media | `compose_yaml/sparktalk_extra` | `http://127.0.0.1:8698` | 음성·영상·URL 첨부 시 필요 |
+| SparkTalk Extra SSH | `compose_yaml/sparktalk_extra` | `http://127.0.0.1:8699` | 채팅에서 승인형 SSH 실행 시 필요 |
 
 이미지만 인식하는 채팅에는 SGLang만 있으면 된다. 음성·영상 또는 URL 미디어를
-사용한다면 Qwen3-ASR과 SparkTalk Media API도 함께 실행한다. 생성 스튜디오용
+사용한다면 Qwen3-ASR과 SparkTalk Extra Media도 함께 실행한다. 생성 스튜디오용
 `media_access_api`는 SparkTalk의 필수 구성요소가 아니다.
 
 저장소 루트에서 다음 순서로 실행한다. 현재 DGX Spark에서 검증한 채팅 모델은
@@ -64,8 +65,8 @@ docker volume create media-hf-cache
 docker compose build
 docker compose up -d
 
-# 3. FFmpeg·yt-dlp 미디어 API
-cd ../sparktalk_media_api
+# 3. 미디어와 SSH 부가기능
+cd ../sparktalk_extra
 make build
 make up
 
@@ -79,14 +80,14 @@ cd dist
 `compose.huihui-radixark-nvfp4-dflash2-local.yaml`은 해당 로컬 target 모델 경로가
 준비된 DGX Spark용이다. 최초 실행에는 DFlash2 다운로드와 전용 SGLang 이미지 빌드,
 CUDA graph 컴파일이 필요하다. 다른 OpenAI 호환 SGLang·vLLM 서버를 사용할 때는
-컨테이너 1번 대신 그 서버를 실행하고 `sparktalk.yaml`의 `api.endpoint`와 모델명을
+컨테이너 1번 대신 그 서버를 실행하고 `sparktalk.yaml`의 `model.endpoint`와 모델명을
 맞춘다. 비디오 인식에는 VL 입력을 지원하는 모델이 필요하다.
 
 yt-dlp로 지원 사이트를 가져오지 못할 때는 고정된 이미지 전체를 다시 빌드하기
 전에 선택 업데이트를 적용할 수 있다.
 
 ```bash
-cd compose_yaml/sparktalk_media_api
+cd compose_yaml/sparktalk_extra
 make ytdlp-update
 make ytdlp-version
 ```
@@ -97,14 +98,53 @@ make ytdlp-version
 curl -fsS http://127.0.0.1:8000/v1/models
 curl -fsS http://127.0.0.1:8694/health
 curl -fsS http://127.0.0.1:8698/health
+curl -fsS http://127.0.0.1:8699/health
 curl -fsS http://127.0.0.1:8585/api/health
 ```
 
 SGLang은 재부팅 후 첫 기동에서 `torch.compile` 때문에 준비에 시간이 걸릴 수 있다.
-`docker logs -f sglang-qwen38`에서 준비 상태를 확인한다. 종료할 때는 SparkTalk에
-`Ctrl+C`를 입력하고 각 compose 디렉터리에서 `docker compose down` 또는
-SparkTalk Media API의 `make down`을 실행한다. SGLang은 기동할 때 사용한 두
-compose 파일을 동일하게 지정해서 내린다.
+`docker logs -f sglang-qwen38`에서 준비 상태를 확인한다. 직접 실행한 SparkTalk은
+`Ctrl+C`로 종료하고, 아래 사용자 systemd 서비스를 설치했다면 `systemctl --user
+stop sparktalk`을 사용한다. 각 compose 서비스는 해당 디렉터리에서
+`docker compose down` 또는 SparkTalk Extra의 `make down`으로 내린다. SGLang은
+기동할 때 사용한 두 compose 파일을 동일하게 지정해서 내린다.
+
+## DGX Spark 자동기동
+
+터미널이나 SSH 연결이 종료돼도 SparkTalk을 유지하려면 저장소의 사용자 systemd
+서비스를 설치한다. 서비스 파일은 저장소가 `%h/workspace/dgx_spark_init`에 있다는
+현재 DGX Spark 배치를 기준으로 한다. 경로가 다르면 설치 전에
+`deploy/systemd/sparktalk.service`의 두 경로를 수정한다.
+
+```bash
+cd /home/edp1096/workspace/dgx_spark_init/util/chat
+make dist
+mkdir -p ~/.config/systemd/user
+cp deploy/systemd/sparktalk.service ~/.config/systemd/user/sparktalk.service
+systemctl --user daemon-reload
+systemctl --user enable --now sparktalk.service
+
+# 로그아웃·재부팅 후에도 사용자 서비스를 시작한다. 환경에 따라 관리자 권한이
+# 필요할 수 있다.
+loginctl enable-linger "$USER"
+```
+
+배포본을 다시 만든 뒤에는 실행 중 프로세스가 새 바이너리를 읽도록 서비스를
+재시작한다.
+
+```bash
+systemctl --user restart sparktalk
+systemctl --user status sparktalk
+journalctl --user -u sparktalk -f
+```
+
+해제할 때는 다음 순서로 처리한다. SQLite·설정·미디어 파일은 삭제하지 않는다.
+
+```bash
+systemctl --user disable --now sparktalk
+rm ~/.config/systemd/user/sparktalk.service
+systemctl --user daemon-reload
+```
 
 ## 설정
 
@@ -159,6 +199,39 @@ DB 트랜잭션으로 반영됩니다.
 로컬·사설망 주소는 차단됩니다. 사용 여부, 최대 호출 횟수, 검색 결과 수와
 타임아웃은 설정 화면 또는 YAML의 `tools` 항목에서 조정합니다.
 
+## 승인형 SSH 도구
+
+`SparkTalk Extra`의 SSH 서비스를 실행하면 웹 설정에서 서버 프로필을 등록하고
+채팅에서 해당 별칭을 지정할 수 있습니다. 모델이 제안한 대상·명령·목적을 화면에
+먼저 표시하며 사용자가 **이번만 실행** 또는 **이 대화에서 허용**을 선택해야 첫
+SSH 요청이 시작됩니다. stdout/stderr는
+편집하지 않은 원문으로 실시간 표시되고 종료 코드와 소요 시간도 함께 저장됩니다.
+첫 연결이면 독립 승인 카드에 SHA256 호스트 지문과 **키 신뢰 후 이번만**,
+**키 신뢰·대화 허용**이 표시되어 별도로 설정 화면을 왕복하지 않고 안전하게
+`known_hosts` 등록까지 처리합니다.
+
+승인 카드에는 **거부**, **이번만 실행**, **이 대화에서 허용**이 표시됩니다.
+`이 대화에서 허용`은 현재 대화방과 해당 SSH 서버 조합에만 적용되며 다른 대화방에는
+전파되지 않습니다. 허용 관계는 SQLite에 ID만 저장되어 SparkTalk을 재시작해도
+유지됩니다. 채팅 상단의 **SSH 허용** 메뉴에서 서버별 또는 전체 해제가 가능하며,
+서버 프로필 수정·삭제 또는 대화방 삭제 시에는 자동 해제됩니다. 영구 전역 무승인
+설정은 제공하지 않습니다.
+
+SSH 프로필은 SQLite에 저장하지만 개인키 본문과 비밀번호는 저장하지 않습니다.
+전용 키는 저장소 밖의
+`/home/edp1096/.local/share/sparktalk/extra/ssh/keys`에 두며 가져오기·호스트 키
+확인 방법은 `compose_yaml/sparktalk_extra/README.md`를 참고합니다. 현재 구현은
+개인키 인증과 비대화형 명령만 지원하며 기본값은 명령별 승인입니다.
+
+여기서 `키 ID`는 비밀번호가 아니라 Extra에 import한 개인키 파일의 별명입니다.
+서버 계정 비밀번호와 암호화된 개인키의 passphrase는 지원하지 않습니다. 키 생성,
+대상 서버의 `authorized_keys` 등록, `make ssh-key-import`, 화면 입력 예시는 Extra
+README의 **SSH 키** 절에 순서대로 작성되어 있습니다.
+
+웹 설정에서 키 ID를 정하고 **Ed25519 생성**을 누르면 개인키는 Extra의 외부 키
+폴더에 직접 생성되고 공개키만 화면에 표시됩니다. 기존 개인키 파일 가져오기는
+HTTPS 또는 localhost 접속에서만 허용하며 원격 HTTP에서는 보안을 위해 차단합니다.
+
 ## 이미지 인식
 
 입력창의 `＋` 버튼, 드래그 앤 드롭 또는 클립보드 붙여넣기로 PNG·JPEG·WebP
@@ -169,12 +242,12 @@ SQLite 파일 옆의 `<database>.media` 디렉터리에 저장되고 질문 수�
 
 ## 음성·영상 인식
 
-음성 파일은 원본을 대화 모델에 직접 보내지 않고 `sparktalk_media_api`에서 16kHz
+음성 파일은 원본을 대화 모델에 직접 보내지 않고 SparkTalk Extra Media에서 16kHz
 mono PCM WAV로 변환한 뒤 Qwen3-ASR의 전사문을 전달합니다. 영상 파일은
 Qwen VL이 볼 수 있는 영상 원본과 음성 트랙의 전사문을 함께 전달합니다.
 음성 트랙이 없는 영상은 영상만 전달합니다.
 
-기본 서비스 주소는 SparkTalk Media API `http://127.0.0.1:8698`, Qwen3-ASR
+기본 서비스 주소는 SparkTalk Extra Media `http://127.0.0.1:8698`, Qwen3-ASR
 `http://127.0.0.1:8694`입니다. 설정 화면의 **음성 인식**에서 활성화 여부,
 두 endpoint, ASR 모델, 인식 언어, 문맥·전문용어 힌트와 타임아웃을 관리할
 수 있습니다. 서비스 상태도 같은 영역에 표시됩니다.
@@ -185,7 +258,7 @@ Qwen VL이 볼 수 있는 영상 원본과 음성 트랙의 전사문을 함께 
 캐시도 함께 삭제됩니다.
 
 입력창의 `⌁` 버튼에 YouTube·Vimeo·Dailymotion 등 yt-dlp가 인식하는 URL을
-넣으면 SparkTalk 백엔드가 SparkTalk Media API를 통해 단일 미디어를 취득하고 일반
+넣으면 SparkTalk 백엔드가 SparkTalk Extra Media를 통해 단일 미디어를 취득하고 일반
 파일 첨부와 동일하게 대화방에 보관합니다. 브라우저에서 바로 재생할 수 있으며,
 음성·영상 분석도 기존 ASR/VL 경로를 그대로 사용합니다. URL 첨부도 파일당 64MB,
 메시지당 총 96MB 제한을 적용합니다.

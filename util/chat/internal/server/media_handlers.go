@@ -32,7 +32,7 @@ func (s *Server) uploadSource(w http.ResponseWriter, r *http.Request) {
 	cfg, _ := s.snapshot()
 	endpoint := strings.TrimRight(cfg.ASR.FFmpegEndpoint, "/")
 	if endpoint == "" {
-		http.Error(w, "SparkTalk Media API endpoint is not configured", http.StatusServiceUnavailable)
+		http.Error(w, "SparkTalk Extra Media endpoint is not configured", http.StatusServiceUnavailable)
 		return
 	}
 	payload, _ := json.Marshal(map[string]any{
@@ -52,13 +52,13 @@ func (s *Server) uploadSource(w http.ResponseWriter, r *http.Request) {
 	}
 	response, err := (&http.Client{Timeout: timeout}).Do(request)
 	if err != nil {
-		http.Error(w, "SparkTalk Media API: "+err.Error(), http.StatusBadGateway)
+		http.Error(w, "SparkTalk Extra Media: "+err.Error(), http.StatusBadGateway)
 		return
 	}
 	defer response.Body.Close()
 	if response.StatusCode != http.StatusOK {
 		detail, _ := io.ReadAll(io.LimitReader(response.Body, 64<<10))
-		http.Error(w, fmt.Sprintf("SparkTalk Media API HTTP %d: %s", response.StatusCode, strings.TrimSpace(string(detail))), http.StatusBadGateway)
+		http.Error(w, fmt.Sprintf("SparkTalk Extra Media HTTP %d: %s", response.StatusCode, strings.TrimSpace(string(detail))), http.StatusBadGateway)
 		return
 	}
 	name := sourceResponseName(response)

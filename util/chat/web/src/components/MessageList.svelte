@@ -21,6 +21,7 @@
   export let onCancelEdit = () => {};
   export let onSubmitEdit = () => {};
   export let onBeginEdit = () => {};
+  export let onToolApproval = () => {};
 
   function setReasoningOpen(index, open) {
     reasoningOpen = { ...reasoningOpen, [index]: open };
@@ -33,22 +34,55 @@
   function toolArgument(tool) {
     try {
       const args = JSON.parse(tool.arguments || '{}');
+      if (tool.name === 'ssh_exec') return `${args.host || ''}${args.command ? ` · ${args.command}` : ''}`;
       return args.query || args.url || '';
     } catch { return tool.arguments || ''; }
   }
 
   function toolPreview(tool) {
+    if (tool.output) return tool.output;
     if (!tool.result) return '';
     try {
       const parsed = JSON.parse(tool.result);
       if (parsed.results) return parsed.results.map((item) => `${item.title}\n${item.url}\n${item.snippet || ''}`).join('\n\n');
       if (parsed.content) return parsed.content;
+      if (tool.name === 'ssh_exec') {
+        const output = [parsed.stdout, parsed.stderr].filter(Boolean).join('');
+        const meta = `\n\n종료 코드 ${parsed.exit_code} · ${parsed.duration_ms || 0}ms${parsed.truncated ? ' · 출력 잘림' : ''}`;
+        return `${output}${meta}`.trim();
+      }
     } catch { /* plain text result */ }
     return tool.result;
   }
 
+  function sshResultMeta(tool) {
+    if (tool.name !== 'ssh_exec' || !tool.result) return '';
+    try {
+      const parsed = JSON.parse(tool.result);
+      if (parsed.exit_code === undefined) return '';
+      return `종료 코드 ${parsed.exit_code} · ${parsed.duration_ms || 0}ms${parsed.truncated ? ' · 출력 잘림' : ''}`;
+    } catch { return ''; }
+  }
+
+  function toolLabel(tool) {
+    if (tool.name === 'web_search') return '웹 검색';
+    if (tool.name === 'web_fetch') return '페이지 읽기';
+    if (tool.name === 'ssh_exec') return 'SSH 실행';
+    return tool.name || '도구';
+  }
+
   function render(text) {
     return DOMPurify.sanitize(marked.parse(text || ''));
+  }
+
+  function visibleAssistantContent(text) {
+    const source = text || '';
+    const cleaned = source
+      .replace(/<tool_call\b[^>]*>[\s\S]*?<\/tool_call>/gi, '')
+      .replace(/<tool_call\b[^>]*>[\s\S]*$/gi, '')
+      .trim();
+    if (!cleaned && /<tool_call\b/i.test(source)) return '도구 호출 요청이 완료되지 않았습니다.';
+    return cleaned;
   }
 </script>
 
@@ -67,18 +101,43 @@
             <div class="collapse-row"><button onclick={(event) => { setReasoningOpen(index, false); collapseDetails(event); }}>↑ 생각 과정 접기</button></div>
           </details>
         {/if}
+        {#if message.tool_trace?.some((tool) => tool.approval_required)}
+          <section class="tool-approval-panel" aria-label="SSH 명령 실행 승인">
+            {#each message.tool_trace.filter((tool) => tool.approval_required) as tool}
+              <div class="tool-approval" data-approval-id={tool.approval_id || ''}>
+                <div class="tool-approval-title"><strong>SSH 명령 실행 승인</strong><span>{tool.host_name || tool.host}</span></div>
+                {#if tool.host_key?.fingerprint}
+                  <div class="tool-host-key-warning"><strong>처음 연결하는 서버</strong><span>호스트 키 지문을 확인하세요.</span><code>{tool.host_key.fingerprint}</code></div>
+                {/if}
+                <code>{tool.command}</code>
+                {#if tool.reason}<small>{tool.reason}</small>{/if}
+                {#if tool.approval_error}<p class="tool-error">{tool.approval_error}</p>{/if}
+                <div class="tool-approval-actions">
+                  <button onclick={() => onToolApproval(tool, 'reject')} disabled={tool.approving}>거부</button>
+                  <button onclick={() => onToolApproval(tool, 'once')} disabled={tool.approving}>{tool.host_key?.fingerprint ? '키 신뢰 후 이번만' : '이번만 실행'}</button>
+                  {#if tool.conversation_scope_available}<button class="approve" onclick={() => onToolApproval(tool, 'conversation')} disabled={tool.approving}>{tool.approving ? '처리 중…' : (tool.host_key?.fingerprint ? '키 신뢰·대화 허용' : '이 대화에서 허용')}</button>{/if}
+                </div>
+              </div>
+            {/each}
+          </section>
+        {/if}
         {#if message.tool_trace?.length}
           <details class="tool-trace">
-            <summary class:activity-pulse={running && message.activity === 'tool'}>{message.tool_trace.some((tool) => tool.running) ? '웹 도구 실행 중…' : `웹 도구 ${message.tool_trace.length}회`}</summary>
+            <summary class:activity-pulse={running && message.activity === 'tool'}>{message.tool_trace.some((tool) => tool.running) ? '도구 실행 중…' : `도구 ${message.tool_trace.length}회`}</summary>
             <div class="tool-list">
               {#each message.tool_trace as tool}
                 <div class="tool-item">
-                  <div class="tool-heading"><strong>{tool.name === 'web_search' ? '웹 검색' : '페이지 읽기'}</strong><span>{toolArgument(tool)}</span></div>
-                  {#if tool.running}<p class="tool-running">실행 중…</p>{:else if tool.error}<p class="tool-error">{tool.error}</p>{:else if tool.result}<pre>{toolPreview(tool)}</pre>{/if}
+                  <div class="tool-heading"><strong>{toolLabel(tool)}</strong><span>{toolArgument(tool)}</span></div>
+                  {#if tool.approval_required}<p class="tool-running">사용자 승인 대기 중…</p>
+                  {:else if tool.approval_answered && !tool.approved}<p class="tool-error">사용자가 실행을 거부했습니다.</p>
+                  {:else if tool.running && !tool.output}<p class="tool-running">{tool.execution_status === 'running' ? '명령 실행 중…' : '실행 준비 중…'}</p>{/if}
+                  {#if toolPreview(tool)}<pre class:ssh-output={tool.name === 'ssh_exec'}>{toolPreview(tool)}</pre>{/if}
+                  {#if tool.output && sshResultMeta(tool)}<small class="tool-exit-meta">{sshResultMeta(tool)}</small>{/if}
+                  {#if !tool.running && tool.error}<p class="tool-error">{tool.error}</p>{/if}
                 </div>
               {/each}
             </div>
-            <div class="collapse-row"><button onclick={collapseDetails}>↑ 웹 도구 접기</button></div>
+            <div class="collapse-row"><button onclick={collapseDetails}>↑ 도구 접기</button></div>
           </details>
         {/if}
         {#if message.role === 'user' && editingMessageId === message.id}
@@ -90,7 +149,7 @@
           {#if message.attachments?.length}
             <MediaAttachments attachments={message.attachments} />
           {/if}
-          <div class="bubble prose">{@html render(message.content || (running && (index === messages.length - 1 || index === retryingIndex) ? '▍' : ''))}</div>
+          <div class="bubble prose">{@html render(message.role === 'assistant' ? visibleAssistantContent(message.content || (running && (index === messages.length - 1 || index === retryingIndex) ? '▍' : '')) : message.content)}</div>
         {/if}
         {#if message.status === 'failed' || message.status === 'cancelled'}
           <div class="message-status" class:cancelled={message.status === 'cancelled'}>

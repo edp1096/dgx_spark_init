@@ -1,4 +1,5 @@
 <script>
+  import { tick } from 'svelte';
   import { attachmentAccept, attachmentKind, canPreviewVideo, formatAttachmentSize } from '../lib/attachments.js';
 
   export let pendingAttachments = [];
@@ -7,6 +8,7 @@
   export let running = false;
   export let activeId = '';
   export let input = '';
+  export let element;
   export let attachmentInput;
   export let reasoningEffort = '';
   export let webToolsEnabled = false;
@@ -20,6 +22,22 @@
 
   let sourceOpen = false;
   let sourceURL = '';
+  let composerExpanded = false;
+
+  async function resizeComposerInput() {
+	await tick();
+	if (!element) return;
+	element.style.height = 'auto';
+	const naturalHeight = element.scrollHeight;
+	composerExpanded = input.includes('\n') || naturalHeight > 38 || (composerExpanded && input.length > 45);
+	element.style.height = `${Math.min(Math.max(naturalHeight, 28), 180)}px`;
+	element.style.overflowY = naturalHeight > 180 ? 'auto' : 'hidden';
+  }
+
+  $: {
+	input;
+	resizeComposerInput();
+  }
 
   async function attachSource() {
 	if (!sourceURL.trim() || uploadingAttachments) return;
@@ -37,6 +55,8 @@
 	if (event.key === 'Escape') sourceOpen = false;
   }
 </script>
+
+<svelte:window onresize={resizeComposerInput} />
 
 <footer>
   {#if pendingAttachments.length || uploadingAttachments}
@@ -64,12 +84,16 @@
       <button class="url-close" onclick={() => sourceOpen = false} disabled={uploadingAttachments} aria-label="주소 입력 닫기">×</button>
     </div>
   {/if}
-  <div class="composer" role="group" aria-label="메시지와 미디어 입력">
+  <div class="composer" class:composer-expanded={composerExpanded} role="group" aria-label="메시지와 미디어 입력">
     <input class="media-input" bind:this={attachmentInput} type="file" accept={attachmentAccept} multiple onchange={onAttachmentInputChange} />
-    <button class="attach" onclick={() => attachmentInput?.click()} disabled={!activeId || running || uploadingAttachments || pendingAttachments.length >= 6} aria-label="미디어 첨부" title="이미지·음성·비디오 첨부">＋</button>
-    <button class="attach attach-url" onclick={() => sourceOpen = !sourceOpen} disabled={!activeId || running || uploadingAttachments || pendingAttachments.length >= 6} aria-label="URL 미디어 첨부" title="YouTube 등 URL에서 미디어 가져오기">⌁</button>
-    <textarea bind:value={input} onkeydown={onKeydown} onpaste={onPaste} placeholder={activeId ? '메시지를 입력하세요' : '새 대화를 만든 뒤 메시지를 입력하세요'} rows="1" disabled={!activeId || running}></textarea>
-    {#if running}<button class="send stop" onclick={onStop}>■</button>{:else}<button class="send" onclick={onSend} disabled={!activeId || !input.trim() || uploadingAttachments}>↑</button>{/if}
+    <div class="composer-tools">
+      <button class="attach" onclick={() => attachmentInput?.click()} disabled={!activeId || running || uploadingAttachments || pendingAttachments.length >= 6} aria-label="미디어 첨부" title="이미지·음성·비디오 첨부">＋</button>
+      <button class="attach attach-url" onclick={() => sourceOpen = !sourceOpen} disabled={!activeId || running || uploadingAttachments || pendingAttachments.length >= 6} aria-label="URL 미디어 첨부" title="YouTube 등 URL에서 미디어 가져오기">⌁</button>
+    </div>
+    <textarea bind:this={element} bind:value={input} oninput={resizeComposerInput} onkeydown={onKeydown} onpaste={onPaste} placeholder={activeId ? '메시지를 입력하세요' : '새 대화를 만든 뒤 메시지를 입력하세요'} rows="1" disabled={!activeId || running}></textarea>
+    <div class="composer-submit">
+      {#if running}<button class="send stop" onclick={onStop} aria-label="응답 중지" title="응답 중지">■</button>{:else}<button class="send" onclick={onSend} disabled={!activeId || !input.trim() || uploadingAttachments} aria-label="메시지 전송" title="메시지 전송">↑</button>{/if}
+    </div>
   </div>
   <small>파일 드래그 또는 URL 영상 첨부 · Enter 전송 · Shift+Enter 줄바꿈 · reasoning: {reasoningEffort || '서버 기본값'} · 웹: {webToolsEnabled ? '자동' : '꺼짐'}</small>
 </footer>

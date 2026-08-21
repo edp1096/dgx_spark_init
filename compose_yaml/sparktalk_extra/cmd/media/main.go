@@ -47,7 +47,7 @@ func main() {
 		_ = server.Shutdown(shutdownCtx)
 	}()
 
-	log.Printf("sparktalk media api listening on %s", cfg.ListenAddr)
+	log.Printf("SparkTalk Extra Media listening on %s", cfg.ListenAddr)
 	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatal(err)
 	}

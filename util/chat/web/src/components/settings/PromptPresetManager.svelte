@@ -1,6 +1,6 @@
 <script>
   export let model;
-  export let notice = '';
+  export let onnotify = () => {};
 
   let managerOpen = false;
   let filter = '';
@@ -17,12 +17,12 @@
     if (name === null || !name.trim()) return;
     const trimmed = name.trim();
     if (model.system_prompt_presets.some((item) => item.name === trimmed)) {
-      notice = '같은 이름의 시스템 프롬프트 프리셋이 있습니다.';
+      onnotify('같은 이름의 시스템 프롬프트 프리셋이 있습니다.', 'error');
       return;
     }
     model.system_prompt_presets = [...model.system_prompt_presets, { name: trimmed, prompt: model.system_prompt || '' }];
     model.system_prompt_preset = trimmed;
-    notice = `'${trimmed}' 프리셋을 추가했습니다. 설정 저장을 누르면 반영됩니다.`;
+    onnotify(`'${trimmed}' 프리셋을 추가했습니다. 설정 저장을 누르면 반영됩니다.`);
   }
 
   function savePreset() {
@@ -33,7 +33,7 @@
     }
     model.system_prompt_presets = model.system_prompt_presets.map((item) =>
       item.name === name ? { ...item, prompt: model.system_prompt || '' } : item);
-    notice = `'${name}' 프리셋의 내용을 갱신했습니다. 설정 저장을 누르면 반영됩니다.`;
+    onnotify(`'${name}' 프리셋의 내용을 갱신했습니다. 설정 저장을 누르면 반영됩니다.`);
   }
 
   function renamePreset() {
@@ -43,13 +43,13 @@
     if (name === null || !name.trim() || name.trim() === current) return;
     const trimmed = name.trim();
     if (model.system_prompt_presets.some((item) => item.name === trimmed)) {
-      notice = '같은 이름의 시스템 프롬프트 프리셋이 있습니다.';
+      onnotify('같은 이름의 시스템 프롬프트 프리셋이 있습니다.', 'error');
       return;
     }
     model.system_prompt_presets = model.system_prompt_presets.map((item) =>
       item.name === current ? { ...item, name: trimmed } : item);
     model.system_prompt_preset = trimmed;
-    notice = `'${trimmed}'으로 이름을 변경했습니다. 설정 저장을 누르면 반영됩니다.`;
+    onnotify(`'${trimmed}'으로 이름을 변경했습니다. 설정 저장을 누르면 반영됩니다.`);
   }
 
   function movePresetTo(index, rawTarget) {
@@ -60,7 +60,7 @@
     const [preset] = reordered.splice(index, 1);
     reordered.splice(target, 0, preset);
     model.system_prompt_presets = reordered;
-    notice = `'${preset.name}' 프리셋을 ${target + 1}번째로 이동했습니다. 설정 저장을 누르면 반영됩니다.`;
+    onnotify(`'${preset.name}' 프리셋을 ${target + 1}번째로 이동했습니다. 설정 저장을 누르면 반영됩니다.`);
   }
 
   function movePresetToPosition(index, value) {
@@ -79,7 +79,7 @@
     if (!name || !confirm(`'${name}' 시스템 프롬프트 프리셋을 삭제할까요? 현재 프롬프트 내용은 유지됩니다.`)) return;
     model.system_prompt_presets = model.system_prompt_presets.filter((item) => item.name !== name);
     model.system_prompt_preset = '';
-    notice = `'${name}' 프리셋을 삭제했습니다. 설정 저장을 누르면 반영됩니다.`;
+    onnotify(`'${name}' 프리셋을 삭제했습니다. 설정 저장을 누르면 반영됩니다.`);
   }
 
   function presetDirty() {

@@ -78,6 +78,27 @@ type ContextSegment struct {
 	CreatedAt       time.Time `json:"created_at"`
 }
 
+type SSHHost struct {
+	ID             string    `json:"id"`
+	Alias          string    `json:"alias"`
+	Name           string    `json:"name"`
+	Hostname       string    `json:"hostname"`
+	Port           int       `json:"port"`
+	Username       string    `json:"username"`
+	KeyID          string    `json:"key_id"`
+	TimeoutSeconds int       `json:"timeout_seconds"`
+	CreatedAt      time.Time `json:"created_at"`
+	UpdatedAt      time.Time `json:"updated_at"`
+}
+
+type SSHConversationGrant struct {
+	SessionID string    `json:"session_id"`
+	HostID    string    `json:"host_id"`
+	HostAlias string    `json:"host_alias"`
+	HostName  string    `json:"host_name"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
 func Open(path string) (*DB, error) {
 	conn, err := sql.Open("sqlite", path)
 	if err != nil {
@@ -121,6 +142,25 @@ func Open(path string) (*DB, error) {
 			UNIQUE(session_id, end_message_id)
 		);
 		CREATE INDEX IF NOT EXISTS idx_context_segments_session ON context_segments(session_id, end_message_id);
+		CREATE TABLE IF NOT EXISTS ssh_hosts (
+			id TEXT PRIMARY KEY,
+			alias TEXT NOT NULL UNIQUE,
+			name TEXT NOT NULL,
+			hostname TEXT NOT NULL,
+			port INTEGER NOT NULL DEFAULT 22,
+			username TEXT NOT NULL,
+			key_id TEXT NOT NULL,
+			timeout_seconds INTEGER NOT NULL DEFAULT 60,
+			created_at DATETIME NOT NULL,
+			updated_at DATETIME NOT NULL
+		);
+		CREATE TABLE IF NOT EXISTS ssh_conversation_grants (
+			session_id TEXT NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
+			host_id TEXT NOT NULL REFERENCES ssh_hosts(id) ON DELETE CASCADE,
+			created_at DATETIME NOT NULL,
+			PRIMARY KEY(session_id, host_id)
+		);
+		CREATE INDEX IF NOT EXISTS idx_ssh_conversation_grants_host ON ssh_conversation_grants(host_id);
 	`); err != nil {
 		conn.Close()
 		return nil, fmt.Errorf("migrate: %w", err)

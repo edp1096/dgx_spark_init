@@ -5,9 +5,10 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /src
 COPY go.mod ./
-COPY *.go ./
+COPY go.sum ./
+COPY cmd/media ./cmd/media
 RUN CGO_ENABLED=0 go test ./... \
-    && CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/sparktalk-media-api .
+    && CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/sparktalk-extra-media ./cmd/media
 
 FROM ${RUNTIME_BASE_IMAGE} AS tools
 ARG TARGETARCH
@@ -45,9 +46,9 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends ca-certificates ffmpeg tzdata \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /out/sparktalk-media-api /usr/local/bin/sparktalk-media-api
+COPY --from=builder /out/sparktalk-extra-media /usr/local/bin/sparktalk-extra-media
 COPY --from=tools /tmp/yt-dlp /usr/local/bin/yt-dlp
 COPY --from=tools /tmp/deno-bin/deno /usr/local/bin/deno
 
 EXPOSE 8698
-ENTRYPOINT ["/usr/local/bin/sparktalk-media-api"]
+ENTRYPOINT ["/usr/local/bin/sparktalk-extra-media"]

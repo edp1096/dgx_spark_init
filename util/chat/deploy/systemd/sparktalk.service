@@ -1,0 +1,17 @@
+[Unit]
+Description=SparkTalk web application
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/workspace/dgx_spark_init/util/chat/dist
+ExecStart=%h/workspace/dgx_spark_init/util/chat/dist/sparktalk-linux-arm64
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+UMask=0077
+
+[Install]
+WantedBy=default.target

@@ -18,3 +18,19 @@ test('stream handlers update one assistant message and publish every event', () 
   assert.equal(message.activity, 'answer');
   assert.equal(publishes, 4);
 });
+
+test('SSH tool approval and raw output update the active tool', () => {
+  const message = { content: '', reasoning_content: '', tool_trace: [], activity: '' };
+  const handlers = createStreamHandlers(message, () => {});
+  handlers.toolStart({ id: 'ssh-one', name: 'ssh_exec', arguments: '{"host":"dgx-main"}' });
+  handlers.toolApproval({ id: 'ssh-one', approval_id: 'approval-1', command: 'nvidia-smi', host_name: 'DGX Spark' });
+  assert.equal(message.tool_trace[0].approval_required, true);
+  handlers.toolApprovalResolved({ id: 'ssh-one', approved: true });
+  handlers.toolExecution({ id: 'ssh-one', status: 'running' });
+  handlers.toolOutput({ id: 'ssh-one', stream: 'stdout', delta: 'GPU OK\n' });
+  handlers.toolResult({ id: 'ssh-one', result: '{"exit_code":0}' });
+  assert.equal(message.tool_trace[0].approval_required, false);
+  assert.equal(message.tool_trace[0].approved, true);
+  assert.equal(message.tool_trace[0].output, 'GPU OK\n');
+  assert.equal(message.tool_trace[0].running, false);
+});

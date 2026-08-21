@@ -1,4 +1,4 @@
-import { finishTool, startTool } from './tool-trace.js';
+import { appendToolOutput, finishTool, markToolExecution, requestToolApproval, resolveToolApproval, startTool } from './tool-trace.js';
 
 export function createStreamHandlers(message, publish) {
   return {
@@ -14,6 +14,22 @@ export function createStreamHandlers(message, publish) {
     },
     toolStart(data) {
       startTool(message, data);
+      publish();
+    },
+    toolApproval(data) {
+      requestToolApproval(message, data);
+      publish();
+    },
+    toolApprovalResolved(data) {
+      resolveToolApproval(message, data);
+      publish();
+    },
+    toolExecution(data) {
+      markToolExecution(message, data);
+      publish();
+    },
+    toolOutput(data) {
+      appendToolOutput(message, data);
       publish();
     },
     toolResult(data) {
