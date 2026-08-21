@@ -145,3 +145,31 @@ export function createSpeechChunker() {
     },
   };
 }
+
+export function createSpeechBatcher({ maxChunks = 3, targetCharacters = 140 } = {}) {
+  let pending = [];
+  let characters = 0;
+
+  function flush() {
+    if (!pending.length) return [];
+    const batch = pending.join('\n');
+    pending = [];
+    characters = 0;
+    return [batch];
+  }
+
+  return {
+    push(chunks) {
+      const batches = [];
+      for (const chunk of Array.isArray(chunks) ? chunks : [chunks]) {
+        const value = String(chunk || '').trim();
+        if (!value) continue;
+        pending.push(value);
+        characters += value.length;
+        if (pending.length >= maxChunks || characters >= targetCharacters) batches.push(...flush());
+      }
+      return batches;
+    },
+    finish: flush,
+  };
+}

@@ -146,7 +146,7 @@
       <div class="settings-form-row three">
         <label>언어<select bind:value={settings.tts.language}><option>Korean</option><option>English</option><option>Chinese</option><option>Japanese</option><option>Auto</option></select></label>
         <label>화자<select bind:value={settings.tts.voice}><option>Sohee</option><option>Vivian</option><option>Serena</option><option>Ryan</option><option>Aiden</option><option>Ono_Anna</option></select></label>
-        <label>시드<input type="number" min="-1" bind:value={settings.tts.seed} /></label>
+        <label>시드<input type="number" min="-1" max="2147483647" bind:value={settings.tts.seed} /></label>
       </div>
       <label>기본 연기 지시<textarea rows="2" bind:value={settings.tts.instructions} placeholder="예: 차분하고 또렷한 목소리로 읽어 주세요."></textarea></label>
       <small class="settings-inline-help">시드 -1은 매번 무작위입니다. 음성대기 중에는 AI 음성을 다시 인식하지 않도록 재생하는 동안 마이크 판정을 멈춥니다.</small>

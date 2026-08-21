@@ -372,6 +372,9 @@ func (c Config) Validate() error {
 	if c.TTS.Enabled && !strings.HasPrefix(c.TTS.Endpoint, "http://") && !strings.HasPrefix(c.TTS.Endpoint, "https://") {
 		return errors.New("tts.endpoint must start with http:// or https://")
 	}
+	if c.TTS.Seed < -1 || c.TTS.Seed > 2147483647 {
+		return errors.New("tts.seed must be -1 or between 0 and 2147483647")
+	}
 	if timeout, err := time.ParseDuration(c.TTS.Timeout); err != nil || timeout <= 0 {
 		if err == nil {
 			err = errors.New("must be greater than zero")

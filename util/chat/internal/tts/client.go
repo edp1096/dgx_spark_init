@@ -63,7 +63,7 @@ func (c *Client) Health(ctx context.Context) Status {
 }
 
 func (c *Client) Speech(ctx context.Context, text string) ([]byte, string, error) {
-	stream, err := c.SpeechStream(ctx, text)
+	stream, err := c.SpeechStream(ctx, text, nil)
 	if err != nil {
 		return nil, "", err
 	}
@@ -83,7 +83,7 @@ type SpeechStream struct {
 	ContentType string
 }
 
-func (c *Client) SpeechStream(ctx context.Context, text string) (*SpeechStream, error) {
+func (c *Client) SpeechStream(ctx context.Context, text string, seedOverride *int64) (*SpeechStream, error) {
 	if !c.cfg.Enabled {
 		return nil, errors.New("TTS is disabled")
 	}
@@ -101,8 +101,12 @@ func (c *Client) SpeechStream(ctx context.Context, text string) (*SpeechStream, 
 		"task_type":    "CustomVoice", "response_format": "pcm",
 		"stream": true, "stream_format": "audio",
 	}
-	if c.cfg.Seed >= 0 {
-		payload["seed"] = c.cfg.Seed
+	seed := c.cfg.Seed
+	if seedOverride != nil {
+		seed = *seedOverride
+	}
+	if seed >= 0 {
+		payload["seed"] = seed
 	}
 	body, err := json.Marshal(payload)
 	if err != nil {

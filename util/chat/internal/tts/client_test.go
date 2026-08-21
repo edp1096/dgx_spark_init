@@ -39,3 +39,25 @@ func TestSpeechUsesConfiguredCustomVoice(t *testing.T) {
 		t.Fatalf("unexpected response: %q %q", audio, contentType)
 	}
 }
+
+func TestSpeechStreamUsesPerPlaybackSeedOverride(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var request map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+			t.Fatal(err)
+		}
+		if request["seed"] != float64(123456) {
+			t.Fatalf("unexpected seed: %+v", request)
+		}
+		_, _ = w.Write([]byte("pcm"))
+	}))
+	defer server.Close()
+
+	client := New(config.TTSConfig{Enabled: true, Endpoint: server.URL, Model: "qwen-tts", Seed: -1, Timeout: "5s"})
+	seed := int64(123456)
+	stream, err := client.SpeechStream(context.Background(), "테스트", &seed)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer stream.Body.Close()
+}

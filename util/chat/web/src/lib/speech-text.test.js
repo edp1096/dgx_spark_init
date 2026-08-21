@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createSpeechChunker, normalizeSpeechNotation, speechTextFromMarkdown } from './speech-text.js';
+import { createSpeechBatcher, createSpeechChunker, normalizeSpeechNotation, speechTextFromMarkdown } from './speech-text.js';
 
 test('speech text keeps block pauses and removes trailing source links', () => {
   const markdown = `## 🌦️ 신길동 내일 날씨
@@ -67,4 +67,12 @@ test('stream chunker waits for an unfinished sentence', () => {
   const chunker = createSpeechChunker();
   assert.deepEqual(chunker.push('아직 작성 중'), []);
   assert.deepEqual(chunker.finish(), ['아직 작성 중.']);
+});
+
+test('speech batcher reduces independent TTS requests while retaining an early threshold', () => {
+  const batcher = createSpeechBatcher({ maxChunks: 3, targetCharacters: 100 });
+  assert.deepEqual(batcher.push(['첫 문장.', '둘째 문장.']), []);
+  assert.deepEqual(batcher.push(['셋째 문장.']), ['첫 문장.\n둘째 문장.\n셋째 문장.']);
+  assert.deepEqual(batcher.push(['마지막 문장.']), []);
+  assert.deepEqual(batcher.finish(), ['마지막 문장.']);
 });

@@ -6,6 +6,15 @@ function joinBytes(left, right) {
   return joined;
 }
 
+export function resolveSpeechSeed(configuredSeed, cryptoProvider = globalThis.crypto) {
+  const configured = Number(configuredSeed);
+  if (Number.isInteger(configured) && configured >= 0 && configured <= 2147483647) return configured;
+  if (!cryptoProvider?.getRandomValues) throw new Error('음성 seed를 생성할 수 없습니다.');
+  const random = new Uint32Array(1);
+  cryptoProvider.getRandomValues(random);
+  return random[0] & 0x7fffffff;
+}
+
 export function pcm16LEToFloat32(bytes) {
   const sampleCount = Math.floor(bytes.byteLength / 2);
   const samples = new Float32Array(sampleCount);

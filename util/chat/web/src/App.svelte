@@ -20,8 +20,8 @@
   } from './lib/attachments.js';
   import { beginVoiceRecording, voiceFilename, voiceRecordingSupported } from './lib/voice-recorder.js';
   import { beginContinuousVoice, isIgnorableVoiceTranscript } from './lib/continuous-voice.js';
-  import { createSpeechChunker, speechTextFromMarkdown } from './lib/speech-text.js';
-  import { PCMStreamPlayer } from './lib/pcm-player.js';
+  import { createSpeechBatcher, createSpeechChunker, speechTextFromMarkdown } from './lib/speech-text.js';
+  import { PCMStreamPlayer, resolveSpeechSeed } from './lib/pcm-player.js';
 
   let sessions = [];
   let groups = [];
@@ -716,6 +716,7 @@
     const run = { controller: new AbortController(), messages: runMessages, retryingIndex: runRetryingIndex };
     if (continuousVoiceEnabled && settings?.tts?.enabled && settings.tts.auto_play) {
       run.speechChunker = createSpeechChunker();
+      run.speechBatcher = createSpeechBatcher();
       run.speechSession = createSpeechSession(`live:${sessionId}:${Date.now()}`, sessionId);
     }
     sessionRuns = { ...sessionRuns, [sessionId]: run };
@@ -728,7 +729,9 @@
       && !continuousAutoSendPending[sessionId];
     if (run.speechSession) {
       if (canAutoPlay) {
-        for (const chunk of run.speechChunker?.finish() || []) enqueueSpeech(run.speechSession, chunk);
+        const finalChunks = run.speechChunker?.finish() || [];
+        for (const batch of run.speechBatcher?.push(finalChunks) || []) enqueueSpeech(run.speechSession, batch);
+        for (const batch of run.speechBatcher?.finish() || []) enqueueSpeech(run.speechSession, batch);
         closeSpeechSession(run.speechSession);
       } else if (speechSession === run.speechSession) {
         stopReplySpeech();
@@ -797,8 +800,9 @@
     handlers.delta = (delta) => {
       handleDelta(delta);
       const run = sessionRuns[sessionId];
-      if (!run?.speechChunker || !run.speechSession) return;
-      for (const chunk of run.speechChunker.push(delta)) enqueueSpeech(run.speechSession, chunk);
+      if (!run?.speechChunker || !run.speechBatcher || !run.speechSession) return;
+      const chunks = run.speechChunker.push(delta);
+      for (const batch of run.speechBatcher.push(chunks)) enqueueSpeech(run.speechSession, batch);
     };
     const handleToolApproval = handlers.toolApproval;
     handlers.toolApproval = (data) => {
@@ -1098,8 +1102,9 @@
   }
 
   function createSpeechSession(key, sessionId = activeId) {
+    const seed = resolveSpeechSeed(settings?.tts?.seed, window.crypto);
     const session = {
-      key, sessionId, controller: new AbortController(), player: null,
+      key, sessionId, seed, controller: new AbortController(), player: null,
       queue: [], processing: false, closed: false, stopped: false,
     };
     speechSession = session;
@@ -1126,7 +1131,7 @@
     try {
       while (session.queue.length && !session.stopped) {
         const text = session.queue.shift();
-        await streamSpeech(text, session.controller.signal, async (bytes, sampleRate) => {
+        await streamSpeech(text, session.seed, session.controller.signal, async (bytes, sampleRate) => {
           if (session.stopped || speechSession !== session) return;
           if (!session.player) {
             session.player = new PCMStreamPlayer({
@@ -1174,9 +1179,7 @@
     if (!text) return;
     stopReplySpeech();
     const session = createSpeechSession(key);
-    for (const chunk of text.split('\n').map((value) => value.trim()).filter(Boolean)) {
-      enqueueSpeech(session, chunk);
-    }
+    enqueueSpeech(session, text);
     closeSpeechSession(session);
   }
 </script>

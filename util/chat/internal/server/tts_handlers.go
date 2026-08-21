@@ -16,6 +16,7 @@ func (s *Server) synthesizeSpeech(w http.ResponseWriter, r *http.Request) {
 	}
 	var request struct {
 		Text string `json:"text"`
+		Seed *int64 `json:"seed,omitempty"`
 	}
 	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, maxTTSRequestBytes)).Decode(&request); err != nil {
 		http.Error(w, "invalid TTS request", http.StatusBadRequest)
@@ -25,9 +26,13 @@ func (s *Server) synthesizeSpeech(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "text is required", http.StatusBadRequest)
 		return
 	}
+	if request.Seed != nil && (*request.Seed < 0 || *request.Seed > 2147483647) {
+		http.Error(w, "seed must be between 0 and 2147483647", http.StatusBadRequest)
+		return
+	}
 	s.ttsMu.Lock()
 	defer s.ttsMu.Unlock()
-	stream, err := s.ttsSnapshot().SpeechStream(r.Context(), request.Text)
+	stream, err := s.ttsSnapshot().SpeechStream(r.Context(), request.Text, request.Seed)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadGateway)
 		return
