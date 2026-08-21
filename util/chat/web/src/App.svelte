@@ -22,6 +22,7 @@
   import { beginContinuousVoice, isIgnorableVoiceTranscript } from './lib/continuous-voice.js';
   import { createSpeechBatcher, createSpeechChunker, speechTextFromMarkdown } from './lib/speech-text.js';
   import { PCMStreamPlayer, resolveSpeechSeed } from './lib/pcm-player.js';
+  import { applyTheme } from './lib/theme.js';
 
   let sessions = [];
   let groups = [];
@@ -35,7 +36,7 @@
   let selectedModel = '';
   let reasoningEffort = '';
   let webToolsEnabled = false;
-  let appearance = { assistant_avatar: 'preset:spark', user_avatar: 'preset:person-blue' };
+  let appearance = { assistant_avatar: 'preset:spark', user_avatar: 'preset:person-blue', theme: 'system' };
   let input = '';
   let running = false;
   let retryingIndex = -1;
@@ -89,6 +90,9 @@
   let speechLoadingKey = '';
   let speechPlayingKey = '';
   let speechPausedContinuousVoice = false;
+  let systemThemeQuery;
+
+  $: applyTheme(appearance?.theme || 'system');
 
   $: activeSession = sessions.find((item) => item.id === activeId);
   $: ungroupedSessions = sessions.filter((session) => !session.group_id);
@@ -107,6 +111,11 @@
     sidebarOpen = mobile ? false : localStorage.getItem('sparktalk.sidebar-open') !== 'false';
     sidebarWidth = Number(localStorage.getItem('sparktalk.sidebar-width')) || 260;
     try { collapsedGroups = JSON.parse(localStorage.getItem('sparktalk.collapsed-groups') || '{}'); } catch { collapsedGroups = {}; }
+    systemThemeQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const syncSystemTheme = () => {
+      if ((appearance?.theme || 'system') === 'system') applyTheme('system', false);
+    };
+    systemThemeQuery.addEventListener?.('change', syncSystemTheme);
     load();
     const timer = setInterval(refreshHealth, 15000);
     window.addEventListener('dragenter', onWindowDragEnter, true);
@@ -124,6 +133,7 @@
       window.removeEventListener('dragover', onWindowDragOver, true);
       window.removeEventListener('dragleave', onWindowDragLeave, true);
       window.removeEventListener('drop', onWindowDrop, true);
+      systemThemeQuery?.removeEventListener?.('change', syncSystemTheme);
     };
   });
 
@@ -1071,6 +1081,8 @@
     if (!config.asr) config.asr = { enabled: true, ffmpeg_endpoint: 'http://127.0.0.1:8698', endpoint: 'http://127.0.0.1:8694', model: 'qwen3-asr', language: 'auto', prompt: '', filter_fillers: true, timeout: '30m' };
     if (config.asr.filter_fillers === undefined) config.asr.filter_fillers = true;
     if (!config.tts) config.tts = { enabled: true, endpoint: 'http://127.0.0.1:8692', model: 'Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice', language: 'Korean', voice: 'Sohee', instructions: '', seed: -1, auto_play: false, timeout: '10m' };
+    if (!config.appearance) config.appearance = { assistant_avatar: 'preset:spark', user_avatar: 'preset:person-blue', theme: 'system' };
+    if (!['dark', 'light', 'system'].includes(config.appearance.theme)) config.appearance.theme = 'system';
   }
 
   async function applySavedSettings(next) {

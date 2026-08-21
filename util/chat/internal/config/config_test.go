@@ -22,6 +22,9 @@ func TestLoadCreatesEmbeddedDefaultAndSaveReloads(t *testing.T) {
 	if cfg.Appearance.AssistantAvatar != "preset:spark" || cfg.Appearance.UserAvatar != "preset:person-blue" {
 		t.Fatalf("generated avatar defaults are incomplete: %+v", cfg.Appearance)
 	}
+	if cfg.Appearance.Theme != "system" {
+		t.Fatalf("generated theme default is incomplete: %+v", cfg.Appearance)
+	}
 	if !cfg.Context.Enabled || cfg.Context.CompactAtPercent != 80 || cfg.Context.OutputReserve != 8192 {
 		t.Fatalf("generated context defaults are incomplete: %+v", cfg.Context)
 	}
@@ -138,6 +141,9 @@ func TestLoadOldConfigDefaultsToolsToEnabled(t *testing.T) {
 	if cfg.Appearance.AssistantAvatar != "preset:spark" || cfg.Appearance.UserAvatar != "preset:person-blue" {
 		t.Fatalf("old config did not receive avatar defaults: %+v", cfg.Appearance)
 	}
+	if cfg.Appearance.Theme != "system" {
+		t.Fatalf("old config did not receive system theme default: %+v", cfg.Appearance)
+	}
 	if len(cfg.Model.SystemPromptPresets) != 0 {
 		t.Fatalf("old config unexpectedly received embedded prompt presets: %+v", cfg.Model.SystemPromptPresets)
 	}
@@ -156,5 +162,20 @@ func TestNormalizeAvatarMigratesComputerPreset(t *testing.T) {
 	cfg.Normalize()
 	if cfg.Appearance.AssistantAvatar != "preset:quantum-computer" {
 		t.Fatalf("legacy computer preset was not migrated: %+v", cfg.Appearance)
+	}
+}
+
+func TestNormalizeAppearanceTheme(t *testing.T) {
+	for _, theme := range []string{"dark", "light", "system"} {
+		cfg := Config{Appearance: AppearanceConfig{Theme: theme}}
+		cfg.Normalize()
+		if cfg.Appearance.Theme != theme {
+			t.Fatalf("theme %q normalized to %q", theme, cfg.Appearance.Theme)
+		}
+	}
+	cfg := Config{Appearance: AppearanceConfig{Theme: "invalid"}}
+	cfg.Normalize()
+	if cfg.Appearance.Theme != "system" {
+		t.Fatalf("invalid theme normalized to %q", cfg.Appearance.Theme)
 	}
 }

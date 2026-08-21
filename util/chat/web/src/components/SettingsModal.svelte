@@ -3,6 +3,7 @@
   import { cleanupMedia, getHealth, getMediaUsage, saveConfig } from '../api.js';
   import PromptPresetManager from './settings/PromptPresetManager.svelte';
   import AvatarSettings from './settings/AvatarSettings.svelte';
+  import ThemeSettings from './settings/ThemeSettings.svelte';
   import SSHSettings from './settings/SSHSettings.svelte';
   import SettingsToast from './settings/SettingsToast.svelte';
 
@@ -73,6 +74,8 @@
     if (!settings.tts) settings.tts = { enabled: true, endpoint: 'http://127.0.0.1:8692', model: 'Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice', language: 'Korean', voice: 'Sohee', instructions: '', seed: -1, auto_play: false, timeout: '10m' };
     if (settings.tools && settings.tools.media_import_enabled === undefined) settings.tools.media_import_enabled = true;
     if (!settings.extra) settings.extra = { ssh_enabled: false, ssh_endpoint: 'http://127.0.0.1:8699' };
+    if (!settings.appearance) settings.appearance = { assistant_avatar: 'preset:spark', user_avatar: 'preset:person-blue', theme: 'system' };
+    if (!['dark', 'light', 'system'].includes(settings.appearance.theme)) settings.appearance.theme = 'system';
   }
 
   function formatBytes(value) {
@@ -192,6 +195,7 @@
       </div>
 
       <div id="settings-panel-appearance" class="settings-tab-panel" class:active={activeTab === 'appearance'} role="tabpanel" aria-labelledby="settings-tab-appearance">
+        <ThemeSettings bind:appearance={settings.appearance} />
         <AvatarSettings bind:appearance={settings.appearance} onnotify={notify} onuploaded={(id) => avatarKeepIds = [...avatarKeepIds, id]} />
       </div>
 

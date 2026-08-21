@@ -168,6 +168,9 @@ API endpoint, listen address, SQLite 경로, 기본 모델과 reasoning effort�
 `sparktalk.yaml` 또는 웹 화면 좌측 하단의 **설정**에서 관리합니다.
 Endpoint·모델·reasoning 변경은 저장 즉시 적용되며 listen address와 DB
 경로 변경은 앱 재시작 후 적용됩니다.
+외형 설정에서 **다크**, **라이트**, **시스템 설정 따름** 테마를 선택할 수
+있습니다. 시스템 모드는 브라우저가 보고하는 OS 색상 설정 변경을 실시간으로
+반영하며, 선택값은 `appearance.theme`에 저장됩니다.
 
 ## 지능형 문맥 관리
 

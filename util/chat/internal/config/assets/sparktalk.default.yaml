@@ -75,6 +75,8 @@ extra:
   ssh_endpoint: http://127.0.0.1:8699
 
 appearance:
+  # dark, light, system 중 하나를 사용합니다.
+  theme: system
   # 내장 프리셋은 preset:이 붙으며, 커스텀 업로드는 /api/images/...로 저장됩니다.
   assistant_avatar: preset:spark
   user_avatar: preset:person-blue

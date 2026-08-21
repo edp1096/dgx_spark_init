@@ -105,6 +105,7 @@ type ExtraConfig struct {
 type AppearanceConfig struct {
 	AssistantAvatar string `yaml:"assistant_avatar" json:"assistant_avatar"`
 	UserAvatar      string `yaml:"user_avatar" json:"user_avatar"`
+	Theme           string `yaml:"theme" json:"theme"`
 }
 
 type PublicConfig struct {
@@ -352,6 +353,12 @@ func (c *Config) Normalize() {
 	}
 	c.Appearance.AssistantAvatar = normalizeAvatar(c.Appearance.AssistantAvatar, "preset:spark")
 	c.Appearance.UserAvatar = normalizeAvatar(c.Appearance.UserAvatar, "preset:person-blue")
+	c.Appearance.Theme = strings.ToLower(strings.TrimSpace(c.Appearance.Theme))
+	switch c.Appearance.Theme {
+	case "dark", "light", "system":
+	default:
+		c.Appearance.Theme = "system"
+	}
 }
 
 func (c Config) Validate() error {
