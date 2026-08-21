@@ -30,7 +30,24 @@ asr:
   language: auto
   # 노래·전문용어 등 문맥 힌트가 필요할 때만 입력합니다.
   prompt: ""
+  # 연속 음성대기에서 문장부호와 짧은 추임새만 인식된 결과를 자동 전송하지 않습니다.
+  filter_fillers: true
   timeout: 30m
+
+tts:
+  # AI 답변을 Qwen3-TTS CustomVoice로 읽습니다.
+  enabled: true
+  endpoint: http://127.0.0.1:8692
+  model: Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice
+  language: Korean
+  voice: Sohee
+  # 감정·말투 지시가 필요할 때만 입력합니다.
+  instructions: ""
+  # -1은 매번 무작위입니다.
+  seed: -1
+  # 답변마다 자동으로 읽을지 여부입니다. 수동 읽기는 항상 사용할 수 있습니다.
+  auto_play: false
+  timeout: 10m
 
 context:
   # 전체 대화는 보존하고 모델 입력만 구간별로 요약합니다. 0은 백엔드 자동 감지입니다.

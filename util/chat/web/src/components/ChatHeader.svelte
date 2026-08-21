@@ -10,6 +10,10 @@
   export let webToolsEnabled = false;
   export let health = { status: 'checking', model: '' };
   export let sshGrants = [];
+  export let microphoneAvailable = false;
+  export let continuousVoiceEnabled = false;
+  export let continuousVoiceState = 'off';
+  export let continuousQueueCount = 0;
   export let controlsOpen = false;
   export let onToggleSidebar = () => {};
   export let onBeginTitleEdit = () => {};
@@ -19,6 +23,17 @@
   export let onCloseControls = () => {};
   export let onRevokeSSHGrant = () => {};
   export let onClearSSHGrants = () => {};
+  export let onToggleContinuousVoice = () => {};
+
+  function voiceModeLabel() {
+    if (continuousVoiceState === 'requesting') return '마이크 연결 중';
+    if (continuousVoiceState === 'stopping') return '음성대기 종료 중';
+    if (continuousVoiceState === 'speaking') return '발화 감지';
+    if (continuousVoiceState === 'paused') return 'AI 음성 재생 중';
+    if (continuousQueueCount) return `음성인식 ${continuousQueueCount}`;
+    if (continuousVoiceState === 'calibrating') return '소음 측정 중';
+    return continuousVoiceEnabled ? '음성대기 중' : '음성대기 꺼짐';
+  }
 </script>
 
 <header>
@@ -37,6 +52,7 @@
     </select>
     <input bind:value={reasoningEffort} list="reasoning-levels" placeholder="reasoning effort" aria-label="Reasoning effort" />
     <button class:active={webToolsEnabled} class="web-toggle" onclick={() => webToolsEnabled = !webToolsEnabled} title="모델이 필요할 때 웹검색 사용">{webToolsEnabled ? '웹검색 자동' : '웹검색 꺼짐'}</button>
+    <button class:active={continuousVoiceEnabled} class:speaking={continuousVoiceState === 'speaking'} class="voice-mode-toggle" onclick={onToggleContinuousVoice} disabled={!activeSession || !microphoneAvailable || ['requesting', 'stopping'].includes(continuousVoiceState)} title={!microphoneAvailable ? 'HTTPS 또는 안전한 출처 설정이 필요합니다' : '발화를 자동 인식하고 바로 전송'}>{voiceModeLabel()}</button>
     {#if sshGrants.length}
       <details class="ssh-grants-menu">
         <summary title="이 대화에서 자동 허용된 SSH 서버">SSH 허용 {sshGrants.length}</summary>
@@ -68,6 +84,7 @@
     </label>
     <label>Reasoning effort<input bind:value={reasoningEffort} list="reasoning-levels" placeholder="reasoning effort" /></label>
     <button class:active={webToolsEnabled} class="drawer-web-toggle" onclick={() => webToolsEnabled = !webToolsEnabled}>{webToolsEnabled ? '웹검색 자동' : '웹검색 꺼짐'}</button>
+    <button class:active={continuousVoiceEnabled} class:speaking={continuousVoiceState === 'speaking'} class="drawer-voice-toggle" onclick={onToggleContinuousVoice} disabled={!activeSession || !microphoneAvailable || ['requesting', 'stopping'].includes(continuousVoiceState)}>{voiceModeLabel()}</button>
     {#if sshGrants.length}
       <section class="drawer-ssh-grants">
         <div><strong>SSH 자동 허용</strong><button onclick={onClearSSHGrants}>모두 해제</button></div>

@@ -12,12 +12,16 @@
     listSessions, createSession, deleteSession, renameSession, listMessages, streamChat,
     getHealth, getModels, getConfig, retryMessage, editMessage as editChatMessage, uploadAttachment, uploadMediaURL,
     setSessionGroup, listGroups, createGroup, renameGroup, moveGroup, deleteGroup,
-    getContextState, compactContext, clearContext, answerToolApproval,
-    listSSHConversationGrants, revokeSSHConversationGrant, clearSSHConversationGrants,
+    getContextState, compactContext, clearContext, answerToolApproval, transcribeVoice,
+    listSSHConversationGrants, revokeSSHConversationGrant, clearSSHConversationGrants, streamSpeech,
   } from './api.js';
   import {
     attachmentKind, hasFileDrag, isSupportedAttachmentFile, maxAttachmentBytes, maxImageBytes, maxMessageBytes,
   } from './lib/attachments.js';
+  import { beginVoiceRecording, voiceFilename, voiceRecordingSupported } from './lib/voice-recorder.js';
+  import { beginContinuousVoice, isIgnorableVoiceTranscript } from './lib/continuous-voice.js';
+  import { createSpeechChunker, speechTextFromMarkdown } from './lib/speech-text.js';
+  import { PCMStreamPlayer } from './lib/pcm-player.js';
 
   let sessions = [];
   let groups = [];
@@ -67,6 +71,24 @@
   let contextLoading = false;
   let sshConversationGrants = [];
   let composerInput;
+  let microphoneAvailable = false;
+  let voiceState = 'idle';
+  let voiceSeconds = 0;
+  let voiceRecording = null;
+  let voiceSessionId = '';
+  let voiceTimer;
+  let pendingVoiceTranscripts = {};
+  let continuousVoiceEnabled = false;
+  let continuousVoiceState = 'off';
+  let continuousVoiceListener = null;
+  let continuousUtterances = [];
+  let continuousQueueCount = 0;
+  let continuousQueueProcessing = false;
+  let continuousAutoSendPending = {};
+  let speechSession = null;
+  let speechLoadingKey = '';
+  let speechPlayingKey = '';
+  let speechPausedContinuousVoice = false;
 
   $: activeSession = sessions.find((item) => item.id === activeId);
   $: ungroupedSessions = sessions.filter((session) => !session.group_id);
@@ -80,6 +102,7 @@
   $: sourceDownloading = Boolean(activeId) && sourceDownloadingSessionId === activeId;
 
   onMount(() => {
+    microphoneAvailable = voiceRecordingSupported(window);
     const mobile = window.matchMedia('(max-width: 600px)').matches;
     sidebarOpen = mobile ? false : localStorage.getItem('sparktalk.sidebar-open') !== 'false';
     sidebarWidth = Number(localStorage.getItem('sparktalk.sidebar-width')) || 260;
@@ -93,6 +116,10 @@
     return () => {
       clearInterval(timer);
       clearTimeout(dragResetTimer);
+      clearInterval(voiceTimer);
+      voiceRecording?.stop().catch(() => {});
+      continuousVoiceListener?.stop().catch(() => {});
+      stopReplySpeech();
       window.removeEventListener('dragenter', onWindowDragEnter, true);
       window.removeEventListener('dragover', onWindowDragOver, true);
       window.removeEventListener('dragleave', onWindowDragLeave, true);
@@ -199,6 +226,7 @@
   }
 
   async function select(id) {
+    if (activeId && activeId !== id) stopReplySpeech();
     if (activeId && messages) messageCache = { ...messageCache, [activeId]: messages };
     activeId = id;
     syncActiveAttachmentState();
@@ -223,6 +251,8 @@
     error = sessionErrors[id] || '';
     await scrollBottom(true);
     closeSidebarOnMobile();
+    applyPendingVoiceTranscript(id);
+    flushContinuousAutoSend(id);
     await focusComposer(id);
   }
 
@@ -358,8 +388,10 @@
 
   async function send() {
     const content = input.trim();
-    if (!content || running || uploadingAttachments || !activeId) return;
+    if (!content || running || uploadingAttachments || voiceState !== 'idle' || !activeId) return;
     const sessionId = activeId;
+    stopReplySpeech();
+    continuousAutoSendPending = { ...continuousAutoSendPending, [sessionId]: false };
     const attachments = pendingAttachments;
     input = '';
     setPendingAttachments(sessionId, []);
@@ -378,6 +410,7 @@
       await refreshContext(sessionId);
       await refreshSessions();
       setTimeout(refreshSessions, 1800);
+      run.completed = true;
     } catch (e) {
       if (e.name !== 'AbortError') setSessionError(sessionId, e.message);
       if (e.name === 'AbortError') await new Promise((resolve) => setTimeout(resolve, 80));
@@ -392,6 +425,191 @@
 
   function onKeydown(event) {
     if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) { event.preventDefault(); send(); }
+  }
+
+  function formatVoiceError(error) {
+    if (error?.name === 'NotAllowedError' || error?.name === 'SecurityError') {
+      return '마이크 권한이 거부되었습니다. 주소창의 사이트 권한에서 마이크를 허용하세요.';
+    }
+    if (error?.name === 'NotFoundError') return '사용 가능한 마이크를 찾지 못했습니다.';
+    return error?.message || '마이크 녹음에 실패했습니다.';
+  }
+
+  async function startVoiceInput() {
+    if (!activeId || running || uploadingAttachments || voiceState !== 'idle' || continuousVoiceEnabled || ['requesting', 'stopping'].includes(continuousVoiceState)) return;
+    if (!microphoneAvailable) {
+      error = '마이크는 HTTPS, localhost 또는 안전한 출처로 허용한 주소에서 사용할 수 있습니다.';
+      return;
+    }
+    voiceState = 'requesting';
+    voiceSessionId = activeId;
+    setSessionError(voiceSessionId, '');
+    try {
+      voiceRecording = await beginVoiceRecording(window);
+      voiceSeconds = 0;
+      voiceState = 'recording';
+      clearInterval(voiceTimer);
+      voiceTimer = setInterval(() => {
+        voiceSeconds += 1;
+        if (voiceSeconds >= 300) stopVoiceInput();
+      }, 1000);
+    } catch (voiceError) {
+      setSessionError(voiceSessionId, formatVoiceError(voiceError));
+      voiceRecording = null;
+      voiceState = 'idle';
+      voiceSessionId = '';
+    }
+  }
+
+  async function stopVoiceInput() {
+    if (voiceState !== 'recording' || !voiceRecording) return;
+    const recording = voiceRecording;
+    const sessionId = voiceSessionId;
+    voiceRecording = null;
+    voiceState = 'transcribing';
+    clearInterval(voiceTimer);
+    try {
+      const blob = await recording.stop();
+      if (!blob.size) throw new Error('녹음된 음성이 없습니다.');
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5 * 60 * 1000);
+      try {
+        const result = await transcribeVoice(blob, voiceFilename(blob.type), controller.signal);
+        appendVoiceTranscript(sessionId, result.text || '');
+        setSessionError(sessionId, '');
+      } finally {
+        clearTimeout(timeout);
+      }
+    } catch (voiceError) {
+      setSessionError(sessionId, voiceError?.name === 'AbortError' ? '음성 인식 시간이 초과되었습니다.' : formatVoiceError(voiceError));
+    } finally {
+      voiceState = 'idle';
+      voiceSeconds = 0;
+      voiceSessionId = '';
+      await flushContinuousAutoSend(sessionId);
+      await focusComposer(sessionId);
+    }
+  }
+
+  function appendVoiceTranscript(sessionId, text) {
+    const transcript = text.trim();
+    if (!transcript) return;
+    if (activeId === sessionId) {
+      input = input.trim() ? `${input.trimEnd()} ${transcript}` : transcript;
+      return;
+    }
+    pendingVoiceTranscripts = {
+      ...pendingVoiceTranscripts,
+      [sessionId]: [pendingVoiceTranscripts[sessionId], transcript].filter(Boolean).join(' '),
+    };
+  }
+
+  function applyPendingVoiceTranscript(sessionId) {
+    const transcript = pendingVoiceTranscripts[sessionId];
+    if (!transcript) return;
+    input = input.trim() ? `${input.trimEnd()} ${transcript}` : transcript;
+    const next = { ...pendingVoiceTranscripts };
+    delete next[sessionId];
+    pendingVoiceTranscripts = next;
+  }
+
+  async function toggleContinuousVoice() {
+    if (continuousVoiceEnabled || continuousVoiceState === 'error') {
+      await stopContinuousVoice();
+      return;
+    }
+    if (!activeId || voiceState !== 'idle' || ['requesting', 'stopping'].includes(continuousVoiceState)) return;
+    if (!microphoneAvailable) {
+      error = '마이크는 HTTPS, localhost 또는 안전한 출처로 허용한 주소에서 사용할 수 있습니다.';
+      return;
+    }
+    // Continuous dictation is hands-free. In particular, Android browsers
+    // must not reopen the software keyboard while listening or after a reply.
+    composerInput?.blur();
+    continuousVoiceState = 'requesting';
+    try {
+      const listener = await beginContinuousVoice(window, {
+        getContext: () => ({ sessionId: activeId }),
+        onState: (state) => { continuousVoiceState = state; },
+        onUtterance: (blob, context) => {
+          if (speechLoadingKey) stopReplySpeech();
+          enqueueContinuousUtterance(blob, context?.sessionId || activeId);
+        },
+        onError: (voiceError) => {
+          setSessionError(activeId, formatVoiceError(voiceError));
+          continuousVoiceEnabled = false;
+          continuousVoiceState = 'error';
+          continuousVoiceListener = null;
+        },
+      });
+      continuousVoiceListener = listener;
+      continuousVoiceEnabled = true;
+      error = '';
+    } catch (voiceError) {
+      setSessionError(activeId, formatVoiceError(voiceError));
+      continuousVoiceEnabled = false;
+      continuousVoiceListener = null;
+      continuousVoiceState = 'off';
+    }
+  }
+
+  async function stopContinuousVoice() {
+    const listener = continuousVoiceListener;
+    continuousVoiceEnabled = false;
+    continuousVoiceListener = null;
+    continuousVoiceState = 'stopping';
+    try { await listener?.stop(); }
+    catch (voiceError) { setSessionError(activeId, formatVoiceError(voiceError)); }
+    finally { continuousVoiceState = 'off'; }
+  }
+
+  function enqueueContinuousUtterance(blob, sessionId) {
+    if (!blob?.size || !sessionId) return;
+    continuousUtterances = [...continuousUtterances, { blob, sessionId }];
+    continuousQueueCount = continuousUtterances.length + (continuousQueueProcessing ? 1 : 0);
+    processContinuousUtterances();
+  }
+
+  async function processContinuousUtterances() {
+    if (continuousQueueProcessing) return;
+    continuousQueueProcessing = true;
+    try {
+      while (continuousUtterances.length) {
+        const item = continuousUtterances[0];
+        continuousUtterances = continuousUtterances.slice(1);
+        continuousQueueCount = continuousUtterances.length + 1;
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 5 * 60 * 1000);
+        try {
+          const result = await transcribeVoice(item.blob, voiceFilename(item.blob.type), controller.signal);
+          const transcript = result.text || '';
+          if (settings?.asr?.filter_fillers !== false && isIgnorableVoiceTranscript(transcript)) {
+            setSessionError(item.sessionId, '');
+            continue;
+          }
+          appendVoiceTranscript(item.sessionId, transcript);
+          continuousAutoSendPending = { ...continuousAutoSendPending, [item.sessionId]: true };
+          setSessionError(item.sessionId, '');
+          flushContinuousAutoSend(item.sessionId);
+        } catch (voiceError) {
+          const message = voiceError?.name === 'AbortError' ? '음성 인식 시간이 초과되었습니다.' : formatVoiceError(voiceError);
+          if (!/empty text|no audio|녹음된 음성이 없습니다/i.test(message)) setSessionError(item.sessionId, message);
+        } finally {
+          clearTimeout(timeout);
+        }
+      }
+    } finally {
+      continuousQueueProcessing = false;
+      continuousQueueCount = 0;
+    }
+  }
+
+  async function flushContinuousAutoSend(sessionId) {
+    if (!continuousAutoSendPending[sessionId] || activeId !== sessionId || sessionRuns[sessionId] || voiceState !== 'idle') return;
+    await tick();
+    if (!continuousAutoSendPending[sessionId] || activeId !== sessionId || sessionRuns[sessionId] || !input.trim()) return;
+    continuousAutoSendPending = { ...continuousAutoSendPending, [sessionId]: false };
+    send();
   }
 
   function stop() { sessionRuns[activeId]?.controller.abort(); }
@@ -422,6 +640,7 @@
       publishMessages(sessionId, updated);
       await refreshContext(sessionId);
       await refreshSessions();
+      run.completed = true;
     } catch (e) {
       message.content = original.content;
       message.reasoning_content = original.reasoning_content;
@@ -483,6 +702,7 @@
       await refreshSessions();
       setTimeout(refreshSessions, 1800);
       editInput = '';
+      run.completed = true;
     } catch (e) {
       publishMessages(sessionId, originalMessages);
       if (e.name !== 'AbortError') setSessionError(sessionId, e.message);
@@ -492,22 +712,42 @@
   }
 
   function startSessionRun(sessionId, runMessages, runRetryingIndex) {
+    stopReplySpeech();
     const run = { controller: new AbortController(), messages: runMessages, retryingIndex: runRetryingIndex };
+    if (continuousVoiceEnabled && settings?.tts?.enabled && settings.tts.auto_play) {
+      run.speechChunker = createSpeechChunker();
+      run.speechSession = createSpeechSession(`live:${sessionId}:${Date.now()}`, sessionId);
+    }
     sessionRuns = { ...sessionRuns, [sessionId]: run };
     publishMessages(sessionId, runMessages);
     return run;
   }
   async function finishSessionRun(sessionId, run) {
     if (sessionRuns[sessionId] !== run) return;
+    const canAutoPlay = run.completed && activeId === sessionId && settings?.tts?.enabled && settings.tts.auto_play
+      && !continuousAutoSendPending[sessionId];
+    if (run.speechSession) {
+      if (canAutoPlay) {
+        for (const chunk of run.speechChunker?.finish() || []) enqueueSpeech(run.speechSession, chunk);
+        closeSpeechSession(run.speechSession);
+      } else if (speechSession === run.speechSession) {
+        stopReplySpeech();
+      }
+    }
     const next = { ...sessionRuns };
     delete next[sessionId];
     sessionRuns = next;
+    const reply = messageCache[sessionId]?.[run.retryingIndex];
+    if (canAutoPlay && !run.speechSession && reply?.role === 'assistant' && reply.content) {
+      speakReply(reply);
+    }
+    await flushContinuousAutoSend(sessionId);
     await focusComposer(sessionId);
   }
 
   async function focusComposer(sessionId = activeId) {
     await tick();
-    if (activeId === sessionId && !sessionRuns[sessionId] && !settingsOpen && !controlsOpen) {
+    if (activeId === sessionId && !sessionRuns[sessionId] && !settingsOpen && !controlsOpen && !continuousVoiceEnabled) {
       composerInput?.focus({ preventScroll: true });
     }
   }
@@ -540,6 +780,7 @@
   }
   function showVariant(message, variantIndex, messageIndex) {
     if (running || !message.variants?.[variantIndex]) return;
+    stopReplySpeech();
     applyVariant(message, variantIndex, messageIndex);
     if (message.role === 'user') {
       const answer = messages[messageIndex + 1];
@@ -552,6 +793,13 @@
   }
   function streamHandlersFor(message, sessionId = activeId, messageList = messages) {
     const handlers = createStreamHandlers(message, () => publishMessages(sessionId, messageList));
+    const handleDelta = handlers.delta;
+    handlers.delta = (delta) => {
+      handleDelta(delta);
+      const run = sessionRuns[sessionId];
+      if (!run?.speechChunker || !run.speechSession) return;
+      for (const chunk of run.speechChunker.push(delta)) enqueueSpeech(run.speechSession, chunk);
+    };
     const handleToolApproval = handlers.toolApproval;
     handlers.toolApproval = (data) => {
       handleToolApproval(data);
@@ -806,16 +1054,130 @@
     if (!Array.isArray(config.model.system_prompt_presets)) config.model.system_prompt_presets = [];
     if (!config.model.system_prompt_preset) config.model.system_prompt_preset = '';
     if (!config.context) config.context = { enabled: true, window_tokens: 0, compact_at_percent: 80, output_reserve: 8192, safety_margin: 4096, recent_tokens: 32768, image_tokens: 2048 };
-    if (!config.asr) config.asr = { enabled: true, ffmpeg_endpoint: 'http://127.0.0.1:8698', endpoint: 'http://127.0.0.1:8694', model: 'qwen3-asr', language: 'auto', prompt: '', timeout: '30m' };
+    if (!config.asr) config.asr = { enabled: true, ffmpeg_endpoint: 'http://127.0.0.1:8698', endpoint: 'http://127.0.0.1:8694', model: 'qwen3-asr', language: 'auto', prompt: '', filter_fillers: true, timeout: '30m' };
+    if (config.asr.filter_fillers === undefined) config.asr.filter_fillers = true;
+    if (!config.tts) config.tts = { enabled: true, endpoint: 'http://127.0.0.1:8692', model: 'Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice', language: 'Korean', voice: 'Sohee', instructions: '', seed: -1, auto_play: false, timeout: '10m' };
   }
 
   async function applySavedSettings(next) {
+    stopReplySpeech();
     settings = next;
     reasoningEffort = settings.model.reasoning_effort || reasoningEffort;
     webToolsEnabled = settings.tools?.enabled ?? false;
     appearance = settings.appearance || appearance;
     await Promise.all([refreshModels(), refreshHealth()]);
     if (settings.model.default_model) selectedModel = settings.model.default_model;
+  }
+
+  function replySpeechKey(message) {
+    return `${message?.id || 'pending'}:${message?.variant_index ?? 0}`;
+  }
+
+  function replySpeechText(message) {
+    return speechTextFromMarkdown(message?.content || '');
+  }
+
+  function releaseReplySpeech(session, resumeVoice = true) {
+    if (speechSession !== session) return;
+    speechSession = null;
+    speechLoadingKey = '';
+    speechPlayingKey = '';
+    if (speechPausedContinuousVoice) {
+      speechPausedContinuousVoice = false;
+      if (resumeVoice) continuousVoiceListener?.setPaused(false);
+    }
+  }
+
+  function stopReplySpeech() {
+    const session = speechSession;
+    if (!session) return;
+    session.stopped = true;
+    session.controller.abort();
+    session.player?.stop();
+    releaseReplySpeech(session, true);
+  }
+
+  function createSpeechSession(key, sessionId = activeId) {
+    const session = {
+      key, sessionId, controller: new AbortController(), player: null,
+      queue: [], processing: false, closed: false, stopped: false,
+    };
+    speechSession = session;
+    return session;
+  }
+
+  function enqueueSpeech(session, text) {
+    const value = String(text || '').trim();
+    if (!value || session.stopped || session.closed || speechSession !== session) return;
+    session.queue.push(value);
+    if (!session.player) speechLoadingKey = session.key;
+    processSpeechQueue(session);
+  }
+
+  function closeSpeechSession(session) {
+    if (session.stopped || speechSession !== session) return;
+    session.closed = true;
+    processSpeechQueue(session);
+  }
+
+  async function processSpeechQueue(session) {
+    if (session.processing || session.stopped || speechSession !== session) return;
+    session.processing = true;
+    try {
+      while (session.queue.length && !session.stopped) {
+        const text = session.queue.shift();
+        await streamSpeech(text, session.controller.signal, async (bytes, sampleRate) => {
+          if (session.stopped || speechSession !== session) return;
+          if (!session.player) {
+            session.player = new PCMStreamPlayer({
+              sampleRate,
+              onStart: () => {
+                if (speechSession !== session) return;
+                speechLoadingKey = '';
+                speechPlayingKey = session.key;
+                if (continuousVoiceEnabled && continuousVoiceListener) {
+                  continuousVoiceListener.setPaused(true);
+                  speechPausedContinuousVoice = true;
+                }
+              },
+            });
+          }
+          await session.player.append(bytes);
+        });
+      }
+      if (session.closed && !session.stopped) {
+        if (session.player) await session.player.finish();
+        releaseReplySpeech(session, true);
+      }
+    } catch (speechError) {
+      if (!session.stopped && speechError?.name !== 'AbortError') {
+        setSessionError(session.sessionId, speechError?.message || '답변 음성 생성에 실패했습니다.');
+      }
+      session.player?.stop();
+      releaseReplySpeech(session, true);
+    } finally {
+      session.processing = false;
+    }
+  }
+
+  async function speakReply(message) {
+    const key = replySpeechKey(message);
+    if (speechLoadingKey === key || speechPlayingKey === key) {
+      stopReplySpeech();
+      return;
+    }
+    if (!settings?.tts?.enabled) {
+      setSessionError(activeId, '설정에서 답변 음성을 활성화해야 합니다.');
+      return;
+    }
+    const text = replySpeechText(message);
+    if (!text) return;
+    stopReplySpeech();
+    const session = createSpeechSession(key);
+    for (const chunk of text.split('\n').map((value) => value.trim()).filter(Boolean)) {
+      enqueueSpeech(session, chunk);
+    }
+    closeSpeechSession(session);
   }
 </script>
 
@@ -856,6 +1218,10 @@
       bind:reasoningEffort
       bind:webToolsEnabled
       {health}
+      {microphoneAvailable}
+      {continuousVoiceEnabled}
+      {continuousVoiceState}
+      {continuousQueueCount}
       sshGrants={sshConversationGrants}
       {controlsOpen}
       onToggleSidebar={toggleSidebar}
@@ -866,6 +1232,7 @@
       onCloseControls={closeControls}
       onRevokeSSHGrant={revokeSSHGrant}
       onClearSSHGrants={revokeAllSSHGrants}
+      onToggleContinuousVoice={toggleContinuousVoice}
     />
     <MessageList
       {messages}
@@ -886,6 +1253,10 @@
       onSubmitEdit={submitEdit}
       onBeginEdit={beginEdit}
       onToolApproval={respondToToolApproval}
+      ttsEnabled={settings?.tts?.enabled ?? false}
+      {speechLoadingKey}
+      {speechPlayingKey}
+      onSpeakReply={speakReply}
     />
     <ContextRail
       state={contextState}
@@ -909,6 +1280,10 @@
       bind:attachmentInput
       {reasoningEffort}
       {webToolsEnabled}
+      {microphoneAvailable}
+      {voiceState}
+      {voiceSeconds}
+      {continuousVoiceEnabled}
       onRemoveAttachment={removePendingAttachment}
       {onAttachmentInputChange}
       onAttachURL={addMediaURL}
@@ -916,6 +1291,8 @@
       {onPaste}
       onStop={stop}
       onSend={send}
+      onStartVoice={startVoiceInput}
+      onStopVoice={stopVoiceInput}
     />
   </main>
 </div>

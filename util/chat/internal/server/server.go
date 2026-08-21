@@ -16,6 +16,7 @@ import (
 	"sparktalk/internal/extra"
 	"sparktalk/internal/llm"
 	"sparktalk/internal/media"
+	"sparktalk/internal/tts"
 )
 
 type Server struct {
@@ -26,6 +27,7 @@ type Server struct {
 	db             *db.DB
 	llm            *llm.Client
 	asr            *asr.Client
+	tts            *tts.Client
 	extra          *extra.Client
 	media          *media.Store
 	server         *http.Server
@@ -33,6 +35,7 @@ type Server struct {
 	contextWindows map[string]int
 	compactionMu   sync.Mutex
 	asrMu          sync.Mutex
+	ttsMu          sync.Mutex
 	approvalsMu    sync.Mutex
 	approvals      map[string]*toolApproval
 }
@@ -46,7 +49,7 @@ func New(cfg config.Config, configPath string, store *db.DB, client *llm.Client,
 	if err != nil {
 		return nil, fmt.Errorf("media storage: %w", err)
 	}
-	s := &Server{cfg: cfg, startup: cfg.Server, configPath: configPath, db: store, llm: client, asr: asr.New(cfg.ASR), extra: extra.New(cfg.Extra.SSHEndpoint), media: mediaStore, contextWindows: make(map[string]int), approvals: make(map[string]*toolApproval)}
+	s := &Server{cfg: cfg, startup: cfg.Server, configPath: configPath, db: store, llm: client, asr: asr.New(cfg.ASR), tts: tts.New(cfg.TTS), extra: extra.New(cfg.Extra.SSHEndpoint), media: mediaStore, contextWindows: make(map[string]int), approvals: make(map[string]*toolApproval)}
 	mux := http.NewServeMux()
 	mux.HandleFunc("/api/health", s.health)
 	mux.HandleFunc("/api/config", s.configuration)
@@ -57,6 +60,8 @@ func New(cfg config.Config, configPath string, store *db.DB, client *llm.Client,
 	mux.HandleFunc("/api/files/", s.file)
 	mux.HandleFunc("/api/media", s.mediaUsage)
 	mux.HandleFunc("/api/media/source", s.uploadSource)
+	mux.HandleFunc("/api/asr/transcribe", s.transcribeVoice)
+	mux.HandleFunc("/api/tts/speech", s.synthesizeSpeech)
 	mux.HandleFunc("/api/ssh/hosts", s.sshHosts)
 	mux.HandleFunc("/api/ssh/hosts/", s.sshHost)
 	mux.HandleFunc("/api/ssh/keys", s.sshKeys)
@@ -85,6 +90,12 @@ func (s *Server) asrSnapshot() *asr.Client {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.asr
+}
+
+func (s *Server) ttsSnapshot() *tts.Client {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.tts
 }
 
 func (s *Server) extraSnapshot() *extra.Client {

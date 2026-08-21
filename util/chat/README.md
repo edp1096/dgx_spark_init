@@ -41,11 +41,13 @@ SparkTalk 자체는 Go 바이너리이며 Docker 컨테이너가 아니다. 전�
 |---|---|---|---|
 | 채팅·이미지·영상 인식 모델 | `compose_yaml/sglang_qwen38` | `http://127.0.0.1:8000` | 필수 |
 | 음성 전사 | `compose_yaml/qwen3_asr` | `http://127.0.0.1:8694` | 음성·영상 첨부 시 필요 |
+| 답변 음성 | `compose_yaml/qwen3_tts` | `http://127.0.0.1:8692` | AI 답변 읽기 사용 시 필요 |
 | SparkTalk Extra Media | `compose_yaml/sparktalk_extra` | `http://127.0.0.1:8698` | 음성·영상·URL 첨부 시 필요 |
 | SparkTalk Extra SSH | `compose_yaml/sparktalk_extra` | `http://127.0.0.1:8699` | 채팅에서 승인형 SSH 실행 시 필요 |
 
 이미지만 인식하는 채팅에는 SGLang만 있으면 된다. 음성·영상 또는 URL 미디어를
-사용한다면 Qwen3-ASR과 SparkTalk Extra Media도 함께 실행한다. 생성 스튜디오용
+사용한다면 Qwen3-ASR과 SparkTalk Extra Media도 함께 실행한다. 답변 읽기를
+사용한다면 Qwen3-TTS도 실행한다. 생성 스튜디오용
 `media_access_api`는 SparkTalk의 필수 구성요소가 아니다.
 
 저장소 루트에서 다음 순서로 실행한다. 현재 DGX Spark에서 검증한 채팅 모델은
@@ -70,7 +72,13 @@ cd ../sparktalk_extra
 make build
 make up
 
-# 4. SparkTalk 앱
+# 4. AI 답변 읽기(선택). 공통 vLLM-Omni 이미지는 최초 한 번 빌드한다.
+cd ../vllm_omni
+docker compose build
+cd ../qwen3_tts
+docker compose up -d custom
+
+# 5. SparkTalk 앱
 cd ../../util/chat
 make dist
 cd dist
@@ -97,6 +105,7 @@ make ytdlp-version
 ```bash
 curl -fsS http://127.0.0.1:8000/v1/models
 curl -fsS http://127.0.0.1:8694/health
+curl -fsS http://127.0.0.1:8692/health
 curl -fsS http://127.0.0.1:8698/health
 curl -fsS http://127.0.0.1:8699/health
 curl -fsS http://127.0.0.1:8585/api/health
@@ -252,10 +261,40 @@ Qwen VL이 볼 수 있는 영상 원본과 음성 트랙의 전사문을 함께 
 두 endpoint, ASR 모델, 인식 언어, 문맥·전문용어 힌트와 타임아웃을 관리할
 수 있습니다. 서비스 상태도 같은 영역에 표시됩니다.
 
+입력창의 마이크 버튼을 누르면 최대 5분까지 녹음하고, 다시 누르면 즉시
+Qwen3-ASR로 전사해 입력창에 문장을 넣습니다. 이 받아쓰기 녹음은 첨부 파일이나
+DB에 저장하지 않습니다. 브라우저 마이크 API는 안전한 출처에서만 제공되므로
+HTTPS·localhost를 사용하거나 개발용 Chromium에서 접속 주소 전체(스킴·IP·포트)를
+`unsafely-treat-insecure-origin-as-secure` 목록에 등록해야 합니다. 주소창의 사이트
+권한에서도 마이크를 허용해야 합니다.
+
+PC 상단과 모바일 우측 설정 패널의 **음성대기**를 켜면 마이크 스트림을 유지하고
+주변 소음에 맞춰 발화 시작과 약 1초의 침묵을 자동 감지합니다. 발화별 녹음은
+감지 시점보다 앞선 약 0.45초의 PCM 프리롤을 포함하므로 첫 음절 손실을 줄입니다.
+각 발화는 독립된 WAV로 만들어 Qwen3-ASR로 순서대로 전사한 뒤 즉시 전송합니다. 이전 답변이 생성 중이면 전사문을
+입력창에 보관했다가 답변이 끝난 직후 자동 전송합니다. 연속 모드는 매번 명시적으로
+켜야 하며 페이지를 새로 열 때 자동으로 마이크를 활성화하지 않습니다.
+설정의 추임새 필터를 켜면 문장부호만 있는 결과와 `아`, `어`, `음`, `흠`, `큼`
+같은 단독 발화는 자동 전송하지 않습니다. 수동 마이크 입력과 첨부 파일 전사에는
+이 필터를 적용하지 않습니다.
+
 전사 결과는 `<database>.media`에 첨부 ID별 작은 캐시로 저장됩니다. 답변
 재시도와 이후 대화에서 같은 파일을 다시 인식하지 않으며, 언어·힌트·모델
 설정이 바뀌면 자동으로 다시 인식합니다. 미사용 미디어를 정리하면 해당 전사
 캐시도 함께 삭제됩니다.
+
+## 답변 음성
+
+AI 답변 아래의 **읽기**를 누르면 SparkTalk Go 백엔드가 Qwen3-TTS CustomVoice
+API로 화면에 보이는 답변을 문단·줄 단위로 보내고, 24 kHz PCM을 도착하는 즉시
+브라우저에서 연속 재생합니다. 음성대기 모드에서는 답변 전체가 끝날 때까지 기다리지
+않고 생성 중 완성된 문장부터 같은 재생 큐에 넣습니다. 설정의
+**답변 음성**에서 endpoint, 모델, 언어, 화자, 연기 지시, 시드와 답변 완료 후
+자동 재생 여부를 관리합니다. Markdown 표식과 내부 도구 호출문은 읽지 않습니다.
+
+음성대기와 함께 사용할 때는 AI 음성 재생 중 PCM 발화 판정을 일시 중지하고,
+재생이 끝나거나 사용자가 정지하면 자동으로 대기 상태로 돌아갑니다. 따라서
+스피커로 나온 답변이 다시 ASR을 거쳐 질문으로 전송되는 순환을 방지합니다.
 
 입력창의 `⌁` 버튼에 YouTube·Vimeo·Dailymotion 등 yt-dlp가 인식하는 URL을
 넣으면 SparkTalk 백엔드가 SparkTalk Extra Media를 통해 단일 미디어를 취득하고 일반

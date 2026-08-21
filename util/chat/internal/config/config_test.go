@@ -28,6 +28,9 @@ func TestLoadCreatesEmbeddedDefaultAndSaveReloads(t *testing.T) {
 	if !cfg.ASR.Enabled || cfg.ASR.FFmpegEndpoint != "http://127.0.0.1:8698" || cfg.ASR.Endpoint != "http://127.0.0.1:8694" {
 		t.Fatalf("generated ASR defaults are incomplete: %+v", cfg.ASR)
 	}
+	if !cfg.TTS.Enabled || cfg.TTS.Endpoint != "http://127.0.0.1:8692" || cfg.TTS.Voice != "Sohee" || cfg.TTS.Seed != -1 {
+		t.Fatalf("generated TTS defaults are incomplete: %+v", cfg.TTS)
+	}
 	wantPresetNames := []string{"없음", "보좌관", "언니여동생", "오빠여동생"}
 	if len(cfg.Model.SystemPromptPresets) != len(wantPresetNames) {
 		t.Fatalf("generated prompt presets are incomplete: %+v", cfg.Model.SystemPromptPresets)
@@ -123,8 +126,11 @@ func TestLoadOldConfigDefaultsToolsToEnabled(t *testing.T) {
 	if !cfg.Context.Enabled || cfg.Context.RecentTokens != 32768 {
 		t.Fatalf("old config did not receive context defaults: %+v", cfg.Context)
 	}
-	if !cfg.ASR.Enabled || cfg.ASR.Model != "qwen3-asr" || cfg.ASR.Timeout != "30m" {
+	if !cfg.ASR.Enabled || !cfg.ASR.FilterFillers || cfg.ASR.Model != "qwen3-asr" || cfg.ASR.Timeout != "30m" {
 		t.Fatalf("old config did not receive ASR defaults: %+v", cfg.ASR)
+	}
+	if !cfg.TTS.Enabled || cfg.TTS.Voice != "Sohee" || cfg.TTS.Seed != -1 {
+		t.Fatalf("old config did not receive TTS defaults: %+v", cfg.TTS)
 	}
 	if cfg.Appearance.AssistantAvatar != "preset:spark" || cfg.Appearance.UserAvatar != "preset:person-blue" {
 		t.Fatalf("old config did not receive avatar defaults: %+v", cfg.Appearance)

@@ -21,6 +21,7 @@ type Config struct {
 	Server     ServerConfig     `yaml:"server" json:"server"`
 	Model      ModelConfig      `yaml:"model" json:"model"`
 	ASR        ASRConfig        `yaml:"asr" json:"asr"`
+	TTS        TTSConfig        `yaml:"tts" json:"tts"`
 	Context    ContextConfig    `yaml:"context" json:"context"`
 	Tools      ToolsConfig      `yaml:"tools" json:"tools"`
 	Extra      ExtraConfig      `yaml:"extra" json:"extra"`
@@ -37,7 +38,22 @@ type ASRConfig struct {
 	Model          string `yaml:"model" json:"model"`
 	Language       string `yaml:"language" json:"language"`
 	Prompt         string `yaml:"prompt" json:"prompt"`
+	FilterFillers  bool   `yaml:"filter_fillers" json:"filter_fillers"`
 	Timeout        string `yaml:"timeout" json:"timeout"`
+}
+
+// TTSConfig connects the assistant reply reader to an OpenAI-compatible
+// Qwen3-TTS CustomVoice service.
+type TTSConfig struct {
+	Enabled      bool   `yaml:"enabled" json:"enabled"`
+	Endpoint     string `yaml:"endpoint" json:"endpoint"`
+	Model        string `yaml:"model" json:"model"`
+	Language     string `yaml:"language" json:"language"`
+	Voice        string `yaml:"voice" json:"voice"`
+	Instructions string `yaml:"instructions" json:"instructions"`
+	Seed         int64  `yaml:"seed" json:"seed"`
+	AutoPlay     bool   `yaml:"auto_play" json:"auto_play"`
+	Timeout      string `yaml:"timeout" json:"timeout"`
 }
 
 type ServerConfig struct {
@@ -94,6 +110,7 @@ type PublicConfig struct {
 	Server     ServerConfig     `json:"server"`
 	Model      ModelConfig      `json:"model"`
 	ASR        ASRConfig        `json:"asr"`
+	TTS        TTSConfig        `json:"tts"`
 	Context    ContextConfig    `json:"context"`
 	Tools      ToolsConfig      `json:"tools"`
 	Extra      ExtraConfig      `json:"extra"`
@@ -129,8 +146,13 @@ func Load(path string) (Config, bool, error) {
 	}
 	var presence struct {
 		ASR *struct {
-			Enabled *bool `yaml:"enabled"`
+			Enabled       *bool `yaml:"enabled"`
+			FilterFillers *bool `yaml:"filter_fillers"`
 		} `yaml:"asr"`
+		TTS *struct {
+			Enabled *bool  `yaml:"enabled"`
+			Seed    *int64 `yaml:"seed"`
+		} `yaml:"tts"`
 		Context *struct {
 			Enabled *bool `yaml:"enabled"`
 		} `yaml:"context"`
@@ -141,6 +163,15 @@ func Load(path string) (Config, bool, error) {
 	_ = yaml.Unmarshal(data, &presence)
 	if presence.ASR == nil || presence.ASR.Enabled == nil {
 		cfg.ASR.Enabled = true
+	}
+	if presence.ASR == nil || presence.ASR.FilterFillers == nil {
+		cfg.ASR.FilterFillers = true
+	}
+	if presence.TTS == nil || presence.TTS.Enabled == nil {
+		cfg.TTS.Enabled = true
+	}
+	if presence.TTS == nil || presence.TTS.Seed == nil {
+		cfg.TTS.Seed = -1
 	}
 	if presence.Context == nil || presence.Context.Enabled == nil {
 		cfg.Context.Enabled = true
@@ -234,6 +265,12 @@ func (c *Config) Normalize() {
 	c.ASR.Language = strings.TrimSpace(c.ASR.Language)
 	c.ASR.Prompt = strings.TrimSpace(c.ASR.Prompt)
 	c.ASR.Timeout = strings.TrimSpace(c.ASR.Timeout)
+	c.TTS.Endpoint = strings.TrimRight(strings.TrimSpace(c.TTS.Endpoint), "/")
+	c.TTS.Model = strings.TrimSpace(c.TTS.Model)
+	c.TTS.Language = strings.TrimSpace(c.TTS.Language)
+	c.TTS.Voice = strings.TrimSpace(c.TTS.Voice)
+	c.TTS.Instructions = strings.TrimSpace(c.TTS.Instructions)
+	c.TTS.Timeout = strings.TrimSpace(c.TTS.Timeout)
 	c.Extra.SSHEndpoint = strings.TrimRight(strings.TrimSpace(c.Extra.SSHEndpoint), "/")
 	for i := range c.Model.SystemPromptPresets {
 		c.Model.SystemPromptPresets[i].Name = strings.TrimSpace(c.Model.SystemPromptPresets[i].Name)
@@ -259,6 +296,21 @@ func (c *Config) Normalize() {
 	}
 	if c.ASR.Timeout == "" {
 		c.ASR.Timeout = "30m"
+	}
+	if c.TTS.Endpoint == "" {
+		c.TTS.Endpoint = "http://127.0.0.1:8692"
+	}
+	if c.TTS.Model == "" {
+		c.TTS.Model = "Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice"
+	}
+	if c.TTS.Language == "" {
+		c.TTS.Language = "Korean"
+	}
+	if c.TTS.Voice == "" {
+		c.TTS.Voice = "Sohee"
+	}
+	if c.TTS.Timeout == "" {
+		c.TTS.Timeout = "10m"
 	}
 	if c.Tools.MaxRounds <= 0 {
 		c.Tools.MaxRounds = 3
@@ -317,6 +369,15 @@ func (c Config) Validate() error {
 		}
 		return fmt.Errorf("asr.timeout: %w", err)
 	}
+	if c.TTS.Enabled && !strings.HasPrefix(c.TTS.Endpoint, "http://") && !strings.HasPrefix(c.TTS.Endpoint, "https://") {
+		return errors.New("tts.endpoint must start with http:// or https://")
+	}
+	if timeout, err := time.ParseDuration(c.TTS.Timeout); err != nil || timeout <= 0 {
+		if err == nil {
+			err = errors.New("must be greater than zero")
+		}
+		return fmt.Errorf("tts.timeout: %w", err)
+	}
 	if filepath.Clean(c.Server.Database) == "." {
 		return errors.New("server.database is required")
 	}
@@ -360,7 +421,7 @@ func (c Config) Validate() error {
 }
 
 func (c Config) Public() PublicConfig {
-	public := PublicConfig{Server: c.Server, Model: c.Model, ASR: c.ASR, Context: c.Context, Tools: c.Tools, Extra: c.Extra, Appearance: c.Appearance, APIKeySet: c.Model.APIKey != ""}
+	public := PublicConfig{Server: c.Server, Model: c.Model, ASR: c.ASR, TTS: c.TTS, Context: c.Context, Tools: c.Tools, Extra: c.Extra, Appearance: c.Appearance, APIKeySet: c.Model.APIKey != ""}
 	public.Model.APIKey = ""
 	return public
 }

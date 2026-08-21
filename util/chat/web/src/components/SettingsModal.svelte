@@ -48,7 +48,9 @@
     if (!Array.isArray(settings.model.system_prompt_presets)) settings.model.system_prompt_presets = [];
     if (!settings.model.system_prompt_preset) settings.model.system_prompt_preset = '';
     if (!settings.context) settings.context = { enabled: true, window_tokens: 0, compact_at_percent: 80, output_reserve: 8192, safety_margin: 4096, recent_tokens: 32768, image_tokens: 2048 };
-    if (!settings.asr) settings.asr = { enabled: true, ffmpeg_endpoint: 'http://127.0.0.1:8698', endpoint: 'http://127.0.0.1:8694', model: 'qwen3-asr', language: 'auto', prompt: '', timeout: '30m' };
+    if (!settings.asr) settings.asr = { enabled: true, ffmpeg_endpoint: 'http://127.0.0.1:8698', endpoint: 'http://127.0.0.1:8694', model: 'qwen3-asr', language: 'auto', prompt: '', filter_fillers: true, timeout: '30m' };
+    if (settings.asr.filter_fillers === undefined) settings.asr.filter_fillers = true;
+    if (!settings.tts) settings.tts = { enabled: true, endpoint: 'http://127.0.0.1:8692', model: 'Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice', language: 'Korean', voice: 'Sohee', instructions: '', seed: -1, auto_play: false, timeout: '10m' };
     if (!settings.extra) settings.extra = { ssh_enabled: false, ssh_endpoint: 'http://127.0.0.1:8699' };
   }
 
@@ -77,6 +79,7 @@
         server: settings.server,
         model: settings.model,
         asr: settings.asr,
+        tts: settings.tts,
         context: settings.context,
         tools: settings.tools,
         extra: settings.extra,
@@ -109,15 +112,25 @@
     <fieldset>
       <legend>음성 인식</legend>
       <label class="check"><input type="checkbox" bind:checked={settings.asr.enabled} /> 음성·영상의 음성을 Qwen3-ASR로 전사</label>
-      <label>SparkTalk Extra Media endpoint<input bind:value={settings.asr.ffmpeg_endpoint} placeholder="http://127.0.0.1:8698" /></label>
-      <label>ASR API endpoint<input bind:value={settings.asr.endpoint} placeholder="http://127.0.0.1:8694" /></label>
-      <label>ASR 모델<input bind:value={settings.asr.model} placeholder="qwen3-asr" /></label>
-      <label>인식 언어<input bind:value={settings.asr.language} list="asr-languages" placeholder="auto 또는 Korean" /></label>
+      <div class="settings-section-title">인식 정확도</div>
+      <label>기본 인식 언어<input bind:value={settings.asr.language} list="asr-languages" placeholder="auto 또는 Korean" /></label>
       <datalist id="asr-languages">
         {#each ['auto', 'Korean', 'Japanese', 'English', 'Chinese', 'Cantonese', 'French', 'German', 'Spanish', 'Portuguese', 'Italian', 'Russian', 'Thai', 'Vietnamese', 'Arabic', 'Turkish', 'Hindi', 'Indonesian', 'Malay', 'Dutch', 'Swedish', 'Danish', 'Finnish', 'Polish', 'Czech', 'Filipino', 'Persian', 'Greek', 'Romanian', 'Hungarian'] as language}<option value={language}></option>{/each}
       </datalist>
-      <label>문맥·전문용어 힌트<textarea rows="2" bind:value={settings.asr.prompt} placeholder="비우면 사용하지 않음"></textarea></label>
-      <label>처리 타임아웃<input bind:value={settings.asr.timeout} placeholder="30m" /></label>
+      <small class="settings-inline-help"><code>auto</code>는 혼합 언어에 적합합니다. 대부분 한 언어라면 <code>Korean</code>처럼 고정하는 편이 안정적입니다.</small>
+      <label>문맥·전문용어 힌트<textarea rows="3" bind:value={settings.asr.prompt} placeholder="예: 한국어 기술 대화. 주요 용어: SparkTalk, DGX Spark, SGLang, Qwen3-ASR"></textarea></label>
+      <small class="settings-inline-help">자주 말하는 제품명·인명·약어를 정확한 표기로 적으십시오. 긴 지시문보다 짧은 문맥과 용어 목록이 적합합니다.</small>
+      <label class="check"><input type="checkbox" bind:checked={settings.asr.filter_fillers} /> 음성대기에서 단독 추임새·문장부호 무시</label>
+      <details class="settings-advanced">
+        <summary>연결 및 고급 설정</summary>
+        <div class="settings-advanced-body">
+          <label>SparkTalk Extra Media endpoint<input bind:value={settings.asr.ffmpeg_endpoint} placeholder="http://127.0.0.1:8698" /></label>
+          <label>ASR API endpoint<input bind:value={settings.asr.endpoint} placeholder="http://127.0.0.1:8694" /></label>
+          <label>ASR 모델<input bind:value={settings.asr.model} placeholder="qwen3-asr" /></label>
+          <label>처리 타임아웃<input bind:value={settings.asr.timeout} placeholder="30m" /></label>
+          <small>생성 토큰·dtype·동시 처리 수는 Qwen3-ASR 컨테이너의 기동 설정이며 여기서 변경하지 않습니다.</small>
+        </div>
+      </details>
       {#if serviceHealth?.asr}
         <div class="media-usage">
           <span>Media API · {serviceHealth.asr.ffmpeg?.status === 'ok' ? 'online' : serviceHealth.asr.ffmpeg?.status}</span>
@@ -125,6 +138,29 @@
         </div>
       {/if}
       <small>음성 원본은 모델에 보내지 않고 전사문으로 대체합니다. 영상은 화면 정보와 전사문을 함께 보냅니다.</small>
+    </fieldset>
+    <fieldset>
+      <legend>답변 음성</legend>
+      <label class="check"><input type="checkbox" bind:checked={settings.tts.enabled} /> Qwen3-TTS로 AI 답변 읽기</label>
+      <label class="check"><input type="checkbox" bind:checked={settings.tts.auto_play} disabled={!settings.tts.enabled} /> 답변 완료 후 자동 재생</label>
+      <div class="settings-form-row three">
+        <label>언어<select bind:value={settings.tts.language}><option>Korean</option><option>English</option><option>Chinese</option><option>Japanese</option><option>Auto</option></select></label>
+        <label>화자<select bind:value={settings.tts.voice}><option>Sohee</option><option>Vivian</option><option>Serena</option><option>Ryan</option><option>Aiden</option><option>Ono_Anna</option></select></label>
+        <label>시드<input type="number" min="-1" bind:value={settings.tts.seed} /></label>
+      </div>
+      <label>기본 연기 지시<textarea rows="2" bind:value={settings.tts.instructions} placeholder="예: 차분하고 또렷한 목소리로 읽어 주세요."></textarea></label>
+      <small class="settings-inline-help">시드 -1은 매번 무작위입니다. 음성대기 중에는 AI 음성을 다시 인식하지 않도록 재생하는 동안 마이크 판정을 멈춥니다.</small>
+      <details class="settings-advanced">
+        <summary>연결 및 고급 설정</summary>
+        <div class="settings-advanced-body">
+          <label>TTS API endpoint<input bind:value={settings.tts.endpoint} placeholder="http://127.0.0.1:8692" /></label>
+          <label>TTS 모델<input bind:value={settings.tts.model} placeholder="Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice" /></label>
+          <label>처리 타임아웃<input bind:value={settings.tts.timeout} placeholder="10m" /></label>
+        </div>
+      </details>
+      {#if serviceHealth?.tts}
+        <div class="media-usage"><span>TTS API · {serviceHealth.tts.status === 'ok' ? 'online' : serviceHealth.tts.status}{serviceHealth.tts.model ? ` · ${serviceHealth.tts.model}` : ''}</span></div>
+      {/if}
     </fieldset>
     <fieldset>
       <legend>지능형 문맥 관리</legend>

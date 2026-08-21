@@ -22,6 +22,14 @@
   export let onSubmitEdit = () => {};
   export let onBeginEdit = () => {};
   export let onToolApproval = () => {};
+  export let ttsEnabled = false;
+  export let speechLoadingKey = '';
+  export let speechPlayingKey = '';
+  export let onSpeakReply = () => {};
+
+  function replySpeechKey(message) {
+    return `${message?.id || 'pending'}:${message?.variant_index ?? 0}`;
+  }
 
   function setReasoningOpen(index, open) {
     reasoningOpen = { ...reasoningOpen, [index]: open };
@@ -165,6 +173,12 @@
                 <span>{variantPosition(message, index) + 1}/{variantIndices(message, index).length}</span>
                 <button onclick={() => onShowAdjacentVariant(message, index, 1)} disabled={running || variantPosition(message, index) >= variantIndices(message, index).length - 1} aria-label="다음 답변">›</button>
               </div>
+            {/if}
+            {#if message.content && !['failed', 'cancelled'].includes(message.status)}
+              {@const speechKey = replySpeechKey(message)}
+              <button class:active-speech={speechPlayingKey === speechKey} onclick={() => onSpeakReply(message)} disabled={running || !ttsEnabled || (speechLoadingKey && speechLoadingKey !== speechKey)} title={!ttsEnabled ? '설정에서 답변 음성을 활성화하세요' : 'Qwen3-TTS로 답변 읽기'}>
+                {speechLoadingKey === speechKey ? '◌ 음성 생성 중' : speechPlayingKey === speechKey ? '■ 정지' : '🔊 읽기'}
+              </button>
             {/if}
             <button onclick={() => onRetry(message, index)} disabled={running || !message.id}>↻ 재시도</button>
           </div>
