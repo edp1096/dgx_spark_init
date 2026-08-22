@@ -6,6 +6,7 @@
   import ThemeSettings from './settings/ThemeSettings.svelte';
   import SSHSettings from './settings/SSHSettings.svelte';
   import SettingsToast from './settings/SettingsToast.svelte';
+  import { normalizePublicSettings } from '../lib/settings.js';
 
   export let settings;
   export let models = [];
@@ -31,7 +32,7 @@
   ];
 
   onMount(async () => {
-    normalizePromptPresetSettings();
+    normalizePublicSettings(settings);
     const [usageResult, healthResult] = await Promise.allSettled([getMediaUsage(), getHealth()]);
     if (usageResult.status === 'fulfilled') mediaUsage = usageResult.value;
     else notify(usageResult.reason.message, 'error');
@@ -62,20 +63,6 @@
     event.preventDefault();
     activeTab = settingsTabs[next].id;
     document.getElementById(`settings-tab-${activeTab}`)?.focus();
-  }
-
-  function normalizePromptPresetSettings() {
-    if (!settings?.model) return;
-    if (!Array.isArray(settings.model.system_prompt_presets)) settings.model.system_prompt_presets = [];
-    if (!settings.model.system_prompt_preset) settings.model.system_prompt_preset = '';
-    if (!settings.context) settings.context = { enabled: true, window_tokens: 0, compact_at_percent: 80, output_reserve: 8192, safety_margin: 4096, recent_tokens: 32768, image_tokens: 2048 };
-    if (!settings.asr) settings.asr = { enabled: true, ffmpeg_endpoint: 'http://127.0.0.1:8698', endpoint: 'http://127.0.0.1:8694', model: 'qwen3-asr', language: 'auto', prompt: '', filter_fillers: true, timeout: '30m' };
-    if (settings.asr.filter_fillers === undefined) settings.asr.filter_fillers = true;
-    if (!settings.tts) settings.tts = { enabled: true, endpoint: 'http://127.0.0.1:8692', model: 'Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice', language: 'Korean', voice: 'Sohee', instructions: '', seed: -1, auto_play: false, timeout: '10m' };
-    if (settings.tools && settings.tools.media_import_enabled === undefined) settings.tools.media_import_enabled = true;
-    if (!settings.extra) settings.extra = { ssh_enabled: false, ssh_endpoint: 'http://127.0.0.1:8699' };
-    if (!settings.appearance) settings.appearance = { assistant_avatar: 'preset:spark', user_avatar: 'preset:person-blue', theme: 'system' };
-    if (!['dark', 'light', 'system'].includes(settings.appearance.theme)) settings.appearance.theme = 'system';
   }
 
   function formatBytes(value) {

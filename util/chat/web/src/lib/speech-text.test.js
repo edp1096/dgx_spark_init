@@ -58,6 +58,21 @@ test('normalizes joined and Unicode variants of the thanks shorthand', () => {
   assert.equal(normalizeSpeechNotation('ㄱㅅ ㄳ ᆪ ﾣ ᄀᄉ'), '감사 감사 감사 감사 감사');
 });
 
+test('speaks common English chat shorthand as natural phrases', () => {
+  assert.equal(
+    normalizeSpeechNotation('lol idk, btw I am afk rn'),
+    "laughing out loud I don't know, by the way I am away from keyboard right now",
+  );
+  assert.equal(normalizeSpeechNotation('OMG, tysm! brb'), 'oh my god, thank you so much! be right back');
+  assert.equal(normalizeSpeechNotation('gg wp, lmao'), 'good game well played, laughing my ass off');
+});
+
+test('does not rewrite English shorthand inside links, email, or the LoL game name', () => {
+  assert.equal(normalizeSpeechNotation('https://example.com/idk?next=lol'), 'https://example.com/idk?next=lol');
+  assert.equal(normalizeSpeechNotation('lol@example.com'), 'lol@example.com');
+  assert.equal(normalizeSpeechNotation('LoL 게임과 lol 반응'), 'LoL 게임과 laughing out loud 반응');
+});
+
 test('removes visual list bullets and ordinal markers without dropping content numbers', () => {
   const markdown = `• 첫 번째 항목
 ◦ 두 번째 항목

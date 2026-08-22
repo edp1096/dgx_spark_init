@@ -8,6 +8,7 @@
   import ContextRail from './components/ContextRail.svelte';
   import { hydrateMessages, variantIndices as getVariantIndices, applyVariant as applyMessageVariant } from './lib/message-variants.js';
   import { createStreamHandlers } from './lib/chat-stream.js';
+  import { createChatSessionController } from './lib/chat-session-controller.js';
   import {
     listSessions, createSession, deleteSession, renameSession, listMessages, streamChat,
     getHealth, getModels, getConfig, retryMessage, editMessage as editChatMessage, uploadAttachment, uploadMediaURL,
@@ -15,14 +16,13 @@
     getContextState, compactContext, clearContext, answerToolApproval, transcribeVoice,
     listSSHConversationGrants, revokeSSHConversationGrant, clearSSHConversationGrants, streamSpeech,
   } from './api.js';
-  import {
-    attachmentKind, hasFileDrag, isSupportedAttachmentFile, maxAttachmentBytes, maxImageBytes, maxMessageBytes,
-  } from './lib/attachments.js';
-  import { beginVoiceRecording, voiceFilename, voiceRecordingSupported } from './lib/voice-recorder.js';
-  import { beginContinuousVoice, isIgnorableVoiceTranscript } from './lib/continuous-voice.js';
+  import { hasFileDrag, isSupportedAttachmentFile } from './lib/attachments.js';
+  import { createAttachmentController } from './lib/attachment-controller.js';
+  import { createVoiceController } from './lib/voice-controller.js';
   import { createSpeechBatcher, createSpeechChunker, speechTextFromMarkdown } from './lib/speech-text.js';
-  import { PCMStreamPlayer, resolveSpeechSeed } from './lib/pcm-player.js';
+  import { createSpeechController } from './lib/speech-controller.js';
   import { applyTheme } from './lib/theme.js';
+  import { normalizePublicSettings } from './lib/settings.js';
 
   let sessions = [];
   let groups = [];
@@ -43,8 +43,6 @@
   let error = '';
   let health = { status: 'checking', model: '' };
   let sessionRuns = {};
-  let messageCache = {};
-  let sessionErrors = {};
   let messagePane;
   let sidebarOpen = true;
   let sidebarWidth = 260;
@@ -58,10 +56,7 @@
   let attachmentInput;
   let dragActive = false;
   let dragResetTimer;
-  let attachmentQueue = [];
-  let queueProcessing = false;
-  let uploadingSessionId = '';
-  let sourceDownloadingSessionId = '';
+  let sourceDownloading = false;
   let editingTitle = false;
   let titleInput = '';
   let titleEditor;
@@ -75,22 +70,73 @@
   let microphoneAvailable = false;
   let voiceState = 'idle';
   let voiceSeconds = 0;
-  let voiceRecording = null;
-  let voiceSessionId = '';
-  let voiceTimer;
-  let pendingVoiceTranscripts = {};
   let continuousVoiceEnabled = false;
   let continuousVoiceState = 'off';
-  let continuousVoiceListener = null;
-  let continuousUtterances = [];
   let continuousQueueCount = 0;
-  let continuousQueueProcessing = false;
-  let continuousAutoSendPending = {};
-  let speechSession = null;
   let speechLoadingKey = '';
   let speechPlayingKey = '';
-  let speechPausedContinuousVoice = false;
   let systemThemeQuery;
+
+  const voiceController = createVoiceController({
+    environment: () => window,
+    transcribe: transcribeVoice,
+    getActiveSessionId: () => activeId,
+    isSessionRunning: (sessionId) => Boolean(sessionRuns[sessionId]),
+    isUploading: () => uploadingAttachments,
+    filterFillers: () => settings?.asr?.filter_fillers !== false,
+    hasInput: (sessionId) => activeId === sessionId && Boolean(input.trim()),
+    onTranscript: (_sessionId, transcript) => { input = input.trim() ? `${input.trimEnd()} ${transcript}` : transcript; },
+    onAutoSend: () => send(),
+    onFocus: (sessionId) => focusComposer(sessionId),
+    onBeforeContinuous: () => composerInput?.blur(),
+    onUtteranceStart: () => { if (speechLoadingKey) stopReplySpeech(); },
+    onError: (sessionId, message) => setSessionError(sessionId, message),
+    onState: (state) => {
+      voiceState = state.manualState;
+      voiceSeconds = state.seconds;
+      continuousVoiceEnabled = state.continuousEnabled;
+      continuousVoiceState = state.continuousState;
+      continuousQueueCount = state.queueCount;
+    },
+  });
+
+  const chatController = createChatSessionController({
+    loadMessages: listMessages,
+    hydrate: hydrateMessages,
+    onActive: (id) => { activeId = id; },
+    onMessages: (nextMessages) => { messages = nextMessages; scrollBottom(); },
+    onRuns: (runs) => { sessionRuns = runs; },
+    onError: (message) => { error = message; },
+  });
+
+  const speechController = createSpeechController({
+    stream: streamSpeech,
+    cryptoSource: () => window.crypto,
+    onStatus: ({ loadingKey, playingKey }) => {
+      speechLoadingKey = loadingKey;
+      speechPlayingKey = playingKey;
+    },
+    onPlaybackChange: (playing) => {
+      voiceController.setPlaybackPaused(playing);
+    },
+    onError: (sessionId, message) => setSessionError(sessionId, message),
+  });
+
+  const attachmentController = createAttachmentController({
+    uploadFile: uploadAttachment,
+    uploadURL: uploadMediaURL,
+    onState: (state) => {
+      attachmentDrafts = state.drafts;
+      pendingAttachments = state.pending;
+      uploadingAttachments = state.uploading;
+      sourceDownloading = state.sourceDownloading;
+    },
+    onError: (sessionId, message) => {
+      if (sessionId) setSessionError(sessionId, message);
+      else error = message;
+    },
+    onQueueIdle: () => { if (attachmentInput) attachmentInput.value = ''; },
+  });
 
   $: applyTheme(appearance?.theme || 'system');
 
@@ -103,10 +149,9 @@
   $: activeRun = sessionRuns[activeId] || null;
   $: running = Boolean(activeRun);
   $: retryingIndex = activeRun?.retryingIndex ?? -1;
-  $: sourceDownloading = Boolean(activeId) && sourceDownloadingSessionId === activeId;
 
   onMount(() => {
-    microphoneAvailable = voiceRecordingSupported(window);
+    microphoneAvailable = voiceController.supported();
     const mobile = window.matchMedia('(max-width: 600px)').matches;
     sidebarOpen = mobile ? false : localStorage.getItem('sparktalk.sidebar-open') !== 'false';
     sidebarWidth = Number(localStorage.getItem('sparktalk.sidebar-width')) || 260;
@@ -125,9 +170,7 @@
     return () => {
       clearInterval(timer);
       clearTimeout(dragResetTimer);
-      clearInterval(voiceTimer);
-      voiceRecording?.stop().catch(() => {});
-      continuousVoiceListener?.stop().catch(() => {});
+      voiceController.dispose().catch(() => {});
       stopReplySpeech();
       window.removeEventListener('dragenter', onWindowDragEnter, true);
       window.removeEventListener('dragover', onWindowDragOver, true);
@@ -140,7 +183,7 @@
   async function load() {
     try {
       const cfg = await getConfig();
-      normalizePromptPresetSettings(cfg);
+      normalizePublicSettings(cfg);
       settings = cfg;
       reasoningEffort = cfg.model.reasoning_effort || '';
       webToolsEnabled = cfg.tools?.enabled ?? false;
@@ -150,8 +193,7 @@
       [groups, sessions] = await Promise.all([listGroups(), listSessions()]);
       if (sessions.length) await select(sessions[0].id);
       else {
-        activeId = '';
-        messages = [];
+        await chatController.activate('');
         sshConversationGrants = [];
       }
     } catch (e) { error = e.message; }
@@ -237,9 +279,9 @@
 
   async function select(id) {
     if (activeId && activeId !== id) stopReplySpeech();
-    if (activeId && messages) messageCache = { ...messageCache, [activeId]: messages };
-    activeId = id;
-    syncActiveAttachmentState();
+    await chatController.activate(id);
+    if (activeId !== id) return;
+    attachmentController.select(id);
     reasoningOpen = {};
     editingMessageId = null;
     editInput = '';
@@ -247,22 +289,12 @@
     const session = sessions.find((item) => item.id === id);
     if (session?.model) selectedModel = session.model;
     if (session?.reasoning_effort) reasoningEffort = session.reasoning_effort;
-    if (sessionRuns[id]?.messages) {
-      messages = sessionRuns[id].messages;
-    } else if (messageCache[id]) {
-      messages = messageCache[id];
-    } else {
-      const loaded = hydrateMessages(await listMessages(id));
-      messageCache = { ...messageCache, [id]: loaded };
-      if (activeId === id) messages = loaded;
-    }
-    if (activeId !== id) return;
     await Promise.all([refreshContext(id), refreshSSHGrants(id)]);
-    error = sessionErrors[id] || '';
     await scrollBottom(true);
     closeSidebarOnMobile();
-    applyPendingVoiceTranscript(id);
-    flushContinuousAutoSend(id);
+    const pendingTranscript = voiceController.consumePendingTranscript(id);
+    if (pendingTranscript) input = input.trim() ? `${input.trimEnd()} ${pendingTranscript}` : pendingTranscript;
+    voiceController.flushAutoSend(id);
     await focusComposer(id);
   }
 
@@ -339,22 +371,13 @@
     sessions = sessions.filter((item) => item.id !== id);
     try {
       await deleteSession(id);
-      const nextDrafts = { ...attachmentDrafts };
-      delete nextDrafts[id];
-      attachmentDrafts = nextDrafts;
-      attachmentQueue = attachmentQueue.filter((item) => item.sessionId !== id);
-      const nextCache = { ...messageCache };
-      delete nextCache[id];
-      messageCache = nextCache;
-      const nextErrors = { ...sessionErrors };
-      delete nextErrors[id];
-      sessionErrors = nextErrors;
-      if (activeId === id) {
+      attachmentController.discard(id);
+      const wasActive = activeId === id;
+      chatController.remove(id);
+      if (wasActive) {
         if (sessions.length) await select(sessions[0].id);
         else {
-          activeId = '';
-          messages = [];
-          pendingAttachments = [];
+          attachmentController.select('');
           sshConversationGrants = [];
           error = '';
         }
@@ -401,7 +424,7 @@
     if (!content || running || uploadingAttachments || voiceState !== 'idle' || !activeId) return;
     const sessionId = activeId;
     stopReplySpeech();
-    continuousAutoSendPending = { ...continuousAutoSendPending, [sessionId]: false };
+    voiceController.clearAutoSend(sessionId);
     const attachments = pendingAttachments;
     input = '';
     setPendingAttachments(sessionId, []);
@@ -437,192 +460,24 @@
     if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) { event.preventDefault(); send(); }
   }
 
-  function formatVoiceError(error) {
-    if (error?.name === 'NotAllowedError' || error?.name === 'SecurityError') {
-      return '마이크 권한이 거부되었습니다. 주소창의 사이트 권한에서 마이크를 허용하세요.';
-    }
-    if (error?.name === 'NotFoundError') return '사용 가능한 마이크를 찾지 못했습니다.';
-    return error?.message || '마이크 녹음에 실패했습니다.';
-  }
-
   async function startVoiceInput() {
-    if (!activeId || running || uploadingAttachments || voiceState !== 'idle' || continuousVoiceEnabled || ['requesting', 'stopping'].includes(continuousVoiceState)) return;
-    if (!microphoneAvailable) {
-      error = '마이크는 HTTPS, localhost 또는 안전한 출처로 허용한 주소에서 사용할 수 있습니다.';
-      return;
-    }
-    voiceState = 'requesting';
-    voiceSessionId = activeId;
-    setSessionError(voiceSessionId, '');
-    try {
-      voiceRecording = await beginVoiceRecording(window);
-      voiceSeconds = 0;
-      voiceState = 'recording';
-      clearInterval(voiceTimer);
-      voiceTimer = setInterval(() => {
-        voiceSeconds += 1;
-        if (voiceSeconds >= 300) stopVoiceInput();
-      }, 1000);
-    } catch (voiceError) {
-      setSessionError(voiceSessionId, formatVoiceError(voiceError));
-      voiceRecording = null;
-      voiceState = 'idle';
-      voiceSessionId = '';
-    }
+    await voiceController.startManual();
   }
 
   async function stopVoiceInput() {
-    if (voiceState !== 'recording' || !voiceRecording) return;
-    const recording = voiceRecording;
-    const sessionId = voiceSessionId;
-    voiceRecording = null;
-    voiceState = 'transcribing';
-    clearInterval(voiceTimer);
-    try {
-      const blob = await recording.stop();
-      if (!blob.size) throw new Error('녹음된 음성이 없습니다.');
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 5 * 60 * 1000);
-      try {
-        const result = await transcribeVoice(blob, voiceFilename(blob.type), controller.signal);
-        appendVoiceTranscript(sessionId, result.text || '');
-        setSessionError(sessionId, '');
-      } finally {
-        clearTimeout(timeout);
-      }
-    } catch (voiceError) {
-      setSessionError(sessionId, voiceError?.name === 'AbortError' ? '음성 인식 시간이 초과되었습니다.' : formatVoiceError(voiceError));
-    } finally {
-      voiceState = 'idle';
-      voiceSeconds = 0;
-      voiceSessionId = '';
-      await flushContinuousAutoSend(sessionId);
-      await focusComposer(sessionId);
-    }
-  }
-
-  function appendVoiceTranscript(sessionId, text) {
-    const transcript = text.trim();
-    if (!transcript) return;
-    if (activeId === sessionId) {
-      input = input.trim() ? `${input.trimEnd()} ${transcript}` : transcript;
-      return;
-    }
-    pendingVoiceTranscripts = {
-      ...pendingVoiceTranscripts,
-      [sessionId]: [pendingVoiceTranscripts[sessionId], transcript].filter(Boolean).join(' '),
-    };
-  }
-
-  function applyPendingVoiceTranscript(sessionId) {
-    const transcript = pendingVoiceTranscripts[sessionId];
-    if (!transcript) return;
-    input = input.trim() ? `${input.trimEnd()} ${transcript}` : transcript;
-    const next = { ...pendingVoiceTranscripts };
-    delete next[sessionId];
-    pendingVoiceTranscripts = next;
+    await voiceController.stopManual();
   }
 
   async function toggleContinuousVoice() {
-    if (continuousVoiceEnabled || continuousVoiceState === 'error') {
-      await stopContinuousVoice();
-      return;
-    }
-    if (!activeId || voiceState !== 'idle' || ['requesting', 'stopping'].includes(continuousVoiceState)) return;
-    if (!microphoneAvailable) {
-      error = '마이크는 HTTPS, localhost 또는 안전한 출처로 허용한 주소에서 사용할 수 있습니다.';
-      return;
-    }
-    // Continuous dictation is hands-free. In particular, Android browsers
-    // must not reopen the software keyboard while listening or after a reply.
-    composerInput?.blur();
-    continuousVoiceState = 'requesting';
-    try {
-      const listener = await beginContinuousVoice(window, {
-        getContext: () => ({ sessionId: activeId }),
-        onState: (state) => { continuousVoiceState = state; },
-        onUtterance: (blob, context) => {
-          if (speechLoadingKey) stopReplySpeech();
-          enqueueContinuousUtterance(blob, context?.sessionId || activeId);
-        },
-        onError: (voiceError) => {
-          setSessionError(activeId, formatVoiceError(voiceError));
-          continuousVoiceEnabled = false;
-          continuousVoiceState = 'error';
-          continuousVoiceListener = null;
-        },
-      });
-      continuousVoiceListener = listener;
-      continuousVoiceEnabled = true;
-      error = '';
-    } catch (voiceError) {
-      setSessionError(activeId, formatVoiceError(voiceError));
-      continuousVoiceEnabled = false;
-      continuousVoiceListener = null;
-      continuousVoiceState = 'off';
-    }
+    if (speechLoadingKey) stopReplySpeech();
+    await voiceController.toggleContinuous();
   }
 
   async function stopContinuousVoice() {
-    const listener = continuousVoiceListener;
-    continuousVoiceEnabled = false;
-    continuousVoiceListener = null;
-    continuousVoiceState = 'stopping';
-    try { await listener?.stop(); }
-    catch (voiceError) { setSessionError(activeId, formatVoiceError(voiceError)); }
-    finally { continuousVoiceState = 'off'; }
+    await voiceController.stopContinuous();
   }
 
-  function enqueueContinuousUtterance(blob, sessionId) {
-    if (!blob?.size || !sessionId) return;
-    continuousUtterances = [...continuousUtterances, { blob, sessionId }];
-    continuousQueueCount = continuousUtterances.length + (continuousQueueProcessing ? 1 : 0);
-    processContinuousUtterances();
-  }
-
-  async function processContinuousUtterances() {
-    if (continuousQueueProcessing) return;
-    continuousQueueProcessing = true;
-    try {
-      while (continuousUtterances.length) {
-        const item = continuousUtterances[0];
-        continuousUtterances = continuousUtterances.slice(1);
-        continuousQueueCount = continuousUtterances.length + 1;
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 5 * 60 * 1000);
-        try {
-          const result = await transcribeVoice(item.blob, voiceFilename(item.blob.type), controller.signal);
-          const transcript = result.text || '';
-          if (settings?.asr?.filter_fillers !== false && isIgnorableVoiceTranscript(transcript)) {
-            setSessionError(item.sessionId, '');
-            continue;
-          }
-          appendVoiceTranscript(item.sessionId, transcript);
-          continuousAutoSendPending = { ...continuousAutoSendPending, [item.sessionId]: true };
-          setSessionError(item.sessionId, '');
-          flushContinuousAutoSend(item.sessionId);
-        } catch (voiceError) {
-          const message = voiceError?.name === 'AbortError' ? '음성 인식 시간이 초과되었습니다.' : formatVoiceError(voiceError);
-          if (!/empty text|no audio|녹음된 음성이 없습니다/i.test(message)) setSessionError(item.sessionId, message);
-        } finally {
-          clearTimeout(timeout);
-        }
-      }
-    } finally {
-      continuousQueueProcessing = false;
-      continuousQueueCount = 0;
-    }
-  }
-
-  async function flushContinuousAutoSend(sessionId) {
-    if (!continuousAutoSendPending[sessionId] || activeId !== sessionId || sessionRuns[sessionId] || voiceState !== 'idle') return;
-    await tick();
-    if (!continuousAutoSendPending[sessionId] || activeId !== sessionId || sessionRuns[sessionId] || !input.trim()) return;
-    continuousAutoSendPending = { ...continuousAutoSendPending, [sessionId]: false };
-    send();
-  }
-
-  function stop() { sessionRuns[activeId]?.controller.abort(); }
+  function stop() { chatController.abort(activeId); }
   async function retry(message, index) {
     if (running || !message.id) return;
     if (index < messages.length - 1 && !confirm('이 답변을 재시도하면 이후 대화가 제거됩니다. 계속할까요?')) return;
@@ -723,38 +578,34 @@
 
   function startSessionRun(sessionId, runMessages, runRetryingIndex) {
     stopReplySpeech();
-    const run = { controller: new AbortController(), messages: runMessages, retryingIndex: runRetryingIndex };
+    const extra = {};
     if (continuousVoiceEnabled && settings?.tts?.enabled && settings.tts.auto_play) {
-      run.speechChunker = createSpeechChunker();
-      run.speechBatcher = createSpeechBatcher();
-      run.speechSession = createSpeechSession(`live:${sessionId}:${Date.now()}`, sessionId);
+      extra.speechChunker = createSpeechChunker();
+      extra.speechBatcher = createSpeechBatcher();
+      extra.speechSession = speechController.create(`live:${sessionId}:${Date.now()}`, sessionId, settings?.tts?.seed);
     }
-    sessionRuns = { ...sessionRuns, [sessionId]: run };
-    publishMessages(sessionId, runMessages);
-    return run;
+    return chatController.start(sessionId, runMessages, runRetryingIndex, extra);
   }
   async function finishSessionRun(sessionId, run) {
     if (sessionRuns[sessionId] !== run) return;
     const canAutoPlay = run.completed && activeId === sessionId && settings?.tts?.enabled && settings.tts.auto_play
-      && !continuousAutoSendPending[sessionId];
+      && !voiceController.hasAutoSendPending(sessionId);
     if (run.speechSession) {
       if (canAutoPlay) {
         const finalChunks = run.speechChunker?.finish() || [];
-        for (const batch of run.speechBatcher?.push(finalChunks) || []) enqueueSpeech(run.speechSession, batch);
-        for (const batch of run.speechBatcher?.finish() || []) enqueueSpeech(run.speechSession, batch);
-        closeSpeechSession(run.speechSession);
-      } else if (speechSession === run.speechSession) {
+        for (const batch of run.speechBatcher?.push(finalChunks) || []) speechController.enqueue(run.speechSession, batch);
+        for (const batch of run.speechBatcher?.finish() || []) speechController.enqueue(run.speechSession, batch);
+        speechController.close(run.speechSession);
+      } else if (speechController.isCurrent(run.speechSession)) {
         stopReplySpeech();
       }
     }
-    const next = { ...sessionRuns };
-    delete next[sessionId];
-    sessionRuns = next;
-    const reply = messageCache[sessionId]?.[run.retryingIndex];
+    chatController.finish(sessionId, run);
+    const reply = chatController.getMessages(sessionId)?.[run.retryingIndex];
     if (canAutoPlay && !run.speechSession && reply?.role === 'assistant' && reply.content) {
       speakReply(reply);
     }
-    await flushContinuousAutoSend(sessionId);
+    await voiceController.flushAutoSend(sessionId);
     await focusComposer(sessionId);
   }
 
@@ -765,15 +616,10 @@
     }
   }
   function publishMessages(sessionId, nextMessages) {
-    messageCache = { ...messageCache, [sessionId]: nextMessages };
-    if (activeId === sessionId) {
-      messages = nextMessages;
-      scrollBottom();
-    }
+    chatController.publish(sessionId, nextMessages);
   }
   function setSessionError(sessionId, message) {
-    sessionErrors = { ...sessionErrors, [sessionId]: message };
-    if (activeId === sessionId) error = message;
+    chatController.setError(sessionId, message);
   }
   function variantIndices(message, messageIndex, messageList = messages) {
     return getVariantIndices(message, messageIndex, messageList);
@@ -812,7 +658,7 @@
       const run = sessionRuns[sessionId];
       if (!run?.speechChunker || !run.speechBatcher || !run.speechSession) return;
       const chunks = run.speechChunker.push(delta);
-      for (const batch of run.speechBatcher.push(chunks)) enqueueSpeech(run.speechSession, batch);
+      for (const batch of run.speechBatcher.push(chunks)) speechController.enqueue(run.speechSession, batch);
     };
     const handleToolApproval = handlers.toolApproval;
     handlers.toolApproval = (data) => {
@@ -852,120 +698,16 @@
     }
   }
   function addAttachmentFiles(files) {
-    const dropped = Array.from(files || []);
-    const mediaFiles = dropped.filter(isSupportedAttachmentFile);
-    if (!mediaFiles.length || running || !activeId) {
-      if (dropped.length && !running) error = '지원되는 이미지·음성·비디오 파일만 첨부할 수 있습니다.';
-      return;
-    }
-    const oversized = mediaFiles.find((file) => file.size > (attachmentKind(file) === 'image' ? maxImageBytes : maxAttachmentBytes));
-    if (oversized) {
-      error = `${oversized.name}: ${attachmentKind(oversized) === 'image' ? '이미지는 15MB' : '음성·비디오는 64MB'} 이하여야 합니다.`;
-      return;
-    }
-    const sessionId = activeId;
-    const draft = attachmentDrafts[sessionId] || [];
-    const queued = attachmentQueue.filter((item) => item.sessionId === sessionId).length;
-    if (draft.length + queued + mediaFiles.length > 6) {
-      error = '미디어는 한 메시지에 최대 6개까지 첨부할 수 있습니다.';
-      return;
-    }
-    const totalBytes = draft.reduce((sum, item) => sum + (item.size || 0), 0)
-      + attachmentQueue.filter((item) => item.sessionId === sessionId).reduce((sum, item) => sum + (item.file.size || 0), 0)
-      + mediaFiles.reduce((sum, file) => sum + (file.size || 0), 0);
-    if (totalBytes > maxMessageBytes) {
-      error = '한 메시지의 첨부 파일 합계는 96MB 이하여야 합니다.';
-      return;
-    }
-    attachmentDrafts = { ...attachmentDrafts, [sessionId]: draft };
-    attachmentQueue = [...attachmentQueue, ...mediaFiles.map((file) => ({ file, sessionId }))];
-    syncActiveAttachmentState();
-    processAttachmentQueue();
-  }
-  async function processAttachmentQueue() {
-    if (queueProcessing) return;
-    queueProcessing = true;
-    try {
-      while (attachmentQueue.length) {
-        const item = attachmentQueue[0];
-        uploadingSessionId = item.sessionId;
-        syncActiveAttachmentState();
-        if (item.sessionId === activeId) error = '';
-        const uploadController = new AbortController();
-        const timeout = setTimeout(() => uploadController.abort(), 120000);
-        try {
-          const attachment = await uploadAttachment(item.file, uploadController.signal);
-          if (Object.prototype.hasOwnProperty.call(attachmentDrafts, item.sessionId)) {
-            setPendingAttachments(item.sessionId, [...(attachmentDrafts[item.sessionId] || []), attachment]);
-          }
-        } catch (e) {
-          if (item.sessionId === activeId) error = e.name === 'AbortError' ? '미디어 업로드 시간이 초과되었습니다.' : e.message;
-        } finally {
-          clearTimeout(timeout);
-          attachmentQueue = attachmentQueue.filter((queued) => queued !== item);
-          uploadingSessionId = '';
-          syncActiveAttachmentState();
-        }
-      }
-    } finally {
-      queueProcessing = false;
-      uploadingSessionId = '';
-      syncActiveAttachmentState();
-      if (attachmentInput) attachmentInput.value = '';
-    }
+    attachmentController.addFiles(files, { sessionId: activeId, blocked: running });
   }
   async function addMediaURL(rawURL) {
-    if (!activeId || running || uploadingAttachments) return false;
-    try {
-      const parsed = new URL(rawURL);
-      if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') throw new Error('HTTP 또는 HTTPS 주소를 입력하세요.');
-    } catch (e) {
-      error = e.message === 'HTTP 또는 HTTPS 주소를 입력하세요.' ? e.message : '올바른 영상 주소를 입력하세요.';
-      return false;
-    }
-    const sessionId = activeId;
-    const draft = attachmentDrafts[sessionId] || [];
-    if (draft.length >= 6) {
-      error = '미디어는 한 메시지에 최대 6개까지 첨부할 수 있습니다.';
-      return false;
-    }
-    uploadingSessionId = sessionId;
-    sourceDownloadingSessionId = sessionId;
-    syncActiveAttachmentState();
-    error = '';
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 30 * 60 * 1000);
-    try {
-      const attachment = await uploadMediaURL(rawURL, controller.signal);
-      const current = attachmentDrafts[sessionId] || [];
-      const totalBytes = current.reduce((sum, item) => sum + (item.size || 0), 0) + (attachment.size || 0);
-      if (current.length >= 6 || totalBytes > maxMessageBytes) {
-        error = '한 메시지의 첨부 파일 합계는 96MB 이하여야 합니다.';
-        return false;
-      }
-      setPendingAttachments(sessionId, [...current, attachment]);
-      return true;
-    } catch (e) {
-      if (sessionId === activeId) error = e.name === 'AbortError' ? 'URL 미디어 취득 시간이 초과되었습니다.' : e.message;
-      return false;
-    } finally {
-      clearTimeout(timeout);
-      uploadingSessionId = '';
-      sourceDownloadingSessionId = '';
-      syncActiveAttachmentState();
-    }
+    return attachmentController.addURL(rawURL, { sessionId: activeId, blocked: running || uploadingAttachments });
   }
   function setPendingAttachments(sessionId, items) {
-    attachmentDrafts = { ...attachmentDrafts, [sessionId]: items };
-    if (sessionId === activeId) pendingAttachments = items;
-  }
-  function syncActiveAttachmentState() {
-    pendingAttachments = attachmentDrafts[activeId] || [];
-    uploadingAttachments = Boolean(activeId) && (uploadingSessionId === activeId || attachmentQueue.some((item) => item.sessionId === activeId));
+    attachmentController.setPending(sessionId, items);
   }
   function removePendingAttachment(id) {
-    if (running) return;
-    setPendingAttachments(activeId, pendingAttachments.filter((item) => item.id !== id));
+    attachmentController.remove(id, { sessionId: activeId, blocked: running });
   }
   function onPaste(event) {
     const files = Array.from(event.clipboardData?.files || []);
@@ -1065,24 +807,11 @@
   async function openSettings() {
     try {
       settings = await getConfig();
-      normalizePromptPresetSettings(settings);
+      normalizePublicSettings(settings);
       settingsOpen = true;
       closeSidebarOnMobile();
       closeControls();
     } catch (e) { error = e.message; }
-  }
-
-  function normalizePromptPresetSettings(config) {
-    if (!config?.model) return;
-    if (!Array.isArray(config.model.system_prompt_presets)) config.model.system_prompt_presets = [];
-    if (!config.model.system_prompt_preset) config.model.system_prompt_preset = '';
-    if (!config.context) config.context = { enabled: true, window_tokens: 0, compact_at_percent: 80, output_reserve: 8192, safety_margin: 4096, recent_tokens: 32768, image_tokens: 2048 };
-    if (config.tools && config.tools.media_import_enabled === undefined) config.tools.media_import_enabled = true;
-    if (!config.asr) config.asr = { enabled: true, ffmpeg_endpoint: 'http://127.0.0.1:8698', endpoint: 'http://127.0.0.1:8694', model: 'qwen3-asr', language: 'auto', prompt: '', filter_fillers: true, timeout: '30m' };
-    if (config.asr.filter_fillers === undefined) config.asr.filter_fillers = true;
-    if (!config.tts) config.tts = { enabled: true, endpoint: 'http://127.0.0.1:8692', model: 'Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice', language: 'Korean', voice: 'Sohee', instructions: '', seed: -1, auto_play: false, timeout: '10m' };
-    if (!config.appearance) config.appearance = { assistant_avatar: 'preset:spark', user_avatar: 'preset:person-blue', theme: 'system' };
-    if (!['dark', 'light', 'system'].includes(config.appearance.theme)) config.appearance.theme = 'system';
   }
 
   async function applySavedSettings(next) {
@@ -1103,88 +832,8 @@
     return speechTextFromMarkdown(message?.content || '');
   }
 
-  function releaseReplySpeech(session, resumeVoice = true) {
-    if (speechSession !== session) return;
-    speechSession = null;
-    speechLoadingKey = '';
-    speechPlayingKey = '';
-    if (speechPausedContinuousVoice) {
-      speechPausedContinuousVoice = false;
-      if (resumeVoice) continuousVoiceListener?.setPaused(false);
-    }
-  }
-
   function stopReplySpeech() {
-    const session = speechSession;
-    if (!session) return;
-    session.stopped = true;
-    session.controller.abort();
-    session.player?.stop();
-    releaseReplySpeech(session, true);
-  }
-
-  function createSpeechSession(key, sessionId = activeId) {
-    const seed = resolveSpeechSeed(settings?.tts?.seed, window.crypto);
-    const session = {
-      key, sessionId, seed, controller: new AbortController(), player: null,
-      queue: [], processing: false, closed: false, stopped: false,
-    };
-    speechSession = session;
-    return session;
-  }
-
-  function enqueueSpeech(session, text) {
-    const value = String(text || '').trim();
-    if (!value || session.stopped || session.closed || speechSession !== session) return;
-    session.queue.push(value);
-    if (!session.player) speechLoadingKey = session.key;
-    processSpeechQueue(session);
-  }
-
-  function closeSpeechSession(session) {
-    if (session.stopped || speechSession !== session) return;
-    session.closed = true;
-    processSpeechQueue(session);
-  }
-
-  async function processSpeechQueue(session) {
-    if (session.processing || session.stopped || speechSession !== session) return;
-    session.processing = true;
-    try {
-      while (session.queue.length && !session.stopped) {
-        const text = session.queue.shift();
-        await streamSpeech(text, session.seed, session.controller.signal, async (bytes, sampleRate) => {
-          if (session.stopped || speechSession !== session) return;
-          if (!session.player) {
-            session.player = new PCMStreamPlayer({
-              sampleRate,
-              onStart: () => {
-                if (speechSession !== session) return;
-                speechLoadingKey = '';
-                speechPlayingKey = session.key;
-                if (continuousVoiceEnabled && continuousVoiceListener) {
-                  continuousVoiceListener.setPaused(true);
-                  speechPausedContinuousVoice = true;
-                }
-              },
-            });
-          }
-          await session.player.append(bytes);
-        });
-      }
-      if (session.closed && !session.stopped) {
-        if (session.player) await session.player.finish();
-        releaseReplySpeech(session, true);
-      }
-    } catch (speechError) {
-      if (!session.stopped && speechError?.name !== 'AbortError') {
-        setSessionError(session.sessionId, speechError?.message || '답변 음성 생성에 실패했습니다.');
-      }
-      session.player?.stop();
-      releaseReplySpeech(session, true);
-    } finally {
-      session.processing = false;
-    }
+    speechController.stop();
   }
 
   async function speakReply(message) {
@@ -1200,9 +849,9 @@
     const text = replySpeechText(message);
     if (!text) return;
     stopReplySpeech();
-    const session = createSpeechSession(key);
-    enqueueSpeech(session, text);
-    closeSpeechSession(session);
+    const session = speechController.create(key, activeId, settings?.tts?.seed);
+    speechController.enqueue(session, text);
+    speechController.close(session);
   }
 </script>
 

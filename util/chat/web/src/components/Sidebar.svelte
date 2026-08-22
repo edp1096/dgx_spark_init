@@ -1,4 +1,5 @@
 <script>
+  import { onMount } from 'svelte';
   import Avatar from './Avatar.svelte';
 
   export let groups = [];
@@ -22,6 +23,23 @@
   export let onStartResize = () => {};
 
   let sessionMenuId = '';
+
+  onMount(() => {
+    function closeOnOutsidePointer(event) {
+      if (sessionMenuId && !event.target.closest?.('.session-menu, .session-more')) sessionMenuId = '';
+    }
+
+    function closeOnEscape(event) {
+      if (sessionMenuId && event.key === 'Escape') sessionMenuId = '';
+    }
+
+    document.addEventListener('pointerdown', closeOnOutsidePointer, true);
+    document.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.removeEventListener('pointerdown', closeOnOutsidePointer, true);
+      document.removeEventListener('keydown', closeOnEscape);
+    };
+  });
 
   function toggleSessionMenu(id) {
     sessionMenuId = sessionMenuId === id ? '' : id;
@@ -63,9 +81,9 @@
             <div class="session-row" class:active={session.id === activeId} class:generating={Boolean(sessionRuns[session.id])}>
               <button class="session-select" onclick={() => onSelect(session.id)}>{session.title}</button>
               {#if sessionRuns[session.id]}<span class="session-running" title="답변 생성 중" aria-label="답변 생성 중">●</span>{/if}
-              <button class="session-more" onclick={() => toggleSessionMenu(session.id)} aria-label={`${session.title} 메뉴`}>⋯</button>
+              <button class="session-more" onclick={() => toggleSessionMenu(session.id)} aria-label={`${session.title} 메뉴`} aria-haspopup="menu" aria-expanded={sessionMenuId === session.id}>⋯</button>
               {#if sessionMenuId === session.id}
-                <div class="session-menu">
+                <div class="session-menu" role="menu">
                   <strong>그룹 이동</strong>
                   <button onclick={() => changeSessionGroup(session, '')}>그룹 없음</button>
                   {#each groups as target}<button class:current={target.id === session.group_id} onclick={() => changeSessionGroup(session, target.id)}>▸ {target.name}</button>{/each}
@@ -86,9 +104,9 @@
           <div class="session-row" class:active={session.id === activeId} class:generating={Boolean(sessionRuns[session.id])}>
             <button class="session-select" onclick={() => onSelect(session.id)}>{session.title}</button>
             {#if sessionRuns[session.id]}<span class="session-running" title="답변 생성 중" aria-label="답변 생성 중">●</span>{/if}
-            <button class="session-more" onclick={() => toggleSessionMenu(session.id)} aria-label={`${session.title} 메뉴`}>⋯</button>
+            <button class="session-more" onclick={() => toggleSessionMenu(session.id)} aria-label={`${session.title} 메뉴`} aria-haspopup="menu" aria-expanded={sessionMenuId === session.id}>⋯</button>
             {#if sessionMenuId === session.id}
-              <div class="session-menu">
+              <div class="session-menu" role="menu">
                 <strong>그룹 이동</strong>
                 <button class:current={!session.group_id} onclick={() => changeSessionGroup(session, '')}>그룹 없음</button>
                 {#each groups as group}<button onclick={() => changeSessionGroup(session, group.id)}>▸ {group.name}</button>{/each}

@@ -5,12 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
-	"image"
-	_ "image/gif"
-	_ "image/jpeg"
-	_ "image/png"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -21,7 +16,6 @@ import (
 	"strings"
 	"time"
 
-	_ "golang.org/x/image/webp"
 	"sparktalk/internal/db"
 )
 
@@ -36,19 +30,6 @@ const (
 var mediaIDPattern = regexp.MustCompile(`^[a-f0-9]{32}$`)
 
 type Store struct{ dir string }
-
-type TranscriptCache struct {
-	Fingerprint string `json:"fingerprint"`
-	Text        string `json:"text"`
-	Language    string `json:"language,omitempty"`
-}
-
-type Usage struct {
-	Files       int   `json:"files"`
-	Bytes       int64 `json:"bytes"`
-	UnusedFiles int   `json:"unused_files"`
-	UnusedBytes int64 `json:"unused_bytes"`
-}
 
 func New(databasePath string) (*Store, error) {
 	dir := databasePath + ".media"
@@ -157,59 +138,6 @@ func (s *Store) Open(item db.Attachment) (*os.File, error) {
 	return file, nil
 }
 
-func (s *Store) LoadTranscript(id, fingerprint string) (TranscriptCache, bool, error) {
-	if !mediaIDPattern.MatchString(id) {
-		return TranscriptCache{}, false, fmt.Errorf("invalid media id")
-	}
-	data, err := os.ReadFile(s.transcriptPath(id))
-	if os.IsNotExist(err) {
-		return TranscriptCache{}, false, nil
-	}
-	if err != nil {
-		return TranscriptCache{}, false, err
-	}
-	var cached TranscriptCache
-	if err := json.Unmarshal(data, &cached); err != nil {
-		return TranscriptCache{}, false, err
-	}
-	if cached.Fingerprint != fingerprint || strings.TrimSpace(cached.Text) == "" {
-		return TranscriptCache{}, false, nil
-	}
-	return cached, true, nil
-}
-
-func (s *Store) SaveTranscript(id string, cached TranscriptCache) error {
-	if !mediaIDPattern.MatchString(id) {
-		return fmt.Errorf("invalid media id")
-	}
-	data, err := json.Marshal(cached)
-	if err != nil {
-		return err
-	}
-	temporary, err := os.CreateTemp(s.dir, id+".asr-*")
-	if err != nil {
-		return err
-	}
-	temporaryName := temporary.Name()
-	defer os.Remove(temporaryName)
-	if err := temporary.Chmod(0600); err != nil {
-		temporary.Close()
-		return err
-	}
-	if _, err := temporary.Write(data); err != nil {
-		temporary.Close()
-		return err
-	}
-	if err := temporary.Close(); err != nil {
-		return err
-	}
-	return os.Rename(temporaryName, s.transcriptPath(id))
-}
-
-func (s *Store) transcriptPath(id string) string {
-	return filepath.Join(s.dir, id+".asr.json")
-}
-
 func (s *Store) Serve(w http.ResponseWriter, r *http.Request, id, name, mimeHint string) {
 	data, mimeType, err := s.read(id, name, mimeHint, false)
 	if err != nil {
@@ -220,73 +148,6 @@ func (s *Store) Serve(w http.ResponseWriter, r *http.Request, id, name, mimeHint
 	w.Header().Set("Cache-Control", "private, max-age=86400")
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	http.ServeContent(w, r, cleanName(name), fileModTime(filepath.Join(s.dir, id)), bytes.NewReader(data))
-}
-
-func (s *Store) Usage(referenced map[string]struct{}, keep map[string]struct{}) (Usage, error) {
-	entries, err := os.ReadDir(s.dir)
-	if err != nil {
-		return Usage{}, err
-	}
-	var usage Usage
-	for _, entry := range entries {
-		if entry.IsDir() || !mediaIDPattern.MatchString(entry.Name()) {
-			continue
-		}
-		info, err := entry.Info()
-		if err != nil {
-			return Usage{}, err
-		}
-		usage.Files++
-		usage.Bytes += info.Size()
-		if _, used := referenced[entry.Name()]; used {
-			continue
-		}
-		if _, protected := keep[entry.Name()]; protected {
-			continue
-		}
-		usage.UnusedFiles++
-		usage.UnusedBytes += info.Size()
-	}
-	return usage, nil
-}
-
-func (s *Store) Cleanup(referenced map[string]struct{}, keep map[string]struct{}) (Usage, error) {
-	before, err := s.Usage(referenced, keep)
-	if err != nil {
-		return Usage{}, err
-	}
-	entries, err := os.ReadDir(s.dir)
-	if err != nil {
-		return Usage{}, err
-	}
-	for _, entry := range entries {
-		id := entry.Name()
-		if strings.HasSuffix(id, ".asr.json") {
-			mediaID := strings.TrimSuffix(id, ".asr.json")
-			if mediaIDPattern.MatchString(mediaID) {
-				if _, statErr := os.Stat(filepath.Join(s.dir, mediaID)); os.IsNotExist(statErr) {
-					_ = os.Remove(filepath.Join(s.dir, id))
-				}
-			}
-			continue
-		}
-		if entry.IsDir() || !mediaIDPattern.MatchString(id) {
-			continue
-		}
-		if _, used := referenced[id]; used {
-			continue
-		}
-		if _, protected := keep[id]; protected {
-			continue
-		}
-		if err := os.Remove(filepath.Join(s.dir, id)); err != nil && !os.IsNotExist(err) {
-			return Usage{}, err
-		}
-		if err := os.Remove(s.transcriptPath(id)); err != nil && !os.IsNotExist(err) {
-			return Usage{}, err
-		}
-	}
-	return Usage{Files: before.UnusedFiles, Bytes: before.UnusedBytes}, nil
 }
 
 func (s *Store) read(id, name, mimeHint string, imageOnly bool) ([]byte, string, error) {
@@ -304,60 +165,6 @@ func (s *Store) read(id, name, mimeHint string, imageOnly bool) ([]byte, string,
 	return data, mimeType, nil
 }
 
-func classifyMedia(data []byte, name, declared string, imageOnly bool) (string, error) {
-	detected := strings.TrimSpace(strings.Split(http.DetectContentType(data), ";")[0])
-	if detected == "image/jpeg" || detected == "image/png" || detected == "image/webp" {
-		config, _, err := image.DecodeConfig(bytes.NewReader(data))
-		if err != nil || config.Width < 1 || config.Height < 1 || config.Width*config.Height > maxImagePixels {
-			return "", fmt.Errorf("invalid image or image dimensions are too large")
-		}
-		return detected, nil
-	}
-	if imageOnly {
-		return "", fmt.Errorf("supported image types: PNG, JPEG, WebP")
-	}
-	ext := strings.ToLower(filepath.Ext(name))
-	declared = strings.ToLower(strings.TrimSpace(strings.Split(declared, ";")[0]))
-	switch ext {
-	case ".mp3":
-		if hasPrefix(data, "ID3") || isMP3Frame(data) {
-			return "audio/mpeg", nil
-		}
-	case ".wav":
-		if isRIFF(data, "WAVE") {
-			return "audio/wav", nil
-		}
-	case ".ogg", ".oga", ".ogv":
-		if hasPrefix(data, "OggS") {
-			if ext == ".ogv" || strings.HasPrefix(declared, "video/") {
-				return "video/ogg", nil
-			}
-			return "audio/ogg", nil
-		}
-	case ".avi":
-		if isRIFF(data, "AVI ") {
-			return "video/x-msvideo", nil
-		}
-	case ".mov":
-		if isISOBaseMedia(data) {
-			return "video/quicktime", nil
-		}
-	case ".mp4", ".m4v":
-		if isISOBaseMedia(data) {
-			return "video/mp4", nil
-		}
-	case ".wmv":
-		if bytes.HasPrefix(data, []byte{0x30, 0x26, 0xb2, 0x75, 0x8e, 0x66, 0xcf, 0x11, 0xa6, 0xd9, 0x00, 0xaa, 0x00, 0x62, 0xce, 0x6c}) {
-			return "video/x-ms-wmv", nil
-		}
-	case ".webm":
-		if bytes.HasPrefix(data, []byte{0x1a, 0x45, 0xdf, 0xa3}) {
-			return "video/webm", nil
-		}
-	}
-	return "", fmt.Errorf("supported media types: PNG, JPEG, WebP, MP3, WAV, OGG, AVI, MOV, MP4, WMV, WebM")
-}
-
 func cleanName(value string) string {
 	name := strings.TrimSpace(filepath.Base(value))
 	if name == "" || name == "." {
@@ -371,15 +178,6 @@ func mediaURL(id, name, mimeType string) string {
 		return "/api/images/" + id
 	}
 	return "/api/files/" + id + "/" + url.PathEscape(cleanName(name)) + "?type=" + url.QueryEscape(mimeType)
-}
-
-func hasPrefix(data []byte, value string) bool { return bytes.HasPrefix(data, []byte(value)) }
-func isRIFF(data []byte, kind string) bool {
-	return len(data) >= 12 && string(data[:4]) == "RIFF" && string(data[8:12]) == kind
-}
-func isISOBaseMedia(data []byte) bool { return len(data) >= 12 && string(data[4:8]) == "ftyp" }
-func isMP3Frame(data []byte) bool {
-	return len(data) >= 2 && data[0] == 0xff && data[1]&0xe0 == 0xe0
 }
 
 func fileModTime(path string) (value time.Time) {
