@@ -26,13 +26,23 @@ export function pcm16LEToFloat32(bytes) {
   return samples;
 }
 
+export function outputDrainDelayMs(context) {
+  const baseLatency = Number.isFinite(context?.baseLatency) && context.baseLatency > 0 ? context.baseLatency : 0;
+  const outputLatency = Number.isFinite(context?.outputLatency) && context.outputLatency > 0 ? context.outputLatency : 0;
+  // onended means that the graph rendered the source, not necessarily that
+  // the platform audio device has emitted its final sample. Keep the context
+  // alive for the reported pipeline latency plus a small universal margin.
+  return Math.max(220, Math.min(500, Math.round((baseLatency + outputLatency) * 1000) + 120));
+}
+
 export class PCMStreamPlayer {
-  constructor({ sampleRate = 24000, AudioContextClass, onStart } = {}) {
+  constructor({ sampleRate = 24000, AudioContextClass, onStart, sleep = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds)) } = {}) {
     const Context = AudioContextClass || globalThis.AudioContext || globalThis.webkitAudioContext;
     if (!Context) throw new Error('이 브라우저는 스트리밍 음성 재생을 지원하지 않습니다.');
     this.context = new Context({ sampleRate });
     this.sampleRate = sampleRate;
     this.onStart = onStart;
+    this.sleep = sleep;
     this.pending = new Uint8Array(0);
     this.sources = new Set();
     this.nextTime = 0;
@@ -92,6 +102,7 @@ export class PCMStreamPlayer {
     if (this.sources.size > 0) {
       await new Promise((resolve) => { this.finishResolve = resolve; });
     }
+    if (!this.stopped) await this.sleep(outputDrainDelayMs(this.context));
     if (!this.stopped) await this.context.close();
   }
 

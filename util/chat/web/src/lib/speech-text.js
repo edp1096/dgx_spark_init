@@ -12,12 +12,55 @@ function compactDecimal(number) {
   return String(number).replace(/\.0+$/u, '');
 }
 
+const KOREAN_CHAT_SHORTHAND = new Map([
+  ['ㅍㅎㅎ', '푸하하'],
+  // ㄳ is also commonly entered as the single compound-final character.
+  // Include its jongseong and halfwidth Unicode variants, plus leading jamo.
+  ['ㄳ', '감사'],
+  ['ᆪ', '감사'],
+  ['ﾣ', '감사'],
+  ['ᄀᄉ', '감사'],
+  ['ㅇㅋ', '오키'],
+  ['ㅇㅇ', '응응'],
+  ['ㄴㄴ', '노노'],
+  ['ㄱㄱ', '고고'],
+  ['ㅂㅂ', '바이바이'],
+  ['ㅂㅇ', '바이'],
+  ['ㅎㅇ', '하이'],
+  ['ㄱㅅ', '감사'],
+  ['ㅈㅅ', '죄송'],
+  ['ㅊㅋ', '축하'],
+  ['ㅅㄱ', '수고'],
+  ['ㄷㄷ', '덜덜'],
+  ['ㅁㄹ', '몰라'],
+  ['ㄱㅊ', '괜찮아'],
+  ['ㄹㅇ', '리얼'],
+  ['ㅇㅈ', '인정'],
+  ['ㅇㄷ', '어디'],
+  ['ㅉㅉ', '쯧쯧'],
+]);
+
+const KOREAN_CHAT_SHORTHAND_PATTERN = /ㅍㅎㅎ|ᄀᄉ|ㄳ|ᆪ|ﾣ|ㅇㅋ|ㅇㅇ|ㄴㄴ|ㄱㄱ|ㅂㅂ|ㅂㅇ|ㅎㅇ|ㄱㅅ|ㅈㅅ|ㅊㅋ|ㅅㄱ|ㄷㄷ|ㅁㄹ|ㄱㅊ|ㄹㅇ|ㅇㅈ|ㅇㄷ|ㅉㅉ/gu;
+
+function expandKoreanChatShorthand(text) {
+  return text.replace(KOREAN_CHAT_SHORTHAND_PATTERN, (value) => KOREAN_CHAT_SHORTHAND.get(value));
+}
+
 export function normalizeSpeechNotation(text) {
-  return String(text || '')
+  const visualEmojiRemoved = String(text || '')
     // Visual emoji add no useful information to speech and some TTS models
     // pronounce their Unicode names or pause unpredictably.
     .replace(/[\u{1F1E6}-\u{1F1FF}]{2}/gu, '')
     .replace(/\p{Extended_Pictographic}(?:[\uFE0E\uFE0F])?(?:\u200D\p{Extended_Pictographic}(?:[\uFE0E\uFE0F])?)*/gu, '')
+    // These are visual faces rather than pronounceable abbreviations.
+    .replace(/[ㅠㅜ](?:[\s._-]*[ㅠㅜ])+/gu, '')
+    .replace(/ㅡ(?:[\s._-]*ㅡ)+/gu, '');
+
+  return expandKoreanChatShorthand(visualEmojiRemoved)
+    // Korean chat commonly omits the vowel in laughter. Restore it before
+    // sending the text to TTS so isolated consonants are pronounced naturally.
+    .replace(/ㅎ{2,}/gu, (laughter) => laughter.replace(/ㅎ/gu, '흐'))
+    .replace(/ㅋ{2,}/gu, (laughter) => laughter.replace(/ㅋ/gu, '크'))
     .replace(/(-?\d+(?:\.\d+)?)\s*m\s*\/\s*s\b/giu, (_match, number) => `초속 ${compactDecimal(number)}미터`)
     .replace(/(-?\d+(?:\.\d+)?)\s*km\s*\/\s*h\b/giu, (_match, number) => `시속 ${compactDecimal(number)}킬로미터`)
     .replace(/(-?\d+(?:\.\d+)?)\s*mm\s*\/\s*h\b/giu, (_match, number) => `시간당 ${compactDecimal(number)}밀리미터`)

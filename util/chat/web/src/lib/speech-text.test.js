@@ -31,6 +31,33 @@ test('normalizes temperatures, ranges, percentages, and emoji for Korean speech'
   assert.equal(normalizeSpeechNotation('버전 1~3 및 단위 °C'), '버전 1에서 3 및 단위 섭씨');
 });
 
+test('restores omitted Korean vowels in chat laughter for speech', () => {
+  assert.equal(normalizeSpeechNotation('ㅎㅎㅎ 😄'), '흐흐흐');
+  assert.equal(normalizeSpeechNotation('그렇네 ㅋㅋㅋㅋ'), '그렇네 크크크크');
+  assert.equal(speechTextFromMarkdown('ㅎㅎㅎ 😄'), '흐흐흐.');
+});
+
+test('speaks conventional Korean chat shorthand naturally', () => {
+  const examples = new Map([
+    ['ㅇㅋ', '오키'], ['ㅇㅇ', '응응'], ['ㄴㄴ', '노노'], ['ㄱㄱ', '고고'],
+    ['ㅂㅂ', '바이바이'], ['ㅂㅇ', '바이'], ['ㅎㅇ', '하이'], ['ㄱㅅ', '감사'],
+    ['ㅈㅅ', '죄송'], ['ㅊㅋ', '축하'], ['ㅅㄱ', '수고'], ['ㄷㄷ', '덜덜'],
+    ['ㅁㄹ', '몰라'], ['ㄱㅊ', '괜찮아'], ['ㄹㅇ', '리얼'], ['ㅇㅈ', '인정'],
+    ['ㅇㄷ', '어디'], ['ㅉㅉ', '쯧쯧'], ['ㅍㅎㅎ', '푸하하'],
+  ]);
+  for (const [shorthand, spoken] of examples) {
+    assert.equal(normalizeSpeechNotation(shorthand), spoken);
+  }
+  assert.equal(speechTextFromMarkdown('ㅇㅋ, 그렇게 하자'), '오키, 그렇게 하자.');
+  assert.equal(normalizeSpeechNotation('속상해 ㅠ_ㅠ 그래도 괜찮아 ㅡㅡ'), '속상해 그래도 괜찮아');
+  assert.equal(normalizeSpeechNotation('ㅈㄱ ㅁㅇ ㅇㄴ ㄱㄷ'), 'ㅈㄱ ㅁㅇ ㅇㄴ ㄱㄷ');
+});
+
+test('normalizes joined and Unicode variants of the thanks shorthand', () => {
+  assert.equal(normalizeSpeechNotation('ㄳㄳ!!'), '감사감사!!');
+  assert.equal(normalizeSpeechNotation('ㄱㅅ ㄳ ᆪ ﾣ ᄀᄉ'), '감사 감사 감사 감사 감사');
+});
+
 test('removes visual list bullets and ordinal markers without dropping content numbers', () => {
   const markdown = `• 첫 번째 항목
 ◦ 두 번째 항목
