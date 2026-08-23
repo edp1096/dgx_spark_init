@@ -11,6 +11,43 @@
   background: #12161a;
 }
 
+.image-generation-controls {
+  display: grid;
+  gap: 10px;
+  margin: 0 0 14px;
+  padding: 12px;
+  border: 1px solid #30373d;
+  border-radius: 11px;
+  background: #12161a;
+}
+
+.generation-control-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.generation-control-heading strong { color: #d8dde0; font-size: 12px; }
+.generation-control-heading small { color: #75808a; font: 600 9px ui-monospace; }
+
+.generation-control-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(90px, .75fr) minmax(90px, .75fr);
+  gap: 8px;
+}
+
+.generation-control-grid label { gap: 6px; margin: 0; font-size: 10px; }
+.generation-control-grid label > span { display: flex; align-items: baseline; justify-content: space-between; gap: 5px; }
+.generation-control-grid label small { color: #707981; font-size: 8px; }
+.generation-control-grid input,
+.generation-control-grid select { height: 38px; padding: 8px 9px; font-size: 10px; }
+
+@media (max-width: 460px) {
+  .generation-control-grid { grid-template-columns: 1fr 1fr; }
+  .generation-control-grid .sampling-field { grid-column: 1 / -1; }
+}
+
 .resolution-heading {
   display: flex;
   align-items: center;
@@ -49,22 +86,6 @@
   gap: 8px;
   margin-bottom: 10px;
 }
-
-.image-model-title {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 10px;
-  padding: 12px 14px;
-  border: 1px solid #536941;
-  border-radius: 10px;
-  color: #efffdc;
-  background: #26301f;
-}
-
-.image-model-title strong { font-size: 13px; }
-.image-model-title small { color: #a8c38d; font-size: 10px; text-align: right; }
 
 .mobile-image-nav {
   display: none;
@@ -156,14 +177,6 @@
 
 .image-mode-picker button.active small {
   color: #a8e56d;
-}
-
-.mode-help {
-  min-height: 30px;
-  margin: 0 2px 14px;
-  color: #747c84;
-  font-size: 11px;
-  line-height: 1.45;
 }
 
 .clone-notice {
@@ -611,6 +624,33 @@
   background: #182017;
 }
 
+.module-source-field {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: end;
+}
+
+.module-source-field > label { min-width: 0; margin-bottom: 0; }
+
+.recent-result-open {
+  min-height: 43px;
+  margin-bottom: 0;
+  border: 1px solid #46543e;
+  border-radius: 9px;
+  padding: 8px 11px;
+  color: #cbe5b1;
+  background: #1c261a;
+  font-size: 9px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.recent-result-open:hover { border-color: #78975d; background: #243120; }
+
+.module-source-actions { display: grid; gap: 6px; }
+.module-source-actions .recent-result-open { min-height: 30px; padding-block: 6px; }
+
 .module-toggle {
   display: grid;
   grid-template-columns: 34px 1fr 30px;
@@ -991,6 +1031,43 @@
   font-size: 9px;
   line-height: 1.45;
 }
+
+.identity-prompt-guide {
+  margin: 0;
+  padding: 9px 10px;
+  border: 1px solid #34402f;
+  border-radius: 8px;
+  color: #9dad91;
+  background: #141a13;
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.module-advanced {
+  overflow: hidden;
+  border: 1px solid #30373d;
+  border-radius: 9px;
+  background: #111519;
+}
+
+.module-advanced > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 11px;
+  color: #b6bec4;
+  font-size: 10px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.module-advanced > summary::-webkit-details-marker { display: none; }
+.module-advanced > summary::after { content: '⌄'; color: #78828a; font-size: 13px; }
+.module-advanced[open] > summary::after { transform: rotate(180deg); }
+.module-advanced > summary small { margin-left: auto; color: #707981; font-size: 8px; }
+.module-advanced-body { display: grid; gap: 10px; padding: 0 10px 10px; border-top: 1px solid #292f34; }
+.module-advanced-body > :first-child { margin-top: 10px; }
 
 .module-controls,
 .module-style-row {
@@ -1498,6 +1575,8 @@
   .feature-module-modal > header small { display: none; }
   .feature-module-content { padding: 10px; }
   .feature-module-modal > footer { padding: 9px 10px; }
+  .module-source-field { grid-template-columns: minmax(0, 1fr) 92px; }
+  .recent-result-open { padding-inline: 7px; white-space: normal; line-height: 1.25; }
 
   .mask-editor-backdrop,
   .image-modal-backdrop {

@@ -150,6 +150,17 @@ def finish_prepare(request_id: str | None, work_dir: Path):
             cancelled_prepare_ids.discard(request_id)
 
 
+def begin_prepare(request_id: str | None, work_dir: Path) -> None:
+    """Reserve one durable work directory for exactly one active request."""
+    with active_prepare_lock:
+        if work_dir in active_prepare_dirs:
+            raise HTTPException(409, "media preparation is already active for this request")
+        if request_id:
+            cancelled_prepare_ids.discard(request_id)
+        work_dir.mkdir(parents=True, exist_ok=True)
+        active_prepare_dirs.add(work_dir)
+
+
 def recovery_path(work_dir: Path) -> Path:
     return work_dir / "recovery.json"
 
@@ -187,8 +198,13 @@ def reusable_source(work_dir: Path, source_name: str) -> Path | None:
             continue
         try:
             if candidate.stat().st_size > 0 and probe_duration(candidate) > 0:
+                validate_audio_decode(candidate)
                 return candidate
         except Exception:
+            # ffprobe only reads container metadata and can accept an MP4 whose
+            # AAC payload is truncated or byte-shifted. Never resume from such
+            # a file; a URL retry must resolve and download a fresh source.
+            candidate.unlink(missing_ok=True)
             continue
     return None
 
@@ -300,6 +316,14 @@ def cancel_media_prepare(request_id: str):
         except subprocess.TimeoutExpired:
             process.kill()
             process.wait()
+    # Let the active handler observe cancellation and release its durable work
+    # directory before a restarted client submits the same request ID again.
+    deadline = time.monotonic() + 5
+    while time.monotonic() < deadline:
+        with active_prepare_lock:
+            if work_dir not in active_prepare_dirs:
+                break
+        time.sleep(0.05)
     return {"status": "cancelling", "request_id": request_id}
 
 
@@ -535,6 +559,23 @@ def recover_corrupt_partial_download(work_dir: Path, error: str, request_id: str
     return None
 
 
+def validate_audio_decode(source: Path, request_id: str | None = None) -> None:
+    """Decode the complete primary audio stream before accepting a download.
+
+    ffprobe can report a plausible duration for a damaged MP4 because it only
+    reads container metadata. The providers used by browser resolution can
+    occasionally return a nearly complete file with malformed AAC near the
+    end, so a full null decode is the integrity check that matters for ASR.
+    """
+    probe = probe_media(source)
+    if not any(stream.get("codec_type") == "audio" for stream in probe.get("streams", [])):
+        raise RuntimeError("media contains no audio stream")
+    run_prepare_command([
+        "ffmpeg", "-hide_banner", "-nostats", "-loglevel", "error",
+        "-i", str(source), "-map", "0:a:0", "-vn", "-f", "null", "-",
+    ], 7200, request_id)
+
+
 def yt_dlp_download(url: str, work_dir: Path, cookies: Path | None = None, headers: dict | None = None, request_id: str | None = None) -> Path:
     output = str(work_dir / "source.%(ext)s")
     host = (urlparse(url).hostname or "").lower()
@@ -583,6 +624,7 @@ def yt_dlp_download(url: str, work_dir: Path, cookies: Path | None = None, heade
             if candidates:
                 result = max(candidates, key=lambda path: path.stat().st_size)
                 probe_duration(result)
+                validate_audio_decode(result, request_id)
                 return result
             errors.append(f"{quality_label}: completed without a media file")
         except PrepareCancelled:
@@ -701,6 +743,7 @@ def assemble_vimeo_playlist(playlist_url: str, playlist: dict, work_dir: Path, h
         "-map", "0:v:0", "-map", "1:a:0", "-c", "copy",
         "-movflags", "+faststart", str(output),
     ], timeout=7200)
+    validate_audio_decode(output, request_id)
     return output
 
 
@@ -1199,16 +1242,12 @@ async def prepare_media(
             progress_path(request_id)
         except ValueError as exc:
             raise HTTPException(400, str(exc)) from exc
-    set_progress(request_id, "starting")
     work_dir = request_work_dir(request_id)
-    with active_prepare_lock:
-        if request_id:
-            cancelled_prepare_ids.discard(request_id)
-        work_dir.mkdir(parents=True, exist_ok=True)
-        active_prepare_dirs.add(work_dir)
+    begin_prepare(request_id, work_dir)
     source_name = file.filename if file else url.strip()
     asset = None
     try:
+        set_progress(request_id, "starting")
         ensure_prepare_active(request_id)
         source = reusable_source(work_dir, source_name)
         if source is not None:

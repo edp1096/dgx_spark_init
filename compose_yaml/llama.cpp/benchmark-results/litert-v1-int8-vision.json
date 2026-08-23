@@ -1,0 +1,515 @@
+{
+  "engine": "litert-v1-int8-vision",
+  "endpoint": "http://127.0.0.1:8696",
+  "model": "huihui-gemma4-e2b",
+  "generated_at": "2026-08-24T02:40:06.706426938+09:00",
+  "results": [
+    {
+      "case": {
+        "id": "cat-bento",
+        "image": "web/dist/prompt-examples/sogni-cat-bento.webp",
+        "motion": "The camera remains static. One of the cat's rice paws makes a tiny wave, while the food arrangement stays unchanged.",
+        "required": [
+          "cat",
+          "rice",
+          "nori",
+          "egg",
+          "tomato",
+          "broccoli",
+          "bento"
+        ]
+      },
+      "task": "describe",
+      "output": "",
+      "latency_ms": 9,
+      "words": 0,
+      "hits": 0,
+      "total": 7,
+      "missing": [
+        "cat",
+        "rice",
+        "nori",
+        "egg",
+        "tomato",
+        "broccoli",
+        "bento"
+      ],
+      "error": "HTTP 500: Server: BaseHTTP/0.6 Python/3.12.3\r\nDate: Sun, 23 Aug 2026 17:40:06 GMT\r\nConnection: close\r\nContent-Type: text/html;charset=utf-8\r\nContent-Length: 384\r\n\r\n\u003c!DOCTYPE HTML\u003e\n\u003chtml lang=\"en\"\u003e\n    \u003chead\u003e\n        \u003cmeta charset=\"utf-8\"\u003e\n        \u003ctitle\u003eError response\u003c/title\u003e\n    \u003c/head\u003e\n    \u003cbody\u003e\n        \u003ch1\u003eError response\u003c/h1\u003e\n        \u003cp\u003eError code: 500\u003c/p\u003e\n        \u003cp\u003eMessage: RuntimeError: litert_lm_conversation_send_message_stream failed\n.\u003c/p\u003e\n        \u003cp\u003eError code explanation: 500 - Server got itself in trouble.\u003c/p\u003e\n    \u003c/body\u003e\n\u003c/html\u003e"
+    },
+    {
+      "case": {
+        "id": "cat-bento",
+        "image": "web/dist/prompt-examples/sogni-cat-bento.webp",
+        "motion": "The camera remains static. One of the cat's rice paws makes a tiny wave, while the food arrangement stays unchanged.",
+        "required": [
+          "cat",
+          "rice",
+          "nori",
+          "egg",
+          "tomato",
+          "broccoli",
+          "bento"
+        ]
+      },
+      "task": "i2v",
+      "output": "",
+      "latency_ms": 4,
+      "words": 0,
+      "hits": 0,
+      "total": 7,
+      "missing": [
+        "cat",
+        "rice",
+        "nori",
+        "egg",
+        "tomato",
+        "broccoli",
+        "bento"
+      ],
+      "error": "HTTP 500: Server: BaseHTTP/0.6 Python/3.12.3\r\nDate: Sun, 23 Aug 2026 17:40:06 GMT\r\nConnection: close\r\nContent-Type: text/html;charset=utf-8\r\nContent-Length: 384\r\n\r\n\u003c!DOCTYPE HTML\u003e\n\u003chtml lang=\"en\"\u003e\n    \u003chead\u003e\n        \u003cmeta charset=\"utf-8\"\u003e\n        \u003ctitle\u003eError response\u003c/title\u003e\n    \u003c/head\u003e\n    \u003cbody\u003e\n        \u003ch1\u003eError response\u003c/h1\u003e\n        \u003cp\u003eError code: 500\u003c/p\u003e\n        \u003cp\u003eMessage: RuntimeError: litert_lm_conversation_send_message_stream failed\n.\u003c/p\u003e\n        \u003cp\u003eError code explanation: 500 - Server got itself in trouble.\u003c/p\u003e\n    \u003c/body\u003e\n\u003c/html\u003e"
+    },
+    {
+      "case": {
+        "id": "animal-tower",
+        "image": "web/dist/prompt-examples/sogni-animal-tower.webp",
+        "motion": "The camera remains static. The two flying birds flap their wings while the stacked animals hold their positions.",
+        "required": [
+          "giraffe",
+          "hippopotamus",
+          "zebra",
+          "lion",
+          "lemur",
+          "parrot",
+          "circus",
+          "crowd"
+        ]
+      },
+      "task": "describe",
+      "output": "",
+      "latency_ms": 4,
+      "words": 0,
+      "hits": 0,
+      "total": 8,
+      "missing": [
+        "giraffe",
+        "hippopotamus",
+        "zebra",
+        "lion",
+        "lemur",
+        "parrot",
+        "circus",
+        "crowd"
+      ],
+      "error": "HTTP 500: Server: BaseHTTP/0.6 Python/3.12.3\r\nDate: Sun, 23 Aug 2026 17:40:06 GMT\r\nConnection: close\r\nContent-Type: text/html;charset=utf-8\r\nContent-Length: 384\r\n\r\n\u003c!DOCTYPE HTML\u003e\n\u003chtml lang=\"en\"\u003e\n    \u003chead\u003e\n        \u003cmeta charset=\"utf-8\"\u003e\n        \u003ctitle\u003eError response\u003c/title\u003e\n    \u003c/head\u003e\n    \u003cbody\u003e\n        \u003ch1\u003eError response\u003c/h1\u003e\n        \u003cp\u003eError code: 500\u003c/p\u003e\n        \u003cp\u003eMessage: RuntimeError: litert_lm_conversation_send_message_stream failed\n.\u003c/p\u003e\n        \u003cp\u003eError code explanation: 500 - Server got itself in trouble.\u003c/p\u003e\n    \u003c/body\u003e\n\u003c/html\u003e"
+    },
+    {
+      "case": {
+        "id": "animal-tower",
+        "image": "web/dist/prompt-examples/sogni-animal-tower.webp",
+        "motion": "The camera remains static. The two flying birds flap their wings while the stacked animals hold their positions.",
+        "required": [
+          "giraffe",
+          "hippopotamus",
+          "zebra",
+          "lion",
+          "lemur",
+          "parrot",
+          "circus",
+          "crowd"
+        ]
+      },
+      "task": "i2v",
+      "output": "",
+      "latency_ms": 3,
+      "words": 0,
+      "hits": 0,
+      "total": 8,
+      "missing": [
+        "giraffe",
+        "hippopotamus",
+        "zebra",
+        "lion",
+        "lemur",
+        "parrot",
+        "circus",
+        "crowd"
+      ],
+      "error": "HTTP 500: Server: BaseHTTP/0.6 Python/3.12.3\r\nDate: Sun, 23 Aug 2026 17:40:06 GMT\r\nConnection: close\r\nContent-Type: text/html;charset=utf-8\r\nContent-Length: 384\r\n\r\n\u003c!DOCTYPE HTML\u003e\n\u003chtml lang=\"en\"\u003e\n    \u003chead\u003e\n        \u003cmeta charset=\"utf-8\"\u003e\n        \u003ctitle\u003eError response\u003c/title\u003e\n    \u003c/head\u003e\n    \u003cbody\u003e\n        \u003ch1\u003eError response\u003c/h1\u003e\n        \u003cp\u003eError code: 500\u003c/p\u003e\n        \u003cp\u003eMessage: RuntimeError: litert_lm_conversation_send_message_stream failed\n.\u003c/p\u003e\n        \u003cp\u003eError code explanation: 500 - Server got itself in trouble.\u003c/p\u003e\n    \u003c/body\u003e\n\u003c/html\u003e"
+    },
+    {
+      "case": {
+        "id": "ocean-illustration",
+        "image": "web/dist/prompt-examples/official-ocean.webp",
+        "motion": "The camera remains static. The person takes one careful step through the shallow water as the small waves move naturally.",
+        "required": [
+          "person",
+          "water",
+          "orange",
+          "green",
+          "rock",
+          "peach",
+          "illustration"
+        ]
+      },
+      "task": "describe",
+      "output": "",
+      "latency_ms": 3,
+      "words": 0,
+      "hits": 0,
+      "total": 7,
+      "missing": [
+        "person",
+        "water",
+        "orange",
+        "green",
+        "rock",
+        "peach",
+        "illustration"
+      ],
+      "error": "HTTP 500: Server: BaseHTTP/0.6 Python/3.12.3\r\nDate: Sun, 23 Aug 2026 17:40:06 GMT\r\nConnection: close\r\nContent-Type: text/html;charset=utf-8\r\nContent-Length: 384\r\n\r\n\u003c!DOCTYPE HTML\u003e\n\u003chtml lang=\"en\"\u003e\n    \u003chead\u003e\n        \u003cmeta charset=\"utf-8\"\u003e\n        \u003ctitle\u003eError response\u003c/title\u003e\n    \u003c/head\u003e\n    \u003cbody\u003e\n        \u003ch1\u003eError response\u003c/h1\u003e\n        \u003cp\u003eError code: 500\u003c/p\u003e\n        \u003cp\u003eMessage: RuntimeError: litert_lm_conversation_send_message_stream failed\n.\u003c/p\u003e\n        \u003cp\u003eError code explanation: 500 - Server got itself in trouble.\u003c/p\u003e\n    \u003c/body\u003e\n\u003c/html\u003e"
+    },
+    {
+      "case": {
+        "id": "ocean-illustration",
+        "image": "web/dist/prompt-examples/official-ocean.webp",
+        "motion": "The camera remains static. The person takes one careful step through the shallow water as the small waves move naturally.",
+        "required": [
+          "person",
+          "water",
+          "orange",
+          "green",
+          "rock",
+          "peach",
+          "illustration"
+        ]
+      },
+      "task": "i2v",
+      "output": "",
+      "latency_ms": 3,
+      "words": 0,
+      "hits": 0,
+      "total": 7,
+      "missing": [
+        "person",
+        "water",
+        "orange",
+        "green",
+        "rock",
+        "peach",
+        "illustration"
+      ],
+      "error": "HTTP 500: Server: BaseHTTP/0.6 Python/3.12.3\r\nDate: Sun, 23 Aug 2026 17:40:06 GMT\r\nConnection: close\r\nContent-Type: text/html;charset=utf-8\r\nContent-Length: 384\r\n\r\n\u003c!DOCTYPE HTML\u003e\n\u003chtml lang=\"en\"\u003e\n    \u003chead\u003e\n        \u003cmeta charset=\"utf-8\"\u003e\n        \u003ctitle\u003eError response\u003c/title\u003e\n    \u003c/head\u003e\n    \u003cbody\u003e\n        \u003ch1\u003eError response\u003c/h1\u003e\n        \u003cp\u003eError code: 500\u003c/p\u003e\n        \u003cp\u003eMessage: RuntimeError: litert_lm_conversation_send_message_stream failed\n.\u003c/p\u003e\n        \u003cp\u003eError code explanation: 500 - Server got itself in trouble.\u003c/p\u003e\n    \u003c/body\u003e\n\u003c/html\u003e"
+    },
+    {
+      "case": {
+        "id": "tree-person-dog",
+        "image": "web/dist/prompt-examples/official-tree-dog.webp",
+        "motion": "The camera remains static. The small white dog turns its head slightly while the seated person remains still.",
+        "required": [
+          "tree",
+          "person",
+          "white dog",
+          "shade",
+          "grass",
+          "hill",
+          "blue",
+          "yellow"
+        ]
+      },
+      "task": "describe",
+      "output": "",
+      "latency_ms": 4,
+      "words": 0,
+      "hits": 0,
+      "total": 8,
+      "missing": [
+        "tree",
+        "person",
+        "white dog",
+        "shade",
+        "grass",
+        "hill",
+        "blue",
+        "yellow"
+      ],
+      "error": "HTTP 500: Server: BaseHTTP/0.6 Python/3.12.3\r\nDate: Sun, 23 Aug 2026 17:40:06 GMT\r\nConnection: close\r\nContent-Type: text/html;charset=utf-8\r\nContent-Length: 384\r\n\r\n\u003c!DOCTYPE HTML\u003e\n\u003chtml lang=\"en\"\u003e\n    \u003chead\u003e\n        \u003cmeta charset=\"utf-8\"\u003e\n        \u003ctitle\u003eError response\u003c/title\u003e\n    \u003c/head\u003e\n    \u003cbody\u003e\n        \u003ch1\u003eError response\u003c/h1\u003e\n        \u003cp\u003eError code: 500\u003c/p\u003e\n        \u003cp\u003eMessage: RuntimeError: litert_lm_conversation_send_message_stream failed\n.\u003c/p\u003e\n        \u003cp\u003eError code explanation: 500 - Server got itself in trouble.\u003c/p\u003e\n    \u003c/body\u003e\n\u003c/html\u003e"
+    },
+    {
+      "case": {
+        "id": "tree-person-dog",
+        "image": "web/dist/prompt-examples/official-tree-dog.webp",
+        "motion": "The camera remains static. The small white dog turns its head slightly while the seated person remains still.",
+        "required": [
+          "tree",
+          "person",
+          "white dog",
+          "shade",
+          "grass",
+          "hill",
+          "blue",
+          "yellow"
+        ]
+      },
+      "task": "i2v",
+      "output": "",
+      "latency_ms": 3,
+      "words": 0,
+      "hits": 0,
+      "total": 8,
+      "missing": [
+        "tree",
+        "person",
+        "white dog",
+        "shade",
+        "grass",
+        "hill",
+        "blue",
+        "yellow"
+      ],
+      "error": "HTTP 500: Server: BaseHTTP/0.6 Python/3.12.3\r\nDate: Sun, 23 Aug 2026 17:40:06 GMT\r\nConnection: close\r\nContent-Type: text/html;charset=utf-8\r\nContent-Length: 384\r\n\r\n\u003c!DOCTYPE HTML\u003e\n\u003chtml lang=\"en\"\u003e\n    \u003chead\u003e\n        \u003cmeta charset=\"utf-8\"\u003e\n        \u003ctitle\u003eError response\u003c/title\u003e\n    \u003c/head\u003e\n    \u003cbody\u003e\n        \u003ch1\u003eError response\u003c/h1\u003e\n        \u003cp\u003eError code: 500\u003c/p\u003e\n        \u003cp\u003eMessage: RuntimeError: litert_lm_conversation_send_message_stream failed\n.\u003c/p\u003e\n        \u003cp\u003eError code explanation: 500 - Server got itself in trouble.\u003c/p\u003e\n    \u003c/body\u003e\n\u003c/html\u003e"
+    },
+    {
+      "case": {
+        "id": "cat-ocr",
+        "image": "web/dist/prompt-examples/sogni-cat-typography.webp",
+        "motion": "The camera remains static. The black-and-white cat blinks once without changing its position.",
+        "required": [
+          "black",
+          "white",
+          "cat",
+          "face"
+        ],
+        "exact": [
+          "CAT"
+        ]
+      },
+      "task": "describe",
+      "output": "",
+      "latency_ms": 3,
+      "words": 0,
+      "hits": 0,
+      "total": 5,
+      "missing": [
+        "black",
+        "white",
+        "cat",
+        "face",
+        "CAT"
+      ],
+      "error": "HTTP 500: Server: BaseHTTP/0.6 Python/3.12.3\r\nDate: Sun, 23 Aug 2026 17:40:06 GMT\r\nConnection: close\r\nContent-Type: text/html;charset=utf-8\r\nContent-Length: 384\r\n\r\n\u003c!DOCTYPE HTML\u003e\n\u003chtml lang=\"en\"\u003e\n    \u003chead\u003e\n        \u003cmeta charset=\"utf-8\"\u003e\n        \u003ctitle\u003eError response\u003c/title\u003e\n    \u003c/head\u003e\n    \u003cbody\u003e\n        \u003ch1\u003eError response\u003c/h1\u003e\n        \u003cp\u003eError code: 500\u003c/p\u003e\n        \u003cp\u003eMessage: RuntimeError: litert_lm_conversation_send_message_stream failed\n.\u003c/p\u003e\n        \u003cp\u003eError code explanation: 500 - Server got itself in trouble.\u003c/p\u003e\n    \u003c/body\u003e\n\u003c/html\u003e"
+    },
+    {
+      "case": {
+        "id": "cat-ocr",
+        "image": "web/dist/prompt-examples/sogni-cat-typography.webp",
+        "motion": "The camera remains static. The black-and-white cat blinks once without changing its position.",
+        "required": [
+          "black",
+          "white",
+          "cat",
+          "face"
+        ],
+        "exact": [
+          "CAT"
+        ]
+      },
+      "task": "i2v",
+      "output": "",
+      "latency_ms": 2,
+      "words": 0,
+      "hits": 0,
+      "total": 5,
+      "missing": [
+        "black",
+        "white",
+        "cat",
+        "face",
+        "CAT"
+      ],
+      "error": "HTTP 500: Server: BaseHTTP/0.6 Python/3.12.3\r\nDate: Sun, 23 Aug 2026 17:40:06 GMT\r\nConnection: close\r\nContent-Type: text/html;charset=utf-8\r\nContent-Length: 384\r\n\r\n\u003c!DOCTYPE HTML\u003e\n\u003chtml lang=\"en\"\u003e\n    \u003chead\u003e\n        \u003cmeta charset=\"utf-8\"\u003e\n        \u003ctitle\u003eError response\u003c/title\u003e\n    \u003c/head\u003e\n    \u003cbody\u003e\n        \u003ch1\u003eError response\u003c/h1\u003e\n        \u003cp\u003eError code: 500\u003c/p\u003e\n        \u003cp\u003eMessage: RuntimeError: litert_lm_conversation_send_message_stream failed\n.\u003c/p\u003e\n        \u003cp\u003eError code explanation: 500 - Server got itself in trouble.\u003c/p\u003e\n    \u003c/body\u003e\n\u003c/html\u003e"
+    },
+    {
+      "case": {
+        "id": "gallery-ocr",
+        "image": "web/dist/prompt-examples/sogni-gallery-long-exposure.webp",
+        "motion": "The camera remains static. The woman in front of the painting remains still while the blurred visitors continue moving past her.",
+        "required": [
+          "gallery",
+          "woman",
+          "red dress",
+          "painting",
+          "blur",
+          "visitors"
+        ],
+        "exact": [
+          "13B",
+          "KREA 2 Turbo"
+        ]
+      },
+      "task": "describe",
+      "output": "",
+      "latency_ms": 1,
+      "words": 0,
+      "hits": 0,
+      "total": 8,
+      "missing": [
+        "gallery",
+        "woman",
+        "red dress",
+        "painting",
+        "blur",
+        "visitors",
+        "13B",
+        "KREA 2 Turbo"
+      ],
+      "error": "HTTP 500: Server: BaseHTTP/0.6 Python/3.12.3\r\nDate: Sun, 23 Aug 2026 17:40:06 GMT\r\nConnection: close\r\nContent-Type: text/html;charset=utf-8\r\nContent-Length: 384\r\n\r\n\u003c!DOCTYPE HTML\u003e\n\u003chtml lang=\"en\"\u003e\n    \u003chead\u003e\n        \u003cmeta charset=\"utf-8\"\u003e\n        \u003ctitle\u003eError response\u003c/title\u003e\n    \u003c/head\u003e\n    \u003cbody\u003e\n        \u003ch1\u003eError response\u003c/h1\u003e\n        \u003cp\u003eError code: 500\u003c/p\u003e\n        \u003cp\u003eMessage: RuntimeError: litert_lm_conversation_send_message_stream failed\n.\u003c/p\u003e\n        \u003cp\u003eError code explanation: 500 - Server got itself in trouble.\u003c/p\u003e\n    \u003c/body\u003e\n\u003c/html\u003e"
+    },
+    {
+      "case": {
+        "id": "gallery-ocr",
+        "image": "web/dist/prompt-examples/sogni-gallery-long-exposure.webp",
+        "motion": "The camera remains static. The woman in front of the painting remains still while the blurred visitors continue moving past her.",
+        "required": [
+          "gallery",
+          "woman",
+          "red dress",
+          "painting",
+          "blur",
+          "visitors"
+        ],
+        "exact": [
+          "13B",
+          "KREA 2 Turbo"
+        ]
+      },
+      "task": "i2v",
+      "output": "",
+      "latency_ms": 1,
+      "words": 0,
+      "hits": 0,
+      "total": 8,
+      "missing": [
+        "gallery",
+        "woman",
+        "red dress",
+        "painting",
+        "blur",
+        "visitors",
+        "13B",
+        "KREA 2 Turbo"
+      ],
+      "error": "HTTP 500: Server: BaseHTTP/0.6 Python/3.12.3\r\nDate: Sun, 23 Aug 2026 17:40:06 GMT\r\nConnection: close\r\nContent-Type: text/html;charset=utf-8\r\nContent-Length: 384\r\n\r\n\u003c!DOCTYPE HTML\u003e\n\u003chtml lang=\"en\"\u003e\n    \u003chead\u003e\n        \u003cmeta charset=\"utf-8\"\u003e\n        \u003ctitle\u003eError response\u003c/title\u003e\n    \u003c/head\u003e\n    \u003cbody\u003e\n        \u003ch1\u003eError response\u003c/h1\u003e\n        \u003cp\u003eError code: 500\u003c/p\u003e\n        \u003cp\u003eMessage: RuntimeError: litert_lm_conversation_send_message_stream failed\n.\u003c/p\u003e\n        \u003cp\u003eError code explanation: 500 - Server got itself in trouble.\u003c/p\u003e\n    \u003c/body\u003e\n\u003c/html\u003e"
+    },
+    {
+      "case": {
+        "id": "smoky-makeup",
+        "image": "web/dist/makeup-library/02-smoky.jpg",
+        "motion": "The camera remains static. The woman slowly blinks once while keeping the same neutral expression.",
+        "required": [
+          "woman",
+          "dark hair",
+          "smoky",
+          "eye",
+          "neutral",
+          "gray"
+        ]
+      },
+      "task": "describe",
+      "output": "A close-up portrait features a woman with dark hair styled pulled back, looking directly at the camera against a plain, medium-gray background. She has prominent eye makeup with dark eyeshadow and defined eyebrows, and her lips are a neutral, rosy tone. The lighting highlights her facial features, including her cheekbones and jawline. The woman is bare-shouldered, suggesting a strapless garment or bare skin. The composition is centered on her face and upper torso, captured from a slightly low to eye-level viewpoint. The image appears to be a professional studio photograph, and there is a small, faint watermark or text visible near the bottom right edge",
+      "latency_ms": 3464,
+      "words": 105,
+      "hits": 5,
+      "total": 6,
+      "missing": [
+        "smoky"
+      ]
+    },
+    {
+      "case": {
+        "id": "smoky-makeup",
+        "image": "web/dist/makeup-library/02-smoky.jpg",
+        "motion": "The camera remains static. The woman slowly blinks once while keeping the same neutral expression.",
+        "required": [
+          "woman",
+          "dark hair",
+          "smoky",
+          "eye",
+          "neutral",
+          "gray"
+        ]
+      },
+      "task": "i2v",
+      "output": "The woman with dark hair and dramatic eye makeup is centered in a medium close-up shot against a plain, medium-gray background, illuminated by soft, professional studio lighting that highlights her facial contours and flawless skin texture. The camera remains static, maintaining a direct eye-level viewpoint focused on her face. Slowly, the woman blinks once, her expression remaining perfectly neutral throughout the subtle movement. The soundscape is silent, emphasizing the stillness of the moment",
+      "latency_ms": 2564,
+      "words": 73,
+      "hits": 5,
+      "total": 6,
+      "missing": [
+        "smoky"
+      ]
+    },
+    {
+      "case": {
+        "id": "pose-ocr",
+        "image": "web/dist/pose-library/images/pose_087.webp",
+        "motion": "The camera remains static. The woman begins to rise very slightly from her initial pose.",
+        "required": [
+          "woman",
+          "side",
+          "squat",
+          "hands",
+          "yellow",
+          "white"
+        ]
+      },
+      "task": "describe",
+      "output": "",
+      "latency_ms": 2,
+      "words": 0,
+      "hits": 0,
+      "total": 6,
+      "missing": [
+        "woman",
+        "side",
+        "squat",
+        "hands",
+        "yellow",
+        "white"
+      ],
+      "error": "HTTP 500: Server: BaseHTTP/0.6 Python/3.12.3\r\nDate: Sun, 23 Aug 2026 17:40:12 GMT\r\nConnection: close\r\nContent-Type: text/html;charset=utf-8\r\nContent-Length: 384\r\n\r\n\u003c!DOCTYPE HTML\u003e\n\u003chtml lang=\"en\"\u003e\n    \u003chead\u003e\n        \u003cmeta charset=\"utf-8\"\u003e\n        \u003ctitle\u003eError response\u003c/title\u003e\n    \u003c/head\u003e\n    \u003cbody\u003e\n        \u003ch1\u003eError response\u003c/h1\u003e\n        \u003cp\u003eError code: 500\u003c/p\u003e\n        \u003cp\u003eMessage: RuntimeError: litert_lm_conversation_send_message_stream failed\n.\u003c/p\u003e\n        \u003cp\u003eError code explanation: 500 - Server got itself in trouble.\u003c/p\u003e\n    \u003c/body\u003e\n\u003c/html\u003e"
+    },
+    {
+      "case": {
+        "id": "pose-ocr",
+        "image": "web/dist/pose-library/images/pose_087.webp",
+        "motion": "The camera remains static. The woman begins to rise very slightly from her initial pose.",
+        "required": [
+          "woman",
+          "side",
+          "squat",
+          "hands",
+          "yellow",
+          "white"
+        ]
+      },
+      "task": "i2v",
+      "output": "",
+      "latency_ms": 2,
+      "words": 0,
+      "hits": 0,
+      "total": 6,
+      "missing": [
+        "woman",
+        "side",
+        "squat",
+        "hands",
+        "yellow",
+        "white"
+      ],
+      "error": "HTTP 500: Server: BaseHTTP/0.6 Python/3.12.3\r\nDate: Sun, 23 Aug 2026 17:40:12 GMT\r\nConnection: close\r\nContent-Type: text/html;charset=utf-8\r\nContent-Length: 384\r\n\r\n\u003c!DOCTYPE HTML\u003e\n\u003chtml lang=\"en\"\u003e\n    \u003chead\u003e\n        \u003cmeta charset=\"utf-8\"\u003e\n        \u003ctitle\u003eError response\u003c/title\u003e\n    \u003c/head\u003e\n    \u003cbody\u003e\n        \u003ch1\u003eError response\u003c/h1\u003e\n        \u003cp\u003eError code: 500\u003c/p\u003e\n        \u003cp\u003eMessage: RuntimeError: litert_lm_conversation_send_message_stream failed\n.\u003c/p\u003e\n        \u003cp\u003eError code explanation: 500 - Server got itself in trouble.\u003c/p\u003e\n    \u003c/body\u003e\n\u003c/html\u003e"
+    }
+  ],
+  "hits": 10,
+  "total": 110,
+  "mean_latency_ms": 379.5
+}

@@ -1,21 +1,23 @@
 services:
   llama-server:
     container_name: llama-cpp-spark
-    image: edp1096/llama.cpp-spark:b8067-v1
+    image: llama.cpp-spark:v0.2.0
+    build:
+      context: .
+      args:
+        LLAMA_CPP_REF: ${LLAMA_CPP_REF:-v0.2.0}
     ports:
-      - 5000:5000
+      - "${LLAMA_BIND_ADDR:-0.0.0.0}:${LLAMA_PORT:-8696}:8696"
     environment:
-      - PIP_ROOT_USER_ACTION=ignore
-      # - HF_TOKEN=YOUR_HF_TOKEN_HERE
-      # - MODEL_REPO=unsloth/Qwen3-VL-8B-Instruct-GGUF
-      # - MODEL_REPO=unsloth/Qwen3-Coder-Next-GGUF
-      - MODEL_REPO=unsloth/gpt-oss-120b-GGUF
-      # - MODEL_TAG=UD-Q4_K_XL
-      - MODEL_TAG=Q4_0
-      - CONTEXT_SIZE=64000
-      - SERVER_PORT=5000
+      MODEL_FILE: ${LLAMA_MODEL_FILE:-Huihui-gemma-4-E2B-it-qat-q4_0-unquantized-abliterated-Q4_K.gguf}
+      MTP_FILE: ${LLAMA_MTP_FILE:-mtp-ggml-model-bf16.gguf}
+      MTP_ENABLED: ${LLAMA_MTP_ENABLED:-true}
+      MMPROJ_FILE: ${LLAMA_MMPROJ_FILE:-mmproj-model-bf16.gguf}
+      MMPROJ_ENABLED: ${LLAMA_MMPROJ_ENABLED:-true}
+      CONTEXT_SIZE: ${LLAMA_CONTEXT_SIZE:-65536}
     volumes:
-      - "/home/edp1096/.cache/gguf:/root/.cache/llama.cpp"
+      - "${LLAMA_MODEL_DIR:-/home/edp1096/.cache/gguf/huihui-gemma4-e2b-qat}:/models:ro"
+      - "/home/edp1096/.cache/gguf/llama-cache:/root/.cache/llama.cpp"
     deploy:
       resources:
         reservations:
@@ -24,13 +26,34 @@ services:
               count: 1
               capabilities: [gpu]
     working_dir: /llama.cpp
-    # stdin_open: true
-    # tty: true
-    command: >
-      bash -c "
-      ./llama-server -hf $${MODEL_REPO}:$${MODEL_TAG} \
-      --no-mmap \
-      --jinja -c $${CONTEXT_SIZE} \
-      --host 0.0.0.0 --port $${SERVER_PORT} \
-      -ngl 999 -fa 1
-      "
+    command:
+      - bash
+      - -c
+      - |
+        args=(
+          -m "/models/$${MODEL_FILE}"
+          --alias huihui-gemma4-e2b
+          --jinja
+          --reasoning off
+          --no-mmap
+          --ctx-size "$${CONTEXT_SIZE}"
+          --parallel 1
+          --host 0.0.0.0
+          --port 8696
+          --n-gpu-layers all
+          --flash-attn on
+        )
+        if [[ "$${MMPROJ_ENABLED}" == "true" && -f "/models/$${MMPROJ_FILE}" ]]; then
+          args+=(--mmproj "/models/$${MMPROJ_FILE}")
+        else
+          args+=(--no-mmproj)
+        fi
+        if [[ "$${MTP_ENABLED}" == "true" && -f "/models/$${MTP_FILE}" ]]; then
+          args+=(
+            --spec-type draft-mtp
+            --spec-draft-n-max 4
+            --spec-draft-model "/models/$${MTP_FILE}"
+            --spec-draft-ngl all
+          )
+        fi
+        exec ./llama-server "$${args[@]}"

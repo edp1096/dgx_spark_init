@@ -65,16 +65,19 @@ func TestImageJobCompletesThroughEngine(t *testing.T) {
 			w.WriteHeader(http.StatusOK)
 		case "/v1/images/generations":
 			var request struct {
-				Prompt string `json:"prompt"`
-				Size   string `json:"size"`
+				Prompt    string `json:"prompt"`
+				Size      string `json:"size"`
+				Sampler   string `json:"sampler_name"`
+				Scheduler string `json:"scheduler"`
+				Steps     int    `json:"steps"`
 			}
 			if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 				t.Fatal(err)
 			}
-			if request.Prompt != "green glass sphere" || request.Size != "512x512" {
+			if request.Prompt != "green glass sphere" || request.Size != "512x512" || request.Sampler != "euler" || request.Scheduler != "simple" || request.Steps != 8 {
 				t.Fatalf("unexpected request %#v", request)
 			}
-			_ = json.NewEncoder(w).Encode(map[string]any{"data": []map[string]string{{"b64_json": base64.StdEncoding.EncodeToString([]byte("fake png"))}}})
+			_ = json.NewEncoder(w).Encode(map[string]any{"seed": int64(987654321), "data": []map[string]string{{"b64_json": base64.StdEncoding.EncodeToString([]byte("fake png"))}}})
 		default:
 			http.NotFound(w, r)
 		}
@@ -108,6 +111,9 @@ func TestImageJobCompletesThroughEngine(t *testing.T) {
 	for time.Now().Before(deadline) {
 		list := store.List()
 		if len(list) == 1 && list[0].Status == "completed" {
+			if list[0].Params["seed"] != int64(987654321) {
+				t.Fatalf("actual seed was not recorded: %#v", list[0].Params)
+			}
 			file, err := os.Open(store.OutputPath(list[0].ID + ".png"))
 			if err != nil {
 				t.Fatal(err)
@@ -209,6 +215,8 @@ func TestCompletedImageCanBeReinterpretedThroughKreaDetailEnhancer(t *testing.T)
 			Steps       int     `json:"steps"`
 			FilterMode  string  `json:"filter_mode"`
 			FilterLevel float64 `json:"filter_strength"`
+			Sampler     string  `json:"sampler_name"`
+			Scheduler   string  `json:"scheduler"`
 		}
 		if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 			t.Fatal(err)
@@ -221,7 +229,7 @@ func TestCompletedImageCanBeReinterpretedThroughKreaDetailEnhancer(t *testing.T)
 		if err != nil || input.Width != 512 || input.Height != 512 {
 			t.Fatalf("input=%#v err=%v", input, err)
 		}
-		if request.Model != "krea-test" || request.Strength != 1 || request.VAE != "wan" || request.Steps != 10 || request.FilterMode != "balanced" || request.FilterLevel != 1 {
+		if request.Model != "krea-test" || request.Strength != 1 || request.VAE != "wan" || request.Steps != 10 || request.FilterMode != "balanced" || request.FilterLevel != 1 || request.Sampler != "er_sde" || request.Scheduler != "simple" {
 			t.Fatalf("unexpected detail request: %#v", request)
 		}
 		_ = json.NewEncoder(w).Encode(map[string]any{"data": []map[string]string{{"b64_json": base64.StdEncoding.EncodeToString(result)}}})
@@ -724,6 +732,62 @@ func TestKreaAnyPaintRoutesAndStoresSourceAndMask(t *testing.T) {
 	t.Fatalf("AnyPaint job did not complete: %#v", store.List())
 }
 
+func TestKreaAnyPaintOutpaintAllowsBlankPrompt(t *testing.T) {
+	const automaticPrompt = "Extend the original image naturally into a complete, coherent composition while preserving its subjects, style, lighting, perspective, and visual continuity."
+	worker := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var request struct {
+			Prompt string `json:"prompt"`
+			Image  string `json:"anypaint_image"`
+			Right  int    `json:"outpaint_right"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+			t.Fatal(err)
+		}
+		image, err := base64.StdEncoding.DecodeString(request.Image)
+		if err != nil || string(image) != "source png" || request.Prompt != automaticPrompt || request.Right != 256 {
+			t.Fatalf("unexpected blank-prompt Outpaint request: %#v image=%q err=%v", request, image, err)
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{"data": []map[string]string{{"b64_json": base64.StdEncoding.EncodeToString([]byte("outpaint result"))}}})
+	}))
+	defer worker.Close()
+
+	cfg := config.Config{DataDir: t.TempDir(), Engines: map[string]config.Engine{"image": {Endpoint: worker.URL}}, Image: config.Image{DefaultMode: "create", DefaultWidth: 1024, DefaultHeight: 512, MaxReferenceImages: 4, Backends: map[string]config.ImageBackend{"create": {Endpoint: worker.URL, Model: "krea-test"}}}}
+	store, err := jobs.New(cfg.DataDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	handler := New(cfg, store, nil).Handler()
+	var body bytes.Buffer
+	form := multipart.NewWriter(&body)
+	_ = form.WriteField("mode", "create")
+	_ = form.WriteField("outpaint_right", "256")
+	part, err := form.CreateFormFile("anypaint_image", "source.png")
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, _ = part.Write([]byte("source png"))
+	_ = form.Close()
+	req := httptest.NewRequest(http.MethodPost, "/api/jobs/image", &body)
+	req.Header.Set("Content-Type", form.FormDataContentType())
+	res := httptest.NewRecorder()
+	handler.ServeHTTP(res, req)
+	if res.Code != http.StatusAccepted {
+		t.Fatalf("status=%d body=%s", res.Code, res.Body.String())
+	}
+	deadline := time.Now().Add(2 * time.Second)
+	for time.Now().Before(deadline) {
+		list := store.List()
+		if len(list) == 1 && list[0].Status == "completed" {
+			if list[0].Prompt != automaticPrompt || list[0].Params["anypaint_mask"] != false {
+				t.Fatalf("job=%#v", list[0])
+			}
+			return
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	t.Fatalf("blank-prompt Outpaint job did not complete: %#v", store.List())
+}
+
 func TestKreaStyleReferenceRoutesAndIsReusable(t *testing.T) {
 	worker := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var request struct {
@@ -942,7 +1006,7 @@ func TestPromptEnhancementRejectsI2VWhenVisionDisabled(t *testing.T) {
 	}
 }
 
-func TestPromptEnhancementCallsLiteRTForT2V(t *testing.T) {
+func TestPromptEnhancementCallsOpenAICompatibleEngineForT2V(t *testing.T) {
 	worker := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var request struct {
 			Model               string `json:"model"`
@@ -1168,6 +1232,115 @@ func TestRecognitionUsesOpenAICompatibleRequest(t *testing.T) {
 		time.Sleep(10 * time.Millisecond)
 	}
 	t.Fatalf("job did not complete: %#v", store.List())
+}
+
+func TestSubtitleQueueRunsCompletePipelinesInFIFOOrder(t *testing.T) {
+	started := make(chan string, 2)
+	releaseFirst := make(chan struct{})
+	mediaWorker := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/v1/media/prepare" {
+			http.NotFound(w, r)
+			return
+		}
+		if err := r.ParseMultipartForm(1 << 20); err != nil {
+			t.Fatal(err)
+		}
+		sourceURL := r.FormValue("url")
+		started <- sourceURL
+		if strings.Contains(sourceURL, "first") {
+			<-releaseFirst
+		}
+		w.Header().Set("Content-Type", "application/zip")
+		archive := zip.NewWriter(w)
+		manifest, _ := archive.Create("manifest.json")
+		_, _ = manifest.Write([]byte(`{"source_name":"queued.mp4","segments":[{"name":"segment-00000.wav","start":0,"end":1,"duration":1}]}`))
+		segment, _ := archive.Create("segment-00000.wav")
+		_, _ = segment.Write([]byte("fake audio"))
+		_ = archive.Close()
+	}))
+	defer mediaWorker.Close()
+
+	asrWorker := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"text": "queued result", "language": "English",
+			"timestamps": []map[string]any{{"text": "queued result", "start": 0.0, "end": 0.5}},
+		})
+	}))
+	defer asrWorker.Close()
+
+	dataDir := t.TempDir()
+	store, err := jobs.New(dataDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	server := New(config.Config{
+		DataDir: dataDir,
+		Engines: map[string]config.Engine{
+			"media": {Endpoint: mediaWorker.URL}, "recognition": {Endpoint: asrWorker.URL},
+		},
+		Recognition: config.Recognition{
+			Model: "test-asr", MaxUploadMB: 1, SegmentSeconds: 30,
+			DefaultLanguage: "English", DefaultOutputFormats: []string{"txt"}, DefaultTranslationMode: "none",
+		},
+	}, store, nil)
+	handler := server.Handler()
+
+	submit := func(sourceURL string) {
+		t.Helper()
+		var body bytes.Buffer
+		form := multipart.NewWriter(&body)
+		_ = form.WriteField("url", sourceURL)
+		_ = form.WriteField("output_formats", "txt")
+		_ = form.WriteField("translation_mode", "none")
+		_ = form.Close()
+		request := httptest.NewRequest(http.MethodPost, "/api/jobs/recognition", &body)
+		request.Header.Set("Content-Type", form.FormDataContentType())
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, request)
+		if response.Code != http.StatusAccepted {
+			t.Fatalf("submit status=%d body=%s", response.Code, response.Body.String())
+		}
+	}
+
+	submit("https://example.com/first")
+	select {
+	case got := <-started:
+		if got != "https://example.com/first" {
+			t.Fatalf("first started=%q", got)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("first queued subtitle did not start")
+	}
+	submit("https://example.com/second")
+	select {
+	case got := <-started:
+		t.Fatalf("second pipeline overlapped first: %q", got)
+	case <-time.After(150 * time.Millisecond):
+	}
+	close(releaseFirst)
+	select {
+	case got := <-started:
+		if got != "https://example.com/second" {
+			t.Fatalf("second started=%q", got)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("second queued subtitle did not start after first completed")
+	}
+
+	deadline := time.Now().Add(2 * time.Second)
+	for time.Now().Before(deadline) {
+		completed := 0
+		for _, job := range store.List() {
+			if job.Status == "completed" {
+				completed++
+			}
+		}
+		if completed == 2 {
+			return
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	t.Fatalf("queued subtitle jobs did not complete: %#v", store.List())
 }
 
 func TestMediaAssetProxyPreservesRangeAndJobDeleteRemovesAsset(t *testing.T) {
@@ -1444,6 +1617,54 @@ func TestRestartRecoveryFailsJobsWithoutRecoverableInputs(t *testing.T) {
 		if job.Status != "failed" || job.Error == "" {
 			t.Fatalf("job was not reconciled after restart: %#v", job)
 		}
+	}
+}
+
+func TestRestartRecoveryCancelsActiveMediaPreparationBeforeResume(t *testing.T) {
+	cancelled := make(chan string, 1)
+	mediaWorker := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodDelete && strings.HasPrefix(r.URL.Path, "/v1/media/prepare/") {
+			cancelled <- strings.TrimPrefix(r.URL.Path, "/v1/media/prepare/")
+			w.WriteHeader(http.StatusAccepted)
+			return
+		}
+		http.NotFound(w, r)
+	}))
+	defer mediaWorker.Close()
+
+	dataDir := t.TempDir()
+	store, err := jobs.New(dataDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, job := range []jobs.Job{
+		{ID: "running-subtitle", Kind: "recognition", Status: "running", CreatedAt: time.Now()},
+		{ID: "completed-subtitle", Kind: "recognition", Status: "completed", CreatedAt: time.Now()},
+		{ID: "running-image", Kind: "image", Status: "running", CreatedAt: time.Now()},
+	} {
+		if err := store.Save(job); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	mediaServer := New(config.Config{
+		DataDir: dataDir,
+		Engines: map[string]config.Engine{"media": {Endpoint: mediaWorker.URL}},
+	}, store, nil)
+	if count := mediaServer.CancelActiveMediaPreparations(); count != 1 {
+		t.Fatalf("cancelled=%d want=1", count)
+	}
+	requeued, ok := store.Get("running-subtitle")
+	if !ok || requeued.Status != "queued" || requeued.Params["stage"] != "queued" {
+		t.Fatalf("running subtitle was not durably requeued: %#v", requeued)
+	}
+	select {
+	case id := <-cancelled:
+		if id != "running-subtitle" {
+			t.Fatalf("cancelled id=%q", id)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("stale media preparation cancellation was not sent")
 	}
 }
 

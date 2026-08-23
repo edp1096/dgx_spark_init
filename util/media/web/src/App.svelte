@@ -2,6 +2,7 @@
   import { onMount, onDestroy } from 'svelte'
   import { api } from './api.js'
   import ResultPagination from './ResultPagination.svelte'
+  import { sogniPromptPresets } from './sogniPromptPresets.js'
   import MaskEditor from './MaskEditor.svelte'
   import CannyEditor from './CannyEditor.svelte'
   import ImageModal from './ImageModal.svelte'
@@ -11,6 +12,8 @@
   import LoraStudio from './LoraStudio.svelte'
   import PromptComposer from './PromptComposer.svelte'
   import PromptExamplesModal from './PromptExamplesModal.svelte'
+  import RecentImagePicker from './RecentImagePicker.svelte'
+  import PresetImagePicker from './PresetImagePicker.svelte'
   import { lockModalScroll } from './modalScroll.js'
 
   let tab = 'image'
@@ -69,6 +72,10 @@
   let runtimeInfoOpen = false
   let releaseRuntimeInfoScroll = null
   let featureModulesOpen = false
+  let recentImagePickerTarget = ''
+  let presetImagePickerTarget = ''
+  let depthPoseID = ''
+  let nk2ePoseID = ''
   let releaseFeatureModulesScroll = null
   let activeKreaModuleLabels = []
   let kreaModuleMessage = ''
@@ -99,7 +106,8 @@
   let userLoraCatalog = []
   let userLoraSelections = []
   let kreaOptions = {
-    identity_strength: 1, ref_boost: 4, grounding_px: 768, steps: 10,
+    identity_strength: 1, ref_boost: 4, grounding_px: 768, steps: 8,
+    sampling_preset: 'default',
     depth_strength: 0.8,
     vision_mode: 'descriptor', vision_megapixels: 1, style_reference_strength: 1,
     nk2e_mode: 'edit', nk2e_strength: 0.7, vae_mode: 'default', identity_fit_mode: 'fit',
@@ -142,6 +150,7 @@
   let mobileRecognitionPane = 'create'
   let videoView = 'gallery'
   let refreshSequence = 0
+  let progressClock = Date.now()
   const pageSizeOptions = [8, 10, 20, 50, 100]
   const imagePageSizeOptions = [8, 10, 12, 16, 20, 24, 28, 50, 100]
   let listPageSizes = { image: 8, video: 8, speech: 10, recognition: 10, history: 20 }
@@ -163,6 +172,7 @@
   let monitoredEngineStatuses = []
   let engineAggregate = 'down'
   let engineAggregateLabel = 'API 확인 중'
+  let systemUsage = { cpu_percent: null, gpu_percent: null, mem_percent: null, mem_used_gb: null, mem_total_gb: null }
   $: monitoredEngineStatuses = engineStatusCatalog.map(([key, label]) => ({ key, label, online: engineStates[key] === 'online' }))
   $: {
     const onlineCount = monitoredEngineStatuses.filter((item) => item.online).length
@@ -171,15 +181,26 @@
   }
   const imageModeMeta = {
     create: { label: 'Krea 2 Turbo', short: '생성·고급', engine: 'image_create', help: '새 이미지 생성과 Identity·Depth·LoRA·부분 수정 등의 기능을 조합합니다.' },
-    edit: { label: 'FLUX.2 Klein 4B', short: '참조 편집', engine: 'image_edit', help: '하나 이상의 참조 이미지를 바탕으로 내용과 스타일을 변경합니다.' },
+    edit: { label: 'FLUX.2 Klein 4B', short: '원본 수정', engine: 'image_edit', help: '하나 이상의 참조 이미지를 바탕으로 내용과 스타일을 변경합니다.' },
     detail_enhance: { label: '디테일 재해석', short: 'Krea Detail', engine: 'image_create', help: 'Ostris Edit LoRA로 원본을 다시 그려 세부 묘사를 강화합니다.' },
     upscale: { label: '고화질', short: 'SeedVR2', engine: 'upscale', help: '완성된 이미지를 SeedVR2로 복원하고 확대합니다.' }
   }
   const imageModeChoices = ['create']
   const kreaModuleLabels = {
-    identity: '인물·장면 유지', depth: '자세·구도', nk2e: '실험 편집·윤곽', anypaint: '부분 수정·확장',
+    identity: '원본 수정', depth: '자세·구도', nk2e: '실험 편집·윤곽', anypaint: '부분 수정·확장',
     style: '스타일 LoRA', userLora: '사용자 LoRA', styleReference: '스타일 이미지 참조', vision: '내용·구도 참조'
   }
+  const identityPresetUI = {
+    '': { primary: '편집할 원본', primaryHint: '변경할 인물이나 장면', secondary: '보조 참조', secondaryHint: '얼굴·인물·의상·사물 제공', showSecondary: true, guide: '메인 프롬프트에 바꿀 내용을 직접 입력하세요.' },
+    restage: { primary: '인물 원본', primaryHint: '다른 장면에 배치할 인물', showSecondary: false, guide: '메인 프롬프트에 새로운 자세와 장면을 입력하세요.' },
+    sheet: { primary: '인물 원본', primaryHint: '시트로 만들 인물', secondary: '추가 외형 참조', secondaryHint: '다른 각도나 복장 자료 · 선택 사항', showSecondary: true, guide: '같은 인물의 2×2 시트를 자동으로 구성합니다.' },
+    faceSwap: { primary: '편집할 원본', primaryHint: '몸·장면을 유지할 이미지', secondary: '가져올 얼굴', secondaryHint: '교체할 얼굴이 선명한 이미지', secondaryRequired: true, showSecondary: true, guide: '첫 이미지의 얼굴만 두 번째 이미지의 얼굴로 교체합니다.' },
+    headSwap: { primary: '편집할 원본', primaryHint: '몸·장면을 유지할 이미지', secondary: '가져올 머리·인물', secondaryHint: '얼굴과 헤어를 함께 가져올 이미지', secondaryRequired: true, showSecondary: true, guide: '첫 이미지의 머리 전체를 두 번째 이미지 기준으로 교체합니다.' },
+    personSwap: { primary: '배경·장면 원본', primaryHint: '배경과 구도를 유지할 이미지', secondary: '가져올 인물', secondaryHint: '장면에 넣을 인물 이미지', secondaryRequired: true, showSecondary: true, guide: '첫 이미지의 장면에 두 번째 이미지의 인물을 배치합니다.' },
+    tryon: { primary: '편집할 인물 원본', primaryHint: '옷을 바꿀 인물 이미지', secondary: '참고할 의상', secondaryHint: '입힐 옷이나 착장 이미지', secondaryRequired: true, showSecondary: true, guide: '두 번째 이미지의 의상을 참고해 첫 인물의 옷을 변경합니다.' },
+    replace: { primary: '편집할 원본', primaryHint: '일부를 교체할 이미지', secondary: '교체 요소 참조', secondaryHint: '새로 넣을 사물·소재 · 선택 사항', showSecondary: true, guide: '메인 프롬프트와 변경 허용 영역으로 교체할 부분을 지정하세요.' }
+  }
+  $: identityUI = identityPresetUI[identityPreset] || identityPresetUI['']
   const imageAspectRatios = [
     ['1:1', 1, '정사각'], ['3:4', 3 / 4, '세로'], ['4:3', 4 / 3, '가로'],
     ['2:3', 2 / 3, '세로 사진'], ['3:2', 3 / 2, '가로 사진'], ['9:16', 9 / 16, '세로 화면'], ['16:9', 16 / 9, '가로 화면']
@@ -196,6 +217,7 @@
   ]
   const filterPromptSource = 'https://www.sogni.ai/loras/krea2-filter-bypass-2#examples'
   const kreaPromptGuideSource = 'https://github.com/krea-ai/krea-2/blob/main/docs/prompting.md'
+  const vibePromptGuideSource = 'https://vibeart.app/blog/z-image-turbo-prompt-guide'
   const officialPromptPresets = [
     { id: 'official-rocket', label: '로켓 발사 · 극접사', source: kreaPromptGuideSource, prompt: `immense rocket launch exhaust as seen from extremely close up` },
     { id: 'official-designer-toy', label: '3D 디자이너 토이', source: kreaPromptGuideSource, prompt: `3D rendered matte black designer toy figure, stylized round anthropomorphic shape, backward black baseball cap, oversized gold-rimmed aviator sunglasses, white traditional line-art tattoos of tiger and bird on torso, black studded belt with gold buckle, smooth vinyl texture, studio lighting, solid vibrant blue background, high contrast minimal composition` },
@@ -234,9 +256,18 @@
     {
       id: 'action', label: '액션·드라마', source: filterPromptSource,
       prompt: `A single 2D anime cel-animation frame in a gritty survival-horror style. In a derelict hospital corridor under flickering fluorescent lights, cold green-grey tones and harsh rim light cut through drifting smoke. A pale bruised woman leans against cracked tile, sweating and breathing hard while gripping a bloodied hatchet. A huge shifting shadow emerges behind her. Capture the instant she lunges and swings the hatchet in a fast sakuga arc, with controlled motion blur, smear-frame energy, flying droplets, handheld-camera urgency, and a tense mid-motion ending.`
-    }
+    },
+    ...sogniPromptPresets
   ]
-  const filterPromptPresets = [...officialPromptPresets, ...communityPromptPresets]
+  const vibePromptPresets = [
+    { id: 'vibe-hanfu', label: '한푸 인물 · 복합 지시', category: 'portrait', source: vibePromptGuideSource, image: 'https://cdn.vibeart.app/canvas/s4t8qua55bf3piytxwktri49-735a86297089cbd8e0a68a7f6262442f.png', prompt: `Young Chinese woman in red Hanfu, intricate embroidery. Impeccable makeup, red floral forehead pattern. Elaborate high bun, golden phoenix headdress, red flowers, beads. Holds round folding fan with lady, trees, bird. Neon lightning-bolt lamp, bright yellow glow, floating above extended left palm. Soft-lit outdoor night background, silhouetted tiered pagoda in Xi'an, blurred colorful distant lights. Photorealistic, cinematic, ultra-detailed.` },
+    { id: 'vibe-skincare', label: '이중언어 화장품 포스터', category: 'graphic', source: vibePromptGuideSource, image: 'https://cdn.vibeart.app/canvas/h3d38jbc0m21y5rl25w3mx5t-ce22254b3fa2c97f5173315c04ed754b.png', prompt: `Luxury skincare poster. Frosted glass serum bottle on a cream stone pedestal, soft gold rim light, premium beauty campaign composition, highly realistic product photography. The poster contains exactly four readable text elements only: Chinese "晨光精华", English "Morning Serum", Chinese "轻盈修护", English "Light Repair". Elegant high-end typography, balanced spacing, no extra words, no logo, no watermark.` },
+    { id: 'vibe-coffee', label: '이중언어 커피 패키지', category: 'photo', source: vibePromptGuideSource, image: 'https://cdn.vibeart.app/canvas/s4s75fl0u9cvenhpe99ojruv-c5d5d71e040b79e7034036615951ed41.png', prompt: `Photorealistic premium coffee bag packaging on a neutral warm-gray studio background, matte paper bag, subtle valve, realistic shadows. The front label contains only four readable text elements: Chinese "云南咖啡", English "Yunnan Coffee", Chinese "日晒处理", English "Natural Process". Accurate printed typography on the bag surface, no extra text, no logo, high-end packaging photography.` },
+    { id: 'vibe-storefront', label: '이중언어 매장 간판', category: 'photo', source: vibePromptGuideSource, image: 'https://cdn.vibeart.app/canvas/or1ibt5sjhvzuhzgvcufnqmv-f055ec731b4a6e393f6456ae6a8b3978.png', prompt: `Photorealistic modern tea bar storefront at dusk, clean glass facade, warm interior lighting, elegant urban street scene. The storefront signage contains only short readable bilingual text: Chinese "山茶" and English "Mountain Tea". Menu board visible through the window contains only two short readable items: Chinese "乌龙" and English "Oolong". No other text, no logo clutter, premium branding photography.` },
+    { id: 'vibe-mid-autumn', label: '문화적으로 일관된 명절 정물', category: 'photo', source: vibePromptGuideSource, image: 'https://cdn.vibeart.app/canvas/n98edrhzzbm8guoc8odj0pln-37d2d13fce2ef6b07891c9a85d1551a3.png', prompt: `Culturally coherent Mid-Autumn Festival still life in an elegant Chinese home interior: mooncakes on a porcelain plate, a small white tea set, osmanthus blossoms, rabbit paper-cut decoration, warm lantern glow, and a full moon visible through a round window. The arrangement should feel authentic, harmonious, and logically composed, with no random clutter, no text, no watermark. Photorealistic editorial photography.` },
+    { id: 'vibe-seven-objects', label: '정확히 7개 · 지정 위치', category: 'photo', source: vibePromptGuideSource, image: 'https://cdn.vibeart.app/canvas/w160lbagvsshc8jzomd8xpvz-b51bd7db25de008cc5b99d609d481009.png', prompt: `Top-down studio tabletop on a charcoal surface. Exactly seven objects and nothing else: a blue notebook in the top left, silver fountain pen in the top center, black camera in the top right, green ceramic tea cup in the middle left, white earbuds case in the middle center, red passport in the middle right, and a yellow keychain centered below them. Clean shadows, precise spacing, photorealistic, no text, no logo.` }
+  ]
+  const filterPromptPresets = [...officialPromptPresets, ...communityPromptPresets, ...vibePromptPresets]
   const kreaStyleCatalog = [
     { name: 'darkbrush', label: 'Dark Brush', detail: '먹선 · 수묵' },
     { name: 'dotmatrix', label: 'Dot Matrix', detail: '점묘 · 망점' },
@@ -323,6 +354,138 @@
     return modules.length ? ` · ${modules.join(' + ')}` : ''
   }
 
+  function imageSamplingSummary(job) {
+    const params = job.params || {}
+    if (!params.sampler && !params.scheduler && !params.steps) return ''
+    return `${params.sampler || '—'} / ${params.scheduler || '—'} · ${params.steps || '—'} steps`
+  }
+
+  function compactElapsed(seconds) {
+    const value = Math.max(0, Math.round(Number(seconds) || 0))
+    if (value < 60) return `${value}초`
+    const minutes = Math.floor(value / 60)
+    const remainder = value % 60
+    if (minutes < 60) return remainder ? `${minutes}분 ${remainder}초` : `${minutes}분`
+    const hours = Math.floor(minutes / 60)
+    return `${hours}시간 ${minutes % 60}분`
+  }
+
+  function imageGenerationKey(job) {
+    const params = job.params || {}
+    const mode = params.mode || 'create'
+    const steps = Number(params.steps) || (mode === 'detail_enhance' ? 10 : 8)
+    const sampler = params.sampler || (mode === 'detail_enhance' ? 'er_sde' : 'euler')
+    const megapixelBand = Math.max(1, Math.round((Number(params.width) || 1024) * (Number(params.height) || 1024) / 262144))
+    const modules = ['identity', 'depth', 'vision', 'style_reference', 'nk2e', 'anypaint'].filter((name) => params[name]).join('+') || 'base'
+    return `${mode}|${sampler}|${steps}|${megapixelBand}|${modules}`
+  }
+
+  function imageJobDurationSeconds(job) {
+    const started = Date.parse(job.params?.started_at || job.created_at || 0)
+    const completed = Date.parse(job.updated_at || 0)
+    if (!Number.isFinite(started) || !Number.isFinite(completed) || completed <= started) return 0
+    return (completed - started) / 1000
+  }
+
+  function median(values) {
+    const sorted = values.filter((value) => Number.isFinite(value) && value > 0).sort((a, b) => a - b)
+    if (!sorted.length) return 0
+    const middle = Math.floor(sorted.length / 2)
+    return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2
+  }
+
+  function imageGenerationEstimateSeconds(job) {
+    const key = imageGenerationKey(job)
+    const exact = jobs
+      .filter((item) => item.kind === 'image' && item.status === 'completed' && item.id !== job.id && imageGenerationKey(item) === key)
+      .slice(0, 12)
+      .map(imageJobDurationSeconds)
+    const observed = median(exact)
+    if (observed) return Math.max(3, observed)
+    const params = job.params || {}
+    const mode = params.mode || 'create'
+    const megapixels = Math.max(.25, (Number(params.width) || 1024) * (Number(params.height) || 1024) / 1_000_000)
+    const steps = Number(params.steps) || (mode === 'detail_enhance' ? 10 : 8)
+    if (mode === 'upscale') return Math.max(20, 16 * megapixels)
+    if (mode === 'detail_enhance') return Math.max(18, 5 + steps * megapixels * 1.5)
+    const moduleCount = ['identity', 'depth', 'vision', 'style_reference', 'nk2e', 'anypaint'].filter((name) => params[name]).length
+    return Math.max(8, 4 + steps * megapixels * 1.15 * (1 + moduleCount * .18))
+  }
+
+  function imageGenerationProgress(job) {
+    const created = Date.parse(job.created_at || 0)
+    if (job.status === 'queued') {
+      const elapsed = Number.isFinite(created) ? (progressClock - created) / 1000 : 0
+      return { label: '대기 중', percent: 2, elapsed: `대기 ${compactElapsed(elapsed)}`, eta: '앞선 작업 종료 후 시작' }
+    }
+    const started = Date.parse(job.params?.started_at || job.updated_at || job.created_at || 0)
+    const elapsedSeconds = Number.isFinite(started) ? Math.max(0, (progressClock - started) / 1000) : 0
+    const estimateSeconds = imageGenerationEstimateSeconds(job)
+    const remainingSeconds = estimateSeconds - elapsedSeconds
+    const percent = Math.min(94, Math.max(5, elapsedSeconds / estimateSeconds * 100))
+    const finishTime = new Date(progressClock + Math.max(0, remainingSeconds) * 1000).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' })
+    const timing = `${Math.round(elapsedSeconds)}/${Math.round(estimateSeconds)}초`
+    return {
+      label: remainingSeconds > 0 ? `${Math.round(percent)}%` : '마무리 중',
+      percent,
+      elapsed: timing,
+      eta: remainingSeconds > 0 ? `${finishTime} 완료 예상` : ''
+    }
+  }
+
+  function videoGenerationKey(job) {
+    const params = job.params || {}
+    return `${Number(params.width) || 0}x${Number(params.height) || 0}|${Number(params.num_frames) || 0}|${params.image ? 'i2v' : 't2v'}`
+  }
+
+  function videoGenerationWork(job) {
+    const params = job.params || {}
+    return Math.max(.1, (Number(params.width) || 768) * (Number(params.height) || 512) / 1_000_000) * Math.max(9, Number(params.num_frames) || 97)
+  }
+
+  function videoGenerationDurationSeconds(job) {
+    const started = Date.parse(job.params?.started_at || job.created_at || 0)
+    const completed = Date.parse(job.updated_at || 0)
+    if (!Number.isFinite(started) || !Number.isFinite(completed) || completed <= started) return 0
+    return (completed - started) / 1000
+  }
+
+  function videoGenerationEstimateSeconds(job) {
+    const exact = jobs
+      .filter((item) => item.kind === 'video' && item.status === 'completed' && item.id !== job.id && videoGenerationKey(item) === videoGenerationKey(job))
+      .slice(0, 12)
+      .map(videoGenerationDurationSeconds)
+    const exactObserved = median(exact)
+    if (exactObserved) return Math.max(10, exactObserved)
+    const normalized = jobs
+      .filter((item) => item.kind === 'video' && item.status === 'completed' && item.id !== job.id && Boolean(item.params?.image) === Boolean(job.params?.image))
+      .slice(0, 20)
+      .map((item) => videoGenerationDurationSeconds(item) / videoGenerationWork(item))
+    const rate = median(normalized)
+    if (rate) return Math.max(10, rate * videoGenerationWork(job))
+    return Math.max(30, videoGenerationWork(job) * 2.5)
+  }
+
+  function videoGenerationProgress(job) {
+    const created = Date.parse(job.created_at || 0)
+    if (job.status === 'queued') {
+      const elapsed = Number.isFinite(created) ? (progressClock - created) / 1000 : 0
+      return { label: '대기 중', percent: 2, elapsed: `대기 ${compactElapsed(elapsed)}`, eta: '앞선 작업 종료 후 시작' }
+    }
+    const started = Date.parse(job.params?.started_at || job.updated_at || job.created_at || 0)
+    const elapsedSeconds = Number.isFinite(started) ? Math.max(0, (progressClock - started) / 1000) : 0
+    const estimateSeconds = videoGenerationEstimateSeconds(job)
+    const remainingSeconds = estimateSeconds - elapsedSeconds
+    const percent = Math.min(94, Math.max(5, elapsedSeconds / estimateSeconds * 100))
+    const finishTime = new Date(progressClock + Math.max(0, remainingSeconds) * 1000).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' })
+    return {
+      label: remainingSeconds > 0 ? `${Math.round(percent)}%` : '마무리 중',
+      percent,
+      elapsed: `${Math.round(elapsedSeconds)}/${Math.round(estimateSeconds)}초`,
+      eta: remainingSeconds > 0 ? `${finishTime} 완료 예상` : ''
+    }
+  }
+
   function imagePromptModalText(job) {
     const enhanced = job.params?.enhanced_prompt || job.params?.source_enhanced_prompt
     if (!enhanced) return job.prompt || ''
@@ -332,6 +495,10 @@
   function recognitionProgressText(job) {
     const params = job.params || {}
     if (job.status === 'cancelled') return '중지됨'
+	if (job.status === 'queued') {
+	  const position = recognitionQueuePosition(job)
+	  return position ? `대기 ${position}번째 · 앞선 작업 완료 후 자동 시작` : '대기 중'
+	}
     if (params.stage === 'media') {
       const labels = {
         starting: '미디어 준비 시작 중', resuming: '저장된 원본에서 작업 재개 중', receiving: '파일 전송 중', resolving: '영상 페이지 분석 중',
@@ -353,10 +520,23 @@
 
   function recognitionProgressPercent(job) {
     const params = job.params || {}
+	if (job.status === 'queued') return 2
     if (params.stage === 'media' && params.media_stage === 'downloading') return Math.min(100, Math.max(0, Number(params.media_percent) || 0))
     if (params.stage === 'recognition' && params.segments) return Math.min(100, (Number(params.progress) || 0) * 100 / params.segments)
     if (params.stage === 'translation' && params.translation_total) return Math.min(100, (Number(params.translation_progress) || 0) * 100 / params.translation_total)
     return 0
+  }
+
+  function recognitionQueuePosition(job) {
+	const queued = jobs
+	  .filter((item) => item.kind === 'recognition' && item.status === 'queued')
+	  .sort((a, b) => {
+		const left = Date.parse(a.params?.queued_at || a.created_at || 0)
+		const right = Date.parse(b.params?.queued_at || b.created_at || 0)
+		return left - right || String(a.id).localeCompare(String(b.id))
+	  })
+	const index = queued.findIndex((item) => item.id === job.id)
+	return index < 0 ? 0 : index + 1
   }
 
   const activeJobs = () => jobs.filter((j) => j.status === 'queued' || j.status === 'running')
@@ -445,6 +625,14 @@
     }
   }
 
+  async function refreshSystemUsage() {
+    try {
+      systemUsage = await api.system()
+    } catch {
+      systemUsage = { cpu_percent: null, gpu_percent: null, mem_percent: null, mem_used_gb: null, mem_total_gb: null }
+    }
+  }
+
   onMount(() => {
     subtitleView = localStorage.getItem('media-subtitle-view') === 'list' ? 'list' : 'gallery'
     imageView = localStorage.getItem('media-image-view') === 'list' ? 'list' : 'gallery'
@@ -479,8 +667,11 @@
     }).catch((e) => error = e.message)
     refreshUserLoras()
     refresh()
+    refreshSystemUsage()
     const timer = setInterval(refresh, 1500)
-    return () => clearInterval(timer)
+    const systemTimer = setInterval(refreshSystemUsage, 5000)
+    const progressTimer = setInterval(() => { progressClock = Date.now() }, 1000)
+    return () => { clearInterval(timer); clearInterval(systemTimer); clearInterval(progressTimer) }
   })
 
   function setSubtitleView(view) {
@@ -590,8 +781,12 @@
   }
 
   function addKreaRefs(kind, files) {
-    const limit = kind === 'vision' ? 4 : 2
     const incoming = [...files].filter((file) => file.type.startsWith('image/')).map((file) => ({ file, name: file.name, preview: URL.createObjectURL(file), server: false }))
+    addKreaRefObjects(kind, incoming)
+  }
+
+  function addKreaRefObjects(kind, incoming) {
+    const limit = kind === 'vision' ? 4 : 2
     const current = kind === 'vision' ? kreaVisionImages : kreaStyleReferenceImages
     const combined = [...current, ...incoming]
     combined.slice(limit).forEach((image) => { if (image.preview?.startsWith('blob:')) URL.revokeObjectURL(image.preview) })
@@ -631,16 +826,19 @@
     if (kind === 'identity') {
       kreaIdentityImage = image
       kreaIdentityPreview = preview
+      parentImageJobID = image?.server && image.role === 'output' ? String(image.ref || '').split(':')[0] : ''
     } else if (kind === 'identityReference') {
       kreaIdentityReference = image
       kreaIdentityReferencePreview = preview
     } else if (kind === 'depth') {
       kreaDepthImage = image
       kreaDepthPreview = preview
+      depthPoseID = image?.poseID || ''
     } else if (kind === 'nk2e') {
       kreaNK2EImage = image
       kreaNK2EPreview = preview
-      if (!image) kreaNK2EPreprocessed = false
+      nk2ePoseID = image?.poseID || ''
+      kreaNK2EPreprocessed = Boolean(image?.preprocessed)
     } else if (kind === 'anypaint') {
       if (image && kreaAnyPaintImage !== image && kreaAnyPaintMask) setKreaImage('anypaintMask', null)
       kreaAnyPaintImage = image
@@ -661,6 +859,38 @@
     if (!image) return
     if (image.server) form.append(reuseField, image.ref)
     else form.append(uploadField, image.file || image)
+  }
+
+  function useRecentModuleImage(job) {
+    if (!job?.output_url || !recentImagePickerTarget) return
+    const target = recentImagePickerTarget
+    const image = {
+      server: true,
+      ref: `${job.id}:output:0`,
+      url: job.output_url,
+      name: `결과 ${job.id.slice(0, 8)}.png`,
+      role: 'output'
+    }
+    if (target === 'vision' || target === 'styleReference') addKreaRefObjects(target, [image])
+    else setKreaImage(target, image)
+    recentImagePickerTarget = ''
+  }
+
+  async function usePresetModuleImage(item) {
+    if (!item?.url || !presetImagePickerTarget) return
+    const target = presetImagePickerTarget
+    try {
+      const response = await fetch(item.url)
+      if (!response.ok) throw new Error(`HTTP ${response.status}`)
+      const blob = await response.blob()
+      const file = new File([blob], item.filename, { type: blob.type || 'image/webp' })
+      file.poseID = item.library === 'pose' ? item.id : ''
+      if (target === 'vision' || target === 'styleReference') addKreaRefs(target, [file])
+      else setKreaImage(target, file)
+      presetImagePickerTarget = ''
+    } catch (cause) {
+      error = `프리셋 이미지를 불러오지 못했습니다: ${cause.message}`
+    }
   }
 
   function showImage(event, src, title, detail = '', jobID = '') {
@@ -728,6 +958,7 @@
 
   function applyIdentityPreset(value) {
     identityPreset = value
+    if (!(identityPresetUI[value] || identityPresetUI['']).showSecondary) setKreaImage('identityReference', null)
     const presets = {
       restage: ['Place the same person in a new scene and pose as described', 'the same identity, facial features, hair, body proportions, and recognizable appearance'],
       sheet: ['Create a clean 2x2 character sheet on a plain background: front view upper-left, three-quarter view upper-right, left profile lower-left, and back view lower-right', 'the exact same identity, face, hairstyle, body proportions, outfit design, and color palette across all four panels'],
@@ -743,17 +974,25 @@
     resetImageEnhancement()
   }
 
+  function isPureOutpaint() {
+    return kreaModules.anypaint
+      && Boolean(kreaAnyPaintImage)
+      && !kreaAnyPaintMask
+      && ['outpaint_left', 'outpaint_top', 'outpaint_right', 'outpaint_bottom'].some((key) => Number(kreaOptions[key]) > 0)
+  }
+
   function imageDisabledReason() {
     if (busy) return '요청을 전송하고 있습니다.'
     if (activeJobs().some((j) => j.kind === 'image' || j.kind === 'video')) return '다른 이미지 또는 영상 작업이 끝나면 시작할 수 있습니다.'
-    if (!imageForm.prompt.trim()) return '프롬프트를 입력하세요.'
+    if (!imageForm.prompt.trim() && !isPureOutpaint()) return '프롬프트를 입력하세요.'
     if (imageForm.mode === 'edit' && refs.length === 0) return '편집할 참조 이미지를 추가하세요.'
     if (imageForm.mode === 'control' && refs.length !== 1) return 'Canny 제어 이미지 1장을 추가하세요.'
     return kreaModuleDisabledReason()
   }
 
   function kreaModuleDisabledReason() {
-    if (kreaModules.identity && !kreaIdentityImage) return '인물·장면 유지 모듈의 주 참조 이미지를 선택하세요.'
+    if (kreaModules.identity && !kreaIdentityImage) return `원본 수정의 ${identityUI.primary} 이미지를 선택하세요.`
+    if (kreaModules.identity && identityUI.secondaryRequired && !kreaIdentityReference) return `원본 수정의 ${identityUI.secondary} 이미지를 선택하세요.`
     if (kreaModules.depth && !kreaDepthImage) return '자세·구도 모듈의 구도 참조 이미지를 선택하세요.'
     if (kreaModules.vision && kreaVisionImages.length === 0) return '내용·구도 참조 이미지를 선택하세요.'
     if (kreaModules.styleReference && kreaStyleReferenceImages.length === 0) return '스타일 참조 이미지를 선택하세요.'
@@ -777,7 +1016,7 @@
 
   function handleFeatureModulesKeydown(event) {
     if (event.key !== 'Escape' || !featureModulesOpen) return
-    if (maskEditorMode || cannyEditorOpen || imageModal || runtimeInfoOpen) return
+    if (maskEditorMode || cannyEditorOpen || imageModal || runtimeInfoOpen || recentImagePickerTarget || presetImagePickerTarget) return
     featureModulesOpen = false
   }
 
@@ -788,7 +1027,7 @@
   }
 
   function imageEnhancementActive(enabled = imageEnhanceEnabled, prompt = imageForm.prompt) {
-    return enabled && !looksLikeStructuredPrompt(prompt)
+    return enabled && prompt.trim() !== '' && !looksLikeStructuredPrompt(prompt)
   }
 
   function imageEnhancementCurrent(enhanced = imageEnhancedPrompt, source = imageEnhancedSource, current = rawImagePrompt()) {
@@ -800,7 +1039,7 @@
   $: imageEnhancementIsActive = imageEnhancementActive(imageEnhanceEnabled, imageForm.prompt)
   $: activeKreaModuleLabels = Object.entries(kreaModules).filter(([, enabled]) => enabled).map(([name]) => kreaModuleLabels[name])
   $: kreaModuleMessage = (
-    kreaModules, kreaIdentityImage, kreaDepthImage, kreaVisionImages, kreaStyleReferenceImages,
+    kreaModules, identityPreset, kreaIdentityImage, kreaIdentityReference, kreaDepthImage, kreaVisionImages, kreaStyleReferenceImages,
     kreaStyleSelections, userLoraSelections, kreaNK2EImage, kreaAnyPaintImage, kreaAnyPaintMask, kreaOptions,
     kreaModuleDisabledReason()
   )
@@ -809,7 +1048,7 @@
     imageEnhancementCurrent(imageEnhancedPrompt, imageEnhancedSource, rawImagePrompt())
   )
   $: imageDisabledMessage = (
-    busy, jobs, imageForm, refs, kreaModules, kreaIdentityImage, kreaDepthImage,
+    busy, jobs, imageForm, refs, kreaModules, identityPreset, kreaIdentityImage, kreaIdentityReference, kreaDepthImage,
     kreaVisionImages, kreaStyleReferenceImages, kreaStyleSelections, userLoraSelections,
     kreaNK2EImage, kreaAnyPaintImage, kreaAnyPaintMask, kreaOptions,
     imageDisabledReason()
@@ -827,7 +1066,7 @@
     try {
       const form = new FormData()
       form.append('prompt', original)
-      form.append('mode', kreaModules.identity ? 'edit' : 't2i')
+      form.append('mode', kreaModules.identity ? 'edit' : kreaModules.anypaint ? 'paint' : (kreaModules.depth || kreaModules.nk2e) ? 'control' : 't2i')
       const result = await api.enhancePrompt(form)
       imageEnhancedPrompt = result.enhanced_prompt
       imageEnhancedSource = original
@@ -904,7 +1143,7 @@
         identity_strength: params.identity_strength !== undefined ? Number(params.identity_strength) : 1,
         ref_boost: params.ref_boost !== undefined ? Number(params.ref_boost) : 4,
         grounding_px: Number(params.grounding_px) || 768,
-        steps: Number(params.steps) || 10,
+        steps: Number(params.steps) || (params.identity ? 10 : 8),
         depth_strength: params.depth_strength !== undefined ? Number(params.depth_strength) : 0.8
         ,vision_mode: params.vision_mode || 'descriptor'
         ,vision_megapixels: params.vision_megapixels !== undefined ? Number(params.vision_megapixels) : 1
@@ -926,6 +1165,7 @@
         ,prompt_enhancer: Boolean(params.prompt_enhancer)
         ,prompt_enhancer_strength: params.prompt_enhancer_strength !== undefined ? Number(params.prompt_enhancer_strength) : 1
         ,prompt_text_scale: params.prompt_text_scale !== undefined ? Number(params.prompt_text_scale) : 1.75
+        ,sampling_preset: params.sampling_preset || (params.sampler === 'er_sde' ? 'detail' : 'default')
       }
       kreaStyleSelections = storedStyles.length ? storedStyles : [{ name: 'retroanime', strength: 1 }]
       userLoraSelections = storedUserLoras
@@ -1022,12 +1262,13 @@
       form.append('original_prompt', rawImagePrompt())
       if (parentImageJobID) form.append('parent_job_id', parentImageJobID)
       if (imageForm.mode === 'create') {
-        form.append('steps', kreaModules.identity ? kreaOptions.steps : 8)
+        form.append('steps', kreaOptions.steps)
         form.append('filter_mode', kreaOptions.filter_mode)
         form.append('filter_strength', kreaOptions.filter_strength)
         form.append('prompt_enhancer', kreaOptions.prompt_enhancer)
         form.append('prompt_enhancer_strength', kreaOptions.prompt_enhancer_strength)
         form.append('prompt_text_scale', kreaOptions.prompt_text_scale)
+        form.append('sampling_preset', kreaOptions.sampling_preset)
         if (kreaModules.identity) {
           appendImageInput(form, 'identity_image', 'reuse_identity_image', kreaIdentityImage)
           appendImageInput(form, 'identity_reference', 'reuse_identity_reference', kreaIdentityReference)
@@ -1342,8 +1583,9 @@
 <svelte:head><meta name="theme-color" content="#101318"></svelte:head>
 
 <header>
-  <div><span class="mark">✦</span><h1>생성 스튜디오</h1><span class="phase">IMAGE · VIDEO · VOICE · SUBTITLE</span></div>
+  <div><span class="mark">✦</span><h1>Spark Media</h1></div>
   <div class="engine-strip">
+    <span class="system-usage" title="5초 간격으로 갱신되는 DGX Spark 사용률"><b>CPU</b> {systemUsage.cpu_percent ?? '–'}% <b>GPU</b> {systemUsage.gpu_percent ?? '–'}% <b>MEM</b> {systemUsage.mem_used_gb == null ? '–' : Number(systemUsage.mem_used_gb).toFixed(1)}/{systemUsage.mem_total_gb == null ? '–' : Number(systemUsage.mem_total_gb).toFixed(1)}GB({systemUsage.mem_percent ?? '–'}%)</span>
     {#if tab === 'image'}
       <span class:running={engineStates[imageModeMeta[imageForm.mode].engine] === 'online'}><i></i>{imageModeMeta[imageForm.mode].short} API<span class="engine-state-text"> · {engineStates[imageModeMeta[imageForm.mode].engine] || 'offline'}</span></span>
       <span class:running={engineStates.prompt === 'online'}><i></i>Enhancer API<span class="engine-state-text"> · {engineStates.prompt || 'offline'}</span></span>
@@ -1360,6 +1602,7 @@
     {/if}
   </div>
   <div class="mobile-engine-area">
+    <span class="mobile-system-usage" title={`MEM ${systemUsage.mem_used_gb == null ? '–' : Number(systemUsage.mem_used_gb).toFixed(1)}/${systemUsage.mem_total_gb == null ? '–' : Number(systemUsage.mem_total_gb).toFixed(1)}GB(${systemUsage.mem_percent ?? '–'}%)`}>C {systemUsage.cpu_percent ?? '–'}% · G {systemUsage.gpu_percent ?? '–'}% · M {systemUsage.mem_used_gb == null ? '–' : Number(systemUsage.mem_used_gb).toFixed(1)}/{systemUsage.mem_total_gb == null ? '–' : Number(systemUsage.mem_total_gb).toFixed(1)}GB({systemUsage.mem_percent ?? '–'}%)</span>
     <button type="button" class="mobile-engine-summary {engineAggregate}" aria-expanded={mobileEngineOpen} aria-label={`API 상태: ${engineAggregateLabel}`} onclick={() => mobileEngineOpen = !mobileEngineOpen}><i></i><span>API</span></button>
     {#if mobileEngineOpen}
       <button type="button" class="mobile-engine-dismiss" aria-label="API 상태 닫기" onclick={() => mobileEngineOpen = false}></button>
@@ -1391,9 +1634,7 @@
     </div>
     <section class="workspace image-workspace" class:mobile-results={mobileImagePane === 'results'}>
       <form class="image-create-pane" onsubmit={(e) => { e.preventDefault(); generateImage() }}>
-        <div class="section-title"><div><span>01</span><h2>이미지 생성과 편집</h2></div></div>
-        <div class="image-model-title"><strong>Krea 2 Turbo</strong><small>생성 · 참조 편집 · 구조 제어 · 부분 수정</small></div>
-        <p class="mode-help">{imageModeMeta[imageForm.mode].help}</p>
+        <div class="section-title"><div><span>01</span><h2>이미지 생성</h2></div></div>
         {#if imageCloneMessage}<div class="clone-notice"><span>{imageCloneMessage}</span><button type="button" aria-label="복제 안내 닫기" onclick={() => imageCloneMessage = ''}>×</button></div>{/if}
         {#if imageForm.mode === 'create'}
           <div class="prompt-tools-row">
@@ -1406,32 +1647,24 @@
             }} />
           </div>
         {/if}
-        <label>{kreaModules.identity ? '변경할 내용' : '프롬프트'}<textarea bind:value={imageForm.prompt} rows="7" placeholder="{kreaModules.identity ? '원본에서 바꿀 내용만 구체적으로 입력하세요.' : '만들고 싶은 장면을 입력하세요.'}" required></textarea></label>
+        <label>{kreaModules.identity ? '변경할 내용' : '프롬프트'}<textarea bind:value={imageForm.prompt} rows="7" placeholder="{kreaModules.identity ? '원본에서 바꿀 내용만 구체적으로 입력하세요.' : isPureOutpaint() ? '선택 사항 · 비워두면 원본을 자연스럽게 이어서 확장합니다.' : '만들고 싶은 장면을 입력하세요.'}"></textarea></label>
         {#if kreaModules.identity}
           <label>유지할 내용<textarea bind:value={identityPreserve} rows="3" placeholder="얼굴, 머리, 구도, 배경처럼 바꾸지 않을 요소"></textarea></label>
         {/if}
-        <div class="enhancer-control">
-          <div>
-            <strong>프롬프트 향상</strong>
-            <small>{looksLikeStructuredPrompt() ? 'JSON 형식은 구조가 변하지 않도록 원문을 그대로 사용합니다.' : 'Gemma 4 E2B가 Krea 2용 상세 영어 프롬프트로 확장합니다.'}</small>
-            <a href={kreaPromptGuideSource} target="_blank" rel="noreferrer">출처 ↗</a>
+        <div class="enhanced-prompt image-enhancer-panel" class:inactive={!imageEnhancementIsActive}>
+          <div class="image-enhancer-panel-header">
+            <div class="enhancer-panel-title"><strong title="Gemma 4 E2B가 Krea 2용 영어 프롬프트로 확장합니다.">프롬프트 향상</strong><a href={kreaPromptGuideSource} target="_blank" rel="noreferrer">출처 ↗</a></div>
+            <div class="enhancer-panel-actions">
+              <button type="button" class="quiet enhancer-run" disabled={!imageEnhancementIsActive || enhancingPrompt || !imageForm.prompt.trim()} onclick={enhanceImagePrompt}>{enhancingPrompt ? '처리 중…' : imageEnhancementIsCurrent ? '다시 처리' : '미리 향상'}</button>
+            <div class="segmented compact">
+              <button type="button" class:active={imageEnhanceEnabled} onclick={() => imageEnhanceEnabled = true}>켜짐</button>
+              <button type="button" class:active={!imageEnhanceEnabled} onclick={() => imageEnhanceEnabled = false}>꺼짐</button>
+            </div>
+            </div>
           </div>
-          <div class="segmented compact">
-            <button type="button" class:active={imageEnhanceEnabled} onclick={() => imageEnhanceEnabled = true}>켜짐</button>
-            <button type="button" class:active={!imageEnhanceEnabled} onclick={() => imageEnhanceEnabled = false}>꺼짐</button>
-          </div>
+          <textarea bind:value={imageEnhancedPrompt} rows="5" aria-label="Krea 향상 프롬프트" placeholder={imageEnhanceEnabled ? '미리 향상을 실행하면 여기에 결과가 표시됩니다.' : '프롬프트 향상을 켜면 사용할 수 있습니다.'}></textarea>
+          <small>{looksLikeStructuredPrompt() ? 'JSON 형식은 원문을 유지합니다.' : imageEnhancementIsActive ? '실제 생성에 사용할 문장입니다. 확인하고 직접 수정할 수 있습니다.' : '꺼짐 · 기존 결과는 보존되며 실제 생성에는 원문을 사용합니다.'}</small>
         </div>
-        {#if imageEnhancementIsActive}
-          <div class="enhanced-prompt">
-            <div><span>향상된 프롬프트</span><button type="button" class="quiet" disabled={enhancingPrompt || !imageForm.prompt.trim()} onclick={enhanceImagePrompt}>{enhancingPrompt ? '향상 중…' : imageEnhancementIsCurrent ? '다시 향상' : '미리 향상'}</button></div>
-            {#if imageEnhancedPrompt}
-              <textarea bind:value={imageEnhancedPrompt} rows="8" aria-label="Krea 향상 프롬프트"></textarea>
-              <small>실제 생성에 사용할 문장입니다. 확인하고 직접 수정할 수 있습니다.</small>
-            {:else}
-              <p>생성 버튼을 처음 누르면 프롬프트를 향상하여 보여줍니다. 확인 후 다시 누르면 이미지를 만듭니다.</p>
-            {/if}
-          </div>
-        {/if}
         {#if imageForm.mode === 'create'}
           <section class="krea-runtime-controls" aria-label="Krea 모델 내부 조정">
             <div class="runtime-control-heading"><div><strong>모델 내부 조정</strong><small>필터 벡터와 텍스트 조건 강도를 간단히 조절합니다.</small></div><button type="button" class="runtime-info-button" aria-label="모델 내부 조정 설명" title="설명 보기" onclick={() => runtimeInfoOpen = true}>i</button></div>
@@ -1466,29 +1699,34 @@
                   <section class="module-panel" aria-label="Krea 생성 모듈">
             <article class="module-card" class:enabled={kreaModules.identity}>
               <button type="button" class="module-toggle" aria-pressed={kreaModules.identity} onclick={() => toggleKreaModule('identity')}>
-                <span class="module-icon">ID</span><span><strong>인물·장면 유지</strong><small>Identity Edit · 얼굴과 특징을 유지해 재배치</small></span><i></i>
+                <span class="module-icon">REF</span><span><strong>원본 수정</strong><small>원본의 인물이나 장면을 유지하면서 원하는 부분 변경</small></span><i></i>
               </button>
               {#if kreaModules.identity}
                 <div class="module-body">
                   {#if parentImageJobID}<div class="clone-notice"><span>결과 작업 {parentImageJobID.slice(0, 8)}에서 계속 편집 중</span><button type="button" onclick={() => parentImageJobID = ''}>×</button></div>{/if}
-                  <label>작업 프리셋<select value={identityPreset} onchange={(event) => applyIdentityPreset(event.currentTarget.value)}><option value="">직접 입력</option><option value="restage">동일 인물 재배치</option><option value="sheet">2×2 캐릭터 시트</option><option value="faceSwap">얼굴 교체</option><option value="headSwap">머리 전체 교체</option><option value="personSwap">인물 전체 교체</option><option value="tryon">의상 교체</option><option value="replace">선택 영역 교체</option></select></label>
-                  <label class="module-file">주 참조 이미지 <input type="file" accept="image/*" onchange={(e) => setKreaImage('identity', e.currentTarget.files?.[0] || null)}><span class="module-file-display">{#if kreaIdentityPreview}<img role="button" tabindex="0" class="zoomable-source" src={kreaIdentityPreview} alt="주 참조 미리보기" title="클릭하여 크게 보기" onclick={(event) => showImage(event, kreaIdentityPreview, 'Identity 주 참조')} onkeydown={(event) => showImageOnKey(event, kreaIdentityPreview, 'Identity 주 참조')}>{:else}<i>ID</i>{/if}<b title={kreaIdentityImage?.name || '인물 또는 편집할 장면 선택'}>{kreaIdentityImage?.name || '인물 또는 편집할 장면 선택'}</b></span></label>
-                  <label class="module-file optional">추가 인물 <small>선택 사항 · 두 장 합성 시 주 참조는 장면, 여기는 인물</small><input type="file" accept="image/*" onchange={(e) => setKreaImage('identityReference', e.currentTarget.files?.[0] || null)}><span class="module-file-display">{#if kreaIdentityReferencePreview}<img role="button" tabindex="0" class="zoomable-source" src={kreaIdentityReferencePreview} alt="추가 인물 미리보기" title="클릭하여 크게 보기" onclick={(event) => showImage(event, kreaIdentityReferencePreview, 'Identity 추가 인물')} onkeydown={(event) => showImageOnKey(event, kreaIdentityReferencePreview, 'Identity 추가 인물')}>{:else}<i>+1</i>{/if}<b title={kreaIdentityReference?.name || '추가 인물 없이 진행'}>{kreaIdentityReference?.name || '추가 인물 없이 진행'}</b></span></label>
-                  <div class="module-controls three">
-                    <label><span>닮음 강도 <b>{kreaOptions.ref_boost}</b></span><input type="range" min="0" max="10" step="0.5" bind:value={kreaOptions.ref_boost}></label>
-                    <label>참조 해석<select bind:value={kreaOptions.grounding_px}><option value={512}>변경 우선</option><option value={768}>균형</option><option value={1024}>얼굴 우선</option></select></label>
-                    <label>세부 묘사<select bind:value={kreaOptions.steps}><option value={8}>구도 우선</option><option value={10}>균형</option><option value={12}>얼굴 디테일</option></select></label>
-                  </div>
-                  <div class="module-controls"><label>참조 맞춤<select bind:value={kreaOptions.identity_fit_mode}><option value="fit">전체 보존 · Fit</option><option value="crop">얼굴 확대 · Crop</option></select></label><label>VAE<select bind:value={kreaOptions.vae_mode}><option value="default">Qwen VAE</option><option value="wan">Wan 2.1 VAE · 권장</option><option value="real">Real VAE · 실험</option></select></label></div>
-                  <div class="module-controls">
-                    <label class="module-file optional">닮음 집중 마스크 <small>흰 영역의 Identity 주의만 높임</small><input type="file" accept="image/*" onchange={(e) => setKreaImage('identityMask', e.currentTarget.files?.[0] || null)}><span class="module-file-display">{#if kreaIdentityMaskPreview}<img src={kreaIdentityMaskPreview} alt="닮음 집중 마스크">{:else}<i>FOCUS</i>{/if}<b>{kreaIdentityMask?.name || '선택 사항'}</b></span></label>
-                    <button type="button" class="mask-editor-open" disabled={!kreaIdentityPreview} onclick={() => maskEditorMode = 'identity'}>얼굴·특징 집중 영역 칠하기</button>
-                  </div>
-                  <div class="module-controls">
-                    <label class="module-file optional">수정 한정 마스크 <small>흰 영역 밖 픽셀을 원본 그대로 보존</small><input type="file" accept="image/*" onchange={(e) => setKreaImage('strictMask', e.currentTarget.files?.[0] || null)}><span class="module-file-display">{#if kreaStrictMaskPreview}<img src={kreaStrictMaskPreview} alt="수정 한정 마스크">{:else}<i>LOCK</i>{/if}<b>{kreaStrictMask?.name || '선택 사항'}</b></span></label>
-                    <button type="button" class="mask-editor-open" disabled={!kreaIdentityPreview} onclick={() => maskEditorMode = 'strict'}>변경 허용 영역 칠하기</button>
-                  </div>
-                  {#if kreaStrictMask}<div class="module-controls"><label>마스크 확장<input type="number" min="0" max="128" bind:value={kreaOptions.strict_mask_grow}></label><label>경계 부드럽게<input type="number" min="0" max="128" step="0.5" bind:value={kreaOptions.strict_mask_feather}></label></div>{/if}
+                  <label>무엇을 할까요?<select value={identityPreset} onchange={(event) => applyIdentityPreset(event.currentTarget.value)}><option value="">직접 지시</option><option value="restage">같은 인물로 장면 변경</option><option value="sheet">2×2 캐릭터 시트</option><option value="faceSwap">얼굴 교체</option><option value="headSwap">머리 전체 교체</option><option value="personSwap">인물 교체</option><option value="tryon">의상 교체</option><option value="replace">선택 영역 교체</option></select></label>
+                  <div class="module-source-field"><label class="module-file">{identityUI.primary}<small>{identityUI.primaryHint}</small><input type="file" accept="image/*" onchange={(e) => setKreaImage('identity', e.currentTarget.files?.[0] || null)}><span class="module-file-display">{#if kreaIdentityPreview}<img role="button" tabindex="0" class="zoomable-source" src={kreaIdentityPreview} alt={`${identityUI.primary} 미리보기`} title="클릭하여 크게 보기" onclick={(event) => showImage(event, kreaIdentityPreview, identityUI.primary)} onkeydown={(event) => showImageOnKey(event, kreaIdentityPreview, identityUI.primary)}>{:else}<i>REF</i>{/if}<b title={kreaIdentityImage?.name || identityUI.primaryHint}>{kreaIdentityImage?.name || identityUI.primaryHint}</b></span></label><div class="module-source-actions"><button type="button" class="recent-result-open" onclick={() => recentImagePickerTarget = 'identity'}>최근 결과</button><button type="button" class="recent-result-open" onclick={() => presetImagePickerTarget = 'identity'}>프리셋</button></div></div>
+                  {#if identityUI.showSecondary}<div class="module-source-field"><label class="module-file" class:optional={!identityUI.secondaryRequired}>{identityUI.secondary}<small>{identityUI.secondaryHint}{identityUI.secondaryRequired ? ' · 필수' : ' · 선택 사항'}</small><input type="file" accept="image/*" onchange={(e) => setKreaImage('identityReference', e.currentTarget.files?.[0] || null)}><span class="module-file-display">{#if kreaIdentityReferencePreview}<img role="button" tabindex="0" class="zoomable-source" src={kreaIdentityReferencePreview} alt={`${identityUI.secondary} 미리보기`} title="클릭하여 크게 보기" onclick={(event) => showImage(event, kreaIdentityReferencePreview, identityUI.secondary)} onkeydown={(event) => showImageOnKey(event, kreaIdentityReferencePreview, identityUI.secondary)}>{:else}<i>+1</i>{/if}<b title={kreaIdentityReference?.name || identityUI.secondaryHint}>{kreaIdentityReference?.name || identityUI.secondaryHint}</b></span></label><div class="module-source-actions"><button type="button" class="recent-result-open" onclick={() => recentImagePickerTarget = 'identityReference'}>최근 결과</button><button type="button" class="recent-result-open" onclick={() => presetImagePickerTarget = 'identityReference'}>프리셋</button></div></div>{/if}
+                  <p class="identity-prompt-guide">{identityUI.guide}</p>
+                  <details class="module-advanced">
+                    <summary><span>고급 설정</span><small>닮음·참조 해석·마스크</small></summary>
+                    <div class="module-advanced-body">
+                      <div class="module-controls">
+                        <label><span>닮음 강도 <b>{kreaOptions.ref_boost}</b></span><input type="range" min="0" max="10" step="0.5" bind:value={kreaOptions.ref_boost}></label>
+                        <label>참조 해석<select bind:value={kreaOptions.grounding_px}><option value={512}>변경 우선</option><option value={768}>균형</option><option value={1024}>얼굴 우선</option></select></label>
+                      </div>
+                      <div class="module-controls"><label>참조 맞춤<select bind:value={kreaOptions.identity_fit_mode}><option value="fit">전체 보존 · Fit</option><option value="crop">얼굴 확대 · Crop</option></select></label><label>VAE<select bind:value={kreaOptions.vae_mode}><option value="default">Qwen VAE</option><option value="wan">Wan 2.1 VAE · 권장</option><option value="real">Real VAE · 실험</option></select></label></div>
+                      <div class="module-controls">
+                        <label class="module-file optional">닮음 집중 마스크 <small>흰 영역의 Identity 주의만 높임</small><input type="file" accept="image/*" onchange={(e) => setKreaImage('identityMask', e.currentTarget.files?.[0] || null)}><span class="module-file-display">{#if kreaIdentityMaskPreview}<img src={kreaIdentityMaskPreview} alt="닮음 집중 마스크">{:else}<i>FOCUS</i>{/if}<b>{kreaIdentityMask?.name || '선택 사항'}</b></span></label>
+                        <button type="button" class="mask-editor-open" disabled={!kreaIdentityPreview} onclick={() => maskEditorMode = 'identity'}>얼굴·특징 집중 영역 칠하기</button>
+                      </div>
+                      <div class="module-controls">
+                        <label class="module-file optional">변경 허용 마스크 <small>흰 영역 밖 픽셀을 원본 그대로 보존</small><input type="file" accept="image/*" onchange={(e) => setKreaImage('strictMask', e.currentTarget.files?.[0] || null)}><span class="module-file-display">{#if kreaStrictMaskPreview}<img src={kreaStrictMaskPreview} alt="변경 허용 마스크">{:else}<i>LOCK</i>{/if}<b>{kreaStrictMask?.name || '선택 사항'}</b></span></label>
+                        <button type="button" class="mask-editor-open" disabled={!kreaIdentityPreview} onclick={() => maskEditorMode = 'strict'}>변경 허용 영역 칠하기</button>
+                      </div>
+                      {#if kreaStrictMask}<div class="module-controls"><label>마스크 확장<input type="number" min="0" max="128" bind:value={kreaOptions.strict_mask_grow}></label><label>경계 부드럽게<input type="number" min="0" max="128" step="0.5" bind:value={kreaOptions.strict_mask_feather}></label></div>{/if}
+                    </div>
+                  </details>
                 </div>
               {/if}
             </article>
@@ -1498,7 +1736,7 @@
               </button>
               {#if kreaModules.depth}
                 <div class="module-body">
-                  <label class="module-file">구도 참조 이미지 <input type="file" accept="image/*" onchange={(e) => setKreaImage('depth', e.currentTarget.files?.[0] || null)}><span class="module-file-display">{#if kreaDepthPreview}<img role="button" tabindex="0" class="zoomable-source" src={kreaDepthPreview} alt="구도 참조 미리보기" title="클릭하여 크게 보기" onclick={(event) => showImage(event, kreaDepthPreview, 'Depth 구도 참조')} onkeydown={(event) => showImageOnKey(event, kreaDepthPreview, 'Depth 구도 참조')}>{:else}<i>3D</i>{/if}<b title={kreaDepthImage?.name || '원하는 자세와 구도의 이미지 선택'}>{kreaDepthImage?.name || '원하는 자세와 구도의 이미지 선택'}</b></span></label>
+                  <div class="module-source-field depth-source-field"><label class="module-file">구도 참조 이미지 <input type="file" accept="image/*" onchange={(e) => setKreaImage('depth', e.currentTarget.files?.[0] || null)}><span class="module-file-display">{#if kreaDepthPreview}<img role="button" tabindex="0" class="zoomable-source" src={kreaDepthPreview} alt="구도 참조 미리보기" title="클릭하여 크게 보기" onclick={(event) => showImage(event, kreaDepthPreview, 'Depth 구도 참조')} onkeydown={(event) => showImageOnKey(event, kreaDepthPreview, 'Depth 구도 참조')}>{:else}<i>3D</i>{/if}<b title={kreaDepthImage?.name || '원하는 자세와 구도의 이미지 선택'}>{kreaDepthImage?.name || '원하는 자세와 구도의 이미지 선택'}</b></span></label><div class="module-source-actions"><button type="button" class="recent-result-open" onclick={() => recentImagePickerTarget = 'depth'}>최근 결과</button><button type="button" class="recent-result-open" onclick={() => presetImagePickerTarget = 'depth'}>프리셋</button></div></div>
                   <label class="module-slider"><span>구도 고정 강도 <b>{Number(kreaOptions.depth_strength).toFixed(1)}</b></span><input type="range" min="0" max="2" step="0.1" bind:value={kreaOptions.depth_strength}></label>
                 </div>
               {/if}
@@ -1509,7 +1747,7 @@
               </button>
               {#if kreaModules.nk2e}
                 <div class="module-body">
-                  <label class="module-file">참조 이미지 <input type="file" accept="image/*" onchange={(e) => setKreaImage('nk2e', e.currentTarget.files?.[0] || null)}><span class="module-file-display">{#if kreaNK2EPreview}<img role="button" tabindex="0" class="zoomable-source" src={kreaNK2EPreview} alt="NK2E 참조 미리보기" title="클릭하여 크게 보기" onclick={(event) => showImage(event, kreaNK2EPreview, 'NK2E 참조')} onkeydown={(event) => showImageOnKey(event, kreaNK2EPreview, 'NK2E 참조')}>{:else}<i>N2</i>{/if}<b title={kreaNK2EImage?.name || '편집하거나 윤곽을 가져올 이미지 선택'}>{kreaNK2EImage?.name || '편집하거나 윤곽을 가져올 이미지 선택'}</b></span></label>
+                  <div class="module-source-field"><label class="module-file">참조 이미지 <input type="file" accept="image/*" onchange={(e) => setKreaImage('nk2e', e.currentTarget.files?.[0] || null)}><span class="module-file-display">{#if kreaNK2EPreview}<img role="button" tabindex="0" class="zoomable-source" src={kreaNK2EPreview} alt="NK2E 참조 미리보기" title="클릭하여 크게 보기" onclick={(event) => showImage(event, kreaNK2EPreview, 'NK2E 참조')} onkeydown={(event) => showImageOnKey(event, kreaNK2EPreview, 'NK2E 참조')}>{:else}<i>N2</i>{/if}<b title={kreaNK2EImage?.name || '편집하거나 윤곽을 가져올 이미지 선택'}>{kreaNK2EImage?.name || '편집하거나 윤곽을 가져올 이미지 선택'}</b></span></label><div class="module-source-actions"><button type="button" class="recent-result-open" onclick={() => recentImagePickerTarget = 'nk2e'}>최근 결과</button><button type="button" class="recent-result-open" onclick={() => presetImagePickerTarget = 'nk2e'}>프리셋</button></div></div>
                   <div class="module-controls">
                     <label>작업 방식<select bind:value={kreaOptions.nk2e_mode}><option value="edit">국소 편집</option><option value="canny">윤곽·자세 반영</option></select></label>
                     <label class="module-slider"><span>반영 강도 <b>{Number(kreaOptions.nk2e_strength).toFixed(1)}</b></span><input type="range" min="0" max="2" step="0.1" bind:value={kreaOptions.nk2e_strength}></label>
@@ -1526,7 +1764,7 @@
               {#if kreaModules.anypaint}
                 <div class="module-body">
                   <div class="module-controls">
-                    <label class="module-file">원본 이미지 <input type="file" accept="image/*" onchange={(e) => setKreaImage('anypaint', e.currentTarget.files?.[0] || null)}><span class="module-file-display">{#if kreaAnyPaintPreview}<img role="button" tabindex="0" class="zoomable-source" src={kreaAnyPaintPreview} alt="부분 수정 원본 미리보기" title="클릭하여 크게 보기" onclick={(event) => showImage(event, kreaAnyPaintPreview, '부분 수정·확장 원본')} onkeydown={(event) => showImageOnKey(event, kreaAnyPaintPreview, '부분 수정·확장 원본')}>{:else}<i>IMG</i>{/if}<b title={kreaAnyPaintImage?.name || '수정하거나 확장할 이미지 선택'}>{kreaAnyPaintImage?.name || '수정하거나 확장할 이미지 선택'}</b></span></label>
+                    <div class="module-source-field"><label class="module-file">원본 이미지 <input type="file" accept="image/*" onchange={(e) => setKreaImage('anypaint', e.currentTarget.files?.[0] || null)}><span class="module-file-display">{#if kreaAnyPaintPreview}<img role="button" tabindex="0" class="zoomable-source" src={kreaAnyPaintPreview} alt="부분 수정 원본 미리보기" title="클릭하여 크게 보기" onclick={(event) => showImage(event, kreaAnyPaintPreview, '부분 수정·확장 원본')} onkeydown={(event) => showImageOnKey(event, kreaAnyPaintPreview, '부분 수정·확장 원본')}>{:else}<i>IMG</i>{/if}<b title={kreaAnyPaintImage?.name || '수정하거나 확장할 이미지 선택'}>{kreaAnyPaintImage?.name || '수정하거나 확장할 이미지 선택'}</b></span></label><div class="module-source-actions"><button type="button" class="recent-result-open" onclick={() => recentImagePickerTarget = 'anypaint'}>최근 결과</button><button type="button" class="recent-result-open" onclick={() => presetImagePickerTarget = 'anypaint'}>프리셋</button></div></div>
                     <label class="module-file optional">수정 마스크 <small>선택 사항 · 흰 영역을 새로 생성</small><input type="file" accept="image/*" onchange={(e) => setKreaImage('anypaintMask', e.currentTarget.files?.[0] || null)}><span class="module-file-display">{#if kreaAnyPaintMaskPreview}<img role="button" tabindex="0" class="zoomable-source" src={kreaAnyPaintMaskPreview} alt="부분 수정 마스크 미리보기" title="클릭하여 크게 보기" onclick={(event) => showImage(event, kreaAnyPaintMaskPreview, '수정 마스크')} onkeydown={(event) => showImageOnKey(event, kreaAnyPaintMaskPreview, '수정 마스크')}>{:else}<i>MASK</i>{/if}<b title={kreaAnyPaintMask?.name || '확장만 할 때는 비워두기'}>{kreaAnyPaintMask?.name || '확장만 할 때는 비워두기'}</b></span></label>
                   </div>
                   <button type="button" class="mask-editor-open" disabled={!kreaAnyPaintPreview} onclick={() => maskEditorMode = 'anypaint'}>원본 위에서 수정 영역 칠하기</button>
@@ -1613,7 +1851,7 @@
               </button>
               {#if kreaModules.styleReference}
                 <div class="module-body">
-                  <label class="module-file">스타일 이미지 · 최대 2장<input type="file" accept="image/*" multiple onchange={(e) => addKreaRefs('styleReference', e.currentTarget.files)}><span class="module-file-display"><i>REF</i><b>{kreaStyleReferenceImages.length ? `${kreaStyleReferenceImages.length}장 선택됨` : '화풍을 가져올 이미지 선택'}</b></span></label>
+                  <div class="module-source-field"><label class="module-file">스타일 이미지 · 최대 2장<input type="file" accept="image/*" multiple onchange={(e) => addKreaRefs('styleReference', e.currentTarget.files)}><span class="module-file-display"><i>REF</i><b>{kreaStyleReferenceImages.length ? `${kreaStyleReferenceImages.length}장 선택됨` : '화풍을 가져올 이미지 선택'}</b></span></label><div class="module-source-actions"><button type="button" class="recent-result-open" onclick={() => recentImagePickerTarget = 'styleReference'}>최근 결과</button><button type="button" class="recent-result-open" onclick={() => presetImagePickerTarget = 'styleReference'}>프리셋</button></div></div>
                   {#if kreaStyleReferenceImages.length}<div class="reference-previews">{#each kreaStyleReferenceImages as image, i}<div><button type="button" class="reference-preview-open" onclick={(event) => showImage(event, image.preview || image.url, `스타일 참조 ${i + 1}`)}><img src={image.preview || image.url} alt="스타일 참조 {i + 1}"></button><button type="button" class="reference-preview-remove" aria-label="스타일 참조 제거" onclick={() => removeKreaRef('styleReference', i)}>×</button></div>{/each}</div>{/if}
                   <label class="module-slider"><span>참조 강도 <b>{Number(kreaOptions.style_reference_strength).toFixed(1)}</b></span><input type="range" min="0" max="2" step="0.1" bind:value={kreaOptions.style_reference_strength}></label>
                   <small class="module-caution">전용 INT8 모델을 사용하므로 다른 Krea 모듈과는 아직 함께 실행하지 않습니다.</small>
@@ -1626,7 +1864,7 @@
               </button>
               {#if kreaModules.vision}
                 <div class="module-body">
-                  <label class="module-file">참조 이미지 · 최대 4장<input type="file" accept="image/*" multiple onchange={(e) => addKreaRefs('vision', e.currentTarget.files)}><span class="module-file-display"><i>VL</i><b>{kreaVisionImages.length ? `${kreaVisionImages.length}장 선택됨` : '내용을 참고할 이미지 선택'}</b></span></label>
+                  <div class="module-source-field"><label class="module-file">참조 이미지 · 최대 4장<input type="file" accept="image/*" multiple onchange={(e) => addKreaRefs('vision', e.currentTarget.files)}><span class="module-file-display"><i>VL</i><b>{kreaVisionImages.length ? `${kreaVisionImages.length}장 선택됨` : '내용을 참고할 이미지 선택'}</b></span></label><div class="module-source-actions"><button type="button" class="recent-result-open" onclick={() => recentImagePickerTarget = 'vision'}>최근 결과</button><button type="button" class="recent-result-open" onclick={() => presetImagePickerTarget = 'vision'}>프리셋</button></div></div>
                   {#if kreaVisionImages.length}<div class="reference-previews">{#each kreaVisionImages as image, i}<div><button type="button" class="reference-preview-open" onclick={(event) => showImage(event, image.preview || image.url, `내용·구도 참조 ${i + 1}`)}><img src={image.preview || image.url} alt="내용 참조 {i + 1}"></button><button type="button" class="reference-preview-remove" aria-label="내용 참조 제거" onclick={() => removeKreaRef('vision', i)}>×</button></div>{/each}</div>{/if}
                   <div class="module-controls">
                     <label>참조 방식<select bind:value={kreaOptions.vision_mode}><option value="descriptor">자연스럽게 반영</option><option value="instruct">변경 지시와 결합</option></select></label>
@@ -1664,7 +1902,18 @@
             </div>
           {/if}
         </div>
-        <div class="fields"><label><span>시드 <small>-1은 무작위</small></span><input type="number" bind:value={imageForm.seed}></label></div>
+        {#if imageForm.mode === 'create'}
+          <section class="image-generation-controls" aria-label="이미지 생성 설정">
+            <div class="generation-control-heading"><strong>생성 설정</strong><small>{kreaOptions.sampling_preset === 'detail' ? 'ER-SDE / Simple' : 'Euler / Simple'} · {kreaOptions.steps} steps</small></div>
+            <div class="generation-control-grid">
+              <label class="sampling-field"><span>샘플링 프리셋</span><select bind:value={kreaOptions.sampling_preset}><option value="default">기본 · Euler / Simple</option><option value="detail">디테일 · ER-SDE / Simple</option></select></label>
+              <label><span>스텝</span><select bind:value={kreaOptions.steps}><option value={8}>8 · 기본</option><option value={10}>10 · 균형</option><option value={12}>12 · 디테일</option></select></label>
+              <label><span>시드 <small>-1 무작위</small></span><input type="number" min="-1" bind:value={imageForm.seed}></label>
+            </div>
+          </section>
+        {:else}
+          <div class="fields"><label><span>시드 <small>-1은 무작위</small></span><input type="number" min="-1" bind:value={imageForm.seed}></label></div>
+        {/if}
         <button class="primary" disabled={Boolean(imageDisabledMessage) || enhancingPrompt}>{enhancingPrompt ? '프롬프트 향상 중…' : busy ? '요청 중…' : imageEnhancementIsActive && !imageEnhancementIsCurrent ? '프롬프트 향상 후 확인' : `${imageModeMeta[imageForm.mode].label} 시작`}</button>
         {#if imageDisabledMessage}<small class="submit-hint">{imageDisabledMessage}</small>{/if}
       </form>
@@ -1679,12 +1928,13 @@
         <ResultPagination label="최근 이미지" total={imageJobs.length} page={listPages.image} pageSize={listPageSizes.image} pageSizes={imagePageSizeOptions} sortOrder={listSortOrders.image} onPageChange={(page) => setListPage('image', page)} onPageSizeChange={(size) => setListPageSize('image', size)} onSortOrderChange={(order) => setListSortOrder('image', order)} />
         <div class="gallery image-results" class:list-view={imageView === 'list'}>
         {#each pagedImageJobs as job (job.id)}
+          {@const generationProgress = job.status === 'queued' || job.status === 'running' ? imageGenerationProgress(job) : null}
           <article class:pending={job.status !== 'completed'}>
             {#if imageView === 'list'}
-              {#if job.output_url}<button type="button" class="image-list-thumb image-zoom" aria-label="생성 이미지 크게 보기" onclick={(event) => showImage(event, job.output_url, '생성 결과', job.prompt, job.id)}><img src={job.output_url} alt={job.prompt}></button>{:else}<div class="image-list-thumb placeholder"><span>{job.status}</span></div>{/if}
+              {#if job.output_url}<button type="button" class="image-list-thumb image-zoom" aria-label="생성 이미지 크게 보기" onclick={(event) => showImage(event, job.output_url, '생성 결과', job.prompt, job.id)}><img src={job.output_url} alt={job.prompt}></button>{:else}<div class="image-list-thumb placeholder">{#if generationProgress}<div class="image-generation-status compact"><strong>{generationProgress.label}</strong><div class="image-generation-bar"><i style={`width:${generationProgress.percent}%`}></i></div><small>{generationProgress.elapsed}</small></div>{:else}<span>{job.status}</span>{/if}</div>{/if}
               <div class="image-list-content">
-                <span>{imageModeMeta[job.params?.mode]?.label || '이미지'}{imageModuleSummary(job)} · {job.params?.width || '—'}×{job.params?.height || '—'}{#if job.params?.seed >= 0} · seed {job.params.seed}{/if}</span>
-                <button type="button" class="image-prompt" title="클릭하여 전체 프롬프트 보기" onclick={() => promptModal = { title: '전체 프롬프트', detail: `${imageModeMeta[job.params?.mode]?.label || '이미지'} · ${job.params?.width || '—'}×${job.params?.height || '—'}`, text: imagePromptModalText(job) }}>{job.prompt}</button>
+                <span>{imageModeMeta[job.params?.mode]?.label || '이미지'}{imageModuleSummary(job)} · {job.params?.width || '—'}×{job.params?.height || '—'}{#if imageSamplingSummary(job)} · {imageSamplingSummary(job)}{/if}{#if job.params?.seed >= 0} · seed {job.params.seed}{/if}</span>
+                <button type="button" class="image-prompt" title="클릭하여 전체 프롬프트 보기" onclick={() => promptModal = { title: '전체 프롬프트', detail: `${imageModeMeta[job.params?.mode]?.label || '이미지'} · ${job.params?.width || '—'}×${job.params?.height || '—'}${imageSamplingSummary(job) ? ` · ${imageSamplingSummary(job)}` : ''}`, text: imagePromptModalText(job) }}>{job.prompt}</button>
                 {#if job.error}<em>{job.error}</em>{/if}
                 <div class="image-clone-actions" aria-label="이 작업에서 복제">
                   <span>복제:</span>
@@ -1696,8 +1946,8 @@
                 {#if job.status === 'completed'}<div class="image-post-actions"><span>후처리:</span><button type="button" title="이 결과를 Identity 원본으로 불러와 계속 편집" onclick={() => continueEditing(job)}>편집</button><button type="button" title="Ostris Edit LoRA로 다시 그립니다. 얼굴·색·글자·구도가 달라질 수 있습니다." disabled={Boolean(detailEnhancingImageJob) || Boolean(upscalingImageJob) || engineStates.image_create !== 'online' || activeJobs().some((item) => item.kind === 'image' || item.kind === 'video')} onclick={() => detailEnhanceImage(job)}>{detailEnhancingImageJob === job.id ? '처리 중…' : '디테일'}</button><button type="button" title="SeedVR2로 복원하고 2배 확대" disabled={Boolean(detailEnhancingImageJob) || Boolean(upscalingImageJob) || engineStates.upscale !== 'online' || activeJobs().some((item) => item.kind === 'image' || item.kind === 'video')} onclick={() => upscaleImage(job)}>{upscalingImageJob === job.id ? '처리 중…' : '고화질'}</button></div>{/if}
               </div>
             {:else}
-              {#if job.output_url}<button type="button" class="gallery-image image-zoom" aria-label="생성 이미지 크게 보기" onclick={(event) => showImage(event, job.output_url, '생성 결과', job.prompt, job.id)}><img src={job.output_url} alt={job.prompt}></button>{:else}<div class="placeholder"><span>{job.status}</span></div>{/if}<span class="image-mode-badge" title={`${imageModeMeta[job.params?.mode]?.label || '이미지'}${imageModuleSummary(job)}`}>{imageModeMeta[job.params?.mode]?.label || '이미지'}{imageModuleSummary(job)}</span>
-              <button type="button" class="image-prompt" title="클릭하여 전체 프롬프트 보기" onclick={() => promptModal = { title: '전체 프롬프트', detail: `${imageModeMeta[job.params?.mode]?.label || '이미지'} · ${job.params?.width || '—'}×${job.params?.height || '—'}`, text: imagePromptModalText(job) }}>{job.prompt}</button>
+              {#if job.output_url}<button type="button" class="gallery-image image-zoom" aria-label="생성 이미지 크게 보기" onclick={(event) => showImage(event, job.output_url, '생성 결과', job.prompt, job.id)}><img src={job.output_url} alt={job.prompt}></button>{:else}<div class="placeholder">{#if generationProgress}<div class="image-generation-status"><strong>{generationProgress.label}</strong><div class="image-generation-bar"><i style={`width:${generationProgress.percent}%`}></i></div><small>{generationProgress.elapsed}</small>{#if generationProgress.eta}<small>{generationProgress.eta}</small>{/if}</div>{:else}<span>{job.status}</span>{/if}</div>{/if}<span class="image-mode-badge" title={`${imageModeMeta[job.params?.mode]?.label || '이미지'}${imageModuleSummary(job)}`}>{imageModeMeta[job.params?.mode]?.label || '이미지'}{imageModuleSummary(job)}</span>
+              <button type="button" class="image-prompt" title="클릭하여 전체 프롬프트 보기" onclick={() => promptModal = { title: '전체 프롬프트', detail: `${imageModeMeta[job.params?.mode]?.label || '이미지'} · ${job.params?.width || '—'}×${job.params?.height || '—'}${imageSamplingSummary(job) ? ` · ${imageSamplingSummary(job)}` : ''}`, text: imagePromptModalText(job) }}>{job.prompt}</button>
               {#if job.error}<em>{job.error}</em>{/if}
               <div class="image-clone-actions" aria-label="이 작업에서 복제">
                 <span>복제:</span>
@@ -1767,12 +2017,13 @@
         <ResultPagination label="최근 영상" total={videoJobs.length} page={listPages.video} pageSize={listPageSizes.video} pageSizes={imagePageSizeOptions} sortOrder={listSortOrders.video} onPageChange={(page) => setListPage('video', page)} onPageSizeChange={(size) => setListPageSize('video', size)} onSortOrderChange={(order) => setListSortOrder('video', order)} />
         <div class="video-list" class:list-view={videoView === 'list'}>
         {#each pagedVideoJobs as job (job.id)}
+          {@const generationProgress = job.status === 'queued' || job.status === 'running' ? videoGenerationProgress(job) : null}
           <article class:pending={job.status !== 'completed'}>
             {#if videoView === 'list'}
-              {#if job.output_url}<button type="button" class="video-list-thumb" aria-label="영상 크게 보기" onclick={() => showVideo(job)}><!-- svelte-ignore a11y_media_has_caption --><video preload="metadata" muted playsinline src={job.output_url}></video></button>{:else}<div class="video-list-thumb empty-thumb"><span>{job.status}</span></div>{/if}
+              {#if job.output_url}<button type="button" class="video-list-thumb" aria-label="영상 크게 보기" onclick={() => showVideo(job)}><!-- svelte-ignore a11y_media_has_caption --><video preload="metadata" muted playsinline src={job.output_url}></video></button>{:else}<div class="video-list-thumb empty-thumb">{#if generationProgress}<div class="image-generation-status compact"><strong>{generationProgress.label}</strong><div class="image-generation-bar"><i style={`width:${generationProgress.percent}%`}></i></div><small>{generationProgress.elapsed}</small></div>{:else}<span>{job.status}</span>{/if}</div>{/if}
               <div class="video-list-content"><small>{job.params?.width}×{job.params?.height} · {formatDuration(videoJobDuration(job))} · {job.params?.fps} fps{#if job.params?.seed >= 0} · seed {job.params.seed}{/if}</small><p title={job.prompt}>{job.prompt}</p>{#if job.error}<em>{job.error}</em>{/if}</div>
             {:else}
-              {#if job.output_url}<button type="button" class="video-gallery-thumb" aria-label="영상 크게 보기" title="클릭하여 크게 보기" onclick={() => showVideo(job)}><!-- svelte-ignore a11y_media_has_caption --><video preload="metadata" muted playsinline src={job.output_url}></video></button>{:else}<div class="video-placeholder"><span>{job.status}</span></div>{/if}<p title={job.prompt}>{job.prompt}</p><small>{job.params?.width}×{job.params?.height} · {formatDuration(videoJobDuration(job))} · {job.params?.fps} fps{#if job.params?.seed >= 0} · seed {job.params.seed}{/if}</small>{#if job.error}<em>{job.error}</em>{/if}
+              {#if job.output_url}<button type="button" class="video-gallery-thumb" aria-label="영상 크게 보기" title="클릭하여 크게 보기" onclick={() => showVideo(job)}><!-- svelte-ignore a11y_media_has_caption --><video preload="metadata" muted playsinline src={job.output_url}></video></button>{:else}<div class="video-placeholder">{#if generationProgress}<div class="image-generation-status"><strong>{generationProgress.label}</strong><div class="image-generation-bar"><i style={`width:${generationProgress.percent}%`}></i></div><small>{generationProgress.elapsed}</small>{#if generationProgress.eta}<small>{generationProgress.eta}</small>{/if}</div>{:else}<span>{job.status}</span>{/if}</div>{/if}<p title={job.prompt}>{job.prompt}</p><small>{job.params?.width}×{job.params?.height} · {formatDuration(videoJobDuration(job))} · {job.params?.fps} fps{#if job.params?.seed >= 0} · seed {job.params.seed}{/if}</small>{#if job.error}<em>{job.error}</em>{/if}
             {/if}
             {#if job.status === 'completed' || job.status === 'failed'}<button class="job-delete" disabled={deletingJob === job.id} onclick={() => deleteJob(job)}>삭제</button>{/if}
           </article>
@@ -1859,7 +2110,7 @@
           <label>번역<select bind:value={recognitionForm.translation_mode}><option value="none">번역 안 함</option><option value="translated">번역문만</option><option value="bilingual">원문과 번역문</option></select></label>
           <label>번역 언어<input list="translation-languages" bind:value={recognitionForm.target_language} disabled={recognitionForm.translation_mode === 'none'} placeholder="Korean"></label>
         </div>
-        <button class="primary" disabled={busy || recognitionForm.output_formats.length === 0 || (recognitionForm.source === 'file' ? !recognitionFile : !recognitionForm.url.trim()) || activeJobs().some((j) => j.kind === 'recognition')}>{busy ? '요청 중…' : '자막 만들기'}</button>
+        <button class="primary" disabled={busy || recognitionForm.output_formats.length === 0 || (recognitionForm.source === 'file' ? !recognitionFile : !recognitionForm.url.trim())}>{busy ? '등록 중…' : activeJobs().some((j) => j.kind === 'recognition') ? '자막 큐에 추가' : '자막 만들기'}</button>
       </form>
       <aside class="subtitle-results-pane mobile-results-pane">
         <div class="results-heading">
@@ -1876,14 +2127,14 @@
             {#if subtitleView === 'list'}
               {#if job.media_url || job.params?.text}<button type="button" class="subtitle-list-thumb" class:empty-thumb={!job.media_url || isAudioMedia(job)} aria-label="자막 결과 크게 보기" onclick={() => showSubtitle(job)}>{#if job.media_url && !isAudioMedia(job)}<!-- svelte-ignore a11y_media_has_caption --><video preload="metadata" muted playsinline src={job.media_url}></video>{:else}<span>{job.media_url && isAudioMedia(job) ? 'AUDIO' : job.params?.text ? 'TEXT' : job.status}</span>{/if}</button>{:else}<div class="subtitle-list-thumb empty-thumb"><span>{job.status}</span></div>{/if}
             {:else}
-              {#if job.media_url || job.params?.text}<button type="button" class="subtitle-gallery-thumb" class:empty-thumb={!job.media_url || isAudioMedia(job)} aria-label="자막 결과 크게 보기" onclick={() => showSubtitle(job)}>{#if job.media_url && !isAudioMedia(job)}<!-- svelte-ignore a11y_media_has_caption --><video preload="metadata" muted playsinline src={job.media_url}></video>{:else}<span>{job.media_url && isAudioMedia(job) ? 'AUDIO' : job.params?.text ? 'TEXT' : job.status}</span>{/if}</button>{:else}<div class="subtitle-gallery-thumb empty-thumb"><span>{job.status}</span></div>{/if}
+              {#if job.media_url || job.params?.text}<button type="button" class="subtitle-gallery-thumb" class:empty-thumb={!job.media_url || isAudioMedia(job)} aria-label="자막 결과 크게 보기" onclick={() => showSubtitle(job)}>{#if job.media_url && !isAudioMedia(job)}<!-- svelte-ignore a11y_media_has_caption --><video preload="metadata" muted playsinline src={job.media_url}></video>{:else}<span>{job.media_url && isAudioMedia(job) ? 'AUDIO' : job.params?.text ? 'TEXT' : statusLabels[job.status] || job.status}</span>{/if}</button>{:else}<div class="subtitle-gallery-thumb empty-thumb"><span>{statusLabels[job.status] || job.status}</span></div>{/if}
             {/if}
             <div class="subtitle-result-title"><span>{job.params?.detected_language || recognitionLanguageLabel(job.params?.language)}{#if job.params?.segments} · {job.params.segments}구간{/if}{#if job.params?.media_part} · 파트 {job.params.media_part}{/if}{#if job.params?.media_source} · {job.params.media_source}{/if}</span><p title={job.prompt}>{job.prompt}</p>{#if job.params?.media}<small>{mediaSummary(job)}</small>{/if}</div>
             {#if !job.params?.text}<small class="recognition-progress-text">{recognitionProgressText(job)}</small>{/if}
             {#if job.status === 'queued' || job.status === 'running'}<div class="recognition-progress" aria-label={recognitionProgressText(job)}><i style={`width: ${recognitionProgressPercent(job)}%`}></i></div>{/if}
             {#if job.outputs}<div class="output-links">{#each Object.entries(job.outputs) as output}<a href={output[1]} target="_blank">{outputLabels[output[0]] || output[0]} ↗</a>{/each}</div>{:else if job.output_url}<a href={job.output_url} target="_blank">결과 열기 ↗</a>{/if}
             {#if job.error}<em>{job.error}</em>{/if}
-            {#if job.status === 'queued' || job.status === 'running'}<button class="job-stop" disabled={cancellingJob === job.id} onclick={() => cancelJob(job)}>{cancellingJob === job.id ? '중지 중…' : '중지'}</button>{:else}<div class="job-actions">{#if job.status === 'failed' || job.status === 'cancelled'}<button class="job-retry" disabled={retryingJob === job.id} onclick={() => retryJob(job)}>{retryingJob === job.id ? '재개 중…' : '재개'}</button>{/if}<button class="job-delete" disabled={deletingJob === job.id} onclick={() => deleteJob(job)}>삭제</button></div>{/if}
+            {#if job.status === 'queued' || job.status === 'running'}<button class="job-stop" disabled={cancellingJob === job.id} onclick={() => cancelJob(job)}>{cancellingJob === job.id ? '중지 중…' : job.status === 'queued' ? '대기 취소' : '중지'}</button>{:else}<div class="job-actions">{#if job.status === 'failed' || job.status === 'cancelled'}<button class="job-retry" disabled={retryingJob === job.id} onclick={() => retryJob(job)}>{retryingJob === job.id ? '재개 중…' : '재개'}</button>{/if}<button class="job-delete" disabled={deletingJob === job.id} onclick={() => deleteJob(job)}>삭제</button></div>{/if}
           </article>
         {:else}<div class="empty">첫 자막 작업이 여기에 나타납니다.</div>{/each}
       </div>
@@ -1979,7 +2230,7 @@
             <label>이미지 인식<select bind:value={settings.prompt_enhancement.vision_enabled}><option value={false}>꺼짐</option><option value={true}>켜짐</option></select></label>
           </div>
           <small>프롬프트 향상은 이미지와 영상에 함께 적용됩니다. 준수 강화는 Krea 2 이미지 생성의 Krea2T 기본값입니다.</small>
-          <small>현재 Huihui LiteRT 번들은 이미지 인식이 되지 않으므로 이미지 인식은 꺼짐을 유지하세요.</small>
+          <small>I2V 시작 이미지는 LTX에 직접 전달하므로 이미지 인식 기반 프롬프트 향상은 기본적으로 꺼짐을 유지하세요.</small>
         </section>
         {/if}
 
@@ -2032,6 +2283,7 @@
     <section class="history"><div class="section-title"><div><span>05</span><h2>생성 기록</h2></div>{#if jobs.some((job) => job.status !== 'queued' && job.status !== 'running')}<button class="quiet danger" disabled={deletingJob === 'all'} onclick={clearFinishedJobs}>모두 비우기</button>{/if}</div>
       <ResultPagination label="생성 기록" total={jobs.length} page={listPages.history} pageSize={listPageSizes.history} pageSizes={pageSizeOptions} sortOrder={listSortOrders.history} onPageChange={(page) => setListPage('history', page)} onPageSizeChange={(size) => setListPageSize('history', size)} onSortOrderChange={(order) => setListSortOrder('history', order)} />
       {#each pagedHistoryJobs as job (job.id)}<article><span class="kind">{kindLabels[job.kind] || job.kind}</span><div><button type="button" class="history-prompt" title="전체 내용 보기" onclick={() => promptModal = { title: `${kindLabels[job.kind] || job.kind} 작업`, detail: `${new Date(job.created_at).toLocaleString()} · ${statusLabels[job.status] || job.status}`, text: job.prompt }}>{job.prompt}</button><small>{new Date(job.created_at).toLocaleString()} · {statusLabels[job.status] || job.status}</small>{#if job.error}<em>{job.error}</em>{/if}</div><div class="job-actions">{#if job.output_url}<a href={job.output_url} target="_blank">열기 ↗</a>{/if}{#if job.kind === 'recognition' && (job.status === 'failed' || job.status === 'cancelled')}<button class="job-retry" disabled={retryingJob === job.id} onclick={() => retryJob(job)}>{retryingJob === job.id ? '재개 중…' : '재개'}</button>{/if}{#if job.status !== 'queued' && job.status !== 'running'}<button class="job-delete" disabled={deletingJob === job.id} onclick={() => deleteJob(job)}>삭제</button>{/if}</div></article>{:else}<div class="empty">아직 생성 기록이 없습니다.</div>{/each}
+      <ResultPagination compact label="생성 기록" total={jobs.length} page={listPages.history} pageSize={listPageSizes.history} onPageChange={(page) => setListPage('history', page)} />
     </section>
   {/if}
 </main>
@@ -2056,4 +2308,6 @@
 <VideoModal video={videoModal} onClose={() => videoModal = null} />
 <SubtitleModal result={subtitleModal} onClose={() => subtitleModal = null} />
 <PromptModal prompt={promptModal} onClose={() => promptModal = null} />
-<PromptExamplesModal open={promptExamplesOpen} examples={filterPromptPresets} selectedID={filterPromptPreset} officialSource={kreaPromptGuideSource} communitySource={filterPromptSource} onApply={applyPromptExample} onClose={() => promptExamplesOpen = false} />
+<PromptExamplesModal open={promptExamplesOpen} examples={filterPromptPresets} selectedID={filterPromptPreset} officialSource={kreaPromptGuideSource} communitySource={filterPromptSource} vibeSource={vibePromptGuideSource} onApply={applyPromptExample} onClose={() => promptExamplesOpen = false} />
+<RecentImagePicker open={Boolean(recentImagePickerTarget)} title={recentImagePickerTarget === 'identityReference' ? `${identityUI.secondary} 선택` : recentImagePickerTarget === 'depth' ? '자세·구도 이미지 선택' : recentImagePickerTarget === 'nk2e' ? '편집·윤곽 이미지 선택' : recentImagePickerTarget === 'anypaint' ? '부분 수정·확장 원본 선택' : recentImagePickerTarget === 'styleReference' ? '스타일 참조 이미지 추가' : recentImagePickerTarget === 'vision' ? '내용·구도 참조 이미지 추가' : `${identityUI.primary} 선택`} jobs={imageJobs} selectedRef={recentImagePickerTarget === 'identityReference' ? (kreaIdentityReference?.ref || '') : recentImagePickerTarget === 'depth' ? (kreaDepthImage?.ref || '') : recentImagePickerTarget === 'nk2e' ? (kreaNK2EImage?.ref || '') : recentImagePickerTarget === 'anypaint' ? (kreaAnyPaintImage?.ref || '') : recentImagePickerTarget === 'identity' ? (kreaIdentityImage?.ref || '') : ''} onSelect={useRecentModuleImage} onClose={() => recentImagePickerTarget = ''} />
+<PresetImagePicker open={Boolean(presetImagePickerTarget)} title={presetImagePickerTarget === 'identityReference' ? `${identityUI.secondary} 프리셋 선택` : presetImagePickerTarget === 'depth' ? '자세·구도 프리셋 선택' : presetImagePickerTarget === 'nk2e' ? '편집·윤곽 프리셋 선택' : presetImagePickerTarget === 'anypaint' ? '부분 수정·확장 원본 프리셋' : presetImagePickerTarget === 'styleReference' ? '스타일 참조 프리셋 추가' : presetImagePickerTarget === 'vision' ? '내용·구도 참조 프리셋 추가' : `${identityUI.primary} 프리셋 선택`} examples={filterPromptPresets} initialTab={presetImagePickerTarget === 'depth' || presetImagePickerTarget === 'nk2e' ? 'pose' : 'example'} onSelect={usePresetModuleImage} onClose={() => presetImagePickerTarget = ''} />

@@ -8,9 +8,9 @@ server:
 
 model:
   # OpenAI 호환 API의 기본 URL입니다. /v1은 붙이지 않습니다.
-  endpoint: http://192.168.100.61:8000
+  endpoint: http://127.0.0.1:8696
   # 비워두면 /v1/models의 첫 모델을 사용합니다.
-  default_model: ""
+  default_model: huihui-gemma4-e2b
   api_key: ""
   # 자유 입력: none, minimal, low, medium, high, xhigh, max 또는 0.0~0.99
   reasoning_effort: medium

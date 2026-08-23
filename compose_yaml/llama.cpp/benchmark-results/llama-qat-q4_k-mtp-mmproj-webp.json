@@ -1,0 +1,516 @@
+{
+  "engine": "llama-qat-q4_k-mtp-mmproj-webp",
+  "endpoint": "http://127.0.0.1:5000",
+  "model": "huihui-gemma4-e2b",
+  "generated_at": "2026-08-24T02:40:37.234431541+09:00",
+  "results": [
+    {
+      "case": {
+        "id": "cat-bento",
+        "image": "web/dist/prompt-examples/sogni-cat-bento.webp",
+        "motion": "The camera remains static. One of the cat's rice paws makes a tiny wave, while the food arrangement stays unchanged.",
+        "required": [
+          "cat",
+          "rice",
+          "nori",
+          "egg",
+          "tomato",
+          "broccoli",
+          "bento"
+        ]
+      },
+      "task": "describe",
+      "output": "",
+      "latency_ms": 4,
+      "words": 0,
+      "hits": 0,
+      "total": 7,
+      "missing": [
+        "cat",
+        "rice",
+        "nori",
+        "egg",
+        "tomato",
+        "broccoli",
+        "bento"
+      ],
+      "error": "HTTP 400: {\"error\":{\"code\":400,\"message\":\"Failed to load image or audio file\",\"type\":\"invalid_request_error\"}}"
+    },
+    {
+      "case": {
+        "id": "cat-bento",
+        "image": "web/dist/prompt-examples/sogni-cat-bento.webp",
+        "motion": "The camera remains static. One of the cat's rice paws makes a tiny wave, while the food arrangement stays unchanged.",
+        "required": [
+          "cat",
+          "rice",
+          "nori",
+          "egg",
+          "tomato",
+          "broccoli",
+          "bento"
+        ]
+      },
+      "task": "i2v",
+      "output": "",
+      "latency_ms": 2,
+      "words": 0,
+      "hits": 0,
+      "total": 7,
+      "missing": [
+        "cat",
+        "rice",
+        "nori",
+        "egg",
+        "tomato",
+        "broccoli",
+        "bento"
+      ],
+      "error": "HTTP 400: {\"error\":{\"code\":400,\"message\":\"Failed to load image or audio file\",\"type\":\"invalid_request_error\"}}"
+    },
+    {
+      "case": {
+        "id": "animal-tower",
+        "image": "web/dist/prompt-examples/sogni-animal-tower.webp",
+        "motion": "The camera remains static. The two flying birds flap their wings while the stacked animals hold their positions.",
+        "required": [
+          "giraffe",
+          "hippopotamus",
+          "zebra",
+          "lion",
+          "lemur",
+          "parrot",
+          "circus",
+          "crowd"
+        ]
+      },
+      "task": "describe",
+      "output": "",
+      "latency_ms": 3,
+      "words": 0,
+      "hits": 0,
+      "total": 8,
+      "missing": [
+        "giraffe",
+        "hippopotamus",
+        "zebra",
+        "lion",
+        "lemur",
+        "parrot",
+        "circus",
+        "crowd"
+      ],
+      "error": "HTTP 400: {\"error\":{\"code\":400,\"message\":\"Failed to load image or audio file\",\"type\":\"invalid_request_error\"}}"
+    },
+    {
+      "case": {
+        "id": "animal-tower",
+        "image": "web/dist/prompt-examples/sogni-animal-tower.webp",
+        "motion": "The camera remains static. The two flying birds flap their wings while the stacked animals hold their positions.",
+        "required": [
+          "giraffe",
+          "hippopotamus",
+          "zebra",
+          "lion",
+          "lemur",
+          "parrot",
+          "circus",
+          "crowd"
+        ]
+      },
+      "task": "i2v",
+      "output": "",
+      "latency_ms": 2,
+      "words": 0,
+      "hits": 0,
+      "total": 8,
+      "missing": [
+        "giraffe",
+        "hippopotamus",
+        "zebra",
+        "lion",
+        "lemur",
+        "parrot",
+        "circus",
+        "crowd"
+      ],
+      "error": "HTTP 400: {\"error\":{\"code\":400,\"message\":\"Failed to load image or audio file\",\"type\":\"invalid_request_error\"}}"
+    },
+    {
+      "case": {
+        "id": "ocean-illustration",
+        "image": "web/dist/prompt-examples/official-ocean.webp",
+        "motion": "The camera remains static. The person takes one careful step through the shallow water as the small waves move naturally.",
+        "required": [
+          "person",
+          "water",
+          "orange",
+          "green",
+          "rock",
+          "peach",
+          "illustration"
+        ]
+      },
+      "task": "describe",
+      "output": "",
+      "latency_ms": 2,
+      "words": 0,
+      "hits": 0,
+      "total": 7,
+      "missing": [
+        "person",
+        "water",
+        "orange",
+        "green",
+        "rock",
+        "peach",
+        "illustration"
+      ],
+      "error": "HTTP 400: {\"error\":{\"code\":400,\"message\":\"Failed to load image or audio file\",\"type\":\"invalid_request_error\"}}"
+    },
+    {
+      "case": {
+        "id": "ocean-illustration",
+        "image": "web/dist/prompt-examples/official-ocean.webp",
+        "motion": "The camera remains static. The person takes one careful step through the shallow water as the small waves move naturally.",
+        "required": [
+          "person",
+          "water",
+          "orange",
+          "green",
+          "rock",
+          "peach",
+          "illustration"
+        ]
+      },
+      "task": "i2v",
+      "output": "",
+      "latency_ms": 2,
+      "words": 0,
+      "hits": 0,
+      "total": 7,
+      "missing": [
+        "person",
+        "water",
+        "orange",
+        "green",
+        "rock",
+        "peach",
+        "illustration"
+      ],
+      "error": "HTTP 400: {\"error\":{\"code\":400,\"message\":\"Failed to load image or audio file\",\"type\":\"invalid_request_error\"}}"
+    },
+    {
+      "case": {
+        "id": "tree-person-dog",
+        "image": "web/dist/prompt-examples/official-tree-dog.webp",
+        "motion": "The camera remains static. The small white dog turns its head slightly while the seated person remains still.",
+        "required": [
+          "tree",
+          "person",
+          "white dog",
+          "shade",
+          "grass",
+          "hill",
+          "blue",
+          "yellow"
+        ]
+      },
+      "task": "describe",
+      "output": "",
+      "latency_ms": 3,
+      "words": 0,
+      "hits": 0,
+      "total": 8,
+      "missing": [
+        "tree",
+        "person",
+        "white dog",
+        "shade",
+        "grass",
+        "hill",
+        "blue",
+        "yellow"
+      ],
+      "error": "HTTP 400: {\"error\":{\"code\":400,\"message\":\"Failed to load image or audio file\",\"type\":\"invalid_request_error\"}}"
+    },
+    {
+      "case": {
+        "id": "tree-person-dog",
+        "image": "web/dist/prompt-examples/official-tree-dog.webp",
+        "motion": "The camera remains static. The small white dog turns its head slightly while the seated person remains still.",
+        "required": [
+          "tree",
+          "person",
+          "white dog",
+          "shade",
+          "grass",
+          "hill",
+          "blue",
+          "yellow"
+        ]
+      },
+      "task": "i2v",
+      "output": "",
+      "latency_ms": 3,
+      "words": 0,
+      "hits": 0,
+      "total": 8,
+      "missing": [
+        "tree",
+        "person",
+        "white dog",
+        "shade",
+        "grass",
+        "hill",
+        "blue",
+        "yellow"
+      ],
+      "error": "HTTP 400: {\"error\":{\"code\":400,\"message\":\"Failed to load image or audio file\",\"type\":\"invalid_request_error\"}}"
+    },
+    {
+      "case": {
+        "id": "cat-ocr",
+        "image": "web/dist/prompt-examples/sogni-cat-typography.webp",
+        "motion": "The camera remains static. The black-and-white cat blinks once without changing its position.",
+        "required": [
+          "black",
+          "white",
+          "cat",
+          "face"
+        ],
+        "exact": [
+          "CAT"
+        ]
+      },
+      "task": "describe",
+      "output": "",
+      "latency_ms": 2,
+      "words": 0,
+      "hits": 0,
+      "total": 5,
+      "missing": [
+        "black",
+        "white",
+        "cat",
+        "face",
+        "CAT"
+      ],
+      "error": "HTTP 400: {\"error\":{\"code\":400,\"message\":\"Failed to load image or audio file\",\"type\":\"invalid_request_error\"}}"
+    },
+    {
+      "case": {
+        "id": "cat-ocr",
+        "image": "web/dist/prompt-examples/sogni-cat-typography.webp",
+        "motion": "The camera remains static. The black-and-white cat blinks once without changing its position.",
+        "required": [
+          "black",
+          "white",
+          "cat",
+          "face"
+        ],
+        "exact": [
+          "CAT"
+        ]
+      },
+      "task": "i2v",
+      "output": "",
+      "latency_ms": 2,
+      "words": 0,
+      "hits": 0,
+      "total": 5,
+      "missing": [
+        "black",
+        "white",
+        "cat",
+        "face",
+        "CAT"
+      ],
+      "error": "HTTP 400: {\"error\":{\"code\":400,\"message\":\"Failed to load image or audio file\",\"type\":\"invalid_request_error\"}}"
+    },
+    {
+      "case": {
+        "id": "gallery-ocr",
+        "image": "web/dist/prompt-examples/sogni-gallery-long-exposure.webp",
+        "motion": "The camera remains static. The woman in front of the painting remains still while the blurred visitors continue moving past her.",
+        "required": [
+          "gallery",
+          "woman",
+          "red dress",
+          "painting",
+          "blur",
+          "visitors"
+        ],
+        "exact": [
+          "13B",
+          "KREA 2 Turbo"
+        ]
+      },
+      "task": "describe",
+      "output": "",
+      "latency_ms": 1,
+      "words": 0,
+      "hits": 0,
+      "total": 8,
+      "missing": [
+        "gallery",
+        "woman",
+        "red dress",
+        "painting",
+        "blur",
+        "visitors",
+        "13B",
+        "KREA 2 Turbo"
+      ],
+      "error": "HTTP 400: {\"error\":{\"code\":400,\"message\":\"Failed to load image or audio file\",\"type\":\"invalid_request_error\"}}"
+    },
+    {
+      "case": {
+        "id": "gallery-ocr",
+        "image": "web/dist/prompt-examples/sogni-gallery-long-exposure.webp",
+        "motion": "The camera remains static. The woman in front of the painting remains still while the blurred visitors continue moving past her.",
+        "required": [
+          "gallery",
+          "woman",
+          "red dress",
+          "painting",
+          "blur",
+          "visitors"
+        ],
+        "exact": [
+          "13B",
+          "KREA 2 Turbo"
+        ]
+      },
+      "task": "i2v",
+      "output": "",
+      "latency_ms": 1,
+      "words": 0,
+      "hits": 0,
+      "total": 8,
+      "missing": [
+        "gallery",
+        "woman",
+        "red dress",
+        "painting",
+        "blur",
+        "visitors",
+        "13B",
+        "KREA 2 Turbo"
+      ],
+      "error": "HTTP 400: {\"error\":{\"code\":400,\"message\":\"Failed to load image or audio file\",\"type\":\"invalid_request_error\"}}"
+    },
+    {
+      "case": {
+        "id": "smoky-makeup",
+        "image": "web/dist/makeup-library/02-smoky.jpg",
+        "motion": "The camera remains static. The woman slowly blinks once while keeping the same neutral expression.",
+        "required": [
+          "woman",
+          "dark hair",
+          "smoky",
+          "eye",
+          "neutral",
+          "gray"
+        ]
+      },
+      "task": "describe",
+      "output": "The image is a portrait of a woman set against a plain, light gray background. The woman has dark hair styled in a low bun, and she is looking directly at the camera with a neutral expression. She is wearing a strapless garment that appears to be a light, possibly beige or pale pink, fabric. The lighting is soft and even, illuminating her face and shoulders. The composition is a close-up shot focusing on her upper body and face. There is no visible text in the image.",
+      "latency_ms": 970,
+      "words": 87,
+      "hits": 4,
+      "total": 6,
+      "missing": [
+        "smoky",
+        "eye"
+      ]
+    },
+    {
+      "case": {
+        "id": "smoky-makeup",
+        "image": "web/dist/makeup-library/02-smoky.jpg",
+        "motion": "The camera remains static. The woman slowly blinks once while keeping the same neutral expression.",
+        "required": [
+          "woman",
+          "dark hair",
+          "smoky",
+          "eye",
+          "neutral",
+          "gray"
+        ]
+      },
+      "task": "i2v",
+      "output": "The woman in the reference image, with her dark hair pulled back and neutral expression, remains perfectly still as the camera remains static. Her eyes slowly blink once, a subtle movement that maintains her composed and neutral facial expression. The lighting remains soft and even, illuminating her features against the plain, light gray background. The composition is a close-up shot, focusing entirely on her face. The soundscape is silent, capturing only the subtle, almost imperceptible sound of her slow blink.",
+      "latency_ms": 878,
+      "words": 80,
+      "hits": 5,
+      "total": 6,
+      "missing": [
+        "smoky"
+      ]
+    },
+    {
+      "case": {
+        "id": "pose-ocr",
+        "image": "web/dist/pose-library/images/pose_087.webp",
+        "motion": "The camera remains static. The woman begins to rise very slightly from her initial pose.",
+        "required": [
+          "woman",
+          "side",
+          "squat",
+          "hands",
+          "yellow",
+          "white"
+        ]
+      },
+      "task": "describe",
+      "output": "",
+      "latency_ms": 1,
+      "words": 0,
+      "hits": 0,
+      "total": 6,
+      "missing": [
+        "woman",
+        "side",
+        "squat",
+        "hands",
+        "yellow",
+        "white"
+      ],
+      "error": "HTTP 400: {\"error\":{\"code\":400,\"message\":\"Failed to load image or audio file\",\"type\":\"invalid_request_error\"}}"
+    },
+    {
+      "case": {
+        "id": "pose-ocr",
+        "image": "web/dist/pose-library/images/pose_087.webp",
+        "motion": "The camera remains static. The woman begins to rise very slightly from her initial pose.",
+        "required": [
+          "woman",
+          "side",
+          "squat",
+          "hands",
+          "yellow",
+          "white"
+        ]
+      },
+      "task": "i2v",
+      "output": "",
+      "latency_ms": 1,
+      "words": 0,
+      "hits": 0,
+      "total": 6,
+      "missing": [
+        "woman",
+        "side",
+        "squat",
+        "hands",
+        "yellow",
+        "white"
+      ],
+      "error": "HTTP 400: {\"error\":{\"code\":400,\"message\":\"Failed to load image or audio file\",\"type\":\"invalid_request_error\"}}"
+    }
+  ],
+  "hits": 9,
+  "total": 110,
+  "mean_latency_ms": 117.3125
+}

@@ -184,6 +184,11 @@
   background: linear-gradient(135deg, #171c21, #242b31);
 }
 
+.subtitle-gallery-thumb.empty-thumb {
+  display: grid !important;
+  place-items: center;
+}
+
 .subtitle-gallery-thumb span {
   font: 700 10px ui-monospace;
   letter-spacing: .08em;
@@ -229,6 +234,10 @@
 .subtitle-results:not(.list-view) em {
   margin-right: 9px;
   margin-left: 9px;
+}
+
+.subtitle-results:not(.list-view) .recognition-progress {
+  width: calc(100% - 18px);
 }
 
 .subtitle-results:not(.list-view) .job-actions,

@@ -56,18 +56,18 @@
 <style>
   .subtitle-modal-backdrop { position:fixed; z-index:100; inset:0; display:grid; place-items:center; padding:20px; background:#050705df; backdrop-filter:blur(8px); overscroll-behavior:contain; }
   .subtitle-modal { display:grid; grid-template-rows:auto minmax(0,1fr) auto; overflow:hidden; width:min(1120px,96vw); max-height:94vh; border:1px solid #3b463c; border-radius:14px; background:#151a16; box-shadow:0 24px 80px #000b; }
-  header { position:static; display:flex; align-items:center; justify-content:space-between; min-height:46px; padding:7px 13px; border-bottom:1px solid #303731; background:#181e19; }
-  header div { display:grid; gap:3px; min-width:0; }
-  header strong { color:#edf2eb; font-size:14px; }
-  header small { overflow:hidden; color:#8d978e; font-size:10px; text-overflow:ellipsis; white-space:nowrap; }
-  header button { border:0; color:#cbd2cc; background:transparent; font-size:24px; cursor:pointer; }
+  header { position:static; display:flex; align-items:center; justify-content:space-between; height:50px; min-height:50px; padding:5px 12px; border-bottom:1px solid #303731; background:#181e19; }
+  header div { display:grid; gap:1px; min-width:0; }
+  header strong { color:#edf2eb; font-size:12px; }
+  header small { overflow:hidden; color:#8d978e; font-size:9px; text-overflow:ellipsis; white-space:nowrap; }
+  header button { width:28px; height:28px; padding:0; border:0; color:#cbd2cc; background:transparent; font-size:20px; line-height:1; cursor:pointer; }
   .subtitle-modal-content { display:grid; grid-auto-rows:max-content; align-content:start; min-height:0; gap:8px; overflow:auto; padding:8px; background:#090b0a; overscroll-behavior:contain; }
   .subtitle-modal-player { display:grid; place-items:center; overflow:hidden; min-height:max-content; border-radius:9px; background:#000; }
   video { display:block; width:100%; height:auto; max-height:calc(94vh - 240px); object-fit:contain; }
   audio { width:100%; min-height:48px; }
   .subtitle-modal-details { display:grid; grid-template-columns:minmax(0,2fr) minmax(0,1fr); gap:8px; }
   .subtitle-modal-details.transcript-only { grid-template-columns:1fr; }
-  .subtitle-modal-transcript,.subtitle-modal-source { display:grid; grid-template-rows:auto minmax(0,1fr); overflow:hidden; height:120px; border:1px solid #2b332c; border-radius:8px; padding:9px 10px; background:#111612; }
+  .subtitle-modal-transcript,.subtitle-modal-source { display:grid; grid-template-rows:auto minmax(0,1fr); overflow:hidden; height:110px; border:1px solid #2b332c; border-radius:8px; padding:9px 10px; background:#111612; }
   section strong { color:#aeb8af; font-size:10px; }
   section p { overflow:auto; min-height:0; margin:7px 0 0; color:#dce3dd; font-size:11px; line-height:1.65; white-space:pre-wrap; }
   .subtitle-modal-source p { color:#929b93; overflow-wrap:anywhere; }
@@ -76,5 +76,5 @@
   footer a,footer button { display:inline-flex; align-items:center; justify-content:center; min-height:28px; border:1px solid #3c463e; border-radius:6px; padding:4px 9px; color:#cdecaa; background:#202621; font-size:10px; line-height:1; text-decoration:none; cursor:pointer; }
   footer button { color:#b9c4ba; }
   footer a:hover,footer button:hover { border-color:#60705f; background:#293129; }
-  @media(max-width:700px) { .subtitle-modal-backdrop{padding:6px}.subtitle-modal-content{padding:7px}.subtitle-modal-details{grid-template-columns:1fr}.subtitle-modal-transcript,.subtitle-modal-source{height:108px}video{max-height:46dvh} }
+  @media(max-width:700px) { .subtitle-modal-backdrop{padding:6px}.subtitle-modal-content{padding:7px}.subtitle-modal-details{grid-template-columns:1fr}.subtitle-modal-transcript,.subtitle-modal-source{height:110px}video{max-height:46dvh} }
 </style>

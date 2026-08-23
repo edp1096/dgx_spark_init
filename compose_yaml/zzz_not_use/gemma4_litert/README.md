@@ -1,5 +1,9 @@
 # Huihui Gemma 4 E2B LiteRT-LM
 
+> 보관 상태: 2026-08-24부터 운영에서 제외했다. 8696 포트는
+> `compose_yaml/llama.cpp`의 호스트 `llama-cpp-spark.service`가 사용한다.
+> 아래 내용은 LiteRT 변환 실험을 재현할 때만 참고한다.
+
 `huihui-ai/Huihui-gemma-4-E2B-it-abliterated`를 Linux ARM64에서 직접
 LiteRT-LM으로 변환하고 DGX Spark GPU로 서비스한다. 완성 번들은 텍스트뿐 아니라
 Gemma 4 비전 encoder/adapter를 포함하므로 이미지 prompt enhancement에도 사용할 수

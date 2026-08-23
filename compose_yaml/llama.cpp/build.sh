@@ -1,19 +1,26 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-TAG=$(curl -s https://api.github.com/repos/ggml-org/llama.cpp/releases/latest | grep -oP '"tag_name": "\K[^"]+')
-TAG+="-v1"
-echo "llama.cpp version: $TAG"
+set -euo pipefail
 
-echo "Building image..."
-docker build -t edp1096/llama.cpp-spark:$TAG . || {
-    echo "Build failed."
-    exit 1
-}
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+llama_ref="${LLAMA_CPP_REF:-v0.2.0}"
+artifact_name="${llama_ref//\//_}"
+artifact_dir="${LLAMA_ARTIFACT_ROOT:-${script_dir}/artifacts}/${artifact_name}"
+image_repo="${LLAMA_IMAGE_REPO:-llama.cpp-spark}"
+image_tag="${LLAMA_IMAGE_TAG:-${llama_ref//\//-}}"
 
-echo "Pushing image..."
-docker push edp1096/llama.cpp-spark:$TAG || {
-    echo "Push failed. Are you logged in? Run: docker login"
-    exit 1
-}
+if [[ ! -x "${artifact_dir}/llama-server" ]]; then
+  LLAMA_CPP_REF="${llama_ref}" "${script_dir}/scripts/build_host.sh"
+fi
 
-echo "Done: edp1096/llama.cpp-spark:$TAG"
+docker build \
+  --build-arg "LLAMA_CPP_REF=${llama_ref}" \
+  -t "${image_repo}:${image_tag}" \
+  "${script_dir}"
+
+if [[ "${LLAMA_PUSH:-false}" == "true" ]]; then
+  docker push "${image_repo}:${image_tag}"
+fi
+
+echo "Host runtime: ${artifact_dir}"
+echo "Docker image: ${image_repo}:${image_tag}"

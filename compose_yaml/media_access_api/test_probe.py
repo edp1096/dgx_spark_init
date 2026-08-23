@@ -106,6 +106,17 @@ class TemporaryStorageTest(unittest.TestCase):
 
 
 class RecoveryTest(unittest.TestCase):
+    def test_duplicate_prepare_for_same_request_is_rejected(self):
+        with tempfile.TemporaryDirectory() as root:
+            work_dir = Path(root) / "prepare-job-123"
+            api.begin_prepare("job-123", work_dir)
+            try:
+                with self.assertRaisesRegex(api.HTTPException, "already active") as raised:
+                    api.begin_prepare("job-123", work_dir)
+                self.assertEqual(raised.exception.status_code, 409)
+            finally:
+                api.finish_prepare("job-123", work_dir)
+
     def test_corrupt_aac_partial_is_remuxed_for_recovery(self):
         with tempfile.TemporaryDirectory() as root:
             work_dir = Path(root)
@@ -193,8 +204,9 @@ class RecoveryTest(unittest.TestCase):
                 finally:
                     api.finish_prepare("job-123", work_dir)
 
+    @patch("api.validate_audio_decode")
     @patch("api.probe_duration", return_value=12.5)
-    def test_reusable_source_uses_completed_media(self, _probe_duration):
+    def test_reusable_source_uses_completed_media(self, _probe_duration, validate_audio_decode):
         with tempfile.TemporaryDirectory() as root:
             work_dir = Path(root)
             source = work_dir / "source.mp4"
@@ -212,6 +224,37 @@ class RecoveryTest(unittest.TestCase):
             self.assertIsNone(
                 api.reusable_source(work_dir, "https://example.com/other")
             )
+            validate_audio_decode.assert_called_once_with(source)
+
+    @patch("api.validate_audio_decode", side_effect=RuntimeError("invalid AAC"))
+    @patch("api.probe_duration", return_value=3600)
+    def test_reusable_source_discards_corrupt_audio(self, _probe_duration, _validate):
+        with tempfile.TemporaryDirectory() as root:
+            work_dir = Path(root)
+            source = work_dir / "source.mp4"
+            source.write_bytes(b"container metadata is valid but audio is corrupt")
+            api.write_recovery(
+                work_dir,
+                source_name="https://example.com/video",
+                source_file=source.name,
+                stage="downloaded",
+            )
+
+            self.assertIsNone(
+                api.reusable_source(work_dir, "https://example.com/video")
+            )
+            self.assertFalse(source.exists())
+
+    @patch("api.probe_media", return_value={"streams": [{"codec_type": "audio"}]})
+    @patch("api.run_prepare_command")
+    def test_audio_validation_decodes_entire_primary_stream(self, run_prepare, _probe):
+        api.validate_audio_decode(Path("source.mp4"), "job-123")
+
+        command, timeout, request_id = run_prepare.call_args.args
+        self.assertEqual(command[-3:], ["-f", "null", "-"])
+        self.assertIn("0:a:0", command)
+        self.assertEqual(timeout, 7200)
+        self.assertEqual(request_id, "job-123")
 
 
 if __name__ == "__main__":

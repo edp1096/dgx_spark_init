@@ -172,6 +172,7 @@ func (s *Server) createSubtitle(w http.ResponseWriter, r *http.Request) {
 	params := map[string]any{
 		"language": language, "context": context, "source": map[bool]string{true: "url", false: "file"}[sourceURL != ""],
 		"output_formats": formats, "translation_mode": translationMode, "target_language": targetLanguage,
+		"stage": "queued", "queued_at": time.Now().Format(time.RFC3339Nano),
 	}
 	if mediaPart != "" {
 		params["media_part"] = mediaPart
@@ -184,12 +185,7 @@ func (s *Server) createSubtitle(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	workerJob := j
-	workerJob.Params = make(map[string]any, len(j.Params))
-	for key, value := range j.Params {
-		workerJob.Params[key] = value
-	}
-	go s.runSubtitle(workerJob, inputDir, inputPath, sourceURL, language, context, formats, translationMode, targetLanguage, mediaPart, mediaSource)
+	s.wakeSubtitleQueue()
 	writeJSON(w, http.StatusAccepted, j)
 }
 
@@ -203,26 +199,17 @@ func (s *Server) retrySubtitle(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "only failed or cancelled subtitle jobs can be resumed", http.StatusConflict)
 		return
 	}
-	for _, active := range s.jobs.List() {
-		if active.ID != j.ID && active.Kind == "recognition" && (active.Status == "queued" || active.Status == "running") {
-			http.Error(w, "another subtitle job is active", http.StatusConflict)
-			return
-		}
-	}
-
 	inputDir := filepath.Join(s.dataDir, "inputs", j.ID)
-	sourceURL := ""
-	inputPath := ""
-	if jobStringParam(j.Params, "source", "file") == "url" {
-		sourceURL = j.Prompt
-	} else {
+	if jobStringParam(j.Params, "source", "file") != "url" {
 		matches, _ := filepath.Glob(filepath.Join(inputDir, "source.*"))
 		if len(matches) == 0 {
 			http.Error(w, "saved source media is missing", http.StatusConflict)
 			return
 		}
-		inputPath = matches[0]
 	}
+	// A failed client request does not necessarily mean the remote downloader
+	// has exited. Stop and join it before reusing the durable request ID.
+	s.cancelMediaPreparation(j.ID)
 
 	workerJob := j
 	workerJob.Status = "queued"
@@ -241,22 +228,94 @@ func (s *Server) retrySubtitle(w http.ResponseWriter, r *http.Request) {
 		delete(workerJob.Params, key)
 	}
 	workerJob.Params["stage"] = "queued"
+	workerJob.Params["queued_at"] = time.Now().Format(time.RFC3339Nano)
 	if err := s.jobs.Save(workerJob); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	formats := jobStringSliceParam(workerJob.Params, "output_formats", s.config().Recognition.DefaultOutputFormats)
-	go s.runSubtitle(
-		workerJob, inputDir, inputPath, sourceURL,
-		jobStringParam(workerJob.Params, "language", s.config().Recognition.DefaultLanguage),
-		jobStringParam(workerJob.Params, "context", ""), formats,
-		jobStringParam(workerJob.Params, "translation_mode", s.config().Recognition.DefaultTranslationMode),
-		jobStringParam(workerJob.Params, "target_language", s.config().Recognition.DefaultTranslationLanguage),
-		jobStringParam(workerJob.Params, "media_part", ""),
-		jobStringParam(workerJob.Params, "media_source", ""),
-	)
+	s.wakeSubtitleQueue()
 	writeJSON(w, http.StatusAccepted, workerJob)
+}
+
+// wakeSubtitleQueue starts one durable FIFO worker and notifies it that work
+// may be available. The worker owns the complete media-to-subtitle pipeline,
+// so downloads, ASR, and translation never overlap across subtitle jobs.
+func (s *Server) wakeSubtitleQueue() {
+	s.subtitleQueueOnce.Do(func() { go s.subtitleQueueLoop() })
+	select {
+	case s.subtitleQueueWake <- struct{}{}:
+	default:
+	}
+}
+
+func (s *Server) subtitleQueueLoop() {
+	for {
+		job, ok := s.nextQueuedSubtitle()
+		if !ok {
+			<-s.subtitleQueueWake
+			continue
+		}
+		s.executeQueuedSubtitle(job)
+	}
+}
+
+func (s *Server) nextQueuedSubtitle() (jobs.Job, bool) {
+	var next jobs.Job
+	found := false
+	for _, job := range s.jobs.List() {
+		if job.Kind != "recognition" || job.Status != "queued" {
+			continue
+		}
+		if !found || subtitleQueueTime(job).Before(subtitleQueueTime(next)) ||
+			(subtitleQueueTime(job).Equal(subtitleQueueTime(next)) && job.ID < next.ID) {
+			next = job
+			found = true
+		}
+	}
+	return next, found
+}
+
+func subtitleQueueTime(job jobs.Job) time.Time {
+	if value, ok := job.Params["queued_at"].(string); ok {
+		if parsed, err := time.Parse(time.RFC3339Nano, value); err == nil {
+			return parsed
+		}
+	}
+	return job.CreatedAt
+}
+
+func (s *Server) executeQueuedSubtitle(job jobs.Job) {
+	current, ok := s.jobs.Get(job.ID)
+	if !ok || current.Kind != "recognition" || current.Status != "queued" {
+		return
+	}
+	if current.Params == nil {
+		current.Params = map[string]any{}
+	}
+	inputDir := filepath.Join(s.dataDir, "inputs", current.ID)
+	sourceURL := ""
+	inputPath := ""
+	if jobStringParam(current.Params, "source", "file") == "url" {
+		sourceURL = current.Prompt
+	} else {
+		matches, _ := filepath.Glob(filepath.Join(inputDir, "source.*"))
+		if len(matches) == 0 {
+			s.fail(current, fmt.Errorf("saved source media is missing"))
+			return
+		}
+		inputPath = matches[0]
+	}
+	formats := jobStringSliceParam(current.Params, "output_formats", s.config().Recognition.DefaultOutputFormats)
+	s.runSubtitle(
+		current, inputDir, inputPath, sourceURL,
+		jobStringParam(current.Params, "language", s.config().Recognition.DefaultLanguage),
+		jobStringParam(current.Params, "context", ""), formats,
+		jobStringParam(current.Params, "translation_mode", s.config().Recognition.DefaultTranslationMode),
+		jobStringParam(current.Params, "target_language", s.config().Recognition.DefaultTranslationLanguage),
+		jobStringParam(current.Params, "media_part", ""),
+		jobStringParam(current.Params, "media_source", ""),
+	)
 }
 
 func parseOutputFormats(value string, defaults []string) ([]string, error) {
@@ -319,6 +378,12 @@ func (s *Server) runSubtitle(j jobs.Job, inputDir, inputPath, sourceURL, languag
 		endpoint := s.config().Engines["media"].Endpoint + "/v1/media/prepare"
 		if err := s.prepareMediaWithProgress(&j, endpoint, fields, paths, archivePath); err != nil {
 			if errors.Is(err, errJobCancelled) || s.jobCancelled(j.ID) {
+				return
+			}
+			// Graceful shutdown requeues the durable job before cancelling its
+			// remote media request. Do not let the retiring worker overwrite that
+			// recovery state with the expected cancellation response.
+			if persisted, ok := s.jobs.Get(j.ID); ok && persisted.Status == "queued" {
 				return
 			}
 			s.fail(j, fmt.Errorf("media preparation: %w", err))
@@ -495,16 +560,9 @@ func (s *Server) ResumeInterruptedJobs() (resumed, failed int) {
 
 		inputDir := filepath.Join(s.dataDir, "inputs", persisted.ID)
 		sourceKind := jobStringParam(persisted.Params, "source", "file")
-		sourceURL := ""
-		inputPath := ""
-		if sourceKind == "url" {
-			sourceURL = persisted.Prompt
-		} else {
+		if sourceKind != "url" {
 			matches, _ := filepath.Glob(filepath.Join(inputDir, "source.*"))
-			if len(matches) > 0 {
-				inputPath = matches[0]
-			}
-			if inputPath == "" {
+			if len(matches) == 0 {
 				persisted.Status = "failed"
 				persisted.Error = "앱 재시작 후 원본 입력 파일을 찾을 수 없습니다."
 				_ = s.jobs.Save(persisted)
@@ -513,25 +571,65 @@ func (s *Server) ResumeInterruptedJobs() (resumed, failed int) {
 			}
 		}
 
-		formats := jobStringSliceParam(persisted.Params, "output_formats", s.config().Recognition.DefaultOutputFormats)
-		workerJob := persisted
-		workerJob.Error = ""
-		workerJob.Params = make(map[string]any, len(persisted.Params))
-		for key, value := range persisted.Params {
-			workerJob.Params[key] = value
+		persisted.Status = "queued"
+		persisted.Error = ""
+		if persisted.Params == nil {
+			persisted.Params = map[string]any{}
 		}
-		go s.runSubtitle(
-			workerJob, inputDir, inputPath, sourceURL,
-			jobStringParam(persisted.Params, "language", s.config().Recognition.DefaultLanguage),
-			jobStringParam(persisted.Params, "context", ""), formats,
-			jobStringParam(persisted.Params, "translation_mode", s.config().Recognition.DefaultTranslationMode),
-			jobStringParam(persisted.Params, "target_language", s.config().Recognition.DefaultTranslationLanguage),
-			jobStringParam(persisted.Params, "media_part", ""),
-			jobStringParam(persisted.Params, "media_source", ""),
-		)
+		if _, ok := persisted.Params["queued_at"]; !ok {
+			persisted.Params["queued_at"] = persisted.CreatedAt.Format(time.RFC3339Nano)
+		}
+		persisted.Params["stage"] = "queued"
+		_ = s.jobs.Save(persisted)
 		resumed++
 	}
+	if resumed > 0 {
+		s.wakeSubtitleQueue()
+	}
 	return resumed, failed
+}
+
+// CancelActiveMediaPreparations stops remote download/FFmpeg processes before
+// interrupted subtitle jobs are resumed. Without this handshake, restarting
+// the app can submit the same durable request ID while the previous Media API
+// handler is still writing to its partial file.
+func (s *Server) CancelActiveMediaPreparations() int {
+	cancelled := 0
+	for _, job := range s.jobs.List() {
+		if job.Kind != "recognition" || job.Status != "running" {
+			continue
+		}
+		job.Status = "queued"
+		if job.Params == nil {
+			job.Params = map[string]any{}
+		}
+		if _, ok := job.Params["queued_at"]; !ok {
+			job.Params["queued_at"] = job.CreatedAt.Format(time.RFC3339Nano)
+		}
+		job.Params["stage"] = "queued"
+		_ = s.jobs.Save(job)
+		if s.cancelMediaPreparation(job.ID) {
+			cancelled++
+		}
+	}
+	return cancelled
+}
+
+func (s *Server) cancelMediaPreparation(requestID string) bool {
+	base := strings.TrimRight(s.config().Engines["media"].Endpoint, "/")
+	if base == "" {
+		return false
+	}
+	request, err := http.NewRequest(http.MethodDelete, base+"/v1/media/prepare/"+requestID, nil)
+	if err != nil {
+		return false
+	}
+	response, err := (&http.Client{Timeout: 10 * time.Second}).Do(request)
+	if err != nil {
+		return false
+	}
+	defer response.Body.Close()
+	return response.StatusCode == http.StatusAccepted
 }
 
 func jobStringParam(params map[string]any, key, fallback string) string {

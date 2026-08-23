@@ -35,15 +35,22 @@ import (
 )
 
 type Server struct {
-	cfgMu      sync.RWMutex
-	heavyMu    sync.Mutex
-	cfg        config.Config
-	configPath string
-	dataDir    string
-	jobs       *jobs.Store
-	client     *http.Client
-	health     *http.Client
-	web        fs.FS
+	cfgMu             sync.RWMutex
+	heavyMu           sync.Mutex
+	cfg               config.Config
+	configPath        string
+	dataDir           string
+	jobs              *jobs.Store
+	client            *http.Client
+	health            *http.Client
+	web               fs.FS
+	systemMu          sync.Mutex
+	systemStats       systemUsage
+	systemStatsAt     time.Time
+	cpuPrevTotal      uint64
+	cpuPrevIdle       uint64
+	subtitleQueueOnce sync.Once
+	subtitleQueueWake chan struct{}
 }
 
 type imageGenerationOptions struct {
@@ -60,6 +67,9 @@ type imageGenerationOptions struct {
 	refBoost          float64
 	groundingPX       int
 	steps             int
+	samplingPreset    string
+	sampler           string
+	scheduler         string
 	style             string
 	styleStrength     float64
 	styles            []styleSelection
@@ -109,7 +119,7 @@ func New(cfg config.Config, store *jobs.Store, web fs.FS, configPath ...string) 
 		cfg: cfg, configPath: path, dataDir: cfg.DataDir, jobs: store,
 		client: &http.Client{Timeout: 2 * time.Hour},
 		health: &http.Client{Timeout: 2 * time.Second},
-		web:    web,
+		web:    web, subtitleQueueWake: make(chan struct{}, 1),
 	}
 }
 
@@ -121,6 +131,7 @@ func (s *Server) Handler() http.Handler {
 	})
 	mux.HandleFunc("PUT /api/config", s.updateConfig)
 	mux.HandleFunc("GET /api/engines", s.engineStates)
+	mux.HandleFunc("GET /api/system", s.systemUsage)
 	mux.HandleFunc("GET /api/jobs", func(w http.ResponseWriter, _ *http.Request) { writeJSON(w, 200, s.jobs.List()) })
 	mux.HandleFunc("DELETE /api/jobs", s.deleteFinishedJobs)
 	mux.HandleFunc("GET /api/jobs/{id}", s.getJob)
@@ -271,8 +282,15 @@ func (s *Server) createImage(w http.ResponseWriter, r *http.Request) {
 	}
 	effectivePrompt := strings.TrimSpace(r.FormValue("prompt"))
 	if effectivePrompt == "" {
-		http.Error(w, "prompt is required", 400)
-		return
+		outpaintPadding := formInt(r, "outpaint_left", 0) + formInt(r, "outpaint_top", 0) + formInt(r, "outpaint_right", 0) + formInt(r, "outpaint_bottom", 0)
+		hasAnyPaintSource := len(r.MultipartForm.File["anypaint_image"]) > 0 || len(r.MultipartForm.Value["reuse_anypaint_image"]) > 0
+		hasAnyPaintMask := len(r.MultipartForm.File["anypaint_mask"]) > 0 || len(r.MultipartForm.Value["reuse_anypaint_mask"]) > 0
+		if outpaintPadding > 0 && hasAnyPaintSource && !hasAnyPaintMask {
+			effectivePrompt = "Extend the original image naturally into a complete, coherent composition while preserving its subjects, style, lighting, perspective, and visual continuity."
+		} else {
+			http.Error(w, "prompt is required", 400)
+			return
+		}
 	}
 	originalPrompt := strings.TrimSpace(r.FormValue("original_prompt"))
 	if originalPrompt == "" {
@@ -308,6 +326,7 @@ func (s *Server) createImage(w http.ResponseWriter, r *http.Request) {
 		refBoost:          formFloat64(r, "ref_boost", 4),
 		groundingPX:       formInt(r, "grounding_px", 768),
 		steps:             formInt(r, "steps", 0),
+		samplingPreset:    strings.ToLower(strings.TrimSpace(r.FormValue("sampling_preset"))),
 		style:             strings.ToLower(strings.TrimSpace(r.FormValue("style"))),
 		styleStrength:     formFloat64(r, "style_strength", 1),
 		depthStrength:     formFloat64(r, "depth_strength", 0.8),
@@ -341,6 +360,18 @@ func (s *Server) createImage(w http.ResponseWriter, r *http.Request) {
 	}
 	if krea.filterMode == "" {
 		krea.filterMode = "balanced"
+	}
+	if krea.samplingPreset == "" {
+		krea.samplingPreset = "default"
+	}
+	switch krea.samplingPreset {
+	case "default":
+		krea.sampler, krea.scheduler = "euler", "simple"
+	case "detail":
+		krea.sampler, krea.scheduler = "er_sde", "simple"
+	default:
+		http.Error(w, "sampling preset must be default or detail", http.StatusBadRequest)
+		return
 	}
 	if rawStyles := strings.TrimSpace(r.FormValue("styles")); rawStyles != "" {
 		if err := json.Unmarshal([]byte(rawStyles), &krea.styles); err != nil {
@@ -494,6 +525,12 @@ func (s *Server) createImage(w http.ResponseWriter, r *http.Request) {
 		if len(anypaintMask) > 0 {
 			krea.anypaintMaskPath = anypaintMask[0]
 		}
+		if krea.steps == 0 {
+			krea.steps = 8
+			if krea.identityPath != "" {
+				krea.steps = 10
+			}
+		}
 		if krea.identityRefPath != "" && krea.identityPath == "" {
 			http.Error(w, "a primary identity image is required before an additional reference", http.StatusBadRequest)
 			return
@@ -514,8 +551,8 @@ func (s *Server) createImage(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "identity fit mode must be fit or crop", http.StatusBadRequest)
 			return
 		}
-		if krea.filterMode != "off" && krea.filterMode != "balanced" && krea.filterMode != "strong" {
-			http.Error(w, "filter mode must be off, balanced, or strong", http.StatusBadRequest)
+		if krea.filterMode != "off" && krea.filterMode != "adherence" && krea.filterMode != "balanced" && krea.filterMode != "strong" {
+			http.Error(w, "filter mode must be off, adherence, balanced, or strong", http.StatusBadRequest)
 			return
 		}
 		if krea.filterStrength < 0 || krea.filterStrength > 10 || krea.promptEnhStrength < 0 || krea.promptEnhStrength > 2 || krea.promptTextScale < 0.25 || krea.promptTextScale > 4 {
@@ -670,6 +707,10 @@ func (s *Server) createImage(w http.ResponseWriter, r *http.Request) {
 		params["prompt_enhancer"] = krea.promptEnhancer
 		params["prompt_enhancer_strength"] = krea.promptEnhStrength
 		params["prompt_text_scale"] = krea.promptTextScale
+		params["sampling_preset"] = krea.samplingPreset
+		params["sampler"] = krea.sampler
+		params["scheduler"] = krea.scheduler
+		params["steps"] = krea.steps
 		if len(krea.visionPaths) > 0 {
 			params["vision_mode"] = krea.visionMode
 			params["vision_megapixels"] = krea.visionMegapixels
@@ -695,7 +736,6 @@ func (s *Server) createImage(w http.ResponseWriter, r *http.Request) {
 			params["identity_strength"] = krea.identityStrength
 			params["ref_boost"] = krea.refBoost
 			params["grounding_px"] = krea.groundingPX
-			params["steps"] = krea.steps
 		}
 		if krea.depthPath != "" {
 			params["depth_strength"] = krea.depthStrength
@@ -787,7 +827,8 @@ func (s *Server) createImageDetailEnhance(w http.ResponseWriter, r *http.Request
 		"mode": "detail_enhance", "source_job_id": source.ID, "parent_job_id": source.ID,
 		"model":           s.config().Image.Backends["create"].Model,
 		"detail_strength": request.Strength, "detail_vae": request.VAE, "seed": request.Seed,
-		"width": input.Width, "height": input.Height,
+		"width": input.Width, "height": input.Height, "steps": 10,
+		"sampling_preset": "detail", "sampler": "er_sde", "scheduler": "simple",
 	}
 	j := jobs.Job{ID: id, Kind: "image", Status: "queued", Prompt: source.Prompt, Params: params, CreatedAt: time.Now()}
 	if err := s.jobs.Save(j); err != nil {
@@ -803,6 +844,7 @@ func (s *Server) runImageDetailEnhance(j jobs.Job, source []byte, strength float
 	s.heavyMu.Lock()
 	defer s.heavyMu.Unlock()
 	j.Status = "running"
+	j.Params["started_at"] = time.Now().Format(time.RFC3339Nano)
 	_ = s.jobs.Save(j)
 	backend := cfg.Image.Backends["create"]
 	request := map[string]any{
@@ -813,6 +855,7 @@ func (s *Server) runImageDetailEnhance(j jobs.Job, source []byte, strength float
 		"detail_enhance_image": base64.StdEncoding.EncodeToString(source),
 		"detail_strength":      strength, "detail_vae": vae, "steps": 10,
 		"filter_mode": "balanced", "filter_strength": 1,
+		"sampler_name": "er_sde", "scheduler": "simple",
 	}
 	if seed >= 0 {
 		request["seed"] = seed
@@ -821,6 +864,9 @@ func (s *Server) runImageDetailEnhance(j jobs.Job, source []byte, strength float
 	if err != nil {
 		s.fail(j, err)
 		return
+	}
+	if actualSeed, ok := decodeImageSeed(response); ok {
+		j.Params["seed"] = actualSeed
 	}
 	data, err := decodeImage(response)
 	if err != nil {
@@ -898,6 +944,7 @@ func (s *Server) runImageUpscale(j jobs.Job, source []byte, scale int, seed int6
 	s.heavyMu.Lock()
 	defer s.heavyMu.Unlock()
 	j.Status = "running"
+	j.Params["started_at"] = time.Now().Format(time.RFC3339Nano)
 	_ = s.jobs.Save(j)
 	request := map[string]any{
 		"model": "seedvr2-3b-fp8", "image": base64.StdEncoding.EncodeToString(source),
@@ -910,6 +957,9 @@ func (s *Server) runImageUpscale(j jobs.Job, source []byte, scale int, seed int6
 	if err != nil {
 		s.fail(j, err)
 		return
+	}
+	if actualSeed, ok := decodeImageSeed(response); ok {
+		j.Params["seed"] = actualSeed
 	}
 	data, err := decodeImage(response)
 	if err != nil {
@@ -927,6 +977,7 @@ func (s *Server) runImage(j jobs.Job, effectivePrompt string, refs []string, wid
 	s.heavyMu.Lock()
 	defer s.heavyMu.Unlock()
 	j.Status = "running"
+	j.Params["started_at"] = time.Now().Format(time.RFC3339Nano)
 	_ = s.jobs.Save(j)
 	backend := cfg.Image.Backends[mode]
 	endpoint := backend.Endpoint
@@ -964,6 +1015,7 @@ func (s *Server) runImage(j jobs.Job, effectivePrompt string, refs []string, wid
 			"filter_mode": krea.filterMode, "filter_strength": krea.filterStrength,
 			"prompt_enhancer": krea.promptEnhancer, "prompt_enhancer_strength": krea.promptEnhStrength,
 			"prompt_text_scale": krea.promptTextScale,
+			"sampler_name":      krea.sampler, "scheduler": krea.scheduler,
 		}
 		for field, path := range map[string]string{
 			"source_image": krea.identityPath, "reference_image": krea.identityRefPath, "control_image": krea.depthPath, "nk2e_image": krea.nk2ePath,
@@ -1050,6 +1102,9 @@ func (s *Server) runImage(j jobs.Job, effectivePrompt string, refs []string, wid
 		s.fail(j, err)
 		return
 	}
+	if actualSeed, ok := decodeImageSeed(response); ok {
+		j.Params["seed"] = actualSeed
+	}
 	data, err := decodeImage(response)
 	if err != nil {
 		s.fail(j, err)
@@ -1125,6 +1180,7 @@ func (s *Server) runVideo(j jobs.Job, effectivePrompt, imagePath string, width, 
 	s.heavyMu.Lock()
 	defer s.heavyMu.Unlock()
 	j.Status = "running"
+	j.Params["started_at"] = time.Now().Format(time.RFC3339Nano)
 	_ = s.jobs.Save(j)
 	fields := map[string]string{
 		"prompt": effectivePrompt,
@@ -1164,8 +1220,8 @@ func (s *Server) enhancePrompt(w http.ResponseWriter, r *http.Request) {
 	if mode == "" {
 		mode = "t2v"
 	}
-	if mode != "t2v" && mode != "i2v" && mode != "t2i" && mode != "edit" {
-		http.Error(w, "mode must be t2i, t2v or i2v", http.StatusBadRequest)
+	if mode != "t2v" && mode != "i2v" && mode != "t2i" && mode != "edit" && mode != "control" && mode != "paint" {
+		http.Error(w, "mode must be t2i, edit, control, paint, t2v or i2v", http.StatusBadRequest)
 		return
 	}
 	if mode == "i2v" && !cfg.PromptEnhancement.VisionEnabled {
@@ -1671,14 +1727,7 @@ func (s *Server) cancelJob(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	endpoint := strings.TrimRight(s.config().Engines["media"].Endpoint, "/") + "/v1/media/prepare/" + id
-	request, err := http.NewRequest(http.MethodDelete, endpoint, nil)
-	if err == nil {
-		response, requestErr := s.health.Do(request)
-		if requestErr == nil {
-			_ = response.Body.Close()
-		}
-	}
+	s.cancelMediaPreparation(id)
 	writeJSON(w, http.StatusOK, j)
 }
 
@@ -1870,6 +1919,16 @@ func decodeImage(data []byte) ([]byte, error) {
 		return nil, fmt.Errorf("decode generated image: %w", err)
 	}
 	return decoded, nil
+}
+
+func decodeImageSeed(data []byte) (int64, bool) {
+	var response struct {
+		Seed *int64 `json:"seed"`
+	}
+	if err := json.Unmarshal(data, &response); err != nil || response.Seed == nil {
+		return 0, false
+	}
+	return *response.Seed, true
 }
 
 func writeJSON(w http.ResponseWriter, status int, v any) {

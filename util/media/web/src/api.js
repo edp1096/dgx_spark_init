@@ -14,6 +14,7 @@ export const api = {
   imageInputs: (id) => fetch(`/api/jobs/${encodeURIComponent(id)}/inputs`).then(checked),
   imageEXIF: (id) => fetch(`/api/jobs/${encodeURIComponent(id)}/exif`).then(checked),
   engines: () => fetch('/api/engines').then(checked),
+  system: () => fetch('/api/system').then(checked),
   deleteJob: (id) => fetch(`/api/jobs/${encodeURIComponent(id)}`, { method: 'DELETE' }).then(async (response) => {
     if (!response.ok) throw new Error((await response.text()) || `HTTP ${response.status}`)
   }),

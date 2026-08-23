@@ -70,7 +70,10 @@
   }
 
   function handleKeydown(event) {
-    if (open && event.key === 'Escape') onClose()
+    if (open && event.key === 'Escape') {
+      event.stopImmediatePropagation()
+      onClose()
+    }
   }
 </script>
 

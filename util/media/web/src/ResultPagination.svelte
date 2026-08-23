@@ -13,6 +13,14 @@
   $: totalPages = Math.max(1, Math.ceil(total / pageSize))
   $: first = total ? (page - 1) * pageSize + 1 : 0
   $: last = Math.min(total, page * pageSize)
+  $: pageItems = buildPageItems(totalPages, page)
+
+  function buildPageItems(count, current) {
+    if (count <= 5) return Array.from({ length: count }, (_, index) => index + 1)
+    if (current <= 3) return [1, 2, 3, 'end-gap', count]
+    if (current >= count - 2) return [1, 'start-gap', count - 2, count - 1, count]
+    return [1, 'start-gap', current, 'end-gap', count]
+  }
 </script>
 
 <div class="result-pagination" class:compact aria-label={`${label} ${compact ? '하단 ' : ''}페이지 제어`}>
@@ -33,8 +41,16 @@
     </label>
   {/if}
   <div class="page-buttons">
+    <button type="button" class="page-jump" aria-label="첫 페이지" title="첫 페이지" disabled={page <= 1} onclick={() => onPageChange(1)}>«</button>
     <button type="button" aria-label="이전 페이지" disabled={page <= 1} onclick={() => onPageChange(page - 1)}>‹</button>
-    <strong>{page} / {totalPages}</strong>
+    {#each pageItems as item}
+      {#if typeof item === 'number'}
+        <button type="button" class="page-number" class:active={item === page} aria-current={item === page ? 'page' : undefined} aria-label={`${item} 페이지`} onclick={() => onPageChange(item)}>{item}</button>
+      {:else}
+        <span class="page-ellipsis" aria-hidden="true">…</span>
+      {/if}
+    {/each}
     <button type="button" aria-label="다음 페이지" disabled={page >= totalPages} onclick={() => onPageChange(page + 1)}>›</button>
+    <button type="button" class="page-jump" aria-label="마지막 페이지" title="마지막 페이지" disabled={page >= totalPages} onclick={() => onPageChange(totalPages)}>»</button>
   </div>
 </div>

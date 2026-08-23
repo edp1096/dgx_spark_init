@@ -1,7 +1,7 @@
 [Unit]
 Description=SparkTalk web application
-After=network-online.target
-Wants=network-online.target
+After=network-online.target llama-cpp-spark.service
+Wants=network-online.target llama-cpp-spark.service
 
 [Service]
 Type=simple

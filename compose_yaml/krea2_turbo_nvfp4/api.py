@@ -99,6 +99,8 @@ class ImageRequest(BaseModel):
     ref_boost: float = 4.0
     grounding_px: int = 768
     steps: int | None = None
+    sampler_name: str | None = None
+    scheduler: str | None = None
     style: str | None = None
     style_strength: float = 1.0
     styles: list[StyleSelection] = Field(default_factory=list)
@@ -217,6 +219,21 @@ def workflow(
         model_input = [node_id, 0]
         next_id += 1
     graph["7"]["inputs"]["model"] = model_input
+    return graph
+
+
+def apply_sampling(graph: dict[str, Any], sampler_name: str, scheduler: str) -> dict[str, Any]:
+    """Apply the validated sampling pair to both basic and advanced ComfyUI graphs."""
+    for node in graph.values():
+        class_type = node.get("class_type")
+        inputs = node.get("inputs", {})
+        if class_type == "KSampler":
+            inputs["sampler_name"] = sampler_name
+            inputs["scheduler"] = scheduler
+        elif class_type == "KSamplerSelect":
+            inputs["sampler_name"] = sampler_name
+        elif class_type == "BasicScheduler":
+            inputs["scheduler"] = scheduler
     return graph
 
 
@@ -932,6 +949,10 @@ async def generate(request: ImageRequest) -> dict[str, Any]:
         raise HTTPException(status_code=400, detail="only n=1 is supported")
     if request.response_format != "b64_json":
         raise HTTPException(status_code=400, detail="only b64_json is supported")
+    if request.sampler_name not in {None, "euler", "er_sde"}:
+        raise HTTPException(status_code=400, detail="sampler_name must be euler or er_sde")
+    if request.scheduler not in {None, "simple"}:
+        raise HTTPException(status_code=400, detail="scheduler must be simple")
     prompt = request.prompt.strip()
     if not prompt:
         raise HTTPException(status_code=400, detail="prompt is required")
@@ -1071,7 +1092,9 @@ async def generate(request: ImageRequest) -> dict[str, Any]:
     )
     if not 1 <= steps <= 20:
         raise HTTPException(status_code=400, detail="steps must be between 1 and 20")
-    seed = request.seed if request.seed is not None and request.seed >= 0 else secrets.randbits(63)
+    # Keep random seeds within JavaScript's exact integer range so the web client
+    # can clone and reproduce them without rounding.
+    seed = request.seed if request.seed is not None and request.seed >= 0 else secrets.randbits(53)
     for style in styles:
         trigger = STYLE_TRIGGERS[style.name]
         if trigger.lower() not in prompt.lower():
@@ -1277,6 +1300,9 @@ async def generate(request: ImageRequest) -> dict[str, Any]:
                 request.prompt_enhancer_strength,
                 request.prompt_text_scale,
             )
+            sampler_name = request.sampler_name or ("er_sde" if detail_name is not None else "euler")
+            scheduler = request.scheduler or "simple"
+            graph = apply_sampling(graph, sampler_name, scheduler)
             if "3" in graph and detail_name is None:
                 if request.vae_mode == "real":
                     graph["3"]["inputs"]["vae_name"] = REAL_VAE
@@ -1318,7 +1344,7 @@ async def generate(request: ImageRequest) -> dict[str, Any]:
             if detail_path is not None:
                 detail_path.unlink(missing_ok=True)
 
-    response = {"created": int(time.time()), "data": [{"b64_json": encoded}]}
+    response = {"created": int(time.time()), "seed": seed, "data": [{"b64_json": encoded}]}
     if depth_preview is not None:
         response["control_b64_json"] = depth_preview
     if nk2e_preview is not None:

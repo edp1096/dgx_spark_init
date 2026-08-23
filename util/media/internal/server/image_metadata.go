@@ -35,7 +35,7 @@ type imageEXIFMetadata struct {
 
 func metadataForImageJob(j jobs.Job, effectivePrompt string, profile config.ImageMetadata) imageEXIFMetadata {
 	metadata := imageEXIFMetadata{
-		Version: 1, Software: "Generation Studio", JobID: j.ID, CreatedAt: j.CreatedAt,
+		Version: 1, Software: "SparkMediaPanel", JobID: j.ID, CreatedAt: j.CreatedAt,
 		Creator: profile.Creator, Copyright: profile.Copyright, Website: profile.Website, Note: profile.Note,
 		Prompt: j.Prompt, EffectivePrompt: effectivePrompt, Parameters: j.Params,
 	}

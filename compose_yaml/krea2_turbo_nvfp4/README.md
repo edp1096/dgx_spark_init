@@ -4,7 +4,10 @@
 텍스트 인코더를 사용하는 OpenAI 호환 Text-to-Image API입니다. ComfyUI는 컨테이너
 내부의 `127.0.0.1:8188`에만 바인딩되고 API만 호스트의 `8691`에서 수신합니다.
 
-Krea 2 Turbo 권장 추론 설정인 8 steps, CFG 1, Euler/simple을 사용합니다.
+Krea 2 Turbo 권장 추론 설정인 8 steps, CFG 1, Euler/simple을 기본으로 사용합니다.
+`sampler_name=er_sde`, `scheduler=simple`을 지정하면 디테일 탐색 프리셋을 사용할 수
+있습니다. 허용 조합은 `euler|er_sde`와 `simple`로 제한하며, Detail Enhancer는
+ER-SDE/simple을 기본으로 사용합니다.
 `control_image`를 base64로 전달하면 Depth Anything V2로 깊이 지도를 만들고
 `Patil/Krea-2-depth-controlnet`을 적용합니다. 응답의 `control_b64_json`에서 실제
 사용된 깊이 지도를 확인할 수 있습니다.
@@ -30,6 +33,7 @@ Identity Edit, 스타일 LoRA와 Depth Control은 한 요청에서 함께 사용
 - `ref_boost`: 참조 충실도, 기본 `4.0`
 - `grounding_px`: Qwen3-VL 참조 해상도, 기본 `768`
 - `steps`: 일반 생성 기본 `8`, Identity Edit 기본 `10`
+- `sampler_name`, `scheduler`: `euler|er_sde`, `simple`; 기본 `euler/simple`
 - `style`, `style_strength`: 공식 스타일 LoRA와 강도, 기본 `1.0`
 - `control_strength`: Depth Control 강도, 기본 `1.0`
 - `vision_images`: Qwen3-VL 의미 기반 참조 이미지 배열, 최대 4장

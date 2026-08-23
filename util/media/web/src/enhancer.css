@@ -33,6 +33,29 @@
   text-decoration: none;
 }
 
+.image-enhancer-panel { transition: border-color .15s, background .15s; }
+
+.image-enhancer-panel.inactive { border-color: #30373d; background: #12161a; }
+
+.image-enhancer-panel .image-enhancer-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 9px;
+}
+
+.enhancer-panel-title,
+.enhancer-panel-actions { display: flex; align-items: center; gap: 7px; }
+
+.enhancer-panel-title { min-width: 0; }
+.enhancer-panel-title strong { color: #b9d69a; font-size: 11px; white-space: nowrap; }
+.image-enhancer-panel.inactive .enhancer-panel-title strong { color: #919a99; }
+.enhancer-panel-title a { color: #a8d970; font-size: 8px; text-decoration: none; white-space: nowrap; }
+.enhancer-panel-actions { flex: 0 0 auto; }
+
+.enhancer-run { min-width: 72px; white-space: nowrap; }
+
 .segmented.compact {
   flex: none;
   width: 128px;
@@ -99,4 +122,11 @@
   .segmented.compact {
     width: 100%;
   }
+
+  .image-enhancer-panel { padding: 9px; }
+  .image-enhancer-panel .image-enhancer-panel-header { gap: 5px; }
+  .enhancer-panel-title, .enhancer-panel-actions { gap: 4px; }
+  .image-enhancer-panel .segmented.compact { width: 94px; }
+  .image-enhancer-panel .segmented.compact button { padding: 6px; }
+  .image-enhancer-panel .enhancer-run { min-width: 62px; padding: 6px; }
 }

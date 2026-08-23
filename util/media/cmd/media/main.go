@@ -27,6 +27,9 @@ func main() {
 		log.Fatal(err)
 	}
 	mediaServer := server.New(cfg, store, webassets.Files(), configPath)
+	if cancelled := mediaServer.CancelActiveMediaPreparations(); cancelled > 0 {
+		log.Printf("restart recovery: stopped %d stale media preparation requests", cancelled)
+	}
 	resumed, failed := mediaServer.ResumeInterruptedJobs()
 	if resumed > 0 || failed > 0 {
 		log.Printf("restart recovery: resumed %d subtitle jobs, marked %d other jobs failed", resumed, failed)
@@ -42,7 +45,13 @@ func main() {
 	}()
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
-	go func() { <-stop; _ = srv.Close() }()
+	go func() {
+		<-stop
+		if cancelled := mediaServer.CancelActiveMediaPreparations(); cancelled > 0 {
+			log.Printf("shutdown: stopped %d active media preparation requests", cancelled)
+		}
+		_ = srv.Close()
+	}()
 	log.Printf("media app listening on http://%s", cfg.Listen)
 	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatal(err)

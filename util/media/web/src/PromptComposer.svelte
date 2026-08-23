@@ -22,10 +22,37 @@
 
   const actionPostures = new Set([
     'standing naturally and facing the camera', 'walking or running', 'seated in a relaxed pose',
-    'a dynamic action pose', 'dancing with expressive movement', 'an unposed candid moment'
+    'a dynamic action pose', 'dancing with expressive movement', 'an unposed candid moment',
+    'a pose frozen at the peak of motion', 'two figures colliding dynamically in midair',
+    'a transformation pose as light and ornaments form around the subject'
   ])
-  const cameraFramings = new Set(['close-up portrait', 'waist-up medium shot', 'full-body shot', 'wide establishing shot'])
-  const cameraAngles = new Set(['eye-level camera', 'low-angle view', 'high-angle view', 'over-the-shoulder view'])
+  const cameraFramings = new Set([
+    'extreme close-up', 'close-up portrait', 'waist-up medium shot', 'full-body shot',
+    'wide establishing shot', 'extreme macro close-up'
+  ])
+  const cameraAngles = new Set([
+    'eye-level camera', 'low-angle view', 'high-angle view', 'over-the-shoulder view',
+    'frontal architectural view', 'overhead flat-lay view', 'three-quarter view'
+  ])
+  const captureMethods = new Set([
+    'shot on a point-and-shoot film camera', 'a handheld smartphone snapshot with slight motion blur',
+    'a compact digital camera with natural on-camera flash falloff',
+    'a medium-format camera look with creamy bokeh', 'a natural-perspective 35mm prime lens',
+    'an anamorphic cinema lens with horizontal flare', 'a 100mm macro lens with shallow depth of field',
+    'a long telephoto sports lens with compressed perspective'
+  ])
+  const filmStocks = new Set([
+    'Kodak Portra 400 tones with warm skin rendition', 'Cinestill 800T with tungsten halation',
+    'Ilford HP5 black-and-white with coarse silver grain',
+    'Fujifilm Velvia 50 with saturated landscape colors'
+  ])
+  const layoutFormats = new Set([
+    'a polished poster layout', 'a centered headline layout', 'a product label or package layout',
+    'a clean user-interface screen layout', 'a complete manga page with varied panel sizes',
+    'a minimal vertical poster with generous negative space', 'a horizontal three-panel storyboard',
+    'an editorial magazine-cover layout', 'a centered product with generous advertising space',
+    'a character-silhouette-driven key visual', 'sequential panels with a different viewpoint in each panel'
+  ])
   const styleLabels = {
     darkbrush: 'Dark Brush', dotmatrix: 'Dot Matrix', kidsdrawing: 'Kids Drawing', neondrip: 'Neon Drip',
     rainywindow: 'Rainy Window', retroanime: 'Retro Anime', softwatercolor: 'Soft Watercolor',
@@ -45,6 +72,15 @@
 
   const groups = [
     {
+      id: 'purpose', label: '용도·형식', output: 'Image type and purpose', placeholder: '사용처나 결과물 형식을 직접 입력',
+      options: [
+        ['an editorial explainer illustration', '기사·설명 삽화'], ['a social-media cover readable at thumbnail size', 'SNS 커버'],
+        ['a blog cover image', '블로그 커버'], ['a polished product poster', '제품 포스터'],
+        ['a realistic product-packaging photograph', '패키지 사진'], ['a realistic storefront-signage mockup', '매장 간판'],
+        ['an isometric asset on a clean background', '등각 투영 에셋'], ['a responsive website hero image', '웹사이트 히어로']
+      ]
+    },
+    {
       id: 'subject', label: '주제·인물', output: 'Subject', placeholder: '인물, 사물, 장면을 직접 입력',
       options: [
         ['single adult woman', '성인 여성 1명'], ['single adult man', '성인 남성 1명'],
@@ -58,7 +94,10 @@
         ['natural photorealistic features', '자연스러운 실사 외형'], ['East Asian facial features', '동아시아계 외형'],
         ['Western facial features', '서구권 외형'], ['casual everyday clothing', '캐주얼'],
         ['formal tailored clothing', '정장·포멀'], ['traditional clothing', '전통 의상'],
-        ['futuristic clothing', '미래적 의상'], ['fantasy armor with detailed materials', '판타지 갑옷']
+        ['futuristic clothing', '미래적 의상'], ['fantasy armor with detailed materials', '판타지 갑옷'],
+        ['an ordinary everyday appearance with natural imperfections', '평범한 일상적 외형'],
+        ['slightly asymmetrical facial features', '약간 비대칭적인 얼굴'],
+        ['fine lines and natural traces visible on the skin', '잔주름·자연스러운 피부 흔적']
       ]
     },
     {
@@ -76,16 +115,54 @@
         ['standing naturally and facing the camera', '정면으로 자연스럽게 서기'], ['walking or running', '걷기·달리기'],
         ['seated in a relaxed pose', '편안하게 앉기'], ['looking back over the shoulder', '뒤돌아보기'],
         ['a dynamic action pose', '역동적 동작'], ['dancing with expressive movement', '춤추기'],
-        ['interacting naturally with an object', '사물과 상호작용'], ['an unposed candid moment', '자연스러운 순간 포착']
+        ['interacting naturally with an object', '사물과 상호작용'], ['an unposed candid moment', '자연스러운 순간 포착'],
+        ['hair and clothing moving naturally in the wind', '바람에 움직이는 머리·옷자락'],
+        ['a pose frozen at the peak of motion', '동작의 정점 정지'],
+        ['walking naturally through the scene', '자연스럽게 걸어가는 순간'],
+        ['two figures colliding dynamically in midair', '공중에서 충돌하는 동작'],
+        ['strong bodily foreshortening toward the camera', '신체 포어쇼트닝'],
+        ['a transformation pose as light and ornaments form around the subject', '빛과 장식이 형성되는 변신 자세']
       ]
     },
     {
       id: 'camera', label: '구도·카메라', output: 'Composition and camera', placeholder: '렌즈, 시점, 피사계 심도, 배치를 입력',
       options: [
-        ['close-up portrait', '클로즈업'], ['waist-up medium shot', '상반신'], ['full-body shot', '전신'],
+        ['extreme close-up', '익스트림 클로즈업'], ['close-up portrait', '클로즈업'], ['waist-up medium shot', '상반신'], ['full-body shot', '전신'],
         ['wide establishing shot', '와이드 숏'], ['eye-level camera', '눈높이'], ['low-angle view', '로우 앵글'],
         ['high-angle view', '하이 앵글'], ['over-the-shoulder view', '오버숄더'],
-        ['centered symmetrical composition', '중앙 대칭'], ['asymmetrical rule-of-thirds composition', '비대칭·삼분할']
+        ['centered symmetrical composition', '중앙 대칭'], ['asymmetrical rule-of-thirds composition', '비대칭·삼분할'],
+        ['frontal architectural view', '정면 건축 구도'], ['overhead flat-lay view', '오버헤드 플랫레이'],
+        ['three-quarter view', '3/4 시점'], ['telephoto lens compression', '망원 압축감'],
+        ['extreme macro close-up', '매크로 초근접'], ['generous cinematic negative space', '넓은 네거티브 스페이스'],
+        ['exaggerated perspective depth', '과장된 원근'], ['dynamic perspective foreshortening', '역동적 포어쇼트닝'],
+        ['high-speed photography freezing a decisive instant', '순간을 정지한 고속 촬영']
+      ]
+    },
+    {
+      id: 'layout', label: '구조·배치', output: 'Spatial layout', placeholder: '각 사물의 개수와 상대 위치를 구체적으로 입력',
+      options: [
+        ['a precise left-center-right arrangement', '좌·중·우 배치'], ['a precise three-by-three grid arrangement', '3×3 위치 배치'],
+        ['a balanced split-screen composition', '좌우 분할'], ['an orderly aligned grid with even spacing', '정렬 그리드'],
+        ['a clean bento-grid composition', '벤토 그리드'], ['reserve the left 40 percent as clean text space', '왼쪽 40% 문구 여백'],
+        ['reserve the top 20 percent for a large headline', '상단 20% 제목 영역'], ['responsive-safe margins for mobile cropping', '모바일 크롭 안전 여백'],
+        ['each named object stays in its specified relative position', '지정한 상대 위치 유지'], ['the exact number of listed objects and nothing else', '나열한 개수만 배치']
+      ]
+    },
+    {
+      id: 'capture', label: '촬영·필름', output: 'Capture and film', placeholder: '카메라, 렌즈, 필름, 현상 특성을 입력',
+      options: [
+        ['shot on a point-and-shoot film camera', '포인트앤슛 필름'],
+        ['a handheld smartphone snapshot with slight motion blur', '스마트폰 핸드헬드'],
+        ['a compact digital camera with natural on-camera flash falloff', '컴팩트 디지털·직광'],
+        ['a medium-format camera look with creamy bokeh', '중형 카메라·보케'],
+        ['a natural-perspective 35mm prime lens', '35mm 단렌즈'],
+        ['an anamorphic cinema lens with horizontal flare', '아나모픽 렌즈'],
+        ['a 100mm macro lens with shallow depth of field', '100mm 매크로'],
+        ['a long telephoto sports lens with compressed perspective', '망원 스포츠 렌즈'],
+        ['Kodak Portra 400 tones with warm skin rendition', 'Portra 400'],
+        ['Cinestill 800T with tungsten halation', 'Cinestill 800T'],
+        ['Ilford HP5 black-and-white with coarse silver grain', 'Ilford HP5 흑백'],
+        ['Fujifilm Velvia 50 with saturated landscape colors', 'Velvia 50']
       ]
     },
     {
@@ -107,7 +184,15 @@
         ['soft light entering from a window on the left', '좌측 창문광'], ['directional light from the right', '우측 방향광'],
         ['backlighting from behind the subject', '피사체 뒤 역광'], ['overhead tungsten lighting', '상단 텅스텐광'],
         ['soft diffused overcast light', '흐린 날 확산광'], ['hard frontal on-camera light', '정면 하드광'],
-        ['a warm color palette', '따뜻한 색감'], ['a cool color palette', '차가운 색감'], ['a monochromatic palette', '단색 팔레트']
+        ['a warm color palette', '따뜻한 색감'], ['a cool color palette', '차가운 색감'], ['a monochromatic palette', '단색 팔레트'],
+        ['twin softboxes placed at 45-degree angles', '45도 양쪽 소프트박스'],
+        ['controlled studio highlights with smooth shadow gradients', '통제된 스튜디오 하이라이트'],
+        ['dramatic stadium spotlights', '경기장 스포트라이트'], ['warm lantern light', '따뜻한 랜턴 조명'],
+        ['red and blue neon-sign reflections', '적청색 네온 반사광'],
+        ['dramatic side light with deep shadows', '깊은 그림자의 측면광'],
+        ['a restrained low-saturation color palette', '절제된 저채도'],
+        ['a luminous pastel color palette', '파스텔 발광 색상'],
+        ['a limited black, ivory, and dusty-rose palette', '검정·아이보리·더스티 로즈']
       ]
     },
     {
@@ -116,7 +201,16 @@
         ['natural skin texture', '자연스러운 피부결'], ['fine fabric weave', '섬세한 직물'],
         ['wet reflective surfaces', '젖은 반사 표면'], ['rough weathered stone', '풍화된 거친 석재'],
         ['brushed metal with subtle reflections', '브러시드 금속'], ['smooth matte vinyl', '매트 비닐'],
-        ['visible paper grain', '종이 입자'], ['distinct analog film grain', '필름 그레인']
+        ['visible paper grain', '종이 입자'], ['distinct analog film grain', '필름 그레인'],
+        ['unretouched skin with visible pores and fine facial hair', '모공·잔털 피부'],
+        ['wet asphalt reflecting colored neon', '젖은 아스팔트 네온 반사'],
+        ['crisp glass refraction and reflections', '유리 굴절·반사'],
+        ['fine sweat and fabric texture', '땀·직물 미세 질감'],
+        ['individually resolved animal fur', '동물 털 디테일'],
+        ['rising steam and glossy food surfaces', '증기·윤기 나는 음식'],
+        ['delicate lace weave', '레이스 조직'], ['screen-tone shading', '스크린톤 음영'],
+        ['dense crosshatching with deep ink shadows', '조밀한 크로스해칭'],
+        ['crisp ink lines over hand-painted backgrounds', '잉크 라인·수작업 배경']
       ]
     },
     {
@@ -126,7 +220,26 @@
         ['editorial fashion photography', '패션 화보'], ['documentary snapshot photography', '다큐 스냅'],
         ['anime cel-shaded illustration', '애니 셀화'], ['a detailed digital illustration', '디지털 일러스트'],
         ['an expressive oil painting', '유화'], ['a soft watercolor painting', '수채화'],
-        ['a polished 3D render', '3D 렌더'], ['commercial product photography', '제품 사진']
+        ['a polished 3D render', '3D 렌더'], ['commercial product photography', '제품 사진'],
+        ['architectural design magazine photography', '건축 디자인 매거진'],
+        ['real-estate interior editorial photography', '부동산 인테리어'],
+        ['wildlife documentary photography', '야생동물 다큐'],
+        ['premium automotive advertising photography', '자동차 광고'],
+        ['luxury wedding editorial photography', '웨딩 에디토리얼'],
+        ['conceptual fine-art photography', '개념적 파인아트'],
+        ['professional sports media photography', '스포츠 보도 사진'],
+        ['authentic travel documentary photography', '여행 다큐'],
+        ['premium beauty-product campaign photography', '뷰티 제품 광고'],
+        ['cinematic food editorial photography', '음식 에디토리얼'],
+        ['a monochrome psychological-horror manga', '심리 공포 만화'],
+        ['a polished theatrical anime key visual', '애니 키 비주얼'],
+        ['a sophisticated dark-romantic anime illustration', '다크 로맨틱 애니'],
+        ['a blockbuster anime action key visual', '극장판 액션 키 비주얼'],
+        ['film noir with deep blacks and directional shadows', '필름 누아르'],
+        ['neon noir with rain and colored reflections', '네온 누아르'],
+        ['bright optimistic solarpunk', '솔라펑크'], ['gritty retro-industrial dieselpunk', '디젤펑크'],
+        ['a 1990s OVA anime aesthetic', '1990년대 OVA'], ['crisp retro pixel art', '픽셀 아트'],
+        ['luminous stained-glass artwork', '스테인드글라스'], ['luxurious geometric art deco', '아르데코']
       ]
     },
     {
@@ -135,7 +248,17 @@
         ['no visible text or lettering', '글자 없음'], ['leave clean negative space at the top', '상단 여백'],
         ['a polished poster layout', '포스터 배치'], ['a centered headline layout', '중앙 제목'],
         ['a product label or package layout', '라벨·패키지'], ['a clean user-interface screen layout', 'UI 화면'],
-        ['crisp, correctly spelled, highly readable typography', '정확하고 선명한 글자']
+        ['crisp, correctly spelled, highly readable typography', '정확하고 선명한 글자'],
+        ['a complete manga page with varied panel sizes', '다양한 패널의 만화 페이지'],
+        ['a minimal vertical poster with generous negative space', '여백이 큰 세로 포스터'],
+        ['a horizontal three-panel storyboard', '가로형 3패널 스토리보드'],
+        ['an editorial magazine-cover layout', '잡지 표지 레이아웃'],
+        ['a centered product with generous advertising space', '중앙 제품·광고 여백'],
+        ['a character-silhouette-driven key visual', '실루엣 중심 키 비주얼'],
+        ['sequential panels with a different viewpoint in each panel', '시점이 변하는 순차 패널'],
+        ['short bilingual typography with paired translations', '짧은 이중언어 병기'],
+        ['text printed naturally on the physical surface', '표면에 자연스럽게 인쇄'],
+        ['only the explicitly listed text elements are visible', '지정 문구만 표시']
       ]
     },
     {
@@ -145,7 +268,18 @@
         ['preserve the original pose', '포즈 유지'], ['preserve the original composition', '구도 유지'],
         ['preserve the original background', '배경 유지'], ['preserve the original colors and lighting', '색감·조명 유지'],
         ['keep the specified object count exactly', '사물 개수 엄수'], ['anatomically natural hands and fingers', '자연스러운 손'],
-        ['do not add extra people or objects', '추가 인물·사물 금지']
+        ['do not add extra people or objects', '추가 인물·사물 금지'],
+        ['keep architectural lines straight with accurate perspective', '건축 직선·원근 유지'],
+        ['keep the product surface pristine and dust-free', '제품 표면 청결'],
+        ['keep the same character and clothing consistent across every panel', '패널 간 인물·의상 일관성'],
+        ['keep the face and hands sharp during motion', '동작 중 얼굴·손 선명도'],
+        ['maintain a clearly separated subject silhouette', '피사체 실루엣 분리'],
+        ['preserve exact spelling and panel order', '철자·패널 순서 유지'],
+        ['only the listed elements are present', '나열한 요소만 생성'], ['no random letters or extra text', '임의 문자·추가 글자 금지'],
+        ['no logos or watermarks', '로고·워터마크 금지'], ['use no more than one secondary prop', '보조 소품 최대 1개'],
+        ['keep all cultural details authentic, coherent, and from the same context', '문화·시대적 일관성'],
+        ['no unrelated decorations or random clutter', '무관한 장식·잡동사니 금지'],
+        ['preserve every specified color and relative position', '지정 색상·상대 위치 유지']
       ]
     }
   ]
@@ -162,8 +296,8 @@
     customValues = { ...customValues, [groupID]: value }
   }
 
-  function normalizedExactText(value) {
-    return value.trim().replace(/^["“”]+|["“”]+$/g, '').replaceAll('"', "'")
+  function normalizedExactTexts(value) {
+    return value.split('\n').map((line) => line.trim().replace(/^["“”]+|["“”]+$/g, '').replaceAll('"', "'")).filter(Boolean)
   }
 
   function composePrompt(currentSelections, currentCustomValues, requestedText) {
@@ -171,8 +305,9 @@
       const parts = [...(currentSelections[group.id] || [])]
       const custom = (currentCustomValues[group.id] || '').trim()
       if (custom) parts.push(custom)
-      if (group.id === 'text' && normalizedExactText(requestedText)) {
-        parts.push(`the exact visible text reads "${normalizedExactText(requestedText)}"`)
+      if (group.id === 'text' && normalizedExactTexts(requestedText).length) {
+        const texts = normalizedExactTexts(requestedText)
+        parts.push(`exactly ${texts.length} visible text element${texts.length === 1 ? '' : 's'} only: ${texts.map((text) => `"${text}"`).join(', ')}`)
       }
       return parts.length ? `${group.output}: ${parts.join(', ')}.` : ''
     }).filter(Boolean).join('\n')
@@ -186,19 +321,26 @@
     if (pose && selectedPostures.length) warnings.push('포즈 라이브러리 자세와 기본 동작이 함께 선택되었습니다. 포즈를 우선하려면 기본 동작을 해제하세요.')
 
     const camera = currentSelections.camera || []
-    if (camera.filter((item) => cameraFramings.has(item)).length > 1) warnings.push('클로즈업·상반신·전신·와이드 중 여러 프레이밍이 선택되었습니다.')
-    if (camera.filter((item) => cameraAngles.has(item)).length > 1) warnings.push('눈높이·로우·하이·오버숄더 중 여러 카메라 시점이 선택되었습니다.')
+    if (camera.filter((item) => cameraFramings.has(item)).length > 1) warnings.push('서로 다른 촬영 범위가 여러 개 선택되었습니다. 익스트림 클로즈업·인물·전신·와이드·매크로 중 하나를 권장합니다.')
+    if (camera.filter((item) => cameraAngles.has(item)).length > 1) warnings.push('서로 다른 카메라 시점이 여러 개 선택되었습니다.')
     if (pose?.view === 'overhead view' && camera.some((item) => ['eye-level camera', 'low-angle view', 'over-the-shoulder view'].includes(item))) {
       warnings.push('선택한 오버헤드 포즈와 카메라 시점이 충돌합니다.')
     }
     if (pose?.view === 'elevated view' && camera.includes('low-angle view')) warnings.push('높은 시점 포즈와 로우 앵글이 충돌합니다.')
+
+    const capture = currentSelections.capture || []
+    if (capture.filter((item) => captureMethods.has(item)).length > 1) warnings.push('촬영 방식·렌즈가 여러 개 선택되었습니다. 하나의 카메라 특성을 권장합니다.')
+    if (capture.filter((item) => filmStocks.has(item)).length > 1) warnings.push('서로 다른 필름 특성이 여러 개 선택되었습니다. 하나의 필름을 권장합니다.')
+
+    const textLayouts = (currentSelections.text || []).filter((item) => layoutFormats.has(item))
+    if (textLayouts.length > 1) warnings.push('서로 다른 포스터·패널·화면 레이아웃이 여러 개 선택되었습니다.')
 
     const selectedStylePrompts = currentSelections.style || []
     for (const style of styles) {
       const conflicts = selectedStylePrompts.filter((item) => (styleConflicts[style] || []).includes(item))
       if (conflicts.length) warnings.push(`${styleLabels[style] || style} LoRA와 선택한 스타일·매체가 충돌할 수 있습니다.`)
     }
-    if ((currentSelections.text || []).includes('no visible text or lettering') && normalizedExactText(exactText)) {
+    if ((currentSelections.text || []).includes('no visible text or lettering') && normalizedExactTexts(exactText).length) {
       warnings.push('글자 없음과 정확한 삽입 문구가 함께 지정되었습니다.')
     }
     return [...new Set(warnings)]
@@ -208,7 +350,7 @@
   $: composerWarnings = buildWarnings(selections, selectedPose, activeStyles)
   $: selectedCount = Object.values(selections).reduce((count, values) => count + values.length, 0)
     + Object.values(customValues).filter((value) => value.trim()).length
-    + (normalizedExactText(exactText) ? 1 : 0)
+    + normalizedExactTexts(exactText).length
 
   $: {
     if (expanded && !releaseScroll) releaseScroll = lockModalScroll()
@@ -315,7 +457,7 @@
                   </div>
                 {/if}
                 {#if group.id === 'text'}
-                  <label class="exact-text-field"><span>정확한 삽입 문구</span><input type="text" bind:value={exactText} placeholder="따옴표 없이 문구만 입력"></label>
+                  <label class="exact-text-field"><span>정확한 삽입 문구 · 한 줄에 하나</span><textarea rows="3" bind:value={exactText} placeholder={'晨光精华\nMorning Serum\n가벼운 보습'}></textarea></label>
                 {/if}
                 <input
                   type="text"
@@ -520,7 +662,8 @@
     font-size: 15px;
   }
 
-  fieldset input {
+  fieldset input,
+  fieldset textarea {
     box-sizing: border-box;
     width: 100%;
     height: 36px;
@@ -532,7 +675,8 @@
     font-size: 10px;
   }
 
-  fieldset input:focus { border-color: #789757; outline: none; }
+  fieldset textarea { height: 70px; padding: 8px 9px; resize: vertical; line-height: 1.4; }
+  fieldset input:focus, fieldset textarea:focus { border-color: #789757; outline: none; }
 
   .exact-text-field { display: grid; gap: 5px; margin: 0 0 7px; color: #89939a; font-size: 9px; font-weight: 700; }
 

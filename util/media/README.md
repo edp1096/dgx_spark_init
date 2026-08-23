@@ -1,4 +1,4 @@
-# 생성 스튜디오
+# Spark Media
 
 이미지·LTX 영상·CustomVoice 음성 생성·자막 API를 사용하는 Go/Svelte 클라이언트입니다. 이 프로젝트에는
 모델 런타임, Python 코드, Docker 제어 로직이 포함되지 않습니다.
@@ -12,7 +12,7 @@ API 서버는 별도 프로젝트로 운영합니다.
 | 음성 생성 | `compose_yaml/qwen3_tts` | `http://127.0.0.1:8692` | 음성 탭 사용 시 |
 | 음성 인식 | `compose_yaml/qwen3_asr` | `http://127.0.0.1:8694` | 자막 탭 사용 시 |
 | 영상 생성 | `compose_yaml/ltx-2.5_api` | `http://127.0.0.1:8695` | 영상 탭 사용 시 |
-| 프롬프트 향상·번역 | `util/gemma4_litert` | `http://127.0.0.1:8696` | 향상·자막 번역 사용 시 |
+| 프롬프트 향상·번역 | `compose_yaml/llama.cpp` | `http://127.0.0.1:8696` | 향상·자막 번역 사용 시 |
 | 미디어 다운로드·분할 | `compose_yaml/media_access_api` | `http://127.0.0.1:8697` | URL·자막 처리 시 |
 | 이미지 고화질화 | `compose_yaml/seedvr2_upscaler` | `http://127.0.0.1:8698` | 최근 이미지 후처리 시 |
 | Krea 2 LoRA 학습 | `compose_yaml/krea2_lora_trainer` | `http://127.0.0.1:8704` | LoRA 제작소 사용 시 |
@@ -20,7 +20,7 @@ API 서버는 별도 프로젝트로 운영합니다.
 Media 앱 자체는 Go 바이너리이며 Docker 컨테이너가 아니다. 모든 API는 서로
 독립적이므로 사용할 탭에 필요한 것만 올릴 수 있다. 자막 탭에서 로컬 음성만
 전사하려면 Qwen3-ASR과 Media Access API가 필요하고, 번역까지 사용하려면 Gemma 4
-E2B LiteRT 서비스도 실행한다. 이미지·음성·영상 생성 API를 모두 동시에 띄울지는
+E2B llama.cpp 서비스도 실행한다. 이미지·음성·영상 생성 API를 모두 동시에 띄울지는
 DGX Spark 통합 메모리 사용량을 보고 결정한다. vLLM-Omni 항목은 상시 실행하는 API가
 아니라 Qwen3-TTS가 사용하는 `dgx-vllm-omni:v0.26.0` 런타임 이미지를 만드는 빌더다.
 
@@ -81,12 +81,19 @@ Depth Control, `스타일 LoRA`는 선택한 Krea LoRA들을 개별 강도로 �
 최근 생성 결과는 클릭하면 공통 확대 모달로 열립니다. 과거 Klein 작업 기록을 전체 복제하면 참조 이미지를
 Krea Identity 입력으로 변환합니다.
 
+이미지 작업이 대기·실행 중이면 최근 이미지 카드에 경과 시간, 예상 진행률, 남은 시간과
+예상 완료 시각을 표시합니다. ETA는 동일한 모드·해상도·스텝의 최근 완료 시간 중앙값을
+우선 사용하며, 실제 ComfyUI 스텝 이벤트가 아닌 추정치임을 화면에 명시합니다.
+
 Identity에는 얼굴·특징에 주의를 집중하는 마스크와 변경을 허용할 영역만 지정하는
 수정 한정 마스크를 별도로 사용할 수 있습니다. `내용·구도 참조`는 Qwen3-VL
 conditioning으로 최대 4장의 내용을 참고하고, `스타일 이미지 참조`는 최대 2장에서
 화풍·색감·질감을 가져옵니다. 전용 모델을 사용하는 기능은 화면에서 호환되지 않는
 다른 모듈과의 동시 선택을 제한합니다. 모델 내부 조정에서는 프롬프트 준수 강화와
-2-vector·3-vector 필터 완화 가중치를 선택하고 강도를 조절할 수 있습니다.
+2-vector·3-vector 필터 완화 가중치를 선택하고 강도를 조절할 수 있습니다. 별도 `생성
+설정`에서는 시드·스텝과 기본 `Euler/Simple` 또는 디테일 탐색용 `ER-SDE/Simple`
+프리셋을 고릅니다. 실제 무작위 시드·샘플러·스케줄러·스텝은 작업 기록과 이미지 EXIF에
+함께 저장됩니다.
 
 이미지 프롬프트 향상을 켜면 첫 생성 클릭에서 Gemma 4 E2B가 Krea 2용 영어 프롬프트를
 제안하고, 사용자가 내용을 확인한 다음 다시 생성할 수 있습니다. JSON처럼 구조화된 프롬프트는
@@ -151,8 +158,9 @@ cd ../seedvr2_upscaler
 docker compose build
 docker compose up -d
 
-cd ../../util/gemma4_litert
-make install-service
+cd ../llama.cpp
+./scripts/build_host.sh
+./scripts/install_user_service.sh
 
 cd ../../compose_yaml/media_access_api
 docker compose build
@@ -164,10 +172,9 @@ Qwen3-TTS는 vLLM-Omni 런타임에서 프리셋 화자를 사용하는 CustomVo
 Qwen3-ASR은 Gradio와 vLLM 없이 공식 `qwen-asr` Transformers wrapper 및
 Forced Aligner로 운영합니다.
 LTX 2.5 영상 API는 공식 distilled NVFP4 파이프라인을 사용하며 동시 생성은 한 작업으로 제한합니다.
-Gemma 4 E2B LiteRT는 LTX 캡션 형식으로 한국어 원문을 번역·확장합니다. 현재 공개
-`.litertlm` 번들은 이미지 입력을 인식하지 못하므로 I2V에서는 프롬프트 향상을
-자동으로 건너뛰고 원문을 그대로 사용합니다. 비전 입력이 포함된 호환 번들을 사용할
-때만 설정에서 `prompt_enhancement.vision_enabled`를 켭니다.
+Gemma 4 E2B QAT Q4_K + MTP llama.cpp는 LTX 캡션 형식으로 한국어 원문을
+번역·확장합니다. I2V 시작 이미지는 LTX에 직접 전달하며, Media의 이미지 인식 기반
+프롬프트 향상은 기본적으로 끄고 원문 동작 지시를 사용합니다.
 
 자막 탭은 로컬 영상·음성 파일을 디스크로 스트리밍 업로드하거나 URL에서 미디어를
 가져옵니다. Media Access API가 yt-dlp, FFmpeg, Playwright를 담당하고 영상과 음성 입력은

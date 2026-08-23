@@ -219,7 +219,7 @@
       </div>
     </section>
     <section class="lora-card">
-      <div class="lora-card-heading"><div><h3>등록된 사용자 LoRA</h3><small>생성 스튜디오용 공유 저장소</small></div></div>
+      <div class="lora-card-heading"><div><h3>등록된 사용자 LoRA</h3><small>Spark Media 공유 저장소</small></div></div>
       <div class="registered-loras">
         {#each loras as lora}<article><strong>{lora.name || lora.filename}</strong><small>{lora.trigger_word || '트리거 없음'} · rank {lora.rank || '—'}{#if lora.recommended_strength !== undefined} · 권장 강도 {Number(lora.recommended_strength).toFixed(2)}{/if} · {(Number(lora.size || 0) / 1048576).toFixed(1)} MB</small><button type="button" class="job-delete" disabled={busy === `lora-delete:${lora.filename}`} onclick={() => deleteLora(lora)}>삭제</button></article>{:else}<div class="empty">학습이 끝난 LoRA가 여기에 등록됩니다.</div>{/each}
       </div>

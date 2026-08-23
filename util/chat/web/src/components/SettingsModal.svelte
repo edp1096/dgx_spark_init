@@ -120,7 +120,7 @@
     </div>
     <div class="settings-content">
       <div id="settings-panel-model" class="settings-tab-panel" class:active={activeTab === 'model'} role="tabpanel" aria-labelledby="settings-tab-model">
-        <label>API endpoint<input bind:value={settings.model.endpoint} placeholder="http://192.168.100.61:8000" /></label>
+        <label>API endpoint<input bind:value={settings.model.endpoint} placeholder="http://127.0.0.1:8696" /></label>
         <label>Endpoint API key (선택)<input type="password" bind:value={settingsAPIKey} placeholder={settings.api_key_set ? '설정됨 — 변경할 때만 입력' : '인증이 필요할 때만 입력'} /></label>
         {#if settings.api_key_set}<label class="check"><input type="checkbox" bind:checked={clearAPIKey} /> 저장된 Endpoint API key 제거</label>{/if}
         <label>기본 모델<input bind:value={settings.model.default_model} list="model-list" placeholder="비우면 첫 모델 자동 선택" /></label>

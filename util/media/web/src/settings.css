@@ -286,6 +286,19 @@ body > div > header {
   display: none;
 }
 
+.engine-strip .system-usage {
+  padding-right: 16px;
+  border-right: 1px solid #30363c;
+  color: #8e979e;
+  font: 600 10px ui-monospace;
+  white-space: nowrap;
+}
+
+.engine-strip .system-usage b {
+  color: #b8c1c7;
+  font-weight: 750;
+}
+
 @media (max-width: 850px) {
   main {
     padding: 10px 12px 20px;
@@ -314,8 +327,12 @@ body > div > header {
   header .mobile-engine-area {
     position: relative;
     z-index: 7;
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
+
+  .mobile-system-usage { color: #89939a; font: 650 9px ui-monospace; white-space: nowrap; }
 
   .mobile-engine-summary {
     display: flex;

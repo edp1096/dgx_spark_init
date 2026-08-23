@@ -40,7 +40,7 @@
   }
 
   function modeLabel(mode) {
-    return ({ create: 'Krea 2 생성', edit: '참조 편집', control: '구조 제어', detail_enhance: '디테일 강화', upscale: '고화질 확대' })[mode] || mode || '—'
+    return ({ create: 'Krea 2 생성', edit: '원본 수정', control: '구조 제어', detail_enhance: '디테일 강화', upscale: '고화질 확대' })[mode] || mode || '—'
   }
 
   function formatCreatedAt(value) {
@@ -76,7 +76,7 @@
           <div class="image-exif-view">
             {#if exifLoading}<p class="image-exif-state">EXIF 정보를 읽는 중…</p>
             {:else if exifError}<p class="image-exif-state error-state">{exifError}</p>
-            {:else if exifResult && !exifResult.embedded}<p class="image-exif-state">이 파일에는 Generation Studio EXIF 정보가 없습니다.</p>
+            {:else if exifResult && !exifResult.embedded}<p class="image-exif-state">이 파일에는 SparkMediaPanel EXIF 정보가 없습니다.</p>
             {:else if exifResult?.metadata}
               {@const metadata = exifResult.metadata}
               <dl>
@@ -87,6 +87,9 @@
                 <div><dt>작업</dt><dd>{modeLabel(metadata.mode)}</dd></div>
                 <div><dt>크기</dt><dd>{metadata.width || '—'} × {metadata.height || '—'}</dd></div>
                 <div><dt>시드</dt><dd>{metadata.seed ?? '—'}</dd></div>
+                <div><dt>샘플러</dt><dd>{metadata.parameters?.sampler || '—'}</dd></div>
+                <div><dt>스케줄러</dt><dd>{metadata.parameters?.scheduler || '—'}</dd></div>
+                <div><dt>스텝</dt><dd>{metadata.parameters?.steps ?? '—'}</dd></div>
                 <div><dt>생성 시각</dt><dd>{formatCreatedAt(metadata.created_at)}</dd></div>
                 <div><dt>작업 ID</dt><dd>{metadata.job_id || '—'}</dd></div>
               </dl>

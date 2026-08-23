@@ -31,6 +31,14 @@
     }
   }
 
+  // The canvas element is destroyed with the modal. Clear the matching load
+  // key as well so reopening the same source paints the newly created canvas.
+  $: if (!open && (loadedKey || original)) {
+    loadedKey = ''
+    original = null
+    snapshots = []
+  }
+
   onDestroy(() => releaseScroll?.())
 
   $: if (open && source && canvas && loadedKey !== `${source}:${preprocessed}`) load(source)
@@ -40,7 +48,9 @@
   }
 
   async function load(url) {
-    original = await loadImage(url)
+    const image = await loadImage(url)
+    if (!open || !canvas) return
+    original = image
     loadedKey = `${url}:${preprocessed}`
     width = original.naturalWidth; height = original.naturalHeight
     canvas.width = width; canvas.height = height

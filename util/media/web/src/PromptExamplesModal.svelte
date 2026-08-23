@@ -7,6 +7,7 @@
   export let selectedID = ''
   export let officialSource = ''
   export let communitySource = ''
+  export let vibeSource = ''
   export let onApply = () => {}
   export let onClose = () => {}
 
@@ -34,22 +35,27 @@
   }
 
   function sourceType(example) {
-    return example.id.startsWith('official-') ? 'official' : 'community'
+    return example.id.startsWith('official-') ? 'official' : example.id.startsWith('vibe-') ? 'vibe' : 'community'
   }
 
   function sourceLabel(example) {
-    return sourceType(example) === 'official' ? '출처 1 · Krea 공식' : '출처 2 · Sogni'
+    return sourceType(example) === 'official' ? '출처 1 · Krea 공식' : sourceType(example) === 'vibe' ? '출처 3 · VibeArt' : '출처 2 · Sogni'
   }
 
   function sourceURL(example) {
-    return sourceType(example) === 'official' ? officialSource : communitySource
+    return example.source || (sourceType(example) === 'official' ? officialSource : sourceType(example) === 'vibe' ? vibeSource : communitySource)
+  }
+
+  function exampleImage(example) {
+    const image = example.image || `${example.id}.webp`
+    return /^https?:\/\//.test(image) ? image : `/prompt-examples/${image}`
   }
 
   function filterExamples(allExamples, selectedSource, selectedCategory, searchQuery) {
     const needle = searchQuery.trim().toLowerCase()
     return allExamples.filter((example) => {
       if (selectedSource && sourceType(example) !== selectedSource) return false
-      if (selectedCategory && categoryByID[example.id] !== selectedCategory) return false
+      if (selectedCategory && (example.category || categoryByID[example.id]) !== selectedCategory) return false
       if (needle && !`${example.label} ${example.prompt}`.toLowerCase().includes(needle)) return false
       return true
     })
@@ -96,16 +102,17 @@
         <div class="header-actions">
           <a href={officialSource} target="_blank" rel="noreferrer">출처 1 ↗</a>
           <a href={communitySource} target="_blank" rel="noreferrer">출처 2 ↗</a>
+          <a href={vibeSource} target="_blank" rel="noreferrer">출처 3 ↗</a>
           <button type="button" aria-label="닫기" onclick={onClose}>×</button>
         </div>
       </header>
 
       {#if focusedExample}
         <div class="example-detail">
-          <div class="detail-image"><img src={`/prompt-examples/${focusedExample.id}.webp`} alt={focusedExample.label}></div>
+          <div class="detail-image"><img src={exampleImage(focusedExample)} alt={focusedExample.label}></div>
           <div class="detail-copy">
             <button type="button" class="back" onclick={() => focusedExample = null}>← 목록으로</button>
-            <span class:official={sourceType(focusedExample) === 'official'} class="source-badge">{sourceLabel(focusedExample)}</span>
+            <span class:official={sourceType(focusedExample) === 'official'} class:vibe={sourceType(focusedExample) === 'vibe'} class="source-badge">{sourceLabel(focusedExample)}</span>
             <h3>{focusedExample.label}</h3>
             <p>{focusedExample.prompt}</p>
             <a href={sourceURL(focusedExample)} target="_blank" rel="noreferrer">원문 출처 ↗</a>
@@ -118,7 +125,7 @@
       {:else}
         <div class="example-filters">
           <label>출처
-            <select bind:value={source}><option value="">전체 출처</option><option value="official">출처 1 · Krea 공식</option><option value="community">출처 2 · Sogni</option></select>
+            <select bind:value={source}><option value="">전체 출처</option><option value="official">출처 1 · Krea 공식</option><option value="community">출처 2 · Sogni</option><option value="vibe">출처 3 · VibeArt</option></select>
           </label>
           <label>종류
             <select bind:value={category}><option value="">전체 종류</option>{#each categories as item}<option value={item[0]}>{item[1]}</option>{/each}</select>
@@ -131,9 +138,9 @@
         <div class="example-gallery">
           {#each visibleExamples as example}
             <button type="button" class:selected={example.id === selectedID} onclick={() => focusedExample = example} title={example.prompt}>
-              <img src={`/prompt-examples/${example.id}.webp`} alt={example.label} loading="lazy">
+              <img src={exampleImage(example)} alt={example.label} loading="lazy">
               <span>{example.label}</span>
-              <small class:official={sourceType(example) === 'official'}>{sourceType(example) === 'official' ? 'Krea 공식' : 'Sogni'}</small>
+              <small class:official={sourceType(example) === 'official'} class:vibe={sourceType(example) === 'vibe'}>{sourceType(example) === 'official' ? 'Krea 공식' : sourceType(example) === 'vibe' ? 'VibeArt' : 'Sogni'}</small>
             </button>
           {:else}
             <p class="empty">조건에 맞는 예제가 없습니다.</p>
@@ -167,6 +174,7 @@
   .example-gallery span { overflow: hidden; padding: 8px 9px 3px; font-size: 10px; font-weight: 750; text-overflow: ellipsis; white-space: nowrap; }
   .example-gallery small { width: fit-content; margin-left: 9px; padding: 2px 5px; border-radius: 4px; color: #d9a58b; background: #38271f; font-size: 8px; }
   .example-gallery small.official, .source-badge.official { color: #badf91; background: #25331d; }
+  .example-gallery small.vibe, .source-badge.vibe { color: #a9c8ea; background: #1d2c3a; }
   .empty { grid-column: 1 / -1; margin: 60px 0; color: #758089; font-size: 11px; text-align: center; }
   .example-detail { grid-row: 2 / -1; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(340px, .85fr); min-height: 0; overflow: hidden; }
   .detail-image { display: grid; place-items: center; min-height: 0; padding: 18px; background: #090c0e; }

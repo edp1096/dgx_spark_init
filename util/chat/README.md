@@ -1,6 +1,6 @@
 # SparkTalk
 
-Go 백엔드와 Svelte 프런트엔드로 만든 간단한 로컬 LLM 채팅 앱입니다. OpenAI 호환 API(SGLang·vLLM 등)에 연결하며 채팅 기록은 SQLite에 저장합니다.
+Go 백엔드와 Svelte 프런트엔드로 만든 간단한 로컬 LLM 채팅 앱입니다. OpenAI 호환 API(llama.cpp·SGLang·vLLM 등)에 연결하며 채팅 기록은 SQLite에 저장합니다.
 
 ## 개발 실행
 
@@ -39,27 +39,25 @@ SparkTalk 자체는 Go 바이너리이며 Docker 컨테이너가 아니다. 전�
 
 | 역할 | 위치 | 기본 주소 | 필요 여부 |
 |---|---|---|---|
-| 채팅·이미지·영상 인식 모델 | `compose_yaml/sglang_qwen38` | `http://127.0.0.1:8000` | 필수 |
+| 채팅·이미지 인식 모델 | `compose_yaml/llama.cpp` | `http://127.0.0.1:8696` | 필수 |
 | 음성 전사 | `compose_yaml/qwen3_asr` | `http://127.0.0.1:8694` | 음성·영상 첨부 시 필요 |
 | 답변 음성 | `compose_yaml/qwen3_tts` | `http://127.0.0.1:8692` | AI 답변 읽기 사용 시 필요 |
 | SparkTalk Extra Media | `compose_yaml/sparktalk_extra` | `http://127.0.0.1:8698` | 음성·영상·URL 첨부 시 필요 |
 | SparkTalk Extra SSH | `compose_yaml/sparktalk_extra` | `http://127.0.0.1:8699` | 채팅에서 승인형 SSH 실행 시 필요 |
 
-이미지만 인식하는 채팅에는 SGLang만 있으면 된다. 음성·영상 또는 URL 미디어를
+이미지만 인식하는 채팅에는 llama.cpp만 있으면 된다. 음성·영상 또는 URL 미디어를
 사용한다면 Qwen3-ASR과 SparkTalk Extra Media도 함께 실행한다. 답변 읽기를
 사용한다면 Qwen3-TTS도 실행한다. 생성 스튜디오용
 `media_access_api`는 SparkTalk의 필수 구성요소가 아니다.
 
-저장소 루트에서 다음 순서로 실행한다. 현재 DGX Spark에서 검증한 채팅 모델은
-Huihui-RadixArk Qwen3.8 27B NVFP4 로컬 모델과 DFlash2 구성이다.
+저장소 루트에서 다음 순서로 실행한다. 현재 기본 채팅 모델은 호스트에서 직접
+실행하는 Huihui Gemma 4 E2B QAT Q4_K + MTP 구성이다.
 
 ```bash
-# 1. 채팅/VL 모델. Open WebUI는 올리지 않고 SGLang만 실행한다.
-cd compose_yaml/sglang_qwen38
-docker compose \
-  -f compose.yaml \
-  -f compose.huihui-radixark-nvfp4-dflash2-local.yaml \
-  up -d --build sglang
+# 1. 채팅/VL 모델. 최초 한 번 호스트 runtime을 빌드하고 사용자 서비스를 설치한다.
+cd compose_yaml/llama.cpp
+./scripts/build_host.sh
+./scripts/install_user_service.sh
 
 # 2. 음성 인식. 외부 모델 캐시 볼륨은 최초 한 번만 만들면 된다.
 cd ../qwen3_asr
@@ -85,11 +83,10 @@ cd dist
 ./sparktalk-linux-arm64
 ```
 
-`compose.huihui-radixark-nvfp4-dflash2-local.yaml`은 해당 로컬 target 모델 경로가
-준비된 DGX Spark용이다. 최초 실행에는 DFlash2 다운로드와 전용 SGLang 이미지 빌드,
-CUDA graph 컴파일이 필요하다. 다른 OpenAI 호환 SGLang·vLLM 서버를 사용할 때는
-컨테이너 1번 대신 그 서버를 실행하고 `sparktalk.yaml`의 `model.endpoint`와 모델명을
-맞춘다. 비디오 인식에는 VL 입력을 지원하는 모델이 필요하다.
+llama.cpp는 Docker의 빌드 환경만 사용하고 결과물을 호스트 `artifacts/`에 내보낸다.
+Compose는 같은 모델을 실행하는 대안이며 호스트 서비스와 동시에 실행하지 않는다.
+다른 OpenAI 호환 서버를 사용할 때는 `sparktalk.yaml`의 `model.endpoint`와 모델명을
+맞춘다. 비디오 인식에는 해당 입력을 지원하는 모델과 projector가 필요하다.
 
 yt-dlp로 지원 사이트를 가져오지 못할 때는 고정된 이미지 전체를 다시 빌드하기
 전에 선택 업데이트를 적용할 수 있다.
@@ -103,7 +100,7 @@ make ytdlp-version
 각 서비스와 SparkTalk 연결 상태는 다음과 같이 확인한다.
 
 ```bash
-curl -fsS http://127.0.0.1:8000/v1/models
+curl -fsS http://127.0.0.1:8696/v1/models
 curl -fsS http://127.0.0.1:8694/health
 curl -fsS http://127.0.0.1:8692/health
 curl -fsS http://127.0.0.1:8698/health
@@ -111,12 +108,11 @@ curl -fsS http://127.0.0.1:8699/health
 curl -fsS http://127.0.0.1:8585/api/health
 ```
 
-SGLang은 재부팅 후 첫 기동에서 `torch.compile` 때문에 준비에 시간이 걸릴 수 있다.
-`docker logs -f sglang-qwen38`에서 준비 상태를 확인한다. 직접 실행한 SparkTalk은
+llama.cpp는 재부팅 후 모델과 projector를 메모리에 올리는 동안 준비에 시간이 걸릴 수 있다.
+`journalctl --user -u llama-cpp-spark.service -f`에서 준비 상태를 확인한다. 직접 실행한 SparkTalk은
 `Ctrl+C`로 종료하고, 아래 사용자 systemd 서비스를 설치했다면 `systemctl --user
 stop sparktalk`을 사용한다. 각 compose 서비스는 해당 디렉터리에서
-`docker compose down` 또는 SparkTalk Extra의 `make down`으로 내린다. SGLang은
-기동할 때 사용한 두 compose 파일을 동일하게 지정해서 내린다.
+`docker compose down` 또는 SparkTalk Extra의 `make down`으로 내린다.
 
 ## DGX Spark 자동기동
 
@@ -256,7 +252,7 @@ SQLite 파일 옆의 `<database>.media` 디렉터리에 저장되고 질문 수�
 
 음성 파일은 원본을 대화 모델에 직접 보내지 않고 SparkTalk Extra Media에서 16kHz
 mono PCM WAV로 변환한 뒤 Qwen3-ASR의 전사문을 전달합니다. 영상 파일은
-Qwen VL이 볼 수 있는 영상 원본과 음성 트랙의 전사문을 함께 전달합니다.
+멀티모달 모델이 볼 수 있는 영상 원본과 음성 트랙의 전사문을 함께 전달합니다.
 음성 트랙이 없는 영상은 영상만 전달합니다.
 
 기본 서비스 주소는 SparkTalk Extra Media `http://127.0.0.1:8698`, Qwen3-ASR
@@ -313,7 +309,7 @@ API로 화면에 보이는 답변 전체를 보내고, 24 kHz PCM을 도착하�
 쓰고 “이 영상을 요약해줘”처럼 분석을 요청할 때 모델이 `media_import` 도구를
 선택할 수 있습니다. 모델이 임의 주소를 받지 못하도록 사용자가 해당 대화에
 직접 입력한 정확한 URL만 허용합니다. 취득한 파일은 해당 사용자 메시지에
-첨부·저장되고, 같은 응답 라운드의 Qwen3.8 VL/ASR 입력으로 자동 전달됩니다.
+첨부·저장되고, 같은 응답 라운드의 Gemma 4 VL/ASR 입력으로 자동 전달됩니다.
 
 기본 listen address는 `0.0.0.0:8585`입니다. 같은 네트워크의 다른 PC에서는
 `http://서버-IP:8585`로 접속합니다.

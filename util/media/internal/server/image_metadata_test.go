@@ -17,6 +17,7 @@ func TestPNGEXIFMetadataRoundTrip(t *testing.T) {
 		Params: map[string]any{
 			"model": "krea2-turbo-nvfp4", "mode": "create", "width": 32, "height": 24,
 			"seed": int64(42), "styles": []any{map[string]any{"name": "film", "strength": 0.8}},
+			"sampling_preset": "default", "sampler": "euler", "scheduler": "simple", "steps": 8,
 		},
 	}
 	original := testPNG(t, 32, 24)
@@ -37,6 +38,9 @@ func TestPNGEXIFMetadataRoundTrip(t *testing.T) {
 	}
 	if metadata.Model != "krea2-turbo-nvfp4" || metadata.Mode != "create" || metadata.Width != 32 || metadata.Height != 24 {
 		t.Fatalf("generation fields=%#v", metadata)
+	}
+	if metadata.Parameters["sampler"] != "euler" || metadata.Parameters["scheduler"] != "simple" || metadata.Parameters["steps"] != float64(8) {
+		t.Fatalf("sampling metadata=%#v", metadata.Parameters)
 	}
 	if metadata.Creator != profile.Creator || metadata.Copyright != profile.Copyright || metadata.Website != profile.Website || metadata.Note != profile.Note {
 		t.Fatalf("creator profile=%#v", metadata)
