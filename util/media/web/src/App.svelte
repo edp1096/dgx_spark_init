@@ -1,18 +1,114 @@
 <script>
-  import { onMount } from 'svelte'
+  import { onMount, onDestroy } from 'svelte'
   import { api } from './api.js'
   import ResultPagination from './ResultPagination.svelte'
+  import MaskEditor from './MaskEditor.svelte'
+  import CannyEditor from './CannyEditor.svelte'
+  import ImageModal from './ImageModal.svelte'
+  import VideoModal from './VideoModal.svelte'
+  import SubtitleModal from './SubtitleModal.svelte'
+  import PromptModal from './PromptModal.svelte'
+  import LoraStudio from './LoraStudio.svelte'
+  import PromptComposer from './PromptComposer.svelte'
+  import PromptExamplesModal from './PromptExamplesModal.svelte'
+  import { lockModalScroll } from './modalScroll.js'
 
   let tab = 'image'
   let config = null
   let settings = null
   let savedMessage = ''
+  let settingsSection = 'connection'
   let jobs = []
-  let engineStates = { image: 'offline', speech: 'offline', recognition: 'offline', video: 'offline', prompt: 'offline', media: 'offline' }
+  let engineStates = { image: 'offline', speech: 'offline', recognition: 'offline', video: 'offline', prompt: 'offline', media: 'offline', trainer: 'offline', upscale: 'offline' }
   let busy = false
   let error = ''
   let refs = []
-  let imageForm = { prompt: '', width: 1024, height: 1024, seed: -1 }
+  let imageForm = { prompt: '', width: 1024, height: 1024, seed: -1, mode: 'create' }
+  let imageEnhanceEnabled = true
+  let imageEnhancedPrompt = ''
+  let imageEnhancedSource = ''
+  let imageDisabledMessage = ''
+  let imageEnhancementIsActive = false
+  let imageEnhancementIsCurrent = false
+  let imageResolutionMode = 'smart'
+  let imageAspectRatio = '1:1'
+  let imageMegapixels = 1
+  let upscalingImageJob = ''
+  let detailEnhancingImageJob = ''
+  let imageCloneMessage = ''
+  let cloningImageJob = ''
+  let filterPromptPreset = ''
+  let promptExamplesOpen = false
+  let kreaModules = { identity: false, depth: false, style: false, userLora: false, vision: false, styleReference: false, nk2e: false, anypaint: false }
+  let kreaIdentityImage = null
+  let kreaIdentityReference = null
+  let kreaDepthImage = null
+  let kreaNK2EImage = null
+  let kreaAnyPaintImage = null
+  let kreaAnyPaintMask = null
+  let kreaIdentityMask = null
+  let kreaStrictMask = null
+  let kreaIdentityPreview = ''
+  let kreaIdentityReferencePreview = ''
+  let kreaDepthPreview = ''
+  let kreaNK2EPreview = ''
+  let kreaAnyPaintPreview = ''
+  let kreaAnyPaintMaskPreview = ''
+  let kreaIdentityMaskPreview = ''
+  let kreaStrictMaskPreview = ''
+  let maskEditorMode = ''
+  let cannyEditorOpen = false
+  let kreaNK2EPreprocessed = false
+  let parentImageJobID = ''
+  let identityPreserve = 'identity, facial features, hair, body proportions, and all areas not explicitly changed'
+  let identityPreset = ''
+  let imageModal = null
+  let videoModal = null
+  let subtitleModal = null
+  let promptModal = null
+  let runtimeInfoOpen = false
+  let releaseRuntimeInfoScroll = null
+  let featureModulesOpen = false
+  let releaseFeatureModulesScroll = null
+  let activeKreaModuleLabels = []
+  let kreaModuleMessage = ''
+
+  $: {
+    if (runtimeInfoOpen && !releaseRuntimeInfoScroll) releaseRuntimeInfoScroll = lockModalScroll()
+    else if (!runtimeInfoOpen && releaseRuntimeInfoScroll) {
+      releaseRuntimeInfoScroll()
+      releaseRuntimeInfoScroll = null
+    }
+  }
+
+  $: {
+    if (featureModulesOpen && !releaseFeatureModulesScroll) releaseFeatureModulesScroll = lockModalScroll()
+    else if (!featureModulesOpen && releaseFeatureModulesScroll) {
+      releaseFeatureModulesScroll()
+      releaseFeatureModulesScroll = null
+    }
+  }
+
+  onDestroy(() => {
+    releaseRuntimeInfoScroll?.()
+    releaseFeatureModulesScroll?.()
+  })
+  let kreaVisionImages = []
+  let kreaStyleReferenceImages = []
+  let kreaStyleSelections = [{ name: 'retroanime', strength: 1 }]
+  let userLoraCatalog = []
+  let userLoraSelections = []
+  let kreaOptions = {
+    identity_strength: 1, ref_boost: 4, grounding_px: 768, steps: 10,
+    depth_strength: 0.8,
+    vision_mode: 'descriptor', vision_megapixels: 1, style_reference_strength: 1,
+    nk2e_mode: 'edit', nk2e_strength: 0.7, vae_mode: 'default', identity_fit_mode: 'fit',
+    strict_mask_grow: 0, strict_mask_feather: 0,
+    outpaint_left: 0, outpaint_top: 0, outpaint_right: 0, outpaint_bottom: 0,
+    anypaint_strength: 1, anypaint_boundary_redraw_px: 32,
+    filter_mode: 'balanced', filter_strength: 1,
+    prompt_enhancer: false, prompt_enhancer_strength: 1, prompt_text_scale: 1.75
+  }
   let speechForm = { text: '', instructions: '', language: 'Korean', speaker: 'Sohee', seed: -1 }
   let recognitionForm = {
     source: 'file', url: '', language: 'Auto', context: '',
@@ -30,35 +126,127 @@
   let videoEnhancedPrompt = ''
   let videoEnhancedSource = ''
   let videoEnhancedImageKey = ''
+  let videoEnhancementIsActive = false
+  let videoEnhancementIsCurrent = false
   let enhancingPrompt = false
   let deletingJob = ''
   let cancellingJob = ''
+  let retryingJob = ''
   let storage = null
   let cleaningStorage = false
   let subtitleView = 'gallery'
   let imageView = 'gallery'
+  let mobileImagePane = 'create'
+  let mobileVideoPane = 'create'
+  let mobileSpeechPane = 'create'
+  let mobileRecognitionPane = 'create'
   let videoView = 'gallery'
-  let expandedVideoJobs = new Set()
-  let expandedSubtitleJobs = new Set()
   let refreshSequence = 0
   const pageSizeOptions = [8, 10, 20, 50, 100]
+  const imagePageSizeOptions = [8, 10, 12, 16, 20, 24, 28, 50, 100]
   let listPageSizes = { image: 8, video: 8, speech: 10, recognition: 10, history: 20 }
   let listPages = { image: 1, video: 1, speech: 1, recognition: 1, history: 1 }
+  let listSortOrders = { image: 'desc', video: 'desc', speech: 'desc', recognition: 'desc', history: 'desc' }
+  let mobileEngineOpen = false
 
   const engineMeta = {
-    image: ['image', 'Klein'],
     video: ['video', 'LTX'],
     speech: ['speech', 'TTS'],
-    recognition: ['media', 'Media']
+    recognition: ['media', 'Media'],
+    lora: ['trainer', 'LoRA Trainer']
   }
+  const engineStatusCatalog = [
+    ['image_create', 'Krea 2 이미지'], ['video', 'LTX 영상'], ['speech', 'Qwen3 TTS'],
+    ['recognition', 'Qwen3 ASR'], ['prompt', 'Gemma 프롬프트'], ['upscale', 'SeedVR2 고화질'],
+    ['media', '미디어·FFmpeg'], ['trainer', 'Krea 2 LoRA 학습']
+  ]
+  let monitoredEngineStatuses = []
+  let engineAggregate = 'down'
+  let engineAggregateLabel = 'API 확인 중'
+  $: monitoredEngineStatuses = engineStatusCatalog.map(([key, label]) => ({ key, label, online: engineStates[key] === 'online' }))
+  $: {
+    const onlineCount = monitoredEngineStatuses.filter((item) => item.online).length
+    engineAggregate = onlineCount === monitoredEngineStatuses.length ? 'healthy' : onlineCount === 0 ? 'down' : 'degraded'
+    engineAggregateLabel = engineAggregate === 'healthy' ? '전체 정상' : engineAggregate === 'degraded' ? '일부 장애' : '전체 장애'
+  }
+  const imageModeMeta = {
+    create: { label: 'Krea 2 Turbo', short: '생성·고급', engine: 'image_create', help: '새 이미지 생성과 Identity·Depth·LoRA·부분 수정 등의 기능을 조합합니다.' },
+    edit: { label: 'FLUX.2 Klein 4B', short: '참조 편집', engine: 'image_edit', help: '하나 이상의 참조 이미지를 바탕으로 내용과 스타일을 변경합니다.' },
+    detail_enhance: { label: '디테일 재해석', short: 'Krea Detail', engine: 'image_create', help: 'Ostris Edit LoRA로 원본을 다시 그려 세부 묘사를 강화합니다.' },
+    upscale: { label: '고화질', short: 'SeedVR2', engine: 'upscale', help: '완성된 이미지를 SeedVR2로 복원하고 확대합니다.' }
+  }
+  const imageModeChoices = ['create']
+  const kreaModuleLabels = {
+    identity: '인물·장면 유지', depth: '자세·구도', nk2e: '실험 편집·윤곽', anypaint: '부분 수정·확장',
+    style: '스타일 LoRA', userLora: '사용자 LoRA', styleReference: '스타일 이미지 참조', vision: '내용·구도 참조'
+  }
+  const imageAspectRatios = [
+    ['1:1', 1, '정사각'], ['3:4', 3 / 4, '세로'], ['4:3', 4 / 3, '가로'],
+    ['2:3', 2 / 3, '세로 사진'], ['3:2', 3 / 2, '가로 사진'], ['9:16', 9 / 16, '세로 화면'], ['16:9', 16 / 9, '가로 화면']
+  ]
   const outputLabels = { srt: 'SRT', vtt: 'VTT', timestamped_txt: '타임코드 TXT', txt: '일반 TXT' }
   const kindLabels = { image: '이미지', video: '영상', speech: '음성', recognition: '자막' }
+  const statusLabels = { queued: '대기 중', running: '처리 중', completed: '완료', failed: '실패', cancelled: '중지됨' }
   const languageCodes = { Korean: 'ko', Japanese: 'ja', English: 'en', Chinese: 'zh' }
   const translationLanguages = [
     'Korean', 'Japanese', 'English', 'Chinese', 'Traditional Chinese',
     'Spanish', 'French', 'German', 'Italian', 'Portuguese', 'Russian',
     'Arabic', 'Hindi', 'Vietnamese', 'Thai', 'Indonesian', 'Turkish',
     'Dutch', 'Polish', 'Ukrainian'
+  ]
+  const filterPromptSource = 'https://www.sogni.ai/loras/krea2-filter-bypass-2#examples'
+  const kreaPromptGuideSource = 'https://github.com/krea-ai/krea-2/blob/main/docs/prompting.md'
+  const officialPromptPresets = [
+    { id: 'official-rocket', label: '로켓 발사 · 극접사', source: kreaPromptGuideSource, prompt: `immense rocket launch exhaust as seen from extremely close up` },
+    { id: 'official-designer-toy', label: '3D 디자이너 토이', source: kreaPromptGuideSource, prompt: `3D rendered matte black designer toy figure, stylized round anthropomorphic shape, backward black baseball cap, oversized gold-rimmed aviator sunglasses, white traditional line-art tattoos of tiger and bird on torso, black studded belt with gold buckle, smooth vinyl texture, studio lighting, solid vibrant blue background, high contrast minimal composition` },
+    { id: 'official-collage', label: '빈티지 아날로그 콜라주', source: kreaPromptGuideSource, prompt: `vintage analog collage, central irregularly shaped snowy mountain range with a section featuring distinct wavy edges, structured within a 12x16 grid of square tiles, composition fragments the subject by alternating tiles with solid azure blue background squares, thin white grid lines, grainy paper texture, retro aesthetic of mid-century print, vibrant cyan and warm neutral tones, experimental layout, tactile quality, high-contrast graphic composition` },
+    { id: 'official-anime-portrait', label: '애니 인물 · 기울어진 근접 구도', source: kreaPromptGuideSource, prompt: `close-up anime portrait of a young woman, large amber-brown eyes with intricate sparkling reflections, index finger delicately touching a subtle smile, messy dark blue hair with loose strands crossing her face, white and navy school uniform, bright high-key lighting, luminous shadows with cool blue undertones, detailed digital painting, dynamic tilted framing, shallow depth of field on hand` },
+    { id: 'official-ocean', label: '미니멀 바다 일러스트', source: kreaPromptGuideSource, prompt: `A minimalist flat-color illustration of a person wading through expansive shallow ocean waves beneath a pale peach sky. The dark-skinned figure, wearing an orange swim cap, light blue top, and bright green shorts, steps carefully through knee-deep water. The ocean is rendered in muted mint green with delicate, thin black linework detailing the continuous ripples and gentle whitecaps. Soft pinkish-peach reflections echo the sky on the water's surface. A dark, jagged rock rests in the lower left foreground near a pale grey shoreline. The horizon features a solid purplish-blue landmass and a stylized, layered yellow and blue cloud. The high-angle wide perspective emphasizes the vast negative space of the water, utilizing a clean ligne claire drawing aesthetic with a subtle paper texture.` },
+    { id: 'official-tree-dog', label: '거대한 나무와 작은 인물', source: kreaPromptGuideSource, prompt: `A tiny figure and a small white dog sit side-by-side in the deep green shadow of a massive tree on a sloping grassy hill. The enormous tree canopy dominates the upper composition, textured with thousands of stippled, light blue and yellow dabs representing leaves. A sharp diagonal line divides the vibrant, sunlit yellow-green grass in the foreground from the dark shade sheltering the pair. The stylized, painterly landscape features flattened perspective, visible brushstrokes, and intense color contrast.` },
+    { id: 'official-flowers', label: '인물 사진 · 붉은 배경과 꽃', source: kreaPromptGuideSource, prompt: `A close-up portrait of a young East Asian woman with straight black hair, loose strands sweeping across her fair skin, and an intense gaze. She wears a light grey collared shirt with a black tie. A vibrant bouquet of pink and orange lilies with lush green leaves sits in the blurred right foreground. The background is a solid, striking crimson red. Soft, directional studio lighting highlights her facial features, creating a high-contrast composition with a shallow depth of field.` },
+    { id: 'official-mouse', label: '야생동물 매크로 사진', source: kreaPromptGuideSource, prompt: `A tiny, russet-brown harvest mouse clings to a slender diagonal branch amid vibrant green lobed leaves and small round buds. The mouse has soft textured fur, glossy black eyes, a pink nose, fine whiskers, and delicate pink paws firmly gripping the wood. In this macro photograph, an extremely shallow depth of field sharply focuses on the animal's face. The deep green background dissolves into a smooth, creamy bokeh, illuminated by soft, diffused natural lighting that highlights the intricate details of the fur and foliage.` },
+    { id: 'official-sailor', label: '활기찬 세일러 애니', source: kreaPromptGuideSource, prompt: `A dynamic digital painting of a joyful girl in a sailor uniform stretching her arms high against a solid vibrant blue background. She has short dark windblown hair, amber eyes, and a bright smile. She wears a white shirt, striped blue collar, flowing red neckerchief, and a billowing blue pleated skirt. Expressive thick brushstrokes and bold shading emphasize energetic motion.` },
+    { id: 'official-coastal-road', label: '해안 도로 · 회화풍 자동차', source: kreaPromptGuideSource, prompt: `stylized digital painting of a dark convertible on a winding coastal cliff road, high-angle perspective, blocky painterly brushstrokes, golden hour sunlight hitting rocky orange terrain and green vegetation, flock of white abstract birds flying in foreground, blinding bright sun reflection on vast ocean, vibrant warm color palette, sharp graphic shadows` },
+    { id: 'official-guardian', label: '거대 수호자 · 로우 앵글', source: kreaPromptGuideSource, prompt: `An extreme low-angle close-up captures a colossal, weathered stone and bronze guardian towering in a dark, cavernous ruin. The foreground is dominated by a massive circular shield, deeply engraved with intricate spiral motifs, geometric borders, and a central star emblem. To the right, a massive gauntlet grips a textured staff. Cinematic shafts of light pierce the dusty gloom, highlighting the rough, aged textures of the ancient armor while the background fades into deep shadows through a shallow depth of field.` },
+    { id: 'official-jungle', label: '초현실 정글 일러스트', source: kreaPromptGuideSource, prompt: `A stylized jungle illustration densely packed with oversized flora and surreal characters, rendered with smooth geometric shapes and granular stippled shading. Two pale figures with flowing, star-speckled black hair navigate the lush environment in blue garments. On the left, a figure grasps a vine as a white, long-beaked bird perches on their outstretched hand. On the right, the second figure reclines beside a sleek, pinkish-orange fox. The dense surroundings feature sweeping green stalks and colossal blooms in brilliant golden yellow, coral pink, and deep red. A second white bird emerges from the lower foliage. The vibrant composition forms a seamless tapestry, utilizing rich colors and volumetric grain to create a dreamlike, textured depth.` },
+    { id: 'official-retro-future', label: '크롬 행성 · 레트로 퓨처', source: kreaPromptGuideSource, prompt: `A surreal retro-futuristic space scene features liquid chrome forming an abstract face merging with a glowing planetary horizon. The foreground is dominated by swirling, highly reflective metallic fluid that distorts into a stylized, melting facial profile with deep shadows and bright silver highlights. This undulating chrome form rests against the curved, atmospheric edge of a massive planet bathed in a soft electric blue and purple glow. Above the primary planet, a smaller eclipsed celestial sphere sits in the upper center, crowned by a sharp, cross-shaped starburst flare. Two additional radiant flares burst from the left and right edges of the horizon. Set against a deep black starfield, the artwork employs a vintage 1980s airbrush aesthetic with smooth gradients, ethereal lighting, and high-contrast metallic rendering.` },
+    { id: 'official-gold-face', label: '금빛 리본 · 매크로 인물', source: kreaPromptGuideSource, prompt: `An extreme close-up portrait featuring pale, freckled skin and a single blue eye wrapped in reflective metallic gold ribbons. Thin gold strips crisscross diagonally over the cheek and forehead, casting sharp, hard shadows onto the face. Strands of copper hair frame the top edge while the left ear softly blurs out of focus. Harsh, direct lighting highlights intricate skin pores and bright golden reflections, isolating the brightly lit features against a pitch-black background in a bold, high-contrast macro editorial style.` },
+    { id: 'official-jester', label: '광대 전사 · 다크 판타지', source: kreaPromptGuideSource, prompt: `Stylized digital painting of a menacing jester figure rendered with bold, expressive brushstrokes and a vibrant, almost psychedelic color palette against a pitch-black background. Dynamic low-angle perspective forces a dramatic, imposing composition as the character leans forward, one leg raised high. The jester wears a classic multi-pointed hat with bells, a ruffled collar, puffed sleeves, harlequin-patterned shorts in muted gold and dark brown, and striped tights in alternating shades of purple, blue, and chartreuse. A heavily textured, flowing cape billows outward to the left, decorated with abstract, fluid patterns of saturated purples, greens, and iridescent hues resembling oil slicks or marbled paper. The figure's face is completely obscured, appearing as a smooth, faceless, pale mauve mask with a single, glowing bright white point of light in the center. In its right hand, clad in a grey-blue gauntlet, the jester grips a massive, ornate sword with a wide, glowing, ethereal white blade, its crossguard intricately sculpted. Lighting is dramatic and theatrical, casting strong shadows and highlighting the painterly texture, giving the artwork a dark fantasy, surreal aesthetic reminiscent of concept art.` },
+    { id: 'official-fashion-red', label: '패션 화보 · 붉은 배경', source: kreaPromptGuideSource, prompt: `high-fashion editorial portrait of a young East Asian woman, short choppy platinum blonde bob with heavy bangs, looking over her bare shoulder to the right, lips playfully pursed, wearing a structured black top with an architectural protruding bust detail and thin straps, delicate gold hoop earrings, arm bent with hand resting on hip, warm skin tones, solid striking crimson red background, soft directional studio lighting, cinematic color palette, medium close-up shot` },
+    { id: 'official-ink-faces', label: '초현실 흑백 잉크화', source: kreaPromptGuideSource, prompt: `A surreal black-and-white ink illustration of three interlocking, heavily wrinkled elderly faces merging into a landscape. The top face covers one eye, crowned by dense leaves, a live bird, and a skeletal bird. It flows into a profile face and a third face featuring a solid black eye and a hand on its cheek. The bottom neck plunges into a cross-section of earth, morphing into swirling subterranean roots, buried bones, and abstract organic forms. Above ground, weathered wooden cabins and tall grass flank the facial monolith. Meticulous stippling and cross-hatching define the high-contrast, intricate vertical composition.` },
+    { id: 'official-cel-crowd', label: '1990년대 셀 애니 군중', source: kreaPromptGuideSource, prompt: `1990s vintage anime style cel animation, densely packed crowd of teenagers in summer uniforms, central boy with short black hair raising a clenched right fist, squinting one eye with a determined expression, wearing a white short-sleeve shirt and solid green necktie, surrounding students looking in various directions, girls in white sailor blouses with green striped collars and neckerchiefs, light blue skirts and trousers, tightly framed medium shot, flat shading, soft muted retro.` },
+    { id: 'official-wind', label: '바람 부는 애니 인물', source: kreaPromptGuideSource, prompt: `young woman looking over her right shoulder, anime-style illustration, messy black hair blowing dynamically in the wind, striking green eyes, subtle neutral expression, oversized white button-down collared shirt with soft blue shadows, vibrant deep blue sky background, bright fluffy white cumulus clouds, silhouetted utility poles with power lines, low angle portrait, cinematic sunlight, crisp cel-shaded aesthetic` },
+    { id: 'official-film-face', label: '필름 그레인 · 얼굴 극접사', source: kreaPromptGuideSource, prompt: `extreme close-up of a woman's face partially obscured by tousled dark brown hair, soft parted lips, smooth skin on lower cheek and jawline, stray hair strands falling loosely across the nose, deep moody shadows enveloping the left frame, cinematic warm lighting, delicate highlights on the mouth, muted earthy color palette, sepia-toned warmth, intimate portrait photography, macro lens, shallow depth of field, distinct film grain texture, vintage atmospheric aesthetic` }
+  ]
+  const communityPromptPresets = [
+    {
+      id: 'expression', label: '표정·감정 준수', source: filterPromptSource,
+      prompt: `A grainy disposable-camera full-body portrait of a slim woman with a soft oval face and extremely long black hair, standing straight with her feet apart and hands at her sides, facing the viewer. She wears translucent pink sunglasses on her head, a hot-pink buttoned blazer, and a fully covered high-neck white lace top. Her head is tilted and her expression combines intense skepticism, disgust, confusion, and defensiveness: wide fixed eyes, a tense inward brow, and an asymmetric grimace showing clenched teeth. Hard direct on-camera flash blows out facial highlights while a pale wall and sheer curtain fall into a warm blurred background, heavy analog grain, slight motion blur, raw low-fi snapshot.`
+    },
+    {
+      id: 'horror', label: '공포·피 묘사', source: filterPromptSource,
+      prompt: `A gritty high-contrast close-up of a vampire mouth, slightly open, with sharp white fangs. Deep crimson blood drips from the fang tips, pools on the lower lip, and runs down the chin. A hand with dark-painted nails touches the lips and smears the glossy blood. Pale desaturated skin, dark lipstick, colored xerox and punk-zine aesthetic, heavy noise, photocopy distortion, raw rebellious horror atmosphere.`
+    },
+    {
+      id: 'diversity', label: '다인물·체형·행동', source: filterPromptSource,
+      prompt: `An amateur cell-phone candid photo in a dim upscale disco club. Four clearly distinct adult women sit across one wide straight red couch. From left to right: a slim blonde in a red sequin outfit laughing toward her friends with crossed legs and hands on her lap; a voluptuous Black woman in a fitted green mini dress looking surprised at the camera; a chubby red-haired woman in fitted black clothes smiling with her legs apart, one hand on her thigh and the other holding a whisky glass; and a slim Asian woman in a black skirt and thin-strap blouse, smiling at the camera with crossed legs while holding a cigarette near her face. Preserve all four identities, body types, clothing colors, poses, hand-held objects, and their relative positions. Wooden wall behind the couch, dim homemade photography, provocative nightlife mood.`
+    },
+    {
+      id: 'action', label: '액션·드라마', source: filterPromptSource,
+      prompt: `A single 2D anime cel-animation frame in a gritty survival-horror style. In a derelict hospital corridor under flickering fluorescent lights, cold green-grey tones and harsh rim light cut through drifting smoke. A pale bruised woman leans against cracked tile, sweating and breathing hard while gripping a bloodied hatchet. A huge shifting shadow emerges behind her. Capture the instant she lunges and swings the hatchet in a fast sakuga arc, with controlled motion blur, smear-frame energy, flying droplets, handheld-camera urgency, and a tense mid-motion ending.`
+    }
+  ]
+  const filterPromptPresets = [...officialPromptPresets, ...communityPromptPresets]
+  const kreaStyleCatalog = [
+    { name: 'darkbrush', label: 'Dark Brush', detail: '먹선 · 수묵' },
+    { name: 'dotmatrix', label: 'Dot Matrix', detail: '점묘 · 망점' },
+    { name: 'kidsdrawing', label: 'Kids Drawing', detail: '어린이 그림' },
+    { name: 'neondrip', label: 'Neon Drip', detail: '네온 · 추상 질감' },
+    { name: 'rainywindow', label: 'Rainy Window', detail: '빗물 낀 창문' },
+    { name: 'retroanime', label: 'Retro Anime', detail: '보랏빛 레트로 애니' },
+    { name: 'softwatercolor', label: 'Soft Watercolor', detail: '부드러운 수채화' },
+    { name: 'sunsetblur', label: 'Sunset Blur', detail: '노을 · 모션 블러' },
+    { name: 'vintagetarot', label: 'Vintage Tarot', detail: '빈티지 타로' }
   ]
   const recognitionLanguages = [
     ['Auto', 'Auto · 단일 언어'],
@@ -90,12 +278,6 @@
     return media.media_type === 'audio' || String(media.content_type || '').startsWith('audio/')
   }
 
-  function mediaToggleLabel(job, expanded) {
-    if (!job.media_url) return expanded ? '자막 접기' : '자막 보기'
-    const kind = isAudioMedia(job) ? '음성' : '영상'
-    return expanded ? `${kind}·자막 접기` : `${kind}·자막 보기`
-  }
-
   function mediaSummary(job) {
     const media = job.params?.media
     if (!media) return ''
@@ -124,6 +306,27 @@
 
   function videoJobDuration(job) {
     return (Math.max(1, Number(job.params?.num_frames) || 1) - 1) / Math.max(1, Number(job.params?.fps) || 1)
+  }
+
+  function imageModuleSummary(job) {
+    const params = job.params || {}
+    if (params.mode !== 'create') return ''
+    const modules = []
+    if (params.identity) modules.push('Identity')
+    if (params.depth) modules.push('Depth')
+    if (params.styles?.length || params.style) modules.push(`LoRA${params.styles?.length > 1 ? ` ×${params.styles.length}` : ''}`)
+    if (params.user_loras?.length) modules.push(`사용자 LoRA${params.user_loras.length > 1 ? ` ×${params.user_loras.length}` : ''}`)
+    if (params.style_reference) modules.push('Style Ref')
+    if (params.vision) modules.push('Vision')
+    if (params.nk2e) modules.push(params.nk2e_mode === 'canny' ? 'NK2E Canny' : 'NK2E Edit')
+    if (params.anypaint) modules.push(params.anypaint_mask ? 'Inpaint' : 'Outpaint')
+    return modules.length ? ` · ${modules.join(' + ')}` : ''
+  }
+
+  function imagePromptModalText(job) {
+    const enhanced = job.params?.enhanced_prompt || job.params?.source_enhanced_prompt
+    if (!enhanced) return job.prompt || ''
+    return `원문\n${job.prompt || ''}\n\n실제 생성 프롬프트\n${enhanced}`
   }
 
   function recognitionProgressText(job) {
@@ -167,6 +370,28 @@
     return jobsForList(key).slice(start, start + listPageSizes[key])
   }
 
+  let imageJobs = []
+  let videoJobs = []
+  let speechJobs = []
+  let recognitionJobs = []
+  let pagedImageJobs = []
+  let pagedVideoJobs = []
+  let pagedSpeechJobs = []
+  let pagedRecognitionJobs = []
+  let pagedHistoryJobs = []
+  function orderedJobs(items, order) {
+    return order === 'asc' ? [...items].reverse() : items
+  }
+  $: imageJobs = orderedJobs(jobs.filter((job) => job.kind === 'image'), listSortOrders.image)
+  $: videoJobs = orderedJobs(jobs.filter((job) => job.kind === 'video'), listSortOrders.video)
+  $: speechJobs = orderedJobs(jobs.filter((job) => job.kind === 'speech'), listSortOrders.speech)
+  $: recognitionJobs = orderedJobs(jobs.filter((job) => job.kind === 'recognition'), listSortOrders.recognition)
+  $: pagedImageJobs = imageJobs.slice((listPages.image - 1) * listPageSizes.image, listPages.image * listPageSizes.image)
+  $: pagedVideoJobs = videoJobs.slice((listPages.video - 1) * listPageSizes.video, listPages.video * listPageSizes.video)
+  $: pagedSpeechJobs = speechJobs.slice((listPages.speech - 1) * listPageSizes.speech, listPages.speech * listPageSizes.speech)
+  $: pagedRecognitionJobs = recognitionJobs.slice((listPages.recognition - 1) * listPageSizes.recognition, listPages.recognition * listPageSizes.recognition)
+  $: pagedHistoryJobs = orderedJobs(jobs, listSortOrders.history).slice((listPages.history - 1) * listPageSizes.history, listPages.history * listPageSizes.history)
+
   function clampListPages() {
     const next = { ...listPages }
     for (const key of Object.keys(next)) {
@@ -181,11 +406,23 @@
     listPages = { ...listPages, [key]: Math.min(Math.max(1, page), lastPage) }
   }
 
+  function pageSizeOptionsFor(key) {
+    return ['image', 'video', 'recognition'].includes(key) ? imagePageSizeOptions : pageSizeOptions
+  }
+
   function setListPageSize(key, pageSize) {
-    const size = pageSizeOptions.includes(pageSize) ? pageSize : listPageSizes[key]
+    const allowedSizes = pageSizeOptionsFor(key)
+    const size = allowedSizes.includes(pageSize) ? pageSize : listPageSizes[key]
     listPageSizes = { ...listPageSizes, [key]: size }
     listPages = { ...listPages, [key]: 1 }
     localStorage.setItem(`media-${key}-page-size`, String(size))
+  }
+
+  function setListSortOrder(key, order) {
+    const nextOrder = order === 'asc' ? 'asc' : 'desc'
+    listSortOrders = { ...listSortOrders, [key]: nextOrder }
+    listPages = { ...listPages, [key]: 1 }
+    localStorage.setItem(`media-${key}-sort-order`, nextOrder)
   }
 
   function showNewestListPage(key) {
@@ -214,13 +451,18 @@
     videoView = localStorage.getItem('media-video-view') === 'list' ? 'list' : 'gallery'
     for (const key of Object.keys(listPageSizes)) {
       const storedSize = Number(localStorage.getItem(`media-${key}-page-size`))
-      if (pageSizeOptions.includes(storedSize)) listPageSizes = { ...listPageSizes, [key]: storedSize }
+      const allowedSizes = pageSizeOptionsFor(key)
+      if (allowedSizes.includes(storedSize)) listPageSizes = { ...listPageSizes, [key]: storedSize }
+      const storedOrder = localStorage.getItem(`media-${key}-sort-order`)
+      if (storedOrder === 'asc' || storedOrder === 'desc') listSortOrders = { ...listSortOrders, [key]: storedOrder }
     }
     api.config().then((value) => {
       config = value
       settings = structuredClone(value)
       imageForm.width = value.image.default_width
       imageForm.height = value.image.default_height
+      applySmartResolution()
+      imageForm.mode = imageModeChoices.includes(value.image.default_mode) ? value.image.default_mode : 'create'
       speechForm.language = value.speech.default_language
       speechForm.speaker = value.speech.default_speaker
       recognitionForm.language = value.recognition.default_language
@@ -232,7 +474,10 @@
       videoForm.fps = value.video.default_fps
       videoDurationSeconds = durationFromFrames(value.video.default_frames, value.video.default_fps)
       videoEnhanceEnabled = value.prompt_enhancement.default_enabled
+      imageEnhanceEnabled = value.prompt_enhancement.default_enabled
+      kreaOptions = { ...kreaOptions, prompt_enhancer: Boolean(value.image.default_prompt_enhancer) }
     }).catch((e) => error = e.message)
+    refreshUserLoras()
     refresh()
     const timer = setInterval(refresh, 1500)
     return () => clearInterval(timer)
@@ -253,28 +498,618 @@
     localStorage.setItem('media-video-view', view)
   }
 
-  function toggleExpandedJob(kind, id) {
-    const current = kind === 'video' ? expandedVideoJobs : expandedSubtitleJobs
-    const next = new Set(current)
-    if (next.has(id)) next.delete(id)
-    else next.add(id)
-    if (kind === 'video') expandedVideoJobs = next
-    else expandedSubtitleJobs = next
+  function addRefs(files) {
+    const incoming = [...files].filter((file) => file.type.startsWith('image/')).map((file) => ({ file, name: file.name, preview: URL.createObjectURL(file), server: false }))
+    const limit = imageForm.mode === 'control' ? 1 : (config?.image.max_reference_images || 4)
+    const combined = [...refs, ...incoming]
+    combined.slice(limit).forEach((image) => { if (image.preview?.startsWith('blob:')) URL.revokeObjectURL(image.preview) })
+    refs = combined.slice(0, limit)
   }
 
-  function addRefs(files) {
-    const incoming = [...files].filter((f) => f.type.startsWith('image/'))
-    refs = [...refs, ...incoming].slice(0, config?.image.max_reference_images || 4)
+  function clearRefs() {
+    refs.forEach((image) => { if (image.preview?.startsWith('blob:')) URL.revokeObjectURL(image.preview) })
+    refs = []
+  }
+
+  function removeRef(index) {
+    const removed = refs[index]
+    if (removed?.preview?.startsWith('blob:')) URL.revokeObjectURL(removed.preview)
+    refs = refs.filter((_, itemIndex) => itemIndex !== index)
+  }
+
+  function toggleKreaModule(module) {
+    kreaModules = { ...kreaModules, [module]: !kreaModules[module] }
+    if (kreaModules[module]) {
+      if (module === 'identity' && imageForm.width * imageForm.height > 2 * 1024 * 1024) {
+        imageMegapixels = 2
+        imageResolutionMode = 'smart'
+        applySmartResolution()
+        imageCloneMessage = 'Identity 편집은 최대 2MP이므로 이미지 크기를 고해상도 2MP로 조정했습니다.'
+      }
+      return
+    }
+    if (module === 'identity') {
+      setKreaImage('identity', null)
+      setKreaImage('identityReference', null)
+    }
+    if (module === 'depth') setKreaImage('depth', null)
+    if (module === 'nk2e') setKreaImage('nk2e', null)
+    if (module === 'anypaint') {
+      setKreaImage('anypaint', null)
+      setKreaImage('anypaintMask', null)
+    }
+    if (module === 'vision') clearKreaRefs('vision')
+    if (module === 'styleReference') clearKreaRefs('styleReference')
+  }
+
+  async function refreshUserLoras() {
+    try { userLoraCatalog = (await api.userLoras()).filter((item) => item.filename !== 'skc3vo.safetensors') } catch (_) { userLoraCatalog = [] }
+    userLoraSelections = userLoraSelections.filter((selection) => userLoraCatalog.some((item) => item.filename === selection.filename))
+  }
+
+  function hasUserLora(filename) {
+    return userLoraSelections.some((selection) => selection.filename === filename)
+  }
+
+  function toggleUserLora(filename) {
+    if (hasUserLora(filename)) userLoraSelections = userLoraSelections.filter((selection) => selection.filename !== filename)
+    else if (userLoraSelections.length < 5) {
+      const lora = userLoraCatalog.find((item) => item.filename === filename)
+      const recommended = Number(lora?.recommended_strength)
+      userLoraSelections = [...userLoraSelections, {
+        filename,
+        strength: Number.isFinite(recommended) ? recommended : 1
+      }]
+    }
+  }
+
+  function updateUserLoraStrength(filename, strength) {
+    userLoraSelections = userLoraSelections.map((selection) => selection.filename === filename ? { ...selection, strength: Number(strength) } : selection)
+  }
+
+  function userLoraLabel(filename) {
+    return userLoraCatalog.find((item) => item.filename === filename)?.name || filename
+  }
+
+  function hasKreaStyle(name) {
+    return kreaStyleSelections.some((style) => style.name === name)
+  }
+
+  function toggleKreaStyle(name) {
+    kreaStyleSelections = hasKreaStyle(name)
+      ? kreaStyleSelections.filter((style) => style.name !== name)
+      : [...kreaStyleSelections, { name, strength: 1 }]
+  }
+
+  function updateKreaStyleStrength(name, strength) {
+    kreaStyleSelections = kreaStyleSelections.map((style) => style.name === name ? { ...style, strength: Number(strength) } : style)
+  }
+
+  function kreaStyleLabel(name) {
+    return kreaStyleCatalog.find((style) => style.name === name)?.label || name
+  }
+
+  function addKreaRefs(kind, files) {
+    const limit = kind === 'vision' ? 4 : 2
+    const incoming = [...files].filter((file) => file.type.startsWith('image/')).map((file) => ({ file, name: file.name, preview: URL.createObjectURL(file), server: false }))
+    const current = kind === 'vision' ? kreaVisionImages : kreaStyleReferenceImages
+    const combined = [...current, ...incoming]
+    combined.slice(limit).forEach((image) => { if (image.preview?.startsWith('blob:')) URL.revokeObjectURL(image.preview) })
+    if (kind === 'vision') kreaVisionImages = combined.slice(0, limit)
+    else kreaStyleReferenceImages = combined.slice(0, limit)
+  }
+
+  function clearKreaRefs(kind) {
+    const images = kind === 'vision' ? kreaVisionImages : kreaStyleReferenceImages
+    images.forEach((image) => { if (image.preview?.startsWith('blob:')) URL.revokeObjectURL(image.preview) })
+    if (kind === 'vision') kreaVisionImages = []
+    else kreaStyleReferenceImages = []
+  }
+
+  function removeKreaRef(kind, index) {
+    const images = kind === 'vision' ? kreaVisionImages : kreaStyleReferenceImages
+    const removed = images[index]
+    if (removed?.preview?.startsWith('blob:')) URL.revokeObjectURL(removed.preview)
+    if (kind === 'vision') kreaVisionImages = images.filter((_, i) => i !== index)
+    else kreaStyleReferenceImages = images.filter((_, i) => i !== index)
+  }
+
+  function setKreaImage(kind, image) {
+    const previewKey = `${kind}Preview`
+    const previews = {
+      identityPreview: kreaIdentityPreview,
+      identityReferencePreview: kreaIdentityReferencePreview,
+      depthPreview: kreaDepthPreview,
+      nk2ePreview: kreaNK2EPreview,
+      anypaintPreview: kreaAnyPaintPreview,
+      anypaintMaskPreview: kreaAnyPaintMaskPreview
+      ,identityMaskPreview: kreaIdentityMaskPreview
+      ,strictMaskPreview: kreaStrictMaskPreview
+    }
+    if (previews[previewKey]?.startsWith('blob:')) URL.revokeObjectURL(previews[previewKey])
+    const preview = image ? (image.server ? image.url : URL.createObjectURL(image)) : ''
+    if (kind === 'identity') {
+      kreaIdentityImage = image
+      kreaIdentityPreview = preview
+    } else if (kind === 'identityReference') {
+      kreaIdentityReference = image
+      kreaIdentityReferencePreview = preview
+    } else if (kind === 'depth') {
+      kreaDepthImage = image
+      kreaDepthPreview = preview
+    } else if (kind === 'nk2e') {
+      kreaNK2EImage = image
+      kreaNK2EPreview = preview
+      if (!image) kreaNK2EPreprocessed = false
+    } else if (kind === 'anypaint') {
+      if (image && kreaAnyPaintImage !== image && kreaAnyPaintMask) setKreaImage('anypaintMask', null)
+      kreaAnyPaintImage = image
+      kreaAnyPaintPreview = preview
+    } else if (kind === 'anypaintMask') {
+      kreaAnyPaintMask = image
+      kreaAnyPaintMaskPreview = preview
+    } else if (kind === 'identityMask') {
+      kreaIdentityMask = image
+      kreaIdentityMaskPreview = preview
+    } else {
+      kreaStrictMask = image
+      kreaStrictMaskPreview = preview
+    }
+  }
+
+  function appendImageInput(form, uploadField, reuseField, image) {
+    if (!image) return
+    if (image.server) form.append(reuseField, image.ref)
+    else form.append(uploadField, image.file || image)
+  }
+
+  function showImage(event, src, title, detail = '', jobID = '') {
+    event?.preventDefault()
+    event?.stopPropagation()
+    if (src) imageModal = { src, title, detail, jobID }
+  }
+
+  function showImageOnKey(event, src, title, detail = '') {
+    if (event.key === 'Enter' || event.key === ' ') showImage(event, src, title, detail)
+  }
+
+  function showVideo(job) {
+    if (!job?.output_url) return
+    const details = [
+      `${job.params?.width || '—'}×${job.params?.height || '—'}`,
+      formatDuration(videoJobDuration(job)),
+      `${job.params?.fps || '—'} fps`,
+      job.params?.seed >= 0 ? `seed ${job.params.seed}` : ''
+    ].filter(Boolean)
+    videoModal = { src: job.output_url, title: '생성 영상', detail: details.join(' · '), prompt: job.prompt }
+  }
+
+  function showSubtitle(job) {
+    if (!job || (!job.media_url && !job.params?.text && !job.outputs && !job.output_url)) return
+    const outputs = job.outputs
+      ? Object.entries(job.outputs).map(([kind, url]) => ({ label: outputLabels[kind] || kind, url }))
+      : job.output_url ? [{ label: '결과 열기', url: job.output_url }] : []
+    const details = [
+      job.params?.detected_language || recognitionLanguageLabel(job.params?.language),
+      job.params?.segments ? `${job.params.segments}구간` : '',
+      job.params?.media ? mediaSummary(job) : ''
+    ].filter(Boolean)
+    subtitleModal = {
+      mediaSrc: job.media_url,
+      audio: isAudioMedia(job),
+      captionSrc: job.caption_url,
+      captionLang: captionLanguage(job),
+      captionLabel: job.params?.translation_mode === 'none' ? '원문' : job.params?.target_language || '번역',
+      transcript: job.params?.text,
+      prompt: job.prompt,
+      detail: details.join(' · '),
+      outputs
+    }
+  }
+
+  function usePaintedMask(file) {
+    if (maskEditorMode === 'identity') setKreaImage('identityMask', file)
+    else if (maskEditorMode === 'strict') setKreaImage('strictMask', file)
+    else setKreaImage('anypaintMask', file)
+    maskEditorMode = ''
+  }
+
+  function useCannyMap(file) {
+    setKreaImage('nk2e', file)
+    kreaNK2EPreprocessed = true
+    cannyEditorOpen = false
+  }
+
+  function rawImagePrompt() {
+    const change = imageForm.prompt.trim()
+    if (!kreaModules.identity || !identityPreserve.trim()) return change
+    return `Change: ${change}\nPreserve: ${identityPreserve.trim()}`
+  }
+
+  function applyIdentityPreset(value) {
+    identityPreset = value
+    const presets = {
+      restage: ['Place the same person in a new scene and pose as described', 'the same identity, facial features, hair, body proportions, and recognizable appearance'],
+      sheet: ['Create a clean 2x2 character sheet on a plain background: front view upper-left, three-quarter view upper-right, left profile lower-left, and back view lower-right', 'the exact same identity, face, hairstyle, body proportions, outfit design, and color palette across all four panels'],
+      tryon: ['Change the subject to wear the described outfit', 'identity, face, hair, body proportions, pose unless requested, background, and lighting'],
+      replace: ['Replace only the selected object or region as described', 'identity, composition, lighting, perspective, and every unselected pixel'],
+      faceSwap: ['Replace only the face of the person in Image One with the face from Image Two', 'the hairstyle, head shape, clothing, body, pose, composition, lighting, and background from Image One'],
+      headSwap: ['Replace the entire head of the person in Image One with the head from Image Two', 'the clothing, body, pose, composition, lighting, and background from Image One'],
+      personSwap: ['Replace the entire person in Image One with the person from Image Two', 'the pose where possible, composition, lighting, props, and complete background from Image One']
+    }
+    if (!presets[value]) return
+    imageForm.prompt = presets[value][0]
+    identityPreserve = presets[value][1]
+    resetImageEnhancement()
+  }
+
+  function imageDisabledReason() {
+    if (busy) return '요청을 전송하고 있습니다.'
+    if (activeJobs().some((j) => j.kind === 'image' || j.kind === 'video')) return '다른 이미지 또는 영상 작업이 끝나면 시작할 수 있습니다.'
+    if (!imageForm.prompt.trim()) return '프롬프트를 입력하세요.'
+    if (imageForm.mode === 'edit' && refs.length === 0) return '편집할 참조 이미지를 추가하세요.'
+    if (imageForm.mode === 'control' && refs.length !== 1) return 'Canny 제어 이미지 1장을 추가하세요.'
+    return kreaModuleDisabledReason()
+  }
+
+  function kreaModuleDisabledReason() {
+    if (kreaModules.identity && !kreaIdentityImage) return '인물·장면 유지 모듈의 주 참조 이미지를 선택하세요.'
+    if (kreaModules.depth && !kreaDepthImage) return '자세·구도 모듈의 구도 참조 이미지를 선택하세요.'
+    if (kreaModules.vision && kreaVisionImages.length === 0) return '내용·구도 참조 이미지를 선택하세요.'
+    if (kreaModules.styleReference && kreaStyleReferenceImages.length === 0) return '스타일 참조 이미지를 선택하세요.'
+    if (kreaModules.style && kreaStyleSelections.length === 0) return '적용할 스타일 LoRA를 하나 이상 선택하세요.'
+    if (kreaModules.userLora && userLoraSelections.length === 0) return '적용할 사용자 LoRA를 하나 이상 선택하세요.'
+    if (kreaModules.nk2e && !kreaNK2EImage) return 'NK2E 편집·윤곽 모듈의 참조 이미지를 선택하세요.'
+    if (kreaModules.anypaint && !kreaAnyPaintImage) return '부분 수정·확장 모듈의 원본 이미지를 선택하세요.'
+    if (kreaModules.anypaint && !kreaAnyPaintMask && !['outpaint_left', 'outpaint_top', 'outpaint_right', 'outpaint_bottom'].some((key) => Number(kreaOptions[key]) > 0)) return '수정 마스크를 선택하거나 확장할 방향을 지정하세요.'
+    if (kreaModules.vision && kreaModules.identity) return '내용·구도 참조와 Identity는 아직 함께 사용할 수 없습니다.'
+    if (kreaModules.styleReference && Object.entries(kreaModules).some(([name, enabled]) => name !== 'styleReference' && enabled)) return '스타일 이미지 참조는 현재 단독으로 사용하세요.'
+    if (kreaModules.nk2e && Object.entries(kreaModules).some(([name, enabled]) => name !== 'nk2e' && enabled)) return 'NK2E 편집·윤곽은 현재 다른 Krea 모듈과 함께 사용할 수 없습니다.'
+    if (kreaModules.anypaint && Object.entries(kreaModules).some(([name, enabled]) => name !== 'anypaint' && enabled)) return '부분 수정·확장은 현재 다른 Krea 모듈과 함께 사용할 수 없습니다.'
+    return ''
+  }
+
+  function disableAllKreaModules() {
+    for (const name of Object.keys(kreaModules)) {
+      if (kreaModules[name]) toggleKreaModule(name)
+    }
+  }
+
+  function handleFeatureModulesKeydown(event) {
+    if (event.key !== 'Escape' || !featureModulesOpen) return
+    if (maskEditorMode || cannyEditorOpen || imageModal || runtimeInfoOpen) return
+    featureModulesOpen = false
+  }
+
+  function looksLikeStructuredPrompt(value = imageForm.prompt) {
+    const text = value.trim()
+    if (!text || (text[0] !== '{' && text[0] !== '[')) return false
+    try { JSON.parse(text); return true } catch { return false }
+  }
+
+  function imageEnhancementActive(enabled = imageEnhanceEnabled, prompt = imageForm.prompt) {
+    return enabled && !looksLikeStructuredPrompt(prompt)
+  }
+
+  function imageEnhancementCurrent(enhanced = imageEnhancedPrompt, source = imageEnhancedSource, current = rawImagePrompt()) {
+    return enhanced.trim() !== '' && source === current
+  }
+
+  // These values are rendered in the submit controls. Keep their dependencies
+  // explicit so nested form bindings immediately update the button state.
+  $: imageEnhancementIsActive = imageEnhancementActive(imageEnhanceEnabled, imageForm.prompt)
+  $: activeKreaModuleLabels = Object.entries(kreaModules).filter(([, enabled]) => enabled).map(([name]) => kreaModuleLabels[name])
+  $: kreaModuleMessage = (
+    kreaModules, kreaIdentityImage, kreaDepthImage, kreaVisionImages, kreaStyleReferenceImages,
+    kreaStyleSelections, userLoraSelections, kreaNK2EImage, kreaAnyPaintImage, kreaAnyPaintMask, kreaOptions,
+    kreaModuleDisabledReason()
+  )
+  $: imageEnhancementIsCurrent = (
+    imageForm, identityPreserve, kreaModules,
+    imageEnhancementCurrent(imageEnhancedPrompt, imageEnhancedSource, rawImagePrompt())
+  )
+  $: imageDisabledMessage = (
+    busy, jobs, imageForm, refs, kreaModules, kreaIdentityImage, kreaDepthImage,
+    kreaVisionImages, kreaStyleReferenceImages, kreaStyleSelections, userLoraSelections,
+    kreaNK2EImage, kreaAnyPaintImage, kreaAnyPaintMask, kreaOptions,
+    imageDisabledReason()
+  )
+
+  function resetImageEnhancement() {
+    imageEnhancedPrompt = ''
+    imageEnhancedSource = ''
+  }
+
+  async function enhanceImagePrompt() {
+    const original = rawImagePrompt()
+    if (!original || looksLikeStructuredPrompt(original)) return
+    enhancingPrompt = true; error = ''
+    try {
+      const form = new FormData()
+      form.append('prompt', original)
+      form.append('mode', kreaModules.identity ? 'edit' : 't2i')
+      const result = await api.enhancePrompt(form)
+      imageEnhancedPrompt = result.enhanced_prompt
+      imageEnhancedSource = original
+    } catch (e) { error = e.message }
+    finally { enhancingPrompt = false }
+  }
+
+  function applySmartResolution() {
+    if (imageResolutionMode !== 'smart') return
+    const ratio = imageAspectRatios.find((item) => item[0] === imageAspectRatio)?.[1] || 1
+    // Treat the familiar "1MP" preset as the native 1024x1024 class used by
+    // current image models, then preserve the requested aspect ratio.
+    const pixels = Number(imageMegapixels) * 1024 * 1024
+    const width = Math.sqrt(pixels * ratio)
+    const height = width / ratio
+    imageForm.width = Math.min(2048, Math.max(256, Math.floor(width / 16) * 16))
+    imageForm.height = Math.min(2048, Math.max(256, Math.floor(height / 16) * 16))
+  }
+
+  function useCustomImageResolution() {
+    imageResolutionMode = 'custom'
+  }
+
+  function cloneImagePrompt(job) {
+    filterPromptPreset = ''
+    imageForm.prompt = job.prompt || ''
+    resetImageEnhancement()
+  }
+
+  function applyPromptExample(preset, mode) {
+    if (!preset) return
+    const currentPrompt = imageForm.prompt.trimEnd()
+    filterPromptPreset = preset.id
+    imageForm.prompt = mode === 'append' && currentPrompt ? `${currentPrompt}\n${preset.prompt}` : preset.prompt
+    promptExamplesOpen = false
+    resetImageEnhancement()
+  }
+
+  function filterModeDefault(mode) {
+    if (mode === 'adherence') return 0.05
+    if (mode === 'balanced' || mode === 'strong') return 1
+    return 0
+  }
+
+  function filterModeMaximum(mode) {
+    return mode === 'adherence' ? 0.2 : 2
+  }
+
+  function cloneImageSettings(job) {
+    const params = job.params || {}
+    const legacyKlein = params.mode === 'edit'
+    const storedStyles = Array.isArray(params.styles) && params.styles.length
+      ? params.styles.map((style) => ({ name: style.name, strength: Number(style.strength) }))
+      : (params.style ? [{ name: params.style, strength: params.style_strength !== undefined ? Number(params.style_strength) : 1 }] : [])
+    const storedUserLoras = Array.isArray(params.user_loras) ? params.user_loras.filter((selection) => selection.filename !== 'skc3vo.safetensors').map((selection) => ({ filename: selection.filename, strength: Number(selection.strength) })) : []
+    imageForm.mode = imageModeChoices.includes(params.mode) ? params.mode : 'create'
+    imageForm.width = Number(params.width) || imageForm.width
+    imageForm.height = Number(params.height) || imageForm.height
+    imageResolutionMode = 'custom'
+    imageForm.seed = Number.isFinite(Number(params.seed)) ? Number(params.seed) : -1
+    if (imageForm.mode === 'create') {
+      kreaModules = {
+        identity: legacyKlein || Boolean(params.identity),
+        depth: Boolean(params.depth),
+        style: storedStyles.length > 0,
+        userLora: storedUserLoras.length > 0,
+        vision: Boolean(params.vision),
+        styleReference: Boolean(params.style_reference),
+        nk2e: Boolean(params.nk2e),
+        anypaint: Boolean(params.anypaint)
+      }
+      kreaOptions = {
+        ...kreaOptions,
+        identity_strength: params.identity_strength !== undefined ? Number(params.identity_strength) : 1,
+        ref_boost: params.ref_boost !== undefined ? Number(params.ref_boost) : 4,
+        grounding_px: Number(params.grounding_px) || 768,
+        steps: Number(params.steps) || 10,
+        depth_strength: params.depth_strength !== undefined ? Number(params.depth_strength) : 0.8
+        ,vision_mode: params.vision_mode || 'descriptor'
+        ,vision_megapixels: params.vision_megapixels !== undefined ? Number(params.vision_megapixels) : 1
+        ,style_reference_strength: params.style_reference_strength !== undefined ? Number(params.style_reference_strength) : 1
+        ,nk2e_mode: params.nk2e_mode || 'edit'
+        ,nk2e_strength: params.nk2e_strength !== undefined ? Number(params.nk2e_strength) : 0.7
+        ,vae_mode: params.vae_mode || 'default'
+        ,identity_fit_mode: params.identity_fit_mode || 'fit'
+        ,strict_mask_grow: Number(params.strict_mask_grow) || 0
+        ,strict_mask_feather: Number(params.strict_mask_feather) || 0
+        ,outpaint_left: Number(params.outpaint_left) || 0
+        ,outpaint_top: Number(params.outpaint_top) || 0
+        ,outpaint_right: Number(params.outpaint_right) || 0
+        ,outpaint_bottom: Number(params.outpaint_bottom) || 0
+        ,anypaint_strength: params.anypaint_strength !== undefined ? Number(params.anypaint_strength) : 1
+        ,anypaint_boundary_redraw_px: params.anypaint_boundary_redraw_px !== undefined ? Number(params.anypaint_boundary_redraw_px) : 32
+        ,filter_mode: params.filter_mode || 'balanced'
+        ,filter_strength: params.filter_strength !== undefined ? Number(params.filter_strength) : filterModeDefault(params.filter_mode || 'balanced')
+        ,prompt_enhancer: Boolean(params.prompt_enhancer)
+        ,prompt_enhancer_strength: params.prompt_enhancer_strength !== undefined ? Number(params.prompt_enhancer_strength) : 1
+        ,prompt_text_scale: params.prompt_text_scale !== undefined ? Number(params.prompt_text_scale) : 1.75
+      }
+      kreaStyleSelections = storedStyles.length ? storedStyles : [{ name: 'retroanime', strength: 1 }]
+      userLoraSelections = storedUserLoras
+    }
+  }
+
+  async function cloneImageReferences(job) {
+    const inputs = await api.imageInputs(job.id)
+    const stored = inputs.map((input) => ({ ...input, server: true }))
+    clearRefs()
+    setKreaImage('identity', null)
+    setKreaImage('identityReference', null)
+    setKreaImage('depth', null)
+    setKreaImage('nk2e', null)
+    setKreaImage('anypaint', null)
+    setKreaImage('anypaintMask', null)
+    setKreaImage('identityMask', null)
+    setKreaImage('strictMask', null)
+    clearKreaRefs('vision')
+    clearKreaRefs('styleReference')
+    const legacyKlein = job.params?.mode === 'edit'
+    imageForm.mode = imageModeChoices.includes(job.params?.mode) ? job.params.mode : 'create'
+    for (const input of stored) {
+      if (input.role === 'reference' && legacyKlein && !kreaIdentityImage) setKreaImage('identity', input)
+      else if (input.role === 'reference' && legacyKlein && !kreaIdentityReference) setKreaImage('identityReference', input)
+      else if (input.role === 'reference') refs = [...refs, input]
+      else if (input.role === 'identity') setKreaImage('identity', input)
+      else if (input.role === 'identity_reference') setKreaImage('identityReference', input)
+      else if (input.role === 'identity_mask') setKreaImage('identityMask', input)
+      else if (input.role === 'strict_mask') setKreaImage('strictMask', input)
+      else if (input.role === 'depth') setKreaImage('depth', input)
+      else if (input.role === 'vision') kreaVisionImages = [...kreaVisionImages, { ...input, preview: input.url }]
+      else if (input.role === 'style_reference') kreaStyleReferenceImages = [...kreaStyleReferenceImages, { ...input, preview: input.url }]
+      else if (input.role === 'nk2e') setKreaImage('nk2e', input)
+      else if (input.role === 'anypaint') setKreaImage('anypaint', input)
+      else if (input.role === 'anypaint_mask') setKreaImage('anypaintMask', input)
+    }
+    if (imageForm.mode === 'create') {
+      kreaModules = {
+        ...kreaModules,
+        identity: legacyKlein || stored.some((input) => input.role === 'identity'),
+        depth: stored.some((input) => input.role === 'depth')
+        ,vision: stored.some((input) => input.role === 'vision')
+        ,styleReference: stored.some((input) => input.role === 'style_reference')
+        ,nk2e: stored.some((input) => input.role === 'nk2e')
+        ,anypaint: stored.some((input) => input.role === 'anypaint')
+      }
+    }
+    return stored.length
+  }
+
+  function continueEditing(job) {
+    const source = { server: true, ref: `${job.id}:output:0`, url: job.output_url, name: `결과 ${job.id.slice(0, 8)}.png`, role: 'output' }
+    setKreaImage('identity', source)
+    setKreaImage('identityReference', null); setKreaImage('identityMask', null); setKreaImage('strictMask', null)
+    kreaModules = { identity: true, depth: false, style: false, userLora: false, vision: false, styleReference: false, nk2e: false, anypaint: false }
+    parentImageJobID = job.id
+    imageForm.width = Number(job.params?.width) || 1024; imageForm.height = Number(job.params?.height) || 1024; imageResolutionMode = 'custom'
+    imageForm.prompt = ''; identityPreserve = 'identity, facial features, hair, body proportions, composition, and all areas not explicitly changed'
+    resetImageEnhancement(); mobileImagePane = 'create'; window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  async function cloneImageJob(job, part) {
+    cloningImageJob = `${job.id}:${part}`
+    imageCloneMessage = ''
+    error = ''
+    try {
+      if (part === 'prompt' || part === 'all') cloneImagePrompt(job)
+      if (part === 'settings' || part === 'all') cloneImageSettings(job)
+      let inputCount = null
+      if (part === 'references' || part === 'all') inputCount = await cloneImageReferences(job)
+      const labels = { prompt: '프롬프트', references: '참조 이미지', settings: '설정', all: '전체 작업' }
+      imageCloneMessage = inputCount === 0 && part === 'references'
+        ? '이 작업에는 복제할 참조 이미지가 없습니다.'
+        : `${labels[part]}을 현재 작업으로 복제했습니다${inputCount ? ` · 이미지 ${inputCount}장` : ''}.`
+      mobileImagePane = 'create'
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    } catch (e) {
+      error = e.message
+    } finally {
+      cloningImageJob = ''
+    }
   }
 
   async function generateImage() {
+    if (imageEnhancementActive() && !imageEnhancementCurrent()) {
+      await enhanceImagePrompt()
+      return
+    }
     busy = true; error = ''
     try {
       const form = new FormData()
-      Object.entries(imageForm).forEach(([key, value]) => form.append(key, value))
-      refs.forEach((file) => form.append('references', file))
-      await api.image(form); imageForm.prompt = ''; refs = []; showNewestListPage('image'); await refresh()
+      Object.entries(imageForm).forEach(([key, value]) => form.append(key, key === 'prompt' ? (imageEnhancementActive() ? imageEnhancedPrompt : rawImagePrompt()) : value))
+      form.append('original_prompt', rawImagePrompt())
+      if (parentImageJobID) form.append('parent_job_id', parentImageJobID)
+      if (imageForm.mode === 'create') {
+        form.append('steps', kreaModules.identity ? kreaOptions.steps : 8)
+        form.append('filter_mode', kreaOptions.filter_mode)
+        form.append('filter_strength', kreaOptions.filter_strength)
+        form.append('prompt_enhancer', kreaOptions.prompt_enhancer)
+        form.append('prompt_enhancer_strength', kreaOptions.prompt_enhancer_strength)
+        form.append('prompt_text_scale', kreaOptions.prompt_text_scale)
+        if (kreaModules.identity) {
+          appendImageInput(form, 'identity_image', 'reuse_identity_image', kreaIdentityImage)
+          appendImageInput(form, 'identity_reference', 'reuse_identity_reference', kreaIdentityReference)
+          appendImageInput(form, 'identity_mask', 'reuse_identity_mask', kreaIdentityMask)
+          appendImageInput(form, 'strict_mask', 'reuse_strict_mask', kreaStrictMask)
+          form.append('identity_strength', kreaOptions.identity_strength)
+          form.append('ref_boost', kreaOptions.ref_boost)
+          form.append('grounding_px', kreaOptions.grounding_px)
+          form.append('strict_mask_grow', kreaOptions.strict_mask_grow)
+          form.append('strict_mask_feather', kreaOptions.strict_mask_feather)
+          form.append('vae_mode', kreaOptions.vae_mode)
+          form.append('identity_fit_mode', kreaOptions.identity_fit_mode)
+        }
+        if (kreaModules.depth) {
+          appendImageInput(form, 'depth_image', 'reuse_depth_image', kreaDepthImage)
+          form.append('depth_strength', kreaOptions.depth_strength)
+        }
+        if (kreaModules.style) {
+          form.append('styles', JSON.stringify(kreaStyleSelections))
+        }
+        if (kreaModules.userLora) {
+          form.append('user_loras', JSON.stringify(userLoraSelections))
+        }
+        if (kreaModules.vision) {
+          kreaVisionImages.forEach((image) => appendImageInput(form, 'vision_images', 'reuse_vision_images', image))
+          form.append('vision_mode', kreaOptions.vision_mode)
+          form.append('vision_megapixels', kreaOptions.vision_megapixels)
+        }
+        if (kreaModules.styleReference) {
+          kreaStyleReferenceImages.forEach((image) => appendImageInput(form, 'style_reference_images', 'reuse_style_reference_images', image))
+          form.append('style_reference_strength', kreaOptions.style_reference_strength)
+        }
+        if (kreaModules.nk2e) {
+          appendImageInput(form, 'nk2e_image', 'reuse_nk2e_image', kreaNK2EImage)
+          form.append('nk2e_mode', kreaOptions.nk2e_mode)
+          form.append('nk2e_strength', kreaOptions.nk2e_strength)
+          form.append('nk2e_preprocessed', kreaNK2EPreprocessed)
+        }
+        if (kreaModules.anypaint) {
+          appendImageInput(form, 'anypaint_image', 'reuse_anypaint_image', kreaAnyPaintImage)
+          appendImageInput(form, 'anypaint_mask', 'reuse_anypaint_mask', kreaAnyPaintMask)
+          form.append('outpaint_left', kreaOptions.outpaint_left)
+          form.append('outpaint_top', kreaOptions.outpaint_top)
+          form.append('outpaint_right', kreaOptions.outpaint_right)
+          form.append('outpaint_bottom', kreaOptions.outpaint_bottom)
+          form.append('anypaint_strength', kreaOptions.anypaint_strength)
+          form.append('anypaint_boundary_redraw_px', kreaOptions.anypaint_boundary_redraw_px)
+        }
+      }
+      refs.forEach((image) => appendImageInput(form, 'references', 'reuse_references', image))
+      await api.image(form)
+      mobileImagePane = 'results'
+      imageForm.prompt = ''; filterPromptPreset = ''; resetImageEnhancement(); clearRefs()
+      parentImageJobID = ''; identityPreset = ''
+      setKreaImage('identity', null); setKreaImage('identityReference', null); setKreaImage('depth', null); setKreaImage('nk2e', null)
+      setKreaImage('anypaint', null); setKreaImage('anypaintMask', null)
+      setKreaImage('identityMask', null); setKreaImage('strictMask', null)
+      clearKreaRefs('vision'); clearKreaRefs('styleReference')
+      showNewestListPage('image'); await refresh()
     } catch (e) { error = e.message } finally { busy = false }
+  }
+
+  async function upscaleImage(job) {
+    if (!job.output_url || upscalingImageJob || activeJobs().some((item) => item.kind === 'image' || item.kind === 'video')) return
+    upscalingImageJob = job.id; error = ''
+    try {
+      await api.upscaleImage(job.id, { scale: 2, seed: -1 })
+      showNewestListPage('image')
+      await refresh()
+    } catch (e) { error = e.message }
+    finally { upscalingImageJob = '' }
+  }
+
+  async function detailEnhanceImage(job) {
+    if (!job.output_url || detailEnhancingImageJob || activeJobs().some((item) => item.kind === 'image' || item.kind === 'video')) return
+    detailEnhancingImageJob = job.id; error = ''
+    try {
+      await api.detailEnhanceImage(job.id, { strength: 1, seed: -1, vae: 'wan' })
+      showNewestListPage('image')
+      await refresh()
+    } catch (e) { error = e.message }
+    finally { detailEnhancingImageJob = '' }
   }
 
   async function generateSpeech() {
@@ -285,6 +1120,7 @@
       form.append('instructions', speechForm.instructions)
       form.append('language', speechForm.language); form.append('speaker', speechForm.speaker); form.append('seed', speechForm.seed)
       await api.speech(form); speechForm.text = ''; showNewestListPage('speech'); await refresh()
+      mobileSpeechPane = 'results'
     } catch (e) { error = e.message } finally { busy = false }
   }
 
@@ -308,6 +1144,7 @@
       recognitionForm.url = ''
       resetRecognitionOptions()
       await refresh()
+      mobileRecognitionPane = 'results'
     } catch (e) { error = e.message } finally { busy = false }
   }
 
@@ -360,6 +1197,7 @@
       await api.video(form)
       showNewestListPage('video')
       videoForm.prompt = ''; videoImage = null; resetVideoEnhancement(); await refresh()
+      mobileVideoPane = 'results'
     } catch (e) { error = e.message } finally { busy = false }
   }
 
@@ -367,13 +1205,19 @@
     return videoImage ? `${videoImage.name}:${videoImage.size}:${videoImage.lastModified}` : ''
   }
 
-  function videoEnhancementCurrent() {
-    return videoEnhancedPrompt.trim() !== '' && videoEnhancedSource === videoForm.prompt.trim() && videoEnhancedImageKey === videoImageKey()
+  function videoEnhancementCurrent(enhanced = videoEnhancedPrompt, source = videoEnhancedSource, prompt = videoForm.prompt, imageKey = videoEnhancedImageKey, currentImageKey = videoImageKey()) {
+    return enhanced.trim() !== '' && source === prompt.trim() && imageKey === currentImageKey
   }
 
-  function videoEnhancementActive() {
-    return videoEnhanceEnabled && !(videoImage && !config?.prompt_enhancement.vision_enabled)
+  function videoEnhancementActive(enabled = videoEnhanceEnabled, image = videoImage, currentConfig = config) {
+    return enabled && !(image && !currentConfig?.prompt_enhancement.vision_enabled)
   }
+
+  $: videoEnhancementIsActive = videoEnhancementActive(videoEnhanceEnabled, videoImage, config)
+  $: videoEnhancementIsCurrent = (
+    videoImage,
+    videoEnhancementCurrent(videoEnhancedPrompt, videoEnhancedSource, videoForm.prompt, videoEnhancedImageKey, videoImageKey())
+  )
 
   function resetVideoEnhancement() {
     videoEnhancedPrompt = ''
@@ -418,6 +1262,13 @@
     finally { cancellingJob = '' }
   }
 
+  async function retryJob(job) {
+    retryingJob = job.id; error = ''
+    try { await api.retryJob(job.id); await refresh() }
+    catch (e) { error = e.message }
+    finally { retryingJob = '' }
+  }
+
   async function clearFinishedJobs() {
     const count = jobs.filter((job) => job.status !== 'queued' && job.status !== 'running').length
     if (!count || !confirm(`완료·실패 작업 ${count}개와 저장 파일을 모두 삭제할까요?`)) return
@@ -458,6 +1309,7 @@
       settings = structuredClone(result.config)
       imageForm.width = config.image.default_width
       imageForm.height = config.image.default_height
+      imageForm.mode = imageModeChoices.includes(config.image.default_mode) ? config.image.default_mode : 'create'
       speechForm.language = config.speech.default_language
       speechForm.speaker = config.speech.default_speaker
       recognitionForm.language = config.recognition.default_language
@@ -470,6 +1322,8 @@
       videoDurationSeconds = durationFromFrames(config.video.default_frames, config.video.default_fps)
       settingsVideoDurationSeconds = durationFromFrames(config.video.default_frames, config.video.default_fps)
       videoEnhanceEnabled = config.prompt_enhancement.default_enabled
+      imageEnhanceEnabled = config.prompt_enhancement.default_enabled
+      kreaOptions = { ...kreaOptions, prompt_enhancer: Boolean(config.image.default_prompt_enhancer) }
       savedMessage = result.restart_required
         ? '저장했습니다. Listen 주소 또는 데이터 폴더 변경은 Media 재시작 후 적용됩니다.'
         : '저장했습니다. API 연결과 생성 기본값이 즉시 적용됐습니다.'
@@ -478,6 +1332,8 @@
   }
 
 </script>
+
+<svelte:window onkeydown={handleFeatureModulesKeydown} />
 
 <datalist id="translation-languages">
   {#each translationLanguages as language}<option value={language}></option>{/each}
@@ -488,15 +1344,29 @@
 <header>
   <div><span class="mark">✦</span><h1>생성 스튜디오</h1><span class="phase">IMAGE · VIDEO · VOICE · SUBTITLE</span></div>
   <div class="engine-strip">
-    {#if engineMeta[tab]}
-      <span class:running={engineStates[engineMeta[tab][0]] === 'online'}><i></i>{engineMeta[tab][1]} API · {engineStates[engineMeta[tab][0]] || 'offline'}</span>
+    {#if tab === 'image'}
+      <span class:running={engineStates[imageModeMeta[imageForm.mode].engine] === 'online'}><i></i>{imageModeMeta[imageForm.mode].short} API<span class="engine-state-text"> · {engineStates[imageModeMeta[imageForm.mode].engine] || 'offline'}</span></span>
+      <span class:running={engineStates.prompt === 'online'}><i></i>Enhancer API<span class="engine-state-text"> · {engineStates.prompt || 'offline'}</span></span>
+      <span class:running={engineStates.upscale === 'online'}><i></i>Upscale API<span class="engine-state-text"> · {engineStates.upscale || 'offline'}</span></span>
+    {:else if engineMeta[tab]}
+      <span class:running={engineStates[engineMeta[tab][0]] === 'online'}><i></i>{engineMeta[tab][1]} API<span class="engine-state-text"> · {engineStates[engineMeta[tab][0]] || 'offline'}</span></span>
     {/if}
     {#if tab === 'video'}
-      <span class:running={engineStates.prompt === 'online'}><i></i>Enhancer API · {engineStates.prompt || 'offline'}</span>
+      <span class:running={engineStates.prompt === 'online'}><i></i>Enhancer API<span class="engine-state-text"> · {engineStates.prompt || 'offline'}</span></span>
     {/if}
     {#if tab === 'recognition'}
-      <span class:running={engineStates.recognition === 'online'}><i></i>ASR API · {engineStates.recognition || 'offline'}</span>
-      {#if recognitionForm.translation_mode !== 'none'}<span class:running={engineStates.prompt === 'online'}><i></i>Translator API · {engineStates.prompt || 'offline'}</span>{/if}
+      <span class:running={engineStates.recognition === 'online'}><i></i>ASR API<span class="engine-state-text"> · {engineStates.recognition || 'offline'}</span></span>
+      {#if recognitionForm.translation_mode !== 'none'}<span class:running={engineStates.prompt === 'online'}><i></i>Translator API<span class="engine-state-text"> · {engineStates.prompt || 'offline'}</span></span>{/if}
+    {/if}
+  </div>
+  <div class="mobile-engine-area">
+    <button type="button" class="mobile-engine-summary {engineAggregate}" aria-expanded={mobileEngineOpen} aria-label={`API 상태: ${engineAggregateLabel}`} onclick={() => mobileEngineOpen = !mobileEngineOpen}><i></i><span>API</span></button>
+    {#if mobileEngineOpen}
+      <button type="button" class="mobile-engine-dismiss" aria-label="API 상태 닫기" onclick={() => mobileEngineOpen = false}></button>
+      <section class="mobile-engine-popover" aria-label="각 API 상태">
+        <header><strong>API 상태</strong><span class={engineAggregate}>{engineAggregateLabel}</span></header>
+        <div>{#each monitoredEngineStatuses as item}<p class:online={item.online}><i></i><span>{item.label}</span><small>{item.online ? '정상' : '오프라인'}</small></p>{/each}</div>
+      </section>
     {/if}
   </div>
 </header>
@@ -507,6 +1377,7 @@
     <button class:active={tab === 'video'} onclick={() => tab = 'video'}>영상</button>
     <button class:active={tab === 'speech'} onclick={() => tab = 'speech'}>음성</button>
     <button class:active={tab === 'recognition'} onclick={() => tab = 'recognition'}>자막</button>
+    <button class:active={tab === 'lora'} onclick={() => tab = 'lora'}>LoRA</button>
     <button class:active={tab === 'history'} onclick={() => tab = 'history'}>기록 <b>{jobs.length}</b></button>
     <button class:active={tab === 'settings'} onclick={openSettings}>설정</button>
   </nav>
@@ -514,24 +1385,290 @@
   {#if error}<div class="error"><span>{error}</span><button onclick={() => error = ''}>×</button></div>{/if}
 
   {#if tab === 'image'}
-    <section class="workspace">
-      <form onsubmit={(e) => { e.preventDefault(); generateImage() }}>
+    <div class="mobile-image-nav" role="tablist" aria-label="모바일 이미지 화면">
+      <button type="button" role="tab" aria-selected={mobileImagePane === 'create'} class:active={mobileImagePane === 'create'} onclick={() => mobileImagePane = 'create'}><span>만들기</span><small>설정·기능 모듈</small></button>
+      <button type="button" role="tab" aria-selected={mobileImagePane === 'results'} class:active={mobileImagePane === 'results'} onclick={() => mobileImagePane = 'results'}><span>최근 이미지</span><small>{imageJobs.length}개{#if activeJobs().some((job) => job.kind === 'image')} · 생성 중{/if}</small></button>
+    </div>
+    <section class="workspace image-workspace" class:mobile-results={mobileImagePane === 'results'}>
+      <form class="image-create-pane" onsubmit={(e) => { e.preventDefault(); generateImage() }}>
         <div class="section-title"><div><span>01</span><h2>이미지 생성과 편집</h2></div></div>
-        <label>프롬프트<textarea bind:value={imageForm.prompt} rows="7" placeholder="만들고 싶은 장면이나 참조 이미지의 변경 내용을 입력하세요." required></textarea></label>
-        <div class="drop" role="button" tabindex="0" ondragover={(e) => e.preventDefault()} ondrop={(e) => { e.preventDefault(); addRefs(e.dataTransfer.files) }}>
-          <input type="file" accept="image/*" multiple onchange={(e) => addRefs(e.currentTarget.files)}>
-          <strong>{refs.length ? `참조 이미지 ${refs.length}개` : '참조 이미지 놓기'}</strong>
-          <small>선택 사항 · 최대 {config?.image.max_reference_images || 4}개 · 클릭하거나 드래그</small>
-          {#if refs.length}<div class="chips">{#each refs as file, i}<button type="button" onclick={() => refs = refs.filter((_, n) => n !== i)}>{file.name} ×</button>{/each}</div>{/if}
+        <div class="image-model-title"><strong>Krea 2 Turbo</strong><small>생성 · 참조 편집 · 구조 제어 · 부분 수정</small></div>
+        <p class="mode-help">{imageModeMeta[imageForm.mode].help}</p>
+        {#if imageCloneMessage}<div class="clone-notice"><span>{imageCloneMessage}</span><button type="button" aria-label="복제 안내 닫기" onclick={() => imageCloneMessage = ''}>×</button></div>{/if}
+        {#if imageForm.mode === 'create'}
+          <div class="prompt-tools-row">
+            <button type="button" class="prompt-tool-open" onclick={() => promptExamplesOpen = true}><span>프롬프트 예제</span>{#if filterPromptPreset}<b>선택됨</b>{/if}</button>
+            <PromptComposer activeStyles={kreaModules.style ? kreaStyleSelections.map((style) => style.name) : []} onApply={(prompt, mode) => {
+              const currentPrompt = imageForm.prompt.trimEnd()
+              imageForm.prompt = mode === 'append' && currentPrompt ? `${currentPrompt}\n${prompt}` : prompt
+              filterPromptPreset = ''
+              resetImageEnhancement()
+            }} />
+          </div>
+        {/if}
+        <label>{kreaModules.identity ? '변경할 내용' : '프롬프트'}<textarea bind:value={imageForm.prompt} rows="7" placeholder="{kreaModules.identity ? '원본에서 바꿀 내용만 구체적으로 입력하세요.' : '만들고 싶은 장면을 입력하세요.'}" required></textarea></label>
+        {#if kreaModules.identity}
+          <label>유지할 내용<textarea bind:value={identityPreserve} rows="3" placeholder="얼굴, 머리, 구도, 배경처럼 바꾸지 않을 요소"></textarea></label>
+        {/if}
+        <div class="enhancer-control">
+          <div>
+            <strong>프롬프트 향상</strong>
+            <small>{looksLikeStructuredPrompt() ? 'JSON 형식은 구조가 변하지 않도록 원문을 그대로 사용합니다.' : 'Gemma 4 E2B가 Krea 2용 상세 영어 프롬프트로 확장합니다.'}</small>
+            <a href={kreaPromptGuideSource} target="_blank" rel="noreferrer">출처 ↗</a>
+          </div>
+          <div class="segmented compact">
+            <button type="button" class:active={imageEnhanceEnabled} onclick={() => imageEnhanceEnabled = true}>켜짐</button>
+            <button type="button" class:active={!imageEnhanceEnabled} onclick={() => imageEnhanceEnabled = false}>꺼짐</button>
+          </div>
         </div>
-        <div class="fields three">
-          <label>너비<input type="number" min="256" max="2048" step="16" bind:value={imageForm.width}></label>
-          <label>높이<input type="number" min="256" max="2048" step="16" bind:value={imageForm.height}></label>
-          <label>시드<input type="number" bind:value={imageForm.seed}></label>
+        {#if imageEnhancementIsActive}
+          <div class="enhanced-prompt">
+            <div><span>향상된 프롬프트</span><button type="button" class="quiet" disabled={enhancingPrompt || !imageForm.prompt.trim()} onclick={enhanceImagePrompt}>{enhancingPrompt ? '향상 중…' : imageEnhancementIsCurrent ? '다시 향상' : '미리 향상'}</button></div>
+            {#if imageEnhancedPrompt}
+              <textarea bind:value={imageEnhancedPrompt} rows="8" aria-label="Krea 향상 프롬프트"></textarea>
+              <small>실제 생성에 사용할 문장입니다. 확인하고 직접 수정할 수 있습니다.</small>
+            {:else}
+              <p>생성 버튼을 처음 누르면 프롬프트를 향상하여 보여줍니다. 확인 후 다시 누르면 이미지를 만듭니다.</p>
+            {/if}
+          </div>
+        {/if}
+        {#if imageForm.mode === 'create'}
+          <section class="krea-runtime-controls" aria-label="Krea 모델 내부 조정">
+            <div class="runtime-control-heading"><div><strong>모델 내부 조정</strong><small>필터 벡터와 텍스트 조건 강도를 간단히 조절합니다.</small></div><button type="button" class="runtime-info-button" aria-label="모델 내부 조정 설명" title="설명 보기" onclick={() => runtimeInfoOpen = true}>i</button></div>
+            <div class="runtime-control-row">
+              <label><span>필터 완화</span><select value={kreaOptions.filter_mode} onchange={(event) => { const mode = event.currentTarget.value; kreaOptions = { ...kreaOptions, filter_mode: mode, filter_strength: filterModeDefault(mode) } }}><option value="off">꺼짐 · 원본</option><option value="adherence">준수 강화 · skc3vo</option><option value="balanced">균형 · 2-vector</option><option value="strong">강함 · 3-vector</option></select></label>
+              <label><span>완화 강도</span><input type="range" min="0" max={filterModeMaximum(kreaOptions.filter_mode)} step="0.01" disabled={kreaOptions.filter_mode === 'off'} bind:value={kreaOptions.filter_strength}><b>{Number(kreaOptions.filter_strength).toFixed(2)}</b></label>
+            </div>
+            <div class="runtime-control-row adherence">
+              <div><strong>프롬프트 준수 강화</strong><small>Krea2T Enhancer · 객체 수와 배치 같은 복잡한 지시를 더 강하게 반영</small></div>
+              <div class="segmented compact"><button type="button" class:active={kreaOptions.prompt_enhancer} onclick={() => kreaOptions = { ...kreaOptions, prompt_enhancer: true }}>켜짐</button><button type="button" class:active={!kreaOptions.prompt_enhancer} onclick={() => kreaOptions = { ...kreaOptions, prompt_enhancer: false }}>꺼짐</button></div>
+            </div>
+            {#if kreaOptions.prompt_enhancer}<div class="runtime-control-row"><label><span>강화 강도</span><input type="range" min="0" max="2" step="0.05" bind:value={kreaOptions.prompt_enhancer_strength}><b>{Number(kreaOptions.prompt_enhancer_strength).toFixed(2)}</b></label><label><span>텍스트 비중</span><input type="range" min="0.25" max="4" step="0.05" bind:value={kreaOptions.prompt_text_scale}><b>{Number(kreaOptions.prompt_text_scale).toFixed(2)}</b></label></div>{/if}
+          </section>
+        {/if}
+        {#if imageForm.mode === 'create'}
+          <div class="feature-module-launch" class:has-warning={Boolean(kreaModuleMessage)}>
+            <button type="button" aria-haspopup="dialog" onclick={() => featureModulesOpen = true}>
+              <span><strong>기능 모듈</strong><small>{activeKreaModuleLabels.length ? activeKreaModuleLabels.join(' · ') : '필요한 기능만 선택해 사용'}</small></span>
+              <b>{activeKreaModuleLabels.length ? `${activeKreaModuleLabels.length}개 사용` : '설정'}</b>
+            </button>
+            {#if kreaModuleMessage}<small>{kreaModuleMessage}</small>{/if}
+          </div>
+          {#if featureModulesOpen}
+            <div class="feature-module-backdrop" role="presentation" onclick={(event) => { if (event.target === event.currentTarget) featureModulesOpen = false }}>
+              <section class="feature-module-modal" role="dialog" aria-modal="true" aria-label="Krea 2 기능 모듈">
+                <header>
+                  <div><strong>Krea 2 기능 모듈</strong><small>필요한 기능만 켜면 내부 연결은 자동으로 구성됩니다. 변경 내용은 즉시 유지됩니다.</small></div>
+                  <button type="button" aria-label="닫기" onclick={() => featureModulesOpen = false}>×</button>
+                </header>
+                <div class="feature-module-content">
+                  {#if kreaModuleMessage}<div class="feature-module-warning">{kreaModuleMessage}</div>{/if}
+                  <section class="module-panel" aria-label="Krea 생성 모듈">
+            <article class="module-card" class:enabled={kreaModules.identity}>
+              <button type="button" class="module-toggle" aria-pressed={kreaModules.identity} onclick={() => toggleKreaModule('identity')}>
+                <span class="module-icon">ID</span><span><strong>인물·장면 유지</strong><small>Identity Edit · 얼굴과 특징을 유지해 재배치</small></span><i></i>
+              </button>
+              {#if kreaModules.identity}
+                <div class="module-body">
+                  {#if parentImageJobID}<div class="clone-notice"><span>결과 작업 {parentImageJobID.slice(0, 8)}에서 계속 편집 중</span><button type="button" onclick={() => parentImageJobID = ''}>×</button></div>{/if}
+                  <label>작업 프리셋<select value={identityPreset} onchange={(event) => applyIdentityPreset(event.currentTarget.value)}><option value="">직접 입력</option><option value="restage">동일 인물 재배치</option><option value="sheet">2×2 캐릭터 시트</option><option value="faceSwap">얼굴 교체</option><option value="headSwap">머리 전체 교체</option><option value="personSwap">인물 전체 교체</option><option value="tryon">의상 교체</option><option value="replace">선택 영역 교체</option></select></label>
+                  <label class="module-file">주 참조 이미지 <input type="file" accept="image/*" onchange={(e) => setKreaImage('identity', e.currentTarget.files?.[0] || null)}><span class="module-file-display">{#if kreaIdentityPreview}<img role="button" tabindex="0" class="zoomable-source" src={kreaIdentityPreview} alt="주 참조 미리보기" title="클릭하여 크게 보기" onclick={(event) => showImage(event, kreaIdentityPreview, 'Identity 주 참조')} onkeydown={(event) => showImageOnKey(event, kreaIdentityPreview, 'Identity 주 참조')}>{:else}<i>ID</i>{/if}<b title={kreaIdentityImage?.name || '인물 또는 편집할 장면 선택'}>{kreaIdentityImage?.name || '인물 또는 편집할 장면 선택'}</b></span></label>
+                  <label class="module-file optional">추가 인물 <small>선택 사항 · 두 장 합성 시 주 참조는 장면, 여기는 인물</small><input type="file" accept="image/*" onchange={(e) => setKreaImage('identityReference', e.currentTarget.files?.[0] || null)}><span class="module-file-display">{#if kreaIdentityReferencePreview}<img role="button" tabindex="0" class="zoomable-source" src={kreaIdentityReferencePreview} alt="추가 인물 미리보기" title="클릭하여 크게 보기" onclick={(event) => showImage(event, kreaIdentityReferencePreview, 'Identity 추가 인물')} onkeydown={(event) => showImageOnKey(event, kreaIdentityReferencePreview, 'Identity 추가 인물')}>{:else}<i>+1</i>{/if}<b title={kreaIdentityReference?.name || '추가 인물 없이 진행'}>{kreaIdentityReference?.name || '추가 인물 없이 진행'}</b></span></label>
+                  <div class="module-controls three">
+                    <label><span>닮음 강도 <b>{kreaOptions.ref_boost}</b></span><input type="range" min="0" max="10" step="0.5" bind:value={kreaOptions.ref_boost}></label>
+                    <label>참조 해석<select bind:value={kreaOptions.grounding_px}><option value={512}>변경 우선</option><option value={768}>균형</option><option value={1024}>얼굴 우선</option></select></label>
+                    <label>세부 묘사<select bind:value={kreaOptions.steps}><option value={8}>구도 우선</option><option value={10}>균형</option><option value={12}>얼굴 디테일</option></select></label>
+                  </div>
+                  <div class="module-controls"><label>참조 맞춤<select bind:value={kreaOptions.identity_fit_mode}><option value="fit">전체 보존 · Fit</option><option value="crop">얼굴 확대 · Crop</option></select></label><label>VAE<select bind:value={kreaOptions.vae_mode}><option value="default">Qwen VAE</option><option value="wan">Wan 2.1 VAE · 권장</option><option value="real">Real VAE · 실험</option></select></label></div>
+                  <div class="module-controls">
+                    <label class="module-file optional">닮음 집중 마스크 <small>흰 영역의 Identity 주의만 높임</small><input type="file" accept="image/*" onchange={(e) => setKreaImage('identityMask', e.currentTarget.files?.[0] || null)}><span class="module-file-display">{#if kreaIdentityMaskPreview}<img src={kreaIdentityMaskPreview} alt="닮음 집중 마스크">{:else}<i>FOCUS</i>{/if}<b>{kreaIdentityMask?.name || '선택 사항'}</b></span></label>
+                    <button type="button" class="mask-editor-open" disabled={!kreaIdentityPreview} onclick={() => maskEditorMode = 'identity'}>얼굴·특징 집중 영역 칠하기</button>
+                  </div>
+                  <div class="module-controls">
+                    <label class="module-file optional">수정 한정 마스크 <small>흰 영역 밖 픽셀을 원본 그대로 보존</small><input type="file" accept="image/*" onchange={(e) => setKreaImage('strictMask', e.currentTarget.files?.[0] || null)}><span class="module-file-display">{#if kreaStrictMaskPreview}<img src={kreaStrictMaskPreview} alt="수정 한정 마스크">{:else}<i>LOCK</i>{/if}<b>{kreaStrictMask?.name || '선택 사항'}</b></span></label>
+                    <button type="button" class="mask-editor-open" disabled={!kreaIdentityPreview} onclick={() => maskEditorMode = 'strict'}>변경 허용 영역 칠하기</button>
+                  </div>
+                  {#if kreaStrictMask}<div class="module-controls"><label>마스크 확장<input type="number" min="0" max="128" bind:value={kreaOptions.strict_mask_grow}></label><label>경계 부드럽게<input type="number" min="0" max="128" step="0.5" bind:value={kreaOptions.strict_mask_feather}></label></div>{/if}
+                </div>
+              {/if}
+            </article>
+            <article class="module-card" class:enabled={kreaModules.depth}>
+              <button type="button" class="module-toggle" aria-pressed={kreaModules.depth} onclick={() => toggleKreaModule('depth')}>
+                <span class="module-icon">3D</span><span><strong>자세·구도</strong><small>Depth Control · 다른 이미지의 공간과 동작 반영</small></span><i></i>
+              </button>
+              {#if kreaModules.depth}
+                <div class="module-body">
+                  <label class="module-file">구도 참조 이미지 <input type="file" accept="image/*" onchange={(e) => setKreaImage('depth', e.currentTarget.files?.[0] || null)}><span class="module-file-display">{#if kreaDepthPreview}<img role="button" tabindex="0" class="zoomable-source" src={kreaDepthPreview} alt="구도 참조 미리보기" title="클릭하여 크게 보기" onclick={(event) => showImage(event, kreaDepthPreview, 'Depth 구도 참조')} onkeydown={(event) => showImageOnKey(event, kreaDepthPreview, 'Depth 구도 참조')}>{:else}<i>3D</i>{/if}<b title={kreaDepthImage?.name || '원하는 자세와 구도의 이미지 선택'}>{kreaDepthImage?.name || '원하는 자세와 구도의 이미지 선택'}</b></span></label>
+                  <label class="module-slider"><span>구도 고정 강도 <b>{Number(kreaOptions.depth_strength).toFixed(1)}</b></span><input type="range" min="0" max="2" step="0.1" bind:value={kreaOptions.depth_strength}></label>
+                </div>
+              {/if}
+            </article>
+            <article class="module-card" class:enabled={kreaModules.nk2e}>
+              <button type="button" class="module-toggle" aria-pressed={kreaModules.nk2e} onclick={() => toggleKreaModule('nk2e')}>
+                <span class="module-icon">N2</span><span><strong>실험 편집·윤곽</strong><small>NK2E v0.3 · 국소 변경 또는 Canny 자세 반영</small></span><i></i>
+              </button>
+              {#if kreaModules.nk2e}
+                <div class="module-body">
+                  <label class="module-file">참조 이미지 <input type="file" accept="image/*" onchange={(e) => setKreaImage('nk2e', e.currentTarget.files?.[0] || null)}><span class="module-file-display">{#if kreaNK2EPreview}<img role="button" tabindex="0" class="zoomable-source" src={kreaNK2EPreview} alt="NK2E 참조 미리보기" title="클릭하여 크게 보기" onclick={(event) => showImage(event, kreaNK2EPreview, 'NK2E 참조')} onkeydown={(event) => showImageOnKey(event, kreaNK2EPreview, 'NK2E 참조')}>{:else}<i>N2</i>{/if}<b title={kreaNK2EImage?.name || '편집하거나 윤곽을 가져올 이미지 선택'}>{kreaNK2EImage?.name || '편집하거나 윤곽을 가져올 이미지 선택'}</b></span></label>
+                  <div class="module-controls">
+                    <label>작업 방식<select bind:value={kreaOptions.nk2e_mode}><option value="edit">국소 편집</option><option value="canny">윤곽·자세 반영</option></select></label>
+                    <label class="module-slider"><span>반영 강도 <b>{Number(kreaOptions.nk2e_strength).toFixed(1)}</b></span><input type="range" min="0" max="2" step="0.1" bind:value={kreaOptions.nk2e_strength}></label>
+                  </div>
+                  {#if kreaOptions.nk2e_mode === 'canny'}<button type="button" class="mask-editor-open" disabled={!kreaNK2EPreview} onclick={() => cannyEditorOpen = true}>{kreaNK2EPreprocessed ? '완성된 윤곽맵 다시 편집' : 'Canny 미리보기·편집'}</button>{/if}
+                  <small class="module-caution">실험 기능입니다. 짧고 구체적인 변경 지시가 안정적이며, 현재 다른 Krea 모듈과는 함께 실행하지 않습니다.</small>
+                </div>
+              {/if}
+            </article>
+            <article class="module-card" class:enabled={kreaModules.anypaint}>
+              <button type="button" class="module-toggle" aria-pressed={kreaModules.anypaint} onclick={() => toggleKreaModule('anypaint')}>
+                <span class="module-icon">PAINT</span><span><strong>부분 수정·확장</strong><small>AnyPaint · 선택 영역 수정 또는 캔버스 바깥 생성</small></span><i></i>
+              </button>
+              {#if kreaModules.anypaint}
+                <div class="module-body">
+                  <div class="module-controls">
+                    <label class="module-file">원본 이미지 <input type="file" accept="image/*" onchange={(e) => setKreaImage('anypaint', e.currentTarget.files?.[0] || null)}><span class="module-file-display">{#if kreaAnyPaintPreview}<img role="button" tabindex="0" class="zoomable-source" src={kreaAnyPaintPreview} alt="부분 수정 원본 미리보기" title="클릭하여 크게 보기" onclick={(event) => showImage(event, kreaAnyPaintPreview, '부분 수정·확장 원본')} onkeydown={(event) => showImageOnKey(event, kreaAnyPaintPreview, '부분 수정·확장 원본')}>{:else}<i>IMG</i>{/if}<b title={kreaAnyPaintImage?.name || '수정하거나 확장할 이미지 선택'}>{kreaAnyPaintImage?.name || '수정하거나 확장할 이미지 선택'}</b></span></label>
+                    <label class="module-file optional">수정 마스크 <small>선택 사항 · 흰 영역을 새로 생성</small><input type="file" accept="image/*" onchange={(e) => setKreaImage('anypaintMask', e.currentTarget.files?.[0] || null)}><span class="module-file-display">{#if kreaAnyPaintMaskPreview}<img role="button" tabindex="0" class="zoomable-source" src={kreaAnyPaintMaskPreview} alt="부분 수정 마스크 미리보기" title="클릭하여 크게 보기" onclick={(event) => showImage(event, kreaAnyPaintMaskPreview, '수정 마스크')} onkeydown={(event) => showImageOnKey(event, kreaAnyPaintMaskPreview, '수정 마스크')}>{:else}<i>MASK</i>{/if}<b title={kreaAnyPaintMask?.name || '확장만 할 때는 비워두기'}>{kreaAnyPaintMask?.name || '확장만 할 때는 비워두기'}</b></span></label>
+                  </div>
+                  <button type="button" class="mask-editor-open" disabled={!kreaAnyPaintPreview} onclick={() => maskEditorMode = 'anypaint'}>원본 위에서 수정 영역 칠하기</button>
+                  <div class="outpaint-controls">
+                    <strong>이미지 확장</strong><small>원본 크기에 선택한 픽셀만큼 더합니다.</small>
+                    <div>
+                      <label>왼쪽<select bind:value={kreaOptions.outpaint_left}><option value={0}>없음</option><option value={128}>128px</option><option value={256}>256px</option><option value={384}>384px</option><option value={512}>512px</option></select></label>
+                      <label>위쪽<select bind:value={kreaOptions.outpaint_top}><option value={0}>없음</option><option value={128}>128px</option><option value={256}>256px</option><option value={384}>384px</option><option value={512}>512px</option></select></label>
+                      <label>오른쪽<select bind:value={kreaOptions.outpaint_right}><option value={0}>없음</option><option value={128}>128px</option><option value={256}>256px</option><option value={384}>384px</option><option value={512}>512px</option></select></label>
+                      <label>아래쪽<select bind:value={kreaOptions.outpaint_bottom}><option value={0}>없음</option><option value={128}>128px</option><option value={256}>256px</option><option value={384}>384px</option><option value={512}>512px</option></select></label>
+                    </div>
+                  </div>
+                  <div class="module-controls">
+                    <label class="module-slider"><span>생성 강도 <b>{Number(kreaOptions.anypaint_strength).toFixed(1)}</b></span><input type="range" min="0" max="2" step="0.1" bind:value={kreaOptions.anypaint_strength}></label>
+                    <label>경계 다시 그리기<select bind:value={kreaOptions.anypaint_boundary_redraw_px}><option value={0}>0px · 원본 우선</option><option value={16}>16px · 약하게</option><option value={32}>32px · 균형</option><option value={64}>64px · 자연스럽게</option></select></label>
+                  </div>
+                  <small class="module-caution">프롬프트에는 완성될 전체 장면을 적으세요. 원본 해상도 기준으로 작업하며 현재 다른 Krea 모듈과는 함께 실행하지 않습니다.</small>
+                </div>
+              {/if}
+            </article>
+            <article class="module-card" class:enabled={kreaModules.style}>
+              <button type="button" class="module-toggle" aria-pressed={kreaModules.style} onclick={() => toggleKreaModule('style')}>
+                <span class="module-icon">FX</span><span><strong>스타일 LoRA</strong><small>기본 모델 위에 시각 스타일 추가</small></span><i></i>
+              </button>
+              {#if kreaModules.style}
+                <div class="module-body">
+                  <div class="lora-picker" aria-label="스타일 LoRA 선택">
+                    {#each kreaStyleCatalog as style}
+                      <button type="button" class:selected={hasKreaStyle(style.name)} aria-pressed={hasKreaStyle(style.name)} onclick={() => toggleKreaStyle(style.name)}><i>{hasKreaStyle(style.name) ? '✓' : '+'}</i><span><strong title={style.label}>{style.label}</strong><small title={style.detail}>{style.detail}</small></span></button>
+                    {/each}
+                  </div>
+                  {#if kreaStyleSelections.length}
+                    <div class="lora-stack">
+                      <header><strong>적용 순서</strong><span>{kreaStyleSelections.length}개 중첩</span></header>
+                      {#each kreaStyleSelections as style, index}
+                        <div class="lora-stack-item">
+                          <span><b>{index + 1}</b><strong title={kreaStyleLabel(style.name)}>{kreaStyleLabel(style.name)}</strong></span>
+                          <label><input type="range" min="0" max="2" step="0.1" value={style.strength} oninput={(event) => updateKreaStyleStrength(style.name, event.currentTarget.value)}><b>{Number(style.strength).toFixed(1)}</b></label>
+                          <button type="button" aria-label={`${kreaStyleLabel(style.name)} 제거`} onclick={() => toggleKreaStyle(style.name)}>×</button>
+                        </div>
+                      {/each}
+                    </div>
+                  {:else}
+                    <small class="module-caution">위 목록에서 적용할 LoRA를 선택하세요.</small>
+                  {/if}
+                  <small class="module-caution">선택한 순서대로 중첩됩니다. 3개 이상은 스타일 충돌로 형태나 색이 과해질 수 있습니다.</small>
+                </div>
+              {/if}
+            </article>
+            <article class="module-card" class:enabled={kreaModules.userLora}>
+              <button type="button" class="module-toggle" aria-pressed={kreaModules.userLora} onclick={() => toggleKreaModule('userLora')}>
+                <span class="module-icon">MY</span><span><strong>사용자 LoRA</strong><small>LoRA 제작소에서 학습한 인물·캐릭터·스타일</small></span><i></i>
+              </button>
+              {#if kreaModules.userLora}
+                <div class="module-body">
+                  <div class="module-toolbar"><small>최대 5개까지 중첩할 수 있습니다.</small><button type="button" class="quiet" onclick={refreshUserLoras}>새로고침</button></div>
+                  {#if userLoraCatalog.length}
+                    <div class="lora-picker" aria-label="사용자 LoRA 선택">
+                      {#each userLoraCatalog as lora}
+                        <button type="button" class:selected={hasUserLora(lora.filename)} aria-pressed={hasUserLora(lora.filename)} onclick={() => toggleUserLora(lora.filename)}><i>{hasUserLora(lora.filename) ? '✓' : '+'}</i><span><strong title={lora.name || lora.filename}>{lora.name || lora.filename}</strong><small title={lora.trigger_word || '트리거 없음'}>{lora.trigger_word || '트리거 없음'}</small></span></button>
+                      {/each}
+                    </div>
+                    {#if userLoraSelections.length}
+                      <div class="lora-stack">
+                        <header><strong>적용 순서</strong><span>{userLoraSelections.length}개 중첩</span></header>
+                        {#each userLoraSelections as selection, index}
+                          <div class="lora-stack-item">
+                            <span><b>{index + 1}</b><strong title={userLoraLabel(selection.filename)}>{userLoraLabel(selection.filename)}</strong></span>
+                            <label><input type="range" min="0" max="2" step="0.01" value={selection.strength} oninput={(event) => updateUserLoraStrength(selection.filename, event.currentTarget.value)}><b>{Number(selection.strength).toFixed(2)}</b></label>
+                            <button type="button" aria-label={`${selection.filename} 제거`} onclick={() => toggleUserLora(selection.filename)}>×</button>
+                          </div>
+                        {/each}
+                      </div>
+                    {/if}
+                  {:else}
+                    <small class="module-caution">등록된 LoRA가 없습니다. 상단 LoRA 탭에서 먼저 학습하세요.</small>
+                  {/if}
+                </div>
+              {/if}
+            </article>
+            <article class="module-card" class:enabled={kreaModules.styleReference}>
+              <button type="button" class="module-toggle" aria-pressed={kreaModules.styleReference} onclick={() => toggleKreaModule('styleReference')}>
+                <span class="module-icon">REF</span><span><strong>스타일 이미지 참조</strong><small>Ostris Style Reference · 화풍·색감·질감 반영</small></span><i></i>
+              </button>
+              {#if kreaModules.styleReference}
+                <div class="module-body">
+                  <label class="module-file">스타일 이미지 · 최대 2장<input type="file" accept="image/*" multiple onchange={(e) => addKreaRefs('styleReference', e.currentTarget.files)}><span class="module-file-display"><i>REF</i><b>{kreaStyleReferenceImages.length ? `${kreaStyleReferenceImages.length}장 선택됨` : '화풍을 가져올 이미지 선택'}</b></span></label>
+                  {#if kreaStyleReferenceImages.length}<div class="reference-previews">{#each kreaStyleReferenceImages as image, i}<div><button type="button" class="reference-preview-open" onclick={(event) => showImage(event, image.preview || image.url, `스타일 참조 ${i + 1}`)}><img src={image.preview || image.url} alt="스타일 참조 {i + 1}"></button><button type="button" class="reference-preview-remove" aria-label="스타일 참조 제거" onclick={() => removeKreaRef('styleReference', i)}>×</button></div>{/each}</div>{/if}
+                  <label class="module-slider"><span>참조 강도 <b>{Number(kreaOptions.style_reference_strength).toFixed(1)}</b></span><input type="range" min="0" max="2" step="0.1" bind:value={kreaOptions.style_reference_strength}></label>
+                  <small class="module-caution">전용 INT8 모델을 사용하므로 다른 Krea 모듈과는 아직 함께 실행하지 않습니다.</small>
+                </div>
+              {/if}
+            </article>
+            <article class="module-card" class:enabled={kreaModules.vision}>
+              <button type="button" class="module-toggle" aria-pressed={kreaModules.vision} onclick={() => toggleKreaModule('vision')}>
+                <span class="module-icon">VL</span><span><strong>내용·구도 참조</strong><small>Qwen3-VL · 사물·배치·시각적 내용을 의미적으로 반영</small></span><i></i>
+              </button>
+              {#if kreaModules.vision}
+                <div class="module-body">
+                  <label class="module-file">참조 이미지 · 최대 4장<input type="file" accept="image/*" multiple onchange={(e) => addKreaRefs('vision', e.currentTarget.files)}><span class="module-file-display"><i>VL</i><b>{kreaVisionImages.length ? `${kreaVisionImages.length}장 선택됨` : '내용을 참고할 이미지 선택'}</b></span></label>
+                  {#if kreaVisionImages.length}<div class="reference-previews">{#each kreaVisionImages as image, i}<div><button type="button" class="reference-preview-open" onclick={(event) => showImage(event, image.preview || image.url, `내용·구도 참조 ${i + 1}`)}><img src={image.preview || image.url} alt="내용 참조 {i + 1}"></button><button type="button" class="reference-preview-remove" aria-label="내용 참조 제거" onclick={() => removeKreaRef('vision', i)}>×</button></div>{/each}</div>{/if}
+                  <div class="module-controls">
+                    <label>참조 방식<select bind:value={kreaOptions.vision_mode}><option value="descriptor">자연스럽게 반영</option><option value="instruct">변경 지시와 결합</option></select></label>
+                    <label>이미지 해석<select bind:value={kreaOptions.vision_megapixels}><option value={0.5}>빠르게</option><option value={1}>균형</option><option value={2}>세밀하게</option></select></label>
+                  </div>
+                  <small class="module-caution">정확한 얼굴 고정이나 인페인팅이 아닌 의미 기반 참조입니다.</small>
+                </div>
+              {/if}
+            </article>
+                  </section>
+                </div>
+                <footer><button type="button" class="feature-modules-clear" disabled={!activeKreaModuleLabels.length} onclick={disableAllKreaModules}>모두 끄기</button><button type="button" class="feature-modules-done" onclick={() => featureModulesOpen = false}>완료</button></footer>
+              </section>
+            </div>
+          {/if}
+        {:else}
+          <div class="drop" role="button" tabindex="0" ondragover={(e) => e.preventDefault()} ondrop={(e) => { e.preventDefault(); addRefs(e.dataTransfer.files) }}>
+            <input type="file" accept="image/*" multiple={imageForm.mode === 'edit'} onchange={(e) => addRefs(e.currentTarget.files)}>
+            <strong>{refs.length ? `${imageForm.mode === 'control' ? '제어' : '참조'} 이미지 ${refs.length}개` : `${imageForm.mode === 'control' ? '제어' : '참조'} 이미지 놓기`}</strong>
+            <small>{imageForm.mode === 'control' ? '필수 · 윤곽을 추출할 이미지 1장' : `필수 · 최대 ${config?.image.max_reference_images || 4}개`} · 클릭하거나 드래그</small>
+            {#if refs.length}<div class="drop-reference-previews">{#each refs as image, i}<div><button type="button" class="reference-preview-open" onclick={(event) => showImage(event, image.preview || image.url, `${imageModeMeta[imageForm.mode].label} 원본 ${i + 1}`)}><img src={image.preview || image.url} alt="참조 원본 {i + 1}"></button><button type="button" class="reference-preview-remove" aria-label="참조 원본 제거" onclick={(event) => { event.preventDefault(); event.stopPropagation(); removeRef(i) }}>×</button></div>{/each}</div>{/if}
+          </div>
+        {/if}
+        <div class="resolution-control">
+          <div class="resolution-heading"><div><strong>이미지 크기</strong><small>{imageForm.width}×{imageForm.height} · {(imageForm.width * imageForm.height / 1_000_000).toFixed(2)}MP</small></div><div class="segmented compact"><button type="button" class:active={imageResolutionMode === 'smart'} onclick={() => { imageResolutionMode = 'smart'; applySmartResolution() }}>간편</button><button type="button" class:active={imageResolutionMode === 'custom'} onclick={useCustomImageResolution}>직접</button></div></div>
+          {#if imageResolutionMode === 'smart'}
+            <div class="fields two smart-resolution-fields">
+              <label>화면 비율<select bind:value={imageAspectRatio} onchange={applySmartResolution}>{#each imageAspectRatios as aspect}<option value={aspect[0]}>{aspect[0]} · {aspect[2]}</option>{/each}</select></label>
+              <label>크기<select bind:value={imageMegapixels} onchange={applySmartResolution}><option value={0.75}>빠르게 · 0.75MP</option><option value={1}>기본 · 1MP</option><option value={2}>고해상도 · 2MP</option><option value={4} disabled={kreaModules.identity}>최대 품질 · 4MP</option></select></label>
+            </div>
+          {:else}
+            <div class="fields two">
+              <label>너비<input type="number" min="256" max="2048" step="16" bind:value={imageForm.width}></label>
+              <label>높이<input type="number" min="256" max="2048" step="16" bind:value={imageForm.height}></label>
+            </div>
+          {/if}
         </div>
-        <button class="primary" disabled={busy || activeJobs().some((j) => j.kind === 'image')}>{busy ? '요청 중…' : '이미지 만들기'}</button>
+        <div class="fields"><label><span>시드 <small>-1은 무작위</small></span><input type="number" bind:value={imageForm.seed}></label></div>
+        <button class="primary" disabled={Boolean(imageDisabledMessage) || enhancingPrompt}>{enhancingPrompt ? '프롬프트 향상 중…' : busy ? '요청 중…' : imageEnhancementIsActive && !imageEnhancementIsCurrent ? '프롬프트 향상 후 확인' : `${imageModeMeta[imageForm.mode].label} 시작`}</button>
+        {#if imageDisabledMessage}<small class="submit-hint">{imageDisabledMessage}</small>{/if}
       </form>
-      <aside>
+      <aside class="image-results-pane">
         <div class="results-heading">
           <h3>최근 이미지</h3>
           <div class="view-switch" aria-label="최근 이미지 보기 방식">
@@ -539,24 +1676,52 @@
             <button type="button" class:active={imageView === 'list'} onclick={() => setImageView('list')}>리스트</button>
           </div>
         </div>
-        <ResultPagination label="최근 이미지" total={jobsForList('image').length} page={listPages.image} pageSize={listPageSizes.image} pageSizes={pageSizeOptions} onPageChange={(page) => setListPage('image', page)} onPageSizeChange={(size) => setListPageSize('image', size)} />
+        <ResultPagination label="최근 이미지" total={imageJobs.length} page={listPages.image} pageSize={listPageSizes.image} pageSizes={imagePageSizeOptions} sortOrder={listSortOrders.image} onPageChange={(page) => setListPage('image', page)} onPageSizeChange={(size) => setListPageSize('image', size)} onSortOrderChange={(order) => setListSortOrder('image', order)} />
         <div class="gallery image-results" class:list-view={imageView === 'list'}>
-        {#each pagedJobs('image') as job (job.id)}
+        {#each pagedImageJobs as job (job.id)}
           <article class:pending={job.status !== 'completed'}>
             {#if imageView === 'list'}
-              {#if job.output_url}<a class="image-list-thumb" href={job.output_url} target="_blank" aria-label="생성 이미지 열기"><img src={job.output_url} alt={job.prompt}></a>{:else}<div class="image-list-thumb placeholder"><span>{job.status}</span></div>{/if}
-              <div class="image-list-content"><span>{job.params?.width || '—'}×{job.params?.height || '—'}{#if job.params?.seed >= 0} · seed {job.params.seed}{/if}</span><p>{job.prompt}</p>{#if job.error}<em>{job.error}</em>{/if}</div>
+              {#if job.output_url}<button type="button" class="image-list-thumb image-zoom" aria-label="생성 이미지 크게 보기" onclick={(event) => showImage(event, job.output_url, '생성 결과', job.prompt, job.id)}><img src={job.output_url} alt={job.prompt}></button>{:else}<div class="image-list-thumb placeholder"><span>{job.status}</span></div>{/if}
+              <div class="image-list-content">
+                <span>{imageModeMeta[job.params?.mode]?.label || '이미지'}{imageModuleSummary(job)} · {job.params?.width || '—'}×{job.params?.height || '—'}{#if job.params?.seed >= 0} · seed {job.params.seed}{/if}</span>
+                <button type="button" class="image-prompt" title="클릭하여 전체 프롬프트 보기" onclick={() => promptModal = { title: '전체 프롬프트', detail: `${imageModeMeta[job.params?.mode]?.label || '이미지'} · ${job.params?.width || '—'}×${job.params?.height || '—'}`, text: imagePromptModalText(job) }}>{job.prompt}</button>
+                {#if job.error}<em>{job.error}</em>{/if}
+                <div class="image-clone-actions" aria-label="이 작업에서 복제">
+                  <span>복제:</span>
+                  <button type="button" disabled={Boolean(cloningImageJob)} onclick={() => cloneImageJob(job, 'prompt')}>프롬프트</button>
+                  <button type="button" disabled={Boolean(cloningImageJob)} onclick={() => cloneImageJob(job, 'references')}>참조</button>
+                  <button type="button" disabled={Boolean(cloningImageJob)} onclick={() => cloneImageJob(job, 'settings')}>설정</button>
+                  <button type="button" class="clone-all" disabled={Boolean(cloningImageJob)} onclick={() => cloneImageJob(job, 'all')}>{cloningImageJob === `${job.id}:all` ? '복제 중…' : '전체'}</button>
+                </div>
+                {#if job.status === 'completed'}<div class="image-post-actions"><span>후처리:</span><button type="button" title="이 결과를 Identity 원본으로 불러와 계속 편집" onclick={() => continueEditing(job)}>편집</button><button type="button" title="Ostris Edit LoRA로 다시 그립니다. 얼굴·색·글자·구도가 달라질 수 있습니다." disabled={Boolean(detailEnhancingImageJob) || Boolean(upscalingImageJob) || engineStates.image_create !== 'online' || activeJobs().some((item) => item.kind === 'image' || item.kind === 'video')} onclick={() => detailEnhanceImage(job)}>{detailEnhancingImageJob === job.id ? '처리 중…' : '디테일'}</button><button type="button" title="SeedVR2로 복원하고 2배 확대" disabled={Boolean(detailEnhancingImageJob) || Boolean(upscalingImageJob) || engineStates.upscale !== 'online' || activeJobs().some((item) => item.kind === 'image' || item.kind === 'video')} onclick={() => upscaleImage(job)}>{upscalingImageJob === job.id ? '처리 중…' : '고화질'}</button></div>{/if}
+              </div>
             {:else}
-              {#if job.output_url}<img src={job.output_url} alt={job.prompt}>{:else}<div class="placeholder"><span>{job.status}</span></div>{/if}<p>{job.prompt}</p>{#if job.error}<em>{job.error}</em>{/if}
+              {#if job.output_url}<button type="button" class="gallery-image image-zoom" aria-label="생성 이미지 크게 보기" onclick={(event) => showImage(event, job.output_url, '생성 결과', job.prompt, job.id)}><img src={job.output_url} alt={job.prompt}></button>{:else}<div class="placeholder"><span>{job.status}</span></div>{/if}<span class="image-mode-badge" title={`${imageModeMeta[job.params?.mode]?.label || '이미지'}${imageModuleSummary(job)}`}>{imageModeMeta[job.params?.mode]?.label || '이미지'}{imageModuleSummary(job)}</span>
+              <button type="button" class="image-prompt" title="클릭하여 전체 프롬프트 보기" onclick={() => promptModal = { title: '전체 프롬프트', detail: `${imageModeMeta[job.params?.mode]?.label || '이미지'} · ${job.params?.width || '—'}×${job.params?.height || '—'}`, text: imagePromptModalText(job) }}>{job.prompt}</button>
+              {#if job.error}<em>{job.error}</em>{/if}
+              <div class="image-clone-actions" aria-label="이 작업에서 복제">
+                <span>복제:</span>
+                <button type="button" disabled={Boolean(cloningImageJob)} onclick={() => cloneImageJob(job, 'prompt')}>프롬프트</button>
+                <button type="button" disabled={Boolean(cloningImageJob)} onclick={() => cloneImageJob(job, 'references')}>참조</button>
+                <button type="button" disabled={Boolean(cloningImageJob)} onclick={() => cloneImageJob(job, 'settings')}>설정</button>
+                <button type="button" class="clone-all" disabled={Boolean(cloningImageJob)} onclick={() => cloneImageJob(job, 'all')}>{cloningImageJob === `${job.id}:all` ? '복제 중…' : '전체'}</button>
+              </div>
+              {#if job.status === 'completed'}<div class="image-post-actions"><span>후처리:</span><button type="button" title="이 결과를 Identity 원본으로 불러와 계속 편집" onclick={() => continueEditing(job)}>편집</button><button type="button" title="Ostris Edit LoRA로 다시 그립니다. 얼굴·색·글자·구도가 달라질 수 있습니다." disabled={Boolean(detailEnhancingImageJob) || Boolean(upscalingImageJob) || engineStates.image_create !== 'online' || activeJobs().some((item) => item.kind === 'image' || item.kind === 'video')} onclick={() => detailEnhanceImage(job)}>{detailEnhancingImageJob === job.id ? '처리 중…' : '디테일'}</button><button type="button" title="SeedVR2로 복원하고 2배 확대" disabled={Boolean(detailEnhancingImageJob) || Boolean(upscalingImageJob) || engineStates.upscale !== 'online' || activeJobs().some((item) => item.kind === 'image' || item.kind === 'video')} onclick={() => upscaleImage(job)}>{upscalingImageJob === job.id ? '처리 중…' : '고화질'}</button></div>{/if}
             {/if}
             {#if job.status === 'completed' || job.status === 'failed'}<button class="job-delete" disabled={deletingJob === job.id} onclick={() => deleteJob(job)}>삭제</button>{/if}
           </article>
         {:else}<div class="empty">첫 이미지가 여기에 나타납니다.</div>{/each}
-      </div></aside>
+      </div>
+      <ResultPagination compact label="최근 이미지" total={imageJobs.length} page={listPages.image} pageSize={listPageSizes.image} onPageChange={(page) => setListPage('image', page)} />
+      </aside>
     </section>
   {:else if tab === 'video'}
-    <section class="workspace">
-      <form onsubmit={(e) => { e.preventDefault(); generateVideo() }}>
+    <div class="mobile-image-nav" role="tablist" aria-label="모바일 영상 화면">
+      <button type="button" role="tab" aria-selected={mobileVideoPane === 'create'} class:active={mobileVideoPane === 'create'} onclick={() => mobileVideoPane = 'create'}><span>만들기</span><small>영상 생성 설정</small></button>
+      <button type="button" role="tab" aria-selected={mobileVideoPane === 'results'} class:active={mobileVideoPane === 'results'} onclick={() => mobileVideoPane = 'results'}><span>최근 영상</span><small>{videoJobs.length}개{#if activeJobs().some((job) => job.kind === 'video')} · 생성 중{/if}</small></button>
+    </div>
+    <section class="workspace mobile-media-workspace" class:mobile-results={mobileVideoPane === 'results'}>
+      <form class="mobile-create-pane" onsubmit={(e) => { e.preventDefault(); generateVideo() }}>
         <div class="section-title"><div><span>02</span><h2>LTX 2.5 영상 생성</h2></div></div>
         <label>원본 프롬프트<textarea bind:value={videoForm.prompt} rows="5" placeholder="장면과 움직임을 자연스럽게 입력하세요." required></textarea></label>
         <label class="file-field">시작 이미지 <small>선택 사항 · image-to-video</small><input type="file" accept="image/png,image/jpeg,image/webp" onchange={(e) => selectVideoImage(e.currentTarget.files?.[0])}><span>{videoImage?.name || '시작 이미지 선택'}</span></label>
@@ -566,13 +1731,13 @@
             <small>{videoImage && !config?.prompt_enhancement.vision_enabled ? '현재 E2B 번들은 이미지를 볼 수 없어 I2V에서는 원문을 그대로 사용합니다.' : 'LTX 캡션 형식의 영어 프롬프트로 확장합니다.'}</small>
           </div>
           <div class="segmented compact">
-            <button type="button" class:active={videoEnhanceEnabled} onclick={() => videoEnhanceEnabled = true}>자동</button>
+            <button type="button" class:active={videoEnhanceEnabled} onclick={() => videoEnhanceEnabled = true}>켜짐</button>
             <button type="button" class:active={!videoEnhanceEnabled} onclick={() => videoEnhanceEnabled = false}>꺼짐</button>
           </div>
         </div>
-        {#if videoEnhancementActive()}
+        {#if videoEnhancementIsActive}
           <div class="enhanced-prompt">
-            <div><span>향상된 프롬프트</span><button type="button" class="quiet" disabled={enhancingPrompt || !videoForm.prompt.trim()} onclick={enhanceVideoPrompt}>{enhancingPrompt ? '향상 중…' : videoEnhancementCurrent() ? '다시 향상' : '미리 향상'}</button></div>
+            <div><span>향상된 프롬프트</span><button type="button" class="quiet" disabled={enhancingPrompt || !videoForm.prompt.trim()} onclick={enhanceVideoPrompt}>{enhancingPrompt ? '향상 중…' : videoEnhancementIsCurrent ? '다시 향상' : '미리 향상'}</button></div>
             {#if videoEnhancedPrompt}
               <textarea bind:value={videoEnhancedPrompt} rows="8" aria-label="향상된 프롬프트"></textarea>
               <small>{videoImage ? '시작 이미지를 분석해 확장했습니다.' : '텍스트 기반 T2V 확장입니다.'} 생성 전에 직접 수정할 수 있습니다.</small>
@@ -589,9 +1754,9 @@
           <label><span>시드 <small>-1은 무작위</small></span><input type="number" min="-1" bind:value={videoForm.seed}></label>
           <label>이미지 강도<input type="number" min="0" max="1" step="0.05" bind:value={videoForm.image_strength}></label>
         </div>
-        <button class="primary" disabled={busy || enhancingPrompt || activeJobs().some((j) => j.kind === 'video')}>{enhancingPrompt ? '프롬프트 향상 중…' : busy ? '요청 중…' : videoEnhancementActive() && !videoEnhancementCurrent() ? '프롬프트 향상 후 확인' : '영상 만들기'}</button>
+        <button class="primary" disabled={busy || enhancingPrompt || activeJobs().some((j) => j.kind === 'image' || j.kind === 'video')}>{enhancingPrompt ? '프롬프트 향상 중…' : busy ? '요청 중…' : videoEnhancementIsActive && !videoEnhancementIsCurrent ? '프롬프트 향상 후 확인' : '영상 만들기'}</button>
       </form>
-      <aside>
+      <aside class="video-results-pane mobile-results-pane">
         <div class="results-heading">
           <h3>최근 영상</h3>
           <div class="view-switch" aria-label="최근 영상 보기 방식">
@@ -599,25 +1764,30 @@
             <button type="button" class:active={videoView === 'list'} onclick={() => setVideoView('list')}>리스트</button>
           </div>
         </div>
-        <ResultPagination label="최근 영상" total={jobsForList('video').length} page={listPages.video} pageSize={listPageSizes.video} pageSizes={pageSizeOptions} onPageChange={(page) => setListPage('video', page)} onPageSizeChange={(size) => setListPageSize('video', size)} />
+        <ResultPagination label="최근 영상" total={videoJobs.length} page={listPages.video} pageSize={listPageSizes.video} pageSizes={imagePageSizeOptions} sortOrder={listSortOrders.video} onPageChange={(page) => setListPage('video', page)} onPageSizeChange={(size) => setListPageSize('video', size)} onSortOrderChange={(order) => setListSortOrder('video', order)} />
         <div class="video-list" class:list-view={videoView === 'list'}>
-        {#each pagedJobs('video') as job (job.id)}
+        {#each pagedVideoJobs as job (job.id)}
           <article class:pending={job.status !== 'completed'}>
             {#if videoView === 'list'}
-              <div class="video-list-thumb" class:empty-thumb={!job.output_url}>{#if job.output_url}<!-- svelte-ignore a11y_media_has_caption --><video preload="metadata" muted playsinline src={job.output_url}></video>{:else}<span>{job.status}</span>{/if}</div>
-              <div class="video-list-content"><small>{job.params?.width}×{job.params?.height} · {formatDuration(videoJobDuration(job))} · {job.params?.fps} fps{#if job.params?.seed >= 0} · seed {job.params.seed}{/if}</small><p>{job.prompt}</p>{#if job.error}<em>{job.error}</em>{/if}{#if job.output_url}<button type="button" class="list-preview-toggle" aria-expanded={expandedVideoJobs.has(job.id)} onclick={() => toggleExpandedJob('video', job.id)}>{expandedVideoJobs.has(job.id) ? '영상 접기' : '영상 보기'}</button>{/if}</div>
-              {#if job.output_url && expandedVideoJobs.has(job.id)}<div class="video-list-expanded"><!-- svelte-ignore a11y_media_has_caption --><video controls preload="metadata" src={job.output_url}></video></div>{/if}
+              {#if job.output_url}<button type="button" class="video-list-thumb" aria-label="영상 크게 보기" onclick={() => showVideo(job)}><!-- svelte-ignore a11y_media_has_caption --><video preload="metadata" muted playsinline src={job.output_url}></video></button>{:else}<div class="video-list-thumb empty-thumb"><span>{job.status}</span></div>{/if}
+              <div class="video-list-content"><small>{job.params?.width}×{job.params?.height} · {formatDuration(videoJobDuration(job))} · {job.params?.fps} fps{#if job.params?.seed >= 0} · seed {job.params.seed}{/if}</small><p title={job.prompt}>{job.prompt}</p>{#if job.error}<em>{job.error}</em>{/if}</div>
             {:else}
-              {#if job.output_url}<!-- svelte-ignore a11y_media_has_caption --><video controls preload="metadata" src={job.output_url}></video>{:else}<div class="video-placeholder"><span>{job.status}</span></div>{/if}<p>{job.prompt}</p><small>{job.params?.width}×{job.params?.height} · {formatDuration(videoJobDuration(job))} · {job.params?.fps} fps{#if job.params?.seed >= 0} · seed {job.params.seed}{/if}</small>{#if job.error}<em>{job.error}</em>{/if}
+              {#if job.output_url}<button type="button" class="video-gallery-thumb" aria-label="영상 크게 보기" title="클릭하여 크게 보기" onclick={() => showVideo(job)}><!-- svelte-ignore a11y_media_has_caption --><video preload="metadata" muted playsinline src={job.output_url}></video></button>{:else}<div class="video-placeholder"><span>{job.status}</span></div>{/if}<p title={job.prompt}>{job.prompt}</p><small>{job.params?.width}×{job.params?.height} · {formatDuration(videoJobDuration(job))} · {job.params?.fps} fps{#if job.params?.seed >= 0} · seed {job.params.seed}{/if}</small>{#if job.error}<em>{job.error}</em>{/if}
             {/if}
             {#if job.status === 'completed' || job.status === 'failed'}<button class="job-delete" disabled={deletingJob === job.id} onclick={() => deleteJob(job)}>삭제</button>{/if}
           </article>
         {:else}<div class="empty">첫 영상이 여기에 나타납니다.</div>{/each}
-      </div></aside>
+      </div>
+      <ResultPagination compact label="최근 영상" total={videoJobs.length} page={listPages.video} pageSize={listPageSizes.video} onPageChange={(page) => setListPage('video', page)} />
+      </aside>
     </section>
   {:else if tab === 'speech'}
-    <section class="workspace">
-      <form onsubmit={(e) => { e.preventDefault(); generateSpeech() }}>
+    <div class="mobile-image-nav" role="tablist" aria-label="모바일 음성 화면">
+      <button type="button" role="tab" aria-selected={mobileSpeechPane === 'create'} class:active={mobileSpeechPane === 'create'} onclick={() => mobileSpeechPane = 'create'}><span>만들기</span><small>음성 생성 설정</small></button>
+      <button type="button" role="tab" aria-selected={mobileSpeechPane === 'results'} class:active={mobileSpeechPane === 'results'} onclick={() => mobileSpeechPane = 'results'}><span>최근 음성</span><small>{speechJobs.length}개{#if activeJobs().some((job) => job.kind === 'speech')} · 생성 중{/if}</small></button>
+    </div>
+    <section class="workspace mobile-media-workspace" class:mobile-results={mobileSpeechPane === 'results'}>
+      <form class="mobile-create-pane" onsubmit={(e) => { e.preventDefault(); generateSpeech() }}>
         <div class="section-title"><div><span>03</span><h2>CustomVoice 음성 생성</h2></div></div>
         <label>읽을 문장<textarea bind:value={speechForm.text} rows="7" placeholder="음성으로 변환할 문장을 입력하세요." required></textarea></label>
         <label>연기 지시 <small>선택 사항 · 1.7B instruction control</small><textarea bind:value={speechForm.instructions} rows="3" placeholder="예: 기쁘고 활기찬 목소리로, 중요한 단어는 힘주어 말해 주세요."></textarea></label>
@@ -628,15 +1798,21 @@
         </div>
         <button class="primary" disabled={busy || activeJobs().some((j) => j.kind === 'speech')}>{busy ? '요청 중…' : '음성 만들기'}</button>
       </form>
-      <aside><div class="results-heading"><h3>최근 음성</h3></div>
-        <ResultPagination label="최근 음성" total={jobsForList('speech').length} page={listPages.speech} pageSize={listPageSizes.speech} pageSizes={pageSizeOptions} onPageChange={(page) => setListPage('speech', page)} onPageSizeChange={(size) => setListPageSize('speech', size)} />
+      <aside class="mobile-results-pane"><div class="results-heading"><h3>최근 음성</h3></div>
+        <ResultPagination label="최근 음성" total={speechJobs.length} page={listPages.speech} pageSize={listPageSizes.speech} pageSizes={pageSizeOptions} sortOrder={listSortOrders.speech} onPageChange={(page) => setListPage('speech', page)} onPageSizeChange={(size) => setListPageSize('speech', size)} onSortOrderChange={(order) => setListSortOrder('speech', order)} />
         <div class="audio-list">
-        {#each pagedJobs('speech') as job (job.id)}<article><div><span>{job.params?.speaker}{#if job.params?.seed >= 0} · seed {job.params.seed}{/if}</span><p>{job.prompt}</p></div>{#if job.params?.instructions}<small class="instruction">지시 · {job.params.instructions}</small>{/if}{#if job.output_url}<audio controls src={job.output_url}></audio>{:else}<small>{job.status}</small>{/if}{#if job.error}<em>{job.error}</em>{/if}{#if job.status === 'completed' || job.status === 'failed'}<button class="job-delete" disabled={deletingJob === job.id} onclick={() => deleteJob(job)}>삭제</button>{/if}</article>{:else}<div class="empty">첫 음성이 여기에 나타납니다.</div>{/each}
-      </div></aside>
+        {#each pagedSpeechJobs as job (job.id)}<article><div><span>{job.params?.speaker}{#if job.params?.seed >= 0} · seed {job.params.seed}{/if}</span><p>{job.prompt}</p></div>{#if job.params?.instructions}<small class="instruction">지시 · {job.params.instructions}</small>{/if}{#if job.output_url}<audio controls src={job.output_url}></audio>{:else}<small>{job.status}</small>{/if}{#if job.error}<em>{job.error}</em>{/if}{#if job.status === 'completed' || job.status === 'failed'}<button class="job-delete" disabled={deletingJob === job.id} onclick={() => deleteJob(job)}>삭제</button>{/if}</article>{:else}<div class="empty">첫 음성이 여기에 나타납니다.</div>{/each}
+      </div>
+      <ResultPagination compact label="최근 음성" total={speechJobs.length} page={listPages.speech} pageSize={listPageSizes.speech} onPageChange={(page) => setListPage('speech', page)} />
+      </aside>
     </section>
   {:else if tab === 'recognition'}
-    <section class="workspace">
-      <form onsubmit={(e) => { e.preventDefault(); recognizeSpeech() }}>
+    <div class="mobile-image-nav" role="tablist" aria-label="모바일 자막 화면">
+      <button type="button" role="tab" aria-selected={mobileRecognitionPane === 'create'} class:active={mobileRecognitionPane === 'create'} onclick={() => mobileRecognitionPane = 'create'}><span>만들기</span><small>자막 생성 설정</small></button>
+      <button type="button" role="tab" aria-selected={mobileRecognitionPane === 'results'} class:active={mobileRecognitionPane === 'results'} onclick={() => mobileRecognitionPane = 'results'}><span>최근 자막</span><small>{recognitionJobs.length}개{#if activeJobs().some((job) => job.kind === 'recognition')} · 처리 중{/if}</small></button>
+    </div>
+    <section class="workspace mobile-media-workspace" class:mobile-results={mobileRecognitionPane === 'results'}>
+      <form class="mobile-create-pane" onsubmit={(e) => { e.preventDefault(); recognizeSpeech() }}>
         <div class="section-title"><div><span>04</span><h2>자막과 스크립트</h2></div></div>
         <div class="segmented source-selector">
           <button type="button" class:active={recognitionForm.source === 'file'} onclick={() => recognitionForm.source = 'file'}>파일 업로드</button>
@@ -671,7 +1847,7 @@
           <label>언어<select bind:value={recognitionForm.language}>{#each recognitionLanguages as option}<option value={option[0]}>{option[1]}</option>{/each}</select></label>
           <label>구간 길이<input value={`${config?.recognition.segment_seconds || 180}초`} disabled></label>
         </div>
-        <label>문맥·전문용어<textarea bind:value={recognitionForm.context} rows="4" placeholder="선택 사항 · 인명, 제품명, 전문용어 등을 입력하세요."></textarea></label>
+        <label>컨텍스트·전문용어<textarea bind:value={recognitionForm.context} rows="4" placeholder="선택 사항 · 인명, 제품명, 전문용어 등을 입력하세요."></textarea></label>
         <fieldset class="format-options">
           <legend>결과 형식 <small>복수 선택 가능</small></legend>
           <label><input type="checkbox" value="srt" bind:group={recognitionForm.output_formats}>SRT 자막</label>
@@ -685,7 +1861,7 @@
         </div>
         <button class="primary" disabled={busy || recognitionForm.output_formats.length === 0 || (recognitionForm.source === 'file' ? !recognitionFile : !recognitionForm.url.trim()) || activeJobs().some((j) => j.kind === 'recognition')}>{busy ? '요청 중…' : '자막 만들기'}</button>
       </form>
-      <aside>
+      <aside class="subtitle-results-pane mobile-results-pane">
         <div class="results-heading">
           <h3>최근 자막</h3>
           <div class="view-switch" aria-label="최근 자막 보기 방식">
@@ -693,66 +1869,43 @@
             <button type="button" class:active={subtitleView === 'list'} onclick={() => setSubtitleView('list')}>리스트</button>
           </div>
         </div>
-        <ResultPagination label="최근 자막" total={jobsForList('recognition').length} page={listPages.recognition} pageSize={listPageSizes.recognition} pageSizes={pageSizeOptions} onPageChange={(page) => setListPage('recognition', page)} onPageSizeChange={(size) => setListPageSize('recognition', size)} />
+        <ResultPagination label="최근 자막" total={recognitionJobs.length} page={listPages.recognition} pageSize={listPageSizes.recognition} pageSizes={imagePageSizeOptions} sortOrder={listSortOrders.recognition} onPageChange={(page) => setListPage('recognition', page)} onPageSizeChange={(size) => setListPageSize('recognition', size)} onSortOrderChange={(order) => setListSortOrder('recognition', order)} />
         <div class="audio-list subtitle-results" class:list-view={subtitleView === 'list'}>
-        {#each pagedJobs('recognition') as job (job.id)}
-          <article>
+        {#each pagedRecognitionJobs as job (job.id)}
+          <article class:pending={job.status === 'queued' || job.status === 'running'}>
             {#if subtitleView === 'list'}
-              <div class="subtitle-list-thumb" class:empty-thumb={!job.media_url || isAudioMedia(job)}>
-                {#if job.media_url && !isAudioMedia(job)}
-                  <!-- svelte-ignore a11y_media_has_caption -->
-                  <video preload="metadata" muted playsinline src={job.media_url}></video>
-                {:else}<span>{job.media_url && isAudioMedia(job) ? 'AUDIO' : job.status}</span>{/if}
-              </div>
+              {#if job.media_url || job.params?.text}<button type="button" class="subtitle-list-thumb" class:empty-thumb={!job.media_url || isAudioMedia(job)} aria-label="자막 결과 크게 보기" onclick={() => showSubtitle(job)}>{#if job.media_url && !isAudioMedia(job)}<!-- svelte-ignore a11y_media_has_caption --><video preload="metadata" muted playsinline src={job.media_url}></video>{:else}<span>{job.media_url && isAudioMedia(job) ? 'AUDIO' : job.params?.text ? 'TEXT' : job.status}</span>{/if}</button>{:else}<div class="subtitle-list-thumb empty-thumb"><span>{job.status}</span></div>{/if}
+            {:else}
+              {#if job.media_url || job.params?.text}<button type="button" class="subtitle-gallery-thumb" class:empty-thumb={!job.media_url || isAudioMedia(job)} aria-label="자막 결과 크게 보기" onclick={() => showSubtitle(job)}>{#if job.media_url && !isAudioMedia(job)}<!-- svelte-ignore a11y_media_has_caption --><video preload="metadata" muted playsinline src={job.media_url}></video>{:else}<span>{job.media_url && isAudioMedia(job) ? 'AUDIO' : job.params?.text ? 'TEXT' : job.status}</span>{/if}</button>{:else}<div class="subtitle-gallery-thumb empty-thumb"><span>{job.status}</span></div>{/if}
             {/if}
-            <div class="subtitle-result-title"><span>{job.params?.detected_language || recognitionLanguageLabel(job.params?.language)}{#if job.params?.segments} · {job.params.segments}구간{/if}{#if job.params?.media_part} · 파트 {job.params.media_part}{/if}{#if job.params?.media_source} · {job.params.media_source}{/if}</span><p>{job.prompt}</p></div>
-            {#if subtitleView === 'gallery' && job.media_url}
-              <div class="subtitle-player">
-                {#if isAudioMedia(job)}
-                  <audio controls preload="metadata" src={job.media_url}></audio>
-                {:else}
-                  <video controls preload="metadata">
-                    <source src={job.media_url}>
-                    {#if job.caption_url}<track kind="subtitles" src={job.caption_url} srclang={captionLanguage(job)} label={job.params?.translation_mode === 'none' ? '원문' : job.params?.target_language || '번역'} default>{/if}
-                  </video>
-                {/if}
-                {#if job.params?.media}<small>{mediaSummary(job)}</small>{/if}
-              </div>
-            {/if}
-            {#if subtitleView === 'gallery' && job.params?.text}
-              <details class="transcript-details"><summary>자막 미리보기</summary><p class="transcript">{job.params.text}</p></details>
-            {:else if subtitleView === 'list' && (job.media_url || job.params?.text)}
-              <button type="button" class="subtitle-list-preview-toggle" aria-expanded={expandedSubtitleJobs.has(job.id)} onclick={() => toggleExpandedJob('subtitle', job.id)}>{mediaToggleLabel(job, expandedSubtitleJobs.has(job.id))}</button>
-              {#if expandedSubtitleJobs.has(job.id)}<div class="subtitle-list-expanded">
-                {#if job.media_url}
-                  <div class="subtitle-player">
-                    {#if isAudioMedia(job)}
-                      <audio controls preload="metadata" src={job.media_url}></audio>
-                    {:else}
-                      <video controls preload="metadata">
-                        <source src={job.media_url}>
-                        {#if job.caption_url}<track kind="subtitles" src={job.caption_url} srclang={captionLanguage(job)} label={job.params?.translation_mode === 'none' ? '원문' : job.params?.target_language || '번역'} default>{/if}
-                      </video>
-                    {/if}
-                    {#if job.params?.media}<small>{mediaSummary(job)}</small>{/if}
-                  </div>
-                {/if}
-                {#if job.params?.text}<details class="subtitle-expanded-transcript"><summary>자막 보기</summary><p class="transcript">{job.params.text}</p></details>{/if}
-              </div>{/if}
-            {:else if !job.params?.text}<small class="recognition-progress-text">{recognitionProgressText(job)}</small>{/if}
+            <div class="subtitle-result-title"><span>{job.params?.detected_language || recognitionLanguageLabel(job.params?.language)}{#if job.params?.segments} · {job.params.segments}구간{/if}{#if job.params?.media_part} · 파트 {job.params.media_part}{/if}{#if job.params?.media_source} · {job.params.media_source}{/if}</span><p title={job.prompt}>{job.prompt}</p>{#if job.params?.media}<small>{mediaSummary(job)}</small>{/if}</div>
+            {#if !job.params?.text}<small class="recognition-progress-text">{recognitionProgressText(job)}</small>{/if}
             {#if job.status === 'queued' || job.status === 'running'}<div class="recognition-progress" aria-label={recognitionProgressText(job)}><i style={`width: ${recognitionProgressPercent(job)}%`}></i></div>{/if}
             {#if job.outputs}<div class="output-links">{#each Object.entries(job.outputs) as output}<a href={output[1]} target="_blank">{outputLabels[output[0]] || output[0]} ↗</a>{/each}</div>{:else if job.output_url}<a href={job.output_url} target="_blank">결과 열기 ↗</a>{/if}
             {#if job.error}<em>{job.error}</em>{/if}
-            {#if job.status === 'queued' || job.status === 'running'}<button class="job-stop" disabled={cancellingJob === job.id} onclick={() => cancelJob(job)}>{cancellingJob === job.id ? '중지 중…' : '중지'}</button>{:else}<button class="job-delete" disabled={deletingJob === job.id} onclick={() => deleteJob(job)}>삭제</button>{/if}
+            {#if job.status === 'queued' || job.status === 'running'}<button class="job-stop" disabled={cancellingJob === job.id} onclick={() => cancelJob(job)}>{cancellingJob === job.id ? '중지 중…' : '중지'}</button>{:else}<div class="job-actions">{#if job.status === 'failed' || job.status === 'cancelled'}<button class="job-retry" disabled={retryingJob === job.id} onclick={() => retryJob(job)}>{retryingJob === job.id ? '재개 중…' : '재개'}</button>{/if}<button class="job-delete" disabled={deletingJob === job.id} onclick={() => deleteJob(job)}>삭제</button></div>{/if}
           </article>
         {:else}<div class="empty">첫 자막 작업이 여기에 나타납니다.</div>{/each}
-      </div></aside>
+      </div>
+      <ResultPagination compact label="최근 자막" total={recognitionJobs.length} page={listPages.recognition} pageSize={listPageSizes.recognition} onPageChange={(page) => setListPage('recognition', page)} />
+      </aside>
     </section>
+  {:else if tab === 'lora'}
+    <LoraStudio />
   {:else if tab === 'settings' && settings}
     <form class="settings" onsubmit={(e) => { e.preventDefault(); saveSettings() }}>
       <div class="section-title"><div><span>SET</span><h2>연결 및 기본 설정</h2></div></div>
       {#if savedMessage}<div class="success">{savedMessage}</div>{/if}
 
+      <div class="settings-tabs" role="tablist" aria-label="설정 구역">
+        <button type="button" role="tab" aria-selected={settingsSection === 'connection'} class:active={settingsSection === 'connection'} onclick={() => settingsSection = 'connection'}><span>연결</span><small>앱·API 주소</small></button>
+        <button type="button" role="tab" aria-selected={settingsSection === 'defaults'} class:active={settingsSection === 'defaults'} onclick={() => settingsSection = 'defaults'}><span>생성 기본값</span><small>이미지·영상·음성·자막</small></button>
+        <button type="button" role="tab" aria-selected={settingsSection === 'metadata'} class:active={settingsSection === 'metadata'} onclick={() => settingsSection = 'metadata'}><span>이미지 정보</span><small>EXIF 제작자 정보</small></button>
+        <button type="button" role="tab" aria-selected={settingsSection === 'storage'} class:active={settingsSection === 'storage'} onclick={() => settingsSection = 'storage'}><span>저장소</span><small>용량·자동 정리</small></button>
+      </div>
+
+      {#if settingsSection === 'connection'}
+      <div class="settings-section connection-settings">
       <section class="settings-card">
         <h3>Media 앱</h3>
         <p>Listen 주소와 데이터 폴더는 저장되지만 실행 중인 서버에는 재시작 후 적용됩니다.</p>
@@ -765,12 +1918,15 @@
       <section class="settings-card">
         <h3>API 연결</h3>
         <div class="endpoint-list">
-          {#each [['image', 'Klein 이미지'], ['video', 'LTX 영상'], ['speech', 'Qwen3 TTS'], ['recognition', 'Qwen3 ASR'], ['prompt', 'Gemma 프롬프트·번역'], ['media', '미디어 접근·FFmpeg']] as item}
+          {#each [['video', 'LTX 영상'], ['speech', 'Qwen3 TTS'], ['recognition', 'Qwen3 ASR'], ['prompt', 'Gemma 프롬프트·번역'], ['upscale', 'SeedVR2 고화질'], ['media', '미디어 접근·FFmpeg'], ['trainer', 'Krea 2 LoRA 학습']] as item}
             <label><span>{item[1]} <small class:online={engineStates[item[0]] === 'online'}>{engineStates[item[0]] || 'offline'}</small></span><input type="url" bind:value={settings.engines[item[0]].endpoint} required></label>
           {/each}
         </div>
       </section>
+      </div>
+      {/if}
 
+      {#if settingsSection === 'storage'}
       <section class="settings-card storage-card">
         <div class="storage-heading">
           <div><h3>저장소 관리</h3><p>실행 중인 작업은 정리 대상에서 제외됩니다.</p></div>
@@ -786,11 +1942,15 @@
           <label>자동 정리 보존 시간<input type="number" min="1" max="8760" bind:value={settings.storage.temp_retention_hours}><small>이 시간보다 오래된 중단 작업만 앱 시작 시 정리합니다.</small></label>
         </div>
       </section>
+      {/if}
 
       <div class="settings-grid">
+        {#if settingsSection === 'defaults'}
         <section class="settings-card">
           <h3>이미지</h3>
-          <label>모델<input bind:value={settings.image.model} required></label>
+          {#each imageModeChoices as mode}
+            <div class="backend-setting"><strong>{imageModeMeta[mode].label}</strong><label>Endpoint<input type="url" bind:value={settings.image.backends[mode].endpoint} required></label><label>모델<input bind:value={settings.image.backends[mode].model} required></label></div>
+          {/each}
           <div class="fields three">
             <label>기본 너비<input type="number" min="256" step="16" bind:value={settings.image.default_width}></label>
             <label>기본 높이<input type="number" min="256" step="16" bind:value={settings.image.default_height}></label>
@@ -807,17 +1967,36 @@
             <label class="duration-field"><span>기본 길이 (초) <small>{framesForDuration(settingsVideoDurationSeconds, settings.video.default_fps)} 프레임 · 8k+1</small></span><input aria-label="기본 영상 길이 초" type="number" min="0.1" step="0.1" bind:value={settingsVideoDurationSeconds}></label>
             <label>기본 FPS<input type="number" min="1" max="60" bind:value={settings.video.default_fps}></label>
           </div>
-          <div class="prompt-settings">
-            <label>향상 모델<input bind:value={settings.prompt_enhancement.model} required></label>
-            <div class="fields three">
-              <label>기본 사용<select bind:value={settings.prompt_enhancement.default_enabled}><option value={true}>자동</option><option value={false}>꺼짐</option></select></label>
-              <label>최대 토큰<input type="number" min="64" max="2048" bind:value={settings.prompt_enhancement.max_tokens}></label>
-              <label>이미지 인식<select bind:value={settings.prompt_enhancement.vision_enabled}><option value={false}>꺼짐</option><option value={true}>사용</option></select></label>
-            </div>
-            <small>현재 Huihui LiteRT 번들은 이미지 인식이 되지 않으므로 이미지 인식은 꺼짐을 유지하세요.</small>
-          </div>
         </section>
 
+        <section class="settings-card">
+          <h3>프롬프트</h3>
+          <label>향상 모델<input bind:value={settings.prompt_enhancement.model} required></label>
+          <div class="fields">
+            <label>프롬프트 향상 기본값<select bind:value={settings.prompt_enhancement.default_enabled}><option value={true}>켜짐</option><option value={false}>꺼짐</option></select></label>
+            <label>프롬프트 준수 강화 기본값<select bind:value={settings.image.default_prompt_enhancer}><option value={true}>켜짐</option><option value={false}>꺼짐</option></select></label>
+            <label>최대 토큰<input type="number" min="64" max="2048" bind:value={settings.prompt_enhancement.max_tokens}></label>
+            <label>이미지 인식<select bind:value={settings.prompt_enhancement.vision_enabled}><option value={false}>꺼짐</option><option value={true}>켜짐</option></select></label>
+          </div>
+          <small>프롬프트 향상은 이미지와 영상에 함께 적용됩니다. 준수 강화는 Krea 2 이미지 생성의 Krea2T 기본값입니다.</small>
+          <small>현재 Huihui LiteRT 번들은 이미지 인식이 되지 않으므로 이미지 인식은 꺼짐을 유지하세요.</small>
+        </section>
+        {/if}
+
+        {#if settingsSection === 'metadata'}
+        <section class="settings-card">
+          <h3>이미지 EXIF 제작자 정보</h3>
+          <p>비워둔 항목은 새 이미지의 EXIF에서 생략됩니다.</p>
+          <div class="fields">
+            <label>제작자 이름<input maxlength="256" bind:value={settings.image_metadata.creator} placeholder="이름 또는 스튜디오명"></label>
+            <label>저작권 문구<input maxlength="512" bind:value={settings.image_metadata.copyright} placeholder="© 2026 이름. All rights reserved."></label>
+            <label>웹사이트·연락처<input maxlength="2048" bind:value={settings.image_metadata.website} placeholder="https://… 또는 이메일"></label>
+          </div>
+          <label>메모<textarea rows="3" maxlength="2000" bind:value={settings.image_metadata.note} placeholder="작품이나 제작자에 관한 짧은 안내"></textarea></label>
+        </section>
+        {/if}
+
+        {#if settingsSection === 'defaults'}
         <section class="settings-card">
           <h3>음성 생성</h3>
           <label>CustomVoice 모델<input bind:value={settings.speech.custom_voice_model} required></label>
@@ -845,13 +2024,36 @@
             <label><input type="checkbox" value="txt" bind:group={settings.recognition.default_output_formats}>일반 TXT</label>
           </fieldset>
         </section>
+        {/if}
       </div>
-      <button class="primary settings-save" disabled={busy}>{busy ? '저장 중…' : '설정 저장'}</button>
+      <div class="settings-save-bar"><small>변경 내용은 모든 설정 구역에 함께 저장됩니다.</small><button class="primary settings-save" disabled={busy}>{busy ? '저장 중…' : '설정 저장'}</button></div>
     </form>
   {:else}
     <section class="history"><div class="section-title"><div><span>05</span><h2>생성 기록</h2></div>{#if jobs.some((job) => job.status !== 'queued' && job.status !== 'running')}<button class="quiet danger" disabled={deletingJob === 'all'} onclick={clearFinishedJobs}>모두 비우기</button>{/if}</div>
-      <ResultPagination label="생성 기록" total={jobsForList('history').length} page={listPages.history} pageSize={listPageSizes.history} pageSizes={pageSizeOptions} onPageChange={(page) => setListPage('history', page)} onPageSizeChange={(size) => setListPageSize('history', size)} />
-      {#each pagedJobs('history') as job (job.id)}<article><span class="kind">{kindLabels[job.kind] || job.kind}</span><div><strong>{job.prompt}</strong><small>{new Date(job.created_at).toLocaleString()} · {job.status === 'cancelled' ? '중지됨' : job.status}</small>{#if job.error}<em>{job.error}</em>{/if}</div><div class="job-actions">{#if job.output_url}<a href={job.output_url} target="_blank">열기 ↗</a>{/if}{#if job.status !== 'queued' && job.status !== 'running'}<button class="job-delete" disabled={deletingJob === job.id} onclick={() => deleteJob(job)}>삭제</button>{/if}</div></article>{:else}<div class="empty">아직 생성 기록이 없습니다.</div>{/each}
+      <ResultPagination label="생성 기록" total={jobs.length} page={listPages.history} pageSize={listPageSizes.history} pageSizes={pageSizeOptions} sortOrder={listSortOrders.history} onPageChange={(page) => setListPage('history', page)} onPageSizeChange={(size) => setListPageSize('history', size)} onSortOrderChange={(order) => setListSortOrder('history', order)} />
+      {#each pagedHistoryJobs as job (job.id)}<article><span class="kind">{kindLabels[job.kind] || job.kind}</span><div><button type="button" class="history-prompt" title="전체 내용 보기" onclick={() => promptModal = { title: `${kindLabels[job.kind] || job.kind} 작업`, detail: `${new Date(job.created_at).toLocaleString()} · ${statusLabels[job.status] || job.status}`, text: job.prompt }}>{job.prompt}</button><small>{new Date(job.created_at).toLocaleString()} · {statusLabels[job.status] || job.status}</small>{#if job.error}<em>{job.error}</em>{/if}</div><div class="job-actions">{#if job.output_url}<a href={job.output_url} target="_blank">열기 ↗</a>{/if}{#if job.kind === 'recognition' && (job.status === 'failed' || job.status === 'cancelled')}<button class="job-retry" disabled={retryingJob === job.id} onclick={() => retryJob(job)}>{retryingJob === job.id ? '재개 중…' : '재개'}</button>{/if}{#if job.status !== 'queued' && job.status !== 'running'}<button class="job-delete" disabled={deletingJob === job.id} onclick={() => deleteJob(job)}>삭제</button>{/if}</div></article>{:else}<div class="empty">아직 생성 기록이 없습니다.</div>{/each}
     </section>
   {/if}
 </main>
+
+{#if runtimeInfoOpen}
+  <div class="runtime-info-backdrop" role="presentation" onclick={(event) => { if (event.target === event.currentTarget) runtimeInfoOpen = false }}>
+    <section class="runtime-info-modal" role="dialog" aria-modal="true" aria-label="모델 내부 조정 설명">
+      <header><div><strong>모델 내부 조정</strong><small>필터 벡터는 한 번에 하나를 고르고 텍스트 조건은 필요할 때 함께 사용합니다.</small></div><button type="button" aria-label="닫기" onclick={() => runtimeInfoOpen = false}>×</button></header>
+      <div class="runtime-info-content">
+        <article><strong>준수 강화 · skc3vo</strong><p>text-fusion projector 전체를 조절하는 rank-1 벡터입니다. 세부 지시를 더 직접적으로 따르게 하며 기본 강도는 0.05입니다.</p><a href="https://www.reddit.com/r/StableDiffusion/comments/1ueacq2/comment/otix1aa/" target="_blank" rel="noreferrer">출처 ↗</a></article>
+        <article><strong>균형 · 2-vector</strong><p>Fedor 구현으로 projector의 두 필터 축만 완화합니다. 먼저 1.0에서 시작하고 부족할 때 2.0까지 올립니다.</p><a href="https://github.com/CliffNodes/fedor_bypass" target="_blank" rel="noreferrer">출처 ↗</a></article>
+        <article><strong>강함 · 3-vector</strong><p>2-vector에 세 번째 필터 축을 더한 강한 대안입니다. 2-vector가 부족할 때 전환하며 두 방식을 중첩하지 않습니다.</p><a href="https://huggingface.co/uzumix/krea2filterbypass3.safetensors" target="_blank" rel="noreferrer">출처 ↗</a></article>
+        <article><strong>프롬프트 준수 강화 · Krea2T</strong><p>Krea 2의 text-fusion 경로와 결합된 텍스트 토큰 비중을 조절해 객체 수, 배치, 관계 같은 지시를 더 강하게 전달합니다.</p><a href="https://github.com/capitan01R/ComfyUI-Krea2T-Enhancer" target="_blank" rel="noreferrer">출처 ↗</a></article>
+      </div>
+    </section>
+  </div>
+{/if}
+
+<MaskEditor open={Boolean(maskEditorMode)} source={maskEditorMode === 'anypaint' ? kreaAnyPaintPreview : kreaIdentityPreview} existingMask={maskEditorMode === 'anypaint' ? kreaAnyPaintMaskPreview : maskEditorMode === 'identity' ? kreaIdentityMaskPreview : kreaStrictMaskPreview} title={maskEditorMode === 'identity' ? '닮음 집중 영역' : maskEditorMode === 'strict' ? '변경 허용 영역' : '수정 영역 칠하기'} description={maskEditorMode === 'identity' ? '빨간 영역의 Identity 주의를 더 높입니다.' : maskEditorMode === 'strict' ? '빨간 영역만 생성 결과를 쓰고 바깥 픽셀은 원본 그대로 둡니다.' : '빨간 영역을 Krea가 새로 생성합니다.'} outputName={`${maskEditorMode || 'krea'}-mask.png`} onApply={usePaintedMask} onClose={() => maskEditorMode = ''} />
+<CannyEditor open={cannyEditorOpen} source={kreaNK2EPreview} preprocessed={kreaNK2EPreprocessed} onApply={useCannyMap} onClose={() => cannyEditorOpen = false} />
+<ImageModal image={imageModal} onClose={() => imageModal = null} />
+<VideoModal video={videoModal} onClose={() => videoModal = null} />
+<SubtitleModal result={subtitleModal} onClose={() => subtitleModal = null} />
+<PromptModal prompt={promptModal} onClose={() => promptModal = null} />
+<PromptExamplesModal open={promptExamplesOpen} examples={filterPromptPresets} selectedID={filterPromptPreset} officialSource={kreaPromptGuideSource} communitySource={filterPromptSource} onApply={applyPromptExample} onClose={() => promptExamplesOpen = false} />

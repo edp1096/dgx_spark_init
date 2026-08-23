@@ -26,6 +26,13 @@
   line-height: 1.45;
 }
 
+.enhancer-control a {
+  width: fit-content;
+  color: #a8d970;
+  font-size: 9px;
+  text-decoration: none;
+}
+
 .segmented.compact {
   flex: none;
   width: 128px;

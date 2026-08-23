@@ -491,6 +491,50 @@ def yt_dlp_error_summary(message: str) -> str:
     return message.strip().splitlines()[-1] if message.strip() else "download failed"
 
 
+def recover_corrupt_partial_download(work_dir: Path, error: str, request_id: str | None = None) -> Path | None:
+    """Keep a playable HLS download when yt-dlp's final FFmpeg pass hits bad AAC frames."""
+    decode_markers = (
+        "error submitting packet to decoder",
+        "decoding error",
+        "prediction is not allowed in aac",
+        "sample rate index in program config element",
+        "too large remapped id",
+    )
+    if not any(marker in error.lower() for marker in decode_markers):
+        return None
+    candidates = sorted(
+        (
+            path for path in work_dir.glob("source*.part")
+            if path.is_file() and ".part-Frag" not in path.name and path.stat().st_size >= (16 << 20)
+        ),
+        key=lambda path: path.stat().st_size,
+        reverse=True,
+    )
+    for partial in candidates:
+        try:
+            probe = probe_media(partial)
+            streams = probe.get("streams") or []
+            if not any(stream.get("codec_type") in {"video", "audio"} for stream in streams):
+                continue
+            if probe_duration(partial) < 60:
+                continue
+            destination = work_dir / "source.recovered.mp4"
+            destination.unlink(missing_ok=True)
+            run_prepare_command([
+                "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+                "-fflags", "+discardcorrupt", "-err_detect", "ignore_err", "-i", str(partial),
+                "-map", "0:v?", "-map", "0:a?", "-map_metadata", "0", "-c", "copy",
+                "-movflags", "+faststart", str(destination),
+            ], 7200, request_id)
+            if destination.stat().st_size > 0 and probe_duration(destination) >= 60:
+                return destination
+        except PrepareCancelled:
+            raise
+        except Exception:
+            destination.unlink(missing_ok=True)
+    return None
+
+
 def yt_dlp_download(url: str, work_dir: Path, cookies: Path | None = None, headers: dict | None = None, request_id: str | None = None) -> Path:
     output = str(work_dir / "source.%(ext)s")
     host = (urlparse(url).hostname or "").lower()
@@ -544,7 +588,11 @@ def yt_dlp_download(url: str, work_dir: Path, cookies: Path | None = None, heade
         except PrepareCancelled:
             raise
         except Exception as exc:
-            summary = yt_dlp_error_summary(str(exc))
+            error = str(exc)
+            recovered = recover_corrupt_partial_download(work_dir, error, request_id)
+            if recovered is not None:
+                return recovered
+            summary = yt_dlp_error_summary(error)
             errors.append(f"{quality_label}: {summary}")
         for path in work_dir.glob("source.*"):
             if path.is_file():
@@ -935,7 +983,8 @@ def persist_media_asset(source: Path, source_name: str, request_id: str | None =
             # 웹 재생과 Range 탐색을 위해 가능한 경우 재인코딩 없이 MP4로 remux한다.
             try:
                 run_prepare_command([
-                    "ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", str(source),
+                    "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+                    "-fflags", "+discardcorrupt", "-err_detect", "ignore_err", "-i", str(source),
                     "-map", "0:v:0", "-map", "0:a?", "-map_metadata", "0",
                     "-c", "copy", "-movflags", "+faststart", str(destination),
                 ], 7200, request_id)
@@ -1002,7 +1051,8 @@ def prepare_segments(source: Path, work_dir: Path, segment_seconds: int, request
     segment_dir.mkdir()
     duration = probe_duration(source)
     silence_output = run_prepare_command([
-        "ffmpeg", "-hide_banner", "-nostats", "-i", str(source),
+        "ffmpeg", "-hide_banner", "-nostats",
+        "-fflags", "+discardcorrupt", "-err_detect", "ignore_err", "-i", str(source),
         "-map", "0:a:0", "-af", "silencedetect=noise=-35dB:d=0.6", "-f", "null", "-",
     ], 7200, request_id)
     silence_starts = [float(value) for value in re.findall(r"silence_start:\s*([0-9.]+)", silence_output)]
@@ -1021,7 +1071,8 @@ def prepare_segments(source: Path, work_dir: Path, segment_seconds: int, request
         cursor = cut
 
     command = [
-        "ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", str(source),
+        "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+        "-fflags", "+discardcorrupt", "-err_detect", "ignore_err", "-i", str(source),
         "-map", "0:a:0", "-vn", "-ac", "1", "-ar", "16000", "-c:a", "pcm_s16le",
         "-f", "segment", "-reset_timestamps", "1",
     ]
@@ -1260,14 +1311,16 @@ async def prepare_media(
         set_progress(request_id, "failed", error=str(exc))
         if asset:
             shutil.rmtree(ASSET_DIR / asset["id"], ignore_errors=True)
-        shutil.rmtree(work_dir, ignore_errors=True)
+        if not request_id or not any(work_dir.glob("source*")):
+            shutil.rmtree(work_dir, ignore_errors=True)
         finish_prepare(request_id, work_dir)
         raise HTTPException(400, str(exc)) from exc
     except Exception as exc:
         set_progress(request_id, "failed", error=str(exc)[-1000:])
         if asset:
             shutil.rmtree(ASSET_DIR / asset["id"], ignore_errors=True)
-        shutil.rmtree(work_dir, ignore_errors=True)
+        if not request_id or not any(work_dir.glob("source*")):
+            shutil.rmtree(work_dir, ignore_errors=True)
         finish_prepare(request_id, work_dir)
         raise HTTPException(422, str(exc)) from exc
     shutil.rmtree(work_dir, ignore_errors=True)

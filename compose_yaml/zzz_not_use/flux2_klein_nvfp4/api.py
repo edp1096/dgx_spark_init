@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import os
 import secrets
 import time
 import uuid
@@ -16,7 +17,8 @@ from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel, ConfigDict
 
 
-COMFY_URL = "http://127.0.0.1:8188"
+COMFY_PORT = os.getenv("COMFY_PORT", "8188")
+COMFY_URL = os.getenv("COMFY_URL", f"http://127.0.0.1:{COMFY_PORT}")
 MODEL_ID = "flux2-klein-4b-nvfp4"
 MODEL_ALIASES = {MODEL_ID, "black-forest-labs/FLUX.2-klein-4b-nvfp4"}
 DIFFUSION_MODEL = "flux-2-klein-4b-nvfp4.safetensors"

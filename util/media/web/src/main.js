@@ -6,5 +6,6 @@ import './recognition.css'
 import './jobs.css'
 import './settings.css'
 import './enhancer.css'
+import './lora.css'
 
 mount(App, { target: document.getElementById('app') })

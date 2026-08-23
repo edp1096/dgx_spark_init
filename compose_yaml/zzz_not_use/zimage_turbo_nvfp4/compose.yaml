@@ -1,0 +1,24 @@
+services:
+  api:
+    build:
+      context: .
+    image: dgx-zimage-turbo-nvfp4:latest
+    container_name: zimage-turbo-nvfp4-api
+    restart: unless-stopped
+    network_mode: host
+    ipc: host
+    gpus: all
+    environment:
+      HF_TOKEN: ${HF_TOKEN:-}
+      API_PORT: "${ZIMAGE_API_PORT:-8703}"
+      COMFY_PORT: "${ZIMAGE_COMFY_PORT:-8290}"
+      UNLOAD_AFTER_GENERATION: "${ZIMAGE_UNLOAD_AFTER_GENERATION:-true}"
+      COMFY_KITCHEN_BACKEND: cuda
+      PYTORCH_CUDA_ALLOC_CONF: expandable_segments:True
+    volumes:
+      - hf-cache:/root/.cache/huggingface
+
+volumes:
+  hf-cache:
+    name: media-hf-cache
+    external: true

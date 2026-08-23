@@ -19,11 +19,19 @@ type Engine struct {
 	Endpoint string `yaml:"endpoint" json:"endpoint"`
 }
 
+type ImageBackend struct {
+	Endpoint string `yaml:"endpoint" json:"endpoint"`
+	Model    string `yaml:"model" json:"model"`
+}
+
 type Image struct {
-	Model              string `yaml:"model" json:"model"`
-	DefaultWidth       int    `yaml:"default_width" json:"default_width"`
-	DefaultHeight      int    `yaml:"default_height" json:"default_height"`
-	MaxReferenceImages int    `yaml:"max_reference_images" json:"max_reference_images"`
+	Model                 string                  `yaml:"model" json:"model"`
+	DefaultMode           string                  `yaml:"default_mode" json:"default_mode"`
+	DefaultPromptEnhancer bool                    `yaml:"default_prompt_enhancer" json:"default_prompt_enhancer"`
+	Backends              map[string]ImageBackend `yaml:"backends" json:"backends"`
+	DefaultWidth          int                     `yaml:"default_width" json:"default_width"`
+	DefaultHeight         int                     `yaml:"default_height" json:"default_height"`
+	MaxReferenceImages    int                     `yaml:"max_reference_images" json:"max_reference_images"`
 }
 
 type Speech struct {
@@ -57,6 +65,13 @@ type PromptEnhancement struct {
 	MaxTokens      int    `yaml:"max_tokens" json:"max_tokens"`
 }
 
+type ImageMetadata struct {
+	Creator   string `yaml:"creator" json:"creator"`
+	Copyright string `yaml:"copyright" json:"copyright"`
+	Website   string `yaml:"website" json:"website"`
+	Note      string `yaml:"note" json:"note"`
+}
+
 type Storage struct {
 	CleanupOnStartup   bool `yaml:"cleanup_on_startup" json:"cleanup_on_startup"`
 	TempRetentionHours int  `yaml:"temp_retention_hours" json:"temp_retention_hours"`
@@ -71,6 +86,7 @@ type Config struct {
 	Recognition       Recognition       `yaml:"recognition" json:"recognition"`
 	Video             Video             `yaml:"video" json:"video"`
 	PromptEnhancement PromptEnhancement `yaml:"prompt_enhancement" json:"prompt_enhancement"`
+	ImageMetadata     ImageMetadata     `yaml:"image_metadata" json:"image_metadata"`
 	Storage           Storage           `yaml:"storage" json:"storage"`
 }
 
@@ -113,7 +129,7 @@ func Validate(cfg Config) error {
 	if _, _, err := net.SplitHostPort(cfg.Listen); err != nil {
 		return fmt.Errorf("invalid listen address: %w", err)
 	}
-	for _, kind := range []string{"image", "speech", "recognition", "video", "prompt", "media"} {
+	for _, kind := range []string{"image", "speech", "recognition", "video", "prompt", "media", "trainer", "upscale"} {
 		endpoint := cfg.Engines[kind].Endpoint
 		parsed, err := url.Parse(endpoint)
 		if err != nil || parsed.Host == "" || (parsed.Scheme != "http" && parsed.Scheme != "https") {
@@ -122,6 +138,21 @@ func Validate(cfg Config) error {
 	}
 	if cfg.Image.DefaultWidth < 256 || cfg.Image.DefaultHeight < 256 || cfg.Image.MaxReferenceImages < 1 {
 		return fmt.Errorf("invalid image defaults")
+	}
+	if _, ok := cfg.Image.Backends[cfg.Image.DefaultMode]; !ok {
+		return fmt.Errorf("image.default_mode must name a configured backend")
+	}
+	for mode, backend := range cfg.Image.Backends {
+		if mode != "create" && mode != "edit" && mode != "control" {
+			return fmt.Errorf("unsupported image backend mode: %s", mode)
+		}
+		parsed, err := url.Parse(backend.Endpoint)
+		if err != nil || parsed.Host == "" || (parsed.Scheme != "http" && parsed.Scheme != "https") {
+			return fmt.Errorf("image.backends.%s.endpoint must be an http(s) URL", mode)
+		}
+		if strings.TrimSpace(backend.Model) == "" {
+			return fmt.Errorf("image.backends.%s.model is required", mode)
+		}
 	}
 	if cfg.Video.DefaultWidth < 256 || cfg.Video.DefaultHeight < 256 || cfg.Video.DefaultWidth%64 != 0 || cfg.Video.DefaultHeight%64 != 0 {
 		return fmt.Errorf("video width and height must be >= 256 and divisible by 64")
@@ -155,16 +186,47 @@ func Validate(cfg Config) error {
 	if cfg.Storage.TempRetentionHours < 1 || cfg.Storage.TempRetentionHours > 8760 {
 		return fmt.Errorf("storage.temp_retention_hours must be between 1 and 8760")
 	}
+	if len(cfg.ImageMetadata.Creator) > 256 || len(cfg.ImageMetadata.Copyright) > 512 || len(cfg.ImageMetadata.Website) > 2048 || len(cfg.ImageMetadata.Note) > 2000 {
+		return fmt.Errorf("image_metadata fields are too long")
+	}
 	return nil
 }
 
 func Normalize(cfg Config) Config {
+	if cfg.Engines == nil {
+		cfg.Engines = map[string]Engine{}
+	}
+	if strings.TrimSpace(cfg.Engines["trainer"].Endpoint) == "" {
+		cfg.Engines["trainer"] = Engine{Endpoint: "http://127.0.0.1:8704"}
+	}
+	if strings.TrimSpace(cfg.Engines["upscale"].Endpoint) == "" {
+		cfg.Engines["upscale"] = Engine{Endpoint: "http://127.0.0.1:8698"}
+	}
 	for kind, engine := range cfg.Engines {
 		engine.Endpoint = strings.TrimRight(strings.TrimSpace(engine.Endpoint), "/")
 		cfg.Engines[kind] = engine
 	}
 	cfg.Listen = strings.TrimSpace(cfg.Listen)
 	cfg.DataDir = strings.TrimSpace(cfg.DataDir)
+	cfg.ImageMetadata.Creator = strings.TrimSpace(cfg.ImageMetadata.Creator)
+	cfg.ImageMetadata.Copyright = strings.TrimSpace(cfg.ImageMetadata.Copyright)
+	cfg.ImageMetadata.Website = strings.TrimSpace(cfg.ImageMetadata.Website)
+	cfg.ImageMetadata.Note = strings.TrimSpace(cfg.ImageMetadata.Note)
+	if cfg.Image.DefaultMode == "" {
+		cfg.Image.DefaultMode = "create"
+	}
+	if cfg.Image.Backends == nil {
+		cfg.Image.Backends = map[string]ImageBackend{}
+	}
+	if len(cfg.Image.Backends) == 0 {
+		legacy := cfg.Engines["image"]
+		cfg.Image.Backends["create"] = ImageBackend{Endpoint: legacy.Endpoint, Model: cfg.Image.Model}
+	}
+	for mode, backend := range cfg.Image.Backends {
+		backend.Endpoint = strings.TrimRight(strings.TrimSpace(backend.Endpoint), "/")
+		backend.Model = strings.TrimSpace(backend.Model)
+		cfg.Image.Backends[mode] = backend
+	}
 	if cfg.Recognition.Model == "Qwen/Qwen3-ASR-1.7B-hf" {
 		cfg.Recognition.Model = "Qwen/Qwen3-ASR-1.7B"
 	}

@@ -1,0 +1,80 @@
+<script>
+  import { onDestroy } from 'svelte'
+  import { lockModalScroll } from './modalScroll.js'
+
+  export let result = null
+  export let onClose = () => {}
+
+  let releaseScroll = null
+
+  function unlockScroll() {
+    releaseScroll?.()
+    releaseScroll = null
+  }
+
+  $: {
+    if (result && !releaseScroll) releaseScroll = lockModalScroll()
+    else if (!result) unlockScroll()
+  }
+
+  onDestroy(unlockScroll)
+</script>
+
+<svelte:window onkeydown={(event) => { if (result && event.key === 'Escape') onClose() }} />
+
+{#if result}
+  <div class="subtitle-modal-backdrop" role="presentation" onclick={(event) => { if (event.target === event.currentTarget) onClose() }}>
+    <section class="subtitle-modal" role="dialog" aria-modal="true" aria-label="자막 결과 크게 보기">
+      <header><div><strong>자막 결과</strong><small title={result.detail}>{result.detail}</small></div><button type="button" aria-label="닫기" onclick={onClose}>×</button></header>
+      <div class="subtitle-modal-content">
+        {#if result.mediaSrc}
+          <div class="subtitle-modal-player">
+            {#if result.audio}
+              <audio controls autoplay preload="metadata" src={result.mediaSrc}></audio>
+            {:else}
+              <!-- svelte-ignore a11y_media_has_caption -->
+              <video controls autoplay playsinline preload="metadata">
+                <source src={result.mediaSrc}>
+                {#if result.captionSrc}<track kind="subtitles" src={result.captionSrc} srclang={result.captionLang} label={result.captionLabel} default>{/if}
+              </video>
+            {/if}
+          </div>
+        {/if}
+        <div class="subtitle-modal-details" class:transcript-only={!result.prompt}>
+          <section class="subtitle-modal-transcript"><strong>자막·스크립트</strong><p>{result.transcript || '저장된 자막 본문이 없습니다.'}</p></section>
+          {#if result.prompt}<section class="subtitle-modal-source"><strong>원본</strong><p>{result.prompt}</p></section>{/if}
+        </div>
+      </div>
+      <footer>
+        <div>{#each result.outputs as output}<a href={output.url} target="_blank" rel="noreferrer">{output.label} ↗</a>{/each}</div>
+        <button type="button" onclick={onClose}>닫기</button>
+      </footer>
+    </section>
+  </div>
+{/if}
+
+<style>
+  .subtitle-modal-backdrop { position:fixed; z-index:100; inset:0; display:grid; place-items:center; padding:20px; background:#050705df; backdrop-filter:blur(8px); overscroll-behavior:contain; }
+  .subtitle-modal { display:grid; grid-template-rows:auto minmax(0,1fr) auto; overflow:hidden; width:min(1120px,96vw); max-height:94vh; border:1px solid #3b463c; border-radius:14px; background:#151a16; box-shadow:0 24px 80px #000b; }
+  header { position:static; display:flex; align-items:center; justify-content:space-between; min-height:46px; padding:7px 13px; border-bottom:1px solid #303731; background:#181e19; }
+  header div { display:grid; gap:3px; min-width:0; }
+  header strong { color:#edf2eb; font-size:14px; }
+  header small { overflow:hidden; color:#8d978e; font-size:10px; text-overflow:ellipsis; white-space:nowrap; }
+  header button { border:0; color:#cbd2cc; background:transparent; font-size:24px; cursor:pointer; }
+  .subtitle-modal-content { display:grid; grid-auto-rows:max-content; align-content:start; min-height:0; gap:8px; overflow:auto; padding:8px; background:#090b0a; overscroll-behavior:contain; }
+  .subtitle-modal-player { display:grid; place-items:center; overflow:hidden; min-height:max-content; border-radius:9px; background:#000; }
+  video { display:block; width:100%; height:auto; max-height:calc(94vh - 240px); object-fit:contain; }
+  audio { width:100%; min-height:48px; }
+  .subtitle-modal-details { display:grid; grid-template-columns:minmax(0,2fr) minmax(0,1fr); gap:8px; }
+  .subtitle-modal-details.transcript-only { grid-template-columns:1fr; }
+  .subtitle-modal-transcript,.subtitle-modal-source { display:grid; grid-template-rows:auto minmax(0,1fr); overflow:hidden; height:120px; border:1px solid #2b332c; border-radius:8px; padding:9px 10px; background:#111612; }
+  section strong { color:#aeb8af; font-size:10px; }
+  section p { overflow:auto; min-height:0; margin:7px 0 0; color:#dce3dd; font-size:11px; line-height:1.65; white-space:pre-wrap; }
+  .subtitle-modal-source p { color:#929b93; overflow-wrap:anywhere; }
+  footer { display:flex; align-items:center; gap:8px; padding:8px 12px; border-top:1px solid #303731; background:#181e19; }
+  footer div { display:flex; flex-wrap:wrap; gap:6px; margin-right:auto; }
+  footer a,footer button { display:inline-flex; align-items:center; justify-content:center; min-height:28px; border:1px solid #3c463e; border-radius:6px; padding:4px 9px; color:#cdecaa; background:#202621; font-size:10px; line-height:1; text-decoration:none; cursor:pointer; }
+  footer button { color:#b9c4ba; }
+  footer a:hover,footer button:hover { border-color:#60705f; background:#293129; }
+  @media(max-width:700px) { .subtitle-modal-backdrop{padding:6px}.subtitle-modal-content{padding:7px}.subtitle-modal-details{grid-template-columns:1fr}.subtitle-modal-transcript,.subtitle-modal-source{height:108px}video{max-height:46dvh} }
+</style>

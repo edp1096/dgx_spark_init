@@ -1,0 +1,31 @@
+services:
+  api:
+    build:
+      context: .
+      args:
+        AI_TOOLKIT_COMMIT: 27a03a91f23eb1b757d5ec2e80ee3e129cfcc350
+    image: dgx-krea2-lora-trainer:latest
+    container_name: krea2-lora-trainer-api
+    restart: unless-stopped
+    network_mode: host
+    ipc: host
+    gpus: all
+    environment:
+      HF_TOKEN: ${HF_TOKEN:-}
+      CIVITAI_API_KEY: ${CIVITAI_API_KEY:-}
+      API_PORT: "8704"
+      TRAINER_DATA_ROOT: /data
+      AI_TOOLKIT_ROOT: /opt/ai-toolkit
+      REGISTERED_LORA_ROOT: /registered-loras
+    volumes:
+      - hf-cache:/root/.cache/huggingface
+      - ./data:/data
+      - krea-user-loras:/registered-loras
+
+volumes:
+  hf-cache:
+    name: media-hf-cache
+    external: true
+  krea-user-loras:
+    name: media-krea-user-loras
+    external: true

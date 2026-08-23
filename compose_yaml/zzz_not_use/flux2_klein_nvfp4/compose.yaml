@@ -1,0 +1,23 @@
+services:
+  api:
+    build:
+      context: .
+    image: dgx-flux2-klein-nvfp4:4b
+    container_name: flux2-klein-nvfp4-api
+    restart: "no"
+    network_mode: host
+    ipc: host
+    gpus: all
+    environment:
+      HF_TOKEN: ${HF_TOKEN:-}
+      API_PORT: "${KLEIN_API_PORT:-8691}"
+      COMFY_PORT: "${KLEIN_COMFY_PORT:-8188}"
+      COMFY_KITCHEN_BACKEND: cuda
+      PYTORCH_CUDA_ALLOC_CONF: expandable_segments:True
+    volumes:
+      - hf-cache:/root/.cache/huggingface
+
+volumes:
+  hf-cache:
+    name: media-hf-cache
+    external: true

@@ -1,0 +1,22 @@
+[
+  {"id":"01-natural","name":"생얼 느낌 · 맑은 피부","category":"natural","prompt":"minimal near-no-makeup styling with clear skin emphasis","image":"01-natural.jpg"},
+  {"id":"02-smoky","name":"스모키 아이 · 깊고 강한 눈매","category":"dramatic","prompt":"smoky eye makeup emphasizing deep dramatic eyes","image":"02-smoky.jpg"},
+  {"id":"03-fantasy","name":"판타지 · 초현실 색감","category":"creative","prompt":"fantasy makeup with subtle shimmer and surreal color accents","image":"03-fantasy.jpg"},
+  {"id":"04-wet-look","name":"웻 룩 · 촉촉한 피부와 입술","category":"glow","prompt":"wet-look skin and glossy moist lips for a sensual styling","image":"04-wet-look.jpg"},
+  {"id":"05-glitter","name":"파티 글리터 아이","category":"creative","prompt":"sparkling glitter eye makeup for a party styling","image":"05-glitter.jpg"},
+  {"id":"06-glam","name":"글램 · 강한 윤곽과 선명한 립","category":"dramatic","prompt":"glam makeup with strong contouring and a vivid lip color","image":"06-glam.jpg"},
+  {"id":"07-cat-eye","name":"캣아이 · 강한 아이라인과 립","category":"dramatic","prompt":"bold styling with cat-eye liner and a strong lip color","image":"07-cat-eye.jpg"},
+  {"id":"08-under-eye","name":"글로시 립 · 언더아이 펄","category":"glow","prompt":"glossy lips with sparkling under-eye shimmer","image":"08-under-eye.jpg"},
+  {"id":"09-summer","name":"서머 에디토리얼 · 브론즈","category":"editorial","prompt":"summer editorial styling with wet hair and bronze makeup","image":"09-summer.jpg"},
+  {"id":"10-brown","name":"내추럴 브라운 · 깊은 눈매","category":"natural","prompt":"natural brown contour makeup creating deeper eyes","image":"10-brown.jpg"},
+  {"id":"11-radiance","name":"촉촉한 광채 · 글로시 립과 하이라이터","category":"glow","prompt":"glossy lips and shimmering highlighter for hydrated radiance","image":"11-radiance.jpg"},
+  {"id":"12-opal","name":"오팔 펄 · 촉촉한 글로시 립","category":"glow","prompt":"opal pearl highlighter with moist glossy lips","image":"12-opal.jpg"},
+  {"id":"13-red-lip","name":"포인트 레드 립","category":"dramatic","prompt":"statement red-lip makeup drawing strong attention","image":"13-red-lip.jpg"},
+  {"id":"14-peach","name":"피치 톤 · 생기 있는 볼과 입술","category":"natural","prompt":"peach-toned makeup with soft lively cheeks and lips","image":"14-peach.jpg"},
+  {"id":"15-glass-skin","name":"글래스 스킨 · 투명한 광채","category":"glow","prompt":"glass-skin glow makeup with luminous highlights","image":"15-glass-skin.jpg"},
+  {"id":"16-semi-matte","name":"세미매트 · 정돈된 피부결","category":"natural","prompt":"semi-matte base makeup with polished skin texture","image":"16-semi-matte.jpg"},
+  {"id":"17-douyin","name":"도우인 · 길고 선명한 아이라인","category":"regional","prompt":"Douyin-style Chinese makeup with long crisp eyeliner","image":"17-douyin.jpg"},
+  {"id":"18-japanese","name":"일본 청순 · 은은한 블러시와 립","category":"regional","prompt":"Japanese innocent makeup with subtle blush and glossy lips","image":"18-japanese.jpg"},
+  {"id":"19-kpop","name":"K-pop 아이돌 · 또렷한 눈과 물광 피부","category":"regional","prompt":"K-pop idol makeup with defined eyes and dewy skin","image":"19-kpop.jpg"},
+  {"id":"20-apricot","name":"소프트 퓨어 · 살구 블러시와 틴트 립","category":"natural","prompt":"soft pure makeup with apricot blush and tinted lips","image":"20-apricot.jpg"}
+]

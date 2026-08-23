@@ -106,6 +106,44 @@ class TemporaryStorageTest(unittest.TestCase):
 
 
 class RecoveryTest(unittest.TestCase):
+    def test_corrupt_aac_partial_is_remuxed_for_recovery(self):
+        with tempfile.TemporaryDirectory() as root:
+            work_dir = Path(root)
+            partial = work_dir / "source.mp4.part"
+            partial.write_bytes(b"x" * (16 << 20))
+
+            def fake_prepare(command, timeout, request_id):
+                Path(command[-1]).write_bytes(b"recovered-media")
+                return ""
+
+            probe = {
+                "streams": [
+                    {"codec_type": "video", "codec_name": "h264"},
+                    {"codec_type": "audio", "codec_name": "aac"},
+                ]
+            }
+            with (
+                patch.object(api, "probe_media", return_value=probe),
+                patch.object(api, "probe_duration", return_value=120.0),
+                patch.object(api, "run_prepare_command", side_effect=fake_prepare) as prepare,
+            ):
+                recovered = api.recover_corrupt_partial_download(
+                    work_dir, "AAC: Error submitting packet to decoder"
+                )
+
+            self.assertEqual(recovered, work_dir / "source.recovered.mp4")
+            command = prepare.call_args.args[0]
+            self.assertIn("+discardcorrupt", command)
+            self.assertIn("ignore_err", command)
+
+    def test_network_failure_does_not_accept_partial_download(self):
+        with tempfile.TemporaryDirectory() as root:
+            work_dir = Path(root)
+            (work_dir / "source.mp4.part").write_bytes(b"x" * (16 << 20))
+            self.assertIsNone(
+                api.recover_corrupt_partial_download(work_dir, "HTTP Error 403: Forbidden")
+            )
+
     def test_request_id_uses_durable_work_directory(self):
         with tempfile.TemporaryDirectory() as root, patch.object(api, "DATA_DIR", Path(root)):
             self.assertEqual(

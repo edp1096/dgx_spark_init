@@ -14,9 +14,19 @@ engines:
     endpoint: http://127.0.0.1:8696
   media:
     endpoint: http://127.0.0.1:8697
+  trainer:
+    endpoint: http://127.0.0.1:8704
+  upscale:
+    endpoint: http://127.0.0.1:8698
 
 image:
-  model: flux2-klein-4b-nvfp4
+  model: krea2-turbo-nvfp4
+  default_mode: create
+  default_prompt_enhancer: false
+  backends:
+    create:
+      endpoint: http://127.0.0.1:8691
+      model: krea2-turbo-nvfp4
   default_width: 1024
   default_height: 1024
   max_reference_images: 4
@@ -47,6 +57,12 @@ prompt_enhancement:
   default_enabled: true
   vision_enabled: false
   max_tokens: 600
+
+image_metadata:
+  creator: ""
+  copyright: ""
+  website: ""
+  note: ""
 
 storage:
   cleanup_on_startup: true

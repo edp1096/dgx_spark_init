@@ -193,6 +193,72 @@ func (s *Server) createSubtitle(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusAccepted, j)
 }
 
+func (s *Server) retrySubtitle(w http.ResponseWriter, r *http.Request) {
+	j, ok := s.jobs.Get(r.PathValue("id"))
+	if !ok {
+		http.NotFound(w, r)
+		return
+	}
+	if j.Kind != "recognition" || (j.Status != "failed" && j.Status != "cancelled") {
+		http.Error(w, "only failed or cancelled subtitle jobs can be resumed", http.StatusConflict)
+		return
+	}
+	for _, active := range s.jobs.List() {
+		if active.ID != j.ID && active.Kind == "recognition" && (active.Status == "queued" || active.Status == "running") {
+			http.Error(w, "another subtitle job is active", http.StatusConflict)
+			return
+		}
+	}
+
+	inputDir := filepath.Join(s.dataDir, "inputs", j.ID)
+	sourceURL := ""
+	inputPath := ""
+	if jobStringParam(j.Params, "source", "file") == "url" {
+		sourceURL = j.Prompt
+	} else {
+		matches, _ := filepath.Glob(filepath.Join(inputDir, "source.*"))
+		if len(matches) == 0 {
+			http.Error(w, "saved source media is missing", http.StatusConflict)
+			return
+		}
+		inputPath = matches[0]
+	}
+
+	workerJob := j
+	workerJob.Status = "queued"
+	workerJob.Error = ""
+	workerJob.OutputURL = ""
+	workerJob.Outputs = nil
+	workerJob.CaptionURL = ""
+	workerJob.Params = make(map[string]any, len(j.Params))
+	for key, value := range j.Params {
+		workerJob.Params[key] = value
+	}
+	for _, key := range []string{
+		"media_downloaded_bytes", "media_total_bytes", "media_percent", "media_eta_seconds",
+		"current_segment", "recognized_segments", "text", "cues",
+	} {
+		delete(workerJob.Params, key)
+	}
+	workerJob.Params["stage"] = "queued"
+	if err := s.jobs.Save(workerJob); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	formats := jobStringSliceParam(workerJob.Params, "output_formats", s.config().Recognition.DefaultOutputFormats)
+	go s.runSubtitle(
+		workerJob, inputDir, inputPath, sourceURL,
+		jobStringParam(workerJob.Params, "language", s.config().Recognition.DefaultLanguage),
+		jobStringParam(workerJob.Params, "context", ""), formats,
+		jobStringParam(workerJob.Params, "translation_mode", s.config().Recognition.DefaultTranslationMode),
+		jobStringParam(workerJob.Params, "target_language", s.config().Recognition.DefaultTranslationLanguage),
+		jobStringParam(workerJob.Params, "media_part", ""),
+		jobStringParam(workerJob.Params, "media_source", ""),
+	)
+	writeJSON(w, http.StatusAccepted, workerJob)
+}
+
 func parseOutputFormats(value string, defaults []string) ([]string, error) {
 	if strings.TrimSpace(value) == "" {
 		return append([]string(nil), defaults...), nil
@@ -224,38 +290,52 @@ func (s *Server) runSubtitle(j jobs.Job, inputDir, inputPath, sourceURL, languag
 	j.Params["stage"] = "media"
 	j.Params["media_stage"] = "starting"
 	_ = s.jobs.Save(j)
-	archivePath := filepath.Join(inputDir, "prepared.zip")
-	fields := map[string]string{"segment_seconds": strconv.Itoa(s.config().Recognition.SegmentSeconds)}
-	paths := []string{}
-	if sourceURL != "" {
-		fields["url"] = sourceURL
-		if mediaPart != "" {
-			fields["media_part"] = mediaPart
+	preparedDir := filepath.Join(inputDir, "prepared")
+	manifest, preparedErr := readPreparedManifest(preparedDir)
+	if preparedErr == nil {
+		for _, segment := range manifest.Segments {
+			if info, err := os.Stat(filepath.Join(preparedDir, segment.Name)); err != nil || info.Size() == 0 {
+				preparedErr = fmt.Errorf("saved media segment is missing")
+				break
+			}
 		}
-		if mediaSource != "" {
-			fields["media_source"] = mediaSource
-		}
-	} else {
-		paths = []string{inputPath}
 	}
-	fields["request_id"] = j.ID
-	endpoint := s.config().Engines["media"].Endpoint + "/v1/media/prepare"
-	if err := s.prepareMediaWithProgress(&j, endpoint, fields, paths, archivePath); err != nil {
-		if errors.Is(err, errJobCancelled) || s.jobCancelled(j.ID) {
+	if preparedErr != nil {
+		archivePath := filepath.Join(inputDir, "prepared.zip")
+		fields := map[string]string{"segment_seconds": strconv.Itoa(s.config().Recognition.SegmentSeconds)}
+		paths := []string{}
+		if sourceURL != "" {
+			fields["url"] = sourceURL
+			if mediaPart != "" {
+				fields["media_part"] = mediaPart
+			}
+			if mediaSource != "" {
+				fields["media_source"] = mediaSource
+			}
+		} else {
+			paths = []string{inputPath}
+		}
+		fields["request_id"] = j.ID
+		endpoint := s.config().Engines["media"].Endpoint + "/v1/media/prepare"
+		if err := s.prepareMediaWithProgress(&j, endpoint, fields, paths, archivePath); err != nil {
+			if errors.Is(err, errJobCancelled) || s.jobCancelled(j.ID) {
+				return
+			}
+			s.fail(j, fmt.Errorf("media preparation: %w", err))
 			return
 		}
-		s.fail(j, fmt.Errorf("media preparation: %w", err))
-		return
-	}
-	preparedDir := filepath.Join(inputDir, "prepared")
-	if err := extractPreparedArchive(archivePath, preparedDir); err != nil {
-		s.fail(j, err)
-		return
-	}
-	manifest, err := readPreparedManifest(preparedDir)
-	if err != nil {
-		s.fail(j, err)
-		return
+		if err := extractPreparedArchive(archivePath, preparedDir); err != nil {
+			s.fail(j, err)
+			return
+		}
+		manifest, preparedErr = readPreparedManifest(preparedDir)
+		if preparedErr != nil {
+			s.fail(j, preparedErr)
+			return
+		}
+	} else {
+		j.Params["media_stage"] = "resuming"
+		_ = s.jobs.Save(j)
 	}
 	if manifest.Asset != nil && manifest.Asset.ID != "" {
 		j.MediaAssetID = manifest.Asset.ID
@@ -435,6 +515,7 @@ func (s *Server) ResumeInterruptedJobs() (resumed, failed int) {
 
 		formats := jobStringSliceParam(persisted.Params, "output_formats", s.config().Recognition.DefaultOutputFormats)
 		workerJob := persisted
+		workerJob.Error = ""
 		workerJob.Params = make(map[string]any, len(persisted.Params))
 		for key, value := range persisted.Params {
 			workerJob.Params[key] = value
