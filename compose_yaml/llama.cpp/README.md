@@ -116,6 +116,58 @@ API key:  필요 없음
 - SparkMedia: 프롬프트 향상 등 OpenAI 호환 호출에 같은 엔진 사용
 - LiteRT-LM: 서비스 중지 및 `compose_yaml/zzz_not_use/gemma4_litert`로 이동
 
+## 선택 사항: mmproj 멀티모달
+
+이미지 입력이 필요하면 텍스트 모델과 호환되는 `mmproj` GGUF 파일을 모델 디렉터리에
+넣고 활성화한다. 현재 기본 구성은 아래 파일을 자동으로 사용한다.
+
+```text
+/home/edp1096/.cache/gguf/huihui-gemma4-e2b-qat/mmproj-model-bf16.gguf
+```
+
+호스트 직접 실행 또는 systemd에서는 `llama-server.env`에 다음 값을 지정한다.
+
+```bash
+LLAMA_MMPROJ_ENABLED=true
+LLAMA_MMPROJ_FILE=mmproj-model-bf16.gguf
+```
+
+설정을 바꾼 뒤 서비스를 재시작한다.
+
+```bash
+systemctl --user restart llama-cpp-spark.service
+journalctl --user -u llama-cpp-spark.service -n 100 --no-pager
+```
+
+Docker Compose도 같은 환경변수를 사용한다.
+
+```bash
+LLAMA_MMPROJ_ENABLED=true \
+LLAMA_MMPROJ_FILE=mmproj-model-bf16.gguf \
+docker compose up -d --build
+```
+
+멀티모달이 필요 없으면 `LLAMA_MMPROJ_ENABLED=false`로 설정한다. 호환되지 않는
+mmproj를 사용하면 이미지 인식 품질 저하나 로딩 실패가 발생할 수 있으므로 모델과
+함께 배포된 파일을 사용한다.
+
+JPEG 이미지 입력 확인 예제:
+
+```bash
+base64 -w0 /path/to/image.jpg | jq -Rs '{
+    model: "huihui-gemma4-e2b",
+    messages: [{
+      role: "user",
+      content: [
+        {type: "text", text: "이 이미지를 한 문장으로 설명해줘."},
+        {type: "image_url", image_url: {url: ("data:image/jpeg;base64," + .)}}
+      ]
+    }]
+  }' | curl -fsS http://127.0.0.1:8696/v1/chat/completions \
+    -H 'Content-Type: application/json' \
+    --data-binary @-
+```
+
 ## 확인
 
 ```bash
