@@ -1,0 +1,77 @@
+diff --git a/experimental/server/engine.py b/experimental/server/engine.py
+index d6296bc..ac108d2 100644
+--- a/experimental/server/engine.py
++++ b/experimental/server/engine.py
+@@ -46,6 +46,8 @@
++import io
+ from pathlib import Path
+ from typing import Any, Dict, Generator, List, Optional, Sequence, Union
+
++from .media_source import decode_base64_data_url, resolve_file_url
+ from .tool_calling import (ToolConfig, parse_assistant_output,
+                            validate_tool_request)
+ from .tool_chat_template import (ToolChatTemplateFormatter,
+@@ -1939,11 +1941,12 @@ def _convert_messages_to_cpp(rt_module, messages: List[Dict[str, Any]]):
+                                 "text",
+                                 item.get("text", ""),
+                             ))
+-                    elif ct == "image":
++                    elif ct in ("image", "image_url"):
++                        image_ref = item.get("image", "") if ct == "image" else ""
+                         contents_list.append(
+                             rt_module.MessageContent(
+                                 "image",
+-                                item.get("image", ""),
++                                image_ref,
+                             ))
+                     elif ct in ("video", "video_url"):
+                         # Frames are decoded out-of-band by _load_image_buffers; the chat
+@@ -2040,12 +2043,42 @@ def _load_image_buffers(rt_module,
+     # matches them positionally against the placeholders).
+     for item in items:
+         itype = item.get("type")
+-        if itype == "image":
+-            path = item.get("image", "")
+-            if path and os.path.isfile(path):
+-                image = rt_module.load_image_from_path(path)
+-                image.do_resize = bool(item.get("do_resize", True))
+-                images.append(image)
++        if itype in ("image", "image_url"):
++            image = None
++            if itype == "image":
++                path = item.get("image", "")
++                if path and os.path.isfile(path):
++                    image = rt_module.load_image_from_path(path)
++            else:
++                ref = item.get("image_url", "")
++                url = ref.get("url", "") if isinstance(ref, dict) else ref
++                if url.startswith("data:"):
++                    data = decode_base64_data_url(
++                        url,
++                        "image",
++                        strict=True,
++                        max_bytes=64 * 1024 * 1024,
++                    )
++                    if (len(data) >= 12 and data[:4] == b"RIFF"
++                            and data[8:12] == b"WEBP"):
++                        from PIL import Image as PILImage
++                        source = io.BytesIO(data)
++                        converted = io.BytesIO()
++                        with PILImage.open(source) as webp:
++                            webp.save(converted, format="PNG")
++                        data = converted.getvalue()
++                    image = rt_module.load_image_from_bytes(data)
++                elif url.startswith("file:"):
++                    image = rt_module.load_image_from_path(resolve_file_url(url))
++                elif url and os.path.isfile(url):
++                    image = rt_module.load_image_from_path(url)
++                elif url:
++                    raise ValueError(
++                        "image_url currently supports data: and allowed local file URLs"
++                    )
++            if image is not None:
++                image.do_resize = bool(item.get("do_resize", True))
++                images.append(image)
+         elif itype in ("video", "video_url"):
+             from .video_sampling import MAX_DECODE_PIXELS, load_video_buffer
+             if pixel_budget is None:

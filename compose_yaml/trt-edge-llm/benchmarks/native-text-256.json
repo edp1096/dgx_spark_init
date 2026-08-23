@@ -1,0 +1,17 @@
+{
+  "batch_size": 1,
+  "temperature": 0.0,
+  "max_generate_length": 256,
+  "apply_chat_template": true,
+  "enable_thinking": true,
+  "requests": [
+    {
+      "messages": [
+        {
+          "role": "user",
+          "content": "DGX Spark 한 대에서 대화형 LLM과 이미지·영상 생성 서비스를 함께 운영할 때 통합 메모리를 효율적으로 배분하는 원칙을 기술적으로 자세히 설명해라. 약 1,500자 분량으로 작성해라."
+        }
+      ]
+    }
+  ]
+}

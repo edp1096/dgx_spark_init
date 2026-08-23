@@ -1,0 +1,17 @@
+diff --git a/tensorrt_edgellm/model.py b/tensorrt_edgellm/model.py
+index ce089a9..00ab541 100644
+--- a/tensorrt_edgellm/model.py
++++ b/tensorrt_edgellm/model.py
+@@ -615,7 +615,11 @@ def _inherit_dflash_lm_head_quant(draft_config: ModelConfig,
+         "layer_overrides": layer_overrides,
+     }
+     if use_base_group_size:
+-        quant_updates["group_size"] = base_quant.group_size
++        # A mixed-precision base can have an FP8 dominant group size of 1
++        # while only lm_head is NVFP4. NVFP4 always uses 16-value groups, so
++        # preserve the module layout instead of inheriting the unrelated
++        # dominant group's size.
++        quant_updates["group_size"] = 16 if lm_head_quant == QUANT_NVFP4 else base_quant.group_size
+     if lm_head_quant == QUANT_INT4_GPTQ:
+         quant_updates[
+             "gptq_zero_point_offset"] = base_quant.gptq_zero_point_offset

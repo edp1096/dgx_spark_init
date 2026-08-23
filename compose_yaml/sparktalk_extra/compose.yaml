@@ -14,7 +14,7 @@ services:
     restart: unless-stopped
     init: true
     ports:
-      - "${SPARKTALK_EXTRA_MEDIA_BIND_ADDR:-127.0.0.1}:${SPARKTALK_EXTRA_MEDIA_PORT:-8698}:8698"
+      - "${SPARKTALK_EXTRA_MEDIA_BIND_ADDR:-127.0.0.1}:${SPARKTALK_EXTRA_MEDIA_PORT:-8690}:8698"
     user: "${PUID:-1000}:${PGID:-1000}"
     environment:
       SPARKTALK_EXTRA_MEDIA_LISTEN_ADDR: 0.0.0.0:8698

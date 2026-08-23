@@ -23,7 +23,7 @@ model:
 asr:
   # 음성은 전사 텍스트로, 영상은 영상과 음성 전사를 함께 모델에 전달합니다.
   enabled: true
-  ffmpeg_endpoint: http://127.0.0.1:8698
+  ffmpeg_endpoint: http://127.0.0.1:8690
   endpoint: http://127.0.0.1:8694
   model: qwen3-asr
   # auto 또는 Qwen3-ASR이 지원하는 언어명을 입력합니다.

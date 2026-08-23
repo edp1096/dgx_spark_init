@@ -1,0 +1,5 @@
+upstream
+artifacts
+workspace
+results
+.git

@@ -289,7 +289,7 @@ func (c *Config) Normalize() {
 		c.Server.Database = "sparktalk.db"
 	}
 	if c.ASR.FFmpegEndpoint == "" {
-		c.ASR.FFmpegEndpoint = "http://127.0.0.1:8698"
+		c.ASR.FFmpegEndpoint = "http://127.0.0.1:8690"
 	}
 	if c.ASR.Endpoint == "" {
 		c.ASR.Endpoint = "http://127.0.0.1:8694"

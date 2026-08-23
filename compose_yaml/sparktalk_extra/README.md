@@ -6,7 +6,7 @@ Makefile로 관리하지만, 신뢰할 수 없는 미디어 입력과 SSH 개인
 
 | 서비스 | 이미지·컨테이너 | 기본 주소 | 역할 |
 |---|---|---|---|
-| Media | `sparktalk-extra-media` | `127.0.0.1:8698` | FFmpeg, yt-dlp, Deno를 이용한 미디어 취득·변환 |
+| Media | `sparktalk-extra-media` | `127.0.0.1:8690` | FFmpeg, yt-dlp, Deno를 이용한 미디어 취득·변환 |
 | SSH | `sparktalk-extra-ssh` | `127.0.0.1:8699` | 등록 서버 연결 확인, 호스트 키 검증, 승인된 명령 실행 |
 
 Cloudflare 통과나 브라우저 자동화가 필요한 미디어 사이트는 별도의
@@ -164,21 +164,22 @@ SparkTalk 화면에서 기본적으로 개별 승인하며 stdout/stderr, 종료
 
 ## Media API
 
-기존 8698 API 경로를 그대로 유지한다.
+컨테이너 내부 API는 8698을 유지하고, 호스트에서는 SeedVR2의 8698과 충돌하지
+않도록 8690으로 공개한다.
 
 ```bash
-curl http://127.0.0.1:8698/health
+curl http://127.0.0.1:8690/health
 
 curl --data-binary @input.mp4 -H 'Content-Type: video/mp4' \
-  http://127.0.0.1:8698/v1/probe
+  http://127.0.0.1:8690/v1/probe
 
 curl -F file=@input.mp4 \
-  'http://127.0.0.1:8698/v1/audio/extract?sample_rate=16000&channels=1' \
+  'http://127.0.0.1:8690/v1/audio/extract?sample_rate=16000&channels=1' \
   -o audio.wav
 
 curl -H 'Content-Type: application/json' \
   -d '{"url":"https://www.youtube.com/watch?v=VIDEO_ID","max_download_mb":64,"max_height":720}' \
-  http://127.0.0.1:8698/v1/source/download -o media.mp4
+  http://127.0.0.1:8690/v1/source/download -o media.mp4
 ```
 
 모델 영상 디코더와의 호환성을 위해 URL 영상은 용량 한도 안에서 H.264
@@ -216,7 +217,7 @@ curl -H 'Content-Type: application/json' \
 
 | 변수 | 기본값 | 의미 |
 |---|---:|---|
-| `SPARKTALK_EXTRA_MEDIA_PORT` | `8698` | Media 호스트 포트 |
+| `SPARKTALK_EXTRA_MEDIA_PORT` | `8690` | Media 호스트 포트 |
 | `SPARKTALK_EXTRA_SSH_PORT` | `8699` | SSH 호스트 포트 |
 | `SPARKTALK_EXTRA_SSH_DATA_DIR` | 사용자 데이터 폴더 | 전용 키와 known_hosts 위치 |
 | `SPARKTALK_EXTRA_SSH_MAX_CONCURRENCY` | `2` | 동시 SSH 명령 수 |

@@ -28,7 +28,7 @@ func TestLoadCreatesEmbeddedDefaultAndSaveReloads(t *testing.T) {
 	if !cfg.Context.Enabled || cfg.Context.CompactAtPercent != 80 || cfg.Context.OutputReserve != 8192 {
 		t.Fatalf("generated context defaults are incomplete: %+v", cfg.Context)
 	}
-	if !cfg.ASR.Enabled || cfg.ASR.FFmpegEndpoint != "http://127.0.0.1:8698" || cfg.ASR.Endpoint != "http://127.0.0.1:8694" {
+	if !cfg.ASR.Enabled || cfg.ASR.FFmpegEndpoint != "http://127.0.0.1:8690" || cfg.ASR.Endpoint != "http://127.0.0.1:8694" {
 		t.Fatalf("generated ASR defaults are incomplete: %+v", cfg.ASR)
 	}
 	if !cfg.TTS.Enabled || cfg.TTS.Endpoint != "http://127.0.0.1:8692" || cfg.TTS.Voice != "Sohee" || cfg.TTS.Seed != -1 {

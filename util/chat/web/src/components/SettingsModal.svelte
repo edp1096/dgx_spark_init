@@ -152,7 +152,7 @@
           <small class="settings-inline-help">자주 말하는 제품명·인명·약어를 정확한 표기로 적으십시오. 긴 지시문보다 짧은 문맥과 용어 목록이 적합합니다.</small>
           <label class="check"><input type="checkbox" bind:checked={settings.asr.filter_fillers} /> 음성대기에서 단독 추임새·문장부호 무시</label>
           <details class="settings-advanced"><summary>연결 및 고급 설정</summary><div class="settings-advanced-body">
-            <label>SparkTalk Extra Media endpoint<input bind:value={settings.asr.ffmpeg_endpoint} placeholder="http://127.0.0.1:8698" /></label>
+            <label>SparkTalk Extra Media endpoint<input bind:value={settings.asr.ffmpeg_endpoint} placeholder="http://127.0.0.1:8690" /></label>
             <label>ASR API endpoint<input bind:value={settings.asr.endpoint} placeholder="http://127.0.0.1:8694" /></label>
             <label>ASR 모델<input bind:value={settings.asr.model} placeholder="qwen3-asr" /></label>
             <label>처리 타임아웃<input bind:value={settings.asr.timeout} placeholder="30m" /></label>
