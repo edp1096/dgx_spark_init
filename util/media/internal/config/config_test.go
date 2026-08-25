@@ -39,7 +39,7 @@ recognition:
 	if got := cfg.Engines["prompt"].Endpoint; got != "http://127.0.0.1:8696" {
 		t.Fatalf("prompt endpoint=%q", got)
 	}
-	if cfg.PromptEnhancement.Model != "huihui-gemma4-e2b" || cfg.PromptEnhancement.MaxTokens != 600 {
+	if cfg.PromptEnhancement.Model != "huihui-gemma4-12b" || !cfg.PromptEnhancement.VisionEnabled || cfg.PromptEnhancement.MaxTokens != 600 {
 		t.Fatalf("prompt enhancement defaults=%#v", cfg.PromptEnhancement)
 	}
 	if cfg.Recognition.Model != "Qwen/Qwen3-ASR-1.7B" {

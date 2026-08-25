@@ -8,7 +8,10 @@ RUN git clone https://github.com/facok/comfyui-krea2-controlnet.git \
 RUN git clone https://github.com/lbouaraba/comfyui-krea2edit.git \
       /opt/ComfyUI/custom_nodes/comfyui-krea2edit \
     && cd /opt/ComfyUI/custom_nodes/comfyui-krea2edit \
-    && git checkout 86f886dac23013d88996e3a2e99093ba44d322fb
+    # The published outfit+pose reference workflow embeds node v1.2.3.  Newer
+    # v1.2.4/1.2.5 releases change reference geometry and pre-encode timing,
+    # which makes the same seed and inputs produce a materially different edit.
+    && git checkout cae442e11b59bcba04ed82f4c01ffe3752531fe1
 
 RUN git clone https://github.com/ethanfel/ComfyUI-Krea2TextEncoder.git \
       /opt/ComfyUI/custom_nodes/ComfyUI-Krea2TextEncoder \
@@ -37,7 +40,7 @@ RUN git clone https://github.com/capitan01R/ComfyUI-Krea2T-Enhancer.git \
     && git checkout 6666ffb729b2afc8ecdffd3cb6f121555ec948cb
 
 WORKDIR /opt/nvfp4-api
-COPY api.py prepare_models.py start.sh ./
+COPY api.py civitai_models.py krea2_nvfp4.py prepare_models.py start.sh ./
 RUN chmod +x start.sh
 
 EXPOSE 8691

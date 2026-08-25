@@ -32,7 +32,36 @@ const paintRules = `You are an expert prompt writer for Krea 2 AnyPaint inpainti
 
 Make the requested addition, replacement, removal, or extension unambiguous. Preserve every stated subject, count, identity, color, material, text, style, and spatial constraint. Do not invent changes to unmasked content or describe an entirely new scene. For a short edit instruction, add only the visual properties needed to render the requested region coherently with the source, such as matching perspective, lighting, texture, scale, and boundary continuity. For a detailed or composer-built prompt, consolidate and lightly polish without adding content. Output only one concise English paragraph with no heading, explanation, JSON, markdown, negative prompt, or alternatives.`
 
-const editRules = `You are an expert prompt writer for Krea 2 Identity Edit. The user supplies separate Change and Preserve instructions. Rewrite them as one concise English edit command. Make requested changes explicit while retaining every Preserve constraint, especially identity, facial features, hair, body proportions, clothing, pose, framing, background, lighting, text and untouched regions when named. Resolve ambiguity in favor of preservation and never invent an alteration that conflicts with Preserve. Do not repeat the source-image description as a new scene, and do not output headings, labels, JSON, negative prompts, explanations or alternatives. Aim for 45-100 words.`
+const editRules = `You rewrite an additional user instruction for Krea 2 Identity Edit. The application supplies the source and supporting reference images separately and adds the selected module's core edit commands after this rewrite.
+
+Translate or lightly normalize only what the user asked. Output one short, direct English edit sentence, normally 5-30 words. Do not turn it into a scene description. Do not describe the source image, supporting image, identity consistency, preservation policy, composition, lighting, or unchanged content unless the user explicitly asks to change that item. Never invent clothing, anatomy, a pose, a setting, or a preservation rule. Do not output headings, labels, JSON, negative prompts, explanations, alternatives, or phrases such as "while preserving".`
+
+const editControlRules = `You rewrite an additional user instruction for Krea 2 Identity Edit with a separate pose reference. The application itself adds the reference-outfit or other selected edit command and the pose command after this rewrite.
+
+Translate or lightly normalize only what the user asked. Output one short, direct English edit sentence, normally 5-30 words. Do not describe or preserve the source pose, source composition, source clothing, source scene, identity consistency, Depth map, silhouette, framing, viewpoint, background, lighting, or unchanged content unless the user explicitly asks to change that item. Never invent a garment, pose, setting, anatomy detail, or preservation policy. Do not output headings, labels, JSON, negative prompts, explanations, alternatives, or phrases such as "while preserving".`
+
+// EditModuleContext tells the prompt model what the UI has already wired. It is
+// system-owned context rather than user text, so Gemma can avoid contradicting
+// a selected module without leaking a long preservation contract into Krea.
+func EditModuleContext(preset string, preserved []string) string {
+	role := map[string]string{
+		"restage":    "The source image supplies the person; the user is changing the scene or staging.",
+		"sheet":      "The application is creating a multi-view character sheet from the source person.",
+		"faceSwap":   "Image One is the destination and Image Two supplies only the replacement face.",
+		"headSwap":   "Image One is the destination and Image Two supplies the replacement head.",
+		"personSwap": "Image One is the destination scene and Image Two supplies the replacement person.",
+		"tryon":      "Image One is the destination person and the supporting image supplies the complete replacement outfit.",
+		"replace":    "The source is the destination and the selected reference or mask supplies the requested replacement.",
+	}[preset]
+	if role == "" {
+		role = "The source image is the destination for the requested edit."
+	}
+	context := "\n\nActive UI module context: " + role
+	if len(preserved) > 0 {
+		context += " The UI marks these source properties as preserved unless the user's requested change directly targets one: " + strings.Join(preserved, ", ") + "."
+	}
+	return context + " Use this only to prevent contradictions; do not recite it in the output."
+}
 
 func System(mode string, vision bool) string {
 	if strings.EqualFold(mode, "t2i") {
@@ -40,6 +69,9 @@ func System(mode string, vision bool) string {
 	}
 	if strings.EqualFold(mode, "edit") {
 		return editRules
+	}
+	if strings.EqualFold(mode, "edit_control") {
+		return editControlRules
 	}
 	if strings.EqualFold(mode, "control") {
 		return controlRules

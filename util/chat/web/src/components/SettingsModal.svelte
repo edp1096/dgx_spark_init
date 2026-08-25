@@ -93,6 +93,7 @@
         tts: settings.tts,
         context: settings.context,
         tools: settings.tools,
+        image: settings.image,
         extra: settings.extra,
         appearance: settings.appearance,
         api_key: settingsAPIKey,
@@ -187,6 +188,18 @@
       </div>
 
       <div id="settings-panel-tools" class="settings-tab-panel" class:active={activeTab === 'tools'} role="tabpanel" aria-labelledby="settings-tab-tools">
+        <fieldset>
+          <legend>Krea 2 이미지</legend>
+          <label class="check"><input type="checkbox" bind:checked={settings.image.enabled} /> 대화형 이미지 생성·편집 도구 활성화</label>
+          <label>기본 해상도<input bind:value={settings.image.default_size} placeholder="1024x1024" /></label>
+          <details class="settings-advanced"><summary>연결 및 고급 설정</summary><div class="settings-advanced-body">
+            <label>Krea 2 API endpoint<input bind:value={settings.image.endpoint} placeholder="http://127.0.0.1:8691" /></label>
+            <label>이미지 모델<input bind:value={settings.image.model} placeholder="krea2-turbo-nvfp4" /></label>
+            <label>생성 타임아웃<input bind:value={settings.image.timeout} placeholder="30m" /></label>
+          </div></details>
+          {#if serviceHealth?.image}<div class="media-usage"><span>Krea 2 · {serviceHealth.image.status === 'ok' ? 'online' : serviceHealth.image.status}</span></div>{/if}
+          <small>Qwen3.8이 프롬프트를 확장하고 설치된 LoRA·참조 편집·구조 제어를 조합합니다.</small>
+        </fieldset>
         <fieldset>
           <legend>웹·미디어 도구</legend>
           <label class="check"><input type="checkbox" bind:checked={settings.tools.enabled} /> web_search / web_fetch 활성화</label>

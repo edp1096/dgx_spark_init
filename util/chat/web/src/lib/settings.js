@@ -8,6 +8,7 @@ export function normalizePublicSettings(settings) {
   settings.asr ||= {};
   settings.tts ||= {};
   settings.tools ||= {};
+  settings.image ||= { enabled: true, endpoint: 'http://127.0.0.1:8691', model: 'krea2-turbo-nvfp4', default_size: '1024x1024', timeout: '30m' };
   settings.extra ||= {};
   settings.appearance ||= {};
   if (!Array.isArray(settings.model.system_prompt_presets)) settings.model.system_prompt_presets = [];

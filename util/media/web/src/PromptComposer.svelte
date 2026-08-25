@@ -1,11 +1,13 @@
 <script>
-  import { onDestroy } from 'svelte'
+  import { onDestroy, onMount } from 'svelte'
   import PoseLibraryModal from './PoseLibraryModal.svelte'
   import MakeupLibraryModal from './MakeupLibraryModal.svelte'
   import { lockModalScroll } from './modalScroll.js'
 
   export let onApply = () => {}
   export let activeStyles = []
+  export let compact = false
+  export let storageKey = ''
 
   let expanded = false
   let selections = {}
@@ -19,6 +21,26 @@
   let composerWarnings = []
   let selectedCount = 0
   let releaseScroll = null
+  let storageReady = false
+  let lastStoredState = ''
+
+  onMount(() => {
+    if (storageKey) {
+      try {
+        const saved = JSON.parse(localStorage.getItem(storageKey) || 'null')
+        if (saved && typeof saved === 'object') {
+          selections = saved.selections && typeof saved.selections === 'object' ? saved.selections : {}
+          customValues = saved.customValues && typeof saved.customValues === 'object' ? saved.customValues : {}
+          selectedPose = saved.selectedPose || null
+          selectedMakeup = saved.selectedMakeup || null
+          exactText = typeof saved.exactText === 'string' ? saved.exactText : ''
+        }
+      } catch {
+        localStorage.removeItem(storageKey)
+      }
+    }
+    storageReady = true
+  })
 
   const actionPostures = new Set([
     'standing naturally and facing the camera', 'walking or running', 'seated in a relaxed pose',
@@ -352,6 +374,14 @@
     + Object.values(customValues).filter((value) => value.trim()).length
     + normalizedExactTexts(exactText).length
 
+  $: if (storageReady && storageKey) {
+    const state = JSON.stringify({ selections, customValues, selectedPose, selectedMakeup, exactText })
+    if (state !== lastStoredState) {
+      localStorage.setItem(storageKey, state)
+      lastStoredState = state
+    }
+  }
+
   $: {
     if (expanded && !releaseScroll) releaseScroll = lockModalScroll()
     else if (!expanded && releaseScroll) {
@@ -409,16 +439,16 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
-<button class="prompt-composer" type="button" aria-haspopup="dialog" onclick={() => expanded = true}>
-  <span>프롬프트 조립기</span>{#if selectedCount}<b>{selectedCount}개 선택</b>{/if}
+<button class="prompt-composer" class:compact type="button" aria-haspopup="dialog" onclick={() => expanded = true}>
+  <span class="composer-label-full">{compact ? '조립' : '프롬프트 조립기'}</span>{#if compact}<span class="composer-label-short">조립</span>{/if}{#if selectedCount}<b>{compact ? `${selectedCount}개` : `${selectedCount}개 선택`}</b>{/if}
 </button>
 
 {#if expanded}
   <div class="composer-modal-backdrop" role="presentation" onclick={(event) => { if (event.target === event.currentTarget) expanded = false }}>
-    <section class="composer-modal" role="dialog" aria-modal="true" aria-label="Krea 2 프롬프트 조립기">
+    <section class="composer-modal" role="dialog" aria-modal="true" aria-label="프롬프트 조립기">
       <header>
         <div>
-          <strong>Krea 2 프롬프트 조립기</strong>
+          <strong>프롬프트 조립기</strong>
           <small>원하는 항목을 골라 상세 프롬프트를 만들고 새로 쓰거나 현재 프롬프트 뒤에 추가합니다.</small>
         </div>
         <button type="button" aria-label="닫기" onclick={() => expanded = false}>×</button>
@@ -528,6 +558,10 @@
 
   .prompt-composer:hover { border-color: #657a53; background: #172018; }
   .prompt-composer b { color: #a8d970; font-size: 8px; }
+  .prompt-composer.compact{min-height:0;height:auto;padding:6px 9px;border-color:var(--header-tool-border,#353c43);border-radius:8px;color:var(--header-tool-color,#a8e56d);background:transparent;font-size:9px;white-space:nowrap}
+  .prompt-composer.compact .composer-label-full,
+  .prompt-composer.compact .composer-label-short{color:inherit;font:inherit}
+  .composer-label-short{display:none}
 
   .composer-modal-backdrop {
     position: fixed;
@@ -741,7 +775,9 @@
   .composer-actions button:disabled { cursor: default; opacity: .42; }
 
   @media (max-width: 700px) {
-    .prompt-composer { padding: 0 9px; }
+    .prompt-composer:not(.compact) { padding: 0 9px; }
+    .prompt-composer.compact .composer-label-full{display:none}
+    .prompt-composer.compact .composer-label-short{display:inline}
     .composer-modal-backdrop { padding: 0; }
     .composer-modal { width: 100vw; height: 100dvh; border: 0; border-radius: 0; }
     .composer-modal > header { padding: 11px 12px; }

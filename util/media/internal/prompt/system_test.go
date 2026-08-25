@@ -11,7 +11,8 @@ func TestImageEnhancementModesHaveTaskSpecificRules(t *testing.T) {
 		want string
 	}{
 		{mode: "t2i", want: "55-100 words"},
-		{mode: "edit", want: "Change and Preserve"},
+		{mode: "edit", want: "one short, direct English edit sentence"},
+		{mode: "edit_control", want: "application itself adds"},
 		{mode: "control", want: "reference image controls pose"},
 		{mode: "paint", want: "AnyPaint inpainting and outpainting"},
 	}
@@ -21,6 +22,15 @@ func TestImageEnhancementModesHaveTaskSpecificRules(t *testing.T) {
 				t.Fatalf("System(%q) does not contain %q: %s", test.mode, test.want, got)
 			}
 		})
+	}
+}
+
+func TestIdentityEditModuleContextIsSystemOwnedAndSpecific(t *testing.T) {
+	got := EditModuleContext("tryon", []string{"identity", "background"})
+	for _, want := range []string{"supporting image supplies the complete replacement outfit", "identity, background", "do not recite"} {
+		if !strings.Contains(got, want) {
+			t.Fatalf("edit module context does not contain %q: %s", want, got)
+		}
 	}
 }
 

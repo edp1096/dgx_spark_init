@@ -1,5 +1,5 @@
 [Unit]
-Description=llama.cpp Gemma 4 E2B OpenAI-compatible server
+Description=llama.cpp Gemma 4 OpenAI-compatible server
 After=network-online.target
 Wants=network-online.target
 Before=media-app.service sparktalk.service

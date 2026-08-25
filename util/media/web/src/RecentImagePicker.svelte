@@ -8,6 +8,7 @@
   export let selectedRef = ''
   export let onSelect = () => {}
   export let onClose = () => {}
+  export let zIndex = 70
 
   let releaseScroll = null
   let visibleJobs = []
@@ -37,7 +38,7 @@
 <svelte:window onkeydown={handleKeydown} />
 
 {#if open}
-  <div class="recent-image-picker-backdrop" role="presentation" onclick={(event) => { if (event.target === event.currentTarget) onClose() }}>
+  <div class="recent-image-picker-backdrop" style:z-index={zIndex} role="presentation" onclick={(event) => { if (event.target === event.currentTarget) onClose() }}>
     <div class="recent-image-picker" role="dialog" aria-modal="true" aria-label={title}>
       <header>
         <div><strong>{title}</strong><small>Spark Media에 저장된 결과를 원본 그대로 재사용합니다.</small></div>

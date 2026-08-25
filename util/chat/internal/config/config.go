@@ -24,6 +24,7 @@ type Config struct {
 	TTS        TTSConfig        `yaml:"tts" json:"tts"`
 	Context    ContextConfig    `yaml:"context" json:"context"`
 	Tools      ToolsConfig      `yaml:"tools" json:"tools"`
+	Image      ImageConfig      `yaml:"image" json:"image"`
 	Extra      ExtraConfig      `yaml:"extra" json:"extra"`
 	Appearance AppearanceConfig `yaml:"appearance" json:"appearance"`
 }
@@ -97,6 +98,18 @@ type ToolsConfig struct {
 	Timeout            string `yaml:"timeout" json:"timeout"`
 }
 
+// ImageConfig connects SparkTalk's model tools directly to the local Krea 2
+// service. Prompt expansion is intentionally performed by the conversation
+// model when it builds the tool arguments, so this path does not need a second
+// prompt-enhancement model.
+type ImageConfig struct {
+	Enabled     bool   `yaml:"enabled" json:"enabled"`
+	Endpoint    string `yaml:"endpoint" json:"endpoint"`
+	Model       string `yaml:"model" json:"model"`
+	DefaultSize string `yaml:"default_size" json:"default_size"`
+	Timeout     string `yaml:"timeout" json:"timeout"`
+}
+
 type ExtraConfig struct {
 	SSHEnabled  bool   `yaml:"ssh_enabled" json:"ssh_enabled"`
 	SSHEndpoint string `yaml:"ssh_endpoint" json:"ssh_endpoint"`
@@ -115,6 +128,7 @@ type PublicConfig struct {
 	TTS        TTSConfig        `json:"tts"`
 	Context    ContextConfig    `json:"context"`
 	Tools      ToolsConfig      `json:"tools"`
+	Image      ImageConfig      `json:"image"`
 	Extra      ExtraConfig      `json:"extra"`
 	Appearance AppearanceConfig `json:"appearance"`
 	APIKeySet  bool             `json:"api_key_set"`
@@ -162,6 +176,9 @@ func Load(path string) (Config, bool, error) {
 			Enabled            *bool `yaml:"enabled"`
 			MediaImportEnabled *bool `yaml:"media_import_enabled"`
 		} `yaml:"tools"`
+		Image *struct {
+			Enabled *bool `yaml:"enabled"`
+		} `yaml:"image"`
 	}
 	_ = yaml.Unmarshal(data, &presence)
 	if presence.ASR == nil || presence.ASR.Enabled == nil {
@@ -184,6 +201,9 @@ func Load(path string) (Config, bool, error) {
 	}
 	if presence.Tools == nil || presence.Tools.MediaImportEnabled == nil {
 		cfg.Tools.MediaImportEnabled = true
+	}
+	if presence.Image == nil || presence.Image.Enabled == nil {
+		cfg.Image.Enabled = true
 	}
 	cfg.Normalize()
 	if err := cfg.Validate(); err != nil {
@@ -277,6 +297,10 @@ func (c *Config) Normalize() {
 	c.TTS.Voice = strings.TrimSpace(c.TTS.Voice)
 	c.TTS.Instructions = strings.TrimSpace(c.TTS.Instructions)
 	c.TTS.Timeout = strings.TrimSpace(c.TTS.Timeout)
+	c.Image.Endpoint = strings.TrimRight(strings.TrimSpace(c.Image.Endpoint), "/")
+	c.Image.Model = strings.TrimSpace(c.Image.Model)
+	c.Image.DefaultSize = strings.ToLower(strings.TrimSpace(c.Image.DefaultSize))
+	c.Image.Timeout = strings.TrimSpace(c.Image.Timeout)
 	c.Extra.SSHEndpoint = strings.TrimRight(strings.TrimSpace(c.Extra.SSHEndpoint), "/")
 	for i := range c.Model.SystemPromptPresets {
 		c.Model.SystemPromptPresets[i].Name = strings.TrimSpace(c.Model.SystemPromptPresets[i].Name)
@@ -332,6 +356,18 @@ func (c *Config) Normalize() {
 	}
 	if c.Tools.Timeout == "" {
 		c.Tools.Timeout = "15s"
+	}
+	if c.Image.Endpoint == "" {
+		c.Image.Endpoint = "http://127.0.0.1:8691"
+	}
+	if c.Image.Model == "" {
+		c.Image.Model = "krea2-turbo-nvfp4"
+	}
+	if c.Image.DefaultSize == "" {
+		c.Image.DefaultSize = "1024x1024"
+	}
+	if c.Image.Timeout == "" {
+		c.Image.Timeout = "30m"
 	}
 	if c.Extra.SSHEndpoint == "" {
 		c.Extra.SSHEndpoint = "http://127.0.0.1:8699"
@@ -420,6 +456,21 @@ func (c Config) Validate() error {
 		}
 		return fmt.Errorf("tools.timeout: %w", err)
 	}
+	if c.Image.Enabled && !strings.HasPrefix(c.Image.Endpoint, "http://") && !strings.HasPrefix(c.Image.Endpoint, "https://") {
+		return errors.New("image.endpoint must start with http:// or https://")
+	}
+	if c.Image.Enabled && c.Image.Model == "" {
+		return errors.New("image.model is required")
+	}
+	if !validImageSize(c.Image.DefaultSize) {
+		return errors.New("image.default_size must be WIDTHxHEIGHT using 512..2048 multiples of 16")
+	}
+	if timeout, err := time.ParseDuration(c.Image.Timeout); err != nil || timeout <= 0 {
+		if err == nil {
+			err = errors.New("must be greater than zero")
+		}
+		return fmt.Errorf("image.timeout: %w", err)
+	}
 	if c.Extra.SSHEnabled && !strings.HasPrefix(c.Extra.SSHEndpoint, "http://") && !strings.HasPrefix(c.Extra.SSHEndpoint, "https://") {
 		return errors.New("extra.ssh_endpoint must start with http:// or https://")
 	}
@@ -436,9 +487,17 @@ func (c Config) Validate() error {
 }
 
 func (c Config) Public() PublicConfig {
-	public := PublicConfig{Server: c.Server, Model: c.Model, ASR: c.ASR, TTS: c.TTS, Context: c.Context, Tools: c.Tools, Extra: c.Extra, Appearance: c.Appearance, APIKeySet: c.Model.APIKey != ""}
+	public := PublicConfig{Server: c.Server, Model: c.Model, ASR: c.ASR, TTS: c.TTS, Context: c.Context, Tools: c.Tools, Image: c.Image, Extra: c.Extra, Appearance: c.Appearance, APIKeySet: c.Model.APIKey != ""}
 	public.Model.APIKey = ""
 	return public
+}
+
+func validImageSize(value string) bool {
+	var width, height int
+	if _, err := fmt.Sscanf(value, "%dx%d", &width, &height); err != nil {
+		return false
+	}
+	return width >= 512 && width <= 2048 && height >= 512 && height <= 2048 && width%16 == 0 && height%16 == 0 && value == fmt.Sprintf("%dx%d", width, height)
 }
 
 func normalizeAvatar(value, fallback string) string {

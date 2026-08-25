@@ -11,7 +11,7 @@ import (
 	"image"
 	_ "image/gif"
 	_ "image/jpeg"
-	_ "image/png"
+	"image/png"
 	"io"
 	"io/fs"
 	"log"
@@ -35,68 +35,99 @@ import (
 )
 
 type Server struct {
-	cfgMu             sync.RWMutex
-	heavyMu           sync.Mutex
-	cfg               config.Config
-	configPath        string
-	dataDir           string
-	jobs              *jobs.Store
-	client            *http.Client
-	health            *http.Client
-	web               fs.FS
-	systemMu          sync.Mutex
-	systemStats       systemUsage
-	systemStatsAt     time.Time
-	cpuPrevTotal      uint64
-	cpuPrevIdle       uint64
-	subtitleQueueOnce sync.Once
-	subtitleQueueWake chan struct{}
+	cfgMu               sync.RWMutex
+	heavyMu             sync.Mutex
+	videoPreviewMu      sync.Mutex
+	cfg                 config.Config
+	configPath          string
+	dataDir             string
+	jobs                *jobs.Store
+	client              *http.Client
+	health              *http.Client
+	web                 fs.FS
+	systemMu            sync.Mutex
+	systemStats         systemUsage
+	systemStatsAt       time.Time
+	cpuPrevTotal        uint64
+	cpuPrevIdle         uint64
+	subtitleQueueOnce   sync.Once
+	subtitleQueueWake   chan struct{}
+	generationQueueOnce sync.Once
+	generationQueueWake chan struct{}
+	generationStateMu   sync.Mutex
+	wildcardMu          sync.Mutex
+	wildcardMuse        []string
+	wildcardStyles      []string
+	portraitLabMu       sync.Mutex
 }
 
 type imageGenerationOptions struct {
-	identityPath      string
-	identityRefPath   string
-	identityMaskPath  string
-	strictMaskPath    string
-	strictMaskGrow    int
-	strictMaskFeather float64
-	vaeMode           string
-	identityFitMode   string
-	depthPath         string
-	identityStrength  float64
-	refBoost          float64
-	groundingPX       int
-	steps             int
-	samplingPreset    string
-	sampler           string
-	scheduler         string
-	style             string
-	styleStrength     float64
-	styles            []styleSelection
-	userLoras         []userLoRASelection
-	depthStrength     float64
-	visionPaths       []string
-	visionMode        string
-	visionMegapixels  float64
-	styleRefPaths     []string
-	styleRefStrength  float64
-	nk2ePath          string
-	nk2eMode          string
-	nk2eStrength      float64
-	nk2ePreprocessed  bool
-	anypaintPath      string
-	anypaintMaskPath  string
-	outpaintLeft      int
-	outpaintTop       int
-	outpaintRight     int
-	outpaintBottom    int
-	anypaintStrength  float64
-	anypaintBoundary  int
-	filterMode        string
-	filterStrength    float64
-	promptEnhancer    bool
-	promptEnhStrength float64
-	promptTextScale   float64
+	checkpoint         string
+	identityPath       string
+	identityRefPaths   []string
+	identityPreset     string
+	identityAutoPrompt bool
+	identityUserPrompt bool
+	identityMaskPath   string
+	strictMaskPath     string
+	strictMaskGrow     int
+	strictMaskFeather  float64
+	vaeMode            string
+	identityFitMode    string
+	identityModel      string
+	identityEncoder    string
+	depthPath          string
+	depthPrompt        string
+	preparePoseRef     bool
+	identityStrength   float64
+	refBoost           float64
+	sourceRefBoost     float64
+	groundingPX        int
+	steps              int
+	samplingPreset     string
+	sampler            string
+	scheduler          string
+	style              string
+	styleStrength      float64
+	styles             []styleSelection
+	userLoras          []userLoRASelection
+	depthStrength      float64
+	visionPaths        []string
+	visionMode         string
+	visionMegapixels   float64
+	styleRefPaths      []string
+	styleRefStrength   float64
+	nk2ePath           string
+	nk2eMode           string
+	nk2eStrength       float64
+	nk2ePreprocessed   bool
+	anypaintPath       string
+	anypaintMaskPath   string
+	outpaintLeft       int
+	outpaintTop        int
+	outpaintRight      int
+	outpaintBottom     int
+	anypaintStrength   float64
+	anypaintBoundary   int
+	filterMode         string
+	filterStrength     float64
+	promptEnhancer     bool
+	promptEnhStrength  float64
+	promptTextScale    float64
+}
+
+type videoConditioningInput struct {
+	Path     string
+	FrameIdx int
+	Strength float64
+	Role     string
+}
+
+type savedVideoCondition struct {
+	Role     string  `json:"role"`
+	Index    int     `json:"index,omitempty"`
+	FrameIdx int     `json:"frame_idx"`
+	Strength float64 `json:"strength"`
 }
 
 type styleSelection struct {
@@ -119,7 +150,7 @@ func New(cfg config.Config, store *jobs.Store, web fs.FS, configPath ...string) 
 		cfg: cfg, configPath: path, dataDir: cfg.DataDir, jobs: store,
 		client: &http.Client{Timeout: 2 * time.Hour},
 		health: &http.Client{Timeout: 2 * time.Second},
-		web:    web, subtitleQueueWake: make(chan struct{}, 1),
+		web:    web, subtitleQueueWake: make(chan struct{}, 1), generationQueueWake: make(chan struct{}, 1),
 	}
 }
 
@@ -132,18 +163,26 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("PUT /api/config", s.updateConfig)
 	mux.HandleFunc("GET /api/engines", s.engineStates)
 	mux.HandleFunc("GET /api/system", s.systemUsage)
+	mux.HandleFunc("GET /api/video/models", s.videoModelStatus)
+	mux.HandleFunc("POST /api/video/models/prepare", s.prepareVideoModels)
+	mux.HandleFunc("GET /api/image/checkpoints", s.imageCheckpointStatus)
+	mux.HandleFunc("POST /api/image/checkpoints/prepare", s.prepareImageCheckpoints)
+	mux.HandleFunc("POST /api/image/checkpoints/convert-nvfp4", s.convertImageCheckpointsNVFP4)
 	mux.HandleFunc("GET /api/jobs", func(w http.ResponseWriter, _ *http.Request) { writeJSON(w, 200, s.jobs.List()) })
 	mux.HandleFunc("DELETE /api/jobs", s.deleteFinishedJobs)
 	mux.HandleFunc("GET /api/jobs/{id}", s.getJob)
 	mux.HandleFunc("GET /api/jobs/{id}/exif", s.imageJobEXIF)
 	mux.HandleFunc("GET /api/jobs/{id}/inputs", s.imageJobInputs)
 	mux.HandleFunc("GET /api/jobs/{id}/inputs/{role}/{index}", s.imageJobInput)
+	mux.HandleFunc("GET /api/jobs/{id}/video-preview.jpg", s.videoJobPreview)
 	mux.HandleFunc("DELETE /api/jobs/{id}", s.deleteJob)
 	mux.HandleFunc("POST /api/jobs/{id}/cancel", s.cancelJob)
-	mux.HandleFunc("POST /api/jobs/{id}/retry", s.retrySubtitle)
+	mux.HandleFunc("POST /api/jobs/{id}/retry", s.retryJob)
 	mux.HandleFunc("POST /api/jobs/image", s.createImage)
+	mux.HandleFunc("POST /api/images/fetch", s.fetchRemoteImage)
 	mux.HandleFunc("POST /api/jobs/{id}/upscale", s.createImageUpscale)
 	mux.HandleFunc("POST /api/jobs/{id}/detail-enhance", s.createImageDetailEnhance)
+	mux.HandleFunc("POST /api/jobs/garment-extract", s.createGarmentExtraction)
 	mux.HandleFunc("POST /api/jobs/speech", s.createSpeech)
 	mux.HandleFunc("POST /api/jobs/recognition", s.createSubtitle)
 	mux.HandleFunc("POST /api/media/options", s.mediaOptions)
@@ -151,6 +190,12 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("DELETE /api/storage/temp", s.cleanupMediaTemp)
 	mux.HandleFunc("POST /api/jobs/video", s.createVideo)
 	mux.HandleFunc("POST /api/prompts/enhance", s.enhancePrompt)
+	mux.HandleFunc("GET /api/prompts/wildcard", s.randomPromptWildcard)
+	mux.HandleFunc("GET /tools/portrait-lab", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/tools/portrait-lab/", http.StatusTemporaryRedirect)
+	})
+	mux.HandleFunc("GET /tools/portrait-lab/", s.servePortraitLab)
+	mux.HandleFunc("POST /api/assistant/chat", s.assistantChat)
 	mux.HandleFunc("/api/lora", s.proxyLoRA)
 	mux.HandleFunc("/api/lora/", s.proxyLoRA)
 	mux.HandleFunc("GET /api/media/assets/{id}", s.proxyMediaAsset)
@@ -162,6 +207,117 @@ func (s *Server) Handler() http.Handler {
 	return withLog(mux)
 }
 
+func (s *Server) videoModelStatus(w http.ResponseWriter, r *http.Request) {
+	endpoint := s.config().Engines["video"].Endpoint
+	req, err := http.NewRequestWithContext(r.Context(), http.MethodGet, endpoint+"/v1/models/status", nil)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	resp, err := s.health.Do(req)
+	if err != nil {
+		http.Error(w, "LTX model service unavailable: "+err.Error(), http.StatusBadGateway)
+		return
+	}
+	defer resp.Body.Close()
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(resp.StatusCode)
+	_, _ = io.Copy(w, io.LimitReader(resp.Body, 1<<20))
+}
+
+func (s *Server) prepareVideoModels(w http.ResponseWriter, r *http.Request) {
+	var request struct {
+		HFToken string `json:"hf_token"`
+	}
+	decoder := json.NewDecoder(io.LimitReader(r.Body, 16<<10))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&request); err != nil {
+		http.Error(w, "invalid model preparation request", http.StatusBadRequest)
+		return
+	}
+	payload := map[string]string{"hf_token": strings.TrimSpace(request.HFToken)}
+	data, _, err := s.callJSON(s.config().Engines["video"].Endpoint+"/v1/models/prepare", payload)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadGateway)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusAccepted)
+	_, _ = w.Write(data)
+}
+
+func (s *Server) imageCheckpointStatus(w http.ResponseWriter, r *http.Request) {
+	endpoint := s.config().Engines["image"].Endpoint
+	req, err := http.NewRequestWithContext(r.Context(), http.MethodGet, endpoint+"/v1/checkpoints/status", nil)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	resp, err := s.health.Do(req)
+	if err != nil {
+		http.Error(w, "Krea model service unavailable: "+err.Error(), http.StatusBadGateway)
+		return
+	}
+	defer resp.Body.Close()
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(resp.StatusCode)
+	_, _ = io.Copy(w, io.LimitReader(resp.Body, 1<<20))
+}
+
+func (s *Server) prepareImageCheckpoints(w http.ResponseWriter, r *http.Request) {
+	var request struct {
+		CivitaiToken string   `json:"civitai_token"`
+		HFToken      string   `json:"hf_token"`
+		Variants     []string `json:"variants"`
+	}
+	decoder := json.NewDecoder(io.LimitReader(r.Body, 32<<10))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&request); err != nil {
+		http.Error(w, "invalid checkpoint preparation request", http.StatusBadRequest)
+		return
+	}
+	payload := map[string]any{
+		"civitai_token": strings.TrimSpace(request.CivitaiToken),
+		"hf_token":      strings.TrimSpace(request.HFToken),
+		"variants":      request.Variants,
+	}
+	data, _, err := s.callJSON(s.config().Engines["image"].Endpoint+"/v1/checkpoints/prepare", payload)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadGateway)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusAccepted)
+	_, _ = w.Write(data)
+}
+
+func (s *Server) convertImageCheckpointsNVFP4(w http.ResponseWriter, r *http.Request) {
+	var request struct {
+		CivitaiToken     string   `json:"civitai_token"`
+		Variants         []string `json:"variants"`
+		RemoveBF16Source bool     `json:"remove_bf16_sources"`
+	}
+	decoder := json.NewDecoder(io.LimitReader(r.Body, 32<<10))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&request); err != nil {
+		http.Error(w, "invalid NVFP4 conversion request", http.StatusBadRequest)
+		return
+	}
+	payload := map[string]any{
+		"civitai_token":       strings.TrimSpace(request.CivitaiToken),
+		"variants":            request.Variants,
+		"remove_bf16_sources": request.RemoveBF16Source,
+	}
+	data, _, err := s.callJSON(s.config().Engines["image"].Endpoint+"/v1/checkpoints/convert-nvfp4", payload)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadGateway)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusAccepted)
+	_, _ = w.Write(data)
+}
+
 func (s *Server) config() config.Config {
 	s.cfgMu.RLock()
 	defer s.cfgMu.RUnlock()
@@ -169,24 +325,21 @@ func (s *Server) config() config.Config {
 }
 
 func (s *Server) proxyLoRA(w http.ResponseWriter, r *http.Request) {
-	endpoint := s.config().Engines["trainer"].Endpoint
+	endpoint := s.config().Engines["image"].Endpoint
 	target, err := url.Parse(endpoint)
 	if err != nil || target.Host == "" {
-		http.Error(w, "invalid LoRA trainer endpoint", http.StatusBadGateway)
+		http.Error(w, "invalid LoRA manager endpoint", http.StatusBadGateway)
 		return
 	}
 	proxy := httputil.NewSingleHostReverseProxy(target)
 	proxy.ErrorHandler = func(w http.ResponseWriter, _ *http.Request, err error) {
-		http.Error(w, "LoRA trainer unavailable: "+err.Error(), http.StatusBadGateway)
+		http.Error(w, "LoRA manager unavailable: "+err.Error(), http.StatusBadGateway)
 	}
 	originalDirector := proxy.Director
 	proxy.Director = func(request *http.Request) {
 		originalDirector(request)
 		path := strings.TrimPrefix(request.URL.Path, "/api/lora")
-		if path == "" {
-			path = "/"
-		}
-		request.URL.Path = path
+		request.URL.Path = "/v1/user-loras" + path
 		request.URL.RawPath = ""
 	}
 	proxy.ServeHTTP(w, r)
@@ -223,7 +376,7 @@ func (s *Server) updateConfig(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) createVideo(w http.ResponseWriter, r *http.Request) {
 	cfg := s.config()
-	if err := r.ParseMultipartForm(40 << 20); err != nil {
+	if err := r.ParseMultipartForm(320 << 20); err != nil {
 		http.Error(w, "invalid or oversized form", http.StatusBadRequest)
 		return
 	}
@@ -252,25 +405,115 @@ func (s *Server) createVideo(w http.ResponseWriter, r *http.Request) {
 	}
 	id := newID()
 	inputDir := filepath.Join(s.dataDir, "inputs", id)
-	refs, err := saveUploads(r, "image", inputDir, 1)
+	loadImage := func(uploadField, reuseField, dir string) (string, error) {
+		paths, err := saveUploads(r, uploadField, dir, 1)
+		if err != nil {
+			return "", err
+		}
+		paths, err = s.appendReusedImageInputs(r, reuseField, dir, 1, paths)
+		if err != nil {
+			return "", err
+		}
+		if len(paths) == 0 {
+			return "", nil
+		}
+		return paths[0], nil
+	}
+
+	startPath, err := loadImage("start_image", "reuse_start_image", filepath.Join(inputDir, "start"))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	imagePath := ""
-	if len(refs) > 0 {
-		imagePath = refs[0]
+	// Keep the original single-image API compatible with older clients.
+	if startPath == "" {
+		legacy, legacyErr := saveUploads(r, "image", filepath.Join(inputDir, "start"), 1)
+		if legacyErr != nil {
+			http.Error(w, legacyErr.Error(), http.StatusBadRequest)
+			return
+		}
+		if len(legacy) > 0 {
+			startPath = legacy[0]
+		}
+	}
+	endPath, err := loadImage("end_image", "reuse_end_image", filepath.Join(inputDir, "end"))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	conditions := make([]videoConditioningInput, 0, 10)
+	usedFrames := map[int]bool{}
+	if startPath != "" {
+		conditions = append(conditions, videoConditioningInput{Path: startPath, FrameIdx: 0, Strength: strength, Role: "start"})
+		usedFrames[0] = true
+	}
+	keyframeCount := formInt(r, "keyframe_count", 0)
+	if keyframeCount < 0 || keyframeCount > 8 {
+		http.Error(w, "keyframe_count must be between 0 and 8", http.StatusBadRequest)
+		return
+	}
+	for i := 0; i < keyframeCount; i++ {
+		keyframePath, loadErr := loadImage(
+			fmt.Sprintf("keyframe_image_%d", i),
+			fmt.Sprintf("reuse_keyframe_image_%d", i),
+			filepath.Join(inputDir, fmt.Sprintf("keyframe-%d", i)),
+		)
+		if loadErr != nil {
+			http.Error(w, loadErr.Error(), http.StatusBadRequest)
+			return
+		}
+		if keyframePath == "" {
+			http.Error(w, fmt.Sprintf("keyframe %d image is required", i+1), http.StatusBadRequest)
+			return
+		}
+		seconds := formFloat64(r, fmt.Sprintf("keyframe_time_%d", i), -1)
+		frameIdx := int(seconds*fps + 0.5)
+		if seconds < 0 || frameIdx <= 0 || frameIdx >= frames-1 {
+			http.Error(w, fmt.Sprintf("keyframe %d time must be between the start and end frames", i+1), http.StatusBadRequest)
+			return
+		}
+		if usedFrames[frameIdx] {
+			http.Error(w, fmt.Sprintf("keyframe %d overlaps another conditioning frame", i+1), http.StatusBadRequest)
+			return
+		}
+		keyframeStrength := formFloat64(r, fmt.Sprintf("keyframe_strength_%d", i), 1)
+		if keyframeStrength < 0 || keyframeStrength > 1 {
+			http.Error(w, fmt.Sprintf("keyframe %d strength must be between 0 and 1", i+1), http.StatusBadRequest)
+			return
+		}
+		conditions = append(conditions, videoConditioningInput{Path: keyframePath, FrameIdx: frameIdx, Strength: keyframeStrength, Role: "keyframe"})
+		usedFrames[frameIdx] = true
+	}
+	if endPath != "" {
+		conditions = append(conditions, videoConditioningInput{Path: endPath, FrameIdx: frames - 1, Strength: formFloat64(r, "end_image_strength", 1), Role: "end"})
+	}
+	for _, condition := range conditions {
+		if condition.Strength < 0 || condition.Strength > 1 {
+			http.Error(w, condition.Role+" image strength must be between 0 and 1", http.StatusBadRequest)
+			return
+		}
+	}
+	savedConditions := make([]savedVideoCondition, 0, len(conditions))
+	keyframeIndex := 0
+	for _, condition := range conditions {
+		saved := savedVideoCondition{Role: condition.Role, FrameIdx: condition.FrameIdx, Strength: condition.Strength}
+		if condition.Role == "keyframe" {
+			saved.Index = keyframeIndex
+			keyframeIndex++
+		}
+		savedConditions = append(savedConditions, saved)
 	}
 	j := jobs.Job{
 		ID: id, Kind: "video", Status: "queued", Prompt: originalPrompt,
-		Params:    map[string]any{"width": width, "height": height, "num_frames": frames, "fps": fps, "seed": seed, "image_strength": strength, "image": imagePath != "", "enhanced_prompt": valueIfDifferent(effectivePrompt, originalPrompt)},
+		Params:    map[string]any{"width": width, "height": height, "num_frames": frames, "fps": fps, "seed": seed, "image_strength": strength, "image": len(conditions) > 0, "start_image": startPath != "", "end_image": endPath != "", "keyframes": keyframeCount, "video_conditions": savedConditions, "motion_lora_enabled": cfg.Video.DefaultMotionLoRAEnabled, "motion_lora_strength": cfg.Video.DefaultMotionLoRAStrength, "enhanced_prompt": valueIfDifferent(effectivePrompt, originalPrompt), "stage": "queued", "queued_at": time.Now().Format(time.RFC3339Nano)},
 		CreatedAt: time.Now(),
 	}
 	if err := s.jobs.Save(j); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	go s.runVideo(j, effectivePrompt, imagePath, width, height, frames, fps, seed, strength)
+	s.wakeGenerationQueue()
 	writeJSON(w, http.StatusAccepted, j)
 }
 
@@ -280,7 +523,25 @@ func (s *Server) createImage(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid form", 400)
 		return
 	}
+	sequencePrompts, err := parseImageSequencePrompts(r.FormValue("sequence_prompts"))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	sequenceRegions, err := parseImageSequenceRegions(r.FormValue("sequence_regions"), len(sequencePrompts))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	sequenceIdentityStrength := formFloat64(r, "sequence_identity_strength", 0.8)
+	if len(sequencePrompts) > 0 && (sequenceIdentityStrength < 0 || sequenceIdentityStrength > 2) {
+		http.Error(w, "sequence identity strength must be between 0 and 2", http.StatusBadRequest)
+		return
+	}
 	effectivePrompt := strings.TrimSpace(r.FormValue("prompt"))
+	if len(sequencePrompts) > 0 {
+		effectivePrompt = sequencePrompts[0]
+	}
 	if effectivePrompt == "" {
 		outpaintPadding := formInt(r, "outpaint_left", 0) + formInt(r, "outpaint_top", 0) + formInt(r, "outpaint_right", 0) + formInt(r, "outpaint_bottom", 0)
 		hasAnyPaintSource := len(r.MultipartForm.File["anypaint_image"]) > 0 || len(r.MultipartForm.Value["reuse_anypaint_image"]) > 0
@@ -322,35 +583,82 @@ func (s *Server) createImage(w http.ResponseWriter, r *http.Request) {
 	controlType := strings.ToLower(strings.TrimSpace(r.FormValue("control_type")))
 	controlStrength := formFloat64(r, "control_strength", 0.65)
 	krea := imageGenerationOptions{
-		identityStrength:  formFloat64(r, "identity_strength", 1),
-		refBoost:          formFloat64(r, "ref_boost", 4),
-		groundingPX:       formInt(r, "grounding_px", 768),
-		steps:             formInt(r, "steps", 0),
-		samplingPreset:    strings.ToLower(strings.TrimSpace(r.FormValue("sampling_preset"))),
-		style:             strings.ToLower(strings.TrimSpace(r.FormValue("style"))),
-		styleStrength:     formFloat64(r, "style_strength", 1),
-		depthStrength:     formFloat64(r, "depth_strength", 0.8),
-		visionMode:        strings.ToLower(strings.TrimSpace(r.FormValue("vision_mode"))),
-		visionMegapixels:  formFloat64(r, "vision_megapixels", 1),
-		styleRefStrength:  formFloat64(r, "style_reference_strength", 1),
-		nk2eMode:          strings.ToLower(strings.TrimSpace(r.FormValue("nk2e_mode"))),
-		nk2eStrength:      formFloat64(r, "nk2e_strength", 0.7),
-		outpaintLeft:      formInt(r, "outpaint_left", 0),
-		outpaintTop:       formInt(r, "outpaint_top", 0),
-		outpaintRight:     formInt(r, "outpaint_right", 0),
-		outpaintBottom:    formInt(r, "outpaint_bottom", 0),
-		anypaintStrength:  formFloat64(r, "anypaint_strength", 1),
-		anypaintBoundary:  formInt(r, "anypaint_boundary_redraw_px", 32),
-		strictMaskGrow:    formInt(r, "strict_mask_grow", 0),
-		strictMaskFeather: formFloat64(r, "strict_mask_feather", 0),
-		vaeMode:           strings.ToLower(strings.TrimSpace(r.FormValue("vae_mode"))),
-		identityFitMode:   strings.ToLower(strings.TrimSpace(r.FormValue("identity_fit_mode"))),
-		nk2ePreprocessed:  strings.EqualFold(r.FormValue("nk2e_preprocessed"), "true"),
-		filterMode:        strings.ToLower(strings.TrimSpace(r.FormValue("filter_mode"))),
-		filterStrength:    formFloat64(r, "filter_strength", 1),
-		promptEnhancer:    strings.EqualFold(r.FormValue("prompt_enhancer"), "true"),
-		promptEnhStrength: formFloat64(r, "prompt_enhancer_strength", 1),
-		promptTextScale:   formFloat64(r, "prompt_text_scale", 1.75),
+		checkpoint:         strings.ToLower(strings.TrimSpace(r.FormValue("checkpoint"))),
+		identityAutoPrompt: strings.EqualFold(r.FormValue("identity_auto_prompt"), "true"),
+		identityUserPrompt: strings.EqualFold(r.FormValue("identity_user_prompt"), "true"),
+		identityStrength:   formFloat64(r, "identity_strength", 1),
+		refBoost:           formFloat64(r, "ref_boost", 4),
+		sourceRefBoost:     formFloat64(r, "source_ref_boost", 1),
+		groundingPX:        formInt(r, "grounding_px", 768),
+		steps:              formInt(r, "steps", 0),
+		samplingPreset:     strings.ToLower(strings.TrimSpace(r.FormValue("sampling_preset"))),
+		style:              strings.ToLower(strings.TrimSpace(r.FormValue("style"))),
+		styleStrength:      formFloat64(r, "style_strength", 1),
+		depthStrength:      formFloat64(r, "depth_strength", 0.8),
+		depthPrompt:        strings.TrimSpace(r.FormValue("depth_pose_prompt")),
+		preparePoseRef:     strings.EqualFold(r.FormValue("prepare_pose_reference"), "true"),
+		visionMode:         strings.ToLower(strings.TrimSpace(r.FormValue("vision_mode"))),
+		visionMegapixels:   formFloat64(r, "vision_megapixels", 1),
+		styleRefStrength:   formFloat64(r, "style_reference_strength", 1),
+		nk2eMode:           strings.ToLower(strings.TrimSpace(r.FormValue("nk2e_mode"))),
+		nk2eStrength:       formFloat64(r, "nk2e_strength", 0.7),
+		outpaintLeft:       formInt(r, "outpaint_left", 0),
+		outpaintTop:        formInt(r, "outpaint_top", 0),
+		outpaintRight:      formInt(r, "outpaint_right", 0),
+		outpaintBottom:     formInt(r, "outpaint_bottom", 0),
+		anypaintStrength:   formFloat64(r, "anypaint_strength", 1),
+		anypaintBoundary:   formInt(r, "anypaint_boundary_redraw_px", 32),
+		strictMaskGrow:     formInt(r, "strict_mask_grow", 0),
+		strictMaskFeather:  formFloat64(r, "strict_mask_feather", 0),
+		vaeMode:            strings.ToLower(strings.TrimSpace(r.FormValue("vae_mode"))),
+		identityFitMode:    strings.ToLower(strings.TrimSpace(r.FormValue("identity_fit_mode"))),
+		identityModel:      strings.ToLower(strings.TrimSpace(r.FormValue("identity_model"))),
+		identityEncoder:    strings.ToLower(strings.TrimSpace(r.FormValue("identity_encoder"))),
+		nk2ePreprocessed:   strings.EqualFold(r.FormValue("nk2e_preprocessed"), "true"),
+		filterMode:         strings.ToLower(strings.TrimSpace(r.FormValue("filter_mode"))),
+		filterStrength:     formFloat64(r, "filter_strength", 1),
+		promptEnhancer:     strings.EqualFold(r.FormValue("prompt_enhancer"), "true"),
+		promptEnhStrength:  formFloat64(r, "prompt_enhancer_strength", 1),
+		promptTextScale:    formFloat64(r, "prompt_text_scale", 1.75),
+	}
+	identityPreset := strings.TrimSpace(r.FormValue("identity_preset"))
+	validIdentityPresets := map[string]bool{"": true, "restage": true, "sheet": true, "faceSwap": true, "headSwap": true, "personSwap": true, "tryon": true, "replace": true}
+	if !validIdentityPresets[identityPreset] {
+		http.Error(w, "unsupported identity preset", http.StatusBadRequest)
+		return
+	}
+	krea.identityPreset = identityPreset
+	identityPreserveItems := []string{}
+	if raw := strings.TrimSpace(r.FormValue("identity_preserve_items")); raw != "" {
+		if err := json.Unmarshal([]byte(raw), &identityPreserveItems); err != nil {
+			http.Error(w, "invalid identity preservation selection", http.StatusBadRequest)
+			return
+		}
+		allowed := map[string]bool{"identity": true, "face": true, "hair": true, "body": true, "clothing": true, "pose": true, "background": true, "lighting": true, "composition": true, "untouched": true}
+		for _, item := range identityPreserveItems {
+			if !allowed[item] {
+				http.Error(w, "invalid identity preservation item", http.StatusBadRequest)
+				return
+			}
+		}
+	}
+	identityPreserveCustom := strings.TrimSpace(r.FormValue("identity_preserve_custom"))
+	if len(identityPreserveCustom) > 500 {
+		http.Error(w, "identity custom preservation text is too long", http.StatusBadRequest)
+		return
+	}
+	if krea.checkpoint == "" {
+		krea.checkpoint = cfg.Image.DefaultCheckpoint
+	}
+	validCheckpoints := map[string]bool{
+		"official": true, "ray-v1": true, "ray-v2": true, "ray-v2-nvfp4": true,
+		"ray-v3": true, "ray-v4": true, "ray-v4-nvfp4": true,
+		"moody-v7": true, "moody-cutie-v4": true, "moody-amateur-v1": true,
+		"chriscole-edit-v1.1": true,
+	}
+	if !validCheckpoints[krea.checkpoint] {
+		http.Error(w, "unsupported Krea checkpoint", http.StatusBadRequest)
+		return
 	}
 	if krea.vaeMode == "" {
 		krea.vaeMode = "default"
@@ -358,8 +666,30 @@ func (s *Server) createImage(w http.ResponseWriter, r *http.Request) {
 	if krea.identityFitMode == "" {
 		krea.identityFitMode = "fit"
 	}
+	if krea.identityModel == "" {
+		krea.identityModel = "convrot"
+	}
+	if krea.identityEncoder == "" {
+		krea.identityEncoder = "heretic"
+	}
+	if krea.identityModel != "selected" && krea.identityModel != "convrot" {
+		http.Error(w, "identity model must be selected or convrot", http.StatusBadRequest)
+		return
+	}
+	if krea.identityEncoder != "default" && krea.identityEncoder != "heretic" {
+		http.Error(w, "identity encoder must be default or heretic", http.StatusBadRequest)
+		return
+	}
 	if krea.filterMode == "" {
-		krea.filterMode = "balanced"
+		if krea.checkpoint == "official" {
+			krea.filterMode = "balanced"
+		} else {
+			krea.filterMode = "off"
+		}
+	}
+	if krea.checkpoint != "official" && krea.filterMode != "off" {
+		http.Error(w, "third-party checkpoints already include tuning; select original filter mode", http.StatusBadRequest)
+		return
 	}
 	if krea.samplingPreset == "" {
 		krea.samplingPreset = "default"
@@ -369,8 +699,10 @@ func (s *Server) createImage(w http.ResponseWriter, r *http.Request) {
 		krea.sampler, krea.scheduler = "euler", "simple"
 	case "detail":
 		krea.sampler, krea.scheduler = "er_sde", "simple"
+	case "moody":
+		krea.sampler, krea.scheduler = "euler_ancestral", "beta"
 	default:
-		http.Error(w, "sampling preset must be default or detail", http.StatusBadRequest)
+		http.Error(w, "sampling preset must be default, detail, or moody", http.StatusBadRequest)
 		return
 	}
 	if rawStyles := strings.TrimSpace(r.FormValue("styles")); rawStyles != "" {
@@ -409,12 +741,12 @@ func (s *Server) createImage(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, uploadErr.Error(), http.StatusBadRequest)
 			return
 		}
-		identityRef, uploadErr := saveUploads(r, "identity_reference", filepath.Join(inputDir, "identity-reference"), 1)
+		identityRef, uploadErr := saveUploads(r, "identity_reference", filepath.Join(inputDir, "identity-reference"), 3)
 		if uploadErr != nil {
 			http.Error(w, uploadErr.Error(), http.StatusBadRequest)
 			return
 		}
-		identityRef, uploadErr = s.appendReusedImageInputs(r, "reuse_identity_reference", filepath.Join(inputDir, "identity-reference"), 1, identityRef)
+		identityRef, uploadErr = s.appendReusedImageInputs(r, "reuse_identity_reference", filepath.Join(inputDir, "identity-reference"), 3, identityRef)
 		if uploadErr != nil {
 			http.Error(w, uploadErr.Error(), http.StatusBadRequest)
 			return
@@ -432,9 +764,7 @@ func (s *Server) createImage(w http.ResponseWriter, r *http.Request) {
 		if len(identity) > 0 {
 			krea.identityPath = identity[0]
 		}
-		if len(identityRef) > 0 {
-			krea.identityRefPath = identityRef[0]
-		}
+		krea.identityRefPaths = identityRef
 		identityMask, uploadErr := saveUploads(r, "identity_mask", filepath.Join(inputDir, "identity-mask"), 1)
 		if uploadErr != nil {
 			http.Error(w, uploadErr.Error(), http.StatusBadRequest)
@@ -463,6 +793,12 @@ func (s *Server) createImage(w http.ResponseWriter, r *http.Request) {
 		}
 		if len(depth) > 0 {
 			krea.depthPath = depth[0]
+		}
+		// The pose/structure field is semantically different from a photographic
+		// Identity Edit reference. Let the Krea service prepare it regardless of
+		// whether the currently open browser supplied newer frontend metadata.
+		if krea.identityPath != "" && krea.depthPath != "" {
+			krea.preparePoseRef = true
 		}
 		vision, uploadErr := saveUploads(r, "vision_images", filepath.Join(inputDir, "vision"), 4)
 		if uploadErr != nil {
@@ -531,7 +867,7 @@ func (s *Server) createImage(w http.ResponseWriter, r *http.Request) {
 				krea.steps = 10
 			}
 		}
-		if krea.identityRefPath != "" && krea.identityPath == "" {
+		if len(krea.identityRefPaths) > 0 && krea.identityPath == "" {
 			http.Error(w, "a primary identity image is required before an additional reference", http.StatusBadRequest)
 			return
 		}
@@ -574,7 +910,7 @@ func (s *Server) createImage(w http.ResponseWriter, r *http.Request) {
 		}
 		seenUserLoras := make(map[string]bool, len(krea.userLoras))
 		for _, selection := range krea.userLoras {
-			if selection.Filename == "" || filepath.Base(selection.Filename) != selection.Filename || !strings.HasSuffix(strings.ToLower(selection.Filename), ".safetensors") || seenUserLoras[selection.Filename] || selection.Strength < 0 || selection.Strength > 2 {
+			if selection.Filename == "" || filepath.Base(selection.Filename) != selection.Filename || !strings.HasSuffix(strings.ToLower(selection.Filename), ".safetensors") || seenUserLoras[selection.Filename] || selection.Strength < -2 || selection.Strength > 2 {
 				http.Error(w, "invalid user LoRA selection", http.StatusBadRequest)
 				return
 			}
@@ -649,6 +985,16 @@ func (s *Server) createImage(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Krea Identity Edit output must not exceed 2 megapixels", http.StatusBadRequest)
 			return
 		}
+		if len(sequencePrompts) > 0 {
+			if krea.identityPath != "" || krea.depthPath != "" || len(krea.visionPaths) > 0 || len(krea.styleRefPaths) > 0 || krea.nk2ePath != "" || krea.anypaintPath != "" {
+				http.Error(w, "sequence generation cannot be combined with reference, depth, vision, structure, or partial-edit modules", http.StatusBadRequest)
+				return
+			}
+			if width*height > 2*1024*1024 {
+				http.Error(w, "sequence generation must not exceed 2 megapixels", http.StatusBadRequest)
+				return
+			}
+		}
 	case "edit":
 		if len(refs) == 0 {
 			http.Error(w, "reference editing requires at least one image", http.StatusBadRequest)
@@ -684,9 +1030,20 @@ func (s *Server) createImage(w http.ResponseWriter, r *http.Request) {
 		params["control_type"] = controlType
 		params["control_strength"] = controlStrength
 	} else if mode == "create" {
+		params["checkpoint"] = krea.checkpoint
 		params["identity"] = krea.identityPath != ""
-		params["identity_reference"] = krea.identityRefPath != ""
+		params["identity_reference"] = len(krea.identityRefPaths) > 0
+		params["identity_reference_count"] = len(krea.identityRefPaths)
+		params["identity_preset"] = identityPreset
+		params["identity_auto_prompt"] = krea.identityAutoPrompt
+		params["identity_user_prompt"] = krea.identityUserPrompt
+		params["identity_preserve_items"] = identityPreserveItems
+		params["identity_preserve_custom"] = identityPreserveCustom
 		params["depth"] = krea.depthPath != ""
+		if krea.depthPrompt != "" {
+			params["depth_pose_prompt"] = krea.depthPrompt
+		}
+		params["prepare_pose_reference"] = krea.preparePoseRef
 		params["style"] = krea.style
 		params["styles"] = krea.styles
 		params["user_loras"] = krea.userLoras
@@ -700,6 +1057,8 @@ func (s *Server) createImage(w http.ResponseWriter, r *http.Request) {
 		params["strict_mask"] = krea.strictMaskPath != ""
 		params["vae_mode"] = krea.vaeMode
 		params["identity_fit_mode"] = krea.identityFitMode
+		params["identity_model"] = krea.identityModel
+		params["identity_encoder"] = krea.identityEncoder
 		params["strict_mask_grow"] = krea.strictMaskGrow
 		params["strict_mask_feather"] = krea.strictMaskFeather
 		params["filter_mode"] = krea.filterMode
@@ -735,6 +1094,7 @@ func (s *Server) createImage(w http.ResponseWriter, r *http.Request) {
 		if krea.identityPath != "" {
 			params["identity_strength"] = krea.identityStrength
 			params["ref_boost"] = krea.refBoost
+			params["source_ref_boost"] = krea.sourceRefBoost
 			params["grounding_px"] = krea.groundingPX
 		}
 		if krea.depthPath != "" {
@@ -749,13 +1109,174 @@ func (s *Server) createImage(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	params["enhanced_prompt"] = valueIfDifferent(effectivePrompt, originalPrompt)
-	j := jobs.Job{ID: id, Kind: "image", Status: "queued", Prompt: originalPrompt, Params: params, CreatedAt: time.Now()}
-	if err := s.jobs.Save(j); err != nil {
-		http.Error(w, err.Error(), 500)
+	params["stage"] = "queued"
+	now := time.Now()
+	params["queued_at"] = now.Format(time.RFC3339Nano)
+	j := jobs.Job{ID: id, Kind: "image", Status: "queued", Prompt: originalPrompt, Params: params, CreatedAt: now}
+	sequenceBaseID := strings.TrimSpace(r.FormValue("sequence_base_job_id"))
+	var sequenceBase jobs.Job
+	if sequenceBaseID != "" {
+		if len(sequencePrompts) == 0 {
+			http.Error(w, "sequence base requires sequence prompts", http.StatusBadRequest)
+			return
+		}
+		var ok bool
+		sequenceBase, ok = s.jobs.Get(sequenceBaseID)
+		if !ok || sequenceBase.Kind != "image" || sequenceBase.Status != "completed" || sequenceBase.OutputURL == "" {
+			http.Error(w, "selected sequence base image is not available", http.StatusBadRequest)
+			return
+		}
+	}
+	for index := 1; index < len(sequenceRegions); index++ {
+		if sequenceRegions[index] == "custom" && len(r.MultipartForm.File[fmt.Sprintf("sequence_mask_%d", index)]) != 1 {
+			http.Error(w, fmt.Sprintf("scene %d requires a painted mask", index+1), http.StatusBadRequest)
+			return
+		}
+	}
+	if len(sequencePrompts) > 0 {
+		j.Prompt = sequencePrompts[0]
+		j.Params["enhanced_prompt"] = ""
+		j.Params["sequence_id"] = id
+		j.Params["sequence_index"] = 1
+		j.Params["sequence_total"] = len(sequencePrompts)
+		j.Params["sequence_identity_strength"] = sequenceIdentityStrength
+	}
+	created := make([]jobs.Job, 0, max(1, len(sequencePrompts)))
+	previousID := id
+	startIndex := 1
+	if sequenceBaseID == "" {
+		if err := s.jobs.Save(j); err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+		created = append(created, j)
+	} else {
+		previousID = sequenceBase.ID
+	}
+	for index := startIndex; index < len(sequencePrompts); index++ {
+		childID := newID()
+		childParams := cloneJobParams(params)
+		childParams["identity"] = true
+		childParams["identity_reference"] = false
+		childParams["identity_strength"] = sequenceIdentityStrength
+		childParams["ref_boost"] = 4.0
+		childParams["grounding_px"] = 768
+		childParams["steps"] = max(imageIntParam(childParams, "steps", 8), 10)
+		childParams["enhanced_prompt"] = sequenceEditPrompt(sequencePrompts[index])
+		childParams["parent_job_id"] = previousID
+		childParams["sequence_previous_job_id"] = previousID
+		childParams["sequence_id"] = id
+		childParams["sequence_index"] = index + 1
+		childParams["sequence_total"] = len(sequencePrompts)
+		childParams["sequence_identity_strength"] = sequenceIdentityStrength
+		childParams["sequence_region"] = sequenceRegions[index]
+		if sequenceRegions[index] != "all" {
+			childParams["identity"] = false
+			childParams["anypaint"] = true
+			childParams["anypaint_mask"] = true
+			childParams["anypaint_strength"] = 1.0
+			childParams["anypaint_boundary_redraw_px"] = 32
+			childParams["styles"] = []styleSelection{}
+			childParams["user_loras"] = []userLoRASelection{}
+			childParams["style"] = ""
+		}
+		childTime := now.Add(time.Duration(index) * time.Nanosecond)
+		childParams["queued_at"] = childTime.Format(time.RFC3339Nano)
+		if seed >= 0 {
+			childParams["seed"] = seed + int64(index)
+		}
+		child := jobs.Job{ID: childID, Kind: "image", Status: "queued", Prompt: sequencePrompts[index], Params: childParams, CreatedAt: childTime}
+		if sequenceRegions[index] == "custom" {
+			masks, uploadErr := saveUploads(r, fmt.Sprintf("sequence_mask_%d", index), filepath.Join(s.dataDir, "inputs", childID, "anypaint-mask"), 1)
+			if uploadErr != nil || len(masks) != 1 {
+				if uploadErr != nil {
+					http.Error(w, uploadErr.Error(), http.StatusBadRequest)
+				} else {
+					http.Error(w, fmt.Sprintf("scene %d requires a painted mask", index+1), http.StatusBadRequest)
+				}
+				return
+			}
+		}
+		if err := s.jobs.Save(child); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		created = append(created, child)
+		previousID = childID
+	}
+	s.wakeGenerationQueue()
+	if len(sequencePrompts) > 0 {
+		writeJSON(w, http.StatusAccepted, map[string]any{"sequence_id": id, "jobs": created})
 		return
 	}
-	go s.runImage(j, effectivePrompt, refs, width, height, seed, mode, controlType, controlStrength, krea)
-	writeJSON(w, 202, j)
+	writeJSON(w, http.StatusAccepted, j)
+}
+
+func parseImageSequencePrompts(raw string) ([]string, error) {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return nil, nil
+	}
+	var prompts []string
+	if err := json.Unmarshal([]byte(raw), &prompts); err != nil {
+		return nil, fmt.Errorf("invalid sequence prompts")
+	}
+	if len(prompts) < 2 || len(prompts) > 6 {
+		return nil, fmt.Errorf("sequence generation requires 2 to 6 scenes")
+	}
+	for index := range prompts {
+		prompts[index] = strings.TrimSpace(prompts[index])
+		if prompts[index] == "" {
+			return nil, fmt.Errorf("every sequence scene requires a prompt")
+		}
+		if len([]rune(prompts[index])) > 4000 {
+			return nil, fmt.Errorf("sequence scene prompt is too long")
+		}
+	}
+	return prompts, nil
+}
+
+func parseImageSequenceRegions(raw string, promptCount int) ([]string, error) {
+	if promptCount == 0 {
+		return nil, nil
+	}
+	regions := make([]string, promptCount)
+	for index := range regions {
+		regions[index] = "all"
+	}
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return regions, nil
+	}
+	var provided []string
+	if err := json.Unmarshal([]byte(raw), &provided); err != nil || len(provided) != promptCount {
+		return nil, fmt.Errorf("invalid sequence regions")
+	}
+	valid := map[string]bool{"all": true, "left": true, "right": true, "upper": true, "lower": true, "left-arm": true, "right-arm": true, "custom": true}
+	for index, region := range provided {
+		region = strings.ToLower(strings.TrimSpace(region))
+		if !valid[region] {
+			return nil, fmt.Errorf("unsupported sequence region")
+		}
+		regions[index] = region
+	}
+	regions[0] = "all"
+	return regions, nil
+}
+
+func cloneJobParams(source map[string]any) map[string]any {
+	clone := make(map[string]any, len(source)+8)
+	for key, value := range source {
+		clone[key] = value
+	}
+	return clone
+}
+
+func sequenceEditPrompt(change string) string {
+	return "Change: " + strings.TrimSpace(change) +
+		"\nPose replacement rule: Treat every requested pose or body-part movement as a replacement, never an addition. Redraw each moved body part only in its new position and remove it from its previous position. Keep the anatomically correct number of limbs, with no duplicate arms, hands, legs, heads, or ghost body parts." +
+		"\nFace continuity rule: Preserve the exact head and facial construction, including faceplate or screen type, eye count, eye shape, eye color, eye spacing, mouth design, and distinguishing details. If an expression change is explicitly requested, alter only that expression and never redesign the head or face." +
+		"\nPreserve: the same character identity, face, hair, clothing details unless explicitly changed, visual style, lighting continuity, and scene elements that do not conflict with the requested movement. Do not preserve the previous pose where it conflicts with the new pose."
 }
 
 func (s *Server) createSpeech(w http.ResponseWriter, r *http.Request) {
@@ -774,12 +1295,12 @@ func (s *Server) createSpeech(w http.ResponseWriter, r *http.Request) {
 	speaker := valueOr(r.FormValue("speaker"), cfg.Speech.DefaultSpeaker)
 	instructions := strings.TrimSpace(r.FormValue("instructions"))
 	seed := formInt64(r, "seed", -1)
-	j := jobs.Job{ID: id, Kind: "speech", Status: "queued", Prompt: text, Params: map[string]any{"language": language, "speaker": speaker, "instructions": instructions, "seed": seed}, CreatedAt: time.Now()}
+	j := jobs.Job{ID: id, Kind: "speech", Status: "queued", Prompt: text, Params: map[string]any{"language": language, "speaker": speaker, "instructions": instructions, "seed": seed, "stage": "queued", "queued_at": time.Now().Format(time.RFC3339Nano)}, CreatedAt: time.Now()}
 	if err := s.jobs.Save(j); err != nil {
 		http.Error(w, err.Error(), 500)
 		return
 	}
-	go s.runSpeech(j, language, speaker, instructions, seed)
+	s.wakeGenerationQueue()
 	writeJSON(w, 202, j)
 }
 
@@ -829,13 +1350,14 @@ func (s *Server) createImageDetailEnhance(w http.ResponseWriter, r *http.Request
 		"detail_strength": request.Strength, "detail_vae": request.VAE, "seed": request.Seed,
 		"width": input.Width, "height": input.Height, "steps": 10,
 		"sampling_preset": "detail", "sampler": "er_sde", "scheduler": "simple",
+		"stage": "queued", "queued_at": time.Now().Format(time.RFC3339Nano),
 	}
 	j := jobs.Job{ID: id, Kind: "image", Status: "queued", Prompt: source.Prompt, Params: params, CreatedAt: time.Now()}
 	if err := s.jobs.Save(j); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	go s.runImageDetailEnhance(j, data, request.Strength, request.Seed, request.VAE)
+	s.wakeGenerationQueue()
 	writeJSON(w, http.StatusAccepted, j)
 }
 
@@ -926,6 +1448,7 @@ func (s *Server) createImageUpscale(w http.ResponseWriter, r *http.Request) {
 		"mode": "upscale", "source_job_id": source.ID, "upscale_engine": "seedvr2-3b-fp8",
 		"model":         "seedvr2-3b-fp8",
 		"upscale_scale": request.Scale, "seed": request.Seed, "width": width, "height": height,
+		"stage": "queued", "queued_at": time.Now().Format(time.RFC3339Nano),
 	}
 	if enhanced, exists := source.Params["enhanced_prompt"]; exists {
 		params["source_enhanced_prompt"] = enhanced
@@ -935,7 +1458,7 @@ func (s *Server) createImageUpscale(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	go s.runImageUpscale(j, data, request.Scale, request.Seed)
+	s.wakeGenerationQueue()
 	writeJSON(w, http.StatusAccepted, j)
 }
 
@@ -979,6 +1502,64 @@ func (s *Server) runImage(j jobs.Job, effectivePrompt string, refs []string, wid
 	j.Status = "running"
 	j.Params["started_at"] = time.Now().Format(time.RFC3339Nano)
 	_ = s.jobs.Save(j)
+	if krea.identityAutoPrompt && krea.identityPreset == "tryon" && len(krea.identityRefPaths) > 0 {
+		outfit, describeErr := s.describeOutfitReference(krea.identityRefPaths[0])
+		if describeErr != nil {
+			s.fail(j, fmt.Errorf("outfit reference description: %w", describeErr))
+			return
+		}
+		pronoun, describeErr := s.describeSubjectPronoun(krea.identityPath)
+		if describeErr != nil {
+			s.fail(j, fmt.Errorf("source subject description: %w", describeErr))
+			return
+		}
+		outfit = strings.TrimSpace(strings.TrimSuffix(outfit, "."))
+		lowerOutfit := strings.ToLower(outfit)
+		switch {
+		case strings.HasPrefix(lowerOutfit, "an "):
+			outfit = "the " + strings.TrimSpace(outfit[3:])
+		case strings.HasPrefix(lowerOutfit, "a "):
+			outfit = "the " + strings.TrimSpace(outfit[2:])
+		}
+		pronoun = strings.ToLower(strings.TrimSpace(strings.Trim(pronoun, ".,;:!?\"'")))
+		if pronoun != "she" && pronoun != "he" && pronoun != "they" && pronoun != "it" {
+			pronoun = "they"
+		}
+		verb := "is"
+		if pronoun == "they" {
+			verb = "are"
+		}
+		// Preserve the lowercase training-style wording used by the published
+		// Identity Edit workflow. With otherwise identical inputs and seed,
+		// capitalizing this leading pronoun caused the source shirt to survive.
+		modulePrompt := pronoun + " " + verb + " now wearing " + outfit + "."
+		hasExtraUserPrompt := krea.identityUserPrompt && strings.TrimSpace(effectivePrompt) != "" && !isTryOnModuleFallback(j.Prompt, krea.depthPath != "")
+		if hasExtraUserPrompt {
+			if composed, composeErr := s.composeIdentityEditPrompt(pronoun, verb, outfit, effectivePrompt, krea.depthPath != ""); composeErr == nil {
+				modulePrompt = composed
+			} else {
+				modulePrompt += "\n" + strings.TrimSpace(effectivePrompt)
+				if krea.depthPath != "" {
+					modulePrompt += "\n" + pronoun + " now holds the same pose."
+				}
+			}
+		} else if krea.depthPath != "" {
+			modulePrompt += "\n" + pronoun + " now holds the same pose."
+		}
+		effectivePrompt = modulePrompt
+		j.Params["generated_edit_prompt"] = effectivePrompt
+		_ = s.jobs.Save(j)
+	}
+	if krea.identityPath != "" && krea.depthPath != "" && krea.depthPrompt == "" && cfg.PromptEnhancement.VisionEnabled {
+		poseDescription, describeErr := s.describePoseReference(krea.depthPath)
+		if describeErr != nil {
+			s.fail(j, fmt.Errorf("pose reference description: %w", describeErr))
+			return
+		}
+		krea.depthPrompt = poseDescription
+		j.Params["depth_pose_prompt"] = poseDescription
+		_ = s.jobs.Save(j)
+	}
 	backend := cfg.Image.Backends[mode]
 	endpoint := backend.Endpoint
 	var response []byte
@@ -991,7 +1572,8 @@ func (s *Server) runImage(j jobs.Job, effectivePrompt string, refs []string, wid
 		}
 		request := map[string]any{
 			"model": backend.Model, "prompt": effectivePrompt,
-			"size": fmt.Sprintf("%dx%d", width, height), "response_format": "b64_json", "output_format": "png",
+			"checkpoint": krea.checkpoint,
+			"size":       fmt.Sprintf("%dx%d", width, height), "response_format": "b64_json", "output_format": "png",
 			"control_image":    base64.StdEncoding.EncodeToString(controlImage),
 			"control_strength": controlStrength, "control_strategy": "split4", "control_type": controlType,
 		}
@@ -1011,14 +1593,15 @@ func (s *Server) runImage(j jobs.Job, effectivePrompt string, refs []string, wid
 	} else {
 		request := map[string]any{
 			"model": backend.Model, "prompt": effectivePrompt,
-			"size": fmt.Sprintf("%dx%d", width, height), "response_format": "b64_json", "output_format": "png",
+			"checkpoint": krea.checkpoint,
+			"size":       fmt.Sprintf("%dx%d", width, height), "response_format": "b64_json", "output_format": "png",
 			"filter_mode": krea.filterMode, "filter_strength": krea.filterStrength,
 			"prompt_enhancer": krea.promptEnhancer, "prompt_enhancer_strength": krea.promptEnhStrength,
 			"prompt_text_scale": krea.promptTextScale,
 			"sampler_name":      krea.sampler, "scheduler": krea.scheduler,
 		}
 		for field, path := range map[string]string{
-			"source_image": krea.identityPath, "reference_image": krea.identityRefPath, "control_image": krea.depthPath, "nk2e_image": krea.nk2ePath,
+			"source_image": krea.identityPath, "control_image": krea.depthPath, "nk2e_image": krea.nk2ePath,
 			"identity_mask": krea.identityMaskPath, "strict_mask": krea.strictMaskPath,
 			"anypaint_image": krea.anypaintPath, "anypaint_mask": krea.anypaintMaskPath,
 		} {
@@ -1033,7 +1616,7 @@ func (s *Server) runImage(j jobs.Job, effectivePrompt string, refs []string, wid
 			request[field] = base64.StdEncoding.EncodeToString(image)
 		}
 		for field, paths := range map[string][]string{
-			"vision_images": krea.visionPaths, "style_reference_images": krea.styleRefPaths,
+			"reference_images": krea.identityRefPaths, "vision_images": krea.visionPaths, "style_reference_images": krea.styleRefPaths,
 		} {
 			encoded := make([]string, 0, len(paths))
 			for _, path := range paths {
@@ -1051,14 +1634,19 @@ func (s *Server) runImage(j jobs.Job, effectivePrompt string, refs []string, wid
 		if krea.identityPath != "" {
 			request["identity_strength"] = krea.identityStrength
 			request["ref_boost"] = krea.refBoost
+			request["source_ref_boost"] = krea.sourceRefBoost
 			request["grounding_px"] = krea.groundingPX
 			request["strict_mask_grow"] = krea.strictMaskGrow
 			request["strict_mask_feather"] = krea.strictMaskFeather
 			request["vae_mode"] = krea.vaeMode
 			request["identity_fit_mode"] = krea.identityFitMode
+			request["identity_model"] = krea.identityModel
+			request["identity_encoder"] = krea.identityEncoder
 		}
 		if krea.depthPath != "" {
 			request["control_strength"] = krea.depthStrength
+			request["control_prompt"] = krea.depthPrompt
+			request["prepare_pose_reference"] = krea.preparePoseRef
 		}
 		if len(krea.styles) > 0 {
 			request["styles"] = krea.styles
@@ -1114,6 +1702,14 @@ func (s *Server) runImage(j jobs.Job, effectivePrompt string, refs []string, wid
 		s.fail(j, err)
 		return
 	}
+}
+
+func isTryOnModuleFallback(prompt string, withPose bool) bool {
+	expected := "Use the complete outfit shown in the supporting clothing reference"
+	if withPose {
+		expected += ". Apply the pose, body orientation, framing, and camera viewpoint from the pose reference"
+	}
+	return strings.EqualFold(strings.TrimSpace(prompt), expected)
 }
 
 func (s *Server) writeImageResult(j *jobs.Job, data []byte, effectivePrompt string) error {
@@ -1175,7 +1771,7 @@ func (s *Server) runSpeech(j jobs.Job, language, speaker, instructions string, s
 	_ = s.jobs.Save(j)
 }
 
-func (s *Server) runVideo(j jobs.Job, effectivePrompt, imagePath string, width, height, frames int, fps float64, seed int64, strength float64) {
+func (s *Server) runVideo(j jobs.Job, effectivePrompt string, conditions []videoConditioningInput, width, height, frames int, fps float64, seed int64) {
 	cfg := s.config()
 	s.heavyMu.Lock()
 	defer s.heavyMu.Unlock()
@@ -1186,16 +1782,29 @@ func (s *Server) runVideo(j jobs.Job, effectivePrompt, imagePath string, width, 
 		"prompt": effectivePrompt,
 		"width":  strconv.Itoa(width), "height": strconv.Itoa(height),
 		"num_frames": strconv.Itoa(frames), "fps": strconv.FormatFloat(fps, 'f', -1, 64),
-		"seed": strconv.FormatInt(seed, 10), "image_strength": strconv.FormatFloat(strength, 'f', -1, 64),
+		"seed": strconv.FormatInt(seed, 10),
 	}
-	paths := []string{}
-	if imagePath != "" {
-		paths = append(paths, imagePath)
+	motionStrength := 0.0
+	if enabled, _ := j.Params["motion_lora_enabled"].(bool); enabled {
+		motionStrength, _ = numberFromAny(j.Params["motion_lora_strength"])
 	}
+	fields["motion_lora_strength"] = strconv.FormatFloat(motionStrength, 'f', -1, 64)
+	paths := make([]string, 0, len(conditions))
+	frameIndices := make([]int, 0, len(conditions))
+	strengths := make([]float64, 0, len(conditions))
+	for _, condition := range conditions {
+		paths = append(paths, condition.Path)
+		frameIndices = append(frameIndices, condition.FrameIdx)
+		strengths = append(strengths, condition.Strength)
+	}
+	frameJSON, _ := json.Marshal(frameIndices)
+	strengthJSON, _ := json.Marshal(strengths)
+	fields["frame_indices"] = string(frameJSON)
+	fields["image_strengths"] = string(strengthJSON)
 	name := j.ID + ".mp4"
 	output := s.jobs.OutputPath(name)
 	endpoint := cfg.Engines["video"].Endpoint
-	if err := s.callMultipartToFile(endpoint+"/v1/videos/generations", fields, "image", paths, output); err != nil {
+	if err := s.callMultipartToFile(endpoint+"/v1/videos/generations", fields, "images", paths, output); err != nil {
 		_ = os.Remove(output)
 		s.fail(j, err)
 		return
@@ -1203,6 +1812,25 @@ func (s *Server) runVideo(j jobs.Job, effectivePrompt, imagePath string, width, 
 	j.Status = "completed"
 	j.OutputURL = "/api/outputs/" + name
 	_ = s.jobs.Save(j)
+	go func() { _ = s.ensureVideoPreview(j.ID, output) }()
+}
+
+func numberFromAny(value any) (float64, bool) {
+	switch number := value.(type) {
+	case float64:
+		return number, true
+	case float32:
+		return float64(number), true
+	case int:
+		return float64(number), true
+	case int64:
+		return float64(number), true
+	case json.Number:
+		parsed, err := number.Float64()
+		return parsed, err == nil
+	default:
+		return 0, false
+	}
 }
 
 func (s *Server) enhancePrompt(w http.ResponseWriter, r *http.Request) {
@@ -1220,8 +1848,8 @@ func (s *Server) enhancePrompt(w http.ResponseWriter, r *http.Request) {
 	if mode == "" {
 		mode = "t2v"
 	}
-	if mode != "t2v" && mode != "i2v" && mode != "t2i" && mode != "edit" && mode != "control" && mode != "paint" {
-		http.Error(w, "mode must be t2i, edit, control, paint, t2v or i2v", http.StatusBadRequest)
+	if mode != "t2v" && mode != "i2v" && mode != "t2i" && mode != "edit" && mode != "edit_control" && mode != "control" && mode != "paint" {
+		http.Error(w, "mode must be t2i, edit, edit_control, control, paint, t2v or i2v", http.StatusBadRequest)
 		return
 	}
 	if mode == "i2v" && !cfg.PromptEnhancement.VisionEnabled {
@@ -1258,10 +1886,34 @@ func (s *Server) enhancePrompt(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	systemPrompt := mediaprompt.System(mode, imageUsed)
+	if mode == "edit" || mode == "edit_control" {
+		preset := strings.TrimSpace(r.FormValue("identity_preset"))
+		validPresets := map[string]bool{"": true, "restage": true, "sheet": true, "faceSwap": true, "headSwap": true, "personSwap": true, "tryon": true, "replace": true}
+		if !validPresets[preset] {
+			http.Error(w, "unsupported identity preset", http.StatusBadRequest)
+			return
+		}
+		preserved := []string{}
+		if raw := strings.TrimSpace(r.FormValue("identity_preserve_items")); raw != "" {
+			if err := json.Unmarshal([]byte(raw), &preserved); err != nil {
+				http.Error(w, "invalid identity preservation selection", http.StatusBadRequest)
+				return
+			}
+			allowed := map[string]bool{"identity": true, "face": true, "hair": true, "body": true, "clothing": true, "pose": true, "background": true, "lighting": true, "composition": true, "untouched": true}
+			for _, item := range preserved {
+				if !allowed[item] {
+					http.Error(w, "invalid identity preservation item", http.StatusBadRequest)
+					return
+				}
+			}
+		}
+		systemPrompt += mediaprompt.EditModuleContext(preset, preserved)
+	}
 	payload := map[string]any{
 		"model": cfg.PromptEnhancement.Model,
 		"messages": []map[string]any{
-			{"role": "system", "content": mediaprompt.System(mode, imageUsed)},
+			{"role": "system", "content": systemPrompt},
 			{"role": "user", "content": userContent},
 		},
 		"max_completion_tokens": cfg.PromptEnhancement.MaxTokens,
@@ -1292,12 +1944,55 @@ func (s *Server) enhancePrompt(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "prompt enhancer returned no usable prompt", http.StatusBadGateway)
 		return
 	}
+	fallback := false
+	if !enhancementPreservesEditContract(mode, original, enhanced) {
+		enhanced = original
+		fallback = true
+	}
 	writeJSON(w, http.StatusOK, map[string]any{
 		"original_prompt": original,
 		"enhanced_prompt": enhanced,
 		"mode":            mode,
 		"image_used":      imageUsed,
+		"fallback":        fallback,
 	})
+}
+
+func enhancementPreservesEditContract(mode, original, enhanced string) bool {
+	if mode != "edit" && mode != "edit_control" {
+		return true
+	}
+	source := strings.ToLower(original)
+	result := strings.ToLower(enhanced)
+	requireAny := func(trigger string, words ...string) bool {
+		if !strings.Contains(source, trigger) {
+			return true
+		}
+		for _, word := range words {
+			if strings.Contains(result, word) {
+				return true
+			}
+		}
+		return false
+	}
+	if !requireAny("supporting reference", "supporting reference", "reference image", "reference outfit") ||
+		!requireAny("depth", "depth") ||
+		!requireAny("pose", "pose", "posture", "body orientation") ||
+		!requireAny("clothing", "clothing", "outfit", "garment") {
+		return false
+	}
+	if strings.Contains(source, "do not preserve") || strings.Contains(source, "do not retain") || strings.Contains(source, "do not restore") || strings.Contains(source, "may change") {
+		for _, contradiction := range []string{
+			"preserve original pose", "preserve the original pose", "preserving original pose", "preserving the original pose", "retain original pose", "retain the original pose", "maintain original pose", "maintain the original pose", "original pose remains", "original pose unchanged",
+			"preserve original clothing", "preserve the original clothing", "preserving original clothing", "preserving the original clothing", "retain original clothing", "retain the original clothing", "maintain original clothing", "maintain the original clothing", "original clothing remains", "original clothing unchanged",
+			"preserve original outfit", "preserve the original outfit", "preserving original outfit", "preserving the original outfit", "retain original outfit", "retain the original outfit", "maintain original outfit", "maintain the original outfit", "original outfit remains", "original outfit unchanged",
+		} {
+			if strings.Contains(result, contradiction) {
+				return false
+			}
+		}
+	}
+	return true
 }
 
 func (s *Server) callJSON(url string, payload any) ([]byte, string, error) {
@@ -1449,7 +2144,7 @@ func (s *Server) engineStates(w http.ResponseWriter, _ *http.Request) {
 		}
 	}
 	states = append(states, state{Kind: "image", Status: defaultImageStatus})
-	for _, kind := range []string{"speech", "recognition", "video", "prompt", "media", "trainer", "upscale"} {
+	for _, kind := range []string{"speech", "recognition", "video", "prompt", "media", "trainer", "upscale", "garment"} {
 		healthPath := "/health"
 		if kind == "prompt" {
 			healthPath = "/v1/models"
@@ -1475,7 +2170,7 @@ func (s *Server) imageJobInputs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	inputs := make([]imageJobInputInfo, 0, 8)
-	for _, role := range []string{"reference", "identity", "identity_reference", "identity_mask", "strict_mask", "depth", "vision", "style_reference", "nk2e", "anypaint", "anypaint_mask"} {
+	for _, role := range []string{"reference", "identity", "identity_reference", "identity_mask", "strict_mask", "depth", "vision", "style_reference", "nk2e", "anypaint", "anypaint_mask", "garment_source", "garment_reference"} {
 		files, err := s.imageInputFiles(id, role)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -1487,7 +2182,7 @@ func (s *Server) imageJobInputs(w http.ResponseWriter, r *http.Request) {
 			case "identity":
 				name = "identity" + filepath.Ext(path)
 			case "identity_reference":
-				name = "identity-reference" + filepath.Ext(path)
+				name = fmt.Sprintf("identity-reference-%d%s", index+1, filepath.Ext(path))
 			case "identity_mask":
 				name = "identity-focus-mask" + filepath.Ext(path)
 			case "strict_mask":
@@ -1504,6 +2199,10 @@ func (s *Server) imageJobInputs(w http.ResponseWriter, r *http.Request) {
 				name = "anypaint-source" + filepath.Ext(path)
 			case "anypaint_mask":
 				name = "anypaint-mask" + filepath.Ext(path)
+			case "garment_source":
+				name = "garment-source" + filepath.Ext(path)
+			case "garment_reference":
+				name = fmt.Sprintf("garment-reference-%d%s", index+1, filepath.Ext(path))
 			}
 			inputs = append(inputs, imageJobInputInfo{
 				Role: role,
@@ -1578,6 +2277,10 @@ func (s *Server) imageInputFiles(id, role string) ([]string, error) {
 		dir = filepath.Join(root, "anypaint")
 	case "anypaint_mask":
 		dir = filepath.Join(root, "anypaint-mask")
+	case "garment_source":
+		dir = filepath.Join(root, "garment-source")
+	case "garment_reference":
+		dir = filepath.Join(root, "garment-reference")
 	default:
 		return nil, nil
 	}
@@ -1693,6 +2396,7 @@ func (s *Server) deleteJob(w http.ResponseWriter, r *http.Request) {
 	err := s.jobs.Delete(id)
 	switch {
 	case err == nil:
+		_ = os.Remove(s.videoPreviewPath(id))
 		w.WriteHeader(http.StatusNoContent)
 	case errors.Is(err, jobs.ErrNotFound):
 		http.NotFound(w, r)
@@ -1705,6 +2409,8 @@ func (s *Server) deleteJob(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) cancelJob(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
+	s.generationStateMu.Lock()
+	defer s.generationStateMu.Unlock()
 	j, ok := s.jobs.Get(id)
 	if !ok {
 		http.NotFound(w, r)
@@ -1714,9 +2420,12 @@ func (s *Server) cancelJob(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "job is not active", http.StatusConflict)
 		return
 	}
-	if j.Kind != "recognition" {
-		http.Error(w, "cancellation is currently supported for subtitle jobs", http.StatusConflict)
+	if j.Kind != "recognition" && !(isGenerationKind(j.Kind) && j.Status == "queued") {
+		http.Error(w, "running generation jobs cannot be cancelled safely", http.StatusConflict)
 		return
+	}
+	if j.Params == nil {
+		j.Params = map[string]any{}
 	}
 	j.Status = "cancelled"
 	j.Error = ""
@@ -1727,7 +2436,11 @@ func (s *Server) cancelJob(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.cancelMediaPreparation(id)
+	if j.Kind == "recognition" {
+		s.cancelMediaPreparation(id)
+	} else {
+		s.wakeGenerationQueue()
+	}
 	writeJSON(w, http.StatusOK, j)
 }
 
@@ -1745,6 +2458,7 @@ func (s *Server) deleteFinishedJobs(w http.ResponseWriter, _ *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		_ = os.Remove(s.videoPreviewPath(j.ID))
 		deleted++
 	}
 	writeJSON(w, http.StatusOK, map[string]int{"deleted": deleted})
@@ -1837,16 +2551,47 @@ func saveUploads(r *http.Request, field, dir string, max int) ([]string, error) 
 		if e != nil {
 			return nil, e
 		}
-		name := fmt.Sprintf("%d%s", i, strings.ToLower(filepath.Ext(h.Filename)))
-		dstPath := filepath.Join(dir, name)
-		dst, e := os.Create(dstPath)
-		if e == nil {
-			_, e = io.Copy(dst, io.LimitReader(src, 32<<20))
-			dst.Close()
-		}
+		// Reference pixels are conditioning data, not merely previews. Saving a
+		// PNG upload or a CDN response back as lossy WebP changed alpha edges and
+		// was enough to make Krea Identity Edit retain the original clothing.
+		// Decode every supported upload and persist one lossless PNG representation
+		// so direct uploads, URL images and later job retries use identical pixels.
+		data, readErr := io.ReadAll(io.LimitReader(src, (32<<20)+1))
 		src.Close()
+		if readErr != nil {
+			return nil, readErr
+		}
+		if len(data) == 0 || len(data) > 32<<20 {
+			return nil, fmt.Errorf("image upload must be between 1 byte and 32 MiB")
+		}
+		decoded, _, decodeErr := image.Decode(bytes.NewReader(data))
+		if decodeErr != nil {
+			// Preserve the old opaque-upload behavior for non-image engine test
+			// fixtures and forward-compatible formats that this Go build cannot
+			// decode. Recognized images always take the lossless PNG path below.
+			name := fmt.Sprintf("%d%s", i, strings.ToLower(filepath.Ext(h.Filename)))
+			dstPath := filepath.Join(dir, name)
+			if writeErr := os.WriteFile(dstPath, data, 0o644); writeErr != nil {
+				return nil, writeErr
+			}
+			out = append(out, dstPath)
+			continue
+		}
+		name := fmt.Sprintf("%d.png", i)
+		dstPath := filepath.Join(dir, name)
+		dst, e := os.OpenFile(dstPath, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o644)
 		if e != nil {
 			return nil, e
+		}
+		encodeErr := png.Encode(dst, decoded)
+		closeErr := dst.Close()
+		if encodeErr != nil {
+			_ = os.Remove(dstPath)
+			return nil, encodeErr
+		}
+		if closeErr != nil {
+			_ = os.Remove(dstPath)
+			return nil, closeErr
 		}
 		out = append(out, dstPath)
 	}

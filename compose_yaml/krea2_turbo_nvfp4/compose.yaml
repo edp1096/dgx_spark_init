@@ -15,7 +15,7 @@ services:
       PYTORCH_CUDA_ALLOC_CONF: expandable_segments:True
     volumes:
       - hf-cache:/root/.cache/huggingface
-      - krea-user-loras:/opt/ComfyUI/models/loras/user:ro
+      - krea-user-loras:/opt/ComfyUI/models/loras/user
 
 volumes:
   hf-cache:

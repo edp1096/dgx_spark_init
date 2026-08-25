@@ -5,12 +5,17 @@ import hashlib
 import urllib.request
 from pathlib import Path
 
-from huggingface_hub import hf_hub_download
+from huggingface_hub import hf_hub_download, snapshot_download
 
 
 COMFY_MODELS = Path("/opt/ComfyUI/models")
 
 FILES = (
+    (
+        "Winnougan/Krea-2-Base-Turbo-NVFP4-FP8-INT8",
+        "Krea2_Turbo_convrot_int8mixed.safetensors",
+        COMFY_MODELS / "diffusion_models" / "Krea2_Turbo_convrot_int8mixed.safetensors",
+    ),
     (
         "Comfy-Org/Krea-2",
         "diffusion_models/krea2_turbo_nvfp4.safetensors",
@@ -115,6 +120,26 @@ URL_FILES = (
     ),
 )
 
+# Civitai checkpoints are downloaded through Spark Media's authenticated model
+# setup flow into the persistent Hugging Face cache.  Keep startup offline-safe:
+# link whichever variants are already present without attempting an authenticated
+# network request here.
+LOCAL_DIFFUSION_MODELS = (
+    "rayArtshoot_krea2NSFWV1_fp8.safetensors",
+    "rayArtshoot_krea2NSFWV2_fp8.safetensors",
+    "rayArtshoot_krea2NSFWV2_nvfp4.safetensors",
+    "rayArtshoot_krea2NSFWV3_int8.safetensors",
+    "rayArtshoot_krea2NSFWV4_int8.safetensors",
+    "rayArtshoot_krea2NSFWV4_nvfp4.safetensors",
+    "moodyKrea2Mix_v70.safetensors",
+    "moodyCutieMixKrea2_v40.safetensors",
+    "moodyAmateurMixKrea2_v10.safetensors",
+)
+
+LOCAL_TEXT_ENCODERS = (
+    "qwen3VLInstruct4bHeretic_int8Convrot.safetensors",
+)
+
 
 def replace_symlink(link: Path, target: Path) -> None:
     link.parent.mkdir(parents=True, exist_ok=True)
@@ -140,6 +165,26 @@ def main() -> None:
             cached.write_bytes(data)
         replace_symlink(destination, cached)
         print(f"MODEL {destination.name} -> {cached}", flush=True)
+    local_model_root = Path("/root/.cache/huggingface/media-models")
+    for filename in LOCAL_DIFFUSION_MODELS:
+        cached = local_model_root / filename
+        if not cached.is_file():
+            continue
+        destination = COMFY_MODELS / "diffusion_models" / filename
+        replace_symlink(destination, cached)
+        print(f"MODEL {destination.name} -> {cached}", flush=True)
+    for filename in LOCAL_TEXT_ENCODERS:
+        cached = local_model_root / filename
+        if not cached.is_file():
+            continue
+        destination = COMFY_MODELS / "text_encoders" / filename
+        replace_symlink(destination, cached)
+        print(f"MODEL {destination.name} -> {cached}", flush=True)
+    # Automatic text-selected masks use a small Grounding DINO detector and
+    # SAM 2.1 refiner. Keep them in the shared HF cache for offline restarts.
+    for repo in ("IDEA-Research/grounding-dino-tiny", "facebook/sam2.1-hiera-small"):
+        downloaded = snapshot_download(repo_id=repo)
+        print(f"MODEL automatic-mask -> {downloaded}", flush=True)
 
 
 if __name__ == "__main__":

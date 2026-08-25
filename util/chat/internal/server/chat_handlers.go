@@ -90,7 +90,7 @@ func (s *Server) chat(w http.ResponseWriter, r *http.Request) {
 		payload, _ := json.Marshal(map[string]string{"error": failure})
 		fmt.Fprintf(w, "event: error\ndata: %s\n\n", payload)
 	} else {
-		if _, completeErr := s.db.CompletePendingTurn(pending.ID, result.Content, result.Reasoning, result.ToolTrace); completeErr != nil {
+		if _, completeErr := s.db.CompletePendingTurnWithAttachments(pending.ID, result.Content, result.Reasoning, result.ToolTrace, result.Attachments); completeErr != nil {
 			_ = s.db.FailPendingTurn(pending.ID, db.MessageFailed, compactHistoryText(completeErr.Error(), 2000), result.Content, result.Reasoning, result.ToolTrace)
 			payload, _ := json.Marshal(map[string]string{"error": completeErr.Error()})
 			fmt.Fprintf(w, "event: error\ndata: %s\n\n", payload)
@@ -173,7 +173,7 @@ func (s *Server) messageAction(w http.ResponseWriter, r *http.Request) {
 	mediaSink := s.persistMediaAttachments(parent.ID, selectedUserVariant, parent.Attachments, importedMediaReplacements(target.ToolTrace))
 	result, err := s.runContextCompletion(r.Context(), target.SessionID, modelHistory(history, 0), req.Model, req.ReasoningEffort, cfg, client, req.ToolsEnabled, emit, mediaSink)
 	if err == nil {
-		err = s.db.ReplaceAssistant(target.ID, result.Content, result.Reasoning, result.ToolTrace, userVariant)
+		err = s.db.ReplaceAssistantWithAttachments(target.ID, result.Content, result.Reasoning, result.ToolTrace, result.Attachments, userVariant)
 		_ = s.db.UpdateSession(target.SessionID, "", req.Model, req.ReasoningEffort)
 	}
 	if err != nil {
@@ -249,7 +249,7 @@ func (s *Server) editMessage(w http.ResponseWriter, r *http.Request, messageID i
 	}
 	result, err := s.runContextCompletion(r.Context(), target.SessionID, modelHistory(requestHistory, 0), req.Model, req.ReasoningEffort, cfg, client, req.ToolsEnabled, emit, mediaSink)
 	if err == nil {
-		err = s.db.AppendEditedBranch(messageID, req.Content, attachments, result.Content, result.Reasoning, result.ToolTrace)
+		err = s.db.AppendEditedBranchWithAnswerAttachments(messageID, req.Content, attachments, result.Content, result.Reasoning, result.ToolTrace, result.Attachments)
 		_ = s.db.UpdateSession(target.SessionID, "", req.Model, req.ReasoningEffort)
 	}
 	if err != nil {

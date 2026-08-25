@@ -65,25 +65,25 @@ services:
       - -m
       - experimental.server
       - --model
-      - /workspace/engines/dflash-trt11
+      - "/workspace/engines/${TRT_EDGE_ENGINE_SUBDIR:-dflash-ddtree-32k}"
       - --spec-decode-engine-dir
-      - /workspace/engines/dflash-trt11
+      - "/workspace/engines/${TRT_EDGE_ENGINE_SUBDIR:-dflash-ddtree-32k}"
       - --multimodal-engine-dir
-      - /workspace/engines/dflash-trt11
+      - "/workspace/engines/${TRT_EDGE_MULTIMODAL_ENGINE_SUBDIR:-dflash-ddtree-32k}"
       - --allowed-local-media-path
       - /media-assets
       - --max-input-len
-      - "32768"
+      - "${TRT_EDGE_MAX_INPUT_LEN:-32768}"
       - --max-kv-cache-capacity
-      - "32768"
+      - "${TRT_EDGE_MAX_KV_CACHE_CAPACITY:-32768}"
       - --max-batch-size
       - "1"
       - --draft-top-k
-      - "1"
+      - "${TRT_EDGE_DRAFT_TOP_K:-2}"
       - --draft-step
-      - "1"
+      - "${TRT_EDGE_DRAFT_STEP:-1}"
       - --verify-tree-size
-      - "16"
+      - "${TRT_EDGE_VERIFY_TREE_SIZE:-16}"
       - --host
       - 0.0.0.0
       - --port

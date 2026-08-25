@@ -13,9 +13,10 @@ import (
 )
 
 type completionResult struct {
-	Content   string
-	Reasoning string
-	ToolTrace []db.ToolEvent
+	Content     string
+	Reasoning   string
+	ToolTrace   []db.ToolEvent
+	Attachments []db.Attachment
 }
 
 type eventEmitter func(event string, payload any) error
@@ -110,6 +111,7 @@ func runCompletionLoopForSessionWithMedia(
 
 	var allReasoning strings.Builder
 	trace := []db.ToolEvent{}
+	outputAttachments := []db.Attachment{}
 	toolRounds := 0
 	for {
 		if toolRounds >= toolConfig.MaxRounds {
@@ -130,10 +132,10 @@ func runCompletionLoopForSessionWithMedia(
 			}
 			if content != "" {
 				if emitErr := emit("delta", map[string]string{"delta": content}); emitErr != nil {
-					return completionResult{Content: content, Reasoning: allReasoning.String(), ToolTrace: trace}, emitErr
+					return completionResult{Content: content, Reasoning: allReasoning.String(), ToolTrace: trace, Attachments: outputAttachments}, emitErr
 				}
 			}
-			return completionResult{Content: content, Reasoning: allReasoning.String(), ToolTrace: trace}, err
+			return completionResult{Content: content, Reasoning: allReasoning.String(), ToolTrace: trace, Attachments: outputAttachments}, err
 		}
 		result, err := client.Stream(ctx, conversation, model, reasoningEffort, registry.definitions, textEmitter(emit))
 		if allReasoning.Len() > 0 && result.Reasoning != "" {
@@ -141,11 +143,11 @@ func runCompletionLoopForSessionWithMedia(
 		}
 		allReasoning.WriteString(result.Reasoning)
 		if err != nil {
-			return completionResult{Content: result.Content, Reasoning: allReasoning.String(), ToolTrace: trace}, err
+			return completionResult{Content: result.Content, Reasoning: allReasoning.String(), ToolTrace: trace, Attachments: outputAttachments}, err
 		}
 		if len(result.ToolCalls) == 0 {
 			content, _ := cleanToolProtocol(result.Content)
-			return completionResult{Content: content, Reasoning: allReasoning.String(), ToolTrace: trace}, nil
+			return completionResult{Content: content, Reasoning: allReasoning.String(), ToolTrace: trace, Attachments: outputAttachments}, nil
 		}
 
 		conversation = append(conversation, llm.Message{
@@ -164,6 +166,15 @@ func runCompletionLoopForSessionWithMedia(
 			if toolErr == nil && execution.Attachment != nil {
 				if emitErr := emit("media_attached", *execution.Attachment); emitErr != nil {
 					return completionResult{Reasoning: allReasoning.String(), ToolTrace: trace}, emitErr
+				}
+			}
+			if toolErr == nil {
+				for _, attachment := range execution.Attachments {
+					outputAttachments = append(outputAttachments, attachment)
+					payload := map[string]any{"id": attachment.ID, "name": attachment.Name, "mime": attachment.MIME, "size": attachment.Size, "url": attachment.URL, "target_role": "assistant"}
+					if emitErr := emit("media_attached", payload); emitErr != nil {
+						return completionResult{Reasoning: allReasoning.String(), ToolTrace: trace}, emitErr
+					}
 				}
 			}
 			record := db.ToolEvent{Name: call.Function.Name, Arguments: call.Function.Arguments, Result: toolResult}

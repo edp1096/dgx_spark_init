@@ -1,5 +1,6 @@
 <script>
   import { onDestroy } from 'svelte'
+  import { api } from './api.js'
   import { lockModalScroll } from './modalScroll.js'
 
   export let open = false
@@ -8,6 +9,7 @@
   export let officialSource = ''
   export let communitySource = ''
   export let vibeSource = ''
+  export let wildcardSource = ''
   export let onApply = () => {}
   export let onClose = () => {}
 
@@ -17,6 +19,8 @@
   let focusedExample = null
   let visibleExamples = []
   let releaseScroll = null
+  let wildcardLoading = false
+  let wildcardError = ''
 
   const categories = [
     ['photo', '사진'], ['portrait', '인물'], ['anime', '애니'], ['illustration', '일러스트'],
@@ -48,7 +52,7 @@
 
   function exampleImage(example) {
     const image = example.image || `${example.id}.webp`
-    return /^https?:\/\//.test(image) ? image : `/prompt-examples/${image}`
+    return /^(?:https?:\/\/|data:|blob:|\/)/.test(image) ? image : `/prompt-examples/${image}`
   }
 
   function filterExamples(allExamples, selectedSource, selectedCategory, searchQuery) {
@@ -87,22 +91,46 @@
     if (!focusedExample) return
     onApply(focusedExample, mode)
   }
+
+  async function applyRandomWildcard() {
+    if (wildcardLoading) return
+    wildcardLoading = true
+    wildcardError = ''
+    try {
+      const result = await api.randomPromptWildcard()
+      onApply({
+        id: `wildcard-muse-${result.muse_index}-style-${result.style_index}`,
+        label: `와일드카드 · 장면 ${result.muse_index} + 스타일 ${result.style_index}`,
+        prompt: result.prompt,
+        source: result.source,
+        wildcard: result
+      }, 'replace')
+    } catch (error) {
+      wildcardError = error?.message || '와일드카드 프롬프트를 불러오지 못했습니다.'
+    } finally {
+      wildcardLoading = false
+    }
+  }
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
 
 {#if open}
   <div class="example-modal-backdrop" role="presentation" onclick={(event) => { if (event.target === event.currentTarget) onClose() }}>
-    <div class="example-modal" role="dialog" aria-modal="true" aria-label="Krea 2 프롬프트 예제">
+    <div class="example-modal" role="dialog" aria-modal="true" aria-label="프롬프트 예제">
       <header>
         <div>
-          <strong>Krea 2 프롬프트 예제</strong>
-          <small>이미지와 전체 프롬프트를 확인한 뒤 새로 쓰거나 기존 내용 뒤에 추가합니다.</small>
+          <strong>프롬프트 예제</strong>
+          <small class:wildcard-error={Boolean(wildcardError)}>{wildcardError || '이미지와 전체 프롬프트를 확인한 뒤 새로 쓰거나 기존 내용 뒤에 추가합니다.'}</small>
         </div>
         <div class="header-actions">
-          <a href={officialSource} target="_blank" rel="noreferrer">출처 1 ↗</a>
-          <a href={communitySource} target="_blank" rel="noreferrer">출처 2 ↗</a>
-          <a href={vibeSource} target="_blank" rel="noreferrer">출처 3 ↗</a>
+          <span class="source-links">
+            <a href={officialSource} target="_blank" rel="noreferrer">출처 1 ↗</a>
+            <a href={communitySource} target="_blank" rel="noreferrer">출처 2 ↗</a>
+            <a href={vibeSource} target="_blank" rel="noreferrer">출처 3 ↗</a>
+            <a href={wildcardSource} target="_blank" rel="noreferrer">출처 4 ↗</a>
+          </span>
+          <button type="button" class="wildcard-random" disabled={wildcardLoading} title="muse(no_camera) 장면과 Style을 무작위로 조합해 새 프롬프트로 적용" onclick={applyRandomWildcard}>{wildcardLoading ? '준비 중…' : '🎲 랜덤'}</button>
           <button type="button" aria-label="닫기" onclick={onClose}>×</button>
         </div>
       </header>
@@ -158,9 +186,13 @@
   header > div:first-child { display: grid; gap: 3px; }
   header strong { color: #e3e8eb; font-size: 14px; }
   header small { color: #76818a; font-size: 10px; }
-  .header-actions { display: flex; align-items: center; gap: 10px; white-space: nowrap; }
+  .header-actions, .source-links { display: flex; align-items: center; gap: 10px; white-space: nowrap; }
   .header-actions a, .detail-copy > a { color: #a8d970; font-size: 10px; text-decoration: none; }
   .header-actions button { width: 34px; height: 34px; padding: 0; border: 1px solid #3a4248; border-radius: 50%; color: #c9d0d5; background: #1b2126; font-size: 20px; }
+  .header-actions .wildcard-random { width: auto; min-width: 76px; padding: 0 12px; border-radius: 9px; border-color: #647d4e; color: #d9f5ba; background: #22301c; font-size: 10px; font-weight: 750; }
+  .header-actions .wildcard-random:hover:not(:disabled) { border-color: #a8d970; background: #2a3b22; }
+  .header-actions .wildcard-random:disabled { opacity: .6; cursor: wait; }
+  header small.wildcard-error { color: #f0a7ac; }
   .example-filters { display: grid; grid-template-columns: 190px 170px minmax(220px, 1fr); gap: 10px; padding: 12px 16px; border-bottom: 1px solid #252c31; background: #0e1215; }
   .example-filters label { display: grid; gap: 5px; color: #89939a; font-size: 9px; font-weight: 700; }
   .example-filters select, .example-filters input { box-sizing: border-box; width: 100%; height: 38px; padding: 0 10px; border: 1px solid #343c42; border-radius: 8px; color: #d2d8dc; background: #171c20; font-size: 10px; }
@@ -194,6 +226,8 @@
     header { padding: 11px 12px; }
     header small { display: none; }
     .header-actions { gap: 7px; }
+    .source-links { display: none; }
+    .header-actions .wildcard-random { min-width: 72px; padding-inline: 10px; }
     .example-filters { grid-template-columns: 1fr 1fr; padding: 10px 12px; }
     .example-search { grid-column: 1 / -1; }
     .example-result-heading { padding-inline: 12px; }

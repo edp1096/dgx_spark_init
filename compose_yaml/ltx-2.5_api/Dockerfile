@@ -34,6 +34,13 @@ RUN python -m pip uninstall -y torchaudio && \
       python -m pip install --no-cache-dir --no-deps --no-build-isolation /tmp/audio && \
     rm -rf /tmp/audio
 
+# Community ComfyUI Gemma packs embed all tensors and tokenizer assets but may
+# omit the native LTX `gemma_config` metadata key. Keep their weights/assets and
+# source only the architecture config from the official compatible encoder.
+COPY patches/comfy-gemma-config-fallback.patch /tmp/comfy-gemma-config-fallback.patch
+RUN git -C /opt/LTX-2 apply /tmp/comfy-gemma-config-fallback.patch && \
+    rm -f /tmp/comfy-gemma-config-fallback.patch
+
 WORKDIR /opt/ltx-api
 COPY api.py prepare_models.py start.sh ./
 RUN chmod +x start.sh

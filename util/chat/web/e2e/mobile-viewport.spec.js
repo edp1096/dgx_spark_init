@@ -4,6 +4,7 @@ test('keeps the composer inside a normal desktop browser viewport', async ({ pag
   for (const viewport of [
     { width: 1366, height: 768 },
     { width: 1280, height: 640 },
+    { width: 1024, height: 500 },
   ]) {
     await page.setViewportSize(viewport);
     await page.goto('/');
@@ -12,9 +13,11 @@ test('keeps the composer inside a normal desktop browser viewport', async ({ pag
     const shell = await page.locator('.shell').boundingBox();
     const main = await page.locator('main').boundingBox();
     const footer = await page.locator('footer').boundingBox();
+    const settingsButton = await page.locator('.settings-button').boundingBox();
     expect(shell?.height).toBe(viewport.height);
     expect(main?.height).toBe(viewport.height);
     expect((footer?.y ?? viewport.height + 1) + (footer?.height ?? 0)).toBeLessThanOrEqual(viewport.height);
+    expect((settingsButton?.y ?? viewport.height + 1) + (settingsButton?.height ?? 0)).toBeLessThanOrEqual(viewport.height);
   }
 });
 

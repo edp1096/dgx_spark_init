@@ -4,7 +4,7 @@ set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 project_dir="$(cd "${script_dir}/.." && pwd)"
-llama_ref="${LLAMA_CPP_REF:-v0.2.0}"
+llama_ref="${LLAMA_CPP_REF:-c060ca974c773c7c3d17fd1b66dc9d312bc292c0}"
 artifact_root="${LLAMA_ARTIFACT_ROOT:-${project_dir}/artifacts}"
 artifact_name="${llama_ref//\//_}"
 artifact_dir="${artifact_root}/${artifact_name}"

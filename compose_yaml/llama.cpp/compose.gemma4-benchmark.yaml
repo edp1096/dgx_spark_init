@@ -1,11 +1,11 @@
 services:
   llama-gemma4-benchmark:
     container_name: llama-gemma4-benchmark
-    image: llama.cpp-spark:v0.2.0-gemma4-benchmark
+    image: llama.cpp-spark:c060ca9-gemma4-benchmark
     build:
       context: .
       args:
-        LLAMA_CPP_REF: v0.2.0
+        LLAMA_CPP_REF: c060ca974c773c7c3d17fd1b66dc9d312bc292c0
     ports:
       - "127.0.0.1:5000:5000"
     environment:
@@ -14,6 +14,7 @@ services:
       MODEL_FILE: "${MODEL_FILE:-Huihui-gemma-4-E2B-it-qat-q4_0-unquantized-abliterated-Q4_K.gguf}"
       MTP_FILE: "${MTP_FILE:-mtp-ggml-model-bf16.gguf}"
       MTP_ENABLED: "${MTP_ENABLED:-true}"
+      MTP_TOKENS: "${MTP_TOKENS:-4}"
       MMPROJ_FILE: "${MMPROJ_FILE:-mmproj-model-bf16.gguf}"
       MMPROJ_ENABLED: "${MMPROJ_ENABLED:-false}"
     volumes:
@@ -52,7 +53,7 @@ services:
         if [[ "$${MTP_ENABLED}" == "true" && -f "/models/$${MTP_FILE}" ]]; then
           args+=(
             --spec-type draft-mtp
-            --spec-draft-n-max 4
+            --spec-draft-n-max "$${MTP_TOKENS}"
             --spec-draft-model "/models/$${MTP_FILE}"
             --spec-draft-ngl all
           )

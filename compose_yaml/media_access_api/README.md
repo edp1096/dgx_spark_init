@@ -96,6 +96,10 @@ Vimeo의 전용 `playlist.json`은 최고 해상도 비디오와 기본 오디�
 반환한다. `DELETE /v1/media/storage/temp`는 현재 처리 중인 폴더를 제외하고 정리하며,
 `older_than_hours`를 주면 마지막 변경 시각이 그보다 오래된 폴더만 삭제한다.
 
+`POST /v1/media/thumbnails`는 multipart의 `video` 파일에서 타임라인 미리보기용
+160×90 프레임 50개를 추출해 10×5 JPEG 스프라이트로 반환한다. 재생 UI는 이 한 장의
+좌표만 바꾸므로 마우스 이동 중 원본 영상을 반복 탐색할 필요가 없다.
+
 Deno는 이미지에 포함되어 있으며, YouTube의 JavaScript challenge solver는
 `yt-dlp[default]`에 포함된 `yt-dlp-ejs`를 사용한다.
 YouTube GVS가 요구하는 영상별 PO Token은 공식 yt-dlp 문서의 추천 구성에 따라

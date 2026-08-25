@@ -7,7 +7,8 @@ python /opt/ComfyUI/main.py \
   --listen 127.0.0.1 \
   --port 8188 \
   --disable-auto-launch \
-  --preview-method none &
+  --preview-method none \
+  --gpu-only &
 comfy_pid=$!
 
 cleanup() {

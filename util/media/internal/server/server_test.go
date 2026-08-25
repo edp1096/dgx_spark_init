@@ -65,16 +65,17 @@ func TestImageJobCompletesThroughEngine(t *testing.T) {
 			w.WriteHeader(http.StatusOK)
 		case "/v1/images/generations":
 			var request struct {
-				Prompt    string `json:"prompt"`
-				Size      string `json:"size"`
-				Sampler   string `json:"sampler_name"`
-				Scheduler string `json:"scheduler"`
-				Steps     int    `json:"steps"`
+				Prompt     string `json:"prompt"`
+				Size       string `json:"size"`
+				Checkpoint string `json:"checkpoint"`
+				Sampler    string `json:"sampler_name"`
+				Scheduler  string `json:"scheduler"`
+				Steps      int    `json:"steps"`
 			}
 			if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 				t.Fatal(err)
 			}
-			if request.Prompt != "green glass sphere" || request.Size != "512x512" || request.Sampler != "euler" || request.Scheduler != "simple" || request.Steps != 8 {
+			if request.Prompt != "green glass sphere" || request.Size != "512x512" || request.Checkpoint != "moody-v7" || request.Sampler != "euler_ancestral" || request.Scheduler != "beta" || request.Steps != 8 {
 				t.Fatalf("unexpected request %#v", request)
 			}
 			_ = json.NewEncoder(w).Encode(map[string]any{"seed": int64(987654321), "data": []map[string]string{{"b64_json": base64.StdEncoding.EncodeToString([]byte("fake png"))}}})
@@ -98,6 +99,8 @@ func TestImageJobCompletesThroughEngine(t *testing.T) {
 	var body bytes.Buffer
 	form := multipart.NewWriter(&body)
 	_ = form.WriteField("prompt", "green glass sphere")
+	_ = form.WriteField("checkpoint", "moody-v7")
+	_ = form.WriteField("sampling_preset", "moody")
 	_ = form.Close()
 	req := httptest.NewRequest(http.MethodPost, "/api/jobs/image", &body)
 	req.Header.Set("Content-Type", form.FormDataContentType())
@@ -128,6 +131,212 @@ func TestImageJobCompletesThroughEngine(t *testing.T) {
 		time.Sleep(10 * time.Millisecond)
 	}
 	t.Fatalf("job did not complete: %#v", store.List())
+}
+
+func TestImageSequenceUsesPreviousResultAsIdentity(t *testing.T) {
+	type engineRequest struct {
+		Prompt           string  `json:"prompt"`
+		SourceImage      string  `json:"source_image"`
+		Steps            int     `json:"steps"`
+		IdentityStrength float64 `json:"identity_strength"`
+	}
+	requests := make(chan engineRequest, 2)
+	worker := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/v1/images/generations" {
+			http.NotFound(w, r)
+			return
+		}
+		var request engineRequest
+		if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		requests <- request
+		result := "first scene png"
+		if request.SourceImage != "" {
+			result = "second scene png"
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{"data": []map[string]string{{"b64_json": base64.StdEncoding.EncodeToString([]byte(result))}}})
+	}))
+	defer worker.Close()
+
+	cfg := config.Config{
+		DataDir: t.TempDir(),
+		Engines: map[string]config.Engine{"image": {Endpoint: worker.URL}},
+		Image: config.Image{
+			DefaultMode: "create", DefaultWidth: 512, DefaultHeight: 512, MaxReferenceImages: 4,
+			Backends: map[string]config.ImageBackend{"create": {Endpoint: worker.URL, Model: "krea-test"}},
+		},
+	}
+	store, err := jobs.New(cfg.DataDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	handler := New(cfg, store, nil).Handler()
+	var body bytes.Buffer
+	form := multipart.NewWriter(&body)
+	_ = form.WriteField("prompt", "same woman in a quiet room")
+	_ = form.WriteField("mode", "create")
+	_ = form.WriteField("steps", "8")
+	_ = form.WriteField("sequence_prompts", `["same woman in a quiet room","she walks toward the window"]`)
+	_ = form.Close()
+	req := httptest.NewRequest(http.MethodPost, "/api/jobs/image", &body)
+	req.Header.Set("Content-Type", form.FormDataContentType())
+	res := httptest.NewRecorder()
+	handler.ServeHTTP(res, req)
+	if res.Code != http.StatusAccepted {
+		t.Fatalf("status=%d body=%s", res.Code, res.Body.String())
+	}
+	var response struct {
+		SequenceID string     `json:"sequence_id"`
+		Jobs       []jobs.Job `json:"jobs"`
+	}
+	if err := json.Unmarshal(res.Body.Bytes(), &response); err != nil || len(response.Jobs) != 2 || response.SequenceID == "" {
+		t.Fatalf("response=%#v err=%v body=%s", response, err, res.Body.String())
+	}
+
+	deadline := time.Now().Add(2 * time.Second)
+	for time.Now().Before(deadline) {
+		completed := 0
+		for _, job := range store.List() {
+			if job.Status == "completed" {
+				completed++
+			}
+		}
+		if completed == 2 {
+			break
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	list := store.List()
+	if len(list) != 2 || list[0].Status != "completed" || list[1].Status != "completed" {
+		t.Fatalf("sequence did not complete: %#v", list)
+	}
+	firstRequest := <-requests
+	secondRequest := <-requests
+	if firstRequest.SourceImage != "" || firstRequest.Prompt != "same woman in a quiet room" || firstRequest.Steps != 8 {
+		t.Fatalf("unexpected first request: %#v", firstRequest)
+	}
+	source, err := base64.StdEncoding.DecodeString(secondRequest.SourceImage)
+	if err != nil || string(source) != "first scene png" {
+		t.Fatalf("second source=%q err=%v request=%#v", source, err, secondRequest)
+	}
+	if !strings.Contains(secondRequest.Prompt, "Change: she walks toward the window") || !strings.Contains(secondRequest.Prompt, "Preserve:") || secondRequest.Steps != 10 || secondRequest.IdentityStrength != 0.8 {
+		t.Fatalf("unexpected second request: %#v", secondRequest)
+	}
+	second := response.Jobs[1]
+	if second.Params["sequence_previous_job_id"] != response.Jobs[0].ID || second.Params["sequence_index"] != float64(2) {
+		t.Fatalf("unexpected sequence params: %#v", second.Params)
+	}
+}
+
+func TestSequenceAnyPaintMaskUsesNormalizedArmRegion(t *testing.T) {
+	dataDir := t.TempDir()
+	source := filepath.Join(dataDir, "source.png")
+	if err := os.WriteFile(source, testPNG(t, 100, 80), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	server := &Server{dataDir: dataDir}
+	job := jobs.Job{ID: "masked-scene", Params: map[string]any{"sequence_region": "left-arm"}}
+	if err := server.materializeSequenceAnyPaintMask(job, source); err != nil {
+		t.Fatal(err)
+	}
+	file, err := os.Open(filepath.Join(dataDir, "inputs", job.ID, "anypaint-mask", "0.png"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	mask, err := png.Decode(file)
+	_ = file.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if color.GrayModel.Convert(mask.At(10, 20)).(color.Gray).Y != 255 || color.GrayModel.Convert(mask.At(90, 20)).(color.Gray).Y != 0 || color.GrayModel.Convert(mask.At(45, 70)).(color.Gray).Y != 255 {
+		t.Fatalf("unexpected normalized left-arm mask pixels")
+	}
+}
+
+func TestImageSequenceCanContinueFromCompletedImageWithPaintedMask(t *testing.T) {
+	type engineRequest struct {
+		Prompt string `json:"prompt"`
+		Image  string `json:"anypaint_image"`
+		Mask   string `json:"anypaint_mask"`
+	}
+	requests := make(chan engineRequest, 1)
+	worker := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var request engineRequest
+		if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		requests <- request
+		_ = json.NewEncoder(w).Encode(map[string]any{"data": []map[string]string{{"b64_json": base64.StdEncoding.EncodeToString(testPNG(t, 64, 48))}}})
+	}))
+	defer worker.Close()
+
+	cfg := config.Config{DataDir: t.TempDir(), Engines: map[string]config.Engine{"image": {Endpoint: worker.URL}}, Image: config.Image{DefaultMode: "create", DefaultWidth: 64, DefaultHeight: 48, MaxReferenceImages: 4, Backends: map[string]config.ImageBackend{"create": {Endpoint: worker.URL, Model: "krea-test"}}}}
+	store, err := jobs.New(cfg.DataDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	baseBytes := testPNG(t, 64, 48)
+	baseName := "sequence-base.png"
+	if err := os.WriteFile(store.OutputPath(baseName), baseBytes, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	base := jobs.Job{ID: "existing-image", Kind: "image", Status: "completed", Prompt: "a robot standing still", OutputURL: "/api/outputs/" + baseName, CreatedAt: time.Now().Add(-time.Minute)}
+	if err := store.Save(base); err != nil {
+		t.Fatal(err)
+	}
+	handler := New(cfg, store, nil).Handler()
+
+	var body bytes.Buffer
+	form := multipart.NewWriter(&body)
+	_ = form.WriteField("prompt", base.Prompt)
+	_ = form.WriteField("mode", "create")
+	_ = form.WriteField("sequence_prompts", `["a robot standing still","raise only the robot's left arm"]`)
+	_ = form.WriteField("sequence_regions", `["all","custom"]`)
+	_ = form.WriteField("sequence_base_job_id", base.ID)
+	part, err := form.CreateFormFile("sequence_mask_1", "painted-mask.png")
+	if err != nil {
+		t.Fatal(err)
+	}
+	maskBytes := testPNG(t, 64, 48)
+	_, _ = part.Write(maskBytes)
+	_ = form.Close()
+	req := httptest.NewRequest(http.MethodPost, "/api/jobs/image", &body)
+	req.Header.Set("Content-Type", form.FormDataContentType())
+	res := httptest.NewRecorder()
+	handler.ServeHTTP(res, req)
+	if res.Code != http.StatusAccepted {
+		t.Fatalf("status=%d body=%s", res.Code, res.Body.String())
+	}
+	var response struct {
+		Jobs []jobs.Job `json:"jobs"`
+	}
+	if err := json.Unmarshal(res.Body.Bytes(), &response); err != nil || len(response.Jobs) != 1 {
+		t.Fatalf("response=%#v err=%v body=%s", response, err, res.Body.String())
+	}
+	deadline := time.Now().Add(2 * time.Second)
+	for time.Now().Before(deadline) {
+		job, ok := store.Get(response.Jobs[0].ID)
+		if ok && job.Status == "completed" {
+			break
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	select {
+	case request := <-requests:
+		imageBytes, imageErr := base64.StdEncoding.DecodeString(request.Image)
+		maskResult, maskErr := base64.StdEncoding.DecodeString(request.Mask)
+		if imageErr != nil || maskErr != nil || !bytes.Equal(imageBytes, baseBytes) || !bytes.Equal(maskResult, maskBytes) {
+			t.Fatalf("unexpected painted sequence inputs: imageErr=%v maskErr=%v", imageErr, maskErr)
+		}
+		if !strings.Contains(request.Prompt, "raise only the robot's left arm") {
+			t.Fatalf("unexpected prompt: %q", request.Prompt)
+		}
+	default:
+		t.Fatal("painted sequence request was not sent")
+	}
 }
 
 func TestCompletedImageCanBeUpscaledThroughSeedVR2(t *testing.T) {
@@ -460,6 +669,25 @@ func TestStoredImageInputCanBePreviewedAndReused(t *testing.T) {
 	}
 }
 
+func TestEnhancementPreservesIdentityEditContract(t *testing.T) {
+	original := "Change: Replace all clothing with the outfit from the supporting reference and apply the pose from the Depth image. Preserve: identity. Do not preserve original clothing or pose."
+	good := "Replace the clothing with the reference outfit and follow the Depth-controlled posture while preserving identity; do not retain the source garments or pose."
+	badPose := "Use the supporting reference outfit and Depth image while preserving the original pose and clothing."
+	badReference := "Change the outfit and posture while preserving identity."
+	if !enhancementPreservesEditContract("edit_control", original, good) {
+		t.Fatal("valid edit-control enhancement was rejected")
+	}
+	if enhancementPreservesEditContract("edit_control", original, badPose) {
+		t.Fatal("contradictory pose preservation was accepted")
+	}
+	if enhancementPreservesEditContract("edit_control", original, badReference) {
+		t.Fatal("missing reference and depth controls were accepted")
+	}
+	if !enhancementPreservesEditContract("t2i", original, badPose) {
+		t.Fatal("non-edit modes must not use the edit contract")
+	}
+}
+
 func TestKreaModulesRouteToCreateBackend(t *testing.T) {
 	worker := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/v1/images/generations" {
@@ -467,16 +695,17 @@ func TestKreaModulesRouteToCreateBackend(t *testing.T) {
 			return
 		}
 		var request struct {
-			Model            string  `json:"model"`
-			SourceImage      string  `json:"source_image"`
-			ReferenceImage   string  `json:"reference_image"`
-			ControlImage     string  `json:"control_image"`
-			IdentityStrength float64 `json:"identity_strength"`
-			RefBoost         float64 `json:"ref_boost"`
-			GroundingPX      int     `json:"grounding_px"`
-			ControlStrength  float64 `json:"control_strength"`
-			Style            string  `json:"style"`
-			StyleStrength    float64 `json:"style_strength"`
+			Model            string   `json:"model"`
+			SourceImage      string   `json:"source_image"`
+			ReferenceImages  []string `json:"reference_images"`
+			ControlImage     string   `json:"control_image"`
+			IdentityStrength float64  `json:"identity_strength"`
+			RefBoost         float64  `json:"ref_boost"`
+			SourceRefBoost   float64  `json:"source_ref_boost"`
+			GroundingPX      int      `json:"grounding_px"`
+			ControlStrength  float64  `json:"control_strength"`
+			Style            string   `json:"style"`
+			StyleStrength    float64  `json:"style_strength"`
 			Styles           []struct {
 				Name     string  `json:"name"`
 				Strength float64 `json:"strength"`
@@ -500,10 +729,10 @@ func TestKreaModulesRouteToCreateBackend(t *testing.T) {
 			}
 			return string(decoded)
 		}
-		if request.Model != "krea-test" || decode(request.SourceImage) != "identity png" || decode(request.ReferenceImage) != "person png" || decode(request.ControlImage) != "pose png" {
+		if request.Model != "krea-test" || decode(request.SourceImage) != "identity png" || len(request.ReferenceImages) != 2 || decode(request.ReferenceImages[0]) != "person png" || decode(request.ReferenceImages[1]) != "outfit png" || decode(request.ControlImage) != "pose png" {
 			t.Fatalf("unexpected Krea images: %#v", request)
 		}
-		if request.IdentityStrength != 1 || request.RefBoost != 4 || request.GroundingPX != 768 || request.ControlStrength != 0.8 || request.Style != "retroanime" || request.StyleStrength != 0.8 || request.Steps != 10 {
+		if request.IdentityStrength != 1 || request.RefBoost != 4 || request.SourceRefBoost != 1.5 || request.GroundingPX != 768 || request.ControlStrength != 0.8 || request.Style != "retroanime" || request.StyleStrength != 0.8 || request.Steps != 10 {
 			t.Fatalf("unexpected Krea settings: %#v", request)
 		}
 		if request.FilterMode != "strong" || request.FilterStrength != 1 || !request.PromptEnhancer || request.PromptEnhStrength != 1.25 || request.PromptTextScale != 2 {
@@ -539,6 +768,7 @@ func TestKreaModulesRouteToCreateBackend(t *testing.T) {
 	_ = form.WriteField("mode", "create")
 	_ = form.WriteField("identity_strength", "1")
 	_ = form.WriteField("ref_boost", "4")
+	_ = form.WriteField("source_ref_boost", "1.5")
 	_ = form.WriteField("grounding_px", "768")
 	_ = form.WriteField("depth_strength", "0.8")
 	_ = form.WriteField("styles", `[{"name":"retroanime","strength":0.8},{"name":"softwatercolor","strength":0.6}]`)
@@ -553,6 +783,7 @@ func TestKreaModulesRouteToCreateBackend(t *testing.T) {
 	for _, upload := range []struct{ field, name, content string }{
 		{"identity_image", "identity.png", "identity png"},
 		{"identity_reference", "person.png", "person png"},
+		{"identity_reference", "outfit.png", "outfit png"},
 		{"depth_image", "pose.png", "pose png"},
 	} {
 		part, partErr := form.CreateFormFile(upload.field, upload.name)
@@ -855,6 +1086,9 @@ func TestVideoJobStreamsEngineOutput(t *testing.T) {
 		if r.FormValue("prompt") != "waves under moonlight" || r.FormValue("width") != "768" || r.FormValue("height") != "512" || r.FormValue("num_frames") != "121" || r.FormValue("fps") != "24" || r.FormValue("seed") != "42" {
 			t.Fatalf("unexpected fields: %#v", r.MultipartForm.Value)
 		}
+		if r.FormValue("frame_indices") != "[0,60,120]" || r.FormValue("image_strengths") != "[0.8,0.7,0.9]" || len(r.MultipartForm.File["images"]) != 3 {
+			t.Fatalf("unexpected conditioning: values=%#v files=%#v", r.MultipartForm.Value, r.MultipartForm.File)
+		}
 		w.Header().Set("Content-Type", "video/mp4")
 		_, _ = w.Write([]byte("fake mp4"))
 	}))
@@ -875,6 +1109,18 @@ func TestVideoJobStreamsEngineOutput(t *testing.T) {
 	form := multipart.NewWriter(&body)
 	_ = form.WriteField("prompt", "waves under moonlight")
 	_ = form.WriteField("seed", "42")
+	_ = form.WriteField("image_strength", "0.8")
+	_ = form.WriteField("end_image_strength", "0.9")
+	_ = form.WriteField("keyframe_count", "1")
+	_ = form.WriteField("keyframe_time_0", "2.5")
+	_ = form.WriteField("keyframe_strength_0", "0.7")
+	for _, field := range []string{"start_image", "keyframe_image_0", "end_image"} {
+		part, err := form.CreateFormFile(field, field+".png")
+		if err != nil {
+			t.Fatal(err)
+		}
+		_, _ = part.Write([]byte("fake image"))
+	}
 	_ = form.Close()
 	req := httptest.NewRequest(http.MethodPost, "/api/jobs/video", &body)
 	req.Header.Set("Content-Type", form.FormDataContentType())
@@ -1617,6 +1863,63 @@ func TestRestartRecoveryFailsJobsWithoutRecoverableInputs(t *testing.T) {
 		if job.Status != "failed" || job.Error == "" {
 			t.Fatalf("job was not reconciled after restart: %#v", job)
 		}
+	}
+}
+
+func TestGenerationQueueRunsFIFOAndContinuesAfterFailure(t *testing.T) {
+	calls := make(chan string, 2)
+	worker := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var request map[string]any
+		_ = json.NewDecoder(r.Body).Decode(&request)
+		input, _ := request["input"].(string)
+		calls <- input
+		if input == "first" {
+			http.Error(w, "intentional failure", http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "audio/wav")
+		_, _ = w.Write([]byte("RIFF-test-wave"))
+	}))
+	defer worker.Close()
+
+	dataDir := t.TempDir()
+	store, err := jobs.New(dataDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	base := time.Now()
+	for index, prompt := range []string{"first", "second"} {
+		job := jobs.Job{
+			ID: fmt.Sprintf("speech-%d", index), Kind: "speech", Status: "queued", Prompt: prompt,
+			Params:    map[string]any{"language": "Korean", "speaker": "Sohee", "queued_at": base.Add(time.Duration(index) * time.Millisecond).Format(time.RFC3339Nano)},
+			CreatedAt: base.Add(time.Duration(index) * time.Millisecond),
+		}
+		if err := store.Save(job); err != nil {
+			t.Fatal(err)
+		}
+	}
+	mediaServer := New(config.Config{DataDir: dataDir, Engines: map[string]config.Engine{"speech": {Endpoint: worker.URL}}}, store, nil)
+	mediaServer.wakeGenerationQueue()
+
+	deadline := time.Now().Add(3 * time.Second)
+	for time.Now().Before(deadline) {
+		first, _ := store.Get("speech-0")
+		second, _ := store.Get("speech-1")
+		if first.Status == "failed" && second.Status == "completed" {
+			break
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	first, _ := store.Get("speech-0")
+	second, _ := store.Get("speech-1")
+	if first.Status != "failed" || second.Status != "completed" {
+		t.Fatalf("queue did not continue after failure: first=%s second=%s", first.Status, second.Status)
+	}
+	if got := <-calls; got != "first" {
+		t.Fatalf("first call=%q", got)
+	}
+	if got := <-calls; got != "second" {
+		t.Fatalf("second call=%q", got)
 	}
 }
 

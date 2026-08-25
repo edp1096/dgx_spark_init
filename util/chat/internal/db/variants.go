@@ -122,6 +122,10 @@ func (d *DB) messagesBefore(sessionID string, messageID int64) ([]Message, error
 // AppendEditedBranch commits a revised user request and its generated answer
 // together. Existing request and response variants remain available.
 func (d *DB) AppendEditedBranch(userMessageID int64, userContent string, userAttachments []Attachment, answer, reasoning string, toolTrace []ToolEvent) error {
+	return d.AppendEditedBranchWithAnswerAttachments(userMessageID, userContent, userAttachments, answer, reasoning, toolTrace, nil)
+}
+
+func (d *DB) AppendEditedBranchWithAnswerAttachments(userMessageID int64, userContent string, userAttachments []Attachment, answer, reasoning string, toolTrace []ToolEvent, answerAttachments []Attachment) error {
 	tx, err := d.conn.Begin()
 	if err != nil {
 		return err
@@ -161,7 +165,7 @@ func (d *DB) AppendEditedBranch(userMessageID int64, userContent string, userAtt
 		if _, deleteErr := tx.Exec(`DELETE FROM messages WHERE session_id=? AND id>?`, sessionID, userMessageID); deleteErr != nil {
 			return deleteErr
 		}
-		answerVariants := []ResponseVariant{{Content: answer, Reasoning: reasoning, ToolTrace: toolTrace, ParentVariant: parentVariant, CreatedAt: now}}
+		answerVariants := []ResponseVariant{{Content: answer, Reasoning: reasoning, ToolTrace: toolTrace, Attachments: answerAttachments, ParentVariant: parentVariant, CreatedAt: now}}
 		answerVariantsJSON, _ := json.Marshal(answerVariants)
 		result, insertErr := tx.Exec(`INSERT INTO messages(session_id,role,status,error,content,reasoning_content,tool_trace,response_variants,created_at) VALUES(?,'assistant','completed','',?,?,?,?,?)`, sessionID, answer, reasoning, string(traceJSON), string(answerVariantsJSON), now)
 		if insertErr != nil {
@@ -178,7 +182,7 @@ func (d *DB) AppendEditedBranch(userMessageID int64, userContent string, userAtt
 			_ = json.Unmarshal([]byte(assistantTraceJSON), &oldTrace)
 			answerVariants = append(answerVariants, ResponseVariant{Content: assistantContent, Reasoning: assistantReasoning, ToolTrace: oldTrace, CreatedAt: assistantCreatedAt})
 		}
-		answerVariants = append(answerVariants, ResponseVariant{Content: answer, Reasoning: reasoning, ToolTrace: toolTrace, ParentVariant: parentVariant, CreatedAt: now})
+		answerVariants = append(answerVariants, ResponseVariant{Content: answer, Reasoning: reasoning, ToolTrace: toolTrace, Attachments: answerAttachments, ParentVariant: parentVariant, CreatedAt: now})
 		answerVariantsJSON, _ := json.Marshal(answerVariants)
 		if _, err := tx.Exec(`UPDATE messages SET content=?,reasoning_content=?,tool_trace=?,response_variants=?,status='completed',error='',created_at=? WHERE id=?`, answer, reasoning, string(traceJSON), string(answerVariantsJSON), now, assistantID); err != nil {
 			return err
@@ -200,6 +204,10 @@ func (d *DB) AppendEditedBranch(userMessageID int64, userContent string, userAtt
 // selects it as the current response, and truncates the later branch. If
 // generation fails this method is never called, preserving the conversation.
 func (d *DB) ReplaceAssistant(messageID int64, content, reasoning string, toolTrace []ToolEvent, parentVariant int) error {
+	return d.ReplaceAssistantWithAttachments(messageID, content, reasoning, toolTrace, nil, parentVariant)
+}
+
+func (d *DB) ReplaceAssistantWithAttachments(messageID int64, content, reasoning string, toolTrace []ToolEvent, attachments []Attachment, parentVariant int) error {
 	tx, err := d.conn.Begin()
 	if err != nil {
 		return err
@@ -230,7 +238,7 @@ func (d *DB) ReplaceAssistant(messageID int64, content, reasoning string, toolTr
 			}
 		}
 	}
-	variants = append(variants, ResponseVariant{Content: content, Reasoning: reasoning, ToolTrace: toolTrace, ParentVariant: parentVariant, CreatedAt: now})
+	variants = append(variants, ResponseVariant{Content: content, Reasoning: reasoning, ToolTrace: toolTrace, Attachments: attachments, ParentVariant: parentVariant, CreatedAt: now})
 	variantsJSONBytes, _ := json.Marshal(variants)
 	traceJSON, _ := json.Marshal(toolTrace)
 	if _, err := tx.Exec(`UPDATE messages SET content=?, reasoning_content=?, tool_trace=?, response_variants=?, status='completed', error='', created_at=? WHERE id=?`, content, reasoning, string(traceJSON), string(variantsJSONBytes), now, messageID); err != nil {

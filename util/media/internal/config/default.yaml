@@ -18,9 +18,13 @@ engines:
     endpoint: http://127.0.0.1:8704
   upscale:
     endpoint: http://127.0.0.1:8698
+  garment:
+    endpoint: http://127.0.0.1:8705
 
 image:
   model: krea2-turbo-nvfp4
+  default_checkpoint: official
+  visible_checkpoints: [official, chriscole-edit-v1.1, moody-v7, moody-cutie-v4, moody-amateur-v1, ray-v1, ray-v2, ray-v2-nvfp4, ray-v3, ray-v4, ray-v4-nvfp4]
   default_mode: create
   default_prompt_enhancer: false
   backends:
@@ -51,11 +55,13 @@ video:
   default_height: 512
   default_frames: 121
   default_fps: 24
+  default_motion_lora_enabled: false
+  default_motion_lora_strength: 0.5
 
 prompt_enhancement:
-  model: huihui-gemma4-e2b
+  model: huihui-gemma4-12b
   default_enabled: true
-  vision_enabled: false
+  vision_enabled: true
   max_tokens: 600
 
 image_metadata:

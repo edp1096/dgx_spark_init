@@ -22,7 +22,7 @@ from urllib.request import Request, urlopen
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.background import BackgroundTasks
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from playwright.async_api import async_playwright
 
 from attached_chromium import (
@@ -1165,6 +1165,55 @@ def get_media_asset(asset_id: str):
         filename=download_name,
         content_disposition_type="inline",
     )
+
+
+@app.post("/v1/media/thumbnails")
+async def create_video_thumbnails(video: UploadFile = File(...)):
+    """Build one 10x5 JPEG timeline sprite for a locally supplied video."""
+    work_dir = Path(tempfile.mkdtemp(prefix="video-thumbnails-", dir=DATA_DIR))
+    source = work_dir / (Path(video.filename or "video.mp4").name or "video.mp4")
+    sprite = work_dir / "timeline.jpg"
+    total = 0
+    try:
+        with source.open("wb") as output:
+            while chunk := await video.read(1 << 20):
+                total += len(chunk)
+                if total > MAX_UPLOAD_BYTES:
+                    raise HTTPException(413, "video is too large")
+                output.write(chunk)
+        if total == 0:
+            raise HTTPException(400, "video is empty")
+        duration = await asyncio.to_thread(probe_duration, source)
+        if duration <= 0:
+            raise HTTPException(422, "video duration is unavailable")
+        sample_fps = 50.0 / duration
+        video_filter = (
+            f"fps={sample_fps:.10f},"
+            "scale=160:90:force_original_aspect_ratio=decrease,"
+            "pad=160:90:(ow-iw)/2:(oh-ih)/2:black,"
+            "tile=10x5"
+        )
+        await asyncio.to_thread(run_prepare_command, [
+            "ffmpeg", "-hide_banner", "-nostats", "-loglevel", "error", "-y",
+            "-i", str(source), "-an", "-vf", video_filter,
+            "-frames:v", "1", "-q:v", "5", str(sprite),
+        ], 600, None)
+        if not sprite.is_file() or sprite.stat().st_size == 0:
+            raise HTTPException(500, "thumbnail sprite was not created")
+        return Response(
+            content=sprite.read_bytes(),
+            media_type="image/jpeg",
+            headers={
+                "Cache-Control": "public, max-age=31536000, immutable",
+                "X-Thumbnail-Count": "50",
+                "X-Thumbnail-Columns": "10",
+                "X-Thumbnail-Width": "160",
+                "X-Thumbnail-Height": "90",
+            },
+        )
+    finally:
+        await video.close()
+        shutil.rmtree(work_dir, ignore_errors=True)
 
 
 @app.get("/v1/media/assets/{asset_id}/metadata")

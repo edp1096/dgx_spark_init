@@ -1,11 +1,25 @@
 <script>
   import { onDestroy } from 'svelte'
   import { lockModalScroll } from './modalScroll.js'
+  import LocalMediaPlayer from './LocalMediaPlayer.svelte'
 
   export let video = null
   export let onClose = () => {}
 
   let releaseScroll = null
+  let stage
+
+  function stopStageMedia() {
+    if (!stage) return
+    for (const media of stage.querySelectorAll('video, audio')) {
+      try { media.pause() } catch {}
+    }
+  }
+
+  function closeModal() {
+    stopStageMedia()
+    onClose()
+  }
 
   function unlockScroll() {
     releaseScroll?.()
@@ -20,21 +34,20 @@
   onDestroy(unlockScroll)
 </script>
 
-<svelte:window onkeydown={(event) => { if (video && event.key === 'Escape') onClose() }} />
+<svelte:window onkeydown={(event) => { if (video && event.key === 'Escape') closeModal() }} />
 
 {#if video}
-  <div class="video-modal-backdrop" role="presentation" onclick={(event) => { if (event.target === event.currentTarget) onClose() }}>
+  <div class="video-modal-backdrop" role="presentation" onclick={(event) => { if (event.target === event.currentTarget) closeModal() }}>
     <section class="video-modal" role="dialog" aria-modal="true" aria-label="영상 크게 보기">
       <header>
         <div><strong>{video.title || '생성 영상'}</strong>{#if video.detail}<small title={video.detail}>{video.detail}</small>{/if}</div>
-        <button type="button" aria-label="닫기" onclick={onClose}>×</button>
+        <button type="button" aria-label="닫기" onclick={closeModal}>×</button>
       </header>
-      <div class="video-modal-stage">
-        <!-- svelte-ignore a11y_media_has_caption -->
-        <video controls autoplay playsinline preload="metadata" src={video.src}></video>
+      <div class="video-modal-stage" bind:this={stage}>
+        <LocalMediaPlayer src={video.src} autoplay={false} thumbnails={video.thumbnails} />
       </div>
       {#if video.prompt}<p class="video-modal-prompt">{video.prompt}</p>{/if}
-      <footer><a href={video.src} target="_blank" rel="noreferrer">원본 파일 열기</a><button type="button" onclick={onClose}>닫기</button></footer>
+      <footer><a href={video.src} target="_blank" rel="noreferrer">원본 파일 열기</a><button type="button" onclick={closeModal}>닫기</button></footer>
     </section>
   </div>
 {/if}
@@ -68,6 +81,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    height: auto;
     min-height: 58px;
     padding: 12px 16px;
     border-bottom: 1px solid #303731;
@@ -76,23 +90,16 @@
 
   header div { display: grid; gap: 3px; min-width: 0; }
   header strong { color: #edf2eb; font-size: 14px; }
-  header small { overflow: hidden; color: #8d978e; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
-  header button { border: 0; color: #cbd2cc; background: transparent; font-size: 24px; cursor: pointer; }
+  header small { overflow: hidden; max-width: min(760px, 70vw); color: #7d877e; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+  header button { margin-left: auto; border: 0; color: #aeb7af; background: transparent; font-size: 24px; cursor: pointer; }
 
   .video-modal-stage {
     display: grid;
     place-items: center;
     overflow: hidden;
     min-height: 220px;
+    height: min(calc(94vh - 190px), 69.75vw);
     background: #090b0a;
-  }
-
-  video {
-    display: block;
-    width: 100%;
-    max-height: calc(94vh - 190px);
-    background: #000;
-    object-fit: contain;
   }
 
   .video-modal-prompt {
@@ -140,6 +147,6 @@
 
   @media (max-width: 700px) {
     .video-modal-backdrop { padding: 6px; }
-    video { max-height: calc(94dvh - 210px); }
+    .video-modal-stage { height: min(calc(94dvh - 210px), 56.25vw); min-height: 190px; }
   }
 </style>

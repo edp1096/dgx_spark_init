@@ -1,5 +1,5 @@
-ARG TRT_EDGE_RUNTIME_IMAGE=nvcr.io/nvidia/pytorch:25.12-py3
-ARG TRT_EDGE_CUDA_VERSION=13.1
+ARG TRT_EDGE_RUNTIME_IMAGE=nvcr.io/nvidia/pytorch:26.07-py3
+ARG TRT_EDGE_CUDA_VERSION=13.3
 
 # Export is CPU-only for an already quantized checkpoint.  The newer PyTorch
 # image matches the Python frontend versions used by Edge-LLM 0.10.
@@ -16,6 +16,18 @@ WORKDIR /opt/TensorRT-Edge-LLM
 
 COPY patches/dflash-mixed-precision-lm-head.patch /tmp/dflash-mixed-precision-lm-head.patch
 RUN git apply /tmp/dflash-mixed-precision-lm-head.patch
+COPY patches/modelopt-embedded-mixed-precision.patch /tmp/modelopt-embedded-mixed-precision.patch
+RUN git apply --check /tmp/modelopt-embedded-mixed-precision.patch \
+    && git apply /tmp/modelopt-embedded-mixed-precision.patch
+COPY patches/qwen38-dspark-config.patch /tmp/qwen38-dspark-config.patch
+RUN git apply --check /tmp/qwen38-dspark-config.patch \
+    && git apply /tmp/qwen38-dspark-config.patch
+COPY patches/dspark-shared-lm-head.patch /tmp/dspark-shared-lm-head.patch
+RUN git apply --check /tmp/dspark-shared-lm-head.patch \
+    && git apply /tmp/dspark-shared-lm-head.patch
+COPY patches/qwen38-hybrid-dspark.patch /tmp/qwen38-hybrid-dspark.patch
+RUN git apply --check /tmp/qwen38-hybrid-dspark.patch \
+    && git apply /tmp/qwen38-hybrid-dspark.patch
 
 # Keep the NVIDIA-provided CUDA-enabled torch build instead of replacing it
 # with a generic PyPI wheel.
@@ -83,12 +95,34 @@ RUN cmake -S . -B build -G Ninja \
       -Dpybind11_DIR="$(python -c 'import pybind11; print(pybind11.get_cmake_dir())')" \
     && cmake --build build --parallel "$(nproc)"
 
+# Keep the upstream native build cached, then recompile only the DSpark hybrid
+# registry/config objects and the binaries that link them.
+COPY patches/qwen38-hybrid-dspark-runtime.patch /tmp/qwen38-hybrid-dspark-runtime.patch
+RUN git apply --check /tmp/qwen38-hybrid-dspark-runtime.patch \
+    && git apply /tmp/qwen38-hybrid-dspark-runtime.patch \
+    && cmake --build build --parallel "$(nproc)"
+
 # Local compatibility layer, pinned to v0.10.0 commit 71dd1bae.  Keep this
 # after the native build so Python-only streaming/API changes reuse the costly
 # C++ build cache and never trigger an engine rebuild.
+COPY patches/modelopt-embedded-mixed-precision.patch /tmp/modelopt-embedded-mixed-precision.patch
+RUN git apply --check /tmp/modelopt-embedded-mixed-precision.patch \
+    && git apply /tmp/modelopt-embedded-mixed-precision.patch
+COPY patches/qwen38-dspark-config.patch /tmp/qwen38-dspark-config.patch
+RUN git apply --check /tmp/qwen38-dspark-config.patch \
+    && git apply /tmp/qwen38-dspark-config.patch
+COPY patches/dspark-shared-lm-head.patch /tmp/dspark-shared-lm-head.patch
+RUN git apply --check /tmp/dspark-shared-lm-head.patch \
+    && git apply /tmp/dspark-shared-lm-head.patch
+COPY patches/qwen38-hybrid-dspark.patch /tmp/qwen38-hybrid-dspark.patch
+RUN git apply --check /tmp/qwen38-hybrid-dspark.patch \
+    && git apply /tmp/qwen38-hybrid-dspark.patch
 COPY patches/qwen-streaming-reasoning.patch /tmp/qwen-streaming-reasoning.patch
 RUN git apply --check /tmp/qwen-streaming-reasoning.patch \
     && git apply /tmp/qwen-streaming-reasoning.patch
+COPY patches/local-webp-image.patch /tmp/local-webp-image.patch
+RUN git apply --check /tmp/local-webp-image.patch \
+    && git apply /tmp/local-webp-image.patch
 
 
 FROM runtime-builder AS runtime

@@ -48,6 +48,21 @@ docker compose \
 컴파일이 필요하다. DFlash는 `extra_buffer_lazy`를 지원하지 않으므로 전용 override는
 Mamba radix cache를 `extra_buffer`로 사용한다.
 
+SparkTalk 전용 32K 저메모리 프로필은 SparkMedia의 중량 모델을 모두 내린 뒤 다음처럼
+실행한다. Open WebUI는 함께 올리지 않는다.
+
+```bash
+docker compose \
+  -f compose.yaml \
+  -f compose.huihui-radixark-nvfp4-dflash2-sparktalk.yaml \
+  up -d --build --force-recreate sglang
+```
+
+이 프로필은 동시 요청 2, `mem-fraction-static=0.38`, FP8 target/draft KV,
+Mamba cache 8슬롯, 32K context, CUDA graph batch 2를 사용한다. FlashInfer autotune을
+끄고 GB10의 Cortex-X5 코어에 고정하며 idle scheduler를 재운다. SparkTalk의 live
+설정은 `http://127.0.0.1:8000`과 제공 모델 ID를 가리켜야 한다.
+
 Open WebUI는 SGLang이 healthy 상태가 된 뒤 기동된다.
 
 ## Open WebUI를 유지하며 모델만 전환
@@ -194,3 +209,20 @@ DFlash2가 전체 기준 약 49.6% 빨랐다. accept length는 코드 4.65, 수�
 기술 한국어 6.75, 한국어 산문 2.575였다. DFlash2 기동 후 유휴 GPU 프로세스
 할당은 약 52.5GiB였으며 텍스트와 이미지 입력을 모두 확인했다. 원본 결과는
 `results/huihui-radixstyle-nvfp4-dflash2-compile-no-thinking.jsonl`에 있다.
+
+## 2026-08-24 SparkTalk 32K 저메모리 프로필 실측
+
+SparkMedia 컨테이너와 TensorRT Edge-LLM을 내리고 ASR, TTS, SparkTalk Extra만 남긴
+상태에서 측정했다. SGLang 기동 직전 가용 메모리는 98.57GiB, 준비 직후는 약
+55.6GiB로 SGLang 추가 상주는 약 43GiB였다. 31,912-token 동일 입력은 첫 요청
+20.26초, 두 번째 요청 0.43초였으며 prefix-cache hit rate는 99.87%였다.
+
+| 방식 | code_en | math_en | technical_ko | prose_ko | 전체 |
+|---|---:|---:|---:|---:|---:|
+| SparkTalk 32K DFlash2 | 38.456 | 54.749 | 22.413 | 12.946 | 24.077 tok/s |
+
+WebP vision 요청은 4.37초에 완료됐고 SSE 41개 chunk, reasoning/content 분리도
+정상 동작했다. 장문 대화의 체감 응답성은 TensorRT Edge-LLM DFlash가 아직 지원하지
+않는 prefix reuse에서 큰 차이가 난다. 대신 이 프로필도 TensorRT 구성보다 약
+6~9GiB 더 상주하므로 SparkMedia 중량 모델 전체와 동시에 올리는 기본 구성으로는
+사용하지 않는다.

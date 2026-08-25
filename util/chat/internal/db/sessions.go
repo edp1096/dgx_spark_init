@@ -158,6 +158,10 @@ func (d *DB) addMessage(sessionID, role, status, failure, content, reasoning str
 // CompletePendingTurn atomically commits the pending user request and its
 // assistant answer. A model-facing turn is never half-completed.
 func (d *DB) CompletePendingTurn(userMessageID int64, content, reasoning string, toolTrace []ToolEvent) (Message, error) {
+	return d.CompletePendingTurnWithAttachments(userMessageID, content, reasoning, toolTrace, nil)
+}
+
+func (d *DB) CompletePendingTurnWithAttachments(userMessageID int64, content, reasoning string, toolTrace []ToolEvent, attachments []Attachment) (Message, error) {
 	tx, err := d.conn.Begin()
 	if err != nil {
 		return Message{}, err
@@ -172,7 +176,7 @@ func (d *DB) CompletePendingTurn(userMessageID int64, content, reasoning string,
 		return Message{}, err
 	}
 	traceJSON, _ := json.Marshal(toolTrace)
-	variants := []ResponseVariant{{Content: content, Reasoning: reasoning, ToolTrace: toolTrace, CreatedAt: now}}
+	variants := []ResponseVariant{{Content: content, Reasoning: reasoning, ToolTrace: toolTrace, Attachments: attachments, CreatedAt: now}}
 	variantsJSON, _ := json.Marshal(variants)
 	result, err := tx.Exec(`INSERT INTO messages(session_id,role,status,error,content,reasoning_content,tool_trace,response_variants,created_at) VALUES(?,'assistant','completed','',?,?,?,?,?)`, sessionID, content, reasoning, string(traceJSON), string(variantsJSON), now)
 	if err != nil {
@@ -185,7 +189,7 @@ func (d *DB) CompletePendingTurn(userMessageID int64, content, reasoning string,
 	if err := tx.Commit(); err != nil {
 		return Message{}, err
 	}
-	return Message{ID: id, SessionID: sessionID, Role: "assistant", Status: MessageCompleted, Content: content, Reasoning: reasoning, ToolTrace: toolTrace, Variants: variants, CreatedAt: now}, nil
+	return Message{ID: id, SessionID: sessionID, Role: "assistant", Status: MessageCompleted, Content: content, Reasoning: reasoning, ToolTrace: toolTrace, Attachments: attachments, Variants: variants, CreatedAt: now}, nil
 }
 
 func (d *DB) FailPendingTurn(userMessageID int64, status, failure, partialContent, partialReasoning string, toolTrace []ToolEvent) error {

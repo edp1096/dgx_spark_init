@@ -15,6 +15,38 @@ export const api = {
   imageEXIF: (id) => fetch(`/api/jobs/${encodeURIComponent(id)}/exif`).then(checked),
   engines: () => fetch('/api/engines').then(checked),
   system: () => fetch('/api/system').then(checked),
+  videoModels: () => fetch('/api/video/models').then(checked),
+  prepareVideoModels: (hfToken) => fetch('/api/video/models/prepare', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ hf_token: hfToken })
+  }).then(checked),
+  imageCheckpoints: () => fetch('/api/image/checkpoints').then(checked),
+  prepareImageCheckpoints: (civitaiToken, hfToken, variants) => fetch('/api/image/checkpoints/prepare', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ civitai_token: civitaiToken, hf_token: hfToken, variants })
+  }).then(checked),
+  convertImageCheckpointsNVFP4: (civitaiToken, variants, removeBF16Sources = false) => fetch('/api/image/checkpoints/convert-nvfp4', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ civitai_token: civitaiToken, variants, remove_bf16_sources: removeBF16Sources })
+  }).then(checked),
+  assistantChat: (payload) => fetch('/api/assistant/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  }).then(checked),
+  remoteImage: async (url) => {
+    const response = await fetch('/api/images/fetch', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url })
+    })
+    if (!response.ok) throw new Error((await response.text()) || `HTTP ${response.status}`)
+    return {
+      blob: await response.blob(),
+      filename: response.headers.get('X-Image-Filename') || 'url-image.png'
+    }
+  },
   deleteJob: (id) => fetch(`/api/jobs/${encodeURIComponent(id)}`, { method: 'DELETE' }).then(async (response) => {
     if (!response.ok) throw new Error((await response.text()) || `HTTP ${response.status}`)
   }),
@@ -28,6 +60,7 @@ export const api = {
   detailEnhanceImage: (id, options = { strength: 1, seed: -1, vae: 'wan' }) => fetch(`/api/jobs/${encodeURIComponent(id)}/detail-enhance`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(options)
   }).then(checked),
+  garmentExtract: (form) => fetch('/api/jobs/garment-extract', { method: 'POST', body: form }).then(checked),
   speech: (form) => fetch('/api/jobs/speech', { method: 'POST', body: form }).then(checked),
   recognition: (form) => fetch('/api/jobs/recognition', { method: 'POST', body: form }).then(checked),
   mediaOptions: (url) => fetch('/api/media/options', {
@@ -39,21 +72,20 @@ export const api = {
   cleanupTemporaryStorage: () => fetch('/api/storage/temp', { method: 'DELETE' }).then(checked),
   video: (form) => fetch('/api/jobs/video', { method: 'POST', body: form }).then(checked),
   enhancePrompt: (form) => fetch('/api/prompts/enhance', { method: 'POST', body: form }).then(checked),
-  loraDatasets: () => fetch('/api/lora/datasets').then(checked),
-  createLoraDataset: (name) => fetch('/api/lora/datasets', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name })
+	randomPromptWildcard: () => fetch('/api/prompts/wildcard').then(checked),
+  loraStatus: () => fetch('/api/lora/status').then(checked),
+  saveLoraTokens: (civitaiToken, hfToken) => fetch('/api/lora/tokens', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ civitai_token: civitaiToken, hf_token: hfToken })
   }).then(checked),
-  deleteLoraDataset: (name) => fetch(`/api/lora/datasets/${encodeURIComponent(name)}`, { method: 'DELETE' }),
-  uploadLoraImages: (name, form) => fetch(`/api/lora/datasets/${encodeURIComponent(name)}/images`, { method: 'POST', body: form }).then(checked),
-  saveLoraCaption: (dataset, filename, caption) => fetch(`/api/lora/datasets/${encodeURIComponent(dataset)}/images/${encodeURIComponent(filename)}/caption`, {
-    method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ caption })
-  }).then(checked),
-  deleteLoraImage: (dataset, filename) => fetch(`/api/lora/datasets/${encodeURIComponent(dataset)}/images/${encodeURIComponent(filename)}`, { method: 'DELETE' }),
-  loraJobs: () => fetch('/api/lora/jobs').then(checked),
-  startLoraTraining: (request) => fetch('/api/lora/jobs', {
+  userLoras: () => fetch('/api/lora').then(checked),
+  importUserLora: (request) => fetch('/api/lora/import', {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(request)
   }).then(checked),
-  cancelLoraTraining: (id) => fetch(`/api/lora/jobs/${encodeURIComponent(id)}/cancel`, { method: 'POST' }).then(checked),
-  userLoras: () => fetch('/api/lora/loras').then(checked),
-  deleteUserLora: (filename) => fetch(`/api/lora/loras/${encodeURIComponent(filename)}`, { method: 'DELETE' })
+  uploadUserLora: (form) => fetch('/api/lora/upload', { method: 'POST', body: form }).then(checked),
+  updateUserLora: (filename, request) => fetch(`/api/lora/${encodeURIComponent(filename)}`, {
+    method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(request)
+  }).then(checked),
+  updateUserLoraPreview: (filename, form) => fetch(`/api/lora/${encodeURIComponent(filename)}/preview`, { method: 'PUT', body: form }).then(checked),
+  deleteUserLoraPreview: (filename) => fetch(`/api/lora/${encodeURIComponent(filename)}/preview`, { method: 'DELETE' }),
+  deleteUserLora: (filename) => fetch(`/api/lora/${encodeURIComponent(filename)}`, { method: 'DELETE' })
 }

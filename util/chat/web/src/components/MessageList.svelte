@@ -43,6 +43,7 @@
     try {
       const args = JSON.parse(tool.arguments || '{}');
       if (tool.name === 'ssh_exec') return `${args.host || ''}${args.command ? ` · ${args.command}` : ''}`;
+      if (tool.name === 'krea_image') return `${args.operation || 'generate'}${args.prompt ? ` · ${args.prompt}` : ''}`;
       return args.query || args.url || '';
     } catch { return tool.arguments || ''; }
   }
@@ -55,6 +56,8 @@
       if (parsed.results) return parsed.results.map((item) => `${item.title}\n${item.url}\n${item.snippet || ''}`).join('\n\n');
       if (parsed.content) return parsed.content;
       if (tool.name === 'media_import' && parsed.attachment) return `${parsed.attachment.name} · ${(parsed.attachment.size / 1024 / 1024).toFixed(1)} MB`;
+      if (tool.name === 'krea_capabilities') return `작업 ${parsed.operations?.length || 0}개 · 사용자 LoRA ${parsed.user_loras?.length || 0}개`;
+      if (tool.name === 'krea_image' && parsed.attachments) return parsed.attachments.map((item) => item.name).join('\n');
       if (tool.name === 'ssh_exec') {
         const output = [parsed.stdout, parsed.stderr].filter(Boolean).join('');
         const meta = `\n\n종료 코드 ${parsed.exit_code} · ${parsed.duration_ms || 0}ms${parsed.truncated ? ' · 출력 잘림' : ''}`;
@@ -78,11 +81,15 @@
     if (tool.name === 'web_fetch') return '페이지 읽기';
     if (tool.name === 'ssh_exec') return 'SSH 실행';
     if (tool.name === 'media_import') return '미디어 가져오기';
+    if (tool.name === 'krea_capabilities') return 'Krea 2 기능 확인';
+    if (tool.name === 'krea_image') return 'Krea 2 이미지';
     return tool.name || '도구';
   }
 
   function toolRunningLabel(tool) {
     if (tool.name === 'media_import') return '미디어 다운로드·분석 준비 중…';
+    if (tool.name === 'krea_capabilities') return 'Krea 2 모듈·LoRA 확인 중…';
+    if (tool.name === 'krea_image') return 'Krea 2 이미지 생성·편집 중…';
     return tool.execution_status === 'running' ? '명령 실행 중…' : '실행 준비 중…';
   }
 

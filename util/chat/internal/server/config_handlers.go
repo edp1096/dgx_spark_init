@@ -3,10 +3,12 @@ package server
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"sparktalk/internal/asr"
 	"sparktalk/internal/config"
 	"sparktalk/internal/extra"
+	"sparktalk/internal/krea"
 	"sparktalk/internal/llm"
 	"sparktalk/internal/tts"
 )
@@ -22,10 +24,19 @@ func (s *Server) health(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		status = "degraded"
 	}
+	imageHealth := map[string]any{"status": "disabled"}
+	if cfg.Image.Enabled {
+		timeout, _ := time.ParseDuration(cfg.Image.Timeout)
+		if timeout > 800*time.Millisecond || timeout <= 0 {
+			timeout = 800 * time.Millisecond
+		}
+		imageHealth = krea.New(cfg.Image.Endpoint, cfg.Image.Model, timeout).Health(r.Context())
+	}
 	writeJSON(w, http.StatusOK, map[string]any{
 		"status": status, "endpoint": cfg.Model.Endpoint, "model": model, "error": errorText(err),
 		"asr":   s.asrSnapshot().Health(r.Context()),
 		"tts":   s.ttsSnapshot().Health(r.Context()),
+		"image": imageHealth,
 		"extra": map[string]any{"ssh": s.extraSnapshot().Health(r.Context())},
 	})
 }
@@ -43,6 +54,7 @@ func (s *Server) configuration(w http.ResponseWriter, r *http.Request) {
 			TTS         config.TTSConfig        `json:"tts"`
 			Context     config.ContextConfig    `json:"context"`
 			Tools       config.ToolsConfig      `json:"tools"`
+			Image       config.ImageConfig      `json:"image"`
 			Extra       config.ExtraConfig      `json:"extra"`
 			Appearance  config.AppearanceConfig `json:"appearance"`
 			APIKey      string                  `json:"api_key"`
@@ -53,7 +65,7 @@ func (s *Server) configuration(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		old, _ := s.snapshot()
-		next := config.Config{Server: req.Server, Model: req.Model, ASR: req.ASR, TTS: req.TTS, Context: req.Context, Tools: req.Tools, Extra: req.Extra, Appearance: req.Appearance}
+		next := config.Config{Server: req.Server, Model: req.Model, ASR: req.ASR, TTS: req.TTS, Context: req.Context, Tools: req.Tools, Image: req.Image, Extra: req.Extra, Appearance: req.Appearance}
 		if req.ClearAPIKey {
 			next.Model.APIKey = ""
 		} else if req.APIKey != "" {

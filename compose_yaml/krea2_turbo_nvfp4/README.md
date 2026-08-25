@@ -3,6 +3,9 @@
 `Comfy-Org/Krea-2`의 Krea 2 Turbo NVFP4 transformer와 Qwen3-VL 4B FP8
 텍스트 인코더를 사용하는 OpenAI 호환 Text-to-Image API입니다. ComfyUI는 컨테이너
 내부의 `127.0.0.1:8188`에만 바인딩되고 API만 호스트의 `8691`에서 수신합니다.
+DGX Spark의 CPU와 GPU가 같은 물리 메모리를 공유하므로 ComfyUI는 `--gpu-only`로
+실행합니다. 기본 CPU 오프로딩을 사용하면 CUDA 실행본과 CPU 캐시가 같은 통합
+메모리에 중복되어, 기본 생성 후 실측 사용량이 약 15 GiB 증가했습니다.
 
 Krea 2 Turbo 권장 추론 설정인 8 steps, CFG 1, Euler/simple을 기본으로 사용합니다.
 `sampler_name=er_sde`, `scheduler=simple`을 지정하면 디테일 탐색 프리셋을 사용할 수
@@ -29,8 +32,10 @@ Identity Edit, 스타일 LoRA와 Depth Control은 한 요청에서 함께 사용
 추가 요청 필드:
 
 - `source_image`, `reference_image`, `control_image`: PNG/JPEG base64 또는 data URL
+- `reference_images`: Identity Edit 보조 참조 배열, 최대 3장. 여러 장은 ComfyUI의 `ImageStitch`로 순서대로 연결해 의상·포즈·소품 참조로 전달
 - `identity_strength`: Identity Edit LoRA 강도, 기본 `1.0`
 - `ref_boost`: 참조 충실도, 기본 `4.0`
+- `source_ref_boost`: 원본(source A) 유지 강도, 기본 `1.0`
 - `grounding_px`: Qwen3-VL 참조 해상도, 기본 `768`
 - `steps`: 일반 생성 기본 `8`, Identity Edit 기본 `10`
 - `sampler_name`, `scheduler`: `euler|er_sde`, `simple`; 기본 `euler/simple`
@@ -45,6 +50,24 @@ Identity Edit, 스타일 LoRA와 Depth Control은 한 요청에서 함께 사용
 - `nk2e_mode`: `edit` 또는 `canny`
 - `nk2e_strength`: NK2E LoRA 강도, 기본 `0.7`
 
+Identity Edit는 공개된 의상·포즈 예제와 같은 노드 v1.2.3을 사용합니다. 요청의
+`identity_model`은 `convrot` 또는 `selected`, `identity_encoder`는 `heretic` 또는
+`default`를 받습니다. 검증된 시작 조합은 `Krea2_Turbo_convrot_int8mixed`와 Heretic
+INT8 ConvRot 텍스트 인코더이며, Moody/Ray 같은 선택 체크포인트 조합도 비교 실험할 수
+있습니다. 입력 해상도는 Krea 공식 워크플로우와 같은 8픽셀 배수이며,
+참조 이미지는 중간에 손실 압축하지 않은 PNG로 전달하는 것을 권장합니다. 이 모드는
+길고 설명적인 프롬프트보다 `she is now wearing the black lace bodysuit.`처럼 짧고
+직접적인 변경 지시를 더 안정적으로 따릅니다.
+
+ConvRot 본체는
+[`Winnougan/Krea-2-Base-Turbo-NVFP4-FP8-INT8`](https://huggingface.co/Winnougan/Krea-2-Base-Turbo-NVFP4-FP8-INT8)의
+`Krea2_Turbo_convrot_int8mixed.safetensors`를 컨테이너 시작 시 자동으로 받습니다.
+Heretic 인코더는 Civitai의
+[`Qwen3 VL Instruct 4b Heretic 7refusal +convrot`](https://civitai.com/models/2728378?modelVersionId=3099765)이며,
+새 설치에서는 Spark Media 설정의 `Krea 모델 준비`에 API 키를 입력하고 버튼을 누르면
+체크포인트와 함께 영구 캐시에 내려받습니다. Heretic이 아직 없으면 화면은 기본
+Qwen3-VL FP8로 안전하게 전환합니다.
+
 스타일 이미지 참조는 공식 ComfyUI 템플릿과 같은 INT8 ConvRot 모델 및
 `krea2_style_reference` LoRA를 사용합니다. 현재는 품질 검증 범위를 명확히 하기 위해
 Identity, Depth, 일반 스타일 LoRA, Qwen3-VL 의미 참조와 동시에 사용할 수 없습니다.
@@ -54,6 +77,64 @@ NK2E v0.3는 짧은 지시의 국소 편집에, 실험적인 Canny v0.1은 참�
 Krea 모듈과 동시에 적용하지 않습니다. Canny 모드에서는 서버가 OpenCV Canny 맵을
 만들고 응답의 `control_b64_json`으로 돌려줍니다. NK2E는 초기 단계의 커뮤니티 LoRA와
 커스텀 노드이므로 정식 편집 모델이나 픽셀 단위 인페인팅처럼 취급하지 않습니다.
+
+AnyPaint는 `anypaint_image`와 선택적인 `anypaint_mask`를 받아 인페인트·아웃페인트를
+처리합니다. SparkTalk처럼 텍스트로 수정 대상을 지정하는 클라이언트를 위해
+`POST /v1/masks/segment`도 제공합니다. 입력 이미지와 `prompt`(예: `the red jacket`)를
+보내면 Grounding DINO Tiny로 상자를 찾고 SAM 2.1 Small로 경계를 정제한 PNG 마스크를
+`mask_b64_json`으로 반환합니다. 두 모델은 요청할 때만 순차 적재되고 Krea 생성 잠금과
+공유하므로 대형 생성과 동시에 메모리를 점유하지 않습니다.
+
+`GET /v1/loras`는 `/opt/ComfyUI/models/loras/user`에 실제로 설치된 사용자 LoRA만
+열거합니다. 필터 모드로 이동한 `skc3vo.safetensors`는 목록에서 제외됩니다.
+
+## Civitai Krea 2 체크포인트
+
+Spark Media의 `설정 → 연결 → Krea 체크포인트 준비`에서 Civitai API 키를 한 번
+입력하면 SSH나 `.env` 수정 없이 다음 제공본을 영구 `media-hf-cache` 볼륨에 받습니다.
+키는 `0600` 권한의 비밀 파일로 저장되고 상태 API나 로그로 다시 노출하지 않습니다.
+다운로드는 Bearer 인증 헤더, 이어받기, 정확한 파일 크기와 SHA-256 검증을 사용합니다.
+
+- `ray-v1`: Ray Artshoot Krea2 NSFW V1 FP8
+- `ray-v2`: Ray Artshoot Krea2 NSFW V2 FP8
+- `ray-v3`: Ray Artshoot Krea2 NSFW V3 INT8
+- `ray-v4`: Ray Artshoot Krea2 NSFW V4 INT8
+- `moody-v7`: Moody Krea 2 Mix V7.0 NVFP4 — 범용·사실적
+- `moody-cutie-v4`: Moody Cutie Mix V4.0 NVFP4 — 동양권 SNS 미형
+- `moody-amateur-v1`: Moody Amateur Mix V1.0 NVFP4 — 자연스러운 복고 스냅
+
+상태와 준비 API를 직접 사용할 수도 있습니다.
+
+```bash
+curl http://127.0.0.1:8691/v1/checkpoints/status
+curl -X POST http://127.0.0.1:8691/v1/checkpoints/prepare \
+  -H 'Content-Type: application/json' \
+  -d '{"civitai_token":"YOUR_KEY","variants":["ray-v1","ray-v2","ray-v3","ray-v4","moody-v7","moody-cutie-v4","moody-amateur-v1"]}'
+```
+
+생성 요청에는 `checkpoint=official|ray-v1|ray-v2|ray-v2-nvfp4|ray-v3|ray-v4|ray-v4-nvfp4|moody-v7|moody-cutie-v4|moody-amateur-v1`을 지정합니다.
+외부 체크포인트에는 제작자의 조정이 이미 병합돼 있으므로 API는 필터 LoRA 중첩을 허용하지
+않으며 `filter_mode=off`를 요구합니다. V1 FP8과 V3 INT8은 제작자 제공본을 그대로
+유지합니다. Moody 세 모델은 제작자 권장값인 `Euler Ancestral + Beta`, 8 steps, CFG 1을
+`sampling_preset=moody`로 선택할 수 있고, Spark Media에서는 모델 선택 시 자동 적용합니다.
+
+V2와 V4는 준비 화면에서 BF16 원본을 인증 다운로드하고 NVFP4로 자동 변환할 수 있습니다.
+변환 전에 ComfyUI 적재 모델을 해제하고, Krea 2의 입력·출력·시간·텍스트 융합 계층은
+BF16으로 보존하면서 주 DiT 선형층을 `comfy-kitchen` 네이티브 NVFP4로 양자화합니다.
+변환 파일은 safetensors/양자화 메타데이터 검사와 실제 512px 생성을 통과해야 선택 목록에
+활성화됩니다. BF16 원본 삭제는 검증 성공 뒤에만 적용되는 선택 사항입니다. 프로필은
+[`tritant/ComfyUI_Kitchen_nvfp4_Converter`](https://github.com/tritant/ComfyUI_Kitchen_nvfp4_Converter)
+커밋 `2eabdc38abde1337a73f35fa90977322d3305965`를 기준으로 고정했습니다.
+
+```bash
+curl -X POST http://127.0.0.1:8691/v1/checkpoints/convert-nvfp4 \
+  -H 'Content-Type: application/json' \
+  -d '{"civitai_token":"YOUR_KEY","variants":["ray-v2","ray-v4"],"remove_bf16_sources":false}'
+```
+
+스타일 참조 모듈은 자체 공식 INT8 체크포인트를 고정 사용하는 별도 워크플로이므로 Ray
+체크포인트 선택과 결합하지 않습니다. 스타일 LoRA, Depth, Identity Edit, AnyPaint는 V1~V4
+제공본에서 동일 조건 생성 검증을 통과했습니다.
 
 Identity Edit는 2MP 이하에서 사용해야 하며, Turbo는 큰 삭제 작업보다 인물 재배치,
 의상·배경 변경, 스타일 변환에 적합합니다. 실제 사람의 얼굴은 동의받은 용도로만

@@ -5,6 +5,7 @@
 
   export let image = null
   export let onClose = () => {}
+  export let onGarmentExtract = null
 
   let releaseScroll = null
   let metadataJobID = ''
@@ -40,7 +41,7 @@
   }
 
   function modeLabel(mode) {
-    return ({ create: 'Krea 2 생성', edit: '원본 수정', control: '구조 제어', detail_enhance: '디테일 강화', upscale: '고화질 확대' })[mode] || mode || '—'
+    return ({ create: 'Krea 2 생성', edit: '원본 수정', control: '구조 제어', detail_enhance: '디테일 강화', upscale: '고화질 확대', garment_extract: '의상 추출' })[mode] || mode || '—'
   }
 
   function formatCreatedAt(value) {
@@ -70,7 +71,7 @@
 {#if image}
   <div class="image-modal-backdrop" role="presentation" onclick={(event) => { if (event.target === event.currentTarget) onClose() }}>
     <section class="image-modal" role="dialog" aria-modal="true" aria-label="이미지 크게 보기">
-      <header><div><strong>{image.title || '이미지 미리보기'}</strong>{#if image.detail}<small title={image.detail}>{image.detail}</small>{/if}</div><button type="button" aria-label="닫기" onclick={onClose}>×</button></header>
+      <header><div><strong>{image.title || '생성 이미지'}</strong>{#if image.detail}<small title={image.detail}>{image.detail}</small>{/if}</div><button type="button" aria-label="닫기" onclick={onClose}>×</button></header>
       <div class="image-modal-stage">
         {#if exifOpen}
           <div class="image-exif-view">
@@ -103,7 +104,7 @@
           <img src={image.src} alt={image.title || '확대 이미지'}>
         {/if}
       </div>
-      <footer><div><a href={image.src} target="_blank" rel="noreferrer">원본 파일 열기</a>{#if image.jobID}<button type="button" class:active={exifOpen} onclick={toggleEXIF}>{exifOpen ? '이미지 보기' : 'EXIF 보기'}</button>{/if}</div><button type="button" onclick={onClose}>닫기</button></footer>
+      <footer><div><a href={image.src} target="_blank" rel="noreferrer">원본 파일 열기</a>{#if image.jobID}<button type="button" class:active={exifOpen} onclick={toggleEXIF}>{exifOpen ? '이미지 보기' : 'EXIF 보기'}</button>{/if}{#if image.jobID && onGarmentExtract}<button type="button" onclick={() => onGarmentExtract(image.jobID)}>의상 추출</button>{/if}</div><button type="button" onclick={onClose}>닫기</button></footer>
     </section>
   </div>
 {/if}

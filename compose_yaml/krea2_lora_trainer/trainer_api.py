@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import json
 import os
 import re
@@ -37,6 +38,7 @@ STEP_PATTERNS = (
 LOSS_PATTERN = re.compile(r"loss\s*[:=]\s*([0-9.eE+-]+)", re.I)
 CIVITAI_API_BASE = "https://civitai.com/api/v1"
 CIVITAI_API_KEY = os.getenv("CIVITAI_API_KEY", "").strip()
+CIVITAI_TOKEN_FILE = Path("/root/.cache/huggingface/media-secrets/civitai_token")
 MAX_LORA_BYTES = 2 * 1024 * 1024 * 1024
 
 for directory in (DATASETS_ROOT, JOBS_ROOT, OUTPUT_ROOT, REGISTERED_ROOT):
@@ -74,6 +76,7 @@ class CivitaiImportRequest(BaseModel):
     source: str = Field(min_length=1, max_length=2048)
     name: str = Field(default="", max_length=64)
     trigger_word: str = Field(default="", max_length=256)
+    civitai_token: str = Field(default="", max_length=512)
 
 
 def checked_name(value: str, label: str = "name") -> str:
@@ -104,15 +107,28 @@ def write_json(path: Path, value: Any) -> None:
     tmp.replace(path)
 
 
-def civitai_request(url: str) -> urllib.request.Request:
+def stored_civitai_token() -> str:
+    try:
+        return CIVITAI_TOKEN_FILE.read_text().strip()
+    except OSError:
+        return CIVITAI_API_KEY
+
+
+def save_civitai_token(token: str) -> None:
+    CIVITAI_TOKEN_FILE.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+    CIVITAI_TOKEN_FILE.write_text(token)
+    CIVITAI_TOKEN_FILE.chmod(0o600)
+
+
+def civitai_request(url: str, token: str) -> urllib.request.Request:
     request = urllib.request.Request(url, headers={"User-Agent": "Media-Krea2-LoRA/1.0"})
-    request.add_header("Authorization", f"Bearer {CIVITAI_API_KEY}")
+    request.add_header("Authorization", f"Bearer {token}")
     return request
 
 
-def civitai_json(path: str) -> dict[str, Any]:
+def civitai_json(path: str, token: str) -> dict[str, Any]:
     try:
-        with urllib.request.urlopen(civitai_request(f"{CIVITAI_API_BASE}/{path.lstrip('/')}"), timeout=30) as response:
+        with urllib.request.urlopen(civitai_request(f"{CIVITAI_API_BASE}/{path.lstrip('/')}", token), timeout=30) as response:
             return json.loads(response.read())
     except urllib.error.HTTPError as exc:
         if exc.code in {401, 403}:
@@ -122,7 +138,7 @@ def civitai_json(path: str) -> dict[str, Any]:
         raise ValueError(f"Civitai API request failed: {exc}") from exc
 
 
-def civitai_version_id(source: str) -> str:
+def civitai_version_id(source: str, token: str) -> str:
     source = source.strip()
     if source.isdigit():
         return source
@@ -139,7 +155,7 @@ def civitai_version_id(source: str) -> str:
     model = re.search(r"/models/(\d+)", parsed.path, re.I)
     if not model:
         raise ValueError("the Civitai URL does not contain a model or version ID")
-    metadata = civitai_json(f"models/{model.group(1)}")
+    metadata = civitai_json(f"models/{model.group(1)}", token)
     versions = metadata.get("modelVersions") or []
     if not versions:
         raise ValueError("the Civitai model has no downloadable version")
@@ -155,10 +171,19 @@ def safe_lora_filename(value: str) -> str:
 
 
 def import_civitai_lora(request: CivitaiImportRequest) -> dict[str, Any]:
-    if not CIVITAI_API_KEY:
+    token = request.civitai_token.strip() or stored_civitai_token()
+    if not token:
         raise ValueError("Civitai API key is not configured")
-    version_id = civitai_version_id(request.source)
-    metadata = civitai_json(f"model-versions/{version_id}")
+    if len(token) < 16 or any(character.isspace() for character in token):
+        raise ValueError("invalid Civitai API key")
+    if request.civitai_token.strip():
+        save_civitai_token(token)
+    version_id = civitai_version_id(request.source, token)
+    metadata = civitai_json(f"model-versions/{version_id}", token)
+    if str((metadata.get("model") or {}).get("type", "")).lower() != "lora":
+        raise ValueError("the selected Civitai model is not a LoRA")
+    if "krea 2" not in str(metadata.get("baseModel", "")).lower():
+        raise ValueError("the selected LoRA is not based on Krea 2")
     files = [
         item for item in metadata.get("files", [])
         if str(item.get("name", "")).lower().endswith(".safetensors") and item.get("downloadUrl")
@@ -172,7 +197,8 @@ def import_civitai_lora(request: CivitaiImportRequest) -> dict[str, Any]:
         raise FileExistsError(f"{filename} is already registered")
     temporary = destination.with_suffix(destination.suffix + ".part")
     try:
-        with urllib.request.urlopen(civitai_request(selected["downloadUrl"]), timeout=600) as response:
+        digest = hashlib.sha256()
+        with urllib.request.urlopen(civitai_request(selected["downloadUrl"], token), timeout=600) as response:
             declared = int(response.headers.get("Content-Length") or 0)
             if declared > MAX_LORA_BYTES:
                 raise ValueError("LoRA file exceeds the 2 GiB limit")
@@ -183,6 +209,10 @@ def import_civitai_lora(request: CivitaiImportRequest) -> dict[str, Any]:
                     if total > MAX_LORA_BYTES:
                         raise ValueError("LoRA file exceeds the 2 GiB limit")
                     output.write(chunk)
+                    digest.update(chunk)
+        expected_sha = str((selected.get("hashes") or {}).get("SHA256", "")).lower()
+        if expected_sha and digest.hexdigest().lower() != expected_sha:
+            raise ValueError("Civitai LoRA checksum mismatch")
         temporary.replace(destination)
     finally:
         temporary.unlink(missing_ok=True)
@@ -506,6 +536,16 @@ async def cancel_job(job_id: str) -> dict[str, Any]:
         except asyncio.TimeoutError:
             os.killpg(active_process.pid, signal.SIGKILL)
     return job
+
+
+@app.post("/loras/import", status_code=201)
+async def import_lora(request: CivitaiImportRequest) -> dict[str, Any]:
+    try:
+        return await asyncio.to_thread(import_civitai_lora, request)
+    except FileExistsError as exc:
+        raise HTTPException(409, str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
 
 
 @app.get("/loras")

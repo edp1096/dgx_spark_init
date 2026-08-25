@@ -1,11 +1,13 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"mediaapp/internal/config"
 	"mediaapp/internal/jobs"
@@ -32,7 +34,7 @@ func main() {
 	}
 	resumed, failed := mediaServer.ResumeInterruptedJobs()
 	if resumed > 0 || failed > 0 {
-		log.Printf("restart recovery: resumed %d subtitle jobs, marked %d other jobs failed", resumed, failed)
+		log.Printf("restart recovery: resumed %d durable queued jobs, marked %d interrupted jobs failed", resumed, failed)
 	}
 	srv := &http.Server{Addr: cfg.Listen, Handler: mediaServer.Handler()}
 	go func() {
@@ -41,6 +43,24 @@ func main() {
 			log.Printf("temporary media cleanup skipped: %v", cleanupErr)
 		} else if result.RemovedDirectories > 0 {
 			log.Printf("removed %d stale temporary media directories (%d bytes)", result.RemovedDirectories, result.RemovedBytes)
+		}
+	}()
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+		defer cancel()
+		if err := mediaServer.PreparePortraitLab(ctx); err != nil {
+			log.Printf("PORTRAIT LAB preparation deferred: %v", err)
+		} else {
+			log.Printf("PORTRAIT LAB ready: v1.7.1 original HTML")
+		}
+	}()
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+		defer cancel()
+		if err := mediaServer.PreparePromptWildcards(ctx); err != nil {
+			log.Printf("prompt wildcard preparation deferred: %v", err)
+		} else {
+			log.Printf("prompt wildcards ready: Crocody/mymuse muse(no_camera) + Style")
 		}
 	}()
 	stop := make(chan os.Signal, 1)

@@ -170,6 +170,52 @@
   font-size: 10px;
 }
 
+.progress-track {
+  height: 6px;
+  margin: 8px 0 5px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #262d32;
+}
+
+.progress-track > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #91b66f;
+  transition: width 180ms ease;
+}
+
+.model-variant-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+  margin: 12px 0;
+}
+
+.settings-card .model-variant-list label {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 8px 9px;
+  border: 1px solid #292f35;
+  border-radius: 8px;
+  background: #101418;
+}
+
+.settings-card .model-variant-list input { margin: 0; }
+.model-variant-list span,
+.model-variant-list small { display: block; min-width: 0; }
+.model-variant-list small { margin-top: 2px; color: #707981; font-size: 9px; }
+.model-variant-list a { color: #9ebc82; font-size: 10px; }
+.checkpoint-visibility-list label.unavailable { opacity: .58; }
+
+@media (max-width: 700px) {
+  .model-variant-list { grid-template-columns: 1fr; }
+}
+
 .endpoint-list {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -282,6 +328,10 @@ body > div > header {
   height: 64px;
 }
 
+body {
+  min-width: 0;
+}
+
 .mobile-engine-area {
   display: none;
 }
@@ -301,7 +351,7 @@ body > div > header {
 
 @media (max-width: 850px) {
   main {
-    padding: 10px 12px 20px;
+    padding: 12px 4px 20px;
   }
 
   body > div > header {
@@ -421,15 +471,15 @@ body > div > header {
   }
 
   main > nav {
-    gap: 2px;
-    margin-bottom: 7px;
+    gap: 0;
+    margin-bottom: 20px;
   }
 
   main > nav button {
     min-height: 24px;
-    padding: 3px 11px;
+    padding: 3px 6px;
     border-radius: 7px;
-    font-size: 11px;
+    font-size: 13px;
   }
 
   .settings-grid,

@@ -1,14 +1,18 @@
 # Stage 1: Build
 FROM nvcr.io/nvidia/cuda:13.1.1-devel-ubuntu24.04 AS builder
 
-ARG LLAMA_CPP_REF=v0.2.0
+ARG LLAMA_CPP_REF=c060ca974c773c7c3d17fd1b66dc9d312bc292c0
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     cmake git build-essential libgomp1 libcurl4-openssl-dev libssl-dev \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /tmp
-RUN git clone --depth 1 --branch "${LLAMA_CPP_REF}" https://github.com/ggml-org/llama.cpp.git
+RUN git init llama.cpp \
+    && cd llama.cpp \
+    && git remote add origin https://github.com/ggml-org/llama.cpp.git \
+    && git fetch --depth 1 origin "${LLAMA_CPP_REF}" \
+    && git checkout --detach FETCH_HEAD
 
 WORKDIR /tmp/llama.cpp
 RUN cmake -B build \

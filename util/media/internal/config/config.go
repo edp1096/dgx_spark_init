@@ -26,6 +26,8 @@ type ImageBackend struct {
 
 type Image struct {
 	Model                 string                  `yaml:"model" json:"model"`
+	DefaultCheckpoint     string                  `yaml:"default_checkpoint" json:"default_checkpoint"`
+	VisibleCheckpoints    []string                `yaml:"visible_checkpoints" json:"visible_checkpoints"`
 	DefaultMode           string                  `yaml:"default_mode" json:"default_mode"`
 	DefaultPromptEnhancer bool                    `yaml:"default_prompt_enhancer" json:"default_prompt_enhancer"`
 	Backends              map[string]ImageBackend `yaml:"backends" json:"backends"`
@@ -51,11 +53,13 @@ type Recognition struct {
 }
 
 type Video struct {
-	Model         string  `yaml:"model" json:"model"`
-	DefaultWidth  int     `yaml:"default_width" json:"default_width"`
-	DefaultHeight int     `yaml:"default_height" json:"default_height"`
-	DefaultFrames int     `yaml:"default_frames" json:"default_frames"`
-	DefaultFPS    float64 `yaml:"default_fps" json:"default_fps"`
+	Model                     string  `yaml:"model" json:"model"`
+	DefaultWidth              int     `yaml:"default_width" json:"default_width"`
+	DefaultHeight             int     `yaml:"default_height" json:"default_height"`
+	DefaultFrames             int     `yaml:"default_frames" json:"default_frames"`
+	DefaultFPS                float64 `yaml:"default_fps" json:"default_fps"`
+	DefaultMotionLoRAEnabled  bool    `yaml:"default_motion_lora_enabled" json:"default_motion_lora_enabled"`
+	DefaultMotionLoRAStrength float64 `yaml:"default_motion_lora_strength" json:"default_motion_lora_strength"`
 }
 
 type PromptEnhancement struct {
@@ -142,6 +146,20 @@ func Validate(cfg Config) error {
 	if _, ok := cfg.Image.Backends[cfg.Image.DefaultMode]; !ok {
 		return fmt.Errorf("image.default_mode must name a configured backend")
 	}
+	validCheckpoints := map[string]bool{
+		"official": true, "ray-v1": true, "ray-v2": true, "ray-v2-nvfp4": true,
+		"ray-v3": true, "ray-v4": true, "ray-v4-nvfp4": true,
+		"moody-v7": true, "moody-cutie-v4": true, "moody-amateur-v1": true,
+		"chriscole-edit-v1.1": true,
+	}
+	if !validCheckpoints[cfg.Image.DefaultCheckpoint] {
+		return fmt.Errorf("image.default_checkpoint is unsupported")
+	}
+	for _, checkpoint := range cfg.Image.VisibleCheckpoints {
+		if !validCheckpoints[checkpoint] {
+			return fmt.Errorf("image.visible_checkpoints contains an unsupported checkpoint")
+		}
+	}
 	for mode, backend := range cfg.Image.Backends {
 		if mode != "create" && mode != "edit" && mode != "control" {
 			return fmt.Errorf("unsupported image backend mode: %s", mode)
@@ -159,6 +177,9 @@ func Validate(cfg Config) error {
 	}
 	if cfg.Video.DefaultFrames < 9 || (cfg.Video.DefaultFrames-1)%8 != 0 || cfg.Video.DefaultFPS <= 0 || cfg.Video.DefaultFPS > 60 {
 		return fmt.Errorf("invalid video frame or fps defaults")
+	}
+	if cfg.Video.DefaultMotionLoRAStrength < 0 || cfg.Video.DefaultMotionLoRAStrength > 1 {
+		return fmt.Errorf("video.default_motion_lora_strength must be between 0 and 1")
 	}
 	if cfg.Recognition.MaxUploadMB < 1 {
 		return fmt.Errorf("recognition.max_upload_mb must be positive")
@@ -202,6 +223,9 @@ func Normalize(cfg Config) Config {
 	if strings.TrimSpace(cfg.Engines["upscale"].Endpoint) == "" {
 		cfg.Engines["upscale"] = Engine{Endpoint: "http://127.0.0.1:8698"}
 	}
+	if strings.TrimSpace(cfg.Engines["garment"].Endpoint) == "" {
+		cfg.Engines["garment"] = Engine{Endpoint: "http://127.0.0.1:8705"}
+	}
 	for kind, engine := range cfg.Engines {
 		engine.Endpoint = strings.TrimRight(strings.TrimSpace(engine.Endpoint), "/")
 		cfg.Engines[kind] = engine
@@ -215,6 +239,25 @@ func Normalize(cfg Config) Config {
 	if cfg.Image.DefaultMode == "" {
 		cfg.Image.DefaultMode = "create"
 	}
+	if cfg.Image.DefaultCheckpoint == "" {
+		cfg.Image.DefaultCheckpoint = "official"
+	}
+	if len(cfg.Image.VisibleCheckpoints) == 0 {
+		cfg.Image.VisibleCheckpoints = []string{
+			"official", "chriscole-edit-v1.1", "moody-v7", "moody-cutie-v4", "moody-amateur-v1",
+			"ray-v1", "ray-v2", "ray-v2-nvfp4", "ray-v3", "ray-v4", "ray-v4-nvfp4",
+		}
+	}
+	visible := make([]string, 0, len(cfg.Image.VisibleCheckpoints)+1)
+	seenVisible := map[string]bool{}
+	for _, checkpoint := range append([]string{"official"}, cfg.Image.VisibleCheckpoints...) {
+		checkpoint = strings.TrimSpace(checkpoint)
+		if checkpoint != "" && !seenVisible[checkpoint] {
+			visible = append(visible, checkpoint)
+			seenVisible[checkpoint] = true
+		}
+	}
+	cfg.Image.VisibleCheckpoints = visible
 	if cfg.Image.Backends == nil {
 		cfg.Image.Backends = map[string]ImageBackend{}
 	}
@@ -244,6 +287,9 @@ func Normalize(cfg Config) Config {
 	}
 	if cfg.Storage.TempRetentionHours == 0 {
 		cfg.Storage.TempRetentionHours = 24
+	}
+	if cfg.Video.DefaultMotionLoRAStrength == 0 {
+		cfg.Video.DefaultMotionLoRAStrength = 0.5
 	}
 	return cfg
 }

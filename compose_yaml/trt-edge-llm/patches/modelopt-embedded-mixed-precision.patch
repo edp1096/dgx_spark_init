@@ -1,0 +1,24 @@
+diff --git a/tensorrt_edgellm/config.py b/tensorrt_edgellm/config.py
+index e8f2813..bd6c565 100644
+--- a/tensorrt_edgellm/config.py
++++ b/tensorrt_edgellm/config.py
+@@ -2209,6 +2209,19 @@ def _parse_quant(model_dir: str, config: dict) -> QuantConfig:
+     # Embedded block with ``quant_algo`` (export tool formats)
+     if "quant_algo" in qc:
+         algo = (qc.get("quant_algo") or "").upper()
++        if algo == "MIXED_PRECISION":
++            quantized_layers = qc.get("quantized_layers", {})
++            dominant, group_size, layer_overrides = _parse_mixed_precision(
++                quantized_layers)
++            return QuantConfig(
++                quant_type=dominant,
++                group_size=group_size,
++                kv_cache_quant="fp8" if qc.get("kv_cache_scheme") else None,
++                excluded=_effective_excluded_modules(
++                    model_dir, list(qc.get("ignore", []))),
++                layer_overrides=layer_overrides,
++                is_mixed_precision=True,
++            )
+         if "W4A16" in algo and "AWQ" in algo:
+             return QuantConfig(
+                 quant_type=QUANT_INT4_AWQ_MODELOPT,

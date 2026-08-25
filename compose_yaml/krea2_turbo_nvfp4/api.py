@@ -6,23 +6,66 @@ from __future__ import annotations
 import asyncio
 import base64
 import binascii
+import ctypes
+import gc
+import hashlib
 import io
+import json
+import os
+import re
 import secrets
+import shutil
 import time
+import urllib.parse
+import urllib.request
 import uuid
 from pathlib import Path
 from typing import Any
 
 import httpx
-from fastapi import FastAPI, HTTPException
-from PIL import Image, ImageFilter, UnidentifiedImageError
+import torch
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi.responses import FileResponse
+from huggingface_hub import HfApi, hf_hub_download
+from PIL import Image, ImageFilter, ImageOps, UnidentifiedImageError
 from pydantic import BaseModel, ConfigDict, Field
+
+from civitai_models import (
+    BF16_SOURCES,
+    CHECKPOINTS,
+    HERETIC_TEXT_ENCODER,
+    NVFP4_FILENAMES,
+    download_checkpoint,
+    link_model,
+    link_nvfp4,
+    link_text_encoder,
+    model_path,
+    nvfp4_path,
+    nvfp4_ready,
+    nvfp4_validated,
+    nvfp4_validation_path,
+    ready,
+    save_token,
+    stored_token,
+    token_configured,
+)
+from krea2_nvfp4 import PROFILE_COMMIT, PROFILE_SOURCE, convert_krea2_nvfp4
 
 
 COMFY_URL = "http://127.0.0.1:8188"
 MODEL_ID = "krea2-turbo-nvfp4"
 MODEL_ALIASES = {MODEL_ID, "krea/Krea-2-Turbo"}
 DIFFUSION_MODEL = "krea2_turbo_nvfp4.safetensors"
+CHECKPOINT_MODELS = {
+    "official": DIFFUSION_MODEL,
+    **{key: checkpoint.filename for key, checkpoint in CHECKPOINTS.items()},
+    **{f"{key}-nvfp4": filename for key, filename in NVFP4_FILENAMES.items()},
+}
+CHECKPOINT_SAMPLING = {
+    "moody-v7": ("euler_ancestral", "beta"),
+    "moody-cutie-v4": ("euler_ancestral", "beta"),
+    "moody-amateur-v1": ("euler_ancestral", "beta"),
+}
 STYLE_REFERENCE_MODEL = "krea2_turbo_int8_convrot.safetensors"
 TEXT_ENCODER = "qwen3vl_4b_fp8_scaled.safetensors"
 VISION_TEXT_ENCODER = "qwen3vl_4b_bf16.safetensors"
@@ -37,6 +80,8 @@ REAL_VAE = "krea2RealVae_v10.safetensors"
 WAN_VAE = "wan_2.1_vae.safetensors"
 DEPTH_CONTROL_LORA = "krea2-depth-control-lora.safetensors"
 IDENTITY_EDIT_LORA = "krea2_identity_edit_v1_2.safetensors"
+IDENTITY_EDIT_MODEL = "Krea2_Turbo_convrot_int8mixed.safetensors"
+IDENTITY_EDIT_TEXT_ENCODER = "qwen3VLInstruct4bHeretic_int8Convrot.safetensors"
 FILTER_BYPASS_BALANCED = "fedor_bypass.safetensors"
 FILTER_BYPASS_STRONG = "krea2filterbypass3.safetensors"
 FILTER_BYPASS_ADHERENCE = "user/skc3vo.safetensors"
@@ -58,12 +103,28 @@ STYLE_TRIGGERS = {
 }
 STYLE_LORAS = {name: f"krea2_{name}.safetensors" for name in STYLE_TRIGGERS}
 USER_LORA_ROOT = (Path("/opt/ComfyUI/models/loras/user")).resolve()
+HF_TOKEN_FILE = Path("/root/.cache/huggingface/media-secrets/hf_token")
+MAX_USER_LORA_BYTES = 2 * 1024 * 1024 * 1024
+MAX_USER_LORA_PREVIEW_BYTES = 20 * 1024 * 1024
 DEPTH_MODEL = "depth-anything/Depth-Anything-V2-Small-hf"
 OUTPUT_ROOT = Path("/opt/ComfyUI/output").resolve()
 INPUT_ROOT = Path("/opt/ComfyUI/input").resolve()
 generation_lock = asyncio.Lock()
+segmentation_lock = asyncio.Lock()
 depth_processor: Any | None = None
 depth_model: Any | None = None
+checkpoint_prepare_lock = asyncio.Lock()
+checkpoint_prepare_task: asyncio.Task[None] | None = None
+checkpoint_prepare_error = ""
+checkpoint_prepare_current = ""
+checkpoint_prepare_bytes = 0
+checkpoint_prepare_total = 0
+checkpoint_conversion_task: asyncio.Task[None] | None = None
+checkpoint_conversion_error = ""
+checkpoint_conversion_current = ""
+checkpoint_conversion_stage = ""
+checkpoint_conversion_done = 0
+checkpoint_conversion_total = 0
 
 
 class StyleSelection(BaseModel):
@@ -76,27 +137,59 @@ class UserLoRASelection(BaseModel):
     strength: float = 1.0
 
 
+class UserLoRAImportRequest(BaseModel):
+    source: str = Field(min_length=1, max_length=2048)
+    provider: str = "auto"
+    name: str = Field(default="", max_length=128)
+    trigger_word: str = Field(default="", max_length=512)
+    memo: str = Field(default="", max_length=2000)
+    base_model: str = Field(default="", max_length=128)
+    recommended_strength: float = Field(default=1.0, ge=-2.0, le=2.0)
+    civitai_token: str = Field(default="", max_length=512)
+    hf_token: str = Field(default="", max_length=512)
+
+
+class UserLoRAUpdateRequest(BaseModel):
+    name: str = Field(default="", max_length=128)
+    trigger_word: str = Field(default="", max_length=512)
+    memo: str = Field(default="", max_length=2000)
+    base_model: str = Field(default="", max_length=128)
+    recommended_strength: float = Field(default=1.0, ge=-2.0, le=2.0)
+
+
+class DownloadCredentialRequest(BaseModel):
+    civitai_token: str = Field(default="", max_length=512)
+    hf_token: str = Field(default="", max_length=512)
+
+
 class ImageRequest(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     prompt: str
     model: str = MODEL_ID
+    checkpoint: str = "official"
     n: int = 1
     size: str = "1024x1024"
     seed: int | None = None
     response_format: str = "b64_json"
     control_image: str | None = None
     control_strength: float = 1.0
+    control_prompt: str = ""
+    prepare_pose_reference: bool = False
     source_image: str | None = None
     reference_image: str | None = None
+    reference_images: list[str] = Field(default_factory=list)
     identity_mask: str | None = None
     strict_mask: str | None = None
     strict_mask_grow: int = 0
     strict_mask_feather: float = 0.0
     vae_mode: str = "default"
     identity_fit_mode: str = "fit"
+    identity_model: str = "convrot"
+    identity_encoder: str = "heretic"
     identity_strength: float = 1.0
     ref_boost: float = 4.0
+    source_ref_boost: float = 1.0
     grounding_px: int = 768
     steps: int | None = None
     sampler_name: str | None = None
@@ -134,7 +227,273 @@ class ImageRequest(BaseModel):
     detail_vae: str = "wan"
 
 
+class SegmentRequest(BaseModel):
+    image: str
+    prompt: str
+    box_threshold: float = 0.3
+    text_threshold: float = 0.2
+    mask_threshold: float = 0.5
+    grow: int = 8
+    feather: float = 4.0
+
+
+class CheckpointPrepareRequest(BaseModel):
+    civitai_token: str = ""
+    hf_token: str = ""
+    variants: list[str] = Field(default_factory=lambda: list(CHECKPOINTS))
+
+
+class CheckpointConvertRequest(BaseModel):
+    civitai_token: str = ""
+    variants: list[str] = Field(default_factory=lambda: list(BF16_SOURCES))
+    remove_bf16_sources: bool = False
+
+
 app = FastAPI(title="Krea 2 Turbo NVFP4 API")
+
+
+def _read_json(path: Path) -> dict[str, Any]:
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+        return value if isinstance(value, dict) else {}
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+
+def _write_json(path: Path, value: dict[str, Any]) -> None:
+    temporary = path.with_suffix(path.suffix + ".tmp")
+    temporary.write_text(json.dumps(value, ensure_ascii=False, indent=2), encoding="utf-8")
+    temporary.replace(path)
+
+
+def _stored_hf_token() -> str:
+    try:
+        return HF_TOKEN_FILE.read_text(encoding="utf-8").strip()
+    except OSError:
+        return os.environ.get("HF_TOKEN", "").strip()
+
+
+def _save_hf_token(token: str) -> None:
+    HF_TOKEN_FILE.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+    HF_TOKEN_FILE.write_text(token, encoding="utf-8")
+    HF_TOKEN_FILE.chmod(0o600)
+
+
+def _safe_lora_filename(value: str) -> str:
+    stem = re.sub(r"[^a-zA-Z0-9._-]+", "-", Path(value).stem).strip(".-") or "user-lora"
+    return f"{stem[:96]}.safetensors"
+
+
+def _user_lora_path(filename: str) -> Path:
+    clean = Path(filename).name
+    if clean != filename or not clean.lower().endswith(".safetensors"):
+        raise HTTPException(status_code=400, detail="invalid LoRA filename")
+    return USER_LORA_ROOT / clean
+
+
+def _user_lora_preview_path(filename: str) -> Path:
+    return _user_lora_path(filename).with_suffix(".preview.webp")
+
+
+def _civitai_headers(token: str) -> dict[str, str]:
+    headers = {"User-Agent": "Spark-Media-LoRA/1.0"}
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    return headers
+
+
+def _civitai_json(path: str, token: str) -> dict[str, Any]:
+    request = urllib.request.Request(
+        f"https://civitai.com/api/v1/{path.lstrip('/')}", headers=_civitai_headers(token)
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=30) as response:
+            return json.loads(response.read())
+    except Exception as exc:
+        raise ValueError(f"Civitai API 요청 실패: {exc}") from exc
+
+
+def _civitai_version_id(source: str, token: str) -> str:
+    if source.isdigit():
+        return source
+    parsed = urllib.parse.urlparse(source)
+    if parsed.hostname not in {"civitai.com", "www.civitai.com", "civitai.red", "www.civitai.red"}:
+        raise ValueError("Civitai 주소 또는 모델 버전 ID를 입력하세요")
+    query = urllib.parse.parse_qs(parsed.query)
+    version = (query.get("modelVersionId") or query.get("modelversionid") or [""])[0]
+    if version.isdigit():
+        return version
+    match = re.search(r"/(?:api/download/models|model-versions)/(\d+)", parsed.path, re.I)
+    if match:
+        return match.group(1)
+    model_match = re.search(r"/models/(\d+)", parsed.path, re.I)
+    if not model_match:
+        raise ValueError("Civitai 주소에서 모델 ID를 찾지 못했습니다")
+    model = _civitai_json(f"models/{model_match.group(1)}", token)
+    versions = model.get("modelVersions") or []
+    if not versions:
+        raise ValueError("다운로드 가능한 모델 버전이 없습니다")
+    return str(versions[0]["id"])
+
+
+def _download_url(url: str, destination: Path, headers: dict[str, str]) -> str:
+    temporary = destination.with_suffix(destination.suffix + ".part")
+    digest = hashlib.sha256()
+    try:
+        request = urllib.request.Request(url, headers=headers)
+        with urllib.request.urlopen(request, timeout=900) as response:
+            declared = int(response.headers.get("Content-Length") or 0)
+            if declared > MAX_USER_LORA_BYTES:
+                raise ValueError("LoRA 파일이 2 GiB 제한을 초과합니다")
+            total = 0
+            with temporary.open("wb") as output:
+                while chunk := response.read(1024 * 1024):
+                    total += len(chunk)
+                    if total > MAX_USER_LORA_BYTES:
+                        raise ValueError("LoRA 파일이 2 GiB 제한을 초과합니다")
+                    output.write(chunk)
+                    digest.update(chunk)
+        temporary.replace(destination)
+        return digest.hexdigest()
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def _file_sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as source:
+        while chunk := source.read(1024 * 1024):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _import_civitai_lora(request: UserLoRAImportRequest) -> dict[str, Any]:
+    token = request.civitai_token.strip() or stored_token()
+    if request.civitai_token.strip():
+        save_token(token)
+    version_id = _civitai_version_id(request.source.strip(), token)
+    version = _civitai_json(f"model-versions/{version_id}", token)
+    model_type = str((version.get("model") or {}).get("type", "")).lower()
+    if model_type and model_type != "lora":
+        raise ValueError("선택한 Civitai 파일은 LoRA가 아닙니다")
+    files = [
+        item for item in version.get("files", [])
+        if str(item.get("name", "")).lower().endswith(".safetensors") and item.get("downloadUrl")
+    ]
+    if not files:
+        raise ValueError("이 버전에 safetensors LoRA 파일이 없습니다")
+    parsed_source = urllib.parse.urlparse(request.source.strip())
+    requested_file_id = (urllib.parse.parse_qs(parsed_source.query).get("fileId") or [""])[0]
+    if requested_file_id:
+        selected = next((item for item in files if str(item.get("id", "")) == requested_file_id), None)
+        if selected is None:
+            raise ValueError("Civitai 주소가 지정한 safetensors 파일을 이 버전에서 찾지 못했습니다")
+    else:
+        selected = next((item for item in files if item.get("primary")), files[0])
+    filename = _safe_lora_filename(request.name.strip() or str(selected.get("name", "")))
+    destination = USER_LORA_ROOT / filename
+    if destination.exists():
+        raise FileExistsError(f"{filename}이 이미 등록되어 있습니다")
+    digest = _download_url(str(selected["downloadUrl"]), destination, _civitai_headers(token))
+    expected = str((selected.get("hashes") or {}).get("SHA256", "")).lower()
+    if expected and expected != digest.lower():
+        destination.unlink(missing_ok=True)
+        raise ValueError("Civitai LoRA 체크섬이 일치하지 않습니다")
+    trained_words = [str(word).strip() for word in version.get("trainedWords", []) if str(word).strip()]
+    return {
+        "filename": filename,
+        "name": request.name.strip() or Path(filename).stem,
+        "trigger_word": request.trigger_word.strip() or ", ".join(trained_words),
+        "memo": request.memo.strip(),
+        "recommended_strength": request.recommended_strength,
+        "source": request.source.strip(),
+        "provider": "civitai",
+        "civitai_version_id": version_id,
+        "base_model": request.base_model.strip() or version.get("baseModel", ""),
+        "sha256": digest,
+        "created_at": time.time(),
+    }
+
+
+def _parse_hf_source(source: str) -> tuple[str, str | None, str | None]:
+    source = source.strip().rstrip("/")
+    if source.startswith("http://") or source.startswith("https://"):
+        parsed = urllib.parse.urlparse(source)
+        if parsed.hostname not in {"huggingface.co", "www.huggingface.co"}:
+            raise ValueError("Hugging Face 주소 또는 owner/repository를 입력하세요")
+        parts = [urllib.parse.unquote(part) for part in parsed.path.split("/") if part]
+        if len(parts) < 2:
+            raise ValueError("Hugging Face 저장소 주소가 올바르지 않습니다")
+        repo_id = "/".join(parts[:2])
+        if len(parts) >= 5 and parts[2] in {"blob", "resolve"}:
+            return repo_id, "/".join(parts[4:]), parts[3]
+        return repo_id, None, None
+    parts = source.split("/")
+    if len(parts) < 2:
+        raise ValueError("Hugging Face 저장소는 owner/repository 형식이어야 합니다")
+    return "/".join(parts[:2]), "/".join(parts[2:]) or None, None
+
+
+def _import_hf_lora(request: UserLoRAImportRequest) -> dict[str, Any]:
+    token = request.hf_token.strip() or _stored_hf_token()
+    if request.hf_token.strip():
+        _save_hf_token(token)
+    repo_id, requested_file, revision = _parse_hf_source(request.source)
+    api = HfApi(token=token or None)
+    files = api.list_repo_files(repo_id=repo_id, revision=revision, token=token or None)
+    if requested_file:
+        candidates = [item for item in files if item == requested_file]
+        if not candidates:
+            raise ValueError(f"저장소에서 {requested_file} 파일을 찾지 못했습니다")
+    else:
+        candidates = [item for item in files if item.lower().endswith(".safetensors")]
+        if len(candidates) != 1:
+            raise ValueError("safetensors가 여러 개입니다. Hugging Face 파일 페이지 주소를 입력하세요")
+    remote_file = candidates[0]
+    filename = _safe_lora_filename(request.name.strip() or Path(remote_file).name)
+    destination = USER_LORA_ROOT / filename
+    if destination.exists():
+        raise FileExistsError(f"{filename}이 이미 등록되어 있습니다")
+    downloaded = Path(hf_hub_download(repo_id, remote_file, revision=revision, token=token or None))
+    if downloaded.stat().st_size > MAX_USER_LORA_BYTES:
+        raise ValueError("LoRA 파일이 2 GiB 제한을 초과합니다")
+    shutil.copy2(downloaded, destination)
+    digest = _file_sha256(destination)
+    return {
+        "filename": filename,
+        "name": request.name.strip() or Path(filename).stem,
+        "trigger_word": request.trigger_word.strip(),
+        "memo": request.memo.strip(),
+        "recommended_strength": request.recommended_strength,
+        "source": request.source.strip(),
+        "provider": "huggingface",
+        "base_model": request.base_model.strip(),
+        "repo_id": repo_id,
+        "remote_file": remote_file,
+        "sha256": digest,
+        "created_at": time.time(),
+    }
+
+
+def _list_user_loras() -> list[dict[str, Any]]:
+    USER_LORA_ROOT.mkdir(parents=True, exist_ok=True)
+    result = []
+    for path in sorted(USER_LORA_ROOT.glob("*.safetensors"), key=lambda item: item.name.lower()):
+        if not path.is_file() or path.name == "skc3vo.safetensors":
+            continue
+        metadata = _read_json(path.with_suffix(".json"))
+        result.append({
+            **metadata,
+            "filename": path.name,
+            "name": metadata.get("name") or path.stem,
+            "trigger_word": metadata.get("trigger_word") or "",
+            "memo": metadata.get("memo") or "",
+            "recommended_strength": metadata.get("recommended_strength", 1.0),
+            "preview_available": path.with_suffix(".preview.webp").is_file(),
+            "preview_updated_at": metadata.get("preview_updated_at", 0),
+            "size": path.stat().st_size,
+        })
+    return result
 
 
 def parse_size(value: str) -> tuple[int, int]:
@@ -144,8 +503,11 @@ def parse_size(value: str) -> tuple[int, int]:
         raise HTTPException(status_code=400, detail="size must be WIDTHxHEIGHT") from exc
     if not (512 <= width <= 2048 and 512 <= height <= 2048):
         raise HTTPException(status_code=400, detail="width and height must be between 512 and 2048")
-    if width % 16 or height % 16:
-        raise HTTPException(status_code=400, detail="width and height must be multiples of 16")
+    # Krea 2's published ResolutionSelector workflow uses a multiple of 8
+    # (for example 768x1368 at 9:16).  Requiring 16 here silently forced edit
+    # reproductions onto a different latent geometry than the reference graph.
+    if width % 8 or height % 8:
+        raise HTTPException(status_code=400, detail="width and height must be multiples of 8")
     return width, height
 
 
@@ -158,11 +520,12 @@ def workflow(
     steps: int = 8,
     styles: list[StyleSelection] | None = None,
     user_loras: list[UserLoRASelection] | None = None,
+    diffusion_model: str = DIFFUSION_MODEL,
 ) -> dict[str, Any]:
     graph = {
         "1": {
             "class_type": "UNETLoader",
-            "inputs": {"unet_name": DIFFUSION_MODEL, "weight_dtype": "default"},
+            "inputs": {"unet_name": diffusion_model, "weight_dtype": "default"},
         },
         "2": {
             "class_type": "CLIPLoader",
@@ -395,12 +758,13 @@ def detail_enhance_workflow(
     strength: float,
     steps: int,
     vae_name: str,
+    diffusion_model: str,
 ) -> dict[str, Any]:
     """Ostris edit graph used by the experimental Krea detail-enhancer LoRA."""
     graph: dict[str, Any] = {
         "1": {
             "class_type": "UNETLoader",
-            "inputs": {"unet_name": DIFFUSION_MODEL, "weight_dtype": "default"},
+            "inputs": {"unet_name": diffusion_model, "weight_dtype": "default"},
         },
         "2": {
             "class_type": "CLIPLoader",
@@ -467,8 +831,9 @@ def nk2e_workflow(
     mode: str,
     strength: float,
     steps: int,
+    diffusion_model: str,
 ) -> dict[str, Any]:
-    graph = workflow(prompt, width, height, seed, prefix, steps)
+    graph = workflow(prompt, width, height, seed, prefix, steps, diffusion_model=diffusion_model)
     graph.update(
         {
             "10": {"class_type": "LoadImage", "inputs": {"image": reference_name}},
@@ -507,6 +872,7 @@ def anypaint_workflow(
     boundary_redraw_px: int,
     vlm_reference: bool,
     steps: int,
+    diffusion_model: str,
 ) -> dict[str, Any]:
     prepare_inputs: dict[str, Any] = {
         "source": ["10", 0],
@@ -520,7 +886,7 @@ def anypaint_workflow(
     graph: dict[str, Any] = {
         "1": {
             "class_type": "UNETLoader",
-            "inputs": {"unet_name": DIFFUSION_MODEL, "weight_dtype": "default"},
+            "inputs": {"unet_name": diffusion_model, "weight_dtype": "default"},
         },
         "2": {
             "class_type": "CLIPLoader",
@@ -583,8 +949,9 @@ def depth_workflow(
     steps: int,
     styles: list[StyleSelection],
     user_loras: list[UserLoRASelection],
+    diffusion_model: str,
 ) -> dict[str, Any]:
-    graph = workflow(prompt, width, height, seed, prefix, steps, styles, user_loras)
+    graph = workflow(prompt, width, height, seed, prefix, steps, styles, user_loras, diffusion_model)
     model_input = graph["7"]["inputs"]["model"]
     graph.update(
         {
@@ -629,10 +996,11 @@ def identity_workflow(
     seed: int,
     prefix: str,
     source_name: str,
-    reference_name: str | None,
+    reference_names: list[str],
     identity_mask_name: str | None,
     identity_strength: float,
     ref_boost: float,
+    source_ref_boost: float,
     grounding_px: int,
     steps: int,
     styles: list[StyleSelection],
@@ -640,8 +1008,12 @@ def identity_workflow(
     depth_name: str | None,
     control_strength: float,
     fit_mode: str,
+    diffusion_model: str,
+    text_encoder: str = TEXT_ENCODER,
+    apply_identity_lora: bool = True,
 ) -> dict[str, Any]:
-    graph = workflow(prompt, width, height, seed, prefix, steps)
+    graph = workflow(prompt, width, height, seed, prefix, steps, diffusion_model=diffusion_model)
+    graph["2"]["inputs"]["clip_name"] = text_encoder
     graph.update(
         {
             "10": {"class_type": "LoadImage", "inputs": {"image": source_name}},
@@ -664,11 +1036,10 @@ def identity_workflow(
                     "model": ["13", 0],
                     "source_latent": ["11", 0],
                     "ref_boost": ref_boost,
-                    "ref_boost_a": 1.0,
+                    "ref_boost_a": source_ref_boost,
                     "fit_mode": "crop (legacy)" if fit_mode == "crop" else "fit",
                     "vae": ["3", 0],
                     "source_image": ["10", 0],
-                    "target_latent": ["12", 0],
                 },
             },
             "16": {
@@ -677,6 +1048,7 @@ def identity_workflow(
                     "clip": ["2", 0],
                     "prompt": prompt,
                     "grounding_px": grounding_px,
+                    "system_prompt": "",
                     "image": ["10", 0],
                 },
             },
@@ -686,12 +1058,18 @@ def identity_workflow(
                     "clip": ["2", 0],
                     "prompt": "",
                     "grounding_px": grounding_px,
+                    "system_prompt": "",
                     "image": ["10", 0],
                 },
             },
         }
     )
-    model_input: list[Any] = ["13", 0]
+    if apply_identity_lora:
+        model_input: list[Any] = ["13", 0]
+    else:
+        graph.pop("13")
+        graph["15"]["inputs"]["model"] = ["1", 0]
+        model_input = ["1", 0]
     next_id = 20
     for style in styles:
         graph[str(next_id)] = {
@@ -753,14 +1131,44 @@ def identity_workflow(
         model_input = [str(next_id), 0]
     graph["15"]["inputs"]["model"] = model_input
 
-    if reference_name is not None:
-        graph["18"] = {"class_type": "LoadImage", "inputs": {"image": reference_name}}
-        graph["19"] = {"class_type": "VAEEncode", "inputs": {"pixels": ["18", 0], "vae": ["3", 0]}}
+    if reference_names:
+        # Keep the published graph topology intact.  In particular, outfit and
+        # pose references are loaded separately and joined by ComfyUI's native
+        # ImageStitch node.  Pre-compositing them in Pillow was visually close,
+        # but was not byte/geometry-equivalent to the workflow Identity Edit was
+        # demonstrated with.
+        load_ids: list[str] = []
+        for index, reference_name in enumerate(reference_names):
+            load_id = str(180 + index)
+            graph[load_id] = {
+                "class_type": "LoadImage",
+                "inputs": {"image": reference_name},
+            }
+            load_ids.append(load_id)
+        reference_output: list[Any] = [load_ids[0], 0]
+        for index, load_id in enumerate(load_ids[1:]):
+            stitch_id = str(200 + index)
+            graph[stitch_id] = {
+                "class_type": "ImageStitch",
+                "inputs": {
+                    "image1": reference_output,
+                    "image2": [load_id, 0],
+                    "direction": "right",
+                    "match_image_size": True,
+                    "spacing_width": 0,
+                    "spacing_color": "white",
+                },
+            }
+            reference_output = [stitch_id, 0]
+        graph["280"] = {
+            "class_type": "VAEEncode",
+            "inputs": {"pixels": reference_output, "vae": ["3", 0]},
+        }
         graph["15"]["inputs"].update(
-            {"source_latent_b": ["19", 0], "source_image_b": ["18", 0]}
+            {"source_latent_b": ["280", 0], "source_image_b": reference_output}
         )
-        graph["16"]["inputs"]["image_b"] = ["18", 0]
-        graph["17"]["inputs"]["image_b"] = ["18", 0]
+        graph["16"]["inputs"]["image_b"] = reference_output
+        graph["17"]["inputs"]["image_b"] = reference_output
 
     if identity_mask_name is not None:
         graph["14"] = {
@@ -882,6 +1290,36 @@ def save_input(encoded: str, folder: str) -> tuple[str, Path]:
     return relative, path
 
 
+def save_stitched_references(encoded_images: list[str]) -> tuple[str, Path]:
+    """Build the single source-B image expected by Krea2 Edit from several references."""
+    images = [decode_image(encoded).convert("RGB") for encoded in encoded_images]
+    if not images:
+        raise ValueError("at least one reference image is required")
+    if len(images) == 1:
+        return save_input(encoded_images[0], "krea-edit-reference")
+
+    # Match ComfyUI's ImageStitch(direction=right, match_image_size=true)
+    # exactly: keep image one unchanged, resize each following image to image
+    # one's height with its aspect ratio intact, then concatenate without gaps.
+    # The previous equal-panel/padding implementation changed the source-B
+    # geometry from the published workflow and weakened the edit references.
+    base_height = images[0].height
+    fitted: list[Image.Image] = [images[0]]
+    for image in images[1:]:
+        target_width = max(1, int(base_height * image.width / image.height))
+        fitted.append(image.resize((target_width, base_height), Image.Resampling.LANCZOS))
+    stitched = Image.new("RGB", (sum(image.width for image in fitted), base_height), "white")
+    offset = 0
+    for image in fitted:
+        stitched.paste(image, (offset, 0))
+        offset += image.width
+    relative = f"krea-edit-reference/{uuid.uuid4().hex}.png"
+    path = INPUT_ROOT / relative
+    path.parent.mkdir(parents=True, exist_ok=True)
+    stitched.save(path, format="PNG")
+    return relative, path
+
+
 async def comfy_ready() -> bool:
     try:
         async with httpx.AsyncClient(timeout=2) as client:
@@ -929,6 +1367,249 @@ async def execute_workflow(graph: dict[str, Any]) -> str:
                 candidate.unlink(missing_ok=True)
 
 
+def checkpoint_status() -> dict[str, Any]:
+    variants = []
+    for checkpoint in CHECKPOINTS.values():
+        is_ready = ready(checkpoint)
+        if is_ready:
+            try:
+                link_model(checkpoint)
+            except RuntimeError:
+                pass
+        partial = model_path(checkpoint).with_suffix(".safetensors.part")
+        downloaded = checkpoint.size if is_ready else partial.stat().st_size if partial.is_file() else 0
+        variants.append(
+            {
+                "id": checkpoint.key,
+                "label": checkpoint.label,
+                "precision": checkpoint.precision,
+                "ready": is_ready,
+                "downloaded_bytes": downloaded,
+                "size_bytes": checkpoint.size,
+                "source": checkpoint.source,
+                "recommended_sampler": CHECKPOINT_SAMPLING.get(checkpoint.key, ("euler", "simple"))[0],
+                "recommended_scheduler": CHECKPOINT_SAMPLING.get(checkpoint.key, ("euler", "simple"))[1],
+            }
+        )
+    heretic_ready = ready(HERETIC_TEXT_ENCODER)
+    if heretic_ready:
+        try:
+            link_text_encoder()
+        except RuntimeError:
+            pass
+    heretic_partial = model_path(HERETIC_TEXT_ENCODER).with_suffix(".safetensors.part")
+    return {
+        "ready": all(item["ready"] for item in variants),
+        "preparing": checkpoint_prepare_task is not None and not checkpoint_prepare_task.done(),
+        "token_configured": token_configured(),
+        "current": checkpoint_prepare_current,
+        "downloaded_bytes": checkpoint_prepare_bytes,
+        "total_bytes": checkpoint_prepare_total,
+        "error": checkpoint_prepare_error,
+        "variants": variants,
+        "identity_runtime": {
+            "convrot_ready": (Path("/opt/ComfyUI/models/diffusion_models") / IDENTITY_EDIT_MODEL).is_file(),
+            "convrot_source": "https://huggingface.co/Winnougan/Krea-2-Base-Turbo-NVFP4-FP8-INT8",
+            "heretic_ready": heretic_ready,
+            "heretic_downloaded_bytes": HERETIC_TEXT_ENCODER.size if heretic_ready else heretic_partial.stat().st_size if heretic_partial.is_file() else 0,
+            "heretic_size_bytes": HERETIC_TEXT_ENCODER.size,
+            "heretic_source": HERETIC_TEXT_ENCODER.source,
+        },
+        "nvfp4_conversion": {
+            "available": True,
+            "preparing": checkpoint_conversion_task is not None and not checkpoint_conversion_task.done(),
+            "current": checkpoint_conversion_current,
+            "stage": checkpoint_conversion_stage,
+            "done": checkpoint_conversion_done,
+            "total": checkpoint_conversion_total,
+            "error": checkpoint_conversion_error,
+            "profile_source": PROFILE_SOURCE,
+            "profile_commit": PROFILE_COMMIT,
+            "variants": [
+                {
+                    "id": key,
+                    "source_ready": ready(source),
+                    "source_size_bytes": source.size,
+                    "converted_ready": nvfp4_ready(key),
+                    "validated": nvfp4_validated(key),
+                    "converted_size_bytes": nvfp4_path(key).stat().st_size if nvfp4_ready(key) else 0,
+                    "source": source.source,
+                }
+                for key, source in BF16_SOURCES.items()
+            ],
+        },
+    }
+
+
+async def _prepare_checkpoints(keys: list[str], civitai_token: str, hf_token: str) -> None:
+    global checkpoint_prepare_bytes, checkpoint_prepare_current, checkpoint_prepare_error, checkpoint_prepare_total
+    async with checkpoint_prepare_lock:
+        checkpoint_prepare_error = ""
+        checkpoint_prepare_bytes = 0
+        items = [HERETIC_TEXT_ENCODER, *(CHECKPOINTS[key] for key in keys)]
+        checkpoint_prepare_total = sum(item.size for item in items)
+        completed = 0
+        try:
+            for checkpoint in items:
+                checkpoint_prepare_current = checkpoint.key
+
+                def update(done: int, _total: int, base: int = completed) -> None:
+                    global checkpoint_prepare_bytes
+                    checkpoint_prepare_bytes = base + done
+
+                download_token = hf_token if checkpoint.provider == "huggingface" else civitai_token
+                await asyncio.to_thread(download_checkpoint, checkpoint, download_token, update, checkpoint is not HERETIC_TEXT_ENCODER)
+                if checkpoint is HERETIC_TEXT_ENCODER:
+                    await asyncio.to_thread(link_text_encoder)
+                completed += checkpoint.size
+                checkpoint_prepare_bytes = completed
+        except BaseException as exc:
+            checkpoint_prepare_error = str(exc)
+        finally:
+            checkpoint_prepare_current = ""
+
+
+@app.get("/v1/checkpoints/status")
+async def get_checkpoint_status() -> dict[str, Any]:
+    return checkpoint_status()
+
+
+@app.post("/v1/checkpoints/prepare", status_code=202)
+async def prepare_checkpoints(request: CheckpointPrepareRequest) -> dict[str, Any]:
+    global checkpoint_prepare_task
+    token = request.civitai_token.strip()
+    if token:
+        if len(token) < 16 or any(character.isspace() for character in token):
+            raise HTTPException(status_code=400, detail="invalid Civitai API key")
+        save_token(token)
+    effective_token = token or stored_token()
+    if not effective_token:
+        raise HTTPException(status_code=400, detail="enter a Civitai API key")
+    hf_token = request.hf_token.strip()
+    if hf_token:
+        _save_hf_token(hf_token)
+    effective_hf_token = hf_token or _stored_hf_token()
+    keys = list(dict.fromkeys(request.variants))
+    unknown = [key for key in keys if key not in CHECKPOINTS]
+    if unknown:
+        raise HTTPException(status_code=400, detail=f"unsupported checkpoint variants: {unknown}")
+    if not keys:
+        raise HTTPException(status_code=400, detail="select at least one checkpoint")
+    if checkpoint_prepare_task is None or checkpoint_prepare_task.done():
+        checkpoint_prepare_task = asyncio.create_task(_prepare_checkpoints(keys, effective_token, effective_hf_token))
+        started = True
+    else:
+        started = False
+    return {**checkpoint_status(), "started": started}
+
+
+async def _unload_comfy_models() -> None:
+    async with httpx.AsyncClient(timeout=30) as client:
+        response = await client.post(
+            f"{COMFY_URL}/free",
+            json={"unload_models": True, "free_memory": True},
+        )
+        response.raise_for_status()
+
+
+async def _convert_checkpoints(keys: list[str], token: str, remove_sources: bool) -> None:
+    global checkpoint_conversion_current, checkpoint_conversion_done, checkpoint_conversion_error
+    global checkpoint_conversion_stage, checkpoint_conversion_total
+    checkpoint_conversion_error = ""
+    checkpoint_conversion_done = 0
+    checkpoint_conversion_total = sum(BF16_SOURCES[key].size for key in keys)
+    try:
+        for key in keys:
+            source = BF16_SOURCES[key]
+            checkpoint_conversion_current = key
+            checkpoint_conversion_stage = "download"
+            checkpoint_conversion_total = source.size
+            checkpoint_conversion_done = 0
+
+            def download_progress(done: int, _total: int) -> None:
+                global checkpoint_conversion_done
+                checkpoint_conversion_done = done
+
+            await asyncio.to_thread(download_checkpoint, source, token, download_progress, False)
+            checkpoint_conversion_done = source.size
+            async with generation_lock:
+                result: dict[str, int]
+                if nvfp4_ready(key):
+                    try:
+                        result = json.loads(nvfp4_validation_path(key).read_text())
+                    except (OSError, ValueError):
+                        result = {"source_tensors": 0, "output_tensors": 0, "quantized_layers": 0}
+                else:
+                    checkpoint_conversion_stage = "unload"
+                    await _unload_comfy_models()
+                    checkpoint_conversion_stage = "convert"
+                    checkpoint_conversion_done = 0
+                    checkpoint_conversion_total = 1
+
+                    def quant_progress(done: int, total: int) -> None:
+                        global checkpoint_conversion_done, checkpoint_conversion_total
+                        checkpoint_conversion_done = done
+                        checkpoint_conversion_total = total
+
+                    result = await asyncio.to_thread(
+                        convert_krea2_nvfp4,
+                        model_path(source),
+                        nvfp4_path(key),
+                        quant_progress,
+                    )
+                link_nvfp4(key)
+                checkpoint_conversion_stage = "validate"
+                validation_graph = workflow(
+                    "a blue ceramic cup on a plain wooden table",
+                    512,
+                    512,
+                    24681357,
+                    f"nvfp4-validation/{key}",
+                    8,
+                    diffusion_model=NVFP4_FILENAMES[key],
+                )
+                await execute_workflow(validation_graph)
+                nvfp4_validation_path(key).write_text(json.dumps(result, sort_keys=True))
+                if remove_sources:
+                    model_path(source).unlink(missing_ok=True)
+                await _unload_comfy_models()
+                checkpoint_conversion_done = checkpoint_conversion_total
+    except BaseException as exc:
+        checkpoint_conversion_error = str(exc)
+    finally:
+        checkpoint_conversion_current = ""
+        checkpoint_conversion_stage = ""
+
+
+@app.post("/v1/checkpoints/convert-nvfp4", status_code=202)
+async def convert_checkpoints(request: CheckpointConvertRequest) -> dict[str, Any]:
+    global checkpoint_conversion_task
+    token = request.civitai_token.strip()
+    if token:
+        if len(token) < 16 or any(character.isspace() for character in token):
+            raise HTTPException(status_code=400, detail="invalid Civitai API key")
+        save_token(token)
+    effective_token = token or stored_token()
+    if not effective_token:
+        raise HTTPException(status_code=400, detail="enter a Civitai API key")
+    keys = list(dict.fromkeys(request.variants))
+    unknown = [key for key in keys if key not in BF16_SOURCES]
+    if unknown:
+        raise HTTPException(status_code=400, detail=f"unsupported NVFP4 variants: {unknown}")
+    if not keys:
+        raise HTTPException(status_code=400, detail="select at least one NVFP4 variant")
+    if checkpoint_prepare_task is not None and not checkpoint_prepare_task.done():
+        raise HTTPException(status_code=409, detail="checkpoint download is already running")
+    if checkpoint_conversion_task is None or checkpoint_conversion_task.done():
+        checkpoint_conversion_task = asyncio.create_task(
+            _convert_checkpoints(keys, effective_token, request.remove_bf16_sources)
+        )
+        started = True
+    else:
+        started = False
+    return {**checkpoint_status(), "started": started}
+
+
 @app.get("/health")
 async def health() -> dict[str, str]:
     if not await comfy_ready():
@@ -941,6 +1622,298 @@ async def models() -> dict[str, Any]:
     return {"object": "list", "data": [{"id": MODEL_ID, "object": "model", "owned_by": "local"}]}
 
 
+@app.get("/v1/loras")
+async def loras() -> dict[str, Any]:
+    """Return the allow-listed user LoRAs visible to generation requests."""
+    data = []
+    if USER_LORA_ROOT.is_dir():
+        for path in sorted(USER_LORA_ROOT.glob("*.safetensors"), key=lambda item: item.name.lower()):
+            # skc3vo is exposed through filter_mode=adherence, not as a
+            # stackable user LoRA.
+            if path.is_file() and path.name != "skc3vo.safetensors":
+                data.append({"filename": path.name, "size": path.stat().st_size})
+    return {"object": "list", "data": data}
+
+
+@app.get("/v1/user-loras/status")
+async def user_lora_status() -> dict[str, bool]:
+    return {
+        "civitai_token_configured": bool(stored_token()),
+        "hf_token_configured": bool(_stored_hf_token()),
+    }
+
+
+@app.post("/v1/user-loras/tokens")
+async def save_download_credentials(request: DownloadCredentialRequest) -> dict[str, bool]:
+    if request.civitai_token.strip():
+        save_token(request.civitai_token.strip())
+    if request.hf_token.strip():
+        _save_hf_token(request.hf_token.strip())
+    return {
+        "civitai_token_configured": bool(stored_token()),
+        "hf_token_configured": bool(_stored_hf_token()),
+    }
+
+
+@app.get("/v1/user-loras")
+async def list_user_loras() -> list[dict[str, Any]]:
+    return _list_user_loras()
+
+
+@app.post("/v1/user-loras/import", status_code=201)
+async def import_user_lora(request: UserLoRAImportRequest) -> dict[str, Any]:
+    source = request.source.strip()
+    provider = request.provider.strip().lower()
+    if provider == "auto":
+        provider = "civitai" if source.isdigit() or "civitai." in source.lower() else "huggingface"
+    if provider not in {"civitai", "huggingface"}:
+        raise HTTPException(status_code=400, detail="지원하지 않는 LoRA 공급자입니다")
+    try:
+        metadata = await asyncio.to_thread(
+            _import_civitai_lora if provider == "civitai" else _import_hf_lora, request
+        )
+        destination = USER_LORA_ROOT / metadata["filename"]
+        _write_json(destination.with_suffix(".json"), metadata)
+        return {**metadata, "size": destination.stat().st_size}
+    except FileExistsError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.post("/v1/user-loras/upload", status_code=201)
+async def upload_user_lora(
+    file: UploadFile = File(...),
+    name: str = Form(default=""),
+    trigger_word: str = Form(default=""),
+    memo: str = Form(default=""),
+    base_model: str = Form(default=""),
+    recommended_strength: float = Form(default=1.0),
+) -> dict[str, Any]:
+    original_name = Path(file.filename or "").name
+    if not original_name.lower().endswith(".safetensors"):
+        raise HTTPException(status_code=400, detail="safetensors LoRA 파일만 업로드할 수 있습니다")
+    if not -2.0 <= recommended_strength <= 2.0:
+        raise HTTPException(status_code=400, detail="기본 강도는 -2.00부터 2.00까지입니다")
+    filename = _safe_lora_filename(name.strip() or original_name)
+    destination = USER_LORA_ROOT / filename
+    if destination.exists():
+        raise HTTPException(status_code=409, detail=f"{filename}이 이미 등록되어 있습니다")
+    temporary = destination.with_suffix(destination.suffix + ".part")
+    digest = hashlib.sha256()
+    total = 0
+    try:
+        with temporary.open("wb") as output:
+            while chunk := await file.read(1024 * 1024):
+                total += len(chunk)
+                if total > MAX_USER_LORA_BYTES:
+                    raise HTTPException(status_code=413, detail="LoRA 파일이 2 GiB 제한을 초과합니다")
+                output.write(chunk)
+                digest.update(chunk)
+        if total == 0:
+            raise HTTPException(status_code=400, detail="빈 파일은 등록할 수 없습니다")
+        temporary.replace(destination)
+    finally:
+        temporary.unlink(missing_ok=True)
+        await file.close()
+    metadata = {
+        "filename": filename,
+        "name": name.strip() or Path(filename).stem,
+        "trigger_word": trigger_word.strip(),
+        "memo": memo.strip()[:2000],
+        "base_model": base_model.strip()[:128],
+        "recommended_strength": recommended_strength,
+        "source": "",
+        "provider": "upload",
+        "original_filename": original_name,
+        "sha256": digest.hexdigest(),
+        "created_at": time.time(),
+    }
+    _write_json(destination.with_suffix(".json"), metadata)
+    return {**metadata, "size": total}
+
+
+@app.put("/v1/user-loras/{filename}")
+async def update_user_lora(filename: str, request: UserLoRAUpdateRequest) -> dict[str, Any]:
+    path = _user_lora_path(filename)
+    if not path.is_file():
+        raise HTTPException(status_code=404, detail="LoRA를 찾지 못했습니다")
+    metadata = _read_json(path.with_suffix(".json"))
+    metadata.update({
+        "name": request.name.strip() or path.stem,
+        "trigger_word": request.trigger_word.strip(),
+        "memo": request.memo.strip(),
+        "base_model": request.base_model.strip(),
+        "recommended_strength": request.recommended_strength,
+        "updated_at": time.time(),
+    })
+    _write_json(path.with_suffix(".json"), metadata)
+    return {**metadata, "filename": path.name, "size": path.stat().st_size}
+
+
+@app.get("/v1/user-loras/{filename}/preview")
+async def user_lora_preview(filename: str) -> FileResponse:
+    path = _user_lora_preview_path(filename)
+    if not path.is_file():
+        raise HTTPException(status_code=404, detail="대표 이미지를 찾지 못했습니다")
+    return FileResponse(path, media_type="image/webp", headers={"Cache-Control": "public, max-age=31536000, immutable"})
+
+
+@app.put("/v1/user-loras/{filename}/preview")
+async def update_user_lora_preview(filename: str, file: UploadFile = File(...)) -> dict[str, Any]:
+    lora_path = _user_lora_path(filename)
+    if not lora_path.is_file():
+        raise HTTPException(status_code=404, detail="LoRA를 찾지 못했습니다")
+    raw = await file.read(MAX_USER_LORA_PREVIEW_BYTES + 1)
+    await file.close()
+    if not raw:
+        raise HTTPException(status_code=400, detail="빈 이미지는 등록할 수 없습니다")
+    if len(raw) > MAX_USER_LORA_PREVIEW_BYTES:
+        raise HTTPException(status_code=413, detail="대표 이미지는 20 MiB 이하여야 합니다")
+    try:
+        image = ImageOps.exif_transpose(Image.open(io.BytesIO(raw))).convert("RGB")
+        image.thumbnail((1280, 1280), Image.Resampling.LANCZOS)
+    except (UnidentifiedImageError, OSError, ValueError) as exc:
+        raise HTTPException(status_code=400, detail="지원하는 이미지 파일이 아닙니다") from exc
+    destination = _user_lora_preview_path(filename)
+    temporary = destination.with_suffix(".webp.part")
+    try:
+        image.save(temporary, format="WEBP", quality=88, method=6)
+        temporary.replace(destination)
+    finally:
+        temporary.unlink(missing_ok=True)
+    metadata_path = lora_path.with_suffix(".json")
+    metadata = _read_json(metadata_path)
+    metadata["preview_updated_at"] = time.time()
+    _write_json(metadata_path, metadata)
+    return {"preview_available": True, "preview_updated_at": metadata["preview_updated_at"]}
+
+
+@app.delete("/v1/user-loras/{filename}/preview", status_code=204)
+async def delete_user_lora_preview(filename: str) -> None:
+    lora_path = _user_lora_path(filename)
+    if not lora_path.is_file():
+        raise HTTPException(status_code=404, detail="LoRA를 찾지 못했습니다")
+    _user_lora_preview_path(filename).unlink(missing_ok=True)
+    metadata_path = lora_path.with_suffix(".json")
+    metadata = _read_json(metadata_path)
+    metadata.pop("preview_updated_at", None)
+    _write_json(metadata_path, metadata)
+
+
+@app.delete("/v1/user-loras/{filename}", status_code=204)
+async def delete_user_lora(filename: str) -> None:
+    path = _user_lora_path(filename)
+    if not path.is_file():
+        raise HTTPException(status_code=404, detail="LoRA를 찾지 못했습니다")
+    path.unlink()
+    path.with_suffix(".json").unlink(missing_ok=True)
+    path.with_suffix(".preview.webp").unlink(missing_ok=True)
+
+
+def _automatic_mask(request: SegmentRequest) -> dict[str, Any]:
+    """Text-ground an object and refine its union mask with SAM 2.1."""
+    from transformers import (
+        AutoModelForZeroShotObjectDetection,
+        AutoProcessor,
+        Sam2Model,
+        Sam2Processor,
+    )
+
+    image = decode_image(request.image)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # These two small vision models contain operations that keep float32
+    # intermediates; using BF16 weights causes mixed bias/input failures in the
+    # current Transformers kernels on GB10.
+    dtype = torch.float32
+    detector = segmenter = detector_processor = segmenter_processor = None
+    try:
+        detector_processor = AutoProcessor.from_pretrained("IDEA-Research/grounding-dino-tiny")
+        detector = AutoModelForZeroShotObjectDetection.from_pretrained(
+            "IDEA-Research/grounding-dino-tiny", torch_dtype=dtype
+        ).to(device).eval()
+        detector_inputs = detector_processor(images=image, text=request.prompt, return_tensors="pt").to(device)
+        detector_inputs["pixel_values"] = detector_inputs["pixel_values"].to(dtype=dtype)
+        with torch.inference_mode():
+            detector_outputs = detector(**detector_inputs)
+        detections = detector_processor.post_process_grounded_object_detection(
+            detector_outputs,
+            detector_inputs.input_ids,
+            threshold=request.box_threshold,
+            text_threshold=request.text_threshold,
+            target_sizes=[image.size[::-1]],
+        )[0]
+        boxes = detections["boxes"].detach().float().cpu()
+        if boxes.numel() == 0:
+            raise ValueError(f"no region matched mask prompt: {request.prompt}")
+
+        # Release the detector before loading SAM so peak unified-memory use
+        # remains bounded while the Krea pipeline is resident.
+        del detector_outputs, detector_inputs, detector
+        detector = None
+        if device.type == "cuda":
+            torch.cuda.empty_cache()
+
+        segmenter_processor = Sam2Processor.from_pretrained("facebook/sam2.1-hiera-small")
+        segmenter = Sam2Model.from_pretrained(
+            "facebook/sam2.1-hiera-small", torch_dtype=dtype
+        ).to(device).eval()
+        sam_inputs = segmenter_processor(
+            images=image,
+            input_boxes=[boxes.tolist()],
+            return_tensors="pt",
+        ).to(device)
+        sam_inputs["pixel_values"] = sam_inputs["pixel_values"].to(dtype=dtype)
+        with torch.inference_mode():
+            sam_outputs = segmenter(**sam_inputs, multimask_output=False)
+        masks = segmenter_processor.post_process_masks(
+            sam_outputs.pred_masks.cpu(), sam_inputs["original_sizes"].cpu()
+        )[0]
+        union = (masks.squeeze(1) > request.mask_threshold).any(dim=0).to(torch.uint8).numpy() * 255
+        mask = Image.fromarray(union, mode="L")
+        if request.grow:
+            kernel = max(3, request.grow * 2 + 1)
+            if kernel % 2 == 0:
+                kernel += 1
+            mask = mask.filter(ImageFilter.MaxFilter(kernel))
+        if request.feather:
+            mask = mask.filter(ImageFilter.GaussianBlur(request.feather))
+        output = io.BytesIO()
+        mask.save(output, format="PNG")
+        return {
+            "mask_b64_json": base64.b64encode(output.getvalue()).decode("ascii"),
+            "boxes": boxes.tolist(),
+            "scores": detections["scores"].detach().float().cpu().tolist(),
+        }
+    finally:
+        del detector, segmenter, detector_processor, segmenter_processor
+        if device.type == "cuda":
+            torch.cuda.empty_cache()
+        gc.collect()
+        try:
+            ctypes.CDLL("libc.so.6").malloc_trim(0)
+        except OSError:
+            pass
+
+
+@app.post("/v1/masks/segment")
+async def segment(request: SegmentRequest) -> dict[str, Any]:
+    prompt = request.prompt.strip().rstrip(".")
+    if not prompt:
+        raise HTTPException(status_code=400, detail="mask prompt is required")
+    if not 0 <= request.box_threshold <= 1 or not 0 <= request.text_threshold <= 1 or not 0 <= request.mask_threshold <= 1:
+        raise HTTPException(status_code=400, detail="mask thresholds must be between 0 and 1")
+    if request.grow < 0 or request.grow > 64 or request.feather < 0 or request.feather > 64:
+        raise HTTPException(status_code=400, detail="mask grow and feather must be between 0 and 64")
+    request.prompt = prompt
+    try:
+        async with segmentation_lock:
+            async with generation_lock:
+                return await asyncio.to_thread(_automatic_mask, request)
+    except (ValueError, RuntimeError, UnidentifiedImageError) as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
 @app.post("/v1/images/generations")
 async def generate(request: ImageRequest) -> dict[str, Any]:
     if request.model not in MODEL_ALIASES:
@@ -949,10 +1922,21 @@ async def generate(request: ImageRequest) -> dict[str, Any]:
         raise HTTPException(status_code=400, detail="only n=1 is supported")
     if request.response_format != "b64_json":
         raise HTTPException(status_code=400, detail="only b64_json is supported")
-    if request.sampler_name not in {None, "euler", "er_sde"}:
-        raise HTTPException(status_code=400, detail="sampler_name must be euler or er_sde")
-    if request.scheduler not in {None, "simple"}:
-        raise HTTPException(status_code=400, detail="scheduler must be simple")
+    if request.checkpoint not in CHECKPOINT_MODELS:
+        raise HTTPException(status_code=400, detail=f"unsupported checkpoint: {request.checkpoint}")
+    if request.checkpoint.endswith("-nvfp4"):
+        source_key = request.checkpoint.removesuffix("-nvfp4")
+        if not nvfp4_validated(source_key):
+            raise HTTPException(status_code=409, detail=f"converted checkpoint is not validated: {request.checkpoint}")
+    elif request.checkpoint != "official" and not ready(CHECKPOINTS[request.checkpoint]):
+        raise HTTPException(status_code=409, detail=f"checkpoint is not prepared: {request.checkpoint}")
+    if request.checkpoint != "official" and request.filter_mode != "off":
+        raise HTTPException(status_code=400, detail="third-party checkpoints already include tuning; set filter_mode=off")
+    diffusion_model = CHECKPOINT_MODELS[request.checkpoint]
+    if request.sampler_name not in {None, "euler", "euler_ancestral", "er_sde"}:
+        raise HTTPException(status_code=400, detail="sampler_name must be euler, euler_ancestral, or er_sde")
+    if request.scheduler not in {None, "simple", "beta"}:
+        raise HTTPException(status_code=400, detail="scheduler must be simple or beta")
     prompt = request.prompt.strip()
     if not prompt:
         raise HTTPException(status_code=400, detail="prompt is required")
@@ -963,6 +1947,13 @@ async def generate(request: ImageRequest) -> dict[str, Any]:
         raise HTTPException(status_code=400, detail="identity_strength must be between 0 and 2")
     if not 0 <= request.ref_boost <= 20:
         raise HTTPException(status_code=400, detail="ref_boost must be between 0 and 20")
+    if not 0 <= request.source_ref_boost <= 20:
+        raise HTTPException(status_code=400, detail="source_ref_boost must be between 0 and 20")
+    reference_images = ([request.reference_image] if request.reference_image else []) + list(request.reference_images)
+    if len(reference_images) > 3:
+        raise HTTPException(status_code=400, detail="at most three identity reference images are supported")
+    if reference_images and not request.source_image:
+        raise HTTPException(status_code=400, detail="identity references require source_image")
     if not 384 <= request.grounding_px <= 1024:
         raise HTTPException(status_code=400, detail="grounding_px must be between 384 and 1024")
     if request.style not in {None, *STYLE_LORAS}:
@@ -994,8 +1985,8 @@ async def generate(request: ImageRequest) -> dict[str, Any]:
             raise HTTPException(status_code=400, detail="invalid user LoRA filename")
         if not (USER_LORA_ROOT / filename).is_file():
             raise HTTPException(status_code=400, detail=f"user LoRA not found: {filename}")
-        if not 0 <= selection.strength <= 2:
-            raise HTTPException(status_code=400, detail="user LoRA strength must be between 0 and 2")
+        if not -2 <= selection.strength <= 2:
+            raise HTTPException(status_code=400, detail="user LoRA strength must be between -2 and 2")
     if len(request.vision_images) > 4:
         raise HTTPException(status_code=400, detail="at most four vision reference images are supported")
     if len(request.style_reference_images) > 2:
@@ -1015,6 +2006,11 @@ async def generate(request: ImageRequest) -> dict[str, Any]:
             status_code=400,
             detail="style references cannot yet be combined with vision, identity, depth, or style presets",
         )
+    if request.style_reference_images and request.checkpoint != "official":
+        raise HTTPException(
+            status_code=400,
+            detail="style reference currently uses its own fixed official INT8 checkpoint; select the official checkpoint",
+        )
     if request.nk2e_mode not in {"edit", "canny"}:
         raise HTTPException(status_code=400, detail="nk2e_mode must be edit or canny")
     if not 0 <= request.nk2e_strength <= 2:
@@ -1027,6 +2023,10 @@ async def generate(request: ImageRequest) -> dict[str, Any]:
         raise HTTPException(status_code=400, detail="vae_mode must be default, wan, or real")
     if request.identity_fit_mode not in {"fit", "crop"}:
         raise HTTPException(status_code=400, detail="identity_fit_mode must be fit or crop")
+    if request.identity_model not in {"selected", "convrot"}:
+        raise HTTPException(status_code=400, detail="identity_model must be selected or convrot")
+    if request.identity_encoder not in {"default", "heretic"}:
+        raise HTTPException(status_code=400, detail="identity_encoder must be default or heretic")
     if request.filter_mode not in {"off", "adherence", "balanced", "strong"}:
         raise HTTPException(status_code=400, detail="filter_mode must be off, adherence, balanced, or strong")
     if request.filter_strength is not None and not 0 <= request.filter_strength <= 10:
@@ -1054,7 +2054,7 @@ async def generate(request: ImageRequest) -> dict[str, Any]:
         request.style_reference_images
         or request.vision_images
         or request.source_image
-        or request.reference_image
+        or reference_images
         or request.control_image
         or styles
         or user_loras
@@ -1065,7 +2065,7 @@ async def generate(request: ImageRequest) -> dict[str, Any]:
         request.style_reference_images
         or request.vision_images
         or request.source_image
-        or request.reference_image
+        or reference_images
         or request.control_image
         or styles
         or user_loras
@@ -1103,7 +2103,8 @@ async def generate(request: ImageRequest) -> dict[str, Any]:
     depth_path: Path | None = None
     depth_preview: str | None = None
     source_path: Path | None = None
-    reference_path: Path | None = None
+    reference_paths: list[Path] = []
+    prepared_depth_path: Path | None = None
     identity_mask_path: Path | None = None
     strict_mask_path: Path | None = None
     vision_paths: list[Path] = []
@@ -1117,7 +2118,10 @@ async def generate(request: ImageRequest) -> dict[str, Any]:
     async with generation_lock:
         try:
             depth_name: str | None = None
-            if request.control_image:
+            # A pose image used together with Identity Edit is a semantic source-B
+            # reference, exactly like the published Krea2 Edit workflow.  Only a
+            # standalone structure-control request is converted to monocular depth.
+            if request.control_image and not request.source_image:
                 depth_name, depth_path, depth_preview = await asyncio.to_thread(
                     save_depth_input, request.control_image
                 )
@@ -1180,6 +2184,7 @@ async def generate(request: ImageRequest) -> dict[str, Any]:
                     request.detail_strength,
                     steps,
                     WAN_VAE if request.detail_vae == "wan" else VAE,
+                    diffusion_model,
                 )
             elif anypaint_name is not None:
                 graph = anypaint_workflow(
@@ -1197,6 +2202,7 @@ async def generate(request: ImageRequest) -> dict[str, Any]:
                     request.anypaint_boundary_redraw_px,
                     request.anypaint_vlm_reference,
                     steps,
+                    diffusion_model,
                 )
             elif nk2e_name is not None:
                 graph = nk2e_workflow(
@@ -1209,6 +2215,7 @@ async def generate(request: ImageRequest) -> dict[str, Any]:
                     request.nk2e_mode,
                     request.nk2e_strength,
                     steps,
+                    diffusion_model,
                 )
             elif style_reference_names:
                 graph = style_reference_workflow(
@@ -1238,11 +2245,35 @@ async def generate(request: ImageRequest) -> dict[str, Any]:
                     )
                     if Image.open(strict_mask_path).size != Image.open(source_path).size:
                         raise HTTPException(status_code=400, detail="strict mask dimensions must match source image")
-                reference_name: str | None = None
-                if request.reference_image:
+                reference_names: list[str] = []
+                identity_references = list(reference_images)
+                # The official/community Identity Edit recipe stitches clothing,
+                # pose and prop references horizontally and feeds that single image
+                # to source B.  Do not replace this with Depth ControlNet: doing so
+                # loses the semantic role of the pose image and makes the two LoRAs
+                # compete with each other.
+                if request.control_image:
+                    identity_references.append(request.control_image)
+                for encoded_reference in identity_references:
                     reference_name, reference_path = await asyncio.to_thread(
-                        save_input, request.reference_image, "krea-edit"
+                        save_input, encoded_reference, "krea-edit-reference"
                     )
+                    reference_names.append(reference_name)
+                    reference_paths.append(reference_path)
+                identity_diffusion_model = (
+                    IDENTITY_EDIT_MODEL
+                    if request.identity_model == "convrot"
+                    else diffusion_model
+                )
+                # Identity Edit's demonstrated conditioning path uses the
+                # Heretic ConvRot encoder. Keep it for compatible third-party
+                # Krea checkpoints too; otherwise changing only the checkpoint
+                # also silently changes the instruction encoder.
+                identity_text_encoder = (
+                    IDENTITY_EDIT_TEXT_ENCODER
+                    if request.identity_encoder == "heretic"
+                    else TEXT_ENCODER
+                )
                 graph = identity_workflow(
                     prompt,
                     width,
@@ -1250,17 +2281,21 @@ async def generate(request: ImageRequest) -> dict[str, Any]:
                     seed,
                     prefix,
                     source_name,
-                    reference_name,
+                    reference_names,
                     identity_mask_name,
                     request.identity_strength,
                     request.ref_boost,
+                    request.source_ref_boost,
                     request.grounding_px,
                     steps,
                     styles,
                     user_loras,
-                    depth_name,
+                    None,
                     request.control_strength,
                     request.identity_fit_mode,
+                    identity_diffusion_model,
+                    identity_text_encoder,
+                    request.checkpoint != "chriscole-edit-v1.1",
                 )
             elif depth_name is not None:
                 graph = depth_workflow(
@@ -1274,6 +2309,7 @@ async def generate(request: ImageRequest) -> dict[str, Any]:
                     steps,
                     styles,
                     user_loras,
+                    diffusion_model,
                 )
                 if vision_names:
                     graph = apply_vision_conditioning(
@@ -1284,7 +2320,7 @@ async def generate(request: ImageRequest) -> dict[str, Any]:
                         request.vision_megapixels,
                     )
             else:
-                graph = workflow(prompt, width, height, seed, prefix, steps, styles, user_loras)
+                graph = workflow(prompt, width, height, seed, prefix, steps, styles, user_loras, diffusion_model)
                 if vision_names:
                     graph = apply_vision_conditioning(
                         graph,
@@ -1300,8 +2336,14 @@ async def generate(request: ImageRequest) -> dict[str, Any]:
                 request.prompt_enhancer_strength,
                 request.prompt_text_scale,
             )
-            sampler_name = request.sampler_name or ("er_sde" if detail_name is not None else "euler")
-            scheduler = request.scheduler or "simple"
+            recommended_sampler, recommended_scheduler = CHECKPOINT_SAMPLING.get(
+                request.checkpoint,
+                ("euler", "simple"),
+            )
+            sampler_name = request.sampler_name or (
+                "er_sde" if detail_name is not None else recommended_sampler
+            )
+            scheduler = request.scheduler or recommended_scheduler
             graph = apply_sampling(graph, sampler_name, scheduler)
             if "3" in graph and detail_name is None:
                 if request.vae_mode == "real":
@@ -1325,8 +2367,10 @@ async def generate(request: ImageRequest) -> dict[str, Any]:
                 depth_path.unlink(missing_ok=True)
             if source_path is not None:
                 source_path.unlink(missing_ok=True)
-            if reference_path is not None:
+            for reference_path in reference_paths:
                 reference_path.unlink(missing_ok=True)
+            if prepared_depth_path is not None:
+                prepared_depth_path.unlink(missing_ok=True)
             if identity_mask_path is not None:
                 identity_mask_path.unlink(missing_ok=True)
             if strict_mask_path is not None:

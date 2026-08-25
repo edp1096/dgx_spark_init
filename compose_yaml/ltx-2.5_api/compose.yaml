@@ -12,6 +12,8 @@ services:
     gpus: all
     environment:
       HF_TOKEN: ${HF_TOKEN:-}
+      LTX_LORA_PATH: ${LTX_LORA_PATH:-}
+      LTX_LORA_STRENGTH: ${LTX_LORA_STRENGTH:-0.5}
       API_PORT: "8695"
       LTX_MODEL_DIR: /models/ltx-2.5
       LTX_DEFAULT_WIDTH: "768"

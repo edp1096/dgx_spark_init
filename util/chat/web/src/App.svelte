@@ -151,6 +151,14 @@
   $: retryingIndex = activeRun?.retryingIndex ?? -1;
 
   onMount(() => {
+    const visualViewport = window.visualViewport;
+    const syncViewportHeight = () => {
+      const height = visualViewport?.height || window.innerHeight;
+      document.documentElement.style.setProperty('--sparktalk-app-height', `${Math.round(height)}px`);
+    };
+    syncViewportHeight();
+    window.addEventListener('resize', syncViewportHeight);
+    visualViewport?.addEventListener('resize', syncViewportHeight);
     microphoneAvailable = voiceController.supported();
     const mobile = window.matchMedia('(max-width: 600px)').matches;
     sidebarOpen = mobile ? false : localStorage.getItem('sparktalk.sidebar-open') !== 'false';
@@ -176,6 +184,9 @@
       window.removeEventListener('dragover', onWindowDragOver, true);
       window.removeEventListener('dragleave', onWindowDragLeave, true);
       window.removeEventListener('drop', onWindowDrop, true);
+      window.removeEventListener('resize', syncViewportHeight);
+      visualViewport?.removeEventListener('resize', syncViewportHeight);
+      document.documentElement.style.removeProperty('--sparktalk-app-height');
       systemThemeQuery?.removeEventListener?.('change', syncSystemTheme);
     };
   });
@@ -669,6 +680,13 @@
     handlers.sshGrantChanged = () => { refreshSSHGrants(sessionId); };
     handlers.mediaAttached = (attachment) => {
       const assistantIndex = messageList.indexOf(message);
+      if (attachment.target_role === 'assistant') {
+        if (!(message.attachments || []).some((item) => item.id === attachment.id)) {
+          message.attachments = [...(message.attachments || []), attachment];
+          publishMessages(sessionId, messageList);
+        }
+        return;
+      }
       const userMessage = assistantIndex > 0 ? messageList[assistantIndex - 1] : null;
       if (!userMessage || userMessage.role !== 'user') return;
       if (!(userMessage.attachments || []).some((item) => item.id === attachment.id)) {

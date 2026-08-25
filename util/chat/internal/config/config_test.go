@@ -34,6 +34,9 @@ func TestLoadCreatesEmbeddedDefaultAndSaveReloads(t *testing.T) {
 	if !cfg.TTS.Enabled || cfg.TTS.Endpoint != "http://127.0.0.1:8692" || cfg.TTS.Voice != "Sohee" || cfg.TTS.Seed != -1 {
 		t.Fatalf("generated TTS defaults are incomplete: %+v", cfg.TTS)
 	}
+	if !cfg.Image.Enabled || cfg.Image.Endpoint != "http://127.0.0.1:8691" || cfg.Image.Model != "krea2-turbo-nvfp4" || cfg.Image.DefaultSize != "1024x1024" {
+		t.Fatalf("generated image defaults are incomplete: %+v", cfg.Image)
+	}
 	wantPresetNames := []string{"없음", "보좌관", "언니여동생", "오빠여동생"}
 	if len(cfg.Model.SystemPromptPresets) != len(wantPresetNames) {
 		t.Fatalf("generated prompt presets are incomplete: %+v", cfg.Model.SystemPromptPresets)

@@ -44,6 +44,7 @@ SparkTalk 자체는 Go 바이너리이며 Docker 컨테이너가 아니다. 전�
 | 답변 음성 | `compose_yaml/qwen3_tts` | `http://127.0.0.1:8692` | AI 답변 읽기 사용 시 필요 |
 | SparkTalk Extra Media | `compose_yaml/sparktalk_extra` | `http://127.0.0.1:8690` | 음성·영상·URL 첨부 시 필요 |
 | SparkTalk Extra SSH | `compose_yaml/sparktalk_extra` | `http://127.0.0.1:8699` | 채팅에서 승인형 SSH 실행 시 필요 |
+| Krea 2 Turbo NVFP4 | `compose_yaml/krea2_turbo_nvfp4` | `http://127.0.0.1:8691` | 채팅에서 이미지 생성·편집 시 필요 |
 
 이미지만 인식하는 채팅에는 TensorRT Edge-LLM 서버만 있으면 된다. 음성·영상 또는 URL 미디어를
 사용한다면 Qwen3-ASR과 SparkTalk Extra Media도 함께 실행한다. 답변 읽기를
@@ -51,7 +52,7 @@ SparkTalk 자체는 Go 바이너리이며 Docker 컨테이너가 아니다. 전�
 `media_access_api`는 SparkTalk의 필수 구성요소가 아니다.
 
 저장소 루트에서 다음 순서로 실행한다. 현재 기본 채팅 모델은
-Qwen3.8-27B NVFP4 + DFlash2 + vision 구성이다.
+Huihui Qwen3.8-27B NVFP4 + DFlash2 DDTree + vision의 32K 구성이다.
 
 ```bash
 # 1. 채팅/VL 모델. 변환된 TensorRT 엔진과 runtime 이미지가 준비된 상태에서 실행한다.
@@ -105,6 +106,7 @@ curl -fsS http://127.0.0.1:8694/health
 curl -fsS http://127.0.0.1:8692/health
 curl -fsS http://127.0.0.1:8690/health
 curl -fsS http://127.0.0.1:8699/health
+curl -fsS http://127.0.0.1:8691/health
 curl -fsS http://127.0.0.1:8585/api/health
 ```
 
@@ -309,7 +311,32 @@ API로 화면에 보이는 답변 전체를 보내고, 24 kHz PCM을 도착하�
 쓰고 “이 영상을 요약해줘”처럼 분석을 요청할 때 모델이 `media_import` 도구를
 선택할 수 있습니다. 모델이 임의 주소를 받지 못하도록 사용자가 해당 대화에
 직접 입력한 정확한 URL만 허용합니다. 취득한 파일은 해당 사용자 메시지에
-첨부·저장되고, 같은 응답 라운드의 Gemma 4 VL/ASR 입력으로 자동 전달됩니다.
+첨부·저장되고, 같은 응답 라운드의 연결된 VL 모델/ASR 입력으로 자동 전달됩니다.
+
+## Krea 2 이미지 도구
+
+설정의 **도구 > Krea 2 이미지**를 켜면 Qwen3.8이 별도 Gemma 프롬프트 향상기 없이
+사용자 요청을 Krea 2용 영문 프롬프트와 모듈 설정으로 구성한다. 생성 결과는 AI 답변
+첨부로 SQLite 대화에 저장되므로 이후 요청에서 다시 원본·참조 이미지로 사용할 수 있다.
+
+`krea_image`는 일반 생성, Identity Edit, Depth, Qwen3-VL 의미 참조, Ostris 스타일
+참조, NK2E Edit/Canny, AnyPaint 인페인트·아웃페인트, Detail Enhancer와 최대 5개 사용자
+LoRA 중첩을 지원한다. 설치된 사용자 LoRA 이름이 필요하면 모델이
+`krea_capabilities`를 먼저 호출한다. 공식 스타일 LoRA 9종은 별도 조회 없이 선택한다.
+
+인페인트에 직접 만든 마스크를 첨부할 수도 있고, “재킷만 바꿔줘”처럼 대상을 말하면
+Grounding DINO Tiny가 대상을 찾고 SAM 2.1 Small이 경계를 정제한 마스크를 만들어
+AnyPaint에 전달한다. 자동 선택이 애매한 사진은 생성 스튜디오의 마스크 편집기로 만든
+마스크를 첨부하는 편이 정확하다.
+
+복합 작업으로 `video_keyframes`는 시작 장면을 먼저 생성한 뒤 이를 Identity 참조로
+끝 장면을 생성해 두 장을 함께 반환한다. `sprite_8way`는 N·NE·E·SE·S·SW·W·NW를
+개별 생성하고 서버가 512픽셀 셀의 4×2 PNG로 정확히 조립한다. 생성 모델에 시트의
+칸 배치를 맡기지 않으므로 레이아웃은 결정적이다.
+
+실측상 Qwen3.8 SGLang과 Krea 2가 모두 적재된 일반 생성 후 가용 통합 메모리는 약
+27GiB였고, 자동 마스크 후 AnyPaint까지 실행한 시점에는 약 22GiB가 남았다. 이 구성에
+LTX 2.5를 동시에 적재하는 것은 권장하지 않는다.
 
 기본 listen address는 `0.0.0.0:8585`입니다. 같은 네트워크의 다른 PC에서는
 `http://서버-IP:8585`로 접속합니다.

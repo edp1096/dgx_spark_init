@@ -10,7 +10,7 @@ model:
   # OpenAI 호환 API의 기본 URL입니다. /v1은 붙이지 않습니다.
   endpoint: http://127.0.0.1:8696
   # 비워두면 /v1/models의 첫 모델을 사용합니다.
-  default_model: huihui-gemma4-e2b
+  default_model: dflash-ddtree-32k
   api_key: ""
   # 자유 입력: none, minimal, low, medium, high, xhigh, max 또는 0.0~0.99
   reasoning_effort: medium
@@ -68,6 +68,14 @@ tools:
   max_rounds: 3
   search_results: 5
   timeout: 15s
+
+image:
+  # Qwen3.8이 요청을 Krea 2 프롬프트와 모듈 설정으로 구성해 로컬 이미지 API를 호출합니다.
+  enabled: true
+  endpoint: http://127.0.0.1:8691
+  model: krea2-turbo-nvfp4
+  default_size: 1024x1024
+  timeout: 30m
 
 extra:
   # 등록한 서버에 대한 SSH 명령은 항상 화면 승인을 받은 뒤 실행합니다.

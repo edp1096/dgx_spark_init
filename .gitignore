@@ -5,3 +5,5 @@ cufile.log
 AGENTS.md
 memos/agent_archive/
 /compose_yaml/browseforge/
+/compose_yaml/ltx-2.5_api/.env
+/compose_yaml/ltx-2.5_api/test-results/

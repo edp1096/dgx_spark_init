@@ -6,24 +6,28 @@ DGX Spark(GB10, CUDA `sm_121a`)용 llama.cpp를 빌드하고, 컴파일된 런�
 
 현재 기본 구성:
 
-- llama.cpp: `v0.2.0`
+- llama.cpp: `c060ca974c773c7c3d17fd1b66dc9d312bc292c0` (Gemma 4 12B assistant 검증본)
 - API: `http://127.0.0.1:8696/v1`
-- 모델 ID: `huihui-gemma4-e2b`
-- 모델: Gemma 4 E2B QAT `Q4_K`
+- 모델 ID: `huihui-gemma4-12b`
+- 모델: Huihui Gemma 4 12B abliterated i1 `Q4_K_M`
 - 컨텍스트: `65,536`
 - MTP speculative decoding: 사용
 - 멀티모달 `mmproj`: 사용
 - GPU 레이어 전체 적재 및 flash attention: 사용
+
+공식 Q8_0 assistant의 MTP 제안 수는 실측상 속도와 출력 안정성의 균형이 가장
+좋았던 3을 사용한다(`LLAMA_MTP_TOKENS=3`). `llama-server.12b.env.example`은
+전환 당시 검증 설정을 보존한 사본이다.
 
 ## 모델 파일
 
 기본 모델 경로는 다음과 같다.
 
 ```text
-/home/edp1096/.cache/gguf/huihui-gemma4-e2b-qat/
-├── Huihui-gemma-4-E2B-it-qat-q4_0-unquantized-abliterated-Q4_K.gguf
-├── mtp-ggml-model-bf16.gguf
-└── mmproj-model-bf16.gguf
+/home/edp1096/.cache/gguf/huihui-gemma4-12b-i1/
+├── Huihui-gemma-4-12B-it-abliterated.i1-Q4_K_M.gguf
+├── gemma-4-12B-it-assistant-Q8_0.gguf
+└── mmproj-model-q8_0.gguf
 ```
 
 경로나 파일명이 다르면 `llama-server.env.example`을 `llama-server.env`로 복사한
@@ -63,6 +67,13 @@ push가 필요할 때만 `LLAMA_PUSH=true`와 `LLAMA_IMAGE_REPO`를 지정한다
 
 직접 실행과 systemd, Docker Compose는 모두 같은 `8696` 포트를 사용하므로 한 번에
 하나만 실행한다.
+
+운영 설정을 초기화할 때는 예제를 복사한 뒤 서비스를 재시작한다.
+
+```bash
+cp llama-server.env.example llama-server.env
+systemctl --user restart llama-cpp-spark.service
+```
 
 ## 사용자 systemd 서비스
 
@@ -108,11 +119,11 @@ OpenAI 호환 클라이언트 설정:
 
 ```text
 Base URL: http://127.0.0.1:8696/v1
-Model:    huihui-gemma4-e2b
+Model:    huihui-gemma4-12b
 API key:  필요 없음
 ```
 
-- SparkTalk: `http://127.0.0.1:8696`, 모델 `huihui-gemma4-e2b`
+- SparkTalk: `http://127.0.0.1:8696`, 모델 `huihui-gemma4-12b`
 - SparkMedia: 프롬프트 향상 등 OpenAI 호환 호출에 같은 엔진 사용
 - LiteRT-LM: 서비스 중지 및 `compose_yaml/zzz_not_use/gemma4_litert`로 이동
 
@@ -122,14 +133,14 @@ API key:  필요 없음
 넣고 활성화한다. 현재 기본 구성은 아래 파일을 자동으로 사용한다.
 
 ```text
-/home/edp1096/.cache/gguf/huihui-gemma4-e2b-qat/mmproj-model-bf16.gguf
+/home/edp1096/.cache/gguf/huihui-gemma4-12b-i1/mmproj-model-q8_0.gguf
 ```
 
 호스트 직접 실행 또는 systemd에서는 `llama-server.env`에 다음 값을 지정한다.
 
 ```bash
 LLAMA_MMPROJ_ENABLED=true
-LLAMA_MMPROJ_FILE=mmproj-model-bf16.gguf
+LLAMA_MMPROJ_FILE=mmproj-model-q8_0.gguf
 ```
 
 설정을 바꾼 뒤 서비스를 재시작한다.
@@ -143,7 +154,7 @@ Docker Compose도 같은 환경변수를 사용한다.
 
 ```bash
 LLAMA_MMPROJ_ENABLED=true \
-LLAMA_MMPROJ_FILE=mmproj-model-bf16.gguf \
+LLAMA_MMPROJ_FILE=mmproj-model-q8_0.gguf \
 docker compose up -d --build
 ```
 
@@ -155,7 +166,7 @@ JPEG 이미지 입력 확인 예제:
 
 ```bash
 base64 -w0 /path/to/image.jpg | jq -Rs '{
-    model: "huihui-gemma4-e2b",
+    model: "huihui-gemma4-12b",
     messages: [{
       role: "user",
       content: [
@@ -174,7 +185,7 @@ base64 -w0 /path/to/image.jpg | jq -Rs '{
 curl -fsS http://127.0.0.1:8696/v1/models
 curl -fsS http://127.0.0.1:8696/v1/chat/completions \
   -H 'Content-Type: application/json' \
-  -d '{"model":"huihui-gemma4-e2b","messages":[{"role":"user","content":"한 문장으로 인사해줘."}],"temperature":0}'
+  -d '{"model":"huihui-gemma4-12b","messages":[{"role":"user","content":"한 문장으로 인사해줘."}],"temperature":0}'
 ```
 
 관련 서비스 상태를 함께 확인하려면 다음을 사용한다.
