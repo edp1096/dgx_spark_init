@@ -1,5 +1,6 @@
 services:
   runtime-check:
+    init: true
     build:
       context: .
     image: dgx-vllm-omni:v0.26.0

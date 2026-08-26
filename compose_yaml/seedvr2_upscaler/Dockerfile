@@ -1,5 +1,9 @@
 FROM dgx-flux2-klein-nvfp4:4b
 
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+
 RUN git clone https://github.com/numz/ComfyUI-SeedVR2_VideoUpscaler.git \
       /opt/ComfyUI/custom_nodes/ComfyUI-SeedVR2_VideoUpscaler \
     && cd /opt/ComfyUI/custom_nodes/ComfyUI-SeedVR2_VideoUpscaler \

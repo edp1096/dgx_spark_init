@@ -204,6 +204,26 @@ class RecoveryTest(unittest.TestCase):
                 finally:
                     api.finish_prepare("job-123", work_dir)
 
+    def test_delete_media_job_artifacts_removes_only_owned_state(self):
+        with tempfile.TemporaryDirectory() as root:
+            data_dir = Path(root)
+            progress_dir = data_dir / "progress"
+            progress_dir.mkdir()
+            work_dir = data_dir / "prepare-job-123"
+            work_dir.mkdir()
+            (work_dir / "source.mp4.part").write_bytes(b"partial")
+            (progress_dir / "job-123.json").write_text('{"stage":"failed"}')
+            unrelated = data_dir / "prepare-job-1234"
+            unrelated.mkdir()
+            with (
+                patch.object(api, "DATA_DIR", data_dir),
+                patch.object(api, "PROGRESS_DIR", progress_dir),
+            ):
+                api.delete_media_job_artifacts("job-123")
+            self.assertFalse(work_dir.exists())
+            self.assertFalse((progress_dir / "job-123.json").exists())
+            self.assertTrue(unrelated.exists())
+
     @patch("api.validate_audio_decode")
     @patch("api.probe_duration", return_value=12.5)
     def test_reusable_source_uses_completed_media(self, _probe_duration, validate_audio_decode):

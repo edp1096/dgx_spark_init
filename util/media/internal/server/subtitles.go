@@ -3,6 +3,7 @@ package server
 import (
 	"archive/zip"
 	"bufio"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -21,6 +22,7 @@ import (
 )
 
 var errJobCancelled = errors.New("job cancelled")
+var errInvalidSubtitleTranslation = errors.New("invalid subtitle translation")
 
 const autoMultilingualLanguage = "AutoMultilingual"
 
@@ -55,10 +57,16 @@ type timedWord struct {
 }
 
 type subtitleCue struct {
-	Start      float64
-	End        float64
-	Text       string
-	Translated string
+	Start      float64 `json:"start"`
+	End        float64 `json:"end"`
+	Text       string  `json:"text"`
+	Translated string  `json:"translated,omitempty"`
+}
+
+type subtitleTranslationWarning struct {
+	Segment int    `json:"segment"`
+	Source  string `json:"source"`
+	Reason  string `json:"reason"`
 }
 
 type mediaProgressStatus struct {
@@ -111,9 +119,29 @@ func (s *Server) createSubtitle(w http.ResponseWriter, r *http.Request) {
 		defer file.Close()
 	}
 	sourceURL := strings.TrimSpace(r.FormValue("url"))
-	if (fileErr == nil) == (sourceURL != "") {
-		http.Error(w, "파일 또는 링크 중 하나만 입력하세요", http.StatusBadRequest)
+	reuseVideoID := strings.TrimSpace(r.FormValue("reuse_video_job"))
+	sourceCount := 0
+	if fileErr == nil {
+		sourceCount++
+	}
+	if sourceURL != "" {
+		sourceCount++
+	}
+	if reuseVideoID != "" {
+		sourceCount++
+	}
+	if sourceCount != 1 {
+		http.Error(w, "파일, 링크 또는 생성 영상 중 하나만 선택하세요", http.StatusBadRequest)
 		return
+	}
+	var reusedVideo jobs.Job
+	if reuseVideoID != "" {
+		var ok bool
+		reusedVideo, ok = s.jobs.Get(reuseVideoID)
+		if !ok || reusedVideo.Kind != "video" || reusedVideo.Status != "completed" || reusedVideo.OutputURL == "" {
+			http.Error(w, "선택한 생성 영상을 사용할 수 없습니다", http.StatusConflict)
+			return
+		}
 	}
 
 	id := newID()
@@ -148,6 +176,24 @@ func (s *Server) createSubtitle(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		sourceName = header.Filename
+	} else if reuseVideoID != "" {
+		source := s.jobs.OutputPath(filepath.Base(reusedVideo.OutputURL))
+		if _, err := os.Stat(source); err != nil {
+			_ = os.RemoveAll(inputDir)
+			http.Error(w, "선택한 생성 영상 파일이 더 이상 없습니다", http.StatusNotFound)
+			return
+		}
+		ext := strings.ToLower(filepath.Ext(source))
+		if ext == "" {
+			ext = ".mp4"
+		}
+		inputPath = filepath.Join(inputDir, "source"+ext)
+		if err := linkOrCopyFile(source, inputPath); err != nil {
+			_ = os.RemoveAll(inputDir)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		sourceName = "생성 영상 " + reusedVideo.ID[:8]
 	}
 
 	language := valueOr(r.FormValue("language"), cfg.Recognition.DefaultLanguage)
@@ -169,10 +215,19 @@ func (s *Server) createSubtitle(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid media part/source selection", http.StatusBadRequest)
 		return
 	}
+	sourceKind := "file"
+	if sourceURL != "" {
+		sourceKind = "url"
+	} else if reuseVideoID != "" {
+		sourceKind = "video_job"
+	}
 	params := map[string]any{
-		"language": language, "context": context, "source": map[bool]string{true: "url", false: "file"}[sourceURL != ""],
+		"language": language, "context": context, "source": sourceKind,
 		"output_formats": formats, "translation_mode": translationMode, "target_language": targetLanguage,
 		"stage": "queued", "queued_at": time.Now().Format(time.RFC3339Nano),
+	}
+	if reuseVideoID != "" {
+		params["source_job_id"] = reuseVideoID
 	}
 	if mediaPart != "" {
 		params["media_part"] = mediaPart
@@ -223,7 +278,7 @@ func (s *Server) retrySubtitle(w http.ResponseWriter, r *http.Request) {
 	}
 	for _, key := range []string{
 		"media_downloaded_bytes", "media_total_bytes", "media_percent", "media_eta_seconds",
-		"current_segment", "recognized_segments", "text", "cues",
+		"current_segment", "recognized_segments", "text", "cues", "started_at", "stage_started_at",
 	} {
 		delete(workerJob.Params, key)
 	}
@@ -293,6 +348,12 @@ func (s *Server) executeQueuedSubtitle(job jobs.Job) {
 	if current.Params == nil {
 		current.Params = map[string]any{}
 	}
+	now := time.Now().Format(time.RFC3339Nano)
+	current.Params["started_at"] = now
+	current.Params["stage_started_at"] = now
+	if err := s.jobs.Save(current); err != nil {
+		return
+	}
 	inputDir := filepath.Join(s.dataDir, "inputs", current.ID)
 	sourceURL := ""
 	inputPath := ""
@@ -348,6 +409,7 @@ func (s *Server) runSubtitle(j jobs.Job, inputDir, inputPath, sourceURL, languag
 	j.Status = "running"
 	j.Params["stage"] = "media"
 	j.Params["media_stage"] = "starting"
+	j.Params["stage_started_at"] = time.Now().Format(time.RFC3339Nano)
 	_ = s.jobs.Save(j)
 	preparedDir := filepath.Join(inputDir, "prepared")
 	manifest, preparedErr := readPreparedManifest(preparedDir)
@@ -413,6 +475,7 @@ func (s *Server) runSubtitle(j jobs.Job, inputDir, inputPath, sourceURL, languag
 		_ = s.jobs.Save(j)
 	}
 	j.Params["stage"] = "recognition"
+	j.Params["stage_started_at"] = time.Now().Format(time.RFC3339Nano)
 	delete(j.Params, "media_stage")
 	delete(j.Params, "media_percent")
 	delete(j.Params, "media_downloaded_bytes")
@@ -474,29 +537,43 @@ func (s *Server) runSubtitle(j jobs.Job, inputDir, inputPath, sourceURL, languag
 	}
 	if translationMode != "none" {
 		j.Params["stage"] = "translation"
+		j.Params["stage_started_at"] = time.Now().Format(time.RFC3339Nano)
 		j.Params["translation_progress"] = 0
 		j.Params["translation_total"] = (len(cues) + 7) / 8
+		delete(j.Params, "translation_warnings")
+		delete(j.Params, "translation_warning_count")
 		_ = s.jobs.Save(j)
-		if err := s.translateSubtitleSegments(cues, targetLanguage, func(done, total int) {
+		warnings, err := s.translateSubtitleSegments(cues, targetLanguage, func(done, total int) {
 			if s.jobCancelled(j.ID) {
 				return
 			}
 			j.Params["translation_progress"] = done
 			j.Params["translation_total"] = total
 			_ = s.jobs.Save(j)
-		}, func() bool { return s.jobCancelled(j.ID) }); err != nil {
+		}, func() bool { return s.jobCancelled(j.ID) })
+		if err != nil {
 			if errors.Is(err, errJobCancelled) || s.jobCancelled(j.ID) {
 				return
 			}
 			s.fail(j, fmt.Errorf("translation: %w", err))
 			return
 		}
+		if len(warnings) > 0 {
+			j.Params["translation_warnings"] = warnings
+			j.Params["translation_warning_count"] = len(warnings)
+			_ = s.jobs.Save(j)
+		}
 	}
 	j.Params["stage"] = "finalizing"
+	j.Params["stage_started_at"] = time.Now().Format(time.RFC3339Nano)
 	if s.jobCancelled(j.ID) {
 		return
 	}
 	_ = s.jobs.Save(j)
+	if err := s.writeSubtitleCueArchive(j.ID, cues); err != nil {
+		s.fail(j, err)
+		return
+	}
 	outputs, err := s.writeSubtitleOutputs(j.ID, cues, formats, translationMode)
 	if err != nil {
 		s.fail(j, err)
@@ -521,6 +598,7 @@ func (s *Server) runSubtitle(j jobs.Job, inputDir, inputPath, sourceURL, languag
 	delete(j.Params, "stage")
 	delete(j.Params, "translation_progress")
 	delete(j.Params, "translation_total")
+	delete(j.Params, "stage_started_at")
 	if detectedLanguage != "" {
 		j.Params["detected_language"] = detectedLanguage
 		if isSingleLanguageAuto(language) && lockedLanguage != "" {
@@ -992,13 +1070,14 @@ func hasSentenceEnding(value string) bool {
 	return false
 }
 
-func (s *Server) translateSubtitleSegments(segments []subtitleCue, targetLanguage string, progress func(done, total int), cancelled func() bool) error {
+func (s *Server) translateSubtitleSegments(segments []subtitleCue, targetLanguage string, progress func(done, total int), cancelled func() bool) ([]subtitleTranslationWarning, error) {
 	cfg := s.config()
+	warnings := make([]subtitleTranslationWarning, 0)
 	total := (len(segments) + 7) / 8
 	done := 0
 	for start := 0; start < len(segments); start += 8 {
 		if cancelled != nil && cancelled() {
-			return errJobCancelled
+			return warnings, errJobCancelled
 		}
 		end := start + 8
 		if end > len(segments) {
@@ -1022,10 +1101,10 @@ func (s *Server) translateSubtitleSegments(segments []subtitleCue, targetLanguag
 		}
 		data, _, err := s.callJSON(cfg.Engines["prompt"].Endpoint+"/v1/chat/completions", payload)
 		if cancelled != nil && cancelled() {
-			return errJobCancelled
+			return warnings, errJobCancelled
 		}
 		if err != nil {
-			return err
+			return warnings, err
 		}
 		var response struct {
 			Choices []struct {
@@ -1035,7 +1114,7 @@ func (s *Server) translateSubtitleSegments(segments []subtitleCue, targetLanguag
 			} `json:"choices"`
 		}
 		if err := json.Unmarshal(data, &response); err != nil || len(response.Choices) == 0 {
-			return fmt.Errorf("translation engine returned an invalid response")
+			return warnings, fmt.Errorf("translation engine returned an invalid response")
 		}
 		translated := parseMarkedTranslations(response.Choices[0].Message.Content)
 		for index := start; index < end; index++ {
@@ -1043,7 +1122,15 @@ func (s *Server) translateSubtitleSegments(segments []subtitleCue, targetLanguag
 			if !ok || !validSubtitleTranslation(segments[index].Text, value, targetLanguage) {
 				value, err = s.retrySubtitleTranslation(segments[index].Text, targetLanguage)
 				if err != nil {
-					return fmt.Errorf("segment %d: %w", index+1, err)
+					if !errors.Is(err, errInvalidSubtitleTranslation) {
+						return warnings, fmt.Errorf("segment %d: %w", index+1, err)
+					}
+					warnings = append(warnings, subtitleTranslationWarning{
+						Segment: index + 1,
+						Source:  strings.TrimSpace(segments[index].Text),
+						Reason:  "한국어 번역 결과가 없어 원문을 유지했습니다.",
+					})
+					value = segments[index].Text
 				}
 			}
 			segments[index].Translated = strings.TrimSpace(value)
@@ -1053,7 +1140,7 @@ func (s *Server) translateSubtitleSegments(segments []subtitleCue, targetLanguag
 			progress(done, total)
 		}
 	}
-	return nil
+	return warnings, nil
 }
 
 func validSubtitleTranslation(source, translated, targetLanguage string) bool {
@@ -1110,7 +1197,7 @@ func (s *Server) retrySubtitleTranslation(source, targetLanguage string) (string
 	}
 	translated := strings.TrimSpace(response.Choices[0].Message.Content)
 	if !validSubtitleTranslation(source, translated, targetLanguage) {
-		return "", fmt.Errorf("translation engine did not produce %s text", targetLanguage)
+		return "", fmt.Errorf("%w: translation engine did not produce %s text", errInvalidSubtitleTranslation, targetLanguage)
 	}
 	return translated, nil
 }
@@ -1223,6 +1310,10 @@ func formatClock(seconds float64, separator rune) string {
 }
 
 func (s *Server) callMultipartToFileStreaming(url string, fields map[string]string, fileField string, paths []string, output string) error {
+	return s.callMultipartToFileStreamingContext(context.Background(), url, fields, fileField, paths, output)
+}
+
+func (s *Server) callMultipartToFileStreamingContext(ctx context.Context, url string, fields map[string]string, fileField string, paths []string, output string) error {
 	reader, writer := io.Pipe()
 	multipartWriter := multipart.NewWriter(writer)
 	producerDone := make(chan error, 1)
@@ -1262,7 +1353,7 @@ func (s *Server) callMultipartToFileStreaming(url string, fields map[string]stri
 			}
 		}
 	}()
-	req, err := http.NewRequest(http.MethodPost, url, reader)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, reader)
 	if err != nil {
 		_ = reader.CloseWithError(err)
 		return err

@@ -5,6 +5,10 @@
 
   export let video = null
   export let onClose = () => {}
+  export let onSelectFrames = () => {}
+  export let onUpscale = () => {}
+  export let onTranscribe = () => {}
+  export let onLoadSettings = () => {}
 
   let releaseScroll = null
   let stage
@@ -44,10 +48,10 @@
         <button type="button" aria-label="닫기" onclick={closeModal}>×</button>
       </header>
       <div class="video-modal-stage" bind:this={stage}>
-        <LocalMediaPlayer src={video.src} autoplay={false} thumbnails={video.thumbnails} />
+        <LocalMediaPlayer src={video.src} autoplay={false} thumbnails={video.thumbnails} captionSrc={video.captionSrc || ''} captionLabel={video.captionLabel || '자막'} />
       </div>
       {#if video.prompt}<p class="video-modal-prompt">{video.prompt}</p>{/if}
-      <footer><a href={video.src} target="_blank" rel="noreferrer">원본 파일 열기</a><button type="button" onclick={closeModal}>닫기</button></footer>
+      <footer><a href={video.src} target="_blank" rel="noreferrer">원본 파일 열기</a>{#if video.jobID}{#if video.canLoadSettings}<button type="button" onclick={() => onLoadSettings(video.jobID)}>설정 불러오기</button>{/if}<button type="button" onclick={() => onSelectFrames(video.jobID)}>장면 선택</button><button type="button" onclick={() => onUpscale(video.jobID)}>업스케일</button><button type="button" onclick={() => onTranscribe(video.jobID)}>자막 생성</button>{/if}<button type="button" onclick={closeModal}>닫기</button></footer>
     </section>
   </div>
 {/if}
@@ -148,5 +152,8 @@
   @media (max-width: 700px) {
     .video-modal-backdrop { padding: 6px; }
     .video-modal-stage { height: min(calc(94dvh - 210px), 56.25vw); min-height: 190px; }
+    footer { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); }
+    footer a { grid-column: 1 / -1; margin-right: 0; }
+    footer button { min-width: 0; padding-inline: 4px; font-size: 9px; }
   }
 </style>

@@ -1,5 +1,6 @@
 services:
   ace-step15:
+    init: true
     container_name: ace-step15
     image: edp1096/ace-step-spark:1.5-arm64
     ports:

@@ -1,5 +1,6 @@
 services:
   exporter:
+    init: true
     image: trt-edge-llm-exporter:0.10.0
     build:
       context: .
@@ -11,6 +12,7 @@ services:
       - "${TRT_EDGE_WORKSPACE_DIR:-./workspace}:/workspace"
 
   runtime:
+    init: true
     image: trt-edge-llm-runtime:0.10.0-trt11
     build:
       context: .
@@ -36,6 +38,7 @@ services:
       - "${TRT_EDGE_WORKSPACE_DIR:-./workspace}:/workspace"
 
   server:
+    init: true
     image: trt-edge-llm-runtime:0.10.0-trt11
     build:
       context: .

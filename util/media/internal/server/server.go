@@ -2,6 +2,7 @@ package server
 
 import (
 	"bytes"
+	"context"
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/hex"
@@ -15,6 +16,7 @@ import (
 	"io"
 	"io/fs"
 	"log"
+	"math"
 	"mime"
 	"mime/multipart"
 	"net/http"
@@ -35,30 +37,35 @@ import (
 )
 
 type Server struct {
-	cfgMu               sync.RWMutex
-	heavyMu             sync.Mutex
-	videoPreviewMu      sync.Mutex
-	cfg                 config.Config
-	configPath          string
-	dataDir             string
-	jobs                *jobs.Store
-	client              *http.Client
-	health              *http.Client
-	web                 fs.FS
-	systemMu            sync.Mutex
-	systemStats         systemUsage
-	systemStatsAt       time.Time
-	cpuPrevTotal        uint64
-	cpuPrevIdle         uint64
-	subtitleQueueOnce   sync.Once
-	subtitleQueueWake   chan struct{}
-	generationQueueOnce sync.Once
-	generationQueueWake chan struct{}
-	generationStateMu   sync.Mutex
-	wildcardMu          sync.Mutex
-	wildcardMuse        []string
-	wildcardStyles      []string
-	portraitLabMu       sync.Mutex
+	cfgMu                sync.RWMutex
+	heavyMu              sync.Mutex
+	videoPreviewMu       sync.Mutex
+	cfg                  config.Config
+	configPath           string
+	dataDir              string
+	jobs                 *jobs.Store
+	client               *http.Client
+	health               *http.Client
+	web                  fs.FS
+	systemMu             sync.Mutex
+	systemStats          systemUsage
+	systemStatsAt        time.Time
+	cpuPrevTotal         uint64
+	cpuPrevIdle          uint64
+	subtitleQueueOnce    sync.Once
+	subtitleQueueWake    chan struct{}
+	generationQueueOnce  sync.Once
+	generationQueueWake  chan struct{}
+	generationStateMu    sync.Mutex
+	generationCancelMu   sync.Mutex
+	generationCancels    map[string]context.CancelFunc
+	engineDrainMu        sync.Mutex
+	engineDraining       map[string]bool
+	wildcardMu           sync.Mutex
+	wildcardMuse         []string
+	wildcardMuseNoCamera []string
+	wildcardStyles       []string
+	portraitLabMu        sync.Mutex
 }
 
 type imageGenerationOptions struct {
@@ -130,6 +137,13 @@ type savedVideoCondition struct {
 	Strength float64 `json:"strength"`
 }
 
+type savedVideoAudioClip struct {
+	Index       int     `json:"index"`
+	SourceJobID string  `json:"source_job_id"`
+	Start       float64 `json:"start"`
+	Duration    float64 `json:"duration,omitempty"`
+}
+
 type styleSelection struct {
 	Name     string  `json:"name"`
 	Strength float64 `json:"strength"`
@@ -151,6 +165,8 @@ func New(cfg config.Config, store *jobs.Store, web fs.FS, configPath ...string) 
 		client: &http.Client{Timeout: 2 * time.Hour},
 		health: &http.Client{Timeout: 2 * time.Second},
 		web:    web, subtitleQueueWake: make(chan struct{}, 1), generationQueueWake: make(chan struct{}, 1),
+		generationCancels: make(map[string]context.CancelFunc),
+		engineDraining:    make(map[string]bool),
 	}
 }
 
@@ -175,16 +191,19 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("GET /api/jobs/{id}/inputs", s.imageJobInputs)
 	mux.HandleFunc("GET /api/jobs/{id}/inputs/{role}/{index}", s.imageJobInput)
 	mux.HandleFunc("GET /api/jobs/{id}/video-preview.jpg", s.videoJobPreview)
+	mux.HandleFunc("GET /api/jobs/{id}/frame", s.mediaJobFrame)
 	mux.HandleFunc("DELETE /api/jobs/{id}", s.deleteJob)
 	mux.HandleFunc("POST /api/jobs/{id}/cancel", s.cancelJob)
 	mux.HandleFunc("POST /api/jobs/{id}/retry", s.retryJob)
 	mux.HandleFunc("POST /api/jobs/image", s.createImage)
 	mux.HandleFunc("POST /api/images/fetch", s.fetchRemoteImage)
 	mux.HandleFunc("POST /api/jobs/{id}/upscale", s.createImageUpscale)
+	mux.HandleFunc("POST /api/jobs/{id}/video-upscale", s.createVideoUpscale)
 	mux.HandleFunc("POST /api/jobs/{id}/detail-enhance", s.createImageDetailEnhance)
 	mux.HandleFunc("POST /api/jobs/garment-extract", s.createGarmentExtraction)
 	mux.HandleFunc("POST /api/jobs/speech", s.createSpeech)
 	mux.HandleFunc("POST /api/jobs/recognition", s.createSubtitle)
+	mux.HandleFunc("POST /api/jobs/{id}/subtitle-regenerate", s.regenerateSubtitle)
 	mux.HandleFunc("POST /api/media/options", s.mediaOptions)
 	mux.HandleFunc("GET /api/storage", s.mediaStorage)
 	mux.HandleFunc("DELETE /api/storage/temp", s.cleanupMediaTemp)
@@ -395,12 +414,16 @@ func (s *Server) createVideo(w http.ResponseWriter, r *http.Request) {
 	fps := formFloat64(r, "fps", cfg.Video.DefaultFPS)
 	seed := formInt64(r, "seed", -1)
 	strength := formFloat64(r, "image_strength", 1)
-	if width < 256 || height < 256 || width%64 != 0 || height%64 != 0 {
-		http.Error(w, "width and height must be >= 256 and divisible by 64", http.StatusBadRequest)
+	if width < 256 || height < 256 || width > 1920 || height > 1920 || width%64 != 0 || height%64 != 0 {
+		http.Error(w, "width and height must be between 256 and 1920 and divisible by 64", http.StatusBadRequest)
 		return
 	}
 	if frames < 9 || (frames-1)%8 != 0 {
 		http.Error(w, "num_frames must be 8*k+1 and at least 9", http.StatusBadRequest)
+		return
+	}
+	if fps < 1 || fps > 60 {
+		http.Error(w, "fps must be between 1 and 60", http.StatusBadRequest)
 		return
 	}
 	id := newID()
@@ -440,6 +463,58 @@ func (s *Server) createVideo(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
+	}
+	audioCount := formInt(r, "audio_count", 0)
+	legacyAudioSourceJobID := strings.TrimSpace(r.FormValue("reuse_audio_job"))
+	if audioCount == 0 && legacyAudioSourceJobID != "" {
+		audioCount = 1
+	}
+	if audioCount < 0 || audioCount > 8 {
+		http.Error(w, "audio_count must be between 0 and 8", http.StatusBadRequest)
+		return
+	}
+	audioPaths := make([]string, 0, audioCount)
+	audioClips := make([]savedVideoAudioClip, 0, audioCount)
+	audioSourceJobIDs := make([]string, 0, audioCount)
+	videoDuration := float64(frames) / fps
+	for i := 0; i < audioCount; i++ {
+		audioSourceJobID := strings.TrimSpace(r.FormValue(fmt.Sprintf("reuse_audio_job_%d", i)))
+		if i == 0 && audioSourceJobID == "" {
+			audioSourceJobID = legacyAudioSourceJobID
+		}
+		if audioSourceJobID == "" {
+			http.Error(w, fmt.Sprintf("audio clip %d source is required", i+1), http.StatusBadRequest)
+			return
+		}
+		source, ok := s.jobs.Get(audioSourceJobID)
+		if !ok || source.Kind != "speech" || source.Status != "completed" || source.OutputURL == "" {
+			http.Error(w, "selected A2V audio is no longer available", http.StatusBadRequest)
+			return
+		}
+		start := formFloat64(r, fmt.Sprintf("audio_start_%d", i), 0)
+		duration := formFloat64(r, fmt.Sprintf("audio_duration_%d", i), 0)
+		if math.IsNaN(start) || math.IsInf(start, 0) || start < 0 || start >= videoDuration {
+			http.Error(w, fmt.Sprintf("audio clip %d start must be within the video", i+1), http.StatusBadRequest)
+			return
+		}
+		if math.IsNaN(duration) || math.IsInf(duration, 0) || duration < 0 {
+			http.Error(w, fmt.Sprintf("audio clip %d duration is invalid", i+1), http.StatusBadRequest)
+			return
+		}
+		sourcePath := s.jobs.OutputPath(filepath.Base(source.OutputURL))
+		audioDir := filepath.Join(inputDir, fmt.Sprintf("audio-%d", i))
+		if err := os.MkdirAll(audioDir, 0o755); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		audioPath := filepath.Join(audioDir, filepath.Base(sourcePath))
+		if err := linkOrCopyFile(sourcePath, audioPath); err != nil {
+			http.Error(w, "could not preserve selected A2V audio: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+		audioPaths = append(audioPaths, audioPath)
+		audioSourceJobIDs = append(audioSourceJobIDs, audioSourceJobID)
+		audioClips = append(audioClips, savedVideoAudioClip{Index: i, SourceJobID: audioSourceJobID, Start: start, Duration: duration})
 	}
 
 	conditions := make([]videoConditioningInput, 0, 10)
@@ -504,9 +579,17 @@ func (s *Server) createVideo(w http.ResponseWriter, r *http.Request) {
 		}
 		savedConditions = append(savedConditions, saved)
 	}
+	videoMode := "generate"
+	if len(audioPaths) > 0 {
+		videoMode = "a2v"
+	}
+	firstAudioSourceJobID := ""
+	if len(audioSourceJobIDs) > 0 {
+		firstAudioSourceJobID = audioSourceJobIDs[0]
+	}
 	j := jobs.Job{
 		ID: id, Kind: "video", Status: "queued", Prompt: originalPrompt,
-		Params:    map[string]any{"width": width, "height": height, "num_frames": frames, "fps": fps, "seed": seed, "image_strength": strength, "image": len(conditions) > 0, "start_image": startPath != "", "end_image": endPath != "", "keyframes": keyframeCount, "video_conditions": savedConditions, "motion_lora_enabled": cfg.Video.DefaultMotionLoRAEnabled, "motion_lora_strength": cfg.Video.DefaultMotionLoRAStrength, "enhanced_prompt": valueIfDifferent(effectivePrompt, originalPrompt), "stage": "queued", "queued_at": time.Now().Format(time.RFC3339Nano)},
+		Params:    map[string]any{"width": width, "height": height, "num_frames": frames, "fps": fps, "seed": seed, "image_strength": strength, "image": len(conditions) > 0, "start_image": startPath != "", "end_image": endPath != "", "keyframes": keyframeCount, "video_conditions": savedConditions, "audio": len(audioPaths) > 0, "audio_source_job_id": firstAudioSourceJobID, "audio_source_job_ids": audioSourceJobIDs, "audio_clips": audioClips, "mode": videoMode, "motion_lora_enabled": cfg.Video.DefaultMotionLoRAEnabled, "motion_lora_strength": cfg.Video.DefaultMotionLoRAStrength, "acceleration_requested": cfg.Video.Acceleration, "enhanced_prompt": valueIfDifferent(effectivePrompt, originalPrompt), "stage": "queued", "queued_at": time.Now().Format(time.RFC3339Nano)},
 		CreatedAt: time.Now(),
 	}
 	if err := s.jobs.Save(j); err != nil {
@@ -1361,7 +1444,7 @@ func (s *Server) createImageDetailEnhance(w http.ResponseWriter, r *http.Request
 	writeJSON(w, http.StatusAccepted, j)
 }
 
-func (s *Server) runImageDetailEnhance(j jobs.Job, source []byte, strength float64, seed int64, vae string) {
+func (s *Server) runImageDetailEnhance(ctx context.Context, j jobs.Job, source []byte, strength float64, seed int64, vae string) {
 	cfg := s.config()
 	s.heavyMu.Lock()
 	defer s.heavyMu.Unlock()
@@ -1382,7 +1465,7 @@ func (s *Server) runImageDetailEnhance(j jobs.Job, source []byte, strength float
 	if seed >= 0 {
 		request["seed"] = seed
 	}
-	response, _, err := s.callJSON(backend.Endpoint+"/v1/images/generations", request)
+	response, _, err := s.callJSONContext(ctx, backend.Endpoint+"/v1/images/generations", request)
 	if err != nil {
 		s.fail(j, err)
 		return
@@ -1462,7 +1545,117 @@ func (s *Server) createImageUpscale(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusAccepted, j)
 }
 
-func (s *Server) runImageUpscale(j jobs.Job, source []byte, scale int, seed int64) {
+func (s *Server) createVideoUpscale(w http.ResponseWriter, r *http.Request) {
+	source, ok := s.jobs.Get(r.PathValue("id"))
+	if !ok {
+		http.NotFound(w, r)
+		return
+	}
+	if (source.Kind != "video" && source.Kind != "recognition") || (source.Kind == "video" && source.Status != "completed") {
+		http.Error(w, "only a completed video or a downloaded transcription source can be upscaled", http.StatusConflict)
+		return
+	}
+	if source.Kind == "video" && source.OutputURL == "" {
+		http.Error(w, "source video is no longer available", http.StatusConflict)
+		return
+	}
+	if source.Kind == "recognition" && source.MediaAssetID == "" {
+		http.Error(w, "saved transcription video is no longer available", http.StatusConflict)
+		return
+	}
+	width, height := imageIntParam(source.Params, "width", 0), imageIntParam(source.Params, "height", 0)
+	duration, _ := numberFromAny(source.Params["duration"])
+	fps, _ := numberFromAny(source.Params["fps"])
+	if duration <= 0 {
+		frames := imageIntParam(source.Params, "num_frames", 0)
+		fps, _ := numberFromAny(source.Params["fps"])
+		if frames > 0 && fps > 0 {
+			duration = float64(frames) / fps
+		}
+	}
+	if source.Kind == "recognition" {
+		media, _ := source.Params["media"].(map[string]any)
+		mediaType, _ := media["media_type"].(string)
+		contentType, _ := media["content_type"].(string)
+		if mediaType == "audio" || strings.HasPrefix(contentType, "audio/") {
+			http.Error(w, "audio sources cannot be video-upscaled", http.StatusConflict)
+			return
+		}
+		width, height = imageIntParam(media, "width", 0), imageIntParam(media, "height", 0)
+		duration, _ = numberFromAny(media["duration"])
+		fps, _ = numberFromAny(media["fps"])
+	}
+	var request struct {
+		Scale           float64 `json:"scale"`
+		Seed            int64   `json:"seed"`
+		BatchSize       int     `json:"batch_size"`
+		TemporalOverlap int     `json:"temporal_overlap"`
+		StartTime       float64 `json:"start_time"`
+		EndTime         float64 `json:"end_time"`
+	}
+	request.Scale, request.Seed, request.BatchSize, request.TemporalOverlap = 2, -1, 5, 1
+	decoder := json.NewDecoder(io.LimitReader(r.Body, 1<<20))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&request); err != nil && !errors.Is(err, io.EOF) {
+		http.Error(w, "invalid video upscale request: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+	if request.Scale <= 1 || request.Scale > 4 {
+		http.Error(w, "scale must be greater than 1 and at most 4", http.StatusBadRequest)
+		return
+	}
+	if request.BatchSize < 1 || (request.BatchSize-1)%4 != 0 || request.BatchSize > 21 {
+		http.Error(w, "batch size must be one of 1, 5, 9, 13, 17 or 21", http.StatusBadRequest)
+		return
+	}
+	if request.TemporalOverlap < 0 || request.TemporalOverlap > 4 {
+		http.Error(w, "temporal overlap must be between 0 and 4", http.StatusBadRequest)
+		return
+	}
+	if request.StartTime < 0 || request.EndTime < 0 || (request.EndTime > 0 && (request.EndTime <= request.StartTime || (duration > 0 && request.EndTime > duration+0.1))) {
+		http.Error(w, "invalid video upscale time range", http.StatusBadRequest)
+		return
+	}
+	if duration > 60 && request.EndTime <= 0 {
+		http.Error(w, "videos longer than 60 seconds require a time range", http.StatusBadRequest)
+		return
+	}
+	if request.EndTime > 0 && request.EndTime-request.StartTime > 60.1 {
+		http.Error(w, "video upscale range must not exceed 60 seconds", http.StatusBadRequest)
+		return
+	}
+	if width > 0 && height > 0 && float64(max(width, height))*request.Scale > 4096.5 {
+		http.Error(w, "upscaled video must not exceed 4096 pixels on either edge", http.StatusBadRequest)
+		return
+	}
+	id := newID()
+	params := map[string]any{
+		"mode": "upscale", "source_job_id": source.ID, "source_kind": source.Kind,
+		"upscale_engine": "seedvr2-3b-fp8", "model": "seedvr2-3b-fp8",
+		"upscale_scale": request.Scale, "batch_size": request.BatchSize,
+		"temporal_overlap": request.TemporalOverlap, "seed": request.Seed,
+		"width": int(math.Round(float64(width) * request.Scale)), "height": int(math.Round(float64(height) * request.Scale)),
+		"source_width": width, "source_height": height, "duration": duration,
+		"stage": "queued", "queued_at": time.Now().Format(time.RFC3339Nano),
+	}
+	if request.EndTime > 0 {
+		params["source_start_time"] = request.StartTime
+		params["source_end_time"] = request.EndTime
+		params["duration"] = request.EndTime - request.StartTime
+	}
+	if fps > 0 {
+		params["fps"] = fps
+	}
+	job := jobs.Job{ID: id, Kind: "video", Status: "queued", Prompt: source.Prompt, Params: params, CreatedAt: time.Now()}
+	if err := s.jobs.Save(job); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	s.wakeGenerationQueue()
+	writeJSON(w, http.StatusAccepted, job)
+}
+
+func (s *Server) runImageUpscale(ctx context.Context, j jobs.Job, source []byte, scale int, seed int64) {
 	cfg := s.config()
 	s.heavyMu.Lock()
 	defer s.heavyMu.Unlock()
@@ -1476,7 +1669,7 @@ func (s *Server) runImageUpscale(j jobs.Job, source []byte, scale int, seed int6
 	if seed >= 0 {
 		request["seed"] = seed
 	}
-	response, _, err := s.callJSON(cfg.Engines["upscale"].Endpoint+"/v1/images/upscale", request)
+	response, _, err := s.callJSONContext(ctx, cfg.Engines["upscale"].Endpoint+"/v1/images/upscale", request)
 	if err != nil {
 		s.fail(j, err)
 		return
@@ -1495,7 +1688,7 @@ func (s *Server) runImageUpscale(j jobs.Job, source []byte, scale int, seed int6
 	}
 }
 
-func (s *Server) runImage(j jobs.Job, effectivePrompt string, refs []string, width, height int, seed int64, mode, controlType string, controlStrength float64, krea imageGenerationOptions) {
+func (s *Server) runImage(ctx context.Context, j jobs.Job, effectivePrompt string, refs []string, width, height int, seed int64, mode, controlType string, controlStrength float64, krea imageGenerationOptions) {
 	cfg := s.config()
 	s.heavyMu.Lock()
 	defer s.heavyMu.Unlock()
@@ -1580,7 +1773,7 @@ func (s *Server) runImage(j jobs.Job, effectivePrompt string, refs []string, wid
 		if seed >= 0 {
 			request["seed"] = seed
 		}
-		response, _, err = s.callJSON(endpoint+"/v1/images/generations", request)
+		response, _, err = s.callJSONContext(ctx, endpoint+"/v1/images/generations", request)
 	} else if mode == "edit" {
 		fields := map[string]string{
 			"model": backend.Model, "prompt": effectivePrompt,
@@ -1589,7 +1782,7 @@ func (s *Server) runImage(j jobs.Job, effectivePrompt string, refs []string, wid
 		if seed >= 0 {
 			fields["seed"] = strconv.FormatInt(seed, 10)
 		}
-		response, _, err = s.callMultipart(endpoint+"/v1/images/edits", fields, "image", refs)
+		response, _, err = s.callMultipartContext(ctx, endpoint+"/v1/images/edits", fields, "image", refs)
 	} else {
 		request := map[string]any{
 			"model": backend.Model, "prompt": effectivePrompt,
@@ -1684,7 +1877,7 @@ func (s *Server) runImage(j jobs.Job, effectivePrompt string, refs []string, wid
 		if seed >= 0 {
 			request["seed"] = seed
 		}
-		response, _, err = s.callJSON(endpoint+"/v1/images/generations", request)
+		response, _, err = s.callJSONContext(ctx, endpoint+"/v1/images/generations", request)
 	}
 	if err != nil {
 		s.fail(j, err)
@@ -1722,6 +1915,12 @@ func (s *Server) writeImageResult(j *jobs.Job, data []byte, effectivePrompt stri
 	if err := os.WriteFile(s.jobs.OutputPath(name), data, 0o644); err != nil {
 		return err
 	}
+	s.generationStateMu.Lock()
+	defer s.generationStateMu.Unlock()
+	if current, ok := s.jobs.Get(j.ID); ok && current.Status == "cancelled" {
+		_ = os.Remove(s.jobs.OutputPath(name))
+		return context.Canceled
+	}
 	j.Status = "completed"
 	j.OutputURL = "/api/outputs/" + name
 	return s.jobs.Save(*j)
@@ -1742,7 +1941,7 @@ func (s *Server) imageJobEXIF(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{"embedded": embedded, "metadata": metadata})
 }
 
-func (s *Server) runSpeech(j jobs.Job, language, speaker, instructions string, seed int64) {
+func (s *Server) runSpeech(ctx context.Context, j jobs.Job, language, speaker, instructions string, seed int64) {
 	cfg := s.config()
 	j.Status = "running"
 	_ = s.jobs.Save(j)
@@ -1756,7 +1955,7 @@ func (s *Server) runSpeech(j jobs.Job, language, speaker, instructions string, s
 		request["seed"] = seed
 	}
 	endpoint := cfg.Engines["speech"].Endpoint
-	data, _, err := s.callJSON(endpoint+"/v1/audio/speech", request)
+	data, _, err := s.callJSONContext(ctx, endpoint+"/v1/audio/speech", request)
 	if err != nil {
 		s.fail(j, err)
 		return
@@ -1766,12 +1965,18 @@ func (s *Server) runSpeech(j jobs.Job, language, speaker, instructions string, s
 		s.fail(j, err)
 		return
 	}
+	s.generationStateMu.Lock()
+	defer s.generationStateMu.Unlock()
+	if current, ok := s.jobs.Get(j.ID); ok && current.Status == "cancelled" {
+		_ = os.Remove(s.jobs.OutputPath(name))
+		return
+	}
 	j.Status = "completed"
 	j.OutputURL = "/api/outputs/" + name
 	_ = s.jobs.Save(j)
 }
 
-func (s *Server) runVideo(j jobs.Job, effectivePrompt string, conditions []videoConditioningInput, width, height, frames int, fps float64, seed int64) {
+func (s *Server) runVideo(ctx context.Context, j jobs.Job, effectivePrompt string, conditions []videoConditioningInput, audioPaths []string, audioStarts []float64, width, height, frames int, fps float64, seed int64) {
 	cfg := s.config()
 	s.heavyMu.Lock()
 	defer s.heavyMu.Unlock()
@@ -1789,6 +1994,11 @@ func (s *Server) runVideo(j jobs.Job, effectivePrompt string, conditions []video
 		motionStrength, _ = numberFromAny(j.Params["motion_lora_strength"])
 	}
 	fields["motion_lora_strength"] = strconv.FormatFloat(motionStrength, 'f', -1, 64)
+	acceleration, _ := j.Params["acceleration_requested"].(string)
+	if acceleration == "" {
+		acceleration = cfg.Video.Acceleration
+	}
+	fields["acceleration"] = acceleration
 	paths := make([]string, 0, len(conditions))
 	frameIndices := make([]int, 0, len(conditions))
 	strengths := make([]float64, 0, len(conditions))
@@ -1804,15 +2014,170 @@ func (s *Server) runVideo(j jobs.Job, effectivePrompt string, conditions []video
 	name := j.ID + ".mp4"
 	output := s.jobs.OutputPath(name)
 	endpoint := cfg.Engines["video"].Endpoint
-	if err := s.callMultipartToFile(endpoint+"/v1/videos/generations", fields, "images", paths, output); err != nil {
+	files := map[string][]string{"images": paths}
+	if len(audioPaths) > 0 {
+		files["audios"] = audioPaths
+		startsJSON, _ := json.Marshal(audioStarts)
+		fields["audio_start_times"] = string(startsJSON)
+		fields["audio_max_duration"] = strconv.FormatFloat(float64(frames)/fps, 'f', -1, 64)
+		j.Params["stage"] = "a2v"
+		_ = s.jobs.Save(j)
+	}
+	headers, err := s.callMultipartFilesToFileContext(ctx, endpoint+"/v1/videos/generations", fields, files, output)
+	if err != nil {
 		_ = os.Remove(output)
 		s.fail(j, err)
 		return
 	}
+	s.generationStateMu.Lock()
+	defer s.generationStateMu.Unlock()
+	if current, ok := s.jobs.Get(j.ID); ok && current.Status == "cancelled" {
+		_ = os.Remove(output)
+		return
+	}
 	j.Status = "completed"
 	j.OutputURL = "/api/outputs/" + name
+	if actual := headers.Get("X-LTX-Acceleration"); actual != "" {
+		j.Params["acceleration"] = actual
+	}
 	_ = s.jobs.Save(j)
 	go func() { _ = s.ensureVideoPreview(j.ID, output) }()
+}
+
+func (s *Server) runVideoUpscale(ctx context.Context, j jobs.Job) {
+	cfg := s.config()
+	s.heavyMu.Lock()
+	defer s.heavyMu.Unlock()
+	j.Status = "running"
+	j.Params["stage"] = "upscaling"
+	j.Params["started_at"] = time.Now().Format(time.RFC3339Nano)
+	_ = s.jobs.Save(j)
+
+	sourceID := imageStringParam(j.Params, "source_job_id", "")
+	source, ok := s.jobs.Get(sourceID)
+	if !ok || (source.Kind == "video" && source.Status != "completed") {
+		s.fail(j, fmt.Errorf("source video is no longer available"))
+		return
+	}
+	fields := map[string]string{
+		"scale":            strconv.FormatFloat(imageFloatParam(j.Params, "upscale_scale", 2), 'f', -1, 64),
+		"seed":             strconv.FormatInt(imageInt64Param(j.Params, "seed", -1), 10),
+		"batch_size":       strconv.Itoa(imageIntParam(j.Params, "batch_size", 5)),
+		"temporal_overlap": strconv.Itoa(imageIntParam(j.Params, "temporal_overlap", 1)),
+		"start_time":       strconv.FormatFloat(imageFloatParam(j.Params, "source_start_time", 0), 'f', -1, 64),
+		"end_time":         strconv.FormatFloat(imageFloatParam(j.Params, "source_end_time", 0), 'f', -1, 64),
+	}
+	endpoint := strings.TrimRight(cfg.Engines["upscale"].Endpoint, "/") + "/v1/videos/upscale"
+	output := s.jobs.OutputPath(j.ID + ".mp4")
+	var headers http.Header
+	var err error
+	if source.Kind == "video" && source.OutputURL != "" {
+		path := s.jobs.OutputPath(filepath.Base(source.OutputURL))
+		err = s.callMultipartToFileStreamingContext(ctx, endpoint, fields, "video", []string{path}, output)
+		headers = make(http.Header)
+	} else if source.Kind == "recognition" && source.MediaAssetID != "" {
+		assetURL := strings.TrimRight(cfg.Engines["media"].Endpoint, "/") + "/v1/media/assets/" + source.MediaAssetID
+		headers, err = s.callRemoteVideoMultipartToFile(ctx, endpoint, assetURL, fields, output)
+	} else {
+		err = fmt.Errorf("source video is no longer available")
+	}
+	if err != nil {
+		_ = os.Remove(output)
+		s.fail(j, err)
+		return
+	}
+	s.generationStateMu.Lock()
+	defer s.generationStateMu.Unlock()
+	if current, ok := s.jobs.Get(j.ID); ok && current.Status == "cancelled" {
+		_ = os.Remove(output)
+		return
+	}
+	j.Status = "completed"
+	j.OutputURL = "/api/outputs/" + filepath.Base(output)
+	j.Params["stage"] = "completed"
+	if actual := headers.Get("X-SeedVR2-Seed"); actual != "" {
+		if seed, parseErr := strconv.ParseInt(actual, 10, 64); parseErr == nil {
+			j.Params["seed"] = seed
+		}
+	}
+	_ = s.jobs.Save(j)
+	go func() { _ = s.ensureVideoPreview(j.ID, output) }()
+}
+
+func (s *Server) callRemoteVideoMultipartToFile(ctx context.Context, endpoint, sourceURL string, fields map[string]string, output string) (http.Header, error) {
+	sourceRequest, err := http.NewRequestWithContext(ctx, http.MethodGet, sourceURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	sourceResponse, err := s.client.Do(sourceRequest)
+	if err != nil {
+		return nil, err
+	}
+	defer sourceResponse.Body.Close()
+	if sourceResponse.StatusCode/100 != 2 {
+		data, _ := io.ReadAll(io.LimitReader(sourceResponse.Body, 1<<20))
+		return nil, fmt.Errorf("source media returned %d: %s", sourceResponse.StatusCode, strings.TrimSpace(string(data)))
+	}
+
+	reader, writer := io.Pipe()
+	multipartWriter := multipart.NewWriter(writer)
+	producerDone := make(chan error, 1)
+	go func() {
+		var produceErr error
+		defer func() {
+			if produceErr == nil {
+				produceErr = multipartWriter.Close()
+			}
+			_ = writer.CloseWithError(produceErr)
+			producerDone <- produceErr
+		}()
+		keys := make([]string, 0, len(fields))
+		for key := range fields {
+			keys = append(keys, key)
+		}
+		sort.Strings(keys)
+		for _, key := range keys {
+			if produceErr = multipartWriter.WriteField(key, fields[key]); produceErr != nil {
+				return
+			}
+		}
+		part, partErr := multipartWriter.CreateFormFile("video", "source.mp4")
+		if partErr != nil {
+			produceErr = partErr
+			return
+		}
+		_, produceErr = io.Copy(part, sourceResponse.Body)
+	}()
+	request, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, reader)
+	if err != nil {
+		_ = reader.CloseWithError(err)
+		return nil, err
+	}
+	request.Header.Set("Content-Type", multipartWriter.FormDataContentType())
+	response, err := s.client.Do(request)
+	if err != nil {
+		_ = reader.CloseWithError(err)
+		<-producerDone
+		return nil, err
+	}
+	defer response.Body.Close()
+	if producerErr := <-producerDone; producerErr != nil {
+		return nil, producerErr
+	}
+	if response.StatusCode/100 != 2 {
+		data, _ := io.ReadAll(io.LimitReader(response.Body, 4<<20))
+		return nil, fmt.Errorf("engine returned %d: %s", response.StatusCode, strings.TrimSpace(string(data)))
+	}
+	destination, err := os.Create(output)
+	if err != nil {
+		return nil, err
+	}
+	_, copyErr := io.Copy(destination, response.Body)
+	closeErr := destination.Close()
+	if copyErr != nil {
+		return nil, copyErr
+	}
+	return response.Header.Clone(), closeErr
 }
 
 func numberFromAny(value any) (float64, bool) {
@@ -1848,8 +2213,8 @@ func (s *Server) enhancePrompt(w http.ResponseWriter, r *http.Request) {
 	if mode == "" {
 		mode = "t2v"
 	}
-	if mode != "t2v" && mode != "i2v" && mode != "t2i" && mode != "edit" && mode != "edit_control" && mode != "control" && mode != "paint" {
-		http.Error(w, "mode must be t2i, edit, edit_control, control, paint, t2v or i2v", http.StatusBadRequest)
+	if mode != "t2v" && mode != "t2v_wildcard" && mode != "i2v" && mode != "t2i" && mode != "edit" && mode != "edit_control" && mode != "control" && mode != "paint" {
+		http.Error(w, "mode must be t2i, edit, edit_control, control, paint, t2v, t2v_wildcard or i2v", http.StatusBadRequest)
 		return
 	}
 	if mode == "i2v" && !cfg.PromptEnhancement.VisionEnabled {
@@ -1996,11 +2361,15 @@ func enhancementPreservesEditContract(mode, original, enhanced string) bool {
 }
 
 func (s *Server) callJSON(url string, payload any) ([]byte, string, error) {
+	return s.callJSONContext(context.Background(), url, payload)
+}
+
+func (s *Server) callJSONContext(ctx context.Context, url string, payload any) ([]byte, string, error) {
 	body, err := json.Marshal(payload)
 	if err != nil {
 		return nil, "", err
 	}
-	req, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(body))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(body))
 	if err != nil {
 		return nil, "", err
 	}
@@ -2009,6 +2378,10 @@ func (s *Server) callJSON(url string, payload any) ([]byte, string, error) {
 }
 
 func (s *Server) callMultipart(url string, fields map[string]string, fileField string, paths []string) ([]byte, string, error) {
+	return s.callMultipartContext(context.Background(), url, fields, fileField, paths)
+}
+
+func (s *Server) callMultipartContext(ctx context.Context, url string, fields map[string]string, fileField string, paths []string) ([]byte, string, error) {
 	var body bytes.Buffer
 	mw := multipart.NewWriter(&body)
 	for k, v := range fields {
@@ -2029,58 +2402,68 @@ func (s *Server) callMultipart(url string, fields map[string]string, fileField s
 		}
 	}
 	_ = mw.Close()
-	req, _ := http.NewRequest(http.MethodPost, url, &body)
+	req, _ := http.NewRequestWithContext(ctx, http.MethodPost, url, &body)
 	req.Header.Set("Content-Type", mw.FormDataContentType())
 	return s.do(req)
 }
 
-func (s *Server) callMultipartToFile(url string, fields map[string]string, fileField string, paths []string, output string) error {
+func (s *Server) callMultipartToFile(url string, fields map[string]string, fileField string, paths []string, output string) (http.Header, error) {
+	return s.callMultipartFilesToFile(url, fields, map[string][]string{fileField: paths}, output)
+}
+
+func (s *Server) callMultipartFilesToFile(url string, fields map[string]string, files map[string][]string, output string) (http.Header, error) {
+	return s.callMultipartFilesToFileContext(context.Background(), url, fields, files, output)
+}
+
+func (s *Server) callMultipartFilesToFileContext(ctx context.Context, url string, fields map[string]string, files map[string][]string, output string) (http.Header, error) {
 	var body bytes.Buffer
 	mw := multipart.NewWriter(&body)
 	for k, v := range fields {
 		_ = mw.WriteField(k, v)
 	}
-	for _, p := range paths {
-		f, err := os.Open(p)
-		if err != nil {
-			return err
-		}
-		part, err := mw.CreateFormFile(fileField, filepath.Base(p))
-		if err == nil {
-			_, err = io.Copy(part, f)
-		}
-		_ = f.Close()
-		if err != nil {
-			return err
+	for field, paths := range files {
+		for _, p := range paths {
+			f, err := os.Open(p)
+			if err != nil {
+				return nil, err
+			}
+			part, err := mw.CreateFormFile(field, filepath.Base(p))
+			if err == nil {
+				_, err = io.Copy(part, f)
+			}
+			_ = f.Close()
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 	if err := mw.Close(); err != nil {
-		return err
+		return nil, err
 	}
-	req, err := http.NewRequest(http.MethodPost, url, &body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, &body)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	req.Header.Set("Content-Type", mw.FormDataContentType())
 	resp, err := s.client.Do(req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode/100 != 2 {
 		data, _ := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
-		return fmt.Errorf("engine returned %d: %s", resp.StatusCode, strings.TrimSpace(string(data)))
+		return nil, fmt.Errorf("engine returned %d: %s", resp.StatusCode, strings.TrimSpace(string(data)))
 	}
 	dst, err := os.Create(output)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	_, copyErr := io.Copy(dst, resp.Body)
 	closeErr := dst.Close()
 	if copyErr != nil {
-		return copyErr
+		return nil, copyErr
 	}
-	return closeErr
+	return resp.Header.Clone(), closeErr
 }
 
 func (s *Server) do(req *http.Request) ([]byte, string, error) {
@@ -2393,10 +2776,19 @@ func (s *Server) deleteJob(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadGateway)
 		return
 	}
+	if j.Kind == "recognition" || j.MediaAssetID != "" {
+		if err := s.deleteMediaJobArtifacts(id); err != nil {
+			http.Error(w, err.Error(), http.StatusBadGateway)
+			return
+		}
+	}
+	if err := s.deleteVideoPreview(id); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	err := s.jobs.Delete(id)
 	switch {
 	case err == nil:
-		_ = os.Remove(s.videoPreviewPath(id))
 		w.WriteHeader(http.StatusNoContent)
 	case errors.Is(err, jobs.ErrNotFound):
 		http.NotFound(w, r)
@@ -2410,20 +2802,23 @@ func (s *Server) deleteJob(w http.ResponseWriter, r *http.Request) {
 func (s *Server) cancelJob(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 	s.generationStateMu.Lock()
-	defer s.generationStateMu.Unlock()
 	j, ok := s.jobs.Get(id)
 	if !ok {
+		s.generationStateMu.Unlock()
 		http.NotFound(w, r)
 		return
 	}
 	if j.Status != "queued" && j.Status != "running" {
+		s.generationStateMu.Unlock()
 		http.Error(w, "job is not active", http.StatusConflict)
 		return
 	}
-	if j.Kind != "recognition" && !(isGenerationKind(j.Kind) && j.Status == "queued") {
-		http.Error(w, "running generation jobs cannot be cancelled safely", http.StatusConflict)
+	if j.Kind != "recognition" && !isGenerationKind(j.Kind) {
+		s.generationStateMu.Unlock()
+		http.Error(w, "job cannot be cancelled", http.StatusConflict)
 		return
 	}
+	wasRunning := j.Status == "running"
 	if j.Params == nil {
 		j.Params = map[string]any{}
 	}
@@ -2432,16 +2827,73 @@ func (s *Server) cancelJob(w http.ResponseWriter, r *http.Request) {
 	j.Params["stage"] = "cancelled"
 	delete(j.Params, "media_eta_seconds")
 	if err := s.jobs.Save(j); err != nil {
+		s.generationStateMu.Unlock()
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	s.generationStateMu.Unlock()
 
 	if j.Kind == "recognition" {
 		s.cancelMediaPreparation(id)
 	} else {
+		if wasRunning {
+			s.generationCancelMu.Lock()
+			cancel := s.generationCancels[id]
+			s.generationCancelMu.Unlock()
+			if cancel != nil {
+				cancel()
+			}
+			if j.Kind == "video" && imageStringParam(j.Params, "mode", "") != "upscale" {
+				s.engineDrainMu.Lock()
+				s.engineDraining["video"] = true
+				s.engineDrainMu.Unlock()
+			}
+			go s.interruptGenerationEngine(j)
+		}
 		s.wakeGenerationQueue()
 	}
 	writeJSON(w, http.StatusOK, j)
+}
+
+// interruptGenerationEngine asks engines that support cooperative interruption
+// to stop GPU work as well as cancelling this server's HTTP request. Engines
+// without the endpoint simply return 404 and retain their own safety behavior.
+func (s *Server) interruptGenerationEngine(job jobs.Job) {
+	cfg := s.config()
+	endpoint := ""
+	switch job.Kind {
+	case "image":
+		mode := imageStringParam(job.Params, "mode", cfg.Image.DefaultMode)
+		if mode == "upscale" {
+			endpoint = cfg.Engines["upscale"].Endpoint
+		} else if mode == "garment_extract" {
+			endpoint = cfg.Engines["garment"].Endpoint
+		} else if backend, ok := cfg.Image.Backends[mode]; ok {
+			endpoint = backend.Endpoint
+		} else if backend, ok := cfg.Image.Backends[cfg.Image.DefaultMode]; ok {
+			endpoint = backend.Endpoint
+		}
+	case "video":
+		if imageStringParam(job.Params, "mode", "") == "upscale" {
+			endpoint = cfg.Engines["upscale"].Endpoint
+		} else {
+			endpoint = cfg.Engines["video"].Endpoint
+		}
+	case "speech":
+		endpoint = cfg.Engines["speech"].Endpoint
+	}
+	endpoint = strings.TrimRight(endpoint, "/")
+	if endpoint == "" {
+		return
+	}
+	request, err := http.NewRequest(http.MethodPost, endpoint+"/v1/cancel", nil)
+	if err != nil {
+		return
+	}
+	response, err := s.health.Do(request)
+	if err == nil {
+		_ = response.Body.Close()
+	}
 }
 
 func (s *Server) deleteFinishedJobs(w http.ResponseWriter, _ *http.Request) {
@@ -2454,11 +2906,20 @@ func (s *Server) deleteFinishedJobs(w http.ResponseWriter, _ *http.Request) {
 			http.Error(w, err.Error(), http.StatusBadGateway)
 			return
 		}
+		if j.Kind == "recognition" || j.MediaAssetID != "" {
+			if err := s.deleteMediaJobArtifacts(j.ID); err != nil {
+				http.Error(w, err.Error(), http.StatusBadGateway)
+				return
+			}
+		}
+		if err := s.deleteVideoPreview(j.ID); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 		if err := s.jobs.Delete(j.ID); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		_ = os.Remove(s.videoPreviewPath(j.ID))
 		deleted++
 	}
 	writeJSON(w, http.StatusOK, map[string]int{"deleted": deleted})
@@ -2510,6 +2971,106 @@ func (s *Server) proxyMediaAsset(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (s *Server) mediaJobFrame(w http.ResponseWriter, r *http.Request) {
+	job, ok := s.jobs.Get(r.PathValue("id"))
+	if !ok {
+		http.NotFound(w, r)
+		return
+	}
+	timeSeconds, err := strconv.ParseFloat(valueOr(r.URL.Query().Get("time"), "0"), 64)
+	if err != nil || timeSeconds < 0 {
+		http.Error(w, "time must be a non-negative number", http.StatusBadRequest)
+		return
+	}
+	endpoint := strings.TrimRight(s.config().Engines["media"].Endpoint, "/")
+	if job.Kind == "recognition" {
+		if job.MediaAssetID == "" {
+			http.Error(w, "saved source video is no longer available", http.StatusConflict)
+			return
+		}
+		if media, ok := job.Params["media"].(map[string]any); ok {
+			mediaType, _ := media["media_type"].(string)
+			contentType, _ := media["content_type"].(string)
+			if mediaType == "audio" || strings.HasPrefix(contentType, "audio/") {
+				http.Error(w, "audio sources do not contain video frames", http.StatusConflict)
+				return
+			}
+		}
+		target := fmt.Sprintf("%s/v1/media/assets/%s/frame?time_seconds=%s", endpoint, job.MediaAssetID, url.QueryEscape(strconv.FormatFloat(timeSeconds, 'f', 6, 64)))
+		s.proxyFrameResponse(w, r, target, "")
+		return
+	}
+	if job.Kind != "video" || job.Status != "completed" || job.OutputURL == "" {
+		http.Error(w, "only a completed video or transcription source can provide frames", http.StatusConflict)
+		return
+	}
+	source := s.jobs.OutputPath(filepath.Base(job.OutputURL))
+	if _, err := os.Stat(source); err != nil {
+		http.Error(w, "source video is no longer available", http.StatusNotFound)
+		return
+	}
+	s.proxyFrameResponse(w, r, endpoint+"/v1/media/frame", source)
+}
+
+func (s *Server) proxyFrameResponse(w http.ResponseWriter, r *http.Request, target, source string) {
+	var request *http.Request
+	var err error
+	if source == "" {
+		request, err = http.NewRequestWithContext(r.Context(), http.MethodGet, target, nil)
+	} else {
+		reader, writer := io.Pipe()
+		multipartWriter := multipart.NewWriter(writer)
+		go func() {
+			writeErr := multipartWriter.WriteField("time_seconds", valueOr(r.URL.Query().Get("time"), "0"))
+			if writeErr == nil {
+				var file *os.File
+				file, writeErr = os.Open(source)
+				if writeErr == nil {
+					var part io.Writer
+					part, writeErr = multipartWriter.CreateFormFile("video", filepath.Base(source))
+					if writeErr == nil {
+						_, writeErr = io.Copy(part, file)
+					}
+					_ = file.Close()
+				}
+			}
+			if closeErr := multipartWriter.Close(); writeErr == nil {
+				writeErr = closeErr
+			}
+			_ = writer.CloseWithError(writeErr)
+		}()
+		request, err = http.NewRequestWithContext(r.Context(), http.MethodPost, target, reader)
+		if err == nil {
+			request.Header.Set("Content-Type", multipartWriter.FormDataContentType())
+		}
+	}
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	response, err := s.client.Do(request)
+	if err != nil {
+		http.Error(w, "frame extraction service unavailable: "+err.Error(), http.StatusBadGateway)
+		return
+	}
+	defer response.Body.Close()
+	if response.StatusCode/100 != 2 {
+		body, _ := io.ReadAll(io.LimitReader(response.Body, 1<<20))
+		http.Error(w, strings.TrimSpace(string(body)), response.StatusCode)
+		return
+	}
+	w.Header().Set("Content-Type", valueOr(response.Header.Get("Content-Type"), "image/jpeg"))
+	w.Header().Set("Cache-Control", "no-store")
+	w.Header().Set("X-Frame-Time", response.Header.Get("X-Frame-Time"))
+	w.Header().Set("Content-Disposition", fmt.Sprintf("inline; filename=frame-%0.3fs.jpg", timeSecondsFromQuery(r)))
+	_, _ = io.Copy(w, response.Body)
+}
+
+func timeSecondsFromQuery(r *http.Request) float64 {
+	value, _ := strconv.ParseFloat(valueOr(r.URL.Query().Get("time"), "0"), 64)
+	return value
+}
+
 func (s *Server) deleteMediaAsset(id string) error {
 	if id == "" {
 		return nil
@@ -2530,6 +3091,31 @@ func (s *Server) deleteMediaAsset(id string) error {
 	if response.StatusCode != http.StatusNoContent && response.StatusCode != http.StatusNotFound {
 		body, _ := io.ReadAll(io.LimitReader(response.Body, 1<<20))
 		return fmt.Errorf("delete media asset: engine returned %d: %s", response.StatusCode, strings.TrimSpace(string(body)))
+	}
+	return nil
+}
+
+func (s *Server) deleteMediaJobArtifacts(id string) error {
+	if id == "" || filepath.Base(id) != id {
+		return fmt.Errorf("invalid media job id")
+	}
+	endpoint := strings.TrimRight(s.config().Engines["media"].Endpoint, "/")
+	if endpoint == "" {
+		return nil
+	}
+	target := endpoint + "/v1/media/jobs/" + url.PathEscape(id)
+	request, err := http.NewRequest(http.MethodDelete, target, nil)
+	if err != nil {
+		return err
+	}
+	response, err := s.client.Do(request)
+	if err != nil {
+		return fmt.Errorf("delete media job artifacts: %w", err)
+	}
+	defer response.Body.Close()
+	if response.StatusCode != http.StatusNoContent && response.StatusCode != http.StatusNotFound {
+		body, _ := io.ReadAll(io.LimitReader(response.Body, 1<<20))
+		return fmt.Errorf("delete media job artifacts: engine returned %d: %s", response.StatusCode, strings.TrimSpace(string(body)))
 	}
 	return nil
 }

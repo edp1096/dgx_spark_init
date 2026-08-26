@@ -1,10 +1,14 @@
 package server
 
 import (
+	"bytes"
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"image"
+	"image/color"
+	"image/png"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -62,6 +66,29 @@ type garmentEngineResponse struct {
 	MaskB64       string           `json:"mask_b64"`
 	Candidates    []map[string]any `json:"candidates"`
 	Failures      []map[string]any `json:"failures"`
+}
+
+func sanitizeTransparentRGB(data []byte) ([]byte, error) {
+	source, _, err := image.Decode(bytes.NewReader(data))
+	if err != nil {
+		return nil, fmt.Errorf("decode garment cutout: %w", err)
+	}
+	bounds := source.Bounds()
+	clean := image.NewNRGBA(image.Rect(0, 0, bounds.Dx(), bounds.Dy()))
+	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+		for x := bounds.Min.X; x < bounds.Max.X; x++ {
+			pixel := color.NRGBAModel.Convert(source.At(x, y)).(color.NRGBA)
+			if pixel.A == 0 {
+				pixel.R, pixel.G, pixel.B = 0, 0, 0
+			}
+			clean.SetNRGBA(x-bounds.Min.X, y-bounds.Min.Y, pixel)
+		}
+	}
+	var output bytes.Buffer
+	if err := png.Encode(&output, clean); err != nil {
+		return nil, fmt.Errorf("encode garment cutout: %w", err)
+	}
+	return output.Bytes(), nil
 }
 
 func (s *Server) createGarmentExtraction(w http.ResponseWriter, r *http.Request) {
@@ -135,7 +162,7 @@ func (s *Server) createGarmentExtraction(w http.ResponseWriter, r *http.Request)
 	writeJSON(w, http.StatusAccepted, job)
 }
 
-func (s *Server) runGarmentExtraction(job jobs.Job) {
+func (s *Server) runGarmentExtraction(ctx context.Context, job jobs.Job) {
 	sources, err := s.imageInputFiles(job.ID, "garment_source")
 	if err != nil || len(sources) != 1 {
 		s.fail(job, fmt.Errorf("saved garment source is missing"))
@@ -151,7 +178,7 @@ func (s *Server) runGarmentExtraction(job jobs.Job) {
 		"target":  imageStringParam(job.Params, "target", "all"),
 		"feather": strconv.FormatFloat(imageFloatParam(job.Params, "feather", 1), 'f', 2, 64),
 	}
-	data, _, err := s.callMultipart(s.config().Engines["garment"].Endpoint+"/v1/garments/extract", fields, "images", paths)
+	data, _, err := s.callMultipartContext(ctx, s.config().Engines["garment"].Endpoint+"/v1/garments/extract", fields, "images", paths)
 	if err != nil {
 		s.fail(job, err)
 		return
@@ -164,6 +191,11 @@ func (s *Server) runGarmentExtraction(job jobs.Job) {
 	cutout, err := base64.StdEncoding.DecodeString(result.CutoutB64)
 	if err != nil {
 		s.fail(job, fmt.Errorf("decode garment cutout: %w", err))
+		return
+	}
+	cutout, err = sanitizeTransparentRGB(cutout)
+	if err != nil {
+		s.fail(job, err)
 		return
 	}
 	mask, err := base64.StdEncoding.DecodeString(result.MaskB64)

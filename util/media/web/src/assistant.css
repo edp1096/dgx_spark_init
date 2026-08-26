@@ -22,10 +22,11 @@
 .assistant-chat > header small i { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #49cf85; margin-right: 3px; }
 .assistant-avatar { width: 22px; height: 22px; flex: 0 0 auto; display: grid; place-items: center; padding: 3px; border-radius: 7px; background: radial-gradient(circle at 50% 45%, #352d13, #11151d 72%); box-shadow: 0 3px 12px rgba(255, 180, 0, .2); }
 .assistant-avatar .spark-bolt { width: 16px; height: 16px; }
-.assistant-clear, .assistant-close { width: 22px; height: 22px; border: 0; border-radius: 7px; padding: 0; color: #aeb8ca; background: transparent; cursor: pointer; font-size: 16px; }
-.assistant-clear { display: grid; place-items: center; }
-.assistant-clear svg { width: 14px; height: 14px; fill: currentColor; }
-.assistant-clear:hover, .assistant-close:hover { color: #fff; background: #2a3242; }
+.assistant-clear, .assistant-close { height: 22px; border: 0; border-radius: 7px; padding: 0; color: #aeb8ca; background: transparent; cursor: pointer; font-size: 16px; }
+.assistant-clear { width: auto; padding: 0 8px; color: #ffd5d8; background: #8d2832; font-size: 9px; font-weight: 750; }
+.assistant-clear:hover { color: #fff; background: #b43643; }
+.assistant-close:hover { color: #fff; background: #2a3242; }
+.assistant-close { width: 22px; }
 .assistant-close { font-size: 20px; }
 .assistant-messages { overflow: auto; padding: 16px 13px 10px; display: flex; flex-direction: column; gap: 10px; overscroll-behavior: contain; }
 .assistant-messages article { align-self: flex-start; max-width: 86%; }

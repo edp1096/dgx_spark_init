@@ -1574,6 +1574,7 @@ func TestSubtitleQueueRunsCompletePipelinesInFIFOOrder(t *testing.T) {
 	}
 
 	deadline := time.Now().Add(2 * time.Second)
+	allCompleted := false
 	for time.Now().Before(deadline) {
 		completed := 0
 		for _, job := range store.List() {
@@ -1582,17 +1583,34 @@ func TestSubtitleQueueRunsCompletePipelinesInFIFOOrder(t *testing.T) {
 			}
 		}
 		if completed == 2 {
-			return
+			allCompleted = true
+			break
 		}
 		time.Sleep(10 * time.Millisecond)
 	}
-	t.Fatalf("queued subtitle jobs did not complete: %#v", store.List())
+	if !allCompleted {
+		t.Fatalf("queued subtitle jobs did not complete: %#v", store.List())
+	}
+	for _, job := range store.List() {
+		if _, ok := job.Params["started_at"].(string); !ok {
+			t.Fatalf("completed subtitle job has no execution timestamp: %#v", job.Params)
+		}
+		if _, ok := job.Params["stage_started_at"]; ok {
+			t.Fatalf("completed subtitle job retained a stale stage timestamp: %#v", job.Params)
+		}
+	}
 }
 
 func TestMediaAssetProxyPreservesRangeAndJobDeleteRemovesAsset(t *testing.T) {
 	const assetID = "0123456789abcdef0123456789abcdef"
 	deleted := false
+	artifactsDeleted := false
 	mediaWorker := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodDelete && r.URL.Path == "/v1/media/jobs/media-job" {
+			artifactsDeleted = true
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
 		if r.URL.Path != "/v1/media/assets/"+assetID {
 			http.NotFound(w, r)
 			return
@@ -1641,8 +1659,8 @@ func TestMediaAssetProxyPreservesRangeAndJobDeleteRemovesAsset(t *testing.T) {
 	deleteReq := httptest.NewRequest(http.MethodDelete, "/api/jobs/"+job.ID, nil)
 	deleteRes := httptest.NewRecorder()
 	handler.ServeHTTP(deleteRes, deleteReq)
-	if deleteRes.Code != http.StatusNoContent || !deleted {
-		t.Fatalf("delete status=%d remote deleted=%v", deleteRes.Code, deleted)
+	if deleteRes.Code != http.StatusNoContent || !deleted || !artifactsDeleted {
+		t.Fatalf("delete status=%d asset deleted=%v artifacts deleted=%v", deleteRes.Code, deleted, artifactsDeleted)
 	}
 	if _, ok := store.Get(job.ID); ok {
 		t.Fatal("job remains after delete")
@@ -2020,5 +2038,39 @@ func TestCancelSubtitleJobStopsMediaPreparation(t *testing.T) {
 	}
 	if _, ok := persisted.Params["media_eta_seconds"]; ok {
 		t.Fatalf("stale ETA remained after cancellation: %#v", persisted.Params)
+	}
+}
+
+func TestCancelRunningGenerationInvokesRequestCancellation(t *testing.T) {
+	dataDir := t.TempDir()
+	store, err := jobs.New(dataDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	job := jobs.Job{
+		ID: "running-image-cancel-test", Kind: "image", Status: "running",
+		Params: map[string]any{"stage": "running"}, CreatedAt: time.Now(),
+	}
+	if err := store.Save(job); err != nil {
+		t.Fatal(err)
+	}
+	server := New(config.Config{DataDir: dataDir}, store, nil)
+	cancelled := make(chan struct{}, 1)
+	server.generationCancels[job.ID] = func() { cancelled <- struct{}{} }
+
+	request := httptest.NewRequest(http.MethodPost, "/api/jobs/"+job.ID+"/cancel", nil)
+	response := httptest.NewRecorder()
+	server.Handler().ServeHTTP(response, request)
+	if response.Code != http.StatusOK {
+		t.Fatalf("status=%d body=%s", response.Code, response.Body.String())
+	}
+	select {
+	case <-cancelled:
+	case <-time.After(time.Second):
+		t.Fatal("running generation request was not cancelled")
+	}
+	persisted, ok := store.Get(job.ID)
+	if !ok || persisted.Status != "cancelled" || persisted.Params["stage"] != "cancelled" {
+		t.Fatalf("job was not cancelled: %#v", persisted)
 	}
 }

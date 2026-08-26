@@ -1,5 +1,6 @@
 services:
   api:
+    init: true
     build: .
     image: dgx-cohere-transcribe-native:2b
     container_name: cohere-transcribe-api

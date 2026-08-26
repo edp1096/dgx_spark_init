@@ -1,5 +1,6 @@
 services:
   heretic:
+    init: true
     # image: "vllm/vllm-openai:cu130-nightly-aarch64"
     image: "edp1096/weights-override:cu133-v1"
     container_name: weights_abliterator

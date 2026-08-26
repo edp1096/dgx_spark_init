@@ -28,6 +28,12 @@ func TestDeleteRemovesFinishedJobAndFiles(t *testing.T) {
 	if err = os.WriteFile(store.OutputPath(id+".player.vtt"), []byte("WEBVTT\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
+	if err = os.WriteFile(store.OutputPath(id+"-partial.mp4"), []byte("partial"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err = os.WriteFile(store.OutputPath(id+"2.png"), []byte("unrelated"), 0o644); err != nil {
+		t.Fatal(err)
+	}
 	job := Job{ID: id, Kind: "recognition", Status: "completed", OutputURL: "/api/outputs/" + id + ".txt", CaptionURL: "/api/outputs/" + id + ".player.vtt", CreatedAt: time.Now()}
 	if err = store.Save(job); err != nil {
 		t.Fatal(err)
@@ -47,6 +53,12 @@ func TestDeleteRemovesFinishedJobAndFiles(t *testing.T) {
 	}
 	if _, err = os.Stat(store.OutputPath(id + ".player.vtt")); !errors.Is(err, os.ErrNotExist) {
 		t.Fatalf("caption still exists: %v", err)
+	}
+	if _, err = os.Stat(store.OutputPath(id + "-partial.mp4")); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("unregistered partial output still exists: %v", err)
+	}
+	if _, err = os.Stat(store.OutputPath(id + "2.png")); err != nil {
+		t.Fatalf("unrelated prefix output was removed: %v", err)
 	}
 }
 

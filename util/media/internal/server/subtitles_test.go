@@ -1,8 +1,17 @@
 package server
 
 import (
+	"bytes"
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
+	"time"
+
+	"mediaapp/internal/config"
+	"mediaapp/internal/jobs"
 )
 
 func TestSubtitleRenderersPreserveTimingAndBilingualText(t *testing.T) {
@@ -21,6 +30,72 @@ func TestSubtitleRenderersPreserveTimingAndBilingualText(t *testing.T) {
 	timestamped := renderTimestampedText(segments, "none")
 	if !strings.Contains(timestamped, "[00:00:01.250 --> 00:01:05.500] World") {
 		t.Fatalf("unexpected timestamped text:\n%s", timestamped)
+	}
+}
+
+func TestParseRenderedBilingualSubtitleForRegeneration(t *testing.T) {
+	srt := `1
+00:00:00,160 --> 00:00:05,600
+A great sports movie transcends its limits.
+훌륭한 스포츠 영화는 한계를 뛰어넘습니다.
+
+2
+00:00:05,920 --> 00:00:06,560
+시장은 직접 확인했지.
+시장은 직접 확인했지.`
+	cues, err := parseRenderedSubtitle(srt, "srt", "bilingual", "Korean")
+	if err != nil || len(cues) != 2 {
+		t.Fatalf("parse failed: cues=%#v err=%v", cues, err)
+	}
+	if cues[0].Text != "A great sports movie transcends its limits." || cues[0].Translated != "훌륭한 스포츠 영화는 한계를 뛰어넘습니다." {
+		t.Fatalf("unexpected translated cue: %#v", cues[0])
+	}
+	if cues[1].Text != "시장은 직접 확인했지." || cues[1].Translated != "시장은 직접 확인했지." {
+		t.Fatalf("duplicated Korean cue was not split: %#v", cues[1])
+	}
+	if got := renderSRT(cues, "none"); strings.Count(got, "시장은 직접 확인했지.") != 1 {
+		t.Fatalf("original-only regeneration duplicated text:\n%s", got)
+	}
+}
+
+func TestRegenerateSubtitleReusesExistingBilingualCues(t *testing.T) {
+	dataDir := t.TempDir()
+	store, err := jobs.New(dataDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	const id = "subtitle-regenerate-test"
+	srt := "1\n00:00:00,000 --> 00:00:01,000\nHello\n안녕하세요\n"
+	if err := os.WriteFile(store.OutputPath(id+".srt"), []byte(srt), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	job := jobs.Job{
+		ID: id, Kind: "recognition", Status: "completed", Prompt: "example.mp4", CreatedAt: time.Now(),
+		Params:  map[string]any{"translation_mode": "bilingual", "target_language": "Korean", "output_formats": []string{"srt"}},
+		Outputs: map[string]string{"srt": "/api/outputs/" + id + ".srt"},
+	}
+	if err := store.Save(job); err != nil {
+		t.Fatal(err)
+	}
+	handler := New(config.Config{DataDir: dataDir}, store, nil).Handler()
+	body, _ := json.Marshal(subtitleRegenerateRequest{TranslationMode: "none", OutputFormats: []string{"srt", "txt"}})
+	request := httptest.NewRequest(http.MethodPost, "/api/jobs/"+id+"/subtitle-regenerate", bytes.NewReader(body))
+	request.Header.Set("Content-Type", "application/json")
+	response := httptest.NewRecorder()
+	handler.ServeHTTP(response, request)
+	if response.Code != http.StatusOK {
+		t.Fatalf("status=%d body=%s", response.Code, response.Body.String())
+	}
+	regenerated, err := os.ReadFile(store.OutputPath(id + ".srt"))
+	if err != nil || strings.Contains(string(regenerated), "안녕하세요") || !strings.Contains(string(regenerated), "Hello") {
+		t.Fatalf("unexpected regenerated SRT=%q err=%v", regenerated, err)
+	}
+	if _, err := os.Stat(store.OutputPath(id + ".cues.json")); err != nil {
+		t.Fatalf("cue archive was not migrated: %v", err)
+	}
+	updated, _ := store.Get(id)
+	if updated.Params["translation_mode"] != "none" || updated.Outputs["txt"] == "" {
+		t.Fatalf("job was not updated: %#v", updated)
 	}
 }
 
@@ -91,5 +166,66 @@ func TestValidSubtitleTranslationDetectsUntranslatedKoreanTarget(t *testing.T) {
 	}
 	if !validSubtitleTranslation("状態不明です。", "상태를 알 수 없습니다.", "Korean") {
 		t.Fatal("Korean translation was rejected")
+	}
+}
+
+func TestTranslateSubtitleSegmentsKeepsSourceAndContinuesAfterInvalidCue(t *testing.T) {
+	engine := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"choices": []map[string]any{{"message": map[string]string{"content": "状態不明です。"}}},
+		})
+	}))
+	defer engine.Close()
+
+	dataDir := t.TempDir()
+	store, err := jobs.New(dataDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	service := New(config.Config{
+		DataDir:           dataDir,
+		Engines:           map[string]config.Engine{"prompt": {Endpoint: engine.URL}},
+		PromptEnhancement: config.PromptEnhancement{Model: "test-translator"},
+	}, store, nil)
+	cues := []subtitleCue{{Start: 0, End: 1, Text: "状態不明です。"}}
+	progress := 0
+	warnings, err := service.translateSubtitleSegments(cues, "Korean", func(done, _ int) { progress = done }, nil)
+	if err != nil {
+		t.Fatalf("invalid individual translation stopped the job: %v", err)
+	}
+	if progress != 1 || len(warnings) != 1 {
+		t.Fatalf("progress=%d warnings=%#v", progress, warnings)
+	}
+	if warnings[0].Segment != 1 || warnings[0].Source != cues[0].Text || warnings[0].Reason == "" {
+		t.Fatalf("unexpected translation warning: %#v", warnings[0])
+	}
+	if cues[0].Translated != cues[0].Text {
+		t.Fatalf("fallback=%q, want original %q", cues[0].Translated, cues[0].Text)
+	}
+}
+
+func TestTranslateSubtitleSegmentsDoesNotHideEngineFailure(t *testing.T) {
+	engine := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		http.Error(w, "offline", http.StatusServiceUnavailable)
+	}))
+	defer engine.Close()
+
+	dataDir := t.TempDir()
+	store, err := jobs.New(dataDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	service := New(config.Config{
+		DataDir:           dataDir,
+		Engines:           map[string]config.Engine{"prompt": {Endpoint: engine.URL}},
+		PromptEnhancement: config.PromptEnhancement{Model: "test-translator"},
+	}, store, nil)
+	cues := []subtitleCue{{Start: 0, End: 1, Text: "状態不明です。"}}
+	warnings, err := service.translateSubtitleSegments(cues, "Korean", nil, nil)
+	if err == nil {
+		t.Fatal("translation engine outage was incorrectly treated as a recoverable cue warning")
+	}
+	if len(warnings) != 0 || cues[0].Translated != "" {
+		t.Fatalf("warnings=%#v translated=%q", warnings, cues[0].Translated)
 	}
 }

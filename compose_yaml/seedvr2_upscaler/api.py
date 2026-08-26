@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Small OpenAI-style image facade for the SeedVR2 ComfyUI nodes."""
+"""Small image/video facade for the SeedVR2 ComfyUI nodes."""
 
 from __future__ import annotations
 
@@ -8,13 +8,17 @@ import base64
 import binascii
 import io
 import secrets
+import shutil
+import subprocess
 import time
 import uuid
 from pathlib import Path
 from typing import Any
 
 import httpx
-from fastapi import FastAPI, HTTPException
+import cv2
+from fastapi import BackgroundTasks, FastAPI, File, Form, HTTPException, UploadFile
+from fastapi.responses import FileResponse
 from PIL import Image, UnidentifiedImageError
 from pydantic import BaseModel, ConfigDict
 
@@ -39,7 +43,7 @@ class UpscaleRequest(BaseModel):
     output_format: str = "png"
 
 
-app = FastAPI(title="SeedVR2 Image Upscale API")
+app = FastAPI(title="SeedVR2 Upscale API")
 
 
 def decode_image(encoded: str) -> Image.Image:
@@ -99,6 +103,49 @@ def workflow(image_name: str, short_edge: int, seed: int, prefix: str) -> dict[s
     }
 
 
+def video_workflow(video_name: str, short_edge: int, seed: int, prefix: str,
+                   batch_size: int, temporal_overlap: int) -> dict[str, Any]:
+    return {
+        "1": {"class_type": "LoadVideo", "inputs": {"file": video_name}},
+        "2": {"class_type": "GetVideoComponents", "inputs": {"video": ["1", 0]}},
+        "3": {
+            "class_type": "SeedVR2LoadDiTModel",
+            "inputs": {
+                "model": DIT_MODEL, "device": "cuda:0", "blocks_to_swap": 0,
+                "swap_io_components": False, "offload_device": "none",
+                "cache_model": False, "attention_mode": "sdpa",
+            },
+        },
+        "4": {
+            "class_type": "SeedVR2LoadVAEModel",
+            "inputs": {
+                "model": VAE_MODEL, "device": "cuda:0",
+                "encode_tiled": True, "encode_tile_size": 1024, "encode_tile_overlap": 128,
+                "decode_tiled": True, "decode_tile_size": 1024, "decode_tile_overlap": 128,
+                "tile_debug": "false", "offload_device": "none", "cache_model": False,
+            },
+        },
+        "5": {
+            "class_type": "SeedVR2VideoUpscaler",
+            "inputs": {
+                "image": ["2", 0], "dit": ["3", 0], "vae": ["4", 0], "seed": seed,
+                "resolution": short_edge, "max_resolution": 4096, "batch_size": batch_size,
+                "uniform_batch_size": True, "temporal_overlap": temporal_overlap,
+                "prepend_frames": 0, "color_correction": "lab", "input_noise_scale": 0.0,
+                "latent_noise_scale": 0.0, "offload_device": "cpu", "enable_debug": False,
+            },
+        },
+        "6": {
+            "class_type": "CreateVideo",
+            "inputs": {"images": ["5", 0], "fps": ["2", 2], "audio": ["2", 1], "bit_depth": ["2", 3]},
+        },
+        "7": {
+            "class_type": "SaveVideo",
+            "inputs": {"video": ["6", 0], "filename_prefix": prefix, "format": "mp4", "codec": "auto"},
+        },
+    }
+
+
 async def comfy_ready() -> bool:
     try:
         async with httpx.AsyncClient(timeout=2) as client:
@@ -108,8 +155,17 @@ async def comfy_ready() -> bool:
         return False
 
 
+@app.post("/v1/cancel")
+async def cancel_generation() -> dict[str, str]:
+    """Interrupt the single active ComfyUI upscale, if any."""
+    async with httpx.AsyncClient(timeout=5) as client:
+        response = await client.post(f"{COMFY_URL}/interrupt")
+        response.raise_for_status()
+    return {"status": "cancelling"}
+
+
 async def wait_for_output(client: httpx.AsyncClient, prompt_id: str) -> dict[str, Any]:
-    deadline = time.monotonic() + 60 * 60
+    deadline = time.monotonic() + 60 * 60 * 8
     while time.monotonic() < deadline:
         response = await client.get(f"{COMFY_URL}/history/{prompt_id}")
         response.raise_for_status()
@@ -119,9 +175,10 @@ async def wait_for_output(client: httpx.AsyncClient, prompt_id: str) -> dict[str
             if status.get("status_str") == "error":
                 raise RuntimeError(f"ComfyUI upscale failed: {status.get('messages', [])}")
             for output in history.get("outputs", {}).values():
-                images = output.get("images", [])
-                if images:
-                    return images[0]
+                for key in ("images", "videos", "audio"):
+                    assets = output.get(key, [])
+                    if assets:
+                        return assets[0]
         await asyncio.sleep(0.5)
     raise TimeoutError("SeedVR2 upscale timed out")
 
@@ -146,11 +203,42 @@ async def execute_workflow(graph: dict[str, Any]) -> str:
                 candidate.unlink(missing_ok=True)
 
 
+async def execute_video_workflow(graph: dict[str, Any]) -> Path:
+    async with httpx.AsyncClient(timeout=60 * 60 * 8) as client:
+        submitted = await client.post(f"{COMFY_URL}/prompt", json={"prompt": graph})
+        submitted.raise_for_status()
+        body = submitted.json()
+        if body.get("node_errors"):
+            raise RuntimeError(f"invalid SeedVR2 video workflow: {body['node_errors']}")
+        output = await wait_for_output(client, body["prompt_id"])
+    candidate = (OUTPUT_ROOT / output.get("subfolder", "") / output["filename"]).resolve()
+    if not candidate.is_relative_to(OUTPUT_ROOT) or not candidate.is_file():
+        raise RuntimeError("SeedVR2 did not produce a video file")
+    return candidate
+
+
+def probe_video(path: Path) -> tuple[int, int, float]:
+    capture = cv2.VideoCapture(str(path))
+    try:
+        if not capture.isOpened():
+            raise HTTPException(status_code=400, detail="video metadata could not be read")
+        width = int(capture.get(cv2.CAP_PROP_FRAME_WIDTH))
+        height = int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        frames = float(capture.get(cv2.CAP_PROP_FRAME_COUNT))
+        fps = float(capture.get(cv2.CAP_PROP_FPS))
+        duration = frames / fps if frames > 0 and fps > 0 else 0
+        if width <= 0 or height <= 0 or duration <= 0:
+            raise HTTPException(status_code=400, detail="video metadata could not be read")
+        return width, height, duration
+    finally:
+        capture.release()
+
+
 @app.get("/health")
-async def health() -> dict[str, str]:
+async def health() -> dict[str, Any]:
     if not await comfy_ready():
         raise HTTPException(status_code=503, detail="SeedVR2 runtime is starting")
-    return {"status": "ok"}
+    return {"status": "ok", "busy": upscale_lock.locked()}
 
 
 @app.get("/v1/models")
@@ -179,3 +267,82 @@ async def upscale(request: UpscaleRequest) -> dict[str, Any]:
         return {"created": int(time.time()), "data": [{"b64_json": encoded}], "seed": seed}
     finally:
         input_path.unlink(missing_ok=True)
+
+
+@app.post("/v1/videos/upscale")
+async def upscale_video(
+    background_tasks: BackgroundTasks,
+    video: UploadFile = File(...),
+    scale: float = Form(2),
+    seed: int = Form(-1),
+    batch_size: int = Form(5),
+    temporal_overlap: int = Form(1),
+    start_time: float = Form(0),
+    end_time: float = Form(0),
+) -> FileResponse:
+    if scale <= 1 or scale > 4:
+        raise HTTPException(status_code=400, detail="scale must be greater than 1 and at most 4")
+    if batch_size < 1 or (batch_size - 1) % 4 != 0 or batch_size > 21:
+        raise HTTPException(status_code=400, detail="batch_size must be one of 1, 5, 9, 13, 17 or 21")
+    if temporal_overlap < 0 or temporal_overlap > 4:
+        raise HTTPException(status_code=400, detail="temporal_overlap must be between 0 and 4")
+    suffix = Path(video.filename or "source.mp4").suffix.lower()
+    if suffix not in {".mp4", ".webm", ".mov", ".mkv", ".m4v"}:
+        suffix = ".mp4"
+    relative = f"seedvr2-api/{uuid.uuid4().hex}{suffix}"
+    input_path = INPUT_ROOT / relative
+    workflow_path = input_path
+    workflow_relative = relative
+    input_path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        with input_path.open("wb") as destination:
+            shutil.copyfileobj(video.file, destination, length=8 << 20)
+        width, height, duration = probe_video(input_path)
+        if duration <= 0:
+            raise HTTPException(status_code=400, detail="video has no readable duration")
+        short_edge = round(min(width, height) * scale)
+        if max(width, height) * scale > 4096:
+            raise HTTPException(status_code=400, detail="upscaled video must not exceed 4096 pixels on either edge")
+        if start_time < 0 or end_time < 0 or start_time >= duration:
+            raise HTTPException(status_code=400, detail="invalid video trim range")
+        if duration > 60 and end_time <= 0:
+            raise HTTPException(status_code=400, detail="videos longer than 60 seconds require a trim range")
+        if end_time > 0:
+            if end_time <= start_time or end_time > duration + 0.1:
+                raise HTTPException(status_code=400, detail="invalid video trim range")
+            if end_time - start_time > 60.1:
+                raise HTTPException(status_code=400, detail="video upscale range must not exceed 60 seconds")
+            workflow_relative = f"seedvr2-api/{uuid.uuid4().hex}-trimmed.mp4"
+            workflow_path = INPUT_ROOT / workflow_relative
+            trim_duration = end_time - start_time
+            command = [
+                "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+                "-ss", str(start_time), "-i", str(input_path), "-t", str(trim_duration),
+                "-map", "0:v:0", "-map", "0:a?", "-c:v", "libx264", "-preset", "veryfast",
+                "-crf", "18", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k",
+                str(workflow_path),
+            ]
+            try:
+                subprocess.run(command, check=True, timeout=max(120, int(trim_duration * 4)))
+            except (subprocess.SubprocessError, OSError) as exc:
+                raise HTTPException(status_code=500, detail="video trim failed") from exc
+        actual_seed = seed if seed >= 0 else secrets.randbits(32)
+        prefix = f"seedvr2-api/{uuid.uuid4().hex}"
+        async with upscale_lock:
+            output_path = await execute_video_workflow(
+                video_workflow(workflow_relative, short_edge, actual_seed, prefix, batch_size, temporal_overlap)
+            )
+        background_tasks.add_task(output_path.unlink, missing_ok=True)
+        return FileResponse(
+            output_path, media_type="video/mp4", filename=f"{Path(video.filename or 'video').stem}-upscaled.mp4",
+            headers={
+                "X-SeedVR2-Seed": str(actual_seed),
+                "X-SeedVR2-Scale": str(scale),
+                "X-SeedVR2-Width": str(round(width * scale)),
+                "X-SeedVR2-Height": str(round(height * scale)),
+            },
+        )
+    finally:
+        input_path.unlink(missing_ok=True)
+        if workflow_path != input_path:
+            workflow_path.unlink(missing_ok=True)

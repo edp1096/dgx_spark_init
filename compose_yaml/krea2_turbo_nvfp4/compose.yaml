@@ -1,5 +1,6 @@
 services:
   api:
+    init: true
     build:
       context: .
     image: dgx-krea2-turbo-nvfp4:latest

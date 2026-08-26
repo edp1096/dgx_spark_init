@@ -1,10 +1,13 @@
 package server
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
 	"image"
 	"image/color"
 	"image/png"
+	"io"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -87,6 +90,26 @@ func generationQueueTime(job jobs.Job) time.Time {
 }
 
 func (s *Server) executeQueuedGeneration(job jobs.Job) {
+	if s.generationEngineBusy(job) {
+		s.generationStateMu.Lock()
+		current, ok := s.jobs.Get(job.ID)
+		if ok && current.Status == "queued" {
+			if current.Params == nil {
+				current.Params = map[string]any{}
+			}
+			if imageStringParam(current.Params, "mode", "") == "upscale" {
+				current.Params["stage"] = "waiting_upscale_engine"
+			} else {
+				current.Params["stage"] = "waiting_video_engine"
+			}
+			_ = s.jobs.Save(current)
+		}
+		s.generationStateMu.Unlock()
+		// Avoid a tight queue loop while an orphaned request finishes in the
+		// independently running SeedVR2 service.
+		time.Sleep(2 * time.Second)
+		return
+	}
 	s.generationStateMu.Lock()
 	current, ok := s.jobs.Get(job.ID)
 	if !ok || current.Status != "queued" || !isGenerationKind(current.Kind) {
@@ -104,31 +127,94 @@ func (s *Server) executeQueuedGeneration(job jobs.Job) {
 		return
 	}
 	s.generationStateMu.Unlock()
+	ctx, cancel := context.WithCancel(context.Background())
+	s.generationCancelMu.Lock()
+	s.generationCancels[current.ID] = cancel
+	s.generationCancelMu.Unlock()
+	defer func() {
+		cancel()
+		s.generationCancelMu.Lock()
+		delete(s.generationCancels, current.ID)
+		s.generationCancelMu.Unlock()
+	}()
+	// A cancellation can race with registration immediately after the job is
+	// changed from queued to running. Observe the persisted state once more.
+	if s.jobCancelled(current.ID) {
+		return
+	}
 
 	switch current.Kind {
 	case "speech":
-		s.runSpeech(current,
+		s.runSpeech(ctx, current,
 			imageStringParam(current.Params, "language", s.config().Speech.DefaultLanguage),
 			imageStringParam(current.Params, "speaker", s.config().Speech.DefaultSpeaker),
 			imageStringParam(current.Params, "instructions", ""),
 			imageInt64Param(current.Params, "seed", -1),
 		)
 	case "video":
+		if imageStringParam(current.Params, "mode", "") == "upscale" {
+			s.runVideoUpscale(ctx, current)
+			return
+		}
 		execution, err := s.loadVideoExecution(current)
 		if err != nil {
 			s.fail(current, err)
 			return
 		}
-		s.runVideo(current, execution.prompt, execution.conditions, execution.width, execution.height, execution.frames, execution.fps, execution.seed)
+		s.runVideo(ctx, current, execution.prompt, execution.conditions, execution.audioPaths, execution.audioStarts, execution.width, execution.height, execution.frames, execution.fps, execution.seed)
 	case "image":
-		s.executeQueuedImage(current)
+		s.executeQueuedImage(ctx, current)
 	}
 }
 
-func (s *Server) executeQueuedImage(job jobs.Job) {
+// generationEngineBusy keeps a queued video from failing against a downstream
+// engine that is still winding down an interrupted request. Older services
+// without the busy health field safely fall through.
+func (s *Server) generationEngineBusy(job jobs.Job) bool {
+	if job.Kind != "video" {
+		return false
+	}
+	engine := "video"
+	if imageStringParam(job.Params, "mode", "") == "upscale" {
+		engine = "upscale"
+	} else {
+		s.engineDrainMu.Lock()
+		draining := s.engineDraining[engine]
+		s.engineDrainMu.Unlock()
+		if !draining {
+			return false
+		}
+	}
+	endpoint := strings.TrimRight(s.config().Engines[engine].Endpoint, "/")
+	if endpoint == "" {
+		return false
+	}
+	response, err := s.health.Get(endpoint + "/health")
+	if err != nil {
+		return false
+	}
+	defer response.Body.Close()
+	if response.StatusCode/100 != 2 {
+		return false
+	}
+	var status struct {
+		Busy bool `json:"busy"`
+	}
+	if err := json.NewDecoder(io.LimitReader(response.Body, 64<<10)).Decode(&status); err != nil {
+		return false
+	}
+	if !status.Busy && engine == "video" {
+		s.engineDrainMu.Lock()
+		delete(s.engineDraining, engine)
+		s.engineDrainMu.Unlock()
+	}
+	return status.Busy
+}
+
+func (s *Server) executeQueuedImage(ctx context.Context, job jobs.Job) {
 	mode := imageStringParam(job.Params, "mode", "create")
 	if mode == "garment_extract" {
-		s.runGarmentExtraction(job)
+		s.runGarmentExtraction(ctx, job)
 		return
 	}
 	if mode == "detail_enhance" || mode == "upscale" {
@@ -144,12 +230,12 @@ func (s *Server) executeQueuedImage(job jobs.Job) {
 			return
 		}
 		if mode == "detail_enhance" {
-			s.runImageDetailEnhance(job, data,
+			s.runImageDetailEnhance(ctx, job, data,
 				imageFloatParam(job.Params, "detail_strength", 1),
 				imageInt64Param(job.Params, "seed", -1),
 				imageStringParam(job.Params, "detail_vae", "wan"))
 		} else {
-			s.runImageUpscale(job, data,
+			s.runImageUpscale(ctx, job, data,
 				imageIntParam(job.Params, "upscale_scale", 2),
 				imageInt64Param(job.Params, "seed", -1))
 		}
@@ -165,7 +251,7 @@ func (s *Server) executeQueuedImage(job jobs.Job) {
 		s.fail(job, err)
 		return
 	}
-	s.runImage(job, execution.prompt, execution.references, execution.width, execution.height,
+	s.runImage(ctx, job, execution.prompt, execution.references, execution.width, execution.height,
 		execution.seed, execution.mode, execution.controlType, execution.controlStrength, execution.options)
 }
 
@@ -289,6 +375,8 @@ func (s *Server) materializeSequenceAnyPaintMask(job jobs.Job, source string) er
 type generationVideoExecution struct {
 	prompt        string
 	conditions    []videoConditioningInput
+	audioPaths    []string
+	audioStarts   []float64
 	width, height int
 	frames        int
 	fps           float64
@@ -303,6 +391,39 @@ func (s *Server) loadVideoExecution(job jobs.Job) (generationVideoExecution, err
 		frames: imageIntParam(job.Params, "num_frames", s.config().Video.DefaultFrames),
 		fps:    imageFloatParam(job.Params, "fps", s.config().Video.DefaultFPS),
 		seed:   imageInt64Param(job.Params, "seed", -1),
+	}
+	if imageBoolParam(job.Params, "audio", false) {
+		var clips []savedVideoAudioClip
+		decodeImageParam(job.Params, "audio_clips", &clips)
+		if len(clips) == 0 {
+			path, err := s.savedVideoInput(job.ID, "audio")
+			if err != nil {
+				return result, err
+			}
+			if path == "" {
+				path, err = s.savedVideoInput(job.ID, "audio-0")
+				if err != nil {
+					return result, err
+				}
+			}
+			if path == "" {
+				return result, fmt.Errorf("saved A2V audio is missing")
+			}
+			result.audioPaths = []string{path}
+			result.audioStarts = []float64{0}
+		} else {
+			for _, clip := range clips {
+				path, err := s.savedVideoInput(job.ID, "audio-"+strconv.Itoa(clip.Index))
+				if err != nil {
+					return result, err
+				}
+				if path == "" {
+					return result, fmt.Errorf("saved A2V audio clip %d is missing", clip.Index+1)
+				}
+				result.audioPaths = append(result.audioPaths, path)
+				result.audioStarts = append(result.audioStarts, clip.Start)
+			}
+		}
 	}
 	var saved []savedVideoCondition
 	decodeImageParam(job.Params, "video_conditions", &saved)

@@ -4,6 +4,7 @@ services:
       context: .
     image: dgx-garment-extractor:latest
     container_name: garment-extractor-api
+    init: true
     restart: unless-stopped
     network_mode: host
     ipc: host

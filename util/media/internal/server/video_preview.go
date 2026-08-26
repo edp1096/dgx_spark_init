@@ -16,6 +16,17 @@ func (s *Server) videoPreviewPath(id string) string {
 	return filepath.Join(s.dataDir, "previews", id+videoPreviewFilenameSuffix)
 }
 
+func (s *Server) deleteVideoPreview(id string) error {
+	s.videoPreviewMu.Lock()
+	defer s.videoPreviewMu.Unlock()
+	for _, path := range []string{s.videoPreviewPath(id), s.videoPreviewPath(id) + ".tmp"} {
+		if err := os.Remove(path); err != nil && !os.IsNotExist(err) {
+			return err
+		}
+	}
+	return nil
+}
+
 func (s *Server) ensureVideoPreview(id, source string) error {
 	s.videoPreviewMu.Lock()
 	defer s.videoPreviewMu.Unlock()

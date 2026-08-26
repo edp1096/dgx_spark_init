@@ -4,6 +4,9 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
+	"image"
+	"image/color"
+	"image/png"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
@@ -14,6 +17,33 @@ import (
 	"mediaapp/internal/config"
 	"mediaapp/internal/jobs"
 )
+
+func TestSanitizeTransparentRGBRemovesHiddenSourcePixels(t *testing.T) {
+	source := image.NewNRGBA(image.Rect(0, 0, 2, 1))
+	source.SetNRGBA(0, 0, color.NRGBA{R: 210, G: 80, B: 35, A: 0})
+	source.SetNRGBA(1, 0, color.NRGBA{R: 50, G: 90, B: 130, A: 255})
+	var encoded bytes.Buffer
+	if err := png.Encode(&encoded, source); err != nil {
+		t.Fatal(err)
+	}
+
+	cleaned, err := sanitizeTransparentRGB(encoded.Bytes())
+	if err != nil {
+		t.Fatal(err)
+	}
+	decoded, _, err := image.Decode(bytes.NewReader(cleaned))
+	if err != nil {
+		t.Fatal(err)
+	}
+	hidden := color.NRGBAModel.Convert(decoded.At(0, 0)).(color.NRGBA)
+	visible := color.NRGBAModel.Convert(decoded.At(1, 0)).(color.NRGBA)
+	if hidden != (color.NRGBA{}) {
+		t.Fatalf("transparent pixel retained hidden RGB: %#v", hidden)
+	}
+	if visible != (color.NRGBA{R: 50, G: 90, B: 130, A: 255}) {
+		t.Fatalf("visible garment pixel changed: %#v", visible)
+	}
+}
 
 func TestGarmentExtractionPersistsCutoutMaskAndInputs(t *testing.T) {
 	pngData := testPNG(t, 32, 24)

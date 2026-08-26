@@ -11,6 +11,35 @@
 
   let container
 
+  const subtitleColors = [
+    { value: '#ffffff', label: '흰색' },
+    { value: '#ffe36e', label: '노란색' },
+    { value: '#7fe7ff', label: '하늘색' },
+    { value: '#9ff28a', label: '연두색' },
+    { value: '#111111', label: '검정색' }
+  ]
+  const subtitleBackgrounds = [
+    { value: 'transparent', label: '없음' },
+    { value: 'rgba(0, 0, 0, 0.35)', label: '옅게' },
+    { value: 'rgba(0, 0, 0, 0.62)', label: '보통' },
+    { value: 'rgba(0, 0, 0, 0.85)', label: '진하게' }
+  ]
+
+  function savedChoice(key, options, fallback) {
+    const saved = localStorage.getItem(key)
+    return options.some((option) => option.value === saved) ? saved : fallback
+  }
+
+  function optionLabel(options, value) {
+    return options.find((option) => option.value === value)?.label || options[0].label
+  }
+
+  function subtitleShadow(color) {
+    return color === '#111111'
+      ? '0 1px 3px #fff, 0 1px 7px #fff'
+      : '0 1px 4px #000, 0 1px 8px #000'
+  }
+
   function setupFullscreenGuard(art) {
     const player = art.template?.$player
     const video = art.video
@@ -145,6 +174,8 @@
     const subtitleSize = Number.isFinite(savedSubtitleSize)
       ? Math.min(48, Math.max(12, savedSubtitleSize))
       : 20
+    const subtitleColor = savedChoice('spark-media-subtitle-color', subtitleColors, '#ffffff')
+    const subtitleBackground = savedChoice('spark-media-subtitle-background', subtitleBackgrounds, 'rgba(0, 0, 0, 0.62)')
 
     // A media modal must own the only live Artplayer instance. This also
     // clears an instance left behind by a rapid modal switch before Svelte's
@@ -173,24 +204,48 @@
       aspectRatio: true,
       screenshot: true,
       setting: true,
-      settings: captionSrc ? [{
-        name: 'subtitle-size',
-        html: '자막 크기',
-        tooltip: `${subtitleSize}px`,
-        range: [subtitleSize, 12, 48, 1],
-        onChange(item) {
-          const size = item.range[0]
-          this.subtitle.style('fontSize', `${size}px`)
-          localStorage.setItem('spark-media-subtitle-size', String(size))
-          return `${size}px`
+      settings: captionSrc ? [
+        {
+          name: 'subtitle-size',
+          html: '자막 크기',
+          tooltip: `${subtitleSize}px`,
+          range: [subtitleSize, 12, 48, 1],
+          onChange(item) {
+            const size = item.range[0]
+            this.subtitle.style('fontSize', `${size}px`)
+            localStorage.setItem('spark-media-subtitle-size', String(size))
+            return `${size}px`
+          },
+          onRange(item) {
+            const size = item.range[0]
+            this.subtitle.style('fontSize', `${size}px`)
+            localStorage.setItem('spark-media-subtitle-size', String(size))
+            return `${size}px`
+          }
         },
-        onRange(item) {
-          const size = item.range[0]
-          this.subtitle.style('fontSize', `${size}px`)
-          localStorage.setItem('spark-media-subtitle-size', String(size))
-          return `${size}px`
+        {
+          name: 'subtitle-color',
+          html: '자막 글자색',
+          tooltip: optionLabel(subtitleColors, subtitleColor),
+          selector: subtitleColors.map((option) => ({ ...option, html: option.label, default: option.value === subtitleColor })),
+          onSelect(item) {
+            this.subtitle.style({ color: item.value, textShadow: subtitleShadow(item.value) })
+            localStorage.setItem('spark-media-subtitle-color', item.value)
+            return item.html
+          }
+        },
+        {
+          name: 'subtitle-background',
+          html: '자막 배경',
+          tooltip: optionLabel(subtitleBackgrounds, subtitleBackground),
+          selector: subtitleBackgrounds.map((option) => ({ ...option, html: option.label, default: option.value === subtitleBackground })),
+          onSelect(item) {
+            this.template.$player.style.setProperty('--spark-subtitle-background', item.value)
+            localStorage.setItem('spark-media-subtitle-background', item.value)
+            return item.html
+          }
         }
-      }] : [],
+      ] : [],
       pip: true,
       fullscreen: true,
       fullscreenWeb: true,
@@ -202,9 +257,10 @@
         name: captionLabel,
         type: 'vtt',
         encoding: 'utf-8',
-        style: { color: '#fff', fontSize: `${subtitleSize}px`, textShadow: '0 1px 4px #000, 0 1px 8px #000' }
+        style: { color: subtitleColor, fontSize: `${subtitleSize}px`, textShadow: subtitleShadow(subtitleColor) }
       } } : {})
     })
+    if (captionSrc) art.template.$player.style.setProperty('--spark-subtitle-background', subtitleBackground)
     const destroyFullscreenGuard = setupFullscreenGuard(art)
     return () => {
       destroyFullscreenGuard()
@@ -226,5 +282,12 @@
   .local-media-player :global(.fullscreen-transition .art-control-fullscreen),
   .local-media-player :global(.fullscreen-transition .art-control-fullscreenWeb) {
     opacity: .35 !important;
+  }
+  .local-media-player :global(.art-subtitle-line) {
+    padding: .12em .38em;
+    border-radius: .18em;
+    background: var(--spark-subtitle-background, rgba(0, 0, 0, .62));
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
   }
 </style>

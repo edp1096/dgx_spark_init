@@ -5,6 +5,9 @@
 
   export let result = null
   export let onClose = () => {}
+  export let onSelectFrames = () => {}
+  export let onUpscale = () => {}
+  export let onRegenerate = () => {}
 
   let releaseScroll = null
   let audioElement
@@ -63,6 +66,8 @@
       </div>
       <footer>
         <div>{#each result.outputs as output}<a href={output.url} target="_blank" rel="noreferrer">{output.label} ↗</a>{/each}</div>
+        <button type="button" onclick={() => onRegenerate(result.jobID)}>자막 재생성</button>
+        {#if result.canSelectFrames}<button type="button" onclick={() => onSelectFrames(result.jobID)}>장면 선택</button><button type="button" onclick={() => onUpscale(result.jobID)}>업스케일</button>{/if}
         <button type="button" onclick={closeModal}>닫기</button>
       </footer>
     </section>

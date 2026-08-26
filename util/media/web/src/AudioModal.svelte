@@ -4,6 +4,7 @@
 
   export let audio = null
   export let onClose = () => {}
+  export let onA2V = () => {}
 
   let releaseScroll = null
   let player
@@ -37,7 +38,7 @@
         <section><strong>읽은 문장</strong><p>{audio.prompt}</p></section>
         {#if audio.instructions}<section><strong>연기 지시</strong><p>{audio.instructions}</p></section>{/if}
       </div>
-      <footer><a href={audio.src} target="_blank" rel="noreferrer">원본 파일 열기</a><button type="button" onclick={closeModal}>닫기</button></footer>
+      <footer><a href={audio.src} target="_blank" rel="noreferrer">원본 파일 열기</a>{#if audio.jobID}<button type="button" onclick={() => onA2V(audio.jobID)}>영상 생성</button>{/if}<button type="button" onclick={closeModal}>닫기</button></footer>
     </section>
   </div>
 {/if}

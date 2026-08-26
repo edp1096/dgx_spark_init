@@ -1188,7 +1188,7 @@ def identity_workflow(
     return graph
 
 
-def decode_image(encoded: str) -> Image.Image:
+def decode_image(encoded: str, preserve_alpha: bool = False) -> Image.Image:
     if encoded.startswith("data:"):
         encoded = encoded.split(",", 1)[-1]
     try:
@@ -1198,7 +1198,10 @@ def decode_image(encoded: str) -> Image.Image:
     if len(raw) > 32 << 20:
         raise HTTPException(status_code=400, detail="image exceeds 32 MiB")
     try:
-        return Image.open(io.BytesIO(raw)).convert("RGB")
+        image = Image.open(io.BytesIO(raw))
+        if preserve_alpha and ("A" in image.getbands() or "transparency" in image.info):
+            return image.convert("RGBA")
+        return image.convert("RGB")
     except (UnidentifiedImageError, OSError) as exc:
         raise HTTPException(status_code=400, detail="image is not a valid image") from exc
 
@@ -1290,6 +1293,57 @@ def save_input(encoded: str, folder: str) -> tuple[str, Path]:
     return relative, path
 
 
+def prepare_identity_reference(encoded: str) -> Image.Image:
+    """Turn an RGBA cutout into the opaque product-style image source B expects.
+
+    ComfyUI's LoadImage returns RGB pixels and a separate mask. Identity Edit only
+    consumes the RGB output, so simply passing an extracted RGBA garment exposes
+    the original person's RGB pixels hidden below alpha=0. Crop the visible object,
+    enlarge it onto a neutral canvas, and bake alpha before VAE encoding.
+    """
+    image = decode_image(encoded, preserve_alpha=True)
+    if image.mode != "RGBA":
+        return image.convert("RGB")
+
+    alpha = image.getchannel("A")
+    minimum, _ = alpha.getextrema()
+    if minimum == 255:
+        return image.convert("RGB")
+    visible = alpha.point(lambda value: 255 if value > 4 else 0)
+    bounds = visible.getbbox()
+    if bounds is None:
+        raise HTTPException(status_code=400, detail="identity reference has no visible pixels")
+
+    left, top, right, bottom = bounds
+    padding = max(8, round(max(right - left, bottom - top) * 0.06))
+    left = max(0, left - padding)
+    top = max(0, top - padding)
+    right = min(image.width, right + padding)
+    bottom = min(image.height, bottom + padding)
+    cropped = image.crop((left, top, right, bottom))
+
+    neutral = (245, 245, 245, 255)
+    flattened = Image.new("RGBA", cropped.size, neutral)
+    flattened.alpha_composite(cropped)
+    flattened_rgb = flattened.convert("RGB")
+
+    fit_width = max(1, round(image.width * 0.88))
+    fit_height = max(1, round(image.height * 0.88))
+    fitted = ImageOps.contain(flattened_rgb, (fit_width, fit_height), Image.Resampling.LANCZOS)
+    canvas = Image.new("RGB", image.size, neutral[:3])
+    canvas.paste(fitted, ((image.width - fitted.width) // 2, (image.height - fitted.height) // 2))
+    return canvas
+
+
+def save_identity_reference(encoded: str) -> tuple[str, Path]:
+    image = prepare_identity_reference(encoded)
+    relative = f"krea-edit-reference/{uuid.uuid4().hex}.png"
+    path = INPUT_ROOT / relative
+    path.parent.mkdir(parents=True, exist_ok=True)
+    image.save(path, format="PNG")
+    return relative, path
+
+
 def save_stitched_references(encoded_images: list[str]) -> tuple[str, Path]:
     """Build the single source-B image expected by Krea2 Edit from several references."""
     images = [decode_image(encoded).convert("RGB") for encoded in encoded_images]
@@ -1327,6 +1381,15 @@ async def comfy_ready() -> bool:
         return response.is_success
     except httpx.HTTPError:
         return False
+
+
+@app.post("/v1/cancel")
+async def cancel_generation() -> dict[str, str]:
+    """Interrupt the single active ComfyUI generation, if any."""
+    async with httpx.AsyncClient(timeout=5) as client:
+        response = await client.post(f"{COMFY_URL}/interrupt")
+        response.raise_for_status()
+    return {"status": "cancelling"}
 
 
 async def wait_for_output(client: httpx.AsyncClient, prompt_id: str) -> dict[str, Any]:
@@ -2256,7 +2319,7 @@ async def generate(request: ImageRequest) -> dict[str, Any]:
                     identity_references.append(request.control_image)
                 for encoded_reference in identity_references:
                     reference_name, reference_path = await asyncio.to_thread(
-                        save_input, encoded_reference, "krea-edit-reference"
+                        save_identity_reference, encoded_reference
                     )
                     reference_names.append(reference_name)
                     reference_paths.append(reference_path)

@@ -1,5 +1,6 @@
 services:
   sglang:
+    init: true
     image: "lmsysorg/sglang@sha256:febfb971c7352570fc445c466ebd6ffc9d896024958e544a60f2137fd85856b1"
     container_name: sglang-qwen38
     ipc: host
@@ -90,6 +91,7 @@ services:
     restart: unless-stopped
 
   open-webui:
+    init: true
     image: "ghcr.io/open-webui/open-webui:main"
     container_name: open-webui-sgl-qwen38
     ports:

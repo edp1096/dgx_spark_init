@@ -3,25 +3,36 @@
   import { api } from './api.js'
   import ResultPagination from './ResultPagination.svelte'
   import { sogniPromptPresets } from './sogniPromptPresets.js'
+  import { ltxPromptPresets, ltxPromptSources } from './ltxPromptPresets.js'
   import MaskEditor from './MaskEditor.svelte'
   import CannyEditor from './CannyEditor.svelte'
   import ImageModal from './ImageModal.svelte'
   import VideoModal from './VideoModal.svelte'
+  import VideoFramePicker from './VideoFramePicker.svelte'
+  import VideoUpscaleModal from './VideoUpscaleModal.svelte'
+  import VideoConditionTimeline from './VideoConditionTimeline.svelte'
+  import VideoAudioTimeline from './VideoAudioTimeline.svelte'
+  import VideoTimelineEditor from './VideoTimelineEditor.svelte'
   import SubtitleModal from './SubtitleModal.svelte'
+  import SubtitleRegenerateModal from './SubtitleRegenerateModal.svelte'
   import AudioModal from './AudioModal.svelte'
   import PromptModal from './PromptModal.svelte'
   import LoraStudio from './LoraStudio.svelte'
   import PromptComposer from './PromptComposer.svelte'
   import PromptExamplesModal from './PromptExamplesModal.svelte'
   import RecentImagePicker from './RecentImagePicker.svelte'
+  import RecentVideoPicker from './RecentVideoPicker.svelte'
+  import RecentAudioPicker from './RecentAudioPicker.svelte'
   import PresetImagePicker from './PresetImagePicker.svelte'
   import RemoteImageModal from './RemoteImageModal.svelte'
   import AssistantChat from './AssistantChat.svelte'
   import SparkBolt from './SparkBolt.svelte'
   import GarmentExtractorModal from './GarmentExtractorModal.svelte'
   import { lockModalScroll } from './modalScroll.js'
+  import { upscaleFrameWork, videoUpscaleEstimateSeconds } from './videoUpscaleEta.js'
 
   let tab = 'image'
+  let colorTheme = document.documentElement.dataset.theme === 'light' ? 'light' : 'dark'
   let config = null
   let settings = null
   let savedMessage = ''
@@ -30,6 +41,8 @@
   let engineStates = { image: 'offline', speech: 'offline', recognition: 'offline', video: 'offline', prompt: 'offline', media: 'offline', trainer: 'offline', upscale: 'offline', garment: 'offline' }
   let busy = false
   let error = ''
+  let refreshFailureCount = 0
+  let refreshError = ''
   let refs = []
   let imageForm = { prompt: '', width: 1024, height: 1024, seed: -1, mode: 'create' }
   let imageEnhanceEnabled = true
@@ -101,6 +114,8 @@
   let imageModal = null
   let videoModal = null
   let subtitleModal = null
+  let subtitleRegenerateJob = null
+  let regeneratingSubtitleJob = ''
   let audioModal = null
   let promptModal = null
   let runtimeInfoOpen = false
@@ -173,6 +188,8 @@
     media_part: '', media_source: ''
   }
   let recognitionFile = null
+  let recognitionSourceVideoJob = null
+  let recognitionVideoPickerOpen = false
   let recognitionFileInput
   let recognitionOptions = null
   let loadingRecognitionOptions = false
@@ -183,7 +200,14 @@
   let videoEndImage = null
   let videoEndStrength = 1
   let videoKeyframes = []
+  let videoAudioClips = []
+  let videoAudioJob = null
+  let videoAudioPickerOpen = false
+  let videoTimelineEditorOpen = false
   let nextVideoKeyframeID = 1
+  let nextVideoAudioClipID = 1
+
+  $: videoAudioJob = videoAudioClips[0]?.job || null
   let videoImagePickerTarget = ''
   let videoRemoteImageTarget = ''
   let videoEnhanceEnabled = true
@@ -195,6 +219,10 @@
   let creatingVideoPrompt = false
   let videoPromptCreationMessage = ''
   let videoPromptPreset = ''
+  let videoAdvancedOpen = false
+  let framePickerSource = null
+  let videoUpscaleSource = null
+  let videoUpscaleBusy = false
   let enhancingPrompt = false
   let deletingJob = ''
   let cancellingJob = ''
@@ -224,6 +252,7 @@
   let removeBF16Sources = false
   let subtitleView = 'gallery'
   let imageView = 'gallery'
+  let speechView = 'gallery'
   let mobileImagePane = 'create'
   let mobileVideoPane = 'create'
   let mobileSpeechPane = 'create'
@@ -398,6 +427,17 @@
     return `${dimensions}${formatDuration(media.duration)} · ${formatBytes(media.size)}`
   }
 
+  function subtitleTranslationWarnings(job) {
+    return Array.isArray(job.params?.translation_warnings) ? job.params.translation_warnings : []
+  }
+
+  function subtitleTranslationWarningText(job) {
+    return subtitleTranslationWarnings(job).map((warning) => {
+      const segment = Number(warning?.segment) || '?'
+      return `${segment}번 자막\n원문: ${warning?.source || '(내용 없음)'}\n${warning?.reason || '번역하지 못해 원문을 유지했습니다.'}`
+    }).join('\n\n')
+  }
+
   function durationFromFrames(frames, fps) {
     return Math.round(Math.max(0, (Number(frames) - 1) / Math.max(1, Number(fps))) * 1000) / 1000
   }
@@ -405,6 +445,16 @@
   function framesForDuration(seconds, fps) {
     const rawFrames = Math.max(0, Number(seconds) || 0) * Math.max(1, Number(fps) || 1)
     return Math.max(9, Math.round(rawFrames / 8) * 8 + 1)
+  }
+
+  function snapVideoDuration(seconds, fps = videoForm.fps) {
+    return durationFromFrames(framesForDuration(seconds, fps), fps)
+  }
+
+  function snapDimension(value, multiple, minimum, maximum = Number.MAX_SAFE_INTEGER) {
+    const numeric = Number(value)
+    const fallback = Math.max(minimum, Number.isFinite(numeric) ? numeric : minimum)
+    return Math.max(minimum, Math.min(maximum, Math.round(fallback / multiple) * multiple))
   }
 
   function formatDuration(seconds) {
@@ -418,7 +468,51 @@
   }
 
   function videoJobDuration(job) {
+    if (job.params?.mode === 'upscale') return Math.max(0, Number(job.params?.duration) || 0)
     return (Math.max(1, Number(job.params?.num_frames) || 1) - 1) / Math.max(1, Number(job.params?.fps) || 1)
+  }
+
+  function videoFPSLabel(job) {
+    return Number(job.params?.fps) > 0 ? ` · ${job.params.fps} fps` : ''
+  }
+
+  const videoResolutionPresets = [
+    { id: 'fast', label: '빠르게', width: 768, height: 512, hint: 'Dense' },
+    { id: 'standard', label: '기본', width: 1280, height: 704, hint: '자동' },
+    { id: 'high', label: '업스케일', width: 1920, height: 1088, hint: 'SOL Attn' }
+  ]
+
+  function currentVideoResolutionPreset() {
+    return videoResolutionPresets.find((preset) => preset.width === Number(videoForm.width) && preset.height === Number(videoForm.height))?.id || 'custom'
+  }
+
+  function applyVideoResolutionPreset(preset) {
+    if (!preset) return
+    videoForm = { ...videoForm, width: preset.width, height: preset.height }
+  }
+
+  function videoStage2TokenCount(width = videoForm.width, height = videoForm.height, seconds = videoDurationSeconds, fps = videoForm.fps) {
+    const frames = framesForDuration(seconds, fps)
+    return (Math.floor((frames - 1) / 8) + 1) * Math.floor(Number(width) / 32) * Math.floor(Number(height) / 32)
+  }
+
+  function videoAccelerationPreview() {
+    if (config?.video?.acceleration === 'dense') return 'Dense · 가속 꺼짐'
+    const tokens = videoStage2TokenCount()
+    if (tokens < 32000) return `Dense · ${tokens.toLocaleString()} tokens`
+    return `SOL Attn · ${tokens.toLocaleString()} tokens`
+  }
+
+  function videoAccelerationLabel(job) {
+    if (job.params?.mode === 'upscale') {
+      const scale = Number(job.params?.upscale_scale) || 2
+      return `SeedVR2 ${scale.toFixed(2).replace(/\.?0+$/, '')}×`
+    }
+    const actual = job.params?.acceleration
+    if (actual === 'cute_sm121+exact-adaln') return 'SOL Attn'
+    if (actual === 'cute_sm121') return 'SOL Attn'
+    if (actual === 'dense') return 'Dense'
+    return job.params?.acceleration_requested === 'auto' ? '자동' : ''
   }
 
   function imageModuleSummary(job) {
@@ -458,9 +552,42 @@
     const mode = params.mode || 'create'
     const steps = Number(params.steps) || (mode === 'detail_enhance' ? 10 : 8)
     const sampler = params.sampler || (mode === 'detail_enhance' ? 'er_sde' : 'euler')
-    const megapixelBand = Math.max(1, Math.round((Number(params.width) || 1024) * (Number(params.height) || 1024) / 262144))
     const modules = ['identity', 'depth', 'vision', 'style_reference', 'nk2e', 'anypaint'].filter((name) => params[name]).join('+') || 'base'
-    return `${mode}|${sampler}|${steps}|${megapixelBand}|${modules}`
+    const checkpoint = params.checkpoint || params.model || 'official'
+    const textEncoder = params.text_encoder || params.encoder || 'default'
+    const loraCount = (Array.isArray(params.user_loras) ? params.user_loras.length : 0) + (Array.isArray(params.styles) ? params.styles.length : 0)
+    const references = imageReferenceCount(job)
+    return `${mode}|${checkpoint}|${textEncoder}|${sampler}|${params.scheduler || 'simple'}|${steps}|${Number(params.width) || 1024}x${Number(params.height) || 1024}|${modules}|refs:${references}|lora:${loraCount}|vae:${params.vae_mode || params.detail_vae || 'default'}|filter:${params.filter_mode || 'default'}`
+  }
+
+  function imageReferenceCount(job) {
+    const params = job.params || {}
+    const explicit = Number(params.references)
+    if (Number.isFinite(explicit)) return explicit
+    return ['identity_reference_count', 'style_reference_count', 'vision_count', 'garment_reference_count']
+      .reduce((total, key) => total + (Number(params[key]) || 0), 0)
+  }
+
+  function imageGenerationWork(job) {
+    const params = job.params || {}
+    const mode = params.mode || 'create'
+    const megapixels = Math.max(.1, (Number(params.width) || 1024) * (Number(params.height) || 1024) / 1_000_000)
+    if (mode === 'garment_extract') return megapixels
+    if (mode === 'upscale') return megapixels * Math.max(1, Number(params.upscale_scale) || 2)
+    const steps = Number(params.steps) || (mode === 'detail_enhance' ? 10 : 8)
+    const modules = ['identity', 'depth', 'vision', 'style_reference', 'nk2e', 'anypaint'].filter((name) => params[name]).length
+    const references = imageReferenceCount(job)
+    const loras = (Array.isArray(params.user_loras) ? params.user_loras.length : 0) + (Array.isArray(params.styles) ? params.styles.length : 0)
+    return megapixels * steps * (1 + modules * .28 + references * .08 + loras * .04)
+  }
+
+  function imageGenerationDistance(left, right) {
+    const a = left.params || {}, b = right.params || {}
+    const ratio = Math.abs(Math.log(imageGenerationWork(left) / imageGenerationWork(right)))
+    const mode = (a.mode || 'create') === (b.mode || 'create') ? 0 : 8
+    const model = (a.checkpoint || a.model || 'official') === (b.checkpoint || b.model || 'official') ? 0 : 3
+    const moduleMismatch = ['identity', 'depth', 'vision', 'style_reference', 'nk2e', 'anypaint'].reduce((total, key) => total + (Boolean(a[key]) === Boolean(b[key]) ? 0 : .8), 0)
+    return ratio + mode + model + moduleMismatch + Math.abs(imageReferenceCount(left) - imageReferenceCount(right)) * .15
   }
 
   function imageJobDurationSeconds(job) {
@@ -470,30 +597,48 @@
     return (completed - started) / 1000
   }
 
-  function median(values) {
+  function percentile(values, fraction = .5) {
     const sorted = values.filter((value) => Number.isFinite(value) && value > 0).sort((a, b) => a - b)
     if (!sorted.length) return 0
-    const middle = Math.floor(sorted.length / 2)
-    return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2
+    const position = Math.max(0, Math.min(sorted.length - 1, Math.ceil(sorted.length * fraction) - 1))
+    return sorted[position]
   }
 
   function imageGenerationEstimateSeconds(job) {
     const key = imageGenerationKey(job)
-    const exact = jobs
+    const exactJobs = jobs
       .filter((item) => item.kind === 'image' && item.status === 'completed' && item.id !== job.id && imageGenerationKey(item) === key)
+      .sort((left, right) => Date.parse(right.updated_at || 0) - Date.parse(left.updated_at || 0))
       .slice(0, 12)
-      .map(imageJobDurationSeconds)
-    const observed = median(exact)
+    const exact = exactJobs.map(imageJobDurationSeconds).filter((seconds) => seconds > 0)
+    const jobStarted = Date.parse(job.params?.started_at || job.created_at || 0)
+    const previousFinished = Date.parse(exactJobs[0]?.updated_at || 0)
+    // ComfyUI lazily loads the text encoder, DiT checkpoint and VAE. A run
+    // immediately following the same pipeline is usually warm; after an idle
+    // interval it may have to load all three again. Mixing both populations
+    // produced estimates such as 17s for an 86s cold run.
+    const warmWindowSeconds = 3 * 60
+    const secondsSincePrevious = (jobStarted - previousFinished) / 1000
+    const likelyWarm = Number.isFinite(secondsSincePrevious) && secondsSincePrevious >= 0 && secondsSincePrevious <= warmWindowSeconds
+    const exactMedian = percentile(exact, .5)
+    const warmExact = exact.filter((seconds) => seconds <= exactMedian)
+    const warmObserved = percentile(warmExact, .5)
+    const coldObserved = percentile(exact, .85)
+    const observed = likelyWarm ? (warmObserved || coldObserved) : coldObserved
     if (observed) return Math.max(3, observed)
     const params = job.params || {}
     const mode = params.mode || 'create'
+    const comparable = jobs
+      .filter((item) => item.kind === 'image' && item.status === 'completed' && item.id !== job.id && (item.params?.mode || 'create') === mode)
+      .sort((left, right) => imageGenerationDistance(job, left) - imageGenerationDistance(job, right))
+      .slice(0, 12)
+    const normalized = comparable.map((item) => imageJobDurationSeconds(item) / imageGenerationWork(item))
+    const rate = percentile(normalized, .6)
+    if (rate) return Math.max(3, rate * imageGenerationWork(job))
     const megapixels = Math.max(.25, (Number(params.width) || 1024) * (Number(params.height) || 1024) / 1_000_000)
-    const steps = Number(params.steps) || (mode === 'detail_enhance' ? 10 : 8)
-    if (mode === 'garment_extract') return 12
-    if (mode === 'upscale') return Math.max(20, 16 * megapixels)
-    if (mode === 'detail_enhance') return Math.max(18, 5 + steps * megapixels * 1.5)
-    const moduleCount = ['identity', 'depth', 'vision', 'style_reference', 'nk2e', 'anypaint'].filter((name) => params[name]).length
-    return Math.max(8, 4 + steps * megapixels * 1.15 * (1 + moduleCount * .18))
+    if (mode === 'garment_extract') return Math.max(3, 3 * megapixels)
+    if (mode === 'upscale') return Math.max(20, 16 * megapixels * Math.max(1, Number(params.upscale_scale) || 2) / 2)
+    return Math.max(8, 4 + imageGenerationWork(job) * 1.15)
   }
 
   function imageGenerationProgress(job) {
@@ -501,11 +646,21 @@
     if (job.status === 'queued') {
       const elapsed = Number.isFinite(created) ? (progressClock - created) / 1000 : 0
       const position = generationQueuePosition(job)
-      return { label: position ? `대기 ${position}번째` : '대기 중', percent: 2, elapsed: `대기 ${compactElapsed(elapsed)}`, eta: '앞선 작업 종료 후 시작' }
+      const engineWait = job.params?.stage === 'waiting_upscale_engine' || job.params?.stage === 'waiting_video_engine'
+      return { label: engineWait ? '업스케일러 대기' : position ? `대기 ${position}번째` : '대기 중', percent: 2, elapsed: `대기 ${compactElapsed(elapsed)}`, eta: engineWait ? '이전 SeedVR2 작업 종료 후 시작' : '앞선 작업 종료 후 시작' }
     }
     const started = Date.parse(job.params?.started_at || job.updated_at || job.created_at || 0)
     const elapsedSeconds = Number.isFinite(started) ? Math.max(0, (progressClock - started) / 1000) : 0
-    const estimateSeconds = imageGenerationEstimateSeconds(job)
+    let estimateSeconds = imageGenerationEstimateSeconds(job)
+    // If a supposedly warm request crosses its estimate, stop claiming that
+    // it is merely finishing. The process was evicted or had to reload, so use
+    // the conservative observed bound while it continues.
+    if (elapsedSeconds > estimateSeconds) {
+      const exact = jobs
+        .filter((item) => item.kind === 'image' && item.status === 'completed' && item.id !== job.id && imageGenerationKey(item) === imageGenerationKey(job))
+        .map(imageJobDurationSeconds)
+      estimateSeconds = Math.max(estimateSeconds, percentile(exact, .85))
+    }
     const remainingSeconds = estimateSeconds - elapsedSeconds
     const percent = Math.min(94, Math.max(5, elapsedSeconds / estimateSeconds * 100))
     const finishTime = new Date(progressClock + Math.max(0, remainingSeconds) * 1000).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' })
@@ -520,12 +675,62 @@
 
   function videoGenerationKey(job) {
     const params = job.params || {}
-    return `${Number(params.width) || 0}x${Number(params.height) || 0}|${Number(params.num_frames) || 0}|${params.image ? 'i2v' : 't2v'}`
+    if (params.mode === 'upscale') return `upscale|${params.model || params.upscale_engine || 'default'}|${params.source_width || 0}x${params.source_height || 0}|${params.upscale_scale || 2}|frames:${upscaleFrameWork(params).sourceFrames}|fps:${Number(params.fps) || 24}|batch:${params.batch_size || 5}|overlap:${params.temporal_overlap ?? 1}`
+    const pipeline = videoGenerationPipeline(job)
+    const conditions = videoConditionCount(job)
+    return `${pipeline}|${params.model || 'ltx'}|${params.acceleration_requested || params.acceleration || 'legacy'}|${Number(params.width) || 0}x${Number(params.height) || 0}|${Number(params.num_frames) || 0}|${Number(params.fps) || 24}|conditions:${conditions}|motion:${params.motion_lora_enabled ? Number(params.motion_lora_strength) || .5 : 0}`
+  }
+
+  function videoConditionCount(job) {
+    const params = job.params || {}
+    return Array.isArray(params.video_conditions) ? params.video_conditions.length : Number(params.keyframes) || (params.image ? 1 : 0)
+  }
+
+  function videoAccelerationProfile(job) {
+    const params = job.params || {}
+    return params.acceleration_requested || params.acceleration || 'legacy'
+  }
+
+  function videoGenerationPipeline(job) {
+    const params = job.params || {}
+    if (params.mode === 'upscale') return 'upscale'
+    if (params.mode === 'a2v' || params.stage === 'a2v' || params.audio) return 'a2v'
+    return params.image ? 'i2v' : 't2v'
   }
 
   function videoGenerationWork(job) {
     const params = job.params || {}
-    return Math.max(.1, (Number(params.width) || 768) * (Number(params.height) || 512) / 1_000_000) * Math.max(9, Number(params.num_frames) || 97)
+    if (params.mode === 'upscale') {
+      const scale = Math.max(1, Number(params.upscale_scale) || 2)
+      const sourcePixels = Math.max(.1, (Number(params.source_width) || 768) * (Number(params.source_height) || 512) / 1_000_000)
+      const outputPixels = Number(params.width) > 0 && Number(params.height) > 0
+        ? Math.max(.1, Number(params.width) * Number(params.height) / 1_000_000)
+        : sourcePixels * scale * scale
+      return outputPixels * upscaleFrameWork(params).processedFrames
+    }
+    const base = Math.max(.1, (Number(params.width) || 768) * (Number(params.height) || 512) / 1_000_000) * Math.max(9, Number(params.num_frames) || 97)
+    const conditions = videoConditionCount(job)
+    // Multi-frame conditioning adds encoding work, but the two GB10 samples
+    // with 2 and 8 conditions differed by only ~1.2% per extra image. Most
+    // denoising work is shared, so treating every condition as another 5% of
+    // the whole diffusion pass substantially under-estimated sparse jobs.
+    const conditioningCost = 1 + Math.max(0, conditions - 1) * .012
+    const motionCost = params.motion_lora_enabled ? 1.03 : 1
+    return base * conditioningCost * motionCost
+  }
+
+  function videoGenerationDistance(left, right) {
+    const a = left.params || {}, b = right.params || {}
+    const pipeline = videoGenerationPipeline(left) === videoGenerationPipeline(right) ? 0 : 10
+    const work = Math.abs(Math.log(videoGenerationWork(left) / videoGenerationWork(right)))
+    const conditions = Math.abs(videoConditionCount(left) - videoConditionCount(right)) * .18
+    const motion = Boolean(a.motion_lora_enabled) === Boolean(b.motion_lora_enabled) ? 0 : .8
+    // Jobs predating acceleration metadata ran a different LTX path. Do not
+    // silently classify them as current `auto` samples: that mixed legacy
+    // 768x512 timings into SM121 estimates and caused the 328s vs 391s miss.
+    const acceleration = videoAccelerationProfile(left) === videoAccelerationProfile(right) ? 0 : 4
+    const model = (a.model || 'ltx') === (b.model || 'ltx') ? 0 : 2
+    return pipeline + work + conditions + motion + acceleration + model
   }
 
   function videoGenerationDurationSeconds(job) {
@@ -535,18 +740,42 @@
     return (completed - started) / 1000
   }
 
+  function a2vBaselineEstimateSeconds(job) {
+    const relativeWork = Math.max(1, videoGenerationWork(job) / (.256 * .256 * 9))
+    const stageOne = 30 * 1.92 * Math.pow(relativeWork, .47)
+    const stageTwo = 3 * .57 * Math.pow(relativeWork, .62)
+    return Math.max(140, 70 + stageOne + stageTwo)
+  }
+
   function videoGenerationEstimateSeconds(job) {
+    const pipeline = videoGenerationPipeline(job)
+    // SeedVR2 is deterministic enough to model its execution phases directly.
+    // Never copy a completed upscale job's wall time: it may contain queue
+    // waiting, an application restart or a duplicated retry.
+    if (pipeline === 'upscale') return videoUpscaleEstimateSeconds(job.params || {})
     const exact = jobs
       .filter((item) => item.kind === 'video' && item.status === 'completed' && item.id !== job.id && videoGenerationKey(item) === videoGenerationKey(job))
       .slice(0, 12)
       .map(videoGenerationDurationSeconds)
-    const exactObserved = median(exact)
+    const exactObserved = percentile(exact, .6)
     if (exactObserved) return Math.max(10, exactObserved)
-    const normalized = jobs
-      .filter((item) => item.kind === 'video' && item.status === 'completed' && item.id !== job.id && Boolean(item.params?.image) === Boolean(job.params?.image))
+    const candidates = jobs
+      .filter((item) => item.kind === 'video' && item.status === 'completed' && item.id !== job.id && videoGenerationPipeline(item) === pipeline)
+    const sameAcceleration = candidates.filter((item) => videoAccelerationProfile(item) === videoAccelerationProfile(job))
+    const comparable = (sameAcceleration.length ? sameAcceleration : candidates)
+      .sort((left, right) => videoGenerationDistance(job, left) - videoGenerationDistance(job, right))
       .slice(0, 20)
-      .map((item) => videoGenerationDurationSeconds(item) / videoGenerationWork(item))
-    const rate = median(normalized)
+    // A2V uses the 22B dev model for a 30-step low-resolution pass followed
+    // by a 3-step full-resolution pass.  It must never inherit the much faster
+    // distilled T2V/I2V rate. Different resolutions scale non-linearly, so
+    // completed runs calibrate the GB10 curve rather than using seconds/pixel.
+    if (pipeline === 'a2v') {
+      const corrections = comparable.map((item) => videoGenerationDurationSeconds(item) / a2vBaselineEstimateSeconds(item))
+      const correction = percentile(corrections, .6) || 1.1
+      return a2vBaselineEstimateSeconds(job) * Math.max(.8, Math.min(1.5, correction))
+    }
+    const normalized = comparable.map((item) => videoGenerationDurationSeconds(item) / videoGenerationWork(item))
+    const rate = percentile(normalized, .6)
     if (rate) return Math.max(10, rate * videoGenerationWork(job))
     return Math.max(30, videoGenerationWork(job) * 2.5)
   }
@@ -569,6 +798,59 @@
       percent,
       elapsed: `${Math.round(elapsedSeconds)}/${Math.round(estimateSeconds)}초`,
       eta: remainingSeconds > 0 ? `${finishTime} 완료 예상` : ''
+    }
+  }
+
+  function speechGenerationKey(job) {
+    const params = job.params || {}
+    const lengthBand = Math.max(1, Math.round((job.prompt || '').length / 40))
+    return `${params.model || 'qwen3-tts'}|${params.language || 'Auto'}|${params.speaker || 'default'}|instructions:${params.instructions ? 1 : 0}|length:${lengthBand}`
+  }
+
+  function speechGenerationWork(job) {
+    const params = job.params || {}
+    const characters = Math.max(8, (job.prompt || '').length)
+    return Math.pow(characters, .88) * (params.instructions ? 1.05 : 1)
+  }
+
+  function speechGenerationEstimateSeconds(job) {
+    const exact = jobs
+      .filter((item) => item.kind === 'speech' && item.status === 'completed' && item.id !== job.id && speechGenerationKey(item) === speechGenerationKey(job))
+      .slice(0, 12)
+      .map(imageJobDurationSeconds)
+    const exactObserved = percentile(exact, .6)
+    if (exactObserved) return Math.max(1, exactObserved)
+    const params = job.params || {}
+    const comparable = jobs
+      .filter((item) => item.kind === 'speech' && item.status === 'completed' && item.id !== job.id)
+      .sort((left, right) => {
+        const a = left.params || {}, b = right.params || {}
+        const leftScore = Math.abs(Math.log(speechGenerationWork(job) / speechGenerationWork(left))) + ((params.language || 'Auto') === (a.language || 'Auto') ? 0 : .8) + ((params.speaker || '') === (a.speaker || '') ? 0 : .25) + (Boolean(params.instructions) === Boolean(a.instructions) ? 0 : .2)
+        const rightScore = Math.abs(Math.log(speechGenerationWork(job) / speechGenerationWork(right))) + ((params.language || 'Auto') === (b.language || 'Auto') ? 0 : .8) + ((params.speaker || '') === (b.speaker || '') ? 0 : .25) + (Boolean(params.instructions) === Boolean(b.instructions) ? 0 : .2)
+        return leftScore - rightScore
+      })
+      .slice(0, 12)
+    const rates = comparable.map((item) => imageJobDurationSeconds(item) / speechGenerationWork(item))
+    const rate = percentile(rates, .6)
+    return Math.max(1, rate ? rate * speechGenerationWork(job) : .12 * speechGenerationWork(job))
+  }
+
+  function speechGenerationProgress(job) {
+    if (job.status === 'queued') {
+      const created = Date.parse(job.created_at || 0)
+      const elapsed = Number.isFinite(created) ? (progressClock - created) / 1000 : 0
+      const position = generationQueuePosition(job)
+      return { label: position ? `대기 ${position}번째` : '대기 중', percent: 2, elapsed: `대기 ${compactElapsed(elapsed)}`, eta: '앞선 작업 종료 후 시작' }
+    }
+    const started = Date.parse(job.params?.started_at || job.updated_at || job.created_at || 0)
+    const elapsedSeconds = Number.isFinite(started) ? Math.max(0, (progressClock - started) / 1000) : 0
+    const estimateSeconds = speechGenerationEstimateSeconds(job)
+    const remainingSeconds = estimateSeconds - elapsedSeconds
+    return {
+      label: remainingSeconds > 0 ? `${Math.min(94, Math.max(5, Math.round(elapsedSeconds / estimateSeconds * 100)))}%` : '마무리 중',
+      percent: Math.min(94, Math.max(5, elapsedSeconds / estimateSeconds * 100)),
+      elapsed: `${Math.round(elapsedSeconds)}/${Math.round(estimateSeconds)}초`,
+      eta: remainingSeconds > 0 ? `${new Date(progressClock + remainingSeconds * 1000).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' })} 완료 예상` : ''
     }
   }
 
@@ -609,6 +891,29 @@
     if (params.stage === 'translation') return `자막 번역 ${params.translation_progress || 0}/${params.translation_total || 0} 배치`
     if (params.stage === 'finalizing') return '자막 파일 생성 중'
     return job.status
+  }
+
+  function recognitionProgressTiming(job) {
+    const params = job.params || {}
+    if (job.status !== 'running') return ''
+    const stageStarted = Date.parse(params.stage_started_at || params.started_at || job.created_at || 0)
+    const elapsed = Number.isFinite(stageStarted) ? Math.max(0, (progressClock - stageStarted) / 1000) : 0
+    if (params.stage === 'media' && params.media_stage === 'downloading' && Number(params.media_eta_seconds) > 0) {
+      return `${compactElapsed(elapsed)}/${compactElapsed(elapsed + Number(params.media_eta_seconds))}`
+    }
+    let done = 0, total = 0
+    if (params.stage === 'recognition') {
+      done = Number(params.progress) || 0
+      total = Number(params.segments) || 0
+    } else if (params.stage === 'translation') {
+      done = Number(params.translation_progress) || 0
+      total = Number(params.translation_total) || 0
+    }
+    if (done > 0 && total > 0) {
+      const estimate = elapsed * total / done
+      return `${compactElapsed(elapsed)}/${compactElapsed(Math.max(elapsed, estimate))}`
+    }
+    return elapsed > 0 ? `${compactElapsed(elapsed)} 경과` : ''
   }
 
   function recognitionProgressPercent(job) {
@@ -692,7 +997,7 @@
   }
 
   function pageSizeOptionsFor(key) {
-    return ['image', 'video', 'recognition'].includes(key) ? imagePageSizeOptions : pageSizeOptions
+    return ['image', 'video', 'speech', 'recognition'].includes(key) ? imagePageSizeOptions : pageSizeOptions
   }
 
   function setListPageSize(key, pageSize) {
@@ -725,8 +1030,17 @@
       })
       clampListPages()
       engineStates = Object.fromEntries(nextEngines.map((item) => [item.kind, item.status]))
+      refreshFailureCount = 0
+      if (error === refreshError || /failed to fetch|networkerror|load failed/i.test(error)) error = ''
+      refreshError = ''
     } catch (e) {
-      if (sequence === refreshSequence) error = e.message
+      if (sequence !== refreshSequence) return
+      refreshFailureCount += 1
+      if (refreshFailureCount >= 3) {
+        const previousRefreshError = refreshError
+        refreshError = 'Media API 연결이 끊겼습니다. 자동 재연결 중입니다.'
+        if (!error || error === previousRefreshError || /failed to fetch|networkerror|load failed/i.test(error)) error = refreshError
+      }
     }
   }
 
@@ -804,8 +1118,8 @@
     try {
       videoModelStatus = await api.prepareVideoModels(hfToken.trim())
       hfToken = ''
-      savedMessage = videoModelStatus.ready
-        ? 'LTX 영상 모델이 이미 준비되어 있습니다.'
+      savedMessage = videoModelStatus.ready && videoModelStatus.a2v_ready
+        ? 'LTX 일반 영상과 A2V 모델이 이미 준비되어 있습니다.'
         : '모델 준비를 시작했습니다. 이 화면에서 진행 상태를 확인할 수 있습니다.'
       await refreshVideoModelStatus()
     } catch (e) {
@@ -837,6 +1151,7 @@
     subtitleView = localStorage.getItem('media-subtitle-view') === 'list' ? 'list' : 'gallery'
     imageView = localStorage.getItem('media-image-view') === 'list' ? 'list' : 'gallery'
     videoView = localStorage.getItem('media-video-view') === 'list' ? 'list' : 'gallery'
+    speechView = localStorage.getItem('media-speech-view') === 'list' ? 'list' : 'gallery'
     for (const key of Object.keys(listPageSizes)) {
       const storedSize = Number(localStorage.getItem(`media-${key}-page-size`))
       const allowedSizes = pageSizeOptionsFor(key)
@@ -879,7 +1194,7 @@
     const timer = setInterval(refresh, 1500)
     const systemTimer = setInterval(refreshSystemUsage, 5000)
     const modelTimer = setInterval(() => {
-      if (tab === 'settings') {
+      if (tab === 'settings' || videoModelStatus?.preparing) {
         refreshVideoModelStatus()
         refreshImageCheckpointStatus()
       }
@@ -901,6 +1216,11 @@
   function setVideoView(view) {
     videoView = view
     localStorage.setItem('media-video-view', view)
+  }
+
+  function setSpeechView(view) {
+    speechView = view
+    localStorage.setItem('media-speech-view', view)
   }
 
   function addRefs(files) {
@@ -1185,17 +1505,23 @@
   function showVideo(job) {
     if (!job?.output_url) return
     subtitleModal = null
+    const captionJob = recognitionJobs.find((item) => item.status === 'completed' && item.params?.source_job_id === job.id && item.caption_url)
     const details = [
       `${job.params?.width || '—'}×${job.params?.height || '—'}`,
       formatDuration(videoJobDuration(job)),
-      `${job.params?.fps || '—'} fps`,
+      Number(job.params?.fps) > 0 ? `${job.params.fps} fps` : '',
       job.params?.seed >= 0 ? `seed ${job.params.seed}` : ''
     ].filter(Boolean)
     videoModal = {
+      jobID: job.id,
       src: job.output_url,
       title: '생성 영상',
       detail: details.join(' · '),
       prompt: job.prompt,
+      captionSrc: captionJob?.caption_url ? `${captionJob.caption_url}?v=${encodeURIComponent(captionJob.updated_at || '')}` : '',
+      captionLabel: captionJob?.params?.translation_mode === 'none' ? '원문' : captionJob?.params?.target_language || '번역',
+      canLoadSettings: job.params?.mode !== 'upscale',
+      canSelectFrames: true,
       thumbnails: {
         url: `/api/jobs/${job.id}/video-preview.jpg`,
         number: 50,
@@ -1219,16 +1545,162 @@
       job.params?.media ? mediaSummary(job) : ''
     ].filter(Boolean)
     subtitleModal = {
+      jobID: job.id,
       mediaSrc: job.media_url,
       audio: isAudioMedia(job),
-      captionSrc: job.caption_url,
+      captionSrc: job.caption_url ? `${job.caption_url}?v=${encodeURIComponent(job.updated_at || '')}` : '',
       captionLang: captionLanguage(job),
       captionLabel: job.params?.translation_mode === 'none' ? '원문' : job.params?.target_language || '번역',
       transcript: job.params?.text,
       prompt: job.prompt,
       detail: details.join(' · '),
+      canSelectFrames: Boolean(job.media_url && !isAudioMedia(job)),
       outputs
     }
+  }
+
+  function openSubtitleRegenerate(job) {
+    if (!job || job.kind !== 'recognition' || job.status !== 'completed') return
+    subtitleModal = null
+    subtitleRegenerateJob = job
+  }
+
+  async function regenerateSubtitle(options) {
+    if (!subtitleRegenerateJob || regeneratingSubtitleJob) return
+    const jobID = subtitleRegenerateJob.id
+    regeneratingSubtitleJob = jobID
+    error = ''
+    try {
+      await api.regenerateSubtitle(jobID, options)
+      subtitleRegenerateJob = null
+      await refresh()
+    } catch (cause) {
+      error = cause.message
+    } finally {
+      regeneratingSubtitleJob = ''
+    }
+  }
+
+  function openFramePicker(job) {
+    if (!job) return
+    const recognition = job.kind === 'recognition'
+    const src = recognition ? job.media_url : job.output_url
+    if (!src || (recognition && isAudioMedia(job))) return
+    videoModal = null
+    subtitleModal = null
+    framePickerSource = {
+      jobID: job.id,
+      src,
+      title: recognition ? `받아쓰기 원본 · ${job.prompt}` : `생성 영상 · ${job.prompt}`,
+      duration: recognition ? Number(job.params?.media?.duration) || 0 : videoJobDuration(job)
+    }
+  }
+
+  function openVideoUpscale(job) {
+    if (!job) return
+    const recognition = job.kind === 'recognition'
+    if (recognition && (!job.media_url || isAudioMedia(job))) return
+    if (!recognition && (job.status !== 'completed' || !job.output_url)) return
+    const media = recognition ? job.params?.media || {} : job.params || {}
+    videoModal = null
+    subtitleModal = null
+    videoUpscaleSource = {
+      jobID: job.id,
+      title: recognition ? `받아쓰기 원본 · ${job.prompt}` : `생성 영상 · ${job.prompt}`,
+      width: Number(media.width) || 0,
+      height: Number(media.height) || 0,
+      duration: recognition ? Number(media.duration) || 0 : videoJobDuration(job)
+    }
+  }
+
+  function showVideoUpscaleSource(job) {
+    const sourceID = job?.params?.source_job_id
+    if (!sourceID) return
+    const source = jobs.find((item) => item.id === sourceID)
+    if (!source) return
+    if (source.kind === 'recognition') showSubtitle(source)
+    else showVideo(source)
+  }
+
+  async function submitVideoUpscale(options) {
+    if (!videoUpscaleSource || videoUpscaleBusy) return
+    videoUpscaleBusy = true
+    error = ''
+    try {
+      await api.upscaleVideo(videoUpscaleSource.jobID, options)
+      videoUpscaleSource = null
+      tab = 'video'
+      mobileVideoPane = 'results'
+      await refreshJobs()
+    } catch (cause) {
+      error = cause.message || '영상 업스케일 작업을 추가하지 못했습니다.'
+    } finally {
+      videoUpscaleBusy = false
+    }
+  }
+
+  async function usePickedVideoFrame(file, target, sourceTime, sourceDuration) {
+    if (target === 'start' || target === 'end') {
+      setVideoConditionImage(target, file)
+    } else {
+      if (videoKeyframes.length >= 8) throw new Error('키프레임은 최대 8개까지 추가할 수 있습니다.')
+      const fps = Math.max(1, Number(videoForm.fps) || 1)
+      const lastFrame = framesForDuration(videoDurationSeconds, fps) - 1
+      const ratio = sourceDuration > 0 ? Math.min(1, Math.max(0, sourceTime / sourceDuration)) : 0.5
+      const frame = nearestAvailableVideoKeyframeFrame(Math.round(lastFrame * ratio))
+      if (frame == null) throw new Error('현재 길이에 더 추가할 수 있는 키프레임 위치가 없습니다.')
+      const time = frame / fps
+      const id = nextVideoKeyframeID++
+      videoKeyframes = [...videoKeyframes, { id, image: normalizedVideoImage(file), time, strength: 1 }]
+    }
+    tab = 'video'
+    mobileVideoPane = 'create'
+  }
+
+  function sendVideoToRecognition(job) {
+    if (!job?.output_url || job.status !== 'completed') return
+    videoModal = null
+    recognitionVideoPickerOpen = false
+    recognitionSourceVideoJob = job
+    recognitionFile = null
+    if (recognitionFileInput) recognitionFileInput.value = ''
+    recognitionForm.source = 'video_job'
+    recognitionForm.url = ''
+    resetRecognitionOptions()
+    tab = 'recognition'
+    mobileRecognitionPane = 'create'
+  }
+
+  function clearRecognitionSourceVideo() {
+    recognitionSourceVideoJob = null
+    recognitionForm.source = 'url'
+  }
+
+  function loadVideoJobSettings(job) {
+    if (!job) return
+    videoModal = null
+    clearVideoConditioning()
+    videoForm = {
+      ...videoForm,
+      prompt: job.prompt || '',
+      width: Number(job.params?.width) || config?.video?.default_width || 768,
+      height: Number(job.params?.height) || config?.video?.default_height || 512,
+      fps: Number(job.params?.fps) || config?.video?.default_fps || 24,
+      seed: Number.isFinite(Number(job.params?.seed)) ? Number(job.params.seed) : -1,
+      image_strength: Number(job.params?.image_strength) || 1
+    }
+    videoDurationSeconds = durationFromFrames(job.params?.num_frames || config?.video?.default_frames || 121, videoForm.fps)
+    const savedAudioClips = Array.isArray(job.params?.audio_clips) ? job.params.audio_clips : []
+    const legacyAudioID = job.params?.audio_source_job_id || ''
+    videoAudioClips = (savedAudioClips.length ? savedAudioClips : (legacyAudioID ? [{ source_job_id: legacyAudioID, start: 0 }] : []))
+      .map((clip) => {
+        const sourceJob = speechJobs.find((item) => item.id === clip.source_job_id)
+        return sourceJob ? { id: nextVideoAudioClipID++, job: sourceJob, start: Number(clip.start) || 0, duration: Number(clip.duration) || 0 } : null
+      })
+      .filter(Boolean)
+    resetVideoEnhancement()
+    tab = 'video'
+    mobileVideoPane = 'create'
   }
 
   function showAudio(job) {
@@ -1237,8 +1709,83 @@
       src: job.output_url,
       detail: [job.params?.speaker, job.params?.language, job.params?.seed >= 0 ? `seed ${job.params.seed}` : ''].filter(Boolean).join(' · '),
       prompt: job.prompt,
-      instructions: job.params?.instructions || ''
+      instructions: job.params?.instructions || '',
+      jobID: job.id
     }
+  }
+
+  async function sendAudioToVideo(job) {
+    if (!job?.output_url || job.status !== 'completed') return
+    audioModal = null
+    if (videoAudioClips.some((clip) => clip.job.id === job.id)) {
+      tab = 'video'
+      mobileVideoPane = 'create'
+      return
+    }
+    if (videoAudioClips.length >= 8) {
+      error = '음성은 최대 8개까지 배치할 수 있습니다.'
+      return
+    }
+    const lastEnd = videoAudioClips.reduce((end, clip) => Math.max(end, Number(clip.start) + Number(clip.duration || 0)), 0)
+    const start = Math.min(19.99, lastEnd)
+    if (start >= 19.99 && videoAudioClips.length) {
+      error = '20초 안에 새 음성을 배치할 공간이 없습니다.'
+      return
+    }
+    const clipID = nextVideoAudioClipID++
+    videoAudioClips = [...videoAudioClips, { id: clipID, job, start, duration: 0 }]
+    try {
+      const duration = await new Promise((resolve) => {
+        const probe = new Audio(job.output_url)
+        const finish = (value) => { probe.src = ''; resolve(value) }
+        probe.onloadedmetadata = () => finish(Number.isFinite(probe.duration) ? probe.duration : 0)
+        probe.onerror = () => finish(0)
+      })
+      const clipDuration = Math.max(0, duration)
+      let cursor = 0
+      videoAudioClips = videoAudioClips.map((clip) => clip.id === clipID ? { ...clip, duration: clipDuration } : clip).map((clip) => {
+        const packedStart = Math.max(Number(clip.start) || 0, cursor)
+        cursor = packedStart + (Number(clip.duration) || 0)
+        return { ...clip, start: Math.min(19.99, Math.round(packedStart * 100) / 100) }
+      })
+      if (clipDuration > 0) {
+        videoDurationSeconds = snapVideoDuration(Math.min(20, Math.max(videoDurationSeconds, cursor)))
+        normalizeVideoTiming()
+      }
+    } catch {}
+    tab = 'video'
+    mobileVideoPane = 'create'
+  }
+
+  function removeVideoAudio(id) {
+    videoAudioClips = videoAudioClips.filter((clip) => clip.id !== id)
+  }
+
+  function clearVideoAudio() {
+    videoAudioClips = []
+  }
+
+  function moveVideoAudio(id, rawStart) {
+    const clip = videoAudioClips.find((item) => item.id === id)
+    if (!clip) return
+    const duration = Math.max(0, Number(clip.duration) || 0)
+    const endLimit = Math.max(0, videoDurationSeconds - Math.min(duration, videoDurationSeconds))
+    const desired = Math.min(endLimit, Math.max(0, Number(rawStart) || 0))
+    const others = videoAudioClips.filter((item) => item.id !== id).sort((a, b) => a.start - b.start)
+    let start = desired
+    for (const other of others) {
+      const otherEnd = Number(other.start) + Number(other.duration || 0)
+      if (start < otherEnd && start + duration > Number(other.start)) {
+        start = desired >= Number(other.start) ? Math.min(endLimit, otherEnd) : Math.max(0, Number(other.start) - duration)
+      }
+    }
+    videoAudioClips = videoAudioClips.map((item) => item.id === id ? { ...item, start: Math.round(start * 100) / 100 } : item)
+  }
+
+  function togglePickedVideoAudio(job) {
+    const current = videoAudioClips.find((clip) => clip.job.id === job.id)
+    if (current) removeVideoAudio(current.id)
+    else sendAudioToVideo(job)
   }
 
   function usePaintedMask(file) {
@@ -1542,17 +2089,42 @@
     if (!preset) return
     if (promptExamplesTarget === 'video') {
       const currentPrompt = videoForm.prompt.trimEnd()
-      videoPromptPreset = preset.id
+      videoPromptPreset = preset.wildcard ? '' : preset.id
       videoForm.prompt = mode === 'append' && currentPrompt ? `${currentPrompt}\n${preset.prompt}` : preset.prompt
       promptExamplesOpen = false
       resetVideoEnhancement()
       return
     }
     const currentPrompt = imageForm.prompt.trimEnd()
-    filterPromptPreset = preset.id
+    filterPromptPreset = preset.wildcard ? '' : preset.id
     imageForm.prompt = mode === 'append' && currentPrompt ? `${currentPrompt}\n${preset.prompt}` : preset.prompt
     promptExamplesOpen = false
     resetImageEnhancement()
+  }
+
+  async function createRandomVideoPrompt(variant = 'no_camera') {
+    if (videoImage || videoEndImage || videoKeyframes.some((item) => item.image)) {
+      throw new Error('시작·마지막·키프레임 이미지가 있을 때는 장면 이미지의 프롬프트 만들기를 사용하세요.')
+    }
+    const wildcard = await api.randomPromptWildcard(variant)
+    const duration = Math.max(0.1, Number(videoDurationSeconds) || 5)
+    const raw = `Duration: ${duration.toFixed(1)} seconds\nMuse scene seed: ${wildcard.muse}\nStyle seed: ${wildcard.style}`
+    const form = new FormData()
+    form.append('prompt', raw)
+    form.append('mode', 't2v_wildcard')
+    const result = await api.enhancePrompt(form)
+    const variantLabel = wildcard.muse_variant === 'muse.txt' ? 'Muse' : 'Muse (No Camera)'
+    return {
+      id: `ltx-wildcard-${wildcard.muse_index}-${wildcard.style_index}-${Date.now()}`,
+      label: `${variantLabel} 영상 · 장면 ${wildcard.muse_index} + 스타일 ${wildcard.style_index}`,
+      prompt: result.enhanced_prompt,
+      source: wildcard.source,
+      sourceKey: 'ltx-wildcard',
+      sourceLabel: 'Crocody Muse × Style · LTX 변환',
+      previewIcon: '🎬',
+      previewTone: 'green',
+      wildcard: { ...wildcard, duration }
+    }
   }
 
   function filterModeDefault(mode) {
@@ -1611,6 +2183,16 @@
 
   function selectedKreaCheckpoint() {
 	return kreaModules.identity && kreaOptions.identity_model === 'convrot' ? 'identity-convrot' : kreaOptions.checkpoint
+  }
+
+  function selectedKreaCheckpointSource() {
+    const checkpoint = selectedKreaCheckpoint()
+    if (checkpoint === 'identity-convrot') return imageCheckpointStatus?.identity_runtime?.convrot_source || 'https://huggingface.co/Winnougan/Krea-2-Base-Turbo-NVFP4-FP8-INT8'
+    if (checkpoint === 'official') return 'https://huggingface.co/krea/Krea-2-Turbo'
+    const sourceID = checkpoint.replace('-nvfp4', '')
+    return imageCheckpointStatus?.variants?.find((item) => item.id === sourceID)?.source
+      || imageCheckpointStatus?.nvfp4_conversion?.variants?.find((item) => item.id === sourceID)?.source
+      || ''
   }
 
   function filterModeMaximum(mode) {
@@ -1857,6 +2439,8 @@
   }
 
   async function generateImage(sequencePrompts = null) {
+    imageForm.width = snapDimension(imageForm.width, 8, 256, 2048)
+    imageForm.height = snapDimension(imageForm.height, 8, 256, 2048)
     const isSequence = Array.isArray(sequencePrompts)
     if (!isSequence && imageEnhancementActive() && !imageEnhancementCurrent()) {
       await enhanceImagePrompt()
@@ -2024,11 +2608,12 @@
   }
 
   async function recognizeSpeech() {
-    if ((recognitionForm.source === 'file' && !recognitionFile) || (recognitionForm.source === 'url' && !recognitionForm.url.trim())) return
+    if ((recognitionForm.source === 'file' && !recognitionFile) || (recognitionForm.source === 'url' && !recognitionForm.url.trim()) || (recognitionForm.source === 'video_job' && !recognitionSourceVideoJob)) return
     busy = true; error = ''
     try {
       const form = new FormData()
       if (recognitionForm.source === 'file') form.append('media', recognitionFile)
+      else if (recognitionForm.source === 'video_job') form.append('reuse_video_job', recognitionSourceVideoJob.id)
       else form.append('url', recognitionForm.url.trim())
       if (recognitionForm.source === 'url' && recognitionForm.media_part) form.append('media_part', recognitionForm.media_part)
       if (recognitionForm.source === 'url' && recognitionForm.media_source) form.append('media_source', recognitionForm.media_source)
@@ -2040,6 +2625,7 @@
       await api.recognition(form)
       showNewestListPage('recognition')
       recognitionFile = null
+      recognitionSourceVideoJob = null
       if (recognitionFileInput) recognitionFileInput.value = ''
       recognitionForm.url = ''
       resetRecognitionOptions()
@@ -2059,6 +2645,7 @@
     if (recognitionForm.url.trim()) {
       recognitionForm.source = 'url'
       recognitionFile = null
+      recognitionSourceVideoJob = null
       if (recognitionFileInput) recognitionFileInput.value = ''
     }
     resetRecognitionOptions()
@@ -2068,6 +2655,7 @@
     recognitionFile = event.currentTarget.files?.[0] || null
     if (!recognitionFile) return
     recognitionForm.source = 'file'
+    recognitionSourceVideoJob = null
     recognitionForm.url = ''
     resetRecognitionOptions()
   }
@@ -2109,6 +2697,16 @@
   async function generateVideo() {
     busy = true; error = ''
     try {
+      videoForm.width = snapDimension(videoForm.width, 64, 256, 1920)
+      videoForm.height = snapDimension(videoForm.height, 64, 256, 1920)
+      normalizeVideoTiming()
+      if (!videoForm.prompt.trim()) {
+        if (!videoAudioClips.length && !videoImage && !videoEndImage && !videoKeyframes.some((item) => item.image)) {
+          throw new Error('프롬프트를 입력하거나 음성·장면 이미지를 선택하세요.')
+        }
+        const createdPrompt = await createVideoPromptFromScenes(true)
+        if (!createdPrompt) return
+      }
       let effectivePrompt = videoEnhancedPrompt
       if (videoEnhancementActive() && !videoEnhancementCurrent()) {
         effectivePrompt = await enhanceVideoPrompt()
@@ -2121,6 +2719,12 @@
       appendImageInput(form, 'start_image', 'reuse_start_image', videoImage)
       appendImageInput(form, 'end_image', 'reuse_end_image', videoEndImage)
       form.append('end_image_strength', videoEndStrength)
+      form.append('audio_count', videoAudioClips.length)
+      videoAudioClips.forEach((clip, index) => {
+        form.append(`reuse_audio_job_${index}`, clip.job.id)
+        form.append(`audio_start_${index}`, clip.start)
+        form.append(`audio_duration_${index}`, clip.duration || 0)
+      })
       const selectedKeyframes = videoKeyframes.filter((keyframe) => keyframe.image)
       form.append('keyframe_count', selectedKeyframes.length)
       selectedKeyframes.forEach((keyframe, index) => {
@@ -2132,6 +2736,7 @@
       showNewestListPage('video')
       videoForm.prompt = ''
       clearVideoConditioning()
+      clearVideoAudio()
       resetVideoEnhancement()
       await refresh()
       mobileVideoPane = 'results'
@@ -2202,11 +2807,61 @@
   }
 
   function addVideoKeyframe() {
-    if (videoKeyframes.length >= 8) return
+    if (videoKeyframes.length >= videoKeyframeCapacity()) return
     videoPromptCreationMessage = ''
     const count = videoKeyframes.length + 1
-    const time = Math.max(0.1, Math.round((videoDurationSeconds * count / (count + 1)) * 10) / 10)
+    const fps = Math.max(1, Number(videoForm.fps) || 1)
+    const lastFrame = framesForDuration(videoDurationSeconds, fps) - 1
+    const frame = nearestAvailableVideoKeyframeFrame(Math.round(lastFrame * count / (count + 1)))
+    if (frame == null) return
+    const time = frame / fps
     videoKeyframes = [...videoKeyframes, { id: nextVideoKeyframeID++, image: null, time, strength: 1 }]
+  }
+
+  function videoKeyframeCapacity() {
+    return Math.max(0, Math.min(8, framesForDuration(videoDurationSeconds, videoForm.fps) - 2))
+  }
+
+  function normalizeVideoTiming() {
+    const fps = Math.max(1, Number(videoForm.fps) || 1)
+    let frames = framesForDuration(videoDurationSeconds, fps)
+    while (frames - 2 < videoKeyframes.length) frames += 8
+    videoDurationSeconds = durationFromFrames(frames, fps)
+    const lastFrame = frames - 1
+    const occupied = new Set()
+    videoKeyframes = videoKeyframes.map((keyframe) => {
+      const desired = Math.min(lastFrame - 1, Math.max(1, Math.round(Number(keyframe.time) * fps)))
+      let frame = desired
+      if (occupied.has(frame)) {
+        for (let distance = 1; distance < lastFrame; distance++) {
+          const right = desired + distance
+          const left = desired - distance
+          if (right < lastFrame && !occupied.has(right)) { frame = right; break }
+          if (left > 0 && !occupied.has(left)) { frame = left; break }
+        }
+      }
+      occupied.add(frame)
+      return { ...keyframe, time: frame / fps }
+    })
+    videoAudioClips = videoAudioClips.map((clip) => ({
+      ...clip,
+      start: Math.min(Math.max(0, videoDurationSeconds - Math.min(Number(clip.duration) || 0, videoDurationSeconds)), Math.max(0, Number(clip.start) || 0))
+    }))
+  }
+
+  function nearestAvailableVideoKeyframeFrame(rawFrame, excludeID = null) {
+    const lastFrame = framesForDuration(videoDurationSeconds, videoForm.fps) - 1
+    if (lastFrame <= 1) return null
+    const occupied = new Set(videoKeyframes.filter((item) => item.id !== excludeID).map((item) => Math.round(Number(item.time) * videoForm.fps)))
+    const desired = Math.min(lastFrame - 1, Math.max(1, Math.round(Number(rawFrame) || 1)))
+    if (!occupied.has(desired)) return desired
+    for (let distance = 1; distance < lastFrame; distance++) {
+      const right = desired + distance
+      const left = desired - distance
+      if (right < lastFrame && !occupied.has(right)) return right
+      if (left > 0 && !occupied.has(left)) return left
+    }
+    return null
   }
 
   function removeVideoKeyframe(id) {
@@ -2219,6 +2874,13 @@
   function updateVideoKeyframe(id, field, value) {
     videoPromptCreationMessage = ''
     videoKeyframes = videoKeyframes.map((keyframe) => keyframe.id === id ? { ...keyframe, [field]: Number(value) } : keyframe)
+  }
+
+  function moveVideoKeyframe(id, rawTime) {
+    const fps = Math.max(1, Number(videoForm.fps) || 1)
+    const frame = nearestAvailableVideoKeyframeFrame(Math.round(Number(rawTime) * fps), id)
+    if (frame == null) return
+    updateVideoKeyframe(id, 'time', frame / fps)
   }
 
   function clearVideoConditioning() {
@@ -2246,6 +2908,9 @@
     videoDurationSeconds = durationFromFrames(config?.video?.default_frames || 121, videoForm.fps)
     videoEnhanceEnabled = config?.prompt_enhancement?.default_enabled ?? true
     videoPromptPreset = ''
+    clearVideoAudio()
+    videoAudioPickerOpen = false
+    videoAdvancedOpen = false
     resetVideoEnhancement()
   }
 
@@ -2260,6 +2925,8 @@
 
   function resetRecognitionCreation() {
     recognitionFile = null
+    recognitionSourceVideoJob = null
+    recognitionVideoPickerOpen = false
     if (recognitionFileInput) recognitionFileInput.value = ''
     recognitionForm = {
       source: 'url', url: '', language: config?.recognition?.default_language || 'Auto', context: '',
@@ -2296,6 +2963,7 @@
   }
 
   function videoConditioningDisabledReason() {
+    if (videoAudioJob && !videoModelStatus?.a2v_ready) return 'A2V 모델을 준비 중입니다. 설정 · 연결에서 진행 상태를 확인하세요.'
     const finalTime = (framesForDuration(videoDurationSeconds, videoForm.fps) - 1) / Number(videoForm.fps || 1)
     const occupied = new Set()
     for (let index = 0; index < videoKeyframes.length; index++) {
@@ -2441,15 +3109,21 @@
     }
   }
 
-  async function createVideoPromptFromScenes() {
-    if (creatingVideoPrompt || (!videoImage && !videoEndImage && !videoKeyframes.some((item) => item.image))) return
+  async function createVideoPromptFromScenes(automatic = false) {
+    const hasScenes = Boolean(videoImage || videoEndImage || videoKeyframes.some((item) => item.image))
+    if (creatingVideoPrompt || (!hasScenes && !videoAudioJob)) return ''
     creatingVideoPrompt = true
     videoPromptCreationMessage = ''
     error = ''
     try {
-      const request = '현재 선택된 시작·키프레임·마지막 장면을 시간 순서로 모두 보고, 장면 사이를 자연스럽게 연결할 LTX 영상 프롬프트를 만들어줘. 피사체 동작, 카메라 움직임, 환경의 움직임과 장면 연속성을 구체적으로 포함해.'
-      const visualContext = await videoAssistantVisualContext(request)
-      if (!visualContext) throw new Error('분석할 장면 이미지를 읽지 못했습니다.')
+      const audioDetails = videoAudioClips.map((clip, index) =>
+        `\n음성 ${index + 1} (${Number(clip.start).toFixed(2)}초) 원문: ${clip.job.prompt || '(원문 없음)'}${clip.job.params?.instructions ? `\n음성 ${index + 1} 연기 지시: ${clip.job.params.instructions}` : ''}${clip.job.params?.speaker ? `\n음성 ${index + 1} 화자: ${clip.job.params.speaker}` : ''}`
+      ).join('')
+      const request = hasScenes
+        ? `현재 선택된 시작·키프레임·마지막 장면을 시간 순서로 모두 보고, 장면 사이를 자연스럽게 연결할 LTX 영상 프롬프트를 만들어서 영상 설정에 적용해줘. 피사체 동작, 카메라 움직임, 환경의 움직임과 장면 연속성을 구체적으로 포함하고, 연결된 음성이 있으면 그 내용·감정·말하는 흐름과 동작을 자연스럽게 맞춰줘.${audioDetails}`
+        : `연결된 생성 음성의 내용·감정·말하는 흐름에 어울리는 LTX 오디오 구동 영상 프롬프트를 만들어서 영상 설정에 적용해줘. 피사체 동작, 표정, 카메라 움직임과 환경의 움직임을 구체적으로 쓰되 음성에 없는 극단적인 분위기나 색상은 임의로 만들지 마.${audioDetails}`
+      const visualContext = hasScenes ? await videoAssistantVisualContext(request) : null
+      if (hasScenes && !visualContext) throw new Error('분석할 장면 이미지를 읽지 못했습니다.')
       const result = await api.assistantChat({
         messages: [{ role: 'user', content: request }],
         state: assistantState,
@@ -2459,9 +3133,13 @@
       if (!prompt) throw new Error('장면 분석 결과에서 영상 프롬프트를 얻지 못했습니다.')
       videoForm = { ...videoForm, prompt }
       resetVideoEnhancement()
-      videoPromptCreationMessage = '장면 이미지를 분석해 프롬프트에 적용했습니다.'
+      videoPromptCreationMessage = hasScenes && videoAudioJob
+        ? '장면 이미지와 음성 내용을 분석해 프롬프트에 적용했습니다.'
+        : hasScenes ? '장면 이미지를 분석해 프롬프트에 적용했습니다.' : '음성 내용을 바탕으로 프롬프트를 적용했습니다.'
+      return prompt
     } catch (cause) {
-      error = cause.message || '장면 프롬프트를 만들지 못했습니다.'
+      error = cause.message || `${automatic ? '자동 ' : ''}영상 프롬프트를 만들지 못했습니다.`
+      return ''
     } finally {
       creatingVideoPrompt = false
     }
@@ -2477,12 +3155,16 @@
       enhance_enabled: videoEnhanceEnabled,
       has_start_image: Boolean(videoImage),
       has_end_image: Boolean(videoEndImage),
+      has_audio: Boolean(videoAudioJob),
+      audio_prompt: videoAudioClips.map((clip) => clip.job.prompt || '').join('\n'),
+      audio_instructions: videoAudioClips.map((clip) => clip.job.params?.instructions || '').filter(Boolean).join('\n'),
+      audio_clips: videoAudioClips.map((clip) => ({ source_job_id: clip.job.id, start: clip.start, duration: clip.duration })),
       keyframes: videoKeyframes.map((item) => ({ time: item.time, strength: item.strength, has_image: Boolean(item.image) }))
     },
     speech: { ...speechForm },
     recognition: {
       source: recognitionForm.source,
-      has_source: Boolean(recognitionFile || recognitionForm.url.trim()),
+      has_source: Boolean(recognitionFile || recognitionSourceVideoJob || recognitionForm.url.trim()),
       language: recognitionForm.language,
       context: recognitionForm.context,
       translation_mode: recognitionForm.translation_mode,
@@ -2517,9 +3199,9 @@
         imageForm = {
           ...imageForm,
           ...(action.prompt != null ? { prompt: action.prompt } : {}),
-          ...(action.width >= 256 ? { width: action.width } : {}),
-          ...(action.height >= 256 ? { height: action.height } : {}),
-          ...(action.seed != null ? { seed: action.seed } : {})
+          ...(action.width >= 256 ? { width: snapDimension(action.width, 8, 256, 2048) } : {}),
+          ...(action.height >= 256 ? { height: snapDimension(action.height, 8, 256, 2048) } : {}),
+          ...(action.seed != null ? { seed: Math.round(Number(action.seed)) } : {})
         }
         if (action.enhance_enabled != null) imageEnhanceEnabled = action.enhance_enabled
         imageResolutionMode = 'custom'
@@ -2529,12 +3211,15 @@
         videoForm = {
           ...videoForm,
           ...(action.prompt != null ? { prompt: action.prompt } : {}),
-          ...(action.width >= 256 ? { width: action.width } : {}),
-          ...(action.height >= 256 ? { height: action.height } : {}),
+          ...(action.width >= 256 ? { width: snapDimension(action.width, 64, 256, 1920) } : {}),
+          ...(action.height >= 256 ? { height: snapDimension(action.height, 64, 256, 1920) } : {}),
           ...(action.fps > 0 ? { fps: action.fps } : {}),
-          ...(action.seed != null ? { seed: action.seed } : {})
+          ...(action.seed != null ? { seed: Math.round(Number(action.seed)) } : {})
         }
-        if (action.duration > 0) videoDurationSeconds = action.duration
+        if (action.duration > 0) {
+          videoDurationSeconds = snapVideoDuration(action.duration)
+          normalizeVideoTiming()
+        }
         if (action.enhance_enabled != null) videoEnhanceEnabled = action.enhance_enabled
         resetVideoEnhancement()
       } else if (action.type === 'set_speech') {
@@ -2545,7 +3230,7 @@
           ...(action.instructions != null ? { instructions: action.instructions } : {}),
           ...(action.language ? { language: action.language } : {}),
           ...(action.speaker ? { speaker: action.speaker } : {}),
-          ...(action.seed != null ? { seed: action.seed } : {})
+          ...(action.seed != null ? { seed: Math.round(Number(action.seed)) } : {})
         }
       } else if (action.type === 'set_recognition') {
         switchAssistantTab('recognition')
@@ -2618,7 +3303,10 @@
     }
     if (kind === 'video') {
       switchAssistantTab('video')
-      if (!videoForm.prompt.trim()) throw new Error('영상 프롬프트를 입력하세요.')
+      if (!videoForm.prompt.trim()) {
+        if (!videoAudioJob && !videoImage && !videoEndImage && !videoKeyframes.some((item) => item.image)) throw new Error('프롬프트를 입력하거나 음성·장면 이미지를 선택하세요.')
+        if (!await createVideoPromptFromScenes(true)) throw new Error(error || '영상 프롬프트를 자동 작성하지 못했습니다.')
+      }
       if (videoEnhancementActive() && !videoEnhancementCurrent()) await enhanceVideoPrompt()
       if (videoEnhancementActive() && !videoEnhancementCurrent()) throw new Error(error || '영상 프롬프트를 향상하지 못했습니다.')
       await generateVideo()
@@ -2634,7 +3322,7 @@
     }
     if (kind === 'recognition') {
       switchAssistantTab('recognition')
-      if (!recognitionFile && !recognitionForm.url.trim()) throw new Error('먼저 자막으로 만들 파일이나 URL을 선택하세요.')
+      if (!recognitionFile && !recognitionSourceVideoJob && !recognitionForm.url.trim()) throw new Error('먼저 받아쓸 영상, 파일 또는 URL을 선택하세요.')
       await recognizeSpeech()
       if (error) throw new Error(error)
       return '자막 작업을 요청했습니다.'
@@ -2654,9 +3342,21 @@
     finally { cleaningStorage = false }
   }
 
+  function toggleColorTheme() {
+    colorTheme = colorTheme === 'light' ? 'dark' : 'light'
+    document.documentElement.dataset.theme = colorTheme
+    document.documentElement.style.colorScheme = colorTheme
+    localStorage.setItem('spark-media-theme', colorTheme)
+  }
+
   async function saveSettings() {
     busy = true; error = ''; savedMessage = ''
     try {
+      settings.image.default_width = snapDimension(settings.image.default_width, 8, 256, 2048)
+      settings.image.default_height = snapDimension(settings.image.default_height, 8, 256, 2048)
+      settings.video.default_width = snapDimension(settings.video.default_width, 64, 256, 1920)
+      settings.video.default_height = snapDimension(settings.video.default_height, 64, 256, 1920)
+      settingsVideoDurationSeconds = snapVideoDuration(settingsVideoDurationSeconds, settings.video.default_fps)
       settings.video.default_frames = framesForDuration(settingsVideoDurationSeconds, settings.video.default_fps)
       const result = await api.saveConfig(settings)
       config = result.config
@@ -2699,10 +3399,10 @@
   {#each translationLanguages as language}<option value={language}></option>{/each}
 </datalist>
 
-<svelte:head><meta name="theme-color" content="#101318"></svelte:head>
+<svelte:head><meta name="theme-color" content={colorTheme === 'light' ? '#f2f5f1' : '#101318'}></svelte:head>
 
 <header>
-  <div><span class="mark"><SparkBolt label="Spark Media" /></span><h1>Spark Media</h1></div>
+  <div><span class="mark"><SparkBolt label="Spark Media" /></span><h1>Spark Media</h1><button type="button" class="theme-toggle" title={colorTheme === 'light' ? '다크 모드로 전환' : '라이트 모드로 전환'} aria-label={colorTheme === 'light' ? '다크 모드로 전환' : '라이트 모드로 전환'} aria-pressed={colorTheme === 'light'} onclick={toggleColorTheme}>{colorTheme === 'light' ? '☾' : '☀'}</button></div>
   <div class="engine-strip">
     <span class="system-usage" title="5초 간격으로 갱신되는 DGX Spark 사용률"><b>CPU</b> {systemUsage.cpu_percent ?? '–'}% <b>GPU</b> {systemUsage.gpu_percent ?? '–'}% <b>MEM</b> {systemUsage.mem_used_gb == null ? '–' : Number(systemUsage.mem_used_gb).toFixed(1)}/{systemUsage.mem_total_gb == null ? '–' : Number(systemUsage.mem_total_gb).toFixed(1)}GB({systemUsage.mem_percent ?? '–'}%)</span>
     {#if tab === 'image'}
@@ -2851,7 +3551,7 @@
                         <label class="module-file optional">변경 허용 마스크 <small>흰 영역 밖 픽셀을 원본 그대로 보존</small><input type="file" accept="image/*" onchange={(e) => setKreaImage('strictMask', e.currentTarget.files?.[0] || null)}><span class="module-file-display">{#if kreaStrictMaskPreview}<img src={kreaStrictMaskPreview} alt="변경 허용 마스크">{:else}<i>LOCK</i>{/if}<b>{kreaStrictMask?.name || '선택 사항'}</b></span></label>
                         <button type="button" class="mask-editor-open" disabled={!kreaIdentityPreview} onclick={() => maskEditorMode = 'strict'}>변경 허용 영역 칠하기</button>
                       </div>
-                      {#if kreaStrictMask}<div class="module-controls"><label>마스크 확장<input type="number" min="0" max="128" bind:value={kreaOptions.strict_mask_grow}></label><label>경계 부드럽게<input type="number" min="0" max="128" step="0.5" bind:value={kreaOptions.strict_mask_feather}></label></div>{/if}
+                      {#if kreaStrictMask}<div class="module-controls"><label>마스크 확장<input type="number" min="0" max="128" bind:value={kreaOptions.strict_mask_grow}></label><label>경계 부드럽게<input type="number" min="0" max="128" step="any" bind:value={kreaOptions.strict_mask_feather}></label></div>{/if}
                     </div>
                   </details>
                 </div>
@@ -3024,8 +3724,8 @@
             </div>
           {:else}
             <div class="fields two">
-              <label>너비<input type="number" min="256" max="2048" step="8" bind:value={imageForm.width}></label>
-              <label>높이<input type="number" min="256" max="2048" step="8" bind:value={imageForm.height}></label>
+              <label>너비<input type="number" min="256" max="2048" step="any" bind:value={imageForm.width} onchange={() => imageForm.width = snapDimension(imageForm.width, 8, 256, 2048)}></label>
+              <label>높이<input type="number" min="256" max="2048" step="any" bind:value={imageForm.height} onchange={() => imageForm.height = snapDimension(imageForm.height, 8, 256, 2048)}></label>
             </div>
           {/if}
         </div>
@@ -3033,7 +3733,7 @@
           <section class="image-generation-controls" aria-label="이미지 생성 설정">
             <div class="generation-control-heading"><strong>생성 설정</strong><small>{kreaOptions.sampling_preset === 'detail' ? 'ER-SDE / Simple' : kreaOptions.sampling_preset === 'moody' ? 'Euler A / Beta' : 'Euler / Simple'} · {kreaOptions.steps} steps</small></div>
             <div class="generation-control-grid">
-              <label><span>체크포인트</span><select value={selectedKreaCheckpoint()} onchange={(event) => selectKreaCheckpoint(event.currentTarget.value)}>{#if kreaModules.identity}<option value="identity-convrot">Identity 전용 · ConvRot INT8</option>{/if}<option value="official">Krea 2 Turbo · 공식 NVFP4</option>{#if checkpointVisible('chriscole-edit-v1.1')}<option value="chriscole-edit-v1.1" disabled={!imageCheckpointStatus?.variants?.find((item) => item.id === 'chriscole-edit-v1.1')?.ready}>Krea 2 Turbo Edit v1.1 · FP8</option>{/if}{#if checkpointVisible('moody-v7')}<option value="moody-v7" disabled={!imageCheckpointStatus?.variants?.find((item) => item.id === 'moody-v7')?.ready}>Moody Krea 2 Mix V7 · NVFP4</option>{/if}{#if checkpointVisible('moody-cutie-v4')}<option value="moody-cutie-v4" disabled={!imageCheckpointStatus?.variants?.find((item) => item.id === 'moody-cutie-v4')?.ready}>Moody Cutie Mix V4 · NVFP4</option>{/if}{#if checkpointVisible('moody-amateur-v1')}<option value="moody-amateur-v1" disabled={!imageCheckpointStatus?.variants?.find((item) => item.id === 'moody-amateur-v1')?.ready}>Moody Amateur Mix V1 · NVFP4</option>{/if}{#if checkpointVisible('ray-v1')}<option value="ray-v1" disabled={!imageCheckpointStatus?.variants?.find((item) => item.id === 'ray-v1')?.ready}>Ray Artshoot V1 · FP8</option>{/if}{#if checkpointVisible('ray-v2')}<option value="ray-v2" disabled={!imageCheckpointStatus?.variants?.find((item) => item.id === 'ray-v2')?.ready}>Ray Artshoot V2 · FP8</option>{/if}{#if checkpointVisible('ray-v2-nvfp4')}<option value="ray-v2-nvfp4" disabled={!imageCheckpointStatus?.nvfp4_conversion?.variants?.find((item) => item.id === 'ray-v2')?.validated}>Ray Artshoot V2 · NVFP4</option>{/if}{#if checkpointVisible('ray-v3')}<option value="ray-v3" disabled={!imageCheckpointStatus?.variants?.find((item) => item.id === 'ray-v3')?.ready}>Ray Artshoot V3 · INT8</option>{/if}{#if checkpointVisible('ray-v4')}<option value="ray-v4" disabled={!imageCheckpointStatus?.variants?.find((item) => item.id === 'ray-v4')?.ready}>Ray Artshoot V4 · INT8</option>{/if}{#if checkpointVisible('ray-v4-nvfp4')}<option value="ray-v4-nvfp4" disabled={!imageCheckpointStatus?.nvfp4_conversion?.variants?.find((item) => item.id === 'ray-v4')?.validated}>Ray Artshoot V4 · NVFP4</option>{/if}</select></label>
+              <label class="checkpoint-field"><span class="checkpoint-field-heading">체크포인트 <details class="checkpoint-help" onclick={(event) => event.stopPropagation()}><summary aria-label="체크포인트 설명">i</summary><span class="checkpoint-help-popover" role="tooltip"><b>첫 생성·모델 전환은 오래 걸릴 수 있습니다.</b><small>생성 시작 후 체크포인트·텍스트 인코더·VAE를 메모리에 적재합니다. 이미 적재된 모델을 다시 쓸 때보다 첫 작업의 대기 시간이 크게 늘 수 있습니다.</small>{#if selectedKreaCheckpointSource()}<a href={selectedKreaCheckpointSource()} target="_blank" rel="noreferrer">출처 ↗</a>{/if}</span></details></span><select value={selectedKreaCheckpoint()} onchange={(event) => selectKreaCheckpoint(event.currentTarget.value)}>{#if kreaModules.identity}<option value="identity-convrot">Identity 전용 · ConvRot INT8</option>{/if}<option value="official">Krea 2 Turbo · 공식 NVFP4</option>{#if checkpointVisible('chriscole-edit-v1.1')}<option value="chriscole-edit-v1.1" disabled={!imageCheckpointStatus?.variants?.find((item) => item.id === 'chriscole-edit-v1.1')?.ready}>Krea 2 Turbo Edit v1.1 · FP8</option>{/if}{#if checkpointVisible('moody-v7')}<option value="moody-v7" disabled={!imageCheckpointStatus?.variants?.find((item) => item.id === 'moody-v7')?.ready}>Moody Krea 2 Mix V7 · NVFP4</option>{/if}{#if checkpointVisible('moody-cutie-v4')}<option value="moody-cutie-v4" disabled={!imageCheckpointStatus?.variants?.find((item) => item.id === 'moody-cutie-v4')?.ready}>Moody Cutie Mix V4 · NVFP4</option>{/if}{#if checkpointVisible('moody-amateur-v1')}<option value="moody-amateur-v1" disabled={!imageCheckpointStatus?.variants?.find((item) => item.id === 'moody-amateur-v1')?.ready}>Moody Amateur Mix V1 · NVFP4</option>{/if}{#if checkpointVisible('ray-v1')}<option value="ray-v1" disabled={!imageCheckpointStatus?.variants?.find((item) => item.id === 'ray-v1')?.ready}>Ray Artshoot V1 · FP8</option>{/if}{#if checkpointVisible('ray-v2')}<option value="ray-v2" disabled={!imageCheckpointStatus?.variants?.find((item) => item.id === 'ray-v2')?.ready}>Ray Artshoot V2 · FP8</option>{/if}{#if checkpointVisible('ray-v2-nvfp4')}<option value="ray-v2-nvfp4" disabled={!imageCheckpointStatus?.nvfp4_conversion?.variants?.find((item) => item.id === 'ray-v2')?.validated}>Ray Artshoot V2 · NVFP4</option>{/if}{#if checkpointVisible('ray-v3')}<option value="ray-v3" disabled={!imageCheckpointStatus?.variants?.find((item) => item.id === 'ray-v3')?.ready}>Ray Artshoot V3 · INT8</option>{/if}{#if checkpointVisible('ray-v4')}<option value="ray-v4" disabled={!imageCheckpointStatus?.variants?.find((item) => item.id === 'ray-v4')?.ready}>Ray Artshoot V4 · INT8</option>{/if}{#if checkpointVisible('ray-v4-nvfp4')}<option value="ray-v4-nvfp4" disabled={!imageCheckpointStatus?.nvfp4_conversion?.variants?.find((item) => item.id === 'ray-v4')?.validated}>Ray Artshoot V4 · NVFP4</option>{/if}</select></label>
               <label class="sampling-field"><span>샘플링 프리셋</span><select bind:value={kreaOptions.sampling_preset}><option value="default">기본 · Euler / Simple</option><option value="detail">디테일 · ER-SDE / Simple</option><option value="moody">Moody 권장 · Euler A / Beta</option></select></label>
               <label><span>스텝</span><select bind:value={kreaOptions.steps}><option value={8}>8 · 기본</option><option value={10}>10 · 균형</option><option value={12}>12 · 디테일</option></select></label>
               {#if kreaModules.identity}<label><span>텍스트 인코더</span><select bind:value={kreaOptions.identity_encoder}><option value="heretic" disabled={imageCheckpointStatus?.identity_runtime && !imageCheckpointStatus.identity_runtime.heretic_ready}>Heretic · INT8 ConvRot</option><option value="default">기본 · Qwen3-VL FP8</option></select></label>{/if}
@@ -3067,7 +3767,7 @@
                 <span>{imageModeMeta[job.params?.mode]?.label || '이미지'}{imageModuleSummary(job)} · {job.params?.width || '—'}×{job.params?.height || '—'}{#if imageSamplingSummary(job)} · {imageSamplingSummary(job)}{/if}{#if job.params?.seed >= 0} · seed {job.params.seed}{/if}</span>
                 <button type="button" class="image-prompt" title="클릭하여 전체 프롬프트 보기" onclick={() => promptModal = { title: '전체 프롬프트', detail: `${imageModeMeta[job.params?.mode]?.label || '이미지'} · ${job.params?.width || '—'}×${job.params?.height || '—'}${imageSamplingSummary(job) ? ` · ${imageSamplingSummary(job)}` : ''}`, text: imagePromptModalText(job) }}>{job.prompt}</button>
                 {#if job.error}<em>{job.error}</em>{/if}
-                {#if job.status === 'failed'}<button type="button" class="job-retry image-retry" disabled={retryingJob === job.id} onclick={() => retryJob(job)}>{retryingJob === job.id ? '재시도 중…' : '재시도'}</button>{/if}
+                {#if (job.status === 'failed' || job.status === 'cancelled')}<button type="button" class="job-retry image-retry" disabled={retryingJob === job.id} onclick={() => retryJob(job)}>{retryingJob === job.id ? '재시도 중…' : '재시도'}</button>{/if}
                 <div class="image-clone-actions" aria-label="이 작업에서 불러오기">
                   <span>불러오기:</span>
                   <button type="button" disabled={Boolean(cloningImageJob)} onclick={() => cloneImageJob(job, 'prompt')}>프롬프트</button>
@@ -3075,13 +3775,13 @@
                   <button type="button" disabled={Boolean(cloningImageJob)} onclick={() => cloneImageJob(job, 'settings')}>설정</button>
                   <button type="button" class="clone-all" disabled={Boolean(cloningImageJob)} onclick={() => cloneImageJob(job, 'all')}>{cloningImageJob === `${job.id}:all` ? '불러오는 중…' : '전체'}</button>
                 </div>
-                {#if job.status === 'completed'}<div class="image-post-actions"><span>후처리:</span><button type="button" title="이 결과를 Identity 원본으로 불러와 계속 편집" onclick={() => continueEditing(job)}>편집</button>{#if job.params?.mode === 'garment_extract' && job.outputs?.mask}<button type="button" title="저장된 의상 마스크 보기" onclick={(event) => showImage(event, job.outputs.mask, '의상 마스크', job.prompt, job.id)}>마스크</button>{:else}<button type="button" title="이 이미지에서 의상만 투명 PNG로 추출" disabled={engineStates.garment !== 'online'} onclick={() => openGarmentExtractor(job)}>의상</button>{/if}<button type="button" title="Ostris Edit LoRA로 다시 그립니다. 얼굴·색·글자·구도가 달라질 수 있습니다." disabled={Boolean(detailEnhancingImageJob) || Boolean(upscalingImageJob) || engineStates.image_create !== 'online'} onclick={() => detailEnhanceImage(job)}>{detailEnhancingImageJob === job.id ? '처리 중…' : '디테일'}</button><button type="button" title="SeedVR2로 복원하고 2배 확대" disabled={Boolean(detailEnhancingImageJob) || Boolean(upscalingImageJob) || engineStates.upscale !== 'online'} onclick={() => upscaleImage(job)}>{upscalingImageJob === job.id ? '처리 중…' : '고화질'}</button></div>{/if}
+                {#if job.status === 'completed'}<div class="image-post-actions"><span>후처리:</span><button type="button" title="이 결과를 Identity 원본으로 불러와 계속 편집" onclick={() => continueEditing(job)}>편집</button>{#if job.params?.mode === 'garment_extract' && job.outputs?.mask}<button type="button" title="저장된 의상 마스크 보기" onclick={(event) => showImage(event, job.outputs.mask, '의상 마스크', job.prompt, job.id)}>마스크</button>{:else}<button type="button" title="이 이미지에서 의상만 투명 PNG로 추출" disabled={engineStates.garment !== 'online'} onclick={() => openGarmentExtractor(job)}>의상</button>{/if}<button type="button" title="Ostris Edit LoRA로 다시 그립니다. 얼굴·색·글자·구도가 달라질 수 있습니다." disabled={Boolean(detailEnhancingImageJob) || Boolean(upscalingImageJob) || engineStates.image_create !== 'online'} onclick={() => detailEnhanceImage(job)}>{detailEnhancingImageJob === job.id ? '처리 중…' : '디테일'}</button><button type="button" title="SeedVR2로 복원하고 2배 확대" disabled={Boolean(detailEnhancingImageJob) || Boolean(upscalingImageJob) || engineStates.upscale !== 'online'} onclick={() => upscaleImage(job)}>{upscalingImageJob === job.id ? '처리 중…' : '업스케일'}</button></div>{/if}
               </div>
             {:else}
               {#if job.output_url}<button type="button" class="gallery-image image-zoom" aria-label="생성 이미지 크게 보기" onclick={(event) => showImage(event, job.output_url, '생성 이미지', job.prompt, job.id)}><img src={job.output_url} alt={job.prompt}></button>{:else}<div class="placeholder">{#if generationProgress}<div class="image-generation-status"><strong>{generationProgress.label}</strong><div class="image-generation-bar"><i style={`width:${generationProgress.percent}%`}></i></div><small>{generationProgress.elapsed}</small>{#if generationProgress.eta}<small>{generationProgress.eta}</small>{/if}</div>{:else}<span>{job.status}</span>{/if}</div>{/if}<span class="image-mode-badge" title={`${imageModeMeta[job.params?.mode]?.label || '이미지'}${imageModuleSummary(job)}`}>{imageModeMeta[job.params?.mode]?.label || '이미지'}{imageModuleSummary(job)}</span>
               <button type="button" class="image-prompt" title="클릭하여 전체 프롬프트 보기" onclick={() => promptModal = { title: '전체 프롬프트', detail: `${imageModeMeta[job.params?.mode]?.label || '이미지'} · ${job.params?.width || '—'}×${job.params?.height || '—'}${imageSamplingSummary(job) ? ` · ${imageSamplingSummary(job)}` : ''}`, text: imagePromptModalText(job) }}>{job.prompt}</button>
               {#if job.error}<em>{job.error}</em>{/if}
-              {#if job.status === 'failed'}<button type="button" class="job-retry image-retry" disabled={retryingJob === job.id} onclick={() => retryJob(job)}>{retryingJob === job.id ? '재시도 중…' : '재시도'}</button>{/if}
+              {#if (job.status === 'failed' || job.status === 'cancelled')}<button type="button" class="job-retry image-retry" disabled={retryingJob === job.id} onclick={() => retryJob(job)}>{retryingJob === job.id ? '재시도 중…' : '재시도'}</button>{/if}
               <div class="image-clone-actions" aria-label="이 작업에서 불러오기">
                 <span>불러오기:</span>
                 <button type="button" disabled={Boolean(cloningImageJob)} onclick={() => cloneImageJob(job, 'prompt')}>프롬프트</button>
@@ -3089,9 +3789,9 @@
                 <button type="button" disabled={Boolean(cloningImageJob)} onclick={() => cloneImageJob(job, 'settings')}>설정</button>
                 <button type="button" class="clone-all" disabled={Boolean(cloningImageJob)} onclick={() => cloneImageJob(job, 'all')}>{cloningImageJob === `${job.id}:all` ? '불러오는 중…' : '전체'}</button>
               </div>
-              {#if job.status === 'completed'}<div class="image-post-actions"><span>후처리:</span><button type="button" title="이 결과를 Identity 원본으로 불러와 계속 편집" onclick={() => continueEditing(job)}>편집</button>{#if job.params?.mode === 'garment_extract' && job.outputs?.mask}<button type="button" title="저장된 의상 마스크 보기" onclick={(event) => showImage(event, job.outputs.mask, '의상 마스크', job.prompt, job.id)}>마스크</button>{:else}<button type="button" title="이 이미지에서 의상만 투명 PNG로 추출" disabled={engineStates.garment !== 'online'} onclick={() => openGarmentExtractor(job)}>의상</button>{/if}<button type="button" title="Ostris Edit LoRA로 다시 그립니다. 얼굴·색·글자·구도가 달라질 수 있습니다." disabled={Boolean(detailEnhancingImageJob) || Boolean(upscalingImageJob) || engineStates.image_create !== 'online'} onclick={() => detailEnhanceImage(job)}>{detailEnhancingImageJob === job.id ? '처리 중…' : '디테일'}</button><button type="button" title="SeedVR2로 복원하고 2배 확대" disabled={Boolean(detailEnhancingImageJob) || Boolean(upscalingImageJob) || engineStates.upscale !== 'online'} onclick={() => upscaleImage(job)}>{upscalingImageJob === job.id ? '처리 중…' : '고화질'}</button></div>{/if}
+              {#if job.status === 'completed'}<div class="image-post-actions"><span>후처리:</span><button type="button" title="이 결과를 Identity 원본으로 불러와 계속 편집" onclick={() => continueEditing(job)}>편집</button>{#if job.params?.mode === 'garment_extract' && job.outputs?.mask}<button type="button" title="저장된 의상 마스크 보기" onclick={(event) => showImage(event, job.outputs.mask, '의상 마스크', job.prompt, job.id)}>마스크</button>{:else}<button type="button" title="이 이미지에서 의상만 투명 PNG로 추출" disabled={engineStates.garment !== 'online'} onclick={() => openGarmentExtractor(job)}>의상</button>{/if}<button type="button" title="Ostris Edit LoRA로 다시 그립니다. 얼굴·색·글자·구도가 달라질 수 있습니다." disabled={Boolean(detailEnhancingImageJob) || Boolean(upscalingImageJob) || engineStates.image_create !== 'online'} onclick={() => detailEnhanceImage(job)}>{detailEnhancingImageJob === job.id ? '처리 중…' : '디테일'}</button><button type="button" title="SeedVR2로 복원하고 2배 확대" disabled={Boolean(detailEnhancingImageJob) || Boolean(upscalingImageJob) || engineStates.upscale !== 'online'} onclick={() => upscaleImage(job)}>{upscalingImageJob === job.id ? '처리 중…' : '업스케일'}</button></div>{/if}
             {/if}
-            {#if job.status === 'queued'}<button class="job-stop" disabled={cancellingJob === job.id} onclick={() => cancelJob(job)}>{cancellingJob === job.id ? '취소 중…' : '대기 취소'}</button>{:else if job.status === 'completed' || job.status === 'failed' || job.status === 'cancelled'}<button class="job-delete" disabled={deletingJob === job.id} onclick={() => deleteJob(job)}>삭제</button>{/if}
+            {#if job.status === 'queued' || job.status === 'running'}<button class="job-stop" disabled={cancellingJob === job.id} onclick={() => cancelJob(job)}>{cancellingJob === job.id ? (job.status === 'running' ? '중지 중…' : '취소 중…') : (job.status === 'running' ? '중지' : '대기 취소')}</button>{:else if job.status === 'completed' || job.status === 'failed' || job.status === 'cancelled'}<button class="job-delete" disabled={deletingJob === job.id} onclick={() => deleteJob(job)}>삭제</button>{/if}
           </article>
         {:else}<div class="empty">첫 이미지가 여기에 나타납니다.</div>{/each}
       </div>
@@ -3106,45 +3806,60 @@
     <section class="workspace mobile-media-workspace" class:mobile-results={mobileVideoPane === 'results'}>
       <form class="mobile-create-pane" onsubmit={(e) => { e.preventDefault(); generateVideo() }}>
         <div class="section-title"><div><span>02</span><h2>영상 생성</h2></div><div class="image-title-actions"><button type="button" class="quiet header-prompt-tool" onclick={() => { promptExamplesTarget = 'video'; promptExamplesOpen = true }}>예제{#if videoPromptPreset}<b>선택됨</b>{/if}</button><PromptComposer compact storageKey="spark-media-prompt-composer-video" onApply={(prompt, mode) => { const currentPrompt = videoForm.prompt.trimEnd(); videoForm.prompt = mode === 'append' && currentPrompt ? `${currentPrompt}\n${prompt}` : prompt; videoPromptPreset = ''; resetVideoEnhancement() }} /><a class="quiet portrait-lab-open" href="/tools/portrait-lab/" target="_blank" rel="noreferrer">P Lab ↗</a><button type="button" class="quiet image-create-reset" disabled={busy} title="영상 생성 설정을 모두 비웁니다." onclick={resetVideoCreation}>초기화</button></div></div>
-        <label>원본 프롬프트<textarea bind:value={videoForm.prompt} rows="5" placeholder="장면과 움직임을 자연스럽게 입력하세요." required></textarea></label>
+        <label>원본 프롬프트 <small>선택 사항 · 비워두면 음성·장면 이미지로 자동 작성</small><textarea bind:value={videoForm.prompt} rows="5" placeholder="직접 입력하거나 비워두고 음성·키프레임으로 자동 작성하세요."></textarea></label>
+        <section class="video-audio-panel">
+          <div class="video-audio-heading"><div><strong>음성으로 영상 생성</strong><small>여러 음성을 추가하고 영상 안의 시작 위치를 지정합니다.</small></div><button type="button" onclick={() => videoAudioPickerOpen = true}>{videoAudioClips.length ? `음성 추가 · ${videoAudioClips.length}` : '음성 목록'}</button></div>
+          {#if videoAudioClips.length}
+            <VideoAudioTimeline duration={videoDurationSeconds} clips={videoAudioClips} onMove={moveVideoAudio} />
+            <div class="video-audio-sources">
+              {#each videoAudioClips as clip, index (clip.id)}
+                <div class="video-audio-source">
+                  <div><i>A{index + 1}</i><span><strong>{clip.job.params?.speaker || '생성 음성'}</strong><small>{clip.job.prompt}</small></span></div>
+                  <audio controls preload="metadata" src={clip.job.output_url}></audio>
+                  <label><span>시작</span><input type="number" min="0" max={Math.max(0, videoDurationSeconds - Math.min(clip.duration || 0, videoDurationSeconds))} step="0.01" value={clip.start} onchange={(event) => moveVideoAudio(clip.id, event.currentTarget.value)}><b>초</b></label>
+                  <button type="button" aria-label={`음성 ${index + 1} 제거`} onclick={() => removeVideoAudio(clip.id)}>×</button>
+                </div>
+              {/each}
+            </div>
+          {:else}
+            <button type="button" class="video-audio-empty" onclick={() => videoAudioPickerOpen = true}><i>AUDIO</i><span><strong>음성을 선택하세요</strong><small>음성 목록에서 미리 듣고 영상 생성에 연결합니다.</small></span></button>
+          {/if}
+        </section>
         <section class="video-conditioning">
-          <div class="video-conditioning-heading"><div><strong>장면 이미지</strong><small>시작·마지막 이미지와 중간 키프레임을 필요한 만큼 조합합니다.</small></div><div class="video-conditioning-heading-actions"><button type="button" title="선택한 장면 이미지를 보고 LTX 영상 프롬프트 만들기" disabled={creatingVideoPrompt || (!videoImage && !videoEndImage && !videoKeyframes.some((item) => item.image))} onclick={createVideoPromptFromScenes}>{creatingVideoPrompt ? '분석 중…' : '프롬프트 만들기'}</button><button type="button" disabled={videoKeyframes.length >= 8} onclick={addVideoKeyframe}>+ 키프레임</button></div></div>
+          <div class="video-conditioning-heading"><div><strong>장면 이미지</strong><small>장면은 시간순으로 가로 나열됩니다.</small></div><div class="video-conditioning-heading-actions"><button type="button" title="타임라인을 큰 화면에서 편집" onclick={() => videoTimelineEditorOpen = true}>크게 편집</button><button type="button" title="선택한 음성·장면 이미지로 LTX 영상 프롬프트 만들기" disabled={creatingVideoPrompt || (!videoAudioJob && !videoImage && !videoEndImage && !videoKeyframes.some((item) => item.image))} onclick={() => createVideoPromptFromScenes(false)}>{creatingVideoPrompt ? '분석 중…' : '프롬프트'}</button><button type="button" disabled={videoKeyframes.length >= videoKeyframeCapacity()} onclick={addVideoKeyframe}>+ 키프레임</button></div></div>
           {#if videoPromptCreationMessage}<small class="video-prompt-creation-message">{videoPromptCreationMessage}</small>{/if}
-          <div class="video-boundary-images">
-            <article class:has-image={Boolean(videoImage)}>
+          <VideoConditionTimeline duration={(framesForDuration(videoDurationSeconds, videoForm.fps) - 1) / Number(videoForm.fps || 1)} fps={videoForm.fps} startImage={videoImage} endImage={videoEndImage} keyframes={videoKeyframes} imageURL={videoImagePreview} onMove={moveVideoKeyframe} />
+          <div class="video-scene-cards">
+            <article class="video-boundary-card" class:has-image={Boolean(videoImage)}>
               <div class="video-condition-heading"><strong>시작 이미지</strong><small>0초 · 선택 사항</small></div>
               {#if videoImage}
                 <button type="button" class="video-condition-preview" title="클릭하여 크게 보기" onclick={(event) => showImage(event, videoImagePreview(videoImage), '영상 시작 이미지')}><img src={videoImagePreview(videoImage)} alt="영상 시작 이미지"></button>
                 <span class="video-condition-name" title={videoImage.name}>{videoImage.name}</span>
               {:else}<div class="video-condition-empty">첫 장면을 고정하려면 이미지를 선택하세요.</div>{/if}
               <div class="video-condition-actions"><label><input type="file" accept="image/png,image/jpeg,image/webp" onchange={(e) => setVideoConditionImage('start', e.currentTarget.files?.[0] || null)}><span>파일</span></label><button type="button" onclick={() => videoImagePickerTarget = 'start'}>최근 결과</button><button type="button" onclick={() => videoRemoteImageTarget = 'start'}>URL</button>{#if videoImage}<button type="button" class="danger" onclick={() => setVideoConditionImage('start', null)}>제거</button>{/if}</div>
-              {#if videoImage}<label class="video-condition-strength">반영 강도<input type="number" min="0" max="1" step="0.05" bind:value={videoForm.image_strength}></label>{/if}
+              {#if videoImage}<label class="video-condition-strength">반영 강도<input type="number" min="0" max="1" step="any" bind:value={videoForm.image_strength}></label>{/if}
             </article>
-            <article class:has-image={Boolean(videoEndImage)}>
+            {#each videoKeyframes as keyframe, index (keyframe.id)}
+                <article class="video-keyframe-card">
+                  <div class="video-condition-heading"><strong>키프레임 {index + 1}</strong><button type="button" aria-label="키프레임 제거" onclick={() => removeVideoKeyframe(keyframe.id)}>×</button></div>
+                  {#if keyframe.image}<button type="button" class="video-keyframe-preview" title="클릭하여 크게 보기" onclick={(event) => showImage(event, videoImagePreview(keyframe.image), `영상 키프레임 ${index + 1}`)}><img src={videoImagePreview(keyframe.image)} alt="영상 키프레임 {index + 1}"></button>{:else}<div class="video-keyframe-empty">IMG</div>{/if}
+                  <div class="video-keyframe-controls">
+                    <span class="video-condition-name" title={keyframe.image?.name || '이미지 미선택'}>{keyframe.image?.name || '이미지 미선택'}</span>
+                    <div class="video-condition-actions"><label><input type="file" accept="image/png,image/jpeg,image/webp" onchange={(e) => setVideoConditionImage(`keyframe:${keyframe.id}`, e.currentTarget.files?.[0] || null)}><span>파일</span></label><button type="button" onclick={() => videoImagePickerTarget = `keyframe:${keyframe.id}`}>최근 결과</button><button type="button" onclick={() => videoRemoteImageTarget = `keyframe:${keyframe.id}`}>URL</button></div>
+                    <div class="video-keyframe-numbers"><label>위치 (초)<input type="number" min={1 / Number(videoForm.fps || 1)} max={Math.max(1 / Number(videoForm.fps || 1), (framesForDuration(videoDurationSeconds, videoForm.fps) - 2) / videoForm.fps)} step="any" value={Number(keyframe.time).toFixed(3)} onchange={(event) => moveVideoKeyframe(keyframe.id, event.currentTarget.value)}></label><label>반영 강도<input type="number" min="0" max="1" step="any" value={keyframe.strength} onchange={(event) => updateVideoKeyframe(keyframe.id, 'strength', event.currentTarget.value)}></label></div>
+                  </div>
+                </article>
+            {/each}
+            <article class="video-boundary-card" class:has-image={Boolean(videoEndImage)}>
               <div class="video-condition-heading"><strong>마지막 이미지</strong><small>{((framesForDuration(videoDurationSeconds, videoForm.fps) - 1) / videoForm.fps).toFixed(1)}초 · 선택 사항</small></div>
               {#if videoEndImage}
                 <button type="button" class="video-condition-preview" title="클릭하여 크게 보기" onclick={(event) => showImage(event, videoImagePreview(videoEndImage), '영상 마지막 이미지')}><img src={videoImagePreview(videoEndImage)} alt="영상 마지막 이미지"></button>
                 <span class="video-condition-name" title={videoEndImage.name}>{videoEndImage.name}</span>
               {:else}<div class="video-condition-empty">도착 장면을 고정하려면 이미지를 선택하세요.</div>{/if}
               <div class="video-condition-actions"><label><input type="file" accept="image/png,image/jpeg,image/webp" onchange={(e) => setVideoConditionImage('end', e.currentTarget.files?.[0] || null)}><span>파일</span></label><button type="button" onclick={() => videoImagePickerTarget = 'end'}>최근 결과</button><button type="button" onclick={() => videoRemoteImageTarget = 'end'}>URL</button>{#if videoEndImage}<button type="button" class="danger" onclick={() => setVideoConditionImage('end', null)}>제거</button>{/if}</div>
-              {#if videoEndImage}<label class="video-condition-strength">반영 강도<input type="number" min="0" max="1" step="0.05" bind:value={videoEndStrength}></label>{/if}
+              {#if videoEndImage}<label class="video-condition-strength">반영 강도<input type="number" min="0" max="1" step="any" bind:value={videoEndStrength}></label>{/if}
             </article>
           </div>
-          {#if videoKeyframes.length}
-            <div class="video-keyframes">
-              {#each videoKeyframes as keyframe, index (keyframe.id)}
-                <article>
-                  <div class="video-condition-heading"><strong>키프레임 {index + 1}</strong><button type="button" aria-label="키프레임 제거" onclick={() => removeVideoKeyframe(keyframe.id)}>×</button></div>
-                  {#if keyframe.image}<button type="button" class="video-keyframe-preview" title="클릭하여 크게 보기" onclick={(event) => showImage(event, videoImagePreview(keyframe.image), `영상 키프레임 ${index + 1}`)}><img src={videoImagePreview(keyframe.image)} alt="영상 키프레임 {index + 1}"></button>{:else}<div class="video-keyframe-empty">IMG</div>{/if}
-                  <div class="video-keyframe-controls">
-                    <span class="video-condition-name" title={keyframe.image?.name || '이미지 미선택'}>{keyframe.image?.name || '이미지 미선택'}</span>
-                    <div class="video-condition-actions"><label><input type="file" accept="image/png,image/jpeg,image/webp" onchange={(e) => setVideoConditionImage(`keyframe:${keyframe.id}`, e.currentTarget.files?.[0] || null)}><span>파일</span></label><button type="button" onclick={() => videoImagePickerTarget = `keyframe:${keyframe.id}`}>최근 결과</button><button type="button" onclick={() => videoRemoteImageTarget = `keyframe:${keyframe.id}`}>URL</button></div>
-                    <div class="video-keyframe-numbers"><label>위치 (초)<input type="number" min="0.01" max={Math.max(0.01, (framesForDuration(videoDurationSeconds, videoForm.fps) - 2) / videoForm.fps)} step="0.01" value={keyframe.time} onchange={(event) => updateVideoKeyframe(keyframe.id, 'time', event.currentTarget.value)}></label><label>반영 강도<input type="number" min="0" max="1" step="0.05" value={keyframe.strength} onchange={(event) => updateVideoKeyframe(keyframe.id, 'strength', event.currentTarget.value)}></label></div>
-                  </div>
-                </article>
-              {/each}
-            </div>
-          {/if}
         </section>
         <div class="enhanced-prompt image-enhancer-panel" class:inactive={!videoEnhancementIsActive}>
           <div class="image-enhancer-panel-header">
@@ -3164,15 +3879,24 @@
             <small>{videoEnhancementIsActive ? '생성 시작 시 자동으로 향상합니다. 먼저 확인하려면 미리 향상을 누르세요.' : videoImage && !config?.prompt_enhancement.vision_enabled ? '현재 향상 모델은 이미지를 볼 수 없어 I2V에서는 원문을 사용합니다.' : '꺼짐 · 실제 생성에는 원문을 사용합니다.'}</small>
           {/if}
         </div>
-        <div class="fields three">
-          <label>너비<input type="number" min="256" max="1920" step="64" bind:value={videoForm.width}></label>
-          <label>높이<input type="number" min="256" max="1920" step="64" bind:value={videoForm.height}></label>
-          <label class="duration-field"><span>길이 (초) <small>{framesForDuration(videoDurationSeconds, videoForm.fps)} 프레임 · 8k+1</small></span><input aria-label="영상 길이 초" type="number" min="0.1" step="0.1" bind:value={videoDurationSeconds}></label>
-          <label>FPS<input type="number" min="1" max="60" step="1" bind:value={videoForm.fps}></label>
-          <label><span>시드 <small>-1은 무작위</small></span><input type="number" min="-1" bind:value={videoForm.seed}></label>
-        </div>
+        <section class="video-output-settings">
+          <div class="video-preset-heading"><div><strong>출력 설정</strong><small>{framesForDuration(videoDurationSeconds, videoForm.fps)}프레임 · {videoAccelerationPreview()}</small></div><button type="button" class="quiet" onclick={() => videoAdvancedOpen = !videoAdvancedOpen}>{videoAdvancedOpen ? '간단히' : '고급 설정'}</button></div>
+          <div class="video-resolution-presets" aria-label="영상 해상도 프리셋">
+            {#each videoResolutionPresets as preset}<button type="button" class:active={currentVideoResolutionPreset() === preset.id} onclick={() => applyVideoResolutionPreset(preset)}><strong>{preset.label}</strong><small>{preset.width}×{preset.height} · {preset.hint}</small></button>{/each}
+            <button type="button" class:active={currentVideoResolutionPreset() === 'custom'} onclick={() => videoAdvancedOpen = true}><strong>직접</strong><small>{videoForm.width}×{videoForm.height}</small></button>
+          </div>
+          <label class="duration-field video-duration-main"><span>길이 (초) <small>{framesForDuration(videoDurationSeconds, videoForm.fps)} 프레임 · 8k+1</small></span><input aria-label="영상 길이 초" type="number" min={8 / Number(videoForm.fps || 24)} step="any" bind:value={videoDurationSeconds} onchange={normalizeVideoTiming}></label>
+          {#if videoAdvancedOpen}
+            <div class="fields three video-advanced-fields">
+              <label>너비<input type="number" min="256" max="1920" step="any" bind:value={videoForm.width} onchange={() => videoForm.width = snapDimension(videoForm.width, 64, 256, 1920)}></label>
+              <label>높이<input type="number" min="256" max="1920" step="any" bind:value={videoForm.height} onchange={() => videoForm.height = snapDimension(videoForm.height, 64, 256, 1920)}></label>
+              <label>FPS<input type="number" min="1" max="60" step="any" bind:value={videoForm.fps} onchange={normalizeVideoTiming}></label>
+              <label><span>시드 <small>-1은 무작위</small></span><input type="number" min="-1" bind:value={videoForm.seed}></label>
+            </div>
+          {/if}
+        </section>
         {#if videoConditioningDisabledReason()}<small class="video-conditioning-error">{videoConditioningDisabledReason()}</small>{/if}
-        <button class="primary" disabled={busy || enhancingPrompt || Boolean(videoConditioningDisabledReason())}>{enhancingPrompt ? '프롬프트 처리 중…' : busy ? '요청 중…' : activeJobs().some((j) => j.kind === 'image' || j.kind === 'video' || j.kind === 'speech') ? '영상 큐에 추가' : '생성 시작'}</button>
+        <button class="primary" disabled={busy || enhancingPrompt || Boolean(videoConditioningDisabledReason())}>{creatingVideoPrompt ? '프롬프트 자동 작성 중…' : enhancingPrompt ? '프롬프트 처리 중…' : busy ? '요청 중…' : activeJobs().some((j) => j.kind === 'image' || j.kind === 'video' || j.kind === 'speech') ? '영상 큐에 추가' : '생성 시작'}</button>
       </form>
       <aside class="video-results-pane mobile-results-pane">
         <div class="results-heading">
@@ -3184,16 +3908,19 @@
         </div>
         <ResultPagination label="생성 영상 목록" total={videoJobs.length} page={listPages.video} pageSize={listPageSizes.video} pageSizes={imagePageSizeOptions} sortOrder={listSortOrders.video} onPageChange={(page) => setListPage('video', page)} onPageSizeChange={(size) => setListPageSize('video', size)} onSortOrderChange={(order) => setListSortOrder('video', order)} />
         <div class="video-list" class:list-view={videoView === 'list'}>
-        {#each pagedVideoJobs as job (job.id)}
+        {#each pagedVideoJobs as job, videoIndex (job.id)}
           {@const generationProgress = job.status === 'queued' || job.status === 'running' ? videoGenerationProgress(job) : null}
+          {@const visibleVideoIndex = (listPages.video - 1) * listPageSizes.video + videoIndex + 1}
           <article class:pending={job.status !== 'completed'}>
+            <span class="result-index-badge" title={`대화창에서 ${visibleVideoIndex}번 영상으로 지칭`}>#{visibleVideoIndex}</span>
             {#if videoView === 'list'}
               {#if job.output_url}<button type="button" class="video-list-thumb" aria-label="영상 크게 보기" onclick={() => showVideo(job)}><!-- svelte-ignore a11y_media_has_caption --><video preload="metadata" muted playsinline src={job.output_url}></video></button>{:else}<div class="video-list-thumb empty-thumb">{#if generationProgress}<div class="image-generation-status compact"><strong>{generationProgress.label}</strong><div class="image-generation-bar"><i style={`width:${generationProgress.percent}%`}></i></div><small>{generationProgress.elapsed}</small></div>{:else}<span>{job.status}</span>{/if}</div>{/if}
-              <div class="video-list-content"><small>{job.params?.width}×{job.params?.height} · {formatDuration(videoJobDuration(job))} · {job.params?.fps} fps{#if job.params?.seed >= 0} · seed {job.params.seed}{/if}</small><button type="button" class="image-prompt" title={job.prompt} onclick={() => promptModal = { title: '전체 프롬프트', detail: `영상 · ${job.params?.width}×${job.params?.height} · ${formatDuration(videoJobDuration(job))} · ${job.params?.fps} fps`, text: videoPromptModalText(job) }}>{job.prompt}</button>{#if job.error}<em>{job.error}</em>{/if}</div>
+              <div class="video-list-content"><small>{job.params?.width}×{job.params?.height} · {formatDuration(videoJobDuration(job))}{videoFPSLabel(job)}{#if videoAccelerationLabel(job)} · {videoAccelerationLabel(job)}{/if}{#if job.params?.seed >= 0} · seed {job.params.seed}{/if}</small><button type="button" class="image-prompt" title={job.prompt} onclick={() => promptModal = { title: '전체 프롬프트', detail: `영상 · ${job.params?.width}×${job.params?.height} · ${formatDuration(videoJobDuration(job))}${videoFPSLabel(job)}`, text: videoPromptModalText(job) }}>{job.prompt}</button>{#if job.error}<em>{job.error}</em>{/if}</div>
             {:else}
-              {#if job.output_url}<button type="button" class="video-gallery-thumb" aria-label="영상 크게 보기" title="클릭하여 크게 보기" onclick={() => showVideo(job)}><!-- svelte-ignore a11y_media_has_caption --><video preload="metadata" muted playsinline src={job.output_url}></video></button>{:else}<div class="video-placeholder">{#if generationProgress}<div class="image-generation-status"><strong>{generationProgress.label}</strong><div class="image-generation-bar"><i style={`width:${generationProgress.percent}%`}></i></div><small>{generationProgress.elapsed}</small>{#if generationProgress.eta}<small>{generationProgress.eta}</small>{/if}</div>{:else}<span>{job.status}</span>{/if}</div>{/if}<button type="button" class="image-prompt" title={job.prompt} onclick={() => promptModal = { title: '전체 프롬프트', detail: `영상 · ${job.params?.width}×${job.params?.height} · ${formatDuration(videoJobDuration(job))} · ${job.params?.fps} fps`, text: videoPromptModalText(job) }}>{job.prompt}</button><small>{job.params?.width}×{job.params?.height} · {formatDuration(videoJobDuration(job))} · {job.params?.fps} fps{#if job.params?.seed >= 0} · seed {job.params.seed}{/if}</small>{#if job.error}<em>{job.error}</em>{/if}
+              {#if job.output_url}<button type="button" class="video-gallery-thumb" aria-label="영상 크게 보기" title="클릭하여 크게 보기" onclick={() => showVideo(job)}><!-- svelte-ignore a11y_media_has_caption --><video preload="metadata" muted playsinline src={job.output_url}></video></button>{:else}<div class="video-placeholder">{#if generationProgress}<div class="image-generation-status"><strong>{generationProgress.label}</strong><div class="image-generation-bar"><i style={`width:${generationProgress.percent}%`}></i></div><small>{generationProgress.elapsed}</small>{#if generationProgress.eta}<small>{generationProgress.eta}</small>{/if}</div>{:else}<span>{job.status}</span>{/if}</div>{/if}<button type="button" class="image-prompt" title={job.prompt} onclick={() => promptModal = { title: '전체 프롬프트', detail: `영상 · ${job.params?.width}×${job.params?.height} · ${formatDuration(videoJobDuration(job))}${videoFPSLabel(job)}`, text: videoPromptModalText(job) }}>{job.prompt}</button><small>{job.params?.width}×{job.params?.height} · {formatDuration(videoJobDuration(job))}{videoFPSLabel(job)}{#if videoAccelerationLabel(job)} · {videoAccelerationLabel(job)}{/if}{#if job.params?.seed >= 0} · seed {job.params.seed}{/if}</small>{#if job.error}<em>{job.error}</em>{/if}
             {/if}
-            {#if job.status === 'queued'}<div class="video-job-actions"><button class="job-stop" disabled={cancellingJob === job.id} onclick={() => cancelJob(job)}>{cancellingJob === job.id ? '취소 중…' : '대기 취소'}</button></div>{:else if job.status === 'completed' || job.status === 'failed' || job.status === 'cancelled'}<div class="video-job-actions">{#if job.status === 'failed'}<button type="button" class="job-retry" disabled={retryingJob === job.id} onclick={() => retryJob(job)}>{retryingJob === job.id ? '재시도 중…' : '재시도'}</button>{/if}<button class="job-delete" disabled={deletingJob === job.id} onclick={() => deleteJob(job)}>삭제</button></div>{/if}
+            {#if job.status === 'completed' && job.output_url}<div class="video-utility-actions"><span>활용:</span>{#if job.params?.mode === 'upscale'}<button type="button" onclick={() => showVideoUpscaleSource(job)}>원본</button>{:else}<button type="button" onclick={() => loadVideoJobSettings(job)}>설정</button>{/if}<button type="button" onclick={() => openFramePicker(job)}>장면</button><button type="button" disabled={engineStates.upscale !== 'online'} onclick={() => openVideoUpscale(job)}>업스케일</button><button type="button" onclick={() => sendVideoToRecognition(job)}>자막 생성</button></div>{/if}
+            {#if job.status === 'queued' || job.status === 'running'}<div class="video-job-actions"><button class="job-stop" disabled={cancellingJob === job.id} onclick={() => cancelJob(job)}>{cancellingJob === job.id ? (job.status === 'running' ? '중지 중…' : '취소 중…') : (job.status === 'running' ? '중지' : '대기 취소')}</button></div>{:else if job.status === 'completed' || job.status === 'failed' || job.status === 'cancelled'}<div class="video-job-actions">{#if job.status === 'failed' || job.status === 'cancelled'}<button type="button" class="job-retry" disabled={retryingJob === job.id} onclick={() => retryJob(job)}>{retryingJob === job.id ? '재시도 중…' : '재시도'}</button>{/if}<button class="job-delete" disabled={deletingJob === job.id} onclick={() => deleteJob(job)}>삭제</button></div>{/if}
           </article>
         {:else}<div class="empty">첫 영상이 여기에 나타납니다.</div>{/each}
       </div>
@@ -3217,10 +3944,23 @@
         </div>
         <button class="primary" disabled={busy}>{busy ? '요청 중…' : activeJobs().some((j) => j.kind === 'image' || j.kind === 'video' || j.kind === 'speech') ? '음성 큐에 추가' : '음성 만들기'}</button>
       </form>
-      <aside class="mobile-results-pane"><div class="results-heading"><h3>생성 음성 목록</h3></div>
-        <ResultPagination label="생성 음성 목록" total={speechJobs.length} page={listPages.speech} pageSize={listPageSizes.speech} pageSizes={pageSizeOptions} sortOrder={listSortOrders.speech} onPageChange={(page) => setListPage('speech', page)} onPageSizeChange={(size) => setListPageSize('speech', size)} onSortOrderChange={(order) => setListSortOrder('speech', order)} />
-        <div class="audio-list">
-        {#each pagedSpeechJobs as job (job.id)}<article><div><span>{job.params?.speaker}{#if job.params?.seed >= 0} · seed {job.params.seed}{/if}</span><p>{job.prompt}</p>{#if job.output_url}<button type="button" class="audio-modal-open" onclick={() => showAudio(job)}>크게 보기</button>{/if}</div>{#if job.params?.instructions}<small class="instruction">지시 · {job.params.instructions}</small>{/if}{#if job.output_url}<audio controls src={job.output_url}></audio>{:else}<small>{job.status === 'queued' ? `대기 ${generationQueuePosition(job)}번째` : statusLabels[job.status] || job.status}</small>{/if}{#if job.error}<em>{job.error}</em>{/if}{#if job.status === 'queued'}<button class="job-stop" disabled={cancellingJob === job.id} onclick={() => cancelJob(job)}>{cancellingJob === job.id ? '취소 중…' : '대기 취소'}</button>{:else if job.status === 'failed'}<button class="job-retry" disabled={retryingJob === job.id} onclick={() => retryJob(job)}>{retryingJob === job.id ? '재시도 중…' : '재시도'}</button>{:else if job.status === 'completed' || job.status === 'cancelled'}<button class="job-delete" disabled={deletingJob === job.id} onclick={() => deleteJob(job)}>삭제</button>{/if}</article>{:else}<div class="empty">첫 음성이 여기에 나타납니다.</div>{/each}
+      <aside class="speech-results-pane mobile-results-pane"><div class="results-heading"><h3>생성 음성 목록</h3><div class="view-switch" aria-label="생성 음성 목록 보기 방식"><button type="button" class:active={speechView === 'gallery'} onclick={() => setSpeechView('gallery')}>갤러리</button><button type="button" class:active={speechView === 'list'} onclick={() => setSpeechView('list')}>리스트</button></div></div>
+        <ResultPagination label="생성 음성 목록" total={speechJobs.length} page={listPages.speech} pageSize={listPageSizes.speech} pageSizes={imagePageSizeOptions} sortOrder={listSortOrders.speech} onPageChange={(page) => setListPage('speech', page)} onPageSizeChange={(size) => setListPageSize('speech', size)} onSortOrderChange={(order) => setListSortOrder('speech', order)} />
+        <div class="speech-list" class:list-view={speechView === 'list'}>
+        {#each pagedSpeechJobs as job, speechIndex (job.id)}
+          {@const visibleSpeechIndex = (listPages.speech - 1) * listPageSizes.speech + speechIndex + 1}
+          {@const generationProgress = job.status === 'queued' || job.status === 'running' ? speechGenerationProgress(job) : null}
+          <article class:pending={job.status !== 'completed'}>
+            <span class="result-index-badge" title={`대화창에서 ${visibleSpeechIndex}번 음성으로 지칭`}>#{visibleSpeechIndex}</span>
+            <div class="speech-card-heading"><span>{job.params?.speaker || 'VOICE'}{#if job.params?.language} · {job.params.language}{/if}</span>{#if job.output_url}<button type="button" class="audio-modal-open" onclick={() => showAudio(job)}>크게 보기</button>{/if}</div>
+            <button type="button" class="speech-prompt" title={job.prompt} onclick={() => promptModal = { title: '음성 원문', detail: `${job.params?.speaker || 'VOICE'}${job.params?.seed >= 0 ? ` · seed ${job.params.seed}` : ''}`, text: job.prompt || '' }}>{job.prompt || '원문 없음'}</button>
+            <small class="speech-meta">{#if job.params?.seed >= 0}seed {job.params.seed}{:else}무작위 시드{/if}{#if job.params?.instructions} · 지시 있음{/if}</small>
+            {#if job.params?.instructions}<small class="instruction" title={job.params.instructions}>지시 · {job.params.instructions}</small>{/if}
+            {#if job.output_url}<audio controls src={job.output_url}></audio><div class="audio-utility-actions"><span>활용:</span><button type="button" onclick={() => sendAudioToVideo(job)}>영상 생성</button></div>{:else if generationProgress}<div class="image-generation-status speech-generation-status"><strong>{generationProgress.label}</strong><div class="image-generation-bar"><i style={`width:${generationProgress.percent}%`}></i></div><small>{generationProgress.elapsed}</small>{#if generationProgress.eta}<small>{generationProgress.eta}</small>{/if}</div>{:else}<small class="speech-status">{statusLabels[job.status] || job.status}</small>{/if}
+            {#if job.error}<em>{job.error}</em>{/if}
+            <div class="speech-job-actions">{#if job.status === 'queued' || job.status === 'running'}<button class="job-stop" disabled={cancellingJob === job.id} onclick={() => cancelJob(job)}>{cancellingJob === job.id ? (job.status === 'running' ? '중지 중…' : '취소 중…') : (job.status === 'running' ? '중지' : '대기 취소')}</button>{:else if job.status === 'failed' || job.status === 'cancelled'}<button class="job-retry" disabled={retryingJob === job.id} onclick={() => retryJob(job)}>{retryingJob === job.id ? '재시도 중…' : '재시도'}</button><button class="job-delete" disabled={deletingJob === job.id} onclick={() => deleteJob(job)}>삭제</button>{:else if job.status === 'completed'}<button class="job-delete" disabled={deletingJob === job.id} onclick={() => deleteJob(job)}>삭제</button>{/if}</div>
+          </article>
+        {:else}<div class="empty">첫 음성이 여기에 나타납니다.</div>{/each}
       </div>
       <ResultPagination compact label="생성 음성 목록" total={speechJobs.length} page={listPages.speech} pageSize={listPageSizes.speech} onPageChange={(page) => setListPage('speech', page)} />
       </aside>
@@ -3234,14 +3974,18 @@
       <form class="mobile-create-pane" onsubmit={(e) => { e.preventDefault(); recognizeSpeech() }}>
         <div class="section-title"><div><span>04</span><h2>자막 받아쓰기</h2></div><div class="image-title-actions"><button type="button" class="quiet image-create-reset" disabled={busy} title="받아쓰기 설정을 모두 비웁니다." onclick={resetRecognitionCreation}>초기화</button></div></div>
         <section class="recognition-source-panel">
-          <div class="recognition-source-heading"><div><strong>입력 소스</strong><small>링크 또는 로컬 파일 중 편한 방법을 사용하세요.</small></div></div>
+          <div class="recognition-source-heading"><div><strong>입력 소스</strong><small>링크·로컬 파일·생성 영상 중 하나를 사용하세요.</small></div></div>
+          {#if recognitionSourceVideoJob}
+            <div class="recognition-video-source"><span><i>VIDEO</i><strong>생성 영상 {recognitionSourceVideoJob.id.slice(0, 8)}</strong><small>{recognitionSourceVideoJob.params?.width}×{recognitionSourceVideoJob.params?.height} · {formatDuration(videoJobDuration(recognitionSourceVideoJob))}</small></span><button type="button" aria-label="생성 영상 선택 해제" onclick={clearRecognitionSourceVideo}>×</button></div>
+          {/if}
           <div class="recognition-source-bar">
             <div class="recognition-url-input" class:active={recognitionForm.source === 'url'}><i>URL</i><input aria-label="영상 링크" type="url" bind:value={recognitionForm.url} oninput={updateRecognitionURL} placeholder="영상 페이지 URL"></div>
             <button type="button" class="quiet media-options-load" disabled={loadingRecognitionOptions || !recognitionForm.url.trim()} onclick={loadRecognitionOptions}>{loadingRecognitionOptions ? '조회 중…' : '조회'}</button>
             <label class="recognition-file-button" class:active={recognitionForm.source === 'file'} title={recognitionFile?.name || '영상·음성 파일 선택'}><input bind:this={recognitionFileInput} type="file" accept="audio/*,video/*,.mkv,.mp4,.webm,.mov,.m4v,.avi,.wav,.flac,.ogg,.mp3,.m4a,.aac" onchange={updateRecognitionFile}><i>FILE</i><span>{recognitionFile?.name || '파일 선택'}</span></label>
+            <button type="button" class="recognition-video-list-button" class:active={recognitionForm.source === 'video_job'} onclick={() => recognitionVideoPickerOpen = true}><i>VIDEO</i><span>영상 목록</span></button>
             {#if recognitionFile}<button type="button" class="recognition-file-clear" aria-label="선택 파일 해제" title="선택 파일 해제" onclick={clearRecognitionFile}>×</button>{/if}
           </div>
-          <small class="recognition-source-note">{recognitionForm.source === 'file' && recognitionFile ? '선택한 파일을 작업 폴더로 바로 전송합니다.' : '링크 영상을 보관하고 음성을 분리합니다. 필요하면 브라우저 해석기를 사용합니다.'}</small>
+          <small class="recognition-source-note">{recognitionForm.source === 'video_job' && recognitionSourceVideoJob ? '생성 영상 파일을 서버 내부에서 바로 연결합니다.' : recognitionForm.source === 'file' && recognitionFile ? '선택한 파일을 작업 폴더로 바로 전송합니다.' : '링크 영상을 보관하고 음성을 분리합니다. 필요하면 브라우저 해석기를 사용합니다.'}</small>
           {#if recognitionOptions}
             <div class="media-options">
               {#if recognitionOptions.parts?.length}
@@ -3276,7 +4020,7 @@
           <label>번역<select bind:value={recognitionForm.translation_mode}><option value="none">번역 안 함</option><option value="translated">번역문만</option><option value="bilingual">원문과 번역문</option></select></label>
           <label>번역 언어<input list="translation-languages" bind:value={recognitionForm.target_language} disabled={recognitionForm.translation_mode === 'none'} placeholder="Korean"></label>
         </div>
-        <button class="primary" disabled={busy || recognitionForm.output_formats.length === 0 || (recognitionForm.source === 'file' ? !recognitionFile : !recognitionForm.url.trim())}>{busy ? '등록 중…' : activeJobs().some((j) => j.kind === 'recognition') ? '자막 큐에 추가' : '자막 만들기'}</button>
+        <button class="primary" disabled={busy || recognitionForm.output_formats.length === 0 || (recognitionForm.source === 'file' ? !recognitionFile : recognitionForm.source === 'video_job' ? !recognitionSourceVideoJob : !recognitionForm.url.trim())}>{busy ? '등록 중…' : activeJobs().some((j) => j.kind === 'recognition') ? '자막 큐에 추가' : '자막 만들기'}</button>
       </form>
       <aside class="subtitle-results-pane mobile-results-pane">
         <div class="results-heading">
@@ -3288,17 +4032,21 @@
         </div>
         <ResultPagination label="생성 자막 목록" total={recognitionJobs.length} page={listPages.recognition} pageSize={listPageSizes.recognition} pageSizes={imagePageSizeOptions} sortOrder={listSortOrders.recognition} onPageChange={(page) => setListPage('recognition', page)} onPageSizeChange={(size) => setListPageSize('recognition', size)} onSortOrderChange={(order) => setListSortOrder('recognition', order)} />
         <div class="audio-list subtitle-results" class:list-view={subtitleView === 'list'}>
-        {#each pagedRecognitionJobs as job (job.id)}
+        {#each pagedRecognitionJobs as job, recognitionIndex (job.id)}
+          {@const visibleRecognitionIndex = (listPages.recognition - 1) * listPageSizes.recognition + recognitionIndex + 1}
           <article class:pending={job.status === 'queued' || job.status === 'running'}>
+            <span class="result-index-badge" title={`대화창에서 ${visibleRecognitionIndex}번 받아쓰기 결과로 지칭`}>#{visibleRecognitionIndex}</span>
             {#if subtitleView === 'list'}
               {#if job.media_url || job.params?.text}<button type="button" class="subtitle-list-thumb" class:empty-thumb={!job.media_url || isAudioMedia(job)} aria-label="자막 결과 크게 보기" onclick={() => showSubtitle(job)}>{#if job.media_url && !isAudioMedia(job)}<!-- svelte-ignore a11y_media_has_caption --><video preload="metadata" muted playsinline src={job.media_url}></video>{:else}<span>{job.media_url && isAudioMedia(job) ? 'AUDIO' : job.params?.text ? 'TEXT' : job.status}</span>{/if}</button>{:else}<div class="subtitle-list-thumb empty-thumb"><span>{job.status}</span></div>{/if}
             {:else}
               {#if job.media_url || job.params?.text}<button type="button" class="subtitle-gallery-thumb" class:empty-thumb={!job.media_url || isAudioMedia(job)} aria-label="자막 결과 크게 보기" onclick={() => showSubtitle(job)}>{#if job.media_url && !isAudioMedia(job)}<!-- svelte-ignore a11y_media_has_caption --><video preload="metadata" muted playsinline src={job.media_url}></video>{:else}<span>{job.media_url && isAudioMedia(job) ? 'AUDIO' : job.params?.text ? 'TEXT' : statusLabels[job.status] || job.status}</span>{/if}</button>{:else}<div class="subtitle-gallery-thumb empty-thumb"><span>{statusLabels[job.status] || job.status}</span></div>{/if}
             {/if}
             <div class="subtitle-result-title"><span>{job.params?.detected_language || recognitionLanguageLabel(job.params?.language)}{#if job.params?.segments} · {job.params.segments}구간{/if}{#if job.params?.media_part} · 파트 {job.params.media_part}{/if}{#if job.params?.media_source} · {job.params.media_source}{/if}</span><p title={job.prompt}>{job.prompt}</p>{#if job.params?.media}<small>{mediaSummary(job)}</small>{/if}</div>
-            {#if !job.params?.text}<small class="recognition-progress-text">{recognitionProgressText(job)}</small>{/if}
+            {#if subtitleTranslationWarnings(job).length}<button type="button" class="subtitle-translation-warning" onclick={() => promptModal = { title: '번역 경고', detail: `${subtitleTranslationWarnings(job).length}개 자막은 원문을 유지했습니다.`, text: subtitleTranslationWarningText(job) }}>번역 경고 {subtitleTranslationWarnings(job).length}개</button>{/if}
+            {#if !job.params?.text}<small class="recognition-progress-text">{recognitionProgressText(job)}{#if recognitionProgressTiming(job)} · {recognitionProgressTiming(job)}{/if}</small>{/if}
             {#if job.status === 'queued' || job.status === 'running'}<div class="recognition-progress" aria-label={recognitionProgressText(job)}><i style={`width: ${recognitionProgressPercent(job)}%`}></i></div>{/if}
-            {#if job.outputs}<div class="output-links">{#each Object.entries(job.outputs) as output}<a href={output[1]} target="_blank">{outputLabels[output[0]] || output[0]} ↗</a>{/each}</div>{:else if job.output_url}<a href={job.output_url} target="_blank">결과 열기 ↗</a>{/if}
+            {#if job.outputs}<div class="output-links">{#each Object.entries(job.outputs) as output}<a href={output[1]} target="_blank">{outputLabels[output[0]] || output[0]} ↗</a>{/each}{#if job.status === 'completed'}<button type="button" class="subtitle-regenerate-open" onclick={() => openSubtitleRegenerate(job)}>자막 재생성</button>{/if}</div>{:else if job.output_url}<a href={job.output_url} target="_blank">결과 열기 ↗</a>{/if}
+            {#if job.media_url && !isAudioMedia(job)}<div class="subtitle-video-actions"><span>영상 활용:</span><button type="button" onclick={() => openFramePicker(job)}>장면 선택</button><button type="button" disabled={engineStates.upscale !== 'online'} onclick={() => openVideoUpscale(job)}>업스케일</button></div>{/if}
             {#if job.error}<em>{job.error}</em>{/if}
             {#if job.status === 'queued' || job.status === 'running'}<button class="job-stop" disabled={cancellingJob === job.id} onclick={() => cancelJob(job)}>{cancellingJob === job.id ? '중지 중…' : job.status === 'queued' ? '대기 취소' : '중지'}</button>{:else}<div class="job-actions">{#if job.status === 'failed' || job.status === 'cancelled'}<button class="job-retry" disabled={retryingJob === job.id} onclick={() => retryJob(job)}>{retryingJob === job.id ? '재개 중…' : '재개'}</button>{/if}<button class="job-delete" disabled={deletingJob === job.id} onclick={() => deleteJob(job)}>삭제</button></div>{/if}
           </article>
@@ -3436,18 +4184,19 @@
 
       <section class="settings-card">
         <h3>LTX 영상 모델 준비</h3>
-        <p>저장된 Hugging Face 토큰을 사용해 SSH나 Compose 재시작 없이 공식 모델과 공개 Motion LoRA를 내려받습니다.</p>
+        <p>저장된 Hugging Face 토큰을 사용해 일반 영상 모델과 공식 A2V dev·distilled LoRA, 공개 Motion LoRA를 준비합니다.</p>
         {#if videoModelStatus}
           <div class="storage-stats">
             <span><small>상태</small><strong>{videoModelStatus.ready ? '준비 완료' : videoModelStatus.preparing ? '다운로드 중' : '준비 필요'}</strong></span>
             <span><small>파일</small><strong>{videoModelStatus.ready_files}/{videoModelStatus.required_files}</strong></span>
             <span><small>Motion LoRA</small><strong>{videoModelStatus.motion_lora_ready ? '준비됨' : '대기'}</strong></span>
+            <span><small>A2V</small><strong>{videoModelStatus.a2v_ready ? '준비됨' : videoModelStatus.preparing ? '다운로드 중' : '추가 준비'}</strong></span>
           </div>
           {#if videoModelStatus.error}<small class="model-setup-error">{videoModelStatus.error}</small>{/if}
         {/if}
         <small><a href="https://huggingface.co/Lightricks/LTX-2.5" target="_blank" rel="noreferrer">LTX-2.5 라이선스 동의 ↗</a> 후 다운로드 인증에 같은 계정의 read 토큰을 저장하세요.</small>
         <button type="button" class="primary" disabled={preparingVideoModels || videoModelStatus?.preparing || (!hfToken.trim() && !videoModelStatus?.token_configured && !videoModelStatus?.ready)} onclick={prepareVideoModels}>
-          {videoModelStatus?.preparing ? '모델 준비 중…' : videoModelStatus?.ready ? '파일 다시 확인' : '모델 준비 시작'}
+          {videoModelStatus?.preparing ? '모델 준비 중…' : videoModelStatus?.ready && !videoModelStatus?.a2v_ready ? 'A2V 모델 준비' : videoModelStatus?.ready ? '파일 다시 확인' : '모델 준비 시작'}
         </button>
       </section>
       </div>
@@ -3480,8 +4229,8 @@
             <div class="backend-setting"><strong>{imageModeMeta[mode].label}</strong><label>Endpoint<input type="url" bind:value={settings.image.backends[mode].endpoint} required></label><label>모델<input bind:value={settings.image.backends[mode].model} required></label></div>
           {/each}
           <div class="fields three">
-            <label>기본 너비<input type="number" min="256" step="8" bind:value={settings.image.default_width}></label>
-            <label>기본 높이<input type="number" min="256" step="8" bind:value={settings.image.default_height}></label>
+            <label>기본 너비<input type="number" min="256" max="2048" step="any" bind:value={settings.image.default_width} onchange={() => settings.image.default_width = snapDimension(settings.image.default_width, 8, 256, 2048)}></label>
+            <label>기본 높이<input type="number" min="256" max="2048" step="any" bind:value={settings.image.default_height} onchange={() => settings.image.default_height = snapDimension(settings.image.default_height, 8, 256, 2048)}></label>
             <label>참조 이미지 수<input type="number" min="1" max="16" bind:value={settings.image.max_reference_images}></label>
           </div>
         </section>
@@ -3490,12 +4239,13 @@
           <h3>영상</h3>
           <label>모델<input bind:value={settings.video.model} required></label>
           <div class="fields">
-            <label>기본 너비<input type="number" min="256" step="64" bind:value={settings.video.default_width}></label>
-            <label>기본 높이<input type="number" min="256" step="64" bind:value={settings.video.default_height}></label>
-            <label class="duration-field"><span>기본 길이 (초) <small>{framesForDuration(settingsVideoDurationSeconds, settings.video.default_fps)} 프레임 · 8k+1</small></span><input aria-label="기본 영상 길이 초" type="number" min="0.1" step="0.1" bind:value={settingsVideoDurationSeconds}></label>
-            <label>기본 FPS<input type="number" min="1" max="60" bind:value={settings.video.default_fps}></label>
+            <label>기본 너비<input type="number" min="256" step="any" bind:value={settings.video.default_width} onchange={() => settings.video.default_width = snapDimension(settings.video.default_width, 64, 256, 1920)}></label>
+            <label>기본 높이<input type="number" min="256" step="any" bind:value={settings.video.default_height} onchange={() => settings.video.default_height = snapDimension(settings.video.default_height, 64, 256, 1920)}></label>
+            <label class="duration-field"><span>기본 길이 (초) <small>{framesForDuration(settingsVideoDurationSeconds, settings.video.default_fps)} 프레임 · 8k+1</small></span><input aria-label="기본 영상 길이 초" type="number" min={8 / Number(settings.video.default_fps || 24)} step="any" bind:value={settingsVideoDurationSeconds} onchange={() => settingsVideoDurationSeconds = snapVideoDuration(settingsVideoDurationSeconds, settings.video.default_fps)}></label>
+            <label>기본 FPS<input type="number" min="1" max="60" step="any" bind:value={settings.video.default_fps} onchange={() => settingsVideoDurationSeconds = snapVideoDuration(settingsVideoDurationSeconds, settings.video.default_fps)}></label>
             <label>Motion LoRA 기본값<select bind:value={settings.video.default_motion_lora_enabled}><option value={false}>꺼짐</option><option value={true}>켜짐</option></select></label>
-            <label>Motion LoRA 강도<input type="number" min="0" max="1" step="0.05" disabled={!settings.video.default_motion_lora_enabled} bind:value={settings.video.default_motion_lora_strength}><small>권장 0.35~0.70 · 제안 0.50</small></label>
+            <label>Motion LoRA 강도<input type="number" min="0" max="1" step="any" disabled={!settings.video.default_motion_lora_enabled} bind:value={settings.video.default_motion_lora_strength}><small>권장 0.35~0.70 · 제안 0.50</small></label>
+            <label>고해상도 가속<select bind:value={settings.video.acceleration}><option value="auto">자동</option><option value="dense">끄기</option></select><small>자동은 큰 영상에서만 DGX Spark용 SOL Attention 가속을 사용합니다.</small></label>
           </div>
           <small>설정을 저장하면 이후 영상 작업부터 즉시 적용됩니다. 모델 전환이 필요한 첫 작업에서만 파이프라인을 자동으로 다시 적재합니다.</small>
         </section>
@@ -3562,7 +4312,7 @@
   {:else}
     <section class="history"><div class="section-title"><div><span>06</span><h2>생성 기록</h2></div>{#if jobs.some((job) => job.status !== 'queued' && job.status !== 'running')}<button class="quiet danger" disabled={deletingJob === 'all'} onclick={clearFinishedJobs}>모두 비우기</button>{/if}</div>
       <ResultPagination label="생성 기록" total={jobs.length} page={listPages.history} pageSize={listPageSizes.history} pageSizes={pageSizeOptions} sortOrder={listSortOrders.history} onPageChange={(page) => setListPage('history', page)} onPageSizeChange={(size) => setListPageSize('history', size)} onSortOrderChange={(order) => setListSortOrder('history', order)} />
-      {#each pagedHistoryJobs as job (job.id)}<article><span class="kind">{kindLabels[job.kind] || job.kind}</span><div><button type="button" class="history-prompt" title="전체 내용 보기" onclick={() => promptModal = { title: `${kindLabels[job.kind] || job.kind} 작업`, detail: `${new Date(job.created_at).toLocaleString()} · ${statusLabels[job.status] || job.status}`, text: job.prompt }}>{job.prompt}</button><small>{new Date(job.created_at).toLocaleString()} · {statusLabels[job.status] || job.status}</small>{#if job.error}<em>{job.error}</em>{/if}</div><div class="job-actions">{#if job.output_url}<a href={job.output_url} target="_blank">열기 ↗</a>{/if}{#if job.kind === 'recognition' && (job.status === 'failed' || job.status === 'cancelled')}<button class="job-retry" disabled={retryingJob === job.id} onclick={() => retryJob(job)}>{retryingJob === job.id ? '재개 중…' : '재개'}</button>{:else if (job.kind === 'image' || job.kind === 'video') && job.status === 'failed'}<button class="job-retry" disabled={retryingJob === job.id || activeJobs().some((item) => item.kind === 'image' || item.kind === 'video')} onclick={() => retryJob(job)}>{retryingJob === job.id ? '재시도 중…' : '재시도'}</button>{/if}{#if job.status !== 'queued' && job.status !== 'running'}<button class="job-delete" disabled={deletingJob === job.id} onclick={() => deleteJob(job)}>삭제</button>{/if}</div></article>{:else}<div class="empty">아직 생성 기록이 없습니다.</div>{/each}
+      {#each pagedHistoryJobs as job (job.id)}<article><span class="kind">{kindLabels[job.kind] || job.kind}</span><div><button type="button" class="history-prompt" title="전체 내용 보기" onclick={() => promptModal = { title: `${kindLabels[job.kind] || job.kind} 작업`, detail: `${new Date(job.created_at).toLocaleString()} · ${statusLabels[job.status] || job.status}`, text: job.prompt }}>{job.prompt}</button><small>{new Date(job.created_at).toLocaleString()} · {statusLabels[job.status] || job.status}</small>{#if job.error}<em>{job.error}</em>{/if}</div><div class="job-actions">{#if job.output_url}<a href={job.output_url} target="_blank">열기 ↗</a>{/if}{#if job.kind === 'recognition' && (job.status === 'failed' || job.status === 'cancelled')}<button class="job-retry" disabled={retryingJob === job.id} onclick={() => retryJob(job)}>{retryingJob === job.id ? '재개 중…' : '재개'}</button>{:else if (job.kind === 'image' || job.kind === 'video' || job.kind === 'speech') && (job.status === 'failed' || job.status === 'cancelled')}<button class="job-retry" disabled={retryingJob === job.id || activeJobs().some((item) => item.kind === 'image' || item.kind === 'video')} onclick={() => retryJob(job)}>{retryingJob === job.id ? '재시도 중…' : '재시도'}</button>{/if}{#if job.status !== 'queued' && job.status !== 'running'}<button class="job-delete" disabled={deletingJob === job.id} onclick={() => deleteJob(job)}>삭제</button>{/if}</div></article>{:else}<div class="empty">아직 생성 기록이 없습니다.</div>{/each}
       <ResultPagination compact label="생성 기록" total={jobs.length} page={listPages.history} pageSize={listPageSizes.history} onPageChange={(page) => setListPage('history', page)} />
     </section>
   {/if}
@@ -3648,12 +4398,18 @@
 <CannyEditor open={cannyEditorOpen} source={kreaNK2EPreview} preprocessed={kreaNK2EPreprocessed} onApply={useCannyMap} onClose={() => cannyEditorOpen = false} />
 <ImageModal image={imageModal} onGarmentExtract={openGarmentExtractorFromModal} onClose={() => imageModal = null} />
 <GarmentExtractorModal open={garmentExtractorOpen} jobs={imageJobs} initialJob={garmentExtractorInitialJob} onSubmit={submitGarmentExtraction} onClose={() => { garmentExtractorOpen = false; garmentExtractorInitialJob = null }} />
-<VideoModal video={videoModal} onClose={() => videoModal = null} />
-<SubtitleModal result={subtitleModal} onClose={() => subtitleModal = null} />
-<AudioModal audio={audioModal} onClose={() => audioModal = null} />
+<VideoModal video={videoModal} onClose={() => videoModal = null} onSelectFrames={(id) => openFramePicker(videoJobs.find((job) => job.id === id))} onUpscale={(id) => openVideoUpscale(videoJobs.find((job) => job.id === id))} onTranscribe={(id) => sendVideoToRecognition(videoJobs.find((job) => job.id === id))} onLoadSettings={(id) => loadVideoJobSettings(videoJobs.find((job) => job.id === id))} />
+<SubtitleModal result={subtitleModal} onClose={() => subtitleModal = null} onSelectFrames={(id) => openFramePicker(recognitionJobs.find((job) => job.id === id))} onUpscale={(id) => openVideoUpscale(recognitionJobs.find((job) => job.id === id))} onRegenerate={(id) => openSubtitleRegenerate(recognitionJobs.find((job) => job.id === id))} />
+<SubtitleRegenerateModal job={subtitleRegenerateJob} busy={Boolean(regeneratingSubtitleJob)} onSubmit={regenerateSubtitle} onClose={() => subtitleRegenerateJob = null} />
+<VideoFramePicker source={framePickerSource} onUse={usePickedVideoFrame} onClose={() => framePickerSource = null} />
+<VideoUpscaleModal source={videoUpscaleSource} busy={videoUpscaleBusy} onSubmit={submitVideoUpscale} onClose={() => videoUpscaleSource = null} />
+<AudioModal audio={audioModal} onClose={() => audioModal = null} onA2V={(id) => sendAudioToVideo(speechJobs.find((job) => job.id === id))} />
 <PromptModal prompt={promptModal} onClose={() => promptModal = null} />
 <AssistantChat state={assistantState} onActions={applyAssistantActions} onExecute={executeAssistantOperation} getVisualContext={videoAssistantVisualContext} />
-<PromptExamplesModal open={promptExamplesOpen} examples={filterPromptPresets} selectedID={promptExamplesTarget === 'video' ? videoPromptPreset : filterPromptPreset} officialSource={kreaPromptGuideSource} communitySource={filterPromptSource} vibeSource={vibePromptGuideSource} wildcardSource={wildcardPromptSource} onApply={applyPromptExample} onClose={() => promptExamplesOpen = false} />
+<PromptExamplesModal open={promptExamplesOpen} examples={promptExamplesTarget === 'video' ? ltxPromptPresets : filterPromptPresets} selectedID={promptExamplesTarget === 'video' ? videoPromptPreset : filterPromptPreset} officialSource={kreaPromptGuideSource} communitySource={filterPromptSource} vibeSource={vibePromptGuideSource} wildcardSource={wildcardPromptSource} sourceLinks={promptExamplesTarget === 'video' ? ltxPromptSources : []} showWildcard wildcardMode={promptExamplesTarget} wildcardDisabled={promptExamplesTarget === 'video' && (Boolean(videoImage) || Boolean(videoEndImage) || videoKeyframes.some((item) => item.image))} wildcardDisabledTitle="장면 이미지가 있을 때는 위의 프롬프트 만들기를 사용하세요." onRandomVideo={createRandomVideoPrompt} onApply={applyPromptExample} onClose={() => promptExamplesOpen = false} />
+<RecentVideoPicker open={recognitionVideoPickerOpen} jobs={videoJobs} selectedID={recognitionSourceVideoJob?.id || ''} onSelect={sendVideoToRecognition} onClose={() => recognitionVideoPickerOpen = false} />
+<RecentAudioPicker open={videoAudioPickerOpen} jobs={speechJobs} selectedIDs={videoAudioClips.map((clip) => clip.job.id)} multiple onSelect={togglePickedVideoAudio} onClose={() => videoAudioPickerOpen = false} />
+<VideoTimelineEditor open={videoTimelineEditorOpen} overlayOpen={Boolean(videoImagePickerTarget || videoRemoteImageTarget)} duration={(framesForDuration(videoDurationSeconds, videoForm.fps) - 1) / Number(videoForm.fps || 1)} fps={videoForm.fps} startImage={videoImage} endImage={videoEndImage} startStrength={videoForm.image_strength} endStrength={videoEndStrength} keyframes={videoKeyframes} audioClips={videoAudioClips} imageURL={videoImagePreview} onMove={moveVideoKeyframe} onMoveAudio={moveVideoAudio} onUpdate={updateVideoKeyframe} onRemove={removeVideoKeyframe} onAdd={addVideoKeyframe} onSetStrength={(target, value) => { if (target === 'start') videoForm.image_strength = Number(value); else videoEndStrength = Number(value) }} onFile={(target, file) => setVideoConditionImage(target, file)} onRecent={(target) => videoImagePickerTarget = target} onRemote={(target) => videoRemoteImageTarget = target} onClear={(target) => setVideoConditionImage(target, null)} onClose={() => videoTimelineEditorOpen = false} />
 <RecentImagePicker open={Boolean(recentImagePickerTarget)} title={recentImagePickerTarget === 'sequenceBase' ? '연속 생성 첫 장면 선택' : recentImagePickerTarget === 'identityReference' ? `${identityUI.secondary} 선택` : recentImagePickerTarget === 'depth' ? '자세·구도 이미지 선택' : recentImagePickerTarget === 'nk2e' ? '편집·윤곽 이미지 선택' : recentImagePickerTarget === 'anypaint' ? '부분 수정·확장 원본 선택' : recentImagePickerTarget === 'styleReference' ? '스타일 참조 이미지 추가' : recentImagePickerTarget === 'vision' ? '내용·구도 참조 이미지 추가' : `${identityUI.primary} 선택`} jobs={imageJobs} selectedRef={recentImagePickerTarget === 'sequenceBase' ? (imageSequenceBase?.ref || '') : recentImagePickerTarget === 'identityReference' ? (kreaIdentityReference?.ref || '') : recentImagePickerTarget === 'depth' ? (kreaDepthImage?.ref || '') : recentImagePickerTarget === 'nk2e' ? (kreaNK2EImage?.ref || '') : recentImagePickerTarget === 'anypaint' ? (kreaAnyPaintImage?.ref || '') : recentImagePickerTarget === 'identity' ? (kreaIdentityImage?.ref || '') : ''} onSelect={useRecentModuleImage} onClose={() => recentImagePickerTarget = ''} />
 <PresetImagePicker open={Boolean(presetImagePickerTarget)} title={presetImagePickerTarget === 'identityReference' ? `${identityUI.secondary} 프리셋 선택` : presetImagePickerTarget === 'depth' ? '자세·구도 프리셋 선택' : presetImagePickerTarget === 'nk2e' ? '편집·윤곽 프리셋 선택' : presetImagePickerTarget === 'anypaint' ? '부분 수정·확장 원본 프리셋' : presetImagePickerTarget === 'styleReference' ? '스타일 참조 프리셋 추가' : presetImagePickerTarget === 'vision' ? '내용·구도 참조 프리셋 추가' : `${identityUI.primary} 프리셋 선택`} examples={filterPromptPresets} initialTab={presetImagePickerTarget === 'depth' || presetImagePickerTarget === 'nk2e' ? 'pose' : 'example'} onSelect={usePresetModuleImage} onClose={() => presetImagePickerTarget = ''} />
 <RemoteImageModal open={Boolean(remoteImageTarget)} title={remoteImageTitles[remoteImageTarget] || 'URL 이미지 가져오기'} append={remoteImageTarget === 'vision' || remoteImageTarget === 'styleReference' || remoteImageTarget === 'identityReference'} onImport={useRemoteModuleImage} onClose={() => remoteImageTarget = ''} />

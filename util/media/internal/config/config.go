@@ -60,6 +60,7 @@ type Video struct {
 	DefaultFPS                float64 `yaml:"default_fps" json:"default_fps"`
 	DefaultMotionLoRAEnabled  bool    `yaml:"default_motion_lora_enabled" json:"default_motion_lora_enabled"`
 	DefaultMotionLoRAStrength float64 `yaml:"default_motion_lora_strength" json:"default_motion_lora_strength"`
+	Acceleration              string  `yaml:"acceleration" json:"acceleration"`
 }
 
 type PromptEnhancement struct {
@@ -172,14 +173,17 @@ func Validate(cfg Config) error {
 			return fmt.Errorf("image.backends.%s.model is required", mode)
 		}
 	}
-	if cfg.Video.DefaultWidth < 256 || cfg.Video.DefaultHeight < 256 || cfg.Video.DefaultWidth%64 != 0 || cfg.Video.DefaultHeight%64 != 0 {
-		return fmt.Errorf("video width and height must be >= 256 and divisible by 64")
+	if cfg.Video.DefaultWidth < 256 || cfg.Video.DefaultHeight < 256 || cfg.Video.DefaultWidth > 1920 || cfg.Video.DefaultHeight > 1920 || cfg.Video.DefaultWidth%64 != 0 || cfg.Video.DefaultHeight%64 != 0 {
+		return fmt.Errorf("video width and height must be between 256 and 1920 and divisible by 64")
 	}
 	if cfg.Video.DefaultFrames < 9 || (cfg.Video.DefaultFrames-1)%8 != 0 || cfg.Video.DefaultFPS <= 0 || cfg.Video.DefaultFPS > 60 {
 		return fmt.Errorf("invalid video frame or fps defaults")
 	}
 	if cfg.Video.DefaultMotionLoRAStrength < 0 || cfg.Video.DefaultMotionLoRAStrength > 1 {
 		return fmt.Errorf("video.default_motion_lora_strength must be between 0 and 1")
+	}
+	if cfg.Video.Acceleration != "auto" && cfg.Video.Acceleration != "dense" {
+		return fmt.Errorf("video.acceleration must be auto or dense")
 	}
 	if cfg.Recognition.MaxUploadMB < 1 {
 		return fmt.Errorf("recognition.max_upload_mb must be positive")
@@ -290,6 +294,9 @@ func Normalize(cfg Config) Config {
 	}
 	if cfg.Video.DefaultMotionLoRAStrength == 0 {
 		cfg.Video.DefaultMotionLoRAStrength = 0.5
+	}
+	if cfg.Video.Acceleration == "" {
+		cfg.Video.Acceleration = "auto"
 	}
 	return cfg
 }

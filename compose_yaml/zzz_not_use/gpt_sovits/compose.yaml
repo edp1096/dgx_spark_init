@@ -1,5 +1,6 @@
 # services:
 #   gpt-sovits:
+#     init: true
 #     image: nvcr.io/nvidia/pytorch:26.02-py3
 #     container_name: gpt-sovits
 #     ports:

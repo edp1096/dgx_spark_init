@@ -1,5 +1,6 @@
 services:
   vllm:
+    init: true
     image: "edp1096/weights-override:cu133-v1"
     container_name: vllm-qwen38
     ipc: host
@@ -72,6 +73,7 @@ services:
     restart: unless-stopped
 
   open-webui:
+    init: true
     image: "ghcr.io/open-webui/open-webui:main"
     container_name: open-webui-qwen38
     ports:

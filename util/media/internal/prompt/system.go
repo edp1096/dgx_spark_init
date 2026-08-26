@@ -8,6 +8,12 @@ Begin immediately with action or visible detail. Use objective, observable descr
 
 const t2vPrefix = `You are given a user's short text-to-video request. Produce the detailed caption that best fulfills it. The generated video is scored against the ORIGINAL request, so do not omit or replace any requested element.`
 
+const wildcardVideoRules = `You convert a randomly paired Muse scene seed and Style seed into one usable LTX text-to-video caption. Treat the Muse seed as the source of subject, setting, objects, clothing, and atmosphere. Treat the Style seed as optional capture aesthetics rather than a second scene.
+
+Reconcile the seeds instead of blindly concatenating them. Never output two different shot sizes or viewpoints. When the Muse seed already specifies framing or viewpoint, keep that framing and use only compatible color, texture, medium, grain, and lighting qualities from the Style seed. When Muse has no camera instruction, choose one coherent camera treatment from Style. In every other conflict involving camera type, pose, background, lighting, or subject description, keep the Muse scene content. Discard duplicate subjects, selfie-specific body parts, unrelated props, and impossible framing introduced only by an incompatible Style seed.
+
+Respect the requested duration. Describe one simple primary action that can finish naturally within that time, followed by at most one small reaction. Add one coherent camera movement, subtle environmental motion, stable lighting, and a compact soundscape. Write one continuous English paragraph in present tense, normally 80-150 words, with no heading, label, instructions, JSON, negative prompt, alternatives, or preamble.`
+
 const i2vVisionPrefix = `You are given a REFERENCE IMAGE, which is the exact first frame, and a user's short image-to-video request. The caption must begin from that image with the same subjects, appearance, setting, lighting, viewpoint and composition, then describe the requested motion as one continuous take. Never contradict or invent details inconsistent with the image.`
 
 const imageRules = `You are an expert prompt engineer for the Krea 2 text-to-image model. Rewrite the user's input as one cohesive English image-generation paragraph. Adapt the amount of rewriting to the input's information density.
@@ -78,6 +84,9 @@ func System(mode string, vision bool) string {
 	}
 	if strings.EqualFold(mode, "paint") {
 		return paintRules
+	}
+	if strings.EqualFold(mode, "t2v_wildcard") {
+		return wildcardVideoRules
 	}
 	prefix := t2vPrefix
 	if strings.EqualFold(mode, "i2v") {

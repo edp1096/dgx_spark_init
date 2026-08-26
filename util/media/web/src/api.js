@@ -57,12 +57,18 @@ export const api = {
   upscaleImage: (id, options = { scale: 2, seed: -1 }) => fetch(`/api/jobs/${encodeURIComponent(id)}/upscale`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(options)
   }).then(checked),
+  upscaleVideo: (id, options = { scale: 2, seed: -1, batch_size: 5, temporal_overlap: 1 }) => fetch(`/api/jobs/${encodeURIComponent(id)}/video-upscale`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(options)
+  }).then(checked),
   detailEnhanceImage: (id, options = { strength: 1, seed: -1, vae: 'wan' }) => fetch(`/api/jobs/${encodeURIComponent(id)}/detail-enhance`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(options)
   }).then(checked),
   garmentExtract: (form) => fetch('/api/jobs/garment-extract', { method: 'POST', body: form }).then(checked),
   speech: (form) => fetch('/api/jobs/speech', { method: 'POST', body: form }).then(checked),
   recognition: (form) => fetch('/api/jobs/recognition', { method: 'POST', body: form }).then(checked),
+  regenerateSubtitle: (id, options) => fetch(`/api/jobs/${encodeURIComponent(id)}/subtitle-regenerate`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(options)
+  }).then(checked),
   mediaOptions: (url) => fetch('/api/media/options', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -72,7 +78,7 @@ export const api = {
   cleanupTemporaryStorage: () => fetch('/api/storage/temp', { method: 'DELETE' }).then(checked),
   video: (form) => fetch('/api/jobs/video', { method: 'POST', body: form }).then(checked),
   enhancePrompt: (form) => fetch('/api/prompts/enhance', { method: 'POST', body: form }).then(checked),
-	randomPromptWildcard: () => fetch('/api/prompts/wildcard').then(checked),
+	randomPromptWildcard: (variant = 'no_camera') => fetch(`/api/prompts/wildcard?variant=${encodeURIComponent(variant)}`).then(checked),
   loraStatus: () => fetch('/api/lora/status').then(checked),
   saveLoraTokens: (civitaiToken, hfToken) => fetch('/api/lora/tokens', {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ civitai_token: civitaiToken, hf_token: hfToken })

@@ -57,6 +57,7 @@ video:
   default_fps: 24
   default_motion_lora_enabled: false
   default_motion_lora_strength: 0.5
+  acceleration: auto
 
 prompt_enhancement:
   model: huihui-gemma4-12b

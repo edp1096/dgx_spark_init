@@ -13,13 +13,16 @@ import (
 	"mediaapp/internal/jobs"
 )
 
-func TestRandomPromptWildcardUsesNoCameraMuseAndStyle(t *testing.T) {
+func TestRandomPromptWildcardSelectsMuseVariantAndStyle(t *testing.T) {
 	dataDir := t.TempDir()
 	wildcardDir := filepath.Join(dataDir, "prompt-wildcards", "crocody-mymuse")
 	if err := os.MkdirAll(wildcardDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
 	if err := os.WriteFile(filepath.Join(wildcardDir, "muse_no_camera.txt"), []byte("a woman beside a window\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(wildcardDir, "muse.txt"), []byte("a woman beside a window, shot on Sony A7R\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	if err := os.WriteFile(filepath.Join(wildcardDir, "Style.txt"), []byte("casual smartphone snapshot\n"), 0o644); err != nil {
@@ -48,6 +51,19 @@ func TestRandomPromptWildcardUsesNoCameraMuseAndStyle(t *testing.T) {
 	}
 	if strings.Contains(result.Prompt, "Sony A7R") {
 		t.Fatalf("camera-locked muse was used: %q", result.Prompt)
+	}
+
+	request = httptest.NewRequest(http.MethodGet, "/api/prompts/wildcard?variant=muse", nil)
+	response = httptest.NewRecorder()
+	handler.ServeHTTP(response, request)
+	if response.Code != http.StatusOK {
+		t.Fatalf("status=%d body=%s", response.Code, response.Body.String())
+	}
+	if err := json.NewDecoder(response.Body).Decode(&result); err != nil {
+		t.Fatal(err)
+	}
+	if result.MuseVariant != "muse.txt" || !strings.Contains(result.Prompt, "Sony A7R") {
+		t.Fatalf("camera muse variant was not used: %#v", result)
 	}
 }
 

@@ -223,7 +223,7 @@
       </div>
       <div class="fields">
         <label>트리거 · 선택<input bind:value={form.trigger_word} maxlength="512" placeholder="Civitai는 메타데이터 자동 사용"></label>
-        <label>기본 강도<input type="number" min="-2" max="2" step="0.01" bind:value={form.recommended_strength}></label>
+        <label>기본 강도<input type="number" min="-2" max="2" step="any" bind:value={form.recommended_strength}></label>
       </div>
       <label>기반 모델 · 선택<input bind:value={form.base_model} maxlength="128" list="lora-base-models" placeholder="예: Krea 2 Turbo, LTX-2.5"><small>비워두면 Civitai는 메타데이터를 사용하고, 직접 업로드는 미지정으로 등록됩니다.</small></label>
       <datalist id="lora-base-models"><option value="Krea 2 Turbo"></option><option value="LTX-2.5"></option></datalist>
@@ -274,7 +274,7 @@
               <div><strong>대표 이미지</strong><small>{editCover ? editCover.name : selectedLora.preview_available && !removeEditCover ? '현재 등록된 이미지' : '대표 이미지 없음'}</small><div class="lora-cover-actions"><label class="quiet lora-cover-file">파일 선택<input type="file" accept="image/*" onchange={(event) => chooseCoverFile('edit', event)}></label><button type="button" class="quiet" onclick={() => coverPickerTarget = 'edit'}>생성 이미지</button>{#if editCover || (selectedLora.preview_available && !removeEditCover)}<button type="button" class="quiet danger" onclick={() => { releaseCover(editCover); editCover = null; removeEditCover = true }}>비우기</button>{/if}</div></div>
             </div>
             <label>표시 이름<input bind:value={edit.name} maxlength="128"></label>
-            <label>기본 강도<input type="number" min="-2" max="2" step="0.01" bind:value={edit.recommended_strength}></label>
+            <label>기본 강도<input type="number" min="-2" max="2" step="any" bind:value={edit.recommended_strength}></label>
             <label class="wide">기반 모델<input bind:value={edit.base_model} maxlength="128" list="lora-base-models" placeholder="예: Krea 2 Turbo, LTX-2.5"></label>
             <label class="wide">트리거<input bind:value={edit.trigger_word} maxlength="512" placeholder="없음"></label>
             <label class="wide">메모<textarea rows="9" maxlength="2000" bind:value={edit.memo} placeholder="용도, 권장 프롬프트, 조합 주의사항 등을 기록하세요."></textarea><small>{edit.memo.length}/2000</small></label>

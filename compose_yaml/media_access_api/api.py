@@ -296,6 +296,49 @@ def delete_media_progress(request_id: str):
         raise HTTPException(404, "progress not found") from exc
 
 
+@app.delete("/v1/media/jobs/{request_id}", status_code=204)
+def delete_media_job_artifacts(request_id: str):
+    """Remove durable preparation state owned by one Spark Media job.
+
+    Deletion is deliberately scoped to the validated request ID. Browser
+    profiles, shared caches and persisted media assets are managed separately.
+    """
+    try:
+        progress = progress_path(request_id)
+        work_dir = request_work_dir(request_id)
+    except ValueError as exc:
+        raise HTTPException(404, "media job artifacts not found") from exc
+
+    with active_prepare_lock:
+        active = work_dir in active_prepare_dirs
+        process = active_prepare_processes.get(request_id)
+        if active:
+            cancelled_prepare_ids.add(request_id)
+    if process and process.poll() is None:
+        process.terminate()
+        try:
+            process.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait()
+    if active:
+        deadline = time.monotonic() + 5
+        while time.monotonic() < deadline:
+            with active_prepare_lock:
+                if work_dir not in active_prepare_dirs:
+                    break
+            time.sleep(0.05)
+        with active_prepare_lock:
+            if work_dir in active_prepare_dirs:
+                raise HTTPException(409, "media preparation is still stopping")
+
+    shutil.rmtree(work_dir, ignore_errors=True)
+    progress.unlink(missing_ok=True)
+    with active_prepare_lock:
+        active_prepare_processes.pop(request_id, None)
+        cancelled_prepare_ids.discard(request_id)
+
+
 @app.delete("/v1/media/prepare/{request_id}", status_code=202)
 def cancel_media_prepare(request_id: str):
     try:
@@ -1213,6 +1256,82 @@ async def create_video_thumbnails(video: UploadFile = File(...)):
         )
     finally:
         await video.close()
+        shutil.rmtree(work_dir, ignore_errors=True)
+
+
+def extract_video_frame(source: Path, time_seconds: float, destination: Path) -> None:
+    if time_seconds < 0:
+        raise HTTPException(400, "time_seconds must not be negative")
+    duration = probe_duration(source)
+    attempts = [time_seconds]
+    # Container duration often extends one frame beyond the final decodable
+    # presentation timestamp. Seeking to that exact end boundary succeeds but
+    # produces no image, so walk back until a real frame is found.
+    if duration > 0 and time_seconds >= duration - 0.001:
+        attempts.append(max(0.0, duration - 0.05))
+    attempts.extend(max(0.0, time_seconds - offset) for offset in (0.05, 0.1, 0.25, 0.5))
+    unique_attempts = list(dict.fromkeys(round(value, 6) for value in attempts))
+    for attempt in unique_attempts:
+        destination.unlink(missing_ok=True)
+        try:
+            run_prepare_command([
+                "ffmpeg", "-hide_banner", "-nostats", "-loglevel", "error", "-y",
+                "-ss", f"{attempt:.6f}", "-i", str(source), "-an",
+                "-frames:v", "1", "-q:v", "2", str(destination),
+            ], 600, None)
+        except RuntimeError:
+            continue
+        if destination.is_file() and destination.stat().st_size > 0:
+            return
+    raise HTTPException(422, "a frame could not be extracted near that time")
+
+
+@app.post("/v1/media/frame")
+async def create_video_frame(time_seconds: float = Form(...), video: UploadFile = File(...)):
+    """Extract one full-resolution JPEG frame from a locally supplied video."""
+    work_dir = Path(tempfile.mkdtemp(prefix="video-frame-", dir=DATA_DIR))
+    source = work_dir / (Path(video.filename or "video.mp4").name or "video.mp4")
+    frame = work_dir / "frame.jpg"
+    total = 0
+    try:
+        with source.open("wb") as output:
+            while chunk := await video.read(1 << 20):
+                total += len(chunk)
+                if total > MAX_UPLOAD_BYTES:
+                    raise HTTPException(413, "video is too large")
+                output.write(chunk)
+        if total == 0:
+            raise HTTPException(400, "video is empty")
+        await asyncio.to_thread(extract_video_frame, source, time_seconds, frame)
+        return Response(
+            content=frame.read_bytes(),
+            media_type="image/jpeg",
+            headers={"Cache-Control": "no-store", "X-Frame-Time": f"{time_seconds:.6f}"},
+        )
+    finally:
+        await video.close()
+        shutil.rmtree(work_dir, ignore_errors=True)
+
+
+@app.get("/v1/media/assets/{asset_id}/frame")
+async def create_asset_video_frame(asset_id: str, time_seconds: float = 0):
+    """Extract one full-resolution JPEG frame from a persisted transcription source."""
+    _, source, metadata = asset_paths(asset_id)
+    if str(metadata.get("media_type") or "") == "audio":
+        raise HTTPException(409, "audio assets do not contain video frames")
+    duration = float(metadata.get("duration") or 0)
+    if duration > 0 and time_seconds > duration:
+        raise HTTPException(400, "time_seconds exceeds media duration")
+    work_dir = Path(tempfile.mkdtemp(prefix="asset-frame-", dir=DATA_DIR))
+    frame = work_dir / "frame.jpg"
+    try:
+        await asyncio.to_thread(extract_video_frame, source, time_seconds, frame)
+        return Response(
+            content=frame.read_bytes(),
+            media_type="image/jpeg",
+            headers={"Cache-Control": "no-store", "X-Frame-Time": f"{time_seconds:.6f}"},
+        )
+    finally:
         shutil.rmtree(work_dir, ignore_errors=True)
 
 

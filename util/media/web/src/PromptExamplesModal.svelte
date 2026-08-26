@@ -10,6 +10,12 @@
   export let communitySource = ''
   export let vibeSource = ''
   export let wildcardSource = ''
+  export let sourceLinks = []
+  export let showWildcard = true
+  export let wildcardMode = 'image'
+  export let wildcardDisabled = false
+  export let wildcardDisabledTitle = ''
+  export let onRandomVideo = async () => null
   export let onApply = () => {}
   export let onClose = () => {}
 
@@ -18,6 +24,7 @@
   let query = ''
   let focusedExample = null
   let visibleExamples = []
+  let availableSources = []
   let releaseScroll = null
   let wildcardLoading = false
   let wildcardError = ''
@@ -39,11 +46,12 @@
   }
 
   function sourceType(example) {
-    return example.id.startsWith('official-') ? 'official' : example.id.startsWith('vibe-') ? 'vibe' : 'community'
+    return example.sourceKey || (example.id.startsWith('official-') ? 'official' : example.id.startsWith('vibe-') ? 'vibe' : 'community')
   }
 
   function sourceLabel(example) {
-    return sourceType(example) === 'official' ? '출처 1 · Krea 공식' : sourceType(example) === 'vibe' ? '출처 3 · VibeArt' : '출처 2 · Sogni'
+    if (example.sourceLabel) return example.sourceLabel
+    return sourceType(example) === 'official' ? 'Krea 공식' : sourceType(example) === 'vibe' ? 'VibeArt' : 'Sogni'
   }
 
   function sourceURL(example) {
@@ -53,6 +61,14 @@
   function exampleImage(example) {
     const image = example.image || `${example.id}.webp`
     return /^(?:https?:\/\/|data:|blob:|\/)/.test(image) ? image : `/prompt-examples/${image}`
+  }
+
+  function isOfficial(example) {
+    return sourceType(example) === 'official' || sourceType(example) === 'ltx-official'
+  }
+
+  function isAlternate(example) {
+    return sourceType(example) === 'vibe' || (sourceType(example).startsWith('ltx-') && !isOfficial(example))
   }
 
   function filterExamples(allExamples, selectedSource, selectedCategory, searchQuery) {
@@ -66,6 +82,15 @@
   }
 
   $: visibleExamples = filterExamples(examples, source, category, query)
+  $: availableSources = sourceLinks.length
+    ? sourceLinks
+    : [
+        { key: 'official', label: 'Krea 공식', shortLabel: 'Krea 공식', url: officialSource },
+        { key: 'community', label: 'Sogni', shortLabel: 'Sogni', url: communitySource },
+        { key: 'vibe', label: 'VibeArt', shortLabel: 'VibeArt', url: vibeSource },
+        { key: 'wildcard', label: '와일드카드', shortLabel: '와일드카드', url: wildcardSource, linkOnly: true }
+      ]
+  $: if (source && !availableSources.some((item) => item.key === source && !item.linkOnly)) source = ''
   $: if (!open) focusedExample = null
 
   $: {
@@ -92,21 +117,36 @@
     onApply(focusedExample, mode)
   }
 
-  async function applyRandomWildcard() {
+  async function applyRandomWildcard(variant) {
     if (wildcardLoading) return
     wildcardLoading = true
     wildcardError = ''
     try {
-      const result = await api.randomPromptWildcard()
+      const result = await api.randomPromptWildcard(variant)
+      const variantLabel = result.muse_variant === 'muse.txt' ? 'Muse' : 'Muse (No Camera)'
       onApply({
-        id: `wildcard-muse-${result.muse_index}-style-${result.style_index}`,
-        label: `와일드카드 · 장면 ${result.muse_index} + 스타일 ${result.style_index}`,
+        id: `wildcard-${variant}-${result.muse_index}-style-${result.style_index}`,
+        label: `${variantLabel} · 장면 ${result.muse_index} + 스타일 ${result.style_index}`,
         prompt: result.prompt,
         source: result.source,
         wildcard: result
       }, 'replace')
     } catch (error) {
       wildcardError = error?.message || '와일드카드 프롬프트를 불러오지 못했습니다.'
+    } finally {
+      wildcardLoading = false
+    }
+  }
+
+  async function applyRandomVideo(variant) {
+    if (wildcardLoading || wildcardDisabled) return
+    wildcardLoading = true
+    wildcardError = ''
+    try {
+      const preset = await onRandomVideo(variant)
+      if (preset) focusedExample = preset
+    } catch (error) {
+      wildcardError = error?.message || '랜덤 영상 프롬프트를 만들지 못했습니다.'
     } finally {
       wildcardLoading = false
     }
@@ -125,22 +165,26 @@
         </div>
         <div class="header-actions">
           <span class="source-links">
-            <a href={officialSource} target="_blank" rel="noreferrer">출처 1 ↗</a>
-            <a href={communitySource} target="_blank" rel="noreferrer">출처 2 ↗</a>
-            <a href={vibeSource} target="_blank" rel="noreferrer">출처 3 ↗</a>
-            <a href={wildcardSource} target="_blank" rel="noreferrer">출처 4 ↗</a>
+            {#each availableSources as item, index}
+              {#if item.url}<a href={item.url} title={item.label} target="_blank" rel="noreferrer">출처 {index + 1} ↗</a>{/if}
+            {/each}
           </span>
-          <button type="button" class="wildcard-random" disabled={wildcardLoading} title="muse(no_camera) 장면과 Style을 무작위로 조합해 새 프롬프트로 적용" onclick={applyRandomWildcard}>{wildcardLoading ? '준비 중…' : '🎲 랜덤'}</button>
           <button type="button" aria-label="닫기" onclick={onClose}>×</button>
         </div>
       </header>
 
       {#if focusedExample}
         <div class="example-detail">
-          <div class="detail-image"><img src={exampleImage(focusedExample)} alt={focusedExample.label}></div>
+          <div class="detail-image">
+            {#if focusedExample.previewIcon}
+              <div class={`prompt-example-visual detail ${focusedExample.previewTone || ''}`}><b>{focusedExample.previewIcon}</b><em>{focusedExample.label}</em></div>
+            {:else}
+              <img src={exampleImage(focusedExample)} alt={focusedExample.label}>
+            {/if}
+          </div>
           <div class="detail-copy">
             <button type="button" class="back" onclick={() => focusedExample = null}>← 목록으로</button>
-            <span class:official={sourceType(focusedExample) === 'official'} class:vibe={sourceType(focusedExample) === 'vibe'} class="source-badge">{sourceLabel(focusedExample)}</span>
+            <span class:official={isOfficial(focusedExample)} class:vibe={isAlternate(focusedExample)} class="source-badge">{sourceLabel(focusedExample)}</span>
             <h3>{focusedExample.label}</h3>
             <p>{focusedExample.prompt}</p>
             <a href={sourceURL(focusedExample)} target="_blank" rel="noreferrer">원문 출처 ↗</a>
@@ -153,7 +197,7 @@
       {:else}
         <div class="example-filters">
           <label>출처
-            <select bind:value={source}><option value="">전체 출처</option><option value="official">출처 1 · Krea 공식</option><option value="community">출처 2 · Sogni</option><option value="vibe">출처 3 · VibeArt</option></select>
+            <select bind:value={source}><option value="">전체 출처</option>{#each availableSources.filter((item) => !item.linkOnly) as item}<option value={item.key}>{item.label}</option>{/each}</select>
           </label>
           <label>종류
             <select bind:value={category}><option value="">전체 종류</option>{#each categories as item}<option value={item[0]}>{item[1]}</option>{/each}</select>
@@ -162,13 +206,27 @@
             <input bind:value={query} type="search" placeholder="인물, 애니, macro, lighting…">
           </label>
         </div>
-        <div class="example-result-heading"><span>{visibleExamples.length}개 예제</span><small>공식 예제가 먼저, 커뮤니티 예제가 다음에 표시됩니다.</small></div>
+        <div class="example-result-heading"><span>{visibleExamples.length}개 예제</span><small>{showWildcard ? '공식 예제가 먼저, 커뮤니티 예제가 다음에 표시됩니다.' : 'LTX 공식 작성법과 각 자료의 구성 원칙으로 새로 작성한 예제입니다.'}</small></div>
         <div class="example-gallery">
+          {#if showWildcard}
+            <div class="wildcard-random-card" class:loading={wildcardLoading}>
+              <button type="button" disabled={wildcardLoading || wildcardDisabled} title={wildcardDisabled ? wildcardDisabledTitle : wildcardMode === 'video' ? 'Muse 장면과 Style을 무작위로 골라 LTX 영상 프롬프트로 변환' : '카메라 묘사가 포함된 Muse와 Style을 무작위로 조합'} onclick={() => wildcardMode === 'video' ? applyRandomVideo('muse') : applyRandomWildcard('muse')}>
+                <b>{wildcardMode === 'video' ? '🎬' : '🎲'}</b><span><strong>{wildcardLoading ? '준비 중…' : '랜덤 - Muse + Style'}</strong></span>
+              </button>
+              <button type="button" disabled={wildcardLoading || wildcardDisabled} title={wildcardDisabled ? wildcardDisabledTitle : wildcardMode === 'video' ? '카메라 묘사를 뺀 Muse 장면과 Style을 무작위로 골라 LTX 영상 프롬프트로 변환' : '카메라 묘사가 없는 Muse와 Style을 무작위로 조합'} onclick={() => wildcardMode === 'video' ? applyRandomVideo('no_camera') : applyRandomWildcard('no_camera')}>
+                <b>{wildcardMode === 'video' ? '🎬' : '🎲'}</b><span><strong>{wildcardLoading ? '준비 중…' : '랜덤 - Muse (No Camera) + Style'}</strong></span>
+              </button>
+            </div>
+          {/if}
           {#each visibleExamples as example}
             <button type="button" class:selected={example.id === selectedID} onclick={() => focusedExample = example} title={example.prompt}>
-              <img src={exampleImage(example)} alt={example.label} loading="lazy">
+              {#if example.previewIcon}
+                <div class={`prompt-example-visual ${example.previewTone || ''}`}><b>{example.previewIcon}</b><em>LTX VIDEO</em></div>
+              {:else}
+                <img src={exampleImage(example)} alt={example.label} loading="lazy">
+              {/if}
               <span>{example.label}</span>
-              <small class:official={sourceType(example) === 'official'} class:vibe={sourceType(example) === 'vibe'}>{sourceType(example) === 'official' ? 'Krea 공식' : sourceType(example) === 'vibe' ? 'VibeArt' : 'Sogni'}</small>
+              <small class:official={isOfficial(example)} class:vibe={isAlternate(example)}>{sourceLabel(example)}</small>
             </button>
           {:else}
             <p class="empty">조건에 맞는 예제가 없습니다.</p>
@@ -189,20 +247,37 @@
   .header-actions, .source-links { display: flex; align-items: center; gap: 10px; white-space: nowrap; }
   .header-actions a, .detail-copy > a { color: #a8d970; font-size: 10px; text-decoration: none; }
   .header-actions button { width: 34px; height: 34px; padding: 0; border: 1px solid #3a4248; border-radius: 50%; color: #c9d0d5; background: #1b2126; font-size: 20px; }
-  .header-actions .wildcard-random { width: auto; min-width: 76px; padding: 0 12px; border-radius: 9px; border-color: #647d4e; color: #d9f5ba; background: #22301c; font-size: 10px; font-weight: 750; }
-  .header-actions .wildcard-random:hover:not(:disabled) { border-color: #a8d970; background: #2a3b22; }
-  .header-actions .wildcard-random:disabled { opacity: .6; cursor: wait; }
   header small.wildcard-error { color: #f0a7ac; }
   .example-filters { display: grid; grid-template-columns: 190px 170px minmax(220px, 1fr); gap: 10px; padding: 12px 16px; border-bottom: 1px solid #252c31; background: #0e1215; }
   .example-filters label { display: grid; gap: 5px; color: #89939a; font-size: 9px; font-weight: 700; }
   .example-filters select, .example-filters input { box-sizing: border-box; width: 100%; height: 38px; padding: 0 10px; border: 1px solid #343c42; border-radius: 8px; color: #d2d8dc; background: #171c20; font-size: 10px; }
   .example-result-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 16px; color: #b8c1c7; font-size: 10px; }
   .example-result-heading small { color: #657078; font-size: 9px; text-align: right; }
-  .example-gallery { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-rows: max-content; align-content: start; gap: 10px; min-height: 0; overflow-y: auto; padding: 0 14px 16px; }
+  .example-gallery { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-rows: max-content; align-content: start; gap: 10px; min-height: 0; overflow-y: auto; padding: 5px 14px 16px; }
   .example-gallery > button { display: grid; grid-template-rows: auto auto auto; min-width: 0; overflow: hidden; padding: 0 0 9px; border: 1px solid #30383e; border-radius: 10px; color: #c7ced2; background: #171c20; text-align: left; }
   .example-gallery > button:hover { border-color: #687c57; transform: translateY(-1px); }
   .example-gallery > button.selected { border-color: #a8d970; box-shadow: 0 0 0 2px #a8d97024; }
+  .wildcard-random-card { display: grid; grid-template-rows: repeat(2, minmax(0, 1fr)); min-width: 0; overflow: hidden; border-radius: 10px; background: #171c20; }
+  .wildcard-random-card.loading { opacity: .65; }
+  .wildcard-random-card > button { display: grid; grid-template-columns: 30px minmax(0, 1fr); align-items: center; gap: 7px; min-width: 0; padding: 8px; border: 0; color: #c7ced2; background: radial-gradient(circle at 20% 20%, #405a32, #1b2817 58%, #11170f); text-align: left; }
+  .wildcard-random-card > button + button { border-top: 1px solid #34432a; }
+  .wildcard-random-card > button:hover:not(:disabled) { background: radial-gradient(circle at 20% 20%, #526f3f, #24351d 58%, #141c11); }
+  .wildcard-random-card > button:disabled { cursor: wait; }
+  .wildcard-random-card > button > b { font-size: 22px; line-height: 1; text-align: center; }
+  .wildcard-random-card > button > span { display: grid; gap: 4px; min-width: 0; padding: 0; }
+  .wildcard-random-card strong { overflow: hidden; color: #d7e6c7; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
   .example-gallery img { width: 100%; aspect-ratio: 1.3 / 1; object-fit: cover; background: #20262a; }
+  .prompt-example-visual { display: grid; place-items: center; align-content: center; gap: 8px; width: 100%; aspect-ratio: 1.3 / 1; background: radial-gradient(circle at 32% 24%, #5b7181, #26343d 46%, #11171b); }
+  .prompt-example-visual b { font-size: 34px; line-height: 1; filter: drop-shadow(0 5px 12px #0008); }
+  .prompt-example-visual em { color: #c7d2d9; font: 750 8px ui-monospace; letter-spacing: .16em; }
+  .prompt-example-visual.amber, .prompt-example-visual.gold { background: radial-gradient(circle at 32% 24%, #806a39, #3c3020 48%, #17130e); }
+  .prompt-example-visual.blue, .prompt-example-visual.ice { background: radial-gradient(circle at 32% 24%, #477a92, #213c4b 48%, #10181e); }
+  .prompt-example-visual.violet { background: radial-gradient(circle at 32% 24%, #6b568d, #302747 48%, #15111d); }
+  .prompt-example-visual.teal, .prompt-example-visual.green { background: radial-gradient(circle at 32% 24%, #477e70, #203d36 48%, #101a17); }
+  .prompt-example-visual.orange, .prompt-example-visual.red, .prompt-example-visual.rose { background: radial-gradient(circle at 32% 24%, #925a4c, #472a27 48%, #1b1110); }
+  .prompt-example-visual.detail { width: min(620px, 100%); border-radius: 10px; aspect-ratio: 16 / 9; }
+  .prompt-example-visual.detail b { font-size: 72px; }
+  .prompt-example-visual.detail em { font-size: 11px; }
   .example-gallery span { overflow: hidden; padding: 8px 9px 3px; font-size: 10px; font-weight: 750; text-overflow: ellipsis; white-space: nowrap; }
   .example-gallery small { width: fit-content; margin-left: 9px; padding: 2px 5px; border-radius: 4px; color: #d9a58b; background: #38271f; font-size: 8px; }
   .example-gallery small.official, .source-badge.official { color: #badf91; background: #25331d; }
@@ -227,12 +302,15 @@
     header small { display: none; }
     .header-actions { gap: 7px; }
     .source-links { display: none; }
-    .header-actions .wildcard-random { min-width: 72px; padding-inline: 10px; }
     .example-filters { grid-template-columns: 1fr 1fr; padding: 10px 12px; }
     .example-search { grid-column: 1 / -1; }
     .example-result-heading { padding-inline: 12px; }
-    .example-gallery { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; padding: 0 10px 14px; }
+    .example-gallery { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; padding: 5px 10px 14px; }
     .example-gallery img { aspect-ratio: 1 / 1; }
+    .prompt-example-visual { aspect-ratio: 1 / 1; }
+    .wildcard-random-card > button { grid-template-columns: 24px minmax(0, 1fr); gap: 4px; padding: 5px; }
+    .wildcard-random-card > button > b { font-size: 18px; }
+    .wildcard-random-card strong { font-size: 7px; }
     .example-gallery span { padding: 6px 6px 2px; font-size: 8px; }
     .example-gallery small { margin-left: 6px; font-size: 7px; }
     .example-detail { grid-template-columns: 1fr; grid-template-rows: minmax(220px, 43vh) minmax(0, 1fr); overflow-y: auto; }

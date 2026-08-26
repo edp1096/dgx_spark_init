@@ -14,6 +14,11 @@ BASE_FILES = (
     "latent_upscale_models/ltx-2.5-latent-spatial-upscaler-x2-bf16-1.0.safetensors",
 )
 
+A2V_FILES = (
+    "diffusion_models/ltx-2.5-22b-dev-transformer-bf16.safetensors",
+    "loras/ltx-2.5-22b-distilled-lora-450-bf16.safetensors",
+)
+
 PUBLIC_FILES = (
     (
         "Muapi/ltx-2.3-ltx2-better-nsfw-motion",
@@ -31,6 +36,10 @@ def required_paths(root: Path) -> list[Path]:
 
 def missing_paths(root: Path) -> list[Path]:
     return [path for path in required_paths(root) if not path.is_file()]
+
+
+def a2v_missing_paths(root: Path) -> list[Path]:
+    return [root / filename for filename in A2V_FILES if not (root / filename).is_file()]
 
 
 def download(
@@ -63,6 +72,8 @@ def prepare_all(root: Path, token: str | None) -> None:
 
     try:
         for filename in BASE_FILES:
+            download(BASE_REPO, filename, root, root / filename, token)
+        for filename in A2V_FILES:
             download(BASE_REPO, filename, root, root / filename, token)
     except GatedRepoError as exc:
         raise SystemExit(

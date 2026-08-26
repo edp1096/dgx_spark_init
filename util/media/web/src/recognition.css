@@ -62,7 +62,7 @@
 
 .recognition-source-bar {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(78px, 108px) auto;
+  grid-template-columns: minmax(0, 1fr) auto minmax(78px, 108px) minmax(84px, 100px) auto;
   gap: 6px;
   align-items: stretch;
 }
@@ -100,14 +100,37 @@
 .recognition-file-button.active { border-color: #78935f; color: #dfffb9; background: #222c20; }
 .recognition-file-button input { position: absolute; width: 1px; height: 1px; opacity: 0; }
 .recognition-file-button span { min-width: 0; overflow: hidden; padding-right: 8px; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+.recognition-video-list-button {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  align-items: center;
+  overflow: hidden;
+  border: 1px solid #3b4640;
+  border-radius: 9px;
+  padding: 0;
+  color: #aeb9a7;
+  background: #1b211d;
+}
+.recognition-video-list-button.active { border-color: #78935f; color: #dfffb9; background: #222c20; }
+.recognition-video-list-button i { color: #8fa37c; font: 750 8px ui-monospace; font-style: normal; text-align: center; }
+.recognition-video-list-button span { min-width: 0; overflow: hidden; padding-right: 7px; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
 .recognition-file-clear { width: 32px; border: 1px solid #513438; border-radius: 9px; padding: 0; color: #d48d93; background: transparent; font-size: 17px; }
 .recognition-source-note { display: block; margin-top: 7px; color: #69727b; font-size: 8.5px; line-height: 1.45; }
+.recognition-video-source { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; border: 1px solid #536947; border-radius: 9px; padding: 7px 8px; background: #1b2519; }
+.recognition-video-source > span { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 2px 8px; min-width: 0; }
+.recognition-video-source i { grid-row: 1 / 3; color: #9fbe84; font: 750 8px ui-monospace; }
+.recognition-video-source strong { overflow: hidden; color: #d8e8cb; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+.recognition-video-source small { color: #819078; font-size: 8px; }
+.recognition-video-source > button { margin-left: auto; border: 0; color: #c7d1c8; background: transparent; font-size: 17px; }
 .recognition-source-panel .media-options { margin: 10px 0 0; }
 
 @media (max-width: 460px) {
   .recognition-source-heading > div { display: grid; gap: 3px; }
   .recognition-source-panel { padding: 10px; }
-  .recognition-source-bar { grid-template-columns: minmax(0, 1fr) auto minmax(72px, 88px) auto; gap: 4px; }
+  .recognition-source-bar { grid-template-columns: minmax(0, 1fr) auto minmax(72px, 88px); gap: 4px; }
+  .recognition-video-list-button { grid-column: 1 / 3; min-height: 34px; }
+  .recognition-file-clear { grid-column: 3; grid-row: 2; }
   .recognition-url-input { grid-template-columns: 27px minmax(0, 1fr); }
   .recognition-file-button { grid-template-columns: 25px minmax(0, 1fr); }
   .recognition-source-bar > .media-options-load { min-width: 42px; padding: 0 6px; }
@@ -219,10 +242,24 @@
 
 .output-links {
   display: flex !important;
+  align-items: center;
   flex-wrap: wrap;
   gap: 10px !important;
   margin: 10px 0;
 }
+
+.subtitle-regenerate-open {
+  min-height: 25px;
+  border: 1px solid #536947;
+  border-radius: 6px;
+  padding: 4px 7px;
+  color: #c8dcba;
+  background: #1c251b;
+  font-size: 8px;
+  white-space: nowrap;
+}
+
+.subtitle-regenerate-open:hover { border-color: #78935f; background: #253220; }
 
 .subtitle-results article {
   align-items: stretch;
@@ -314,6 +351,20 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+.subtitle-translation-warning {
+  justify-self: start;
+  min-height: 24px;
+  margin: 3px 9px 0;
+  border: 1px solid #755d2f;
+  border-radius: 6px;
+  padding: 3px 7px;
+  color: #f0c66f;
+  background: #2b2418;
+  font-size: 8px;
+}
+
+.subtitle-results.list-view .subtitle-translation-warning { margin: 0; }
 
 .subtitle-results:not(.list-view) .output-links {
   gap: 4px !important;
@@ -491,6 +542,10 @@
 
 .subtitle-results.list-view .output-links {
   margin: 1px 0;
+}
+
+.subtitle-results.list-view .subtitle-translation-warning {
+  grid-column: 2 / -1;
 }
 
 .subtitle-results.list-view .subtitle-list-preview,

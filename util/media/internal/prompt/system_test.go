@@ -15,6 +15,7 @@ func TestImageEnhancementModesHaveTaskSpecificRules(t *testing.T) {
 		{mode: "edit_control", want: "application itself adds"},
 		{mode: "control", want: "reference image controls pose"},
 		{mode: "paint", want: "AnyPaint inpainting and outpainting"},
+		{mode: "t2v_wildcard", want: "randomly paired Muse scene seed"},
 	}
 	for _, test := range tests {
 		t.Run(test.mode, func(t *testing.T) {

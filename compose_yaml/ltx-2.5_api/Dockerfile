@@ -2,11 +2,16 @@ FROM nvcr.io/nvidia/pytorch:26.07-py3
 
 ARG LTX_COMMIT=400fd31054597515f47125691032c04b1c3ee24e
 ARG TORCHAUDIO_COMMIT=4e3e282b0e23a0b9133abc8f719e2fa39be2a6e3
+ARG SOL_ENGINE_REPO=https://github.com/edp1096/Sana.git
+ARG SOL_ENGINE_COMMIT=809638b437f49bdda969ebf568d12b8e91806c98
 
 ENV PIP_ROOT_USER_ACTION=ignore \
     PYTHONUNBUFFERED=1 \
     PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True \
     TORCH_CUDA_ARCH_LIST=12.1a \
+    CUTE_DSL_ARCH=sm_121a \
+    SOL_ATTN_STRICT=0 \
+    PYTHONPATH=/opt/sol-engine \
     MAX_JOBS=2
 
 RUN apt-get update && \
@@ -20,10 +25,17 @@ RUN git clone https://github.com/Lightricks/LTX-2.git /opt/LTX-2 && \
 RUN python -m pip install --no-cache-dir \
       fastapi==0.116.1 \
       huggingface-hub==0.36.0 \
+      nvidia-cutlass-dsl==4.7.0 \
+      cuda-python \
       python-multipart==0.0.20 \
       uvicorn==0.35.0 && \
     python -m pip install --no-cache-dir -e /opt/LTX-2/packages/ltx-core -e /opt/LTX-2/packages/ltx-pipelines && \
     python -m pip install --no-cache-dir --no-build-isolation /opt/LTX-2/packages/ltx-kernels
+
+RUN git clone --filter=blob:none --no-checkout "${SOL_ENGINE_REPO}" /opt/sol-engine && \
+    git -C /opt/sol-engine fetch --filter=blob:none origin "${SOL_ENGINE_COMMIT}" && \
+    git -C /opt/sol-engine checkout --detach "${SOL_ENGINE_COMMIT}" && \
+    python -m pip install --no-cache-dir -e /opt/sol-engine/techniques/sparse_backends
 
 # PyPI TorchAudio is built against CUDA 13.0 while the NGC 26.07 PyTorch image uses
 # CUDA 13.3. Build against the image's exact PyTorch/CUDA ABI instead.
@@ -42,7 +54,7 @@ RUN git -C /opt/LTX-2 apply /tmp/comfy-gemma-config-fallback.patch && \
     rm -f /tmp/comfy-gemma-config-fallback.patch
 
 WORKDIR /opt/ltx-api
-COPY api.py prepare_models.py start.sh ./
+COPY api.py prepare_models.py sol_runtime.py start.sh ./
 RUN chmod +x start.sh
 
 EXPOSE 8695

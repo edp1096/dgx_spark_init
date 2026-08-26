@@ -1,5 +1,6 @@
 services:
   custom:
+    init: true
     image: dgx-vllm-omni:v0.26.0
     container_name: qwen3-tts-custom-api
     restart: unless-stopped

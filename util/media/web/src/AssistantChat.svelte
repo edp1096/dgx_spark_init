@@ -154,7 +154,7 @@
       <div class="assistant-avatar"><SparkBolt label="Aide" /></div>
       <div class="assistant-heading"><strong>Aide</strong><small><i></i> Gemma 4 12B · 로컬</small></div>
       <button type="button" class="assistant-clear" title="대화 내역 비우기" aria-label="대화 내역 비우기" onclick={clearChat}>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6l1 2h4v2H4V5h4l1-2Zm-2 6h10l-.7 11H7.7L7 9Zm3 2v7h2v-7h-2Zm4 0v7h2v-7h-2Z" /></svg>
+        비우기
       </button>
       <button type="button" class="assistant-close" aria-label="대화창 닫기" onclick={() => open = false}>×</button>
     </header>

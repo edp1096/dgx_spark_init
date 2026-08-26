@@ -60,7 +60,7 @@ func main() {
 		if err := mediaServer.PreparePromptWildcards(ctx); err != nil {
 			log.Printf("prompt wildcard preparation deferred: %v", err)
 		} else {
-			log.Printf("prompt wildcards ready: Crocody/mymuse muse(no_camera) + Style")
+			log.Printf("prompt wildcards ready: Crocody/mymuse muse + muse(no_camera) + Style")
 		}
 	}()
 	stop := make(chan os.Signal, 1)

@@ -1,5 +1,6 @@
 services:
   api:
+    init: true
     build: .
     image: dgx-qwen3-asr-timestamps:1.7b
     container_name: qwen3-asr-api

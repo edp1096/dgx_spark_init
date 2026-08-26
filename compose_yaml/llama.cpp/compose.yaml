@@ -1,5 +1,6 @@
 services:
   llama-server:
+    init: true
     container_name: llama-cpp-spark
     image: llama.cpp-spark:c060ca9
     build:

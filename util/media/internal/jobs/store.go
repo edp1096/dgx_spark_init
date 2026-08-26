@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 )
@@ -72,29 +73,38 @@ func (s *Store) writeLocked() error {
 }
 
 func (s *Store) Delete(id string) error {
-	s.mu.Lock()
-	j, ok := s.jobs[id]
-	if !ok {
-		s.mu.Unlock()
-		return ErrNotFound
-	}
-	if j.Status == "queued" || j.Status == "running" {
-		s.mu.Unlock()
-		return ErrActive
-	}
-	delete(s.jobs, id)
-	if err := s.writeLocked(); err != nil {
-		s.jobs[id] = j
-		s.mu.Unlock()
-		return err
-	}
-	s.mu.Unlock()
-
 	if id == "" || filepath.Base(id) != id {
 		return errors.New("invalid job id")
 	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	j, ok := s.jobs[id]
+	if !ok {
+		return ErrNotFound
+	}
+	if j.Status == "queued" || j.Status == "running" {
+		return ErrActive
+	}
+	// Clean owned files first. If persistence of the record deletion fails, the
+	// user can retry deletion and no untracked files are left behind.
 	if err := os.RemoveAll(filepath.Join(s.dir, "inputs", id)); err != nil {
 		return err
+	}
+	// A failed or cancelled writer may have created a job-owned file before it
+	// could persist OutputURL/Outputs. Sweep the exact job namespace as well as
+	// the registered URLs below so partial results cannot become orphans.
+	entries, err := os.ReadDir(s.OutputDir())
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
+		return err
+	}
+	for _, entry := range entries {
+		name := entry.Name()
+		if name != id && !strings.HasPrefix(name, id+".") && !strings.HasPrefix(name, id+"-") {
+			continue
+		}
+		if err := os.RemoveAll(filepath.Join(s.OutputDir(), name)); err != nil {
+			return err
+		}
 	}
 	if j.OutputURL != "" {
 		name := filepath.Base(j.OutputURL)
@@ -119,6 +129,11 @@ func (s *Store) Delete(id string) error {
 				return err
 			}
 		}
+	}
+	delete(s.jobs, id)
+	if err := s.writeLocked(); err != nil {
+		s.jobs[id] = j
+		return err
 	}
 	return nil
 }

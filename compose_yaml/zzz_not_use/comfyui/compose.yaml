@@ -1,5 +1,6 @@
 services:
   comfyui:
+    init: true
     container_name: comfyui-spark
     image: edp1096/comfyui-spark:v1
     ports:

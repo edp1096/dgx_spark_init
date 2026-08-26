@@ -1,5 +1,6 @@
 services:
   zit-gradio:
+    init: true
     container_name: zit-gradio-spark
     image: edp1096/zit-gradio-spark:v1
     ports:

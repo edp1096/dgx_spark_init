@@ -1,5 +1,6 @@
 services:
   zifk-gradio:
+    init: true
     container_name: zifk-gradio-spark
     image: edp1096/zifk-gradio-spark:v1
     ports:

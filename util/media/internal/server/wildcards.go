@@ -14,10 +14,11 @@ import (
 )
 
 const (
-	wildcardSourceURL = "https://huggingface.co/datasets/Crocody/mymuse/tree/main/Wildcards"
-	wildcardMuseURL   = "https://huggingface.co/datasets/Crocody/mymuse/resolve/main/Wildcards/muse%28no_camera%29.txt"
-	wildcardStyleURL  = "https://huggingface.co/datasets/Crocody/mymuse/resolve/main/Wildcards/Style.txt"
-	wildcardMaxBytes  = int64(32 << 20)
+	wildcardSourceURL       = "https://huggingface.co/datasets/Crocody/mymuse/tree/main/Wildcards"
+	wildcardMuseURL         = "https://huggingface.co/datasets/Crocody/mymuse/resolve/main/Wildcards/muse.txt"
+	wildcardMuseNoCameraURL = "https://huggingface.co/datasets/Crocody/mymuse/resolve/main/Wildcards/muse%28no_camera%29.txt"
+	wildcardStyleURL        = "https://huggingface.co/datasets/Crocody/mymuse/resolve/main/Wildcards/Style.txt"
+	wildcardMaxBytes        = int64(32 << 20)
 )
 
 type wildcardPromptResult struct {
@@ -49,7 +50,13 @@ func (s *Server) randomPromptWildcard(w http.ResponseWriter, r *http.Request) {
 
 	s.wildcardMu.Lock()
 	defer s.wildcardMu.Unlock()
-	museIndex, err := secureRandomIndex(len(s.wildcardMuse))
+	museLines := s.wildcardMuseNoCamera
+	museVariant := "muse(no_camera).txt"
+	if r.URL.Query().Get("variant") == "muse" {
+		museLines = s.wildcardMuse
+		museVariant = "muse.txt"
+	}
+	museIndex, err := secureRandomIndex(len(museLines))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -59,7 +66,7 @@ func (s *Server) randomPromptWildcard(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	muse := s.wildcardMuse[museIndex]
+	muse := museLines[museIndex]
 	style := s.wildcardStyles[styleIndex]
 	writeJSON(w, http.StatusOK, wildcardPromptResult{
 		Prompt:      strings.TrimSpace(muse + " " + style),
@@ -67,24 +74,28 @@ func (s *Server) randomPromptWildcard(w http.ResponseWriter, r *http.Request) {
 		Style:       style,
 		MuseIndex:   museIndex + 1,
 		StyleIndex:  styleIndex + 1,
-		MuseCount:   len(s.wildcardMuse),
+		MuseCount:   len(museLines),
 		StyleCount:  len(s.wildcardStyles),
-		MuseVariant: "muse(no_camera).txt",
+		MuseVariant: museVariant,
 		Source:      wildcardSourceURL,
 	})
 }
 
 func (s *Server) loadPromptWildcardsLocked(ctx context.Context) error {
-	if len(s.wildcardMuse) > 0 && len(s.wildcardStyles) > 0 {
+	if len(s.wildcardMuse) > 0 && len(s.wildcardMuseNoCamera) > 0 && len(s.wildcardStyles) > 0 {
 		return nil
 	}
 	dir := filepath.Join(s.dataDir, "prompt-wildcards", "crocody-mymuse")
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return err
 	}
-	musePath := filepath.Join(dir, "muse_no_camera.txt")
+	musePath := filepath.Join(dir, "muse.txt")
+	museNoCameraPath := filepath.Join(dir, "muse_no_camera.txt")
 	stylePath := filepath.Join(dir, "Style.txt")
 	if err := s.ensureDownloadedFile(ctx, wildcardMuseURL, musePath, wildcardMaxBytes); err != nil {
+		return fmt.Errorf("download muse.txt: %w", err)
+	}
+	if err := s.ensureDownloadedFile(ctx, wildcardMuseNoCameraURL, museNoCameraPath, wildcardMaxBytes); err != nil {
 		return fmt.Errorf("download muse(no_camera).txt: %w", err)
 	}
 	if err := s.ensureDownloadedFile(ctx, wildcardStyleURL, stylePath, wildcardMaxBytes); err != nil {
@@ -92,16 +103,21 @@ func (s *Server) loadPromptWildcardsLocked(ctx context.Context) error {
 	}
 	muse, err := readWildcardLines(musePath)
 	if err != nil {
+		return fmt.Errorf("read muse.txt: %w", err)
+	}
+	museNoCamera, err := readWildcardLines(museNoCameraPath)
+	if err != nil {
 		return fmt.Errorf("read muse(no_camera).txt: %w", err)
 	}
 	styles, err := readWildcardLines(stylePath)
 	if err != nil {
 		return fmt.Errorf("read Style.txt: %w", err)
 	}
-	if len(muse) == 0 || len(styles) == 0 {
+	if len(muse) == 0 || len(museNoCamera) == 0 || len(styles) == 0 {
 		return fmt.Errorf("wildcard source is empty")
 	}
 	s.wildcardMuse = muse
+	s.wildcardMuseNoCamera = museNoCamera
 	s.wildcardStyles = styles
 	return nil
 }

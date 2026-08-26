@@ -1,5 +1,6 @@
 services:
   api:
+    init: true
     build:
       context: .
     image: dgx-seedvr2-upscaler:latest

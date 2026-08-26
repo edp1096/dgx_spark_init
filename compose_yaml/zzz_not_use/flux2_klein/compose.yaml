@@ -1,5 +1,6 @@
 services:
   api:
+    init: true
     image: dgx-vllm-omni:v0.26.0
     container_name: flux2-klein-api
     restart: unless-stopped

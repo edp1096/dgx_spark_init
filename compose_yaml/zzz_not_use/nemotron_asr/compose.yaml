@@ -1,5 +1,6 @@
 services:
   api:
+    init: true
     build: .
     image: dgx-nemotron-asr-native:0.6b
     container_name: nemotron-asr-api

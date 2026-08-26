@@ -32,15 +32,26 @@ func (s *Server) retryJob(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) retryVideo(w http.ResponseWriter, job jobs.Job) {
-	if job.Status != "failed" {
-		http.Error(w, "only failed video jobs can be generated again", http.StatusConflict)
+	if job.Status != "failed" && job.Status != "cancelled" {
+		http.Error(w, "only failed or cancelled video jobs can be generated again", http.StatusConflict)
 		return
 	}
-	if _, err := s.loadVideoExecution(job); err != nil {
-		http.Error(w, err.Error(), http.StatusConflict)
-		return
+	if imageStringParam(job.Params, "mode", "") != "upscale" {
+		if _, err := s.loadVideoExecution(job); err != nil {
+			http.Error(w, err.Error(), http.StatusConflict)
+			return
+		}
+	} else {
+		sourceID := imageStringParam(job.Params, "source_job_id", "")
+		source, ok := s.jobs.Get(sourceID)
+		if !ok || (source.Kind == "video" && (source.Status != "completed" || source.OutputURL == "")) || (source.Kind == "recognition" && source.MediaAssetID == "") {
+			http.Error(w, "saved upscale source is missing", http.StatusConflict)
+			return
+		}
 	}
-
+	if job.Params == nil {
+		job.Params = map[string]any{}
+	}
 	job.Status = "queued"
 	job.Error = ""
 	job.OutputURL = ""
@@ -75,23 +86,30 @@ func (s *Server) savedVideoInput(id, role string) (string, error) {
 }
 
 func (s *Server) retryImage(w http.ResponseWriter, job jobs.Job) {
-	if job.Status != "failed" {
-		http.Error(w, "only failed image jobs can be generated again", http.StatusConflict)
+	if job.Status != "failed" && job.Status != "cancelled" {
+		http.Error(w, "only failed or cancelled image jobs can be generated again", http.StatusConflict)
 		return
 	}
 	if operation := imageStringParam(job.Params, "operation", ""); operation != "" {
 		http.Error(w, "failed post-processing jobs cannot be generated again", http.StatusConflict)
 		return
 	}
-	if imageStringParam(job.Params, "mode", "create") == "garment_extract" {
+	mode := imageStringParam(job.Params, "mode", "create")
+	if mode == "garment_extract" {
 		paths, err := s.imageInputFiles(job.ID, "garment_source")
 		if err != nil || len(paths) != 1 {
 			http.Error(w, "saved garment source is missing", http.StatusConflict)
 			return
 		}
-	} else {
+	} else if mode != "upscale" && mode != "detail_enhance" {
 		if _, err := s.loadImageExecution(job); err != nil {
 			http.Error(w, err.Error(), http.StatusConflict)
+			return
+		}
+	} else {
+		source, ok := s.jobs.Get(imageStringParam(job.Params, "source_job_id", ""))
+		if !ok || source.Kind != "image" || source.Status != "completed" || source.OutputURL == "" {
+			http.Error(w, "saved source image is missing", http.StatusConflict)
 			return
 		}
 	}
