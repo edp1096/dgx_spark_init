@@ -1,0 +1,58 @@
+name: ltx2_5_sol_experiment
+
+services:
+  benchmark:
+    build:
+      context: ..
+      dockerfile: ltx-2.5_sol_experiment/Dockerfile
+    image: dgx-ltx2.5-sol-experiment:latest
+    network_mode: host
+    ipc: host
+    gpus: all
+    environment:
+      PYTORCH_CUDA_ALLOC_CONF: expandable_segments:True
+      LTX_MODEL_DIR: /models/ltx-2.5
+      TRITON_CACHE_DIR: /models/ltx-2.5/sol-cache/triton
+    volumes:
+      - ltx-models:/models
+      - ./output:/output
+
+  sm121-probe:
+    profiles: [sm121]
+    build:
+      context: ..
+      dockerfile: ltx-2.5_sol_experiment/Dockerfile.sm121
+      args:
+        SOL_ENGINE_SM121_REPO: https://github.com/edp1096/Sana.git
+        SOL_ENGINE_SM121_COMMIT: 809638b437f49bdda969ebf568d12b8e91806c98
+    image: dgx-ltx2.5-sol-sm121-experiment:latest
+    network_mode: host
+    ipc: host
+    gpus: all
+    environment:
+      CUTE_DSL_ARCH: sm_121a
+      TRITON_CACHE_DIR: /models/ltx-2.5/sol-cache/triton
+    volumes:
+      - ltx-models:/models
+      - ./output:/output
+    entrypoint: ["python", "/opt/ltx-sol-experiment/sm121_probe.py"]
+
+  sm121-benchmark:
+    profiles: [sm121]
+    image: dgx-ltx2.5-sol-sm121-experiment:latest
+    network_mode: host
+    ipc: host
+    gpus: all
+    environment:
+      CUTE_DSL_ARCH: sm_121a
+      PYTORCH_CUDA_ALLOC_CONF: expandable_segments:True
+      LTX_MODEL_DIR: /models/ltx-2.5
+      TRITON_CACHE_DIR: /models/ltx-2.5/sol-cache/triton
+    volumes:
+      - ltx-models:/models
+      - ./output:/output
+
+volumes:
+  ltx-models:
+    name: media-ltx-models
+    external: true

@@ -1,0 +1,18 @@
+FROM dgx-ltx2.5-sol-experiment:latest
+
+ARG SOL_ENGINE_SM121_REPO=https://github.com/edp1096/Sana.git
+ARG SOL_ENGINE_SM121_COMMIT=809638b437f49bdda969ebf568d12b8e91806c98
+
+ENV CUTE_DSL_ARCH=sm_121a \
+    SOL_ATTN_STRICT=1
+
+RUN python -m pip install --no-cache-dir \
+      nvidia-cutlass-dsl==4.7.0 \
+      cuda-python && \
+    git -C /opt/sol-engine fetch --filter=blob:none \
+      "${SOL_ENGINE_SM121_REPO}" "${SOL_ENGINE_SM121_COMMIT}" && \
+    git -C /opt/sol-engine checkout --detach "${SOL_ENGINE_SM121_COMMIT}" && \
+    python -m pip install --no-cache-dir -e \
+      /opt/sol-engine/techniques/sparse_backends
+
+COPY ltx-2.5_sol_experiment/sm121_probe.py /opt/ltx-sol-experiment/sm121_probe.py
