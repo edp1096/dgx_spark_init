@@ -101,7 +101,7 @@ func TestGarmentExtractionPersistsCutoutMaskAndInputs(t *testing.T) {
 		list := store.List()
 		if len(list) == 1 && list[0].Status == "completed" {
 			job := list[0]
-			if imageIntParam(job.Params, "selected_source_index", -1) != 1 || job.Outputs["mask"] == "" {
+			if intParam(job.Params, "selected_source_index", -1) != 1 || job.Outputs["mask"] == "" {
 				t.Fatalf("missing extraction metadata: %#v", job)
 			}
 			if _, err := os.Stat(store.OutputPath(job.ID + ".png")); err != nil {

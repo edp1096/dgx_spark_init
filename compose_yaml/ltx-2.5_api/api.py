@@ -7,7 +7,9 @@ import os
 import secrets
 import subprocess
 import tempfile
+import threading
 from pathlib import Path
+from typing import Any, Callable
 
 import torch
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
@@ -53,6 +55,7 @@ sol_runtime = SolRuntime(MODEL_DIR, TRANSFORMER)
 app = FastAPI(title="LTX-2.5 NVFP4 API", version="1")
 load_lock = asyncio.Lock()
 generation_lock = asyncio.Lock()
+generation_cancel = threading.Event()
 prepare_lock = asyncio.Lock()
 pipeline: DistilledPipeline | None = None
 pipeline_signature: tuple[str, float] | None = None
@@ -61,6 +64,53 @@ load_error = ""
 prepare_error = ""
 preparing = False
 prepare_task: asyncio.Task[None] | None = None
+
+
+class GenerationCancelled(RuntimeError):
+    pass
+
+
+class CancelAwareDenoiser:
+    def __init__(self, denoiser: Any) -> None:
+        self.denoiser = denoiser
+
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:
+        if generation_cancel.is_set():
+            raise GenerationCancelled("video generation cancelled")
+        result = self.denoiser(*args, **kwargs)
+        if generation_cancel.is_set():
+            raise GenerationCancelled("video generation cancelled")
+        return result
+
+    def __getattr__(self, name: str) -> Any:
+        return getattr(self.denoiser, name)
+
+
+class CancelAwareStage:
+    """Check cancellation between denoising steps without slowing GPU kernels."""
+
+    def __init__(self, stage: Any) -> None:
+        self.stage = stage
+
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:
+        from ltx_pipelines.utils.samplers import euler_denoising_loop
+
+        original_loop: Callable[..., Any] = kwargs.get("loop") or euler_denoising_loop
+
+        def cancel_aware_loop(*loop_args: Any, **loop_kwargs: Any) -> Any:
+            denoiser = loop_kwargs.get("denoiser")
+            if denoiser is not None:
+                loop_kwargs["denoiser"] = CancelAwareDenoiser(denoiser)
+            return original_loop(*loop_args, **loop_kwargs)
+
+        kwargs["loop"] = cancel_aware_loop
+        return self.stage(*args, **kwargs)
+
+    def with_attention(self, attention: Any) -> "CancelAwareStage":
+        return CancelAwareStage(self.stage.with_attention(attention))
+
+    def __getattr__(self, name: str) -> Any:
+        return getattr(self.stage, name)
 
 
 class ModelPrepareRequest(BaseModel):
@@ -188,6 +238,7 @@ def _load_pipeline(lora_path: str, lora_strength: float) -> DistilledPipeline:
         quantization=policy,
         offload_mode=OffloadMode.NONE,
     )
+    loaded.stage = CancelAwareStage(loaded.stage)
     log.info("LTX-2.5 pipeline ready")
     return loaded
 
@@ -236,7 +287,7 @@ def _load_a2v_pipeline() -> A2VidPipelineTwoStage:
             LTXV_LORA_COMFY_RENAMING_MAP,
         )
     ]
-    return A2VidPipelineTwoStage(
+    loaded = A2VidPipelineTwoStage(
         model_paths=_a2v_paths(),
         distilled_lora=distilled_lora,
         spatial_upsampler_path=str(UPSCALER),
@@ -244,6 +295,9 @@ def _load_a2v_pipeline() -> A2VidPipelineTwoStage:
         quantization=policy,
         offload_mode=OffloadMode.NONE,
     )
+    loaded.stage_1 = CancelAwareStage(loaded.stage_1)
+    loaded.stage_2 = CancelAwareStage(loaded.stage_2)
+    return loaded
 
 
 async def get_a2v_pipeline() -> A2VidPipelineTwoStage:
@@ -287,10 +341,20 @@ def health() -> dict[str, object]:
         "lora": pipeline_signature[0] if pipeline_signature and pipeline_signature[0] else None,
         "lora_strength": pipeline_signature[1] if pipeline_signature and pipeline_signature[0] else None,
         "busy": generation_lock.locked(),
+        "cancelling": generation_cancel.is_set(),
         "acceleration": sol_runtime.status(),
         "missing": missing,
         "error": load_error,
     }
+
+
+@app.post("/v1/cancel")
+def cancel_generation() -> dict[str, object]:
+    if not generation_lock.locked():
+        generation_cancel.clear()
+        return {"status": "idle", "busy": False}
+    generation_cancel.set()
+    return {"status": "cancelling", "busy": True}
 
 
 def _validate_dimensions(width: int, height: int, num_frames: int, fps: float) -> None:
@@ -592,6 +656,7 @@ async def generate_video(
     output = root / "output.mp4"
     try:
         async with generation_lock:
+            generation_cancel.clear()
             if missing_paths(MODEL_DIR):
                 raise HTTPException(409, "LTX model files are not ready; open Spark Media settings and prepare the video model")
             if audio_path is not None:
@@ -622,6 +687,9 @@ async def generate_video(
                     acceleration_mode,
                     bool(effective_lora_path),
                 )
+    except GenerationCancelled as exc:
+        temp_dir.cleanup()
+        raise HTTPException(499, str(exc)) from exc
     except HTTPException:
         temp_dir.cleanup()
         raise
@@ -629,6 +697,10 @@ async def generate_video(
         temp_dir.cleanup()
         log.exception("video generation failed")
         raise HTTPException(500, str(exc)) from exc
+    finally:
+        # A cancellation belongs only to the request that was running when it
+        # was raised.  Never leak it into the next queued generation.
+        generation_cancel.clear()
 
     return FileResponse(
         output,

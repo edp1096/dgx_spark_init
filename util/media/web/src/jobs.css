@@ -716,7 +716,7 @@ button.image-list-thumb,
   gap: 5px;
 }
 
-@media (max-width: 460px) {
+@media (max-width: 850px) {
   .result-pagination {
     gap: 7px;
     padding-left: 8px;

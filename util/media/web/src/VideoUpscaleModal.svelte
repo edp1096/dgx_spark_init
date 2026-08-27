@@ -83,7 +83,7 @@
 
 {#if source}
   <div class="upscale-backdrop" role="presentation" onclick={(event) => { if (event.target === event.currentTarget) close() }}>
-    <section class="upscale-modal" role="dialog" aria-modal="true" aria-label="영상 업스케일">
+    <div class="upscale-modal" role="dialog" aria-modal="true" aria-label="영상 업스케일">
       <header><div><strong>영상 업스케일</strong><small title={source.title}>{source.title}</small></div><button type="button" aria-label="닫기" disabled={busy} onclick={close}>×</button></header>
       <div class="upscale-content">
         <section class="source-summary">
@@ -132,7 +132,7 @@
         {#if invalidRange}<p class="error">시작과 끝을 원본 안에서 최대 60초 구간으로 입력하세요.</p>{/if}
       </div>
       <footer><button type="button" onclick={close} disabled={busy}>취소</button><button type="button" class="primary" onclick={submit} disabled={busy || invalidScale || invalidSize || invalidRange}>{busy ? '큐에 추가 중…' : '업스케일 시작'}</button></footer>
-    </section>
+    </div>
   </div>
 {/if}
 

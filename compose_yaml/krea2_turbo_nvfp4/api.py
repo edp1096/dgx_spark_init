@@ -1674,10 +1674,14 @@ async def convert_checkpoints(request: CheckpointConvertRequest) -> dict[str, An
 
 
 @app.get("/health")
-async def health() -> dict[str, str]:
+async def health() -> dict[str, Any]:
     if not await comfy_ready():
         raise HTTPException(status_code=503, detail="NVFP4 runtime is starting")
-    return {"status": "ok"}
+    return {
+        "status": "ok",
+        "busy": generation_lock.locked(),
+        "segmenting": segmentation_lock.locked(),
+    }
 
 
 @app.get("/v1/models")

@@ -47,7 +47,7 @@
 
 {#if result}
   <div class="subtitle-modal-backdrop" role="presentation" onclick={(event) => { if (event.target === event.currentTarget) closeModal() }}>
-    <section class="subtitle-modal" role="dialog" aria-modal="true" aria-label="자막 결과 크게 보기">
+    <div class="subtitle-modal" role="dialog" aria-modal="true" aria-label="자막 결과 크게 보기">
       <header><div><strong>자막 결과</strong><small title={result.detail}>{result.detail}</small></div><button type="button" aria-label="닫기" onclick={closeModal}>×</button></header>
       <div class="subtitle-modal-content">
         {#if result.mediaSrc}
@@ -70,7 +70,7 @@
         {#if result.canSelectFrames}<button type="button" onclick={() => onSelectFrames(result.jobID)}>장면 선택</button><button type="button" onclick={() => onUpscale(result.jobID)}>업스케일</button>{/if}
         <button type="button" onclick={closeModal}>닫기</button>
       </footer>
-    </section>
+    </div>
   </div>
 {/if}
 

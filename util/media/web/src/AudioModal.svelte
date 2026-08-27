@@ -31,7 +31,7 @@
 
 {#if audio}
   <div class="audio-modal-backdrop" role="presentation" onclick={(event) => { if (event.target === event.currentTarget) closeModal() }}>
-    <section class="audio-modal" role="dialog" aria-modal="true" aria-label="생성 음성 크게 보기">
+    <div class="audio-modal" role="dialog" aria-modal="true" aria-label="생성 음성 크게 보기">
       <header><div><strong>생성 음성</strong>{#if audio.detail}<small title={audio.detail}>{audio.detail}</small>{/if}</div><button type="button" aria-label="닫기" onclick={closeModal}>×</button></header>
       <div class="audio-modal-content">
         <audio bind:this={player} controls preload="metadata" src={audio.src}></audio>
@@ -39,7 +39,7 @@
         {#if audio.instructions}<section><strong>연기 지시</strong><p>{audio.instructions}</p></section>{/if}
       </div>
       <footer><a href={audio.src} target="_blank" rel="noreferrer">원본 파일 열기</a>{#if audio.jobID}<button type="button" onclick={() => onA2V(audio.jobID)}>영상 생성</button>{/if}<button type="button" onclick={closeModal}>닫기</button></footer>
-    </section>
+    </div>
   </div>
 {/if}
 
@@ -53,9 +53,9 @@
   header button { margin-left:auto; border:0; color:#aeb7af; background:transparent; font-size:24px; cursor:pointer; }
   .audio-modal-content { display:grid; gap:10px; padding:14px; background:#090b0a; }
   audio { width:100%; }
-  section section { padding:10px 12px; border:1px solid #2b332c; border-radius:8px; background:#111612; }
-  section section strong { color:#aeb8af; font-size:10px; }
-  section section p { margin:7px 0 0; color:#dce3dd; font-size:11px; line-height:1.6; white-space:pre-wrap; }
+  .audio-modal section { padding:10px 12px; border:1px solid #2b332c; border-radius:8px; background:#111612; }
+  .audio-modal section strong { color:#aeb8af; font-size:10px; }
+  .audio-modal section p { margin:7px 0 0; color:#dce3dd; font-size:11px; line-height:1.6; white-space:pre-wrap; }
   footer { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:11px 14px; border-top:1px solid #303731; background:#181e19; }
   footer a, footer button { border:1px solid #3a443b; border-radius:7px; padding:7px 10px; color:#cdecaa; background:#202721; font-size:10px; text-decoration:none; }
   @media(max-width:700px) { .audio-modal-backdrop{padding:6px} }

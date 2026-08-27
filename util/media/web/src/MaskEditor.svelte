@@ -261,7 +261,7 @@
 
 {#if open}
   <div class="mask-editor-backdrop" role="presentation" onclick={(event) => { if (event.target === event.currentTarget) onClose() }}>
-    <section class="mask-editor" role="dialog" aria-modal="true" aria-label="수정 마스크 편집기">
+    <div class="mask-editor" role="dialog" aria-modal="true" aria-label="수정 마스크 편집기">
       <header><div><strong>{title}</strong><small>{description}</small></div><button type="button" aria-label="닫기" onclick={onClose}>×</button></header>
       <div class="mask-toolbar">
         <div class="segmented"><button type="button" class:active={tool === 'brush'} onclick={() => tool = 'brush'}>브러시</button><button type="button" class:active={tool === 'eraser'} onclick={() => tool = 'eraser'}>지우개</button></div>
@@ -284,6 +284,6 @@
         <button type="button" disabled={!preset} onclick={applyPreset}>현재 위치 추가·계속</button>
       </div>
       <footer><button type="button" onclick={onClose}>취소</button><button type="button" class="primary" onclick={saveMask}>이 마스크 사용</button></footer>
-    </section>
+    </div>
   </div>
 {/if}

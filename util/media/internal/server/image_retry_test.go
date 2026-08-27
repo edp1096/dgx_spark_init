@@ -78,7 +78,7 @@ func TestFailedImageCanBeGeneratedAgainWithSavedSettings(t *testing.T) {
 	for time.Now().Before(deadline) {
 		current, _ := store.Get(job.ID)
 		if current.Status == "completed" {
-			if current.OutputURL == "" || imageIntParam(current.Params, "retry_count", 0) != 1 {
+			if current.OutputURL == "" || intParam(current.Params, "retry_count", 0) != 1 {
 				t.Fatalf("completed job=%#v", current)
 			}
 			return

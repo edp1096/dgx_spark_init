@@ -445,7 +445,7 @@
 
 {#if expanded}
   <div class="composer-modal-backdrop" role="presentation" onclick={(event) => { if (event.target === event.currentTarget) expanded = false }}>
-    <section class="composer-modal" role="dialog" aria-modal="true" aria-label="프롬프트 조립기">
+    <div class="composer-modal" role="dialog" aria-modal="true" aria-label="프롬프트 조립기">
       <header>
         <div>
           <strong>프롬프트 조립기</strong>
@@ -520,7 +520,7 @@
         <button type="button" class="apply secondary" onclick={() => applyComposer('append')} disabled={!composedPrompt}>이어서 적용</button>
         <button type="button" class="apply" onclick={() => applyComposer('replace')} disabled={!composedPrompt}>새로 적용</button>
       </footer>
-    </section>
+    </div>
   </div>
 {/if}
 

@@ -42,7 +42,7 @@
 
 {#if video}
   <div class="video-modal-backdrop" role="presentation" onclick={(event) => { if (event.target === event.currentTarget) closeModal() }}>
-    <section class="video-modal" role="dialog" aria-modal="true" aria-label="영상 크게 보기">
+    <div class="video-modal" role="dialog" aria-modal="true" aria-label="영상 크게 보기">
       <header>
         <div><strong>{video.title || '생성 영상'}</strong>{#if video.detail}<small title={video.detail}>{video.detail}</small>{/if}</div>
         <button type="button" aria-label="닫기" onclick={closeModal}>×</button>
@@ -52,7 +52,7 @@
       </div>
       {#if video.prompt}<p class="video-modal-prompt">{video.prompt}</p>{/if}
       <footer><a href={video.src} target="_blank" rel="noreferrer">원본 파일 열기</a>{#if video.jobID}{#if video.canLoadSettings}<button type="button" onclick={() => onLoadSettings(video.jobID)}>설정 불러오기</button>{/if}<button type="button" onclick={() => onSelectFrames(video.jobID)}>장면 선택</button><button type="button" onclick={() => onUpscale(video.jobID)}>업스케일</button><button type="button" onclick={() => onTranscribe(video.jobID)}>자막 생성</button>{/if}<button type="button" onclick={closeModal}>닫기</button></footer>
-    </section>
+    </div>
   </div>
 {/if}
 

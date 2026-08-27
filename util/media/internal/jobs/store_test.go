@@ -140,3 +140,44 @@ func TestListOrdersNewestFirstDeterministically(t *testing.T) {
 		t.Fatalf("equal creation times were not ordered by latest update: %q then %q", list[0].ID, list[1].ID)
 	}
 }
+
+func TestStoreDoesNotShareMutableJobMetadata(t *testing.T) {
+	store, err := New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	original := Job{
+		ID:     "metadata-owner",
+		Status: "queued",
+		Params: map[string]any{
+			"stage": "queued",
+			"media": map[string]any{"progress": float64(0)},
+			"items": []any{map[string]any{"name": "first"}},
+		},
+		Outputs: map[string]string{"txt": "/api/outputs/original.txt"},
+	}
+	if err := store.Save(original); err != nil {
+		t.Fatal(err)
+	}
+
+	original.Params["stage"] = "caller-mutated"
+	original.Params["media"].(map[string]any)["progress"] = float64(50)
+	original.Params["items"].([]any)[0].(map[string]any)["name"] = "caller-mutated"
+	original.Outputs["txt"] = "caller-mutated"
+
+	fetched, ok := store.Get(original.ID)
+	if !ok {
+		t.Fatal("saved job not found")
+	}
+	if fetched.Params["stage"] != "queued" || fetched.Params["media"].(map[string]any)["progress"] != float64(0) || fetched.Params["items"].([]any)[0].(map[string]any)["name"] != "first" || fetched.Outputs["txt"] != "/api/outputs/original.txt" {
+		t.Fatalf("store metadata changed through caller alias: %#v", fetched)
+	}
+
+	fetched.Params["stage"] = "fetched-mutated"
+	fetched.Params["media"].(map[string]any)["progress"] = float64(100)
+	fetched.Outputs["txt"] = "fetched-mutated"
+	again, _ := store.Get(original.ID)
+	if again.Params["stage"] != "queued" || again.Params["media"].(map[string]any)["progress"] != float64(0) || again.Outputs["txt"] != "/api/outputs/original.txt" {
+		t.Fatalf("store metadata changed through fetched alias: %#v", again)
+	}
+}

@@ -67,7 +67,7 @@
 
 {#if open}
   <div class="preset-backdrop" role="presentation" onclick={(event) => { if (event.target === event.currentTarget) onClose() }}>
-    <section class="preset-modal" role="dialog" aria-modal="true" aria-label={title}>
+    <div class="preset-modal" role="dialog" aria-modal="true" aria-label={title}>
       <header><div><strong>{title}</strong><small>조립기에 준비된 이미지를 참조 입력으로 사용합니다.</small></div><button type="button" aria-label="닫기" onclick={onClose}>×</button></header>
       <div class="preset-toolbar">
         <nav aria-label="프리셋 종류">
@@ -89,7 +89,7 @@
           </button>
         {/each}{/if}
       </div>
-    </section>
+    </div>
   </div>
 {/if}
 

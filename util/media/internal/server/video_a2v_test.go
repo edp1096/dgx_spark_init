@@ -16,6 +16,10 @@ import (
 
 func TestSpeechOutputCanDriveA2VVideo(t *testing.T) {
 	engine := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/health" {
+			_, _ = io.WriteString(w, `{"status":"ready","busy":false}`)
+			return
+		}
 		if err := r.ParseMultipartForm(4 << 20); err != nil {
 			t.Fatal(err)
 		}
@@ -67,7 +71,7 @@ func TestSpeechOutputCanDriveA2VVideo(t *testing.T) {
 				continue
 			}
 			if job.Status == "completed" {
-				if !imageBoolParam(job.Params, "audio", false) || imageStringParam(job.Params, "mode", "") != "a2v" {
+				if !boolParam(job.Params, "audio", false) || stringParam(job.Params, "mode", "") != "a2v" {
 					t.Fatalf("A2V metadata missing: %#v", job.Params)
 				}
 				return
@@ -83,6 +87,10 @@ func TestSpeechOutputCanDriveA2VVideo(t *testing.T) {
 
 func TestMultipleSpeechOutputsPreserveTimelineForA2V(t *testing.T) {
 	engine := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/health" {
+			_, _ = io.WriteString(w, `{"status":"ready","busy":false}`)
+			return
+		}
 		if err := r.ParseMultipartForm(8 << 20); err != nil {
 			t.Fatal(err)
 		}
@@ -137,7 +145,7 @@ func TestMultipleSpeechOutputsPreserveTimelineForA2V(t *testing.T) {
 			}
 			if job.Status == "completed" {
 				var clips []savedVideoAudioClip
-				decodeImageParam(job.Params, "audio_clips", &clips)
+				decodeParam(job.Params, "audio_clips", &clips)
 				if len(clips) != 2 || clips[1].Start != 3.25 {
 					t.Fatalf("audio clips=%#v", clips)
 				}

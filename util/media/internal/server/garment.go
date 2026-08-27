@@ -175,8 +175,8 @@ func (s *Server) runGarmentExtraction(ctx context.Context, job jobs.Job) {
 	}
 	paths := append(append([]string{}, sources...), references...)
 	fields := map[string]string{
-		"target":  imageStringParam(job.Params, "target", "all"),
-		"feather": strconv.FormatFloat(imageFloatParam(job.Params, "feather", 1), 'f', 2, 64),
+		"target":  stringParam(job.Params, "target", "all"),
+		"feather": strconv.FormatFloat(floatParam(job.Params, "feather", 1), 'f', 2, 64),
 	}
 	data, _, err := s.callMultipartContext(ctx, s.config().Engines["garment"].Endpoint+"/v1/garments/extract", fields, "images", paths)
 	if err != nil {

@@ -264,7 +264,7 @@
 
 {#if selectedLora}
   <div class="lora-detail-backdrop" role="presentation" onclick={(event) => { if (event.target === event.currentTarget && !busy) closeDetails() }}>
-    <section class="lora-detail-modal" role="dialog" aria-modal="true" aria-label="LoRA 상세 정보">
+    <div class="lora-detail-modal" role="dialog" aria-modal="true" aria-label="LoRA 상세 정보">
       <header><div><strong>{modalEditing ? 'LoRA 정보 수정' : selectedLora.name || selectedLora.filename}</strong><small title={selectedLora.filename}>{selectedLora.filename}</small></div><button type="button" aria-label="닫기" disabled={Boolean(busy)} onclick={closeDetails}>×</button></header>
       <div class="lora-detail-content">
         {#if modalEditing}
@@ -291,7 +291,7 @@
         {/if}
       </div>
       <footer><div>{#if selectedLora.source}<a href={selectedLora.source} target="_blank" rel="noreferrer">출처 ↗</a>{/if}</div><div>{#if modalEditing}<button type="button" class="quiet" disabled={Boolean(busy)} onclick={() => modalEditing = false}>취소</button><button type="button" class="primary" disabled={busy === `edit:${selectedLora.filename}`} onclick={() => saveEdit(selectedLora)}>{busy === `edit:${selectedLora.filename}` ? '저장 중…' : '저장'}</button>{:else}<button type="button" class="quiet" onclick={closeDetails}>닫기</button><button type="button" class="primary" onclick={() => beginEdit(selectedLora)}>수정</button>{/if}</div></footer>
-    </section>
+    </div>
   </div>
 {/if}
 

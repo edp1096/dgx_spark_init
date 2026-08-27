@@ -52,7 +52,7 @@
 
 {#if job}
   <div class="subtitle-regenerate-backdrop" role="presentation" onclick={(event) => { if (event.target === event.currentTarget) close() }}>
-    <section class="subtitle-regenerate-modal" role="dialog" aria-modal="true" aria-label="자막 재생성">
+    <div class="subtitle-regenerate-modal" role="dialog" aria-modal="true" aria-label="자막 재생성">
       <header><div><strong>자막 재생성</strong><small title={job.prompt}>{job.prompt}</small></div><button type="button" aria-label="닫기" disabled={busy} onclick={close}>×</button></header>
       <div class="subtitle-regenerate-content">
         <p>저장된 원문과 번역문을 다시 조합합니다. 영상 다운로드와 음성 인식은 반복하지 않습니다.</p>
@@ -75,7 +75,7 @@
         </fieldset>
       </div>
       <footer><button type="button" disabled={busy} onclick={close}>취소</button><button type="button" class="primary" disabled={busy || !formats.length} onclick={submit}>{busy ? '재생성 중…' : '자막 재생성'}</button></footer>
-    </section>
+    </div>
   </div>
 {/if}
 

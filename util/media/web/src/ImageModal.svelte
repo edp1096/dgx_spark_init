@@ -70,7 +70,7 @@
 
 {#if image}
   <div class="image-modal-backdrop" role="presentation" onclick={(event) => { if (event.target === event.currentTarget) onClose() }}>
-    <section class="image-modal" role="dialog" aria-modal="true" aria-label="이미지 크게 보기">
+    <div class="image-modal" role="dialog" aria-modal="true" aria-label="이미지 크게 보기">
       <header><div><strong>{image.title || '생성 이미지'}</strong>{#if image.detail}<small title={image.detail}>{image.detail}</small>{/if}</div><button type="button" aria-label="닫기" onclick={onClose}>×</button></header>
       <div class="image-modal-stage">
         {#if exifOpen}
@@ -105,6 +105,6 @@
         {/if}
       </div>
       <footer><div><a href={image.src} target="_blank" rel="noreferrer">원본 파일 열기</a>{#if image.jobID}<button type="button" class:active={exifOpen} onclick={toggleEXIF}>{exifOpen ? '이미지 보기' : 'EXIF 보기'}</button>{/if}{#if image.jobID && onGarmentExtract}<button type="button" onclick={() => onGarmentExtract(image.jobID)}>의상 추출</button>{/if}</div><button type="button" onclick={onClose}>닫기</button></footer>
-    </section>
+    </div>
   </div>
 {/if}

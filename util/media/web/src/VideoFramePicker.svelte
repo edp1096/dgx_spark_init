@@ -67,7 +67,7 @@
 
 {#if source}
   <div class="frame-picker-backdrop" role="presentation" onclick={(event) => { if (event.target === event.currentTarget) closeModal() }}>
-    <section class="frame-picker" role="dialog" aria-modal="true" aria-label="영상 장면 선택">
+    <div class="frame-picker" role="dialog" aria-modal="true" aria-label="영상 장면 선택">
       <header><div><strong>영상 장면 선택</strong><small title={source.title}>{source.title}</small></div><button type="button" aria-label="닫기" onclick={closeModal}>×</button></header>
       <div class="frame-stage">
         <!-- svelte-ignore a11y_media_has_caption -->
@@ -86,7 +86,7 @@
         <button type="button" disabled={Boolean(extracting)} onclick={() => useFrame('end')}>{extracting === 'end' ? '추출 중…' : '마지막 이미지로'}</button>
         <button type="button" class="close" onclick={closeModal}>닫기</button>
       </footer>
-    </section>
+    </div>
   </div>
 {/if}
 

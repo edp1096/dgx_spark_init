@@ -46,7 +46,7 @@ func (s *Server) describeVisualReference(path, instruction string, maxTokens int
 		"max_completion_tokens": maxTokens,
 		"reasoning_effort":      "none",
 	}
-	data, _, err := s.callJSON(strings.TrimRight(cfg.Engines["prompt"].Endpoint, "/")+"/v1/chat/completions", payload)
+	data, err := s.chatWithPromptEngine(payload)
 	if err != nil {
 		return "", err
 	}
@@ -120,7 +120,7 @@ func (s *Server) composeIdentityEditPrompt(pronoun, verb, outfit, userInstructio
 		"seed":                  42,
 		"reasoning_effort":      "none",
 	}
-	data, _, err := s.callJSON(cfg.Engines["prompt"].Endpoint+"/v1/chat/completions", payload)
+	data, err := s.chatWithPromptEngine(payload)
 	if err != nil {
 		return "", err
 	}

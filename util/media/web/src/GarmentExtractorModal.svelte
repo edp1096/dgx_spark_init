@@ -146,7 +146,7 @@
 
 {#if open}
   <div class="garment-backdrop" role="presentation" onclick={(event) => { if (event.target === event.currentTarget && !busy) onClose() }}>
-    <section class="garment-modal" role="dialog" aria-modal="true" aria-label="의상 추출">
+    <div class="garment-modal" role="dialog" aria-modal="true" aria-label="의상 추출">
       <header><div><strong>의상 추출</strong><small>대상만 고르면 의상 분할부터 투명 PNG·마스크 저장까지 자동 처리합니다.</small></div><button type="button" aria-label="닫기" disabled={busy} onclick={onClose}>×</button></header>
       <div class="garment-content">
         <section class="garment-source-section">
@@ -172,7 +172,7 @@
         {#if error}<p class="garment-error">{error}</p>{/if}
       </div>
       <footer><span>결과는 생성 이미지 목록에 투명 PNG로 저장되며 흑백 마스크도 함께 보존됩니다.</span><div><button type="button" disabled={busy} onclick={onClose}>닫기</button><button type="button" class="primary" disabled={busy || !source} onclick={submit}>{busy ? '요청 중…' : '자동 추출'}</button></div></footer>
-    </section>
+    </div>
   </div>
 {/if}
 

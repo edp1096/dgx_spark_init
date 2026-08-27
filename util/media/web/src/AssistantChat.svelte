@@ -149,7 +149,7 @@
 <svelte:window onkeydown={(event) => { if (open && event.key === 'Escape') open = false }} />
 
 {#if open}
-  <section class="assistant-chat" role="dialog" aria-label="Aide 대화 도우미">
+  <div class="assistant-chat" role="dialog" aria-label="Aide 대화 도우미">
     <header>
       <div class="assistant-avatar"><SparkBolt label="Aide" /></div>
       <div class="assistant-heading"><strong>Aide</strong><small><i></i> Gemma 4 12B · 로컬</small></div>
@@ -177,7 +177,7 @@
       <button type="submit" aria-label="보내기" disabled={sending || !input.trim()}>➤</button>
     </form>
     <small class="assistant-footnote">설정은 즉시 반영되고 생성은 확인 후 시작됩니다.</small>
-  </section>
+  </div>
 {/if}
 
 {#if !open}

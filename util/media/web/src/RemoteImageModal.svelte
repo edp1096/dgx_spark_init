@@ -59,7 +59,7 @@
     <div class="remote-image-modal" role="dialog" aria-modal="true" aria-label={title}>
       <header><div><strong>{title}</strong><small>웹 이미지 주소를 서버에서 내려받아 업로드 파일처럼 사용합니다.</small></div><button type="button" aria-label="닫기" disabled={loading} onclick={onClose}>×</button></header>
       <form onsubmit={(event) => { event.preventDefault(); importImage() }}>
-        <label>이미지 URL<input type="url" bind:value={url} placeholder="https://example.com/image.jpg" autocomplete="off" required autofocus></label>
+        <label>이미지 URL<input type="url" bind:value={url} placeholder="https://example.com/image.jpg" autocomplete="off" required></label>
         <small>PNG · JPEG · WebP · GIF, 최대 32MB{append ? ' · 가져온 이미지는 기존 선택에 추가됩니다.' : ''}</small>
         {#if error}<p>{error}</p>{/if}
         <div><button type="button" disabled={loading} onclick={onClose}>취소</button><button type="submit" class="primary" disabled={loading || !url.trim()}>{loading ? '가져오는 중…' : '가져오기'}</button></div>

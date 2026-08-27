@@ -90,7 +90,7 @@
 <svelte:window onkeydown={(event)=>{if(open&&event.key==='Escape')onClose()}} />
 {#if open}
   <div class="mask-editor-backdrop" role="presentation" onclick={(event)=>{if(event.target===event.currentTarget)onClose()}}>
-    <section class="mask-editor" role="dialog" aria-modal="true" aria-label="Canny 윤곽 편집기">
+    <div class="mask-editor" role="dialog" aria-modal="true" aria-label="Canny 윤곽 편집기">
       <header><div><strong>Canny 윤곽 미리보기·편집</strong><small>흰 선은 따를 윤곽입니다. 브러시와 글자로 직접 보정할 수 있습니다.</small></div><button type="button" onclick={onClose}>×</button></header>
       <div class="mask-toolbar">
         <label>감도 <input type="range" min="20" max="240" step="5" bind:value={threshold} onchange={renderEdges} disabled={preprocessed}><b>{threshold}</b></label>
@@ -100,6 +100,6 @@
       <div class="mask-stage" style={`aspect-ratio:${width||1}/${height||1}`}><canvas bind:this={canvas} onpointerdown={down} onpointermove={move} onpointerup={up} onpointercancel={up}></canvas></div>
       <div class="mask-presets"><label>글자 윤곽 <input bind:value={label} placeholder="윤곽맵에 넣을 글자"></label><label>크기 <input type="range" min="2" max="25" bind:value={labelSize}></label><button type="button" onclick={addText} disabled={!label.trim()}>가운데 추가</button></div>
       <footer><button type="button" onclick={onClose}>취소</button><button type="button" class="primary" onclick={save}>이 윤곽맵 사용</button></footer>
-    </section>
+    </div>
   </div>
 {/if}

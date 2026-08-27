@@ -5,6 +5,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"reflect"
 	"sort"
 	"strings"
 	"sync"
@@ -55,6 +56,7 @@ func New(dir string) (*Store, error) {
 func (s *Store) Save(j Job) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	j = cloneJob(j)
 	j.UpdatedAt = time.Now()
 	s.jobs[j.ID] = j
 	return s.writeLocked()
@@ -165,7 +167,7 @@ func (s *Store) Get(id string) (Job, bool) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	j, ok := s.jobs[id]
-	return j, ok
+	return cloneJob(j), ok
 }
 
 func (s *Store) List() []Job {
@@ -173,7 +175,7 @@ func (s *Store) List() []Job {
 	defer s.mu.RUnlock()
 	out := make([]Job, 0, len(s.jobs))
 	for _, j := range s.jobs {
-		out = append(out, j)
+		out = append(out, cloneJob(j))
 	}
 	sort.Slice(out, func(i, k int) bool {
 		if !out[i].CreatedAt.Equal(out[k].CreatedAt) {
@@ -185,6 +187,63 @@ func (s *Store) List() []Job {
 		return out[i].ID > out[k].ID
 	})
 	return out
+}
+
+// cloneJob keeps mutable request/result metadata owned by the store. Callers
+// can safely update a fetched job while another goroutine lists or persists
+// jobs without sharing maps or slices with the store's JSON writer.
+func cloneJob(job Job) Job {
+	if job.Params != nil {
+		job.Params = cloneValue(reflect.ValueOf(job.Params)).Interface().(map[string]any)
+	}
+	if job.Outputs != nil {
+		job.Outputs = cloneValue(reflect.ValueOf(job.Outputs)).Interface().(map[string]string)
+	}
+	return job
+}
+
+func cloneValue(value reflect.Value) reflect.Value {
+	if !value.IsValid() {
+		return value
+	}
+	switch value.Kind() {
+	case reflect.Interface:
+		if value.IsNil() {
+			return reflect.Zero(value.Type())
+		}
+		cloned := cloneValue(value.Elem())
+		copy := reflect.New(value.Type()).Elem()
+		copy.Set(cloned)
+		return copy
+	case reflect.Map:
+		if value.IsNil() {
+			return reflect.Zero(value.Type())
+		}
+		copy := reflect.MakeMapWithSize(value.Type(), value.Len())
+		iterator := value.MapRange()
+		for iterator.Next() {
+			copy.SetMapIndex(iterator.Key(), cloneValue(iterator.Value()))
+		}
+		return copy
+	case reflect.Slice:
+		if value.IsNil() {
+			return reflect.Zero(value.Type())
+		}
+		copy := reflect.MakeSlice(value.Type(), value.Len(), value.Len())
+		for index := 0; index < value.Len(); index++ {
+			copy.Index(index).Set(cloneValue(value.Index(index)))
+		}
+		return copy
+	case reflect.Pointer:
+		if value.IsNil() {
+			return reflect.Zero(value.Type())
+		}
+		copy := reflect.New(value.Type().Elem())
+		copy.Elem().Set(cloneValue(value.Elem()))
+		return copy
+	default:
+		return value
+	}
 }
 
 func (s *Store) OutputPath(name string) string {
