@@ -33,13 +33,31 @@ fi
 regenerate_build_system=false
 for generated_file in \
     configure config.guess config.sub compile missing install-sh depcomp \
-    py-compile test-driver Makefile.in src/Makefile.in
+    py-compile test-driver Makefile.in src/Makefile.in setup/Makefile.in \
+    icons/Makefile.in data/Makefile.in m4/Makefile.in
 do
     if [ ! -e "$script_dir/$generated_file" ]; then
         regenerate_build_system=true
         break
     fi
 done
+
+if [ "$regenerate_build_system" = false ]; then
+    for source_file in \
+        configure.ac Makefile.am src/Makefile.am setup/Makefile.am \
+        icons/Makefile.am data/Makefile.am m4/Makefile.am
+    do
+        if [ "$source_file" = configure.ac ]; then
+            generated_file=configure
+        else
+            generated_file=${source_file%.am}.in
+        fi
+        if [ "$script_dir/$source_file" -nt "$script_dir/$generated_file" ]; then
+            regenerate_build_system=true
+            break
+        fi
+    done
+fi
 
 if [ "$regenerate_build_system" = true ]; then
     for command_name in autoconf automake aclocal autoreconf autopoint; do
