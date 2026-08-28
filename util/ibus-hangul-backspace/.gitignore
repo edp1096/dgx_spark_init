@@ -1,0 +1,63 @@
+*.pyc
+*.la
+*.lo
+*.loT
+*.o
+*.so
+*~
+tags
+out
+Makefile.qmake
+Makefile
+Makefile.in
+.deps
+.libs
+ABOUT-NLS
+INSTALL
+aclocal.m4
+autom4te.cache
+compile
+config.guess
+config.h
+config.h.in
+config.log
+config.rpath
+config.status
+config.sub
+configure
+depcomp
+gtk-doc.make
+install-sh
+libtool
+ltmain.sh
+missing
+stamp-h1
+py-compile
+test-driver
+hangul-backspace*.tar.*
+hangul-backspace.spec
+
+# vim temp backup file
+.*.swp
+
+# files for data
+data/org.freedesktop.ibus.engine.hangul-backspace.metainfo.xml
+data/org.freedesktop.ibus.engine.hangul-backspace.metainfo.xml.h
+
+# files for po
+po/*.gmo
+po/*.pot
+po/stamp-po
+po/stamp-it
+
+# files for setup
+setup/config.py
+setup/hangul-backspace-setup
+setup/hangul-backspace.desktop
+setup/hangul-backspace.desktop.in
+
+# files for engine
+src/test.sh
+src/hangul-backspace.xml
+src/hangul-backspace.xml.in
+src/hangul-backspace

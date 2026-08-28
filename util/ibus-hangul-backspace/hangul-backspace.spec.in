@@ -1,0 +1,57 @@
+%define mod_path ibus-@PACKAGE_VERSION_MAJOR@.@PACKAGE_VERSION_MINOR@
+Name:       @PACKAGE_NAME@
+Version:    @PACKAGE_VERSION@
+Release:    1%{?dist}
+Summary:    The Hangul engine for IBus input platform
+License:    GPLv2+
+Group:      System Environment/Libraries
+URL:        %{nil}
+Source0:    %{name}-%{version}.tar.xz
+
+BuildRoot:  %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+
+BuildRequires:  ibus-devel
+BuildRequires:  gettext-devel
+BuildRequires:  libtool
+BuildRequires:  libhangul-devel
+BuildRequires:  pkgconfig
+
+Requires:   ibus
+
+%description
+The Hangul engine for IBus platform. It provides Korean input method from
+libhangul.
+
+%prep
+%setup -q
+
+%build
+%configure --disable-static
+# make -C po update-gmo
+make %{?_smp_mflags}
+
+%install
+rm -rf $RPM_BUILD_ROOT
+make DESTDIR=${RPM_BUILD_ROOT} install
+
+%find_lang %{name}
+
+%check
+make check DISABLE_GUI_TESTS=hangul-backspace
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+%files -f %{name}.lang
+%defattr(-,root,root,-)
+%doc AUTHORS COPYING README.md
+%{_libexecdir}/hangul-backspace
+%{_libexecdir}/hangul-backspace-setup
+%{_datadir}/applications
+%{_datadir}/@PACKAGE@
+%{_datadir}/ibus/component/*
+%{_datadir}/icons
+
+%changelog
+* Fri Aug 08 2008 Huang Peng <shawn.p.huang@gmail.com> - @VERSION@-1
+- The first version.

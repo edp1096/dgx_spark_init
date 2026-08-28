@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=hangul-backspace
+Comment=Configure hangul-backspace
+Exec=@libexecdir@/hangul-backspace-setup
+Icon=hangul-backspace
+NoDisplay=true
+Terminal=false
+Type=Application
+StartupNotify=true
+Categories=Settings;

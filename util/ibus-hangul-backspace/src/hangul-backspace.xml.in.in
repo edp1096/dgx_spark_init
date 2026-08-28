@@ -1,0 +1,31 @@
+<?xml version=\"1.0\" encoding=\"utf-8\"?>
+<!-- filename: hangul-backspace.xml -->
+<component>
+	<name>org.freedesktop.IBus.HangulBackspace</name>
+	<description>hangul-backspace</description>
+	<exec>${libexecdir}/hangul-backspace --ibus</exec>
+	<version>@VERSION@</version>
+	<author>Peng Huang &lt;shawn.p.huang@gmail.com&gt;</author>
+	<license>GPL</license>
+	<homepage>https://github.com/libhangul/ibus-hangul</homepage>
+	<textdomain>hangul-backspace</textdomain>
+
+	<engines>
+		<engine>
+			<name>hangul-backspace</name>
+			<language>ko</language>
+			<license>GPL</license>
+			<author>Peng Huang &lt;shawn.p.huang@gmail.com&gt;</author>
+			<icon>hangul-backspace</icon>
+			<layout>kr</layout>
+			<layout_variant>kr104</layout_variant>
+			<longname>hangul-backspace</longname>
+			<description>hangul-backspace</description>
+			<rank>99</rank>
+			<symbol>&#xD55C;&#xAE00;</symbol>
+			<icon_prop_key>InputMode</icon_prop_key>
+			<setup>${libexecdir}/hangul-backspace-setup</setup>
+		</engine>
+	</engines>
+
+</component>
