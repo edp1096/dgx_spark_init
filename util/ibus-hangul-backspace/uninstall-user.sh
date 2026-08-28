@@ -30,8 +30,26 @@ if command -v ibus >/dev/null 2>&1; then
     fi
 fi
 
-if [ ! -x "$script_dir/configure" ]; then
-    "$script_dir/autogen.sh"
+regenerate_build_system=false
+for generated_file in \
+    configure config.guess config.sub compile missing install-sh depcomp \
+    py-compile test-driver Makefile.in src/Makefile.in
+do
+    if [ ! -e "$script_dir/$generated_file" ]; then
+        regenerate_build_system=true
+        break
+    fi
+done
+
+if [ "$regenerate_build_system" = true ]; then
+    for command_name in autoconf automake aclocal autoreconf autopoint; do
+        if ! command -v "$command_name" >/dev/null 2>&1; then
+            echo "Missing build-system command: $command_name" >&2
+            echo "Install the packages listed in README.md and try again." >&2
+            exit 1
+        fi
+    done
+    (cd "$script_dir" && NOCONFIGURE=1 ./autogen.sh)
 fi
 
 build_dir=$(mktemp -d "${TMPDIR:-/tmp}/hangul-backspace-uninstall.XXXXXX")
