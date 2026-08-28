@@ -11,9 +11,9 @@
   bind:image={$modalState.image}
   bind:garmentOpen={$modalState.garmentOpen}
   bind:garmentInitialJob={$modalState.garmentInitialJob}
+  bind:faceSwapOpen={$modalState.faceSwapOpen}
+  bind:faceSwapInitialJob={$modalState.faceSwapInitialJob}
   bind:sequenceOpen={$modalState.sequenceOpen}
-  bind:sequenceMaskEditorIndex={$modalState.sequenceMaskEditorIndex}
-  bind:sequenceRegionPicker={$modalState.sequenceRegionPicker}
   bind:maskEditorMode={$modalState.maskEditorMode}
   bind:cannyEditorOpen={$modalState.cannyEditorOpen}
   bind:runtimeInfoOpen={$modalState.runtimeInfoOpen}

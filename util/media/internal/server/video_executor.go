@@ -17,7 +17,8 @@ func (s *Server) runVideo(ctx context.Context, j jobs.Job, effectivePrompt strin
 		"prompt": effectivePrompt,
 		"width":  strconv.Itoa(width), "height": strconv.Itoa(height),
 		"num_frames": strconv.Itoa(frames), "fps": strconv.FormatFloat(fps, 'f', -1, 64),
-		"seed": strconv.FormatInt(seed, 10),
+		"seed":         strconv.FormatInt(seed, 10),
+		"operation_id": j.ID,
 	}
 	motionStrength := 0.0
 	if params.MotionLoRAEnabled {
@@ -52,7 +53,9 @@ func (s *Server) runVideo(ctx context.Context, j jobs.Job, effectivePrompt strin
 		j.Params["stage"] = "a2v"
 		_ = s.jobs.Save(j)
 	}
+	observer := s.startRuntimeObserver(ctx, j.ID, cfg.Engines["video"].Endpoint)
 	headers, err := s.generateVideoWithEngine(ctx, fields, files, output)
+	observer.Stop()
 	if err != nil {
 		_ = os.Remove(output)
 		if s.requeueGenerationAfterEngineConflict(j, err) {

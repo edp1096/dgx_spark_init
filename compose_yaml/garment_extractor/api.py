@@ -2,6 +2,7 @@ import base64
 import io
 import os
 import threading
+from datetime import datetime, timezone
 from typing import Annotated
 
 import numpy as np
@@ -11,6 +12,7 @@ from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from PIL import Image, ImageFilter
 from scipy import ndimage
 from transformers import SegformerForSemanticSegmentation, SegformerImageProcessor
+from pydantic import BaseModel
 
 
 MODEL_ID = os.getenv("GARMENT_MODEL", "fashn-ai/fashn-human-parser")
@@ -36,6 +38,37 @@ model = None
 processor = None
 model_lock = threading.Lock()
 device = "cuda" if torch.cuda.is_available() else "cpu"
+runtime_operation = None
+runtime_operation_history = []
+
+
+class RuntimePrepareRequest(BaseModel):
+    operation_id: str = ""
+
+
+def publish_runtime_operation(operation_id, phase, component, detail, progress, memory_action="", resident_after=None):
+    global runtime_operation, runtime_operation_history
+    if not operation_id:
+        return
+    now = datetime.now(timezone.utc).isoformat()
+    started_at = now
+    if runtime_operation and runtime_operation.get("operation_id") == operation_id:
+        if runtime_operation.get("phase") == phase and runtime_operation.get("component") == component:
+            started_at = runtime_operation.get("started_at") or now
+    if runtime_operation and runtime_operation.get("operation_id") != operation_id:
+        runtime_operation_history = []
+    runtime_operation = {
+        "operation_id": operation_id, "phase": phase, "component": component,
+        "detail": detail, "progress": max(0.0, min(1.0, progress)),
+        "memory_action": memory_action, "resident_after": resident_after,
+        "started_at": started_at, "updated_at": now,
+    }
+    if not runtime_operation_history or any(
+        runtime_operation_history[-1].get(key) != runtime_operation.get(key)
+        for key in ("phase", "component", "detail", "memory_action", "resident_after")
+    ):
+        runtime_operation_history.append(dict(runtime_operation))
+        runtime_operation_history = runtime_operation_history[-32:]
 
 
 def load_model():
@@ -130,7 +163,39 @@ def segment(image: Image.Image, class_ids: tuple[int, ...], feather: float):
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "model": MODEL_ID, "loaded": model is not None, "device": device}
+    return {"status": "ok", "model": MODEL_ID, "loaded": model is not None, "device": device, "runtime": runtime_status()}
+
+
+@app.get("/v1/models/runtime/status")
+def runtime_status(operation_id: str = ""):
+    operation = runtime_operation
+    operation_history = runtime_operation_history
+    if operation_id and (not operation or operation.get("operation_id") != operation_id):
+        operation = None
+        operation_history = []
+    return {
+        "status": "ready" if model is not None else "idle", "profile": "garment-parser",
+        "loaded": model is not None, "operation": operation,
+        "operation_history": operation_history,
+    }
+
+
+@app.post("/v1/models/runtime/prepare")
+def prepare_runtime(request: RuntimePrepareRequest):
+    was_loaded = model is not None
+    publish_runtime_operation(
+        request.operation_id, "model_loading", "FASHN Human Parser",
+        "의상 파서 가중치 확인·탑재", 0.2, "load" if not was_loaded else "retain", was_loaded,
+    )
+    try:
+        load_model()
+    except Exception as error:
+        raise HTTPException(503, f"model loading failed: {error}") from error
+    publish_runtime_operation(
+        request.operation_id, "completed", "FASHN Human Parser",
+        "의상 파서 상주 준비 완료", 1.0, "retain", True,
+    )
+    return {**runtime_status(request.operation_id), "prepared": True, "warm": was_loaded}
 
 
 @app.post("/v1/garments/extract")
@@ -138,6 +203,7 @@ async def extract_garment(
     images: Annotated[list[UploadFile], File()],
     target: Annotated[str, Form()] = "all",
     feather: Annotated[float, Form()] = 1.0,
+    operation_id: Annotated[str, Form()] = "",
 ):
     target_keys = list(dict.fromkeys(item.strip() for item in target.split(",") if item.strip()))
     if not target_keys:
@@ -151,7 +217,12 @@ async def extract_garment(
         raise HTTPException(400, f"1..{MAX_IMAGES} images are required")
     if feather < 0 or feather > 8:
         raise HTTPException(400, "feather must be between 0 and 8")
+    publish_runtime_operation(operation_id, "preparing", "의상 입력", "추출 대상과 입력 이미지 확인", 0.04)
     try:
+        publish_runtime_operation(
+            operation_id, "model_loading", "FASHN Human Parser", "의상 파서 가중치 확인", 0.12,
+            "retain" if model is not None else "load", model is not None,
+        )
         load_model()
     except Exception as error:
         raise HTTPException(503, f"model loading failed: {error}") from error
@@ -159,6 +230,10 @@ async def extract_garment(
     candidates = []
     failures = []
     for index, upload in enumerate(images):
+        publish_runtime_operation(
+            operation_id, "conditioning", "FASHN Human Parser",
+            f"의상 영역 분석 {index + 1}/{len(images)}", 0.18 + 0.65 * index / max(1, len(images)),
+        )
         data = await upload.read(MAX_IMAGE_BYTES + 1)
         if not data or len(data) > MAX_IMAGE_BYTES:
             failures.append({"index": index, "error": "image must be 1 byte..32 MiB"})
@@ -182,7 +257,12 @@ async def extract_garment(
     if not candidates:
         raise HTTPException(422, {"message": "선택한 의상을 찾지 못했습니다", "failures": failures})
 
+    publish_runtime_operation(operation_id, "finalizing", "의상 마스크", "최적 결과 선택·투명 PNG 생성", 0.92)
     chosen = max(candidates, key=lambda item: item["score"])
+    publish_runtime_operation(
+        operation_id, "completed", "FASHN Human Parser", "의상 추출 완료·모델 상주 유지", 1.0,
+        "retain", True,
+    )
     return {
         "model": MODEL_ID,
         "target": ",".join(target_keys),

@@ -4,9 +4,9 @@ const initialState = {
   image: null,
   garmentOpen: false,
   garmentInitialJob: null,
+  faceSwapOpen: false,
+  faceSwapInitialJob: null,
   sequenceOpen: false,
-  sequenceMaskEditorIndex: -1,
-  sequenceRegionPicker: -1,
   maskEditorMode: '',
   cannyEditorOpen: false,
   runtimeInfoOpen: false,
@@ -59,6 +59,20 @@ export class ImageModalController {
     this.setState({ garmentOpen: false, garmentInitialJob: null })
   }
 
+  openFaceSwap(job = null) {
+    this.setState({ faceSwapInitialJob: job?.output_url ? job : null, faceSwapOpen: true })
+  }
+
+  openFaceSwapFromImage(jobID) {
+    const job = this.actions.getImageJobs().find((item) => item.id === jobID)
+    this.closeImage()
+    this.openFaceSwap(job)
+  }
+
+  closeFaceSwap() {
+    this.setState({ faceSwapOpen: false, faceSwapInitialJob: null })
+  }
+
   openSequence() {
     this.actions.resetSequence()
     this.setState({ sequenceOpen: true })
@@ -73,10 +87,7 @@ export class ImageModalController {
       name: `결과 ${job.id.slice(0, 8)}.png`,
       role: 'output'
     }
-    if (target === 'sequenceBase') {
-      this.actions.setSequenceBase({ ...image, jobID: job.id, prompt: job.prompt || '' })
-      this.actions.setSequencePrompts(this.actions.getSequencePrompts().map((prompt, index) => index === 0 ? (job.prompt || prompt) : prompt))
-    } else if (target === 'vision' || target === 'styleReference') {
+    if (target === 'vision' || target === 'styleReference') {
       this.actions.addKreaRefObjects(target, [image])
     } else if (target === 'identityReference') {
       this.actions.addIdentityReferenceObjects([image])
@@ -125,7 +136,6 @@ export class ImageModalController {
   }
 
   recentTitle(identityUI, target = this.current.recentPickerTarget) {
-    if (target === 'sequenceBase') return '연속 생성 첫 장면 선택'
     if (target === 'identityReference') return `${identityUI.secondary} 선택`
     if (target === 'depth') return '자세·구도 이미지 선택'
     if (target === 'nk2e') return '편집·윤곽 이미지 선택'
@@ -146,7 +156,6 @@ export class ImageModalController {
   }
 
   selectedRef(values, target = this.current.recentPickerTarget) {
-    if (target === 'sequenceBase') return values.sequenceBase?.ref || ''
     if (target === 'identityReference') return values.identityReference?.ref || ''
     if (target === 'depth') return values.depth?.ref || ''
     if (target === 'nk2e') return values.nk2e?.ref || ''

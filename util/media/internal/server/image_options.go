@@ -2,6 +2,7 @@ package server
 
 type imageGenerationOptions struct {
 	checkpoint         string
+	reidPath           string
 	identityPath       string
 	identityRefPaths   []string
 	identityPreset     string

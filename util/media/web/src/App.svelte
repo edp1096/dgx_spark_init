@@ -15,7 +15,7 @@
   import SettingsTab from './tabs/SettingsTab.svelte'
   import ImageCreationPanel from './tabs/ImageCreationPanel.svelte'
   import VideoCreationPanel from './tabs/VideoCreationPanel.svelte'
-  import { identityPreserveCatalog, defaultIdentityPreserveItems, checkpointDisplayChoices, pageSizeOptions, imagePageSizeOptions, engineStatusCatalog, imageModeChoices, kreaModuleLabels, identityPresetUI, imageAspectRatios, kindLabels, statusLabels, translationLanguages, kreaStyleCatalog, videoResolutionPresets, imageSequenceRegionOptions } from './lib/catalogs.js'
+  import { identityPreserveCatalog, defaultIdentityPreserveItems, checkpointDisplayChoices, pageSizeOptions, imagePageSizeOptions, engineStatusCatalog, imageModeChoices, kreaModuleLabels, identityPresetUI, imageAspectRatios, kindLabels, statusLabels, translationLanguages, kreaStyleCatalog, videoResolutionPresets } from './lib/catalogs.js'
   import { durationFromFrames, framesForDuration } from './lib/videoTiming.js'
   import { formatBytes, subtitleTranslationWarningText, imagePromptModalText, videoPromptModalText } from './lib/mediaPresentation.js'
   import { createVideoVisualContext } from './lib/assistantVisualContext.js'
@@ -55,7 +55,7 @@
   let savedMessage = ''
   let settingsSection = 'connection'
   let jobs = []
-  let engineStates = { image: 'offline', speech: 'offline', recognition: 'offline', video: 'offline', prompt: 'offline', media: 'offline', trainer: 'offline', upscale: 'offline', garment: 'offline' }
+  let engineStates = { image: 'offline', speech: 'offline', recognition: 'offline', video: 'offline', prompt: 'offline', media: 'offline', trainer: 'offline', upscale: 'offline', garment: 'offline', faceswap: 'offline' }
   let busy = false
   let error = ''
   const imageInputController = new ImageInputController()
@@ -85,11 +85,16 @@
   let imageMegapixels = 1
   let filterPromptPreset = ''
   $: imageSequencePrompts = $imageSequenceState.prompts
-  $: imageSequenceRegions = $imageSequenceState.regions
-  $: imageSequenceMasks = $imageSequenceState.masks
-  $: imageSequenceMaskPreviews = $imageSequenceState.maskPreviews
-  $: imageSequenceBase = $imageSequenceState.base
-  $: imageSequenceStrength = $imageSequenceState.strength
+  $: imageSequenceEntryMode = $imageSequenceState.entryMode
+  $: imageSequenceStoryIdea = $imageSequenceState.storyIdea
+  $: imageSequenceSceneCount = $imageSequenceState.sceneCount
+  $: imageSequenceEnhancedPrompts = $imageSequenceState.enhancedPrompts
+  $: imageSequenceSceneTitles = $imageSequenceState.sceneTitles
+  $: imageSequenceSharedPrompt = $imageSequenceState.sharedPrompt
+  $: imageSequenceSharedPromptEdited = $imageSequenceState.sharedPromptEdited
+  $: imageSequencePlanning = $imageSequenceState.planning
+  $: imageSequencePlanError = $imageSequenceState.planError
+  $: imageSequenceCharacters = $imageSequenceState.characters
   let kreaModules = { identity: false, depth: false, style: false, userLora: false, vision: false, styleReference: false, nk2e: false, anypaint: false }
   let kreaNK2EPreprocessed = false
   let parentImageJobID = ''
@@ -259,6 +264,7 @@
       clearAllInputs: clearAllImageInputs,
       clearGeneratedInputs,
       resetSequence: () => imageSequenceController.reset(),
+      planSequence: () => imageSequenceController.plan(api),
       closeSequence: () => $imageModalState.sequenceOpen = false,
       clearCloneMessage: () => imageResultController.setState({ cloneMessage: '' }),
       addReferences: addRefObjects,
@@ -308,9 +314,6 @@
   const settingsState = settingsController.state
   const imageModalController = new ImageModalController({
     getImageJobs: () => imageJobs,
-    getSequencePrompts: () => imageSequenceController.current.prompts,
-    setSequencePrompts: (value) => imageSequenceController.setPrompts(value),
-    setSequenceBase: (value) => imageSequenceController.setBase(value),
     resetSequence: () => imageSequenceController.reset([rawImagePrompt(), '']),
     addKreaRefObjects,
     addIdentityReferenceObjects,
@@ -836,7 +839,7 @@
       references: refs, identityImage: kreaIdentityImage, identityReferences: kreaIdentityReferences, identityMask: kreaIdentityMask, strictMask: kreaStrictMask,
       depthImage: kreaDepthImage, nk2eImage: kreaNK2EImage, anypaintImage: kreaAnyPaintImage, anypaintMask: kreaAnyPaintMask,
       visionImages: kreaVisionImages, styleReferenceImages: kreaStyleReferenceImages,
-      sequence: { regions: imageSequenceRegions, strength: imageSequenceStrength, base: imageSequenceBase, masks: imageSequenceMasks }
+      sequence: $imageSequenceState
     }
   }
 
@@ -1026,11 +1029,26 @@
   }
 
   function imageSequenceBlockedMessage() {
-    return sequenceBlockedMessage({ mode: imageForm.mode, modules: kreaModules, moduleReason: kreaModuleDisabledReason(), width: imageForm.width, height: imageForm.height })
+    return sequenceBlockedMessage({
+      mode: imageForm.mode, modules: kreaModules, moduleReason: kreaModuleDisabledReason(),
+      checkpoint: kreaOptions.checkpoint,
+      hasReIDReference: Boolean(imageSequenceCharacters[0]?.references?.length)
+    })
   }
 
-  function applyRobotSequenceExample() {
-    imageSequenceController.applyRobotExample()
+  function setImageSequenceEntryMode(value) { imageSequenceController.setEntryMode(value) }
+  function setImageSequenceStoryIdea(value) { imageSequenceController.setStoryIdea(value) }
+  function setImageSequenceSceneCount(value) { imageSequenceController.setSceneCount(value) }
+  function setImageSequenceSharedPrompt(value) { imageSequenceController.setSharedPrompt(value) }
+  function applyStorySequenceExample() { imageSequenceController.applyStoryExample() }
+  function applySceneSequenceExample() { imageSequenceController.applySceneExample() }
+
+  async function planImageSequence() {
+    try {
+      await imageSequenceController.plan(api)
+    } catch (planError) {
+      error = planError.message || String(planError)
+    }
   }
 
   function addImageSequenceScene() {
@@ -1041,31 +1059,39 @@
     imageSequenceController.removeScene(index)
   }
 
+  function moveImageSequenceScene(index, direction) {
+    imageSequenceController.moveScene(index, direction)
+  }
+
   function updateImageSequencePrompt(index, value) {
     imageSequenceController.updatePrompt(index, value)
   }
 
-  function updateImageSequenceRegion(index, value) {
-    imageSequenceController.updateRegion(index, value)
-    $imageModalState.sequenceRegionPicker = -1
+  function addImageSequenceCharacter() { imageSequenceController.addCharacter() }
+  function removeImageSequenceCharacter(index) { imageSequenceController.removeCharacter(index) }
+  function setImageSequenceCharacterName(index, value) { imageSequenceController.setCharacterName(index, value) }
+  function addImageSequenceCharacterFiles(index, files) { imageSequenceController.addCharacterFiles(index, files) }
+  function addImageSequenceCharacterResult(index, job) { imageSequenceController.addCharacterResult(index, job) }
+  function removeImageSequenceCharacterReference(index, referenceIndex) { imageSequenceController.removeCharacterReference(index, referenceIndex) }
+  function setImageSequenceCharacterReIDReference(index, referenceIndex) { imageSequenceController.setCharacterReIDReference(index, referenceIndex) }
+  function toggleImageSequenceCharacterTrait(index, trait) { imageSequenceController.toggleCharacterTrait(index, trait) }
+  async function generateImageSequenceCharacterSheet(index) {
+    try { await imageSequenceController.generateCharacterSheet(index, api) }
+    catch (sheetError) { error = sheetError.message || String(sheetError) }
   }
-
-  function clearImageSequenceMasks() {
-    imageSequenceController.clearMasks()
-    $imageModalState.sequenceMaskEditorIndex = -1
+  function approveImageSequenceCharacterSheet(index) { imageSequenceController.approveCharacterSheet(index) }
+  function discardImageSequenceCharacterSheet(index) { imageSequenceController.discardCharacterSheet(index) }
+  async function analyzeImageSequenceCharacter(index) {
+    try {
+      await imageSequenceController.analyzeCharacter(index, api)
+    } catch (analysisError) {
+      error = analysisError.message || String(analysisError)
+    }
   }
-
-  function useImageSequenceMask(file) {
-    const index = $imageModalState.sequenceMaskEditorIndex
-    if (imageSequenceController.useMask(index, file)) $imageModalState.sequenceMaskEditorIndex = -1
-  }
-
-  function setImageSequenceBase(value) { imageSequenceController.setBase(value) }
-  function setImageSequenceStrength(value) { imageSequenceController.setStrength(value) }
-
-  function imageSequenceRegionOption(region) {
-    return imageSequenceRegionOptions.find((option) => option.id === region) || imageSequenceRegionOptions[0]
-  }
+  function setImageSequenceCharacterDescription(index, value) { imageSequenceController.setCharacterDescription(index, value) }
+  function setImageSequenceCharacterPrompt(index, value) { imageSequenceController.setCharacterCanonicalPrompt(index, value) }
+  function imageSequenceCharacterPreview(reference) { return imageSequenceController.characterPreview(reference) }
+  function imageSequenceCharacterReadinessMessage() { return imageSequenceController.characterReadinessMessage() }
 
   async function generateImage(sequencePrompts = null) {
     return imageCreationController.generate(sequencePrompts)
@@ -1080,6 +1106,10 @@
 
   async function submitGarmentExtraction(form) {
     return imageResultController.submitGarment(form)
+  }
+
+  async function submitFaceSwap(form) {
+    return imageResultController.submitFaceSwap(form)
   }
 
   function speechRecognitionSnapshot() {
@@ -1304,12 +1334,12 @@
   )
   $: imageResultsModel = {
     jobs: imageJobs, pagedJobs: pagedImageJobs, view: imageView, page: listPages.image, pageSize: listPageSizes.image, sortOrder: listSortOrders.image,
-    garmentOnline: engineStates.garment === 'online', imageOnline: engineStates.image_create === 'online', upscaleOnline: engineStates.upscale === 'online',
+    garmentOnline: engineStates.garment === 'online', faceSwapOnline: engineStates.faceswap === 'online', imageOnline: engineStates.image_create === 'online', upscaleOnline: engineStates.upscale === 'online',
     cloningJob: cloningImageJob, detailEnhancingJob: detailEnhancingImageJob, upscalingJob: upscalingImageJob,
     cancellingJob, retryingJob, deletingJob, progressFor: imageGenerationProgress, promptText: imagePromptModalText,
     onView: setImageView, onPage: (page) => setListPage('image', page), onPageSize: (size) => setListPageSize('image', size), onSort: (order) => setListSortOrder('image', order),
     onShow: (...args) => imageModalController.showImage(...args), onPrompt: (job, detail, text) => commonModalController.showPrompt('전체 프롬프트', detail, text),
-    onClone: cloneImageJob, onContinueEditing: continueEditing, onGarment: (job) => imageModalController.openGarment(job),
+    onClone: cloneImageJob, onContinueEditing: continueEditing, onGarment: (job) => imageModalController.openGarment(job), onFaceSwap: (job) => imageModalController.openFaceSwap(job),
     onDetail: detailEnhanceImage, onUpscale: upscaleImage, onCancel: cancelJob, onRetry: retryJob, onDelete: deleteJob
   }
   $: videoResultsModel = {
@@ -1341,8 +1371,9 @@
     kreaAnyPaintPreview, kreaDepthImage, kreaDepthPreview, kreaIdentityImage, kreaIdentityMask, kreaIdentityMaskPreview,
     kreaIdentityPreview, kreaIdentityReferences, kreaModuleMessage, kreaModules, kreaNK2EImage, kreaNK2EPreprocessed,
     kreaNK2EPreview, kreaStrictMask, kreaStrictMaskPreview, kreaStyleLabel, kreaStyleReferenceImages, kreaStyleSelections,
-    kreaVisionImages, looksLikeStructuredPrompt, openGarmentExtractor: (job) => imageModalController.openGarment(job),
-    openImageSequence: () => imageModalController.openSequence(), openPromptExamples: (target) => commonModalController.openPromptExamples(target),
+    kreaVisionImages, looksLikeStructuredPrompt, openGarmentExtractor: (job) => imageModalController.openGarment(job), openFaceSwap: (job) => imageModalController.openFaceSwap(job),
+    openImageSequence: () => imageModalController.openSequence(),
+    openPromptExamples: (target) => commonModalController.openPromptExamples(target),
     rawImagePrompt, refreshUserLoras, refs, removeIdentityReference, removeKreaRef, removeRef, resetImageCreation, resetImageEnhancement,
     selectKreaCheckpoint, selectedKreaCheckpoint, selectedKreaCheckpointSource, setKreaImage,
     showImage: (...args) => imageModalController.showImage(...args), showImageOnKey: (...args) => imageModalController.showImageOnKey(...args),
@@ -1389,13 +1420,21 @@
     onRetry: retryJob, onDelete: deleteJob
   }
   $: imageModalModel = {
-    busy, imageForm, kreaOptions, kreaModules, imageSequenceBase, imageSequenceStrength, setImageSequenceBase, setImageSequenceStrength,
-    imageSequencePrompts, imageSequenceMaskPreviews, imageSequenceRegions, applyRobotSequenceExample, clearImageSequenceMasks,
-    imageSequenceBlockedMessage, removeImageSequenceScene, updateImageSequencePrompt, updateImageSequenceRegion,
-    imageSequenceRegionOption, addImageSequenceScene, generateImage, useImageSequenceMask, kreaAnyPaintPreview,
+    busy, imageForm, kreaOptions, kreaModules, imageSequenceEntryMode, imageSequenceStoryIdea, imageSequenceSceneCount,
+    imageSequencePrompts, imageSequenceEnhancedPrompts, imageSequenceSceneTitles, imageSequenceSharedPrompt, imageSequenceSharedPromptEdited,
+    imageSequencePlanning, imageSequencePlanError, imageSequenceCharacters, setImageSequenceEntryMode, setImageSequenceStoryIdea, setImageSequenceSceneCount,
+    setImageSequenceSharedPrompt,
+    applyStorySequenceExample, applySceneSequenceExample, planImageSequence,
+    imageSequenceBlockedMessage, removeImageSequenceScene, moveImageSequenceScene, updateImageSequencePrompt,
+    addImageSequenceScene, addImageSequenceCharacter, removeImageSequenceCharacter, setImageSequenceCharacterName,
+    addImageSequenceCharacterFiles, addImageSequenceCharacterResult, removeImageSequenceCharacterReference,
+    setImageSequenceCharacterReIDReference, toggleImageSequenceCharacterTrait,
+    generateImageSequenceCharacterSheet, approveImageSequenceCharacterSheet, discardImageSequenceCharacterSheet,
+    analyzeImageSequenceCharacter, setImageSequenceCharacterDescription, setImageSequenceCharacterPrompt,
+    imageSequenceCharacterPreview, imageSequenceCharacterReadinessMessage, generateImage, kreaAnyPaintPreview,
     kreaIdentityPreview, kreaAnyPaintMaskPreview, kreaIdentityMaskPreview, kreaStrictMaskPreview, kreaNK2EPreview,
     kreaNK2EPreprocessed, imageJobs, identityUI, kreaIdentityReference, kreaDepthImage, kreaNK2EImage,
-    kreaAnyPaintImage, kreaIdentityImage, submitGarmentExtraction
+    kreaAnyPaintImage, kreaIdentityImage, submitGarmentExtraction, submitFaceSwap
   }
   $: videoModalModel = {
     videoJobs, recognitionJobs, speechJobs, imageJobs, recognitionSourceVideoJob, videoAudioClips, videoDurationSeconds,

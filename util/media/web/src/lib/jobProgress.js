@@ -3,6 +3,33 @@ import { compactElapsed, formatBytes } from './mediaPresentation.js'
 import { a2vBaselineEstimateSeconds, imageGenerationDistance, imageGenerationKey, imageGenerationWork, imageJobDurationSeconds, percentile, speechGenerationKey, speechGenerationWork, videoAccelerationProfile, videoGenerationDistance, videoGenerationDurationSeconds, videoGenerationKey, videoGenerationPipeline, videoGenerationWork } from './generationMetrics.js'
 
 import { videoUpscaleEstimateSeconds } from '../videoUpscaleEta.js'
+import { runtimePhasePresentation } from './runtimePhasePresentation.js'
+
+
+export function modelPreparationProgress(job, jobs, progressClock) {
+    const params = job.params || {}
+    if (job.status !== 'running' || params.stage !== 'model-preparing') return null
+    const started = Date.parse(params.model_prepare_started_at || params.stage_started_at || params.started_at || job.updated_at || job.created_at || 0)
+    const elapsedSeconds = Number.isFinite(started) ? Math.max(0, (progressClock - started) / 1000) : 0
+    const profile = params.model_prepare_profile || params.model_plan?.profile || ''
+    const observed = percentile((jobs || [])
+      .filter((item) => item.id !== job.id && item.params?.model_prepare_profile === profile && Number(item.params?.model_prepare_seconds) > 0)
+      .sort((left, right) => Date.parse(right.updated_at || 0) - Date.parse(left.updated_at || 0))
+      .slice(0, 12)
+      .map((item) => Number(item.params.model_prepare_seconds)), .6)
+    const estimateSeconds = Math.max(1, observed || Number(params.model_prepare_estimate_seconds) || 30)
+    const percent = Math.min(94, Math.max(3, elapsedSeconds / estimateSeconds * 100))
+    const remainingSeconds = Math.max(0, estimateSeconds - elapsedSeconds)
+    const label = params.model_prepare_label || params.model_plan?.label || '필요 모델 탑재'
+    const runtime = runtimePhasePresentation(job)
+    const finishTime = new Date(progressClock + remainingSeconds * 1000).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' })
+    return {
+      label: runtime?.label || `${label} · ${Math.round(percent)}%`,
+      percent: runtime?.progress > 0 ? Math.min(99, runtime.progress) : percent,
+      elapsed: `${Math.round(elapsedSeconds)}/${Math.round(estimateSeconds)}초`,
+      eta: runtime?.detail || (remainingSeconds > 0 ? `${finishTime} 준비 예상` : '모델 탑재 확인 중')
+    }
+  }
 
 
 
@@ -49,9 +76,12 @@ export function imageGenerationProgress(job, jobs, progressClock) {
       const elapsed = Number.isFinite(created) ? (progressClock - created) / 1000 : 0
       const position = generationQueuePosition(job, jobs)
       const engineWait = job.params?.stage === 'waiting_upscale_engine' || job.params?.stage === 'waiting_video_engine'
-      return { label: engineWait ? '업스케일러 대기' : position ? `대기 ${position}번째` : '대기 중', percent: 2, elapsed: `대기 ${compactElapsed(elapsed)}`, eta: engineWait ? '이전 SeedVR2 작업 종료 후 시작' : '앞선 작업 종료 후 시작' }
+      const planned = job.params?.model_plan?.label ? ` · ${job.params.model_plan.label} 예정` : ''
+      return { label: engineWait ? '업스케일러 대기' : position ? `대기 ${position}번째` : '대기 중', percent: 2, elapsed: `대기 ${compactElapsed(elapsed)}`, eta: (engineWait ? '이전 SeedVR2 작업 종료 후 시작' : '앞선 작업 종료 후 시작') + planned }
     }
-    const started = Date.parse(job.params?.started_at || job.updated_at || job.created_at || 0)
+    const preparing = modelPreparationProgress(job, jobs, progressClock)
+    if (preparing) return preparing
+    const started = Date.parse(job.params?.generation_started_at || job.params?.started_at || job.updated_at || job.created_at || 0)
     const elapsedSeconds = Number.isFinite(started) ? Math.max(0, (progressClock - started) / 1000) : 0
     let estimateSeconds = imageGenerationEstimateSeconds(job, jobs)
     // If a supposedly warm request crosses its estimate, stop claiming that
@@ -67,11 +97,12 @@ export function imageGenerationProgress(job, jobs, progressClock) {
     const percent = Math.min(94, Math.max(5, elapsedSeconds / estimateSeconds * 100))
     const finishTime = new Date(progressClock + Math.max(0, remainingSeconds) * 1000).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' })
     const timing = `${Math.round(elapsedSeconds)}/${Math.round(estimateSeconds)}초`
+    const runtime = runtimePhasePresentation(job)
     return {
-      label: remainingSeconds > 0 ? `${Math.round(percent)}%` : '마무리 중',
-      percent,
+      label: runtime?.label || (remainingSeconds > 0 ? `${Math.round(percent)}%` : '마무리 중'),
+      percent: runtime?.progress > 0 ? Math.max(5, runtime.progress) : percent,
       elapsed: timing,
-      eta: remainingSeconds > 0 ? `${finishTime} 완료 예상` : ''
+      eta: runtime?.detail || (remainingSeconds > 0 ? `${finishTime} 완료 예상` : '')
     }
   }
 
@@ -113,19 +144,24 @@ export function videoGenerationProgress(job, jobs, progressClock) {
     if (job.status === 'queued') {
       const elapsed = Number.isFinite(created) ? (progressClock - created) / 1000 : 0
       const position = generationQueuePosition(job, jobs)
-      return { label: position ? `대기 ${position}번째` : '대기 중', percent: 2, elapsed: `대기 ${compactElapsed(elapsed)}`, eta: '앞선 작업 종료 후 시작' }
+      const planned = job.params?.model_plan?.label ? ` · ${job.params.model_plan.label} 예정` : ''
+      return { label: position ? `대기 ${position}번째` : '대기 중', percent: 2, elapsed: `대기 ${compactElapsed(elapsed)}`, eta: '앞선 작업 종료 후 시작' + planned }
     }
-    const started = Date.parse(job.params?.started_at || job.updated_at || job.created_at || 0)
+    const preparing = modelPreparationProgress(job, jobs, progressClock)
+    if (preparing) return preparing
+    const started = Date.parse(job.params?.generation_started_at || job.params?.started_at || job.updated_at || job.created_at || 0)
     const elapsedSeconds = Number.isFinite(started) ? Math.max(0, (progressClock - started) / 1000) : 0
     const estimateSeconds = videoGenerationEstimateSeconds(job, jobs)
     const remainingSeconds = estimateSeconds - elapsedSeconds
     const percent = Math.min(94, Math.max(5, elapsedSeconds / estimateSeconds * 100))
     const finishTime = new Date(progressClock + Math.max(0, remainingSeconds) * 1000).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' })
+    const phaseSwapped = job.params?.model_plan?.phase_swapped === true
+    const runtime = runtimePhasePresentation(job)
     return {
-      label: remainingSeconds > 0 ? `${Math.round(percent)}%` : '마무리 중',
-      percent,
+      label: runtime?.label || (remainingSeconds > 0 ? `${phaseSwapped ? '단계별 모델 적재·생성 · ' : ''}${Math.round(percent)}%` : '마무리 중'),
+      percent: runtime?.progress > 0 ? Math.max(5, runtime.progress) : percent,
       elapsed: `${Math.round(elapsedSeconds)}/${Math.round(estimateSeconds)}초`,
-      eta: remainingSeconds > 0 ? `${finishTime} 완료 예상` : ''
+      eta: runtime?.detail || (remainingSeconds > 0 ? `${finishTime} 완료 예상` : '')
     }
   }
 
@@ -156,17 +192,21 @@ export function speechGenerationProgress(job, jobs, progressClock) {
       const created = Date.parse(job.created_at || 0)
       const elapsed = Number.isFinite(created) ? (progressClock - created) / 1000 : 0
       const position = generationQueuePosition(job, jobs)
-      return { label: position ? `대기 ${position}번째` : '대기 중', percent: 2, elapsed: `대기 ${compactElapsed(elapsed)}`, eta: '앞선 작업 종료 후 시작' }
+      const planned = job.params?.model_plan?.label ? ` · ${job.params.model_plan.label} 예정` : ''
+      return { label: position ? `대기 ${position}번째` : '대기 중', percent: 2, elapsed: `대기 ${compactElapsed(elapsed)}`, eta: '앞선 작업 종료 후 시작' + planned }
     }
-    const started = Date.parse(job.params?.started_at || job.updated_at || job.created_at || 0)
+    const preparing = modelPreparationProgress(job, jobs, progressClock)
+    if (preparing) return preparing
+    const started = Date.parse(job.params?.generation_started_at || job.params?.started_at || job.updated_at || job.created_at || 0)
     const elapsedSeconds = Number.isFinite(started) ? Math.max(0, (progressClock - started) / 1000) : 0
     const estimateSeconds = speechGenerationEstimateSeconds(job, jobs)
     const remainingSeconds = estimateSeconds - elapsedSeconds
+    const runtime = runtimePhasePresentation(job)
     return {
-      label: remainingSeconds > 0 ? `${Math.min(94, Math.max(5, Math.round(elapsedSeconds / estimateSeconds * 100)))}%` : '마무리 중',
-      percent: Math.min(94, Math.max(5, elapsedSeconds / estimateSeconds * 100)),
+      label: runtime?.label || (remainingSeconds > 0 ? `${Math.min(94, Math.max(5, Math.round(elapsedSeconds / estimateSeconds * 100)))}%` : '마무리 중'),
+      percent: runtime?.progress > 0 ? Math.max(5, runtime.progress) : Math.min(94, Math.max(5, elapsedSeconds / estimateSeconds * 100)),
       elapsed: `${Math.round(elapsedSeconds)}/${Math.round(estimateSeconds)}초`,
-      eta: remainingSeconds > 0 ? `${new Date(progressClock + remainingSeconds * 1000).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' })} 완료 예상` : ''
+      eta: runtime?.detail || (remainingSeconds > 0 ? `${new Date(progressClock + remainingSeconds * 1000).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' })} 완료 예상` : '')
     }
   }
 
@@ -177,6 +217,12 @@ export function recognitionProgressText(job, jobs) {
 	  const position = recognitionQueuePosition(job, jobs)
 	  return position ? `대기 ${position}번째 · 앞선 작업 완료 후 자동 시작` : '대기 중'
 	}
+    if (params.stage === 'model-preparing') {
+      const label = params.model_prepare_label || params.model_plan?.label || '음성 인식 모델 준비'
+      return label
+    }
+    const runtime = runtimePhasePresentation(job)
+    if (runtime && runtime.phase !== 'completed') return runtime.detail ? `${runtime.label} · ${runtime.detail}` : runtime.label
     if (params.stage === 'media') {
       const labels = {
         starting: '미디어 준비 시작 중', resuming: '저장된 원본에서 작업 재개 중', receiving: '파일 전송 중', resolving: '영상 페이지 분석 중',
@@ -201,6 +247,10 @@ export function recognitionProgressTiming(job, progressClock) {
     if (job.status !== 'running') return ''
     const stageStarted = Date.parse(params.stage_started_at || params.started_at || job.created_at || 0)
     const elapsed = Number.isFinite(stageStarted) ? Math.max(0, (progressClock - stageStarted) / 1000) : 0
+    if (params.stage === 'model-preparing') {
+      const estimate = Math.max(1, Number(params.model_prepare_estimate_seconds) || 5)
+      return `${compactElapsed(elapsed)}/${compactElapsed(estimate)}`
+    }
     if (params.stage === 'media' && params.media_stage === 'downloading' && Number(params.media_eta_seconds) > 0) {
       return `${compactElapsed(elapsed)}/${compactElapsed(elapsed + Number(params.media_eta_seconds))}`
     }
@@ -222,6 +272,11 @@ export function recognitionProgressTiming(job, progressClock) {
 export function recognitionProgressPercent(job) {
     const params = job.params || {}
 	if (job.status === 'queued') return 2
+    if (params.stage === 'model-preparing') {
+      const started = Date.parse(params.model_prepare_started_at || params.stage_started_at || 0)
+      const elapsed = Number.isFinite(started) ? Math.max(0, (Date.now() - started) / 1000) : 0
+      return Math.min(94, Math.max(3, elapsed * 100 / Math.max(1, Number(params.model_prepare_estimate_seconds) || 5)))
+    }
     if (params.stage === 'media' && params.media_stage === 'downloading') return Math.min(100, Math.max(0, Number(params.media_percent) || 0))
     if (params.stage === 'recognition' && params.segments) return Math.min(100, (Number(params.progress) || 0) * 100 / params.segments)
     if (params.stage === 'translation' && params.translation_total) return Math.min(100, (Number(params.translation_progress) || 0) * 100 / params.translation_total)
@@ -251,4 +306,3 @@ export function generationQueuePosition(job, jobs) {
 	const index = queued.findIndex((item) => item.id === job.id)
 	return index < 0 ? 0 : index + 1
   }
-

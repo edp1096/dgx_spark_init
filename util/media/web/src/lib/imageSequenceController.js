@@ -1,136 +1,377 @@
 import { writable } from 'svelte/store'
+import { appendMediaInputs, clearMediaInputs, mediaInputPreview, normalizeImageFiles, removeMediaInput } from './mediaInputs.js'
 
-const robotExample = {
-  prompts: [
-    'Wide full-body shot of a small friendly orange robot centered beside a blue armchair in a softly lit modern studio, with clear empty space around its entire body from antenna tips to both feet. It has exactly two arms, one continuous orange metal faceplate, exactly two round black recessed eyes, one small curved black smile, and two thin antennae, with no display screen. Both arms rest naturally at its sides, clean 3D animated film style.',
-    "Move the robot's right arm, which is on the left side of the image, from its side into a raised friendly waving pose. Replace the old lowered arm position completely; show this arm exactly once in its new raised position. Preserve the exact face, head, left arm, body, chair, camera, lighting, and background unchanged.",
-    "Move the same raised right arm on the left side of the image down to a halfway-lowered position, as the next moment of the wave. Replace its previous raised position completely; show this arm exactly once in the new position. Preserve the exact face, head, left arm, body, chair, camera, lighting, and background unchanged."
-  ],
-  regions: ['all', 'left-arm', 'left-arm'],
-  strength: 0.65
+const storyExample = {
+  idea: '비 오는 서울에서 오래된 사진의 장소를 찾아가는 60대 남성 사진가의 하루. 같은 얼굴과 백발, 낡은 갈색 가죽 재킷을 유지하고 장면마다 장소와 행동만 바꾼다.',
+  count: 5
 }
+
+const sceneExample = [
+  '같은 60대 남성 사진가가 비 내리는 서울 골목에서 오래된 필름 카메라를 점검하는 장면',
+  '같은 남성이 붐비는 재래시장에서 낡은 사진과 건물들을 비교하는 장면',
+  '같은 남성이 해질 무렵 한강 다리 위에서 카메라를 들어 사진을 찍는 장면',
+  '같은 남성이 밤의 옥상에서 찾던 장소를 발견하고 조용히 미소 짓는 장면'
+]
+
+export const sequenceCharacterTraitChoices = [
+  ['face', '얼굴'], ['hair', '머리'], ['body', '체형'], ['outfit', '의상'],
+  ['accessories', '액세서리'], ['mechanical', '기계 구조']
+]
+
+const defaultCharacterTraits = () => ({ face: true, hair: true, body: true, outfit: true, accessories: false, mechanical: true })
 
 function initialState() {
   return {
-    prompts: ['', ''],
-    regions: ['all', 'all'],
-    masks: [null, null],
-    maskPreviews: ['', ''],
-    base: null,
-    strength: 0.8
+    entryMode: 'story', storyIdea: '', sceneCount: 5,
+    prompts: ['', ''], enhancedPrompts: [], sceneTitles: [], sharedPrompt: '', canonicalPrompt: '', sharedPromptEdited: false,
+    characters: [], characterCounter: 0,
+    planSignature: '', planning: false, planError: ''
   }
 }
 
+function lockedCharacters(state) {
+  return state.characters
+    .filter((character) => character.canonicalPromptEN.trim())
+    .map((character) => ({
+      id: character.id,
+      name_ko: character.name.trim() || character.nameKO.trim(),
+      name_en: character.nameEN.trim(),
+      description_ko: character.descriptionKO.trim(),
+      prompt_en: character.canonicalPromptEN.trim()
+    }))
+}
+
 export class ImageSequenceController {
-  constructor(urls = globalThis.URL) {
-    this.urls = urls
+  constructor() {
     this.current = initialState()
     this.state = writable(this.current)
     this.unsubscribe = this.state.subscribe((value) => this.current = value)
   }
 
-  setState(patch) {
-    this.state.update((value) => ({ ...value, ...patch }))
+  setState(patch) { this.state.update((value) => ({ ...value, ...patch })) }
+
+  signature() {
+    return JSON.stringify({
+      entryMode: this.current.entryMode,
+      storyIdea: this.current.storyIdea.trim(),
+      sceneCount: this.current.sceneCount,
+      prompts: this.current.prompts.map((value) => value.trim()),
+      sharedPrompt: this.current.sharedPromptEdited ? this.current.sharedPrompt.trim() : '',
+      lockedCharacters: lockedCharacters(this.current)
+    })
   }
 
-  setPrompts(prompts) { this.setState({ prompts: [...prompts] }) }
-  setBase(base) { this.setState({ base }) }
-  setStrength(strength) { this.setState({ strength: Number(strength) }) }
+  invalidatePlan(patch = {}, keepEditedShared = true) {
+    const keepShared = keepEditedShared && this.current.sharedPromptEdited
+    this.setState({
+      ...patch, enhancedPrompts: [], sceneTitles: [], canonicalPrompt: '',
+      sharedPrompt: keepShared ? this.current.sharedPrompt : '', sharedPromptEdited: keepShared,
+      planSignature: '', planError: ''
+    })
+  }
 
   reset(prompts = ['', '']) {
-    this.clearMasks()
+	this.current.characters.forEach((character) => { clearMediaInputs(character.references); clearMediaInputs(character.quadViewCandidate ? [character.quadViewCandidate] : []) })
     this.setState({
       ...initialState(),
-      prompts: [...prompts],
-      regions: prompts.map(() => 'all'),
-      masks: prompts.map(() => null),
-      maskPreviews: prompts.map(() => '')
+      entryMode: prompts.some((value) => value.trim()) ? 'scenes' : 'story',
+      prompts: [...prompts]
     })
   }
 
-  applyRobotExample() {
-    this.clearMasks()
+  setEntryMode(entryMode) {
+    if (entryMode !== 'story' && entryMode !== 'scenes') return
+    this.invalidatePlan({ entryMode }, false)
+  }
+
+  setStoryIdea(storyIdea) { this.invalidatePlan({ storyIdea }, false) }
+
+  setSceneCount(sceneCount) {
+    this.invalidatePlan({ sceneCount: Math.max(2, Math.min(12, Number(sceneCount) || 5)) }, false)
+  }
+
+  setPrompts(prompts) { this.invalidatePlan({ entryMode: 'scenes', prompts: [...prompts] }, false) }
+
+  setSharedPrompt(sharedPrompt) {
     this.setState({
-      prompts: [...robotExample.prompts],
-      regions: [...robotExample.regions],
-      masks: robotExample.prompts.map(() => null),
-      maskPreviews: robotExample.prompts.map(() => ''),
-      strength: robotExample.strength
+      sharedPrompt, sharedPromptEdited: true, enhancedPrompts: [], canonicalPrompt: '',
+      planSignature: '', planError: ''
     })
+  }
+
+  addCharacter() {
+    if (this.current.characters.length >= 4) return
+    const counter = this.current.characterCounter + 1
+    this.invalidatePlan({
+      characterCounter: counter,
+      characters: [...this.current.characters, {
+        id: `character_${counter}`, name: `등장인물 ${counter}`, nameKO: '', nameEN: '', references: [],
+        reidReferenceIndex: 0, lockedTraits: defaultCharacterTraits(),
+        quadViewCandidate: null, quadViewGenerating: false, quadViewError: '', quadViewStartedAt: 0, quadViewProgress: null,
+        descriptionKO: '', canonicalPromptEN: '', observations: {}, analyzing: false, error: ''
+      }]
+    })
+  }
+
+  removeCharacter(index) {
+    const removed = this.current.characters[index]
+    if (!removed) return
+    clearMediaInputs(removed.references)
+    clearMediaInputs(removed.quadViewCandidate ? [removed.quadViewCandidate] : [])
+    this.invalidatePlan({ characters: this.current.characters.filter((_, itemIndex) => itemIndex !== index) })
+  }
+
+  updateCharacter(index, patch, invalidate = true) {
+    const characters = this.current.characters.map((character, itemIndex) => itemIndex === index ? { ...character, ...patch } : character)
+    if (invalidate) this.invalidatePlan({ characters })
+    else this.setState({ characters })
+  }
+
+  setCharacterName(index, name) { this.updateCharacter(index, { name }) }
+  setCharacterDescription(index, descriptionKO) { this.updateCharacter(index, { descriptionKO }) }
+  setCharacterCanonicalPrompt(index, canonicalPromptEN) { this.updateCharacter(index, { canonicalPromptEN }) }
+
+  setCharacterReIDReference(index, referenceIndex) {
+    const character = this.current.characters[index]
+    if (!character || referenceIndex < 0 || referenceIndex >= character.references.length) return
+    this.updateCharacter(index, { reidReferenceIndex: referenceIndex })
+  }
+
+  toggleCharacterTrait(index, trait) {
+    if (!sequenceCharacterTraitChoices.some(([value]) => value === trait)) return
+    const character = this.current.characters[index]
+    if (!character) return
+    this.updateCharacter(index, {
+      lockedTraits: { ...defaultCharacterTraits(), ...character.lockedTraits, [trait]: !character.lockedTraits?.[trait] },
+      canonicalPromptEN: '', descriptionKO: '', observations: {}, error: ''
+    })
+  }
+
+  addCharacterFiles(index, files) {
+    const character = this.current.characters[index]
+    if (!character) return
+    const references = appendMediaInputs(character.references, normalizeImageFiles(files), 6)
+    this.updateCharacter(index, { references, reidReferenceIndex: Math.min(character.reidReferenceIndex || 0, Math.max(0, references.length - 1)), canonicalPromptEN: '', descriptionKO: '', observations: {}, error: '' })
+  }
+
+  addCharacterResult(index, job) {
+    const character = this.current.characters[index]
+    if (!character?.references || !job?.id || !job?.output_url) return
+    const reference = {
+      server: true, ref: `${job.id}:output:0`, url: job.output_url, preview: job.output_url,
+      name: `결과 #${job.id.slice(0, 8)}`
+    }
+    const references = appendMediaInputs(character.references, [reference], 6)
+    this.updateCharacter(index, { references, reidReferenceIndex: Math.min(character.reidReferenceIndex || 0, Math.max(0, references.length - 1)), canonicalPromptEN: '', descriptionKO: '', observations: {}, error: '' })
+  }
+
+  removeCharacterReference(index, referenceIndex) {
+    const character = this.current.characters[index]
+    if (!character) return
+    const references = removeMediaInput(character.references, referenceIndex)
+    let reidReferenceIndex = character.reidReferenceIndex || 0
+    if (referenceIndex < reidReferenceIndex) reidReferenceIndex -= 1
+    else if (referenceIndex === reidReferenceIndex) reidReferenceIndex = 0
+    this.updateCharacter(index, {
+      references, reidReferenceIndex: Math.min(reidReferenceIndex, Math.max(0, references.length - 1)),
+      canonicalPromptEN: '', descriptionKO: '', observations: {}, error: ''
+    })
+  }
+
+  characterPreview(reference) { return mediaInputPreview(reference) }
+
+  async generateCharacterSheet(index, api) {
+    const character = this.current.characters[index]
+    const anchor = character?.references?.[Math.min(character.reidReferenceIndex || 0, Math.max(0, character.references.length - 1))]
+    if (!anchor) throw new Error('먼저 ReID 대표 이미지를 선택하세요.')
+    const operationID = `character-sheet-${Date.now()}-${Math.random().toString(16).slice(2)}`
+    let polling = true
+    let progressTimer = 0
+    const pollProgress = async () => {
+      if (!polling) return
+      try {
+        const status = await api.sequenceCharacterSheetStatus(operationID)
+        const operation = status?.operation
+        if (operation?.operation_id === operationID) this.updateCharacter(index, { quadViewProgress: operation }, false)
+      } catch (_) {
+        // The generation request may reach the engine just after the first poll.
+      }
+      if (polling) progressTimer = setTimeout(pollProgress, 400)
+    }
+    this.updateCharacter(index, {
+      quadViewGenerating: true, quadViewError: '', quadViewStartedAt: Date.now(),
+      quadViewProgress: { operation_id: operationID, phase: 'preparing', detail: '참조 이미지 전달·엔진 대기', progress: 0.03 }
+    }, false)
+    try {
+      const form = new FormData()
+      form.append('operation_id', operationID)
+      if (anchor.server) form.append('reuse_image', anchor.ref)
+      else form.append('image', anchor.file)
+      pollProgress()
+      const blob = await api.createSequenceCharacterSheet(form)
+      const file = new File([blob], `${character.name || 'character'}-quadview.png`, { type: 'image/png' })
+      const candidate = normalizeImageFiles([file])[0]
+      clearMediaInputs(character.quadViewCandidate ? [character.quadViewCandidate] : [])
+      this.updateCharacter(index, { quadViewCandidate: candidate, quadViewGenerating: false, quadViewError: '', quadViewProgress: null }, false)
+      return candidate
+    } catch (error) {
+      this.updateCharacter(index, { quadViewGenerating: false, quadViewError: error.message || String(error), quadViewProgress: null }, false)
+      throw error
+    } finally {
+      polling = false
+      clearTimeout(progressTimer)
+    }
+  }
+
+  approveCharacterSheet(index) {
+    const character = this.current.characters[index]
+    if (!character?.quadViewCandidate) return
+    const references = appendMediaInputs(character.references, [character.quadViewCandidate], 6)
+    this.updateCharacter(index, {
+      references, quadViewCandidate: null, canonicalPromptEN: '', descriptionKO: '', observations: {}, quadViewError: '', error: ''
+    })
+  }
+
+  discardCharacterSheet(index) {
+    const character = this.current.characters[index]
+    if (!character?.quadViewCandidate) return
+    clearMediaInputs([character.quadViewCandidate])
+    this.updateCharacter(index, { quadViewCandidate: null, quadViewError: '' }, false)
+  }
+
+  async analyzeCharacter(index, api) {
+    const character = this.current.characters[index]
+    if (!character?.references?.length) throw new Error('캐릭터 시트나 인물 이미지를 한 장 이상 선택하세요.')
+    this.updateCharacter(index, { analyzing: true, error: '' }, false)
+    try {
+      const form = new FormData()
+      form.append('name', character.name.trim())
+      form.append('locked_traits', JSON.stringify(Object.entries({ ...defaultCharacterTraits(), ...character.lockedTraits }).filter(([, enabled]) => enabled).map(([trait]) => trait)))
+      character.references.forEach((reference) => {
+        if (reference.server) form.append('reuse_images', reference.ref)
+        else if (reference.file) form.append('images', reference.file)
+      })
+      const result = await api.describeSequenceCharacter(form)
+      this.updateCharacter(index, {
+        nameKO: String(result.name_ko || '').trim(), nameEN: String(result.name_en || '').trim(),
+        descriptionKO: String(result.description_ko || '').trim(),
+        canonicalPromptEN: String(result.canonical_prompt_en || '').trim(),
+        observations: result.observations || {}, analyzing: false, error: ''
+      })
+      return result
+    } catch (error) {
+      this.updateCharacter(index, { analyzing: false, error: error.message || String(error) }, false)
+      throw error
+    }
+  }
+
+  characterReadinessMessage() {
+    const pending = this.current.characters.find((character) => character.references.length && !character.canonicalPromptEN.trim())
+    return pending ? `${pending.name || '등장인물'}의 이미지를 분석하거나 외형 고정 문구를 입력하세요.` : ''
+  }
+
+  reidReference() {
+    const character = this.current.characters[0]
+    if (!character?.references?.length) return null
+    return character.references[Math.min(character.reidReferenceIndex || 0, character.references.length - 1)] || character.references[0]
+  }
+
+  applyStoryExample() {
+    this.setState({ ...initialState(), entryMode: 'story', storyIdea: storyExample.idea, sceneCount: storyExample.count })
+  }
+
+  applySceneExample() {
+    this.setState({ ...initialState(), entryMode: 'scenes', prompts: [...sceneExample] })
   }
 
   addScene() {
-    if (this.current.prompts.length >= 6) return
-    this.setState({
-      prompts: [...this.current.prompts, ''],
-      regions: [...this.current.regions, 'all'],
-      masks: [...this.current.masks, null],
-      maskPreviews: [...this.current.maskPreviews, '']
-    })
+    if (this.current.prompts.length >= 12) return
+    this.invalidatePlan({ entryMode: 'scenes', prompts: [...this.current.prompts, ''] })
   }
 
   removeScene(index) {
     if (this.current.prompts.length <= 2) return
-    this.releasePreview(this.current.maskPreviews[index])
-    this.setState({
-      prompts: this.current.prompts.filter((_, itemIndex) => itemIndex !== index),
-      regions: this.current.regions.filter((_, itemIndex) => itemIndex !== index),
-      masks: this.current.masks.filter((_, itemIndex) => itemIndex !== index),
-      maskPreviews: this.current.maskPreviews.filter((_, itemIndex) => itemIndex !== index)
-    })
+    this.invalidatePlan({ entryMode: 'scenes', prompts: this.current.prompts.filter((_, itemIndex) => itemIndex !== index) })
+  }
+
+  moveScene(index, direction) {
+    const destination = index + direction
+    if (destination < 0 || destination >= this.current.prompts.length) return
+    const prompts = [...this.current.prompts]
+    ;[prompts[index], prompts[destination]] = [prompts[destination], prompts[index]]
+    this.invalidatePlan({ entryMode: 'scenes', prompts })
   }
 
   updatePrompt(index, prompt) {
-    this.setState({ prompts: this.current.prompts.map((value, itemIndex) => itemIndex === index ? prompt : value) })
-  }
-
-  updateRegion(index, region) {
-    this.releasePreview(this.current.maskPreviews[index])
-    this.setState({
-      regions: this.current.regions.map((value, itemIndex) => itemIndex === index ? region : value),
-      masks: this.current.masks.map((value, itemIndex) => itemIndex === index ? null : value),
-      maskPreviews: this.current.maskPreviews.map((value, itemIndex) => itemIndex === index ? '' : value)
+    this.invalidatePlan({
+      entryMode: 'scenes',
+      prompts: this.current.prompts.map((value, itemIndex) => itemIndex === index ? prompt : value)
     })
   }
 
-  clearMasks() {
-    this.current.maskPreviews.forEach((preview) => this.releasePreview(preview))
-    this.setState({
-      masks: this.current.prompts.map(() => null),
-      maskPreviews: this.current.prompts.map(() => '')
-    })
+  canPlan() {
+    if (this.current.entryMode === 'story') return Boolean(this.current.storyIdea.trim())
+    return this.current.prompts.length >= 2 && this.current.prompts.every((value) => value.trim())
   }
 
-  useMask(index, file) {
-    if (index < 1 || !file) return false
-    this.releasePreview(this.current.maskPreviews[index])
-    this.setState({
-      masks: this.current.masks.map((value, itemIndex) => itemIndex === index ? file : value),
-      maskPreviews: this.current.maskPreviews.map((value, itemIndex) => itemIndex === index ? this.urls.createObjectURL(file) : value),
-      regions: this.current.regions.map((value, itemIndex) => itemIndex === index ? 'custom' : value)
-    })
-    return true
-  }
-
-  releasePreview(preview) {
-    if (preview) this.urls.revokeObjectURL(preview)
+  async plan(api) {
+    const signature = this.signature()
+    if (this.current.planSignature === signature && this.current.enhancedPrompts.length === this.current.prompts.length) return this.current
+    if (!this.canPlan()) throw new Error(this.current.entryMode === 'story' ? '이야기나 주제를 입력하세요.' : '모든 장면의 내용을 입력하세요.')
+    const characterMessage = this.characterReadinessMessage()
+    if (characterMessage) throw new Error(characterMessage)
+    const storyMode = this.current.entryMode === 'story'
+    this.setState({ planning: true, planError: '' })
+    try {
+      const characterPayload = lockedCharacters(this.current)
+      const common = {
+        ...(this.current.sharedPromptEdited ? { shared_prompt: this.current.sharedPrompt.trim() } : {}),
+        ...(characterPayload.length ? { locked_characters: characterPayload } : {})
+      }
+      const result = await api.planImageSequence(storyMode
+        ? { outline: this.current.storyIdea.trim(), scene_count: this.current.sceneCount, ...common }
+        : { prompts: this.current.prompts.map((value) => value.trim()), ...common })
+      const scenes = Array.isArray(result.scenes) ? result.scenes : []
+      const expected = storyMode ? this.current.sceneCount : this.current.prompts.length
+      if (scenes.length !== expected) throw new Error('장면 계획의 개수가 맞지 않습니다.')
+      const prompts = storyMode
+        ? scenes.map((scene) => String(scene.original_prompt || scene.change_summary || '').trim())
+        : [...this.current.prompts]
+      if (prompts.some((value) => !value)) throw new Error('장면 설명이 비어 있습니다.')
+      const planSignature = JSON.stringify({
+        entryMode: 'scenes', storyIdea: this.current.storyIdea.trim(), sceneCount: prompts.length,
+        prompts: prompts.map((value) => value.trim()), sharedPrompt: this.current.sharedPromptEdited ? this.current.sharedPrompt.trim() : '',
+        lockedCharacters: characterPayload
+      })
+      this.setState({
+        entryMode: 'scenes', prompts,
+        enhancedPrompts: scenes.map((scene) => scene.enhanced_prompt),
+        sceneTitles: scenes.map((scene, index) => scene.scene_title || scene.change_summary || `장면 ${index + 1}`),
+        sharedPrompt: result.shared_prompt || '', canonicalPrompt: result.canonical_prompt_en || '', planSignature,
+        sceneCount: prompts.length, planning: false, planError: ''
+      })
+      return this.current
+    } catch (error) {
+      this.setState({ planning: false, planError: error.message || String(error) })
+      throw error
+    }
   }
 
   destroy() {
-    this.current.maskPreviews.forEach((preview) => this.releasePreview(preview))
+    this.current.characters.forEach((character) => { clearMediaInputs(character.references); clearMediaInputs(character.quadViewCandidate ? [character.quadViewCandidate] : []) })
     this.unsubscribe?.()
   }
 }
 
-export function imageSequenceBlockedMessage({ mode, modules, moduleReason, width, height }) {
-  if (mode !== 'create') return '연속 생성은 새 이미지 생성에서만 사용할 수 있습니다.'
+export function imageSequenceBlockedMessage({ mode, modules, moduleReason, checkpoint = 'official', hasReIDReference = false }) {
+  if (mode !== 'create') return '다중 장면은 새 이미지 생성에서만 사용할 수 있습니다.'
   const incompatible = [
     [modules.identity, '원본 수정'], [modules.depth, '자세·구도'],
     [modules.vision, '내용·구도 참조'], [modules.styleReference, '스타일 참조'],
     [modules.nk2e, '편집·윤곽'], [modules.anypaint, '부분 수정·확장']
   ].filter(([enabled]) => enabled).map(([, label]) => label)
   if (incompatible.length) return `${incompatible.join(' · ')} 모듈을 끈 뒤 사용할 수 있습니다.`
+  if (hasReIDReference && checkpoint !== 'official') return 'ReID 외형 고정은 공식 Krea 체크포인트에서만 사용할 수 있습니다.'
   if (moduleReason) return moduleReason
-  if (Number(width) * Number(height) > 2 * 1024 * 1024) return '연속 장면은 Identity Edit를 사용하므로 2MP 이하가 필요합니다.'
   return ''
 }

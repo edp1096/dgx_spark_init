@@ -37,7 +37,7 @@ export const engineMeta = {
 
 export const engineStatusCatalog = [
     ['image_create', 'Krea 2 이미지'], ['video', 'LTX 영상'], ['speech', 'Qwen3 TTS'],
-    ['recognition', 'Qwen3 ASR'], ['prompt', '프롬프트·번역'], ['upscale', 'SeedVR2 고화질'], ['garment', '의상 추출'],
+    ['recognition', 'Qwen3 ASR'], ['prompt', '프롬프트·번역'], ['upscale', 'SeedVR2 고화질'], ['garment', '의상 추출'], ['faceswap', 'ReActor 얼굴 교체'],
     ['media', '미디어·FFmpeg']
   ]
 
@@ -46,7 +46,8 @@ export const imageModeMeta = {
     edit: { label: 'FLUX.2 Klein 4B', short: '원본 수정', engine: 'image_edit', help: '하나 이상의 참조 이미지를 바탕으로 내용과 스타일을 변경합니다.' },
     detail_enhance: { label: '디테일 재해석', short: 'Krea Detail', engine: 'image_create', help: 'Ostris Edit LoRA로 원본을 다시 그려 세부 묘사를 강화합니다.' },
     upscale: { label: '고화질', short: 'SeedVR2', engine: 'upscale', help: '완성된 이미지를 SeedVR2로 복원하고 확대합니다.' },
-    garment_extract: { label: '의상 추출', short: 'Garment', engine: 'garment', help: '의상만 투명 PNG와 마스크로 분리합니다.' }
+    garment_extract: { label: '의상 추출', short: 'Garment', engine: 'garment', help: '의상만 투명 PNG와 마스크로 분리합니다.' },
+    face_swap: { label: 'ReActor 얼굴 교체', short: 'ReActor', engine: 'faceswap', help: 'INSWapper가 생성 모델의 재해석 없이 얼굴 영역을 직접 교체합니다.' }
   }
 
 export const imageModeChoices = ['create']
@@ -192,4 +193,3 @@ export const imageSequenceRegionOptions = [
     { id: 'left-arm', label: '화면 왼쪽 팔', description: '왼쪽 팔의 이전·새 위치를 포함' },
     { id: 'right-arm', label: '화면 오른쪽 팔', description: '오른쪽 팔의 이전·새 위치를 포함' }
   ]
-

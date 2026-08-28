@@ -16,10 +16,10 @@ export function buildImageGenerationForm(input) {
 
   if (sequence) {
     form.append('sequence_prompts', JSON.stringify(sequence.prompts.map((value) => value.trim())))
-    form.append('sequence_regions', JSON.stringify(sequence.regions))
-    form.append('sequence_identity_strength', sequence.strength)
-    if (sequence.baseJobID) form.append('sequence_base_job_id', sequence.baseJobID)
-    sequence.masks.forEach((mask, index) => { if (index > 0 && mask) form.append(`sequence_mask_${index}`, mask) })
+    form.append('sequence_enhanced_prompts', JSON.stringify(sequence.enhancedPrompts.map((value) => value.trim())))
+    form.append('sequence_shared_prompt', sequence.sharedPrompt || '')
+    form.append('sequence_canonical_prompt', sequence.canonicalPrompt || '')
+    appendMediaInput(form, 'sequence_character_image', 'reuse_sequence_character_image', sequence.reidImage)
   }
   if (parentJobID) form.append('parent_job_id', parentJobID)
 

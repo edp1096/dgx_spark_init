@@ -44,23 +44,29 @@ func (s *Server) callMultipart(url string, fields map[string]string, fileField s
 }
 
 func (s *Server) callMultipartContext(ctx context.Context, url string, fields map[string]string, fileField string, paths []string) ([]byte, string, error) {
+	return s.callMultipartFilesContext(ctx, url, fields, map[string][]string{fileField: paths})
+}
+
+func (s *Server) callMultipartFilesContext(ctx context.Context, url string, fields map[string]string, files map[string][]string) ([]byte, string, error) {
 	var body bytes.Buffer
 	mw := multipart.NewWriter(&body)
 	for k, v := range fields {
 		_ = mw.WriteField(k, v)
 	}
-	for _, p := range paths {
-		f, e := os.Open(p)
-		if e != nil {
-			return nil, "", e
-		}
-		part, e := mw.CreateFormFile(fileField, filepath.Base(p))
-		if e == nil {
-			_, e = io.Copy(part, f)
-		}
-		f.Close()
-		if e != nil {
-			return nil, "", e
+	for fileField, paths := range files {
+		for _, p := range paths {
+			f, e := os.Open(p)
+			if e != nil {
+				return nil, "", e
+			}
+			part, e := mw.CreateFormFile(fileField, filepath.Base(p))
+			if e == nil {
+				_, e = io.Copy(part, f)
+			}
+			f.Close()
+			if e != nil {
+				return nil, "", e
+			}
 		}
 	}
 	_ = mw.Close()

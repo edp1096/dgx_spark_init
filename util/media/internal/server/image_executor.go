@@ -75,6 +75,7 @@ func (s *Server) runImage(ctx context.Context, j jobs.Job, effectivePrompt strin
 		_ = s.jobs.Save(j)
 	}
 	backend := cfg.Image.Backends[mode]
+	observer := s.startRuntimeObserver(ctx, j.ID, backend.Endpoint)
 	var response []byte
 	var err error
 	if mode == "control" {
@@ -88,6 +89,7 @@ func (s *Server) runImage(ctx context.Context, j jobs.Job, effectivePrompt strin
 			"checkpoint": krea.checkpoint,
 			"size":       fmt.Sprintf("%dx%d", width, height), "response_format": "b64_json", "output_format": "png",
 			"control_image":    base64.StdEncoding.EncodeToString(controlImage),
+			"operation_id":     j.ID,
 			"control_strength": controlStrength, "control_strategy": "split4", "control_type": controlType,
 		}
 		if seed >= 0 {
@@ -98,107 +100,16 @@ func (s *Server) runImage(ctx context.Context, j jobs.Job, effectivePrompt strin
 		fields := map[string]string{
 			"model": backend.Model, "prompt": effectivePrompt,
 			"size": fmt.Sprintf("%dx%d", width, height), "response_format": "b64_json", "output_format": "png",
+			"operation_id": j.ID,
 		}
 		if seed >= 0 {
 			fields["seed"] = strconv.FormatInt(seed, 10)
 		}
 		response, err = s.editImageWithEngine(ctx, backend, fields, refs)
 	} else {
-		request := map[string]any{
-			"model": backend.Model, "prompt": effectivePrompt,
-			"checkpoint": krea.checkpoint,
-			"size":       fmt.Sprintf("%dx%d", width, height), "response_format": "b64_json", "output_format": "png",
-			"filter_mode": krea.filterMode, "filter_strength": krea.filterStrength,
-			"prompt_enhancer": krea.promptEnhancer, "prompt_enhancer_strength": krea.promptEnhStrength,
-			"prompt_text_scale": krea.promptTextScale,
-			"sampler_name":      krea.sampler, "scheduler": krea.scheduler,
-		}
-		for field, path := range map[string]string{
-			"source_image": krea.identityPath, "control_image": krea.depthPath, "nk2e_image": krea.nk2ePath,
-			"identity_mask": krea.identityMaskPath, "strict_mask": krea.strictMaskPath,
-			"anypaint_image": krea.anypaintPath, "anypaint_mask": krea.anypaintMaskPath,
-		} {
-			if path == "" {
-				continue
-			}
-			image, readErr := os.ReadFile(path)
-			if readErr != nil {
-				s.fail(j, readErr)
-				return
-			}
-			request[field] = base64.StdEncoding.EncodeToString(image)
-		}
-		for field, paths := range map[string][]string{
-			"reference_images": krea.identityRefPaths, "vision_images": krea.visionPaths, "style_reference_images": krea.styleRefPaths,
-		} {
-			encoded := make([]string, 0, len(paths))
-			for _, path := range paths {
-				image, readErr := os.ReadFile(path)
-				if readErr != nil {
-					s.fail(j, readErr)
-					return
-				}
-				encoded = append(encoded, base64.StdEncoding.EncodeToString(image))
-			}
-			if len(encoded) > 0 {
-				request[field] = encoded
-			}
-		}
-		if krea.identityPath != "" {
-			request["identity_strength"] = krea.identityStrength
-			request["ref_boost"] = krea.refBoost
-			request["source_ref_boost"] = krea.sourceRefBoost
-			request["grounding_px"] = krea.groundingPX
-			request["strict_mask_grow"] = krea.strictMaskGrow
-			request["strict_mask_feather"] = krea.strictMaskFeather
-			request["vae_mode"] = krea.vaeMode
-			request["identity_fit_mode"] = krea.identityFitMode
-			request["identity_model"] = krea.identityModel
-			request["identity_encoder"] = krea.identityEncoder
-		}
-		if krea.depthPath != "" {
-			request["control_strength"] = krea.depthStrength
-			request["control_prompt"] = krea.depthPrompt
-			request["prepare_pose_reference"] = krea.preparePoseRef
-		}
-		if len(krea.styles) > 0 {
-			request["styles"] = krea.styles
-			request["style"] = krea.styles[0].Name
-			request["style_strength"] = krea.styles[0].Strength
-		}
-		if len(krea.userLoras) > 0 {
-			request["user_loras"] = krea.userLoras
-		}
-		if len(krea.visionPaths) > 0 {
-			request["vision_mode"] = krea.visionMode
-			request["vision_megapixels"] = krea.visionMegapixels
-		}
-		if len(krea.styleRefPaths) > 0 {
-			request["style_reference_strength"] = krea.styleRefStrength
-		}
-		if krea.nk2ePath != "" {
-			request["nk2e_mode"] = krea.nk2eMode
-			request["nk2e_strength"] = krea.nk2eStrength
-			request["nk2e_preprocessed"] = krea.nk2ePreprocessed
-		}
-		if krea.anypaintPath != "" {
-			request["outpaint_left"] = krea.outpaintLeft
-			request["outpaint_top"] = krea.outpaintTop
-			request["outpaint_right"] = krea.outpaintRight
-			request["outpaint_bottom"] = krea.outpaintBottom
-			request["anypaint_strength"] = krea.anypaintStrength
-			request["anypaint_boundary_redraw_px"] = krea.anypaintBoundary
-			request["anypaint_reference_max_edge"] = 384
-			request["anypaint_vlm_reference"] = true
-		}
-		if krea.steps > 0 {
-			request["steps"] = krea.steps
-		}
-		if seed >= 0 {
-			request["seed"] = seed
-		}
-		response, err = s.generateImageWithEngine(ctx, backend, request)
+		response, err = s.generateKreaCreate(ctx, backend, j.ID, effectivePrompt, width, height, seed, krea)
 	}
+	observer.Stop()
 	if err != nil {
 		if s.requeueGenerationAfterEngineConflict(j, err) {
 			return

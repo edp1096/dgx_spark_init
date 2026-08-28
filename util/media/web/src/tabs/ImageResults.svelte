@@ -10,6 +10,7 @@
   export let pageSize = 10
   export let sortOrder = 'desc'
   export let garmentOnline = false
+  export let faceSwapOnline = false
   export let imageOnline = false
   export let upscaleOnline = false
   export let cloningJob = ''
@@ -29,6 +30,7 @@
   export let onClone = () => {}
   export let onContinueEditing = () => {}
   export let onGarment = () => {}
+  export let onFaceSwap = () => {}
   export let onDetail = () => {}
   export let onUpscale = () => {}
   export let onCancel = () => {}
@@ -78,7 +80,7 @@
               <button type="button" class="clone-all" disabled={Boolean(cloningJob)} onclick={() => onClone(job, 'all')}>{cloningJob === `${job.id}:all` ? '불러오는 중…' : '전체'}</button>
             </div>
             {#if job.status === 'completed'}
-              <div class="image-post-actions"><span>후처리:</span><button type="button" title="이 결과를 Identity 원본으로 불러와 계속 편집" onclick={() => onContinueEditing(job)}>편집</button>{#if job.params?.mode === 'garment_extract' && job.outputs?.mask}<button type="button" title="저장된 의상 마스크 보기" onclick={(event) => onShow(event, job.outputs.mask, '의상 마스크', job.prompt, job.id)}>마스크</button>{:else}<button type="button" title="이 이미지에서 의상만 투명 PNG로 추출" disabled={!garmentOnline} onclick={() => onGarment(job)}>의상</button>{/if}<button type="button" title="Ostris Edit LoRA로 다시 그립니다. 얼굴·색·글자·구도가 달라질 수 있습니다." disabled={Boolean(detailEnhancingJob) || Boolean(upscalingJob) || !imageOnline} onclick={() => onDetail(job)}>{detailEnhancingJob === job.id ? '처리 중…' : '디테일'}</button><button type="button" title="SeedVR2로 복원하고 2배 확대" disabled={Boolean(detailEnhancingJob) || Boolean(upscalingJob) || !upscaleOnline} onclick={() => onUpscale(job)}>{upscalingJob === job.id ? '처리 중…' : '업스케일'}</button></div>
+              <div class="image-post-actions"><span>후처리:</span><button type="button" title="이 결과를 Identity 원본으로 불러와 계속 편집" onclick={() => onContinueEditing(job)}>편집</button><button type="button" title="ReActor로 얼굴 영역을 직접 교체" disabled={!faceSwapOnline} onclick={() => onFaceSwap(job)}>얼굴</button>{#if job.params?.mode === 'garment_extract' && job.outputs?.mask}<button type="button" title="저장된 의상 마스크 보기" onclick={(event) => onShow(event, job.outputs.mask, '의상 마스크', job.prompt, job.id)}>마스크</button>{:else}<button type="button" title="이 이미지에서 의상만 투명 PNG로 추출" disabled={!garmentOnline} onclick={() => onGarment(job)}>의상</button>{/if}<button type="button" title="Ostris Edit LoRA로 다시 그립니다. 얼굴·색·글자·구도가 달라질 수 있습니다." disabled={Boolean(detailEnhancingJob) || Boolean(upscalingJob) || !imageOnline} onclick={() => onDetail(job)}>{detailEnhancingJob === job.id ? '처리 중…' : '디테일'}</button><button type="button" title="SeedVR2로 복원하고 2배 확대" disabled={Boolean(detailEnhancingJob) || Boolean(upscalingJob) || !upscaleOnline} onclick={() => onUpscale(job)}>{upscalingJob === job.id ? '처리 중…' : '업스케일'}</button></div>
             {/if}
           </div>
         {:else}
@@ -99,7 +101,7 @@
             <button type="button" class="clone-all" disabled={Boolean(cloningJob)} onclick={() => onClone(job, 'all')}>{cloningJob === `${job.id}:all` ? '불러오는 중…' : '전체'}</button>
           </div>
           {#if job.status === 'completed'}
-            <div class="image-post-actions"><span>후처리:</span><button type="button" title="이 결과를 Identity 원본으로 불러와 계속 편집" onclick={() => onContinueEditing(job)}>편집</button>{#if job.params?.mode === 'garment_extract' && job.outputs?.mask}<button type="button" title="저장된 의상 마스크 보기" onclick={(event) => onShow(event, job.outputs.mask, '의상 마스크', job.prompt, job.id)}>마스크</button>{:else}<button type="button" title="이 이미지에서 의상만 투명 PNG로 추출" disabled={!garmentOnline} onclick={() => onGarment(job)}>의상</button>{/if}<button type="button" title="Ostris Edit LoRA로 다시 그립니다. 얼굴·색·글자·구도가 달라질 수 있습니다." disabled={Boolean(detailEnhancingJob) || Boolean(upscalingJob) || !imageOnline} onclick={() => onDetail(job)}>{detailEnhancingJob === job.id ? '처리 중…' : '디테일'}</button><button type="button" title="SeedVR2로 복원하고 2배 확대" disabled={Boolean(detailEnhancingJob) || Boolean(upscalingJob) || !upscaleOnline} onclick={() => onUpscale(job)}>{upscalingJob === job.id ? '처리 중…' : '업스케일'}</button></div>
+            <div class="image-post-actions"><span>후처리:</span><button type="button" title="이 결과를 Identity 원본으로 불러와 계속 편집" onclick={() => onContinueEditing(job)}>편집</button><button type="button" title="ReActor로 얼굴 영역을 직접 교체" disabled={!faceSwapOnline} onclick={() => onFaceSwap(job)}>얼굴</button>{#if job.params?.mode === 'garment_extract' && job.outputs?.mask}<button type="button" title="저장된 의상 마스크 보기" onclick={(event) => onShow(event, job.outputs.mask, '의상 마스크', job.prompt, job.id)}>마스크</button>{:else}<button type="button" title="이 이미지에서 의상만 투명 PNG로 추출" disabled={!garmentOnline} onclick={() => onGarment(job)}>의상</button>{/if}<button type="button" title="Ostris Edit LoRA로 다시 그립니다. 얼굴·색·글자·구도가 달라질 수 있습니다." disabled={Boolean(detailEnhancingJob) || Boolean(upscalingJob) || !imageOnline} onclick={() => onDetail(job)}>{detailEnhancingJob === job.id ? '처리 중…' : '디테일'}</button><button type="button" title="SeedVR2로 복원하고 2배 확대" disabled={Boolean(detailEnhancingJob) || Boolean(upscalingJob) || !upscaleOnline} onclick={() => onUpscale(job)}>{upscalingJob === job.id ? '처리 중…' : '업스케일'}</button></div>
           {/if}
         {/if}
         {#if job.status === 'queued' || job.status === 'running'}

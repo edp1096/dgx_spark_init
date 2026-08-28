@@ -230,6 +230,9 @@ func Normalize(cfg Config) Config {
 	if strings.TrimSpace(cfg.Engines["garment"].Endpoint) == "" {
 		cfg.Engines["garment"] = Engine{Endpoint: "http://127.0.0.1:8705"}
 	}
+	if strings.TrimSpace(cfg.Engines["faceswap"].Endpoint) == "" {
+		cfg.Engines["faceswap"] = Engine{Endpoint: "http://127.0.0.1:8706"}
+	}
 	for kind, engine := range cfg.Engines {
 		engine.Endpoint = strings.TrimRight(strings.TrimSpace(engine.Endpoint), "/")
 		cfg.Engines[kind] = engine

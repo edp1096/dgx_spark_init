@@ -47,11 +47,14 @@ func transitionJobCompleted(job *jobs.Job, outputURL string) {
 func (s *Server) completeGenerationJob(job *jobs.Job, outputURL string, cleanup func()) (bool, error) {
 	s.generationStateMu.Lock()
 	defer s.generationStateMu.Unlock()
-	if current, ok := s.jobs.Get(job.ID); ok && current.Status == "cancelled" {
-		if cleanup != nil {
-			cleanup()
+	if current, ok := s.jobs.Get(job.ID); ok {
+		if current.Status == "cancelled" {
+			if cleanup != nil {
+				cleanup()
+			}
+			return false, nil
 		}
-		return false, nil
+		mergeObservedRuntime(&job.Params, current.Params)
 	}
 	transitionJobCompleted(job, outputURL)
 	return true, s.jobs.Save(*job)

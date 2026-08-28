@@ -82,8 +82,16 @@ type imageJobParams struct {
 	SequenceIndex            int     `json:"sequence_index,omitempty"`
 	SequenceTotal            int     `json:"sequence_total,omitempty"`
 	SequenceIdentityStrength float64 `json:"sequence_identity_strength,omitempty"`
+	SequenceReID             bool    `json:"sequence_reid,omitempty"`
 	SequencePreviousJobID    string  `json:"sequence_previous_job_id,omitempty"`
 	SequenceRegion           string  `json:"sequence_region,omitempty"`
+	SequenceStrategy         string  `json:"sequence_strategy,omitempty"`
+	SequenceMasterJobID      string  `json:"sequence_master_job_id,omitempty"`
+	SequenceSharedPrompt     string  `json:"sequence_shared_prompt,omitempty"`
+	SequenceCanonicalPrompt  string  `json:"sequence_canonical_prompt,omitempty"`
+	SequenceSimilarity       float64 `json:"sequence_similarity,omitempty"`
+	SequenceRetryCount       int     `json:"sequence_retry_count,omitempty"`
+	SequenceDraftReady       bool    `json:"sequence_draft_ready,omitempty"`
 }
 
 func newImageJobParams() imageJobParams {
@@ -227,12 +235,34 @@ func (p imageJobParams) toMap() map[string]any {
 		result["sequence_index"] = p.SequenceIndex
 		result["sequence_total"] = p.SequenceTotal
 		result["sequence_identity_strength"] = p.SequenceIdentityStrength
+		result["sequence_reid"] = p.SequenceReID
 	}
 	if p.SequencePreviousJobID != "" {
 		result["sequence_previous_job_id"] = p.SequencePreviousJobID
 	}
 	if p.SequenceRegion != "" && p.SequencePreviousJobID != "" {
 		result["sequence_region"] = p.SequenceRegion
+	}
+	if p.SequenceStrategy != "" && p.SequenceID != "" {
+		result["sequence_strategy"] = p.SequenceStrategy
+	}
+	if p.SequenceMasterJobID != "" && p.SequenceID != "" {
+		result["sequence_master_job_id"] = p.SequenceMasterJobID
+	}
+	if p.SequenceSharedPrompt != "" && p.SequenceID != "" {
+		result["sequence_shared_prompt"] = p.SequenceSharedPrompt
+	}
+	if p.SequenceCanonicalPrompt != "" && p.SequenceID != "" {
+		result["sequence_canonical_prompt"] = p.SequenceCanonicalPrompt
+	}
+	if p.SequenceSimilarity > 0 {
+		result["sequence_similarity"] = p.SequenceSimilarity
+	}
+	if p.SequenceRetryCount > 0 {
+		result["sequence_retry_count"] = p.SequenceRetryCount
+	}
+	if p.SequenceDraftReady {
+		result["sequence_draft_ready"] = true
 	}
 	return result
 }
@@ -243,6 +273,7 @@ func imageJobParamsFromOptions(width, height int, seed int64, references int, mo
 	p.References, p.Mode, p.Model = references, mode, model
 	p.ControlType, p.ControlStrength = controlType, controlStrength
 	p.Checkpoint = options.checkpoint
+	p.SequenceReID = options.reidPath != ""
 	p.Identity = options.identityPath != ""
 	p.IdentityReference = len(options.identityRefPaths) > 0
 	p.IdentityReferenceCount = len(options.identityRefPaths)
@@ -285,6 +316,7 @@ func imageJobParamsFromOptions(width, height int, seed int64, references int, mo
 func (p imageJobParams) generationOptions(paths map[string][]string) imageGenerationOptions {
 	options := imageGenerationOptions{
 		checkpoint:         p.Checkpoint,
+		reidPath:           firstImagePath(paths["sequence_character"]),
 		identityPreset:     p.IdentityPreset,
 		identityAutoPrompt: p.IdentityAutoPrompt,
 		identityUserPrompt: p.IdentityUserPrompt,

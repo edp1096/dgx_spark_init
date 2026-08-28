@@ -27,32 +27,51 @@ func (s *Server) materializeSequenceIdentity(job jobs.Job) error {
 	if previous.Status != "completed" || previous.OutputURL == "" {
 		return fmt.Errorf("previous sequence image did not complete")
 	}
-	source := s.jobs.OutputPath(filepath.Base(previous.OutputURL))
-	ext := strings.ToLower(filepath.Ext(source))
-	if ext == "" {
-		ext = ".png"
-	}
 	region := params.SequenceRegion
 	role := "identity"
 	if region != "all" {
 		role = "anypaint"
+	} else if params.SequenceStrategy == "major" {
+		role = "sequence-previous"
 	}
-	dir := filepath.Join(s.dataDir, "inputs", job.ID, role)
-	if err := os.MkdirAll(dir, 0o755); err != nil {
+	source, err := s.materializeSequenceJobOutput(job.ID, previous, role)
+	if err != nil {
 		return err
 	}
-	destination := filepath.Join(dir, "0"+ext)
-	if _, err := os.Stat(destination); err != nil && !os.IsNotExist(err) {
-		return err
-	} else if os.IsNotExist(err) {
-		if err := linkOrCopyFile(source, destination); err != nil {
-			return fmt.Errorf("prepare previous sequence image: %w", err)
+	if params.SequenceStrategy == "major" && params.SequenceMasterJobID != "" {
+		master, ok := s.jobs.Get(params.SequenceMasterJobID)
+		if !ok || master.Kind != "image" || master.Status != "completed" || master.OutputURL == "" {
+			return fmt.Errorf("sequence master image no longer exists")
+		}
+		if _, err := s.materializeSequenceJobOutput(job.ID, master, "sequence-master"); err != nil {
+			return err
 		}
 	}
 	if region == "all" {
 		return nil
 	}
 	return s.materializeSequenceAnyPaintMask(job, source)
+}
+
+func (s *Server) materializeSequenceJobOutput(destinationJobID string, sourceJob jobs.Job, role string) (string, error) {
+	source := s.jobs.OutputPath(filepath.Base(sourceJob.OutputURL))
+	ext := strings.ToLower(filepath.Ext(source))
+	if ext == "" {
+		ext = ".png"
+	}
+	dir := filepath.Join(s.dataDir, "inputs", destinationJobID, role)
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return "", err
+	}
+	destination := filepath.Join(dir, "0"+ext)
+	if _, err := os.Stat(destination); err != nil && !os.IsNotExist(err) {
+		return "", err
+	} else if os.IsNotExist(err) {
+		if err := linkOrCopyFile(source, destination); err != nil {
+			return "", fmt.Errorf("prepare sequence image: %w", err)
+		}
+	}
+	return source, nil
 }
 
 // materializeSequenceAnyPaintMask creates a normalized generation mask after

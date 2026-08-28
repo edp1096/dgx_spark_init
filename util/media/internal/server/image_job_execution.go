@@ -24,7 +24,19 @@ type generationImageExecution struct {
 func (s *Server) executeQueuedImage(ctx context.Context, job jobs.Job) {
 	mode := decodeImageJobParams(job.Params).Mode
 	if mode == "garment_extract" {
+		if err := s.prepareSimpleRuntime(ctx, &job, generationModelPlan(job)); err != nil {
+			s.fail(job, err)
+			return
+		}
 		s.runGarmentExtraction(ctx, job)
+		return
+	}
+	if mode == "face_swap" {
+		if err := s.prepareSimpleRuntime(ctx, &job, generationModelPlan(job)); err != nil {
+			s.fail(job, err)
+			return
+		}
+		s.runFaceSwap(ctx, job)
 		return
 	}
 	if mode == "detail_enhance" || mode == "upscale" {
@@ -45,20 +57,60 @@ func (s *Server) executeQueuedImage(ctx context.Context, job jobs.Job) {
 				int64Param(job.Params, "seed", -1),
 				stringParam(job.Params, "detail_vae", "wan"))
 		} else {
+			if err := s.prepareSimpleRuntime(ctx, &job, generationModelPlan(job)); err != nil {
+				if s.requeueGenerationAfterEngineConflict(job, err) {
+					return
+				}
+				s.fail(job, err)
+				return
+			}
 			s.runImageUpscale(ctx, job, data,
 				intParam(job.Params, "upscale_scale", 2),
 				int64Param(job.Params, "seed", -1))
 		}
 		return
 	}
-	if err := s.materializeSequenceIdentity(job); err != nil {
-		s.fail(job, err)
+	params := decodeImageJobParams(job.Params)
+	majorSequence := params.SequenceStrategy == "major" && params.SequencePreviousJobID != ""
+	if majorSequence && params.SequenceDraftReady {
+		if err := s.materializeSequenceIdentity(job); err != nil {
+			s.fail(job, err)
+			return
+		}
+		execution, err := s.loadImageExecution(job)
+		if err != nil {
+			s.fail(job, err)
+			return
+		}
+		s.runMajorSequenceIdentity(ctx, job, execution)
 		return
 	}
-
+	if !majorSequence {
+		if err := s.materializeSequenceIdentity(job); err != nil {
+			s.fail(job, err)
+			return
+		}
+	}
 	execution, err := s.loadImageExecution(job)
 	if err != nil {
 		s.fail(job, err)
+		return
+	}
+	plan := generationModelPlan(job)
+	prepareExecution := execution
+	if majorSequence {
+		clearKreaEditInputs(&prepareExecution.options)
+		prepareExecution.options.promptEnhancer = false
+	}
+	if err := s.prepareKreaRuntime(ctx, &job, prepareExecution, plan); err != nil {
+		if s.requeueGenerationAfterEngineConflict(job, err) {
+			return
+		}
+		s.fail(job, err)
+		return
+	}
+	if majorSequence {
+		s.runMajorSequenceDraft(ctx, job, execution)
 		return
 	}
 	s.runImage(ctx, job, execution.prompt, execution.references, execution.width, execution.height,
@@ -94,7 +146,7 @@ func (s *Server) loadImageExecution(job jobs.Job) (generationImageExecution, err
 		return result, err
 	}
 	paths := map[string][]string{}
-	for _, role := range []string{"identity", "identity_reference", "identity_mask", "strict_mask", "depth", "vision", "style_reference", "nk2e", "anypaint", "anypaint_mask"} {
+	for _, role := range []string{"identity", "sequence_character", "identity_reference", "identity_mask", "strict_mask", "depth", "vision", "style_reference", "nk2e", "anypaint", "anypaint_mask"} {
 		paths[role], err = s.imageInputFiles(job.ID, role)
 		if err != nil {
 			return result, err
@@ -117,6 +169,7 @@ func (s *Server) loadImageExecution(job jobs.Job) (generationImageExecution, err
 		role    string
 	}{
 		{params.Identity, "identity"},
+		{params.SequenceReID, "sequence_character"},
 		{params.IdentityReference, "identity_reference"},
 		{params.IdentityMask, "identity_mask"},
 		{params.StrictMask, "strict_mask"},

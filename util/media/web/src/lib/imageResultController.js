@@ -60,6 +60,14 @@ export class ImageResultController {
     await this.actions.refresh()
   }
 
+  async submitFaceSwap(form) {
+    this.actions.setError('')
+    await this.api.faceSwap(form)
+    this.actions.showResults()
+    this.actions.showNewest()
+    await this.actions.refresh()
+  }
+
   async clone(job, part) {
     this.setState({ cloningJob: `${job.id}:${part}`, cloneMessage: '' })
     this.actions.setError('')

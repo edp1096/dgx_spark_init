@@ -46,13 +46,23 @@ func TestDecodeImageJobParamsAppliesLegacyDefaults(t *testing.T) {
 	}
 }
 
-func TestBuildImageJobPlanUsesTypedSequenceContract(t *testing.T) {
+func TestImageJobParamsKeepsSequenceReIDContract(t *testing.T) {
+	params := imageJobParamsFromOptions(1024, 1024, 7, 0, "create", "krea-2", "", .65, imageGenerationOptions{
+		checkpoint: "official", reidPath: "/input/character.png", steps: 8,
+	})
+	params.SequenceID = "sequence"
+	params.SequenceIndex = 1
+	params.SequenceTotal = 3
+	decoded := decodeImageJobParams(params.toMap())
+	if !decoded.SequenceReID || decoded.SequenceID != "sequence" || decoded.SequenceTotal != 3 {
+		t.Fatalf("sequence ReID contract did not round-trip: %#v", decoded)
+	}
+}
+
+func TestBuildImageJobPlanCreatesIndependentStoryboardScenes(t *testing.T) {
 	form := imageCreateForm{
 		OriginalPrompt: "scene one", Seed: 100,
-		Sequence: imageSequenceForm{
-			Prompts: []string{"scene one", "scene two"}, Regions: []string{"all", "left-arm"},
-			IdentityStrength: .8,
-		},
+		Sequence: imageSequenceForm{Prompts: []string{"scene one", "scene two"}},
 	}
 	params := newImageJobParams()
 	params.Width, params.Height, params.Mode, params.Stage = 1024, 1024, "create", "queued"
@@ -62,10 +72,10 @@ func TestBuildImageJobPlanUsesTypedSequenceContract(t *testing.T) {
 		t.Fatalf("expected two planned jobs, got %d", len(planned))
 	}
 	child := decodeImageJobParams(planned[1].Params)
-	if child.SequencePreviousJobID != "root" || child.SequenceIndex != 2 || child.SequenceRegion != "left-arm" {
+	if child.SequencePreviousJobID != "" || child.SequenceIndex != 2 || child.SequenceStrategy != "storyboard" {
 		t.Fatalf("unexpected child sequence contract: %#v", child)
 	}
-	if child.Identity || !child.AnyPaint || !child.AnyPaintMask || child.Seed != 101 {
-		t.Fatalf("regional sequence job was planned incorrectly: %#v", child)
+	if child.Identity || child.AnyPaint || child.AnyPaintMask || child.Seed != 101 {
+		t.Fatalf("storyboard scene was not planned as independent T2I: %#v", child)
 	}
 }

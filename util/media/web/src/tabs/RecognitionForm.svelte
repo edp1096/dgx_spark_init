@@ -23,9 +23,13 @@
   export let onClearFile = () => {}
   export let onSelectPart = () => {}
 
-  function disabled() {
-    return busy || form.output_formats.length === 0 || (form.source === 'file' ? !file : form.source === 'video_job' ? !sourceVideoJob : !form.url.trim())
-  }
+  $: submitDisabled = busy
+    || form.output_formats.length === 0
+    || (form.source === 'file'
+      ? !file
+      : form.source === 'video_job'
+        ? !sourceVideoJob
+        : !form.url.trim())
 </script>
 
 <form class="mobile-create-pane" onsubmit={(event) => { event.preventDefault(); onSubmit() }}>
@@ -36,7 +40,7 @@
       <div class="recognition-video-source"><span><i>VIDEO</i><strong>생성 영상 {sourceVideoJob.id.slice(0, 8)}</strong><small>{sourceVideoJob.params?.width}×{sourceVideoJob.params?.height} · {formatDuration(videoJobDuration(sourceVideoJob))}</small></span><button type="button" aria-label="생성 영상 선택 해제" onclick={onClearSourceVideo}>×</button></div>
     {/if}
     <div class="recognition-source-bar">
-      <div class="recognition-url-input" class:active={form.source === 'url'}><i>URL</i><input aria-label="영상 링크" type="url" bind:value={form.url} oninput={onURL} placeholder="영상 페이지 URL"></div>
+      <div class="recognition-url-input" class:active={form.source === 'url'}><i>URL</i><input aria-label="영상 링크" type="url" value={form.url} oninput={onURL} placeholder="영상 페이지 URL"></div>
       <button type="button" class="quiet media-options-load" disabled={loadingOptions || !form.url.trim()} onclick={onLoadOptions}>{loadingOptions ? '조회 중…' : '조회'}</button>
       <label class="recognition-file-button" class:active={form.source === 'file'} title={file?.name || '영상·음성 파일 선택'}><input bind:this={fileInput} type="file" accept="audio/*,video/*,.mkv,.mp4,.webm,.mov,.m4v,.avi,.wav,.flac,.ogg,.mp3,.m4a,.aac" onchange={onFile}><i>FILE</i><span>{file?.name || '파일 선택'}</span></label>
       <button type="button" class="recognition-video-list-button" class:active={form.source === 'video_job'} onclick={onOpenVideoPicker}><i>VIDEO</i><span>영상 목록</span></button>
@@ -72,5 +76,5 @@
     <label>번역<select bind:value={form.translation_mode}><option value="none">번역 안 함</option><option value="translated">번역문만</option><option value="bilingual">원문과 번역문</option></select></label>
     <label>번역 언어<input list="translation-languages" bind:value={form.target_language} disabled={form.translation_mode === 'none'} placeholder="Korean"></label>
   </div>
-  <button class="primary" disabled={disabled()}>{busy ? '등록 중…' : activeJobs.some((job) => job.kind === 'recognition') ? '자막 큐에 추가' : '자막 만들기'}</button>
+  <button class="primary" disabled={submitDisabled}>{busy ? '등록 중…' : activeJobs.some((job) => job.kind === 'recognition') ? '자막 큐에 추가' : '자막 만들기'}</button>
 </form>

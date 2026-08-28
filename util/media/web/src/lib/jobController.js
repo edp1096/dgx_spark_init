@@ -10,7 +10,7 @@ export class JobController {
     this.sequence = 0
     this.current = {
       jobs: [],
-      engineStates: { image: 'offline', speech: 'offline', recognition: 'offline', video: 'offline', prompt: 'offline', media: 'offline', trainer: 'offline', upscale: 'offline', garment: 'offline' },
+      engineStates: { image: 'offline', speech: 'offline', recognition: 'offline', video: 'offline', prompt: 'offline', media: 'offline', trainer: 'offline', upscale: 'offline', garment: 'offline', faceswap: 'offline' },
       refreshFailureCount: 0,
       refreshError: '',
       deletingJob: '',

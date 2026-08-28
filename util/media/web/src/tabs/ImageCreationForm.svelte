@@ -75,7 +75,8 @@
   export let looksLikeStructuredPrompt
   export let maskEditorMode
   export let openGarmentExtractor
-  export let openImageSequence
+  export let openFaceSwap = () => {}
+  export let openImageSequence = () => {}
   export let parentImageJobID
   export let presetImagePickerTarget
   export let openPromptExamples = () => {}
@@ -123,9 +124,10 @@
   {#if imageCloneMessage}<div class="clone-notice"><span>{imageCloneMessage}</span><button type="button" aria-label="불러오기 안내 닫기" onclick={clearImageCloneMessage}>×</button></div>{/if}
   {#if imageForm.mode === 'create'}
     <div class="prompt-tools-row">
-      <button type="button" class="prompt-tool-open sequence-tool-open" disabled={busy} onclick={openImageSequence}><span>연속 생성</span></button>
       <button type="button" class="prompt-tool-open feature-tool-open" class:has-warning={Boolean(kreaModuleMessage)} aria-haspopup="dialog" onclick={() => featureModulesOpen = true}><span>기능 모듈</span>{#if activeKreaModuleLabels.length}<b>{activeKreaModuleLabels.length}개</b>{/if}</button>
       <button type="button" class="prompt-tool-open garment-tool-open" aria-haspopup="dialog" onclick={() => openGarmentExtractor()}><span>의상 추출</span></button>
+      <button type="button" class="prompt-tool-open garment-tool-open" aria-haspopup="dialog" onclick={() => openFaceSwap()}><span>얼굴 교체</span></button>
+      <button type="button" class="prompt-tool-open sequence-tool-open" aria-haspopup="dialog" onclick={openImageSequence}><span>다중 장면</span></button>
     </div>
     {#if kreaModuleMessage}<small class="feature-module-toolbar-warning">{kreaModuleMessage}</small>{/if}
   {/if}

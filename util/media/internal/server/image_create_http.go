@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"mediaapp/internal/jobs"
 	"net/http"
+	"os"
 	"path/filepath"
 	"time"
 )
@@ -97,6 +98,22 @@ func validateImageSequenceMasks(r *http.Request, sequence imageSequenceForm) err
 }
 
 func (s *Server) persistImageJobPlan(r *http.Request, planned []jobs.Job) error {
+	if len(planned) > 1 && decodeImageJobParams(planned[0].Params).SequenceReID {
+		paths, err := s.imageInputFiles(planned[0].ID, "sequence_character")
+		if err != nil || len(paths) != 1 {
+			return fmt.Errorf("sequence character reference is missing")
+		}
+		for _, child := range planned[1:] {
+			directory := filepath.Join(s.dataDir, "inputs", child.ID, "sequence-character")
+			if err := os.MkdirAll(directory, 0o755); err != nil {
+				return err
+			}
+			destination := filepath.Join(directory, "0"+filepath.Ext(paths[0]))
+			if err := linkOrCopyFile(paths[0], destination); err != nil {
+				return fmt.Errorf("persist sequence character reference: %w", err)
+			}
+		}
+	}
 	for _, job := range planned {
 		params := decodeImageJobParams(job.Params)
 		if params.SequenceRegion == "custom" {

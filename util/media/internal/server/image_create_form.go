@@ -9,7 +9,12 @@ import (
 )
 
 type imageSequenceForm struct {
+	Planned          bool
 	Prompts          []string
+	EnhancedPrompts  []string
+	Strategies       []string
+	SharedPrompt     string
+	CanonicalPrompt  string
 	Regions          []string
 	IdentityStrength float64
 	BaseJobID        string
@@ -38,9 +43,26 @@ func parseImageCreateForm(r *http.Request, cfg config.Config) (imageCreateForm, 
 	if err != nil {
 		return result, err
 	}
+	result.Sequence.Planned = strings.TrimSpace(r.FormValue("sequence_enhanced_prompts")) != ""
 	result.Sequence.Regions, err = parseImageSequenceRegions(r.FormValue("sequence_regions"), len(result.Sequence.Prompts))
 	if err != nil {
 		return result, err
+	}
+	result.Sequence.EnhancedPrompts, err = parseImageSequenceEnhancedPrompts(r.FormValue("sequence_enhanced_prompts"), result.Sequence.Prompts)
+	if err != nil {
+		return result, err
+	}
+	result.Sequence.Strategies, err = parseImageSequenceStrategies(r.FormValue("sequence_strategies"), len(result.Sequence.Prompts))
+	if err != nil {
+		return result, err
+	}
+	result.Sequence.SharedPrompt = strings.TrimSpace(r.FormValue("sequence_shared_prompt"))
+	if len([]rune(result.Sequence.SharedPrompt)) > 12000 {
+		return result, fmt.Errorf("sequence shared prompt is too long")
+	}
+	result.Sequence.CanonicalPrompt = strings.TrimSpace(r.FormValue("sequence_canonical_prompt"))
+	if len([]rune(result.Sequence.CanonicalPrompt)) > 16000 {
+		return result, fmt.Errorf("sequence canonical prompt is too long")
 	}
 	result.Sequence.IdentityStrength = formFloat64(r, "sequence_identity_strength", 0.8)
 	if len(result.Sequence.Prompts) > 0 && (result.Sequence.IdentityStrength < 0 || result.Sequence.IdentityStrength > 2) {

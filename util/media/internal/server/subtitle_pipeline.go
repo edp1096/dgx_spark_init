@@ -1,6 +1,7 @@
 package server
 
 import (
+	stdcontext "context"
 	"errors"
 	"fmt"
 	"mediaapp/internal/jobs"
@@ -19,7 +20,7 @@ func (s *Server) runSubtitle(j jobs.Job, inputDir, inputPath, sourceURL, languag
 	j.Params["stage"] = "media"
 	j.Params["media_stage"] = "starting"
 	j.Params["stage_started_at"] = time.Now().Format(time.RFC3339Nano)
-	_ = s.jobs.Save(j)
+	_ = s.saveJobPreservingRuntime(j)
 	preparedDir := filepath.Join(inputDir, "prepared")
 	manifest, preparedErr := readPreparedManifest(preparedDir)
 	if preparedErr == nil {
@@ -71,7 +72,7 @@ func (s *Server) runSubtitle(j jobs.Job, inputDir, inputPath, sourceURL, languag
 		}
 	} else {
 		j.Params["media_stage"] = "resuming"
-		_ = s.jobs.Save(j)
+		_ = s.saveJobPreservingRuntime(j)
 	}
 	if manifest.Asset != nil && manifest.Asset.ID != "" {
 		j.MediaAssetID = manifest.Asset.ID
@@ -81,7 +82,11 @@ func (s *Server) runSubtitle(j jobs.Job, inputDir, inputPath, sourceURL, languag
 			"height": manifest.Asset.Height, "size": manifest.Asset.Size,
 			"media_type": manifest.Asset.MediaType, "content_type": manifest.Asset.ContentType,
 		}
-		_ = s.jobs.Save(j)
+		_ = s.saveJobPreservingRuntime(j)
+	}
+	if err := s.prepareRecognitionRuntime(stdcontext.Background(), &j); err != nil {
+		s.fail(j, fmt.Errorf("recognition model preparation: %w", err))
+		return
 	}
 	j.Params["stage"] = "recognition"
 	j.Params["stage_started_at"] = time.Now().Format(time.RFC3339Nano)
@@ -90,7 +95,7 @@ func (s *Server) runSubtitle(j jobs.Job, inputDir, inputPath, sourceURL, languag
 	delete(j.Params, "media_downloaded_bytes")
 	delete(j.Params, "media_total_bytes")
 	delete(j.Params, "media_eta_seconds")
-	_ = s.jobs.Save(j)
+	_ = s.saveJobPreservingRuntime(j)
 	detectedLanguage := ""
 	lockedLanguage := ""
 	cues := make([]subtitleCue, 0, len(manifest.Segments))
@@ -102,6 +107,11 @@ func (s *Server) runSubtitle(j jobs.Job, inputDir, inputPath, sourceURL, languag
 		if isSingleLanguageAuto(language) && lockedLanguage != "" {
 			segmentLanguage = lockedLanguage
 		}
+		s.publishLocalRuntimePhase(
+			j.ID, "sampling", "Qwen3-ASR·Forced Aligner",
+			fmt.Sprintf("음성 인식·정렬 %d/%d 구간", index+1, len(manifest.Segments)),
+			float64(index)/float64(max(1, len(manifest.Segments))), "retain", runtimeBoolPointer(true),
+		)
 		text, detected, words, transcribeErr := s.transcribeSegment(filepath.Join(preparedDir, manifest.Segments[index].Name), segmentLanguage, context)
 		if s.jobCancelled(j.ID) {
 			return
@@ -138,12 +148,15 @@ func (s *Server) runSubtitle(j jobs.Job, inputDir, inputPath, sourceURL, languag
 		}
 		j.Params["progress"] = index + 1
 		j.Params["segments"] = len(manifest.Segments)
-		_ = s.jobs.Save(j)
+		_ = s.saveJobPreservingRuntime(j)
 	}
 	if len(cues) == 0 {
 		s.fail(j, fmt.Errorf("recognition engine found no speech"))
 		return
 	}
+	s.publishLocalRuntimePhase(
+		j.ID, "finalizing", "자막 출력", "인식 결과를 자막·스크립트로 정리", .96, "retain", runtimeBoolPointer(true),
+	)
 	if translationMode != "none" {
 		j.Params["stage"] = "translation"
 		j.Params["stage_started_at"] = time.Now().Format(time.RFC3339Nano)
@@ -151,14 +164,14 @@ func (s *Server) runSubtitle(j jobs.Job, inputDir, inputPath, sourceURL, languag
 		j.Params["translation_total"] = (len(cues) + 7) / 8
 		delete(j.Params, "translation_warnings")
 		delete(j.Params, "translation_warning_count")
-		_ = s.jobs.Save(j)
+		_ = s.saveJobPreservingRuntime(j)
 		warnings, err := s.translateSubtitleSegments(cues, targetLanguage, func(done, total int) {
 			if s.jobCancelled(j.ID) {
 				return
 			}
 			j.Params["translation_progress"] = done
 			j.Params["translation_total"] = total
-			_ = s.jobs.Save(j)
+			_ = s.saveJobPreservingRuntime(j)
 		}, func() bool { return s.jobCancelled(j.ID) })
 		if err != nil {
 			if errors.Is(err, errJobCancelled) || s.jobCancelled(j.ID) {
@@ -170,7 +183,7 @@ func (s *Server) runSubtitle(j jobs.Job, inputDir, inputPath, sourceURL, languag
 		if len(warnings) > 0 {
 			j.Params["translation_warnings"] = warnings
 			j.Params["translation_warning_count"] = len(warnings)
-			_ = s.jobs.Save(j)
+			_ = s.saveJobPreservingRuntime(j)
 		}
 	}
 	j.Params["stage"] = "finalizing"
@@ -178,7 +191,7 @@ func (s *Server) runSubtitle(j jobs.Job, inputDir, inputPath, sourceURL, languag
 	if s.jobCancelled(j.ID) {
 		return
 	}
-	_ = s.jobs.Save(j)
+	_ = s.saveJobPreservingRuntime(j)
 	if err := s.writeSubtitleCueArchive(j.ID, cues); err != nil {
 		s.fail(j, err)
 		return
@@ -225,6 +238,9 @@ func (s *Server) runSubtitle(j jobs.Job, inputDir, inputPath, sourceURL, languag
 			}
 		}
 	}
+	s.publishLocalRuntimePhase(
+		j.ID, "completed", "Qwen3-ASR·자막 출력", "받아쓰기·정렬·자막 저장 완료", 1, "retain", runtimeBoolPointer(true),
+	)
 	transitionJobCompleted(&j, j.OutputURL)
-	_ = s.jobs.Save(j)
+	_ = s.saveJobPreservingRuntime(j)
 }

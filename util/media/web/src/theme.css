@@ -441,9 +441,11 @@ html[data-theme="light"] .recent-image-picker,
 html[data-theme="light"] .picker,
 html[data-theme="light"] .remote-image-modal,
 html[data-theme="light"] .garment-modal,
+html[data-theme="light"] .face-swap-modal,
 html[data-theme="light"] .mask-editor,
 html[data-theme="light"] .feature-module-modal,
 html[data-theme="light"] .image-sequence-modal,
+html[data-theme="light"] .image-sequence-prep-modal,
 html[data-theme="light"] .image-sequence-region-modal,
 html[data-theme="light"] .runtime-info-modal,
 html[data-theme="light"] .lora-detail-modal,
@@ -468,9 +470,11 @@ html[data-theme="light"] .frame-picker header,
 html[data-theme="light"] .picker header,
 html[data-theme="light"] .remote-image-modal header,
 html[data-theme="light"] .garment-modal header,
+html[data-theme="light"] .face-swap-modal header,
 html[data-theme="light"] .mask-editor header,
 html[data-theme="light"] .feature-module-modal header,
 html[data-theme="light"] .image-sequence-modal header,
+html[data-theme="light"] .image-sequence-prep-modal header,
 html[data-theme="light"] .runtime-info-modal header,
 html[data-theme="light"] .lora-detail-modal header,
 html[data-theme="light"] .prompt-modal header,
@@ -486,6 +490,8 @@ html[data-theme="light"] .upscale-modal footer,
 html[data-theme="light"] .frame-picker footer,
 html[data-theme="light"] .picker footer,
 html[data-theme="light"] .garment-modal footer,
+html[data-theme="light"] .face-swap-modal footer,
+html[data-theme="light"] .image-sequence-prep-modal footer,
 html[data-theme="light"] .lora-detail-modal footer {
   border-color: #d4dbd5 !important;
   color: #202720 !important;
@@ -502,21 +508,21 @@ html[data-theme="light"] :is(
   .example-modal, .composer-modal, .pose-modal, .makeup-modal, .image-modal,
   .video-modal, .subtitle-modal, .audio-modal, .upscale-modal, .frame-picker,
   .picker, .remote-image-modal, .garment-modal, .mask-editor,
-  .feature-module-modal, .image-sequence-modal, .image-sequence-region-modal,
+  .feature-module-modal, .image-sequence-modal, .image-sequence-prep-modal, .image-sequence-region-modal,
   .runtime-info-modal, .lora-detail-modal, .prompt-modal, .preset-modal, .recent-image-picker
 ) > header strong { color: #263028 !important; }
 html[data-theme="light"] :is(
   .example-modal, .composer-modal, .pose-modal, .makeup-modal, .image-modal,
   .video-modal, .subtitle-modal, .audio-modal, .upscale-modal, .frame-picker,
   .picker, .remote-image-modal, .garment-modal, .mask-editor,
-  .feature-module-modal, .image-sequence-modal, .image-sequence-region-modal,
+  .feature-module-modal, .image-sequence-modal, .image-sequence-prep-modal, .image-sequence-region-modal,
   .runtime-info-modal, .lora-detail-modal, .prompt-modal, .preset-modal, .recent-image-picker
 ) > header small { color: #68746b !important; }
 html[data-theme="light"] :is(
   .example-modal, .composer-modal, .pose-modal, .makeup-modal, .image-modal,
   .video-modal, .subtitle-modal, .audio-modal, .upscale-modal, .frame-picker,
   .picker, .remote-image-modal, .garment-modal, .mask-editor,
-  .feature-module-modal, .image-sequence-modal, .image-sequence-region-modal,
+  .feature-module-modal, .image-sequence-modal, .image-sequence-prep-modal, .image-sequence-region-modal,
   .runtime-info-modal, .lora-detail-modal, .prompt-modal, .preset-modal, .recent-image-picker
 ) > header button {
   border-color: #c6cfc8 !important;
@@ -649,11 +655,68 @@ html[data-theme="light"] .prompt-modal pre { color: #344037 !important; backgrou
 html[data-theme="light"] .image-sequence-notice,
 html[data-theme="light"] .image-sequence-base,
 html[data-theme="light"] .image-sequence-strength,
+html[data-theme="light"] .image-sequence-story,
+html[data-theme="light"] .image-sequence-characters,
+html[data-theme="light"] .image-sequence-character-card,
+html[data-theme="light"] .image-sequence-mode-tabs > button,
 html[data-theme="light"] .image-sequence-scenes li {
   border-color: #d0d8d1 !important;
   color: #344037 !important;
   background: #f6f8f6 !important;
 }
+html[data-theme="light"] .image-sequence-prep-section,
+html[data-theme="light"] .image-sequence-trait-grid label,
+html[data-theme="light"] .image-sequence-character-summary > img,
+html[data-theme="light"] .image-sequence-character-summary > span { border-color: #d0d8d1 !important; color: #536057 !important; background: #f6f8f6 !important; }
+html[data-theme="light"] .image-sequence-prep-heading b,
+html[data-theme="light"] .image-sequence-character-summary b { color: #344037 !important; }
+html[data-theme="light"] .image-sequence-prep-heading small,
+html[data-theme="light"] .image-sequence-character-summary small,
+html[data-theme="light"] .image-sequence-character-lock-summary,
+html[data-theme="light"] .image-sequence-prep-section.experimental > p { color: #68746b !important; }
+html[data-theme="light"] .image-sequence-reid-note { border-color: #cad6dc !important; background: #f1f6f8 !important; }
+html[data-theme="light"] .image-sequence-reid-note b { color: #315a71 !important; }
+html[data-theme="light"] .image-sequence-reid-note span { color: #63747d !important; }
+html[data-theme="light"] .image-sequence-prep-workflow { border-color: #cdd7cf !important; color: #58655c !important; background: #f2f6f2 !important; }
+html[data-theme="light"] .image-sequence-prep-workflow b { color: #405b33 !important; background: #dfeadb !important; }
+html[data-theme="light"] .image-sequence-prep-workflow i { color: #8b968d !important; }
+html[data-theme="light"] .image-sequence-character-card > header .prepare { border-color: #9eb28f !important; color: #405b33 !important; background: #e8f0e3 !important; }
+html[data-theme="light"] .image-sequence-quadview-review figure { border-color: #d0d8d1 !important; background: #f6f8f6 !important; }
+html[data-theme="light"] .image-sequence-quadview-review figcaption { color: #68746b !important; }
+html[data-theme="light"] .image-sequence-quadview-review img { background: #eef2ee !important; }
+html[data-theme="light"] .image-sequence-mode-tabs > button.active { border-color: #87a270 !important; background: #edf4e8 !important; }
+html[data-theme="light"] .image-sequence-mode-tabs > button b,
+html[data-theme="light"] .image-sequence-story > label strong { color: #344037 !important; }
+html[data-theme="light"] .image-sequence-characters-heading strong,
+html[data-theme="light"] .image-sequence-character-review b { color: #40563a !important; }
+html[data-theme="light"] .image-sequence-mode-tabs > button small,
+html[data-theme="light"] .image-sequence-story > label small { color: #6d786f !important; }
+html[data-theme="light"] .image-sequence-characters-heading small,
+html[data-theme="light"] .image-sequence-characters-empty,
+html[data-theme="light"] .image-sequence-character-review small,
+html[data-theme="light"] .image-sequence-character-review dd { color: #68746b !important; }
+html[data-theme="light"] .image-sequence-character-sources > label,
+html[data-theme="light"] .image-sequence-character-sources > button,
+html[data-theme="light"] .image-sequence-character-review details { border-color: #ccd5ce !important; color: #445148 !important; background: #fff !important; }
+html[data-theme="light"] .image-sequence-character-card > header .remove { border-color: #d8b9bb !important; color: #9b4449 !important; background: #faecec !important; }
+html[data-theme="light"] .image-sequence-character-analyze { border-color: #88a472 !important; color: #344d28 !important; background: #e5efde !important; }
+html[data-theme="light"] .image-sequence-sheet-progress { border-color: #cbd8c1 !important; background: #f3f8ef !important; }
+html[data-theme="light"] .image-sequence-sheet-progress > span b { color: #405a33 !important; }
+html[data-theme="light"] .image-sequence-sheet-progress > span em { color: #55783f !important; }
+html[data-theme="light"] .image-sequence-sheet-progress > div { background: #dfe8d8 !important; }
+html[data-theme="light"] .image-sequence-sheet-progress > small { color: #687461 !important; }
+html[data-theme="light"] .image-sequence-independence { border-color: #cad6dc !important; background: #f1f6f8 !important; }
+html[data-theme="light"] .image-sequence-independence > span { color: #315a71 !important; background: #dcebf2 !important; }
+html[data-theme="light"] .image-sequence-independence > p { color: #63747d !important; }
+html[data-theme="light"] .image-sequence-shared,
+html[data-theme="light"] .image-sequence-enhanced { border-color: #d4ddd0 !important; background: #f4f8f1 !important; }
+html[data-theme="light"] .image-sequence-shared b,
+html[data-theme="light"] .image-sequence-enhanced summary b { color: #49643b !important; }
+html[data-theme="light"] .image-sequence-shared small,
+html[data-theme="light"] .image-sequence-shared > span,
+html[data-theme="light"] .image-sequence-enhanced summary,
+html[data-theme="light"] .image-sequence-enhanced p { color: #5f6c62 !important; }
+html[data-theme="light"] .image-sequence-scene-heading > em { color: #405a35 !important; background: #e4eedf !important; }
 html[data-theme="light"] .image-sequence-notice strong,
 html[data-theme="light"] .image-sequence-strength strong,
 html[data-theme="light"] .image-sequence-scenes label { color: #344037 !important; }
@@ -665,12 +728,15 @@ html[data-theme="light"] .image-sequence-warning {
   color: #71591f !important;
   background: #fff7df !important;
 }
-html[data-theme="light"] .image-sequence-scene-heading > button {
-  border: 1px solid #d8b9bb !important;
-  color: #9b4449 !important;
-  background: #faecec !important;
+html[data-theme="light"] .image-sequence-ready-note { border-color: #b9cbaa !important; color: #526448 !important; background: #eff6e9 !important; }
+html[data-theme="light"] .image-sequence-ready-note b { color: #3f5b31 !important; }
+html[data-theme="light"] .image-sequence-order-actions > button {
+  border: 1px solid #cbd3cd !important;
+  color: #56635a !important;
+  background: #fff !important;
 }
-html[data-theme="light"] .image-sequence-scene-heading > button:hover {
+html[data-theme="light"] .image-sequence-order-actions > button.remove { border-color: #d8b9bb !important; color: #9b4449 !important; background: #faecec !important; }
+html[data-theme="light"] .image-sequence-order-actions > button:hover {
   border-color: #c89094 !important;
   color: #7e2f35 !important;
   background: #f6dddd !important;
@@ -760,7 +826,7 @@ html[data-theme="light"] .recent-image-picker-grid small { color: #707c73 !impor
 
 html[data-theme="light"] :is(
   .image-modal, .video-modal, .subtitle-modal, .audio-modal, .upscale-modal,
-  .frame-picker, .picker, .garment-modal, .mask-editor, .prompt-modal,
+  .frame-picker, .picker, .garment-modal, .face-swap-modal, .mask-editor, .prompt-modal,
   .recent-image-picker, .lora-detail-modal
 ) > footer button:not(.primary):not(.danger),
 html[data-theme="light"] :is(.image-modal, .video-modal, .subtitle-modal, .audio-modal) > footer a,
@@ -771,7 +837,7 @@ html[data-theme="light"] .remote-image-modal form button:not(.primary) {
 }
 html[data-theme="light"] :is(
   .image-modal, .video-modal, .subtitle-modal, .audio-modal, .upscale-modal,
-  .frame-picker, .picker, .garment-modal, .mask-editor, .prompt-modal,
+  .frame-picker, .picker, .garment-modal, .face-swap-modal, .mask-editor, .prompt-modal,
   .recent-image-picker, .lora-detail-modal
 ) > footer button:not(.primary):not(.danger):hover,
 html[data-theme="light"] .remote-image-modal form button:not(.primary):hover {
@@ -806,6 +872,18 @@ html[data-theme="light"] .garment-targets button.active {
 }
 html[data-theme="light"] .garment-note { color: #526057 !important; background: #edf4e9 !important; }
 html[data-theme="light"] .garment-note strong { color: #405b33 !important; }
+html[data-theme="light"] .face-swap-content section,
+html[data-theme="light"] .face-swap-selected { border-color: #c8d0ca !important; background: #f8faf8 !important; }
+html[data-theme="light"] .face-swap-heading strong,
+html[data-theme="light"] .face-index { color: #465249 !important; }
+html[data-theme="light"] .face-swap-heading small,
+html[data-theme="light"] .face-swap-selected span { color: #707c73 !important; }
+html[data-theme="light"] .face-swap-empty { border-color: #bdc7bf !important; color: #707c73 !important; }
+html[data-theme="light"] .face-swap-inputs button,
+html[data-theme="light"] .face-swap-inputs label,
+html[data-theme="light"] .face-index input { border-color: #b9c5bb !important; color: #344037 !important; background: #fff !important; }
+html[data-theme="light"] .face-swap-note { color: #526057 !important; background: #edf4e9 !important; }
+html[data-theme="light"] .face-swap-note strong { color: #405b33 !important; }
 html[data-theme="light"] .garment-options label,
 html[data-theme="light"] .garment-target-field > span { color: #465249 !important; }
 

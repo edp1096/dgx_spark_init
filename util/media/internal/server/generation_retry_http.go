@@ -65,6 +65,13 @@ func (s *Server) retryImage(w http.ResponseWriter, job jobs.Job) {
 			http.Error(w, "saved garment source is missing", http.StatusConflict)
 			return
 		}
+	} else if mode == "face_swap" {
+		targets, targetErr := s.imageInputFiles(job.ID, "face_swap_target")
+		sources, sourceErr := s.imageInputFiles(job.ID, "face_swap_source")
+		if targetErr != nil || sourceErr != nil || len(targets) != 1 || len(sources) != 1 {
+			http.Error(w, "saved face swap images are missing", http.StatusConflict)
+			return
+		}
 	} else if mode != "upscale" && mode != "detail_enhance" {
 		if _, err := s.loadImageExecution(job); err != nil {
 			http.Error(w, err.Error(), http.StatusConflict)

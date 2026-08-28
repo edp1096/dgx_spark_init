@@ -21,6 +21,20 @@ ER-SDE/simple을 기본으로 사용합니다.
 권장 시작값입니다. `reference_image`까지 전달하는 2-image 모드에서는
 `source_image`가 장면, `reference_image`가 삽입할 인물입니다.
 
+`reid_image`를 전달하면 [`yijunwang2/krea2-reid`](https://huggingface.co/yijunwang2/krea2-reid)의
+Rank 32 ReID LoRA와 Ostris Edit latent 주입을 사용해 서로 독립적으로 생성하는 장면들에
+같은 인물 정체성을 조건으로 전달합니다. 공식 체크포인트 전용이며 INT8 ConvRot 본체,
+Qwen3-VL BF16 인코더, Qwen VAE, Euler/simple 8 steps 조합을 사용합니다. 사람의 얼굴·머리·
+체형에는 효과가 크지만 참조 이미지의 액세서리가 같이 유지될 수 있고, 로봇·갑옷의 정확한 부품
+구조나 영상 키프레임 수준의 시간적 연속성을 보장하지 않습니다.
+
+`character_sheet_image`를 전달하면
+[`Alissonerdx/CharacterSheet`](https://huggingface.co/Alissonerdx/CharacterSheet)의
+`QuadView_krea2_v1` LoRA로 1536×1024 얼굴 확대·정면·측면·후면 시트 후보를 생성합니다.
+Krea INT8 ConvRot 본체, 기본 FP8 텍스트 인코더, Ostris Edit latent 주입과 Euler/simple 10 steps를
+고정으로 사용합니다. 이 결과는 원본 정체성을 재해석할 수 있으므로 Spark Media는 자동 ReID 앵커로
+채택하지 않고 원본과 비교해 승인한 경우에만 Gemma 외형 분석용 보조 참조로 보관합니다.
+
 `style`에는 Krea 공식 스타일 LoRA 9종(`darkbrush`, `dotmatrix`, `kidsdrawing`,
 `neondrip`, `rainywindow`, `retroanime`, `softwatercolor`, `sunsetblur`,
 `vintagetarot`)을 지정할 수 있습니다.
@@ -31,7 +45,7 @@ Identity Edit, 스타일 LoRA와 Depth Control은 한 요청에서 함께 사용
 
 추가 요청 필드:
 
-- `source_image`, `reference_image`, `control_image`: PNG/JPEG base64 또는 data URL
+- `source_image`, `reference_image`, `control_image`, `reid_image`, `character_sheet_image`: PNG/JPEG base64 또는 data URL
 - `reference_images`: Identity Edit 보조 참조 배열, 최대 3장. 여러 장은 ComfyUI의 `ImageStitch`로 순서대로 연결해 의상·포즈·소품 참조로 전달
 - `identity_strength`: Identity Edit LoRA 강도, 기본 `1.0`
 - `ref_boost`: 참조 충실도, 기본 `4.0`

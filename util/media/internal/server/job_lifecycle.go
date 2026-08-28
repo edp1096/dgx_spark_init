@@ -132,6 +132,8 @@ func (s *Server) interruptGenerationEngine(job jobs.Job) {
 			endpoint = cfg.Engines["upscale"].Endpoint
 		} else if mode == "garment_extract" {
 			endpoint = cfg.Engines["garment"].Endpoint
+		} else if mode == "face_swap" {
+			endpoint = cfg.Engines["faceswap"].Endpoint
 		} else if backend, ok := cfg.Image.Backends[mode]; ok {
 			endpoint = backend.Endpoint
 		} else if backend, ok := cfg.Image.Backends[cfg.Image.DefaultMode]; ok {

@@ -79,7 +79,7 @@ export function imageModuleSummary(job) {
     if (params.vision) modules.push('Vision')
     if (params.nk2e) modules.push(params.nk2e_mode === 'canny' ? 'NK2E Canny' : 'NK2E Edit')
     if (params.anypaint) modules.push(params.anypaint_mask ? 'Inpaint' : 'Outpaint')
-    if (params.sequence_total) modules.push(`연속 ${params.sequence_index}/${params.sequence_total}`)
+    if (params.sequence_total) modules.push(`장면 ${params.sequence_index}/${params.sequence_total}`)
     return modules.length ? ` · ${modules.join(' + ')}` : ''
   }
 
@@ -111,4 +111,3 @@ export function videoPromptModalText(job) {
     if (!enhanced || enhanced.trim() === original.trim()) return original
     return `원문\n${original}\n\n실제 생성 프롬프트\n${enhanced}`
   }
-

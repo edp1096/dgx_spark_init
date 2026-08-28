@@ -30,7 +30,7 @@ func (s *Server) imageJobInputs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	inputs := make([]imageJobInputInfo, 0, 8)
-	for _, role := range []string{"reference", "identity", "identity_reference", "identity_mask", "strict_mask", "depth", "vision", "style_reference", "nk2e", "anypaint", "anypaint_mask", "garment_source", "garment_reference"} {
+	for _, role := range []string{"reference", "identity", "sequence_character", "identity_reference", "identity_mask", "strict_mask", "depth", "vision", "style_reference", "nk2e", "anypaint", "anypaint_mask", "garment_source", "garment_reference", "face_swap_target", "face_swap_source"} {
 		files, err := s.imageInputFiles(id, role)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -41,6 +41,8 @@ func (s *Server) imageJobInputs(w http.ResponseWriter, r *http.Request) {
 			switch role {
 			case "identity":
 				name = "identity" + filepath.Ext(path)
+			case "sequence_character":
+				name = "sequence-character" + filepath.Ext(path)
 			case "identity_reference":
 				name = fmt.Sprintf("identity-reference-%d%s", index+1, filepath.Ext(path))
 			case "identity_mask":
@@ -63,6 +65,10 @@ func (s *Server) imageJobInputs(w http.ResponseWriter, r *http.Request) {
 				name = "garment-source" + filepath.Ext(path)
 			case "garment_reference":
 				name = fmt.Sprintf("garment-reference-%d%s", index+1, filepath.Ext(path))
+			case "face_swap_target":
+				name = "face-swap-target" + filepath.Ext(path)
+			case "face_swap_source":
+				name = "face-swap-source" + filepath.Ext(path)
 			}
 			inputs = append(inputs, imageJobInputInfo{
 				Role: role,
@@ -119,6 +125,8 @@ func (s *Server) imageInputFiles(id, role string) ([]string, error) {
 	case "reference":
 	case "identity":
 		dir = filepath.Join(root, "identity")
+	case "sequence_character":
+		dir = filepath.Join(root, "sequence-character")
 	case "identity_reference":
 		dir = filepath.Join(root, "identity-reference")
 	case "identity_mask":
@@ -141,6 +149,16 @@ func (s *Server) imageInputFiles(id, role string) ([]string, error) {
 		dir = filepath.Join(root, "garment-source")
 	case "garment_reference":
 		dir = filepath.Join(root, "garment-reference")
+	case "face_swap_target":
+		dir = filepath.Join(root, "face-swap-target")
+	case "face_swap_source":
+		dir = filepath.Join(root, "face-swap-source")
+	case "sequence-previous":
+		dir = filepath.Join(root, "sequence-previous")
+	case "sequence-master":
+		dir = filepath.Join(root, "sequence-master")
+	case "sequence-draft":
+		dir = filepath.Join(root, "sequence-draft")
 	default:
 		return nil, nil
 	}

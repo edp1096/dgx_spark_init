@@ -34,3 +34,21 @@ test('video requests keep audio timing and only populated keyframes', () => {
   assert.equal(form.get('keyframe_count'), '1')
   assert.equal(form.get('reuse_keyframe_image_0'), 'image:key:0')
 })
+
+test('sequence requests send the first character reference through ReID', () => {
+  const form = buildImageGenerationForm({
+    imageForm: { prompt: 'scene one', width: 1024, height: 1024, mode: 'create' },
+    prompt: 'enhanced scene one', originalPrompt: 'scene one', parentJobID: '',
+    sequence: {
+      prompts: ['scene one', 'scene two'], enhancedPrompts: ['enhanced scene one', 'enhanced scene two'],
+      sharedPrompt: 'same person', canonicalPrompt: 'The same woman.',
+      reidImage: { server: true, ref: 'character-job:output:0' }
+    },
+    modules: {},
+    options: { steps: 8, checkpoint: 'official', filter_mode: 'balanced', filter_strength: 1, prompt_enhancer: false, prompt_enhancer_strength: 1, prompt_text_scale: 1.75, sampling_preset: 'default' },
+    identity: { references: [] }, depth: {}, styles: [], userLoras: [], visionImages: [], styleReferenceImages: [],
+    nk2e: {}, anypaint: {}, references: []
+  })
+  assert.equal(form.get('reuse_sequence_character_image'), 'character-job:output:0')
+  assert.deepEqual(JSON.parse(form.get('sequence_prompts')), ['scene one', 'scene two'])
+})

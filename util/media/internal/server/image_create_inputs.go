@@ -26,6 +26,7 @@ func (s *Server) persistImageCreateInputs(r *http.Request, jobID, mode string, m
 		spec imageInputSpec
 	}{
 		{"identity", imageInputSpec{"identity_image", "reuse_identity_image", "identity", 1}},
+		{"sequence_character", imageInputSpec{"sequence_character_image", "reuse_sequence_character_image", "sequence-character", 1}},
 		{"identity_reference", imageInputSpec{"identity_reference", "reuse_identity_reference", "identity-reference", 3}},
 		{"depth", imageInputSpec{"depth_image", "reuse_depth_image", "depth", 1}},
 		{"identity_mask", imageInputSpec{"identity_mask", "reuse_identity_mask", "identity-mask", 1}},
@@ -44,6 +45,7 @@ func (s *Server) persistImageCreateInputs(r *http.Request, jobID, mode string, m
 		}
 	}
 	options.identityPath = firstImagePath(values["identity"])
+	options.reidPath = firstImagePath(values["sequence_character"])
 	options.identityRefPaths = values["identity_reference"]
 	options.depthPath = firstImagePath(values["depth"])
 	options.identityMaskPath = firstImagePath(values["identity_mask"])

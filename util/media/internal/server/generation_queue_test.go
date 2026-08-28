@@ -62,3 +62,19 @@ func TestGenerationEngineBusyConflict(t *testing.T) {
 		t.Fatal("expected image busy conflict to be recognized")
 	}
 }
+
+func TestGenerationEngineWaitsWhileRuntimeStarts(t *testing.T) {
+	worker := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		http.Error(w, "internal runtime is starting", http.StatusServiceUnavailable)
+	}))
+	defer worker.Close()
+	server := New(config.Config{
+		DataDir: t.TempDir(),
+		Image: config.Image{DefaultMode: "create", Backends: map[string]config.ImageBackend{
+			"create": {Endpoint: worker.URL},
+		}},
+	}, nil, nil)
+	if !server.generationEngineBusy(jobs.Job{Kind: "image", Params: map[string]any{"mode": "create"}}) {
+		t.Fatal("503 startup window must keep the job queued")
+	}
+}

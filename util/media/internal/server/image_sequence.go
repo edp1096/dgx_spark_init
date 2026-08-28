@@ -15,8 +15,8 @@ func parseImageSequencePrompts(raw string) ([]string, error) {
 	if err := json.Unmarshal([]byte(raw), &prompts); err != nil {
 		return nil, fmt.Errorf("invalid sequence prompts")
 	}
-	if len(prompts) < 2 || len(prompts) > 6 {
-		return nil, fmt.Errorf("sequence generation requires 2 to 6 scenes")
+	if len(prompts) < 2 || len(prompts) > 12 {
+		return nil, fmt.Errorf("storyboard generation requires 2 to 12 scenes")
 	}
 	for index := range prompts {
 		prompts[index] = strings.TrimSpace(prompts[index])
@@ -58,9 +58,59 @@ func parseImageSequenceRegions(raw string, promptCount int) ([]string, error) {
 	return regions, nil
 }
 
+func parseImageSequenceEnhancedPrompts(raw string, prompts []string) ([]string, error) {
+	if len(prompts) == 0 {
+		return nil, nil
+	}
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return append([]string(nil), prompts...), nil
+	}
+	var enhanced []string
+	if err := json.Unmarshal([]byte(raw), &enhanced); err != nil || len(enhanced) != len(prompts) {
+		return nil, fmt.Errorf("invalid sequence enhanced prompts")
+	}
+	for index := range enhanced {
+		enhanced[index] = strings.TrimSpace(enhanced[index])
+		if enhanced[index] == "" {
+			return nil, fmt.Errorf("every sequence scene requires an enhanced prompt")
+		}
+		if len([]rune(enhanced[index])) > 8000 {
+			return nil, fmt.Errorf("sequence enhanced prompt is too long")
+		}
+	}
+	return enhanced, nil
+}
+
+func parseImageSequenceStrategies(raw string, promptCount int) ([]string, error) {
+	if promptCount == 0 {
+		return nil, nil
+	}
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		result := make([]string, promptCount)
+		for index := range result {
+			if index == 0 {
+				result[index] = "major"
+			} else {
+				result[index] = "minor"
+			}
+		}
+		return result, nil
+	}
+	var strategies []string
+	if err := json.Unmarshal([]byte(raw), &strategies); err != nil {
+		return nil, fmt.Errorf("invalid sequence strategies")
+	}
+	result, err := normalizeSequenceStrategies(strategies, promptCount, false)
+	if err != nil {
+		return nil, err
+	}
+	result[0] = "major"
+	return result, nil
+}
+
 func sequenceEditPrompt(change string) string {
 	return "Change: " + strings.TrimSpace(change) +
-		"\nPose replacement rule: Treat every requested pose or body-part movement as a replacement, never an addition. Redraw each moved body part only in its new position and remove it from its previous position. Keep the anatomically correct number of limbs, with no duplicate arms, hands, legs, heads, or ghost body parts." +
-		"\nFace continuity rule: Preserve the exact head and facial construction, including faceplate or screen type, eye count, eye shape, eye color, eye spacing, mouth design, and distinguishing details. If an expression change is explicitly requested, alter only that expression and never redesign the head or face." +
-		"\nPreserve: the same character identity, face, hair, clothing details unless explicitly changed, visual style, lighting continuity, and scene elements that do not conflict with the requested movement. Do not preserve the previous pose where it conflicts with the new pose."
+		"\nPreserve: the same subject identity and stable scene details. Render the requested final frame with an anatomically correct subject. A requested movement replaces the previous pose; do not duplicate limbs or retain ghost body parts."
 }

@@ -51,16 +51,23 @@ func (s *Server) runSpeech(ctx context.Context, j jobs.Job, params speechJobPara
 	if params.Seed >= 0 {
 		request["seed"] = params.Seed
 	}
+	s.publishLocalRuntimePhase(
+		j.ID, "sampling", "Qwen3-TTS 1.7B", "상주 모델로 음성 조건 인코딩·합성", .35, "retain", runtimeBoolPointer(true),
+	)
 	data, err := s.generateSpeechWithEngine(ctx, request)
 	if err != nil {
 		s.fail(j, err)
 		return
 	}
+	s.publishLocalRuntimePhase(j.ID, "finalizing", "WAV 출력", "음성 파일 저장", .96, "", runtimeBoolPointer(true))
 	name := j.ID + ".wav"
 	if err = os.WriteFile(s.jobs.OutputPath(name), data, 0o644); err != nil {
 		s.fail(j, err)
 		return
 	}
+	s.publishLocalRuntimePhase(
+		j.ID, "completed", "Qwen3-TTS 1.7B", "음성 생성 완료·모델 상주 유지", 1, "retain", runtimeBoolPointer(true),
+	)
 	_, _ = s.completeGenerationJob(&j, "/api/outputs/"+name, func() {
 		_ = os.Remove(s.jobs.OutputPath(name))
 	})

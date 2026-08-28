@@ -57,6 +57,16 @@ FILES = (
         COMFY_MODELS / "loras" / "krea2_identity_edit_v1_2.safetensors",
     ),
     (
+        "yijunwang2/krea2-reid",
+        "krea2_reid_rank32.safetensors",
+        COMFY_MODELS / "loras" / "krea2_reid_rank32.safetensors",
+    ),
+    (
+        "Alissonerdx/CharacterSheet",
+        "QuadView_krea2_v1.safetensors",
+        COMFY_MODELS / "loras" / "QuadView_krea2_v1.safetensors",
+    ),
+    (
         "uzumix/krea2filterbypass3.safetensors",
         "krea2filterbypass3.safetensors",
         COMFY_MODELS / "loras" / "krea2filterbypass3.safetensors",

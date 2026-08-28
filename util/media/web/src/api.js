@@ -3,6 +3,11 @@ async function checked(response) {
   return response.json()
 }
 
+async function checkedBlob(response) {
+  if (!response.ok) throw new Error((await response.text()) || `HTTP ${response.status}`)
+  return response.blob()
+}
+
 export const api = {
   config: () => fetch('/api/config').then(checked),
   saveConfig: (config) => fetch('/api/config', {
@@ -64,6 +69,7 @@ export const api = {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(options)
   }).then(checked),
   garmentExtract: (form) => fetch('/api/jobs/garment-extract', { method: 'POST', body: form }).then(checked),
+  faceSwap: (form) => fetch('/api/jobs/face-swap', { method: 'POST', body: form }).then(checked),
   speech: (form) => fetch('/api/jobs/speech', { method: 'POST', body: form }).then(checked),
   recognition: (form) => fetch('/api/jobs/recognition', { method: 'POST', body: form }).then(checked),
   regenerateSubtitle: (id, options) => fetch(`/api/jobs/${encodeURIComponent(id)}/subtitle-regenerate`, {
@@ -78,6 +84,12 @@ export const api = {
   cleanupTemporaryStorage: () => fetch('/api/storage/temp', { method: 'DELETE' }).then(checked),
   video: (form) => fetch('/api/jobs/video', { method: 'POST', body: form }).then(checked),
   enhancePrompt: (form) => fetch('/api/prompts/enhance', { method: 'POST', body: form }).then(checked),
+	describeSequenceCharacter: (form) => fetch('/api/prompts/character-description', { method: 'POST', body: form }).then(checked),
+	createSequenceCharacterSheet: (form) => fetch('/api/images/character-sheet', { method: 'POST', body: form }).then(checkedBlob),
+	sequenceCharacterSheetStatus: (operationID) => fetch(`/api/images/character-sheet/status?operation_id=${encodeURIComponent(operationID)}`).then(checked),
+	planImageSequence: (payload) => fetch('/api/prompts/sequence-plan', {
+		method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+	}).then(checked),
 	randomPromptWildcard: (variant = 'no_camera') => fetch(`/api/prompts/wildcard?variant=${encodeURIComponent(variant)}`).then(checked),
   loraStatus: () => fetch('/api/lora/status').then(checked),
   saveLoraTokens: (civitaiToken, hfToken) => fetch('/api/lora/tokens', {

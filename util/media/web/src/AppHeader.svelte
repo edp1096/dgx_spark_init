@@ -24,6 +24,7 @@
       <span class:running={engineStates.prompt === 'online'}><i></i>Enhancer API<span class="engine-state-text"> · {engineStates.prompt || 'offline'}</span></span>
       <span class:running={engineStates.upscale === 'online'}><i></i>Upscale API<span class="engine-state-text"> · {engineStates.upscale || 'offline'}</span></span>
       <span class:running={engineStates.garment === 'online'}><i></i>Garment API<span class="engine-state-text"> · {engineStates.garment || 'offline'}</span></span>
+      <span class:running={engineStates.faceswap === 'online'}><i></i>ReActor API<span class="engine-state-text"> · {engineStates.faceswap || 'offline'}</span></span>
     {:else if engineMeta[tab]}
       <span class:running={engineStates[engineMeta[tab][0]] === 'online'}><i></i>{engineMeta[tab][1]} API<span class="engine-state-text"> · {engineStates[engineMeta[tab][0]] || 'offline'}</span></span>
     {/if}

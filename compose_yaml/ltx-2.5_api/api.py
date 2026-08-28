@@ -8,6 +8,8 @@ import secrets
 import subprocess
 import tempfile
 import threading
+import time
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
 
@@ -64,6 +66,13 @@ load_error = ""
 prepare_error = ""
 preparing = False
 prepare_task: asyncio.Task[None] | None = None
+runtime_prepare_started_at = 0.0
+runtime_last_load_seconds = 0.0
+runtime_prepare_error = ""
+runtime_prepared_profile = ""
+runtime_operation: dict[str, Any] | None = None
+runtime_operation_history: list[dict[str, Any]] = []
+runtime_operation_id = ""
 
 
 class GenerationCancelled(RuntimeError):
@@ -71,12 +80,20 @@ class GenerationCancelled(RuntimeError):
 
 
 class CancelAwareDenoiser:
-    def __init__(self, denoiser: Any) -> None:
+    def __init__(self, denoiser: Any, component: str, progress: float) -> None:
         self.denoiser = denoiser
+        self.component = component
+        self.progress = progress
+        self.started = False
 
     def __call__(self, *args: Any, **kwargs: Any) -> Any:
         if generation_cancel.is_set():
             raise GenerationCancelled("video generation cancelled")
+        if not self.started:
+            self.started = True
+            publish_runtime_operation(
+                "sampling", self.component, "Transformer 탑재 완료·확산 추론", self.progress
+            )
         result = self.denoiser(*args, **kwargs)
         if generation_cancel.is_set():
             raise GenerationCancelled("video generation cancelled")
@@ -89,25 +106,38 @@ class CancelAwareDenoiser:
 class CancelAwareStage:
     """Check cancellation between denoising steps without slowing GPU kernels."""
 
-    def __init__(self, stage: Any) -> None:
+    def __init__(self, stage: Any, component: str = "LTX DiT", progress: float = 0.45) -> None:
         self.stage = stage
+        self.component = component
+        self.progress = progress
 
     def __call__(self, *args: Any, **kwargs: Any) -> Any:
         from ltx_pipelines.utils.samplers import euler_denoising_loop
+
+        publish_runtime_operation(
+            "model_loading", self.component, "이전 인코더 해제 완료·Transformer 가중치 탑재",
+            max(0.12, self.progress - 0.08), "swap"
+        )
 
         original_loop: Callable[..., Any] = kwargs.get("loop") or euler_denoising_loop
 
         def cancel_aware_loop(*loop_args: Any, **loop_kwargs: Any) -> Any:
             denoiser = loop_kwargs.get("denoiser")
             if denoiser is not None:
-                loop_kwargs["denoiser"] = CancelAwareDenoiser(denoiser)
+                loop_kwargs["denoiser"] = CancelAwareDenoiser(denoiser, self.component, self.progress)
             return original_loop(*loop_args, **loop_kwargs)
 
         kwargs["loop"] = cancel_aware_loop
-        return self.stage(*args, **kwargs)
+        try:
+            return self.stage(*args, **kwargs)
+        finally:
+            publish_runtime_operation(
+                "model_unloading", self.component, "Transformer GPU 가중치 해제", min(0.9, self.progress + 0.12),
+                "unload", False,
+            )
 
     def with_attention(self, attention: Any) -> "CancelAwareStage":
-        return CancelAwareStage(self.stage.with_attention(attention))
+        return CancelAwareStage(self.stage.with_attention(attention), self.component, self.progress)
 
     def __getattr__(self, name: str) -> Any:
         return getattr(self.stage, name)
@@ -115,6 +145,51 @@ class CancelAwareStage:
 
 class ModelPrepareRequest(BaseModel):
     hf_token: str = ""
+
+
+class RuntimePrepareRequest(BaseModel):
+    pipeline: str = "distilled"
+    motion_lora_strength: float = -1.0
+    operation_id: str = ""
+
+
+def publish_runtime_operation(
+    phase: str,
+    component: str,
+    detail: str,
+    progress: float,
+    memory_action: str = "",
+    resident_after: bool | None = None,
+    operation_id: str = "",
+) -> None:
+    global runtime_operation, runtime_operation_history
+    active_id = operation_id or runtime_operation_id
+    if not active_id:
+        return
+    now = datetime.now(timezone.utc).isoformat()
+    started_at = now
+    if runtime_operation and runtime_operation.get("operation_id") == active_id:
+        if runtime_operation.get("phase") == phase and runtime_operation.get("component") == component:
+            started_at = str(runtime_operation.get("started_at") or now)
+    if runtime_operation and runtime_operation.get("operation_id") != active_id:
+        runtime_operation_history = []
+    runtime_operation = {
+        "operation_id": active_id,
+        "phase": phase,
+        "component": component,
+        "detail": detail,
+        "progress": max(0.0, min(1.0, progress)),
+        "memory_action": memory_action,
+        "resident_after": resident_after,
+        "started_at": started_at,
+        "updated_at": now,
+    }
+    if not runtime_operation_history or any(
+        runtime_operation_history[-1].get(key) != runtime_operation.get(key)
+        for key in ("phase", "component", "detail", "memory_action", "resident_after")
+    ):
+        runtime_operation_history.append(dict(runtime_operation))
+        runtime_operation_history = runtime_operation_history[-32:]
 
 
 def _stored_token() -> str:
@@ -148,6 +223,30 @@ def _model_status() -> dict[str, object]:
         "a2v_ready": not a2v_missing,
         "a2v_missing": [str(path.relative_to(MODEL_DIR)) for path in a2v_missing],
         "error": prepare_error,
+    }
+
+
+def _runtime_status() -> dict[str, object]:
+    loaded_pipeline = "a2v" if a2v_pipeline is not None else "distilled" if pipeline is not None else None
+    elapsed = max(0.0, time.monotonic() - runtime_prepare_started_at) if runtime_prepare_started_at else 0.0
+    return {
+        "status": "preparing" if load_lock.locked() else "ready" if loaded_pipeline else "idle",
+        "loaded": loaded_pipeline is not None,
+        "pipeline": loaded_pipeline,
+        # LTX intentionally materializes its large components one phase at a
+        # time. Keeping the text encoder, DiT and both VAEs resident together
+        # would defeat the pipeline's peak-memory design.
+        "resident": False,
+        "preparation_scope": "pipeline-shell",
+        "phase_swapped": True,
+        "lora": pipeline_signature[0] if pipeline_signature and pipeline_signature[0] else None,
+        "lora_strength": pipeline_signature[1] if pipeline_signature and pipeline_signature[0] else None,
+        "preparing": load_lock.locked(),
+        "elapsed_seconds": round(elapsed, 3) if load_lock.locked() else 0,
+        "last_load_seconds": round(runtime_last_load_seconds, 3),
+        "error": runtime_prepare_error or load_error,
+        "operation": runtime_operation,
+        "operation_history": runtime_operation_history,
     }
 
 
@@ -198,6 +297,78 @@ async def prepare_models(request: ModelPrepareRequest) -> dict[str, object]:
     return {**_model_status(), "started": started}
 
 
+@app.get("/v1/models/runtime/status")
+def runtime_model_status(operation_id: str = "") -> dict[str, object]:
+    status = _runtime_status()
+    if operation_id and (not runtime_operation or runtime_operation.get("operation_id") != operation_id):
+        status["operation"] = None
+        status["operation_history"] = []
+    return status
+
+
+@app.post("/v1/models/runtime/prepare")
+async def prepare_runtime(request: RuntimePrepareRequest) -> dict[str, object]:
+    global runtime_prepare_started_at, runtime_last_load_seconds, runtime_prepare_error, runtime_prepared_profile
+    if request.pipeline not in {"distilled", "a2v"}:
+        raise HTTPException(400, "pipeline must be distilled or a2v")
+    if (request.motion_lora_strength < 0 and request.motion_lora_strength != -1) or request.motion_lora_strength > 1:
+        raise HTTPException(400, "motion_lora_strength must be -1 or between 0 and 1")
+    if generation_lock.locked():
+        raise HTTPException(409, "another video generation is running")
+    runtime_prepare_started_at = time.monotonic()
+    runtime_prepare_error = ""
+    publish_runtime_operation(
+        "preparing", "LTX 파이프라인", "요청한 LTX 실행 경로 초기화", 0.08,
+        operation_id=request.operation_id,
+    )
+    requested_profile = request.pipeline
+    if request.pipeline == "distilled":
+        requested_profile += f":{request.motion_lora_strength:.4f}"
+    warm = runtime_prepared_profile == requested_profile
+    try:
+        async with generation_lock:
+            if missing_paths(MODEL_DIR):
+                raise HTTPException(409, "LTX model files are not ready")
+            if request.pipeline == "a2v":
+                if a2v_missing_paths(MODEL_DIR):
+                    raise HTTPException(409, "LTX A2V model files are not ready")
+                await get_a2v_pipeline()
+            else:
+                if request.motion_lora_strength < 0:
+                    lora_path = LORA_PATH
+                    lora_strength = LORA_STRENGTH if LORA_PATH else 0.0
+                elif request.motion_lora_strength > 0:
+                    lora_path = str(MOTION_LORA_PATH)
+                    lora_strength = request.motion_lora_strength
+                else:
+                    lora_path = ""
+                    lora_strength = 0.0
+                await get_pipeline(lora_path, lora_strength)
+        runtime_last_load_seconds = time.monotonic() - runtime_prepare_started_at
+        runtime_prepared_profile = requested_profile
+        publish_runtime_operation(
+            "cache_retaining", "LTX 파이프라인 셸", "파이프라인 구조 캐시 유지·가중치는 단계별 적재",
+            0.98, "retain", False, request.operation_id,
+        )
+        publish_runtime_operation(
+            "completed", "LTX 파이프라인", "LTX 파이프라인 준비 완료", 1.0,
+            "retain", False, request.operation_id,
+        )
+        return {
+            **_runtime_status(),
+            "prepared": True,
+            "warm": warm,
+            "load_seconds": runtime_last_load_seconds,
+            "note": "components are loaded and released phase-by-phase during generation",
+        }
+    except HTTPException as exc:
+        runtime_prepare_error = str(exc.detail)
+        raise
+    except Exception as exc:
+        runtime_prepare_error = str(exc)
+        raise HTTPException(500, str(exc)) from exc
+
+
 def _paths() -> ModelPaths:
     return ModelPaths.from_split(
         transformer_path=str(TRANSFORMER),
@@ -238,7 +409,7 @@ def _load_pipeline(lora_path: str, lora_strength: float) -> DistilledPipeline:
         quantization=policy,
         offload_mode=OffloadMode.NONE,
     )
-    loaded.stage = CancelAwareStage(loaded.stage)
+    loaded.stage = CancelAwareStage(loaded.stage, "LTX Distilled DiT", 0.48)
     log.info("LTX-2.5 pipeline ready")
     return loaded
 
@@ -295,8 +466,8 @@ def _load_a2v_pipeline() -> A2VidPipelineTwoStage:
         quantization=policy,
         offload_mode=OffloadMode.NONE,
     )
-    loaded.stage_1 = CancelAwareStage(loaded.stage_1)
-    loaded.stage_2 = CancelAwareStage(loaded.stage_2)
+    loaded.stage_1 = CancelAwareStage(loaded.stage_1, "LTX A2V Stage 1 DiT", 0.46)
+    loaded.stage_2 = CancelAwareStage(loaded.stage_2, "LTX A2V Stage 2 DiT", 0.72)
     return loaded
 
 
@@ -345,6 +516,7 @@ def health() -> dict[str, object]:
         "acceleration": sol_runtime.status(),
         "missing": missing,
         "error": load_error,
+        "runtime": _runtime_status(),
     }
 
 
@@ -380,6 +552,7 @@ def _generate(
     seed: int,
     acceleration_mode: str,
     lora_active: bool,
+    operation_id: str,
 ) -> str:
     images = [
         ImageConditioningInput(path=path, frame_idx=frame_idx, strength=strength)
@@ -393,6 +566,10 @@ def _generate(
         acceleration_mode,
         lora_active=lora_active,
     ) as acceleration:
+        publish_runtime_operation(
+            "conditioning", "Gemma 4 12B", "텍스트 인코더 탑재·프롬프트 조건 인코딩",
+            0.18, "load", operation_id=operation_id,
+        )
         with torch.inference_mode():
             video, audio, actual_frames, tiling = loaded(
                 prompt=prompt,
@@ -404,12 +581,20 @@ def _generate(
                 images=images,
                 tiling_config=AUTO_TILING,
             )
+            publish_runtime_operation(
+                "decoding", "LTX Video·Audio VAE", "VAE 탑재·영상과 음성 디코딩",
+                0.9, "load", operation_id=operation_id,
+            )
             encode_video(
                 video=video,
                 fps=fps,
                 audio=audio,
                 output_path=output_path,
                 video_chunks_number=get_video_chunks_number(actual_frames, tiling),
+            )
+            publish_runtime_operation(
+                "model_unloading", "LTX Video·Audio VAE", "VAE GPU 가중치 해제",
+                0.97, "unload", False, operation_id,
             )
     return acceleration.label
 
@@ -428,11 +613,16 @@ def _generate_a2v(
     num_frames: int,
     fps: float,
     seed: int,
+    operation_id: str,
 ) -> str:
     images = [
         ImageConditioningInput(path=path, frame_idx=frame_idx, strength=strength)
         for path, frame_idx, strength in zip(image_paths, frame_indices, image_strengths, strict=True)
     ]
+    publish_runtime_operation(
+        "conditioning", "Gemma 4 12B·Audio VAE", "텍스트·입력 음성 조건 인코딩",
+        0.16, "load", operation_id=operation_id,
+    )
     with torch.inference_mode():
         video, audio, tiling = loaded(
             prompt=prompt,
@@ -457,12 +647,20 @@ def _generate_a2v(
             tiling_config=AUTO_TILING,
             max_batch_size=1,
         )
+        publish_runtime_operation(
+            "decoding", "LTX Video VAE", "Video VAE 탑재·영상 디코딩",
+            0.9, "load", operation_id=operation_id,
+        )
         encode_video(
             video=video,
             fps=fps,
             audio=audio,
             output_path=output_path,
             video_chunks_number=get_video_chunks_number(num_frames, tiling),
+        )
+        publish_runtime_operation(
+            "model_unloading", "LTX Video VAE", "Video VAE GPU 가중치 해제",
+            0.97, "unload", False, operation_id,
         )
     return "A2V · dev FP8"
 
@@ -535,7 +733,11 @@ async def generate_video(
     image: UploadFile | None = File(None),
     motion_lora_strength: float = Form(-1.0),
     acceleration: str = Form(""),
+    operation_id: str = Form(""),
 ) -> FileResponse:
+    global runtime_operation_id
+    runtime_operation_id = operation_id
+    publish_runtime_operation("preparing", "LTX 입력", "영상 조건과 출력 설정 준비", 0.03)
     prompt = prompt.strip()
     if not prompt:
         raise HTTPException(400, "prompt is required")
@@ -668,6 +870,7 @@ async def generate_video(
                     num_frames / fps,
                     [str(path) for path in image_paths], normalized_indices, normalized_strengths,
                     width, height, num_frames, fps, seed,
+                    operation_id,
                 )
             else:
                 loaded = await get_pipeline(effective_lora_path, effective_lora_strength)
@@ -686,6 +889,7 @@ async def generate_video(
                     seed,
                     acceleration_mode,
                     bool(effective_lora_path),
+                    operation_id,
                 )
     except GenerationCancelled as exc:
         temp_dir.cleanup()
@@ -702,6 +906,11 @@ async def generate_video(
         # was raised.  Never leak it into the next queued generation.
         generation_cancel.clear()
 
+    publish_runtime_operation("finalizing", "LTX 출력", "영상·음성 MP4 결과 마무리", 0.985)
+    publish_runtime_operation(
+        "completed", "LTX 파이프라인", "영상 생성 완료·대형 가중치 해제됨",
+        1.0, "unload", False,
+    )
     return FileResponse(
         output,
         media_type="video/mp4",

@@ -175,10 +175,14 @@ func (s *Server) runGarmentExtraction(ctx context.Context, job jobs.Job) {
 	}
 	paths := append(append([]string{}, sources...), references...)
 	fields := map[string]string{
-		"target":  stringParam(job.Params, "target", "all"),
-		"feather": strconv.FormatFloat(floatParam(job.Params, "feather", 1), 'f', 2, 64),
+		"target":       stringParam(job.Params, "target", "all"),
+		"feather":      strconv.FormatFloat(floatParam(job.Params, "feather", 1), 'f', 2, 64),
+		"operation_id": job.ID,
 	}
-	data, _, err := s.callMultipartContext(ctx, s.config().Engines["garment"].Endpoint+"/v1/garments/extract", fields, "images", paths)
+	endpoint := s.config().Engines["garment"].Endpoint
+	observer := s.startRuntimeObserver(ctx, job.ID, endpoint)
+	data, _, err := s.callMultipartContext(ctx, endpoint+"/v1/garments/extract", fields, "images", paths)
+	observer.Stop()
 	if err != nil {
 		s.fail(job, err)
 		return

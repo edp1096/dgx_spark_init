@@ -4,14 +4,17 @@
 from __future__ import annotations
 
 import asyncio
+import aiohttp
 import base64
 import binascii
 import io
+import json
 import secrets
 import shutil
 import subprocess
 import time
 import uuid
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -30,6 +33,13 @@ VAE_MODEL = "ema_vae_fp16.safetensors"
 INPUT_ROOT = Path("/opt/ComfyUI/input").resolve()
 OUTPUT_ROOT = Path("/opt/ComfyUI/output").resolve()
 upscale_lock = asyncio.Lock()
+runtime_loaded = False
+runtime_preparing = False
+runtime_started_at = 0.0
+runtime_last_load_seconds = 0.0
+runtime_error = ""
+runtime_operation: dict[str, Any] | None = None
+runtime_operation_history: list[dict[str, Any]] = []
 
 
 class UpscaleRequest(BaseModel):
@@ -41,6 +51,11 @@ class UpscaleRequest(BaseModel):
     seed: int | None = None
     response_format: str = "b64_json"
     output_format: str = "png"
+    operation_id: str = ""
+
+
+class RuntimePrepareRequest(BaseModel):
+    operation_id: str = ""
 
 
 app = FastAPI(title="SeedVR2 Upscale API")
@@ -76,8 +91,8 @@ def workflow(image_name: str, short_edge: int, seed: int, prefix: str) -> dict[s
             "class_type": "SeedVR2LoadDiTModel",
             "inputs": {
                 "model": DIT_MODEL, "device": "cuda:0", "blocks_to_swap": 0,
-                "swap_io_components": False, "offload_device": "none",
-                "cache_model": False, "attention_mode": "sdpa",
+                "swap_io_components": False, "offload_device": "cpu",
+                "cache_model": True, "attention_mode": "sdpa",
             },
         },
         "3": {
@@ -86,7 +101,7 @@ def workflow(image_name: str, short_edge: int, seed: int, prefix: str) -> dict[s
                 "model": VAE_MODEL, "device": "cuda:0",
                 "encode_tiled": True, "encode_tile_size": 1024, "encode_tile_overlap": 128,
                 "decode_tiled": True, "decode_tile_size": 1024, "decode_tile_overlap": 128,
-                "tile_debug": "false", "offload_device": "none", "cache_model": False,
+                "tile_debug": "false", "offload_device": "cpu", "cache_model": True,
             },
         },
         "4": {
@@ -112,8 +127,8 @@ def video_workflow(video_name: str, short_edge: int, seed: int, prefix: str,
             "class_type": "SeedVR2LoadDiTModel",
             "inputs": {
                 "model": DIT_MODEL, "device": "cuda:0", "blocks_to_swap": 0,
-                "swap_io_components": False, "offload_device": "none",
-                "cache_model": False, "attention_mode": "sdpa",
+                "swap_io_components": False, "offload_device": "cpu",
+                "cache_model": True, "attention_mode": "sdpa",
             },
         },
         "4": {
@@ -122,7 +137,7 @@ def video_workflow(video_name: str, short_edge: int, seed: int, prefix: str,
                 "model": VAE_MODEL, "device": "cuda:0",
                 "encode_tiled": True, "encode_tile_size": 1024, "encode_tile_overlap": 128,
                 "decode_tiled": True, "decode_tile_size": 1024, "decode_tile_overlap": 128,
-                "tile_debug": "false", "offload_device": "none", "cache_model": False,
+                "tile_debug": "false", "offload_device": "cpu", "cache_model": True,
             },
         },
         "5": {
@@ -183,34 +198,129 @@ async def wait_for_output(client: httpx.AsyncClient, prompt_id: str) -> dict[str
     raise TimeoutError("SeedVR2 upscale timed out")
 
 
-async def execute_workflow(graph: dict[str, Any]) -> str:
-    output: dict[str, Any] | None = None
+def publish_runtime_operation(
+    operation_id: str,
+    phase: str,
+    component: str,
+    detail: str,
+    progress: float,
+    memory_action: str = "",
+    resident_after: bool | None = None,
+) -> None:
+    global runtime_operation, runtime_operation_history
+    if not operation_id:
+        return
+    now = datetime.now(timezone.utc).isoformat()
+    started_at = now
+    if runtime_operation and runtime_operation.get("operation_id") == operation_id:
+        if runtime_operation.get("phase") == phase and runtime_operation.get("component") == component:
+            started_at = str(runtime_operation.get("started_at") or now)
+    if runtime_operation and runtime_operation.get("operation_id") != operation_id:
+        runtime_operation_history = []
+    runtime_operation = {
+        "operation_id": operation_id,
+        "phase": phase,
+        "component": component,
+        "detail": detail,
+        "progress": max(0.0, min(1.0, progress)),
+        "memory_action": memory_action,
+        "resident_after": resident_after,
+        "started_at": started_at,
+        "updated_at": now,
+    }
+    if not runtime_operation_history or any(
+        runtime_operation_history[-1].get(key) != runtime_operation.get(key)
+        for key in ("phase", "component", "detail", "memory_action", "resident_after")
+    ):
+        runtime_operation_history.append(dict(runtime_operation))
+        runtime_operation_history = runtime_operation_history[-32:]
+
+
+def seedvr_node_phase(graph: dict[str, Any], node_id: str) -> tuple[str, str, str, float, str]:
+    class_type = str((graph.get(str(node_id)) or {}).get("class_type", ""))
+    if class_type in {"SeedVR2LoadDiTModel", "SeedVR2LoadVAEModel"}:
+        return "model_loading", class_type, "SeedVR2 가중치 탑재·GPU 이동", 0.16, "load"
+    if class_type == "SeedVR2VideoUpscaler":
+        return "sampling", "SeedVR2 DiT·VAE", "업스케일 추론·VAE 디코딩", 0.5, ""
+    if class_type in {"CreateVideo", "SaveVideo", "SaveImage"}:
+        return "finalizing", class_type, "업스케일 결과 조립·저장", 0.94, ""
+    return "preparing", class_type or "SeedVR2 입력", "업스케일 입력 준비", 0.08, ""
+
+
+def publish_seed_cache_transition(operation_id: str) -> None:
+    # cache_model retains CPU-side weights, while offload_device=cpu releases
+    # the active GPU working set. Keep both lifecycle facts visible.
+    publish_runtime_operation(
+        operation_id, "model_unloading", "SeedVR2 DiT·VAE",
+        "GPU 작업 가중치 해제·CPU로 오프로딩", 0.96, "unload", False,
+    )
+    publish_runtime_operation(
+        operation_id, "cache_retaining", "SeedVR2 DiT·VAE",
+        "CPU 모델 캐시 유지", 0.98, "retain", True,
+    )
+
+
+async def submit_and_wait(graph: dict[str, Any], operation_id: str) -> tuple[httpx.AsyncClient, dict[str, Any]]:
+    # Kept as one websocket-correlated execution so cached loader nodes and the
+    # long upscaler node are reported from actual ComfyUI execution events.
+    client_id = uuid.uuid4().hex
+    ws_url = COMFY_URL.replace("http://", "ws://").replace("https://", "wss://") + f"/ws?clientId={client_id}"
+    client = httpx.AsyncClient(timeout=60 * 60 * 8)
     try:
-        async with httpx.AsyncClient(timeout=60 * 60) as client:
-            submitted = await client.post(f"{COMFY_URL}/prompt", json={"prompt": graph})
-            submitted.raise_for_status()
-            body = submitted.json()
-            if body.get("node_errors"):
-                raise RuntimeError(f"invalid SeedVR2 workflow: {body['node_errors']}")
-            output = await wait_for_output(client, body["prompt_id"])
-            viewed = await client.get(f"{COMFY_URL}/view", params=output)
-            viewed.raise_for_status()
-            return base64.b64encode(viewed.content).decode("ascii")
+        async with aiohttp.ClientSession() as session:
+            async with session.ws_connect(ws_url, heartbeat=30, receive_timeout=60 * 60 * 8) as websocket:
+                submitted = await client.post(
+                    f"{COMFY_URL}/prompt", json={"prompt": graph, "client_id": client_id}
+                )
+                submitted.raise_for_status()
+                body = submitted.json()
+                if body.get("node_errors"):
+                    raise RuntimeError(f"invalid SeedVR2 workflow: {body['node_errors']}")
+                prompt_id = body["prompt_id"]
+                while True:
+                    message = await websocket.receive()
+                    if message.type == aiohttp.WSMsgType.ERROR:
+                        raise RuntimeError(f"SeedVR2 websocket failed: {websocket.exception()}")
+                    if message.type != aiohttp.WSMsgType.TEXT:
+                        continue
+                    event = json.loads(message.data)
+                    data = event.get("data") or {}
+                    if data.get("prompt_id") != prompt_id:
+                        continue
+                    if event.get("type") == "execution_error":
+                        raise RuntimeError(f"ComfyUI upscale failed: {data}")
+                    if event.get("type") == "executing":
+                        node_id = data.get("node")
+                        if node_id is None:
+                            break
+                        phase, component, detail, progress, action = seedvr_node_phase(graph, str(node_id))
+                        publish_runtime_operation(operation_id, phase, component, detail, progress, action)
+                return client, await wait_for_output(client, prompt_id)
+    except Exception:
+        await client.aclose()
+        raise
+
+
+async def execute_workflow(graph: dict[str, Any], operation_id: str = "") -> str:
+    output: dict[str, Any] | None = None
+    client: httpx.AsyncClient | None = None
+    try:
+        client, output = await submit_and_wait(graph, operation_id)
+        viewed = await client.get(f"{COMFY_URL}/view", params=output)
+        viewed.raise_for_status()
+        return base64.b64encode(viewed.content).decode("ascii")
     finally:
+        if client is not None:
+            await client.aclose()
         if output is not None:
             candidate = (OUTPUT_ROOT / output["subfolder"] / output["filename"]).resolve()
             if candidate.is_relative_to(OUTPUT_ROOT):
                 candidate.unlink(missing_ok=True)
 
 
-async def execute_video_workflow(graph: dict[str, Any]) -> Path:
-    async with httpx.AsyncClient(timeout=60 * 60 * 8) as client:
-        submitted = await client.post(f"{COMFY_URL}/prompt", json={"prompt": graph})
-        submitted.raise_for_status()
-        body = submitted.json()
-        if body.get("node_errors"):
-            raise RuntimeError(f"invalid SeedVR2 video workflow: {body['node_errors']}")
-        output = await wait_for_output(client, body["prompt_id"])
+async def execute_video_workflow(graph: dict[str, Any], operation_id: str = "") -> Path:
+    client, output = await submit_and_wait(graph, operation_id)
+    await client.aclose()
     candidate = (OUTPUT_ROOT / output.get("subfolder", "") / output["filename"]).resolve()
     if not candidate.is_relative_to(OUTPUT_ROOT) or not candidate.is_file():
         raise RuntimeError("SeedVR2 did not produce a video file")
@@ -234,11 +344,79 @@ def probe_video(path: Path) -> tuple[int, int, float]:
         capture.release()
 
 
+def runtime_status() -> dict[str, Any]:
+    elapsed = max(0.0, time.monotonic() - runtime_started_at) if runtime_started_at else 0.0
+    return {
+        "status": "preparing" if runtime_preparing else "ready" if runtime_loaded else "idle",
+        "profile": "seedvr2-3b-fp8",
+        "loaded": runtime_loaded,
+        "preparing": runtime_preparing,
+        "elapsed_seconds": round(elapsed, 3) if runtime_preparing else 0,
+        "last_load_seconds": round(runtime_last_load_seconds, 3),
+        "error": runtime_error,
+        "operation": runtime_operation,
+        "operation_history": runtime_operation_history,
+    }
+
+
+@app.get("/v1/models/runtime/status")
+async def model_runtime_status(operation_id: str = "") -> dict[str, Any]:
+    if not await comfy_ready():
+        raise HTTPException(status_code=503, detail="SeedVR2 runtime is starting")
+    status = runtime_status()
+    if operation_id and (not runtime_operation or runtime_operation.get("operation_id") != operation_id):
+        status["operation"] = None
+        status["operation_history"] = []
+    return status
+
+
+@app.post("/v1/models/runtime/prepare")
+async def prepare_runtime(request: RuntimePrepareRequest) -> dict[str, Any]:
+    global runtime_loaded, runtime_preparing, runtime_started_at
+    global runtime_last_load_seconds, runtime_error
+    if runtime_loaded:
+        return {**runtime_status(), "prepared": True, "warm": True}
+    if upscale_lock.locked():
+        raise HTTPException(status_code=409, detail="another SeedVR2 operation is running")
+    runtime_preparing = True
+    runtime_started_at = time.monotonic()
+    runtime_error = ""
+    publish_runtime_operation(request.operation_id, "preparing", MODEL_ID, "SeedVR2 준비 입력 생성", 0.03)
+    image_name = ""
+    input_path: Path | None = None
+    try:
+        image_name, input_path = save_input(Image.new("RGB", (256, 256), (127, 127, 127)))
+        prefix = f"seedvr2-prepare/{uuid.uuid4().hex}"
+        async with upscale_lock:
+            publish_runtime_operation(
+                request.operation_id, "model_loading", "SeedVR2 DiT·VAE", "가중치 탑재·GPU 이동", 0.12, "load"
+            )
+            await execute_workflow(workflow(image_name, 512, 0, prefix), request.operation_id)
+        runtime_loaded = True
+        runtime_last_load_seconds = time.monotonic() - runtime_started_at
+        publish_seed_cache_transition(request.operation_id)
+        publish_runtime_operation(
+            request.operation_id, "completed", MODEL_ID, "SeedVR2 런타임 준비 완료", 1.0, "retain", True
+        )
+        # Build the response after clearing the transient flag. A return value
+        # is evaluated before ``finally`` runs, which otherwise reports
+        # status=preparing even though the synchronous warmup has completed.
+        runtime_preparing = False
+        return {**runtime_status(), "prepared": True, "warm": False}
+    except Exception as exc:
+        runtime_error = str(exc)
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+    finally:
+        runtime_preparing = False
+        if input_path is not None:
+            input_path.unlink(missing_ok=True)
+
+
 @app.get("/health")
 async def health() -> dict[str, Any]:
     if not await comfy_ready():
         raise HTTPException(status_code=503, detail="SeedVR2 runtime is starting")
-    return {"status": "ok", "busy": upscale_lock.locked()}
+    return {"status": "ok", "busy": upscale_lock.locked(), "runtime": runtime_status()}
 
 
 @app.get("/v1/models")
@@ -248,6 +426,7 @@ async def models() -> dict[str, Any]:
 
 @app.post("/v1/images/upscale")
 async def upscale(request: UpscaleRequest) -> dict[str, Any]:
+    global runtime_loaded
     if request.model != MODEL_ID:
         raise HTTPException(status_code=400, detail=f"model mismatch: {request.model}")
     if request.scale < 2 or request.scale > 4:
@@ -262,8 +441,16 @@ async def upscale(request: UpscaleRequest) -> dict[str, Any]:
     seed = request.seed if request.seed is not None and request.seed >= 0 else secrets.randbits(32)
     prefix = f"seedvr2-api/{uuid.uuid4().hex}"
     try:
+        publish_runtime_operation(request.operation_id, "preparing", MODEL_ID, "업스케일 입력 준비", 0.04)
         async with upscale_lock:
-            encoded = await execute_workflow(workflow(image_name, min(target_width, target_height), seed, prefix))
+            encoded = await execute_workflow(
+                workflow(image_name, min(target_width, target_height), seed, prefix), request.operation_id
+            )
+        runtime_loaded = True
+        publish_seed_cache_transition(request.operation_id)
+        publish_runtime_operation(
+            request.operation_id, "completed", MODEL_ID, "이미지 업스케일 완료", 1.0, "retain", True
+        )
         return {"created": int(time.time()), "data": [{"b64_json": encoded}], "seed": seed}
     finally:
         input_path.unlink(missing_ok=True)
@@ -279,7 +466,9 @@ async def upscale_video(
     temporal_overlap: int = Form(1),
     start_time: float = Form(0),
     end_time: float = Form(0),
+    operation_id: str = Form(""),
 ) -> FileResponse:
+    global runtime_loaded
     if scale <= 1 or scale > 4:
         raise HTTPException(status_code=400, detail="scale must be greater than 1 and at most 4")
     if batch_size < 1 or (batch_size - 1) % 4 != 0 or batch_size > 21:
@@ -295,6 +484,7 @@ async def upscale_video(
     workflow_relative = relative
     input_path.parent.mkdir(parents=True, exist_ok=True)
     try:
+        publish_runtime_operation(operation_id, "preparing", MODEL_ID, "영상 입력·구간 준비", 0.03)
         with input_path.open("wb") as destination:
             shutil.copyfileobj(video.file, destination, length=8 << 20)
         width, height, duration = probe_video(input_path)
@@ -330,8 +520,14 @@ async def upscale_video(
         prefix = f"seedvr2-api/{uuid.uuid4().hex}"
         async with upscale_lock:
             output_path = await execute_video_workflow(
-                video_workflow(workflow_relative, short_edge, actual_seed, prefix, batch_size, temporal_overlap)
+                video_workflow(workflow_relative, short_edge, actual_seed, prefix, batch_size, temporal_overlap),
+                operation_id,
             )
+        runtime_loaded = True
+        publish_seed_cache_transition(operation_id)
+        publish_runtime_operation(
+            operation_id, "completed", MODEL_ID, "영상 업스케일 완료", 1.0, "retain", True
+        )
         background_tasks.add_task(output_path.unlink, missing_ok=True)
         return FileResponse(
             output_path, media_type="video/mp4", filename=f"{Path(video.filename or 'video').stem}-upscaled.mp4",

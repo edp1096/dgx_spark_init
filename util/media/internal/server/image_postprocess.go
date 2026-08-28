@@ -91,6 +91,13 @@ func (s *Server) runImageDetailEnhance(ctx context.Context, j jobs.Job, source [
 	if seed >= 0 {
 		request["seed"] = seed
 	}
+	if err := s.prepareKreaRequest(ctx, &j, generationModelPlan(j), request); err != nil {
+		if s.requeueGenerationAfterEngineConflict(j, err) {
+			return
+		}
+		s.fail(j, err)
+		return
+	}
 	response, err := s.generateImageWithEngine(ctx, backend, request)
 	if err != nil {
 		if s.requeueGenerationAfterEngineConflict(j, err) {
@@ -180,11 +187,15 @@ func (s *Server) runImageUpscale(ctx context.Context, j jobs.Job, source []byte,
 	request := map[string]any{
 		"model": "seedvr2-3b-fp8", "image": base64.StdEncoding.EncodeToString(source),
 		"scale": scale, "response_format": "b64_json", "output_format": "png",
+		"operation_id": j.ID,
 	}
 	if seed >= 0 {
 		request["seed"] = seed
 	}
+	endpoint := s.config().Engines["upscale"].Endpoint
+	observer := s.startRuntimeObserver(ctx, j.ID, endpoint)
 	response, err := s.upscaleImageWithEngine(ctx, request)
+	observer.Stop()
 	if err != nil {
 		if s.requeueGenerationAfterEngineConflict(j, err) {
 			return

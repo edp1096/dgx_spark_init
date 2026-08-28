@@ -18,6 +18,9 @@ test('image metrics distinguish model and module pipelines', () => {
   assert.notEqual(imageGenerationKey(base), imageGenerationKey(identity))
   assert.ok(imageGenerationWork(identity) > imageGenerationWork(base))
   assert.ok(imageGenerationDistance(base, identity) > 0)
+  const major = { params: { ...base.params, sequence_strategy: 'major', sequence_previous_job_id: 'first' } }
+  assert.ok(imageGenerationWork(major) > imageGenerationWork(base) * 2)
+  assert.notEqual(imageGenerationKey(major), imageGenerationKey(base))
 })
 
 test('video, speech, percentile and ordering helpers remain deterministic', () => {

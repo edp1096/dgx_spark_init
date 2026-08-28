@@ -5,6 +5,7 @@ import {
   generationQueuePosition,
   imageGenerationEstimateSeconds,
   imageGenerationProgress,
+  modelPreparationProgress,
   recognitionProgressPercent,
   recognitionProgressText,
   recognitionQueuePosition,
@@ -42,4 +43,19 @@ test('video, speech and recognition progress produce bounded UI values', () => {
   assert.ok(videoGenerationProgress(video, [video], baseTime).percent >= 5)
   assert.ok(speechGenerationProgress(speech, [speech], baseTime).percent >= 5)
   assert.equal(recognitionProgressPercent({ status: 'running', params: { stage: 'recognition', progress: 2, segments: 4 } }), 50)
+})
+
+test('model loading is a separate timed preparation stage', () => {
+  const preparing = {
+    id: 'preparing', kind: 'image', status: 'running', created_at: '2026-08-27T11:59:40Z',
+    params: {
+      stage: 'model-preparing', model_prepare_started_at: '2026-08-27T11:59:50Z',
+      model_prepare_profile: 'krea-create', model_prepare_label: 'Krea 생성 모델 탑재',
+      model_prepare_estimate_seconds: 40
+    }
+  }
+  const progress = modelPreparationProgress(preparing, [preparing], baseTime)
+  assert.match(progress.label, /Krea 생성 모델 탑재/)
+  assert.equal(progress.elapsed, '10/40초')
+  assert.equal(Math.round(progress.percent), 25)
 })

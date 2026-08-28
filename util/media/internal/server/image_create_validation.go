@@ -18,6 +18,12 @@ func validateImageCreate(mode string, references []string, width, height int, se
 				options.steps = 10
 			}
 		}
+		if options.reidPath != "" && len(sequencePrompts) == 0 {
+			return fmt.Errorf("character ReID is only available for multi-scene generation")
+		}
+		if options.reidPath != "" && options.checkpoint != "official" {
+			return fmt.Errorf("character ReID currently requires the official Krea checkpoint")
+		}
 		if len(options.identityRefPaths) > 0 && options.identityPath == "" {
 			return fmt.Errorf("a primary identity image is required before an additional reference")
 		}
@@ -78,15 +84,12 @@ func validateImageCreate(mode string, references []string, width, height int, se
 		if err := validateAnyPaintOptions(options); err != nil {
 			return err
 		}
-		if options.identityPath != "" && width*height > 2*1024*1024 {
+		if (options.identityPath != "" || options.reidPath != "") && width*height > 2*1024*1024 {
 			return fmt.Errorf("Krea Identity Edit output must not exceed 2 megapixels")
 		}
 		if len(sequencePrompts) > 0 {
 			if options.identityPath != "" || options.depthPath != "" || len(options.visionPaths) > 0 || len(options.styleRefPaths) > 0 || options.nk2ePath != "" || options.anypaintPath != "" {
 				return fmt.Errorf("sequence generation cannot be combined with reference, depth, vision, structure, or partial-edit modules")
-			}
-			if width*height > 2*1024*1024 {
-				return fmt.Errorf("sequence generation must not exceed 2 megapixels")
 			}
 		}
 	case "edit":

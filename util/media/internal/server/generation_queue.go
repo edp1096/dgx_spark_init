@@ -35,6 +35,7 @@ func isGenerationKind(kind string) bool {
 }
 
 func (s *Server) nextQueuedGeneration() (jobs.Job, bool) {
+	s.annotateQueuedModelPlans()
 	var next jobs.Job
 	found := false
 	for _, job := range s.jobs.List() {
@@ -44,24 +45,62 @@ func (s *Server) nextQueuedGeneration() (jobs.Job, bool) {
 		if !s.generationDependencyReady(job) {
 			continue
 		}
-		if !found || generationQueueTime(job).Before(generationQueueTime(next)) ||
-			(generationQueueTime(job).Equal(generationQueueTime(next)) && job.ID < next.ID) {
+		if !found || generationComesBefore(job, next) {
 			next, found = job, true
 		}
 	}
 	return next, found
 }
 
+func (s *Server) annotateQueuedModelPlans() {
+	for _, job := range s.jobs.List() {
+		if !isGenerationKind(job.Kind) || job.Status != "queued" || job.Params == nil || job.Params["model_plan"] != nil {
+			continue
+		}
+		setInitialModelPlan(&job)
+		_ = s.jobs.Save(job)
+	}
+}
+
 func (s *Server) generationDependencyReady(job jobs.Job) bool {
 	previousID := ""
 	if job.Kind == "image" {
-		previousID = decodeImageJobParams(job.Params).SequencePreviousJobID
+		params := decodeImageJobParams(job.Params)
+		if params.SequenceStrategy == "major" && params.SequencePreviousJobID != "" && !params.SequenceDraftReady {
+			previousID = params.SequenceMasterJobID
+		} else {
+			previousID = params.SequencePreviousJobID
+		}
 	}
 	if previousID == "" {
 		return true
 	}
 	previous, ok := s.jobs.Get(previousID)
 	return !ok || (previous.Status != "queued" && previous.Status != "running")
+}
+
+func generationComesBefore(candidate, current jobs.Job) bool {
+	left := decodeImageJobParams(candidate.Params)
+	right := decodeImageJobParams(current.Params)
+	if candidate.Kind == "image" && current.Kind == "image" && left.SequenceID != "" && left.SequenceID == right.SequenceID {
+		leftRank := sequenceQueuePhase(left)
+		rightRank := sequenceQueuePhase(right)
+		if leftRank != rightRank {
+			return leftRank < rightRank
+		}
+	}
+	leftTime, rightTime := generationQueueTime(candidate), generationQueueTime(current)
+	return leftTime.Before(rightTime) || (leftTime.Equal(rightTime) && candidate.ID < current.ID)
+}
+
+func sequenceQueuePhase(params imageJobParams) int {
+	if params.SequenceStrategy == "major" && params.SequencePreviousJobID != "" {
+		if params.SequenceDraftReady {
+			return 2
+		}
+		return 0
+	}
+	return 1
 }
 
 func generationQueueTime(job jobs.Job) time.Time {
@@ -96,7 +135,8 @@ func (s *Server) executeQueuedGeneration(job jobs.Job) {
 		s.generationStateMu.Unlock()
 		return
 	}
-	transitionJobRunning(&current, "running", time.Now())
+	setInitialModelPlan(&current)
+	transitionJobRunning(&current, "model-preparing", time.Now())
 	if err := s.jobs.Save(current); err != nil {
 		s.generationStateMu.Unlock()
 		return
@@ -120,10 +160,29 @@ func (s *Server) executeQueuedGeneration(job jobs.Job) {
 
 	switch current.Kind {
 	case "speech":
+		if err := s.markResidentRuntimeReady(&current, generationModelPlan(current)); err != nil {
+			s.fail(current, err)
+			return
+		}
 		s.runSpeech(ctx, current, decodeSpeechJobParams(current.Params, s.config().Speech))
 	case "video":
 		if decodeVideoJobParams(current.Params).Mode == "upscale" {
+			if err := s.prepareSimpleRuntime(ctx, &current, generationModelPlan(current)); err != nil {
+				if s.requeueGenerationAfterEngineConflict(current, err) {
+					return
+				}
+				s.fail(current, err)
+				return
+			}
 			s.runVideoUpscale(ctx, current)
+			return
+		}
+		videoParams := decodeVideoJobParams(current.Params)
+		if err := s.prepareVideoRuntime(ctx, &current, videoParams); err != nil {
+			if s.requeueGenerationAfterEngineConflict(current, err) {
+				return
+			}
+			s.fail(current, err)
 			return
 		}
 		execution, err := s.loadVideoExecution(current)
@@ -157,7 +216,9 @@ func (s *Server) generationTarget(job jobs.Job) generationEngineTarget {
 		case "upscale":
 			return generationEngineTarget{"upscale", cfg.Engines["upscale"].Endpoint, "waiting_upscale_engine"}
 		case "garment_extract":
-			return generationEngineTarget{}
+			return generationEngineTarget{"garment", cfg.Engines["garment"].Endpoint, "waiting_garment_engine"}
+		case "face_swap":
+			return generationEngineTarget{"faceswap", cfg.Engines["faceswap"].Endpoint, "waiting_faceswap_engine"}
 		case "detail_enhance":
 			mode = "create"
 		}
@@ -193,14 +254,22 @@ func (s *Server) generationEngineBusy(job jobs.Job) bool {
 	}
 	defer response.Body.Close()
 	if response.StatusCode/100 != 2 {
-		return false
+		// ComfyUI-backed APIs can accept TCP connections before their internal
+		// node server is ready. A 503 is a transient engine preparation state;
+		// keep the durable job queued instead of starting it into a predictable
+		// model-prepare failure. Other status codes remain ordinary failures.
+		return response.StatusCode == http.StatusServiceUnavailable
 	}
 	var status struct {
-		Busy bool `json:"busy"`
+		Busy    bool            `json:"busy"`
+		Runtime json.RawMessage `json:"runtime"`
 	}
 	if err := json.NewDecoder(io.LimitReader(response.Body, 64<<10)).Decode(&status); err != nil {
 		return false
 	}
+	s.runtimeCapabilityMu.Lock()
+	s.runtimeCapabilities[endpoint] = len(status.Runtime) > 0 && string(status.Runtime) != "null"
+	s.runtimeCapabilityMu.Unlock()
 	if !status.Busy && target.name != "" {
 		s.engineDrainMu.Lock()
 		delete(s.engineDraining, target.name)
@@ -216,6 +285,7 @@ func isGenerationEngineBusyConflict(err error) bool {
 	}
 	body := strings.ToLower(responseErr.Body)
 	return (strings.Contains(body, "generation") && strings.Contains(body, "running")) ||
+		(strings.Contains(body, "operation") && strings.Contains(body, "running")) ||
 		strings.Contains(body, "engine is busy")
 }
 

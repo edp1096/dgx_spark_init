@@ -12,7 +12,8 @@ export function imageGenerationKey(job) {
     const textEncoder = params.text_encoder || params.encoder || 'default'
     const loraCount = (Array.isArray(params.user_loras) ? params.user_loras.length : 0) + (Array.isArray(params.styles) ? params.styles.length : 0)
     const references = imageReferenceCount(job)
-    return `${mode}|${checkpoint}|${textEncoder}|${sampler}|${params.scheduler || 'simple'}|${steps}|${Number(params.width) || 1024}x${Number(params.height) || 1024}|${modules}|refs:${references}|lora:${loraCount}|vae:${params.vae_mode || params.detail_vae || 'default'}|filter:${params.filter_mode || 'default'}`
+    const sequence = params.sequence_strategy === 'storyboard' ? 'single' : (params.sequence_strategy || 'single')
+    return `${mode}|${checkpoint}|${textEncoder}|${sampler}|${params.scheduler || 'simple'}|${steps}|${Number(params.width) || 1024}x${Number(params.height) || 1024}|${modules}|refs:${references}|lora:${loraCount}|vae:${params.vae_mode || params.detail_vae || 'default'}|filter:${params.filter_mode || 'default'}|sequence:${sequence}`
   }
 
 export function imageReferenceCount(job) {
@@ -33,7 +34,8 @@ export function imageGenerationWork(job) {
     const modules = ['identity', 'depth', 'vision', 'style_reference', 'nk2e', 'anypaint'].filter((name) => params[name]).length
     const references = imageReferenceCount(job)
     const loras = (Array.isArray(params.user_loras) ? params.user_loras.length : 0) + (Array.isArray(params.styles) ? params.styles.length : 0)
-    return megapixels * steps * (1 + modules * .28 + references * .08 + loras * .04)
+    const sequencePasses = params.sequence_strategy === 'major' && params.sequence_previous_job_id ? 2.35 : 1
+    return megapixels * steps * (1 + modules * .28 + references * .08 + loras * .04) * sequencePasses
   }
 
 export function imageGenerationDistance(left, right) {
@@ -41,15 +43,18 @@ export function imageGenerationDistance(left, right) {
     const ratio = Math.abs(Math.log(imageGenerationWork(left) / imageGenerationWork(right)))
     const mode = (a.mode || 'create') === (b.mode || 'create') ? 0 : 8
     const model = (a.checkpoint || a.model || 'official') === (b.checkpoint || b.model || 'official') ? 0 : 3
+    const leftSequence = a.sequence_strategy === 'storyboard' ? 'single' : (a.sequence_strategy || 'single')
+    const rightSequence = b.sequence_strategy === 'storyboard' ? 'single' : (b.sequence_strategy || 'single')
+    const sequence = leftSequence === rightSequence ? 0 : 2
     const moduleMismatch = ['identity', 'depth', 'vision', 'style_reference', 'nk2e', 'anypaint'].reduce((total, key) => total + (Boolean(a[key]) === Boolean(b[key]) ? 0 : .8), 0)
-    return ratio + mode + model + moduleMismatch + Math.abs(imageReferenceCount(left) - imageReferenceCount(right)) * .15
+    return ratio + mode + model + sequence + moduleMismatch + Math.abs(imageReferenceCount(left) - imageReferenceCount(right)) * .15
   }
 
 export function imageJobDurationSeconds(job) {
-    const started = Date.parse(job.params?.started_at || job.created_at || 0)
+    const started = Date.parse(job.params?.generation_started_at || job.params?.started_at || job.created_at || 0)
     const completed = Date.parse(job.updated_at || 0)
     if (!Number.isFinite(started) || !Number.isFinite(completed) || completed <= started) return 0
-    return (completed - started) / 1000
+    return (completed - started) / 1000 + Math.max(0, Number(job.params?.sequence_draft_seconds) || 0)
   }
 
 export function percentile(values, fraction = .5) {
@@ -120,7 +125,7 @@ export function videoGenerationDistance(left, right) {
   }
 
 export function videoGenerationDurationSeconds(job) {
-    const started = Date.parse(job.params?.started_at || job.created_at || 0)
+    const started = Date.parse(job.params?.generation_started_at || job.params?.started_at || job.created_at || 0)
     const completed = Date.parse(job.updated_at || 0)
     if (!Number.isFinite(started) || !Number.isFinite(completed) || completed <= started) return 0
     return (completed - started) / 1000
@@ -148,4 +153,3 @@ export function speechGenerationWork(job) {
 export function orderedJobs(items, order) {
     return order === 'asc' ? [...items].reverse() : items
   }
-

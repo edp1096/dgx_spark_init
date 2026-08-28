@@ -35,6 +35,8 @@ type Server struct {
 	generationCancels    map[string]context.CancelFunc
 	engineDrainMu        sync.Mutex
 	engineDraining       map[string]bool
+	runtimeCapabilityMu  sync.RWMutex
+	runtimeCapabilities  map[string]bool
 	wildcardMu           sync.Mutex
 	wildcardMuse         []string
 	wildcardMuseNoCamera []string
@@ -53,8 +55,9 @@ func New(cfg config.Config, store *jobs.Store, web fs.FS, configPath ...string) 
 		client: &http.Client{Timeout: 2 * time.Hour},
 		health: &http.Client{Timeout: 2 * time.Second},
 		web:    web, subtitleQueueWake: make(chan struct{}, 1), generationQueueWake: make(chan struct{}, 1),
-		generationCancels: make(map[string]context.CancelFunc),
-		engineDraining:    make(map[string]bool),
+		generationCancels:   make(map[string]context.CancelFunc),
+		engineDraining:      make(map[string]bool),
+		runtimeCapabilities: make(map[string]bool),
 	}
 }
 
@@ -89,6 +92,7 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("POST /api/jobs/{id}/video-upscale", s.createVideoUpscale)
 	mux.HandleFunc("POST /api/jobs/{id}/detail-enhance", s.createImageDetailEnhance)
 	mux.HandleFunc("POST /api/jobs/garment-extract", s.createGarmentExtraction)
+	mux.HandleFunc("POST /api/jobs/face-swap", s.createFaceSwap)
 	mux.HandleFunc("POST /api/jobs/speech", s.createSpeech)
 	mux.HandleFunc("POST /api/jobs/recognition", s.createSubtitle)
 	mux.HandleFunc("POST /api/jobs/{id}/subtitle-regenerate", s.regenerateSubtitle)
@@ -97,6 +101,10 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("DELETE /api/storage/temp", s.cleanupMediaTemp)
 	mux.HandleFunc("POST /api/jobs/video", s.createVideo)
 	mux.HandleFunc("POST /api/prompts/enhance", s.enhancePrompt)
+	mux.HandleFunc("POST /api/prompts/character-description", s.describeImageSequenceCharacter)
+	mux.HandleFunc("POST /api/images/character-sheet", s.createImageSequenceCharacterSheet)
+	mux.HandleFunc("GET /api/images/character-sheet/status", s.imageSequenceCharacterSheetStatus)
+	mux.HandleFunc("POST /api/prompts/sequence-plan", s.planImageSequence)
 	mux.HandleFunc("GET /api/prompts/wildcard", s.randomPromptWildcard)
 	mux.HandleFunc("GET /tools/portrait-lab", func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/tools/portrait-lab/", http.StatusTemporaryRedirect)

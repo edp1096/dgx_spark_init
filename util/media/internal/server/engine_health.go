@@ -35,7 +35,7 @@ func (s *Server) engineStates(w http.ResponseWriter, _ *http.Request) {
 		}
 	}
 	states = append(states, state{Kind: "image", Status: defaultImageStatus})
-	for _, kind := range []string{"speech", "recognition", "video", "prompt", "media", "trainer", "upscale", "garment"} {
+	for _, kind := range []string{"speech", "recognition", "video", "prompt", "media", "trainer", "upscale", "garment", "faceswap"} {
 		healthPath := "/health"
 		if kind == "prompt" {
 			healthPath = "/v1/models"

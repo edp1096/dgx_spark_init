@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import asyncio
+import aiohttp
 import base64
 import binascii
 import ctypes
@@ -19,6 +20,7 @@ import time
 import urllib.parse
 import urllib.request
 import uuid
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -80,6 +82,8 @@ REAL_VAE = "krea2RealVae_v10.safetensors"
 WAN_VAE = "wan_2.1_vae.safetensors"
 DEPTH_CONTROL_LORA = "krea2-depth-control-lora.safetensors"
 IDENTITY_EDIT_LORA = "krea2_identity_edit_v1_2.safetensors"
+REID_LORA = "krea2_reid_rank32.safetensors"
+CHARACTER_SHEET_LORA = "QuadView_krea2_v1.safetensors"
 IDENTITY_EDIT_MODEL = "Krea2_Turbo_convrot_int8mixed.safetensors"
 IDENTITY_EDIT_TEXT_ENCODER = "qwen3VLInstruct4bHeretic_int8Convrot.safetensors"
 FILTER_BYPASS_BALANCED = "fedor_bypass.safetensors"
@@ -125,6 +129,14 @@ checkpoint_conversion_current = ""
 checkpoint_conversion_stage = ""
 checkpoint_conversion_done = 0
 checkpoint_conversion_total = 0
+runtime_profile = ""
+runtime_signature = ""
+runtime_stage = "idle"
+runtime_started_at = 0.0
+runtime_last_load_seconds = 0.0
+runtime_error = ""
+runtime_operation: dict[str, Any] | None = None
+runtime_operation_history: list[dict[str, Any]] = []
 
 
 class StyleSelection(BaseModel):
@@ -177,6 +189,8 @@ class ImageRequest(BaseModel):
     control_prompt: str = ""
     prepare_pose_reference: bool = False
     source_image: str | None = None
+    reid_image: str | None = None
+    character_sheet_image: str | None = None
     reference_image: str | None = None
     reference_images: list[str] = Field(default_factory=list)
     identity_mask: str | None = None
@@ -225,6 +239,9 @@ class ImageRequest(BaseModel):
     detail_enhance_image: str | None = None
     detail_strength: float = 1.0
     detail_vae: str = "wan"
+    prepare_only: bool = False
+    runtime_profile: str = Field(default="", max_length=128)
+    operation_id: str = Field(default="", max_length=128)
 
 
 class SegmentRequest(BaseModel):
@@ -746,6 +763,135 @@ def style_reference_workflow(
         graph[node_id] = {"class_type": "LoadImage", "inputs": {"image": image_name}}
         encode_inputs[f"image{index}"] = [node_id, 0]
     return graph
+
+
+def reid_workflow(
+    prompt: str,
+    width: int,
+    height: int,
+    seed: int,
+    prefix: str,
+    reference_name: str,
+    steps: int,
+    styles: list[StyleSelection],
+    user_loras: list[UserLoRASelection],
+) -> dict[str, Any]:
+    """Official Krea 2 ReID graph for independent character-scene generation."""
+    graph: dict[str, Any] = {
+        "1": {
+            "class_type": "UNETLoader",
+            "inputs": {"unet_name": IDENTITY_EDIT_MODEL, "weight_dtype": "default"},
+        },
+        "2": {
+            "class_type": "CLIPLoader",
+            "inputs": {"clip_name": VISION_TEXT_ENCODER, "type": "krea2", "device": "default"},
+        },
+        "3": {"class_type": "VAELoader", "inputs": {"vae_name": VAE}},
+        "4": {"class_type": "LoadImage", "inputs": {"image": reference_name}},
+        "5": {
+            "class_type": "ImageScaleToTotalPixels",
+            "inputs": {
+                "image": ["4", 0],
+                "upscale_method": "area",
+                "megapixels": 0.140625,
+                "resolution_steps": 16,
+            },
+        },
+        "6": {
+            "class_type": "TextEncodeKrea2OstrisEdit",
+            "inputs": {"clip": ["2", 0], "prompt": prompt, "vae": ["3", 0], "image1": ["5", 0]},
+        },
+        "7": {
+            "class_type": "TextEncodeKrea2OstrisEdit",
+            "inputs": {"clip": ["2", 0], "prompt": "", "vae": ["3", 0], "image1": ["5", 0]},
+        },
+        "8": {
+            "class_type": "FluxKontextMultiReferenceLatentMethod",
+            "inputs": {"conditioning": ["6", 0], "reference_latents_method": "index_timestep_zero"},
+        },
+        "9": {
+            "class_type": "FluxKontextMultiReferenceLatentMethod",
+            "inputs": {"conditioning": ["7", 0], "reference_latents_method": "index_timestep_zero"},
+        },
+        "10": {
+            "class_type": "LoraLoaderModelOnly",
+            "inputs": {"model": ["1", 0], "lora_name": REID_LORA, "strength_model": 1.0},
+        },
+        "11": {
+            "class_type": "Krea2OstrisEditModelPatch",
+            "inputs": {"model": ["10", 0], "kv_cache": True},
+        },
+        "12": {
+            "class_type": "EmptyLatentImage",
+            "inputs": {"width": width, "height": height, "batch_size": 1},
+        },
+        "13": {
+            "class_type": "KSampler",
+            "inputs": {
+                "model": ["11", 0],
+                "positive": ["8", 0],
+                "negative": ["9", 0],
+                "latent_image": ["12", 0],
+                "seed": seed,
+                "steps": max(8, steps),
+                "cfg": 1.0,
+                "sampler_name": "euler",
+                "scheduler": "simple",
+                "denoise": 1.0,
+            },
+        },
+        "14": {"class_type": "VAEDecode", "inputs": {"samples": ["13", 0], "vae": ["3", 0]}},
+        "15": {"class_type": "SaveImage", "inputs": {"filename_prefix": prefix, "images": ["14", 0]}},
+    }
+    model_input: list[Any] = ["10", 0]
+    next_id = 20
+    for style in styles:
+        graph[str(next_id)] = {
+            "class_type": "LoraLoaderModelOnly",
+            "inputs": {
+                "model": model_input,
+                "lora_name": STYLE_LORAS[style.name],
+                "strength_model": style.strength,
+            },
+        }
+        model_input = [str(next_id), 0]
+        next_id += 1
+    for selection in user_loras:
+        graph[str(next_id)] = {
+            "class_type": "LoraLoaderModelOnly",
+            "inputs": {
+                "model": model_input,
+                "lora_name": f"user/{selection.filename}",
+                "strength_model": selection.strength,
+            },
+        }
+        model_input = [str(next_id), 0]
+        next_id += 1
+    graph["11"]["inputs"]["model"] = model_input
+    return graph
+
+
+def character_sheet_workflow(reference_name: str, seed: int, prefix: str, steps: int) -> dict[str, Any]:
+    """Experimental CharacterSheet QuadView candidate; never replaces ReID automatically."""
+    prompt = (
+        "Convert the character in the image to a character sheet showing a face close-up, "
+        "front full body, side full body and back full body views"
+    )
+    return {
+        "1": {"class_type": "UNETLoader", "inputs": {"unet_name": IDENTITY_EDIT_MODEL, "weight_dtype": "default"}},
+        "2": {"class_type": "CLIPLoader", "inputs": {"clip_name": TEXT_ENCODER, "type": "krea2", "device": "default"}},
+        "3": {"class_type": "VAELoader", "inputs": {"vae_name": VAE}},
+        "4": {"class_type": "LoadImage", "inputs": {"image": reference_name}},
+        "5": {"class_type": "VAEEncode", "inputs": {"pixels": ["4", 0], "vae": ["3", 0]}},
+        "6": {"class_type": "LoraLoaderModelOnly", "inputs": {"model": ["1", 0], "lora_name": CHARACTER_SHEET_LORA, "strength_model": 1.0}},
+        "7": {"class_type": "Krea2EditModelPatch", "inputs": {"model": ["6", 0], "source_latent": ["5", 0], "ref_boost": 1.0, "ref_boost_a": 1.0, "fit_mode": "fit", "vae": ["3", 0], "source_image": ["4", 0]}},
+        "8": {"class_type": "Krea2EditGroundedEncode", "inputs": {"clip": ["2", 0], "prompt": prompt, "grounding_px": 0, "system_prompt": "", "image": ["4", 0]}},
+        "9": {"class_type": "Krea2EditGroundedEncode", "inputs": {"clip": ["2", 0], "prompt": "", "grounding_px": 768, "system_prompt": "", "image": ["4", 0]}},
+        "10": {"class_type": "EmptySD3LatentImage", "inputs": {"width": 1536, "height": 1024, "batch_size": 1}},
+        "11": {"class_type": "KSampler", "inputs": {"model": ["7", 0], "positive": ["8", 0], "negative": ["9", 0], "latent_image": ["10", 0], "seed": seed, "steps": max(10, steps), "cfg": 1.0, "sampler_name": "euler", "scheduler": "simple", "denoise": 1.0}},
+        "12": {"class_type": "VAEDecode", "inputs": {"samples": ["11", 0], "vae": ["3", 0]}},
+        "13": {"class_type": "SaveImage", "inputs": {"filename_prefix": prefix, "images": ["12", 0]}},
+    }
 
 
 def detail_enhance_workflow(
@@ -1410,19 +1556,62 @@ async def wait_for_output(client: httpx.AsyncClient, prompt_id: str) -> dict[str
     raise TimeoutError("image generation timed out")
 
 
-async def execute_workflow(graph: dict[str, Any]) -> str:
+async def execute_workflow(graph: dict[str, Any], operation_id: str = "") -> str:
     image: dict[str, Any] | None = None
     try:
-        async with httpx.AsyncClient(timeout=30 * 60) as client:
-            submitted = await client.post(f"{COMFY_URL}/prompt", json={"prompt": graph})
-            submitted.raise_for_status()
-            body = submitted.json()
-            if body.get("node_errors"):
-                raise RuntimeError(f"invalid workflow: {body['node_errors']}")
-            image = await wait_for_output(client, body["prompt_id"])
-            viewed = await client.get(f"{COMFY_URL}/view", params=image)
-            viewed.raise_for_status()
-            return base64.b64encode(viewed.content).decode("ascii")
+        client_id = uuid.uuid4().hex
+        ws_url = COMFY_URL.replace("http://", "ws://").replace("https://", "wss://") + f"/ws?clientId={client_id}"
+        async with aiohttp.ClientSession() as session:
+            async with session.ws_connect(ws_url, heartbeat=30, receive_timeout=30 * 60) as websocket:
+                async with httpx.AsyncClient(timeout=30 * 60) as client:
+                    submitted = await client.post(
+                        f"{COMFY_URL}/prompt", json={"prompt": graph, "client_id": client_id}
+                    )
+                    submitted.raise_for_status()
+                    body = submitted.json()
+                    if body.get("node_errors"):
+                        raise RuntimeError(f"invalid workflow: {body['node_errors']}")
+                    prompt_id = body["prompt_id"]
+                    while True:
+                        message = await websocket.receive()
+                        if message.type == aiohttp.WSMsgType.ERROR:
+                            raise RuntimeError(f"ComfyUI websocket failed: {websocket.exception()}")
+                        if message.type != aiohttp.WSMsgType.TEXT:
+                            continue
+                        event = json.loads(message.data)
+                        data = event.get("data") or {}
+                        if data.get("prompt_id") != prompt_id:
+                            continue
+                        event_type = event.get("type")
+                        if event_type == "execution_error":
+                            raise RuntimeError(f"ComfyUI generation failed: {data}")
+                        if event_type == "progress":
+                            current = float(data.get("value") or 0)
+                            total = max(1.0, float(data.get("max") or 1))
+                            ratio = max(0.0, min(1.0, current / total))
+                            publish_runtime_operation(
+                                operation_id,
+                                "sampling",
+                                "Krea sampler",
+                                f"이미지 확산 추론 {int(current)}/{int(total)}",
+                                0.55 + ratio * 0.30,
+                                "",
+                            )
+                            continue
+                        if event_type == "executing":
+                            node_id = data.get("node")
+                            if node_id is None:
+                                break
+                            phase, component, detail, progress, memory_action = comfy_node_runtime_phase(
+                                graph, str(node_id)
+                            )
+                            publish_runtime_operation(
+                                operation_id, phase, component, detail, progress, memory_action
+                            )
+                    image = await wait_for_output(client, prompt_id)
+                    viewed = await client.get(f"{COMFY_URL}/view", params=image)
+                    viewed.raise_for_status()
+                    return base64.b64encode(viewed.content).decode("ascii")
     finally:
         if image is not None:
             candidate = (OUTPUT_ROOT / image["subfolder"] / image["filename"]).resolve()
@@ -1681,7 +1870,135 @@ async def health() -> dict[str, Any]:
         "status": "ok",
         "busy": generation_lock.locked(),
         "segmenting": segmentation_lock.locked(),
+        "runtime": runtime_status(),
     }
+
+
+def request_runtime_profile(request: ImageRequest) -> str:
+    if request.runtime_profile:
+        return request.runtime_profile
+    if request.detail_enhance_image:
+        return "krea-detail"
+    if request.anypaint_image:
+        return "krea-anypaint"
+    if request.nk2e_image:
+        return f"krea-nk2e-{request.nk2e_mode}"
+    if request.style_reference_images:
+        return "krea-style-reference"
+    if request.character_sheet_image:
+        return "krea-character-sheet"
+    if request.reid_image:
+        return "krea-reid"
+    if request.source_image:
+        return f"krea-identity-{request.identity_model}-{request.identity_encoder}"
+    if request.control_image:
+        return "krea-depth"
+    if request.vision_images:
+        return f"krea-vision-{request.vision_mode}"
+    return "krea-create"
+
+
+def request_runtime_signature(request: ImageRequest) -> str:
+    value = {
+        "profile": request_runtime_profile(request),
+        "checkpoint": request.checkpoint,
+        "reid": bool(request.reid_image),
+        "character_sheet": bool(request.character_sheet_image),
+        "identity_model": request.identity_model if request.source_image else "",
+        "identity_encoder": request.identity_encoder if request.source_image else "",
+        "vae": request.detail_vae if request.detail_enhance_image else request.vae_mode,
+        "styles": [(item.name, round(item.strength, 4)) for item in request.styles],
+        "user_loras": [(item.filename, round(item.strength, 4)) for item in request.user_loras],
+        "filter": (request.filter_mode, request.filter_strength),
+        "prompt_enhancer": (request.prompt_enhancer, round(request.prompt_enhancer_strength, 4)),
+    }
+    return hashlib.sha256(json.dumps(value, sort_keys=True).encode("utf-8")).hexdigest()[:16]
+
+
+def publish_runtime_operation(
+    operation_id: str,
+    phase: str,
+    component: str,
+    detail: str,
+    progress: float = 0.0,
+    memory_action: str = "",
+    resident_after: bool | None = None,
+) -> None:
+    global runtime_operation, runtime_operation_history
+    if not operation_id:
+        return
+    now = datetime.now(timezone.utc).isoformat()
+    started_at = now
+    if runtime_operation and runtime_operation.get("operation_id") == operation_id:
+        if runtime_operation.get("phase") == phase and runtime_operation.get("component") == component:
+            started_at = str(runtime_operation.get("started_at") or now)
+    if runtime_operation and runtime_operation.get("operation_id") != operation_id:
+        runtime_operation_history = []
+    runtime_operation = {
+        "operation_id": operation_id,
+        "phase": phase,
+        "component": component,
+        "detail": detail,
+        "progress": max(0.0, min(1.0, progress)),
+        "memory_action": memory_action,
+        "resident_after": resident_after,
+        "started_at": started_at,
+        "updated_at": now,
+    }
+    if not runtime_operation_history or any(
+        runtime_operation_history[-1].get(key) != runtime_operation.get(key)
+        for key in ("phase", "component", "detail", "memory_action", "resident_after")
+    ):
+        runtime_operation_history.append(dict(runtime_operation))
+        runtime_operation_history = runtime_operation_history[-32:]
+
+
+def comfy_node_runtime_phase(graph: dict[str, Any], node_id: str) -> tuple[str, str, str, float, str]:
+    class_type = str((graph.get(str(node_id)) or {}).get("class_type", ""))
+    lowered = class_type.lower()
+    if "loadimage" in lowered:
+        return "preparing", class_type or "입력 이미지", "참조 이미지 로딩", 0.14, ""
+    if any(token in lowered for token in ("loader", "loadmodel", "loadvae", "cliploader")):
+        return "model_loading", class_type or "ComfyUI 모델", "모델·LoRA 가중치 탑재", 0.18, "load"
+    if "vaeencode" in lowered:
+        return "conditioning", class_type or "VAE 인코더", "참조 이미지를 잠재 조건으로 변환", 0.40, ""
+    if any(token in lowered for token in ("textencode", "encode", "conditioning", "visualstyleref")) and "vae" not in lowered:
+        return "conditioning", class_type or "조건 인코더", "프롬프트·참조 조건 인코딩", 0.32, ""
+    if "modelpatch" in lowered:
+        return "conditioning", class_type or "편집 모델", "참조 조건을 생성 모델에 적용", 0.48, ""
+    if any(token in lowered for token in ("sampler", "sampling", "guider")):
+        return "sampling", class_type or "Krea 샘플러", "이미지 확산 추론", 0.55, ""
+    if "decode" in lowered or "vae" in lowered:
+        return "decoding", class_type or "VAE", "잠재 이미지 디코딩", 0.88, ""
+    if any(token in lowered for token in ("saveimage", "previewimage")):
+        return "finalizing", class_type or "이미지 출력", "결과 이미지 저장", 0.96, ""
+    return "sampling", class_type or "ComfyUI 그래프", "이미지 그래프 실행", 0.48, ""
+
+
+def runtime_status() -> dict[str, Any]:
+    elapsed = max(0.0, time.monotonic() - runtime_started_at) if runtime_started_at else 0.0
+    return {
+        "status": runtime_stage,
+        "profile": runtime_profile,
+        "signature": runtime_signature,
+        "preparing": runtime_stage == "preparing",
+        "elapsed_seconds": round(elapsed, 3) if runtime_stage in {"preparing", "generating"} else 0,
+        "last_load_seconds": round(runtime_last_load_seconds, 3),
+        "error": runtime_error,
+        "operation": runtime_operation,
+        "operation_history": runtime_operation_history,
+    }
+
+
+@app.get("/v1/models/runtime/status")
+async def model_runtime_status(operation_id: str = "") -> dict[str, Any]:
+    if not await comfy_ready():
+        raise HTTPException(status_code=503, detail="NVFP4 runtime is starting")
+    status = runtime_status()
+    if operation_id and (not runtime_operation or runtime_operation.get("operation_id") != operation_id):
+        status["operation"] = None
+        status["operation_history"] = []
+    return status
 
 
 @app.get("/v1/models")
@@ -1983,6 +2300,8 @@ async def segment(request: SegmentRequest) -> dict[str, Any]:
 
 @app.post("/v1/images/generations")
 async def generate(request: ImageRequest) -> dict[str, Any]:
+    global runtime_profile, runtime_signature, runtime_stage
+    global runtime_started_at, runtime_last_load_seconds, runtime_error
     if request.model not in MODEL_ALIASES:
         raise HTTPException(status_code=400, detail=f"model mismatch: {request.model}")
     if request.n != 1:
@@ -1999,6 +2318,10 @@ async def generate(request: ImageRequest) -> dict[str, Any]:
         raise HTTPException(status_code=409, detail=f"checkpoint is not prepared: {request.checkpoint}")
     if request.checkpoint != "official" and request.filter_mode != "off":
         raise HTTPException(status_code=400, detail="third-party checkpoints already include tuning; set filter_mode=off")
+    if request.reid_image and request.checkpoint != "official":
+        raise HTTPException(status_code=400, detail="Krea ReID currently requires the official checkpoint")
+    if request.character_sheet_image and request.checkpoint != "official":
+        raise HTTPException(status_code=400, detail="CharacterSheet currently requires the official checkpoint")
     diffusion_model = CHECKPOINT_MODELS[request.checkpoint]
     if request.sampler_name not in {None, "euler", "euler_ancestral", "er_sde"}:
         raise HTTPException(status_code=400, detail="sampler_name must be euler, euler_ancestral, or er_sde")
@@ -2021,6 +2344,30 @@ async def generate(request: ImageRequest) -> dict[str, Any]:
         raise HTTPException(status_code=400, detail="at most three identity reference images are supported")
     if reference_images and not request.source_image:
         raise HTTPException(status_code=400, detail="identity references require source_image")
+    if request.reid_image and (
+        request.source_image
+        or request.control_image
+        or request.vision_images
+        or request.style_reference_images
+        or request.nk2e_image
+        or request.anypaint_image
+        or request.detail_enhance_image
+    ):
+        raise HTTPException(status_code=400, detail="Krea ReID cannot be combined with other image-reference modules")
+    if request.character_sheet_image and (
+        request.reid_image
+        or request.source_image
+        or request.control_image
+        or request.vision_images
+        or request.style_reference_images
+        or request.nk2e_image
+        or request.anypaint_image
+        or request.detail_enhance_image
+        or request.style is not None
+        or request.styles
+        or request.user_loras
+    ):
+        raise HTTPException(status_code=400, detail="CharacterSheet cannot be combined with other modules")
     if not 384 <= request.grounding_px <= 1024:
         raise HTTPException(status_code=400, detail="grounding_px must be between 384 and 1024")
     if request.style not in {None, *STYLE_LORAS}:
@@ -2182,7 +2529,28 @@ async def generate(request: ImageRequest) -> dict[str, Any]:
     anypaint_mask_path: Path | None = None
     detail_path: Path | None = None
 
+    target_profile = request_runtime_profile(request)
+    target_signature = request_runtime_signature(request)
+    if request.prepare_only and runtime_stage == "ready" and runtime_signature == target_signature:
+        return {
+            "created": int(time.time()),
+            "prepared": True,
+            "warm": True,
+            "profile": runtime_profile,
+            "signature": runtime_signature,
+            "load_seconds": 0,
+        }
     async with generation_lock:
+        runtime_stage = "preparing" if request.prepare_only else "generating"
+        runtime_started_at = time.monotonic()
+        runtime_error = ""
+        publish_runtime_operation(
+            request.operation_id,
+            "preparing",
+            target_profile,
+            "Krea 실행 그래프와 입력 준비",
+            0.04,
+        )
         try:
             depth_name: str | None = None
             # A pose image used together with Identity Edit is a semantic source-B
@@ -2295,6 +2663,24 @@ async def generate(request: ImageRequest) -> dict[str, Any]:
                     request.style_reference_strength,
                     steps,
                 )
+            elif request.character_sheet_image:
+                source_name, source_path = await asyncio.to_thread(save_input, request.character_sheet_image, "krea-character-sheet")
+                graph = character_sheet_workflow(source_name, seed, prefix, steps)
+            elif request.reid_image:
+                source_name, source_path = await asyncio.to_thread(
+                    save_input, request.reid_image, "krea-reid"
+                )
+                graph = reid_workflow(
+                    prompt,
+                    width,
+                    height,
+                    seed,
+                    prefix,
+                    source_name,
+                    steps,
+                    styles,
+                    user_loras,
+                )
             elif request.source_image:
                 source_name, source_path = await asyncio.to_thread(
                     save_input, request.source_image, "krea-edit"
@@ -2396,28 +2782,50 @@ async def generate(request: ImageRequest) -> dict[str, Any]:
                         request.vision_mode,
                         request.vision_megapixels,
                     )
-            graph = apply_filter_bypass(graph, request.filter_mode, request.filter_strength)
-            graph = apply_prompt_enhancer(
-                graph,
-                request.prompt_enhancer,
-                request.prompt_enhancer_strength,
-                request.prompt_text_scale,
-            )
+            if not request.reid_image and not request.character_sheet_image:
+                graph = apply_filter_bypass(graph, request.filter_mode, request.filter_strength)
+                graph = apply_prompt_enhancer(
+                    graph,
+                    request.prompt_enhancer,
+                    request.prompt_enhancer_strength,
+                    request.prompt_text_scale,
+                )
             recommended_sampler, recommended_scheduler = CHECKPOINT_SAMPLING.get(
                 request.checkpoint,
                 ("euler", "simple"),
             )
-            sampler_name = request.sampler_name or (
+            sampler_name = "euler" if request.reid_image or request.character_sheet_image else request.sampler_name or (
                 "er_sde" if detail_name is not None else recommended_sampler
             )
-            scheduler = request.scheduler or recommended_scheduler
+            scheduler = "simple" if request.reid_image or request.character_sheet_image else request.scheduler or recommended_scheduler
             graph = apply_sampling(graph, sampler_name, scheduler)
-            if "3" in graph and detail_name is None:
+            if "3" in graph and detail_name is None and not request.reid_image and not request.character_sheet_image:
                 if request.vae_mode == "real":
                     graph["3"]["inputs"]["vae_name"] = REAL_VAE
                 elif request.vae_mode == "wan":
                     graph["3"]["inputs"]["vae_name"] = WAN_VAE
-            encoded = await execute_workflow(graph)
+            publish_runtime_operation(
+                request.operation_id,
+                "model_loading",
+                target_profile,
+                "체크포인트·인코더·VAE·LoRA 상태 확인 및 탑재",
+                0.1,
+                "load",
+            )
+            encoded = await execute_workflow(graph, request.operation_id)
+            runtime_profile = target_profile
+            runtime_signature = target_signature
+            runtime_last_load_seconds = time.monotonic() - runtime_started_at
+            runtime_stage = "ready"
+            publish_runtime_operation(
+                request.operation_id,
+                "cache_retaining",
+                target_profile,
+                "ComfyUI 모델 캐시 유지",
+                0.98,
+                "retain",
+                True,
+            )
             if strict_mask_path is not None and source_path is not None:
                 encoded = await asyncio.to_thread(
                     composite_strict_mask,
@@ -2428,6 +2836,8 @@ async def generate(request: ImageRequest) -> dict[str, Any]:
                     request.strict_mask_feather,
                 )
         except (httpx.HTTPError, KeyError, RuntimeError, TimeoutError) as exc:
+            runtime_error = str(exc)
+            runtime_stage = "error"
             raise HTTPException(status_code=500, detail=str(exc)) from exc
         finally:
             if depth_path is not None:
@@ -2455,6 +2865,32 @@ async def generate(request: ImageRequest) -> dict[str, Any]:
             if detail_path is not None:
                 detail_path.unlink(missing_ok=True)
 
+    if request.prepare_only:
+        publish_runtime_operation(
+            request.operation_id,
+            "completed",
+            target_profile,
+            "요청한 Krea 런타임 준비 완료",
+            1.0,
+            "retain",
+            True,
+        )
+        return {
+            "created": int(time.time()),
+            "prepared": True,
+            "profile": runtime_profile,
+            "signature": runtime_signature,
+            "load_seconds": runtime_last_load_seconds,
+        }
+    publish_runtime_operation(
+        request.operation_id,
+        "completed",
+        target_profile,
+        "이미지 생성과 캐시 정리 완료",
+        1.0,
+        "retain",
+        True,
+    )
     response = {"created": int(time.time()), "seed": seed, "data": [{"b64_json": encoded}]}
     if depth_preview is not None:
         response["control_b64_json"] = depth_preview

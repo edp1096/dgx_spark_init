@@ -1,6 +1,9 @@
 <script>
   import { onDestroy } from 'svelte'
   import { lockModalScroll } from './modalScroll.js'
+  import ResultPagination from './ResultPagination.svelte'
+  import { imagePageSizeOptions } from './lib/catalogs.js'
+  import { clampPage, pageItems } from './lib/jobLists.js'
 
   export let open = false
   export let title = '최근 결과에서 선택'
@@ -12,11 +15,25 @@
 
   let releaseScroll = null
   let visibleJobs = []
+  let pagedJobs = []
+  let page = 1
+  let pageSize = 16
+  let sortOrder = 'desc'
+  let wasOpen = false
 
   $: visibleJobs = jobs
     .filter((job) => job.kind === 'image' && job.status === 'completed' && job.output_url)
     .slice()
-    .sort((a, b) => Date.parse(b.created_at || 0) - Date.parse(a.created_at || 0))
+    .sort((a, b) => (sortOrder === 'asc' ? 1 : -1) * (Date.parse(a.created_at || 0) - Date.parse(b.created_at || 0)))
+  $: page = clampPage(page, visibleJobs.length, pageSize)
+  $: pagedJobs = pageItems(visibleJobs, page, pageSize)
+
+  $: {
+    if (open && !wasOpen) {
+      page = 1
+      wasOpen = true
+    } else if (!open) wasOpen = false
+  }
 
   $: {
     if (open && !releaseScroll) releaseScroll = lockModalScroll()
@@ -33,6 +50,16 @@
     event.stopImmediatePropagation()
     onClose()
   }
+
+  function setPageSize(value) {
+    pageSize = imagePageSizeOptions.includes(Number(value)) ? Number(value) : 16
+    page = 1
+  }
+
+  function setSortOrder(value) {
+    sortOrder = value === 'asc' ? 'asc' : 'desc'
+    page = 1
+  }
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
@@ -44,18 +71,22 @@
         <div><strong>{title}</strong><small>Spark Media에 저장된 결과를 원본 그대로 재사용합니다.</small></div>
         <button type="button" aria-label="닫기" onclick={onClose}>×</button>
       </header>
-      <div class="recent-image-picker-grid">
-        {#each visibleJobs as job (job.id)}
-          {@const ref = `${job.id}:output:0`}
-          <button type="button" class:selected={selectedRef === ref} title={job.prompt || '생성 이미지'} onclick={() => onSelect(job)}>
-            <img src={job.output_url} alt={job.prompt || '생성 이미지'} loading="lazy">
-            <span>{job.prompt || '프롬프트 없음'}</span>
-            <small>{job.params?.width || '—'}×{job.params?.height || '—'} · {new Date(job.created_at).toLocaleString()}</small>
-            {#if selectedRef === ref}<i>현재 선택</i>{/if}
-          </button>
-        {:else}
-          <p class="recent-image-picker-empty">선택할 수 있는 완료 이미지가 없습니다.</p>
-        {/each}
+      <div class="recent-image-picker-content">
+        <ResultPagination label={title} total={visibleJobs.length} {page} {pageSize} pageSizes={imagePageSizeOptions} {sortOrder} onPageChange={(value) => page = value} onPageSizeChange={setPageSize} onSortOrderChange={setSortOrder} />
+        <div class="recent-image-picker-grid">
+          {#each pagedJobs as job (job.id)}
+            {@const ref = `${job.id}:output:0`}
+            <button type="button" class:selected={selectedRef === ref} title={job.prompt || '생성 이미지'} onclick={() => onSelect(job)}>
+              <img src={job.output_url} alt={job.prompt || '생성 이미지'} loading="lazy">
+              <span>{job.prompt || '프롬프트 없음'}</span>
+              <small>{job.params?.width || '—'}×{job.params?.height || '—'} · {new Date(job.created_at).toLocaleString()}</small>
+              {#if selectedRef === ref}<i>현재 선택</i>{/if}
+            </button>
+          {:else}
+            <p class="recent-image-picker-empty">선택할 수 있는 완료 이미지가 없습니다.</p>
+          {/each}
+        </div>
+        <ResultPagination compact label={title} total={visibleJobs.length} {page} {pageSize} onPageChange={(value) => page = value} />
       </div>
       <footer><span>{visibleJobs.length}개 결과</span><button type="button" onclick={onClose}>닫기</button></footer>
     </div>
@@ -70,7 +101,10 @@
   header strong { color:#e3e8eb; font-size:14px; }
   header small { color:#76818a; font-size:9px; }
   header button { flex:0 0 auto; width:32px; height:32px; padding:0; border:1px solid #394148; border-radius:8px; color:#aab2b8; background:#191e22; font-size:18px; }
-  .recent-image-picker-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); grid-auto-rows:max-content; align-content:start; align-items:start; gap:10px; overflow-y:auto; padding:14px; }
+  .recent-image-picker-content { display:grid; min-height:0; grid-template-rows:auto minmax(0,1fr) auto; overflow:hidden; padding:10px 14px; }
+  .recent-image-picker-content :global(.result-pagination) { margin:0 0 9px; }
+  .recent-image-picker-content :global(.result-pagination.compact) { margin:9px 0 0; }
+  .recent-image-picker-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); grid-auto-rows:max-content; align-content:start; align-items:start; gap:10px; overflow-y:auto; padding:0 2px; }
   .recent-image-picker-grid > button { position:relative; align-self:start; min-width:0; height:auto; overflow:hidden; padding:0 0 9px; border:1px solid #30383e; border-radius:10px; color:#c7ced2; background:#171c20; text-align:left; }
   .recent-image-picker-grid > button:hover { border-color:#60734f; }
   .recent-image-picker-grid > button.selected { border-color:#a8dc72; box-shadow:0 0 0 2px #a8dc7222; }
@@ -88,7 +122,8 @@
     .recent-image-picker { width:100vw; height:100dvh; border:0; border-radius:0; }
     header { min-height:52px; padding:9px 11px; }
     header small { display:none; }
-    .recent-image-picker-grid { grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; padding:8px; }
+    .recent-image-picker-content { padding:8px; }
+    .recent-image-picker-grid { grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; padding:0; }
     .recent-image-picker-grid span { margin:6px 6px 0; font-size:8px; }
     .recent-image-picker-grid small { margin:2px 6px 0; font-size:7px; }
     footer { padding:8px 10px; }

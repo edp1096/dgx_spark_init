@@ -31,8 +31,10 @@ func (s *Server) runVideoUpscale(ctx context.Context, j jobs.Job) {
 		"temporal_overlap": strconv.Itoa(params.TemporalOverlap),
 		"start_time":       strconv.FormatFloat(params.SourceStartTime, 'f', -1, 64),
 		"end_time":         strconv.FormatFloat(params.SourceEndTime, 'f', -1, 64),
+		"operation_id":     j.ID,
 	}
 	endpoint := strings.TrimRight(cfg.Engines["upscale"].Endpoint, "/") + "/v1/videos/upscale"
+	observer := s.startRuntimeObserver(ctx, j.ID, cfg.Engines["upscale"].Endpoint)
 	output := s.jobs.OutputPath(j.ID + ".mp4")
 	var headers http.Header
 	var err error
@@ -46,6 +48,7 @@ func (s *Server) runVideoUpscale(ctx context.Context, j jobs.Job) {
 	} else {
 		err = fmt.Errorf("source video is no longer available")
 	}
+	observer.Stop()
 	if err != nil {
 		_ = os.Remove(output)
 		if s.requeueGenerationAfterEngineConflict(j, err) {

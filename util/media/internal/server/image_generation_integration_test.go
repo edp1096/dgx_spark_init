@@ -115,12 +115,11 @@ func TestImageJobCompletesThroughEngine(t *testing.T) {
 	t.Fatalf("job did not complete: %#v", store.List())
 }
 
-func TestImageSequenceUsesPreviousResultAsIdentity(t *testing.T) {
+func TestStoryboardScenesGenerateIndependently(t *testing.T) {
 	type engineRequest struct {
-		Prompt           string  `json:"prompt"`
-		SourceImage      string  `json:"source_image"`
-		Steps            int     `json:"steps"`
-		IdentityStrength float64 `json:"identity_strength"`
+		Prompt      string `json:"prompt"`
+		SourceImage string `json:"source_image"`
+		Steps       int    `json:"steps"`
 	}
 	requests := make(chan engineRequest, 2)
 	worker := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -134,11 +133,7 @@ func TestImageSequenceUsesPreviousResultAsIdentity(t *testing.T) {
 			return
 		}
 		requests <- request
-		result := "first scene png"
-		if request.SourceImage != "" {
-			result = "second scene png"
-		}
-		_ = json.NewEncoder(w).Encode(map[string]any{"data": []map[string]string{{"b64_json": base64.StdEncoding.EncodeToString([]byte(result))}}})
+		_ = json.NewEncoder(w).Encode(map[string]any{"data": []map[string]string{{"b64_json": base64.StdEncoding.EncodeToString([]byte("scene png"))}}})
 	}))
 	defer worker.Close()
 
@@ -161,6 +156,7 @@ func TestImageSequenceUsesPreviousResultAsIdentity(t *testing.T) {
 	_ = form.WriteField("mode", "create")
 	_ = form.WriteField("steps", "8")
 	_ = form.WriteField("sequence_prompts", `["same woman in a quiet room","she walks toward the window"]`)
+	_ = form.WriteField("sequence_enhanced_prompts", `["A woman reads in a quiet room.","The same woman looks through a window in a city library."]`)
 	_ = form.Close()
 	req := httptest.NewRequest(http.MethodPost, "/api/jobs/image", &body)
 	req.Header.Set("Content-Type", form.FormDataContentType())
@@ -196,19 +192,47 @@ func TestImageSequenceUsesPreviousResultAsIdentity(t *testing.T) {
 	}
 	firstRequest := <-requests
 	secondRequest := <-requests
-	if firstRequest.SourceImage != "" || firstRequest.Prompt != "same woman in a quiet room" || firstRequest.Steps != 8 {
+	if firstRequest.SourceImage != "" || firstRequest.Prompt != "A woman reads in a quiet room." || firstRequest.Steps != 8 {
 		t.Fatalf("unexpected first request: %#v", firstRequest)
 	}
-	source, err := base64.StdEncoding.DecodeString(secondRequest.SourceImage)
-	if err != nil || string(source) != "first scene png" {
-		t.Fatalf("second source=%q err=%v request=%#v", source, err, secondRequest)
-	}
-	if !strings.Contains(secondRequest.Prompt, "Change: she walks toward the window") || !strings.Contains(secondRequest.Prompt, "Preserve:") || secondRequest.Steps != 10 || secondRequest.IdentityStrength != 0.8 {
+	if secondRequest.SourceImage != "" || secondRequest.Prompt != "The same woman looks through a window in a city library." || secondRequest.Steps != 8 {
 		t.Fatalf("unexpected second request: %#v", secondRequest)
 	}
 	second := response.Jobs[1]
-	if second.Params["sequence_previous_job_id"] != response.Jobs[0].ID || second.Params["sequence_index"] != float64(2) {
+	if second.Params["sequence_previous_job_id"] != nil || second.Params["sequence_strategy"] != "storyboard" || second.Params["sequence_index"] != float64(2) {
 		t.Fatalf("unexpected sequence params: %#v", second.Params)
+	}
+}
+
+func TestPersistImageJobPlanCopiesSequenceCharacterReference(t *testing.T) {
+	dataDir := t.TempDir()
+	store, err := jobs.New(dataDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	server := New(config.Config{DataDir: dataDir}, store, nil)
+	root := "sequence-root"
+	sourceDir := filepath.Join(dataDir, "inputs", root, "sequence-character")
+	if err := os.MkdirAll(sourceDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(sourceDir, "0.png"), testPNG(t, 32, 32), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	params := newImageJobParams()
+	params.SequenceID, params.SequenceTotal, params.SequenceReID = root, 2, true
+	planned := []jobs.Job{
+		{ID: root, Kind: "image", Status: "queued", Params: params.toMap(), CreatedAt: time.Now()},
+		{ID: "sequence-child", Kind: "image", Status: "queued", Params: params.toMap(), CreatedAt: time.Now().Add(time.Nanosecond)},
+	}
+	request := httptest.NewRequest(http.MethodPost, "/api/jobs/image", strings.NewReader(""))
+	request.MultipartForm = &multipart.Form{Value: map[string][]string{}, File: map[string][]*multipart.FileHeader{}}
+	if err := server.persistImageJobPlan(request, planned); err != nil {
+		t.Fatal(err)
+	}
+	child, err := os.ReadFile(filepath.Join(dataDir, "inputs", "sequence-child", "sequence-character", "0.png"))
+	if err != nil || len(child) == 0 {
+		t.Fatalf("child ReID reference was not persisted: bytes=%d err=%v", len(child), err)
 	}
 }
 
@@ -234,90 +258,6 @@ func TestSequenceAnyPaintMaskUsesNormalizedArmRegion(t *testing.T) {
 	}
 	if color.GrayModel.Convert(mask.At(10, 20)).(color.Gray).Y != 255 || color.GrayModel.Convert(mask.At(90, 20)).(color.Gray).Y != 0 || color.GrayModel.Convert(mask.At(45, 70)).(color.Gray).Y != 255 {
 		t.Fatalf("unexpected normalized left-arm mask pixels")
-	}
-}
-
-func TestImageSequenceCanContinueFromCompletedImageWithPaintedMask(t *testing.T) {
-	type engineRequest struct {
-		Prompt string `json:"prompt"`
-		Image  string `json:"anypaint_image"`
-		Mask   string `json:"anypaint_mask"`
-	}
-	requests := make(chan engineRequest, 1)
-	worker := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var request engineRequest
-		if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-		requests <- request
-		_ = json.NewEncoder(w).Encode(map[string]any{"data": []map[string]string{{"b64_json": base64.StdEncoding.EncodeToString(testPNG(t, 64, 48))}}})
-	}))
-	defer worker.Close()
-
-	cfg := config.Config{DataDir: t.TempDir(), Engines: map[string]config.Engine{"image": {Endpoint: worker.URL}}, Image: config.Image{DefaultMode: "create", DefaultWidth: 64, DefaultHeight: 48, MaxReferenceImages: 4, Backends: map[string]config.ImageBackend{"create": {Endpoint: worker.URL, Model: "krea-test"}}}}
-	store, err := jobs.New(cfg.DataDir)
-	if err != nil {
-		t.Fatal(err)
-	}
-	baseBytes := testPNG(t, 64, 48)
-	baseName := "sequence-base.png"
-	if err := os.WriteFile(store.OutputPath(baseName), baseBytes, 0o644); err != nil {
-		t.Fatal(err)
-	}
-	base := jobs.Job{ID: "existing-image", Kind: "image", Status: "completed", Prompt: "a robot standing still", OutputURL: "/api/outputs/" + baseName, CreatedAt: time.Now().Add(-time.Minute)}
-	if err := store.Save(base); err != nil {
-		t.Fatal(err)
-	}
-	handler := New(cfg, store, nil).Handler()
-
-	var body bytes.Buffer
-	form := multipart.NewWriter(&body)
-	_ = form.WriteField("prompt", base.Prompt)
-	_ = form.WriteField("mode", "create")
-	_ = form.WriteField("sequence_prompts", `["a robot standing still","raise only the robot's left arm"]`)
-	_ = form.WriteField("sequence_regions", `["all","custom"]`)
-	_ = form.WriteField("sequence_base_job_id", base.ID)
-	part, err := form.CreateFormFile("sequence_mask_1", "painted-mask.png")
-	if err != nil {
-		t.Fatal(err)
-	}
-	maskBytes := testPNG(t, 64, 48)
-	_, _ = part.Write(maskBytes)
-	_ = form.Close()
-	req := httptest.NewRequest(http.MethodPost, "/api/jobs/image", &body)
-	req.Header.Set("Content-Type", form.FormDataContentType())
-	res := httptest.NewRecorder()
-	handler.ServeHTTP(res, req)
-	if res.Code != http.StatusAccepted {
-		t.Fatalf("status=%d body=%s", res.Code, res.Body.String())
-	}
-	var response struct {
-		Jobs []jobs.Job `json:"jobs"`
-	}
-	if err := json.Unmarshal(res.Body.Bytes(), &response); err != nil || len(response.Jobs) != 1 {
-		t.Fatalf("response=%#v err=%v body=%s", response, err, res.Body.String())
-	}
-	deadline := time.Now().Add(2 * time.Second)
-	for time.Now().Before(deadline) {
-		job, ok := store.Get(response.Jobs[0].ID)
-		if ok && job.Status == "completed" {
-			break
-		}
-		time.Sleep(10 * time.Millisecond)
-	}
-	select {
-	case request := <-requests:
-		imageBytes, imageErr := base64.StdEncoding.DecodeString(request.Image)
-		maskResult, maskErr := base64.StdEncoding.DecodeString(request.Mask)
-		if imageErr != nil || maskErr != nil || !bytes.Equal(imageBytes, baseBytes) || !bytes.Equal(maskResult, maskBytes) {
-			t.Fatalf("unexpected painted sequence inputs: imageErr=%v maskErr=%v", imageErr, maskErr)
-		}
-		if !strings.Contains(request.Prompt, "raise only the robot's left arm") {
-			t.Fatalf("unexpected prompt: %q", request.Prompt)
-		}
-	default:
-		t.Fatal("painted sequence request was not sent")
 	}
 }
 

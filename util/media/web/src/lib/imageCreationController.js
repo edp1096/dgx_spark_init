@@ -329,6 +329,17 @@ export class ImageCreationController {
     this.actions.patch({ form: { ...state.form, width: snapDimension(state.form.width, 8, 256, 2048), height: snapDimension(state.form.height, 8, 256, 2048) } })
     state = this.state()
     const isSequence = Array.isArray(sequencePrompts)
+    const requestedSequenceCount = isSequence ? sequencePrompts.length : 0
+    if (isSequence) {
+      try {
+        await this.actions.planSequence()
+        state = this.state()
+        sequencePrompts = state.sequence.prompts.slice(0, requestedSequenceCount)
+      } catch (error) {
+        this.actions.patch({ error: error.message || String(error) })
+        return
+      }
+    }
     if (!isSequence && this.enhancementActive(state) && !this.enhancementCurrent(state)) {
       await this.enhance()
       state = this.state()
@@ -336,14 +347,23 @@ export class ImageCreationController {
     }
     this.actions.patch({ busy: true, error: '' })
     try {
-      const firstPrompt = isSequence ? sequencePrompts[0].trim() : this.rawPrompt(state)
+      const sequence = state.sequence
+      const firstPrompt = isSequence ? sequence.enhancedPrompts[0].trim() : this.rawPrompt(state)
       const userPrompt = isSequence ? sequencePrompts[0].trim() : (state.form.prompt.trim() || this.implicitPrompt(state))
       const form = buildImageGenerationForm({
         imageForm: state.form,
         prompt: isSequence ? firstPrompt : this.enhancementActive(state) ? state.enhancedPrompt : firstPrompt,
         originalPrompt: userPrompt,
         parentJobID: state.parentJobID,
-        sequence: isSequence ? { prompts: sequencePrompts, regions: state.sequence.regions, strength: state.sequence.strength, baseJobID: state.sequence.base?.jobID, masks: state.sequence.masks } : null,
+        sequence: isSequence ? {
+          prompts: sequencePrompts, enhancedPrompts: sequence.enhancedPrompts.slice(0, requestedSequenceCount),
+          sharedPrompt: sequence.sharedPrompt, canonicalPrompt: sequence.canonicalPrompt,
+          reidImage: (() => {
+            const character = sequence.characters?.[0]
+            if (!character?.references?.length) return null
+            return character.references[Math.min(character.reidReferenceIndex || 0, character.references.length - 1)] || character.references[0]
+          })()
+        } : null,
         modules: state.modules, options: state.options,
         identity: { preset: state.identityPreset, hasUserPrompt: this.hasExtraIdentityPrompt(state), preserveItems: state.identityPreserveItems, preserveCustom: state.identityPreserveCustom, image: state.identityImage, references: state.identityReferences, mask: state.identityMask, strictMask: state.strictMask },
         depth: { image: state.depthImage }, styles: state.styleSelections, userLoras: state.userLoraSelections,
