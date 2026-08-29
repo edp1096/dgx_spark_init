@@ -16,6 +16,12 @@ export const api = {
     body: JSON.stringify(config)
   }).then(checked),
   jobs: () => fetch('/api/jobs').then(checked),
+  tags: () => fetch('/api/tags').then(checked),
+  updateJobTags: (id, tags) => fetch(`/api/jobs/${encodeURIComponent(id)}/tags`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ tags })
+  }).then(checked),
   imageInputs: (id) => fetch(`/api/jobs/${encodeURIComponent(id)}/inputs`).then(checked),
   imageEXIF: (id) => fetch(`/api/jobs/${encodeURIComponent(id)}/exif`).then(checked),
   engines: () => fetch('/api/engines').then(checked),

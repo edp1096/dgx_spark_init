@@ -437,12 +437,27 @@ async def run_training(job_id: str, request: TrainRequest, config_path: Path) ->
             )
             assert active_process.stdout is not None
             with log_path.open("a", encoding="utf-8") as log_file:
-                async for raw in active_process.stdout:
-                    line = raw.decode("utf-8", errors="replace")
-                    log_file.write(line)
+                # tqdm and huggingface_hub redraw progress with carriage returns
+                # instead of newlines. Iterating StreamReader by line can then
+                # exceed asyncio's separator limit during multi-GB downloads.
+                # Read bounded chunks and treat both CR and LF as progress
+                # boundaries while preserving the original log stream.
+                pending = ""
+                while raw := await active_process.stdout.read(64 * 1024):
+                    text = raw.decode("utf-8", errors="replace")
+                    log_file.write(text)
                     log_file.flush()
-                    update_progress(job, line)
-                    job["last_message"] = line.strip()[-500:]
+                    pending += text
+                    parts = re.split(r"[\r\n]", pending)
+                    pending = parts.pop()
+                    for line in parts:
+                        if line.strip():
+                            update_progress(job, line)
+                            job["last_message"] = line.strip()[-500:]
+                    write_json(state_path, job)
+                if pending.strip():
+                    update_progress(job, pending)
+                    job["last_message"] = pending.strip()[-500:]
                     write_json(state_path, job)
             return_code = await active_process.wait()
             # The cancellation endpoint updates the persisted copy while this

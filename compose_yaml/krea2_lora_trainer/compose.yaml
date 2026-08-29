@@ -1,8 +1,36 @@
 services:
-  api:
+  ui:
     init: true
     build:
       context: .
+      target: ui
+      args:
+        AI_TOOLKIT_COMMIT: 27a03a91f23eb1b757d5ec2e80ee3e129cfcc350
+    image: dgx-ostris-ai-toolkit-ui:latest
+    container_name: ostris-ai-toolkit-ui
+    restart: unless-stopped
+    network_mode: host
+    ipc: host
+    gpus: all
+    environment:
+      HF_TOKEN: ${HF_TOKEN:-}
+      AI_TOOLKIT_AUTH: ${AI_TOOLKIT_AUTH:-}
+      AI_TOOLKIT_STATE_ROOT: /data/official-ui
+      AI_TOOLKIT_FILE_SERVER_WORKERS: "2"
+      NODE_ENV: production
+      TZ: Asia/Seoul
+    volumes:
+      - hf-cache:/root/.cache/huggingface
+      - ./data:/data
+      - ./data/datasets:/opt/ai-toolkit/datasets
+      - ./data/output:/opt/ai-toolkit/output
+
+  api:
+    profiles: ["legacy-api"]
+    init: true
+    build:
+      context: .
+      target: api
       args:
         AI_TOOLKIT_COMMIT: 27a03a91f23eb1b757d5ec2e80ee3e129cfcc350
     image: dgx-krea2-lora-trainer:latest

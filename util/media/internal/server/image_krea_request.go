@@ -53,6 +53,7 @@ func buildKreaRequest(backend config.ImageBackend, prompt string, width, height 
 		}
 	}
 	if krea.identityPath != "" {
+		request["identity_preset"] = krea.identityPreset
 		request["identity_strength"] = krea.identityStrength
 		request["ref_boost"] = krea.refBoost
 		request["source_ref_boost"] = krea.sourceRefBoost

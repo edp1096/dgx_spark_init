@@ -15,7 +15,8 @@ export class JobController {
       refreshError: '',
       deletingJob: '',
       cancellingJob: '',
-      retryingJob: ''
+      retryingJob: '',
+      updatingTagsJob: ''
     }
     this.state = writable(this.current)
     this.state.subscribe((value) => this.current = value)
@@ -115,6 +116,21 @@ export class JobController {
       return false
     } finally {
       this.setState({ deletingJob: '' })
+    }
+  }
+
+  async updateTags(job, tags) {
+    this.setState({ updatingTagsJob: job.id })
+    this.setError('')
+    try {
+      await this.api.updateJobTags(job.id, tags)
+      await this.refresh()
+      return true
+    } catch (cause) {
+      this.setError(cause.message)
+      return false
+    } finally {
+      this.setState({ updatingTagsJob: '' })
     }
   }
 }

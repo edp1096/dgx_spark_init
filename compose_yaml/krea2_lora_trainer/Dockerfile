@@ -1,4 +1,6 @@
-FROM nvcr.io/nvidia/pytorch:26.07-py3
+FROM node:24.11.1-bookworm-slim AS node-runtime
+
+FROM nvcr.io/nvidia/pytorch:26.07-py3 AS toolkit-base
 
 ARG AI_TOOLKIT_COMMIT=27a03a91f23eb1b757d5ec2e80ee3e129cfcc350
 
@@ -27,6 +29,24 @@ RUN git clone https://github.com/ostris/ai-toolkit.git /opt/ai-toolkit \
     && sed -i 's/^torchcodec==0\.9\.1$/torchcodec==0.15.0/' requirements_base.txt \
     && pip install --no-cache-dir -r dgx_requirements.txt \
     && pip install --no-cache-dir fastapi uvicorn python-multipart
+
+FROM toolkit-base AS ui
+
+COPY --from=node-runtime /usr/local/ /usr/local/
+RUN cd /opt/ai-toolkit/ui \
+    && npm run install_deps \
+    && npm run update_db \
+    && npm run build \
+    && npm cache clean --force
+
+COPY start-ui.sh /opt/ai-toolkit/start-ui.sh
+RUN chmod +x /opt/ai-toolkit/start-ui.sh
+
+WORKDIR /opt/ai-toolkit/ui
+EXPOSE 8675
+ENTRYPOINT ["/opt/ai-toolkit/start-ui.sh"]
+
+FROM toolkit-base AS api
 
 WORKDIR /opt/trainer-api
 COPY trainer_api.py start.sh ./

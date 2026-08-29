@@ -32,3 +32,18 @@ test('job controller exposes action state and refreshes after retry', async () =
   assert.equal(retryCount, 1)
   assert.equal(get(controller.state).retryingJob, '')
 })
+
+test('job controller persists tags then refreshes results', async () => {
+  let saved = null
+  const controller = new JobController({
+    api: {
+      jobs: async () => [{ id: 'job-1', tags: saved || [] }], engines: async () => [],
+      updateJobTags: async (id, tags) => { saved = tags; return { id, tags } }
+    },
+    getError: () => '', setError: () => {}
+  })
+  assert.equal(await controller.updateTags({ id: 'job-1' }, ['인물', '야간']), true)
+  assert.deepEqual(saved, ['인물', '야간'])
+  assert.equal(get(controller.state).updatingTagsJob, '')
+  assert.deepEqual(get(controller.state).jobs[0].tags, ['인물', '야간'])
+})

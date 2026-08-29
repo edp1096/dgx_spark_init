@@ -62,7 +62,7 @@ export const identityPresetUI = {
     restage: { primary: '인물 원본', primaryHint: '다른 장면에 배치할 인물', showSecondary: false, guide: '메인 프롬프트에 새로운 자세와 장면을 입력하세요.' },
     sheet: { primary: '인물 원본', primaryHint: '시트로 만들 인물', secondary: '추가 외형 참조', secondaryHint: '다른 각도나 복장 자료 · 선택 사항', showSecondary: true, guide: '같은 인물의 2×2 시트를 자동으로 구성합니다.' },
     faceSwap: { primary: '편집할 원본', primaryHint: '몸·장면을 유지할 이미지', secondary: '가져올 얼굴', secondaryHint: '교체할 얼굴이 선명한 이미지', secondaryRequired: true, showSecondary: true, guide: '첫 이미지의 얼굴만 두 번째 이미지의 얼굴로 교체합니다.' },
-    headSwap: { primary: '편집할 원본', primaryHint: '몸·장면을 유지할 이미지', secondary: '가져올 머리·인물', secondaryHint: '얼굴과 헤어를 함께 가져올 이미지', secondaryRequired: true, showSecondary: true, guide: '첫 이미지의 머리 전체를 두 번째 이미지 기준으로 교체합니다.' },
+    headSwap: { primary: '편집할 원본', primaryHint: '몸·장면을 유지할 이미지', secondary: '가져올 머리', secondaryHint: '머리 위주의 근접 사진 · 옷은 최대한 제외', secondaryRequired: true, showSecondary: true, guide: 'BFS Head Swap V1.1이 얼굴·머리카락·두상 전체를 교체합니다. 전신 참조는 의상까지 섞일 수 있으므로 머리 중심의 사진을 사용하세요.' },
     personSwap: { primary: '배경·장면 원본', primaryHint: '배경과 구도를 유지할 이미지', secondary: '가져올 인물', secondaryHint: '장면에 넣을 인물 이미지', secondaryRequired: true, showSecondary: true, guide: '첫 이미지의 장면에 두 번째 이미지의 인물을 배치합니다.' },
     tryon: { primary: '편집할 인물 원본', primaryHint: '옷을 바꿀 인물 이미지', secondary: '참고할 의상', secondaryHint: '입힐 옷이나 착장 이미지', secondaryRequired: true, showSecondary: true, guide: '두 번째 이미지의 의상을 참고해 첫 인물의 옷을 변경합니다.' },
     replace: { primary: '편집할 원본', primaryHint: '일부를 교체할 이미지', secondary: '교체 요소 참조', secondaryHint: '새로 넣을 사물·소재 · 선택 사항', showSecondary: true, guide: '메인 프롬프트와 변경 허용 영역으로 교체할 부분을 지정하세요.' }

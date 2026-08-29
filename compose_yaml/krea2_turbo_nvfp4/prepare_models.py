@@ -57,6 +57,11 @@ FILES = (
         COMFY_MODELS / "loras" / "krea2_identity_edit_v1_2.safetensors",
     ),
     (
+        "Alissonerdx/BFS-Best-Face-Swap",
+        "bfs_head_swap_v1.1_krea2.safetensors",
+        COMFY_MODELS / "loras" / "bfs_head_swap_v1.1_krea2.safetensors",
+    ),
+    (
         "yijunwang2/krea2-reid",
         "krea2_reid_rank32.safetensors",
         COMFY_MODELS / "loras" / "krea2_reid_rank32.safetensors",

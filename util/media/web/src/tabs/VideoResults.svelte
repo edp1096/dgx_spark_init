@@ -1,5 +1,7 @@
 <script>
   import ResultPagination from '../ResultPagination.svelte'
+  import ResultTagFilter from '../ResultTagFilter.svelte'
+  import JobTags from '../JobTags.svelte'
   import { imagePageSizeOptions } from '../lib/catalogs.js'
   import { videoAccelerationLabel, videoFPSLabel, videoJobDuration } from '../lib/mediaPresentation.js'
   import { formatDuration } from '../lib/videoTiming.js'
@@ -14,6 +16,12 @@
   export let cancellingJob = ''
   export let retryingJob = ''
   export let deletingJob = ''
+  export let updatingTagsJob = ''
+  export let tagOptions = []
+  export let filterTags = []
+  export let excludedTags = []
+  export let untaggedOnly = false
+  export let tagMatchMode = 'or'
   export let progressFor = () => null
   export let promptText = () => ''
   export let onView = () => {}
@@ -30,6 +38,11 @@
   export let onCancel = () => {}
   export let onRetry = () => {}
   export let onDelete = () => {}
+  export let onFilterTags = () => {}
+  export let onExcludeTags = () => {}
+  export let onUntaggedOnly = () => {}
+  export let onTagMatchMode = () => {}
+  export let onEditTags = () => {}
 
   function detail(job) {
     return `영상 · ${job.params?.width}×${job.params?.height} · ${formatDuration(videoJobDuration(job))}${videoFPSLabel(job)}`
@@ -44,6 +57,7 @@
       <button type="button" class:active={view === 'list'} onclick={() => onView('list')}>리스트</button>
     </div>
   </div>
+  <ResultTagFilter label="생성 영상" tags={tagOptions} selected={filterTags} excluded={excludedTags} {untaggedOnly} mode={tagMatchMode} onChange={onFilterTags} onExcludeChange={onExcludeTags} onUntaggedOnlyChange={onUntaggedOnly} onModeChange={onTagMatchMode} />
   <ResultPagination label="생성 영상 목록" total={jobs.length} {page} {pageSize} pageSizes={imagePageSizeOptions} {sortOrder} onPageChange={onPage} onPageSizeChange={onPageSize} onSortOrderChange={onSort} />
   <div class="video-list" class:list-view={view === 'list'}>
     {#each pagedJobs as job, videoIndex (job.id)}
@@ -66,6 +80,7 @@
           {/if}
           <button type="button" class="image-prompt" title={job.prompt} onclick={() => onPrompt(job, detail(job), promptText(job))}>{job.prompt}</button><small>{job.params?.width}×{job.params?.height} · {formatDuration(videoJobDuration(job))}{videoFPSLabel(job)}{#if videoAccelerationLabel(job)} · {videoAccelerationLabel(job)}{/if}{#if job.params?.seed >= 0} · seed {job.params.seed}{/if}</small>{#if job.error}<em>{job.error}</em>{/if}
         {/if}
+        <JobTags {job} availableTags={tagOptions} saving={updatingTagsJob === job.id} onSave={onEditTags} />
         {#if job.status === 'completed' && job.output_url}
           <div class="video-utility-actions"><span>활용:</span>{#if job.params?.mode === 'upscale'}<button type="button" onclick={() => onShowUpscaleSource(job)}>원본</button>{:else}<button type="button" onclick={() => onLoadSettings(job)}>설정</button>{/if}<button type="button" onclick={() => onFrame(job)}>장면</button><button type="button" disabled={!upscaleOnline} onclick={() => onUpscale(job)}>업스케일</button><button type="button" onclick={() => onSendToRecognition(job)}>자막 생성</button></div>
         {/if}

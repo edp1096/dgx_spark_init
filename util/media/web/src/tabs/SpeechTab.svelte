@@ -1,5 +1,7 @@
 <script>
   import ResultPagination from '../ResultPagination.svelte'
+  import ResultTagFilter from '../ResultTagFilter.svelte'
+  import JobTags from '../JobTags.svelte'
   import { imagePageSizeOptions, statusLabels } from '../lib/catalogs.js'
 
   export let mobilePane = 'create'
@@ -15,6 +17,12 @@
   export let cancellingJob = ''
   export let retryingJob = ''
   export let deletingJob = ''
+  export let updatingTagsJob = ''
+  export let tagOptions = []
+  export let filterTags = []
+  export let excludedTags = []
+  export let untaggedOnly = false
+  export let tagMatchMode = 'or'
   export let progressFor = () => null
   export let onMobilePane = () => {}
   export let onReset = () => {}
@@ -29,6 +37,11 @@
   export let onCancel = () => {}
   export let onRetry = () => {}
   export let onDelete = () => {}
+  export let onFilterTags = () => {}
+  export let onExcludeTags = () => {}
+  export let onUntaggedOnly = () => {}
+  export let onTagMatchMode = () => {}
+  export let onEditTags = () => {}
 </script>
 
 <div class="mobile-image-nav" role="tablist" aria-label="모바일 음성 화면">
@@ -49,6 +62,7 @@
   </form>
   <aside class="speech-results-pane mobile-results-pane">
     <div class="results-heading"><h3>생성 음성 목록</h3><div class="view-switch" aria-label="생성 음성 목록 보기 방식"><button type="button" class:active={view === 'gallery'} onclick={() => onView('gallery')}>갤러리</button><button type="button" class:active={view === 'list'} onclick={() => onView('list')}>리스트</button></div></div>
+    <ResultTagFilter label="생성 음성" tags={tagOptions} selected={filterTags} excluded={excludedTags} {untaggedOnly} mode={tagMatchMode} onChange={onFilterTags} onExcludeChange={onExcludeTags} onUntaggedOnlyChange={onUntaggedOnly} onModeChange={onTagMatchMode} />
     <ResultPagination label="생성 음성 목록" total={jobs.length} {page} {pageSize} pageSizes={imagePageSizeOptions} {sortOrder} onPageChange={onPage} onPageSizeChange={onPageSize} onSortOrderChange={onSort} />
     <div class="speech-list" class:list-view={view === 'list'}>
       {#each pagedJobs as job, speechIndex (job.id)}
@@ -60,6 +74,7 @@
           <button type="button" class="speech-prompt" title={job.prompt} onclick={() => onPrompt(job)}>{job.prompt || '원문 없음'}</button>
           <small class="speech-meta">{#if job.params?.seed >= 0}seed {job.params.seed}{:else}무작위 시드{/if}{#if job.params?.instructions} · 지시 있음{/if}</small>
           {#if job.params?.instructions}<small class="instruction" title={job.params.instructions}>지시 · {job.params.instructions}</small>{/if}
+          <JobTags {job} availableTags={tagOptions} saving={updatingTagsJob === job.id} onSave={onEditTags} />
           {#if job.output_url}
             <audio controls src={job.output_url}></audio><div class="audio-utility-actions"><span>활용:</span><button type="button" onclick={() => onSendToVideo(job)}>영상 생성</button></div>
           {:else if generationProgress}

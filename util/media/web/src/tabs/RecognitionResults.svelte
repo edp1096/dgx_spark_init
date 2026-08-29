@@ -1,5 +1,7 @@
 <script>
   import ResultPagination from '../ResultPagination.svelte'
+  import ResultTagFilter from '../ResultTagFilter.svelte'
+  import JobTags from '../JobTags.svelte'
   import { imagePageSizeOptions, outputLabels, statusLabels } from '../lib/catalogs.js'
   import {
     isAudioMedia,
@@ -18,6 +20,12 @@
   export let cancellingJob = ''
   export let retryingJob = ''
   export let deletingJob = ''
+  export let updatingTagsJob = ''
+  export let tagOptions = []
+  export let filterTags = []
+  export let excludedTags = []
+  export let untaggedOnly = false
+  export let tagMatchMode = 'or'
   export let progressText = () => ''
   export let progressTiming = () => ''
   export let progressPercent = () => 0
@@ -34,6 +42,11 @@
   export let onCancel = () => {}
   export let onRetry = () => {}
   export let onDelete = () => {}
+  export let onFilterTags = () => {}
+  export let onExcludeTags = () => {}
+  export let onUntaggedOnly = () => {}
+  export let onTagMatchMode = () => {}
+  export let onEditTags = () => {}
 </script>
 
 <aside class="subtitle-results-pane mobile-results-pane">
@@ -44,6 +57,7 @@
       <button type="button" class:active={view === 'list'} onclick={() => onView('list')}>리스트</button>
     </div>
   </div>
+  <ResultTagFilter label="생성 자막" tags={tagOptions} selected={filterTags} excluded={excludedTags} {untaggedOnly} mode={tagMatchMode} onChange={onFilterTags} onExcludeChange={onExcludeTags} onUntaggedOnlyChange={onUntaggedOnly} onModeChange={onTagMatchMode} />
   <ResultPagination
     label="생성 자막 목록"
     total={jobs.length}
@@ -92,6 +106,7 @@
           <p title={job.prompt}>{job.prompt}</p>
           {#if job.params?.media}<small>{mediaSummary(job)}</small>{/if}
         </div>
+        <JobTags {job} availableTags={tagOptions} saving={updatingTagsJob === job.id} onSave={onEditTags} />
         {#if warnings.length}
           <button type="button" class="subtitle-translation-warning" onclick={() => onWarning(job, warnings, warningText(job))}>번역 경고 {warnings.length}개</button>
         {/if}

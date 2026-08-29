@@ -32,6 +32,7 @@ func TestConfigUpdatePersistsAndAppliesImmediately(t *testing.T) {
 		Engines: map[string]config.Engine{
 			"image": {Endpoint: first.URL}, "video": {Endpoint: first.URL},
 			"speech": {Endpoint: first.URL}, "recognition": {Endpoint: first.URL}, "prompt": {Endpoint: first.URL}, "media": {Endpoint: first.URL}, "trainer": {Endpoint: first.URL}, "upscale": {Endpoint: first.URL},
+			"garment": {Endpoint: first.URL}, "faceswap": {Endpoint: first.URL},
 		},
 		Image:             config.Image{Model: "image", DefaultWidth: 512, DefaultHeight: 512, MaxReferenceImages: 4},
 		Video:             config.Video{Model: "video", DefaultWidth: 768, DefaultHeight: 512, DefaultFrames: 121, DefaultFPS: 24},
@@ -53,6 +54,7 @@ func TestConfigUpdatePersistsAndAppliesImmediately(t *testing.T) {
 	next.Engines = map[string]config.Engine{
 		"image": {Endpoint: second.URL}, "video": {Endpoint: second.URL},
 		"speech": {Endpoint: second.URL}, "recognition": {Endpoint: second.URL}, "prompt": {Endpoint: second.URL}, "media": {Endpoint: second.URL}, "trainer": {Endpoint: second.URL}, "upscale": {Endpoint: second.URL},
+		"garment": {Endpoint: second.URL}, "faceswap": {Endpoint: second.URL},
 	}
 	next.Video.DefaultFrames = 65
 	next.Image.DefaultPromptEnhancer = true

@@ -10,12 +10,25 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"unicode"
+	"unicode/utf8"
 )
 
 var (
-	ErrNotFound = errors.New("job not found")
-	ErrActive   = errors.New("active job cannot be deleted")
+	ErrNotFound    = errors.New("job not found")
+	ErrActive      = errors.New("active job cannot be deleted")
+	ErrInvalidTags = errors.New("invalid job tags")
 )
+
+const (
+	MaxTagsPerJob = 24
+	MaxTagLength  = 32
+)
+
+type Tag struct {
+	Name  string `json:"name"`
+	Count int    `json:"count"`
+}
 
 type Job struct {
 	ID           string            `json:"id"`
@@ -29,6 +42,7 @@ type Job struct {
 	MediaURL     string            `json:"media_url,omitempty"`
 	CaptionURL   string            `json:"caption_url,omitempty"`
 	Error        string            `json:"error,omitempty"`
+	Tags         []string          `json:"tags,omitempty"`
 	CreatedAt    time.Time         `json:"created_at"`
 	UpdatedAt    time.Time         `json:"updated_at"`
 }
@@ -57,6 +71,12 @@ func (s *Store) Save(j Job) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	j = cloneJob(j)
+	// UpdateTags is the sole mutation path for existing tag associations.
+	// Long-running workers may save an older Job value after a user has edited
+	// tags, so always preserve the current association here.
+	if current, ok := s.jobs[j.ID]; ok {
+		j.Tags = append([]string(nil), current.Tags...)
+	}
 	j.UpdatedAt = time.Now()
 	s.jobs[j.ID] = j
 	return s.writeLocked()
@@ -189,10 +209,125 @@ func (s *Store) List() []Job {
 	return out
 }
 
+// UpdateTags atomically replaces one job's tags. Tag names are normalized for
+// whitespace and case-insensitive de-duplication while retaining the first
+// spelling already used by the catalog.
+func (s *Store) UpdateTags(id string, requested []string) (Job, error) {
+	if id == "" || filepath.Base(id) != id {
+		return Job{}, ErrNotFound
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	job, ok := s.jobs[id]
+	if !ok {
+		return Job{}, ErrNotFound
+	}
+	tags, err := normalizeTags(requested, s.canonicalTagsLocked())
+	if err != nil {
+		return Job{}, err
+	}
+	previous := cloneJob(job)
+	job.Tags = tags
+	job.UpdatedAt = time.Now()
+	s.jobs[id] = job
+	if err := s.writeLocked(); err != nil {
+		s.jobs[id] = previous
+		return Job{}, err
+	}
+	return cloneJob(job), nil
+}
+
+// Tags derives the catalog from live job associations. Consequently, deleting
+// the final job using a tag removes that orphan tag without a second cleanup
+// transaction or a duplicated catalog file.
+func (s *Store) Tags() []Tag {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	counts := make(map[string]Tag)
+	for _, job := range s.jobs {
+		seen := make(map[string]struct{}, len(job.Tags))
+		for _, name := range job.Tags {
+			key := tagKey(name)
+			if key == "" {
+				continue
+			}
+			if _, ok := seen[key]; ok {
+				continue
+			}
+			seen[key] = struct{}{}
+			tag := counts[key]
+			if tag.Name == "" {
+				tag.Name = strings.Join(strings.Fields(name), " ")
+			}
+			tag.Count++
+			counts[key] = tag
+		}
+	}
+	out := make([]Tag, 0, len(counts))
+	for _, tag := range counts {
+		out = append(out, tag)
+	}
+	sort.Slice(out, func(i, j int) bool {
+		return strings.ToLower(out[i].Name) < strings.ToLower(out[j].Name)
+	})
+	return out
+}
+
+func (s *Store) canonicalTagsLocked() map[string]string {
+	canonical := make(map[string]string)
+	for _, job := range s.jobs {
+		for _, name := range job.Tags {
+			key := tagKey(name)
+			if key != "" {
+				if _, exists := canonical[key]; !exists {
+					canonical[key] = strings.Join(strings.Fields(name), " ")
+				}
+			}
+		}
+	}
+	return canonical
+}
+
+func normalizeTags(requested []string, canonical map[string]string) ([]string, error) {
+	if len(requested) > MaxTagsPerJob {
+		return nil, ErrInvalidTags
+	}
+	out := make([]string, 0, len(requested))
+	seen := make(map[string]struct{}, len(requested))
+	for _, raw := range requested {
+		name := strings.Join(strings.Fields(raw), " ")
+		if name == "" || utf8.RuneCountInString(name) > MaxTagLength || strings.ContainsRune(name, ',') {
+			return nil, ErrInvalidTags
+		}
+		for _, r := range name {
+			if unicode.IsControl(r) {
+				return nil, ErrInvalidTags
+			}
+		}
+		key := tagKey(name)
+		if _, exists := seen[key]; exists {
+			continue
+		}
+		seen[key] = struct{}{}
+		if existing := canonical[key]; existing != "" {
+			name = existing
+		}
+		out = append(out, name)
+	}
+	return out, nil
+}
+
+func tagKey(name string) string {
+	return strings.ToLower(strings.Join(strings.Fields(name), " "))
+}
+
 // cloneJob keeps mutable request/result metadata owned by the store. Callers
 // can safely update a fetched job while another goroutine lists or persists
 // jobs without sharing maps or slices with the store's JSON writer.
 func cloneJob(job Job) Job {
+	if job.Tags != nil {
+		job.Tags = append([]string(nil), job.Tags...)
+	}
 	if job.Params != nil {
 		job.Params = cloneValue(reflect.ValueOf(job.Params)).Interface().(map[string]any)
 	}

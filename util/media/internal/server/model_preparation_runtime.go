@@ -126,9 +126,15 @@ func imageRuntimePlan(params imageJobParams, major bool) modelRuntimePlan {
 		base.Components = []string{"Krea 2 INT8 ConvRot", "Qwen3VL BF16 vision encoder", "Krea ReID LoRA", "Qwen Image VAE"}
 		base.RequiresSwap = true
 	} else if params.Identity {
-		profile = "krea-identity-" + valueOr(params.IdentityModel, "convrot") + "-" + valueOr(params.IdentityEncoder, "heretic")
-		label = "Krea Identity Edit 탑재"
-		base.Components = []string{"Krea Identity Edit", valueOr(params.IdentityEncoder, "heretic") + " text encoder", "Qwen Image VAE"}
+		if params.IdentityPreset == "headSwap" {
+			profile, label = "krea-head-swap", "Krea 머리 전체 교체 탑재"
+			base.Components = []string{"Krea 2 INT8 ConvRot", "BFS Head Swap V1.1 LoRA", "Qwen3VL FP8 text encoder", "Qwen Image VAE"}
+			base.EstimateSeconds = 185
+		} else {
+			profile = "krea-identity-" + valueOr(params.IdentityModel, "convrot") + "-" + valueOr(params.IdentityEncoder, "heretic")
+			label = "Krea Identity Edit 탑재"
+			base.Components = []string{"Krea Identity Edit", valueOr(params.IdentityEncoder, "heretic") + " text encoder", "Qwen Image VAE"}
+		}
 	} else if params.AnyPaint {
 		profile, label = "krea-anypaint", "Krea AnyPaint 탑재"
 		base.Components = append(base.Components, "AnyPaint LoRA")

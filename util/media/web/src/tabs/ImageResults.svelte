@@ -1,5 +1,7 @@
 <script>
   import ResultPagination from '../ResultPagination.svelte'
+  import ResultTagFilter from '../ResultTagFilter.svelte'
+  import JobTags from '../JobTags.svelte'
   import { imageModeMeta, imagePageSizeOptions } from '../lib/catalogs.js'
   import { imageModuleSummary, imageSamplingSummary } from '../lib/mediaPresentation.js'
 
@@ -19,6 +21,12 @@
   export let cancellingJob = ''
   export let retryingJob = ''
   export let deletingJob = ''
+  export let updatingTagsJob = ''
+  export let tagOptions = []
+  export let filterTags = []
+  export let excludedTags = []
+  export let untaggedOnly = false
+  export let tagMatchMode = 'or'
   export let progressFor = () => null
   export let promptText = () => ''
   export let onView = () => {}
@@ -36,6 +44,11 @@
   export let onCancel = () => {}
   export let onRetry = () => {}
   export let onDelete = () => {}
+  export let onFilterTags = () => {}
+  export let onExcludeTags = () => {}
+  export let onUntaggedOnly = () => {}
+  export let onTagMatchMode = () => {}
+  export let onEditTags = () => {}
 
   function modeLabel(job) {
     return imageModeMeta[job.params?.mode]?.label || '이미지'
@@ -54,6 +67,7 @@
       <button type="button" class:active={view === 'list'} onclick={() => onView('list')}>리스트</button>
     </div>
   </div>
+  <ResultTagFilter label="생성 이미지" tags={tagOptions} selected={filterTags} excluded={excludedTags} {untaggedOnly} mode={tagMatchMode} onChange={onFilterTags} onExcludeChange={onExcludeTags} onUntaggedOnlyChange={onUntaggedOnly} onModeChange={onTagMatchMode} />
   <ResultPagination label="생성 이미지 목록" total={jobs.length} {page} {pageSize} pageSizes={imagePageSizeOptions} {sortOrder} onPageChange={onPage} onPageSizeChange={onPageSize} onSortOrderChange={onSort} />
   <div class="gallery image-results" class:list-view={view === 'list'}>
     {#each pagedJobs as job, imageIndex (job.id)}
@@ -71,6 +85,7 @@
             <span>{modeLabel(job)}{imageModuleSummary(job)} · {job.params?.width || '—'}×{job.params?.height || '—'}{#if imageSamplingSummary(job)} · {imageSamplingSummary(job)}{/if}{#if job.params?.seed >= 0} · seed {job.params.seed}{/if}</span>
             <button type="button" class="image-prompt" title="클릭하여 전체 프롬프트 보기" onclick={() => onPrompt(job, promptDetail(job), promptText(job))}>{job.prompt}</button>
             {#if job.error}<em>{job.error}</em>{/if}
+            <JobTags {job} availableTags={tagOptions} saving={updatingTagsJob === job.id} onSave={onEditTags} />
             {#if job.status === 'failed' || job.status === 'cancelled'}<button type="button" class="job-retry image-retry" disabled={retryingJob === job.id} onclick={() => onRetry(job)}>{retryingJob === job.id ? '재시도 중…' : '재시도'}</button>{/if}
             <div class="image-clone-actions" aria-label="이 작업에서 불러오기">
               <span>불러오기:</span>
@@ -92,6 +107,7 @@
           <span class="image-mode-badge" title={`${modeLabel(job)}${imageModuleSummary(job)}`}>{modeLabel(job)}{imageModuleSummary(job)}</span>
           <button type="button" class="image-prompt" title="클릭하여 전체 프롬프트 보기" onclick={() => onPrompt(job, promptDetail(job), promptText(job))}>{job.prompt}</button>
           {#if job.error}<em>{job.error}</em>{/if}
+          <JobTags {job} availableTags={tagOptions} saving={updatingTagsJob === job.id} onSave={onEditTags} />
           {#if job.status === 'failed' || job.status === 'cancelled'}<button type="button" class="job-retry image-retry" disabled={retryingJob === job.id} onclick={() => onRetry(job)}>{retryingJob === job.id ? '재시도 중…' : '재시도'}</button>{/if}
           <div class="image-clone-actions" aria-label="이 작업에서 불러오기">
             <span>불러오기:</span>

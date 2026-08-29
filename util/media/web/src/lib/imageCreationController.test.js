@@ -37,6 +37,18 @@ test('image creation controller applies identity intent and smart resolution', (
   assert.ok(state().form.width > state().form.height)
 })
 
+test('head swap preset applies the published BFS Krea defaults', () => {
+  const { controller, state } = fixture()
+  controller.applyIdentityPreset('headSwap')
+  assert.equal(state().options.identity_strength, 1)
+  assert.equal(state().options.ref_boost, 1)
+  assert.equal(state().options.source_ref_boost, 1)
+  assert.equal(state().options.grounding_px, 512)
+  assert.equal(state().options.steps, 8)
+  assert.equal(state().options.identity_encoder, 'default')
+  assert.equal(state().options.filter_mode, 'off')
+})
+
 test('image creation reset restores one coherent default state', () => {
   const { controller, state } = fixture()
   controller.reset()

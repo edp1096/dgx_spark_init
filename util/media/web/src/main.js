@@ -8,6 +8,7 @@ import './settings.css'
 import './enhancer.css'
 import './lora.css'
 import './assistant.css'
+import './tags.css'
 import './theme.css'
 
 const savedTheme = localStorage.getItem('spark-media-theme')

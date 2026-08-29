@@ -22,6 +22,7 @@
   let editCover = null
   let removeEditCover = false
   let coverPickerTarget = ''
+  let ostrisToolkitURL = 'http://127.0.0.1:8675'
   let form = { source: '', provider: 'auto', name: '', trigger_word: '', memo: '', base_model: '', recommended_strength: 1 }
   let edit = { name: '', trigger_word: '', memo: '', base_model: '', recommended_strength: 1 }
 
@@ -35,6 +36,8 @@
 
   onMount(() => {
     loraView = localStorage.getItem('media-lora-view') === 'list' ? 'list' : 'gallery'
+    const hostname = window.location.hostname.includes(':') ? `[${window.location.hostname}]` : window.location.hostname
+    ostrisToolkitURL = `http://${hostname}:8675`
     refresh()
   })
 
@@ -201,8 +204,8 @@
 </script>
 
 <section class="lora-studio">
-  <div class="section-title"><div><span>05</span><h2>LoRA 관리</h2></div></div>
-  <p class="lora-intro">Civitai와 Hugging Face에서 LoRA를 등록하고 생성에 사용할 이름·트리거·기본 강도를 관리합니다. 학습은 추후 Ostris ai-toolkit에서 별도로 진행합니다.</p>
+  <div class="section-title"><div><span>05</span><h2>LoRA 관리</h2></div><a class="quiet lora-toolkit-link" href={ostrisToolkitURL} target="_blank" rel="noreferrer" title="공식 Ostris AI Toolkit을 새 탭에서 엽니다">Ostris 열기 ↗</a></div>
+  <p class="lora-intro">Civitai와 Hugging Face에서 LoRA를 등록하고 생성에 사용할 이름·트리거·기본 강도를 관리합니다. LoRA 학습은 공식 Ostris AI Toolkit에서 진행합니다.</p>
   {#if error}<div class="error"><span>{error}</span><button onclick={() => error = ''}>×</button></div>{/if}
   {#if message}<div class="success">{message}</div>{/if}
 

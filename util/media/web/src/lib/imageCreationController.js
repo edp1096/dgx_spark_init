@@ -103,6 +103,20 @@ export class ImageCreationController {
       identityPreserveItems: identityPreserveDefaults(value, this.catalogs.defaultIdentityPreserveItems, state.modules.depth),
       identityPreserveCustom: ''
     }
+    if (value === 'headSwap') {
+      patch.options = {
+        ...state.options,
+        identity_strength: 1,
+        ref_boost: 1,
+        source_ref_boost: 1,
+        grounding_px: 512,
+        steps: 8,
+        identity_model: 'convrot',
+        identity_encoder: 'default',
+        filter_mode: 'off',
+        filter_strength: 0
+      }
+    }
     if (value in prompts) patch.form = { ...state.form, prompt: prompts[value] }
     this.actions.patch(patch)
     this.resetEnhancement()

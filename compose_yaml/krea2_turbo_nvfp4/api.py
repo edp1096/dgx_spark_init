@@ -69,6 +69,7 @@ CHECKPOINT_SAMPLING = {
     "moody-amateur-v1": ("euler_ancestral", "beta"),
 }
 STYLE_REFERENCE_MODEL = "krea2_turbo_int8_convrot.safetensors"
+HEAD_SWAP_MODEL = "krea2_turbo_int8_convrot.safetensors"
 TEXT_ENCODER = "qwen3vl_4b_fp8_scaled.safetensors"
 VISION_TEXT_ENCODER = "qwen3vl_4b_bf16.safetensors"
 VISION_INSTRUCT_SYSTEM = (
@@ -82,6 +83,7 @@ REAL_VAE = "krea2RealVae_v10.safetensors"
 WAN_VAE = "wan_2.1_vae.safetensors"
 DEPTH_CONTROL_LORA = "krea2-depth-control-lora.safetensors"
 IDENTITY_EDIT_LORA = "krea2_identity_edit_v1_2.safetensors"
+HEAD_SWAP_LORA = "bfs_head_swap_v1.1_krea2.safetensors"
 REID_LORA = "krea2_reid_rank32.safetensors"
 CHARACTER_SHEET_LORA = "QuadView_krea2_v1.safetensors"
 IDENTITY_EDIT_MODEL = "Krea2_Turbo_convrot_int8mixed.safetensors"
@@ -201,6 +203,7 @@ class ImageRequest(BaseModel):
     identity_fit_mode: str = "fit"
     identity_model: str = "convrot"
     identity_encoder: str = "heretic"
+    identity_preset: str = ""
     identity_strength: float = 1.0
     ref_boost: float = 4.0
     source_ref_boost: float = 1.0
@@ -1157,9 +1160,11 @@ def identity_workflow(
     diffusion_model: str,
     text_encoder: str = TEXT_ENCODER,
     apply_identity_lora: bool = True,
+    identity_preset: str = "",
 ) -> dict[str, Any]:
     graph = workflow(prompt, width, height, seed, prefix, steps, diffusion_model=diffusion_model)
     graph["2"]["inputs"]["clip_name"] = text_encoder
+    functional_lora = HEAD_SWAP_LORA if identity_preset == "headSwap" else IDENTITY_EDIT_LORA
     graph.update(
         {
             "10": {"class_type": "LoadImage", "inputs": {"image": source_name}},
@@ -1172,7 +1177,7 @@ def identity_workflow(
                 "class_type": "LoraLoaderModelOnly",
                 "inputs": {
                     "model": ["1", 0],
-                    "lora_name": IDENTITY_EDIT_LORA,
+                    "lora_name": functional_lora,
                     "strength_model": identity_strength,
                 },
             },
@@ -1210,7 +1215,9 @@ def identity_workflow(
             },
         }
     )
-    if apply_identity_lora:
+    # The dedicated BFS head-swap graph uses its LoRA by itself.  The
+    # checkpoint-specific Identity Edit exception must not remove it.
+    if apply_identity_lora or identity_preset == "headSwap":
         model_input: list[Any] = ["13", 0]
     else:
         graph.pop("13")
@@ -1890,6 +1897,8 @@ def request_runtime_profile(request: ImageRequest) -> str:
     if request.reid_image:
         return "krea-reid"
     if request.source_image:
+        if request.identity_preset == "headSwap":
+            return "krea-head-swap"
         return f"krea-identity-{request.identity_model}-{request.identity_encoder}"
     if request.control_image:
         return "krea-depth"
@@ -1906,6 +1915,7 @@ def request_runtime_signature(request: ImageRequest) -> str:
         "character_sheet": bool(request.character_sheet_image),
         "identity_model": request.identity_model if request.source_image else "",
         "identity_encoder": request.identity_encoder if request.source_image else "",
+        "identity_preset": request.identity_preset if request.source_image else "",
         "vae": request.detail_vae if request.detail_enhance_image else request.vae_mode,
         "styles": [(item.name, round(item.strength, 4)) for item in request.styles],
         "user_loras": [(item.filename, round(item.strength, 4)) for item in request.user_loras],
@@ -2330,6 +2340,11 @@ async def generate(request: ImageRequest) -> dict[str, Any]:
     prompt = request.prompt.strip()
     if not prompt:
         raise HTTPException(status_code=400, detail="prompt is required")
+    if request.identity_preset == "headSwap":
+        # Preserve the functional LoRA's trained trigger verbatim.  Generic
+        # natural-language rewrites were the reason the old Identity-only path
+        # often kept the target hair or copied unrelated reference details.
+        prompt = "head_swap: replace the head with the reference head."
     width, height = parse_size(request.size)
     if not 0 <= request.control_strength <= 2:
         raise HTTPException(status_code=400, detail="control_strength must be between 0 and 2")
@@ -2441,6 +2456,8 @@ async def generate(request: ImageRequest) -> dict[str, Any]:
         raise HTTPException(status_code=400, detail="identity_model must be selected or convrot")
     if request.identity_encoder not in {"default", "heretic"}:
         raise HTTPException(status_code=400, detail="identity_encoder must be default or heretic")
+    if request.identity_preset not in {"", "restage", "sheet", "faceSwap", "headSwap", "personSwap", "tryon", "replace"}:
+        raise HTTPException(status_code=400, detail="unsupported identity_preset")
     if request.filter_mode not in {"off", "adherence", "balanced", "strong"}:
         raise HTTPException(status_code=400, detail="filter_mode must be off, adherence, balanced, or strong")
     if request.filter_strength is not None and not 0 <= request.filter_strength <= 10:
@@ -2714,7 +2731,9 @@ async def generate(request: ImageRequest) -> dict[str, Any]:
                     reference_names.append(reference_name)
                     reference_paths.append(reference_path)
                 identity_diffusion_model = (
-                    IDENTITY_EDIT_MODEL
+                    HEAD_SWAP_MODEL
+                    if request.identity_preset == "headSwap"
+                    else IDENTITY_EDIT_MODEL
                     if request.identity_model == "convrot"
                     else diffusion_model
                 )
@@ -2723,7 +2742,9 @@ async def generate(request: ImageRequest) -> dict[str, Any]:
                 # Krea checkpoints too; otherwise changing only the checkpoint
                 # also silently changes the instruction encoder.
                 identity_text_encoder = (
-                    IDENTITY_EDIT_TEXT_ENCODER
+                    TEXT_ENCODER
+                    if request.identity_preset == "headSwap"
+                    else IDENTITY_EDIT_TEXT_ENCODER
                     if request.identity_encoder == "heretic"
                     else TEXT_ENCODER
                 )
@@ -2749,6 +2770,7 @@ async def generate(request: ImageRequest) -> dict[str, Any]:
                     identity_diffusion_model,
                     identity_text_encoder,
                     request.checkpoint != "chriscole-edit-v1.1",
+                    request.identity_preset,
                 )
             elif depth_name is not None:
                 graph = depth_workflow(

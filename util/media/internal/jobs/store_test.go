@@ -181,3 +181,94 @@ func TestStoreDoesNotShareMutableJobMetadata(t *testing.T) {
 		t.Fatalf("store metadata changed through fetched alias: %#v", again)
 	}
 }
+
+func TestTagsNormalizePersistAndRemoveOrphans(t *testing.T) {
+	dir := t.TempDir()
+	store, err := New(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, job := range []Job{
+		{ID: "first", Status: "completed", CreatedAt: time.Now()},
+		{ID: "second", Status: "completed", CreatedAt: time.Now()},
+	} {
+		if err := store.Save(job); err != nil {
+			t.Fatal(err)
+		}
+	}
+	first, err := store.UpdateTags("first", []string{"  Portrait  ", "인물 사진", "portrait"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(first.Tags) != 2 || first.Tags[0] != "Portrait" || first.Tags[1] != "인물 사진" {
+		t.Fatalf("normalized tags = %#v", first.Tags)
+	}
+	second, err := store.UpdateTags("second", []string{"PORTRAIT"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(second.Tags) != 1 || second.Tags[0] != "Portrait" {
+		t.Fatalf("canonical tag = %#v", second.Tags)
+	}
+	catalog := store.Tags()
+	if len(catalog) != 2 || catalog[0].Count+catalog[1].Count != 3 {
+		t.Fatalf("catalog = %#v", catalog)
+	}
+
+	reloaded, err := New(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	persisted, _ := reloaded.Get("first")
+	if len(persisted.Tags) != 2 {
+		t.Fatalf("persisted tags = %#v", persisted.Tags)
+	}
+	if err := reloaded.Delete("first"); err != nil {
+		t.Fatal(err)
+	}
+	if len(reloaded.Tags()) != 1 || reloaded.Tags()[0].Name != "Portrait" || reloaded.Tags()[0].Count != 1 {
+		t.Fatalf("orphan catalog after delete = %#v", reloaded.Tags())
+	}
+	if err := reloaded.Delete("second"); err != nil {
+		t.Fatal(err)
+	}
+	if len(reloaded.Tags()) != 0 {
+		t.Fatalf("catalog retained orphan tags = %#v", reloaded.Tags())
+	}
+}
+
+func TestUpdateTagsRejectsInvalidValues(t *testing.T) {
+	store, err := New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := store.Save(Job{ID: "tagged", Status: "completed"}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := store.UpdateTags("tagged", []string{"comma,tag"}); !errors.Is(err, ErrInvalidTags) {
+		t.Fatalf("UpdateTags() error = %v, want %v", err, ErrInvalidTags)
+	}
+}
+
+func TestWorkerSaveCannotRestoreClearedTags(t *testing.T) {
+	store, err := New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	job := Job{ID: "running", Status: "running", Tags: []string{"기존"}}
+	if err := store.Save(job); err != nil {
+		t.Fatal(err)
+	}
+	stale, _ := store.Get(job.ID)
+	if _, err := store.UpdateTags(job.ID, []string{}); err != nil {
+		t.Fatal(err)
+	}
+	stale.Status = "completed"
+	if err := store.Save(stale); err != nil {
+		t.Fatal(err)
+	}
+	persisted, _ := store.Get(job.ID)
+	if len(persisted.Tags) != 0 {
+		t.Fatalf("stale worker restored tags: %#v", persisted.Tags)
+	}
+}

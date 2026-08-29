@@ -197,6 +197,10 @@
   let listPageSizes = { image: 8, video: 8, speech: 10, recognition: 10, history: 20 }
   let listPages = { image: 1, video: 1, speech: 1, recognition: 1, history: 1 }
   let listSortOrders = { image: 'desc', video: 'desc', speech: 'desc', recognition: 'desc', history: 'desc' }
+  let listTagFilters = { image: [], video: [], speech: [], recognition: [] }
+  let listTagExclusions = { image: [], video: [], speech: [], recognition: [] }
+  let listTagUntaggedOnly = { image: false, video: false, speech: false, recognition: false }
+  let listTagMatchModes = { image: 'or', video: 'or', speech: 'or', recognition: 'or' }
   let mobileEngineOpen = false
 
   let monitoredEngineStatuses = []
@@ -522,6 +526,7 @@
   $: deletingJob = $jobState.deletingJob
   $: cancellingJob = $jobState.cancellingJob
   $: retryingJob = $jobState.retryingJob
+  $: updatingTagsJob = $jobState.updatingTagsJob
   $: upscalingImageJob = $imageResultState.upscalingJob
   $: detailEnhancingImageJob = $imageResultState.detailEnhancingJob
   $: cloningImageJob = $imageResultState.cloningJob
@@ -535,14 +540,14 @@
   $: savingDownloadCredentials = $settingsState.savingDownloadCredentials
   $: storage = $settingsState.storage
   $: cleaningStorage = $settingsState.cleaningStorage
-  $: imageJobs = (jobs, listSortOrders, mediaListController.ordered('image'))
-  $: videoJobs = (jobs, listSortOrders, mediaListController.ordered('video'))
-  $: speechJobs = (jobs, listSortOrders, mediaListController.ordered('speech'))
-  $: recognitionJobs = (jobs, listSortOrders, mediaListController.ordered('recognition'))
-  $: pagedImageJobs = (jobs, listPages, listPageSizes, listSortOrders, mediaListController.pageItems('image'))
-  $: pagedVideoJobs = (jobs, listPages, listPageSizes, listSortOrders, mediaListController.pageItems('video'))
-  $: pagedSpeechJobs = (jobs, listPages, listPageSizes, listSortOrders, mediaListController.pageItems('speech'))
-  $: pagedRecognitionJobs = (jobs, listPages, listPageSizes, listSortOrders, mediaListController.pageItems('recognition'))
+  $: imageJobs = (jobs, listSortOrders, listTagFilters, listTagExclusions, listTagUntaggedOnly, listTagMatchModes, mediaListController.ordered('image'))
+  $: videoJobs = (jobs, listSortOrders, listTagFilters, listTagExclusions, listTagUntaggedOnly, listTagMatchModes, mediaListController.ordered('video'))
+  $: speechJobs = (jobs, listSortOrders, listTagFilters, listTagExclusions, listTagUntaggedOnly, listTagMatchModes, mediaListController.ordered('speech'))
+  $: recognitionJobs = (jobs, listSortOrders, listTagFilters, listTagExclusions, listTagUntaggedOnly, listTagMatchModes, mediaListController.ordered('recognition'))
+  $: pagedImageJobs = (jobs, listPages, listPageSizes, listSortOrders, listTagFilters, listTagExclusions, listTagUntaggedOnly, listTagMatchModes, mediaListController.pageItems('image'))
+  $: pagedVideoJobs = (jobs, listPages, listPageSizes, listSortOrders, listTagFilters, listTagExclusions, listTagUntaggedOnly, listTagMatchModes, mediaListController.pageItems('video'))
+  $: pagedSpeechJobs = (jobs, listPages, listPageSizes, listSortOrders, listTagFilters, listTagExclusions, listTagUntaggedOnly, listTagMatchModes, mediaListController.pageItems('speech'))
+  $: pagedRecognitionJobs = (jobs, listPages, listPageSizes, listSortOrders, listTagFilters, listTagExclusions, listTagUntaggedOnly, listTagMatchModes, mediaListController.pageItems('recognition'))
   $: pagedHistoryJobs = (jobs, listPages, listPageSizes, listSortOrders, mediaListController.pageItems('history'))
 
   function appPresentationSnapshot() {
@@ -558,6 +563,7 @@
   function mediaListSnapshot() {
     return {
       jobs, pages: listPages, pageSizes: listPageSizes, sortOrders: listSortOrders,
+      tagFilters: listTagFilters, tagExclusions: listTagExclusions, tagUntaggedOnly: listTagUntaggedOnly, tagMatchModes: listTagMatchModes,
       views: { image: imageView, video: videoView, speech: speechView, subtitle: subtitleView },
       mobilePanes: { image: mobileImagePane, video: mobileVideoPane, speech: mobileSpeechPane, recognition: mobileRecognitionPane }
     }
@@ -567,6 +573,10 @@
     if ('pages' in patch) listPages = patch.pages
     if ('pageSizes' in patch) listPageSizes = patch.pageSizes
     if ('sortOrders' in patch) listSortOrders = patch.sortOrders
+    if ('tagFilters' in patch) listTagFilters = patch.tagFilters
+    if ('tagExclusions' in patch) listTagExclusions = patch.tagExclusions
+    if ('tagUntaggedOnly' in patch) listTagUntaggedOnly = patch.tagUntaggedOnly
+    if ('tagMatchModes' in patch) listTagMatchModes = patch.tagMatchModes
     if ('views' in patch) {
       imageView = patch.views.image; videoView = patch.views.video; speechView = patch.views.speech; subtitleView = patch.views.subtitle
     }
@@ -594,6 +604,28 @@
 
   function setListSortOrder(key, order) {
     mediaListController.setSortOrder(key, order)
+  }
+
+  function setListTagFilter(key, tags) {
+    mediaListController.setTagFilter(key, tags)
+  }
+
+  function setListTagExclusions(key, tags) {
+    mediaListController.setTagExclusions(key, tags)
+  }
+
+  function setListTagUntaggedOnly(key, enabled) {
+    mediaListController.setTagUntaggedOnly(key, enabled)
+  }
+
+  function setListTagMatchMode(key, mode) {
+    mediaListController.setTagMatchMode(key, mode)
+  }
+
+  async function updateJobTags(job, tags) {
+    const updated = await jobController.updateTags(job, tags)
+    if (updated) clampListPages()
+    return updated
   }
 
   function showNewestListPage(key) {
@@ -1336,7 +1368,11 @@
     jobs: imageJobs, pagedJobs: pagedImageJobs, view: imageView, page: listPages.image, pageSize: listPageSizes.image, sortOrder: listSortOrders.image,
     garmentOnline: engineStates.garment === 'online', faceSwapOnline: engineStates.faceswap === 'online', imageOnline: engineStates.image_create === 'online', upscaleOnline: engineStates.upscale === 'online',
     cloningJob: cloningImageJob, detailEnhancingJob: detailEnhancingImageJob, upscalingJob: upscalingImageJob,
-    cancellingJob, retryingJob, deletingJob, progressFor: imageGenerationProgress, promptText: imagePromptModalText,
+    cancellingJob, retryingJob, deletingJob, updatingTagsJob, progressFor: imageGenerationProgress, promptText: imagePromptModalText,
+    tagOptions: mediaListController.tagOptions('image'), filterTags: listTagFilters.image, excludedTags: listTagExclusions.image,
+    untaggedOnly: listTagUntaggedOnly.image, tagMatchMode: listTagMatchModes.image,
+    onFilterTags: (tags) => setListTagFilter('image', tags), onExcludeTags: (tags) => setListTagExclusions('image', tags),
+    onUntaggedOnly: (enabled) => setListTagUntaggedOnly('image', enabled), onTagMatchMode: (mode) => setListTagMatchMode('image', mode), onEditTags: updateJobTags,
     onView: setImageView, onPage: (page) => setListPage('image', page), onPageSize: (size) => setListPageSize('image', size), onSort: (order) => setListSortOrder('image', order),
     onShow: (...args) => imageModalController.showImage(...args), onPrompt: (job, detail, text) => commonModalController.showPrompt('전체 프롬프트', detail, text),
     onClone: cloneImageJob, onContinueEditing: continueEditing, onGarment: (job) => imageModalController.openGarment(job), onFaceSwap: (job) => imageModalController.openFaceSwap(job),
@@ -1344,7 +1380,11 @@
   }
   $: videoResultsModel = {
     jobs: videoJobs, pagedJobs: pagedVideoJobs, view: videoView, page: listPages.video, pageSize: listPageSizes.video, sortOrder: listSortOrders.video,
-    upscaleOnline: engineStates.upscale === 'online', cancellingJob, retryingJob, deletingJob,
+    upscaleOnline: engineStates.upscale === 'online', cancellingJob, retryingJob, deletingJob, updatingTagsJob,
+    tagOptions: mediaListController.tagOptions('video'), filterTags: listTagFilters.video, excludedTags: listTagExclusions.video,
+    untaggedOnly: listTagUntaggedOnly.video, tagMatchMode: listTagMatchModes.video,
+    onFilterTags: (tags) => setListTagFilter('video', tags), onExcludeTags: (tags) => setListTagExclusions('video', tags),
+    onUntaggedOnly: (enabled) => setListTagUntaggedOnly('video', enabled), onTagMatchMode: (mode) => setListTagMatchMode('video', mode), onEditTags: updateJobTags,
     progressFor: videoGenerationProgress, promptText: videoPromptModalText, onView: setVideoView,
     onPage: (page) => setListPage('video', page), onPageSize: (size) => setListPageSize('video', size), onSort: (order) => setListSortOrder('video', order),
     onShow: (job) => videoModalController.showVideo(job), onPrompt: (job, detail, text) => commonModalController.showPrompt('전체 프롬프트', detail, text),
@@ -1354,7 +1394,11 @@
   }
   $: recognitionResultsModel = {
     jobs: recognitionJobs, pagedJobs: pagedRecognitionJobs, view: subtitleView, page: listPages.recognition, pageSize: listPageSizes.recognition, sortOrder: listSortOrders.recognition,
-    upscaleOnline: engineStates.upscale === 'online', cancellingJob, retryingJob, deletingJob,
+    upscaleOnline: engineStates.upscale === 'online', cancellingJob, retryingJob, deletingJob, updatingTagsJob,
+    tagOptions: mediaListController.tagOptions('recognition'), filterTags: listTagFilters.recognition, excludedTags: listTagExclusions.recognition,
+    untaggedOnly: listTagUntaggedOnly.recognition, tagMatchMode: listTagMatchModes.recognition,
+    onFilterTags: (tags) => setListTagFilter('recognition', tags), onExcludeTags: (tags) => setListTagExclusions('recognition', tags),
+    onUntaggedOnly: (enabled) => setListTagUntaggedOnly('recognition', enabled), onTagMatchMode: (mode) => setListTagMatchMode('recognition', mode), onEditTags: updateJobTags,
     progressText: recognitionProgressText, progressTiming: recognitionProgressTiming, progressPercent: recognitionProgressPercent,
     warningText: subtitleTranslationWarningText, onView: setSubtitleView,
     onPage: (page) => setListPage('recognition', page), onPageSize: (size) => setListPageSize('recognition', size), onSort: (order) => setListSortOrder('recognition', order),
@@ -1392,7 +1436,11 @@
   $: speechTabModel = {
     mobilePane: mobileSpeechPane, form: speechForm, busy, activeJobs: activeJobs(), jobs: speechJobs, pagedJobs: pagedSpeechJobs,
     view: speechView, page: listPages.speech, pageSize: listPageSizes.speech, sortOrder: listSortOrders.speech,
-    cancellingJob, retryingJob, deletingJob, progressFor: speechGenerationProgress,
+    cancellingJob, retryingJob, deletingJob, updatingTagsJob, progressFor: speechGenerationProgress,
+    tagOptions: mediaListController.tagOptions('speech'), filterTags: listTagFilters.speech, excludedTags: listTagExclusions.speech,
+    untaggedOnly: listTagUntaggedOnly.speech, tagMatchMode: listTagMatchModes.speech,
+    onFilterTags: (tags) => setListTagFilter('speech', tags), onExcludeTags: (tags) => setListTagExclusions('speech', tags),
+    onUntaggedOnly: (enabled) => setListTagUntaggedOnly('speech', enabled), onTagMatchMode: (mode) => setListTagMatchMode('speech', mode), onEditTags: updateJobTags,
     onMobilePane: (pane) => setMobilePane('speech', pane), onReset: resetSpeechCreation, onGenerate: generateSpeech, onView: setSpeechView,
     onPage: (page) => setListPage('speech', page), onPageSize: (size) => setListPageSize('speech', size), onSort: (order) => setListSortOrder('speech', order),
     onPrompt: (job) => commonModalController.showPrompt('음성 원문', `${job.params?.speaker || 'VOICE'}${job.params?.seed >= 0 ? ` · seed ${job.params.seed}` : ''}`, job.prompt || ''),
