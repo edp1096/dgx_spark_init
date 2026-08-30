@@ -58,8 +58,10 @@ COMFY_URL = "http://127.0.0.1:8188"
 MODEL_ID = "krea2-turbo-nvfp4"
 MODEL_ALIASES = {MODEL_ID, "krea/Krea-2-Turbo"}
 DIFFUSION_MODEL = "krea2_turbo_nvfp4.safetensors"
+OFFICIAL_INT8_MODEL = "krea2_turbo_int8_convrot.safetensors"
 CHECKPOINT_MODELS = {
     "official": DIFFUSION_MODEL,
+    "official-int8": OFFICIAL_INT8_MODEL,
     **{key: checkpoint.filename for key, checkpoint in CHECKPOINTS.items()},
     **{f"{key}-nvfp4": filename for key, filename in NVFP4_FILENAMES.items()},
 }
@@ -68,8 +70,9 @@ CHECKPOINT_SAMPLING = {
     "moody-cutie-v4": ("euler_ancestral", "beta"),
     "moody-amateur-v1": ("euler_ancestral", "beta"),
 }
-STYLE_REFERENCE_MODEL = "krea2_turbo_int8_convrot.safetensors"
-HEAD_SWAP_MODEL = "krea2_turbo_int8_convrot.safetensors"
+OFFICIAL_CHECKPOINTS = {"official", "official-int8"}
+STYLE_REFERENCE_MODEL = OFFICIAL_INT8_MODEL
+HEAD_SWAP_MODEL = OFFICIAL_INT8_MODEL
 TEXT_ENCODER = "qwen3vl_4b_fp8_scaled.safetensors"
 VISION_TEXT_ENCODER = "qwen3vl_4b_bf16.safetensors"
 VISION_INSTRUCT_SYSTEM = (
@@ -181,7 +184,7 @@ class ImageRequest(BaseModel):
 
     prompt: str
     model: str = MODEL_ID
-    checkpoint: str = "official"
+    checkpoint: str = "official-int8"
     n: int = 1
     size: str = "1024x1024"
     seed: int | None = None
@@ -2324,14 +2327,14 @@ async def generate(request: ImageRequest) -> dict[str, Any]:
         source_key = request.checkpoint.removesuffix("-nvfp4")
         if not nvfp4_validated(source_key):
             raise HTTPException(status_code=409, detail=f"converted checkpoint is not validated: {request.checkpoint}")
-    elif request.checkpoint != "official" and not ready(CHECKPOINTS[request.checkpoint]):
+    elif request.checkpoint not in OFFICIAL_CHECKPOINTS and not ready(CHECKPOINTS[request.checkpoint]):
         raise HTTPException(status_code=409, detail=f"checkpoint is not prepared: {request.checkpoint}")
-    if request.checkpoint != "official" and request.filter_mode != "off":
+    if request.checkpoint not in OFFICIAL_CHECKPOINTS and request.filter_mode != "off":
         raise HTTPException(status_code=400, detail="third-party checkpoints already include tuning; set filter_mode=off")
-    if request.reid_image and request.checkpoint != "official":
-        raise HTTPException(status_code=400, detail="Krea ReID currently requires the official checkpoint")
-    if request.character_sheet_image and request.checkpoint != "official":
-        raise HTTPException(status_code=400, detail="CharacterSheet currently requires the official checkpoint")
+    if request.reid_image and request.checkpoint not in OFFICIAL_CHECKPOINTS:
+        raise HTTPException(status_code=400, detail="Krea ReID currently requires an official checkpoint")
+    if request.character_sheet_image and request.checkpoint not in OFFICIAL_CHECKPOINTS:
+        raise HTTPException(status_code=400, detail="CharacterSheet currently requires an official checkpoint")
     diffusion_model = CHECKPOINT_MODELS[request.checkpoint]
     if request.sampler_name not in {None, "euler", "euler_ancestral", "er_sde"}:
         raise HTTPException(status_code=400, detail="sampler_name must be euler, euler_ancestral, or er_sde")
@@ -2435,10 +2438,10 @@ async def generate(request: ImageRequest) -> dict[str, Any]:
             status_code=400,
             detail="style references cannot yet be combined with vision, identity, depth, or style presets",
         )
-    if request.style_reference_images and request.checkpoint != "official":
+    if request.style_reference_images and request.checkpoint not in OFFICIAL_CHECKPOINTS:
         raise HTTPException(
             status_code=400,
-            detail="style reference currently uses its own fixed official INT8 checkpoint; select the official checkpoint",
+            detail="style reference currently uses its own fixed official INT8 checkpoint; select an official checkpoint",
         )
     if request.nk2e_mode not in {"edit", "canny"}:
         raise HTTPException(status_code=400, detail="nk2e_mode must be edit or canny")
@@ -2805,7 +2808,11 @@ async def generate(request: ImageRequest) -> dict[str, Any]:
                         request.vision_megapixels,
                     )
             if not request.reid_image and not request.character_sheet_image:
-                graph = apply_filter_bypass(graph, request.filter_mode, request.filter_strength)
+                # User LoRAs and filter-bypass LoRAs modify the same DiT
+                # weights. Stacking them weakened trained facial traits in
+                # regression tests, so user LoRAs always take precedence.
+                if not user_loras:
+                    graph = apply_filter_bypass(graph, request.filter_mode, request.filter_strength)
                 graph = apply_prompt_enhancer(
                     graph,
                     request.prompt_enhancer,

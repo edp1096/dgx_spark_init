@@ -61,7 +61,7 @@ func (s *Server) createImageSequenceCharacterSheet(w http.ResponseWriter, r *htt
 	}
 	payload := map[string]any{
 		"model": backend.Model, "prompt": "Create a four-view character sheet candidate for user review.",
-		"checkpoint": "official", "size": "1536x1024", "steps": 10, "seed": seed,
+		"checkpoint": "official-int8", "size": "1536x1024", "steps": 10, "seed": seed,
 		"response_format": "b64_json", "output_format": "png", "filter_mode": "balanced",
 		"character_sheet_image": base64.StdEncoding.EncodeToString(data),
 		"operation_id":          operationID,

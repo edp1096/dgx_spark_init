@@ -97,13 +97,21 @@ func seedVR2RuntimePlan() modelRuntimePlan {
 func imageRuntimePlan(params imageJobParams, major bool) modelRuntimePlan {
 	checkpoint := params.Checkpoint
 	if checkpoint == "" {
-		checkpoint = "official"
+		checkpoint = "official-int8"
+	}
+	checkpointLabel := checkpoint
+	estimateSeconds := 55
+	if checkpoint == "official-int8" {
+		checkpointLabel = "공식 INT8 ConvRot"
+		estimateSeconds = 145
+	} else if checkpoint == "official" {
+		checkpointLabel = "공식 NVFP4 고속"
 	}
 	base := modelRuntimePlan{
 		Engine: "image", Profile: "krea-create", Label: "Krea 생성 모델 탑재",
-		Components:      []string{"Krea 2 " + checkpoint, "Qwen3VL FP8 text encoder", "Qwen Image VAE"},
+		Components:      []string{"Krea 2 " + checkpointLabel, "Qwen3VL FP8 text encoder", "Qwen Image VAE"},
 		RuntimeOrder:    []string{"워크플로우 준비", "체크포인트·인코더·VAE·LoRA 탑재", "조건 인코딩", "확산 추론", "VAE 디코딩", "ComfyUI 캐시 유지", "결과 저장"},
-		EstimateSeconds: 55,
+		EstimateSeconds: estimateSeconds,
 	}
 	if major && params.SequenceDraftReady {
 		return modelRuntimePlan{

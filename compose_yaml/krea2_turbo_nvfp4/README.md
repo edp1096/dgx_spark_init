@@ -87,7 +87,7 @@ Qwen3-VL FP8로 안전하게 전환합니다.
 Identity, Depth, 일반 스타일 LoRA, Qwen3-VL 의미 참조와 동시에 사용할 수 없습니다.
 
 NK2E v0.3는 짧은 지시의 국소 편집에, 실험적인 Canny v0.1은 참조 이미지의 윤곽과
-자세를 반영하는 데 사용합니다. 두 기능 모두 현재 NVFP4 기본 모델에서 실행하며 다른
+자세를 반영하는 데 사용합니다. 두 기능 모두 현재 선택한 공식 생성 모델에서 실행하며 다른
 Krea 모듈과 동시에 적용하지 않습니다. Canny 모드에서는 서버가 OpenCV Canny 맵을
 만들고 응답의 `control_b64_json`으로 돌려줍니다. NK2E는 초기 단계의 커뮤니티 LoRA와
 커스텀 노드이므로 정식 편집 모델이나 픽셀 단위 인페인팅처럼 취급하지 않습니다.
@@ -126,7 +126,8 @@ curl -X POST http://127.0.0.1:8691/v1/checkpoints/prepare \
   -d '{"civitai_token":"YOUR_KEY","variants":["ray-v1","ray-v2","ray-v3","ray-v4","moody-v7","moody-cutie-v4","moody-amateur-v1"]}'
 ```
 
-생성 요청에는 `checkpoint=official|ray-v1|ray-v2|ray-v2-nvfp4|ray-v3|ray-v4|ray-v4-nvfp4|moody-v7|moody-cutie-v4|moody-amateur-v1`을 지정합니다.
+생성 요청에는 `checkpoint=official-int8|official|ray-v1|ray-v2|ray-v2-nvfp4|ray-v3|ray-v4|ray-v4-nvfp4|moody-v7|moody-cutie-v4|moody-amateur-v1`을 지정합니다.
+`official-int8`은 얼굴·LoRA·문자 충실도를 우선하는 기본값이고, `official`은 메모리와 첫 적재 속도를 우선하는 NVFP4 고속 선택지입니다.
 외부 체크포인트에는 제작자의 조정이 이미 병합돼 있으므로 API는 필터 LoRA 중첩을 허용하지
 않으며 `filter_mode=off`를 요구합니다. V1 FP8과 V3 INT8은 제작자 제공본을 그대로
 유지합니다. Moody 세 모델은 제작자 권장값인 `Euler Ancestral + Beta`, 8 steps, CFG 1을

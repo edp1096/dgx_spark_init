@@ -125,7 +125,7 @@
   let userLoraCatalog = []
   let userLoraSelections = []
   let kreaOptions = {
-    checkpoint: 'official',
+    checkpoint: 'official-int8',
     identity_strength: 1, ref_boost: 4, source_ref_boost: 1, grounding_px: 768, steps: 8,
     identity_model: 'convrot', identity_encoder: 'heretic',
     sampling_preset: 'default',

@@ -1,5 +1,7 @@
 import { selectionLabel, toggleImageModuleState, toggleStyleSelection, toggleUserLoraSelection, updateSelectionStrength } from './imageModuleState.js'
 
+const isOfficialCheckpoint = (checkpoint) => checkpoint === 'official-int8' || checkpoint === 'official'
+
 export class ImageConfigurationController {
   constructor({ api, catalogs, actions }) {
     this.api = api
@@ -40,7 +42,14 @@ export class ImageConfigurationController {
   hasUserLora(filename) { return this.state().userLoraSelections.some((selection) => selection.filename === filename) }
   toggleUserLora(filename) {
     const state = this.state()
-    this.actions.patch({ userLoraSelections: toggleUserLoraSelection(state.userLoraSelections, state.userLoraCatalog, filename) })
+    const wasSelected = state.userLoraSelections.some((selection) => selection.filename === filename)
+    const selections = toggleUserLoraSelection(state.userLoraSelections, state.userLoraCatalog, filename)
+    this.actions.patch({
+      userLoraSelections: selections,
+      ...(!wasSelected && selections.some((selection) => selection.filename === filename)
+        ? { options: { ...state.options, filter_mode: 'off', filter_strength: 0 } }
+        : {})
+    })
   }
   updateUserLoraStrength(filename, strength) {
     this.actions.patch({ userLoraSelections: updateSelectionStrength(this.state().userLoraSelections, 'filename', filename, strength) })
@@ -64,22 +73,22 @@ export class ImageConfigurationController {
   }
 
   checkpointVisible(checkpoint) {
-    if (checkpoint === 'official') return true
+    if (isOfficialCheckpoint(checkpoint)) return true
     const visible = this.state().settings?.image?.visible_checkpoints
     return !Array.isArray(visible) || visible.includes(checkpoint)
   }
 
   setCheckpointVisible(checkpoint, visible) {
     const state = this.state()
-    if (!state.settings?.image || checkpoint === 'official') return
+    if (!state.settings?.image || isOfficialCheckpoint(checkpoint)) return
     const selected = new Set(state.settings.image.visible_checkpoints || this.catalogs.checkpointDisplayChoices.map(([id]) => id))
     if (visible) selected.add(checkpoint)
     else selected.delete(checkpoint)
     const settings = structuredClone(state.settings)
-    settings.image.visible_checkpoints = ['official', ...this.catalogs.checkpointDisplayChoices.map(([id]) => id).filter((id) => selected.has(id))]
-    if (!visible && settings.image.default_checkpoint === checkpoint) settings.image.default_checkpoint = 'official'
+    settings.image.visible_checkpoints = ['official-int8', 'official', ...this.catalogs.checkpointDisplayChoices.map(([id]) => id).filter((id) => selected.has(id))]
+    if (!visible && settings.image.default_checkpoint === checkpoint) settings.image.default_checkpoint = 'official-int8'
     this.actions.patch({ settings })
-    if (!visible && state.options.checkpoint === checkpoint) this.selectCheckpoint('official')
+    if (!visible && state.options.checkpoint === checkpoint) this.selectCheckpoint('official-int8')
   }
 
   checkpointReady(checkpoint) {
@@ -101,7 +110,7 @@ export class ImageConfigurationController {
       ...state.options, checkpoint,
       identity_model: state.modules.identity ? 'selected' : state.options.identity_model,
       sampling_preset: this.samplingPreset(checkpoint, state.options.sampling_preset),
-      ...(checkpoint === 'official' ? {} : { filter_mode: 'off', filter_strength: 0 })
+      ...(isOfficialCheckpoint(checkpoint) ? {} : { filter_mode: 'off', filter_strength: 0 })
     } })
   }
 
@@ -114,7 +123,7 @@ export class ImageConfigurationController {
     const state = this.state()
     const checkpoint = this.selectedCheckpoint()
     if (checkpoint === 'identity-convrot') return state.checkpointStatus?.identity_runtime?.convrot_source || 'https://huggingface.co/Winnougan/Krea-2-Base-Turbo-NVFP4-FP8-INT8'
-    if (checkpoint === 'official') return 'https://huggingface.co/krea/Krea-2-Turbo'
+    if (isOfficialCheckpoint(checkpoint)) return 'https://huggingface.co/krea/Krea-2-Turbo'
     const sourceID = checkpoint.replace('-nvfp4', '')
     return state.checkpointStatus?.variants?.find((item) => item.id === sourceID)?.source
       || state.checkpointStatus?.nvfp4_conversion?.variants?.find((item) => item.id === sourceID)?.source || ''

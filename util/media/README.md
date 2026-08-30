@@ -60,8 +60,8 @@ engines:
 
 image:
   default_mode: create
-  default_checkpoint: official
-  visible_checkpoints: [official, chriscole-edit-v1.1, moody-v7]
+  default_checkpoint: official-int8
+  visible_checkpoints: [official-int8, official, chriscole-edit-v1.1, moody-v7]
   backends:
     create:
       endpoint: http://127.0.0.1:8691

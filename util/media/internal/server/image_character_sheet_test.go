@@ -23,7 +23,7 @@ func TestCharacterSheetCandidateUsesExplicitReviewWorkflow(t *testing.T) {
 	engine := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var request map[string]any
 		_ = json.NewDecoder(r.Body).Decode(&request)
-		if request["character_sheet_image"] == nil || request["checkpoint"] != "official" || request["size"] != "1536x1024" || request["operation_id"] != "character-sheet-test" {
+		if request["character_sheet_image"] == nil || request["checkpoint"] != "official-int8" || request["size"] != "1536x1024" || request["operation_id"] != "character-sheet-test" {
 			t.Fatalf("unexpected character sheet request: %#v", request)
 		}
 		_ = json.NewEncoder(w).Encode(map[string]any{"data": []map[string]string{{"b64_json": base64.StdEncoding.EncodeToString(generated.Bytes())}}})

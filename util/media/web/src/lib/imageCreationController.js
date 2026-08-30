@@ -170,7 +170,8 @@ export class ImageCreationController {
     this.actions.clearAllInputs()
     this.actions.resetSequence()
     this.actions.closeSequence()
-    const checkpoint = state.config?.image?.default_checkpoint || 'official'
+    const checkpoint = state.config?.image?.default_checkpoint || 'official-int8'
+    const officialCheckpoint = checkpoint === 'official-int8' || checkpoint === 'official'
     this.actions.patch({
       modules: emptyModules(),
       styleSelections: [{ name: 'retroanime', strength: 1 }],
@@ -186,7 +187,7 @@ export class ImageCreationController {
         strict_mask_grow: 0, strict_mask_feather: 0,
         outpaint_left: 0, outpaint_top: 0, outpaint_right: 0, outpaint_bottom: 0,
         anypaint_strength: 1, anypaint_boundary_redraw_px: 32,
-        filter_mode: checkpoint === 'official' ? 'balanced' : 'off', filter_strength: checkpoint === 'official' ? 1 : 0,
+        filter_mode: officialCheckpoint ? 'balanced' : 'off', filter_strength: officialCheckpoint ? 1 : 0,
         prompt_enhancer: Boolean(state.config?.image?.default_prompt_enhancer), prompt_enhancer_strength: 1, prompt_text_scale: 1.75
       },
       form: { prompt: '', width: 1024, height: 1024, seed: -1, mode: 'create' },
@@ -263,7 +264,7 @@ export class ImageCreationController {
       patch.identityPreserveCustom = params.identity_preserve_custom || ''
       patch.options = {
         ...state.options,
-        checkpoint: params.checkpoint || 'official', identity_strength: params.identity_strength !== undefined ? Number(params.identity_strength) : 1,
+        checkpoint: params.checkpoint || 'official-int8', identity_strength: params.identity_strength !== undefined ? Number(params.identity_strength) : 1,
         identity_model: params.identity_model || 'convrot', identity_encoder: params.identity_encoder || 'heretic',
         ref_boost: params.ref_boost !== undefined ? Number(params.ref_boost) : 4, source_ref_boost: params.source_ref_boost !== undefined ? Number(params.source_ref_boost) : 1,
         grounding_px: Number(params.grounding_px) || 768, steps: Number(params.steps) || (params.identity ? 10 : 8),

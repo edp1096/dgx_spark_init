@@ -21,7 +21,7 @@ func validateImageCreate(mode string, references []string, width, height int, se
 		if options.reidPath != "" && len(sequencePrompts) == 0 {
 			return fmt.Errorf("character ReID is only available for multi-scene generation")
 		}
-		if options.reidPath != "" && options.checkpoint != "official" {
+		if options.reidPath != "" && !isOfficialKreaCheckpoint(options.checkpoint) {
 			return fmt.Errorf("character ReID currently requires the official Krea checkpoint")
 		}
 		if len(options.identityRefPaths) > 0 && options.identityPath == "" {

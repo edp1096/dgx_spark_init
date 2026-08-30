@@ -8,7 +8,7 @@ export function imageGenerationKey(job) {
     const steps = Number(params.steps) || (mode === 'detail_enhance' ? 10 : 8)
     const sampler = params.sampler || (mode === 'detail_enhance' ? 'er_sde' : 'euler')
     const modules = ['identity', 'depth', 'vision', 'style_reference', 'nk2e', 'anypaint'].filter((name) => params[name]).join('+') || 'base'
-    const checkpoint = params.checkpoint || params.model || 'official'
+    const checkpoint = params.checkpoint || params.model || 'official-int8'
     const textEncoder = params.text_encoder || params.encoder || 'default'
     const loraCount = (Array.isArray(params.user_loras) ? params.user_loras.length : 0) + (Array.isArray(params.styles) ? params.styles.length : 0)
     const references = imageReferenceCount(job)
@@ -42,7 +42,7 @@ export function imageGenerationDistance(left, right) {
     const a = left.params || {}, b = right.params || {}
     const ratio = Math.abs(Math.log(imageGenerationWork(left) / imageGenerationWork(right)))
     const mode = (a.mode || 'create') === (b.mode || 'create') ? 0 : 8
-    const model = (a.checkpoint || a.model || 'official') === (b.checkpoint || b.model || 'official') ? 0 : 3
+    const model = (a.checkpoint || a.model || 'official-int8') === (b.checkpoint || b.model || 'official-int8') ? 0 : 3
     const leftSequence = a.sequence_strategy === 'storyboard' ? 'single' : (a.sequence_strategy || 'single')
     const rightSequence = b.sequence_strategy === 'storyboard' ? 'single' : (b.sequence_strategy || 'single')
     const sequence = leftSequence === rightSequence ? 0 : 2

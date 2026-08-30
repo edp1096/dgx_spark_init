@@ -85,6 +85,7 @@ func (s *Server) runImageDetailEnhance(ctx context.Context, j jobs.Job, source [
 		"response_format": "b64_json", "output_format": "png",
 		"detail_enhance_image": base64.StdEncoding.EncodeToString(source),
 		"detail_strength":      strength, "detail_vae": vae, "steps": 10,
+		"checkpoint":  "official-int8",
 		"filter_mode": "balanced", "filter_strength": 1,
 		"sampler_name": "er_sde", "scheduler": "simple",
 	}

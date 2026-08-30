@@ -19,7 +19,7 @@ export function loadMediaPreferences(storage, pageSizeOptionsFor, defaults) {
 }
 
 export function runtimeDefaults(config, currentOptions, validImageModes) {
-  const checkpoint = config.image.default_checkpoint || 'official'
+  const checkpoint = config.image.default_checkpoint || 'official-int8'
   const currentSampling = currentOptions.sampling_preset || 'default'
   const samplingPreset = checkpoint.startsWith('moody-') ? 'moody' : currentSampling === 'moody' ? 'default' : currentSampling
   return {
@@ -43,7 +43,7 @@ export function runtimeDefaults(config, currentOptions, validImageModes) {
       checkpoint,
       sampling_preset: samplingPreset,
       prompt_enhancer: Boolean(config.image.default_prompt_enhancer),
-      ...(checkpoint === 'official' ? {} : { filter_mode: 'off', filter_strength: 0 })
+      ...(checkpoint === 'official-int8' || checkpoint === 'official' ? {} : { filter_mode: 'off', filter_strength: 0 })
     }
   }
 }

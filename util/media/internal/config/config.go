@@ -148,7 +148,7 @@ func Validate(cfg Config) error {
 		return fmt.Errorf("image.default_mode must name a configured backend")
 	}
 	validCheckpoints := map[string]bool{
-		"official": true, "ray-v1": true, "ray-v2": true, "ray-v2-nvfp4": true,
+		"official": true, "official-int8": true, "ray-v1": true, "ray-v2": true, "ray-v2-nvfp4": true,
 		"ray-v3": true, "ray-v4": true, "ray-v4-nvfp4": true,
 		"moody-v7": true, "moody-cutie-v4": true, "moody-amateur-v1": true,
 		"chriscole-edit-v1.1": true,
@@ -247,17 +247,17 @@ func Normalize(cfg Config) Config {
 		cfg.Image.DefaultMode = "create"
 	}
 	if cfg.Image.DefaultCheckpoint == "" {
-		cfg.Image.DefaultCheckpoint = "official"
+		cfg.Image.DefaultCheckpoint = "official-int8"
 	}
 	if len(cfg.Image.VisibleCheckpoints) == 0 {
 		cfg.Image.VisibleCheckpoints = []string{
-			"official", "chriscole-edit-v1.1", "moody-v7", "moody-cutie-v4", "moody-amateur-v1",
+			"official-int8", "official", "chriscole-edit-v1.1", "moody-v7", "moody-cutie-v4", "moody-amateur-v1",
 			"ray-v1", "ray-v2", "ray-v2-nvfp4", "ray-v3", "ray-v4", "ray-v4-nvfp4",
 		}
 	}
 	visible := make([]string, 0, len(cfg.Image.VisibleCheckpoints)+1)
 	seenVisible := map[string]bool{}
-	for _, checkpoint := range append([]string{"official"}, cfg.Image.VisibleCheckpoints...) {
+	for _, checkpoint := range append([]string{"official-int8", "official"}, cfg.Image.VisibleCheckpoints...) {
 		checkpoint = strings.TrimSpace(checkpoint)
 		if checkpoint != "" && !seenVisible[checkpoint] {
 			visible = append(visible, checkpoint)

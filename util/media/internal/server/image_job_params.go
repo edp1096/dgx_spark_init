@@ -100,7 +100,7 @@ func newImageJobParams() imageJobParams {
 		Mode:                     "create",
 		ControlType:              "canny",
 		ControlStrength:          0.65,
-		Checkpoint:               "official",
+		Checkpoint:               "official-int8",
 		IdentityStrength:         1,
 		ReferenceBoost:           4,
 		SourceReferenceBoost:     1,

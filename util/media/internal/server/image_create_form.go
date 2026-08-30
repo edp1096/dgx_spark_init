@@ -171,7 +171,7 @@ func normalizeImageGenerationOptions(r *http.Request, cfg config.Config, options
 		options.checkpoint = cfg.Image.DefaultCheckpoint
 	}
 	validCheckpoints := map[string]bool{
-		"official": true, "ray-v1": true, "ray-v2": true, "ray-v2-nvfp4": true,
+		"official": true, "official-int8": true, "ray-v1": true, "ray-v2": true, "ray-v2-nvfp4": true,
 		"ray-v3": true, "ray-v4": true, "ray-v4-nvfp4": true,
 		"moody-v7": true, "moody-cutie-v4": true, "moody-amateur-v1": true,
 		"chriscole-edit-v1.1": true,
@@ -198,13 +198,13 @@ func normalizeImageGenerationOptions(r *http.Request, cfg config.Config, options
 		return fmt.Errorf("identity encoder must be default or heretic")
 	}
 	if options.filterMode == "" {
-		if options.checkpoint == "official" {
+		if isOfficialKreaCheckpoint(options.checkpoint) {
 			options.filterMode = "balanced"
 		} else {
 			options.filterMode = "off"
 		}
 	}
-	if options.checkpoint != "official" && options.filterMode != "off" {
+	if !isOfficialKreaCheckpoint(options.checkpoint) && options.filterMode != "off" {
 		return fmt.Errorf("third-party checkpoints already include tuning; select original filter mode")
 	}
 	if options.samplingPreset == "" {
@@ -232,6 +232,12 @@ func normalizeImageGenerationOptions(r *http.Request, cfg config.Config, options
 			return fmt.Errorf("invalid user LoRA selection")
 		}
 	}
+	if len(options.userLoras) > 0 {
+		// Filter-bypass LoRAs compete with identity/style LoRAs for the same
+		// transformer weights and measurably weaken learned facial traits.
+		options.filterMode = "off"
+		options.filterStrength = 0
+	}
 	if options.visionMode == "" {
 		options.visionMode = "descriptor"
 	}
@@ -239,4 +245,8 @@ func normalizeImageGenerationOptions(r *http.Request, cfg config.Config, options
 		options.nk2eMode = "edit"
 	}
 	return nil
+}
+
+func isOfficialKreaCheckpoint(checkpoint string) bool {
+	return checkpoint == "official" || checkpoint == "official-int8"
 }

@@ -25,8 +25,8 @@ engines:
 
 image:
   model: krea2-turbo-nvfp4
-  default_checkpoint: official
-  visible_checkpoints: [official, chriscole-edit-v1.1, moody-v7, moody-cutie-v4, moody-amateur-v1, ray-v1, ray-v2, ray-v2-nvfp4, ray-v3, ray-v4, ray-v4-nvfp4]
+  default_checkpoint: official-int8
+  visible_checkpoints: [official-int8, official, chriscole-edit-v1.1, moody-v7, moody-cutie-v4, moody-amateur-v1, ray-v1, ray-v2, ray-v2-nvfp4, ray-v3, ray-v4, ray-v4-nvfp4]
   default_mode: create
   default_prompt_enhancer: false
   backends:

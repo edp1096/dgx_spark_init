@@ -363,7 +363,7 @@ export class ImageSequenceController {
   }
 }
 
-export function imageSequenceBlockedMessage({ mode, modules, moduleReason, checkpoint = 'official', hasReIDReference = false }) {
+export function imageSequenceBlockedMessage({ mode, modules, moduleReason, checkpoint = 'official-int8', hasReIDReference = false }) {
   if (mode !== 'create') return '다중 장면은 새 이미지 생성에서만 사용할 수 있습니다.'
   const incompatible = [
     [modules.identity, '원본 수정'], [modules.depth, '자세·구도'],
@@ -371,7 +371,7 @@ export function imageSequenceBlockedMessage({ mode, modules, moduleReason, check
     [modules.nk2e, '편집·윤곽'], [modules.anypaint, '부분 수정·확장']
   ].filter(([enabled]) => enabled).map(([, label]) => label)
   if (incompatible.length) return `${incompatible.join(' · ')} 모듈을 끈 뒤 사용할 수 있습니다.`
-  if (hasReIDReference && checkpoint !== 'official') return 'ReID 외형 고정은 공식 Krea 체크포인트에서만 사용할 수 있습니다.'
+  if (hasReIDReference && checkpoint !== 'official-int8' && checkpoint !== 'official') return 'ReID 외형 고정은 공식 Krea 체크포인트에서만 사용할 수 있습니다.'
   if (moduleReason) return moduleReason
   return ''
 }
