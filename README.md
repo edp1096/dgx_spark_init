@@ -19,7 +19,7 @@ ASUS Ascent GX10(DGX Spark) 초기 설정 기록용
 
 * [memos](./memos/) - 처음 컴터 켜고 할것들 메모.
 * [compose_yaml](./compose_yaml/) - Arcane 외 도커 컴포즈 파일 모음.
-* [util](./util/) - 도커 이미지 및 허깅페이스 모델 백업/복원 도구.
+* [util](./util/) - 그냥 잡다한 도구.
 
 ## 기타 참고용 링크
 
