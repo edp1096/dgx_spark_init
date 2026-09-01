@@ -30,3 +30,17 @@ func TestMemoryHeadroomRejectsLowImmediateCUDAFreeMemory(t *testing.T) {
 		t.Fatalf("expected immediate-free failure, got %v", err)
 	}
 }
+
+func TestHealthyLLMMemoryIsNotCountedTwice(t *testing.T) {
+	component := Component{Role: "llm", MemoryGiB: 96}
+	if remaining := healthyComponentRemainingMemory(component, 87.2); remaining != 0 {
+		t.Fatalf("healthy LLM host allocations are already reflected in MemAvailable, got %.1f GiB", remaining)
+	}
+}
+
+func TestHealthyLazyImageKeepsRemainingPeak(t *testing.T) {
+	component := Component{Role: "image", MemoryGiB: 6.7}
+	if remaining := healthyComponentRemainingMemory(component, .2); remaining != 6.5 {
+		t.Fatalf("unexpected lazy image reserve: %.1f GiB", remaining)
+	}
+}

@@ -131,7 +131,7 @@
       <div class="message-body">
         {#if message.reasoning_content}
           <details class="reasoning" open={reasoningOpen[index] ?? false} ontoggle={(event) => setReasoningOpen(index, event.currentTarget.open)}>
-            <summary class:activity-pulse={running && message.activity === 'reasoning'}>생각 과정</summary>
+            <summary><span class="activity-label" class:activity-scanner={running && message.activity === 'reasoning'}>생각 과정</span></summary>
             <div class="reasoning-text prose">{@html render(message.reasoning_content)}</div>
             <div class="collapse-row"><button onclick={(event) => { setReasoningOpen(index, false); collapseDetails(event); }}>↑ 생각 과정 접기</button></div>
           </details>
@@ -158,7 +158,7 @@
         {/if}
         {#if message.tool_trace?.length}
           <details class="tool-trace">
-            <summary class:activity-pulse={running && message.activity === 'tool'}>{message.tool_trace.some((tool) => tool.running) ? '도구 실행 중…' : `도구 ${message.tool_trace.length}회`}</summary>
+            <summary><span class="activity-label" class:activity-scanner={running && (message.activity === 'tool' || message.tool_trace.some((tool) => tool.running))}>{message.tool_trace.some((tool) => tool.running) ? '도구 실행 중…' : `도구 ${message.tool_trace.length}회`}</span></summary>
             <div class="tool-list">
               {#each message.tool_trace as tool}
                 <div class="tool-item">

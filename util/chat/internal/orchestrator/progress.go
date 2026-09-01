@@ -18,6 +18,7 @@ type progressInfo struct {
 var completedProgressPattern = regexp.MustCompile(`(?m)(\d+)% Completed \|\s*(\d+)/(\d+)`)
 var barProgressPattern = regexp.MustCompile(`(?m)(\d+)%\|[^\n]*?\|\s*(\d+)/(\d+)`)
 var progressETAPattern = regexp.MustCompile(`\[[0-9:]+<([0-9:]+)(?:,|\])`)
+var structuredWeightProgressPattern = regexp.MustCompile(`(?m)^SGLANG_WEIGHT_PROGRESS current=(\d+) total=(\d+) elapsed_seconds=([0-9.]+) eta_seconds=([0-9.]+)$`)
 
 func inferProgress(component Component, logs string) progressInfo {
 	switch component.ProgressKind {
@@ -69,15 +70,22 @@ func inferVLLMProgress(logs string) progressInfo {
 
 func inferSGLangProgress(component Component, logs string) progressInfo {
 	draft := "DFlash"
-	if component.ID == "qwen27" {
+	switch component.ID {
+	case "qwen27":
 		draft = "DFlash2"
+	case "flash-next":
+		draft = "MTP"
 	}
-	if hasAny(logs, "Application startup complete", "Uvicorn running on", "The server is fired up and ready to roll") {
+	ready := strings.Contains(logs, "The server is fired up and ready to roll")
+	if component.ID != "flash-next" {
+		ready = ready || hasAny(logs, "Application startup complete", "Uvicorn running on")
+	}
+	if ready {
 		return progressInfo{Key: "api", Phase: "API 온라인", Detail: "SGLang API가 요청을 받을 준비를 마쳤습니다.", Progress: 1}
 	}
 	// SGLang's DFlash startup profiles many one-token prefill paths after the
 	// graph and cache setup. Those lines can fill the entire Docker log tail.
-	if strings.Contains(logs, "Prefill batch, #new-seq: 1, #new-token: 1") {
+	if strings.Contains(logs, "Prefill batch, #new-seq: 1") {
 		return progressInfo{Key: "draft-warmup", Phase: draft + " 보정·워밍업", Detail: "초기 추론 경로를 측정하고 최적 커널을 고르고 있습니다.", Progress: .97}
 	}
 	if hasAny(logs, "Capture target verify CUDA graph", "Capture draft verify CUDA graph", "Capturing batches") {
@@ -92,10 +100,28 @@ func inferSGLangProgress(component Component, logs string) progressInfo {
 		return progressInfo{Key: "cuda-graph-" + graphKey, Phase: graphName + " 캡처", Detail: detail, Progress: .84 + progress*.10, ETA: etaForCurrentProgressLine(graphLogs, barProgressPattern)}
 	}
 	if hasAny(logs, "Full KV Cache is allocated", "SWA KV Cache is allocated", "KV Cache is allocated", "Memory pool end") {
-		return progressInfo{Key: "kv-cache", Phase: "FP8 KV 캐시 할당", Detail: "컨텍스트용 Full·SWA KV 메모리 풀을 구성하고 있습니다.", Progress: .80}
+		phase := "FP8 KV 캐시 할당"
+		if component.ID == "flash-next" {
+			phase = "KV·Mamba 캐시 할당"
+		}
+		return progressInfo{Key: "kv-cache", Phase: phase, Detail: "컨텍스트용 KV·상태 메모리 풀을 구성하고 있습니다.", Progress: .80}
 	}
 	if hasAny(logs, "Initialized DFLASH draft runner", "DFLASH draft runner ready") {
 		return progressInfo{Key: "draft-runtime", Phase: draft + " 추측 디코더 구성", Detail: "보조 예측 모델과 fused KV 경로를 연결하고 있습니다.", Progress: .74}
+	}
+	if match, percent, eta, elapsed, index, ok := latestStructuredWeightProgress(logs); ok {
+		isDraft := isDraftWeightProgressAt(logs, index)
+		eta = adjustedStructuredWeightETA(component, match, elapsed, eta, isDraft)
+		if isDraft {
+			return progressInfo{
+				Key: "draft-weights", Phase: draft + " 가중치 적재", Detail: fmt.Sprintf("%s/%s 샤드 · 보조 예측 모델", match[1], match[2]),
+				Progress: .52 + percent*.18, ETA: eta,
+			}
+		}
+		return progressInfo{
+			Key: "main-weights", Phase: modelDisplayName(component) + " 체크포인트 적재", Detail: fmt.Sprintf("%s/%s 샤드 · NVFP4 본체 모델", match[1], match[2]),
+			Progress: .12 + percent*.36, ETA: eta,
+		}
 	}
 	if match, percent, ok := latestCompletedProgress(logs); ok {
 		isDraft := isDraftWeightProgress(logs)
@@ -110,11 +136,20 @@ func inferSGLangProgress(component Component, logs string) progressInfo {
 			Progress: .12 + percent*.36, ETA: etaForCurrentProgressLine(logs, completedProgressPattern),
 		}
 	}
-	if strings.Contains(logs, "type=DFlashDraftModel") {
+	if hasAny(logs, "type=DFlashDraftModel", "type=Qwen4ExpForCausalLMMTP") {
 		return progressInfo{Key: "draft-loaded", Phase: draft + " 가중치 적재 완료", Detail: "보조 예측 모델을 통합메모리에 올렸습니다.", Progress: .72}
 	}
 	if strings.Contains(logs, "Load weight end") {
 		return progressInfo{Key: "main-loaded", Phase: modelDisplayName(component) + " 가중치 적재 완료", Detail: "본체 모델을 통합메모리에 올렸습니다.", Progress: .50}
+	}
+	if component.ID == "flash-next" && hasAny(logs, "using attn output gate", "PLE table: resident set capped") {
+		return progressInfo{
+			Key: "main-weights", Phase: modelDisplayName(component) + " 체크포인트 적재",
+			Detail: "206개 NVFP4 샤드를 열고 첫 샤드 완료를 기다리고 있습니다.", Progress: .16,
+		}
+	}
+	if component.ID == "flash-next" && hasAny(logs, "PLE table", "ple_offload_backend", "file-backed") {
+		return progressInfo{Key: "ple-file", Phase: "SSD PLE·ngram 연결", Detail: "대형 ngram 표를 통합메모리에 고정하지 않고 NVMe 파일에 연결하고 있습니다.", Progress: .11}
 	}
 	if strings.Contains(logs, "Load weight begin") {
 		return progressInfo{Key: "weights-open", Phase: modelDisplayName(component) + " 체크포인트 열기", Detail: "로컬 Hugging Face 캐시에서 가중치를 열고 있습니다.", Progress: .10}
@@ -152,6 +187,76 @@ func latestCompletedProgress(logs string) ([]string, float64, bool) {
 	return match, percent / 100, true
 }
 
+func latestStructuredWeightProgress(logs string) ([]string, float64, string, float64, int, bool) {
+	indexes := structuredWeightProgressPattern.FindAllStringSubmatchIndex(logs, -1)
+	if len(indexes) == 0 {
+		return nil, 0, "", 0, 0, false
+	}
+	index := indexes[len(indexes)-1]
+	match := structuredWeightProgressPattern.FindStringSubmatch(logs[index[0]:index[1]])
+	current, currentErr := strconv.Atoi(match[1])
+	total, totalErr := strconv.Atoi(match[2])
+	elapsedSeconds, elapsedErr := strconv.ParseFloat(match[3], 64)
+	etaSeconds, etaErr := strconv.ParseFloat(match[4], 64)
+	if currentErr != nil || totalErr != nil || elapsedErr != nil || etaErr != nil || total <= 0 || current < 0 || current > total {
+		return nil, 0, "", 0, 0, false
+	}
+	return match, float64(current) / float64(total), formatETASeconds(etaSeconds), elapsedSeconds, index[0], true
+}
+
+func adjustedStructuredWeightETA(component Component, match []string, elapsed float64, fallback string, isDraft bool) string {
+	if component.ID != "flash-next" {
+		return fallback
+	}
+	current, currentErr := strconv.Atoi(match[1])
+	total, totalErr := strconv.Atoi(match[2])
+	if currentErr != nil || totalErr != nil || total != 206 || current <= 0 {
+		return fallback
+	}
+
+	if isDraft {
+		// MTP reads the same index but only one late shard triggers its online
+		// expert conversion. Keep the observed ~40 second conversion reserve
+		// until that shard has been consumed.
+		if current <= 192 {
+			fastRate := elapsed / float64(current)
+			fastRate = min(.4, max(.15, fastRate))
+			return formatETASeconds(float64(192-current)*fastRate + 40)
+		}
+		return fallback
+	}
+
+	// The first 192 shards mostly stream at a steady rate. The final 14 also
+	// trigger online NVFP4 materialization and take roughly 26.5 seconds each
+	// on GB10. A linear tqdm ETA therefore collapses to seconds several minutes
+	// too early. Preserve that measured tail instead of pretending all shards
+	// have equal cost.
+	const (
+		fastShards       = 192
+		slowShardSeconds = 26.5
+	)
+	var remaining float64
+	if current < fastShards {
+		fastRate := elapsed / float64(current)
+		fastRate = min(2.2, max(1.6, fastRate))
+		remaining = float64(fastShards-current)*fastRate + float64(total-fastShards)*slowShardSeconds
+	} else {
+		remaining = float64(total-current) * slowShardSeconds
+	}
+	return formatETASeconds(remaining)
+}
+
+func formatETASeconds(seconds float64) string {
+	if seconds < 0 {
+		seconds = 0
+	}
+	totalSeconds := int(seconds + .5)
+	if totalSeconds >= 3600 {
+		return fmt.Sprintf("%d:%02d:%02d", totalSeconds/3600, (totalSeconds%3600)/60, totalSeconds%60)
+	}
+	return fmt.Sprintf("%02d:%02d", totalSeconds/60, totalSeconds%60)
+}
+
 func graphProgress(logs string) (float64, string) {
 	matches := barProgressPattern.FindAllStringSubmatch(logs, -1)
 	if len(matches) == 0 {
@@ -167,7 +272,16 @@ func graphProgress(logs string) (float64, string) {
 
 func currentSGLangGraph(logs, draft string) (string, string, string) {
 	targetIndex := strings.LastIndex(logs, "Capture target verify CUDA graph begin")
-	draftIndex := strings.LastIndex(logs, "Capture draft verify CUDA graph begin")
+	draftIndex := -1
+	for _, marker := range []string{
+		"Capture draft verify CUDA graph begin",
+		"Capture draft decode CUDA graph begin",
+		"Capture draft extend CUDA graph begin",
+	} {
+		if index := strings.LastIndex(logs, marker); index > draftIndex {
+			draftIndex = index
+		}
+	}
 	if draftIndex > targetIndex {
 		return logs[draftIndex:], "draft", draft + " CUDA Graph"
 	}
@@ -182,9 +296,12 @@ func isDraftWeightProgress(logs string) bool {
 	if len(progressIndexes) == 0 {
 		return false
 	}
-	latestProgress := progressIndexes[len(progressIndexes)-1][0]
-	return strings.LastIndex(logs[:latestProgress], "Load weight end") >= 0 ||
-		strings.Contains(logs[:latestProgress], "DFlashDraftModel")
+	return isDraftWeightProgressAt(logs, progressIndexes[len(progressIndexes)-1][0])
+}
+
+func isDraftWeightProgressAt(logs string, progressIndex int) bool {
+	return strings.LastIndex(logs[:progressIndex], "Load weight end") >= 0 ||
+		strings.Contains(logs[:progressIndex], "DFlashDraftModel")
 }
 
 func etaFromLogs(logs string) string {

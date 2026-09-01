@@ -36,6 +36,8 @@ test('removes visual symbols instead of naming them in narration', () => {
   assert.equal(normalizeSpeechNotation('← ↑ ↓ ↔'), '');
   assert.equal(speechTextFromMarkdown('**한국경제신문** → **韓國經濟新聞**'), '한국경제신문, 韓國經濟新聞.');
   assert.equal(normalizeSpeechNotation('정답 = 42 ★'), '정답, 42');
+  assert.equal(normalizeSpeechNotation('낮에는 꽤 더워요 — 물을 챙기세요'), '낮에는 꽤 더워요, 물을 챙기세요');
+  assert.equal(normalizeSpeechNotation('오전 7–9시, 23—24°C'), '오전 7에서 9시, 23도에서 24도');
 });
 
 test('reads unambiguous arithmetic notation by meaning', () => {

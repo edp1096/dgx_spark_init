@@ -16,13 +16,13 @@
       "id": "flash-next",
       "name": "Qwen3.8 Flash-Next",
       "role": "llm",
-      "container": "qwen38-flash-dealign",
+      "container": "sglang-qwen38-flash-next",
       "health_url": "http://127.0.0.1:8000/health",
       "model": "qwen3.8-flash-next",
-      "memory_gib": 89.7,
+      "memory_gib": 96.0,
       "startup_timeout_seconds": 1200,
       "compose_asset": "compose.flash-next.yaml",
-      "progress_kind": "vllm"
+      "progress_kind": "sglang"
     },
     {
       "id": "gemma31",

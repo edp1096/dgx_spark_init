@@ -58,6 +58,10 @@ function removeVisualSymbols(text) {
     // 화살표·수학·통화·장식 기호는 화면용 표식이다. 이름을 읽지 않고
     // 문장끼리 붙지 않도록 짧은 쉼만 남긴다.
     .replace(/[\p{Sm}\p{Sc}\p{Sk}\p{So}](?:[\uFE0E\uFE0F])?/gu, ', ')
+    // 긴 대시류는 문장 사이의 시각적 구분자다. TTS가 "대시" 등으로
+    // 읽지 않도록 짧은 쉼으로 바꾼다. 숫자 범위는 이 단계 전에
+    // "에서"로 의미 변환된다.
+    .replace(/[‐‑‒–—―⸺⸻]+/gu, ', ')
     .replace(/[#%‰‱&@|/\\]+/gu, ', ')
     .replace(/(?:,\s*){2,}/gu, ', ')
     .replace(/\s+,/gu, ',')
@@ -80,13 +84,13 @@ export function normalizeSpeechNotation(text) {
     .replace(/(-?\d+(?:\.\d+)?)\s*m\s*\/\s*s\b/giu, (_match, number) => `초속 ${compactDecimal(number)}미터`)
     .replace(/(-?\d+(?:\.\d+)?)\s*km\s*\/\s*h\b/giu, (_match, number) => `시속 ${compactDecimal(number)}킬로미터`)
     .replace(/(-?\d+(?:\.\d+)?)\s*mm\s*\/\s*h\b/giu, (_match, number) => `시간당 ${compactDecimal(number)}밀리미터`)
-    .replace(/(-?\d+(?:[.,]\d+)?)\s*[~～]\s*(-?\d+(?:[.,]\d+)?)\s*(?:°\s*F|℉)/giu, '화씨 $1도에서 $2도')
+    .replace(/(-?\d+(?:[.,]\d+)?)\s*[~～‐‑‒–—―]\s*(-?\d+(?:[.,]\d+)?)\s*(?:°\s*F|℉)/giu, '화씨 $1도에서 $2도')
     .replace(/(-?\d+(?:[.,]\d+)?)\s*(?:°\s*F|℉)/giu, '화씨 $1도')
-    .replace(/(-?\d+(?:[.,]\d+)?)\s*[~～]\s*(-?\d+(?:[.,]\d+)?)\s*(?:°\s*C|℃)/giu, '$1도에서 $2도')
+    .replace(/(-?\d+(?:[.,]\d+)?)\s*[~～‐‑‒–—―]\s*(-?\d+(?:[.,]\d+)?)\s*(?:°\s*C|℃)/giu, '$1도에서 $2도')
     .replace(/(-?\d+(?:[.,]\d+)?)\s*(?:°\s*C|℃)/giu, '$1도')
-    .replace(/(-?\d+(?:[.,]\d+)?)\s*[~～]\s*(-?\d+(?:[.,]\d+)?)\s*%/gu, '$1퍼센트에서 $2퍼센트')
+    .replace(/(-?\d+(?:[.,]\d+)?)\s*[~～‐‑‒–—―]\s*(-?\d+(?:[.,]\d+)?)\s*%/gu, '$1퍼센트에서 $2퍼센트')
     .replace(/(-?\d+(?:[.,]\d+)?)\s*%/gu, '$1퍼센트')
-    .replace(/(-?\d+(?:[.,]\d+)?)\s*[~～]\s*(-?\d+(?:[.,]\d+)?)/gu, '$1에서 $2')
+    .replace(/(-?\d+(?:[.,]\d+)?)\s*[~～‐‑‒–—―]\s*(-?\d+(?:[.,]\d+)?)/gu, '$1에서 $2')
     .replace(/(?:°\s*C|℃)/giu, '섭씨')
     .replace(/(?:°\s*F|℉)/giu, '화씨')
     .replace(/[~～]+/gu, ', ')

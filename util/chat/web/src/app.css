@@ -254,7 +254,22 @@ article.mine { flex-direction: row-reverse; }
 .collapse-row { display: flex; justify-content: flex-end; padding: 7px 10px 9px; border-top: 1px solid #252c39; background: #10141c; }
 .collapse-row button { padding: 5px 8px; border: 0; border-radius: 6px; color: #818b9d; background: transparent; font-size: 11px; }
 .collapse-row button:hover { color: #d1d9e7; background: #222936; }
-.activity-pulse { animation: activity-text-pulse 1.45s ease-in-out infinite; }
+.activity-label { display: inline-block; }
+.activity-scanner {
+  display: inline-block;
+  color: transparent;
+  background: linear-gradient(90deg, var(--activity-text-dim) 0%, var(--activity-text-dim) 38%, var(--activity-text-bright) 47%, #f5f9ff 50%, var(--activity-text-bright) 53%, var(--activity-text-dim) 62%, var(--activity-text-dim) 100%);
+  background-position: 110% 50%;
+  background-size: 230% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: activity-text-scanner 1.15s ease-in-out infinite alternate;
+}
+@keyframes activity-text-scanner {
+  0% { background-position: 110% 50%; }
+  100% { background-position: -10% 50%; }
+}
 @keyframes activity-text-pulse {
   0%, 100% { color: var(--activity-text-dim); opacity: .58; text-shadow: 0 0 0 transparent; }
   50% { color: var(--activity-text-bright); opacity: 1; text-shadow: 0 0 12px var(--activity-text-glow); }
@@ -362,8 +377,8 @@ textarea::placeholder { color: #777f8f; }
 .composer-footer > small { display: block; margin-top: 8px; color: #727b8b; }
 .composer-footer > small.voice-active { color: #9eb7e8; animation: activity-text-pulse 1.45s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) {
-  .activity-pulse, .session-running, .runtime-steps li.current > i, .runtime-component > span.starting > i, .uploading, .composer-footer > small.voice-active { animation: none; }
-  .activity-pulse, .session-running, .composer-footer > small.voice-active { color: var(--activity-text-bright); opacity: 1; text-shadow: none; }
+  .session-running, .runtime-steps li.current > i, .runtime-component > span.starting > i, .uploading, .composer-footer > small.voice-active { animation: none; }
+  .session-running, .composer-footer > small.voice-active { color: var(--activity-text-bright); opacity: 1; text-shadow: none; }
 }
 .modal-backdrop { position: fixed; z-index: 20; inset: 0; display: grid; place-items: center; padding: 20px; background: #050609bb; backdrop-filter: blur(5px); }
 .settings-modal { display: grid; width: min(680px, 100%); height: min(780px, calc(100dvh - 40px)); max-height: calc(100dvh - 40px); grid-template-rows: auto auto minmax(0, 1fr) auto; overflow: hidden; border: 1px solid #343948; border-radius: 16px; background: #151821; box-shadow: 0 25px 80px #000a; }

@@ -253,13 +253,7 @@ func (c *Controller) bundleMemoryPlan(ctx context.Context, bundle Bundle) memory
 				plan.RequiresCUDAStart = plan.RequiresCUDAStart || isCUDAComponent(component)
 				continue
 			}
-			// CUDA services can be healthy before reaching their workload peak.
-			// FLUX in particular loads most weights lazily on first generation.
-			if isCUDAComponent(component) && gpuMemory > 0 {
-				plan.NeededGiB += max(0, component.MemoryGiB-gpuMemory)
-			} else if component.Role == "image" {
-				plan.NeededGiB += component.MemoryGiB
-			}
+			plan.NeededGiB += healthyComponentRemainingMemory(component, gpuMemory)
 			continue
 		}
 		if component.Role == "llm" && running {
@@ -270,6 +264,21 @@ func (c *Controller) bundleMemoryPlan(ctx context.Context, bundle Bundle) memory
 		}
 	}
 	return plan
+}
+
+// Healthy LLM, ASR and TTS services have already loaded their steady-state
+// weights. Their host-side allocations are included in MemAvailable but are
+// not reported by nvidia-smi, so subtracting GPU usage from the catalog peak
+// would count that memory twice. FLUX is different: its API becomes healthy
+// before the generation model is loaded and still needs its remaining peak.
+func healthyComponentRemainingMemory(component Component, gpuMemory float64) float64 {
+	if component.Role != "image" {
+		return 0
+	}
+	if gpuMemory <= 0 {
+		return component.MemoryGiB
+	}
+	return max(0, component.MemoryGiB-gpuMemory)
 }
 
 func validateMemoryHeadroom(memory SystemMemory, plan memoryPlan, reserveGiB float64) error {
@@ -581,7 +590,8 @@ func (c *Controller) startAndWait(component Component) error {
 	if timeout <= 0 {
 		timeout = 5 * time.Minute
 	}
-	deadline := time.Now().Add(timeout)
+	startedAt := time.Now()
+	deadline := startedAt.Add(timeout)
 	for time.Now().Before(deadline) {
 		if c.isHealthy(context.Background(), component) {
 			c.updateOperation(component.ID, progressInfo{Key: "ready:" + component.ID, Phase: component.Name + " API 응답 확인", Detail: "서비스가 요청을 받을 준비를 마쳤습니다.", Progress: 1})
@@ -592,6 +602,9 @@ func (c *Controller) startAndWait(component Component) error {
 			return errors.New(failure)
 		}
 		info := inferProgress(component, logs)
+		if component.ID == "flash-next" {
+			info = estimateFlashNextWeightProgress(info, time.Since(startedAt))
+		}
 		if info.Phase == "" {
 			info = progressInfo{Key: "init", Phase: component.Name + " 준비 중", Detail: "컨테이너 로그를 기다리고 있습니다.", Progress: .05}
 		}
@@ -602,6 +615,22 @@ func (c *Controller) startAndWait(component Component) error {
 		time.Sleep(2 * time.Second)
 	}
 	return fmt.Errorf("startup timed out after %s", timeout)
+}
+
+func estimateFlashNextWeightProgress(info progressInfo, elapsed time.Duration) progressInfo {
+	if info.Key != "main-weights" || info.ETA != "" {
+		return info
+	}
+	const expected = 9 * time.Minute
+	if elapsed < 0 {
+		elapsed = 0
+	}
+	ratio := min(1, float64(elapsed)/float64(expected))
+	info.Progress = .16 + ratio*.32
+	remaining := max(0, expected-elapsed)
+	seconds := int(remaining.Round(time.Second).Seconds())
+	info.ETA = fmt.Sprintf("%02d:%02d", seconds/60, seconds%60)
+	return info
 }
 
 func (c *Controller) ensureRuntimePaths() error {
