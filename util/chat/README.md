@@ -54,15 +54,17 @@ GPU 메모리, 기동 단계·진행률·예상 시간을 확인할 수 있다. 
 
 기동 단계는 런타임 로그에 맞춰 구분한다. Flash-Next는 체크포인트·SSD PLE·MTP·
 KV 캐시·CUDA Graph, Qwen 27B와 Gemma는 본체·DFlash 계열 draft·FP8 KV 캐시·
-CUDA Graph·보정 워밍업 순으로 표시한다. 완료한 단계도 최근 이력에 남으므로 긴
-모델 기동 중 현재 위치와 다음 단계로 넘어간 시점을 함께 확인할 수 있다.
+CUDA Graph·보정 워밍업 순으로 표시한다. Flash-Next 전용 SGLang 이미지는 Docker
+로그에서도 본체·MTP의 실제 샤드 수와 ETA가 갱신되도록 보강했다. 완료한 단계도
+최근 이력에 남으므로 긴 모델 기동 중 현재 위치와 다음 단계로 넘어간 시점을 함께
+확인할 수 있다.
 
 모델 가중치와 Docker 이미지 자체는 Go 바이너리에 넣지 않는다. 최초 사용 전에
 저장소의 각 런타임 README에 따라 아래 로컬 이미지를 빌드하고 모델을 받아 둔다.
 그 이후의 일상적인 기동·중지·전환에는 Compose 명령이 필요 없다.
 
 ```text
-qwen38-flash-dgx:test
+dgx-sglang-qwen38-flash-next:sm121
 dgx-sglang-qwen38-dflash2:2ef0fe4
 dgx-sglang-gemma4-dflash:2ef0fe4
 dgx-flux2-klein-nvfp4:4b
@@ -71,6 +73,10 @@ sparktalk-magpie-tts:v2607
 sparktalk-extra-media:latest
 sparktalk-extra-ssh:latest
 ```
+
+Flash-Next 런타임은 `compose_yaml/sglang_qwen38_flash_next`에서 먼저 빌드한다.
+SM121 QSA 커널, 파일 기반 PLE·ngram offload와 NEXTN MTP를 적용한 SGLang
+이미지이며, 기존 `compose_yaml/vllm_qwen38` 구성은 비교·복구용으로만 보존한다.
 
 SparkTalk만 실행하면 된다.
 
