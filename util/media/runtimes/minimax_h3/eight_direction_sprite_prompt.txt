@@ -1,0 +1,11 @@
+Create one clean production-style pixel-art game sprite reference sheet of the same adult Korean woman from Picture 1.
+
+Picture 1 is the sole identity and design reference. Preserve the same woman, body proportions, shoulder-length side-parted dark hair, short-sleeved yellow V-neck button-front belted midi dress, and white lace-up sneakers in every frame.
+
+Use exactly eight equally sized square cells in a strict 4-column by 2-row grid. Show exactly one complete standing character per cell at identical scale, identical ground position, and identical neutral idle pose. The eight cells must show these viewing directions in order from left to right:
+Top row: front, front-right three-quarter, strict right profile, back-right three-quarter.
+Bottom row: back, back-left three-quarter, strict left profile, front-left three-quarter.
+
+Render as polished modern 2D pixel art with a limited coherent palette, crisp pixel clusters, clean silhouette, no antialiasing, no painterly texture, and no photorealism. Keep the character centered and fully visible from head to feet in every cell. Use the same plain light neutral background in every cell with clear gutters between cells.
+
+No text, no letters, no labels, no numbers, no arrows, no logos, no watermark, no extra panel, no duplicated character inside a cell, no cropped head or feet, no changed clothing, no changed hairstyle, no identity drift, no inconsistent scale, no action pose, and no props.

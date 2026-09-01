@@ -113,6 +113,10 @@ func generationQueueTime(job jobs.Job) time.Time {
 }
 
 func (s *Server) executeQueuedGeneration(job jobs.Job) {
+	if err := s.ensureGenerationRuntime(job); err != nil {
+		s.fail(job, err)
+		return
+	}
 	if s.generationEngineBusy(job) {
 		s.generationStateMu.Lock()
 		current, ok := s.jobs.Get(job.ID)

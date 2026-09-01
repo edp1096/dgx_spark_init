@@ -20,6 +20,17 @@ export const sequenceCharacterTraitChoices = [
 
 const defaultCharacterTraits = () => ({ face: true, hair: true, body: true, outfit: true, accessories: false, mechanical: true })
 
+function newCharacter(counter, overrides = {}) {
+  return {
+    id: `character_${counter}`, name: `등장인물 ${counter}`, nameKO: '', nameEN: '', references: [],
+    reidReferenceIndex: 0, lockedTraits: defaultCharacterTraits(),
+    quadViewCandidate: null, quadViewGenerating: false, quadViewError: '', quadViewStartedAt: 0, quadViewProgress: null,
+    turntableFrames: [], turntableSelection: [],
+    descriptionKO: '', canonicalPromptEN: '', observations: {}, analyzing: false, error: '',
+    ...overrides
+  }
+}
+
 function initialState() {
   return {
     entryMode: 'story', storyIdea: '', sceneCount: 5,
@@ -39,6 +50,14 @@ function lockedCharacters(state) {
       description_ko: character.descriptionKO.trim(),
       prompt_en: character.canonicalPromptEN.trim()
     }))
+}
+
+function base64ImageFile(frame, characterName) {
+  const binary = atob(String(frame.data || ''))
+  const bytes = new Uint8Array(binary.length)
+  for (let index = 0; index < binary.length; index += 1) bytes[index] = binary.charCodeAt(index)
+  const extension = frame.mime_type === 'image/png' ? 'png' : 'jpg'
+  return new File([bytes], `${characterName || 'character'}-${frame.direction}.${extension}`, { type: frame.mime_type || 'image/jpeg' })
 }
 
 export class ImageSequenceController {
@@ -71,7 +90,7 @@ export class ImageSequenceController {
   }
 
   reset(prompts = ['', '']) {
-	this.current.characters.forEach((character) => { clearMediaInputs(character.references); clearMediaInputs(character.quadViewCandidate ? [character.quadViewCandidate] : []) })
+	this.current.characters.forEach((character) => { clearMediaInputs(character.references); clearMediaInputs(character.turntableFrames || []); clearMediaInputs(character.quadViewCandidate ? [character.quadViewCandidate] : []) })
     this.setState({
       ...initialState(),
       entryMode: prompts.some((value) => value.trim()) ? 'scenes' : 'story',
@@ -104,19 +123,39 @@ export class ImageSequenceController {
     const counter = this.current.characterCounter + 1
     this.invalidatePlan({
       characterCounter: counter,
-      characters: [...this.current.characters, {
-        id: `character_${counter}`, name: `등장인물 ${counter}`, nameKO: '', nameEN: '', references: [],
-        reidReferenceIndex: 0, lockedTraits: defaultCharacterTraits(),
-        quadViewCandidate: null, quadViewGenerating: false, quadViewError: '', quadViewStartedAt: 0, quadViewProgress: null,
-        descriptionKO: '', canonicalPromptEN: '', observations: {}, analyzing: false, error: ''
-      }]
+      characters: [...this.current.characters, newCharacter(counter)]
     })
+  }
+
+  addCharacterExample(index, file, example) {
+    const character = this.current.characters[index]
+    if (!character || character.references.length >= 6 || !file) return
+    const reference = normalizeImageFiles([file])[0]
+    if (!reference) return
+    const mechanical = example?.kind === 'toy'
+    const patch = {
+      name: character.name.startsWith('등장인물 ') ? (example?.name || character.name) : character.name,
+      references: appendMediaInputs(character.references, [reference], 6),
+      lockedTraits: example?.lockedTraits || { face: true, hair: !mechanical, body: true, outfit: !mechanical, accessories: false, mechanical },
+      canonicalPromptEN: String(example?.canonicalPromptEN || '').trim(),
+      descriptionKO: String(example?.descriptionKO || '').trim(), observations: {}, error: ''
+    }
+    const characters = this.current.characters.map((item, itemIndex) => itemIndex === index ? { ...item, ...patch } : item)
+    const related = { characters }
+    if (this.current.entryMode === 'story' && !this.current.storyIdea.trim() && example?.story) {
+      related.storyIdea = example.story
+      related.sceneCount = example.scenes?.length || 4
+    } else if (this.current.entryMode === 'scenes' && this.current.prompts.every((prompt) => !prompt.trim()) && example?.scenes?.length) {
+      related.prompts = [...example.scenes]
+    }
+    this.invalidatePlan(related)
   }
 
   removeCharacter(index) {
     const removed = this.current.characters[index]
     if (!removed) return
     clearMediaInputs(removed.references)
+    clearMediaInputs(removed.turntableFrames || [])
     clearMediaInputs(removed.quadViewCandidate ? [removed.quadViewCandidate] : [])
     this.invalidatePlan({ characters: this.current.characters.filter((_, itemIndex) => itemIndex !== index) })
   }
@@ -184,15 +223,19 @@ export class ImageSequenceController {
     const character = this.current.characters[index]
     const anchor = character?.references?.[Math.min(character.reidReferenceIndex || 0, Math.max(0, character.references.length - 1))]
     if (!anchor) throw new Error('먼저 ReID 대표 이미지를 선택하세요.')
-    const operationID = `character-sheet-${Date.now()}-${Math.random().toString(16).slice(2)}`
+    const operationID = `character-turntable-${Date.now()}-${Math.random().toString(16).slice(2)}`
     let polling = true
     let progressTimer = 0
     const pollProgress = async () => {
       if (!polling) return
       try {
-        const status = await api.sequenceCharacterSheetStatus(operationID)
+        const status = await api.sequenceCharacterTurntableStatus(operationID)
         const operation = status?.operation
-        if (operation?.operation_id === operationID) this.updateCharacter(index, { quadViewProgress: operation }, false)
+        if (operation?.operation_id === operationID) {
+          const currentProgress = Number(this.current.characters[index]?.quadViewProgress?.progress || 0)
+          const nextProgress = Number(operation.progress || 0)
+          if (nextProgress >= currentProgress) this.updateCharacter(index, { quadViewProgress: operation }, false)
+        }
       } catch (_) {
         // The generation request may reach the engine just after the first poll.
       }
@@ -208,12 +251,16 @@ export class ImageSequenceController {
       if (anchor.server) form.append('reuse_image', anchor.ref)
       else form.append('image', anchor.file)
       pollProgress()
-      const blob = await api.createSequenceCharacterSheet(form)
-      const file = new File([blob], `${character.name || 'character'}-quadview.png`, { type: 'image/png' })
-      const candidate = normalizeImageFiles([file])[0]
+      const result = await api.createSequenceCharacterTurntable(form)
+      const candidates = normalizeImageFiles(result.frames.map((frame) => base64ImageFile(frame, character.name)))
+        .map((candidate, frameIndex) => ({ ...candidate, direction: result.frames[frameIndex].direction, frameIndex: result.frames[frameIndex].frame_index }))
       clearMediaInputs(character.quadViewCandidate ? [character.quadViewCandidate] : [])
-      this.updateCharacter(index, { quadViewCandidate: candidate, quadViewGenerating: false, quadViewError: '', quadViewProgress: null }, false)
-      return candidate
+      clearMediaInputs(character.turntableFrames || [])
+      this.updateCharacter(index, {
+        quadViewCandidate: null, turntableFrames: candidates, turntableSelection: [1, 2, 4, 6, 7],
+        quadViewGenerating: false, quadViewError: '', quadViewProgress: null
+      }, false)
+      return candidates
     } catch (error) {
       this.updateCharacter(index, { quadViewGenerating: false, quadViewError: error.message || String(error), quadViewProgress: null }, false)
       throw error
@@ -225,18 +272,33 @@ export class ImageSequenceController {
 
   approveCharacterSheet(index) {
     const character = this.current.characters[index]
-    if (!character?.quadViewCandidate) return
-    const references = appendMediaInputs(character.references, [character.quadViewCandidate], 6)
+    if (!character?.turntableFrames?.length) return
+    const available = Math.max(0, 6 - character.references.length)
+    const chosen = (character.turntableSelection || []).slice(0, available).map((frameIndex) => character.turntableFrames[frameIndex]).filter(Boolean)
+    const references = appendMediaInputs(character.references, chosen, 6)
+    const approved = new Set(chosen)
+    clearMediaInputs(character.turntableFrames.filter((frame) => !approved.has(frame)))
     this.updateCharacter(index, {
-      references, quadViewCandidate: null, canonicalPromptEN: '', descriptionKO: '', observations: {}, quadViewError: '', error: ''
+      references, turntableFrames: [], turntableSelection: [], quadViewCandidate: null,
+      canonicalPromptEN: '', descriptionKO: '', observations: {}, quadViewError: '', error: ''
     })
   }
 
   discardCharacterSheet(index) {
     const character = this.current.characters[index]
-    if (!character?.quadViewCandidate) return
+    if (!character?.turntableFrames?.length && !character?.quadViewCandidate) return
+    clearMediaInputs(character.turntableFrames || [])
     clearMediaInputs([character.quadViewCandidate])
-    this.updateCharacter(index, { quadViewCandidate: null, quadViewError: '' }, false)
+    this.updateCharacter(index, { turntableFrames: [], turntableSelection: [], quadViewCandidate: null, quadViewError: '' }, false)
+  }
+
+  toggleCharacterTurntableFrame(index, frameIndex) {
+    const character = this.current.characters[index]
+    if (!character?.turntableFrames?.[frameIndex]) return
+    const selected = new Set(character.turntableSelection || [])
+    if (selected.has(frameIndex)) selected.delete(frameIndex)
+    else if (selected.size < Math.max(0, 6 - character.references.length)) selected.add(frameIndex)
+    this.updateCharacter(index, { turntableSelection: [...selected].sort((a, b) => a - b) }, false)
   }
 
   async analyzeCharacter(index, api) {
@@ -267,7 +329,15 @@ export class ImageSequenceController {
 
   characterReadinessMessage() {
     const pending = this.current.characters.find((character) => character.references.length && !character.canonicalPromptEN.trim())
-    return pending ? `${pending.name || '등장인물'}의 이미지를 분석하거나 외형 고정 문구를 입력하세요.` : ''
+    if (!pending) return ''
+    const name = pending.name || '등장인물'
+    if (pending.quadViewGenerating) return `${name}의 360° 외형 자료를 생성하고 있습니다. 완료될 때까지 기다리세요.`
+    if (pending.turntableFrames?.length) {
+      const selected = pending.turntableSelection?.length || 0
+      return `${name}: 생성된 방향 이미지에서 사용할 자료를 고른 뒤 아래의 “선택 ${selected}장 승인 · 외형 분석”을 누르세요.`
+    }
+    if (pending.analyzing) return `${name}의 외형 고정 문구를 만들고 있습니다.`
+    return `${name}: 캐릭터 준비에서 “이미지에서 외형 고정 문구 만들기”를 누르세요.`
   }
 
   reidReference() {
@@ -276,12 +346,34 @@ export class ImageSequenceController {
     return character.references[Math.min(character.reidReferenceIndex || 0, character.references.length - 1)] || character.references[0]
   }
 
-  applyStoryExample() {
-    this.setState({ ...initialState(), entryMode: 'story', storyIdea: storyExample.idea, sceneCount: storyExample.count })
+  applyStoryExample(reference = null, example = null) {
+    this.current.characters.forEach((character) => {
+      clearMediaInputs(character.references)
+      clearMediaInputs(character.turntableFrames || [])
+      clearMediaInputs(character.quadViewCandidate ? [character.quadViewCandidate] : [])
+    })
+    const sample = example?.story ? example : { name: '연화', story: storyExample.idea, scenes: Array(storyExample.count).fill('') }
+    const characters = reference ? [newCharacter(1, {
+      name: sample.name, references: normalizeImageFiles([reference]),
+      lockedTraits: sample.lockedTraits || { face: true, hair: true, body: true, outfit: true, accessories: false, mechanical: false },
+      descriptionKO: String(sample.descriptionKO || '').trim(), canonicalPromptEN: String(sample.canonicalPromptEN || '').trim()
+    })] : []
+    this.setState({ ...initialState(), entryMode: 'story', storyIdea: sample.story, sceneCount: sample.scenes.length, characters, characterCounter: characters.length })
   }
 
-  applySceneExample() {
-    this.setState({ ...initialState(), entryMode: 'scenes', prompts: [...sceneExample] })
+  applySceneExample(reference = null, example = null) {
+    this.current.characters.forEach((character) => {
+      clearMediaInputs(character.references)
+      clearMediaInputs(character.turntableFrames || [])
+      clearMediaInputs(character.quadViewCandidate ? [character.quadViewCandidate] : [])
+    })
+    const sample = example?.scenes?.length ? example : { name: '연화', scenes: sceneExample }
+    const characters = reference ? [newCharacter(1, {
+      name: sample.name, references: normalizeImageFiles([reference]),
+      lockedTraits: sample.lockedTraits || { face: true, hair: true, body: true, outfit: true, accessories: false, mechanical: false },
+      descriptionKO: String(sample.descriptionKO || '').trim(), canonicalPromptEN: String(sample.canonicalPromptEN || '').trim()
+    })] : []
+    this.setState({ ...initialState(), entryMode: 'scenes', prompts: [...sample.scenes], characters, characterCounter: characters.length })
   }
 
   addScene() {
@@ -358,7 +450,7 @@ export class ImageSequenceController {
   }
 
   destroy() {
-    this.current.characters.forEach((character) => { clearMediaInputs(character.references); clearMediaInputs(character.quadViewCandidate ? [character.quadViewCandidate] : []) })
+    this.current.characters.forEach((character) => { clearMediaInputs(character.references); clearMediaInputs(character.turntableFrames || []); clearMediaInputs(character.quadViewCandidate ? [character.quadViewCandidate] : []) })
     this.unsubscribe?.()
   }
 }

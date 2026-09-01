@@ -1,0 +1,30 @@
+services:
+  comfyui:
+    init: true
+    build:
+      context: .
+    image: dgx-minimax-h3:latest
+    container_name: minimax-h3-comfyui
+    restart: unless-stopped
+    network_mode: host
+    ipc: host
+    gpus: all
+    environment:
+      HF_TOKEN: ${HF_TOKEN:-}
+      COMFY_PORT: "8190"
+      H3_API_PORT: "8191"
+      COMFY_KITCHEN_BACKEND: cuda
+      PYTORCH_CUDA_ALLOC_CONF: expandable_segments:True
+    volumes:
+      - hf-cache:/root/.cache/huggingface
+      - minimax-h3-input:/opt/ComfyUI/input
+      - minimax-h3-output:/opt/ComfyUI/output
+
+volumes:
+  hf-cache:
+    name: media-hf-cache
+    external: true
+  minimax-h3-input:
+    name: media-minimax-h3-input
+  minimax-h3-output:
+    name: media-minimax-h3-output

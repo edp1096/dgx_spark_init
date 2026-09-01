@@ -29,6 +29,7 @@
   export let setImageSequenceSharedPrompt = () => {}
   export let applyStorySequenceExample = () => {}
   export let applySceneSequenceExample = () => {}
+  export let applyCharacterSequenceExample = () => {}
   export let planImageSequence = () => {}
   export let imageSequenceBlockedMessage = () => ''
   export let removeImageSequenceScene = () => {}
@@ -46,6 +47,7 @@
   export let generateImageSequenceCharacterSheet = () => {}
   export let approveImageSequenceCharacterSheet = () => {}
   export let discardImageSequenceCharacterSheet = () => {}
+  export let toggleImageSequenceCharacterTurntableFrame = () => {}
   export let analyzeImageSequenceCharacter = () => {}
   export let setImageSequenceCharacterDescription = () => {}
   export let setImageSequenceCharacterPrompt = () => {}
@@ -55,6 +57,32 @@
   let releaseScroll = null
   let characterPickerIndex = -1
   let characterURLIndex = -1
+  const characterExamples = [
+    {
+      key: 'hanbok', name: '연화', label: '한복 인물', detail: '실사 · 조선 궁궐 이야기', src: '/prompt-examples/vibe-hanbok.png', kind: 'person',
+      story: '조선시대 경복궁의 밤, 젊은 궁중 화가 연화가 사라진 왕실 화첩의 단서를 찾아 궁궐 곳곳을 조사한다. 같은 얼굴과 분홍색 한복, 머리 장식과 둥근 부채를 모든 장면에서 유지한다.',
+      scenes: ['연화가 달빛이 비치는 경복궁 회랑에서 둥근 부채를 들고 희미한 발자국을 살펴본다.', '연화가 연못가 석등 옆에서 오래된 화첩 조각을 발견해 조심스럽게 펼친다.', '연화가 붉은 궁문 앞에서 멀리 달아나는 그림자를 바라보며 부채를 접는다.', '연화가 새벽빛 속 근정전 계단에서 되찾은 왕실 화첩을 품에 안고 미소 짓는다.'],
+      descriptionKO: '젊은 한국 여성 연화. 타원형 얼굴, 짙은 갈색 눈, 자연스러운 눈썹과 붉은 입술. 검푸른 긴 머리를 굵게 땋아 붉은 꽃과 진주 장식으로 꾸몄다. 자수 꽃무늬가 있는 연분홍 조선 한복과 흰 동정을 입고, 나무와 새가 그려진 둥근 접부채를 지닌다.',
+      canonicalPromptEN: 'Yeonhwa is a young Korean woman with an oval face, dark brown almond-shaped eyes, natural straight eyebrows, a small straight nose, and softly defined red lips. Her very long blue-black hair is arranged in a thick braided historical updo decorated with red flowers, pearl ornaments, and a floral hairpin. She wears the same pastel-pink traditional Joseon hanbok with a crisp white collar and intricate multicolored floral embroidery, and carries the same round folding fan painted with a flowering tree and a small bird.',
+      lockedTraits: { face: true, hair: true, body: true, outfit: true, accessories: true, mechanical: false }
+    },
+    {
+      key: 'anime', name: '미라', label: '애니 인물', detail: '일러스트 · 미래 도시 이야기', src: '/prompt-examples/official-anime-portrait.webp', kind: 'person',
+      story: '네온빛 미래 도시에서 정찰 요원 미라가 정전된 구역의 원인을 추적한다. 같은 얼굴, 헤어스타일과 애니메이션 화풍을 모든 장면에서 유지한다.',
+      scenes: ['미라가 네온 간판이 반사되는 빗속 골목에서 휴대 단말기를 확인한다.', '미라가 정전된 지하철 승강장에서 희미한 비상등을 따라 걷는다.', '미라가 고층 건물 옥상에서 도시 전력망의 이상 신호를 발견한다.', '미라가 해 뜨는 도시 전망대에서 복구된 불빛을 바라본다.'],
+      descriptionKO: '애니메이션풍 젊은 여성 미라. 큰 호박빛 눈동자와 긴 속눈썹, 짧고 헝클어진 검푸른 단발머리. 흰색과 남색의 세일러 칼라 상의를 입는다.',
+      canonicalPromptEN: 'Mira is a young woman rendered in the same polished anime illustration style. She has very large luminous amber-gold eyes with intricate star-like highlights, long dark eyelashes, a small delicate nose, and a soft rounded face. Her short tousled blue-black bob has wispy bangs and outward-curving side locks. She wears the same white sailor-style top with a double navy-striped collar.',
+      lockedTraits: { face: true, hair: true, body: true, outfit: true, accessories: false, mechanical: false }
+    },
+    {
+      key: 'toy', name: '볼트', label: '디자이너 토이', detail: '비인간 · 장난감 모험', src: '/prompt-examples/official-designer-toy.webp', kind: 'toy',
+      story: '검은 비닐 디자이너 토이 볼트가 밤의 작업실에서 잃어버린 황금 벨트 버클을 찾아 모험한다. 같은 둥근 몸체, 모자, 선글라스, 문신 무늬와 금색 장식을 모든 장면에서 유지한다.',
+      scenes: ['볼트가 거대한 공구들이 놓인 작업대 위에서 작은 금색 흔적을 발견한다.', '볼트가 케이블 숲 사이를 지나 책상 아래의 어두운 공간을 탐색한다.', '볼트가 부품 상자 꼭대기에서 반짝이는 황금 벨트 버클을 발견한다.', '볼트가 새벽빛이 드는 작업대에서 되찾은 버클을 벨트에 장착하고 당당히 선다.'],
+      descriptionKO: '매트한 검은 비닐 소재의 둥근 디자이너 토이 볼트. 얼굴은 황금색 에비에이터 선글라스로 가려져 있고 검은 야구모자를 뒤로 쓴다. 몸통에는 흰색 호랑이와 독수리 문신 무늬가 있으며 검은 벨트에 금색 버클과 스터드가 달려 있다.',
+      canonicalPromptEN: 'Bolt is the same compact designer vinyl toy with a smooth matte-black rounded head and body, short rounded arms, and no visible facial features. It wears the same backward black baseball cap, oversized gold-framed aviator sunglasses with reflective amber lenses, and a black belt with a rectangular gold buckle and rows of gold pyramid studs. Preserve the exact white engraved tiger-and-eagle tattoo graphics across its torso and the same black-and-gold material palette.',
+      lockedTraits: { face: true, hair: false, body: true, outfit: true, accessories: true, mechanical: false }
+    }
+  ]
 
   $: canPlan = imageSequenceEntryMode === 'story'
     ? Boolean(imageSequenceStoryIdea.trim())
@@ -75,13 +103,13 @@
 </script>
 
 {#if imageSequenceOpen}
-  <div class="image-sequence-backdrop" role="presentation" onclick={(event) => { if (event.target === event.currentTarget && !busy) imageSequenceOpen = false }}>
+  <div class="image-sequence-backdrop" role="presentation">
     <div class="image-sequence-modal" role="dialog" aria-modal="true" aria-label="다중 장면 생성">
       <header>
         <div><strong>다중 장면</strong><small>이야기·삽화용 독립 장면을 한 번에 만듭니다.</small></div>
         <div class="image-sequence-header-actions">
-          <button type="button" class="image-sequence-example" disabled={busy || imageSequencePlanning} onclick={applyStorySequenceExample}>이야기 예시</button>
-          <button type="button" class="image-sequence-example" disabled={busy || imageSequencePlanning} onclick={applySceneSequenceExample}>장면 예시</button>
+          <button type="button" class="image-sequence-example" disabled={busy || imageSequencePlanning} onclick={() => applyStorySequenceExample(characterExamples[0])}>이야기 예시</button>
+          <button type="button" class="image-sequence-example" disabled={busy || imageSequencePlanning} onclick={() => applySceneSequenceExample(characterExamples[0])}>장면 예시</button>
           <button type="button" aria-label="닫기" disabled={busy} onclick={() => imageSequenceOpen = false}>×</button>
         </div>
       </header>
@@ -116,12 +144,15 @@
                   onFiles={(files) => addImageSequenceCharacterFiles(index, files)}
                   onRecent={() => characterPickerIndex = index}
                   onURL={() => characterURLIndex = index}
+                  examples={characterExamples}
+                  onExample={(example) => applyCharacterSequenceExample(index, example)}
                   onRemoveReference={(referenceIndex) => removeImageSequenceCharacterReference(index, referenceIndex)}
                   onSetAnchor={(referenceIndex) => setImageSequenceCharacterReIDReference(index, referenceIndex)}
                   onToggleTrait={(trait) => toggleImageSequenceCharacterTrait(index, trait)}
                   onGenerateSheet={() => generateImageSequenceCharacterSheet(index)}
                   onApproveSheet={() => approveImageSequenceCharacterSheet(index)}
                   onDiscardSheet={() => discardImageSequenceCharacterSheet(index)}
+                  onToggleTurntableFrame={(frameIndex) => toggleImageSequenceCharacterTurntableFrame(index, frameIndex)}
                   onAnalyze={() => analyzeImageSequenceCharacter(index)}
                   onDescription={(value) => setImageSequenceCharacterDescription(index, value)}
                   onCanonicalPrompt={(value) => setImageSequenceCharacterPrompt(index, value)}
@@ -141,7 +172,7 @@
         <div class="image-sequence-independence"><span>{hasReIDReference ? 'ReID 독립 생성' : '독립 생성'}</span><p>{hasReIDReference ? '각 장면은 첫 등장인물의 기준 이미지를 직접 참조합니다. 사람 얼굴·체형에는 강하지만 로봇 부품이나 복잡한 의상·소품은 장면마다 달라질 수 있습니다.' : '각 장면은 직전 결과를 다시 편집하지 않습니다. 공통 인물·화풍은 상세 고정 문구와 선택한 LoRA로 유지합니다.'}</p></div>
         {#if imageSequenceBlockedMessage()}<div class="image-sequence-warning">{imageSequenceBlockedMessage()}</div>{/if}
         {#if imageSequencePlanError}<div class="image-sequence-warning">장면 계획: {imageSequencePlanError}</div>{/if}
-        {#if imageSequenceCharacterReadinessMessage()}<div class="image-sequence-warning">외형 고정: {imageSequenceCharacterReadinessMessage()}</div>{:else if hasReIDReference}<div class="image-sequence-ready-note">대표 ReID와 외형 문구가 준비됐습니다. 전체 생성 전 <b>3장 시험</b>으로 얼굴·복장·소품 유지 정도를 확인하세요.</div>{/if}
+        {#if imageSequenceCharacterReadinessMessage()}<div class="image-sequence-warning">{imageSequenceCharacterReadinessMessage()}</div>{:else if hasReIDReference}<div class="image-sequence-ready-note">대표 ReID와 외형 문구가 준비됐습니다. 전체 생성 전 <b>3장 시험</b>으로 얼굴·복장·소품 유지 정도를 확인하세요.</div>{/if}
         {#if imageSequenceSharedPrompt}
           <section class="image-sequence-shared">
             <label for="image-sequence-shared"><b>공통 캐릭터·세계 설정</b><small>한국어로 고칠 수 있습니다. 내부에서는 영어 고정 블록으로 한 번 변환해 각 장면에 같은 문구를 넣습니다.</small></label>

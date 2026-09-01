@@ -1,0 +1,5 @@
+services:
+  api:
+    environment:
+      LTX_LORA_PATH: /models/ltx-2.5/loras/ltx-2-2.3-i2v-nsfw-furry-multi-purpose-sex-lora.safetensors
+      LTX_LORA_STRENGTH: "1.0"

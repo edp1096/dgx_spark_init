@@ -1072,8 +1072,27 @@
   function setImageSequenceStoryIdea(value) { imageSequenceController.setStoryIdea(value) }
   function setImageSequenceSceneCount(value) { imageSequenceController.setSceneCount(value) }
   function setImageSequenceSharedPrompt(value) { imageSequenceController.setSharedPrompt(value) }
-  function applyStorySequenceExample() { imageSequenceController.applyStoryExample() }
-  function applySceneSequenceExample() { imageSequenceController.applySceneExample() }
+  async function loadSequenceExampleFile(example) {
+    const response = await fetch(example.src)
+    if (!response.ok) throw new Error('예제 이미지를 읽지 못했습니다.')
+    const blob = await response.blob()
+    return new File([blob], `${example.key}.${blob.type === 'image/png' ? 'png' : 'webp'}`, { type: blob.type })
+  }
+  async function applyStorySequenceExample(example) {
+    try { imageSequenceController.applyStoryExample(await loadSequenceExampleFile(example), example) }
+    catch (exampleError) { error = exampleError.message || String(exampleError) }
+  }
+  async function applySceneSequenceExample(example) {
+    try { imageSequenceController.applySceneExample(await loadSequenceExampleFile(example), example) }
+    catch (exampleError) { error = exampleError.message || String(exampleError) }
+  }
+  async function applyCharacterSequenceExample(index, example) {
+    try {
+      imageSequenceController.addCharacterExample(index, await loadSequenceExampleFile(example), example)
+    } catch (exampleError) {
+      error = exampleError.message || String(exampleError)
+    }
+  }
 
   async function planImageSequence() {
     try {
@@ -1111,8 +1130,16 @@
     try { await imageSequenceController.generateCharacterSheet(index, api) }
     catch (sheetError) { error = sheetError.message || String(sheetError) }
   }
-  function approveImageSequenceCharacterSheet(index) { imageSequenceController.approveCharacterSheet(index) }
+  async function approveImageSequenceCharacterSheet(index) {
+    try {
+      imageSequenceController.approveCharacterSheet(index)
+      await imageSequenceController.analyzeCharacter(index, api)
+    } catch (analysisError) {
+      error = analysisError.message || String(analysisError)
+    }
+  }
   function discardImageSequenceCharacterSheet(index) { imageSequenceController.discardCharacterSheet(index) }
+  function toggleImageSequenceCharacterTurntableFrame(index, frameIndex) { imageSequenceController.toggleCharacterTurntableFrame(index, frameIndex) }
   async function analyzeImageSequenceCharacter(index) {
     try {
       await imageSequenceController.analyzeCharacter(index, api)
@@ -1472,12 +1499,13 @@
     imageSequencePrompts, imageSequenceEnhancedPrompts, imageSequenceSceneTitles, imageSequenceSharedPrompt, imageSequenceSharedPromptEdited,
     imageSequencePlanning, imageSequencePlanError, imageSequenceCharacters, setImageSequenceEntryMode, setImageSequenceStoryIdea, setImageSequenceSceneCount,
     setImageSequenceSharedPrompt,
-    applyStorySequenceExample, applySceneSequenceExample, planImageSequence,
+    applyStorySequenceExample, applySceneSequenceExample, applyCharacterSequenceExample, planImageSequence,
     imageSequenceBlockedMessage, removeImageSequenceScene, moveImageSequenceScene, updateImageSequencePrompt,
     addImageSequenceScene, addImageSequenceCharacter, removeImageSequenceCharacter, setImageSequenceCharacterName,
     addImageSequenceCharacterFiles, addImageSequenceCharacterResult, removeImageSequenceCharacterReference,
     setImageSequenceCharacterReIDReference, toggleImageSequenceCharacterTrait,
     generateImageSequenceCharacterSheet, approveImageSequenceCharacterSheet, discardImageSequenceCharacterSheet,
+    toggleImageSequenceCharacterTurntableFrame,
     analyzeImageSequenceCharacter, setImageSequenceCharacterDescription, setImageSequenceCharacterPrompt,
     imageSequenceCharacterPreview, imageSequenceCharacterReadinessMessage, generateImage, kreaAnyPaintPreview,
     kreaIdentityPreview, kreaAnyPaintMaskPreview, kreaIdentityMaskPreview, kreaStrictMaskPreview, kreaNK2EPreview,

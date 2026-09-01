@@ -1,0 +1,31 @@
+services:
+  custom:
+    init: true
+    image: dgx-vllm-omni:v0.26.0
+    container_name: qwen3-tts-custom-api
+    restart: unless-stopped
+    network_mode: host
+    ipc: host
+    gpus: all
+    environment:
+      HF_TOKEN: ${HF_TOKEN:-}
+    volumes:
+      - hf-cache:/root/.cache/huggingface
+      - ./qwen3_tts_spark.yaml:/app/qwen3_tts_spark.yaml:ro
+    command:
+      - vllm
+      - serve
+      - ${MEDIA_SPEECH_CUSTOM_MODEL:-Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice}
+      - --omni
+      - --trust-remote-code
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8692"
+      - --deploy-config
+      - /app/qwen3_tts_spark.yaml
+
+volumes:
+  hf-cache:
+    name: media-hf-cache
+    external: true

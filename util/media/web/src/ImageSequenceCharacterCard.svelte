@@ -11,18 +11,22 @@
   export let onFiles = () => {}
   export let onRecent = () => {}
   export let onURL = () => {}
+  export let examples = []
+  export let onExample = () => {}
   export let onRemoveReference = () => {}
   export let onSetAnchor = () => {}
   export let onToggleTrait = () => {}
   export let onGenerateSheet = () => {}
   export let onApproveSheet = () => {}
   export let onDiscardSheet = () => {}
+  export let onToggleTurntableFrame = () => {}
   export let onAnalyze = () => {}
   export let onDescription = () => {}
   export let onCanonicalPrompt = () => {}
   export let onRemove = () => {}
 
   let prepOpen = false
+  let examplesOpen = false
   let releaseScroll = null
   let progressClock = Date.now()
   let progressTimer = null
@@ -33,6 +37,7 @@
   $: sheetProgress = character.quadViewProgress || { detail: '시트 생성 준비', progress: 0.03 }
   $: sheetPercent = Math.max(3, Math.min(96, Math.round(Number(sheetProgress.progress || 0.03) * 100)))
   $: sheetElapsed = Math.max(0, Math.round((progressClock - Number(character.quadViewStartedAt || progressClock)) / 1000))
+  const directionLabels = { front: '정면', 'front-right': '우측 ¾', right: '우측', 'back-right': '후면 ¾', back: '후면', 'back-left': '후면 ¾', left: '좌측', 'front-left': '좌측 ¾' }
   $: {
     if (character.quadViewGenerating && !progressTimer) {
       progressClock = Date.now()
@@ -57,37 +62,43 @@
     </div>
     <div class="image-sequence-character-badges">
       {#if index === 0 && anchor}<em>ReID</em>{:else if anchor}<em>텍스트 고정</em>{/if}
-      {#if character.canonicalPromptEN}<em class="ready">분석 완료</em>{/if}
+      {#if character.canonicalPromptEN}<em class="ready">외형 준비</em>{/if}
     </div>
-    <button type="button" class="prepare" disabled={busy || character.analyzing} onclick={() => prepOpen = true}>캐릭터 준비</button>
-    <button type="button" class="remove" aria-label="등장인물 제거" title="등장인물 제거" disabled={busy || character.analyzing} onclick={onRemove}>×</button>
+    <button type="button" class="prepare" disabled={busy || character.analyzing || character.quadViewGenerating} onclick={() => prepOpen = true}>캐릭터 준비</button>
+    <button type="button" class="remove" aria-label="등장인물 제거" title="등장인물 제거" disabled={busy || character.analyzing || character.quadViewGenerating} onclick={onRemove}>×</button>
   </header>
   {#if lockedLabels.length}<small class="image-sequence-character-lock-summary">고정: {lockedLabels.join(' · ')}</small>{/if}
 </article>
 
 {#if prepOpen}
-  <div class="image-sequence-prep-backdrop" role="presentation" onclick={(event) => { if (event.target === event.currentTarget && !busy && !character.analyzing) prepOpen = false }}>
+  <div class="image-sequence-prep-backdrop" role="presentation">
     <div class="image-sequence-prep-modal" role="dialog" aria-modal="true" aria-label={`${character.name} 캐릭터 준비`}>
-      <header><div><strong>캐릭터 준비</strong><small>대표 ReID 이미지와 외형 고정 문구를 따로 관리합니다.</small></div><button type="button" aria-label="닫기" disabled={busy || character.analyzing} onclick={() => prepOpen = false}>×</button></header>
+      <header><div><strong>캐릭터 준비</strong><small>대표 ReID 이미지와 외형 고정 문구를 따로 관리합니다.</small></div><button type="button" aria-label="닫기" disabled={busy || character.analyzing || character.quadViewGenerating} onclick={() => prepOpen = false}>×</button></header>
       <div class="image-sequence-prep-content">
         <div class="image-sequence-prep-workflow" aria-label="권장 캐릭터 준비 순서">
-          <span><b>1</b> 대표 ReID 선택</span><i>→</i><span><b>2</b> 고정 특징 선택</span><i>→</i><span><b>3</b> Gemma 분석·승인</span><i>→</i><span><b>4</b> 3장 시험</span>
+          <span><b>1</b> 대표 ReID 선택</span><i>→</i><span><b>2</b> 360° 자료 생성</span><i>→</i><span><b>3</b> 외형 분석·승인</span><i>→</i><span><b>4</b> 3장 시험</span>
         </div>
         <label class="image-sequence-character-name"><span>이름</span><input value={character.name} placeholder={`등장인물 ${index + 1}`} oninput={(event) => onName(event.currentTarget.value)}></label>
 
         <section class="image-sequence-prep-section">
           <div class="image-sequence-prep-heading"><span><b>1. 참조 이미지</b><small>대표 이미지 한 장은 ReID에, 전체 이미지는 Gemma 외형 분석에 사용합니다.</small></span><em>{character.references.length}/6</em></div>
           <div class="image-sequence-character-sources">
-            <label class="image-sequence-character-upload"><input type="file" accept="image/*" multiple disabled={busy || character.analyzing} onchange={(event) => { onFiles(event.currentTarget.files); event.currentTarget.value = '' }}><b>파일 선택</b><small>정면·전신·측면·세부 자료</small></label>
-            <button type="button" disabled={busy || character.analyzing} onclick={onRecent}><b>생성 이미지</b><small>목록에서 가져오기</small></button>
-            <button type="button" disabled={busy || character.analyzing} onclick={onURL}><b>URL</b><small>웹 이미지 가져오기</small></button>
+            <label class="image-sequence-character-upload"><input type="file" accept="image/*" multiple disabled={busy || character.analyzing || character.quadViewGenerating} onchange={(event) => { onFiles(event.currentTarget.files); event.currentTarget.value = '' }}><b>파일 선택</b><small>정면·전신·측면·세부 자료</small></label>
+            <button type="button" disabled={busy || character.analyzing || character.quadViewGenerating} onclick={onRecent}><b>생성 이미지</b><small>목록에서 가져오기</small></button>
+            <button type="button" disabled={busy || character.analyzing || character.quadViewGenerating} onclick={onURL}><b>URL</b><small>웹 이미지 가져오기</small></button>
+            <button type="button" disabled={busy || character.analyzing || character.quadViewGenerating || character.references.length >= 6} onclick={() => examplesOpen = !examplesOpen}><b>샘플 이미지</b><small>고정 예제에서 선택</small></button>
           </div>
+          {#if examplesOpen}
+            <div class="image-sequence-reference-examples" aria-label="참조 샘플 이미지 선택">
+              {#each examples as example}<button type="button" disabled={busy || character.analyzing || character.quadViewGenerating || character.references.length >= 6} onclick={async () => { await onExample(example); examplesOpen = false }}><img src={example.src} alt={example.label || example.name}><span><b>{example.label || example.name}</b><small>{example.detail}</small></span></button>{/each}
+            </div>
+          {/if}
           {#if character.references.length}
             <div class="image-sequence-character-previews selectable">
               {#each character.references as reference, referenceIndex}
                 <figure class:anchor={referenceIndex === anchorIndex}>
-                  <button type="button" class="anchor-select" title="ReID 대표 이미지로 선택" disabled={busy || character.analyzing} onclick={() => onSetAnchor(referenceIndex)}><img src={preview(reference)} alt={reference.name || `참조 ${referenceIndex + 1}`}><span>{referenceIndex === anchorIndex ? '대표 · ReID' : '보조 분석'}</span></button>
-                  <button type="button" class="reference-remove" aria-label="참조 제거" disabled={busy || character.analyzing} onclick={() => onRemoveReference(referenceIndex)}>×</button>
+                  <button type="button" class="anchor-select" title="ReID 대표 이미지로 선택" disabled={busy || character.analyzing || character.quadViewGenerating} onclick={() => onSetAnchor(referenceIndex)}><img src={preview(reference)} alt={reference.name || `참조 ${referenceIndex + 1}`}><span>{referenceIndex === anchorIndex ? '대표 · ReID' : '보조 분석'}</span></button>
+                  <button type="button" class="reference-remove" aria-label="참조 제거" disabled={busy || character.analyzing || character.quadViewGenerating} onclick={() => onRemoveReference(referenceIndex)}>×</button>
                   <figcaption>{reference.name || `참조 ${referenceIndex + 1}`}</figcaption>
                 </figure>
               {/each}
@@ -98,13 +109,13 @@
 
         <section class="image-sequence-prep-section">
           <div class="image-sequence-prep-heading"><span><b>2. 고정할 특징</b><small>선택하지 않은 항목은 분석 결과에는 보이지만 장면 고정 문구에서는 제외합니다.</small></span></div>
-          <div class="image-sequence-trait-grid">{#each sequenceCharacterTraitChoices as [value, label]}<label><input type="checkbox" checked={Boolean(character.lockedTraits?.[value])} onchange={() => onToggleTrait(value)}><span>{label}</span></label>{/each}</div>
+          <div class="image-sequence-trait-grid">{#each sequenceCharacterTraitChoices as [value, label]}<label><input type="checkbox" disabled={busy || character.analyzing || character.quadViewGenerating} checked={Boolean(character.lockedTraits?.[value])} onchange={() => onToggleTrait(value)}><span>{label}</span></label>{/each}</div>
           <small class="image-sequence-trait-warning">ReID 자체가 대표 이미지의 특징을 읽으므로 액세서리·복장의 완전한 분리는 보장하지 않습니다.</small>
         </section>
 
         <section class="image-sequence-prep-section">
           <div class="image-sequence-prep-heading"><span><b>3. 외형 분석과 승인</b><small>전체 참조를 읽되 선택한 특징만 영어 고정 문구로 만듭니다.</small></span></div>
-          <button type="button" class="image-sequence-character-analyze" disabled={busy || character.analyzing || !character.references.length || !lockedLabels.length} onclick={onAnalyze}>{character.analyzing ? 'Gemma가 외형을 읽는 중…' : character.canonicalPromptEN ? '이미지 다시 분석' : '이미지에서 외형 고정 문구 만들기'}</button>
+          <button type="button" class="image-sequence-character-analyze" disabled={busy || character.analyzing || character.quadViewGenerating || !character.references.length || !lockedLabels.length} onclick={onAnalyze}>{character.analyzing ? 'Gemma가 외형을 읽는 중…' : character.canonicalPromptEN ? '이미지 다시 분석' : '이미지에서 외형 고정 문구 만들기'}</button>
           {#if character.error}<p class="image-sequence-character-error">{character.error}</p>{/if}
           {#if character.descriptionKO || character.canonicalPromptEN}
             <div class="image-sequence-character-review">
@@ -116,15 +127,21 @@
         </section>
 
         <section class="image-sequence-prep-section experimental">
-          <div class="image-sequence-prep-heading"><span><b>선택 사항 · 4면 시트 후보</b><small>QuadView는 원본 외형을 바꿀 수 있어 자동으로 ReID 대표 이미지를 교체하지 않습니다.</small></span><em>실험</em></div>
-          {#if character.quadViewCandidate}
-            <div class="image-sequence-quadview-review">
-              <figure><figcaption>원본 대표 이미지</figcaption><img src={preview(anchor)} alt="원본 ReID 대표 이미지"></figure>
-              <figure><figcaption>4면 시트 후보</figcaption><img src={preview(character.quadViewCandidate)} alt="QuadView 후보"></figure>
+          <div class="image-sequence-prep-heading"><span><b>선택 사항 · MMH3 360° 외형 자료</b><small>한 장에서 실제 시간축 회전을 만든 뒤 8방향을 추출합니다. 추정된 측·후면은 직접 확인한 것만 분석 자료로 승인하세요.</small></span><em>약 10분</em></div>
+          {#if character.turntableFrames?.length}
+            <div class="image-sequence-turntable-review">
+              {#each character.turntableFrames as frame, frameIndex}
+                <button type="button" class:selected={character.turntableSelection?.includes(frameIndex)} disabled={busy || character.quadViewGenerating} onclick={() => onToggleTurntableFrame(frameIndex)}>
+                  <img src={preview(frame)} alt={directionLabels[frame.direction] || frame.direction}>
+                  <span>{directionLabels[frame.direction] || frame.direction}</span>
+                  <i>{character.turntableSelection?.includes(frameIndex) ? '선택' : '제외'}</i>
+                </button>
+              {/each}
             </div>
-            <div class="image-sequence-quadview-actions"><button type="button" disabled={busy || character.quadViewGenerating} onclick={onDiscardSheet}>폐기</button><button type="button" class="primary" disabled={busy || character.quadViewGenerating || character.references.length >= 6} onclick={onApproveSheet}>보조 분석 자료로 승인</button></div>
+            <small class="image-sequence-turntable-note">현재 참조 {character.references.length}장 · 최대 {Math.max(0, 6 - character.references.length)}방향을 추가할 수 있습니다.</small>
+            <div class="image-sequence-quadview-actions"><button type="button" disabled={busy || character.analyzing || character.quadViewGenerating} onclick={onDiscardSheet}>폐기</button><button type="button" class="primary" disabled={busy || character.analyzing || character.quadViewGenerating || !character.turntableSelection?.length || character.references.length >= 6} onclick={onApproveSheet}>선택 {character.turntableSelection?.length || 0}장 승인 · 외형 분석</button></div>
           {:else}
-            <p>대표 이미지를 바탕으로 얼굴 확대·정면·측면·후면 후보를 만듭니다. 원본과 직접 비교해 승인한 경우에만 Gemma의 보조 분석 자료로 추가하며, ReID 대표 이미지는 그대로 유지합니다. 약 2~4분 걸릴 수 있습니다.</p>
+            <p>대표 이미지를 기준으로 MMH3가 연속 360° 회전을 생성하고 정면·¾·측면·후면 8장을 추출합니다. 보이지 않는 면은 모델의 추정이므로 원본 ReID를 자동 교체하지 않습니다.</p>
             {#if character.quadViewGenerating}
               <div class="image-sequence-sheet-progress" aria-label={`4면 시트 생성 ${sheetPercent}%`}>
                 <span><b>{sheetProgress.detail || '4면 시트 생성 중'}</b><em>{sheetPercent}%</em></span>
@@ -132,12 +149,12 @@
                 <small>{sheetElapsed}초 경과 · 실제 엔진 단계</small>
               </div>
             {/if}
-            <button type="button" class="image-sequence-character-analyze" disabled={busy || character.quadViewGenerating || !anchor} onclick={onGenerateSheet}>{character.quadViewGenerating ? '4면 시트 생성 중…' : '4면 시트 후보 만들기'}</button>
+            <button type="button" class="image-sequence-character-analyze" disabled={busy || character.analyzing || character.quadViewGenerating || !anchor} onclick={onGenerateSheet}>{character.analyzing ? '외형 분석 완료 후 사용' : character.quadViewGenerating ? '360° 외형 자료 생성 중…' : '360° 외형 자료 만들기'}</button>
           {/if}
           {#if character.quadViewError}<p class="image-sequence-character-error">{character.quadViewError}</p>{/if}
         </section>
       </div>
-      <footer><small>{character.canonicalPromptEN ? '외형 문구 승인됨' : '외형 분석을 완료해야 장면 생성이 활성화됩니다.'}</small><button type="button" disabled={busy || character.analyzing} onclick={() => prepOpen = false}>닫기</button></footer>
+      <footer><small>{character.canonicalPromptEN ? '외형 문구 승인됨' : '외형 분석을 완료해야 장면 생성이 활성화됩니다.'}</small><button type="button" disabled={busy || character.analyzing || character.quadViewGenerating} onclick={() => prepOpen = false}>닫기</button></footer>
     </div>
   </div>
 {/if}

@@ -31,6 +31,53 @@ test('story and direct examples switch input mode', () => {
   controller.destroy()
 })
 
+test('a bundled example applies one coherent reference, character, story, and scene set', () => {
+  const controller = new ImageSequenceController()
+  const reference = new File(['image'], 'mira.webp', { type: 'image/webp' })
+  const example = {
+    name: '미라', story: '미라가 정전된 미래 도시를 조사한다.',
+    scenes: ['미라가 골목을 조사한다.', '미라가 옥상에 도착한다.'],
+    descriptionKO: '검푸른 단발과 호박빛 눈의 여성', canonicalPromptEN: 'Mira has a blue-black bob and amber eyes.'
+  }
+  controller.applyStoryExample(reference, example)
+  let state = get(controller.state)
+  assert.equal(state.storyIdea, example.story)
+  assert.equal(state.sceneCount, 2)
+  assert.equal(state.characters[0].name, '미라')
+  assert.equal(state.characters[0].references[0].file.name, 'mira.webp')
+  assert.equal(controller.characterReadinessMessage(), '')
+
+  controller.applySceneExample(reference, example)
+  state = get(controller.state)
+  assert.deepEqual(state.prompts, example.scenes)
+  assert.equal(state.characters[0].name, '미라')
+  controller.destroy()
+})
+
+test('choosing a character sample fills only blank related content', () => {
+  const controller = new ImageSequenceController()
+  const example = {
+    name: '볼트', kind: 'toy', story: '볼트가 태엽 열쇠를 찾는다.',
+    scenes: ['볼트가 작업대를 조사한다.', '볼트가 열쇠를 발견한다.'],
+    canonicalPromptEN: 'Bolt is a matte-black designer vinyl toy.',
+    lockedTraits: { face: true, hair: false, body: true, outfit: true, accessories: true, mechanical: false }
+  }
+  controller.addCharacter()
+  controller.addCharacterExample(0, new File(['image'], 'bolt.webp', { type: 'image/webp' }), example)
+  let state = get(controller.state)
+  assert.equal(state.storyIdea, example.story)
+  assert.equal(state.sceneCount, 2)
+  assert.equal(state.characters[0].name, '볼트')
+  assert.equal(state.characters[0].lockedTraits.mechanical, false)
+  assert.equal(controller.characterReadinessMessage(), '')
+
+  controller.setStoryIdea('사용자가 직접 쓴 이야기')
+  controller.addCharacterExample(0, new File(['image'], 'other.webp', { type: 'image/webp' }), { ...example, story: '덮어쓰면 안 된다.' })
+  state = get(controller.state)
+  assert.equal(state.storyIdea, '사용자가 직접 쓴 이야기')
+  controller.destroy()
+})
+
 test('storyboard compatibility allows full T2I resolution and reports actual blockers', () => {
   const base = { mode: 'create', modules: {}, moduleReason: '', width: 2048, height: 2048 }
   assert.equal(imageSequenceBlockedMessage(base), '')

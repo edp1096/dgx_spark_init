@@ -32,7 +32,10 @@ make build
 make dist
 ```
 
-처음 실행하면 실행 디렉터리에 `media.yaml`과 `data/`가 생성됩니다. 기본 주소는
+처음 실행하면 바이너리가 있는 디렉터리에 `media.yaml`과 `data/`가 생성됩니다.
+따라서 `dist/media`와 플랫폼별 배포 바이너리는 실행한 현재 디렉터리와 관계없이 항상
+`dist/media.yaml`과 `dist/data/`를 사용합니다. 설정 위치를 별도로 고정하려면
+`SPARKMEDIA_CONFIG_PATH`에 설정 파일의 경로를 지정할 수 있습니다. 기본 주소는
 `http://0.0.0.0:8686`입니다. `media.yaml`에는 독립 API 서버의 endpoint만 지정합니다.
 
 ```yaml

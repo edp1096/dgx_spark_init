@@ -61,9 +61,10 @@ func TestGarmentExtractionPersistsCutoutMaskAndInputs(t *testing.T) {
 		_ = json.NewEncoder(w).Encode(map[string]any{
 			"model": "test-parser", "target": "upper,lower,shoes", "selected_index": 1,
 			"width": 32, "height": 24, "coverage": .25,
-			"cutout_b64": base64.StdEncoding.EncodeToString(pngData),
-			"mask_b64":   base64.StdEncoding.EncodeToString(pngData),
-			"candidates": []map[string]any{{"index": 0, "score": .1}, {"index": 1, "score": .2}},
+			"cutout_b64":    base64.StdEncoding.EncodeToString(pngData),
+			"mask_b64":      base64.StdEncoding.EncodeToString(pngData),
+			"reference_b64": base64.StdEncoding.EncodeToString(pngData),
+			"candidates":    []map[string]any{{"index": 0, "score": .1}, {"index": 1, "score": .2}},
 		})
 	}))
 	defer worker.Close()
@@ -101,13 +102,16 @@ func TestGarmentExtractionPersistsCutoutMaskAndInputs(t *testing.T) {
 		list := store.List()
 		if len(list) == 1 && list[0].Status == "completed" {
 			job := list[0]
-			if intParam(job.Params, "selected_source_index", -1) != 1 || job.Outputs["mask"] == "" {
+			if intParam(job.Params, "selected_source_index", -1) != 1 || job.Outputs["mask"] == "" || job.Outputs["reference"] == "" {
 				t.Fatalf("missing extraction metadata: %#v", job)
 			}
 			if _, err := os.Stat(store.OutputPath(job.ID + ".png")); err != nil {
 				t.Fatal(err)
 			}
 			if _, err := os.Stat(store.OutputPath(job.ID + "-mask.png")); err != nil {
+				t.Fatal(err)
+			}
+			if _, err := os.Stat(store.OutputPath(job.ID + "-reference.png")); err != nil {
 				t.Fatal(err)
 			}
 			inputsResponse := httptest.NewRecorder()

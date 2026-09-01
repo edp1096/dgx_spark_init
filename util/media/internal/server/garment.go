@@ -64,6 +64,7 @@ type garmentEngineResponse struct {
 	Coverage      float64          `json:"coverage"`
 	CutoutB64     string           `json:"cutout_b64"`
 	MaskB64       string           `json:"mask_b64"`
+	ReferenceB64  string           `json:"reference_b64"`
 	Candidates    []map[string]any `json:"candidates"`
 	Failures      []map[string]any `json:"failures"`
 }
@@ -207,8 +208,23 @@ func (s *Server) runGarmentExtraction(ctx context.Context, job jobs.Job) {
 		s.fail(job, fmt.Errorf("decode garment mask: %w", err))
 		return
 	}
+	reference, err := base64.StdEncoding.DecodeString(result.ReferenceB64)
+	if err != nil {
+		s.fail(job, fmt.Errorf("decode garment reference: %w", err))
+		return
+	}
+	if len(reference) == 0 {
+		s.fail(job, fmt.Errorf("garment engine returned an empty reference"))
+		return
+	}
 	maskName := job.ID + "-mask.png"
 	if err := os.WriteFile(s.jobs.OutputPath(maskName), mask, 0o644); err != nil {
+		s.fail(job, err)
+		return
+	}
+	referenceName := job.ID + "-reference.png"
+	if err := os.WriteFile(s.jobs.OutputPath(referenceName), reference, 0o644); err != nil {
+		_ = os.Remove(s.jobs.OutputPath(maskName))
 		s.fail(job, err)
 		return
 	}
@@ -219,7 +235,10 @@ func (s *Server) runGarmentExtraction(ctx context.Context, job jobs.Job) {
 	job.Params["candidate_failures"] = result.Failures
 	job.Params["width"] = result.Width
 	job.Params["height"] = result.Height
-	job.Outputs = map[string]string{"mask": "/api/outputs/" + maskName}
+	job.Outputs = map[string]string{
+		"mask":      "/api/outputs/" + maskName,
+		"reference": "/api/outputs/" + referenceName,
+	}
 	if err := s.writeImageResult(&job, cutout, job.Prompt); err != nil {
 		s.fail(job, err)
 	}

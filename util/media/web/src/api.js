@@ -93,6 +93,8 @@ export const api = {
 	describeSequenceCharacter: (form) => fetch('/api/prompts/character-description', { method: 'POST', body: form }).then(checked),
 	createSequenceCharacterSheet: (form) => fetch('/api/images/character-sheet', { method: 'POST', body: form }).then(checkedBlob),
 	sequenceCharacterSheetStatus: (operationID) => fetch(`/api/images/character-sheet/status?operation_id=${encodeURIComponent(operationID)}`).then(checked),
+	createSequenceCharacterTurntable: (form) => fetch('/api/images/character-turntable', { method: 'POST', body: form }).then(checked),
+	sequenceCharacterTurntableStatus: (operationID) => fetch(`/api/images/character-turntable/status?operation_id=${encodeURIComponent(operationID)}`).then(checked),
 	planImageSequence: (payload) => fetch('/api/prompts/sequence-plan', {
 		method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
 	}).then(checked),

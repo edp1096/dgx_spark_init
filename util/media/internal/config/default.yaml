@@ -22,6 +22,8 @@ engines:
     endpoint: http://127.0.0.1:8705
   faceswap:
     endpoint: http://127.0.0.1:8706
+  character:
+    endpoint: http://127.0.0.1:8191
 
 image:
   model: krea2-turbo-nvfp4

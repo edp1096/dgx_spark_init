@@ -1,0 +1,23 @@
+services:
+  api:
+    build:
+      context: .
+    image: dgx-garment-extractor:latest
+    container_name: garment-extractor-api
+    init: true
+    restart: unless-stopped
+    network_mode: host
+    ipc: host
+    gpus: all
+    environment:
+      HF_TOKEN: ${HF_TOKEN:-}
+      GARMENT_MODEL: fashn-ai/fashn-human-parser
+      GARMENT_MODEL_REVISION: 1f80c34dbab321c5730dda5c3fea279fd3e97498
+      PYTORCH_CUDA_ALLOC_CONF: expandable_segments:True
+    volumes:
+      - hf-cache:/root/.cache/huggingface
+
+volumes:
+  hf-cache:
+    name: media-hf-cache
+    external: true

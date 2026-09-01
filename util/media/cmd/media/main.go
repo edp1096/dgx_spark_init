@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
+	"strings"
 	"syscall"
 	"time"
 
@@ -16,7 +18,7 @@ import (
 )
 
 func main() {
-	configPath := "media.yaml"
+	configPath := defaultConfigPath()
 	cfg, created, err := config.Load(configPath)
 	if err != nil {
 		log.Fatal(err)
@@ -76,4 +78,37 @@ func main() {
 	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatal(err)
 	}
+}
+
+// defaultConfigPath keeps configuration and durable data beside the executable
+// rather than tying them to the caller's working directory. A binary in dist/
+// therefore always uses dist/media.yaml and dist/data.
+func defaultConfigPath() string {
+	workingDirectory, err := os.Getwd()
+	if err != nil {
+		workingDirectory = "."
+	}
+	executable, err := os.Executable()
+	if err == nil {
+		if resolved, resolveErr := filepath.EvalSymlinks(executable); resolveErr == nil {
+			executable = resolved
+		}
+	}
+	return resolveDefaultConfigPath(executable, workingDirectory, os.Getenv("SPARKMEDIA_CONFIG_PATH"))
+}
+
+func resolveDefaultConfigPath(executable, workingDirectory, explicit string) string {
+	if path := strings.TrimSpace(explicit); path != "" {
+		if absolute, err := filepath.Abs(path); err == nil {
+			return absolute
+		}
+		return path
+	}
+	if executable != "" {
+		return filepath.Join(filepath.Dir(executable), "media.yaml")
+	}
+	if absolute, err := filepath.Abs(filepath.Join(workingDirectory, "media.yaml")); err == nil {
+		return absolute
+	}
+	return filepath.Join(workingDirectory, "media.yaml")
 }

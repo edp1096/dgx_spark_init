@@ -45,6 +45,7 @@
   export let setImageSequenceSharedPrompt
   export let applyStorySequenceExample
   export let applySceneSequenceExample
+  export let applyCharacterSequenceExample
   export let planImageSequence
   export let imageSequenceBlockedMessage
   export let removeImageSequenceScene
@@ -62,6 +63,7 @@
   export let generateImageSequenceCharacterSheet
   export let approveImageSequenceCharacterSheet
   export let discardImageSequenceCharacterSheet
+  export let toggleImageSequenceCharacterTurntableFrame
   export let analyzeImageSequenceCharacter
   export let setImageSequenceCharacterDescription
   export let setImageSequenceCharacterPrompt
@@ -110,6 +112,7 @@
   {setImageSequenceSharedPrompt}
   {applyStorySequenceExample}
   {applySceneSequenceExample}
+  {applyCharacterSequenceExample}
   {planImageSequence}
   {imageSequenceBlockedMessage}
   {removeImageSequenceScene}
@@ -127,6 +130,7 @@
   {generateImageSequenceCharacterSheet}
   {approveImageSequenceCharacterSheet}
   {discardImageSequenceCharacterSheet}
+  {toggleImageSequenceCharacterTurntableFrame}
   {analyzeImageSequenceCharacter}
   {setImageSequenceCharacterDescription}
   {setImageSequenceCharacterPrompt}
