@@ -63,7 +63,7 @@ func (c *Client) Health(ctx context.Context) Status {
 }
 
 func (c *Client) Speech(ctx context.Context, text string) ([]byte, string, error) {
-	stream, err := c.SpeechStream(ctx, text, nil)
+	stream, err := c.SpeechStream(ctx, text)
 	if err != nil {
 		return nil, "", err
 	}
@@ -81,9 +81,14 @@ func (c *Client) Speech(ctx context.Context, text string) ([]byte, string, error
 type SpeechStream struct {
 	Body        io.ReadCloser
 	ContentType string
+	SampleRate  int
 }
 
-func (c *Client) SpeechStream(ctx context.Context, text string, seedOverride *int64) (*SpeechStream, error) {
+func (c *Client) SpeechStream(ctx context.Context, text string) (*SpeechStream, error) {
+	return c.SpeechStreamLanguage(ctx, text, "")
+}
+
+func (c *Client) SpeechStreamLanguage(ctx context.Context, text, language string) (*SpeechStream, error) {
 	if !c.cfg.Enabled {
 		return nil, errors.New("TTS is disabled")
 	}
@@ -94,19 +99,12 @@ func (c *Client) SpeechStream(ctx context.Context, text string, seedOverride *in
 	if len(text) > 64<<10 {
 		return nil, errors.New("text is too large")
 	}
+	if strings.TrimSpace(language) == "" {
+		language = c.cfg.Language
+	}
 	payload := map[string]any{
-		"model": c.cfg.Model, "input": text,
-		"language": c.cfg.Language, "voice": strings.ToLower(c.cfg.Voice),
-		"instructions": c.cfg.Instructions,
-		"task_type":    "CustomVoice", "response_format": "pcm",
-		"stream": true, "stream_format": "audio",
-	}
-	seed := c.cfg.Seed
-	if seedOverride != nil {
-		seed = *seedOverride
-	}
-	if seed >= 0 {
-		payload["seed"] = seed
+		"model": c.cfg.Model, "input": text, "language": language,
+		"voice": c.cfg.Voice, "response_format": "pcm", "stream": true,
 	}
 	body, err := json.Marshal(payload)
 	if err != nil {
@@ -130,5 +128,5 @@ func (c *Client) SpeechStream(ctx context.Context, text string, seedOverride *in
 	if contentType == "" || contentType == "application/octet-stream" {
 		contentType = "audio/pcm"
 	}
-	return &SpeechStream{Body: resp.Body, ContentType: contentType}, nil
+	return &SpeechStream{Body: resp.Body, ContentType: contentType, SampleRate: c.cfg.SampleRate}, nil
 }

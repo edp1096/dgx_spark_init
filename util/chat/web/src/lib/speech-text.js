@@ -16,7 +16,7 @@ function safeBoundary(source) {
   return sentence;
 }
 
-export function createSpeechChunker() {
+export function createSpeechChunker(options = {}) {
   let buffer = '';
   let insideToolCall = false;
 
@@ -37,7 +37,7 @@ export function createSpeechChunker() {
       value = `${before} ${after?.[1] || ''}`.trim();
     }
     if (!value || sourceOnlyLine(value)) return '';
-    return cleanMarkdownLine(value);
+    return cleanMarkdownLine(value, options);
   }
 
   return {
@@ -54,7 +54,7 @@ export function createSpeechChunker() {
       return chunks;
     },
     finish() {
-      const cleaned = speechTextFromMarkdown(buffer);
+      const cleaned = speechTextFromMarkdown(buffer, options);
       buffer = '';
       return cleaned ? cleaned.split('\n').filter(Boolean) : [];
     },

@@ -95,6 +95,14 @@ func (c *Client) health(ctx context.Context, endpoint string, modelResponse bool
 }
 
 func (c *Client) Transcribe(ctx context.Context, source io.Reader, filename, mimeType string) (Result, error) {
+	return c.transcribe(ctx, source, filename, mimeType, c.cfg.MediaLanguage)
+}
+
+func (c *Client) TranscribeVoice(ctx context.Context, source io.Reader, filename, mimeType string) (Result, error) {
+	return c.transcribe(ctx, source, filename, mimeType, c.cfg.VoiceLanguage)
+}
+
+func (c *Client) transcribe(ctx context.Context, source io.Reader, filename, mimeType, language string) (Result, error) {
 	if !c.cfg.Enabled {
 		return Result{}, errors.New("ASR is disabled")
 	}
@@ -123,7 +131,7 @@ func (c *Client) Transcribe(ctx context.Context, source io.Reader, filename, mim
 	multipartWriter := multipart.NewWriter(pipeWriter)
 	writeDone := make(chan error, 1)
 	go func() {
-		err := writeASRMultipart(multipartWriter, ffmpegResp.Body, filename, c.cfg)
+		err := writeASRMultipart(multipartWriter, ffmpegResp.Body, filename, c.cfg.Model, language, c.cfg.Prompt)
 		if closeErr := multipartWriter.Close(); err == nil {
 			err = closeErr
 		}
@@ -163,9 +171,9 @@ func (c *Client) Transcribe(ctx context.Context, source io.Reader, filename, mim
 	return result, nil
 }
 
-func writeASRMultipart(writer *multipart.Writer, audio io.Reader, filename string, cfg config.ASRConfig) error {
+func writeASRMultipart(writer *multipart.Writer, audio io.Reader, filename, model, language, prompt string) error {
 	for name, value := range map[string]string{
-		"model": cfg.Model, "language": cfg.Language, "prompt": cfg.Prompt,
+		"model": model, "language": language, "prompt": prompt,
 	} {
 		if strings.TrimSpace(value) != "" {
 			if err := writer.WriteField(name, value); err != nil {

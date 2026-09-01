@@ -103,6 +103,7 @@ func runCompletionLoopForSessionWithMedia(
 		conversation = append(conversation, llm.Message{Role: "system", Content: strings.Join(systemParts, "\n\n")})
 	}
 	conversation = append(conversation, messages[leadingSystems:]...)
+	conversation = retainLatestVideoInput(conversation)
 
 	if !useTools {
 		result, err := client.Stream(ctx, conversation, model, reasoningEffort, nil, textEmitter(emit))
@@ -198,8 +199,39 @@ func runCompletionLoopForSessionWithMedia(
 		// message. Add model-facing media only after all results, otherwise a
 		// multi-tool response would produce an invalid role sequence.
 		conversation = append(conversation, toolFollowups...)
+		conversation = retainLatestVideoInput(conversation)
 		toolRounds++
 	}
+}
+
+// retainLatestVideoInput enforces the conservative one-video contract used by
+// the local multimodal servers. Visible history remains untouched; this only
+// removes older raw video parts from the request assembled for the model.
+func retainLatestVideoInput(messages []llm.Message) []llm.Message {
+	keptVideo := false
+	out := append([]llm.Message(nil), messages...)
+	for messageIndex := len(out) - 1; messageIndex >= 0; messageIndex-- {
+		parts, ok := out[messageIndex].Content.([]map[string]any)
+		if !ok {
+			continue
+		}
+		filtered := make([]map[string]any, 0, len(parts))
+		for partIndex := len(parts) - 1; partIndex >= 0; partIndex-- {
+			part := parts[partIndex]
+			if part["type"] == "video_url" {
+				if keptVideo {
+					continue
+				}
+				keptVideo = true
+			}
+			filtered = append(filtered, part)
+		}
+		for left, right := 0, len(filtered)-1; left < right; left, right = left+1, right-1 {
+			filtered[left], filtered[right] = filtered[right], filtered[left]
+		}
+		out[messageIndex].Content = filtered
+	}
+	return out
 }
 
 func cleanToolProtocol(content string) (string, bool) {

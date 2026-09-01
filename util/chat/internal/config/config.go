@@ -18,7 +18,9 @@ const DefaultPath = "sparktalk.yaml"
 var assets embed.FS
 
 type Config struct {
+	Version    int              `yaml:"version" json:"version"`
 	Server     ServerConfig     `yaml:"server" json:"server"`
+	Runtime    RuntimeConfig    `yaml:"runtime" json:"runtime"`
 	Model      ModelConfig      `yaml:"model" json:"model"`
 	ASR        ASRConfig        `yaml:"asr" json:"asr"`
 	TTS        TTSConfig        `yaml:"tts" json:"tts"`
@@ -29,6 +31,19 @@ type Config struct {
 	Appearance AppearanceConfig `yaml:"appearance" json:"appearance"`
 }
 
+// RuntimeConfig selects the embedded DGX Spark service bundle. Engine
+// endpoints and model identities are derived from the bundle in managed mode;
+// users edit behavior, not internal service wiring.
+type RuntimeConfig struct {
+	Mode             string  `yaml:"mode" json:"mode"`
+	Bundle           string  `yaml:"bundle" json:"bundle"`
+	ActiveBundle     string  `yaml:"active_bundle,omitempty" json:"-"`
+	AutoStart        bool    `yaml:"auto_start" json:"auto_start"`
+	DataDir          string  `yaml:"data_dir" json:"data_dir"`
+	ModelCache       string  `yaml:"model_cache" json:"model_cache"`
+	MemoryReserveGiB float64 `yaml:"memory_reserve_gib" json:"memory_reserve_gib"`
+}
+
 // ASRConfig connects local media preparation and speech recognition services.
 // Audio attachments become text; video attachments keep their visual stream and
 // gain a transcript of their audio track.
@@ -37,24 +52,31 @@ type ASRConfig struct {
 	FFmpegEndpoint string `yaml:"ffmpeg_endpoint" json:"ffmpeg_endpoint"`
 	Endpoint       string `yaml:"endpoint" json:"endpoint"`
 	Model          string `yaml:"model" json:"model"`
-	Language       string `yaml:"language" json:"language"`
-	Prompt         string `yaml:"prompt" json:"prompt"`
-	FilterFillers  bool   `yaml:"filter_fillers" json:"filter_fillers"`
-	Timeout        string `yaml:"timeout" json:"timeout"`
+	VoiceLanguage  string `yaml:"voice_language" json:"voice_language"`
+	MediaLanguage  string `yaml:"media_language" json:"media_language"`
+	// These fields read former ASR layouts for one-time migration.
+	VoiceEndpoint string `yaml:"voice_endpoint,omitempty" json:"-"`
+	VoiceModel    string `yaml:"voice_model,omitempty" json:"-"`
+	MediaEndpoint string `yaml:"media_endpoint,omitempty" json:"-"`
+	MediaModel    string `yaml:"media_model,omitempty" json:"-"`
+	Language      string `yaml:"language,omitempty" json:"-"`
+	Prompt        string `yaml:"prompt" json:"prompt"`
+	FilterFillers bool   `yaml:"filter_fillers" json:"filter_fillers"`
+	Timeout       string `yaml:"timeout" json:"timeout"`
 }
 
-// TTSConfig connects the assistant reply reader to an OpenAI-compatible
-// Qwen3-TTS CustomVoice service.
+// TTSConfig connects the assistant reply reader to the Magpie TTS service.
 type TTSConfig struct {
-	Enabled      bool   `yaml:"enabled" json:"enabled"`
-	Endpoint     string `yaml:"endpoint" json:"endpoint"`
-	Model        string `yaml:"model" json:"model"`
-	Language     string `yaml:"language" json:"language"`
-	Voice        string `yaml:"voice" json:"voice"`
-	Instructions string `yaml:"instructions" json:"instructions"`
-	Seed         int64  `yaml:"seed" json:"seed"`
-	AutoPlay     bool   `yaml:"auto_play" json:"auto_play"`
-	Timeout      string `yaml:"timeout" json:"timeout"`
+	Enabled            bool   `yaml:"enabled" json:"enabled"`
+	Endpoint           string `yaml:"endpoint" json:"endpoint"`
+	Model              string `yaml:"model" json:"model"`
+	Language           string `yaml:"language" json:"language"`
+	HanjaReading       string `yaml:"hanja_reading" json:"hanja_reading"`
+	Voice              string `yaml:"voice" json:"voice"`
+	SampleRate         int    `yaml:"sample_rate" json:"sample_rate"`
+	AutoPlay           bool   `yaml:"auto_play" json:"auto_play"`
+	OmitParentheticals bool   `yaml:"omit_parentheticals" json:"omit_parentheticals"`
+	Timeout            string `yaml:"timeout" json:"timeout"`
 }
 
 type ServerConfig struct {
@@ -65,8 +87,10 @@ type ServerConfig struct {
 type ModelConfig struct {
 	Endpoint            string         `yaml:"endpoint" json:"endpoint"`
 	DefaultModel        string         `yaml:"default_model" json:"default_model"`
+	ModelType           string         `yaml:"model_type" json:"model_type"`
 	APIKey              string         `yaml:"api_key" json:"-"`
 	ReasoningEffort     string         `yaml:"reasoning_effort" json:"reasoning_effort"`
+	ThinkingBudget      int            `yaml:"thinking_budget" json:"thinking_budget"`
 	SystemPrompt        string         `yaml:"system_prompt" json:"system_prompt"`
 	SystemPromptPreset  string         `yaml:"system_prompt_preset,omitempty" json:"system_prompt_preset"`
 	SystemPromptPresets []PromptPreset `yaml:"system_prompt_presets,omitempty" json:"system_prompt_presets"`
@@ -98,14 +122,14 @@ type ToolsConfig struct {
 	Timeout            string `yaml:"timeout" json:"timeout"`
 }
 
-// ImageConfig connects SparkTalk's model tools directly to the local Krea 2
-// service. Prompt expansion is intentionally performed by the conversation
-// model when it builds the tool arguments, so this path does not need a second
-// prompt-enhancement model.
+// ImageConfig connects SparkTalk's model tools to an OpenAI-compatible local
+// image API. Basic mode exposes portable text-to-image arguments only, while
+// extended mode enables the optional editing, control, LoRA, and helper routes.
 type ImageConfig struct {
 	Enabled     bool   `yaml:"enabled" json:"enabled"`
 	Endpoint    string `yaml:"endpoint" json:"endpoint"`
 	Model       string `yaml:"model" json:"model"`
+	Mode        string `yaml:"mode" json:"mode"`
 	DefaultSize string `yaml:"default_size" json:"default_size"`
 	Timeout     string `yaml:"timeout" json:"timeout"`
 }
@@ -122,7 +146,9 @@ type AppearanceConfig struct {
 }
 
 type PublicConfig struct {
+	Version    int              `json:"version"`
 	Server     ServerConfig     `json:"server"`
+	Runtime    RuntimeConfig    `json:"runtime"`
 	Model      ModelConfig      `json:"model"`
 	ASR        ASRConfig        `json:"asr"`
 	TTS        TTSConfig        `json:"tts"`
@@ -166,8 +192,8 @@ func Load(path string) (Config, bool, error) {
 			FilterFillers *bool `yaml:"filter_fillers"`
 		} `yaml:"asr"`
 		TTS *struct {
-			Enabled *bool  `yaml:"enabled"`
-			Seed    *int64 `yaml:"seed"`
+			Enabled            *bool `yaml:"enabled"`
+			OmitParentheticals *bool `yaml:"omit_parentheticals"`
 		} `yaml:"tts"`
 		Context *struct {
 			Enabled *bool `yaml:"enabled"`
@@ -190,8 +216,8 @@ func Load(path string) (Config, bool, error) {
 	if presence.TTS == nil || presence.TTS.Enabled == nil {
 		cfg.TTS.Enabled = true
 	}
-	if presence.TTS == nil || presence.TTS.Seed == nil {
-		cfg.TTS.Seed = -1
+	if presence.TTS == nil || presence.TTS.OmitParentheticals == nil {
+		cfg.TTS.OmitParentheticals = true
 	}
 	if presence.Context == nil || presence.Context.Enabled == nil {
 		cfg.Context.Enabled = true
@@ -203,7 +229,9 @@ func Load(path string) (Config, bool, error) {
 		cfg.Tools.MediaImportEnabled = true
 	}
 	if presence.Image == nil || presence.Image.Enabled == nil {
-		cfg.Image.Enabled = true
+		// Older configurations predate selectable image engines. Keep the tool
+		// disabled until an endpoint/model pair is chosen explicitly.
+		cfg.Image.Enabled = false
 	}
 	cfg.Normalize()
 	if err := cfg.Validate(); err != nil {
@@ -263,10 +291,14 @@ func mappingNodeValue(mapping *yaml.Node, key string) *yaml.Node {
 }
 
 func Save(path string, cfg Config) error {
+	cfg.Normalize()
+	return saveNormalized(path, cfg)
+}
+
+func saveNormalized(path string, cfg Config) error {
 	if path == "" {
 		path = DefaultPath
 	}
-	cfg.Normalize()
 	if err := cfg.Validate(); err != nil {
 		return err
 	}
@@ -278,27 +310,75 @@ func Save(path string, cfg Config) error {
 }
 
 func (c *Config) Normalize() {
+	if c.Version < 2 {
+		c.Version = 2
+	}
 	c.Server.ListenAddr = strings.TrimSpace(c.Server.ListenAddr)
 	c.Server.Database = strings.TrimSpace(c.Server.Database)
+	c.Runtime.Mode = strings.ToLower(strings.TrimSpace(c.Runtime.Mode))
+	c.Runtime.Bundle = strings.ToLower(strings.TrimSpace(c.Runtime.Bundle))
+	c.Runtime.ActiveBundle = strings.ToLower(strings.TrimSpace(c.Runtime.ActiveBundle))
+	c.Runtime.DataDir = strings.TrimSpace(c.Runtime.DataDir)
+	c.Runtime.ModelCache = strings.TrimSpace(c.Runtime.ModelCache)
+	if c.Runtime.Mode != "external" {
+		c.Runtime.Mode = "managed"
+	}
+	switch c.Runtime.Bundle {
+	case "qwen27", "flash-next", "gemma":
+	default:
+		c.Runtime.Bundle = "flash-next"
+	}
+	switch c.Runtime.ActiveBundle {
+	case "qwen27", "flash-next", "gemma":
+	default:
+		c.Runtime.ActiveBundle = c.Runtime.Bundle
+	}
+	if c.Runtime.MemoryReserveGiB <= 0 {
+		c.Runtime.MemoryReserveGiB = 8
+	}
+	if home, err := os.UserHomeDir(); err == nil {
+		if c.Runtime.DataDir == "" {
+			c.Runtime.DataDir = filepath.Join(home, ".local", "share", "sparktalk")
+		}
+		if c.Runtime.ModelCache == "" {
+			c.Runtime.ModelCache = filepath.Join(home, ".cache", "huggingface")
+		}
+	}
 	c.Model.Endpoint = strings.TrimRight(strings.TrimSpace(c.Model.Endpoint), "/")
 	c.Model.DefaultModel = strings.TrimSpace(c.Model.DefaultModel)
+	c.Model.ModelType = strings.ToLower(strings.TrimSpace(c.Model.ModelType))
+	switch c.Model.ModelType {
+	case "qwen3.8", "gemma4", "generic":
+	default:
+		c.Model.ModelType = "generic"
+	}
 	c.Model.ReasoningEffort = strings.TrimSpace(c.Model.ReasoningEffort)
+	if c.Model.ThinkingBudget < 0 {
+		c.Model.ThinkingBudget = 0
+	}
 	c.Model.SystemPrompt = strings.TrimSpace(c.Model.SystemPrompt)
 	c.Model.SystemPromptPreset = strings.TrimSpace(c.Model.SystemPromptPreset)
 	c.ASR.FFmpegEndpoint = strings.TrimRight(strings.TrimSpace(c.ASR.FFmpegEndpoint), "/")
 	c.ASR.Endpoint = strings.TrimRight(strings.TrimSpace(c.ASR.Endpoint), "/")
 	c.ASR.Model = strings.TrimSpace(c.ASR.Model)
-	c.ASR.Language = strings.TrimSpace(c.ASR.Language)
+	c.ASR.VoiceLanguage = normalizeASRLocale(c.ASR.VoiceLanguage)
+	c.ASR.MediaLanguage = normalizeASRLocale(c.ASR.MediaLanguage)
+	c.ASR.VoiceEndpoint = strings.TrimRight(strings.TrimSpace(c.ASR.VoiceEndpoint), "/")
+	c.ASR.VoiceModel = strings.TrimSpace(c.ASR.VoiceModel)
+	c.ASR.MediaEndpoint = strings.TrimRight(strings.TrimSpace(c.ASR.MediaEndpoint), "/")
+	c.ASR.MediaModel = strings.TrimSpace(c.ASR.MediaModel)
+	c.ASR.Language = normalizeASRLocale(c.ASR.Language)
 	c.ASR.Prompt = strings.TrimSpace(c.ASR.Prompt)
 	c.ASR.Timeout = strings.TrimSpace(c.ASR.Timeout)
 	c.TTS.Endpoint = strings.TrimRight(strings.TrimSpace(c.TTS.Endpoint), "/")
 	c.TTS.Model = strings.TrimSpace(c.TTS.Model)
 	c.TTS.Language = strings.TrimSpace(c.TTS.Language)
+	c.TTS.HanjaReading = strings.ToLower(strings.TrimSpace(c.TTS.HanjaReading))
 	c.TTS.Voice = strings.TrimSpace(c.TTS.Voice)
-	c.TTS.Instructions = strings.TrimSpace(c.TTS.Instructions)
 	c.TTS.Timeout = strings.TrimSpace(c.TTS.Timeout)
 	c.Image.Endpoint = strings.TrimRight(strings.TrimSpace(c.Image.Endpoint), "/")
 	c.Image.Model = strings.TrimSpace(c.Image.Model)
+	c.Image.Mode = strings.ToLower(strings.TrimSpace(c.Image.Mode))
 	c.Image.DefaultSize = strings.ToLower(strings.TrimSpace(c.Image.DefaultSize))
 	c.Image.Timeout = strings.TrimSpace(c.Image.Timeout)
 	c.Extra.SSHEndpoint = strings.TrimRight(strings.TrimSpace(c.Extra.SSHEndpoint), "/")
@@ -316,14 +396,36 @@ func (c *Config) Normalize() {
 		c.ASR.FFmpegEndpoint = "http://127.0.0.1:8690"
 	}
 	if c.ASR.Endpoint == "" {
-		c.ASR.Endpoint = "http://127.0.0.1:8694"
+		c.ASR.Endpoint = c.ASR.VoiceEndpoint
+		if c.ASR.Endpoint == "" {
+			c.ASR.Endpoint = c.ASR.MediaEndpoint
+		}
+	}
+	if c.ASR.Endpoint == "" {
+		c.ASR.Endpoint = "http://127.0.0.1:8693"
 	}
 	if c.ASR.Model == "" {
-		c.ASR.Model = "qwen3-asr"
+		c.ASR.Model = c.ASR.VoiceModel
+		if c.ASR.Model == "" {
+			c.ASR.Model = c.ASR.MediaModel
+		}
 	}
-	if c.ASR.Language == "" {
-		c.ASR.Language = "auto"
+	if c.ASR.Model == "" {
+		c.ASR.Model = "nemotron-3.5-asr-streaming-0.6b"
 	}
+	if c.ASR.VoiceLanguage == "" || c.ASR.VoiceLanguage == "auto" {
+		legacy := normalizeASRLocale(c.ASR.Language)
+		if legacy != "" && legacy != "auto" {
+			c.ASR.VoiceLanguage = legacy
+		} else {
+			c.ASR.VoiceLanguage = "ko-KR"
+		}
+	}
+	if c.ASR.MediaLanguage == "" {
+		c.ASR.MediaLanguage = "auto"
+	}
+	c.ASR.VoiceEndpoint, c.ASR.VoiceModel = "", ""
+	c.ASR.MediaEndpoint, c.ASR.MediaModel, c.ASR.Language = "", "", ""
 	if c.ASR.Timeout == "" {
 		c.ASR.Timeout = "30m"
 	}
@@ -331,13 +433,19 @@ func (c *Config) Normalize() {
 		c.TTS.Endpoint = "http://127.0.0.1:8692"
 	}
 	if c.TTS.Model == "" {
-		c.TTS.Model = "Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice"
+		c.TTS.Model = "magpietts"
 	}
 	if c.TTS.Language == "" {
-		c.TTS.Language = "Korean"
+		c.TTS.Language = "auto"
+	}
+	if c.TTS.HanjaReading != "chinese" && c.TTS.HanjaReading != "japanese" {
+		c.TTS.HanjaReading = "korean"
 	}
 	if c.TTS.Voice == "" {
-		c.TTS.Voice = "Sohee"
+		c.TTS.Voice = "Sofia"
+	}
+	if c.TTS.SampleRate <= 0 {
+		c.TTS.SampleRate = 22050
 	}
 	if c.TTS.Timeout == "" {
 		c.TTS.Timeout = "10m"
@@ -360,8 +468,8 @@ func (c *Config) Normalize() {
 	if c.Image.Endpoint == "" {
 		c.Image.Endpoint = "http://127.0.0.1:8691"
 	}
-	if c.Image.Model == "" {
-		c.Image.Model = "krea2-turbo-nvfp4"
+	if c.Image.Mode != "extended" {
+		c.Image.Mode = "basic"
 	}
 	if c.Image.DefaultSize == "" {
 		c.Image.DefaultSize = "1024x1024"
@@ -372,6 +480,10 @@ func (c *Config) Normalize() {
 	if c.Extra.SSHEndpoint == "" {
 		c.Extra.SSHEndpoint = "http://127.0.0.1:8699"
 	}
+	if c.Runtime.Mode == "managed" {
+		c.applyManagedRuntime()
+	}
+	c.Model.ReasoningEffort = normalizeReasoningEffort(c.Model.ModelType, c.Model.ReasoningEffort)
 	if c.Context.CompactAtPercent <= 0 {
 		c.Context.CompactAtPercent = 80
 	}
@@ -398,6 +510,12 @@ func (c *Config) Normalize() {
 }
 
 func (c Config) Validate() error {
+	if c.Runtime.Mode != "managed" && c.Runtime.Mode != "external" {
+		return errors.New("runtime.mode must be managed or external")
+	}
+	if c.Runtime.MemoryReserveGiB < 1 || c.Runtime.MemoryReserveGiB > 64 {
+		return errors.New("runtime.memory_reserve_gib must be between 1 and 64")
+	}
 	if c.Model.Endpoint == "" {
 		return errors.New("model.endpoint is required")
 	}
@@ -405,10 +523,16 @@ func (c Config) Validate() error {
 		return errors.New("model.endpoint must start with http:// or https://")
 	}
 	if c.ASR.Enabled {
-		for name, endpoint := range map[string]string{"asr.ffmpeg_endpoint": c.ASR.FFmpegEndpoint, "asr.endpoint": c.ASR.Endpoint} {
+		for name, endpoint := range map[string]string{
+			"asr.ffmpeg_endpoint": c.ASR.FFmpegEndpoint,
+			"asr.endpoint":        c.ASR.Endpoint,
+		} {
 			if !strings.HasPrefix(endpoint, "http://") && !strings.HasPrefix(endpoint, "https://") {
 				return fmt.Errorf("%s must start with http:// or https://", name)
 			}
+		}
+		if c.ASR.Model == "" {
+			return errors.New("asr.model is required")
 		}
 	}
 	if timeout, err := time.ParseDuration(c.ASR.Timeout); err != nil || timeout <= 0 {
@@ -420,8 +544,8 @@ func (c Config) Validate() error {
 	if c.TTS.Enabled && !strings.HasPrefix(c.TTS.Endpoint, "http://") && !strings.HasPrefix(c.TTS.Endpoint, "https://") {
 		return errors.New("tts.endpoint must start with http:// or https://")
 	}
-	if c.TTS.Seed < -1 || c.TTS.Seed > 2147483647 {
-		return errors.New("tts.seed must be -1 or between 0 and 2147483647")
+	if c.TTS.SampleRate < 8000 || c.TTS.SampleRate > 192000 {
+		return errors.New("tts.sample_rate must be between 8000 and 192000")
 	}
 	if timeout, err := time.ParseDuration(c.TTS.Timeout); err != nil || timeout <= 0 {
 		if err == nil {
@@ -462,6 +586,9 @@ func (c Config) Validate() error {
 	if c.Image.Enabled && c.Image.Model == "" {
 		return errors.New("image.model is required")
 	}
+	if c.Image.Mode != "basic" && c.Image.Mode != "extended" {
+		return errors.New("image.mode must be basic or extended")
+	}
 	if !validImageSize(c.Image.DefaultSize) {
 		return errors.New("image.default_size must be WIDTHxHEIGHT using 512..2048 multiples of 16")
 	}
@@ -487,9 +614,65 @@ func (c Config) Validate() error {
 }
 
 func (c Config) Public() PublicConfig {
-	public := PublicConfig{Server: c.Server, Model: c.Model, ASR: c.ASR, TTS: c.TTS, Context: c.Context, Tools: c.Tools, Image: c.Image, Extra: c.Extra, Appearance: c.Appearance, APIKeySet: c.Model.APIKey != ""}
+	public := PublicConfig{Version: c.Version, Server: c.Server, Runtime: c.Runtime, Model: c.Model, ASR: c.ASR, TTS: c.TTS, Context: c.Context, Tools: c.Tools, Image: c.Image, Extra: c.Extra, Appearance: c.Appearance, APIKeySet: c.Model.APIKey != ""}
 	public.Model.APIKey = ""
 	return public
+}
+
+func (c *Config) applyManagedRuntime() {
+	c.ApplyManagedBundle(c.Runtime.ActiveBundle)
+}
+
+// ApplyManagedBundle updates only the live model profile. Runtime.Bundle is
+// the user's startup default and must not be changed by a live model switch.
+func (c *Config) ApplyManagedBundle(bundle string) {
+	c.Model.Endpoint = "http://127.0.0.1:8000"
+	c.ASR.FFmpegEndpoint = "http://127.0.0.1:8690"
+	c.ASR.Endpoint = "http://127.0.0.1:8693"
+	c.ASR.Model = "nemotron-3.5-asr-streaming-0.6b"
+	c.TTS.Endpoint = "http://127.0.0.1:8692"
+	c.TTS.Model = "magpietts"
+	c.Image.Endpoint = "http://127.0.0.1:8691"
+	c.Image.Model = "flux2-klein-4b-nvfp4"
+	c.Extra.SSHEndpoint = "http://127.0.0.1:8699"
+	switch strings.ToLower(strings.TrimSpace(bundle)) {
+	case "qwen27":
+		c.Model.DefaultModel = "Huihui-RadixArk-Qwen3.8-27B-abliterated-NVFP4"
+		c.Model.ModelType = "qwen3.8"
+		c.Context.WindowTokens = 32768
+	case "gemma":
+		c.Model.DefaultModel = "Huihui-gemma-4-31B-it-abliterated-v2-NVFP4"
+		c.Model.ModelType = "gemma4"
+		c.Context.WindowTokens = 32768
+	default:
+		c.Model.DefaultModel = "qwen3.8-flash-next"
+		c.Model.ModelType = "qwen3.8"
+		c.Context.WindowTokens = 65536
+	}
+	c.Model.ReasoningEffort = normalizeReasoningEffort(c.Model.ModelType, c.Model.ReasoningEffort)
+}
+
+func normalizeReasoningEffort(modelType, value string) string {
+	raw := strings.TrimSpace(value)
+	value = strings.ToLower(raw)
+	switch modelType {
+	case "qwen3.8":
+		switch value {
+		case "none", "low", "medium", "xhigh":
+			return value
+		default:
+			return "medium"
+		}
+	case "gemma4":
+		switch value {
+		case "", "0", "0.0", "none", "off", "false", "no_think", "disabled":
+			return "none"
+		default:
+			return "on"
+		}
+	default:
+		return raw
+	}
 }
 
 func validImageSize(value string) bool {
@@ -498,6 +681,24 @@ func validImageSize(value string) bool {
 		return false
 	}
 	return width >= 512 && width <= 2048 && height >= 512 && height <= 2048 && width%16 == 0 && height%16 == 0 && value == fmt.Sprintf("%dx%d", width, height)
+}
+
+func normalizeASRLocale(value string) string {
+	value = strings.TrimSpace(value)
+	switch strings.ToLower(value) {
+	case "korean", "ko", "ko-kr":
+		return "ko-KR"
+	case "japanese", "ja", "ja-jp":
+		return "ja-JP"
+	case "english", "en", "en-us":
+		return "en-US"
+	case "chinese", "mandarin", "zh", "zh-cn":
+		return "zh-CN"
+	case "auto":
+		return "auto"
+	default:
+		return value
+	}
 }
 
 func normalizeAvatar(value, fallback string) string {

@@ -1,0 +1,18 @@
+ARG SGLANG_COMMIT=2ef0fe46693d1b88271943de5eb49a2848a512d8
+
+FROM ubuntu:24.04@sha256:33ceb71981b602c1a7443a53469e4dba065f7503eab3078a2d7a57a2ab987517 AS source
+
+ARG SGLANG_COMMIT
+
+ADD https://github.com/sgl-project/sglang/archive/${SGLANG_COMMIT}.tar.gz /tmp/sglang.tar.gz
+
+RUN mkdir -p /tmp/sglang-main \
+    && tar -xzf /tmp/sglang.tar.gz --strip-components=1 -C /tmp/sglang-main
+
+FROM lmsysorg/sglang@sha256:febfb971c7352570fc445c466ebd6ffc9d896024958e544a60f2137fd85856b1
+
+USER root
+
+COPY --from=source /tmp/sglang-main/python/sglang/ /sgl-workspace/sglang/python/sglang/
+
+RUN python3 -c "from sglang.srt.models.dflash import DFlashDraftModel; from sglang.srt.models.gemma4_mm import Gemma4ForConditionalGeneration; print(DFlashDraftModel.__name__, Gemma4ForConditionalGeneration.__name__)"

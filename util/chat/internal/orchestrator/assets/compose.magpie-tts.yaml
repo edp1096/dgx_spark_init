@@ -1,0 +1,11 @@
+services:
+  runtime:
+    image: sparktalk-magpie-tts:v2607
+    container_name: sparktalk-magpie-tts
+    restart: unless-stopped
+    init: true
+    ports: ["127.0.0.1:8692:8692"]
+    gpus: all
+    volumes:
+      - ${SPARKTALK_MAGPIE_MODEL_DIR:-/home/edp1096/.cache/nemo-speech/magpie-v2607}:/models:ro
+    command: ["serve", "--host", "0.0.0.0", "--port", "8692", "--no-ui", "--threads", "1", "--tts.magpie-model", "/models/magpie-v2607-pr17-speaker-order-v2.f16.gguf", "--tts.codec-model", "/models/nano-codec.decoder.f16.gguf", "--tts.tokenizer-model-dir", "/models/extracted", "--tts.language-code", "ko-KR", "--tts.voice-name", "Sofia"]

@@ -1,8 +1,7 @@
-import { PCMStreamPlayer, resolveSpeechSeed } from './pcm-player.js';
+import { PCMStreamPlayer } from './pcm-player.js';
 
 export function createSpeechController({
   stream,
-  cryptoSource = () => globalThis.crypto,
   PlayerClass = PCMStreamPlayer,
   onStatus = () => {},
   onPlaybackChange = () => {},
@@ -36,11 +35,10 @@ export function createSpeechController({
     release(session);
   }
 
-  function create(key, sessionId, configuredSeed = -1) {
+  function create(key, sessionId) {
     const session = {
       key,
       sessionId,
-      seed: resolveSpeechSeed(configuredSeed, cryptoSource()),
       controller: new AbortController(),
       player: null,
       queue: [],
@@ -80,7 +78,7 @@ export function createSpeechController({
     try {
       while (session.queue.length && !session.stopped) {
         const text = session.queue.shift();
-        await stream(text, session.seed, session.controller.signal, async (bytes, sampleRate) => {
+        await stream(text, session.controller.signal, async (bytes, sampleRate) => {
           if (session.stopped || active !== session) return;
           if (!session.player) {
             session.player = new PlayerClass({

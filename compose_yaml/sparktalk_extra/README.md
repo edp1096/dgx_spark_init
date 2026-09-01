@@ -187,6 +187,10 @@ curl -H 'Content-Type: application/json' \
 H.264/yuv420p/AAC MP4로 자동 정규화한다. AV1·VP9·고프레임률
 영상에서 발생하는 SGLang/Decord 디코더 오류를 피하기 위한 처리다.
 
+대용량 다운로드·변환 임시 파일은 RAM 기반 `/tmp`가 아니라 컨테이너의
+`/var/tmp/sparktalk-extra-media`에 두며, 기본 동시 미디어 작업 수는 1개다.
+따라서 통합 메모리를 모델 추론과 영상 변환이 동시에 과도하게 점유하지 않는다.
+
 재생목록·라이브·사설망 URL은 받지 않으며 유료·DRM·로그인 전용 콘텐츠를
 우회하지 않는다. 기존 `sparktalk_media_api_ytdlp-data` Docker 볼륨을 명시적으로
 재사용하므로 프로젝트 이름을 바꿔도 yt-dlp override는 유지된다.

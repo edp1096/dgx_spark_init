@@ -1,0 +1,11 @@
+services:
+  runtime:
+    image: sparktalk-nemotron-asr:0.6b-q8
+    container_name: sparktalk-nemotron-asr
+    restart: unless-stopped
+    init: true
+    ports: ["127.0.0.1:8693:8693"]
+    gpus: all
+    volumes:
+      - ${SPARKTALK_NEMO_MODEL_DIR:-/home/edp1096/.cache/nemo-speech}:/models:ro
+    command: ["serve", "--host", "0.0.0.0", "--port", "8693", "--no-ui", "--threads", "1", "--asr.batching.enabled=false", "--asr.streaming.rnnt_right_context", "1", "--asr-model", "/models/nemotron-3.5-asr-streaming-0.6b.q8_0.gguf"]

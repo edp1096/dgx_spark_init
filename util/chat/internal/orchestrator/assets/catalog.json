@@ -1,0 +1,127 @@
+{
+  "components": [
+    {
+      "id": "qwen27",
+      "name": "Qwen3.8 27B",
+      "role": "llm",
+      "container": "sglang-qwen38",
+      "health_url": "http://127.0.0.1:8000/health",
+      "model": "Huihui-RadixArk-Qwen3.8-27B-abliterated-NVFP4",
+      "memory_gib": 52.0,
+      "startup_timeout_seconds": 1200,
+      "compose_asset": "compose.qwen27.yaml",
+      "progress_kind": "sglang"
+    },
+    {
+      "id": "flash-next",
+      "name": "Qwen3.8 Flash-Next",
+      "role": "llm",
+      "container": "qwen38-flash-dealign",
+      "health_url": "http://127.0.0.1:8000/health",
+      "model": "qwen3.8-flash-next",
+      "memory_gib": 89.7,
+      "startup_timeout_seconds": 1200,
+      "compose_asset": "compose.flash-next.yaml",
+      "progress_kind": "vllm"
+    },
+    {
+      "id": "gemma31",
+      "name": "Gemma 4 31B",
+      "role": "llm",
+      "container": "sglang-gemma4",
+      "health_url": "http://127.0.0.1:8000/health",
+      "model": "Huihui-gemma-4-31B-it-abliterated-v2-NVFP4",
+      "memory_gib": 58.0,
+      "startup_timeout_seconds": 1200,
+      "compose_asset": "compose.gemma31.yaml",
+      "progress_kind": "sglang"
+    },
+    {
+      "id": "flux2",
+      "name": "FLUX.2 Klein 4B",
+      "role": "image",
+      "container": "flux2-klein-nvfp4-api",
+      "health_url": "http://127.0.0.1:8691/health",
+      "model": "flux2-klein-4b-nvfp4",
+      "memory_gib": 6.7,
+      "startup_timeout_seconds": 300,
+      "compose_asset": "compose.flux2.yaml",
+      "progress_kind": "comfy"
+    },
+    {
+      "id": "nemotron-asr",
+      "name": "Nemotron ASR",
+      "role": "asr",
+      "container": "sparktalk-nemotron-asr",
+      "health_url": "http://127.0.0.1:8693/ready",
+      "model": "nemotron-3.5-asr-streaming-0.6b",
+      "memory_gib": 1.3,
+      "startup_timeout_seconds": 180,
+      "compose_asset": "compose.nemotron-asr.yaml",
+      "progress_kind": "service"
+    },
+    {
+      "id": "magpie-tts",
+      "name": "Magpie TTS",
+      "role": "tts",
+      "container": "sparktalk-magpie-tts",
+      "health_url": "http://127.0.0.1:8692/ready",
+      "model": "magpietts",
+      "memory_gib": 1.2,
+      "startup_timeout_seconds": 180,
+      "compose_asset": "compose.magpie-tts.yaml",
+      "progress_kind": "service"
+    },
+    {
+      "id": "extra-media",
+      "name": "Extra Media",
+      "role": "tool",
+      "container": "sparktalk-extra-media",
+      "health_url": "http://127.0.0.1:8690/health",
+      "memory_gib": 0.1,
+      "startup_timeout_seconds": 90,
+      "compose_asset": "compose.extra-media.yaml",
+      "progress_kind": "service"
+    },
+    {
+      "id": "extra-ssh",
+      "name": "Extra SSH",
+      "role": "tool",
+      "container": "sparktalk-extra-ssh",
+      "health_url": "http://127.0.0.1:8699/health",
+      "memory_gib": 0.1,
+      "startup_timeout_seconds": 90,
+      "compose_asset": "compose.extra-ssh.yaml",
+      "progress_kind": "service"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "qwen27",
+      "name": "Qwen 27B 세트",
+      "description": "속도와 메모리 여유를 확보한 기본 세트",
+      "model_type": "qwen3.8",
+      "model_id": "Huihui-RadixArk-Qwen3.8-27B-abliterated-NVFP4",
+      "context_tokens": 32768,
+      "components": ["qwen27", "flux2", "nemotron-asr", "magpie-tts", "extra-media", "extra-ssh"]
+    },
+    {
+      "id": "flash-next",
+      "name": "Flash-Next 세트",
+      "description": "64K 문맥과 Flash-Next를 사용하는 고성능 세트",
+      "model_type": "qwen3.8",
+      "model_id": "qwen3.8-flash-next",
+      "context_tokens": 65536,
+      "components": ["flash-next", "flux2", "nemotron-asr", "magpie-tts", "extra-media", "extra-ssh"]
+    },
+    {
+      "id": "gemma",
+      "name": "Gemma 세트",
+      "description": "Gemma 4 31B 기반 대화 세트",
+      "model_type": "gemma4",
+      "model_id": "Huihui-gemma-4-31B-it-abliterated-v2-NVFP4",
+      "context_tokens": 32768,
+      "components": ["gemma31", "flux2", "nemotron-asr", "magpie-tts", "extra-media", "extra-ssh"]
+    }
+  ]
+}

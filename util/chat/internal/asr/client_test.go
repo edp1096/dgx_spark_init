@@ -39,7 +39,7 @@ func TestTranscribeStreamsFFmpegWAVIntoASR(t *testing.T) {
 		if string(data) != "wav-bytes" || !strings.HasSuffix(header.Filename, ".wav") {
 			t.Fatalf("unexpected ASR file: name=%s data=%q", header.Filename, data)
 		}
-		if r.FormValue("model") != "qwen3-asr" || r.FormValue("language") != "auto" {
+		if r.FormValue("model") != "nemotron" || r.FormValue("language") != "auto" {
 			t.Fatalf("unexpected ASR fields: %+v", r.MultipartForm.Value)
 		}
 		_ = json.NewEncoder(w).Encode(Result{Text: "안녕하세요", Language: "Korean"})
@@ -48,7 +48,7 @@ func TestTranscribeStreamsFFmpegWAVIntoASR(t *testing.T) {
 
 	client := New(config.ASRConfig{
 		Enabled: true, FFmpegEndpoint: ffmpeg.URL, Endpoint: asrServer.URL,
-		Model: "qwen3-asr", Language: "auto", Timeout: "5s",
+		Model: "nemotron", MediaLanguage: "auto", Timeout: "5s",
 	})
 	result, err := client.Transcribe(context.Background(), strings.NewReader("video-bytes"), "clip.mp4", "video/mp4")
 	if err != nil {

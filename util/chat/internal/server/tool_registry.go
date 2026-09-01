@@ -84,14 +84,20 @@ func newCompletionToolRegistry(server *Server, sessionID string, cfg config.Tool
 
 		if mediaSink != nil && serverCfg.Image.Enabled {
 			imageCfg := serverCfg.Image
-			registry.register(kreaCapabilitiesToolDefinition(), func(ctx context.Context, _ llm.ToolCall, _ []llm.Message, _ eventEmitter) (registeredToolResult, error) {
-				return server.executeKreaCapabilities(ctx, imageCfg)
-			})
-			registry.register(kreaImageToolDefinition(), func(ctx context.Context, call llm.ToolCall, _ []llm.Message, emit eventEmitter) (registeredToolResult, error) {
-				execution, err := server.executeKreaImageTool(ctx, sessionID, imageCfg, call, emit)
+			if imageCfg.Mode == "extended" {
+				registry.register(imageCapabilitiesToolDefinition(), func(ctx context.Context, _ llm.ToolCall, _ []llm.Message, _ eventEmitter) (registeredToolResult, error) {
+					return server.executeImageCapabilities(ctx, imageCfg)
+				})
+			}
+			registry.register(imageGenerateToolDefinition(imageCfg.Mode), func(ctx context.Context, call llm.ToolCall, _ []llm.Message, emit eventEmitter) (registeredToolResult, error) {
+				execution, err := server.executeImageGenerateTool(ctx, sessionID, imageCfg, call, emit)
 				return execution, err
 			})
-			registry.prompts = append(registry.prompts, kreaToolSystemPrompt+"\n"+kreaAttachmentCatalog(server, sessionID))
+			prompt := imageToolSystemPrompt(imageCfg.Mode)
+			if imageCfg.Mode == "extended" {
+				prompt += "\n" + imageAttachmentCatalog(server, sessionID)
+			}
+			registry.prompts = append(registry.prompts, prompt)
 		}
 	}
 	return registry

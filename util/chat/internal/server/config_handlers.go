@@ -8,7 +8,7 @@ import (
 	"sparktalk/internal/asr"
 	"sparktalk/internal/config"
 	"sparktalk/internal/extra"
-	"sparktalk/internal/krea"
+	"sparktalk/internal/imagegen"
 	"sparktalk/internal/llm"
 	"sparktalk/internal/tts"
 )
@@ -30,7 +30,7 @@ func (s *Server) health(w http.ResponseWriter, r *http.Request) {
 		if timeout > 800*time.Millisecond || timeout <= 0 {
 			timeout = 800 * time.Millisecond
 		}
-		imageHealth = krea.New(cfg.Image.Endpoint, cfg.Image.Model, timeout).Health(r.Context())
+		imageHealth = imagegen.New(cfg.Image.Endpoint, cfg.Image.Model, timeout).Health(r.Context())
 	}
 	writeJSON(w, http.StatusOK, map[string]any{
 		"status": status, "endpoint": cfg.Model.Endpoint, "model": model, "error": errorText(err),
@@ -48,7 +48,9 @@ func (s *Server) configuration(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusOK, cfg.Public())
 	case http.MethodPut:
 		var req struct {
+			Version     int                     `json:"version"`
 			Server      config.ServerConfig     `json:"server"`
+			Runtime     config.RuntimeConfig    `json:"runtime"`
 			Model       config.ModelConfig      `json:"model"`
 			ASR         config.ASRConfig        `json:"asr"`
 			TTS         config.TTSConfig        `json:"tts"`
@@ -65,7 +67,7 @@ func (s *Server) configuration(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		old, _ := s.snapshot()
-		next := config.Config{Server: req.Server, Model: req.Model, ASR: req.ASR, TTS: req.TTS, Context: req.Context, Tools: req.Tools, Image: req.Image, Extra: req.Extra, Appearance: req.Appearance}
+		next := config.Config{Version: req.Version, Server: req.Server, Runtime: req.Runtime, Model: req.Model, ASR: req.ASR, TTS: req.TTS, Context: req.Context, Tools: req.Tools, Image: req.Image, Extra: req.Extra, Appearance: req.Appearance}
 		if req.ClearAPIKey {
 			next.Model.APIKey = ""
 		} else if req.APIKey != "" {
@@ -73,19 +75,21 @@ func (s *Server) configuration(w http.ResponseWriter, r *http.Request) {
 		} else {
 			next.Model.APIKey = old.Model.APIKey
 		}
+		activeBundle := s.runtime.ActiveBundle(r.Context())
+		if activeBundle == "" {
+			activeBundle = old.Runtime.ActiveBundle
+		}
+		if activeBundle == "" {
+			activeBundle = next.Runtime.Bundle
+		}
+		next.Runtime.ActiveBundle = activeBundle
 		next.Normalize()
 		if err := config.Save(s.configPath, next); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 		restartRequired := s.startup != next.Server
-		s.mu.Lock()
-		s.cfg = next
-		s.llm = llm.New(next.Model.Endpoint, next.Model.DefaultModel, next.Model.APIKey)
-		s.asr = asr.New(next.ASR)
-		s.tts = tts.New(next.TTS)
-		s.extra = extra.New(next.Extra.SSHEndpoint)
-		s.mu.Unlock()
+		s.replaceConfig(next)
 		s.contextMu.Lock()
 		s.contextWindows = make(map[string]int)
 		s.contextMu.Unlock()
@@ -95,6 +99,17 @@ func (s *Server) configuration(w http.ResponseWriter, r *http.Request) {
 	default:
 		methodNotAllowed(w)
 	}
+}
+
+func (s *Server) replaceConfig(next config.Config) {
+	s.runtime.ConfigurePaths(next.Runtime.DataDir, next.Runtime.ModelCache)
+	s.mu.Lock()
+	s.cfg = next
+	s.llm = llm.New(next.Model.Endpoint, next.Model.DefaultModel, next.Model.APIKey, next.Model.ModelType).WithThinkingBudget(next.Model.ThinkingBudget)
+	s.asr = asr.New(next.ASR)
+	s.tts = tts.New(next.TTS)
+	s.extra = extra.New(next.Extra.SSHEndpoint)
+	s.mu.Unlock()
 }
 
 func (s *Server) models(w http.ResponseWriter, r *http.Request) {

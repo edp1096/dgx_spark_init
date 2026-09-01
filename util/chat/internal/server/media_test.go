@@ -11,6 +11,7 @@ import (
 	"strings"
 	"testing"
 
+	"sparktalk/internal/asr"
 	"sparktalk/internal/config"
 	"sparktalk/internal/db"
 	"sparktalk/internal/media"
@@ -29,7 +30,7 @@ func TestLLMMessagesTranscribesAudioAndKeepsVideoVisuals(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	cfg := config.Config{ASR: config.ASRConfig{Enabled: true, Endpoint: "http://asr", FFmpegEndpoint: "http://ffmpeg", Model: "qwen3-asr", Language: "auto"}}
+	cfg := config.Config{ASR: config.ASRConfig{Enabled: true, Endpoint: "http://asr", FFmpegEndpoint: "http://ffmpeg", Model: "nemotron", MediaLanguage: "auto"}}
 	fingerprint := transcriptFingerprint(cfg.ASR)
 	for _, item := range []db.Attachment{audio, video} {
 		if err := store.SaveTranscript(item.ID, media.TranscriptCache{Fingerprint: fingerprint, Text: item.Name + " 전사", Language: "Korean"}); err != nil {
@@ -50,6 +51,102 @@ func TestLLMMessagesTranscribesAudioAndKeepsVideoVisuals(t *testing.T) {
 	}
 	if strings.Contains(text, "audio_url") || strings.Contains(text, "data:audio/mpeg;base64,") {
 		t.Fatalf("raw audio must not be sent to the visual language model: %s", text)
+	}
+}
+
+func TestLLMMessagesSendsOnlyLatestVideoAndKeepsCurrentInstruction(t *testing.T) {
+	store, err := media.New(t.TempDir() + "/chat.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	oldVideo, err := store.SaveAttachment(testFileHeader(t, "old.mp4", "video/mp4", append([]byte{0, 0, 0, 12}, []byte("ftypisom-old")...)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	newVideo, err := store.SaveAttachment(testFileHeader(t, "new.mp4", "video/mp4", append([]byte{0, 0, 0, 12}, []byte("ftypisom-new")...)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	cfg := config.Config{ASR: config.ASRConfig{Enabled: false, Model: "nemotron"}}
+	s := &Server{media: store}
+	messages, err := s.llmMessages(context.Background(), []db.Message{
+		{Role: "user", Content: "이전 영상", Attachments: []db.Attachment{oldVideo}},
+		{Role: "assistant", Content: "이전 답변"},
+		{Role: "user", Content: "https://example.com/new 영상 분석해라", Attachments: []db.Attachment{newVideo}},
+	}, cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	payload, _ := json.Marshal(messages)
+	text := string(payload)
+	if strings.Count(text, `"type":"video_url"`) != 1 {
+		t.Fatalf("expected exactly one raw video input: %s", text)
+	}
+	for _, expected := range []string{"old.mp4", "Historical video", "https://example.com/new 영상 분석해라"} {
+		if !strings.Contains(text, expected) {
+			t.Fatalf("model history does not contain %q: %s", expected, text)
+		}
+	}
+}
+
+func TestLLMMessagesKeepsVideoWhenASRIsOffline(t *testing.T) {
+	store, err := media.New(t.TempDir() + "/chat.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	video, err := store.SaveAttachment(testFileHeader(t, "clip.mp4", "video/mp4", append([]byte{0, 0, 0, 12}, []byte("ftypisomvideo")...)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	ffmpeg := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "audio/wav")
+		_, _ = w.Write([]byte("extracted audio"))
+	}))
+	defer ffmpeg.Close()
+	cfg := config.Config{ASR: config.ASRConfig{
+		Enabled: true, Endpoint: "http://127.0.0.1:1", FFmpegEndpoint: ffmpeg.URL,
+		Model: "nemotron", MediaLanguage: "auto", Timeout: "1s",
+	}}
+	s := &Server{media: store, asr: asr.New(cfg.ASR)}
+	messages, err := s.llmMessages(context.Background(), []db.Message{{
+		Role: "user", Content: "영상 화면을 분석해줘", Attachments: []db.Attachment{video},
+	}}, cfg)
+	if err != nil {
+		t.Fatalf("video visuals must survive an ASR outage: %v", err)
+	}
+	payload, _ := json.Marshal(messages[0].Content)
+	text := string(payload)
+	for _, expected := range []string{"video_url", "data:video/mp4;base64,", `status=\"unavailable\"`, "Inspect the video frames directly"} {
+		if !strings.Contains(text, expected) {
+			t.Fatalf("video fallback does not contain %q: %s", expected, text)
+		}
+	}
+}
+
+func TestLLMMessagesStillRequiresASRForAudio(t *testing.T) {
+	store, err := media.New(t.TempDir() + "/chat.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	audio, err := store.SaveAttachment(testFileHeader(t, "voice.mp3", "audio/mpeg", []byte("ID3sample audio")))
+	if err != nil {
+		t.Fatal(err)
+	}
+	ffmpeg := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "audio/wav")
+		_, _ = w.Write([]byte("extracted audio"))
+	}))
+	defer ffmpeg.Close()
+	cfg := config.Config{ASR: config.ASRConfig{
+		Enabled: true, Endpoint: "http://127.0.0.1:1", FFmpegEndpoint: ffmpeg.URL,
+		Model: "nemotron", MediaLanguage: "auto", Timeout: "1s",
+	}}
+	s := &Server{media: store, asr: asr.New(cfg.ASR)}
+	_, err = s.llmMessages(context.Background(), []db.Message{{
+		Role: "user", Content: "음성을 분석해줘", Attachments: []db.Attachment{audio},
+	}}, cfg)
+	if err == nil || !strings.Contains(err.Error(), "ASR API") {
+		t.Fatalf("audio-only input must still report the ASR outage, got %v", err)
 	}
 }
 

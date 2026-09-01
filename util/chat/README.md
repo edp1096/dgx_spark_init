@@ -32,89 +32,68 @@ GNUWin32의 GNU Make를 사용할 수 있습니다.
 Svelte UI가 Go 바이너리에 포함되므로 배포할 때 `dist/`의 운영체제별
 바이너리 하나만 복사하면 됩니다.
 
-## 필요한 API와 Docker 기동
+## DGX Spark 통합 운영
 
-SparkTalk 자체는 Go 바이너리이며 Docker 컨테이너가 아니다. 전체 기능을 사용하려면
-다음 API를 별도로 실행한다.
+기본 `managed` 모드에서는 브라우저가 SparkTalk 한 서버에만 연결한다. Go
+백엔드가 검증된 Docker Compose 조리법을 바이너리에 내장하고, 채팅 모델·이미지·
+ASR·TTS·Extra를 하나의 AI 세트로 기동한다. 외부 `compose_yaml` 디렉터리를 읽지
+않으며 임의 명령도 받지 않는다. 이미 같은 이름의 컨테이너가 있으면 그대로
+채택하고, 없을 때만 내장 조리법으로 생성한다.
 
-| 역할 | 위치 | 기본 주소 | 필요 여부 |
-|---|---|---|---|
-| 채팅·이미지 인식 모델 | `compose_yaml/trt-edge-llm` | `http://127.0.0.1:8696` | 필수 |
-| 음성 전사 | `compose_yaml/qwen3_asr` | `http://127.0.0.1:8694` | 음성·영상 첨부 시 필요 |
-| 답변 음성 | `compose_yaml/qwen3_tts` | `http://127.0.0.1:8692` | AI 답변 읽기 사용 시 필요 |
-| SparkTalk Extra Media | `compose_yaml/sparktalk_extra` | `http://127.0.0.1:8690` | 음성·영상·URL 첨부 시 필요 |
-| SparkTalk Extra SSH | `compose_yaml/sparktalk_extra` | `http://127.0.0.1:8699` | 채팅에서 승인형 SSH 실행 시 필요 |
-| Krea 2 Turbo NVFP4 | `compose_yaml/krea2_turbo_nvfp4` | `http://127.0.0.1:8691` | 채팅에서 이미지 생성·편집 시 필요 |
+| 세트 | 주 채팅 모델 | 문맥 | 공통 구성 |
+|---|---|---:|---|
+| Qwen 27B 세트 | Qwen3.8 27B NVFP4 + DFlash2 | 32K | FLUX.2·Nemotron ASR·Magpie TTS·Extra |
+| Flash-Next 세트 | Qwen3.8 Flash-Next NVFP4 | 64K | FLUX.2·Nemotron ASR·Magpie TTS·Extra |
+| Gemma 세트 | Gemma 4 31B NVFP4 + DFlash | 32K | FLUX.2·Nemotron ASR·Magpie TTS·Extra |
 
-이미지만 인식하는 채팅에는 TensorRT Edge-LLM 서버만 있으면 된다. 음성·영상 또는 URL 미디어를
-사용한다면 Qwen3-ASR과 SparkTalk Extra Media도 함께 실행한다. 답변 읽기를
-사용한다면 Qwen3-TTS도 실행한다. 생성 스튜디오용
-`media_access_api`는 SparkTalk의 필수 구성요소가 아니다.
+우상단의 **연결됨**을 누르면 현재 세트, 전체 통합메모리, 구성요소별 상태와
+GPU 메모리, 기동 단계·진행률·예상 시간을 확인할 수 있다. 같은 곳에서 세트를
+시작·전환·중지한다. 전환할 때 다른 LLM을 먼저 내리고, 대형 LLM의 콜드 스타트
+동안 FLUX.2를 잠시 내려 여유를 확보한 뒤 복구한다. 설정한 최소 확보 메모리를
+지키기 어렵다고 예상되면 기동 전에 중단한다.
 
-저장소 루트에서 다음 순서로 실행한다. 현재 기본 채팅 모델은
-Huihui Qwen3.8-27B NVFP4 + DFlash2 DDTree + vision의 32K 구성이다.
+기동 단계는 런타임 로그에 맞춰 구분한다. Flash-Next는 체크포인트·SSD PLE·MTP·
+KV 캐시·CUDA Graph, Qwen 27B와 Gemma는 본체·DFlash 계열 draft·FP8 KV 캐시·
+CUDA Graph·보정 워밍업 순으로 표시한다. 완료한 단계도 최근 이력에 남으므로 긴
+모델 기동 중 현재 위치와 다음 단계로 넘어간 시점을 함께 확인할 수 있다.
+
+모델 가중치와 Docker 이미지 자체는 Go 바이너리에 넣지 않는다. 최초 사용 전에
+저장소의 각 런타임 README에 따라 아래 로컬 이미지를 빌드하고 모델을 받아 둔다.
+그 이후의 일상적인 기동·중지·전환에는 Compose 명령이 필요 없다.
+
+```text
+qwen38-flash-dgx:test
+dgx-sglang-qwen38-dflash2:2ef0fe4
+dgx-sglang-gemma4-dflash:2ef0fe4
+dgx-flux2-klein-nvfp4:4b
+sparktalk-nemotron-asr:0.6b-q8
+sparktalk-magpie-tts:v2607
+sparktalk-extra-media:latest
+sparktalk-extra-ssh:latest
+```
+
+SparkTalk만 실행하면 된다.
 
 ```bash
-# 1. 채팅/VL 모델. 변환된 TensorRT 엔진과 runtime 이미지가 준비된 상태에서 실행한다.
-cd compose_yaml/trt-edge-llm
-docker compose up -d --no-build server
-
-# 2. 음성 인식. 외부 모델 캐시 볼륨은 최초 한 번만 만들면 된다.
-cd ../qwen3_asr
-docker volume create media-hf-cache
-docker compose build
-docker compose up -d
-
-# 3. 미디어와 SSH 부가기능
-cd ../sparktalk_extra
-make build
-make up
-
-# 4. AI 답변 읽기(선택). 공통 vLLM-Omni 이미지는 최초 한 번 빌드한다.
-cd ../vllm_omni
-docker compose build
-cd ../qwen3_tts
-docker compose up -d custom
-
-# 5. SparkTalk 앱
-cd ../../util/chat
+cd /home/edp1096/workspace/dgx_spark_init/util/chat
 make dist
 cd dist
 ./sparktalk-linux-arm64
 ```
 
-TensorRT Edge-LLM 변환·엔진 빌드 방법은 `compose_yaml/trt-edge-llm/README.md`를
-참고한다. llama.cpp는 대안 백엔드이며 Edge-LLM과 같은 8696 포트에서 동시에
-실행하지 않는다. 다른 OpenAI 호환 서버를 사용할 때는 `sparktalk.yaml`의
-`model.endpoint`와 모델명을 맞춘다. 비디오 인식에는 해당 입력을 지원하는
-멀티모달 런타임이 필요하다.
-
-yt-dlp로 지원 사이트를 가져오지 못할 때는 고정된 이미지 전체를 다시 빌드하기
-전에 선택 업데이트를 적용할 수 있다.
+설정의 **시스템 > DGX Spark 운영**에서 기본 세트, 앱 시작 시 자동기동,
+최소 확보 메모리, 데이터·모델 캐시 경로를 관리한다. 내장 엔진은 loopback으로
+연결되므로 브라우저에 개별 endpoint가 노출되지 않는다. 특별히 외부 OpenAI 호환
+API를 붙여야 할 때만 YAML의 `runtime.mode`를 `external`로 바꾸고 기존 `model`,
+`asr`, `tts`, `image`, `extra` endpoint 값을 사용한다.
 
 ```bash
-cd compose_yaml/sparktalk_extra
-make ytdlp-update
-make ytdlp-version
-```
-
-각 서비스와 SparkTalk 연결 상태는 다음과 같이 확인한다.
-
-```bash
-curl -fsS http://127.0.0.1:8696/v1/models
-curl -fsS http://127.0.0.1:8694/health
-curl -fsS http://127.0.0.1:8692/health
-curl -fsS http://127.0.0.1:8690/health
-curl -fsS http://127.0.0.1:8699/health
-curl -fsS http://127.0.0.1:8691/health
 curl -fsS http://127.0.0.1:8585/api/health
+curl -fsS http://127.0.0.1:8585/api/runtime
 ```
 
-TensorRT Edge-LLM은 재부팅 후 엔진과 vision encoder를 메모리에 올리는 동안 준비에
-시간이 걸릴 수 있다. `docker logs -f trt-edge-llm-server`에서 준비 상태를 확인한다.
-직접 실행한 SparkTalk은 `Ctrl+C`로 종료하고, 아래 사용자 systemd 서비스를 설치했다면 `systemctl --user
-stop sparktalk`을 사용한다. 각 compose 서비스는 해당 디렉터리에서
-`docker compose down` 또는 SparkTalk Extra의 `make down`으로 내린다.
+직접 실행한 SparkTalk은 `Ctrl+C`로 종료한다. 아래 사용자 systemd 서비스를
+설치했다면 `systemctl --user stop sparktalk`을 사용한다.
 
 ## DGX Spark 자동기동
 
@@ -162,10 +141,15 @@ systemctl --user daemon-reload
 ./dist/sparktalk-linux-arm64
 ```
 
-API endpoint, listen address, SQLite 경로, 기본 모델과 reasoning effort는
-`sparktalk.yaml` 또는 웹 화면 좌측 하단의 **설정**에서 관리합니다.
-Endpoint·모델·reasoning 변경은 저장 즉시 적용되며 listen address와 DB
-경로 변경은 앱 재시작 후 적용됩니다.
+웹 설정은 **대화**, **음성**, **기능**, **외형**, **시스템**으로 나뉩니다.
+관리형 세트의 endpoint·모델 ID·모델 유형은 선택한 세트에서 자동으로 정하며,
+화면에는 대화 동작과 기능 사용 여부만 노출합니다. Qwen 3.8은 꺼짐·Low·Medium·
+XHigh의 고정 단계형 effort를,
+Gemma 4는 Thinking 켜짐·꺼짐과 최대 생각 토큰 예산을 사용합니다. 예산은
+기본 512이며 `0`은 제한 없음입니다. 이 제한은 `--enable-strict-thinking`으로
+실행한 SGLang 백엔드가 필요합니다.
+Listen address와 DB 경로 변경만 앱 재시작 후 적용되고 나머지는 저장 즉시
+반영됩니다.
 외형 설정에서 **다크**, **라이트**, **시스템 설정 따름** 테마를 선택할 수
 있습니다. 시스템 모드는 브라우저가 보고하는 OS 색상 설정 변경을 실시간으로
 반영하며, 선택값은 `appearance.theme`에 저장됩니다.
@@ -253,17 +237,17 @@ SQLite 파일 옆의 `<database>.media` 디렉터리에 저장되고 질문 수�
 ## 음성·영상 인식
 
 음성 파일은 원본을 대화 모델에 직접 보내지 않고 SparkTalk Extra Media에서 16kHz
-mono PCM WAV로 변환한 뒤 Qwen3-ASR의 전사문을 전달합니다. 영상 파일은
+mono PCM WAV로 변환한 뒤 Nemotron ASR의 전사문을 전달합니다. 영상 파일은
 멀티모달 모델이 볼 수 있는 영상 원본과 음성 트랙의 전사문을 함께 전달합니다.
 음성 트랙이 없는 영상은 영상만 전달합니다.
 
-기본 서비스 주소는 SparkTalk Extra Media `http://127.0.0.1:8690`, Qwen3-ASR
-`http://127.0.0.1:8694`입니다. 설정 화면의 **음성 인식**에서 활성화 여부,
-두 endpoint, ASR 모델, 인식 언어, 문맥·전문용어 힌트와 타임아웃을 관리할
-수 있습니다. 서비스 상태도 같은 영역에 표시됩니다.
+관리형 세트는 SparkTalk Extra Media와 공용 Nemotron ASR 연결을 자동 구성합니다.
+설정 화면의 **음성 인식**에서는 요청 성격에 맞춰 인식 언어와 문맥 힌트를
+지정합니다. 마이크는 `ko-KR`, 언어를 알 수 없는 첨부 영상·음성은 `auto`가
+기본입니다.
 
 입력창의 마이크 버튼을 누르면 최대 5분까지 녹음하고, 다시 누르면 즉시
-Qwen3-ASR로 전사해 입력창에 문장을 넣습니다. 이 받아쓰기 녹음은 첨부 파일이나
+Nemotron ASR로 전사해 입력창에 문장을 넣습니다. 이 받아쓰기 녹음은 첨부 파일이나
 DB에 저장하지 않습니다. 브라우저 마이크 API는 안전한 출처에서만 제공되므로
 HTTPS·localhost를 사용하거나 개발용 Chromium에서 접속 주소 전체(스킴·IP·포트)를
 `unsafely-treat-insecure-origin-as-secure` 목록에 등록해야 합니다. 주소창의 사이트
@@ -272,7 +256,7 @@ HTTPS·localhost를 사용하거나 개발용 Chromium에서 접속 주소 전�
 PC 상단과 모바일 우측 설정 패널의 **음성대기**를 켜면 마이크 스트림을 유지하고
 주변 소음에 맞춰 발화 시작과 약 1초의 침묵을 자동 감지합니다. 발화별 녹음은
 감지 시점보다 앞선 약 0.45초의 PCM 프리롤을 포함하므로 첫 음절 손실을 줄입니다.
-각 발화는 독립된 WAV로 만들어 Qwen3-ASR로 순서대로 전사한 뒤 즉시 전송합니다. 이전 답변이 생성 중이면 전사문을
+각 발화는 독립된 WAV로 만들어 Nemotron ASR로 순서대로 전사한 뒤 즉시 전송합니다. 이전 답변이 생성 중이면 전사문을
 입력창에 보관했다가 답변이 끝난 직후 자동 전송합니다. 연속 모드는 매번 명시적으로
 켜야 하며 페이지를 새로 열 때 자동으로 마이크를 활성화하지 않습니다.
 설정의 추임새 필터를 켜면 문장부호만 있는 결과와 `아`, `어`, `음`, `흠`, `큼`
@@ -286,16 +270,22 @@ PC 상단과 모바일 우측 설정 패널의 **음성대기**를 켜면 마이
 
 ## 답변 음성
 
-AI 답변 아래의 **읽기**를 누르면 SparkTalk Go 백엔드가 Qwen3-TTS CustomVoice
-API로 화면에 보이는 답변 전체를 보내고, 24 kHz PCM을 도착하는 즉시
+AI 답변 아래의 **읽기**를 누르면 SparkTalk Go 백엔드가 Magpie TTS
+API로 화면에 보이는 답변 전체를 보내고, 22.05 kHz PCM을 도착하는 즉시
 브라우저에서 연속 재생합니다. 음성대기 모드에서는 답변 전체가 끝날 때까지 기다리지
 않고 생성 중 완성된 문장을 세 문장 또는 약 140자 단위로 묶어 같은 재생 큐에
 넣습니다. 요청마다 억양이 초기화되는 현상을 줄이면서 조기 재생을 유지하기 위한
-절충입니다. 설정의
-**답변 음성**에서 endpoint, 모델, 언어, 화자, 연기 지시, 시드와 답변 완료 후
-자동 재생 여부를 관리합니다. Markdown 표식과 내부 도구 호출문은 읽지 않습니다.
-시드가 `-1`이면 브라우저가 답변마다 임의 seed를 하나 만들고 해당 답변의 모든
-음성 묶음에 공유합니다. 고정값을 입력하면 모든 답변에 그 값을 사용합니다.
+절충입니다. 설정의 **답변 음성**에서 언어, 한자 독음, 화자와 답변 완료 후 자동
+재생 여부를 관리합니다. Markdown 표식과 내부 도구 호출문은 읽지 않습니다. SparkTalk의
+답변 음성 엔진은 경량 Magpie로 고정하며 22.05 kHz PCM과 고정 음성을 사용합니다.
+Magpie의 기본 `auto` 언어는 한글·영문·일본어·중국어·아랍 문자·데바나가리를
+구분하고 라틴 문자 문장은 영어·스페인어·독일어·프랑스어·이탈리아어·포르투갈어·
+베트남어 중에서 판별합니다. 짧아서 판별할 수 없는 라틴 문자 약어는 영어로,
+숫자·기호만 있는 구간은 한국어로 읽습니다. 특정 언어 발음을 강제하려면 설정에서
+`auto` 대신 해당 언어 코드를 선택할 수 있습니다.
+자동 한자 독음의 기본값은 한국어입니다. Unicode Unihan `kHangul` 독음과 두음법칙을
+적용해 `大韓民國`을 `대한민국`처럼 변환한 다음 Magpie에 전달합니다. 중국어 본문은
+언어를 `zh-CN`으로 고정하거나 자동 한자 독음을 중국어로 바꿀 수 있습니다.
 
 음성대기와 함께 사용할 때는 AI 음성 재생 중 PCM 발화 판정을 일시 중지하고,
 재생이 끝나거나 사용자가 정지하면 자동으로 대기 상태로 돌아갑니다. 따라서
@@ -313,16 +303,19 @@ API로 화면에 보이는 답변 전체를 보내고, 24 kHz PCM을 도착하�
 직접 입력한 정확한 URL만 허용합니다. 취득한 파일은 해당 사용자 메시지에
 첨부·저장되고, 같은 응답 라운드의 연결된 VL 모델/ASR 입력으로 자동 전달됩니다.
 
-## Krea 2 이미지 도구
+## 이미지 생성 도구
 
-설정의 **도구 > Krea 2 이미지**를 켜면 Qwen3.8이 별도 Gemma 프롬프트 향상기 없이
-사용자 요청을 Krea 2용 영문 프롬프트와 모듈 설정으로 구성한다. 생성 결과는 AI 답변
-첨부로 SQLite 대화에 저장되므로 이후 요청에서 다시 원본·참조 이미지로 사용할 수 있다.
+설정의 **기능 > 이미지 생성**에서 이미지 도구와 기본 해상도·기능 수준을
+관리한다. 관리형 세트는 FLUX.2 endpoint와 모델 ID를 자동 구성한다. 대화 모델이
+별도 프롬프트 향상기 없이 사용자 요청을 영문 이미지 프롬프트로 구성한다. 생성
+결과는 AI 답변 첨부로 SQLite 대화에 저장되므로 이후 요청에서 다시 원본·참조
+이미지로 사용할 수 있다.
 
-`krea_image`는 일반 생성, Identity Edit, Depth, Qwen3-VL 의미 참조, Ostris 스타일
-참조, NK2E Edit/Canny, AnyPaint 인페인트·아웃페인트, Detail Enhancer와 최대 5개 사용자
-LoRA 중첩을 지원한다. 설치된 사용자 LoRA 이름이 필요하면 모델이
-`krea_capabilities`를 먼저 호출한다. 공식 스타일 LoRA 9종은 별도 조회 없이 선택한다.
+기능 수준 `기본 생성`은 `image_generate`에 prompt, size, seed만 전달하므로 단순한
+텍스트 이미지 생성 API에 적합하다. `확장 생성·편집`은 연결한 API가 해당 기능을
+제공할 때만 사용한다. 이 모드에서는 Identity Edit, Depth, 의미·스타일 참조,
+Edit/Canny, 인페인트·아웃페인트, Detail Enhancer, 사용자 LoRA 중첩과
+`image_capabilities` 조회를 모델에 추가로 노출한다.
 
 인페인트에 직접 만든 마스크를 첨부할 수도 있고, “재킷만 바꿔줘”처럼 대상을 말하면
 Grounding DINO Tiny가 대상을 찾고 SAM 2.1 Small이 경계를 정제한 마스크를 만들어
@@ -334,9 +327,8 @@ AnyPaint에 전달한다. 자동 선택이 애매한 사진은 생성 스튜디�
 개별 생성하고 서버가 512픽셀 셀의 4×2 PNG로 정확히 조립한다. 생성 모델에 시트의
 칸 배치를 맡기지 않으므로 레이아웃은 결정적이다.
 
-실측상 Qwen3.8 SGLang과 Krea 2가 모두 적재된 일반 생성 후 가용 통합 메모리는 약
-27GiB였고, 자동 마스크 후 AnyPaint까지 실행한 시점에는 약 22GiB가 남았다. 이 구성에
-LTX 2.5를 동시에 적재하는 것은 권장하지 않는다.
+실제 메모리 사용량과 지원 기능은 연결한 이미지 런타임과 모델에 따라 달라진다.
+SparkTalk은 모델 이름으로 기능을 추측하지 않으므로 설정에서 기능 수준을 명시해야 한다.
 
 기본 listen address는 `0.0.0.0:8585`입니다. 같은 네트워크의 다른 PC에서는
 `http://서버-IP:8585`로 접속합니다.

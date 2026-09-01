@@ -68,7 +68,7 @@
 
 <svelte:window onresize={resizeComposerInput} />
 
-<footer>
+<footer class="composer-footer">
   {#if pendingAttachments.length || uploadingAttachments}
     <div class="pending-attachments">
       {#each pendingAttachments as attachment}

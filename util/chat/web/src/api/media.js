@@ -15,8 +15,8 @@ export const transcribeVoice = (blob, filename, signal) => {
   body.append('audio', blob, filename);
   return request('/api/asr/transcribe', { method: 'POST', body, signal });
 };
-export async function streamSpeech(text, seed, signal, onChunk) {
-  const response = await fetch('/api/tts/speech', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text, seed }), signal });
+export async function streamSpeech(text, signal, onChunk) {
+  const response = await fetch('/api/tts/speech', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text }), signal });
   if (!response.ok) throw new Error((await response.text()) || `TTS HTTP ${response.status}`);
   if (!response.body) throw new Error('TTS 스트림을 읽을 수 없습니다.');
   const sampleRate = Number(response.headers.get('X-Audio-Sample-Rate')) || 24000;

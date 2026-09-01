@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/fs"
@@ -16,6 +17,7 @@ import (
 	"sparktalk/internal/extra"
 	"sparktalk/internal/llm"
 	"sparktalk/internal/media"
+	"sparktalk/internal/orchestrator"
 	"sparktalk/internal/tts"
 )
 
@@ -30,6 +32,7 @@ type Server struct {
 	tts            *tts.Client
 	extra          *extra.Client
 	media          *media.Store
+	runtime        *orchestrator.Controller
 	server         *http.Server
 	contextMu      sync.Mutex
 	contextWindows map[string]int
@@ -49,10 +52,28 @@ func New(cfg config.Config, configPath string, store *db.DB, client *llm.Client,
 	if err != nil {
 		return nil, fmt.Errorf("media storage: %w", err)
 	}
-	s := &Server{cfg: cfg, startup: cfg.Server, configPath: configPath, db: store, llm: client, asr: asr.New(cfg.ASR), tts: tts.New(cfg.TTS), extra: extra.New(cfg.Extra.SSHEndpoint), media: mediaStore, contextWindows: make(map[string]int), approvals: make(map[string]*toolApproval)}
+	runtimeController, err := orchestrator.NewController()
+	if err != nil {
+		return nil, fmt.Errorf("runtime controller: %w", err)
+	}
+	runtimeController.ConfigurePaths(cfg.Runtime.DataDir, cfg.Runtime.ModelCache)
+	if cfg.Runtime.Mode == "managed" {
+		activeBundle := runtimeController.ActiveBundle(context.Background())
+		if cfg.Runtime.AutoStart {
+			activeBundle = cfg.Runtime.Bundle
+		} else if activeBundle == "" {
+			activeBundle = cfg.Runtime.ActiveBundle
+		}
+		cfg.Runtime.ActiveBundle = activeBundle
+		cfg.Normalize()
+		client = llm.New(cfg.Model.Endpoint, cfg.Model.DefaultModel, cfg.Model.APIKey, cfg.Model.ModelType).WithThinkingBudget(cfg.Model.ThinkingBudget)
+	}
+	s := &Server{cfg: cfg, startup: cfg.Server, configPath: configPath, db: store, llm: client, asr: asr.New(cfg.ASR), tts: tts.New(cfg.TTS), extra: extra.New(cfg.Extra.SSHEndpoint), media: mediaStore, runtime: runtimeController, contextWindows: make(map[string]int), approvals: make(map[string]*toolApproval)}
 	mux := http.NewServeMux()
 	mux.HandleFunc("/api/health", s.health)
 	mux.HandleFunc("/api/config", s.configuration)
+	mux.HandleFunc("/api/runtime", s.runtimeStatus)
+	mux.HandleFunc("/api/runtime/", s.runtimeAction)
 	mux.HandleFunc("/api/models", s.models)
 	mux.HandleFunc("/api/images", s.uploadImage)
 	mux.HandleFunc("/api/images/", s.image)
@@ -75,6 +96,9 @@ func New(cfg config.Config, configPath string, store *db.DB, client *llm.Client,
 	mux.HandleFunc("/api/chat", s.chat)
 	mux.Handle("/", spaHandler(web))
 	s.server = &http.Server{Addr: cfg.Server.ListenAddr, Handler: mux, ReadHeaderTimeout: 10 * time.Second}
+	if cfg.Runtime.Mode == "managed" && cfg.Runtime.AutoStart {
+		_ = s.runtime.StartBundle(context.Background(), cfg.Runtime.Bundle, cfg.Runtime.MemoryReserveGiB)
+	}
 	return s, nil
 }
 

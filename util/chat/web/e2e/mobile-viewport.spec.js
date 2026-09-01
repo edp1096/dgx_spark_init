@@ -23,7 +23,9 @@ test('keeps the composer inside a normal desktop browser viewport', async ({ pag
 
 test('keeps the app header fixed while only the message pane scrolls on mobile resize', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
+  const sessionsLoaded = page.waitForResponse((response) => response.url().endsWith('/api/sessions') && response.request().method() === 'GET');
   await page.goto('/');
+  await sessionsLoaded;
   await expect(page.locator('.composer')).toBeVisible();
   await page.waitForTimeout(250);
 

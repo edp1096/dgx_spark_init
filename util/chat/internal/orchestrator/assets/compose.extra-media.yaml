@@ -1,0 +1,23 @@
+services:
+  runtime:
+    image: sparktalk-extra-media:latest
+    container_name: sparktalk-extra-media
+    restart: unless-stopped
+    init: true
+    ports: ["127.0.0.1:8690:8698"]
+    user: "${PUID:-1000}:${PGID:-1000}"
+    environment:
+      SPARKTALK_EXTRA_MEDIA_LISTEN_ADDR: 0.0.0.0:8698
+      SPARKTALK_EXTRA_MEDIA_MAX_UPLOAD_MB: "512"
+      SPARKTALK_EXTRA_MEDIA_MAX_DOWNLOAD_MB: "4096"
+      SPARKTALK_EXTRA_MEDIA_MAX_DURATION_SECONDS: "14400"
+      SPARKTALK_EXTRA_MEDIA_MAX_VIDEO_HEIGHT: "720"
+      SPARKTALK_EXTRA_MEDIA_MAX_CONCURRENCY: "1"
+      SPARKTALK_EXTRA_MEDIA_TEMP_DIR: /var/tmp/sparktalk-extra-media
+      HOME: /tmp/sparktalk-extra-media-home
+      TMPDIR: /var/tmp
+    volumes:
+      - ytdlp-data:/var/lib/sparktalk-extra/media
+volumes:
+  ytdlp-data:
+    name: sparktalk_media_api_ytdlp-data

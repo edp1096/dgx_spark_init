@@ -6,6 +6,8 @@
   import Composer from './components/Composer.svelte';
   import MessageList from './components/MessageList.svelte';
   import ContextRail from './components/ContextRail.svelte';
+  import ArtifactPanel from './components/ArtifactPanel.svelte';
+  import { artifactsFromMessages } from './lib/artifacts.js';
   import { hydrateMessages, variantIndices as getVariantIndices, applyVariant as applyMessageVariant } from './lib/message-variants.js';
   import { createStreamHandlers } from './lib/chat-stream.js';
   import { createChatSessionController } from './lib/chat-session-controller.js';
@@ -15,6 +17,7 @@
     setSessionGroup, listGroups, createGroup, renameGroup, moveGroup, deleteGroup,
     getContextState, compactContext, clearContext, answerToolApproval, transcribeVoice,
     listSSHConversationGrants, revokeSSHConversationGrant, clearSSHConversationGrants, streamSpeech,
+    getRuntime, startRuntimeBundle, stopRuntimeBundle,
   } from './api.js';
   import { hasFileDrag, isSupportedAttachmentFile } from './lib/attachments.js';
   import { createAttachmentController } from './lib/attachment-controller.js';
@@ -23,6 +26,8 @@
   import { createSpeechController } from './lib/speech-controller.js';
   import { applyTheme } from './lib/theme.js';
   import { normalizePublicSettings } from './lib/settings.js';
+  import { normalizeReasoningEffort } from './lib/model-capabilities.js';
+  import { normalizeAvailableModels, resolveAvailableModel } from './lib/model-selection.js';
 
   let sessions = [];
   let groups = [];
@@ -35,6 +40,7 @@
   let models = [];
   let selectedModel = '';
   let reasoningEffort = '';
+  let modelType = 'generic';
   let webToolsEnabled = false;
   let appearance = { assistant_avatar: 'preset:spark', user_avatar: 'preset:person-blue', theme: 'system' };
   let input = '';
@@ -42,6 +48,8 @@
   let retryingIndex = -1;
   let error = '';
   let health = { status: 'checking', model: '' };
+  let runtimeState = null;
+  let runtimeBusy = false;
   let sessionRuns = {};
   let messagePane;
   let sidebarOpen = true;
@@ -65,6 +73,12 @@
   let contextState = null;
   let contextOpen = false;
   let contextLoading = false;
+  let artifactOpen = false;
+  let selectedArtifactId = '';
+  let artifactPanelWidth = 560;
+  let artifacts = [];
+  let activeArtifact = null;
+  let shellColumns = '1fr';
   let sshConversationGrants = [];
   let composerInput;
   let microphoneAvailable = false;
@@ -149,6 +163,11 @@
   $: activeRun = sessionRuns[activeId] || null;
   $: running = Boolean(activeRun);
   $: retryingIndex = activeRun?.retryingIndex ?? -1;
+  $: artifacts = artifactsFromMessages(messages);
+  $: activeArtifact = artifacts.find((item) => item.id === selectedArtifactId) || artifacts[0];
+  $: shellColumns = artifactOpen
+    ? (sidebarOpen ? `${sidebarWidth}px minmax(420px, 1fr) ${artifactPanelWidth}px` : `minmax(420px, 1fr) ${artifactPanelWidth}px`)
+    : (sidebarOpen ? `${sidebarWidth}px 1fr` : '1fr');
 
   onMount(() => {
     const visualViewport = window.visualViewport;
@@ -163,6 +182,7 @@
     const mobile = window.matchMedia('(max-width: 600px)').matches;
     sidebarOpen = mobile ? false : localStorage.getItem('sparktalk.sidebar-open') !== 'false';
     sidebarWidth = Number(localStorage.getItem('sparktalk.sidebar-width')) || 260;
+    artifactPanelWidth = Number(localStorage.getItem('sparktalk.artifact-width')) || 560;
     try { collapsedGroups = JSON.parse(localStorage.getItem('sparktalk.collapsed-groups') || '{}'); } catch { collapsedGroups = {}; }
     systemThemeQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const syncSystemTheme = () => {
@@ -170,13 +190,15 @@
     };
     systemThemeQuery.addEventListener?.('change', syncSystemTheme);
     load();
-    const timer = setInterval(refreshHealth, 15000);
+    const healthTimer = setInterval(refreshHealth, 15000);
+    const runtimeTimer = setInterval(refreshRuntime, 3000);
     window.addEventListener('dragenter', onWindowDragEnter, true);
     window.addEventListener('dragover', onWindowDragOver, true);
     window.addEventListener('dragleave', onWindowDragLeave, true);
     window.addEventListener('drop', onWindowDrop, true);
     return () => {
-      clearInterval(timer);
+      clearInterval(healthTimer);
+      clearInterval(runtimeTimer);
       clearTimeout(dragResetTimer);
       voiceController.dispose().catch(() => {});
       stopReplySpeech();
@@ -197,10 +219,11 @@
       normalizePublicSettings(cfg);
       settings = cfg;
       reasoningEffort = cfg.model.reasoning_effort || '';
+      modelType = cfg.model.model_type || 'generic';
       webToolsEnabled = cfg.tools?.enabled ?? false;
       appearance = cfg.appearance || appearance;
-      await Promise.all([refreshModels(), refreshHealth()]);
-      selectedModel = cfg.model.default_model || models[0] || '';
+      await Promise.all([refreshModels(), refreshHealth(), refreshRuntime()]);
+      selectedModel = resolveAvailableModel(models, cfg.model.default_model, models[0]);
       [groups, sessions] = await Promise.all([listGroups(), listSessions()]);
       if (sessions.length) await select(sessions[0].id);
       else {
@@ -211,13 +234,55 @@
   }
 
   async function refreshModels() {
-    try { models = await getModels(); }
+    try {
+      models = normalizeAvailableModels(await getModels());
+      selectedModel = resolveAvailableModel(models, selectedModel, settings?.model?.default_model);
+    }
     catch (e) { models = []; }
   }
 
   async function refreshHealth() {
     try { health = await getHealth(); }
     catch (e) { health = { status: 'degraded', model: '', error: e.message }; }
+  }
+
+  async function refreshRuntime() {
+    try {
+      const previousOperation = runtimeState?.operation?.state;
+      const next = await getRuntime();
+      runtimeState = next;
+      if (previousOperation === 'running' && next?.operation?.state !== 'running') {
+        const cfg = await getConfig();
+        normalizePublicSettings(cfg);
+        settings = cfg;
+        modelType = cfg.model.model_type || 'generic';
+        reasoningEffort = cfg.model.reasoning_effort || '';
+        selectedModel = cfg.model.default_model || selectedModel;
+        await Promise.all([refreshModels(), refreshHealth()]);
+      }
+    }
+    catch { runtimeState = null; }
+  }
+
+  async function runtimeAction(action, bundleId) {
+    if (runtimeBusy) return;
+    const bundle = runtimeState?.bundles?.find((item) => item.id === bundleId);
+    if (action === 'start' && bundleId !== runtimeState?.selected_bundle && !confirm(`${bundle?.name || bundleId}(으)로 전환할까요? 현재 LLM은 중지됩니다.`)) return;
+    if (action === 'stop' && !confirm(`${bundle?.name || bundleId}를 중지할까요?`)) return;
+    runtimeBusy = true;
+    try {
+      runtimeState = action === 'start' ? await startRuntimeBundle(bundleId) : await stopRuntimeBundle(bundleId);
+      if (action === 'start') {
+        const cfg = await getConfig();
+        normalizePublicSettings(cfg);
+        settings = cfg;
+        modelType = cfg.model.model_type || 'generic';
+        reasoningEffort = cfg.model.reasoning_effort || '';
+        selectedModel = cfg.model.default_model || selectedModel;
+      }
+      await Promise.all([refreshRuntime(), refreshHealth()]);
+    } catch (e) { error = e.message; }
+    finally { runtimeBusy = false; }
   }
 
   async function refreshSessions() {
@@ -297,9 +362,11 @@
     editingMessageId = null;
     editInput = '';
     editingTitle = false;
+    artifactOpen = false;
+    selectedArtifactId = '';
     const session = sessions.find((item) => item.id === id);
-    if (session?.model) selectedModel = session.model;
-    if (session?.reasoning_effort) reasoningEffort = session.reasoning_effort;
+    selectedModel = resolveAvailableModel(models, session?.model, settings?.model?.default_model || selectedModel);
+    if (session?.reasoning_effort) reasoningEffort = normalizeReasoningEffort(modelType, session.reasoning_effort);
     await Promise.all([refreshContext(id), refreshSSHGrants(id)]);
     await scrollBottom(true);
     closeSidebarOnMobile();
@@ -373,6 +440,43 @@
   function jumpToMessage(messageId) {
     contextOpen = false;
     requestAnimationFrame(() => document.querySelector(`[data-message-id="${messageId}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+  }
+
+  function openArtifact(artifact) {
+    if (!artifact) return;
+    selectedArtifactId = artifact.id;
+    artifactOpen = true;
+    contextOpen = false;
+    closeSidebarOnMobile();
+    closeControls();
+  }
+
+  function openLatestArtifact(nextMessages) {
+    let latestAssistantIndex = nextMessages.length - 1;
+    while (latestAssistantIndex >= 0 && nextMessages[latestAssistantIndex]?.role !== 'assistant') latestAssistantIndex -= 1;
+    if (latestAssistantIndex < 0) return;
+    const nextArtifacts = artifactsFromMessages([nextMessages[latestAssistantIndex]]);
+    if (nextArtifacts.length === 0) return;
+    openArtifact(nextArtifacts[nextArtifacts.length - 1]);
+  }
+
+  function closeArtifact() {
+    artifactOpen = false;
+  }
+
+  function startArtifactResize(event) {
+    event.preventDefault();
+    const move = (nextEvent) => {
+      const maximum = Math.min(900, window.innerWidth * 0.68);
+      artifactPanelWidth = Math.round(Math.max(400, Math.min(maximum, window.innerWidth - nextEvent.clientX)));
+      localStorage.setItem('sparktalk.artifact-width', String(artifactPanelWidth));
+    };
+    const stopResize = () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', stopResize);
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', stopResize);
   }
 
   async function remove(id) {
@@ -450,7 +554,9 @@
     try {
       await streamChat(sessionId, content, attachments, selectedModel, reasoningEffort, webToolsEnabled, run.controller.signal,
         streamHandlersFor(run.messages[replyIndex], sessionId, run.messages));
-      publishMessages(sessionId, hydrateMessages(await listMessages(sessionId)));
+      const completedMessages = hydrateMessages(await listMessages(sessionId));
+      publishMessages(sessionId, completedMessages);
+      if (activeId === sessionId) openLatestArtifact(completedMessages);
       await refreshContext(sessionId);
       await refreshSessions();
       setTimeout(refreshSessions, 1800);
@@ -514,6 +620,7 @@
         if (matching.length) applyVariant(answer, matching[matching.length - 1], index, sessionId);
       }
       publishMessages(sessionId, updated);
+      if (activeId === sessionId) openLatestArtifact(updated);
       await refreshContext(sessionId);
       await refreshSessions();
       run.completed = true;
@@ -573,7 +680,9 @@
     try {
       await editChatMessage(message.id, content, message.attachments || [], selectedModel, reasoningEffort, webToolsEnabled, run.controller.signal,
         streamHandlersFor(run.messages[replyIndex], sessionId, run.messages));
-      publishMessages(sessionId, hydrateMessages(await listMessages(sessionId)));
+      const completedMessages = hydrateMessages(await listMessages(sessionId));
+      publishMessages(sessionId, completedMessages);
+      if (activeId === sessionId) openLatestArtifact(completedMessages);
       await refreshContext(sessionId);
       await refreshSessions();
       setTimeout(refreshSessions, 1800);
@@ -591,9 +700,9 @@
     stopReplySpeech();
     const extra = {};
     if (continuousVoiceEnabled && settings?.tts?.enabled && settings.tts.auto_play) {
-      extra.speechChunker = createSpeechChunker();
+      extra.speechChunker = createSpeechChunker({ omitParentheticals: settings?.tts?.omit_parentheticals === true });
       extra.speechBatcher = createSpeechBatcher();
-      extra.speechSession = speechController.create(`live:${sessionId}:${Date.now()}`, sessionId, settings?.tts?.seed);
+      extra.speechSession = speechController.create(`live:${sessionId}:${Date.now()}`, sessionId);
     }
     return chatController.start(sessionId, runMessages, runRetryingIndex, extra);
   }
@@ -836,6 +945,7 @@
     stopReplySpeech();
     settings = next;
     reasoningEffort = settings.model.reasoning_effort || reasoningEffort;
+    modelType = settings.model.model_type || 'generic';
     webToolsEnabled = settings.tools?.enabled ?? false;
     appearance = settings.appearance || appearance;
     await Promise.all([refreshModels(), refreshHealth()]);
@@ -847,7 +957,7 @@
   }
 
   function replySpeechText(message) {
-    return speechTextFromMarkdown(message?.content || '');
+    return speechTextFromMarkdown(message?.content || '', { omitParentheticals: settings?.tts?.omit_parentheticals === true });
   }
 
   function stopReplySpeech() {
@@ -867,13 +977,13 @@
     const text = replySpeechText(message);
     if (!text) return;
     stopReplySpeech();
-    const session = speechController.create(key, activeId, settings?.tts?.seed);
+    const session = speechController.create(key, activeId);
     speechController.enqueue(session, text);
     speechController.close(session);
   }
 </script>
 
-<div class="shell" style:grid-template-columns={sidebarOpen ? `${sidebarWidth}px 1fr` : '1fr'}>
+<div class="shell" class:artifact-open={artifactOpen} style:grid-template-columns={shellColumns}>
   {#if sidebarOpen}
     <Sidebar
       {groups}
@@ -907,9 +1017,12 @@
       bind:titleEditor
       {models}
       bind:selectedModel
+      {modelType}
       bind:reasoningEffort
       bind:webToolsEnabled
       {health}
+      runtime={runtimeState}
+      {runtimeBusy}
       {microphoneAvailable}
       {continuousVoiceEnabled}
       {continuousVoiceState}
@@ -925,6 +1038,9 @@
       onRevokeSSHGrant={revokeSSHGrant}
       onClearSSHGrants={revokeAllSSHGrants}
       onToggleContinuousVoice={toggleContinuousVoice}
+      onRefreshHealth={refreshHealth}
+      onRuntimeAction={runtimeAction}
+      onRefreshRuntime={refreshRuntime}
     />
     <MessageList
       {messages}
@@ -949,6 +1065,7 @@
       {speechLoadingKey}
       {speechPlayingKey}
       onSpeakReply={speakReply}
+      onOpenArtifact={openArtifact}
     />
     <ContextRail
       state={contextState}
@@ -987,6 +1104,15 @@
       onStopVoice={stopVoiceInput}
     />
   </main>
+  {#if artifactOpen}
+    <ArtifactPanel
+      {artifacts}
+      selectedId={activeArtifact?.id || selectedArtifactId}
+      onSelect={(id) => selectedArtifactId = id}
+      onClose={closeArtifact}
+      onStartResize={startArtifactResize}
+    />
+  {/if}
 </div>
 
 {#if dragActive}
@@ -996,7 +1122,7 @@
 {#if settingsOpen && settings}
   <SettingsModal
     {settings}
-    {models}
+    runtime={runtimeState}
     keepMediaIds={Object.values(attachmentDrafts).flat().map((item) => item.id)}
     onclose={() => settingsOpen = false}
     onsaved={applySavedSettings}

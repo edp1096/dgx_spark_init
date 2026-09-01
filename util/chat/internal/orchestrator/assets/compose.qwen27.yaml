@@ -1,0 +1,59 @@
+services:
+  runtime:
+    image: dgx-sglang-qwen38-dflash2:2ef0fe4
+    container_name: sglang-qwen38
+    restart: unless-stopped
+    init: true
+    ipc: host
+    shm_size: 16gb
+    ports: ["127.0.0.1:8000:30000"]
+    environment:
+      PYTHONUNBUFFERED: "1"
+      PYTORCH_CUDA_ALLOC_CONF: expandable_segments:True
+      TORCHINDUCTOR_CACHE_DIR: /root/.cache/sglang/inductor
+    volumes:
+      - ${SPARKTALK_QWEN27_MODEL_DIR:-/home/edp1096/workspace/heretic_models/Huihui-RadixArk-Qwen3.8-27B-abliterated-NVFP4}:/models/qwen27:ro
+      - ${SPARKTALK_HF_CACHE:-/home/edp1096/.cache/huggingface}:/root/.cache/huggingface
+      - ${SPARKTALK_DATA_DIR:-/home/edp1096/.local/share/sparktalk}/cache/sglang-qwen27:/root/.cache/sglang
+    gpus: all
+    entrypoint: ["python3", "-m", "sglang.launch_server"]
+    command:
+      - --model-path
+      - /models/qwen27
+      - --served-model-name
+      - Huihui-RadixArk-Qwen3.8-27B-abliterated-NVFP4
+      - --trust-remote-code
+      - --host
+      - 0.0.0.0
+      - --port
+      - "30000"
+      - --context-length
+      - "32768"
+      - --mem-fraction-static
+      - "0.38"
+      - --attention-backend
+      - flashinfer
+      - --chunked-prefill-size
+      - "8192"
+      - --disable-prefill-cuda-graph
+      - --cuda-graph-max-bs
+      - "2"
+      - --disable-flashinfer-autotune
+      - --kv-cache-dtype
+      - fp8_e4m3
+      - --reasoning-parser
+      - qwen3
+      - --tool-call-parser
+      - qwen3_coder
+      - --speculative-algorithm
+      - DFLASH
+      - --speculative-draft-model-path
+      - incoai/Qwen3.8-27B-DFlash2
+      - --speculative-num-draft-tokens
+      - "8"
+      - --max-running-requests
+      - "2"
+      - --enable-torch-compile
+      - --torch-compile-max-bs
+      - "2"
+      - --enable-metrics

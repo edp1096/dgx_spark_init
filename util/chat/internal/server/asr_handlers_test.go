@@ -38,6 +38,9 @@ func TestTranscribeVoiceStreamsRecordingToASR(t *testing.T) {
 			if string(data) != "wav-audio" {
 				t.Fatalf("unexpected ASR audio: %q", data)
 			}
+			if r.FormValue("language") != "ko-KR" || r.FormValue("model") != "nemotron" {
+				t.Fatalf("unexpected voice ASR fields: %+v", r.MultipartForm.Value)
+			}
 			w.Header().Set("Content-Type", "application/json")
 			fmt.Fprint(w, `{"text":"안녕하세요","language":"Korean"}`)
 		default:
@@ -46,7 +49,7 @@ func TestTranscribeVoiceStreamsRecordingToASR(t *testing.T) {
 	}))
 	defer upstream.Close()
 
-	cfg := config.Config{ASR: config.ASRConfig{Enabled: true, FFmpegEndpoint: upstream.URL, Endpoint: upstream.URL, Model: "qwen3-asr", Language: "auto", Timeout: "5s"}}
+	cfg := config.Config{ASR: config.ASRConfig{Enabled: true, FFmpegEndpoint: upstream.URL, Endpoint: upstream.URL, Model: "nemotron", VoiceLanguage: "ko-KR", Timeout: "5s"}}
 	s := &Server{cfg: cfg, asr: asr.New(cfg.ASR)}
 	var body bytes.Buffer
 	writer := multipart.NewWriter(&body)

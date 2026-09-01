@@ -39,6 +39,8 @@ func TestSessionContextRoute(t *testing.T) {
 		t.Fatal(err)
 	}
 	cfg.Server.Database = t.TempDir() + "/media.db"
+	cfg.Runtime.Mode = "external"
+	cfg.Context.WindowTokens = 0
 	cfg.Model.Endpoint = modelServer.URL
 	embedded := fstest.MapFS{"web/dist/index.html": {Data: []byte("ok")}}
 	srv, err := New(cfg, t.TempDir()+"/sparktalk.yaml", store, llm.New(modelServer.URL, "test-model", ""), embedded)

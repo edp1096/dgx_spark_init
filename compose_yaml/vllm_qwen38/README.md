@@ -22,6 +22,29 @@ Open WebUI는 vLLM의 `http://vllm:8000/v1`에 자동 연결되며, 별도 검�
 데이터 디렉터리 `~/.cache/openwebui-qwen38`을 사용한다. 검증 편의를 위해
 로그인은 비활성화되어 있으므로 외부에 포트를 공개할 때는 주의한다.
 
+### Qwen3.8 Flash Next
+
+DGX Spark에서 `dealignai/Qwen3.8-Flash-Next-ABLITERATED-NVFP4`와 내장 MTP를
+사용할 때는 전용 구성을 실행한다. 이 구성은 64K 컨텍스트와 동시 요청 2개를
+기준으로 하며, 영상은 요청당 하나, 2fps·최대 96프레임으로 제한한다. 멀티모달
+전처리 캐시는 0.5GiB로 줄여 TTS와 함께 실행할 메모리 여유를 남긴다.
+KV 캐시는 동시 64K 요청 2개와 여유분에 맞춘 7GiB로 고정한다. 자동 비율로
+할당하면 실제 동시 요청 제한보다 훨씬 큰 캐시가 예약되어 FLUX 이미지 엔진과
+공존할 메모리가 사라지므로 임의로 `--gpu-memory-utilization`로 되돌리지 않는다.
+
+```sh
+docker compose -f compose.flash-next.yaml up -d
+docker compose -f compose.flash-next.yaml logs -f vllm
+```
+
+모델과 PLE를 처음 적재할 때는 시간이 오래 걸릴 수 있다. 준비 여부는 다음으로
+확인한다.
+
+```sh
+curl http://127.0.0.1:8000/health
+curl http://127.0.0.1:8000/v1/models
+```
+
 ## 자동 스모크 테스트
 
 vLLM 상태, 모델 목록, 실제 한국어 생성 요청을 한 번에 검사한다.
@@ -57,6 +80,6 @@ python3 benchmark_dspark.py --label official
 docker compose down
 ```
 
-기본 컨텍스트 길이는 초기 검증과 메모리 안전성을 위해 32K로 설정했다.
+Flash-Next 구성의 컨텍스트 길이는 이미지·음성 엔진과의 공존을 검증한 64K로 설정했다.
 모델의 네이티브 최대 길이는 262,144이며, 길이를 늘릴 때는 동시 요청 수와
 GPU 메모리 사용률을 함께 조정해야 한다.

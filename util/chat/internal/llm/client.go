@@ -63,16 +63,72 @@ type toolCallAccum struct {
 }
 
 type Client struct {
-	endpoint string
-	model    string
-	apiKey   string
-	http     *http.Client
+	endpoint       string
+	model          string
+	modelType      string
+	thinkingBudget int
+	apiKey         string
+	http           *http.Client
 }
 
-func New(endpoint, model, apiKey string) *Client {
+// WithThinkingBudget applies a hard reasoning-token limit to Gemma 4 requests.
+// A non-positive value leaves the model's thinking length unrestricted.
+func (c *Client) WithThinkingBudget(tokens int) *Client {
+	if tokens > 0 {
+		c.thinkingBudget = tokens
+	}
+	return c
+}
+
+func New(endpoint, model, apiKey string, modelType ...string) *Client {
+	typeName := "generic"
+	if len(modelType) > 0 {
+		typeName = strings.ToLower(strings.TrimSpace(modelType[0]))
+	}
 	return &Client{
-		endpoint: strings.TrimRight(endpoint, "/"), model: model, apiKey: apiKey,
+		endpoint: strings.TrimRight(endpoint, "/"), model: model, modelType: typeName, apiKey: apiKey,
 		http: &http.Client{Timeout: 0},
+	}
+}
+
+func gemmaThinkingEnabled(effort string) bool {
+	switch strings.ToLower(strings.TrimSpace(effort)) {
+	case "", "0", "0.0", "none", "off", "false", "no_think", "disabled":
+		return false
+	default:
+		return true
+	}
+}
+
+func applyReasoningOptions(payload map[string]any, modelType, effort string) {
+	effort = NormalizeReasoningEffort(modelType, effort)
+	if modelType == "gemma4" {
+		payload["chat_template_kwargs"] = map[string]any{"enable_thinking": gemmaThinkingEnabled(effort)}
+		return
+	}
+	if value := reasoningValue(effort); value != nil {
+		payload["reasoning_effort"] = value
+	}
+}
+
+func NormalizeReasoningEffort(modelType, effort string) string {
+	raw := strings.TrimSpace(effort)
+	effort = strings.ToLower(raw)
+	switch modelType {
+	case "qwen3.8":
+		switch effort {
+		case "none", "low", "medium", "xhigh":
+			return effort
+		default:
+			return "medium"
+		}
+	case "gemma4":
+		if gemmaThinkingEnabled(effort) {
+			return "on"
+		}
+		return "none"
+	default:
+		return raw
 	}
 }
 
@@ -138,8 +194,11 @@ func (c *Client) Stream(ctx context.Context, messages []Message, model, reasonin
 		payload["tools"] = tools
 		payload["tool_choice"] = "auto"
 	}
-	if effort := reasoningValue(reasoningEffort); effort != nil {
-		payload["reasoning_effort"] = effort
+	applyReasoningOptions(payload, c.modelType, reasoningEffort)
+	if c.modelType == "gemma4" && gemmaThinkingEnabled(reasoningEffort) && c.thinkingBudget > 0 {
+		// The pinned SGLang OpenAI protocol exposes custom_params but does not
+		// forward its native max_thinking_tokens field from chat completions.
+		payload["custom_params"] = map[string]any{"thinking_budget": c.thinkingBudget}
 	}
 	body, err := json.Marshal(payload)
 	if err != nil {
@@ -317,8 +376,8 @@ Preserve exact file paths, commands, URLs, numbers, user preferences, failures, 
 		"model":    model,
 		"messages": []Message{{Role: "system", Content: prompt}, {Role: "user", Content: content}},
 		"stream":   false, "temperature": 0.1, "max_completion_tokens": 2048,
-		"reasoning_effort": "none",
 	}
+	applyReasoningOptions(payload, c.modelType, "none")
 	body, _ := json.Marshal(payload)
 	ctx, cancel := context.WithTimeout(ctx, 3*time.Minute)
 	defer cancel()
@@ -398,8 +457,8 @@ func (c *Client) GenerateTitle(ctx context.Context, model, userText string) (str
 			{Role: "user", Content: "Chat request:\n" + userText + "\n\nReturn a topic title, not the answer."},
 		},
 		"stream": false, "temperature": 0.2, "max_completion_tokens": 48,
-		"reasoning_effort": "none",
 	}
+	applyReasoningOptions(payload, c.modelType, "none")
 	body, _ := json.Marshal(payload)
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()

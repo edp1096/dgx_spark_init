@@ -1,0 +1,70 @@
+services:
+  vllm:
+    image: qwen38-flash-dgx:test
+    container_name: qwen38-flash-dealign
+    restart: unless-stopped
+    ipc: host
+    ports:
+      - "8000:8000"
+    environment:
+      HF_HOME: /hf
+      HF_HUB_OFFLINE: "1"
+      VLLM_PLE_MMAP: "1"
+      VLLM_PLE_MMAP_WORKERS: "32"
+      VLLM_PLE_MMAP_PREWARM: "0"
+      VLLM_QSA_EXACT_TOPK: "1"
+      VLLM_USE_FLASHINFER_SAMPLER: "1"
+      VLLM_ALLOW_LONG_MAX_MODEL_LEN: "0"
+    volumes:
+      - /home/edp1096/.cache/huggingface:/hf
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    entrypoint: ["vllm", "serve"]
+    command:
+      - /hf/hub/models--dealignai--Qwen3.8-Flash-Next-ABLITERATED-NVFP4/snapshots/be794b990578ef3031eccf9f28e675a289a09ee9
+      - --served-model-name
+      - qwen3.8-flash-next
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8000"
+      - --load-format
+      - safetensors
+      - --max-model-len
+      - "65536"
+      - --max-num-seqs
+      - "2"
+      # Two concurrent 64K requests need roughly 6.3 GiB. Keep a margin
+      # without reserving the previous 19.28 GiB (32K x 12.39 capacity), so
+      # the image engine can remain resident on the same GB10.
+      - --gpu-memory-utilization
+      - "0.70"
+      - --kv-cache-memory
+      - "7516192768"
+      - --enable-prefix-caching
+      - --enable-chunked-prefill
+      - --max-num-batched-tokens
+      - "8192"
+      - --limit-mm-per-prompt
+      - '{"video":1}'
+      - --media-io-kwargs
+      - '{"video":{"fps":2,"max_frames":96,"backend":"opencv"}}'
+      - --mm-processor-cache-gb
+      - "0.5"
+      - -cc.cudagraph_mode=PIECEWISE
+      - -cc.splitting_ops=["vllm::unified_attention_with_output","vllm::unified_mla_attention_with_output","vllm::mamba_mixer2","vllm::mamba_mixer","vllm::short_conv","vllm::qwen3_8_flash_next_ple_short_conv","vllm::qwen3_8_flash_next_qsa_with_output","vllm::linear_attention","vllm::qwen_gdn_attention_core","vllm::qwen_gdn_attention_core_fused_norm_packed","vllm::sparse_attn_indexer","vllm::ple_mmap_lookup"]
+      - --no-enable-flashinfer-autotune
+      - --kv-cache-dtype
+      - auto
+      - --enable-auto-tool-choice
+      - --tool-call-parser
+      - qwen3_coder
+      - --reasoning-parser
+      - qwen3
+      - --speculative-config
+      - '{"method":"mtp","num_speculative_tokens":2}'

@@ -28,7 +28,7 @@ func main() {
 	}
 	defer store.Close()
 
-	client := llm.New(cfg.Model.Endpoint, cfg.Model.DefaultModel, cfg.Model.APIKey)
+	client := llm.New(cfg.Model.Endpoint, cfg.Model.DefaultModel, cfg.Model.APIKey, cfg.Model.ModelType).WithThinkingBudget(cfg.Model.ThinkingBudget)
 	srv, err := server.New(cfg, config.DefaultPath, store, client, chat.WebDist)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "server: %v\n", err)

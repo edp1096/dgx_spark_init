@@ -18,7 +18,7 @@ test('speech text keeps block pauses and removes trailing source links', () => {
   assert.equal(result.includes('기상청'), false);
   assert.equal(result.includes('🌦️'), false);
   assert.equal(result.includes('☂️'), false);
-  assert.match(result, /기온: 최고 28도 \/ 최저 22도/u);
+  assert.match(result, /기온: 최고 28도, 최저 22도/u);
   assert.match(result, /가능\.\n우산 챙기세요!/u);
   assert.match(result, /신길동 내일 날씨\.\n기온:/u);
 });
@@ -29,6 +29,28 @@ test('normalizes temperatures, ranges, percentages, and emoji for Korean speech'
     '22도에서 28도, 화씨 68도에서 77도, 강수 20퍼센트에서 40퍼센트',
   );
   assert.equal(normalizeSpeechNotation('버전 1~3 및 단위 °C'), '버전 1에서 3 및 단위 섭씨');
+});
+
+test('removes visual symbols instead of naming them in narration', () => {
+  assert.equal(normalizeSpeechNotation('한국경제신문 → 韓國經濟新聞'), '한국경제신문, 韓國經濟新聞');
+  assert.equal(normalizeSpeechNotation('← ↑ ↓ ↔'), '');
+  assert.equal(speechTextFromMarkdown('**한국경제신문** → **韓國經濟新聞**'), '한국경제신문, 韓國經濟新聞.');
+  assert.equal(normalizeSpeechNotation('정답 = 42 ★'), '정답, 42');
+});
+
+test('reads unambiguous arithmetic notation by meaning', () => {
+  assert.equal(normalizeSpeechNotation('1+1=귀요미'), '1 더하기 1은 귀요미');
+  assert.equal(normalizeSpeechNotation('2 × 3 = 6'), '2 곱하기 3은 6');
+  assert.equal(normalizeSpeechNotation('10/2=5'), '10 나누기 2는 5');
+  assert.equal(normalizeSpeechNotation('12 / 3 / 2 = 2'), '12 나누기 3 나누기 2는 2');
+  assert.equal(normalizeSpeechNotation('1+1+1=3'), '1 더하기 1 더하기 1은 3');
+});
+
+test('reads slash-separated numeric status sequences as a list', () => {
+  assert.equal(
+    normalizeSpeechNotation('로드 평균: 0.94 / 0.93 / 1.00'),
+    '로드 평균: 0.94, 0.93, 1.00',
+  );
 });
 
 test('restores omitted Korean vowels in chat laughter for speech', () => {
@@ -96,6 +118,23 @@ test('speaks common weather speed units and tabular rows naturally', () => {
 test('speech text retains meaningful inline links and removes tool calls', () => {
   const markdown = '자세한 내용은 [사용 설명서](https://example.com)를 확인하세요.\n<tool_call>{}</tool_call>';
   assert.equal(speechTextFromMarkdown(markdown), '자세한 내용은 사용 설명서를 확인하세요.');
+});
+
+test('omits parenthetical asides only when requested for continuous voice', () => {
+  const markdown = '**한국경제신문(한경)**은 한경닷컴(온라인), 한국경제TV와 함께합니다.';
+  assert.equal(
+    speechTextFromMarkdown(markdown, { omitParentheticals: true }),
+    '한국경제신문은 한경닷컴, 한국경제TV와 함께합니다.',
+  );
+  assert.equal(
+    speechTextFromMarkdown(markdown),
+    '한국경제신문(한경)은 한경닷컴(온라인), 한국경제TV와 함께합니다.',
+  );
+});
+
+test('continuous speech chunker omits full-width parenthetical asides', () => {
+  const chunker = createSpeechChunker({ omitParentheticals: true });
+  assert.deepEqual(chunker.push('한국경제신문（한경）은 경제 일간지야. '), ['한국경제신문은 경제 일간지야.']);
 });
 
 test('stream chunker emits completed visual lines and sentences once', () => {

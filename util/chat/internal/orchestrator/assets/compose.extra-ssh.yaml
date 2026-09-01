@@ -1,0 +1,17 @@
+services:
+  runtime:
+    image: sparktalk-extra-ssh:latest
+    container_name: sparktalk-extra-ssh
+    restart: unless-stopped
+    init: true
+    ports: ["127.0.0.1:8699:8699"]
+    user: "${PUID:-1000}:${PGID:-1000}"
+    environment:
+      SPARKTALK_EXTRA_SSH_LISTEN_ADDR: 0.0.0.0:8699
+      SPARKTALK_EXTRA_SSH_KEY_DIR: /run/sparktalk-extra/keys
+      SPARKTALK_EXTRA_SSH_KNOWN_HOSTS: /var/lib/sparktalk-extra/known_hosts
+      SPARKTALK_EXTRA_SSH_MAX_CONCURRENCY: "2"
+      HOME: /tmp/sparktalk-extra-ssh-home
+    volumes:
+      - ${SPARKTALK_DATA_DIR:-/home/edp1096/.local/share/sparktalk}/extra/ssh/keys:/run/sparktalk-extra/keys
+      - ${SPARKTALK_DATA_DIR:-/home/edp1096/.local/share/sparktalk}/extra/ssh/state:/var/lib/sparktalk-extra

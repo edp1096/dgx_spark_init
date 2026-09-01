@@ -1,6 +1,8 @@
 <script>
   import DOMPurify from 'dompurify';
-  import { marked } from 'marked';
+  import 'katex/dist/katex.min.css';
+  import { parseMarkdown } from '../lib/markdown.js';
+  import { artifactsFromMessage } from '../lib/artifacts.js';
   import Avatar from './Avatar.svelte';
   import MediaAttachments from './MediaAttachments.svelte';
 
@@ -26,6 +28,7 @@
   export let speechLoadingKey = '';
   export let speechPlayingKey = '';
   export let onSpeakReply = () => {};
+  export let onOpenArtifact = () => {};
 
   function replySpeechKey(message) {
     return `${message?.id || 'pending'}:${message?.variant_index ?? 0}`;
@@ -39,11 +42,20 @@
     event.currentTarget.closest('details')?.removeAttribute('open');
   }
 
+  // Keep old persisted tool events readable after the generic image-tool rename.
+  function isImageGenerateTool(name) {
+    return name === 'image_generate' || name === 'krea_image';
+  }
+
+  function isImageCapabilitiesTool(name) {
+    return name === 'image_capabilities' || name === 'krea_capabilities';
+  }
+
   function toolArgument(tool) {
     try {
       const args = JSON.parse(tool.arguments || '{}');
       if (tool.name === 'ssh_exec') return `${args.host || ''}${args.command ? ` · ${args.command}` : ''}`;
-      if (tool.name === 'krea_image') return `${args.operation || 'generate'}${args.prompt ? ` · ${args.prompt}` : ''}`;
+      if (isImageGenerateTool(tool.name)) return `${args.operation || 'generate'}${args.prompt ? ` · ${args.prompt}` : ''}`;
       return args.query || args.url || '';
     } catch { return tool.arguments || ''; }
   }
@@ -56,8 +68,8 @@
       if (parsed.results) return parsed.results.map((item) => `${item.title}\n${item.url}\n${item.snippet || ''}`).join('\n\n');
       if (parsed.content) return parsed.content;
       if (tool.name === 'media_import' && parsed.attachment) return `${parsed.attachment.name} · ${(parsed.attachment.size / 1024 / 1024).toFixed(1)} MB`;
-      if (tool.name === 'krea_capabilities') return `작업 ${parsed.operations?.length || 0}개 · 사용자 LoRA ${parsed.user_loras?.length || 0}개`;
-      if (tool.name === 'krea_image' && parsed.attachments) return parsed.attachments.map((item) => item.name).join('\n');
+      if (isImageCapabilitiesTool(tool.name)) return `작업 ${parsed.operations?.length || 0}개 · 사용자 LoRA ${parsed.user_loras?.length || 0}개`;
+      if (isImageGenerateTool(tool.name) && parsed.attachments) return parsed.attachments.map((item) => item.name).join('\n');
       if (tool.name === 'ssh_exec') {
         const output = [parsed.stdout, parsed.stderr].filter(Boolean).join('');
         const meta = `\n\n종료 코드 ${parsed.exit_code} · ${parsed.duration_ms || 0}ms${parsed.truncated ? ' · 출력 잘림' : ''}`;
@@ -81,20 +93,20 @@
     if (tool.name === 'web_fetch') return '페이지 읽기';
     if (tool.name === 'ssh_exec') return 'SSH 실행';
     if (tool.name === 'media_import') return '미디어 가져오기';
-    if (tool.name === 'krea_capabilities') return 'Krea 2 기능 확인';
-    if (tool.name === 'krea_image') return 'Krea 2 이미지';
+    if (isImageCapabilitiesTool(tool.name)) return '이미지 기능 확인';
+    if (isImageGenerateTool(tool.name)) return '이미지 생성';
     return tool.name || '도구';
   }
 
   function toolRunningLabel(tool) {
     if (tool.name === 'media_import') return '미디어 다운로드·분석 준비 중…';
-    if (tool.name === 'krea_capabilities') return 'Krea 2 모듈·LoRA 확인 중…';
-    if (tool.name === 'krea_image') return 'Krea 2 이미지 생성·편집 중…';
+    if (isImageCapabilitiesTool(tool.name)) return '이미지 모듈·LoRA 확인 중…';
+    if (isImageGenerateTool(tool.name)) return '이미지 생성·편집 중…';
     return tool.execution_status === 'running' ? '명령 실행 중…' : '실행 준비 중…';
   }
 
   function render(text) {
-    return DOMPurify.sanitize(marked.parse(text || ''));
+    return DOMPurify.sanitize(parseMarkdown(text));
   }
 
   function visibleAssistantContent(text) {
@@ -110,16 +122,17 @@
 
 <section class="messages" bind:this={element}>
   {#if !messages.length}
-    <div class="welcome"><div class="mark large"><Avatar value={assistantAvatar} alt="SparkTalk" /></div><h1>무엇을 도와드릴까요?</h1><p>연결된 모델에 메시지를 보내보세요.</p></div>
+    <div class="welcome"><div class="mark large"><Avatar value={assistantAvatar} alt="SparkTalk" /></div><h1>무엇을 도와드릴까요?</h1><p>메시지를 보내세요.</p></div>
   {/if}
   {#each messages as message, index}
+    {@const messageArtifacts = artifactsFromMessage(message, index)}
     <article class:mine={message.role === 'user'} class:message-failed={message.status === 'failed'} class:message-cancelled={message.status === 'cancelled'} data-message-id={message.id || ''}>
       <div class="avatar"><Avatar value={message.role === 'user' ? userAvatar : assistantAvatar} fallback={message.role === 'user' ? 'person-blue' : 'spark'} alt={message.role === 'user' ? '나' : 'AI'} /></div>
       <div class="message-body">
         {#if message.reasoning_content}
           <details class="reasoning" open={reasoningOpen[index] ?? false} ontoggle={(event) => setReasoningOpen(index, event.currentTarget.open)}>
             <summary class:activity-pulse={running && message.activity === 'reasoning'}>생각 과정</summary>
-            <div class="reasoning-text">{@html render(message.reasoning_content)}</div>
+            <div class="reasoning-text prose">{@html render(message.reasoning_content)}</div>
             <div class="collapse-row"><button onclick={(event) => { setReasoningOpen(index, false); collapseDetails(event); }}>↑ 생각 과정 접기</button></div>
           </details>
         {/if}
@@ -190,9 +203,12 @@
             {/if}
             {#if message.content && !['failed', 'cancelled'].includes(message.status)}
               {@const speechKey = replySpeechKey(message)}
-              <button class:active-speech={speechPlayingKey === speechKey} onclick={() => onSpeakReply(message)} disabled={running || !ttsEnabled || (speechLoadingKey && speechLoadingKey !== speechKey)} title={!ttsEnabled ? '설정에서 답변 음성을 활성화하세요' : 'Qwen3-TTS로 답변 읽기'}>
+              <button class:active-speech={speechPlayingKey === speechKey} onclick={() => onSpeakReply(message)} disabled={running || !ttsEnabled || (speechLoadingKey && speechLoadingKey !== speechKey)} title={!ttsEnabled ? '설정에서 답변 음성을 활성화하세요' : 'TTS로 답변 읽기'}>
                 {speechLoadingKey === speechKey ? '◌ 음성 생성 중' : speechPlayingKey === speechKey ? '■ 정지' : '🔊 읽기'}
               </button>
+            {/if}
+            {#if messageArtifacts.length}
+              <button class="artifact-open-button" onclick={() => onOpenArtifact(messageArtifacts[0])} disabled={running}>◫ 미리보기</button>
             {/if}
             <button onclick={() => onRetry(message, index)} disabled={running || !message.id}>↻ 재시도</button>
           </div>

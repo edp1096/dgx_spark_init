@@ -44,6 +44,7 @@ func (s *Server) chat(w http.ResponseWriter, r *http.Request) {
 	if req.ReasoningEffort == "" {
 		req.ReasoningEffort = cfg.Model.ReasoningEffort
 	}
+	req.ReasoningEffort = llm.NormalizeReasoningEffort(cfg.Model.ModelType, req.ReasoningEffort)
 	attachments, err := s.media.Validate(req.Attachments)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -149,6 +150,7 @@ func (s *Server) messageAction(w http.ResponseWriter, r *http.Request) {
 	if req.ReasoningEffort == "" {
 		req.ReasoningEffort = cfg.Model.ReasoningEffort
 	}
+	req.ReasoningEffort = llm.NormalizeReasoningEffort(cfg.Model.ModelType, req.ReasoningEffort)
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("X-Accel-Buffering", "no")
@@ -214,6 +216,7 @@ func (s *Server) editMessage(w http.ResponseWriter, r *http.Request, messageID i
 	if req.ReasoningEffort == "" {
 		req.ReasoningEffort = cfg.Model.ReasoningEffort
 	}
+	req.ReasoningEffort = llm.NormalizeReasoningEffort(cfg.Model.ModelType, req.ReasoningEffort)
 	attachments := target.Attachments
 	if req.Attachments != nil {
 		attachments, err = s.media.Validate(*req.Attachments)
@@ -274,16 +277,34 @@ func (s *Server) generateTitle(client *llm.Client, sessionID, model, userText st
 
 func (s *Server) llmMessages(ctx context.Context, items []db.Message, cfg config.Config) ([]llm.Message, error) {
 	messages := make([]llm.Message, 0, len(items))
-	for _, item := range items {
+	latestVideoItem, latestVideoAttachment := -1, -1
+	for itemIndex, item := range items {
+		for attachmentIndex, attachment := range item.Attachments {
+			if strings.HasPrefix(attachment.MIME, "video/") {
+				latestVideoItem, latestVideoAttachment = itemIndex, attachmentIndex
+			}
+		}
+	}
+	for itemIndex, item := range items {
 		if len(item.Attachments) == 0 {
 			messages = append(messages, llm.Message{Role: item.Role, Content: item.Content})
 			continue
 		}
 		parts := make([]map[string]any, 0, len(item.Attachments)+1)
 		textParts := []string{item.Content}
-		for _, attachment := range item.Attachments {
+		for attachmentIndex, attachment := range item.Attachments {
 			isAudio := strings.HasPrefix(attachment.MIME, "audio/")
 			isVideo := strings.HasPrefix(attachment.MIME, "video/")
+			isLatestVideo := isVideo && itemIndex == latestVideoItem && attachmentIndex == latestVideoAttachment
+			if isVideo && !isLatestVideo {
+				fingerprint := transcriptFingerprint(cfg.ASR)
+				if cached, ok, cacheErr := s.media.LoadTranscript(attachment.ID, fingerprint); cacheErr == nil && ok {
+					textParts = append(textParts, transcriptBlock(attachment, cached))
+				} else {
+					textParts = append(textParts, fmt.Sprintf("<media_reference filename=%q type=%q status=%q>Historical video retained in the visible conversation; raw frames omitted from this model request.</media_reference>", attachment.Name, attachment.MIME, "historical"))
+				}
+				continue
+			}
 			if !isAudio {
 				dataURL, err := s.media.DataURL(attachment)
 				if err != nil {
@@ -306,7 +327,10 @@ func (s *Server) llmMessages(ctx context.Context, items []db.Message, cfg config
 			}
 			cached, err := s.transcribeAttachment(ctx, attachment, cfg.ASR)
 			if err != nil {
-				if isVideo && isNoAudio(err) {
+				if isVideo {
+					if !isNoAudio(err) {
+						textParts = append(textParts, fmt.Sprintf("<media_transcript filename=%q status=%q>\nInspect the video frames directly; its audio transcript is unavailable.\n</media_transcript>", attachment.Name, "unavailable"))
+					}
 					continue
 				}
 				return nil, err

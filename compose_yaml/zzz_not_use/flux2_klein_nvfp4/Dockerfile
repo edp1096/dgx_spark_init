@@ -28,7 +28,7 @@ RUN git clone https://github.com/Comfy-Org/ComfyUI.git /opt/ComfyUI && \
 RUN pip install --no-cache-dir fastapi huggingface-hub httpx python-multipart uvicorn
 
 WORKDIR /opt/nvfp4-api
-COPY api.py prepare_models.py start.sh ./
+COPY api.py prepare_models.py quantize_uncensored_text_encoder.py start.sh ./
 RUN chmod +x start.sh
 
 EXPOSE 8691

@@ -6,3 +6,4 @@ export * from './api/settings.js';
 export * from './api/ssh.js';
 export * from './api/media.js';
 export * from './api/chat.js';
+export * from './api/runtime.js';

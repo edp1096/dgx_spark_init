@@ -2,11 +2,40 @@ package llm
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 )
+
+func TestStreamSendsGemmaThinkingBudgetOnlyWhenThinking(t *testing.T) {
+	var payloads []map[string]any
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var payload map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			t.Fatal(err)
+		}
+		payloads = append(payloads, payload)
+		w.Header().Set("Content-Type", "text/event-stream")
+		fmt.Fprintln(w, "data: [DONE]")
+	}))
+	defer server.Close()
+
+	client := New(server.URL, "model", "", "gemma4").WithThinkingBudget(768)
+	for _, effort := range []string{"on", "none"} {
+		if _, err := client.Stream(context.Background(), []Message{{Role: "user", Content: "test"}}, "model", effort, nil, func(string, string) error { return nil }); err != nil {
+			t.Fatal(err)
+		}
+	}
+	custom, ok := payloads[0]["custom_params"].(map[string]any)
+	if !ok || custom["thinking_budget"] != float64(768) {
+		t.Fatalf("thinking request missing budget: %#v", payloads[0])
+	}
+	if _, exists := payloads[1]["custom_params"]; exists {
+		t.Fatalf("non-thinking request must omit budget: %#v", payloads[1])
+	}
+}
 
 func TestReasoningValueSupportsNamesAndNumericValues(t *testing.T) {
 	if got := reasoningValue("xhigh"); got != "xhigh" {
@@ -17,6 +46,41 @@ func TestReasoningValueSupportsNamesAndNumericValues(t *testing.T) {
 	}
 	if got := reasoningValue(""); got != nil {
 		t.Fatalf("empty effort should be omitted: %#v", got)
+	}
+}
+
+func TestApplyReasoningOptionsUsesGemmaThinkingToggle(t *testing.T) {
+	for _, test := range []struct {
+		effort  string
+		enabled bool
+	}{{"none", false}, {"0", false}, {"low", true}, {"on", true}, {"xhigh", true}} {
+		payload := map[string]any{}
+		applyReasoningOptions(payload, "gemma4", test.effort)
+		kwargs, ok := payload["chat_template_kwargs"].(map[string]any)
+		if !ok || kwargs["enable_thinking"] != test.enabled {
+			t.Fatalf("effort %q produced %#v", test.effort, payload)
+		}
+		if _, exists := payload["reasoning_effort"]; exists {
+			t.Fatalf("Gemma 4 must not receive reasoning_effort: %#v", payload)
+		}
+	}
+}
+
+func TestApplyReasoningOptionsPreservesGenericEffort(t *testing.T) {
+	payload := map[string]any{}
+	applyReasoningOptions(payload, "generic", "0.75")
+	if payload["reasoning_effort"] != float64(0.75) {
+		t.Fatalf("unexpected generic options: %#v", payload)
+	}
+}
+
+func TestApplyReasoningOptionsConstrainsQwenEffort(t *testing.T) {
+	for _, test := range []struct{ input, want string }{{"none", "none"}, {"low", "low"}, {"medium", "medium"}, {"xhigh", "xhigh"}, {"high", "medium"}, {"on", "medium"}} {
+		payload := map[string]any{}
+		applyReasoningOptions(payload, "qwen3.8", test.input)
+		if payload["reasoning_effort"] != test.want {
+			t.Fatalf("Qwen effort %q produced %#v, want %q", test.input, payload, test.want)
+		}
 	}
 }
 

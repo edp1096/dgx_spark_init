@@ -21,7 +21,7 @@ func (s *Server) transcribeAttachment(ctx context.Context, item db.Attachment, c
 		return cached, nil
 	}
 
-	// The deployed Qwen3-ASR service handles one request at a time. Serializing
+	// The deployed ASR service handles one request at a time. Serializing
 	// cache misses also prevents two chat rooms from transcribing the same file.
 	s.asrMu.Lock()
 	defer s.asrMu.Unlock()
@@ -54,9 +54,9 @@ func transcriptFingerprint(cfg config.ASRConfig) string {
 		FFmpegEndpoint string
 		Endpoint       string
 		Model          string
-		Language       string
+		MediaLanguage  string
 		Prompt         string
-	}{1, cfg.FFmpegEndpoint, cfg.Endpoint, cfg.Model, cfg.Language, cfg.Prompt})
+	}{3, cfg.FFmpegEndpoint, cfg.Endpoint, cfg.Model, cfg.MediaLanguage, cfg.Prompt})
 	sum := sha256.Sum256(data)
 	return hex.EncodeToString(sum[:])
 }

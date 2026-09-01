@@ -37,11 +37,11 @@ func (s *Server) transcribeVoice(w http.ResponseWriter, r *http.Request) {
 		mimeType = "application/octet-stream"
 	}
 
-	// The deployed Qwen3-ASR service is intentionally serialized. Voice
-	// dictation and attachment transcription share the same queue.
+	// The local ASR service is intentionally serialized. Voice dictation and
+	// attachment transcription share the same queue but use separate languages.
 	s.asrMu.Lock()
 	defer s.asrMu.Unlock()
-	result, err := s.asrSnapshot().Transcribe(r.Context(), file, header.Filename, mimeType)
+	result, err := s.asrSnapshot().TranscribeVoice(r.Context(), file, header.Filename, mimeType)
 	if err != nil {
 		if errors.Is(err, asr.ErrNoAudio) {
 			http.Error(w, "recording has no audio", http.StatusUnprocessableEntity)

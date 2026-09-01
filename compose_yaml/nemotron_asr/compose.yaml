@@ -1,0 +1,38 @@
+services:
+  api:
+    init: true
+    build:
+      context: .
+      target: runtime
+      args:
+        NEMO_SPEECH_REF: ${NEMO_SPEECH_REF:-4f9676226f667d14608487df744f375db87127f8}
+        CUDA_ARCH: ${NEMO_CUDA_ARCH:-121}
+        BUILD_JOBS: ${NEMO_BUILD_JOBS:-2}
+    image: sparktalk-nemotron-asr:0.6b-q8
+    container_name: sparktalk-nemotron-asr
+    restart: unless-stopped
+    ports:
+      - "${NEMO_BIND_ADDR:-127.0.0.1}:${NEMO_PORT:-8693}:8693"
+    gpus: all
+    volumes:
+      - "${NEMO_MODEL_DIR:-/home/edp1096/.cache/nemo-speech}:/models:ro"
+    command:
+      - serve
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8693"
+      - --no-ui
+      - --threads
+      - "1"
+      - --asr.batching.enabled=false
+      - --asr.streaming.rnnt_right_context
+      - "${NEMO_RNNT_RIGHT_CONTEXT:-1}"
+      - --asr-model
+      - "/models/${NEMO_MODEL_FILE:-nemotron-3.5-asr-streaming-0.6b.q8_0.gguf}"
+    healthcheck:
+      test: ["CMD", "/opt/nemo-speech/nemo-speech", "health", "--url", "http://127.0.0.1:8693/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 90s

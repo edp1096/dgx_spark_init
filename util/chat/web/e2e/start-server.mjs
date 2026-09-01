@@ -13,12 +13,19 @@ await new Promise((resolveBuild, rejectBuild) => {
   build.once('exit', (code) => code === 0 ? resolveBuild() : rejectBuild(new Error(`go build exited with ${code}`)));
 });
 
-await writeFile(join(workDir, 'sparktalk.yaml'), `server:
+await writeFile(join(workDir, 'sparktalk.yaml'), `version: 2
+runtime:
+  mode: external
+  bundle: flash-next
+  auto_start: false
+  memory_reserve_gib: 8
+server:
   listen_addr: 127.0.0.1:18585
   database: ${join(workDir, 'sparktalk.db')}
 model:
   endpoint: http://127.0.0.1:9
   default_model: test-model
+  model_type: qwen3.8
 tools:
   enabled: false
 appearance:

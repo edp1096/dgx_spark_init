@@ -56,7 +56,7 @@
   }
 </script>
 
-<aside>
+<aside class="sidebar">
   <div class="brand"><span class="mark"><Avatar value={assistantAvatar} alt="SparkTalk" /></span><strong>SparkTalk</strong><button class="sidebar-close" onclick={onclose} aria-label="사이드바 닫기">×</button></div>
   <div class="sidebar-actions">
     <button class="new-chat" onclick={onAddSession}>＋ 새 대화</button>
