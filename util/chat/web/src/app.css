@@ -68,6 +68,9 @@ nav { display: flex; flex: 1; min-height: 0; flex-direction: column; gap: 4px; o
 .artifact-toolbar > div { display: flex; padding: 2px; border-radius: 7px; background: #0d1016; }
 .artifact-toolbar button { height: 26px; padding: 0 8px; border: 0; border-radius: 5px; color: #858fa0; background: transparent; font-size: 10px; }
 .artifact-toolbar button:hover, .artifact-toolbar button.active { color: #e0e7f5; background: #262d3a; }
+.artifact-source-files { display: flex; min-height: 36px; flex: 0 0 auto; flex-direction: row; gap: 4px; padding: 5px 8px; overflow-x: auto; overflow-y: hidden; border-bottom: 1px solid #292e3a; background: #11151c; }
+.artifact-source-files button { flex: 0 0 auto; height: 25px; padding: 0 9px; border: 0; border-radius: 6px; color: #7f899b; background: transparent; font: 10px ui-monospace, SFMono-Regular, Consolas, monospace; }
+.artifact-source-files button:hover, .artifact-source-files button.active { color: #dce5f5; background: #252c38; }
 .artifact-stage { flex: 1 1 auto; min-width: 0; min-height: 0; overflow: hidden; background: #fff; }
 .artifact-stage iframe { display: block; width: 100%; height: 100%; border: 0; background: #fff; }
 .artifact-stage pre { width: 100%; height: 100%; margin: 0; padding: 16px; overflow: auto; color: #cbd3e2; background: #0b0e14; font: 11px/1.6 ui-monospace, SFMono-Regular, Consolas, monospace; white-space: pre-wrap; overflow-wrap: anywhere; }
@@ -220,6 +223,15 @@ article.mine { flex-direction: row-reverse; }
 .prose hr { margin: 16px 0; border: 0; border-top: 1px solid #343b49; }
 .prose pre { overflow: auto; padding: 14px; border-radius: 9px; background: #080a0e; border: 1px solid #242833; }
 .prose code { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
+.prose .code-card { max-width: 100%; margin: 10px 0; overflow: hidden; border: 1px solid #292e39; border-radius: 9px; background: #080a0e; }
+.prose .code-card-header { display: flex; min-height: 34px; align-items: center; justify-content: space-between; gap: 8px; padding: 4px 6px 4px 10px; border-bottom: 1px solid #242833; color: #7f8999; background: #11141b; }
+.prose .code-card-header > span { overflow: hidden; font: 10px ui-monospace, SFMono-Regular, Consolas, monospace; text-overflow: ellipsis; white-space: nowrap; }
+.prose .code-card-header > div { display: flex; flex: 0 0 auto; gap: 3px; }
+.prose .code-card-header button { height: 25px; padding: 0 7px; border: 0; border-radius: 6px; color: #8d97a8; background: transparent; font-size: 10px; }
+.prose .code-card-header button:hover { color: #e0e6f0; background: #252a35; }
+.prose .code-card pre { max-height: none; margin: 0; padding: 12px 13px; border: 0; border-radius: 0; font-size: 12px; line-height: 1.55; }
+.prose .code-card-long pre { max-height: 230px; }
+.prose .code-card-long.expanded pre { max-height: none; }
 .reasoning { margin: 0 0 12px; border: 1px solid #2b3040; border-radius: 10px; background: #12151d; color: #9299a8; }
 .reasoning summary { padding: 9px 12px; cursor: pointer; font-size: 13px; user-select: none; }
 .reasoning-text { max-height: 330px; overflow: auto; padding: 0 13px 11px; border-top: 1px solid #252a37; font-size: 13px; line-height: 1.6; }

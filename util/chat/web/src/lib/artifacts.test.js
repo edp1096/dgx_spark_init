@@ -13,6 +13,10 @@ test('combines html css and javascript fences into one sandbox document', () => 
   assert.match(artifact.document, /button \{ color: red; \}/);
   assert.match(artifact.document, /querySelector/);
   assert.match(artifact.document, /connect-src 'none'/);
+  assert.deepEqual(artifact.files.map((item) => item.name), ['index.html', 'style.css', 'script.js']);
+  assert.match(artifact.files[0].source, /href="\.\/style\.css"/);
+  assert.match(artifact.files[0].source, /src="\.\/script\.js"/);
+  assert.equal(artifact.files[1].source, 'button { color: red; }');
 });
 
 test('ignores ordinary code blocks and user messages', () => {

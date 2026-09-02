@@ -118,9 +118,48 @@
     if (!cleaned && /<tool_call\b/i.test(source)) return '도구 호출 요청이 완료되지 않았습니다.';
     return cleaned;
   }
+
+  async function copyCode(button, source) {
+    try {
+      await navigator.clipboard.writeText(source);
+    } catch {
+      const textarea = document.createElement('textarea');
+      textarea.value = source;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.append(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      textarea.remove();
+    }
+    const previous = button.textContent;
+    button.textContent = '복사됨';
+    setTimeout(() => { if (button.isConnected) button.textContent = previous; }, 1200);
+  }
+
+  function handleMessageClick(event) {
+    const copyButton = event.target.closest?.('[data-code-copy]');
+    if (copyButton) {
+      const source = copyButton.closest('[data-code-card]')?.querySelector('code')?.textContent || '';
+      copyCode(copyButton, source);
+      return;
+    }
+    const toggleButton = event.target.closest?.('[data-code-toggle]');
+    if (!toggleButton) return;
+    const card = toggleButton.closest('[data-code-card]');
+    const expanded = card?.classList.toggle('expanded') ?? false;
+    toggleButton.textContent = expanded ? '접기' : '전체 보기';
+    toggleButton.setAttribute('aria-expanded', String(expanded));
+    if (!expanded) card?.scrollIntoView({ block: 'nearest' });
+  }
+
+  function codeCardActions(node) {
+    node.addEventListener('click', handleMessageClick);
+    return { destroy: () => node.removeEventListener('click', handleMessageClick) };
+  }
 </script>
 
-<section class="messages" bind:this={element}>
+<section class="messages" bind:this={element} use:codeCardActions>
   {#if !messages.length}
     <div class="welcome"><div class="mark large"><Avatar value={assistantAvatar} alt="SparkTalk" /></div><h1>무엇을 도와드릴까요?</h1><p>메시지를 보내세요.</p></div>
   {/if}

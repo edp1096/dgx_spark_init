@@ -12,6 +12,7 @@
   "dependencies": {
     "@sveltejs/vite-plugin-svelte": "^7.0.0",
     "dompurify": "^3.4.1",
+    "fflate": "^0.8.3",
     "katex": "^0.18.5",
     "marked": "^18.0.2",
     "marked-katex-extension": "^5.1.12",

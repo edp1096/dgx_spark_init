@@ -2,6 +2,16 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { normalizeMarkdown, parseMarkdown } from './markdown.js';
 
+test('renders long fenced code as a compact interactive card', () => {
+  const source = Array.from({ length: 14 }, (_, index) => `const value${index} = ${index};`).join('\n');
+  const html = parseMarkdown(`\`\`\`javascript\n${source}\n\`\`\``);
+  assert.match(html, /code-card code-card-long/);
+  assert.match(html, /data-code-copy/);
+  assert.match(html, /data-code-toggle/);
+  assert.match(html, /전체 보기/);
+  assert.match(html, /language-javascript/);
+});
+
 test('unwraps a whole markdown fence emitted by a model', () => {
   assert.equal(normalizeMarkdown('```markdown\n# 제목\n\n**본문**\n```'), '# 제목\n\n**본문**');
 });
