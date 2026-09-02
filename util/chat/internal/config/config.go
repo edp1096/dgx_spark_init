@@ -25,6 +25,7 @@ type Config struct {
 	ASR        ASRConfig        `yaml:"asr" json:"asr"`
 	TTS        TTSConfig        `yaml:"tts" json:"tts"`
 	Context    ContextConfig    `yaml:"context" json:"context"`
+	Memory     MemoryConfig     `yaml:"memory" json:"memory"`
 	Tools      ToolsConfig      `yaml:"tools" json:"tools"`
 	Image      ImageConfig      `yaml:"image" json:"image"`
 	Extra      ExtraConfig      `yaml:"extra" json:"extra"`
@@ -114,9 +115,20 @@ type ContextConfig struct {
 	ImageTokens      int  `yaml:"image_tokens" json:"image_tokens"`
 }
 
+// MemoryConfig controls bounded cross-session recall. The source transcript
+// stays in SQLite; only a small relevant excerpt is added to model context.
+type MemoryConfig struct {
+	Enabled        bool `yaml:"enabled" json:"enabled"`
+	RecallSessions bool `yaml:"recall_sessions" json:"recall_sessions"`
+	AllowProposals bool `yaml:"allow_proposals" json:"allow_proposals"`
+	MaxResults     int  `yaml:"max_results" json:"max_results"`
+	TokenBudget    int  `yaml:"token_budget" json:"token_budget"`
+}
+
 type ToolsConfig struct {
 	Enabled            bool   `yaml:"enabled" json:"enabled"`
 	MediaImportEnabled bool   `yaml:"media_import_enabled" json:"media_import_enabled"`
+	SkillsEnabled      bool   `yaml:"skills_enabled" json:"skills_enabled"`
 	MaxRounds          int    `yaml:"max_rounds" json:"max_rounds"`
 	SearchResults      int    `yaml:"search_results" json:"search_results"`
 	Timeout            string `yaml:"timeout" json:"timeout"`
@@ -153,6 +165,7 @@ type PublicConfig struct {
 	ASR        ASRConfig        `json:"asr"`
 	TTS        TTSConfig        `json:"tts"`
 	Context    ContextConfig    `json:"context"`
+	Memory     MemoryConfig     `json:"memory"`
 	Tools      ToolsConfig      `json:"tools"`
 	Image      ImageConfig      `json:"image"`
 	Extra      ExtraConfig      `json:"extra"`
@@ -198,9 +211,15 @@ func Load(path string) (Config, bool, error) {
 		Context *struct {
 			Enabled *bool `yaml:"enabled"`
 		} `yaml:"context"`
+		Memory *struct {
+			Enabled        *bool `yaml:"enabled"`
+			RecallSessions *bool `yaml:"recall_sessions"`
+			AllowProposals *bool `yaml:"allow_proposals"`
+		} `yaml:"memory"`
 		Tools *struct {
 			Enabled            *bool `yaml:"enabled"`
 			MediaImportEnabled *bool `yaml:"media_import_enabled"`
+			SkillsEnabled      *bool `yaml:"skills_enabled"`
 		} `yaml:"tools"`
 		Image *struct {
 			Enabled *bool `yaml:"enabled"`
@@ -222,11 +241,23 @@ func Load(path string) (Config, bool, error) {
 	if presence.Context == nil || presence.Context.Enabled == nil {
 		cfg.Context.Enabled = true
 	}
+	if presence.Memory == nil || presence.Memory.Enabled == nil {
+		cfg.Memory.Enabled = true
+	}
+	if presence.Memory == nil || presence.Memory.RecallSessions == nil {
+		cfg.Memory.RecallSessions = true
+	}
+	if presence.Memory == nil || presence.Memory.AllowProposals == nil {
+		cfg.Memory.AllowProposals = true
+	}
 	if presence.Tools == nil || presence.Tools.Enabled == nil {
 		cfg.Tools.Enabled = true
 	}
 	if presence.Tools == nil || presence.Tools.MediaImportEnabled == nil {
 		cfg.Tools.MediaImportEnabled = true
+	}
+	if presence.Tools == nil || presence.Tools.SkillsEnabled == nil {
+		cfg.Tools.SkillsEnabled = true
 	}
 	if presence.Image == nil || presence.Image.Enabled == nil {
 		// Older configurations predate selectable image engines. Keep the tool
@@ -499,6 +530,18 @@ func (c *Config) Normalize() {
 	if c.Context.ImageTokens <= 0 {
 		c.Context.ImageTokens = 2048
 	}
+	if c.Memory.MaxResults <= 0 {
+		c.Memory.MaxResults = 5
+	}
+	if c.Memory.MaxResults > 12 {
+		c.Memory.MaxResults = 12
+	}
+	if c.Memory.TokenBudget <= 0 {
+		c.Memory.TokenBudget = 2048
+	}
+	if c.Memory.TokenBudget > 8192 {
+		c.Memory.TokenBudget = 8192
+	}
 	c.Appearance.AssistantAvatar = normalizeAvatar(c.Appearance.AssistantAvatar, "preset:spark")
 	c.Appearance.UserAvatar = normalizeAvatar(c.Appearance.UserAvatar, "preset:person-blue")
 	c.Appearance.Theme = strings.ToLower(strings.TrimSpace(c.Appearance.Theme))
@@ -610,11 +653,17 @@ func (c Config) Validate() error {
 	if c.Context.OutputReserve < 256 || c.Context.SafetyMargin < 256 || c.Context.RecentTokens < 256 || c.Context.ImageTokens < 1 {
 		return errors.New("context token budgets are too small")
 	}
+	if c.Memory.MaxResults < 1 || c.Memory.MaxResults > 12 {
+		return errors.New("memory.max_results must be between 1 and 12")
+	}
+	if c.Memory.TokenBudget < 256 || c.Memory.TokenBudget > 8192 {
+		return errors.New("memory.token_budget must be between 256 and 8192")
+	}
 	return nil
 }
 
 func (c Config) Public() PublicConfig {
-	public := PublicConfig{Version: c.Version, Server: c.Server, Runtime: c.Runtime, Model: c.Model, ASR: c.ASR, TTS: c.TTS, Context: c.Context, Tools: c.Tools, Image: c.Image, Extra: c.Extra, Appearance: c.Appearance, APIKeySet: c.Model.APIKey != ""}
+	public := PublicConfig{Version: c.Version, Server: c.Server, Runtime: c.Runtime, Model: c.Model, ASR: c.ASR, TTS: c.TTS, Context: c.Context, Memory: c.Memory, Tools: c.Tools, Image: c.Image, Extra: c.Extra, Appearance: c.Appearance, APIKeySet: c.Model.APIKey != ""}
 	public.Model.APIKey = ""
 	return public
 }

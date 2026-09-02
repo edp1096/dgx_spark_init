@@ -55,6 +55,7 @@ func (s *Server) configuration(w http.ResponseWriter, r *http.Request) {
 			ASR         config.ASRConfig        `json:"asr"`
 			TTS         config.TTSConfig        `json:"tts"`
 			Context     config.ContextConfig    `json:"context"`
+			Memory      config.MemoryConfig     `json:"memory"`
 			Tools       config.ToolsConfig      `json:"tools"`
 			Image       config.ImageConfig      `json:"image"`
 			Extra       config.ExtraConfig      `json:"extra"`
@@ -67,7 +68,7 @@ func (s *Server) configuration(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		old, _ := s.snapshot()
-		next := config.Config{Version: req.Version, Server: req.Server, Runtime: req.Runtime, Model: req.Model, ASR: req.ASR, TTS: req.TTS, Context: req.Context, Tools: req.Tools, Image: req.Image, Extra: req.Extra, Appearance: req.Appearance}
+		next := config.Config{Version: req.Version, Server: req.Server, Runtime: req.Runtime, Model: req.Model, ASR: req.ASR, TTS: req.TTS, Context: req.Context, Memory: req.Memory, Tools: req.Tools, Image: req.Image, Extra: req.Extra, Appearance: req.Appearance}
 		if req.ClearAPIKey {
 			next.Model.APIKey = ""
 		} else if req.APIKey != "" {

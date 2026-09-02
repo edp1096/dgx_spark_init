@@ -7,6 +7,7 @@
   import MessageList from './components/MessageList.svelte';
   import ContextRail from './components/ContextRail.svelte';
   import ArtifactPanel from './components/ArtifactPanel.svelte';
+  import SearchModal from './components/SearchModal.svelte';
   import { artifactsFromMessages } from './lib/artifacts.js';
   import { hydrateMessages, variantIndices as getVariantIndices, applyVariant as applyMessageVariant } from './lib/message-variants.js';
   import { createStreamHandlers } from './lib/chat-stream.js';
@@ -18,6 +19,7 @@
     getContextState, compactContext, clearContext, answerToolApproval, transcribeVoice,
     listSSHConversationGrants, revokeSSHConversationGrant, clearSSHConversationGrants, streamSpeech,
     getRuntime, startRuntimeBundle, stopRuntimeBundle,
+    createMemory,
   } from './api.js';
   import { hasFileDrag, isSupportedAttachmentFile } from './lib/attachments.js';
   import { createAttachmentController } from './lib/attachment-controller.js';
@@ -90,6 +92,10 @@
   let speechLoadingKey = '';
   let speechPlayingKey = '';
   let systemThemeQuery;
+  let rememberingId = 0;
+  let rememberedIds = [];
+  let searchModalOpen = false;
+  let searchModalQuery = '';
 
   const voiceController = createVoiceController({
     environment: () => window,
@@ -225,7 +231,9 @@
       await Promise.all([refreshModels(), refreshHealth(), refreshRuntime()]);
       selectedModel = resolveAvailableModel(models, cfg.model.default_model, models[0]);
       [groups, sessions] = await Promise.all([listGroups(), listSessions()]);
-      if (sessions.length) await select(sessions[0].id);
+      // Initial restoration must not close a mobile sidebar the user opened
+      // while the startup requests were still in flight.
+      if (sessions.length) await select(sessions[0].id, { closeMobile: false });
       else {
         await chatController.activate('');
         sshConversationGrants = [];
@@ -353,7 +361,7 @@
     await select(item.id);
   }
 
-  async function select(id) {
+  async function select(id, { closeMobile = true } = {}) {
     if (activeId && activeId !== id) stopReplySpeech();
     await chatController.activate(id);
     if (activeId !== id) return;
@@ -369,7 +377,7 @@
     if (session?.reasoning_effort) reasoningEffort = normalizeReasoningEffort(modelType, session.reasoning_effort);
     await Promise.all([refreshContext(id), refreshSSHGrants(id)]);
     await scrollBottom(true);
-    closeSidebarOnMobile();
+    if (closeMobile) closeSidebarOnMobile();
     const pendingTranscript = voiceController.consumePendingTranscript(id);
     if (pendingTranscript) input = input.trim() ? `${input.trimEnd()} ${pendingTranscript}` : pendingTranscript;
     voiceController.flushAutoSend(id);
@@ -440,6 +448,48 @@
   function jumpToMessage(messageId) {
     contextOpen = false;
     requestAnimationFrame(() => document.querySelector(`[data-message-id="${messageId}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+  }
+
+  async function openRecalledItem(item) {
+    if (!item?.session_id || !item?.message_id) return;
+    contextOpen = false;
+    if (activeId !== item.session_id) await select(item.session_id);
+    await tick();
+    document.querySelector(`[data-message-id="${item.message_id}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  async function openSearchResult(item) {
+    if (!item?.session_id) return;
+    if (activeId !== item.session_id) await select(item.session_id);
+	if (!item.message_id) return;
+    await tick();
+    document.querySelector(`[data-message-id="${item.message_id}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function openSearchModal(query) {
+    searchModalQuery = query;
+    searchModalOpen = true;
+    closeSidebarOnMobile();
+  }
+
+  async function chooseSearchModalResult(item) {
+    searchModalOpen = false;
+    await openSearchResult(item);
+  }
+
+  async function rememberMessage(message) {
+    if (!message?.id || !message.content?.trim() || rememberingId) return;
+    const role = message.role === 'user' ? '질문' : '답변';
+    const suggested = `${activeSession?.title || '대화'} · ${role}`;
+    const title = prompt('기억 제목을 입력하세요.', suggested);
+    if (title === null) return;
+    rememberingId = message.id;
+    try {
+      await createMemory({ kind: 'memory', title: title.trim(), content: message.content.trim(), source_session_id: activeId, source_message_id: message.id });
+      rememberedIds = [...rememberedIds, message.id];
+      error = '';
+    } catch (e) { error = e.message; }
+    finally { rememberingId = 0; }
   }
 
   function openArtifact(artifact) {
@@ -1005,6 +1055,8 @@
       onRemoveSession={remove}
       onOpenSettings={openSettings}
       onStartResize={startResize}
+      onSearchResult={openSearchResult}
+      onSearchMore={openSearchModal}
     />
   {/if}
 
@@ -1066,6 +1118,9 @@
       {speechPlayingKey}
       onSpeakReply={speakReply}
       onOpenArtifact={openArtifact}
+      onRemember={rememberMessage}
+      {rememberingId}
+      {rememberedIds}
     />
     <ContextRail
       state={contextState}
@@ -1076,6 +1131,7 @@
       onCompact={compactActiveContext}
       onReset={resetActiveContext}
       onJump={jumpToMessage}
+      onRecall={openRecalledItem}
     />
     {#if error}<div class="error">{error}</div>{/if}
     <Composer
@@ -1127,4 +1183,8 @@
     onclose={() => settingsOpen = false}
     onsaved={applySavedSettings}
   />
+{/if}
+
+{#if searchModalOpen}
+  <SearchModal initialQuery={searchModalQuery} onclose={() => searchModalOpen = false} onselect={chooseSearchModalResult} />
 {/if}

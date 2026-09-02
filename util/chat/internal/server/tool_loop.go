@@ -83,26 +83,8 @@ func runCompletionLoopForSessionWithMedia(
 ) (completionResult, error) {
 	registry := newCompletionToolRegistry(server, sessionID, toolConfig, toolsEnabled, mediaSink)
 	useTools := len(registry.definitions) > 0
-	systemParts := make([]string, 0, 3)
-	if prompt := strings.TrimSpace(systemPrompt); prompt != "" {
-		systemParts = append(systemParts, prompt)
-	}
-	systemParts = append(systemParts, registry.prompts...)
-	// SGLang accepts only one system message and requires it to be the first
-	// message. Context checkpoints arrive as a leading system message, so merge
-	// them with the global/tool instructions instead of emitting a second one.
-	leadingSystems := 0
-	for leadingSystems < len(messages) && messages[leadingSystems].Role == "system" {
-		if content, ok := messages[leadingSystems].Content.(string); ok && strings.TrimSpace(content) != "" {
-			systemParts = append(systemParts, content)
-		}
-		leadingSystems++
-	}
-	conversation := make([]llm.Message, 0, len(messages)+1+toolConfig.MaxRounds*3)
-	if len(systemParts) > 0 {
-		conversation = append(conversation, llm.Message{Role: "system", Content: strings.Join(systemParts, "\n\n")})
-	}
-	conversation = append(conversation, messages[leadingSystems:]...)
+	// SGLang accepts only one system message and requires it at index zero.
+	conversation := assembleModelConversation(systemPrompt, messages, registry.prompts, toolConfig.MaxRounds*3)
 	conversation = retainLatestVideoInput(conversation)
 
 	if !useTools {
@@ -162,6 +144,13 @@ func runCompletionLoopForSessionWithMedia(
 				return completionResult{Reasoning: allReasoning.String(), ToolTrace: trace}, err
 			}
 			execution, toolErr := registry.execute(ctx, call, conversation, emit)
+			if server != nil && server.db != nil && call.Function.Name != "ssh_exec" && call.Function.Name != "memory_propose" {
+				decision, detail := "executed", ""
+				if toolErr != nil {
+					decision, detail = "execution_error", compactHistoryText(toolErr.Error(), 300)
+				}
+				_ = server.db.AddToolAudit(sessionID, call.Function.Name, "", "execute", decision, detail)
+			}
 			toolResult := execution.Result
 			toolFollowups = append(toolFollowups, execution.Followups...)
 			if toolErr == nil && execution.Attachment != nil {

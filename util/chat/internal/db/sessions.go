@@ -53,6 +53,20 @@ func (d *DB) DeleteSession(id string) error {
 	if _, err := tx.Exec(`DELETE FROM ssh_conversation_grants WHERE session_id=?`, id); err != nil {
 		return err
 	}
+	if _, err := tx.Exec(`DELETE FROM tool_grants WHERE scope='conversation' AND session_id=?`, id); err != nil {
+		return err
+	}
+	// Do not rely on SQLite's connection-local foreign_keys pragma here.
+	// Explicit deletion also guarantees that FTS cleanup triggers run.
+	if _, err := tx.Exec(`DELETE FROM context_segments WHERE session_id=?`, id); err != nil {
+		return err
+	}
+	if _, err := tx.Exec(`DELETE FROM messages WHERE session_id=?`, id); err != nil {
+		return err
+	}
+	if _, err := tx.Exec(`DELETE FROM tool_audit WHERE session_id=?`, id); err != nil {
+		return err
+	}
 	if _, err := tx.Exec(`DELETE FROM sessions WHERE id=?`, id); err != nil {
 		return err
 	}

@@ -57,6 +57,7 @@ func (s *Server) executeSSHTool(ctx context.Context, sessionID string, call llm.
 	}
 	if !conversationGranted || untrustedHostKey != nil {
 		decision, err := s.awaitToolApproval(ctx, call.ID, approval, emit)
+		_ = s.db.AddToolAudit(sessionID, "ssh_exec", host.ID, "execute", string(decision), "")
 		if err != nil {
 			return "", err
 		}
@@ -69,6 +70,7 @@ func (s *Server) executeSSHTool(ctx context.Context, sessionID string, call llm.
 			}
 		}
 	} else {
+		_ = s.db.AddToolAudit(sessionID, "ssh_exec", host.ID, "execute", "automatic", "")
 		if err := emit("tool_approval_resolved", map[string]any{"id": call.ID, "approved": true, "decision": approvalConversation, "automatic": true}); err != nil {
 			return "", err
 		}
@@ -95,8 +97,10 @@ func (s *Server) executeSSHTool(ctx context.Context, sessionID string, call llm.
 		return nil
 	})
 	if err != nil {
+		_ = s.db.AddToolAudit(sessionID, "ssh_exec", host.ID, "execute", "execution_error", compactHistoryText(err.Error(), 500))
 		return "", fmt.Errorf("SparkTalk Extra SSH: %w", err)
 	}
+	_ = s.db.AddToolAudit(sessionID, "ssh_exec", host.ID, "execute", "executed", fmt.Sprintf("exit=%d duration_ms=%d", result.ExitCode, result.DurationMS))
 	payload := map[string]any{
 		"host": host.Alias, "host_name": host.Name, "command": arguments.Command,
 		"stdout": result.Stdout, "stderr": result.Stderr, "exit_code": result.ExitCode,

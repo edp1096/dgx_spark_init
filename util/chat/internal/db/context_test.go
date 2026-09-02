@@ -34,4 +34,12 @@ func TestContextSegmentsPreserveTranscriptAndCascadeWithSession(t *testing.T) {
 	if err != nil || len(segments) != 0 {
 		t.Fatalf("segments did not cascade: %+v err=%v", segments, err)
 	}
+	messages, err = store.Messages("s1")
+	if err != nil || len(messages) != 0 {
+		t.Fatalf("messages did not delete with session: %+v err=%v", messages, err)
+	}
+	hits, err := store.SearchMessages("first answer", "other", 5)
+	if err != nil || len(hits) != 0 {
+		t.Fatalf("deleted messages remained searchable: %+v err=%v", hits, err)
+	}
 }

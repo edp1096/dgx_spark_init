@@ -50,11 +50,11 @@ func (s *Server) awaitToolApproval(ctx context.Context, callID string, payload m
 			return "", err
 		}
 		if !approved {
-			return decision, errors.New("SSH execution was rejected by the user")
+			return decision, errors.New("tool action was rejected by the user")
 		}
 		return decision, nil
 	case <-timer.C:
-		return "", errors.New("SSH execution approval timed out")
+		return "", errors.New("tool action approval timed out")
 	case <-ctx.Done():
 		return "", ctx.Err()
 	}

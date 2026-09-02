@@ -1,6 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import Avatar from './Avatar.svelte';
+  import { searchConversations } from '../api.js';
 
   export let groups = [];
   export let sessionsByGroup = {};
@@ -21,12 +22,21 @@
   export let onRemoveSession = () => {};
   export let onOpenSettings = () => {};
   export let onStartResize = () => {};
+  export let onSearchResult = () => {};
+  export let onSearchMore = () => {};
 
   let sessionMenuId = '';
+  let searchQuery = '';
+  let searchResults = [];
+  let searchLoading = false;
+  let searchError = '';
+  let searchTimer;
+  let searchSequence = 0;
 
   onMount(() => {
     function closeOnOutsidePointer(event) {
       if (sessionMenuId && !event.target.closest?.('.session-menu, .session-more')) sessionMenuId = '';
+      if (searchQuery && !event.target.closest?.('.conversation-search')) clearSearch();
     }
 
     function closeOnEscape(event) {
@@ -36,10 +46,51 @@
     document.addEventListener('pointerdown', closeOnOutsidePointer, true);
     document.addEventListener('keydown', closeOnEscape);
     return () => {
+      clearTimeout(searchTimer);
       document.removeEventListener('pointerdown', closeOnOutsidePointer, true);
       document.removeEventListener('keydown', closeOnEscape);
     };
   });
+
+  function queueSearch() {
+    clearTimeout(searchTimer);
+    searchError = '';
+    const query = searchQuery.trim();
+    if (!query) { searchResults = []; searchLoading = false; return; }
+    searchLoading = true;
+    const sequence = ++searchSequence;
+    searchTimer = setTimeout(async () => {
+      try {
+        const results = await searchConversations(query, 5);
+        if (sequence === searchSequence) searchResults = results;
+      } catch (error) {
+        if (sequence === searchSequence) searchError = error.message;
+      } finally {
+        if (sequence === searchSequence) searchLoading = false;
+      }
+    }, 180);
+  }
+
+  function clearSearch() {
+    clearTimeout(searchTimer);
+    searchSequence++;
+    searchQuery = '';
+    searchResults = [];
+    searchLoading = false;
+    searchError = '';
+  }
+
+  function chooseSearchResult(item) {
+    clearSearch();
+    onSearchResult(item);
+  }
+
+  function showAllSearchResults() {
+    const query = searchQuery.trim();
+    if (!query) return;
+    clearSearch();
+    onSearchMore(query);
+  }
 
   function toggleSessionMenu(id) {
     sessionMenuId = sessionMenuId === id ? '' : id;
@@ -61,6 +112,19 @@
   <div class="sidebar-actions">
     <button class="new-chat" onclick={onAddSession}>＋ 새 대화</button>
     <button class="new-group" onclick={onAddGroup} title="그룹 만들기" aria-label="그룹 만들기">＋ 폴더</button>
+  </div>
+  <div class="conversation-search">
+    <span aria-hidden="true">⌕</span><input bind:value={searchQuery} oninput={queueSearch} onkeydown={(event) => { if (event.key === 'Escape') clearSearch(); }} placeholder="전체 대화 검색" aria-label="전체 대화 검색" />
+    {#if searchQuery}<button onclick={clearSearch} aria-label="검색 지우기">×</button>{/if}
+    {#if searchQuery}
+      <div class="conversation-search-results">
+        {#if searchLoading}<small>검색 중…</small>
+        {:else if searchError}<small class="search-error">{searchError}</small>
+        {:else if !searchResults.length}<small>일치하는 대화가 없습니다.</small>
+        {:else}{#each searchResults as item}<button onclick={() => chooseSearchResult(item)}><strong>{item.title}</strong><span>{item.message_id ? `${item.role === 'user' ? '나' : 'AI'} · ${item.content}` : '빈 대화'}</span></button>{/each}{/if}
+        {#if !searchLoading && !searchError}<button class="conversation-search-more" onclick={showAllSearchResults}>검색 결과 더보기 →</button>{/if}
+      </div>
+    {/if}
   </div>
   <nav>
     {#each groups as group, groupIndex}

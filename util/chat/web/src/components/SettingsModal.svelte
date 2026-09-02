@@ -6,6 +6,8 @@
   import ThemeSettings from './settings/ThemeSettings.svelte';
   import SSHSettings from './settings/SSHSettings.svelte';
   import SettingsToast from './settings/SettingsToast.svelte';
+  import MemorySettings from './settings/MemorySettings.svelte';
+  import ToolDiscoverySettings from './settings/ToolDiscoverySettings.svelte';
   import { normalizePublicSettings } from '../lib/settings.js';
   import { modelCapabilities, normalizeReasoningEffort, thinkingToggleValue } from '../lib/model-capabilities.js';
 
@@ -26,6 +28,7 @@
   let activeTab = 'chat';
   const settingsTabs = [
     { id: 'chat', label: '대화' },
+    { id: 'memory', label: '기억' },
     { id: 'voice', label: '음성' },
     { id: 'features', label: '기능' },
     { id: 'appearance', label: '외형' },
@@ -115,6 +118,7 @@
         asr: settings.asr,
         tts: settings.tts,
         context: settings.context,
+        memory: settings.memory,
         tools: settings.tools,
         image: settings.image,
         extra: settings.extra,
@@ -175,6 +179,10 @@
         </fieldset>
       </div>
 
+      <div id="settings-panel-memory" class="settings-tab-panel" class:active={activeTab === 'memory'} role="tabpanel" aria-labelledby="settings-tab-memory">
+        <MemorySettings config={settings.memory} onnotify={notify} />
+      </div>
+
       <div id="settings-panel-voice" class="settings-tab-panel" class:active={activeTab === 'voice'} role="tabpanel" aria-labelledby="settings-tab-voice">
         <fieldset>
           <legend>음성 인식</legend>
@@ -233,10 +241,12 @@
           <legend>웹·미디어 도구</legend>
           <label class="check"><input type="checkbox" bind:checked={settings.tools.enabled} /> web_search / web_fetch 활성화</label>
           <label class="check"><input type="checkbox" bind:checked={settings.tools.media_import_enabled} /> URL 미디어 자동 가져오기</label>
+          <label class="check"><input type="checkbox" bind:checked={settings.tools.skills_enabled} /> 필요한 작업 절차를 Skill로 불러오기</label>
           <label>최대 호출 라운드<input type="number" min="1" max="8" bind:value={settings.tools.max_rounds} /></label>
           <label>검색 결과 수<input type="number" min="1" max="10" bind:value={settings.tools.search_results} /></label>
           <label>도구 타임아웃<input bind:value={settings.tools.timeout} placeholder="15s" /></label>
         </fieldset>
+        <ToolDiscoverySettings enabled={settings.tools.skills_enabled} onnotify={notify} />
         <fieldset>
           <legend>SparkTalk Extra</legend>
           <label class="check"><input type="checkbox" bind:checked={settings.extra.ssh_enabled} /> 승인형 SSH 도구 활성화</label>

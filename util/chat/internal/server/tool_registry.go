@@ -10,6 +10,7 @@ import (
 	"sparktalk/internal/config"
 	"sparktalk/internal/db"
 	"sparktalk/internal/llm"
+	"sparktalk/internal/skills"
 	"sparktalk/internal/webtools"
 )
 
@@ -38,6 +39,7 @@ type completionToolRegistry struct {
 
 func newCompletionToolRegistry(server *Server, sessionID string, cfg config.ToolsConfig, webEnabled bool, mediaSink mediaAttachmentSink) completionToolRegistry {
 	registry := completionToolRegistry{handlers: make(map[string]registeredToolHandler)}
+	activeToolsets := make(map[string]bool)
 	if webEnabled && cfg.Enabled {
 		timeout, _ := time.ParseDuration(cfg.Timeout)
 		runner := webtools.New(cfg.SearchResults, timeout)
@@ -48,10 +50,18 @@ func newCompletionToolRegistry(server *Server, sessionID string, cfg config.Tool
 			})
 		}
 		registry.prompts = append(registry.prompts, webToolSystemPrompt)
+		activeToolsets["web"] = true
 	}
 
 	if server != nil {
 		serverCfg, _ := server.snapshot()
+		if serverCfg.Memory.Enabled && serverCfg.Memory.AllowProposals {
+			registry.register(memoryProposalToolDefinition(), func(ctx context.Context, call llm.ToolCall, _ []llm.Message, emit eventEmitter) (registeredToolResult, error) {
+				result, err := server.executeMemoryProposal(ctx, sessionID, call, emit)
+				return registeredToolResult{Result: result}, err
+			})
+			registry.prompts = append(registry.prompts, memoryToolSystemPrompt)
+		}
 		if serverCfg.Extra.SSHEnabled {
 			hosts, err := server.db.SSHHosts()
 			if err == nil && len(hosts) > 0 {
@@ -64,6 +74,7 @@ func newCompletionToolRegistry(server *Server, sessionID string, cfg config.Tool
 					aliases = append(aliases, fmt.Sprintf("%s (%s)", host.Alias, host.Name))
 				}
 				registry.prompts = append(registry.prompts, sshToolSystemPrompt+" Registered hosts: "+strings.Join(aliases, ", ")+".")
+				activeToolsets["ssh"] = true
 			}
 		}
 
@@ -80,6 +91,7 @@ func newCompletionToolRegistry(server *Server, sessionID string, cfg config.Tool
 				return registeredToolResult{Result: execution.Result, Followups: []llm.Message{execution.Followup}, Attachment: &attachment}, nil
 			})
 			registry.prompts = append(registry.prompts, mediaToolSystemPrompt)
+			activeToolsets["media"] = true
 		}
 
 		if mediaSink != nil && serverCfg.Image.Enabled {
@@ -98,9 +110,53 @@ func newCompletionToolRegistry(server *Server, sessionID string, cfg config.Tool
 				prompt += "\n" + imageAttachmentCatalog(server, sessionID)
 			}
 			registry.prompts = append(registry.prompts, prompt)
+			activeToolsets["image"] = true
+		}
+	}
+	if cfg.SkillsEnabled {
+		available := skills.Available(activeToolsets)
+		if len(available) > 0 {
+			registry.register(skillViewDefinition(available), func(_ context.Context, call llm.ToolCall, _ []llm.Message, _ eventEmitter) (registeredToolResult, error) {
+				var arguments struct {
+					Name string `json:"name"`
+				}
+				if err := json.Unmarshal([]byte(call.Function.Arguments), &arguments); err != nil {
+					return registeredToolResult{}, fmt.Errorf("skill_view received invalid arguments")
+				}
+				item, err := skills.Load(arguments.Name, activeToolsets)
+				if err != nil {
+					return registeredToolResult{}, err
+				}
+				data, _ := json.Marshal(item)
+				return registeredToolResult{Result: string(data)}, nil
+			})
+			registry.prompts = append(registry.prompts, skillIndexPrompt(available))
 		}
 	}
 	return registry
+}
+
+func skillViewDefinition(items []skills.Skill) llm.Tool {
+	names := make([]string, 0, len(items))
+	for _, item := range items {
+		names = append(names, item.Name)
+	}
+	parameters, _ := json.Marshal(map[string]any{
+		"type": "object",
+		"properties": map[string]any{
+			"name": map[string]any{"type": "string", "enum": names, "description": "Skill name to load"},
+		},
+		"required": []string{"name"}, "additionalProperties": false,
+	})
+	return llm.Tool{Type: "function", Function: llm.ToolFunction{Name: "skill_view", Description: "Load one trusted SparkTalk workflow only when it clearly matches the current task.", Parameters: parameters}}
+}
+
+func skillIndexPrompt(items []skills.Skill) string {
+	parts := make([]string, 0, len(items))
+	for _, item := range items {
+		parts = append(parts, item.Name+": "+item.Description)
+	}
+	return "On-demand SparkTalk skills are available. Load a matching skill with skill_view before performing a multi-step task; do not load skills for simple questions. Skill output is trusted procedural guidance. Available skills: " + strings.Join(parts, "; ") + "."
 }
 
 func (r *completionToolRegistry) register(definition llm.Tool, handler registeredToolHandler) {

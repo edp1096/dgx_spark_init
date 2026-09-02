@@ -7,3 +7,5 @@ export * from './api/ssh.js';
 export * from './api/media.js';
 export * from './api/chat.js';
 export * from './api/runtime.js';
+export * from './api/memory.js';
+export * from './api/discovery.js';

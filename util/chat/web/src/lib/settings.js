@@ -10,6 +10,7 @@ export function normalizePublicSettings(settings) {
   if (!Number.isFinite(Number(settings.runtime.memory_reserve_gib))) settings.runtime.memory_reserve_gib = 8;
   settings.model ||= {};
   settings.context ||= {};
+  settings.memory ||= {};
   settings.asr ||= {};
   settings.tts ||= {};
   settings.tools ||= {};

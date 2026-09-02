@@ -29,6 +29,9 @@
   export let speechPlayingKey = '';
   export let onSpeakReply = () => {};
   export let onOpenArtifact = () => {};
+  export let onRemember = () => {};
+  export let rememberingId = 0;
+  export let rememberedIds = [];
 
   function replySpeechKey(message) {
     return `${message?.id || 'pending'}:${message?.variant_index ?? 0}`;
@@ -55,6 +58,7 @@
     try {
       const args = JSON.parse(tool.arguments || '{}');
       if (tool.name === 'ssh_exec') return `${args.host || ''}${args.command ? ` · ${args.command}` : ''}`;
+      if (tool.name === 'memory_propose') return args.title || '';
       if (isImageGenerateTool(tool.name)) return `${args.operation || 'generate'}${args.prompt ? ` · ${args.prompt}` : ''}`;
       return args.query || args.url || '';
     } catch { return tool.arguments || ''; }
@@ -93,6 +97,7 @@
     if (tool.name === 'web_fetch') return '페이지 읽기';
     if (tool.name === 'ssh_exec') return 'SSH 실행';
     if (tool.name === 'media_import') return '미디어 가져오기';
+    if (tool.name === 'memory_propose') return '기억 제안';
     if (isImageCapabilitiesTool(tool.name)) return '이미지 기능 확인';
     if (isImageGenerateTool(tool.name)) return '이미지 생성';
     return tool.name || '도구';
@@ -176,21 +181,26 @@
           </details>
         {/if}
         {#if message.tool_trace?.some((tool) => tool.approval_required)}
-          <section class="tool-approval-panel" aria-label="SSH 명령 실행 승인">
+          <section class="tool-approval-panel" aria-label="도구 실행 승인">
             {#each message.tool_trace.filter((tool) => tool.approval_required) as tool}
               <div class="tool-approval" data-approval-id={tool.approval_id || ''}>
-                <div class="tool-approval-title"><strong>SSH 명령 실행 승인</strong><span>{tool.host_name || tool.host}</span></div>
-                {#if tool.host_key?.fingerprint}
-                  <div class="tool-host-key-warning"><strong>처음 연결하는 서버</strong><span>호스트 키 지문을 확인하세요.</span><code>{tool.host_key.fingerprint}</code></div>
+                {#if tool.approval_kind === 'memory'}
+                  <div class="tool-approval-title"><strong>기억 저장 승인</strong><span>{tool.kind === 'user' ? '사용자 설정' : '장기 기억'}</span></div>
+                  <strong>{tool.title}</strong><p class="memory-proposal-content">{tool.content}</p>
+                  {#if tool.approval_error}<p class="tool-error">{tool.approval_error}</p>{/if}
+                  <div class="tool-approval-actions"><button onclick={() => onToolApproval(tool, 'reject')} disabled={tool.approving}>거부</button><button class="approve" onclick={() => onToolApproval(tool, 'once')} disabled={tool.approving}>{tool.approving ? '저장 중…' : '기억에 저장'}</button></div>
+                {:else}
+                  <div class="tool-approval-title"><strong>SSH 명령 실행 승인</strong><span>{tool.host_name || tool.host}</span></div>
+                  {#if tool.host_key?.fingerprint}<div class="tool-host-key-warning"><strong>처음 연결하는 서버</strong><span>호스트 키 지문을 확인하세요.</span><code>{tool.host_key.fingerprint}</code></div>{/if}
+                  <code>{tool.command}</code>
+                  {#if tool.reason}<small>{tool.reason}</small>{/if}
+                  {#if tool.approval_error}<p class="tool-error">{tool.approval_error}</p>{/if}
+                  <div class="tool-approval-actions">
+                    <button onclick={() => onToolApproval(tool, 'reject')} disabled={tool.approving}>거부</button>
+                    <button onclick={() => onToolApproval(tool, 'once')} disabled={tool.approving}>{tool.host_key?.fingerprint ? '키 신뢰 후 이번만' : '이번만 실행'}</button>
+                    {#if tool.conversation_scope_available}<button class="approve" onclick={() => onToolApproval(tool, 'conversation')} disabled={tool.approving}>{tool.approving ? '처리 중…' : (tool.host_key?.fingerprint ? '키 신뢰·대화 허용' : '이 대화에서 허용')}</button>{/if}
+                  </div>
                 {/if}
-                <code>{tool.command}</code>
-                {#if tool.reason}<small>{tool.reason}</small>{/if}
-                {#if tool.approval_error}<p class="tool-error">{tool.approval_error}</p>{/if}
-                <div class="tool-approval-actions">
-                  <button onclick={() => onToolApproval(tool, 'reject')} disabled={tool.approving}>거부</button>
-                  <button onclick={() => onToolApproval(tool, 'once')} disabled={tool.approving}>{tool.host_key?.fingerprint ? '키 신뢰 후 이번만' : '이번만 실행'}</button>
-                  {#if tool.conversation_scope_available}<button class="approve" onclick={() => onToolApproval(tool, 'conversation')} disabled={tool.approving}>{tool.approving ? '처리 중…' : (tool.host_key?.fingerprint ? '키 신뢰·대화 허용' : '이 대화에서 허용')}</button>{/if}
-                </div>
               </div>
             {/each}
           </section>
@@ -249,6 +259,7 @@
             {#if messageArtifacts.length}
               <button class="artifact-open-button" onclick={() => onOpenArtifact(messageArtifacts[0])} disabled={running}>◫ 미리보기</button>
             {/if}
+            <button onclick={() => onRemember(message)} disabled={running || rememberingId === message.id || rememberedIds.includes(message.id)}>{rememberedIds.includes(message.id) ? '✓ 기억됨' : rememberingId === message.id ? '기억 중…' : '＋ 기억'}</button>
             <button onclick={() => onRetry(message, index)} disabled={running || !message.id}>↻ 재시도</button>
           </div>
         {:else if message.id && editingMessageId !== message.id}
@@ -260,6 +271,7 @@
                 <button onclick={() => onShowAdjacentVariant(message, index, 1)} disabled={running || message.variant_index >= message.variants.length - 1} aria-label="다음 질문">›</button>
               </div>
             {/if}
+            <button onclick={() => onRemember(message)} disabled={running || rememberingId === message.id || rememberedIds.includes(message.id)}>{rememberedIds.includes(message.id) ? '✓ 기억됨' : rememberingId === message.id ? '기억 중…' : '＋ 기억'}</button>
             <button onclick={() => onBeginEdit(message)} disabled={running}>✎ {message.status === 'failed' || message.status === 'cancelled' ? '수정·재시도' : '수정'}</button>
           </div>
         {/if}

@@ -7,8 +7,10 @@
   export let onCompact = () => {};
   export let onReset = () => {};
   export let onJump = () => {};
+  export let onRecall = () => {};
 
   $: percent = state?.input_budget > 0 ? Math.min(100, Math.round((state.estimated_tokens || 0) * 100 / state.input_budget)) : 0;
+  const recallLabel = (item) => item.kind === 'user' ? '사용자 설정' : item.kind === 'memory' ? '장기 기억' : '과거 대화';
 </script>
 
 <nav class="context-rail" aria-label="컨텍스트 지도">
@@ -36,9 +38,22 @@
         <span>입력 예산 <strong>{state.input_budget?.toLocaleString() || '자동 감지 안 됨'}</strong></span>
         <span>원문 <strong>{state.active_tokens?.toLocaleString() || 0}</strong></span>
         <span>요약 <strong>{state.summary_tokens?.toLocaleString() || 0}</strong></span>
+        <span>회수 <strong>{state.recall_tokens?.toLocaleString() || 0}</strong></span>
       </div>
       {#if state.notice}<p class="context-notice">{state.notice}</p>{/if}
       <div class="context-legend"><span><i class="summarized"></i>구조화 요약</span><span><i class="active"></i>현재 원문</span></div>
+      {#if state.recalls?.length}
+        <section class="context-recalls">
+          <strong>이번 응답에 회수된 기억</strong>
+          {#each state.recalls as item}
+            <article>
+              <span>{recallLabel(item)}{item.title ? ` · ${item.title}` : ''}</span>
+              <p>{item.content}</p>
+              {#if item.session_id && item.message_id}<button onclick={() => onRecall(item)}>원본 대화 열기</button>{/if}
+            </article>
+          {/each}
+        </section>
+      {/if}
       <div class="context-segments">
         {#each state.segments || [] as segment, index}
           <details>
