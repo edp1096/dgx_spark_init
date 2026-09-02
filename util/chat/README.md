@@ -76,7 +76,8 @@ sparktalk-extra-ssh:latest
 
 Flash-Next 런타임은 `compose_yaml/sglang_qwen38_flash_next`에서 먼저 빌드한다.
 SM121 QSA 커널, 파일 기반 PLE·ngram offload와 NEXTN MTP를 적용한 SGLang
-이미지이며, 기존 `compose_yaml/vllm_qwen38` 구성은 비교·복구용으로만 보존한다.
+이미지다. vLLM 비교·복구용 Flash-Next 런타임은 27B 구성과 섞지 않고
+`compose_yaml/vllm_qwen38_flash_next`에 별도로 보존한다.
 
 SparkTalk만 실행하면 된다.
 

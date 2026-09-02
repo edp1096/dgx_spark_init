@@ -11,10 +11,10 @@ RUN pip install --no-cache-dir \
       "git+https://github.com/huggingface/diffusers.git@${DIFFUSERS_COMMIT}" \
       transformers accelerate sentencepiece protobuf \
       bitsandbytes==0.50.2 \
-      fastapi uvicorn
+      fastapi uvicorn python-multipart
 
 WORKDIR /opt/sana-api
-COPY api.py start.sh ./
+COPY api.py editing.py start.sh ./
 RUN chmod +x start.sh
 
 EXPOSE 8707

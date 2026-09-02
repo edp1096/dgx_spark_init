@@ -1,11 +1,16 @@
 services:
   vllm:
-    image: qwen38-flash-dgx:test
-    container_name: qwen38-flash-dealign
+    init: true
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: dgx-vllm-qwen38-flash-next:sm121
+    container_name: vllm-qwen38-flash-next
     restart: unless-stopped
     ipc: host
+    shm_size: "16gb"
     ports:
-      - "8000:8000"
+      - "${VLLM_BIND_ADDRESS:-127.0.0.1}:8000:8000"
     environment:
       HF_HOME: /hf
       HF_HUB_OFFLINE: "1"
@@ -15,18 +20,15 @@ services:
       VLLM_QSA_EXACT_TOPK: "1"
       VLLM_USE_FLASHINFER_SAMPLER: "1"
       VLLM_ALLOW_LONG_MAX_MODEL_LEN: "0"
+      VLLM_FP8_HYBRID: "${VLLM_FP8_HYBRID:-0}"
+      VLLM_USE_DEEP_GEMM: "${VLLM_USE_DEEP_GEMM:-0}"
     volumes:
-      - /home/edp1096/.cache/huggingface:/hf
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
+      - ${SPARKTALK_HF_CACHE:-/home/edp1096/.cache/huggingface}:/hf
+      - ${SPARKTALK_DATA_DIR:-/home/edp1096/.local/share/sparktalk}/cache/vllm-flash-next:/root/.cache/vllm
+    gpus: all
     entrypoint: ["vllm", "serve"]
     command:
-      - /hf/hub/models--dealignai--Qwen3.8-Flash-Next-ABLITERATED-NVFP4/snapshots/be794b990578ef3031eccf9f28e675a289a09ee9
+      - ${VLLM_QWEN38_FLASH_MODEL_PATH:-/hf/hub/models--dealignai--Qwen3.8-Flash-Next-ABLITERATED-NVFP4/snapshots/be794b990578ef3031eccf9f28e675a289a09ee9}
       - --served-model-name
       - qwen3.8-flash-next
       - --host
@@ -40,8 +42,7 @@ services:
       - --max-num-seqs
       - "2"
       # Two concurrent 64K requests need roughly 6.3 GiB. Keep a margin
-      # without reserving the previous 19.28 GiB (32K x 12.39 capacity), so
-      # the image engine can remain resident on the same GB10.
+      # for FLUX, ASR, TTS and SparkTalk on the same GB10.
       - --gpu-memory-utilization
       - "0.70"
       - --kv-cache-memory
@@ -68,3 +69,13 @@ services:
       - qwen3
       - --speculative-config
       - '{"method":"mtp","num_speculative_tokens":2}'
+    healthcheck:
+      test:
+        - CMD
+        - python3
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=5)"
+      interval: 15s
+      timeout: 10s
+      retries: 80
+      start_period: 15m
