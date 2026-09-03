@@ -295,6 +295,8 @@ func (s *Server) llmMessages(ctx context.Context, items []db.Message, cfg config
 		for attachmentIndex, attachment := range item.Attachments {
 			isAudio := strings.HasPrefix(attachment.MIME, "audio/")
 			isVideo := strings.HasPrefix(attachment.MIME, "video/")
+			isImage := strings.HasPrefix(attachment.MIME, "image/")
+			isDocument := isDocumentAttachment(attachment)
 			isLatestVideo := isVideo && itemIndex == latestVideoItem && attachmentIndex == latestVideoAttachment
 			if isVideo && !isLatestVideo {
 				fingerprint := transcriptFingerprint(cfg.ASR)
@@ -305,7 +307,15 @@ func (s *Server) llmMessages(ctx context.Context, items []db.Message, cfg config
 				}
 				continue
 			}
-			if !isAudio {
+			if isDocument {
+				cached, err := s.extractDocumentAttachment(ctx, attachment)
+				if err != nil {
+					return nil, err
+				}
+				textParts = append(textParts, documentAttachmentBlock(attachment, cached))
+				continue
+			}
+			if isImage || isVideo {
 				dataURL, err := s.media.DataURL(attachment)
 				if err != nil {
 					return nil, fmt.Errorf("read media %s: %w", attachment.Name, err)
@@ -316,7 +326,7 @@ func (s *Server) llmMessages(ctx context.Context, items []db.Message, cfg config
 				}
 				parts = append(parts, map[string]any{"type": typeName, fieldName: map[string]string{"url": dataURL}})
 			}
-			if !isAudio && !isVideo {
+			if isImage {
 				continue
 			}
 			if !cfg.ASR.Enabled {

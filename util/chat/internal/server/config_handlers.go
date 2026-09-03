@@ -1,7 +1,9 @@
 package server
 
 import (
+	"context"
 	"encoding/json"
+	"io"
 	"net/http"
 	"time"
 
@@ -9,9 +11,29 @@ import (
 	"sparktalk/internal/config"
 	"sparktalk/internal/extra"
 	"sparktalk/internal/imagegen"
+	"sparktalk/internal/knowledge"
 	"sparktalk/internal/llm"
 	"sparktalk/internal/tts"
 )
+
+func healthEndpoint(ctx context.Context, endpoint string) map[string]any {
+	request, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
+	if err != nil {
+		return map[string]any{"status": "offline", "error": err.Error()}
+	}
+	client := &http.Client{Timeout: 800 * time.Millisecond}
+	response, err := client.Do(request)
+	if err != nil {
+		return map[string]any{"status": "offline", "error": err.Error()}
+	}
+	defer response.Body.Close()
+	if response.StatusCode < 200 || response.StatusCode >= 300 {
+		return map[string]any{"status": "offline", "error": response.Status}
+	}
+	result := map[string]any{"status": "ok"}
+	_ = json.NewDecoder(io.LimitReader(response.Body, 64<<10)).Decode(&result)
+	return result
+}
 
 func (s *Server) health(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
@@ -37,7 +59,10 @@ func (s *Server) health(w http.ResponseWriter, r *http.Request) {
 		"asr":   s.asrSnapshot().Health(r.Context()),
 		"tts":   s.ttsSnapshot().Health(r.Context()),
 		"image": imageHealth,
-		"extra": map[string]any{"ssh": s.extraSnapshot().Health(r.Context())},
+		"extra": map[string]any{
+			"ssh":       s.extraSnapshot().Health(r.Context()),
+			"collector": healthEndpoint(r.Context(), cfg.Extra.CollectorEndpoint+"/health"),
+		},
 	})
 }
 
@@ -110,6 +135,7 @@ func (s *Server) replaceConfig(next config.Config) {
 	s.asr = asr.New(next.ASR)
 	s.tts = tts.New(next.TTS)
 	s.extra = extra.New(next.Extra.SSHEndpoint)
+	s.collector = knowledge.NewCollectorClient(next.Extra.CollectorEndpoint)
 	s.mu.Unlock()
 }
 

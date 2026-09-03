@@ -1,10 +1,58 @@
 package db
 
 import (
+	"database/sql"
 	"fmt"
 	"path/filepath"
 	"testing"
+	"time"
 )
+
+func TestLegacyMemoriesGainExplicitPriority(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "legacy-memory.db")
+	legacy, err := sql.Open("sqlite", path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = legacy.Exec(`
+		CREATE TABLE memories (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			kind TEXT NOT NULL,
+			title TEXT NOT NULL DEFAULT '',
+			content TEXT NOT NULL,
+			enabled INTEGER NOT NULL DEFAULT 1,
+			source_session_id TEXT NOT NULL DEFAULT '',
+			source_message_id INTEGER NOT NULL DEFAULT 0,
+			created_at DATETIME NOT NULL,
+			updated_at DATETIME NOT NULL
+		);
+		INSERT INTO memories(kind,title,content,enabled,source_session_id,source_message_id,created_at,updated_at)
+		VALUES ('memory','직접 기억','직접 입력',1,'',0,?,?),
+		       ('memory','대화 저장','대화 원문',1,'session',17,?,?);
+	`, time.Now(), time.Now(), time.Now(), time.Now())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := legacy.Close(); err != nil {
+		t.Fatal(err)
+	}
+	store, err := Open(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer store.Close()
+	items, err := store.Memories()
+	if err != nil || len(items) != 2 {
+		t.Fatalf("memories=%+v err=%v", items, err)
+	}
+	priorities := map[string]string{}
+	for _, item := range items {
+		priorities[item.Title] = item.Priority
+	}
+	if priorities["직접 기억"] != "preferred" || priorities["대화 저장"] != "reference" {
+		t.Fatalf("migrated priorities=%+v", priorities)
+	}
+}
 
 func TestMemoryCRUDAndCrossSessionSearch(t *testing.T) {
 	store, err := Open(filepath.Join(t.TempDir(), "memory.db"))
@@ -41,15 +89,15 @@ func TestMemoryCRUDAndCrossSessionSearch(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	profile, err := store.AddMemory("user", "응답 형식", "답변은 짧고 간결하게 작성", "", 0)
+	profile, err := store.AddMemory("user", "preferred", "응답 형식", "답변은 짧고 간결하게 작성", "", 0)
 	if err != nil {
 		t.Fatal(err)
 	}
-	durable, err := store.AddMemory("memory", "메모리 기준", "DGX Spark에서는 시스템 가용 메모리를 기준으로 판단", "old", 1)
+	durable, err := store.AddMemory("memory", "reference", "메모리 기준", "DGX Spark에서는 시스템 가용 메모리를 기준으로 판단", "old", 1)
 	if err != nil {
 		t.Fatal(err)
 	}
-	duplicate, err := store.AddMemory("memory", "다른 제목", "중복 내용", "old", 1)
+	duplicate, err := store.AddMemory("memory", "preferred", "다른 제목", "중복 내용", "old", 1)
 	if err != nil || duplicate.ID != durable.ID {
 		t.Fatalf("source message duplicate=%+v original=%+v err=%v", duplicate, durable, err)
 	}
@@ -89,7 +137,7 @@ func TestMemoryCRUDAndCrossSessionSearch(t *testing.T) {
 	if err != nil || none == nil || len(none) != 0 {
 		t.Fatalf("empty result must be []: %#v err=%v", none, err)
 	}
-	if _, err := store.UpdateMemory(durable.ID, durable.Kind, durable.Title, durable.Content, false); err != nil {
+	if _, err := store.UpdateMemory(durable.ID, durable.Kind, durable.Priority, durable.Title, durable.Content, false); err != nil {
 		t.Fatal(err)
 	}
 	memories, err = store.SearchMemories("Spark 메모리 상태", 5)
@@ -130,5 +178,47 @@ func TestConversationSearchUsesBoundedCursorPages(t *testing.T) {
 	relevantSecond, _, err := store.SearchConversationPage("대규모검색키워드", ConversationSearchOptions{Limit: 10, Sort: "relevance", Scope: "content", CursorID: relevantCursor.MessageID, CursorRank: relevantCursor.Rank})
 	if err != nil || len(relevantSecond) != 10 || relevantFirst[len(relevantFirst)-1].MessageID == relevantSecond[0].MessageID {
 		t.Fatalf("relevance second=%d err=%v", len(relevantSecond), err)
+	}
+}
+
+func TestMemoryRecallRanksExactTitleAboveIncidentalContent(t *testing.T) {
+	store, err := Open(filepath.Join(t.TempDir(), "memory-rank.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer store.Close()
+	if _, err := store.AddMemory("memory", "reference", "일반 메모", "DFlash2 튜닝은 나중에 확인한다.", "", 0); err != nil {
+		t.Fatal(err)
+	}
+	exact, err := store.AddMemory("memory", "preferred", "DFlash2 튜닝", "draft token 8을 기준으로 사용한다.", "", 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	items, err := store.SearchMemories("DFlash2 튜닝", 2)
+	if err != nil || len(items) != 2 || items[0].Title != exact.Title {
+		t.Fatalf("ranked items=%+v err=%v", items, err)
+	}
+}
+
+func TestFindMemoriesIncludesDisabledItemsAndIgnoresCommandWords(t *testing.T) {
+	store, err := Open(filepath.Join(t.TempDir(), "memory-manage.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer store.Close()
+	item, err := store.AddMemory("memory", "preferred", "주력 장비", "주력 장비는 DGX Spark다.", "", 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := store.UpdateMemory(item.ID, item.Kind, item.Priority, item.Title, item.Content, false); err != nil {
+		t.Fatal(err)
+	}
+	items, err := store.FindMemories("DGX Spark 기억을 보여줘", 8)
+	if err != nil || len(items) != 1 || items[0].ID != item.ID || items[0].Enabled {
+		t.Fatalf("managed search=%+v err=%v", items, err)
+	}
+	items, err = store.FindMemories("뭘 기억하고 있지", 8)
+	if err != nil || len(items) != 1 || items[0].ID != item.ID {
+		t.Fatalf("recent memory list=%+v err=%v", items, err)
 	}
 }

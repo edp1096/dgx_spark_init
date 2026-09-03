@@ -10,7 +10,11 @@
   export let onRecall = () => {};
 
   $: percent = state?.input_budget > 0 ? Math.min(100, Math.round((state.estimated_tokens || 0) * 100 / state.input_budget)) : 0;
-  const recallLabel = (item) => item.kind === 'user' ? '사용자 설정' : item.kind === 'memory' ? '장기 기억' : '과거 대화';
+  const recallLabel = (item) => {
+    if (item.kind !== 'user' && item.kind !== 'memory') return '과거 대화';
+    const scope = item.kind === 'user' ? '항상 참고' : '관련 기억';
+    return item.priority === 'preferred' ? `${scope} · 우선 적용` : `${scope} · 참고`;
+  };
 </script>
 
 <nav class="context-rail" aria-label="컨텍스트 지도">

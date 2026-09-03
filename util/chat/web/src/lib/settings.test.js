@@ -10,7 +10,8 @@ test('normalizes partial public settings without duplicating backend defaults', 
   assert.equal(settings.model.system_prompt_preset, '');
   assert.equal(settings.appearance.theme, 'system');
   assert.deepEqual(settings.tts, { hanja_reading: 'korean', omit_parentheticals: true });
-  for (const section of ['server', 'context', 'memory', 'asr', 'tools', 'extra']) {
+  assert.deepEqual(settings.memory, { always_max_results: 6, always_token_budget: 1024, max_results: 5, token_budget: 2048 });
+  for (const section of ['server', 'context', 'asr', 'tools', 'extra']) {
     assert.deepEqual(settings[section], {});
   }
 });

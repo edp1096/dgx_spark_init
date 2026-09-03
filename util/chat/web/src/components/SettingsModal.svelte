@@ -180,7 +180,7 @@
       </div>
 
       <div id="settings-panel-memory" class="settings-tab-panel" class:active={activeTab === 'memory'} role="tabpanel" aria-labelledby="settings-tab-memory">
-        <MemorySettings config={settings.memory} onnotify={notify} />
+        <MemorySettings config={settings.memory} />
       </div>
 
       <div id="settings-panel-voice" class="settings-tab-panel" class:active={activeTab === 'voice'} role="tabpanel" aria-labelledby="settings-tab-voice">

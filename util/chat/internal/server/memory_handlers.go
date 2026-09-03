@@ -12,6 +12,7 @@ import (
 
 type memoryRequest struct {
 	Kind            string `json:"kind"`
+	Priority        string `json:"priority"`
 	Title           string `json:"title"`
 	Content         string `json:"content"`
 	Enabled         *bool  `json:"enabled,omitempty"`
@@ -38,7 +39,7 @@ func (s *Server) memories(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, message, http.StatusBadRequest)
 			return
 		}
-		item, err := s.db.AddMemory(req.Kind, req.Title, req.Content, req.SourceSessionID, req.SourceMessageID)
+		item, err := s.db.AddMemory(req.Kind, req.Priority, req.Title, req.Content, req.SourceSessionID, req.SourceMessageID)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -71,7 +72,7 @@ func (s *Server) memory(w http.ResponseWriter, r *http.Request) {
 		if req.Enabled != nil {
 			enabled = *req.Enabled
 		}
-		item, err := s.db.UpdateMemory(id, req.Kind, req.Title, req.Content, enabled)
+		item, err := s.db.UpdateMemory(id, req.Kind, req.Priority, req.Title, req.Content, enabled)
 		if err != nil {
 			writeMemoryError(w, err)
 			return
@@ -90,11 +91,18 @@ func (s *Server) memory(w http.ResponseWriter, r *http.Request) {
 
 func normalizeMemoryRequest(req *memoryRequest) string {
 	req.Kind = strings.ToLower(strings.TrimSpace(req.Kind))
+	req.Priority = strings.ToLower(strings.TrimSpace(req.Priority))
+	if req.Priority == "" {
+		req.Priority = "preferred"
+	}
 	req.Title = strings.TrimSpace(req.Title)
 	req.Content = strings.TrimSpace(req.Content)
 	req.SourceSessionID = strings.TrimSpace(req.SourceSessionID)
 	if req.Kind != "user" && req.Kind != "memory" {
 		return "memory kind must be user or memory"
+	}
+	if req.Priority != "reference" && req.Priority != "preferred" {
+		return "memory priority must be reference or preferred"
 	}
 	if req.Content == "" || utf8.RuneCountInString(req.Content) > 8000 {
 		return "memory content must be between 1 and 8000 characters"

@@ -10,7 +10,7 @@
   let loading = true;
 
   const toolNames = {
-    skill_view: 'Skill 불러오기', memory_propose: '기억 제안', web_search: '웹 검색', web_fetch: '페이지 읽기',
+		skill_view: 'Skill 불러오기', memory_propose: '기억 제안', web_search: '웹 검색', web_fetch: '페이지 읽기', web_collect: '브라우저 수집',
     media_import: '미디어 가져오기', image_generate: '이미지 생성', image_capabilities: '이미지 기능 확인', ssh_exec: 'SSH 실행',
   };
   const decisionNames = { executed: '완료', stored: '저장', automatic: '자동 허용', once: '이번만 허용', conversation: '대화 허용', reject: '거부', execution_error: '실패' };

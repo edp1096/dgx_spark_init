@@ -14,8 +14,29 @@ import (
 	"sparktalk/internal/asr"
 	"sparktalk/internal/config"
 	"sparktalk/internal/db"
+	"sparktalk/internal/knowledge"
 	"sparktalk/internal/media"
 )
+
+func TestLLMMessagesExtractsDocumentAttachment(t *testing.T) {
+	store, err := media.New(t.TempDir() + "/chat.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	document, err := store.SaveAttachment(testFileHeader(t, "notes.md", "text/markdown", []byte("# 회의록\n\n저항은 10킬로옴입니다.")))
+	if err != nil {
+		t.Fatal(err)
+	}
+	server := &Server{media: store, knowledgeIndex: &knowledge.Extractor{}}
+	messages, err := server.llmMessages(context.Background(), []db.Message{{Role: "user", Content: "요약해줘", Attachments: []db.Attachment{document}}}, config.Config{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	data, _ := json.Marshal(messages[0].Content)
+	if !strings.Contains(string(data), "document_attachment") || !strings.Contains(string(data), "10킬로옴") || strings.Contains(string(data), "data:text") {
+		t.Fatalf("unexpected document prompt: %s", data)
+	}
+}
 
 func TestLLMMessagesTranscribesAudioAndKeepsVideoVisuals(t *testing.T) {
 	store, err := media.New(t.TempDir() + "/chat.db")

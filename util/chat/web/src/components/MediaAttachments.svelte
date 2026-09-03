@@ -16,6 +16,10 @@
         <span><strong>♪ {attachment.name}</strong><small>{formatAttachmentSize(attachment.size)}</small></span>
         <audio src={attachment.url} controls preload="metadata"></audio>
       </div>
+	{:else if kind === 'document'}
+		<a class="media-file document-file" href={attachment.url} target="_blank" rel="noreferrer" title={attachment.name}>
+			<span>▤</span><strong>{attachment.name}</strong><small>{formatAttachmentSize(attachment.size)} · 문서</small>
+		</a>
     {:else if canPreviewVideo(attachment)}
       <div class="media-player video-player">
         <!-- svelte-ignore a11y_media_has_caption: user-provided video has no separate caption track -->

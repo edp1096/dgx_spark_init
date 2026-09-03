@@ -52,8 +52,15 @@ func (s *Store) Cleanup(referenced map[string]struct{}, keep map[string]struct{}
 	}
 	for _, entry := range entries {
 		id := entry.Name()
-		if strings.HasSuffix(id, ".asr.json") {
-			mediaID := strings.TrimSuffix(id, ".asr.json")
+		cacheSuffix := ""
+		for _, suffix := range []string{".asr.json", ".document.json"} {
+			if strings.HasSuffix(id, suffix) {
+				cacheSuffix = suffix
+				break
+			}
+		}
+		if cacheSuffix != "" {
+			mediaID := strings.TrimSuffix(id, cacheSuffix)
 			if mediaIDPattern.MatchString(mediaID) {
 				if _, statErr := os.Stat(filepath.Join(s.dir, mediaID)); os.IsNotExist(statErr) {
 					_ = os.Remove(filepath.Join(s.dir, id))
@@ -74,6 +81,9 @@ func (s *Store) Cleanup(referenced map[string]struct{}, keep map[string]struct{}
 			return Usage{}, err
 		}
 		if err := os.Remove(s.transcriptPath(id)); err != nil && !os.IsNotExist(err) {
+			return Usage{}, err
+		}
+		if err := os.Remove(s.documentPath(id)); err != nil && !os.IsNotExist(err) {
 			return Usage{}, err
 		}
 	}

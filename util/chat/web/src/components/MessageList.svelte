@@ -59,6 +59,8 @@
       const args = JSON.parse(tool.arguments || '{}');
       if (tool.name === 'ssh_exec') return `${args.host || ''}${args.command ? ` · ${args.command}` : ''}`;
       if (tool.name === 'memory_propose') return args.title || '';
+      if (tool.name === 'memory_manage') return `${memoryActionLabel(args.action)}${args.title ? ` · ${args.title}` : args.query ? ` · ${args.query}` : args.memory_id ? ` · #${args.memory_id}` : ''}`;
+		if (tool.name === 'knowledge_import') return args.action === 'list_collections' ? '보관함 목록' : `${args.collection || '보관함'} · ${args.urls?.length || 0}개`;
       if (isImageGenerateTool(tool.name)) return `${args.operation || 'generate'}${args.prompt ? ` · ${args.prompt}` : ''}`;
       return args.query || args.url || '';
     } catch { return tool.arguments || ''; }
@@ -69,7 +71,22 @@
     if (!tool.result) return '';
     try {
       const parsed = JSON.parse(tool.result);
+      if (tool.name === 'memory_manage') {
+        if (parsed.memories) return parsed.memories.length
+          ? parsed.memories.map((item) => `#${item.id} · ${memoryKindLabel(item.kind)} · ${memoryPriorityLabel(item.priority)} · ${item.enabled ? '사용' : '중지'}\n${item.title || '제목 없음'}\n${item.content}`).join('\n\n')
+          : '조건에 맞는 기억 없음';
+        const item = parsed.memory || parsed.deleted;
+        if (item) return `#${item.id} · ${item.title || '제목 없음'}\n${item.content}`;
+      }
+		if (tool.name === 'knowledge_import') {
+			if (parsed.collections) return parsed.collections.map((item) => `${item.name} · 자료 ${item.documents}개`).join('\n');
+			if (parsed.results) return parsed.results.map((item) => `${item.status === 'failed' ? '실패' : item.duplicate ? '이미 있음' : '추가'} · ${item.document?.title || item.url}${item.error ? `\n${item.error}` : ''}`).join('\n\n');
+		}
       if (parsed.results) return parsed.results.map((item) => `${item.title}\n${item.url}\n${item.snippet || ''}`).join('\n\n');
+		if (tool.name === 'web_collect') {
+			const publication = parsed.publication ? `전자책 ${parsed.publication.page_count}쪽 · ${parsed.publication.adapter} 어댑터` : '';
+			return [parsed.content, publication].filter(Boolean).join('\n\n') || `${parsed.title || '페이지'} · ${parsed.method || 'collector'}`;
+		}
       if (parsed.content) return parsed.content;
       if (tool.name === 'media_import' && parsed.attachment) return `${parsed.attachment.name} · ${(parsed.attachment.size / 1024 / 1024).toFixed(1)} MB`;
       if (isImageCapabilitiesTool(tool.name)) return `작업 ${parsed.operations?.length || 0}개 · 사용자 LoRA ${parsed.user_loras?.length || 0}개`;
@@ -95,9 +112,12 @@
   function toolLabel(tool) {
     if (tool.name === 'web_search') return '웹 검색';
     if (tool.name === 'web_fetch') return '페이지 읽기';
+		if (tool.name === 'web_collect') return '브라우저 수집';
     if (tool.name === 'ssh_exec') return 'SSH 실행';
     if (tool.name === 'media_import') return '미디어 가져오기';
     if (tool.name === 'memory_propose') return '기억 제안';
+    if (tool.name === 'memory_manage') return '기억 관리';
+		if (tool.name === 'knowledge_import') return '지식 가져오기';
     if (isImageCapabilitiesTool(tool.name)) return '이미지 기능 확인';
     if (isImageGenerateTool(tool.name)) return '이미지 생성';
     return tool.name || '도구';
@@ -105,9 +125,33 @@
 
   function toolRunningLabel(tool) {
     if (tool.name === 'media_import') return '미디어 다운로드·분석 준비 중…';
+    if (tool.name === 'memory_manage') return '기억 검색·변경 준비 중…';
+		if (tool.name === 'knowledge_import') return '지식 자료 확인·색인 중…';
     if (isImageCapabilitiesTool(tool.name)) return '이미지 모듈·LoRA 확인 중…';
     if (isImageGenerateTool(tool.name)) return '이미지 생성·편집 중…';
     return tool.execution_status === 'running' ? '명령 실행 중…' : '실행 준비 중…';
+  }
+
+  function memoryKindLabel(kind) {
+    return kind === 'user' ? '항상 참고' : '관련 있을 때 참고';
+  }
+
+  function memoryPriorityLabel(priority) {
+    return priority === 'reference' ? '참고' : '우선 적용';
+  }
+
+  function memoryActionLabel(action) {
+    return ({ search: '검색', create: '추가', update: '수정', delete: '삭제' })[action] || '관리';
+  }
+
+  function memoryApprovalTitle(action) {
+    return `기억 ${memoryActionLabel(action)} 승인`;
+  }
+
+  function memoryApprovalButton(action) {
+    if (action === 'delete') return '삭제 승인';
+    if (action === 'update') return '변경 승인';
+    return '기억에 저장';
   }
 
   function render(text) {
@@ -185,10 +229,28 @@
             {#each message.tool_trace.filter((tool) => tool.approval_required) as tool}
               <div class="tool-approval" data-approval-id={tool.approval_id || ''}>
                 {#if tool.approval_kind === 'memory'}
-                  <div class="tool-approval-title"><strong>기억 저장 승인</strong><span>{tool.kind === 'user' ? '사용자 설정' : '장기 기억'}</span></div>
+                  <div class="tool-approval-title"><strong>기억 저장 승인</strong><span>{tool.kind === 'user' ? '항상 참고' : '관련 있을 때 참고'} · {memoryPriorityLabel(tool.priority)}</span></div>
                   <strong>{tool.title}</strong><p class="memory-proposal-content">{tool.content}</p>
                   {#if tool.approval_error}<p class="tool-error">{tool.approval_error}</p>{/if}
                   <div class="tool-approval-actions"><button onclick={() => onToolApproval(tool, 'reject')} disabled={tool.approving}>거부</button><button class="approve" onclick={() => onToolApproval(tool, 'once')} disabled={tool.approving}>{tool.approving ? '저장 중…' : '기억에 저장'}</button></div>
+                {:else if tool.approval_kind === 'memory_manage'}
+                  <div class="tool-approval-title"><strong>{memoryApprovalTitle(tool.action)}</strong><span>{tool.memory_id ? `#${tool.memory_id}` : '새 항목'} · {memoryKindLabel(tool.kind)} · {memoryPriorityLabel(tool.priority)}</span></div>
+                  {#if tool.action === 'update'}
+                    <div class="memory-change-grid">
+                      <section><small>현재 · {memoryKindLabel(tool.before_kind)} · {memoryPriorityLabel(tool.before_priority)} · {tool.before_enabled ? '사용' : '중지'}</small><strong>{tool.before_title || '제목 없는 기억'}</strong><p class="memory-proposal-content">{tool.before_content}</p></section>
+                      <section><small>변경 후 · {memoryKindLabel(tool.kind)} · {memoryPriorityLabel(tool.priority)} · {tool.enabled ? '사용' : '중지'}</small><strong>{tool.title || '제목 없는 기억'}</strong><p class="memory-proposal-content">{tool.content}</p></section>
+                    </div>
+                  {:else}
+                    <strong>{tool.title || '제목 없는 기억'}</strong><p class="memory-proposal-content">{tool.content}</p>
+                  {/if}
+                  {#if tool.approval_error}<p class="tool-error">{tool.approval_error}</p>{/if}
+                  <div class="tool-approval-actions"><button onclick={() => onToolApproval(tool, 'reject')} disabled={tool.approving}>거부</button><button class="approve" class:danger={tool.action === 'delete'} onclick={() => onToolApproval(tool, 'once')} disabled={tool.approving}>{tool.approving ? '처리 중…' : memoryApprovalButton(tool.action)}</button></div>
+				{:else if tool.approval_kind === 'knowledge_import'}
+					<div class="tool-approval-title"><strong>지식 가져오기 승인</strong><span>{tool.collection_name} · {tool.urls?.length || 0}개</span></div>
+					<div class="knowledge-import-urls">{#each tool.urls || [] as url}<code>{url}</code>{/each}</div>
+					<small>승인하면 원문을 내려받아 보관하고 검색 가능한 형태로 색인합니다.</small>
+					{#if tool.approval_error}<p class="tool-error">{tool.approval_error}</p>{/if}
+					<div class="tool-approval-actions"><button onclick={() => onToolApproval(tool, 'reject')} disabled={tool.approving}>거부</button><button class="approve" onclick={() => onToolApproval(tool, 'once')} disabled={tool.approving}>{tool.approving ? '가져오는 중…' : '가져오기 승인'}</button></div>
                 {:else}
                   <div class="tool-approval-title"><strong>SSH 명령 실행 승인</strong><span>{tool.host_name || tool.host}</span></div>
                   {#if tool.host_key?.fingerprint}<div class="tool-host-key-warning"><strong>처음 연결하는 서버</strong><span>호스트 키 지문을 확인하세요.</span><code>{tool.host_key.fingerprint}</code></div>{/if}

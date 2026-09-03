@@ -93,6 +93,17 @@
       "startup_timeout_seconds": 90,
       "compose_asset": "compose.extra-ssh.yaml",
       "progress_kind": "service"
+    },
+    {
+      "id": "extra-collector",
+      "name": "Extra Collector",
+      "role": "tool",
+      "container": "sparktalk-extra-collector",
+      "health_url": "http://127.0.0.1:8695/health",
+      "memory_gib": 0.3,
+      "startup_timeout_seconds": 120,
+      "compose_asset": "compose.extra-collector.yaml",
+      "progress_kind": "service"
     }
   ],
   "bundles": [
@@ -103,7 +114,7 @@
       "model_type": "qwen3.8",
       "model_id": "Huihui-RadixArk-Qwen3.8-27B-abliterated-NVFP4",
       "context_tokens": 32768,
-      "components": ["qwen27", "flux2", "nemotron-asr", "magpie-tts", "extra-media", "extra-ssh"]
+      "components": ["qwen27", "flux2", "nemotron-asr", "magpie-tts", "extra-media", "extra-ssh", "extra-collector"]
     },
     {
       "id": "flash-next",
@@ -112,7 +123,7 @@
       "model_type": "qwen3.8",
       "model_id": "qwen3.8-flash-next",
       "context_tokens": 65536,
-      "components": ["flash-next", "flux2", "nemotron-asr", "magpie-tts", "extra-media", "extra-ssh"]
+      "components": ["flash-next", "flux2", "nemotron-asr", "magpie-tts", "extra-media", "extra-ssh", "extra-collector"]
     },
     {
       "id": "gemma",
@@ -121,7 +132,7 @@
       "model_type": "gemma4",
       "model_id": "Huihui-gemma-4-31B-it-abliterated-v2-NVFP4",
       "context_tokens": 32768,
-      "components": ["gemma31", "flux2", "nemotron-asr", "magpie-tts", "extra-media", "extra-ssh"]
+      "components": ["gemma31", "flux2", "nemotron-asr", "magpie-tts", "extra-media", "extra-ssh", "extra-collector"]
     }
   ]
 }

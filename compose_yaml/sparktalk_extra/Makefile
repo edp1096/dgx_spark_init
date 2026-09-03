@@ -4,7 +4,7 @@ SSH_DATA_DIR ?= /home/edp1096/.local/share/sparktalk/extra/ssh
 SSH_KEY ?=
 SSH_KEY_ID ?=
 
-.PHONY: init test build up down logs ps clean purge media-logs ssh-logs ytdlp-version ytdlp-update ytdlp-reset ssh-key-import
+.PHONY: init test build up down logs ps clean purge collector-logs media-logs ssh-logs ytdlp-version ytdlp-update ytdlp-reset ssh-key-import
 
 init:
 	mkdir -p "$(SSH_DATA_DIR)/keys" "$(SSH_DATA_DIR)/state"
@@ -25,7 +25,10 @@ down:
 	$(COMPOSE) down
 
 logs:
-	$(COMPOSE) logs -f media ssh
+	$(COMPOSE) logs -f collector media ssh
+
+collector-logs:
+	$(COMPOSE) logs -f collector
 
 media-logs:
 	$(COMPOSE) logs -f media

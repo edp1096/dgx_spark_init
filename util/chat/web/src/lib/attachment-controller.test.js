@@ -27,7 +27,7 @@ test('attachment controller rejects unsupported and oversized files', () => {
     onError: (_sessionId, message) => errors.push(message),
   });
   controller.select('one');
-  assert.equal(controller.addFiles([{ name: 'note.txt', type: 'text/plain', size: 10 }]), false);
+	assert.equal(controller.addFiles([{ name: 'legacy.hwp', type: 'application/octet-stream', size: 10 }]), false);
   assert.equal(controller.addFiles([{ name: 'large.png', type: 'image/png', size: 16 * 1024 * 1024 }]), false);
   assert.match(errors[0], /지원되는/u);
   assert.match(errors[1], /15MB/u);

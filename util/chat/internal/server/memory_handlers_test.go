@@ -28,6 +28,9 @@ func TestMemoryHandlersCRUD(t *testing.T) {
 	if err := json.Unmarshal(create.Body.Bytes(), &item); err != nil {
 		t.Fatal(err)
 	}
+	if item.Priority != "preferred" {
+		t.Fatalf("default priority = %q", item.Priority)
+	}
 
 	list := httptest.NewRecorder()
 	server.memories(list, httptest.NewRequest(http.MethodGet, "/api/memories", nil))
@@ -36,8 +39,8 @@ func TestMemoryHandlersCRUD(t *testing.T) {
 	}
 
 	update := httptest.NewRecorder()
-	server.memory(update, httptest.NewRequest(http.MethodPut, "/api/memories/"+strconv.FormatInt(item.ID, 10), strings.NewReader(`{"kind":"user","title":"말투","content":"간결한 존댓말을 사용한다","enabled":false}`)))
-	if update.Code != http.StatusOK || !strings.Contains(update.Body.String(), `"enabled":false`) {
+	server.memory(update, httptest.NewRequest(http.MethodPut, "/api/memories/"+strconv.FormatInt(item.ID, 10), strings.NewReader(`{"kind":"user","priority":"reference","title":"말투","content":"간결한 존댓말을 사용한다","enabled":false}`)))
+	if update.Code != http.StatusOK || !strings.Contains(update.Body.String(), `"enabled":false`) || !strings.Contains(update.Body.String(), `"priority":"reference"`) {
 		t.Fatalf("update status = %d, body = %s", update.Code, update.Body.String())
 	}
 

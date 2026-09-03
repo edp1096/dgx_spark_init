@@ -83,11 +83,13 @@ context:
   image_tokens: 2048
 
 memory:
-  # 사용자 기억과 관련 있는 과거 대화만 제한된 크기로 모델에 전달합니다.
+  # 항상 참고하는 기억과 관련 있을 때만 회수하는 기억의 한도를 따로 관리합니다.
   enabled: true
   recall_sessions: true
   # 모델은 저장 후보만 제안하며 실제 저장은 화면 승인이 필요합니다.
   allow_proposals: true
+  always_max_results: 6
+  always_token_budget: 1024
   max_results: 5
   token_budget: 2048
 
@@ -116,6 +118,8 @@ extra:
   # 등록한 서버에 대한 SSH 명령은 항상 화면 승인을 받은 뒤 실행합니다.
   ssh_enabled: false
   ssh_endpoint: http://127.0.0.1:8699
+  # 웹 문서의 직접 요청과 격리 브라우저 수집을 담당합니다.
+  collector_endpoint: http://127.0.0.1:8695
 
 appearance:
   # dark, light, system 중 하나를 사용합니다.

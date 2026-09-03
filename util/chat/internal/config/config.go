@@ -118,11 +118,13 @@ type ContextConfig struct {
 // MemoryConfig controls bounded cross-session recall. The source transcript
 // stays in SQLite; only a small relevant excerpt is added to model context.
 type MemoryConfig struct {
-	Enabled        bool `yaml:"enabled" json:"enabled"`
-	RecallSessions bool `yaml:"recall_sessions" json:"recall_sessions"`
-	AllowProposals bool `yaml:"allow_proposals" json:"allow_proposals"`
-	MaxResults     int  `yaml:"max_results" json:"max_results"`
-	TokenBudget    int  `yaml:"token_budget" json:"token_budget"`
+	Enabled           bool `yaml:"enabled" json:"enabled"`
+	RecallSessions    bool `yaml:"recall_sessions" json:"recall_sessions"`
+	AllowProposals    bool `yaml:"allow_proposals" json:"allow_proposals"`
+	AlwaysMaxResults  int  `yaml:"always_max_results" json:"always_max_results"`
+	AlwaysTokenBudget int  `yaml:"always_token_budget" json:"always_token_budget"`
+	MaxResults        int  `yaml:"max_results" json:"max_results"`
+	TokenBudget       int  `yaml:"token_budget" json:"token_budget"`
 }
 
 type ToolsConfig struct {
@@ -147,8 +149,9 @@ type ImageConfig struct {
 }
 
 type ExtraConfig struct {
-	SSHEnabled  bool   `yaml:"ssh_enabled" json:"ssh_enabled"`
-	SSHEndpoint string `yaml:"ssh_endpoint" json:"ssh_endpoint"`
+	SSHEnabled        bool   `yaml:"ssh_enabled" json:"ssh_enabled"`
+	SSHEndpoint       string `yaml:"ssh_endpoint" json:"ssh_endpoint"`
+	CollectorEndpoint string `yaml:"collector_endpoint" json:"collector_endpoint"`
 }
 
 type AppearanceConfig struct {
@@ -413,6 +416,7 @@ func (c *Config) Normalize() {
 	c.Image.DefaultSize = strings.ToLower(strings.TrimSpace(c.Image.DefaultSize))
 	c.Image.Timeout = strings.TrimSpace(c.Image.Timeout)
 	c.Extra.SSHEndpoint = strings.TrimRight(strings.TrimSpace(c.Extra.SSHEndpoint), "/")
+	c.Extra.CollectorEndpoint = strings.TrimRight(strings.TrimSpace(c.Extra.CollectorEndpoint), "/")
 	for i := range c.Model.SystemPromptPresets {
 		c.Model.SystemPromptPresets[i].Name = strings.TrimSpace(c.Model.SystemPromptPresets[i].Name)
 		c.Model.SystemPromptPresets[i].Prompt = strings.TrimSpace(c.Model.SystemPromptPresets[i].Prompt)
@@ -511,6 +515,9 @@ func (c *Config) Normalize() {
 	if c.Extra.SSHEndpoint == "" {
 		c.Extra.SSHEndpoint = "http://127.0.0.1:8699"
 	}
+	if c.Extra.CollectorEndpoint == "" {
+		c.Extra.CollectorEndpoint = "http://127.0.0.1:8695"
+	}
 	if c.Runtime.Mode == "managed" {
 		c.applyManagedRuntime()
 	}
@@ -541,6 +548,18 @@ func (c *Config) Normalize() {
 	}
 	if c.Memory.TokenBudget > 8192 {
 		c.Memory.TokenBudget = 8192
+	}
+	if c.Memory.AlwaysMaxResults <= 0 {
+		c.Memory.AlwaysMaxResults = 6
+	}
+	if c.Memory.AlwaysMaxResults > 12 {
+		c.Memory.AlwaysMaxResults = 12
+	}
+	if c.Memory.AlwaysTokenBudget <= 0 {
+		c.Memory.AlwaysTokenBudget = 1024
+	}
+	if c.Memory.AlwaysTokenBudget > 8192 {
+		c.Memory.AlwaysTokenBudget = 8192
 	}
 	c.Appearance.AssistantAvatar = normalizeAvatar(c.Appearance.AssistantAvatar, "preset:spark")
 	c.Appearance.UserAvatar = normalizeAvatar(c.Appearance.UserAvatar, "preset:person-blue")
@@ -644,6 +663,9 @@ func (c Config) Validate() error {
 	if c.Extra.SSHEnabled && !strings.HasPrefix(c.Extra.SSHEndpoint, "http://") && !strings.HasPrefix(c.Extra.SSHEndpoint, "https://") {
 		return errors.New("extra.ssh_endpoint must start with http:// or https://")
 	}
+	if !strings.HasPrefix(c.Extra.CollectorEndpoint, "http://") && !strings.HasPrefix(c.Extra.CollectorEndpoint, "https://") {
+		return errors.New("extra.collector_endpoint must start with http:// or https://")
+	}
 	if c.Context.WindowTokens < 0 {
 		return errors.New("context.window_tokens must be zero (auto) or greater")
 	}
@@ -658,6 +680,12 @@ func (c Config) Validate() error {
 	}
 	if c.Memory.TokenBudget < 256 || c.Memory.TokenBudget > 8192 {
 		return errors.New("memory.token_budget must be between 256 and 8192")
+	}
+	if c.Memory.AlwaysMaxResults < 1 || c.Memory.AlwaysMaxResults > 12 {
+		return errors.New("memory.always_max_results must be between 1 and 12")
+	}
+	if c.Memory.AlwaysTokenBudget < 256 || c.Memory.AlwaysTokenBudget > 8192 {
+		return errors.New("memory.always_token_budget must be between 256 and 8192")
 	}
 	return nil
 }
@@ -684,6 +712,7 @@ func (c *Config) ApplyManagedBundle(bundle string) {
 	c.Image.Endpoint = "http://127.0.0.1:8691"
 	c.Image.Model = "flux2-klein-4b-nvfp4"
 	c.Extra.SSHEndpoint = "http://127.0.0.1:8699"
+	c.Extra.CollectorEndpoint = "http://127.0.0.1:8695"
 	switch strings.ToLower(strings.TrimSpace(bundle)) {
 	case "qwen27":
 		c.Model.DefaultModel = "Huihui-RadixArk-Qwen3.8-27B-abliterated-NVFP4"

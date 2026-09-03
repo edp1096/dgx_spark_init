@@ -11,6 +11,10 @@ export function normalizePublicSettings(settings) {
   settings.model ||= {};
   settings.context ||= {};
   settings.memory ||= {};
+  if (!Number.isFinite(Number(settings.memory.always_max_results)) || Number(settings.memory.always_max_results) < 1) settings.memory.always_max_results = 6;
+  if (!Number.isFinite(Number(settings.memory.always_token_budget)) || Number(settings.memory.always_token_budget) < 256) settings.memory.always_token_budget = 1024;
+  if (!Number.isFinite(Number(settings.memory.max_results)) || Number(settings.memory.max_results) < 1) settings.memory.max_results = 5;
+  if (!Number.isFinite(Number(settings.memory.token_budget)) || Number(settings.memory.token_budget) < 256) settings.memory.token_budget = 2048;
   settings.asr ||= {};
   settings.tts ||= {};
   settings.tools ||= {};

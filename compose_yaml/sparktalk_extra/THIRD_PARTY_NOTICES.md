@@ -24,3 +24,9 @@ The container also includes the official yt-dlp standalone executable and Deno.
 
 The SSH service uses Go's `golang.org/x/crypto/ssh` package under the BSD
 3-Clause license. Source and license: https://pkg.go.dev/golang.org/x/crypto
+
+The Collector image installs Debian Chromium and uses `chromedp` to control it.
+
+- Debian package copyright files remain in `/usr/share/doc/*/copyright`.
+- Chromium source and license information: https://www.chromium.org/Home/
+- chromedp source and BSD 3-Clause license: https://github.com/chromedp/chromedp

@@ -2,11 +2,14 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { attachmentKind, canPreviewVideo, hasFileDrag, isSupportedAttachmentFile } from './attachments.js';
 
-test('accepts supported image, audio, and video files with MIME or extension fallbacks', () => {
+test('accepts supported media and document files with MIME or extension fallbacks', () => {
   assert.equal(isSupportedAttachmentFile({ name: 'photo.png', type: 'image/png' }), true);
   assert.equal(isSupportedAttachmentFile({ name: 'voice.wav', type: '' }), true);
   assert.equal(isSupportedAttachmentFile({ name: 'clip.wmv', type: 'application/octet-stream' }), true);
-  assert.equal(isSupportedAttachmentFile({ name: 'notes.txt', type: 'text/plain' }), false);
+	assert.equal(isSupportedAttachmentFile({ name: 'notes.txt', type: 'text/plain' }), true);
+	assert.equal(isSupportedAttachmentFile({ name: 'manual.pdf', type: 'application/pdf' }), true);
+	assert.equal(isSupportedAttachmentFile({ name: 'slides.pptx', type: '' }), true);
+	assert.equal(isSupportedAttachmentFile({ name: 'legacy.hwp', type: 'application/octet-stream' }), false);
 });
 
 test('recognizes file drags without depending on a file input change event', () => {
@@ -18,6 +21,7 @@ test('classifies attachments and limits inline video previews to browser-friendl
   assert.equal(attachmentKind({ name: 'voice.ogg', mime: 'audio/ogg' }), 'audio');
   assert.equal(attachmentKind({ name: 'movie.ogg', mime: 'video/ogg' }), 'video');
   assert.equal(attachmentKind({ name: 'photo.webp', mime: 'image/webp' }), 'image');
+	assert.equal(attachmentKind({ name: 'manual.pdf', mime: 'application/pdf' }), 'document');
   assert.equal(canPreviewVideo({ mime: 'video/mp4' }), true);
   assert.equal(canPreviewVideo({ mime: 'video/x-ms-wmv' }), false);
 });

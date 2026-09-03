@@ -52,18 +52,18 @@ export function createAttachmentController({ uploadFile, uploadURL, onState = ()
     const dropped = Array.from(files || []);
     const mediaFiles = dropped.filter(isSupportedAttachmentFile);
     if (!mediaFiles.length || blocked || !sessionId) {
-      if (dropped.length && !blocked) onError(sessionId, '지원되는 이미지·음성·비디오 파일만 첨부할 수 있습니다.');
+		if (dropped.length && !blocked) onError(sessionId, '지원되는 이미지·음성·비디오·문서 파일만 첨부할 수 있습니다.');
       return false;
     }
     const oversized = mediaFiles.find((file) => file.size > (attachmentKind(file) === 'image' ? maxImageBytes : maxAttachmentBytes));
     if (oversized) {
-      onError(sessionId, `${oversized.name}: ${attachmentKind(oversized) === 'image' ? '이미지는 15MB' : '음성·비디오는 64MB'} 이하여야 합니다.`);
+		onError(sessionId, `${oversized.name}: ${attachmentKind(oversized) === 'image' ? '이미지는 15MB' : '파일은 64MB'} 이하여야 합니다.`);
       return false;
     }
     const draft = drafts[sessionId] || [];
     const queued = queue.filter((item) => item.sessionId === sessionId);
     if (draft.length + queued.length + mediaFiles.length > maxAttachments) {
-      onError(sessionId, `미디어는 한 메시지에 최대 ${maxAttachments}개까지 첨부할 수 있습니다.`);
+		onError(sessionId, `파일은 한 메시지에 최대 ${maxAttachments}개까지 첨부할 수 있습니다.`);
       return false;
     }
     const totalBytes = draft.reduce((sum, item) => sum + (item.size || 0), 0)
@@ -124,7 +124,7 @@ export function createAttachmentController({ uploadFile, uploadURL, onState = ()
     }
     const draft = drafts[sessionId] || [];
     if (draft.length >= maxAttachments) {
-      onError(sessionId, `미디어는 한 메시지에 최대 ${maxAttachments}개까지 첨부할 수 있습니다.`);
+		onError(sessionId, `파일은 한 메시지에 최대 ${maxAttachments}개까지 첨부할 수 있습니다.`);
       return false;
     }
     uploadingSessionId = sessionId;

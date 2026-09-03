@@ -1,11 +1,12 @@
 # SparkTalk Extra
 
 SparkTalk의 부가기능을 담당하는 자체 Go 서비스 모음이다. 하나의 프로젝트와
-Makefile로 관리하지만, 신뢰할 수 없는 미디어 입력과 SSH 개인키가 같은 보안
-영역을 공유하지 않도록 두 컨테이너로 실행한다.
+Makefile로 관리하지만, 웹 수집·신뢰할 수 없는 미디어 입력·SSH 개인키가 같은
+보안 영역을 공유하지 않도록 세 컨테이너로 실행한다.
 
 | 서비스 | 이미지·컨테이너 | 기본 주소 | 역할 |
 |---|---|---|---|
+| Collector | `sparktalk-extra-collector` | `127.0.0.1:8695` | 공개 URL의 HTML·표·문서 수집과 필요 시 Chromium 렌더링 |
 | Media | `sparktalk-extra-media` | `127.0.0.1:8690` | FFmpeg, yt-dlp, Deno를 이용한 미디어 취득·변환 |
 | SSH | `sparktalk-extra-ssh` | `127.0.0.1:8699` | 등록 서버 연결 확인, 호스트 키 검증, 승인된 명령 실행 |
 
@@ -24,6 +25,7 @@ make ps
 
 ```bash
 make logs
+make collector-logs
 make media-logs
 make ssh-logs
 make down
@@ -162,6 +164,38 @@ SparkTalk 화면에서 기본적으로 개별 승인하며 stdout/stderr, 종료
 다른 서버에는 적용되지 않으며 명령, 개인키, 비밀번호는 이 권한 레코드에 저장하지
 않는다.
 
+## Collector API
+
+`auto`는 먼저 일반 HTTP로 원문을 가져오고, HTML 본문이 거의 없는 JavaScript
+셸일 때만 Chromium으로 다시 렌더링한다. `direct`와 `browser`로 방식을 고정할
+수도 있다. 결과 ZIP에는 `manifest.json`, 원문, 정규화 텍스트, 표·링크·네트워크 자원 JSON과
+브라우저 방식의 화면 캡처가 들어간다. HTML 표는 행과 열 경계를 유지한 텍스트와
+구조화 JSON을 함께 생성한다.
+
+전자책 처리는 Collector 내부의 `publicationAdapter` 레지스트리로 분리한다. 어댑터는
+출판사 도메인이 아니라 뷰어 엔진의 설정·자원 구조를 감지하고, 페이지 번호·원문 URL로
+구성된 `normalized/publication.json`을 만든다. 첫 어댑터인 `cbs-ibook`은 CBS iBook 호환
+뷰어의 `config.js`를 읽어 공개 PDF 페이지 계획을 만든다. 새 뷰어는 공통 수집·보안·ZIP
+규격을 수정하지 않고 어댑터 하나만 추가한다. 미지원 뷰어도 화면 캡처와
+`normalized/resources.json`이 남으므로 새 어댑터 분석 자료로 사용할 수 있다.
+
+Collector는 URL 한 건을 읽어 ZIP으로 돌려주는 무상태 서비스다. 전자책 전체를
+순회하거나 작업 이력·재시도·원문 보존 상태를 컨테이너 안에 저장하지 않는다.
+페이지 계획을 받은 SparkTalk이 SQLite 작업을 만들고 각 쪽을 다시 요청하므로,
+중지·재개·실패 재시도와 저장 파일 정리가 앱 데이터의 수명 주기를 따른다.
+
+```bash
+curl http://127.0.0.1:8695/health
+
+curl -H 'Content-Type: application/json' \
+  -d '{"url":"https://example.com","mode":"auto"}' \
+  http://127.0.0.1:8695/v1/collect -o collected.zip
+```
+
+직접 요청·리다이렉트·브라우저 하위 요청 모두에서 루프백, 사설망, 링크 로컬
+주소를 차단한다. 로그인·DRM·사람 확인을 우회하지 않으며 쿠키와 인증 헤더를
+영구 저장하지 않는다. Chromium 프로필은 요청별 임시 폴더에서 실행 후 삭제한다.
+
 ## Media API
 
 컨테이너 내부 API는 8698을 유지하고, 호스트에서는 SeedVR2의 8698과 충돌하지
@@ -221,6 +255,9 @@ curl -H 'Content-Type: application/json' \
 
 | 변수 | 기본값 | 의미 |
 |---|---:|---|
+| `SPARKTALK_EXTRA_COLLECTOR_PORT` | `8695` | Collector 호스트 포트 |
+| `SPARKTALK_EXTRA_COLLECTOR_MAX_MB` | `256` | 수집 원문 최대 크기 |
+| `SPARKTALK_EXTRA_COLLECTOR_MAX_CONCURRENCY` | `1` | 동시 브라우저·HTTP 수집 수 |
 | `SPARKTALK_EXTRA_MEDIA_PORT` | `8690` | Media 호스트 포트 |
 | `SPARKTALK_EXTRA_SSH_PORT` | `8699` | SSH 호스트 포트 |
 | `SPARKTALK_EXTRA_SSH_DATA_DIR` | 사용자 데이터 폴더 | 전용 키와 known_hosts 위치 |

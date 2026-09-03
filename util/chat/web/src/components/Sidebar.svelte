@@ -21,6 +21,8 @@
   export let onChangeSessionGroup = () => {};
   export let onRemoveSession = () => {};
   export let onOpenSettings = () => {};
+  export let onOpenLibrary = () => {};
+  export let libraryOpen = false;
   export let onStartResize = () => {};
   export let onSearchResult = () => {};
   export let onSearchMore = () => {};
@@ -182,7 +184,10 @@
       {/if}
     </section>
   </nav>
-  <button class="settings-button" onclick={onOpenSettings}>⚙ 설정</button>
+  <div class="sidebar-footer-actions">
+    <button class="library-button" class:active={libraryOpen} onclick={onOpenLibrary}>▤ 기억·지식</button>
+    <button class="settings-button" onclick={onOpenSettings}>⚙ 설정</button>
+  </div>
   <button class="resize-handle" onpointerdown={onStartResize} aria-label="사이드바 폭 조절"></button>
 </aside>
 <button class="sidebar-backdrop" onclick={onclose} aria-label="사이드바 닫기"></button>

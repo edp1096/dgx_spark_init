@@ -78,7 +78,7 @@
           {:else if attachmentKind(attachment) === 'video' && canPreviewVideo(attachment)}
             <video src={attachment.url} muted preload="metadata" aria-label={attachment.name}></video>
           {:else}
-            <span class="media-file-icon">{attachmentKind(attachment) === 'audio' ? '♪' : '▶'}</span>
+			<span class="media-file-icon">{attachmentKind(attachment) === 'audio' ? '♪' : attachmentKind(attachment) === 'document' ? '▤' : '▶'}</span>
           {/if}
           <span class="pending-media-name" title={attachment.name}>{attachment.name}<small>{formatAttachmentSize(attachment.size)}</small></span>
           <button onclick={() => onRemoveAttachment(attachment.id)} disabled={running} aria-label={`${attachment.name} 첨부 제거`}>×</button>
@@ -97,7 +97,7 @@
   <div class="composer" class:composer-expanded={composerExpanded} role="group" aria-label="메시지와 미디어 입력">
     <input class="media-input" bind:this={attachmentInput} type="file" accept={attachmentAccept} multiple onchange={onAttachmentInputChange} />
     <div class="composer-tools">
-      <button class="attach" onclick={() => attachmentInput?.click()} disabled={!activeId || running || uploadingAttachments || voiceState !== 'idle' || pendingAttachments.length >= 6} aria-label="미디어 첨부" title="이미지·음성·비디오 첨부">＋</button>
+		<button class="attach" onclick={() => attachmentInput?.click()} disabled={!activeId || running || uploadingAttachments || voiceState !== 'idle' || pendingAttachments.length >= 6} aria-label="파일 첨부" title="이미지·음성·비디오·문서 첨부">＋</button>
       <button class="attach attach-url" onclick={() => sourceOpen = !sourceOpen} disabled={!activeId || running || uploadingAttachments || voiceState !== 'idle' || pendingAttachments.length >= 6} aria-label="URL 미디어 첨부" title="YouTube 등 URL에서 미디어 가져오기">⌁</button>
       <button
         class="attach voice-input"
@@ -116,5 +116,5 @@
       {#if running}<button class="send stop" onclick={onStop} aria-label="응답 중지" title="응답 중지">■</button>{:else}<button class="send" onclick={onSend} disabled={!activeId || !input.trim() || uploadingAttachments || voiceState !== 'idle'} aria-label="메시지 전송" title="메시지 전송">↑</button>{/if}
     </div>
   </div>
-  <small class:voice-active={voiceState !== 'idle'}>{voiceState === 'recording' ? `녹음 중 ${voiceDuration(voiceSeconds)} · 마이크를 다시 누르면 인식합니다` : voiceState === 'requesting' ? '마이크 연결 중…' : voiceState === 'transcribing' ? '음성 인식 중…' : `파일 드래그 또는 URL 영상 첨부 · Enter 전송 · Shift+Enter 줄바꿈 · reasoning: ${reasoningEffort || '서버 기본값'} · 웹: ${webToolsEnabled ? '자동' : '꺼짐'}`}</small>
+	<small class:voice-active={voiceState !== 'idle'}>{voiceState === 'recording' ? `녹음 중 ${voiceDuration(voiceSeconds)} · 마이크를 다시 누르면 인식합니다` : voiceState === 'requesting' ? '마이크 연결 중…' : voiceState === 'transcribing' ? '음성 인식 중…' : `파일·URL 영상 첨부 · Enter 전송 · Shift+Enter 줄바꿈 · reasoning: ${reasoningEffort || '서버 기본값'} · 웹: ${webToolsEnabled ? '자동' : '꺼짐'}`}</small>
 </footer>

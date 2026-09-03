@@ -82,6 +82,7 @@ type ContextSegment struct {
 type Memory struct {
 	ID              int64     `json:"id"`
 	Kind            string    `json:"kind"`
+	Priority        string    `json:"priority"`
 	Title           string    `json:"title"`
 	Content         string    `json:"content"`
 	Enabled         bool      `json:"enabled"`
@@ -93,6 +94,7 @@ type Memory struct {
 
 type RecallItem struct {
 	Kind      string    `json:"kind"`
+	Priority  string    `json:"priority,omitempty"`
 	Title     string    `json:"title"`
 	Role      string    `json:"role,omitempty"`
 	Content   string    `json:"content"`
@@ -194,6 +196,7 @@ func Open(path string) (*DB, error) {
 		CREATE TABLE IF NOT EXISTS memories (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			kind TEXT NOT NULL CHECK(kind IN ('user','memory')),
+			priority TEXT NOT NULL DEFAULT 'reference' CHECK(priority IN ('reference','preferred')),
 			title TEXT NOT NULL DEFAULT '',
 			content TEXT NOT NULL,
 			enabled INTEGER NOT NULL DEFAULT 1,
@@ -285,6 +288,10 @@ func Open(path string) (*DB, error) {
 		conn.Close()
 		return nil, fmt.Errorf("migrate: %w", err)
 	}
+	if err := migrateKnowledge(conn); err != nil {
+		conn.Close()
+		return nil, fmt.Errorf("migrate knowledge: %w", err)
+	}
 	// Migrations from the initial MVP schema. Duplicate-column errors are safe.
 	_, _ = conn.Exec(`ALTER TABLE sessions ADD COLUMN model TEXT NOT NULL DEFAULT ''`)
 	_, _ = conn.Exec(`ALTER TABLE sessions ADD COLUMN reasoning_effort TEXT NOT NULL DEFAULT ''`)
@@ -295,6 +302,12 @@ func Open(path string) (*DB, error) {
 	_, _ = conn.Exec(`ALTER TABLE messages ADD COLUMN response_variants TEXT NOT NULL DEFAULT '[]'`)
 	_, _ = conn.Exec(`ALTER TABLE messages ADD COLUMN status TEXT NOT NULL DEFAULT 'completed'`)
 	_, _ = conn.Exec(`ALTER TABLE messages ADD COLUMN error TEXT NOT NULL DEFAULT ''`)
+	// Existing manually written or explicitly approved facts retain the strong
+	// behavior users expected before priority became configurable. A whole
+	// message saved with the +memory shortcut remains background reference.
+	if _, migrateErr := conn.Exec(`ALTER TABLE memories ADD COLUMN priority TEXT NOT NULL DEFAULT 'reference' CHECK(priority IN ('reference','preferred'))`); migrateErr == nil {
+		_, _ = conn.Exec(`UPDATE memories SET priority='preferred' WHERE source_message_id=0`)
+	}
 	_, _ = conn.Exec(`
 		INSERT INTO memory_search(rowid,kind,title,content)
 		SELECT memory_row.id,memory_row.kind,memory_row.title,memory_row.content

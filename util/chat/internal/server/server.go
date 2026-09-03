@@ -15,6 +15,7 @@ import (
 	"sparktalk/internal/config"
 	"sparktalk/internal/db"
 	"sparktalk/internal/extra"
+	"sparktalk/internal/knowledge"
 	"sparktalk/internal/llm"
 	"sparktalk/internal/media"
 	"sparktalk/internal/orchestrator"
@@ -22,25 +23,35 @@ import (
 )
 
 type Server struct {
-	mu             sync.RWMutex
-	cfg            config.Config
-	startup        config.ServerConfig
-	configPath     string
-	db             *db.DB
-	llm            *llm.Client
-	asr            *asr.Client
-	tts            *tts.Client
-	extra          *extra.Client
-	media          *media.Store
-	runtime        *orchestrator.Controller
-	server         *http.Server
-	contextMu      sync.Mutex
-	contextWindows map[string]int
-	compactionMu   sync.Mutex
-	asrMu          sync.Mutex
-	ttsMu          sync.Mutex
-	approvalsMu    sync.Mutex
-	approvals      map[string]*toolApproval
+	mu               sync.RWMutex
+	cfg              config.Config
+	startup          config.ServerConfig
+	configPath       string
+	db               *db.DB
+	llm              *llm.Client
+	asr              *asr.Client
+	tts              *tts.Client
+	extra            *extra.Client
+	media            *media.Store
+	knowledge        *knowledge.Store
+	knowledgeIndex   *knowledge.Extractor
+	collector        *knowledge.CollectorClient
+	runtime          *orchestrator.Controller
+	server           *http.Server
+	contextMu        sync.Mutex
+	contextWindows   map[string]int
+	compactionMu     sync.Mutex
+	asrMu            sync.Mutex
+	ttsMu            sync.Mutex
+	documentMu       sync.Mutex
+	knowledgeJobMu   sync.Mutex
+	knowledgeJobs    map[string]*knowledgeJobRun
+	knowledgeJobSem  chan struct{}
+	knowledgeOCRMu   sync.Mutex
+	knowledgeOCRJobs map[string]*knowledgeOCRRun
+	knowledgeOCRSem  chan struct{}
+	approvalsMu      sync.Mutex
+	approvals        map[string]*toolApproval
 }
 
 func New(cfg config.Config, configPath string, store *db.DB, client *llm.Client, embedded fs.FS) (*Server, error) {
@@ -51,6 +62,10 @@ func New(cfg config.Config, configPath string, store *db.DB, client *llm.Client,
 	mediaStore, err := media.New(cfg.Server.Database)
 	if err != nil {
 		return nil, fmt.Errorf("media storage: %w", err)
+	}
+	knowledgeStore, err := knowledge.New(cfg.Server.Database)
+	if err != nil {
+		return nil, fmt.Errorf("knowledge storage: %w", err)
 	}
 	runtimeController, err := orchestrator.NewController()
 	if err != nil {
@@ -68,7 +83,7 @@ func New(cfg config.Config, configPath string, store *db.DB, client *llm.Client,
 		cfg.Normalize()
 		client = llm.New(cfg.Model.Endpoint, cfg.Model.DefaultModel, cfg.Model.APIKey, cfg.Model.ModelType).WithThinkingBudget(cfg.Model.ThinkingBudget)
 	}
-	s := &Server{cfg: cfg, startup: cfg.Server, configPath: configPath, db: store, llm: client, asr: asr.New(cfg.ASR), tts: tts.New(cfg.TTS), extra: extra.New(cfg.Extra.SSHEndpoint), media: mediaStore, runtime: runtimeController, contextWindows: make(map[string]int), approvals: make(map[string]*toolApproval)}
+	s := &Server{cfg: cfg, startup: cfg.Server, configPath: configPath, db: store, llm: client, asr: asr.New(cfg.ASR), tts: tts.New(cfg.TTS), extra: extra.New(cfg.Extra.SSHEndpoint), media: mediaStore, knowledge: knowledgeStore, knowledgeIndex: &knowledge.Extractor{}, collector: knowledge.NewCollectorClient(cfg.Extra.CollectorEndpoint), runtime: runtimeController, contextWindows: make(map[string]int), approvals: make(map[string]*toolApproval), knowledgeJobs: make(map[string]*knowledgeJobRun), knowledgeJobSem: make(chan struct{}, 1), knowledgeOCRJobs: make(map[string]*knowledgeOCRRun), knowledgeOCRSem: make(chan struct{}, 1)}
 	mux := http.NewServeMux()
 	mux.HandleFunc("/api/health", s.health)
 	mux.HandleFunc("/api/config", s.configuration)
@@ -83,6 +98,14 @@ func New(cfg config.Config, configPath string, store *db.DB, client *llm.Client,
 	mux.HandleFunc("/api/media/source", s.uploadSource)
 	mux.HandleFunc("/api/memories", s.memories)
 	mux.HandleFunc("/api/memories/", s.memory)
+	mux.HandleFunc("/api/knowledge/collections", s.knowledgeCollections)
+	mux.HandleFunc("/api/knowledge/collections/", s.knowledgeCollection)
+	mux.HandleFunc("/api/knowledge/documents", s.knowledgeDocuments)
+	mux.HandleFunc("/api/knowledge/documents/", s.knowledgeDocument)
+	mux.HandleFunc("/api/knowledge/sources", s.collectKnowledgeSource)
+	mux.HandleFunc("/api/knowledge/jobs", s.knowledgeJobList)
+	mux.HandleFunc("/api/knowledge/jobs/", s.knowledgeJobAction)
+	mux.HandleFunc("/api/knowledge/search", s.searchKnowledge)
 	mux.HandleFunc("/api/search/page", s.searchConversationPage)
 	mux.HandleFunc("/api/search", s.searchConversations)
 	mux.HandleFunc("/api/skills", s.skillCatalog)
@@ -102,6 +125,14 @@ func New(cfg config.Config, configPath string, store *db.DB, client *llm.Client,
 	mux.HandleFunc("/api/chat", s.chat)
 	mux.Handle("/", spaHandler(web))
 	s.server = &http.Server{Addr: cfg.Server.ListenAddr, Handler: mux, ReadHeaderTimeout: 10 * time.Second}
+	if err := s.db.RecoverKnowledgeOCR(); err != nil {
+		return nil, fmt.Errorf("recover knowledge OCR: %w", err)
+	}
+	if recovered, recoverErr := s.db.RecoverKnowledgeJobs(); recoverErr == nil {
+		for _, job := range recovered {
+			s.scheduleKnowledgeJob(job.ID)
+		}
+	}
 	if cfg.Runtime.Mode == "managed" && cfg.Runtime.AutoStart {
 		_ = s.runtime.StartBundle(context.Background(), cfg.Runtime.Bundle, cfg.Runtime.MemoryReserveGiB)
 	}
@@ -132,6 +163,12 @@ func (s *Server) extraSnapshot() *extra.Client {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.extra
+}
+
+func (s *Server) collectorSnapshot() *knowledge.CollectorClient {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.collector
 }
 
 func spaHandler(web fs.FS) http.Handler {

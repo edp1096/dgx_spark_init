@@ -144,7 +144,7 @@ func runCompletionLoopForSessionWithMedia(
 				return completionResult{Reasoning: allReasoning.String(), ToolTrace: trace}, err
 			}
 			execution, toolErr := registry.execute(ctx, call, conversation, emit)
-			if server != nil && server.db != nil && call.Function.Name != "ssh_exec" && call.Function.Name != "memory_propose" {
+			if server != nil && server.db != nil && call.Function.Name != "ssh_exec" && call.Function.Name != "memory_propose" && call.Function.Name != "memory_manage" && call.Function.Name != "knowledge_import" {
 				decision, detail := "executed", ""
 				if toolErr != nil {
 					decision, detail = "execution_error", compactHistoryText(toolErr.Error(), 300)

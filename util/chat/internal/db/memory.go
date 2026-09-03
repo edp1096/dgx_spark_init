@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 	"unicode"
@@ -11,7 +12,7 @@ import (
 )
 
 func (d *DB) Memories() ([]Memory, error) {
-	rows, err := d.conn.Query(`SELECT id,kind,title,content,enabled,source_session_id,source_message_id,created_at,updated_at FROM memories ORDER BY kind,id`)
+	rows, err := d.conn.Query(`SELECT id,kind,priority,title,content,enabled,source_session_id,source_message_id,created_at,updated_at FROM memories ORDER BY kind,id`)
 	if err != nil {
 		return nil, err
 	}
@@ -19,7 +20,7 @@ func (d *DB) Memories() ([]Memory, error) {
 	items := []Memory{}
 	for rows.Next() {
 		var item Memory
-		if err := rows.Scan(&item.ID, &item.Kind, &item.Title, &item.Content, &item.Enabled, &item.SourceSessionID, &item.SourceMessageID, &item.CreatedAt, &item.UpdatedAt); err != nil {
+		if err := rows.Scan(&item.ID, &item.Kind, &item.Priority, &item.Title, &item.Content, &item.Enabled, &item.SourceSessionID, &item.SourceMessageID, &item.CreatedAt, &item.UpdatedAt); err != nil {
 			return nil, err
 		}
 		items = append(items, item)
@@ -27,12 +28,126 @@ func (d *DB) Memories() ([]Memory, error) {
 	return items, rows.Err()
 }
 
-func (d *DB) AddMemory(kind, title, content, sourceSessionID string, sourceMessageID int64) (Memory, error) {
+// FindMemories searches both enabled and disabled records for conversational
+// memory management. It intentionally uses bounded SQL substring matching so
+// a disabled record, which is absent from memory_search, can still be found.
+func (d *DB) FindMemories(query string, limit int) ([]Memory, error) {
+	if limit < 1 {
+		limit = 8
+	}
+	if limit > 20 {
+		limit = 20
+	}
+	terms := memoryLookupTerms(query)
+	if len(terms) == 0 {
+		rows, err := d.conn.Query(`SELECT id,kind,priority,title,content,enabled,source_session_id,source_message_id,created_at,updated_at FROM memories ORDER BY updated_at DESC LIMIT ?`, limit)
+		if err != nil {
+			return nil, err
+		}
+		return scanMemories(rows)
+	}
+	where := make([]string, 0, len(terms))
+	args := make([]any, 0, len(terms)*2+1)
+	for _, term := range terms {
+		where = append(where, `(instr(lower(title),?)>0 OR instr(lower(content),?)>0)`)
+		args = append(args, term, term)
+	}
+	args = append(args, min(limit*10, 200))
+	rows, err := d.conn.Query(`SELECT id,kind,priority,title,content,enabled,source_session_id,source_message_id,created_at,updated_at
+		FROM memories WHERE `+strings.Join(where, " OR ")+` ORDER BY updated_at DESC LIMIT ?`, args...)
+	if err != nil {
+		return nil, err
+	}
+	items, err := scanMemories(rows)
+	if err != nil {
+		return nil, err
+	}
+	sort.SliceStable(items, func(left, right int) bool {
+		leftScore := memoryRecordScore(items[left], terms)
+		rightScore := memoryRecordScore(items[right], terms)
+		if leftScore == rightScore {
+			return items[left].UpdatedAt.After(items[right].UpdatedAt)
+		}
+		return leftScore > rightScore
+	})
+	if len(items) > limit {
+		items = items[:limit]
+	}
+	return items, nil
+}
+
+func scanMemories(rows *sql.Rows) ([]Memory, error) {
+	defer rows.Close()
+	items := []Memory{}
+	for rows.Next() {
+		var item Memory
+		if err := rows.Scan(&item.ID, &item.Kind, &item.Priority, &item.Title, &item.Content, &item.Enabled, &item.SourceSessionID, &item.SourceMessageID, &item.CreatedAt, &item.UpdatedAt); err != nil {
+			return nil, err
+		}
+		items = append(items, item)
+	}
+	return items, rows.Err()
+}
+
+func memoryLookupTerms(value string) []string {
+	parts := strings.FieldsFunc(strings.ToLower(value), func(r rune) bool {
+		return !unicode.IsLetter(r) && !unicode.IsNumber(r)
+	})
+	seen := make(map[string]struct{}, len(parts))
+	terms := make([]string, 0, 8)
+	for _, part := range parts {
+		part = strings.TrimSpace(part)
+		if part == "" || isMemoryManagementTerm(part) {
+			continue
+		}
+		if _, ok := seen[part]; ok {
+			continue
+		}
+		seen[part] = struct{}{}
+		terms = append(terms, part)
+		if len(terms) == 8 {
+			break
+		}
+	}
+	return terms
+}
+
+func isMemoryManagementTerm(term string) bool {
+	for _, prefix := range []string{"기억", "잊어", "잊고", "삭제", "제거", "수정", "변경", "보여", "알려", "확인", "목록", "사용", "활성", "비활성", "항상", "관련"} {
+		if strings.HasPrefix(term, prefix) {
+			return true
+		}
+	}
+	for _, exact := range []string{"내", "내가", "뭘", "무엇을", "있는지", "있지", "해줘", "해라", "그거", "그것"} {
+		if term == exact {
+			return true
+		}
+	}
+	return false
+}
+
+func memoryRecordScore(item Memory, terms []string) int {
+	title := strings.ToLower(item.Title)
+	content := strings.ToLower(item.Content)
+	score := 0
+	for _, term := range terms {
+		weight := min(utf8.RuneCountInString(term), 10)
+		if strings.Contains(title, term) {
+			score += 20 + weight
+		}
+		if count := strings.Count(content, term); count > 0 {
+			score += 5 + weight + min(count, 3)
+		}
+	}
+	return score
+}
+
+func (d *DB) AddMemory(kind, priority, title, content, sourceSessionID string, sourceMessageID int64) (Memory, error) {
 	if sourceMessageID > 0 {
 		var existing Memory
-		err := d.conn.QueryRow(`SELECT id,kind,title,content,enabled,source_session_id,source_message_id,created_at,updated_at
+		err := d.conn.QueryRow(`SELECT id,kind,priority,title,content,enabled,source_session_id,source_message_id,created_at,updated_at
 			FROM memories WHERE source_message_id=? AND source_session_id=? ORDER BY id DESC LIMIT 1`, sourceMessageID, sourceSessionID).
-			Scan(&existing.ID, &existing.Kind, &existing.Title, &existing.Content, &existing.Enabled, &existing.SourceSessionID, &existing.SourceMessageID, &existing.CreatedAt, &existing.UpdatedAt)
+			Scan(&existing.ID, &existing.Kind, &existing.Priority, &existing.Title, &existing.Content, &existing.Enabled, &existing.SourceSessionID, &existing.SourceMessageID, &existing.CreatedAt, &existing.UpdatedAt)
 		if err == nil {
 			return existing, nil
 		}
@@ -41,18 +156,18 @@ func (d *DB) AddMemory(kind, title, content, sourceSessionID string, sourceMessa
 		}
 	}
 	now := time.Now()
-	result, err := d.conn.Exec(`INSERT INTO memories(kind,title,content,enabled,source_session_id,source_message_id,created_at,updated_at) VALUES(?,?,?,1,?,?,?,?)`,
-		kind, title, content, sourceSessionID, sourceMessageID, now, now)
+	result, err := d.conn.Exec(`INSERT INTO memories(kind,priority,title,content,enabled,source_session_id,source_message_id,created_at,updated_at) VALUES(?,?,?,?,1,?,?,?,?)`,
+		kind, priority, title, content, sourceSessionID, sourceMessageID, now, now)
 	if err != nil {
 		return Memory{}, err
 	}
 	id, _ := result.LastInsertId()
-	return Memory{ID: id, Kind: kind, Title: title, Content: content, Enabled: true, SourceSessionID: sourceSessionID, SourceMessageID: sourceMessageID, CreatedAt: now, UpdatedAt: now}, nil
+	return Memory{ID: id, Kind: kind, Priority: priority, Title: title, Content: content, Enabled: true, SourceSessionID: sourceSessionID, SourceMessageID: sourceMessageID, CreatedAt: now, UpdatedAt: now}, nil
 }
 
-func (d *DB) UpdateMemory(id int64, kind, title, content string, enabled bool) (Memory, error) {
+func (d *DB) UpdateMemory(id int64, kind, priority, title, content string, enabled bool) (Memory, error) {
 	now := time.Now()
-	result, err := d.conn.Exec(`UPDATE memories SET kind=?,title=?,content=?,enabled=?,updated_at=? WHERE id=?`, kind, title, content, enabled, now, id)
+	result, err := d.conn.Exec(`UPDATE memories SET kind=?,priority=?,title=?,content=?,enabled=?,updated_at=? WHERE id=?`, kind, priority, title, content, enabled, now, id)
 	if err != nil {
 		return Memory{}, err
 	}
@@ -64,8 +179,8 @@ func (d *DB) UpdateMemory(id int64, kind, title, content string, enabled bool) (
 
 func (d *DB) Memory(id int64) (Memory, error) {
 	var item Memory
-	err := d.conn.QueryRow(`SELECT id,kind,title,content,enabled,source_session_id,source_message_id,created_at,updated_at FROM memories WHERE id=?`, id).
-		Scan(&item.ID, &item.Kind, &item.Title, &item.Content, &item.Enabled, &item.SourceSessionID, &item.SourceMessageID, &item.CreatedAt, &item.UpdatedAt)
+	err := d.conn.QueryRow(`SELECT id,kind,priority,title,content,enabled,source_session_id,source_message_id,created_at,updated_at FROM memories WHERE id=?`, id).
+		Scan(&item.ID, &item.Kind, &item.Priority, &item.Title, &item.Content, &item.Enabled, &item.SourceSessionID, &item.SourceMessageID, &item.CreatedAt, &item.UpdatedAt)
 	return item, err
 }
 
@@ -84,7 +199,7 @@ func (d *DB) UserMemories(limit int) ([]RecallItem, error) {
 	if limit <= 0 {
 		limit = 20
 	}
-	rows, err := d.conn.Query(`SELECT title,content,source_session_id,source_message_id,updated_at FROM memories WHERE enabled=1 AND kind='user' ORDER BY updated_at DESC LIMIT ?`, limit)
+	rows, err := d.conn.Query(`SELECT priority,title,content,source_session_id,source_message_id,updated_at FROM memories WHERE enabled=1 AND kind='user' ORDER BY priority='preferred' DESC,updated_at DESC LIMIT ?`, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +208,7 @@ func (d *DB) UserMemories(limit int) ([]RecallItem, error) {
 	for rows.Next() {
 		var item RecallItem
 		item.Kind = "user"
-		if err := rows.Scan(&item.Title, &item.Content, &item.SessionID, &item.MessageID, &item.CreatedAt); err != nil {
+		if err := rows.Scan(&item.Priority, &item.Title, &item.Content, &item.SessionID, &item.MessageID, &item.CreatedAt); err != nil {
 			return nil, err
 		}
 		items = append(items, item)
@@ -109,7 +224,7 @@ func (d *DB) SearchMemories(query string, limit int) ([]RecallItem, error) {
 	}
 	candidateLimit := min(limit*8, 100)
 	rows, err := d.conn.Query(`
-		SELECT memory_row.title,memory_row.content,memory_row.source_session_id,memory_row.source_message_id,memory_row.updated_at
+		SELECT memory_row.priority,memory_row.title,memory_row.content,memory_row.source_session_id,memory_row.source_message_id,memory_row.updated_at
 		FROM memory_search JOIN memories AS memory_row ON memory_row.id=memory_search.rowid
 		WHERE memory_search MATCH ? AND memory_row.enabled=1 AND memory_row.kind='memory'
 		ORDER BY bm25(memory_search),memory_row.updated_at DESC LIMIT ?`, match, candidateLimit)
@@ -117,22 +232,22 @@ func (d *DB) SearchMemories(query string, limit int) ([]RecallItem, error) {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []RecallItem{}
+	items := []scoredRecall{}
 	for rows.Next() {
 		var item RecallItem
 		item.Kind = "memory"
-		if err := rows.Scan(&item.Title, &item.Content, &item.SessionID, &item.MessageID, &item.CreatedAt); err != nil {
+		if err := rows.Scan(&item.Priority, &item.Title, &item.Content, &item.SessionID, &item.MessageID, &item.CreatedAt); err != nil {
 			return nil, err
 		}
 		if !relevantRecallMatch(item.Title, item.Content, terms) {
 			continue
 		}
-		items = append(items, item)
-		if len(items) == limit {
-			break
-		}
+		items = append(items, scoredRecall{item: item, score: recallRelevanceScore(item, terms)})
 	}
-	return items, rows.Err()
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return bestRecallItems(items, limit, false), nil
 }
 
 func (d *DB) SearchMessages(query, excludeSessionID string, limit int) ([]RecallItem, error) {
@@ -151,24 +266,76 @@ func (d *DB) SearchMessages(query, excludeSessionID string, limit int) ([]Recall
 		return nil, err
 	}
 	defer rows.Close()
-	items := []RecallItem{}
-	seenSessions := make(map[string]struct{})
+	items := []scoredRecall{}
 	for rows.Next() {
 		var item RecallItem
 		item.Kind = "session"
 		if err := rows.Scan(&item.Title, &item.Role, &item.Content, &item.SessionID, &item.MessageID, &item.CreatedAt); err != nil {
 			return nil, err
 		}
-		if _, seen := seenSessions[item.SessionID]; seen || !relevantRecallMatch(item.Title, item.Content, terms) {
+		if !relevantRecallMatch(item.Title, item.Content, terms) {
 			continue
 		}
-		seenSessions[item.SessionID] = struct{}{}
-		items = append(items, item)
-		if len(items) == limit {
+		items = append(items, scoredRecall{item: item, score: recallRelevanceScore(item, terms)})
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return bestRecallItems(items, limit, true), nil
+}
+
+type scoredRecall struct {
+	item  RecallItem
+	score float64
+}
+
+func bestRecallItems(items []scoredRecall, limit int, uniqueSessions bool) []RecallItem {
+	sort.SliceStable(items, func(left, right int) bool {
+		if items[left].score == items[right].score {
+			return items[left].item.CreatedAt.After(items[right].item.CreatedAt)
+		}
+		return items[left].score > items[right].score
+	})
+	result := make([]RecallItem, 0, min(limit, len(items)))
+	seenSessions := make(map[string]struct{})
+	for _, candidate := range items {
+		if uniqueSessions {
+			if _, seen := seenSessions[candidate.item.SessionID]; seen {
+				continue
+			}
+			seenSessions[candidate.item.SessionID] = struct{}{}
+		}
+		result = append(result, candidate.item)
+		if len(result) == limit {
 			break
 		}
 	}
-	return items, rows.Err()
+	return result
+}
+
+func recallRelevanceScore(item RecallItem, terms []string) float64 {
+	title := strings.ToLower(item.Title)
+	content := strings.ToLower(item.Content)
+	score := 0.0
+	for _, term := range terms {
+		termRunes := utf8.RuneCountInString(term)
+		weight := float64(min(termRunes, 10))
+		if strings.Contains(title, term) {
+			score += 8 + weight
+		}
+		count := strings.Count(content, term)
+		if count > 0 {
+			score += 3 + weight + float64(min(count, 3)-1)
+		}
+	}
+	age := time.Since(item.CreatedAt)
+	switch {
+	case age < 7*24*time.Hour:
+		score += 2
+	case age < 30*24*time.Hour:
+		score += 1
+	}
+	return score
 }
 
 func (d *DB) SearchConversations(query string, limit int) ([]RecallItem, error) {
@@ -486,7 +653,7 @@ func isRecallIntentTerm(term string) bool {
 			return true
 		}
 	}
-	for _, prefix := range []string{"내용", "질문", "과거", "이전", "대화"} {
+	for _, prefix := range []string{"내용", "질문", "과거", "이전", "대화", "그거", "그건", "그게", "그걸", "그때", "아까", "저번", "지난번", "말했던", "하던거"} {
 		if strings.HasPrefix(term, prefix) {
 			return true
 		}

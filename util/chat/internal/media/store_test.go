@@ -1,6 +1,7 @@
 package media
 
 import (
+	"archive/zip"
 	"bytes"
 	"image"
 	"image/color"
@@ -127,6 +128,47 @@ func TestRejectsDisguisedMedia(t *testing.T) {
 	}
 }
 
+func TestSupportedDocumentSignatures(t *testing.T) {
+	for _, test := range []struct {
+		name, declared, want string
+		data                 []byte
+	}{
+		{"manual.pdf", "application/pdf", "application/pdf", []byte("%PDF-1.7\nexample")},
+		{"notes.md", "text/markdown", "text/markdown", []byte("# 제목\n본문")},
+		{"manual.docx", "application/octet-stream", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", testDocumentArchive(t, map[string]string{"[Content_Types].xml": "<Types/>", "word/document.xml": "<w:document xmlns:w=\"w\"><w:p><w:t>본문</w:t></w:p></w:document>"})},
+		{"book.hwpx", "application/zip", "application/vnd.hancom.hwpx", testDocumentArchive(t, map[string]string{"Contents/content.hpf": "<package/>", "Contents/section0.xml": "<p>본문</p>"})},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			got, err := classifyMedia(test.data, test.name, test.declared, false)
+			if err != nil || got != test.want {
+				t.Fatalf("classifyMedia() = %q, %v; want %q", got, err, test.want)
+			}
+		})
+	}
+	if _, err := classifyMedia([]byte("MZ executable"), "manual.pdf", "application/pdf", false); err == nil {
+		t.Fatal("disguised PDF was accepted")
+	}
+}
+
+func testDocumentArchive(t *testing.T, entries map[string]string) []byte {
+	t.Helper()
+	var output bytes.Buffer
+	writer := zip.NewWriter(&output)
+	for name, value := range entries {
+		file, err := writer.Create(name)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err := file.Write([]byte(value)); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := writer.Close(); err != nil {
+		t.Fatal(err)
+	}
+	return output.Bytes()
+}
+
 func TestTranscriptCacheFollowsMediaCleanup(t *testing.T) {
 	store, err := New(t.TempDir() + "/chat.db")
 	if err != nil {
@@ -144,10 +186,16 @@ func TestTranscriptCacheFollowsMediaCleanup(t *testing.T) {
 	if err != nil || !ok || got.Text != want.Text {
 		t.Fatalf("load transcript: got=%+v ok=%v err=%v", got, ok, err)
 	}
+	if err := store.SaveDocument(id, DocumentCache{Fingerprint: "doc-v1", Text: "문서 본문", PageCount: 2}); err != nil {
+		t.Fatal(err)
+	}
 	if _, err := store.Cleanup(nil, nil); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := os.Stat(store.transcriptPath(id)); !os.IsNotExist(err) {
 		t.Fatalf("transcript cache was not removed with media: %v", err)
+	}
+	if _, err := os.Stat(store.documentPath(id)); !os.IsNotExist(err) {
+		t.Fatalf("document cache was not removed with media: %v", err)
 	}
 }

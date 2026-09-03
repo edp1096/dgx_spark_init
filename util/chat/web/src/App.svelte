@@ -8,6 +8,7 @@
   import ContextRail from './components/ContextRail.svelte';
   import ArtifactPanel from './components/ArtifactPanel.svelte';
   import SearchModal from './components/SearchModal.svelte';
+  import KnowledgeHub from './components/KnowledgeHub.svelte';
   import { artifactsFromMessages } from './lib/artifacts.js';
   import { hydrateMessages, variantIndices as getVariantIndices, applyVariant as applyMessageVariant } from './lib/message-variants.js';
   import { createStreamHandlers } from './lib/chat-stream.js';
@@ -96,6 +97,7 @@
   let rememberedIds = [];
   let searchModalOpen = false;
   let searchModalQuery = '';
+  let libraryOpen = false;
 
   const voiceController = createVoiceController({
     environment: () => window,
@@ -171,7 +173,7 @@
   $: retryingIndex = activeRun?.retryingIndex ?? -1;
   $: artifacts = artifactsFromMessages(messages);
   $: activeArtifact = artifacts.find((item) => item.id === selectedArtifactId) || artifacts[0];
-  $: shellColumns = artifactOpen
+  $: shellColumns = artifactOpen && !libraryOpen
     ? (sidebarOpen ? `${sidebarWidth}px minmax(420px, 1fr) ${artifactPanelWidth}px` : `minmax(420px, 1fr) ${artifactPanelWidth}px`)
     : (sidebarOpen ? `${sidebarWidth}px 1fr` : '1fr');
 
@@ -370,13 +372,17 @@
     editingMessageId = null;
     editInput = '';
     editingTitle = false;
+    libraryOpen = false;
     artifactOpen = false;
     selectedArtifactId = '';
     const session = sessions.find((item) => item.id === id);
     selectedModel = resolveAvailableModel(models, session?.model, settings?.model?.default_model || selectedModel);
     if (session?.reasoning_effort) reasoningEffort = normalizeReasoningEffort(modelType, session.reasoning_effort);
     await Promise.all([refreshContext(id), refreshSSHGrants(id)]);
-    await scrollBottom(true);
+    await tick();
+    const pendingApproval = document.querySelector('[data-approval-id]:not([data-approval-id=""])');
+    if (pendingApproval) pendingApproval.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    else await scrollBottom(true);
     if (closeMobile) closeSidebarOnMobile();
     const pendingTranscript = voiceController.consumePendingTranscript(id);
     if (pendingTranscript) input = input.trim() ? `${input.trimEnd()} ${pendingTranscript}` : pendingTranscript;
@@ -485,7 +491,7 @@
     if (title === null) return;
     rememberingId = message.id;
     try {
-      await createMemory({ kind: 'memory', title: title.trim(), content: message.content.trim(), source_session_id: activeId, source_message_id: message.id });
+      await createMemory({ kind: 'memory', priority: 'reference', title: title.trim(), content: message.content.trim(), source_session_id: activeId, source_message_id: message.id });
       rememberedIds = [...rememberedIds, message.id];
       error = '';
     } catch (e) { error = e.message; }
@@ -494,6 +500,7 @@
 
   function openArtifact(artifact) {
     if (!artifact) return;
+    libraryOpen = false;
     selectedArtifactId = artifact.id;
     artifactOpen = true;
     contextOpen = false;
@@ -512,6 +519,20 @@
 
   function closeArtifact() {
     artifactOpen = false;
+  }
+
+  function openLibrary() {
+    libraryOpen = true;
+    artifactOpen = false;
+    selectedArtifactId = '';
+    contextOpen = false;
+    closeControls();
+    closeSidebarOnMobile();
+  }
+
+  async function closeLibrary() {
+    libraryOpen = false;
+    await focusComposer();
   }
 
   function startArtifactResize(event) {
@@ -781,7 +802,7 @@
 
   async function focusComposer(sessionId = activeId) {
     await tick();
-    if (activeId === sessionId && !sessionRuns[sessionId] && !settingsOpen && !controlsOpen && !continuousVoiceEnabled) {
+    if (activeId === sessionId && !sessionRuns[sessionId] && !settingsOpen && !libraryOpen && !controlsOpen && !continuousVoiceEnabled) {
       composerInput?.focus({ preventScroll: true });
     }
   }
@@ -833,7 +854,7 @@
     const handleToolApproval = handlers.toolApproval;
     handlers.toolApproval = (data) => {
       handleToolApproval(data);
-      if (activeId === sessionId) requestAnimationFrame(() => document.querySelector(`[data-approval-id="${data.approval_id}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+      if (activeId === sessionId) tick().then(() => document.querySelector(`[data-approval-id="${data.approval_id}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
     };
     handlers.context = (next) => { if (activeId === sessionId) contextState = next; };
     handlers.sshGrantChanged = () => { refreshSSHGrants(sessionId); };
@@ -901,13 +922,13 @@
   function onWindowDragEnter(event) {
     if (!hasFileDrag(event.dataTransfer)) return;
     event.preventDefault();
-    if (settingsOpen || running || !activeId) return;
+    if (settingsOpen || libraryOpen || running || !activeId) return;
     showDropOverlay();
   }
   function onWindowDragOver(event) {
     if (!hasFileDrag(event.dataTransfer)) return;
     event.preventDefault();
-    if (settingsOpen || running || !activeId) return;
+    if (settingsOpen || libraryOpen || running || !activeId) return;
     showDropOverlay();
     if (event.dataTransfer) event.dataTransfer.dropEffect = 'copy';
   }
@@ -928,7 +949,7 @@
     clearTimeout(dragResetTimer);
     dragActive = false;
     const files = Array.from(event.dataTransfer?.files || []);
-    if (!settingsOpen && !running && activeId && files.length) addAttachmentFiles(files);
+    if (!settingsOpen && !libraryOpen && !running && activeId && files.length) addAttachmentFiles(files);
   }
   function onAttachmentInputChange(event) {
     const files = Array.from(event.currentTarget.files || []);
@@ -1033,7 +1054,7 @@
   }
 </script>
 
-<div class="shell" class:artifact-open={artifactOpen} style:grid-template-columns={shellColumns}>
+<div class="shell" class:artifact-open={artifactOpen && !libraryOpen} style:grid-template-columns={shellColumns}>
   {#if sidebarOpen}
     <Sidebar
       {groups}
@@ -1054,12 +1075,19 @@
       onChangeSessionGroup={changeSessionGroup}
       onRemoveSession={remove}
       onOpenSettings={openSettings}
+      onOpenLibrary={openLibrary}
+      {libraryOpen}
       onStartResize={startResize}
       onSearchResult={openSearchResult}
       onSearchMore={openSearchModal}
     />
   {/if}
 
+  {#if libraryOpen}
+    <main class="library-main">
+      <KnowledgeHub {health} onclose={closeLibrary} />
+    </main>
+  {:else}
   <main>
     <ChatHeader
       {activeSession}
@@ -1160,7 +1188,8 @@
       onStopVoice={stopVoiceInput}
     />
   </main>
-  {#if artifactOpen}
+  {/if}
+  {#if artifactOpen && !libraryOpen}
     <ArtifactPanel
       {artifacts}
       selectedId={activeArtifact?.id || selectedArtifactId}

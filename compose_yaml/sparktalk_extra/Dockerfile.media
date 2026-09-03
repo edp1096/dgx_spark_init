@@ -1,8 +1,5 @@
 ARG RUNTIME_BASE_IMAGE=ubuntu:24.04
-FROM ${RUNTIME_BASE_IMAGE} AS builder
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends golang-go \
-    && rm -rf /var/lib/apt/lists/*
+FROM golang:1.25-bookworm AS builder
 WORKDIR /src
 COPY go.mod ./
 COPY go.sum ./
