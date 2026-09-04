@@ -5,7 +5,7 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 env_file="$script_dir/.env"
 
 if [[ ! -f "$env_file" ]]; then
-  cp "$script_dir/.env.example" "$env_file"
+  cp "$script_dir/env.sample" "$env_file"
   echo "Created $env_file from the defaults for head .61 / worker .60."
 fi
 

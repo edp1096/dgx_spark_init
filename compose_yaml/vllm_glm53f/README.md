@@ -39,8 +39,9 @@ API 주소는 `http://192.168.100.61:8000/v1`, 모델명은
 
 ## 설정
 
-설정 파일은 첫 실행 시 생성되는 `.env`다. 기본값은 Entrpi
-`v2.3-tier1`, EXL3 4bpw, DFlash2, 최대 524K context다.
+설정 파일은 `.env`다. 파일이 없으면 `manage.sh`가 `env.sample`을 복사해
+자동 생성한다. 기본값은 Entrpi `v2.3-tier1`, EXL3 4bpw, DFlash2, 최대
+524K context다.
 
 OS 포맷이나 DHCP 변경 후에는 `.env`의 `HEAD_LAN_IP`와
 `WORKER_LAN_IP`만 새 주소로 바꾸고, 위 SSH 키 등록과 `manage.sh setup`을
