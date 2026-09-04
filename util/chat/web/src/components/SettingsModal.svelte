@@ -8,7 +8,7 @@
   import SettingsToast from './settings/SettingsToast.svelte';
   import MemorySettings from './settings/MemorySettings.svelte';
   import ToolDiscoverySettings from './settings/ToolDiscoverySettings.svelte';
-  import { normalizePublicSettings } from '../lib/settings.js';
+  import { applyExternalModelType, normalizePublicSettings } from '../lib/settings.js';
   import { modelCapabilities, normalizeReasoningEffort, reasoningEffortLabel, thinkingToggleValue } from '../lib/model-capabilities.js';
 
   export let settings;
@@ -74,19 +74,9 @@
     settings.model.reasoning_effort = gemmaThinkingValue === 'on' ? 'none' : 'on';
   }
 
-  function applyEntrpiGLM53Profile() {
-    settings.runtime.mode = 'external';
-    settings.model.default_model = 'glm-5.3-flash';
-    settings.model.model_type = 'glm5.3';
-    settings.model.reasoning_effort = 'max';
-    settings.context.window_tokens = 524288;
-    settings.asr.enabled = false;
-    settings.tts.enabled = false;
-    settings.image.enabled = false;
-    settings.extra.ssh_enabled = false;
-    settings.extra.collector_enabled = false;
-    settings.tools.media_import_enabled = false;
-    notify('GLM-5.3 Entrpi 단일 연결값을 적용했습니다. 모델 API 주소를 확인한 뒤 저장하십시오.');
+  function selectExternalModelType(event) {
+    applyExternalModelType(settings, event.currentTarget.value);
+    settings = settings;
   }
 
   function tabKeydown(event, index) {
@@ -292,13 +282,12 @@
           <legend>모델 연결</legend>
           <label>실행 방식<select bind:value={settings.runtime.mode}><option value="managed">로컬 DGX Spark 관리형</option><option value="external">외부 OpenAI 호환 API</option></select></label>
           {#if externalMode}
-            <button type="button" class="media-cleanup" onclick={applyEntrpiGLM53Profile}>GLM-5.3 Entrpi 단일 연결 적용</button>
             <label>모델 API 주소<input bind:value={settings.model.endpoint} placeholder="http://서버주소:8000" /><small><code>/v1</code>은 붙이지 않습니다.</small></label>
             <label>모델 ID<input bind:value={settings.model.default_model} /></label>
-            <label>모델 유형<select bind:value={settings.model.model_type}><option value="glm5.3">GLM-5.3 Entrpi</option><option value="qwen3.8">Qwen3.8</option><option value="gemma4">Gemma 4</option><option value="generic">일반 OpenAI 호환</option></select></label>
+            <label>모델 유형<select value={settings.model.model_type} onchange={selectExternalModelType}><option value="glm5.3">GLM-5.3 Entrpi</option><option value="qwen3.8">Qwen3.8</option><option value="gemma4">Gemma 4</option><option value="generic">일반 OpenAI 호환</option></select></label>
             <label>API 키<input type="password" bind:value={settingsAPIKey} autocomplete="new-password" placeholder={settings.api_key_set ? '저장된 키 유지' : '필요한 경우 입력'} /></label>
             {#if settings.api_key_set}<label class="check"><input type="checkbox" bind:checked={clearAPIKey} /> 저장된 API 키 삭제</label>{/if}
-            <small>GLM 단일 연결은 ASR·TTS·이미지 생성·Extra SSH·Collector·URL 미디어 가져오기를 끕니다. 이미지 첨부 분석과 로컬 웹 도구 호출은 유지됩니다.</small>
+            <small>GLM-5.3 Entrpi를 선택하면 512K 문맥과 Max 리즈닝을 적용하고 ASR·TTS·이미지 생성·Extra·URL 미디어 가져오기를 끕니다. 엔드포인트와 이미지 첨부 분석, 로컬 웹 도구는 유지됩니다.</small>
           {:else}
             <label>기본 AI 세트<select bind:value={settings.runtime.bundle}>{#each runtime?.bundles || [] as bundle}<option value={bundle.id}>{bundle.name}</option>{/each}</select><small>실행 중 세트 전환은 우상단 운영 패널에서 진행합니다.</small></label>
             <label class="check"><input type="checkbox" bind:checked={settings.runtime.auto_start} /> SparkTalk 시작 시 기본 세트 자동 기동</label>

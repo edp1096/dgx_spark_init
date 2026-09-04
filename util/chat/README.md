@@ -92,9 +92,9 @@ cd dist
 설정의 **시스템 > DGX Spark 운영**에서 기본 세트, 앱 시작 시 자동기동,
 최소 확보 메모리, 데이터·모델 캐시 경로를 관리한다. 내장 엔진은 loopback으로
 연결되므로 브라우저에 개별 endpoint가 노출되지 않는다. 특별히 외부 OpenAI 호환
-API를 붙여야 할 때는 설정의 실행 방식을 `external`로 바꾼다. Entrpi
-GLM-5.3은 **GLM-5.3 Entrpi 단일 연결 적용**을 누르면 512K 문맥과
-Off·Low·High·Max 리즈닝 및 보조 서비스 비활성값이 함께 적용된다.
+API를 붙여야 할 때는 설정의 실행 방식을 `external`로 바꾼다. 모델 유형에서
+**GLM-5.3 Entrpi**를 선택하면 512K 문맥과 Off·Low·High·Max 리즈닝 및
+보조 서비스 비활성값이 함께 적용된다.
 
 ```bash
 curl -fsS http://127.0.0.1:8585/api/health
