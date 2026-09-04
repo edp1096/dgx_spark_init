@@ -21,6 +21,7 @@ export function normalizePublicSettings(settings) {
   settings.image ||= { enabled: false, endpoint: 'http://127.0.0.1:8691', model: '', mode: 'basic', default_size: '1024x1024', timeout: '30m' };
   if (!['basic', 'extended'].includes(settings.image.mode)) settings.image.mode = 'basic';
   settings.extra ||= {};
+  if (typeof settings.extra.collector_enabled !== 'boolean') settings.extra.collector_enabled = true;
   settings.appearance ||= {};
   if (!Array.isArray(settings.model.system_prompt_presets)) settings.model.system_prompt_presets = [];
   settings.model.system_prompt_preset ||= '';

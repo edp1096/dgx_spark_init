@@ -54,14 +54,22 @@ func (s *Server) health(w http.ResponseWriter, r *http.Request) {
 		}
 		imageHealth = imagegen.New(cfg.Image.Endpoint, cfg.Image.Model, timeout).Health(r.Context())
 	}
+	collectorHealth := map[string]any{"status": "disabled"}
+	if cfg.Extra.CollectorEnabled {
+		collectorHealth = healthEndpoint(r.Context(), cfg.Extra.CollectorEndpoint+"/health")
+	}
+	sshHealth := map[string]any{"status": "disabled"}
+	if cfg.Extra.SSHEnabled {
+		sshHealth = s.extraSnapshot().Health(r.Context())
+	}
 	writeJSON(w, http.StatusOK, map[string]any{
 		"status": status, "endpoint": cfg.Model.Endpoint, "model": model, "error": errorText(err),
 		"asr":   s.asrSnapshot().Health(r.Context()),
 		"tts":   s.ttsSnapshot().Health(r.Context()),
 		"image": imageHealth,
 		"extra": map[string]any{
-			"ssh":       s.extraSnapshot().Health(r.Context()),
-			"collector": healthEndpoint(r.Context(), cfg.Extra.CollectorEndpoint+"/health"),
+			"ssh":       sshHealth,
+			"collector": collectorHealth,
 		},
 	})
 }

@@ -1101,7 +1101,7 @@
       bind:reasoningEffort
       bind:webToolsEnabled
       {health}
-      runtime={runtimeState}
+      runtime={settings?.runtime?.mode === 'managed' ? runtimeState : null}
       {runtimeBusy}
       {microphoneAvailable}
       {continuousVoiceEnabled}

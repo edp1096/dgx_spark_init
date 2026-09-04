@@ -41,7 +41,7 @@ func TestWebCollectToolExposesDynamicPublicationPlan(t *testing.T) {
 	}))
 	defer collector.Close()
 
-	server := &Server{cfg: config.Config{Extra: config.ExtraConfig{CollectorEndpoint: collector.URL}}, collector: knowledge.NewCollectorClient(collector.URL)}
+	server := &Server{cfg: config.Config{Extra: config.ExtraConfig{CollectorEnabled: true, CollectorEndpoint: collector.URL}}, collector: knowledge.NewCollectorClient(collector.URL)}
 	registry := newCompletionToolRegistry(server, "", config.ToolsConfig{Enabled: true, SearchResults: 3, Timeout: "1s"}, true, nil)
 	if _, ok := registry.handlers["web_collect"]; !ok {
 		t.Fatal("web_collect was not registered")

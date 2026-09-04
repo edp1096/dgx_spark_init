@@ -84,6 +84,28 @@ func TestApplyReasoningOptionsConstrainsQwenEffort(t *testing.T) {
 	}
 }
 
+func TestApplyReasoningOptionsUsesEntrpiGLM53Controls(t *testing.T) {
+	for _, test := range []struct {
+		input   string
+		want    string
+		enabled bool
+	}{{"none", "off", false}, {"off", "off", false}, {"low", "low", true}, {"high", "high", true}, {"max", "max", true}, {"xhigh", "max", true}} {
+		payload := map[string]any{}
+		applyReasoningOptions(payload, "glm5.3", test.input)
+		kwargs, ok := payload["chat_template_kwargs"].(map[string]any)
+		if !ok || kwargs["enable_thinking"] != test.enabled || kwargs["clear_thinking"] != true {
+			t.Fatalf("GLM-5.3 effort %q produced %#v", test.input, payload)
+		}
+		if test.enabled {
+			if payload["reasoning_effort"] != test.want {
+				t.Fatalf("GLM-5.3 effort %q produced %#v, want %q", test.input, payload, test.want)
+			}
+		} else if _, exists := payload["reasoning_effort"]; exists {
+			t.Fatalf("GLM-5.3 off must omit reasoning_effort: %#v", payload)
+		}
+	}
+}
+
 func TestStreamAssemblesToolCallDeltas(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/event-stream")

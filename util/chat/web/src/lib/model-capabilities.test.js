@@ -14,6 +14,20 @@ test('Qwen 3.8 keeps typed effort levels without unsupported high', () => {
   });
 });
 
+test('GLM-5.3 exposes Entrpi thinking off and native effort levels', () => {
+  assert.deepEqual(modelCapabilities('glm5.3'), {
+    family: 'glm5.3', reasoning: 'effort', reasoningLevels: ['off', 'low', 'high', 'max'],
+  });
+  assert.equal(normalizeReasoningEffort('glm5.3', 'none'), 'off');
+  assert.equal(normalizeReasoningEffort('glm5.3', 'low'), 'low');
+  assert.equal(normalizeReasoningEffort('glm5.3', 'high'), 'high');
+  assert.equal(normalizeReasoningEffort('glm5.3', 'max'), 'max');
+  assert.equal(normalizeReasoningEffort('glm5.3', 'xhigh'), 'max');
+  assert.equal(reasoningEffortLabel('off'), '꺼짐');
+  assert.equal(reasoningEffortLabel('high'), 'High');
+  assert.equal(reasoningEffortLabel('max'), 'Max');
+});
+
 test('model names are not guessed', () => {
   assert.equal(modelCapabilities('nvidia/Gemma-4-31B-IT-NVFP4').family, 'generic');
 });

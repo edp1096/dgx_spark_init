@@ -102,6 +102,17 @@ func gemmaThinkingEnabled(effort string) bool {
 
 func applyReasoningOptions(payload map[string]any, modelType, effort string) {
 	effort = NormalizeReasoningEffort(modelType, effort)
+	if modelType == "glm5.3" {
+		enabled := effort != "off"
+		payload["chat_template_kwargs"] = map[string]any{
+			"enable_thinking": enabled,
+			"clear_thinking":  true,
+		}
+		if enabled {
+			payload["reasoning_effort"] = effort
+		}
+		return
+	}
 	if modelType == "gemma4" {
 		payload["chat_template_kwargs"] = map[string]any{"enable_thinking": gemmaThinkingEnabled(effort)}
 		return
@@ -115,6 +126,15 @@ func NormalizeReasoningEffort(modelType, effort string) string {
 	raw := strings.TrimSpace(effort)
 	effort = strings.ToLower(raw)
 	switch modelType {
+	case "glm5.3":
+		switch effort {
+		case "", "none", "off", "false", "disabled", "0", "0.0":
+			return "off"
+		case "low", "high", "max":
+			return effort
+		default:
+			return "max"
+		}
 	case "qwen3.8":
 		switch effort {
 		case "none", "low", "medium", "xhigh":

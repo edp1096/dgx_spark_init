@@ -92,8 +92,9 @@ cd dist
 설정의 **시스템 > DGX Spark 운영**에서 기본 세트, 앱 시작 시 자동기동,
 최소 확보 메모리, 데이터·모델 캐시 경로를 관리한다. 내장 엔진은 loopback으로
 연결되므로 브라우저에 개별 endpoint가 노출되지 않는다. 특별히 외부 OpenAI 호환
-API를 붙여야 할 때만 YAML의 `runtime.mode`를 `external`로 바꾸고 기존 `model`,
-`asr`, `tts`, `image`, `extra` endpoint 값을 사용한다.
+API를 붙여야 할 때는 설정의 실행 방식을 `external`로 바꾼다. Entrpi
+GLM-5.3은 **GLM-5.3 Entrpi 단일 연결 적용**을 누르면 512K 문맥과
+Off·Low·High·Max 리즈닝 및 보조 서비스 비활성값이 함께 적용된다.
 
 ```bash
 curl -fsS http://127.0.0.1:8585/api/health
@@ -154,7 +155,7 @@ systemctl --user daemon-reload
 **기억·지식** 전용 화면에서 관리합니다.
 관리형 세트의 endpoint·모델 ID·모델 유형은 선택한 세트에서 자동으로 정하며,
 화면에는 대화 동작과 기능 사용 여부만 노출합니다. Qwen 3.8은 꺼짐·Low·Medium·
-XHigh의 고정 단계형 effort를,
+XHigh의 고정 단계형 effort를, Entrpi GLM-5.3은 Off·Low·High·Max를,
 Gemma 4는 Thinking 켜짐·꺼짐과 최대 생각 토큰 예산을 사용합니다. 예산은
 기본 512이며 `0`은 제한 없음입니다. 이 제한은 `--enable-strict-thinking`으로
 실행한 SGLang 백엔드가 필요합니다.

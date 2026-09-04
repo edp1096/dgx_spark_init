@@ -56,13 +56,13 @@ func newCompletionToolRegistry(server *Server, sessionID string, cfg config.Tool
 
 	if server != nil {
 		serverCfg, _ := server.snapshot()
-		if webEnabled && cfg.Enabled && strings.TrimSpace(serverCfg.Extra.CollectorEndpoint) != "" {
+		if webEnabled && cfg.Enabled && serverCfg.Extra.CollectorEnabled && strings.TrimSpace(serverCfg.Extra.CollectorEndpoint) != "" {
 			registry.register(webCollectToolDefinition(), func(ctx context.Context, call llm.ToolCall, _ []llm.Message, _ eventEmitter) (registeredToolResult, error) {
 				result, err := server.executeWebCollect(ctx, call)
 				return registeredToolResult{Result: result}, err
 			})
 		}
-		if server.db != nil && strings.TrimSpace(serverCfg.Extra.CollectorEndpoint) != "" {
+		if server.db != nil && serverCfg.Extra.CollectorEnabled && strings.TrimSpace(serverCfg.Extra.CollectorEndpoint) != "" {
 			collections, err := server.db.KnowledgeCollections()
 			if err == nil && len(collections) > 0 {
 				registry.register(knowledgeImportToolDefinition(collections), func(ctx context.Context, call llm.ToolCall, _ []llm.Message, emit eventEmitter) (registeredToolResult, error) {

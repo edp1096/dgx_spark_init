@@ -58,7 +58,7 @@ func TestKnowledgeImportToolApprovesAndIndexesSources(t *testing.T) {
 	server := &Server{
 		db: store, knowledge: fileStore, knowledgeIndex: &knowledge.Extractor{},
 		collector: knowledge.NewCollectorClient(collector.URL), approvals: make(map[string]*toolApproval),
-		cfg: config.Config{Extra: config.ExtraConfig{CollectorEndpoint: collector.URL}},
+		cfg: config.Config{Extra: config.ExtraConfig{CollectorEnabled: true, CollectorEndpoint: collector.URL}},
 	}
 	registry := newCompletionToolRegistry(server, "session-1", config.ToolsConfig{Enabled: true}, true, nil)
 	if _, ok := registry.handlers["knowledge_import"]; !ok {

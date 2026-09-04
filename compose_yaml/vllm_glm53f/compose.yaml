@@ -1,0 +1,148 @@
+name: glm5-3-flash
+
+x-glm53-image: &glm53-image
+  image: ${GLM53_IMAGE:-ghcr.io/entrpi/glm-5.3-flash-exl3-2x-spark:v2.3-tier1}
+
+services:
+  glm53:
+    <<: *glm53-image
+    init: true
+    restart: "no"
+    network_mode: host
+    ipc: host
+    shm_size: 32gb
+    cap_add:
+      - IPC_LOCK
+    ulimits:
+      memlock: { soft: -1, hard: -1 }
+      stack: { soft: 67108864, hard: 67108864 }
+    devices:
+      - /dev/infiniband:/dev/infiniband
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    environment:
+      HEAD_RAIL_IP: ${HEAD_RAIL_IP:?set HEAD_RAIL_IP in .env}
+      WORKER_RAIL_IP: ${WORKER_RAIL_IP:?set WORKER_RAIL_IP in .env}
+      NCCL_SUBNET: ${NCCL_SUBNET:-169.254.0.0/16}
+      NCCL_IB_GID_INDEX: ${NCCL_IB_GID_INDEX:-}
+      MASTER_PORT: ${MASTER_PORT:-29521}
+      API_PORT: ${API_PORT:-8000}
+
+      MAX_MODEL_LEN: ${MAX_MODEL_LEN:-524288}
+      MAX_NUM_SEQS: ${MAX_NUM_SEQS:-4}
+      MAX_NUM_BATCHED_TOKENS: ${MAX_NUM_BATCHED_TOKENS:-8192}
+      GPU_MEMORY_UTILIZATION: ${GPU_MEMORY_UTILIZATION:-0.85}
+      MM_PROCESSOR_CACHE_GB: ${MM_PROCESSOR_CACHE_GB:-0.5}
+      KV_CACHE_MEMORY: ${KV_CACHE_MEMORY:-14400000000}
+      KV_CACHE_DTYPE: ${KV_CACHE_DTYPE-fp8_ds_mla}
+      KV_CACHE_DTYPE_SKIP_LAYERS: ${KV_CACHE_DTYPE_SKIP_LAYERS-sliding_window}
+      ATTENTION_BACKEND: ${ATTENTION_BACKEND-B12X_MLA_SPARSE}
+      BLOCK_SIZE: ${BLOCK_SIZE:-2304}
+      LOAD_FORMAT: ${LOAD_FORMAT-instanttensor}
+      PREFIX_MATCH_UNIT: ${PREFIX_MATCH_UNIT-512}
+      SKIP_MM_PROFILING: ${SKIP_MM_PROFILING:-1}
+      ENFORCE_EAGER: ${ENFORCE_EAGER:-0}
+
+      SPEC_METHOD: ${SPEC_METHOD:-dflash}
+      MTP_TOKENS: ${MTP_TOKENS:-0}
+      DFLASH_TOKENS: ${DFLASH_TOKENS:-7}
+      MIXED_PREFILL_DECODE_WEIGHT: ${MIXED_PREFILL_DECODE_WEIGHT:-}
+      MIXED_PREFILL_CAP: ${MIXED_PREFILL_CAP:-}
+      KDA_PREFILL_BACKEND: ${KDA_PREFILL_BACKEND:-}
+
+      HF_HOME: /cache/huggingface
+      HF_HUB_OFFLINE: "1"
+      TRANSFORMERS_OFFLINE: "1"
+      VLLM_ENGINE_READY_TIMEOUT_S: "3600"
+      PYTORCH_CUDA_ALLOC_CONF: expandable_segments:True
+      TORCH_CUDA_ARCH_LIST: 12.1a
+      FLASHINFER_CUDA_ARCH_LIST: 12.1a
+      FLASHINFER_DISABLE_VERSION_CHECK: "1"
+      VLLM_USE_B12X_FP8_GEMM: ${VLLM_USE_B12X_FP8_GEMM:-1}
+      VLLM_B12X_MXFP8_MAX_M: ${VLLM_B12X_MXFP8_MAX_M:-16}
+      VLLM_DFLASH_FP8_DRAFT_HEAD: ${VLLM_DFLASH_FP8_DRAFT_HEAD:-1}
+      HF_TOKEN: ${HF_TOKEN:-}
+
+      NCCL_NET: IB
+      NCCL_IB_DISABLE: "0"
+      NCCL_IB_ROCE_VERSION_NUM: "2"
+      NCCL_IB_ADDR_FAMILY: AF_INET
+      NCCL_IB_ADDR_RANGE: ${NCCL_SUBNET:-169.254.0.0/16}
+      NCCL_NVLS_ENABLE: "0"
+      NCCL_CROSS_NIC: "0"
+      NCCL_IB_MERGE_NICS: "0"
+      NCCL_CUMEM_ENABLE: "0"
+      NCCL_IGNORE_CPU_AFFINITY: "1"
+      NCCL_DEBUG: ${NCCL_DEBUG:-WARN}
+      NCCL_MIN_NCHANNELS: ${NCCL_NCHANNELS:-8}
+      NCCL_MAX_NCHANNELS: ${NCCL_NCHANNELS:-8}
+      TORCH_NCCL_ASYNC_ERROR_HANDLING: "1"
+    volumes:
+      - type: bind
+        source: ${MODEL_HOST_PATH:-/home/edp1096/.cache/huggingface/glm53-exl3}
+        target: /models/glm53-exl3
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${DFLASH_HOST_PATH:-/home/edp1096/.cache/huggingface/glm53-dflash2-mxfp8}
+        target: /models/glm53-dflash2
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${GLM53_CACHE_PATH:-/home/edp1096/.cache/glm53-vllm}
+        target: /cache
+      - type: bind
+        source: ${GLM53_CACHE_PATH:-/home/edp1096/.cache/glm53-vllm}/jit/triton
+        target: /root/.triton
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${GLM53_CACHE_PATH:-/home/edp1096/.cache/glm53-vllm}/jit/flashinfer
+        target: /root/.cache/flashinfer
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${GLM53_CACHE_PATH:-/home/edp1096/.cache/glm53-vllm}/jit/b12x
+        target: /root/.cache/b12x
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${GLM53_CACHE_PATH:-/home/edp1096/.cache/glm53-vllm}/jit/vllm
+        target: /root/.cache/vllm
+        bind:
+          create_host_path: false
+      - ./entrypoint.sh:/opt/glm53/entrypoint.sh:ro
+    entrypoint: ["/opt/glm53/entrypoint.sh"]
+
+  download:
+    <<: *glm53-image
+    profiles: [download]
+    user: ${HOST_UID:-1000}:${HOST_GID:-1000}
+    environment:
+      HOME: /tmp
+      HF_HOME: /tmp/huggingface
+      EXL3_REPO: ${EXL3_REPO:-brandonmusic/GLM-5.3-Flash-tr3-4bpw}
+      DFLASH_REPO: ${DFLASH_REPO:-local-inference-lab/GLM-5.3-Flash-DFlash2-MXFP8}
+      DFLASH_REVISION: ${DFLASH_REVISION:-62f758c0a0e19b9cb76fc098c911b8ed76daff5b}
+      HF_TOKEN: ${HF_TOKEN:-}
+    volumes:
+      - ${MODEL_HOST_PATH:-/home/edp1096/.cache/huggingface/glm53-exl3}:/models/glm53-exl3
+      - ${DFLASH_HOST_PATH:-/home/edp1096/.cache/huggingface/glm53-dflash2-mxfp8}:/models/glm53-dflash2
+    entrypoint: ["python3", "-c"]
+    command:
+      - |
+        import os
+        from huggingface_hub import snapshot_download
+        snapshot_download(os.environ["EXL3_REPO"], local_dir="/models/glm53-exl3")
+        snapshot_download(
+            os.environ["DFLASH_REPO"],
+            revision=os.environ["DFLASH_REVISION"],
+            local_dir="/models/glm53-dflash2",
+        )

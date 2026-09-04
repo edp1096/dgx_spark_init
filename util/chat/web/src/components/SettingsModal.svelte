@@ -9,7 +9,7 @@
   import MemorySettings from './settings/MemorySettings.svelte';
   import ToolDiscoverySettings from './settings/ToolDiscoverySettings.svelte';
   import { normalizePublicSettings } from '../lib/settings.js';
-  import { modelCapabilities, normalizeReasoningEffort, thinkingToggleValue } from '../lib/model-capabilities.js';
+  import { modelCapabilities, normalizeReasoningEffort, reasoningEffortLabel, thinkingToggleValue } from '../lib/model-capabilities.js';
 
   export let settings;
   export let runtime = null;
@@ -36,7 +36,8 @@
   ];
   $: modelProfile = modelCapabilities(settings?.model?.model_type);
   $: gemmaThinkingValue = thinkingToggleValue(settings?.model?.reasoning_effort);
-  $: if (settings?.model && modelProfile.family === 'qwen3.8') settings.model.reasoning_effort = normalizeReasoningEffort(settings.model.model_type, settings.model.reasoning_effort);
+  $: if (settings?.model && (modelProfile.family === 'qwen3.8' || modelProfile.family === 'glm5.3')) settings.model.reasoning_effort = normalizeReasoningEffort(settings.model.model_type, settings.model.reasoning_effort);
+  $: externalMode = settings?.runtime?.mode === 'external';
   $: currentBundle = runtime?.bundles?.find((bundle) => bundle.id === runtime?.selected_bundle) || runtime?.bundles?.[0];
   const ttsLanguages = ['auto', 'ko-KR', 'en-US', 'ja-JP', 'zh-CN', 'ar-MSA', 'ar-AE', 'ar-SA', 'de-DE', 'es-ES', 'fr-FR', 'hi-IN', 'it-IT', 'pt-BR', 'vi-VN'];
   const ttsVoices = [
@@ -71,6 +72,21 @@
 
   function toggleDefaultThinking() {
     settings.model.reasoning_effort = gemmaThinkingValue === 'on' ? 'none' : 'on';
+  }
+
+  function applyEntrpiGLM53Profile() {
+    settings.runtime.mode = 'external';
+    settings.model.default_model = 'glm-5.3-flash';
+    settings.model.model_type = 'glm5.3';
+    settings.model.reasoning_effort = 'max';
+    settings.context.window_tokens = 524288;
+    settings.asr.enabled = false;
+    settings.tts.enabled = false;
+    settings.image.enabled = false;
+    settings.extra.ssh_enabled = false;
+    settings.extra.collector_enabled = false;
+    settings.tools.media_import_enabled = false;
+    notify('GLM-5.3 Entrpi 단일 연결값을 적용했습니다. 모델 API 주소를 확인한 뒤 저장하십시오.');
   }
 
   function tabKeydown(event, index) {
@@ -150,8 +166,13 @@
       <div id="settings-panel-chat" class="settings-tab-panel" class:active={activeTab === 'chat'} role="tabpanel" aria-labelledby="settings-tab-chat">
         <fieldset>
           <legend>현재 AI 세트</legend>
-          <div class="settings-bundle-card"><span><strong>{currentBundle?.name || '관리형 세트'}</strong><small>{currentBundle?.description || settings.model.default_model}</small></span><div><b>{currentBundle?.model_id || settings.model.default_model}</b><small>{currentBundle?.context_tokens ? `${Math.round(currentBundle.context_tokens / 1024)}K context` : ''}</small></div></div>
-          <small>모델과 엔진 연결은 우상단의 운영 패널에서 관리합니다. 설정에는 대화 동작만 저장됩니다.</small>
+          {#if externalMode}
+            <div class="settings-bundle-card"><span><strong>{modelProfile.family === 'glm5.3' ? 'GLM-5.3 Entrpi' : '외부 모델'}</strong><small>{settings.model.endpoint}</small></span><div><b>{settings.model.default_model}</b><small>{settings.context.window_tokens ? `${Math.round(settings.context.window_tokens / 1024)}K context` : 'context 자동 감지'}</small></div></div>
+            <small>외부 API는 SparkTalk가 기동하거나 중지하지 않습니다.</small>
+          {:else}
+            <div class="settings-bundle-card"><span><strong>{currentBundle?.name || '관리형 세트'}</strong><small>{currentBundle?.description || settings.model.default_model}</small></span><div><b>{currentBundle?.model_id || settings.model.default_model}</b><small>{currentBundle?.context_tokens ? `${Math.round(currentBundle.context_tokens / 1024)}K context` : ''}</small></div></div>
+            <small>모델과 엔진 연결은 우상단의 운영 패널에서 관리합니다. 설정에는 대화 동작만 저장됩니다.</small>
+          {/if}
         </fieldset>
         <fieldset>
           <legend>추론 기본값</legend>
@@ -160,6 +181,8 @@
             <label>Thinking 예산<input type="number" min="0" step="128" bind:value={settings.model.thinking_budget} /><small>최대 생각 토큰 수입니다. 512 권장, 0이면 제한하지 않습니다.</small></label>
           {:else if modelProfile.family === 'qwen3.8'}
             <label>기본 reasoning effort<select bind:value={settings.model.reasoning_effort} aria-label="기본 reasoning effort">{#each modelProfile.reasoningLevels as level}<option value={level}>{level === 'none' ? '꺼짐' : level === 'low' ? 'Low' : level === 'medium' ? 'Medium' : 'XHigh'}</option>{/each}</select><small>Qwen3.8은 꺼짐·Low·Medium·XHigh 네 단계만 사용합니다.</small></label>
+          {:else if modelProfile.family === 'glm5.3'}
+            <label>기본 reasoning effort<select bind:value={settings.model.reasoning_effort} aria-label="기본 reasoning effort">{#each modelProfile.reasoningLevels as level}<option value={level}>{reasoningEffortLabel(level)}</option>{/each}</select><small>Entrpi GLM-5.3은 꺼짐·Low·High·Max를 사용합니다.</small></label>
           {:else}
             <label>기본 reasoning effort<input bind:value={settings.model.reasoning_effort} list="settings-reasoning-levels" placeholder="직접 입력 또는 목록에서 선택" /></label>
             <datalist id="settings-reasoning-levels">{#each modelProfile.reasoningLevels as level}<option value={level}></option>{/each}</datalist>
@@ -250,6 +273,7 @@
         <fieldset>
           <legend>SparkTalk Extra</legend>
           <label class="check"><input type="checkbox" bind:checked={settings.extra.ssh_enabled} /> 승인형 SSH 도구 활성화</label>
+          <label class="check"><input type="checkbox" bind:checked={settings.extra.collector_enabled} /> 격리 브라우저 Collector 활성화</label>
           {#if serviceHealth?.extra?.ssh}<div class="media-usage"><span>Extra SSH · {serviceHealth.extra.ssh.status === 'ok' ? 'online' : serviceHealth.extra.ssh.status}</span></div>{/if}
           {#if !settings.extra.ssh_enabled}
             <small class="ssh-empty">SSH 도구가 꺼져 있습니다.</small>
@@ -265,13 +289,24 @@
 
       <div id="settings-panel-system" class="settings-tab-panel" class:active={activeTab === 'system'} role="tabpanel" aria-labelledby="settings-tab-system">
         <fieldset>
-          <legend>DGX Spark 운영</legend>
-          <label>기본 AI 세트<select bind:value={settings.runtime.bundle}>{#each runtime?.bundles || [] as bundle}<option value={bundle.id}>{bundle.name}</option>{/each}</select><small>실행 중 세트 전환은 우상단 운영 패널에서 진행합니다.</small></label>
-          <label class="check"><input type="checkbox" bind:checked={settings.runtime.auto_start} /> SparkTalk 시작 시 기본 세트 자동 기동</label>
-          <label>최소 확보 메모리<input type="number" min="1" max="64" step="1" bind:value={settings.runtime.memory_reserve_gib} /><small>새 엔진을 올릴 때 남겨둘 통합메모리 GiB입니다.</small></label>
-          <label>운영 데이터 폴더<input bind:value={settings.runtime.data_dir} /></label>
-          <label>모델 캐시 폴더<input bind:value={settings.runtime.model_cache} /></label>
-          <div class="media-usage"><span>Docker · {runtime?.docker === 'online' ? 'online' : 'offline'}</span><span>시스템 가용 · {formatGiB(runtime?.memory?.available_gib)} GiB</span><span>즉시 여유 · {formatGiB(runtime?.memory?.free_gib)} GiB</span></div>
+          <legend>모델 연결</legend>
+          <label>실행 방식<select bind:value={settings.runtime.mode}><option value="managed">로컬 DGX Spark 관리형</option><option value="external">외부 OpenAI 호환 API</option></select></label>
+          {#if externalMode}
+            <button type="button" class="media-cleanup" onclick={applyEntrpiGLM53Profile}>GLM-5.3 Entrpi 단일 연결 적용</button>
+            <label>모델 API 주소<input bind:value={settings.model.endpoint} placeholder="http://서버주소:8000" /><small><code>/v1</code>은 붙이지 않습니다.</small></label>
+            <label>모델 ID<input bind:value={settings.model.default_model} /></label>
+            <label>모델 유형<select bind:value={settings.model.model_type}><option value="glm5.3">GLM-5.3 Entrpi</option><option value="qwen3.8">Qwen3.8</option><option value="gemma4">Gemma 4</option><option value="generic">일반 OpenAI 호환</option></select></label>
+            <label>API 키<input type="password" bind:value={settingsAPIKey} autocomplete="new-password" placeholder={settings.api_key_set ? '저장된 키 유지' : '필요한 경우 입력'} /></label>
+            {#if settings.api_key_set}<label class="check"><input type="checkbox" bind:checked={clearAPIKey} /> 저장된 API 키 삭제</label>{/if}
+            <small>GLM 단일 연결은 ASR·TTS·이미지 생성·Extra SSH·Collector·URL 미디어 가져오기를 끕니다. 이미지 첨부 분석과 로컬 웹 도구 호출은 유지됩니다.</small>
+          {:else}
+            <label>기본 AI 세트<select bind:value={settings.runtime.bundle}>{#each runtime?.bundles || [] as bundle}<option value={bundle.id}>{bundle.name}</option>{/each}</select><small>실행 중 세트 전환은 우상단 운영 패널에서 진행합니다.</small></label>
+            <label class="check"><input type="checkbox" bind:checked={settings.runtime.auto_start} /> SparkTalk 시작 시 기본 세트 자동 기동</label>
+            <label>최소 확보 메모리<input type="number" min="1" max="64" step="1" bind:value={settings.runtime.memory_reserve_gib} /><small>새 엔진을 올릴 때 남겨둘 통합메모리 GiB입니다.</small></label>
+            <label>운영 데이터 폴더<input bind:value={settings.runtime.data_dir} /></label>
+            <label>모델 캐시 폴더<input bind:value={settings.runtime.model_cache} /></label>
+            <div class="media-usage"><span>Docker · {runtime?.docker === 'online' ? 'online' : 'offline'}</span><span>시스템 가용 · {formatGiB(runtime?.memory?.available_gib)} GiB</span><span>즉시 여유 · {formatGiB(runtime?.memory?.free_gib)} GiB</span></div>
+          {/if}
         </fieldset>
         <fieldset>
           <legend>앱 서버</legend>

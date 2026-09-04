@@ -151,6 +151,7 @@ type ImageConfig struct {
 type ExtraConfig struct {
 	SSHEnabled        bool   `yaml:"ssh_enabled" json:"ssh_enabled"`
 	SSHEndpoint       string `yaml:"ssh_endpoint" json:"ssh_endpoint"`
+	CollectorEnabled  bool   `yaml:"collector_enabled" json:"collector_enabled"`
 	CollectorEndpoint string `yaml:"collector_endpoint" json:"collector_endpoint"`
 }
 
@@ -227,6 +228,9 @@ func Load(path string) (Config, bool, error) {
 		Image *struct {
 			Enabled *bool `yaml:"enabled"`
 		} `yaml:"image"`
+		Extra *struct {
+			CollectorEnabled *bool `yaml:"collector_enabled"`
+		} `yaml:"extra"`
 	}
 	_ = yaml.Unmarshal(data, &presence)
 	if presence.ASR == nil || presence.ASR.Enabled == nil {
@@ -266,6 +270,9 @@ func Load(path string) (Config, bool, error) {
 		// Older configurations predate selectable image engines. Keep the tool
 		// disabled until an endpoint/model pair is chosen explicitly.
 		cfg.Image.Enabled = false
+	}
+	if presence.Extra == nil || presence.Extra.CollectorEnabled == nil {
+		cfg.Extra.CollectorEnabled = true
 	}
 	cfg.Normalize()
 	if err := cfg.Validate(); err != nil {
@@ -382,7 +389,7 @@ func (c *Config) Normalize() {
 	c.Model.DefaultModel = strings.TrimSpace(c.Model.DefaultModel)
 	c.Model.ModelType = strings.ToLower(strings.TrimSpace(c.Model.ModelType))
 	switch c.Model.ModelType {
-	case "qwen3.8", "gemma4", "generic":
+	case "qwen3.8", "gemma4", "glm5.3", "generic":
 	default:
 		c.Model.ModelType = "generic"
 	}
@@ -663,7 +670,7 @@ func (c Config) Validate() error {
 	if c.Extra.SSHEnabled && !strings.HasPrefix(c.Extra.SSHEndpoint, "http://") && !strings.HasPrefix(c.Extra.SSHEndpoint, "https://") {
 		return errors.New("extra.ssh_endpoint must start with http:// or https://")
 	}
-	if !strings.HasPrefix(c.Extra.CollectorEndpoint, "http://") && !strings.HasPrefix(c.Extra.CollectorEndpoint, "https://") {
+	if c.Extra.CollectorEnabled && !strings.HasPrefix(c.Extra.CollectorEndpoint, "http://") && !strings.HasPrefix(c.Extra.CollectorEndpoint, "https://") {
 		return errors.New("extra.collector_endpoint must start with http:// or https://")
 	}
 	if c.Context.WindowTokens < 0 {
@@ -734,6 +741,15 @@ func normalizeReasoningEffort(modelType, value string) string {
 	raw := strings.TrimSpace(value)
 	value = strings.ToLower(raw)
 	switch modelType {
+	case "glm5.3":
+		switch value {
+		case "", "none", "off", "false", "disabled", "0", "0.0":
+			return "off"
+		case "low", "high", "max":
+			return value
+		default:
+			return "max"
+		}
 	case "qwen3.8":
 		switch value {
 		case "none", "low", "medium", "xhigh":

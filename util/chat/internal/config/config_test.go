@@ -47,7 +47,7 @@ func TestLoadCreatesEmbeddedDefaultAndSaveReloads(t *testing.T) {
 	if cfg.Image.Enabled || cfg.Image.Endpoint != "http://127.0.0.1:8691" || cfg.Image.Model != "flux2-klein-4b-nvfp4" || cfg.Image.Mode != "basic" || cfg.Image.DefaultSize != "1024x1024" {
 		t.Fatalf("generated image defaults are incomplete: %+v", cfg.Image)
 	}
-	if cfg.Extra.CollectorEndpoint != "http://127.0.0.1:8695" {
+	if !cfg.Extra.CollectorEnabled || cfg.Extra.CollectorEndpoint != "http://127.0.0.1:8695" {
 		t.Fatalf("generated collector endpoint is incomplete: %+v", cfg.Extra)
 	}
 	if cfg.Version != 2 || cfg.Runtime.Mode != "managed" || cfg.Runtime.Bundle != "flash-next" || cfg.Runtime.MemoryReserveGiB != 8 {
@@ -165,6 +165,11 @@ func TestNormalizeConstrainsModelSpecificReasoning(t *testing.T) {
 		{"qwen3.8", "on", "medium"},
 		{"gemma4", "xhigh", "on"},
 		{"gemma4", "none", "none"},
+		{"glm5.3", "none", "off"},
+		{"glm5.3", "low", "low"},
+		{"glm5.3", "high", "high"},
+		{"glm5.3", "max", "max"},
+		{"glm5.3", "xhigh", "max"},
 		{"generic", "0.75", "0.75"},
 	} {
 		if got := normalizeReasoningEffort(test.modelType, test.effort); got != test.want {
