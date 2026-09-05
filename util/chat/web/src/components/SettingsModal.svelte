@@ -287,7 +287,7 @@
             <label>모델 유형<select value={settings.model.model_type} onchange={selectExternalModelType}><option value="glm5.3">GLM-5.3 Flash</option><option value="qwen3.8">Qwen3.8</option><option value="gemma4">Gemma 4</option><option value="generic">일반 OpenAI 호환</option></select></label>
             <label>API 키<input type="password" bind:value={settingsAPIKey} autocomplete="new-password" placeholder={settings.api_key_set ? '저장된 키 유지' : '필요한 경우 입력'} /></label>
             {#if settings.api_key_set}<label class="check"><input type="checkbox" bind:checked={clearAPIKey} /> 저장된 API 키 삭제</label>{/if}
-            <small>GLM-5.3 Flash를 선택하면 512K 문맥과 Max 리즈닝을 적용하고 ASR·TTS·이미지 생성·Extra·URL 미디어 가져오기를 끕니다. 엔드포인트와 이미지 첨부 분석, 로컬 웹 도구는 유지됩니다.</small>
+            <small>GLM-5.3 Flash를 선택하면 512K 문맥과 Max 리즈닝을 적용합니다. ASR·TTS·이미지 생성·Extra 등 부가 기능은 각 설정에서 개별 관리합니다.</small>
           {:else}
             <label>기본 AI 세트<select bind:value={settings.runtime.bundle}>{#each runtime?.bundles || [] as bundle}<option value={bundle.id}>{bundle.name}</option>{/each}</select><small>실행 중 세트 전환은 우상단 운영 패널에서 진행합니다.</small></label>
             <label class="check"><input type="checkbox" bind:checked={settings.runtime.auto_start} /> SparkTalk 시작 시 기본 세트 자동 기동</label>

@@ -23,7 +23,8 @@ test('preserves Japanese automatic Hanja reading', () => {
   assert.equal(settings.tts.omit_parentheticals, false);
 });
 
-test('selecting the GLM-5.3 Flash type applies its single-server defaults', () => {
+test('selecting GLM and switching away preserves auxiliary service settings', () => {
+ for (const enabled of [true, false]) {
   const settings = normalizePublicSettings({
     model: { endpoint: 'http://192.168.100.61:8000', default_model: 'old', reasoning_effort: 'low' },
     context: { window_tokens: 32768 },
@@ -33,18 +34,23 @@ test('selecting the GLM-5.3 Flash type applies its single-server defaults', () =
     image: { enabled: true },
     extra: { ssh_enabled: true, collector_enabled: true },
   });
+  settings.asr.enabled = enabled;
+  settings.tts.enabled = enabled;
+  settings.image.enabled = enabled;
+  settings.extra.ssh_enabled = enabled;
+  settings.extra.collector_enabled = enabled;
+  settings.tools.media_import_enabled = enabled;
+  const auxiliary = structuredClone({ asr: settings.asr, tts: settings.tts, image: settings.image, extra: settings.extra, tools: settings.tools });
   applyExternalModelType(settings, 'glm5.3');
   assert.equal(settings.model.endpoint, 'http://192.168.100.61:8000');
   assert.equal(settings.model.default_model, 'glm-5.3-flash');
   assert.equal(settings.model.model_type, 'glm5.3');
   assert.equal(settings.model.reasoning_effort, 'max');
   assert.equal(settings.context.window_tokens, 524288);
-  assert.equal(settings.asr.enabled, false);
-  assert.equal(settings.tts.enabled, false);
-  assert.equal(settings.image.enabled, false);
-  assert.equal(settings.extra.ssh_enabled, false);
-  assert.equal(settings.extra.collector_enabled, false);
-  assert.equal(settings.tools.media_import_enabled, false);
+  for (const [section, expected] of Object.entries(auxiliary)) assert.deepEqual(settings[section], expected);
+  applyExternalModelType(settings, 'qwen3.8');
+  for (const [section, expected] of Object.entries(auxiliary)) assert.deepEqual(settings[section], expected);
+ }
 });
 
 test('selecting another external model type changes only the request profile', () => {

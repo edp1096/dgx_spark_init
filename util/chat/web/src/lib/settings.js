@@ -40,11 +40,5 @@ export function applyExternalModelType(settings, modelType) {
   settings.model.default_model = 'glm-5.3-flash';
   settings.model.reasoning_effort = 'max';
   settings.context.window_tokens = 524288;
-  settings.asr.enabled = false;
-  settings.tts.enabled = false;
-  settings.image.enabled = false;
-  settings.extra.ssh_enabled = false;
-  settings.extra.collector_enabled = false;
-  settings.tools.media_import_enabled = false;
   return settings;
 }
