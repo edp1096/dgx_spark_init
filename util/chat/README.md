@@ -73,7 +73,7 @@ dgx-exl3-qwen38-fn:1.4.6-ablit1
 dgx-sglang-gemma4-31b-dflash:2ef0fe4
 dgx-flux2-klein-nvfp4:4b
 sparktalk-nemotron-asr:0.6b-q8
-sparktalk-magpie-tts:v2607
+sparktalk-magpie-tts:v2607-longform1
 sparktalk-extra-media:latest
 sparktalk-extra-ssh:latest
 sparktalk-extra-collector:latest

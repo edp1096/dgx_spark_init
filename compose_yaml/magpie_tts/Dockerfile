@@ -20,11 +20,13 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 
 WORKDIR /src
 COPY patches/0001-fix-v2607-speaker-order.patch /tmp/0001-fix-v2607-speaker-order.patch
+COPY patches/0002-fix-longform-history-cache.patch /tmp/0002-fix-longform-history-cache.patch
 RUN git clone --filter=blob:none https://github.com/NVIDIA/NeMo-Speech.cpp.git . \
-    && git fetch --depth 1 origin refs/pull/17/head \
+    && git fetch --depth 1 origin "${NEMO_SPEECH_REF}" \
     && test "$(git rev-parse FETCH_HEAD)" = "${NEMO_SPEECH_REF}" \
     && git checkout --detach "${NEMO_SPEECH_REF}" \
-    && git apply /tmp/0001-fix-v2607-speaker-order.patch \
+    && git apply --unidiff-zero /tmp/0001-fix-v2607-speaker-order.patch \
+    && git apply /tmp/0002-fix-longform-history-cache.patch \
     && git submodule update --init --recursive --depth 1 \
       ggml llama.cpp third_party/cpp-httplib third_party/open_jtalk third_party/cppjieba \
     && git lfs install --local \
@@ -56,10 +58,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends git ca-certific
 WORKDIR /src
 COPY patches/0001-fix-v2607-speaker-order.patch /tmp/0001-fix-v2607-speaker-order.patch
 RUN git clone --filter=blob:none https://github.com/NVIDIA/NeMo-Speech.cpp.git . \
-    && git fetch --depth 1 origin refs/pull/17/head \
+    && git fetch --depth 1 origin "${NEMO_SPEECH_REF}" \
     && test "$(git rev-parse FETCH_HEAD)" = "${NEMO_SPEECH_REF}" \
     && git checkout --detach "${NEMO_SPEECH_REF}" \
-    && git apply /tmp/0001-fix-v2607-speaker-order.patch \
+    && git apply --unidiff-zero /tmp/0001-fix-v2607-speaker-order.patch \
     && pip install --no-cache-dir -r requirements.txt
 ENTRYPOINT ["python", "/src/convert_model.py"]
 

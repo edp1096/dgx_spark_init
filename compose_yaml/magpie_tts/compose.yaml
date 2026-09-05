@@ -8,7 +8,7 @@ services:
         NEMO_SPEECH_REF: ${NEMO_SPEECH_REF:-7752dabb3453ec7c5fd751e5e2052650aaa20497}
         CUDA_ARCH: ${NEMO_CUDA_ARCH:-121}
         BUILD_JOBS: ${NEMO_BUILD_JOBS:-4}
-    image: sparktalk-magpie-tts:v2607
+    image: sparktalk-magpie-tts:v2607-longform1
     container_name: sparktalk-magpie-tts
     restart: unless-stopped
     ports:
@@ -25,6 +25,8 @@ services:
       - --no-ui
       - --threads
       - "1"
+      - --tts.longform
+      - "auto"
       - --tts.magpie-model
       - /models/magpie-v2607-pr17-speaker-order-v2.f16.gguf
       - --tts.codec-model

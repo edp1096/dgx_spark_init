@@ -18,6 +18,12 @@ v2607의 factor-2 프레임과 한국어 프로필이 아직 upstream main에 �
 이 커밋의 변환기가 v2607 체크포인트의 화자 인덱스 순서를 잘못 기록하므로 로컬
 패치로 원본 `speakers.json` 순서인 `Aria, Jason, John, Leo, Sofia`를 적용한다.
 
+`v2607-longform1` 이미지는 긴 글의 문장 사이에서 필요한 인코딩 문맥이
+사라지는 오류도 수정한다. 캐시를 직전 문장 범위로 덮어쓰지 않고 모델 문맥
+한도까지 누적 이력의 끝부분을 보존하며, `--tts.longform auto`를 사용한다.
+회귀 검사는 `python3 scripts/test_longform_cache.py /path/to/NeMo-Speech.cpp`로
+실행한다. 원본 고정 커밋은 `need 20 token(s), have 18`로 실패하고 패치본은 통과한다.
+
 ## 최초 준비와 실행
 
 모델은 Git 저장소 밖의 `/home/edp1096/.cache/nemo-speech/magpie-v2607`에 둔다.
