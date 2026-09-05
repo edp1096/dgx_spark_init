@@ -14,10 +14,11 @@ import (
 )
 
 type Message struct {
-	Role       string     `json:"role"`
-	Content    any        `json:"content,omitempty"`
-	ToolCalls  []ToolCall `json:"tool_calls,omitempty"`
-	ToolCallID string     `json:"tool_call_id,omitempty"`
+	ReasoningContent string     `json:"reasoning_content,omitempty"`
+	Role             string     `json:"role"`
+	Content          any        `json:"content,omitempty"`
+	ToolCalls        []ToolCall `json:"tool_calls,omitempty"`
+	ToolCallID       string     `json:"tool_call_id,omitempty"`
 }
 
 type Tool struct {
@@ -102,6 +103,14 @@ func gemmaThinkingEnabled(effort string) bool {
 
 func applyReasoningOptions(payload map[string]any, modelType, effort string) {
 	effort = NormalizeReasoningEffort(modelType, effort)
+	if modelType == "deepseek-v4" {
+		options := map[string]any{"thinking": effort != "off"}
+		if effort != "off" {
+			options["reasoning_effort"] = effort
+		}
+		payload["chat_template_kwargs"] = options
+		return
+	}
 	if modelType == "glm5.3" {
 		enabled := effort != "off"
 		payload["chat_template_kwargs"] = map[string]any{
@@ -126,7 +135,7 @@ func NormalizeReasoningEffort(modelType, effort string) string {
 	raw := strings.TrimSpace(effort)
 	effort = strings.ToLower(raw)
 	switch modelType {
-	case "glm5.3":
+	case "glm5.3", "deepseek-v4":
 		switch effort {
 		case "", "none", "off", "false", "disabled", "0", "0.0":
 			return "off"
@@ -205,6 +214,14 @@ func (c *Client) Stream(ctx context.Context, messages []Message, model, reasonin
 			return StreamResult{}, err
 		}
 	}
+	// Same-turn tool reasoning is needed by DeepSeek's native encoder. Keep
+	// other model protocols unchanged and never mutate the caller's transcript.
+	if c.modelType != "deepseek-v4" {
+		messages = append([]Message(nil), messages...)
+		for i := range messages {
+			messages[i].ReasoningContent = ""
+		}
+	}
 	payload := map[string]any{
 		"model": model, "messages": messages, "stream": true, "temperature": 0.7,
 		"separate_reasoning": true, "stream_reasoning": true,
@@ -215,6 +232,17 @@ func (c *Client) Stream(ctx context.Context, messages []Message, model, reasonin
 		payload["tool_choice"] = "auto"
 	}
 	applyReasoningOptions(payload, c.modelType, reasoningEffort)
+	if c.modelType == "deepseek-v4" {
+		for _, message := range messages {
+			if message.Role == "assistant" && message.ReasoningContent != "" {
+				// The round-limit instruction is a new user message; without this flag
+				// the encoder would discard the current tool turn's reasoning again.
+				payload["chat_template_kwargs"].(map[string]any)["drop_thinking"] = false
+				break
+			}
+		}
+	}
+
 	if c.modelType == "gemma4" && gemmaThinkingEnabled(reasoningEffort) && c.thinkingBudget > 0 {
 		// The pinned SGLang OpenAI protocol exposes custom_params but does not
 		// forward its native max_thinking_tokens field from chat completions.

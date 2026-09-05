@@ -8,7 +8,7 @@ services:
     ipc: host
     gpus: all
     environment:
-      API_PORT: "8691"
+      API_PORT: "${SPARKTALK_PORT:-8691}"
       COMFY_PORT: "8188"
       COMFY_KITCHEN_BACKEND: cuda
       PYTORCH_CUDA_ALLOC_CONF: expandable_segments:True

@@ -60,6 +60,7 @@ func (a *api) routes() http.Handler {
 	mux.HandleFunc("POST /v1/probe", a.probe)
 	mux.HandleFunc("POST /v1/audio/extract", a.extractAudio)
 	mux.HandleFunc("POST /v1/video/normalize", a.normalizeVideo)
+	mux.HandleFunc("POST /v1/video/frames", a.videoFrames)
 	mux.HandleFunc("POST /v1/source/probe", a.probeSource)
 	mux.HandleFunc("POST /v1/source/download", a.downloadSource)
 	return requestLog(mux)

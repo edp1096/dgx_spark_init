@@ -6,12 +6,9 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"os"
-	"path/filepath"
-	"sort"
 	"strings"
 
 	"golang.org/x/crypto/ssh"
@@ -27,25 +24,13 @@ type storedKey struct {
 }
 
 func (a *api) listKeys(w http.ResponseWriter, _ *http.Request) {
-	a.keysMu.Lock()
-	defer a.keysMu.Unlock()
-	entries, err := os.ReadDir(a.cfg.KeyDir)
+	var keys []storedKey
+	err := a.withStore(func(s *keyStore) error { keys = s.list(); return nil })
 	if err != nil {
-		writeError(w, http.StatusInternalServerError, "read SSH key directory: "+err.Error(), nil)
+		writeError(w, 500, err.Error(), nil)
 		return
 	}
-	keys := make([]storedKey, 0, len(entries))
-	for _, entry := range entries {
-		if entry.IsDir() || !keyIDPattern.MatchString(entry.Name()) {
-			continue
-		}
-		key, err := readStoredKey(filepath.Join(a.cfg.KeyDir, entry.Name()), entry.Name())
-		if err == nil {
-			keys = append(keys, key)
-		}
-	}
-	sort.Slice(keys, func(i, j int) bool { return keys[i].ID < keys[j].ID })
-	writeJSON(w, http.StatusOK, keys)
+	writeJSON(w, 200, keys)
 }
 
 func (a *api) generateKey(w http.ResponseWriter, r *http.Request) {
@@ -61,17 +46,11 @@ func (a *api) generateKey(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "invalid SSH key id", nil)
 		return
 	}
-	_, privateKey, err := ed25519.GenerateKey(rand.Reader)
+	data, err := generatePrivateKey()
 	if err != nil {
-		writeError(w, http.StatusInternalServerError, "generate SSH key: "+err.Error(), nil)
+		writeError(w, 500, err.Error(), nil)
 		return
 	}
-	encoded, err := x509.MarshalPKCS8PrivateKey(privateKey)
-	if err != nil {
-		writeError(w, http.StatusInternalServerError, "encode SSH key: "+err.Error(), nil)
-		return
-	}
-	data := pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: encoded})
 	key, err := a.storeKey(req.KeyID, data)
 	if err != nil {
 		a.writeKeyStoreError(w, err)
@@ -116,54 +95,38 @@ func (a *api) deleteKey(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "invalid SSH key id", nil)
 		return
 	}
-	a.keysMu.Lock()
-	defer a.keysMu.Unlock()
-	path := filepath.Join(a.cfg.KeyDir, keyID)
-	if err := os.Remove(path); err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			writeError(w, http.StatusNotFound, "SSH key not found", nil)
-		} else {
-			writeError(w, http.StatusInternalServerError, "delete SSH key: "+err.Error(), nil)
-		}
+	err := a.withStore(func(s *keyStore) error { return s.remove(keyID) })
+	if err != nil {
+		a.writeKeyStoreError(w, err)
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (a *api) storeKey(keyID string, data []byte) (storedKey, error) {
-	signer, err := ssh.ParsePrivateKey(data)
+func generatePrivateKey() ([]byte, error) {
+	_, privateKey, err := ed25519.GenerateKey(rand.Reader)
 	if err != nil {
-		var passphraseErr *ssh.PassphraseMissingError
-		if errors.As(err, &passphraseErr) {
+		return nil, err
+	}
+	encoded, err := x509.MarshalPKCS8PrivateKey(privateKey)
+	if err != nil {
+		return nil, err
+	}
+	return pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: encoded}), nil
+}
+func (a *api) storeKey(id string, data []byte) (storedKey, error) {
+	// Preserve useful validation errors for uploads.
+	_, err := ssh.ParsePrivateKey(data)
+	if err != nil {
+		var encrypted *ssh.PassphraseMissingError
+		if errors.As(err, &encrypted) {
 			return storedKey{}, errors.New("encrypted SSH private keys are not supported")
 		}
 		return storedKey{}, errors.New("invalid SSH private key")
 	}
-	a.keysMu.Lock()
-	defer a.keysMu.Unlock()
-	path := filepath.Join(a.cfg.KeyDir, keyID)
-	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600)
-	if err != nil {
-		return storedKey{}, err
-	}
-	written := false
-	defer func() {
-		_ = file.Close()
-		if !written {
-			_ = os.Remove(path)
-		}
-	}()
-	if _, err := file.Write(data); err != nil {
-		return storedKey{}, fmt.Errorf("write SSH key: %w", err)
-	}
-	if err := file.Sync(); err != nil {
-		return storedKey{}, fmt.Errorf("sync SSH key: %w", err)
-	}
-	if err := file.Close(); err != nil {
-		return storedKey{}, fmt.Errorf("close SSH key: %w", err)
-	}
-	written = true
-	return keyMetadata(keyID, signer), nil
+	var key storedKey
+	err = a.withStore(func(s *keyStore) error { var err error; key, err = s.store(id, data, false); return err })
+	return key, err
 }
 
 func readStoredKey(path, keyID string) (storedKey, error) {

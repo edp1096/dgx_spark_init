@@ -35,6 +35,7 @@ from browseforge_client import BrowseForgeClient, BrowseForgeError
 from camoufox_client import CamoufoxClient, CamoufoxError
 from direct_camoufox_client import DirectCamoufoxClient, DirectCamoufoxError
 from site_adapters import adapter_for_url
+import ytdlp_runtime
 
 
 DATA_DIR = Path(os.getenv("MEDIA_DATA_DIR", "/data"))
@@ -45,7 +46,7 @@ MAX_UPLOAD_BYTES = int(os.getenv("MEDIA_MAX_UPLOAD_MB", "16384")) << 20
 BROWSER_TIMEOUT_MS = int(os.getenv("MEDIA_BROWSER_TIMEOUT_SECONDS", "45")) * 1000
 MEDIA_SUFFIXES = (".m3u8", ".mpd", ".mp4", ".webm", ".m4a", ".mp3", ".aac")
 
-app = FastAPI(title="Media Access API", version="1")
+app = FastAPI(title="Media Access API", version="1.0.2")
 browseforge = BrowseForgeClient()
 camoufox = CamoufoxClient()
 direct_camoufox = DirectCamoufoxClient()
@@ -83,6 +84,7 @@ def health():
         "status": "ok",
         "ffmpeg": shutil.which("ffmpeg") is not None,
         "yt_dlp": shutil.which("yt-dlp") is not None,
+        "yt_dlp_version": ytdlp_runtime.current_lock()["tag"],
         "browsers": ["chromium", "firefox"],
         "direct_chromium": Path(DIRECT_CHROMIUM_EXECUTABLE).is_file(),
         "direct_camoufox": direct_camoufox.configured,
@@ -90,6 +92,30 @@ def health():
         "camoufox": camoufox.configured,
         "pot_provider": pot_provider_online,
     }
+
+
+@app.get("/v1/runtime/yt-dlp")
+async def ytdlp_status(check: bool = False):
+    return await asyncio.to_thread(ytdlp_runtime.status, check)
+
+
+async def change_ytdlp(action):
+    try:
+        return await asyncio.to_thread(ytdlp_runtime.mutate, action)
+    except BlockingIOError:
+        raise HTTPException(409, "yt-dlp update already in progress")
+    except (ValueError, OSError, subprocess.SubprocessError) as exc:
+        raise HTTPException(502, str(exc))
+
+
+@app.post("/v1/runtime/yt-dlp/update")
+async def ytdlp_update():
+    return await change_ytdlp("update")
+
+
+@app.post("/v1/runtime/yt-dlp/rollback")
+async def ytdlp_rollback():
+    return await change_ytdlp("rollback")
 
 
 def progress_path(request_id: str) -> Path:

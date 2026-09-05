@@ -9,19 +9,21 @@ RUN CGO_ENABLED=0 go test ./... \
 
 FROM ${RUNTIME_BASE_IMAGE} AS tools
 ARG TARGETARCH
-ARG YTDLP_VERSION=2026.07.04
+ARG YTDLP_VERSION=2026.08.19
+# Release commit: 3a08beaf031ab68f966401ead017ac81fe8486cf.
+# Pin the tested artifacts locally; do not trust a mutable remote checksum file.
+ARG YTDLP_SHA256_AMD64=58162f9bfdc27458ea47bfcb311cf47028f17d8154a8bf7d689861d46399230a
+ARG YTDLP_SHA256_ARM64=b16e4dab368a816cd05d477d698a605a6ae87ccee1c8ffd38fa21d7254141fcc
 ARG DENO_VERSION=2.8.1
 RUN apt-get update \
     && apt-get install -y --no-install-recommends ca-certificates curl unzip \
     && rm -rf /var/lib/apt/lists/* \
     && case "${TARGETARCH}" in \
-         amd64) ytdlp_asset=yt-dlp_linux; deno_asset=deno-x86_64-unknown-linux-gnu.zip ;; \
-         arm64) ytdlp_asset=yt-dlp_linux_aarch64; deno_asset=deno-aarch64-unknown-linux-gnu.zip ;; \
+         amd64) ytdlp_asset=yt-dlp_linux; ytdlp_sha=${YTDLP_SHA256_AMD64}; deno_asset=deno-x86_64-unknown-linux-gnu.zip ;; \
+         arm64) ytdlp_asset=yt-dlp_linux_aarch64; ytdlp_sha=${YTDLP_SHA256_ARM64}; deno_asset=deno-aarch64-unknown-linux-gnu.zip ;; \
          *) echo "unsupported architecture: ${TARGETARCH}" >&2; exit 1 ;; \
        esac \
     && curl -fsSLo /tmp/yt-dlp "https://github.com/yt-dlp/yt-dlp/releases/download/${YTDLP_VERSION}/${ytdlp_asset}" \
-    && curl -fsSLo /tmp/SHA2-256SUMS "https://github.com/yt-dlp/yt-dlp/releases/download/${YTDLP_VERSION}/SHA2-256SUMS" \
-    && ytdlp_sha="$(awk -v asset="${ytdlp_asset}" '$2 == asset {print $1}' /tmp/SHA2-256SUMS)" \
     && test -n "${ytdlp_sha}" \
     && echo "${ytdlp_sha}  /tmp/yt-dlp" | sha256sum -c - \
     && chmod 0555 /tmp/yt-dlp \

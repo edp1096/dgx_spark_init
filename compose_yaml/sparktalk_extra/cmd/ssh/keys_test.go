@@ -30,7 +30,11 @@ func TestGenerateListAndDeleteKey(t *testing.T) {
 	if generated.ID != "dgx-main" || generated.Fingerprint == "" || generated.PublicKey == "" {
 		t.Fatalf("unexpected key metadata: %+v", generated)
 	}
-	info, err := os.Stat(filepath.Join(dir, "dgx-main"))
+	var keyPath string
+	if err := a.withStore(func(s *keyStore) error { keyPath = s.objectPath(s.m.Keys["dgx-main"].Hash); return nil }); err != nil {
+		t.Fatal(err)
+	}
+	info, err := os.Stat(keyPath)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -49,7 +53,7 @@ func TestGenerateListAndDeleteKey(t *testing.T) {
 	if response.Code != http.StatusNoContent {
 		t.Fatalf("delete status=%d body=%s", response.Code, response.Body.String())
 	}
-	if _, err := os.Stat(filepath.Join(dir, "dgx-main")); !os.IsNotExist(err) {
+	if _, err := os.Stat(keyPath); !os.IsNotExist(err) {
 		t.Fatalf("expected deleted key, err=%v", err)
 	}
 }

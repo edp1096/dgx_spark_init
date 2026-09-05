@@ -9,6 +9,13 @@
   let audits = [];
   let loading = true;
 
+  const skillNames = {
+    'image-creation': '이미지 생성·편집',
+    'media-analysis': '영상·음성 분석',
+    'ssh-inspection': 'SSH 서버 점검',
+    'web-research': '웹 조사',
+  };
+
   const toolNames = {
 		skill_view: 'Skill 불러오기', memory_propose: '기억 제안', web_search: '웹 검색', web_fetch: '페이지 읽기', web_collect: '브라우저 수집',
     media_import: '미디어 가져오기', image_generate: '이미지 생성', image_capabilities: '이미지 기능 확인', ssh_exec: 'SSH 실행',
@@ -30,11 +37,32 @@
   }
 </script>
 
-<fieldset>
+<fieldset class="builtin-skills">
   <legend>내장 Skill</legend>
-  {#if loading}<small>Skill 목록을 불러오는 중…</small>
-  {:else}<div class="skill-catalog">{#each skills as skill}<article class:disabled={!enabled || !skill.available}><div><strong>{skill.name}</strong><span>{enabled && skill.available ? '사용 가능' : '비활성'}</span></div><p>{skill.description}</p><small>{skill.toolsets.join(' · ')}</small></article>{/each}</div>{/if}
-  <small>현재 켜진 도구에 맞는 절차만 모델에 노출되고, 전문은 필요할 때만 불러옵니다.</small>
+  <label class="check"><input type="checkbox" bind:checked={enabled} /> 필요한 작업 절차를 Skill로 불러오기</label>
+  <div class="skill-summary">
+    <small>활성화된 도구에 맞춰 필요한 작업 절차를 불러옵니다.</small>
+    {#if !loading}<span>{enabled ? skills.filter(skill => skill.available).length : 0} / {skills.length} 사용 가능</span>{/if}
+  </div>
+  {#if loading}
+    <small role="status">Skill 목록을 불러오는 중…</small>
+  {:else if !skills.length}
+    <small>등록된 Skill이 없습니다.</small>
+  {:else}
+    <div class="skill-catalog">
+      {#each skills as skill}
+        <div class="skill-item">
+          <div class="skill-heading">
+            <strong>{skillNames[skill.name] || skill.name}</strong>
+            <span class="skill-status" class:available={enabled && skill.available}>
+              {enabled && skill.available ? '사용 가능' : '비활성'}
+            </span>
+          </div>
+          <p>{skill.description}</p>
+        </div>
+      {/each}
+    </div>
+  {/if}
 </fieldset>
 
 <fieldset>

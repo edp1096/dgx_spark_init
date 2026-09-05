@@ -4,7 +4,7 @@ services:
     container_name: sparktalk-nemotron-asr
     restart: unless-stopped
     init: true
-    ports: ["127.0.0.1:8693:8693"]
+    ports: ["${SPARKTALK_BIND_ADDR:-127.0.0.1}:${SPARKTALK_PORT:-8693}:8693"]
     gpus: all
     volumes:
       - ${SPARKTALK_NEMO_MODEL_DIR:-/home/edp1096/.cache/nemo-speech}:/models:ro

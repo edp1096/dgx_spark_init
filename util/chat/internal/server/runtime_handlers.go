@@ -1,7 +1,13 @@
 package server
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"gopkg.in/yaml.v3"
+	"io"
 	"net/http"
+	"sparktalk/internal/orchestrator"
 	"strings"
 
 	"sparktalk/internal/config"
@@ -17,6 +23,8 @@ func (s *Server) runtimeStatus(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) runtimeAction(w http.ResponseWriter, r *http.Request) {
+	s.runtimeMu.Lock()
+	defer s.runtimeMu.Unlock()
 	if r.Method != http.MethodPost {
 		methodNotAllowed(w)
 		return
@@ -59,7 +67,7 @@ func (s *Server) runtimeAction(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	case "components":
-		err = s.runtime.ComponentAction(parts[1], parts[2])
+		err = s.runtime.ComponentAction(parts[1], parts[2], cfg.Runtime.ActiveBundle)
 	default:
 		http.Error(w, "unknown runtime resource", http.StatusNotFound)
 		return
@@ -73,4 +81,53 @@ func (s *Server) runtimeAction(w http.ResponseWriter, r *http.Request) {
 		selectedBundle = parts[1]
 	}
 	writeJSON(w, http.StatusAccepted, s.runtime.Snapshot(r.Context(), selectedBundle))
+}
+
+// Parse imports without changing live configuration or starting any service.
+func (s *Server) runtimeCatalogParse(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		methodNotAllowed(w)
+		return
+	}
+	data, err := io.ReadAll(http.MaxBytesReader(w, r.Body, 1<<20))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	var catalog orchestrator.Catalog
+	decoder := yaml.NewDecoder(bytes.NewReader(data))
+	decoder.KnownFields(true)
+	if err = decoder.Decode(&catalog); err == nil {
+		var trailing any
+		if tailErr := decoder.Decode(&trailing); tailErr != io.EOF {
+			err = fmt.Errorf("세트 파일에는 문서 하나만 넣으세요")
+		}
+	}
+	if err == nil {
+		catalog, err = orchestrator.ValidateCatalog(catalog)
+	}
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	writeJSON(w, http.StatusOK, catalog)
+}
+
+func (s *Server) runtimeProbe(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		methodNotAllowed(w)
+		return
+	}
+	var req struct {
+		URL string `json:"url"`
+	}
+	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 8192)).Decode(&req); err != nil {
+		http.Error(w, "invalid probe", http.StatusBadRequest)
+		return
+	}
+	if !strings.HasPrefix(req.URL, "http://") && !strings.HasPrefix(req.URL, "https://") {
+		http.Error(w, "HTTP URL required", http.StatusBadRequest)
+		return
+	}
+	writeJSON(w, http.StatusOK, healthEndpoint(r.Context(), req.URL))
 }

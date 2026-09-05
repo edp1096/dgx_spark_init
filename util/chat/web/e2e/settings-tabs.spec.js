@@ -55,7 +55,7 @@ test('keeps tab navigation and actions reachable on mobile', async ({ page }) =>
   await chatTab.focus();
   await chatTab.press('End');
   await expect(page.getByRole('tab', { name: '시스템' })).toHaveAttribute('aria-selected', 'true');
-  await expect(page.getByRole('button', { name: '저장' })).toBeVisible();
+  await expect(page.getByRole('button', { name: '저장', exact: true })).toBeVisible();
 
   const modal = await page.locator('.settings-modal').boundingBox();
   expect((modal?.y ?? -1)).toBeGreaterThanOrEqual(0);
@@ -80,7 +80,7 @@ test('manages persistent memories from the memory library', async ({ page }) => 
   await expect(item.getByLabel('기억 내용')).toHaveValue('답변은 간결하게 작성');
   await item.getByLabel('기억 내용').fill('답변은 아주 간결하게 작성');
   await item.getByLabel('신뢰 수준').selectOption('reference');
-  await item.getByRole('button', { name: '저장' }).click();
+  await item.getByRole('button', { name: '저장', exact: true }).click();
   await expect(item).toContainText('답변은 아주 간결하게 작성');
   await expect(item).toContainText('참고');
   page.once('dialog', (dialog) => dialog.accept());
@@ -166,4 +166,30 @@ test('uses a full-screen memory library on mobile and returns to chat', async ({
 
   await page.getByRole('button', { name: '대화로 돌아가기' }).click();
   await expect(page.locator('.composer')).toBeVisible();
+});
+
+test('groups feature settings and preserves drafts across sections', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('.settings-button').click();
+  await page.getByRole('tab', { name: '기능', exact: true }).click();
+  const navigation = page.getByRole('group', { name: '기능 설정 분류' });
+  await expect(navigation.getByRole('button')).toHaveCount(4);
+  await page.getByLabel('검색 결과 수', { exact: true }).fill('7');
+  await navigation.getByRole('button', { name: '이미지', exact: true }).click();
+  await expect(page.getByLabel('검색 결과 수', { exact: true })).toBeHidden();
+  await page.getByLabel('기본 해상도', { exact: true }).fill('768x768');
+  await navigation.getByRole('button', { name: 'Skill·기록', exact: true }).click();
+  const skills = page.getByLabel('필요한 작업 절차를 Skill로 불러오기');
+  await skills.uncheck();
+  await navigation.getByRole('button', { name: 'SSH·키', exact: true }).click();
+  await expect(page.getByLabel('승인형 SSH 도구 활성화')).toBeVisible();
+  await navigation.getByRole('button', { name: '웹·미디어', exact: true }).click();
+  await expect(page.getByLabel('검색 결과 수', { exact: true })).toHaveValue('7');
+  await navigation.getByRole('button', { name: '이미지', exact: true }).click();
+  await expect(page.getByLabel('기본 해상도', { exact: true })).toHaveValue('768x768');
+  await navigation.getByRole('button', { name: 'Skill·기록', exact: true }).click();
+  await expect(skills).not.toBeChecked();
+  await page.setViewportSize({ width: 390, height: 700 });
+  expect(await navigation.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
+  await expect(page.getByRole('button', { name: '저장', exact: true })).toBeVisible();
 });

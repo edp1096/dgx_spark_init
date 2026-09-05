@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"reflect"
 	"sort"
 	"strconv"
 	"strings"
@@ -60,21 +61,24 @@ type Operation struct {
 }
 
 type Snapshot struct {
-	SelectedBundle string            `json:"selected_bundle"`
-	Bundles        []Bundle          `json:"bundles"`
-	Components     []ComponentStatus `json:"components"`
-	Memory         SystemMemory      `json:"memory"`
-	Operation      Operation         `json:"operation"`
-	Docker         string            `json:"docker"`
+	SelectedBundle string                `json:"selected_bundle"`
+	Bundles        []Bundle              `json:"bundles"`
+	Components     []ComponentStatus     `json:"components"`
+	Memory         SystemMemory          `json:"memory"`
+	Hosts          map[string]HostStatus `json:"hosts"`
+	Operation      Operation             `json:"operation"`
+	Docker         string                `json:"docker"`
 }
 
 type Controller struct {
-	catalog    Catalog
-	client     *http.Client
-	mu         sync.RWMutex
-	op         Operation
-	dataDir    string
-	modelCache string
+	keyStoreMu    sync.Mutex
+	keyStorePeers map[string]Host
+	catalog       Catalog
+	client        *http.Client
+	mu            sync.RWMutex
+	op            Operation
+	dataDir       string
+	modelCache    string
 }
 
 const minimumCUDAImmediateFreeGiB = 4.0
@@ -90,17 +94,27 @@ func NewController() (*Controller, error) {
 	if err != nil {
 		return nil, err
 	}
+	return newController(catalog), nil
+}
+
+func NewControllerWithCatalog(catalog Catalog) (*Controller, error) {
+	validated, err := ValidateCatalog(catalog)
+	if err != nil {
+		return nil, err
+	}
+	return newController(validated), nil
+}
+
+func newController(catalog Catalog) *Controller {
 	return &Controller{
 		catalog: catalog,
 		client:  &http.Client{Timeout: 3 * time.Second},
-	}, nil
+	}
 }
 
-func (c *Controller) Catalog() Catalog { return c.catalog }
+func (c *Controller) Catalog() Catalog { c.mu.RLock(); defer c.mu.RUnlock(); return c.catalog }
 
-// ConfigurePaths supplies host paths to embedded Compose recipes without
-// exposing internal engine endpoints to the browser. Existing containers are
-// adopted as-is; the paths are used when SparkTalk has to create one.
+// ConfigurePaths supplies default local host paths to Compose recipes.
 func (c *Controller) ConfigurePaths(dataDir, modelCache string) {
 	c.mu.Lock()
 	c.dataDir = strings.TrimSpace(dataDir)
@@ -109,30 +123,69 @@ func (c *Controller) ConfigurePaths(dataDir, modelCache string) {
 }
 
 func (c *Controller) Snapshot(ctx context.Context, selectedBundle string) Snapshot {
-	gpuByPID := gpuMemoryByPID(ctx)
-	statuses := make([]ComponentStatus, 0, len(c.catalog.Components))
-	for _, component := range c.catalog.Components {
-		statuses = append(statuses, c.componentStatus(ctx, component, gpuByPID))
+	catalog := c.Catalog()
+	if active := c.ActiveBundlePreferred(ctx, selectedBundle); active != "" {
+		selectedBundle = active
 	}
 	c.mu.RLock()
 	op := c.op
 	op.Steps = append([]OperationStep(nil), c.op.Steps...)
 	c.mu.RUnlock()
-	if active := activeBundleFromStatuses(c.catalog, statuses); active != "" {
-		selectedBundle = active
-	}
+
 	if op.Action == "start" && op.State == "running" && op.BundleID != "" {
 		selectedBundle = op.BundleID
 	}
+	components := catalog.BundleComponents(selectedBundle)
+	gpuByPID := gpuMemoryByPID(ctx)
+	statuses := make([]ComponentStatus, len(components))
+	var probes sync.WaitGroup
+	for i, component := range components {
+		probes.Add(1)
+		go func(i int, component Component) {
+			defer probes.Done()
+			statuses[i] = c.componentStatus(ctx, component, gpuByPID)
+		}(i, component)
+	}
+	hostStatuses := make(map[string]HostStatus)
+	var hostMu sync.Mutex
+	if bundle, ok := catalog.Bundle(selectedBundle); ok {
+		selectedHosts := map[string]bool{}
+		for _, id := range bundle.Components {
+			component, _ := catalog.ResolveComponent(bundle.ID, id)
+			if component.Controller == "external" {
+				continue
+			}
+			selectedHosts[component.Host] = true
+			if component.WorkerHost != "" {
+				selectedHosts[component.WorkerHost] = true
+			}
+		}
+		for id := range selectedHosts {
+			probes.Add(1)
+			go func(id string) {
+				defer probes.Done()
+				memory, err := c.hostMemory(ctx, id)
+				status := HostStatus{Memory: memory}
+				if err != nil {
+					status.Error = err.Error()
+				}
+				hostMu.Lock()
+				hostStatuses[id] = status
+				hostMu.Unlock()
+			}(id)
+		}
+	}
+	probes.Wait()
 	dockerState := "online"
 	if err := commandOK(ctx, "docker", "info", "--format", "{{.ServerVersion}}"); err != nil {
 		dockerState = "offline"
 	}
 	return Snapshot{
 		SelectedBundle: selectedBundle,
-		Bundles:        append([]Bundle(nil), c.catalog.Bundles...),
+		Bundles:        append([]Bundle(nil), c.Catalog().Bundles...),
 		Components:     statuses,
 		Memory:         readSystemMemory(),
+		Hosts:          hostStatuses,
 		Operation:      op,
 		Docker:         dockerState,
 	}
@@ -148,10 +201,10 @@ func (c *Controller) ActiveBundle(ctx context.Context) string {
 	if op.Action == "start" && op.State == "running" && op.BundleID != "" {
 		return op.BundleID
 	}
-	for _, bundle := range c.catalog.Bundles {
+	for _, bundle := range c.Catalog().Bundles {
 		for _, id := range bundle.Components {
-			component, _ := c.catalog.Component(id)
-			if component.Role == "llm" && c.isRunning(ctx, component.Container) {
+			component, _ := c.Catalog().ResolveComponent(bundle.ID, id)
+			if component.Role == "llm" && c.componentRunning(ctx, component) {
 				return bundle.ID
 			}
 		}
@@ -166,7 +219,7 @@ func activeBundleFromStatuses(catalog Catalog, statuses []ComponentStatus) strin
 	}
 	for _, bundle := range catalog.Bundles {
 		for _, id := range bundle.Components {
-			component, _ := catalog.Component(id)
+			component, _ := catalog.ResolveComponent(bundle.ID, id)
 			if component.Role == "llm" && byID[id].Status == "running" {
 				return bundle.ID
 			}
@@ -176,7 +229,7 @@ func activeBundleFromStatuses(catalog Catalog, statuses []ComponentStatus) strin
 }
 
 func (c *Controller) StartBundle(ctx context.Context, bundleID string, reserveGiB float64) error {
-	bundle, ok := c.catalog.Bundle(bundleID)
+	bundle, ok := c.Catalog().Bundle(bundleID)
 	if !ok {
 		return fmt.Errorf("unknown bundle %q", bundleID)
 	}
@@ -195,7 +248,7 @@ func (c *Controller) StartBundle(ctx context.Context, bundleID string, reserveGi
 // CheckBundleStart estimates unified-memory headroom after replacing another
 // managed LLM and starting missing members of the requested set.
 func (c *Controller) CheckBundleStart(ctx context.Context, bundleID string, reserveGiB float64) error {
-	bundle, ok := c.catalog.Bundle(bundleID)
+	bundle, ok := c.Catalog().Bundle(bundleID)
 	if !ok {
 		return fmt.Errorf("unknown bundle %q", bundleID)
 	}
@@ -204,7 +257,10 @@ func (c *Controller) CheckBundleStart(ctx context.Context, bundleID string, rese
 
 func (c *Controller) checkBundleStart(ctx context.Context, bundle Bundle, reserveGiB float64) error {
 	plan := c.bundleMemoryPlan(ctx, bundle)
-	return validateMemoryHeadroom(readSystemMemory(), plan, normalizedMemoryReserve(reserveGiB))
+	if err := validateMemoryHeadroom(readSystemMemory(), plan, c.localMemoryReserve(bundle, reserveGiB)); err != nil {
+		return err
+	}
+	return c.checkRemoteMemory(ctx, bundle, reserveGiB)
 }
 
 func normalizedMemoryReserve(reserveGiB float64) float64 {
@@ -228,19 +284,23 @@ func isCUDAComponent(component Component) bool {
 func (c *Controller) bundleMemoryPlan(ctx context.Context, bundle Bundle) memoryPlan {
 	desired := make(map[string]struct{}, len(bundle.Components))
 	for _, id := range bundle.Components {
-		desired[id] = struct{}{}
+		component, _ := c.Catalog().ResolveComponent(bundle.ID, id)
+		desired[component.DeploymentKey()] = struct{}{}
 	}
 	gpuByPID := gpuMemoryByPID(ctx)
 	plan := memoryPlan{}
-	for _, component := range c.catalog.Components {
-		running := c.isRunning(ctx, component.Container)
+	for _, component := range c.Catalog().Deployments(bundle.ID) {
+		if !c.local(component) || component.Controller == "external" {
+			continue
+		}
+		running := c.componentRunning(ctx, component)
 		gpuMemory := 0.0
 		if running {
 			for _, pid := range containerPIDs(ctx, component.Container) {
 				gpuMemory += gpuByPID[pid]
 			}
 		}
-		if _, wanted := desired[component.ID]; wanted {
+		if _, wanted := desired[component.DeploymentKey()]; wanted {
 			if !running {
 				plan.NeededGiB += component.MemoryGiB
 				plan.RequiresCUDAStart = plan.RequiresCUDAStart || isCUDAComponent(component)
@@ -306,7 +366,7 @@ func validateMemoryHeadroom(memory SystemMemory, plan memoryPlan, reserveGiB flo
 }
 
 func (c *Controller) StopBundle(bundleID string) error {
-	bundle, ok := c.catalog.Bundle(bundleID)
+	bundle, ok := c.Catalog().Bundle(bundleID)
 	if !ok {
 		return fmt.Errorf("unknown bundle %q", bundleID)
 	}
@@ -316,12 +376,12 @@ func (c *Controller) StopBundle(bundleID string) error {
 	go func() {
 		var failures []string
 		for index := len(bundle.Components) - 1; index >= 0; index-- {
-			component, _ := c.catalog.Component(bundle.Components[index])
+			component, _ := c.Catalog().ResolveComponent(bundle.ID, bundle.Components[index])
 			c.updateOperation(component.ID, progressInfo{
 				Key: "stop:" + component.ID, Phase: component.Name + " 중지", Detail: "컨테이너를 안전하게 종료하고 있습니다.",
 				Progress: float64(len(bundle.Components)-1-index) / float64(len(bundle.Components)),
 			})
-			if err := stopContainer(context.Background(), component.Container); err != nil && !isMissingContainer(err) {
+			if err := c.stopComponent(context.Background(), component); err != nil && !isMissingContainer(err) {
 				failures = append(failures, component.Name+": "+err.Error())
 			}
 		}
@@ -334,10 +394,25 @@ func (c *Controller) StopBundle(bundleID string) error {
 	return nil
 }
 
-func (c *Controller) ComponentAction(componentID, action string) error {
-	component, ok := c.catalog.Component(componentID)
+func (c *Controller) ComponentAction(componentID, action string, bundleIDs ...string) error {
+	var component Component
+	var ok bool
+	if len(bundleIDs) > 0 {
+		component, ok = c.Catalog().ResolveComponent(bundleIDs[0], componentID)
+	} else {
+		component, ok = c.Catalog().Component(componentID)
+		for _, bundle := range c.Catalog().Bundles {
+			candidate, exists := c.Catalog().ResolveComponent(bundle.ID, componentID)
+			if exists && !reflect.DeepEqual(candidate, component) {
+				return errors.New("세트별 배치가 있는 서비스는 세트 ID가 필요합니다")
+			}
+		}
+	}
 	if !ok {
 		return fmt.Errorf("unknown component %q", componentID)
+	}
+	if component.Controller == "external" {
+		return errors.New("연결 전용 서비스는 외부에서 시작·중지하세요")
 	}
 	if action != "start" && action != "stop" && action != "restart" {
 		return errors.New("action must be start, stop, or restart")
@@ -349,9 +424,9 @@ func (c *Controller) ComponentAction(componentID, action string) error {
 		var err error
 		switch action {
 		case "stop":
-			err = stopContainer(context.Background(), component.Container)
+			err = c.stopComponent(context.Background(), component)
 		case "restart":
-			err = stopContainer(context.Background(), component.Container)
+			err = c.stopComponent(context.Background(), component)
 			if err == nil || isMissingContainer(err) {
 				err = c.startAndWait(component)
 			}
@@ -460,20 +535,20 @@ func (c *Controller) runBundleStart(bundle Bundle, reserveGiB float64) {
 	ctx := context.Background()
 	var llm Component
 	for _, id := range bundle.Components {
-		component, _ := c.catalog.Component(id)
+		component, _ := c.Catalog().ResolveComponent(bundle.ID, id)
 		if component.Role == "llm" {
 			llm = component
 		}
 	}
-	for _, component := range c.catalog.Components {
-		if component.Role == "llm" && component.ID != llm.ID {
-			if !c.isRunning(ctx, component.Container) {
+	for _, component := range c.Catalog().Deployments(bundle.ID) {
+		if component.Role == "llm" && component.DeploymentKey() != llm.DeploymentKey() && component.Controller != "external" {
+			if !c.componentRunning(ctx, component) {
 				continue
 			}
 			c.updateOperation(component.ID, progressInfo{
 				Key: "replace:" + component.ID, Phase: component.Name + " 중지", Detail: "기존 언어 모델의 메모리를 반환하고 있습니다.", Progress: .02,
 			})
-			if err := stopContainer(ctx, component.Container); err != nil && !isMissingContainer(err) {
+			if err := c.stopComponent(ctx, component); err != nil && !isMissingContainer(err) {
 				c.failCurrentStep(err.Error())
 				c.finishOperation("failed", component.Name+": "+err.Error())
 				return
@@ -491,13 +566,13 @@ func (c *Controller) runBundleStart(bundle Bundle, reserveGiB float64) {
 	// services first so their contexts exist before the LLM consumes most of
 	// the immediately free pages. Image weights remain lazy until generation.
 	sort.SliceStable(ordered, func(i, j int) bool {
-		a, _ := c.catalog.Component(ordered[i])
-		b, _ := c.catalog.Component(ordered[j])
+		a, _ := c.Catalog().ResolveComponent(bundle.ID, ordered[i])
+		b, _ := c.Catalog().ResolveComponent(bundle.ID, ordered[j])
 		return a.Role != "llm" && b.Role == "llm"
 	})
 	var failures []string
 	for index, id := range ordered {
-		component, _ := c.catalog.Component(id)
+		component, _ := c.Catalog().ResolveComponent(bundle.ID, id)
 		if component.Role == "llm" && c.componentNeedsStart(ctx, component) {
 			if err := c.waitForBundleHeadroom(bundle, reserveGiB, "언어 모델 기동 직전 메모리 확인", 15*time.Second); err != nil {
 				c.failCurrentStep(err.Error())
@@ -528,7 +603,7 @@ func (c *Controller) runBundleStart(bundle Bundle, reserveGiB float64) {
 }
 
 func (c *Controller) componentNeedsStart(ctx context.Context, component Component) bool {
-	return !c.isRunning(ctx, component.Container) || !c.isHealthy(ctx, component)
+	return !c.componentRunning(ctx, component) || !c.isHealthy(ctx, component)
 }
 
 func (c *Controller) waitForBundleHeadroom(bundle Bundle, reserveGiB float64, phase string, timeout time.Duration) error {
@@ -537,7 +612,10 @@ func (c *Controller) waitForBundleHeadroom(bundle Bundle, reserveGiB float64, ph
 	for {
 		memory := readSystemMemory()
 		plan := c.bundleMemoryPlan(context.Background(), bundle)
-		lastErr = validateMemoryHeadroom(memory, plan, reserveGiB)
+		lastErr = validateMemoryHeadroom(memory, plan, c.localMemoryReserve(bundle, reserveGiB))
+		if lastErr == nil {
+			lastErr = c.checkRemoteMemory(context.Background(), bundle, reserveGiB)
+		}
 		c.updateOperation("", progressInfo{
 			Key:      "memory:" + phase,
 			Phase:    phase,
@@ -555,36 +633,17 @@ func (c *Controller) waitForBundleHeadroom(bundle Bundle, reserveGiB float64, ph
 }
 
 func (c *Controller) startAndWait(component Component) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
+	commandTimeout := 3 * time.Minute
+	if component.isCluster() && component.StartupTimeoutSeconds > 0 {
+		commandTimeout = time.Duration(component.StartupTimeoutSeconds) * time.Second
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), commandTimeout)
 	defer cancel()
-	if c.isRunning(ctx, component.Container) {
-		if c.isHealthy(ctx, component) {
-			return nil
-		}
-		// A wrapper process can remain alive after its model child has failed.
-		// Recovery must restart that unhealthy container instead of polling the
-		// same dead child until the startup timeout expires again.
-		if err := runCommand(ctx, nil, "docker", "restart", component.Container); err != nil {
-			return err
-		}
-	} else {
-		if containerExists(ctx, component.Container) {
-			if err := runCommand(ctx, nil, "docker", "start", component.Container); err != nil {
-				return err
-			}
-		} else {
-			compose, err := composeAsset(component.ComposeAsset)
-			if err != nil {
-				return err
-			}
-			project := "sparktalk-" + strings.ReplaceAll(component.ID, "_", "-")
-			if err := c.ensureRuntimePaths(); err != nil {
-				return err
-			}
-			if err := runCommandEnv(ctx, compose, c.composeEnvironment(), "docker", "compose", "-p", project, "-f", "-", "up", "-d"); err != nil {
-				return err
-			}
-		}
+	if c.isHealthy(ctx, component) {
+		return nil
+	}
+	if err := c.startComponent(ctx, component); err != nil {
+		return err
 	}
 	timeout := time.Duration(component.StartupTimeoutSeconds) * time.Second
 	if timeout <= 0 {
@@ -597,7 +656,7 @@ func (c *Controller) startAndWait(component Component) error {
 			c.updateOperation(component.ID, progressInfo{Key: "ready:" + component.ID, Phase: component.Name + " API 응답 확인", Detail: "서비스가 요청을 받을 준비를 마쳤습니다.", Progress: 1})
 			return nil
 		}
-		logs := containerLogs(context.Background(), component.Container)
+		logs := c.componentLogs(context.Background(), component)
 		if failure := startupFailure(logs); failure != "" {
 			return errors.New(failure)
 		}
@@ -609,7 +668,7 @@ func (c *Controller) startAndWait(component Component) error {
 			info = progressInfo{Key: "init", Phase: component.Name + " 준비 중", Detail: "컨테이너 로그를 기다리고 있습니다.", Progress: .05}
 		}
 		c.updateOperation(component.ID, info)
-		if !c.isRunning(context.Background(), component.Container) {
+		if component.Controller != "external" && !c.componentRunning(context.Background(), component) {
 			return fmt.Errorf("container stopped during startup: %s", lastLogLine(logs))
 		}
 		time.Sleep(2 * time.Second)
@@ -633,39 +692,18 @@ func estimateFlashNextWeightProgress(info progressInfo, elapsed time.Duration) p
 	return info
 }
 
-func (c *Controller) ensureRuntimePaths() error {
-	c.mu.RLock()
-	paths := []string{c.dataDir, c.modelCache}
-	c.mu.RUnlock()
-	for _, runtimePath := range paths {
-		if runtimePath == "" {
-			continue
-		}
-		if err := os.MkdirAll(runtimePath, 0750); err != nil {
-			return fmt.Errorf("create runtime path %s: %w", runtimePath, err)
-		}
-	}
-	return nil
-}
-
-func (c *Controller) composeEnvironment() []string {
-	c.mu.RLock()
-	dataDir, modelCache := c.dataDir, c.modelCache
-	c.mu.RUnlock()
-	environment := os.Environ()
-	if dataDir != "" {
-		environment = append(environment, "SPARKTALK_DATA_DIR="+dataDir)
-	}
-	if modelCache != "" {
-		environment = append(environment, "SPARKTALK_HF_CACHE="+modelCache)
-	}
-	return environment
-}
-
 func (c *Controller) componentStatus(ctx context.Context, component Component, gpuByPID map[int]float64) ComponentStatus {
 	status := ComponentStatus{Component: component, Status: "missing", Health: "offline"}
-	state, _, err := inspectContainer(ctx, component.Container)
+	if component.Controller == "external" {
+		status.Status = "external"
+		if c.httpHealthy(ctx, component) {
+			status.Health = "online"
+		}
+		return status
+	}
+	state, err := c.inspectComponent(ctx, component)
 	if err != nil {
+		status.Error = err.Error()
 		return status
 	}
 	status.Status = state
@@ -673,7 +711,7 @@ func (c *Controller) componentStatus(ctx context.Context, component Component, g
 		if c.isHealthy(ctx, component) {
 			status.Health = "online"
 		} else {
-			logs := containerLogs(ctx, component.Container)
+			logs := c.componentLogs(ctx, component)
 			if failure := startupFailure(logs); failure != "" {
 				status.Health = "failed"
 				status.Phase = failure
@@ -683,17 +721,29 @@ func (c *Controller) componentStatus(ctx context.Context, component Component, g
 				status.Phase, status.Progress, status.ETA = info.Phase, info.Progress, info.ETA
 			}
 		}
-		for _, pid := range containerPIDs(ctx, component.Container) {
-			status.GPUMemoryGiB += gpuByPID[pid]
+		if c.local(component) {
+			for _, pid := range containerPIDs(ctx, component.Container) {
+				status.GPUMemoryGiB += gpuByPID[pid]
+			}
 		}
 	}
 	return status
 }
 
 func (c *Controller) isHealthy(ctx context.Context, component Component) bool {
-	if !c.isRunning(ctx, component.Container) {
+	if component.Controller != "external" && !c.componentRunning(ctx, component) {
 		return false
 	}
+	if component.isCluster() {
+		worker := Component{Host: component.WorkerHost, Container: component.WorkerContainer}
+		if !c.componentRunning(ctx, worker) {
+			return false
+		}
+	}
+	return c.httpHealthy(ctx, component)
+}
+
+func (c *Controller) httpHealthy(ctx context.Context, component Component) bool {
 	if component.HealthURL == "" {
 		return true
 	}
@@ -707,11 +757,6 @@ func (c *Controller) isHealthy(ctx context.Context, component Component) bool {
 	}
 	_ = response.Body.Close()
 	return response.StatusCode >= 200 && response.StatusCode < 300
-}
-
-func (c *Controller) isRunning(ctx context.Context, container string) bool {
-	state, _, err := inspectContainer(ctx, container)
-	return err == nil && state == "running"
 }
 
 func inspectContainer(ctx context.Context, container string) (string, int, error) {
@@ -815,6 +860,10 @@ func readSystemMemory() SystemMemory {
 	if err != nil {
 		return SystemMemory{}
 	}
+	return parseSystemMemory(data)
+}
+
+func parseSystemMemory(data []byte) SystemMemory {
 	values := map[string]uint64{}
 	scanner := bufio.NewScanner(bytes.NewReader(data))
 	for scanner.Scan() {

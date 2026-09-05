@@ -4,7 +4,7 @@ services:
     container_name: sparktalk-extra-media
     restart: unless-stopped
     init: true
-    ports: ["127.0.0.1:8690:8698"]
+    ports: ["${SPARKTALK_BIND_ADDR:-127.0.0.1}:${SPARKTALK_PORT:-8690}:8698"]
     user: "${PUID:-1000}:${PGID:-1000}"
     environment:
       SPARKTALK_EXTRA_MEDIA_LISTEN_ADDR: 0.0.0.0:8698

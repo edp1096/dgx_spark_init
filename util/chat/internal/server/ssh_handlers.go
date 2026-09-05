@@ -104,6 +104,17 @@ func (s *Server) sshHost(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "public_key is required", http.StatusBadRequest)
 			return
 		}
+		cfg, _ := s.snapshot()
+		if len(cfg.Runtime.KeyStoreHosts) > 0 {
+			input, _ := json.Marshal(map[string]any{"host": host.Hostname, "port": host.Port, "public_key": request.PublicKey})
+			out, _, err := s.runtime.KeyStore(r.Context(), cfg.Runtime.KeyStoreHosts, cfg.Runtime.KeyStorePeers, "trust", "", input)
+			if err != nil {
+				http.Error(w, err.Error(), 409)
+				return
+			}
+			writeJSON(w, 200, json.RawMessage(out))
+			return
+		}
 		result, err := s.extraSnapshot().Trust(r.Context(), host.Hostname, host.Port, request.PublicKey)
 		if err != nil {
 			writeExtraError(w, err)

@@ -9,7 +9,7 @@ services:
     mem_limit: "112g"
     memswap_limit: "112g"
     cpuset: "5-9,15-19"
-    ports: ["127.0.0.1:8000:30000"]
+    ports: ["${SPARKTALK_BIND_ADDR:-127.0.0.1}:${SPARKTALK_PORT:-8000}:30000"]
     environment:
       HF_HOME: /hf
       HF_HUB_OFFLINE: "1"

@@ -41,7 +41,7 @@
   $: runtimeStarting = runtime?.operation?.state === 'running';
   $: modelProfile = modelCapabilities(modelType);
   $: gemmaThinkingValue = thinkingToggleValue(reasoningEffort);
-  $: if (modelProfile.family === 'qwen3.8' || modelProfile.family === 'glm5.3') reasoningEffort = normalizeReasoningEffort(modelType, reasoningEffort);
+  $: if (modelProfile.family === 'qwen3.8' || (modelProfile.family === 'glm5.3' || modelProfile.family === 'deepseek-v4')) reasoningEffort = normalizeReasoningEffort(modelType, reasoningEffort);
 
   function toggleThinking() {
     reasoningEffort = gemmaThinkingValue === 'on' ? 'none' : 'on';
@@ -103,7 +103,7 @@
     </select>
     {#if modelProfile.reasoning === 'toggle'}
       <button class="thinking-toggle" class:active={gemmaThinkingValue === 'on'} onclick={toggleThinking} aria-pressed={gemmaThinkingValue === 'on'}>{gemmaThinkingValue === 'on' ? 'Thinking 켜짐' : 'Thinking 꺼짐'}</button>
-    {:else if modelProfile.family === 'qwen3.8' || modelProfile.family === 'glm5.3'}
+    {:else if modelProfile.family === 'qwen3.8' || (modelProfile.family === 'glm5.3' || modelProfile.family === 'deepseek-v4')}
       <ReasoningEffortControl bind:value={reasoningEffort} {modelType} />
     {:else}
       <input bind:value={reasoningEffort} list="reasoning-levels" placeholder="reasoning effort" aria-label="Reasoning effort" />
@@ -157,7 +157,7 @@
     </label>
     {#if modelProfile.reasoning === 'toggle'}
       <button class="drawer-thinking-toggle" class:active={gemmaThinkingValue === 'on'} onclick={toggleThinking} aria-pressed={gemmaThinkingValue === 'on'}>{gemmaThinkingValue === 'on' ? 'Thinking 켜짐' : 'Thinking 꺼짐'}</button>
-    {:else if modelProfile.family === 'qwen3.8' || modelProfile.family === 'glm5.3'}
+    {:else if modelProfile.family === 'qwen3.8' || (modelProfile.family === 'glm5.3' || modelProfile.family === 'deepseek-v4')}
       <ReasoningEffortControl bind:value={reasoningEffort} {modelType} drawer={true} />
     {:else}
       <label>Reasoning effort<input bind:value={reasoningEffort} list="reasoning-levels" placeholder="reasoning effort" /></label>

@@ -43,10 +43,14 @@ API 주소는 `http://192.168.100.61:8000/v1`, 모델명은
 자동 생성한다. 기본값은 Entrpi `v2.3-tier1`, EXL3 4bpw, DFlash2, 최대
 524K context다.
 
-MiaAI 방식의 Dealign `o_proj` 이식을 쓰려면 `.env`에서 `ABLIT=1`로
-바꾸고 `./manage.sh setup`을 다시 실행한다. donor는 gated가 아니며,
-L15–45 약 2.7GB만 Head에 받은 뒤 Worker로 동기화한다. BrandonMusic
-EXL3 원본 파일은 수정하지 않는다.
+Lovesenko `o_proj` 이식을 쓰려면 `./manage.sh model --abliterated`를
+실행한다. 이미지 준비까지 필요하면 `./manage.sh setup --abliterated`를 쓴다.
+공개 donor `lovesenko/GLM-5.3-Flash-tr3-4bpw-Abliterated`의 revision
+`c8f58e6aa9117c73607d692978b22f091d80450c`에서 L0–44의 BF16 텐서
+45개(3.50 GiB)만 Head에 받은 뒤 Worker로 동기화한다. 기존 캐시는
+manifest와 SHA256으로 검증해 재사용하며 모델 전체를 받지 않는다.
+MTP와 BrandonMusic EXL3 원본 파일은 유지한다. 이전 Dealign 캐시도
+삭제하지 않는다. 다운로드·검증·이식은 이 디렉터리의 스크립트로 독립 실행된다.
 
 OS 포맷이나 DHCP 변경 후에는 `.env`의 `HEAD_LAN_IP`와
 `WORKER_LAN_IP`만 새 주소로 바꾸고, 위 SSH 키 등록과 `manage.sh setup`을
@@ -58,3 +62,11 @@ DFlash2는 비상업용 라이선스다. 상업용이면 `.env`를 다음과 같
 SPEC_METHOD=none
 MTP_TOKENS=4
 ```
+
+## 공통 관리 명령
+
+`manage.sh setup|image|model|start|stop|restart|status|logs|validate`를 사용한다.
+`setup`에 모델 준비가 포함된다. 설정은 `.env`/`env.sample`, 모델 종류는
+`MODEL_VARIANT=official|abliterated`이며 `setup`/`model`에 `--official` 또는
+`--abliterated`를 지정할 수 있다. HF_TOKEN 환경변수 또는 `--ask-token` 숨김 입력을
+사용한다. 상세 규칙은 [공통 CLI](../runtime-common/README.md)를 참조한다.

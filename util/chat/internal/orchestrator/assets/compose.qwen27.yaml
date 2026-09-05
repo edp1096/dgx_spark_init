@@ -6,7 +6,7 @@ services:
     init: true
     ipc: host
     shm_size: 16gb
-    ports: ["127.0.0.1:8000:30000"]
+    ports: ["${SPARKTALK_BIND_ADDR:-127.0.0.1}:${SPARKTALK_PORT:-8000}:30000"]
     environment:
       PYTHONUNBUFFERED: "1"
       PYTORCH_CUDA_ALLOC_CONF: expandable_segments:True

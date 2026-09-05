@@ -10,7 +10,7 @@
   $: normalized = normalizeReasoningEffort(modelType, value);
   $: index = Math.max(0, levels.indexOf(normalized));
   $: label = reasoningEffortLabel(normalized);
-  $: modelLabel = profile.family === 'glm5.3' ? 'GLM-5.3' : 'Qwen3.8';
+  $: modelLabel = profile.family === 'deepseek-v4' ? 'DeepSeek V4' : profile.family === 'glm5.3' ? 'GLM-5.3' : 'Qwen3.8';
 
   function change(event) {
     value = levels[Number(event.currentTarget.value)] || levels[0];

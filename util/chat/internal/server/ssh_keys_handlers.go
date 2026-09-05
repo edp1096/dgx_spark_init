@@ -11,6 +11,9 @@ const maxSSHPrivateKeyBytes = 128 * 1024
 
 func (s *Server) sshKeys(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
+		if s.managedKeyAction(w, r, "list", "", nil) {
+			return
+		}
 		keys, err := s.extraSnapshot().Keys(r.Context())
 		if err != nil {
 			writeExtraError(w, err)
@@ -40,6 +43,17 @@ func (s *Server) sshKeys(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "SSH private key must be between 1 byte and 128 KiB", http.StatusBadRequest)
 		return
 	}
+	action := "import"
+	if r.FormValue("replace") == "true" {
+		action = "replace"
+	}
+	if s.managedKeyAction(w, r, action, keyID, data) {
+		return
+	}
+	if action == "replace" {
+		http.Error(w, "키 교체는 저장소 동기화 설정 후 사용할 수 있습니다", 409)
+		return
+	}
 	key, err := s.extraSnapshot().ImportKey(r.Context(), keyID, data)
 	if err != nil {
 		writeExtraError(w, err)
@@ -62,6 +76,9 @@ func (s *Server) sshKey(w http.ResponseWriter, r *http.Request) {
 		decoder.DisallowUnknownFields()
 		if err := decoder.Decode(&request); err != nil {
 			http.Error(w, "invalid SSH key request", http.StatusBadRequest)
+			return
+		}
+		if s.managedKeyAction(w, r, "generate", strings.TrimSpace(request.KeyID), nil) {
 			return
 		}
 		key, err := s.extraSnapshot().GenerateKey(r.Context(), strings.TrimSpace(request.KeyID))
@@ -90,6 +107,9 @@ func (s *Server) sshKey(w http.ResponseWriter, r *http.Request) {
 			writeJSON(w, http.StatusConflict, map[string]any{"error": "SSH key is used by server profile " + host.Name})
 			return
 		}
+	}
+	if s.managedKeyAction(w, r, "delete", rest, nil) {
+		return
 	}
 	if err := s.extraSnapshot().DeleteKey(r.Context(), rest); err != nil {
 		writeExtraError(w, err)

@@ -8,7 +8,7 @@ services:
     shm_size: 16gb
     mem_limit: 48g
     memswap_limit: 48g
-    ports: ["127.0.0.1:8000:8888"]
+    ports: ["${SPARKTALK_BIND_ADDR:-127.0.0.1}:${SPARKTALK_PORT:-8000}:8888"]
     environment:
       SERVED_MODEL_NAME: Qwen3.8-27B-Uncensored-EXL3-4bpw
       HF_HUB_OFFLINE: "1"

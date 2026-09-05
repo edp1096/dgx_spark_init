@@ -32,3 +32,11 @@ batch-1이므로 동시 요청은 순서대로 처리된다.
 
 Docker 통계는 통합 메모리의 CUDA 할당을 전부 표시하지 않으므로 `free -h`의 기동
 전후 차이를 실제 상주량으로 본다.
+
+## 공통 관리 명령
+
+`manage.sh setup|image|model|start|stop|restart|status|logs|validate`를 사용한다.
+`setup`에 모델 준비가 포함된다. 설정은 `.env`/`env.sample`, 모델 종류는
+`MODEL_VARIANT=official|abliterated`이며 `setup`/`model`에 `--official` 또는
+`--abliterated`를 지정할 수 있다. HF_TOKEN 환경변수 또는 `--ask-token` 숨김 입력을
+사용한다. 상세 규칙은 [공통 CLI](../runtime-common/README.md)를 참조한다.

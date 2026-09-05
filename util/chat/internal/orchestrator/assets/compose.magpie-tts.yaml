@@ -4,7 +4,7 @@ services:
     container_name: sparktalk-magpie-tts
     restart: unless-stopped
     init: true
-    ports: ["127.0.0.1:8692:8692"]
+    ports: ["${SPARKTALK_BIND_ADDR:-127.0.0.1}:${SPARKTALK_PORT:-8692}:8692"]
     gpus: all
     volumes:
       - ${SPARKTALK_MAGPIE_MODEL_DIR:-/home/edp1096/.cache/nemo-speech/magpie-v2607}:/models:ro

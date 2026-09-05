@@ -7,6 +7,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"os"
 	"os/signal"
 	"syscall"
 	"time"
@@ -14,6 +15,7 @@ import (
 
 func main() {
 	healthcheck := flag.Bool("healthcheck", false, "check the local HTTP health endpoint")
+	keyCommand := flag.String("key-store", "", "local key store administration command")
 	flag.Parse()
 	cfg, err := loadConfig()
 	if err != nil {
@@ -26,6 +28,12 @@ func main() {
 		return
 	}
 	service := newAPI(cfg)
+	if *keyCommand != "" {
+		if err := service.keyStoreCLI(*keyCommand, os.Stdin, os.Stdout); err != nil {
+			log.Fatal(err)
+		}
+		return
+	}
 	server := &http.Server{Addr: cfg.ListenAddr, Handler: service.routes(), ReadHeaderTimeout: 10 * time.Second, IdleTimeout: 60 * time.Second}
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()

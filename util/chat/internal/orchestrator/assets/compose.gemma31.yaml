@@ -9,7 +9,7 @@ services:
     mem_limit: "100g"
     memswap_limit: "100g"
     cpuset: "5-9,15-19"
-    ports: ["127.0.0.1:8000:30000"]
+    ports: ["${SPARKTALK_BIND_ADDR:-127.0.0.1}:${SPARKTALK_PORT:-8000}:30000"]
     environment:
       PYTHONUNBUFFERED: "1"
       HF_XET_HIGH_PERFORMANCE: "1"

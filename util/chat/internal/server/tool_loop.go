@@ -22,6 +22,7 @@ type completionResult struct {
 type eventEmitter func(event string, payload any) error
 
 const toolLimitFinalInstruction = "The tool execution limit has been reached. Do not request or imitate any more tool calls and do not output tool protocol markup. Give a concise final answer using only the tool results already present. If more inspection is necessary, say so plainly."
+const emptyFinalRetryInstruction = "Your previous response ended during reasoning without a final answer. Do not reason further or call tools. Give the final answer now using only the conversation and tool results already present."
 
 var toolProtocolBlock = regexp.MustCompile(`(?is)<tool_call\b[^>]*>.*?</tool_call>`)
 var danglingToolProtocol = regexp.MustCompile(`(?is)<tool_call\b[^>]*>.*$`)
@@ -89,6 +90,9 @@ func runCompletionLoopForSessionWithMedia(
 
 	if !useTools {
 		result, err := client.Stream(ctx, conversation, model, reasoningEffort, nil, textEmitter(emit))
+		if err == nil {
+			result, err = recoverEmptyFinal(ctx, client, conversation, model, result, textEmitter(emit))
+		}
 		return completionResult{Content: result.Content, Reasoning: result.Reasoning}, err
 	}
 
@@ -99,12 +103,16 @@ func runCompletionLoopForSessionWithMedia(
 	for {
 		if toolRounds >= toolConfig.MaxRounds {
 			conversation = append(conversation, llm.Message{Role: "user", Content: toolLimitFinalInstruction})
-			result, err := client.Stream(ctx, conversation, model, reasoningEffort, nil, func(kind, text string) error {
+			finalEmitter := func(kind, text string) error {
 				if kind == "reasoning" {
 					return emit(kind, map[string]string{"delta": text})
 				}
 				return nil
-			})
+			}
+			result, err := client.Stream(ctx, conversation, model, reasoningEffort, nil, finalEmitter)
+			if err == nil {
+				result, err = recoverEmptyFinal(ctx, client, conversation, model, result, finalEmitter)
+			}
 			if allReasoning.Len() > 0 && result.Reasoning != "" {
 				allReasoning.WriteString("\n\n")
 			}
@@ -121,20 +129,30 @@ func runCompletionLoopForSessionWithMedia(
 			return completionResult{Content: content, Reasoning: allReasoning.String(), ToolTrace: trace, Attachments: outputAttachments}, err
 		}
 		result, err := client.Stream(ctx, conversation, model, reasoningEffort, registry.definitions, textEmitter(emit))
+		if err != nil {
+			if allReasoning.Len() > 0 && result.Reasoning != "" {
+				allReasoning.WriteString("\n\n")
+			}
+			allReasoning.WriteString(result.Reasoning)
+			return completionResult{Content: result.Content, Reasoning: allReasoning.String(), ToolTrace: trace, Attachments: outputAttachments}, err
+		}
+		if len(result.ToolCalls) == 0 {
+			result, err = recoverEmptyFinal(ctx, client, conversation, model, result, textEmitter(emit))
+			if allReasoning.Len() > 0 && result.Reasoning != "" {
+				allReasoning.WriteString("\n\n")
+			}
+			allReasoning.WriteString(result.Reasoning)
+			content, _ := cleanToolProtocol(result.Content)
+			return completionResult{Content: content, Reasoning: allReasoning.String(), ToolTrace: trace, Attachments: outputAttachments}, err
+		}
 		if allReasoning.Len() > 0 && result.Reasoning != "" {
 			allReasoning.WriteString("\n\n")
 		}
 		allReasoning.WriteString(result.Reasoning)
-		if err != nil {
-			return completionResult{Content: result.Content, Reasoning: allReasoning.String(), ToolTrace: trace, Attachments: outputAttachments}, err
-		}
-		if len(result.ToolCalls) == 0 {
-			content, _ := cleanToolProtocol(result.Content)
-			return completionResult{Content: content, Reasoning: allReasoning.String(), ToolTrace: trace, Attachments: outputAttachments}, nil
-		}
 
 		conversation = append(conversation, llm.Message{
 			Role: "assistant", Content: result.Content, ToolCalls: result.ToolCalls,
+			ReasoningContent: result.Reasoning,
 		})
 		toolFollowups := make([]llm.Message, 0, 1)
 		for _, call := range result.ToolCalls {
@@ -234,4 +252,38 @@ func textEmitter(emit eventEmitter) func(kind, text string) error {
 	return func(kind, text string) error {
 		return emit(kind, map[string]string{"delta": text})
 	}
+}
+
+func recoverEmptyFinal(
+	ctx context.Context,
+	client *llm.Client,
+	conversation []llm.Message,
+	model string,
+	result llm.StreamResult,
+	emit func(kind, text string) error,
+) (llm.StreamResult, error) {
+	if strings.TrimSpace(result.Content) != "" || strings.TrimSpace(result.Reasoning) == "" || len(result.ToolCalls) > 0 {
+		return result, nil
+	}
+	retryConversation := append([]llm.Message(nil), conversation...)
+	retryConversation = append(retryConversation, llm.Message{Role: "user", Content: emptyFinalRetryInstruction})
+	retry, err := client.Stream(ctx, retryConversation, model, "off", nil, emit)
+	retry.Reasoning = mergeReasoning(result.Reasoning, retry.Reasoning)
+	if err != nil {
+		return retry, err
+	}
+	if strings.TrimSpace(retry.Content) == "" {
+		return retry, fmt.Errorf("model returned no final answer after retry")
+	}
+	return retry, nil
+}
+
+func mergeReasoning(first, second string) string {
+	if first == "" {
+		return second
+	}
+	if second == "" {
+		return first
+	}
+	return first + "\n\n" + second
 }

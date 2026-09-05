@@ -4,7 +4,7 @@ ARG BROWSEFORGE_VERSION=v2.1.12
 ARG BROWSEFORGE_DIGEST=sha256:3f76a2a7d90d41d5c6e05cf75f7274e62fffe326c716b723b8da79acb8731f12
 ARG PLAYWRIGHT_VERSION=1.62.0
 ARG PLAYWRIGHT_DIGEST=sha256:aa81288e738725378becba5b3e06cb0f3a7f012a610e87e8d767a090ea3f740d
-ARG YTDLP_VERSION=2026.7.4
+ARG YTDLP_VERSION=2026.8.19
 ARG CAMOUFOX_VERSION=0.5.5
 ARG PLAYWRIGHT_CAPTCHA_VERSION=0.1.5
 ARG CAMOUFOX_BROWSER_VERSION=152.0.4-beta.28
@@ -47,6 +47,7 @@ RUN sed -i \
     -e 's/host: "0.0.0.0"/host: "127.0.0.1"/' \
     /opt/bgutil/src/main.ts
 
+COPY ytdlp-lock.json /opt/ytdlp-lock.json
 RUN apt-get update \
     && apt-get install -y --no-install-recommends ca-certificates curl ffmpeg python3-venv tesseract-ocr unzip xclip xdotool \
     && rm -rf /var/lib/apt/lists/* \
@@ -55,13 +56,15 @@ RUN apt-get update \
         "camoufox==${CAMOUFOX_VERSION}" \
         "playwright-captcha==${PLAYWRIGHT_CAPTCHA_VERSION}" \
         "playwright==1.60.0" \
-    && python -m pip install --no-cache-dir \
+    && python -m pip install --no-cache-dir --break-system-packages \
         fastapi==0.136.3 \
         bgutil-ytdlp-pot-provider==${POT_PROVIDER_VERSION} \
         playwright==${PLAYWRIGHT_VERSION} \
         python-multipart==0.0.32 \
         uvicorn==0.51.0 \
-        "yt-dlp[default,curl-cffi]==${YTDLP_VERSION}"
+        "yt-dlp[default,curl-cffi] @ $(python -c 'import json; d=json.load(open("/opt/ytdlp-lock.json")); print(d["url"]+"#sha256="+d["sha256"])')" \
+    && test "$(python -c 'from importlib.metadata import version; print(version("yt-dlp"))')" = "${YTDLP_VERSION}" \
+    && mv /usr/local/bin/yt-dlp /usr/local/bin/yt-dlp-pinned
 
 RUN mkdir -p /opt/direct-chromium \
     && ln -s "$(python -c 'from playwright.sync_api import sync_playwright; p=sync_playwright().start(); print(p.chromium.executable_path); p.stop()')" \
@@ -82,6 +85,11 @@ RUN curl -fL --retry 3 \
 WORKDIR /app
 COPY BROWSEFORGE_LICENSE /usr/share/licenses/browseforge/LICENSE
 COPY api.py /app/api.py
+COPY ytdlp_runtime.py ytdlp-lock.json /app/
+COPY ytdlp-launcher.sh /usr/local/bin/yt-dlp
+RUN chmod 0755 /usr/local/bin/yt-dlp \
+    && printf '#!/bin/sh\nexec python /app/ytdlp_runtime.py "$@"\n' > /usr/local/bin/media-ytdlp \
+    && chmod 0755 /usr/local/bin/media-ytdlp
 COPY attached_chromium.py /app/attached_chromium.py
 COPY browseforge_client.py /app/browseforge_client.py
 COPY camoufox_client.py /app/camoufox_client.py

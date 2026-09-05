@@ -43,7 +43,9 @@ services:
       dockerfile: Dockerfile.media
       args:
         RUNTIME_BASE_IMAGE: ${RUNTIME_BASE_IMAGE:-ubuntu:24.04}
-        YTDLP_VERSION: ${YTDLP_VERSION:-2026.07.04}
+        YTDLP_VERSION: ${YTDLP_VERSION:-2026.08.19}
+        YTDLP_SHA256_AMD64: ${YTDLP_SHA256_AMD64:-58162f9bfdc27458ea47bfcb311cf47028f17d8154a8bf7d689861d46399230a}
+        YTDLP_SHA256_ARM64: ${YTDLP_SHA256_ARM64:-b16e4dab368a816cd05d477d698a605a6ae87ccee1c8ffd38fa21d7254141fcc}
         DENO_VERSION: ${DENO_VERSION:-2.8.1}
     image: sparktalk-extra-media:${SPARKTALK_EXTRA_IMAGE_TAG:-latest}
     container_name: sparktalk-extra-media

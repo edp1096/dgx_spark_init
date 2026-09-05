@@ -206,3 +206,162 @@ func TestRetainLatestVideoInputRemovesOlderRawVideos(t *testing.T) {
 		}
 	}
 }
+
+func TestDeepSeekPreservesToolReasoningThroughFinalRequest(t *testing.T) {
+	for _, maxRounds := range []int{1, 3} {
+		t.Run(fmt.Sprintf("max_rounds_%d", maxRounds), func(t *testing.T) {
+			var requests atomic.Int32
+			modelServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				var request struct {
+					Messages []llm.Message  `json:"messages"`
+					Options  map[string]any `json:"chat_template_kwargs"`
+					Tools    []any          `json:"tools"`
+				}
+				if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+					t.Error(err)
+				}
+				w.Header().Set("Content-Type", "text/event-stream")
+				if requests.Add(1) == 1 {
+					fmt.Fprintln(w, `data: {"choices":[{"delta":{"reasoning":"Need a lookup first."}}]}`)
+					fmt.Fprintln(w, `data: {"choices":[{"delta":{"tool_calls":[{"index":0,"id":"call_reasoning","type":"function","function":{"name":"not_allowed","arguments":"{}"}}]}}]}`)
+				} else {
+					found := false
+					for _, m := range request.Messages {
+						if m.Role == "assistant" && len(m.ToolCalls) > 0 {
+							found = true
+							if m.ReasoningContent != "Need a lookup first." {
+								t.Errorf("lost tool reasoning: %q", m.ReasoningContent)
+							}
+						}
+					}
+					if !found || request.Options["drop_thinking"] != false {
+						t.Errorf("encoder must retain tool reasoning: %+v", request.Options)
+					}
+					if request.Options["reasoning_effort"] != "max" {
+						t.Error("changed user thinking preference")
+					}
+					if maxRounds == 1 && (len(request.Tools) != 0 || request.Messages[len(request.Messages)-1].Content != toolLimitFinalInstruction) {
+						t.Error("round-limit path not exercised")
+					}
+					fmt.Fprintln(w, `data: {"choices":[{"delta":{"reasoning":"The lookup failed."}}]}`)
+					fmt.Fprintln(w, `data: {"choices":[{"delta":{"content":"Lookup unavailable."}}]}`)
+				}
+				fmt.Fprintln(w, "data: [DONE]")
+			}))
+			defer modelServer.Close()
+			result, err := runCompletionLoop(context.Background(), llm.New(modelServer.URL, "test-model", "", "deepseek-v4"), []llm.Message{{Role: "user", Content: "test"}}, "test-model", "max", "", config.ToolsConfig{Enabled: true, MaxRounds: maxRounds, SearchResults: 1, Timeout: "1s"}, true, func(string, any) error { return nil })
+			if err != nil {
+				t.Fatal(err)
+			}
+			if requests.Load() != 2 || result.Content != "Lookup unavailable." || result.Reasoning != "Need a lookup first.\n\nThe lookup failed." {
+				t.Fatalf("unexpected result: %+v", result)
+			}
+		})
+	}
+}
+
+func TestCompletionLoopRetriesReasoningOnlyFinalWithoutThinking(t *testing.T) {
+	var requests atomic.Int32
+	modelServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var request struct {
+			Messages []llm.Message  `json:"messages"`
+			Options  map[string]any `json:"chat_template_kwargs"`
+			Tools    []any          `json:"tools"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+			t.Error(err)
+		}
+		w.Header().Set("Content-Type", "text/event-stream")
+		if requests.Add(1) == 1 {
+			fmt.Fprintln(w, `data: {"choices":[{"delta":{"reasoning":"Long reasoning that reached EOS."}}]}`)
+		} else {
+			if request.Options["thinking"] != false || request.Options["reasoning_effort"] != nil {
+				t.Errorf("retry still enabled thinking: %+v", request.Options)
+			}
+			if len(request.Tools) != 0 || request.Messages[len(request.Messages)-1].Content != emptyFinalRetryInstruction {
+				t.Errorf("unexpected retry request: %+v", request)
+			}
+			fmt.Fprintln(w, `data: {"choices":[{"delta":{"content":"Recovered final answer."}}]}`)
+		}
+		fmt.Fprintln(w, "data: [DONE]")
+	}))
+	defer modelServer.Close()
+
+	result, err := runCompletionLoop(
+		context.Background(), llm.New(modelServer.URL, "test-model", "", "deepseek-v4"),
+		[]llm.Message{{Role: "user", Content: "test"}}, "test-model", "max", "",
+		config.ToolsConfig{}, false, func(string, any) error { return nil },
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if requests.Load() != 2 || result.Content != "Recovered final answer." || result.Reasoning != "Long reasoning that reached EOS." {
+		t.Fatalf("unexpected recovery result: requests=%d result=%+v", requests.Load(), result)
+	}
+}
+
+func TestCompletionLoopRetriesReasoningOnlyRoundLimitFinal(t *testing.T) {
+	var requests atomic.Int32
+	modelServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var request struct {
+			Messages []llm.Message  `json:"messages"`
+			Options  map[string]any `json:"chat_template_kwargs"`
+			Tools    []any          `json:"tools"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+			t.Error(err)
+		}
+		w.Header().Set("Content-Type", "text/event-stream")
+		switch requests.Add(1) {
+		case 1:
+			fmt.Fprintln(w, `data: {"choices":[{"delta":{"reasoning":"Need a tool."}}]}`)
+			fmt.Fprintln(w, `data: {"choices":[{"delta":{"tool_calls":[{"index":0,"id":"call_retry","type":"function","function":{"name":"not_allowed","arguments":"{}"}}]}}]}`)
+		case 2:
+			if len(request.Tools) != 0 || request.Messages[len(request.Messages)-1].Content != toolLimitFinalInstruction {
+				t.Errorf("round-limit final request is malformed: %+v", request)
+			}
+			fmt.Fprintln(w, `data: {"choices":[{"delta":{"reasoning":"I should now answer."}}]}`)
+		case 3:
+			if len(request.Tools) != 0 || request.Options["thinking"] != false || request.Messages[len(request.Messages)-1].Content != emptyFinalRetryInstruction {
+				t.Errorf("empty-final retry is malformed: %+v", request)
+			}
+			fmt.Fprintln(w, `data: {"choices":[{"delta":{"content":"Final after retry."}}]}`)
+		default:
+			t.Fatalf("unexpected request %d", requests.Load())
+		}
+		fmt.Fprintln(w, "data: [DONE]")
+	}))
+	defer modelServer.Close()
+
+	result, err := runCompletionLoop(
+		context.Background(), llm.New(modelServer.URL, "test-model", "", "deepseek-v4"),
+		[]llm.Message{{Role: "user", Content: "test"}}, "test-model", "max", "",
+		config.ToolsConfig{Enabled: true, MaxRounds: 1, SearchResults: 1, Timeout: "1s"}, true,
+		func(string, any) error { return nil },
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	wantReasoning := "Need a tool.\n\nI should now answer."
+	if requests.Load() != 3 || result.Content != "Final after retry." || result.Reasoning != wantReasoning {
+		t.Fatalf("unexpected recovery result: requests=%d result=%+v", requests.Load(), result)
+	}
+}
+
+func TestCompletionLoopRejectsRepeatedReasoningOnlyFinal(t *testing.T) {
+	modelServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "text/event-stream")
+		fmt.Fprintln(w, `data: {"choices":[{"delta":{"reasoning":"Still no answer."}}]}`)
+		fmt.Fprintln(w, "data: [DONE]")
+	}))
+	defer modelServer.Close()
+
+	result, err := runCompletionLoop(
+		context.Background(), llm.New(modelServer.URL, "test-model", "", "deepseek-v4"),
+		[]llm.Message{{Role: "user", Content: "test"}}, "test-model", "max", "",
+		config.ToolsConfig{}, false, func(string, any) error { return nil },
+	)
+	if err == nil || !strings.Contains(err.Error(), "no final answer") || result.Content != "" || result.Reasoning != "Still no answer.\n\nStill no answer." {
+		t.Fatalf("reasoning-only retry should fail visibly: result=%+v err=%v", result, err)
+	}
+}

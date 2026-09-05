@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"gopkg.in/yaml.v3"
+	"sparktalk/internal/orchestrator"
 )
 
 const DefaultPath = "sparktalk.yaml"
@@ -32,17 +33,18 @@ type Config struct {
 	Appearance AppearanceConfig `yaml:"appearance" json:"appearance"`
 }
 
-// RuntimeConfig selects the embedded DGX Spark service bundle. Engine
-// endpoints and model identities are derived from the bundle in managed mode;
-// users edit behavior, not internal service wiring.
+// RuntimeConfig stores editable runtime sets and their service connections.
 type RuntimeConfig struct {
-	Mode             string  `yaml:"mode" json:"mode"`
-	Bundle           string  `yaml:"bundle" json:"bundle"`
-	ActiveBundle     string  `yaml:"active_bundle,omitempty" json:"-"`
-	AutoStart        bool    `yaml:"auto_start" json:"auto_start"`
-	DataDir          string  `yaml:"data_dir" json:"data_dir"`
-	ModelCache       string  `yaml:"model_cache" json:"model_cache"`
-	MemoryReserveGiB float64 `yaml:"memory_reserve_gib" json:"memory_reserve_gib"`
+	KeyStorePeers    map[string]orchestrator.Host `yaml:"key_store_peers,omitempty" json:"key_store_peers,omitempty"`
+	KeyStoreHosts    []string                     `yaml:"key_store_hosts,omitempty" json:"key_store_hosts,omitempty"`
+	Catalog          *orchestrator.Catalog        `yaml:"catalog,omitempty" json:"catalog,omitempty"`
+	Mode             string                       `yaml:"mode" json:"mode"`
+	Bundle           string                       `yaml:"bundle" json:"bundle"`
+	ActiveBundle     string                       `yaml:"active_bundle,omitempty" json:"-"`
+	AutoStart        bool                         `yaml:"auto_start" json:"auto_start"`
+	DataDir          string                       `yaml:"data_dir" json:"data_dir"`
+	ModelCache       string                       `yaml:"model_cache" json:"model_cache"`
+	MemoryReserveGiB float64                      `yaml:"memory_reserve_gib" json:"memory_reserve_gib"`
 }
 
 // ASRConfig connects local media preparation and speech recognition services.
@@ -347,7 +349,24 @@ func saveNormalized(path string, cfg Config) error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(path, data, 0600)
+	file, err := os.CreateTemp(filepath.Dir(path), ".sparktalk-*.tmp")
+	if err != nil {
+		return err
+	}
+	temp := file.Name()
+	defer os.Remove(temp)
+	if _, err := file.Write(data); err != nil {
+		file.Close()
+		return err
+	}
+	if err := file.Sync(); err != nil {
+		file.Close()
+		return err
+	}
+	if err := file.Close(); err != nil {
+		return err
+	}
+	return os.Rename(temp, path)
 }
 
 func (c *Config) Normalize() {
@@ -364,14 +383,17 @@ func (c *Config) Normalize() {
 	if c.Runtime.Mode != "external" {
 		c.Runtime.Mode = "managed"
 	}
-	switch c.Runtime.Bundle {
-	case "qwen27", "qwen27-exl3", "flash-next", "flash-next-exl3", "gemma":
-	default:
+	if c.Runtime.Catalog == nil {
+		catalog, _ := orchestrator.LoadCatalog()
+		c.Runtime.Catalog = &catalog
+	}
+	if catalog, err := orchestrator.ValidateCatalog(*c.Runtime.Catalog); err == nil {
+		c.Runtime.Catalog = &catalog
+	}
+	if c.Runtime.Bundle == "" {
 		c.Runtime.Bundle = "flash-next"
 	}
-	switch c.Runtime.ActiveBundle {
-	case "qwen27", "qwen27-exl3", "flash-next", "flash-next-exl3", "gemma":
-	default:
+	if c.Runtime.ActiveBundle == "" {
 		c.Runtime.ActiveBundle = c.Runtime.Bundle
 	}
 	if c.Runtime.MemoryReserveGiB <= 0 {
@@ -389,7 +411,7 @@ func (c *Config) Normalize() {
 	c.Model.DefaultModel = strings.TrimSpace(c.Model.DefaultModel)
 	c.Model.ModelType = strings.ToLower(strings.TrimSpace(c.Model.ModelType))
 	switch c.Model.ModelType {
-	case "qwen3.8", "qwen3.8-exl3", "gemma4", "glm5.3", "generic":
+	case "qwen3.8", "qwen3.8-exl3", "gemma4", "glm5.3", "deepseek-v4", "generic":
 	default:
 		c.Model.ModelType = "generic"
 	}
@@ -579,8 +601,35 @@ func (c *Config) Normalize() {
 }
 
 func (c Config) Validate() error {
+	if c.Runtime.Catalog != nil {
+		catalog, err := orchestrator.ValidateCatalog(*c.Runtime.Catalog)
+		if err != nil {
+			return fmt.Errorf("runtime.catalog: %w", err)
+		}
+		if c.Runtime.Mode == "managed" {
+			if _, ok := catalog.Bundle(c.Runtime.Bundle); !ok {
+				return fmt.Errorf("unknown default bundle %q", c.Runtime.Bundle)
+			}
+			if _, ok := catalog.Bundle(c.Runtime.ActiveBundle); !ok {
+				return fmt.Errorf("unknown active bundle %q", c.Runtime.ActiveBundle)
+			}
+		}
+	}
+
 	if c.Runtime.Mode != "managed" && c.Runtime.Mode != "external" {
 		return errors.New("runtime.mode must be managed or external")
+	}
+	if len(c.Runtime.KeyStoreHosts) > 0 {
+		catalog, err := orchestrator.LoadCatalog()
+		if err != nil {
+			return err
+		}
+		if c.Runtime.Catalog != nil {
+			catalog = *c.Runtime.Catalog
+		}
+		if err := orchestrator.ValidateKeyStoreHosts(catalog, c.Runtime.KeyStoreHosts); err != nil {
+			return err
+		}
 	}
 	if c.Runtime.MemoryReserveGiB < 1 || c.Runtime.MemoryReserveGiB > 64 {
 		return errors.New("runtime.memory_reserve_gib must be between 1 and 64")
@@ -710,37 +759,58 @@ func (c *Config) applyManagedRuntime() {
 // ApplyManagedBundle updates only the live model profile. Runtime.Bundle is
 // the user's startup default and must not be changed by a live model switch.
 func (c *Config) ApplyManagedBundle(bundle string) {
-	c.Model.Endpoint = "http://127.0.0.1:8000"
-	c.ASR.FFmpegEndpoint = "http://127.0.0.1:8690"
-	c.ASR.Endpoint = "http://127.0.0.1:8693"
-	c.ASR.Model = "nemotron-3.5-asr-streaming-0.6b"
-	c.TTS.Endpoint = "http://127.0.0.1:8692"
-	c.TTS.Model = "magpietts"
-	c.Image.Endpoint = "http://127.0.0.1:8691"
-	c.Image.Model = "flux2-klein-4b-nvfp4"
-	c.Extra.SSHEndpoint = "http://127.0.0.1:8699"
-	c.Extra.CollectorEndpoint = "http://127.0.0.1:8695"
-	switch strings.ToLower(strings.TrimSpace(bundle)) {
-	case "qwen27":
-		c.Model.DefaultModel = "Huihui-RadixArk-Qwen3.8-27B-abliterated-NVFP4"
-		c.Model.ModelType = "qwen3.8"
-		c.Context.WindowTokens = 32768
-	case "qwen27-exl3":
-		c.Model.DefaultModel = "Qwen3.8-27B-Uncensored-EXL3-4bpw"
-		c.Model.ModelType = "qwen3.8-exl3"
-		c.Context.WindowTokens = 262144
-	case "flash-next-exl3":
-		c.Model.DefaultModel = "Qwen3.8-Flash-Next-Abliterated-EXL3-4.05bpw"
-		c.Model.ModelType = "qwen3.8"
-		c.Context.WindowTokens = 262144
-	case "gemma":
-		c.Model.DefaultModel = "Huihui-gemma-4-31B-it-abliterated-v2-NVFP4"
-		c.Model.ModelType = "gemma4"
-		c.Context.WindowTokens = 32768
-	default:
-		c.Model.DefaultModel = "qwen3.8-flash-next"
-		c.Model.ModelType = "qwen3.8"
-		c.Context.WindowTokens = 65536
+	catalog, _ := orchestrator.LoadCatalog()
+	if c.Runtime.Catalog != nil {
+		var err error
+		catalog, err = orchestrator.ValidateCatalog(*c.Runtime.Catalog)
+		if err != nil {
+			return
+		}
+	}
+	profile, ok := catalog.Bundle(strings.ToLower(strings.TrimSpace(bundle)))
+	if !ok {
+		return
+	}
+	c.Model.DefaultModel, c.Model.ModelType = profile.ModelID, profile.ModelType
+	c.Context.WindowTokens = profile.ContextTokens
+	present := map[string]bool{}
+	for _, id := range profile.Components {
+		component, _ := catalog.ResolveComponent(profile.ID, id)
+		role := component.ServiceRole()
+		present[role] = true
+		endpoint := strings.TrimRight(component.Endpoint, "/")
+		switch role {
+		case "llm":
+			c.Model.Endpoint = endpoint
+		case "asr":
+			c.ASR.Endpoint, c.ASR.Model = endpoint, component.Model
+		case "tts":
+			c.TTS.Endpoint, c.TTS.Model = endpoint, component.Model
+		case "image":
+			c.Image.Endpoint, c.Image.Model = endpoint, component.Model
+		case "media":
+			c.ASR.FFmpegEndpoint = endpoint
+		case "ssh":
+			c.Extra.SSHEndpoint = endpoint
+		case "collector":
+			c.Extra.CollectorEndpoint = endpoint
+		}
+	}
+	// A set cannot call services it does not contain; preserve user toggles for present members.
+	if !present["asr"] {
+		c.ASR.Enabled = false
+	}
+	if !present["tts"] {
+		c.TTS.Enabled = false
+	}
+	if !present["image"] {
+		c.Image.Enabled = false
+	}
+	if !present["ssh"] {
+		c.Extra.SSHEnabled = false
+	}
+	if !present["collector"] {
+		c.Extra.CollectorEnabled = false
 	}
 	c.Model.ReasoningEffort = normalizeReasoningEffort(c.Model.ModelType, c.Model.ReasoningEffort)
 }
@@ -749,7 +819,7 @@ func normalizeReasoningEffort(modelType, value string) string {
 	raw := strings.TrimSpace(value)
 	value = strings.ToLower(raw)
 	switch modelType {
-	case "glm5.3":
+	case "glm5.3", "deepseek-v4":
 		switch value {
 		case "", "none", "off", "false", "disabled", "0", "0.0":
 			return "off"

@@ -315,7 +315,17 @@ func (s *Server) llmMessages(ctx context.Context, items []db.Message, cfg config
 				textParts = append(textParts, documentAttachmentBlock(attachment, cached))
 				continue
 			}
-			if isImage || isVideo {
+			if isVideo && cfg.Model.ModelType == "deepseek-v4" {
+				frameURL, duration, err := s.videoFrameSheet(ctx, attachment, cfg.ASR.FFmpegEndpoint)
+				if err != nil {
+					return nil, err
+				}
+				parts = append(parts, map[string]any{"type": "image_url", "image_url": map[string]string{"url": frameURL}})
+				textParts = append(textParts, fmt.Sprintf("<video_frames filename=%q duration_seconds=%q>Eight representative frames sampled across the video in chronological order, left to right then top to bottom (4 columns, 2 rows). These are sparse still frames, not continuous video; do not invent unseen motion or dialogue.</video_frames>", attachment.Name, duration))
+				if !cfg.ASR.Enabled {
+					textParts = append(textParts, "Audio transcription is disabled. Summarize visible evidence only and explicitly state that speech/audio was not analyzed.")
+				}
+			} else if isImage || isVideo {
 				dataURL, err := s.media.DataURL(attachment)
 				if err != nil {
 					return nil, fmt.Errorf("read media %s: %w", attachment.Name, err)

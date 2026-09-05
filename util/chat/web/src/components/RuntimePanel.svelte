@@ -80,7 +80,7 @@
   <div class="runtime-components">
     {#each selectedComponents as component}
       <div class="runtime-component">
-        <span class:online={component.health === 'online'} class:starting={component.health === 'starting'} class:failed={component.health === 'failed'}><i></i><span><b>{component.name}</b><small>{component.phase || component.model || component.role}</small></span></span>
+        <span class:online={component.health === 'online'} class:starting={component.health === 'starting'} class:failed={component.health === 'failed'}><i></i><span><b>{component.name}</b><small>{component.phase || component.model || component.role} · {component.host || 'local'}</small></span></span>
         <div><b>{stateLabel(component)}</b><small>{component.gpu_memory_gib ? formatGiB(component.gpu_memory_gib) : ''}</small></div>
       </div>
     {/each}
@@ -95,5 +95,8 @@
     <button type="button" class="primary" disabled={busy || operationRunning || !targetBundle || (targetIsSelected && selectedBundleOnline)} onclick={() => onAction('start', targetBundle)}>{primaryLabel}</button>
     <button type="button" disabled={busy || operationRunning || !runtime?.selected_bundle} onclick={() => onAction('stop', runtime.selected_bundle)}>중지</button>
   </div>
+  {#each Object.entries(runtime?.hosts || {}) as [host, status]}
+    <small class="runtime-docker" class:offline={!!status.error}>{host} · {status.error ? '연결 실패: ' + status.error : '가용 ' + formatGiB(status.memory.available_gib) + ' / 즉시 여유 ' + formatGiB(status.memory.free_gib)}</small>
+  {/each}
   <small class="runtime-docker" class:offline={runtime?.docker !== 'online'}>Docker · {runtime?.docker === 'online' ? '정상' : '연결 오류'}</small>
 </section>

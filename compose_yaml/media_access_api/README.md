@@ -1,8 +1,7 @@
 # Media Access API
 
-배포 이미지는 `ghcr.io/edp1096/media-access-api:v1.0.1`이다. 현재 이미지는
-Linux ARM64용이며 `latest`, `v1`, 정확한 릴리스 태그와 소스 커밋 태그를 함께
-제공한다.
+배포 이미지는 `ghcr.io/edp1096/media-access-api:v1.0.2`이다. 현재 이미지는
+Linux ARM64용이며 `latest`, `v1`, `v1.0.2` 태그를 제공한다.
 
 AI 모델과 분리된 미디어 입력·전처리 API다. 파일 또는 URL을 받아 `ffmpeg`로
 16kHz mono WAV 구간을 만들고 manifest와 함께 ZIP 스트림으로 반환한다. 구간은
@@ -115,6 +114,39 @@ curl http://127.0.0.1:8697/health
 
 ## 버전 관리와 롤백
 
+### 실행 중인 yt-dlp 업데이트 (v1.0.2)
+
+이 이미지는 SparkTalk Extra Media와 별도의 Media Access API다. 기본 yt-dlp는
+`2026.08.19`, 커밋 `3a08beaf031ab68f966401ead017ac81fe8486cf`로 고정하며
+`ytdlp-lock.json`의 wheel SHA256을 검증한다. 시작할 때 자동 업데이트하지 않는다.
+
+```bash
+docker exec media-access-api media-ytdlp status
+docker exec media-access-api media-ytdlp check
+docker exec media-access-api media-ytdlp update
+docker exec media-access-api media-ytdlp rollback
+```
+
+`check`는 최신 안정판을 조회만 한다. `update`는 공식 GitHub 릴리스 커밋과
+PyPI wheel 해시를 확인하고 별도 Python 환경에 설치·검증한 뒤 전환한다.
+이미 최신이면 변경하지 않는다. 실패하면 기존 버전을 계속 사용한다.
+진행 로그는 명령 실행 터미널에 표시된다. 동시에 업데이트하면 하나만 실행한다.
+업데이트 API는 완료까지 수 분 걸릴 수 있으므로 클라이언트 타임아웃을 충분히 둔다.
+
+```bash
+curl 'http://127.0.0.1:8697/v1/runtime/yt-dlp?check=true'
+curl --max-time 600 -X POST http://127.0.0.1:8697/v1/runtime/yt-dlp/update
+curl -X POST http://127.0.0.1:8697/v1/runtime/yt-dlp/rollback
+```
+
+새 버전은 다음 yt-dlp 실행부터 적용되며 컨테이너 재시작은 필요 없다.
+`/data/runtimes/yt-dlp`에 버전·커밋·해시와 설치 환경을 보관하므로 `/data`를
+유지하면 컨테이너 재생성 후에도 유지된다. 이미지 태그를 바꾸어도 이 override가
+우선한다. `rollback`은 직전 버전으로 복구하며 첫 업데이트라면 이미지 기본값으로
+돌아간다. `/health`의 `yt_dlp_version`으로 활성 버전을 확인할 수 있다.
+
+### 이미지 빌드 버전
+
 외부 런타임과 Python 패키지 버전은 `versions.env`에서 한 번에 관리한다.
 BrowseForge, bgutil provider, Playwright 베이스 이미지는 버전 태그뿐 아니라 OCI
 manifest digest도 고정하므로 같은 ARM64 이미지를 다시 받는다. 업데이트 확인은
@@ -123,7 +155,7 @@ manifest digest도 고정하므로 같은 ARM64 이미지를 다시 받는다. �
 ```bash
 make show-versions
 make check-updates
-make set-version COMPONENT=yt-dlp VERSION=2026.7.4
+make set-version COMPONENT=yt-dlp VERSION=2026.8.19
 make set-version COMPONENT=bgutil VERSION=1.3.1
 make set-version COMPONENT=browseforge VERSION=v2.1.12
 make set-version COMPONENT=playwright VERSION=1.62.0

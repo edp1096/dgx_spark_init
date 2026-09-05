@@ -29,14 +29,17 @@ button { cursor: pointer; }
 .conversation-search-results span { color: #8f98a8; font-size: 11px; }
 .conversation-search-results .search-error { color: #e58c91; }
 .conversation-search-results > button.conversation-search-more { margin-top: 4px; border-top: 1px solid #2c3240; border-radius: 0 0 7px 7px; color: #9db7f2; text-align: center; }
-.skill-catalog { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 7px; }
-.skill-catalog article { min-width: 0; padding: 9px; border: 1px solid #303642; border-radius: 9px; background: #151922; }
-.skill-catalog article.disabled { opacity: .5; }
-.skill-catalog article > div, .tool-audit-list article > div, .tool-audit-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.skill-catalog strong { color: #d8dce5; font-size: 12px; }
-.skill-catalog span { color: #7fa3e8; font-size: 10px; }
-.skill-catalog p, .tool-audit-list p { margin: 5px 0; color: #a8afbd; font-size: 11px; line-height: 1.45; }
-.skill-catalog small { color: #707a8d; }
+.builtin-skills .skill-summary { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 4px; }
+.skill-summary > span { flex-shrink: 0; color: #929bad; font-size: 11px; }
+.skill-catalog { display: grid; grid-template-columns: minmax(0,1fr); gap: 0; border: 1px solid #303642; border-radius: 10px; overflow: hidden; }
+.skill-catalog .skill-item { min-width: 0; padding: 12px 14px; background: #151922; }
+.skill-catalog .skill-item + .skill-item { border-top: 1px solid #303642; }
+.skill-heading, .tool-audit-list article > div, .tool-audit-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.skill-catalog strong { color: #d8dce5; font-size: 13px; font-weight: 600; overflow-wrap: anywhere; }
+.skill-catalog .skill-status { flex-shrink: 0; padding: 3px 8px; border-radius: 6px; color: #a8afbd; background: #ffffff0a; font-size: 11px; line-height: 1.4; }
+.skill-catalog .skill-status.available { color: #94d9bc; background: #63c99a16; }
+.skill-catalog p, .tool-audit-list p { margin: 5px 0 0; color: #a8afbd; font-size: 12px; line-height: 1.6; }
+@media (max-width: 520px) { .builtin-skills .skill-summary { flex-wrap: wrap; gap: 4px; } .skill-catalog .skill-item { padding: 11px 12px; } }
 .tool-audit-heading button { flex: 0 0 auto; padding: 5px 8px; }
 .tool-audit-list { display: grid; max-height: 260px; overflow: auto; gap: 5px; }
 .tool-audit-list article { padding: 7px 9px; border: 1px solid #2b303b; border-radius: 8px; background: #151820; }

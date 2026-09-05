@@ -144,6 +144,15 @@ def set_version(component, version):
         raise SystemExit(f"usage: set <component> <version>; components: {names}")
     spec = COMPONENTS[component]
     changes = {spec["version"]: version}
+    if component == "yt-dlp":
+        sys.path.insert(0, str(ROOT))
+        from ytdlp_runtime import latest_lock
+        lock = latest_lock(version)
+        changes[spec["version"]] = lock["version"]
+        (ROOT / "ytdlp-lock.json").write_text(json.dumps(lock, indent=2) + "\n")
+        replace_values(changes)
+        print("Pinned yt-dlp release commit and wheel SHA256; run make rebuild.")
+        return
     if spec.get("image"):
         image = spec["image"](version)
         print(f"Resolving {image} ...")

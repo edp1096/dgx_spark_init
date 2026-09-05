@@ -14,8 +14,8 @@ export function modelCapabilities(modelType) {
   if (type === 'qwen3.8') {
     return { family: 'qwen3.8', reasoning: 'effort', reasoningLevels: QWEN_REASONING_LEVELS };
   }
-  if (type === 'glm5.3') {
-    return { family: 'glm5.3', reasoning: 'effort', reasoningLevels: GLM53_REASONING_LEVELS };
+  if (type === 'glm5.3' || type === 'deepseek-v4') {
+    return { family: type, reasoning: 'effort', reasoningLevels: GLM53_REASONING_LEVELS };
   }
   return { family: 'generic', reasoning: 'effort', reasoningLevels: GENERIC_REASONING_LEVELS };
 }
@@ -30,7 +30,7 @@ export function normalizeReasoningEffort(modelType, value) {
   if (profile.family === 'qwen3.8') {
     return profile.reasoningLevels.includes(normalized) ? normalized : 'medium';
   }
-  if (profile.family === 'glm5.3') {
+  if (profile.family === 'glm5.3' || profile.family === 'deepseek-v4') {
     if (THINKING_OFF_VALUES.has(normalized)) return 'off';
     return profile.reasoningLevels.includes(normalized) ? normalized : 'max';
   }

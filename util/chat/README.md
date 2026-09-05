@@ -36,9 +36,10 @@ Svelte UI가 Go 바이너리에 포함되므로 배포할 때 `dist/`의 운영�
 
 기본 `managed` 모드에서는 브라우저가 SparkTalk 한 서버에만 연결한다. Go
 백엔드가 검증된 Docker Compose 조리법을 바이너리에 내장하고, 채팅 모델·이미지·
-ASR·TTS·Extra를 하나의 AI 세트로 기동한다. 외부 `compose_yaml` 디렉터리를 읽지
-않으며 임의 명령도 받지 않는다. 이미 같은 이름의 컨테이너가 있으면 그대로
-채택하고, 없을 때만 내장 조리법으로 생성한다.
+ASR·TTS·Extra를 편집 가능한 AI 세트로 기동한다. 서비스별 실행 호스트와 API
+주소를 지정할 수 있고, 원격 호스트는 SSH로 제어한다. 정상 실행 중인 컨테이너는
+재사용하며 중지·실패한 컨테이너는 저장한 Compose 설정으로 재생성한다.
+GLM·DeepSeek 클러스터도 앱 내장 실행 패키지를 사용한다. 외부 `manage.sh`나 개발 저장소 경로를 참조하지 않는다.
 
 | 세트 | 주 채팅 모델 | 문맥 | 공통 구성 |
 |---|---|---:|---|
@@ -47,6 +48,7 @@ ASR·TTS·Extra를 하나의 AI 세트로 기동한다. 외부 `compose_yaml` �
 | Flash-Next 세트 | Qwen3.8 Flash-Next NVFP4 | 64K | FLUX.2·Nemotron ASR·Magpie TTS·Extra |
 | Flash-Next EXL3 세트 | Qwen3.8 Flash-Next EXL3 4.05bpw + runtime ablation + MTP | 262K | FLUX.2·Nemotron ASR·Magpie TTS·Extra |
 | Gemma 세트 | Gemma 4 31B NVFP4 + DFlash | 64K | FLUX.2·Nemotron ASR·Magpie TTS·Extra |
+| GLM 5.3 Flash EXL3 + 워커 Extra | GLM 5.3 Flash EXL3 + DFlash2, Spark 2대 | 512K | 워커의 Media·Collector·SSH |
 
 우상단의 **연결됨**을 누르면 현재 세트, 전체 통합메모리, 구성요소별 상태와
 GPU 메모리, 기동 단계·진행률·예상 시간을 확인할 수 있다. 같은 곳에서 세트를
@@ -64,6 +66,9 @@ CUDA Graph·보정 워밍업 순으로 표시한다. Flash-Next 전용 SGLang �
 모델 가중치와 Docker 이미지 자체는 Go 바이너리에 넣지 않는다. 최초 사용 전에
 저장소의 각 런타임 README에 따라 아래 로컬 이미지를 빌드하고 모델을 받아 둔다.
 그 이후의 일상적인 기동·중지·전환에는 Compose 명령이 필요 없다.
+Extra 3종과 ASR·TTS를 원격 호스트에서 기동할 때 이미지가 없으면 앱 실행 머신의 이미지를
+SSH로 스트리밍 전달한다. 기존 원격 이미지는 유지하며, 앱 실행 머신에도 없으면
+먼저 빌드하라는 오류를 표시한다.
 
 ```text
 dgx-sglang-qwen38-fn:sm121
@@ -79,16 +84,20 @@ sparktalk-extra-ssh:latest
 sparktalk-extra-collector:latest
 ```
 
-EXL3 세트는 최초 한 번 `compose_yaml/exl3_qwen38_27b/manage.sh setup`으로
-이미지와 모델을 준비한다.
+GLM·DeepSeek·EXL3 두 종류는 **설정 → 시스템 → 모델 준비**에서 준비한다.
+`모델만 준비`는 가중치 다운로드·패치·워커 복사를, `전체 준비`는 이미지 준비까지
+포함한다. 실행 중인 해당 모델을 중지한 뒤 준비하며, 완료 후 세트를 기동한다.
+Qwen 27B EXL3는 현재 Uncensored 체크포인트만 제공하므로 원본 선택은 거부한다.
 
-Flash-Next EXL3 실험 세트는 최초 한 번
-`compose_yaml/exl3_qwen38_fn/manage.sh setup`으로 이미지·모델·거부 방향을 준비한다.
+Hugging Face 토큰은 같은 화면에서 등록·교체·삭제한다. 앱 데이터 폴더의
+`credentials/huggingface.token`에 0600 권한으로 보관하고, 조회 API에는 등록 여부만
+반환한다. 세트 YAML/JSON·일반 설정·설정 내보내기에는 토큰을 넣지 않는다.
+기본 저장 방식은 파일 권한 보호이며 OS 키링 암호화 저장은 아니다.
 
-Flash-Next 런타임은 `compose_yaml/sglang_qwen38_fn`에서 먼저 빌드한다.
-SM121 QSA 커널, 파일 기반 PLE·ngram offload와 NEXTN MTP를 적용한 SGLang
-이미지다. vLLM 비교·복구용 Flash-Next 런타임은 27B 구성과 섞지 않고
-`compose_yaml/vllm_qwen38_fn`에 별도로 보존한다.
+내장 패키지는 `internal/orchestrator/assets/recipes`에 포함되며 앱 데이터 폴더의
+`runtime/recipes`에 풀린다. 개발 저장소 없이 같은 실행 파일로 모델을 준비하고
+클러스터를 제어한다. Docker·SSH·다운로드 네트워크와 모델 저장 공간은 필요하다.
+그 밖의 서비스는 설정에 지정된 Docker 이미지를 사용한다.
 
 SparkTalk만 실행하면 된다.
 
@@ -99,9 +108,9 @@ cd dist
 ./sparktalk-linux-arm64
 ```
 
-설정의 **시스템 > DGX Spark 운영**에서 기본 세트, 앱 시작 시 자동기동,
-최소 확보 메모리, 데이터·모델 캐시 경로를 관리한다. 내장 엔진은 loopback으로
-연결되므로 브라우저에 개별 endpoint가 노출되지 않는다. 특별히 외부 OpenAI 호환
+설정의 **시스템**에서 기본 세트, 앱 시작 시 자동기동, 최소 확보 메모리,
+데이터·모델 캐시 경로를 관리한다. **AI 세트 편집**에서 세트를 복제하고 서비스별
+실행 호스트·API 주소·상태 확인 URL·공개 포트를 수정한다. 특별히 외부 OpenAI 호환
 API를 붙여야 할 때는 설정의 실행 방식을 `external`로 바꾼다. 모델 유형에서
 **GLM-5.3 Flash**를 선택하면 512K 문맥과 Max 리즈닝이 적용된다.
 ASR·TTS·이미지 생성·Extra 등 부가 기능 설정은 모델 전환 시 유지되며 개별 관리한다.
@@ -163,8 +172,8 @@ systemctl --user daemon-reload
 웹 설정은 **대화**, **기억**, **음성**, **기능**, **외형**, **시스템**으로 나뉩니다.
 기억 원문과 문서 자료의 추가·수정·삭제는 설정에 섞지 않고 좌측의
 **기억·지식** 전용 화면에서 관리합니다.
-관리형 세트의 endpoint·모델 ID·모델 유형은 선택한 세트에서 자동으로 정하며,
-화면에는 대화 동작과 기능 사용 여부만 노출합니다. Qwen 3.8은 꺼짐·Low·Medium·
+관리형 세트의 endpoint·모델 ID·모델 유형은 편집한 세트 정의에서 적용합니다.
+JSON/YAML 가져오기와 JSON 내보내기는 **시스템 → AI 세트 편집**에서 지원합니다. Qwen 3.8은 꺼짐·Low·Medium·
 XHigh의 단계형 effort를, Qwen EXL3는 Thinking 켜짐·꺼짐을 사용합니다.
 GLM-5.3 Flash는 Off·Low·High·Max를, Gemma 4는 Thinking 켜짐·꺼짐과 최대 생각
 토큰 예산을 사용합니다. 예산은 기본 512이며 `0`은 제한 없음입니다. 이 제한은
@@ -437,3 +446,49 @@ SparkTalk은 모델 이름으로 기능을 추측하지 않으므로 설정에�
 
 기본 listen address는 `0.0.0.0:8585`입니다. 같은 네트워크의 다른 PC에서는
 `http://서버-IP:8585`로 접속합니다.
+
+AI 세트의 로컬·원격 실행 위치와 API 주소를 편집하려면
+[편집 가능한 AI 세트](examples/README.md)를 참고한다. JSON/YAML 가져오기와
+GLM Head·Worker + 워커 Extra 예제를 제공한다.
+
+GLM 워커 음성 구성은 워커에 `~/.cache/nemo-speech` 모델 파일을 별도로 준비해야 한다.
+ASR은 `nemotron-3.5-asr-streaming-0.6b.q8_0.gguf`, TTS는 `magpie-v2607`의
+`magpie-v2607-pr17-speaker-order-v2.f16.gguf`, `nano-codec.decoder.f16.gguf`,
+`extracted` 토크나이저 디렉터리를 사용한다. 이미지 자동 전달에 모델 파일은 포함되지 않는다.
+
+### SSH 키 저장소 동기화
+
+설정 → 기능 → SparkTalk Extra → 인증 키 → **키 저장소 동기화**에서
+실행 호스트를 선택한다. 각 호스트에는 최신 `sparktalk-extra-ssh:latest` 이미지,
+Docker 실행 권한, 절대경로 `data_dir`가 필요하다. 원격 연결은 실행 호스트의
+SSH 주소·계정·인증키 설정을 사용한다. 관리 연결용 SSH 개인키는 이 저장소와
+별도로 준비해야 하며, Extra 키에 의존하면 처음 연결할 수 없다.
+
+세트와 별개인 `runtime.key_store_hosts`에 복제 대상이 저장된다. 서비스가 중지돼
+있어도 일회용 컨테이너가 저장소를 관리한다. 개인키는 HTTP API로 내보내지 않으며,
+원격 전송은 SSH의 stdin/stdout으로만 처리한다. 공개키·지문만 UI에 표시한다.
+
+키 폴더의 `.manifest.json`이 저장소 ID, 관리 노드, 권한 세대, 변경 버전,
+키 목록·SHA256 해시와 known_hosts 해시를 관리한다. 파일 시각은 비교하지 않는다.
+동일 버전이면 개별 키 파일을 읽거나 전송하지 않는다. 변경 시 완전한 스냅샷을
+검증하고 파일 기록·fsync 후 관리 파일을 원자적으로 교체한다. 목록에 없는 키는
+복제본에서도 제거된다. 개인키는 `.objects` 아래 0600 파일로 저장한다.
+기존 평면 키 파일은 첫 접근 시 자동 이전되며, 손상되거나 형식이 다른 파일은 건드리지 않는다.
+`.node-id`는 호스트별 식별자이므로 다른 호스트로 복사하지 않는다.
+
+키 수정 직후와 앱 실행 중 30초 간격으로 동기화한다. 꺼진 호스트는 대기로 표시하고
+재연결 시 반영한다. 관리 호스트를 끄기 전 **관리 권한 이전**으로 최신 내용을 대상에
+전달한다. 이전은 기존 관리 노드를 먼저 쓰기 금지한 뒤 대상에 적용한다. 도중에
+끊기면 다시 동기화하여 이어간다. 관리 호스트가 오프라인일 때 강제 승격은 하지 않는다.
+서로 다른 저장소와 동일 버전의 충돌은 자동 병합하지 않는다. 기존 복제 호스트 제거는
+현재 UI에서 지원하지 않는다.
+
+이 기능은 키와 신뢰한 서버의 host key를 복제한다. 서버 별칭·주소 등 등록 항목은
+앱 SQLite에 그대로 있으며, 다른 머신에서 별도의 앱 DB를 쓰면 앱 데이터도 별도로
+이전해야 한다. 키 재생성·서버 측 공개키 재등록은 필요하지 않다. 개인키 자체를
+교체할 때는 대상 서버의 authorized_keys도 새 공개키로 갱신해야 한다.
+
+복제 대상의 물리 주소·계정·데이터 경로는 설정 시 `runtime.key_store_peers`에
+고정된다. 앱을 다른 메인 머신으로 옮겨도 `local`이라는 세트 역할 때문에 복제 대상이
+바뀌지 않는다. 앱 설정을 함께 이전하고, 새 머신에서도 각 복제 대상에 관리용 SSH
+접속이 가능해야 한다. 자기 머신의 IP로 판별되면 SSH 대신 로컬 Docker를 사용한다.

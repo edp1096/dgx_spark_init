@@ -4,6 +4,8 @@
   import PromptPresetManager from './settings/PromptPresetManager.svelte';
   import AvatarSettings from './settings/AvatarSettings.svelte';
   import ThemeSettings from './settings/ThemeSettings.svelte';
+  import ModelDownloads from './settings/ModelDownloads.svelte';
+  import RuntimeSetEditor from './settings/RuntimeSetEditor.svelte';
   import SSHSettings from './settings/SSHSettings.svelte';
   import SettingsToast from './settings/SettingsToast.svelte';
   import MemorySettings from './settings/MemorySettings.svelte';
@@ -26,6 +28,8 @@
   let avatarKeepIds = [];
   let serviceHealth = null;
   let activeTab = 'chat';
+  let systemSection = 'connection';
+  let featureSection = 'web';
   const settingsTabs = [
     { id: 'chat', label: '대화' },
     { id: 'memory', label: '기억' },
@@ -36,7 +40,7 @@
   ];
   $: modelProfile = modelCapabilities(settings?.model?.model_type);
   $: gemmaThinkingValue = thinkingToggleValue(settings?.model?.reasoning_effort);
-  $: if (settings?.model && (modelProfile.family === 'qwen3.8' || modelProfile.family === 'qwen3.8-exl3' || modelProfile.family === 'glm5.3')) settings.model.reasoning_effort = normalizeReasoningEffort(settings.model.model_type, settings.model.reasoning_effort);
+  $: if (settings?.model && (modelProfile.family === 'qwen3.8' || modelProfile.family === 'qwen3.8-exl3' || (modelProfile.family === 'glm5.3' || modelProfile.family === 'deepseek-v4'))) settings.model.reasoning_effort = normalizeReasoningEffort(settings.model.model_type, settings.model.reasoning_effort);
   $: externalMode = settings?.runtime?.mode === 'external';
   $: currentBundle = runtime?.bundles?.find((bundle) => bundle.id === runtime?.selected_bundle) || runtime?.bundles?.[0];
   const ttsLanguages = ['auto', 'ko-KR', 'en-US', 'ja-JP', 'zh-CN', 'ar-MSA', 'ar-AE', 'ar-SA', 'de-DE', 'es-ES', 'fr-FR', 'hi-IN', 'it-IT', 'pt-BR', 'vi-VN'];
@@ -157,7 +161,7 @@
         <fieldset>
           <legend>현재 AI 세트</legend>
           {#if externalMode}
-            <div class="settings-bundle-card"><span><strong>{modelProfile.family === 'glm5.3' ? 'GLM-5.3 Flash' : '외부 모델'}</strong><small>{settings.model.endpoint}</small></span><div><b>{settings.model.default_model}</b><small>{settings.context.window_tokens ? `${Math.round(settings.context.window_tokens / 1024)}K context` : 'context 자동 감지'}</small></div></div>
+            <div class="settings-bundle-card"><span><strong>{(modelProfile.family === 'glm5.3' || modelProfile.family === 'deepseek-v4') ? (modelProfile.family === 'deepseek-v4' ? 'DeepSeek V4 Flash Vision Exp' : 'GLM-5.3 Flash') : '외부 모델'}</strong><small>{settings.model.endpoint}</small></span><div><b>{settings.model.default_model}</b><small>{settings.context.window_tokens ? `${Math.round(settings.context.window_tokens / 1024)}K context` : 'context 자동 감지'}</small></div></div>
             <small>외부 API는 SparkTalk가 기동하거나 중지하지 않습니다.</small>
           {:else}
             <div class="settings-bundle-card"><span><strong>{currentBundle?.name || '관리형 세트'}</strong><small>{currentBundle?.description || settings.model.default_model}</small></span><div><b>{currentBundle?.model_id || settings.model.default_model}</b><small>{currentBundle?.context_tokens ? `${Math.round(currentBundle.context_tokens / 1024)}K context` : ''}</small></div></div>
@@ -171,8 +175,8 @@
             {#if modelProfile.family === 'gemma4'}<label>Thinking 예산<input type="number" min="0" step="128" bind:value={settings.model.thinking_budget} /><small>최대 생각 토큰 수입니다. 512 권장, 0이면 제한하지 않습니다.</small></label>{/if}
           {:else if modelProfile.family === 'qwen3.8'}
             <label>기본 reasoning effort<select bind:value={settings.model.reasoning_effort} aria-label="기본 reasoning effort">{#each modelProfile.reasoningLevels as level}<option value={level}>{level === 'none' ? '꺼짐' : level === 'low' ? 'Low' : level === 'medium' ? 'Medium' : 'XHigh'}</option>{/each}</select><small>Qwen3.8은 꺼짐·Low·Medium·XHigh 네 단계만 사용합니다.</small></label>
-          {:else if modelProfile.family === 'glm5.3'}
-            <label>기본 reasoning effort<select bind:value={settings.model.reasoning_effort} aria-label="기본 reasoning effort">{#each modelProfile.reasoningLevels as level}<option value={level}>{reasoningEffortLabel(level)}</option>{/each}</select><small>GLM-5.3 Flash는 꺼짐·Low·High·Max를 사용합니다.</small></label>
+          {:else if (modelProfile.family === 'glm5.3' || modelProfile.family === 'deepseek-v4')}
+            <label>기본 reasoning effort<select bind:value={settings.model.reasoning_effort} aria-label="기본 reasoning effort">{#each modelProfile.reasoningLevels as level}<option value={level}>{reasoningEffortLabel(level)}</option>{/each}</select><small>{modelProfile.family === 'deepseek-v4' ? 'DeepSeek V4' : 'GLM-5.3 Flash'}는 꺼짐·Low·High·Max를 사용합니다.</small></label>
           {:else}
             <label>기본 reasoning effort<input bind:value={settings.model.reasoning_effort} list="settings-reasoning-levels" placeholder="직접 입력 또는 목록에서 선택" /></label>
             <datalist id="settings-reasoning-levels">{#each modelProfile.reasoningLevels as level}<option value={level}></option>{/each}</datalist>
@@ -239,6 +243,13 @@
       </div>
 
       <div id="settings-panel-features" class="settings-tab-panel" class:active={activeTab === 'features'} role="tabpanel" aria-labelledby="settings-tab-features">
+        <div class="settings-section-navigation" role="group" aria-label="기능 설정 분류">
+          <button type="button" aria-pressed={featureSection === 'web'} onclick={() => { featureSection = 'web'; }}>웹·미디어</button>
+          <button type="button" aria-pressed={featureSection === 'image'} onclick={() => { featureSection = 'image'; }}>이미지</button>
+          <button type="button" aria-pressed={featureSection === 'skills'} onclick={() => { featureSection = 'skills'; }}>Skill·기록</button>
+          <button type="button" aria-pressed={featureSection === 'ssh'} onclick={() => { featureSection = 'ssh'; }}>SSH·키</button>
+        </div>
+        <div class="settings-section" hidden={featureSection !== 'image'}>
         <fieldset>
           <legend>이미지 생성</legend>
           <label class="check"><input type="checkbox" bind:checked={settings.image.enabled} /> 대화형 이미지 생성·편집 도구 활성화</label>
@@ -250,53 +261,74 @@
           {#if serviceHealth?.image}<div class="media-usage"><span>이미지 API · {serviceHealth.image.status === 'ok' ? 'online' : serviceHealth.image.status}{serviceHealth.image.model ? ` · ${serviceHealth.image.model}` : ''}</span></div>{/if}
           <small>현재 엔진: FLUX.2 Klein 4B. 엔진 기동과 상태는 운영 패널에서 관리합니다.</small>
         </fieldset>
+        </div>
+        <div class="settings-section" hidden={featureSection !== 'web'}>
         <fieldset>
           <legend>웹·미디어 도구</legend>
           <label class="check"><input type="checkbox" bind:checked={settings.tools.enabled} /> web_search / web_fetch 활성화</label>
           <label class="check"><input type="checkbox" bind:checked={settings.tools.media_import_enabled} /> URL 미디어 자동 가져오기</label>
-          <label class="check"><input type="checkbox" bind:checked={settings.tools.skills_enabled} /> 필요한 작업 절차를 Skill로 불러오기</label>
+          <label class="check"><input type="checkbox" bind:checked={settings.extra.collector_enabled} /> 격리 브라우저 Collector 활성화</label>
           <label>최대 호출 라운드<input type="number" min="1" max="8" bind:value={settings.tools.max_rounds} /></label>
           <label>검색 결과 수<input type="number" min="1" max="10" bind:value={settings.tools.search_results} /></label>
           <label>도구 타임아웃<input bind:value={settings.tools.timeout} placeholder="15s" /></label>
         </fieldset>
-        <ToolDiscoverySettings enabled={settings.tools.skills_enabled} onnotify={notify} />
+        </div>
+        <div class="settings-section" hidden={featureSection !== 'skills'}>
+        <ToolDiscoverySettings bind:enabled={settings.tools.skills_enabled} onnotify={notify} />
+        </div>
+        <div class="settings-section" hidden={featureSection !== 'ssh'}>
         <fieldset>
-          <legend>SparkTalk Extra</legend>
+          <legend>SSH 도구·인증 키</legend>
           <label class="check"><input type="checkbox" bind:checked={settings.extra.ssh_enabled} /> 승인형 SSH 도구 활성화</label>
-          <label class="check"><input type="checkbox" bind:checked={settings.extra.collector_enabled} /> 격리 브라우저 Collector 활성화</label>
           {#if serviceHealth?.extra?.ssh}<div class="media-usage"><span>Extra SSH · {serviceHealth.extra.ssh.status === 'ok' ? 'online' : serviceHealth.extra.ssh.status}</span></div>{/if}
-          {#if !settings.extra.ssh_enabled}
+          {#if settings.runtime.key_store_hosts?.length || (settings.extra.ssh_enabled && serviceHealth?.extra?.ssh?.status === 'ok')}
+            <SSHSettings onnotify={notify} onkeystorechange={(state) => { settings.runtime.key_store_hosts = state.hosts; settings.runtime.key_store_peers = state.peers; settings = settings; }} />
+          {:else if !settings.extra.ssh_enabled}
             <small class="ssh-empty">SSH 도구가 꺼져 있습니다.</small>
-          {:else if serviceHealth?.extra?.ssh?.status === 'ok'}
-            <SSHSettings onnotify={notify} />
           {:else if serviceHealth}
             <small class="ssh-security-note">SparkTalk Extra가 오프라인입니다. 서비스를 기동하면 키와 서버 설정을 불러옵니다.</small>
           {:else}
             <small class="media-loading">SparkTalk Extra 연결을 확인하는 중…</small>
           {/if}
         </fieldset>
+        </div>
       </div>
 
       <div id="settings-panel-system" class="settings-tab-panel" class:active={activeTab === 'system'} role="tabpanel" aria-labelledby="settings-tab-system">
+        <div class="settings-section-navigation" role="group" aria-label="시스템 설정 분류">
+          <button type="button" aria-pressed={systemSection === 'connection'} onclick={() => { systemSection = 'connection'; }}>시작·연결</button>
+          <button type="button" aria-pressed={systemSection === 'sets'} onclick={() => { systemSection = 'sets'; }}>AI 세트</button>
+          <button type="button" aria-pressed={systemSection === 'downloads'} onclick={() => { systemSection = 'downloads'; }}>모델 준비</button>
+          <button type="button" aria-pressed={systemSection === 'storage'} onclick={() => { systemSection = 'storage'; }}>앱·저장소</button>
+        </div>
+        <div class="settings-section" hidden={systemSection !== 'connection'}>
         <fieldset>
           <legend>모델 연결</legend>
-          <label>실행 방식<select bind:value={settings.runtime.mode}><option value="managed">로컬 DGX Spark 관리형</option><option value="external">외부 OpenAI 호환 API</option></select></label>
+          <label>실행 방식<select bind:value={settings.runtime.mode}><option value="managed">세트 관리형 (로컬·원격)</option><option value="external">외부 OpenAI 호환 API</option></select></label>
           {#if externalMode}
             <label>모델 API 주소<input bind:value={settings.model.endpoint} placeholder="http://서버주소:8000" /><small><code>/v1</code>은 붙이지 않습니다.</small></label>
             <label>모델 ID<input bind:value={settings.model.default_model} /></label>
-            <label>모델 유형<select value={settings.model.model_type} onchange={selectExternalModelType}><option value="glm5.3">GLM-5.3 Flash</option><option value="qwen3.8">Qwen3.8</option><option value="gemma4">Gemma 4</option><option value="generic">일반 OpenAI 호환</option></select></label>
+            <label>모델 유형<select value={settings.model.model_type} onchange={selectExternalModelType}><option value="glm5.3">GLM-5.3 Flash</option><option value="qwen3.8">Qwen3.8</option><option value="gemma4">Gemma 4</option><option value="deepseek-v4">DeepSeek V4</option><option value="generic">일반 OpenAI 호환</option></select></label>
             <label>API 키<input type="password" bind:value={settingsAPIKey} autocomplete="new-password" placeholder={settings.api_key_set ? '저장된 키 유지' : '필요한 경우 입력'} /></label>
             {#if settings.api_key_set}<label class="check"><input type="checkbox" bind:checked={clearAPIKey} /> 저장된 API 키 삭제</label>{/if}
             <small>GLM-5.3 Flash를 선택하면 512K 문맥과 Max 리즈닝을 적용합니다. ASR·TTS·이미지 생성·Extra 등 부가 기능은 각 설정에서 개별 관리합니다.</small>
           {:else}
-            <label>기본 AI 세트<select bind:value={settings.runtime.bundle}>{#each runtime?.bundles || [] as bundle}<option value={bundle.id}>{bundle.name}</option>{/each}</select><small>실행 중 세트 전환은 우상단 운영 패널에서 진행합니다.</small></label>
+            <label>기본 AI 세트<select bind:value={settings.runtime.bundle}>{#each settings.runtime.catalog?.bundles || runtime?.bundles || [] as bundle}<option value={bundle.id}>{bundle.name}</option>{/each}</select><small>실행 중 세트 전환은 우상단 운영 패널에서 진행합니다.</small></label>
             <label class="check"><input type="checkbox" bind:checked={settings.runtime.auto_start} /> SparkTalk 시작 시 기본 세트 자동 기동</label>
+            <details class="system-advanced"><summary>메모리·모델 경로</summary>
             <label>최소 확보 메모리<input type="number" min="1" max="64" step="1" bind:value={settings.runtime.memory_reserve_gib} /><small>새 엔진을 올릴 때 남겨둘 통합메모리 GiB입니다.</small></label>
             <label>운영 데이터 폴더<input bind:value={settings.runtime.data_dir} /></label>
             <label>모델 캐시 폴더<input bind:value={settings.runtime.model_cache} /></label>
-            <div class="media-usage"><span>Docker · {runtime?.docker === 'online' ? 'online' : 'offline'}</span><span>시스템 가용 · {formatGiB(runtime?.memory?.available_gib)} GiB</span><span>즉시 여유 · {formatGiB(runtime?.memory?.free_gib)} GiB</span></div>
+            </details>
+            <div class="media-usage"><span>Docker · {runtime?.docker === 'online' ? '정상' : runtime?.docker === 'offline' ? '연결 실패' : '확인 중'}</span><span>시스템 가용 · {formatGiB(runtime?.memory?.available_gib)} GiB</span><span>즉시 여유 · {formatGiB(runtime?.memory?.free_gib)} GiB</span></div>
           {/if}
         </fieldset>
+        </div>
+        <div class="settings-section" hidden={systemSection !== 'sets'}>
+          <RuntimeSetEditor bind:catalog={settings.runtime.catalog} initialSelection={settings.runtime.bundle} />
+        </div>
+        <div class="settings-section" hidden={systemSection !== 'downloads'}><ModelDownloads catalog={settings.runtime.catalog} /></div>
+        <div class="settings-section" hidden={systemSection !== 'storage'}>
         <fieldset>
           <legend>앱 서버</legend>
           <label>Listen address<input bind:value={settings.server.listen_addr} placeholder="0.0.0.0:8585" /></label>
@@ -307,9 +339,21 @@
           {#if mediaUsage}<div class="media-usage"><span>전체 {mediaUsage.files}개 · {formatBytes(mediaUsage.bytes)}</span><span>미사용 {mediaUsage.unused_files}개 · {formatBytes(mediaUsage.unused_bytes)}</span></div><button class="media-cleanup" onclick={removeUnusedMedia} disabled={cleaningMedia || !mediaUsage.unused_files}>{cleaningMedia ? '정리 중…' : '미사용 미디어 정리'}</button>{:else}<span class="media-loading">보관 현황을 불러오는 중…</span>{/if}
           <small>현재 대화에 첨부됐거나 전송 대기 중인 이미지·음성·비디오는 유지합니다.</small>
         </fieldset>
-        <p class="settings-help">대화·음성·도구 설정은 즉시 반영됩니다. Listen address와 DB 파일 변경은 재시작 후 반영됩니다.</p>
+        </div>
+        <p class="settings-help">변경 사항은 아래 저장 버튼으로 적용합니다. 앱 서버 주소와 DB 변경은 재시작이 필요합니다.</p>
       </div>
     </div>
     <div class="modal-actions"><button class="secondary" onclick={onclose}>닫기</button><button class="primary" onclick={persistSettings}>저장</button></div>
   </div>
 </div>
+
+<style>
+  .settings-section-navigation { display: flex; gap: 4px; margin-bottom: 16px; padding: 4px; border: 1px solid #80808040; border-radius: 10px; }
+  .settings-section-navigation button { flex: 1; padding: 9px 6px; border: 0; border-radius: 7px; background: transparent; color: inherit; font: inherit; font-size: 13px; }
+  .settings-section-navigation button[aria-pressed=true] { background: #6584ed22; color: inherit; font-weight: 650; }
+  .settings-section-navigation button:focus-visible { outline: 2px solid #6584ed; }
+  .settings-section[hidden] { display: none; }
+  .system-advanced { border-top: 1px solid #80808040; padding-top: 10px; }
+  .system-advanced summary { cursor: pointer; font-size: 13px; }
+  .system-advanced label { margin-top: 12px; }
+</style>

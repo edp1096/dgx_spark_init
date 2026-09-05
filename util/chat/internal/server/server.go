@@ -24,6 +24,7 @@ import (
 
 type Server struct {
 	mu               sync.RWMutex
+	runtimeMu        sync.Mutex
 	cfg              config.Config
 	startup          config.ServerConfig
 	configPath       string
@@ -67,13 +68,18 @@ func New(cfg config.Config, configPath string, store *db.DB, client *llm.Client,
 	if err != nil {
 		return nil, fmt.Errorf("knowledge storage: %w", err)
 	}
-	runtimeController, err := orchestrator.NewController()
+	var runtimeController *orchestrator.Controller
+	if cfg.Runtime.Catalog != nil {
+		runtimeController, err = orchestrator.NewControllerWithCatalog(*cfg.Runtime.Catalog)
+	} else {
+		runtimeController, err = orchestrator.NewController()
+	}
 	if err != nil {
 		return nil, fmt.Errorf("runtime controller: %w", err)
 	}
 	runtimeController.ConfigurePaths(cfg.Runtime.DataDir, cfg.Runtime.ModelCache)
 	if cfg.Runtime.Mode == "managed" {
-		activeBundle := runtimeController.ActiveBundle(context.Background())
+		activeBundle := runtimeController.ActiveBundlePreferred(context.Background(), cfg.Runtime.ActiveBundle)
 		if cfg.Runtime.AutoStart {
 			activeBundle = cfg.Runtime.Bundle
 		} else if activeBundle == "" {
@@ -87,7 +93,12 @@ func New(cfg config.Config, configPath string, store *db.DB, client *llm.Client,
 	mux := http.NewServeMux()
 	mux.HandleFunc("/api/health", s.health)
 	mux.HandleFunc("/api/config", s.configuration)
+	mux.HandleFunc("/api/credentials/huggingface", s.huggingFaceToken)
+	mux.HandleFunc("/api/models/prepare", s.modelPreparation)
+	mux.HandleFunc("/api/ssh/key-store", s.sshKeyStore)
 	mux.HandleFunc("/api/runtime", s.runtimeStatus)
+	mux.HandleFunc("/api/runtime/catalog/parse", s.runtimeCatalogParse)
+	mux.HandleFunc("/api/runtime/probe", s.runtimeProbe)
 	mux.HandleFunc("/api/runtime/", s.runtimeAction)
 	mux.HandleFunc("/api/models", s.models)
 	mux.HandleFunc("/api/images", s.uploadImage)
@@ -139,7 +150,13 @@ func New(cfg config.Config, configPath string, store *db.DB, client *llm.Client,
 	return s, nil
 }
 
-func (s *Server) ListenAndServe() error { return s.server.ListenAndServe() }
+func (s *Server) ListenAndServe() error {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	s.server.RegisterOnShutdown(cancel)
+	go s.runKeySync(ctx)
+	return s.server.ListenAndServe()
+}
 
 func (s *Server) snapshot() (config.Config, *llm.Client) {
 	s.mu.RLock()

@@ -128,53 +128,221 @@
       "startup_timeout_seconds": 120,
       "compose_asset": "compose.extra-collector.yaml",
       "progress_kind": "service"
+    },
+    {
+      "id": "glm53",
+      "name": "GLM 5.3 Flash EXL3",
+      "role": "llm",
+      "host": "local",
+      "controller": "glm53-cluster",
+      "endpoint": "http://127.0.0.1:8000",
+      "health_url": "http://127.0.0.1:8000/health",
+      "container": "glm53-head",
+      "worker_host": "worker",
+      "worker_container": "glm53-worker",
+      "model": "glm-5.3-flash",
+      "memory_gib": 110,
+      "worker_memory_gib": 108,
+      "startup_timeout_seconds": 3600,
+      "progress_kind": "service"
+    },
+    {
+      "id": "ds4fve",
+      "name": "DeepSeek V4 Flash Vision Exp",
+      "role": "llm",
+      "host": "local",
+      "controller": "dspark-cluster",
+      "endpoint": "http://127.0.0.1:8888",
+      "port": 8888,
+      "health_url": "http://127.0.0.1:8888/health",
+      "container": "deepseek-v4-flash-vllm-dspark-1",
+      "worker_host": "worker",
+      "worker_container": "deepseek-v4-flash-vllm-dspark-1",
+      "model": "deepseek-v4-flash-vision-exp",
+      "memory_gib": 111,
+      "worker_memory_gib": 109,
+      "startup_timeout_seconds": 3600,
+      "progress_kind": "service"
     }
   ],
   "bundles": [
     {
       "id": "qwen27",
-      "name": "Qwen 27B 세트",
+      "name": "Qwen 27B",
       "description": "속도와 메모리 여유를 확보한 기본 세트",
       "model_type": "qwen3.8",
       "model_id": "Huihui-RadixArk-Qwen3.8-27B-abliterated-NVFP4",
       "context_tokens": 32768,
-      "components": ["qwen27", "flux2", "nemotron-asr", "magpie-tts", "extra-media", "extra-ssh", "extra-collector"]
+      "components": [
+        "qwen27",
+        "flux2",
+        "nemotron-asr",
+        "magpie-tts",
+        "extra-media",
+        "extra-ssh",
+        "extra-collector"
+      ]
     },
     {
       "id": "qwen27-exl3",
-      "name": "Qwen 27B EXL3 세트",
+      "name": "Qwen 27B EXL3",
       "description": "262K 문맥과 약 24GiB 상주량의 EXL3 세트",
       "model_type": "qwen3.8-exl3",
       "model_id": "Qwen3.8-27B-Uncensored-EXL3-4bpw",
       "context_tokens": 262144,
-      "components": ["qwen27-exl3", "flux2", "nemotron-asr", "magpie-tts", "extra-media", "extra-ssh", "extra-collector"]
+      "components": [
+        "qwen27-exl3",
+        "flux2",
+        "nemotron-asr",
+        "magpie-tts",
+        "extra-media",
+        "extra-ssh",
+        "extra-collector"
+      ]
     },
     {
       "id": "flash-next",
-      "name": "Flash-Next 세트",
+      "name": "Flash-Next",
       "description": "64K 문맥과 Flash-Next를 사용하는 고성능 세트",
       "model_type": "qwen3.8",
       "model_id": "qwen3.8-flash-next",
       "context_tokens": 65536,
-      "components": ["flash-next", "flux2", "nemotron-asr", "magpie-tts", "extra-media", "extra-ssh", "extra-collector"]
+      "components": [
+        "flash-next",
+        "flux2",
+        "nemotron-asr",
+        "magpie-tts",
+        "extra-media",
+        "extra-ssh",
+        "extra-collector"
+      ]
     },
     {
       "id": "flash-next-exl3",
-      "name": "Flash-Next EXL3 세트",
+      "name": "Flash-Next EXL3",
       "description": "262K 문맥과 runtime ablation을 사용하는 4.05bpw 실험 세트",
       "model_type": "qwen3.8",
       "model_id": "Qwen3.8-Flash-Next-Abliterated-EXL3-4.05bpw",
       "context_tokens": 262144,
-      "components": ["flash-next-exl3", "flux2", "nemotron-asr", "magpie-tts", "extra-media", "extra-ssh", "extra-collector"]
+      "components": [
+        "flash-next-exl3",
+        "flux2",
+        "nemotron-asr",
+        "magpie-tts",
+        "extra-media",
+        "extra-ssh",
+        "extra-collector"
+      ]
     },
     {
       "id": "gemma",
-      "name": "Gemma 세트",
+      "name": "Gemma",
       "description": "Gemma 4 31B 기반 대화 세트",
       "model_type": "gemma4",
       "model_id": "Huihui-gemma-4-31B-it-abliterated-v2-NVFP4",
       "context_tokens": 65536,
-      "components": ["gemma31", "flux2", "nemotron-asr", "magpie-tts", "extra-media", "extra-ssh", "extra-collector"]
+      "components": [
+        "gemma31",
+        "flux2",
+        "nemotron-asr",
+        "magpie-tts",
+        "extra-media",
+        "extra-ssh",
+        "extra-collector"
+      ]
+    },
+    {
+      "id": "glm53-worker-extra",
+      "name": "GLM 5.3 Flash EXL3",
+      "description": "2× DGX Spark EXL3·DFlash2 + 워커 Extra 3종. 메모리 예상치는 실측 후 조정하세요.",
+      "model_type": "glm5.3",
+      "model_id": "glm-5.3-flash",
+      "context_tokens": 524288,
+      "components": [
+        "glm53",
+        "extra-media",
+        "extra-ssh",
+        "extra-collector"
+      ],
+      "bindings": {
+        "extra-media": {
+          "host": "worker",
+          "endpoint": "http://192.168.100.60:8690",
+          "health_url": "http://192.168.100.60:8690/health",
+          "bind_address": "192.168.100.60",
+          "port": 8690
+        },
+        "extra-ssh": {
+          "host": "worker",
+          "endpoint": "http://192.168.100.60:8699",
+          "health_url": "http://192.168.100.60:8699/health",
+          "bind_address": "192.168.100.60",
+          "port": 8699
+        },
+        "extra-collector": {
+          "host": "worker",
+          "endpoint": "http://192.168.100.60:8695",
+          "health_url": "http://192.168.100.60:8695/health",
+          "bind_address": "192.168.100.60",
+          "port": 8695
+        }
+      }
+    },
+    {
+      "id": "ds4fve",
+      "name": "DeepSeek V4 Flash Vision Exp",
+      "description": "2× DGX Spark · 공식 Vision Exp · DSpark TP2 + 워커 Extra 3종·Nemotron ASR.",
+      "model_type": "deepseek-v4",
+      "model_id": "deepseek-v4-flash-vision-exp",
+      "context_tokens": 1048576,
+      "components": [
+        "ds4fve",
+        "extra-media",
+        "extra-ssh",
+        "extra-collector",
+        "nemotron-asr"
+      ],
+      "bindings": {
+        "extra-media": {
+          "host": "worker",
+          "endpoint": "http://192.168.100.60:8690",
+          "health_url": "http://192.168.100.60:8690/health",
+          "bind_address": "192.168.100.60",
+          "port": 8690
+        },
+        "extra-ssh": {
+          "host": "worker",
+          "endpoint": "http://192.168.100.60:8699",
+          "health_url": "http://192.168.100.60:8699/health",
+          "bind_address": "192.168.100.60",
+          "port": 8699
+        },
+        "extra-collector": {
+          "host": "worker",
+          "endpoint": "http://192.168.100.60:8695",
+          "health_url": "http://192.168.100.60:8695/health",
+          "bind_address": "192.168.100.60",
+          "port": 8695
+        },
+        "nemotron-asr": {
+          "host": "worker",
+          "endpoint": "http://192.168.100.60:8693",
+          "health_url": "http://192.168.100.60:8693/ready",
+          "bind_address": "192.168.100.60",
+          "port": 8693
+        }
+      }
     }
-  ]
+  ],
+  "hosts": {
+    "local": {},
+    "worker": {
+      "address": "192.168.100.60",
+      "user": "edp1096",
+      "port": 22,
+      "data_dir": "/home/edp1096/.local/share/sparktalk",
+      "model_cache": "/home/edp1096/.cache/huggingface",
+      "memory_reserve_gib": 2
+    }
+  }
 }

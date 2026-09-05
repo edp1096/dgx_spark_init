@@ -136,28 +136,11 @@ func (a *api) trust(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	line := knownhosts.Line([]string{knownhosts.Normalize(address)}, observed)
-	a.knownHostsMu.Lock()
-	defer a.knownHostsMu.Unlock()
-	data, _ := os.ReadFile(a.cfg.KnownHostsPath)
-	if strings.Contains(string(data), line) {
-		writeJSON(w, http.StatusOK, map[string]any{"status": "already_trusted", "fingerprint": ssh.FingerprintSHA256(observed)})
+	if err := a.withStore(func(s *keyStore) error { return s.trust(line) }); err != nil {
+		writeError(w, http.StatusConflict, err.Error(), nil)
 		return
 	}
-	file, err := os.OpenFile(a.cfg.KnownHostsPath, os.O_APPEND|os.O_WRONLY, 0o600)
-	if err != nil {
-		writeError(w, http.StatusInternalServerError, err.Error(), nil)
-		return
-	}
-	_, writeErr := io.WriteString(file, line+"\n")
-	closeErr := file.Close()
-	if writeErr != nil {
-		writeError(w, http.StatusInternalServerError, writeErr.Error(), nil)
-		return
-	}
-	if closeErr != nil {
-		writeError(w, http.StatusInternalServerError, closeErr.Error(), nil)
-		return
-	}
+
 	writeJSON(w, http.StatusOK, map[string]any{"status": "trusted", "fingerprint": ssh.FingerprintSHA256(observed)})
 }
 
@@ -309,26 +292,38 @@ func (a *api) dial(ctx context.Context, req targetRequest) (*ssh.Client, error) 
 	if !keyIDPattern.MatchString(req.KeyID) {
 		return nil, errors.New("invalid SSH key id")
 	}
-	keyPath := filepath.Join(a.cfg.KeyDir, req.KeyID)
-	info, err := os.Stat(keyPath)
-	if err != nil || info.IsDir() {
-		return nil, fmt.Errorf("SSH key %q is unavailable", req.KeyID)
-	}
-	if info.Mode().Perm()&0o077 != 0 {
-		return nil, fmt.Errorf("SSH key %q permissions must not allow group or other access", req.KeyID)
-	}
-	keyData, err := os.ReadFile(keyPath)
+	var signer ssh.Signer
+	var knownCallback ssh.HostKeyCallback
+	err = a.withStore(func(s *keyStore) error {
+		key, ok := s.m.Keys[req.KeyID]
+		if !ok {
+			return fmt.Errorf("SSH key %q is unavailable", req.KeyID)
+		}
+		data, err := os.ReadFile(s.objectPath(key.Hash))
+		if err != nil {
+			return err
+		}
+		if hashBytes(data) != key.Hash {
+			return errors.New("key hash mismatch")
+		}
+		signer, err = ssh.ParsePrivateKey(data)
+		if err != nil {
+			return err
+		}
+		trustPath := s.objectPath(s.m.KnownHosts)
+		if s.m.KnownHosts == "" {
+			trustPath = filepath.Join(a.cfg.KeyDir, ".empty-known-hosts")
+			if err = atomicPrivate(trustPath, nil); err != nil {
+				return err
+			}
+		}
+		knownCallback, err = knownhosts.New(trustPath)
+		return err
+	})
 	if err != nil {
-		return nil, fmt.Errorf("read SSH key: %w", err)
+		return nil, err
 	}
-	signer, err := ssh.ParsePrivateKey(keyData)
-	if err != nil {
-		return nil, fmt.Errorf("parse SSH key: %w", err)
-	}
-	knownCallback, err := knownhosts.New(a.cfg.KnownHostsPath)
-	if err != nil {
-		return nil, fmt.Errorf("load known_hosts: %w", err)
-	}
+
 	var observed ssh.PublicKey
 	var hostKeyCallbackErr error
 	callback := func(hostname string, remote net.Addr, key ssh.PublicKey) error {

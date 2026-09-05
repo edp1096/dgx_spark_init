@@ -9,6 +9,7 @@ if [[ -f "$env_file" ]]; then
   # shellcheck disable=SC1091
   . "$env_file"
   set +a
+if [[ ${RUNTIME_HF_TOKEN+x} ]]; then export HF_TOKEN="$RUNTIME_HF_TOKEN"; fi
 fi
 
 model_dir="${MODEL_HOST_PATH:-/home/edp1096/.cache/huggingface/exl3-qwen38-fn-4.05bpw}"

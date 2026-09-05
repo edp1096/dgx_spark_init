@@ -52,3 +52,8 @@ test('Qwen 3.8 accepts only its four supported effort values', () => {
   assert.equal(reasoningEffortLabel('none'), '꺼짐');
   assert.equal(reasoningEffortLabel('medium'), 'Medium');
 });
+
+test('DeepSeek V4 exposes its supported thinking levels', () => {
+  assert.deepEqual(modelCapabilities('deepseek-v4'), {family: 'deepseek-v4', reasoning: 'effort', reasoningLevels: ['off', 'low', 'high', 'max']});
+  assert.equal(normalizeReasoningEffort('deepseek-v4', 'none'), 'off');
+});

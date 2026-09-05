@@ -1,8 +1,10 @@
 <script>
   import { onMount } from 'svelte';
+ import KeyStoreSettings from './KeyStoreSettings.svelte';
   import { createSSHHost, deleteSSHHost, deleteSSHKey, generateSSHKey, importSSHKey, listSSHHosts, listSSHKeys, testSSHHost, trustSSHHost, updateSSHHost } from '../../api.js';
 
   export let onnotify = () => {};
+  export let onkeystorechange = () => {};
 
   let hosts = [];
   let keys = [];
@@ -10,6 +12,7 @@
   let busy = '';
   let keyBusy = '';
   let newKeyID = '';
+  let replacingKey = false;
   let keyFile = null;
   let keyFileInput;
   let observedKeys = {};
@@ -38,11 +41,11 @@
     keyBusy = 'generate';
     try {
       const key = await generateSSHKey(keyID);
-      keys = [...keys, key].sort((a, b) => a.id.localeCompare(b.id));
+      keys = [...keys.filter(item => item.id !== key.id), key].sort((a, b) => a.id.localeCompare(b.id));
       newKeyID = '';
       onnotify(`${key.id}: Ed25519 키를 생성했습니다. 공개키를 대상 서버에 등록하세요.`);
     } catch (error) { onnotify(error.message, 'error'); }
-    finally { keyBusy = ''; }
+    finally { keyBusy = ''; replacingKey = false; }
   }
 
   async function importKey() {
@@ -50,14 +53,14 @@
     if (!keyID || !keyFile || !privateKeyUploadAllowed) return;
     keyBusy = 'import';
     try {
-      const key = await importSSHKey(keyID, keyFile);
-      keys = [...keys, key].sort((a, b) => a.id.localeCompare(b.id));
+      const key = await importSSHKey(keyID, keyFile, replacingKey);
+      keys = [...keys.filter(item => item.id !== key.id), key].sort((a, b) => a.id.localeCompare(b.id));
       newKeyID = '';
       keyFile = null;
       if (keyFileInput) keyFileInput.value = '';
-      onnotify(`${key.id}: 개인키를 안전한 외부 키 폴더로 가져왔습니다.`);
+      onnotify(`${key.id}: 키를 저장했습니다. 대상 서버의 공개키 등록도 확인하세요.`);
     } catch (error) { onnotify(error.message, 'error'); }
-    finally { keyBusy = ''; }
+    finally { keyBusy = ''; replacingKey = false; }
   }
 
   async function removeKey(key) {
@@ -68,7 +71,7 @@
       keys = keys.filter((item) => item.id !== key.id);
       onnotify(`${key.id}: 개인키를 삭제했습니다.`);
     } catch (error) { onnotify(error.message, 'error'); }
-    finally { keyBusy = ''; }
+    finally { keyBusy = ''; replacingKey = false; }
   }
 
   async function copyPublicKey(key) {
@@ -157,19 +160,21 @@
 
 <div class="ssh-settings">
   <div class="ssh-settings-head"><span>인증 키</span><small>개인키는 DB가 아닌 Extra 외부 폴더에 저장</small></div>
+  <KeyStoreSettings {onnotify} onchange={(state) => { onkeystorechange(state); return loadKeys(); }} />
   <div class="ssh-key-create">
-    <label>새 키 ID<input bind:value={newKeyID} placeholder="dgx-main" /></label>
-    <button type="button" onclick={generateKey} disabled={keyBusy || !newKeyID.trim()}>Ed25519 생성</button>
+    <label>새 키 ID<input bind:value={newKeyID} oninput={() => replacingKey = false} placeholder="dgx-main" /></label>
+    <button type="button" onclick={generateKey} disabled={keyBusy || !newKeyID.trim() || replacingKey}>Ed25519 생성</button>
     <label class:disabled={!privateKeyUploadAllowed}>기존 개인키<input bind:this={keyFileInput} type="file" onchange={(event) => keyFile = event.currentTarget.files?.[0] || null} disabled={!privateKeyUploadAllowed || keyBusy} /></label>
-    <button type="button" onclick={importKey} disabled={keyBusy || !newKeyID.trim() || !keyFile || !privateKeyUploadAllowed}>가져오기</button>
+    <button type="button" onclick={importKey} disabled={keyBusy || !newKeyID.trim() || !keyFile || !privateKeyUploadAllowed}>{replacingKey ? '같은 ID로 키 교체' : '가져오기'}</button>
   </div>
   {#if !privateKeyUploadAllowed}<small class="ssh-security-note">현재 HTTP 원격 접속에서는 개인키 업로드를 차단합니다. Extra 내부에서 생성하는 ‘Ed25519 생성’을 사용하세요.</small>{/if}
+  {#if replacingKey}<small>선택한 ID의 개인키를 교체합니다. 대상 서버에도 새 공개키를 등록해야 합니다.</small>{/if}
   {#if keys.length}
     <div class="ssh-key-list">
       {#each keys as key}
         <div class="ssh-key-row">
           <div><strong>{key.id}</strong><span>{key.type} · {key.fingerprint}</span><code>{key.public_key}</code></div>
-          <div><button type="button" onclick={() => copyPublicKey(key)}>공개키 복사</button><button type="button" class="danger" onclick={() => removeKey(key)} disabled={keyBusy}>삭제</button></div>
+          <div><button type="button" onclick={() => copyPublicKey(key)}>공개키 복사</button><button type="button" disabled={keyBusy || !privateKeyUploadAllowed} onclick={() => { newKeyID = key.id; replacingKey = true; keyFileInput?.click(); }}>키 교체</button><button type="button" class="danger" onclick={() => removeKey(key)} disabled={keyBusy}>삭제</button></div>
         </div>
       {/each}
     </div>

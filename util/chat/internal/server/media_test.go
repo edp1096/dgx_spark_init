@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"image"
+	"image/jpeg"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
@@ -250,4 +252,34 @@ func testFileHeader(t *testing.T, name, mimeType string, data []byte) *multipart
 	}
 	_ = file.Close()
 	return fileHeader
+}
+
+func TestDeepSeekVideoUsesFrameImageAndDisclosesMissingAudio(t *testing.T) {
+	store, err := media.New(t.TempDir() + "/chat.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	video, err := store.SaveAttachment(testFileHeader(t, "clip.mp4", "video/mp4", append([]byte{0, 0, 0, 12}, []byte("ftypisomvideo")...)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	frames := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/v1/video/frames" || r.Method != "POST" {
+			t.Errorf("wrong request %s %s", r.Method, r.URL.Path)
+		}
+		w.Header().Set("X-Video-Duration", "8.000")
+		_ = jpeg.Encode(w, image.NewRGBA(image.Rect(0, 0, 16, 8)), nil)
+	}))
+	defer frames.Close()
+	cfg := config.Config{Model: config.ModelConfig{ModelType: "deepseek-v4"}, ASR: config.ASRConfig{FFmpegEndpoint: frames.URL}}
+	s := &Server{media: store}
+	messages, err := s.llmMessages(context.Background(), []db.Message{{Role: "user", Content: "영상 요약", Attachments: []db.Attachment{video}}}, cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	data, _ := json.Marshal(messages)
+	text := string(data)
+	if strings.Contains(text, "video_url") || !strings.Contains(text, "data:image/jpeg;base64,") || !strings.Contains(text, "Audio transcription is disabled") {
+		t.Fatalf("incorrect DeepSeek payload: %s", text)
+	}
 }

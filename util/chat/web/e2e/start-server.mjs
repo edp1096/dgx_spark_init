@@ -15,6 +15,7 @@ await new Promise((resolveBuild, rejectBuild) => {
 
 await writeFile(join(workDir, 'sparktalk.yaml'), `version: 2
 runtime:
+  data_dir: ${join(workDir, 'runtime-data')}
   mode: external
   bundle: flash-next
   auto_start: false

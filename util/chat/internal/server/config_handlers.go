@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"reflect"
 	"time"
 
 	"sparktalk/internal/asr"
@@ -13,6 +14,7 @@ import (
 	"sparktalk/internal/imagegen"
 	"sparktalk/internal/knowledge"
 	"sparktalk/internal/llm"
+	"sparktalk/internal/orchestrator"
 	"sparktalk/internal/tts"
 )
 
@@ -80,6 +82,8 @@ func (s *Server) configuration(w http.ResponseWriter, r *http.Request) {
 		cfg, _ := s.snapshot()
 		writeJSON(w, http.StatusOK, cfg.Public())
 	case http.MethodPut:
+		s.runtimeMu.Lock()
+		defer s.runtimeMu.Unlock()
 		var req struct {
 			Version     int                     `json:"version"`
 			Server      config.ServerConfig     `json:"server"`
@@ -109,16 +113,49 @@ func (s *Server) configuration(w http.ResponseWriter, r *http.Request) {
 		} else {
 			next.Model.APIKey = old.Model.APIKey
 		}
-		activeBundle := s.runtime.ActiveBundle(r.Context())
+		activeBundle := s.runtime.ActiveBundlePreferred(r.Context(), old.Runtime.ActiveBundle)
 		if activeBundle == "" {
 			activeBundle = old.Runtime.ActiveBundle
+		}
+		if next.Runtime.Catalog != nil {
+			exists := false
+			for _, bundle := range next.Runtime.Catalog.Bundles {
+				if bundle.ID == activeBundle {
+					exists = true
+				}
+			}
+			if !exists {
+				activeBundle = ""
+			}
 		}
 		if activeBundle == "" {
 			activeBundle = next.Runtime.Bundle
 		}
 		next.Runtime.ActiveBundle = activeBundle
 		next.Normalize()
-		if err := config.Save(s.configPath, next); err != nil {
+		if !reflect.DeepEqual(old.Runtime.KeyStoreHosts, next.Runtime.KeyStoreHosts) || !reflect.DeepEqual(old.Runtime.KeyStorePeers, next.Runtime.KeyStorePeers) {
+			http.Error(w, "키 동기화 호스트는 인증 키 관리에서 변경하세요", http.StatusConflict)
+			return
+		}
+		if next.Runtime.Catalog != nil {
+			if err := orchestrator.ValidateKeyStoreHosts(*next.Runtime.Catalog, next.Runtime.KeyStoreHosts); err != nil {
+				http.Error(w, err.Error(), 400)
+				return
+			}
+		}
+
+		if err := next.Validate(); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		save := func() error { return config.Save(s.configPath, next) }
+		var saveErr error
+		if next.Runtime.Catalog != nil && !reflect.DeepEqual(old.Runtime.Catalog, next.Runtime.Catalog) {
+			saveErr = s.runtime.UpdateCatalog(*next.Runtime.Catalog, save)
+		} else {
+			saveErr = save()
+		}
+		if err := saveErr; err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}

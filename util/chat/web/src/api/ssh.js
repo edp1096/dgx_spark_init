@@ -6,10 +6,11 @@ export const updateSSHHost = (id, host) => request(`/api/ssh/hosts/${id}`, { met
 export const deleteSSHHost = (id) => request(`/api/ssh/hosts/${id}`, { method: 'DELETE' });
 export const listSSHKeys = () => request('/api/ssh/keys');
 export const generateSSHKey = (keyId) => request('/api/ssh/keys/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key_id: keyId }) });
-export const importSSHKey = (keyId, file) => {
+export const importSSHKey = (keyId, file, replace = false) => {
   const body = new FormData();
   body.append('key_id', keyId);
   body.append('key', file);
+  if (replace) body.append('replace', 'true');
   return request('/api/ssh/keys', { method: 'POST', body });
 };
 export const deleteSSHKey = (keyId) => request(`/api/ssh/keys/${encodeURIComponent(keyId)}`, { method: 'DELETE' });
@@ -29,3 +30,6 @@ export async function testSSHHost(id) {
   }
   return details || {};
 }
+
+export const getKeyStore = () => request('/api/ssh/key-store');
+export const keyStoreAction = (body) => request('/api/ssh/key-store', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });

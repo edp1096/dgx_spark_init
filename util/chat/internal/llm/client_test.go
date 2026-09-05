@@ -142,3 +142,54 @@ func TestStreamAssemblesToolCallDeltas(t *testing.T) {
 		t.Fatalf("unexpected tool calls: %+v", result.ToolCalls)
 	}
 }
+
+func TestDeepSeekV4ThinkingTemplateContract(t *testing.T) {
+	for _, effort := range []string{"off", "low", "high", "max"} {
+		p := map[string]any{}
+		applyReasoningOptions(p, "deepseek-v4", effort)
+		kw := p["chat_template_kwargs"].(map[string]any)
+		if kw["thinking"] != (effort != "off") {
+			t.Fatalf("%s: %#v", effort, p)
+		}
+		if _, exists := kw["enable_thinking"]; exists {
+			t.Fatal("GLM option leaked into DeepSeek")
+		}
+		if effort != "off" && kw["reasoning_effort"] != effort {
+			t.Fatalf("%s: %#v", effort, p)
+		}
+		if effort == "off" && kw["reasoning_effort"] != nil {
+			t.Fatal("off sends effort")
+		}
+	}
+}
+
+func TestToolReasoningIsOnlySentToDeepSeek(t *testing.T) {
+	for _, modelType := range []string{"deepseek-v4", "glm5.3", "generic"} {
+		t.Run(modelType, func(t *testing.T) {
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				var payload struct {
+					Messages []map[string]any `json:"messages"`
+				}
+				if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+					t.Error(err)
+				}
+				_, present := payload.Messages[0]["reasoning_content"]
+				if present != (modelType == "deepseek-v4") {
+					t.Errorf("unexpected reasoning field for %s", modelType)
+				}
+				w.Header().Set("Content-Type", "text/event-stream")
+				fmt.Fprintln(w, `data: {"choices":[{"delta":{"content":"ok"}}]}`)
+				fmt.Fprintln(w, "data: [DONE]")
+			}))
+			defer server.Close()
+			messages := []Message{{Role: "assistant", ReasoningContent: "lookup reasoning"}}
+			_, err := New(server.URL, "model", "", modelType).Stream(context.Background(), messages, "model", "low", nil, func(string, string) error { return nil })
+			if err != nil {
+				t.Fatal(err)
+			}
+			if messages[0].ReasoningContent != "lookup reasoning" {
+				t.Fatal("caller transcript mutated")
+			}
+		})
+	}
+}

@@ -1,0 +1,11 @@
+services:
+  glm53:
+    container_name: glm53-worker
+    environment:
+      NODE_RANK: "1"
+      VLLM_HOST_IP: ${WORKER_RAIL_IP:?set WORKER_RAIL_IP in .env}
+      NCCL_SOCKET_IFNAME: ${WORKER_NCCL_IF:?set WORKER_NCCL_IF in .env}
+      GLOO_SOCKET_IFNAME: ${WORKER_NCCL_IF:?set WORKER_NCCL_IF in .env}
+      TP_SOCKET_IFNAME: ${WORKER_NCCL_IF:?set WORKER_NCCL_IF in .env}
+      MN_IF_NAME: ${WORKER_NCCL_IF:?set WORKER_NCCL_IF in .env}
+      NCCL_IB_HCA: ${WORKER_NCCL_HCA:?set WORKER_NCCL_HCA in .env}
