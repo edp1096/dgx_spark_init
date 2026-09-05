@@ -17,7 +17,7 @@
 set -euo pipefail
 
 MODEL="${MODEL:-dealignai/Qwen3.8-Flash-Next-ABLITERATED-NVFP4}"
-IMAGE="${IMAGE:-dgx-vllm-qwen38fn:sm121}"
+IMAGE="${IMAGE:-dgx-vllm-qwen38-fn:sm121}"
 HF_CACHE="${HF_CACHE:-$HOME/.cache/huggingface}"
 
 REPO_DIR="$HF_CACHE/hub/models--${MODEL//\//--}"

@@ -5,7 +5,7 @@
 #   scripts/serve.sh                          # NVFP4 checkpoint as published, 262k ctx
 #   MODE=hybrid scripts/serve.sh              # NVFP4 experts + fp8 side layers (scripts/prepare-hybrid.sh first)
 #   YARN=1 CTX=500000 scripts/serve.sh        # 500k context via YaRN (validated)
-#   docker logs -f vllm-qwen38fn     # wait for "Application startup complete"
+#   docker logs -f vllm-qwen38-fn     # wait for "Application startup complete"
 #
 # Tunables (env):
 #   MODE=nvfp4        nvfp4 = the checkpoint as published (side layers bf16)
@@ -27,12 +27,12 @@
 #   PREWARM=0         1 = stream the 48 GiB table once at boot to warm the page cache
 #   WORKERS=32        threads for the mmap gather
 #   EXTRA=            extra vllm flags passed verbatim
-#   IMAGE=dgx-vllm-qwen38fn:sm121
+#   IMAGE=dgx-vllm-qwen38-fn:sm121
 #   MODEL=dealignai/Qwen3.8-Flash-Next-ABLITERATED-NVFP4
 set -euo pipefail
 
-NAME="${NAME:-vllm-qwen38fn}"
-IMAGE="${IMAGE:-dgx-vllm-qwen38fn:sm121}"
+NAME="${NAME:-vllm-qwen38-fn}"
+IMAGE="${IMAGE:-dgx-vllm-qwen38-fn:sm121}"
 MODEL="${MODEL:-dealignai/Qwen3.8-Flash-Next-ABLITERATED-NVFP4}"
 HF_CACHE="${HF_CACHE:-$HOME/.cache/huggingface}"
 MODE="${MODE:-nvfp4}"

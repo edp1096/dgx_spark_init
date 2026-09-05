@@ -58,4 +58,4 @@ docker compose down
 ```
 
 Qwen3.8 Flash-Next의 vLLM 런타임과 GB10 전용 이미지 재구축 자료는
-`../vllm_qwen38fn`에 완전히 분리되어 있다.
+`../vllm_qwen38_fn`에 완전히 분리되어 있다.

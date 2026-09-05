@@ -12,7 +12,7 @@
 #   6. NVFP4 experts + fp8 side-layers "hybrid" mode   (VLLM_FP8_HYBRID=1)
 #   7. fp8_e4m3 KV cache on the QSA path              (--kv-cache-dtype fp8_e4m3)
 #
-#   docker build -t dgx-vllm-qwen38fn:sm121 .
+#   docker build -t dgx-vllm-qwen38-fn:sm121 .
 #
 # The base image is multi-arch (arm64 for the Spark's Grace CPU). Pinned by digest
 # for reproducibility; bump the tag below if the upstream recipe moves.

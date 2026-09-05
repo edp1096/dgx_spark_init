@@ -6,7 +6,7 @@
 수정하거나 재양자화하지 않는다.
 
 ```sh
-cd /home/edp1096/workspace/dgx_spark_init/compose_yaml/exl3_qwen38fn
+cd /home/edp1096/workspace/dgx_spark_init/compose_yaml/exl3_qwen38_fn
 ./manage.sh setup
 ./manage.sh start
 ```

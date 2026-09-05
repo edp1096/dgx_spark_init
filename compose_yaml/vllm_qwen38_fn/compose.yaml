@@ -4,8 +4,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: dgx-vllm-qwen38fn:sm121
-    container_name: vllm-qwen38fn
+    image: dgx-vllm-qwen38-fn:sm121
+    container_name: vllm-qwen38-fn
     restart: unless-stopped
     ipc: host
     shm_size: "16gb"

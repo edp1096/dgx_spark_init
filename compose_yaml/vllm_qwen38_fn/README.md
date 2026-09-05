@@ -34,15 +34,15 @@ Dockerfile의 vLLM 기반 이미지도 digest로 고정되어 있다. 원본 저
 ## 이미지 빌드
 
 ```sh
-cd /home/edp1096/workspace/dgx_spark_init/compose_yaml/vllm_qwen38fn
+cd /home/edp1096/workspace/dgx_spark_init/compose_yaml/vllm_qwen38_fn
 docker compose build
 ```
 
 생성 이미지와 기본 컨테이너 이름은 다음과 같다.
 
 ```text
-image:     dgx-vllm-qwen38fn:sm121
-container: vllm-qwen38fn
+image:     dgx-vllm-qwen38-fn:sm121
+container: vllm-qwen38-fn
 ```
 
 ## 모델 다운로드

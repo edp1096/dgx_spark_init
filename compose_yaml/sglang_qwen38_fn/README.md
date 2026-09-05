@@ -25,7 +25,7 @@ SGLang으로 실행한다. SparkTalk의 Flash-Next 세트가 사용하는 정식
 ## 빌드
 
 ```sh
-cd /home/edp1096/workspace/dgx_spark_init/compose_yaml/sglang_qwen38fn
+cd /home/edp1096/workspace/dgx_spark_init/compose_yaml/sglang_qwen38_fn
 docker compose build
 ```
 

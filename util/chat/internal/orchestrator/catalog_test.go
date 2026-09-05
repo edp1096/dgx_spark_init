@@ -46,9 +46,9 @@ func TestFlashNextEXL3RuntimeProfileStaysInSync(t *testing.T) {
 	}
 	compose := string(data)
 	for _, required := range []string{
-		"dgx-exl3-qwen38fn:1.4.6-ablit1",
+		"dgx-exl3-qwen38-fn:1.4.6-ablit1",
 		"Qwen3.8-Flash-Next-Abliterated-EXL3-4.05bpw",
-		"exl3-qwen38fn-4.05bpw",
+		"exl3-qwen38-fn-4.05bpw",
 		"direction.safetensors",
 		"--cache_size\n      - \"262144\"",
 	} {
@@ -67,7 +67,7 @@ func TestFlashNextRuntimeProfileUsesShortLocalName(t *testing.T) {
 		t.Fatal(err)
 	}
 	component, ok := catalog.Component("flash-next")
-	if !ok || component.Container != "sglang-qwen38fn" {
+	if !ok || component.Container != "sglang-qwen38-fn" {
 		t.Fatalf("unexpected Flash-Next component: %+v", component)
 	}
 	data, err := composeAsset(component.ComposeAsset)
@@ -75,7 +75,7 @@ func TestFlashNextRuntimeProfileUsesShortLocalName(t *testing.T) {
 		t.Fatal(err)
 	}
 	compose := string(data)
-	for _, required := range []string{"dgx-sglang-qwen38fn:sm121", "container_name: sglang-qwen38fn"} {
+	for _, required := range []string{"dgx-sglang-qwen38-fn:sm121", "container_name: sglang-qwen38-fn"} {
 		if !strings.Contains(compose, required) {
 			t.Fatalf("Flash-Next compose is missing %q", required)
 		}

@@ -8,7 +8,7 @@
 set -euo pipefail
 
 MODEL="${MODEL:-dealignai/Qwen3.8-Flash-Next-ABLITERATED-NVFP4}"
-IMAGE="${IMAGE:-dgx-vllm-qwen38fn:sm121}" # or the upstream image; only needs `hf`
+IMAGE="${IMAGE:-dgx-vllm-qwen38-fn:sm121}" # or the upstream image; only needs `hf`
 HF_CACHE="${HF_CACHE:-$HOME/.cache/huggingface}"
 mkdir -p "$HF_CACHE"
 

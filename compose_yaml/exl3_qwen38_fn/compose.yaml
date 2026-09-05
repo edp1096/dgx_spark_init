@@ -8,8 +8,8 @@ services:
         EXLLAMAV3_COMMIT: 499890c75d20d8e7c9d061f37189ae611a5c9f0b
         SERVER_COMMIT: 63b32f001d7b2cfed3b3e3aaf25f534ba53cc7ed
         ARM_PORT_COMMIT: 63b32f001d7b2cfed3b3e3aaf25f534ba53cc7ed
-    image: dgx-exl3-qwen38fn:1.4.6-ablit1
-    container_name: exl3-qwen38fn
+    image: dgx-exl3-qwen38-fn:1.4.6-ablit1
+    container_name: exl3-qwen38-fn
     ipc: host
     shm_size: "16gb"
     mem_limit: "112g"
@@ -25,9 +25,9 @@ services:
       PYTORCH_CUDA_ALLOC_CONF: expandable_segments:True
       TORCH_EXTENSIONS_DIR: /cache/torch_extensions
     volumes:
-      - ${MODEL_HOST_PATH:-/home/edp1096/.cache/huggingface/exl3-qwen38fn-4.05bpw}:/models/target:ro
-      - ${EXL3_CACHE_PATH:-/home/edp1096/.cache/exl3-qwen38fn}:/cache
-      - ${ABLIT_OUTPUT_PATH:-/home/edp1096/.cache/exl3-qwen38fn/ablit}:/ablit:ro
+      - ${MODEL_HOST_PATH:-/home/edp1096/.cache/huggingface/exl3-qwen38-fn-4.05bpw}:/models/target:ro
+      - ${EXL3_CACHE_PATH:-/home/edp1096/.cache/exl3-qwen38-fn}:/cache
+      - ${ABLIT_OUTPUT_PATH:-/home/edp1096/.cache/exl3-qwen38-fn/ablit}:/ablit:ro
     deploy:
       resources:
         reservations:
@@ -61,7 +61,7 @@ services:
 
   download:
     profiles: [prepare]
-    image: dgx-exl3-qwen38fn:1.4.6-ablit1
+    image: dgx-exl3-qwen38-fn:1.4.6-ablit1
     user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
     environment:
       MODEL_REPO: ${MODEL_REPO:-turboderp/Qwen3.8-Flash-Next-exl3}
@@ -69,7 +69,7 @@ services:
       HF_TOKEN: ${HF_TOKEN:-}
       HF_XET_HIGH_PERFORMANCE: "1"
     volumes:
-      - ${MODEL_HOST_PATH:-/home/edp1096/.cache/huggingface/exl3-qwen38fn-4.05bpw}:/models/target
+      - ${MODEL_HOST_PATH:-/home/edp1096/.cache/huggingface/exl3-qwen38-fn-4.05bpw}:/models/target
     entrypoint: ["python3", "-c"]
     command:
       - |
@@ -83,14 +83,14 @@ services:
 
   direction:
     profiles: [prepare]
-    image: dgx-exl3-qwen38fn:1.4.6-ablit1
+    image: dgx-exl3-qwen38-fn:1.4.6-ablit1
     user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
     environment:
       ABLIT_OUTPUT_DIR: /ablit
       EXL3_ABLIT_LAMBDA: ${ABLIT_LAMBDA:-1.5}
       HF_TOKEN: ${HF_TOKEN:-}
     volumes:
-      - ${ABLIT_OUTPUT_PATH:-/home/edp1096/.cache/exl3-qwen38fn/ablit}:/ablit
+      - ${ABLIT_OUTPUT_PATH:-/home/edp1096/.cache/exl3-qwen38-fn/ablit}:/ablit
     deploy:
       resources:
         reservations:

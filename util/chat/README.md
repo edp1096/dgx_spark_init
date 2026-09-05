@@ -66,10 +66,10 @@ CUDA Graph·보정 워밍업 순으로 표시한다. Flash-Next 전용 SGLang �
 그 이후의 일상적인 기동·중지·전환에는 Compose 명령이 필요 없다.
 
 ```text
-dgx-sglang-qwen38fn:sm121
+dgx-sglang-qwen38-fn:sm121
 dgx-sglang-qwen38-27b-dflash2:2ef0fe4
 dgx-exl3-qwen38-27b:63b32f0
-dgx-exl3-qwen38fn:1.4.6-ablit1
+dgx-exl3-qwen38-fn:1.4.6-ablit1
 dgx-sglang-gemma4-31b-dflash:2ef0fe4
 dgx-flux2-klein-nvfp4:4b
 sparktalk-nemotron-asr:0.6b-q8
@@ -83,12 +83,12 @@ EXL3 세트는 최초 한 번 `compose_yaml/exl3_qwen38_27b/manage.sh setup`으�
 이미지와 모델을 준비한다.
 
 Flash-Next EXL3 실험 세트는 최초 한 번
-`compose_yaml/exl3_qwen38fn/manage.sh setup`으로 이미지·모델·거부 방향을 준비한다.
+`compose_yaml/exl3_qwen38_fn/manage.sh setup`으로 이미지·모델·거부 방향을 준비한다.
 
-Flash-Next 런타임은 `compose_yaml/sglang_qwen38fn`에서 먼저 빌드한다.
+Flash-Next 런타임은 `compose_yaml/sglang_qwen38_fn`에서 먼저 빌드한다.
 SM121 QSA 커널, 파일 기반 PLE·ngram offload와 NEXTN MTP를 적용한 SGLang
 이미지다. vLLM 비교·복구용 Flash-Next 런타임은 27B 구성과 섞지 않고
-`compose_yaml/vllm_qwen38fn`에 별도로 보존한다.
+`compose_yaml/vllm_qwen38_fn`에 별도로 보존한다.
 
 SparkTalk만 실행하면 된다.
 
