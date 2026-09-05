@@ -43,8 +43,10 @@ ASR·TTS·Extra를 하나의 AI 세트로 기동한다. 외부 `compose_yaml` �
 | 세트 | 주 채팅 모델 | 문맥 | 공통 구성 |
 |---|---|---:|---|
 | Qwen 27B 세트 | Qwen3.8 27B NVFP4 + DFlash2 | 32K | FLUX.2·Nemotron ASR·Magpie TTS·Extra |
+| Qwen 27B EXL3 세트 | Qwen3.8 27B uncensored EXL3 4bpw + MTP | 262K | FLUX.2·Nemotron ASR·Magpie TTS·Extra |
 | Flash-Next 세트 | Qwen3.8 Flash-Next NVFP4 | 64K | FLUX.2·Nemotron ASR·Magpie TTS·Extra |
-| Gemma 세트 | Gemma 4 31B NVFP4 + DFlash | 32K | FLUX.2·Nemotron ASR·Magpie TTS·Extra |
+| Flash-Next EXL3 세트 | Qwen3.8 Flash-Next EXL3 4.05bpw + runtime ablation + MTP | 262K | FLUX.2·Nemotron ASR·Magpie TTS·Extra |
+| Gemma 세트 | Gemma 4 31B NVFP4 + DFlash | 64K | FLUX.2·Nemotron ASR·Magpie TTS·Extra |
 
 우상단의 **연결됨**을 누르면 현재 세트, 전체 통합메모리, 구성요소별 상태와
 GPU 메모리, 기동 단계·진행률·예상 시간을 확인할 수 있다. 같은 곳에서 세트를
@@ -64,9 +66,11 @@ CUDA Graph·보정 워밍업 순으로 표시한다. Flash-Next 전용 SGLang �
 그 이후의 일상적인 기동·중지·전환에는 Compose 명령이 필요 없다.
 
 ```text
-dgx-sglang-qwen38-flash-next:sm121
-dgx-sglang-qwen38-dflash2:2ef0fe4
-dgx-sglang-gemma4-dflash:2ef0fe4
+dgx-sglang-qwen38fn:sm121
+dgx-sglang-qwen38-27b-dflash2:2ef0fe4
+dgx-exl3-qwen38-27b:63b32f0
+dgx-exl3-qwen38fn:1.4.6-ablit1
+dgx-sglang-gemma4-31b-dflash:2ef0fe4
 dgx-flux2-klein-nvfp4:4b
 sparktalk-nemotron-asr:0.6b-q8
 sparktalk-magpie-tts:v2607
@@ -75,10 +79,16 @@ sparktalk-extra-ssh:latest
 sparktalk-extra-collector:latest
 ```
 
-Flash-Next 런타임은 `compose_yaml/sglang_qwen38_flash_next`에서 먼저 빌드한다.
+EXL3 세트는 최초 한 번 `compose_yaml/exl3_qwen38_27b/manage.sh setup`으로
+이미지와 모델을 준비한다.
+
+Flash-Next EXL3 실험 세트는 최초 한 번
+`compose_yaml/exl3_qwen38fn/manage.sh setup`으로 이미지·모델·거부 방향을 준비한다.
+
+Flash-Next 런타임은 `compose_yaml/sglang_qwen38fn`에서 먼저 빌드한다.
 SM121 QSA 커널, 파일 기반 PLE·ngram offload와 NEXTN MTP를 적용한 SGLang
 이미지다. vLLM 비교·복구용 Flash-Next 런타임은 27B 구성과 섞지 않고
-`compose_yaml/vllm_qwen38_flash_next`에 별도로 보존한다.
+`compose_yaml/vllm_qwen38fn`에 별도로 보존한다.
 
 SparkTalk만 실행하면 된다.
 
@@ -93,7 +103,7 @@ cd dist
 최소 확보 메모리, 데이터·모델 캐시 경로를 관리한다. 내장 엔진은 loopback으로
 연결되므로 브라우저에 개별 endpoint가 노출되지 않는다. 특별히 외부 OpenAI 호환
 API를 붙여야 할 때는 설정의 실행 방식을 `external`로 바꾼다. 모델 유형에서
-**GLM-5.3 Entrpi**를 선택하면 512K 문맥과 Off·Low·High·Max 리즈닝 및
+**GLM-5.3 Flash**를 선택하면 512K 문맥과 Off·Low·High·Max 리즈닝 및
 보조 서비스 비활성값이 함께 적용된다.
 
 ```bash
@@ -155,10 +165,10 @@ systemctl --user daemon-reload
 **기억·지식** 전용 화면에서 관리합니다.
 관리형 세트의 endpoint·모델 ID·모델 유형은 선택한 세트에서 자동으로 정하며,
 화면에는 대화 동작과 기능 사용 여부만 노출합니다. Qwen 3.8은 꺼짐·Low·Medium·
-XHigh의 고정 단계형 effort를, Entrpi GLM-5.3은 Off·Low·High·Max를,
-Gemma 4는 Thinking 켜짐·꺼짐과 최대 생각 토큰 예산을 사용합니다. 예산은
-기본 512이며 `0`은 제한 없음입니다. 이 제한은 `--enable-strict-thinking`으로
-실행한 SGLang 백엔드가 필요합니다.
+XHigh의 단계형 effort를, Qwen EXL3는 Thinking 켜짐·꺼짐을 사용합니다.
+GLM-5.3 Flash는 Off·Low·High·Max를, Gemma 4는 Thinking 켜짐·꺼짐과 최대 생각
+토큰 예산을 사용합니다. 예산은 기본 512이며 `0`은 제한 없음입니다. 이 제한은
+`--enable-strict-thinking`으로 실행한 SGLang 백엔드가 필요합니다.
 Listen address와 DB 경로 변경만 앱 재시작 후 적용되고 나머지는 저장 즉시
 반영됩니다.
 외형 설정에서 **다크**, **라이트**, **시스템 설정 따름** 테마를 선택할 수

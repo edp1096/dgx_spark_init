@@ -1,0 +1,83 @@
+services:
+  exl3:
+    init: true
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        EXLLAMAV3_COMMIT: 63b32f001d7b2cfed3b3e3aaf25f534ba53cc7ed
+    image: dgx-exl3-qwen38-27b:63b32f0
+    container_name: exl3-qwen38-27b
+    ipc: host
+    shm_size: "16gb"
+    mem_limit: "48g"
+    memswap_limit: "48g"
+    ports:
+      - "${API_PORT:-8000}:8888"
+    environment:
+      SERVED_MODEL_NAME: ${SERVED_MODEL_NAME:-Qwen3.8-27B-Uncensored-EXL3-4bpw}
+      HF_HUB_OFFLINE: "1"
+      PYTHONUNBUFFERED: "1"
+      PYTORCH_CUDA_ALLOC_CONF: expandable_segments:True
+      TORCH_EXTENSIONS_DIR: /cache/torch_extensions
+    volumes:
+      - ${MODEL_HOST_PATH:-/home/edp1096/.cache/huggingface/exl3-qwen38-27b-uncensored-4bpw}:/models/target:ro
+      - ${EXL3_CACHE_PATH:-/home/edp1096/.cache/exl3-qwen38-27b}:/cache
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    entrypoint: ["python3", "/opt/exl3/serve_openai.py"]
+    command:
+      - --model
+      - /models/target
+      - --draft_model
+      - ${DRAFT_MODEL:-mtp}
+      - --grid_size
+      - ${GPU_MEMORY_GB:-32}
+      - --cache_size
+      - ${CONTEXT_SIZE:-262144}
+      - --cache_quant
+      - ${CACHE_QUANT:-nvfp4}
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8888"
+      - --max_body_mb
+      - ${MAX_BODY_MB:-64}
+    healthcheck:
+      test:
+        - CMD
+        - python3
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8888/health', timeout=5)"
+      interval: 15s
+      timeout: 10s
+      retries: 80
+      start_period: 15m
+    restart: unless-stopped
+
+  download:
+    profiles: [download]
+    image: dgx-exl3-qwen38-27b:63b32f0
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
+    environment:
+      MODEL_REPO: ${MODEL_REPO:-Lygodactylus/Qwen3.8-27B-Uncensored-exl3-4bpw}
+      MODEL_REVISION: ${MODEL_REVISION:-9fd8c796dbf3d2eaf251a7c577d0fd8824df18e3}
+      HF_TOKEN: ${HF_TOKEN:-}
+      HF_XET_HIGH_PERFORMANCE: "1"
+    volumes:
+      - ${MODEL_HOST_PATH:-/home/edp1096/.cache/huggingface/exl3-qwen38-27b-uncensored-4bpw}:/models/target
+    entrypoint: ["python3", "-c"]
+    command:
+      - |
+        import os
+        from huggingface_hub import snapshot_download
+        snapshot_download(
+            repo_id=os.environ["MODEL_REPO"],
+            revision=os.environ["MODEL_REVISION"],
+            local_dir="/models/target",
+        )

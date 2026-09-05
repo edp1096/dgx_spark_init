@@ -1,0 +1,98 @@
+--- a/tools/serve_openai.py
++++ b/tools/serve_openai.py
+@@ -36,6 +36,8 @@ Launch (from repo root):
+ """
+ import argparse, json, os, re, sys, time, threading, uuid
+ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
++SERVED_MODEL_NAME = os.environ.get("SERVED_MODEL_NAME", "qwen3.8-flash-next-exl3-abliterated")
++
+ from aiohttp import web
+
+ MODEL_DIR = "test_models/Qwen3.8-27B-exl3-3.5bpw-wm"
+@@ -278,7 +280,7 @@ def tool_choice_directive(tool_choice, tools):
+
+ def generate_full(generator, tokenizer, messages, max_tokens, temperature,
+                   top_p, top_k, seed, tools, tool_choice = None, stop = None,
+-                  on_text = None):
++                  enable_thinking = True, reasoning_effort = None, on_text = None):
+     """Blocking generation; returns (text, tool_calls, finish, p_toks, o_toks,
+     reasoning, content)."""
+     schemas = build_tool_schemas(tools)
+@@ -292,9 +294,11 @@ def generate_full(generator, tokenizer, messages, max_tokens, temperature,
+             messages[0] = first
+         else:
+             messages = [{"role": "system", "content": directive}] + messages
++    template_kwargs = {"enable_thinking": enable_thinking, "tools": tools}
++    if enable_thinking and reasoning_effort:
++        template_kwargs["reasoning_effort"] = reasoning_effort
+     input_ids = tokenizer.hf_chat_template(
+-        messages, add_generation_prompt = True, enable_thinking = True,
+-        tools = tools)
++        messages, add_generation_prompt = True, **template_kwargs)
+     prompt_toks = int(input_ids.shape[-1])
+     from exllamav3.generator.sampler.presets import ComboSampler
+     from exllamav3 import Job
+@@ -356,7 +360,7 @@ def generate_full(generator, tokenizer, messages, max_tokens, temperature,
+ async def models(request):
+     ctx = stats.get("context_length")
+     return web.json_response({"object": "list", "data": [{
+-        "id": "qwen3.8-27b-exl3-3.5bpw-wm",
++        "id": SERVED_MODEL_NAME,
+         "object": "model",
+         "owned_by": "exl3",
+         **({"max_model_len": ctx} if ctx else {}),
+@@ -391,6 +395,16 @@ def parse_request(body):
+         stop = [stop]
+     elif not isinstance(stop, list):
+         stop = None
++    template_kwargs = body.get("chat_template_kwargs") or {}
++    if not isinstance(template_kwargs, dict):
++        template_kwargs = {}
++    effort = str(body.get("reasoning_effort") or "").strip().lower()
++    if effort == "none":
++        enable_thinking = False
++        effort = None
++    else:
++        enable_thinking = bool(template_kwargs.get("enable_thinking", True))
++        effort = effort if effort in ("low", "medium", "xhigh") else None
+     return dict(
+         messages = normalize_messages(messages),
+         max_tokens = max_tokens, temperature = temperature,
+@@ -400,7 +414,9 @@ def parse_request(body):
+         tool_choice = body.get("tool_choice"),
+         stop = stop,
+         stream = bool(body.get("stream", False)),
+-        model_id = body.get("model", "qwen3.8-27b-exl3-3.5bpw-wm"),
++        model_id = body.get("model", SERVED_MODEL_NAME),
++        enable_thinking = enable_thinking,
++        reasoning_effort = effort,
+     ), None
+
+
+@@ -430,7 +446,8 @@ async def chat_completions(request):
+             text, calls, finish, ptoks, otoks, reasoning, content = await asyncio.to_thread(
+                 generate_full, generator, tokenizer, req["messages"],
+                 req["max_tokens"], req["temperature"], req["top_p"], req["top_k"],
+-                req["seed"], req["tools"], req["tool_choice"], req["stop"])
++                req["seed"], req["tools"], req["tool_choice"], req["stop"],
++                req["enable_thinking"], req["reasoning_effort"])
+         except AssertionError as e:
+             return web.json_response(
+                 {"error": {"message": f"context/cache: {e}", "type": "invalid_request_error"}},
+@@ -473,6 +490,7 @@ async def chat_completions(request):
+                     generator, tokenizer, req["messages"], req["max_tokens"],
+                     req["temperature"], req["top_p"], req["top_k"],
+                     req["seed"], req["tools"], req["tool_choice"], req["stop"],
++                    req["enable_thinking"], req["reasoning_effort"],
+                     on_text = None if forced_choice else on_text)
+                 loop.call_soon_threadsafe(queue.put_nowait,
+                                           ("done", (calls, finish, reasoning, content)))
+@@ -489,7 +507,7 @@ async def chat_completions(request):
+
+         pending, finish, calls_emitted = "", None, False
+         call_idx = [0]
+-        in_think = [True]          # generation starts inside <think> (template)
++        in_think = [req["enable_thinking"]]
+         THINK_CLOSE = "</think>"
+
+         async def send_call(c):

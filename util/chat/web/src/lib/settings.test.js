@@ -23,7 +23,7 @@ test('preserves Japanese automatic Hanja reading', () => {
   assert.equal(settings.tts.omit_parentheticals, false);
 });
 
-test('selecting the Entrpi GLM-5.3 type applies its single-server defaults', () => {
+test('selecting the GLM-5.3 Flash type applies its single-server defaults', () => {
   const settings = normalizePublicSettings({
     model: { endpoint: 'http://192.168.100.61:8000', default_model: 'old', reasoning_effort: 'low' },
     context: { window_tokens: 32768 },

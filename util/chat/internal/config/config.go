@@ -365,12 +365,12 @@ func (c *Config) Normalize() {
 		c.Runtime.Mode = "managed"
 	}
 	switch c.Runtime.Bundle {
-	case "qwen27", "flash-next", "gemma":
+	case "qwen27", "qwen27-exl3", "flash-next", "flash-next-exl3", "gemma":
 	default:
 		c.Runtime.Bundle = "flash-next"
 	}
 	switch c.Runtime.ActiveBundle {
-	case "qwen27", "flash-next", "gemma":
+	case "qwen27", "qwen27-exl3", "flash-next", "flash-next-exl3", "gemma":
 	default:
 		c.Runtime.ActiveBundle = c.Runtime.Bundle
 	}
@@ -389,7 +389,7 @@ func (c *Config) Normalize() {
 	c.Model.DefaultModel = strings.TrimSpace(c.Model.DefaultModel)
 	c.Model.ModelType = strings.ToLower(strings.TrimSpace(c.Model.ModelType))
 	switch c.Model.ModelType {
-	case "qwen3.8", "gemma4", "glm5.3", "generic":
+	case "qwen3.8", "qwen3.8-exl3", "gemma4", "glm5.3", "generic":
 	default:
 		c.Model.ModelType = "generic"
 	}
@@ -725,6 +725,14 @@ func (c *Config) ApplyManagedBundle(bundle string) {
 		c.Model.DefaultModel = "Huihui-RadixArk-Qwen3.8-27B-abliterated-NVFP4"
 		c.Model.ModelType = "qwen3.8"
 		c.Context.WindowTokens = 32768
+	case "qwen27-exl3":
+		c.Model.DefaultModel = "Qwen3.8-27B-Uncensored-EXL3-4bpw"
+		c.Model.ModelType = "qwen3.8-exl3"
+		c.Context.WindowTokens = 262144
+	case "flash-next-exl3":
+		c.Model.DefaultModel = "Qwen3.8-Flash-Next-Abliterated-EXL3-4.05bpw"
+		c.Model.ModelType = "qwen3.8"
+		c.Context.WindowTokens = 262144
 	case "gemma":
 		c.Model.DefaultModel = "Huihui-gemma-4-31B-it-abliterated-v2-NVFP4"
 		c.Model.ModelType = "gemma4"
@@ -757,7 +765,7 @@ func normalizeReasoningEffort(modelType, value string) string {
 		default:
 			return "medium"
 		}
-	case "gemma4":
+	case "qwen3.8-exl3", "gemma4":
 		switch value {
 		case "", "0", "0.0", "none", "off", "false", "no_think", "disabled":
 			return "none"

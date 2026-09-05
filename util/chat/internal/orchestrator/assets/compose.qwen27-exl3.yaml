@@ -1,0 +1,45 @@
+services:
+  runtime:
+    image: dgx-exl3-qwen38-27b:63b32f0
+    container_name: exl3-qwen38-27b
+    restart: unless-stopped
+    init: true
+    ipc: host
+    shm_size: 16gb
+    mem_limit: 48g
+    memswap_limit: 48g
+    ports: ["127.0.0.1:8000:8888"]
+    environment:
+      SERVED_MODEL_NAME: Qwen3.8-27B-Uncensored-EXL3-4bpw
+      HF_HUB_OFFLINE: "1"
+      PYTHONUNBUFFERED: "1"
+      PYTORCH_CUDA_ALLOC_CONF: expandable_segments:True
+      TORCH_EXTENSIONS_DIR: /cache/torch_extensions
+    volumes:
+      - ${SPARKTALK_HF_CACHE:-/home/edp1096/.cache/huggingface}/exl3-qwen38-27b-uncensored-4bpw:/models/target:ro
+      - ${SPARKTALK_DATA_DIR:-/home/edp1096/.local/share/sparktalk}/cache/exl3-qwen38-27b:/cache
+    gpus: all
+    entrypoint: ["python3", "/opt/exl3/serve_openai.py"]
+    command:
+      - --model
+      - /models/target
+      - --draft_model
+      - mtp
+      - --grid_size
+      - "32"
+      - --cache_size
+      - "262144"
+      - --cache_quant
+      - nvfp4
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8888"
+      - --max_body_mb
+      - "64"
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8888/health', timeout=5)"]
+      interval: 15s
+      timeout: 10s
+      retries: 80
+      start_period: 15m

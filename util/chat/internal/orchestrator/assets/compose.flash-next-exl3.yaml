@@ -1,0 +1,46 @@
+services:
+  runtime:
+    image: dgx-exl3-qwen38fn:1.4.6-ablit1
+    container_name: exl3-qwen38fn
+    restart: unless-stopped
+    init: true
+    ipc: host
+    shm_size: 16gb
+    mem_limit: 112g
+    memswap_limit: 112g
+    ports: ["127.0.0.1:8000:8888"]
+    environment:
+      SERVED_MODEL_NAME: Qwen3.8-Flash-Next-Abliterated-EXL3-4.05bpw
+      EXL3_ABLIT_DIRECTION: /ablit/direction.safetensors
+      EXL3_ABLIT_LAMBDA: "1.5"
+      HF_HUB_OFFLINE: "1"
+      PYTHONUNBUFFERED: "1"
+      PYTORCH_CUDA_ALLOC_CONF: expandable_segments:True
+      TORCH_EXTENSIONS_DIR: /cache/torch_extensions
+    volumes:
+      - ${SPARKTALK_HF_CACHE:-/home/edp1096/.cache/huggingface}/exl3-qwen38fn-4.05bpw:/models/target:ro
+      - ${SPARKTALK_DATA_DIR:-/home/edp1096/.local/share/sparktalk}/cache/exl3-qwen38fn:/cache
+      - ${SPARKTALK_EXL3_QWEN38FN_ABLIT:-/home/edp1096/.cache/exl3-qwen38fn/ablit}:/ablit:ro
+    gpus: all
+    entrypoint: ["python3", "/opt/exl3/serve_openai.py"]
+    command:
+      - --model
+      - /models/target
+      - --draft_model
+      - mtp
+      - --grid_size
+      - "108"
+      - --cache_size
+      - "262144"
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8888"
+      - --max_body_mb
+      - "64"
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8888/health', timeout=5)"]
+      interval: 15s
+      timeout: 10s
+      retries: 80
+      start_period: 15m

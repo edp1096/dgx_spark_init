@@ -1,17 +1,21 @@
 services:
   runtime:
-    image: dgx-sglang-gemma4-dflash:2ef0fe4
-    container_name: sglang-gemma4
+    image: dgx-sglang-gemma4-31b-dflash:2ef0fe4
+    container_name: sglang-gemma4-31b
     restart: unless-stopped
     init: true
     ipc: host
     shm_size: 16gb
+    mem_limit: "100g"
+    memswap_limit: "100g"
+    cpuset: "5-9,15-19"
     ports: ["127.0.0.1:8000:30000"]
     environment:
       PYTHONUNBUFFERED: "1"
+      HF_XET_HIGH_PERFORMANCE: "1"
       PYTORCH_CUDA_ALLOC_CONF: expandable_segments:True
       TORCHINDUCTOR_CACHE_DIR: /root/.cache/sglang/inductor
-      SGLANG_MAX_THINK_TOKENS: "32768"
+      SGLANG_MAX_THINK_TOKENS: "65536"
     volumes:
       - ${SPARKTALK_HF_CACHE:-/home/edp1096/.cache/huggingface}:/root/.cache/huggingface
       - ${SPARKTALK_DATA_DIR:-/home/edp1096/.local/share/sparktalk}/cache/sglang-gemma31:/root/.cache/sglang
@@ -29,8 +33,10 @@ services:
       - 0.0.0.0
       - --port
       - "30000"
+      - --tp-size
+      - "1"
       - --context-length
-      - "32768"
+      - "65536"
       - --mem-fraction-static
       - "0.55"
       - --attention-backend
@@ -42,18 +48,31 @@ services:
       - "2"
       - --kv-cache-dtype
       - fp8_e4m3
+      - --speculative-draft-kv-cache-dtype
+      - fp8_e4m3
       - --tool-call-parser
       - gemma4
       - --reasoning-parser
       - gemma4
+      - --chat-template
+      - /opt/gemma4/chat_template.jinja
       - --enable-strict-thinking
+      - --mm-feature-transport
+      - cpu
       - --speculative-algorithm
       - DFLASH
       - --speculative-draft-model-path
       - z-lab/gemma-4-31B-it-DFlash
+      - --speculative-draft-model-revision
+      - eabd648301ce28583cc14757912e5e0f84e152e1
       - --speculative-dflash-block-size
       - "7"
+      - --speculative-draft-model-quantization
+      - unquant
       - --max-running-requests
       - "2"
       - --skip-server-warmup
+      - --num-continuous-decode-steps
+      - "2"
+      - --sleep-on-idle
       - --enable-metrics

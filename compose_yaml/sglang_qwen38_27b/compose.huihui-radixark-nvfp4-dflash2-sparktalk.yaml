@@ -1,0 +1,72 @@
+services:
+  sglang:
+    build:
+      context: .
+      dockerfile: Dockerfile.dflash2
+      args:
+        SGLANG_COMMIT: 2ef0fe46693d1b88271943de5eb49a2848a512d8
+    image: dgx-sglang-qwen38-27b-dflash2:2ef0fe4
+    cpuset: "5-9,15-19"
+    volumes:
+      - "/home/edp1096/workspace/heretic_models/Huihui-RadixArk-Qwen3.8-27B-abliterated-NVFP4:/models/Huihui-RadixArk-Qwen3.8-27B-abliterated-NVFP4:ro"
+    command:
+      - --model-path
+      - /models/Huihui-RadixArk-Qwen3.8-27B-abliterated-NVFP4
+      - --tp-size
+      - "1"
+      - --served-model-name
+      - Huihui-RadixArk-Qwen3.8-27B-abliterated-NVFP4
+      - --trust-remote-code
+      - --host
+      - 0.0.0.0
+      - --port
+      - "30000"
+      - --context-length
+      - "32768"
+      - --mem-fraction-static
+      - "0.38"
+      - --attention-backend
+      - flashinfer
+      - --chunked-prefill-size
+      - "8192"
+      - --disable-prefill-cuda-graph
+      - --cuda-graph-max-bs
+      - "2"
+      - --disable-flashinfer-autotune
+      - --kv-cache-dtype
+      - fp8_e4m3
+      - --speculative-draft-kv-cache-dtype
+      - fp8_e4m3
+      - --reasoning-parser
+      - qwen3
+      - --tool-call-parser
+      - qwen3_coder
+      - --mm-feature-transport
+      - cpu
+      - --speculative-algorithm
+      - DFLASH
+      - --speculative-draft-model-path
+      - incoai/Qwen3.8-27B-DFlash2
+      - --speculative-draft-model-revision
+      - dedf8df68adfb1afeaf7b7480c0a0243108177b4
+      - --speculative-num-draft-tokens
+      - "8"
+      - --speculative-draft-model-quantization
+      - unquant
+      - --mamba-radix-cache-strategy
+      - extra_buffer
+      - --mamba-ssm-dtype
+      - bfloat16
+      - --mamba-full-memory-ratio
+      - "4.21"
+      - --max-mamba-cache-size
+      - "8"
+      - --max-running-requests
+      - "2"
+      - --enable-torch-compile
+      - --torch-compile-max-bs
+      - "2"
+      - --num-continuous-decode-steps
+      - "2"
+      - --sleep-on-idle
+      - --enable-metrics

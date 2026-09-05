@@ -7,6 +7,7 @@
   export let sessionsByGroup = {};
   export let ungroupedSessions = [];
   export let collapsedGroups = {};
+  export let foldersCollapsed = false;
   export let activeId = '';
   export let sessionRuns = {};
   export let assistantAvatar = 'preset:spark';
@@ -14,6 +15,7 @@
   export let onAddSession = () => {};
   export let onAddGroup = () => {};
   export let onToggleGroup = () => {};
+  export let onToggleFolders = () => {};
   export let onEditGroup = () => {};
   export let onReorderGroup = () => {};
   export let onRemoveGroup = () => {};
@@ -129,38 +131,48 @@
     {/if}
   </div>
   <nav>
-    {#each groups as group, groupIndex}
-      <section class="chat-group">
-        <div class="group-heading">
-          <button class="group-toggle" onclick={() => onToggleGroup(group.id)} aria-expanded={!collapsedGroups[group.id]}>
-            <span>{collapsedGroups[group.id] ? '▸' : '▾'} 📁 {group.name}</span><small>{(sessionsByGroup[group.id] || []).length}</small>
-          </button>
-          <div class="group-actions">
-            <button onclick={() => onReorderGroup(group, 'up')} disabled={groupIndex === 0} title="위로 이동">↑</button>
-            <button onclick={() => onReorderGroup(group, 'down')} disabled={groupIndex === groups.length - 1} title="아래로 이동">↓</button>
-            <button onclick={() => onEditGroup(group)} title="이름 변경">✎</button>
-            <button class="danger" onclick={() => onRemoveGroup(group)} title="그룹 삭제">×</button>
-          </div>
-        </div>
-        {#if !collapsedGroups[group.id]}
-          {#each sessionsByGroup[group.id] || [] as session}
-            <div class="session-row" class:active={session.id === activeId} class:generating={Boolean(sessionRuns[session.id])}>
-              <button class="session-select" onclick={() => onSelect(session.id)}>{session.title}</button>
-              {#if sessionRuns[session.id]}<span class="session-running" title="답변 생성 중" aria-label="답변 생성 중">●</span>{/if}
-              <button class="session-more" onclick={() => toggleSessionMenu(session.id)} aria-label={`${session.title} 메뉴`} aria-haspopup="menu" aria-expanded={sessionMenuId === session.id}>⋯</button>
-              {#if sessionMenuId === session.id}
-                <div class="session-menu" role="menu">
-                  <strong>그룹 이동</strong>
-                  <button onclick={() => changeSessionGroup(session, '')}>그룹 없음</button>
-                  {#each groups as target}<button class:current={target.id === session.group_id} onclick={() => changeSessionGroup(session, target.id)}>▸ {target.name}</button>{/each}
-                  <hr /><button class="danger" onclick={() => removeSession(session.id)} disabled={Boolean(sessionRuns[session.id])}>대화 삭제</button>
+    <section class="folder-section">
+      <button class="folder-section-toggle" onclick={onToggleFolders} aria-expanded={!foldersCollapsed} aria-controls="sidebar-folder-list">
+        <span>{foldersCollapsed ? '▸' : '▾'} 폴더</span><small>{groups.length}</small>
+      </button>
+      {#if !foldersCollapsed}
+        <div id="sidebar-folder-list" class="folder-list">
+          {#each groups as group, groupIndex}
+            <section class="chat-group">
+              <div class="group-heading">
+                <button class="group-toggle" onclick={() => onToggleGroup(group.id)} aria-expanded={!collapsedGroups[group.id]}>
+                  <span>{collapsedGroups[group.id] ? '▸' : '▾'} 📁 {group.name}</span><small>{(sessionsByGroup[group.id] || []).length}</small>
+                </button>
+                <div class="group-actions">
+                  <button onclick={() => onReorderGroup(group, 'up')} disabled={groupIndex === 0} title="위로 이동">↑</button>
+                  <button onclick={() => onReorderGroup(group, 'down')} disabled={groupIndex === groups.length - 1} title="아래로 이동">↓</button>
+                  <button onclick={() => onEditGroup(group)} title="이름 변경">✎</button>
+                  <button class="danger" onclick={() => onRemoveGroup(group)} title="그룹 삭제">×</button>
                 </div>
+              </div>
+              {#if !collapsedGroups[group.id]}
+                {#each sessionsByGroup[group.id] || [] as session}
+                  <div class="session-row" class:active={session.id === activeId} class:generating={Boolean(sessionRuns[session.id])}>
+                    <button class="session-select" onclick={() => onSelect(session.id)}>{session.title}</button>
+                    {#if sessionRuns[session.id]}<span class="session-running" title="답변 생성 중" aria-label="답변 생성 중">●</span>{/if}
+                    <button class="session-more" onclick={() => toggleSessionMenu(session.id)} aria-label={`${session.title} 메뉴`} aria-haspopup="menu" aria-expanded={sessionMenuId === session.id}>⋯</button>
+                    {#if sessionMenuId === session.id}
+                      <div class="session-menu" role="menu">
+                        <strong>그룹 이동</strong>
+                        <button onclick={() => changeSessionGroup(session, '')}>그룹 없음</button>
+                        {#each groups as target}<button class:current={target.id === session.group_id} onclick={() => changeSessionGroup(session, target.id)}>▸ {target.name}</button>{/each}
+                        <hr /><button class="danger" onclick={() => removeSession(session.id)} disabled={Boolean(sessionRuns[session.id])}>대화 삭제</button>
+                      </div>
+                    {/if}
+                  </div>
+                {/each}
               {/if}
-            </div>
+            </section>
           {/each}
-        {/if}
-      </section>
-    {/each}
+          {#if !groups.length}<small class="folder-list-empty">만든 폴더가 없습니다.</small>{/if}
+        </div>
+      {/if}
+    </section>
     <section class="chat-group ungrouped">
       <button class="group-toggle" onclick={() => onToggleGroup('__ungrouped__')} aria-expanded={!collapsedGroups.__ungrouped__}>
         <span>{collapsedGroups.__ungrouped__ ? '▸' : '▾'} 대화</span><small>{ungroupedSessions.length}</small>

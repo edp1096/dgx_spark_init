@@ -1,7 +1,7 @@
 services:
   runtime:
-    image: dgx-sglang-qwen38-flash-next:sm121
-    container_name: sglang-qwen38-flash-next
+    image: dgx-sglang-qwen38fn:sm121
+    container_name: sglang-qwen38fn
     restart: unless-stopped
     init: true
     ipc: host

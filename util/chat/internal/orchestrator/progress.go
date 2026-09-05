@@ -26,11 +26,29 @@ func inferProgress(component Component, logs string) progressInfo {
 		return inferVLLMProgress(logs)
 	case "sglang":
 		return inferSGLangProgress(component, logs)
+	case "exl3":
+		return inferEXL3Progress(logs)
 	case "comfy":
 		return inferImageProgress(logs)
 	default:
 		return inferServiceProgress(logs)
 	}
+}
+
+func inferEXL3Progress(logs string) progressInfo {
+	if strings.Contains(logs, "== model ready; accepting requests") {
+		return progressInfo{Key: "api", Phase: "API 온라인", Detail: "EXL3 API가 요청을 받을 준비를 마쳤습니다.", Progress: 1}
+	}
+	if strings.Contains(logs, "-- Loading tokenizer") {
+		return progressInfo{Key: "tokenizer", Phase: "토크나이저 준비", Detail: "가중치 적재를 마치고 토크나이저와 API를 준비합니다.", Progress: .88}
+	}
+	if strings.Contains(logs, "-- Loading /models/target") {
+		return progressInfo{Key: "weights", Phase: "EXL3 가중치 적재", Detail: "4bpw 모델과 MTP head를 통합메모리에 올리고 있습니다.", Progress: .45}
+	}
+	if strings.Contains(logs, "== loading /models/target") {
+		return progressInfo{Key: "engine", Phase: "EXL3 엔진 구성", Detail: "262K NVFP4 캐시와 MTP 구성을 적용합니다.", Progress: .10}
+	}
+	return progressInfo{Key: "container", Phase: "EXL3 컨테이너 시작", Detail: "EXL3 프로세스의 첫 로그를 기다리고 있습니다.", Progress: .03}
 }
 
 func inferVLLMProgress(logs string) progressInfo {

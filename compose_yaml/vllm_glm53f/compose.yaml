@@ -33,6 +33,11 @@ services:
       MASTER_PORT: ${MASTER_PORT:-29521}
       API_PORT: ${API_PORT:-8000}
 
+      ABLIT: ${ABLIT:-0}
+      ABLIT_DIR: /opt/glm53/ablit
+      ABLIT_LAYERS: ${ABLIT_LAYERS:-15-45}
+      ABLIT_INCLUDE_MTP: ${ABLIT_INCLUDE_MTP:-1}
+
       MAX_MODEL_LEN: ${MAX_MODEL_LEN:-524288}
       MAX_NUM_SEQS: ${MAX_NUM_SEQS:-4}
       MAX_NUM_BATCHED_TOKENS: ${MAX_NUM_BATCHED_TOKENS:-8192}
@@ -118,6 +123,13 @@ services:
         target: /root/.cache/vllm
         bind:
           create_host_path: false
+      - type: bind
+        source: ${ABLIT_HOST_PATH:-/home/edp1096/.cache/huggingface/glm53-ablit-oproj}
+        target: /opt/glm53/ablit
+        read_only: true
+        bind:
+          create_host_path: false
+      - ./ablit:/opt/glm53/ablit-code:ro
       - ./entrypoint.sh:/opt/glm53/entrypoint.sh:ro
     entrypoint: ["/opt/glm53/entrypoint.sh"]
 

@@ -1,0 +1,101 @@
+services:
+  exl3:
+    init: true
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        EXLLAMAV3_COMMIT: 499890c75d20d8e7c9d061f37189ae611a5c9f0b
+        SERVER_COMMIT: 63b32f001d7b2cfed3b3e3aaf25f534ba53cc7ed
+        ARM_PORT_COMMIT: 63b32f001d7b2cfed3b3e3aaf25f534ba53cc7ed
+    image: dgx-exl3-qwen38fn:1.4.6-ablit1
+    container_name: exl3-qwen38fn
+    ipc: host
+    shm_size: "16gb"
+    mem_limit: "112g"
+    memswap_limit: "112g"
+    ports:
+      - "${API_PORT:-8000}:8888"
+    environment:
+      SERVED_MODEL_NAME: ${SERVED_MODEL_NAME:-Qwen3.8-Flash-Next-Abliterated-EXL3-4.05bpw}
+      EXL3_ABLIT_DIRECTION: /ablit/direction.safetensors
+      EXL3_ABLIT_LAMBDA: ${ABLIT_LAMBDA:-1.5}
+      HF_HUB_OFFLINE: "1"
+      PYTHONUNBUFFERED: "1"
+      PYTORCH_CUDA_ALLOC_CONF: expandable_segments:True
+      TORCH_EXTENSIONS_DIR: /cache/torch_extensions
+    volumes:
+      - ${MODEL_HOST_PATH:-/home/edp1096/.cache/huggingface/exl3-qwen38fn-4.05bpw}:/models/target:ro
+      - ${EXL3_CACHE_PATH:-/home/edp1096/.cache/exl3-qwen38fn}:/cache
+      - ${ABLIT_OUTPUT_PATH:-/home/edp1096/.cache/exl3-qwen38fn/ablit}:/ablit:ro
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    entrypoint: ["python3", "/opt/exl3/serve_openai.py"]
+    command:
+      - --model
+      - /models/target
+      - --draft_model
+      - ${DRAFT_MODEL:-mtp}
+      - --grid_size
+      - ${GPU_MEMORY_GB:-108}
+      - --cache_size
+      - ${CONTEXT_SIZE:-262144}
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8888"
+      - --max_body_mb
+      - ${MAX_BODY_MB:-64}
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8888/health', timeout=5)"]
+      interval: 15s
+      timeout: 10s
+      retries: 80
+      start_period: 15m
+    restart: unless-stopped
+
+  download:
+    profiles: [prepare]
+    image: dgx-exl3-qwen38fn:1.4.6-ablit1
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
+    environment:
+      MODEL_REPO: ${MODEL_REPO:-turboderp/Qwen3.8-Flash-Next-exl3}
+      MODEL_REVISION: ${MODEL_REVISION:-55a732e0c4c3d4614bc42b68493bb930d9b02c0a}
+      HF_TOKEN: ${HF_TOKEN:-}
+      HF_XET_HIGH_PERFORMANCE: "1"
+    volumes:
+      - ${MODEL_HOST_PATH:-/home/edp1096/.cache/huggingface/exl3-qwen38fn-4.05bpw}:/models/target
+    entrypoint: ["python3", "-c"]
+    command:
+      - |
+        import os
+        from huggingface_hub import snapshot_download
+        snapshot_download(
+            repo_id=os.environ["MODEL_REPO"],
+            revision=os.environ["MODEL_REVISION"],
+            local_dir="/models/target",
+        )
+
+  direction:
+    profiles: [prepare]
+    image: dgx-exl3-qwen38fn:1.4.6-ablit1
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
+    environment:
+      ABLIT_OUTPUT_DIR: /ablit
+      EXL3_ABLIT_LAMBDA: ${ABLIT_LAMBDA:-1.5}
+      HF_TOKEN: ${HF_TOKEN:-}
+    volumes:
+      - ${ABLIT_OUTPUT_PATH:-/home/edp1096/.cache/exl3-qwen38fn/ablit}:/ablit
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    entrypoint: ["python3", "/opt/exl3/prepare_direction.py"]

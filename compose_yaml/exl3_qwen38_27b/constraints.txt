@@ -1,0 +1,8 @@
+annotated-doc==0.0.5
+fla-core==0.5.2
+flash-linear-attention==0.5.2
+llguidance==1.8.0
+marisa-trie==1.4.1
+shellingham==1.5.4
+transformers==5.16.1
+typer==0.27.2

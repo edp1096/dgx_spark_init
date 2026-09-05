@@ -16,8 +16,18 @@ const runtimeSnapshot = {
   docker: 'online',
 };
 
+async function routeManagedRuntime(page, snapshot) {
+  await page.route('**/api/config', async (route) => {
+    const response = await route.fetch();
+    const config = await response.json();
+    config.runtime = { ...config.runtime, mode: 'managed' };
+    await route.fulfill({ response, json: config });
+  });
+  await page.route('**/api/runtime', (route) => route.fulfill({ json: snapshot }));
+}
+
 test('shows managed set, memory, engines, and set controls from the connection button', async ({ page }) => {
-  await page.route('**/api/runtime', (route) => route.fulfill({ json: runtimeSnapshot }));
+  await routeManagedRuntime(page, runtimeSnapshot);
   await page.goto('/');
   await page.locator('.status').click();
 
@@ -51,7 +61,7 @@ test('shows runtime-specific startup stages without duplicating shard updates', 
       { component_id: 'flash-next', phase: 'Flash Next 체크포인트 적재', detail: '118/206 샤드 · SSD에서 통합메모리로 읽는 중', state: 'current', started_at: new Date().toISOString() },
     ],
   };
-  await page.route('**/api/runtime', (route) => route.fulfill({ json: running }));
+  await routeManagedRuntime(page, running);
   await page.goto('/');
   await page.locator('.status').click();
 
@@ -61,4 +71,23 @@ test('shows runtime-specific startup stages without duplicating shard updates', 
   await expect(panel.getByRole('list', { name: '기동 단계' })).toContainText('vLLM 엔진 구성');
   await expect(panel.getByText('예상 00:20 남음', { exact: true })).toBeVisible();
   await expect(panel.getByRole('button', { name: '기동 중' })).toBeDisabled();
+});
+
+test('keeps managed model controls reachable by touch scrolling on mobile', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 500 });
+  await routeManagedRuntime(page, runtimeSnapshot);
+  await page.goto('/');
+  await page.getByRole('button', { name: '모델 및 대화 설정' }).click();
+
+  const drawer = page.getByRole('dialog', { name: '모델 및 대화 설정' });
+  await drawer.locator('.drawer-status > button').click();
+  const stop = drawer.getByRole('button', { name: '중지' });
+
+  await expect(drawer).toHaveCSS('overflow-y', 'auto');
+  expect(await drawer.evaluate((node) => node.scrollHeight)).toBeGreaterThan(
+    await drawer.evaluate((node) => node.clientHeight),
+  );
+  await stop.scrollIntoViewIfNeeded();
+  await expect(stop).toBeVisible();
+  expect(await drawer.evaluate((node) => node.scrollTop)).toBeGreaterThan(0);
 });

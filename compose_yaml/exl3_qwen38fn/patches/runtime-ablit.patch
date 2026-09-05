@@ -1,0 +1,108 @@
+diff --git a/exllamav3/modules/embedding.py b/exllamav3/modules/embedding.py
+index d3f85ac..37f99cc 100644
+--- a/exllamav3/modules/embedding.py
++++ b/exllamav3/modules/embedding.py
+@@ -7,6 +7,7 @@ from ..util.tensor import to2
+ from . import Module
+ from ..tokenizer.mm_embedding import FIRST_MM_EMBEDDING_INDEX
+ from ..model.model_tp_alloc import TPAllocation
++from ..ablit_runtime import project_embedding
+
+ class Embedding(Module):
+
+@@ -113,7 +114,7 @@ class Embedding(Module):
+             if standard_mask.any():
+                 for i in range(bsz):
+                     standard_ids_row = input_ids[i][standard_mask[i]]
+-                    standard_emb_row = self.embedding(standard_ids_row)
++                    standard_emb_row = project_embedding(self.key, self.embedding(standard_ids_row))
+                     combined_emb[i][standard_mask[i]] = standard_emb_row.to(out_dtype)
+
+             # Only normalize standard embeddings
+@@ -165,7 +166,7 @@ class Embedding(Module):
+                     self._pinned_staging[key] = buf
+                 buf.copy_(x)
+                 x = buf
+-            return x
++            return project_embedding(self.key, x)
+
+     def make_tp_allocation(self, options: dict) -> list[TPAllocation]:
+         return []
+diff --git a/exllamav3/modules/linear.py b/exllamav3/modules/linear.py
+index e3616aa..8d0c1f7 100644
+--- a/exllamav3/modules/linear.py
++++ b/exllamav3/modules/linear.py
+@@ -9,6 +9,7 @@ from .quant import LinearFP16, LinearEXL3
+ from .quant.exl3_lib import quantize_exl3, quantize_exl3_batch
+ from ..ext import exllamav3_ext as ext
+ from ..model.model_tp_alloc import TPAllocation
++from ..ablit_runtime import project_mtp_linear
+
+ # MXFP4 (e2m1 + e8m0 block scale) as stored by gpt-oss: each 16-byte block packs 32 fp4 values
+ # (low nibble first), one power-of-two scale byte per block
+@@ -634,7 +635,7 @@ class Linear(Module):
+             ext.softcap(x, x, self.softcap)
+         if self.post_scale != 1.0:
+             x *= self.post_scale
+-        return x
++        return project_mtp_linear(self.key, x)
+
+
+     def apply_lora(self, lora_input: torch.Tensor, x: torch.Tensor):
+diff --git a/exllamav3/modules/ple.py b/exllamav3/modules/ple.py
+index 15b3833..f69e9fe 100644
+--- a/exllamav3/modules/ple.py
++++ b/exllamav3/modules/ple.py
+@@ -11,6 +11,7 @@ from ..ext import exllamav3_ext as ext
+ from ..tokenizer.mm_embedding import FIRST_MM_EMBEDDING_INDEX
+ from ..model.config import Config
+ from ..util.tensor import get_for_device
++from ..ablit_runtime import enabled as ablit_enabled, project_writer
+
+ """
+ PLE (per-layer embedding) injection layer (Qwen3.8-Flash-Next): feeds hashed n-gram features into
+@@ -269,7 +270,7 @@ class PLELayer(Module):
+         bsz, seq = streams.shape[:2]
+         H, D = self.hc_mult, self.hidden_size
+         emb = self.ple_embedding.forward(token_history, params)               # (bsz, seq, ple_dim)
+-        if self.key_proj.quant_type == "fp16" and self.value_proj.quant_type == "fp16" \
++        if not ablit_enabled() and self.key_proj.quant_type == "fp16" and self.value_proj.quant_type == "fp16" \
+                 and streams.dtype == torch.float and streams.is_contiguous() \
+                 and self.key_proj.inner.bias is None and self.value_proj.inner.bias is None:
+             delta = torch.empty_like(streams)
+@@ -294,6 +295,7 @@ class PLELayer(Module):
+         key = self.key_proj.forward(emb, params).view(bsz, seq, H, D)
+         key = self.norm_key.forward(key, params, out_dtype = torch.float)
+         value = self.value_proj.forward(emb, params)                          # (bsz, seq, hidden) fp16
++        value = project_writer(value)
+         query = self.norm_query.forward(streams, params, out_dtype = torch.float)
+         # per-stream key/query dots as a batched (1, D) x (D, 1) matmul, then the fused gate
+         # kernel: gated = sigmoid(signed_sqrt(dot * scale)) * value broadcast over streams
+diff --git a/exllamav3/modules/transformer.py b/exllamav3/modules/transformer.py
+index 4ae7014..ad7bd04 100644
+--- a/exllamav3/modules/transformer.py
++++ b/exllamav3/modules/transformer.py
+@@ -6,6 +6,7 @@ from ..model.config import Config
+ from . import Module, RMSNorm, LayerNorm, Attention, GatedDeltaNet, GatedMLP, MLP, BlockSparseMLP, Linear
+ from .hyperconnections import HyperConnection
+ from ..util import profile_opt
++from ..ablit_runtime import project_block
+
+ class TransformerBlock(Module):
+
+@@ -159,6 +160,7 @@ class TransformerBlock(Module):
+             y = self.attn.forward(y, params)
+             if params.get("prefill") and not export_state:
+                 return x
++            y = project_block(self.key, y)
+             if self.attn_resid_scalar is not None:
+                 y *= self.attn_resid_scalar
+             if self.attn_hc:
+@@ -185,6 +187,7 @@ class TransformerBlock(Module):
+                 else:
+                     y = x.half()
+             y = self.mlp.forward(y, params)
++            y = project_block(self.key, y)
+             if self.mlp_resid_scalar is not None:
+                 y *= self.mlp_resid_scalar
+             if self.mlp_hc:

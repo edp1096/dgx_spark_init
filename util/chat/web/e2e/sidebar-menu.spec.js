@@ -52,3 +52,24 @@ test('searches every conversation and closes results outside the search box', as
   await expect(modal).toHaveCount(0);
   await expect(page.locator('.chat-title')).toContainText('오로라 검색 실험');
 });
+
+test('collapses the whole folder area without changing individual folder state', async ({ page }) => {
+  await page.request.post('/api/groups', { data: { name: '상위 접기 검증 A' } });
+  await page.request.post('/api/groups', { data: { name: '상위 접기 검증 B' } });
+  await page.goto('/');
+
+  const folderArea = page.locator('.folder-section-toggle');
+  const firstFolder = page.locator('.folder-list .group-toggle').first();
+  await expect(folderArea).toHaveAttribute('aria-expanded', 'true');
+  await firstFolder.click();
+  await expect(firstFolder).toHaveAttribute('aria-expanded', 'false');
+
+  await folderArea.click();
+  await expect(folderArea).toHaveAttribute('aria-expanded', 'false');
+  await expect(page.locator('#sidebar-folder-list')).toHaveCount(0);
+
+  await page.reload();
+  await expect(folderArea).toHaveAttribute('aria-expanded', 'false');
+  await folderArea.click();
+  await expect(firstFolder).toHaveAttribute('aria-expanded', 'false');
+});

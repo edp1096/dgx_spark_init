@@ -66,6 +66,23 @@ func TestApplyReasoningOptionsUsesGemmaThinkingToggle(t *testing.T) {
 	}
 }
 
+func TestApplyReasoningOptionsUsesEXL3ThinkingToggle(t *testing.T) {
+	for _, test := range []struct {
+		effort  string
+		enabled bool
+	}{{"none", false}, {"off", false}, {"on", true}, {"high", true}} {
+		payload := map[string]any{}
+		applyReasoningOptions(payload, "qwen3.8-exl3", test.effort)
+		kwargs, ok := payload["chat_template_kwargs"].(map[string]any)
+		if !ok || kwargs["enable_thinking"] != test.enabled {
+			t.Fatalf("effort %q produced %#v", test.effort, payload)
+		}
+		if _, exists := payload["reasoning_effort"]; exists {
+			t.Fatalf("EXL3 must not receive reasoning_effort: %#v", payload)
+		}
+	}
+}
+
 func TestApplyReasoningOptionsPreservesGenericEffort(t *testing.T) {
 	payload := map[string]any{}
 	applyReasoningOptions(payload, "generic", "0.75")
@@ -84,7 +101,7 @@ func TestApplyReasoningOptionsConstrainsQwenEffort(t *testing.T) {
 	}
 }
 
-func TestApplyReasoningOptionsUsesEntrpiGLM53Controls(t *testing.T) {
+func TestApplyReasoningOptionsUsesCompatibleGLM53Controls(t *testing.T) {
 	for _, test := range []struct {
 		input   string
 		want    string

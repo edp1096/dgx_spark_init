@@ -43,6 +43,11 @@ API 주소는 `http://192.168.100.61:8000/v1`, 모델명은
 자동 생성한다. 기본값은 Entrpi `v2.3-tier1`, EXL3 4bpw, DFlash2, 최대
 524K context다.
 
+MiaAI 방식의 Dealign `o_proj` 이식을 쓰려면 `.env`에서 `ABLIT=1`로
+바꾸고 `./manage.sh setup`을 다시 실행한다. donor는 gated가 아니며,
+L15–45 약 2.7GB만 Head에 받은 뒤 Worker로 동기화한다. BrandonMusic
+EXL3 원본 파일은 수정하지 않는다.
+
 OS 포맷이나 DHCP 변경 후에는 `.env`의 `HEAD_LAN_IP`와
 `WORKER_LAN_IP`만 새 주소로 바꾸고, 위 SSH 키 등록과 `manage.sh setup`을
 다시 실행한다. QSFP 주소는 `manage.sh`가 매번 복구한다.

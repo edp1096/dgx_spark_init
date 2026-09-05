@@ -23,7 +23,7 @@
 
 | 항목 | SGLang | vLLM |
 |---|---|---|
-| 구성 | [`sglang_qwen38_flash_next`](sglang_qwen38_flash_next/) | [`vllm_qwen38_flash_next`](vllm_qwen38_flash_next/) |
+| 구성 | [`sglang_qwen38fn`](sglang_qwen38fn/) | [`vllm_qwen38fn`](vllm_qwen38fn/) |
 | 모델 | `dealignai/Qwen3.8-Flash-Next-ABLITERATED-NVFP4` | 동일 |
 | 문맥 | 64K | 64K |
 | 동시 요청 | 2 | 2 |

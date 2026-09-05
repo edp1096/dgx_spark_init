@@ -36,7 +36,7 @@
   ];
   $: modelProfile = modelCapabilities(settings?.model?.model_type);
   $: gemmaThinkingValue = thinkingToggleValue(settings?.model?.reasoning_effort);
-  $: if (settings?.model && (modelProfile.family === 'qwen3.8' || modelProfile.family === 'glm5.3')) settings.model.reasoning_effort = normalizeReasoningEffort(settings.model.model_type, settings.model.reasoning_effort);
+  $: if (settings?.model && (modelProfile.family === 'qwen3.8' || modelProfile.family === 'qwen3.8-exl3' || modelProfile.family === 'glm5.3')) settings.model.reasoning_effort = normalizeReasoningEffort(settings.model.model_type, settings.model.reasoning_effort);
   $: externalMode = settings?.runtime?.mode === 'external';
   $: currentBundle = runtime?.bundles?.find((bundle) => bundle.id === runtime?.selected_bundle) || runtime?.bundles?.[0];
   const ttsLanguages = ['auto', 'ko-KR', 'en-US', 'ja-JP', 'zh-CN', 'ar-MSA', 'ar-AE', 'ar-SA', 'de-DE', 'es-ES', 'fr-FR', 'hi-IN', 'it-IT', 'pt-BR', 'vi-VN'];
@@ -157,7 +157,7 @@
         <fieldset>
           <legend>현재 AI 세트</legend>
           {#if externalMode}
-            <div class="settings-bundle-card"><span><strong>{modelProfile.family === 'glm5.3' ? 'GLM-5.3 Entrpi' : '외부 모델'}</strong><small>{settings.model.endpoint}</small></span><div><b>{settings.model.default_model}</b><small>{settings.context.window_tokens ? `${Math.round(settings.context.window_tokens / 1024)}K context` : 'context 자동 감지'}</small></div></div>
+            <div class="settings-bundle-card"><span><strong>{modelProfile.family === 'glm5.3' ? 'GLM-5.3 Flash' : '외부 모델'}</strong><small>{settings.model.endpoint}</small></span><div><b>{settings.model.default_model}</b><small>{settings.context.window_tokens ? `${Math.round(settings.context.window_tokens / 1024)}K context` : 'context 자동 감지'}</small></div></div>
             <small>외부 API는 SparkTalk가 기동하거나 중지하지 않습니다.</small>
           {:else}
             <div class="settings-bundle-card"><span><strong>{currentBundle?.name || '관리형 세트'}</strong><small>{currentBundle?.description || settings.model.default_model}</small></span><div><b>{currentBundle?.model_id || settings.model.default_model}</b><small>{currentBundle?.context_tokens ? `${Math.round(currentBundle.context_tokens / 1024)}K context` : ''}</small></div></div>
@@ -167,12 +167,12 @@
         <fieldset>
           <legend>추론 기본값</legend>
           {#if modelProfile.reasoning === 'toggle'}
-            <div class="settings-toggle-field"><span>기본 Thinking</span><button type="button" class:active={gemmaThinkingValue === 'on'} onclick={toggleDefaultThinking} aria-pressed={gemmaThinkingValue === 'on'}>{gemmaThinkingValue === 'on' ? 'Thinking 켜짐' : 'Thinking 꺼짐'}</button><small>Gemma 4는 단계별 effort를 지원하지 않습니다.</small></div>
-            <label>Thinking 예산<input type="number" min="0" step="128" bind:value={settings.model.thinking_budget} /><small>최대 생각 토큰 수입니다. 512 권장, 0이면 제한하지 않습니다.</small></label>
+            <div class="settings-toggle-field"><span>기본 Thinking</span><button type="button" class:active={gemmaThinkingValue === 'on'} onclick={toggleDefaultThinking} aria-pressed={gemmaThinkingValue === 'on'}>{gemmaThinkingValue === 'on' ? 'Thinking 켜짐' : 'Thinking 꺼짐'}</button><small>{modelProfile.family === 'qwen3.8-exl3' ? 'EXL3 서버는 Thinking on/off만 지원합니다.' : 'Gemma 4는 단계별 effort를 지원하지 않습니다.'}</small></div>
+            {#if modelProfile.family === 'gemma4'}<label>Thinking 예산<input type="number" min="0" step="128" bind:value={settings.model.thinking_budget} /><small>최대 생각 토큰 수입니다. 512 권장, 0이면 제한하지 않습니다.</small></label>{/if}
           {:else if modelProfile.family === 'qwen3.8'}
             <label>기본 reasoning effort<select bind:value={settings.model.reasoning_effort} aria-label="기본 reasoning effort">{#each modelProfile.reasoningLevels as level}<option value={level}>{level === 'none' ? '꺼짐' : level === 'low' ? 'Low' : level === 'medium' ? 'Medium' : 'XHigh'}</option>{/each}</select><small>Qwen3.8은 꺼짐·Low·Medium·XHigh 네 단계만 사용합니다.</small></label>
           {:else if modelProfile.family === 'glm5.3'}
-            <label>기본 reasoning effort<select bind:value={settings.model.reasoning_effort} aria-label="기본 reasoning effort">{#each modelProfile.reasoningLevels as level}<option value={level}>{reasoningEffortLabel(level)}</option>{/each}</select><small>Entrpi GLM-5.3은 꺼짐·Low·High·Max를 사용합니다.</small></label>
+            <label>기본 reasoning effort<select bind:value={settings.model.reasoning_effort} aria-label="기본 reasoning effort">{#each modelProfile.reasoningLevels as level}<option value={level}>{reasoningEffortLabel(level)}</option>{/each}</select><small>GLM-5.3 Flash는 꺼짐·Low·High·Max를 사용합니다.</small></label>
           {:else}
             <label>기본 reasoning effort<input bind:value={settings.model.reasoning_effort} list="settings-reasoning-levels" placeholder="직접 입력 또는 목록에서 선택" /></label>
             <datalist id="settings-reasoning-levels">{#each modelProfile.reasoningLevels as level}<option value={level}></option>{/each}</datalist>
@@ -284,10 +284,10 @@
           {#if externalMode}
             <label>모델 API 주소<input bind:value={settings.model.endpoint} placeholder="http://서버주소:8000" /><small><code>/v1</code>은 붙이지 않습니다.</small></label>
             <label>모델 ID<input bind:value={settings.model.default_model} /></label>
-            <label>모델 유형<select value={settings.model.model_type} onchange={selectExternalModelType}><option value="glm5.3">GLM-5.3 Entrpi</option><option value="qwen3.8">Qwen3.8</option><option value="gemma4">Gemma 4</option><option value="generic">일반 OpenAI 호환</option></select></label>
+            <label>모델 유형<select value={settings.model.model_type} onchange={selectExternalModelType}><option value="glm5.3">GLM-5.3 Flash</option><option value="qwen3.8">Qwen3.8</option><option value="gemma4">Gemma 4</option><option value="generic">일반 OpenAI 호환</option></select></label>
             <label>API 키<input type="password" bind:value={settingsAPIKey} autocomplete="new-password" placeholder={settings.api_key_set ? '저장된 키 유지' : '필요한 경우 입력'} /></label>
             {#if settings.api_key_set}<label class="check"><input type="checkbox" bind:checked={clearAPIKey} /> 저장된 API 키 삭제</label>{/if}
-            <small>GLM-5.3 Entrpi를 선택하면 512K 문맥과 Max 리즈닝을 적용하고 ASR·TTS·이미지 생성·Extra·URL 미디어 가져오기를 끕니다. 엔드포인트와 이미지 첨부 분석, 로컬 웹 도구는 유지됩니다.</small>
+            <small>GLM-5.3 Flash를 선택하면 512K 문맥과 Max 리즈닝을 적용하고 ASR·TTS·이미지 생성·Extra·URL 미디어 가져오기를 끕니다. 엔드포인트와 이미지 첨부 분석, 로컬 웹 도구는 유지됩니다.</small>
           {:else}
             <label>기본 AI 세트<select bind:value={settings.runtime.bundle}>{#each runtime?.bundles || [] as bundle}<option value={bundle.id}>{bundle.name}</option>{/each}</select><small>실행 중 세트 전환은 우상단 운영 패널에서 진행합니다.</small></label>
             <label class="check"><input type="checkbox" bind:checked={settings.runtime.auto_start} /> SparkTalk 시작 시 기본 세트 자동 기동</label>

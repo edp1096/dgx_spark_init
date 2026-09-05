@@ -18,6 +18,24 @@ func TestInferProgress(t *testing.T) {
 	}
 }
 
+func TestInferEXL3Progress(t *testing.T) {
+	component := Component{ID: "qwen27-exl3", ProgressKind: "exl3"}
+	for _, test := range []struct {
+		logs string
+		key  string
+	}{
+		{"== loading /models/target + MTP head", "engine"},
+		{"== loading /models/target + MTP head\n-- Loading /models/target", "weights"},
+		{"-- Loading /models/target\n-- Loading tokenizer...", "tokenizer"},
+		{"== model ready; accepting requests", "api"},
+	} {
+		info := inferProgress(component, test.logs)
+		if info.Key != test.key {
+			t.Fatalf("logs %q produced %#v, want %q", test.logs, info, test.key)
+		}
+	}
+}
+
 func TestInferFlashNextPLEAndMTPProgress(t *testing.T) {
 	component := Component{ID: "flash-next", Name: "Qwen3.8 Flash-Next", ProgressKind: "sglang"}
 	info := inferProgress(component, "PLE table opened with ple_offload_backend=file")

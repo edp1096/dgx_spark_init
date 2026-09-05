@@ -26,7 +26,7 @@ model:
   endpoint: http://127.0.0.1:8000
   # 비워두면 /v1/models의 첫 모델을 사용합니다.
   default_model: qwen3.8-flash-next
-  # 모델명을 추측하지 않고 요청 형식을 명시적으로 선택합니다: qwen3.8, gemma4, glm5.3, generic
+  # 모델명을 추측하지 않고 요청 형식을 명시적으로 선택합니다: qwen3.8, qwen3.8-exl3, gemma4, glm5.3, generic
   model_type: qwen3.8
   api_key: ""
   # Qwen3.8: none, low, medium, xhigh. generic 유형만 기타 이름이나 0.0~0.99를 허용

@@ -14,7 +14,15 @@ test('Qwen 3.8 keeps typed effort levels without unsupported high', () => {
   });
 });
 
-test('GLM-5.3 exposes Entrpi thinking off and native effort levels', () => {
+test('Qwen 3.8 EXL3 exposes only the template thinking toggle', () => {
+  assert.deepEqual(modelCapabilities('qwen3.8-exl3'), {
+    family: 'qwen3.8-exl3', reasoning: 'toggle', reasoningLevels: ['on', 'none'],
+  });
+  assert.equal(normalizeReasoningEffort('qwen3.8-exl3', 'none'), 'none');
+  assert.equal(normalizeReasoningEffort('qwen3.8-exl3', 'high'), 'on');
+});
+
+test('GLM-5.3 exposes compatible thinking off and native effort levels', () => {
   assert.deepEqual(modelCapabilities('glm5.3'), {
     family: 'glm5.3', reasoning: 'effort', reasoningLevels: ['off', 'low', 'high', 'max'],
   });

@@ -4,7 +4,7 @@
       "id": "qwen27",
       "name": "Qwen3.8 27B",
       "role": "llm",
-      "container": "sglang-qwen38",
+      "container": "sglang-qwen38-27b",
       "health_url": "http://127.0.0.1:8000/health",
       "model": "Huihui-RadixArk-Qwen3.8-27B-abliterated-NVFP4",
       "memory_gib": 52.0,
@@ -13,10 +13,22 @@
       "progress_kind": "sglang"
     },
     {
+      "id": "qwen27-exl3",
+      "name": "Qwen3.8 27B EXL3",
+      "role": "llm",
+      "container": "exl3-qwen38-27b",
+      "health_url": "http://127.0.0.1:8000/health",
+      "model": "Qwen3.8-27B-Uncensored-EXL3-4bpw",
+      "memory_gib": 25.0,
+      "startup_timeout_seconds": 300,
+      "compose_asset": "compose.qwen27-exl3.yaml",
+      "progress_kind": "exl3"
+    },
+    {
       "id": "flash-next",
       "name": "Qwen3.8 Flash-Next",
       "role": "llm",
-      "container": "sglang-qwen38-flash-next",
+      "container": "sglang-qwen38fn",
       "health_url": "http://127.0.0.1:8000/health",
       "model": "qwen3.8-flash-next",
       "memory_gib": 96.0,
@@ -25,13 +37,25 @@
       "progress_kind": "sglang"
     },
     {
+      "id": "flash-next-exl3",
+      "name": "Qwen3.8 Flash-Next EXL3",
+      "role": "llm",
+      "container": "exl3-qwen38fn",
+      "health_url": "http://127.0.0.1:8000/health",
+      "model": "Qwen3.8-Flash-Next-Abliterated-EXL3-4.05bpw",
+      "memory_gib": 88.0,
+      "startup_timeout_seconds": 1200,
+      "compose_asset": "compose.flash-next-exl3.yaml",
+      "progress_kind": "exl3"
+    },
+    {
       "id": "gemma31",
       "name": "Gemma 4 31B",
       "role": "llm",
-      "container": "sglang-gemma4",
+      "container": "sglang-gemma4-31b",
       "health_url": "http://127.0.0.1:8000/health",
       "model": "Huihui-gemma-4-31B-it-abliterated-v2-NVFP4",
-      "memory_gib": 58.0,
+      "memory_gib": 64.0,
       "startup_timeout_seconds": 1200,
       "compose_asset": "compose.gemma31.yaml",
       "progress_kind": "sglang"
@@ -117,6 +141,15 @@
       "components": ["qwen27", "flux2", "nemotron-asr", "magpie-tts", "extra-media", "extra-ssh", "extra-collector"]
     },
     {
+      "id": "qwen27-exl3",
+      "name": "Qwen 27B EXL3 세트",
+      "description": "262K 문맥과 약 24GiB 상주량의 EXL3 세트",
+      "model_type": "qwen3.8-exl3",
+      "model_id": "Qwen3.8-27B-Uncensored-EXL3-4bpw",
+      "context_tokens": 262144,
+      "components": ["qwen27-exl3", "flux2", "nemotron-asr", "magpie-tts", "extra-media", "extra-ssh", "extra-collector"]
+    },
+    {
       "id": "flash-next",
       "name": "Flash-Next 세트",
       "description": "64K 문맥과 Flash-Next를 사용하는 고성능 세트",
@@ -126,12 +159,21 @@
       "components": ["flash-next", "flux2", "nemotron-asr", "magpie-tts", "extra-media", "extra-ssh", "extra-collector"]
     },
     {
+      "id": "flash-next-exl3",
+      "name": "Flash-Next EXL3 세트",
+      "description": "262K 문맥과 runtime ablation을 사용하는 4.05bpw 실험 세트",
+      "model_type": "qwen3.8",
+      "model_id": "Qwen3.8-Flash-Next-Abliterated-EXL3-4.05bpw",
+      "context_tokens": 262144,
+      "components": ["flash-next-exl3", "flux2", "nemotron-asr", "magpie-tts", "extra-media", "extra-ssh", "extra-collector"]
+    },
+    {
       "id": "gemma",
       "name": "Gemma 세트",
       "description": "Gemma 4 31B 기반 대화 세트",
       "model_type": "gemma4",
       "model_id": "Huihui-gemma-4-31B-it-abliterated-v2-NVFP4",
-      "context_tokens": 32768,
+      "context_tokens": 65536,
       "components": ["gemma31", "flux2", "nemotron-asr", "magpie-tts", "extra-media", "extra-ssh", "extra-collector"]
     }
   ]

@@ -154,6 +154,18 @@ func TestManagedDefaultBundleAndActiveModelCanDiffer(t *testing.T) {
 	}
 }
 
+func TestManagedEXL3BundleAppliesItsModelProfile(t *testing.T) {
+	cfg := Config{Runtime: RuntimeConfig{Mode: "managed", Bundle: "qwen27-exl3", ActiveBundle: "qwen27-exl3"}}
+	cfg.Normalize()
+
+	if cfg.Runtime.Bundle != "qwen27-exl3" || cfg.Runtime.ActiveBundle != "qwen27-exl3" {
+		t.Fatalf("EXL3 bundle was rejected: %+v", cfg.Runtime)
+	}
+	if cfg.Model.DefaultModel != "Qwen3.8-27B-Uncensored-EXL3-4bpw" || cfg.Model.ModelType != "qwen3.8-exl3" || cfg.Context.WindowTokens != 262144 {
+		t.Fatalf("EXL3 model profile was not applied: model=%+v context=%+v", cfg.Model, cfg.Context)
+	}
+}
+
 func TestNormalizeConstrainsModelSpecificReasoning(t *testing.T) {
 	for _, test := range []struct {
 		modelType string
@@ -163,6 +175,8 @@ func TestNormalizeConstrainsModelSpecificReasoning(t *testing.T) {
 		{"qwen3.8", "xhigh", "xhigh"},
 		{"qwen3.8", "high", "medium"},
 		{"qwen3.8", "on", "medium"},
+		{"qwen3.8-exl3", "none", "none"},
+		{"qwen3.8-exl3", "low", "on"},
 		{"gemma4", "xhigh", "on"},
 		{"gemma4", "none", "none"},
 		{"glm5.3", "none", "off"},

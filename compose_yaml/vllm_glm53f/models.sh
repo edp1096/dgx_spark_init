@@ -12,6 +12,7 @@ fi
 model_dir="${MODEL_HOST_PATH:-/home/edp1096/.cache/huggingface/glm53-exl3}"
 draft_dir="${DFLASH_HOST_PATH:-/home/edp1096/.cache/huggingface/glm53-dflash2-mxfp8}"
 cache_dir="${GLM53_CACHE_PATH:-/home/edp1096/.cache/glm53-vllm}"
+ablit_dir="${ABLIT_HOST_PATH:-/home/edp1096/.cache/huggingface/glm53-ablit-oproj}"
 worker_ip="${WORKER_LAN_IP:-}"
 worker_user="${WORKER_USER:-$(id -un)}"
 sync_host="${MODEL_SYNC_HOST:-$worker_ip}"
@@ -32,6 +33,14 @@ safe_path() {
 safe_path "$model_dir"
 safe_path "$draft_dir"
 safe_path "$cache_dir"
+safe_path "$ablit_dir"
+
+ablit_enabled() {
+  case "${ABLIT:-0}" in
+    1|true|TRUE|yes|YES|on|ON) return 0 ;;
+    *) return 1 ;;
+  esac
+}
 
 model_ok() {
   local dir=$1 count
@@ -47,8 +56,15 @@ draft_ok() {
   (( size >= 1000000000 ))
 }
 
+ablit_ok() {
+  local dir=$1 count
+  [[ -f "$dir/MANIFEST.json" ]] || return 1
+  count=$(find "$dir" -maxdepth 1 -type f -name 'L*.bin' | wc -l)
+  (( count >= 31 ))
+}
+
 download() {
-  mkdir -p "$model_dir" "$draft_dir" \
+  mkdir -p "$model_dir" "$draft_dir" "$ablit_dir" \
     "$cache_dir/jit/triton" "$cache_dir/jit/flashinfer" \
     "$cache_dir/jit/b12x" "$cache_dir/jit/vllm"
 
@@ -66,6 +82,13 @@ download() {
     echo "DFlash2 download incomplete: expected config.json and a >=1 GB model.safetensors" >&2
     exit 1
   }
+  if ablit_enabled; then
+    python3 "$script_dir/ablit/fetch_transplant.py" "$ablit_dir"
+    ablit_ok "$ablit_dir" || {
+      echo "o_proj donor download incomplete: expected MANIFEST.json and 31 tensors" >&2
+      exit 1
+    }
+  fi
   echo "Local checkpoints are complete."
 }
 
@@ -92,10 +115,17 @@ sync_models() {
     echo "Local DFlash2 checkpoint is incomplete; run '$0 download' first." >&2
     exit 1
   }
+  if ablit_enabled && ! ablit_ok "$ablit_dir"; then
+    echo "Local o_proj donor is incomplete; run '$0 download' first." >&2
+    exit 1
+  fi
   require_worker
 
   ssh "${ssh_opts[@]}" "$worker_target" \
     "mkdir -p '$model_dir' '$draft_dir' '$cache_dir/jit/triton' '$cache_dir/jit/flashinfer' '$cache_dir/jit/b12x' '$cache_dir/jit/vllm'"
+  if ablit_enabled; then
+    ssh "${ssh_opts[@]}" "$worker_target" "mkdir -p '$ablit_dir'"
+  fi
 
   # No --delete: interrupted transfers resume and unrelated worker files remain.
   rsync -a --partial --human-readable --info=progress2 \
@@ -104,15 +134,29 @@ sync_models() {
   rsync -a --partial --human-readable --info=progress2 \
     -e "ssh -o BatchMode=yes -o ConnectTimeout=10" \
     "$draft_dir/" "$worker_target:$draft_dir/"
+  if ablit_enabled; then
+    rsync -a --partial --human-readable --info=progress2 \
+      -e "ssh -o BatchMode=yes -o ConnectTimeout=10" \
+      "$ablit_dir/" "$worker_target:$ablit_dir/"
+  fi
 
   ssh "${ssh_opts[@]}" "$worker_target" \
     "test -f '$model_dir/config.json' && [ \$(find '$model_dir' -maxdepth 1 -name '*.safetensors' -type f | wc -l) -ge 120 ] && test -f '$draft_dir/config.json' && test \$(stat -c %s '$draft_dir/model.safetensors') -ge 1000000000"
+  if ablit_enabled; then
+    ssh "${ssh_opts[@]}" "$worker_target" \
+      "test -f '$ablit_dir/MANIFEST.json' && [ \$(find '$ablit_dir' -maxdepth 1 -type f -name 'L*.bin' | wc -l) -ge 31 ]"
+  fi
   echo "Worker checkpoints are complete at $sync_host."
 }
 
 status() {
   if model_ok "$model_dir"; then echo "local EXL3: complete"; else echo "local EXL3: missing/incomplete"; fi
   if draft_ok "$draft_dir"; then echo "local DFlash2: complete"; else echo "local DFlash2: missing/incomplete"; fi
+  if ablit_enabled; then
+    if ablit_ok "$ablit_dir"; then echo "local o_proj donor: complete"; else echo "local o_proj donor: missing/incomplete"; fi
+  else
+    echo "o_proj transplant: disabled"
+  fi
   [[ -n "$worker_ip" ]] || { echo "worker: WORKER_LAN_IP is not set"; return; }
   if ssh "${ssh_opts[@]}" "$worker_target" \
     "test -f '$model_dir/config.json' && [ \$(find '$model_dir' -maxdepth 1 -name '*.safetensors' -type f | wc -l) -ge 120 ]"; then
@@ -125,6 +169,14 @@ status() {
     echo "worker DFlash2: complete"
   else
     echo "worker DFlash2: unreachable or incomplete"
+  fi
+  if ablit_enabled; then
+    if ssh "${ssh_opts[@]}" "$worker_target" \
+      "test -f '$ablit_dir/MANIFEST.json' && [ \$(find '$ablit_dir' -maxdepth 1 -type f -name 'L*.bin' | wc -l) -ge 31 ]"; then
+      echo "worker o_proj donor: complete"
+    else
+      echo "worker o_proj donor: unreachable or incomplete"
+    fi
   fi
 }
 

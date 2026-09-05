@@ -37,8 +37,10 @@
   let ungroupedSessions = [];
   let sessionsByGroup = {};
   let collapsedGroups = {};
+  let foldersCollapsed = false;
   let activeId = '';
   let messages = [];
+  let messageSessionId = '';
   let reasoningOpen = {};
   let models = [];
   let selectedModel = '';
@@ -55,6 +57,7 @@
   let runtimeBusy = false;
   let sessionRuns = {};
   let messagePane;
+  let messageList;
   let sidebarOpen = true;
   let sidebarWidth = 260;
   let settingsOpen = false;
@@ -126,7 +129,12 @@
     loadMessages: listMessages,
     hydrate: hydrateMessages,
     onActive: (id) => { activeId = id; },
-    onMessages: (nextMessages) => { messages = nextMessages; scrollBottom(); },
+    onMessages: (nextMessages, sessionId) => {
+      const changedSession = messageSessionId !== sessionId;
+      messages = nextMessages;
+      messageSessionId = sessionId;
+      scrollBottom(changedSession);
+    },
     onRuns: (runs) => { sessionRuns = runs; },
     onError: (message) => { error = message; },
   });
@@ -192,6 +200,7 @@
     sidebarWidth = Number(localStorage.getItem('sparktalk.sidebar-width')) || 260;
     artifactPanelWidth = Number(localStorage.getItem('sparktalk.artifact-width')) || 560;
     try { collapsedGroups = JSON.parse(localStorage.getItem('sparktalk.collapsed-groups') || '{}'); } catch { collapsedGroups = {}; }
+    foldersCollapsed = localStorage.getItem('sparktalk.folders-collapsed') === 'true';
     systemThemeQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const syncSystemTheme = () => {
       if ((appearance?.theme || 'system') === 'system') applyTheme('system', false);
@@ -302,6 +311,11 @@
   function toggleGroup(id) {
     collapsedGroups = { ...collapsedGroups, [id]: !collapsedGroups[id] };
     localStorage.setItem('sparktalk.collapsed-groups', JSON.stringify(collapsedGroups));
+  }
+
+  function toggleFolders() {
+    foldersCollapsed = !foldersCollapsed;
+    localStorage.setItem('sparktalk.folders-collapsed', String(foldersCollapsed));
   }
 
   async function addGroup() {
@@ -451,25 +465,23 @@
     finally { contextLoading = false; }
   }
 
-  function jumpToMessage(messageId) {
+  async function jumpToMessage(messageId) {
     contextOpen = false;
-    requestAnimationFrame(() => document.querySelector(`[data-message-id="${messageId}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+    await messageList?.revealMessage(messageId);
   }
 
   async function openRecalledItem(item) {
     if (!item?.session_id || !item?.message_id) return;
     contextOpen = false;
     if (activeId !== item.session_id) await select(item.session_id);
-    await tick();
-    document.querySelector(`[data-message-id="${item.message_id}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    await messageList?.revealMessage(item.message_id);
   }
 
   async function openSearchResult(item) {
     if (!item?.session_id) return;
     if (activeId !== item.session_id) await select(item.session_id);
 	if (!item.message_id) return;
-    await tick();
-    document.querySelector(`[data-message-id="${item.message_id}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+	await messageList?.revealMessage(item.message_id);
   }
 
   function openSearchModal(query) {
@@ -961,7 +973,12 @@
     if (!messagePane) return;
     const nearBottom = messagePane.scrollHeight - messagePane.scrollTop - messagePane.clientHeight < 90;
     await tick();
-    if (force || nearBottom) messagePane.scrollTop = messagePane.scrollHeight;
+    if (force || nearBottom) {
+      const behavior = messagePane.style.scrollBehavior;
+      if (force) messagePane.style.scrollBehavior = 'auto';
+      messagePane.scrollTop = messagePane.scrollHeight;
+      if (force) requestAnimationFrame(() => { if (messagePane) messagePane.style.scrollBehavior = behavior; });
+    }
   }
 
   function toggleSidebar() {
@@ -1061,6 +1078,7 @@
       {sessionsByGroup}
       {ungroupedSessions}
       {collapsedGroups}
+      {foldersCollapsed}
       {activeId}
       {sessionRuns}
       assistantAvatar={appearance.assistant_avatar}
@@ -1068,6 +1086,7 @@
       onAddSession={addSession}
       onAddGroup={addGroup}
       onToggleGroup={toggleGroup}
+      onToggleFolders={toggleFolders}
       onEditGroup={editGroup}
       onReorderGroup={reorderGroup}
       onRemoveGroup={removeGroup}
@@ -1123,7 +1142,9 @@
       onRefreshRuntime={refreshRuntime}
     />
     <MessageList
+      bind:this={messageList}
       {messages}
+      {messageSessionId}
       {running}
       {retryingIndex}
       bind:reasoningOpen

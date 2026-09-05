@@ -113,7 +113,7 @@ func applyReasoningOptions(payload map[string]any, modelType, effort string) {
 		}
 		return
 	}
-	if modelType == "gemma4" {
+	if modelType == "gemma4" || modelType == "qwen3.8-exl3" {
 		payload["chat_template_kwargs"] = map[string]any{"enable_thinking": gemmaThinkingEnabled(effort)}
 		return
 	}
@@ -142,7 +142,7 @@ func NormalizeReasoningEffort(modelType, effort string) string {
 		default:
 			return "medium"
 		}
-	case "gemma4":
+	case "qwen3.8-exl3", "gemma4":
 		if gemmaThinkingEnabled(effort) {
 			return "on"
 		}

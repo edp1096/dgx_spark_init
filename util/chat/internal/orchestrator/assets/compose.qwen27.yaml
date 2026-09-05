@@ -1,7 +1,7 @@
 services:
   runtime:
-    image: dgx-sglang-qwen38-dflash2:2ef0fe4
-    container_name: sglang-qwen38
+    image: dgx-sglang-qwen38-27b-dflash2:2ef0fe4
+    container_name: sglang-qwen38-27b
     restart: unless-stopped
     init: true
     ipc: host

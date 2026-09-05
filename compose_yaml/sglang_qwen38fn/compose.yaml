@@ -1,0 +1,110 @@
+services:
+  sglang:
+    init: true
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SGLANG_PLE_COMMIT: 0977d22bb005695fef0aee4bc59adfab45b7a496
+        SPARK_RECIPE_COMMIT: 4f425ca561f767997738e894ee578673e79b01b1
+    image: dgx-sglang-qwen38fn:sm121
+    container_name: sglang-qwen38fn
+    ipc: host
+    shm_size: "16gb"
+    mem_limit: "112g"
+    memswap_limit: "112g"
+    cpuset: "5-9,15-19"
+    ports:
+      - "8000:30000"
+    environment:
+      HF_HOME: /hf
+      HF_HUB_OFFLINE: "1"
+      PYTHONUNBUFFERED: "1"
+      PYTORCH_CUDA_ALLOC_CONF: "expandable_segments:True"
+      TORCHINDUCTOR_CACHE_DIR: /root/.cache/sglang/inductor
+      MAX_JOBS: "1"
+      TORCHINDUCTOR_COMPILE_THREADS: "4"
+      SGLANG_QWEN4_PLE_FILE_RSS_BUDGET_GB: "8"
+    volumes:
+      - ${SPARKTALK_HF_CACHE:-/home/edp1096/.cache/huggingface}:/hf
+      - ${SPARKTALK_DATA_DIR:-/home/edp1096/.local/share/sparktalk}/cache/sglang-flash-next:/root/.cache/sglang
+      - ${SPARKTALK_DATA_DIR:-/home/edp1096/.local/share/sparktalk}/cache/sglang-flash-next/ple:/ple
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    entrypoint: ["python3", "-m", "sglang.launch_server"]
+    command:
+      - --model-path
+      - /hf/hub/models--dealignai--Qwen3.8-Flash-Next-ABLITERATED-NVFP4/snapshots/be794b990578ef3031eccf9f28e675a289a09ee9
+      - --served-model-name
+      - qwen3.8-flash-next
+      - --host
+      - 0.0.0.0
+      - --port
+      - "30000"
+      - --load-format
+      - auto
+      - --weight-loader-drop-cache-after-load
+      - --tp-size
+      - "1"
+      - --context-length
+      - "65536"
+      - --mem-fraction-static
+      - "0.79"
+      - --chunked-prefill-size
+      - "1024"
+      - --max-running-requests
+      - "2"
+      - --page-size
+      - "64"
+      - --cuda-graph-max-bs-decode
+      - "2"
+      - --prefill-attention-backend
+      - triton
+      - --decode-attention-backend
+      - trtllm_mha
+      - --quantization
+      - modelopt_fp4
+      - --fp4-gemm-backend
+      - flashinfer_cutlass
+      - --ple-offload-embedding
+      - --ple-offload-backend
+      - file
+      - --ple-offload-dir
+      - /ple
+      - --mamba-radix-cache-strategy
+      - extra_buffer
+      - --reasoning-parser
+      - qwen3
+      - --tool-call-parser
+      - qwen3_coder
+      - --mm-feature-transport
+      - cpu
+      - --speculative-algorithm
+      - NEXTN
+      - --speculative-num-steps
+      - "3"
+      - --speculative-eagle-topk
+      - "1"
+      - --speculative-num-draft-tokens
+      - "4"
+      - --speculative-draft-model-quantization
+      - unquant
+      - --allow-auto-truncate
+      - --disable-flashinfer-autotune
+      - --enable-metrics
+    healthcheck:
+      test:
+        - CMD
+        - python3
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:30000/health', timeout=5)"
+      interval: 15s
+      timeout: 10s
+      retries: 80
+      start_period: 15m
+    restart: unless-stopped

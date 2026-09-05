@@ -1,12 +1,15 @@
 <script>
+  import { onDestroy, tick } from 'svelte';
   import DOMPurify from 'dompurify';
   import 'katex/dist/katex.min.css';
   import { parseMarkdown } from '../lib/markdown.js';
   import { artifactsFromMessage } from '../lib/artifacts.js';
   import Avatar from './Avatar.svelte';
   import MediaAttachments from './MediaAttachments.svelte';
+  import { initialMessageStart, messageWindowAround, shiftedMessageWindow } from '../lib/message-window.js';
 
   export let messages = [];
+  export let messageSessionId = '';
   export let running = false;
   export let retryingIndex = -1;
   export let reasoningOpen = {};
@@ -32,6 +35,149 @@
   export let onRemember = () => {};
   export let rememberingId = 0;
   export let rememberedIds = [];
+
+  let windowSessionId = null;
+  let windowMessageCount = 0;
+  let visibleStart = 0;
+  let visibleEnd = 0;
+  let visibleMessages = [];
+  let topSpacerHeight = 0;
+  let bottomSpacerHeight = 0;
+  let heightCache = {};
+  let averageMessageHeight = 220;
+  let shiftingWindow = false;
+  let scrollFrame = 0;
+  let armFrame = 0;
+  let windowReady = false;
+
+  function armWindowScrolling() {
+    windowReady = false;
+    cancelAnimationFrame(armFrame);
+    armFrame = requestAnimationFrame(() => {
+      armFrame = requestAnimationFrame(() => { windowReady = true; });
+    });
+  }
+
+  $: if (messageSessionId !== windowSessionId) {
+    windowSessionId = messageSessionId;
+    windowMessageCount = messages.length;
+    heightCache = {};
+    averageMessageHeight = 220;
+    visibleStart = initialMessageStart(messages.length);
+    visibleEnd = messages.length;
+    armWindowScrolling();
+  } else if (messages.length !== windowMessageCount) {
+    const previousCount = windowMessageCount;
+    windowMessageCount = messages.length;
+    if (previousCount === 0 && messages.length > 0) {
+      visibleStart = initialMessageStart(messages.length);
+      visibleEnd = messages.length;
+      armWindowScrolling();
+    } else {
+      if (visibleEnd >= previousCount) visibleEnd = messages.length;
+      else visibleEnd = Math.min(visibleEnd, messages.length);
+      visibleStart = Math.min(visibleStart, Math.max(0, visibleEnd - 1));
+    }
+  }
+  $: visibleMessages = messages.slice(visibleStart, visibleEnd);
+  $: topSpacerHeight = estimatedRangeHeight(0, visibleStart);
+  $: bottomSpacerHeight = estimatedRangeHeight(visibleEnd, messages.length);
+
+  function messageKey(message, index) {
+    return message?.id ? `id:${message.id}` : `pending:${messageSessionId}:${index}:${message?.role || ''}`;
+  }
+
+  function estimatedRangeHeight(start, end) {
+    let result = 0;
+    for (let index = start; index < end; index += 1) {
+      result += heightCache[messageKey(messages[index], index)] || averageMessageHeight;
+    }
+    return result;
+  }
+
+  function measureRenderedMessages() {
+    if (!element) return;
+    const measured = { ...heightCache };
+    const samples = [];
+    for (const article of element.querySelectorAll('article[data-message-index]')) {
+      const index = Number(article.dataset.messageIndex);
+      const style = getComputedStyle(article);
+      const height = article.getBoundingClientRect().height
+        + Number.parseFloat(style.marginTop || 0) + Number.parseFloat(style.marginBottom || 0);
+      if (height > 0) {
+        measured[messageKey(messages[index], index)] = height;
+        samples.push(Math.min(height, 800));
+      }
+    }
+    if (samples.length) averageMessageHeight = Math.max(100, samples.reduce((sum, value) => sum + value, 0) / samples.length);
+    heightCache = measured;
+  }
+
+  function viewportAnchor() {
+    if (!element) return null;
+    const paneTop = element.getBoundingClientRect().top;
+    const articles = [...element.querySelectorAll('article[data-message-index]')];
+    const article = articles.find((item) => item.getBoundingClientRect().bottom > paneTop) || articles[0];
+    if (!article) return null;
+    return { index: Number(article.dataset.messageIndex), offset: article.getBoundingClientRect().top - paneTop };
+  }
+
+  async function setMessageWindow(next, preserveAnchor = true) {
+    if (!next || shiftingWindow || (next.start === visibleStart && next.end === visibleEnd)) return;
+    shiftingWindow = true;
+    measureRenderedMessages();
+    const anchor = preserveAnchor ? viewportAnchor() : null;
+    visibleStart = next.start;
+    visibleEnd = next.end;
+    await tick();
+    if (anchor && anchor.index >= visibleStart && anchor.index < visibleEnd) {
+      const article = element?.querySelector(`article[data-message-index="${anchor.index}"]`);
+      if (article) {
+        const paneTop = element.getBoundingClientRect().top;
+        const behavior = element.style.scrollBehavior;
+        element.style.scrollBehavior = 'auto';
+        element.scrollTop += article.getBoundingClientRect().top - paneTop - anchor.offset;
+        element.style.scrollBehavior = behavior;
+      }
+    }
+    shiftingWindow = false;
+  }
+
+  function updateWindowForScroll() {
+    if (!element || shiftingWindow || !windowReady) return;
+    const preload = Math.max(500, element.clientHeight * 0.75);
+    if (visibleStart > 0 && element.scrollTop < topSpacerHeight + preload) {
+      setMessageWindow(shiftedMessageWindow(messages.length, visibleStart, visibleEnd, 'previous'));
+      return;
+    }
+    const renderedBottom = element.scrollHeight - bottomSpacerHeight;
+    if (visibleEnd < messages.length && element.scrollTop + element.clientHeight > renderedBottom - preload) {
+      setMessageWindow(shiftedMessageWindow(messages.length, visibleStart, visibleEnd, 'next'));
+    }
+  }
+
+  function handleScroll() {
+    if (scrollFrame) return;
+    scrollFrame = requestAnimationFrame(() => {
+      scrollFrame = 0;
+      updateWindowForScroll();
+    });
+  }
+
+  export async function revealMessage(messageId) {
+    const targetIndex = messages.findIndex((message) => String(message.id) === String(messageId));
+    if (targetIndex < 0) return false;
+    if (targetIndex < visibleStart || targetIndex >= visibleEnd) {
+      await setMessageWindow(messageWindowAround(messages.length, targetIndex), false);
+    }
+    element?.querySelector(`[data-message-id="${CSS.escape(String(messageId))}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return true;
+  }
+
+  onDestroy(() => {
+    if (scrollFrame) cancelAnimationFrame(scrollFrame);
+    if (armFrame) cancelAnimationFrame(armFrame);
+  });
 
   function replySpeechKey(message) {
     return `${message?.id || 'pending'}:${message?.variant_index ?? 0}`;
@@ -208,13 +354,15 @@
   }
 </script>
 
-<section class="messages" bind:this={element} use:codeCardActions>
+<section class="messages" bind:this={element} use:codeCardActions onscroll={handleScroll}>
   {#if !messages.length}
     <div class="welcome"><div class="mark large"><Avatar value={assistantAvatar} alt="SparkTalk" /></div><h1>무엇을 도와드릴까요?</h1><p>메시지를 보내세요.</p></div>
   {/if}
-  {#each messages as message, index}
+  {#if topSpacerHeight > 0}<div class="message-virtual-spacer" style:height={`${topSpacerHeight}px`} aria-hidden="true"></div>{/if}
+  {#each visibleMessages as message, offset (message.id || `pending-${visibleStart + offset}`)}
+    {@const index = visibleStart + offset}
     {@const messageArtifacts = artifactsFromMessage(message, index)}
-    <article class:mine={message.role === 'user'} class:message-failed={message.status === 'failed'} class:message-cancelled={message.status === 'cancelled'} data-message-id={message.id || ''}>
+    <article class:mine={message.role === 'user'} class:message-failed={message.status === 'failed'} class:message-cancelled={message.status === 'cancelled'} data-message-id={message.id || ''} data-message-index={index}>
       <div class="avatar"><Avatar value={message.role === 'user' ? userAvatar : assistantAvatar} fallback={message.role === 'user' ? 'person-blue' : 'spark'} alt={message.role === 'user' ? '나' : 'AI'} /></div>
       <div class="message-body">
         {#if message.reasoning_content}
@@ -340,4 +488,5 @@
       </div>
     </article>
   {/each}
+  {#if bottomSpacerHeight > 0}<div class="message-virtual-spacer" style:height={`${bottomSpacerHeight}px`} aria-hidden="true"></div>{/if}
 </section>

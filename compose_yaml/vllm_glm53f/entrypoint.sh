@@ -34,6 +34,16 @@ fi
   exit 2
 }
 
+case "${ABLIT:-0}" in
+  1|true|TRUE|yes|YES|on|ON)
+    [[ -f /opt/glm53/ablit/MANIFEST.json ]] || {
+      echo "ABLIT=1 but donor tensors are missing; run ./manage.sh setup on the head." >&2
+      exit 2
+    }
+    python3 /opt/glm53/ablit-code/patch_ablit.py
+    ;;
+esac
+
 args=(
   vllm serve /models/glm53-exl3
   --served-model-name glm-5.3-flash

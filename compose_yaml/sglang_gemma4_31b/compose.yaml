@@ -1,0 +1,103 @@
+services:
+  sglang:
+    init: true
+    build:
+      context: .
+      dockerfile: Dockerfile.dflash
+      args:
+        SGLANG_COMMIT: 2ef0fe46693d1b88271943de5eb49a2848a512d8
+    image: dgx-sglang-gemma4-31b-dflash:2ef0fe4
+    container_name: sglang-gemma4-31b
+    ipc: host
+    shm_size: "16gb"
+    mem_limit: "100g"
+    memswap_limit: "100g"
+    cpuset: "5-9,15-19"
+    ports:
+      - "8000:30000"
+    environment:
+      PYTHONUNBUFFERED: "1"
+      HF_XET_HIGH_PERFORMANCE: "1"
+      PYTORCH_CUDA_ALLOC_CONF: "expandable_segments:True"
+      TORCHINDUCTOR_CACHE_DIR: "/root/.cache/sglang/inductor"
+      # SGLang currently initializes the strict-thinking token filter only
+      # when a non-negative global ceiling exists. Per-request budgets replace
+      # this value; 65536 is therefore the effective unlimited/context ceiling.
+      SGLANG_MAX_THINK_TOKENS: "65536"
+    volumes:
+      - "/home/edp1096/.cache/huggingface:/root/.cache/huggingface"
+      - "/home/edp1096/.cache/sglang-gemma4:/root/.cache/sglang"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    entrypoint: ["python3", "-m", "sglang.launch_server"]
+    command:
+      - --model-path
+      - lyf/Huihui-gemma-4-31B-it-abliterated-v2-NVFP4
+      - --revision
+      - 985633e8001d0bfd9b621738234394744b992907
+      - --served-model-name
+      - Huihui-gemma-4-31B-it-abliterated-v2-NVFP4
+      - --trust-remote-code
+      - --host
+      - 0.0.0.0
+      - --port
+      - "30000"
+      - --tp-size
+      - "1"
+      - --context-length
+      - "65536"
+      - --mem-fraction-static
+      - "0.55"
+      - --attention-backend
+      - triton
+      - --chunked-prefill-size
+      - "8192"
+      - --disable-prefill-cuda-graph
+      - --cuda-graph-max-bs-decode
+      - "2"
+      - --kv-cache-dtype
+      - fp8_e4m3
+      - --speculative-draft-kv-cache-dtype
+      - fp8_e4m3
+      - --tool-call-parser
+      - gemma4
+      - --reasoning-parser
+      - gemma4
+      - --chat-template
+      - /opt/gemma4/chat_template.jinja
+      - --enable-strict-thinking
+      - --mm-feature-transport
+      - cpu
+      - --speculative-algorithm
+      - DFLASH
+      - --speculative-draft-model-path
+      - z-lab/gemma-4-31B-it-DFlash
+      - --speculative-draft-model-revision
+      - eabd648301ce28583cc14757912e5e0f84e152e1
+      - --speculative-dflash-block-size
+      - "7"
+      - --speculative-draft-model-quantization
+      - unquant
+      - --max-running-requests
+      - "2"
+      - --skip-server-warmup
+      - --num-continuous-decode-steps
+      - "2"
+      - --sleep-on-idle
+      - --enable-metrics
+    healthcheck:
+      test:
+        - CMD
+        - python3
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:30000/health', timeout=5)"
+      interval: 15s
+      timeout: 10s
+      retries: 80
+      start_period: 15m
+    restart: unless-stopped

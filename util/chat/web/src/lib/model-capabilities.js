@@ -8,6 +8,9 @@ export function modelCapabilities(modelType) {
   if (type === 'gemma4') {
     return { family: 'gemma4', reasoning: 'toggle', reasoningLevels: ['on', 'none'] };
   }
+  if (type === 'qwen3.8-exl3') {
+    return { family: 'qwen3.8-exl3', reasoning: 'toggle', reasoningLevels: ['on', 'none'] };
+  }
   if (type === 'qwen3.8') {
     return { family: 'qwen3.8', reasoning: 'effort', reasoningLevels: QWEN_REASONING_LEVELS };
   }
@@ -31,7 +34,7 @@ export function normalizeReasoningEffort(modelType, value) {
     if (THINKING_OFF_VALUES.has(normalized)) return 'off';
     return profile.reasoningLevels.includes(normalized) ? normalized : 'max';
   }
-  if (profile.family === 'gemma4') return thinkingToggleValue(normalized);
+  if (profile.reasoning === 'toggle') return thinkingToggleValue(normalized);
   return String(value || '').trim();
 }
 
