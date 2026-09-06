@@ -256,6 +256,11 @@ func (c *Controller) CheckBundleStart(ctx context.Context, bundleID string, rese
 }
 
 func (c *Controller) checkBundleStart(ctx context.Context, bundle Bundle, reserveGiB float64) error {
+	for _, component := range c.Catalog().BundleComponents(bundle.ID) {
+		if err := c.CheckAutoCluster(component); err != nil {
+			return err
+		}
+	}
 	plan := c.bundleMemoryPlan(ctx, bundle)
 	if err := validateMemoryHeadroom(readSystemMemory(), plan, c.localMemoryReserve(bundle, reserveGiB)); err != nil {
 		return err

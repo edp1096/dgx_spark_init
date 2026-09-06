@@ -6,6 +6,25 @@
   let selected = initialSelection;
   let choosingServices = false;
   let selectedHost = 'local';
+  let discovering = false;
+  let networkResult = null;
+  let chosenWorker = '';
+  function networkEnabled(enabled) {
+    catalog.network = { ...catalog.network, enabled };
+    catalog = catalog;
+  }
+  async function discoverNetwork() {
+    discovering = true;
+    try {
+      networkResult = await request('/api/runtime/network/discover', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({catalog, worker_id:chosenWorker}) });
+      if (networkResult.catalog) {
+        catalog = networkResult.catalog;
+        chosenWorker = catalog.network.worker_id;
+        message = '탐색한 장비와 자동 주소를 반영했습니다. 저장하면 적용됩니다.';
+      } else { message = networkResult.error || '워커를 선택하세요.'; }
+    } catch (error) { message=error.message; }
+    finally { discovering=false; }
+  }
   $: if (!catalog?.hosts?.[selectedHost]) selectedHost = catalog?.hosts?.local ? 'local' : Object.keys(catalog?.hosts || {})[0] || '';
   let probeResults = {};
   let resultBundle = selected;
@@ -137,6 +156,9 @@
       <details class="service-card">
         <summary><span class="service-summary"><strong>{component.name}</strong><small>{component.endpoint}</small></span><span class="host-badge">{component.host === 'local' ? '로컬' : component.host}</span></summary>
         <div class="service-connection">
+          {#if component.controller !== 'external'}
+            <label class="check"><input type="checkbox" checked={component.auto_address ?? false} onchange={(event) => updateDeployment(component.id, 'auto_address', event.currentTarget.checked)} /> 헤드·워커 주소 자동 연동</label>
+          {/if}
           <label>실행 호스트<select value={component.host ?? ""} oninput={(event) => updateDeployment(component.id, "host", event.currentTarget.value)}>{#each Object.keys(catalog.hosts) as host}<option value={host}>{host === 'local' ? '로컬 · 이 컴퓨터' : host}</option>{/each}</select></label>
           <label>API 주소<input value={component.endpoint ?? ""} oninput={(event) => updateDeployment(component.id, "endpoint", event.currentTarget.value)} placeholder="http://서버:포트" /></label>
           <label>상태 확인 URL<input value={component.health_url ?? ""} oninput={(event) => updateDeployment(component.id, "health_url", event.currentTarget.value)} /></label>
@@ -163,7 +185,10 @@
             <label>공통 Compose 레시피<input value={component.compose_asset} onchange={(event) => updateDefinition(component.id, "compose_asset", event.currentTarget.value)} placeholder="compose.extra-collector.yaml" /></label>
             <label>서버 바인딩 주소<input value={component.bind_address ?? ""} oninput={(event) => updateDeployment(component.id, "bind_address", event.currentTarget.value)} placeholder="127.0.0.1" /></label>
             <label>서버 공개 포트<input type="number" min="0" max="65535" value={component.port ?? ""} oninput={(event) => updateDeployment(component.id, "port", Number(event.currentTarget.value))} placeholder="0: 레시피 기본값" /></label>
-            {#if ['compose.qwen27-exl3.yaml', 'compose.flash-next-exl3.yaml'].includes(component.compose_asset)}
+            {#if component.compose_asset === 'compose.flash-next.yaml'}
+              <label>초안 어휘<select value={component.runtime_options?.DRAFT_VOCAB ?? 'ko64k'} oninput={(event) => updateDeployment(component.id, "runtime_options", {...component.runtime_options, DRAFT_VOCAB:event.currentTarget.value})}><option value="ko64k">한국어 포함 64K (기본)</option><option value="off">전체 어휘</option></select><small>초안 생성 속도를 높이는 설정입니다. 변경 후 서비스를 다시 시작해야 합니다.</small></label>
+            {/if}
+            {#if ['compose.qwen27.yaml', 'compose.qwen27-exl3.yaml', 'compose.flash-next-exl3.yaml'].includes(component.compose_asset)}
               <label>가중치<select value={component.runtime_options?.MODEL_VARIANT ?? 'abliterated'} oninput={(event) => updateDeployment(component.id, "runtime_options", {...component.runtime_options, MODEL_VARIANT:event.currentTarget.value})}>{#if component.compose_asset !== 'compose.qwen27-exl3.yaml'}<option value="official">공식 원본</option>{/if}<option value="abliterated">Abliterated / Uncensored</option></select></label>
             {/if}
           {:else if ['glm53-cluster', 'dspark-cluster'].includes(component.controller)}
@@ -187,6 +212,19 @@
   {/if}
   <details class="host-editor">
     <summary>실행 호스트 편집</summary>
+    <label class="check"><input type="checkbox" checked={catalog.network?.enabled ?? false} onchange={(event) => networkEnabled(event.currentTarget.checked)} /> 이 컴퓨터를 헤드로 사용하고 워커 자동 탐색</label>
+    {#if catalog.network?.enabled}
+      <small>앱 시작과 세트 기동 시 장비 ID·SSH·QSFP를 확인합니다. 주소 자동 연동을 켠 서비스에 적용되며 외부 서비스는 유지됩니다.</small>
+      <div class="network-actions">
+        <button type="button" disabled={discovering} onclick={discoverNetwork}>{discovering ? '장비 확인 중…' : '워커 탐색 · 주소 맞추기'}</button>
+        {#if networkResult?.candidates?.length}
+          <label>워커 장비<select aria-label="워커 장비" bind:value={chosenWorker}><option value="">자동 선택</option>{#each networkResult.candidates as node}<option value={node.id}>{node.hostname} · {node.address}</option>{/each}</select></label>
+        {/if}
+      </div>
+      {#if networkResult?.local}<small>현재 헤드: {networkResult.local.hostname} · {networkResult.local.address || '이 컴퓨터'}</small>{/if}
+      {#if catalog.network.last_error}<p role="status">{catalog.network.last_error}</p>{/if}
+      {#each networkResult?.warnings || [] as warning}<small>{warning}</small>{/each}
+    {/if}
     <small>주소를 비우면 SparkTalk 호스트에서 실행합니다. 원격 호스트는 앱 실행 계정의 SSH 키와 known_hosts를 사용합니다. Extra SSH 서비스와는 별도 연결입니다.</small>
     <div class="host-selection">
       <label>편집할 실행 호스트<select bind:value={selectedHost}>{#each Object.keys(catalog.hosts) as id}<option value={id}>{id === 'local' ? '로컬 (local)' : id === 'worker' ? '워커 (worker)' : id}</option>{/each}</select></label>
@@ -217,6 +255,8 @@
 {/if}
 
 <style>
+  .network-actions { display: flex; align-items: end; gap: 8px; flex-wrap: wrap; }
+  .network-actions button { align-self: flex-end; }
   .set-editor { min-width: 0; }
   .set-editor details { border: 1px solid #80808040; border-radius: 9px; padding: 10px 12px; margin: 0; min-width: 0; }
   .set-editor summary { cursor: pointer; overflow-wrap: anywhere; font-size: 13px; }

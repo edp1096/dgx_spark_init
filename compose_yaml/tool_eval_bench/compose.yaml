@@ -1,0 +1,27 @@
+name: tool-eval-bench
+services:
+  bench:
+    image: local/tool-eval-bench:${BENCH_REVISION:?use manage.sh or load upstream.env}
+    build:
+      context: ./upstream
+      args:
+        EXTRAS: perf,hf
+    user: "${LOCAL_UID:?set LOCAL_UID}:${LOCAL_GID:?set LOCAL_GID}"
+    network_mode: host
+    init: true
+    restart: "no"
+    working_dir: /app
+    entrypoint: ["python3", "/app/bench-entrypoint.py"]
+    env_file: .env
+    environment:
+      HOME: /app/cache
+      HF_HOME: /app/cache/huggingface
+      XDG_CACHE_HOME: /app/cache
+    volumes:
+      - ./bench-entrypoint.py:/app/bench-entrypoint.py:ro
+      - ./reports.py:/app/reports.py:ro
+      - ./runs:/app/runs
+      - ./data:/app/data
+      - ./cache:/app/cache
+      - ${BENCH_MODEL_DIR:-/tmp}:/models:ro
+    command: ["run", "--hardmode", "--seed", "42", "--trials", "3"]

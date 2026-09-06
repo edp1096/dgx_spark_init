@@ -165,11 +165,17 @@ func (c *Controller) stopComponent(ctx context.Context, component Component) err
 }
 
 func (c *Controller) startComponent(ctx context.Context, component Component) error {
+	if err := c.CheckAutoCluster(component); err != nil {
+		return err
+	}
 	if component.Controller == "external" {
 		return nil
 	}
 	host := c.host(component.Host)
 	if component.isCluster() {
+		if err := c.ensureAutoRail(ctx, component); err != nil {
+			return err
+		}
 
 		workerComponent := Component{Host: component.WorkerHost, Container: component.WorkerContainer}
 		if c.componentRunning(ctx, component) || c.componentRunning(ctx, workerComponent) {
@@ -194,6 +200,15 @@ func (c *Controller) startComponent(ctx context.Context, component Component) er
 		}
 	}
 	service["container_name"] = component.Container
+	if component.ComposeAsset == "compose.flash-next.yaml" {
+		mode := component.RuntimeOptions["DRAFT_VOCAB"]
+		if mode != "" && mode != "off" && mode != "ko64k" {
+			return fmt.Errorf("Flash-Next DRAFT_VOCAB must be off or ko64k")
+		}
+		if mode != "" {
+			service["environment"].(map[string]any)["SPARKTALK_FLASH_NEXT_DRAFT_VOCAB"] = mode
+		}
+	}
 	if recipeID(component) == "flash-next-exl3" && component.RuntimeOptions["MODEL_VARIANT"] == "official" {
 		if environment, ok := service["environment"].(map[string]any); ok {
 			environment["EXL3_ABLIT_LAMBDA"] = "0"
@@ -226,6 +241,13 @@ func (c *Controller) startComponent(ctx context.Context, component Component) er
 			env = append(env, "SPARKTALK_HF_CACHE="+path)
 		}
 	}
+	if component.ComposeAsset == "compose.qwen27.yaml" {
+		variant := component.RuntimeOptions["MODEL_VARIANT"]
+		if variant == "" {
+			variant = "abliterated"
+		}
+		env = append(env, "SPARKTALK_QWEN27_MODEL_DIR="+c.qwen27ModelPath(ctx, component, variant))
+	}
 	if component.BindAddress != "" {
 		env = append(env, "SPARKTALK_BIND_ADDR="+component.BindAddress)
 	}
@@ -255,6 +277,14 @@ func (c *Controller) startComponent(ctx context.Context, component Component) er
 		return err
 	}
 	configPath := filepath.Join(directory, "compose.yaml")
+	if buildAsset := embeddedBuildAsset(component.ComposeAsset); buildAsset != "" {
+		buildDir := filepath.Join(directory, "build")
+		if err := materializeBuildAssets(ctx, host, buildAsset, buildDir); err != nil {
+			return err
+		}
+		env = append(env, "SPARKTALK_BUILD_DIR="+buildDir)
+	}
+
 	renderArgs := append(append([]string{}, env...), "docker", "compose", "-p", "sparktalk-"+component.ID, "-f", "-", "config")
 	command := hostCommand(ctx, host, renderArgs...)
 	command.Stdin = bytes.NewReader(data)
@@ -269,6 +299,14 @@ func (c *Controller) startComponent(ctx context.Context, component Component) er
 	}
 	// Recreate a stopped/unhealthy named container using the edited recipe,
 	// including one originally created under another Compose project.
+	if embeddedBuildAsset(component.ComposeAsset) != "" {
+		image := service["image"].(string)
+		if _, err := executeHost(ctx, host, nil, "docker", "image", "inspect", image); err != nil {
+			if _, err := executeHost(ctx, host, nil, "docker", "compose", "-p", "sparktalk-"+component.ID, "-f", configPath, "build", "runtime"); err != nil {
+				return fmt.Errorf("build embedded runtime: %w", err)
+			}
+		}
+	}
 	state, inspectErr := c.inspectComponent(ctx, component)
 	if inspectErr == nil {
 		if state == "running" {

@@ -1,6 +1,10 @@
 services:
   runtime:
-    image: dgx-sglang-qwen38-fn:sm121
+    image: dgx-sglang-qwen38-fn:sm121-vocab1
+    build:
+      context: ${SPARKTALK_BUILD_DIR:?Embedded build assets required}
+      dockerfile: Dockerfile
+    pull_policy: never
     container_name: sglang-qwen38-fn
     restart: unless-stopped
     init: true
@@ -19,12 +23,13 @@ services:
       MAX_JOBS: "1"
       TORCHINDUCTOR_COMPILE_THREADS: "4"
       SGLANG_QWEN4_PLE_FILE_RSS_BUDGET_GB: "8"
+      SPARKTALK_FLASH_NEXT_DRAFT_VOCAB: "ko64k"
     volumes:
       - ${SPARKTALK_HF_CACHE:-/home/edp1096/.cache/huggingface}:/hf
       - ${SPARKTALK_DATA_DIR:-/home/edp1096/.local/share/sparktalk}/cache/sglang-flash-next:/root/.cache/sglang
       - ${SPARKTALK_DATA_DIR:-/home/edp1096/.local/share/sparktalk}/cache/sglang-flash-next/ple:/ple
     gpus: all
-    entrypoint: ["python3", "-m", "sglang.launch_server"]
+    entrypoint: ["python3", "/opt/sparktalk-flash-next/launch.py"]
     command:
       - --model-path
       - /hf/hub/models--dealignai--Qwen3.8-Flash-Next-ABLITERATED-NVFP4/snapshots/be794b990578ef3031eccf9f28e675a289a09ee9

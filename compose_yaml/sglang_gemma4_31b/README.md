@@ -1,5 +1,8 @@
 # SGLang Gemma 4 31B NVFP4 + DFlash
 
+도구 호출 번호 중복 버그는 SGLang PR #25075 (`a6020796`)를 반영해 수정했다.
+`Dockerfile.dflash` 빌드에 포함되며, 기존 이미지에는 `Dockerfile.patch`로 적용할 수 있다.
+
 DGX Spark에서 다음 조합을 SparkTalk용 OpenAI 호환 API로 실행한다.
 
 - Target: `lyf/Huihui-gemma-4-31B-it-abliterated-v2-NVFP4`

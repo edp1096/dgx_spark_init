@@ -148,6 +148,12 @@ func (s *Server) configuration(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
+		if next.Runtime.Mode == "managed" && next.Runtime.Catalog != nil && next.Runtime.Catalog.Network != nil && next.Runtime.Catalog.Network.Enabled && !reflect.DeepEqual(old.Runtime.Catalog, next.Runtime.Catalog) {
+			if err := resolveAutoNetwork(r.Context(), &next); err != nil {
+				http.Error(w, err.Error(), http.StatusConflict)
+				return
+			}
+		}
 		save := func() error { return config.Save(s.configPath, next) }
 		var saveErr error
 		if next.Runtime.Catalog != nil && !reflect.DeepEqual(old.Runtime.Catalog, next.Runtime.Catalog) {

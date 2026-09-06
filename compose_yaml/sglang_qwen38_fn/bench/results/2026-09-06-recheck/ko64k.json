@@ -1,0 +1,610 @@
+{
+  "url": "http://127.0.0.1:8000",
+  "started": "2026-09-06T17:49:23+0900",
+  "rows": [
+    {
+      "name": "ko_explain",
+      "repeat": 0,
+      "prompt": "리눅스에서 프로세스와 스레드의 차이를 한국어로 설명해 주세요. 메모리 공유와 오류 격리, 웹 서버 예시를 포함해 충분히 설명하세요.",
+      "content": "리눅스 환경에서 **프로세스(Process)**와 **스레드(Thread)**는 모두 프로그램이 실행되는 단위이지만, 메모리 관리 방식과 자원 공유 범위에서 명확한 차이가 있습니다. 아래에 핵심 차이점을 메모리 공유, 오류 격리, 그리고 웹 서버 예시를 중심으로 상세히 설명하겠습니다.\n\n---\n\n### 1. 기본 개념 및 메모리 공유 방식\n\n#### **프로세스 (Process)**\n*   **정의**: 독립적인 실행 단위입니다. 각 프로세스는 고유한 메모리 공간(Heap, Stack, Data Segment 등)을 가집니다.\n*   **메모리 공유**: 기본적으로 프로세스 간에는 메모리가 공유되지 않습니다. 각 프로세스는 자신만의 주소 공간을 가지며, 다른 프로세스의 메모리에 직접 접근하려면 IPC(Inter-Process Communication, 예: Pipe, Shared Memory, Socket)를 통해 데이터를 전달해야 합니다.\n*   **특징**: 컨텍스트 스위치(Context Switch) 비용이 상대적으로 높지만, 각 프로세스가 독립적이므로 안정성이 높습니다.\n\n#### **스레드 (Thread)**\n*   **정의**: 프로세스 내에서 실행되는 더 가벼운 실행 단위입니다. 하나의 프로세스는",
+      "reasoning": "",
+      "tool_calls": [],
+      "usage": {
+        "prompt_tokens": 48,
+        "total_tokens": 304,
+        "completion_tokens": 256,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "finish": "length",
+      "ttft_s": 0.293690849000086,
+      "elapsed_s": 8.870260284999858,
+      "decode_tok_s": 29.734666530244436
+    },
+    {
+      "name": "ko_plan",
+      "repeat": 0,
+      "prompt": "작은 도서관의 도서 대출 프로그램을 설계하려고 합니다. 회원 등록, 대출, 반납, 연체 처리와 데이터베이스 테이블을 한국어로 설명해 주세요.",
+      "content": "# 작은 도서관 도서 대출 프로그램 설계\n\n## 1. 시스템 개요\n\n작은 규모의 도서관을 위한 경량화된 도서 대출 관리 시스템으로, 회원 등록부터 대출·반납·연체 처리까지의 핵심 워크플로우를 간결하게 설계합니다.\n\n---\n\n## 2. 데이터베이스 테이블 설계\n\n### 2.1 회원 테이블 (`members`)\n\n| 컬럼명 | 타입 | 설명 | 제약 |\n|--------|------|------|------|\n| `member_id` | INT | 회원 고유 번호 | PRIMARY KEY, AUTO_INCREMENT |\n| `name` | VARCHAR(50) | 회원 이름 | NOT NULL |\n| `phone` | VARCHAR(20) | 연락처 | UNIQUE |\n| `email` | VARCHAR(100) | 이메일 | UNIQUE |\n| `registered_at` | DATETIME | 등록일시 | DEFAULT CURRENT_TIMESTAMP |\n| `status` | ENUM('active','inactive') | 회원 상태 | DEFAULT 'active' |\n\n```sql\nCREATE TABLE members (\n    member_id   INT AUTO_INCREMENT PRIMARY KEY,\n    name        VARCHAR(50)   NOT NULL,\n    phone       VARCHAR(20)   UNIQUE,\n    email       VARCHAR",
+      "reasoning": "",
+      "tool_calls": [],
+      "usage": {
+        "prompt_tokens": 45,
+        "total_tokens": 301,
+        "completion_tokens": 256,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "finish": "length",
+      "ttft_s": 0.21338373099979435,
+      "elapsed_s": 7.568571247999898,
+      "decode_tok_s": 34.672613342015616
+    },
+    {
+      "name": "ko_story",
+      "repeat": 0,
+      "prompt": "비 오는 날 오래된 서점에서 우연히 자신의 이름이 적힌 편지를 발견한 사람의 이야기를 한국어로 써 주세요. 대화와 구체적인 묘사를 포함하세요.",
+      "content": "오후 세 시, 하늘은 회색빛 구름으로 낮게 깔려 있었다. 창밖으로 떨어지는 빗방울이 유리창을 타고 흘러내리며 흐릿한 풍경을 만들어내고 있었다. 나는 습기 찬 공기가 가득한 오래된 서점 '시간의 서가' 문을 밀고 들어섰다. 나무 바닥이 삐걱거리는 소리와 함께 종이와 잉크, 그리고 오래된 목재 특유의 고요한 냄새가 코끝을 스쳤다.\n\n서점 안은 조명이 어두웠지만, 그 어둠이 오히려 마음을 차분하게 가라앉혔다. 나는 가장 안쪽 구석, 역사서들이 진열된 선반 앞에 멈춰 섰다. 손가락으로 책등을 하나하나 훑어보며 다음으로 읽을 책을 고르던 중, 한 권의 두꺼운 하드커버 책 사이에서 하얀 봉투 하나가 삐죽이 튀어나와 있었다.\n\n봉투는 시간이 지나 약간 누렇게 변색되어 있었지만, 그 위에 적힌 글씨는 놀라울 정도로 선명했다. 나는 호기심에 봉투를 꺼내 들었다. 봉투 앞면에는 검은 잉크로 또",
+      "reasoning": "",
+      "tool_calls": [],
+      "usage": {
+        "prompt_tokens": 46,
+        "total_tokens": 302,
+        "completion_tokens": 256,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "finish": "length",
+      "ttft_s": 0.30415570200011643,
+      "elapsed_s": 12.138928535000105,
+      "decode_tok_s": 21.548042780846394
+    },
+    {
+      "name": "ko_compare",
+      "repeat": 0,
+      "prompt": "집에서 소규모 서버를 운영할 때 유선 네트워크와 무선 네트워크의 차이를 한국어로 자세히 비교해 주세요. 지연, 안정성, 설치 비용을 다뤄 주세요.",
+      "content": "집에서 소규모 서버(예: NAS, 홈 오토메이션 허브, 미디어 서버 등)를 운영할 때 유선(Ethernet)과 무선(Wi-Fi) 네트워크의 선택은 서버의 성능과 사용 편의성에 직접적인 영향을 미칩니다. 요청하신 세 가지 핵심 요소인 **지연(Latency)**, **안정성(Stability)**, **설치 비용(Cost)**을 중심으로 상세히 비교해 드리겠습니다.\n\n---\n\n### 1. 지연 (Latency)\n\n지연은 데이터가 서버에서 클라이언트(또는 그 반대)로 이동하는 데 걸리는 시간을 의미합니다. 소규모 서버 환경에서는 파일 전송 속도나 반응 속도와 직결됩니다.\n\n*   **유선 네트워크 (Ethernet)**\n    *   **초저지연:** 유선 연결은 전기 신호가 케이블을 통해 직접 전달되므로 지연 시간이 매우 짧고 예측 가능합니다. 일반적으로 1ms 미만에서 수 ms 수준으로, 실시간 데이터 처리나 대용량 파일의 연속적인 읽기/쓰기에 최적화되어 있습니다.\n    *   **일관된 성능:** 네트워크 혼잡이나 간섭에 영향을 거의 받지 않으므로, 고해상도 영상 스트리밍",
+      "reasoning": "",
+      "tool_calls": [],
+      "usage": {
+        "prompt_tokens": 48,
+        "total_tokens": 304,
+        "completion_tokens": 256,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "finish": "length",
+      "ttft_s": 0.2047753459996784,
+      "elapsed_s": 9.598628397999619,
+      "decode_tok_s": 27.147508911700914
+    },
+    {
+      "name": "code_python",
+      "repeat": 0,
+      "prompt": "Write Python code for an LRU cache with get and put, capacity validation, and a small usage example. Use collections.OrderedDict. Return code only.",
+      "content": "```python\nfrom collections import OrderedDict\n\n\nclass LRUCache:\n    def __init__(self, capacity: int):\n        if capacity <= 0:\n            raise ValueError(\"Capacity must be a positive integer\")\n        self.capacity = capacity\n        self.cache = OrderedDict()\n\n    def get(self, key):\n        if key not in self.cache:\n            return -1\n        self.cache.move_to_end(key)\n        return self.cache[key]\n\n    def put(self, key, value):\n        if key in self.cache:\n            self.cache.move_to_end(key)\n        self.cache[key] = value\n        if len(self.cache) > self.capacity:\n            self.cache.popitem(last=False)\n\n\n# Usage example\nif __name__ == \"__main__\":\n    cache = LRUCache(2)\n    cache.put(1, 1)\n    cache.put(2, 2)\n    print(cache.get(1))       # returns 1\n    cache.put(3, 3)           # evicts key 2\n    print(cache.get(2))       # returns -1 (not found)\n    cache.put(4, 4)           # evicts",
+      "reasoning": "",
+      "tool_calls": [],
+      "usage": {
+        "prompt_tokens": 44,
+        "total_tokens": 300,
+        "completion_tokens": 256,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "finish": "length",
+      "ttft_s": 0.21250424599975304,
+      "elapsed_s": 6.190035984999668,
+      "decode_tok_s": 42.66270980149563
+    },
+    {
+      "name": "code_go",
+      "repeat": 0,
+      "prompt": "Write Go code for a bounded worker pool processing integer jobs with context cancellation, a WaitGroup, and proper channel closure. Include a usage example. Return code only.",
+      "content": "```go\npackage main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\t\"sync\"\n)\n\n// Job represents a unit of work with an integer payload.\ntype Job struct {\n\tID    int\n\tValue int\n}\n\n// WorkerPool manages a bounded set of workers processing jobs.\ntype WorkerPool struct {\n\tjobs     chan Job\n\twg       sync.WaitGroup\n\tnumWorkers int\n}\n\n// NewWorkerPool creates a new worker pool with the given number of workers and buffer size.\nfunc NewWorkerPool(numWorkers, bufferSize int) *WorkerPool {\n\treturn &WorkerPool{\n\t\tjobs:     make(chan Job, bufferSize),\n\t\tnumWorkers: numWorkers,\n\t}\n}\n\n// Start launches the workers. It returns immediately.\nfunc (wp *WorkerPool) Start(ctx context.Context) {\n\tfor i := 0; i < wp.numWorkers; i++ {\n\t\twp.wg.Add(1)\n\t\tgo func() {\n\t\t\tdefer wp.wg.Done()\n\t\t\tfor {\n\t\t\t\tselect {\n\t\t\t\tcase <-ctx.Done():\n\t\t\t\t\treturn\n\t\t\t\tcase job, ok := <-wp.jobs:\n\t\t\t\t\tif !ok {\n\t\t\t\t\t\treturn\n\t\t\t\t",
+      "reasoning": "",
+      "tool_calls": [],
+      "usage": {
+        "prompt_tokens": 45,
+        "total_tokens": 301,
+        "completion_tokens": 256,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "finish": "length",
+      "ttft_s": 0.20359252500020375,
+      "elapsed_s": 7.435833191000256,
+      "decode_tok_s": 35.262315772411334
+    },
+    {
+      "name": "json",
+      "repeat": 0,
+      "prompt": "Return only a JSON object with a \"books\" array containing 6 invented books. Each book must have id, title, author, year, and available fields. Use valid JSON.",
+      "content": "{\n  \"books\": [\n    {\n      \"id\": 1,\n      \"title\": \"The Whispering Atlas\",\n      \"author\": \"Elara Vance\",\n      \"year\": 2021,\n      \"available\": true\n    },\n    {\n      \"id\": 2,\n      \"title\": \"Echoes of the Glass Forest\",\n      \"author\": \"Julian Thorne\",\n      \"year\": 2019,\n      \"available\": false\n    },\n    {\n      \"id\": 3,\n      \"title\": \"Mechanics of Silence\",\n      \"author\": \"Priya Sharma\",\n      \"year\": 2023,\n      \"available\": true\n    },\n    {\n      \"id\": 4,\n      \"title\": \"The Last Lighthouse Keeper\",\n      \"author\": \"Arthur Pendelton\",\n      \"year\": 2018,\n      \"available\": true\n    },\n    {\n      \"id\": 5,\n      \"title\": \"Chronicles of the Void\",\n      \"author\": \"Mira Chen\",\n      \"year\": 2022,\n      \"available\": false\n    },\n    {\n      \"id\": 6,\n      \"title\": \"Symphony of Rust\",\n      \"author\": \"Leo Kovic\",\n      \"year\": 2020,\n      \"available\": true\n    }\n  ]\n}",
+      "reasoning": "",
+      "tool_calls": [],
+      "usage": {
+        "prompt_tokens": 49,
+        "total_tokens": 381,
+        "completion_tokens": 332,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "finish": "stop",
+      "ttft_s": 0.24786631500001022,
+      "elapsed_s": 8.402910620000057,
+      "decode_tok_s": 40.59042124317414
+    },
+    {
+      "name": "en_prose",
+      "repeat": 0,
+      "prompt": "Explain how a refrigerator moves heat, including the compressor, condenser, expansion valve and evaporator, for a curious teenager. Use complete paragraphs.",
+      "content": "Imagine your refrigerator not as a box that makes things cold, but as a machine that actively pumps heat out of the inside and dumps it outside. This process relies on a clever cycle involving four main parts: the compressor, the condenser, the expansion valve, and the evaporator. It all starts with the compressor, which acts like the heart of the system. The compressor squeezes a special fluid called refrigerant, raising its pressure and temperature significantly. Think of it like blowing up a bicycle tire; when you compress the air, it gets warm. This high-pressure, warm gas is then pushed into the condenser coils, which are usually located on the back or bottom of the fridge.\n\nAs the hot gas travels through the condenser coils, it releases its heat to the surrounding room air. Because the coils are exposed to the cooler room temperature, the gas loses energy and condenses back into a liquid. This step is crucial because it prepares the refrigerant to absorb more heat later. Once the refrigerant is a high-pressure liquid, it flows into the expansion valve. This tiny component acts like a sudden drop in altitude for the fluid. When the liquid passes through this narrow opening, its pressure drops dramatically, causing it to cool down instantly and partially turn back into",
+      "reasoning": "",
+      "tool_calls": [],
+      "usage": {
+        "prompt_tokens": 42,
+        "total_tokens": 298,
+        "completion_tokens": 256,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "finish": "length",
+      "ttft_s": 0.2146015480002461,
+      "elapsed_s": 9.87535168300019,
+      "decode_tok_s": 26.397478822885375
+    },
+    {
+      "name": "ko_explain",
+      "repeat": 1,
+      "prompt": "리눅스에서 프로세스와 스레드의 차이를 한국어로 설명해 주세요. 메모리 공유와 오류 격리, 웹 서버 예시를 포함해 충분히 설명하세요.",
+      "content": "리눅스 환경에서 **프로세스(Process)**와 **스레드(Thread)**는 프로그램이 실행되는 기본 단위이지만, 메모리 관리 방식과 시스템 리소스 활용 측면에서 명확한 차이가 있습니다. 아래에 두 개념의 핵심 차이점을 메모리 공유, 오류 격리, 그리고 실제 웹 서버 예시를 중심으로 상세히 설명하겠습니다.\n\n---\n\n### 1. 기본 개념 정의\n\n*   **프로세스(Process)**: 운영체제가 자원을 할당하는 기본 단위입니다. 각 프로세스는 독립적인 메모리 공간(스택, 힙, 데이터 섹션 등)을 가지며, 서로 완전히 격리된 상태로 실행됩니다.\n*   **스레드(Thread)**: 프로세스 내에서 실행되는 경량 단위입니다. 하나의 프로세스는 여러 개의 스레드를 가질 수 있으며, 이 스레드들은 해당 프로세스의 메모리 공간을 공유합니다.\n\n---\n\n### 2. 주요 차이점 상세 비교\n\n#### ① 메모리 공유 (Memory Sharing)\n\n*   **프로세스**:\n    *   각 프로세스는 **독립된 주소 공간(Address Space)**을 가집니다.\n    *   프로세스 A와 프로세스 B",
+      "reasoning": "",
+      "tool_calls": [],
+      "usage": {
+        "prompt_tokens": 48,
+        "total_tokens": 304,
+        "completion_tokens": 256,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "finish": "length",
+      "ttft_s": 0.1818508610003846,
+      "elapsed_s": 7.849536910000097,
+      "decode_tok_s": 33.25958167612765
+    },
+    {
+      "name": "ko_plan",
+      "repeat": 1,
+      "prompt": "작은 도서관의 도서 대출 프로그램을 설계하려고 합니다. 회원 등록, 대출, 반납, 연체 처리와 데이터베이스 테이블을 한국어로 설명해 주세요.",
+      "content": "# 작은 도서관 도서 대출 프로그램 설계\n\n## 1. 시스템 개요\n\n작은 규모의 도서관을 위한 경량화된 도서 대출 관리 시스템으로, 회원 등록부터 대출·반납·연체 처리까지의 전체 흐름을 간결하게 설계합니다.\n\n---\n\n## 2. 데이터베이스 테이블 설계\n\n### 2.1 회원 테이블 (`members`)\n\n| 컬럼명 | 타입 | 설명 | 제약 |\n|--------|------|------|------|\n| `member_id` | INTEGER | 회원 고유 번호 | PRIMARY KEY, AUTO_INCREMENT |\n| `name` | VARCHAR(50) | 회원 이름 | NOT NULL |\n| `phone` | VARCHAR(20) | 연락처 | UNIQUE |\n| `email` | VARCHAR(100) | 이메일 | UNIQUE |\n| `registered_at` | DATETIME | 등록일시 | DEFAULT CURRENT_TIMESTAMP |\n| `is_active` | BOOLEAN | 활성 여부 | DEFAULT TRUE |\n\n```sql\nCREATE TABLE members (\n    member_id     INTEGER PRIMARY KEY AUTO_INCREMENT,\n    name          VARCHAR(50)   NOT NULL,\n    phone         VARCHAR(20)   UNIQUE,\n    email         VARCHAR(100)  UNIQUE,",
+      "reasoning": "",
+      "tool_calls": [],
+      "usage": {
+        "prompt_tokens": 45,
+        "total_tokens": 301,
+        "completion_tokens": 256,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "finish": "length",
+      "ttft_s": 0.17205413900001076,
+      "elapsed_s": 7.124879568999859,
+      "decode_tok_s": 36.679501019698996
+    },
+    {
+      "name": "ko_story",
+      "repeat": 1,
+      "prompt": "비 오는 날 오래된 서점에서 우연히 자신의 이름이 적힌 편지를 발견한 사람의 이야기를 한국어로 써 주세요. 대화와 구체적인 묘사를 포함하세요.",
+      "content": "오후 세 시, 하늘은 회색빛 구름으로 뒤덮여 있었고, 창밖으로는 굵은 빗방울이 유리창을 두드리는 소리가 규칙적으로 울려 퍼지고 있었다. 서점 안은 습기 머금은 종이 냄새와 오래된 나무 향기가 은은하게 배어!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+      "reasoning": "",
+      "tool_calls": [],
+      "usage": {
+        "prompt_tokens": 46,
+        "total_tokens": 302,
+        "completion_tokens": 256,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "finish": "length",
+      "ttft_s": 0.25216199099986625,
+      "elapsed_s": 6.608170054999846,
+      "decode_tok_s": 40.12230178842168
+    },
+    {
+      "name": "ko_compare",
+      "repeat": 1,
+      "prompt": "집에서 소규모 서버를 운영할 때 유선 네트워크와 무선 네트워크의 차이를 한국어로 자세히 비교해 주세요. 지연, 안정성, 설치 비용을 다뤄 주세요.",
+      "content": "집에서 소규모 서버(예: NAS, 홈 오토메이션 허브, 미디어 서버 등)를 운영할 때 유선 네트워크와 무선 네트워크는 성능과 관리 측면에서 뚜렷한 차이를 보입니다. 요청하신 세 가지 핵심 요소인 **지연(Latency)**, **안정성(Stability)**, **설치 비용(Cost)**을 중심으로 상세히 비교해 드리겠습니다.\n\n---\n\n### 1. 지연 (Latency)\n\n지연은 데이터가 서버에서 클라이언트로 전달되는 데 걸리는 시간으로, 특히 실시간 반응이 중요한 서비스(예: 홈 오토메이션 제어, 게임 서버, 저지연 스트리밍)에 중요합니다.\n\n*   **유선 네트워크 (Ethernet)**\n    *   **특징**: 매우 낮은 지연 시간을 제공합니다. 일반적으로 1ms 미만에서 수십 ms 수준으로, 신호가 케이블을 통해 직접 전달되므로 간섭이나 재전송 오버헤드가 거의 없습니다.\n    *   **장점**: 서버와 클라이언트 간 통신이 즉각적으로 이루어져, 홈 오토메이션 명령어 처리나 파일 전송 시 체감 속도가 빠릅니다.\n    *   **적합성**: 실시간 데이터 처리가 필요한",
+      "reasoning": "",
+      "tool_calls": [],
+      "usage": {
+        "prompt_tokens": 48,
+        "total_tokens": 304,
+        "completion_tokens": 256,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "finish": "length",
+      "ttft_s": 0.18098077700005888,
+      "elapsed_s": 11.930610474999867,
+      "decode_tok_s": 21.704098351067422
+    },
+    {
+      "name": "code_python",
+      "repeat": 1,
+      "prompt": "Write Python code for an LRU cache with get and put, capacity validation, and a small usage example. Use collections.OrderedDict. Return code only.",
+      "content": "```python\nfrom collections import OrderedDict\n\n\nclass LRUCache:\n    def __init__(self, capacity: int):\n        if capacity <= 0:\n            raise ValueError(\"Capacity must be a positive integer\")\n        self.capacity = capacity\n        self.cache = OrderedDict()\n\n    def get(self, key):\n        if key not in self.cache:\n            return -1\n        self.cache.move_to_end(key)\n        return self.cache[key]\n\n    def put(self, key, value):\n        if key in self.cache:\n            self.cache.move_to_end(key)\n        self.cache[key] = value\n        if len(self.cache) > self.capacity:\n            self.cache.popitem(last=False)\n\n\nif __name__ == \"__main__\":\n    cache = LRUCache(2)\n    cache.put(1, 1)\n    cache.put(2, 2)\n    print(cache.get(1))       # returns 1\n    cache.put(3, 3)           # evicts key 2\n    print(cache.get(2))       # returns -1 (not found)\n    cache.put(4, 4)           # evicts key 1\n",
+      "reasoning": "",
+      "tool_calls": [],
+      "usage": {
+        "prompt_tokens": 44,
+        "total_tokens": 300,
+        "completion_tokens": 256,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "finish": "length",
+      "ttft_s": 0.1802752749999854,
+      "elapsed_s": 5.844759427000099,
+      "decode_tok_s": 45.02309795894059
+    },
+    {
+      "name": "code_go",
+      "repeat": 1,
+      "prompt": "Write Go code for a bounded worker pool processing integer jobs with context cancellation, a WaitGroup, and proper channel closure. Include a usage example. Return code only.",
+      "content": "```go\npackage main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\t\"sync\"\n)\n\n// WorkerPool manages a bounded set of workers processing integer jobs.\ntype WorkerPool struct {\n\tjobs     chan int\n\twg       sync.WaitGroup\n\tnumWorkers int\n}\n\n// NewWorkerPool creates a new worker pool with the given number of workers and buffer size.\nfunc NewWorkerPool(numWorkers, bufferSize int) *WorkerPool {\n\treturn &WorkerPool{\n\t\tjobs:       make(chan int, bufferSize),\n\t\tnumWorkers: numWorkers,\n\t}\n}\n\n// Start launches the workers. It returns immediately.\nfunc (wp *WorkerPool) Start(ctx context.Context) {\n\tfor i := 0; i < wp.numWorkers; i++ {\n\t\twp.wg.Add(1)\n\t\tgo func() {\n\t\t\tdefer wp.wg.Done()\n\t\t\tfor {\n\t\t\t\tselect {\n\t\t\t\tcase <-ctx.Done():\n\t\t\t\t\treturn\n\t\t\t\tcase job, ok := <-wp.jobs:\n\t\t\t\t\tif !ok {\n\t\t\t\t\t\treturn\n\t\t\t\t\t}\n\t\t\t\t\t// Process the job\n\t\t\t\t\tfmt.Printf(\"Worker processed job: %d\\n\", job)\n\t\t\t",
+      "reasoning": "",
+      "tool_calls": [],
+      "usage": {
+        "prompt_tokens": 45,
+        "total_tokens": 301,
+        "completion_tokens": 256,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "finish": "length",
+      "ttft_s": 0.17433084000003873,
+      "elapsed_s": 6.973222865000025,
+      "decode_tok_s": 37.51029657640969
+    },
+    {
+      "name": "json",
+      "repeat": 1,
+      "prompt": "Return only a JSON object with a \"books\" array containing 6 invented books. Each book must have id, title, author, year, and available fields. Use valid JSON.",
+      "content": "{\n  \"books\": [\n    {\n      \"id\": 1,\n      \"title\": \"The Whispering Atlas\",\n      \"author\": \"Elara Vance\",\n      \"year\": 2021,\n      \"available\": true\n    },\n    {\n      \"id\": 2,\n      \"title\": \"Echoes of the Glass Forest\",\n      \"author\": \"J. R. Thorne\",\n      \"year\": 2019,\n      \"available\": false\n    },\n    {\n      \"id\": 3,\n      \"title\": \"Quantum Gardens\",\n      \"author\": \"Mira Solis\",\n      \"year\": 2023,\n      \"available\": true\n    },\n    {\n      \"id\": 4,\n      \"title\": \"The Last Clockmaker's Secret\",\n      \"author\": \"Arthur Pendelton\",\n      \"year\": 2018,\n      \"available\": true\n    },\n    {\n      \"id\": 5,\n      \"title\": \"Silence in the Static\",\n      \"author\": \"Kai Lin\",\n      \"year\": 2022,\n      \"available\": false\n    },\n    {\n      \"id\": 6,\n      \"title\": \"Orbit of Forgotten Stars\",\n      \"author\": \"Nova Reed\",\n      \"year\": 2020,\n      \"available\": true\n    }\n  ]\n}",
+      "reasoning": "",
+      "tool_calls": [],
+      "usage": {
+        "prompt_tokens": 49,
+        "total_tokens": 383,
+        "completion_tokens": 334,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "finish": "stop",
+      "ttft_s": 0.1890038030001051,
+      "elapsed_s": 8.410919389000355,
+      "decode_tok_s": 40.505202010292926
+    },
+    {
+      "name": "en_prose",
+      "repeat": 1,
+      "prompt": "Explain how a refrigerator moves heat, including the compressor, condenser, expansion valve and evaporator, for a curious teenager. Use complete paragraphs.",
+      "content": "Imagine your refrigerator not as a box that creates cold air, but as a machine that actively pumps heat out of your food and dumps it into the room. This process relies on a clever cycle involving four main parts working together in a continuous loop. It starts with the compressor, which acts like the heart of the system. The compressor squeezes a special fluid called refrigerant, raising its pressure and temperature significantly. Think of it like pumping up a bicycle tire; when you compress the air, it gets warm. This hot, high-pressure gas is then pushed toward the back or bottom of the fridge, where it enters the condenser coils.\n\nAs the hot gas travels through the condenser coils, it releases its heat into the surrounding room air. Because the coils are exposed to the cooler room temperature, the gas loses energy and turns back into a liquid. This step is crucial because it prepares the refrigerant to absorb more heat later. Once the refrigerant is a cool liquid, it flows into the expansion valve, which acts like a tiny nozzle or gate. When the liquid passes through this narrow opening, its pressure drops suddenly, causing it to expand and cool down rapidly, becoming a cold, low-pressure mixture ready to do its job.\n\nFinally, this cold refrigerant",
+      "reasoning": "",
+      "tool_calls": [],
+      "usage": {
+        "prompt_tokens": 42,
+        "total_tokens": 298,
+        "completion_tokens": 256,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "finish": "length",
+      "ttft_s": 0.18905340499986778,
+      "elapsed_s": 9.44735694200017,
+      "decode_tok_s": 27.544899443435543
+    },
+    {
+      "name": "ko_explain",
+      "repeat": 2,
+      "prompt": "리눅스에서 프로세스와 스레드의 차이를 한국어로 설명해 주세요. 메모리 공유와 오류 격리, 웹 서버 예시를 포함해 충분히 설명하세요.",
+      "content": "리눅스 환경에서 **프로세스(Process)**와 **스레드(Thread)**는 프로그램이 실행되는 기본 단위이지만, 메모리 관리 방식과 동작 원리에서 명확한 차이가 있습니다. 아래에 핵심 차이점을 메모리 공유, 오류 격리, 그리고 실제 웹 서버 예시를 중심으로 상세히 설명하겠습니다.\n\n---\n\n### 1. 기본 개념 정의\n\n*   **프로세스(Process)**: 운영체제가 자원을 할당하는 기본 단위입니다. 각 프로세스는 독립적인 메모리 공간(스택, 힙, 데이터 섹션 등)을 가지며, 서로 완전히 격리된 상태로 실행됩니다.\n*   **스레드(Thread)**: 프로세스 내에서 실행되는 경량 단위입니다. 하나의 프로세스는 여러 개의 스레드를 가질 수 있으며, 이 스레드들은 해당 프로세스의 메모리 공간을 공유합니다.\n\n---\n\n### 2. 주요 차이점 상세 비교\n\n#### ① 메모리 공유 (Memory Sharing)\n\n*   **프로세스**:\n    *   각 프로세스는 **독립된 주소 공간(Address Space)**을 가집니다.\n    *   프로세스 A와 프로세스 B는 서로의 변수나 데이터를",
+      "reasoning": "",
+      "tool_calls": [],
+      "usage": {
+        "prompt_tokens": 48,
+        "total_tokens": 304,
+        "completion_tokens": 256,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "finish": "length",
+      "ttft_s": 0.18052889499995217,
+      "elapsed_s": 7.456679340999926,
+      "decode_tok_s": 35.04968233642605
+    },
+    {
+      "name": "ko_plan",
+      "repeat": 2,
+      "prompt": "작은 도서관의 도서 대출 프로그램을 설계하려고 합니다. 회원 등록, 대출, 반납, 연체 처리와 데이터베이스 테이블을 한국어로 설명해 주세요.",
+      "content": "# 작은 도서관 도서 대출 프로그램 설계\n\n## 1. 시스템 개요\n\n작은 규모의 도서관을 위한 경량화된 도서 대출 관리 시스템으로, 회원 관리, 대출/반납 처리, 연체 관리 기능을 제공합니다.\n\n---\n\n## 2. 데이터베이스 테이블 설계\n\n### 2.1 회원 테이블 (`members`)\n\n| 컬럼명 | 타입 | 설명 | 제약조건 |\n|--------|------|------|----------|\n| `member_id` | INT | 회원 고유 번호 | PRIMARY KEY, AUTO_INCREMENT |\n| `name` | VARCHAR(50) | 회원 이름 | NOT NULL |\n| `phone` | VARCHAR(20) | 연락처 | UNIQUE |\n| `email` | VARCHAR(100) | 이메일 주소 | UNIQUE |\n| `join_date` | DATE | 가입일 | DEFAULT CURRENT_DATE |\n| `status` | ENUM('active','inactive') | 회원 상태 | DEFAULT 'active' |\n\n```sql\nCREATE TABLE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+      "reasoning": "",
+      "tool_calls": [],
+      "usage": {
+        "prompt_tokens": 45,
+        "total_tokens": 301,
+        "completion_tokens": 256,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "finish": "length",
+      "ttft_s": 0.17721567699982188,
+      "elapsed_s": 6.977219353999772,
+      "decode_tok_s": 37.50386954447035
+    },
+    {
+      "name": "ko_story",
+      "repeat": 2,
+      "prompt": "비 오는 날 오래된 서점에서 우연히 자신의 이름이 적힌 편지를 발견한 사람의 이야기를 한국어로 써 주세요. 대화와 구체적인 묘사를 포함하세요.",
+      "content": "오후 세 시의 하늘은 회색빛 구름으로 낮게 내려앉아 있었고, 창밖으로는 가늘고 긴 빗줄기가 유리창을 타고 흘러내리고 있었다. 서점 안은 습기 머금은 종이 냄새와 오래된 목재의 은은한 향기가 뒤섞여 고요한 공기를 만들어내고 있었다.\n\n민준은 우산을 털며 서점 입구를 지나쳤다. 발밑에서 삐걱거리는 나무 바닥 소리가 적막을 깨뜨렸다. 그는 평소처럼 베스트셀러 코너를 지나쳐, 구석진 구석에 있는 '고전 및 희귀본' 서가 쪽으로 발걸음을 옮겼다. 서가 사이로 비스듬히 들어오는 자연광이 먼지 입자들을 반짝이게 했다.\n\n그때, 민준의 시선이 한 권의 두꺼운 하드커버 책에 멈췄다. 표지는 이미 색이 바래어 연한 베이지색이 되어 있었고, 모서리에는 시간의 흔적인 주름이 깊게 패여 있었다. 그는 무의식적으로 그 책을 뽑아 들었다. 두꺼운 종이 사이에서 바스락거리는 소리가 났다.",
+      "reasoning": "",
+      "tool_calls": [],
+      "usage": {
+        "prompt_tokens": 46,
+        "total_tokens": 302,
+        "completion_tokens": 256,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "finish": "length",
+      "ttft_s": 0.2577270470001167,
+      "elapsed_s": 12.614297001000068,
+      "decode_tok_s": 20.638003078243404
+    },
+    {
+      "name": "ko_compare",
+      "repeat": 2,
+      "prompt": "집에서 소규모 서버를 운영할 때 유선 네트워크와 무선 네트워크의 차이를 한국어로 자세히 비교해 주세요. 지연, 안정성, 설치 비용을 다뤄 주세요.",
+      "content": "집에서 소규모 서버(예: NAS, 홈 미디어 서버, 로컬 클라우드 등)를 운영할 때 유선 네트워크와 무선 네트워크는 성능과 관리 측면에서 뚜렷한 차이를 보입니다. 요청하신 **지연(Latency)**, **안정성(Stability)**, **설치 비용(Cost)** 세 가지 핵심 요소를 중심으로 상세히 비교해 드리겠습니다.\n\n---\n\n### 1. 지연 (Latency)\n\n지연은 데이터가 서버에서 클라이언트(또는 그 반대)로 이동하는 데 걸리는 시간으로, 특히 실시간 스트리밍, 파일 동기화, 또는 게임 서버 호스팅 시 체감 속도에 큰 영향을 미칩니다.\n\n*   **유선 네트워크 (Ethernet)**\n    *   **초저지연**: 유선 연결은 전기 신호가 케이블을 통해 직접 전달되므로, 무선 간섭이나 신호 처리 과정이 거의 없습니다. 일반적으로 **1~5ms** 수준의 매우 낮은 지연을 제공합니다.\n    *   **일관성**: 부하가 걸려도 지연 시간이 크게 흔들리지 않고 일정하게 유지됩니다. 이는 서버 응답 속도가 중요한 애플리케이션(예: 데이터베이스 쿼리, 실시간 백업)에 유리합니다",
+      "reasoning": "",
+      "tool_calls": [],
+      "usage": {
+        "prompt_tokens": 48,
+        "total_tokens": 304,
+        "completion_tokens": 256,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "finish": "length",
+      "ttft_s": 0.18003666200002044,
+      "elapsed_s": 9.013797681000142,
+      "decode_tok_s": 28.86887484917626
+    },
+    {
+      "name": "code_python",
+      "repeat": 2,
+      "prompt": "Write Python code for an LRU cache with get and put, capacity validation, and a small usage example. Use collections.OrderedDict. Return code only.",
+      "content": "```python\nfrom collections import OrderedDict\n\n\nclass LRUCache:\n    def __init__(self, capacity: int):\n        if capacity <= 0:\n            raise ValueError(\"Capacity must be a positive integer\")\n        self.capacity = capacity\n        self.cache = OrderedDict()\n\n    def get(self, key):\n        if key not in self.cache:\n            return -1\n        self.cache.move_to_end(key)\n        return self.cache[key]\n\n    def put(self, key, value):\n        if key in self.cache:\n            self.cache.move_to_end(key)\n        self.cache[key] = value\n        if len(self.cache) > self.capacity:\n            self.cache.popitem(last=False)\n\n\n# Usage example\nif __name__ == \"__main__\":\n    cache = LRUCache(2)\n    cache.put(1, 1)\n    cache.put(2, 2)\n    print(cache.get(1))       # returns 1\n    cache.put(3, 3)           # evicts key 2\n    print(cache.get(2))       # returns -1 (not found)\n    cache.put(4, 4)           # evicts",
+      "reasoning": "",
+      "tool_calls": [],
+      "usage": {
+        "prompt_tokens": 44,
+        "total_tokens": 300,
+        "completion_tokens": 256,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "finish": "length",
+      "ttft_s": 0.17819872000018222,
+      "elapsed_s": 5.74780335000014,
+      "decode_tok_s": 45.79031586650551
+    },
+    {
+      "name": "code_go",
+      "repeat": 2,
+      "prompt": "Write Go code for a bounded worker pool processing integer jobs with context cancellation, a WaitGroup, and proper channel closure. Include a usage example. Return code only.",
+      "content": "```go\npackage main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\t\"sync\"\n)\n\n// WorkerPool manages a bounded set of workers processing integer jobs.\ntype WorkerPool struct {\n\tjobs     chan int\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+      "reasoning": "",
+      "tool_calls": [],
+      "usage": {
+        "prompt_tokens": 45,
+        "total_tokens": 301,
+        "completion_tokens": 256,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "finish": "length",
+      "ttft_s": 0.1758038910002142,
+      "elapsed_s": 5.033753568000066,
+      "decode_tok_s": 52.49882505467948
+    },
+    {
+      "name": "json",
+      "repeat": 2,
+      "prompt": "Return only a JSON object with a \"books\" array containing 6 invented books. Each book must have id, title, author, year, and available fields. Use valid JSON.",
+      "content": "{\n  \"books\": [\n    {\n      \"id\": 1,\n      \"title\": \"The Whispering Archives\",\n      \"author\": \"Elara Vance\",\n      \"year\": 2021,\n      \"available\": true\n    },\n    {\n      \"id\": 2,\n      \"title\": \"Chronicles of the Glass Sky\",\n      \"author\": \"J. R. Thorne\",\n      \"year\": 2019,\n      \"available\": false\n    },\n    {\n      \"id\": 3,\n      \"title\": \"Echoes in the Static\",\n      \"author\": \"Mina Kovic\",\n      \"year\": 2023,\n      \"available\": true\n    },\n    {\n      \"id\": 4,\n      \"title\": \"The Last Lighthouse Keeper\",\n      \"author\": \"Silas Grey\",\n      \"year\": 2018,\n      \"available\": true\n    },\n    {\n      \"id\": 5,\n      \"title\": \"Beneath the Iron Moon\",\n      \"author\": \"Aria Chen\",\n      \"year\": 2022,\n      \"available\": false\n    },\n    {\n      \"id\": 6,\n      \"title\": \"Symphony of Dust\",\n      \"author\": \"Leo Montrose\",\n      \"year\": 2020,\n      \"available\": true\n    }\n  ]\n}",
+      "reasoning": "",
+      "tool_calls": [],
+      "usage": {
+        "prompt_tokens": 49,
+        "total_tokens": 384,
+        "completion_tokens": 335,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "finish": "stop",
+      "ttft_s": 0.1837344010000379,
+      "elapsed_s": 12.601665844000308,
+      "decode_tok_s": 26.898296195559205
+    },
+    {
+      "name": "en_prose",
+      "repeat": 2,
+      "prompt": "Explain how a refrigerator moves heat, including the compressor, condenser, expansion valve and evaporator, for a curious teenager. Use complete paragraphs.",
+      "content": "Imagine your refrigerator not as a box that simply makes things cold, but as a clever machine that acts like a heat pump, constantly moving warmth from inside the box to the outside air. This process relies on a special fluid called refrigerant, which is designed to change states easily between liquid and gas. The journey begins at the compressor, which is essentially the heart of the system. When the compressor squeezes the refrigerant gas, it increases the pressure and temperature of the gas, turning it into a hot, high-pressure vapor. Think of this like pumping air into a bicycle tire; the more you compress the air, the warmer it gets. This step is crucial because it prepares the refrigerant to release its heat efficiently in the next stage.\n\nOnce the refrigerant is hot and pressurized, it flows into the condenser coils, which are usually located on the back or bottom of the fridge. Here, the hot gas meets the cooler room air, and because heat naturally flows from warmer objects to cooler ones, the refrigerant releases its heat into the surrounding environment. As it loses heat, the gas condenses back into a liquid state. You might notice that the back of your fridge feels warm to the touch; this is exactly where that heat is being dumped.",
+      "reasoning": "",
+      "tool_calls": [],
+      "usage": {
+        "prompt_tokens": 42,
+        "total_tokens": 298,
+        "completion_tokens": 256,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "finish": "length",
+      "ttft_s": 0.17818390899992664,
+      "elapsed_s": 9.327686278999863,
+      "decode_tok_s": 27.87263115009846
+    }
+  ],
+  "checks": [
+    {
+      "name": "tools_thinking_False",
+      "passed": true,
+      "content": "",
+      "reasoning": "",
+      "tool_calls": [
+        {
+          "name": "get_temperature",
+          "arguments": "{\"city\": \"Seoul\"}"
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 305,
+        "total_tokens": 332,
+        "completion_tokens": 27,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "finish": "tool_calls",
+      "ttft_s": 0.6474095640000996,
+      "elapsed_s": 1.0901880900000833,
+      "decode_tok_s": 73.8302994664415
+    },
+    {
+      "name": "tools_thinking_True",
+      "passed": true,
+      "content": "\n\n",
+      "reasoning": "The user wants me to check the current temperature in Seoul using the get_temperature tool, with the city parameter set to \"Seoul\". This is a straightforward single tool call.\n",
+      "tool_calls": [
+        {
+          "name": "get_temperature",
+          "arguments": "{\"city\": \"Seoul\"}"
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 341,
+        "total_tokens": 406,
+        "completion_tokens": 65,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 37
+      },
+      "finish": "tool_calls",
+      "ttft_s": 0.414706249000119,
+      "elapsed_s": 1.9865656659999331,
+      "decode_tok_s": 40.73469863691014
+    },
+    {
+      "name": "vision",
+      "passed": true,
+      "content": "The color on the left is red, and the color on the right is blue.",
+      "reasoning": "",
+      "tool_calls": [],
+      "usage": {
+        "prompt_tokens": 104,
+        "total_tokens": 122,
+        "completion_tokens": 18,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "image_tokens": 72
+        },
+        "reasoning_tokens": 0
+      },
+      "finish": "stop",
+      "ttft_s": 0.3933449680002923,
+      "elapsed_s": 0.833061865000218,
+      "decode_tok_s": 38.72550429047424
+    },
+    {
+      "name": "concurrency_2",
+      "passed": true,
+      "responses": [
+        {
+          "content": "리눅스 환경에서 **프로세스(Process)**와 **스레드(Thread)**는 프로그램이 실행되는 기본 단위이지만, 메모리 관리 방식과 동작 원리에서 명확한 차이가 있습니다. 아래에 핵심 차이점을 메모리 공유, 오류 격리, 그리고 실제 웹 서버 예시를 중심으로 상세히 설명하겠습니다.\n\n---\n\n### 1. 기본 개념 정의\n\n*   **프로세스(Process)**: 운영체제가 자원을 할당하는 기본 단위입니다. 각 프로세스는 독립적인 메모리 공간(스택, 힙, 데이터 섹션 등)을 가지며, 서로 완전히 격",
+          "reasoning": "",
+          "tool_calls": [],
+          "usage": {
+            "prompt_tokens": 48,
+            "total_tokens": 176,
+            "completion_tokens": 128,
+            "prompt_tokens_details": null,
+            "reasoning_tokens": 0
+          },
+          "finish": "length",
+          "ttft_s": 0.4862927949998266,
+          "elapsed_s": 5.167765603000134,
+          "decode_tok_s": 27.130762186204876
+        },
+        {
+          "content": "```python\nfrom collections import OrderedDict\n\n\nclass LRUCache:\n    def __init__(self, capacity: int):\n        if capacity <= 0:\n            raise ValueError(\"Capacity must be a positive integer\")\n        self.capacity = capacity\n        self.cache = OrderedDict()\n\n    def get(self, key):\n        if key not in self.cache:\n            return -1\n        self.cache.move_to_end(key)\n        return self.cache[key]\n\n    def put(self, key, value):\n        if key in self.cache:\n            self.cache.move_to_end(key)\n        self.cache[key",
+          "reasoning": "",
+          "tool_calls": [],
+          "usage": {
+            "prompt_tokens": 44,
+            "total_tokens": 172,
+            "completion_tokens": 128,
+            "prompt_tokens_details": null,
+            "reasoning_tokens": 0
+          },
+          "finish": "length",
+          "ttft_s": 0.3784402690002935,
+          "elapsed_s": 3.9641615519999505,
+          "decode_tok_s": 35.42593249132558
+        }
+      ]
+    },
+    {
+      "name": "long_context",
+      "passed": true,
+      "content": "MAPLE-7392",
+      "reasoning": "",
+      "tool_calls": [],
+      "usage": {
+        "prompt_tokens": 35044,
+        "total_tokens": 35052,
+        "completion_tokens": 8,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "finish": "stop",
+      "ttft_s": 21.968710108000323,
+      "elapsed_s": 22.14669005199994,
+      "decode_tok_s": 39.424436123849986
+    },
+    {
+      "name": "json_round_0",
+      "passed": true
+    },
+    {
+      "name": "json_round_1",
+      "passed": true
+    },
+    {
+      "name": "json_round_2",
+      "passed": true
+    }
+  ],
+  "min_mem_available_gib": 21.381256103515625,
+  "summary": {
+    "ko_explain": 33.25958167612765,
+    "ko_plan": 36.679501019698996,
+    "ko_story": 21.548042780846394,
+    "ko_compare": 27.147508911700914,
+    "code_python": 45.02309795894059,
+    "code_go": 37.51029657640969,
+    "json": 40.505202010292926,
+    "en_prose": 27.544899443435543
+  }
+}

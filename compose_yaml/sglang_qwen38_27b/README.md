@@ -1,5 +1,10 @@
 # SGLang Qwen3.8 27B + DSpark
 
+일반 사용은 `./manage.sh setup --abliterated` 후 `./manage.sh start`.
+`--official`은 RadixArk 원본, `--abliterated`는 edp1096의 완성된 NVFP4 가중치를 다운로드한다. 재양자화·패치는 하지 않는다.
+설정은 `env.sample` → `.env`, 토큰은 `HF_TOKEN` 또는 `--ask-token`. `model`은 가중치 준비, `image`는 실행 이미지 준비, `setup`은 둘 다 준비한다.
+경로는 `.env`에서 변경하며 기존 동일 모델의 컨테이너 마운트도 재사용한다. 상태·로그·중지는 `status`, `logs`, `stop`.
+
 DGX Spark에서 Qwen3.8 27B target과 RadixArk DSpark 조합을 실행한다.
 
 - Draft: `RadixArk/Qwen3.8-27B-DSpark`

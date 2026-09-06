@@ -8,6 +8,7 @@ import (
 // Deployment contains only set-specific values. Nil inherits the shared service
 // definition; a pointer to zero/empty explicitly resets a value.
 type Deployment struct {
+	AutoAddress           *bool              `json:"auto_address,omitempty" yaml:"auto_address,omitempty"`
 	RuntimeOptions        *map[string]string `json:"runtime_options,omitempty" yaml:"runtime_options,omitempty"`
 	Host                  *string            `json:"host,omitempty" yaml:"host,omitempty"`
 	Endpoint              *string            `json:"endpoint,omitempty" yaml:"endpoint,omitempty"`

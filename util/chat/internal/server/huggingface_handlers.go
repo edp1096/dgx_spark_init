@@ -108,6 +108,17 @@ func (s *Server) modelPreparation(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "unknown service", 404)
 		return
 	}
+	if component.AutoAddress && component.WorkerHost == "worker" {
+		s.runtimeMu.Lock()
+		cfg, _ := s.snapshot()
+		err := s.refreshAutoNetwork(r.Context(), &cfg)
+		s.runtimeMu.Unlock()
+		if err != nil {
+			http.Error(w, err.Error(), 409)
+			return
+		}
+		component, _ = s.runtime.Catalog().Component(req.Component)
+	}
 	tokenBytes, err := os.ReadFile(s.hfTokenPath())
 	if err != nil && !errors.Is(err, os.ErrNotExist) {
 		http.Error(w, "credential storage unavailable", 500)

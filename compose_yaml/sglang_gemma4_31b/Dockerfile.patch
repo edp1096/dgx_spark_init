@@ -1,0 +1,5 @@
+# Apply the parser fix to an existing local image without rebuilding SGLang.
+ARG BASE_IMAGE=dgx-sglang-gemma4-31b-dflash:2ef0fe4
+FROM ${BASE_IMAGE}
+COPY patch_tool_index.py /opt/gemma4/patch_tool_index.py
+RUN python3 /opt/gemma4/patch_tool_index.py

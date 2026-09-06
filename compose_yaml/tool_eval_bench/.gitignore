@@ -1,0 +1,5 @@
+/.env
+/upstream/
+/runs/
+/data/
+/cache/

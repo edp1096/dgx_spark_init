@@ -23,6 +23,7 @@ type Host struct {
 }
 
 type Component struct {
+	AutoAddress     bool              `json:"auto_address,omitempty" yaml:"auto_address,omitempty"`
 	RuntimeOptions  map[string]string `json:"runtime_options,omitempty" yaml:"runtime_options,omitempty"`
 	Host            string            `json:"host" yaml:"host"`
 	Controller      string            `json:"controller" yaml:"controller"`
@@ -59,6 +60,7 @@ type Bundle struct {
 }
 
 type Catalog struct {
+	Network     *AutoNetwork    `json:"network,omitempty" yaml:"network,omitempty"`
 	Hosts       map[string]Host `json:"hosts" yaml:"hosts"`
 	Components  []Component     `json:"components" yaml:"components"`
 	Bundles     []Bundle        `json:"bundles" yaml:"bundles"`

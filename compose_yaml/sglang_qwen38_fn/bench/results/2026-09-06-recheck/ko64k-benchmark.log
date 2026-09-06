@@ -1,0 +1,25 @@
+ko_explain 0 29.73 {'prompt_tokens': 48, 'total_tokens': 304, 'completion_tokens': 256, 'prompt_tokens_details': None, 'reasoning_tokens': 0}
+ko_plan 0 34.67 {'prompt_tokens': 45, 'total_tokens': 301, 'completion_tokens': 256, 'prompt_tokens_details': None, 'reasoning_tokens': 0}
+ko_story 0 21.55 {'prompt_tokens': 46, 'total_tokens': 302, 'completion_tokens': 256, 'prompt_tokens_details': None, 'reasoning_tokens': 0}
+ko_compare 0 27.15 {'prompt_tokens': 48, 'total_tokens': 304, 'completion_tokens': 256, 'prompt_tokens_details': None, 'reasoning_tokens': 0}
+code_python 0 42.66 {'prompt_tokens': 44, 'total_tokens': 300, 'completion_tokens': 256, 'prompt_tokens_details': None, 'reasoning_tokens': 0}
+code_go 0 35.26 {'prompt_tokens': 45, 'total_tokens': 301, 'completion_tokens': 256, 'prompt_tokens_details': None, 'reasoning_tokens': 0}
+json 0 40.59 {'prompt_tokens': 49, 'total_tokens': 381, 'completion_tokens': 332, 'prompt_tokens_details': None, 'reasoning_tokens': 0}
+en_prose 0 26.4 {'prompt_tokens': 42, 'total_tokens': 298, 'completion_tokens': 256, 'prompt_tokens_details': None, 'reasoning_tokens': 0}
+ko_explain 1 33.26 {'prompt_tokens': 48, 'total_tokens': 304, 'completion_tokens': 256, 'prompt_tokens_details': None, 'reasoning_tokens': 0}
+ko_plan 1 36.68 {'prompt_tokens': 45, 'total_tokens': 301, 'completion_tokens': 256, 'prompt_tokens_details': None, 'reasoning_tokens': 0}
+ko_story 1 40.12 {'prompt_tokens': 46, 'total_tokens': 302, 'completion_tokens': 256, 'prompt_tokens_details': None, 'reasoning_tokens': 0}
+ko_compare 1 21.7 {'prompt_tokens': 48, 'total_tokens': 304, 'completion_tokens': 256, 'prompt_tokens_details': None, 'reasoning_tokens': 0}
+code_python 1 45.02 {'prompt_tokens': 44, 'total_tokens': 300, 'completion_tokens': 256, 'prompt_tokens_details': None, 'reasoning_tokens': 0}
+code_go 1 37.51 {'prompt_tokens': 45, 'total_tokens': 301, 'completion_tokens': 256, 'prompt_tokens_details': None, 'reasoning_tokens': 0}
+json 1 40.51 {'prompt_tokens': 49, 'total_tokens': 383, 'completion_tokens': 334, 'prompt_tokens_details': None, 'reasoning_tokens': 0}
+en_prose 1 27.54 {'prompt_tokens': 42, 'total_tokens': 298, 'completion_tokens': 256, 'prompt_tokens_details': None, 'reasoning_tokens': 0}
+ko_explain 2 35.05 {'prompt_tokens': 48, 'total_tokens': 304, 'completion_tokens': 256, 'prompt_tokens_details': None, 'reasoning_tokens': 0}
+ko_plan 2 37.5 {'prompt_tokens': 45, 'total_tokens': 301, 'completion_tokens': 256, 'prompt_tokens_details': None, 'reasoning_tokens': 0}
+ko_story 2 20.64 {'prompt_tokens': 46, 'total_tokens': 302, 'completion_tokens': 256, 'prompt_tokens_details': None, 'reasoning_tokens': 0}
+ko_compare 2 28.87 {'prompt_tokens': 48, 'total_tokens': 304, 'completion_tokens': 256, 'prompt_tokens_details': None, 'reasoning_tokens': 0}
+code_python 2 45.79 {'prompt_tokens': 44, 'total_tokens': 300, 'completion_tokens': 256, 'prompt_tokens_details': None, 'reasoning_tokens': 0}
+code_go 2 52.5 {'prompt_tokens': 45, 'total_tokens': 301, 'completion_tokens': 256, 'prompt_tokens_details': None, 'reasoning_tokens': 0}
+json 2 26.9 {'prompt_tokens': 49, 'total_tokens': 384, 'completion_tokens': 335, 'prompt_tokens_details': None, 'reasoning_tokens': 0}
+en_prose 2 27.87 {'prompt_tokens': 42, 'total_tokens': 298, 'completion_tokens': 256, 'prompt_tokens_details': None, 'reasoning_tokens': 0}
+{"summary": {"ko_explain": 33.25958167612765, "ko_plan": 36.679501019698996, "ko_story": 21.548042780846394, "ko_compare": 27.147508911700914, "code_python": 45.02309795894059, "code_go": 37.51029657640969, "json": 40.505202010292926, "en_prose": 27.544899443435543}, "checks": [["tools_thinking_False", true], ["tools_thinking_True", true], ["vision", true], ["concurrency_2", true], ["long_context", true], ["json_round_0", true], ["json_round_1", true], ["json_round_2", true]], "min_mem_available_gib": 21.381256103515625}

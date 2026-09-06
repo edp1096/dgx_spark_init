@@ -69,6 +69,13 @@ func New(cfg config.Config, configPath string, store *db.DB, client *llm.Client,
 		return nil, fmt.Errorf("knowledge storage: %w", err)
 	}
 	var runtimeController *orchestrator.Controller
+	// Resolve physical hosts before probing services or initiating AutoStart.
+	if cfg.Runtime.Mode == "managed" && cfg.Runtime.Catalog != nil && cfg.Runtime.Catalog.Network != nil && cfg.Runtime.Catalog.Network.Enabled {
+		_ = resolveAutoNetwork(context.Background(), &cfg)
+		if err := config.Save(configPath, cfg); err != nil {
+			return nil, err
+		}
+	}
 	if cfg.Runtime.Catalog != nil {
 		runtimeController, err = orchestrator.NewControllerWithCatalog(*cfg.Runtime.Catalog)
 	} else {
@@ -99,6 +106,7 @@ func New(cfg config.Config, configPath string, store *db.DB, client *llm.Client,
 	mux.HandleFunc("/api/runtime", s.runtimeStatus)
 	mux.HandleFunc("/api/runtime/catalog/parse", s.runtimeCatalogParse)
 	mux.HandleFunc("/api/runtime/probe", s.runtimeProbe)
+	mux.HandleFunc("/api/runtime/network/discover", s.networkDiscover)
 	mux.HandleFunc("/api/runtime/", s.runtimeAction)
 	mux.HandleFunc("/api/models", s.models)
 	mux.HandleFunc("/api/images", s.uploadImage)

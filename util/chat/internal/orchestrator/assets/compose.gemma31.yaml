@@ -1,6 +1,10 @@
 services:
   runtime:
-    image: dgx-sglang-gemma4-31b-dflash:2ef0fe4
+    image: dgx-sglang-gemma4-31b-dflash:2ef0fe4-toolindex1
+    build:
+      context: ${SPARKTALK_BUILD_DIR:?Gemma build assets required}
+      dockerfile: Dockerfile.dflash
+    pull_policy: never
     container_name: sglang-gemma4-31b
     restart: unless-stopped
     init: true

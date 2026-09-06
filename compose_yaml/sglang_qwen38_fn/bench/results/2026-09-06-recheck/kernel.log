@@ -1,0 +1,29 @@
+Sep 06 17:11:13 spark-f05a kernel: br-eab6c28e5a8d: port 1(veth7c1514a) entered blocking state
+Sep 06 17:11:13 spark-f05a kernel: br-eab6c28e5a8d: port 1(veth7c1514a) entered disabled state
+Sep 06 17:11:13 spark-f05a kernel: veth7c1514a: entered allmulticast mode
+Sep 06 17:11:13 spark-f05a kernel: veth7c1514a: entered promiscuous mode
+Sep 06 17:11:13 spark-f05a kernel: eth0: renamed from veth45b5ce7
+Sep 06 17:11:13 spark-f05a kernel: br-eab6c28e5a8d: port 1(veth7c1514a) entered blocking state
+Sep 06 17:11:13 spark-f05a kernel: br-eab6c28e5a8d: port 1(veth7c1514a) entered forwarding state
+Sep 06 17:11:28 spark-f05a kernel: nvidia 000f:01:00.0: Using 40-bit DMA addresses
+Sep 06 17:35:10 spark-f05a kernel: br-eab6c28e5a8d: port 1(veth7c1514a) entered disabled state
+Sep 06 17:35:10 spark-f05a kernel: veth45b5ce7: renamed from eth0
+Sep 06 17:35:10 spark-f05a kernel: br-eab6c28e5a8d: port 1(veth7c1514a) entered disabled state
+Sep 06 17:35:10 spark-f05a kernel: veth7c1514a (unregistering): left allmulticast mode
+Sep 06 17:35:10 spark-f05a kernel: veth7c1514a (unregistering): left promiscuous mode
+Sep 06 17:35:10 spark-f05a kernel: br-eab6c28e5a8d: port 1(veth7c1514a) entered disabled state
+Sep 06 17:35:31 spark-f05a kernel: br-eab6c28e5a8d: port 1(veth6618b63) entered blocking state
+Sep 06 17:35:31 spark-f05a kernel: br-eab6c28e5a8d: port 1(veth6618b63) entered disabled state
+Sep 06 17:35:31 spark-f05a kernel: veth6618b63: entered allmulticast mode
+Sep 06 17:35:31 spark-f05a kernel: veth6618b63: entered promiscuous mode
+Sep 06 17:35:31 spark-f05a kernel: eth0: renamed from veth3332d1f
+Sep 06 17:35:31 spark-f05a kernel: br-eab6c28e5a8d: port 1(veth6618b63) entered blocking state
+Sep 06 17:35:31 spark-f05a kernel: br-eab6c28e5a8d: port 1(veth6618b63) entered forwarding state
+Sep 06 17:53:39 spark-f05a kernel: audit: type=1400 audit(1788684819.642:177): apparmor="DENIED" operation="capable" class="cap" profile="ubuntu_pro_esm_cache_systemd_detect_virt" pid=80401 comm="systemd-detect-" capability=38  capname="perfmon"
+Sep 06 17:53:39 spark-f05a kernel: audit: type=1400 audit(1788684819.644:178): apparmor="DENIED" operation="capable" class="cap" profile="ubuntu_pro_esm_cache//cloud_id" pid=80397 comm="cloud-id" capability=38  capname="perfmon"
+Sep 06 17:58:28 spark-f05a kernel: br-eab6c28e5a8d: port 1(veth6618b63) entered disabled state
+Sep 06 17:58:28 spark-f05a kernel: veth3332d1f: renamed from eth0
+Sep 06 17:58:28 spark-f05a kernel: br-eab6c28e5a8d: port 1(veth6618b63) entered disabled state
+Sep 06 17:58:28 spark-f05a kernel: veth6618b63 (unregistering): left allmulticast mode
+Sep 06 17:58:28 spark-f05a kernel: veth6618b63 (unregistering): left promiscuous mode
+Sep 06 17:58:28 spark-f05a kernel: br-eab6c28e5a8d: port 1(veth6618b63) entered disabled state

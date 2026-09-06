@@ -7,7 +7,7 @@ services:
       args:
         SGLANG_PLE_COMMIT: 0977d22bb005695fef0aee4bc59adfab45b7a496
         SPARK_RECIPE_COMMIT: 4f425ca561f767997738e894ee578673e79b01b1
-    image: dgx-sglang-qwen38-fn:sm121
+    image: dgx-sglang-qwen38-fn:sm121-vocab1
     container_name: sglang-qwen38-fn
     ipc: host
     shm_size: "16gb"
@@ -25,6 +25,7 @@ services:
       MAX_JOBS: "1"
       TORCHINDUCTOR_COMPILE_THREADS: "4"
       SGLANG_QWEN4_PLE_FILE_RSS_BUDGET_GB: "8"
+      SPARKTALK_FLASH_NEXT_DRAFT_VOCAB: ${SPARKTALK_FLASH_NEXT_DRAFT_VOCAB:-ko64k}
     volumes:
       - ${SPARKTALK_HF_CACHE:-/home/edp1096/.cache/huggingface}:/hf
       - ${SPARKTALK_DATA_DIR:-/home/edp1096/.local/share/sparktalk}/cache/sglang-flash-next:/root/.cache/sglang
@@ -36,7 +37,7 @@ services:
             - driver: nvidia
               count: all
               capabilities: [gpu]
-    entrypoint: ["python3", "-m", "sglang.launch_server"]
+    entrypoint: ["python3", "/opt/sparktalk-flash-next/launch.py"]
     command:
       - --model-path
       - /hf/hub/models--dealignai--Qwen3.8-Flash-Next-ABLITERATED-NVFP4/snapshots/be794b990578ef3031eccf9f28e675a289a09ee9

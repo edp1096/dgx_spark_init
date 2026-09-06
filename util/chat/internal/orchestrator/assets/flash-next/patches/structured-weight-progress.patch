@@ -1,0 +1,56 @@
+diff --git a/sglang/srt/model_loader/weight_utils.py b/sglang/srt/model_loader/weight_utils.py
+index 28a89d8..530ed37 100644
+--- a/sglang/srt/model_loader/weight_utils.py
++++ b/sglang/srt/model_loader/weight_utils.py
+@@ -16,6 +16,7 @@ import os
+ import re
+ import struct
+ import tempfile
++import time
+ import threading
+ from collections import defaultdict
+ from pathlib import Path
+@@ -1264,6 +1265,10 @@ def buffered_multi_thread_safetensors_weights_iterator(
+     # Sliding window: max_workers loading + 1 prefetched.
+     buffer_size = max_workers + 1
+ 
++    total_shards = len(hf_weights_files)
++    progress_started = time.monotonic()
++    progress_log_interval = max(1, total_shards // 50)
++    completed_shards = 0
+     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+         file_iter = iter(hf_weights_files)
+         pending: collections.deque = collections.deque()
+@@ -1272,7 +1277,7 @@ def buffered_multi_thread_safetensors_weights_iterator(
+             pending.append((st_file, executor.submit(_load_file, st_file)))
+ 
+         with tqdm(
+-            total=len(hf_weights_files),
++            total=total_shards,
+             desc="Multi-thread loading shards",
+             disable=not enable_tqdm,
+             bar_format=BAR_FORMAT,
+@@ -1296,6 +1301,23 @@ def buffered_multi_thread_safetensors_weights_iterator(
+                     # but later mmap-backed tensor access may fault pages again.
+                     _drop_file_cache_after_load(st_file)
+                 pbar.update(1)
++                completed_shards += 1
++                if enable_tqdm and (
++                    completed_shards == 1
++                    or completed_shards % progress_log_interval == 0
++                    or completed_shards > total_shards - 14
++                    or completed_shards == total_shards
++                ):
++                    elapsed = time.monotonic() - progress_started
++                    eta = (
++                        elapsed * (total_shards - completed_shards) / completed_shards
++                    )
++                    print(
++                        "SGLANG_WEIGHT_PROGRESS "
++                        f"current={completed_shards} total={total_shards} "
++                        f"elapsed_seconds={elapsed:.1f} eta_seconds={eta:.1f}",
++                        flush=True,
++                    )
+ 
+ 
+ def _load_pt_file(bin_file: str) -> dict:

@@ -279,3 +279,39 @@ func TestExtraImageTransfer(t *testing.T) {
 	}
 
 }
+
+func TestFlashNextDraftVocabularyDeployment(t *testing.T) {
+	for _, mode := range []string{"", "off", "ko64k", "invalid"} {
+		t.Run("mode_"+mode, func(t *testing.T) {
+			dir := t.TempDir()
+			if err := os.WriteFile(filepath.Join(dir, "docker"), []byte("#!/bin/sh\ncase \"$*\" in *config) cat;; esac\n"), 0700); err != nil {
+				t.Fatal(err)
+			}
+			t.Setenv("PATH", dir+":"+os.Getenv("PATH"))
+			c, _ := NewController()
+			c.ConfigurePaths(dir, filepath.Join(dir, "models"))
+			component, _ := c.Catalog().Component("flash-next")
+			component.RuntimeOptions = map[string]string{"DRAFT_VOCAB": mode}
+			err := c.startComponent(context.Background(), component)
+			if mode == "invalid" {
+				if err == nil || !strings.Contains(err.Error(), "DRAFT_VOCAB") {
+					t.Fatalf("invalid option: %v", err)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+			data, err := os.ReadFile(filepath.Join(dir, "runtime", component.ID, "compose.yaml"))
+			if err != nil {
+				t.Fatal(err)
+			}
+			if mode == "" {
+				mode = "ko64k"
+			}
+			if !strings.Contains(string(data), "SPARKTALK_FLASH_NEXT_DRAFT_VOCAB: "+mode) && !strings.Contains(string(data), "SPARKTALK_FLASH_NEXT_DRAFT_VOCAB: \""+mode+"\"") {
+				t.Fatalf("option not rendered: %s", data)
+			}
+		})
+	}
+}

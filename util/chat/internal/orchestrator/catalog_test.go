@@ -1,6 +1,8 @@
 package orchestrator
 
 import (
+	"bytes"
+	"os"
 	"strings"
 	"testing"
 )
@@ -157,7 +159,9 @@ func TestGemmaRuntimeProfileStaysInSync(t *testing.T) {
 	}
 	compose := string(data)
 	for _, required := range []string{
-		"dgx-sglang-gemma4-31b-dflash:2ef0fe4",
+		"dgx-sglang-gemma4-31b-dflash:2ef0fe4-toolindex1",
+		"SPARKTALK_BUILD_DIR",
+		"dockerfile: Dockerfile.dflash",
 		"container_name: sglang-gemma4-31b",
 		"/opt/gemma4/chat_template.jinja",
 		"eabd648301ce28583cc14757912e5e0f84e152e1",
@@ -166,6 +170,22 @@ func TestGemmaRuntimeProfileStaysInSync(t *testing.T) {
 	} {
 		if !strings.Contains(compose, required) {
 			t.Fatalf("Gemma compose is missing %q", required)
+		}
+	}
+}
+
+func TestGemmaBuildAssetsAreEmbeddedAndMatchStandalone(t *testing.T) {
+	for _, name := range []string{"Dockerfile.dflash", "patch_tool_index.py", "chat_template.jinja"} {
+		embedded, err := assets.ReadFile("assets/gemma31/" + name)
+		if err != nil {
+			t.Fatal(err)
+		}
+		standalone, err := os.ReadFile("../../../../compose_yaml/sglang_gemma4_31b/" + name)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !bytes.Equal(embedded, standalone) {
+			t.Fatalf("Gemma build asset out of sync: %s", name)
 		}
 	}
 }

@@ -1,4 +1,5 @@
 {
+  "network": {"enabled": true},
   "components": [
     {
       "id": "qwen27",
@@ -10,7 +11,8 @@
       "memory_gib": 52.0,
       "startup_timeout_seconds": 1200,
       "compose_asset": "compose.qwen27.yaml",
-      "progress_kind": "sglang"
+      "progress_kind": "sglang",
+      "auto_address": true
     },
     {
       "id": "qwen27-exl3",
@@ -22,7 +24,8 @@
       "memory_gib": 25.0,
       "startup_timeout_seconds": 300,
       "compose_asset": "compose.qwen27-exl3.yaml",
-      "progress_kind": "exl3"
+      "progress_kind": "exl3",
+      "auto_address": true
     },
     {
       "id": "flash-next",
@@ -34,7 +37,8 @@
       "memory_gib": 96.0,
       "startup_timeout_seconds": 1200,
       "compose_asset": "compose.flash-next.yaml",
-      "progress_kind": "sglang"
+      "progress_kind": "sglang",
+      "auto_address": true
     },
     {
       "id": "flash-next-exl3",
@@ -46,7 +50,8 @@
       "memory_gib": 88.0,
       "startup_timeout_seconds": 1200,
       "compose_asset": "compose.flash-next-exl3.yaml",
-      "progress_kind": "exl3"
+      "progress_kind": "exl3",
+      "auto_address": true
     },
     {
       "id": "gemma31",
@@ -58,7 +63,8 @@
       "memory_gib": 64.0,
       "startup_timeout_seconds": 1200,
       "compose_asset": "compose.gemma31.yaml",
-      "progress_kind": "sglang"
+      "progress_kind": "sglang",
+      "auto_address": true
     },
     {
       "id": "flux2",
@@ -70,7 +76,8 @@
       "memory_gib": 6.7,
       "startup_timeout_seconds": 300,
       "compose_asset": "compose.flux2.yaml",
-      "progress_kind": "comfy"
+      "progress_kind": "comfy",
+      "auto_address": true
     },
     {
       "id": "nemotron-asr",
@@ -82,7 +89,8 @@
       "memory_gib": 1.3,
       "startup_timeout_seconds": 180,
       "compose_asset": "compose.nemotron-asr.yaml",
-      "progress_kind": "service"
+      "progress_kind": "service",
+      "auto_address": true
     },
     {
       "id": "magpie-tts",
@@ -94,7 +102,8 @@
       "memory_gib": 1.2,
       "startup_timeout_seconds": 180,
       "compose_asset": "compose.magpie-tts.yaml",
-      "progress_kind": "service"
+      "progress_kind": "service",
+      "auto_address": true
     },
     {
       "id": "extra-media",
@@ -105,7 +114,8 @@
       "memory_gib": 0.1,
       "startup_timeout_seconds": 90,
       "compose_asset": "compose.extra-media.yaml",
-      "progress_kind": "service"
+      "progress_kind": "service",
+      "auto_address": true
     },
     {
       "id": "extra-ssh",
@@ -116,7 +126,8 @@
       "memory_gib": 0.1,
       "startup_timeout_seconds": 90,
       "compose_asset": "compose.extra-ssh.yaml",
-      "progress_kind": "service"
+      "progress_kind": "service",
+      "auto_address": true
     },
     {
       "id": "extra-collector",
@@ -127,7 +138,8 @@
       "memory_gib": 0.3,
       "startup_timeout_seconds": 120,
       "compose_asset": "compose.extra-collector.yaml",
-      "progress_kind": "service"
+      "progress_kind": "service",
+      "auto_address": true
     },
     {
       "id": "glm53",
@@ -144,7 +156,8 @@
       "memory_gib": 110,
       "worker_memory_gib": 108,
       "startup_timeout_seconds": 3600,
-      "progress_kind": "service"
+      "progress_kind": "service",
+      "auto_address": true
     },
     {
       "id": "ds4fve",
@@ -162,7 +175,8 @@
       "memory_gib": 111,
       "worker_memory_gib": 109,
       "startup_timeout_seconds": 3600,
-      "progress_kind": "service"
+      "progress_kind": "service",
+      "auto_address": true
     }
   ],
   "bundles": [

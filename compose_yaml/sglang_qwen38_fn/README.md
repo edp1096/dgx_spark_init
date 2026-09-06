@@ -60,3 +60,27 @@ docker compose down
 
 SparkTalk 관리 화면으로 실행할 때는 이 폴더의 Compose 파일을 직접 올리지 않는다.
 SparkTalk에 내장된 동일한 실행 구성이 컨테이너를 관리한다.
+
+### 한국어 포함 초안 어휘 64K
+
+기본값은 한국어 포함 64K(`ko64k`)다. `ko64k`는 MTP 초안의 출력 어휘만 줄이며,
+완성형 한글을 포함하는 토큰을 보존한다. 가중치를 다시 받거나 패치하지 않는다.
+3회 재시험에서는 전체 처리량 약 19.5% 개선이 있었다. 반복 편차는 있지만 기능 검사를 통과해 기본 구성으로 채택했다.
+[시험 결과와 안정성 한계](bench/results/2026-09-06-recheck/README.md)를 먼저 확인한다.
+
+```sh
+docker compose build
+docker compose up -d
+# 기존 전체 어휘로 되돌리기
+SPARKTALK_FLASH_NEXT_DRAFT_VOCAB=off docker compose up -d
+```
+
+이미지 `dgx-sglang-qwen38-fn:sm121-vocab1`에는 실행 래퍼와 검증된 어휘 목록이
+포함된다. `ko64k`는 토크나이저 SHA256이 다르면 모델 로드 전에 중단한다.
+기존 `sm121` 이미지에는 이 옵션이 없으므로 새 이미지를 먼저 준비해야 한다.
+
+SparkTalk에서는 설정 → 시스템 → 서비스 구성의 해당 Flash-Next 서비스에서
+`초안 어휘`를 선택하고 저장한 뒤 서비스를 다시 시작한다. 저장 키는
+`runtime_options.DRAFT_VOCAB` (`off`/`ko64k`)다. SparkTalk은 내장 Compose로
+환경변수를 전달하며 외부 compose_yaml 파일을 읽지 않는다. 실행 호스트에는
+위 새 이미지가 필요하다. 이 옵션은 SGLang TP1 전용이며 EXL3에는 적용하지 않는다.

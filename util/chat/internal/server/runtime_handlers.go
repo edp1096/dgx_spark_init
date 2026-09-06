@@ -40,6 +40,20 @@ func (s *Server) runtimeAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var err error
+	needsWorker := false
+	if parts[0] == "bundles" {
+		for _, c := range s.runtime.Catalog().BundleComponents(parts[1]) {
+			needsWorker = needsWorker || (c.AutoAddress && (c.Host == "worker" || c.WorkerHost == "worker"))
+		}
+	} else if c, ok := s.runtime.Catalog().ResolveComponent(cfg.Runtime.ActiveBundle, parts[1]); ok {
+		needsWorker = c.AutoAddress && (c.Host == "worker" || c.WorkerHost == "worker")
+	}
+	if needsWorker && (parts[2] == "start" || parts[2] == "restart") {
+		if err := s.refreshAutoNetwork(r.Context(), &cfg); err != nil {
+			http.Error(w, err.Error(), http.StatusConflict)
+			return
+		}
+	}
 	switch parts[0] {
 	case "bundles":
 		bundle, exists := s.runtime.Catalog().Bundle(parts[1])

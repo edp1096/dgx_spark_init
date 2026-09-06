@@ -1,0 +1,301 @@
+{
+  "cases": {
+    "ko_explain": {
+      "off": {
+        "median_tok_s": 28.757632414356014,
+        "min_tok_s": 26.278326887481175,
+        "max_tok_s": 29.33531509837524,
+        "samples": 3,
+        "outputs": [
+          256,
+          256,
+          256
+        ]
+      },
+      "ko64k": {
+        "median_tok_s": 33.25958167612765,
+        "min_tok_s": 29.734666530244436,
+        "max_tok_s": 35.04968233642605,
+        "samples": 3,
+        "outputs": [
+          256,
+          256,
+          256
+        ]
+      },
+      "change_percent": 15.654797992077519
+    },
+    "ko_plan": {
+      "off": {
+        "median_tok_s": 29.57454715453994,
+        "min_tok_s": 28.708226965585656,
+        "max_tok_s": 31.54441832856326,
+        "samples": 3,
+        "outputs": [
+          256,
+          256,
+          256
+        ]
+      },
+      "ko64k": {
+        "median_tok_s": 36.679501019698996,
+        "min_tok_s": 34.672613342015616,
+        "max_tok_s": 37.50386954447035,
+        "samples": 3,
+        "outputs": [
+          256,
+          256,
+          256
+        ]
+      },
+      "change_percent": 24.023880494374318
+    },
+    "ko_story": {
+      "off": {
+        "median_tok_s": 16.958188508821316,
+        "min_tok_s": 16.707656781909904,
+        "max_tok_s": 17.70593681880044,
+        "samples": 3,
+        "outputs": [
+          256,
+          256,
+          256
+        ]
+      },
+      "ko64k": {
+        "median_tok_s": 21.548042780846394,
+        "min_tok_s": 20.638003078243404,
+        "max_tok_s": 40.12230178842168,
+        "samples": 3,
+        "outputs": [
+          256,
+          256,
+          256
+        ]
+      },
+      "change_percent": 27.065710878479308
+    },
+    "ko_compare": {
+      "off": {
+        "median_tok_s": 23.081184864181424,
+        "min_tok_s": 20.213437081168312,
+        "max_tok_s": 24.087764953893778,
+        "samples": 3,
+        "outputs": [
+          256,
+          256,
+          256
+        ]
+      },
+      "ko64k": {
+        "median_tok_s": 27.147508911700914,
+        "min_tok_s": 21.704098351067422,
+        "max_tok_s": 28.86887484917626,
+        "samples": 3,
+        "outputs": [
+          256,
+          256,
+          256
+        ]
+      },
+      "change_percent": 17.61748398727061
+    },
+    "code_python": {
+      "off": {
+        "median_tok_s": 36.776975722832724,
+        "min_tok_s": 35.92758190086665,
+        "max_tok_s": 38.536855630369566,
+        "samples": 3,
+        "outputs": [
+          256,
+          256,
+          256
+        ]
+      },
+      "ko64k": {
+        "median_tok_s": 45.02309795894059,
+        "min_tok_s": 42.66270980149563,
+        "max_tok_s": 45.79031586650551,
+        "samples": 3,
+        "outputs": [
+          256,
+          256,
+          256
+        ]
+      },
+      "change_percent": 22.42196938175185
+    },
+    "code_go": {
+      "off": {
+        "median_tok_s": 32.82577618725989,
+        "min_tok_s": 31.8007047607843,
+        "max_tok_s": 34.194759971246974,
+        "samples": 3,
+        "outputs": [
+          256,
+          256,
+          256
+        ]
+      },
+      "ko64k": {
+        "median_tok_s": 37.51029657640969,
+        "min_tok_s": 35.262315772411334,
+        "max_tok_s": 52.49882505467948,
+        "samples": 3,
+        "outputs": [
+          256,
+          256,
+          256
+        ]
+      },
+      "change_percent": 14.27085946856581
+    },
+    "json": {
+      "off": {
+        "median_tok_s": 35.80177910704383,
+        "min_tok_s": 34.397795341732426,
+        "max_tok_s": 35.99235943461645,
+        "samples": 3,
+        "outputs": [
+          329,
+          331,
+          335
+        ]
+      },
+      "ko64k": {
+        "median_tok_s": 40.505202010292926,
+        "min_tok_s": 26.898296195559205,
+        "max_tok_s": 40.59042124317414,
+        "samples": 3,
+        "outputs": [
+          332,
+          334,
+          335
+        ]
+      },
+      "change_percent": 13.137399929725069
+    },
+    "en_prose": {
+      "off": {
+        "median_tok_s": 22.535649799277238,
+        "min_tok_s": 22.419174109962196,
+        "max_tok_s": 23.810292601853746,
+        "samples": 3,
+        "outputs": [
+          256,
+          256,
+          256
+        ]
+      },
+      "ko64k": {
+        "median_tok_s": 27.544899443435543,
+        "min_tok_s": 26.397478822885375,
+        "max_tok_s": 27.87263115009846,
+        "samples": 3,
+        "outputs": [
+          256,
+          256,
+          256
+        ]
+      },
+      "change_percent": 22.228112740369976
+    }
+  },
+  "aggregate": {
+    "off": {
+      "tokens": 6371,
+      "wall_seconds": 242.31606852799996,
+      "tok_s": 26.292106993572414
+    },
+    "ko64k": {
+      "tokens": 6377,
+      "wall_seconds": 203.04287799500025,
+      "tok_s": 31.40715923144582
+    }
+  },
+  "checks": {
+    "off": [
+      {
+        "name": "tools_thinking_False",
+        "passed": true
+      },
+      {
+        "name": "tools_thinking_True",
+        "passed": true
+      },
+      {
+        "name": "vision",
+        "passed": true
+      },
+      {
+        "name": "concurrency_2",
+        "passed": true
+      },
+      {
+        "name": "long_context",
+        "passed": true
+      },
+      {
+        "name": "json_round_0",
+        "passed": true
+      },
+      {
+        "name": "json_round_1",
+        "passed": true
+      },
+      {
+        "name": "json_round_2",
+        "passed": true
+      }
+    ],
+    "ko64k": [
+      {
+        "name": "tools_thinking_False",
+        "passed": true
+      },
+      {
+        "name": "tools_thinking_True",
+        "passed": true
+      },
+      {
+        "name": "vision",
+        "passed": true
+      },
+      {
+        "name": "concurrency_2",
+        "passed": true
+      },
+      {
+        "name": "long_context",
+        "passed": true
+      },
+      {
+        "name": "json_round_0",
+        "passed": true
+      },
+      {
+        "name": "json_round_1",
+        "passed": true
+      },
+      {
+        "name": "json_round_2",
+        "passed": true
+      }
+    ]
+  },
+  "telemetry": {
+    "off": {
+      "min_available_gib": 20.838836669921875,
+      "max_gpu_celsius": 67.0,
+      "samples": 146
+    },
+    "ko64k": {
+      "min_available_gib": 20.792098999023438,
+      "max_gpu_celsius": 66.0,
+      "samples": 139
+    }
+  },
+  "boot_ids": [
+    "0540b415-ba4f-43dd-a0a0-90ffa1990af5"
+  ]
+}

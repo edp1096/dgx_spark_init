@@ -6,7 +6,8 @@ services:
       dockerfile: Dockerfile.dflash
       args:
         SGLANG_COMMIT: 2ef0fe46693d1b88271943de5eb49a2848a512d8
-    image: dgx-sglang-gemma4-31b-dflash:2ef0fe4
+    image: dgx-sglang-gemma4-31b-dflash:2ef0fe4-toolindex1
+    pull_policy: never
     container_name: sglang-gemma4-31b
     ipc: host
     shm_size: "16gb"

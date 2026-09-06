@@ -66,16 +66,17 @@ CUDA Graph·보정 워밍업 순으로 표시한다. Flash-Next 전용 SGLang �
 모델 가중치와 Docker 이미지 자체는 Go 바이너리에 넣지 않는다. 최초 사용 전에
 저장소의 각 런타임 README에 따라 아래 로컬 이미지를 빌드하고 모델을 받아 둔다.
 그 이후의 일상적인 기동·중지·전환에는 Compose 명령이 필요 없다.
+Gemma·Qwen Flash-Next·Qwen 27B DFlash2는 이미지가 없으면 앱에 내장된 빌드 파일·패치로 자동 빌드한다. compose_yaml 체크아웃은 필요 없다. 모델 가중치는 별도로 준비해야 한다.
 Extra 3종과 ASR·TTS를 원격 호스트에서 기동할 때 이미지가 없으면 앱 실행 머신의 이미지를
 SSH로 스트리밍 전달한다. 기존 원격 이미지는 유지하며, 앱 실행 머신에도 없으면
 먼저 빌드하라는 오류를 표시한다.
 
 ```text
-dgx-sglang-qwen38-fn:sm121
+dgx-sglang-qwen38-fn:sm121-vocab1
 dgx-sglang-qwen38-27b-dflash2:2ef0fe4
 dgx-exl3-qwen38-27b:63b32f0
 dgx-exl3-qwen38-fn:1.4.6-ablit1
-dgx-sglang-gemma4-31b-dflash:2ef0fe4
+dgx-sglang-gemma4-31b-dflash:2ef0fe4-toolindex1
 dgx-flux2-klein-nvfp4:4b
 sparktalk-nemotron-asr:0.6b-q8
 sparktalk-magpie-tts:v2607-longform1
@@ -173,6 +174,32 @@ systemctl --user daemon-reload
 기억 원문과 문서 자료의 추가·수정·삭제는 설정에 섞지 않고 좌측의
 **기억·지식** 전용 화면에서 관리합니다.
 관리형 세트의 endpoint·모델 ID·모델 유형은 편집한 세트 정의에서 적용합니다.
+**시스템 → AI 세트 → 실행 호스트 편집**에서 자동 탐색을 켜면 SparkTalk를
+실행한 장비가 헤드(`local`)가 되고, 확인된 상대 장비가 `worker`가 됩니다.
+`워커 탐색 · 주소 맞추기`는 저장 전 미리보기이며 후보가 여러 대면 장비를
+선택합니다. SSH 주소를 직접 입력해 탐색할 수도 있습니다. 앱 시작, 원격 세트
+시작·재시작, 클러스터 모델 준비 전에 다시 확인합니다.
+
+자동 탐색은 등록된 장비 주소·호스트명, Avahi의 Spark SSH 광고와 이미 SSH로
+신뢰한 네트워크 이웃의 Spark/GX10 장비를 함께 확인하고,
+SSH로 읽은 `/etc/machine-id`로 자기 자신과 중복 주소를 제외합니다. 양방향 SSH
+인증과 `known_hosts` 등록은 먼저 준비되어 있어야 합니다. Python 3, iproute2,
+Docker가 양쪽에 필요하며 mDNS 탐색에는 앱 실행 장비의 `avahi-browse`를 사용합니다.
+탐색 실패 시 임의의 다른 장비를 워커로 대체하지 않습니다.
+
+서비스의 `헤드·워커 주소 자동 연동`을 켠 경우에만 API·상태 확인 URL·바인딩
+주소를 역할에 맞춥니다. 수동 서비스와 `external` 서비스 주소는 유지합니다.
+QSFP는 실제 연결된 인터페이스·HCA·주소를 읽어 GLM·DeepSeek에 반영합니다.
+양쪽 포트에 IP가 없으면 사용 중인 네트워크와 겹치지 않는 주소를 계획하고,
+세트 시작 시 Docker의 NET_ADMIN 권한으로 추가한 뒤 ping으로 확인합니다.
+탐색 자체는 IP나 SSH 키를 변경하지 않습니다.
+
+역할을 바꾸려면 기존 클러스터 세트를 중지한 뒤 다른 Spark에서 앱을 실행합니다.
+새 기본 구성은 자동 탐색을 사용하며, 앱 실행 장비를 헤드로 다시 계산합니다.
+기존 세트와 수동 설정까지 옮기려면 장비 목록이 포함된 설정을 가져올 수 있습니다.
+이전 클러스터가 실행 중인 경우에는 역할을 강제로 넘겨받지 않습니다.
+운영 설정의 `runtime.catalog.network`에 장비 ID·탐색 결과를 저장하며,
+모델과 실행 이미지는 해당 장비에 준비되어 있어야 합니다.
 JSON/YAML 가져오기와 JSON 내보내기는 **시스템 → AI 세트 편집**에서 지원합니다. Qwen 3.8은 꺼짐·Low·Medium·
 XHigh의 단계형 effort를, Qwen EXL3는 Thinking 켜짐·꺼짐을 사용합니다.
 GLM-5.3 Flash는 Off·Low·High·Max를, Gemma 4는 Thinking 켜짐·꺼짐과 최대 생각
@@ -492,3 +519,12 @@ SSH 주소·계정·인증키 설정을 사용한다. 관리 연결용 SSH 개�
 고정된다. 앱을 다른 메인 머신으로 옮겨도 `local`이라는 세트 역할 때문에 복제 대상이
 바뀌지 않는다. 앱 설정을 함께 이전하고, 새 머신에서도 각 복제 대상에 관리용 SSH
 접속이 가능해야 한다. 자기 머신의 IP로 판별되면 SSH 대신 로컬 Docker를 사용한다.
+
+Flash-Next SGLang TP1은 **한국어 포함 64K 초안 어휘**를 기본으로 사용합니다.
+서비스 구성에서 전체 어휘로 되돌릴 수 있으며, 내장 Compose가
+`runtime_options.DRAFT_VOCAB=ko64k`를 실행 환경에 반영합니다. 실행 호스트에는
+`dgx-sglang-qwen38-fn:sm121-vocab1` 이미지가 필요합니다. 저장 후 서비스를
+다시 시작해야 하며 토크나이저가 다르면 실행 전 검증에서 중단합니다.
+[성능 측정 및 한계](../../compose_yaml/sglang_qwen38_fn/bench/results/2026-09-06-recheck/README.md)를 참고하세요.
+
+Qwen 27B 모델 준비는 공식(RadixArk) 또는 abliterated(edp1096)의 완성된 NVFP4와 DFlash2를 다운로드한다. 재양자화 없이 기존 파일을 검증해 재사용하며, 실행 가중치는 서비스 구성에서 선택한다.
