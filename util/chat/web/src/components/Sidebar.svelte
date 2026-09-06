@@ -1,6 +1,8 @@
 <script>
   import { onMount } from 'svelte';
   import Avatar from './Avatar.svelte';
+  import SessionPager from './SessionPager.svelte';
+  import { sessionPage, SESSION_PAGE_SIZE } from '../lib/session-pages.js';
   import { searchConversations } from '../api.js';
 
   export let groups = [];
@@ -30,6 +32,33 @@
   export let onSearchMore = () => {};
 
   let sessionMenuId = '';
+  let sessionPages = {};
+  let followedActive = '';
+  $: ungroupedPage = sessionPage(ungroupedSessions, sessionPages.__ungrouped__);
+  $: groupPages = Object.fromEntries(Object.entries(sessionsByGroup).map(([id, items]) => [id, sessionPage(items, sessionPages[id])]));
+  $: followActive(activeId, sessionsByGroup, ungroupedSessions);
+
+  function changePage(key, page) {
+    sessionMenuId = '';
+    sessionPages = { ...sessionPages, [key]: page };
+  }
+
+  // Selecting an older conversation through search reveals its page, without
+  // preventing the user from browsing other pages while that chat stays open.
+  function followActive(id, grouped, ungrouped) {
+    if (!id) { followedActive = ''; return; }
+    for (const [key, items] of [['__ungrouped__', ungrouped], ...Object.entries(grouped)]) {
+      const index = items.findIndex(item => item.id === id);
+      if (index < 0) continue;
+      const identity = `${key}:${id}`;
+      if (identity !== followedActive) {
+        followedActive = identity;
+        changePage(key, Math.floor(index / SESSION_PAGE_SIZE));
+      }
+      return;
+    }
+  }
+
   let searchQuery = '';
   let searchResults = [];
   let searchLoading = false;
@@ -151,7 +180,7 @@
                 </div>
               </div>
               {#if !collapsedGroups[group.id]}
-                {#each sessionsByGroup[group.id] || [] as session}
+                {#each (groupPages[group.id]?.items || []) as session (session.id)}
                   <div class="session-row" class:active={session.id === activeId} class:generating={Boolean(sessionRuns[session.id])}>
                     <button class="session-select" onclick={() => onSelect(session.id)}>{session.title}</button>
                     {#if sessionRuns[session.id]}<span class="session-running" title="답변 생성 중" aria-label="답변 생성 중">●</span>{/if}
@@ -166,6 +195,7 @@
                     {/if}
                   </div>
                 {/each}
+                {#if groupPages[group.id]}<SessionPager value={groupPages[group.id]} label={group.name} onPage={(page) => changePage(group.id, page)} />{/if}
               {/if}
             </section>
           {/each}
@@ -178,7 +208,7 @@
         <span>{collapsedGroups.__ungrouped__ ? '▸' : '▾'} 대화</span><small>{ungroupedSessions.length}</small>
       </button>
       {#if !collapsedGroups.__ungrouped__}
-        {#each ungroupedSessions as session}
+        {#each ungroupedPage.items as session (session.id)}
           <div class="session-row" class:active={session.id === activeId} class:generating={Boolean(sessionRuns[session.id])}>
             <button class="session-select" onclick={() => onSelect(session.id)}>{session.title}</button>
             {#if sessionRuns[session.id]}<span class="session-running" title="답변 생성 중" aria-label="답변 생성 중">●</span>{/if}
@@ -193,6 +223,7 @@
             {/if}
           </div>
         {/each}
+        <SessionPager value={ungroupedPage} label="미분류 대화" onPage={(page) => changePage('__ungrouped__', page)} />
       {/if}
     </section>
   </nav>

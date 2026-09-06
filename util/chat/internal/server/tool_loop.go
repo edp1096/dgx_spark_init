@@ -88,8 +88,19 @@ func runCompletionLoopForSessionWithMedia(
 	conversation := assembleModelConversation(systemPrompt, messages, registry.prompts, toolConfig.MaxRounds*3)
 	conversation = retainLatestVideoInput(conversation)
 
+	refs := make(map[string]int64)
+	request := func(messages []llm.Message, effort string, definitions []llm.Tool, receiver func(string, string) error) (llm.StreamResult, error) {
+		prepared, err := updateRequestContext(ctx, client.InputMessages(messages), definitions, refs, emit)
+		if err != nil {
+			return llm.StreamResult{}, err
+		}
+		copy(messages, prepared)
+		result, err := client.Stream(ctx, prepared, model, effort, definitions, receiver)
+		emitContextUsage(ctx, result.Usage, emit)
+		return result, err
+	}
 	if !useTools {
-		result, err := client.Stream(ctx, conversation, model, reasoningEffort, nil, textEmitter(emit))
+		result, err := request(conversation, reasoningEffort, nil, textEmitter(emit))
 		if err == nil {
 			result, err = recoverEmptyFinal(ctx, client, conversation, model, result, textEmitter(emit))
 		}
@@ -109,7 +120,7 @@ func runCompletionLoopForSessionWithMedia(
 				}
 				return nil
 			}
-			result, err := client.Stream(ctx, conversation, model, reasoningEffort, nil, finalEmitter)
+			result, err := request(conversation, reasoningEffort, nil, finalEmitter)
 			if err == nil {
 				result, err = recoverEmptyFinal(ctx, client, conversation, model, result, finalEmitter)
 			}
@@ -128,7 +139,7 @@ func runCompletionLoopForSessionWithMedia(
 			}
 			return completionResult{Content: content, Reasoning: allReasoning.String(), ToolTrace: trace, Attachments: outputAttachments}, err
 		}
-		result, err := client.Stream(ctx, conversation, model, reasoningEffort, registry.definitions, textEmitter(emit))
+		result, err := request(conversation, reasoningEffort, registry.definitions, textEmitter(emit))
 		if err != nil {
 			if allReasoning.Len() > 0 && result.Reasoning != "" {
 				allReasoning.WriteString("\n\n")
@@ -190,6 +201,17 @@ func runCompletionLoopForSessionWithMedia(
 				record.Error = toolErr.Error()
 				data, _ := json.Marshal(map[string]string{"error": toolErr.Error()})
 				toolResult = string(data)
+			}
+			if server != nil && server.db != nil && sessionID != "" {
+				var anchor int64
+				if run, ok := ctx.Value(contextRunKey{}).(*contextRun); ok {
+					anchor = run.state.ActiveEnd
+				}
+				id, archiveErr := server.db.ArchiveContextTool(sessionID, call.Function.Name, toolResult, anchor)
+				if archiveErr == nil {
+					refs[call.ID] = id
+					record.ArchiveID = id
+				}
 			}
 			trace = append(trace, record)
 			if err := emit("tool_result", map[string]any{
@@ -267,7 +289,16 @@ func recoverEmptyFinal(
 	}
 	retryConversation := append([]llm.Message(nil), conversation...)
 	retryConversation = append(retryConversation, llm.Message{Role: "user", Content: emptyFinalRetryInstruction})
-	retry, err := client.Stream(ctx, retryConversation, model, "off", nil, emit)
+	notify := func(string, any) error { return nil }
+	if run, ok := ctx.Value(contextRunKey{}).(*contextRun); ok && run.emit != nil {
+		notify = run.emit
+	}
+	prepared, budgetErr := updateRequestContext(ctx, client.InputMessages(retryConversation), nil, nil, notify)
+	if budgetErr != nil {
+		return result, budgetErr
+	}
+	retry, err := client.Stream(ctx, prepared, model, "off", nil, emit)
+	emitContextUsage(ctx, retry.Usage, notify)
 	retry.Reasoning = mergeReasoning(result.Reasoning, retry.Reasoning)
 	if err != nil {
 		return retry, err

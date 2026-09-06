@@ -17,7 +17,7 @@ DGX Spark에서 Qwen3.8 27B target과 RadixArk DSpark 조합을 실행한다.
 명령은 이 디렉터리에서 실행한다.
 
 ```bash
-cd ~/workspace/dgx_spark_init/compose_yaml/sglang_qwen38_27b
+cd ~/workspace/dgx_spark_init/compose_yaml/zzz_not_use/sglang_qwen38_27b
 ```
 
 Huihui FP8 target, DSpark, Open WebUI를 함께 실행한다.

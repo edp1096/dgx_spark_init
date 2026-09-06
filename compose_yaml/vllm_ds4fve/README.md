@@ -11,11 +11,9 @@ Pinned MiaAI recipe; run from this directory with `./manage.sh`.
 - TP 2, context 1048576, sequences 6, batch 8192, GPU utilization 0.835, DSpark k6.
 - No Extra, ASR, TTS services in this deployment.
 
-To reconstruct the ignored upstream checkout, clone the upstream URL into
-`upstream`, checkout the exact commit above, and copy `.env.dspark.example`
-to `.env.dspark`. Set head/worker network and cache paths before use.
-The current machine uses head 192.168.100.61 / 10.200.0.1 and worker
-192.168.100.60 / 10.200.0.2, interface enp1s0f1np1, HCA rocep1s0f1.
+`manage.sh` reconstructs the pinned upstream checkout and applies the committed image-limit/C128A backport automatically. Configure `.env` network/cache paths before use.
+C128A prefill caching is enabled by default; set `DSPARK_ENABLE_C128A_PREFILL_CACHE=0` to disable it.
+2× Spark / ablit check (2026-09-07, 3 cold requests per length): median first-token time fell 22.00→20.76 s at 32K and 98.84→88.65 s at 128K. Short-input/decode gains were inconsistent; basic text/image checks passed.
 
 ## Abliterated variant
 

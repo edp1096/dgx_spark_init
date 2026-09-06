@@ -43,6 +43,7 @@ type Message struct {
 }
 
 type ToolEvent struct {
+	ArchiveID int64  `json:"archive_id,omitempty"`
 	Name      string `json:"name"`
 	Arguments string `json:"arguments"`
 	Result    string `json:"result"`
@@ -180,7 +181,18 @@ func Open(path string) (*DB, error) {
 			created_at DATETIME NOT NULL
 		);
 		CREATE INDEX IF NOT EXISTS idx_messages_session ON messages(session_id, id);
-		CREATE TABLE IF NOT EXISTS context_segments (
+		CREATE TABLE IF NOT EXISTS context_tool_archive (
+ id INTEGER PRIMARY KEY AUTOINCREMENT,
+ session_id TEXT NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
+ name TEXT NOT NULL,
+ message_id INTEGER REFERENCES messages(id) ON DELETE CASCADE,
+ content TEXT NOT NULL
+ );
+ CREATE INDEX IF NOT EXISTS idx_context_tool_archive_session ON context_tool_archive(session_id);
+ CREATE TRIGGER IF NOT EXISTS context_tool_archive_message_delete AFTER DELETE ON messages BEGIN
+ DELETE FROM context_tool_archive WHERE message_id=OLD.id;
+ END;
+ CREATE TABLE IF NOT EXISTS context_segments (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			session_id TEXT NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
 			start_message_id INTEGER NOT NULL,

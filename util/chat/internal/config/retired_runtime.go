@@ -3,24 +3,24 @@ package config
 import "sparktalk/internal/orchestrator"
 
 // Remove the retired built-in service from saved catalogs as well as defaults.
-func (c *Config) removeRetiredFlashNextEXL3() {
+func (c *Config) removeRetiredRuntimes() {
 	catalog := c.Runtime.Catalog
 	if catalog == nil {
 		return
 	}
-	removed := map[string]bool{"flash-next-exl3": true}
+	removed := map[string]bool{"flash-next-exl3": true, "qwen27": true}
 	components := make([]orchestrator.Component, 0, len(catalog.Components))
 	for _, component := range catalog.Components {
-		if component.ID == "flash-next-exl3" || component.ComposeAsset == "compose.flash-next-exl3.yaml" {
+		if removed[component.ID] || component.ComposeAsset == "compose.flash-next-exl3.yaml" || component.ComposeAsset == "compose.qwen27.yaml" {
 			removed[component.ID] = true
 		} else {
 			components = append(components, component)
 		}
 	}
-	removedBundles := map[string]bool{"flash-next-exl3": true}
+	removedBundles := map[string]bool{"flash-next-exl3": true, "qwen27": true}
 	bundles := make([]orchestrator.Bundle, 0, len(catalog.Bundles))
 	for _, bundle := range catalog.Bundles {
-		retired := bundle.ID == "flash-next-exl3"
+		retired := removedBundles[bundle.ID]
 		for _, id := range bundle.Components {
 			if removed[id] {
 				retired = true
@@ -44,10 +44,18 @@ func (c *Config) removeRetiredFlashNextEXL3() {
 		}
 	}
 	if removedBundles[c.Runtime.Bundle] {
-		c.Runtime.Bundle = fallback
+		if c.Runtime.Bundle == "qwen27" {
+			c.Runtime.Bundle = "qwen27-exl3"
+		} else {
+			c.Runtime.Bundle = fallback
+		}
 	}
 	if removedBundles[c.Runtime.ActiveBundle] {
-		c.Runtime.ActiveBundle = fallback
+		if c.Runtime.ActiveBundle == "qwen27" {
+			c.Runtime.ActiveBundle = "qwen27-exl3"
+		} else {
+			c.Runtime.ActiveBundle = fallback
+		}
 		c.Runtime.AutoStart = false
 	}
 }

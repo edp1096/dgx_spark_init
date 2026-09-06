@@ -77,6 +77,7 @@
   let titleSaving = false;
   let controlsOpen = false;
   let contextState = null;
+ const contextUsageBySession = new Map();
   let contextOpen = false;
   let contextLoading = false;
   let artifactOpen = false;
@@ -407,8 +408,8 @@
   async function refreshContext(sessionId = activeId) {
     if (!sessionId) { contextState = null; return; }
     try {
-      const next = await getContextState(sessionId);
-      if (activeId === sessionId) contextState = next;
+      const next = await getContextState(sessionId, webToolsEnabled);
+      if (activeId === sessionId) contextState = { ...next, last_request_tokens: contextUsageBySession.get(sessionId) || 0 };
     } catch (e) {
       if (activeId === sessionId) contextState = { notice: e.message, segments: [] };
     }
@@ -868,7 +869,7 @@
       handleToolApproval(data);
       if (activeId === sessionId) tick().then(() => document.querySelector(`[data-approval-id="${data.approval_id}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
     };
-    handlers.context = (next) => { if (activeId === sessionId) contextState = next; };
+    handlers.context = (next) => { if (next.actual_tokens) contextUsageBySession.set(sessionId, next.actual_tokens); if (activeId === sessionId) contextState = { ...next, last_request_tokens: contextUsageBySession.get(sessionId) || 0 }; };
     handlers.sshGrantChanged = () => { refreshSSHGrants(sessionId); };
     handlers.mediaAttached = (attachment) => {
       const assistantIndex = messageList.indexOf(message);

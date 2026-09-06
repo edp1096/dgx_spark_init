@@ -129,7 +129,7 @@ func TestInferGemmaDFlashProgress(t *testing.T) {
 }
 
 func TestInferQwenDFlash2AndGraphProgress(t *testing.T) {
-	component := Component{ID: "qwen27", ProgressKind: "sglang"}
+	component := Component{ID: "gemma31", ProgressKind: "sglang"}
 	logs := "Capture target verify CUDA graph begin\nMAX_FUSED_QKV_SPLIT_DIM: <torch._dynamo warning potential risk>\nCapturing batches (bs=1):  50%|xxxxx| 1/2 [00:01<00:01, 1.00s/it]"
 	info := inferProgress(component, logs)
 	if info.Key != "cuda-graph-target" || info.Phase != "Target CUDA Graph 캡처" || info.Progress != .89 || info.ETA != "00:01" {
@@ -138,7 +138,7 @@ func TestInferQwenDFlash2AndGraphProgress(t *testing.T) {
 }
 
 func TestInferQwenTorchCompileBeforeGraphCapture(t *testing.T) {
-	component := Component{ID: "qwen27", ProgressKind: "sglang"}
+	component := Component{ID: "gemma31", ProgressKind: "sglang"}
 	logs := "Capture target verify CUDA graph begin\nCapturing batches: 0%| | 0/2 [00:00<?, ?it/s]\ntorch._dynamo.utils.warn_once(msg)"
 	info := inferProgress(component, logs)
 	if info.Key != "torch-compile-target" || info.Phase != "Target CUDA Graph 커널 컴파일" || info.ETA != "" {

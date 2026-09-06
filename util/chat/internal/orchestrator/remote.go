@@ -220,13 +220,6 @@ func (c *Controller) startComponent(ctx context.Context, component Component) er
 		return err
 	}
 	env := runtimePathEnvironment(component, dataDir, modelCache)
-	if component.ComposeAsset == "compose.qwen27.yaml" {
-		variant := component.RuntimeOptions["MODEL_VARIANT"]
-		if variant == "" {
-			variant = "abliterated"
-		}
-		env = append(env, "SPARKTALK_QWEN27_MODEL_DIR="+c.qwen27ModelPath(ctx, component, variant))
-	}
 	if component.BindAddress != "" {
 		env = append(env, "SPARKTALK_BIND_ADDR="+component.BindAddress)
 	}

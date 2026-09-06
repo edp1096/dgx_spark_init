@@ -13,8 +13,6 @@ func embeddedBuildAsset(compose string) string {
 		return "gemma31"
 	case "compose.flash-next.yaml":
 		return "flash-next"
-	case "compose.qwen27.yaml":
-		return "qwen27"
 	}
 	return ""
 }

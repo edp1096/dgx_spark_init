@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"net/http"
@@ -256,7 +257,7 @@ func (s *Server) contextSession(w http.ResponseWriter, r *http.Request, sessionI
 	if force {
 		_, state, err = s.prepareContext(r.Context(), sessionID, items, model, cfg, client, true)
 	} else {
-		state, err = s.inspectContext(r.Context(), sessionID, model, items, cfg, client)
+		state, err = s.inspectContext(context.WithValue(r.Context(), contextToolsKey{}, r.URL.Query().Get("tools_enabled") != "false" && cfg.Tools.Enabled), sessionID, model, items, cfg, client)
 	}
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadGateway)

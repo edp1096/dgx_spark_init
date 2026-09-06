@@ -23,8 +23,6 @@ func recipeID(c Component) string {
 		return "ds4fve"
 	}
 	switch c.ComposeAsset {
-	case "compose.qwen27.yaml":
-		return "qwen27-nvfp4"
 	case "compose.qwen27-exl3.yaml":
 		return "qwen27-exl3"
 	}
@@ -145,7 +143,7 @@ func (c *Controller) materializeRecipe(ctx context.Context, component Component)
 	variant := values["MODEL_VARIANT"]
 	if variant == "" {
 		variant = "official"
-		if id == "qwen27-exl3" || id == "qwen27-nvfp4" {
+		if id == "qwen27-exl3" {
 			variant = "abliterated"
 		}
 		values["MODEL_VARIANT"] = variant
@@ -173,16 +171,6 @@ func (c *Controller) materializeRecipe(ctx context.Context, component Component)
 			values["VLLM_HOST"] = component.BindAddress
 		}
 		values["DSPARK_REVISION_ABLITERATED"] = "48095b3452a17f3e3ae8f77892399389c45de9e1"
-	}
-	if id == "qwen27-nvfp4" {
-		values["MODEL_OFFICIAL_PATH"] = filepath.Join(cache, "qwen27-official")
-		values["MODEL_ABLITERATED_PATH"] = c.qwen27ModelPath(ctx, component, "abliterated")
-		values["RUNTIME_CONTAINER"] = component.Container
-		values["RUNTIME_CACHE"] = filepath.Join(dataDir, "cache", "sglang-qwen27")
-		values["BIND_ADDRESS"] = component.BindAddress
-		if values["BIND_ADDRESS"] == "" {
-			values["BIND_ADDRESS"] = "127.0.0.1"
-		}
 	}
 	keys := make([]string, 0, len(values))
 	for k := range values {

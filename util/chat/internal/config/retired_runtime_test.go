@@ -34,3 +34,20 @@ func TestRetiredFlashNextEXL3RemovedFromSavedCatalog(t *testing.T) {
 		t.Fatal("shared extra was removed")
 	}
 }
+
+func TestRetiredQwen27NVFP4SelectsEXL3WithoutAutostart(t *testing.T) {
+	catalog, _ := orchestrator.LoadCatalog()
+	catalog.Components = append(catalog.Components, orchestrator.Component{ID: "qwen27", ComposeAsset: "compose.qwen27.yaml"})
+	catalog.Bundles = append(catalog.Bundles, orchestrator.Bundle{ID: "qwen27", Components: []string{"qwen27", "extra-ssh"}})
+	cfg := Config{Runtime: RuntimeConfig{Catalog: &catalog, Bundle: "qwen27", ActiveBundle: "qwen27", AutoStart: true}}
+	cfg.Normalize()
+	if cfg.Runtime.Bundle != "qwen27-exl3" || cfg.Runtime.ActiveBundle != "qwen27-exl3" || cfg.Runtime.AutoStart {
+		t.Fatal("retired NVFP4 must select EXL3 without starting it")
+	}
+	if _, ok := cfg.Runtime.Catalog.Component("qwen27"); ok {
+		t.Fatal("NVFP4 survived")
+	}
+	if _, ok := cfg.Runtime.Catalog.Component("qwen27-exl3"); !ok {
+		t.Fatal("EXL3 missing")
+	}
+}

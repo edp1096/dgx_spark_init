@@ -1,0 +1,38 @@
+import { expect, test } from '@playwright/test';
+
+test('bounds folder and ungrouped rows while paging and finding an older chat', async ({ page }) => {
+  const now = new Date().toISOString();
+  const make = (id, group_id, title) => ({ id, group_id, title, model: 'test-model', created_at: now, updated_at: now });
+  const ungrouped = Array.from({ length: 1000 }, (_, i) => make(`u${i}`, '', `대화 ${i}`));
+  const grouped = Array.from({ length: 42 }, (_, i) => make(`g${i}`, 'folder', `폴더 대화 ${i}`));
+  await page.route('**/api/models', route => route.fulfill({ json: ['test-model'] }));
+  await page.route('**/api/groups', route => route.fulfill({ json: [{ id: 'folder', name: '작업', position: 0 }] }));
+  await page.route('**/api/sessions', route => route.fulfill({ json: [...ungrouped, ...grouped] }));
+  await page.route('**/api/sessions/*/messages', route => route.fulfill({ json: [] }));
+  await page.route('**/api/sessions/*/context?*', route => route.fulfill({ json: { segments: [] } }));
+  await page.route('**/api/sessions/*/ssh-grants', route => route.fulfill({ json: [] }));
+  await page.route('**/api/search?*', route => route.fulfill({ json: [{ session_id: 'u999', title: '대화 999', message_id: 0, content: '' }] }));
+  await page.goto('/');
+  const folder = page.locator('.folder-list .chat-group');
+  const other = page.locator('.ungrouped');
+  await expect(folder.locator('.session-row')).toHaveCount(15);
+  await expect(other.locator('.session-row')).toHaveCount(15);
+  await expect(page.locator('.sidebar .session-row')).toHaveCount(30);
+  await page.getByRole('button', { name: '작업 다음 페이지' }).click();
+  await expect(folder.locator('.session-select').first()).toHaveText('폴더 대화 15');
+  await expect(other.locator('.session-select').first()).toHaveText('대화 0');
+  await page.getByRole('button', { name: '작업 다음 페이지' }).click();
+  await expect(folder.locator('.session-row')).toHaveCount(12);
+  await expect(page.getByRole('button', { name: '작업 다음 페이지' })).toBeDisabled();
+  await page.getByRole('button', { name: '미분류 대화 다음 페이지' }).click();
+  await expect(other.locator('.session-select').first()).toHaveText('대화 15');
+  await page.getByLabel('전체 대화 검색').fill('999');
+  await page.locator('.conversation-search-results button').filter({ hasText: '대화 999' }).click();
+  await expect(other.locator('.session-row')).toHaveCount(10);
+  await expect(other.locator('.session-row.active .session-select')).toHaveText('대화 999');
+  await page.getByRole('button', { name: '미분류 대화 이전 페이지' }).click();
+  await expect(other.locator('.session-row')).toHaveCount(15);
+  await expect(other.locator('.session-select').first()).toHaveText('대화 975');
+  await expect(page.locator('.chat-title')).toContainText('대화 999');
+  await page.screenshot({ path: '/tmp/sparktalk-sidebar-pagination.png' });
+});

@@ -251,17 +251,33 @@ func (d *DB) SearchMemories(query string, limit int) ([]RecallItem, error) {
 }
 
 func (d *DB) SearchMessages(query, excludeSessionID string, limit int) ([]RecallItem, error) {
+	return d.searchMessages(query, excludeSessionID, limit, 0)
+}
+func (d *DB) SearchCompactedMessages(query, sessionID string, through int64, limit int) ([]RecallItem, error) {
+	if through <= 0 {
+		return nil, nil
+	}
+	return d.searchMessages(query, sessionID, limit, through)
+}
+func (d *DB) searchMessages(query, excludeSessionID string, limit int, through int64) ([]RecallItem, error) {
 	terms := recallSearchTerms(query)
 	match := ftsMatchQuery(terms)
 	if match == "" || limit <= 0 {
 		return nil, nil
 	}
 	candidateLimit := min(limit*8, 100)
+	scope := "message_search.session_id<>?"
+	args := []any{match, excludeSessionID}
+	if through > 0 {
+		scope = "message_search.session_id=? AND message_row.id<=?"
+		args = append(args, through)
+	}
+	args = append(args, candidateLimit)
 	rows, err := d.conn.Query(`
 		SELECT message_search.title,message_search.role,message_search.content,message_search.session_id,message_row.id,message_row.created_at
 		FROM message_search JOIN messages AS message_row ON message_row.id=message_search.rowid
-		WHERE message_search MATCH ? AND message_search.session_id<>? AND message_row.status='completed'
-		ORDER BY bm25(message_search),message_row.created_at DESC LIMIT ?`, match, excludeSessionID, candidateLimit)
+		WHERE message_search MATCH ? AND `+scope+` AND message_row.status='completed'
+		ORDER BY bm25(message_search),message_row.created_at DESC LIMIT ?`, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -281,7 +297,7 @@ func (d *DB) SearchMessages(query, excludeSessionID string, limit int) ([]Recall
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
-	return bestRecallItems(items, limit, true), nil
+	return bestRecallItems(items, limit, through == 0), nil
 }
 
 type scoredRecall struct {

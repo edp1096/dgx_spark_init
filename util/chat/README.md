@@ -43,7 +43,6 @@ GLM·DeepSeek 클러스터도 앱 내장 실행 패키지를 사용한다. 외�
 
 | 세트 | 주 채팅 모델 | 문맥 | 공통 구성 |
 |---|---|---:|---|
-| Qwen 27B 세트 | Qwen3.8 27B NVFP4 + DFlash2 | 32K | FLUX.2·Nemotron ASR·Magpie TTS·Extra |
 | Qwen 27B EXL3 세트 | Qwen3.8 27B uncensored EXL3 4bpw + MTP | 262K | FLUX.2·Nemotron ASR·Magpie TTS·Extra |
 | Flash-Next 세트 | Qwen3.8 Flash-Next NVFP4 | 64K | FLUX.2·Nemotron ASR·Magpie TTS·Extra |
 | Gemma 세트 | Gemma 4 31B NVFP4 + DFlash | 64K | FLUX.2·Nemotron ASR·Magpie TTS·Extra |
@@ -56,7 +55,7 @@ GPU 메모리, 기동 단계·진행률·예상 시간을 확인할 수 있다. 
 지키기 어렵다고 예상되면 기동 전에 중단한다.
 
 기동 단계는 런타임 로그에 맞춰 구분한다. Flash-Next는 체크포인트·SSD PLE·MTP·
-KV 캐시·CUDA Graph, Qwen 27B와 Gemma는 본체·DFlash 계열 draft·FP8 KV 캐시·
+KV 캐시·CUDA Graph, Gemma는 본체·DFlash 계열 draft·FP8 KV 캐시·
 CUDA Graph·보정 워밍업 순으로 표시한다. Flash-Next 전용 SGLang 이미지는 Docker
 로그에서도 본체·MTP의 실제 샤드 수와 ETA가 갱신되도록 보강했다. 완료한 단계도
 최근 이력에 남으므로 긴 모델 기동 중 현재 위치와 다음 단계로 넘어간 시점을 함께
@@ -65,7 +64,7 @@ CUDA Graph·보정 워밍업 순으로 표시한다. Flash-Next 전용 SGLang �
 모델 가중치와 Docker 이미지 자체는 Go 바이너리에 넣지 않는다. 최초 사용 전에
 저장소의 각 런타임 README에 따라 아래 로컬 이미지를 빌드하고 모델을 받아 둔다.
 그 이후의 일상적인 기동·중지·전환에는 Compose 명령이 필요 없다.
-Gemma·Qwen Flash-Next·Qwen 27B DFlash2는 이미지가 없으면 앱에 내장된 빌드 파일·패치로 자동 빌드한다. compose_yaml 체크아웃은 필요 없다. 모델 가중치는 별도로 준비해야 한다.
+Gemma·Qwen Flash-Next는 이미지가 없으면 앱에 내장된 빌드 파일·패치로 자동 빌드한다. compose_yaml 체크아웃은 필요 없다. 모델 가중치는 별도로 준비해야 한다.
 Extra 3종과 ASR·TTS를 원격 호스트에서 기동할 때 이미지가 없으면 앱 실행 머신의 이미지를
 SSH로 스트리밍 전달한다. 기존 원격 이미지는 유지하며, 앱 실행 머신에도 없으면
 먼저 빌드하라는 오류를 표시한다.
@@ -84,7 +83,7 @@ sparktalk-extra-ssh:latest
 sparktalk-extra-collector:latest
 ```
 
-GLM·DeepSeek·Qwen 27B NVFP4·Qwen 27B EXL3는 **설정 → 시스템 → 모델 준비**에서 준비한다.
+GLM·DeepSeek·Qwen 27B EXL3는 **설정 → 시스템 → 모델 준비**에서 준비한다.
 `모델만 준비`는 가중치 다운로드·패치·워커 복사를, `전체 준비`는 이미지 준비까지
 포함한다. 실행 중인 해당 모델을 중지한 뒤 준비하며, 완료 후 세트를 기동한다.
 Qwen 27B EXL3는 현재 Uncensored 체크포인트만 제공하므로 원본 선택은 거부한다.
@@ -218,6 +217,10 @@ Listen address와 DB 경로 변경만 앱 재시작 후 적용되고 나머지�
 최근 대화는 원문으로 유지하고 이전 구간만 요약으로 교체합니다. 이미지와
 파일은 다시 전송하지 않고 이름·형식·크기와 당시 대화에 남은 설명으로
 대표합니다.
+
+지도는 도구 정의·문서·전사문을 포함한 입력 추정치와 마지막 호출의 서버 실측치를 구분합니다.
+압축된 같은 대화방 원문도 검색하며, 잘리거나 필수 구획이 빠진 요약은 적용하지 않습니다.
+도구 호출마다 예산을 확인하고 오래된 결과만 축소합니다. 원본은 보관하며 `context_read`로 다시 읽을 수 있습니다.
 
 대화 화면 오른쪽의 문맥 표시를 누르면 현재 사용량, 원문 구간과 요약된
 체크포인트를 확인하고 원문 위치로 이동할 수 있습니다. **지금 구간 정리**는
@@ -526,6 +529,5 @@ Flash-Next SGLang TP1은 **한국어 포함 64K 초안 어휘**를 기본으로 
 다시 시작해야 하며 토크나이저가 다르면 실행 전 검증에서 중단합니다.
 [성능 측정 및 한계](../../compose_yaml/sglang_qwen38_fn/bench/results/2026-09-06-recheck/README.md)를 참고하세요.
 
-Qwen 27B 모델 준비는 공식(RadixArk) 또는 abliterated(edp1096)의 완성된 NVFP4와 DFlash2를 다운로드한다. 재양자화 없이 기존 파일을 검증해 재사용하며, 실행 가중치는 서비스 구성에서 선택한다.
 
 Compose 기본 경로는 실행 계정의 홈을 사용한다. SparkTalk은 실행 호스트의 데이터·모델 캐시 설정으로 준비와 기동 경로를 함께 지정한다. 기존 `.env`나 저장된 호스트 설정의 명시적 경로는 유지되므로 계정을 옮기면 해당 설정도 변경한다.

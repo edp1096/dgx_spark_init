@@ -11,7 +11,7 @@ import (
 )
 
 func TestEmbeddedBuildContextsReproduceStandaloneSources(t *testing.T) {
-	for name, folder := range map[string]string{"gemma31": "sglang_gemma4_31b", "flash-next": "sglang_qwen38_fn", "qwen27": "sglang_qwen38_27b"} {
+	for name, folder := range map[string]string{"gemma31": "sglang_gemma4_31b", "flash-next": "sglang_qwen38_fn"} {
 		t.Run(name, func(t *testing.T) {
 			destination := t.TempDir()
 			if err := materializeBuildAssets(context.Background(), Host{}, name, destination); err != nil {

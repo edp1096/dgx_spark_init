@@ -6,6 +6,10 @@ source "$script_dir/.env"
 set +a
 if [[ ${RUNTIME_HF_TOKEN+x} ]]; then export HF_TOKEN="$RUNTIME_HF_TOKEN"; fi
 export ENV_FILE="$script_dir/.env"
+export DSPARK_ENABLE_C128A_PREFILL_CACHE="${DSPARK_ENABLE_C128A_PREFILL_CACHE:-1}"
+case "${1:-status}" in
+ setup|model|prepare|start|restart|validate) bash "$script_dir/prepare-upstream.sh" ;;
+esac
 case "${1:-status}" in
  setup) "$script_dir/runtime.sh" image; "$script_dir/models.sh" prepare ;;
  image) docker pull "$DSPARK_VLLM_IMAGE"; ssh -o BatchMode=yes -o ConnectTimeout=10 "$WORKER_HOST" docker pull "$DSPARK_VLLM_IMAGE" ;;

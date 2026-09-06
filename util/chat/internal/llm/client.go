@@ -214,18 +214,14 @@ func (c *Client) Stream(ctx context.Context, messages []Message, model, reasonin
 			return StreamResult{}, err
 		}
 	}
-	// Same-turn tool reasoning is needed by DeepSeek's native encoder. Keep
-	// other model protocols unchanged and never mutate the caller's transcript.
-	if c.modelType != "deepseek-v4" {
-		messages = append([]Message(nil), messages...)
-		for i := range messages {
-			messages[i].ReasoningContent = ""
-		}
-	}
+	messages = c.InputMessages(messages)
 	payload := map[string]any{
 		"model": model, "messages": messages, "stream": true, "temperature": 0.7,
 		"separate_reasoning": true, "stream_reasoning": true,
 		"stream_options": map[string]bool{"include_usage": true},
+	}
+	if limit, ok := ctx.Value(outputLimitKey{}).(int); ok && limit > 0 {
+		payload["max_completion_tokens"] = limit
 	}
 	if len(tools) > 0 {
 		payload["tools"] = tools
@@ -418,12 +414,12 @@ func (c *Client) SummarizeContext(ctx context.Context, model, previous, transcri
 	}
 	prompt := `Update a durable conversation checkpoint from the supplied previous checkpoint and transcript.
 Return concise Markdown with exactly these headings: Objective, Decisions, Constraints, Facts, Artifacts, Completed, Unresolved, Next Steps.
-Preserve exact file paths, commands, URLs, numbers, user preferences, failures, and message references. Do not invent information. Attachments must be represented by their names, types, and any conclusions stated in the transcript.`
+Preserve exact file paths, commands, URLs, numbers, user preferences, failures, message references, and archive_id references. Do not invent information. Use an explicit None entry for empty sections. Attachments must be represented by their names, types, and any conclusions stated in the transcript.`
 	content := "Previous checkpoint:\n" + strings.TrimSpace(previous) + "\n\nNew transcript:\n" + transcript
 	payload := map[string]any{
 		"model":    model,
 		"messages": []Message{{Role: "system", Content: prompt}, {Role: "user", Content: content}},
-		"stream":   false, "temperature": 0.1, "max_completion_tokens": 2048,
+		"stream":   false, "temperature": 0.1, "max_completion_tokens": 4096,
 	}
 	applyReasoningOptions(payload, c.modelType, "none")
 	body, _ := json.Marshal(payload)
@@ -440,7 +436,8 @@ Preserve exact file paths, commands, URLs, numbers, user preferences, failures, 
 	}
 	var result struct {
 		Choices []struct {
-			Message struct {
+			FinishReason string `json:"finish_reason"`
+			Message      struct {
 				Content string `json:"content"`
 			} `json:"message"`
 		} `json:"choices"`
@@ -451,7 +448,11 @@ Preserve exact file paths, commands, URLs, numbers, user preferences, failures, 
 	if len(result.Choices) == 0 || strings.TrimSpace(result.Choices[0].Message.Content) == "" {
 		return "", fmt.Errorf("context summary returned no content")
 	}
-	return strings.TrimSpace(result.Choices[0].Message.Content), nil
+	text := strings.TrimSpace(result.Choices[0].Message.Content)
+	if err := validateCheckpoint(text, result.Choices[0].FinishReason); err != nil {
+		return "", err
+	}
+	return text, nil
 }
 
 func assembleToolCalls(order []int, accs map[int]*toolCallAccum) []ToolCall {
@@ -581,4 +582,48 @@ func reasoningValue(value string) any {
 		return number
 	}
 	return value
+}
+
+// WithOutputLimit keeps the server's output reservation and actual API request aligned.
+type outputLimitKey struct{}
+
+func WithOutputLimit(ctx context.Context, tokens int) context.Context {
+	return context.WithValue(ctx, outputLimitKey{}, tokens)
+}
+func validateCheckpoint(text, finish string) error {
+	if finish != "stop" {
+		return fmt.Errorf("context summary did not finish normally (%s); previous checkpoint retained", finish)
+	}
+	headings := []string{"Objective", "Decisions", "Constraints", "Facts", "Artifacts", "Completed", "Unresolved", "Next Steps"}
+	seen := make(map[string]bool)
+	bodies := make(map[string]string)
+	current := ""
+	for _, line := range strings.Split(text, "\n") {
+		line = strings.TrimSpace(line)
+		if strings.HasPrefix(line, "#") {
+			current = strings.TrimSpace(strings.TrimLeft(line, "#"))
+			seen[current] = true
+		} else if current != "" {
+			bodies[current] += line
+		}
+	}
+	for _, heading := range headings {
+		if !seen[heading] || strings.TrimSpace(bodies[heading]) == "" {
+			return fmt.Errorf("context summary missing %s; previous checkpoint retained", heading)
+		}
+	}
+	return nil
+}
+
+// InputMessages exposes the message form that Stream actually serializes.
+func (c *Client) InputMessages(messages []Message) []Message {
+	// Same-turn tool reasoning is needed by DeepSeek's native encoder. Keep
+	// other model protocols unchanged and never mutate the caller's transcript.
+	if c.modelType != "deepseek-v4" {
+		messages = append([]Message(nil), messages...)
+		for i := range messages {
+			messages[i].ReasoningContent = ""
+		}
+	}
+	return messages
 }

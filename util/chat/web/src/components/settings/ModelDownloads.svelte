@@ -4,14 +4,13 @@
  let token = '', configured = false, saving = false, message = '', state = '';
  let logs = [], elapsed = '', startedAt = '';
  let component = '', variant = 'abliterated', timer;
- $: models = (catalog?.components || []).filter(c => ['glm53-cluster','dspark-cluster'].includes(c.controller) || ['compose.qwen27.yaml','compose.qwen27-exl3.yaml'].includes(c.compose_asset));
+ $: models = (catalog?.components || []).filter(c => ['glm53-cluster','dspark-cluster'].includes(c.controller) || ['compose.qwen27-exl3.yaml'].includes(c.compose_asset));
  $: if (!component && models.length) component = models[0].id;
  $: selectedModel = models.find(model => model.id === component);
  $: repositories = modelRepositories(selectedModel, variant);
  function modelRepositories(model, variant) {
   if (model?.controller === 'dspark-cluster') return [variant === 'abliterated' ? 'drowzeys/keys-DeepSeekV4Flash-Vision-EXP-ablit' : 'deepseek-ai/DeepSeek-V4-Flash-Vision-Exp'];
   if (model?.controller === 'glm53-cluster') return ['brandonmusic/GLM-5.3-Flash-tr3-4bpw', 'local-inference-lab/GLM-5.3-Flash-DFlash2-MXFP8', ...(variant === 'abliterated' ? ['lovesenko/GLM-5.3-Flash-tr3-4bpw-Abliterated'] : [])];
-  if (model?.compose_asset === 'compose.qwen27.yaml') return [variant === 'abliterated' ? 'edp1096/Huihui-RadixArk-Qwen3.8-27B-abliterated-NVFP4' : 'RadixArk/Qwen3.8-27B-NVFP4', 'incoai/Qwen3.8-27B-DFlash2'];
   if (model?.compose_asset === 'compose.qwen27-exl3.yaml') return ['Lygodactylus/Qwen3.8-27B-Uncensored-exl3-4bpw'];
   return [];
  }
@@ -54,7 +53,6 @@
    <small>저장소를 열어 로그인하세요. 접근 동의·승인 요청이 표시되면 먼저 완료하고, 같은 계정의 읽기 권한 토큰을 등록하세요.</small>
   </div>
  {/if}
- {#if selectedModel?.compose_asset === 'compose.qwen27.yaml'}<small>완성된 NVFP4 가중치를 다운로드합니다. 재양자화·ablit 패치는 하지 않으며, 검증된 기존 파일은 재사용합니다.</small>{/if}
  <div class="buttons"><button type="button" disabled={!component || state === 'running'} onclick={() => prepare('model')}>모델만 준비</button><button type="button" disabled={!component || state === 'running'} onclick={() => prepare('setup')}>전체 준비</button></div>
  <small>앱에 내장된 절차로 준비합니다. 해당 모델을 중지한 뒤 실행하세요. 완료 후 AI 세트의 가중치를 선택해 기동합니다.</small>
  {#if state === 'running'}<div class="preparation-progress"><progress aria-label="모델 준비 진행 중"></progress><span>준비 중 · 경과 {elapsed}</span></div>{/if}

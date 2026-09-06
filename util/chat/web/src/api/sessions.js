@@ -11,7 +11,7 @@ export const renameGroup = (id, name) => request(`/api/groups/${id}`, { method: 
 export const moveGroup = (id, direction) => request(`/api/groups/${id}/move`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ direction }) });
 export const deleteGroup = (id) => request(`/api/groups/${id}`, { method: 'DELETE' });
 export const listMessages = (id) => request(`/api/sessions/${id}/messages`);
-export const getContextState = (id) => request(`/api/sessions/${id}/context`);
+export const getContextState = (id, toolsEnabled = false) => request(`/api/sessions/${id}/context?tools_enabled=${toolsEnabled}`);
 export const compactContext = (id) => request(`/api/sessions/${id}/context/compact`, { method: 'POST' });
 export const clearContext = (id) => request(`/api/sessions/${id}/context`, { method: 'DELETE' });
 export const listSSHConversationGrants = (id) => request(`/api/sessions/${id}/ssh-grants`);

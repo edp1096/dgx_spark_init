@@ -387,7 +387,8 @@ func (c *Config) Normalize() {
 		catalog, _ := orchestrator.LoadCatalog()
 		c.Runtime.Catalog = &catalog
 	}
-	c.removeRetiredFlashNextEXL3()
+	c.removeRetiredRuntimes()
+	c.normalizeRuntimeDisplayNames()
 	if catalog, err := orchestrator.ValidateCatalog(*c.Runtime.Catalog); err == nil {
 		c.Runtime.Catalog = &catalog
 	}

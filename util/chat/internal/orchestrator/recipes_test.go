@@ -13,7 +13,7 @@ import (
 )
 
 func TestEmbeddedRecipesContainNoPrivateEnvironment(t *testing.T) {
-	for _, id := range []string{"glm53", "ds4fve", "qwen27-exl3", "qwen27-nvfp4"} {
+	for _, id := range []string{"glm53", "ds4fve", "qwen27-exl3"} {
 		data, err := assets.ReadFile("assets/recipes/" + id + ".tar.gz")
 		if err != nil {
 			t.Fatal(err)
@@ -53,7 +53,7 @@ func TestEmbeddedRecipeMaterializesInAppDataDirectory(t *testing.T) {
 	c := newController(cat)
 	data, cache := t.TempDir(), t.TempDir()
 	c.ConfigurePaths(data, cache)
-	for _, id := range []string{"glm53", "ds4fve", "qwen27-exl3", "qwen27"} {
+	for _, id := range []string{"glm53", "ds4fve", "qwen27-exl3"} {
 		component, ok := cat.Component(id)
 		if !ok {
 			t.Fatal(id)
@@ -131,7 +131,7 @@ func TestGLMEmbeddedRecipeMatchesIndependentSources(t *testing.T) {
 }
 
 func TestPackagedModelPatchesMatchStandalone(t *testing.T) {
-	for id, folder := range map[string]string{"qwen27-nvfp4": "sglang_qwen38_27b", "ds4fve": "vllm_ds4fve", "qwen27-exl3": "exl3_qwen38_27b"} {
+	for id, folder := range map[string]string{"ds4fve": "vllm_ds4fve", "qwen27-exl3": "exl3_qwen38_27b"} {
 		data, err := assets.ReadFile("assets/recipes/" + id + ".tar.gz")
 		if err != nil {
 			t.Fatal(err)
@@ -165,41 +165,5 @@ func TestPackagedModelPatchesMatchStandalone(t *testing.T) {
 			}
 		}
 		gz.Close()
-	}
-}
-
-func TestQwen27PreparationUsesRuntimeWeightPaths(t *testing.T) {
-	cat, err := LoadCatalog()
-	if err != nil {
-		t.Fatal(err)
-	}
-	c := newController(cat)
-	data, cache := t.TempDir(), t.TempDir()
-	c.ConfigurePaths(data, cache)
-	component, _ := cat.Component("qwen27")
-	for _, variant := range []string{"official", "abliterated"} {
-		expected := filepath.Join(cache, "qwen27-"+variant)
-		if err := os.MkdirAll(expected, 0755); err != nil {
-			t.Fatal(err)
-		}
-		if err := os.WriteFile(filepath.Join(expected, "config.json"), []byte("{}"), 0600); err != nil {
-			t.Fatal(err)
-		}
-		component.RuntimeOptions = map[string]string{"MODEL_VARIANT": variant}
-		dir, err := c.materializeRecipe(context.Background(), component)
-		if err != nil {
-			t.Fatal(err)
-		}
-		env, err := os.ReadFile(filepath.Join(dir, ".env"))
-		if err != nil {
-			t.Fatal(err)
-		}
-		key := "MODEL_" + strings.ToUpper(variant) + "_PATH=" + shellQuote(expected)
-		if !strings.Contains(string(env), key) {
-			t.Fatalf("preparation missing %s", key)
-		}
-		if actual := c.qwen27ModelPath(context.Background(), component, variant); actual != expected {
-			t.Fatalf("runtime uses %s, preparation uses %s", actual, expected)
-		}
 	}
 }

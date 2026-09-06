@@ -12,7 +12,7 @@ func TestEmbeddedCatalogIsComplete(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, id := range []string{"qwen27", "qwen27-exl3", "flash-next", "gemma"} {
+	for _, id := range []string{"qwen27-exl3", "flash-next", "gemma"} {
 		bundle, ok := catalog.Bundle(id)
 		if !ok || bundle.MemoryGiB <= 0 || bundle.ModelID == "" {
 			t.Fatalf("invalid bundle %q: %+v", id, bundle)
@@ -50,27 +50,6 @@ func TestFlashNextRuntimeProfileUsesShortLocalName(t *testing.T) {
 	}
 	if strings.Contains(compose, "qwen38-flash-next") {
 		t.Fatal("Flash-Next compose still uses the long local runtime name")
-	}
-}
-
-func TestQwen27RuntimeProfileUsesSizedLocalName(t *testing.T) {
-	catalog, err := LoadCatalog()
-	if err != nil {
-		t.Fatal(err)
-	}
-	component, ok := catalog.Component("qwen27")
-	if !ok || component.Container != "sglang-qwen38-27b" {
-		t.Fatalf("unexpected Qwen 27B component: %+v", component)
-	}
-	data, err := composeAsset(component.ComposeAsset)
-	if err != nil {
-		t.Fatal(err)
-	}
-	compose := string(data)
-	for _, required := range []string{"dgx-sglang-qwen38-27b-dflash2:2ef0fe4", "container_name: sglang-qwen38-27b"} {
-		if !strings.Contains(compose, required) {
-			t.Fatalf("Qwen 27B compose is missing %q", required)
-		}
 	}
 }
 

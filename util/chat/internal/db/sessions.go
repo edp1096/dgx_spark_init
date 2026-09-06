@@ -58,6 +58,9 @@ func (d *DB) DeleteSession(id string) error {
 	}
 	// Do not rely on SQLite's connection-local foreign_keys pragma here.
 	// Explicit deletion also guarantees that FTS cleanup triggers run.
+	if _, err := tx.Exec(`DELETE FROM context_tool_archive WHERE session_id=?`, id); err != nil {
+		return err
+	}
 	if _, err := tx.Exec(`DELETE FROM context_segments WHERE session_id=?`, id); err != nil {
 		return err
 	}
