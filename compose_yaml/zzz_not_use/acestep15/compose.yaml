@@ -10,7 +10,7 @@ services:
       - PIP_ROOT_USER_ACTION=ignore
       - ACESTEP_SKIP_VRAM_CHECK=1
     volumes:
-      - "/home/edp1096/.cache/huggingface:/root/.cache/huggingface"
+      - "${HOME}/.cache/huggingface:/root/.cache/huggingface"
     deploy:
       resources:
         reservations:

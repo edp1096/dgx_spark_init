@@ -8,9 +8,9 @@ services:
     environment:
       - PIP_ROOT_USER_ACTION=ignore
     volumes:
-      - "/home/edp1096/.cache/comfyui/model:/root/play/ComfyUI/models"
-      - "/home/edp1096/.cache/comfyui/custom_node:/root/play/ComfyUI/custom_nodes"
-      - "/home/edp1096/.cache/comfyui/user:/root/play/ComfyUI/user"
+      - "${HOME}/.cache/comfyui/model:/root/play/ComfyUI/models"
+      - "${HOME}/.cache/comfyui/custom_node:/root/play/ComfyUI/custom_nodes"
+      - "${HOME}/.cache/comfyui/user:/root/play/ComfyUI/user"
     deploy:
       resources:
         reservations:

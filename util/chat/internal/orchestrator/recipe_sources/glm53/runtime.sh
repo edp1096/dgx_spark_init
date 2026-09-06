@@ -23,7 +23,7 @@ if [[ ${RUNTIME_HF_TOKEN+x} ]]; then export HF_TOKEN="$RUNTIME_HF_TOKEN"; fi
 : "${WORKER_NCCL_IF:?WORKER_NCCL_IF is required}"
 
 worker="${WORKER_USER}@${WORKER_LAN_IP}"
-remote_dir="${REMOTE_COMPOSE_DIR:-/home/edp1096/workspace/dgx_spark_init/compose_yaml/vllm_glm53f}"
+remote_dir="${REMOTE_COMPOSE_DIR:-${HOME}/workspace/dgx_spark_init/compose_yaml/vllm_glm53f}"
 ssh_opts=(-o BatchMode=yes -o ConnectTimeout=10)
 head_compose=(docker compose --project-directory "$script_dir" -f "$script_dir/compose.yaml" -f "$script_dir/compose.head.yaml")
 prefix="${NCCL_SUBNET##*/}"

@@ -14,9 +14,9 @@ services:
       VLLM_MARLIN_USE_ATOMIC_ADD: "1"
       PYTORCH_CUDA_ALLOC_CONF: expandable_segments:True
     volumes:
-      - "/home/edp1096/workspace/heretic_models/Huihui-Qwen3.8-27B-abliterated-FP8:/models/Huihui-Qwen3.8-27B-abliterated-FP8:ro"
-      - "/home/edp1096/.cache/huggingface:/root/.cache/huggingface"
-      - "/home/edp1096/.cache/vllm-qwen38:/root/.cache/vllm"
+      - "${HOME}/workspace/heretic_models/Huihui-Qwen3.8-27B-abliterated-FP8:/models/Huihui-Qwen3.8-27B-abliterated-FP8:ro"
+      - "${HOME}/.cache/huggingface:/root/.cache/huggingface"
+      - "${HOME}/.cache/vllm-qwen38:/root/.cache/vllm"
     deploy:
       resources:
         reservations:
@@ -85,7 +85,7 @@ services:
       OPENAI_API_KEYS: "local-vllm"
       WEBUI_AUTH: "false"
     volumes:
-      - "/home/edp1096/.cache/openwebui-qwen38:/app/backend/data"
+      - "${HOME}/.cache/openwebui-qwen38:/app/backend/data"
     depends_on:
       vllm:
         condition: service_healthy

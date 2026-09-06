@@ -15,8 +15,8 @@ services:
       PYTORCH_CUDA_ALLOC_CONF: "expandable_segments:True"
       TORCHINDUCTOR_CACHE_DIR: "/root/.cache/sglang/inductor"
     volumes:
-      - "/home/edp1096/.cache/huggingface:/root/.cache/huggingface"
-      - "/home/edp1096/.cache/sglang-qwen38:/root/.cache/sglang"
+      - "${HOME}/.cache/huggingface:/root/.cache/huggingface"
+      - "${HOME}/.cache/sglang-qwen38:/root/.cache/sglang"
     deploy:
       resources:
         reservations:
@@ -103,7 +103,7 @@ services:
       OPENAI_API_KEYS: "local-sglang"
       WEBUI_AUTH: "false"
     volumes:
-      - "/home/edp1096/.cache/openwebui-sgl-qwen38:/app/backend/data"
+      - "${HOME}/.cache/openwebui-sgl-qwen38:/app/backend/data"
     depends_on:
       sglang:
         condition: service_healthy

@@ -15,7 +15,7 @@ services:
       - "${NEMO_BIND_ADDR:-127.0.0.1}:${NEMO_PORT:-8693}:8693"
     gpus: all
     volumes:
-      - "${NEMO_MODEL_DIR:-/home/edp1096/.cache/nemo-speech}:/models:ro"
+      - "${NEMO_MODEL_DIR:-${HOME}/.cache/nemo-speech}:/models:ro"
     command:
       - serve
       - --host

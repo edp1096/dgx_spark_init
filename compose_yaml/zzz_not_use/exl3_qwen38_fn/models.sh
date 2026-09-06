@@ -12,8 +12,8 @@ if [[ -f "$env_file" ]]; then
 if [[ ${RUNTIME_HF_TOKEN+x} ]]; then export HF_TOKEN="$RUNTIME_HF_TOKEN"; fi
 fi
 
-model_dir="${MODEL_HOST_PATH:-/home/edp1096/.cache/huggingface/exl3-qwen38-fn-4.05bpw}"
-cache_dir="${EXL3_CACHE_PATH:-/home/edp1096/.cache/exl3-qwen38-fn}"
+model_dir="${MODEL_HOST_PATH:-${HOME}/.cache/huggingface/exl3-qwen38-fn-4.05bpw}"
+cache_dir="${EXL3_CACHE_PATH:-${HOME}/.cache/exl3-qwen38-fn}"
 ablit_dir="${ABLIT_OUTPUT_PATH:-$cache_dir/ablit}"
 compose=(docker compose --project-directory "$script_dir" --profile prepare -f "$script_dir/compose.yaml")
 

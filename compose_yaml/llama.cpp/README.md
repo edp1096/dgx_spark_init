@@ -16,7 +16,7 @@ DGX Spark(GB10, CUDA `sm_121a`)용 llama.cpp를 빌드하고, 컴파일된 런�
 - GPU 레이어 전체 적재 및 flash attention: 사용
 
 공식 Q8_0 assistant의 MTP 제안 수는 실측상 속도와 출력 안정성의 균형이 가장
-좋았던 3을 사용한다(`LLAMA_MTP_TOKENS=3`). `llama-server.12b.env.example`은
+좋았던 3을 사용한다(`LLAMA_MTP_TOKENS=3`). `env.sample`은
 전환 당시 검증 설정을 보존한 사본이다.
 
 ## 모델 파일
@@ -30,7 +30,7 @@ DGX Spark(GB10, CUDA `sm_121a`)용 llama.cpp를 빌드하고, 컴파일된 런�
 └── mmproj-model-q8_0.gguf
 ```
 
-경로나 파일명이 다르면 `llama-server.env.example`을 `llama-server.env`로 복사한
+경로나 파일명이 다르면 `env.sample`을 `llama-server.env`로 복사한
 뒤 값을 변경한다. `llama-server.env`는 저장소에 커밋하지 않는다.
 
 ## 호스트 런타임 빌드
@@ -71,7 +71,7 @@ push가 필요할 때만 `LLAMA_PUSH=true`와 `LLAMA_IMAGE_REPO`를 지정한다
 운영 설정을 초기화할 때는 예제를 복사한 뒤 서비스를 재시작한다.
 
 ```bash
-cp llama-server.env.example llama-server.env
+cp env.sample llama-server.env
 systemctl --user restart llama-cpp-spark.service
 ```
 

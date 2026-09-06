@@ -27,8 +27,6 @@ func recipeID(c Component) string {
 		return "qwen27-nvfp4"
 	case "compose.qwen27-exl3.yaml":
 		return "qwen27-exl3"
-	case "compose.flash-next-exl3.yaml":
-		return "flash-next-exl3"
 	}
 	return ""
 }
@@ -64,17 +62,9 @@ func (c *Controller) materializeRecipe(ctx context.Context, component Component)
 		return "", err
 	}
 	head := c.host(component.Host)
-	c.mu.RLock()
-	dataDir, cache := c.dataDir, c.modelCache
-	c.mu.RUnlock()
-	if head.DataDir != "" {
-		dataDir = head.DataDir
-	}
-	if head.ModelCache != "" {
-		cache = head.ModelCache
-	}
-	if !filepath.IsAbs(dataDir) || !filepath.IsAbs(cache) {
-		return "", fmt.Errorf("absolute runtime data/cache directories are required")
+	dataDir, cache, err := c.runtimeHostPaths(component)
+	if err != nil {
+		return "", err
 	}
 	sum := sha256.Sum256(data)
 	dir := filepath.Join(dataDir, "runtime", "recipes", fmt.Sprintf("%s-%x", id, sum[:8]))
@@ -83,7 +73,7 @@ func (c *Controller) materializeRecipe(ctx context.Context, component Component)
 	}
 	values := map[string]string{
 		"MODEL_KIND": id, "HF_CACHE": cache, "API_PORT": strconv.Itoa(component.Port), "VLLM_PORT": strconv.Itoa(component.Port),
-		"MODEL_HOST_PATH":   filepath.Join(cache, map[string]string{"glm53": "glm53-exl3", "qwen27-exl3": "exl3-qwen38-27b-uncensored-4bpw", "flash-next-exl3": "exl3-qwen38-fn-4.05bpw"}[id]),
+		"MODEL_HOST_PATH":   filepath.Join(cache, map[string]string{"glm53": "glm53-exl3", "qwen27-exl3": "exl3-qwen38-27b-uncensored-4bpw"}[id]),
 		"SERVED_MODEL_NAME": component.Model,
 	}
 	if component.Port == 0 {
@@ -100,7 +90,7 @@ func (c *Controller) materializeRecipe(ctx context.Context, component Component)
 		values["ABLIT_DONOR"] = "lovesenko/GLM-5.3-Flash-tr3-4bpw-Abliterated"
 		values["ABLIT_DONOR_REVISION"] = "c8f58e6aa9117c73607d692978b22f091d80450c"
 	}
-	values["EXL3_CACHE_PATH"] = filepath.Join(filepath.Dir(cache), map[string]string{"qwen27-exl3": "exl3-qwen38-27b", "flash-next-exl3": "exl3-qwen38-fn"}[id])
+	values["EXL3_CACHE_PATH"] = filepath.Join(filepath.Dir(cache), map[string]string{"qwen27-exl3": "exl3-qwen38-27b"}[id])
 	values["ABLIT_OUTPUT_PATH"] = filepath.Join(values["EXL3_CACHE_PATH"], "ablit")
 	if component.isCluster() {
 		worker := c.host(component.WorkerHost)
@@ -155,7 +145,7 @@ func (c *Controller) materializeRecipe(ctx context.Context, component Component)
 	variant := values["MODEL_VARIANT"]
 	if variant == "" {
 		variant = "official"
-		if id == "qwen27-exl3" || id == "flash-next-exl3" || id == "qwen27-nvfp4" {
+		if id == "qwen27-exl3" || id == "qwen27-nvfp4" {
 			variant = "abliterated"
 		}
 		values["MODEL_VARIANT"] = variant

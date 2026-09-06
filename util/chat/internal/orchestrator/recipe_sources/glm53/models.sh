@@ -10,10 +10,10 @@ if [[ -f "$script_dir/.env" ]]; then
 if [[ ${RUNTIME_HF_TOKEN+x} ]]; then export HF_TOKEN="$RUNTIME_HF_TOKEN"; fi
 fi
 
-model_dir="${MODEL_HOST_PATH:-/home/edp1096/.cache/huggingface/glm53-exl3}"
-draft_dir="${DFLASH_HOST_PATH:-/home/edp1096/.cache/huggingface/glm53-dflash2-mxfp8}"
-cache_dir="${GLM53_CACHE_PATH:-/home/edp1096/.cache/glm53-vllm}"
-ablit_dir="${ABLIT_HOST_PATH:-/home/edp1096/.cache/huggingface/glm53-lovesenko-oproj}"
+model_dir="${MODEL_HOST_PATH:-${HOME}/.cache/huggingface/glm53-exl3}"
+draft_dir="${DFLASH_HOST_PATH:-${HOME}/.cache/huggingface/glm53-dflash2-mxfp8}"
+cache_dir="${GLM53_CACHE_PATH:-${HOME}/.cache/glm53-vllm}"
+ablit_dir="${ABLIT_HOST_PATH:-${HOME}/.cache/huggingface/glm53-lovesenko-oproj}"
 worker_ip="${WORKER_LAN_IP:-}"
 worker_user="${WORKER_USER:-$(id -un)}"
 sync_host="${MODEL_SYNC_HOST:-$worker_ip}"

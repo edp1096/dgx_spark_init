@@ -12,7 +12,7 @@ func TestEmbeddedCatalogIsComplete(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, id := range []string{"qwen27", "qwen27-exl3", "flash-next", "flash-next-exl3", "gemma"} {
+	for _, id := range []string{"qwen27", "qwen27-exl3", "flash-next", "gemma"} {
 		bundle, ok := catalog.Bundle(id)
 		if !ok || bundle.MemoryGiB <= 0 || bundle.ModelID == "" {
 			t.Fatalf("invalid bundle %q: %+v", id, bundle)
@@ -26,40 +26,6 @@ func TestEmbeddedCatalogIsComplete(t *testing.T) {
 				t.Fatalf("missing compose asset for %q: %v", componentID, err)
 			}
 		}
-	}
-}
-
-func TestFlashNextEXL3RuntimeProfileStaysInSync(t *testing.T) {
-	catalog, err := LoadCatalog()
-	if err != nil {
-		t.Fatal(err)
-	}
-	bundle, ok := catalog.Bundle("flash-next-exl3")
-	if !ok || bundle.ContextTokens != 262144 || bundle.ModelType != "qwen3.8" {
-		t.Fatalf("unexpected Flash-Next EXL3 bundle: %+v", bundle)
-	}
-	component, ok := catalog.Component("flash-next-exl3")
-	if !ok || component.ProgressKind != "exl3" {
-		t.Fatalf("unexpected Flash-Next EXL3 component: %+v", component)
-	}
-	data, err := composeAsset(component.ComposeAsset)
-	if err != nil {
-		t.Fatal(err)
-	}
-	compose := string(data)
-	for _, required := range []string{
-		"dgx-exl3-qwen38-fn:1.4.6-ablit1",
-		"Qwen3.8-Flash-Next-Abliterated-EXL3-4.05bpw",
-		"exl3-qwen38-fn-4.05bpw",
-		"direction.safetensors",
-		"--cache_size\n      - \"262144\"",
-	} {
-		if !strings.Contains(compose, required) {
-			t.Fatalf("Flash-Next EXL3 compose is missing %q", required)
-		}
-	}
-	if strings.Contains(compose, "--cache_quant") {
-		t.Fatal("Flash-Next QSA requires the fp16 cache path")
 	}
 }
 

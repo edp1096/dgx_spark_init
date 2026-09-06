@@ -17,8 +17,8 @@ services:
       TORCHINDUCTOR_CACHE_DIR: /root/.cache/sglang/inductor
     volumes:
       - ${SPARKTALK_QWEN27_MODEL_DIR:?Prepare Qwen 27B model first}:/models/qwen27:ro
-      - ${SPARKTALK_HF_CACHE:-/home/edp1096/.cache/huggingface}:/root/.cache/huggingface
-      - ${SPARKTALK_DATA_DIR:-/home/edp1096/.local/share/sparktalk}/cache/sglang-qwen27:/root/.cache/sglang
+      - ${SPARKTALK_HF_CACHE:-${HOME}/.cache/huggingface}:/root/.cache/huggingface
+      - ${SPARKTALK_DATA_DIR:-${HOME}/.local/share/sparktalk}/cache/sglang-qwen27:/root/.cache/sglang
     gpus: all
     entrypoint: ["python3", "-m", "sglang.launch_server"]
     command:

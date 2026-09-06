@@ -21,8 +21,8 @@ services:
       PYTORCH_CUDA_ALLOC_CONF: expandable_segments:True
       TORCH_EXTENSIONS_DIR: /cache/torch_extensions
     volumes:
-      - ${MODEL_HOST_PATH:-/home/edp1096/.cache/huggingface/exl3-qwen38-27b-uncensored-4bpw}:/models/target:ro
-      - ${EXL3_CACHE_PATH:-/home/edp1096/.cache/exl3-qwen38-27b}:/cache
+      - ${MODEL_HOST_PATH:-${HOME}/.cache/huggingface/exl3-qwen38-27b-uncensored-4bpw}:/models/target:ro
+      - ${EXL3_CACHE_PATH:-${HOME}/.cache/exl3-qwen38-27b}:/cache
     deploy:
       resources:
         reservations:
@@ -70,7 +70,7 @@ services:
       HF_TOKEN: ${HF_TOKEN:-}
       HF_XET_HIGH_PERFORMANCE: "1"
     volumes:
-      - ${MODEL_HOST_PATH:-/home/edp1096/.cache/huggingface/exl3-qwen38-27b-uncensored-4bpw}:/models/target
+      - ${MODEL_HOST_PATH:-${HOME}/.cache/huggingface/exl3-qwen38-27b-uncensored-4bpw}:/models/target
     entrypoint: ["python3", "-c"]
     command:
       - |

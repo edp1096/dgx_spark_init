@@ -4,8 +4,8 @@ set -euo pipefail
 script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 project_dir=$(cd -- "${script_dir}/.." && pwd)
 
-target_repo=${TRT_EDGE_DSPARK_TARGET_REPO:-/home/edp1096/.cache/huggingface/hub/models--RadixArk--Qwen3.8-27B-NVFP4}
-draft_repo=${TRT_EDGE_DSPARK_DRAFT_REPO:-/home/edp1096/.cache/huggingface/hub/models--RadixArk--Qwen3.8-27B-DSpark}
+target_repo=${TRT_EDGE_DSPARK_TARGET_REPO:-${HOME}/.cache/huggingface/hub/models--RadixArk--Qwen3.8-27B-NVFP4}
+draft_repo=${TRT_EDGE_DSPARK_DRAFT_REPO:-${HOME}/.cache/huggingface/hub/models--RadixArk--Qwen3.8-27B-DSpark}
 workspace_dir=${TRT_EDGE_DSPARK_WORKSPACE_DIR:-${project_dir}/workspace/dspark-radixark}
 max_input_len=${TRT_EDGE_MAX_INPUT_LEN:-4096}
 max_kv_capacity=${TRT_EDGE_MAX_KV_CACHE_CAPACITY:-8192}

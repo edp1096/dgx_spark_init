@@ -6,8 +6,8 @@ services:
     image: python:3.12-slim
     container_name: hf-downloader
     volumes:
-      - /home/edp1096/workspace/dataset:/data
-      - /home/edp1096/.cache/huggingface:/root/.cache/huggingface
+      - ${HOME}/workspace/dataset:/data
+      - ${HOME}/.cache/huggingface:/root/.cache/huggingface
     environment:
       - PIP_ROOT_USER_ACTION=ignore
       - HF_HUB_ENABLE_HF_TRANSFER=1

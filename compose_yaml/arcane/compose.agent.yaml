@@ -7,7 +7,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - arcane-data:/app/data
-      - /home/edp1096/arcane_projects:/app/data/projects
+      - ${HOME}/arcane_projects:/app/data/projects
     environment:
       - AGENT_MODE=true
       # - AGENT_TOKEN=arc_a7571ee3d01634e1a346cf95a7d90598415a536f4614edad00e5ca30bee21729

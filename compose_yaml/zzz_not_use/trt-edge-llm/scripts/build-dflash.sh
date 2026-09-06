@@ -4,8 +4,8 @@ set -euo pipefail
 script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 project_dir=$(cd -- "${script_dir}/.." && pwd)
 
-target_repo=${TRT_EDGE_DFLASH_TARGET_REPO:-/home/edp1096/workspace/heretic_models/Huihui-RadixArk-Qwen3.8-27B-abliterated-NVFP4}
-draft_repo=${TRT_EDGE_DFLASH_DRAFT_REPO:-/home/edp1096/.cache/huggingface/hub/models--incoai--Qwen3.8-27B-DFlash2}
+target_repo=${TRT_EDGE_DFLASH_TARGET_REPO:-${HOME}/workspace/heretic_models/Huihui-RadixArk-Qwen3.8-27B-abliterated-NVFP4}
+draft_repo=${TRT_EDGE_DFLASH_DRAFT_REPO:-${HOME}/.cache/huggingface/hub/models--incoai--Qwen3.8-27B-DFlash2}
 workspace_dir=${TRT_EDGE_DFLASH_WORKSPACE_DIR:-${project_dir}/workspace}
 max_input_len=${TRT_EDGE_MAX_INPUT_LEN:-32768}
 max_kv_capacity=${TRT_EDGE_MAX_KV_CACHE_CAPACITY:-32768}

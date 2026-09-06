@@ -7,8 +7,8 @@ services:
       target: exporter
     profiles: [tools]
     volumes:
-      - "${TRT_EDGE_MODEL_DIR:-/home/edp1096/workspace/heretic_models/Huihui-RadixArk-Qwen3.8-27B-abliterated-NVFP4}:/model:ro"
-      - "${TRT_EDGE_DRAFT_DIR:-/home/edp1096/.cache/huggingface/hub/models--incoai--Qwen3.8-27B-DFlash2}:/draft:ro"
+      - "${TRT_EDGE_MODEL_DIR:-${HOME}/workspace/heretic_models/Huihui-RadixArk-Qwen3.8-27B-abliterated-NVFP4}:/model:ro"
+      - "${TRT_EDGE_DRAFT_DIR:-${HOME}/.cache/huggingface/hub/models--incoai--Qwen3.8-27B-DFlash2}:/draft:ro"
       - "${TRT_EDGE_WORKSPACE_DIR:-./workspace}:/workspace"
 
   runtime:
@@ -33,8 +33,8 @@ services:
               count: 1
               capabilities: [gpu]
     volumes:
-      - "${TRT_EDGE_MODEL_DIR:-/home/edp1096/workspace/heretic_models/Huihui-RadixArk-Qwen3.8-27B-abliterated-NVFP4}:/model:ro"
-      - "${TRT_EDGE_DRAFT_DIR:-/home/edp1096/.cache/huggingface/hub/models--incoai--Qwen3.8-27B-DFlash2}:/draft:ro"
+      - "${TRT_EDGE_MODEL_DIR:-${HOME}/workspace/heretic_models/Huihui-RadixArk-Qwen3.8-27B-abliterated-NVFP4}:/model:ro"
+      - "${TRT_EDGE_DRAFT_DIR:-${HOME}/.cache/huggingface/hub/models--incoai--Qwen3.8-27B-DFlash2}:/draft:ro"
       - "${TRT_EDGE_WORKSPACE_DIR:-./workspace}:/workspace"
 
   server:

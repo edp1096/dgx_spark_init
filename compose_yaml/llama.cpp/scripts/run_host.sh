@@ -5,7 +5,7 @@ set -euo pipefail
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 project_dir="$(cd "${script_dir}/.." && pwd)"
 runtime_dir="${LLAMA_RUNTIME_DIR:-${project_dir}/artifacts/current}"
-model_dir="${LLAMA_MODEL_DIR:-/home/edp1096/.cache/gguf/huihui-gemma4-e2b-qat}"
+model_dir="${LLAMA_MODEL_DIR:-${HOME}/.cache/gguf/huihui-gemma4-e2b-qat}"
 model_file="${LLAMA_MODEL_FILE:-Huihui-gemma-4-E2B-it-qat-q4_0-unquantized-abliterated-Q4_K.gguf}"
 mtp_file="${LLAMA_MTP_FILE:-mtp-ggml-model-bf16.gguf}"
 mmproj_file="${LLAMA_MMPROJ_FILE:-mmproj-model-bf16.gguf}"

@@ -8,7 +8,7 @@ services:
     image: dgx-sglang-qwen38-27b-dflash2:2ef0fe4
     cpuset: "5-9,15-19"
     volumes:
-      - "/home/edp1096/workspace/heretic_models/Huihui-RadixArk-Qwen3.8-27B-abliterated-NVFP4:/models/Huihui-RadixArk-Qwen3.8-27B-abliterated-NVFP4:ro"
+      - "${HOME}/workspace/heretic_models/Huihui-RadixArk-Qwen3.8-27B-abliterated-NVFP4:/models/Huihui-RadixArk-Qwen3.8-27B-abliterated-NVFP4:ro"
     command:
       - --model-path
       - /models/Huihui-RadixArk-Qwen3.8-27B-abliterated-NVFP4

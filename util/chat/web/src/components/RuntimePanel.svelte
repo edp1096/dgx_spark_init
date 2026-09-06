@@ -15,7 +15,7 @@
   $: operationRunning = runtime?.operation?.state === 'running';
   $: selectedBundleOnline = selectedComponents.length > 0 && selectedComponents.every((component) => component.health === 'online');
   $: targetIsSelected = targetBundle === runtime?.selected_bundle;
-  $: primaryLabel = operationRunning ? '기동 중' : !targetIsSelected ? '전환' : selectedBundleOnline ? '실행 중' : '복구';
+  $: primaryLabel = operationRunning ? '처리 중' : !targetIsSelected ? '전환' : selectedBundleOnline ? '실행 중' : '시작';
   $: memoryPercent = runtime?.memory?.total_gib ? Math.min(100, Math.max(0, runtime.memory.used_gib / runtime.memory.total_gib * 100)) : 0;
   $: operationSteps = (runtime?.operation?.steps || []).slice(-7);
   $: operationETA = /^\d+(?::\d+){1,2}$/.test(runtime?.operation?.eta || '') ? runtime.operation.eta : '';
@@ -63,7 +63,7 @@
       {#if runtime.operation.detail}<p>{runtime.operation.detail}</p>{/if}
       <small>{operationETA ? `예상 ${operationETA} 남음` : `경과 ${formatElapsed(runtime.operation.started_at)} · 로그를 계속 확인 중`}</small>
       {#if operationSteps.length > 1}
-        <ol class="runtime-steps" aria-label="기동 단계">
+        <ol class="runtime-steps" aria-label="진행 단계">
           {#each operationSteps as step}
             <li class:current={step.state === 'current'} class:failed={step.state === 'failed'}>
               <i>{step.state === 'complete' ? '✓' : step.state === 'failed' ? '!' : ''}</i>

@@ -15,7 +15,7 @@ services:
       - "${MAGPIE_BIND_ADDR:-127.0.0.1}:${MAGPIE_PORT:-8692}:8692"
     gpus: all
     volumes:
-      - "${MAGPIE_MODEL_DIR:-/home/edp1096/.cache/nemo-speech/magpie-v2607}:/models:ro"
+      - "${MAGPIE_MODEL_DIR:-${HOME}/.cache/nemo-speech/magpie-v2607}:/models:ro"
     command:
       - serve
       - --host
@@ -53,4 +53,4 @@ services:
         NEMO_SPEECH_REF: ${NEMO_SPEECH_REF:-7752dabb3453ec7c5fd751e5e2052650aaa20497}
     image: sparktalk-magpie-converter:v2607
     volumes:
-      - "${MAGPIE_MODEL_DIR:-/home/edp1096/.cache/nemo-speech/magpie-v2607}:/models"
+      - "${MAGPIE_MODEL_DIR:-${HOME}/.cache/nemo-speech/magpie-v2607}:/models"

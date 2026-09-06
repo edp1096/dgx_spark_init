@@ -27,9 +27,9 @@ services:
       SGLANG_QWEN4_PLE_FILE_RSS_BUDGET_GB: "8"
       SPARKTALK_FLASH_NEXT_DRAFT_VOCAB: ${SPARKTALK_FLASH_NEXT_DRAFT_VOCAB:-ko64k}
     volumes:
-      - ${SPARKTALK_HF_CACHE:-/home/edp1096/.cache/huggingface}:/hf
-      - ${SPARKTALK_DATA_DIR:-/home/edp1096/.local/share/sparktalk}/cache/sglang-flash-next:/root/.cache/sglang
-      - ${SPARKTALK_DATA_DIR:-/home/edp1096/.local/share/sparktalk}/cache/sglang-flash-next/ple:/ple
+      - ${SPARKTALK_HF_CACHE:-${HOME}/.cache/huggingface}:/hf
+      - ${SPARKTALK_DATA_DIR:-${HOME}/.local/share/sparktalk}/cache/sglang-flash-next:/root/.cache/sglang
+      - ${SPARKTALK_DATA_DIR:-${HOME}/.local/share/sparktalk}/cache/sglang-flash-next/ple:/ple
     deploy:
       resources:
         reservations:

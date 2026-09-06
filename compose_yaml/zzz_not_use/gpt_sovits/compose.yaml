@@ -12,9 +12,9 @@
 #       - TRITON_PTXAS_PATH=/usr/local/cuda/bin/ptxas
 #       - HF_TOKEN=${HF_TOKEN}
 #     volumes:
-#       - "/home/edp1096/.cache/huggingface:/root/.cache/huggingface"
-#       - "/home/edp1096/workspace/gpt_sovits/audio:/root/audio"
-#       - "/home/edp1096/workspace/gpt_sovits/output:/root/output"
+#       - "${HOME}/.cache/huggingface:/root/.cache/huggingface"
+#       - "${HOME}/workspace/gpt_sovits/audio:/root/audio"
+#       - "${HOME}/workspace/gpt_sovits/output:/root/output"
 #     deploy:
 #       resources:
 #         reservations:

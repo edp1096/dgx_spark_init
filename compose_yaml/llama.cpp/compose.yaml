@@ -19,8 +19,8 @@ services:
       MMPROJ_ENABLED: ${LLAMA_MMPROJ_ENABLED:-true}
       CONTEXT_SIZE: ${LLAMA_CONTEXT_SIZE:-65536}
     volumes:
-      - "${LLAMA_MODEL_DIR:-/home/edp1096/.cache/gguf/huihui-gemma4-12b-i1}:/models:ro"
-      - "/home/edp1096/.cache/gguf/llama-cache:/root/.cache/llama.cpp"
+      - "${LLAMA_MODEL_DIR:-${HOME}/.cache/gguf/huihui-gemma4-12b-i1}:/models:ro"
+      - "${HOME}/.cache/gguf/llama-cache:/root/.cache/llama.cpp"
     deploy:
       resources:
         reservations:

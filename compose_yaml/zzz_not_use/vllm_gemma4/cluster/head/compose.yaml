@@ -5,7 +5,7 @@ services:
     network_mode: "host"
     ipc: "host"
     volumes:
-      - "/home/edp1096/.cache/huggingface:/root/.cache/huggingface"
+      - "${HOME}/.cache/huggingface:/root/.cache/huggingface"
       - "../../patches/gemma4_patched.py:/opt/gemma4_patched.py:ro"
     deploy:
       resources:

@@ -23,8 +23,8 @@ services:
       VLLM_FP8_HYBRID: "${VLLM_FP8_HYBRID:-0}"
       VLLM_USE_DEEP_GEMM: "${VLLM_USE_DEEP_GEMM:-0}"
     volumes:
-      - ${SPARKTALK_HF_CACHE:-/home/edp1096/.cache/huggingface}:/hf
-      - ${SPARKTALK_DATA_DIR:-/home/edp1096/.local/share/sparktalk}/cache/vllm-flash-next:/root/.cache/vllm
+      - ${SPARKTALK_HF_CACHE:-${HOME}/.cache/huggingface}:/hf
+      - ${SPARKTALK_DATA_DIR:-${HOME}/.local/share/sparktalk}/cache/vllm-flash-next:/root/.cache/vllm
     gpus: all
     entrypoint: ["vllm", "serve"]
     command:

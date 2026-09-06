@@ -16,9 +16,9 @@ services:
     devices:
       - /dev/infiniband:/dev/infiniband
     volumes:
-      - /home/edp1096/.cache/huggingface:/root/.cache/huggingface       # HuggingFace 캐시
-      - /home/edp1096/.cache/nanochat:/root/.cache/nanochat             # 체크포인트, 데이터, 토크나이저
-      - /home/edp1096/workspace/nanochat:/root/nanochat                 # nanochat 소스코드
+      - ${HOME}/.cache/huggingface:/root/.cache/huggingface       # HuggingFace 캐시
+      - ${HOME}/.cache/nanochat:/root/.cache/nanochat             # 체크포인트, 데이터, 토크나이저
+      - ${HOME}/workspace/nanochat:/root/nanochat                 # nanochat 소스코드
     deploy:
       resources:
         reservations:

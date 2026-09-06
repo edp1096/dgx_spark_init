@@ -46,7 +46,6 @@ GLM·DeepSeek 클러스터도 앱 내장 실행 패키지를 사용한다. 외�
 | Qwen 27B 세트 | Qwen3.8 27B NVFP4 + DFlash2 | 32K | FLUX.2·Nemotron ASR·Magpie TTS·Extra |
 | Qwen 27B EXL3 세트 | Qwen3.8 27B uncensored EXL3 4bpw + MTP | 262K | FLUX.2·Nemotron ASR·Magpie TTS·Extra |
 | Flash-Next 세트 | Qwen3.8 Flash-Next NVFP4 | 64K | FLUX.2·Nemotron ASR·Magpie TTS·Extra |
-| Flash-Next EXL3 세트 | Qwen3.8 Flash-Next EXL3 4.05bpw + runtime ablation + MTP | 262K | FLUX.2·Nemotron ASR·Magpie TTS·Extra |
 | Gemma 세트 | Gemma 4 31B NVFP4 + DFlash | 64K | FLUX.2·Nemotron ASR·Magpie TTS·Extra |
 | GLM 5.3 Flash EXL3 + 워커 Extra | GLM 5.3 Flash EXL3 + DFlash2, Spark 2대 | 512K | 워커의 Media·Collector·SSH |
 
@@ -85,7 +84,7 @@ sparktalk-extra-ssh:latest
 sparktalk-extra-collector:latest
 ```
 
-GLM·DeepSeek·EXL3 두 종류는 **설정 → 시스템 → 모델 준비**에서 준비한다.
+GLM·DeepSeek·Qwen 27B NVFP4·Qwen 27B EXL3는 **설정 → 시스템 → 모델 준비**에서 준비한다.
 `모델만 준비`는 가중치 다운로드·패치·워커 복사를, `전체 준비`는 이미지 준비까지
 포함한다. 실행 중인 해당 모델을 중지한 뒤 준비하며, 완료 후 세트를 기동한다.
 Qwen 27B EXL3는 현재 Uncensored 체크포인트만 제공하므로 원본 선택은 거부한다.
@@ -528,3 +527,5 @@ Flash-Next SGLang TP1은 **한국어 포함 64K 초안 어휘**를 기본으로 
 [성능 측정 및 한계](../../compose_yaml/sglang_qwen38_fn/bench/results/2026-09-06-recheck/README.md)를 참고하세요.
 
 Qwen 27B 모델 준비는 공식(RadixArk) 또는 abliterated(edp1096)의 완성된 NVFP4와 DFlash2를 다운로드한다. 재양자화 없이 기존 파일을 검증해 재사용하며, 실행 가중치는 서비스 구성에서 선택한다.
+
+Compose 기본 경로는 실행 계정의 홈을 사용한다. SparkTalk은 실행 호스트의 데이터·모델 캐시 설정으로 준비와 기동 경로를 함께 지정한다. 기존 `.env`나 저장된 호스트 설정의 명시적 경로는 유지되므로 계정을 옮기면 해당 설정도 변경한다.

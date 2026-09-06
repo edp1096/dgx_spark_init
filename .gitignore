@@ -9,3 +9,7 @@ memos/agent_archive/
 /compose_yaml/ltx-2.5_api/test-results/
 /compose_yaml/nemotron_asr/artifacts/
 /compose_yaml/nemotron_asr/results/
+
+# Per-install Compose configuration; env.sample is the committed template.
+/compose_yaml/**/.env
+/compose_yaml/**/.env.*

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-model_dir="${NEMO_MODEL_DIR:-/home/edp1096/.cache/nemo-speech}"
+model_dir="${NEMO_MODEL_DIR:-${HOME}/.cache/nemo-speech}"
 model_file="${NEMO_MODEL_FILE:-nemotron-3.5-asr-streaming-0.6b.q8_0.gguf}"
 model_url="https://huggingface.co/nvidia/nemotron-3.5-asr-streaming-0.6b/resolve/main/${model_file}"
 

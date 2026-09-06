@@ -12,8 +12,8 @@ if [[ -f "$env_file" ]]; then
 if [[ ${RUNTIME_HF_TOKEN+x} ]]; then export HF_TOKEN="$RUNTIME_HF_TOKEN"; fi
 fi
 
-model_dir="${MODEL_HOST_PATH:-/home/edp1096/.cache/huggingface/exl3-qwen38-27b-uncensored-4bpw}"
-cache_dir="${EXL3_CACHE_PATH:-/home/edp1096/.cache/exl3-qwen38-27b}"
+model_dir="${MODEL_HOST_PATH:-${HOME}/.cache/huggingface/exl3-qwen38-27b-uncensored-4bpw}"
+cache_dir="${EXL3_CACHE_PATH:-${HOME}/.cache/exl3-qwen38-27b}"
 
 usage() {
   echo "usage: $0 download | prepare | status" >&2

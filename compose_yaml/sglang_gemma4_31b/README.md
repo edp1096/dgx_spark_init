@@ -27,6 +27,7 @@ warmup은 건너뛴다.
 
 ```bash
 cd ~/workspace/dgx_spark_init/compose_yaml/sglang_gemma4_31b
+cp -n env.sample .env
 docker compose up -d --build
 docker logs -f sglang-gemma4-31b
 ```

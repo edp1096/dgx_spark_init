@@ -188,7 +188,7 @@
             {#if component.compose_asset === 'compose.flash-next.yaml'}
               <label>초안 어휘<select value={component.runtime_options?.DRAFT_VOCAB ?? 'ko64k'} oninput={(event) => updateDeployment(component.id, "runtime_options", {...component.runtime_options, DRAFT_VOCAB:event.currentTarget.value})}><option value="ko64k">한국어 포함 64K (기본)</option><option value="off">전체 어휘</option></select><small>초안 생성 속도를 높이는 설정입니다. 변경 후 서비스를 다시 시작해야 합니다.</small></label>
             {/if}
-            {#if ['compose.qwen27.yaml', 'compose.qwen27-exl3.yaml', 'compose.flash-next-exl3.yaml'].includes(component.compose_asset)}
+            {#if ['compose.qwen27.yaml', 'compose.qwen27-exl3.yaml'].includes(component.compose_asset)}
               <label>가중치<select value={component.runtime_options?.MODEL_VARIANT ?? 'abliterated'} oninput={(event) => updateDeployment(component.id, "runtime_options", {...component.runtime_options, MODEL_VARIANT:event.currentTarget.value})}>{#if component.compose_asset !== 'compose.qwen27-exl3.yaml'}<option value="official">공식 원본</option>{/if}<option value="abliterated">Abliterated / Uncensored</option></select></label>
             {/if}
           {:else if ['glm53-cluster', 'dspark-cluster'].includes(component.controller)}

@@ -14,10 +14,10 @@ services:
     devices:
       - /dev/infiniband:/dev/infiniband
     volumes:
-      - /home/edp1096/.cache/huggingface:/root/.cache/huggingface
-      - /home/edp1096/workspace/finetune/scripts:/workspace/scripts
-      - /home/edp1096/workspace/finetune/output:/workspace/output
-      - /home/edp1096/workspace/finetune/logs:/workspace/logs
+      - ${HOME}/.cache/huggingface:/root/.cache/huggingface
+      - ${HOME}/workspace/finetune/scripts:/workspace/scripts
+      - ${HOME}/workspace/finetune/output:/workspace/output
+      - ${HOME}/workspace/finetune/logs:/workspace/logs
     deploy:
       resources:
         reservations:

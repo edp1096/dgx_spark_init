@@ -4,7 +4,7 @@
  let token = '', configured = false, saving = false, message = '', state = '';
  let logs = [], elapsed = '', startedAt = '';
  let component = '', variant = 'abliterated', timer;
- $: models = (catalog?.components || []).filter(c => ['glm53-cluster','dspark-cluster'].includes(c.controller) || ['compose.qwen27.yaml','compose.qwen27-exl3.yaml','compose.flash-next-exl3.yaml'].includes(c.compose_asset));
+ $: models = (catalog?.components || []).filter(c => ['glm53-cluster','dspark-cluster'].includes(c.controller) || ['compose.qwen27.yaml','compose.qwen27-exl3.yaml'].includes(c.compose_asset));
  $: if (!component && models.length) component = models[0].id;
  $: selectedModel = models.find(model => model.id === component);
  $: repositories = modelRepositories(selectedModel, variant);
@@ -13,7 +13,6 @@
   if (model?.controller === 'glm53-cluster') return ['brandonmusic/GLM-5.3-Flash-tr3-4bpw', 'local-inference-lab/GLM-5.3-Flash-DFlash2-MXFP8', ...(variant === 'abliterated' ? ['lovesenko/GLM-5.3-Flash-tr3-4bpw-Abliterated'] : [])];
   if (model?.compose_asset === 'compose.qwen27.yaml') return [variant === 'abliterated' ? 'edp1096/Huihui-RadixArk-Qwen3.8-27B-abliterated-NVFP4' : 'RadixArk/Qwen3.8-27B-NVFP4', 'incoai/Qwen3.8-27B-DFlash2'];
   if (model?.compose_asset === 'compose.qwen27-exl3.yaml') return ['Lygodactylus/Qwen3.8-27B-Uncensored-exl3-4bpw'];
-  if (model?.compose_asset === 'compose.flash-next-exl3.yaml') return ['turboderp/Qwen3.8-Flash-Next-exl3', ...(variant === 'abliterated' ? ['Qwen/Qwen3.8-Flash-Next', 'windowsxp811203/Qwen3.8-Flash-Next-Abliterated'] : [])];
   return [];
  }
  async function request(path, method = 'GET', body) {

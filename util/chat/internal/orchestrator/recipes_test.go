@@ -13,7 +13,7 @@ import (
 )
 
 func TestEmbeddedRecipesContainNoPrivateEnvironment(t *testing.T) {
-	for _, id := range []string{"glm53", "ds4fve", "qwen27-exl3", "flash-next-exl3", "qwen27-nvfp4"} {
+	for _, id := range []string{"glm53", "ds4fve", "qwen27-exl3", "qwen27-nvfp4"} {
 		data, err := assets.ReadFile("assets/recipes/" + id + ".tar.gz")
 		if err != nil {
 			t.Fatal(err)
@@ -53,7 +53,7 @@ func TestEmbeddedRecipeMaterializesInAppDataDirectory(t *testing.T) {
 	c := newController(cat)
 	data, cache := t.TempDir(), t.TempDir()
 	c.ConfigurePaths(data, cache)
-	for _, id := range []string{"glm53", "ds4fve", "qwen27-exl3", "flash-next-exl3", "qwen27"} {
+	for _, id := range []string{"glm53", "ds4fve", "qwen27-exl3", "qwen27"} {
 		component, ok := cat.Component(id)
 		if !ok {
 			t.Fatal(id)
@@ -131,7 +131,7 @@ func TestGLMEmbeddedRecipeMatchesIndependentSources(t *testing.T) {
 }
 
 func TestPackagedModelPatchesMatchStandalone(t *testing.T) {
-	for id, folder := range map[string]string{"qwen27-nvfp4": "sglang_qwen38_27b", "ds4fve": "vllm_ds4fve", "qwen27-exl3": "exl3_qwen38_27b", "flash-next-exl3": "exl3_qwen38_fn"} {
+	for id, folder := range map[string]string{"qwen27-nvfp4": "sglang_qwen38_27b", "ds4fve": "vllm_ds4fve", "qwen27-exl3": "exl3_qwen38_27b"} {
 		data, err := assets.ReadFile("assets/recipes/" + id + ".tar.gz")
 		if err != nil {
 			t.Fatal(err)

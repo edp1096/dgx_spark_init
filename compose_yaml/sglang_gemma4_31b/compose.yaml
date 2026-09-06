@@ -15,7 +15,7 @@ services:
     memswap_limit: "100g"
     cpuset: "5-9,15-19"
     ports:
-      - "8000:30000"
+      - "${BIND_ADDRESS:-0.0.0.0}:${API_PORT:-8000}:30000"
     environment:
       PYTHONUNBUFFERED: "1"
       HF_XET_HIGH_PERFORMANCE: "1"
@@ -26,8 +26,8 @@ services:
       # this value; 65536 is therefore the effective unlimited/context ceiling.
       SGLANG_MAX_THINK_TOKENS: "65536"
     volumes:
-      - "/home/edp1096/.cache/huggingface:/root/.cache/huggingface"
-      - "/home/edp1096/.cache/sglang-gemma4:/root/.cache/sglang"
+      - "${HF_CACHE:-${HOME}/.cache/huggingface}:/root/.cache/huggingface"
+      - "${RUNTIME_CACHE:-${HOME}/.cache/sglang-gemma4}:/root/.cache/sglang"
     deploy:
       resources:
         reservations:

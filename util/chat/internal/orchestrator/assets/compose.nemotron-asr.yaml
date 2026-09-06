@@ -7,5 +7,5 @@ services:
     ports: ["${SPARKTALK_BIND_ADDR:-127.0.0.1}:${SPARKTALK_PORT:-8693}:8693"]
     gpus: all
     volumes:
-      - ${SPARKTALK_NEMO_MODEL_DIR:-/home/edp1096/.cache/nemo-speech}:/models:ro
+      - ${SPARKTALK_NEMO_MODEL_DIR:-${HOME}/.cache/nemo-speech}:/models:ro
     command: ["serve", "--host", "0.0.0.0", "--port", "8693", "--no-ui", "--threads", "1", "--asr.batching.enabled=false", "--asr.streaming.rnnt_right_context", "1", "--asr-model", "/models/nemotron-3.5-asr-streaming-0.6b.q8_0.gguf"]

@@ -15,7 +15,7 @@ services:
       # - HF_TOKEN=YOUR_HF_TOKEN_HERE
       # - VLLM_USE_V1=1
     volumes:
-      - "/home/edp1096/.cache/huggingface:/root/.cache/huggingface"
+      - "${HOME}/.cache/huggingface:/root/.cache/huggingface"
     deploy:
       resources:
         reservations:

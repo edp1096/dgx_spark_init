@@ -88,42 +88,42 @@ services:
       TORCH_NCCL_ASYNC_ERROR_HANDLING: "1"
     volumes:
       - type: bind
-        source: ${MODEL_HOST_PATH:-/home/edp1096/.cache/huggingface/glm53-exl3}
+        source: ${MODEL_HOST_PATH:-${HOME}/.cache/huggingface/glm53-exl3}
         target: /models/glm53-exl3
         read_only: true
         bind:
           create_host_path: false
       - type: bind
-        source: ${DFLASH_HOST_PATH:-/home/edp1096/.cache/huggingface/glm53-dflash2-mxfp8}
+        source: ${DFLASH_HOST_PATH:-${HOME}/.cache/huggingface/glm53-dflash2-mxfp8}
         target: /models/glm53-dflash2
         read_only: true
         bind:
           create_host_path: false
       - type: bind
-        source: ${GLM53_CACHE_PATH:-/home/edp1096/.cache/glm53-vllm}
+        source: ${GLM53_CACHE_PATH:-${HOME}/.cache/glm53-vllm}
         target: /cache
       - type: bind
-        source: ${GLM53_CACHE_PATH:-/home/edp1096/.cache/glm53-vllm}/jit/triton
+        source: ${GLM53_CACHE_PATH:-${HOME}/.cache/glm53-vllm}/jit/triton
         target: /root/.triton
         bind:
           create_host_path: false
       - type: bind
-        source: ${GLM53_CACHE_PATH:-/home/edp1096/.cache/glm53-vllm}/jit/flashinfer
+        source: ${GLM53_CACHE_PATH:-${HOME}/.cache/glm53-vllm}/jit/flashinfer
         target: /root/.cache/flashinfer
         bind:
           create_host_path: false
       - type: bind
-        source: ${GLM53_CACHE_PATH:-/home/edp1096/.cache/glm53-vllm}/jit/b12x
+        source: ${GLM53_CACHE_PATH:-${HOME}/.cache/glm53-vllm}/jit/b12x
         target: /root/.cache/b12x
         bind:
           create_host_path: false
       - type: bind
-        source: ${GLM53_CACHE_PATH:-/home/edp1096/.cache/glm53-vllm}/jit/vllm
+        source: ${GLM53_CACHE_PATH:-${HOME}/.cache/glm53-vllm}/jit/vllm
         target: /root/.cache/vllm
         bind:
           create_host_path: false
       - type: bind
-        source: ${ABLIT_HOST_PATH:-/home/edp1096/.cache/huggingface/glm53-lovesenko-oproj}
+        source: ${ABLIT_HOST_PATH:-${HOME}/.cache/huggingface/glm53-lovesenko-oproj}
         target: /opt/glm53/ablit
         read_only: true
         bind:
@@ -144,8 +144,8 @@ services:
       DFLASH_REVISION: ${DFLASH_REVISION:-62f758c0a0e19b9cb76fc098c911b8ed76daff5b}
       HF_TOKEN: ${HF_TOKEN:-}
     volumes:
-      - ${MODEL_HOST_PATH:-/home/edp1096/.cache/huggingface/glm53-exl3}:/models/glm53-exl3
-      - ${DFLASH_HOST_PATH:-/home/edp1096/.cache/huggingface/glm53-dflash2-mxfp8}:/models/glm53-dflash2
+      - ${MODEL_HOST_PATH:-${HOME}/.cache/huggingface/glm53-exl3}:/models/glm53-exl3
+      - ${DFLASH_HOST_PATH:-${HOME}/.cache/huggingface/glm53-dflash2-mxfp8}:/models/glm53-dflash2
     entrypoint: ["python3", "-c"]
     command:
       - |

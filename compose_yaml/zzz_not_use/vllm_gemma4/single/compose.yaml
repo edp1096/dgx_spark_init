@@ -13,7 +13,7 @@ services:
       - PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
       - HF_TOKEN=${HF_TOKEN}
     volumes:
-      - "/home/edp1096/.cache/huggingface:/root/.cache/huggingface"
+      - "${HOME}/.cache/huggingface:/root/.cache/huggingface"
       - "../patches/gemma4_patched.py:/opt/gemma4_patched.py:ro"
     deploy:
       resources:
@@ -74,7 +74,7 @@ services:
       - PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
       - HF_TOKEN=${HF_TOKEN}
     volumes:
-      - "/home/edp1096/.cache/huggingface:/root/.cache/huggingface"
+      - "${HOME}/.cache/huggingface:/root/.cache/huggingface"
     deploy:
       resources:
         reservations:

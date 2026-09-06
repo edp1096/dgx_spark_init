@@ -18,8 +18,8 @@ services:
       MMPROJ_FILE: "${MMPROJ_FILE:-mmproj-model-bf16.gguf}"
       MMPROJ_ENABLED: "${MMPROJ_ENABLED:-false}"
     volumes:
-      - "${LLAMA_MODEL_DIR:-/home/edp1096/.cache/gguf/huihui-gemma4-e2b-qat}:/models:ro"
-      - "/home/edp1096/.cache/gguf/llama-cache:/root/.cache/llama.cpp"
+      - "${LLAMA_MODEL_DIR:-${HOME}/.cache/gguf/huihui-gemma4-e2b-qat}:/models:ro"
+      - "${HOME}/.cache/gguf/llama-cache:/root/.cache/llama.cpp"
     deploy:
       resources:
         reservations:

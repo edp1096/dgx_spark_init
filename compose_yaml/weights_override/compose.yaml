@@ -20,9 +20,9 @@ services:
       # - FP8_MODEL=Qwen/Qwen3.5-35B-A3B-FP8
       # - OUTPUT_NAME=Huihui-Qwen3.5-35B-A3B-abliterated-FP8
     volumes:
-      - "/home/edp1096/.cache/huggingface:/root/.cache/huggingface"
-      - "/home/edp1096/workspace/heretic_models:/root/output"
-      - "/home/edp1096/workspace/dgx_spark_init/compose_yaml/weights_override:/root/scripts:ro"
+      - "${HOME}/.cache/huggingface:/root/.cache/huggingface"
+      - "${HOME}/workspace/heretic_models:/root/output"
+      - "${HOME}/workspace/dgx_spark_init/compose_yaml/weights_override:/root/scripts:ro"
     deploy:
       resources:
         reservations:

@@ -18,8 +18,8 @@ services:
     volumes:
       - ./quantize_nvfp4.py:/workspace/quantize_nvfp4.py:ro
       - ./qwen38_radix_nvfp4.yaml:/workspace/qwen38_radix_nvfp4.yaml:ro
-      - /home/edp1096/.cache/huggingface:/root/.cache/huggingface
-      - /home/edp1096/workspace/heretic_models:/models/output
+      - ${HOME}/.cache/huggingface:/root/.cache/huggingface
+      - ${HOME}/workspace/heretic_models:/models/output
     deploy:
       resources:
         reservations:

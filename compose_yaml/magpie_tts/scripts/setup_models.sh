@@ -3,7 +3,7 @@ set -euo pipefail
 
 script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 project_dir=$(cd -- "${script_dir}/.." && pwd)
-model_dir=${MAGPIE_MODEL_DIR:-/home/edp1096/.cache/nemo-speech/magpie-v2607}
+model_dir=${MAGPIE_MODEL_DIR:-${HOME}/.cache/nemo-speech/magpie-v2607}
 magpie_archive=${model_dir}/magpie_tts_multilingual_357m.nemo
 magpie_gguf=${model_dir}/magpie-v2607-pr17-speaker-order-v2.f16.gguf
 codec_gguf=${model_dir}/nano-codec.decoder.f16.gguf

@@ -209,38 +209,17 @@ func (c *Controller) startComponent(ctx context.Context, component Component) er
 			service["environment"].(map[string]any)["SPARKTALK_FLASH_NEXT_DRAFT_VOCAB"] = mode
 		}
 	}
-	if recipeID(component) == "flash-next-exl3" && component.RuntimeOptions["MODEL_VARIANT"] == "official" {
-		if environment, ok := service["environment"].(map[string]any); ok {
-			environment["EXL3_ABLIT_LAMBDA"] = "0"
-		}
-	}
 	// Use Compose interpolation only for host-side paths and declared published
 	// ports. The API endpoint can independently refer to a proxy or SSH tunnel.
 	data, err = yaml.Marshal(recipe)
 	if err != nil {
 		return err
 	}
-	env := []string{"env"}
-	if host.DataDir != "" {
-		env = append(env, "SPARKTALK_DATA_DIR="+host.DataDir)
-	} else if host.Address == "" {
-		c.mu.RLock()
-		path := c.dataDir
-		c.mu.RUnlock()
-		if path != "" {
-			env = append(env, "SPARKTALK_DATA_DIR="+path)
-		}
+	dataDir, modelCache, err := c.runtimeHostPaths(component)
+	if err != nil {
+		return err
 	}
-	if host.ModelCache != "" {
-		env = append(env, "SPARKTALK_HF_CACHE="+host.ModelCache)
-	} else if host.Address == "" {
-		c.mu.RLock()
-		path := c.modelCache
-		c.mu.RUnlock()
-		if path != "" {
-			env = append(env, "SPARKTALK_HF_CACHE="+path)
-		}
-	}
+	env := runtimePathEnvironment(component, dataDir, modelCache)
 	if component.ComposeAsset == "compose.qwen27.yaml" {
 		variant := component.RuntimeOptions["MODEL_VARIANT"]
 		if variant == "" {

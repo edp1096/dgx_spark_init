@@ -13,5 +13,5 @@ services:
       SPARKTALK_EXTRA_SSH_MAX_CONCURRENCY: "2"
       HOME: /tmp/sparktalk-extra-ssh-home
     volumes:
-      - ${SPARKTALK_DATA_DIR:-/home/edp1096/.local/share/sparktalk}/extra/ssh/keys:/run/sparktalk-extra/keys
-      - ${SPARKTALK_DATA_DIR:-/home/edp1096/.local/share/sparktalk}/extra/ssh/state:/var/lib/sparktalk-extra
+      - ${SPARKTALK_DATA_DIR:-${HOME}/.local/share/sparktalk}/extra/ssh/keys:/run/sparktalk-extra/keys
+      - ${SPARKTALK_DATA_DIR:-${HOME}/.local/share/sparktalk}/extra/ssh/state:/var/lib/sparktalk-extra

@@ -24,7 +24,7 @@ curl http://127.0.0.1:8695/health
 A2V 추가 자산은 약 51GB를 사용합니다. 음성 탭의 `A2V`로 보낸 음성은 영상 탭에 서버 내부
 참조로 연결되며, 생성 요청 때 원본 오디오를 조건으로 사용하는 공식 `A2VidPipelineTwoStage`가 실행됩니다.
 
-Spark Media를 쓰지 않는 헤드리스 설치만 `.env.example`을 `.env`로 복사해
+Spark Media를 쓰지 않는 헤드리스 설치만 `env.sample`을 `.env`로 복사해
 `HF_TOKEN`을 입력하는 CLI 대체 경로를 사용합니다. `.env`는 Git에서 제외됩니다.
 
 Motion LoRA는 기본적으로 다운로드만 하고 적용하지 않습니다. Spark Media

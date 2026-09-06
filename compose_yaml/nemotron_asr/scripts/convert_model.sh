@@ -2,8 +2,8 @@
 set -euo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-model_dir="${NEMO_MODEL_DIR:-/home/edp1096/.cache/nemo-speech}"
-cache_dir="${HF_HOME:-/home/edp1096/.cache/huggingface}"
+model_dir="${NEMO_MODEL_DIR:-${HOME}/.cache/nemo-speech}"
+cache_dir="${HF_HOME:-${HOME}/.cache/huggingface}"
 outtype="${1:-f16}"
 outfile="nemotron-3.5-asr-streaming-0.6b.${outtype}.gguf"
 ref="${NEMO_SPEECH_REF:-4f9676226f667d14608487df744f375db87127f8}"

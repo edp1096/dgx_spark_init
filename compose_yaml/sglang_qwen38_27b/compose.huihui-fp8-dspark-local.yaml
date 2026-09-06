@@ -1,7 +1,7 @@
 services:
   sglang:
     volumes:
-      - "/home/edp1096/workspace/heretic_models/Huihui-Qwen3.8-27B-abliterated-FP8:/models/Huihui-Qwen3.8-27B-abliterated-FP8:ro"
+      - "${HOME}/workspace/heretic_models/Huihui-Qwen3.8-27B-abliterated-FP8:/models/Huihui-Qwen3.8-27B-abliterated-FP8:ro"
     command:
       - --model-path
       - /models/Huihui-Qwen3.8-27B-abliterated-FP8

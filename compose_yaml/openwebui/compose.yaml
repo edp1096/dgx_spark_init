@@ -5,8 +5,8 @@ services:
     ports:
       - "12000:8080"
     volumes:
-      - /home/edp1096/.cache/openwebui:/app/backend/data
-      # - /home/edp1096/.cache/ollama:/root/.ollama
+      - ${HOME}/.cache/openwebui:/app/backend/data
+      # - ${HOME}/.cache/ollama:/root/.ollama
     deploy:
       resources:
         reservations:
