@@ -1,0 +1,9 @@
+# ko16k actual comparison with saved ko32k and ko64k
+
+User authorized ko16k on 2026-09-09. Run the same frozen 24 primary tasks twice, reverse order in repeat 2, identical prepared input IDs, token limits, temperature zero and seeds. Same serving image, measurement worker, MTP 3/4, context and KV 65536, Mamba slots18. Only candidate vocabulary changes to16384. Compare48 exact(task,repeat) pairs with saved64k and32k. No supplementary higher-budget requests.
+
+Shortlist preserves the original independent calibration policy, special/byte/Hangul protection; evaluation outputs were not used to select tokens. Original64k reconstruction was verified identical. Runtime and grading do not change production settings. One GPU server only; preserve stopped production and four support services. Same guard: minimum16GiB available, maximum512MiB additional swap, unexpected-container/monitor failures abort. Baseline swap may be nonzero after32k; threshold is growth from16k startup. Memory sampled250ms, GPU thermal10s, each completed answer fsynced. No automatic retry after host crash.
+
+Use frozen three-check rubrics and existing answer-hash reviews. Missing final answers and token-limit events remain measured failures, not corrupted records. CPU code grading after model unload. Report tokens/throughput/acceptance/quality separately, thermal and clock measurements included. Earlier64k was before reboot;32k and16k are later sequential loads. Session, order, thermal and output-length differences preclude pure causal claims. Two repeats are not48 independent task types.
+
+Explicit user retry authorization at 2026-09-09T03:15:15.944325+09:00: 16k 확인해라. Previous zero-response failed attempt preserved at /home/edp1096/workspace/dgx_spark_init/compose_yaml/qwen38_fn_sglang/bench/results/2026-09-09-ko16k-vs32k-vs64k. Same settings and48-request primary workload; this is a separate run. Do not automatically retry after another host crash.

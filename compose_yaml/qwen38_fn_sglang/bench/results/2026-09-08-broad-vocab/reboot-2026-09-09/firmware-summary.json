@@ -1,0 +1,35 @@
+[
+  {
+    "name": "Embedded Controller",
+    "version": "0x02000007",
+    "releases": [
+      {
+        "app": "com.asus.gx10dgx.ec.firmware",
+        "version": "0x02000007",
+        "description": "<p>This update improves the performance and stability of the Device.</p><ul><li>Integrated in OTA2607.1 release and please check NV's release note.</li></ul>"
+      }
+    ]
+  },
+  {
+    "name": "UEFI Device Firmware",
+    "version": "0x03000008",
+    "releases": [
+      {
+        "app": "com.asus.gx10dgx.socfw.firmware",
+        "version": "0x03000008",
+        "description": "<p>This update improves the performance and stability of the Device.</p><ul><li>Upgrade OTA 2607.1 and please check NV's release note.</li></ul>"
+      }
+    ]
+  },
+  {
+    "name": "UEFI Device Firmware",
+    "version": "0x00000516",
+    "releases": [
+      {
+        "app": "com.asus.gx10dgx.usbpd.firmware",
+        "version": "0x00000516",
+        "description": "<p>This update improves the performance and stability of the Device.</p><ul><li>Integrated in OTA2604.</li></ul>"
+      }
+    ]
+  }
+]

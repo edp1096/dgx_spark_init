@@ -1,0 +1,115 @@
+{
+  "kind": "offline token coverage; no speed or quality measurement for 16k/32k",
+  "protected": 7082,
+  "same_64k_map_verified": true,
+  "overall": {
+    "requests": 74,
+    "tokens": 137906,
+    "outside_pct": {
+      "ko16k": 11.508563804330485,
+      "ko32k": 4.792394819659768,
+      "ko64k": 1.312488216611315
+    }
+  },
+  "primary64": {
+    "requests": 48,
+    "tokens": 73226,
+    "outside_pct": {
+      "ko16k": 9.70966596564062,
+      "ko32k": 4.073689673066943,
+      "ko64k": 1.2550187092016496
+    }
+  },
+  "domains": {
+    "coding": {
+      "requests": 12,
+      "tokens": 50099,
+      "outside_pct": {
+        "ko16k": 21.04632827002535,
+        "ko32k": 8.573025409688816,
+        "ko64k": 1.9720952514022236
+      }
+    },
+    "documents": {
+      "requests": 6,
+      "tokens": 9370,
+      "outside_pct": {
+        "ko16k": 2.134471718249733,
+        "ko32k": 1.4514407684098185,
+        "ko64k": 0.512273212379936
+      }
+    },
+    "economics": {
+      "requests": 6,
+      "tokens": 6786,
+      "outside_pct": {
+        "ko16k": 1.9893899204244032,
+        "ko32k": 1.237842617152962,
+        "ko64k": 0.3831417624521073
+      }
+    },
+    "everyday": {
+      "requests": 9,
+      "tokens": 7796,
+      "outside_pct": {
+        "ko16k": 3.3735248845561827,
+        "ko32k": 1.9112365315546433,
+        "ko64k": 1.115956900974859
+      }
+    },
+    "humanities": {
+      "requests": 3,
+      "tokens": 4241,
+      "outside_pct": {
+        "ko16k": 1.15538788021693,
+        "ko32k": 0.8960150907804763,
+        "ko64k": 0.6838009903324688
+      }
+    },
+    "language": {
+      "requests": 4,
+      "tokens": 606,
+      "outside_pct": {
+        "ko16k": 2.4752475247524752,
+        "ko32k": 1.8151815181518152,
+        "ko64k": 0.9900990099009901
+      }
+    },
+    "medicine": {
+      "requests": 15,
+      "tokens": 15629,
+      "outside_pct": {
+        "ko16k": 1.689167573101286,
+        "ko32k": 1.1261117154008573,
+        "ko64k": 0.8253887004926739
+      }
+    },
+    "planning": {
+      "requests": 6,
+      "tokens": 7314,
+      "outside_pct": {
+        "ko16k": 0.5332239540607056,
+        "ko32k": 0.46486190866830734,
+        "ko64k": 0.06836204539239814
+      }
+    },
+    "research": {
+      "requests": 6,
+      "tokens": 26514,
+      "outside_pct": {
+        "ko16k": 14.663951120162933,
+        "ko32k": 5.514068039526288,
+        "ko64k": 1.4256619144602851
+      }
+    },
+    "science": {
+      "requests": 7,
+      "tokens": 9551,
+      "outside_pct": {
+        "ko16k": 4.962831117160507,
+        "ko32k": 2.3453041566328134,
+        "ko64k": 1.1935922940006283
+      }
+    }
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "mode": "ko64k",
+  "baseline": {
+    "MemTotal": 130595995648,
+    "MemAvailable": 125759074304,
+    "MemFree": 114301702144,
+    "SwapTotal": 17179865088,
+    "SwapFree": 16406523904,
+    "Cached": 12129988608
+  },
+  "phases": {
+    "loading": {
+      "samples": 3209,
+      "min_available_gib": 20.906444549560547,
+      "median_available_gib": 30.694629669189453,
+      "max_extra_memory_gib": 96.2158203125,
+      "median_extra_memory_gib": 86.4276351928711
+    },
+    "ready_idle": {
+      "samples": 123,
+      "min_available_gib": 25.281410217285156,
+      "median_available_gib": 25.650310516357422,
+      "max_extra_memory_gib": 91.84085464477539,
+      "median_extra_memory_gib": 91.47195434570312
+    },
+    "benchmark": {
+      "samples": 3623,
+      "min_available_gib": 25.825637817382812,
+      "median_available_gib": 26.483871459960938,
+      "max_extra_memory_gib": 91.29662704467773,
+      "median_extra_memory_gib": 90.63839340209961
+    }
+  },
+  "head_measurements": [
+    {
+      "after_allocated_bytes": 86259699712,
+      "after_reserved_bytes": 87382032384,
+      "before": {
+        "allocated_bytes": 88466427904,
+        "prior_peak_allocated_bytes": 90799874560,
+        "reserved_bytes": 89542098944
+      },
+      "draft_head_bytes": 335544320,
+      "draft_head_dtype": "torch.bfloat16",
+      "draft_head_shape": [
+        65536,
+        2560
+      ],
+      "init_peak_allocated_bytes": 90073894912,
+      "shares_target_head": false,
+      "shortlist_size": 65536
+    }
+  ],
+  "cache_logs": [
+    "2026-09-08T13:41:04.352567232Z [2026-09-08 13:41:04] Mamba Cache is allocated. max_mamba_cache_size: 18, conv_state size: 0.04GB, ssm_state size: 2.00GB intermediate_ssm_state_cache size: 1.27GB intermediate_conv_window_cache size: 0.01GB ",
+    "2026-09-08T13:41:04.931719040Z [2026-09-08 13:41:04] KV Cache is allocated. dtype: torch.bfloat16, #tokens: 65536, K size: 0.75 GB, V size: 0.75 GB",
+    "2026-09-08T13:41:04.940019539Z [2026-09-08 13:41:04] KV Cache is allocated. dtype: torch.bfloat16, #tokens: 65536, K size: 0.06 GB, V size: 0.06 GB",
+    "2026-09-08T13:41:13.468601917Z [2026-09-08 13:41:13] max_total_num_tokens=65536, chunked_prefill_size=1024, max_prefill_tokens=16384, max_running_requests=2, context_len=65536, available_gpu_mem=27.18 GB"
+  ],
+  "aborted": true,
+  "abort_reason": "another container was started during the isolated trial",
+  "monitor_error": null
+}

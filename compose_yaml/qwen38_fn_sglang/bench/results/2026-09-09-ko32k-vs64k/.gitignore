@@ -1,0 +1,4 @@
+# Keep reviewed runtime source and token ID lists for report reproduction.
+.runtime/*
+!.runtime/*.py
+!.runtime/*-ids.json

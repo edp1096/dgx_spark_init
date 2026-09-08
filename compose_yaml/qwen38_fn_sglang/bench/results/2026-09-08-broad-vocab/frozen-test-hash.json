@@ -1,0 +1,7 @@
+{
+  "grade_broad_code.py": "64cd80d155679c415b691c88b2829f97c641028afdb5621cb8325ef2948e9d6c",
+  "tasks.json": "fef298d743334fc477f6d64f7b9a14fc108c83aad6999ae531e0b2f706eee21a",
+  "reference_tests_passed": 27,
+  "test_constants_sha256": "9dbe0818d735873688856b55081f2f0a8f36ceb831d67a31dac1e778a919e053",
+  "wrapper_amendment": "At 23:05, reject missing-final-answer outputs before extraction; the same 27 functional checks are unchanged."
+}

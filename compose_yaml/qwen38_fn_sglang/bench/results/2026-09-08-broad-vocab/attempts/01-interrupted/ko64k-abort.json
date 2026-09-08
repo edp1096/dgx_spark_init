@@ -1,0 +1,11 @@
+{
+  "reason": "another container was started during the isolated trial",
+  "memory": {
+    "MemTotal": 130595995648,
+    "MemAvailable": 125798494208,
+    "MemFree": 112711577600,
+    "SwapTotal": 17179865088,
+    "SwapFree": 16375824384,
+    "Cached": 13761527808
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "method": "Independent SQLite GROUP BY over JSON records parsed from the actual frozen prompt",
+  "records": 180,
+  "computed": {
+    "남부": {
+      "orders": 54,
+      "units": 705,
+      "revenue": 987900
+    },
+    "동부": {
+      "orders": 54,
+      "units": 700,
+      "revenue": 985000
+    },
+    "서부": {
+      "orders": 55,
+      "units": 713,
+      "revenue": 998500
+    }
+  },
+  "expected_match": true,
+  "tasks_sha256": "fef298d743334fc477f6d64f7b9a14fc108c83aad6999ae531e0b2f706eee21a"
+}

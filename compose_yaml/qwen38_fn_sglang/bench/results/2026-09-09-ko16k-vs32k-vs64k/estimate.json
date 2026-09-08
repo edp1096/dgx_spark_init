@@ -1,0 +1,17 @@
+{
+  "created": "2026-09-09T02:42:22.070382+09:00",
+  "kind": "estimate-before-measurement",
+  "candidate_ids": 16384,
+  "extra_head_bytes": 83886080,
+  "expected_duration_minutes": [
+    55,
+    75
+  ],
+  "references": [
+    "/home/edp1096/workspace/dgx_spark_init/compose_yaml/qwen38_fn_sglang/bench/results/2026-09-08-broad-vocab",
+    "/home/edp1096/workspace/dgx_spark_init/compose_yaml/qwen38_fn_sglang/bench/results/2026-09-09-ko32k-vs64k"
+  ],
+  "context_length": 65536,
+  "kv_tokens": 65536,
+  "mamba_slots": 18
+}

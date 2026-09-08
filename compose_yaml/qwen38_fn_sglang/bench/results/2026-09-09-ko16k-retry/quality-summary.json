@@ -1,0 +1,1742 @@
+{
+  "modes": {
+    "ko64k": {
+      "points": 99,
+      "max_points": 144,
+      "full_pass_requests": 24,
+      "requests": 48,
+      "material_errors": 14,
+      "domains": {
+        "coding": {
+          "points": 4,
+          "max_points": 18
+        },
+        "documents": {
+          "points": 6,
+          "max_points": 12
+        },
+        "economics": {
+          "points": 11,
+          "max_points": 12
+        },
+        "everyday": {
+          "points": 16,
+          "max_points": 18
+        },
+        "humanities": {
+          "points": 5,
+          "max_points": 6
+        },
+        "language": {
+          "points": 12,
+          "max_points": 12
+        },
+        "medicine": {
+          "points": 22,
+          "max_points": 30
+        },
+        "planning": {
+          "points": 6,
+          "max_points": 12
+        },
+        "research": {
+          "points": 6,
+          "max_points": 12
+        },
+        "science": {
+          "points": 11,
+          "max_points": 12
+        }
+      }
+    },
+    "ko16k": {
+      "points": 98,
+      "max_points": 144,
+      "full_pass_requests": 23,
+      "requests": 48,
+      "material_errors": 16,
+      "domains": {
+        "coding": {
+          "points": 2,
+          "max_points": 18
+        },
+        "documents": {
+          "points": 6,
+          "max_points": 12
+        },
+        "economics": {
+          "points": 10,
+          "max_points": 12
+        },
+        "everyday": {
+          "points": 16,
+          "max_points": 18
+        },
+        "humanities": {
+          "points": 5,
+          "max_points": 6
+        },
+        "language": {
+          "points": 12,
+          "max_points": 12
+        },
+        "medicine": {
+          "points": 23,
+          "max_points": 30
+        },
+        "planning": {
+          "points": 8,
+          "max_points": 12
+        },
+        "research": {
+          "points": 6,
+          "max_points": 12
+        },
+        "science": {
+          "points": 10,
+          "max_points": 12
+        }
+      }
+    }
+  },
+  "rows": [
+    {
+      "mode": "ko64k",
+      "id": "med_cold",
+      "repeat": 0,
+      "answer_sha256": "8c10f9dcb927a0db36ec54d715132b62f101401e8e6a845d117aec3a9a11a8b8",
+      "truncated": false,
+      "domain": "medicine",
+      "groups": [
+        false,
+        true,
+        false
+      ],
+      "score": 1,
+      "notes": "호흡곤란과 재악화가 있는데 오늘은 관찰하고 내일까지 기다리라고 권함. 잔여 항생제 금지는 맞지만 기저질환·복용약 확인 요청 없이 바이러스성 경과로 기울여 설명함.",
+      "material_error": true,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko64k",
+      "id": "med_gout",
+      "repeat": 0,
+      "answer_sha256": "e9bf4d5de132f632dbb1db0369ba892713bf6fcc2fb5ab2478eeaf95ddbc5d74",
+      "truncated": false,
+      "domain": "medicine",
+      "groups": [
+        true,
+        true,
+        true
+      ],
+      "score": 3,
+      "notes": "고정 기준인 약제 역할 구분·요산저하제 유지·식이/신장 검토는 충족. 다만 콜히친을 통증이 있을 때만 쓰는 것이 원칙이라고 반복 단정해 요산저하 치료 초기의 예방 투여를 배제함(NICE NG219 1.5.12).",
+      "material_error": true,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko64k",
+      "id": "med_rhinitis",
+      "repeat": 0,
+      "answer_sha256": "8ff6491b4e7ac8d1552d14bc12009df2e88a2b74971f8b260fbc09547cf6317a",
+      "truncated": false,
+      "domain": "medicine",
+      "groups": [
+        true,
+        true,
+        true
+      ],
+      "score": 3,
+      "notes": "반동 위험·약제별 목적·증량 중단을 설명하고 환경 관리와 이비인후과 상담을 포함함. 세척을 스테로이드 사용 전후로 뭉뚱그린 세부 안내는 정교하지 않음.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko64k",
+      "id": "med_diabetes",
+      "repeat": 0,
+      "answer_sha256": "7875842c2033b68ab5bb9956d39b2bc9c0fd1b6412912c2fb361bd55620b2b0d",
+      "truncated": false,
+      "domain": "medicine",
+      "groups": [
+        true,
+        true,
+        false
+      ],
+      "score": 2,
+      "notes": "15–20g·15분과 글루카곤/의료기관 이송은 제시함. 그러나 삼킴이 어려운 상황에서도 입술·혀에 꿀/설탕물을 바르는 대안을 권해 경구 투여 회피 기준을 위반함.",
+      "material_error": true,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko64k",
+      "id": "med_cancer",
+      "repeat": 0,
+      "answer_sha256": "b53cfa3778d951e4c722a4326e5c61550d26e9ea89b206fc7134908c679b38aa",
+      "truncated": false,
+      "domain": "medicine",
+      "groups": [
+        true,
+        true,
+        false
+      ],
+      "score": 2,
+      "notes": "단독 수치로 암 확정/배제 불가와 종합 평가는 설명함. 표지자/수치 미상인데 다른 정상 표지자를 건강 양호로 해석하고 3–6개월 추적을 표준처럼 제시함.",
+      "material_error": true,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko64k",
+      "id": "life_food",
+      "repeat": 0,
+      "answer_sha256": "094fa018a84d1cdad4e789af334dd586ee2ade367d23e1d4a6726b7371fffcaa",
+      "truncated": false,
+      "domain": "everyday",
+      "groups": [
+        false,
+        true,
+        true
+      ],
+      "score": 2,
+      "notes": "재가열로 독소가 제거되지 않을 수 있다는 설명과 B 냉장 관리는 있으나 A 폐기를 안내하지 않음. 가족 설득을 식감/맛 중심으로 바꿔 핵심 안전 행동을 빠뜨림.",
+      "material_error": true,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko64k",
+      "id": "life_energy",
+      "repeat": 0,
+      "answer_sha256": "04c9193cbfc01e2592e06a39b1cde6e158b440692b17b3dc29d3563363f58359",
+      "truncated": false,
+      "domain": "everyday",
+      "groups": [
+        true,
+        true,
+        true
+      ],
+      "score": 3,
+      "notes": "108 kWh·27,000원·6.67년 계산과 고정 단가/동등 성능 가정 구분이 맞음. 새 제품의 편의기능 우수성은 제품 정보 없는 부연.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko64k",
+      "id": "life_router",
+      "repeat": 0,
+      "answer_sha256": "8b7b348d3fabe65af547ffcf5dd47ceadf2c4feffbf05dbfcddfb2d2083ff90c",
+      "truncated": false,
+      "domain": "everyday",
+      "groups": [
+        true,
+        true,
+        true
+      ],
+      "score": 3,
+      "notes": "변경된 DNS 필터를 우선 의심하고 직접 조회·일시 비활성화·설정 복구를 제시함. ICMP 성공과 이름 해석 정상 여부를 구분하여 전체 연결 정상으로 단정하지 않음.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko64k",
+      "id": "life_schedule",
+      "repeat": 0,
+      "answer_sha256": "f0c1afe76a672b79b4b10a62e6d36c44e115d8654df867c9392ae77f46ca8a1c",
+      "truncated": true,
+      "domain": "planning",
+      "groups": [
+        false,
+        false,
+        false
+      ],
+      "score": 0,
+      "notes": "기본 일정이 개장 전 10:20 박물관 입장을 잡고 공원은 폐장 15:00을 넘어 15:15까지 체류함. 지연안에서도 폐장 후 체류가 가능할 수 있다고 근거 없는 예외를 만듦.",
+      "material_error": true,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko64k",
+      "id": "finance_budget",
+      "repeat": 0,
+      "answer_sha256": "32ae55d78cbc7395b808a6321333e66b46d25a94764cb9e871b96212a54f73a6",
+      "truncated": false,
+      "domain": "economics",
+      "groups": [
+        true,
+        true,
+        true
+      ],
+      "score": 3,
+      "notes": "두 소득 시나리오의 잉여금·목표·부족분과 10/109개월 올림을 모두 제시함. 마지막의 12배 이상 표현은 실제 약 11.67배보다 과장된 부연.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko64k",
+      "id": "finance_cost",
+      "repeat": 0,
+      "answer_sha256": "da89f76c685674a897ef3c6465d4e5f9820aa7fb6bdc16ce617609547c3a5c3a",
+      "truncated": false,
+      "domain": "economics",
+      "groups": [
+        true,
+        true,
+        true
+      ],
+      "score": 3,
+      "notes": "두 총액·추가 비용·차액이 맞고 평균 잔액/지급 시점을 고려해야 한다고 설명함. B의 추가 APR 추정 16–17%는 월말 납입 가정의 약 17.21%에 가까우나 거친 근사임.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko64k",
+      "id": "contract_reading",
+      "repeat": 0,
+      "answer_sha256": "9672b9e9802a5c19974485920b56c81b10c1e9cd0fa38942d7ae49f6783b4f4b",
+      "truncated": false,
+      "domain": "documents",
+      "groups": [
+        true,
+        true,
+        true
+      ],
+      "score": 3,
+      "notes": "5월 0원·4월 25,000원 환급과 2/4/5조 근거가 맞고 가상 계약 해석과 실제 강행법규 심사를 구분함.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko64k",
+      "id": "science_bayes",
+      "repeat": 0,
+      "answer_sha256": "9ea965004d200e8ff12ecd25530d12d5d45f63b1c7c6de50e0e76a7057fe8d5e",
+      "truncated": true,
+      "domain": "science",
+      "groups": [
+        true,
+        true,
+        false
+      ],
+      "score": 2,
+      "notes": "TP·FP·사후확률과 기저율은 맞음. 조건부 독립을 실제 불량 상태에 조건화하지 않은 P(B|A)=P(B)로 정의하여 일반 독립과 혼동했고, 잘리기 전 이 오류를 교정하지 못함.",
+      "material_error": true,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko64k",
+      "id": "science_trial",
+      "repeat": 0,
+      "answer_sha256": "ef865abac4831adb3d2b48e20896c26a09db970a5c6094349fa81db4a7bc0015",
+      "truncated": false,
+      "domain": "research",
+      "groups": [
+        true,
+        true,
+        true
+      ],
+      "score": 3,
+      "notes": "고정된 A 계산·A/B 인과근거·C의 한계 기준은 충족. 다만 1−0.95^20≈64%를 제시하면서 검정 간 독립 가정을 빠뜨려 실제 자료의 다중검정 확률처럼 일반화함.",
+      "material_error": true,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko64k",
+      "id": "science_lab",
+      "repeat": 0,
+      "answer_sha256": "dcf4643c43cf829200419a6f8c8611337367c37ca2bde510dd3b2da8799e572a",
+      "truncated": false,
+      "domain": "science",
+      "groups": [
+        true,
+        true,
+        true
+      ],
+      "score": 3,
+      "notes": "18.75mL 원액, 최종 250mL 정용, 잘못 혼합한 경우 약 0.13953M와 부피 가산성 가정을 정확히 제시함.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko64k",
+      "id": "code_shortlist",
+      "repeat": 0,
+      "answer_sha256": "cee229dd179cf96f1b063aed8f892f6ade1a5f9fa75cb6bc4fd5d36591239f20",
+      "truncated": true,
+      "domain": "coding",
+      "groups": [
+        false,
+        false,
+        false
+      ],
+      "score": 0,
+      "notes": "No final answer; reasoning text is not submitted code",
+      "material_error": false,
+      "method": "completion check: no submitted code"
+    },
+    {
+      "mode": "ko64k",
+      "id": "code_telemetry",
+      "repeat": 0,
+      "answer_sha256": "65ca89136fc1bc2892fe252bb34a85ff389400173fae44232cb6d25c4049d416",
+      "truncated": true,
+      "domain": "coding",
+      "groups": [
+        false,
+        false,
+        false
+      ],
+      "score": 0,
+      "notes": "No final answer; reasoning text is not submitted code",
+      "material_error": false,
+      "method": "completion check: no submitted code"
+    },
+    {
+      "mode": "ko64k",
+      "id": "code_html_review",
+      "repeat": 0,
+      "answer_sha256": "356241de0a67530dd47f6efda670b123e2d8e319de04296946bf3f4aa63caec0",
+      "truncated": true,
+      "domain": "coding",
+      "groups": [
+        true,
+        true,
+        false
+      ],
+      "score": 2,
+      "notes": "hidden일 때 a/table 수집을 막는 수정 방향은 맞음. 재현 입력의 일반 div class=hidden-container를 코드가 숨김으로 처리한다고 잘못 가정해 보이는 형제 링크·표를 누락한 기대값을 만들었고, template 내부 회귀 사례가 없음.",
+      "material_error": true,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko64k",
+      "id": "research_memory",
+      "repeat": 0,
+      "answer_sha256": "ea6379c079c1008aef625446961219dd8681baffc4cccc5182fb2be1941ae440",
+      "truncated": true,
+      "domain": "research",
+      "groups": [
+        false,
+        false,
+        false
+      ],
+      "score": 0,
+      "notes": "토큰 한도 내 최종 답변 없음. 추론 텍스트는 제출 답변으로 채점하지 않음. 파일 손상과 무관.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko64k",
+      "id": "human_translation",
+      "repeat": 0,
+      "answer_sha256": "ff418f5954f3f3f87c8aa0049f68e6b01ae87f0087bd781e655af26b2186cd9b",
+      "truncated": false,
+      "domain": "language",
+      "groups": [
+        true,
+        true,
+        true
+      ],
+      "score": 3,
+      "notes": "결제 확정 후 타임아웃·동일 작업 키 재사용·신규 구매 새 키·환불 입금 지연을 보존하고 3문장 요약 제공.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko64k",
+      "id": "human_history",
+      "repeat": 0,
+      "answer_sha256": "52bf9750a2dc5a604289efac15bf507538e753cab8fe33ea6abb76c2c6cce74f",
+      "truncated": true,
+      "domain": "humanities",
+      "groups": [
+        true,
+        true,
+        false
+      ],
+      "score": 2,
+      "notes": "본관/가정 연결·비용 구분과 사료 대조는 충족. 본관을 저수지·정수장으로 설명하고 사료 작성 동기를 확정하는 부연은 근거 부족. 추가 사료 제안은 적절하지만 자료 밖 구체화 때문에 3번 미충족. 말미 잘림 별도 기록.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko64k",
+      "id": "human_writing",
+      "repeat": 0,
+      "answer_sha256": "3045ade33d71d182920bed5c0a0f9d6416ff26d48d36243994721ae2ee6edc22",
+      "truncated": false,
+      "domain": "language",
+      "groups": [
+        true,
+        true,
+        true
+      ],
+      "score": 3,
+      "notes": "중복 결제 위험, 수정 완료/회귀 미검증, 월요일 11시·목요일 17시, 4문장 모두 충족.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko64k",
+      "id": "dialogue_constraints",
+      "repeat": 0,
+      "answer_sha256": "f4ef02d49d319ec36b1ffc1b656d88a9f74f5c2a88224619678e13d8a6facc17",
+      "truncated": false,
+      "domain": "planning",
+      "groups": [
+        true,
+        true,
+        true
+      ],
+      "score": 3,
+      "notes": "변경된 조건을 반영한 A 선택 및 합계/잔액 정확.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko64k",
+      "id": "long_ledger",
+      "repeat": 0,
+      "answer_sha256": "d50d085fabfbef0817bd5de21c98cbb648fd9cfd25a0960e59fef177d33368d7",
+      "truncated": true,
+      "domain": "documents",
+      "groups": [
+        false,
+        false,
+        false
+      ],
+      "score": 0,
+      "notes": "",
+      "material_error": false,
+      "method": "executed checks"
+    },
+    {
+      "mode": "ko64k",
+      "id": "long_ledger",
+      "repeat": 1,
+      "answer_sha256": "9cfbd9b076788e9af8e49c7ec4488d9a15c9be0c1484d207c0fdf027dc043ecc",
+      "truncated": true,
+      "domain": "documents",
+      "groups": [
+        false,
+        false,
+        false
+      ],
+      "score": 0,
+      "notes": "",
+      "material_error": false,
+      "method": "executed checks"
+    },
+    {
+      "mode": "ko64k",
+      "id": "dialogue_constraints",
+      "repeat": 1,
+      "answer_sha256": "4435f08ebe261a07686e836ff880756812def24cac2048f5d9945edc4d97edff",
+      "truncated": false,
+      "domain": "planning",
+      "groups": [
+        true,
+        true,
+        true
+      ],
+      "score": 3,
+      "notes": "실내 A·변경 수수료 포함 104000원·최신 예산 120000원과 잔액 16000원 정확.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko64k",
+      "id": "human_writing",
+      "repeat": 1,
+      "answer_sha256": "c11b697ba7f207f9eae4d666bde9079a5a0d8238f25bb076e25d9b562eb63bed",
+      "truncated": false,
+      "domain": "language",
+      "groups": [
+        true,
+        true,
+        true
+      ],
+      "score": 3,
+      "notes": "요구 사실과 기한을 유지한 5문장 공지.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko64k",
+      "id": "human_history",
+      "repeat": 1,
+      "answer_sha256": "1d10c16ad323a88fd673349f28136138ff960971bc9e523e420a748722af4dbf",
+      "truncated": false,
+      "domain": "humanities",
+      "groups": [
+        true,
+        true,
+        true
+      ],
+      "score": 3,
+      "notes": "접근성 구분, 당시 편지/예산과 회고 비교, 연결 통계·보조금 기록 제안 충족. 회고의 미화 동기와 예산서 객관성을 단정하는 표현은 한계; 1~2년 지연은 예시로 표시됨.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko64k",
+      "id": "human_translation",
+      "repeat": 1,
+      "answer_sha256": "4215e6e00a01ab819f233daf21e0d6e82d3df07081c800561f4d0f9e94e2ef54",
+      "truncated": false,
+      "domain": "language",
+      "groups": [
+        true,
+        true,
+        true
+      ],
+      "score": 3,
+      "notes": "핵심 조건과 3문장 요약 충족. 멱등성 용어 음역은 어색하지만 의미는 보존.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko64k",
+      "id": "research_memory",
+      "repeat": 1,
+      "answer_sha256": "ea6379c079c1008aef625446961219dd8681baffc4cccc5182fb2be1941ae440",
+      "truncated": true,
+      "domain": "research",
+      "groups": [
+        false,
+        false,
+        false
+      ],
+      "score": 0,
+      "notes": "토큰 한도 내 최종 답변 없음. 추론 텍스트는 제출 답변으로 채점하지 않음. 파일 손상과 무관.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko64k",
+      "id": "code_html_review",
+      "repeat": 1,
+      "answer_sha256": "555a40e174b49b645b9f7001994b5e32ea0baa9ecc90ff90a70be00424d2f5c5",
+      "truncated": true,
+      "domain": "coding",
+      "groups": [
+        true,
+        true,
+        false
+      ],
+      "score": 2,
+      "notes": "hidden 상태에서도 a/table 수집이 실행된다는 사실을 찾고 최종 코드에 !hidden 수집 조건을 넣음. 그러나 명시된 요구를 숨김 링크도 수집하라는 뜻으로 거듭 재해석했고, 재현/회귀 테스트를 제시하기 전에 응답이 잘림.",
+      "material_error": true,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko64k",
+      "id": "code_telemetry",
+      "repeat": 1,
+      "answer_sha256": "65ca89136fc1bc2892fe252bb34a85ff389400173fae44232cb6d25c4049d416",
+      "truncated": true,
+      "domain": "coding",
+      "groups": [
+        false,
+        false,
+        false
+      ],
+      "score": 0,
+      "notes": "No final answer; reasoning text is not submitted code",
+      "material_error": false,
+      "method": "completion check: no submitted code"
+    },
+    {
+      "mode": "ko64k",
+      "id": "code_shortlist",
+      "repeat": 1,
+      "answer_sha256": "cee229dd179cf96f1b063aed8f892f6ade1a5f9fa75cb6bc4fd5d36591239f20",
+      "truncated": true,
+      "domain": "coding",
+      "groups": [
+        false,
+        false,
+        false
+      ],
+      "score": 0,
+      "notes": "No final answer; reasoning text is not submitted code",
+      "material_error": false,
+      "method": "completion check: no submitted code"
+    },
+    {
+      "mode": "ko64k",
+      "id": "science_lab",
+      "repeat": 1,
+      "answer_sha256": "1d5b2cc1e16a5619c7d77fe23f5bebd15c3d552864d8900071933e5c3613b0f4",
+      "truncated": false,
+      "domain": "science",
+      "groups": [
+        true,
+        true,
+        true
+      ],
+      "score": 3,
+      "notes": "18.75mL 원액과 최종 250mL 정용, 0.13953M 계산 및 부피 가산성 한계를 충족함.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko64k",
+      "id": "science_trial",
+      "repeat": 1,
+      "answer_sha256": "aa7b66286d90f1d0943b572e9c9cdf7449241bcc03beed855934ea877ebf53dd",
+      "truncated": false,
+      "domain": "research",
+      "groups": [
+        true,
+        true,
+        true
+      ],
+      "score": 3,
+      "notes": "A의 ARR 10%p·RR 0.5·RRR 50%·NNT 10(12개월), B 교란과 A 무작위화, C 소표본/무대조/다중비교·선택보고 한계를 충족. 신뢰구간을 만들지 않음.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko64k",
+      "id": "science_bayes",
+      "repeat": 1,
+      "answer_sha256": "8f91efc8d5ad8db78c7907d2d5139bd0a76ecd0fab0d624c7965b5b0722d2f9e",
+      "truncated": false,
+      "domain": "science",
+      "groups": [
+        true,
+        true,
+        true
+      ],
+      "score": 3,
+      "notes": "TP/FP·15.38% 계산과 기저율 설명이 맞고, 실제 상태가 주어진 조건에서의 독립과 같은 센서 오류의 상관을 구분함.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko64k",
+      "id": "contract_reading",
+      "repeat": 1,
+      "answer_sha256": "0ebe5cc22c987b6025ef93cdc75046d355391c2daaac41a3b9cd61b66921081f",
+      "truncated": false,
+      "domain": "documents",
+      "groups": [
+        true,
+        true,
+        true
+      ],
+      "score": 3,
+      "notes": "4월 23일 기한 전 접수로 5월 청구 없음, 4·5조 우선에 따른 25,000원 별도 환급, 실제 법률 효력과 가상 조항 해석을 모두 구분함.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko64k",
+      "id": "finance_cost",
+      "repeat": 1,
+      "answer_sha256": "7b620f4cd6763551f2c2e55075c83065cc5d844f63a001b6346e1c239305d3b4",
+      "truncated": false,
+      "domain": "economics",
+      "groups": [
+        true,
+        true,
+        true
+      ],
+      "score": 3,
+      "notes": "A/B 총액·현금 대비 비용·3만원 차이가 정확함. 단순 추가비용 비율과 상환 시점을 반영한 APR을 구분함.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko64k",
+      "id": "finance_budget",
+      "repeat": 1,
+      "answer_sha256": "25f7d3726637ca8869021441a7e00d37d493ed2b624dbfa81fc6e317053e0003",
+      "truncated": false,
+      "domain": "economics",
+      "groups": [
+        true,
+        true,
+        false
+      ],
+      "score": 2,
+      "notes": "기본 잉여 70만원·목표 750만원·부족 650만원·10개월차 도달은 맞음. 소득 감소 후 6만원과 108.33개월은 계산했으나 월별 적립 기준의 109개월 올림을 누락함.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko64k",
+      "id": "life_schedule",
+      "repeat": 1,
+      "answer_sha256": "cf07fd83fc507b5a3df77f49fc38410c114f458be3474afaf097950c59d88290",
+      "truncated": true,
+      "domain": "planning",
+      "groups": [
+        false,
+        false,
+        false
+      ],
+      "score": 0,
+      "notes": "개장 전 10:20 입장을 반복하고, 공원 폐장을 맞추려 요구된 60분 체류를 45분으로 줄임. 지연안은 완료되지 않았고 기존 제약을 모두 만족하는 대안을 제시하지 못함.",
+      "material_error": true,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko64k",
+      "id": "life_router",
+      "repeat": 1,
+      "answer_sha256": "7a1d2587d680654f5b129fc43b0a3f5e6996808ce3daa52fa2cd6b5c3df1ca7e",
+      "truncated": false,
+      "domain": "everyday",
+      "groups": [
+        true,
+        true,
+        true
+      ],
+      "score": 3,
+      "notes": "DNS 필터 우선·직접 조회·일시 비활성화와 ICMP/포트 차이를 설명함. ifconfig로 DNS 서버를 확인하라는 명령 예시는 부정확하고, 이동통신 성공만으로 공유기 내부 원인을 확신하는 표현은 과함.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko64k",
+      "id": "life_energy",
+      "repeat": 1,
+      "answer_sha256": "7c70f0fa8c0338096339a662ef644913fb0e901bc5026b2831588bba51f9b544",
+      "truncated": false,
+      "domain": "everyday",
+      "groups": [
+        true,
+        true,
+        true
+      ],
+      "score": 3,
+      "notes": "절약량·금액·회수기간이 정확하고 고정 요금/동등 성능과 실제 운전 조건의 차이를 설명함.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko64k",
+      "id": "life_food",
+      "repeat": 1,
+      "answer_sha256": "f3424d0693348f214ef2c71c9091fa08c33eadd336b51de442c9da3847b37789",
+      "truncated": false,
+      "domain": "everyday",
+      "groups": [
+        false,
+        true,
+        true
+      ],
+      "score": 2,
+      "notes": "B의 적절한 냉장과 신속 냉각은 설명했지만 A 폐기를 명시하지 않음. 상온 4시간을 안전 상한에 가깝다고 표현해 주어진 USDA의 2시간 기준과 어긋남.",
+      "material_error": true,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko64k",
+      "id": "med_cancer",
+      "repeat": 1,
+      "answer_sha256": "0f792e10531ce0c5de66f902a8b5d3744570de6283673716780cc84aff67b2a3",
+      "truncated": false,
+      "domain": "medicine",
+      "groups": [
+        true,
+        true,
+        false
+      ],
+      "score": 2,
+      "notes": "단독 상승으로 암 확정 불가·암에서도 정상 수치 가능성은 설명함. 표지자 이름/수치 없이 대부분 양성, 3–6개월 재검, 수면·식이로 정상화 가능성을 일반화해 후속 판단 기준을 충족하지 못함.",
+      "material_error": true,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko64k",
+      "id": "med_diabetes",
+      "repeat": 1,
+      "answer_sha256": "5faa965f5a35b1fb30c40fd8445ae6c1ed5b1b6cf3f48533fb7600f47c7f5dc2",
+      "truncated": false,
+      "domain": "medicine",
+      "groups": [
+        true,
+        true,
+        false
+      ],
+      "score": 2,
+      "notes": "의식 있을 때 15–20g·15분 재측정은 맞음. 의식 상실 시 응급 도움 요청이 없고, 보호자에게 의료진 시술이라는 구분 없이 정맥 포도당 주입을 지시함.",
+      "material_error": true,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko64k",
+      "id": "med_rhinitis",
+      "repeat": 1,
+      "answer_sha256": "8dde11e6ffd722bf758c56fb98bd2ed701c1d1b9e50877e9adc5122d1eb1007c",
+      "truncated": false,
+      "domain": "medicine",
+      "groups": [
+        true,
+        true,
+        false
+      ],
+      "score": 2,
+      "notes": "반동성 코막힘과 약제별 차이를 설명하고 증량을 막음. 그러나 3주 사용 후 악화 상황에서 약사/의사 검토를 권하지 않고 농도·횟수 변경을 직접 제안함.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko64k",
+      "id": "med_gout",
+      "repeat": 1,
+      "answer_sha256": "ceb2a45f7ccc0dc697cb67b0c47e5e1c0d9a1bfff4455d5b0e23d7288abb7b34",
+      "truncated": false,
+      "domain": "medicine",
+      "groups": [
+        true,
+        true,
+        true
+      ],
+      "score": 3,
+      "notes": "급성 항염과 장기 요산 저하를 구분하고 임의 중단을 막으며 식이 한계·신장기능 검토를 설명함. 콜히친의 예방적 사용은 생략되어 설명 범위가 좁음.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko64k",
+      "id": "med_cold",
+      "repeat": 1,
+      "answer_sha256": "60fdfc7c74fa0c20d80d646bc19493bdc1b867b758b3e494cd0882e3f3bb025f",
+      "truncated": false,
+      "domain": "medicine",
+      "groups": [
+        true,
+        true,
+        false
+      ],
+      "score": 2,
+      "notes": "요약의 당일 진료 권고와 잔여 항생제 금지는 충족. 기저질환·복용약을 모른다고만 하고 확인 질문/요청은 없음. 앞부분의 휴식 우선 배치와 약사 진단 표현은 개선 필요.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko16k",
+      "id": "med_cold",
+      "repeat": 0,
+      "answer_sha256": "cceef6322e05853fdc8fde75e818c640e270811da37a110bd4e100464fd869f9",
+      "truncated": false,
+      "domain": "medicine",
+      "groups": [
+        false,
+        true,
+        true
+      ],
+      "score": 2,
+      "notes": "호흡곤란과 호전 후 재악화인데 바이러스성 감기의 전형적 경과로 기울여 설명하고3일 관찰/악화 시방문을 권해 신속 평가 기준 위반. 잔여 항생제 금지와 대증 관리, 마지막 기저질환·복용약 추가 정보 요청은 충족. 확진 표현은 아니지만 위험을 과소평가함.",
+      "material_error": true,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko16k",
+      "id": "med_gout",
+      "repeat": 0,
+      "answer_sha256": "ae749c45bb0d6173420f9123c2f9243a0c645f9957bbf264d3717e32f5a6a140",
+      "truncated": false,
+      "domain": "medicine",
+      "groups": [
+        true,
+        true,
+        true
+      ],
+      "score": 3,
+      "notes": "급성 항염/장기 요산 저하 구분·임의 중단 금지·식이 한계와 신장/용량 검토를 충족. 콜히친의 예방적 사용과 담당의에게 예방 요법을 묻는 내용도 포함. 식이 효과10–20% 수치는 근거 미제시.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko16k",
+      "id": "med_rhinitis",
+      "repeat": 0,
+      "answer_sha256": "359d7d5fe29e4be939eb6c679061ca6e2d20af1a8cbe07fbadb27eac74ff74ef",
+      "truncated": false,
+      "domain": "medicine",
+      "groups": [
+        true,
+        true,
+        true
+      ],
+      "score": 3,
+      "notes": "반동성 코막힘·장기사용 위험 및 증량 회피, 약제별 역할을 구분. 알레르겐 제거 세척과 지속/악화 시이비인후과 검토를 포함함. 진단/전환 용법을 다소 단정하고 세척을 스프레이 전후로 뭉뚱그리는 한계는 있음.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko16k",
+      "id": "med_diabetes",
+      "repeat": 0,
+      "answer_sha256": "c11d09dfb8be0110f681a373719c26fd8eba2011cfec585f0be22c4c5b7adff6",
+      "truncated": false,
+      "domain": "medicine",
+      "groups": [
+        true,
+        true,
+        false
+      ],
+      "score": 2,
+      "notes": "삼킴 가능 시15–20g·15분 재측정/반복은 충족. 의식 소실/삼킴 불가 때 꿀·설탕물을 입안에 바르는 대안을 제시하고 응급 도움 요청 누락. 보호자에게 정맥 포도당 투여를 직접 안내함.",
+      "material_error": true,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko16k",
+      "id": "med_cancer",
+      "repeat": 0,
+      "answer_sha256": "4876b2c6ffcbe4f7fa4b714de9a8c2cdc62abec1974710b97282c61929ff5750",
+      "truncated": false,
+      "domain": "medicine",
+      "groups": [
+        true,
+        true,
+        false
+      ],
+      "score": 2,
+      "notes": "표지자 단독 확정/배제 불가와 양성 원인·병력/영상 종합 판단은 설명. 표지자/수치 확인 없이 정상 표지자를 전신 건강 양호의 근거로 해석하고1–3개월 재검을 일반 권고로 제시함.",
+      "material_error": true,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko16k",
+      "id": "life_food",
+      "repeat": 0,
+      "answer_sha256": "d8e9a2b7537a6659e7d3c9a4722c9e22c2105681b624326503eff74dbd40a83c",
+      "truncated": false,
+      "domain": "everyday",
+      "groups": [
+        false,
+        true,
+        true
+      ],
+      "score": 2,
+      "notes": "실온4시간 A를 버리거나 빨리 소진하라고 하여 위험 식품 섭취를 선택지로 남김. B의신속 냉장/4도/2일 조건 구분 및 소분·온도관리는 충족.",
+      "material_error": true,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko16k",
+      "id": "life_energy",
+      "repeat": 0,
+      "answer_sha256": "576f379365337be9a9d3067508ec5c41448c602d654755fa2488f593a1e1f973",
+      "truncated": false,
+      "domain": "everyday",
+      "groups": [
+        true,
+        true,
+        true
+      ],
+      "score": 3,
+      "notes": "108kWh·27000원·6.67년 계산과 고정 단가/시간/성능 가정을 정확히 구분. 실제 사용환경/누진제/유지비 변수도 설명.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko16k",
+      "id": "life_router",
+      "repeat": 0,
+      "answer_sha256": "5d4d433413e7e88a7184ece5a8e2b5f9a3f8e83b263bbb2a9f79f12faadb6565",
+      "truncated": false,
+      "domain": "everyday",
+      "groups": [
+        true,
+        true,
+        true
+      ],
+      "score": 3,
+      "notes": "DNS 필터를 우선 의심하고 직접 서버 조회·임시해제·원래 변경 되돌리기와 ICMP의 HTTP/TLS 한계를 제시. 외부 DNS가 필터 영향을 받지 않는다는 예상은 환경에 따라 성립하지 않아 단정적이지만 판별 테스트는 유효함.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko16k",
+      "id": "life_schedule",
+      "repeat": 0,
+      "answer_sha256": "e0e728a06e48d2f97cd8301eb98ceca6ffa279cc6f9d3e1ff31cea8274db99df",
+      "truncated": true,
+      "domain": "planning",
+      "groups": [
+        true,
+        false,
+        false
+      ],
+      "score": 1,
+      "notes": "박물관10:30입장·식사12:30예약은 지킴. 수정안에서 필수공원60분을45분으로 줄임. 30분지연 대안은 도입만 쓰고 잘려 구체적 실행안이 없음.",
+      "material_error": true,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko16k",
+      "id": "finance_budget",
+      "repeat": 0,
+      "answer_sha256": "e0066207400fa7f13ef70fabde570531ac99937f3773b30772d27d7de6f6850c",
+      "truncated": false,
+      "domain": "economics",
+      "groups": [
+        true,
+        true,
+        false
+      ],
+      "score": 2,
+      "notes": "70만원·750만원·650만원과10개월 도달 확인은 맞음. 소득 감소 후256만원·6만원은 맞지만108.3개월만 제시하고109개월 올림을 누락. 가정 설명은 있음.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko16k",
+      "id": "finance_cost",
+      "repeat": 0,
+      "answer_sha256": "cb84bf72196c0b918fc26b3970ee29b9ffa17214ce65abde31b35fcba713f1a5",
+      "truncated": false,
+      "domain": "economics",
+      "groups": [
+        true,
+        true,
+        true
+      ],
+      "score": 3,
+      "notes": "총액134/131만원·추가14/11만원·B가3만원저렴함을 계산. 가산율과현금흐름시점/APR을 구분함. APR을 평균잔액 이율로만 설명하는 것은 간략화이며 정밀금리 계산 답은 아님.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko16k",
+      "id": "contract_reading",
+      "repeat": 0,
+      "answer_sha256": "ed52d8c60bb1bcf6f2d12031680901e8c36981c6e388d855d34d2b0efa160415",
+      "truncated": false,
+      "domain": "documents",
+      "groups": [
+        true,
+        true,
+        true
+      ],
+      "score": 3,
+      "notes": "5월0원·4월25000원환급과2/4/5조 우선순위 및별도청구 조건을 정확히 해석. 가상조항과 실제강행법규 효력을 구분함.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko16k",
+      "id": "science_bayes",
+      "repeat": 0,
+      "answer_sha256": "261e5ed299b49d2d1f4c08cf5c8e60b7809143c452510f9a1f3ef845d8b66069",
+      "truncated": true,
+      "domain": "science",
+      "groups": [
+        true,
+        true,
+        false
+      ],
+      "score": 2,
+      "notes": "TP90·FP495·90/585 및기저율 설명은 맞음. 조건부 독립을 실제 불량/정품 상태로 조건화하지 않은 P(B|A)=P(B)로 정의해 일반 독립과 혼동. 잘리기 전 수정하지 못함.",
+      "material_error": true,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko16k",
+      "id": "science_trial",
+      "repeat": 0,
+      "answer_sha256": "c9ed1627e50714de15f518ee00bb29599c761e72aa4a66b84220ff5897ed5884",
+      "truncated": false,
+      "domain": "research",
+      "groups": [
+        true,
+        true,
+        true
+      ],
+      "score": 3,
+      "notes": "A의ARR10%p·RR0.5·RRR50%·NNT10을12개월로 해석. A/B의무작위배정·교란과 C의소표본/무대조/다중검정/선택보고를 구분하고 추가자료를 제시. 190명분모는 조건부 보충으로 제시하며 기본200명 계산을 유지함.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko16k",
+      "id": "science_lab",
+      "repeat": 0,
+      "answer_sha256": "f2fcf043c81051ed73e9e21ca2586e0ed9f8de6696e9a30be2ef88b937872a16",
+      "truncated": false,
+      "domain": "science",
+      "groups": [
+        true,
+        true,
+        true
+      ],
+      "score": 3,
+      "notes": "원액18.75mL·최종250mL정용·오혼합0.0375/0.26875≈0.13953M 정확. 말미에부피 가산성 가정을 명시하고 최종부피 기준을 강조함.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko16k",
+      "id": "code_shortlist",
+      "repeat": 0,
+      "answer_sha256": "cee229dd179cf96f1b063aed8f892f6ade1a5f9fa75cb6bc4fd5d36591239f20",
+      "truncated": true,
+      "domain": "coding",
+      "groups": [
+        false,
+        false,
+        false
+      ],
+      "score": 0,
+      "notes": "No final answer; reasoning text is not submitted code",
+      "material_error": false,
+      "method": "completion check: no submitted code"
+    },
+    {
+      "mode": "ko16k",
+      "id": "code_telemetry",
+      "repeat": 0,
+      "answer_sha256": "65ca89136fc1bc2892fe252bb34a85ff389400173fae44232cb6d25c4049d416",
+      "truncated": true,
+      "domain": "coding",
+      "groups": [
+        false,
+        false,
+        false
+      ],
+      "score": 0,
+      "notes": "No final answer; reasoning text is not submitted code",
+      "material_error": false,
+      "method": "completion check: no submitted code"
+    },
+    {
+      "mode": "ko16k",
+      "id": "code_html_review",
+      "repeat": 0,
+      "answer_sha256": "afac227a7d7b35695b841c404199b6dea3c7f4143a2193ee18bf11496ad07cc4",
+      "truncated": true,
+      "domain": "coding",
+      "groups": [
+        true,
+        true,
+        false
+      ],
+      "score": 2,
+      "notes": "hidden과별개인a/table수집 문제와상위return수정 방향은 충족. template링크 예시는 있으나 template표 회귀가 없고 테스트는script rawtext라원래누출을 재현하지못함. 예상Text에서제목/공개링크/표텍스트를 잘못제외하며nodeText숨김자손 누출도 남음.",
+      "material_error": true,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko16k",
+      "id": "research_memory",
+      "repeat": 0,
+      "answer_sha256": "ea6379c079c1008aef625446961219dd8681baffc4cccc5182fb2be1941ae440",
+      "truncated": true,
+      "domain": "research",
+      "groups": [
+        false,
+        false,
+        false
+      ],
+      "score": 0,
+      "notes": "토큰 한도 내 최종 답변 없음. 추론 텍스트는 제출 답변으로 채점하지 않음. 파일 손상과 무관.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko16k",
+      "id": "human_translation",
+      "repeat": 0,
+      "answer_sha256": "102d5ea0ce99426963111b87afd715e14cfbb7f5969003be81ce195a243db9c5",
+      "truncated": false,
+      "domain": "language",
+      "groups": [
+        true,
+        true,
+        true
+      ],
+      "score": 3,
+      "notes": "확정 후 응답 손실 가능성과 동일 작업키 유지/신규구매 새 키·중복결제 위험, 환불승인/입금차이를 보존함. 비전문가용3문장 요약 충족.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko16k",
+      "id": "human_history",
+      "repeat": 0,
+      "answer_sha256": "b3d230ad857f0424ad714998f950162536ef111963eebc2ea6e10957668d3a92",
+      "truncated": false,
+      "domain": "humanities",
+      "groups": [
+        true,
+        true,
+        false
+      ],
+      "score": 2,
+      "notes": "본관/가정연결·비용 접근성 구분과사료 대조·추가자료 제안은 수행. 다만 예산서 작성 시점을 회계연도 마감으로, 편지 목적을 보조금 조속 지급 요구로 단정하고 해당주민의보조금미지급을 사실처럼 추가하여3번 전체충족 아님.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko16k",
+      "id": "human_writing",
+      "repeat": 0,
+      "answer_sha256": "180bf91ecafbd81b53cf6e2303bed51c112cd878ee8ec8b991c348a2e5653909",
+      "truncated": false,
+      "domain": "language",
+      "groups": [
+        true,
+        true,
+        true
+      ],
+      "score": 3,
+      "notes": "중복결제 위험·수정완료/회귀미검증·유출미확인 상태, 월요일11시/목요일17시·5문장 공지와참석 요청 모두 충족.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko16k",
+      "id": "dialogue_constraints",
+      "repeat": 0,
+      "answer_sha256": "fe74a55a727f176bc63d2420ef0d22abccab364b52a7fd26e729fb999697edc2",
+      "truncated": false,
+      "domain": "planning",
+      "groups": [
+        true,
+        true,
+        true
+      ],
+      "score": 3,
+      "notes": "실내A/야외제외, 변경수수료 포함104000원·기념품 제외·최신예산120000원/잔액16000원 정확.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko16k",
+      "id": "long_ledger",
+      "repeat": 0,
+      "answer_sha256": "684a54960c8e08cbfb77ab26dee8b45f26ecdc1a760bfd4ae7b4b4460cd05e4e",
+      "truncated": true,
+      "domain": "documents",
+      "groups": [
+        false,
+        false,
+        false
+      ],
+      "score": 0,
+      "notes": "",
+      "material_error": false,
+      "method": "executed checks"
+    },
+    {
+      "mode": "ko16k",
+      "id": "long_ledger",
+      "repeat": 1,
+      "answer_sha256": "4bcf54076da3bfa3f6f6e9635309f5158c9edef6a851c27787101e77a1fd40ab",
+      "truncated": true,
+      "domain": "documents",
+      "groups": [
+        false,
+        false,
+        false
+      ],
+      "score": 0,
+      "notes": "",
+      "material_error": false,
+      "method": "executed checks"
+    },
+    {
+      "mode": "ko16k",
+      "id": "dialogue_constraints",
+      "repeat": 1,
+      "answer_sha256": "72ee85ea612bc41aa0bf5359fdd9f69923879d5006d4e36a54cdcdf4ebb503db",
+      "truncated": false,
+      "domain": "planning",
+      "groups": [
+        true,
+        true,
+        true
+      ],
+      "score": 3,
+      "notes": "최신실내/야외제외 조건을 반영한A선택, 기념품제외/변경수수료 포함104000원 및잔액16000원 정확.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko16k",
+      "id": "human_writing",
+      "repeat": 1,
+      "answer_sha256": "c11b697ba7f207f9eae4d666bde9079a5a0d8238f25bb076e25d9b562eb63bed",
+      "truncated": false,
+      "domain": "language",
+      "groups": [
+        true,
+        true,
+        true
+      ],
+      "score": 3,
+      "notes": "요구 사실과 기한을 유지한 5문장 공지.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko16k",
+      "id": "human_history",
+      "repeat": 1,
+      "answer_sha256": "56ae960c61ea19ede5391389b9546d5d1fc3ecd72b794899a4fa20c7f64725a5",
+      "truncated": false,
+      "domain": "humanities",
+      "groups": [
+        true,
+        true,
+        true
+      ],
+      "score": 3,
+      "notes": "본관완공과가정연결/비용접근성, 당대편지/예산과공식서술/후대회고의차이를 대조하고연결기록/납부기록 검증을 제안. 사료작성 동기를 단정하는 표현과예산기록의객관성 강조는 한계이나별도의구체적사실을확정해만들지는 않음.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko16k",
+      "id": "human_translation",
+      "repeat": 1,
+      "answer_sha256": "07203da1c8388a6bf784ff28289c54a8373f0fd4f81ea435bfde479c9fd97b30",
+      "truncated": false,
+      "domain": "language",
+      "groups": [
+        true,
+        true,
+        true
+      ],
+      "score": 3,
+      "notes": "확정 후응답손실 가능성·동일작업키/새구매키와중복결제, 환불승인과입금지연을 보존.3문장 요약 충족.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko16k",
+      "id": "research_memory",
+      "repeat": 1,
+      "answer_sha256": "ea6379c079c1008aef625446961219dd8681baffc4cccc5182fb2be1941ae440",
+      "truncated": true,
+      "domain": "research",
+      "groups": [
+        false,
+        false,
+        false
+      ],
+      "score": 0,
+      "notes": "토큰 한도 내 최종 답변 없음. 추론 텍스트는 제출 답변으로 채점하지 않음. 파일 손상과 무관.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko16k",
+      "id": "code_html_review",
+      "repeat": 1,
+      "answer_sha256": "9e45c9fdb31f7eeef0a23de1207a4db4f205e1a3ad9a1d24d9dbe5d15344282c",
+      "truncated": true,
+      "domain": "coding",
+      "groups": [
+        false,
+        false,
+        false
+      ],
+      "score": 0,
+      "notes": "hidden링크만 보고 숨김표 수집은 해결하지 않음. insideTable의공개링크까지제외하도록 요구사항을오독하고표수집은정상으로취급. style rawtext는실제하위a를재현하지못하며template링크/표회귀없고공개텍스트기대값도틀림.",
+      "material_error": true,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko16k",
+      "id": "code_telemetry",
+      "repeat": 1,
+      "answer_sha256": "65ca89136fc1bc2892fe252bb34a85ff389400173fae44232cb6d25c4049d416",
+      "truncated": true,
+      "domain": "coding",
+      "groups": [
+        false,
+        false,
+        false
+      ],
+      "score": 0,
+      "notes": "No final answer; reasoning text is not submitted code",
+      "material_error": false,
+      "method": "completion check: no submitted code"
+    },
+    {
+      "mode": "ko16k",
+      "id": "code_shortlist",
+      "repeat": 1,
+      "answer_sha256": "cee229dd179cf96f1b063aed8f892f6ade1a5f9fa75cb6bc4fd5d36591239f20",
+      "truncated": true,
+      "domain": "coding",
+      "groups": [
+        false,
+        false,
+        false
+      ],
+      "score": 0,
+      "notes": "No final answer; reasoning text is not submitted code",
+      "material_error": false,
+      "method": "completion check: no submitted code"
+    },
+    {
+      "mode": "ko16k",
+      "id": "science_lab",
+      "repeat": 1,
+      "answer_sha256": "2cb3822fc6dd426c3cd2adf4ae52dfdb461a9414881e3063c23e59afcf049b16",
+      "truncated": false,
+      "domain": "science",
+      "groups": [
+        true,
+        true,
+        true
+      ],
+      "score": 3,
+      "notes": "18.75 mL, 최종 250 mL로 정용, 가산성 가정의 0.13953 mol/L 계산을 모두 제시한다.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko16k",
+      "id": "science_trial",
+      "repeat": 1,
+      "answer_sha256": "8e779a72bdc95c986673c5d462274ca90f444d321e790ebba419e529cedf3fcc",
+      "truncated": false,
+      "domain": "research",
+      "groups": [
+        true,
+        true,
+        true
+      ],
+      "score": 3,
+      "notes": "A의 ARR·RR·RRR·NNT와 12개월 기간이 정확하며, B의 교란 및 A 무작위배정의 한계, C 소표본·무대조·다중비교·선택보고를 구분한다.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko16k",
+      "id": "science_bayes",
+      "repeat": 1,
+      "answer_sha256": "bfb3079e018c6ee2717e72e4dc428b48ff0eaf04369c918f70e59d6079e45f89",
+      "truncated": true,
+      "domain": "science",
+      "groups": [
+        true,
+        true,
+        false
+      ],
+      "score": 2,
+      "notes": "90·495 및 90/585 계산과 기저율 설명은 맞지만 조건부 독립에서 주변확률 P(Pos1)P(Pos2)를 곱할 수 있다고 하여 상태에 조건을 둔 독립과 주변 독립을 혼동한다.",
+      "material_error": true,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko16k",
+      "id": "contract_reading",
+      "repeat": 1,
+      "answer_sha256": "1ed66f83757e9d2f394f435def559611f89123bff2a87d3afa623c30f1ff6cd5",
+      "truncated": false,
+      "domain": "documents",
+      "groups": [
+        true,
+        true,
+        true
+      ],
+      "score": 3,
+      "notes": "적기 통보로 5월 0원, 4·5조 우선 적용으로 4월 25,000원 환급, 가상 계약과 실제 강행법규 효력을 구분한다.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko16k",
+      "id": "finance_cost",
+      "repeat": 1,
+      "answer_sha256": "f935b641d2eb773edc84b51f16bb098b221e93fd75a9186b8be36082b524976f",
+      "truncated": false,
+      "domain": "economics",
+      "groups": [
+        true,
+        true,
+        false
+      ],
+      "score": 2,
+      "notes": "총지출·추가비용·차액은 정확하지만 단순 추가비용/현금가격을 APR로 충분하다고 단정하여 납입 시점과 잔액을 무시한다.",
+      "material_error": true,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko16k",
+      "id": "finance_budget",
+      "repeat": 1,
+      "answer_sha256": "b24d39bf325301cc3040a4dfa7ec61e8c97656f6418ef67ef71f772a343c7589",
+      "truncated": false,
+      "domain": "economics",
+      "groups": [
+        true,
+        true,
+        true
+      ],
+      "score": 3,
+      "notes": "70·750·650만원, 10개월, 감소 소득 256만원·잉여 6만원·109개월과 고정 지출 등 가정을 정확히 제시한다.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko16k",
+      "id": "life_schedule",
+      "repeat": 1,
+      "answer_sha256": "1e9a237ed33e4fc13118401ed8e57c5358ce512525225161a6c9a176bee9f13a",
+      "truncated": false,
+      "domain": "planning",
+      "groups": [
+        true,
+        false,
+        false
+      ],
+      "score": 1,
+      "notes": "입장 및 식사 예약은 지키나 기본 공원 종료가 15:15로 폐장 위반. 지연안은 필수 박물관 90분·공원 60분을 70분·45분으로 축소하여 조건을 만족하지 않는다.",
+      "material_error": true,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko16k",
+      "id": "life_router",
+      "repeat": 1,
+      "answer_sha256": "d2d5b0367ff83678d529a18004b8af563d3180d9626b1d91c35f7051acbae250",
+      "truncated": false,
+      "domain": "everyday",
+      "groups": [
+        true,
+        true,
+        true
+      ],
+      "score": 3,
+      "notes": "DNS 필터를 우선 의심하고 지정 리졸버 조회·필터 비활성화 후 재검증을 제안한다. ICMP와 DNS 계층 차이를 설명하며 ping만으로 모든 경로 정상이라 하지 않는다. ifconfig로 DNS 확인 제안은 부정확한 부수 항목.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko16k",
+      "id": "life_energy",
+      "repeat": 1,
+      "answer_sha256": "5a8d490851f1702563883976230b307ccff474d0b2aba8df5001c7b7724b7faf",
+      "truncated": false,
+      "domain": "everyday",
+      "groups": [
+        true,
+        true,
+        true
+      ],
+      "score": 3,
+      "notes": "108 kWh·27,000원·6.67년 계산이 정확하고 고정 단가·성능 동등 가정과 실제 사용 조건을 구분한다.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko16k",
+      "id": "life_food",
+      "repeat": 1,
+      "answer_sha256": "3718a65c60e8514f3c7a109c75a2bd53afe1f00f65ab5b1cc53d5e34316f7076",
+      "truncated": false,
+      "domain": "everyday",
+      "groups": [
+        false,
+        true,
+        true
+      ],
+      "score": 2,
+      "notes": "A의 2시간 기준 초과와 냄새의 한계를 설명하지만 폐기 행동을 누락하고 가족 설득을 맛으로 전환한다. B의 신속 냉장/4도 조건 및 빠른 냉각·소분은 설명한다.",
+      "material_error": true,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko16k",
+      "id": "med_cancer",
+      "repeat": 1,
+      "answer_sha256": "2dafc5e23d7dc88241f5aae2b5db11f4ead06225670d6ef5127585686cb931ee",
+      "truncated": false,
+      "domain": "medicine",
+      "groups": [
+        true,
+        true,
+        false
+      ],
+      "score": 2,
+      "notes": "단독 상승으로 확진 불가 및 정상 표지자로 배제 불가는 설명한다. 표지자 종류·실제 수치 확인 없이 정상 여러 지표를 전반 건강 신호라 하고 양성 원인의 우세 및 3–6개월 재검을 일반화한다.",
+      "material_error": true,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko16k",
+      "id": "med_diabetes",
+      "repeat": 1,
+      "answer_sha256": "bc871436ea59f7850295b5abd5dda5515639ffb605329a4f94a329b80d244fb1",
+      "truncated": false,
+      "domain": "medicine",
+      "groups": [
+        true,
+        true,
+        true
+      ],
+      "score": 3,
+      "notes": "고정 기준인 15–20g·15분 반복·경구 중단·119·글루카곤 언급은 충족한다. 별도 중요 오류: 의식 소실 상황에서 반좌위 유지 지시는 회복자세 안내와 어긋난다. 추가 확인: https://www.nhs.uk/conditions/low-blood-sugar-hypoglycaemia/ (2026-09-09).",
+      "material_error": true,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko16k",
+      "id": "med_rhinitis",
+      "repeat": 1,
+      "answer_sha256": "8dc0ea418b0e03b4272c09de7551672a08c0a33c559fd8dc47697197135533d0",
+      "truncated": false,
+      "domain": "medicine",
+      "groups": [
+        true,
+        true,
+        false
+      ],
+      "score": 2,
+      "notes": "반동성 코막힘과 네 약제 역할을 구분하나 약사/의사 검토를 누락한 채 약제를 특정하지 않고 비강 스테로이드 용량 및 혈관수축제 추가 1–2주 감량을 지시한다.",
+      "material_error": true,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko16k",
+      "id": "med_gout",
+      "repeat": 1,
+      "answer_sha256": "864e09f0bbab5381792495945ca76d819986bb79f6cc5938830db58e248b8a71",
+      "truncated": false,
+      "domain": "medicine",
+      "groups": [
+        true,
+        true,
+        true
+      ],
+      "score": 3,
+      "notes": "급성 항염증·지속 요산저하를 구분하고 독단 중단을 권하지 않는다. 식생활 한계, 신장기능·용량·목표치 검토 및 초기 콜히친 예방 병용 상담을 포함한다.",
+      "material_error": false,
+      "method": "assistant rubric review"
+    },
+    {
+      "mode": "ko16k",
+      "id": "med_cold",
+      "repeat": 1,
+      "answer_sha256": "1f0fa9976be59e66a6dcc01a39186e5f01aa0a91f34fc4c49f056857439c1a49",
+      "truncated": false,
+      "domain": "medicine",
+      "groups": [
+        false,
+        true,
+        false
+      ],
+      "score": 1,
+      "notes": "호흡곤란·재악화에도 2–3일 관찰을 권해 신속 진료를 놓친다. 남은 항생제는 권하지 않으나 병력·복용약 등 관련 누락 정보를 묻거나 확인하지 않는다.",
+      "material_error": true,
+      "method": "assistant rubric review"
+    }
+  ],
+  "limitations": [
+    "Three binary rubric checks per task are a narrow correctness screen, not comprehensive domain certification.",
+    "Prose judgments by the assistant with mode labels hidden, not independent expert reviewers.",
+    "Identical final answers deduplicated for consistent scoring; no extra weight beyond their observed requests.",
+    "Truncation reported separately; partial final answers only receive criteria they actually satisfy."
+  ]
+}

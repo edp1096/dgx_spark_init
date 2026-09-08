@@ -68,6 +68,10 @@ SparkTalk에 내장된 동일한 실행 구성이 컨테이너를 관리한다.
 3회 재시험에서는 전체 처리량 약 19.5% 개선이 있었다. 반복 편차는 있지만 기능 검사를 통과해 기본 구성으로 채택했다.
 [시험 결과와 안정성 한계](bench/results/2026-09-06-recheck/README.md)를 먼저 확인한다.
 
+2026-09-09의 [16K·32K·64K 비교](bench/results/2026-09-09-ko16k-retry/README.md)에서도
+합산 생성 속도는 세 설정 모두 약 30 tok/s였고, 더 작은 어휘의 품질 개선은 확인되지 않았다.
+이 결과와 사용자 결정에 따라 `ko64k`를 기준 설정으로 유지한다.
+
 ```sh
 docker compose build
 docker compose up -d

@@ -1,0 +1,10 @@
+{
+  "build_report.py": "32e035d6e40850e3a59d65fdb0c0c6bbefa54ffd7f7f77caa97348ab2bf66dfe",
+  "tasks.json": "fef298d743334fc477f6d64f7b9a14fc108c83aad6999ae531e0b2f706eee21a",
+  "prose-reviews.json": "33a8cedd4f7fb34d3e5f4d5e2c331f4a4e167753733d6ae21384fb310fe49cb5",
+  "code-grades.json": "8b1b0ba9de786355e481680032d654244197e9a82d0f680227dade8b8a3977c3",
+  "ledger-grades.json": "03f4380a7bac5058b6f4ffabbba4405627c5d046fec16b16938b26e157ef15b1",
+  "quality-summary.json": "9b940f506d5eaef2caf27aa37e798dd2dec69e54b0e1dfbd70273a8651652a76",
+  "extended/prose-reviews.json": "95fcf7dd26e7165bab9af770978bb9d309cc14139901fdf7b3aa7d54a9202265",
+  "extended/quality-summary.json": "5c9e95baf30fccf2c392818071ce1a6a7869cd663a9cf0765675dc403be69266"
+}

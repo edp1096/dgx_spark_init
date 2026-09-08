@@ -1,0 +1,16 @@
+1/48 med_cold round=1 tokens=954 elapsed=33.9s decode=28.269003899705186 accept=0.403 truncated=False
+2/48 med_gout round=1 tokens=1117 elapsed=34.3s decode=32.78637526548271 accept=0.506 truncated=False
+3/48 med_rhinitis round=1 tokens=1295 elapsed=39.9s decode=32.65760425726317 accept=0.512 truncated=False
+4/48 med_diabetes round=1 tokens=737 elapsed=25.7s decode=28.904572256182433 accept=0.401 truncated=False
+5/48 med_cancer round=1 tokens=1206 elapsed=41.1s decode=29.51581138753481 accept=0.432 truncated=False
+6/48 life_food round=1 tokens=350 elapsed=13.4s decode=26.690450326590103 accept=0.359 truncated=False
+7/48 life_energy round=1 tokens=1032 elapsed=30.4s decode=34.25204020125243 accept=0.556 truncated=False
+8/48 life_router round=1 tokens=1105 elapsed=33.0s decode=33.75087239699616 accept=0.530 truncated=False
+9/48 life_schedule round=1 tokens=1536 elapsed=38.8s decode=39.85729951554551 accept=0.691 truncated=True
+10/48 finance_budget round=1 tokens=1226 elapsed=32.5s decode=37.95734001532004 accept=0.631 truncated=False
+11/48 finance_cost round=1 tokens=1168 elapsed=32.0s decode=36.81094627635089 accept=0.609 truncated=False
+12/48 contract_reading round=1 tokens=721 elapsed=22.7s decode=32.073888771512834 accept=0.483 truncated=False
+13/48 science_bayes round=1 tokens=1536 elapsed=41.9s decode=36.92339792508706 accept=0.611 truncated=True
+14/48 science_trial round=1 tokens=3937 elapsed=149.9s decode=26.314763912202135 accept=0.494 truncated=False
+15/48 science_lab round=1 tokens=1011 elapsed=27.6s decode=37.07150011325987 accept=0.621 truncated=False
+16/48 code_shortlist round=1 tokens=4096 elapsed=170.2s decode=24.2119934511933 accept=0.431 truncated=True

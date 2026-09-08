@@ -55,3 +55,29 @@ python3 build_vocab.py \
 
 결과는 요청마다 임시 파일에 쓰고 fsync 후 교체한다. 장기 보관할 시험 결과에
 /tmp 경로를 사용하지 않는다.
+
+## 초안 어휘 메모리 비교
+
+[64K·128K·전체 어휘 비교](results/2026-09-08-vocab-memory/README.md)는 먼저 출력층 크기를
+계산한 뒤, KV 풀을 고정하고 단일 컨테이너씩 실행한 메모리 실측이다.
+`vocab_memory.py`가 가용 메모리 하한을 감시하고 `summarize_vocab_memory.py`가 결과를 계산한다.
+운영 설정의 자동 KV 풀과 구분해서 해석한다.
+
+[16K·32K·64K의 24문항×2회 비교](results/2026-09-09-ko16k-retry/README.md)는
+실제 생성 속도·수락률·고정 기준 품질을 함께 비교한다. 16K 재시험은 48개를 완료했으며,
+앞선 호스트 재부팅 기록과 이번 성공을 구분하여 보존한다.
+
+### 저장 자료에서 비교 재생성
+
+아래 명령은 저장된 응답·채점·어휘 목록으로 집계하며 GPU 서버를 시작하지 않는다.
+저장 디렉터리에서 실행하면 보고서를 덮어쓰므로 별도 체크아웃에서 실행한다.
+
+```sh
+python3 summarize_vocab_pair.py results/2026-09-09-ko16k-retry --reference results/2026-09-08-broad-vocab --candidate-mode ko16k
+python3 summarize_vocab_three.py results/2026-09-09-ko16k-retry
+```
+
+완료 응답, 고정 채점, 원본 관측 자료와 재부팅 진단은 보존한다. `.runtime`의 실행 코드
+사본과 JSON 어휘 목록도 집계 검증에 필요하므로 포함한다. 재생성 가능한 PyTorch `.pt`
+목록과 Python 캐시는 제외한다. 16K·32K 목록은 같은 디렉터리의 `*-ids.json`,
+64K·128K 목록은 메모리 시험 디렉터리의 범위 JSON에서 복원할 수 있다.

@@ -1,0 +1,107 @@
+{
+  "settings": {
+    "context_length": 65536,
+    "kv_tokens": 65536,
+    "mamba_slots": 18,
+    "min_available_gib": 16,
+    "rounds": 1
+  },
+  "rows": [
+    {
+      "mode": "ko64k",
+      "extra_head_mib": 320.0,
+      "head_init_extra_peak_mib": 1533.0,
+      "torch_after_head_gib": 80.33560562133789,
+      "ready_idle_extra_gib": 91.61972045898438,
+      "post_idle_extra_gib": 90.82512283325195,
+      "peak_extra_gib": 96.2380599975586,
+      "min_available_gib": 20.780319213867188,
+      "max_sample_gap_seconds": 0.2519586870002968,
+      "max_swap_growth_mib": 77.8359375,
+      "oom": false,
+      "workload_checks": {
+        "tools_thinking_False": true,
+        "tools_thinking_True": true,
+        "vision": true,
+        "concurrency_2": true,
+        "long_context": true,
+        "json_round_0": true
+      },
+      "api_tok_s": 33.10067153533502,
+      "decode_tok_s_by_prompt": {
+        "ko_explain": 33.07542636458143,
+        "ko_plan": 37.359359942295875,
+        "ko_story": 22.316872467833168,
+        "ko_compare": 29.276001819498596,
+        "code_python": 47.55635402868583,
+        "code_go": 40.73952644901799,
+        "json": 46.103254027576824,
+        "en_prose": 28.888776978431494
+      }
+    },
+    {
+      "mode": "ko128k",
+      "extra_head_mib": 640.0,
+      "head_init_extra_peak_mib": 1853.5,
+      "torch_after_head_gib": 80.64859390258789,
+      "ready_idle_extra_gib": 91.76411628723145,
+      "post_idle_extra_gib": 91.23045349121094,
+      "peak_extra_gib": 96.23854446411133,
+      "min_available_gib": 20.85702896118164,
+      "max_sample_gap_seconds": 0.2858850960001291,
+      "max_swap_growth_mib": 38.36328125,
+      "oom": false,
+      "workload_checks": {
+        "tools_thinking_False": true,
+        "tools_thinking_True": true,
+        "vision": true,
+        "concurrency_2": true,
+        "long_context": true,
+        "json_round_0": true
+      },
+      "api_tok_s": 32.0896390282854,
+      "decode_tok_s_by_prompt": {
+        "ko_explain": 32.806122460853,
+        "ko_plan": 35.85607820897751,
+        "ko_story": 21.21740255517784,
+        "ko_compare": 27.81083760499577,
+        "code_python": 44.53307270264677,
+        "code_go": 42.34807185975352,
+        "json": 42.73547687167822,
+        "en_prose": 28.709600819374625
+      }
+    },
+    {
+      "mode": "full",
+      "extra_head_mib": 0,
+      "head_init_extra_peak_mib": 0.0,
+      "torch_after_head_gib": 80.02261734008789,
+      "ready_idle_extra_gib": 91.29999160766602,
+      "post_idle_extra_gib": 90.55118751525879,
+      "peak_extra_gib": 96.43206024169922,
+      "min_available_gib": 20.678401947021484,
+      "max_sample_gap_seconds": 0.27120337200176436,
+      "max_swap_growth_mib": 51.55859375,
+      "oom": false,
+      "workload_checks": {
+        "tools_thinking_False": true,
+        "tools_thinking_True": true,
+        "vision": true,
+        "concurrency_2": true,
+        "long_context": true,
+        "json_round_0": true
+      },
+      "api_tok_s": 28.91194294856167,
+      "decode_tok_s_by_prompt": {
+        "ko_explain": 30.756188182241385,
+        "ko_plan": 33.89035559444657,
+        "ko_story": 18.540532448046758,
+        "ko_compare": 24.24201472264067,
+        "code_python": 40.9754761391513,
+        "code_go": 35.89626909002696,
+        "json": 38.06615233089134,
+        "en_prose": 26.643661939651416
+      }
+    }
+  ]
+}

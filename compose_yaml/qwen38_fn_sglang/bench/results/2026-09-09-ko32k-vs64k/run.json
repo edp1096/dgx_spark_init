@@ -1,0 +1,21 @@
+{
+  "started": "2026-09-09T01:37:09.440872+09:00",
+  "image": "sha256:ecb60e9705433d3cf4172567ff084c586c1b89a158288b8251c93d812d0fca50",
+  "source_container": "44d91bc6b619717a59a7e2148fbcb71544d0a21bf0236a9c9f58b97242950915",
+  "initial_running_ids": [
+    "1474750f996e",
+    "23c096fff275",
+    "36d2c907b529",
+    "4681ebd0a183"
+  ],
+  "context_length": 65536,
+  "kv_tokens": 65536,
+  "mamba_slots": 18,
+  "min_available_gib": 16,
+  "rounds": 2,
+  "modes": [
+    "ko32k"
+  ],
+  "workload": "qwen38_fn_sglang/bench/broad_vocab.py",
+  "workload_timeout": 7200
+}

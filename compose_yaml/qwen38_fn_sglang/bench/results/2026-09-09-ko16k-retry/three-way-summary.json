@@ -1,0 +1,896 @@
+{
+  "modes": {
+    "ko16k": {
+      "requests": 48,
+      "tokens": 73499,
+      "elapsed_s": 2476.9677992720003,
+      "pooled_end_to_end_tok_s": 29.672973553229845,
+      "pooled_decode_tok_s": 30.09312371158905,
+      "mean_request_decode_tok_s": 34.231580966090704,
+      "median_ttft_s": 0.26232546250025734,
+      "spec_accept_rate": 0.46099635742620276,
+      "spec_accept_length": 2.3833133370083335,
+      "truncated": 13,
+      "quality": {
+        "requests": 48,
+        "points": 98,
+        "max_points": 144,
+        "full_pass": 23,
+        "material_errors": 16
+      },
+      "missing_final": 6,
+      "head_mib": 80.0,
+      "thermal": {
+        "metrics": {
+          "temperature_c": {
+            "samples": 247,
+            "min": 52.0,
+            "max": 66.0,
+            "median": 64.0
+          },
+          "gpu_util_pct": {
+            "samples": 247,
+            "min": 0.0,
+            "max": 96.0,
+            "median": 96.0
+          },
+          "power_w": {
+            "samples": 247,
+            "min": 9.94,
+            "max": 34.28,
+            "median": 23.26
+          },
+          "sm_clock_mhz": {
+            "samples": 247,
+            "min": 2086.0,
+            "max": 2093.0,
+            "median": 2093.0
+          }
+        },
+        "invalid_lines_excluded": 0
+      },
+      "coverage": {
+        "tokens": 73499,
+        "outside_pct": {
+          "ko16k": 10.039592375406468,
+          "ko32k": 4.095293813521272,
+          "ko64k": 1.224506455870148
+        }
+      },
+      "final_coverage": {
+        "tokens": 45263,
+        "outside_pct": {
+          "ko16k": 2.9516382033890816,
+          "ko32k": 1.7276804453969026,
+          "ko64k": 0.7555840311070853
+        }
+      }
+    },
+    "ko32k": {
+      "requests": 48,
+      "tokens": 72178,
+      "elapsed_s": 2423.3727810779947,
+      "pooled_end_to_end_tok_s": 29.78410938819445,
+      "pooled_decode_tok_s": 30.21642796979769,
+      "mean_request_decode_tok_s": 33.39292139243824,
+      "median_ttft_s": 0.2632420759996421,
+      "spec_accept_rate": 0.48399297888001813,
+      "spec_accept_length": 2.452114829284865,
+      "truncated": 15,
+      "quality": {
+        "requests": 48,
+        "points": 97,
+        "max_points": 144,
+        "full_pass": 22,
+        "material_errors": 14
+      },
+      "missing_final": 6,
+      "head_mib": 160.0,
+      "thermal": {
+        "metrics": {
+          "temperature_c": {
+            "samples": 241,
+            "min": 54.0,
+            "max": 67.0,
+            "median": 64.0
+          },
+          "gpu_util_pct": {
+            "samples": 241,
+            "min": 0.0,
+            "max": 96.0,
+            "median": 96.0
+          },
+          "power_w": {
+            "samples": 241,
+            "min": 9.97,
+            "max": 36.42,
+            "median": 23.25
+          },
+          "sm_clock_mhz": {
+            "samples": 241,
+            "min": 2086.0,
+            "max": 2093.0,
+            "median": 2086.0
+          }
+        },
+        "invalid_lines_excluded": 0
+      },
+      "coverage": {
+        "tokens": 72178,
+        "outside_pct": {
+          "ko16k": 10.429770844301588,
+          "ko32k": 4.2256643298512016,
+          "ko64k": 1.368838150128848
+        }
+      },
+      "final_coverage": {
+        "tokens": 42368,
+        "outside_pct": {
+          "ko16k": 2.964501510574018,
+          "ko32k": 1.6309478851963746,
+          "ko64k": 0.7954116314199395
+        }
+      }
+    },
+    "ko64k": {
+      "requests": 48,
+      "tokens": 73226,
+      "elapsed_s": 2462.8614669630333,
+      "pooled_end_to_end_tok_s": 29.73208236933251,
+      "pooled_decode_tok_s": 30.177747784444257,
+      "mean_request_decode_tok_s": 32.6217482750442,
+      "median_ttft_s": 0.2933051569998497,
+      "spec_accept_rate": 0.5177487969872376,
+      "spec_accept_length": 2.5533858707022805,
+      "truncated": 14,
+      "quality": {
+        "requests": 48,
+        "points": 99,
+        "max_points": 144,
+        "full_pass": 24,
+        "material_errors": 14
+      },
+      "missing_final": 6,
+      "head_mib": 320.0,
+      "thermal": {
+        "metrics": {
+          "temperature_c": {
+            "samples": 244,
+            "min": 53.0,
+            "max": 66.0,
+            "median": 63.0
+          },
+          "gpu_util_pct": {
+            "samples": 244,
+            "min": 0.0,
+            "max": 96.0,
+            "median": 96.0
+          },
+          "power_w": {
+            "samples": 244,
+            "min": 9.06,
+            "max": 34.12,
+            "median": 20.99
+          },
+          "sm_clock_mhz": {
+            "samples": 244,
+            "min": 1982.0,
+            "max": 1989.0,
+            "median": 1989.0
+          }
+        },
+        "invalid_lines_excluded": 1
+      },
+      "coverage": {
+        "tokens": 73226,
+        "outside_pct": {
+          "ko16k": 9.70966596564062,
+          "ko32k": 4.073689673066943,
+          "ko64k": 1.2550187092016496
+        }
+      },
+      "final_coverage": {
+        "tokens": 45167,
+        "outside_pct": {
+          "ko16k": 2.707729094250227,
+          "ko32k": 1.578586135895676,
+          "ko64k": 0.7682600128412337
+        }
+      }
+    }
+  },
+  "pairwise": {
+    "ko16k_over_ko64k": {
+      "geomean_decode_ratio": 1.0436893047758191,
+      "complete_pairs": 33,
+      "complete_geomean_ratio": 1.0617768612261154,
+      "quality_higher": 5,
+      "quality_lower": 5,
+      "quality_tied": 38
+    },
+    "ko16k_over_ko32k": {
+      "geomean_decode_ratio": 1.020198013052411,
+      "complete_pairs": 32,
+      "complete_geomean_ratio": 1.0231633431666753,
+      "quality_higher": 8,
+      "quality_lower": 7,
+      "quality_tied": 33
+    },
+    "ko32k_over_ko64k": {
+      "geomean_decode_ratio": 1.023026208072218,
+      "complete_pairs": 32,
+      "complete_geomean_ratio": 1.0404150017753553,
+      "quality_higher": 5,
+      "quality_lower": 6,
+      "quality_tied": 37
+    }
+  },
+  "domains": {
+    "coding": {
+      "pairs": 6,
+      "modes": {
+        "ko16k": {
+          "requests": 6,
+          "tokens": 20480,
+          "elapsed_s": 862.006529501999,
+          "pooled_end_to_end_tok_s": 23.758520729340376,
+          "pooled_decode_tok_s": 24.063149498619875,
+          "mean_request_decode_tok_s": 27.802128661156818,
+          "median_ttft_s": 1.6045397344998946,
+          "spec_accept_rate": 0.3725571295626099,
+          "spec_accept_length": 2.1176713886878296,
+          "truncated": 6,
+          "quality": {
+            "requests": 6,
+            "points": 2,
+            "max_points": 18,
+            "full_pass": 0,
+            "material_errors": 2
+          }
+        },
+        "ko32k": {
+          "requests": 6,
+          "tokens": 20480,
+          "elapsed_s": 809.3940746389999,
+          "pooled_end_to_end_tok_s": 25.302878587459812,
+          "pooled_decode_tok_s": 25.651955103742516,
+          "mean_request_decode_tok_s": 29.39991220350155,
+          "median_ttft_s": 1.627650125999935,
+          "spec_accept_rate": 0.44243664052733267,
+          "spec_accept_length": 2.327537220138652,
+          "truncated": 6,
+          "quality": {
+            "requests": 6,
+            "points": 4,
+            "max_points": 18,
+            "full_pass": 0,
+            "material_errors": 2
+          }
+        },
+        "ko64k": {
+          "requests": 6,
+          "tokens": 20480,
+          "elapsed_s": 820.6380215030076,
+          "pooled_end_to_end_tok_s": 24.956191966941347,
+          "pooled_decode_tok_s": 25.30765282989422,
+          "mean_request_decode_tok_s": 27.921214492691796,
+          "median_ttft_s": 1.6538726210019377,
+          "spec_accept_rate": 0.4704266258487382,
+          "spec_accept_length": 2.411397621570705,
+          "truncated": 6,
+          "quality": {
+            "requests": 6,
+            "points": 4,
+            "max_points": 18,
+            "full_pass": 0,
+            "material_errors": 2
+          }
+        }
+      },
+      "ratio16_over64": 0.9788275808600703,
+      "ratio16_over32": 0.9427041112884047
+    },
+    "documents": {
+      "pairs": 4,
+      "modes": {
+        "ko16k": {
+          "requests": 4,
+          "tokens": 5620,
+          "elapsed_s": 146.51403558099946,
+          "pooled_end_to_end_tok_s": 38.358099807393636,
+          "pooled_decode_tok_s": 41.339909369500425,
+          "mean_request_decode_tok_s": 39.89287100015313,
+          "median_ttft_s": 2.627007933500181,
+          "spec_accept_rate": 0.6758261494252874,
+          "spec_accept_length": 3.0280172413793105,
+          "truncated": 2,
+          "quality": {
+            "requests": 4,
+            "points": 6,
+            "max_points": 12,
+            "full_pass": 2,
+            "material_errors": 0
+          }
+        },
+        "ko32k": {
+          "requests": 4,
+          "tokens": 4388,
+          "elapsed_s": 124.6386446839997,
+          "pooled_end_to_end_tok_s": 35.20577434972143,
+          "pooled_decode_tok_s": 38.4382175733384,
+          "mean_request_decode_tok_s": 37.72340372502037,
+          "median_ttft_s": 2.634925812000347,
+          "spec_accept_rate": 0.6082850397080919,
+          "spec_accept_length": 2.8254990341274953,
+          "truncated": 1,
+          "quality": {
+            "requests": 4,
+            "points": 6,
+            "max_points": 12,
+            "full_pass": 2,
+            "material_errors": 0
+          }
+        },
+        "ko64k": {
+          "requests": 4,
+          "tokens": 5463,
+          "elapsed_s": 150.4230534369999,
+          "pooled_end_to_end_tok_s": 36.317571510327106,
+          "pooled_decode_tok_s": 39.09662656207485,
+          "mean_request_decode_tok_s": 37.234661623108465,
+          "median_ttft_s": 2.680076200998883,
+          "spec_accept_rate": 0.677962962962963,
+          "spec_accept_length": 3.035,
+          "truncated": 2,
+          "quality": {
+            "requests": 4,
+            "points": 6,
+            "max_points": 12,
+            "full_pass": 2,
+            "material_errors": 0
+          }
+        }
+      },
+      "ratio16_over64": 1.0752338262084014,
+      "ratio16_over32": 1.0538587945833644
+    },
+    "economics": {
+      "pairs": 4,
+      "modes": {
+        "ko16k": {
+          "requests": 4,
+          "tokens": 4402,
+          "elapsed_s": 111.37923170100066,
+          "pooled_end_to_end_tok_s": 39.52262852573126,
+          "pooled_decode_tok_s": 39.83314619446374,
+          "mean_request_decode_tok_s": 39.8455486902909,
+          "median_ttft_s": 0.24185005950016603,
+          "spec_accept_rate": 0.6098971722365039,
+          "spec_accept_length": 2.829048843187661,
+          "truncated": 0,
+          "quality": {
+            "requests": 4,
+            "points": 10,
+            "max_points": 12,
+            "full_pass": 2,
+            "material_errors": 1
+          }
+        },
+        "ko32k": {
+          "requests": 4,
+          "tokens": 4479,
+          "elapsed_s": 123.2649438540002,
+          "pooled_end_to_end_tok_s": 36.336365068280095,
+          "pooled_decode_tok_s": 36.59044195338445,
+          "mean_request_decode_tok_s": 36.576731555161274,
+          "median_ttft_s": 0.24187589050006864,
+          "spec_accept_rate": 0.5533769063180828,
+          "spec_accept_length": 2.661319073083779,
+          "truncated": 0,
+          "quality": {
+            "requests": 4,
+            "points": 10,
+            "max_points": 12,
+            "full_pass": 2,
+            "material_errors": 1
+          }
+        },
+        "ko64k": {
+          "requests": 4,
+          "tokens": 4413,
+          "elapsed_s": 119.7114976840021,
+          "pooled_end_to_end_tok_s": 36.86362701474865,
+          "pooled_decode_tok_s": 37.15397320163846,
+          "mean_request_decode_tok_s": 37.18185788776602,
+          "median_ttft_s": 0.2632691335020354,
+          "spec_accept_rate": 0.6124678663239075,
+          "spec_accept_length": 2.8361182519280206,
+          "truncated": 0,
+          "quality": {
+            "requests": 4,
+            "points": 11,
+            "max_points": 12,
+            "full_pass": 3,
+            "material_errors": 0
+          }
+        }
+      },
+      "ratio16_over64": 1.071831215939469,
+      "ratio16_over32": 1.0896935785877717
+    },
+    "everyday": {
+      "pairs": 6,
+      "modes": {
+        "ko16k": {
+          "requests": 6,
+          "tokens": 5608,
+          "elapsed_s": 161.25641364100056,
+          "pooled_end_to_end_tok_s": 34.77691133876319,
+          "pooled_decode_tok_s": 35.050159249071456,
+          "mean_request_decode_tok_s": 33.8583253763995,
+          "median_ttft_s": 0.23152784699982476,
+          "spec_accept_rate": 0.5032065622669649,
+          "spec_accept_length": 2.50917225950783,
+          "truncated": 0,
+          "quality": {
+            "requests": 6,
+            "points": 16,
+            "max_points": 18,
+            "full_pass": 4,
+            "material_errors": 2
+          }
+        },
+        "ko32k": {
+          "requests": 6,
+          "tokens": 5087,
+          "elapsed_s": 151.49706634499853,
+          "pooled_end_to_end_tok_s": 33.57820796618971,
+          "pooled_decode_tok_s": 33.86027634485726,
+          "mean_request_decode_tok_s": 32.64652092714294,
+          "median_ttft_s": 0.2322592419995999,
+          "spec_accept_rate": 0.4921330089213301,
+          "spec_accept_length": 2.475425790754258,
+          "truncated": 0,
+          "quality": {
+            "requests": 6,
+            "points": 16,
+            "max_points": 18,
+            "full_pass": 4,
+            "material_errors": 2
+          }
+        },
+        "ko64k": {
+          "requests": 6,
+          "tokens": 5183,
+          "elapsed_s": 161.67266668101365,
+          "pooled_end_to_end_tok_s": 32.058604007727894,
+          "pooled_decode_tok_s": 32.34536266251913,
+          "mean_request_decode_tok_s": 31.15498655011527,
+          "median_ttft_s": 0.26196507749773446,
+          "spec_accept_rate": 0.49743589743589745,
+          "spec_accept_length": 2.491826923076923,
+          "truncated": 0,
+          "quality": {
+            "requests": 6,
+            "points": 16,
+            "max_points": 18,
+            "full_pass": 4,
+            "material_errors": 2
+          }
+        }
+      },
+      "ratio16_over64": 1.088113234586085,
+      "ratio16_over32": 1.0376236861859756
+    },
+    "humanities": {
+      "pairs": 2,
+      "modes": {
+        "ko16k": {
+          "requests": 2,
+          "tokens": 2706,
+          "elapsed_s": 90.81027757499987,
+          "pooled_end_to_end_tok_s": 29.798389260126694,
+          "pooled_decode_tok_s": 29.96024981817965,
+          "mean_request_decode_tok_s": 29.94537712427885,
+          "median_ttft_s": 0.278559498000277,
+          "spec_accept_rate": 0.3949919224555735,
+          "spec_accept_length": 2.1857835218093697,
+          "truncated": 0,
+          "quality": {
+            "requests": 2,
+            "points": 5,
+            "max_points": 6,
+            "full_pass": 1,
+            "material_errors": 0
+          }
+        },
+        "ko32k": {
+          "requests": 2,
+          "tokens": 2926,
+          "elapsed_s": 97.54736329199932,
+          "pooled_end_to_end_tok_s": 29.99568518568032,
+          "pooled_decode_tok_s": 30.14668573763538,
+          "mean_request_decode_tok_s": 30.153248957164948,
+          "median_ttft_s": 0.27736201849984354,
+          "spec_accept_rate": 0.41455938697318007,
+          "spec_accept_length": 2.242145593869732,
+          "truncated": 1,
+          "quality": {
+            "requests": 2,
+            "points": 5,
+            "max_points": 6,
+            "full_pass": 1,
+            "material_errors": 0
+          }
+        },
+        "ko64k": {
+          "requests": 2,
+          "tokens": 2922,
+          "elapsed_s": 96.67178540099849,
+          "pooled_end_to_end_tok_s": 30.22598566768396,
+          "pooled_decode_tok_s": 30.389000599026847,
+          "mean_request_decode_tok_s": 30.381542957547634,
+          "median_ttft_s": 0.29206019299817854,
+          "spec_accept_rate": 0.45496224379719524,
+          "spec_accept_length": 2.3640776699029127,
+          "truncated": 1,
+          "quality": {
+            "requests": 2,
+            "points": 5,
+            "max_points": 6,
+            "full_pass": 1,
+            "material_errors": 0
+          }
+        }
+      },
+      "ratio16_over64": 0.9856399945007007,
+      "ratio16_over32": 0.993096371181901
+    },
+    "language": {
+      "pairs": 4,
+      "modes": {
+        "ko16k": {
+          "requests": 4,
+          "tokens": 607,
+          "elapsed_s": 19.25473859700014,
+          "pooled_end_to_end_tok_s": 31.524707382657983,
+          "pooled_decode_tok_s": 32.98717550159936,
+          "mean_request_decode_tok_s": 33.75715623818019,
+          "median_ttft_s": 0.24563616849991377,
+          "spec_accept_rate": 0.45751633986928103,
+          "spec_accept_length": 2.380392156862745,
+          "truncated": 0,
+          "quality": {
+            "requests": 4,
+            "points": 12,
+            "max_points": 12,
+            "full_pass": 4,
+            "material_errors": 0
+          }
+        },
+        "ko32k": {
+          "requests": 4,
+          "tokens": 631,
+          "elapsed_s": 19.96867237999959,
+          "pooled_end_to_end_tok_s": 31.599496851478364,
+          "pooled_decode_tok_s": 32.99802190057715,
+          "mean_request_decode_tok_s": 33.63263258507379,
+          "median_ttft_s": 0.2396275989995047,
+          "spec_accept_rate": 0.46134347275031684,
+          "spec_accept_length": 2.3992395437262357,
+          "truncated": 0,
+          "quality": {
+            "requests": 4,
+            "points": 12,
+            "max_points": 12,
+            "full_pass": 4,
+            "material_errors": 0
+          }
+        },
+        "ko64k": {
+          "requests": 4,
+          "tokens": 606,
+          "elapsed_s": 20.279445631007547,
+          "pooled_end_to_end_tok_s": 29.882473664537347,
+          "pooled_decode_tok_s": 31.233585178275295,
+          "mean_request_decode_tok_s": 31.67825373828136,
+          "median_ttft_s": 0.24834814150017337,
+          "spec_accept_rate": 0.4725568942436412,
+          "spec_accept_length": 2.433734939759036,
+          "truncated": 0,
+          "quality": {
+            "requests": 4,
+            "points": 12,
+            "max_points": 12,
+            "full_pass": 4,
+            "material_errors": 0
+          }
+        }
+      },
+      "ratio16_over64": 1.0645468193915963,
+      "ratio16_over32": 1.0039814268169673
+    },
+    "medicine": {
+      "pairs": 10,
+      "modes": {
+        "ko16k": {
+          "requests": 10,
+          "tokens": 10592,
+          "elapsed_s": 331.7722438749988,
+          "pooled_end_to_end_tok_s": 31.925515758306553,
+          "pooled_decode_tok_s": 32.12347949877444,
+          "mean_request_decode_tok_s": 32.075551300667975,
+          "median_ttft_s": 0.2120270690002144,
+          "spec_accept_rate": 0.4331306990881459,
+          "spec_accept_length": 2.2996092053842814,
+          "truncated": 0,
+          "quality": {
+            "requests": 10,
+            "points": 23,
+            "max_points": 30,
+            "full_pass": 4,
+            "material_errors": 7
+          }
+        },
+        "ko32k": {
+          "requests": 10,
+          "tokens": 10358,
+          "elapsed_s": 330.1372912959978,
+          "pooled_end_to_end_tok_s": 31.37482578638207,
+          "pooled_decode_tok_s": 31.570709749009577,
+          "mean_request_decode_tok_s": 31.363427032156867,
+          "median_ttft_s": 0.21100235099947895,
+          "spec_accept_rate": 0.4364406779661017,
+          "spec_accept_length": 2.3099910793933986,
+          "truncated": 0,
+          "quality": {
+            "requests": 10,
+            "points": 21,
+            "max_points": 30,
+            "full_pass": 3,
+            "material_errors": 7
+          }
+        },
+        "ko64k": {
+          "requests": 10,
+          "tokens": 10311,
+          "elapsed_s": 336.90629561801325,
+          "pooled_end_to_end_tok_s": 30.604949014341617,
+          "pooled_decode_tok_s": 30.81978768132441,
+          "mean_request_decode_tok_s": 30.73764250062168,
+          "median_ttft_s": 0.28203375000157394,
+          "spec_accept_rate": 0.4576427255985267,
+          "spec_accept_length": 2.373618784530387,
+          "truncated": 0,
+          "quality": {
+            "requests": 10,
+            "points": 22,
+            "max_points": 30,
+            "full_pass": 3,
+            "material_errors": 6
+          }
+        }
+      },
+      "ratio16_over64": 1.0437185596297447,
+      "ratio16_over32": 1.022887402795011
+    },
+    "planning": {
+      "pairs": 4,
+      "modes": {
+        "ko16k": {
+          "requests": 4,
+          "tokens": 3604,
+          "elapsed_s": 82.19751453400113,
+          "pooled_end_to_end_tok_s": 43.845607989876626,
+          "pooled_decode_tok_s": 44.41080587703688,
+          "mean_request_decode_tok_s": 43.439317602143845,
+          "median_ttft_s": 0.28190607750025265,
+          "spec_accept_rate": 0.7267373380447585,
+          "spec_accept_length": 3.1837455830388692,
+          "truncated": 1,
+          "quality": {
+            "requests": 4,
+            "points": 8,
+            "max_points": 12,
+            "full_pass": 2,
+            "material_errors": 2
+          }
+        },
+        "ko32k": {
+          "requests": 4,
+          "tokens": 3676,
+          "elapsed_s": 94.5465796260005,
+          "pooled_end_to_end_tok_s": 38.88030655938285,
+          "pooled_decode_tok_s": 39.319676955283406,
+          "mean_request_decode_tok_s": 39.77148051930912,
+          "median_ttft_s": 0.28363892499965004,
+          "spec_accept_rate": 0.6332807570977917,
+          "spec_accept_length": 2.8990536277602525,
+          "truncated": 2,
+          "quality": {
+            "requests": 4,
+            "points": 8,
+            "max_points": 12,
+            "full_pass": 2,
+            "material_errors": 2
+          }
+        },
+        "ko64k": {
+          "requests": 4,
+          "tokens": 3694,
+          "elapsed_s": 93.2687950690015,
+          "pooled_end_to_end_tok_s": 39.60595821214512,
+          "pooled_decode_tok_s": 40.08053474302747,
+          "mean_request_decode_tok_s": 38.74493132558556,
+          "median_ttft_s": 0.29199315149890026,
+          "spec_accept_rate": 0.7002237136465325,
+          "spec_accept_length": 3.098993288590604,
+          "truncated": 2,
+          "quality": {
+            "requests": 4,
+            "points": 6,
+            "max_points": 12,
+            "full_pass": 2,
+            "material_errors": 2
+          }
+        }
+      },
+      "ratio16_over64": 1.1222050021508492,
+      "ratio16_over32": 1.0938522238765573
+    },
+    "research": {
+      "pairs": 4,
+      "modes": {
+        "ko16k": {
+          "requests": 4,
+          "tokens": 14840,
+          "elapsed_s": 538.5358218660003,
+          "pooled_end_to_end_tok_s": 27.55619848755859,
+          "pooled_decode_tok_s": 27.85417243186658,
+          "mean_request_decode_tok_s": 28.16397547007348,
+          "median_ttft_s": 1.3793835775002208,
+          "spec_accept_rate": 0.43403154900439617,
+          "spec_accept_length": 2.3025601241272304,
+          "truncated": 2,
+          "quality": {
+            "requests": 4,
+            "points": 6,
+            "max_points": 12,
+            "full_pass": 2,
+            "material_errors": 0
+          }
+        },
+        "ko32k": {
+          "requests": 4,
+          "tokens": 15093,
+          "elapsed_s": 536.9967391669998,
+          "pooled_end_to_end_tok_s": 28.106315921792316,
+          "pooled_decode_tok_s": 28.41535448507717,
+          "mean_request_decode_tok_s": 28.74543945094012,
+          "median_ttft_s": 1.384279698499995,
+          "spec_accept_rate": 0.47824917997526484,
+          "spec_accept_length": 2.4347475399257945,
+          "truncated": 3,
+          "quality": {
+            "requests": 4,
+            "points": 3,
+            "max_points": 12,
+            "full_pass": 0,
+            "material_errors": 0
+          }
+        },
+        "ko64k": {
+          "requests": 4,
+          "tokens": 15017,
+          "elapsed_s": 519.4444838649943,
+          "pooled_end_to_end_tok_s": 28.909730426366373,
+          "pooled_decode_tok_s": 29.249840916159147,
+          "mean_request_decode_tok_s": 29.719581271438337,
+          "median_ttft_s": 1.4350176724983612,
+          "spec_accept_rate": 0.5185248226950354,
+          "spec_accept_length": 2.556085106382979,
+          "truncated": 2,
+          "quality": {
+            "requests": 4,
+            "points": 6,
+            "max_points": 12,
+            "full_pass": 2,
+            "material_errors": 1
+          }
+        }
+      },
+      "ratio16_over64": 0.9515838480152078,
+      "ratio16_over32": 0.9797204740678137
+    },
+    "science": {
+      "pairs": 4,
+      "modes": {
+        "ko16k": {
+          "requests": 4,
+          "tokens": 5040,
+          "elapsed_s": 133.24099240000032,
+          "pooled_end_to_end_tok_s": 37.82619679737531,
+          "pooled_decode_tok_s": 38.08920050272303,
+          "mean_request_decode_tok_s": 38.02785472210305,
+          "median_ttft_s": 0.2531385869999667,
+          "spec_accept_rate": 0.5772357723577236,
+          "spec_accept_length": 2.731707317073171,
+          "truncated": 2,
+          "quality": {
+            "requests": 4,
+            "points": 10,
+            "max_points": 12,
+            "full_pass": 2,
+            "material_errors": 2
+          }
+        },
+        "ko32k": {
+          "requests": 4,
+          "tokens": 5060,
+          "elapsed_s": 135.3814057949994,
+          "pooled_end_to_end_tok_s": 37.37588607745793,
+          "pooled_decode_tok_s": 37.62302836583377,
+          "mean_request_decode_tok_s": 37.71052711881281,
+          "median_ttft_s": 0.24674468500006697,
+          "spec_accept_rate": 0.5909090909090909,
+          "spec_accept_length": 2.7710843373493974,
+          "truncated": 2,
+          "quality": {
+            "requests": 4,
+            "points": 12,
+            "max_points": 12,
+            "full_pass": 4,
+            "material_errors": 0
+          }
+        },
+        "ko64k": {
+          "requests": 4,
+          "tokens": 5137,
+          "elapsed_s": 143.845422073995,
+          "pooled_end_to_end_tok_s": 35.71194637920068,
+          "pooled_decode_tok_s": 35.991455886517315,
+          "mean_request_decode_tok_s": 36.25251415981198,
+          "median_ttft_s": 0.3105666934970941,
+          "spec_accept_rate": 0.5912933980931823,
+          "spec_accept_length": 2.7722611980572047,
+          "truncated": 1,
+          "quality": {
+            "requests": 4,
+            "points": 11,
+            "max_points": 12,
+            "full_pass": 3,
+            "material_errors": 1
+          }
+        }
+      },
+      "ratio16_over64": 1.0499130586710457,
+      "ratio16_over32": 1.008444862505283
+    }
+  },
+  "task_count": 24,
+  "repeats": 2,
+  "system_contexts": {
+    "ko16k": {
+      "recorded": "2026-09-09T03:15:15.944325+09:00",
+      "boot_id": "ccc4bda2-bff7-43e5-a7f0-ac093ba632ac",
+      "kernel": "6.17.0-1032-nvidia"
+    },
+    "ko32k": {
+      "recorded": "2026-09-09T02:21:25.047033+09:00",
+      "boot_id": "5e1f1e25-f190-4b8b-9692-8e8f9005213e",
+      "kernel": "6.17.0-1032-nvidia",
+      "gpu_driver": "580.173.02"
+    },
+    "ko64k": {
+      "run_started": "2026-09-08T23:03:27.316796+09:00"
+    }
+  },
+  "limitations": [
+    "Sequential runs across boot sessions; another host reboot occurred after the 32K trial. Clock/thermal/order/output-length effects remain.",
+    "An earlier 16K load ended with host resets and zero responses. These metrics describe the explicitly requested retry only, not proof of hardware stability.",
+    "48 requests are two repeats of 24 task types, not 48 independent scenarios.",
+    "Prose uses frozen assistant-rated rubrics, not independent expert judgments.",
+    "Only draft vocabulary changes; target vocabulary/context is not reduced.",
+    "Token-limit and missing-final failures retained. No selected extended-budget requests are pooled."
+  ]
+}

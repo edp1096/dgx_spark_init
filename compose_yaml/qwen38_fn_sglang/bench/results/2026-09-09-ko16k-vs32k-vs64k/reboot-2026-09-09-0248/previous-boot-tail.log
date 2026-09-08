@@ -1,0 +1,100 @@
+Sep 09 02:48:14 spark-f05a systemd[1]: Listening on systemd-journald.socket - Journal Socket.
+Sep 09 02:48:14 spark-f05a systemd[1]: Listening on systemd-networkd.socket - Network Service Netlink Socket.
+Sep 09 02:48:14 spark-f05a systemd[1]: systemd-pcrextend.socket - TPM2 PCR Extension (Varlink) was skipped because of an unmet condition check (ConditionSecurity=measured-uki).
+Sep 09 02:48:14 spark-f05a systemd[1]: Listening on systemd-udevd-control.socket - udev Control Socket.
+Sep 09 02:48:14 spark-f05a systemd[1]: Listening on systemd-udevd-kernel.socket - udev Kernel Socket.
+Sep 09 02:48:14 spark-f05a systemd[1]: Mounting dev-hugepages.mount - Huge Pages File System...
+Sep 09 02:48:14 spark-f05a systemd[1]: Mounting dev-mqueue.mount - POSIX Message Queue File System...
+Sep 09 02:48:14 spark-f05a systemd[1]: Mounting sys-kernel-debug.mount - Kernel Debug File System...
+Sep 09 02:48:14 spark-f05a systemd[1]: Mounting sys-kernel-tracing.mount - Kernel Trace File System...
+Sep 09 02:48:14 spark-f05a systemd[1]: Starting systemd-journald.service - Journal Service...
+Sep 09 02:48:14 spark-f05a systemd[1]: auth-rpcgss-module.service - Kernel Module supporting RPCSEC_GSS was skipped because of an unmet condition check (ConditionPathExists=/etc/krb5.keytab).
+Sep 09 02:48:14 spark-f05a systemd[1]: Starting keyboard-setup.service - Set the console keyboard layout...
+Sep 09 02:48:14 spark-f05a systemd[1]: Starting kmod-static-nodes.service - Create List of Static Device Nodes...
+Sep 09 02:48:14 spark-f05a systemd[1]: Starting lvm2-monitor.service - Monitoring of LVM2 mirrors, snapshots etc. using dmeventd or progress polling...
+Sep 09 02:48:14 spark-f05a systemd[1]: Starting modprobe@configfs.service - Load Kernel Module configfs...
+Sep 09 02:48:14 spark-f05a systemd[1]: Starting modprobe@dm_mod.service - Load Kernel Module dm_mod...
+Sep 09 02:48:14 spark-f05a systemd[1]: Starting modprobe@drm.service - Load Kernel Module drm...
+Sep 09 02:48:14 spark-f05a systemd[1]: Starting modprobe@efi_pstore.service - Load Kernel Module efi_pstore...
+Sep 09 02:48:14 spark-f05a systemd[1]: Starting modprobe@fuse.service - Load Kernel Module fuse...
+Sep 09 02:48:14 spark-f05a systemd[1]: Starting modprobe@loop.service - Load Kernel Module loop...
+Sep 09 02:48:14 spark-f05a systemd[1]: Starting modprobe@nvme_fabrics.service - Load Kernel Module nvme_fabrics...
+Sep 09 02:48:14 spark-f05a systemd[1]: netplan-ovs-cleanup.service - OpenVSwitch configuration for cleanup was skipped because of an unmet condition check (ConditionFileIsExecutable=/usr/bin/ovs-vsctl).
+Sep 09 02:48:14 spark-f05a systemd[1]: systemd-fsck-root.service - File System Check on Root Device was skipped because of an unmet condition check (ConditionPathExists=!/run/initramfs/fsck-root).
+Sep 09 02:48:14 spark-f05a systemd[1]: Starting systemd-modules-load.service - Load Kernel Modules...
+Sep 09 02:48:14 spark-f05a systemd[1]: systemd-pcrmachine.service - TPM2 PCR Machine ID Measurement was skipped because of an unmet condition check (ConditionSecurity=measured-uki).
+Sep 09 02:48:14 spark-f05a systemd[1]: Starting systemd-remount-fs.service - Remount Root and Kernel File Systems...
+Sep 09 02:48:14 spark-f05a systemd[1]: systemd-tpm2-setup-early.service - TPM2 SRK Setup (Early) was skipped because of an unmet condition check (ConditionSecurity=measured-uki).
+Sep 09 02:48:14 spark-f05a systemd[1]: Starting systemd-udev-trigger.service - Coldplug All udev Devices...
+Sep 09 02:48:14 spark-f05a systemd[1]: Mounted dev-hugepages.mount - Huge Pages File System.
+Sep 09 02:48:14 spark-f05a systemd[1]: Mounted dev-mqueue.mount - POSIX Message Queue File System.
+Sep 09 02:48:14 spark-f05a systemd[1]: Mounted sys-kernel-debug.mount - Kernel Debug File System.
+Sep 09 02:48:14 spark-f05a systemd[1]: Mounted sys-kernel-tracing.mount - Kernel Trace File System.
+Sep 09 02:48:14 spark-f05a systemd[1]: Finished kmod-static-nodes.service - Create List of Static Device Nodes.
+Sep 09 02:48:14 spark-f05a systemd[1]: modprobe@configfs.service: Deactivated successfully.
+Sep 09 02:48:14 spark-f05a systemd[1]: Finished modprobe@configfs.service - Load Kernel Module configfs.
+Sep 09 02:48:14 spark-f05a systemd[1]: modprobe@dm_mod.service: Deactivated successfully.
+Sep 09 02:48:14 spark-f05a systemd[1]: Finished modprobe@dm_mod.service - Load Kernel Module dm_mod.
+Sep 09 02:48:14 spark-f05a systemd[1]: modprobe@drm.service: Deactivated successfully.
+Sep 09 02:48:14 spark-f05a systemd[1]: Finished modprobe@drm.service - Load Kernel Module drm.
+Sep 09 02:48:14 spark-f05a systemd[1]: Mounting sys-kernel-config.mount - Kernel Configuration File System...
+Sep 09 02:48:14 spark-f05a systemd[1]: Starting systemd-tmpfiles-setup-dev-early.service - Create Static Device Nodes in /dev gracefully...
+Sep 09 02:48:14 spark-f05a systemd[1]: modprobe@fuse.service: Deactivated successfully.
+Sep 09 02:48:14 spark-f05a kernel: pstore: Using crash dump compression: deflate
+Sep 09 02:48:14 spark-f05a systemd[1]: Finished modprobe@fuse.service - Load Kernel Module fuse.
+Sep 09 02:48:14 spark-f05a systemd[1]: modprobe@loop.service: Deactivated successfully.
+Sep 09 02:48:14 spark-f05a systemd[1]: Finished modprobe@loop.service - Load Kernel Module loop.
+Sep 09 02:48:14 spark-f05a systemd[1]: Mounting sys-fs-fuse-connections.mount - FUSE Control File System...
+Sep 09 02:48:14 spark-f05a systemd[1]: systemd-repart.service - Repartition Root Disk was skipped because no trigger condition checks were met.
+Sep 09 02:48:14 spark-f05a systemd-journald[642]: Collecting audit messages is disabled.
+Sep 09 02:48:14 spark-f05a systemd[1]: Mounted sys-kernel-config.mount - Kernel Configuration File System.
+Sep 09 02:48:14 spark-f05a kernel: pstore: Registered efi_pstore as persistent store backend
+Sep 09 02:48:14 spark-f05a systemd[1]: modprobe@efi_pstore.service: Deactivated successfully.
+Sep 09 02:48:14 spark-f05a systemd[1]: Finished modprobe@efi_pstore.service - Load Kernel Module efi_pstore.
+Sep 09 02:48:14 spark-f05a systemd[1]: modprobe@nvme_fabrics.service: Deactivated successfully.
+Sep 09 02:48:14 spark-f05a systemd[1]: Finished modprobe@nvme_fabrics.service - Load Kernel Module nvme_fabrics.
+Sep 09 02:48:14 spark-f05a systemd[1]: Mounted sys-fs-fuse-connections.mount - FUSE Control File System.
+Sep 09 02:48:14 spark-f05a kernel: IPMI message handler: version 39.2
+Sep 09 02:48:14 spark-f05a kernel: ipmi device interface
+Sep 09 02:48:14 spark-f05a systemd[1]: Finished systemd-tmpfiles-setup-dev-early.service - Create Static Device Nodes in /dev gracefully.
+Sep 09 02:48:14 spark-f05a kernel: mstflint_access: loading out-of-tree module taints kernel.
+Sep 09 02:48:14 spark-f05a kernel:   MST::  : mst_init 1963: Mellanox Technologies Software Tools Driver - version 2.0.0
+Sep 09 02:48:14 spark-f05a kernel:   MST::  : mst_init 1976: found device - domain=0x0, bus=0x1, slot=0x0, func=0x0, vendor=0x15b3, device=0x1021
+Sep 09 02:48:14 spark-f05a kernel:   MST::  : mst_init 1976: found device - domain=0x0, bus=0x1, slot=0x0, func=0x1, vendor=0x15b3, device=0x1021
+Sep 09 02:48:14 spark-f05a kernel:   MST::  : mst_init 1976: found device - domain=0x2, bus=0x1, slot=0x0, func=0x0, vendor=0x15b3, device=0x1021
+Sep 09 02:48:14 spark-f05a kernel:   MST::  : mst_init 1976: found device - domain=0x2, bus=0x1, slot=0x0, func=0x1, vendor=0x15b3, device=0x1021
+Sep 09 02:48:14 spark-f05a systemd[1]: Finished systemd-modules-load.service - Load Kernel Modules.
+Sep 09 02:48:14 spark-f05a kernel: EXT4-fs (nvme0n1p2): re-mounted cf531b7b-fe62-4347-9af2-197f9b7a76f0 r/w.
+Sep 09 02:48:14 spark-f05a systemd[1]: Starting systemd-sysctl.service - Apply Kernel Variables...
+Sep 09 02:48:14 spark-f05a systemd[1]: Finished keyboard-setup.service - Set the console keyboard layout.
+Sep 09 02:48:14 spark-f05a systemd[1]: Finished systemd-remount-fs.service - Remount Root and Kernel File Systems.
+Sep 09 02:48:14 spark-f05a systemd[1]: Activating swap swap.img.swap - /swap.img...
+Sep 09 02:48:14 spark-f05a systemd[1]: Starting multipathd.service - Device-Mapper Multipath Device Controller...
+Sep 09 02:48:14 spark-f05a systemd[1]: systemd-hwdb-update.service - Rebuild Hardware Database was skipped because of an unmet condition check (ConditionNeedsUpdate=/etc).
+Sep 09 02:48:14 spark-f05a systemd[1]: systemd-pstore.service - Platform Persistent Storage Archival was skipped because of an unmet condition check (ConditionDirectoryNotEmpty=/sys/fs/pstore).
+Sep 09 02:48:14 spark-f05a systemd[1]: Starting systemd-random-seed.service - Load/Save OS Random Seed...
+Sep 09 02:48:14 spark-f05a systemd[1]: systemd-sysusers.service - Create System Users was skipped because no trigger condition checks were met.
+Sep 09 02:48:14 spark-f05a systemd[1]: Starting systemd-tmpfiles-setup-dev.service - Create Static Device Nodes in /dev...
+Sep 09 02:48:14 spark-f05a systemd[1]: systemd-tpm2-setup.service - TPM2 SRK Setup was skipped because of an unmet condition check (ConditionSecurity=measured-uki).
+Sep 09 02:48:14 spark-f05a systemd[1]: Finished lvm2-monitor.service - Monitoring of LVM2 mirrors, snapshots etc. using dmeventd or progress polling.
+Sep 09 02:48:14 spark-f05a kernel: Adding 16777212k swap on /swap.img.  Priority:-2 extents:12 across:24657916k SS
+Sep 09 02:48:14 spark-f05a systemd[1]: Activated swap swap.img.swap - /swap.img.
+Sep 09 02:48:14 spark-f05a systemd[1]: Reached target swap.target - Swaps.
+Sep 09 02:48:14 spark-f05a systemd[1]: Finished systemd-random-seed.service - Load/Save OS Random Seed.
+Sep 09 02:48:14 spark-f05a systemd[1]: Finished systemd-sysctl.service - Apply Kernel Variables.
+Sep 09 02:48:14 spark-f05a systemd[1]: Finished systemd-tmpfiles-setup-dev.service - Create Static Device Nodes in /dev.
+Sep 09 02:48:14 spark-f05a systemd[1]: Starting systemd-udevd.service - Rule-based Manager for Device Events and Files...
+Sep 09 02:48:14 spark-f05a systemd-journald[642]: Journal started
+Sep 09 02:48:14 spark-f05a systemd-journald[642]: Runtime Journal (/run/log/journal/63229c3fe72d4a539d35dca59204a148) is 8.0M, max 1.2G, 1.2G free.
+Sep 09 02:48:14 spark-f05a systemd-modules-load[658]: Module 'i2c_dev' is built in
+Sep 09 02:48:14 spark-f05a systemd-modules-load[658]: Inserted module 'ipmi_devintf'
+Sep 09 02:48:14 spark-f05a systemd-modules-load[658]: Inserted module 'dm_multipath'
+Sep 09 02:48:14 spark-f05a systemd[1]: Started systemd-journald.service - Journal Service.
+Sep 09 02:48:14 spark-f05a systemd-modules-load[658]: Inserted module 'mstflint_access'
+Sep 09 02:48:14 spark-f05a multipathd[686]: multipathd v0.9.4: start up
+Sep 09 02:48:14 spark-f05a multipathd[686]: reconfigure: setting up paths and maps
+Sep 09 02:48:14 spark-f05a kernel: nvme nvme0: using unchecked data buffer
+Sep 09 02:48:14 spark-f05a systemd[1]: Started multipathd.service - Device-Mapper Multipath Device Controller.
+Sep 09 02:48:14 spark-f05a systemd-udevd[688]: Using default interface naming scheme 'v255'.
+Sep 09 02:48:14 spark-f05a systemd[1]: Starting systemd-journal-flush.service - Flush Journal to Persistent Storage...
+Sep 09 02:48:14 spark-f05a systemd-journald[642]: Time spent on flushing to /var/log/journal/63229c3fe72d4a539d35dca59204a148 is 11.405ms for 1208 entries.

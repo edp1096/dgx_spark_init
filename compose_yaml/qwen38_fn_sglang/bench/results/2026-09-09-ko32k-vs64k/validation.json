@@ -1,0 +1,9 @@
+{
+  "response_pairs": 48,
+  "graded_requests": 96,
+  "unique_prose_reviews": 81,
+  "baseline_grades_unchanged": true,
+  "token_counts_match": true,
+  "no_submitted_python_code": true,
+  "all_reviews_complete": true
+}

@@ -1,0 +1,6 @@
+{
+  "reason": "Host reboot during loading; no automatic retry",
+  "boot_started": "2026-09-09 02:48:41",
+  "completed_responses": 0,
+  "diagnostics": "qwen38_fn_sglang/bench/results/2026-09-09-ko16k-vs32k-vs64k/reboot-2026-09-09-0248"
+}

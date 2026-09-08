@@ -1,0 +1,482 @@
+[
+  {
+    "review_id": "V04c9193cbfc01e25",
+    "groups": [
+      true,
+      true,
+      true
+    ],
+    "material_error": false,
+    "notes": "108 kWh·27,000원·6.67년 계산과 고정 단가/동등 성능 가정 구분이 맞음. 새 제품의 편의기능 우수성은 제품 정보 없는 부연."
+  },
+  {
+    "review_id": "Vceb2a45f7ccc0dc6",
+    "groups": [
+      true,
+      true,
+      true
+    ],
+    "material_error": false,
+    "notes": "급성 항염과 장기 요산 저하를 구분하고 임의 중단을 막으며 식이 한계·신장기능 검토를 설명함. 콜히친의 예방적 사용은 생략되어 설명 범위가 좁음."
+  },
+  {
+    "review_id": "Vf3424d0693348f21",
+    "groups": [
+      false,
+      true,
+      true
+    ],
+    "material_error": true,
+    "notes": "B의 적절한 냉장과 신속 냉각은 설명했지만 A 폐기를 명시하지 않음. 상온 4시간을 안전 상한에 가깝다고 표현해 주어진 USDA의 2시간 기준과 어긋남."
+  },
+  {
+    "review_id": "V5faa965f5a35b1fb",
+    "groups": [
+      true,
+      true,
+      false
+    ],
+    "material_error": true,
+    "notes": "의식 있을 때 15–20g·15분 재측정은 맞음. 의식 상실 시 응급 도움 요청이 없고, 보호자에게 의료진 시술이라는 구분 없이 정맥 포도당 주입을 지시함."
+  },
+  {
+    "review_id": "V60fdfc7c74fa0c20",
+    "groups": [
+      true,
+      true,
+      false
+    ],
+    "material_error": false,
+    "notes": "요약의 당일 진료 권고와 잔여 항생제 금지는 충족. 기저질환·복용약을 모른다고만 하고 확인 질문/요청은 없음. 앞부분의 휴식 우선 배치와 약사 진단 표현은 개선 필요."
+  },
+  {
+    "review_id": "V0f792e10531ce0c5",
+    "groups": [
+      true,
+      true,
+      false
+    ],
+    "material_error": true,
+    "notes": "단독 상승으로 암 확정 불가·암에서도 정상 수치 가능성은 설명함. 표지자 이름/수치 없이 대부분 양성, 3–6개월 재검, 수면·식이로 정상화 가능성을 일반화해 후속 판단 기준을 충족하지 못함."
+  },
+  {
+    "review_id": "V66baf42f3741885c",
+    "groups": [
+      true,
+      true,
+      true
+    ],
+    "material_error": false,
+    "notes": "급성 항염/장기 요산 저하 구분, 임의 중단 금지, 식이 한계와 신장·용량 검토를 충족. 콜히친 예방 용도는 생략했고 식이 효과 수치의 근거는 제시하지 않음."
+  },
+  {
+    "review_id": "Vb26838971033ac66",
+    "groups": [
+      true,
+      true,
+      true
+    ],
+    "material_error": false,
+    "notes": "108 kWh·27,000원·6.67년을 정확히 계산하고 누진제·작동 시간·성능 가정을 실제 조건과 구분함."
+  },
+  {
+    "review_id": "V094fa018a84d1cda",
+    "groups": [
+      false,
+      true,
+      true
+    ],
+    "material_error": true,
+    "notes": "재가열로 독소가 제거되지 않을 수 있다는 설명과 B 냉장 관리는 있으나 A 폐기를 안내하지 않음. 가족 설득을 식감/맛 중심으로 바꿔 핵심 안전 행동을 빠뜨림."
+  },
+  {
+    "review_id": "V9a9c572b45b51a46",
+    "groups": [
+      false,
+      true,
+      false
+    ],
+    "material_error": true,
+    "notes": "호흡곤란·호전 후 악화가 있는데 대증 치료를 우선하고 2–3일 더 기다리도록 안내함. 잔여 항생제 금지는 맞지만 기저질환·복용약 확인 요청도 없음."
+  },
+  {
+    "review_id": "Vde9e157ae933c6af",
+    "groups": [
+      true,
+      true,
+      false
+    ],
+    "material_error": true,
+    "notes": "15–20g·15분 재측정은 맞으나 응급 도움 요청이 없음. 삼키기 어려운 상태에도 구강 포도당 젤/스프레이를 권해 경구 투여 회피 원칙과 충돌함."
+  },
+  {
+    "review_id": "V8dde11e6ffd722bf",
+    "groups": [
+      true,
+      true,
+      false
+    ],
+    "material_error": false,
+    "notes": "반동성 코막힘과 약제별 차이를 설명하고 증량을 막음. 그러나 3주 사용 후 악화 상황에서 약사/의사 검토를 권하지 않고 농도·횟수 변경을 직접 제안함."
+  },
+  {
+    "review_id": "V8ff6491b4e7ac8d1",
+    "groups": [
+      true,
+      true,
+      true
+    ],
+    "material_error": false,
+    "notes": "반동 위험·약제별 목적·증량 중단을 설명하고 환경 관리와 이비인후과 상담을 포함함. 세척을 스테로이드 사용 전후로 뭉뚱그린 세부 안내는 정교하지 않음."
+  },
+  {
+    "review_id": "Vf38b2dba8c95dd77",
+    "groups": [
+      true,
+      true,
+      false
+    ],
+    "material_error": true,
+    "notes": "단독 표지자의 진단 한계는 설명했으나 정상 표지자를 전반적 건강 양호의 근거로 삼음. 표지자 불명인데 3–6개월 재검을 일반화하고 종양표지자를 보편적 선별 도구처럼 설명함."
+  },
+  {
+    "review_id": "Ve9bf4d5de132f632",
+    "groups": [
+      true,
+      true,
+      true
+    ],
+    "material_error": true,
+    "notes": "고정 기준인 약제 역할 구분·요산저하제 유지·식이/신장 검토는 충족. 다만 콜히친을 통증이 있을 때만 쓰는 것이 원칙이라고 반복 단정해 요산저하 치료 초기의 예방 투여를 배제함(NICE NG219 1.5.12)."
+  },
+  {
+    "review_id": "Vb53cfa3778d951e4",
+    "groups": [
+      true,
+      true,
+      false
+    ],
+    "material_error": true,
+    "notes": "단독 수치로 암 확정/배제 불가와 종합 평가는 설명함. 표지자/수치 미상인데 다른 정상 표지자를 건강 양호로 해석하고 3–6개월 추적을 표준처럼 제시함."
+  },
+  {
+    "review_id": "V7875842c2033b68a",
+    "groups": [
+      true,
+      true,
+      false
+    ],
+    "material_error": true,
+    "notes": "15–20g·15분과 글루카곤/의료기관 이송은 제시함. 그러나 삼킴이 어려운 상황에서도 입술·혀에 꿀/설탕물을 바르는 대안을 권해 경구 투여 회피 기준을 위반함."
+  },
+  {
+    "review_id": "V7c70f0fa8c033809",
+    "groups": [
+      true,
+      true,
+      true
+    ],
+    "material_error": false,
+    "notes": "절약량·금액·회수기간이 정확하고 고정 요금/동등 성능과 실제 운전 조건의 차이를 설명함."
+  },
+  {
+    "review_id": "V8c10f9dcb927a0db",
+    "groups": [
+      false,
+      true,
+      false
+    ],
+    "material_error": true,
+    "notes": "호흡곤란과 재악화가 있는데 오늘은 관찰하고 내일까지 기다리라고 권함. 잔여 항생제 금지는 맞지만 기저질환·복용약 확인 요청 없이 바이러스성 경과로 기울여 설명함."
+  },
+  {
+    "review_id": "Vd7f4c3b561398970",
+    "groups": [
+      true,
+      true,
+      false
+    ],
+    "material_error": false,
+    "notes": "반동성 코막힘과 네 약제 구분, 증량 억제는 충족. 의사/약사 검토나 알레르겐 관리 안내 없이 구체적인 주간 사용 횟수를 직접 제안함."
+  },
+  {
+    "review_id": "Vf4d428d936c779ca",
+    "groups": [
+      false,
+      true,
+      true
+    ],
+    "material_error": true,
+    "notes": "4시간이 2시간 안전 기준을 넘는다고 설명하면서도 A를 다음 식사에 데워 먹으라고 권해 핵심 행동이 근거와 정면으로 모순됨. B 냉장과 다음 준비 지침은 충족."
+  },
+  {
+    "review_id": "V689fbb668bafa7e4",
+    "groups": [
+      true,
+      false,
+      false
+    ],
+    "material_error": true,
+    "notes": "박물관 입장과 12:30 식사는 맞지만 기본/지연 일정 모두 15:00 폐장 공원에 15:15까지 체류함. 지연 대안도 이 제약 위반을 해결하지 못함."
+  },
+  {
+    "review_id": "V69fffb4b52ecd802",
+    "groups": [
+      true,
+      true,
+      true
+    ],
+    "material_error": false,
+    "notes": "TP 90·FP 495·90/585=15.38% 및 기저율/조건부 독립을 정확히 설명함. 마지막 문장은 잘렸지만 세 기준의 설명은 이미 포함됨."
+  },
+  {
+    "review_id": "Vdcf4643c43cf8292",
+    "groups": [
+      true,
+      true,
+      true
+    ],
+    "material_error": false,
+    "notes": "18.75mL 원액, 최종 250mL 정용, 잘못 혼합한 경우 약 0.13953M와 부피 가산성 가정을 정확히 제시함."
+  },
+  {
+    "review_id": "V7b620f4cd6763551",
+    "groups": [
+      true,
+      true,
+      true
+    ],
+    "material_error": false,
+    "notes": "A/B 총액·현금 대비 비용·3만원 차이가 정확함. 단순 추가비용 비율과 상환 시점을 반영한 APR을 구분함."
+  },
+  {
+    "review_id": "V8f590e0f8e9b7369",
+    "groups": [
+      true,
+      true,
+      true
+    ],
+    "material_error": false,
+    "notes": "원액 18.75mL, 총 250mL 정용, 잘못 혼합한 경우 약 0.13953M 및 부피 가산성 가정을 정확히 구분함."
+  },
+  {
+    "review_id": "Vf0c1afe76a672b79",
+    "groups": [
+      false,
+      false,
+      false
+    ],
+    "material_error": true,
+    "notes": "기본 일정이 개장 전 10:20 박물관 입장을 잡고 공원은 폐장 15:00을 넘어 15:15까지 체류함. 지연안에서도 폐장 후 체류가 가능할 수 있다고 근거 없는 예외를 만듦."
+  },
+  {
+    "review_id": "V5793fc7574626119",
+    "groups": [
+      true,
+      true,
+      true
+    ],
+    "material_error": false,
+    "notes": "DNS/필터 우선 가설, 직접 DNS 조회와 되돌릴 설정, ICMP와 DNS/HTTP 차이를 충족함. 이동통신 성공만으로 DNS 서버 정상이나 필터 원인을 확정한 표현은 과함."
+  },
+  {
+    "review_id": "V9ea965004d200e8f",
+    "groups": [
+      true,
+      true,
+      false
+    ],
+    "material_error": true,
+    "notes": "TP·FP·사후확률과 기저율은 맞음. 조건부 독립을 실제 불량 상태에 조건화하지 않은 P(B|A)=P(B)로 정의하여 일반 독립과 혼동했고, 잘리기 전 이 오류를 교정하지 못함."
+  },
+  {
+    "review_id": "V8f91efc8d5ad8db7",
+    "groups": [
+      true,
+      true,
+      true
+    ],
+    "material_error": false,
+    "notes": "TP/FP·15.38% 계산과 기저율 설명이 맞고, 실제 상태가 주어진 조건에서의 독립과 같은 센서 오류의 상관을 구분함."
+  },
+  {
+    "review_id": "V25f7d3726637ca88",
+    "groups": [
+      true,
+      true,
+      false
+    ],
+    "material_error": false,
+    "notes": "기본 잉여 70만원·목표 750만원·부족 650만원·10개월차 도달은 맞음. 소득 감소 후 6만원과 108.33개월은 계산했으나 월별 적립 기준의 109개월 올림을 누락함."
+  },
+  {
+    "review_id": "V0ebe5cc22c987b60",
+    "groups": [
+      true,
+      true,
+      true
+    ],
+    "material_error": false,
+    "notes": "4월 23일 기한 전 접수로 5월 청구 없음, 4·5조 우선에 따른 25,000원 별도 환급, 실제 법률 효력과 가상 조항 해석을 모두 구분함."
+  },
+  {
+    "review_id": "Vaa7b66286d90f1d0",
+    "groups": [
+      true,
+      true,
+      true
+    ],
+    "material_error": false,
+    "notes": "A의 ARR 10%p·RR 0.5·RRR 50%·NNT 10(12개월), B 교란과 A 무작위화, C 소표본/무대조/다중비교·선택보고 한계를 충족. 신뢰구간을 만들지 않음."
+  },
+  {
+    "review_id": "Vcf07fd83fc507b5a",
+    "groups": [
+      false,
+      false,
+      false
+    ],
+    "material_error": true,
+    "notes": "개장 전 10:20 입장을 반복하고, 공원 폐장을 맞추려 요구된 60분 체류를 45분으로 줄임. 지연안은 완료되지 않았고 기존 제약을 모두 만족하는 대안을 제시하지 못함."
+  },
+  {
+    "review_id": "V7a1d2587d680654f",
+    "groups": [
+      true,
+      true,
+      true
+    ],
+    "material_error": false,
+    "notes": "DNS 필터 우선·직접 조회·일시 비활성화와 ICMP/포트 차이를 설명함. ifconfig로 DNS 서버를 확인하라는 명령 예시는 부정확하고, 이동통신 성공만으로 공유기 내부 원인을 확신하는 표현은 과함."
+  },
+  {
+    "review_id": "V8cc7f2333a66b2bb",
+    "groups": [
+      true,
+      true,
+      true
+    ],
+    "material_error": false,
+    "notes": "A의 네 효과 지표와 12개월 해석, B 교란, C 다중비교/선택보고/무대조 한계를 충족. 동일 탈락률만으로 편향이 작다고 추정한 부연은 신중해야 함."
+  },
+  {
+    "review_id": "Vef865abac4831adb",
+    "groups": [
+      true,
+      true,
+      true
+    ],
+    "material_error": true,
+    "notes": "고정된 A 계산·A/B 인과근거·C의 한계 기준은 충족. 다만 1−0.95^20≈64%를 제시하면서 검정 간 독립 가정을 빠뜨려 실제 자료의 다중검정 확률처럼 일반화함."
+  },
+  {
+    "review_id": "V9672b9e9802a5c19",
+    "groups": [
+      true,
+      true,
+      true
+    ],
+    "material_error": false,
+    "notes": "5월 0원·4월 25,000원 환급과 2/4/5조 근거가 맞고 가상 계약 해석과 실제 강행법규 심사를 구분함."
+  },
+  {
+    "review_id": "V9edf73371dd0717b",
+    "groups": [
+      true,
+      true,
+      true
+    ],
+    "material_error": false,
+    "notes": "기한 내 통지, 4·5조의 3조 우선, 별도 환급 청구 및 실제 법적 효력 판단의 한계를 모두 충족함."
+  },
+  {
+    "review_id": "Vda89f76c685674a8",
+    "groups": [
+      true,
+      true,
+      true
+    ],
+    "material_error": false,
+    "notes": "두 총액·추가 비용·차액이 맞고 평균 잔액/지급 시점을 고려해야 한다고 설명함. B의 추가 APR 추정 16–17%는 월말 납입 가정의 약 17.21%에 가까우나 거친 근사임."
+  },
+  {
+    "review_id": "V43deb2acb182c20c",
+    "groups": [
+      true,
+      true,
+      false
+    ],
+    "material_error": true,
+    "notes": "명목 총액과 차액은 맞지만 원금이 빨리 줄면 단순 비율보다 APR이 낮아진다는 설명과 A 10.5–11%/B 8.5–9% IRR 추정이 잘못됨. 월말 납입·선수수료 가정에서는 명목 연율 약 24.91%/17.21%임."
+  },
+  {
+    "review_id": "V32ae55d78cbc7395",
+    "groups": [
+      true,
+      true,
+      true
+    ],
+    "material_error": false,
+    "notes": "두 소득 시나리오의 잉여금·목표·부족분과 10/109개월 올림을 모두 제시함. 마지막의 12배 이상 표현은 실제 약 11.67배보다 과장된 부연."
+  },
+  {
+    "review_id": "V8b7b348d3fabe65a",
+    "groups": [
+      true,
+      true,
+      true
+    ],
+    "material_error": false,
+    "notes": "변경된 DNS 필터를 우선 의심하고 직접 조회·일시 비활성화·설정 복구를 제시함. ICMP 성공과 이름 해석 정상 여부를 구분하여 전체 연결 정상으로 단정하지 않음."
+  },
+  {
+    "review_id": "V1d5b2cc1e16a5619",
+    "groups": [
+      true,
+      true,
+      true
+    ],
+    "material_error": false,
+    "notes": "18.75mL 원액과 최종 250mL 정용, 0.13953M 계산 및 부피 가산성 한계를 충족함."
+  },
+  {
+    "review_id": "V3652dd75eb38f5e7",
+    "groups": [
+      true,
+      true,
+      false
+    ],
+    "material_error": false,
+    "notes": "기본 10개월 올림과 두 시나리오의 금액은 맞음. 감소 후에는 108.33개월만 제시하고 실제 월별 적립 기준 109개월 도달을 누락함."
+  },
+  {
+    "review_id": "V555a40e174b49b64",
+    "groups": [
+      true,
+      true,
+      false
+    ],
+    "material_error": true,
+    "notes": "hidden 상태에서도 a/table 수집이 실행된다는 사실을 찾고 최종 코드에 !hidden 수집 조건을 넣음. 그러나 명시된 요구를 숨김 링크도 수집하라는 뜻으로 거듭 재해석했고, 재현/회귀 테스트를 제시하기 전에 응답이 잘림."
+  },
+  {
+    "review_id": "V7c7e29ae69afb07c",
+    "groups": [
+      true,
+      true,
+      false
+    ],
+    "material_error": true,
+    "notes": "수집 분기의 hidden 누락과 !hidden 보완은 맞음. 재현/회귀 입력의 링크와 표는 template 밖의 보이는 형제인데도 결과에서 제거되어야 한다고 주장하므로 숨김 회귀 테스트가 잘못됨."
+  },
+  {
+    "review_id": "V356241de0a67530d",
+    "groups": [
+      true,
+      true,
+      false
+    ],
+    "material_error": true,
+    "notes": "hidden일 때 a/table 수집을 막는 수정 방향은 맞음. 재현 입력의 일반 div class=hidden-container를 코드가 숨김으로 처리한다고 잘못 가정해 보이는 형제 링크·표를 누락한 기대값을 만들었고, template 내부 회귀 사례가 없음."
+  }
+]

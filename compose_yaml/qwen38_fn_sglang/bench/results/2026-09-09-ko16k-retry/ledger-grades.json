@@ -1,0 +1,178 @@
+[
+  {
+    "mode": "ko64k",
+    "id": "long_ledger",
+    "repeat": 0,
+    "groups": [
+      false,
+      false,
+      false
+    ],
+    "parsed": {
+      "동부": {
+        "orders": 57,
+        "units": 741,
+        "revenue": 99900
+      },
+      "서부": {
+        "orders": 57,
+        "units": 741,
+        "revenue": 99900
+      },
+      "남부": {
+        "orders": 57,
+        "units": 741,
+        "revenue": 99900
+      }
+    },
+    "expected": {
+      "동부": {
+        "orders": 54,
+        "units": 700,
+        "revenue": 985000
+      },
+      "서부": {
+        "orders": 55,
+        "units": 713,
+        "revenue": 998500
+      },
+      "남부": {
+        "orders": 54,
+        "units": 705,
+        "revenue": 987900
+      }
+    }
+  },
+  {
+    "mode": "ko64k",
+    "id": "long_ledger",
+    "repeat": 1,
+    "groups": [
+      false,
+      false,
+      false
+    ],
+    "parsed": {
+      "동부": {
+        "orders": 54,
+        "units": 693,
+        "revenue": 92400
+      },
+      "서부": {
+        "orders": 54,
+        "units": 693,
+        "revenue": 92400
+      },
+      "남부": {
+        "orders": 54,
+        "units": 693,
+        "revenue": 92400
+      }
+    },
+    "expected": {
+      "동부": {
+        "orders": 54,
+        "units": 700,
+        "revenue": 985000
+      },
+      "서부": {
+        "orders": 55,
+        "units": 713,
+        "revenue": 998500
+      },
+      "남부": {
+        "orders": 54,
+        "units": 705,
+        "revenue": 987900
+      }
+    }
+  },
+  {
+    "mode": "ko16k",
+    "id": "long_ledger",
+    "repeat": 0,
+    "groups": [
+      false,
+      false,
+      false
+    ],
+    "parsed": {
+      "동부": {
+        "orders": 54,
+        "units": 684,
+        "revenue": 916800
+      },
+      "서부": {
+        "orders": 54,
+        "units": 684,
+        "revenue": 916800
+      },
+      "남부": {
+        "orders": 54,
+        "units": 684,
+        "revenue": 916800
+      }
+    },
+    "expected": {
+      "동부": {
+        "orders": 54,
+        "units": 700,
+        "revenue": 985000
+      },
+      "서부": {
+        "orders": 55,
+        "units": 713,
+        "revenue": 998500
+      },
+      "남부": {
+        "orders": 54,
+        "units": 705,
+        "revenue": 987900
+      }
+    }
+  },
+  {
+    "mode": "ko16k",
+    "id": "long_ledger",
+    "repeat": 1,
+    "groups": [
+      false,
+      false,
+      false
+    ],
+    "parsed": {
+      "동부": {
+        "orders": 59,
+        "units": 760,
+        "revenue": 1012000
+      },
+      "서부": {
+        "orders": 59,
+        "units": 760,
+        "revenue": 1012000
+      },
+      "남부": {
+        "orders": 59,
+        "units": 760,
+        "revenue": 1012000
+      }
+    },
+    "expected": {
+      "동부": {
+        "orders": 54,
+        "units": 700,
+        "revenue": 985000
+      },
+      "서부": {
+        "orders": 55,
+        "units": 713,
+        "revenue": 998500
+      },
+      "남부": {
+        "orders": 54,
+        "units": 705,
+        "revenue": 987900
+      }
+    }
+  }
+]

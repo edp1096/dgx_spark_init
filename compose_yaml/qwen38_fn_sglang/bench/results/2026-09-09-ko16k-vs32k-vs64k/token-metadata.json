@@ -1,0 +1,9 @@
+{
+  "special_token_ids": {
+    "<|endoftext|>": 248044,
+    "<|im_end|>": 248046,
+    "<think>": 248068,
+    "</think>": 248069
+  },
+  "tokenizer_config_sha256": "b11349aafa7cdc6a320767cf7ceb29ed82f7eda5d65e8e0819e76f0ce947bf27"
+}
