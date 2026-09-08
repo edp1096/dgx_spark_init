@@ -1,0 +1,10 @@
+{
+  "verified_at": "2026-09-08T14:05:26+09:00",
+  "main_bundle": "qwen27-exl3",
+  "model_type": "qwen3.8-exl3",
+  "context_tokens": 131072,
+  "thinking": "medium",
+  "image": "dgx-exl3-qwen38-27b:63b32f0-sparktalk1",
+  "ui_matches_build": true,
+  "gguf_component_absent": true
+}

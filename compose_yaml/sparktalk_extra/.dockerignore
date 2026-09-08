@@ -1,3 +1,6 @@
 .git
 README.md
 THIRD_PARTY_NOTICES.md
+
+# DocMS has its own build context.
+docms/

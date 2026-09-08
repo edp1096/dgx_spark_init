@@ -1,14 +1,14 @@
 # SparkTalk Extra
 
-SparkTalk의 부가기능을 담당하는 자체 Go 서비스 모음이다. 하나의 프로젝트와
-Makefile로 관리하지만, 웹 수집·신뢰할 수 없는 미디어 입력·SSH 개인키가 같은
-보안 영역을 공유하지 않도록 세 컨테이너로 실행한다.
+SparkTalk의 부가기능 서비스 모음이다. 기존 Go 서비스와 문서 생성 서비스 DocMS를
+한 Makefile에서 관리하며 서비스별 컨테이너로 실행한다.
 
 | 서비스 | 이미지·컨테이너 | 기본 주소 | 역할 |
 |---|---|---|---|
 | Collector | `sparktalk-extra-collector` | `127.0.0.1:8695` | 공개 URL의 HTML·표·문서 수집과 필요 시 Chromium 렌더링 |
 | Media | `sparktalk-extra-media` | `127.0.0.1:8690` | FFmpeg, yt-dlp, Deno를 이용한 미디어 취득·변환 |
 | SSH | `sparktalk-extra-ssh` | `127.0.0.1:8699` | 등록 서버 연결 확인, 호스트 키 검증, 승인된 명령 실행 |
+| DocMS | `sparktalk-extra-documents` | `127.0.0.1:8696` | DOCX·PPTX·XLSX·PDF 생성과 수식 계산 |
 
 Cloudflare 통과나 브라우저 자동화가 필요한 미디어 사이트는 별도의
 `media_access_api`가 담당한다.
@@ -36,13 +36,18 @@ make clean
 기본 SSH 데이터 위치는 다음과 같다.
 
 ```text
-/home/edp1096/.local/share/sparktalk/extra/ssh/
+$HOME/.local/share/sparktalk/extra/ssh/
 ├── keys/
 └── state/
     └── known_hosts
 ```
 
 다른 위치는 `SSH_DATA_DIR=/path make up`으로 지정한다.
+
+공통 Compose의 `make build`·`make up`은 네 서비스를 모두 포함한다. Documents만 별도로
+실행하는 기존 `make docms-build`, `make docms-up`, `make docms-down`, `make docms-ps`,
+`make docms-logs`도 유지한다. 두 Compose 경로를 동시에 실행하지 않는다. 기동 후
+`make docms-test`로 샘플을 검증한다. [DocMS 안내](docms/README.md).
 
 ## SSH 키
 
@@ -149,7 +154,7 @@ UI에서 생성하거나 import한 개인키도 저장소·YAML·SQLite·컨테�
 폴더만 마운트해서 사용하므로 컨테이너 재빌드 후에도 유지된다.
 
 ```text
-/home/edp1096/.local/share/sparktalk/extra/ssh/keys/dgx-main
+$HOME/.local/share/sparktalk/extra/ssh/keys/dgx-main
 ```
 
 SSH API는 비밀번호, 암호화된 개인키, 대화형 PTY를 지원하지 않는다. 명령은
@@ -266,3 +271,10 @@ curl -H 'Content-Type: application/json' \
 | `SPARKTALK_EXTRA_SSH_TIMEOUT_SECONDS` | `300` | 서버측 최대 명령 시간 |
 
 서드파티 재배포 고지는 `THIRD_PARTY_NOTICES.md`를 참고한다.
+
+## 앱 내장 자산
+
+이 디렉터리가 지원 서비스 코드와 Compose의 원본이다. `services.json`에 서비스 메타데이터를 둔다.
+`util/talk`에서 `make support-assets`로 내장 자산을 생성하고 `make support-assets-check`로 검증한다.
+Media·Collector·SSH 이미지는 `0.1.0`, Documents는 `0.4.0`을 사용한다.
+앱에서는 설정 → 시스템 → 지원 서비스에서 준비·시작·중지·재시작한다. 모델 세트 제어와 독립적이다.

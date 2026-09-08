@@ -7,7 +7,10 @@ services:
       dockerfile: Dockerfile.collector
       args:
         COLLECTOR_BASE_IMAGE: ${COLLECTOR_BASE_IMAGE:-debian:bookworm-slim}
-    image: sparktalk-extra-collector:${SPARKTALK_EXTRA_IMAGE_TAG:-latest}
+    image: sparktalk-extra-collector:${SPARKTALK_EXTRA_IMAGE_TAG:-0.1.0}
+    mem_limit: 2g
+    cpus: 2
+    pids_limit: 256
     container_name: sparktalk-extra-collector
     restart: unless-stopped
     init: true
@@ -47,7 +50,10 @@ services:
         YTDLP_SHA256_AMD64: ${YTDLP_SHA256_AMD64:-58162f9bfdc27458ea47bfcb311cf47028f17d8154a8bf7d689861d46399230a}
         YTDLP_SHA256_ARM64: ${YTDLP_SHA256_ARM64:-b16e4dab368a816cd05d477d698a605a6ae87ccee1c8ffd38fa21d7254141fcc}
         DENO_VERSION: ${DENO_VERSION:-2.8.1}
-    image: sparktalk-extra-media:${SPARKTALK_EXTRA_IMAGE_TAG:-latest}
+    image: sparktalk-extra-media:${SPARKTALK_EXTRA_IMAGE_TAG:-0.1.0}
+    mem_limit: 2g
+    cpus: 2
+    pids_limit: 128
     container_name: sparktalk-extra-media
     restart: unless-stopped
     init: true
@@ -89,7 +95,10 @@ services:
       dockerfile: Dockerfile.ssh
       args:
         RUNTIME_BASE_IMAGE: ${RUNTIME_BASE_IMAGE:-ubuntu:24.04}
-    image: sparktalk-extra-ssh:${SPARKTALK_EXTRA_IMAGE_TAG:-latest}
+    image: sparktalk-extra-ssh:${SPARKTALK_EXTRA_IMAGE_TAG:-0.1.0}
+    mem_limit: 256m
+    cpus: 1
+    pids_limit: 64
     container_name: sparktalk-extra-ssh
     restart: unless-stopped
     init: true
@@ -122,7 +131,28 @@ services:
       retries: 3
       start_period: 5s
 
+  documents:
+    build:
+      context: ./docms
+    image: sparktalk-extra-documents:0.4.0
+    container_name: sparktalk-extra-documents
+    restart: unless-stopped
+    init: true
+    ports: ["${SPARKTALK_EXTRA_DOCUMENTS_BIND_ADDR:-127.0.0.1}:${SPARKTALK_EXTRA_DOCUMENTS_PORT:-8696}:8696"]
+    read_only: true
+    tmpfs: ["/tmp:rw,nosuid,size=512m"]
+    mem_limit: 1g
+    cpus: 2
+    pids_limit: 128
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: ["ALL"]
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8696/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
 volumes:
   ytdlp-data:
-    external: true
     name: sparktalk_media_api_ytdlp-data

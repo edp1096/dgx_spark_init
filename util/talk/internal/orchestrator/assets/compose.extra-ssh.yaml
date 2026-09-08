@@ -1,0 +1,44 @@
+services:
+    runtime:
+        build:
+            context: ${SPARKTALK_BUILD_DIR:?Embedded build assets required}
+            dockerfile: Dockerfile.ssh
+        cap_drop:
+            - ALL
+        container_name: sparktalk-extra-ssh
+        cpus: 1
+        environment:
+            HOME: /tmp/sparktalk-extra-ssh-home
+            SPARKTALK_EXTRA_SSH_KEY_DIR: /run/sparktalk-extra/keys
+            SPARKTALK_EXTRA_SSH_KNOWN_HOSTS: /var/lib/sparktalk-extra/known_hosts
+            SPARKTALK_EXTRA_SSH_LISTEN_ADDR: 0.0.0.0:8699
+            SPARKTALK_EXTRA_SSH_MAX_CONCURRENCY: ${SPARKTALK_EXTRA_SSH_MAX_CONCURRENCY:-2}
+            SPARKTALK_EXTRA_SSH_MAX_OUTPUT_MB: ${SPARKTALK_EXTRA_SSH_MAX_OUTPUT_MB:-4}
+            SPARKTALK_EXTRA_SSH_TIMEOUT_SECONDS: ${SPARKTALK_EXTRA_SSH_TIMEOUT_SECONDS:-300}
+            TZ: ${TZ:-Asia/Seoul}
+        healthcheck:
+            interval: 15s
+            retries: 3
+            start_period: 5s
+            test:
+                - CMD
+                - /usr/local/bin/sparktalk-extra-ssh
+                - -healthcheck
+            timeout: 5s
+        image: sparktalk-extra-ssh:0.1.0
+        init: true
+        mem_limit: 256m
+        pids_limit: 64
+        ports:
+            - ${SPARKTALK_BIND_ADDR:-127.0.0.1}:${SPARKTALK_PORT:-8699}:8699
+        pull_policy: never
+        read_only: true
+        restart: unless-stopped
+        security_opt:
+            - no-new-privileges:true
+        tmpfs:
+            - /tmp:size=64m,mode=1777
+        user: ${PUID:-1000}:${PGID:-1000}
+        volumes:
+            - ${SPARKTALK_DATA_DIR:-${HOME}/.local/share/sparktalk}/extra/ssh/keys:/run/sparktalk-extra/keys
+            - ${SPARKTALK_DATA_DIR:-${HOME}/.local/share/sparktalk}/extra/ssh/state:/var/lib/sparktalk-extra

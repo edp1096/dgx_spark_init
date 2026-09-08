@@ -1,0 +1,6 @@
+# Development-only compatibility checks. Not used by the production compose.
+ARG DOCUMENT_IMAGE=sparktalk-extra-documents:0.4.0
+FROM ${DOCUMENT_IMAGE}
+USER root
+RUN apt-get update && apt-get install -y --no-install-recommends libreoffice-writer libreoffice-impress libreoffice-calc poppler-utils python3-openpyxl python3-pil python3-uno xvfb xauth && rm -rf /var/lib/apt/lists/*
+USER node

@@ -1,0 +1,27 @@
+event: context
+data: {"skill_tokens":0,"tool_result_tokens":0,"applied_segment_id":0,"system_tool_tokens":3555,"preview":false,"incomplete":false,"trimmed_tools":0,"enabled":true,"managed":true,"window_tokens":131072,"input_budget":120832,"threshold_tokens":96665,"estimated_tokens":3579,"active_tokens":24,"summary_tokens":0,"recall_tokens":0,"summary_through_message_id":0,"active_start_message_id":1317,"active_end_message_id":1317,"compacted":false,"segments":[],"recalls":null}
+
+event: context
+data: {"skill_tokens":0,"tool_result_tokens":0,"applied_segment_id":0,"system_tool_tokens":3847,"preview":false,"incomplete":false,"trimmed_tools":0,"enabled":true,"managed":true,"window_tokens":131072,"input_budget":120832,"threshold_tokens":96665,"estimated_tokens":3871,"active_tokens":24,"summary_tokens":0,"recall_tokens":0,"summary_through_message_id":0,"active_start_message_id":1317,"active_end_message_id":1317,"compacted":false,"segments":[],"recalls":null}
+
+event: reasoning
+data: {"delta":"17+8"}
+
+event: reasoning
+data: {"delta":"-9 = "}
+
+event: reasoning
+data: {"delta":"1"}
+
+event: reasoning
+data: {"delta":"6"}
+
+event: reasoning
+data: {"delta":". Numbers only.\n"}
+
+event: delta
+data: {"delta":"\n\n16"}
+
+event: done
+data: {}
+

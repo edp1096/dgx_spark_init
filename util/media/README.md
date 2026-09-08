@@ -8,7 +8,7 @@ API 서버는 별도 프로젝트로 운영합니다.
 | 화면 기능 | API 위치 | 기본 주소 | 필요 여부 |
 |---|---|---|---|
 | 고품질 이미지 생성 | `compose_yaml/krea2_turbo_nvfp4` | `http://127.0.0.1:8691` | 이미지 생성 모드 |
-| vLLM-Omni 공통 런타임 이미지 | `compose_yaml/vllm_omni` | 포트 없음 | Qwen3-TTS 이미지 최초 빌드 시 |
+| vLLM-Omni 공통 런타임 이미지 | `compose_yaml/omni_vllm` | 포트 없음 | Qwen3-TTS 이미지 최초 빌드 시 |
 | 음성 생성 | `compose_yaml/qwen3_tts` | `http://127.0.0.1:8692` | 음성 탭 사용 시 |
 | 음성 인식 | `compose_yaml/qwen3_asr` | `http://127.0.0.1:8694` | 자막 탭 사용 시 |
 | 영상 생성 | `compose_yaml/ltx-2.5_api` | `http://127.0.0.1:8695` | 영상 탭 사용 시 |
@@ -263,7 +263,7 @@ docker compose build
 docker compose up -d
 
 # Qwen3-TTS가 사용할 vLLM-Omni 런타임 이미지를 최초 한 번 빌드한다.
-cd ../vllm_omni
+cd ../omni_vllm
 docker compose --profile check build
 
 cd ../qwen3_tts

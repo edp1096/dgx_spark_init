@@ -1,0 +1,31 @@
+[
+  {
+    "case": "arithmetic",
+    "seconds": 10.08,
+    "status": "completed",
+    "answer": "16",
+    "files": [],
+    "done": true
+  },
+  {
+    "case": "document",
+    "seconds": 34.5,
+    "status": "completed",
+    "answer": "오빠~ HWP 파일 완성했어요! 🎉\n\n**EXL3 복귀 검증** (`exl3_restore.hwp`)\n- 본문: \"연결과 문서 생성을 확인했습니다.\"\n- 원본 HWP 파일 + 미리보기 PDF까지 같이 나왔어요~\n\n아래 카드에서 바로 다운로드할 수 있어요. HWP 원본이랑 PDF 미리보기 둘 다 있으니 확인해봐요! 😆",
+    "files": [
+      {
+        "name": "exl3_restore.hwp",
+        "bytes": 13312,
+        "hwp": true,
+        "pdf": false
+      },
+      {
+        "name": "exl3_restore_preview.pdf",
+        "bytes": 61755,
+        "hwp": false,
+        "pdf": true
+      }
+    ],
+    "done": true
+  }
+]

@@ -1,0 +1,95 @@
+name: qwen38_27b_gsq_rco_gguf
+services:
+  tools:
+    profiles: [tools]
+    image: qwen38-27b-gsq-rco-gguf-tools:e71b805
+    build:
+      context: .
+      target: tools
+    init: true
+    user: "${LOCAL_UID:-1000}:${LOCAL_GID:-1000}"
+    working_dir: /workspace
+    environment:
+      DATA_ROOT: /data
+      HF_HOME: /data/hf-cache
+      QUANT_THREADS: ${QUANT_THREADS:-12}
+    volumes:
+      - .:/workspace:ro
+      - ./data:/data
+    mem_limit: 12g
+    memswap_limit: 12g
+    cpus: 12
+    command: [python3, pipeline.py, prepare]
+  server:
+    image: qwen38-27b-gsq-rco-gguf:e71b805
+    build:
+      context: .
+      target: runtime
+    container_name: qwen38-27b-gsq-rco-gguf
+    init: true
+    user: "${LOCAL_UID:-1000}:${LOCAL_GID:-1000}"
+    environment:
+      HF_HUB_OFFLINE: "1"
+    volumes:
+      - ./data:/data:ro
+    ports: ["${BIND_ADDRESS:-127.0.0.1}:${API_PORT:-18696}:8080"]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    mem_limit: 40g
+    memswap_limit: 40g
+    shm_size: 1g
+    restart: unless-stopped
+    command:
+      - llama-server
+      - --model
+      - /data/models/Huihui-Qwen3.8-27B-ISTA-IQ3_S-Allocation-MTP.gguf
+      - --mmproj
+      - /data/models/mmproj-Huihui-Qwen3.8-27B-BF16.gguf
+      - --alias
+      - qwen3.8-27b-ista-iq3s-mtp
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8080"
+      - --ctx-size
+      - "${CONTEXT_SIZE:-32768}"
+      - --parallel
+      - "1"
+      - --cache-ram
+      - "${CACHE_RAM_MIB:-8192}"
+      - --n-gpu-layers
+      - "99"
+      - --flash-attn
+      - "on"
+      - --cache-type-k
+      - q8_0
+      - --cache-type-v
+      - q8_0
+      - --batch-size
+      - "512"
+      - --ubatch-size
+      - "512"
+      - --threads
+      - "8"
+      - --fit
+      - "off"
+      - --jinja
+      - --metrics
+      - --reasoning-format
+      - deepseek
+      - --spec-draft-backend-sampling
+      - --spec-type
+      - "${SPEC_TYPE:-draft-mtp}"
+      - --spec-draft-n-max
+      - "${MTP_TOKENS:-2}"
+    healthcheck:
+      test: [CMD, python3, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health',timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 60
+      start_period: 5m

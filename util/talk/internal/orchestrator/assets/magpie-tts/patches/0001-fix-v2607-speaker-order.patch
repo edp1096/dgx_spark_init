@@ -1,0 +1,14 @@
+diff --git a/conversion/tts.py b/conversion/tts.py
+index 151b76a..754943d 100644
+--- a/conversion/tts.py
++++ b/conversion/tts.py
+@@ -30 +30 @@ SPECIAL_AUDIO_TOKENS = 8
+-SPEAKER_NAMES = ["John", "Sofia", "Aria", "Jason", "Leo"]
++SPEAKER_NAMES = ["Aria", "Jason", "John", "Leo", "Sofia"]
+diff --git a/src/tts/magpietts/runtime.cpp b/src/tts/magpietts/runtime.cpp
+index 887e256..9ddb234 100644
+--- a/src/tts/magpietts/runtime.cpp
++++ b/src/tts/magpietts/runtime.cpp
+@@ -59 +59 @@ default_speaker_names(int count) {
+-    static const char* names[] = {"John", "Sofia", "Aria", "Jason", "Leo"};
++    static const char* names[] = {"Aria", "Jason", "John", "Leo", "Sofia"};

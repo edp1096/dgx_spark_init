@@ -18,15 +18,19 @@ v2607의 factor-2 프레임과 한국어 프로필이 아직 upstream main에 �
 이 커밋의 변환기가 v2607 체크포인트의 화자 인덱스 순서를 잘못 기록하므로 로컬
 패치로 원본 `speakers.json` 순서인 `Aria, Jason, John, Leo, Sofia`를 적용한다.
 
-`v2607-longform1` 이미지는 긴 글의 문장 사이에서 필요한 인코딩 문맥이
+`v2607-longform2` 이미지는 긴 글의 문장 사이에서 필요한 인코딩 문맥이
 사라지는 오류도 수정한다. 캐시를 직전 문장 범위로 덮어쓰지 않고 모델 문맥
 한도까지 누적 이력의 끝부분을 보존하며, `--tts.longform auto`를 사용한다.
 회귀 검사는 `python3 scripts/test_longform_cache.py /path/to/NeMo-Speech.cpp`로
 실행한다. 원본 고정 커밋은 `need 20 token(s), have 18`로 실패하고 패치본은 통과한다.
 
+문장 경계에서 이전 텍스트를 다시 읽지 않도록 정렬 범위를 제한하고, 마지막
+음소까지 정렬한 뒤 발화 종료 신호 또는 제한된 마무리 구간으로 종료한다.
+경계 회귀 검사는 이미지 빌드 중 자동 실행한다. SparkTalk에도 같은 빌드 소스를 내장한다.
+
 ## 최초 준비와 실행
 
-모델은 Git 저장소 밖의 `/home/edp1096/.cache/nemo-speech/magpie-v2607`에 둔다.
+모델은 Git 저장소 밖의 `${HOME}/.cache/nemo-speech/magpie-v2607`에 둔다.
 다운로드, tokenizer 추출, v2607 GGUF 변환은 다음 명령으로 수행한다. 변환용
 Python 패키지는 컨테이너 안에만 설치된다.
 

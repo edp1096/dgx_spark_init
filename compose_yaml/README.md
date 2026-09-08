@@ -5,3 +5,7 @@
 `manage.sh`가 있는 모델은 스크립트가 `.env`를 자동 생성한다. 직접 Compose를 쓰는 구성은 같은 디렉터리의 `.env`를 자동으로 읽는다. 셸 스크립트를 직접 실행할 때는 `set -a; . ./.env; set +a`로 적용한다.
 
 llama.cpp의 systemd 실행은 `env.sample`을 기존 이름인 `llama-server.env`로 복사한다. 별도 설정 변수가 없는 Compose는 `.env`가 필요 없다.
+
+SparkTalk 메인 LLM은 `qwen38_27b_exl3`다. GGUF 구성과 검사 기록은
+`zzz_not_use/qwen38_27b_gsq_rco_gguf`, NVFP4/SGLang은 기존
+`zzz_not_use/sglang_qwen38_27b`에 보관한다.

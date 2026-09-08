@@ -2,10 +2,10 @@
 
 별도 웹 UI 없이 vLLM-Omni의 OpenAI 호환 음성 API만 실행합니다.
 프로젝트에서 사용하는 프리셋 화자용 CustomVoice만 운영합니다.
-공통 런타임 이미지는 먼저 `../vllm_omni`에서 빌드합니다.
+공통 런타임 이미지는 먼저 `../../../../compose_yaml/omni_vllm`에서 빌드합니다.
 
 ```bash
-docker compose -f ../vllm_omni/compose.yaml build
+docker compose -f ../../../../compose_yaml/omni_vllm/compose.yaml build
 docker volume create media-hf-cache
 docker compose up -d custom
 curl http://127.0.0.1:8692/health

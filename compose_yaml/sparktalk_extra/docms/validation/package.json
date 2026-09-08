@@ -1,0 +1,12 @@
+{
+  "name": "sparktalk-hwp-validation",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node hwpx.mjs && node edit-roundtrip.mjs",
+    "test:standard": "node check-standard.mjs"
+  },
+  "dependencies": {
+    "@rhwp/core": "0.8.6"
+  }
+}

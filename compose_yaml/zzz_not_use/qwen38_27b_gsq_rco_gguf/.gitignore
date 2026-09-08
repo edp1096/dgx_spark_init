@@ -1,0 +1,5 @@
+.env
+*.local.json
+__pycache__/
+data/
+runs/

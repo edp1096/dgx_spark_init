@@ -1,0 +1,131 @@
+# SparkTalk 설정
+# 이 파일은 최초 실행 시 작업 디렉터리에 sparktalk.yaml로 생성됩니다.
+
+version: 2
+
+server:
+  # 다른 PC에서도 접속하려면 0.0.0.0을 사용합니다.
+  listen_addr: 0.0.0.0:8585
+  database: sparktalk.db
+
+runtime:
+  # managed는 SparkTalk에 내장된 DGX Spark 세트를 사용합니다.
+  # external은 아래 endpoint를 직접 사용하는 호환 모드입니다.
+  mode: managed
+  bundle: qwen27-exl3
+  # 현재 실행 세트는 운영 패널이 관리합니다. 기본 세트와 달라도 됩니다.
+  active_bundle: qwen27-exl3
+  auto_start: false
+  # 비워두면 실행 사용자 홈 아래의 표준 경로를 사용합니다.
+  data_dir: ""
+  model_cache: ""
+  memory_reserve_gib: 8
+
+model:
+  # OpenAI 호환 API의 기본 URL입니다. /v1은 붙이지 않습니다.
+  endpoint: http://127.0.0.1:8000
+  # 비워두면 /v1/models의 첫 모델을 사용합니다.
+  default_model: Qwen3.8-27B-Uncensored-EXL3-4bpw
+  # 모델명을 추측하지 않고 요청 형식을 명시적으로 선택합니다: qwen3.8, qwen3.8-exl3, gemma4, glm5.3, generic
+  model_type: qwen3.8-exl3
+  api_key: ""
+  # Qwen3.8: none, low, medium, xhigh. generic 유형만 기타 이름이나 0.0~0.99를 허용
+  reasoning_effort: none
+  # Gemma 4 Thinking이 켜졌을 때의 최대 생각 토큰. 0은 제한하지 않습니다.
+  thinking_budget: 512
+  # 모든 대화에 공통 적용할 지침입니다. 비워두면 사용하지 않습니다.
+  system_prompt: ""
+  # 설정 화면에서 관리하는 시스템 프롬프트 프리셋입니다.
+  system_prompt_preset: ""
+  system_prompt_presets: []
+
+asr:
+  # 같은 ASR 모델을 사용하되 마이크와 첨부 미디어의 언어 설정은 분리합니다.
+  enabled: true
+  ffmpeg_endpoint: http://127.0.0.1:8690
+  endpoint: http://127.0.0.1:8693
+  model: nemotron-3.5-asr-streaming-0.6b
+  # 직접 발화는 한국어, 언어를 예측할 수 없는 미디어는 자동 감지 기본
+  voice_language: ko-KR
+  media_language: auto
+  # 노래·전문용어 등 문맥 힌트가 필요할 때만 입력합니다.
+  prompt: ""
+  # 연속 음성대기에서 문장부호와 짧은 추임새만 인식된 결과를 자동 전송하지 않습니다.
+  filter_fillers: true
+  timeout: 30m
+
+tts:
+  # AI 답변을 경량 Magpie TTS로 읽습니다.
+  enabled: true
+  endpoint: http://127.0.0.1:8692
+  model: magpietts
+  # auto는 문자 체계와 라틴계 언어 판별을 조합해 요청별 언어를 선택합니다.
+  language: auto
+  # auto에서 순수 한자는 한글 독음으로 변환합니다. chinese는 중국어로 읽습니다.
+  hanja_reading: korean
+  voice: Sofia
+  sample_rate: 22050
+  # 답변마다 자동으로 읽을지 여부입니다. 수동 읽기는 항상 사용할 수 있습니다.
+  auto_play: false
+  # 자동·수동 읽기에서 괄호 속 약칭과 부연설명을 제외합니다.
+  omit_parentheticals: true
+  timeout: 10m
+
+context:
+  # 전체 대화는 보존하고 모델 입력만 구간별로 요약합니다. 0은 백엔드 자동 감지입니다.
+  enabled: true
+  window_tokens: 0
+  compact_at_percent: 80
+  output_reserve: 8192
+  safety_margin: 2048
+  recent_tokens: 8192
+  # 자동 감지가 어려운 멀티모달 입력의 보수적인 장당 추정치입니다.
+  image_tokens: 2048
+
+memory:
+  # 항상 참고하는 기억과 관련 있을 때만 회수하는 기억의 한도를 따로 관리합니다.
+  enabled: true
+  recall_sessions: true
+  # 모델은 저장 후보만 제안하며 실제 저장은 화면 승인이 필요합니다.
+  allow_proposals: true
+  always_max_results: 6
+  always_token_budget: 1024
+  max_results: 5
+  token_budget: 2048
+
+tools:
+  # 모델이 필요할 때 내장 web_search/web_fetch를 호출합니다.
+  enabled: true
+  # 사용자가 분석을 요청한 URL의 영상·음성을 자동으로 가져와 현재 대화에 첨부합니다.
+  media_import_enabled: true
+  # 작업에 맞는 내장 절차만 필요할 때 불러옵니다.
+  skills_enabled: true
+  max_rounds: 24
+  search_results: 15
+  timeout: 15s
+
+image:
+  # 대화 모델이 프롬프트를 구성해 OpenAI 호환 로컬 이미지 API를 호출합니다.
+  # basic은 범용 텍스트 이미지 생성, extended는 API가 제공하는 편집·LoRA·제어 기능까지 노출합니다.
+  enabled: false
+  endpoint: http://127.0.0.1:8691
+  model: flux2-klein-4b-nvfp4
+  mode: basic
+  default_size: 1024x1024
+  timeout: 30m
+
+extra:
+  media_endpoint: http://127.0.0.1:8690
+  # 등록한 서버에 대한 SSH 명령은 항상 화면 승인을 받은 뒤 실행합니다.
+  ssh_enabled: false
+  ssh_endpoint: http://127.0.0.1:8699
+  # 웹 문서의 직접 요청과 격리 브라우저 수집을 담당합니다.
+  collector_enabled: true
+  collector_endpoint: http://127.0.0.1:8695
+
+appearance:
+  # dark, light, system 중 하나를 사용합니다.
+  theme: system
+  # 내장 프리셋은 preset:이 붙으며, 커스텀 업로드는 /api/images/...로 저장됩니다.
+  assistant_avatar: preset:spark
+  user_avatar: preset:person-blue

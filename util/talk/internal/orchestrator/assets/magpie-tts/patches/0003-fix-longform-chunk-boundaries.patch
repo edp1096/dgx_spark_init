@@ -1,0 +1,217 @@
+diff --git a/src/tts/magpietts/model.cpp b/src/tts/magpietts/model.cpp
+--- a/src/tts/magpietts/model.cpp
++++ b/src/tts/magpietts/model.cpp
+@@ -1662,6 +1662,10 @@
+         prior_.clear();
+         return;
+     }
++    // The decoder starts from audio BOS for each chunk. History remains encoder
++    // context, but must not become the next chunk's spoken text.
++    last_attended_absolute_ = std::max(
++        last_attended_absolute_, left_offset_ + text_len_ - current_chunk_len_);
+     buildInitialChunkPrior(h);
+ }
+ 
+@@ -1676,15 +1680,13 @@
+     const float eps_sq = eps * eps;
+     prior_.assign((size_t)text_len_, eps_sq);
+ 
++    const int current_start = text_len_ - current_chunk_len_;
++    std::fill(prior_.begin(), prior_.begin() + current_start, 0.0f);
+     if (text_len_ <= 35) {
+-        std::fill(prior_.begin(), prior_.end(), 1.0f);
++        std::fill(prior_.begin() + current_start, prior_.end(), 1.0f);
+         return;
+     }
+ 
+-    const int current_start = std::max(0, text_len_ - current_chunk_len_);
+-    if (current_start > 0) {
+-        prior_[(size_t)(current_start - 1)] = 0.2f;
+-    }
+     static const float init_weights[] = {0.5f, 1.0f, 0.8f, 0.2f, 0.2f};
+     for (int i = 0; i < (int)(sizeof(init_weights) / sizeof(init_weights[0])); ++i) {
+         const int pos = current_start + i;
+@@ -1717,7 +1719,7 @@
+             }
+         }
+     } else if (text_len_ <= 35) {
+-        std::fill(prior_.begin(), prior_.end(), 1.0f);
++        std::fill(prior_.begin() + text_len_ - current_chunk_len_, prior_.end(), 1.0f);
+     } else {
+         if (rel > 0) {
+             prior_[(size_t)(rel - 1)] = 0.2f;
+@@ -1769,8 +1771,10 @@
+     const int last_rel = std::max(0, std::min(search_start_abs - left_offset_, text_len_ - 1));
+ 
+     int attended_rel = last_rel;
++    // Include the final phonemes: excluding them forces an artificial dwell
++    // on the last word even when alignment has already advanced.
+     const int search_end =
+-        std::min(last_rel + std::max(0, h.attention_prior_lookahead_window), text_len_ - 3);
++        std::min(last_rel + std::max(0, h.attention_prior_lookahead_window), text_len_);
+     if (search_end > last_rel) {
+         attended_rel = last_rel;
+         float best = alignment_scores[(size_t)last_rel];
+@@ -1791,6 +1795,9 @@
+     }
+ 
+     buildPrior(h);
++    if (!first_chunk_) {
++        std::fill(prior_.begin(), prior_.begin() + text_len_ - current_chunk_len_, 0.0f);
++    }
+ }
+ 
+ void
+diff --git a/src/tts/magpietts/magpietts.cpp b/src/tts/magpietts/magpietts.cpp
+--- a/src/tts/magpietts/magpietts.cpp
++++ b/src/tts/magpietts/magpietts.cpp
+@@ -1332,9 +1332,7 @@
+             metrics.encoder_ms += (double)(ggml_time_us() - encoder_start_us) / 1000.0;
+ 
+             int chunk_frames_generated = 0;
+-            int near_end_frames = 0;
+-            bool suppress_nonfinal_codec_output = false;
+-            int suppressed_nonfinal_frames = 0;
++            int finished_steps = 0;
+             const int max_decoder_positions =
+                 (h.max_decoder_steps + h.frame_stacking_factor - 1) / h.frame_stacking_factor;
+             for (int step = 0; step < max_decoder_positions; ++step) {
+@@ -1533,41 +1531,12 @@
+                     }
+                 }
+ 
+-                bool end_chunk_after_frame = false;
+-                bool start_suppressing_after_frame = false;
+-                bool reached_chunk_end = final_text_chunk;
+-                bool can_catch_up_nonfinal = false;
+                 if (decoder_attention.alignment_scores && !alignment_scores.empty()) {
+                     attention_prior.update(h, step, text_len, alignment_scores);
+                     if (params.verbose) {
+                         log_longform_attention_prior_trace(
+                             label, (int)chunk_index, step, h, attention_prior);
+                     }
+-                    const int near_end_threshold = 3;
+-                    const int last_rel = attention_prior.lastAttendedRelative();
+-                    reached_chunk_end = last_rel >= std::max(0, text_len - 1);
+-                    if (!final_text_chunk) {
+-                        can_catch_up_nonfinal = true;
+-                        if (last_rel >= std::max(0, text_len - near_end_threshold)) {
+-                            ++near_end_frames;
+-                        } else {
+-                            near_end_frames = 0;
+-                        }
+-                        if (suppress_nonfinal_codec_output) {
+-                            end_chunk_after_frame = reached_chunk_end;
+-                        } else if (
+-                            near_end_frames >= 1 &&
+-                            chunk_frames_generated >= h.min_generated_frames) {
+-                            if (reached_chunk_end) {
+-                                end_chunk_after_frame = true;
+-                            } else {
+-                                start_suppressing_after_frame = true;
+-                            }
+-                        }
+-                    } else if (
+-                        reached_chunk_end && chunk_frames_generated >= h.min_generated_frames) {
+-                        end_chunk_after_frame = true;
+-                    }
+                 }
+ 
+                 std::vector<std::vector<int32_t>> codec_frames;
+@@ -1578,29 +1547,9 @@
+                 const int eos_lane =
+                     forbid_eos ? -1 : magpietts_first_eos_lane(next_codes, argmax_codes, h);
+                 const bool has_eos = eos_lane >= 0 && eos_lane < frames_remaining;
+-                bool terminate_after_frame = false;
+-                if (has_eos) {
+-                    ggml_nvtx::mark("magpietts_stream_eos");
+-                    if (params.verbose) {
+-                        fprintf(
+-                            stderr, "%s EOS detected at frame %d for text chunk %zu/%zu\n", label,
+-                            step, chunk_index + 1, token_chunks.size());
+-                    }
+-                    if (final_text_chunk || reached_chunk_end || !can_catch_up_nonfinal) {
+-                        terminate_after_frame = true;
+-                    }
+-                    if (!suppress_nonfinal_codec_output) {
+-                        suppress_nonfinal_codec_output = true;
+-                        if (params.verbose) {
+-                            fprintf(
+-                                stderr,
+-                                "%s suppressing codec output for text chunk %zu/%zu after "
+-                                "non-final EOS until attention reaches chunk end "
+-                                "(relative=%d text_len=%d)\n",
+-                                label, chunk_index + 1, token_chunks.size(),
+-                                attention_prior.lastAttendedRelative(), text_len);
+-                        }
+-                    }
++                if (has_eos && params.verbose) {
++                    fprintf(stderr, "%s EOS detected at frame %d for text chunk %zu/%zu\n",
++                            label, step, chunk_index + 1, token_chunks.size());
+                 }
+ 
+                 bool first_frame = false;
+@@ -1615,44 +1564,27 @@
+                 decoder_frames_generated += h.frame_stacking_factor;
+                 const int frames_to_emit = magpietts_frames_to_emit(
+                     frames_remaining, h.frame_stacking_factor, has_eos ? eos_lane : -1);
+-                if (!suppress_nonfinal_codec_output) {
+-                    for (int lane = 0; lane < frames_to_emit; ++lane) {
+-                        const auto& frame = codec_frames[(size_t)lane];
+-                        if (!code_writer.write_frame(frame) || !codec_worker.write_frame(frame)) {
+-                            fprintf(stderr, "failed to write streamed codec frame\n");
+-                            codec_worker.join();
+-                            return false;
+-                        }
+-                        ++frames_generated;
+-                        ++chunk_frames_generated;
++                // Preserve valid frames before EOS inside a stacked decoder step.
++                for (int lane = 0; lane < frames_to_emit; ++lane) {
++                    const auto& frame = codec_frames[(size_t)lane];
++                    if (!code_writer.write_frame(frame) || !codec_worker.write_frame(frame)) {
++                        fprintf(stderr, "failed to write streamed codec frame\n");
++                        codec_worker.join();
++                        return false;
+                     }
++                    ++frames_generated;
++                    ++chunk_frames_generated;
++                }
++                // Alignment can lead the acoustic output. Allow a bounded tail
++                // after the final token rather than muting at text_len - 3.
++                if (decoder_attention.alignment_scores && !alignment_scores.empty() &&
++                    attention_prior.lastAttendedRelative() >= text_len - 1) {
++                    ++finished_steps;
+                 } else {
+-                    suppressed_nonfinal_frames += frames_to_emit;
+-                }
+-                if (start_suppressing_after_frame) {
+-                    suppress_nonfinal_codec_output = true;
+-                    if (params.verbose) {
+-                        fprintf(
+-                            stderr,
+-                            "%s continuing text chunk %zu/%zu without codec output until "
+-                            "attention reaches chunk end (relative=%d text_len=%d)\n",
+-                            label, chunk_index + 1, token_chunks.size(),
+-                            attention_prior.lastAttendedRelative(), text_len);
+-                    }
+-                }
+-                if (end_chunk_after_frame) {
+-                    if (params.verbose) {
+-                        fprintf(
+-                            stderr,
+-                            "%s ending text chunk %zu/%zu after attention reached chunk end "
+-                            "(relative=%d text_len=%d suppressed_codec_frames=%d)\n",
+-                            label, chunk_index + 1, token_chunks.size(),
+-                            attention_prior.lastAttendedRelative(), text_len,
+-                            suppressed_nonfinal_frames);
+-                    }
+-                    break;
+-                }
+-                if (terminate_after_frame) {
++                    finished_steps = 0;
++                }
++                if (has_eos || (finished_steps >= (final_text_chunk ? 5 : 3) &&
++                                chunk_frames_generated >= h.min_generated_frames)) {
+                     break;
+                 }
+             }

@@ -1,6 +1,6 @@
 COMPOSE := docker compose --env-file versions.env
 YTDLP_UPDATE_TO ?= nightly
-SSH_DATA_DIR ?= /home/edp1096/.local/share/sparktalk/extra/ssh
+SSH_DATA_DIR ?= $(HOME)/.local/share/sparktalk/extra/ssh
 SSH_KEY ?=
 SSH_KEY_ID ?=
 
@@ -25,7 +25,7 @@ down:
 	$(COMPOSE) down
 
 logs:
-	$(COMPOSE) logs -f collector media ssh
+	$(COMPOSE) logs -f collector media ssh documents
 
 collector-logs:
 	$(COMPOSE) logs -f collector
@@ -60,3 +60,27 @@ ytdlp-update:
 ytdlp-reset:
 	$(COMPOSE) run --rm --no-deps --user 0:0 --entrypoint /bin/sh media -c 'rm -f /var/lib/sparktalk-extra/media/bin/yt-dlp'
 	$(COMPOSE) restart media
+
+.PHONY: docms-build docms-up docms-down docms-ps docms-logs docms-test
+
+docms-build:
+	cd docms && ./manage.sh setup
+
+docms-up:
+	cd docms && ./manage.sh start
+
+docms-down:
+	cd docms && ./manage.sh stop
+
+docms-ps:
+	cd docms && ./manage.sh status
+
+docms-logs:
+	cd docms && ./manage.sh logs
+
+docms-test:
+	cd docms && ./validation/check-office.sh
+
+.PHONY: documents-logs
+documents-logs:
+	$(COMPOSE) logs -f documents

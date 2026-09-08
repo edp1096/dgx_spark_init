@@ -1,0 +1,30 @@
+[
+  {
+    "effort": "none",
+    "answer": "6",
+    "thinking_present": false,
+    "finish_reason": "stop",
+    "seconds": 0.24
+  },
+  {
+    "effort": "low",
+    "answer": "16",
+    "thinking_present": true,
+    "finish_reason": "stop",
+    "seconds": 3.16
+  },
+  {
+    "effort": "medium",
+    "answer": "16",
+    "thinking_present": true,
+    "finish_reason": "stop",
+    "seconds": 2.4
+  },
+  {
+    "effort": "xhigh",
+    "answer": "16",
+    "thinking_present": true,
+    "finish_reason": "stop",
+    "seconds": 2.9
+  }
+]

@@ -1,0 +1,50 @@
+[
+  {
+    "key": "media",
+    "id": "extra-media",
+    "name": "미디어",
+    "description": "영상·음성 가져오기와 변환",
+    "port": 8690,
+    "internal_port": 8698,
+    "image": "sparktalk-extra-media:0.1.0",
+    "version": "0.1.0",
+    "build_asset": "support-services",
+    "dockerfile": "Dockerfile.media"
+  },
+  {
+    "key": "collector",
+    "id": "extra-collector",
+    "name": "웹 수집",
+    "description": "브라우저 기반 웹 수집",
+    "port": 8695,
+    "internal_port": 8695,
+    "image": "sparktalk-extra-collector:0.1.0",
+    "version": "0.1.0",
+    "build_asset": "support-services",
+    "dockerfile": "Dockerfile.collector"
+  },
+  {
+    "key": "documents",
+    "id": "extra-documents",
+    "name": "문서 생성",
+    "description": "HWP·오피스·PDF 생성",
+    "port": 8696,
+    "internal_port": 8696,
+    "image": "sparktalk-extra-documents:0.4.0",
+    "version": "0.4.0",
+    "build_asset": "extra-documents",
+    "dockerfile": "Dockerfile"
+  },
+  {
+    "key": "ssh",
+    "id": "extra-ssh",
+    "name": "SSH",
+    "description": "인증 키 관리와 승인형 원격 실행",
+    "port": 8699,
+    "internal_port": 8699,
+    "image": "sparktalk-extra-ssh:0.1.0",
+    "version": "0.1.0",
+    "build_asset": "support-services",
+    "dockerfile": "Dockerfile.ssh"
+  }
+]

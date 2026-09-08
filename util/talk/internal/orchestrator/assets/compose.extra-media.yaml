@@ -1,0 +1,49 @@
+services:
+    runtime:
+        build:
+            context: ${SPARKTALK_BUILD_DIR:?Embedded build assets required}
+            dockerfile: Dockerfile.media
+        cap_drop:
+            - ALL
+        container_name: sparktalk-extra-media
+        cpus: 2
+        environment:
+            DENO_DIR: /tmp/deno
+            HOME: /tmp/sparktalk-extra-media-home
+            SPARKTALK_EXTRA_MEDIA_LISTEN_ADDR: 0.0.0.0:8698
+            SPARKTALK_EXTRA_MEDIA_MAX_CONCURRENCY: ${SPARKTALK_EXTRA_MEDIA_MAX_CONCURRENCY:-1}
+            SPARKTALK_EXTRA_MEDIA_MAX_DOWNLOAD_MB: ${SPARKTALK_EXTRA_MEDIA_MAX_DOWNLOAD_MB:-4096}
+            SPARKTALK_EXTRA_MEDIA_MAX_DURATION_SECONDS: ${SPARKTALK_EXTRA_MEDIA_MAX_DURATION_SECONDS:-14400}
+            SPARKTALK_EXTRA_MEDIA_MAX_UPLOAD_MB: ${SPARKTALK_EXTRA_MEDIA_MAX_UPLOAD_MB:-512}
+            SPARKTALK_EXTRA_MEDIA_MAX_VIDEO_HEIGHT: ${SPARKTALK_EXTRA_MEDIA_MAX_VIDEO_HEIGHT:-720}
+            SPARKTALK_EXTRA_MEDIA_TEMP_DIR: /var/tmp/sparktalk-extra-media
+            SPARKTALK_EXTRA_MEDIA_TIMEOUT_SECONDS: ${SPARKTALK_EXTRA_MEDIA_TIMEOUT_SECONDS:-1800}
+            TMPDIR: /var/tmp
+            TZ: ${TZ:-Asia/Seoul}
+        healthcheck:
+            interval: 15s
+            retries: 3
+            start_period: 10s
+            test:
+                - CMD
+                - /usr/local/bin/sparktalk-extra-media
+                - -healthcheck
+            timeout: 5s
+        image: sparktalk-extra-media:0.1.0
+        init: true
+        mem_limit: 2g
+        pids_limit: 128
+        ports:
+            - ${SPARKTALK_BIND_ADDR:-127.0.0.1}:${SPARKTALK_PORT:-8690}:8698
+        pull_policy: never
+        restart: unless-stopped
+        security_opt:
+            - no-new-privileges:true
+        tmpfs:
+            - /tmp:size=${SPARKTALK_EXTRA_MEDIA_TMPFS_SIZE:-512m},mode=1777
+        user: ${PUID:-1000}:${PGID:-1000}
+        volumes:
+            - ytdlp-data:/var/lib/sparktalk-extra/media
+volumes:
+    ytdlp-data:
+        name: sparktalk_media_api_ytdlp-data

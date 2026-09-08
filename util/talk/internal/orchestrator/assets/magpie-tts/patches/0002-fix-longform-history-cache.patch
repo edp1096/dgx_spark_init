@@ -1,0 +1,24 @@
+diff --git a/src/tts/magpietts/magpietts.cpp b/src/tts/magpietts/magpietts.cpp
+index 5ff1528..b33e977 100644
+--- a/src/tts/magpietts/magpietts.cpp
++++ b/src/tts/magpietts/magpietts.cpp
+@@ -1316,7 +1316,17 @@ stream_magpie_to_audio(
+                             0, text_cond.size() * sizeof(float));
+                     }
+                 }
+-                history_text_context = text_cond;
+-                history_text_context_len = text_len;
++                // Token history spans all previous chunks, not just the last
++                // encoder window. Keep the matching encoded suffix even when
++                // a short chunk temporarily requests less history.
++                const int retained_history = std::min(
++                    history_text_context_len, h.n_ctx - (int)current_tokens.size());
++                history_text_context.erase(
++                    history_text_context.begin(),
++                    history_text_context.end() - (size_t)retained_history * h.n_embd);
++                history_text_context.insert(
++                    history_text_context.end(),
++                    text_cond.begin() + (size_t)history_len * h.n_embd, text_cond.end());
++                history_text_context_len = retained_history + (int)current_tokens.size();
+             }
+             metrics.encoder_ms += (double)(ggml_time_us() - encoder_start_us) / 1000.0;

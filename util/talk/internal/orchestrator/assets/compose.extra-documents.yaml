@@ -1,0 +1,32 @@
+services:
+    runtime:
+        build:
+            context: ${SPARKTALK_BUILD_DIR:?Embedded build assets required}
+            dockerfile: Dockerfile
+        cap_drop:
+            - ALL
+        container_name: sparktalk-extra-documents
+        cpus: 2
+        healthcheck:
+            interval: 15s
+            retries: 3
+            start_period: 10s
+            test:
+                - CMD
+                - node
+                - -e
+                - fetch('http://127.0.0.1:8696/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))
+            timeout: 5s
+        image: sparktalk-extra-documents:0.4.0
+        init: true
+        mem_limit: 1g
+        pids_limit: 128
+        ports:
+            - ${SPARKTALK_BIND_ADDR:-127.0.0.1}:${SPARKTALK_PORT:-8696}:8696
+        pull_policy: never
+        read_only: true
+        restart: unless-stopped
+        security_opt:
+            - no-new-privileges:true
+        tmpfs:
+            - /tmp:rw,nosuid,size=512m
