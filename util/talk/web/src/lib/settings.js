@@ -6,7 +6,7 @@ export function normalizePublicSettings(settings) {
   settings.version ||= 2;
   settings.runtime ||= {};
   settings.runtime.mode ||= 'managed';
-  settings.runtime.bundle ||= 'qwen27-exl3';
+  settings.runtime.bundle ||= 'flash-next';
   if (!Number.isFinite(Number(settings.runtime.memory_reserve_gib))) settings.runtime.memory_reserve_gib = 8;
   settings.model ||= {};
   settings.context ||= {};

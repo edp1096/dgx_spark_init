@@ -197,5 +197,5 @@ func componentDefaults(component Component) Component {
 	return component
 }
 
-// EXL3 uses a conservative reservation across its supported context sizes.
+// Use the memory reservation declared in the deployment.
 func (c Component) runtimeMemoryEstimate() Component { return c }

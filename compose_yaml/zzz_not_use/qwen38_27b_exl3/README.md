@@ -1,7 +1,10 @@
-# 현재 SparkTalk 메인 구성
+# 보관된 Qwen3.8 27B EXL3 구성
 
-EXL3 메인으로 복원했다. 기본 128K, Thinking 꺼짐·low·medium·xhigh를 지원한다.
-실행 이미지: `dgx-exl3-qwen38-27b:63b32f0-sparktalk1`.
+2026-09-08 SparkTalk 모델 목록·기본 세트·다운로드·내장 실행 자산에서 제외했다.
+독립 실행 구성과 이전 SparkTalk 자산은 이 디렉터리에 보관한다.
+`sparktalk/`에는 제거 시점의 Compose·빌드 파일·준비 레시피·카탈로그 항목이 있다.
+모델 가중치와 엔진 캐시는 기존 호스트 경로에 유지한다.
+아래 실행·성능 내용은 보관한 구성의 기록이다.
 
 # EXL3 Qwen3.8 27B
 
@@ -10,7 +13,7 @@ MTP와 NVFP4 KV cache로 실행한다. 기본 컨텍스트는 262,144토큰이�
 `http://서버-IP:8000/v1`이다.
 
 ```sh
-cd /home/edp1096/workspace/dgx_spark_init/compose_yaml/qwen38_27b_exl3
+cd /home/edp1096/workspace/dgx_spark_init/compose_yaml/zzz_not_use/qwen38_27b_exl3
 ./manage.sh setup
 ./manage.sh start
 ./manage.sh logs
@@ -44,4 +47,4 @@ Docker 통계는 통합 메모리의 CUDA 할당을 전부 표시하지 않으�
 `setup`에 모델 준비가 포함된다. 설정은 `.env`/`env.sample`, 모델 종류는
 `MODEL_VARIANT=official|abliterated`이며 `setup`/`model`에 `--official` 또는
 `--abliterated`를 지정할 수 있다. HF_TOKEN 환경변수 또는 `--ask-token` 숨김 입력을
-사용한다. 상세 규칙은 [공통 CLI](../runtime-common/README.md)를 참조한다.
+사용한다. 상세 규칙은 [공통 CLI](../../runtime-common/README.md)를 참조한다.

@@ -6,6 +6,7 @@
 
 llama.cpp의 systemd 실행은 `env.sample`을 기존 이름인 `llama-server.env`로 복사한다. 별도 설정 변수가 없는 Compose는 `.env`가 필요 없다.
 
-SparkTalk 메인 LLM은 `qwen38_27b_exl3`다. GGUF 구성과 검사 기록은
-`zzz_not_use/qwen38_27b_gsq_rco_gguf`, NVFP4/SGLang은 기존
-`zzz_not_use/sglang_qwen38_27b`에 보관한다.
+SparkTalk 기본 세트는 `qwen38_fn_sglang`의 Flash Next다. Qwen 27B EXL3는
+`zzz_not_use/qwen38_27b_exl3`, GGUF 구성과 검사 기록은
+`zzz_not_use/qwen38_27b_gsq_rco_gguf`, NVFP4/SGLang은
+`zzz_not_use/sglang_qwen38_27b`에 보관한다. 보관한 27B 구성은 SparkTalk 모델 목록에 포함하지 않는다.

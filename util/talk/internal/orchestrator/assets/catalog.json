@@ -4,19 +4,6 @@
   },
   "components": [
     {
-      "id": "qwen27-exl3",
-      "name": "Qwen3.8 27B EXL3",
-      "role": "llm",
-      "container": "exl3-qwen38-27b",
-      "health_url": "http://127.0.0.1:8000/health",
-      "model": "Qwen3.8-27B-Uncensored-EXL3-4bpw",
-      "memory_gib": 32,
-      "startup_timeout_seconds": 900,
-      "compose_asset": "compose.qwen27-exl3.yaml",
-      "progress_kind": "exl3",
-      "auto_address": true
-    },
-    {
       "id": "flash-next",
       "name": "Qwen3.8 Flash-Next",
       "role": "llm",
@@ -169,23 +156,6 @@
     }
   ],
   "bundles": [
-    {
-      "id": "qwen27-exl3",
-      "name": "Qwen3.8 27B EXL3",
-      "description": "128K 문맥 · ExLlamaV3 MTP · NVFP4 KV 캐시",
-      "model_type": "qwen3.8-exl3",
-      "model_id": "Qwen3.8-27B-Uncensored-EXL3-4bpw",
-      "context_tokens": 131072,
-      "components": [
-        "qwen27-exl3",
-        "flux2",
-        "nemotron-asr",
-        "magpie-tts",
-        "extra-media",
-        "extra-ssh",
-        "extra-collector"
-      ]
-    },
     {
       "id": "flash-next",
       "name": "Qwen3.8 Flash-Next",

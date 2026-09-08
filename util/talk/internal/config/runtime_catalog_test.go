@@ -44,7 +44,7 @@ func TestEditableSetEndpointsSurviveSaveReload(t *testing.T) {
 
 func TestSwitchingSetsAppliesOwnExtraBinding(t *testing.T) {
 	catalog, _ := orchestrator.LoadCatalog()
-	cfg := Config{Runtime: RuntimeConfig{Mode: "managed", Bundle: "qwen27-exl3", ActiveBundle: "qwen27-exl3", Catalog: &catalog}}
+	cfg := Config{Runtime: RuntimeConfig{Mode: "managed", Bundle: "flash-next", ActiveBundle: "flash-next", Catalog: &catalog}}
 	cfg.Normalize()
 	if cfg.Extra.CollectorEndpoint != "http://127.0.0.1:8695" {
 		t.Fatal("wrong initial endpoint")
@@ -54,7 +54,7 @@ func TestSwitchingSetsAppliesOwnExtraBinding(t *testing.T) {
 	if cfg.Extra.CollectorEndpoint != "http://192.168.100.60:8695" {
 		t.Fatal("worker binding ignored")
 	}
-	cfg.Runtime.ActiveBundle = "qwen27-exl3"
+	cfg.Runtime.ActiveBundle = "flash-next"
 	cfg.Normalize()
 	if cfg.Extra.CollectorEndpoint != "http://127.0.0.1:8695" {
 		t.Fatal("worker binding leaked")

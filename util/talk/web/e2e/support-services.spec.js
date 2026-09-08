@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 test('manages all support services independently and saves deployment bindings', async ({ page, request }) => {
   let config = await (await request.get('/api/config')).json();
   config.runtime.mode = 'managed';
-  config.runtime.bundle = 'qwen27-exl3';
+  config.runtime.bundle = 'flash-next';
   config.asr.enabled = false;
   config.tools.media_import_enabled = true;
   config.extra.documents_enabled = true;
@@ -21,7 +21,7 @@ test('manages all support services independently and saves deployment bindings',
     if (route.request().method() === 'PUT') { saved = route.request().postDataJSON(); config = saved; await route.fulfill({ json: { config, restart_required: false } }); }
     else await route.fulfill({ json: config });
   });
-  await page.route('**/api/support', route => route.fulfill({ json: { services, managed: true, bundle_id: 'qwen27-exl3', operation: { state: 'complete' } } }));
+  await page.route('**/api/support', route => route.fulfill({ json: { services, managed: true, bundle_id: 'flash-next', operation: { state: 'complete' } } }));
   await page.route('**/api/runtime/components/*/*', async route => {
     const parts = new URL(route.request().url()).pathname.split('/');
     const id = parts.at(-2), action = parts.at(-1);
@@ -61,6 +61,6 @@ test('manages all support services independently and saves deployment bindings',
   await docs.getByRole('checkbox').uncheck();
   await page.getByRole('button', { name: '저장', exact: true }).click();
   await expect.poll(() => saved?.extra?.documents_enabled).toBe(false);
-  const binding = saved.runtime.catalog.bundles.find(b => b.id === 'qwen27-exl3').bindings['extra-media'];
+  const binding = saved.runtime.catalog.bundles.find(b => b.id === 'flash-next').bindings['extra-media'];
   expect(binding).toMatchObject({ host: 'worker', endpoint: 'http://192.168.100.60:18690', health_url: 'http://192.168.100.60:18690/health', port: 18690, auto_address: false });
 });

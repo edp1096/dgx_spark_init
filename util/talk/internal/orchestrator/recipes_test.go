@@ -13,7 +13,7 @@ import (
 )
 
 func TestEmbeddedRecipesContainNoPrivateEnvironment(t *testing.T) {
-	for _, id := range []string{"glm53", "ds4fve", "qwen27-exl3"} {
+	for _, id := range []string{"glm53", "ds4fve"} {
 		data, err := assets.ReadFile("assets/recipes/" + id + ".tar.gz")
 		if err != nil {
 			t.Fatal(err)
@@ -53,7 +53,7 @@ func TestEmbeddedRecipeMaterializesInAppDataDirectory(t *testing.T) {
 	c := newController(cat)
 	data, cache := t.TempDir(), t.TempDir()
 	c.ConfigurePaths(data, cache)
-	for _, id := range []string{"glm53", "ds4fve", "qwen27-exl3"} {
+	for _, id := range []string{"glm53", "ds4fve"} {
 		component, ok := cat.Component(id)
 		if !ok {
 			t.Fatal(id)
@@ -131,7 +131,7 @@ func TestGLMEmbeddedRecipeMatchesIndependentSources(t *testing.T) {
 }
 
 func TestPackagedModelPatchesMatchStandalone(t *testing.T) {
-	for id, folder := range map[string]string{"ds4fve": "ds4fve_vllm", "qwen27-exl3": "qwen38_27b_exl3"} {
+	for id, folder := range map[string]string{"ds4fve": "ds4fve_vllm"} {
 		data, err := assets.ReadFile("assets/recipes/" + id + ".tar.gz")
 		if err != nil {
 			t.Fatal(err)
@@ -157,9 +157,6 @@ func TestPackagedModelPatchesMatchStandalone(t *testing.T) {
 				t.Fatal(err)
 			}
 			sourcePath := filepath.Join("../../../../compose_yaml", folder, h.Name)
-			if id == "qwen27-exl3" {
-				sourcePath = filepath.Join("recipe_sources", id, h.Name)
-			}
 			source, err := os.ReadFile(sourcePath)
 			if err != nil {
 				t.Fatal(err)

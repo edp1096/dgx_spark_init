@@ -22,10 +22,6 @@ func recipeID(c Component) string {
 	case "dspark-cluster":
 		return "ds4fve"
 	}
-	switch c.ComposeAsset {
-	case "compose.qwen27-exl3.yaml":
-		return "qwen27-exl3"
-	}
 	return ""
 }
 
@@ -38,16 +34,6 @@ var recipeOptionNames = map[string]bool{
 }
 
 func validateRecipeOptions(c Component) error {
-	if c.ComposeAsset == "compose.qwen27-exl3.yaml" {
-		for key, bounds := range map[string][2]int{"MAX_MODEL_LEN": {32768, 262144}} {
-			if value := c.RuntimeOptions[key]; value != "" {
-				n, err := strconv.Atoi(value)
-				if err != nil || n < bounds[0] || n > bounds[1] {
-					return fmt.Errorf("invalid EXL3 %s", key)
-				}
-			}
-		}
-	}
 
 	for k, v := range c.RuntimeOptions {
 		if !recipeOptionNames[k] || strings.ContainsAny(v, "\x00\r\n") {
@@ -82,7 +68,7 @@ func (c *Controller) materializeRecipe(ctx context.Context, component Component)
 	}
 	values := map[string]string{
 		"MODEL_KIND": id, "HF_CACHE": cache, "API_PORT": strconv.Itoa(component.Port), "VLLM_PORT": strconv.Itoa(component.Port),
-		"MODEL_HOST_PATH":   filepath.Join(cache, map[string]string{"glm53": "glm53-exl3", "qwen27-exl3": "exl3-qwen38-27b-uncensored-4bpw"}[id]),
+		"MODEL_HOST_PATH":   filepath.Join(cache, map[string]string{"glm53": "glm53-exl3"}[id]),
 		"SERVED_MODEL_NAME": component.Model,
 	}
 	if component.Port == 0 {
@@ -103,8 +89,6 @@ func (c *Controller) materializeRecipe(ctx context.Context, component Component)
 	if values["CONTEXT_SIZE"] == "" {
 		values["CONTEXT_SIZE"] = "131072"
 	}
-	values["EXL3_CACHE_PATH"] = filepath.Join(filepath.Dir(cache), map[string]string{"qwen27-exl3": "exl3-qwen38-27b"}[id])
-	values["ABLIT_OUTPUT_PATH"] = filepath.Join(values["EXL3_CACHE_PATH"], "ablit")
 	if component.isCluster() {
 		worker := c.host(component.WorkerHost)
 		workerDir := worker.DataDir
@@ -158,9 +142,6 @@ func (c *Controller) materializeRecipe(ctx context.Context, component Component)
 	variant := values["MODEL_VARIANT"]
 	if variant == "" {
 		variant = "official"
-		if id == "qwen27-exl3" {
-			variant = "abliterated"
-		}
 		values["MODEL_VARIANT"] = variant
 	}
 	values["ABLIT"] = "0"
@@ -238,9 +219,6 @@ func (c *Controller) PrepareModel(ctx context.Context, component Component, vari
 	}
 	if recipeID(component) == "" {
 		return fmt.Errorf("this service has no embedded model preparation recipe")
-	}
-	if recipeID(component) == "qwen27-exl3" && variant == "official" {
-		return fmt.Errorf("Qwen 27B EXL3 currently has only the Uncensored checkpoint configured")
 	}
 	options := map[string]string{}
 	for k, v := range component.RuntimeOptions {

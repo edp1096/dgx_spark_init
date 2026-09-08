@@ -34,7 +34,7 @@ func TestSharedExtraResolvesPerSet(t *testing.T) {
 	if extras != 4 {
 		t.Fatalf("want 4 definitions, got %d", extras)
 	}
-	local, _ := catalog.ResolveComponent("qwen27-exl3", "extra-collector")
+	local, _ := catalog.ResolveComponent("flash-next", "extra-collector")
 	remote, _ := catalog.ResolveComponent("glm53-worker-extra", "extra-collector")
 	if local.Host != "local" || remote.Host != "worker" || local.Endpoint == remote.Endpoint {
 		t.Fatalf("wrong bindings: %+v %+v", local, remote)
@@ -66,7 +66,7 @@ func TestBindingValidationAndExplicitReset(t *testing.T) {
 		}
 	}
 	for i := range catalog.Bundles {
-		if catalog.Bundles[i].ID == "qwen27-exl3" {
+		if catalog.Bundles[i].ID == "flash-next" {
 			catalog.Bundles[i].Bindings = map[string]Deployment{"extra-collector": {Port: pointer(0), BindAddress: pointer("")}}
 		}
 	}
@@ -74,7 +74,7 @@ func TestBindingValidationAndExplicitReset(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	resolved, _ := catalog.ResolveComponent("qwen27-exl3", "extra-collector")
+	resolved, _ := catalog.ResolveComponent("flash-next", "extra-collector")
 	if resolved.Port != 0 || resolved.BindAddress != "" {
 		t.Fatal("zero values did not override defaults")
 	}
@@ -124,7 +124,7 @@ func TestLegacyExtraMigrationPreservesEditedDeployment(t *testing.T) {
 	if resolved.Endpoint != remote.Endpoint || resolved.Port != 18695 || resolved.Host != "worker" {
 		t.Fatalf("lost custom settings: %+v", resolved)
 	}
-	local, _ := migrated.ResolveComponent("qwen27-exl3", "extra-collector")
+	local, _ := migrated.ResolveComponent("flash-next", "extra-collector")
 	if local.Endpoint == resolved.Endpoint {
 		t.Fatal("migration changed local binding")
 	}

@@ -227,26 +227,6 @@ func (c *Controller) prepareOrStartComponent(ctx context.Context, component Comp
 			service["environment"].(map[string]any)["SPARKTALK_FLASH_NEXT_DRAFT_VOCAB"] = mode
 		}
 	}
-	if component.ComposeAsset == "compose.qwen27-exl3.yaml" {
-		command := service["command"].([]any)
-		for option, flag := range map[string]string{"MAX_MODEL_LEN": "--cache_size"} {
-			value := component.RuntimeOptions[option]
-			if value == "" {
-				continue
-			}
-			n, err := strconv.Atoi(value)
-			if err != nil || (option == "MAX_MODEL_LEN" && (n < 32768 || n > 262144)) || (option == "MTP_TOKENS" && (n < 1 || n > 8)) || (option == "CACHE_RAM_MIB" && (n < 0 || n > 8192)) {
-				return fmt.Errorf("invalid EXL3 %s", option)
-			}
-			for i := 0; i+1 < len(command); i++ {
-				if command[i] == flag {
-					command[i+1] = value
-					break
-				}
-			}
-		}
-		service["command"] = command
-	}
 	// Use Compose interpolation only for host-side paths and declared published
 	// ports. The API endpoint can independently refer to a proxy or SSH tunnel.
 	data, err = yaml.Marshal(recipe)

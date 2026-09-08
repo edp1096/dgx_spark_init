@@ -1,7 +1,8 @@
 # 공통 모델 관리 CLI
 
 4개 레시피(GLM 5.3 Flash, DeepSeek V4 Vision Exp, Qwen 27B EXL3,
-Flash-Next EXL3)의 공개 진입점은 `manage.sh`다.
+Flash-Next EXL3)의 공개 진입점은 `manage.sh`다. Qwen 27B EXL3와 Flash-Next EXL3는
+`zzz_not_use`에 보관되어 있으며 SparkTalk 모델 목록에는 포함되지 않는다.
 
 - `manage.sh`: 공통 명령·옵션 파싱
 - `runtime.sh`: 모델별 실행 어댑터

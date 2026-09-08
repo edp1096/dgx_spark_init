@@ -12,9 +12,9 @@ runtime:
   # managed는 SparkTalk에 내장된 DGX Spark 세트를 사용합니다.
   # external은 아래 endpoint를 직접 사용하는 호환 모드입니다.
   mode: managed
-  bundle: qwen27-exl3
+  bundle: flash-next
   # 현재 실행 세트는 운영 패널이 관리합니다. 기본 세트와 달라도 됩니다.
-  active_bundle: qwen27-exl3
+  active_bundle: flash-next
   auto_start: false
   # 비워두면 실행 사용자 홈 아래의 표준 경로를 사용합니다.
   data_dir: ""
@@ -25,9 +25,9 @@ model:
   # OpenAI 호환 API의 기본 URL입니다. /v1은 붙이지 않습니다.
   endpoint: http://127.0.0.1:8000
   # 비워두면 /v1/models의 첫 모델을 사용합니다.
-  default_model: Qwen3.8-27B-Uncensored-EXL3-4bpw
+  default_model: qwen3.8-flash-next
   # 모델명을 추측하지 않고 요청 형식을 명시적으로 선택합니다: qwen3.8, qwen3.8-exl3, gemma4, glm5.3, generic
-  model_type: qwen3.8-exl3
+  model_type: qwen3.8
   api_key: ""
   # Qwen3.8: none, low, medium, xhigh. generic 유형만 기타 이름이나 0.0~0.99를 허용
   reasoning_effort: none

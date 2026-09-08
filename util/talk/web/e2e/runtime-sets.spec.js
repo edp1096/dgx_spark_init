@@ -9,28 +9,28 @@ test('edits and persists a set endpoint without resetting it to localhost', asyn
   await page.getByRole('button', { name: 'AI 세트', exact: true }).click();
     const editor = page.locator('.set-editor');
     await expect(editor).toBeVisible();
-    await editor.getByLabel('편집할 세트').selectOption('qwen27-exl3');
+    await editor.getByLabel('편집할 세트').selectOption('flash-next');
     await editor.getByRole('button', { name: '세트 복제', exact: true }).click();
     await editor.getByLabel('세트 이름', { exact: true }).fill('원격 주소 테스트');
     await editor.getByText('모델·세트 상세 설정', { exact: true }).click();
     await editor.getByLabel('세트 ID', { exact: true }).fill('editable-remote');
     await editor.getByLabel('세트 ID', { exact: true }).blur();
     await expect(editor.getByLabel('편집할 세트')).toHaveValue('editable-remote');
-    const service = editor.locator('.service-card').filter({ hasText: 'Qwen3.8 27B' }).first();
+    const service = editor.locator('.service-card').filter({ hasText: 'Qwen3.8 Flash-Next' }).first();
     await service.locator(':scope > summary').click();
     await service.getByLabel('API 주소', { exact: true }).fill('http://127.0.0.1:18000');
     await service.getByText('실행·포트 상세 설정', { exact: true }).click();
-    await service.getByRole('combobox', { name: '문맥 크기', exact: true }).selectOption('65536');
-    await expect(editor.locator('.set-heading').first()).toContainText('64K 문맥');
+    await editor.getByLabel('문맥 토큰 수', { exact: true }).fill('32768');
+    await expect(editor.locator('.set-heading').first()).toContainText('32K 문맥');
     await page.getByRole('button', { name: '저장', exact: true }).click();
     await expect.poll(async () => {
       const config = await (await request.get('/api/config')).json();
-      return config.runtime.catalog.bundles.find(b => b.id === 'editable-remote')?.bindings?.['qwen27-exl3']?.endpoint;
+      return config.runtime.catalog.bundles.find(b => b.id === 'editable-remote')?.bindings?.['flash-next']?.endpoint;
     }).toBe('http://127.0.0.1:18000');
     const config = await (await request.get('/api/config')).json();
     expect(config.runtime.catalog.bundles.some(b => b.name === '원격 주소 테스트')).toBeTruthy();
-    expect(config.runtime.catalog.bundles.find(b => b.id === 'editable-remote').context_tokens).toBe(65536);
-    expect(config.runtime.catalog.components.find(c => c.id === 'qwen27-exl3').endpoint).toBe(original.runtime.catalog.components.find(c => c.id === 'qwen27-exl3').endpoint);
+    expect(config.runtime.catalog.bundles.find(b => b.id === 'editable-remote').context_tokens).toBe(32768);
+    expect(config.runtime.catalog.components.find(c => c.id === 'flash-next').endpoint).toBe(original.runtime.catalog.components.find(c => c.id === 'flash-next').endpoint);
   } finally { await request.put('/api/config', { data: original }); }
 });
 
@@ -107,7 +107,7 @@ test('uses one Extra definition with independent local and worker bindings', asy
   await expect(collector.getByRole('status')).toHaveText('worker-probe-result');
   await collector.scrollIntoViewIfNeeded();
   await page.screenshot({ path: testInfo.outputPath('glm-binding.png') });
-  await editor.getByLabel('편집할 세트').selectOption('qwen27-exl3');
+  await editor.getByLabel('편집할 세트').selectOption('flash-next');
   collector = editor.locator('.service-card').filter({ hasText: 'Extra Collector' });
   // Keyed shared cards may remain open when switching sets.
   if ((await collector.getAttribute('open')) === null) await collector.locator(':scope > summary').click();
@@ -121,7 +121,7 @@ test('uses one Extra definition with independent local and worker bindings', asy
   await collector.getByRole('button', { name: '기본 배치로 되돌리기', exact: true }).click();
   await expect(collector.getByRole('combobox', { name: '실행 호스트', exact: true })).toHaveValue('local');
   await expect(collector.getByLabel('API 주소', { exact: true })).toHaveValue('http://127.0.0.1:8695');
-  await editor.getByLabel('편집할 세트').selectOption('qwen27-exl3');
+  await editor.getByLabel('편집할 세트').selectOption('flash-next');
   await expect(collector.getByLabel('API 주소', { exact: true })).toHaveValue('http://worker:20695');
   await editor.getByRole('button', { name: '서비스 선택', exact: true }).click();
   const picker = editor.locator('.service-picker');

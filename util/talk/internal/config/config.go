@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"time"
 
@@ -415,7 +414,7 @@ func (c *Config) Normalize() {
 		c.Runtime.Catalog = &catalog
 	}
 	if c.Runtime.Bundle == "" {
-		c.Runtime.Bundle = "qwen27-exl3"
+		c.Runtime.Bundle = "flash-next"
 	}
 	if c.Runtime.ActiveBundle == "" {
 		c.Runtime.ActiveBundle = c.Runtime.Bundle
@@ -815,17 +814,6 @@ func (c *Config) ApplyManagedBundle(bundle string) {
 	}
 	c.Model.DefaultModel, c.Model.ModelType = profile.ModelID, profile.ModelType
 	c.Context.WindowTokens = profile.ContextTokens
-	if profile.ModelType == "qwen3.8-exl3" {
-		if c.Context.OutputReserve <= 0 || c.Context.OutputReserve > 8192 {
-			c.Context.OutputReserve = 8192
-		}
-		if c.Context.SafetyMargin <= 0 || c.Context.SafetyMargin > 2048 {
-			c.Context.SafetyMargin = 2048
-		}
-		if c.Context.RecentTokens <= 0 || c.Context.RecentTokens > 8192 {
-			c.Context.RecentTokens = 8192
-		}
-	}
 	present := map[string]bool{}
 	for _, id := range profile.Components {
 		component, _ := catalog.ResolveComponent(profile.ID, id)
@@ -835,11 +823,6 @@ func (c *Config) ApplyManagedBundle(bundle string) {
 		switch role {
 		case "llm":
 			c.Model.Endpoint = endpoint
-			if profile.ModelType == "qwen3.8-exl3" {
-				if n, err := strconv.Atoi(component.RuntimeOptions["MAX_MODEL_LEN"]); err == nil && n >= 32768 && n <= 262144 {
-					c.Context.WindowTokens = n
-				}
-			}
 		case "asr":
 			c.ASR.Endpoint, c.ASR.Model = endpoint, component.Model
 		case "tts":

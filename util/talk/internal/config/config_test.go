@@ -19,7 +19,7 @@ func TestLoadCreatesEmbeddedDefaultAndSaveReloads(t *testing.T) {
 	if cfg.Server.ListenAddr == "" || cfg.Model.Endpoint == "" {
 		t.Fatalf("generated config is incomplete: %+v", cfg)
 	}
-	if cfg.Model.ModelType != "qwen3.8-exl3" {
+	if cfg.Model.ModelType != "qwen3.8" {
 		t.Fatalf("generated model type = %q, want qwen3.8", cfg.Model.ModelType)
 	}
 	if cfg.Model.ThinkingBudget != 512 {
@@ -50,7 +50,7 @@ func TestLoadCreatesEmbeddedDefaultAndSaveReloads(t *testing.T) {
 	if !cfg.Extra.CollectorEnabled || cfg.Extra.CollectorEndpoint != "http://127.0.0.1:8695" {
 		t.Fatalf("generated collector endpoint is incomplete: %+v", cfg.Extra)
 	}
-	if cfg.Version != 2 || cfg.Runtime.Mode != "managed" || cfg.Runtime.Bundle != "qwen27-exl3" || cfg.Runtime.MemoryReserveGiB != 8 {
+	if cfg.Version != 2 || cfg.Runtime.Mode != "managed" || cfg.Runtime.Bundle != "flash-next" || cfg.Runtime.MemoryReserveGiB != 8 {
 		t.Fatalf("generated runtime defaults are incomplete: %+v", cfg.Runtime)
 	}
 	if cfg.Memory.AlwaysMaxResults != 6 || cfg.Memory.AlwaysTokenBudget != 1024 || cfg.Memory.MaxResults != 5 || cfg.Memory.TokenBudget != 2048 {
@@ -154,18 +154,6 @@ func TestManagedDefaultBundleAndActiveModelCanDiffer(t *testing.T) {
 	}
 }
 
-func TestManagedEXL3BundleAppliesItsModelProfile(t *testing.T) {
-	cfg := Config{Runtime: RuntimeConfig{Mode: "managed", Bundle: "qwen27-exl3", ActiveBundle: "qwen27-exl3"}}
-	cfg.Normalize()
-
-	if cfg.Runtime.Bundle != "qwen27-exl3" || cfg.Runtime.ActiveBundle != "qwen27-exl3" {
-		t.Fatalf("EXL3 bundle was rejected: %+v", cfg.Runtime)
-	}
-	if cfg.Model.DefaultModel != "Qwen3.8-27B-Uncensored-EXL3-4bpw" || cfg.Model.ModelType != "qwen3.8-exl3" || cfg.Context.WindowTokens != 131072 {
-		t.Fatalf("EXL3 model profile was not applied: model=%+v context=%+v", cfg.Model, cfg.Context)
-	}
-}
-
 func TestNormalizeConstrainsModelSpecificReasoning(t *testing.T) {
 	for _, test := range []struct {
 		modelType string
@@ -235,7 +223,7 @@ func TestLoadOldConfigDefaultsToolsToEnabled(t *testing.T) {
 	if !cfg.Tools.MediaImportEnabled {
 		t.Fatalf("old config did not enable URL media import: %+v", cfg.Tools)
 	}
-	if !cfg.Context.Enabled || cfg.Context.RecentTokens != 8192 {
+	if !cfg.Context.Enabled || cfg.Context.RecentTokens != 32768 {
 		t.Fatalf("old config did not receive context defaults: %+v", cfg.Context)
 	}
 	if !cfg.ASR.Enabled || !cfg.ASR.FilterFillers || cfg.ASR.Model != "nemotron-3.5-asr-streaming-0.6b" ||

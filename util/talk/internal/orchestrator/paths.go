@@ -29,8 +29,6 @@ func (c *Controller) runtimeHostPaths(component Component) (string, string, erro
 func runtimePathEnvironment(component Component, data, cache string) []string {
 	env := []string{"env", "SPARKTALK_DATA_DIR=" + data, "SPARKTALK_HF_CACHE=" + cache}
 	switch component.ComposeAsset {
-	case "compose.qwen27-exl3.yaml":
-		env = append(env, "SPARKTALK_EXL3_CACHE="+filepath.Join(filepath.Dir(cache), "exl3-qwen38-27b"))
 	case "compose.nemotron-asr.yaml":
 		env = append(env, "SPARKTALK_NEMO_MODEL_DIR="+filepath.Join(filepath.Dir(cache), "nemo-speech"))
 	case "compose.magpie-tts.yaml":

@@ -12,10 +12,9 @@ test('stores download credentials separately and exposes embedded model preparat
   await expect(page.getByRole('link', { name: /lovesenko\/GLM/ })).toBeVisible();
   await page.getByRole('combobox', { name: '가중치', exact: true }).selectOption('official');
   await expect(page.getByRole('link', { name: /lovesenko\/GLM/ })).toHaveCount(0);
-  await page.getByRole('combobox', { name: '모델', exact: true }).selectOption('qwen27-exl3');
-  await expect(page.getByRole('combobox', { name: '가중치', exact: true })).toHaveValue('abliterated');
-  await expect(page.getByRole('link', { name: /Lygodactylus\/Qwen3.8-27B-Uncensored/ })).toBeVisible();
-  await expect(page.getByRole('combobox', { name: '모델', exact: true }).locator('option[value="qwen27-gguf"]')).toHaveCount(0);
+  for (const id of ['qwen27-exl3', 'qwen27-gguf']) {
+    await expect(page.getByRole('combobox', { name: '모델', exact: true }).locator(`option[value="${id}"]`)).toHaveCount(0);
+  }
   const token = 'hf_ui_test_download_credential';
   try {
     await page.getByLabel('다운로드 토큰', { exact: true }).fill(token);

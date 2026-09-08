@@ -31,8 +31,7 @@
   $: if (resultBundle !== selected) { resultBundle = selected; probeResults = {}; }
   let probingID = '';
   $: members = resolveSetMembers(catalog, bundle);
-  $: exl3Member = members.find(c => c.compose_asset === 'compose.qwen27-exl3.yaml');
-  $: displayContext = exl3Member ? Number(exl3Member.runtime_options?.MAX_MODEL_LEN || 131072) : bundle?.context_tokens;
+  $: displayContext = bundle?.context_tokens;
   let message = '';
   let source = '';
   let busy = false;
@@ -138,8 +137,8 @@
     <label>설명<input bind:value={bundle.description} /></label>
     <div class="grid">
       <label>모델 ID<input bind:value={bundle.model_id} /></label>
-      <label>모델 유형<select bind:value={bundle.model_type}><option value="glm5.3">GLM 5.3</option><option value="qwen3.8">Qwen3.8</option><option value="qwen3.8-exl3">Qwen3.8 EXL3</option><option value="gemma4">Gemma 4</option><option value="deepseek-v4">DeepSeek V4</option><option value="generic">일반 OpenAI 호환</option></select></label>
-      <label>문맥 토큰 수<input type="number" min="0" disabled={!!exl3Member} bind:value={bundle.context_tokens} /></label>
+      <label>모델 유형<select bind:value={bundle.model_type}><option value="glm5.3">GLM 5.3</option><option value="qwen3.8">Qwen3.8</option><option value="gemma4">Gemma 4</option><option value="deepseek-v4">DeepSeek V4</option><option value="generic">일반 OpenAI 호환</option></select></label>
+      <label>문맥 토큰 수<input type="number" min="0" bind:value={bundle.context_tokens} /></label>
     </div>
 
       <button type="button" class="danger" disabled={catalog.bundles.length < 2} onclick={() => { catalog.bundles = catalog.bundles.filter(b => b.id !== selected); catalog = catalog; }}>세트 삭제</button>
@@ -190,11 +189,6 @@
             <label>서버 공개 포트<input type="number" min="0" max="65535" value={component.port ?? ""} oninput={(event) => updateDeployment(component.id, "port", Number(event.currentTarget.value))} placeholder="0: 레시피 기본값" /></label>
             {#if component.compose_asset === 'compose.flash-next.yaml'}
               <label>초안 어휘<select value={component.runtime_options?.DRAFT_VOCAB ?? 'ko64k'} oninput={(event) => updateDeployment(component.id, "runtime_options", {...component.runtime_options, DRAFT_VOCAB:event.currentTarget.value})}><option value="ko64k">한국어 포함 64K (기본)</option><option value="off">전체 어휘</option></select><small>초안 생성 속도를 높이는 설정입니다. 변경 후 서비스를 다시 시작해야 합니다.</small></label>
-            {/if}
-            {#if ['compose.qwen27-exl3.yaml'].includes(component.compose_asset)}
-              <label>문맥 크기<select value={component.runtime_options?.MAX_MODEL_LEN ?? '131072'} oninput={(event) => updateDeployment(component.id, "runtime_options", {...component.runtime_options, MAX_MODEL_LEN:event.currentTarget.value})}><option value="32768">32K</option><option value="65536">64K</option><option value="131072">128K (기본값)</option><option value="262144">256K (원본 상한)</option></select></label>
-
-              <label>가중치<select value={component.runtime_options?.MODEL_VARIANT ?? 'abliterated'} oninput={(event) => updateDeployment(component.id, "runtime_options", {...component.runtime_options, MODEL_VARIANT:event.currentTarget.value})}>{#if component.compose_asset !== 'compose.qwen27-exl3.yaml'}<option value="official">공식 원본</option>{/if}<option value="abliterated">Abliterated / Uncensored</option></select></label>
             {/if}
           {:else if ['glm53-cluster', 'dspark-cluster'].includes(component.controller)}
             <label>API 공개 포트<input type="number" min="0" max="65535" value={component.port ?? ""} oninput={(event) => updateDeployment(component.id, "port", Number(event.currentTarget.value))} placeholder="0: 기본 포트" /></label>

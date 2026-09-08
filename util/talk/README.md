@@ -36,15 +36,14 @@ Svelte UI가 Go 바이너리에 포함되므로 배포할 때 `dist/`의 운영�
 
 기본 `managed` 모드에서는 브라우저가 SparkTalk 한 서버에만 연결한다. Go
 백엔드가 검증된 Docker Compose 조리법을 바이너리에 내장하고, 채팅 모델·이미지·
-ASR·TTS·Extra를 편집 가능한 AI 세트로 기동한다. 서비스별 실행 호스트와 API
+ASR·TTS를 편집 가능한 AI 세트로 기동한다. 지원 서비스 4종은 별도로 제어한다. 서비스별 실행 호스트와 API
 주소를 지정할 수 있고, 원격 호스트는 SSH로 제어한다. 정상 실행 중인 컨테이너는
 재사용하며 중지·실패한 컨테이너는 저장한 Compose 설정으로 재생성한다.
 GLM·DeepSeek 클러스터도 앱 내장 실행 패키지를 사용한다. 외부 `manage.sh`나 개발 저장소 경로를 참조하지 않는다.
 
 | 세트 | 주 채팅 모델 | 문맥 | 공통 구성 |
 |---|---|---:|---|
-| Qwen 27B EXL3 세트 (기본) | Uncensored 4bpw · ExLlamaV3 · MTP · NVFP4 KV | 128K (최대 설정 256K) | FLUX.2·Nemotron ASR·Magpie TTS·Extra |
-| Flash-Next 세트 | Qwen3.8 Flash-Next NVFP4 | 64K | FLUX.2·Nemotron ASR·Magpie TTS·Extra |
+| Flash-Next 세트 (기본) | Qwen3.8 Flash-Next NVFP4 | 64K | FLUX.2·Nemotron ASR·Magpie TTS·Extra |
 | Gemma 세트 | Gemma 4 31B NVFP4 + DFlash | 64K | FLUX.2·Nemotron ASR·Magpie TTS·Extra |
 | GLM 5.3 Flash EXL3 + 워커 Extra | GLM 5.3 Flash EXL3 + DFlash2, Spark 2대 | 512K | 워커의 Media·Collector·SSH |
 
@@ -64,30 +63,26 @@ CUDA Graph·보정 워밍업 순으로 표시한다. Flash-Next 전용 SGLang �
 모델 가중치와 Docker 이미지 자체는 Go 바이너리에 넣지 않는다. 최초 사용 전에
 저장소의 각 런타임 README에 따라 아래 로컬 이미지를 빌드하고 모델을 받아 둔다.
 그 이후의 일상적인 기동·중지·전환에는 Compose 명령이 필요 없다.
-EXL3·Gemma·Qwen Flash-Next는 이미지가 없으면 앱에 내장된 빌드 파일·패치로 자동 빌드한다. compose_yaml 체크아웃은 필요 없다. 모델 가중치는 별도로 준비해야 한다.
-Extra 3종과 ASR을 원격 호스트에서 기동할 때 이미지가 없으면 앱 실행 머신의 이미지를
-SSH로 스트리밍 전달한다. 기존 원격 이미지는 유지하며, 앱 실행 머신에도 없으면
-먼저 빌드하라는 오류를 표시한다. TTS는 이미지가 없으면 실행 호스트에서
+Gemma·Qwen Flash-Next는 이미지가 없으면 앱에 내장된 빌드 파일·패치로 자동 빌드한다. compose_yaml 체크아웃은 필요 없다. 모델 가중치는 별도로 준비해야 한다.
+지원 서비스 4종은 이미지가 없으면 실행 호스트에서 내장 자산으로 빌드한다.
+ASR은 원격 이미지가 없으면 앱 실행 머신의 이미지를 SSH로 전달한다. TTS는 이미지가 없으면 실행 호스트에서
 앱에 내장된 Dockerfile과 패치로 빌드한다. `compose_yaml` 폴더는 필요 없다.
 
 ```text
 dgx-sglang-qwen38-fn:sm121-vocab1
-dgx-sglang-qwen38-27b-dflash2:2ef0fe4
-dgx-exl3-qwen38-27b:63b32f0
-dgx-exl3-qwen38-fn:1.4.6-ablit1
 dgx-sglang-gemma4-31b-dflash:2ef0fe4-toolindex1
 dgx-flux2-klein-nvfp4:4b
 sparktalk-nemotron-asr:0.6b-q8
 sparktalk-magpie-tts:v2607-longform2
-sparktalk-extra-media:latest
-sparktalk-extra-ssh:latest
-sparktalk-extra-collector:latest
+sparktalk-extra-media:0.1.0
+sparktalk-extra-ssh:0.1.0
+sparktalk-extra-collector:0.1.0
+sparktalk-extra-documents:0.4.0
 ```
 
-GLM·DeepSeek·Qwen 27B EXL3는 **설정 → 시스템 → 모델 준비**에서 준비한다.
+GLM·DeepSeek는 **설정 → 시스템 → 모델 준비**에서 준비한다.
 `모델만 준비`는 가중치 다운로드·패치·워커 복사를, `전체 준비`는 이미지 준비까지
 포함한다. 실행 중인 해당 모델을 중지한 뒤 준비하며, 완료 후 세트를 기동한다.
-Qwen 27B EXL3는 현재 Uncensored 4bpw 체크포인트만 제공하므로 원본 선택은 거부한다.
 
 Hugging Face 토큰은 같은 화면에서 등록·교체·삭제한다. 앱 데이터 폴더의
 `credentials/huggingface.token`에 0600 권한으로 보관하고, 조회 API에는 등록 여부만
@@ -499,7 +494,7 @@ ASR은 `nemotron-3.5-asr-streaming-0.6b.q8_0.gguf`, TTS는 `magpie-v2607`의
 ### SSH 키 저장소 동기화
 
 설정 → 기능 → SparkTalk Extra → 인증 키 → **키 저장소 동기화**에서
-실행 호스트를 선택한다. 각 호스트에는 최신 `sparktalk-extra-ssh:latest` 이미지,
+실행 호스트를 선택한다. 각 호스트에는 최신 `sparktalk-extra-ssh:0.1.0` 이미지,
 Docker 실행 권한, 절대경로 `data_dir`가 필요하다. 원격 연결은 실행 호스트의
 SSH 주소·계정·인증키 설정을 사용한다. 관리 연결용 SSH 개인키는 이 저장소와
 별도로 준비해야 하며, Extra 키에 의존하면 처음 연결할 수 없다.
@@ -551,24 +546,15 @@ Compose 기본 경로는 실행 계정의 홈을 사용한다. SparkTalk은 실�
 출력 한도로 끝난 텍스트 답변은 최대 두 번 자동으로 이어 받습니다. 연결 오류·잘린 도구 호출은
 자동 재실행하지 않으며, 이어쓰기도 끝내지 못하면 불완전 상태로 남깁니다.
 
-### Qwen 27B EXL3 메인 프로필
+### 보관된 Qwen 27B 구성
 
-기본 엔진은 ExLlamaV3 `63b32f0`, Uncensored 4bpw 가중치, MTP, NVFP4 KV 캐시다.
-기본 문맥은 128K이며, 세트의 실행·포트 상세 설정에서 32K·64K·128K·256K를 선택한다.
-Thinking은 꺼짐·낮음(low)·중간(medium)·매우 높음(xhigh)을 지원한다.
-이전 32K 비교에서는 검사 후 추가 메모리 약 20.3GiB와 약 24.95 tok/s를 측정했다.
-128K의 메모리 실측과 구분해야 하며 앱의 시작 전 메모리 예약은 보수적으로 32GiB다.
+Qwen 27B EXL3는 모델 목록·모델 준비·내장 실행 자산에서 제거했다.
+독립 구성과 이전 앱 자산은 `compose_yaml/zzz_not_use/qwen38_27b_exl3`에 보관한다.
+GGUF와 NVFP4 구성도 각각 `zzz_not_use/qwen38_27b_gsq_rco_gguf`,
+`zzz_not_use/sglang_qwen38_27b`에 있다. 다운로드한 가중치와 캐시는 유지한다.
 
-모델은 실행 호스트의 `model_cache/exl3-qwen38-27b-uncensored-4bpw`, 엔진 캐시는
-`model_cache`의 상위 디렉터리 아래 `exl3-qwen38-27b`를 사용한다.
-모델 준비는 Lygodactylus의 고정된 Uncensored 체크포인트를 내려받고, 기존 모델은 재사용한다.
-API 서버와 빌드 파일을 앱에 포함하므로 작업용 저장소 체크아웃은 필요 없다.
-현재 EXL3 API 어댑터는 이미지 입력을 지원하지 않는다.
-
-EXL3 구성은 `compose_yaml/qwen38_27b_exl3`에 복원했다. GGUF 구성과 검사 기록은
-`compose_yaml/zzz_not_use/qwen38_27b_gsq_rco_gguf`, NVFP4는 기존
-`compose_yaml/zzz_not_use/sglang_qwen38_27b`에 보관한다.
-저장된 GGUF/NVFP4 세트 선택은 EXL3로 이전하며, GGUF에서 선택한 문맥 한도를 유지한다.
-마이그레이션만으로 서버를 자동 기동하지 않는다.
+기본 세트는 Flash Next다. 저장된 설정에서 제거된 27B 세트나 그 복제본을 참조하면
+유효한 현재/기본 선택을 우선 유지하고, 없으면 Flash Next 또는 남은 세트로 이전한다.
+이전 시 자동 기동은 끈다. 지원 서비스 배치와 기능 사용 설정은 유지한다.
 
 지원 서비스 4종의 독립 제어·배포·설정 호환성: [지원 서비스 운영](SUPPORT-SERVICES.md).

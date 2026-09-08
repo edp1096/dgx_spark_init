@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/url"
 	"regexp"
-	"strconv"
 	"strings"
 )
 
@@ -142,8 +141,6 @@ func ValidateCatalog(catalog Catalog) (Catalog, error) {
 		switch bundle.Name {
 		case "Qwen 27B 세트":
 			bundle.Name = "Qwen 27B"
-		case "Qwen 27B EXL3 세트":
-			bundle.Name = "Qwen 27B EXL3"
 		case "Flash-Next 세트":
 			bundle.Name = "Flash-Next"
 		case "Flash-Next EXL3 세트":
@@ -176,12 +173,6 @@ func ValidateCatalog(catalog Catalog) (Catalog, error) {
 				return Catalog{}, fmt.Errorf("bundle %q: unknown or duplicate component %q", bundle.ID, id)
 			}
 			component = bundle.Bindings[id].Apply(component)
-			if component.ComposeAsset == "compose.qwen27-exl3.yaml" {
-				bundle.ContextTokens = 131072
-				if n, err := strconv.Atoi(component.RuntimeOptions["MAX_MODEL_LEN"]); err == nil {
-					bundle.ContextTokens = n
-				}
-			}
 			if err := validateDeployment(catalog, component); err != nil {
 				return Catalog{}, fmt.Errorf("bundle %q: %w", bundle.ID, err)
 			}

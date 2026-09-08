@@ -14,8 +14,6 @@ func embeddedBuildAsset(compose string) string {
 		}
 	}
 	switch compose {
-	case "compose.qwen27-exl3.yaml":
-		return "qwen27-exl3"
 	case "compose.extra-documents.yaml":
 		return "extra-documents"
 	case "compose.magpie-tts.yaml":

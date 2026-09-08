@@ -10,10 +10,6 @@ func (c *Config) normalizeRuntimeDisplayNames() {
 			if name == "Gemma" || name == "Gemma 31B" || name == "Gemma 4 31B" {
 				return "Gemma4 31B"
 			}
-		case "qwen27-exl3":
-			if name == "Qwen 27B EXL3" || name == "27B EXL3" {
-				return "Qwen3.8 27B EXL3"
-			}
 		case "flash-next":
 			if name == "Flash-Next" {
 				return "Qwen3.8 Flash-Next"

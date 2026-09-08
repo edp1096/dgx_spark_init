@@ -1,6 +1,8 @@
 import { expect, test } from '@playwright/test';
 
-test('EXL3 offers native effort in chat and saves the default level', async ({ page }) => {
+test('EXL3 offers native effort in chat and saves the default level', async ({ page, request }) => {
+  const original = await (await request.get('/api/config')).json();
+  try {
   let initial = true;
   await page.route('**/api/config', async route => {
     if (route.request().method() !== 'GET') return route.continue();
@@ -29,4 +31,5 @@ test('EXL3 offers native effort in chat and saves the default level', async ({ p
   initial = false;
   await page.reload();
   await expect(slider).toHaveValue('1');
+  } finally { await request.put('/api/config', { data: original }); }
 });

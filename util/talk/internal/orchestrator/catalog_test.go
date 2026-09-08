@@ -2,8 +2,6 @@ package orchestrator
 
 import (
 	"bytes"
-	"fmt"
-	"gopkg.in/yaml.v3"
 	"os"
 	"strings"
 	"testing"
@@ -14,7 +12,7 @@ func TestEmbeddedCatalogIsComplete(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, id := range []string{"qwen27-exl3", "flash-next", "gemma"} {
+	for _, id := range []string{"flash-next", "gemma"} {
 		bundle, ok := catalog.Bundle(id)
 		if !ok || bundle.MemoryGiB <= 0 || bundle.ModelID == "" {
 			t.Fatalf("invalid bundle %q: %+v", id, bundle)
@@ -55,42 +53,25 @@ func TestFlashNextRuntimeProfileUsesShortLocalName(t *testing.T) {
 	}
 }
 
-func TestEXL3RuntimeProfileStaysInSync(t *testing.T) {
+func TestRetired27BEXL3IsNotEmbedded(t *testing.T) {
 	catalog, err := LoadCatalog()
 	if err != nil {
 		t.Fatal(err)
 	}
-	bundle, ok := catalog.Bundle("qwen27-exl3")
-	if !ok || bundle.ContextTokens != 131072 || bundle.ModelType != "qwen3.8-exl3" {
-		t.Fatalf("unexpected EXL3 bundle: %+v", bundle)
+	if _, ok := catalog.Component("qwen27-exl3"); ok {
+		t.Fatal("retired component survived")
 	}
-	component, ok := catalog.Component("qwen27-exl3")
-	if !ok || component.MemoryGiB != 32 {
-		t.Fatalf("unexpected EXL3 component: %+v", component)
+	if _, ok := catalog.Bundle("qwen27-exl3"); ok {
+		t.Fatal("retired bundle survived")
 	}
-	data, err := composeAsset(component.ComposeAsset)
-	if err != nil {
-		t.Fatal(err)
-	}
-	var recipe map[string]any
-	if err := yaml.Unmarshal(data, &recipe); err != nil {
-		t.Fatal(err)
-	}
-	service := recipe["services"].(map[string]any)["runtime"].(map[string]any)
-	command := service["command"].([]any)
-	flags := map[string]string{}
-	for i := 0; i+1 < len(command); i++ {
-		if flag, ok := command[i].(string); ok && strings.HasPrefix(flag, "--") {
-			flags[flag] = fmt.Sprint(command[i+1])
+	for _, path := range []string{"assets/compose.qwen27-exl3.yaml", "assets/qwen27-exl3/Dockerfile", "assets/recipes/qwen27-exl3.tar.gz"} {
+		if _, err := assets.ReadFile(path); err == nil {
+			t.Fatalf("retired asset still embedded: %s", path)
 		}
 	}
-	for flag, expected := range map[string]string{"--cache_size": "131072", "--draft_model": "mtp", "--cache_quant": "nvfp4"} {
-		if flags[flag] != expected {
-			t.Fatalf("%s=%s want %s", flag, flags[flag], expected)
-		}
-	}
-	if embeddedBuildAsset(component.ComposeAsset) == "" {
-		t.Fatal("embedded build missing")
+	component := Component{ComposeAsset: "compose.qwen27-exl3.yaml"}
+	if recipeID(component) != "" || embeddedBuildAsset(component.ComposeAsset) != "" {
+		t.Fatal("retired preparation recipe survived")
 	}
 }
 

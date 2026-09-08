@@ -19,7 +19,7 @@ func TestInferProgress(t *testing.T) {
 }
 
 func TestInferEXL3Progress(t *testing.T) {
-	component := Component{ID: "qwen27-exl3", ProgressKind: "exl3"}
+	component := Component{ID: "glm53", ProgressKind: "exl3"}
 	for _, test := range []struct {
 		logs string
 		key  string

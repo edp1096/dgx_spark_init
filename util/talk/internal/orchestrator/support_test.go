@@ -48,12 +48,12 @@ func TestModelStopLeavesSharedServicesRunning(t *testing.T) {
 	log := fakeSupportDocker(t)
 	cat, _ := LoadCatalog()
 	c, _ := NewControllerWithCatalog(cat)
-	if err := c.StopBundle("qwen27-exl3"); err != nil {
+	if err := c.StopBundle("flash-next"); err != nil {
 		t.Fatal(err)
 	}
 	waitSupportOperation(t, c)
 	raw, _ := os.ReadFile(log)
-	if !strings.Contains(string(raw), "exl3-qwen38-27b") {
+	if !strings.Contains(string(raw), "sglang-qwen38-fn") {
 		t.Fatal("model was not stopped")
 	}
 	if strings.Contains(string(raw), "sparktalk-extra-") {
@@ -65,7 +65,7 @@ func TestPreparingDocumentImageDoesNotRestartRunningService(t *testing.T) {
 	c, _ := NewController()
 	dir := t.TempDir()
 	c.ConfigurePaths(dir, filepath.Join(dir, "models"))
-	if err := c.ComponentAction("extra-documents", "prepare", "qwen27-exl3"); err != nil {
+	if err := c.ComponentAction("extra-documents", "prepare", "flash-next"); err != nil {
 		t.Fatal(err)
 	}
 	waitSupportOperation(t, c)
