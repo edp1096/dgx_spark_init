@@ -3,6 +3,7 @@
   import { avatarPresets, avatarURL } from '../../lib/avatars.js';
 
   export let appearance;
+  export let role = 'user';
   export let onnotify = () => {};
   export let onuploaded = () => {};
 
@@ -45,8 +46,8 @@
 </script>
 
 <fieldset class="avatar-settings">
-  <legend>아바타</legend>
-  {#each [{ role: 'assistant', title: 'AI 아바타', fallback: 'spark' }, { role: 'user', title: '내 아바타', fallback: 'person-blue' }] as section}
+  <legend>{role === 'assistant' ? 'AI 아바타' : '내 아바타'}</legend>
+  {#each [{ role: 'assistant', title: 'AI 아바타', fallback: 'spark' }, { role: 'user', title: '내 아바타', fallback: 'person-blue' }].filter(section => section.role === role) as section}
     {@const selected = appearance[`${section.role}_avatar`]}
     <div class="avatar-setting-section">
       <div class="avatar-setting-summary">

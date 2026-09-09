@@ -1,0 +1,35 @@
+{
+  "mode": "adaptive",
+  "overrides": {
+    "MAX_MODEL_LEN": "131072",
+    "MAX_NUM_SEQS": "2",
+    "MAX_NUM_BATCHED_TOKENS": "4096",
+    "KV_CACHE_MEMORY": "8589934592",
+    "ADAPTIVE_SPECULATIVE_TOKENS_WINDOW": "8",
+    "CUDA_GRAPH_CAPTURE_SIZES": "\"1 2 3 4 5 6 7 8 10 12 14 16\""
+  },
+  "baseline": {
+    "head": {
+      "boot": "ccc4bda2-bff7-43e5-a7f0-ac093ba632ac",
+      "available": 126538280960,
+      "swap": 339365888,
+      "swap_free": 16840499200,
+      "pressure": "some avg10=0.00 avg60=0.00 avg300=0.15 total=24805042\nfull avg10=0.00 avg60=0.00 avg300=0.15 total=24778896",
+      "gpu": "54, 208, 5.07"
+    },
+    "worker": {
+      "boot": "1094b293-01b2-446f-ae13-e3ba1770665f",
+      "available": 125495332864,
+      "swap": 2391453696,
+      "swap_free": 14788411392,
+      "pressure": "some avg10=0.00 avg60=0.00 avg300=0.13 total=19342842\nfull avg10=0.00 avg60=0.00 avg300=0.13 total=19326332",
+      "gpu": "55, 1989, 8.63"
+    }
+  },
+  "image": "ghcr.io/entrpi/glm-5.3-flash-exl3-2x-spark:v2.3-tier1",
+  "started": "2026-09-09T05:34:44.780509+09:00",
+  "limitations": [
+    "Native Entrpi acceptance controller, not MiaAI EMA patch.",
+    "128K cap, two sequences, 8 GiB KV pool; production 524K has not been qualified."
+  ]
+}

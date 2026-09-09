@@ -272,3 +272,13 @@ html[data-theme="light"] .skill-catalog .skill-item + .skill-item { border-color
 html[data-theme="light"] .skill-catalog .skill-status { color: #647083; background: #edf0f5; }
 html[data-theme="light"] .skill-catalog .skill-status.available { color: #246c50; background: #e6f4ed; }
 html[data-theme="light"] .skill-summary > span { color: #647083; }
+
+html[data-theme="light"] .settings-modal fieldset label,
+html[data-theme="light"] .settings-toggle-field { color: #596579; }
+html[data-theme="light"] .settings-modal .avatar-setting-label strong { color: #344054; }
+html[data-theme="light"] .settings-modal .avatar-setting-label small { color: #68758a; }
+html[data-theme="light"] .settings-toggle-field button { border-color: #ccd4e0; color: #536176; background: #f3f5f8; }
+html[data-theme="light"] .settings-toggle-field button.active { border-color: #5c83f1; color: #244f91; background: #eaf0fc; }
+
+html[data-theme="light"] .folder-section-toggle { color: #536176; background: #f3f5f8; }
+html[data-theme="light"] .folder-section-toggle:hover { color: #344054; background: #e8edf5; }

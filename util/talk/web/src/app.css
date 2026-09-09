@@ -72,7 +72,7 @@ nav { display: flex; flex: 1; min-height: 0; flex-direction: column; gap: 4px; o
 .group-toggle { display: flex; min-width: 0; flex: 1; align-items: center; justify-content: space-between; gap: 5px; padding: 7px 7px; border: 0; color: #858d9e; background: transparent; text-align: left; font-size: 12px; }
 .group-toggle span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .group-toggle small { color: #7f889a; font-size: 10px; }
-.ungrouped > .group-toggle { padding-top: 3px; color: #858e9f; }
+.ungrouped > .chat-group-header > .group-toggle { padding-top: 3px; color: #858e9f; }
 .group-actions { display: flex; flex: 0 0 auto; opacity: 0; }
 .group-heading:hover .group-actions, .group-actions:focus-within { opacity: 1; }
 .group-actions button { width: 22px; height: 25px; padding: 0; border: 0; border-radius: 5px; color: #7c8698; background: transparent; font-size: 11px; }
@@ -871,3 +871,76 @@ textarea::placeholder { color: #777f8f; }
 @media (max-width: 560px) {
   .theme-choice { grid-template-columns: 1fr; }
 }
+
+/* Compact numeric settings share a stable label/input layout. */
+.settings-modal .settings-number-row { display: grid; grid-template-columns: minmax(0, 1fr) 128px; gap: 6px 12px; align-items: center; }
+.settings-modal .settings-number-row > input { width: 100%; min-width: 0; box-sizing: border-box; text-align: right; padding: 7px 8px; }
+.settings-modal .settings-number-row > small { grid-column: 1 / -1; }
+.settings-modal .settings-number-list { display: grid; gap: 6px; margin-bottom: 6px; }
+@media (max-width: 520px) { .settings-modal .settings-number-row { grid-template-columns: minmax(0, 1fr) 108px; gap: 6px; } }
+
+/* One-line labels and controls across every settings tab and nested editor. */
+.settings-modal .settings-field-row.settings-field-row { display: grid; grid-template-columns: minmax(120px, 34%) minmax(0, 1fr); align-items: center; gap: 6px 12px; min-width: 0; margin: 0; }
+.settings-modal .settings-field-row.settings-number-row { grid-template-columns: minmax(0, 1fr) 128px; }
+.settings-modal .settings-field-row > span:first-child { min-width: 0; line-height: 1.4; }
+.settings-modal .settings-field-row > input,
+.settings-modal .settings-field-row > select { width: 100%; min-width: 0; max-width: 100%; box-sizing: border-box; margin: 0; }
+.settings-modal .settings-field-row > input[type="file"] { overflow: hidden; font-size: 11px; }
+.settings-modal .settings-field-row > small { grid-column: 1 / -1; }
+.settings-modal .settings-form-row:has(> .settings-field-row),
+.settings-modal .settings-form-row:has(> .settings-help-field),
+.settings-modal .set-editor .grid,
+.settings-modal .ssh-host-form { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+.settings-modal .ssh-key-create { grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
+.settings-modal .ssh-key-create .settings-field-row { grid-template-columns: 80px minmax(0, 1fr); }
+.settings-modal .settings-toggle-field { grid-template-columns: minmax(120px, 34%) minmax(0, 1fr); align-items: center; gap: 6px 12px; }
+.settings-modal .settings-toggle-field > small { grid-column: 1 / -1; }
+@media (max-width: 520px) {
+  .settings-modal .settings-field-row.settings-field-row,
+  .settings-modal .settings-toggle-field { grid-template-columns: minmax(100px, 42%) minmax(0, 1fr); gap: 6px; }
+  .settings-modal .settings-field-row.settings-number-row { grid-template-columns: minmax(0, 1fr) 108px; }
+  .settings-modal .ssh-key-create .settings-field-row { grid-template-columns: 68px minmax(0, 1fr); }
+}
+
+.settings-modal .set-editor .service-connection,
+.settings-modal .set-editor .set-profile[open],
+.settings-modal .set-editor .service-advanced[open] { display: grid; gap: 8px; }
+.settings-modal .block-editor[open] > .settings-field-row { margin-top: 0; }
+.settings-modal label:has(> input[type="checkbox"]),
+.settings-modal label:has(> input[type="radio"]) { display: flex; flex-direction: row; align-items: center; }
+.settings-modal label > input[type="checkbox"],
+.settings-modal label > input[type="radio"] { flex-shrink: 0; width: auto; }
+
+/* Shared settings action styling, including prompt controls added later. */
+.settings-modal { --settings-action-bg: #1b202a; --settings-action-border: #3b4354; --settings-action-text: #aeb7c8; --settings-action-hover: #263044; --settings-danger: #db919a; }
+html[data-theme="light"] .settings-modal { --settings-action-bg: #f3f5f8; --settings-action-border: #ccd4e0; --settings-action-text: #536176; --settings-action-hover: #e8edf5; --settings-danger: #b74351; }
+.settings-modal :is(.prompt-composer .actions, .preset-actions) > button,
+.settings-modal .prompt-presets > button { min-height: 34px; padding: 7px 10px; border: 1px solid var(--settings-action-border); border-radius: 8px; background: var(--settings-action-bg); color: var(--settings-action-text); font: inherit; font-size: 12px; line-height: 1.3; }
+.settings-modal :is(.prompt-composer .actions, .preset-actions) > button:hover:not(:disabled),
+.settings-modal .prompt-presets > button:hover:not(:disabled) { background: var(--settings-action-hover); }
+.settings-modal :is(.prompt-composer .actions, .preset-actions) > button:disabled { opacity: .45; cursor: default; }
+.settings-modal :is(.prompt-composer .actions, .preset-actions) > button.danger { color: var(--settings-danger); }
+.settings-modal :is(.prompt-composer .actions, .preset-actions) > button:focus-visible,
+.settings-modal .prompt-presets > button:focus-visible { outline: 2px solid #6584ed; outline-offset: 2px; }
+
+.settings-modal .settings-help-field { display: grid; grid-template-columns: minmax(120px, 34%) minmax(0, 1fr); align-items: center; gap: 6px 12px; min-width: 0; }
+.settings-modal .settings-field-caption { display: flex; align-items: center; min-width: 0; }
+.settings-modal .settings-field-caption > label { min-width: 0; margin: 0; }
+.settings-modal .settings-field-caption > button { flex-shrink: 0; }
+.settings-modal .settings-field-control > select,
+.settings-modal .settings-field-control > input { width: 100%; min-width: 0; box-sizing: border-box; }
+@media (max-width: 520px) { .settings-modal .settings-help-field { grid-template-columns: minmax(100px, 42%) minmax(0, 1fr); gap: 6px; } }
+
+.settings-modal .settings-field-control { min-width: 0; font-size: 12px; }
+
+/* Uncustomized setting actions use the same themed button treatment. */
+.settings-modal :where(button:not(.settings-info):not(.avatar-preset-grid button):not(.preset-manager-row button)) { padding: 7px 10px; border: 1px solid var(--settings-action-border); border-radius: 8px; background: var(--settings-action-bg); color: var(--settings-action-text); font: inherit; font-size: 12px; line-height: 1.3; }
+.settings-modal :where(button:hover:not(:disabled):not(.settings-info)) { background: var(--settings-action-hover); }
+.settings-modal :where(button:disabled) { cursor: default; opacity: .45; }
+.settings-modal :where(button.danger) { color: var(--settings-danger); }
+.settings-modal :where(button:focus-visible) { outline: 2px solid #6584ed; outline-offset: 2px; }
+.sidebar { --sidebar-surface: #0b0d12; }
+html[data-theme="light"] .sidebar { --sidebar-surface: #fff; }
+.sidebar nav > .folder-section, .sidebar nav > .chat-group { flex-shrink: 0; }
+.chat-group-header { position: sticky; top: 0; z-index: 2; flex-shrink: 0; background: var(--sidebar-surface); }
+.chat-group-header > .group-toggle { width: 100%; }

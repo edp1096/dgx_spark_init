@@ -13,6 +13,7 @@ test('bounds folder and ungrouped rows while paging and finding an older chat', 
   await page.route('**/api/sessions/*/ssh-grants', route => route.fulfill({ json: [] }));
   await page.route('**/api/search?*', route => route.fulfill({ json: [{ session_id: 'u999', title: '대화 999', message_id: 0, content: '' }] }));
   await page.goto('/');
+  expect(await page.locator('.sidebar').evaluate(el => { const a = el.getBoundingClientRect(), b = el.querySelector('.sidebar-footer-actions').getBoundingClientRect(); return Math.round(a.bottom - b.bottom); })).toBe(16);
   const folder = page.locator('.folder-list .chat-group');
   const other = page.locator('.ungrouped');
   await expect(folder.locator('.session-row')).toHaveCount(15);
@@ -34,5 +35,35 @@ test('bounds folder and ungrouped rows while paging and finding an older chat', 
   await expect(other.locator('.session-row')).toHaveCount(15);
   await expect(other.locator('.session-select').first()).toHaveText('대화 975');
   await expect(page.locator('.chat-title')).toContainText('대화 999');
-  await page.screenshot({ path: '/tmp/sparktalk-sidebar-pagination.png' });
+  await page.getByRole('textbox', { name: '미분류 대화 페이지 이동', exact: true }).fill('41');
+  await page.getByRole('textbox', { name: '미분류 대화 페이지 이동', exact: true }).press('Enter');
+  await expect(other.locator('.session-select').first()).toHaveText('대화 600');
+  const jump = page.getByRole('textbox', { name: '미분류 대화 페이지 이동', exact: true });
+  await jump.fill('999'); await jump.press('Enter');
+  await expect(jump).toHaveValue('67');
+  await expect(other.locator('.session-select').first()).toHaveText('대화 990');
+  await jump.fill('0'); await jump.press('Enter');
+  await expect(jump).toHaveValue('1');
+  await jump.fill(''); await jump.press('Enter'); await expect(jump).toHaveValue('1');
+  await jump.fill('3.5'); await jump.press('Enter'); await expect(jump).toHaveValue('1');
+  await jump.fill('20'); await jump.press('Escape'); await expect(jump).toHaveValue('1');
+  await jump.fill('20'); await jump.press('Tab'); await expect(jump).toHaveValue('1');
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 720 });
+    if (width === 390 && !(await page.locator('.sidebar').count())) await page.getByRole('button', { name: '사이드바 열기 또는 닫기' }).click();
+    await page.locator('.sidebar').evaluate(el => Promise.all(el.getAnimations().map(animation => animation.finished)));
+    await page.getByRole('textbox', { name: '미분류 대화 페이지 이동', exact: true }).fill('41');
+    await page.getByRole('textbox', { name: '미분류 대화 페이지 이동', exact: true }).press('Enter');
+    await page.locator('.sidebar > nav').evaluate(nav => {
+      const group = nav.querySelector('.ungrouped');
+      nav.scrollTop += group.getBoundingClientRect().top - nav.getBoundingClientRect().top + 100;
+    });
+    const top = await page.locator('.sidebar > nav').boundingBox();
+    const heading = await other.locator('.chat-group-header').boundingBox();
+    expect(Math.abs(heading.y - top.y)).toBeLessThan(2);
+    await page.screenshot({ path: `/tmp/sparktalk-sidebar-pagination-${width}.png` });
+    await page.getByRole('textbox', { name: '미분류 대화 페이지 이동', exact: true }).fill('1');
+    await page.getByRole('textbox', { name: '미분류 대화 페이지 이동', exact: true }).press('Enter');
+    await expect(other.locator('.session-select').first()).toHaveText('대화 0');
+  }
 });

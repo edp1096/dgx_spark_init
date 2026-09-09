@@ -31,6 +31,7 @@ var recipeOptionNames = map[string]bool{
 	"NCCL_SUBNET": true, "MASTER_PORT": true, "MAX_MODEL_LEN": true, "MAX_NUM_SEQS": true,
 	"GPU_MEMORY_UTILIZATION": true, "GPU_MEMORY_UTILIZATION_TEXT": true,
 	"KV_CACHE_MEMORY": true, "CACHE_RAM_MIB": true, "MTP_TOKENS": true, "DFLASH_TOKENS": true,
+	"DSPARK_ENABLE_DSML_RECOVERY": true, "DSPARK_ENABLE_DSPARK_SWA_PREFIX": true,
 }
 
 func validateRecipeOptions(c Component) error {
@@ -41,6 +42,11 @@ func validateRecipeOptions(c Component) error {
 		}
 		if k == "MODEL_VARIANT" && v != "official" && v != "abliterated" {
 			return fmt.Errorf("invalid model variant")
+		}
+		if k == "DSPARK_ENABLE_DSML_RECOVERY" || k == "DSPARK_ENABLE_DSPARK_SWA_PREFIX" {
+			if c.Controller != "dspark-cluster" || (v != "0" && v != "1") {
+				return fmt.Errorf("%s: %s requires a DeepSeek service and value 0 or 1", c.ID, k)
+			}
 		}
 	}
 	return nil

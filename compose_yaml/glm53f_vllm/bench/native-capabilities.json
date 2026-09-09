@@ -1,0 +1,19 @@
+{
+  "image": "ghcr.io/entrpi/glm-5.3-flash-exl3-2x-spark:v2.3-tier1",
+  "native_option": "adaptive_speculative_tokens_window",
+  "MiaAI_main": "9c0794b",
+  "MiaAI_patch_check": "first import anchor mismatch; no patch installed",
+  "prefill": "B12X planned Trellis, not MiaAI E2/E3",
+  "files": {
+    "scheduler.py": "83df0c0545f26bb216cd3c037c8d1234b5d8d449b77d3547d3ebe120fec22929",
+    "exl3.py": "37c94d6e3e47e6c0708155cb257a748824ce36f1949526231cbbdf42e0459f24",
+    "speculative.py": "e3c9c59fffca711f4c24091948acc55635d9a4eae357c60ee34db095b91ee611",
+    "cudagraph_utils.py": "236c244e9c1eb2c7b04e5710eedcb1c72078c7bdf8c2efccbc1e87b3885eb850",
+    "dynamic/acceptance_length.py": "ade345da35c665d8190bc745a092cf3cb92d282f7a5cf5ac8e71b60e5cc9e1ae",
+    "dynamic/__init__.py": "e3c55cbb0d7a8bd47df6f3378835644645f5d3bc89b45793b5d5a02d013e5c58",
+    "dynamic/utils.py": "7179869a6d8e97634efe8bd3a9b07608c6393cfc50acdbc4cf11594872c087c1"
+  },
+  "DFlash2_runtime_support": false,
+  "runtime_error": "DFlash2 drafts at a fixed physical depth; num_speculative_tokens_per_batch_size and adaptive_speculative_tokens_window are not supported.",
+  "decision": "Do not expose or enable native adaptation on the pinned Entrpi DFlash2 runtime."
+}

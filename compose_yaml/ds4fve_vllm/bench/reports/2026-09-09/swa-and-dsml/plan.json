@@ -1,0 +1,41 @@
+{
+  "mode": "candidate",
+  "overrides": {
+    "MAX_MODEL_LEN": "131072",
+    "MAX_NUM_SEQS": "2",
+    "MAX_NUM_BATCHED_TOKENS": "4096",
+    "GPU_MEMORY_UTILIZATION_TEXT": "0.78",
+    "DSPARK_RESTART_POLICY": "no",
+    "DSPARK_ENABLE_C128A_PREFILL_CACHE": "1",
+    "DSPARK_ENABLE_DSPARK_SWA_PREFIX": "1",
+    "DSPARK_ENABLE_DSML_RECOVERY": "1"
+  },
+  "baseline": {
+    "head": {
+      "boot": "ccc4bda2-bff7-43e5-a7f0-ac093ba632ac",
+      "available": 125946003456,
+      "swap": 320487424,
+      "swap_free": 16859377664,
+      "pressure": "some avg10=0.00 avg60=0.43 avg300=1.13 total=18302619\nfull avg10=0.00 avg60=0.43 avg300=1.13 total=18282326",
+      "gpu": "50, 208, 4.83"
+    },
+    "worker": {
+      "boot": "1094b293-01b2-446f-ae13-e3ba1770665f",
+      "available": 125226967040,
+      "swap": 2389327872,
+      "swap_free": 14790537216,
+      "pressure": "some avg10=0.00 avg60=0.18 avg300=0.93 total=12999960\nfull avg10=0.00 avg60=0.18 avg300=0.93 total=12990026",
+      "gpu": "51, 1989, 8.15"
+    }
+  },
+  "started": "2026-09-09T05:19:06.884497+09:00",
+  "guard": {
+    "min_available_gib": 8,
+    "min_swap_free_gib": 2,
+    "benchmark_swap_growth_mib": 512
+  },
+  "limitations": [
+    "128K cap and concurrency 2; does not qualify 1M/concurrency 6.",
+    "CPU parser fixtures cover malformed DSML; live model may not emit malformed DSML."
+  ]
+}

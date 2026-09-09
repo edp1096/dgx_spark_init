@@ -86,7 +86,6 @@
     {/each}
   </div>
 
-  <small>지원 서비스는 설정 → 시스템 → 지원 서비스에서 별도로 관리합니다.</small>
   <div class="runtime-switch">
     <select bind:value={targetBundle} aria-label="전환할 AI 세트">
       {#each runtime?.bundles || [] as bundle}

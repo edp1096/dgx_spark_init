@@ -1,0 +1,34 @@
+{
+  "head": {
+    "image_id": "sha256:44b2dbafe8d81d6c7019a346480b49b23c1a0bef99c9b1d0db6e7ccc926921ca",
+    "image": "ghcr.io/entrpi/glm-5.3-flash-exl3-2x-spark:v2.3-tier1",
+    "started": "2026-09-08T20:25:52.094798862Z",
+    "restart": "no",
+    "environment": {
+      "MAX_NUM_BATCHED_TOKENS": "4096",
+      "ADAPTIVE_SPECULATIVE_TOKENS_WINDOW": "0",
+      "CUDA_GRAPH_CAPTURE_SIZES": "1 2 3 4 5 6 7 8 10 12 14 16",
+      "GPU_MEMORY_UTILIZATION": "0.85",
+      "MAX_MODEL_LEN": "131072",
+      "KV_CACHE_MEMORY": "8589934592",
+      "DFLASH_TOKENS": "7",
+      "MAX_NUM_SEQS": "2"
+    }
+  },
+  "worker": {
+    "image_id": "sha256:44b2dbafe8d81d6c7019a346480b49b23c1a0bef99c9b1d0db6e7ccc926921ca",
+    "image": "ghcr.io/entrpi/glm-5.3-flash-exl3-2x-spark:v2.3-tier1",
+    "started": "2026-09-08T20:25:51.04975788Z",
+    "restart": "no",
+    "environment": {
+      "GPU_MEMORY_UTILIZATION": "0.85",
+      "DFLASH_TOKENS": "7",
+      "ADAPTIVE_SPECULATIVE_TOKENS_WINDOW": "0",
+      "MAX_NUM_BATCHED_TOKENS": "4096",
+      "CUDA_GRAPH_CAPTURE_SIZES": "1 2 3 4 5 6 7 8 10 12 14 16",
+      "KV_CACHE_MEMORY": "8589934592",
+      "MAX_NUM_SEQS": "2",
+      "MAX_MODEL_LEN": "131072"
+    }
+  }
+}

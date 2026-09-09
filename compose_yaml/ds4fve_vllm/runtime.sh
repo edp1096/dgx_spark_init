@@ -7,6 +7,7 @@ set +a
 if [[ ${RUNTIME_HF_TOKEN+x} ]]; then export HF_TOKEN="$RUNTIME_HF_TOKEN"; fi
 export ENV_FILE="$script_dir/.env"
 export DSPARK_ENABLE_C128A_PREFILL_CACHE="${DSPARK_ENABLE_C128A_PREFILL_CACHE:-1}"
+export DSPARK_ENABLE_DSML_RECOVERY="${DSPARK_ENABLE_DSML_RECOVERY:-1}"
 case "${1:-status}" in
  setup|model|prepare|start|restart|validate) bash "$script_dir/prepare-upstream.sh" ;;
 esac

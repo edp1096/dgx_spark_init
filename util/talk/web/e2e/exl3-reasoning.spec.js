@@ -13,12 +13,14 @@ test('EXL3 offers native effort in chat and saves the default level', async ({ p
     await route.fulfill({ json: config });
   });
   await page.goto('/');
-  const slider = page.locator('.model-controls').getByRole('slider', { name: 'Reasoning effort' });
+  await page.getByRole('button', { name: '모델 및 대화 설정', exact: true }).click();
+  const slider = page.locator('.quick-panel').getByRole('slider', { name: 'Reasoning effort' });
   await expect(slider).toHaveValue('3');
   for (const [index, label] of ['꺼짐', '낮음', '중간', '매우 높음'].entries()) {
     await slider.fill(String(index));
     await expect(slider).toHaveAttribute('aria-valuetext', label);
   }
+  await page.getByRole('button', { name: '대화 제어 닫기', exact: true }).click();
   await page.locator('.settings-button').click();
   const defaults = page.getByLabel('기본 reasoning effort', { exact: true });
   await expect(defaults.locator('option')).toHaveText(['꺼짐', '낮음', '중간', '매우 높음']);
@@ -30,6 +32,7 @@ test('EXL3 offers native effort in chat and saves the default level', async ({ p
   expect((await response.json()).config.model.reasoning_effort).toBe('low');
   initial = false;
   await page.reload();
+  await page.getByRole('button', { name: '모델 및 대화 설정', exact: true }).click();
   await expect(slider).toHaveValue('1');
   } finally { await request.put('/api/config', { data: original }); }
 });

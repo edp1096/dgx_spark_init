@@ -94,6 +94,52 @@ func TestEmbeddedRecipeMaterializesInAppDataDirectory(t *testing.T) {
 	}
 }
 
+func TestDeepSeekRecoveryOptionsAreValidatedAndMaterialized(t *testing.T) {
+	cat, err := LoadCatalog()
+	if err != nil {
+		t.Fatal(err)
+	}
+	component, ok := cat.Component("ds4fve")
+	if !ok {
+		t.Fatal("missing DeepSeek component")
+	}
+	for _, key := range []string{"DSPARK_ENABLE_DSML_RECOVERY", "DSPARK_ENABLE_DSPARK_SWA_PREFIX"} {
+		for _, value := range []string{"0", "1"} {
+			item := component
+			item.RuntimeOptions = map[string]string{key: value}
+			if err := validateRecipeOptions(item); err != nil {
+				t.Fatal(err)
+			}
+			controller := newController(cat)
+			controller.ConfigurePaths(t.TempDir(), t.TempDir())
+			dir, err := controller.materializeRecipe(context.Background(), item)
+			if err != nil {
+				t.Fatal(err)
+			}
+			data, err := os.ReadFile(filepath.Join(dir, ".env"))
+			if err != nil {
+				t.Fatal(err)
+			}
+			if !strings.Contains(string(data), key+"="+shellQuote(value)) {
+				t.Fatalf("option did not reach recipe: %s", key)
+			}
+		}
+		for _, value := range []string{"", "true", "2", "1\nBAD=1"} {
+			item := component
+			item.RuntimeOptions = map[string]string{key: value}
+			if validateRecipeOptions(item) == nil {
+				t.Fatalf("accepted invalid %s=%q", key, value)
+			}
+		}
+		item := component
+		item.Controller = "glm53-cluster"
+		item.RuntimeOptions = map[string]string{key: "1"}
+		if validateRecipeOptions(item) == nil {
+			t.Fatal("accepted DeepSeek option for GLM")
+		}
+	}
+}
+
 func TestGLMEmbeddedRecipeMatchesIndependentSources(t *testing.T) {
 	data, err := assets.ReadFile("assets/recipes/glm53.tar.gz")
 	if err != nil {

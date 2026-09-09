@@ -49,6 +49,7 @@
   let reasoningEffort = '';
   let modelType = 'generic';
   let webToolsEnabled = false;
+  let assistantName = 'SparkTalk';
   let appearance = { assistant_avatar: 'preset:spark', user_avatar: 'preset:person-blue', theme: 'system' };
   let input = '';
   let running = false;
@@ -247,8 +248,9 @@
       modelType = cfg.model.model_type || 'generic';
       webToolsEnabled = cfg.tools?.enabled ?? false;
       appearance = cfg.appearance || appearance;
+      assistantName = cfg.model.prompt_composer?.character_name?.trim() || 'SparkTalk';
+      selectedModel = cfg.model.default_model || '';
       await Promise.all([refreshModels(), refreshHealth(), refreshRuntime()]);
-      selectedModel = resolveAvailableModel(models, cfg.model.default_model, models[0]);
       [groups, sessions] = await Promise.all([listGroups(), listSessions()]);
       // Initial restoration must not close a mobile sidebar the user opened
       // while the startup requests were still in flight.
@@ -1020,7 +1022,7 @@
 
   function toggleControls() {
     controlsOpen = !controlsOpen;
-    if (controlsOpen) closeSidebar();
+    if (controlsOpen) closeSidebarOnMobile();
   }
 
   function closeControls() {
@@ -1058,6 +1060,7 @@
     modelType = settings.model.model_type || 'generic';
     webToolsEnabled = settings.tools?.enabled ?? false;
     appearance = settings.appearance || appearance;
+    assistantName = settings.model.prompt_composer?.character_name?.trim() || 'SparkTalk';
     await Promise.all([refreshModels(), refreshHealth()]);
     if (settings.model.default_model) selectedModel = settings.model.default_model;
   }
@@ -1103,6 +1106,7 @@
       {foldersCollapsed}
       {activeId}
       {sessionRuns}
+      {assistantName}
       assistantAvatar={appearance.assistant_avatar}
       onclose={closeSidebar}
       onAddSession={addSession}
@@ -1173,7 +1177,9 @@
       {editingMessageId}
       bind:editInput
       bind:element={messagePane}
+      {assistantName}
       assistantAvatar={appearance.assistant_avatar}
+      userName={appearance.user_name || '나'}
       userAvatar={appearance.user_avatar}
       {variantIndices}
       {variantPosition}

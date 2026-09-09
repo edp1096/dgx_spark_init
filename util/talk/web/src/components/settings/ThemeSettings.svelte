@@ -1,4 +1,5 @@
 <script>
+  import SettingsHelp from './SettingsHelp.svelte';
   export let appearance;
 
   const choices = [
@@ -13,7 +14,7 @@
 </script>
 
 <fieldset class="theme-settings">
-  <legend>테마</legend>
+  <legend><span>테마</span> <SettingsHelp title="테마"><p>시스템 설정은 운영체제의 다크 모드 변경을 자동으로 따릅니다.</p></SettingsHelp></legend>
   <div class="theme-choice" role="radiogroup" aria-label="테마">
     {#each choices as choice}
       <button type="button" role="radio" aria-checked={appearance.theme === choice.id} class:selected={appearance.theme === choice.id} onclick={() => choose(choice.id)}>
@@ -21,5 +22,5 @@
       </button>
     {/each}
   </div>
-  <small>시스템 설정은 운영체제의 다크 모드 변경을 자동으로 따릅니다.</small>
+
 </fieldset>

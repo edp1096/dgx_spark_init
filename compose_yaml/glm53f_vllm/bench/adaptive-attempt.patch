@@ -1,0 +1,109 @@
+diff --git a/compose_yaml/glm53f_vllm/compose.yaml b/compose_yaml/glm53f_vllm/compose.yaml
+index fda0cb5..bf01f11 100644
+--- a/compose_yaml/glm53f_vllm/compose.yaml
++++ b/compose_yaml/glm53f_vllm/compose.yaml
+@@ -56,6 +56,8 @@ services:
+       SPEC_METHOD: ${SPEC_METHOD:-dflash}
+       MTP_TOKENS: ${MTP_TOKENS:-0}
+       DFLASH_TOKENS: ${DFLASH_TOKENS:-7}
++      ADAPTIVE_SPECULATIVE_TOKENS_WINDOW: ${ADAPTIVE_SPECULATIVE_TOKENS_WINDOW:-0}
++      CUDA_GRAPH_CAPTURE_SIZES: ${CUDA_GRAPH_CAPTURE_SIZES:-}
+       MIXED_PREFILL_DECODE_WEIGHT: ${MIXED_PREFILL_DECODE_WEIGHT:-}
+       MIXED_PREFILL_CAP: ${MIXED_PREFILL_CAP:-}
+       KDA_PREFILL_BACKEND: ${KDA_PREFILL_BACKEND:-}
+diff --git a/compose_yaml/glm53f_vllm/entrypoint.sh b/compose_yaml/glm53f_vllm/entrypoint.sh
+index db4827a..ca41b28 100755
+--- a/compose_yaml/glm53f_vllm/entrypoint.sh
++++ b/compose_yaml/glm53f_vllm/entrypoint.sh
+@@ -75,7 +75,19 @@ args=(
+ [[ -n "${MIXED_PREFILL_CAP:-}" ]] && args+=(--mixed-prefill-token-cap "$MIXED_PREFILL_CAP")
+ [[ "${SKIP_MM_PROFILING:-1}" != 0 ]] && args+=(--skip-mm-profiling)
+ [[ "${ENFORCE_EAGER:-0}" != 0 ]] && args+=(--enforce-eager)
++if [[ -n "${CUDA_GRAPH_CAPTURE_SIZES:-}" ]]; then
++  read -r -a capture_sizes <<<"$CUDA_GRAPH_CAPTURE_SIZES"
++  for size in "${capture_sizes[@]}"; do
++    [[ "$size" =~ ^[1-9][0-9]*$ ]] || { echo 'CUDA_GRAPH_CAPTURE_SIZES must contain positive integers' >&2; exit 2; }
++  done
++  args+=(--cudagraph-capture-sizes "${capture_sizes[@]}")
++fi
+ 
++if [[ "${ADAPTIVE_SPECULATIVE_TOKENS_WINDOW:-0}" != 0 ]] && \
++   { [[ "${MTP_TOKENS:-0}" != 0 ]] || [[ "${SPEC_METHOD:-dflash}" != dflash ]]; }; then
++  echo 'ADAPTIVE_SPECULATIVE_TOKENS_WINDOW requires DFlash in this recipe' >&2
++  exit 2
++fi
+ if [[ "${MTP_TOKENS:-0}" != 0 ]]; then
+   args+=(--speculative-config "{\"method\":\"mtp\",\"num_speculative_tokens\":${MTP_TOKENS}}")
+ elif [[ "${SPEC_METHOD:-dflash}" == dflash ]]; then
+@@ -83,7 +95,19 @@ elif [[ "${SPEC_METHOD:-dflash}" == dflash ]]; then
+     echo "DFlash2 weights are incomplete; set SPEC_METHOD=none or run the download profile." >&2
+     exit 2
+   }
+-  args+=(--speculative-config "{\"method\":\"dflash\",\"model\":\"/models/glm53-dflash2\",\"num_speculative_tokens\":${DFLASH_TOKENS:-7}}")
++  spec_config="$(python3 - <<'PY'
++import json, os
++window = int(os.environ.get('ADAPTIVE_SPECULATIVE_TOKENS_WINDOW', '0'))
++if window < 0:
++    raise SystemExit('ADAPTIVE_SPECULATIVE_TOKENS_WINDOW must be zero or positive')
++config = {'method': 'dflash', 'model': '/models/glm53-dflash2',
++          'num_speculative_tokens': int(os.environ.get('DFLASH_TOKENS', '7'))}
++if window:
++    config['adaptive_speculative_tokens_window'] = window
++print(json.dumps(config))
++PY
++)"
++  args+=(--speculative-config "$spec_config")
+ fi
+ 
+ args+=("${headless[@]}")
+diff --git a/compose_yaml/glm53f_vllm/env.sample b/compose_yaml/glm53f_vllm/env.sample
+index 97e143a..2d914b6 100644
+--- a/compose_yaml/glm53f_vllm/env.sample
++++ b/compose_yaml/glm53f_vllm/env.sample
+@@ -60,6 +60,12 @@ PREFIX_MATCH_UNIT=512
+ SPEC_METHOD=dflash
+ MTP_TOKENS=0
+ DFLASH_TOKENS=7
++# Entrpi v2.3 acceptance-length controller. 0 keeps fixed depth; 8 averages
++# eight verification steps before adapting. Opt in only after local A/B.
++ADAPTIVE_SPECULATIVE_TOKENS_WINDOW=0
++# Optional explicit graph sizes. The 2-request A/B profile uses
++# "1 2 3 4 5 6 7 8 10 12 14 16" for the native adaptive depth range 1..7.
++# CUDA_GRAPH_CAPTURE_SIZES="1 2 3 4 5 6 7 8 10 12 14 16"
+ 
+ API_PORT=8000
+ MASTER_PORT=29521
+diff --git a/compose_yaml/glm53f_vllm/runtime.sh b/compose_yaml/glm53f_vllm/runtime.sh
+index f410ec6..62a9551 100755
+--- a/compose_yaml/glm53f_vllm/runtime.sh
++++ b/compose_yaml/glm53f_vllm/runtime.sh
+@@ -2,7 +2,7 @@
+ set -euo pipefail
+ 
+ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+-env_file="$script_dir/.env"
++env_file="${RUNTIME_ENV_FILE:-$script_dir/.env}"
+ 
+ if [[ ! -f "$env_file" ]]; then
+   cp "$script_dir/env.sample" "$env_file"
+@@ -25,7 +25,7 @@ if [[ ${RUNTIME_HF_TOKEN+x} ]]; then export HF_TOKEN="$RUNTIME_HF_TOKEN"; fi
+ worker="${WORKER_USER}@${WORKER_LAN_IP}"
+ remote_dir="${REMOTE_COMPOSE_DIR:-${HOME}/workspace/dgx_spark_init/compose_yaml/glm53f_vllm}"
+ ssh_opts=(-o BatchMode=yes -o ConnectTimeout=10)
+-head_compose=(docker compose --project-directory "$script_dir" -f "$script_dir/compose.yaml" -f "$script_dir/compose.head.yaml")
++head_compose=(docker compose --project-directory "$script_dir" --env-file "$env_file" -f "$script_dir/compose.yaml" -f "$script_dir/compose.head.yaml")
+ prefix="${NCCL_SUBNET##*/}"
+ ssh_ready=0
+ 
+@@ -65,9 +65,10 @@ sync_compose() {
+   require_ssh
+   ssh "${ssh_opts[@]}" "$worker" "mkdir -p '$remote_dir'"
+   rsync -a --partial --exclude '.git/' --exclude '.env' --exclude '*.log' \
++    --exclude 'bench/results/' --exclude 'bench/.runtime/' \
+     -e "ssh -o BatchMode=yes -o ConnectTimeout=10" \
+     "$script_dir/" "$worker:$remote_dir/"
+-  awk '!/^(export[[:space:]]+)?(HF_TOKEN|HUGGING_FACE_HUB_TOKEN)=/' "$script_dir/.env" | ssh "${ssh_opts[@]}" "$worker" "umask 077; cat > '$remote_dir/.env'"
++  awk '!/^(export[[:space:]]+)?(HF_TOKEN|HUGGING_FACE_HUB_TOKEN)=/' "$env_file" | ssh "${ssh_opts[@]}" "$worker" "umask 077; cat > '$remote_dir/.env'"
+ }
+ 
+ setup_rail() {

@@ -16,6 +16,8 @@
   export let editingMessageId = null;
   export let editInput = '';
   export let element;
+  export let assistantName = 'SparkTalk';
+  export let userName = '나';
   export let assistantAvatar = 'preset:spark';
   export let userAvatar = 'preset:person-blue';
   export let variantIndices = () => [];
@@ -358,15 +360,16 @@
 
 <section class="messages" bind:this={element} use:codeCardActions onscroll={handleScroll}>
   {#if !messages.length}
-    <div class="welcome"><div class="mark large"><Avatar value={assistantAvatar} alt="SparkTalk" /></div><h1>무엇을 도와드릴까요?</h1><p>메시지를 보내세요.</p></div>
+    <div class="welcome"><div class="mark large"><Avatar value={assistantAvatar} alt={assistantName} /></div><h1>무엇을 도와드릴까요?</h1><p>{assistantName}에게 메시지를 보내세요.</p></div>
   {/if}
   {#if topSpacerHeight > 0}<div class="message-virtual-spacer" style:height={`${topSpacerHeight}px`} aria-hidden="true"></div>{/if}
   {#each visibleMessages as message, offset (messageKey(message, visibleStart + offset))}
     {@const index = visibleStart + offset}
     {@const messageArtifacts = artifactsFromMessage(message, index)}
     <article class:mine={message.role === 'user'} class:message-failed={message.status === 'failed'} class:message-cancelled={message.status === 'cancelled'} data-message-id={message.id || ''} data-message-index={index}>
-      <div class="avatar"><Avatar value={message.role === 'user' ? userAvatar : assistantAvatar} fallback={message.role === 'user' ? 'person-blue' : 'spark'} alt={message.role === 'user' ? '나' : 'AI'} /></div>
+      <div class="avatar"><Avatar value={message.role === 'user' ? userAvatar : assistantAvatar} fallback={message.role === 'user' ? 'person-blue' : 'spark'} alt={message.role === 'user' ? userName : assistantName} /></div>
       <div class="message-body">
+        <div class="speaker-name">{message.role === 'user' ? userName : assistantName}</div>
         {#if message.reasoning_content}
           <details class="reasoning" open={reasoningOpen[index] ?? false} ontoggle={(event) => setReasoningOpen(index, event.currentTarget.open)}>
             <summary><span class="activity-label" class:activity-scanner={running && message.activity === 'reasoning'}>생각 과정</span></summary>

@@ -1,4 +1,5 @@
 <script>
+  import SettingsHelp from './SettingsHelp.svelte';
   import { onMount } from 'svelte';
   import { listToolAudits } from '../../api.js';
 
@@ -31,9 +32,9 @@
 </script>
 
 <fieldset class="builtin-skills">
-  <legend>스킬</legend>
+  <legend><span>스킬</span> <SettingsHelp title="스킬"><p>라이브러리에서 내장·사용자 스킬을 관리합니다. 변경한 사용 설정은 저장 후 적용됩니다.</p></SettingsHelp></legend>
   <label class="check"><input type="checkbox" bind:checked={enabled} /> 필요한 작업 절차 불러오기</label>
-  <p><small>라이브러리에서 내장·사용자 스킬을 관리합니다. 변경한 사용 설정은 저장 후 적용됩니다.</small></p>
+
   <button onclick={onManage}>스킬 관리</button>
 </fieldset>
 

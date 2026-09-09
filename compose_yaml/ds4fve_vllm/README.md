@@ -49,3 +49,11 @@ cache. Original blobs are never modified. The final checkpoint still occupies
 space for changed shards locally; this optimization reduces network downloads,
 not necessarily disk usage. Partial downloads left by the old downloader are
 preserved but are no longer needed by selective preparation.
+
+## 2026-09-09 도구 호출·캐시 검증
+
+[54개 응답과 CPU 회귀검사 결과](bench/reports/2026-09-09/README.md)에 따라
+`DSPARK_ENABLE_DSML_RECOVERY=1`을 기본값으로 사용한다. 기존의 명시적인 `0` 설정은
+존중한다. `DSPARK_ENABLE_DSPARK_SWA_PREFIX=0`은 유지하며 반복 응답이 끊기는 경우
+선택적으로 켤 수 있다. 짧은 요청에서 약 0.15초의 추가 지연이 관측됐다.
+모델·이미지 pin과 가중치 준비 방식은 유지한다. 변경 후 두 rank를 다시 시작해야 한다.

@@ -1,0 +1,24 @@
+{
+  "head": {
+    "image_id": "sha256:a83948492cf13df455170fb42885f5ef4db54fefe0feff0f841ecbff464ac9d8",
+    "image": "ghcr.io/anemll/dspark-vllm-gx10:0.1.1@sha256:a83948492cf13df455170fb42885f5ef4db54fefe0feff0f841ecbff464ac9d8",
+    "started": "2026-09-08T20:19:44.0770748Z",
+    "restart": "no",
+    "environment": {
+      "DSPARK_ENABLE_DSPARK_SWA_PREFIX": "1",
+      "DSPARK_ENABLE_DSML_RECOVERY": "1",
+      "DSPARK_ENABLE_C128A_PREFILL_CACHE": "1"
+    }
+  },
+  "worker": {
+    "image_id": "sha256:a83948492cf13df455170fb42885f5ef4db54fefe0feff0f841ecbff464ac9d8",
+    "image": "ghcr.io/anemll/dspark-vllm-gx10:0.1.1@sha256:a83948492cf13df455170fb42885f5ef4db54fefe0feff0f841ecbff464ac9d8",
+    "started": "2026-09-08T20:19:43.740924894Z",
+    "restart": "no",
+    "environment": {
+      "DSPARK_ENABLE_C128A_PREFILL_CACHE": "1",
+      "DSPARK_ENABLE_DSPARK_SWA_PREFIX": "1",
+      "DSPARK_ENABLE_DSML_RECOVERY": "1"
+    }
+  }
+}

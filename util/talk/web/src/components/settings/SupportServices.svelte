@@ -1,4 +1,5 @@
 <script>
+  import SettingsHelp from './SettingsHelp.svelte';
   import { onMount, onDestroy } from 'svelte';
   export let settings;
   export let onstatus = () => {};
@@ -76,7 +77,7 @@
 </script>
 
 <section aria-label="지원 서비스 관리" class="support-services">
-  <p>기능 사용 설정과 서비스 실행은 별개입니다. 지원 서비스는 모델 세트와 독립적으로 시작·중지하며, 모델 전환이나 세트 중지 시 계속 실행됩니다.</p>
+  <div>지원 서비스 <SettingsHelp title="지원 서비스"><p>기능 사용 설정과 서비스 실행은 별개입니다. 지원 서비스는 모델 세트와 독립적으로 시작·중지하며, 모델 전환이나 세트 중지 시 계속 실행됩니다.</p></SettingsHelp></div>
   <button type="button" onclick={refresh} disabled={loading}>서비스 상태 새로고침</button>
   {#if error}<p role="alert">{error}</p>{/if}
   {#if snapshot?.operation?.state === 'running'}
@@ -95,9 +96,9 @@
         <span>준비 버전: {row.version}</span>
         {#if row.running_image}<span>실행 이미지: {row.running_image}</span>{/if}
       </div>
-      {#if snapshot.managed}<label>실행 호스트<select value={staged.host} disabled={running || busy} onchange={event => edit(row, 'host', event.currentTarget.value)}>{#each Object.keys(settings.runtime.catalog?.hosts || {}) as host}<option value={host}>{host}</option>{/each}</select></label>{/if}
-      {#if snapshot.managed}<label>서버 포트<input type="number" min="1" max="65535" value={staged.port || ''} disabled={running || busy} onchange={event => edit(row, 'port', Number(event.currentTarget.value))} /></label>{/if}
-      <label>API 주소<input value={staged.endpoint || ''} disabled={snapshot.managed && (running || busy)} onchange={event => edit(row, 'endpoint', event.currentTarget.value)} /></label>
+      {#if snapshot.managed}<label class="settings-field-row"><span>실행 호스트</span><select value={staged.host} disabled={running || busy} onchange={event => edit(row, 'host', event.currentTarget.value)}>{#each Object.keys(settings.runtime.catalog?.hosts || {}) as host}<option value={host}>{host}</option>{/each}</select></label>{/if}
+      {#if snapshot.managed}<label class="settings-field-row settings-number-row"><span>서버 포트</span><input type="number" min="1" max="65535" value={staged.port || ''} disabled={running || busy} onchange={event => edit(row, 'port', Number(event.currentTarget.value))} /></label>{/if}
+      <label class="settings-field-row"><span>API 주소</span><input value={staged.endpoint || ''} disabled={snapshot.managed && (running || busy)} onchange={event => edit(row, 'endpoint', event.currentTarget.value)} /></label>
       {#if running && snapshot.managed}<small>실행 위치나 주소를 바꾸려면 먼저 서비스를 중지하세요.</small>{/if}
       {#if dirty(row)}<small>배치 변경을 저장한 뒤 서비스를 조작하세요.</small>{/if}
       {#if snapshot.managed}

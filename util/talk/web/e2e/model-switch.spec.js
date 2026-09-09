@@ -18,7 +18,8 @@ test('does not offer a stale conversation model after a runtime switch', async (
 
   await page.goto('/');
 
-  const selector = page.locator('.model-controls select[aria-label="모델 선택"]');
+  await page.getByRole('button', { name: '모델 및 대화 설정', exact: true }).click();
+  const selector = page.locator('.quick-panel select[aria-label="모델 선택"]');
   await expect(selector).toHaveValue(currentModel);
   await expect(selector.locator('option')).toHaveCount(1);
   await expect(selector.locator('option')).toHaveText(currentModel);

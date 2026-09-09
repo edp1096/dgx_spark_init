@@ -8,10 +8,13 @@ test('keeps settings values while navigating categorized tabs', async ({ page })
   await expect(tabs).toHaveCount(6);
   await expect(page.getByRole('tab', { name: '대화' })).toHaveAttribute('aria-selected', 'true');
 
-  const effort = page.getByLabel('기본 reasoning effort', { exact: true });
+  const effort = page.getByRole('combobox', { name: '기본 reasoning effort', exact: true });
   await effort.selectOption('xhigh');
+  await page.mouse.click(2, 2);
+  await expect(page.getByRole('dialog', { name: '설정', exact: true })).toBeVisible();
+  await expect(effort).toHaveValue('xhigh');
   await page.getByRole('tab', { name: '음성' }).click();
-  await expect(page.getByText('음성 인식', { exact: true })).toBeVisible();
+  await expect(page.locator('#settings-panel-voice legend').filter({ hasText: '음성 인식' })).toBeVisible();
   const omitParentheticals = page.getByLabel('괄호 속 부연설명 읽지 않기');
   await expect(omitParentheticals).toBeChecked();
   await omitParentheticals.uncheck();
@@ -23,7 +26,7 @@ test('keeps settings values while navigating categorized tabs', async ({ page })
 
   const initialModal = await page.locator('.settings-modal').boundingBox();
   const initialActions = await page.locator('.modal-actions').boundingBox();
-  for (const name of ['기억', '음성', '기능', '외형', '시스템']) {
+  for (const name of ['프로필', '기억', '음성', '기능', '시스템']) {
     await page.getByRole('tab', { name }).click();
     const modal = await page.locator('.settings-modal').boundingBox();
     const actions = await page.locator('.modal-actions').boundingBox();
@@ -32,14 +35,15 @@ test('keeps settings values while navigating categorized tabs', async ({ page })
   }
 });
 
-test('changes Qwen reasoning with the compact header slider', async ({ page }) => {
+test('changes Qwen reasoning from the model menu', async ({ page }) => {
   await page.goto('/');
+  await page.getByRole('button', { name: '모델 및 대화 설정', exact: true }).click();
   const effort = page.getByRole('slider', { name: 'Reasoning effort' });
   await expect(effort).toHaveValue('2');
   await effort.fill('3');
-  await expect(page.locator('.model-controls .qwen-effort-control output')).toHaveText('XHigh');
+  await expect(page.locator('.quick-panel .qwen-effort-control output')).toHaveText('XHigh');
   await effort.fill('0');
-  await expect(page.locator('.model-controls .qwen-effort-control output')).toHaveText('꺼짐');
+  await expect(page.locator('.quick-panel .qwen-effort-control output')).toHaveText('꺼짐');
 });
 
 test('keeps tab navigation and actions reachable on mobile', async ({ page }) => {
@@ -49,8 +53,12 @@ test('keeps tab navigation and actions reachable on mobile', async ({ page }) =>
   await page.getByRole('button', { name: '사이드바 열기 또는 닫기' }).click();
   await expect(page.locator('.sidebar')).toBeVisible();
   await page.locator('.sidebar').evaluate((element) => Promise.all(element.getAnimations().map((animation) => animation.finished)));
+  expect(await page.locator('.sidebar').evaluate(el => getComputedStyle(el).paddingBottom)).toBe('16px');
   await page.locator('.settings-button').click();
 
+  await page.locator('.context-settings').scrollIntoViewIfNeeded();
+  expect(await page.locator('.context-settings').evaluate(el => el.scrollWidth <= el.clientWidth)).toBeTruthy();
+  await page.screenshot({ path: '/tmp/sparktalk-context-mobile.png' });
   const chatTab = page.getByRole('tab', { name: '대화' });
   await chatTab.focus();
   await chatTab.press('End');

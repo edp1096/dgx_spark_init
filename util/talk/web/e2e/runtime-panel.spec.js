@@ -74,13 +74,12 @@ test('shows runtime-specific startup stages without duplicating shard updates', 
 });
 
 test('keeps managed model controls reachable by touch scrolling on mobile', async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 500 });
+  await page.setViewportSize({ width: 390, height: 300 });
   await routeManagedRuntime(page, runtimeSnapshot);
   await page.goto('/');
-  await page.getByRole('button', { name: '모델 및 대화 설정' }).click();
+  await page.locator('.status').click();
 
-  const drawer = page.getByRole('dialog', { name: '모델 및 대화 설정' });
-  await drawer.locator('.drawer-status > button').click();
+  const drawer = page.getByRole('dialog', { name: 'DGX Spark 운영 상태' });
   const stop = drawer.getByRole('button', { name: '중지' });
 
   await expect(drawer).toHaveCSS('overflow-y', 'auto');

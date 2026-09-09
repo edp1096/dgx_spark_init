@@ -1,4 +1,5 @@
 <script>
+  import MicrophoneHelp from './MicrophoneHelp.svelte';
   export let onManageWorkflows = () => {};
   import { listSkills } from '../api.js';
   import { tick } from 'svelte';
@@ -167,6 +168,7 @@
       >
         {#if voiceState === 'transcribing' || voiceState === 'requesting'}<span class="voice-spinner"></span>{:else}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Zm-6 9a6 6 0 0 0 12 0M12 18v3m-3 0h6" /></svg>{/if}
       </button>
+      {#if !microphoneAvailable}<MicrophoneHelp compact />{/if}
     </div>
     <textarea bind:this={element} bind:value={input} oninput={resizeComposerInput} onkeydown={onKeydown} onpaste={onPaste} placeholder={activeId ? '메시지를 입력하세요' : '새 대화를 만든 뒤 메시지를 입력하세요'} rows="1" disabled={!activeId || running}></textarea>
     <div class="composer-submit">

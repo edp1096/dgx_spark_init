@@ -1,4 +1,5 @@
 <script>
+  import SettingsHelp from './SettingsHelp.svelte';
  import { onMount, onDestroy } from 'svelte';
  export let catalog;
  let token = '', configured = false, saving = false, message = '', state = '';
@@ -33,16 +34,16 @@
  onDestroy(() => clearInterval(timer));
 </script>
 <fieldset>
- <legend>Hugging Face 인증</legend>
+ <legend><span>Hugging Face 인증</span> <SettingsHelp title="Hugging Face 인증"><p>앱 서버에 별도로 보관하며 설정 내보내기에 포함하지 않습니다. 접근 제한 모델은 Hugging Face에서 먼저 이용 조건에 동의해야 합니다.</p></SettingsHelp></legend>
  <p>{configured ? '토큰 등록됨' : '등록된 토큰 없음'}</p>
- <label>{configured ? '새 토큰으로 교체' : '다운로드 토큰'}<input type="password" autocomplete="new-password" bind:value={token} placeholder="hf_…" /></label>
+ <label class="settings-field-row"><span>{configured ? '새 토큰으로 교체' : '다운로드 토큰'}</span><input type="password" autocomplete="new-password" bind:value={token} placeholder="hf_…" /></label>
  <div class="buttons"><button type="button" disabled={saving || !token.trim()} onclick={() => save()}>토큰 저장</button><button type="button" disabled={saving || !configured} onclick={() => save(true)}>토큰 삭제</button></div>
- <small>앱 서버에 별도로 보관하며 설정 내보내기에 포함하지 않습니다. 접근 제한 모델은 Hugging Face에서 먼저 이용 조건에 동의해야 합니다.</small>
+
 </fieldset>
 <fieldset>
  <legend>모델 준비</legend>
- <label>모델<select bind:value={component}>{#each models as model}<option value={model.id}>{model.name}</option>{/each}</select></label>
- <label>가중치<select bind:value={variant}><option value="official">공식 원본</option><option value="abliterated">Abliterated</option></select></label>
+ <label class="settings-field-row"><span>모델</span><select bind:value={component}>{#each models as model}<option value={model.id}>{model.name}</option>{/each}</select></label>
+ <label class="settings-field-row"><span>가중치</span><select bind:value={variant}><option value="official">공식 원본</option><option value="abliterated">Abliterated</option></select></label>
  {#if repositories.length}
   <div class="model-sources">
    <strong>다운로드할 모델 저장소</strong>

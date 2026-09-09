@@ -1,0 +1,224 @@
+{
+  "baseline": {
+    "functional_pass": 18,
+    "strict_pass": 15,
+    "requests": 18,
+    "phases": {
+      "loading": {
+        "head": {
+          "min_available_gib": 16.218528747558594,
+          "max_swap_gib": 3.1649169921875,
+          "boot_ids": [
+            "ccc4bda2-bff7-43e5-a7f0-ac093ba632ac"
+          ]
+        },
+        "worker": {
+          "min_available_gib": 16.231449127197266,
+          "max_swap_gib": 4.386863708496094,
+          "boot_ids": [
+            "1094b293-01b2-446f-ae13-e3ba1770665f"
+          ]
+        }
+      },
+      "benchmark": {
+        "head": {
+          "min_available_gib": 15.695415496826172,
+          "max_swap_gib": 3.0647125244140625,
+          "boot_ids": [
+            "ccc4bda2-bff7-43e5-a7f0-ac093ba632ac"
+          ]
+        },
+        "worker": {
+          "min_available_gib": 16.11895751953125,
+          "max_swap_gib": 4.375186920166016,
+          "boot_ids": [
+            "1094b293-01b2-446f-ae13-e3ba1770665f"
+          ]
+        }
+      }
+    },
+    "tasks": {
+      "repeat_json60": {
+        "median_elapsed_s": 1.684487763001016,
+        "median_ttft_s": 0.22327902500001073,
+        "total_completion_tokens": 387,
+        "total_elapsed_s": 5.0478893910021725,
+        "cached_tokens": [
+          0,
+          0,
+          0
+        ]
+      },
+      "repeat_long_facts": {
+        "median_elapsed_s": 0.8866779609998048,
+        "median_ttft_s": 0.41710520800006634,
+        "total_completion_tokens": 84,
+        "total_elapsed_s": 14.746871812998506,
+        "cached_tokens": [
+          0,
+          19456,
+          19456
+        ]
+      },
+      "korean_arithmetic": {
+        "median_elapsed_s": 0.548620766001477,
+        "median_ttft_s": 0.2701431990008132,
+        "total_completion_tokens": 39,
+        "total_elapsed_s": 1.6464329170030396,
+        "cached_tokens": [
+          0,
+          0,
+          0
+        ]
+      },
+      "tool_auto": {
+        "median_elapsed_s": 0.9723650689993519,
+        "median_ttft_s": 0.4899443960002827,
+        "total_completion_tokens": 201,
+        "total_elapsed_s": 3.071446730000389,
+        "cached_tokens": [
+          0,
+          256,
+          256
+        ]
+      },
+      "tool_required": {
+        "median_elapsed_s": 1.1236361049996049,
+        "median_ttft_s": 0.6432289399999718,
+        "total_completion_tokens": 201,
+        "total_elapsed_s": 3.599542318001113,
+        "cached_tokens": [
+          0,
+          0,
+          0
+        ]
+      },
+      "tool_none": {
+        "median_elapsed_s": 0.40200803200059454,
+        "median_ttft_s": 0.26434720900033426,
+        "total_completion_tokens": 24,
+        "total_elapsed_s": 1.2723452760001237,
+        "cached_tokens": [
+          0,
+          256,
+          256
+        ]
+      }
+    }
+  },
+  "candidate": {
+    "functional_pass": 18,
+    "strict_pass": 15,
+    "requests": 18,
+    "phases": {
+      "loading": {
+        "head": {
+          "min_available_gib": 14.698162078857422,
+          "max_swap_gib": 3.0812759399414062,
+          "boot_ids": [
+            "ccc4bda2-bff7-43e5-a7f0-ac093ba632ac"
+          ]
+        },
+        "worker": {
+          "min_available_gib": 14.76803207397461,
+          "max_swap_gib": 4.291229248046875,
+          "boot_ids": [
+            "1094b293-01b2-446f-ae13-e3ba1770665f"
+          ]
+        }
+      },
+      "benchmark": {
+        "head": {
+          "min_available_gib": 14.69863510131836,
+          "max_swap_gib": 3.0033302307128906,
+          "boot_ids": [
+            "ccc4bda2-bff7-43e5-a7f0-ac093ba632ac"
+          ]
+        },
+        "worker": {
+          "min_available_gib": 14.929229736328125,
+          "max_swap_gib": 4.233131408691406,
+          "boot_ids": [
+            "1094b293-01b2-446f-ae13-e3ba1770665f"
+          ]
+        }
+      }
+    },
+    "tasks": {
+      "repeat_json60": {
+        "median_elapsed_s": 1.6927190690003044,
+        "median_ttft_s": 0.22585584000080416,
+        "total_completion_tokens": 387,
+        "total_elapsed_s": 5.036453651000556,
+        "cached_tokens": [
+          0,
+          0,
+          0
+        ]
+      },
+      "repeat_long_facts": {
+        "median_elapsed_s": 0.8896706180003093,
+        "median_ttft_s": 0.42108772699975816,
+        "total_completion_tokens": 84,
+        "total_elapsed_s": 15.308830824000324,
+        "cached_tokens": [
+          0,
+          19456,
+          19456
+        ]
+      },
+      "korean_arithmetic": {
+        "median_elapsed_s": 0.5537695519997214,
+        "median_ttft_s": 0.27527913599988096,
+        "total_completion_tokens": 39,
+        "total_elapsed_s": 1.653091719997974,
+        "cached_tokens": [
+          0,
+          0,
+          0
+        ]
+      },
+      "tool_auto": {
+        "median_elapsed_s": 1.1255747270006395,
+        "median_ttft_s": 0.6427680409997265,
+        "total_completion_tokens": 201,
+        "total_elapsed_s": 3.376758790000167,
+        "cached_tokens": [
+          0,
+          0,
+          0
+        ]
+      },
+      "tool_required": {
+        "median_elapsed_s": 1.1387435859996913,
+        "median_ttft_s": 0.6503326330002892,
+        "total_completion_tokens": 201,
+        "total_elapsed_s": 3.6510275150012603,
+        "cached_tokens": [
+          0,
+          0,
+          0
+        ]
+      },
+      "tool_none": {
+        "median_elapsed_s": 0.5445231480007351,
+        "median_ttft_s": 0.41522730099859473,
+        "total_completion_tokens": 24,
+        "total_elapsed_s": 1.5825896670012298,
+        "cached_tokens": [
+          0,
+          0,
+          0
+        ]
+      }
+    }
+  },
+  "limitations": [
+    "Sequential same-input trials; three repeats are not independent tasks.",
+    "Functional tool-call scoring checks name/arguments; strict scoring also requires finish_reason=tool_calls.",
+    "Prose requires a separate manual review.",
+    "Startup swap and request-phase swap are separate observations."
+  ],
+  "functional_regressions": [],
+  "exact_content_matches": 18
+}

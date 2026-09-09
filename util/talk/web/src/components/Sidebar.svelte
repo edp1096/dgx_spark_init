@@ -12,6 +12,7 @@
   export let foldersCollapsed = false;
   export let activeId = '';
   export let sessionRuns = {};
+  export let assistantName = 'SparkTalk';
   export let assistantAvatar = 'preset:spark';
   export let onclose = () => {};
   export let onAddSession = () => {};
@@ -141,7 +142,7 @@
 </script>
 
 <aside class="sidebar">
-  <div class="brand"><span class="mark"><Avatar value={assistantAvatar} alt="SparkTalk" /></span><strong>SparkTalk</strong><button class="sidebar-close" onclick={onclose} aria-label="사이드바 닫기">×</button></div>
+  <div class="brand"><span class="mark"><Avatar value={assistantAvatar} alt={assistantName} /></span><strong class="character-name" title={assistantName}>{assistantName}</strong><button class="sidebar-close" onclick={onclose} aria-label="사이드바 닫기">×</button></div>
   <div class="sidebar-actions">
     <button class="new-chat" onclick={onAddSession}>＋ 새 대화</button>
     <button class="new-group" onclick={onAddGroup} title="그룹 만들기" aria-label="그룹 만들기">＋ 폴더</button>
@@ -168,6 +169,7 @@
         <div id="sidebar-folder-list" class="folder-list">
           {#each groups as group, groupIndex}
             <section class="chat-group">
+              <div class="chat-group-header">
               <div class="group-heading">
                 <button class="group-toggle" onclick={() => onToggleGroup(group.id)} aria-expanded={!collapsedGroups[group.id]}>
                   <span>{collapsedGroups[group.id] ? '▸' : '▾'} 📁 {group.name}</span><small>{(sessionsByGroup[group.id] || []).length}</small>
@@ -178,6 +180,8 @@
                   <button onclick={() => onEditGroup(group)} title="이름 변경">✎</button>
                   <button class="danger" onclick={() => onRemoveGroup(group)} title="그룹 삭제">×</button>
                 </div>
+              </div>
+              {#if !collapsedGroups[group.id] && groupPages[group.id]}<SessionPager value={groupPages[group.id]} label={group.name} onPage={(page) => changePage(group.id, page)} />{/if}
               </div>
               {#if !collapsedGroups[group.id]}
                 {#each (groupPages[group.id]?.items || []) as session (session.id)}
@@ -195,7 +199,6 @@
                     {/if}
                   </div>
                 {/each}
-                {#if groupPages[group.id]}<SessionPager value={groupPages[group.id]} label={group.name} onPage={(page) => changePage(group.id, page)} />{/if}
               {/if}
             </section>
           {/each}
@@ -204,9 +207,12 @@
       {/if}
     </section>
     <section class="chat-group ungrouped">
+      <div class="chat-group-header">
       <button class="group-toggle" onclick={() => onToggleGroup('__ungrouped__')} aria-expanded={!collapsedGroups.__ungrouped__}>
         <span>{collapsedGroups.__ungrouped__ ? '▸' : '▾'} 대화</span><small>{ungroupedSessions.length}</small>
       </button>
+      {#if !collapsedGroups.__ungrouped__}<SessionPager value={ungroupedPage} label="미분류 대화" onPage={(page) => changePage('__ungrouped__', page)} />{/if}
+      </div>
       {#if !collapsedGroups.__ungrouped__}
         {#each ungroupedPage.items as session (session.id)}
           <div class="session-row" class:active={session.id === activeId} class:generating={Boolean(sessionRuns[session.id])}>
@@ -223,7 +229,6 @@
             {/if}
           </div>
         {/each}
-        <SessionPager value={ungroupedPage} label="미분류 대화" onPage={(page) => changePage('__ungrouped__', page)} />
       {/if}
     </section>
   </nav>

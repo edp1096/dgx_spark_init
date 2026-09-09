@@ -1,0 +1,39 @@
+{
+  "composer": {
+    "enabled": true,
+    "persona_id": "p",
+    "condition_ids": [
+      "last",
+      "first"
+    ],
+    "extra": "  추가 지침\n둘째 줄  ",
+    "combinations": [],
+    "blocks": [
+      {
+        "id": "p",
+        "kind": "persona",
+        "category": "",
+        "group": "",
+        "name": "조언자",
+        "prompt": "  차분하게 답한다.  "
+      },
+      {
+        "id": "first",
+        "kind": "condition",
+        "category": "length",
+        "group": "length",
+        "name": "짧게",
+        "prompt": "간결하게 답한다."
+      },
+      {
+        "id": "last",
+        "kind": "condition",
+        "category": "evidence",
+        "group": "",
+        "name": "근거",
+        "prompt": "사실과 추론을 구분한다."
+      }
+    ]
+  },
+  "expected": "[페르소나]\n차분하게 답한다.\n\n말투·형식이 충돌하면 페르소나의 기본 표현보다 아래 추가 조건을 따른다.\n\n[답변 길이]\n간결하게 답한다.\n\n[근거·검증]\n사실과 추론을 구분한다.\n\n[직접 추가]\n추가 지침\n둘째 줄"
+}

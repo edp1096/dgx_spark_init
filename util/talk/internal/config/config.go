@@ -15,7 +15,7 @@ import (
 
 const DefaultPath = "sparktalk.yaml"
 
-//go:embed assets/sparktalk.default.yaml assets/system_prompt_presets.default.yaml
+//go:embed assets/sparktalk.default.yaml assets/system_prompt_presets.default.yaml assets/prompt_composer.defaults.json
 var assets embed.FS
 
 type Config struct {
@@ -89,15 +89,16 @@ type ServerConfig struct {
 }
 
 type ModelConfig struct {
-	Endpoint            string         `yaml:"endpoint" json:"endpoint"`
-	DefaultModel        string         `yaml:"default_model" json:"default_model"`
-	ModelType           string         `yaml:"model_type" json:"model_type"`
-	APIKey              string         `yaml:"api_key" json:"-"`
-	ReasoningEffort     string         `yaml:"reasoning_effort" json:"reasoning_effort"`
-	ThinkingBudget      int            `yaml:"thinking_budget" json:"thinking_budget"`
-	SystemPrompt        string         `yaml:"system_prompt" json:"system_prompt"`
-	SystemPromptPreset  string         `yaml:"system_prompt_preset,omitempty" json:"system_prompt_preset"`
-	SystemPromptPresets []PromptPreset `yaml:"system_prompt_presets,omitempty" json:"system_prompt_presets"`
+	Endpoint            string          `yaml:"endpoint" json:"endpoint"`
+	DefaultModel        string          `yaml:"default_model" json:"default_model"`
+	ModelType           string          `yaml:"model_type" json:"model_type"`
+	APIKey              string          `yaml:"api_key" json:"-"`
+	ReasoningEffort     string          `yaml:"reasoning_effort" json:"reasoning_effort"`
+	ThinkingBudget      int             `yaml:"thinking_budget" json:"thinking_budget"`
+	SystemPrompt        string          `yaml:"system_prompt" json:"system_prompt"`
+	SystemPromptPreset  string          `yaml:"system_prompt_preset,omitempty" json:"system_prompt_preset"`
+	SystemPromptPresets []PromptPreset  `yaml:"system_prompt_presets,omitempty" json:"system_prompt_presets"`
+	PromptComposer      *PromptComposer `yaml:"prompt_composer,omitempty" json:"prompt_composer"`
 }
 
 type PromptPreset struct {
@@ -162,6 +163,7 @@ type ExtraConfig struct {
 }
 
 type AppearanceConfig struct {
+	UserName        string `yaml:"user_name" json:"user_name"`
 	AssistantAvatar string `yaml:"assistant_avatar" json:"assistant_avatar"`
 	UserAvatar      string `yaml:"user_avatar" json:"user_avatar"`
 	Theme           string `yaml:"theme" json:"theme"`
@@ -444,6 +446,7 @@ func (c *Config) Normalize() {
 	}
 	c.Model.SystemPrompt = strings.TrimSpace(c.Model.SystemPrompt)
 	c.Model.SystemPromptPreset = strings.TrimSpace(c.Model.SystemPromptPreset)
+	c.Model.normalizePromptComposer()
 	c.ASR.FFmpegEndpoint = strings.TrimRight(strings.TrimSpace(c.ASR.FFmpegEndpoint), "/")
 	c.ASR.Endpoint = strings.TrimRight(strings.TrimSpace(c.ASR.Endpoint), "/")
 	c.ASR.Model = strings.TrimSpace(c.ASR.Model)
@@ -625,6 +628,7 @@ func (c *Config) Normalize() {
 	if c.Memory.AlwaysTokenBudget > 8192 {
 		c.Memory.AlwaysTokenBudget = 8192
 	}
+	c.Appearance.UserName = strings.TrimSpace(c.Appearance.UserName)
 	c.Appearance.AssistantAvatar = normalizeAvatar(c.Appearance.AssistantAvatar, "preset:spark")
 	c.Appearance.UserAvatar = normalizeAvatar(c.Appearance.UserAvatar, "preset:person-blue")
 	c.Appearance.Theme = strings.ToLower(strings.TrimSpace(c.Appearance.Theme))
@@ -636,6 +640,9 @@ func (c *Config) Normalize() {
 }
 
 func (c Config) Validate() error {
+	if len(c.Appearance.UserName) > 240 {
+		return errors.New("user name is too long")
+	}
 	if c.Runtime.Catalog != nil {
 		catalog, err := orchestrator.ValidateCatalog(*c.Runtime.Catalog)
 		if err != nil {
@@ -711,6 +718,11 @@ func (c Config) Validate() error {
 	}
 	if len(c.Model.SystemPromptPresets) > 200 {
 		return errors.New("model.system_prompt_presets supports at most 200 presets")
+	}
+	if c.Model.PromptComposer != nil {
+		if err := c.Model.PromptComposer.Validate(); err != nil {
+			return err
+		}
 	}
 	presetNames := make(map[string]struct{}, len(c.Model.SystemPromptPresets))
 	for _, preset := range c.Model.SystemPromptPresets {

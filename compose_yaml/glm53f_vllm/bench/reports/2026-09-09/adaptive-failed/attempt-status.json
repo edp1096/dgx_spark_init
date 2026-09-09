@@ -1,0 +1,8 @@
+{
+  "completed": false,
+  "responses": 0,
+  "failure_stage": "engine initialization",
+  "reason": "DFlash2 speculator rejects adaptive_speculative_tokens_window",
+  "cleanup": "both containers removed, worker env restored, no host reboot",
+  "promotion": "rejected; production files restored"
+}

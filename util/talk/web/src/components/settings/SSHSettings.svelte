@@ -162,9 +162,9 @@
   <div class="ssh-settings-head"><span>인증 키</span><small>개인키는 DB가 아닌 Extra 외부 폴더에 저장</small></div>
   <KeyStoreSettings {onnotify} onchange={(state) => { onkeystorechange(state); return loadKeys(); }} />
   <div class="ssh-key-create">
-    <label>새 키 ID<input bind:value={newKeyID} oninput={() => replacingKey = false} placeholder="dgx-main" /></label>
+    <label class="settings-field-row"><span>새 키 ID</span><input bind:value={newKeyID} oninput={() => replacingKey = false} placeholder="dgx-main" /></label>
     <button type="button" onclick={generateKey} disabled={keyBusy || !newKeyID.trim() || replacingKey}>Ed25519 생성</button>
-    <label class:disabled={!privateKeyUploadAllowed}>기존 개인키<input bind:this={keyFileInput} type="file" onchange={(event) => keyFile = event.currentTarget.files?.[0] || null} disabled={!privateKeyUploadAllowed || keyBusy} /></label>
+    <label class="settings-field-row" class:disabled={!privateKeyUploadAllowed}><span>기존 개인키</span><input bind:this={keyFileInput} type="file" onchange={(event) => keyFile = event.currentTarget.files?.[0] || null} disabled={!privateKeyUploadAllowed || keyBusy} /></label>
     <button type="button" onclick={importKey} disabled={keyBusy || !newKeyID.trim() || !keyFile || !privateKeyUploadAllowed}>{replacingKey ? '같은 ID로 키 교체' : '가져오기'}</button>
   </div>
   {#if !privateKeyUploadAllowed}<small class="ssh-security-note">현재 HTTP 원격 접속에서는 개인키 업로드를 차단합니다. Extra 내부에서 생성하는 ‘Ed25519 생성’을 사용하세요.</small>{/if}
@@ -202,13 +202,13 @@
   {/if}
   {#if editing !== null}
     <div class="ssh-host-form">
-      <label>표시 이름<input bind:value={form.name} placeholder="DGX Spark" /></label>
-      <label>별칭<input bind:value={form.alias} placeholder="dgx-main" /></label>
-      <label class="ssh-wide">호스트<input bind:value={form.hostname} placeholder="192.168.100.61" /></label>
-      <label>포트<input type="number" min="1" max="65535" bind:value={form.port} /></label>
-      <label>사용자<input bind:value={form.username} placeholder="edp1096" /></label>
-      <label>키 ID<input bind:value={form.key_id} list="ssh-key-ids" placeholder="dgx-main" /></label>
-      <label>제한시간(초)<input type="number" min="1" max="86400" bind:value={form.timeout_seconds} /></label>
+      <label class="settings-field-row"><span>표시 이름</span><input bind:value={form.name} placeholder="DGX Spark" /></label>
+      <label class="settings-field-row"><span>별칭</span><input bind:value={form.alias} placeholder="dgx-main" /></label>
+      <label class="settings-field-row ssh-wide"><span>호스트</span><input bind:value={form.hostname} placeholder="192.168.100.61" /></label>
+      <label class="settings-field-row settings-number-row"><span>포트</span><input type="number" min="1" max="65535" bind:value={form.port} /></label>
+      <label class="settings-field-row"><span>사용자</span><input bind:value={form.username} placeholder="edp1096" /></label>
+      <label class="settings-field-row"><span>키 ID</span><input bind:value={form.key_id} list="ssh-key-ids" placeholder="dgx-main" /></label>
+      <label class="settings-field-row settings-number-row"><span>제한시간(초)</span><input type="number" min="1" max="86400" bind:value={form.timeout_seconds} /></label>
       <div class="ssh-form-actions"><button type="button" onclick={cancel}>취소</button><button type="button" class="primary" onclick={save} disabled={busy}>저장</button></div>
     </div>
   {/if}
