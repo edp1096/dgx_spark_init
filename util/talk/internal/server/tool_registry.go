@@ -215,7 +215,7 @@ func newCompletionToolRegistry(server *Server, sessionID string, cfg config.Tool
 				return execution, err
 			})
 			prompt := imageToolSystemPrompt(imageCfg.Mode)
-			if imageCfg.Mode == "extended" {
+			if imageCfg.Mode == "extended" || imageCfg.Mode == "reference" || imageCfg.Mode == "paint" {
 				prompt += "\n" + imageAttachmentCatalog(server, sessionID)
 			}
 			registry.prompts = append(registry.prompts, prompt)

@@ -141,8 +141,8 @@ type ToolsConfig struct {
 }
 
 // ImageConfig connects SparkTalk's model tools to an OpenAI-compatible local
-// image API. Basic mode exposes portable text-to-image arguments only, while
-// extended mode enables the optional editing, control, LoRA, and helper routes.
+// image API. Basic mode exposes text-to-image arguments, reference mode adds
+// single-image editing, and extended mode enables controls, LoRAs, and helpers.
 type ImageConfig struct {
 	Enabled     bool   `yaml:"enabled" json:"enabled"`
 	Endpoint    string `yaml:"endpoint" json:"endpoint"`
@@ -570,7 +570,7 @@ func (c *Config) Normalize() {
 	if c.Image.Endpoint == "" {
 		c.Image.Endpoint = "http://127.0.0.1:8691"
 	}
-	if c.Image.Mode != "extended" {
+	if c.Image.Mode != "extended" && c.Image.Mode != "reference" && c.Image.Mode != "paint" {
 		c.Image.Mode = "basic"
 	}
 	if c.Image.DefaultSize == "" {
@@ -751,8 +751,8 @@ func (c Config) Validate() error {
 	if c.Image.Enabled && c.Image.Model == "" {
 		return errors.New("image.model is required")
 	}
-	if c.Image.Mode != "basic" && c.Image.Mode != "extended" {
-		return errors.New("image.mode must be basic or extended")
+	if c.Image.Mode != "basic" && c.Image.Mode != "extended" && c.Image.Mode != "reference" && c.Image.Mode != "paint" {
+		return errors.New("image.mode must be basic, reference, paint, or extended")
 	}
 	if !validImageSize(c.Image.DefaultSize) {
 		return errors.New("image.default_size must be WIDTHxHEIGHT using 512..2048 multiples of 16")

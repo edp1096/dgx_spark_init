@@ -36,7 +36,7 @@
 `/api/health`의 `extra` 응답에는 SSH·Collector만 있으며 Documents는 빠져 있다.
 문서 생성 자체는 정상 동작하지만, 통합 상태 화면에서 다른 서비스와 같은 기준으로 다룰 수 없다.
 
-근거: [카탈로그](internal/orchestrator/assets/catalog.json), [세트 적용](internal/config/config.go), [통합 상태 API](internal/server/config_handlers.go).
+근거: [카탈로그](../internal/orchestrator/assets/catalog.json), [세트 적용](../internal/config/config.go), [통합 상태 API](../internal/server/config_handlers.go).
 
 ### 2. Media가 ASR 설정·상태에 묶여 있음 — 우선순위 높음
 
@@ -45,7 +45,7 @@ ASR을 끄면 ASR 클라이언트는 FFmpeg/Media 상태까지 `disabled`로 반
 따라서 음성 전사를 사용하지 않으면서 URL 미디어 기능을 사용하는 경우, 미디어 상태가 잘못 해석될 수 있다.
 현재도 Media import가 켜져 있지만 통합 API의 FFmpeg 상태는 `disabled`였다.
 
-근거: [ASR health](internal/asr/client.go), [모델 세트 endpoint 적용](internal/config/config.go), [도구 등록](internal/server/tool_registry.go).
+근거: [ASR health](../internal/asr/client.go), [모델 세트 endpoint 적용](../internal/config/config.go), [도구 등록](../internal/server/tool_registry.go).
 
 ### 3. 공용 서비스의 시작·종료 범위가 분명하지 않음 — 우선순위 높음
 
@@ -56,7 +56,7 @@ ASR을 끄면 ASR 클라이언트는 FFmpeg/Media 상태까지 `disabled`로 반
 권장: 모델 중지와 지원 서비스 전체 중지를 명확히 구분한다. 공용 서비스는 모델 교체 때 재사용하고,
 명시적인 서비스 중지 또는 분명한 소유·사용 정책에 따라 종료한다. 기존 모델 세트의 로컬/워커 배치 선택은 보존한다.
 
-근거: [StartBundle / runBundleStart / StopBundle](internal/orchestrator/controller.go), [공유 정의와 세트별 배치](internal/orchestrator/bindings.go).
+근거: [StartBundle / runBundleStart / StopBundle](../internal/orchestrator/controller.go), [공유 정의와 세트별 배치](../internal/orchestrator/bindings.go).
 
 ### 4. 설치·배포 경로와 Compose 옵션이 다름 — 우선순위 중간
 
@@ -70,8 +70,8 @@ SSH의 read_only/tmpfs, Media의 tmpfs 및 일부 제한 설정도 두 실행 �
 
 권장: 버전 고정, 준비·업데이트·상태 확인의 인터페이스를 통일하고, 독립/앱 실행의 옵션 차이를 제거하거나 명시한다.
 
-근거: [이미지 준비](internal/orchestrator/remote.go), [내장 빌드 목록](internal/orchestrator/build_assets.go),
-[독립 Compose](../../compose_yaml/sparktalk_extra/compose.yaml), [내장 Compose 디렉터리](internal/orchestrator/assets).
+근거: [이미지 준비](../internal/orchestrator/remote.go), [내장 빌드 목록](../internal/orchestrator/build_assets.go),
+[독립 Compose](../../../compose_yaml/sparktalk_extra/compose.yaml), [내장 Compose 디렉터리](../internal/orchestrator/assets).
 
 ### 5. 코드·이름·패키징의 중심이 나뉘어 있음 — 우선순위 중간
 
@@ -83,9 +83,9 @@ Media 연결은 `internal/asr`, Documents의 HTTP 호출은 `internal/server/doc
 문서 구현은 독립 `docms`와 내장 자산에 복사본이 있다. 현재 대응되는 **23개 파일은 모두 동일**했다.
 이미 코드 불일치가 발생했다고 판단하지는 않는다. 복사가 늘어날 때를 대비해 원본 위치와 패키징·동기화 검사를 고정하는 것이 좋다.
 
-근거: [SSH 클라이언트](internal/support/ssh/client.go), [Collector 클라이언트](internal/knowledge/collector.go),
-[Media/ASR 클라이언트](internal/asr/client.go), [문서 호출](internal/server/document_tool.go),
-[독립 서비스](../../compose_yaml/sparktalk_extra), [내장 문서 자산](internal/orchestrator/assets/extra-documents).
+근거: [SSH 클라이언트](../internal/support/ssh/client.go), [Collector 클라이언트](../internal/knowledge/collector.go),
+[Media/ASR 클라이언트](../internal/asr/client.go), [문서 호출](../internal/server/document_tool.go),
+[독립 서비스](../../../compose_yaml/sparktalk_extra), [내장 문서 자산](../internal/orchestrator/assets/extra-documents).
 
 ## 권장 정리 방향
 

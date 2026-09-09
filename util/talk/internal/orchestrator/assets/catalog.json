@@ -36,10 +36,23 @@
       "container": "flux2-klein-nvfp4-api",
       "health_url": "http://127.0.0.1:8691/health",
       "model": "flux2-klein-4b-nvfp4",
-      "memory_gib": 6.7,
+      "memory_gib": 18.5,
       "startup_timeout_seconds": 300,
       "compose_asset": "compose.flux2.yaml",
       "progress_kind": "comfy",
+      "auto_address": true
+    },
+    {
+      "id": "dreamlite",
+      "name": "DreamLite Mobile (시험)",
+      "role": "image",
+      "container": "sparktalk-dreamlite-mobile",
+      "health_url": "http://127.0.0.1:8691/health",
+      "model": "carlofkl/DreamLite-mobile",
+      "memory_gib": 8.4,
+      "startup_timeout_seconds": 300,
+      "compose_asset": "compose.dreamlite.yaml",
+      "progress_kind": "service",
       "auto_address": true
     },
     {

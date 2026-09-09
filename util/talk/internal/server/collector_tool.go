@@ -23,7 +23,7 @@ func webCollectToolDefinition() llm.Tool {
 		"additionalProperties":false
 	}`)
 	return llm.Tool{Type: "function", Function: llm.ToolFunction{
-		Name: "web_collect", Description: "Inspect a dynamic web page with SparkTalk Collector when ordinary page reading misses rendered content, viewer resources, tables, or document links.", Parameters: parameters,
+		Name: "web_collect", Description: "Inspect a dynamic web page with SparkTalk Collector when ordinary page reading misses rendered content, shadow DOM, viewer resources, tables, or document links. Browser mode waits for loading indicators to clear within a bounded window. If the requested content is still missing, report that limitation; do not claim scrolling or a longer wait occurred, and do not repeatedly offer or make identical retries.", Parameters: parameters,
 	}}
 }
 

@@ -14,6 +14,10 @@ func embeddedBuildAsset(compose string) string {
 		}
 	}
 	switch compose {
+	case "compose.flux2.yaml":
+		return "flux2-paint"
+	case "compose.dreamlite.yaml":
+		return "dreamlite"
 	case "compose.extra-documents.yaml":
 		return "extra-documents"
 	case "compose.magpie-tts.yaml":

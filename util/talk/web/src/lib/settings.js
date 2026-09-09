@@ -19,7 +19,7 @@ export function normalizePublicSettings(settings) {
   settings.tts ||= {};
   settings.tools ||= {};
   settings.image ||= { enabled: false, endpoint: 'http://127.0.0.1:8691', model: '', mode: 'basic', default_size: '1024x1024', timeout: '30m' };
-  if (!['basic', 'extended'].includes(settings.image.mode)) settings.image.mode = 'basic';
+  if (!['basic', 'reference', 'paint', 'extended'].includes(settings.image.mode)) settings.image.mode = 'basic';
   settings.extra ||= {};
   settings.extra.documents_enabled ??= false;
   settings.extra.documents_endpoint ||= 'http://127.0.0.1:8696';

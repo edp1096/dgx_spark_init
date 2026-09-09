@@ -286,10 +286,12 @@
           <label class="settings-field-row"><span>기본 해상도</span><input bind:value={settings.image.default_size} placeholder="1024x1024" /></label>
           <label class="settings-field-row"><span>기능 수준</span><select bind:value={settings.image.mode}>
             <option value="basic">기본 생성</option>
+            <option value="reference">생성·참조 편집</option>
+            <option value="paint">생성·편집·배경 제거</option>
             <option value="extended">확장 생성·편집</option>
           </select></label>
           {#if serviceHealth?.image}<div class="media-usage"><span>이미지 API · {serviceHealth.image.status === 'ok' ? 'online' : serviceHealth.image.status}{serviceHealth.image.model ? ` · ${serviceHealth.image.model}` : ''}</span></div>{/if}
-          <small>현재 엔진: FLUX.2 Klein 4B. 엔진 기동과 상태는 운영 패널에서 관리합니다.</small>
+          <small>현재 엔진: {settings.image.model || '미설정'}. 엔진 기동과 상태는 운영 패널에서 관리합니다.</small>
         </fieldset>
         </div>
         <div class="settings-section" hidden={featureSection !== 'web'}>

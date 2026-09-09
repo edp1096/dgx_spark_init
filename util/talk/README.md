@@ -579,7 +579,7 @@ GGUF와 NVFP4 구성도 각각 `zzz_not_use/qwen38_27b_gsq_rco_gguf`,
 유효한 현재/기본 선택을 우선 유지하고, 없으면 Flash Next 또는 남은 세트로 이전한다.
 이전 시 자동 기동은 끈다. 지원 서비스 배치와 기능 사용 설정은 유지한다.
 
-지원 서비스 4종의 독립 제어·배포·설정 호환성: [지원 서비스 운영](SUPPORT-SERVICES.md).
+지원 서비스 4종의 독립 제어·배포·설정 호환성: [지원 서비스 운영](docs/SUPPORT-SERVICES.md).
 
 ### DeepSeek 도구 호출 복구 설정
 

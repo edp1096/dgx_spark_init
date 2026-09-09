@@ -1,19 +1,16 @@
 services:
   runtime:
-    image: sparktalk-flux2-paint:trial3
+    image: sparktalk-dreamlite-mobile:trial1
     build:
       context: ${SPARKTALK_BUILD_DIR:?Embedded build assets required}
     pull_policy: never
-    container_name: flux2-klein-nvfp4-api
+    container_name: sparktalk-dreamlite-mobile
     restart: unless-stopped
     init: true
-    network_mode: host
+    ports: ["${SPARKTALK_BIND_ADDR:-127.0.0.1}:${SPARKTALK_PORT:-8691}:8691"]
     ipc: host
     gpus: all
     environment:
-      API_PORT: "${SPARKTALK_PORT:-8691}"
-      COMFY_PORT: "8188"
-      COMFY_KITCHEN_BACKEND: cuda
       PYTORCH_CUDA_ALLOC_CONF: expandable_segments:True
     volumes:
       - media-hf-cache:/root/.cache/huggingface

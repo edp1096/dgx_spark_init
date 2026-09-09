@@ -78,6 +78,37 @@ func TestImageIdentityEditUsesConversationAttachmentAndReturnsAssistantMedia(t *
 	}
 }
 
+func TestImageReferenceEditSendsOnlyPortableFields(t *testing.T) {
+	var request map[string]any
+	worker := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/v1/images/generations" {
+			http.NotFound(w, r)
+			return
+		}
+		if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+			t.Fatal(err)
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{"seed": 42, "data": []map[string]string{{"b64_json": base64.StdEncoding.EncodeToString(onePixelPNG)}}})
+	}))
+	defer worker.Close()
+
+	s, source := testImageServer(t)
+	call := llm.ToolCall{ID: "image-one", Function: llm.FunctionCall{Name: "image_generate", Arguments: `{"operation":"identity_edit","prompt":"Change the jacket to red while preserving identity.","source_image_id":"` + source.ID + `","size":"512x512"}`}}
+	result, err := s.executeImageGenerateTool(context.Background(), "session", config.ImageConfig{Endpoint: worker.URL, Model: "test-image", Mode: "reference", DefaultSize: "512x512", Timeout: "2s"}, call, func(string, any) error { return nil })
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(result.Attachments) != 1 || len(result.Followups) != 1 || result.Attachments[0].MIME != "image/png" {
+		t.Fatalf("unexpected result: %+v", result)
+	}
+	if request["model"] != "test-image" || request["source_image"] == nil || request["steps"] != nil || request["identity_strength"] != nil || request["filter_mode"] != nil {
+		t.Fatalf("unexpected request: %+v", request)
+	}
+	if !strings.HasPrefix(request["source_image"].(string), "data:image/png;base64,") {
+		t.Fatalf("source image not encoded: %+v", request["source_image"])
+	}
+}
+
 func TestImageSpriteGeneratesEightDirectionsAndPacksSheet(t *testing.T) {
 	var calls atomic.Int32
 	worker := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -131,4 +162,36 @@ func testImageServer(t *testing.T) (*Server, db.Attachment) {
 		t.Fatal(err)
 	}
 	return &Server{db: database, media: store}, source
+}
+
+func TestPaintModeRoutesMaskWithoutExtendedOptions(t *testing.T) {
+	var payload map[string]any
+	worker := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/v1/images/generations" {
+			t.Errorf("unexpected route %s", r.URL.Path)
+		}
+		_ = json.NewDecoder(r.Body).Decode(&payload)
+		_ = json.NewEncoder(w).Encode(map[string]any{"seed": 42, "data": []map[string]string{{"b64_json": base64.StdEncoding.EncodeToString(onePixelPNG)}}})
+	}))
+	defer worker.Close()
+	s, source := testImageServer(t)
+	cfg := config.ImageConfig{Endpoint: worker.URL, Model: "test-image", Mode: "paint", DefaultSize: "512x512", Timeout: "2s"}
+	call := llm.ToolCall{ID: "paint", Function: llm.FunctionCall{Name: "image_generate", Arguments: `{"operation":"inpaint","prompt":"a red flower","source_image_id":"` + source.ID + `","mask_box":[0,0,1,1]}`}}
+	result, err := s.executeImageGenerateTool(context.Background(), "session", cfg, call, func(string, any) error { return nil })
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(result.Attachments) != 1 || payload["operation"] != "inpaint" || payload["anypaint_image"] == nil || payload["mask_box"] == nil || payload["anypaint_strength"] != nil || payload["filter_mode"] != nil {
+		t.Fatalf("invalid paint request: %+v", payload)
+	}
+	for _, arguments := range []string{
+		`{"operation":"depth","prompt":"test"}`,
+		`{"operation":"identity_edit","prompt":"test","mask_box":[0,0,1,1]}`,
+		`{"operation":"inpaint","prompt":"test","mask_prompt":"cup"}`,
+	} {
+		call.Function.Arguments = arguments
+		if _, err := s.executeImageGenerateTool(context.Background(), "session", cfg, call, func(string, any) error { return nil }); err == nil {
+			t.Fatalf("accepted unsupported arguments %s", arguments)
+		}
+	}
 }
