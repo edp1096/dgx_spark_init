@@ -76,7 +76,7 @@ context:
   enabled: true
   window_tokens: 0
   compact_at_percent: 80
-  output_reserve: 8192
+  output_reserve: 16384
   safety_margin: 2048
   recent_tokens: 8192
   # 자동 감지가 어려운 멀티모달 입력의 보수적인 장당 추정치입니다.

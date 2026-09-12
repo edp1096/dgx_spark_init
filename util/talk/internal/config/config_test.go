@@ -31,7 +31,7 @@ func TestLoadCreatesEmbeddedDefaultAndSaveReloads(t *testing.T) {
 	if cfg.Appearance.Theme != "system" {
 		t.Fatalf("generated theme default is incomplete: %+v", cfg.Appearance)
 	}
-	if !cfg.Context.Enabled || cfg.Context.CompactAtPercent != 80 || cfg.Context.OutputReserve != 8192 {
+	if !cfg.Context.Enabled || cfg.Context.CompactAtPercent != 80 || cfg.Context.OutputReserve != 16384 {
 		t.Fatalf("generated context defaults are incomplete: %+v", cfg.Context)
 	}
 	if !cfg.ASR.Enabled || cfg.ASR.FFmpegEndpoint != "http://127.0.0.1:8690" ||
