@@ -164,7 +164,7 @@ html[data-theme="light"] .ssh-settings { border-color: #d9dfe8; }
 html[data-theme="light"] .settings-modal label input,
 html[data-theme="light"] .settings-modal textarea.system-prompt,
 html[data-theme="light"] .settings-modal fieldset input:not([type="checkbox"]),
-html[data-theme="light"] .settings-modal fieldset select,
+html[data-theme="light"] .settings-modal select,
 html[data-theme="light"] .settings-modal fieldset textarea { border-color: #d4dae4; color: #252d39; background: #fff; }
 html[data-theme="light"] .memory-item { border-color: #d9dfe8; background: #f7f9fb; }
 html[data-theme="light"] .library-main,

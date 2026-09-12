@@ -23,7 +23,7 @@ p.add_argument("--routed-pipeline",action="store_true")
 p.add_argument("--final-decoder-rows",action="store_true")
 args=p.parse_args()
 root=Path(__file__).resolve().parents[1]
-remote='/home/edp1096/workspace/dgx_spark_init/compose_yaml/ds41_vllm/graph-control.json'
+remote='/home/edp1096/workspace/dgx_spark_init/compose_yaml/ds41f_vllm/graph-control.json'
 ssh=['ssh','-o','BatchMode=yes','-o','HostKeyAlias=192.168.100.60','edp1096@10.200.0.2']
 for _ in range(360):
     try:

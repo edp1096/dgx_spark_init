@@ -13,7 +13,7 @@ import (
 )
 
 func TestEmbeddedRecipesContainNoPrivateEnvironment(t *testing.T) {
-	for _, id := range []string{"glm53", "ds4fve"} {
+	for _, id := range []string{"glm53", "ds4fve", "ds41"} {
 		data, err := assets.ReadFile("assets/recipes/" + id + ".tar.gz")
 		if err != nil {
 			t.Fatal(err)
@@ -53,7 +53,7 @@ func TestEmbeddedRecipeMaterializesInAppDataDirectory(t *testing.T) {
 	c := newController(cat)
 	data, cache := t.TempDir(), t.TempDir()
 	c.ConfigurePaths(data, cache)
-	for _, id := range []string{"glm53", "ds4fve"} {
+	for _, id := range []string{"glm53", "ds4fve", "ds41"} {
 		component, ok := cat.Component(id)
 		if !ok {
 			t.Fatal(id)
@@ -212,5 +212,102 @@ func TestPackagedModelPatchesMatchStandalone(t *testing.T) {
 			}
 		}
 		gz.Close()
+	}
+}
+
+func TestDS41StreamingBundle(t *testing.T) {
+	cat, err := LoadCatalog()
+	if err != nil {
+		t.Fatal(err)
+	}
+	bundle, ok := cat.Bundle("ds41")
+	if !ok {
+		t.Fatal("missing DS41 bundle")
+	}
+	if bundle.ContextTokens != 65536 || !bundle.StartSupport {
+		t.Fatal("wrong DS41 startup defaults")
+	}
+	if len(cat.StartBundleMembers(bundle).Components) != 6 {
+		t.Fatal("ASR and all four Extra services must start with DS41")
+	}
+	if len(cat.ModelBundle(bundle).Components) != 2 {
+		t.Fatal("stopping a set must preserve shared Extra services")
+	}
+	for _, id := range []string{"nemotron-asr", "extra-media", "extra-ssh", "extra-collector", "extra-documents"} {
+		c, ok := cat.ResolveComponent("ds41", id)
+		want := "local"
+		if id == "nemotron-asr" {
+			want = "worker"
+		}
+		if !ok || c.Host != want {
+			t.Fatalf("wrong service binding: %s", id)
+		}
+	}
+	c, _ := cat.Component("ds41")
+	if !c.isCluster() || recipeID(c) != "ds41" {
+		t.Fatal("DS41 must manage both ranks")
+	}
+	data, _ := assets.ReadFile("assets/recipes/ds41.tar.gz")
+	gz, err := gzip.NewReader(bytes.NewReader(data))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer gz.Close()
+	tr := tar.NewReader(gz)
+	root := filepath.Join("..", "..", "..", "..", "compose_yaml", "ds41f_vllm")
+	for {
+		h, err := tr.Next()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			t.Fatal(err)
+		}
+		if h.Name != "launch.sh" && h.Name != "expert-hot-profile.json" && !strings.HasSuffix(h.Name, ".py") && !strings.HasPrefix(h.Name, "patches/") {
+			continue
+		}
+		want, err := os.ReadFile(filepath.Join(root, h.Name))
+		if err != nil {
+			t.Fatal(err)
+		}
+		got, err := io.ReadAll(tr)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !bytes.Equal(got, want) {
+			t.Fatalf("DS41 package differs from tested runtime: %s", h.Name)
+		}
+	}
+}
+
+func TestDS41PreloadOption(t *testing.T) {
+	cat, _ := LoadCatalog()
+	component, _ := cat.Component("ds41")
+	for _, value := range []string{"0", "128", "224"} {
+		component.RuntimeOptions = map[string]string{"DSV41_PRELOAD_COUNT": value}
+		if err := validateRecipeOptions(component); err != nil {
+			t.Fatal(err)
+		}
+		c := newController(cat)
+		c.ConfigurePaths(t.TempDir(), t.TempDir())
+		dir, err := c.materializeRecipe(context.Background(), component)
+		if err != nil {
+			t.Fatal(err)
+		}
+		env, _ := os.ReadFile(filepath.Join(dir, ".env"))
+		if !strings.Contains(string(env), "DSV41_PRELOAD_COUNT="+shellQuote(value)) {
+			t.Fatal("preload override lost")
+		}
+	}
+	for _, value := range []string{"-1", "225", "1.5", "x", "01"} {
+		component.RuntimeOptions = map[string]string{"DSV41_PRELOAD_COUNT": value}
+		if validateRecipeOptions(component) == nil {
+			t.Fatal("invalid preload count accepted", value)
+		}
+	}
+	component.Controller = "dspark-cluster"
+	component.RuntimeOptions = map[string]string{"DSV41_PRELOAD_COUNT": "128"}
+	if validateRecipeOptions(component) == nil {
+		t.Fatal("preload option accepted for another engine")
 	}
 }

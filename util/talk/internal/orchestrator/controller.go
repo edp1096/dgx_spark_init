@@ -233,7 +233,7 @@ func (c *Controller) StartBundle(ctx context.Context, bundleID string, reserveGi
 	if !ok {
 		return fmt.Errorf("unknown bundle %q", bundleID)
 	}
-	bundle = c.Catalog().ModelBundle(bundle)
+	bundle = c.Catalog().StartBundleMembers(bundle)
 	if err := c.begin(Operation{Action: "start", BundleID: bundleID, State: "running", Phase: "기동 계획 준비", StartedAt: time.Now()}); err != nil {
 		return err
 	}
@@ -257,7 +257,7 @@ func (c *Controller) CheckBundleStart(ctx context.Context, bundleID string, rese
 }
 
 func (c *Controller) checkBundleStart(ctx context.Context, bundle Bundle, reserveGiB float64) error {
-	bundle = c.Catalog().ModelBundle(bundle)
+	bundle = c.Catalog().StartBundleMembers(bundle)
 	for _, component := range c.Catalog().ModelComponents(bundle.ID) {
 		if err := c.CheckAutoCluster(component); err != nil {
 			return err
@@ -289,7 +289,7 @@ func isCUDAComponent(component Component) bool {
 }
 
 func (c *Controller) bundleMemoryPlan(ctx context.Context, bundle Bundle) memoryPlan {
-	bundle = c.Catalog().ModelBundle(bundle)
+	bundle = c.Catalog().StartBundleMembers(bundle)
 	desired := make(map[string]struct{}, len(bundle.Components))
 	for _, id := range bundle.Components {
 		component, _ := c.Catalog().ResolveComponent(bundle.ID, id)
@@ -298,7 +298,7 @@ func (c *Controller) bundleMemoryPlan(ctx context.Context, bundle Bundle) memory
 	gpuByPID := gpuMemoryByPID(ctx)
 	plan := memoryPlan{}
 	for _, component := range c.Catalog().Deployments(bundle.ID) {
-		if !c.local(component) || component.Controller == "external" || component.IsSupport() {
+		if !c.local(component) || component.Controller == "external" || (component.IsSupport() && !bundle.StartSupport) {
 			continue
 		}
 		running := c.componentRunning(ctx, component)

@@ -18,7 +18,7 @@ args=p.parse_args()
 root=Path(__file__).resolve().parents[1]
 results=root/'results'
 policy=json.loads((results/'prefetch-selected-policy.json').read_text())
-remote='/home/edp1096/workspace/dgx_spark_init/compose_yaml/ds41_vllm/prefetch-control.json'
+remote='/home/edp1096/workspace/dgx_spark_init/compose_yaml/ds41f_vllm/prefetch-control.json'
 def control(mode,index):
     value=policy.copy() if mode=='early' else {'mode':'off'}
     value['epoch']=time.time_ns()

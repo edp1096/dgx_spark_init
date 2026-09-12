@@ -1,0 +1,24 @@
+{
+  "results": [
+    {
+      "rank": 0,
+      "count": 128,
+      "loaded": 5120,
+      "verified_slots": 80,
+      "seconds": 7.905885277999914,
+      "profile_sha256": "5047e668206935f17cabc5a739a8d72854b54d6daf86bbb010778a3a5f6a0293",
+      "read_bytes": 48129638400,
+      "gpu_cache_bytes": 87836590080
+    },
+    {
+      "rank": 1,
+      "count": 128,
+      "loaded": 5120,
+      "verified_slots": 80,
+      "seconds": 7.946349095029291,
+      "profile_sha256": "5047e668206935f17cabc5a739a8d72854b54d6daf86bbb010778a3a5f6a0293",
+      "read_bytes": 48129638400,
+      "gpu_cache_bytes": 87836590080
+    }
+  ]
+}

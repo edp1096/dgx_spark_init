@@ -1,0 +1,38 @@
+{
+  "20260912-preload": {
+    "0": {
+      "minimum_available_gib": 14.583145141601562,
+      "max_cgroup_peak_gib": 91.35355377197266,
+      "guard_trips": [],
+      "rebooted": false,
+      "oom_events": 0,
+      "swap_growth_gib": 0.0
+    },
+    "1": {
+      "minimum_available_gib": 13.136177062988281,
+      "max_cgroup_peak_gib": 90.92473602294922,
+      "guard_trips": [],
+      "rebooted": false,
+      "oom_events": 0,
+      "swap_growth_gib": -6.4849853515625e-05
+    }
+  },
+  "20260912-preload-final": {
+    "0": {
+      "minimum_available_gib": 15.017929077148438,
+      "max_cgroup_peak_gib": 90.06647109985352,
+      "guard_trips": [],
+      "rebooted": false,
+      "oom_events": 0,
+      "swap_growth_gib": 0.0
+    },
+    "1": {
+      "minimum_available_gib": 14.162445068359375,
+      "max_cgroup_peak_gib": 89.40833282470703,
+      "guard_trips": [],
+      "rebooted": false,
+      "oom_events": 0,
+      "swap_growth_gib": -3.814697265625e-06
+    }
+  }
+}

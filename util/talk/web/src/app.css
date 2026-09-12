@@ -587,7 +587,7 @@ textarea::placeholder { color: #777f8f; }
 .settings-modal fieldset label { display: flex; flex-direction: column; gap: 6px; color: #929aaa; font-size: 12px; }
 .settings-modal fieldset label.check { flex-direction: row; align-items: center; }
 .settings-modal fieldset input:not([type="checkbox"]) { height: 36px; padding: 0 10px; border: 1px solid #343948; border-radius: 8px; color: #edf0f5; background: #0e1117; }
-.settings-modal fieldset select { width: 100%; height: 36px; padding: 0 10px; border: 1px solid #343948; border-radius: 8px; color: #edf0f5; background: #0e1117; }
+.settings-modal select { width: 100%; height: 36px; padding: 0 10px; border: 1px solid #343948; border-radius: 8px; color: #edf0f5; background: #0e1117; }
 .settings-toggle-field { display: grid; gap: 6px; color: #929aaa; font-size: 12px; }
 .settings-toggle-field button { width: 100%; height: 36px; border: 1px solid #343948; border-radius: 8px; color: #929bab; background: #171a22; text-align: left; padding: 0 10px; }
 .settings-toggle-field button.active { border-color: #456eaa; color: #9dc7ff; background: #16243a; }

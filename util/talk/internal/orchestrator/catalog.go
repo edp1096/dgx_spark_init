@@ -48,6 +48,7 @@ type Component struct {
 }
 
 type Bundle struct {
+	StartSupport  bool                  `json:"start_support,omitempty" yaml:"start_support,omitempty"`
 	Bindings      map[string]Deployment `json:"bindings,omitempty" yaml:"bindings,omitempty"`
 	ID            string                `json:"id" yaml:"id"`
 	Name          string                `json:"name" yaml:"name"`
@@ -265,7 +266,7 @@ func validateDeployment(catalog Catalog, component Component) error {
 		if _, err := composeAsset(component.ComposeAsset); err != nil {
 			return fmt.Errorf("component %q: unknown compose recipe", component.ID)
 		}
-	case "glm53-cluster", "dspark-cluster":
+	case "glm53-cluster", "dspark-cluster", "ds41-cluster":
 		if component.WorkerContainer == "" || component.WorkerHost == component.Host {
 			return fmt.Errorf("component %q: cluster requires a distinct worker", component.ID)
 		}
@@ -290,5 +291,5 @@ func validateDeployment(catalog Catalog, component Component) error {
 }
 
 func (c Component) isCluster() bool {
-	return c.Controller == "glm53-cluster" || c.Controller == "dspark-cluster"
+	return c.Controller == "glm53-cluster" || c.Controller == "dspark-cluster" || c.Controller == "ds41-cluster"
 }

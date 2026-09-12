@@ -307,3 +307,42 @@ func TestExpandedToolLimits(t *testing.T) {
 		}
 	}
 }
+
+func TestDS41CatalogUpgradePreservesSelection(t *testing.T) {
+	c, _, err := Load(filepath.Join(t.TempDir(), "sparktalk.yaml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	c.Runtime.BuiltinRevision = 1
+	catalog := c.Runtime.Catalog
+	for i, b := range catalog.Bundles {
+		if b.ID == "ds41" {
+			catalog.Bundles = append(catalog.Bundles[:i], catalog.Bundles[i+1:]...)
+			break
+		}
+	}
+	for i, item := range catalog.Components {
+		if item.ID == "ds41" {
+			catalog.Components = append(catalog.Components[:i], catalog.Components[i+1:]...)
+			break
+		}
+	}
+	old := c.Runtime.Bundle
+	c.Normalize()
+	if c.Runtime.Bundle != old {
+		t.Fatal("upgrade changed selected bundle")
+	}
+	if _, ok := c.Runtime.Catalog.Bundle("ds41"); !ok {
+		t.Fatal("upgrade omitted DS41")
+	}
+	c.Normalize()
+	count := 0
+	for _, b := range c.Runtime.Catalog.Bundles {
+		if b.ID == "ds41" {
+			count++
+		}
+	}
+	if count != 1 {
+		t.Fatal("upgrade duplicated DS41")
+	}
+}

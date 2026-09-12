@@ -2,7 +2,7 @@
 
 이 문서의 수치는 512토큰 입력 묶음에서 측정한 기록이다. 이후 캐시 없는
 첫 입력의 처리도 개선했다. 현재 기본값과 별도 측정은
-[DeepSeek 입력 처리 개선 기록](../../../compose_yaml/ds41_vllm/docs/PREFILL_BATCHING.md)을 참고한다.
+[DeepSeek 입력 처리 개선 기록](../../../compose_yaml/ds41f_vllm/docs/PREFILL_BATCHING.md)을 참고한다.
 
 DeepSeek V4.1 Flash TP2에서 실제 SparkTalk 입력 약 6,200토큰을 매번 새로
 처리하면 첫 토큰까지 약 1분이 걸렸다. 동일한 입력을 재사용할 때는 1초
@@ -51,7 +51,7 @@ A → B → B 재요청 순서로 실행했다. 답변은 바뀐 표식을 정�
 늘었다. 원본 요청에는 비공개 설정이 포함되므로 저장소에는 수치와 검증 결과만
 남긴다.
 
-측정 파일은 `compose_yaml/ds41_vllm/results/prefix-layout-*.json`에 있다.
+측정 파일은 `compose_yaml/ds41f_vllm/results/prefix-layout-*.json`에 있다.
 
 2026-09-12 실측 결과(큐 대기를 포함한 서버 TTFT):
 
@@ -95,7 +95,7 @@ A/B/B 한 묶음이며 전체 6개 답변의 표식이 정확했다. 새 배치�
 
 저장된 답변의 pp/tg/ttft가 마지막 SSE 수치와 일치하는 것도 확인했다.
 테스트 세션은 삭제했고 사용자 기억은 변경하지 않았다. 결과는
-`compose_yaml/ds41_vllm/results/sparktalk-prefix-validation.json`에 있다.
+`compose_yaml/ds41f_vllm/results/sparktalk-prefix-validation.json`에 있다.
 
 캐시 보존 정책을 바꾼 뒤 긴 문맥도 다시 검사했다. 54,988토큰 입력과
 8,192토큰 출력 허용량으로 중간의 표식을 정확히 찾았고, HTTP 200과 정상
@@ -124,16 +124,16 @@ A/B/B 한 묶음이며 전체 6개 답변의 표식이 정확했다. 새 배치�
 서빙 엔진의 버퍼 공유와 native 2048-token expert 계산으로, 동일한 비캐시
 입력의 pp가 약 144→158 / 171→193 tok/s로 개선됐다. 이는 SparkTalk 프롬프트
 축약이나 추가 양자화가 아니다. 구현·실측·제외한 후보는
-[엔진 실험 기록](../../../compose_yaml/ds41_vllm/docs/PREFILL_ARCHITECTURE.md)에 있다.
+[엔진 실험 기록](../../../compose_yaml/ds41f_vllm/docs/PREFILL_ARCHITECTURE.md)에 있다.
 
 
 이어진 4096 배치 재시험은 새로 고정한 동일 입력에서 pp 159→193 / 191→241 tok/s,
 ttft 39.6→32.7 / 67.8→53.6초였다. 실제 Talk의 재기동 후 첫 요청도 35.3초에
-생성을 시작했다. [재시험과 검증 기록](../../../compose_yaml/ds41_vllm/docs/PREFILL_4096_RETRY.md)을 참조한다.
+생성을 시작했다. [재시험과 검증 기록](../../../compose_yaml/ds41f_vllm/docs/PREFILL_4096_RETRY.md)을 참조한다.
 
 
 마지막 decoder 레이어의 routed expert 계산을 줄이는 후속 실험은 pp가
 약 2% 개선됐지만, 동일 출력의 tg가 26.82→24.69 tok/s로 7.96% 감소했다.
 따라서 기본 적용하지 않고 기존 서빙 설정을 유지했다. DSpark 내부 상태,
 캐시 재사용, 동일 출력 비교와 제외한 측정은
-[decoder 실험 기록](../../../compose_yaml/ds41_vllm/docs/DECODER_ROWS_EXPERIMENT.md)에 있다.
+[decoder 실험 기록](../../../compose_yaml/ds41f_vllm/docs/DECODER_ROWS_EXPERIMENT.md)에 있다.

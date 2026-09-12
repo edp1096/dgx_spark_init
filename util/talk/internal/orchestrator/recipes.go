@@ -19,6 +19,8 @@ func recipeID(c Component) string {
 	switch c.Controller {
 	case "glm53-cluster":
 		return "glm53"
+	case "ds41-cluster":
+		return "ds41"
 	case "dspark-cluster":
 		return "ds4fve"
 	}
@@ -26,7 +28,7 @@ func recipeID(c Component) string {
 }
 
 var recipeOptionNames = map[string]bool{
-	"MODEL_VARIANT": true, "HEAD_RAIL_IP": true, "WORKER_RAIL_IP": true,
+	"DSV41_PRELOAD_COUNT": true, "MODEL_VARIANT": true, "HEAD_RAIL_IP": true, "WORKER_RAIL_IP": true,
 	"HEAD_NCCL_IF": true, "WORKER_NCCL_IF": true, "HEAD_NCCL_HCA": true, "WORKER_NCCL_HCA": true,
 	"NCCL_SUBNET": true, "MASTER_PORT": true, "MAX_MODEL_LEN": true, "MAX_NUM_SEQS": true,
 	"GPU_MEMORY_UTILIZATION": true, "GPU_MEMORY_UTILIZATION_TEXT": true,
@@ -40,8 +42,17 @@ func validateRecipeOptions(c Component) error {
 		if !recipeOptionNames[k] || strings.ContainsAny(v, "\x00\r\n") {
 			return fmt.Errorf("%s: unsupported runtime option %s", c.ID, k)
 		}
+		if k == "DSV41_PRELOAD_COUNT" {
+			n, err := strconv.Atoi(v)
+			if c.Controller != "ds41-cluster" || err != nil || n < 0 || n > 224 || strconv.Itoa(n) != v {
+				return fmt.Errorf("%s: DSV41_PRELOAD_COUNT requires DS41 and an integer 0..224", c.ID)
+			}
+		}
 		if k == "MODEL_VARIANT" && v != "official" && v != "abliterated" {
 			return fmt.Errorf("invalid model variant")
+		}
+		if k == "MODEL_VARIANT" && c.Controller == "ds41-cluster" && v != "official" {
+			return fmt.Errorf("DS41 streaming supports original weights only")
 		}
 		if k == "DSPARK_ENABLE_DSML_RECOVERY" || k == "DSPARK_ENABLE_DSPARK_SWA_PREFIX" {
 			if c.Controller != "dspark-cluster" || (v != "0" && v != "1") {
@@ -173,6 +184,17 @@ func (c *Controller) materializeRecipe(ctx context.Context, component Component)
 			values["VLLM_HOST"] = component.BindAddress
 		}
 		values["DSPARK_REVISION_ABLITERATED"] = "48095b3452a17f3e3ae8f77892399389c45de9e1"
+	}
+	if id == "ds41" {
+		values["HEAD_CONTAINER"] = component.Container
+		values["WORKER_CONTAINER"] = component.WorkerContainer
+		values["VLLM_HOST"] = component.BindAddress
+		if values["VLLM_HOST"] == "" {
+			values["VLLM_HOST"] = "127.0.0.1"
+		}
+		if values["MAX_MODEL_LEN"] == "" {
+			values["MAX_MODEL_LEN"] = "65536"
+		}
 	}
 	keys := make([]string, 0, len(values))
 	for k := range values {

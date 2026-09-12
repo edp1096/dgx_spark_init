@@ -166,6 +166,25 @@
       "compose_asset": "compose.extra-documents.yaml",
       "progress_kind": "service",
       "auto_address": true
+    },
+    {
+      "id": "ds41",
+      "name": "DeepSeek V4.1 Flash",
+      "role": "llm",
+      "host": "local",
+      "controller": "ds41-cluster",
+      "endpoint": "http://127.0.0.1:8010",
+      "port": 8010,
+      "health_url": "http://127.0.0.1:8010/health",
+      "container": "ds41-stream-0",
+      "worker_host": "worker",
+      "worker_container": "ds41-stream-1",
+      "model": "deepseek-v4.1-flash",
+      "memory_gib": 105,
+      "worker_memory_gib": 105,
+      "startup_timeout_seconds": 3600,
+      "progress_kind": "service",
+      "auto_address": true
     }
   ],
   "bundles": [
@@ -284,6 +303,60 @@
           "port": 8693
         }
       }
+    },
+    {
+      "id": "ds41",
+      "name": "DeepSeek V4.1 Flash",
+      "description": "2× DGX Spark · SSD expert streaming · 64K · 워커 ASR·헤드 Extra 도구",
+      "model_type": "deepseek-v4",
+      "model_id": "deepseek-v4.1-flash",
+      "context_tokens": 65536,
+      "components": [
+        "ds41",
+        "extra-media",
+        "extra-ssh",
+        "extra-collector",
+        "nemotron-asr",
+        "extra-documents"
+      ],
+      "bindings": {
+        "extra-media": {
+          "host": "local",
+          "endpoint": "http://127.0.0.1:8690",
+          "health_url": "http://127.0.0.1:8690/health",
+          "bind_address": "127.0.0.1",
+          "port": 8690
+        },
+        "extra-ssh": {
+          "host": "local",
+          "endpoint": "http://127.0.0.1:8699",
+          "health_url": "http://127.0.0.1:8699/health",
+          "bind_address": "127.0.0.1",
+          "port": 8699
+        },
+        "extra-collector": {
+          "host": "local",
+          "endpoint": "http://127.0.0.1:8695",
+          "health_url": "http://127.0.0.1:8695/health",
+          "bind_address": "127.0.0.1",
+          "port": 8695
+        },
+        "nemotron-asr": {
+          "host": "worker",
+          "endpoint": "http://192.168.100.60:8693",
+          "health_url": "http://192.168.100.60:8693/ready",
+          "bind_address": "192.168.100.60",
+          "port": 8693
+        },
+        "extra-documents": {
+          "host": "local",
+          "endpoint": "http://127.0.0.1:8696",
+          "health_url": "http://127.0.0.1:8696/health",
+          "bind_address": "127.0.0.1",
+          "port": 8696
+        }
+      },
+      "start_support": true
     }
   ],
   "hosts": {

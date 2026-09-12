@@ -411,6 +411,44 @@ func (c *Config) Normalize() {
 		}
 		c.Runtime.BuiltinRevision = 1
 	}
+	if c.Runtime.BuiltinRevision < 2 {
+		if defaults, err := orchestrator.LoadCatalog(); err == nil {
+			hasComponent, hasBundle := false, false
+			for _, item := range c.Runtime.Catalog.Components {
+				if item.ID == "ds41" {
+					hasComponent = true
+				}
+			}
+			for _, item := range c.Runtime.Catalog.Bundles {
+				if item.ID == "ds41" {
+					hasBundle = true
+				}
+			}
+
+			// Do not invent hosts in a custom catalog or override an existing DS41 definition.
+			_, head := c.Runtime.Catalog.Hosts["local"]
+			_, worker := c.Runtime.Catalog.Hosts["worker"]
+			if !hasComponent && head && worker {
+				item, _ := defaults.Component("ds41")
+				c.Runtime.Catalog.Components = append(c.Runtime.Catalog.Components, item)
+			}
+			if !hasBundle && head && worker {
+				item, _ := defaults.Bundle("ds41")
+				available := make(map[string]bool)
+				for _, component := range c.Runtime.Catalog.Components {
+					available[component.ID] = true
+				}
+				complete := true
+				for _, id := range item.Components {
+					complete = complete && available[id]
+				}
+				if complete {
+					c.Runtime.Catalog.Bundles = append(c.Runtime.Catalog.Bundles, item)
+				}
+			}
+		}
+		c.Runtime.BuiltinRevision = 2
+	}
 	c.normalizeRuntimeDisplayNames()
 	if catalog, err := orchestrator.ValidateCatalog(*c.Runtime.Catalog); err == nil {
 		c.Runtime.Catalog = &catalog

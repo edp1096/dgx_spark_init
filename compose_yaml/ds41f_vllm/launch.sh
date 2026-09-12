@@ -3,17 +3,19 @@ set -euo pipefail
 cd "$(dirname "$0")"
 rank=${1:?usage: launch.sh 0|1}
 case "$rank" in
-  0) rail=10.200.0.1; headless=();;
-  1) rail=10.200.0.2; headless=(--headless);;
+  0) rail=${HEAD_RAIL_IP:-10.200.0.1}; nic=${HEAD_NCCL_IF:-enp1s0f1np1}; hca=${HEAD_NCCL_HCA:-rocep1s0f1}; headless=();;
+  1) rail=${WORKER_RAIL_IP:-10.200.0.2}; nic=${WORKER_NCCL_IF:-enp1s0f1np1}; hca=${WORKER_NCCL_HCA:-rocep1s0f1}; headless=(--headless);;
   *) exit 2;;
 esac
-model="$HOME/.cache/huggingface/hub/models--deepseek-ai--DeepSeek-V4.1-Flash/snapshots/dba1be0a40aa45a94ad051997016db3960a90277"
+model="${HF_CACHE:-$HOME/.cache/huggingface}/hub/models--deepseek-ai--DeepSeek-V4.1-Flash/snapshots/dba1be0a40aa45a94ad051997016db3960a90277"
 image=${DSV41_IMAGE:-dgx-ds41-stream:b12x8}
 cache=${DSV41_EXPERT_CACHE_GIB:-8}
 backend=${DSV41_MOE_BACKEND:-b12x_slots}
 model_len=${DSV41_MAX_MODEL_LEN:-65536}
 kv_cache_bytes=${DSV41_KV_CACHE_BYTES:-2147483648}
 prefix_interval=${DSV41_PREFIX_CACHE_INTERVAL:-128}
+preload_count=${DSV41_PRELOAD_COUNT:-224}
+[[ "$preload_count" =~ ^[0-9]{1,3}$ ]] && (( 10#$preload_count <= 224 )) || { echo "Preload count must be 0..224" >&2; exit 1; }
 batch_default=512
 if [[ "$backend" == b12x_slots ]]; then batch_default=4096; fi
 batch_tokens=${DSV41_MAX_BATCHED_TOKENS:-$batch_default}
@@ -88,10 +90,10 @@ gpu_cache=${DSV41_GPU_CACHE_GIB:-$(( avail > 72 ? 48 : avail - 24 ))}
 # Pick the RoCE-v2 IPv4 GID for this exact rail, not an assumed index.
 gid=''
 expected_gid=$(python3 -c 'import ipaddress,sys; print(ipaddress.IPv6Address("::ffff:"+sys.argv[1]).exploded)' "$rail")
-for f in /sys/class/infiniband/rocep1s0f1/ports/1/gids/*; do
+for f in /sys/class/infiniband/$hca/ports/1/gids/*; do
   i=${f##*/}
   [[ $(cat "$f") == "$expected_gid" ]] || continue
-  [[ $(cat "/sys/class/infiniband/rocep1s0f1/ports/1/gid_attrs/types/$i" 2>/dev/null) == 'RoCE v2' ]] || continue
+  [[ $(cat "/sys/class/infiniband/$hca/ports/1/gid_attrs/types/$i" 2>/dev/null) == 'RoCE v2' ]] || continue
   gid=$i
   break
 done
@@ -116,7 +118,7 @@ if [[ ${DSV41_SHORT_CONTEXT_GRAPHS:-0} == 1 ]]; then
   [[ ${DSV41_MODEL_GRAPHS:-0} == 1 && ${DSV41_ATTENTION_GRAPHS:-0} == 1 ]] || { echo 'Short-context graphs require model and attention graphs' >&2; exit 1; }
 fi
 if [[ "$backend" == b12x_slots ]]; then
-  packed="$HOME/.cache/ds41-packed/rank$rank"
+  packed="${DSV41_PACKED_ROOT:-$HOME/.cache/ds41-packed}/rank$rank"
   expected_layers=40
   if (( ${DSV41_SPEC_TOKENS:-0} > 0 )); then expected_layers=43; fi
   for ((layer=0; layer<expected_layers; layer++)); do
@@ -152,6 +154,7 @@ if [[ "$backend" == b12x_slots ]]; then
   (( avail >= required )) || { echo "Need $required GiB, available $avail GiB" >&2; exit 1; }
   echo "Streaming target_slots=$target_slots layout=${DSV41_CACHE_LAYOUT:-uniform-$slots}; available=${avail}GiB estimated_required=${required}GiB"
   extra+=(-v "$packed:/packed:ro" -e DSV41_PACKED_DIR=/packed
+          -e DSV41_PRELOAD_COUNT="$preload_count"
           -e DSV41_SLOTS_PER_LAYER="$slots"
           -e DSV41_CACHE_LAYOUT="${DSV41_CACHE_LAYOUT:-}"
           -e DSV41_ROUTED_PIPELINE="${DSV41_ROUTED_PIPELINE:-0}"
@@ -178,12 +181,13 @@ fi
 if (( ${DSV41_SPEC_TOKENS:-0} > 0 )); then
   spec=(--speculative-config "{\"method\":\"dspark\",\"num_speculative_tokens\":$DSV41_SPEC_TOKENS,\"draft_sample_method\":\"probabilistic\",\"rejection_sample_method\":\"block\",\"enable_adaptive_verification\":$adaptive}")
 fi
-mkdir -p "$HOME/.cache/ds41-stream"
-docker run -d --gpus all --name "ds41-stream-$rank" \
+runtime_cache=${DSV41_RUNTIME_CACHE:-$HOME/.cache/ds41-stream}
+mkdir -p "$runtime_cache"
+docker run -d --gpus all --name "${DSV41_CONTAINER:-ds41-stream-$rank}" \
   --label "ds41.probe=${DSV41_PROBE_TOKEN:-}" \
   --network host --ipc host --memory 100g --memory-swap 100g \
   --ulimit memlock=-1:-1 --cap-add IPC_LOCK --device /dev/infiniband:/dev/infiniband \
-  -v "${model%/snapshots/*}:/repo:ro" -v "$HOME/.cache/ds41-stream:/cache" \
+  -v "${model%/snapshots/*}:/repo:ro" -v "$runtime_cache:/cache" \
   -v "$PWD:/opt/ds41:ro" "${mounts[@]}" \
   "${extra[@]}" \
   -e PYTHONPATH=/opt/ds41 -e DSV41_MODEL=/repo/snapshots/dba1be0a40aa45a94ad051997016db3960a90277 \
@@ -191,21 +195,22 @@ docker run -d --gpus all --name "ds41-stream-$rank" \
   -e DSV41_MOE_BACKEND="$backend" -e DSV41_GPU_CACHE_GIB="$gpu_cache" \
   -e DSV41_ENGRAM_DISK=1 -e DSV41_ENGRAM_DISK_THREADS=8 \
   -e HF_HUB_OFFLINE=1 -e TRANSFORMERS_OFFLINE=1 \
+  -e VLLM_SERVER_DEV_MODE="${DSV41_BENCH_CONTROL:-0}" \
   -e VLLM_USE_RUST_FRONTEND=0 -e VLLM_HOST_IP="$rail" \
   -e VLLM_USE_FLASHINFER_SAMPLER=0 -e VLLM_HAS_FLASHINFER_CUBIN=1 \
   -e FLASHINFER_WORKSPACE_BASE=/cache/flashinfer -e VLLM_CACHE_ROOT=/cache/vllm -e TILELANG_CACHE_DIR=/cache/tilelang -e TRITON_CACHE_DIR=/cache/triton \
   -e MAX_JOBS=2 -e FLASHINFER_NVCC_THREADS=1 -e OMP_NUM_THREADS=1 \
-  -e NCCL_NET=IB -e NCCL_IB_HCA=rocep1s0f1 -e NCCL_IB_GID_INDEX="$gid" \
-  -e NCCL_SOCKET_IFNAME=enp1s0f1np1 -e GLOO_SOCKET_IFNAME=enp1s0f1np1 \
+  -e NCCL_NET=IB -e NCCL_IB_HCA="$hca" -e NCCL_IB_GID_INDEX="$gid" \
+  -e NCCL_SOCKET_IFNAME="$nic" -e GLOO_SOCKET_IFNAME="$nic" \
   -e NCCL_IB_DISABLE=0 -e NCCL_IB_ROCE_VERSION_NUM=2 \
-  -e NCCL_IB_ADDR_FAMILY=AF_INET -e NCCL_IB_ADDR_RANGE=10.200.0.0/24 \
+  -e NCCL_IB_ADDR_FAMILY=AF_INET -e NCCL_IB_ADDR_RANGE="${NCCL_SUBNET:-10.200.0.0/24}" \
   -e NCCL_NVLS_ENABLE=0 -e NCCL_CUMEM_ENABLE=0 -e NCCL_DEBUG=WARN \
-  "$image" /repo/snapshots/dba1be0a40aa45a94ad051997016db3960a90277 --served-model-name deepseek-v4.1-flash \
-  --host 0.0.0.0 --port 8010 --tokenizer-mode deepseek_v41 \
+  "$image" /repo/snapshots/dba1be0a40aa45a94ad051997016db3960a90277 --served-model-name "${SERVED_MODEL_NAME:-deepseek-v4.1-flash}" \
+  --host "${VLLM_HOST:-0.0.0.0}" --port "${API_PORT:-8010}" --tokenizer-mode deepseek_v41 \
   --enable-auto-tool-choice --tool-call-parser deepseek_v41 --reasoning-parser deepseek_v41 \
   --enable-per-request-metrics --enable-prompt-tokens-details \
   --tensor-parallel-size 2 --gpu-memory-utilization 0.65 --distributed-executor-backend mp \
-  --nnodes 2 --node-rank "$rank" --master-addr 10.200.0.1 --master-port 29641 \
+  --nnodes 2 --node-rank "$rank" --master-addr "${HEAD_RAIL_IP:-10.200.0.1}" --master-port "${MASTER_PORT:-29641}" \
   "${execution[@]}" --language-model-only --engram-config '{"cpu_offload":false}' \
   --max-model-len "$model_len" --max-num-seqs 1 --max-num-batched-tokens "$batch_tokens" \
   --kv-cache-memory-bytes "$kv_cache_bytes" --block-size 128 \

@@ -139,3 +139,12 @@ func (c *Controller) Operation() Operation {
 	op.Steps = append([]OperationStep(nil), op.Steps...)
 	return op
 }
+
+// StartBundleMembers includes explicitly opted-in support services during startup.
+// Shared support services remain running when a model set is stopped.
+func (c Catalog) StartBundleMembers(bundle Bundle) Bundle {
+	if bundle.StartSupport {
+		return bundle
+	}
+	return c.ModelBundle(bundle)
+}

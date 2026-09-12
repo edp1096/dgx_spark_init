@@ -30,7 +30,7 @@ rows=[]
 for enabled in (False,True):
     control=root/'graph-control.json.next'
     control.write_text(json.dumps({'epoch':time.time_ns(),'graphs':enabled}))
-    remote='/home/edp1096/workspace/dgx_spark_init/compose_yaml/ds41_vllm/graph-control.json'
+    remote='/home/edp1096/workspace/dgx_spark_init/compose_yaml/ds41f_vllm/graph-control.json'
     subprocess.run(['scp','-q','-o','BatchMode=yes',str(control),'edp1096@192.168.100.60:'+remote+'.next'],check=True)
     subprocess.run(['ssh','-o','BatchMode=yes','edp1096@192.168.100.60','mv '+remote+'.next '+remote],check=True)
     control.replace(root/'graph-control.json')

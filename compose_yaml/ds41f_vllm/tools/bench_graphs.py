@@ -22,7 +22,7 @@ io_modes=args.io_modes.split(',') if args.io_modes else [None]*args.trials
 if any(m not in (None,'serial','overlap','batch','batch_overlap') for m in io_modes):
     p.error('Invalid I/O mode')
 root=Path(__file__).resolve().parents[1];results=root/'results'
-remote='/home/edp1096/workspace/dgx_spark_init/compose_yaml/ds41_vllm/graph-control.json'
+remote='/home/edp1096/workspace/dgx_spark_init/compose_yaml/ds41f_vllm/graph-control.json'
 for _ in range(360):
     try:
         urllib.request.urlopen('http://127.0.0.1:8010/health',timeout=2)

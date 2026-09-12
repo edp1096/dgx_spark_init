@@ -1,6 +1,6 @@
 # DeepSeek V4.1 Flash on two DGX Sparks
 
-Run the commands below from `compose_yaml/ds41_vllm/`, the recipe root.
+Run the commands below from `compose_yaml/ds41f_vllm/`, the recipe root.
 
 - `docs/`: usage, implementation notes and experiment reports.
 - `tools/`: benchmarks, checks, tests and result analysis.
