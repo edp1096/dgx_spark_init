@@ -47,7 +47,7 @@ chmod +x ./discover-sparks
 ifconfig enp1s0f0np0
 ```
 
-* 롤백 - vllm ray cluster 계속 쓸거니까 필요 없음.
+* 롤백
 ```sh
 sudo rm /etc/netplan/40-cx7.yaml
 sudo netplan apply
