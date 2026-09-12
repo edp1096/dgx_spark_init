@@ -1,7 +1,7 @@
 ## 도커 컴포즈 파일
 
 * 메인 - [compose.yaml](../compose_yaml/arcane/compose.yaml)
-* 에이전트 - [compose.yaml](../compose_yaml/arcane/compose_agent.yaml)
+* 에이전트 - [compose.yaml](../compose_yaml/arcane/compose.agent.yaml)
 
 
 ## 설정
