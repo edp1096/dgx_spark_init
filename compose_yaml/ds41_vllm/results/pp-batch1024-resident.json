@@ -1,0 +1,555 @@
+{
+  "label": "pp-batch1024-resident",
+  "max_batched_tokens": 1024,
+  "timed_trials_per_fixture": 2,
+  "b12x_slots_sha256": "3daadde02b019ff17289aaf4292a48640cb12f453614959bac4b44187af18a5e",
+  "kv_and_expert_cache_reset_each_request": true,
+  "runs": [
+    {
+      "fixture": "talk-tools",
+      "trial": -1,
+      "warmup": true,
+      "request_sha256": "9e5469bb5f695e99b0c18ff706005b143b7c6e9ecd3a3fa08b96a4658bdddb0b",
+      "text": "cobalt731",
+      "expected": "cobalt731",
+      "finish": "stop",
+      "elapsed_seconds": 56.940528868999536,
+      "usage": {
+        "prompt_tokens": 6313,
+        "total_tokens": 6317,
+        "completion_tokens": 4,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "created_cache_tokens": 0,
+          "multimodal_tokens": null
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "metrics": {
+        "time_to_first_token_ms": 56462.27617100158,
+        "generation_time_ms": 454.98002099702717,
+        "queue_time_ms": 0.029152000934118405,
+        "mean_itl_ms": 151.66000699900906,
+        "tokens_per_second": 0.07027745656794886,
+        "speculative_decoding": null
+      },
+      "pp": 111.80916583809793,
+      "ttft_seconds": 56.46230532300251,
+      "ranks": {
+        "0": {
+          "host_available_gib": 16.170612335205078,
+          "last_periodic_counters": {
+            "hits": 0,
+            "misses": 0,
+            "read_bytes": 0,
+            "read_seconds": 0.0,
+            "rank": 0,
+            "cache_bytes": 0,
+            "slot_hits": 44935,
+            "slot_misses": 28689,
+            "packed_read_bytes": 269685780480,
+            "graph_replays": 1058,
+            "prefetch_issued": 0,
+            "prefetch_read_bytes": 0,
+            "prefetch_consumed": 0,
+            "prefetch_ready": 0,
+            "prefetch_late": 0,
+            "prefetch_cancelled": 0,
+            "prefetch_unused": 0,
+            "demand_read_bytes": 269685780480,
+            "io_batches": 377,
+            "io_overlaps": 339,
+            "prefetch_pending": 0,
+            "scratch_bytes": 268435456,
+            "gpu_cache_bytes": 87836590080
+          }
+        },
+        "1": {
+          "host_available_gib": 15.590476989746094,
+          "last_periodic_counters": {
+            "hits": 0,
+            "misses": 0,
+            "read_bytes": 0,
+            "read_seconds": 0.0,
+            "rank": 1,
+            "cache_bytes": 0,
+            "slot_hits": 45721,
+            "slot_misses": 28769,
+            "packed_read_bytes": 270437806080,
+            "graph_replays": 1101,
+            "prefetch_issued": 0,
+            "prefetch_read_bytes": 0,
+            "prefetch_consumed": 0,
+            "prefetch_ready": 0,
+            "prefetch_late": 0,
+            "prefetch_cancelled": 0,
+            "prefetch_unused": 0,
+            "demand_read_bytes": 270437806080,
+            "io_batches": 410,
+            "io_overlaps": 372,
+            "prefetch_pending": 0,
+            "scratch_bytes": 268435456,
+            "gpu_cache_bytes": 87836590080
+          }
+        }
+      }
+    },
+    {
+      "fixture": "mixed-document",
+      "trial": -1,
+      "warmup": true,
+      "request_sha256": "637d9a43e7937afa66467658fbb2dcb0b1a07af18d0cf7d17851b20e42d324cf",
+      "text": "marble482",
+      "expected": "marble482",
+      "finish": "stop",
+      "elapsed_seconds": 95.00861179500134,
+      "usage": {
+        "prompt_tokens": 12270,
+        "total_tokens": 12274,
+        "completion_tokens": 4,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "created_cache_tokens": 0,
+          "multimodal_tokens": null
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "metrics": {
+        "time_to_first_token_ms": 94476.44049000155,
+        "generation_time_ms": 509.62283999979263,
+        "queue_time_ms": 0.02028800008702092,
+        "mean_itl_ms": 169.87427999993088,
+        "tokens_per_second": 0.04211144098164347,
+        "speculative_decoding": null
+      },
+      "pp": 129.8736482488302,
+      "ttft_seconds": 94.47646077800164,
+      "ranks": {
+        "0": {
+          "host_available_gib": 16.06775665283203,
+          "last_periodic_counters": {
+            "hits": 0,
+            "misses": 0,
+            "read_bytes": 0,
+            "read_seconds": 0.0,
+            "rank": 0,
+            "cache_bytes": 0,
+            "slot_hits": 88197,
+            "slot_misses": 48437,
+            "packed_read_bytes": 455323299840,
+            "graph_replays": 2031,
+            "prefetch_issued": 0,
+            "prefetch_read_bytes": 0,
+            "prefetch_consumed": 0,
+            "prefetch_ready": 0,
+            "prefetch_late": 0,
+            "prefetch_cancelled": 0,
+            "prefetch_unused": 0,
+            "demand_read_bytes": 455323299840,
+            "io_batches": 634,
+            "io_overlaps": 596,
+            "prefetch_pending": 0,
+            "scratch_bytes": 268435456,
+            "gpu_cache_bytes": 87836590080
+          }
+        },
+        "1": {
+          "host_available_gib": 14.834125518798828,
+          "last_periodic_counters": {
+            "hits": 0,
+            "misses": 0,
+            "read_bytes": 0,
+            "read_seconds": 0.0,
+            "rank": 1,
+            "cache_bytes": 0,
+            "slot_hits": 88197,
+            "slot_misses": 48437,
+            "packed_read_bytes": 455323299840,
+            "graph_replays": 2031,
+            "prefetch_issued": 0,
+            "prefetch_read_bytes": 0,
+            "prefetch_consumed": 0,
+            "prefetch_ready": 0,
+            "prefetch_late": 0,
+            "prefetch_cancelled": 0,
+            "prefetch_unused": 0,
+            "demand_read_bytes": 455323299840,
+            "io_batches": 634,
+            "io_overlaps": 596,
+            "prefetch_pending": 0,
+            "scratch_bytes": 268435456,
+            "gpu_cache_bytes": 87836590080
+          }
+        }
+      }
+    },
+    {
+      "fixture": "talk-tools",
+      "trial": 0,
+      "warmup": false,
+      "request_sha256": "9e5469bb5f695e99b0c18ff706005b143b7c6e9ecd3a3fa08b96a4658bdddb0b",
+      "text": "cobalt731",
+      "expected": "cobalt731",
+      "finish": "stop",
+      "elapsed_seconds": 52.50475335699957,
+      "usage": {
+        "prompt_tokens": 6313,
+        "total_tokens": 6317,
+        "completion_tokens": 4,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "created_cache_tokens": 0,
+          "multimodal_tokens": null
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "metrics": {
+        "time_to_first_token_ms": 52047.77155100237,
+        "generation_time_ms": 441.8769580006483,
+        "queue_time_ms": 0.019103998056380078,
+        "mean_itl_ms": 147.29231933354944,
+        "tokens_per_second": 0.07620550172504814,
+        "speculative_decoding": null
+      },
+      "pp": 121.29241679086681,
+      "ttft_seconds": 52.047790655000426,
+      "ranks": {
+        "0": {
+          "host_available_gib": 15.8460693359375,
+          "last_periodic_counters": {
+            "hits": 0,
+            "misses": 0,
+            "read_bytes": 0,
+            "read_seconds": 0.0,
+            "rank": 0,
+            "cache_bytes": 0,
+            "slot_hits": 44928,
+            "slot_misses": 28654,
+            "packed_read_bytes": 269356769280,
+            "graph_replays": 1058,
+            "prefetch_issued": 0,
+            "prefetch_read_bytes": 0,
+            "prefetch_consumed": 0,
+            "prefetch_ready": 0,
+            "prefetch_late": 0,
+            "prefetch_cancelled": 0,
+            "prefetch_unused": 0,
+            "demand_read_bytes": 269356769280,
+            "io_batches": 375,
+            "io_overlaps": 337,
+            "prefetch_pending": 0,
+            "scratch_bytes": 268435456,
+            "gpu_cache_bytes": 87836590080
+          }
+        },
+        "1": {
+          "host_available_gib": 15.442264556884766,
+          "last_periodic_counters": {
+            "hits": 0,
+            "misses": 0,
+            "read_bytes": 0,
+            "read_seconds": 0.0,
+            "rank": 1,
+            "cache_bytes": 0,
+            "slot_hits": 45738,
+            "slot_misses": 28722,
+            "packed_read_bytes": 269995991040,
+            "graph_replays": 1101,
+            "prefetch_issued": 0,
+            "prefetch_read_bytes": 0,
+            "prefetch_consumed": 0,
+            "prefetch_ready": 0,
+            "prefetch_late": 0,
+            "prefetch_cancelled": 0,
+            "prefetch_unused": 0,
+            "demand_read_bytes": 269995991040,
+            "io_batches": 406,
+            "io_overlaps": 368,
+            "prefetch_pending": 0,
+            "scratch_bytes": 268435456,
+            "gpu_cache_bytes": 87836590080
+          }
+        }
+      }
+    },
+    {
+      "fixture": "mixed-document",
+      "trial": 0,
+      "warmup": false,
+      "request_sha256": "637d9a43e7937afa66467658fbb2dcb0b1a07af18d0cf7d17851b20e42d324cf",
+      "text": "marble482",
+      "expected": "marble482",
+      "finish": "stop",
+      "elapsed_seconds": 91.44415076900259,
+      "usage": {
+        "prompt_tokens": 12270,
+        "total_tokens": 12274,
+        "completion_tokens": 4,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "created_cache_tokens": 0,
+          "multimodal_tokens": null
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "metrics": {
+        "time_to_first_token_ms": 90939.60717800292,
+        "generation_time_ms": 480.7676639975398,
+        "queue_time_ms": 0.050527996791061014,
+        "mean_itl_ms": 160.25588799917992,
+        "tokens_per_second": 0.043753922546402806,
+        "speculative_decoding": null
+      },
+      "pp": 134.92470861439955,
+      "ttft_seconds": 90.9396577059997,
+      "ranks": {
+        "0": {
+          "host_available_gib": 15.840324401855469,
+          "last_periodic_counters": {
+            "hits": 0,
+            "misses": 0,
+            "read_bytes": 0,
+            "read_seconds": 0.0,
+            "rank": 0,
+            "cache_bytes": 0,
+            "slot_hits": 88166,
+            "slot_misses": 48437,
+            "packed_read_bytes": 455323299840,
+            "graph_replays": 2031,
+            "prefetch_issued": 0,
+            "prefetch_read_bytes": 0,
+            "prefetch_consumed": 0,
+            "prefetch_ready": 0,
+            "prefetch_late": 0,
+            "prefetch_cancelled": 0,
+            "prefetch_unused": 0,
+            "demand_read_bytes": 455323299840,
+            "io_batches": 633,
+            "io_overlaps": 595,
+            "prefetch_pending": 0,
+            "scratch_bytes": 268435456,
+            "gpu_cache_bytes": 87836590080
+          }
+        },
+        "1": {
+          "host_available_gib": 15.97052001953125,
+          "last_periodic_counters": {
+            "hits": 0,
+            "misses": 0,
+            "read_bytes": 0,
+            "read_seconds": 0.0,
+            "rank": 1,
+            "cache_bytes": 0,
+            "slot_hits": 88166,
+            "slot_misses": 48437,
+            "packed_read_bytes": 455323299840,
+            "graph_replays": 2031,
+            "prefetch_issued": 0,
+            "prefetch_read_bytes": 0,
+            "prefetch_consumed": 0,
+            "prefetch_ready": 0,
+            "prefetch_late": 0,
+            "prefetch_cancelled": 0,
+            "prefetch_unused": 0,
+            "demand_read_bytes": 455323299840,
+            "io_batches": 633,
+            "io_overlaps": 595,
+            "prefetch_pending": 0,
+            "scratch_bytes": 268435456,
+            "gpu_cache_bytes": 87836590080
+          }
+        }
+      }
+    },
+    {
+      "fixture": "talk-tools",
+      "trial": 1,
+      "warmup": false,
+      "request_sha256": "9e5469bb5f695e99b0c18ff706005b143b7c6e9ecd3a3fa08b96a4658bdddb0b",
+      "text": "cobalt731",
+      "expected": "cobalt731",
+      "finish": "stop",
+      "elapsed_seconds": 52.00346239500141,
+      "usage": {
+        "prompt_tokens": 6313,
+        "total_tokens": 6317,
+        "completion_tokens": 4,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "created_cache_tokens": 0,
+          "multimodal_tokens": null
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "metrics": {
+        "time_to_first_token_ms": 51579.59505600229,
+        "generation_time_ms": 408.08473599827266,
+        "queue_time_ms": 0.018880000425269827,
+        "mean_itl_ms": 136.02824533275756,
+        "tokens_per_second": 0.07694130640189654,
+        "speculative_decoding": null
+      },
+      "pp": 122.39336104026586,
+      "ttft_seconds": 51.579613936002715,
+      "ranks": {
+        "0": {
+          "host_available_gib": 15.834674835205078,
+          "last_periodic_counters": {
+            "hits": 0,
+            "misses": 0,
+            "read_bytes": 0,
+            "read_seconds": 0.0,
+            "rank": 0,
+            "cache_bytes": 0,
+            "slot_hits": 44843,
+            "slot_misses": 28492,
+            "packed_read_bytes": 267833917440,
+            "graph_replays": 1060,
+            "prefetch_issued": 0,
+            "prefetch_read_bytes": 0,
+            "prefetch_consumed": 0,
+            "prefetch_ready": 0,
+            "prefetch_late": 0,
+            "prefetch_cancelled": 0,
+            "prefetch_unused": 0,
+            "demand_read_bytes": 267833917440,
+            "io_batches": 376,
+            "io_overlaps": 338,
+            "prefetch_pending": 0,
+            "scratch_bytes": 268435456,
+            "gpu_cache_bytes": 87836590080
+          }
+        },
+        "1": {
+          "host_available_gib": 14.470787048339844,
+          "last_periodic_counters": {
+            "hits": 0,
+            "misses": 0,
+            "read_bytes": 0,
+            "read_seconds": 0.0,
+            "rank": 1,
+            "cache_bytes": 0,
+            "slot_hits": 45630,
+            "slot_misses": 28572,
+            "packed_read_bytes": 268585943040,
+            "graph_replays": 1103,
+            "prefetch_issued": 0,
+            "prefetch_read_bytes": 0,
+            "prefetch_consumed": 0,
+            "prefetch_ready": 0,
+            "prefetch_late": 0,
+            "prefetch_cancelled": 0,
+            "prefetch_unused": 0,
+            "demand_read_bytes": 268585943040,
+            "io_batches": 413,
+            "io_overlaps": 375,
+            "prefetch_pending": 0,
+            "scratch_bytes": 268435456,
+            "gpu_cache_bytes": 87836590080
+          }
+        }
+      }
+    },
+    {
+      "fixture": "mixed-document",
+      "trial": 1,
+      "warmup": false,
+      "request_sha256": "637d9a43e7937afa66467658fbb2dcb0b1a07af18d0cf7d17851b20e42d324cf",
+      "text": "marble482",
+      "expected": "marble482",
+      "finish": "stop",
+      "elapsed_seconds": 91.94832203199985,
+      "usage": {
+        "prompt_tokens": 12270,
+        "total_tokens": 12274,
+        "completion_tokens": 4,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "created_cache_tokens": 0,
+          "multimodal_tokens": null
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "metrics": {
+        "time_to_first_token_ms": 91094.64832899903,
+        "generation_time_ms": 831.8377110008441,
+        "queue_time_ms": 0.019552000594558194,
+        "mean_itl_ms": 277.2792370002814,
+        "tokens_per_second": 0.04351303059990223,
+        "speculative_decoding": null
+      },
+      "pp": 134.69506963444715,
+      "ttft_seconds": 91.09466788099962,
+      "ranks": {
+        "0": {
+          "host_available_gib": 15.804039001464844,
+          "last_periodic_counters": {
+            "hits": 0,
+            "misses": 0,
+            "read_bytes": 0,
+            "read_seconds": 0.0,
+            "rank": 0,
+            "cache_bytes": 0,
+            "slot_hits": 88935,
+            "slot_misses": 48747,
+            "packed_read_bytes": 458237399040,
+            "graph_replays": 2074,
+            "prefetch_issued": 0,
+            "prefetch_read_bytes": 0,
+            "prefetch_consumed": 0,
+            "prefetch_ready": 0,
+            "prefetch_late": 0,
+            "prefetch_cancelled": 0,
+            "prefetch_unused": 0,
+            "demand_read_bytes": 458237399040,
+            "io_batches": 676,
+            "io_overlaps": 638,
+            "prefetch_pending": 0,
+            "scratch_bytes": 268435456,
+            "gpu_cache_bytes": 87836590080
+          }
+        },
+        "1": {
+          "host_available_gib": 14.906871795654297,
+          "last_periodic_counters": {
+            "hits": 0,
+            "misses": 0,
+            "read_bytes": 0,
+            "read_seconds": 0.0,
+            "rank": 1,
+            "cache_bytes": 0,
+            "slot_hits": 89837,
+            "slot_misses": 48895,
+            "packed_read_bytes": 459628646400,
+            "graph_replays": 2117,
+            "prefetch_issued": 0,
+            "prefetch_read_bytes": 0,
+            "prefetch_consumed": 0,
+            "prefetch_ready": 0,
+            "prefetch_late": 0,
+            "prefetch_cancelled": 0,
+            "prefetch_unused": 0,
+            "demand_read_bytes": 459628646400,
+            "io_batches": 714,
+            "io_overlaps": 676,
+            "prefetch_pending": 0,
+            "scratch_bytes": 268435456,
+            "gpu_cache_bytes": 87836590080
+          }
+        }
+      }
+    }
+  ]
+}

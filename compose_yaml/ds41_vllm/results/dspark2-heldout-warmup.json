@@ -1,0 +1,138 @@
+[
+  {
+    "prompt": "Write a Python function that merges overlapping integer intervals. Include type hints. Return only code.",
+    "text": "```python\nfrom typing import List, Tuple\n\ndef merge_intervals(intervals: List[Tuple[int, int]]) -> List[Tuple[int, int]]:\n    if not intervals:\n        return []\n    sorted_intervals = sorted(intervals, key=lambda x: x[0])\n    merged: List[Tuple[int, int]] = [sorted_intervals[0]]\n    for start, end in sorted_intervals[1:]:\n        last_start, last_end = merged[-1]\n        if start <= last_end:\n            merged[-1] = (last_start, max(last_end, end))\n        else:\n            merged.append((start, end))\n    return merged\n```",
+    "usage": {
+      "prompt_tokens": 23,
+      "total_tokens": 165,
+      "completion_tokens": 142
+    },
+    "finish_reason": "stop",
+    "requested_max_tokens": 160,
+    "total_seconds": 19.22081969899591,
+    "ttft_seconds": 5.885128356996574,
+    "overall_tokens_per_second": 7.38782227937022,
+    "first_content_event_tokens": 1,
+    "content_events": 49,
+    "decode_tokens_per_second": 10.573130135063606
+  },
+  {
+    "prompt": "Write a Python function that merges overlapping integer intervals. Include type hints. Return only code.",
+    "text": "```python\nfrom typing import List, Tuple\n\ndef merge_intervals(intervals: List[Tuple[int, int]]) -> List[Tuple[int, int]]:\n    if not intervals:\n        return []\n    sorted_intervals = sorted(intervals, key=lambda x: x[0])\n    merged: List[Tuple[int, int]] = [sorted_intervals[0]]\n    for start, end in sorted_intervals[1:]:\n        last_start, last_end = merged[-1]\n        if start <= last_end:\n            merged[-1] = (last_start, max(last_end, end))\n        else:\n            merged.append((start, end))\n    return merged\n```",
+    "usage": {
+      "prompt_tokens": 23,
+      "total_tokens": 165,
+      "completion_tokens": 142
+    },
+    "finish_reason": "stop",
+    "requested_max_tokens": 160,
+    "total_seconds": 4.644735919995583,
+    "ttft_seconds": 0.66443729599996,
+    "overall_tokens_per_second": 30.572244029782226,
+    "first_content_event_tokens": 1,
+    "content_events": 49,
+    "decode_tokens_per_second": 35.42447773892331
+  },
+  {
+    "prompt": "Explain how a DNS lookup works in 80 to 100 words.",
+    "text": "A DNS lookup translates a domain name into an IP address. Your device first checks its local cache, then queries a recursive resolver. The resolver asks a root server, which points to the appropriate top-level domain server (like .com). That server directs it to the domain's authoritative nameserver, which returns the correct IP address. The resolver caches the result and sends it back to your device, which then connects to the website. This entire process typically happens in milliseconds.",
+    "usage": {
+      "prompt_tokens": 18,
+      "total_tokens": 114,
+      "completion_tokens": 96
+    },
+    "finish_reason": "stop",
+    "requested_max_tokens": 160,
+    "total_seconds": 10.561601083005371,
+    "ttft_seconds": 1.3676204330040491,
+    "overall_tokens_per_second": 9.089530957050934,
+    "first_content_event_tokens": 1,
+    "content_events": 46,
+    "decode_tokens_per_second": 10.33284750278285
+  },
+  {
+    "prompt": "Explain how a DNS lookup works in 80 to 100 words.",
+    "text": "A DNS lookup translates a domain name into an IP address. Your device first checks its local cache, then queries a recursive resolver. The resolver asks a root server, which points to the appropriate top-level domain server (like .com). That server directs it to the domain's authoritative nameserver, which returns the correct IP address. The resolver caches the result and sends it back to your device, which then connects to the website. This entire process typically happens in milliseconds.",
+    "usage": {
+      "prompt_tokens": 18,
+      "total_tokens": 114,
+      "completion_tokens": 96
+    },
+    "finish_reason": "stop",
+    "requested_max_tokens": 160,
+    "total_seconds": 4.2026649420004105,
+    "ttft_seconds": 0.3879643979962566,
+    "overall_tokens_per_second": 22.842648967943973,
+    "first_content_event_tokens": 1,
+    "content_events": 46,
+    "decode_tokens_per_second": 24.903658597610892
+  },
+  {
+    "prompt": "한국어로 캐시와 데이터베이스의 차이를 두 문장으로 설명해.",
+    "text": "캐시는 자주 사용되는 데이터를 메모리에 임시로 저장하여 빠르게 접근할 수 있도록 하는 반면, 데이터베이스는 데이터를 영구적으로 저장하고 관리하는 시스템입니다. 따라서 캐시는 속도 향상을 위한 보조 저장소이고, 데이터베이스는 데이터의 지속성과 무결성을 보장하는 주 저장소입니다.",
+    "usage": {
+      "prompt_tokens": 27,
+      "total_tokens": 115,
+      "completion_tokens": 88
+    },
+    "finish_reason": "stop",
+    "requested_max_tokens": 160,
+    "total_seconds": 6.784832600998925,
+    "ttft_seconds": 1.1999018960050307,
+    "overall_tokens_per_second": 12.970106290764468,
+    "first_content_event_tokens": 3,
+    "content_events": 37,
+    "decode_tokens_per_second": 15.219526345061952
+  },
+  {
+    "prompt": "한국어로 캐시와 데이터베이스의 차이를 두 문장으로 설명해.",
+    "text": "캐시는 자주 사용되는 데이터를 메모리에 임시로 저장하여 빠르게 접근할 수 있도록 하는 반면, 데이터베이스는 데이터를 영구적으로 저장하고 관리하는 시스템입니다. 따라서 캐시는 속도 향상을 위한 보조 저장소이고, 데이터베이스는 데이터의 지속성과 무결성을 보장하는 주 저장소입니다.",
+    "usage": {
+      "prompt_tokens": 27,
+      "total_tokens": 115,
+      "completion_tokens": 88
+    },
+    "finish_reason": "stop",
+    "requested_max_tokens": 160,
+    "total_seconds": 3.3254106620006496,
+    "ttft_seconds": 0.41495530099928146,
+    "overall_tokens_per_second": 26.462897050753128,
+    "first_content_event_tokens": 3,
+    "content_events": 37,
+    "decode_tokens_per_second": 29.20505194443353
+  },
+  {
+    "prompt": "Write PostgreSQL SQL to sum orders(amount, created_at) by calendar month for the year 2025, ordered by month. Return only SQL.",
+    "text": "```sql\nSELECT\n    date_trunc('month', created_at) AS month,\n    SUM(amount) AS total_amount\nFROM orders\nWHERE created_at >= '2025-01-01'\n  AND created_at < '2026-01-01'\nGROUP BY date_trunc('month', created_at)\nORDER BY month;\n```",
+    "usage": {
+      "prompt_tokens": 34,
+      "total_tokens": 106,
+      "completion_tokens": 72
+    },
+    "finish_reason": "stop",
+    "requested_max_tokens": 160,
+    "total_seconds": 9.046846135999658,
+    "ttft_seconds": 3.802410456999496,
+    "overall_tokens_per_second": 7.958574614582427,
+    "first_content_event_tokens": 1,
+    "content_events": 27,
+    "decode_tokens_per_second": 13.5381582205878
+  },
+  {
+    "prompt": "Write PostgreSQL SQL to sum orders(amount, created_at) by calendar month for the year 2025, ordered by month. Return only SQL.",
+    "text": "```sql\nSELECT\n    date_trunc('month', created_at) AS month,\n    SUM(amount) AS total_amount\nFROM orders\nWHERE created_at >= '2025-01-01'\n  AND created_at < '2026-01-01'\nGROUP BY date_trunc('month', created_at)\nORDER BY month;\n```",
+    "usage": {
+      "prompt_tokens": 34,
+      "total_tokens": 106,
+      "completion_tokens": 72
+    },
+    "finish_reason": "stop",
+    "requested_max_tokens": 160,
+    "total_seconds": 2.602518097999564,
+    "ttft_seconds": 0.4458099210023647,
+    "overall_tokens_per_second": 27.66551366361029,
+    "first_content_event_tokens": 1,
+    "content_events": 27,
+    "decode_tokens_per_second": 32.92054101582432
+  }
+]

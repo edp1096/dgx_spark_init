@@ -1,0 +1,10 @@
+{
+  "text": "spark-cobalt-731",
+  "usage": {
+    "prompt_tokens": 1074,
+    "total_tokens": 1081,
+    "completion_tokens": 7
+  },
+  "ttft_seconds": 8.264866706995235,
+  "total_seconds": 8.922760891997314
+}

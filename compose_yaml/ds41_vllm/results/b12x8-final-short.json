@@ -1,0 +1,53 @@
+[
+  {
+    "prompt": "대한민국의 수도는 어디인가? 한 단어로 답해.",
+    "text": "서울",
+    "usage": {
+      "prompt_tokens": 23,
+      "total_tokens": 26,
+      "completion_tokens": 3
+    },
+    "finish_reason": "stop",
+    "requested_max_tokens": 48,
+    "total_seconds": 4.968423302998417,
+    "ttft_seconds": 4.330715335996501,
+    "overall_tokens_per_second": 0.603813285834465,
+    "first_content_event_tokens": 1,
+    "content_events": 2,
+    "decode_tokens_per_second": 3.136231791806973
+  },
+  {
+    "prompt": "Write a Python function add(a, b) that returns their sum. Output only code.",
+    "text": "def add(a, b):\n    return a + b",
+    "usage": {
+      "prompt_tokens": 22,
+      "total_tokens": 34,
+      "completion_tokens": 12
+    },
+    "finish_reason": "stop",
+    "requested_max_tokens": 48,
+    "total_seconds": 3.6957964090033784,
+    "ttft_seconds": 2.6023400660014886,
+    "overall_tokens_per_second": 3.246932101229018,
+    "first_content_event_tokens": 1,
+    "content_events": 3,
+    "decode_tokens_per_second": 10.059843788368777
+  },
+  {
+    "prompt": "Count from 1 to 10, separated by commas.",
+    "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10",
+    "usage": {
+      "prompt_tokens": 16,
+      "total_tokens": 45,
+      "completion_tokens": 29
+    },
+    "finish_reason": "stop",
+    "requested_max_tokens": 48,
+    "total_seconds": 2.8020299269992393,
+    "ttft_seconds": 1.3034739009999612,
+    "overall_tokens_per_second": 10.349639638237838,
+    "first_content_event_tokens": 1,
+    "content_events": 6,
+    "decode_tokens_per_second": 18.684653435849246
+  }
+]

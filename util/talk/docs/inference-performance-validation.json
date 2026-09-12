@@ -1,0 +1,46 @@
+{
+  "checked_utc": "2026-09-12T04:10:14.034666+00:00",
+  "backend": "DeepSeek V4.1 Flash TP2 / pinned vLLM",
+  "model_context": 65536,
+  "output_allowance": 8192,
+  "tests": {
+    "go": "go test ./... passed; affected llm/server tests repeated after cache-null handling",
+    "javascript": "89 passed",
+    "playwright": "3 passed: desktop/mobile metrics and completion limits"
+  },
+  "live_runs": [
+    {
+      "content": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10",
+      "performance": {
+        "pp": 86.754764679769,
+        "tg": 18.905794176469648,
+        "ttft": 72.3418688189995,
+        "prompt_tokens": 6276,
+        "cached_tokens": 0,
+        "output_tokens": 301,
+        "calls": 1
+      },
+      "elapsed_seconds": 88.24063899400062
+    },
+    {
+      "content": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10",
+      "performance": {
+        "pp": 105.36243048029385,
+        "tg": 20.767757529430188,
+        "ttft": 64.59917740899982,
+        "prompt_tokens": 6276,
+        "cached_tokens": 0,
+        "output_tokens": 251,
+        "calls": 1
+      },
+      "elapsed_seconds": 76.99791777000064
+    }
+  ],
+  "browser": {
+    "newest": "pp\n105.4 tok/s\ntg\n20.8 tok/s\nttft\n64.6 s",
+    "older": "pp\n86.8 tok/s\ntg\n18.9 tok/s\nttft\n72.34 s",
+    "reload_preserved": true,
+    "lowercase_labels": true
+  },
+  "variant_metrics_persisted": true
+}

@@ -2,6 +2,10 @@ import { appendToolOutput, finishTool, markToolExecution, requestToolApproval, r
 
 export function createStreamHandlers(message, publish) {
   return {
+    performance(data) {
+      message.performance = data;
+      publish();
+    },
     reasoning(delta) {
       message.activity = 'reasoning';
       message.reasoning_content += delta;

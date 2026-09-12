@@ -1,0 +1,95 @@
+{
+  "conditions": "Identical requests; zero KV hits; reset expert slots; warmups excluded. Read counts are the last periodic log snapshot.",
+  "settings": [
+    {
+      "label": "pp-batch512",
+      "max_batched_tokens": 512,
+      "cases": {
+        "mixed-document": {
+          "prompt_tokens": 12270,
+          "trials": 2,
+          "pp": 97.85196556325978,
+          "median_ttft_seconds": 125.39351623999937,
+          "min_pp": 97.8141809009812,
+          "max_pp": 97.8897794285108,
+          "min_host_available_gib": 15.568450927734375,
+          "approx_median_expert_read_gib_per_rank": 632.1965789794922,
+          "pp_gain_percent": 0.0,
+          "ttft_reduction_percent": 0.0
+        },
+        "talk-tools": {
+          "prompt_tokens": 6313,
+          "trials": 2,
+          "pp": 94.5838992617685,
+          "median_ttft_seconds": 66.7449940964998,
+          "min_pp": 93.88241235416042,
+          "max_pp": 95.29594807095003,
+          "min_host_available_gib": 15.98092269897461,
+          "approx_median_expert_read_gib_per_rank": 340.3882884979248,
+          "pp_gain_percent": 0.0,
+          "ttft_reduction_percent": 0.0
+        }
+      }
+    },
+    {
+      "label": "pp-batch1024-resident",
+      "max_batched_tokens": 1024,
+      "cases": {
+        "mixed-document": {
+          "prompt_tokens": 12270,
+          "trials": 2,
+          "pp": 134.80979133103918,
+          "median_ttft_seconds": 91.01716279349966,
+          "min_pp": 134.69506963444715,
+          "max_pp": 134.92470861439955,
+          "min_host_available_gib": 14.906871795654297,
+          "approx_median_expert_read_gib_per_rank": 425.40985107421875,
+          "pp_gain_percent": 37.76911946023888,
+          "ttft_reduction_percent": 27.414777475977637
+        },
+        "talk-tools": {
+          "prompt_tokens": 6313,
+          "trials": 2,
+          "pp": 121.84040194597156,
+          "median_ttft_seconds": 51.81370229550157,
+          "min_pp": 121.29241679086681,
+          "max_pp": 122.39336104026586,
+          "min_host_available_gib": 14.470787048339844,
+          "approx_median_expert_read_gib_per_rank": 250.49909591674805,
+          "pp_gain_percent": 28.817275347010728,
+          "ttft_reduction_percent": 22.37065416383226
+        }
+      }
+    },
+    {
+      "label": "pp-batch2048-resident",
+      "max_batched_tokens": 2048,
+      "cases": {
+        "mixed-document": {
+          "prompt_tokens": 12270,
+          "trials": 2,
+          "pp": 171.45920237851664,
+          "median_ttft_seconds": 71.5622351689999,
+          "min_pp": 171.27076814693623,
+          "max_pp": 171.648051702162,
+          "min_host_available_gib": 14.805000305175781,
+          "approx_median_expert_read_gib_per_rank": 308.96318435668945,
+          "pp_gain_percent": 75.22305391777839,
+          "ttft_reduction_percent": 42.92987602960908
+        },
+        "talk-tools": {
+          "prompt_tokens": 6313,
+          "trials": 2,
+          "pp": 144.59362502744042,
+          "median_ttft_seconds": 43.66031322449817,
+          "min_pp": 144.42089181455498,
+          "max_pp": 144.76677192689382,
+          "min_host_available_gib": 13.30765151977539,
+          "approx_median_expert_read_gib_per_rank": 201.8140411376953,
+          "pp_gain_percent": 52.87340250930661,
+          "ttft_reduction_percent": 34.586385367906146
+        }
+      }
+    }
+  ]
+}

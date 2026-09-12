@@ -1,0 +1,4 @@
+Exception ignored in: <function RoceOneshotAllReduce.__del__ at 0xf63b3d6ae340>
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.12/dist-packages/b12x/comm/roce/roce_oneshot.py", line 920, in __del__
+AttributeError: 'NoneType' object has no attribute 'suppress'

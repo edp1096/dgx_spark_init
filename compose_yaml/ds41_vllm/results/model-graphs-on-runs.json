@@ -1,0 +1,70 @@
+[
+  {
+    "trial": 0,
+    "output": "model-graphs-on-0.json",
+    "total_seconds": 43.090089698991505,
+    "decode_tps": [
+      10.610697980921422,
+      10.476489170026554,
+      12.660233941914179,
+      15.842996036034082
+    ],
+    "last_counters": {
+      "hits": 0,
+      "misses": 0,
+      "read_bytes": 0,
+      "read_seconds": 0.0,
+      "rank": 0,
+      "cache_bytes": 0,
+      "slot_hits": 102719,
+      "slot_misses": 13819,
+      "packed_read_bytes": 129903022080,
+      "graph_replays": 5759,
+      "prefetch_issued": 0,
+      "prefetch_read_bytes": 0,
+      "prefetch_consumed": 0,
+      "prefetch_ready": 0,
+      "prefetch_late": 0,
+      "prefetch_cancelled": 0,
+      "prefetch_unused": 0,
+      "demand_read_bytes": 129903022080,
+      "prefetch_pending": 0,
+      "scratch_bytes": 536870912,
+      "gpu_cache_bytes": 87836590080
+    }
+  },
+  {
+    "trial": 1,
+    "output": "model-graphs-on-1.json",
+    "total_seconds": 42.783912834005605,
+    "decode_tps": [
+      10.513527380535512,
+      10.292785676053972,
+      12.971133233863553,
+      16.483586946302207
+    ],
+    "last_counters": {
+      "hits": 0,
+      "misses": 0,
+      "read_bytes": 0,
+      "read_seconds": 0.0,
+      "rank": 0,
+      "cache_bytes": 0,
+      "slot_hits": 102719,
+      "slot_misses": 13819,
+      "packed_read_bytes": 129903022080,
+      "graph_replays": 5759,
+      "prefetch_issued": 0,
+      "prefetch_read_bytes": 0,
+      "prefetch_consumed": 0,
+      "prefetch_ready": 0,
+      "prefetch_late": 0,
+      "prefetch_cancelled": 0,
+      "prefetch_unused": 0,
+      "demand_read_bytes": 129903022080,
+      "prefetch_pending": 0,
+      "scratch_bytes": 536870912,
+      "gpu_cache_bytes": 87836590080
+    }
+  }
+]

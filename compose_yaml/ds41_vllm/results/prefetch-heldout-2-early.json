@@ -1,0 +1,70 @@
+[
+  {
+    "prompt": "Write a Python function that merges overlapping integer intervals. Include type hints. Return only code.",
+    "text": "```python\nfrom typing import List, Tuple\n\ndef merge_intervals(intervals: List[Tuple[int, int]]) -> List[Tuple[int, int]]:\n    if not intervals:\n        return []\n    sorted_intervals = sorted(intervals, key=lambda x: x[0])\n    merged: List[Tuple[int, int]] = [sorted_intervals[0]]\n    for start, end in sorted_intervals[1:]:\n        last_start, last_end = merged[-1]\n        if start <= last_end:\n            merged[-1] = (last_start, max(last_end, end))\n        else:\n            merged.append((start, end))\n    return merged\n```",
+    "usage": {
+      "prompt_tokens": 23,
+      "total_tokens": 165,
+      "completion_tokens": 142
+    },
+    "finish_reason": "stop",
+    "requested_max_tokens": 160,
+    "total_seconds": 14.964329208996787,
+    "ttft_seconds": 3.7295676939975237,
+    "overall_tokens_per_second": 9.489232562100238,
+    "first_content_event_tokens": 1,
+    "content_events": 26,
+    "decode_tokens_per_second": 12.550333161211677
+  },
+  {
+    "prompt": "Explain how a DNS lookup works in 80 to 100 words.",
+    "text": "A DNS lookup translates a domain name into an IP address. Your device first checks local caches, then queries a recursive resolver. The resolver asks a root server, which points to the appropriate top-level domain server (like .com). That server directs it to the domain's authoritative nameserver, which returns the correct IP address. The resolver caches the result and sends it back to your device, which then connects to the website. This entire process typically happens in milliseconds, often without you noticing.",
+    "usage": {
+      "prompt_tokens": 18,
+      "total_tokens": 119,
+      "completion_tokens": 101
+    },
+    "finish_reason": "stop",
+    "requested_max_tokens": 160,
+    "total_seconds": 12.951849616998516,
+    "ttft_seconds": 1.613401624999824,
+    "overall_tokens_per_second": 7.79811401357252,
+    "first_content_event_tokens": 1,
+    "content_events": 43,
+    "decode_tokens_per_second": 8.81954920731373
+  },
+  {
+    "prompt": "한국어로 캐시와 데이터베이스의 차이를 두 문장으로 설명해.",
+    "text": "캐시는 자주 사용하는 데이터를 메모리 같은 빠른 저장소에 임시로 보관해 접근 속도를 높이는 계층이고, 데이터베이스는 데이터를 영구적으로 저장하고 관리하는 시스템입니다. 따라서 캐시는 속도 향상을 위한 보조 수단이고, 데이터베이스는 데이터의 원본을 보관하는 핵심 저장소라는 차이가 있습니다.",
+    "usage": {
+      "prompt_tokens": 27,
+      "total_tokens": 120,
+      "completion_tokens": 93
+    },
+    "finish_reason": "stop",
+    "requested_max_tokens": 160,
+    "total_seconds": 7.835894846000883,
+    "ttft_seconds": 1.4443760010035476,
+    "overall_tokens_per_second": 11.86845942010865,
+    "first_content_event_tokens": 4,
+    "content_events": 32,
+    "decode_tokens_per_second": 13.924702744115448
+  },
+  {
+    "prompt": "Write PostgreSQL SQL to sum orders(amount, created_at) by calendar month for the year 2025, ordered by month. Return only SQL.",
+    "text": "```sql\nSELECT\n    DATE_TRUNC('month', created_at) AS month,\n    SUM(amount) AS total_amount\nFROM orders\nWHERE created_at >= '2025-01-01'\n  AND created_at < '2026-01-01'\nGROUP BY DATE_TRUNC('month', created_at)\nORDER BY month;\n```",
+    "usage": {
+      "prompt_tokens": 34,
+      "total_tokens": 106,
+      "completion_tokens": 72
+    },
+    "finish_reason": "stop",
+    "requested_max_tokens": 160,
+    "total_seconds": 6.419915926999238,
+    "ttft_seconds": 1.5916855739997118,
+    "overall_tokens_per_second": 11.21510013818107,
+    "first_content_event_tokens": 1,
+    "content_events": 17,
+    "decode_tokens_per_second": 14.705180740991661
+  }
+]

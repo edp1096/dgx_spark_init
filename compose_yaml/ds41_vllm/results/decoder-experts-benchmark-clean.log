@@ -1,0 +1,13 @@
+{"fixture": "talk-tools-r5", "trial": 0, "enabled": true, "pp": 195.3303185355039, "ttft_seconds": 32.29403724500003}
+{"fixture": "talk-tools-r5", "trial": 0, "enabled": false, "pp": 191.41156627321507, "ttft_seconds": 32.9551882610001}
+{"fixture": "mixed-document-r5", "trial": 0, "enabled": true, "pp": 246.79146831346938, "ttft_seconds": 52.40864039400003}
+{"fixture": "mixed-document-r5", "trial": 0, "enabled": false, "pp": 241.5012146087001, "ttft_seconds": 53.55669005899995}
+{"fixture": "talk-tools-r5", "trial": 1, "enabled": false, "pp": 192.4844177385643, "ttft_seconds": 32.771506716999966}
+{"fixture": "talk-tools-r5", "trial": 1, "enabled": true, "pp": 196.0187070057757, "ttft_seconds": 32.18062588399994}
+{"fixture": "mixed-document-r5", "trial": 1, "enabled": false, "pp": 241.10551065091363, "ttft_seconds": 53.64458844599995}
+{"fixture": "mixed-document-r5", "trial": 1, "enabled": true, "pp": 246.5829500363828, "ttft_seconds": 52.45296086199983}
+{"fixture": "talk-tools-r5", "trial": 2, "enabled": true, "pp": 196.80455042615924, "ttft_seconds": 32.0521268980001}
+{"fixture": "talk-tools-r5", "trial": 2, "enabled": false, "pp": 191.85457164775605, "ttft_seconds": 32.879094665000146}
+{"fixture": "mixed-document-r5", "trial": 2, "enabled": true, "pp": 244.90462211068237, "ttft_seconds": 52.812420134000156}
+{"fixture": "mixed-document-r5", "trial": 2, "enabled": false, "pp": 241.94614418659285, "ttft_seconds": 53.45820085000014}
+DECODER_ROWS_AB_PASS

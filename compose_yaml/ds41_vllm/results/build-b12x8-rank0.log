@@ -1,0 +1,45 @@
+#0 building with "default" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile.b12x-runtime
+#1 DONE 0.0s
+
+#1 [internal] load build definition from Dockerfile.b12x-runtime
+#1 transferring dockerfile: 474B done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/dgx-ds41-stream:b12x-dev
+#2 DONE 0.0s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 116B done
+#3 DONE 0.0s
+
+#4 [1/5] FROM docker.io/library/dgx-ds41-stream:b12x-dev@sha256:8f26bd1fdaa407d49e149212ae52b12f48cf3d98a22bd9bb423b89c3bdb21161
+#4 resolve docker.io/library/dgx-ds41-stream:b12x-dev@sha256:8f26bd1fdaa407d49e149212ae52b12f48cf3d98a22bd9bb423b89c3bdb21161 0.0s done
+#4 DONE 0.0s
+
+#5 [internal] load build context
+#5 transferring context: 5.49kB done
+#5 DONE 0.0s
+
+#6 [2/5] RUN pip install --no-deps --no-cache-dir nvidia-nccl-cu13==2.30.7
+#6 CACHED
+
+#7 [3/5] COPY patches /opt/ds41/patches
+#7 CACHED
+
+#8 [4/5] COPY *.py /opt/ds41/
+#8 DONE 0.0s
+
+#9 [5/5] RUN while read src dst; do if [ -n "$src" ]; then cp "/opt/ds41/patches/$src" "/usr/local/lib/python3.12/dist-packages/vllm/$dst"; fi; done < /opt/ds41/patches/mounts.txt
+#9 DONE 0.1s
+
+#10 exporting to image
+#10 exporting layers 0.1s done
+#10 exporting manifest sha256:134f06d4ef0031ae01da985471c9d085c7f09dc18e2f871f58bc33689087bbca done
+#10 exporting config sha256:6ed18bc3ef8379da390ac90c095e38bafd762bd65ea4a9a3d537eb4217db2084 done
+#10 exporting attestation manifest sha256:e803ca217fc047314d90fe3b6c106cc27e8b32f20237fb3c09dc33a49869deea done
+#10 exporting manifest list sha256:218d187738649f9349127e2d76fb71a9dc6d08b4a2d47c09c582a894259cf021 done
+#10 naming to docker.io/library/dgx-ds41-stream:b12x8 done
+#10 unpacking to docker.io/library/dgx-ds41-stream:b12x8 0.1s done
+#10 DONE 0.2s

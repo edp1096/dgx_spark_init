@@ -1,0 +1,499 @@
+{
+  "settings": "TP2, uniform224, direct batch_overlap, expert graphs, eager model",
+  "method": "One excluded warmup and two timed suites per length; each suite starts with empty expert slots; each of four prompts is repeated immediately. Fixed order 5 then 3 then 2, not an interleaved length experiment.",
+  "warning": "Generated wording/token counts can differ. Total time ratios alone are not controlled same-output speedups. Small serial test only.",
+  "lengths": {
+    "5": {
+      "sources": [
+        "io-heldout-1.json",
+        "io-heldout-2.json"
+      ],
+      "timed_total_seconds": [
+        54.07117802701396,
+        53.74915994700132
+      ],
+      "mean_total_seconds": 53.91016898700764,
+      "completion_tokens_per_suite": [
+        816,
+        816
+      ],
+      "aggregate_overall_tps": 15.136290895260524,
+      "groups": {
+        "first_requests": {
+          "aggregate_overall_tps": 10.437190957808726,
+          "aggregate_decode_tps": 12.751651720095177
+        },
+        "immediate_repeats": {
+          "aggregate_overall_tps": 27.531866940819075,
+          "aggregate_decode_tps": 31.5126839512424
+        }
+      },
+      "rows": [
+        {
+          "workload": "merge_intervals",
+          "immediate_repeat": false,
+          "completion_tokens": [
+            142,
+            142
+          ],
+          "same_text_as_length5": true,
+          "stable_between_trials": true,
+          "finish_reasons": [
+            "stop",
+            "stop"
+          ],
+          "mean_total_seconds": 14.34592316850103,
+          "mean_ttft_seconds": 3.704572876999009,
+          "mean_decode_tps": 13.251116027630854
+        },
+        {
+          "workload": "merge_intervals",
+          "immediate_repeat": true,
+          "completion_tokens": [
+            142,
+            142
+          ],
+          "same_text_as_length5": true,
+          "stable_between_trials": true,
+          "finish_reasons": [
+            "stop",
+            "stop"
+          ],
+          "mean_total_seconds": 3.429704275502445,
+          "mean_ttft_seconds": 0.5681998065010703,
+          "mean_decode_tps": 49.27479036692099
+        },
+        {
+          "workload": "dns",
+          "immediate_repeat": false,
+          "completion_tokens": [
+            101,
+            101
+          ],
+          "same_text_as_length5": true,
+          "stable_between_trials": true,
+          "finish_reasons": [
+            "stop",
+            "stop"
+          ],
+          "mean_total_seconds": 11.950501319999603,
+          "mean_ttft_seconds": 1.3555058689998987,
+          "mean_decode_tps": 9.44101037295692
+        },
+        {
+          "workload": "dns",
+          "immediate_repeat": true,
+          "completion_tokens": [
+            101,
+            101
+          ],
+          "same_text_as_length5": true,
+          "stable_between_trials": true,
+          "finish_reasons": [
+            "stop",
+            "stop"
+          ],
+          "mean_total_seconds": 5.5469739100008155,
+          "mean_ttft_seconds": 0.4768887979989813,
+          "mean_decode_tps": 19.72401162947799
+        },
+        {
+          "workload": "korean_cache_database",
+          "immediate_repeat": false,
+          "completion_tokens": [
+            93,
+            93
+          ],
+          "same_text_as_length5": true,
+          "stable_between_trials": true,
+          "finish_reasons": [
+            "stop",
+            "stop"
+          ],
+          "mean_total_seconds": 6.882182255500084,
+          "mean_ttft_seconds": 1.2339409830019576,
+          "mean_decode_tps": 15.760832182960108
+        },
+        {
+          "workload": "korean_cache_database",
+          "immediate_repeat": true,
+          "completion_tokens": [
+            93,
+            93
+          ],
+          "same_text_as_length5": true,
+          "stable_between_trials": true,
+          "finish_reasons": [
+            "stop",
+            "stop"
+          ],
+          "mean_total_seconds": 3.6340862774995912,
+          "mean_ttft_seconds": 0.5775957254991226,
+          "mean_decode_tps": 29.11868538244059
+        },
+        {
+          "workload": "monthly_sql",
+          "immediate_repeat": false,
+          "completion_tokens": [
+            72,
+            72
+          ],
+          "same_text_as_length5": true,
+          "stable_between_trials": true,
+          "finish_reasons": [
+            "stop",
+            "stop"
+          ],
+          "mean_total_seconds": 5.912371053502284,
+          "mean_ttft_seconds": 1.3500515185005497,
+          "mean_decode_tps": 15.562742362534191
+        },
+        {
+          "workload": "monthly_sql",
+          "immediate_repeat": true,
+          "completion_tokens": [
+            72,
+            72
+          ],
+          "same_text_as_length5": true,
+          "stable_between_trials": true,
+          "finish_reasons": [
+            "stop",
+            "stop"
+          ],
+          "mean_total_seconds": 2.2084267265017843,
+          "mean_ttft_seconds": 0.47147205699729966,
+          "mean_decode_tps": 40.87660375460956
+        }
+      ]
+    },
+    "3": {
+      "sources": [
+        "dspark3-heldout-0.json",
+        "dspark3-heldout-1.json"
+      ],
+      "timed_total_seconds": [
+        50.14952598299715,
+        50.54970063399378
+      ],
+      "mean_total_seconds": 50.349613308495464,
+      "completion_tokens_per_suite": [
+        796,
+        796
+      ],
+      "aggregate_overall_tps": 15.809456075121263,
+      "groups": {
+        "first_requests": {
+          "aggregate_overall_tps": 10.749145241546247,
+          "aggregate_decode_tps": 13.22748773673506
+        },
+        "immediate_repeats": {
+          "aggregate_overall_tps": 29.872224669293548,
+          "aggregate_decode_tps": 34.1293845413208
+        }
+      },
+      "rows": [
+        {
+          "workload": "merge_intervals",
+          "immediate_repeat": false,
+          "completion_tokens": [
+            142,
+            142
+          ],
+          "same_text_as_length5": true,
+          "stable_between_trials": true,
+          "finish_reasons": [
+            "stop",
+            "stop"
+          ],
+          "mean_total_seconds": 15.388946305498393,
+          "mean_ttft_seconds": 3.6842609199993603,
+          "mean_decode_tps": 12.046541052487528
+        },
+        {
+          "workload": "merge_intervals",
+          "immediate_repeat": true,
+          "completion_tokens": [
+            142,
+            142
+          ],
+          "same_text_as_length5": true,
+          "stable_between_trials": true,
+          "finish_reasons": [
+            "stop",
+            "stop"
+          ],
+          "mean_total_seconds": 3.9751263334983378,
+          "mean_ttft_seconds": 0.4728992125019431,
+          "mean_decode_tps": 40.26016500623595
+        },
+        {
+          "workload": "dns",
+          "immediate_repeat": false,
+          "completion_tokens": [
+            96,
+            96
+          ],
+          "same_text_as_length5": false,
+          "stable_between_trials": true,
+          "finish_reasons": [
+            "stop",
+            "stop"
+          ],
+          "mean_total_seconds": 10.060673513999063,
+          "mean_ttft_seconds": 1.3719592694978928,
+          "mean_decode_tps": 10.93419122457554
+        },
+        {
+          "workload": "dns",
+          "immediate_repeat": true,
+          "completion_tokens": [
+            96,
+            96
+          ],
+          "same_text_as_length5": false,
+          "stable_between_trials": true,
+          "finish_reasons": [
+            "stop",
+            "stop"
+          ],
+          "mean_total_seconds": 4.132752592999168,
+          "mean_ttft_seconds": 0.46116652650016476,
+          "mean_decode_tps": 25.874492116721434
+        },
+        {
+          "workload": "korean_cache_database",
+          "immediate_repeat": false,
+          "completion_tokens": [
+            88,
+            88
+          ],
+          "same_text_as_length5": false,
+          "stable_between_trials": true,
+          "finish_reasons": [
+            "stop",
+            "stop"
+          ],
+          "mean_total_seconds": 5.846480976499151,
+          "mean_ttft_seconds": 1.2010142119979719,
+          "mean_decode_tps": 18.086438286010342
+        },
+        {
+          "workload": "korean_cache_database",
+          "immediate_repeat": true,
+          "completion_tokens": [
+            88,
+            88
+          ],
+          "same_text_as_length5": false,
+          "stable_between_trials": true,
+          "finish_reasons": [
+            "stop",
+            "stop"
+          ],
+          "mean_total_seconds": 2.9292401384991535,
+          "mean_ttft_seconds": 0.47223643449979136,
+          "mean_decode_tps": 34.18802806255149
+        },
+        {
+          "workload": "monthly_sql",
+          "immediate_repeat": false,
+          "completion_tokens": [
+            72,
+            72
+          ],
+          "same_text_as_length5": false,
+          "stable_between_trials": true,
+          "finish_reasons": [
+            "stop",
+            "stop"
+          ],
+          "mean_total_seconds": 5.730099060499924,
+          "mean_ttft_seconds": 1.2093084905027354,
+          "mean_decode_tps": 15.70524657666193
+        },
+        {
+          "workload": "monthly_sql",
+          "immediate_repeat": true,
+          "completion_tokens": [
+            72,
+            72
+          ],
+          "same_text_as_length5": false,
+          "stable_between_trials": true,
+          "finish_reasons": [
+            "stop",
+            "stop"
+          ],
+          "mean_total_seconds": 2.286294387002272,
+          "mean_ttft_seconds": 0.46070779349975055,
+          "mean_decode_tps": 38.89184835417622
+        }
+      ]
+    },
+    "2": {
+      "sources": [
+        "dspark2-heldout-0.json",
+        "dspark2-heldout-1.json"
+      ],
+      "timed_total_seconds": [
+        54.30360647600173,
+        54.42607793000934
+      ],
+      "mean_total_seconds": 54.36484220300554,
+      "completion_tokens_per_suite": [
+        796,
+        796
+      ],
+      "aggregate_overall_tps": 14.641815698234353,
+      "groups": {
+        "first_requests": {
+          "aggregate_overall_tps": 10.046422719613382,
+          "aggregate_decode_tps": 12.161485124761851
+        },
+        "immediate_repeats": {
+          "aggregate_overall_tps": 26.985336143176685,
+          "aggregate_decode_tps": 30.429280402978907
+        }
+      },
+      "rows": [
+        {
+          "workload": "merge_intervals",
+          "immediate_repeat": false,
+          "completion_tokens": [
+            142,
+            142
+          ],
+          "same_text_as_length5": true,
+          "stable_between_trials": true,
+          "finish_reasons": [
+            "stop",
+            "stop"
+          ],
+          "mean_total_seconds": 16.270762889500475,
+          "mean_ttft_seconds": 3.6906516305025434,
+          "mean_decode_tps": 11.208648380021351
+        },
+        {
+          "workload": "merge_intervals",
+          "immediate_repeat": true,
+          "completion_tokens": [
+            142,
+            142
+          ],
+          "same_text_as_length5": true,
+          "stable_between_trials": true,
+          "finish_reasons": [
+            "stop",
+            "stop"
+          ],
+          "mean_total_seconds": 4.622049717498157,
+          "mean_ttft_seconds": 0.6328259844995046,
+          "mean_decode_tps": 35.34657707279885
+        },
+        {
+          "workload": "dns",
+          "immediate_repeat": false,
+          "completion_tokens": [
+            96,
+            96
+          ],
+          "same_text_as_length5": false,
+          "stable_between_trials": true,
+          "finish_reasons": [
+            "stop",
+            "stop"
+          ],
+          "mean_total_seconds": 10.512741589504003,
+          "mean_ttft_seconds": 1.3453069435017824,
+          "mean_decode_tps": 10.36483392518545
+        },
+        {
+          "workload": "dns",
+          "immediate_repeat": true,
+          "completion_tokens": [
+            96,
+            96
+          ],
+          "same_text_as_length5": false,
+          "stable_between_trials": true,
+          "finish_reasons": [
+            "stop",
+            "stop"
+          ],
+          "mean_total_seconds": 4.20812104200013,
+          "mean_ttft_seconds": 0.3912649625017366,
+          "mean_decode_tps": 24.889847035516283
+        },
+        {
+          "workload": "korean_cache_database",
+          "immediate_repeat": false,
+          "completion_tokens": [
+            88,
+            88
+          ],
+          "same_text_as_length5": false,
+          "stable_between_trials": true,
+          "finish_reasons": [
+            "stop",
+            "stop"
+          ],
+          "mean_total_seconds": 6.487114882496826,
+          "mean_ttft_seconds": 1.144108188993414,
+          "mean_decode_tps": 15.909342715394633
+        },
+        {
+          "workload": "korean_cache_database",
+          "immediate_repeat": true,
+          "completion_tokens": [
+            88,
+            88
+          ],
+          "same_text_as_length5": false,
+          "stable_between_trials": true,
+          "finish_reasons": [
+            "stop",
+            "stop"
+          ],
+          "mean_total_seconds": 3.3380115345025843,
+          "mean_ttft_seconds": 0.4080013089987915,
+          "mean_decode_tps": 29.010817948278195
+        },
+        {
+          "workload": "monthly_sql",
+          "immediate_repeat": false,
+          "completion_tokens": [
+            72,
+            72
+          ],
+          "same_text_as_length5": false,
+          "stable_between_trials": true,
+          "finish_reasons": [
+            "stop",
+            "stop"
+          ],
+          "mean_total_seconds": 6.3454719684996235,
+          "mean_ttft_seconds": 1.2031191299975035,
+          "mean_decode_tps": 13.806943770933636
+        },
+        {
+          "workload": "monthly_sql",
+          "immediate_repeat": true,
+          "completion_tokens": [
+            72,
+            72
+          ],
+          "same_text_as_length5": false,
+          "stable_between_trials": true,
+          "finish_reasons": [
+            "stop",
+            "stop"
+          ],
+          "mean_total_seconds": 2.5805685790037387,
+          "mean_ttft_seconds": 0.4343296625011135,
+          "mean_decode_tps": 33.081158545389556
+        }
+      ]
+    }
+  }
+}

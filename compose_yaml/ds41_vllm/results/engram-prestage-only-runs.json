@@ -1,0 +1,36 @@
+[
+  {
+    "trial": 0,
+    "output": "engram-prestage-only-0.json",
+    "total_seconds": 42.03592967199802,
+    "decode_tps": [
+      10.69173843524475,
+      10.61824049877974,
+      13.306548305261991,
+      16.427217890214443
+    ],
+    "last_counters": {
+      "hits": 0,
+      "misses": 0,
+      "read_bytes": 0,
+      "read_seconds": 0.0,
+      "rank": 0,
+      "cache_bytes": 0,
+      "slot_hits": 102719,
+      "slot_misses": 13819,
+      "packed_read_bytes": 129903022080,
+      "graph_replays": 5759,
+      "prefetch_issued": 0,
+      "prefetch_read_bytes": 0,
+      "prefetch_consumed": 0,
+      "prefetch_ready": 0,
+      "prefetch_late": 0,
+      "prefetch_cancelled": 0,
+      "prefetch_unused": 0,
+      "demand_read_bytes": 129903022080,
+      "prefetch_pending": 0,
+      "scratch_bytes": 536870912,
+      "gpu_cache_bytes": 87836590080
+    }
+  }
+]

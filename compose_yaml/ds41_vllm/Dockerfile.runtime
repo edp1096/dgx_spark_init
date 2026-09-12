@@ -1,0 +1,5 @@
+# Incremental build when the initial FlashInfer-enabled image is already local.
+FROM dgx-ds41-stream:reference1
+COPY patches /opt/ds41/patches
+COPY expert_store.py streaming_moe.py marlin_stream.py /opt/ds41/
+RUN while read src dst; do if [ -n "$src" ]; then cp "/opt/ds41/patches/$src" "/usr/local/lib/python3.12/dist-packages/vllm/$dst"; fi; done < /opt/ds41/patches/mounts.txt

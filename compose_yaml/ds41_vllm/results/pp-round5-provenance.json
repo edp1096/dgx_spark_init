@@ -1,0 +1,52 @@
+{
+  "fixture_metadata": [
+    {
+      "name": "talk-tools-r5",
+      "expected": "cobalt731",
+      "tool_count": 14,
+      "request_sha256": "e183105ea7b254adf613ece985d13154f708289900c91dddd2775dc3e4845728"
+    },
+    {
+      "name": "mixed-document-r5",
+      "expected": "marble482",
+      "tool_count": 14,
+      "request_sha256": "fdefe9e68e41a4af4306ddbcddd142fc465fe3582663aa6e46e3b706993c05b3"
+    }
+  ],
+  "fixture_storage": "Private persistent user state directory; not in repository or /tmp",
+  "source_sha256": {
+    "b12x_slots.py": "995ae8a9d2161793275ef73662a870d071b84e8a4732b8d9735730b33aee01e1",
+    "probe_trace.py": "ec851f9f81a6e30cf0828484507d68957e9fff74fac885f522c5603b41e90dd6",
+    "probe_watchdog.py": "8e65623542840c122922f815cdff49fc67330b781025a68d0f8e6b144556edf1",
+    "probe_peer_recorder.py": "b707a39681305b7c7ca3e3f61ea158296bfed079cf58136099d33d5131faf988",
+    "launch.sh": "3a5c486308d50d7033f0fa31d27bf096ccbd8ec13da0d8ab4c5e7e57604a9909",
+    "manage.sh": "86874f23d3f3cb1088a0c8b4b6caa42a6ccbf67b44e47c2fcdf7262ebafad947",
+    "bench_prefill.py": "a6714d507e02a90aebfe725060f4c0c1526dad4bd345950c0be2b52bd360e7d4"
+  },
+  "watchdog_test": "Unlabelled live container was protected; deliberately tripped guard killed only the labelled test container",
+  "log_window_fix": "Select exact per-request reset epoch within node-relative logs; avoid truncation from cross-node wall-clock skew",
+  "final_defaults": {
+    "scheduler": 4096,
+    "expert_kernel": 2048,
+    "scratch_mib": 384,
+    "shared_buffers": true,
+    "benchmark_control": false,
+    "routed_staging": false,
+    "image": "dgx-ds41-stream:b12x8"
+  },
+  "final_source_sha256": {
+    "launch.sh": "56f96b2db328ec0800ee374598d71f6b5f96bed5ec3d028aaabec2c517157cb3",
+    "manage.sh": "86874f23d3f3cb1088a0c8b4b6caa42a6ccbf67b44e47c2fcdf7262ebafad947",
+    "b12x_slots.py": "995ae8a9d2161793275ef73662a870d071b84e8a4732b8d9735730b33aee01e1",
+    "probe_trace.py": "ec851f9f81a6e30cf0828484507d68957e9fff74fac885f522c5603b41e90dd6"
+  },
+  "completed_checks": [
+    "two monitored 4096 starts",
+    "paired PP with identical private fixtures",
+    "actual SparkTalk with normal tools and reasoning",
+    "54988 prompt + 8192 output allowance",
+    "short request after long context",
+    "four deterministic decode replies unchanged",
+    "zero OOM and guard trips"
+  ]
+}

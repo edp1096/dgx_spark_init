@@ -2,6 +2,10 @@
 
 Go 백엔드와 Svelte 프런트엔드로 만든 간단한 로컬 LLM 채팅 앱입니다. OpenAI 호환 API(TensorRT Edge-LLM·llama.cpp·SGLang·vLLM 등)에 연결하며 채팅 기록은 SQLite에 저장합니다.
 
+답변 아래의 `pp`, `tg`, `ttft`는 입력 처리 속도, 생성 속도, 첫 토큰 대기시간이다.
+서버 통계가 없는 추정값에는 `≈`를 붙이며, 측정값은 답변 버전별로 저장한다.
+[계산 범위와 백엔드 설정](docs/inference-performance.md)을 참고한다.
+
 ## 개발 실행
 
 ```bash

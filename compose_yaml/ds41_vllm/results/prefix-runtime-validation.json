@@ -1,0 +1,53 @@
+{
+  "checked_utc": "2026-09-12T05:04:14.646995+00:00",
+  "ranks": {
+    "0": {
+      "running": true,
+      "image": "dgx-ds41-stream:b12x8",
+      "options": {
+        "--max-model-len": "65536",
+        "--kv-cache-memory-bytes": "2147483648",
+        "--prefix-cache-retention-interval": "128"
+      },
+      "expert_tensor_bytes": 87836590080,
+      "host_available_gib": 13.206066131591797,
+      "swap_used_gib": 0.0
+    },
+    "1": {
+      "running": true,
+      "image": "dgx-ds41-stream:b12x8",
+      "options": {
+        "--max-model-len": "65536",
+        "--kv-cache-memory-bytes": "2147483648",
+        "--prefix-cache-retention-interval": "128"
+      },
+      "expert_tensor_bytes": 87836590080,
+      "host_available_gib": 13.365104675292969,
+      "swap_used_gib": 2.7184181213378906
+    }
+  },
+  "source_sha256": {
+    "compose_yaml/ds41_vllm/launch.sh": "51b131fac997f4df78f5f9daa0039fbd61ec66db4bfdfaaaf5c31764d761fe8e",
+    "compose_yaml/ds41_vllm/manage.sh": "e878cfb654d1361bff66d313248c9f64dcbe93864a20f6c0abafc5cf115ad082",
+    "util/talk/internal/server/prompt_builder.go": "6831915f96f9ed3c64dc5760f2ff8d0f102686c6cffa639606523b83f63da8a8",
+    "util/talk/internal/server/context_manager.go": "7688538da090ec6f213b200e07ce0a0813a99ad13118886eb24383f26de267ae",
+    "util/talk/internal/server/tool_loop.go": "40b7ec31cc18bff137fa60ecb8ccbf66be8b01fc7ca8446513cf170722a28a40",
+    "util/talk/dist/sparktalk-linux-arm64": "75021be77ff96d67ac026ebe3ffcabf5ba547cda4ba465edc18c96af5932ba24"
+  },
+  "model_health": 200,
+  "sparktalk_health": 200,
+  "sparktalk_pid": 947894,
+  "post_long_short": {
+    "text": "OK",
+    "elapsed_seconds": 0.5482568759980495,
+    "requested_output_tokens": 8192,
+    "metrics": {
+      "time_to_first_token_ms": 312.1166880009696,
+      "generation_time_ms": 213.4582649996446,
+      "queue_time_ms": 0.02131200017174706,
+      "mean_itl_ms": 213.4582649996446,
+      "tokens_per_second": 3.80535637891721,
+      "speculative_decoding": null
+    }
+  }
+}

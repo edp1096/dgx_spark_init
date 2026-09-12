@@ -18,6 +18,8 @@ import (
 var ErrOutputLimit = errors.New("출력 토큰 한도에 도달해 응답이 잘렸습니다")
 
 type Message struct {
+	// ReferenceContext marks ephemeral recall/checkpoint data, never API input.
+	ReferenceContext bool       `json:"-"`
 	ReasoningContent string     `json:"reasoning_content,omitempty"`
 	Role             string     `json:"role"`
 	Content          any        `json:"content,omitempty"`
@@ -56,9 +58,12 @@ type StreamResult struct {
 }
 
 type Usage struct {
-	PromptTokens     int `json:"prompt_tokens"`
-	CompletionTokens int `json:"completion_tokens"`
-	TotalTokens      int `json:"total_tokens"`
+	PromptTokens        int `json:"prompt_tokens"`
+	CompletionTokens    int `json:"completion_tokens"`
+	TotalTokens         int `json:"total_tokens"`
+	PromptTokensDetails *struct {
+		CachedTokens *int `json:"cached_tokens"`
+	} `json:"prompt_tokens_details,omitempty"`
 }
 
 type toolCallAccum struct {
@@ -272,6 +277,8 @@ func (c *Client) Stream(ctx context.Context, messages []Message, model, reasonin
 	if err != nil {
 		return StreamResult{}, err
 	}
+	measurement := newStreamPerformance(ctx)
+	defer measurement.publish(true)
 	resp, err := c.post(ctx, body)
 	if err != nil {
 		return StreamResult{}, err
@@ -304,8 +311,10 @@ func (c *Client) Stream(ctx context.Context, messages []Message, model, reasonin
 			continue
 		}
 		var chunk struct {
-			Error   json.RawMessage `json:"error"`
-			Usage   Usage           `json:"usage"`
+			Error   json.RawMessage  `json:"error"`
+			Usage   Usage            `json:"usage"`
+			Metrics *responseMetrics `json:"metrics"`
+			Timings *responseTimings `json:"timings"`
 			Choices []struct {
 				FinishReason string `json:"finish_reason"`
 				Delta        struct {
@@ -332,6 +341,13 @@ func (c *Client) Stream(ctx context.Context, messages []Message, model, reasonin
 		}
 		if chunk.Usage.TotalTokens > 0 || chunk.Usage.PromptTokens > 0 || chunk.Usage.CompletionTokens > 0 {
 			usage = chunk.Usage
+			measurement.usage = usage
+		}
+		if chunk.Metrics != nil {
+			measurement.metrics = chunk.Metrics
+		}
+		if chunk.Timings != nil {
+			measurement.timings = chunk.Timings
 		}
 		if len(chunk.Choices) == 0 {
 			continue
@@ -344,6 +360,12 @@ func (c *Client) Stream(ctx context.Context, messages []Message, model, reasonin
 		if reasoningDelta == "" {
 			reasoningDelta = delta.Reasoning
 		}
+		generated := reasoningDelta + delta.Content
+		for _, call := range delta.ToolCalls {
+			generated += call.Function.Name + call.Function.Arguments
+		}
+		measurement.generated(generated, time.Now())
+		measurement.publish(false)
 		if reasoningDelta != "" {
 			reasoning.WriteString(reasoningDelta)
 			if err := emit("reasoning", reasoningDelta); err != nil {

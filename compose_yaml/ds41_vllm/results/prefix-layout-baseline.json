@@ -1,0 +1,86 @@
+[
+  {
+    "trial": 0,
+    "expected": "cobalt731",
+    "text": "cobalt731",
+    "elapsed": 57.752853595997294,
+    "usage": {
+      "prompt_tokens": 6226,
+      "total_tokens": 6230,
+      "completion_tokens": 4,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "created_cache_tokens": 0,
+        "multimodal_tokens": null
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "metrics": {
+      "time_to_first_token_ms": 56954.220935997,
+      "generation_time_ms": 769.9192020008923,
+      "queue_time_ms": 0.0192320003407076,
+      "mean_itl_ms": 256.63973400029744,
+      "tokens_per_second": 0.06929509890381082,
+      "speculative_decoding": null
+    },
+    "finish": "stop"
+  },
+  {
+    "trial": 1,
+    "expected": "amber962",
+    "text": "amber962",
+    "elapsed": 57.98488416499822,
+    "usage": {
+      "prompt_tokens": 6226,
+      "total_tokens": 6229,
+      "completion_tokens": 3,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "created_cache_tokens": 0,
+        "multimodal_tokens": null
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "metrics": {
+      "time_to_first_token_ms": 57139.10613700136,
+      "generation_time_ms": 443.86155499887536,
+      "queue_time_ms": 0.02662399856490083,
+      "mean_itl_ms": 221.93077749943768,
+      "tokens_per_second": 0.05209873891957773,
+      "speculative_decoding": null
+    },
+    "finish": "stop"
+  },
+  {
+    "trial": 2,
+    "expected": "amber962",
+    "text": "amber962",
+    "elapsed": 1.3188687559995742,
+    "usage": {
+      "prompt_tokens": 6226,
+      "total_tokens": 6229,
+      "completion_tokens": 3,
+      "prompt_tokens_details": {
+        "cached_tokens": 6144,
+        "created_cache_tokens": 0,
+        "multimodal_tokens": null
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "metrics": {
+      "time_to_first_token_ms": 592.5010870014376,
+      "generation_time_ms": 402.2755990008591,
+      "queue_time_ms": 0.024303997633978724,
+      "mean_itl_ms": 201.13779950042954,
+      "tokens_per_second": 3.0157522207884493,
+      "speculative_decoding": null
+    },
+    "finish": "stop"
+  }
+]

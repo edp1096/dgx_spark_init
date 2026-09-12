@@ -87,12 +87,12 @@ func (s *Server) chat(w http.ResponseWriter, r *http.Request) {
 			status = db.MessageCancelled
 			failure = "사용자가 생성을 중지했습니다."
 		}
-		_ = s.db.FailPendingTurn(pending.ID, status, failure, result.Content, result.Reasoning, result.ToolTrace)
+		_ = s.db.FailPendingTurn(pending.ID, status, failure, result.Content, result.Reasoning, result.ToolTrace, result.Performance)
 		payload, _ := json.Marshal(map[string]string{"error": failure})
 		fmt.Fprintf(w, "event: error\ndata: %s\n\n", payload)
 	} else {
-		if _, completeErr := s.db.CompletePendingTurnWithAttachments(pending.ID, result.Content, result.Reasoning, result.ToolTrace, result.Attachments); completeErr != nil {
-			_ = s.db.FailPendingTurn(pending.ID, db.MessageFailed, compactHistoryText(completeErr.Error(), 2000), result.Content, result.Reasoning, result.ToolTrace)
+		if _, completeErr := s.db.CompletePendingTurnWithAttachments(pending.ID, result.Content, result.Reasoning, result.ToolTrace, result.Attachments, result.Performance); completeErr != nil {
+			_ = s.db.FailPendingTurn(pending.ID, db.MessageFailed, compactHistoryText(completeErr.Error(), 2000), result.Content, result.Reasoning, result.ToolTrace, result.Performance)
 			payload, _ := json.Marshal(map[string]string{"error": completeErr.Error()})
 			fmt.Fprintf(w, "event: error\ndata: %s\n\n", payload)
 			err = completeErr
@@ -175,7 +175,7 @@ func (s *Server) messageAction(w http.ResponseWriter, r *http.Request) {
 	mediaSink := s.persistMediaAttachments(parent.ID, selectedUserVariant, parent.Attachments, importedMediaReplacements(target.ToolTrace))
 	result, err := s.runContextCompletion(r.Context(), target.SessionID, modelHistory(history, 0), req.Model, req.ReasoningEffort, cfg, client, req.ToolsEnabled, emit, mediaSink)
 	if err == nil {
-		err = s.db.ReplaceAssistantWithAttachments(target.ID, result.Content, result.Reasoning, result.ToolTrace, result.Attachments, userVariant)
+		err = s.db.ReplaceAssistantWithAttachments(target.ID, result.Content, result.Reasoning, result.ToolTrace, result.Attachments, userVariant, result.Performance)
 		_ = s.db.UpdateSession(target.SessionID, "", req.Model, req.ReasoningEffort)
 	}
 	if err != nil {
@@ -252,7 +252,7 @@ func (s *Server) editMessage(w http.ResponseWriter, r *http.Request, messageID i
 	}
 	result, err := s.runContextCompletion(r.Context(), target.SessionID, modelHistory(requestHistory, 0), req.Model, req.ReasoningEffort, cfg, client, req.ToolsEnabled, emit, mediaSink)
 	if err == nil {
-		err = s.db.AppendEditedBranchWithAnswerAttachments(messageID, req.Content, attachments, result.Content, result.Reasoning, result.ToolTrace, result.Attachments)
+		err = s.db.AppendEditedBranchWithAnswerAttachments(messageID, req.Content, attachments, result.Content, result.Reasoning, result.ToolTrace, result.Attachments, result.Performance)
 		_ = s.db.UpdateSession(target.SessionID, "", req.Model, req.ReasoningEffort)
 	}
 	if err != nil {

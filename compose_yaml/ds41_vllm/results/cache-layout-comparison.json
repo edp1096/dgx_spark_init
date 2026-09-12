@@ -1,0 +1,10 @@
+{
+  "outputs_identical": true,
+  "uniform_seconds": 53.91016898700764,
+  "allocated_seconds": 54.178980084503564,
+  "speedup": 0.995038461464637,
+  "misses_uniform": 14713,
+  "misses_allocated": 14546,
+  "repeat_code_tps_uniform": 49.27479036692099,
+  "repeat_code_tps_allocated": 46.15628940378811
+}

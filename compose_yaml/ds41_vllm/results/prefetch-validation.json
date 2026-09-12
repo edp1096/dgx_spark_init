@@ -1,0 +1,22 @@
+{
+  "heldout": {
+    "trials": 4,
+    "requests": 16,
+    "all_outputs_identical": true,
+    "all_finished_normally": true
+  },
+  "repeated": {
+    "trials": 2,
+    "requests": 8,
+    "all_outputs_identical": true,
+    "all_finished_normally": true
+  },
+  "correctness_checks": [
+    "READY_PREFETCH_PROMOTION_AND_EXACT_OUTPUT_PASS",
+    "LATE_PREFETCH_CROSS_STREAM_PASS",
+    "UNUSED_FORECAST_NEVER_EVICTS_OR_CORRUPTS_RESIDENTS_PASS",
+    "RESET_DRAINS_READS_BEFORE_SLOT_REUSE_PASS",
+    "READ_FAILURE_PROPAGATION_PASS"
+  ],
+  "forecast_enabled_by_default": false
+}

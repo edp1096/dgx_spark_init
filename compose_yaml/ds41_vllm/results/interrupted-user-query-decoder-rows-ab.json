@@ -1,0 +1,606 @@
+{
+  "image": "sha256:218d187738649f9349127e2d76fb71a9dc6d08b4a2d47c09c582a894259cf021",
+  "container": "ff7903d3c2f20ce474749a65f710b1090ce37bedb5ad5c8212a700e81cd64fc9",
+  "cmd": [
+    "/repo/snapshots/dba1be0a40aa45a94ad051997016db3960a90277",
+    "--served-model-name",
+    "deepseek-v4.1-flash",
+    "--host",
+    "0.0.0.0",
+    "--port",
+    "8010",
+    "--tokenizer-mode",
+    "deepseek_v41",
+    "--enable-auto-tool-choice",
+    "--tool-call-parser",
+    "deepseek_v41",
+    "--reasoning-parser",
+    "deepseek_v41",
+    "--enable-per-request-metrics",
+    "--enable-prompt-tokens-details",
+    "--tensor-parallel-size",
+    "2",
+    "--gpu-memory-utilization",
+    "0.65",
+    "--distributed-executor-backend",
+    "mp",
+    "--nnodes",
+    "2",
+    "--node-rank",
+    "0",
+    "--master-addr",
+    "10.200.0.1",
+    "--master-port",
+    "29641",
+    "--enforce-eager",
+    "--language-model-only",
+    "--engram-config",
+    "{\"cpu_offload\":false}",
+    "--max-model-len",
+    "65536",
+    "--max-num-seqs",
+    "1",
+    "--max-num-batched-tokens",
+    "4096",
+    "--kv-cache-memory-bytes",
+    "2147483648",
+    "--block-size",
+    "128",
+    "--prefix-cache-retention-interval",
+    "128",
+    "--load-format",
+    "safetensors",
+    "--safetensors-load-strategy",
+    "lazy",
+    "--default-chat-template-kwargs",
+    "{\"thinking\":false}",
+    "--speculative-config",
+    "{\"method\":\"dspark\",\"num_speculative_tokens\":5,\"draft_sample_method\":\"probabilistic\",\"rejection_sample_method\":\"block\",\"enable_adaptive_verification\":false}"
+  ],
+  "source_sha256": {
+    "decoder_rows.py": "f450bd37af1737e4817a8ea58a076839f01ed8998ef6957113c49acf21e6a2e9",
+    "streaming_moe.py": "5b7362f913b3de6c90594c6d43f024ebacf378fa6accbb98cdd481ec7a2414f6",
+    "patches/base_model.py": "3c75022f8d0223e298632e0c6582f1828b6b8082d500eba3c67caf2ec65a9aab",
+    "patches/flashinfer_sparse.py": "ab7712f977aa59db6e357310f20e38e1a506170a61ebaa6a2495d59d8a07ccc3",
+    "patches/vl_model.py": "1878645ea04ebd190fe3d069d09b4486d11a6d5cf403041a2875a82287386fbc",
+    "patches/engram.py": "2b42a49c0528d4ada27ab08e5761e7c08074689f42a9182b7e90fb2a038de283",
+    "patches/sparse_attn_indexer.py": "8a8a1502357e11204a8ce49f207c70cd2b888518a1cea7c49790adb57aeac517",
+    "patches/model_state.py": "3d6a1a16b4e91c0ecc76df613a62c5f75d2faa85c2360418e822e4d5aa4b7a03",
+    "patches/attention.py": "c33b2be82a659c23da87982a09abe7fc37af23c690e683270ea13689f851fa1a",
+    "patches/sparse_swa.py": "356b4693d174ee5bd714275be96422d542bfd6f18139693ed4e3000b4e240f34",
+    "patches/target_model.py": "9f22ef8a95b2c0670ef3805fea350c817ced982696b7a0672c0be7460efde9cc",
+    "patches/weight_utils.py": "7c825315aa54aa8eb5c03e98c54ede2044c0d2e0b844010ab361bd401d1edef3",
+    "patches/cudagraph_utils.py": "3a4d54b225d2d0abc3ef5fc00480a7566ffbc6e1d1c2c8e8e7c07353dfda06ca"
+  },
+  "trials": 3,
+  "runs": [
+    {
+      "fixture": "talk-tools-r5",
+      "trial": -1,
+      "warmup": true,
+      "enabled": false,
+      "request_sha256": "9b65742894c8e115a907604c468c79529e9113975645360344adbb25889b1f29",
+      "elapsed_seconds": 33.10154833199999,
+      "reply": {
+        "id": "chatcmpl-acd2dc837aa5766b",
+        "object": "chat.completion",
+        "created": 1789204610,
+        "model": "deepseek-v4.1-flash",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "cobalt731",
+              "refusal": null,
+              "annotations": null,
+              "audio": null,
+              "function_call": null,
+              "reasoning": null
+            },
+            "logprobs": null,
+            "finish_reason": "stop",
+            "stop_reason": null,
+            "token_ids": null,
+            "routed_experts": null
+          }
+        ],
+        "service_tier": null,
+        "system_fingerprint": "vllm-0.1.dev20904+g179dd0fa9-tp2-bccfe9ab",
+        "usage": {
+          "prompt_tokens": 6308,
+          "total_tokens": 6312,
+          "completion_tokens": 4,
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "created_cache_tokens": 0,
+            "multimodal_tokens": null
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "prompt_logprobs": null,
+        "prompt_token_ids": null,
+        "prompt_text": null,
+        "kv_transfer_params": null,
+        "ec_transfer_params": null,
+        "metrics": {
+          "time_to_first_token_ms": 32650.53749399999,
+          "generation_time_ms": 421.432422999942,
+          "queue_time_ms": 0.021823999986736453,
+          "mean_itl_ms": 140.477474333314,
+          "tokens_per_second": 0.1209483441729876,
+          "speculative_decoding": null
+        }
+      },
+      "ranks": {
+        "0": {
+          "selection": []
+        },
+        "1": {
+          "selection": []
+        }
+      },
+      "pp": 193.19743208390327,
+      "ttft_seconds": 32.65055931799998
+    },
+    {
+      "fixture": "talk-tools-r5",
+      "trial": -1,
+      "warmup": true,
+      "enabled": true,
+      "request_sha256": "9b65742894c8e115a907604c468c79529e9113975645360344adbb25889b1f29",
+      "elapsed_seconds": 32.566806770000085,
+      "reply": {
+        "id": "chatcmpl-801e28de08fc8bba",
+        "object": "chat.completion",
+        "created": 1789204644,
+        "model": "deepseek-v4.1-flash",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "cobalt731",
+              "refusal": null,
+              "annotations": null,
+              "audio": null,
+              "function_call": null,
+              "reasoning": null
+            },
+            "logprobs": null,
+            "finish_reason": "stop",
+            "stop_reason": null,
+            "token_ids": null,
+            "routed_experts": null
+          }
+        ],
+        "service_tier": null,
+        "system_fingerprint": "vllm-0.1.dev20904+g179dd0fa9-tp2-bccfe9ab",
+        "usage": {
+          "prompt_tokens": 6308,
+          "total_tokens": 6312,
+          "completion_tokens": 4,
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "created_cache_tokens": 0,
+            "multimodal_tokens": null
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "prompt_logprobs": null,
+        "prompt_token_ids": null,
+        "prompt_text": null,
+        "kv_transfer_params": null,
+        "ec_transfer_params": null,
+        "metrics": {
+          "time_to_first_token_ms": 32127.979359999925,
+          "generation_time_ms": 423.47214000005806,
+          "queue_time_ms": 0.02243199992335576,
+          "mean_itl_ms": 141.15738000001934,
+          "tokens_per_second": 0.12288238513726499,
+          "speculative_decoding": null
+        }
+      },
+      "ranks": {
+        "0": {
+          "selection": [
+            {
+              "input_rows": 4092,
+              "output_rows": 1,
+              "layer": 39,
+              "scope": "routed_experts_only"
+            },
+            {
+              "input_rows": 2216,
+              "output_rows": 1,
+              "layer": 39,
+              "scope": "routed_experts_only"
+            }
+          ]
+        },
+        "1": {
+          "selection": [
+            {
+              "input_rows": 4092,
+              "output_rows": 1,
+              "layer": 39,
+              "scope": "routed_experts_only"
+            },
+            {
+              "input_rows": 2216,
+              "output_rows": 1,
+              "layer": 39,
+              "scope": "routed_experts_only"
+            }
+          ]
+        }
+      },
+      "pp": 196.33976756887503,
+      "ttft_seconds": 32.12800179199985
+    },
+    {
+      "fixture": "mixed-document-r5",
+      "trial": -1,
+      "warmup": true,
+      "enabled": false,
+      "request_sha256": "225af9d6e09afd63ca42083c321921c76a049a030ef5b39b86cfd1bb756fcb09",
+      "elapsed_seconds": 54.4689225059999,
+      "reply": {
+        "id": "chatcmpl-a2a8f8d1c9f7d5f4",
+        "object": "chat.completion",
+        "created": 1789204678,
+        "model": "deepseek-v4.1-flash",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "marble482",
+              "refusal": null,
+              "annotations": null,
+              "audio": null,
+              "function_call": null,
+              "reasoning": null
+            },
+            "logprobs": null,
+            "finish_reason": "stop",
+            "stop_reason": null,
+            "token_ids": null,
+            "routed_experts": null
+          }
+        ],
+        "service_tier": null,
+        "system_fingerprint": "vllm-0.1.dev20904+g179dd0fa9-tp2-bccfe9ab",
+        "usage": {
+          "prompt_tokens": 12934,
+          "total_tokens": 12938,
+          "completion_tokens": 4,
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "created_cache_tokens": 0,
+            "multimodal_tokens": null
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "prompt_logprobs": null,
+        "prompt_token_ids": null,
+        "prompt_text": null,
+        "kv_transfer_params": null,
+        "ec_transfer_params": null,
+        "metrics": {
+          "time_to_first_token_ms": 53681.8789670001,
+          "generation_time_ms": 765.5725309998616,
+          "queue_time_ms": 0.021695999976145686,
+          "mean_itl_ms": 255.19084366662054,
+          "tokens_per_second": 0.07346533014767337,
+          "speculative_decoding": null
+        }
+      },
+      "ranks": {
+        "0": {
+          "selection": []
+        },
+        "1": {
+          "selection": []
+        }
+      },
+      "pp": 240.93791515663838,
+      "ttft_seconds": 53.68190066300007
+    },
+    {
+      "fixture": "mixed-document-r5",
+      "trial": -1,
+      "warmup": true,
+      "enabled": true,
+      "request_sha256": "225af9d6e09afd63ca42083c321921c76a049a030ef5b39b86cfd1bb756fcb09",
+      "elapsed_seconds": 53.36435718600001,
+      "reply": {
+        "id": "chatcmpl-b187b3489d684053",
+        "object": "chat.completion",
+        "created": 1789204733,
+        "model": "deepseek-v4.1-flash",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "marble482",
+              "refusal": null,
+              "annotations": null,
+              "audio": null,
+              "function_call": null,
+              "reasoning": null
+            },
+            "logprobs": null,
+            "finish_reason": "stop",
+            "stop_reason": null,
+            "token_ids": null,
+            "routed_experts": null
+          }
+        ],
+        "service_tier": null,
+        "system_fingerprint": "vllm-0.1.dev20904+g179dd0fa9-tp2-bccfe9ab",
+        "usage": {
+          "prompt_tokens": 12934,
+          "total_tokens": 12938,
+          "completion_tokens": 4,
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "created_cache_tokens": 0,
+            "multimodal_tokens": null
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "prompt_logprobs": null,
+        "prompt_token_ids": null,
+        "prompt_text": null,
+        "kv_transfer_params": null,
+        "ec_transfer_params": null,
+        "metrics": {
+          "time_to_first_token_ms": 52457.867807999944,
+          "generation_time_ms": 883.0305149999731,
+          "queue_time_ms": 0.024352000082217273,
+          "mean_itl_ms": 294.343504999991,
+          "tokens_per_second": 0.07498936324203694,
+          "speculative_decoding": null
+        }
+      },
+      "ranks": {
+        "0": {
+          "selection": [
+            {
+              "input_rows": 4092,
+              "output_rows": 1,
+              "layer": 39,
+              "scope": "routed_experts_only"
+            },
+            {
+              "input_rows": 4092,
+              "output_rows": 1,
+              "layer": 39,
+              "scope": "routed_experts_only"
+            },
+            {
+              "input_rows": 4092,
+              "output_rows": 1,
+              "layer": 39,
+              "scope": "routed_experts_only"
+            },
+            {
+              "input_rows": 658,
+              "output_rows": 1,
+              "layer": 39,
+              "scope": "routed_experts_only"
+            }
+          ]
+        },
+        "1": {
+          "selection": [
+            {
+              "input_rows": 4092,
+              "output_rows": 1,
+              "layer": 39,
+              "scope": "routed_experts_only"
+            },
+            {
+              "input_rows": 4092,
+              "output_rows": 1,
+              "layer": 39,
+              "scope": "routed_experts_only"
+            },
+            {
+              "input_rows": 4092,
+              "output_rows": 1,
+              "layer": 39,
+              "scope": "routed_experts_only"
+            },
+            {
+              "input_rows": 658,
+              "output_rows": 1,
+              "layer": 39,
+              "scope": "routed_experts_only"
+            }
+          ]
+        }
+      },
+      "pp": 246.55977340404854,
+      "ttft_seconds": 52.45789216000002
+    },
+    {
+      "fixture": "talk-tools-r5",
+      "trial": 0,
+      "warmup": false,
+      "enabled": true,
+      "request_sha256": "9b65742894c8e115a907604c468c79529e9113975645360344adbb25889b1f29",
+      "elapsed_seconds": 32.390234502999874,
+      "reply": {
+        "id": "chatcmpl-98e10d1a461ee6e9",
+        "object": "chat.completion",
+        "created": 1789204787,
+        "model": "deepseek-v4.1-flash",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "cobalt731",
+              "refusal": null,
+              "annotations": null,
+              "audio": null,
+              "function_call": null,
+              "reasoning": null
+            },
+            "logprobs": null,
+            "finish_reason": "stop",
+            "stop_reason": null,
+            "token_ids": null,
+            "routed_experts": null
+          }
+        ],
+        "service_tier": null,
+        "system_fingerprint": "vllm-0.1.dev20904+g179dd0fa9-tp2-bccfe9ab",
+        "usage": {
+          "prompt_tokens": 6308,
+          "total_tokens": 6312,
+          "completion_tokens": 4,
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "created_cache_tokens": 0,
+            "multimodal_tokens": null
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "prompt_logprobs": null,
+        "prompt_token_ids": null,
+        "prompt_text": null,
+        "kv_transfer_params": null,
+        "ec_transfer_params": null,
+        "metrics": {
+          "time_to_first_token_ms": 31920.208839,
+          "generation_time_ms": 454.1856690000259,
+          "queue_time_ms": 0.024511999981768895,
+          "mean_itl_ms": 151.39522300000863,
+          "tokens_per_second": 0.1235544343234454,
+          "speculative_decoding": null
+        }
+      },
+      "ranks": {
+        "0": {
+          "selection": [
+            {
+              "input_rows": 4092,
+              "output_rows": 1,
+              "layer": 39,
+              "scope": "routed_experts_only"
+            },
+            {
+              "input_rows": 2216,
+              "output_rows": 1,
+              "layer": 39,
+              "scope": "routed_experts_only"
+            }
+          ]
+        },
+        "1": {
+          "selection": [
+            {
+              "input_rows": 4092,
+              "output_rows": 1,
+              "layer": 39,
+              "scope": "routed_experts_only"
+            },
+            {
+              "input_rows": 2216,
+              "output_rows": 1,
+              "layer": 39,
+              "scope": "routed_experts_only"
+            }
+          ]
+        }
+      },
+      "pp": 197.61775469002907,
+      "ttft_seconds": 31.920233350999982
+    },
+    {
+      "fixture": "talk-tools-r5",
+      "trial": 0,
+      "warmup": false,
+      "enabled": false,
+      "request_sha256": "9b65742894c8e115a907604c468c79529e9113975645360344adbb25889b1f29",
+      "elapsed_seconds": 33.268639513999915,
+      "reply": {
+        "id": "chatcmpl-b3b7227361a285f9",
+        "object": "chat.completion",
+        "created": 1789204820,
+        "model": "deepseek-v4.1-flash",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "cobalt731",
+              "refusal": null,
+              "annotations": null,
+              "audio": null,
+              "function_call": null,
+              "reasoning": null
+            },
+            "logprobs": null,
+            "finish_reason": "stop",
+            "stop_reason": null,
+            "token_ids": null,
+            "routed_experts": null
+          }
+        ],
+        "service_tier": null,
+        "system_fingerprint": "vllm-0.1.dev20904+g179dd0fa9-tp2-bccfe9ab",
+        "usage": {
+          "prompt_tokens": 6308,
+          "total_tokens": 6312,
+          "completion_tokens": 4,
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "created_cache_tokens": 0,
+            "multimodal_tokens": null
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "prompt_logprobs": null,
+        "prompt_token_ids": null,
+        "prompt_text": null,
+        "kv_transfer_params": null,
+        "ec_transfer_params": null,
+        "metrics": {
+          "time_to_first_token_ms": 32811.60935499997,
+          "generation_time_ms": 439.84147900005155,
+          "queue_time_ms": 0.030880999929649988,
+          "mean_itl_ms": 146.61382633335052,
+          "tokens_per_second": 0.12029550289306323,
+          "speculative_decoding": null
+        }
+      },
+      "ranks": {
+        "0": {
+          "selection": []
+        },
+        "1": {
+          "selection": []
+        }
+      },
+      "pp": 192.24902782888825,
+      "ttft_seconds": 32.8116402359999
+    }
+  ]
+}

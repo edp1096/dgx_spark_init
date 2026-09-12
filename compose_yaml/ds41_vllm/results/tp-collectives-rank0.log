@@ -1,0 +1,13 @@
+INFO 09-11 20:32:30 [pynccl.py:120] vLLM is using nccl==2.30.7
+{"operation": "all_reduce", "dtype": "torch.float32", "bytes": 20480, "exact": true, "slowest_rank_median_us": {"pynccl": 29.55200057476759, "roce": 47.93599992990494}}
+{"operation": "all_reduce", "dtype": "torch.float32", "bytes": 122880, "exact": true, "slowest_rank_median_us": {"pynccl": 51.56800150871277, "roce": 69.88800317049026}}
+{"operation": "all_reduce", "dtype": "torch.float32", "bytes": 262144, "exact": true, "slowest_rank_median_us": {"pynccl": 111.15200072526932, "roce": 77.2320032119751}}
+{"operation": "all_gather", "dtype": "torch.float32", "bytes": 1548288, "exact": true, "slowest_rank_median_us": {"pynccl": 223.15199673175812, "roce": 196.96000218391418}}
+{"operation": "all_reduce", "dtype": "torch.bfloat16", "bytes": 20480, "exact": true, "slowest_rank_median_us": {"pynccl": 29.904000461101532, "roce": 47.58399911224842}}
+{"operation": "all_reduce", "dtype": "torch.bfloat16", "bytes": 122880, "exact": true, "slowest_rank_median_us": {"pynccl": 51.58399976789951, "roce": 65.90399891138077}}
+{"operation": "all_reduce", "dtype": "torch.bfloat16", "bytes": 262144, "exact": true, "slowest_rank_median_us": {"pynccl": 206.9759964942932, "roce": 86.17600053548813}}
+{"operation": "all_gather", "dtype": "torch.bfloat16", "bytes": 774144, "exact": true, "slowest_rank_median_us": {"pynccl": 181.60000443458557, "roce": 178.48000675439835}}
+Exception ignored in: <function RoceOneshotAllReduce.__del__ at 0xe51edc3aa3e0>
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.12/dist-packages/b12x/comm/roce/roce_oneshot.py", line 920, in __del__
+AttributeError: 'NoneType' object has no attribute 'suppress'

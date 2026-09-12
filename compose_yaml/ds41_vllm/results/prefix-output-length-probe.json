@@ -1,0 +1,86 @@
+[
+  {
+    "trial": 0,
+    "output_limit": 256,
+    "elapsed": 8.684161552999285,
+    "text": "1. blue\n2. blue\n3. blue\n4. blue\n5. blue\n6. blue\n7. blue\n8. blue\n9. blue\n10. blue\n11. blue\n12. blue\n13. blue\n14. blue\n15. blue\n16. blue\n17. blue\n18. blue\n19. blue\n20. blue\n21. blue\n22. blue\n23. blue\n24. blue\n25. blue\n26. blue\n27. blue\n28. blue\n29. blue\n30. blue\n31. blue\n32. blue\n33. blue\n34. blue\n35. blue\n36. blue\n37. blue\n38. blue\n39. blue\n40. blue\n41. blue\n42. blue\n43. blue\n44. blue\n45. blue\n46. blue\n47. blue\n48. blue\n49. blue\n50. blue\n51. blue\n52. blue\n53. blue\n54. blue\n55. blue\n56. blue\n57. blue\n58. blue\n59. blue\n60. blue\n61. blue\n62. blue\n63. blue\n64. blue\n",
+    "finish": "length",
+    "usage": {
+      "prompt_tokens": 980,
+      "total_tokens": 1236,
+      "completion_tokens": 256,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "created_cache_tokens": 0,
+        "multimodal_tokens": null
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "metrics": {
+      "time_to_first_token_ms": 2333.9049040005193,
+      "generation_time_ms": 6326.834592997329,
+      "queue_time_ms": 0.02068799949483946,
+      "mean_itl_ms": 24.811116050969922,
+      "tokens_per_second": 29.558676841479834,
+      "speculative_decoding": null
+    }
+  },
+  {
+    "trial": 1,
+    "output_limit": 24,
+    "elapsed": 0.9862611089993152,
+    "text": "1. blue\n2. blue\n3. blue\n4. blue\n5. blue\n6. blue\n",
+    "finish": "length",
+    "usage": {
+      "prompt_tokens": 980,
+      "total_tokens": 1004,
+      "completion_tokens": 24,
+      "prompt_tokens_details": {
+        "cached_tokens": 896,
+        "created_cache_tokens": 0,
+        "multimodal_tokens": null
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "metrics": {
+      "time_to_first_token_ms": 405.59932999894954,
+      "generation_time_ms": 448.8556370015431,
+      "queue_time_ms": 0.022352000087266788,
+      "mean_itl_ms": 19.51546247832796,
+      "tokens_per_second": 28.08808062085519,
+      "speculative_decoding": null
+    }
+  },
+  {
+    "trial": 2,
+    "output_limit": 24,
+    "elapsed": 0.8924715089997335,
+    "text": "1. blue\n2. blue\n3. blue\n4. blue\n5. blue\n6. blue\n",
+    "finish": "length",
+    "usage": {
+      "prompt_tokens": 980,
+      "total_tokens": 1004,
+      "completion_tokens": 24,
+      "prompt_tokens_details": {
+        "cached_tokens": 896,
+        "created_cache_tokens": 0,
+        "multimodal_tokens": null
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "metrics": {
+      "time_to_first_token_ms": 337.46888199675595,
+      "generation_time_ms": 435.5136990016035,
+      "queue_time_ms": 0.00486400313093327,
+      "mean_itl_ms": 18.935378217461025,
+      "tokens_per_second": 31.048565116438162,
+      "speculative_decoding": null
+    }
+  }
+]

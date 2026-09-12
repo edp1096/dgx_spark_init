@@ -1,0 +1,27 @@
+{
+  "note": "Private model requests are removed after validation; hashes identify the compared fixtures.",
+  "before": [
+    {
+      "request_sha256": "346d3bb7ffe498b49690169a3041befa4e71057911e0cb4b892f1d68a432a377",
+      "messages": 2,
+      "tools": 14
+    },
+    {
+      "request_sha256": "6c54c4671eb653c65ff110b4c57d97a0900064d501d37481820db821463167b0",
+      "messages": 2,
+      "tools": 14
+    }
+  ],
+  "after": [
+    {
+      "request_sha256": "070ff5414dbc63d5f04a876f4222844792e054e99e1a334286ef3057e5524119",
+      "messages": 2,
+      "tools": 14
+    },
+    {
+      "request_sha256": "9c9ce0c047cd63a282c3d9fad7fd9f07ad9c4704df212d248ac8fc608059c325",
+      "messages": 2,
+      "tools": 14
+    }
+  ]
+}

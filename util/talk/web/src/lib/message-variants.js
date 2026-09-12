@@ -33,6 +33,7 @@ export function applyVariant(message, variantIndex) {
   message.reasoning_content = variant.reasoning_content || '';
   message.tool_trace = variant.tool_trace || [];
   message.attachments = variant.attachments || [];
+  message.performance = variant.performance || null;
   message.variant_index = variantIndex;
   return true;
 }

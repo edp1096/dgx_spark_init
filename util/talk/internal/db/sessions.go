@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
+
+	"sparktalk/internal/performance"
 )
 
 const (
@@ -181,7 +183,7 @@ func (d *DB) CompletePendingTurn(userMessageID int64, content, reasoning string,
 	return d.CompletePendingTurnWithAttachments(userMessageID, content, reasoning, toolTrace, nil)
 }
 
-func (d *DB) CompletePendingTurnWithAttachments(userMessageID int64, content, reasoning string, toolTrace []ToolEvent, attachments []Attachment) (Message, error) {
+func (d *DB) CompletePendingTurnWithAttachments(userMessageID int64, content, reasoning string, toolTrace []ToolEvent, attachments []Attachment, measured ...*performance.Summary) (Message, error) {
 	tx, err := d.conn.Begin()
 	if err != nil {
 		return Message{}, err
@@ -196,7 +198,7 @@ func (d *DB) CompletePendingTurnWithAttachments(userMessageID int64, content, re
 		return Message{}, err
 	}
 	traceJSON, _ := json.Marshal(toolTrace)
-	variants := []ResponseVariant{{Content: content, Reasoning: reasoning, ToolTrace: toolTrace, Attachments: attachments, CreatedAt: now}}
+	variants := []ResponseVariant{{Content: content, Reasoning: reasoning, ToolTrace: toolTrace, Attachments: attachments, Performance: performance.Optional(measured), CreatedAt: now}}
 	variantsJSON, _ := json.Marshal(variants)
 	result, err := tx.Exec(`INSERT INTO messages(session_id,role,status,error,content,reasoning_content,tool_trace,response_variants,created_at) VALUES(?,'assistant','completed','',?,?,?,?,?)`, sessionID, content, reasoning, string(traceJSON), string(variantsJSON), now)
 	if err != nil {
@@ -209,10 +211,10 @@ func (d *DB) CompletePendingTurnWithAttachments(userMessageID int64, content, re
 	if err := tx.Commit(); err != nil {
 		return Message{}, err
 	}
-	return Message{ID: id, SessionID: sessionID, Role: "assistant", Status: MessageCompleted, Content: content, Reasoning: reasoning, ToolTrace: toolTrace, Attachments: attachments, Variants: variants, CreatedAt: now}, nil
+	return Message{ID: id, SessionID: sessionID, Role: "assistant", Status: MessageCompleted, Content: content, Reasoning: reasoning, ToolTrace: toolTrace, Attachments: attachments, Performance: performance.Optional(measured), Variants: variants, CreatedAt: now}, nil
 }
 
-func (d *DB) FailPendingTurn(userMessageID int64, status, failure, partialContent, partialReasoning string, toolTrace []ToolEvent) error {
+func (d *DB) FailPendingTurn(userMessageID int64, status, failure, partialContent, partialReasoning string, toolTrace []ToolEvent, measured ...*performance.Summary) error {
 	if status != MessageCancelled {
 		status = MessageFailed
 	}
@@ -231,7 +233,7 @@ func (d *DB) FailPendingTurn(userMessageID int64, status, failure, partialConten
 	if partialContent != "" || partialReasoning != "" || len(toolTrace) > 0 {
 		now := time.Now()
 		traceJSON, _ := json.Marshal(toolTrace)
-		variants := []ResponseVariant{{Content: partialContent, Reasoning: partialReasoning, ToolTrace: toolTrace, CreatedAt: now}}
+		variants := []ResponseVariant{{Content: partialContent, Reasoning: partialReasoning, ToolTrace: toolTrace, Performance: performance.Optional(measured), CreatedAt: now}}
 		variantsJSON, _ := json.Marshal(variants)
 		if _, err := tx.Exec(`INSERT INTO messages(session_id,role,status,error,content,reasoning_content,tool_trace,response_variants,created_at) VALUES(?,'assistant',?,?, ?,?,?,?,?)`, sessionID, status, failure, partialContent, partialReasoning, string(traceJSON), string(variantsJSON), now); err != nil {
 			return err

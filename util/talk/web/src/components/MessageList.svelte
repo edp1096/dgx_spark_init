@@ -3,9 +3,11 @@
   import DOMPurify from 'dompurify';
   import 'katex/dist/katex.min.css';
   import { parseMarkdown } from '../lib/markdown.js';
+  import { markdownView } from '../lib/markdown-view.js';
   import { artifactsFromMessage } from '../lib/artifacts.js';
   import Avatar from './Avatar.svelte';
   import MediaAttachments from './MediaAttachments.svelte';
+  import InferenceMetrics from './InferenceMetrics.svelte';
   import { initialMessageStart, messageWindowAround, shiftedMessageWindow } from '../lib/message-window.js';
 
   export let messages = [];
@@ -373,7 +375,7 @@
         {#if message.reasoning_content}
           <details class="reasoning" open={reasoningOpen[index] ?? false} ontoggle={(event) => setReasoningOpen(index, event.currentTarget.open)}>
             <summary><span class="activity-label" class:activity-scanner={running && message.activity === 'reasoning'}>생각 과정</span></summary>
-            <div class="reasoning-text prose">{@html render(message.reasoning_content)}</div>
+            <div class="reasoning-text prose" use:markdownView={render(message.reasoning_content)}></div>
             <div class="collapse-row"><button onclick={(event) => { setReasoningOpen(index, false); collapseDetails(event); }}>↑ 생각 과정 접기</button></div>
           </details>
         {/if}
@@ -451,7 +453,7 @@
           {#if message.attachments?.length}
             <MediaAttachments attachments={message.attachments} />
           {/if}
-          <div class="bubble prose">{@html render(message.role === 'assistant' ? visibleAssistantContent(message.content || (running && (index === messages.length - 1 || index === retryingIndex) ? '▍' : '')) : message.content)}</div>
+          <div class="bubble prose" use:markdownView={render(message.role === 'assistant' ? visibleAssistantContent(message.content || (running && (index === messages.length - 1 || index === retryingIndex) ? '▍' : '')) : message.content)}></div>
         {/if}
         {#if message.status === 'failed' || message.status === 'cancelled'}
           <div class="message-status" class:cancelled={message.status === 'cancelled'}>
@@ -460,6 +462,7 @@
           </div>
         {/if}
         {#if message.role === 'assistant'}
+          <InferenceMetrics performance={message.performance} />
           <div class="message-actions">
             {#if variantIndices(message, index).length > 1}
               <div class="variant-pager" aria-label="답변 버전 선택">

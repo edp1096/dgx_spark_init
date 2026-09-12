@@ -1,0 +1,44 @@
+Sep 12 16:27:53 spark-f05a dockerd[2407]: time="2026-09-12T16:27:53.934896480+09:00" level=info msg="Container failed to exit within 10s of signal 15 - using the force" container=db7fecf444698b8be794d80afd87fe2bddfd13b49bc06bb7ffbfcb1d0cc308cb
+Sep 12 16:27:56 spark-f05a systemd[1]: docker-db7fecf444698b8be794d80afd87fe2bddfd13b49bc06bb7ffbfcb1d0cc308cb.scope: Deactivated successfully.
+Sep 12 16:27:56 spark-f05a systemd[1]: docker-db7fecf444698b8be794d80afd87fe2bddfd13b49bc06bb7ffbfcb1d0cc308cb.scope: Consumed 6min 6.671s CPU time.
+Sep 12 16:27:56 spark-f05a containerd[2127]: time="2026-09-12T16:27:56.130282685+09:00" level=info msg="shim disconnected" id=db7fecf444698b8be794d80afd87fe2bddfd13b49bc06bb7ffbfcb1d0cc308cb namespace=moby
+Sep 12 16:27:56 spark-f05a containerd[2127]: time="2026-09-12T16:27:56.130306366+09:00" level=info msg="cleaning up after shim disconnected" id=db7fecf444698b8be794d80afd87fe2bddfd13b49bc06bb7ffbfcb1d0cc308cb namespace=moby
+Sep 12 16:27:56 spark-f05a containerd[2127]: time="2026-09-12T16:27:56.130326366+09:00" level=info msg="cleaning up dead shim" id=db7fecf444698b8be794d80afd87fe2bddfd13b49bc06bb7ffbfcb1d0cc308cb namespace=moby
+Sep 12 16:27:56 spark-f05a dockerd[2407]: time="2026-09-12T16:27:56.130328542+09:00" level=info msg="ignoring event" container=db7fecf444698b8be794d80afd87fe2bddfd13b49bc06bb7ffbfcb1d0cc308cb module=libcontainerd namespace=moby topic=/tasks/delete type="*events.TaskDelete"
+Sep 12 16:27:56 spark-f05a systemd[1]: var-lib-docker-rootfs-overlayfs-db7fecf444698b8be794d80afd87fe2bddfd13b49bc06bb7ffbfcb1d0cc308cb.mount: Deactivated successfully.
+Sep 12 16:28:00 spark-f05a systemd[1]: tmp-containerd\x2dmount841547366.mount: Deactivated successfully.
+Sep 12 16:28:00 spark-f05a containerd[2127]: time="2026-09-12T16:28:00.113615909+09:00" level=info msg="connecting to shim bb816bb3d09f3b3e2b2fc76a735954385164ca47d09c268e01bb8d23a066662a" address="unix:///run/containerd/s/209ef9f4c96373ff5ccec67ae3476056f67b68e2e99ec3ca4cd87ad03f69faba" namespace=moby protocol=ttrpc version=3
+Sep 12 16:28:00 spark-f05a systemd[1]: Started docker-bb816bb3d09f3b3e2b2fc76a735954385164ca47d09c268e01bb8d23a066662a.scope - libcontainer container bb816bb3d09f3b3e2b2fc76a735954385164ca47d09c268e01bb8d23a066662a.
+Sep 12 16:28:00 spark-f05a dockerd[2407]: time="2026-09-12T16:28:00.174725421+09:00" level=info msg="sbJoin: gwep4 ''->'', gwep6 ''->''" eid=59217f47d80f ep=youthful_noyce net=none nid=56e24ac94324
+Sep 12 16:28:00 spark-f05a systemd[1]: docker-bb816bb3d09f3b3e2b2fc76a735954385164ca47d09c268e01bb8d23a066662a.scope: Deactivated successfully.
+Sep 12 16:28:00 spark-f05a containerd[2127]: time="2026-09-12T16:28:00.191694224+09:00" level=info msg="shim disconnected" id=bb816bb3d09f3b3e2b2fc76a735954385164ca47d09c268e01bb8d23a066662a namespace=moby
+Sep 12 16:28:00 spark-f05a containerd[2127]: time="2026-09-12T16:28:00.191712816+09:00" level=info msg="cleaning up after shim disconnected" id=bb816bb3d09f3b3e2b2fc76a735954385164ca47d09c268e01bb8d23a066662a namespace=moby
+Sep 12 16:28:00 spark-f05a containerd[2127]: time="2026-09-12T16:28:00.191731728+09:00" level=info msg="cleaning up dead shim" id=bb816bb3d09f3b3e2b2fc76a735954385164ca47d09c268e01bb8d23a066662a namespace=moby
+Sep 12 16:28:00 spark-f05a dockerd[2407]: time="2026-09-12T16:28:00.191802194+09:00" level=info msg="ignoring event" container=bb816bb3d09f3b3e2b2fc76a735954385164ca47d09c268e01bb8d23a066662a module=libcontainerd namespace=moby topic=/tasks/delete type="*events.TaskDelete"
+Sep 12 16:28:01 spark-f05a systemd[1]: var-lib-docker-rootfs-overlayfs-bb816bb3d09f3b3e2b2fc76a735954385164ca47d09c268e01bb8d23a066662a.mount: Deactivated successfully.
+Sep 12 16:28:19 spark-f05a systemd[1]: tmp-containerd\x2dmount1977060252.mount: Deactivated successfully.
+Sep 12 16:28:19 spark-f05a containerd[2127]: time="2026-09-12T16:28:19.131835379+09:00" level=info msg="connecting to shim 185f14d7bf626e21c2454d7913e139d67af14d3a293a89e74f21cebb8e923ce3" address="unix:///run/containerd/s/b0114441de763b20db96447d987d06a047d6ac2d0f24d1f43b02e02db2b0d5f2" namespace=moby protocol=ttrpc version=3
+Sep 12 16:28:19 spark-f05a systemd[1]: Started docker-185f14d7bf626e21c2454d7913e139d67af14d3a293a89e74f21cebb8e923ce3.scope - libcontainer container 185f14d7bf626e21c2454d7913e139d67af14d3a293a89e74f21cebb8e923ce3.
+Sep 12 16:28:19 spark-f05a dockerd[2407]: time="2026-09-12T16:28:19.258612719+09:00" level=info msg="sbJoin: gwep4 ''->'', gwep6 ''->''" eid=99ae68f27798 ep=ds41-stream-0 net=host nid=533ed8133149
+Sep 12 16:28:30 spark-f05a systemd[1]: tmp-containerd\x2dmount2935631873.mount: Deactivated successfully.
+Sep 12 16:28:30 spark-f05a containerd[2127]: time="2026-09-12T16:28:30.123469585+09:00" level=info msg="connecting to shim cb5e4b8fc445057d213b3f7744194f0cf482edfb0cdbd05f94f023793fe3826c" address="unix:///run/containerd/s/d9b578fa153173fd64c7c27c3b327d75f11d0ba08c9538cb0f237332b8eaaebe" namespace=moby protocol=ttrpc version=3
+Sep 12 16:28:30 spark-f05a systemd[1]: Started docker-cb5e4b8fc445057d213b3f7744194f0cf482edfb0cdbd05f94f023793fe3826c.scope - libcontainer container cb5e4b8fc445057d213b3f7744194f0cf482edfb0cdbd05f94f023793fe3826c.
+Sep 12 16:28:30 spark-f05a dockerd[2407]: time="2026-09-12T16:28:30.176704499+09:00" level=info msg="sbJoin: gwep4 ''->'', gwep6 ''->''" eid=984ba165e579 ep=jolly_blackburn net=none nid=56e24ac94324
+Sep 12 16:28:30 spark-f05a systemd[1]: docker-cb5e4b8fc445057d213b3f7744194f0cf482edfb0cdbd05f94f023793fe3826c.scope: Deactivated successfully.
+Sep 12 16:28:30 spark-f05a containerd[2127]: time="2026-09-12T16:28:30.196181688+09:00" level=info msg="shim disconnected" id=cb5e4b8fc445057d213b3f7744194f0cf482edfb0cdbd05f94f023793fe3826c namespace=moby
+Sep 12 16:28:30 spark-f05a containerd[2127]: time="2026-09-12T16:28:30.196214057+09:00" level=info msg="cleaning up after shim disconnected" id=cb5e4b8fc445057d213b3f7744194f0cf482edfb0cdbd05f94f023793fe3826c namespace=moby
+Sep 12 16:28:30 spark-f05a containerd[2127]: time="2026-09-12T16:28:30.196241177+09:00" level=info msg="cleaning up dead shim" id=cb5e4b8fc445057d213b3f7744194f0cf482edfb0cdbd05f94f023793fe3826c namespace=moby
+Sep 12 16:28:30 spark-f05a dockerd[2407]: time="2026-09-12T16:28:30.196291114+09:00" level=info msg="ignoring event" container=cb5e4b8fc445057d213b3f7744194f0cf482edfb0cdbd05f94f023793fe3826c module=libcontainerd namespace=moby topic=/tasks/delete type="*events.TaskDelete"
+Sep 12 16:28:31 spark-f05a systemd[1]: var-lib-docker-rootfs-overlayfs-cb5e4b8fc445057d213b3f7744194f0cf482edfb0cdbd05f94f023793fe3826c.mount: Deactivated successfully.
+Sep 12 16:28:49 spark-f05a systemd[1]: Starting fwupd-refresh.service - Refresh fwupd metadata and update motd...
+Sep 12 16:28:49 spark-f05a systemd[1]: fwupd-refresh.service: Deactivated successfully.
+Sep 12 16:28:49 spark-f05a systemd[1]: Finished fwupd-refresh.service - Refresh fwupd metadata and update motd.
+Sep 12 16:29:00 spark-f05a systemd[1]: tmp-containerd\x2dmount1497556234.mount: Deactivated successfully.
+Sep 12 16:29:00 spark-f05a containerd[2127]: time="2026-09-12T16:29:00.111618628+09:00" level=info msg="connecting to shim 9fafb9a3060ef35f1121986e3f64b2f3455e01d3919096c27ec6f3c711980992" address="unix:///run/containerd/s/2858f6163a1db3b16b52d7723aa40ffdfd86506cb517ff248203ea05976557dd" namespace=moby protocol=ttrpc version=3
+Sep 12 16:29:00 spark-f05a systemd[1]: Started docker-9fafb9a3060ef35f1121986e3f64b2f3455e01d3919096c27ec6f3c711980992.scope - libcontainer container 9fafb9a3060ef35f1121986e3f64b2f3455e01d3919096c27ec6f3c711980992.
+Sep 12 16:29:00 spark-f05a dockerd[2407]: time="2026-09-12T16:29:00.170908680+09:00" level=info msg="sbJoin: gwep4 ''->'', gwep6 ''->''" eid=887a51cb6c38 ep=bold_sinoussi net=none nid=56e24ac94324
+Sep 12 16:29:00 spark-f05a systemd[1]: docker-9fafb9a3060ef35f1121986e3f64b2f3455e01d3919096c27ec6f3c711980992.scope: Deactivated successfully.
+Sep 12 16:29:00 spark-f05a dockerd[2407]: time="2026-09-12T16:29:00.186861843+09:00" level=info msg="ignoring event" container=9fafb9a3060ef35f1121986e3f64b2f3455e01d3919096c27ec6f3c711980992 module=libcontainerd namespace=moby topic=/tasks/delete type="*events.TaskDelete"
+Sep 12 16:29:00 spark-f05a containerd[2127]: time="2026-09-12T16:29:00.186998310+09:00" level=info msg="shim disconnected" id=9fafb9a3060ef35f1121986e3f64b2f3455e01d3919096c27ec6f3c711980992 namespace=moby
+Sep 12 16:29:00 spark-f05a containerd[2127]: time="2026-09-12T16:29:00.187032663+09:00" level=info msg="cleaning up after shim disconnected" id=9fafb9a3060ef35f1121986e3f64b2f3455e01d3919096c27ec6f3c711980992 namespace=moby
+Sep 12 16:29:00 spark-f05a containerd[2127]: time="2026-09-12T16:29:00.187060007+09:00" level=info msg="cleaning up dead shim" id=9fafb9a3060ef35f1121986e3f64b2f3455e01d3919096c27ec6f3c711980992 namespace=moby

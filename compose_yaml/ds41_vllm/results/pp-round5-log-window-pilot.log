@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/home/edp1096/workspace/dgx_spark_init/compose_yaml/ds41_vllm/bench_prefill.py", line 64, in <module>
+    assert 'EXPERT_CACHE_RESET '+str(epoch) in log,(rank,epoch)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: (1, 1789200221476314279)

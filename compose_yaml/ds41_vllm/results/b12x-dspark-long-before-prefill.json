@@ -1,0 +1,32 @@
+[
+  {
+    "prompt": "Write a Python function implementing binary search on a sorted list of integers. Include type hints and a concise docstring. Return only code.",
+    "text": "```python\nfrom typing import List, Optional\n\ndef binary_search(arr: List[int], target: int) -> Optional[int]:\n    \"\"\"Return index of target in sorted arr, or None if not found.\"\"\"\n    lo, hi = 0, len(arr) - 1\n    while lo <= hi:\n        mid = (lo + hi) // 2\n        if arr[mid] == target:\n            return mid\n        elif arr[mid] < target:\n            lo = mid + 1\n        else:\n            hi = mid - 1\n    return None\n```",
+    "usage": {
+      "prompt_tokens": 31,
+      "total_tokens": 151,
+      "completion_tokens": 120
+    },
+    "total_seconds": 27.94570800299698,
+    "ttft_seconds": 8.710008019996167,
+    "overall_tokens_per_second": 4.29404042964776,
+    "first_content_event_tokens": 1,
+    "content_events": 23,
+    "decode_tokens_per_second": 6.186413808967909
+  },
+  {
+    "prompt": "Explain why the sky appears blue in 80 to 100 words.",
+    "text": "Sunlight contains all colors. When it enters the atmosphere, it collides with gas molecules much smaller than the light's wavelength. This causes Rayleigh scattering, which affects shorter wavelengths far more strongly. Blue light, having a short wavelength, scatters roughly ten times more than red light, bouncing in every direction across the sky. Our eyes therefore receive scattered blue light from all overhead, making the sky appear blue. At sunset, light travels farther through the atmosphere, scattering blue away, leaving reds and oranges.",
+    "usage": {
+      "prompt_tokens": 18,
+      "total_tokens": 121,
+      "completion_tokens": 103
+    },
+    "total_seconds": 40.24559856599808,
+    "ttft_seconds": 9.700359326998296,
+    "overall_tokens_per_second": 2.5592860752485027,
+    "first_content_event_tokens": 1,
+    "content_events": 47,
+    "decode_tokens_per_second": 3.339309252152383
+  }
+]

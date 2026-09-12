@@ -1,0 +1,1215 @@
+[
+  {
+    "reply": {
+      "id": "chatcmpl-9093a147445e0d15",
+      "object": "chat.completion",
+      "created": 1789205479,
+      "model": "deepseek-v4.1-flash",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "cobalt731",
+            "refusal": null,
+            "annotations": null,
+            "audio": null,
+            "function_call": null,
+            "reasoning": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "stop_reason": null,
+          "token_ids": null,
+          "routed_experts": null
+        }
+      ],
+      "service_tier": null,
+      "system_fingerprint": "vllm-0.1.dev20904+g179dd0fa9-tp2-bccfe9ab",
+      "usage": {
+        "prompt_tokens": 3370,
+        "total_tokens": 3374,
+        "completion_tokens": 4,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "created_cache_tokens": 0,
+          "multimodal_tokens": null
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "prompt_logprobs": null,
+      "prompt_token_ids": null,
+      "prompt_text": null,
+      "kv_transfer_params": null,
+      "ec_transfer_params": null,
+      "metrics": {
+        "time_to_first_token_ms": 14569.77076599992,
+        "generation_time_ms": 457.4264789998779,
+        "queue_time_ms": 0.023618000113856397,
+        "mean_itl_ms": 152.4754929999593,
+        "tokens_per_second": 0.26618403517202616,
+        "speculative_decoding": null
+      }
+    },
+    "seconds": 15.055801412000164,
+    "kind": "prefix",
+    "enabled": false,
+    "index": 0
+  },
+  {
+    "reply": {
+      "id": "chatcmpl-8d720161aa0784c1",
+      "object": "chat.completion",
+      "created": 1789205494,
+      "model": "deepseek-v4.1-flash",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "amber962",
+            "refusal": null,
+            "annotations": null,
+            "audio": null,
+            "function_call": null,
+            "reasoning": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "stop_reason": null,
+          "token_ids": null,
+          "routed_experts": null
+        }
+      ],
+      "service_tier": null,
+      "system_fingerprint": "vllm-0.1.dev20904+g179dd0fa9-tp2-bccfe9ab",
+      "usage": {
+        "prompt_tokens": 3614,
+        "total_tokens": 3617,
+        "completion_tokens": 3,
+        "prompt_tokens_details": {
+          "cached_tokens": 3200,
+          "created_cache_tokens": 0,
+          "multimodal_tokens": null
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "prompt_logprobs": null,
+      "prompt_token_ids": null,
+      "prompt_text": null,
+      "kv_transfer_params": null,
+      "ec_transfer_params": null,
+      "metrics": {
+        "time_to_first_token_ms": 9118.223804000081,
+        "generation_time_ms": 621.3863729999503,
+        "queue_time_ms": 0.022914000055607175,
+        "mean_itl_ms": 310.6931864999751,
+        "tokens_per_second": 0.30802054142623314,
+        "speculative_decoding": null
+      }
+    },
+    "seconds": 9.753971329000024,
+    "kind": "prefix",
+    "enabled": true,
+    "index": 1
+  },
+  {
+    "reply": {
+      "id": "chatcmpl-a0f4402c884dfb16",
+      "object": "chat.completion",
+      "created": 1789205505,
+      "model": "deepseek-v4.1-flash",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "violet543",
+            "refusal": null,
+            "annotations": null,
+            "audio": null,
+            "function_call": null,
+            "reasoning": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "stop_reason": null,
+          "token_ids": null,
+          "routed_experts": null
+        }
+      ],
+      "service_tier": null,
+      "system_fingerprint": "vllm-0.1.dev20904+g179dd0fa9-tp2-bccfe9ab",
+      "usage": {
+        "prompt_tokens": 3371,
+        "total_tokens": 3375,
+        "completion_tokens": 4,
+        "prompt_tokens_details": {
+          "cached_tokens": 2560,
+          "created_cache_tokens": 0,
+          "multimodal_tokens": null
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "prompt_logprobs": null,
+      "prompt_token_ids": null,
+      "prompt_text": null,
+      "kv_transfer_params": null,
+      "ec_transfer_params": null,
+      "metrics": {
+        "time_to_first_token_ms": 10501.604291000149,
+        "generation_time_ms": 554.170134999822,
+        "queue_time_ms": 0.020544999870253378,
+        "mean_itl_ms": 184.723378333274,
+        "tokens_per_second": 0.3618018825160869,
+        "speculative_decoding": null
+      }
+    },
+    "seconds": 11.068926367999893,
+    "kind": "prefix",
+    "enabled": false,
+    "index": 2
+  },
+  {
+    "reply": {
+      "id": "chatcmpl-8fff1792992cb5f2",
+      "object": "chat.completion",
+      "created": 1789205759,
+      "model": "deepseek-v4.1-flash",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "```python\ndef binary_search(arr: list[int], target: int) -> int:\n    \"\"\"Return index of target in sorted arr, or -1 if not found.\"\"\"\n    lo, hi = 0, len(arr) - 1\n    while lo <= hi:\n        mid = (lo + hi) // 2\n        if arr[mid] == target:\n            return mid\n        elif arr[mid] < target:\n            lo = mid + 1\n        else:\n            hi = mid - 1\n    return -1\n```",
+            "refusal": null,
+            "annotations": null,
+            "audio": null,
+            "function_call": null,
+            "reasoning": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "stop_reason": null,
+          "token_ids": null,
+          "routed_experts": null
+        }
+      ],
+      "service_tier": null,
+      "system_fingerprint": "vllm-0.1.dev20904+g179dd0fa9-tp2-bccfe9ab",
+      "usage": {
+        "prompt_tokens": 3399,
+        "total_tokens": 3513,
+        "completion_tokens": 114,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "created_cache_tokens": 0,
+          "multimodal_tokens": null
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "prompt_logprobs": null,
+      "prompt_token_ids": null,
+      "prompt_text": null,
+      "kv_transfer_params": null,
+      "ec_transfer_params": null,
+      "metrics": {
+        "time_to_first_token_ms": 15473.764439000206,
+        "generation_time_ms": 5820.293933999892,
+        "queue_time_ms": 0.023421999685524497,
+        "mean_itl_ms": 51.507025964600814,
+        "tokens_per_second": 5.3536060624566915,
+        "speculative_decoding": null
+      }
+    },
+    "seconds": 21.322536150999895,
+    "matches_reference_text": true,
+    "binary_search_checks": 402,
+    "kind": "decode",
+    "prompt_id": 0,
+    "enabled": false
+  },
+  {
+    "reply": {
+      "id": "chatcmpl-8879680754c82fd4",
+      "object": "chat.completion",
+      "created": 1789205781,
+      "model": "deepseek-v4.1-flash",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "```python\nfrom typing import List, Optional\n\ndef binary_search(arr: List[int], target: int) -> Optional[int]:\n    \"\"\"Return index of target in sorted arr, or None if not found.\"\"\"\n    lo, hi = 0, len(arr) - 1\n    while lo <= hi:\n        mid = (lo + hi) // 2\n        if arr[mid] == target:\n            return mid\n        elif arr[mid] < target:\n            lo = mid + 1\n        else:\n            hi = mid - 1\n    return None\n```",
+            "refusal": null,
+            "annotations": null,
+            "audio": null,
+            "function_call": null,
+            "reasoning": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "stop_reason": null,
+          "token_ids": null,
+          "routed_experts": null
+        }
+      ],
+      "service_tier": null,
+      "system_fingerprint": "vllm-0.1.dev20904+g179dd0fa9-tp2-bccfe9ab",
+      "usage": {
+        "prompt_tokens": 3399,
+        "total_tokens": 3519,
+        "completion_tokens": 120,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "created_cache_tokens": 0,
+          "multimodal_tokens": null
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "prompt_logprobs": null,
+      "prompt_token_ids": null,
+      "prompt_text": null,
+      "kv_transfer_params": null,
+      "ec_transfer_params": null,
+      "metrics": {
+        "time_to_first_token_ms": 15057.895660999748,
+        "generation_time_ms": 6745.014670000273,
+        "queue_time_ms": 0.004191000243736198,
+        "mean_itl_ms": 56.680795546220786,
+        "tokens_per_second": 5.503852383843475,
+        "speculative_decoding": null
+      }
+    },
+    "seconds": 21.94733472100006,
+    "matches_reference_text": false,
+    "binary_search_checks": 402,
+    "kind": "decode",
+    "prompt_id": 0,
+    "enabled": true
+  },
+  {
+    "reply": {
+      "id": "chatcmpl-9a6ce0e713cd9b8f",
+      "object": "chat.completion",
+      "created": 1789205803,
+      "model": "deepseek-v4.1-flash",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "Concurrency is about dealing with multiple tasks at once by interleaving their execution, so progress can be made on each without completing them simultaneously. Parallelism is about actually executing multiple tasks at the same time, typically using multiple CPU cores or processors. In short, concurrency is a program-structure concept, while parallelism is a hardware-execution concept.",
+            "refusal": null,
+            "annotations": null,
+            "audio": null,
+            "function_call": null,
+            "reasoning": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "stop_reason": null,
+          "token_ids": null,
+          "routed_experts": null
+        }
+      ],
+      "service_tier": null,
+      "system_fingerprint": "vllm-0.1.dev20904+g179dd0fa9-tp2-bccfe9ab",
+      "usage": {
+        "prompt_tokens": 3385,
+        "total_tokens": 3457,
+        "completion_tokens": 72,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "created_cache_tokens": 0,
+          "multimodal_tokens": null
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "prompt_logprobs": null,
+      "prompt_token_ids": null,
+      "prompt_text": null,
+      "kv_transfer_params": null,
+      "ec_transfer_params": null,
+      "metrics": {
+        "time_to_first_token_ms": 15183.059808000053,
+        "generation_time_ms": 6470.072900999639,
+        "queue_time_ms": 0.020382000002427958,
+        "mean_itl_ms": 91.12778733802308,
+        "tokens_per_second": 3.325153961212949,
+        "speculative_decoding": null
+      }
+    },
+    "seconds": 21.66882822799971,
+    "matches_reference_text": true,
+    "kind": "decode",
+    "prompt_id": 1,
+    "enabled": false
+  },
+  {
+    "reply": {
+      "id": "chatcmpl-8593afa1ca26088a",
+      "object": "chat.completion",
+      "created": 1789205825,
+      "model": "deepseek-v4.1-flash",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "Concurrency is about dealing with multiple tasks at once by interleaving their execution, so progress can be made on several tasks within the same time period. Parallelism is about actually executing multiple tasks at the same instant, which requires multiple processing units such as CPU cores. In short, concurrency is a program-structure concern, while parallelism is a hardware-execution concern.",
+            "refusal": null,
+            "annotations": null,
+            "audio": null,
+            "function_call": null,
+            "reasoning": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "stop_reason": null,
+          "token_ids": null,
+          "routed_experts": null
+        }
+      ],
+      "service_tier": null,
+      "system_fingerprint": "vllm-0.1.dev20904+g179dd0fa9-tp2-bccfe9ab",
+      "usage": {
+        "prompt_tokens": 3385,
+        "total_tokens": 3461,
+        "completion_tokens": 76,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "created_cache_tokens": 0,
+          "multimodal_tokens": null
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "prompt_logprobs": null,
+      "prompt_token_ids": null,
+      "prompt_text": null,
+      "kv_transfer_params": null,
+      "ec_transfer_params": null,
+      "metrics": {
+        "time_to_first_token_ms": 14735.791774999598,
+        "generation_time_ms": 7548.784482000428,
+        "queue_time_ms": 0.003248000211897306,
+        "mean_itl_ms": 100.6504597600057,
+        "tokens_per_second": 3.4104305652267852,
+        "speculative_decoding": null
+      }
+    },
+    "seconds": 22.462412973000028,
+    "matches_reference_text": false,
+    "kind": "decode",
+    "prompt_id": 1,
+    "enabled": true
+  },
+  {
+    "reply": {
+      "id": "chatcmpl-850a5375646d83a0",
+      "object": "chat.completion",
+      "created": 1789205848,
+      "model": "deepseek-v4.1-flash",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "OK",
+            "refusal": null,
+            "annotations": null,
+            "audio": null,
+            "function_call": null,
+            "reasoning": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "stop_reason": null,
+          "token_ids": null,
+          "routed_experts": null
+        }
+      ],
+      "service_tier": null,
+      "system_fingerprint": "vllm-0.1.dev20904+g179dd0fa9-tp2-bccfe9ab",
+      "usage": {
+        "prompt_tokens": 22,
+        "total_tokens": 24,
+        "completion_tokens": 2,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "created_cache_tokens": 0,
+          "multimodal_tokens": null
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "prompt_logprobs": [
+        null,
+        {
+          "128803": {
+            "logprob": -19.172624588012695,
+            "rank": 121472,
+            "decoded_token": "<｜User｜>"
+          },
+          "5": {
+            "logprob": -1.6101237535476685,
+            "rank": 1,
+            "decoded_token": "#"
+          },
+          "201": {
+            "logprob": -2.360123634338379,
+            "rank": 2,
+            "decoded_token": "\n"
+          }
+        },
+        {
+          "35": {
+            "logprob": -9.340444564819336,
+            "rank": 299,
+            "decoded_token": "A"
+          },
+          "5": {
+            "logprob": -0.9029446840286255,
+            "rank": 1,
+            "decoded_token": "#"
+          },
+          "2788": {
+            "logprob": -1.9029446840286255,
+            "rank": 2,
+            "decoded_token": "请"
+          }
+        },
+        {
+          "3107": {
+            "logprob": -13.391264915466309,
+            "rank": 19100,
+            "decoded_token": " short"
+          },
+          "30": {
+            "logprob": -2.2115776538848877,
+            "rank": 1,
+            "decoded_token": "<"
+          },
+          "5": {
+            "logprob": -2.2740776538848877,
+            "rank": 2,
+            "decoded_token": "#"
+          }
+        },
+        {
+          "31898": {
+            "logprob": -12.728073120117188,
+            "rank": 2855,
+            "decoded_token": " verification"
+          },
+          "4093": {
+            "logprob": -1.3530731201171875,
+            "rank": 1,
+            "decoded_token": " story"
+          },
+          "7155": {
+            "logprob": -2.2280731201171875,
+            "rank": 2,
+            "decoded_token": " note"
+          }
+        },
+        {
+          "14108": {
+            "logprob": -7.912833213806152,
+            "rank": 137,
+            "decoded_token": " passage"
+          },
+          "4181": {
+            "logprob": -1.3503329753875732,
+            "rank": 1,
+            "decoded_token": " code"
+          },
+          "294": {
+            "logprob": -1.8503329753875732,
+            "rank": 2,
+            "decoded_token": " of"
+          }
+        },
+        {
+          "418": {
+            "logprob": -3.1380860805511475,
+            "rank": 8,
+            "decoded_token": " with"
+          },
+          "362": {
+            "logprob": -1.7630860805511475,
+            "rank": 1,
+            "decoded_token": " for"
+          },
+          "943": {
+            "logprob": -2.2630860805511475,
+            "rank": 2,
+            "decoded_token": " about"
+          }
+        },
+        {
+          "4128": {
+            "logprob": -6.806280136108398,
+            "rank": 98,
+            "decoded_token": " enough"
+          },
+          "260": {
+            "logprob": -1.9312801361083984,
+            "rank": 1,
+            "decoded_token": " a"
+          },
+          "270": {
+            "logprob": -2.4312801361083984,
+            "rank": 2,
+            "decoded_token": " the"
+          }
+        },
+        {
+          "3345": {
+            "logprob": -4.157577991485596,
+            "rank": 13,
+            "decoded_token": " words"
+          },
+          "6271": {
+            "logprob": -1.6575779914855957,
+            "rank": 1,
+            "decoded_token": " detail"
+          },
+          "6744": {
+            "logprob": -2.0325779914855957,
+            "rank": 2,
+            "decoded_token": " details"
+          }
+        },
+        {
+          "304": {
+            "logprob": -0.5542080402374268,
+            "rank": 1,
+            "decoded_token": " to"
+          },
+          "362": {
+            "logprob": -2.5542080402374268,
+            "rank": 2,
+            "decoded_token": " for"
+          }
+        },
+        {
+          "16027": {
+            "logprob": -5.398510932922363,
+            "rank": 36,
+            "decoded_token": " exceed"
+          },
+          "23393": {
+            "logprob": -2.148510694503784,
+            "rank": 1,
+            "decoded_token": " verify"
+          },
+          "1950": {
+            "logprob": -2.148510694503784,
+            "rank": 2,
+            "decoded_token": " test"
+          }
+        },
+        {
+          "37287": {
+            "logprob": -9.458550453186035,
+            "rank": 110,
+            "decoded_token": " sixteen"
+          },
+          "223": {
+            "logprob": -0.4585506319999695,
+            "rank": 1,
+            "decoded_token": " "
+          },
+          "270": {
+            "logprob": -1.5835506916046143,
+            "rank": 2,
+            "decoded_token": " the"
+          }
+        },
+        {
+          "4346": {
+            "logprob": -11.641545295715332,
+            "rank": 351,
+            "decoded_token": " input"
+          },
+          "35977": {
+            "logprob": -0.9540454149246216,
+            "rank": 1,
+            "decoded_token": " tokens"
+          },
+          "8454": {
+            "logprob": -1.8290454149246216,
+            "rank": 2,
+            "decoded_token": " characters"
+          }
+        },
+        {
+          "35977": {
+            "logprob": -0.23884537816047668,
+            "rank": 1,
+            "decoded_token": " tokens"
+          },
+          "3345": {
+            "logprob": -2.8638453483581543,
+            "rank": 2,
+            "decoded_token": " words"
+          }
+        },
+        {
+          "16": {
+            "logprob": -2.4443447589874268,
+            "rank": 4,
+            "decoded_token": "."
+          },
+          "362": {
+            "logprob": -0.9443447589874268,
+            "rank": 1,
+            "decoded_token": " for"
+          },
+          "14": {
+            "logprob": -2.3193447589874268,
+            "rank": 2,
+            "decoded_token": ","
+          }
+        },
+        {
+          "19414": {
+            "logprob": -11.212740898132324,
+            "rank": 157,
+            "decoded_token": " Reply"
+          },
+          "1": {
+            "logprob": -0.08774121105670929,
+            "rank": 1,
+            "decoded_token": "<｜end▁of▁sentence｜>"
+          },
+          "52480": {
+            "logprob": -3.9627411365509033,
+            "rank": 2,
+            "decoded_token": " Include"
+          }
+        },
+        {
+          "418": {
+            "logprob": -0.08831268548965454,
+            "rank": 1,
+            "decoded_token": " with"
+          },
+          "304": {
+            "logprob": -4.08831262588501,
+            "rank": 2,
+            "decoded_token": " to"
+          }
+        },
+        {
+          "9045": {
+            "logprob": -3.2026901245117188,
+            "rank": 6,
+            "decoded_token": " exactly"
+          },
+          "20370": {
+            "logprob": -1.3276900053024292,
+            "rank": 1,
+            "decoded_token": " OK"
+          },
+          "270": {
+            "logprob": -1.5776900053024292,
+            "rank": 2,
+            "decoded_token": " the"
+          }
+        },
+        {
+          "20370": {
+            "logprob": -4.507803916931152,
+            "rank": 11,
+            "decoded_token": " OK"
+          },
+          "834": {
+            "logprob": -0.6328036785125732,
+            "rank": 1,
+            "decoded_token": " one"
+          },
+          "270": {
+            "logprob": -1.8828036785125732,
+            "rank": 2,
+            "decoded_token": " the"
+          }
+        },
+        {
+          "16": {
+            "logprob": -0.6237127184867859,
+            "rank": 1,
+            "decoded_token": "."
+          },
+          "305": {
+            "logprob": -0.8737127184867859,
+            "rank": 2,
+            "decoded_token": " and"
+          }
+        },
+        {
+          "128804": {
+            "logprob": -22.116825103759766,
+            "rank": 9614,
+            "decoded_token": "<｜Assistant｜>"
+          },
+          "1": {
+            "logprob": -0.023075036704540253,
+            "rank": 1,
+            "decoded_token": "<｜end▁of▁sentence｜>"
+          },
+          "4147": {
+            "logprob": -4.148075103759766,
+            "rank": 2,
+            "decoded_token": " Do"
+          }
+        },
+        {
+          "128822": {
+            "logprob": -21.47899627685547,
+            "rank": 3875,
+            "decoded_token": "</think>"
+          },
+          "201": {
+            "logprob": -0.22899691760540009,
+            "rank": 1,
+            "decoded_token": "\n"
+          },
+          "1": {
+            "logprob": -1.6039968729019165,
+            "rank": 2,
+            "decoded_token": "<｜end▁of▁sentence｜>"
+          }
+        }
+      ],
+      "prompt_token_ids": null,
+      "prompt_text": null,
+      "kv_transfer_params": null,
+      "ec_transfer_params": null,
+      "metrics": {
+        "time_to_first_token_ms": 5849.535852999907,
+        "generation_time_ms": 835.7034689997818,
+        "queue_time_ms": 0.0033119999898190144,
+        "mean_itl_ms": 835.7034689997818,
+        "tokens_per_second": 0.2991665524102375,
+        "speculative_decoding": null
+      }
+    },
+    "seconds": 6.930716427999869,
+    "kind": "prompt_logprobs_fallback",
+    "enabled": false
+  },
+  {
+    "reply": {
+      "id": "chatcmpl-8bda20fff8bbc8a2",
+      "object": "chat.completion",
+      "created": 1789205855,
+      "model": "deepseek-v4.1-flash",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "OK",
+            "refusal": null,
+            "annotations": null,
+            "audio": null,
+            "function_call": null,
+            "reasoning": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "stop_reason": null,
+          "token_ids": null,
+          "routed_experts": null
+        }
+      ],
+      "service_tier": null,
+      "system_fingerprint": "vllm-0.1.dev20904+g179dd0fa9-tp2-bccfe9ab",
+      "usage": {
+        "prompt_tokens": 22,
+        "total_tokens": 24,
+        "completion_tokens": 2,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "created_cache_tokens": 0,
+          "multimodal_tokens": null
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "prompt_logprobs": [
+        null,
+        {
+          "128803": {
+            "logprob": -19.172624588012695,
+            "rank": 121472,
+            "decoded_token": "<｜User｜>"
+          },
+          "5": {
+            "logprob": -1.6101237535476685,
+            "rank": 1,
+            "decoded_token": "#"
+          },
+          "201": {
+            "logprob": -2.360123634338379,
+            "rank": 2,
+            "decoded_token": "\n"
+          }
+        },
+        {
+          "35": {
+            "logprob": -9.340444564819336,
+            "rank": 299,
+            "decoded_token": "A"
+          },
+          "5": {
+            "logprob": -0.9029446840286255,
+            "rank": 1,
+            "decoded_token": "#"
+          },
+          "2788": {
+            "logprob": -1.9029446840286255,
+            "rank": 2,
+            "decoded_token": "请"
+          }
+        },
+        {
+          "3107": {
+            "logprob": -13.391264915466309,
+            "rank": 19100,
+            "decoded_token": " short"
+          },
+          "30": {
+            "logprob": -2.2115776538848877,
+            "rank": 1,
+            "decoded_token": "<"
+          },
+          "5": {
+            "logprob": -2.2740776538848877,
+            "rank": 2,
+            "decoded_token": "#"
+          }
+        },
+        {
+          "31898": {
+            "logprob": -12.728073120117188,
+            "rank": 2855,
+            "decoded_token": " verification"
+          },
+          "4093": {
+            "logprob": -1.3530731201171875,
+            "rank": 1,
+            "decoded_token": " story"
+          },
+          "7155": {
+            "logprob": -2.2280731201171875,
+            "rank": 2,
+            "decoded_token": " note"
+          }
+        },
+        {
+          "14108": {
+            "logprob": -7.912833213806152,
+            "rank": 137,
+            "decoded_token": " passage"
+          },
+          "4181": {
+            "logprob": -1.3503329753875732,
+            "rank": 1,
+            "decoded_token": " code"
+          },
+          "294": {
+            "logprob": -1.8503329753875732,
+            "rank": 2,
+            "decoded_token": " of"
+          }
+        },
+        {
+          "418": {
+            "logprob": -3.1380860805511475,
+            "rank": 8,
+            "decoded_token": " with"
+          },
+          "362": {
+            "logprob": -1.7630860805511475,
+            "rank": 1,
+            "decoded_token": " for"
+          },
+          "943": {
+            "logprob": -2.2630860805511475,
+            "rank": 2,
+            "decoded_token": " about"
+          }
+        },
+        {
+          "4128": {
+            "logprob": -6.806280136108398,
+            "rank": 98,
+            "decoded_token": " enough"
+          },
+          "260": {
+            "logprob": -1.9312801361083984,
+            "rank": 1,
+            "decoded_token": " a"
+          },
+          "270": {
+            "logprob": -2.4312801361083984,
+            "rank": 2,
+            "decoded_token": " the"
+          }
+        },
+        {
+          "3345": {
+            "logprob": -4.157577991485596,
+            "rank": 13,
+            "decoded_token": " words"
+          },
+          "6271": {
+            "logprob": -1.6575779914855957,
+            "rank": 1,
+            "decoded_token": " detail"
+          },
+          "6744": {
+            "logprob": -2.0325779914855957,
+            "rank": 2,
+            "decoded_token": " details"
+          }
+        },
+        {
+          "304": {
+            "logprob": -0.5542080402374268,
+            "rank": 1,
+            "decoded_token": " to"
+          },
+          "362": {
+            "logprob": -2.5542080402374268,
+            "rank": 2,
+            "decoded_token": " for"
+          }
+        },
+        {
+          "16027": {
+            "logprob": -5.398510932922363,
+            "rank": 36,
+            "decoded_token": " exceed"
+          },
+          "23393": {
+            "logprob": -2.148510694503784,
+            "rank": 1,
+            "decoded_token": " verify"
+          },
+          "1950": {
+            "logprob": -2.148510694503784,
+            "rank": 2,
+            "decoded_token": " test"
+          }
+        },
+        {
+          "37287": {
+            "logprob": -9.458550453186035,
+            "rank": 110,
+            "decoded_token": " sixteen"
+          },
+          "223": {
+            "logprob": -0.4585506319999695,
+            "rank": 1,
+            "decoded_token": " "
+          },
+          "270": {
+            "logprob": -1.5835506916046143,
+            "rank": 2,
+            "decoded_token": " the"
+          }
+        },
+        {
+          "4346": {
+            "logprob": -11.641545295715332,
+            "rank": 351,
+            "decoded_token": " input"
+          },
+          "35977": {
+            "logprob": -0.9540454149246216,
+            "rank": 1,
+            "decoded_token": " tokens"
+          },
+          "8454": {
+            "logprob": -1.8290454149246216,
+            "rank": 2,
+            "decoded_token": " characters"
+          }
+        },
+        {
+          "35977": {
+            "logprob": -0.23884537816047668,
+            "rank": 1,
+            "decoded_token": " tokens"
+          },
+          "3345": {
+            "logprob": -2.8638453483581543,
+            "rank": 2,
+            "decoded_token": " words"
+          }
+        },
+        {
+          "16": {
+            "logprob": -2.4443447589874268,
+            "rank": 4,
+            "decoded_token": "."
+          },
+          "362": {
+            "logprob": -0.9443447589874268,
+            "rank": 1,
+            "decoded_token": " for"
+          },
+          "14": {
+            "logprob": -2.3193447589874268,
+            "rank": 2,
+            "decoded_token": ","
+          }
+        },
+        {
+          "19414": {
+            "logprob": -11.212740898132324,
+            "rank": 157,
+            "decoded_token": " Reply"
+          },
+          "1": {
+            "logprob": -0.08774121105670929,
+            "rank": 1,
+            "decoded_token": "<｜end▁of▁sentence｜>"
+          },
+          "52480": {
+            "logprob": -3.9627411365509033,
+            "rank": 2,
+            "decoded_token": " Include"
+          }
+        },
+        {
+          "418": {
+            "logprob": -0.08831268548965454,
+            "rank": 1,
+            "decoded_token": " with"
+          },
+          "304": {
+            "logprob": -4.08831262588501,
+            "rank": 2,
+            "decoded_token": " to"
+          }
+        },
+        {
+          "9045": {
+            "logprob": -3.2026901245117188,
+            "rank": 6,
+            "decoded_token": " exactly"
+          },
+          "20370": {
+            "logprob": -1.3276900053024292,
+            "rank": 1,
+            "decoded_token": " OK"
+          },
+          "270": {
+            "logprob": -1.5776900053024292,
+            "rank": 2,
+            "decoded_token": " the"
+          }
+        },
+        {
+          "20370": {
+            "logprob": -4.507803916931152,
+            "rank": 11,
+            "decoded_token": " OK"
+          },
+          "834": {
+            "logprob": -0.6328036785125732,
+            "rank": 1,
+            "decoded_token": " one"
+          },
+          "270": {
+            "logprob": -1.8828036785125732,
+            "rank": 2,
+            "decoded_token": " the"
+          }
+        },
+        {
+          "16": {
+            "logprob": -0.6237127184867859,
+            "rank": 1,
+            "decoded_token": "."
+          },
+          "305": {
+            "logprob": -0.8737127184867859,
+            "rank": 2,
+            "decoded_token": " and"
+          }
+        },
+        {
+          "128804": {
+            "logprob": -22.116825103759766,
+            "rank": 9614,
+            "decoded_token": "<｜Assistant｜>"
+          },
+          "1": {
+            "logprob": -0.023075036704540253,
+            "rank": 1,
+            "decoded_token": "<｜end▁of▁sentence｜>"
+          },
+          "4147": {
+            "logprob": -4.148075103759766,
+            "rank": 2,
+            "decoded_token": " Do"
+          }
+        },
+        {
+          "128822": {
+            "logprob": -21.47899627685547,
+            "rank": 3875,
+            "decoded_token": "</think>"
+          },
+          "201": {
+            "logprob": -0.22899691760540009,
+            "rank": 1,
+            "decoded_token": "\n"
+          },
+          "1": {
+            "logprob": -1.6039968729019165,
+            "rank": 2,
+            "decoded_token": "<｜end▁of▁sentence｜>"
+          }
+        }
+      ],
+      "prompt_token_ids": null,
+      "prompt_text": null,
+      "kv_transfer_params": null,
+      "ec_transfer_params": null,
+      "metrics": {
+        "time_to_first_token_ms": 3258.6704099999224,
+        "generation_time_ms": 760.1426839996748,
+        "queue_time_ms": 0.007759000254736748,
+        "mean_itl_ms": 760.1426839996748,
+        "tokens_per_second": 0.49765937186433395,
+        "speculative_decoding": null
+      }
+    },
+    "seconds": 4.168420114000128,
+    "kind": "prompt_logprobs_fallback",
+    "enabled": true
+  }
+]

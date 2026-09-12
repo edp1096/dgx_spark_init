@@ -11,11 +11,13 @@ import (
 	"sparktalk/internal/config"
 	"sparktalk/internal/db"
 	"sparktalk/internal/llm"
+	"sparktalk/internal/performance"
 	"sparktalk/internal/skills"
 	"sparktalk/internal/workflows"
 )
 
 type completionResult struct {
+	Performance *performance.Summary
 	Report      *workflows.Report
 	Content     string
 	Reasoning   string
@@ -170,7 +172,8 @@ func runCompletionLoopForSessionWithMedia(
 	}
 	useTools := len(registry.definitions) > 0
 	// SGLang accepts only one system message and requires it at index zero.
-	conversation := assembleModelConversation(systemPrompt, messages, registry.prompts, toolConfig.MaxRounds*3)
+	referencePolicy, _ := ctx.Value(referencePolicyKey{}).(bool)
+	conversation := assembleModelConversation(systemPrompt, messages, registry.prompts, toolConfig.MaxRounds*3, referencePolicy)
 	conversation = retainLatestVideoInput(conversation)
 
 	refs := make(map[string]int64)

@@ -1,0 +1,19 @@
+{
+  "baseline": "graphs-hot-off-0.json",
+  "candidate": "graphs-hot-on-0.json",
+  "identical_outputs": true,
+  "repeat_decode": [
+    {
+      "prompt": "Write a Python function implementing binary search on a sorted list of integers. Include type hints and a concise docstring. Return only code.",
+      "baseline_tps": 43.56931769250018,
+      "graphs_tps": 37.87371491867936,
+      "change_percent": -13.072508534604
+    },
+    {
+      "prompt": "Explain why the sky appears blue in 80 to 100 words.",
+      "baseline_tps": 19.42187540591871,
+      "graphs_tps": 16.939979045495324,
+      "change_percent": -12.778870776130303
+    }
+  ]
+}

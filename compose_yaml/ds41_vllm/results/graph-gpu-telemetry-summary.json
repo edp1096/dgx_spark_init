@@ -1,0 +1,92 @@
+{
+  "model-graphs-off-rank0": {
+    "samples_utilization_ge_10": 725,
+    "sm_clock_min": 2177,
+    "sm_clock_max": 2184,
+    "max_temp": 54,
+    "event_flags": [
+      "0x0000000000000000"
+    ]
+  },
+  "model-graphs-off-rank1": {
+    "samples_utilization_ge_10": 743,
+    "sm_clock_min": 2190,
+    "sm_clock_max": 2190,
+    "max_temp": 54,
+    "event_flags": [
+      "0x0000000000000000"
+    ]
+  },
+  "engram-prestage-only-rank0": {
+    "samples_utilization_ge_10": 610,
+    "sm_clock_min": 2171,
+    "sm_clock_max": 2184,
+    "max_temp": 56,
+    "event_flags": [
+      "0x0000000000000000"
+    ]
+  },
+  "engram-prestage-only-rank1": {
+    "samples_utilization_ge_10": 538,
+    "sm_clock_min": 2184,
+    "sm_clock_max": 2190,
+    "max_temp": 59,
+    "event_flags": [
+      "0x0000000000000000"
+    ]
+  },
+  "model-graphs-on-rank0": {
+    "samples_utilization_ge_10": 578,
+    "sm_clock_min": 2177,
+    "sm_clock_max": 2184,
+    "max_temp": 57,
+    "event_flags": [
+      "0x0000000000000000"
+    ]
+  },
+  "model-graphs-on-rank1": {
+    "samples_utilization_ge_10": 611,
+    "sm_clock_min": 2190,
+    "sm_clock_max": 2190,
+    "max_temp": 57,
+    "event_flags": [
+      "0x0000000000000000"
+    ]
+  },
+  "full-attention-rank0": {
+    "samples_utilization_ge_10": 657,
+    "sm_clock_min": 2177,
+    "sm_clock_max": 2184,
+    "max_temp": 61,
+    "event_flags": [
+      "0x0000000000000000"
+    ]
+  },
+  "full-attention-rank1": {
+    "samples_utilization_ge_10": 660,
+    "sm_clock_min": 2190,
+    "sm_clock_max": 2190,
+    "max_temp": 58,
+    "event_flags": [
+      "0x0000000000000000"
+    ]
+  },
+  "short-context-graphs-rank0": {
+    "samples_utilization_ge_10": 672,
+    "sm_clock_min": 2177,
+    "sm_clock_max": 2184,
+    "max_temp": 58,
+    "event_flags": [
+      "0x0000000000000000"
+    ]
+  },
+  "short-context-graphs-rank1": {
+    "samples_utilization_ge_10": 670,
+    "sm_clock_min": 2190,
+    "sm_clock_max": 2190,
+    "max_temp": 58,
+    "event_flags": [
+      "0x0000000000000000"
+    ]
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "rows": [
+    {
+      "prompt": "Write a Python function that groups a list of words by anagram. Include type hints. Return only code.",
+      "identical_output": true,
+      "before_tokens": 78,
+      "after_tokens": 78,
+      "before_decode_tps": 4.135104799497991,
+      "after_decode_tps": 11.217362261042425,
+      "decode_speedup": 2.71271534941611,
+      "before_ttft_s": 12.458291454000573,
+      "after_ttft_s": 5.244092374996399,
+      "before_total_s": 31.07934309200209,
+      "after_total_s": 12.10845123299805
+    },
+    {
+      "prompt": "Explain how a refrigerator moves heat in 80 to 100 words.",
+      "identical_output": true,
+      "before_tokens": 107,
+      "after_tokens": 107,
+      "before_decode_tps": 3.938125668364094,
+      "after_decode_tps": 10.706177438782678,
+      "decode_speedup": 2.718597205972365,
+      "before_ttft_s": 4.54070427500119,
+      "after_ttft_s": 1.8115130000005593,
+      "before_total_s": 31.45706218900159,
+      "after_total_s": 11.712339004996466
+    },
+    {
+      "prompt": "한국어로 TCP와 UDP의 차이를 세 문장으로 설명해.",
+      "identical_output": true,
+      "before_tokens": 148,
+      "after_tokens": 148,
+      "before_decode_tps": 4.940823709228281,
+      "after_decode_tps": 13.491062388955362,
+      "decode_speedup": 2.730528993324994,
+      "before_ttft_s": 2.9346193660021527,
+      "after_ttft_s": 1.092990495999402,
+      "before_total_s": 32.68674343499879,
+      "after_total_s": 11.989093097996374
+    },
+    {
+      "prompt": "Write a PostgreSQL query returning the top three products by total revenue in each category from sales(category, product, revenue). Return only SQL.",
+      "identical_output": true,
+      "before_tokens": 85,
+      "after_tokens": 85,
+      "before_decode_tps": 5.8527207431062624,
+      "after_decode_tps": 15.919490144178738,
+      "decode_speedup": 2.7200153301231413,
+      "before_ttft_s": 4.2412181019972195,
+      "after_ttft_s": 1.7386926930048503,
+      "before_total_s": 18.593517432003864,
+      "after_total_s": 7.0152435900017736
+    }
+  ],
+  "all_outputs_identical": true,
+  "total_before_s": 113.81666614800633,
+  "total_after_s": 42.82512692599266,
+  "end_to_end_speedup": 2.6577076197508114
+}

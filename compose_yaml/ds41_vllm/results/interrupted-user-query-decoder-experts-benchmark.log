@@ -1,0 +1,6 @@
+{"fixture": "talk-tools-r5", "trial": -1, "enabled": false, "pp": 193.19743208390327, "ttft_seconds": 32.65055931799998}
+{"fixture": "talk-tools-r5", "trial": -1, "enabled": true, "pp": 196.33976756887503, "ttft_seconds": 32.12800179199985}
+{"fixture": "mixed-document-r5", "trial": -1, "enabled": false, "pp": 240.93791515663838, "ttft_seconds": 53.68190066300007}
+{"fixture": "mixed-document-r5", "trial": -1, "enabled": true, "pp": 246.55977340404854, "ttft_seconds": 52.45789216000002}
+{"fixture": "talk-tools-r5", "trial": 0, "enabled": true, "pp": 197.61775469002907, "ttft_seconds": 31.920233350999982}
+{"fixture": "talk-tools-r5", "trial": 0, "enabled": false, "pp": 192.24902782888825, "ttft_seconds": 32.8116402359999}

@@ -1,0 +1,30 @@
+{
+  "rank": 0,
+  "rows": [
+    {
+      "tokens": 1024,
+      "active_experts": 12,
+      "max_abs_error": 0.0,
+      "read_bytes": 112803840,
+      "one_read_per_expert": true,
+      "output_survives_next_replay": true
+    },
+    {
+      "tokens": 1537,
+      "active_experts": 48,
+      "max_abs_error": 1.862645149230957e-09,
+      "read_bytes": 451215360,
+      "one_read_per_expert": true,
+      "output_survives_next_replay": true
+    },
+    {
+      "tokens": 2048,
+      "active_experts": 48,
+      "max_abs_error": 1.862645149230957e-09,
+      "read_bytes": 451215360,
+      "one_read_per_expert": true,
+      "output_survives_next_replay": true
+    }
+  ],
+  "scratch_bytes": 268435456
+}

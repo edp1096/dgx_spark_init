@@ -1,0 +1,98 @@
+[
+  {
+    "prompt": "Write a Python function implementing binary search on a sorted list of integers. Include type hints and a concise docstring. Return only code.",
+    "text": "```python\ndef binary_search(arr: list[int], target: int) -> int:\n    \"\"\"Return index of target in sorted arr, or -1 if not found.\"\"\"\n    lo, hi = 0, len(arr) - 1\n    while lo <= hi:\n        mid = (lo + hi) // 2\n        if arr[mid] == target:\n            return mid\n        elif arr[mid] < target:\n            lo = mid + 1\n        else:\n            hi = mid - 1\n    return -1\n```",
+    "usage": {
+      "prompt_tokens": 31,
+      "total_tokens": 145,
+      "completion_tokens": 114,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "created_cache_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "finish_reason": "stop",
+    "requested_max_tokens": 160,
+    "total_seconds": 10.084394699999393,
+    "ttft_seconds": 3.5838893709988042,
+    "overall_tokens_per_second": 11.304595207881626,
+    "first_content_event_tokens": 1,
+    "content_events": 22,
+    "decode_tokens_per_second": 17.38326395886103
+  },
+  {
+    "prompt": "Write a Python function implementing binary search on a sorted list of integers. Include type hints and a concise docstring. Return only code.",
+    "text": "```python\ndef binary_search(arr: list[int], target: int) -> int:\n    \"\"\"Return index of target in sorted arr, or -1 if not found.\"\"\"\n    lo, hi = 0, len(arr) - 1\n    while lo <= hi:\n        mid = (lo + hi) // 2\n        if arr[mid] == target:\n            return mid\n        elif arr[mid] < target:\n            lo = mid + 1\n        else:\n            hi = mid - 1\n    return -1\n```",
+    "usage": {
+      "prompt_tokens": 31,
+      "total_tokens": 145,
+      "completion_tokens": 114,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "created_cache_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "finish_reason": "stop",
+    "requested_max_tokens": 160,
+    "total_seconds": 3.1531815029993595,
+    "ttft_seconds": 0.5610702609992586,
+    "overall_tokens_per_second": 36.15396065578885,
+    "first_content_event_tokens": 1,
+    "content_events": 22,
+    "decode_tokens_per_second": 43.59380807777678
+  },
+  {
+    "prompt": "Explain why the sky appears blue in 80 to 100 words.",
+    "text": "Sunlight contains all colors. When it enters the atmosphere, it collides with gas molecules much smaller than the light's wavelength. This causes Rayleigh scattering, which affects shorter wavelengths far more strongly. Blue light, having a short wavelength, scatters roughly ten times more than red light, bouncing in every direction across the sky. Our eyes therefore receive scattered blue light from all overhead, making the sky appear blue. At sunset, light travels farther through the atmosphere, scattering blue away, leaving reds and oranges.",
+    "usage": {
+      "prompt_tokens": 18,
+      "total_tokens": 121,
+      "completion_tokens": 103,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "created_cache_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "finish_reason": "stop",
+    "requested_max_tokens": 160,
+    "total_seconds": 10.782317305998731,
+    "ttft_seconds": 1.0139091579985688,
+    "overall_tokens_per_second": 9.552677506781965,
+    "first_content_event_tokens": 1,
+    "content_events": 47,
+    "decode_tokens_per_second": 10.441824139062202
+  },
+  {
+    "prompt": "Explain why the sky appears blue in 80 to 100 words.",
+    "text": "Sunlight contains all colors. When it enters the atmosphere, it collides with gas molecules much smaller than the light's wavelength. This causes Rayleigh scattering, which affects shorter wavelengths far more strongly. Blue light, having a short wavelength, scatters roughly ten times more than red light, bouncing in every direction across the sky. Our eyes therefore receive scattered blue light from all overhead, making the sky appear blue. At sunset, light travels farther through the atmosphere, scattering blue away, leaving reds and oranges.",
+    "usage": {
+      "prompt_tokens": 18,
+      "total_tokens": 121,
+      "completion_tokens": 103,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "created_cache_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "finish_reason": "stop",
+    "requested_max_tokens": 160,
+    "total_seconds": 5.745189274002769,
+    "ttft_seconds": 0.5105429150025884,
+    "overall_tokens_per_second": 17.9280429395215,
+    "first_content_event_tokens": 1,
+    "content_events": 47,
+    "decode_tokens_per_second": 19.48555699940006
+  }
+]

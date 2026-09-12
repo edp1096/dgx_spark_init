@@ -1,0 +1,5 @@
+# Reproduce the rejected round-4 candidate without changing the serving image.
+FROM dgx-ds41-stream:b12x8
+ARG B12X_REVISION=081b235931dbbcedcf0eb5899bae990c5dec5238
+RUN python3 -m pip install --no-deps --no-build-isolation --no-cache-dir "git+https://github.com/local-inference-lab/b12x.git@${B12X_REVISION}"
+LABEL ds41.b12x.commit="081b235931dbbcedcf0eb5899bae990c5dec5238"

@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
+
+	"sparktalk/internal/performance"
 )
 
 func (d *DB) RetryContext(messageID int64, userVariant int) (Message, []Message, error) {
@@ -125,7 +127,7 @@ func (d *DB) AppendEditedBranch(userMessageID int64, userContent string, userAtt
 	return d.AppendEditedBranchWithAnswerAttachments(userMessageID, userContent, userAttachments, answer, reasoning, toolTrace, nil)
 }
 
-func (d *DB) AppendEditedBranchWithAnswerAttachments(userMessageID int64, userContent string, userAttachments []Attachment, answer, reasoning string, toolTrace []ToolEvent, answerAttachments []Attachment) error {
+func (d *DB) AppendEditedBranchWithAnswerAttachments(userMessageID int64, userContent string, userAttachments []Attachment, answer, reasoning string, toolTrace []ToolEvent, answerAttachments []Attachment, measured ...*performance.Summary) error {
 	tx, err := d.conn.Begin()
 	if err != nil {
 		return err
@@ -165,7 +167,7 @@ func (d *DB) AppendEditedBranchWithAnswerAttachments(userMessageID int64, userCo
 		if _, deleteErr := tx.Exec(`DELETE FROM messages WHERE session_id=? AND id>?`, sessionID, userMessageID); deleteErr != nil {
 			return deleteErr
 		}
-		answerVariants := []ResponseVariant{{Content: answer, Reasoning: reasoning, ToolTrace: toolTrace, Attachments: answerAttachments, ParentVariant: parentVariant, CreatedAt: now}}
+		answerVariants := []ResponseVariant{{Content: answer, Reasoning: reasoning, ToolTrace: toolTrace, Attachments: answerAttachments, Performance: performance.Optional(measured), ParentVariant: parentVariant, CreatedAt: now}}
 		answerVariantsJSON, _ := json.Marshal(answerVariants)
 		result, insertErr := tx.Exec(`INSERT INTO messages(session_id,role,status,error,content,reasoning_content,tool_trace,response_variants,created_at) VALUES(?,'assistant','completed','',?,?,?,?,?)`, sessionID, answer, reasoning, string(traceJSON), string(answerVariantsJSON), now)
 		if insertErr != nil {
@@ -182,7 +184,7 @@ func (d *DB) AppendEditedBranchWithAnswerAttachments(userMessageID int64, userCo
 			_ = json.Unmarshal([]byte(assistantTraceJSON), &oldTrace)
 			answerVariants = append(answerVariants, ResponseVariant{Content: assistantContent, Reasoning: assistantReasoning, ToolTrace: oldTrace, CreatedAt: assistantCreatedAt})
 		}
-		answerVariants = append(answerVariants, ResponseVariant{Content: answer, Reasoning: reasoning, ToolTrace: toolTrace, Attachments: answerAttachments, ParentVariant: parentVariant, CreatedAt: now})
+		answerVariants = append(answerVariants, ResponseVariant{Content: answer, Reasoning: reasoning, ToolTrace: toolTrace, Attachments: answerAttachments, Performance: performance.Optional(measured), ParentVariant: parentVariant, CreatedAt: now})
 		answerVariantsJSON, _ := json.Marshal(answerVariants)
 		if _, err := tx.Exec(`UPDATE messages SET content=?,reasoning_content=?,tool_trace=?,response_variants=?,status='completed',error='',created_at=? WHERE id=?`, answer, reasoning, string(traceJSON), string(answerVariantsJSON), now, assistantID); err != nil {
 			return err
@@ -207,7 +209,7 @@ func (d *DB) ReplaceAssistant(messageID int64, content, reasoning string, toolTr
 	return d.ReplaceAssistantWithAttachments(messageID, content, reasoning, toolTrace, nil, parentVariant)
 }
 
-func (d *DB) ReplaceAssistantWithAttachments(messageID int64, content, reasoning string, toolTrace []ToolEvent, attachments []Attachment, parentVariant int) error {
+func (d *DB) ReplaceAssistantWithAttachments(messageID int64, content, reasoning string, toolTrace []ToolEvent, attachments []Attachment, parentVariant int, measured ...*performance.Summary) error {
 	tx, err := d.conn.Begin()
 	if err != nil {
 		return err
@@ -238,7 +240,7 @@ func (d *DB) ReplaceAssistantWithAttachments(messageID int64, content, reasoning
 			}
 		}
 	}
-	variants = append(variants, ResponseVariant{Content: content, Reasoning: reasoning, ToolTrace: toolTrace, Attachments: attachments, ParentVariant: parentVariant, CreatedAt: now})
+	variants = append(variants, ResponseVariant{Content: content, Reasoning: reasoning, ToolTrace: toolTrace, Attachments: attachments, Performance: performance.Optional(measured), ParentVariant: parentVariant, CreatedAt: now})
 	variantsJSONBytes, _ := json.Marshal(variants)
 	traceJSON, _ := json.Marshal(toolTrace)
 	if _, err := tx.Exec(`UPDATE messages SET content=?, reasoning_content=?, tool_trace=?, response_variants=?, status='completed', error='', created_at=? WHERE id=?`, content, reasoning, string(traceJSON), string(variantsJSONBytes), now, messageID); err != nil {
@@ -274,5 +276,6 @@ func ensureCurrentVariant(message *Message) {
 func syncCurrentAttachments(message *Message) {
 	if len(message.Variants) > 0 {
 		message.Attachments = message.Variants[len(message.Variants)-1].Attachments
+		message.Performance = message.Variants[len(message.Variants)-1].Performance
 	}
 }

@@ -1,0 +1,78 @@
+{
+  "checked_utc": "2026-09-12T06:11:47.381895+00:00",
+  "post_long_short": {
+    "text": "OK",
+    "elapsed_seconds": 0.5617311299974972,
+    "requested_output_tokens": 8192
+  },
+  "ranks": {
+    "0": {
+      "running": true,
+      "oom_killed": false,
+      "image": "dgx-ds41-stream:b12x8",
+      "options": {
+        "--max-model-len": "65536",
+        "--kv-cache-memory-bytes": "2147483648",
+        "--prefix-cache-retention-interval": "128",
+        "--max-num-batched-tokens": "2048",
+        "--max-num-seqs": "1"
+      },
+      "benchmark_control": false,
+      "expert_tensor_bytes": 87836590080,
+      "scratch_bytes": 268435456,
+      "host_available_gib": 9.842399597167969,
+      "swap_used_gib": 0.0,
+      "cgroup_bytes": {
+        "current": 97024225280,
+        "peak": 97034244096,
+        "max": 107374182400
+      },
+      "source_sha256": {
+        "launch.sh": "4267064a870c8423d2c2a6b7ff2428df1192c0bc5c18e6318fadb0daa4c6fbb5",
+        "manage.sh": "e878cfb654d1361bff66d313248c9f64dcbe93864a20f6c0abafc5cf115ad082",
+        "b12x_slots.py": "3daadde02b019ff17289aaf4292a48640cb12f453614959bac4b44187af18a5e"
+      }
+    },
+    "1": {
+      "running": true,
+      "oom_killed": false,
+      "image": "dgx-ds41-stream:b12x8",
+      "options": {
+        "--max-model-len": "65536",
+        "--kv-cache-memory-bytes": "2147483648",
+        "--prefix-cache-retention-interval": "128",
+        "--max-num-batched-tokens": "2048",
+        "--max-num-seqs": "1"
+      },
+      "benchmark_control": false,
+      "expert_tensor_bytes": 87836590080,
+      "scratch_bytes": 268435456,
+      "host_available_gib": 10.107738494873047,
+      "swap_used_gib": 2.6491127014160156,
+      "cgroup_bytes": {
+        "current": 94871674880,
+        "peak": 96287297536,
+        "max": 107374182400
+      },
+      "source_sha256": {
+        "launch.sh": "4267064a870c8423d2c2a6b7ff2428df1192c0bc5c18e6318fadb0daa4c6fbb5",
+        "manage.sh": "e878cfb654d1361bff66d313248c9f64dcbe93864a20f6c0abafc5cf115ad082",
+        "b12x_slots.py": "3daadde02b019ff17289aaf4292a48640cb12f453614959bac4b44187af18a5e"
+      }
+    }
+  },
+  "model_health": 200,
+  "sparktalk": {
+    "healthy": true,
+    "context_tokens": 65536,
+    "output_allowance": 8192,
+    "reasoning_effort": "max",
+    "runtime_mode": "external"
+  },
+  "source_sha256": {
+    "bench_prefill.py": "e2ed9872180748f9fc2e7af68c68ffc74887a69bb64eb5e28aa3b59b60e3fc33",
+    "compare_prefill.py": "0d88832feb0253d8f2f7cb7a6b3fa3484eb9b6bee57f822d45f51dec74e572d3",
+    "check_prefill_tiles.py": "86e17fc8ac5a8d6ff7ad4cc9e49a625dec80c1575e5b6f3418c784478cb93602",
+    "check_sparktalk_prefix.py": "2c7950ef27d99b1f83c5e54e5db34caedee47fb61158f1db9c69bd1a1a9dd423"
+  }
+}

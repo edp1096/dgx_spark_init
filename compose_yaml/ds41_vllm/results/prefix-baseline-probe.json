@@ -1,0 +1,83 @@
+[
+  {
+    "trial": 0,
+    "elapsed": 4.526706428001489,
+    "text": "spark-prefix-937",
+    "finish": "stop",
+    "usage": {
+      "prompt_tokens": 972,
+      "total_tokens": 980,
+      "completion_tokens": 8,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "created_cache_tokens": 0,
+        "multimodal_tokens": null
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "metrics": {
+      "time_to_first_token_ms": 3960.1350349985296,
+      "generation_time_ms": 543.4758020019217,
+      "queue_time_ms": 0.03625699901022017,
+      "mean_itl_ms": 77.63940028598881,
+      "tokens_per_second": 1.7763524179918389,
+      "speculative_decoding": null
+    }
+  },
+  {
+    "trial": 1,
+    "elapsed": 0.9090550139990228,
+    "text": "spark-prefix-937",
+    "finish": "stop",
+    "usage": {
+      "prompt_tokens": 972,
+      "total_tokens": 980,
+      "completion_tokens": 8,
+      "prompt_tokens_details": {
+        "cached_tokens": 896,
+        "created_cache_tokens": 0,
+        "multimodal_tokens": null
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "metrics": {
+      "time_to_first_token_ms": 335.7457729980524,
+      "generation_time_ms": 313.140279999061,
+      "queue_time_ms": 0.024048000341281295,
+      "mean_itl_ms": 44.73432571415157,
+      "tokens_per_second": 12.328821004934726,
+      "speculative_decoding": null
+    }
+  },
+  {
+    "trial": 2,
+    "elapsed": 0.7073671370017109,
+    "text": "spark-prefix-937",
+    "finish": "stop",
+    "usage": {
+      "prompt_tokens": 972,
+      "total_tokens": 980,
+      "completion_tokens": 8,
+      "prompt_tokens_details": {
+        "cached_tokens": 896,
+        "created_cache_tokens": 0,
+        "multimodal_tokens": null
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "metrics": {
+      "time_to_first_token_ms": 279.1715130006196,
+      "generation_time_ms": 257.37133499933407,
+      "queue_time_ms": 0.0038719990698155016,
+      "mean_itl_ms": 36.76733357133344,
+      "tokens_per_second": 14.910272366543019,
+      "speculative_decoding": null
+    }
+  }
+]

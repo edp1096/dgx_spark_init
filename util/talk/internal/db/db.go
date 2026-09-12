@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"sparktalk/internal/performance"
+
 	_ "modernc.org/sqlite"
 )
 
@@ -29,17 +31,18 @@ type Group struct {
 }
 
 type Message struct {
-	ID          int64             `json:"id"`
-	SessionID   string            `json:"session_id"`
-	Role        string            `json:"role"`
-	Status      string            `json:"status"`
-	Error       string            `json:"error,omitempty"`
-	Content     string            `json:"content"`
-	Reasoning   string            `json:"reasoning_content,omitempty"`
-	ToolTrace   []ToolEvent       `json:"tool_trace,omitempty"`
-	Attachments []Attachment      `json:"attachments,omitempty"`
-	Variants    []ResponseVariant `json:"variants,omitempty"`
-	CreatedAt   time.Time         `json:"created_at"`
+	Performance *performance.Summary `json:"performance,omitempty"`
+	ID          int64                `json:"id"`
+	SessionID   string               `json:"session_id"`
+	Role        string               `json:"role"`
+	Status      string               `json:"status"`
+	Error       string               `json:"error,omitempty"`
+	Content     string               `json:"content"`
+	Reasoning   string               `json:"reasoning_content,omitempty"`
+	ToolTrace   []ToolEvent          `json:"tool_trace,omitempty"`
+	Attachments []Attachment         `json:"attachments,omitempty"`
+	Variants    []ResponseVariant    `json:"variants,omitempty"`
+	CreatedAt   time.Time            `json:"created_at"`
 }
 
 type ToolEvent struct {
@@ -60,12 +63,13 @@ type Attachment struct {
 }
 
 type ResponseVariant struct {
-	Content       string       `json:"content"`
-	Reasoning     string       `json:"reasoning_content,omitempty"`
-	ToolTrace     []ToolEvent  `json:"tool_trace,omitempty"`
-	Attachments   []Attachment `json:"attachments,omitempty"`
-	ParentVariant int          `json:"parent_variant,omitempty"`
-	CreatedAt     time.Time    `json:"created_at"`
+	Performance   *performance.Summary `json:"performance,omitempty"`
+	Content       string               `json:"content"`
+	Reasoning     string               `json:"reasoning_content,omitempty"`
+	ToolTrace     []ToolEvent          `json:"tool_trace,omitempty"`
+	Attachments   []Attachment         `json:"attachments,omitempty"`
+	ParentVariant int                  `json:"parent_variant,omitempty"`
+	CreatedAt     time.Time            `json:"created_at"`
 }
 
 type ContextSegment struct {

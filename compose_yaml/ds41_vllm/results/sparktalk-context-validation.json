@@ -1,0 +1,1035 @@
+{
+  "session_id": "chat-1789182823997059400",
+  "context_settings": {
+    "enabled": true,
+    "window_tokens": 65536,
+    "compact_at_percent": 80,
+    "output_reserve": 8192,
+    "safety_margin": 2048,
+    "recent_tokens": 8192,
+    "image_tokens": 2048
+  },
+  "events": [
+    {
+      "kind": "context",
+      "data": {
+        "skill_tokens": 0,
+        "tool_result_tokens": 0,
+        "applied_segment_id": 0,
+        "system_tool_tokens": 5903,
+        "preview": false,
+        "incomplete": false,
+        "trimmed_tools": 0,
+        "enabled": true,
+        "managed": true,
+        "window_tokens": 65536,
+        "input_budget": 55296,
+        "threshold_tokens": 44236,
+        "estimated_tokens": 6270,
+        "active_tokens": 13,
+        "summary_tokens": 0,
+        "recall_tokens": 354,
+        "summary_through_message_id": 0,
+        "active_start_message_id": 1555,
+        "active_end_message_id": 1555,
+        "compacted": false,
+        "segments": [],
+        "recalls": [
+          {
+            "kind": "user",
+            "priority": "preferred",
+            "title": "호칭: 그냥 주인님",
+            "content": "사용자를 부를 때 \"오빠\"가 아니라 \"주인님\"이라는 호칭만 사용한다.",
+            "session_id": "chat-1788863313706853984",
+            "created_at": "2026-09-09T14:11:18.627224612+09:00"
+          },
+          {
+            "kind": "session",
+            "title": "누구냐 질문",
+            "role": "user",
+            "content": "넌 누구냐?",
+            "session_id": "chat-1788353591291492434",
+            "message_id": 834,
+            "created_at": "2026-09-02T21:53:17.713654525+09:00"
+          },
+          {
+            "kind": "session",
+            "title": "Who are you?",
+            "role": "user",
+            "content": "넌 누구냐?",
+            "session_id": "chat-1788935154309436239",
+            "message_id": 1464,
+            "created_at": "2026-09-09T15:25:57.817788183+09:00"
+          },
+          {
+            "kind": "session",
+            "title": "신원 질문",
+            "role": "user",
+            "content": "넌 누구냐?",
+            "session_id": "chat-1788760899565573240",
+            "message_id": 1261,
+            "created_at": "2026-09-07T15:01:42.185329875+09:00"
+          },
+          {
+            "kind": "session",
+            "title": "AI 정체성 질문",
+            "role": "user",
+            "content": "넌 누구냐?",
+            "session_id": "chat-1788586431136615945",
+            "message_id": 1124,
+            "created_at": "2026-09-05T14:33:56.75756901+09:00"
+          },
+          {
+            "kind": "session",
+            "title": "롯데자이언츠 콜업 선수",
+            "role": "user",
+            "content": "넌 누구냐?",
+            "session_id": "chat-1788418169217429280",
+            "message_id": 1102,
+            "created_at": "2026-09-05T11:43:29.916752915+09:00"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "context",
+      "data": {
+        "skill_tokens": 0,
+        "tool_result_tokens": 0,
+        "applied_segment_id": 0,
+        "system_tool_tokens": 6260,
+        "preview": false,
+        "incomplete": false,
+        "trimmed_tools": 0,
+        "enabled": true,
+        "managed": true,
+        "window_tokens": 65536,
+        "input_budget": 55296,
+        "threshold_tokens": 44236,
+        "estimated_tokens": 6627,
+        "active_tokens": 13,
+        "summary_tokens": 0,
+        "recall_tokens": 354,
+        "summary_through_message_id": 0,
+        "active_start_message_id": 1555,
+        "active_end_message_id": 1555,
+        "compacted": false,
+        "segments": [],
+        "recalls": [
+          {
+            "kind": "user",
+            "priority": "preferred",
+            "title": "호칭: 그냥 주인님",
+            "content": "사용자를 부를 때 \"오빠\"가 아니라 \"주인님\"이라는 호칭만 사용한다.",
+            "session_id": "chat-1788863313706853984",
+            "created_at": "2026-09-09T14:11:18.627224612+09:00"
+          },
+          {
+            "kind": "session",
+            "title": "누구냐 질문",
+            "role": "user",
+            "content": "넌 누구냐?",
+            "session_id": "chat-1788353591291492434",
+            "message_id": 834,
+            "created_at": "2026-09-02T21:53:17.713654525+09:00"
+          },
+          {
+            "kind": "session",
+            "title": "Who are you?",
+            "role": "user",
+            "content": "넌 누구냐?",
+            "session_id": "chat-1788935154309436239",
+            "message_id": 1464,
+            "created_at": "2026-09-09T15:25:57.817788183+09:00"
+          },
+          {
+            "kind": "session",
+            "title": "신원 질문",
+            "role": "user",
+            "content": "넌 누구냐?",
+            "session_id": "chat-1788760899565573240",
+            "message_id": 1261,
+            "created_at": "2026-09-07T15:01:42.185329875+09:00"
+          },
+          {
+            "kind": "session",
+            "title": "AI 정체성 질문",
+            "role": "user",
+            "content": "넌 누구냐?",
+            "session_id": "chat-1788586431136615945",
+            "message_id": 1124,
+            "created_at": "2026-09-05T14:33:56.75756901+09:00"
+          },
+          {
+            "kind": "session",
+            "title": "롯데자이언츠 콜업 선수",
+            "role": "user",
+            "content": "넌 누구냐?",
+            "session_id": "chat-1788418169217429280",
+            "message_id": 1102,
+            "created_at": "2026-09-05T11:43:29.916752915+09:00"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": "The"
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": " user is asking"
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": " \"넌 누구냐?"
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": "\" (Who are you?)."
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": " There's a preferred"
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": " memory that"
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": " says to"
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": " call the user"
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": " \"주인님\" instead of"
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": " \"오"
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": "빠\". So"
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": " I should use"
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": " \"주인님\" as"
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": " the address.\n\nThe persona:"
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": " 애교"
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": "와"
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": " 끼가 가"
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": "득한 막내"
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": "스"
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": "러운 말투, 반"
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": "말, no em"
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": "ojis, no 한"
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": "자 (Chinese"
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": " characters), Korean"
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": " language.\n\nI should answer"
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": " who"
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": " I am."
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": " This is a simple"
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": " question"
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": ", no need for"
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": " tools. The memory"
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": " says the"
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": " user prefers"
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": " to"
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": " be called \"주인님"
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": "\" — I should use that"
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": " naturally"
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": ", not mention the memory"
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": ".\n\nLet me respond as"
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": " the persona"
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": ": playful, cute"
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": " youngest"
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": "-s"
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": "ibling style, 반말"
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": ", calling the"
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": " user"
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": " \"주인님\".\n\nI am"
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": " an"
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": " AI assistant ("
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": "SparkTalk). I should"
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": " answer naturally"
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": " and"
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": " directly. No need to search"
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": " the"
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": " web for this."
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": "\n\nKeep it brief and"
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": " in"
+      }
+    },
+    {
+      "kind": "reasoning",
+      "data": {
+        "delta": " character."
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": "주"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": "인"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": "님이랑"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": " 얘기하는 AI"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": " 도"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": "우미야."
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": " 이름"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": "은 SparkTalk이고"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": ","
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": " 궁금한 거"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": " 찾아주"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": "고"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": ", 코드"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": " 짜"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": "주고, 문서나"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": " 이미지도 만들어주"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": "고, 서"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": "버 점"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": "검도 도"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": "와주는 그"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": "런 애"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": "야.\n\n그"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": "냥 심"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": "심"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": "풀이"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": " 상"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": "대가 아니라"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": " 진"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": "짜 일"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": " 하는"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": " 애"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": "니까"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": ","
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": " 뭐"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": "든"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": " 시"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": "켜"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": "봐."
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": " 검"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": "색해서"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": " 근"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": "거 달"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": "아"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": "주는 것"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": "도 되"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": "고, 파일"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": "로"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": " 뽑아주"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": "는 것도 되"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": "고, 등"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": "록된 서버 들어"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": "가서"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": " 상태"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": " 보"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": "는 것도"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": " 돼. 대"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": "신 못"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": " 하는 건"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": " 솔직하게"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": " 못"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": " 한다"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": "고 말할"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": " 거"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": "야.\n\n그래"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": "서,"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": " 오"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": "늘은"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": " 뭐 도"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": "와줄까,"
+      }
+    },
+    {
+      "kind": "delta",
+      "data": {
+        "delta": " 주인님?"
+      }
+    },
+    {
+      "kind": "context",
+      "data": {
+        "skill_tokens": 0,
+        "tool_result_tokens": 0,
+        "applied_segment_id": 0,
+        "system_tool_tokens": 6260,
+        "actual_tokens": 6384,
+        "preview": false,
+        "incomplete": false,
+        "trimmed_tools": 0,
+        "enabled": true,
+        "managed": true,
+        "window_tokens": 65536,
+        "input_budget": 55296,
+        "threshold_tokens": 44236,
+        "estimated_tokens": 6627,
+        "active_tokens": 13,
+        "summary_tokens": 0,
+        "recall_tokens": 354,
+        "summary_through_message_id": 0,
+        "active_start_message_id": 1555,
+        "active_end_message_id": 1555,
+        "compacted": false,
+        "segments": [],
+        "recalls": [
+          {
+            "kind": "user",
+            "priority": "preferred",
+            "title": "호칭: 그냥 주인님",
+            "content": "사용자를 부를 때 \"오빠\"가 아니라 \"주인님\"이라는 호칭만 사용한다.",
+            "session_id": "chat-1788863313706853984",
+            "created_at": "2026-09-09T14:11:18.627224612+09:00"
+          },
+          {
+            "kind": "session",
+            "title": "누구냐 질문",
+            "role": "user",
+            "content": "넌 누구냐?",
+            "session_id": "chat-1788353591291492434",
+            "message_id": 834,
+            "created_at": "2026-09-02T21:53:17.713654525+09:00"
+          },
+          {
+            "kind": "session",
+            "title": "Who are you?",
+            "role": "user",
+            "content": "넌 누구냐?",
+            "session_id": "chat-1788935154309436239",
+            "message_id": 1464,
+            "created_at": "2026-09-09T15:25:57.817788183+09:00"
+          },
+          {
+            "kind": "session",
+            "title": "신원 질문",
+            "role": "user",
+            "content": "넌 누구냐?",
+            "session_id": "chat-1788760899565573240",
+            "message_id": 1261,
+            "created_at": "2026-09-07T15:01:42.185329875+09:00"
+          },
+          {
+            "kind": "session",
+            "title": "AI 정체성 질문",
+            "role": "user",
+            "content": "넌 누구냐?",
+            "session_id": "chat-1788586431136615945",
+            "message_id": 1124,
+            "created_at": "2026-09-05T14:33:56.75756901+09:00"
+          },
+          {
+            "kind": "session",
+            "title": "롯데자이언츠 콜업 선수",
+            "role": "user",
+            "content": "넌 누구냐?",
+            "session_id": "chat-1788418169217429280",
+            "message_id": 1102,
+            "created_at": "2026-09-05T11:43:29.916752915+09:00"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "done",
+      "data": {}
+    }
+  ],
+  "content": "주인님이랑 얘기하는 AI 도우미야. 이름은 SparkTalk이고, 궁금한 거 찾아주고, 코드 짜주고, 문서나 이미지도 만들어주고, 서버 점검도 도와주는 그런 애야.\n\n그냥 심심풀이 상대가 아니라 진짜 일 하는 애니까, 뭐든 시켜봐. 검색해서 근거 달아주는 것도 되고, 파일로 뽑아주는 것도 되고, 등록된 서버 들어가서 상태 보는 것도 돼. 대신 못 하는 건 솔직하게 못 한다고 말할 거야.\n\n그래서, 오늘은 뭐 도와줄까, 주인님?",
+  "done": true,
+  "temporary_session_deleted": true,
+  "http_status": 200,
+  "total_seconds": 95.32979488899946
+}

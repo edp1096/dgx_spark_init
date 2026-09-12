@@ -1,0 +1,79 @@
+{
+  "rank": 0,
+  "write_reference": true,
+  "rows": [
+    {
+      "layer": 0,
+      "tokens": 1,
+      "execution_ms": 0.4230489333470662,
+      "finite": true
+    },
+    {
+      "layer": 0,
+      "tokens": 5,
+      "execution_ms": 0.6226195999867438,
+      "finite": true
+    },
+    {
+      "layer": 0,
+      "tokens": 6,
+      "execution_ms": 0.7974825333803892,
+      "finite": true
+    },
+    {
+      "layer": 0,
+      "tokens": 16,
+      "execution_ms": 1.249817833255899,
+      "finite": true
+    },
+    {
+      "layer": 0,
+      "tokens": 512,
+      "execution_ms": 2.1581933998580403,
+      "finite": true
+    },
+    {
+      "layer": 0,
+      "tokens": 2048,
+      "execution_ms": 6.568470633161875,
+      "finite": true
+    },
+    {
+      "layer": 40,
+      "tokens": 1,
+      "execution_ms": 0.24662436650639089,
+      "finite": true
+    },
+    {
+      "layer": 40,
+      "tokens": 5,
+      "execution_ms": 0.4434846334333997,
+      "finite": true
+    },
+    {
+      "layer": 40,
+      "tokens": 6,
+      "execution_ms": 0.5403025000608371,
+      "finite": true
+    },
+    {
+      "layer": 40,
+      "tokens": 16,
+      "execution_ms": 1.1022076001002763,
+      "finite": true
+    },
+    {
+      "layer": 40,
+      "tokens": 512,
+      "execution_ms": 1.6648785334837157,
+      "finite": true
+    },
+    {
+      "layer": 40,
+      "tokens": 2048,
+      "execution_ms": 3.7378086999524385,
+      "finite": true
+    }
+  ],
+  "packed_abi_identical": true
+}

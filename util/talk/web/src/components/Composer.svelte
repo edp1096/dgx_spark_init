@@ -13,7 +13,6 @@
   export let input = '';
   export let element;
   export let attachmentInput;
-  export let reasoningEffort = '';
   export let webToolsEnabled = false;
   export let microphoneAvailable = false;
   export let voiceState = 'idle';
@@ -175,7 +174,9 @@
       {#if running}<button class="send stop" onclick={onStop} aria-label="응답 중지" title="응답 중지">■</button>{:else}<button class="send" onclick={onSend} disabled={!activeId || !input.trim() || uploadingAttachments || voiceState !== 'idle'} aria-label="메시지 전송" title="메시지 전송">↑</button>{/if}
     </div>
   </div>
-	<small class:voice-active={voiceState !== 'idle'}>{voiceState === 'recording' ? `녹음 중 ${voiceDuration(voiceSeconds)} · 마이크를 다시 누르면 인식합니다` : voiceState === 'requesting' ? '마이크 연결 중…' : voiceState === 'transcribing' ? '음성 인식 중…' : `파일·URL 영상 첨부 · Enter 전송 · Shift+Enter 줄바꿈 · reasoning: ${reasoningEffort || '서버 기본값'} · 웹: ${webToolsEnabled ? '자동' : '꺼짐'}`}</small>
+	{#if voiceState !== 'idle'}
+	  <small class="voice-active">{voiceState === 'recording' ? `녹음 중 ${voiceDuration(voiceSeconds)} · 마이크를 다시 누르면 인식합니다` : voiceState === 'requesting' ? '마이크 연결 중…' : '음성 인식 중…'}</small>
+	{/if}
 </footer>
 
 <style>

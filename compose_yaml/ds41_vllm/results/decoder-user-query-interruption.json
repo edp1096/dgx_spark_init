@@ -1,0 +1,5 @@
+{
+  "time_ns": 1789204907898830382,
+  "reason": "User reported an accidental concurrent request; benchmark client interrupted, serving request left intact.",
+  "policy": "Exclude this run from final timing. Retain completed warmups for diagnostic provenance; repeat all timed trials after idle."
+}

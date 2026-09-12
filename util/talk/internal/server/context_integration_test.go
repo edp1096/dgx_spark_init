@@ -13,6 +13,7 @@ import (
 	"sparktalk/internal/config"
 	"sparktalk/internal/db"
 	"sparktalk/internal/llm"
+	"sparktalk/internal/performance"
 )
 
 func TestContinuousToolsBudgetArchivesAndReplaysWithoutLosingLatest(t *testing.T) {
@@ -62,9 +63,13 @@ func TestContinuousToolsBudgetArchivesAndReplaysWithoutLosingLatest(t *testing.T
 	cfg := config.Config{Context: config.ContextConfig{Enabled: true, WindowTokens: 2700, OutputReserve: 512, SafetyMargin: 256, CompactAtPercent: 80, RecentTokens: 128, ImageTokens: 100}, Tools: config.ToolsConfig{MaxRounds: 3}}
 	server := &Server{db: store, cfg: cfg}
 	states := []contextState{}
+	var reported *performance.Summary
 	emit := func(event string, value any) error {
 		if event == "context" {
 			states = append(states, value.(contextState))
+		}
+		if event == "performance" {
+			reported = value.(*performance.Summary)
 		}
 		return nil
 	}
@@ -83,6 +88,9 @@ func TestContinuousToolsBudgetArchivesAndReplaysWithoutLosingLatest(t *testing.T
 	}
 	if states[len(states)-1].ActualTokens != 777 {
 		t.Fatal("backend usage not emitted")
+	}
+	if result.Performance == nil || result.Performance.Calls != 3 || result.Performance.OutputTokens != 15 || result.Performance.Live || reported == nil || reported.Live {
+		t.Fatalf("tool-round metrics not finalized: %+v / %+v", result.Performance, reported)
 	}
 }
 

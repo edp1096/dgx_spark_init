@@ -1,0 +1,73 @@
+{
+  "checked_utc": "2026-09-12T02:55:55.528758+00:00",
+  "short_outputs_exact": true,
+  "long_marker_exact": true,
+  "long_prompt_tokens": 1074,
+  "health_status": 200,
+  "ranks": {
+    "0": {
+      "running": true,
+      "started_at": "2026-09-12T02:53:06.687693402Z",
+      "image": "dgx-ds41-stream:b12x8",
+      "settings_verified": true,
+      "available_host_gib": 18.445499420166016,
+      "last_counters": {
+        "hits": 0,
+        "misses": 0,
+        "read_bytes": 0,
+        "read_seconds": 0.0,
+        "rank": 0,
+        "cache_bytes": 0,
+        "slot_hits": 26769,
+        "slot_misses": 10227,
+        "packed_read_bytes": 96137072640,
+        "graph_replays": 1116,
+        "prefetch_issued": 0,
+        "prefetch_read_bytes": 0,
+        "prefetch_consumed": 0,
+        "prefetch_ready": 0,
+        "prefetch_late": 0,
+        "prefetch_cancelled": 0,
+        "prefetch_unused": 0,
+        "demand_read_bytes": 96137072640,
+        "io_batches": 928,
+        "io_overlaps": 927,
+        "prefetch_pending": 0,
+        "scratch_bytes": 268435456,
+        "gpu_cache_bytes": 87836590080
+      }
+    },
+    "1": {
+      "running": true,
+      "started_at": "2026-09-12T02:53:06.308076032Z",
+      "image": "dgx-ds41-stream:b12x8",
+      "settings_verified": true,
+      "available_host_gib": 18.016117095947266,
+      "last_counters": {
+        "hits": 0,
+        "misses": 0,
+        "read_bytes": 0,
+        "read_seconds": 0.0,
+        "rank": 1,
+        "cache_bytes": 0,
+        "slot_hits": 26769,
+        "slot_misses": 10227,
+        "packed_read_bytes": 96137072640,
+        "graph_replays": 1116,
+        "prefetch_issued": 0,
+        "prefetch_read_bytes": 0,
+        "prefetch_consumed": 0,
+        "prefetch_ready": 0,
+        "prefetch_late": 0,
+        "prefetch_cancelled": 0,
+        "prefetch_unused": 0,
+        "demand_read_bytes": 96137072640,
+        "io_batches": 928,
+        "io_overlaps": 927,
+        "prefetch_pending": 0,
+        "scratch_bytes": 268435456,
+        "gpu_cache_bytes": 87836590080
+      }
+    }
+  }
+}

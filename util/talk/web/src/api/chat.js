@@ -39,6 +39,7 @@ export async function consumeSSE(response, handlers) {
       if (event === 'ssh_grant_changed') handlers.sshGrantChanged?.(data);
       if (event === 'workflow') handlers.workflow?.(data);
       if (event === 'context') handlers.context?.(data);
+      if (event === 'performance') handlers.performance?.(data);
       if (event === 'error') throw new Error(data.error || '응답 오류');
       if (event === 'done') { completed = true; handlers.done?.(); }
     }

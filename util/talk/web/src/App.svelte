@@ -696,9 +696,10 @@
     if (index < messages.length - 1 && !confirm('이 답변을 재시도하면 이후 대화가 제거됩니다. 계속할까요?')) return;
     const sessionId = activeId;
     setSessionError(sessionId, '');
-    const original = { content: message.content, reasoning_content: message.reasoning_content, tool_trace: message.tool_trace };
+    const original = { content: message.content, reasoning_content: message.reasoning_content, tool_trace: message.tool_trace, performance: message.performance };
     message.content = '';
     message.reasoning_content = '';
+    message.performance = null;
     message.tool_trace = [];
     message.activity = '';
     const run = startSessionRun(sessionId, messages, index);
@@ -724,6 +725,7 @@
       message.content = original.content;
       message.reasoning_content = original.reasoning_content;
       message.tool_trace = original.tool_trace;
+      message.performance = original.performance;
       message.activity = '';
       publishMessages(sessionId, run.messages);
       if (e.name !== 'AbortError') setSessionError(sessionId, e.message);
@@ -767,6 +769,7 @@
       messages = messages.slice(0, replyIndex + 1);
       messages[replyIndex].content = '';
       messages[replyIndex].reasoning_content = '';
+      messages[replyIndex].performance = null;
       messages[replyIndex].tool_trace = [];
       messages[replyIndex].activity = '';
     }
@@ -1222,7 +1225,6 @@
       bind:input
       bind:element={composerInput}
       bind:attachmentInput
-      {reasoningEffort}
       {webToolsEnabled}
       {microphoneAvailable}
       {voiceState}
