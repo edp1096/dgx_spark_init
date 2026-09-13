@@ -255,6 +255,7 @@ func TestDS41StreamingBundle(t *testing.T) {
 	defer gz.Close()
 	tr := tar.NewReader(gz)
 	root := filepath.Join("..", "..", "..", "..", "compose_yaml", "ds41f_vllm")
+	seenDenseProfile := false
 	for {
 		h, err := tr.Next()
 		if err == io.EOF {
@@ -263,7 +264,10 @@ func TestDS41StreamingBundle(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if h.Name != "launch.sh" && h.Name != "expert-hot-profile.json" && !strings.HasSuffix(h.Name, ".py") && !strings.HasPrefix(h.Name, "patches/") {
+		if h.Name == "dense-prefill-profile.json" {
+			seenDenseProfile = true
+		}
+		if h.Name != "launch.sh" && h.Name != "expert-hot-profile.json" && h.Name != "dense-prefill-profile.json" && !strings.HasSuffix(h.Name, ".py") && !strings.HasPrefix(h.Name, "patches/") {
 			continue
 		}
 		want, err := os.ReadFile(filepath.Join(root, h.Name))
@@ -277,6 +281,9 @@ func TestDS41StreamingBundle(t *testing.T) {
 		if !bytes.Equal(got, want) {
 			t.Fatalf("DS41 package differs from tested runtime: %s", h.Name)
 		}
+	}
+	if !seenDenseProfile {
+		t.Fatal("DS41 recipe must include the qualified dense prefill profile")
 	}
 }
 

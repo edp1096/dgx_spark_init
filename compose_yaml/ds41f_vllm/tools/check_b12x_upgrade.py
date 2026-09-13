@@ -14,7 +14,10 @@ from expert_store import ExpertStore
 p=argparse.ArgumentParser(description=__doc__)
 p.add_argument('model');p.add_argument('--rank',type=int,required=True)
 p.add_argument('--reference',type=Path,required=True);p.add_argument('--write-reference',action='store_true');p.add_argument('--output',type=Path,required=True)
+p.add_argument('--tokens',default='1,5,6,16,512,2048')
 a=p.parse_args();torch.manual_seed(918)
+token_shapes=[int(n) for n in a.tokens.split(',')]
+assert token_shapes and all(1 <= n <= 2048 for n in token_shapes)
 store=ExpertStore(a.model,rank=a.rank);rows=[];outputs={}
 expected={} if a.write_reference else torch.load(a.reference,weights_only=True)
 with torch.inference_mode():
@@ -28,7 +31,7 @@ with torch.inference_mode():
                 assert list(t.shape[1:])==desc['shape'] and str(t.dtype)==desc['dtype']
                 digest.update(memoryview(t[0].cpu().contiguous().view(torch.uint8).numpy()))
             assert digest.hexdigest()==cache.meta['hashes'][expert],('PACKED_ABI_CHANGED',layer,expert)
-        for n in (1,5,6,16,512,2048):
+        for n in token_shapes:
             x=(torch.randn(n,5120,dtype=torch.bfloat16)*.1).cuda()
             weights=torch.rand(n,topk).cuda();weights/=weights.sum(-1,keepdim=True)
             ids=((torch.arange(n,dtype=torch.int32)[:,None]+torch.arange(topk,dtype=torch.int32))%24).cuda()
@@ -39,14 +42,14 @@ with torch.inference_mode():
             torch.cuda.synchronize();start=time.perf_counter()
             for _ in range(30): cache.execute(x,weights,mapped,ids.shape)
             torch.cuda.synchronize();ms=(time.perf_counter()-start)*1000/30
-            row={'layer':layer,'tokens':n,'execution_ms':ms,'finite':bool(output.isfinite().all())}
+            row={'layer':layer,'tokens':n,'execution_ms':ms,'finite':bool(output.isfinite().all()),'output_dtype':str(output.dtype)}
             assert row['finite']
             if not a.write_reference:
                 target=expected[key].cuda()
                 row['max_abs_error']=(output-target).abs().max().item()
                 row['relative_l2_error']=((output-target).float().norm()/target.float().norm()).item()
                 try:
-                    torch.testing.assert_close(output,target,rtol=1e-5,atol=1e-5);row["numeric_close"]=True
+                    torch.testing.assert_close(output.float(),target.float(),rtol=1e-5,atol=1e-5);row["numeric_close"]=True
                 except AssertionError: row["numeric_close"]=False
             rows.append(row);print(json.dumps(row),flush=True)
     if a.write_reference: torch.save(outputs,a.reference)

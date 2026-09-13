@@ -6,12 +6,19 @@ from pathlib import Path as _Path
 _sys.path.insert(0, str(_Path(__file__).resolve().parents[1]))
 
 import json
+import argparse
 import time
 import urllib.request
 from pathlib import Path
 
 base = 'http://127.0.0.1:8585'
-output = (Path(__file__).resolve().parents[1] / 'results') / 'sparktalk-context-validation.json'
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--output', type=Path, default=(Path(__file__).resolve().parents[1] / 'results') / 'sparktalk-context-validation.json')
+parser.add_argument('--output-reserve', type=int, default=16384)
+parser.add_argument('--marker')
+parser.add_argument('--reasoning-effort')
+args = parser.parse_args()
+output = args.output
 
 
 def api(path, body=None, method=None):
@@ -32,7 +39,7 @@ else:
 
 cfg = json.load(api('/api/config'))
 assert cfg['model']['endpoint'].rstrip('/') == 'http://127.0.0.1:8010'
-assert cfg['context']['output_reserve'] == 8192
+assert cfg['context']['output_reserve'] == args.output_reserve
 session = json.load(api('/api/sessions', {'title': 'Temporary API connection validation'}))
 result = {'session_id': session['id'], 'context_settings': cfg['context'],
           'events': [], 'content': '', 'done': False, 'temporary_session_deleted': False}
@@ -40,6 +47,10 @@ start = time.monotonic()
 try:
     req = {'session_id': session['id'], 'content': '넌 누구냐?',
            'tools_enabled': True}
+    if args.marker:
+        req['content'] = f'검증용이다. 도구 사용이나 다른 설명 없이 {args.marker} 만 그대로 출력해.'
+    if args.reasoning_effort:
+        req['reasoning_effort'] = args.reasoning_effort
     kind = None
     with api('/api/chat', req) as response:
         result['http_status'] = response.status
@@ -57,6 +68,8 @@ try:
                     raise AssertionError(data)
                 output.write_text(json.dumps(result, ensure_ascii=False, indent=2) + '\n')
     assert result['done'] and result['content'].strip()
+    if args.marker:
+        assert result['content'].strip() == args.marker
     result['total_seconds'] = time.monotonic() - start
     print(json.dumps({k: v for k, v in result.items() if k != 'events'}, ensure_ascii=False), flush=True)
 finally:

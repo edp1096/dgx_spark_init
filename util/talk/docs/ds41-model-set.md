@@ -8,7 +8,7 @@ LLM은 `ds41-cluster` 컨트롤러가 두 랭크를 함께 관리한다. 실행 
 
 현재 준비된 원본 체크포인트와 rank별 packed expert, `dgx-ds41-stream:b12x8` 이미지가 두 호스트에 필요하다. 새 시스템용 이미지 빌드·체크포인트 다운로드·expert packing 자동 설치는 이 등록 작업의 범위에 포함하지 않았다. 기존 `compose_yaml/ds41f_vllm` 준비 절차를 사용한다.
 
-실행값은 기존 검증값을 유지한다: target expert 224개/레이어, draft 128개/레이어, KV 2GiB/rank, DSpark 5, prefill scheduler 4096, native kernel 2048, shared I/O buffer, scratch 384MiB. Decoder row 실험과 probe 제어는 꺼진다. 부족한 메모리에 맞춰 캐시를 자동 축소하지 않고 기존 launch 메모리 검사에서 중단한다.
+현재 실행값은 target expert 224개/레이어, draft 128개/레이어, KV 2GiB/rank, DSpark 5, prefill scheduler 8192, expert kernel 2048, shared I/O buffer, scratch 384MiB다. Engram은 native reader를 쓰고 초기 자동 튜닝은 4096토큰으로 제한한다. 별도로 검증한 원본 MXFP8 dense 연산 설정 8개를 초기화 마지막에 적용한다. Decoder row 실험과 probe 제어는 꺼진다. 부족한 메모리에 맞춰 캐시를 자동 축소하지 않고 launch 메모리 검사에서 중단한다.
 
 런타임 변경 후 패키지를 재생성한다:
 
@@ -41,3 +41,18 @@ Talk `/api/chat`에서 입력 4,686토큰의 새 대화가 숫자 `5`를 반환�
 DS41 서비스 또는 세트 binding의 `runtime_options.DSV41_PRELOAD_COUNT`로
 0..224를 지정할 수 있다. 기본값은 224, 0은 끄기다. 캐시 총용량과 별개로
 기동 때 채울 개수만 정한다. [상세 측정](../../../compose_yaml/ds41f_vllm/docs/EXPERT_PRELOAD.md)을 참조한다.
+
+## 2026-09-13 PP 개선
+
+원본 가중치와 기존 b12x를 유지하면서 Engram 읽기, prefill 범위, dense 연산
+선택을 개선했다. 동일 요청·캐시 조건의 3회 중앙값 기준으로 6308/12934토큰
+입력 pp는 298→455, 312→461tok/s로 향상됐다(+52.77%/+47.85%).
+TTFT는 21.16→13.85초, 41.47→28.05초이며 긴 출력 tg는 거의 같다.
+54,988토큰 반복 입력, 긴 대화 캐시 재사용·부분 변경도 검증했다.
+[상세 조건과 한계](../../../compose_yaml/ds41f_vllm/docs/PREFILL_WINDOW_8192.md)를 참조한다.
+
+Talk 내장 패키지와 Linux arm64 바이너리를 갱신했고 실제 채팅에서 pp/tg/ttft
+이벤트를 확인했다. 문맥65,536과 최대 출력 기본값16384를 유지한다.
+모델의 메모리 견적은 헤드108/워커107GiB이며 기동 전 런타임 검사는 각각
+116/115GiB를 요구한다. 워커 ASR·헤드 Extra와 함께 정상 기동하고 음성 인식도
+확인했다. Go orchestrator/config/server 테스트와 reader·초기화 순서 검사가 통과했다.

@@ -788,7 +788,9 @@ class Worker(WorkerBase):
 
         # Warmup and tune the kernels used during model execution before
         # cuda graph capture.
-        kernel_warmup(self)
+        from autotune_window import bounded_autotune
+        with bounded_autotune():
+            kernel_warmup(self)
 
         cuda_graph_memory_bytes = 0
         if not self.model_config.enforce_eager:
@@ -941,6 +943,37 @@ class Worker(WorkerBase):
     def ds41_preload_benchmark(self, action="stats", count="0", verify="0"):
         import expert_preload
         return expert_preload.benchmark(action, count, verify)
+
+    def ds41_dense_profile_status(self):
+        if os.environ.get("DSV41_BENCH_CONTROL") != "1":
+            raise PermissionError("Dense profile diagnostics are disabled")
+        import json
+        from pathlib import Path
+        import autotune_window
+        from flashinfer.autotuner import AutoTuner
+        expected = json.loads(Path(autotune_window.__file__).with_name(
+            "dense-prefill-profile.json").read_text())
+        expected.pop("_metadata")
+        tuner = AutoTuner.get()
+        with tuner._lock:
+            matched = sum(tuner._file_configs.get(k) == tuple(v) for k, v in expected.items())
+            conflicts = [key.file_key for key, (tactic, _) in tuner._winner_cache().items()
+                         if key.file_key in expected and tactic != expected[key.file_key][1]]
+        return {"expected": len(expected), "matched": matched, "winner_conflicts": conflicts}
+
+    def ds41_engram_benchmark(self, backend="python"):
+        import os
+        if os.environ.get("DSV41_BENCH_CONTROL") != "1":
+            raise PermissionError("Engram benchmark controls are disabled")
+        if backend not in ("python", "native"):
+            raise ValueError("Unknown Engram reader backend")
+        import torch
+        import vllm.models.deepseek_v4_1.common.engram as engram
+        torch.cuda.synchronize()
+        if backend == "native":
+            engram._kai_native_reader()
+        engram._KAI_BACKEND = backend
+        return {"backend": backend, "threads": engram._KAI_THREADS}
 
     def reset_mm_cache(self) -> None:
         self.model_runner.reset_mm_cache()

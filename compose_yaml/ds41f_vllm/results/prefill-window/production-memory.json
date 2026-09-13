@@ -1,0 +1,16 @@
+{
+  "0": {
+    "min_available_gib": 11.822689056396484,
+    "peak_cgroup_gib": 90.58576965332031,
+    "oom_events": 0,
+    "guard_trips": 0,
+    "monitor_finished": true
+  },
+  "1": {
+    "min_available_gib": 10.762939453125,
+    "peak_cgroup_gib": 89.85206604003906,
+    "oom_events": 0,
+    "guard_trips": 0,
+    "monitor_finished": true
+  }
+}

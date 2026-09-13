@@ -691,6 +691,18 @@ _DSV41_ENGRAM_DISK = _kai_os.environ.get("DSV41_ENGRAM_DISK", "0") == "1"
 _KAI_THREADS = int(_kai_os.environ.get("DSV41_ENGRAM_DISK_THREADS", "32"))
 _KAI_CHUNK = int(_kai_os.environ.get("DSV41_ENGRAM_DISK_CHUNK", "16"))
 _KAI_POOL: _KaiPool | None = None
+_KAI_BACKEND = _kai_os.environ.get("DSV41_ENGRAM_READER", "native")
+if _KAI_BACKEND not in ("python", "native"):
+    raise ValueError("DSV41_ENGRAM_READER must be python or native")
+_KAI_NATIVE = None
+
+
+def _kai_native_reader():
+    global _KAI_NATIVE
+    if _KAI_NATIVE is None:
+        from engram_reader import Reader
+        _KAI_NATIVE = Reader(_KAI_THREADS)
+    return _KAI_NATIVE
 
 
 def _kai_pool() -> _KaiPool:
@@ -721,6 +733,10 @@ def _kai_parallel_read(jobs: list) -> None:
     Only the calling thread submits, so the shared pool cannot deadlock."""
     total = sum(len(job[2]) for job in jobs)
     if total == 0:
+        return
+    if _KAI_BACKEND == "native":
+        chunk = max(1, min(_KAI_CHUNK, -(-total // _KAI_THREADS)))
+        _kai_native_reader().read(jobs, chunk=chunk)
         return
     if total == 1:
         for fd, base, rel, row_bytes, buf in jobs:
@@ -810,6 +826,8 @@ class DiskEngramTable:
         self.threads = _KAI_THREADS
         self.chunk = _KAI_CHUNK
         self.pool = _kai_pool()  # shared by all tables (was one pool per table)
+        if _KAI_BACKEND == "native":
+            _kai_native_reader()  # Compile/create workers before serving requests.
         logger.info(
             "Engram DISK mode: layer %d rows [%d, %d) read from %s (off=%d) and %s (off=%d); "
             "%d threads, chunk %d",

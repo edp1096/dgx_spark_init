@@ -1,0 +1,29 @@
+{
+  "requested_output_tokens": 8192,
+  "tokenizer_count": 54988,
+  "text": "spark-amethyst-642",
+  "usage": {
+    "prompt_tokens": 54988,
+    "total_tokens": 54996,
+    "completion_tokens": 8,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "created_cache_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "finish_reason": "stop",
+  "ttft_seconds": 48.52465814800007,
+  "controlled": true,
+  "status": 200,
+  "metrics": {
+    "time_to_first_token_ms": 48427.244055999836,
+    "generation_time_ms": 524.2687570003,
+    "queue_time_ms": 0.02065599983325228,
+    "mean_itl_ms": 74.89553671432857,
+    "tokens_per_second": 0.16342702278805624
+  },
+  "total_seconds": 49.02901549699982
+}

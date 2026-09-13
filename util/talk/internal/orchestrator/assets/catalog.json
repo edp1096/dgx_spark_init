@@ -180,8 +180,8 @@
       "worker_host": "worker",
       "worker_container": "ds41-stream-1",
       "model": "deepseek-v4.1-flash",
-      "memory_gib": 105,
-      "worker_memory_gib": 105,
+      "memory_gib": 108,
+      "worker_memory_gib": 107,
       "startup_timeout_seconds": 3600,
       "progress_kind": "service",
       "auto_address": true

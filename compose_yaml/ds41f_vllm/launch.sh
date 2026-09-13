@@ -17,7 +17,7 @@ prefix_interval=${DSV41_PREFIX_CACHE_INTERVAL:-128}
 preload_count=${DSV41_PRELOAD_COUNT:-224}
 [[ "$preload_count" =~ ^[0-9]{1,3}$ ]] && (( 10#$preload_count <= 224 )) || { echo "Preload count must be 0..224" >&2; exit 1; }
 batch_default=512
-if [[ "$backend" == b12x_slots ]]; then batch_default=4096; fi
+if [[ "$backend" == b12x_slots ]]; then batch_default=8192; fi
 batch_tokens=${DSV41_MAX_BATCHED_TOKENS:-$batch_default}
 kernel_default=512; shared_default=0; scratch_default=256
 if [[ "$backend" == b12x_slots && ${DSV41_MODEL_GRAPHS:-0} == 0 ]]; then
@@ -47,8 +47,21 @@ fi
 [[ "$model_len" =~ ^[1-9][0-9]*$ && "$kv_cache_bytes" =~ ^[1-9][0-9]*$ ]] || { echo 'Context length and KV cache bytes must be positive integers' >&2; exit 1; }
 [[ "$prefix_interval" =~ ^[0-9]+$ ]] || { echo 'Invalid prefix cache retention interval' >&2; exit 1; }
 [[ "$batch_tokens" =~ ^[1-9][0-9]*$ ]] || { echo 'Invalid prefill batch size' >&2; exit 1; }
+autotune_default=0; dense_profile_default=0
+if [[ "$backend" == b12x_slots ]] && (( batch_tokens > 4096 )); then
+  autotune_default=4096; dense_profile_default=1
+fi
+autotune_tokens=${DSV41_AUTOTUNE_TOKENS:-$autotune_default}
+dense_profile=${DSV41_DENSE_PREFILL_PROFILE:-$dense_profile_default}
+case "$autotune_tokens" in 0|4096) ;; *) echo 'Invalid startup autotune capacity' >&2; exit 1;; esac
+case "$dense_profile" in 0|1) ;; *) echo 'Invalid dense profile flag' >&2; exit 1;; esac
 if [[ "$backend" == b12x_slots ]]; then
-  (( batch_tokens <= 4096 )) || { echo 'Streaming prefill is qualified up to 4096 tokens' >&2; exit 1; }
+  (( batch_tokens <= 8192 )) || { echo 'Streaming prefill is qualified up to 8192 tokens' >&2; exit 1; }
+  if (( batch_tokens > 4096 && autotune_tokens != 4096 )); then
+    [[ ${DSV41_BENCH_CONTROL:-0} == 1 && -n ${DSV41_PROBE_TOKEN:-} ]] || {
+      echo '8192 prefill requires the bounded 4096-token startup autotune' >&2; exit 1;
+    }
+  fi
   if (( batch_tokens > 2048 )) && [[ $shared_buffers != 1 ]]; then
     echo 'Prefill above 2048 requires shared expert I/O buffers' >&2; exit 1
   fi
@@ -149,6 +162,9 @@ if [[ "$backend" == b12x_slots ]]; then
   # Shared expert I/O stays bounded; dense/attention activations still grow.
   if (( batch_tokens > 2048 )); then required=$((required+5));
   elif (( batch_tokens > 512 )); then required=$((required+(batch_tokens-512+511)/512)); fi
+  # Qualified capped-tuning peak delta: head ~107.6 GiB, worker ~106.8 GiB.
+  # Keep at least 8 GiB beyond that delta: 116 / 115 GiB pre-start floors.
+  if (( batch_tokens > 4096 && rank == 0 )); then required=$((required+1)); fi
   if [[ ${DSV41_PREFETCH_TEST:-0} == 1 ]]; then required=$((required+1)); fi
   if [[ ${DSV41_MODEL_GRAPHS:-0} == 1 ]]; then required=$((required+3)); fi
   (( avail >= required )) || { echo "Need $required GiB, available $avail GiB" >&2; exit 1; }
@@ -194,6 +210,9 @@ docker run -d --gpus all --name "${DSV41_CONTAINER:-ds41-stream-$rank}" \
   -e DSV41_EXPERT_STREAMING=1 -e DSV41_EXPERT_CACHE_GIB="$cache" \
   -e DSV41_MOE_BACKEND="$backend" -e DSV41_GPU_CACHE_GIB="$gpu_cache" \
   -e DSV41_ENGRAM_DISK=1 -e DSV41_ENGRAM_DISK_THREADS=8 \
+  -e DSV41_ENGRAM_READER="${DSV41_ENGRAM_READER:-native}" \
+  -e DSV41_AUTOTUNE_TOKENS="$autotune_tokens" \
+  -e DSV41_DENSE_PREFILL_PROFILE="$dense_profile" \
   -e HF_HUB_OFFLINE=1 -e TRANSFORMERS_OFFLINE=1 \
   -e VLLM_SERVER_DEV_MODE="${DSV41_BENCH_CONTROL:-0}" \
   -e VLLM_USE_RUST_FRONTEND=0 -e VLLM_HOST_IP="$rail" \

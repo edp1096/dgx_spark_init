@@ -2,7 +2,7 @@
 import argparse,json,os,re,shlex,subprocess,time
 from pathlib import Path
 p=argparse.ArgumentParser(description=__doc__)
-p.add_argument('--token',required=True);p.add_argument('--batch',type=int,choices=(2048,4096),required=True)
+p.add_argument('--token',required=True);p.add_argument('--batch',type=int,choices=(2048,4096,8192),required=True)
 p.add_argument('--bench-control',action='store_true')
 a=p.parse_args();assert re.fullmatch(r'[A-Za-z0-9_-]+',a.token)
 root=Path(__file__).resolve().parent

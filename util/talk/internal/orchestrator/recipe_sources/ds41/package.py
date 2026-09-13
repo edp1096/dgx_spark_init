@@ -9,6 +9,7 @@ files = {p.name: p for p in here.glob('*') if p.name != 'package.py' and p.is_fi
 files.update({p.name: p for p in source.glob('*.py')})
 files['launch.sh'] = source / 'launch.sh'
 files['expert-hot-profile.json'] = source / 'expert-hot-profile.json'
+files['dense-prefill-profile.json'] = source / 'dense-prefill-profile.json'
 files.update({str(p.relative_to(source)): p for p in (source/'patches').rglob('*') if p.is_file() and '__pycache__' not in p.parts})
 buf = io.BytesIO()
 with tarfile.open(fileobj=buf, mode='w') as tar:

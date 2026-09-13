@@ -1,0 +1,32 @@
+{
+  "0": {
+    "rows": [
+      {
+        "layer": 0,
+        "tokens": 1,
+        "execution_ms": 0.36569776667268644,
+        "finite": true,
+        "output_dtype": "torch.bfloat16",
+        "max_abs_error": 0.0011830329895019531,
+        "relative_l2_error": 0.042526062577962875,
+        "numeric_close": false
+      }
+    ],
+    "failure": "CUDA_ERROR_COOPERATIVE_LAUNCH_TOO_LARGE"
+  },
+  "1": {
+    "rows": [
+      {
+        "layer": 0,
+        "tokens": 1,
+        "execution_ms": 0.366415266663959,
+        "finite": true,
+        "output_dtype": "torch.bfloat16",
+        "max_abs_error": 0.0011677742004394531,
+        "relative_l2_error": 0.04489365965127945,
+        "numeric_close": false
+      }
+    ],
+    "failure": "CUDA_ERROR_COOPERATIVE_LAUNCH_TOO_LARGE"
+  }
+}
