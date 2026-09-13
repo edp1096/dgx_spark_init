@@ -1,0 +1,51 @@
+{
+  "minimum_available_gib": 10.48162841796875,
+  "maximum_swap_gib": 1.4905319213867188,
+  "initial_swap_gib": 0.30315399169921875,
+  "final": {
+    "used_gib": 108.34540176391602,
+    "available_gib": 13.281597137451172,
+    "free_gib": 3.8338699340820312,
+    "swap_gib": 1.4741439819335938
+  },
+  "minimum_available_gib_50ms_images": 10.438037872314453,
+  "containers": [
+    {
+      "name": "flux2-klein-nvfp4-api",
+      "image": "sparktalk-flux2-paint:trial4",
+      "running": true,
+      "oom_killed": false,
+      "restart_count": 0
+    },
+    {
+      "name": "sglang-qwen38-fn",
+      "image": "dgx-sglang-qwen38-fn:sm121-vocab1",
+      "running": true,
+      "oom_killed": false,
+      "restart_count": 0
+    },
+    {
+      "name": "sparktalk-nemotron-asr",
+      "image": "sparktalk-nemotron-asr:0.6b-q8",
+      "running": true,
+      "oom_killed": false,
+      "restart_count": 0
+    },
+    {
+      "name": "sparktalk-magpie-tts",
+      "image": "sparktalk-magpie-tts:v2607-longform2",
+      "running": true,
+      "oom_killed": false,
+      "restart_count": 0
+    }
+  ],
+  "chat_response": "15",
+  "integration_output_identical_to_isolated": {
+    "outpaint": true,
+    "object": true,
+    "background": true,
+    "inpaint": true
+  },
+  "minimum_reserve_gib": 4,
+  "flux_reservation_gib": 13
+}

@@ -19,7 +19,7 @@ runtime:
   # 비워두면 실행 사용자 홈 아래의 표준 경로를 사용합니다.
   data_dir: ""
   model_cache: ""
-  memory_reserve_gib: 8
+  memory_reserve_gib: 4
 
 model:
   # OpenAI 호환 API의 기본 URL입니다. /v1은 붙이지 않습니다.

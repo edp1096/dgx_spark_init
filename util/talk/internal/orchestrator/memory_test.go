@@ -1,6 +1,8 @@
 package orchestrator
 
 import (
+	"context"
+	"errors"
 	"strings"
 	"testing"
 )
@@ -42,5 +44,22 @@ func TestHealthyLazyImageKeepsRemainingPeak(t *testing.T) {
 	component := Component{Role: "image", MemoryGiB: 6.7}
 	if remaining := healthyComponentRemainingMemory(component, .2); remaining != 6.5 {
 		t.Fatalf("unexpected lazy image reserve: %.1f GiB", remaining)
+	}
+}
+
+func TestCacheReclaimDoesNotMaskInsufficientCapacity(t *testing.T) {
+	plan := memoryPlan{NeededGiB: 110, RequiresCUDAStart: true}
+	var cold *cudaStartMemoryError
+	if err := validateMemoryHeadroom(SystemMemory{AvailableGiB: 120, FreeGiB: 2}, plan, 8); !errors.As(err, &cold) {
+		t.Fatalf("expected reclaimable free-memory error: %v", err)
+	}
+	if err := validateMemoryHeadroom(SystemMemory{AvailableGiB: 100, FreeGiB: 2}, plan, 8); err == nil || errors.As(err, &cold) {
+		t.Fatalf("real capacity shortage must not trigger reclaim retry: %v", err)
+	}
+	catalog, _ := LoadCatalog()
+	controller := newController(catalog)
+	bundle, _ := catalog.Bundle("ds41")
+	if attempted, err := controller.reclaimGLMStartupCache(context.Background(), bundle); attempted || err != nil {
+		t.Fatal("non-GLM start must not reclaim", attempted, err)
 	}
 }

@@ -50,7 +50,7 @@ func TestLoadCreatesEmbeddedDefaultAndSaveReloads(t *testing.T) {
 	if !cfg.Extra.CollectorEnabled || cfg.Extra.CollectorEndpoint != "http://127.0.0.1:8695" {
 		t.Fatalf("generated collector endpoint is incomplete: %+v", cfg.Extra)
 	}
-	if cfg.Version != 2 || cfg.Runtime.Mode != "managed" || cfg.Runtime.Bundle != "flash-next" || cfg.Runtime.MemoryReserveGiB != 8 {
+	if cfg.Version != 2 || cfg.Runtime.Mode != "managed" || cfg.Runtime.Bundle != "flash-next" || cfg.Runtime.MemoryReserveGiB != 4 {
 		t.Fatalf("generated runtime defaults are incomplete: %+v", cfg.Runtime)
 	}
 	if cfg.Memory.AlwaysMaxResults != 6 || cfg.Memory.AlwaysTokenBudget != 1024 || cfg.Memory.MaxResults != 5 || cfg.Memory.TokenBudget != 2048 {

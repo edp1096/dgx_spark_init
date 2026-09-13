@@ -66,6 +66,8 @@
   $: sidebarVisible = sidebarOpen && !(libraryOpen && mobileViewport);
   let sidebarWidth = 260;
   let settingsOpen = false;
+  let settingsInitialTab = 'chat';
+  let settingsInitialProfile = 'character';
   let settings = null;
   let editingMessageId = null;
   let editInput = '';
@@ -1046,10 +1048,12 @@
     window.addEventListener('pointerup', stopResize);
   }
 
-  async function openSettings() {
+  async function openSettings(profile = null) {
     try {
       settings = await getConfig();
       normalizePublicSettings(settings);
+      settingsInitialTab = ['character', 'user'].includes(profile) ? 'profile' : 'chat';
+      settingsInitialProfile = profile === 'user' ? 'user' : 'character';
       settingsOpen = true;
       closeSidebarOnMobile();
       closeControls();
@@ -1123,6 +1127,7 @@
       onChangeSessionGroup={changeSessionGroup}
       onRemoveSession={remove}
       onOpenSettings={openSettings}
+      onOpenProfile={() => openSettings('character')}
       onOpenLibrary={openLibrary}
       {libraryOpen}
       onStartResize={startResize}
@@ -1184,6 +1189,7 @@
       assistantAvatar={appearance.assistant_avatar}
       userName={appearance.user_name || '나'}
       userAvatar={appearance.user_avatar}
+      onOpenProfile={role => openSettings(role === 'user' ? 'user' : 'character')}
       {variantIndices}
       {variantPosition}
       onShowAdjacentVariant={showAdjacentVariant}
@@ -1260,6 +1266,8 @@
 {#if settingsOpen && settings}
   <SettingsModal
     {settings}
+    initialTab={settingsInitialTab}
+    initialProfileSection={settingsInitialProfile}
     runtime={runtimeState}
     keepMediaIds={Object.values(attachmentDrafts).flat().map((item) => item.id)}
     onclose={() => settingsOpen = false}

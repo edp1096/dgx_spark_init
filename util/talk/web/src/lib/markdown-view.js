@@ -15,6 +15,7 @@ export function markdownView(node, html) {
     const template = document.createElement('template');
     template.innerHTML = nextHTML;
     const positions = [];
+    const retained = new Map();
     [...template.content.querySelectorAll('[data-code-card]')].forEach((fresh, index) => {
       const saved = oldCards[index];
       const old = saved?.card;
@@ -37,9 +38,50 @@ export function markdownView(node, html) {
       if (toggle && !old.querySelector('[data-code-toggle]')) {
         buttons.append(toggle);
       }
-      fresh.replaceWith(old);
+      const footer = fresh.querySelector('.code-card-footer');
+      if (footer && !old.querySelector('.code-card-footer')) old.append(footer);
+      retained.set(fresh, old);
     });
-    node.replaceChildren(template.content);
+    // Keep retained cards connected throughout the update. Detaching them even
+    // briefly cancels a pointer click when a chunk arrives between down and up.
+    function reconcile(parent, freshParent) {
+      let cursor = parent.firstChild;
+      for (const fresh of [...freshParent.childNodes]) {
+        const card = retained.get(fresh);
+        if (card) {
+          if (cursor !== card) parent.insertBefore(card, cursor);
+          cursor = card.nextSibling;
+          continue;
+        }
+        const sameKind = cursor && cursor.nodeType === fresh.nodeType
+          && cursor.nodeName === fresh.nodeName && cursor.namespaceURI === fresh.namespaceURI
+          && !cursor.matches?.('[data-code-card]');
+        if (sameKind) {
+          if (fresh.nodeType === Node.ELEMENT_NODE) {
+            for (const attr of [...cursor.attributes]) {
+              if (!fresh.hasAttribute(attr.name)) cursor.removeAttribute(attr.name);
+            }
+            for (const attr of fresh.attributes) {
+              if (cursor.getAttribute(attr.name) !== attr.value) cursor.setAttribute(attr.name, attr.value);
+            }
+            reconcile(cursor, fresh);
+          } else if (cursor.nodeValue !== fresh.nodeValue) {
+            cursor.nodeValue = fresh.nodeValue;
+          }
+          cursor = cursor.nextSibling;
+        } else {
+          const added = fresh.cloneNode(false);
+          parent.insertBefore(added, cursor);
+          if (fresh.nodeType === Node.ELEMENT_NODE) reconcile(added, fresh);
+        }
+      }
+      while (cursor) {
+        const next = cursor.nextSibling;
+        cursor.remove();
+        cursor = next;
+      }
+    }
+    reconcile(node, template.content);
     for (const { pre, top, left } of positions) {
       pre.scrollTop = top;
       pre.scrollLeft = left;

@@ -19,7 +19,7 @@ test('keeps long chat code compact until the user expands it', async ({ page }) 
   await card.getByRole('button', { name: '전체 보기' }).click();
   await expect(card).toHaveClass(/expanded/);
   expect((await code.boundingBox())?.height).toBeGreaterThan(500);
-  await card.getByRole('button', { name: '접기' }).click();
+  await card.getByRole('button', { name: '접기', exact: true }).click();
   await expect(card).not.toHaveClass(/expanded/);
 });
 
@@ -63,7 +63,7 @@ test('preserves expanded cards and code scrolling across streamed updates and co
     const before = await pane.evaluate(el => el.scrollTop);
     const assertRetained = async () => {
       await expect(cards.first()).toHaveClass(/expanded/);
-      await expect(cards.first().getByRole('button', { name: '접기' })).toHaveAttribute('aria-expanded', 'true');
+      await expect(cards.first().getByRole('button', { name: '접기', exact: true })).toHaveAttribute('aria-expanded', 'true');
       await expect(pre).toHaveAttribute('data-scroll-identity', 'same-pre');
       await expect.poll(() => pre.evaluate(el => [el.scrollTop, el.scrollLeft])).toEqual([140, 90]);
       await expect.poll(() => pane.evaluate((el, old) => Math.abs(el.scrollTop - old), before)).toBeLessThan(5);
@@ -80,5 +80,51 @@ test('preserves expanded cards and code scrolling across streamed updates and co
     if (session) await request.delete(`/api/sessions/${session.id}`);
     await request.put('/api/config', { data: original });
     backend.closeAllConnections(); await new Promise(resolve => backend.close(resolve));
+  }
+});
+
+test('can repeatedly expand and collapse while chunks arrive between pointer down and up', async ({ page, request }) => {
+  const { createServer } = await import('node:http');
+  let send, finish;
+  const finished = new Promise(resolve => finish = resolve);
+  const code = Array.from({length: 45}, (_, i) => `const item${i} = ${i};`).join('\n');
+  const backend = createServer(async (req, res) => {
+    if (req.method !== 'POST') { res.end(JSON.stringify({data:[{id:'test-model'}]})); return; }
+    let body='';for await (const p of req) body+=p;
+    if (!JSON.parse(body).stream) {res.end(JSON.stringify({choices:[{message:{content:'Streaming toggle'},finish_reason:'stop'}]}));return;}
+    res.setHeader('Content-Type','text/event-stream');
+    send = content => res.write('data: '+JSON.stringify({choices:[{delta:{content},finish_reason:null}]})+'\n\n');
+    send('```js\n'+code.split('\n').slice(0,8).join('\n'));
+    await finished;
+    res.end('data: [DONE]\n\n');
+  });
+  await new Promise(r=>backend.listen(0,'127.0.0.1',r));
+  const original=await (await request.get('/api/config')).json();let session;
+  try {
+    const cfg=structuredClone(original);cfg.model.endpoint=`http://127.0.0.1:${backend.address().port}`;
+    await request.put('/api/config',{data:cfg});
+    session=await (await request.post('/api/sessions',{data:{title:'Toggle during stream'}})).json();
+    await page.goto('/');await page.locator('textarea').first().fill('코드를 작성해.');await page.locator('textarea').first().press('Enter');
+    const card=page.locator('.bubble [data-code-card]');await expect(card).toHaveCount(1);
+    await expect(card.locator('[data-code-toggle]')).toHaveCount(0);
+    send('\n'+code.split('\n').slice(8).join('\n'));
+    await expect(card.locator('[data-code-toggle]')).toBeVisible();
+    await expect(card.locator('[data-code-collapse]')).toBeHidden();
+    for(let i=0;i<3;i++) {
+      const toggle=card.locator('[data-code-toggle]');
+      await toggle.scrollIntoViewIfNeeded();const box=await toggle.boundingBox();
+      await page.mouse.move(box.x+box.width/2,box.y+box.height/2);await page.mouse.down();
+      send(`\nconst chunk${i} = ${i};`);
+      await expect(card.locator('code')).toContainText(`const chunk${i}`);
+      await page.mouse.up();await expect(toggle).toHaveAttribute('aria-expanded','true');
+      const bottom=card.locator('[data-code-collapse]');await expect(bottom).toBeVisible();
+      if(i%2===0){await bottom.click();await expect(toggle).toBeFocused();}else{await toggle.click();}
+      await expect(toggle).toHaveAttribute('aria-expanded','false');await expect(bottom).toBeHidden();
+      const view=await toggle.boundingBox(),pane=await page.locator('.messages').boundingBox();
+      expect(view.y).toBeGreaterThanOrEqual(pane.y-1);expect(view.y+view.height).toBeLessThanOrEqual(pane.y+pane.height+1);
+    }
+  } finally {
+    finish(); if(session)await request.delete(`/api/sessions/${session.id}`);
+    await request.put('/api/config',{data:original});backend.closeAllConnections();await new Promise(r=>backend.close(r));
   }
 });

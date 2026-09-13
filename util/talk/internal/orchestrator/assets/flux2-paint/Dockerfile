@@ -11,3 +11,6 @@ RUN python -m venv /opt/rembg-venv && \
     /opt/rembg-venv/bin/pip install --no-cache-dir "rembg[cpu]==2.0.84" "onnxruntime==1.29.0"
 COPY api.py prepare_lora.py rembg_worker.py start.sh /opt/nvfp4-api/
 RUN chmod +x /opt/nvfp4-api/start.sh
+# On GB10 unified memory, pinned staging reduces MemAvailable by about 6 GiB.
+# Keep the model/cache policy and numerical path unchanged.
+RUN sed -i 's/--disable-auto-launch/--disable-auto-launch --disable-pinned-memory/' /opt/nvfp4-api/base_start.sh

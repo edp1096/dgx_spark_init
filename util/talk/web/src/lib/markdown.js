@@ -30,6 +30,7 @@ marked.use({
         + (isLong ? '<button type="button" data-code-toggle aria-expanded="false">전체 보기</button>' : '')
         + '</div></div>'
         + `<pre><code class="language-${escapeHTML(language)}">${escapeHTML(source)}</code></pre>`
+        + (isLong ? '<div class="code-card-footer"><button type="button" data-code-collapse>↑ 접기</button></div>' : '')
         + '</div>';
     },
   },

@@ -36,7 +36,7 @@
       "container": "flux2-klein-nvfp4-api",
       "health_url": "http://127.0.0.1:8691/health",
       "model": "flux2-klein-4b-nvfp4",
-      "memory_gib": 18.5,
+      "memory_gib": 13,
       "startup_timeout_seconds": 300,
       "compose_asset": "compose.flux2.yaml",
       "progress_kind": "comfy",

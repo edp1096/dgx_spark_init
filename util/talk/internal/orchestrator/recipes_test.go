@@ -7,6 +7,7 @@ import (
 	"context"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -316,5 +317,40 @@ func TestDS41PreloadOption(t *testing.T) {
 	component.RuntimeOptions = map[string]string{"DSV41_PRELOAD_COUNT": "128"}
 	if validateRecipeOptions(component) == nil {
 		t.Fatal("preload option accepted for another engine")
+	}
+}
+
+func TestGLMCheckpointPreflight(t *testing.T) {
+	script, err := filepath.Abs(filepath.Join("recipe_sources", "glm53", "check_models.py"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	code := `import importlib.util,json,struct,tempfile
+from pathlib import Path
+spec=importlib.util.spec_from_file_location('check',__import__('sys').argv[1]);m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
+with tempfile.TemporaryDirectory() as folder:
+ root=Path(folder);model=root/'model';draft=root/'draft';model.mkdir();draft.mkdir()
+ for p in [model/'config.json',draft/'config.json']:p.write_text('{}')
+ header=json.dumps({'w':{'dtype':'U8','shape':[1],'data_offsets':[0,1]}}).encode();blob=struct.pack('<Q',len(header))+header+b'x'
+ index={'weight_map':{str(i):f'model-{i}.safetensors' for i in range(120)}}
+ (model/'model.safetensors.index.json').write_text(json.dumps(index))
+ for name in index['weight_map'].values():(model/name).write_bytes(blob)
+ (draft/'model.safetensors').write_bytes(blob)
+ m.check(model,draft)
+ bad=model/'model-0.safetensors';bad.write_bytes(blob[:-1])
+ try:m.check(model,draft)
+ except ValueError:pass
+ else:raise AssertionError('truncated shard accepted')
+ bad.unlink()
+ try:m.check(model,draft)
+ except FileNotFoundError:pass
+ else:raise AssertionError('missing shard accepted')
+`
+	if out, err := exec.Command("python3", "-c", code, script).CombinedOutput(); err != nil {
+		t.Fatalf("preflight validation: %v %s", err, out)
+	}
+	out, err := exec.Command("python3", script, filepath.Join(t.TempDir(), "missing"), t.TempDir(), "헤드").CombinedOutput()
+	if err == nil || !strings.Contains(string(out), "모델만 준비") {
+		t.Fatalf("missing actionable recovery guidance: %v %s", err, out)
 	}
 }

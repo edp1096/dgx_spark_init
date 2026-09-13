@@ -460,7 +460,7 @@ func (c *Config) Normalize() {
 		c.Runtime.ActiveBundle = c.Runtime.Bundle
 	}
 	if c.Runtime.MemoryReserveGiB <= 0 {
-		c.Runtime.MemoryReserveGiB = 8
+		c.Runtime.MemoryReserveGiB = 4
 	}
 	if home, err := os.UserHomeDir(); err == nil {
 		if c.Runtime.DataDir == "" {

@@ -237,7 +237,17 @@ func (c *Controller) StartBundle(ctx context.Context, bundleID string, reserveGi
 	if err := c.begin(Operation{Action: "start", BundleID: bundleID, State: "running", Phase: "기동 계획 준비", StartedAt: time.Now()}); err != nil {
 		return err
 	}
-	if err := c.checkBundleStart(ctx, bundle, reserveGiB); err != nil {
+	err := c.checkBundleStart(ctx, bundle, reserveGiB)
+	var coldCache *cudaStartMemoryError
+	if errors.As(err, &coldCache) {
+		if attempted, reclaimErr := c.reclaimGLMStartupCache(ctx, bundle); attempted {
+			err = reclaimErr
+			if err == nil {
+				err = c.checkBundleStart(ctx, bundle, reserveGiB)
+			}
+		}
+	}
+	if err != nil {
 		c.failCurrentStep(err.Error())
 		c.finishOperation("failed", err.Error())
 		return err
@@ -272,7 +282,7 @@ func (c *Controller) checkBundleStart(ctx context.Context, bundle Bundle, reserv
 
 func normalizedMemoryReserve(reserveGiB float64) float64 {
 	if reserveGiB <= 0 {
-		return 8
+		return 4
 	}
 	return reserveGiB
 }
@@ -364,10 +374,10 @@ func validateMemoryHeadroom(memory SystemMemory, plan memoryPlan, reserveGiB flo
 		immediate := memory.FreeGiB + plan.FreedGiB
 		minimum := immediateFreeReserve(reserveGiB)
 		if immediate < minimum {
-			return fmt.Errorf(
+			return &cudaStartMemoryError{fmt.Sprintf(
 				"CUDA 기동용 즉시 여유 메모리 부족: 현재 %.1f GiB, 반환 예정 포함 %.1f GiB (최소 %.1f GiB, 시스템 가용 %.1f GiB)",
 				memory.FreeGiB, immediate, minimum, memory.AvailableGiB,
-			)
+			)}
 		}
 	}
 	return nil
@@ -936,4 +946,37 @@ func containerPIDs(ctx context.Context, container string) []int {
 		}
 	}
 	return pids
+}
+
+// Only an actual GLM start may reclaim caches; status/probe checks stay read-only.
+// Its existing launcher also drops filesystem caches before loading the model.
+type cudaStartMemoryError struct{ message string }
+
+func (e *cudaStartMemoryError) Error() string { return e.message }
+
+func (c *Controller) reclaimGLMStartupCache(ctx context.Context, bundle Bundle) (bool, error) {
+	hosts := map[string]bool{}
+	for _, component := range c.Catalog().ModelComponents(bundle.ID) {
+		if component.Controller == "glm53-cluster" {
+			hosts[component.Host] = true
+			hosts[component.WorkerHost] = true
+		}
+	}
+	if len(hosts) == 0 {
+		return false, nil
+	}
+	for id := range hosts {
+		memory, err := c.hostMemory(ctx, id)
+		if err != nil {
+			return true, err
+		}
+		if memory.FreeGiB >= minimumCUDAImmediateFreeGiB {
+			continue
+		}
+		c.updateOperation("", progressInfo{Key: "reclaim:" + id, Phase: "GLM 기동용 파일 캐시 반환", Detail: id + "의 파일 캐시를 반환한 뒤 메모리를 다시 검사합니다.", Progress: .01})
+		if _, err := executeHost(ctx, c.host(id), nil, "docker", "run", "--rm", "--privileged", "alpine:3.22", "sh", "-c", "sync; echo 3 > /proc/sys/vm/drop_caches"); err != nil {
+			return true, fmt.Errorf("%s 파일 캐시 반환 실패: %w", id, err)
+		}
+	}
+	return true, nil
 }

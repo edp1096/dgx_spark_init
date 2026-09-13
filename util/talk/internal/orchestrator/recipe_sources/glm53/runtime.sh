@@ -129,11 +129,20 @@ setup() {
 }
 
 start() {
+  python3 "$script_dir/check_models.py" "$MODEL_HOST_PATH" "$DFLASH_HOST_PATH" 헤드
   setup_rail
   sync_compose
+  local remote_check
+  printf -v remote_check 'python3 %q %q %q %q' "$remote_dir/check_models.py" "$MODEL_HOST_PATH" "$DFLASH_HOST_PATH" 워커
+  ssh "${ssh_opts[@]}" "$worker" "$remote_check"
   drop_caches
   remote_compose up -d glm53
-  "${head_compose[@]}" up -d glm53
+  if ! "${head_compose[@]}" up -d glm53; then
+    echo 'Head startup failed; stopping both GLM containers.' >&2
+    "${head_compose[@]}" stop glm53 || true
+    remote_compose stop glm53 || true
+    return 1
+  fi
   echo "Cluster started. Follow readiness with: ./manage.sh logs"
 }
 

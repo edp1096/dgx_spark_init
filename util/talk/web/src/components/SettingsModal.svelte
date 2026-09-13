@@ -18,6 +18,8 @@
   import { modelCapabilities, normalizeReasoningEffort, reasoningEffortLabel, thinkingToggleValue } from '../lib/model-capabilities.js';
 
   export let settings;
+  export let initialTab = 'chat';
+  export let initialProfileSection = 'character';
   export let runtime = null;
   export let keepMediaIds = [];
   export let onclose = () => {};
@@ -32,10 +34,10 @@
   let cleaningMedia = false;
   let avatarKeepIds = [];
   let serviceHealth = null;
-  let activeTab = 'chat';
+  let activeTab = initialTab;
   let systemSection = 'connection';
   let featureSection = 'web';
-  let profileSection = 'character';
+  let profileSection = initialProfileSection;
   const settingsTabs = [
     { id: 'chat', label: '대화' },
     { id: 'profile', label: '프로필' },

@@ -1,0 +1,17 @@
+{
+  "outpaint": {
+    "pixels_identical": true
+  },
+  "object": {
+    "pixels_identical": true
+  },
+  "background": {
+    "pixels_identical": true
+  },
+  "inpaint": {
+    "pixels_identical": true
+  },
+  "reference": {
+    "pixels_identical": true
+  }
+}

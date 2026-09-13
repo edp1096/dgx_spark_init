@@ -343,11 +343,13 @@ article.mine { flex-direction: row-reverse; }
 .prose .code-card-header { display: flex; min-height: 34px; align-items: center; justify-content: space-between; gap: 8px; padding: 4px 6px 4px 10px; border-bottom: 1px solid #242833; color: #7f8999; background: #11141b; }
 .prose .code-card-header > span { overflow: hidden; font: 10px ui-monospace, SFMono-Regular, Consolas, monospace; text-overflow: ellipsis; white-space: nowrap; }
 .prose .code-card-header > div { display: flex; flex: 0 0 auto; gap: 3px; }
-.prose .code-card-header button { height: 25px; padding: 0 7px; border: 0; border-radius: 6px; color: #8d97a8; background: transparent; font-size: 10px; }
-.prose .code-card-header button:hover { color: #e0e6f0; background: #252a35; }
+.prose :is(.code-card-header, .code-card-footer) button { height: 25px; padding: 0 7px; border: 0; border-radius: 6px; color: #8d97a8; background: transparent; font-size: 10px; }
+.prose :is(.code-card-header, .code-card-footer) button:hover { color: #e0e6f0; background: #252a35; }
 .prose .code-card pre { max-height: none; margin: 0; padding: 12px 13px; border: 0; border-radius: 0; font-size: 12px; line-height: 1.55; }
 .prose .code-card-long pre { max-height: 230px; }
 .prose .code-card-long.expanded pre { max-height: none; }
+.prose .code-card-footer { display: none; justify-content: flex-end; padding: 4px 6px; border-top: 1px solid #242833; background: #11141b; }
+.prose .code-card-long.expanded .code-card-footer { display: flex; }
 .reasoning { margin: 0 0 12px; border: 1px solid #2b3040; border-radius: 10px; background: #12151d; color: #9299a8; }
 .reasoning summary { padding: 9px 12px; cursor: pointer; font-size: 13px; user-select: none; }
 .reasoning-text { max-height: 330px; overflow: auto; padding: 0 13px 11px; border-top: 1px solid #252a37; font-size: 13px; line-height: 1.6; }
@@ -944,3 +946,6 @@ html[data-theme="light"] .sidebar { --sidebar-surface: #fff; }
 .sidebar nav > .folder-section, .sidebar nav > .chat-group { flex-shrink: 0; }
 .chat-group-header { position: sticky; top: 0; z-index: 2; flex-shrink: 0; background: var(--sidebar-surface); }
 .chat-group-header > .group-toggle { width: 100%; }
+
+.profile-avatar { padding: 0; border: 0; cursor: pointer; }
+.profile-avatar:focus-visible { outline: 2px solid #6584ed; outline-offset: 3px; }

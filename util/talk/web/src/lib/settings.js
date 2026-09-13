@@ -7,7 +7,7 @@ export function normalizePublicSettings(settings) {
   settings.runtime ||= {};
   settings.runtime.mode ||= 'managed';
   settings.runtime.bundle ||= 'flash-next';
-  if (!Number.isFinite(Number(settings.runtime.memory_reserve_gib))) settings.runtime.memory_reserve_gib = 8;
+  if (!Number.isFinite(Number(settings.runtime.memory_reserve_gib))) settings.runtime.memory_reserve_gib = 4;
   settings.model ||= {};
   settings.context ||= {};
   settings.memory ||= {};
