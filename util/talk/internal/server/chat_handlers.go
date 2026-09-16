@@ -286,6 +286,9 @@ func (s *Server) llmMessages(ctx context.Context, items []db.Message, cfg config
 		}
 	}
 	for itemIndex, item := range items {
+		if item.Role == "assistant" {
+			item.Content = cleanInternalEvidence(item.Content)
+		}
 		item.Content += contextToolEvidence(item)
 		if len(item.Attachments) == 0 {
 			messages = append(messages, llm.Message{Role: item.Role, Content: item.Content})

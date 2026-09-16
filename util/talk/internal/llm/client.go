@@ -705,6 +705,9 @@ func validateCheckpoint(text, finish string) error {
 
 // InputMessages exposes the message form that Stream actually serializes.
 func (c *Client) InputMessages(messages []Message) []Message {
+	if c.modelType == "qwen3.5" || c.modelType == "gemma4-vllm" {
+		messages = retainRecentImages(messages, 4)
+	}
 	if c.modelType == "deepseek-v4" {
 		return messages
 	}
@@ -725,4 +728,30 @@ func (c *Client) InputMessages(messages []Message) []Message {
 		messages[i].ReasoningContent = ""
 	}
 	return messages
+}
+
+// Bound the actual request, including images returned during tool rounds.
+// Keep the saved transcript unchanged and explicitly mark omitted visual input.
+func retainRecentImages(messages []Message, limit int) []Message {
+	out := append([]Message(nil), messages...)
+	remaining := limit
+	for i := len(out) - 1; i >= 0; i-- {
+		parts, ok := out[i].Content.([]map[string]any)
+		if !ok {
+			continue
+		}
+		filtered := append([]map[string]any(nil), parts...)
+		for j := len(parts) - 1; j >= 0; j-- {
+			if parts[j]["type"] != "image_url" {
+				continue
+			}
+			if remaining > 0 {
+				remaining--
+				continue
+			}
+			filtered[j] = map[string]any{"type": "text", "text": "[Earlier image omitted from this model request to respect the 4-image limit. Its attachment remains in the conversation, but its visual contents are not visible here. Do not claim to have inspected it.]"}
+		}
+		out[i].Content = filtered
+	}
+	return out
 }

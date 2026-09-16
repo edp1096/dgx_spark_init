@@ -13,6 +13,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	xdraw "golang.org/x/image/draw"
@@ -111,7 +112,12 @@ func imageGenerateToolDefinition(mode string) llm.Tool {
 			}
 			description = "Generate/edit images, inpaint, outpaint, remove a marked object, clean a background to white, or create a transparent PNG."
 		}
-		parameters, _ := json.Marshal(map[string]any{"type": "object", "properties": properties, "required": []string{"operation", "prompt"}, "additionalProperties": false})
+		required := []string{"operation", "prompt"}
+		if mode == "paint" {
+			required = []string{"operation"}
+			properties["prompt"] = map[string]any{"type": "string", "description": "English edit prompt, required except background_remove with rembg."}
+		}
+		parameters, _ := json.Marshal(map[string]any{"type": "object", "properties": properties, "required": required, "additionalProperties": false})
 		return llm.Tool{Type: "function", Function: llm.ToolFunction{Name: "image_generate", Description: description, Parameters: parameters}}
 	}
 	if mode != "extended" {
@@ -229,6 +235,9 @@ func (s *Server) executeImageGenerateTool(ctx context.Context, sessionID string,
 		}
 	}
 	args.Prompt = strings.TrimSpace(args.Prompt)
+	if args.Prompt == "" && args.PaintMode && args.Operation == "background_remove" && (args.BackgroundMethod == "" || args.BackgroundMethod == "rembg") {
+		args.Prompt = "Remove the background."
+	}
 	if args.Prompt == "" {
 		return registeredToolResult{}, errors.New("image_generate requires a prompt")
 	}
@@ -256,6 +265,13 @@ func (s *Server) executeImageGenerateTool(ctx context.Context, sessionID string,
 	attachments, err := s.sessionImageAttachments(sessionID)
 	if err != nil {
 		return registeredToolResult{}, err
+	}
+	if current, ok := ctx.Value(turnImageKey{}).(*turnImages); ok && current.sessionID == sessionID {
+		current.mu.Lock()
+		for id, item := range current.items {
+			attachments[id] = item
+		}
+		current.mu.Unlock()
 	}
 	progress := func(text string) {
 		_ = emit("tool_output", map[string]any{"id": call.ID, "stream": "stdout", "delta": text + "\n"})
@@ -287,10 +303,17 @@ func (s *Server) executeImageGenerateTool(ctx context.Context, sessionID string,
 		stored = append(stored, attachment)
 	}
 	followups, err := s.llmMessages(ctx, []db.Message{{
-		Role: "user", Content: "These are the images produced by the preceding image_generate tool call. Use them to answer the original request; do not call the tool again unless the user asked for another revision.", Attachments: stored,
+		Role: "user", Content: "These are the images produced by the preceding image_generate tool call. These attachment IDs are immediately available for the next image_generate call in this turn. If the user requested multiple editing steps, continue using the preceding result ID as source_image_id. Otherwise answer without repeating a successful operation.", Attachments: stored,
 	}}, config.Config{})
 	if err != nil {
 		return registeredToolResult{}, err
+	}
+	if current, ok := ctx.Value(turnImageKey{}).(*turnImages); ok && current.sessionID == sessionID {
+		current.mu.Lock()
+		for _, item := range stored {
+			current.items[item.ID] = item
+		}
+		current.mu.Unlock()
 	}
 	result, _ := json.Marshal(map[string]any{"operation": args.Operation, "prompt": args.Prompt, "attachments": stored, "seeds": generatedSeeds(generated), "status": "generated and attached"})
 	return registeredToolResult{Result: string(result), Followups: followups, Attachments: stored}, nil
@@ -708,4 +731,11 @@ func sourceSizedImageOperation(operation string) bool {
 		return true
 	}
 	return false
+}
+
+type turnImageKey struct{}
+type turnImages struct {
+	mu        sync.Mutex
+	sessionID string
+	items     map[string]db.Attachment
 }

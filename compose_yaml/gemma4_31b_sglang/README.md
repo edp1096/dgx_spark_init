@@ -65,8 +65,8 @@ Thinking 켜짐/꺼짐으로 표시하고 SGLang의 `chat_template_kwargs`로 �
 요청별 값이 이 상한을 덮어쓰며, 65536은 이 프로필의 context 상한이라 사실상
 무제한 기본값으로 동작한다.
 
-체크포인트에 포함된 구형 템플릿 대신 MiaAI 레시피의 최신 Google Gemma 4
-canonical template을 이미지에 고정한다. OpenAI 형식의 연속 도구 호출,
+체크포인트에 포함된 구형 템플릿 대신 Google Gemma 4 canonical template을
+이미지에 고정한다. OpenAI 형식의 연속 도구 호출,
 tool response 연결 및 reasoning content 순서를 올바르게 처리한다.
 
 ### Thinking budget 실측

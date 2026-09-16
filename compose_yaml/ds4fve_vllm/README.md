@@ -1,8 +1,7 @@
 # DeepSeek V4 Flash Vision Exp — 2 Spark measurement
 
-Pinned MiaAI recipe; run from this directory with `./manage.sh`.
+Run from this directory with `./manage.sh`.
 
-- Upstream: https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark
 - Commit: `b1b8dfb84d855a166a05f32a90c269118b208987`
 - Image: `ghcr.io/anemll/dspark-vllm-gx10:0.1.1@sha256:a83948492cf13df455170fb42885f5ef4db54fefe0feff0f841ecbff464ac9d8`
 - Official weights: `deepseek-ai/DeepSeek-V4-Flash-Vision-Exp@86f746b36186f0e567729a5c06a8c918caba82a9`

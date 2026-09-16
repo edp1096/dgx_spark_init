@@ -16,10 +16,6 @@ FP8 KV 32 GiB, chunk1024, b12x MoE, 투기적 디코딩 없음.
 
 ## 확인한 자료
 
-- https://github.com/MiaAI-Lab/Ornith-1.5-35B-A3B-DGX-Spark
-  start.sh와 README 확인. vLLM b12x+MTP1, 단일 스트림 86.3 tok/s 보고.
-  440 tok/s는 24개 동시 요청 합산. 현재 기본 AR ~77과 동조건 비교가 아니므로 개선율 계산 금지.
-  단일 MTP layer가 반드시 draft 1개만 지원한다는 설명은 다른 K=3 구동 사례와 불일치.
 - https://github.com/sojufx/Ornith-1.5-35B-A3B-NVFP4-DGX-Spark
   기본 Marlin과 BF16 MTP의 flashinfer_cutlass backend를 분리.
 - https://github.com/sfxnz/Ornith-1.5-35B-A3B-NVFP4-DGX-Spark

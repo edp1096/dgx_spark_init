@@ -211,6 +211,7 @@ func (s *Server) runContextCompletion(
 	emit eventEmitter,
 	mediaSink mediaAttachmentSink,
 ) (answer completionResult, runErr error) {
+	defer func() { answer.Content = cleanInternalEvidence(answer.Content) }()
 	tracked, release, err := s.trackGeneration(ctx)
 	if err != nil {
 		return completionResult{}, err

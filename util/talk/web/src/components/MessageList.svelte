@@ -2,6 +2,7 @@
   import { onDestroy, tick } from 'svelte';
   import DOMPurify from 'dompurify';
   import 'katex/dist/katex.min.css';
+  import { stripInternalEvidence } from '../lib/internal-evidence.js';
   import { parseMarkdown } from '../lib/markdown.js';
   import { markdownView } from '../lib/markdown-view.js';
   import { artifactsFromMessage } from '../lib/artifacts.js';
@@ -312,7 +313,7 @@
   }
 
   function visibleAssistantContent(text) {
-    const source = text || '';
+    const source = stripInternalEvidence(text);
     const cleaned = source
       .replace(/<tool_call\b[^>]*>[\s\S]*?<\/tool_call>/gi, '')
       .replace(/<tool_call\b[^>]*>[\s\S]*$/gi, '')

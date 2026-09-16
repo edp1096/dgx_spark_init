@@ -95,6 +95,7 @@ func runCompletionLoopForSessionWithMedia(
 			return server.runWorkflow(ctx, sessionID, marker, goal, messages, client, model, reasoningEffort, systemPrompt, toolConfig, toolsEnabled, emit, mediaSink)
 		}
 	}
+	ctx = context.WithValue(ctx, turnImageKey{}, &turnImages{sessionID: sessionID, items: make(map[string]db.Attachment)})
 	registry := newCompletionToolRegistry(server, sessionID, toolConfig, toolsEnabled, mediaSink)
 	if inStage {
 		for name := range stage.Skills {
