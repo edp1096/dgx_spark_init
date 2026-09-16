@@ -1,3 +1,4 @@
+import { selectOption } from './select-helpers.js';
 import { expect, test } from '@playwright/test';
 
 test('manages all support services independently and saves deployment bindings', async ({ page, request }) => {
@@ -53,7 +54,7 @@ test('manages all support services independently and saves deployment bindings',
   await expect(media.getByLabel('실행 호스트')).toBeDisabled();
   await media.getByRole('button', { name: '중지', exact: true }).click();
   await expect(media).toContainText('상태: 정지');
-  await media.getByLabel('실행 호스트').selectOption('worker');
+  await selectOption(media.getByLabel('실행 호스트'), 'worker');
   await media.getByLabel('서버 포트').fill('18690');
   await media.getByLabel('API 주소').fill('http://192.168.100.60:18690');
   await media.getByLabel('API 주소').blur();

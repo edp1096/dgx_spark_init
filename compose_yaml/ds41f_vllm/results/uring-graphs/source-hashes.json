@@ -1,0 +1,12 @@
+{
+  "engram_uring.c": "a93ed1ea702025959b1df082327439bd2fdda5acaed35e5a8dfd4661f12169f8",
+  "engram_uring.py": "293b31e2c81cd11ed7730ab01065fe32d1e0a653602783e8f028befacb91874c",
+  "engram_reader.py": "4aac2365df8e79df8c2577eb9eef49a98c35231cad08a57fee8dff51fef88564",
+  "patches/engram.py": "e4a5203a51146510e2f439037bc739460c5b2286e20f8f5a2e2767d76671c15b",
+  "patches/gpu_worker.py": "9f03f7ac4798931c300c1b02ecf3516181cbdad882a9c5df3c3ba2d2f8fe6edb",
+  "launch.sh": "43f9386fd83df2c089a02a14d1c9e68e7b50da3430d3559e482ccd9388cb51b0",
+  "expert_callback.c": "3a5aa08281e42eb918dcb0f75bbd5bbaf0cd513ed7de672c8c376e203f121ad9",
+  "liburing_revision": "08468cc3830185c75f9e7edefd88aa01e5c2f8ab",
+  "liburing_archive_sha256": "dc036c4ec5f2310b050af615d3e07854068f8bc5893fee535847460e4bd0b591",
+  "seccomp_sha256": "c922cd9d1af9962873584cc0a9dfe23931b10d8957a4315783db1aa645941b33"
+}

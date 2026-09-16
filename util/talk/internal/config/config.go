@@ -114,9 +114,24 @@ type ContextConfig struct {
 	WindowTokens     int  `yaml:"window_tokens" json:"window_tokens"`
 	CompactAtPercent int  `yaml:"compact_at_percent" json:"compact_at_percent"`
 	OutputReserve    int  `yaml:"output_reserve" json:"output_reserve"`
+	OutputAuto       bool `yaml:"output_auto" json:"output_auto"`
 	SafetyMargin     int  `yaml:"safety_margin" json:"safety_margin"`
 	RecentTokens     int  `yaml:"recent_tokens" json:"recent_tokens"`
 	ImageTokens      int  `yaml:"image_tokens" json:"image_tokens"`
+}
+
+// EffectiveOutputReserve chooses an output budget from the current context size.
+// An unknown context keeps the user's saved manual budget.
+func (c ContextConfig) EffectiveOutputReserve(window int) int {
+	if !c.OutputAuto || window <= 0 {
+		return c.OutputReserve
+	}
+	for _, size := range []int{262144, 131072, 65536, 32768} {
+		if window >= size {
+			return min(size/4, max(1, (window-c.SafetyMargin)/2))
+		}
+	}
+	return max(1, (window-c.SafetyMargin)/4)
 }
 
 // MemoryConfig controls bounded cross-session recall. The source transcript
@@ -449,6 +464,64 @@ func (c *Config) Normalize() {
 		}
 		c.Runtime.BuiltinRevision = 2
 	}
+	if c.Runtime.BuiltinRevision < 3 {
+		if defaults, err := orchestrator.LoadCatalog(); err == nil {
+			hasComponent, hasBundle := false, false
+			for _, item := range c.Runtime.Catalog.Components {
+				if item.ID == "flash-next-tp2" {
+					hasComponent = true
+				}
+			}
+			for _, item := range c.Runtime.Catalog.Bundles {
+				if item.ID == "flash-next-tp2" {
+					hasBundle = true
+				}
+			}
+
+			// Do not invent hosts in a custom catalog or override an existing Qwen TP2 definition.
+			_, head := c.Runtime.Catalog.Hosts["local"]
+			_, worker := c.Runtime.Catalog.Hosts["worker"]
+			if !hasComponent && head && worker {
+				item, _ := defaults.Component("flash-next-tp2")
+				c.Runtime.Catalog.Components = append(c.Runtime.Catalog.Components, item)
+			}
+			if !hasBundle && head && worker {
+				item, _ := defaults.Bundle("flash-next-tp2")
+				available := make(map[string]bool)
+				for _, component := range c.Runtime.Catalog.Components {
+					available[component.ID] = true
+				}
+				complete := true
+				for _, id := range item.Components {
+					complete = complete && available[id]
+				}
+				if complete {
+					c.Runtime.Catalog.Bundles = append(c.Runtime.Catalog.Bundles, item)
+				}
+			}
+		}
+		c.Runtime.BuiltinRevision = 3
+	}
+	if c.Runtime.BuiltinRevision < 4 {
+		c.migrateQwenHuihuiModel()
+		c.Runtime.BuiltinRevision = 4
+	}
+	if c.Runtime.BuiltinRevision < 5 {
+		c.addSingleSparkMoEModels()
+		c.Runtime.BuiltinRevision = 5
+	}
+	if c.Runtime.BuiltinRevision < 9 {
+		c.migrateGemmaCheckpoint()
+		c.Runtime.BuiltinRevision = 9
+	}
+	if c.Runtime.BuiltinRevision < 10 {
+		c.migrateGemmaSGLang()
+		c.Runtime.BuiltinRevision = 10
+	}
+	if c.Runtime.BuiltinRevision < 11 {
+		c.migrateGemmaOwnNVFP4()
+		c.Runtime.BuiltinRevision = 11
+	}
 	c.normalizeRuntimeDisplayNames()
 	if catalog, err := orchestrator.ValidateCatalog(*c.Runtime.Catalog); err == nil {
 		c.Runtime.Catalog = &catalog
@@ -474,7 +547,7 @@ func (c *Config) Normalize() {
 	c.Model.DefaultModel = strings.TrimSpace(c.Model.DefaultModel)
 	c.Model.ModelType = strings.ToLower(strings.TrimSpace(c.Model.ModelType))
 	switch c.Model.ModelType {
-	case "qwen3.8", "qwen3.8-gguf", "qwen3.8-exl3", "gemma4", "glm5.3", "deepseek-v4", "generic":
+	case "qwen3.5", "qwen3.8", "qwen3.8-gguf", "qwen3.8-exl3", "gemma4", "gemma4-vllm", "glm5.3", "deepseek-v4", "generic":
 	default:
 		c.Model.ModelType = "generic"
 	}
@@ -946,7 +1019,7 @@ func normalizeReasoningEffort(modelType, value string) string {
 		default:
 			return "xhigh" // Legacy on used the template's xhigh default.
 		}
-	case "gemma4":
+	case "gemma4", "gemma4-vllm", "qwen3.5":
 		switch value {
 		case "", "0", "0.0", "none", "off", "false", "no_think", "disabled":
 			return "none"

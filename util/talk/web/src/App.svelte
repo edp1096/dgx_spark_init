@@ -16,7 +16,7 @@
   import { createStreamHandlers } from './lib/chat-stream.js';
   import { createChatSessionController } from './lib/chat-session-controller.js';
   import {
-    listSessions, createSession, deleteSession, renameSession, listMessages, streamChat,
+    listSessions, createSession, deleteSession, deleteSessions, renameSession, listMessages, streamChat,
     getHealth, getModels, getConfig, retryMessage, editMessage as editChatMessage, uploadAttachment, uploadMediaURL,
     setSessionGroup, listGroups, createGroup, renameGroup, moveGroup, deleteGroup,
     getContextState, compactContext, clearContext, answerToolApproval, transcribeVoice,
@@ -256,7 +256,7 @@
       [groups, sessions] = await Promise.all([listGroups(), listSessions()]);
       // Initial restoration must not close a mobile sidebar the user opened
       // while the startup requests were still in flight.
-      if (sessions.length) await select(sessions[0].id, { closeMobile: false });
+      if (sessions.length) await select(sessions[0].id, { closeMobile: false, closeWorkspace: false });
       else {
         await chatController.activate('');
         sshConversationGrants = [];
@@ -389,7 +389,7 @@
     await select(item.id);
   }
 
-  async function select(id, { closeMobile = true } = {}) {
+  async function select(id, { closeMobile = true, closeWorkspace = true } = {}) {
     if (activeId && activeId !== id) stopReplySpeech();
     await chatController.activate(id);
     if (activeId !== id) return;
@@ -398,9 +398,11 @@
     editingMessageId = null;
     editInput = '';
     editingTitle = false;
-    libraryOpen = false;
-    artifactOpen = false;
-    selectedArtifactId = '';
+    if (closeWorkspace) {
+      libraryOpen = false;
+      artifactOpen = false;
+      selectedArtifactId = '';
+    }
     const session = sessions.find((item) => item.id === id);
     selectedModel = resolveAvailableModel(models, session?.model, settings?.model?.default_model || selectedModel);
     if (session?.reasoning_effort) reasoningEffort = normalizeReasoningEffort(modelType, session.reasoning_effort);
@@ -575,6 +577,22 @@
     };
     window.addEventListener('pointermove', move);
     window.addEventListener('pointerup', stopResize);
+  }
+
+  async function removeSelected(ids) {
+    const targets = [...new Set(ids)].filter(id => sessions.some(s => s.id === id) && !sessionRuns[id]);
+    if (!targets.length || !confirm(`선택한 대화 ${targets.length}개를 삭제할까요? 삭제 후 복구할 수 없습니다.`)) return false;
+    try {
+      await deleteSessions(targets);
+      const removedActive = targets.includes(activeId);
+      sessions = sessions.filter(s => !targets.includes(s.id));
+      for (const id of targets) { attachmentController.discard(id); chatController.remove(id); }
+      if (removedActive) {
+        if (sessions.length) await select(sessions[0].id);
+        else { attachmentController.select(''); sshConversationGrants = []; }
+      }
+      return true;
+    } catch (e) { error = e.message; return false; }
   }
 
   async function remove(id) {
@@ -1126,6 +1144,7 @@
       onSelect={select}
       onChangeSessionGroup={changeSessionGroup}
       onRemoveSession={remove}
+      onRemoveSelected={removeSelected}
       onOpenSettings={openSettings}
       onOpenProfile={() => openSettings('character')}
       onOpenLibrary={openLibrary}

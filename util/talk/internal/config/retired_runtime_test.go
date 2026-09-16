@@ -39,7 +39,7 @@ func TestRetiredRuntimesMigrateToFlashNextWithoutAutostart(t *testing.T) {
 				if _, ok := cfg.Runtime.Catalog.Component("extra-ssh"); !ok {
 					t.Fatal("shared service lost")
 				}
-				if cfg.Model.DefaultModel != "qwen3.8-flash-next" || cfg.Model.ModelType != "qwen3.8" || cfg.Context.WindowTokens != 65536 || cfg.Model.ReasoningEffort != "medium" {
+				if cfg.Model.DefaultModel != "edp1096/Huihui-RadixArk-Qwen3.8-Flash-Next-abliterated-NVFP4" || cfg.Model.ModelType != "qwen3.8" || cfg.Context.WindowTokens != 65536 || cfg.Model.ReasoningEffort != "medium" {
 					t.Fatal("fallback profile or preference incorrect")
 				}
 				before, _ := json.Marshal(cfg)

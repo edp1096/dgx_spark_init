@@ -33,6 +33,21 @@
   export let onSearchResult = () => {};
   export let onSearchMore = () => {};
 
+  export let onRemoveSelected = async () => false;
+  let selecting = false;
+  let selectedIds = [];
+  let deleting = false;
+  $: selectable = [...ungroupedSessions, ...Object.values(sessionsByGroup).flat()].filter(s => !sessionRuns[s.id]);
+  $: selectedIds = selectedIds.filter(id => selectable.some(s => s.id === id));
+  function toggleSelection(id) {
+    if (deleting || sessionRuns[id]) return;
+    selectedIds = selectedIds.includes(id) ? selectedIds.filter(x => x !== id) : [...selectedIds, id];
+  }
+  async function deleteSelected() {
+    deleting = true;
+    try { if (await onRemoveSelected(selectedIds)) { selectedIds = []; selecting = false; } }
+    finally { deleting = false; }
+  }
   let sessionMenuId = '';
   let sessionPages = {};
   let followedActive = '';
@@ -161,6 +176,15 @@
       </div>
     {/if}
   </div>
+  <div class="bulk-selection" class:selecting>
+    <button class="new-group" onclick={() => { selecting = !selecting; selectedIds = []; sessionMenuId = ''; }} disabled={deleting}>{selecting ? '선택 취소' : '대화 선택 삭제'}</button>
+    {#if selecting}
+      <button class="new-group" onclick={() => selectedIds = selectable.map(s => s.id)} disabled={deleting || !selectable.length} title="모든 폴더·페이지의 대화 선택 (생성 중 제외)">전체 선택</button>
+      <button class="new-group" onclick={() => selectedIds = []} disabled={deleting || !selectedIds.length}>선택 해제</button>
+      <button class="new-group danger" onclick={deleteSelected} disabled={deleting || !selectedIds.length}>{deleting ? '삭제 중…' : `선택 삭제 (${selectedIds.length})`}</button>
+      <small>전체 선택은 모든 폴더·페이지에 적용됩니다. 생성 중 대화는 제외합니다.</small>
+    {/if}
+  </div>
   <nav>
     <section class="folder-section">
       <button class="folder-section-toggle" onclick={onToggleFolders} aria-expanded={!foldersCollapsed} aria-controls="sidebar-folder-list">
@@ -187,9 +211,10 @@
               {#if !collapsedGroups[group.id]}
                 {#each (groupPages[group.id]?.items || []) as session (session.id)}
                   <div class="session-row" class:active={session.id === activeId} class:generating={Boolean(sessionRuns[session.id])}>
-                    <button class="session-select" onclick={() => onSelect(session.id)}>{session.title}</button>
+                    {#if selecting}<input type="checkbox" aria-label={`${session.title} 선택`} checked={selectedIds.includes(session.id)} disabled={deleting || Boolean(sessionRuns[session.id])} onchange={() => toggleSelection(session.id)} />{/if}
+                    <button class="session-select" disabled={deleting} onclick={() => selecting ? toggleSelection(session.id) : onSelect(session.id)}>{session.title}</button>
                     {#if sessionRuns[session.id]}<span class="session-running" title="답변 생성 중" aria-label="답변 생성 중">●</span>{/if}
-                    <button class="session-more" onclick={() => toggleSessionMenu(session.id)} aria-label={`${session.title} 메뉴`} aria-haspopup="menu" aria-expanded={sessionMenuId === session.id}>⋯</button>
+                    <button class="session-more" disabled={selecting} onclick={() => toggleSessionMenu(session.id)} aria-label={`${session.title} 메뉴`} aria-haspopup="menu" aria-expanded={sessionMenuId === session.id}>⋯</button>
                     {#if sessionMenuId === session.id}
                       <div class="session-menu" role="menu">
                         <strong>그룹 이동</strong>
@@ -217,9 +242,10 @@
       {#if !collapsedGroups.__ungrouped__}
         {#each ungroupedPage.items as session (session.id)}
           <div class="session-row" class:active={session.id === activeId} class:generating={Boolean(sessionRuns[session.id])}>
-            <button class="session-select" onclick={() => onSelect(session.id)}>{session.title}</button>
+            {#if selecting}<input type="checkbox" aria-label={`${session.title} 선택`} checked={selectedIds.includes(session.id)} disabled={deleting || Boolean(sessionRuns[session.id])} onchange={() => toggleSelection(session.id)} />{/if}
+                    <button class="session-select" disabled={deleting} onclick={() => selecting ? toggleSelection(session.id) : onSelect(session.id)}>{session.title}</button>
             {#if sessionRuns[session.id]}<span class="session-running" title="답변 생성 중" aria-label="답변 생성 중">●</span>{/if}
-            <button class="session-more" onclick={() => toggleSessionMenu(session.id)} aria-label={`${session.title} 메뉴`} aria-haspopup="menu" aria-expanded={sessionMenuId === session.id}>⋯</button>
+            <button class="session-more" disabled={selecting} onclick={() => toggleSessionMenu(session.id)} aria-label={`${session.title} 메뉴`} aria-haspopup="menu" aria-expanded={sessionMenuId === session.id}>⋯</button>
             {#if sessionMenuId === session.id}
               <div class="session-menu" role="menu">
                 <strong>그룹 이동</strong>
@@ -240,3 +266,15 @@
   <button class="resize-handle" onpointerdown={onStartResize} aria-label="사이드바 폭 조절"></button>
 </aside>
 <button class="sidebar-backdrop" onclick={onclose} aria-label="사이드바 닫기"></button>
+
+<style>
+.bulk-selection { display: grid; grid-template-columns: minmax(0, 1fr); gap: 5px; }
+.bulk-selection.selecting { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.bulk-selection button { text-align: center; min-width: 0; }
+.bulk-selection button:disabled { opacity: .4; cursor: default; }
+.bulk-selection button:focus-visible { outline: 2px solid #789bff; outline-offset: 2px; }
+.bulk-selection button.danger:not(:disabled) { color: #df858b; border-color: #b15d674d; background: #b15d6712; }
+.bulk-selection button.danger:not(:disabled):hover { background: #b15d6726; border-color: #b15d6780; }
+.bulk-selection small { grid-column: 1 / -1; padding: 3px 2px 0; color: #858e9e; font-size: 11px; line-height: 1.5; }
+.session-row input[type="checkbox"] { flex: 0 0 auto; width: 15px; height: 15px; margin: 0 5px; accent-color: #789bff; cursor: pointer; }
+</style>

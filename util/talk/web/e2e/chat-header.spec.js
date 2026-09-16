@@ -1,3 +1,4 @@
+import { selectOption, expectControlValue } from './select-helpers.js';
 import { test, expect } from '@playwright/test';
 
 test('groups model controls, conversation tools, and connection status without overflowing', async ({ page }) => {
@@ -15,7 +16,7 @@ test('groups model controls, conversation tools, and connection status without o
     const modelPanel = page.getByRole('dialog', { name: '모델 및 대화 설정', exact: true });
     await expect(modelPanel).toBeVisible();
     if (width === 1280) await expect(page.locator('.sidebar')).toBeVisible();
-    await modelPanel.getByRole('combobox', { name: '모델 선택' }).selectOption('second-model-with-a-very-long-name');
+    await selectOption(modelPanel.getByRole('combobox', { name: '모델 선택' }), 'second-model-with-a-very-long-name');
     await modelPanel.getByRole('slider', { name: 'Reasoning effort' }).fill('3');
     await expect(modelPanel.locator('output')).toHaveText('XHigh');
     expect(await modelPanel.evaluate(el => el.scrollWidth <= el.clientWidth)).toBeTruthy();
@@ -35,8 +36,8 @@ test('groups model controls, conversation tools, and connection status without o
     await page.keyboard.press('Escape');
     await expect(page.getByRole('dialog', { name: 'DGX Spark 운영 상태' })).toHaveCount(0);
     await modelButton.click();
-    await expect(page.getByRole('combobox', { name: '모델 선택' })).toHaveValue('second-model-with-a-very-long-name');
-    await expect(page.getByRole('slider', { name: 'Reasoning effort' })).toHaveValue('3');
+    await expectControlValue(page.getByRole('combobox', { name: '모델 선택' }), 'second-model-with-a-very-long-name');
+    await expectControlValue(page.getByRole('slider', { name: 'Reasoning effort' }), '3');
     await page.keyboard.press('Escape'); await expect(modelButton).toBeFocused();
     await toolsButton.click(); await page.getByRole('button', { name: '웹검색 자동 사용' }).click();
     await page.locator('.chat-header').click({ position: { x: 10, y: 1 } });
@@ -57,10 +58,10 @@ test('does not reset a chosen model when the initial health check finishes late'
     await page.goto('/');
     await page.getByRole('button', { name: '모델 및 대화 설정', exact: true }).click();
     const selector = page.getByRole('combobox', { name: '모델 선택', exact: true });
-    await selector.selectOption('second-model');
+    await selectOption(selector, 'second-model');
     const initialized = page.waitForResponse(response => response.url().endsWith('/api/sessions'));
     releaseHealth(); await initialized;
-    await expect(selector).toHaveValue('second-model');
+    await expectControlValue(selector, 'second-model');
     await expect(page.getByRole('button', { name: '모델 및 대화 설정', exact: true })).toHaveAttribute('title', /second-model/);
   } finally { releaseHealth(); }
 });

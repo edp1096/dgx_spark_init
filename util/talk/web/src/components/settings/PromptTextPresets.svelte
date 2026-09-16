@@ -1,4 +1,5 @@
 <script>
+  import Select from '../Select.svelte';
   import SettingsHelp from './SettingsHelp.svelte';
   export let model;
   export let onnotify = () => {};
@@ -109,13 +110,13 @@
   <legend><span>전역 시스템 프롬프트</span> <SettingsHelp title="프롬프트 내용 선택"><p>모든 대화에 적용할 말투와 기본 지침입니다. 반복 작업의 절차는 라이브러리의 스킬로 관리하세요.</p><p>‘없음’은 내용을 비웁니다. ‘직접 작성’은 빈 내용으로 시작하며, 프리셋 내용을 가져오려면 ‘현재 내용으로 직접 편집’을 누르세요.</p></SettingsHelp></legend>
 
   <div class="preset-select-row">
-    <label class="settings-field-row"><span>프롬프트 내용</span><select value={selectedSource} onchange={(event) => selectSource(event.currentTarget.value)}>
+    <label class="settings-field-row"><span>프롬프트 내용</span><Select value={selectedSource} onchange={(event) => selectSource(event.currentTarget.value)}>
         <option value="none">없음</option>
         <option value="custom">직접 작성</option>
         <optgroup label="저장한 프리셋">
           {#each model.system_prompt_presets as preset}<option value={`preset:${preset.name}`}>{preset.name}</option>{/each}
         </optgroup>
-      </select>
+      </Select>
     </label>
     <button class="preset-manage-button" onclick={() => managerOpen = !managerOpen}>순서 관리</button>
   </div>

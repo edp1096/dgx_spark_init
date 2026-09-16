@@ -232,3 +232,48 @@ func TestEXL3ReasoningTemplateOptions(t *testing.T) {
 		}
 	}
 }
+
+func TestOrnithThinkingToggle(t *testing.T) {
+	for _, effort := range []string{"none", "on", "low", "high"} {
+		payload := map[string]any{}
+		applyReasoningOptions(payload, "qwen3.5", effort)
+		options, ok := payload["chat_template_kwargs"].(map[string]any)
+		if !ok || options["enable_thinking"] != (effort != "none") {
+			t.Fatalf("Incorrect Ornith toggle: %#v", payload)
+		}
+		if _, ok := payload["reasoning_effort"]; ok {
+			t.Fatal("Ornith must use its template toggle")
+		}
+	}
+}
+
+func TestGemmaVLLMThinkingBudgetUsesNativeField(t *testing.T) {
+	var payloads []map[string]any
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var payload map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			t.Fatal(err)
+		}
+		payloads = append(payloads, payload)
+		w.Header().Set("Content-Type", "text/event-stream")
+		fmt.Fprintln(w, "data: [DONE]")
+	}))
+	defer server.Close()
+	client := New(server.URL, "model", "", "gemma4-vllm").WithThinkingBudget(768)
+	for _, effort := range []string{"on", "none"} {
+		if _, err := client.Stream(context.Background(), []Message{{Role: "user", Content: "test"}}, "model", effort, nil, func(string, string) error { return nil }); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if payloads[0]["thinking_token_budget"] != float64(768) {
+		t.Fatalf("Missing native budget: %#v", payloads[0])
+	}
+	for _, payload := range payloads {
+		if _, exists := payload["custom_params"]; exists {
+			t.Fatal("SGLang field sent to vLLM")
+		}
+	}
+	if _, exists := payloads[1]["thinking_token_budget"]; exists {
+		t.Fatal("Budget should be omitted when thinking is off")
+	}
+}

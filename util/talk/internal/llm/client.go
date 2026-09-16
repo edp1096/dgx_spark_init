@@ -141,7 +141,7 @@ func applyReasoningOptions(payload map[string]any, modelType, effort string) {
 		payload["chat_template_kwargs"] = options
 		return
 	}
-	if modelType == "gemma4" {
+	if modelType == "gemma4" || modelType == "gemma4-vllm" || modelType == "qwen3.5" {
 		payload["chat_template_kwargs"] = map[string]any{"enable_thinking": gemmaThinkingEnabled(effort)}
 		return
 	}
@@ -180,7 +180,7 @@ func NormalizeReasoningEffort(modelType, effort string) string {
 		default:
 			return "xhigh" // Preserve the previous enabled template default.
 		}
-	case "gemma4":
+	case "gemma4", "gemma4-vllm", "qwen3.5":
 		if gemmaThinkingEnabled(effort) {
 			return "on"
 		}
@@ -249,6 +249,11 @@ func (c *Client) Stream(ctx context.Context, messages []Message, model, reasonin
 		"separate_reasoning": true, "stream_reasoning": true,
 		"stream_options": map[string]bool{"include_usage": true},
 	}
+	if c.modelType == "gemma4" || c.modelType == "gemma4-vllm" {
+		payload["temperature"] = 1.0
+		payload["top_p"] = 0.95
+		payload["top_k"] = 64
+	}
 	if limit, ok := ctx.Value(outputLimitKey{}).(int); ok && limit > 0 {
 		payload["max_completion_tokens"] = limit
 	}
@@ -272,6 +277,9 @@ func (c *Client) Stream(ctx context.Context, messages []Message, model, reasonin
 		// The pinned SGLang OpenAI protocol exposes custom_params but does not
 		// forward its native max_thinking_tokens field from chat completions.
 		payload["custom_params"] = map[string]any{"thinking_budget": c.thinkingBudget}
+	}
+	if c.modelType == "gemma4-vllm" && gemmaThinkingEnabled(reasoningEffort) && c.thinkingBudget > 0 {
+		payload["thinking_token_budget"] = c.thinkingBudget
 	}
 	body, err := json.Marshal(payload)
 	if err != nil {
@@ -405,7 +413,7 @@ func (c *Client) Stream(ctx context.Context, messages []Message, model, reasonin
 		if limit, _ := ctx.Value(outputLimitKey{}).(int); limit > 0 {
 			budget = fmt.Sprintf(", 요청 상한 %d토큰", limit)
 		}
-		return result, fmt.Errorf("%w (finish_reason=length%s). 생각 과정도 이 한도를 사용합니다. 설정 > 모델의 최대 출력 토큰을 늘리거나 이어서 생성을 요청하세요.", ErrOutputLimit, budget)
+		return result, fmt.Errorf("%w (finish_reason=length%s). 생각 과정도 이 한도를 사용합니다. 설정 > 대화 > 지능형 문맥 관리의 최대 출력 토큰을 늘리거나 이어서 생성을 요청하세요.", ErrOutputLimit, budget)
 	case "content_filter":
 		return result, fmt.Errorf("모델 서버의 콘텐츠 필터로 응답이 중단됐습니다 (finish_reason=content_filter).")
 	case "stop", "tool_calls", "function_call":
@@ -502,8 +510,9 @@ Preserve exact file paths, commands, URLs, numbers, user preferences, failures, 
 	}
 	applyReasoningOptions(payload, c.modelType, "none")
 	body, _ := json.Marshal(payload)
-	ctx, cancel := context.WithTimeout(ctx, 3*time.Minute)
-	defer cancel()
+	// Large local contexts can require minutes or hours of prefill. As with
+	// streaming completion, honor the caller's deadline/cancellation instead
+	// of discarding valid work at an unrelated fixed three-minute boundary.
 	resp, err := c.post(ctx, body)
 	if err != nil {
 		return "", err
@@ -696,13 +705,24 @@ func validateCheckpoint(text, finish string) error {
 
 // InputMessages exposes the message form that Stream actually serializes.
 func (c *Client) InputMessages(messages []Message) []Message {
-	// Same-turn tool reasoning is needed by DeepSeek's native encoder. Keep
-	// other model protocols unchanged and never mutate the caller's transcript.
-	if c.modelType != "deepseek-v4" {
-		messages = append([]Message(nil), messages...)
-		for i := range messages {
-			messages[i].ReasoningContent = ""
+	if c.modelType == "deepseek-v4" {
+		return messages
+	}
+	gemma := c.modelType == "gemma4" || c.modelType == "gemma4-vllm"
+	lastUser := -1
+	for i := range messages {
+		if messages[i].Role == "user" {
+			lastUser = i
 		}
+	}
+	// Preserve Gemma's reasoning only within the current user turn's tool chain.
+	// Historical reasoning must not be replayed into a new user turn.
+	messages = append([]Message(nil), messages...)
+	for i := range messages {
+		if gemma && lastUser >= 0 && i > lastUser && messages[i].Role == "assistant" && len(messages[i].ToolCalls) > 0 {
+			continue
+		}
+		messages[i].ReasoningContent = ""
 	}
 	return messages
 }

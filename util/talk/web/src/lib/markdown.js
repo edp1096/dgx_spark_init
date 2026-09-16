@@ -18,6 +18,11 @@ function codeLanguage(value) {
 }
 
 marked.use({
+  tokenizer: {
+    // Single tildes are common in Korean time/temperature ranges.
+    // Keep explicit ~~strikethrough~~ while leaving ~ literal.
+    del(source) { return source.startsWith('~~') ? false : undefined; },
+  },
   renderer: {
     code(token) {
       const source = String(token?.text || '');

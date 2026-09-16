@@ -1,0 +1,18 @@
+{
+  "status": "passed",
+  "model": "edp1096/Huihui-RadixArk-Qwen3.8-Flash-Next-abliterated-NVFP4",
+  "evidence_sha256": {
+    "verification.json": "8f730bb313d5f4497066c00e4479e8abbe1fdf1d84af1217107cc845d5582bab",
+    "peer-verification.json": "b8c90493856ace7ec3321999a3958581ed54e67974e03723718bfcc16e74ce10",
+    "tp1-main-runtime.json": "ec202f6ae9e86537a17809a8f063e3cebc2772ef8fb9b7e9c7bd1520d68304dc",
+    "tp2-runtime.json": "11b9f2290414607c159d9f64daa6f570a991d7625e5c852be9ebbec2535abd26",
+    "tp1-main-memory.json": "84597e43421ec61274d19a5bb8b8ff86f4590da2e3c748c7df952cbb5b89ee7b",
+    "tp2-memory.json": "8052f1a22a589e154f36bff2f5009f5d9f9e5826fed909cec865357f26e791e0",
+    "tp2-long-input.json": "e400bbcaa5e0aec2bc6541c9464a1f53fabf14ebf230146470de77fe4e1cb3ea",
+    "main-service-check.json": "68b41e4cfb9b05c07057464758a63e55318e5adc0beba9d77ecab317e1d94070",
+    "talk-chat-check.json": "2d50f12bca9e10ce672e0f39fa5b0fee8b7bcfc36472161f48ea3d1eb1001378",
+    "release-quality-review.json": "399ff4f53d5d6a383d5b4779e6f3bfb356762ff3aee49abd8b10b20eedac4469",
+    "code-checks.txt": "c8a7db62b1af3ca750b601b7297e814a904a504eebca72698714063f4d0a9bde"
+  },
+  "limitation": "TP1 LLM qualified with ASR/TTS and without FLUX. Full TP1 bundle can fail 4 GiB reserve when FLUX peak is reserved. Main full bundle runs TP2; reserve unchanged."
+}

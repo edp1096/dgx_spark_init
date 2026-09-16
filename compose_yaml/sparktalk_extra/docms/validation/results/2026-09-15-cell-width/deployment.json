@@ -1,0 +1,17 @@
+{
+  "documents": {
+    "status": "ok",
+    "version": "0.5.2",
+    "formats": [
+      "docx",
+      "pptx",
+      "xlsx",
+      "pdf",
+      "hwp",
+      "hwpx"
+    ],
+    "busy": false
+  },
+  "talk_status": 200,
+  "llm_status": 200
+}

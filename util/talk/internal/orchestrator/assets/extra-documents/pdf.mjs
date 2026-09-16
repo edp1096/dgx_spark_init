@@ -1,3 +1,5 @@
+import {isExtended} from './blocks.mjs';
+import {richPDFDefinition,spreadsheetPDFDefinition} from './pdf-rich.mjs';
 import pdfmake from 'pdfmake';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -13,7 +15,9 @@ pdfmake.setLocalAccessPolicy(filename=>filename.startsWith(fontDir));
 function table(rows,widths){return {table:{headerRows:1,widths,body:rows.map((r,i)=>r.map(value=>({text:String(value??''),...(i===0?{bold:true,color:'#FFFFFF',fillColor:COLOR.accent}:{})})))},layout:{hLineWidth:()=>0.4,vLineWidth:()=>0,hLineColor:()=> '#D8DFE5',paddingLeft:()=>5,paddingRight:()=>5,paddingTop:()=>5,paddingBottom:()=>5},margin:[0,4,0,12]};}
 export async function renderPDF(input,dir,workbook){
  const def={info:{title:input.title,author:'SparkTalk'},pageSize:'A4',pageMargins:[42,42,42,42],defaultStyle:{font:FONT,fontSize:11,color:'#202830'},content:[],footer:(page,pages)=>({text:`${page} / ${pages}`,alignment:'right',fontSize:9,color:COLOR.muted,margin:[42,12,42,0]})};
- if(input.format==='pptx'){
+ if(input.format==='xlsx'&&input.sheets.some(s=>s.cells||s.merges||s.images||s.charts||s.pivots||s.shapes||s.hidden||s.row_options||s.column_options)){spreadsheetPDFDefinition(input,def,workbook);
+ }else if(isExtended(input)){richPDFDefinition(input,def);
+ }else if(input.format==='pptx'){
   def.pageSize={width:SLIDE.width,height:SLIDE.height};def.pageMargins=[0,0,0,0];def.footer=null;
   def.background=()=>({canvas:[{type:'rect',x:0,y:0,w:11.52,h:SLIDE.height,color:COLOR.accent}]});
   for(const [i,s] of input.slides.entries())def.content.push({pageBreak:i?'before':undefined,stack:[

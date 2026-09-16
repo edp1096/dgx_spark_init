@@ -27,6 +27,7 @@ kernel_tokens=${DSV41_KERNEL_TOKENS:-$kernel_default}
 shared_buffers=${DSV41_SHARED_BUFFERS:-$shared_default}
 scratch_mib=${DSV41_SCRATCH_MIB:-$scratch_default}
 case "$kernel_tokens" in 512|1024|2048) ;; *) echo 'Invalid expert kernel capacity' >&2; exit 1;; esac
+case ${DSV41_ENGRAM_NEXT_PREFETCH:-1} in 0|1) ;; *) echo 'Invalid next-chunk Engram prefetch flag' >&2; exit 1;; esac
 case ${DSV41_FINAL_DECODER_ROWS:-0} in 0|1) ;; *) echo 'Invalid final decoder row flag' >&2; exit 1;; esac
 if [[ ${DSV41_FINAL_DECODER_ROWS:-0} == 1 && ${DSV41_MODEL_GRAPHS:-0} != 0 ]]; then
   echo 'Final decoder row selection requires eager execution' >&2; exit 1
@@ -210,7 +211,8 @@ docker run -d --gpus all --name "${DSV41_CONTAINER:-ds41-stream-$rank}" \
   -e DSV41_EXPERT_STREAMING=1 -e DSV41_EXPERT_CACHE_GIB="$cache" \
   -e DSV41_MOE_BACKEND="$backend" -e DSV41_GPU_CACHE_GIB="$gpu_cache" \
   -e DSV41_ENGRAM_DISK=1 -e DSV41_ENGRAM_DISK_THREADS=8 \
-  -e DSV41_ENGRAM_READER="${DSV41_ENGRAM_READER:-native}" \
+  -e DSV41_ENGRAM_NEXT_PREFETCH="${DSV41_ENGRAM_NEXT_PREFETCH:-1}" \
+  -e DSV41_ENGRAM_READER="${DSV41_ENGRAM_READER:-native_hint}" \
   -e DSV41_AUTOTUNE_TOKENS="$autotune_tokens" \
   -e DSV41_DENSE_PREFILL_PROFILE="$dense_profile" \
   -e HF_HUB_OFFLINE=1 -e TRANSFORMERS_OFFLINE=1 \

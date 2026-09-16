@@ -961,17 +961,29 @@ class Worker(WorkerBase):
                          if key.file_key in expected and tactic != expected[key.file_key][1]]
         return {"expected": len(expected), "matched": matched, "winner_conflicts": conflicts}
 
+    def ds41_engram_prefetch_benchmark(self, action="stats"):
+        if os.environ.get("DSV41_BENCH_CONTROL") != "1":
+            raise PermissionError("Engram benchmark controls are disabled")
+        prefetch = self.model_runner.model_state.engram_prefetcher
+        if action in ("on", "off", "verify"):
+            prefetch.configure(action != "off", action == "verify")
+        elif action != "stats":
+            raise ValueError("Unknown prefetch action")
+        return dict(prefetch.stats, enabled=prefetch.enabled)
+
     def ds41_engram_benchmark(self, backend="python"):
         import os
         if os.environ.get("DSV41_BENCH_CONTROL") != "1":
             raise PermissionError("Engram benchmark controls are disabled")
-        if backend not in ("python", "native"):
+        if backend not in ("python", "native", "native_hint"):
             raise ValueError("Unknown Engram reader backend")
         import torch
         import vllm.models.deepseek_v4_1.common.engram as engram
         torch.cuda.synchronize()
         if backend == "native":
             engram._kai_native_reader()
+        if backend == "native_hint":
+            engram._kai_hint_reader()
         engram._KAI_BACKEND = backend
         return {"backend": backend, "threads": engram._KAI_THREADS}
 

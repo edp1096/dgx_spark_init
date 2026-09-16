@@ -5,6 +5,7 @@
 - ExcelJS 4.4.0: the build adds scoped `_xlnm._FilterDatabase` names and their hidden flag, preserving worksheet filters across LibreOffice open/save. `patch-exceljs.mjs` contains the guarded build-time correction.
 - rhwp 0.8.6: MIT, pinned to `e8800c8def63449808a4092798442652ed460552`. `hwp-engine/` rebuilds its WASM with guarded corrections to table common-header length and synthetic line-position page breaks. Rust dependency licenses and notices: `/licenses/rhwp/manifest.json` and `/licenses/rhwp/`.
 - JSZip 3.10.1: MIT option selected.
+- CFB 1.2.2: Apache-2.0. Preserves the HWP summary-information stream when adding standard page-number controls through HWPX. Original LICENSE remains in `/app/node_modules/cfb/`.
 - JavaScript dependency versions/licenses: `/licenses/npm.json`; original notices remain in `/app/node_modules`.
 - Compiled Go dependency notices: `/licenses/go`.
 - Noto CJK fonts: SIL Open Font License 1.1; Debian notice in `/usr/share/doc/fonts-noto-cjk/copyright`.

@@ -79,7 +79,7 @@
     {
       "id": "glm53-worker-extra",
       "name": "GLM 5.3 Flash EXL3",
-      "description": "2× DGX Spark EXL3·DFlash2 + 워커 Extra 3종. 메모리 예상치는 실측 후 조정하세요.",
+      "description": "2× DGX Spark EXL3·DFlash2 + 워커 Extra 3종. 메모리 예상치는 실측 후 조정하세요. · 워커 Magpie TTS",
       "model_type": "glm5.3",
       "model_id": "glm-5.3-flash",
       "context_tokens": 524288,
@@ -87,7 +87,8 @@
         "glm53",
         "extra-media",
         "extra-ssh",
-        "extra-collector"
+        "extra-collector",
+        "magpie-tts"
       ],
       "bindings": {
         "extra-media": {
@@ -110,6 +111,14 @@
           "health_url": "http://192.168.100.60:8695/health",
           "bind_address": "192.168.100.60",
           "port": 8695
+        },
+        "magpie-tts": {
+          "host": "worker",
+          "endpoint": "http://192.168.100.60:8692",
+          "health_url": "http://192.168.100.60:8692/ready",
+          "bind_address": "192.168.100.60",
+          "port": 8692,
+          "memory_gib": 1.6
         }
       }
     }

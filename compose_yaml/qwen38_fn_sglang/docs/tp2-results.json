@@ -1,0 +1,38 @@
+[
+  {
+    "context": 262144,
+    "input_tokens": 260096,
+    "ttft_s": 137.34923510500084,
+    "pp_estimate": 1893.6836437506304,
+    "retrieval_correct": 3,
+    "min_available_gib": [
+      51.3770866394043,
+      53.53483200073242
+    ],
+    "passed": true
+  },
+  {
+    "context": 524288,
+    "input_tokens": 522240,
+    "ttft_s": 339.40538158599884,
+    "pp_estimate": 1538.6909823280878,
+    "retrieval_correct": 3,
+    "min_available_gib": [
+      47.82051086425781,
+      50.109886169433594
+    ],
+    "passed": true
+  },
+  {
+    "context": 1048576,
+    "input_tokens": 1046528,
+    "ttft_s": 1098.8739536040011,
+    "pp_estimate": 952.3640055055259,
+    "retrieval_correct": 3,
+    "min_available_gib": [
+      39.50202560424805,
+      41.84831237792969
+    ],
+    "passed": true
+  }
+]

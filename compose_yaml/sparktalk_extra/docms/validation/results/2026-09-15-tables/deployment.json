@@ -1,0 +1,18 @@
+{
+  "documents": {
+    "status": "ok",
+    "version": "0.5.1",
+    "formats": [
+      "docx",
+      "pptx",
+      "xlsx",
+      "pdf",
+      "hwp",
+      "hwpx"
+    ],
+    "busy": false
+  },
+  "talk_status": 200,
+  "llm_status": 200,
+  "image": "sha256:0458b74449b39c18ab1045c56eb96812dddefbc3df7fb4d5c56e2018b92d14b1"
+}

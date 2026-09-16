@@ -1,3 +1,4 @@
+import { expectControlValue, selectOption } from './select-helpers.js';
 import { test, expect } from '@playwright/test';
 
 test('settings help supports keyboard, dismissal, focus return and mobile without losing drafts', async ({ page }) => {
@@ -12,7 +13,7 @@ test('settings help supports keyboard, dismissal, focus return and mobile withou
   await expect(help.getByRole('button', { name: '도움말 닫기' })).toBeFocused();
   await page.keyboard.press('Escape');
   await expect(help).not.toBeVisible(); await expect(info).toBeFocused();
-  await expect(budget).toHaveValue('12288');
+  await expectControlValue(budget, '12288');
   await info.click(); await page.mouse.click(2, 2);
   await expect(help).not.toBeVisible();
   await page.setViewportSize({ width: 390, height: 600 });
@@ -32,7 +33,7 @@ test('settings help supports keyboard, dismissal, focus return and mobile withou
   await page.getByRole('tab', { name: '기억', exact: true }).click();
   await page.screenshot({ path: '/tmp/sparktalk-settings-memory-mobile.png' });
   await page.getByRole('tab', { name: '대화', exact: true }).click();
-  await expect(budget).toHaveValue('12288');
+  await expectControlValue(budget, '12288');
   await page.locator('.modal-actions').getByRole('button', { name: '닫기', exact: true }).click();
   await expect(page.locator('dialog.settings-help-dialog')).toHaveCount(0);
 });
@@ -61,7 +62,7 @@ test('opens settings and saves prompt items on an ordinary HTTP origin', async (
     const ids = await page.locator('dialog.settings-help-dialog h3').evaluateAll(nodes => nodes.map(node => node.id));
     expect(new Set(ids).size).toBe(ids.length);
     await page.getByRole('tab', { name: '프로필', exact: true }).click();
-    await page.getByRole('combobox', { name: '프롬프트 작성 방식', exact: true }).selectOption('compose');
+    await selectOption(page.getByRole('combobox', { name: '프롬프트 작성 방식', exact: true }), 'compose');
     await page.getByText('페르소나·조건 편집', { exact: true }).click();
     await page.getByRole('button', { name: '페르소나 추가', exact: true }).click();
     await page.getByLabel('항목 이름').fill('HTTP 캐릭터');
@@ -88,7 +89,7 @@ test('places section help by the heading and field help immediately after its la
   await page.goto('/'); await page.locator('.settings-button').click();
   await expect(page.locator('legend').getByRole('button', { name: '추론 기본값 도움말', exact: true })).toBeVisible();
   await page.getByRole('tab', { name: '시스템', exact: true }).click();
-  await page.getByRole('combobox', { name: '실행 방식', exact: true }).selectOption('managed');
+  await selectOption(page.getByRole('combobox', { name: '실행 방식', exact: true }), 'managed');
   const field = page.locator('.settings-help-field').filter({ hasText: '기본 AI 세트' });
   for (const width of [1280, 390]) {
     await page.setViewportSize({ width, height: 800 });

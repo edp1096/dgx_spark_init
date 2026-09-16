@@ -1,0 +1,23 @@
+{
+  "selected": {
+    "vocab": "ko64k",
+    "chunk": 1024,
+    "context": 1048576,
+    "kv_dtype": "bfloat16"
+  },
+  "korean_tg_before": 38.09790830471301,
+  "korean_tg_after": 40.74963431789528,
+  "korean_tg_change_percent": 6.960292916800981,
+  "stress_correct": 12,
+  "stress_total": 12,
+  "exact_1m_passed": true,
+  "input_tokens": 1046528,
+  "ttft_seconds": 1093.566378827003,
+  "minimum_host_available_gib": {
+    "0": 35.72,
+    "1": 42.51
+  },
+  "larger_chunks_adopted": false,
+  "language_mixing_fixed": false,
+  "talk_pid": 3328027
+}

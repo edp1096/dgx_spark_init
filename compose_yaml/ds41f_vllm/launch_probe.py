@@ -4,7 +4,10 @@ from pathlib import Path
 p=argparse.ArgumentParser(description=__doc__)
 p.add_argument('--token',required=True);p.add_argument('--batch',type=int,choices=(2048,4096,8192),required=True)
 p.add_argument('--bench-control',action='store_true')
+p.add_argument('--min-available-gib',type=float,default=8)
+p.add_argument('--max-cgroup-gib',type=float,default=98)
 a=p.parse_args();assert re.fullmatch(r'[A-Za-z0-9_-]+',a.token)
+assert 8<=a.min_available_gib<=64 and 0<a.max_cgroup_gib<=98
 root=Path(__file__).resolve().parent
 ssh=['ssh','-o','BatchMode=yes','-o','ConnectTimeout=5','edp1096@192.168.100.60']
 for rank in (0,1):
@@ -26,7 +29,7 @@ out.mkdir(parents=True,exist_ok=True)
 processes={{}}
 for script,args in [('probe_watchdog.py',['--rank','1']),('probe_peer_recorder.py',[])]:
  with (out/(script+'.log')).open('ab') as f:
-  child=subprocess.Popen(['python3',str(root/script),*args,'--token',token,'--output',str(out)],stdout=f,stderr=subprocess.STDOUT,start_new_session=True)
+  child=subprocess.Popen(['python3',str(root/script),*args,'--min-available-gib',str({a.min_available_gib!r}),'--max-cgroup-gib',str({a.max_cgroup_gib!r}),'--token',token,'--output',str(out)],stdout=f,stderr=subprocess.STDOUT,start_new_session=True)
  processes[script]=child.pid
 (out/'observer-processes.json').write_text(json.dumps(processes)+'\\n')
 print(json.dumps(processes))

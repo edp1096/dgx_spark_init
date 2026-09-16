@@ -95,6 +95,26 @@ func calculate(filename string) ([]result, error) {
 	return cells, nil
 }
 func main() {
+	if len(os.Args) == 3 && os.Args[1] == "--display" {
+		values, err := formattedCells(os.Args[2])
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		if err = json.NewEncoder(os.Stdout).Encode(values); err != nil {
+			os.Exit(1)
+		}
+		return
+	}
+
+	if len(os.Args) == 4 && os.Args[1] == "--decorate" {
+		if err := decorate(os.Args[2], os.Args[3]); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		return
+	}
+
 	if len(os.Args) != 2 {
 		fmt.Fprintln(os.Stderr, "usage: document-calc generated.xlsx")
 		os.Exit(2)

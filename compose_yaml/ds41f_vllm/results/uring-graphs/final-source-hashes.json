@@ -1,0 +1,9 @@
+{
+  "engram_uring.c": "408c0118ad0dfaf419d6cc65c33ad46cd1e1e632c0af5134f85c54af162ca20d",
+  "engram_uring.py": "293b31e2c81cd11ed7730ab01065fe32d1e0a653602783e8f028befacb91874c",
+  "expert_callback.c": "5914f8a5054456ae86500a8899b5522739971d89d8651e679535eb7c6346bebd",
+  "expert_pointer.cpp": "2439dfd06626fecb800ae2d10e95ec1811fa649dd9c761c27b8ce17747e94929",
+  "tools/bench_expert_callback.py": "f04aa5c49aa23a5045444a796880d85a42b9936bb2d05e6d15ad71ffab58b213",
+  "tools/run_callback_component.py": "308871e359b5be32288cc5f26fe1d0681158e5d3d1c461502c284d5128293113",
+  "note": "io_uring final source aborts on queue infrastructure failure; timed source hash is in source-hashes.json. Normal read path unchanged; integrity/reuse tests rerun."
+}

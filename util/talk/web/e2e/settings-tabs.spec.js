@@ -1,3 +1,4 @@
+import { selectOption, expectControlValue } from './select-helpers.js';
 import { expect, test } from '@playwright/test';
 
 test('keeps settings values while navigating categorized tabs', async ({ page }) => {
@@ -9,17 +10,17 @@ test('keeps settings values while navigating categorized tabs', async ({ page })
   await expect(page.getByRole('tab', { name: '대화' })).toHaveAttribute('aria-selected', 'true');
 
   const effort = page.getByRole('combobox', { name: '기본 reasoning effort', exact: true });
-  await effort.selectOption('xhigh');
+  await selectOption(effort, 'xhigh');
   await page.mouse.click(2, 2);
   await expect(page.getByRole('dialog', { name: '설정', exact: true })).toBeVisible();
-  await expect(effort).toHaveValue('xhigh');
+  await expectControlValue(effort, 'xhigh');
   await page.getByRole('tab', { name: '음성' }).click();
   await expect(page.locator('#settings-panel-voice legend').filter({ hasText: '음성 인식' })).toBeVisible();
   const omitParentheticals = page.getByLabel('괄호 속 부연설명 읽지 않기');
   await expect(omitParentheticals).toBeChecked();
   await omitParentheticals.uncheck();
   await page.getByRole('tab', { name: '대화' }).click();
-  await expect(effort).toHaveValue('xhigh');
+  await expectControlValue(effort, 'xhigh');
   await page.getByRole('tab', { name: '음성' }).click();
   await expect(omitParentheticals).not.toBeChecked();
   await page.getByRole('tab', { name: '대화' }).click();
@@ -39,7 +40,7 @@ test('changes Qwen reasoning from the model menu', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: '모델 및 대화 설정', exact: true }).click();
   const effort = page.getByRole('slider', { name: 'Reasoning effort' });
-  await expect(effort).toHaveValue('2');
+  await expectControlValue(effort, '2');
   await effort.fill('3');
   await expect(page.locator('.quick-panel .qwen-effort-control output')).toHaveText('XHigh');
   await effort.fill('0');
@@ -85,9 +86,9 @@ test('manages persistent memories from the memory library', async ({ page }) => 
   await expect(item).toContainText('관련 있을 때 참고');
   await expect(item).toContainText('우선 적용');
   await item.getByRole('button', { name: '수정' }).click();
-  await expect(item.getByLabel('기억 내용')).toHaveValue('답변은 간결하게 작성');
+  await expectControlValue(item.getByLabel('기억 내용'), '답변은 간결하게 작성');
   await item.getByLabel('기억 내용').fill('답변은 아주 간결하게 작성');
-  await item.getByLabel('신뢰 수준').selectOption('reference');
+  await selectOption(item.getByLabel('신뢰 수준'), 'reference');
   await item.getByRole('button', { name: '저장', exact: true }).click();
   await expect(item).toContainText('답변은 아주 간결하게 작성');
   await expect(item).toContainText('참고');
@@ -193,9 +194,9 @@ test('groups feature settings and preserves drafts across sections', async ({ pa
   await navigation.getByRole('button', { name: 'SSH·키', exact: true }).click();
   await expect(page.getByLabel('승인형 SSH 도구 활성화')).toBeVisible();
   await navigation.getByRole('button', { name: '웹·미디어', exact: true }).click();
-  await expect(page.getByLabel('검색 결과 수 (≤ 30)', { exact: true })).toHaveValue('7');
+  await expectControlValue(page.getByLabel('검색 결과 수 (≤ 30)', { exact: true }), '7');
   await navigation.getByRole('button', { name: '이미지', exact: true }).click();
-  await expect(page.getByLabel('기본 해상도', { exact: true })).toHaveValue('768x768');
+  await expectControlValue(page.getByLabel('기본 해상도', { exact: true }), '768x768');
   await navigation.getByRole('button', { name: '스킬·기록', exact: true }).click();
   await expect(skills).not.toBeChecked();
   await page.setViewportSize({ width: 390, height: 700 });

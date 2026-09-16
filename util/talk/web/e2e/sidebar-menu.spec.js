@@ -1,3 +1,4 @@
+import { expectControlValue } from './select-helpers.js';
 import { expect, test } from '@playwright/test';
 
 test('closes a conversation menu by outside click or Escape', async ({ page }) => {
@@ -40,8 +41,8 @@ test('searches every conversation and closes results outside the search box', as
   await page.getByRole('button', { name: '검색 결과 더보기 →' }).click();
   const modal = page.getByRole('dialog', { name: '전체 대화 검색' });
   await expect(modal).toBeVisible();
-  await expect(modal.getByLabel('정렬')).toHaveValue('relevance');
-  await expect(modal.getByLabel('범위')).toHaveValue('all');
+  await expectControlValue(modal.getByLabel('정렬'), 'relevance');
+  await expectControlValue(modal.getByLabel('범위'), 'all');
   await expect(modal.locator('.search-result-card').filter({ hasText: '오로라 검색 실험' })).toBeVisible();
 
   await page.setViewportSize({ width: 390, height: 600 });

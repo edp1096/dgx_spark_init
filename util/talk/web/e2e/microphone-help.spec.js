@@ -1,3 +1,4 @@
+import { expectControlValue } from './select-helpers.js';
 import { test, expect } from '@playwright/test';
 
 for (const browser of [{ name: 'Chrome', protocol: 'chrome', marker: '' }, { name: 'Edge', protocol: 'edge', marker: ' Edg/150.0.0.0' }]) {
@@ -32,7 +33,7 @@ test(`${browser.name}: shows one setup address and copies the actual HTTP origin
     await expect(tools.getByRole('button', { name: '마이크 사용 설정 도움말' })).toHaveText('HTTP 마이크 설정 방법');
     await tools.getByRole('button', { name: '마이크 사용 설정 도움말' }).click();
     const guide = page.getByRole('dialog', { name: '마이크 사용 설정', exact: true });
-    await expect(guide.getByLabel('등록할 현재 화면 주소', { exact: true })).toHaveValue('http://sparktalk.test:8088');
+    await expectControlValue(guide.getByLabel('등록할 현재 화면 주소', { exact: true }), 'http://sparktalk.test:8088');
     await expect(guide.locator('.copy-row')).toHaveCount(2);
     await guide.getByRole('button', { name: `${browser.name} 설정 주소 복사`, exact: true }).click();
     expect(await page.evaluate(() => window.copiedValues.at(-1))).toBe(`${browser.protocol}://flags/#unsafely-treat-insecure-origin-as-secure`);

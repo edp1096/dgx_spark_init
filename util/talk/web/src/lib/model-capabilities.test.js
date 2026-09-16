@@ -60,3 +60,14 @@ test('DeepSeek V4 exposes its supported thinking levels', () => {
   assert.deepEqual(modelCapabilities('deepseek-v4'), {family: 'deepseek-v4', reasoning: 'effort', reasoningLevels: ['off', 'low', 'high', 'max']});
   assert.equal(normalizeReasoningEffort('deepseek-v4', 'none'), 'off');
 });
+
+test('Ornith uses Qwen3.5 thinking toggle', () => {
+  assert.deepEqual(modelCapabilities('qwen3.5'), {family:'qwen3.5',reasoning:'toggle',reasoningLevels:['on','none']});
+  assert.equal(normalizeReasoningEffort('qwen3.5','none'),'none');
+  assert.equal(normalizeReasoningEffort('qwen3.5','high'),'on');
+});
+
+test('Gemma vLLM preserves the Gemma thinking controls', () => {
+  assert.deepEqual(modelCapabilities('gemma4-vllm'),modelCapabilities('gemma4'));
+  assert.equal(normalizeReasoningEffort('gemma4-vllm','high'),'on');
+});

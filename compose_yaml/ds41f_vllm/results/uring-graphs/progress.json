@@ -1,0 +1,30 @@
+{
+  "completed": [
+    "io_uring CPU integrity tests",
+    "expert callback CPU eviction parity",
+    "io_uring full-model warm A/B",
+    "io_uring full-model cold-long A/B",
+    "io_uring full-model warm decode A/B",
+    "io_uring cold decode A/B",
+    "GPU expert callback hit/miss/mixed A/B on both ranks",
+    "restored normal TP2, ASR, Extra, Talk and verified model response",
+    "recorded experiment report"
+  ],
+  "active": null,
+  "pending": [],
+  "benchmark_session": 91673,
+  "model_probe": "20260913-uring-ab",
+  "services_to_restore": {
+    "head": [
+      "sparktalk-extra-media",
+      "sparktalk-extra-ssh",
+      "sparktalk-extra-collector",
+      "sparktalk-extra-documents"
+    ],
+    "worker": [
+      "sparktalk-nemotron-asr"
+    ]
+  },
+  "production_defaults_unchanged": true,
+  "decision": "Keep native_hint and individual expert graphs; whole-model callback gate failed"
+}

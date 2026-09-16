@@ -1,4 +1,5 @@
 <script>
+  import Select from './Select.svelte';
   import { onMount } from 'svelte';
   import { createMemory, deleteMemory, listMemories, updateMemory } from '../api.js';
 
@@ -102,8 +103,8 @@
 
 <div class="library-toolbar memory-library-toolbar">
   <input bind:value={query} placeholder="기억 검색" aria-label="기억 검색" />
-  <select bind:value={application} aria-label="호출 범위 필터"><option value="all">모든 호출 범위</option><option value="user">항상 참고</option><option value="memory">관련 있을 때 참고</option></select>
-  <select bind:value={source} aria-label="출처 필터"><option value="all">모든 출처</option><option value="manual">직접 작성</option><option value="conversation">대화에서 저장</option><option value="proposal">모델 제안 승인</option></select>
+  <Select bind:value={application} aria-label="호출 범위 필터"><option value="all">모든 호출 범위</option><option value="user">항상 참고</option><option value="memory">관련 있을 때 참고</option></Select>
+  <Select bind:value={source} aria-label="출처 필터"><option value="all">모든 출처</option><option value="manual">직접 작성</option><option value="conversation">대화에서 저장</option><option value="proposal">모델 제안 승인</option></Select>
   <button class="primary" onclick={beginCreate} disabled={saving || creating}>＋ 새 기억</button>
 </div>
 
@@ -111,8 +112,8 @@
   <section class="library-card memory-compose-card memory-editor-card">
     <header><div><strong>새 기억</strong><small>행동 규칙은 시스템 프롬프트에, 다시 참고할 사실은 여기에 저장합니다.</small></div></header>
     <div class="settings-form-row three">
-      <label>호출 범위<select bind:value={draft.kind}><option value="memory">관련 있을 때 참고</option><option value="user">항상 참고</option></select></label>
-      <label>신뢰 수준<select bind:value={draft.priority}><option value="preferred">우선 적용</option><option value="reference">참고</option></select></label>
+      <label>호출 범위<Select bind:value={draft.kind}><option value="memory">관련 있을 때 참고</option><option value="user">항상 참고</option></Select></label>
+      <label>신뢰 수준<Select bind:value={draft.priority}><option value="preferred">우선 적용</option><option value="reference">참고</option></Select></label>
       <label>제목<input bind:value={draft.title} maxlength="120" placeholder="선택 사항" /></label>
     </div>
     <label>내용<textarea rows="4" bind:value={draft.content} maxlength="8000" placeholder="나중에 다시 참고할 사실을 적으세요."></textarea></label>
@@ -129,8 +130,8 @@
         {#if editingID === item.id}
           <header><div><strong>{item.title || '제목 없는 기억'}</strong><small>{sourceLabel(item)} · 편집 중</small></div></header>
           <div class="settings-form-row three">
-            <label>호출 범위<select bind:value={draft.kind} aria-label="호출 범위"><option value="memory">관련 있을 때 참고</option><option value="user">항상 참고</option></select></label>
-            <label>신뢰 수준<select bind:value={draft.priority} aria-label="신뢰 수준"><option value="preferred">우선 적용</option><option value="reference">참고</option></select></label>
+            <label>호출 범위<Select bind:value={draft.kind} aria-label="호출 범위"><option value="memory">관련 있을 때 참고</option><option value="user">항상 참고</option></Select></label>
+            <label>신뢰 수준<Select bind:value={draft.priority} aria-label="신뢰 수준"><option value="preferred">우선 적용</option><option value="reference">참고</option></Select></label>
             <label>제목<input bind:value={draft.title} maxlength="120" placeholder="선택 사항" aria-label="기억 제목" /></label>
           </div>
           <label>내용<textarea rows="4" bind:value={draft.content} maxlength="8000" aria-label="기억 내용"></textarea></label>

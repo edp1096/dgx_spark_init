@@ -1,3 +1,4 @@
+import { expectControlValue } from './select-helpers.js';
 import { expect, test } from '@playwright/test';
 
 const runtimeSnapshot = {
@@ -37,7 +38,7 @@ test('shows managed set, memory, engines, and set controls from the connection b
   await expect(panel.getByText('통합메모리', { exact: true })).toBeVisible();
   await expect(panel.getByText('시스템 가용 13.5 GiB · 즉시 여유 3.2 GiB', { exact: true })).toBeVisible();
   await expect(panel.getByText('Qwen3.8 Flash-Next', { exact: true })).toBeVisible();
-  await expect(panel.getByRole('combobox', { name: '전환할 AI 세트' })).toHaveValue('flash-next');
+  await expectControlValue(panel.getByRole('combobox', { name: '전환할 AI 세트' }), 'flash-next');
   await expect(panel.getByRole('button', { name: '실행 중' })).toBeDisabled();
 });
 

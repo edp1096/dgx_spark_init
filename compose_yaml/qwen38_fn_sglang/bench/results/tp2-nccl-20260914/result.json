@@ -1,0 +1,36 @@
+[
+  {
+    "rank": 0,
+    "state": {
+      "Status": "exited",
+      "Running": false,
+      "Paused": false,
+      "Restarting": false,
+      "OOMKilled": false,
+      "Dead": false,
+      "Pid": 0,
+      "ExitCode": 0,
+      "Error": "",
+      "StartedAt": "2026-09-13T18:00:09.006281432Z",
+      "FinishedAt": "2026-09-13T18:00:13.202565921Z"
+    },
+    "log": "NCCL version 2.29.7+cuda13.2\n{\"rank\": 0, \"elements\": 4096, \"ms\": 49.639340299836476, \"exact\": true}\n{\"rank\": 0, \"elements\": 4194304, \"ms\": 1.8284484998730477, \"exact\": true}\n"
+  },
+  {
+    "rank": 1,
+    "state": {
+      "Status": "exited",
+      "Running": false,
+      "Paused": false,
+      "Restarting": false,
+      "OOMKilled": false,
+      "Dead": false,
+      "Pid": 0,
+      "ExitCode": 0,
+      "Error": "",
+      "StartedAt": "2026-09-13T18:00:08.750500604Z",
+      "FinishedAt": "2026-09-13T18:00:12.967961907Z"
+    },
+    "log": "{\"rank\": 1, \"elements\": 4096, \"ms\": 49.797361200035084, \"exact\": true}\n{\"rank\": 1, \"elements\": 4194304, \"ms\": 2.3833580999053083, \"exact\": true}\n"
+  }
+]

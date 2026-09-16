@@ -1,4 +1,5 @@
 <script>
+  import Select from '../Select.svelte';
   import SettingsHelp from './SettingsHelp.svelte';
  import { onMount, onDestroy } from 'svelte';
  export let catalog;
@@ -42,8 +43,8 @@
 </fieldset>
 <fieldset>
  <legend>모델 준비</legend>
- <label class="settings-field-row"><span>모델</span><select bind:value={component}>{#each models as model}<option value={model.id}>{model.name}</option>{/each}</select></label>
- <label class="settings-field-row"><span>가중치</span><select bind:value={variant}><option value="official">공식 원본</option><option value="abliterated">Abliterated</option></select></label>
+ <label class="settings-field-row"><span>모델</span><Select bind:value={component}>{#each models as model}<option value={model.id}>{model.name}</option>{/each}</Select></label>
+ <label class="settings-field-row"><span>가중치</span><Select bind:value={variant}><option value="official">공식 원본</option><option value="abliterated">Abliterated</option></Select></label>
  {#if repositories.length}
   <div class="model-sources">
    <strong>다운로드할 모델 저장소</strong>

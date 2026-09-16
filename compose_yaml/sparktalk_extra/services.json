@@ -30,8 +30,8 @@
     "description": "HWP·오피스·PDF 생성",
     "port": 8696,
     "internal_port": 8696,
-    "image": "sparktalk-extra-documents:0.4.0",
-    "version": "0.4.0",
+    "image": "sparktalk-extra-documents:0.5.2",
+    "version": "0.5.2",
     "build_asset": "extra-documents",
     "dockerfile": "Dockerfile"
   },

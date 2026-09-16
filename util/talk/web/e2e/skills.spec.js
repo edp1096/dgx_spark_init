@@ -1,3 +1,4 @@
+import { expectControlValue } from './select-helpers.js';
 import {expect,test} from '@playwright/test';
 
 test('library supports persistent skills, builtin copy, selection and deletion',async({page,request})=>{
@@ -18,7 +19,7 @@ test('library supports persistent skills, builtin copy, selection and deletion',
  await page.getByRole('button',{name:'▤ 라이브러리',exact:true}).click();
  await page.getByRole('button',{name:'스킬',exact:true}).click();
  await page.getByRole('button',{name:'review-e2e',exact:true}).click();
- await expect(page.getByLabel('작업 절차',{exact:true})).toHaveValue(/검증 근거/);
+ await expectControlValue(page.getByLabel('작업 절차',{exact:true}), /검증 근거/);
  await page.getByRole('button',{name:'목록으로',exact:true}).click();
  await page.getByRole('button',{name:'web-research',exact:true}).click();
  await expect(page.getByLabel('작업 절차',{exact:true})).toHaveAttribute('readonly','');
@@ -40,9 +41,9 @@ test('library supports persistent skills, builtin copy, selection and deletion',
  await page.reload();
  await page.getByRole('button',{name:'입력 도구 열기',exact:true}).click();await page.getByRole('button',{name:'스킬·작업 절차',exact:true}).click();
  await page.getByRole('button',{name:/^review-e2e/}).click();
- await expect(page.locator('.composer textarea')).toHaveValue('@skill:review-e2e\n');
+ await expectControlValue(page.locator('.composer textarea'), '@skill:review-e2e\n');
  await page.getByRole('button',{name:'review-e2e 지정 해제',exact:true}).click();
- await expect(page.locator('.composer textarea')).toHaveValue('');
+ await expectControlValue(page.locator('.composer textarea'), '');
  await page.getByRole('button',{name:'▤ 라이브러리',exact:true}).click();
  await page.getByRole('button',{name:'스킬',exact:true}).click();
  await page.getByRole('button',{name:'review-e2e',exact:true}).click();

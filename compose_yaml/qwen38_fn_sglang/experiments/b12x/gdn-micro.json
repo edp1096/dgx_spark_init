@@ -1,0 +1,42 @@
+{
+  "rows": [
+    {
+      "sequences": 1,
+      "tokens_per_sequence": 1,
+      "key_heads": 8,
+      "value_heads": 24,
+      "state_dtype": "float32",
+      "b12x_oracle": {
+        "output_max_abs": 3.814697265625e-06,
+        "state_max_abs": 1.4901161193847656e-08,
+        "output_nonzero": 3072
+      },
+      "sglang_oracle_passed": true,
+      "output_relative_l2": 0.0033086345065385103,
+      "state_relative_l2": 3.83836038508889e-08,
+      "finite": true,
+      "error_code": 0,
+      "sglang_graph_ms": 0.009119999594986439,
+      "b12x_graph_ms": 0.010688000358641148
+    },
+    {
+      "sequences": 4,
+      "tokens_per_sequence": 1,
+      "key_heads": 8,
+      "value_heads": 24,
+      "state_dtype": "float32",
+      "b12x_oracle": {
+        "output_max_abs": 0.0,
+        "state_max_abs": 2.9802322387695312e-08,
+        "output_nonzero": 12288
+      },
+      "sglang_oracle_passed": true,
+      "output_relative_l2": 0.0032516582868993282,
+      "state_relative_l2": 5.42731228847515e-08,
+      "finite": true,
+      "error_code": 0,
+      "sglang_graph_ms": 0.020320000126957893,
+      "b12x_graph_ms": 0.02236800082027912
+    }
+  ]
+}

@@ -692,9 +692,10 @@ _KAI_THREADS = int(_kai_os.environ.get("DSV41_ENGRAM_DISK_THREADS", "32"))
 _KAI_CHUNK = int(_kai_os.environ.get("DSV41_ENGRAM_DISK_CHUNK", "16"))
 _KAI_POOL: _KaiPool | None = None
 _KAI_BACKEND = _kai_os.environ.get("DSV41_ENGRAM_READER", "native")
-if _KAI_BACKEND not in ("python", "native"):
-    raise ValueError("DSV41_ENGRAM_READER must be python or native")
+if _KAI_BACKEND not in ("python", "native", "native_hint"):
+    raise ValueError("Unknown DSV41_ENGRAM_READER (python/native/native_hint)")
 _KAI_NATIVE = None
+_KAI_HINT = None
 
 
 def _kai_native_reader():
@@ -703,6 +704,14 @@ def _kai_native_reader():
         from engram_reader import Reader
         _KAI_NATIVE = Reader(_KAI_THREADS)
     return _KAI_NATIVE
+
+
+def _kai_hint_reader():
+    global _KAI_HINT
+    if _KAI_HINT is None:
+        from engram_reader import AdvisedReader
+        _KAI_HINT = AdvisedReader(_KAI_THREADS)
+    return _KAI_HINT
 
 
 def _kai_pool() -> _KaiPool:
@@ -734,9 +743,10 @@ def _kai_parallel_read(jobs: list) -> None:
     total = sum(len(job[2]) for job in jobs)
     if total == 0:
         return
-    if _KAI_BACKEND == "native":
+    if _KAI_BACKEND in ("native", "native_hint"):
         chunk = max(1, min(_KAI_CHUNK, -(-total // _KAI_THREADS)))
-        _kai_native_reader().read(jobs, chunk=chunk)
+        reader = (_kai_hint_reader() if _KAI_BACKEND == "native_hint" else _kai_native_reader())
+        reader.read(jobs, chunk=chunk)
         return
     if total == 1:
         for fd, base, rel, row_bytes, buf in jobs:
@@ -828,6 +838,8 @@ class DiskEngramTable:
         self.pool = _kai_pool()  # shared by all tables (was one pool per table)
         if _KAI_BACKEND == "native":
             _kai_native_reader()  # Compile/create workers before serving requests.
+        elif _KAI_BACKEND == "native_hint":
+            _kai_hint_reader()
         logger.info(
             "Engram DISK mode: layer %d rows [%d, %d) read from %s (off=%d) and %s (off=%d); "
             "%d threads, chunk %d",
@@ -875,7 +887,23 @@ class DiskEngramTable:
         return gather_dequant_many([(self, rel, owned)])[0]
 
 
+_NEXT_PREFETCH_STATS = None
+
+
 def gather_dequant_many(requests: list) -> list[torch.Tensor]:
+    observer=_NEXT_PREFETCH_STATS
+    if observer is None:
+        return _gather_dequant_many_impl(requests)
+    import time
+    start=time.perf_counter()
+    try:
+        return _gather_dequant_many_impl(requests)
+    finally:
+        observer.stats['stage_seconds']+=time.perf_counter()-start
+        observer.stats['stages']+=1
+
+
+def _gather_dequant_many_impl(requests: list) -> list[torch.Tensor]:
     """Tech2Wild/Kai 2026-09-10: requests = [(DiskEngramTable, rel [R] int64 CPU,
     owned [R] bool)] -> one [R, dim] bf16 CPU tensor per request. Rows are
     de-duplicated per table (repeated n-grams, zero-filled dummy batches) and the

@@ -383,11 +383,13 @@
       <div class="message-body">
         <div class="speaker-name">{message.role === 'user' ? userName : assistantName}</div>
         {#if message.reasoning_content}
-          <details class="reasoning" open={reasoningOpen[index] ?? false} ontoggle={(event) => setReasoningOpen(index, event.currentTarget.open)}>
-            <summary><span class="activity-label" class:activity-scanner={running && message.activity === 'reasoning'}>생각 과정</span></summary>
-            <div class="reasoning-text prose" use:markdownView={render(message.reasoning_content)}></div>
-            <div class="collapse-row"><button onclick={(event) => { setReasoningOpen(index, false); collapseDetails(event); }}>↑ 생각 과정 접기</button></div>
-          </details>
+          <section class="reasoning">
+            <button type="button" class="reasoning-toggle" aria-expanded={reasoningOpen[index] ?? false} aria-controls={`reasoning-${index}`} onclick={() => setReasoningOpen(index, !(reasoningOpen[index] ?? false))}><span aria-hidden="true">{reasoningOpen[index] ? '▾' : '▸'}</span> <span class="activity-label" class:activity-scanner={running && message.activity === 'reasoning'}>생각 과정</span></button>
+            <div id={`reasoning-${index}`} hidden={!(reasoningOpen[index] ?? false)}>
+              <div class="reasoning-text prose" use:markdownView={render(message.reasoning_content)}></div>
+              <div class="collapse-row"><button onclick={() => setReasoningOpen(index, false)}>↑ 생각 과정 접기</button></div>
+            </div>
+          </section>
         {/if}
         {#if message.tool_trace?.some((tool) => tool.approval_required)}
           <section class="tool-approval-panel" aria-label="도구 실행 승인">
@@ -433,7 +435,7 @@
           </section>
         {/if}
         {#if message.tool_trace?.some(tool => tool.name === 'skill_view' && !tool.error && tool.result)}
-          <div class="message-skills"><small>사용 스킬: {Array.from(new Set(message.tool_trace.filter(tool => tool.name === 'skill_view' && !tool.error && tool.result).map(tool => { try { return JSON.parse(tool.arguments).name; } catch { return ''; } }).filter(Boolean))).join(' · ')}</small></div>
+          <div class="message-skills" title="모델이 읽은 작업 지침입니다. 실제 도구 실행 여부는 아래 기록에서 확인하세요."><small>불러온 지침: {Array.from(new Set(message.tool_trace.filter(tool => tool.name === 'skill_view' && !tool.error && tool.result).map(tool => { try { return JSON.parse(tool.arguments).name; } catch { return ''; } }).filter(Boolean))).join(' · ')}</small></div>
         {/if}
         {#if message.tool_trace?.length}
           <details class="tool-trace">

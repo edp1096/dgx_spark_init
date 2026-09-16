@@ -17,3 +17,5 @@ export const clearContext = (id) => request(`/api/sessions/${id}/context`, { met
 export const listSSHConversationGrants = (id) => request(`/api/sessions/${id}/ssh-grants`);
 export const revokeSSHConversationGrant = (sessionId, hostId) => request(`/api/sessions/${sessionId}/ssh-grants/${encodeURIComponent(hostId)}`, { method: 'DELETE' });
 export const clearSSHConversationGrants = (id) => request(`/api/sessions/${id}/ssh-grants`, { method: 'DELETE' });
+
+export const deleteSessions = (ids) => request(`/api/sessions/bulk-delete`, { method: 'POST', body: JSON.stringify({ ids }) });

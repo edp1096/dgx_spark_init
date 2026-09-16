@@ -1,0 +1,9 @@
+{
+  "rank": 0,
+  "min_available_gib": 11.337814331054688,
+  "max_cgroup_gib": 91.81507873535156,
+  "trips": [],
+  "boot_ids": [
+    "be1034db-6fac-423a-940f-22b72a906905"
+  ]
+}

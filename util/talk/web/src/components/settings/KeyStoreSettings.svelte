@@ -1,4 +1,5 @@
 <script>
+  import Select from '../Select.svelte';
  import { onMount } from 'svelte';
  import { getKeyStore, keyStoreAction } from '../../api.js';
  export let onnotify = () => {};
@@ -37,7 +38,7 @@
   </div>
   <div class="sync-actions">
    <button type="button" disabled={busy} onclick={() => act('sync')}>지금 동기화</button>
-   <label class="settings-field-row"><span>관리 권한 이전 대상</span><select bind:value={target}><option value="">호스트 선택</option>{#each state.hosts as host}{#if host !== state.report?.authority_host}<option value={host}>{host}</option>{/if}{/each}</select></label>
+   <label class="settings-field-row"><span>관리 권한 이전 대상</span><Select bind:value={target}><option value="">호스트 선택</option>{#each state.hosts as host}{#if host !== state.report?.authority_host}<option value={host}>{host}</option>{/if}{/each}</Select></label>
    <button type="button" disabled={busy || !target} onclick={() => act('handoff')}>관리 권한 이전</button>
   </div>
   <details><summary>복제 호스트 추가</summary>

@@ -1,0 +1,21 @@
+{
+  "started": 1789451444.71999,
+  "finished": 1789451445.828032,
+  "verify_calls": 1.0,
+  "accept_length": 1.0,
+  "text": "OK",
+  "reasoning": "",
+  "calls": [],
+  "usage": {
+    "prompt_tokens": 2198,
+    "total_tokens": 2200,
+    "completion_tokens": 2,
+    "prompt_tokens_details": null,
+    "reasoning_tokens": 0
+  },
+  "finish": "stop",
+  "ttft": 1.032891920011025,
+  "tg": 16.018611321455793,
+  "elapsed": 1.0953193040040787,
+  "hanzi": []
+}

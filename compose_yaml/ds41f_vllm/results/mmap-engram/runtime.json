@@ -1,0 +1,18 @@
+{
+  "head_worker_source_match": true,
+  "sha256": {
+    "engram_reader.py": "4aac2365df8e79df8c2577eb9eef49a98c35231cad08a57fee8dff51fef88564",
+    "engram_mmap.py": "f1600ad9556275e1008605820bd8b0de7a543dffbf7a3d279b32a7cd97e586dd",
+    "engram_prefetch.py": "00c3aa1eaeb261961a8a3dfa317a3fe27fb70bb1d3f98fe8339580dce8181fa4",
+    "launch.sh": "9df97f1f01841fa8bdd1034f80b7fcecb3550feacbcf05f2d83dc4fff00b789c",
+    "patches/engram.py": "11fa142a646e7cdbf409f79f1eced7733c8bb2da0660d3cce98bd35b87010c49",
+    "patches/gpu_worker.py": "8627f0ecf12cc8620f64015e9f9f19e94ebb4b47507cf6ba2ae48b3dd692cb16",
+    "patches/model_state.py": "40396de9dd9c723a278e5972ccf8422f3e4a0c8d39ed2f793c9d04460e0add3f",
+    "patches/target_model.py": "839e8df3672bf8444bd83b6b264beacad20e3b3ec8709de30e59b602d5023cad"
+  },
+  "engram_reader": "native_hint",
+  "next_chunk_prefetch": true,
+  "dcp_size": 1,
+  "benchmark_control": false,
+  "talk_binary_sha256": "f792ed22f77b744597783c527f99bc37a54ad8af88caae4407525ccab8d3476b"
+}

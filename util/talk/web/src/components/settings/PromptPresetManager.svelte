@@ -1,4 +1,5 @@
 <script>
+  import Select from '../Select.svelte';
   import { createClientID } from '../../lib/client-id.js';
   import SettingsHelp from './SettingsHelp.svelte';
   import PromptTextPresets from './PromptTextPresets.svelte';
@@ -67,10 +68,10 @@
 <div class="prompt-composer">
   <fieldset>
     <legend><span>대화 성격과 응답 규칙</span> <SettingsHelp title="프롬프트 작성 방식"><p>텍스트·프리셋은 시스템 프롬프트를 직접 작성하거나 저장한 프리셋을 사용합니다.</p><p>페르소나·조건 조합은 성격·말투·응답 조건을 선택해 하나의 시스템 프롬프트로 적용합니다. 이름과 소개도 함께 적용됩니다.</p></SettingsHelp></legend>
-    <label class="settings-field-row"><span>프롬프트 작성 방식</span><select value={c.enabled ? 'compose' : 'direct'} onchange={e => changeMode(e.currentTarget.value)}>
+    <label class="settings-field-row"><span>프롬프트 작성 방식</span><Select value={c.enabled ? 'compose' : 'direct'} onchange={e => changeMode(e.currentTarget.value)}>
         <option value="direct">텍스트·프리셋</option>
         <option value="compose">페르소나·조건 조합</option>
-      </select>
+      </Select>
     </label>
 
   </fieldset>
@@ -79,10 +80,10 @@
   {:else}
     <fieldset>
       <legend>성격과 말투</legend>
-      <label class="settings-field-row"><span>페르소나</span><select value={c.persona_id} onchange={e => { const id = e.currentTarget.value; update(next => next.persona_id = id); }}>
+      <label class="settings-field-row"><span>페르소나</span><Select value={c.persona_id} onchange={e => { const id = e.currentTarget.value; update(next => next.persona_id = id); }}>
           <option value="">없음</option>
           {#each c.blocks.filter(b => b.kind === 'persona') as item}<option value={item.id}>{item.name}</option>{/each}
-        </select>
+        </Select>
       </label>
       {#if c.persona_id}<p class="persona-description">{c.blocks.find(b => b.id === c.persona_id)?.prompt}</p>{/if}
       <div class="conditions tone-conditions">
@@ -111,17 +112,17 @@
     <details class="block-editor">
       <summary>조합 저장·관리</summary>
       <small>성격·말투·응답 조건을 한 묶음으로 저장하고 불러옵니다.</small>
-      <label class="settings-field-row"><span>저장한 조합</span><select value={combinationID} onchange={e => loadCombination(e.currentTarget.value)}><option value="">현재 선택</option>{#each c.combinations as item}<option value={item.id}>{item.name}</option>{/each}</select></label>
+      <label class="settings-field-row"><span>저장한 조합</span><Select value={combinationID} onchange={e => loadCombination(e.currentTarget.value)}><option value="">현재 선택</option>{#each c.combinations as item}<option value={item.id}>{item.name}</option>{/each}</Select></label>
       <div class="actions"><button type="button" onclick={() => saveCombination()}>새 조합 저장</button><button type="button" disabled={!combinationID} onclick={() => saveCombination(true)}>선택 조합 갱신</button><button type="button" disabled={!combinationID} onclick={renameCombination}>조합 이름 변경</button><button type="button" class="danger" disabled={!combinationID} onclick={deleteCombination}>조합 삭제</button></div>
     </details>
     <details class="block-editor">
       <summary>페르소나·조건 편집</summary>
-      <label class="settings-field-row"><span>편집할 항목</span><select value={editID} onchange={e => editBlock(e.currentTarget.value)}><option value="">항목 선택</option>{#each c.blocks as item}<option value={item.id}>{item.kind === 'persona' ? '페르소나' : '조건'} · {item.name}</option>{/each}</select></label>
+      <label class="settings-field-row"><span>편집할 항목</span><Select value={editID} onchange={e => editBlock(e.currentTarget.value)}><option value="">항목 선택</option>{#each c.blocks as item}<option value={item.id}>{item.kind === 'persona' ? '페르소나' : '조건'} · {item.name}</option>{/each}</Select></label>
       <div class="actions"><button type="button" onclick={() => newBlock('persona')}>페르소나 추가</button><button type="button" onclick={() => newBlock('condition')}>조건 추가</button></div>
       {#if draft}
         <label class="settings-field-row"><span>항목 이름</span><input bind:value={draft.name} /></label>
-        <label class="settings-field-row"><span>항목 종류</span><select bind:value={draft.kind} onchange={() => { if (draft.kind === 'condition') draft.category ||= 'language'; }}><option value="persona">페르소나</option><option value="condition">추가 조건</option></select></label>
-        {#if draft.kind === 'condition'}<label class="settings-field-row"><span>조건 분류</span><select bind:value={draft.category}>{#each promptCategories as category}<option value={category.id}>{category.label}</option>{/each}</select></label><label class="settings-field-row"><span>선택 제한</span><select bind:value={draft.group}>{#each selectionGroups as [id, label]}<option value={id}>{label}</option>{/each}</select></label>{/if}
+        <label class="settings-field-row"><span>항목 종류</span><Select bind:value={draft.kind} onchange={() => { if (draft.kind === 'condition') draft.category ||= 'language'; }}><option value="persona">페르소나</option><option value="condition">추가 조건</option></Select></label>
+        {#if draft.kind === 'condition'}<label class="settings-field-row"><span>조건 분류</span><Select bind:value={draft.category}>{#each promptCategories as category}<option value={category.id}>{category.label}</option>{/each}</Select></label><label class="settings-field-row"><span>선택 제한</span><Select bind:value={draft.group}>{#each selectionGroups as [id, label]}<option value={id}>{label}</option>{/each}</Select></label>{/if}
         <label>항목 내용<textarea bind:value={draft.prompt} rows="5"></textarea></label>
         <div class="actions"><button type="button" onclick={saveBlock}>항목 저장</button><button type="button" class="danger" disabled={!editID} onclick={deleteBlock}>항목 삭제</button></div>
       {/if}

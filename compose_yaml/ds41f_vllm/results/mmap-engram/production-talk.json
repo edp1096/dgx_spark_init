@@ -1,0 +1,16 @@
+{
+  "content": "spark-reader-ok",
+  "done": true,
+  "http_status": 200,
+  "temporary_session_deleted": true,
+  "total_seconds": 20.4977088859996,
+  "performance": {
+    "pp": 344.185606122391,
+    "tg": 15.953949202115435,
+    "ttft": 20.093829573997937,
+    "prompt_tokens": 6916,
+    "cached_tokens": 0,
+    "output_tokens": 7,
+    "calls": 1
+  }
+}

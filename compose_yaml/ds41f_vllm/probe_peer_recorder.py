@@ -3,9 +3,11 @@ import argparse,json,os,shlex,subprocess
 from pathlib import Path
 p=argparse.ArgumentParser(description=__doc__)
 p.add_argument('--token',required=True);p.add_argument('--output',type=Path,required=True)
+p.add_argument('--min-available-gib',type=float,default=8)
+p.add_argument('--max-cgroup-gib',type=float,default=98)
 a=p.parse_args();a.output.mkdir(parents=True,exist_ok=True)
 root=Path(__file__).resolve().parent
-cmd=['python3',str(root/'probe_watchdog.py'),'--rank','0','--token',a.token,'--output',str(a.output),'--stream-events']
+cmd=['python3',str(root/'probe_watchdog.py'),'--rank','0','--token',a.token,'--output',str(a.output),'--stream-events','--min-available-gib',str(a.min_available_gib),'--max-cgroup-gib',str(a.max_cgroup_gib)]
 ssh=['ssh','-o','BatchMode=yes','-o','ConnectTimeout=5','-o','ServerAliveInterval=2','-o','ServerAliveCountMax=3','edp1096@192.168.100.61',shlex.join(cmd)]
 proc=subprocess.Popen(ssh,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
 with (a.output/'head-mirror-on-worker.jsonl').open('ab',buffering=0) as f:

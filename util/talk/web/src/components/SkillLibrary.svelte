@@ -1,4 +1,5 @@
 <script>
+  import Select from './Select.svelte';
   import { onMount } from 'svelte';
   import { listSkills, getSkill, saveSkill, deleteSkill } from '../api.js';
   export let onnotify = () => {};
@@ -67,7 +68,7 @@
     </form>
   {:else}
     <div class="skill-toolbar"><div><h3>스킬</h3><p>필요한 작업에 불러오는 절차입니다. 관련 요청에서 자동으로 선택하거나 입력창에서 직접 지정합니다.</p></div><button class="primary" onclick={create}>새 스킬</button></div>
-    <div class="skill-toolbar"><input aria-label="스킬 검색" placeholder="스킬 검색" bind:value={search} /><select aria-label="스킬 분류" bind:value={filter}><option value="all">전체</option><option value="builtin">내장</option><option value="custom">사용자</option></select></div>
+    <div class="skill-toolbar"><input aria-label="스킬 검색" placeholder="스킬 검색" bind:value={search} /><Select aria-label="스킬 분류" bind:value={filter}><option value="all">전체</option><option value="builtin">내장</option><option value="custom">사용자</option></Select></div>
     {#if loading}<p role="status">불러오는 중…</p>{:else if !visible.length}<p>해당하는 스킬이 없습니다.</p>{/if}
     <div class="skill-list">{#each visible as item}<article>
       <div class="skill-toolbar skill-heading"><button class="skill-name" onclick={() => edit(item)}>{item.name}</button><small>{item.builtin ? '내장' : '사용자'}</small><label class="skill-check"><input type="checkbox" checked={item.enabled} onchange={() => toggle(item)} disabled={saving} aria-label={`${item.name} 사용`} />사용</label></div>

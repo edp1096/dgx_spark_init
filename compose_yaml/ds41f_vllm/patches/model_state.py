@@ -73,6 +73,11 @@ class DeepseekV41ModelState(DefaultModelState):
         if os.environ.get('DSV41_ENGRAM_PRESTAGE')=='1':
             from engram_stager import EngramDiskStager
             self.disk_stager=EngramDiskStager(vllm_config,model)
+        self.engram_prefetcher=None
+        if (os.environ.get('DSV41_ENGRAM_NEXT_PREFETCH')=='1'
+                                            or os.environ.get('DSV41_BENCH_CONTROL')=='1'):
+            from engram_prefetch import Prefetcher
+            self.engram_prefetcher=Prefetcher(vllm_config,model)
 
     def add_request(self, req_index, new_req_data):
         super().add_request(req_index, new_req_data)
@@ -126,6 +131,10 @@ class DeepseekV41ModelState(DefaultModelState):
             self.disk_stager.stage(input_batch.input_ids,input_batch.positions,
                 input_batch.query_start_loc[:input_batch.num_reqs+1],window,
                 input_batch.num_tokens)
+        if self.engram_prefetcher is not None:
+            prefetch=self.engram_prefetcher
+            prefetch.begin_batch(input_batch)
+            prefetch.submit(prefetch.prepare(input_batch,req_states,self.dense_output_requests))
         return model_inputs
 
     def prepare_dummy_inputs(self, num_reqs: int, num_tokens: int) -> dict[str, Any]:

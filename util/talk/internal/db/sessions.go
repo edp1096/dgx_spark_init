@@ -47,36 +47,42 @@ func (d *DB) Session(id string) (Session, error) {
 }
 
 func (d *DB) DeleteSession(id string) error {
+	return d.DeleteSessions([]string{id})
+}
+
+func (d *DB) DeleteSessions(ids []string) error {
 	tx, err := d.conn.Begin()
 	if err != nil {
 		return err
 	}
 	defer tx.Rollback()
-	if _, err := tx.Exec(`DELETE FROM ssh_conversation_grants WHERE session_id=?`, id); err != nil {
-		return err
-	}
-	if _, err := tx.Exec(`DELETE FROM tool_grants WHERE scope='conversation' AND session_id=?`, id); err != nil {
-		return err
-	}
-	if _, err := tx.Exec(`DELETE FROM workflow_runs WHERE session_id=?`, id); err != nil {
-		return err
-	}
-	// Do not rely on SQLite's connection-local foreign_keys pragma here.
-	// Explicit deletion also guarantees that FTS cleanup triggers run.
-	if _, err := tx.Exec(`DELETE FROM context_tool_archive WHERE session_id=?`, id); err != nil {
-		return err
-	}
-	if _, err := tx.Exec(`DELETE FROM context_segments WHERE session_id=?`, id); err != nil {
-		return err
-	}
-	if _, err := tx.Exec(`DELETE FROM messages WHERE session_id=?`, id); err != nil {
-		return err
-	}
-	if _, err := tx.Exec(`DELETE FROM tool_audit WHERE session_id=?`, id); err != nil {
-		return err
-	}
-	if _, err := tx.Exec(`DELETE FROM sessions WHERE id=?`, id); err != nil {
-		return err
+	for _, id := range ids {
+		if _, err := tx.Exec(`DELETE FROM ssh_conversation_grants WHERE session_id=?`, id); err != nil {
+			return err
+		}
+		if _, err := tx.Exec(`DELETE FROM tool_grants WHERE scope='conversation' AND session_id=?`, id); err != nil {
+			return err
+		}
+		if _, err := tx.Exec(`DELETE FROM workflow_runs WHERE session_id=?`, id); err != nil {
+			return err
+		}
+		// Do not rely on SQLite's connection-local foreign_keys pragma here.
+		// Explicit deletion also guarantees that FTS cleanup triggers run.
+		if _, err := tx.Exec(`DELETE FROM context_tool_archive WHERE session_id=?`, id); err != nil {
+			return err
+		}
+		if _, err := tx.Exec(`DELETE FROM context_segments WHERE session_id=?`, id); err != nil {
+			return err
+		}
+		if _, err := tx.Exec(`DELETE FROM messages WHERE session_id=?`, id); err != nil {
+			return err
+		}
+		if _, err := tx.Exec(`DELETE FROM tool_audit WHERE session_id=?`, id); err != nil {
+			return err
+		}
+		if _, err := tx.Exec(`DELETE FROM sessions WHERE id=?`, id); err != nil {
+			return err
+		}
 	}
 	return tx.Commit()
 }

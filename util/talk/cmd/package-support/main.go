@@ -81,7 +81,7 @@ func run(check bool) error {
 	if err = copyTree("cmd", "support-services/cmd"); err != nil {
 		return err
 	}
-	for _, name := range []string{"Dockerfile", "package.json", "package-lock.json", "THIRD_PARTY_NOTICES.md"} {
+	for _, name := range []string{"Dockerfile", "package.json", "package-lock.json", "THIRD_PARTY_NOTICES.md", "document-schema.json"} {
 		if err = copyFile("docms/"+name, "extra-documents/"+name); err != nil {
 			return err
 		}

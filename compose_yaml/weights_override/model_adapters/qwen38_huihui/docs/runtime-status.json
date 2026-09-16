@@ -1,0 +1,14 @@
+{
+  "candidate_created": true,
+  "file_verification": "passed",
+  "runtime_comparison": "complete",
+  "production_configuration_changed": false,
+  "reason": "Validated both models on worker 60, TP1/64K; test containers removed. Pre-existing DeepSeek head was already stopped before the test, so the model set was left stopped.",
+  "worker": "192.168.100.60",
+  "image": "dgx-sglang-qwen38-fn:sm121-vocab1",
+  "context": 65536,
+  "mem_fraction_static": 0.79,
+  "initial_attempt": "0.70 failed hybrid state-cache budget by 0.55 GB, no host OOM",
+  "test_container_removed": true,
+  "worker_available_gib_after_cleanup": 117
+}

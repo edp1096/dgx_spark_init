@@ -43,9 +43,9 @@ services:
     entrypoint: ["python3", "/opt/sparktalk-flash-next/launch.py"]
     command:
       - --model-path
-      - /hf/hub/models--dealignai--Qwen3.8-Flash-Next-ABLITERATED-NVFP4/snapshots/be794b990578ef3031eccf9f28e675a289a09ee9
+      - /hf/edp1096/Huihui-RadixArk-Qwen3.8-Flash-Next-abliterated-NVFP4
       - --served-model-name
-      - qwen3.8-flash-next
+      - edp1096/Huihui-RadixArk-Qwen3.8-Flash-Next-abliterated-NVFP4
       - --host
       - 0.0.0.0
       - --port

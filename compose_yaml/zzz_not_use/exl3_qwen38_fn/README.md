@@ -44,4 +44,4 @@ MiaAI ARM64 fallback 파일로 대체하며, 단일 GPU CUDA 추론 경로는 �
 `setup`에 모델 준비가 포함된다. 설정은 `.env`/`env.sample`, 모델 종류는
 `MODEL_VARIANT=official|abliterated`이며 `setup`/`model`에 `--official` 또는
 `--abliterated`를 지정할 수 있다. HF_TOKEN 환경변수 또는 `--ask-token` 숨김 입력을
-사용한다. 상세 규칙은 [공통 CLI](../runtime-common/README.md)를 참조한다.
+사용한다. 명령과 옵션은 `./manage.sh --help`로 확인한다.

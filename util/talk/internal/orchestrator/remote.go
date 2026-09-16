@@ -218,6 +218,16 @@ func (c *Controller) prepareOrStartComponent(ctx context.Context, component Comp
 		}
 	}
 	service["container_name"] = component.Container
+	if component.ComposeAsset == "compose.ornith35.yaml" || component.ComposeAsset == "compose.gemma26.yaml" {
+		for _, key := range []string{"MTP_TOKENS", "DRAFT_VOCAB"} {
+			if value, ok := component.RuntimeOptions[key]; ok {
+				if (key == "MTP_TOKENS" && value != "0" && value != "1" && value != "3") || (key == "DRAFT_VOCAB" && value != "off" && value != "ko64k") {
+					return fmt.Errorf("invalid %s: %s", key, value)
+				}
+				service["environment"].(map[string]any)[key] = value
+			}
+		}
+	}
 	if component.ComposeAsset == "compose.flash-next.yaml" {
 		mode := component.RuntimeOptions["DRAFT_VOCAB"]
 		if mode != "" && mode != "off" && mode != "ko64k" {
@@ -312,7 +322,7 @@ func (c *Controller) prepareOrStartComponent(ctx context.Context, component Comp
 		}
 	}
 	_, err = executeHost(ctx, host, nil, "docker", "compose", "-p", "sparktalk-"+component.ID, "-f", configPath, "up", "-d")
-	return err
+	return explainComposeStartError(component.Host, err)
 }
 
 // Extra and speech images are built locally, not published to Docker Hub. Stream missing
@@ -472,4 +482,15 @@ func (c *Controller) localMemoryReserve(bundle Bundle, fallback float64) float64
 		}
 	}
 	return normalizedMemoryReserve(fallback)
+}
+
+// A missing container after Compose failure does not imply missing model weights.
+func explainComposeStartError(host string, err error) error {
+	if err == nil {
+		return nil
+	}
+	if strings.Contains(strings.ToLower(err.Error()), "all predefined address pools have been fully subnetted") {
+		return fmt.Errorf("Docker 네트워크 주소 대역 소진 (%s): 이전 실행에서 남은 미사용 네트워크 때문에 새 네트워크를 만들지 못했습니다. 모델 가중치나 메모리 부족 문제가 아닙니다. 해당 서버 터미널에서 `docker network prune`으로 컨테이너가 사용하지 않는 네트워크를 정리한 뒤 [시작]을 다시 누르세요. 이 명령은 모델 파일·이미지·볼륨을 삭제하지 않습니다. 원인: %w", host, err)
+	}
+	return err
 }

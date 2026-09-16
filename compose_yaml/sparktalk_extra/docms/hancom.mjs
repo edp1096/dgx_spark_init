@@ -1,3 +1,5 @@
+import {isExtended} from './blocks.mjs';
+import {populateHancom} from './hancom-rich.mjs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import JSZip from 'jszip';
@@ -10,6 +12,7 @@ export async function renderHancom(input,dir){
  await ready();const doc=HwpDocument.createEmpty();
  try{
   doc.createBlankDocument();
+  if(isExtended(input)){populateHancom(doc,input);}else{
   let forceNewParagraph=false;
   function paragraph(text,size=1100,bold=false){
    let index=doc.getParagraphCount(0)-1;
@@ -40,7 +43,31 @@ export async function renderHancom(input,dir){
     if(image.caption)paragraph(image.caption,1000,false);
    }
   }
-  let bytes=input.format==='hwp'?doc.exportHwp():doc.exportHwpx();
+  }
+  let bytes;
+  if(input.page?.page_numbers){
+   // The engine's header/footer field helper writes a bare 0x15 marker to HWP.
+   // Use its standard HWPX pageNum parser instead, yielding a real pgnp control.
+   const pageZip=await JSZip.loadAsync(doc.exportHwpx());
+   for(const name of Object.keys(pageZip.files))if(name.startsWith('META-INF/rhwp'))pageZip.remove(name);
+   let xml=await pageZip.file('Contents/section0.xml').async('string');let depth=0,position=-1;
+   for(const match of xml.matchAll(/<(\/?)hp:p\b[^>]*>/g)){
+    if(match[1]){if(--depth===0){position=match.index;break;}}
+    else if(!match[0].endsWith('/>'))depth++;
+   }
+   if(position<0)throw Error('No paragraph for page numbering');
+   xml=xml.slice(0,position)+'<hp:run charPrIDRef="0"><hp:ctrl><hp:pageNum pos="BOTTOM_CENTER" formatType="DIGIT" sideChar=""/></hp:ctrl></hp:run>'+xml.slice(position);
+   pageZip.file('Contents/section0.xml',xml.replace(/<hp:linesegarray>[\s\S]*?<\/hp:linesegarray>/g,''));
+   const numbered=new HwpDocument(await pageZip.generateAsync({type:'uint8array'}));
+   try{bytes=input.format==='hwp'?numbered.exportHwp():numbered.exportHwpx();}finally{numbered.free();}
+   if(input.format==='hwp'){
+    // HWPX has no OLE summary stream; preserve it from the original HWP export.
+    const {default:CFB}=await import('cfb');
+    const original=CFB.read(Buffer.from(doc.exportHwp()),{type:'buffer'});
+    const summary=CFB.find(original,'\u0005HwpSummaryInformation');
+    if(summary){const compound=CFB.read(Buffer.from(bytes),{type:'buffer'});CFB.utils.cfb_add(compound,'\u0005HwpSummaryInformation',summary.content);bytes=CFB.write(compound,{type:'buffer'});}
+   }
+  }else bytes=input.format==='hwp'?doc.exportHwp():doc.exportHwpx();
   // Generated HWPX mixes template line caches with newly composed paragraphs.
   // Omit optional line-position caches so readers lay out every paragraph together.
   // Remove the rhwp origin snapshot too, keeping the standard XML authoritative.

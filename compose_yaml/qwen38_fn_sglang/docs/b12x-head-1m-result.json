@@ -1,0 +1,67 @@
+{
+  "context": 1048576,
+  "input_tokens": 1046528,
+  "ttft_s": 1101.4786745110032,
+  "pp_estimate": 950.1119034053035,
+  "tg_estimate": 60.61167067511996,
+  "matched": {
+    "amber": true,
+    "birch": true,
+    "cobalt": true
+  },
+  "passed": true,
+  "guard": {
+    "0": {
+      "min_available_gib": 39.50440979003906,
+      "oom": false,
+      "boot_ids": [
+        "7828740f-f459-488a-a8b2-33e0831c8cb3"
+      ],
+      "events": [
+        "finished",
+        "started"
+      ],
+      "final_state": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 137,
+        "Error": "",
+        "StartedAt": "2026-09-14T06:41:07.926071608Z",
+        "FinishedAt": "2026-09-14T07:08:58.882480989Z"
+      }
+    },
+    "1": {
+      "min_available_gib": 41.654422760009766,
+      "oom": false,
+      "boot_ids": [
+        "76002ab3-9666-4ab6-a6b7-eb2faf301296"
+      ],
+      "events": [
+        "finished",
+        "started"
+      ],
+      "final_state": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 143,
+        "Error": "",
+        "StartedAt": "2026-09-14T06:41:06.736068162Z",
+        "FinishedAt": "2026-09-14T07:08:59.932044486Z"
+      }
+    }
+  },
+  "same_output_ids_as_baseline": true,
+  "baseline_ttft_s": 1098.8739536040011,
+  "baseline_pp": 952.3640055055259,
+  "baseline_tg": 58.05506556136405
+}

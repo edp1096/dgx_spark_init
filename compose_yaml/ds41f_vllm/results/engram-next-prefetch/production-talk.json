@@ -1,0 +1,72 @@
+{
+  "content": "spark-prefetch-ok",
+  "done": true,
+  "http_status": 200,
+  "temporary_session_deleted": true,
+  "total_seconds": 20.784817105999537,
+  "metrics_events": [
+    {
+      "kind": "performance",
+      "data": {
+        "prompt_tokens": 0,
+        "cached_tokens": 0,
+        "output_tokens": 0,
+        "calls": 1,
+        "live": true
+      }
+    },
+    {
+      "kind": "performance",
+      "data": {
+        "tg": 13.304530930850808,
+        "ttft": 19.912213063,
+        "tg_estimated": true,
+        "ttft_estimated": true,
+        "prompt_tokens": 0,
+        "cached_tokens": 0,
+        "output_tokens": 5,
+        "calls": 1,
+        "live": true
+      }
+    },
+    {
+      "kind": "performance",
+      "data": {
+        "tg": 13.304530930850808,
+        "ttft": 19.912213063,
+        "tg_estimated": true,
+        "ttft_estimated": true,
+        "prompt_tokens": 0,
+        "cached_tokens": 0,
+        "output_tokens": 5,
+        "calls": 1,
+        "live": true
+      }
+    },
+    {
+      "kind": "performance",
+      "data": {
+        "pp": 349.9232358351845,
+        "tg": 8.096812888443022,
+        "ttft": 19.892951686000742,
+        "prompt_tokens": 6961,
+        "cached_tokens": 0,
+        "output_tokens": 8,
+        "calls": 1,
+        "live": true
+      }
+    },
+    {
+      "kind": "performance",
+      "data": {
+        "pp": 349.9232358351845,
+        "tg": 8.096812888443022,
+        "ttft": 19.892951686000742,
+        "prompt_tokens": 6961,
+        "cached_tokens": 0,
+        "output_tokens": 8,
+        "calls": 1
+      }
+    }
+  ]
+}

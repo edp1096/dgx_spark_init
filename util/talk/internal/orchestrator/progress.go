@@ -68,17 +68,17 @@ func inferVLLMProgress(logs string) progressInfo {
 		return progressInfo{Key: "cuda-graph", Phase: "CUDA Graph 캡처", Detail: detail, Progress: .94 + progress*.04, ETA: etaForCurrentProgressLine(logs, barProgressPattern)}
 	}
 	if strings.Contains(logs, "Capturing model for speculator") {
-		return progressInfo{Key: "mtp", Phase: "MTP 추측 디코더 준비", Detail: "Flash Next의 보조 예측 경로를 GPU에 준비하고 있습니다.", Progress: .92}
+		return progressInfo{Key: "mtp", Phase: "MTP 추측 디코더 준비", Detail: "모델의 보조 예측 경로를 GPU에 준비하고 있습니다.", Progress: .92}
 	}
 	if strings.Contains(logs, "GPU KV cache size") {
-		return progressInfo{Key: "kv-cache", Phase: "KV 캐시 할당", Detail: "64K 컨텍스트용 GPU KV 캐시를 구성했습니다.", Progress: .89}
+		return progressInfo{Key: "kv-cache", Phase: "KV 캐시 할당", Detail: "설정된 문맥 한도에 맞춰 GPU KV 캐시를 구성했습니다.", Progress: .89}
 	}
 	if strings.Contains(logs, "Loading weights took") {
 		return progressInfo{Key: "weights-loaded", Phase: "모델 가중치 적재 완료", Detail: "체크포인트 적재를 마치고 추론 메모리를 구성합니다.", Progress: .76}
 	}
 	if match, percent, ok := latestCompletedProgress(logs); ok {
 		return progressInfo{
-			Key: "main-weights", Phase: "Flash Next 체크포인트 적재", Detail: fmt.Sprintf("%s/%s 샤드 · SSD에서 통합메모리로 읽는 중", match[2], match[3]),
+			Key: "main-weights", Phase: "모델 체크포인트 적재", Detail: fmt.Sprintf("%s/%s 샤드 · SSD에서 통합메모리로 읽는 중", match[2], match[3]),
 			Progress: .16 + percent*.58, ETA: etaForCurrentProgressLine(logs, completedProgressPattern),
 		}
 	}
@@ -86,15 +86,16 @@ func inferVLLMProgress(logs string) progressInfo {
 		return progressInfo{Key: "ple-mmap", Phase: "SSD PLE·ngram 연결", Detail: "대형 예측 테이블을 RAM에 복사하지 않고 SSD에서 mmap으로 연결합니다.", Progress: .14}
 	}
 	if hasAny(logs, "Detected ModelOpt NVFP4 checkpoint", "Resolved architecture") {
-		return progressInfo{Key: "architecture", Phase: "모델 구조·NVFP4 확인", Detail: "Flash Next 본체와 MTP 구성을 확인했습니다.", Progress: .11}
+		return progressInfo{Key: "architecture", Phase: "모델 구조·NVFP4 확인", Detail: "모델 구조와 양자화 구성을 확인했습니다.", Progress: .11}
 	}
 	if hasAny(logs, "Initializing a V1 LLM engine", "non-default args") {
 		return progressInfo{Key: "engine", Phase: "vLLM 엔진 구성", Detail: "실행 옵션과 메모리 계획을 적용하고 있습니다.", Progress: .07}
 	}
-	return progressInfo{Key: "container", Phase: "Flash Next 컨테이너 시작", Detail: "vLLM 프로세스의 첫 로그를 기다리고 있습니다.", Progress: .03}
+	return progressInfo{Key: "container", Phase: "vLLM 컨테이너 시작", Detail: "vLLM 프로세스의 첫 로그를 기다리고 있습니다.", Progress: .03}
 }
 
 func inferSGLangProgress(component Component, logs string) progressInfo {
+	flashNext := component.ID == "flash-next" || component.Controller == "qwen38-cluster"
 	draft := "DFlash"
 	switch component.ID {
 	case "qwen27":
@@ -102,8 +103,11 @@ func inferSGLangProgress(component Component, logs string) progressInfo {
 	case "flash-next":
 		draft = "MTP"
 	}
+	if flashNext {
+		draft = "MTP"
+	}
 	ready := strings.Contains(logs, "The server is fired up and ready to roll")
-	if component.ID != "flash-next" {
+	if !flashNext {
 		ready = ready || hasAny(logs, "Application startup complete", "Uvicorn running on")
 	}
 	if ready {
@@ -127,7 +131,7 @@ func inferSGLangProgress(component Component, logs string) progressInfo {
 	}
 	if hasAny(logs, "Full KV Cache is allocated", "SWA KV Cache is allocated", "KV Cache is allocated", "Memory pool end") {
 		phase := "FP8 KV 캐시 할당"
-		if component.ID == "flash-next" {
+		if flashNext {
 			phase = "KV·Mamba 캐시 할당"
 		}
 		return progressInfo{Key: "kv-cache", Phase: phase, Detail: "컨텍스트용 KV·상태 메모리 풀을 구성하고 있습니다.", Progress: .80}
@@ -168,13 +172,13 @@ func inferSGLangProgress(component Component, logs string) progressInfo {
 	if strings.Contains(logs, "Load weight end") {
 		return progressInfo{Key: "main-loaded", Phase: modelDisplayName(component) + " 가중치 적재 완료", Detail: "본체 모델을 통합메모리에 올렸습니다.", Progress: .50}
 	}
-	if component.ID == "flash-next" && hasAny(logs, "using attn output gate", "PLE table: resident set capped") {
+	if flashNext && hasAny(logs, "using attn output gate", "PLE table: resident set capped") {
 		return progressInfo{
 			Key: "main-weights", Phase: modelDisplayName(component) + " 체크포인트 적재",
 			Detail: "206개 NVFP4 샤드를 열고 첫 샤드 완료를 기다리고 있습니다.", Progress: .16,
 		}
 	}
-	if component.ID == "flash-next" && hasAny(logs, "PLE table", "ple_offload_backend", "file-backed") {
+	if flashNext && hasAny(logs, "PLE table", "ple_offload_backend", "file-backed") {
 		return progressInfo{Key: "ple-file", Phase: "SSD PLE·ngram 연결", Detail: "대형 ngram 표를 통합메모리에 고정하지 않고 NVMe 파일에 연결하고 있습니다.", Progress: .11}
 	}
 	if strings.Contains(logs, "Load weight begin") {

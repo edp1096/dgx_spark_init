@@ -22,11 +22,12 @@ func (s *Server) documentImagePayload(sessionID string, arguments string) ([]byt
 	if err := json.Unmarshal([]byte(arguments), &root); err != nil {
 		return nil, err
 	}
-	var sections []map[string]json.RawMessage
-	if raw, ok := root["sections"]; ok {
-		if err := json.Unmarshal(raw, &sections); err != nil {
-			return nil, err
-		}
+	if err := normalizeDocumentSections(root); err != nil {
+		return nil, err
+	}
+	sections, commit, err := documentImageScopes(root)
+	if err != nil {
+		return nil, err
 	}
 	var available map[string]db.Attachment
 	count, total := 0, 0
@@ -119,12 +120,11 @@ func (s *Server) documentImagePayload(sessionID string, arguments string) ([]byt
 		}
 		section["images"] = normalized
 	}
-	if sections != nil {
-		normalized, err := json.Marshal(sections)
-		if err != nil {
-			return nil, err
-		}
-		root["sections"] = normalized
+	if err := commit(); err != nil {
+		return nil, err
+	}
+	if err := s.documentMediaPayload(sessionID, root); err != nil {
+		return nil, err
 	}
 	return json.Marshal(root)
 }

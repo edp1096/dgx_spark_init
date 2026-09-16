@@ -14,7 +14,7 @@ import (
 )
 
 func TestEmbeddedRecipesContainNoPrivateEnvironment(t *testing.T) {
-	for _, id := range []string{"glm53", "ds4fve", "ds41"} {
+	for _, id := range []string{"glm53", "ds4fve", "ds41", "qwen38-tp2"} {
 		data, err := assets.ReadFile("assets/recipes/" + id + ".tar.gz")
 		if err != nil {
 			t.Fatal(err)
@@ -228,10 +228,10 @@ func TestDS41StreamingBundle(t *testing.T) {
 	if bundle.ContextTokens != 65536 || !bundle.StartSupport {
 		t.Fatal("wrong DS41 startup defaults")
 	}
-	if len(cat.StartBundleMembers(bundle).Components) != 6 {
-		t.Fatal("ASR and all four Extra services must start with DS41")
+	if len(cat.StartBundleMembers(bundle).Components) != 7 {
+		t.Fatal("ASR, TTS and all four Extra services must start with DS41")
 	}
-	if len(cat.ModelBundle(bundle).Components) != 2 {
+	if len(cat.ModelBundle(bundle).Components) != 3 {
 		t.Fatal("stopping a set must preserve shared Extra services")
 	}
 	for _, id := range []string{"nemotron-asr", "extra-media", "extra-ssh", "extra-collector", "extra-documents"} {

@@ -1,3 +1,4 @@
+import { selectOption, expectControlValue } from './select-helpers.js';
 import { expect, test } from '@playwright/test';
 
 test('stores download credentials separately and exposes embedded model preparation', async ({ page, request }) => {
@@ -5,12 +6,12 @@ test('stores download credentials separately and exposes embedded model preparat
   await page.locator('.settings-button').click();
   await page.getByRole('tab', { name: '시스템' }).click();
   await page.getByRole('button', { name: '모델 준비', exact: true }).click();
-  await page.getByRole('combobox', { name: '모델', exact: true }).selectOption('ds4fve');
-  await page.getByRole('combobox', { name: '가중치', exact: true }).selectOption('abliterated');
+  await selectOption(page.getByRole('combobox', { name: '모델', exact: true }), 'ds4fve');
+  await selectOption(page.getByRole('combobox', { name: '가중치', exact: true }), 'abliterated');
   await expect(page.getByRole('link', { name: /drowzeys\/keys-DeepSeek/ })).toHaveAttribute('href', 'https://huggingface.co/drowzeys/keys-DeepSeekV4Flash-Vision-EXP-ablit');
-  await page.getByRole('combobox', { name: '모델', exact: true }).selectOption('glm53');
+  await selectOption(page.getByRole('combobox', { name: '모델', exact: true }), 'glm53');
   await expect(page.getByRole('link', { name: /lovesenko\/GLM/ })).toBeVisible();
-  await page.getByRole('combobox', { name: '가중치', exact: true }).selectOption('official');
+  await selectOption(page.getByRole('combobox', { name: '가중치', exact: true }), 'official');
   await expect(page.getByRole('link', { name: /lovesenko\/GLM/ })).toHaveCount(0);
   for (const id of ['qwen27-exl3', 'qwen27-gguf']) {
     await expect(page.getByRole('combobox', { name: '모델', exact: true }).locator(`option[value="${id}"]`)).toHaveCount(0);
@@ -20,7 +21,7 @@ test('stores download credentials separately and exposes embedded model preparat
     await page.getByLabel('다운로드 토큰', { exact: true }).fill(token);
     await page.getByRole('button', { name: '토큰 저장', exact: true }).click();
     await expect(page.getByText('토큰 등록됨', { exact: true })).toBeVisible();
-    await expect(page.getByLabel('새 토큰으로 교체')).toHaveValue('');
+    await expectControlValue(page.getByLabel('새 토큰으로 교체'), '');
     expect(await (await request.get('/api/credentials/huggingface')).json()).toEqual({ configured: true });
     expect(await (await request.get('/api/config')).text()).not.toContain(token);
     await expect(page.getByRole('button', { name: '모델만 준비', exact: true })).toBeVisible();

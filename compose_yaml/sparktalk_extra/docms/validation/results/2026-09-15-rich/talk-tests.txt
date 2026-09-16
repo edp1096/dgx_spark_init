@@ -1,0 +1,3 @@
+ok  	sparktalk/internal/server	1.654s
+ok  	sparktalk/internal/orchestrator	0.913s
+ok  	sparktalk/internal/config	0.325s

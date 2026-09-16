@@ -132,3 +132,47 @@ func TestRejectedSummaryKeepsCheckpointAndOriginalTranscript(t *testing.T) {
 		t.Fatal("source or checkpoint changed")
 	}
 }
+
+func TestAutomaticOutputBudgetMatchesRequestAndReservation(t *testing.T) {
+	store, err := db.Open(filepath.Join(t.TempDir(), "auto.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer store.Close()
+	store.CreateSession("s", "test", "model", "none")
+	user, _ := store.AddMessage("s", "user", "hello", "", nil, nil)
+	limit := 0
+	backend := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var body struct {
+			Limit int `json:"max_completion_tokens"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			t.Error(err)
+		}
+		limit = body.Limit
+		w.Header().Set("Content-Type", "text/event-stream")
+		fmt.Fprint(w, "data: {\"choices\":[{\"delta\":{\"content\":\"ok\"},\"finish_reason\":\"stop\"}]}\n\ndata: [DONE]\n\n")
+	}))
+	defer backend.Close()
+	cfg := config.Config{Context: config.ContextConfig{Enabled: true, OutputAuto: true, OutputReserve: 16384, SafetyMargin: 1024, CompactAtPercent: 80, ImageTokens: 100}}
+	cfg.Tools.MaxRounds = 3
+	server := &Server{db: store, cfg: cfg}
+	for _, window := range []int{1048576, 32768} {
+		cfg.Context.WindowTokens = window
+		var state contextState
+		emit := func(event string, value any) error {
+			if event == "context" {
+				state = value.(contextState)
+			}
+			return nil
+		}
+		_, err := server.runContextCompletion(context.Background(), "s", []db.Message{user}, "model", "none", cfg, llm.New(backend.URL, "model", ""), false, emit, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		want := cfg.Context.EffectiveOutputReserve(window)
+		if limit != want || state.InputBudget != window-want-1024 {
+			t.Fatalf("window=%d limit=%d input=%d", window, limit, state.InputBudget)
+		}
+	}
+}

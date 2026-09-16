@@ -10,28 +10,34 @@ import (
 )
 
 func (r *Runner) fetch(ctx context.Context, rawURL string) (string, string, error) {
+	text, finalURL, _, err := r.fetchImages(ctx, rawURL)
+	return text, finalURL, err
+}
+
+func (r *Runner) fetchImages(ctx context.Context, rawURL string) (string, string, []ImageSource, error) {
 	u, err := url.Parse(rawURL)
 	if err != nil {
-		return "", "", err
+		return "", "", nil, err
 	}
 	if err := validatePublicURL(ctx, u); err != nil {
-		return "", "", err
+		return "", "", nil, err
 	}
 	body, contentType, finalURL, err := r.fetchPage(ctx, u, "")
 	if err != nil {
-		return "", "", err
+		return "", "", nil, err
 	}
 	if strings.EqualFold(finalURL.Hostname(), "blog.naver.com") && strings.Contains(strings.ToLower(contentType), "html") {
 		if frameURL := naverFrameURL(finalURL, string(body)); frameURL != nil {
 			if err := validatePublicURL(ctx, frameURL); err != nil {
-				return "", "", err
+				return "", "", nil, err
 			}
 			body, contentType, finalURL, err = r.fetchPage(ctx, frameURL, finalURL.String())
 			if err != nil {
-				return "", "", err
+				return "", "", nil, err
 			}
 		}
 	}
+	images := extractImages(finalURL, string(body))
 	text := string(body)
 	if strings.Contains(contentType, "html") || strings.Contains(strings.ToLower(text[:min(len(text), 256)]), "<html") {
 		if strings.EqualFold(finalURL.Hostname(), "blog.naver.com") {
@@ -47,7 +53,7 @@ func (r *Runner) fetch(ctx context.Context, rawURL string) (string, string, erro
 	if len(text) > maxResultBytes {
 		text = text[:maxResultBytes] + "\n[truncated]"
 	}
-	return text, finalURL.String(), nil
+	return text, finalURL.String(), images, nil
 }
 
 func (r *Runner) fetchPage(ctx context.Context, u *url.URL, referer string) ([]byte, string, *url.URL, error) {

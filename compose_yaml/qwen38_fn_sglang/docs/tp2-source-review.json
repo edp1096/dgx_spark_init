@@ -1,0 +1,7 @@
+{
+  "image": "sha256:ecb60e9705433d3cf4172567ff084c586c1b89a158288b8251c93d812d0fca50",
+  "ple_tp2": "rank-tagged vocabulary shards and TP all-reduce present",
+  "draft_shortlist": "disabled: worker indexes global shortlist into TP-local target head",
+  "kv_dtype": "bfloat16",
+  "checkpoint_unchanged": true
+}

@@ -1,0 +1,15 @@
+{
+  "selected_bundle": "flash-next-tp2",
+  "model": {
+    "endpoint": "http://127.0.0.1:8012",
+    "default_model": "edp1096/Huihui-RadixArk-Qwen3.8-Flash-Next-abliterated-NVFP4",
+    "model_type": "qwen3.8"
+  },
+  "image_ids_match": true,
+  "llm_health": 200,
+  "talk_health": 200,
+  "chunk": 1024,
+  "context": 1048576,
+  "kv_dtype": "bfloat16",
+  "token_map": "/opt/sparktalk-flash-next/draft_vocab.pt"
+}

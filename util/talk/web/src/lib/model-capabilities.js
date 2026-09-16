@@ -5,8 +5,8 @@ const THINKING_OFF_VALUES = new Set(['', '0', '0.0', 'none', 'off', 'false', 'no
 
 export function modelCapabilities(modelType) {
   const type = String(modelType || '').trim().toLowerCase();
-  if (type === 'gemma4') {
-    return { family: 'gemma4', reasoning: 'toggle', reasoningLevels: ['on', 'none'] };
+  if (type === 'gemma4' || type === 'gemma4-vllm' || type === 'qwen3.5') {
+    return { family: type === 'gemma4-vllm' ? 'gemma4' : type, reasoning: 'toggle', reasoningLevels: ['on', 'none'] };
   }
   if (type === 'qwen3.8' || type === 'qwen3.8-exl3') {
     return { family: type, reasoning: 'effort', reasoningLevels: QWEN_REASONING_LEVELS };

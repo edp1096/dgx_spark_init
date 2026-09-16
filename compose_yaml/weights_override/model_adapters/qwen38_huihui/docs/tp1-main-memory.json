@@ -1,0 +1,8 @@
+{
+  "min_available_gib": 18.458969116210938,
+  "guard_trip": false,
+  "oom": false,
+  "boot_ids": [
+    "7828740f-f459-488a-a8b2-33e0831c8cb3"
+  ]
+}

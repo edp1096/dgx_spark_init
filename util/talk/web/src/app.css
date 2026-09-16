@@ -284,8 +284,9 @@ header { display: flex; align-items: center; gap: 13px; padding: 12px 20px; bord
 .runtime-component > div { align-items: flex-end; }
 .runtime-component > div b { color: #8f9aaa; font-size: 9px; font-weight: 550; }
 .runtime-switch { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 6px; }
-.runtime-switch select { min-width: 0; height: 31px; padding: 0 7px; border: 1px solid #343b49; border-radius: 7px; color: #c7ceda; background: #11151c; font-size: 10px; }
+.runtime-switch select, .runtime-switch button.select-trigger { min-width: 0; height: 31px; padding: 0 7px; border: 1px solid #343b49; border-radius: 7px; color: #c7ceda; background: #11151c; font-size: 10px; }
 .runtime-switch button { height: 31px; padding: 0 10px; border: 1px solid #3b4352; border-radius: 7px; color: #aab4c4; background: #202530; font-size: 10px; }
+.runtime-switch .select-menu { font-size: 10px; }
 .runtime-switch button.primary { border-color: #4e72cc; color: #e9efff; background: #4468c5; }
 .runtime-switch button:disabled { cursor: default; opacity: .4; }
 .runtime-docker { padding: 0 3px; color: #6fae89; font-size: 9px; }
@@ -351,7 +352,7 @@ article.mine { flex-direction: row-reverse; }
 .prose .code-card-footer { display: none; justify-content: flex-end; padding: 4px 6px; border-top: 1px solid #242833; background: #11141b; }
 .prose .code-card-long.expanded .code-card-footer { display: flex; }
 .reasoning { margin: 0 0 12px; border: 1px solid #2b3040; border-radius: 10px; background: #12151d; color: #9299a8; }
-.reasoning summary { padding: 9px 12px; cursor: pointer; font-size: 13px; user-select: none; }
+.reasoning-toggle { display:block; width:100%; border:0; border-radius:9px; text-align:left; background:transparent; color:inherit; padding: 9px 12px; cursor: pointer; font-size: 13px; user-select: none; }
 .reasoning-text { max-height: 330px; overflow: auto; padding: 0 13px 11px; border-top: 1px solid #252a37; font-size: 13px; line-height: 1.6; }
 .tool-trace { margin: 0 0 12px; border: 1px solid #293547; border-radius: 10px; background: #101720; color: #96a8bd; }
 .tool-trace summary { padding: 9px 12px; cursor: pointer; font-size: 13px; user-select: none; }
@@ -586,6 +587,16 @@ textarea::placeholder { color: #777f8f; }
 .settings-bundle-card strong { color: #e2e8f4; font-size: 13px; }
 .settings-bundle-card b { max-width: 270px; overflow: hidden; color: #98ace0; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
 .settings-bundle-card small { color: #747f91; font-size: 10px; }
+.settings-bundle-card strong, .settings-bundle-card small { overflow-wrap: anywhere; }
+@media (max-width: 600px) {
+  .settings-bundle-card { grid-template-columns: minmax(0, 1fr); align-items: start; gap: 9px; }
+  .settings-bundle-card > div { align-items: flex-start; }
+  .settings-bundle-card b { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+}
+/* Preserve native selection behavior; only tint the selected option. */
+select option:checked { background-color: #29374e; color: #edf2fa; }
+html[data-theme="light"] select option:checked { background-color: #dce7f7; color: #1f3656; }
+
 .settings-modal fieldset label { display: flex; flex-direction: column; gap: 6px; color: #929aaa; font-size: 12px; }
 .settings-modal fieldset label.check { flex-direction: row; align-items: center; }
 .settings-modal fieldset input:not([type="checkbox"]) { height: 36px; padding: 0 10px; border: 1px solid #343948; border-radius: 8px; color: #edf0f5; background: #0e1117; }

@@ -576,21 +576,28 @@ func (c *Controller) runBundleStart(bundle Bundle, reserveGiB float64) {
 			}
 		}
 	}
+	// Deferred services must also release their memory when already running
+	// from another set; otherwise they still consume the LLM startup headroom.
+	if c.componentNeedsStart(ctx, llm) {
+		for _, id := range bundle.Components {
+			component, _ := c.Catalog().ResolveComponent(bundle.ID, id)
+			if component.StartAfterLLM && c.componentRunning(ctx, component) {
+				c.updateOperation(component.ID, progressInfo{Key: "defer:" + id, Phase: component.Name + " 기동 대기", Detail: "언어 모델 준비 후 다시 시작합니다."})
+				if err := c.stopComponent(ctx, component); err != nil && !isMissingContainer(err) {
+					c.failCurrentStep(err.Error())
+					c.finishOperation("failed", component.Name+": "+err.Error())
+					return
+				}
+			}
+		}
+	}
 	if err := c.waitForBundleHeadroom(bundle, reserveGiB, "세트 기동 전 메모리 재확인", 15*time.Second); err != nil {
 		c.failCurrentStep(err.Error())
 		c.finishOperation("failed", err.Error())
 		return
 	}
 
-	ordered := append([]string(nil), bundle.Components...)
-	// GB10 shares physical memory between CPU and GPU. Start small CUDA
-	// services first so their contexts exist before the LLM consumes most of
-	// the immediately free pages. Image weights remain lazy until generation.
-	sort.SliceStable(ordered, func(i, j int) bool {
-		a, _ := c.Catalog().ResolveComponent(bundle.ID, ordered[i])
-		b, _ := c.Catalog().ResolveComponent(bundle.ID, ordered[j])
-		return a.Role != "llm" && b.Role == "llm"
-	})
+	ordered := c.Catalog().startupOrder(bundle)
 	var failures []string
 	for index, id := range ordered {
 		component, _ := c.Catalog().ResolveComponent(bundle.ID, id)
@@ -979,4 +986,22 @@ func (c *Controller) reclaimGLMStartupCache(ctx context.Context, bundle Bundle) 
 		}
 	}
 	return true, nil
+}
+
+// Small services normally start first. Explicitly deferred services preserve
+// startup headroom for models with a larger loading/tuning peak.
+func (c Catalog) startupOrder(bundle Bundle) []string {
+	ordered := append([]string(nil), bundle.Components...)
+	priority := func(id string) int {
+		component, _ := c.ResolveComponent(bundle.ID, id)
+		if component.Role == "llm" {
+			return 1
+		}
+		if component.StartAfterLLM {
+			return 2
+		}
+		return 0
+	}
+	sort.SliceStable(ordered, func(i, j int) bool { return priority(ordered[i]) < priority(ordered[j]) })
+	return ordered
 }

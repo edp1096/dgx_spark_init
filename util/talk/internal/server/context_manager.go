@@ -83,7 +83,7 @@ func (s *Server) buildContext(ctx context.Context, sessionID string, items []db.
 		state.Notice = windowErr.Error()
 	}
 	state.WindowTokens = window
-	state.InputBudget = max(0, window-cfg.Context.OutputReserve-cfg.Context.SafetyMargin)
+	state.InputBudget = max(0, window-cfg.Context.EffectiveOutputReserve(window)-cfg.Context.SafetyMargin)
 	state.ThresholdTokens = state.InputBudget * cfg.Context.CompactAtPercent / 100
 	state.Managed = cfg.Context.Enabled && window > 0
 	var end int64
@@ -211,6 +211,12 @@ func (s *Server) runContextCompletion(
 	emit eventEmitter,
 	mediaSink mediaAttachmentSink,
 ) (answer completionResult, runErr error) {
+	tracked, release, err := s.trackGeneration(ctx)
+	if err != nil {
+		return completionResult{}, err
+	}
+	defer release()
+	ctx = tracked
 	var measurements performance.Accumulator
 	defer func() {
 		answer.Performance = measurements.Summary(false)
@@ -232,7 +238,7 @@ func (s *Server) runContextCompletion(
 		return completionResult{}, err
 	}
 	ctx = context.WithValue(ctx, contextRunKey{}, &contextRun{state: state, cfg: cfg.Context, emit: emit})
-	ctx = llm.WithOutputLimit(ctx, cfg.Context.OutputReserve)
+	ctx = llm.WithOutputLimit(ctx, cfg.Context.EffectiveOutputReserve(state.WindowTokens))
 	_ = emit("context", state)
 	result, err := runCompletionLoopForSessionWithMedia(s, sessionID, ctx, client, messages, model, reasoningEffort, cfg.Model.SystemPrompt, cfg.Tools, toolsEnabled, emit, mediaSink)
 	if err == nil || result.Content != "" || result.Reasoning != "" || len(result.ToolTrace) > 0 || !isContextOverflow(err) {

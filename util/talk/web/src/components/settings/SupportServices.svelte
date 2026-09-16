@@ -1,4 +1,5 @@
 <script>
+  import Select from '../Select.svelte';
   import SettingsHelp from './SettingsHelp.svelte';
   import { onMount, onDestroy } from 'svelte';
   export let settings;
@@ -96,7 +97,7 @@
         <span>준비 버전: {row.version}</span>
         {#if row.running_image}<span>실행 이미지: {row.running_image}</span>{/if}
       </div>
-      {#if snapshot.managed}<label class="settings-field-row"><span>실행 호스트</span><select value={staged.host} disabled={running || busy} onchange={event => edit(row, 'host', event.currentTarget.value)}>{#each Object.keys(settings.runtime.catalog?.hosts || {}) as host}<option value={host}>{host}</option>{/each}</select></label>{/if}
+      {#if snapshot.managed}<label class="settings-field-row"><span>실행 호스트</span><Select value={staged.host} disabled={running || busy} onchange={event => edit(row, 'host', event.currentTarget.value)}>{#each Object.keys(settings.runtime.catalog?.hosts || {}) as host}<option value={host}>{host}</option>{/each}</Select></label>{/if}
       {#if snapshot.managed}<label class="settings-field-row settings-number-row"><span>서버 포트</span><input type="number" min="1" max="65535" value={staged.port || ''} disabled={running || busy} onchange={event => edit(row, 'port', Number(event.currentTarget.value))} /></label>{/if}
       <label class="settings-field-row"><span>API 주소</span><input value={staged.endpoint || ''} disabled={snapshot.managed && (running || busy)} onchange={event => edit(row, 'endpoint', event.currentTarget.value)} /></label>
       {#if running && snapshot.managed}<small>실행 위치나 주소를 바꾸려면 먼저 서비스를 중지하세요.</small>{/if}

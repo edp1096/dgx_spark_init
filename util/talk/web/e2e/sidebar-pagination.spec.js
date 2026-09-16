@@ -1,3 +1,4 @@
+import { expectControlValue } from './select-helpers.js';
 import { expect, test } from '@playwright/test';
 
 test('bounds folder and ungrouped rows while paging and finding an older chat', async ({ page }) => {
@@ -40,14 +41,14 @@ test('bounds folder and ungrouped rows while paging and finding an older chat', 
   await expect(other.locator('.session-select').first()).toHaveText('대화 600');
   const jump = page.getByRole('textbox', { name: '미분류 대화 페이지 이동', exact: true });
   await jump.fill('999'); await jump.press('Enter');
-  await expect(jump).toHaveValue('67');
+  await expectControlValue(jump, '67');
   await expect(other.locator('.session-select').first()).toHaveText('대화 990');
   await jump.fill('0'); await jump.press('Enter');
-  await expect(jump).toHaveValue('1');
-  await jump.fill(''); await jump.press('Enter'); await expect(jump).toHaveValue('1');
-  await jump.fill('3.5'); await jump.press('Enter'); await expect(jump).toHaveValue('1');
-  await jump.fill('20'); await jump.press('Escape'); await expect(jump).toHaveValue('1');
-  await jump.fill('20'); await jump.press('Tab'); await expect(jump).toHaveValue('1');
+  await expectControlValue(jump, '1');
+  await jump.fill(''); await jump.press('Enter'); await expectControlValue(jump, '1');
+  await jump.fill('3.5'); await jump.press('Enter'); await expectControlValue(jump, '1');
+  await jump.fill('20'); await jump.press('Escape'); await expectControlValue(jump, '1');
+  await jump.fill('20'); await jump.press('Tab'); await expectControlValue(jump, '1');
   for (const width of [1280, 390]) {
     await page.setViewportSize({ width, height: 720 });
     if (width === 390 && !(await page.locator('.sidebar').count())) await page.getByRole('button', { name: '사이드바 열기 또는 닫기' }).click();

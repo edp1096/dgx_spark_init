@@ -1,0 +1,33 @@
+{
+  "device_capability": [
+    12,
+    1
+  ],
+  "image": "dgx-sglang-qwen38-fn:sm121-vocab1",
+  "triton_dot": [
+    {
+      "max_num_imprecise_acc": 0,
+      "emitted_mma": "mma.sync.aligned.m16n8k16.row.col.f32.f16.f16.f32",
+      "max_abs_error_vs_fp32_on_quantized_inputs": 0.0
+    },
+    {
+      "max_num_imprecise_acc": 32,
+      "emitted_mma": "mma.sync.aligned.m16n8k16.row.col.f32.f16.f16.f32",
+      "max_abs_error_vs_fp32_on_quantized_inputs": 0.0
+    },
+    {
+      "max_num_imprecise_acc": 256,
+      "emitted_mma": "mma.sync.aligned.m16n8k16.row.col.f32.f16.f16.f32",
+      "max_abs_error_vs_fp32_on_quantized_inputs": 0.0
+    }
+  ],
+  "inline_ptx": {
+    "emitted_mma": "mma.sync.aligned.m16n8k32.row.col.f32.e4m3.e4m3.f32",
+    "test": "all-ones matrix product, contraction dimension 32",
+    "outputs_checked": 128,
+    "expected_output": 32,
+    "all_correct": true,
+    "torch_peak_allocated_bytes": 1536
+  },
+  "limits": "Primitive capability check only. No attention/model accuracy or performance qualification. Serving settings unchanged."
+}

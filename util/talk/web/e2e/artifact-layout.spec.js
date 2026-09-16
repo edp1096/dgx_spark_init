@@ -43,3 +43,43 @@ test('uses a full-screen artifact workspace on mobile', async ({ page }) => {
   expect(stage?.height).toBeGreaterThan(580);
   await expect(page.getByRole('button', { name: '생성물 닫기' })).toBeVisible();
 });
+
+test('model and tools popups follow their buttons as the artifact workspace changes', async ({ page }) => {
+  await page.setViewportSize({ width: 1600, height: 900 });
+  await page.goto('/');
+  const initialColumns = await page.locator('.shell').evaluate(el => el.style.gridTemplateColumns);
+  const model = page.getByRole('button', { name: '모델 및 대화 설정', exact: true });
+  const tools = page.getByRole('button', { name: '대화 도구', exact: true });
+  async function expectAnchored(trigger) {
+    await expect.poll(async () => {
+      const button = await trigger.boundingBox();
+      const popup = await page.locator('.quick-panel').boundingBox();
+      return Math.abs(popup.x + popup.width - button.x - button.width);
+    }).toBeLessThan(2);
+    const button = await trigger.boundingBox();
+    const popup = await page.locator('.quick-panel').boundingBox();
+    const header = await page.locator('.chat-header').boundingBox();
+    expect(Math.abs(popup.y - button.y - button.height - 8)).toBeLessThan(2);
+    expect(popup.x).toBeGreaterThanOrEqual(header.x);
+    expect(popup.x + popup.width).toBeLessThanOrEqual(header.x + header.width);
+  }
+  await model.click(); await expectAnchored(model);
+  const original = await page.locator('.quick-panel').boundingBox();
+  await mountArtifactPanel(page);
+  await expectAnchored(model);
+  expect((await page.locator('.quick-panel').boundingBox()).x).toBeLessThan(original.x - 300);
+  for (const artifactWidth of [420, 620]) {
+    await page.locator('.shell').evaluate((el, width) => el.style.gridTemplateColumns = `260px minmax(420px, 1fr) ${width}px`, artifactWidth);
+    await expectAnchored(model);
+  }
+  await tools.click(); await expectAnchored(tools);
+  await page.screenshot({ path: '/tmp/talk-artifact-tools-anchor.png' });
+  await page.setViewportSize({ width: 1500, height: 800 });
+  await expectAnchored(tools);
+  await page.locator('.shell').evaluate((el, columns) => {
+    el.querySelector('.artifact-panel').remove();
+    el.classList.remove('artifact-open');
+    el.style.gridTemplateColumns = columns;
+  }, initialColumns);
+  await expectAnchored(tools);
+});

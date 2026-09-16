@@ -10,11 +10,12 @@ sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from engram_reader import Reader
 
 class ReaderTests(unittest.TestCase):
+    reader_class=Reader
     def setUp(self):
         self.tmp=tempfile.TemporaryDirectory()
         self.data=bytes((i*31+i//7)%256 for i in range(131072))
         p=Path(self.tmp.name)/'rows';p.write_bytes(self.data)
-        self.fd=os.open(p,os.O_RDONLY);self.reader=Reader(4)
+        self.fd=os.open(p,os.O_RDONLY);self.reader=self.reader_class(4)
     def tearDown(self):
         self.reader.close();os.close(self.fd);self.tmp.cleanup()
     def test_mixed_rows_and_concurrent_callers(self):

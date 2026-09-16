@@ -1,3 +1,4 @@
+import { selectOption, controlValue, expectControlValue } from './select-helpers.js';
 import { test, expect } from '@playwright/test';
 
 test('keeps character and user profiles separate and preserves shared rules across persona and model changes', async ({ page, request }) => {
@@ -6,19 +7,19 @@ test('keeps character and user profiles separate and preserves shared rules acro
     await page.goto('/'); await page.locator('.settings-button').click();
     await page.getByRole('tab', { name: '프로필', exact: true }).click();
     await expect(page.locator('#settings-panel-chat').getByRole('combobox', { name: '프롬프트 작성 방식', exact: true })).toHaveCount(0);
-    await page.getByRole('combobox', { name: '프롬프트 작성 방식', exact: true }).selectOption('compose');
+    await selectOption(page.getByRole('combobox', { name: '프롬프트 작성 방식', exact: true }), 'compose');
     await page.locator('summary').filter({ hasText: /^답변 길이 / }).click();
     await page.getByLabel('간결하게', { exact: true }).check();
     await page.getByRole('tab', { name: '프로필', exact: true }).click();
     await page.getByLabel('AI 이름', { exact: true }).fill('아리아');
     await page.getByLabel('짧은 소개').fill('차분하고 호기심 많은 대화 상대');
-    await page.getByRole('combobox', { name: '페르소나', exact: true }).selectOption('teacher');
+    await selectOption(page.getByRole('combobox', { name: '페르소나', exact: true }), 'teacher');
     await page.getByRole('button', { name: '변경', exact: true }).filter({ visible: true }).click();
     await page.getByRole('button', { name: 'AI 아바타: 고양이', exact: true }).click();
-    await page.getByRole('combobox', { name: '페르소나', exact: true }).selectOption('reviewer');
+    await selectOption(page.getByRole('combobox', { name: '페르소나', exact: true }), 'reviewer');
     await page.getByRole('combobox', { name: '프롬프트 작성 방식', exact: true }).scrollIntoViewIfNeeded();
     await page.screenshot({ path: '/tmp/sparktalk-profile-desktop.png' });
-    const preview = await page.getByLabel('최종 프롬프트 미리보기').inputValue();
+    const preview = await controlValue(page.getByLabel('최종 프롬프트 미리보기'));
     expect(preview).toContain('아리아'); expect(preview).toContain('[답변 길이]');
     await page.getByRole('button', { name: '내 프로필', exact: true }).click();
     await page.getByLabel('내 이름', { exact: true }).fill('사용자');
@@ -26,7 +27,7 @@ test('keeps character and user profiles separate and preserves shared rules acro
     await page.getByRole('button', { name: '내 아바타: 강아지', exact: true }).click();
     await page.getByRole('button', { name: 'AI 캐릭터', exact: true }).click();
     await expect(page.getByLabel('간결하게', { exact: true })).toBeChecked();
-    await expect(page.getByLabel('최종 프롬프트 미리보기')).toHaveValue(preview);
+    await expectControlValue(page.getByLabel('최종 프롬프트 미리보기'), preview);
     await page.getByRole('button', { name: '저장', exact: true }).click();
     await expect.poll(async () => (await (await request.get('/api/config')).json()).model.system_prompt).toBe(preview);
     const cfg = await (await request.get('/api/config')).json();
@@ -37,8 +38,8 @@ test('keeps character and user profiles separate and preserves shared rules acro
     await expect(page.locator('.brand strong')).toHaveText('아리아');
     await page.locator('.settings-button').click();
     await page.getByRole('tab', { name: '프로필', exact: true }).click();
-    await expect(page.getByLabel('AI 이름', { exact: true })).toHaveValue('아리아');
-    await expect(page.getByLabel('최종 프롬프트 미리보기')).toHaveValue(preview);
+    await expectControlValue(page.getByLabel('AI 이름', { exact: true }), '아리아');
+    await expectControlValue(page.getByLabel('최종 프롬프트 미리보기'), preview);
     await expect(page.getByAltText('AI 아바타 미리보기')).toHaveAttribute('src', '/avatars/cat.png');
     await page.getByRole('button', { name: '변경', exact: true }).filter({ visible: true }).click();
     await page.locator('#settings-profile-character input[type=file]').setInputFiles({

@@ -61,7 +61,7 @@ func Definitions() []llm.Tool {
 		}},
 		{Type: "function", Function: llm.ToolFunction{
 			Name:        "web_fetch",
-			Description: "Fetch readable text from a public HTTP(S) URL. Local and private network addresses are blocked. Cite the URL in the final answer.",
+			Description: "Fetch readable text and image URLs from a public HTTP(S) page. For photos, choose an images[].url and pass it unchanged to media_import. Local and private network addresses are blocked. Cite the URL in the final answer.",
 			Parameters:  json.RawMessage(`{"type":"object","properties":{"url":{"type":"string","description":"Public HTTP(S) URL"}},"required":["url"],"additionalProperties":false}`),
 		}},
 	}
@@ -91,11 +91,11 @@ func (r *Runner) Execute(ctx context.Context, name, arguments string) (string, e
 		if err := json.Unmarshal([]byte(arguments), &args); err != nil || strings.TrimSpace(args.URL) == "" {
 			return "", fmt.Errorf("web_fetch requires a URL")
 		}
-		text, finalURL, err := r.fetch(ctx, strings.TrimSpace(args.URL))
+		text, finalURL, images, err := r.fetchImages(ctx, strings.TrimSpace(args.URL))
 		if err != nil {
 			return "", err
 		}
-		data, _ := json.Marshal(map[string]string{"url": finalURL, "content": text})
+		data, _ := json.Marshal(map[string]any{"url": finalURL, "content": text, "images": images})
 		return string(data), nil
 	default:
 		return "", fmt.Errorf("unknown tool: %s", name)

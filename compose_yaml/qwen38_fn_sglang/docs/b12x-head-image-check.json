@@ -1,0 +1,5 @@
+{
+  "tested_vs_head_only_logits_ast_equal_except_log_text": true,
+  "head_only_moe_source_equals_original": true,
+  "image": "sha256:5b15fbfd6e5438844d8625fb9e81a6bd115940184a77270f1ccee13800ba6cc1"
+}

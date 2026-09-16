@@ -1,3 +1,5 @@
+import { optionTexts } from './select-helpers.js';
+import { expectControlValue } from './select-helpers.js';
 import { expect, test } from '@playwright/test';
 
 test('does not offer a stale conversation model after a runtime switch', async ({ page }) => {
@@ -19,8 +21,8 @@ test('does not offer a stale conversation model after a runtime switch', async (
   await page.goto('/');
 
   await page.getByRole('button', { name: '모델 및 대화 설정', exact: true }).click();
-  const selector = page.locator('.quick-panel select[aria-label="모델 선택"]');
-  await expect(selector).toHaveValue(currentModel);
-  await expect(selector.locator('option')).toHaveCount(1);
-  await expect(selector.locator('option')).toHaveText(currentModel);
+  const selector = page.locator('.quick-panel .select-trigger[aria-label="모델 선택"]');
+  await expectControlValue(selector, currentModel);
+  await expect.poll(() => optionTexts(selector)).toHaveLength(1);
+  await expect.poll(() => optionTexts(selector)).toEqual([currentModel]);
 });

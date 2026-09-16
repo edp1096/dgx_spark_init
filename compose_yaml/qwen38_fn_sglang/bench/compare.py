@@ -46,7 +46,7 @@ CORPUS = [
 
 
 def chat(url, prompt, *, tools=None, thinking=False, max_tokens=256):
-    body = dict(model="qwen3.8-flash-next", messages=[dict(role="user", content=prompt)],
+    body = dict(model="edp1096/Huihui-RadixArk-Qwen3.8-Flash-Next-abliterated-NVFP4", messages=[dict(role="user", content=prompt)],
                 temperature=0, max_tokens=max_tokens, stream=True,
                 stream_options={"include_usage": True},
                 chat_template_kwargs={"enable_thinking": thinking})

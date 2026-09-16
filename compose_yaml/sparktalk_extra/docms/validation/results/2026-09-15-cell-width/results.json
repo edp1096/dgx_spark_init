@@ -1,0 +1,89 @@
+{
+  "table": {
+    "presentation": {
+      "slide_count": 1,
+      "input_slide_count": 1,
+      "tables": [
+        {
+          "table_id": 1,
+          "source_slide": 1,
+          "slide_numbers": [
+            1
+          ],
+          "rows_per_slide": [
+            6
+          ],
+          "column_widths_inches": [
+            0.84,
+            1.32,
+            2.28,
+            2.76,
+            4.8
+          ],
+          "split": false
+        }
+      ],
+      "evidence": "generated_pptx_structure",
+      "visually_verified": false
+    },
+    "seconds": 0.31320633899304084
+  },
+  "block": {
+    "presentation": {
+      "slide_count": 1,
+      "input_slide_count": 1,
+      "tables": [
+        {
+          "table_id": 1,
+          "source_slide": 1,
+          "slide_numbers": [
+            1
+          ],
+          "rows_per_slide": [
+            6
+          ],
+          "column_widths_inches": [
+            0.84,
+            1.32,
+            2.28,
+            2.76,
+            4.8
+          ],
+          "split": false
+        }
+      ],
+      "evidence": "generated_pptx_structure",
+      "visually_verified": false
+    },
+    "seconds": 0.29984213900752366
+  },
+  "merged": {
+    "presentation": {
+      "slide_count": 1,
+      "input_slide_count": 1,
+      "tables": [
+        {
+          "table_id": 1,
+          "source_slide": 1,
+          "slide_numbers": [
+            1
+          ],
+          "rows_per_slide": [
+            3
+          ],
+          "column_widths_inches": [
+            3.6,
+            8.4
+          ],
+          "split": false
+        }
+      ],
+      "evidence": "generated_pptx_structure",
+      "visually_verified": false
+    },
+    "seconds": 0.30065145299886353
+  },
+  "conflict": {
+    "error": "Conflicting cell.width values in the same table grid"
+  }
+}

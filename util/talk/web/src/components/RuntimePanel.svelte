@@ -1,4 +1,5 @@
 <script>
+  import Select from './Select.svelte';
   export let runtime = null;
   export let busy = false;
   export let onAction = async () => {};
@@ -29,7 +30,7 @@
     if (component.health === 'starting') return '준비 중';
     if (component.health === 'failed') return '실패';
     if (component.status === 'exited') return '중지됨';
-    if (component.status === 'missing') return '미설치';
+    if (component.status === 'missing') return '컨테이너 없음';
     return '오프라인';
   }
 
@@ -87,11 +88,11 @@
   </div>
 
   <div class="runtime-switch">
-    <select bind:value={targetBundle} aria-label="전환할 AI 세트">
+    <Select bind:value={targetBundle} aria-label="전환할 AI 세트">
       {#each runtime?.bundles || [] as bundle}
         <option value={bundle.id}>{bundle.name} · 약 {formatGiB(bundle.memory_gib)}</option>
       {/each}
-    </select>
+    </Select>
     <button type="button" class="primary" disabled={busy || operationRunning || !targetBundle || (targetIsSelected && selectedBundleOnline)} onclick={() => onAction('start', targetBundle)}>{primaryLabel}</button>
     <button type="button" disabled={busy || operationRunning || !runtime?.selected_bundle} onclick={() => onAction('stop', runtime.selected_bundle)}>모델 세트 중지</button>
   </div>

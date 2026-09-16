@@ -1,0 +1,49 @@
+{
+  "status": "passed",
+  "default_bundle": "flash-next-tp2",
+  "model": "edp1096/Huihui-RadixArk-Qwen3.8-Flash-Next-abliterated-NVFP4",
+  "endpoint": "http://127.0.0.1:8012",
+  "context_tokens": 1048576,
+  "components": {
+    "flash-next-tp2": {
+      "status": "running",
+      "health": "online",
+      "model": "edp1096/Huihui-RadixArk-Qwen3.8-Flash-Next-abliterated-NVFP4"
+    },
+    "flux2": {
+      "status": "running",
+      "health": "online",
+      "model": "flux2-klein-4b-nvfp4"
+    },
+    "nemotron-asr": {
+      "status": "running",
+      "health": "online",
+      "model": "nemotron-3.5-asr-streaming-0.6b"
+    },
+    "magpie-tts": {
+      "status": "running",
+      "health": "online",
+      "model": "magpietts"
+    },
+    "extra-media": {
+      "status": "running",
+      "health": "online",
+      "model": null
+    },
+    "extra-ssh": {
+      "status": "running",
+      "health": "online",
+      "model": null
+    },
+    "extra-collector": {
+      "status": "running",
+      "health": "online",
+      "model": null
+    },
+    "extra-documents": {
+      "status": "running",
+      "health": "online",
+      "model": null
+    }
+  }
+}

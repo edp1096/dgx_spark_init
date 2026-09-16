@@ -1,0 +1,47 @@
+PHASE seed 1
+PHASE baseline 1
+b12x policy fallback: moe.decode is using a heuristic on nvidia gb10 (compute capability 12.1, 48 SMs) because profile 'nvidia.gb10.48sm' does not cover the query; query={'activation': 'silu', 'hidden_size': 5120, 'intermediate_size': 1152, 'num_experts': 224, 'num_tokens': 1, 'numerical_recipe': 'deepseek_v41', 'quant_mode': 'w4a8_mx', 'routed_rows': 6, 'source_format': 'fp4_e8m0_k32', 'top_k': 6}
+Fatal Python error: Segmentation fault
+
+Thread 0x0000f782ad1ef180 (most recent call first):
+  File "/usr/lib/python3.12/concurrent/futures/thread.py", line 89 in _worker
+  File "/usr/lib/python3.12/threading.py", line 1010 in run
+  File "/usr/lib/python3.12/threading.py", line 1073 in _bootstrap_inner
+  File "/usr/lib/python3.12/threading.py", line 1030 in _bootstrap
+
+Current thread 0x0000f786223ce720 (most recent call first):
+  Garbage-collecting
+  File "<frozen os>", line 685 in __getitem__
+  File "/usr/lib/python3.12/shutil.py", line 1487 in get_terminal_size
+  File "/usr/lib/python3.12/argparse.py", line 183 in __init__
+  File "/usr/lib/python3.12/argparse.py", line 2635 in _get_formatter
+  File "/usr/lib/python3.12/argparse.py", line 1503 in add_argument
+  File "/usr/local/lib/python3.12/dist-packages/nvidia_cutlass_dsl/dsl_packages/cutlass/base_dsl/compiler.py", line 1154 in _parse_compile_options_from_str
+  File "/usr/local/lib/python3.12/dist-packages/nvidia_cutlass_dsl/dsl_packages/cutlass/base_dsl/compiler.py", line 1372 in _compile
+  File "/usr/local/lib/python3.12/dist-packages/nvidia_cutlass_dsl/dsl_packages/cutlass/base_dsl/compiler.py", line 1250 in __call__
+  File "/usr/local/lib/python3.12/dist-packages/nvidia_cutlass_dsl/dsl_packages/cutlass/utils/hardware_info.py", line 205 in _get_device_function
+  File "/usr/local/lib/python3.12/dist-packages/nvidia_cutlass_dsl/dsl_packages/cutlass/utils/hardware_info.py", line 72 in get_max_active_clusters
+  File "/usr/local/lib/python3.12/dist-packages/b12x/_lib/utils.py", line 235 in get_max_active_clusters
+  File "/usr/local/lib/python3.12/dist-packages/b12x/moe/fused_moe/_impl.py", line 9636 in _get_impl_mac
+  File "/usr/local/lib/python3.12/dist-packages/b12x/moe/fused_moe/_impl.py", line 11058 in _launch_dynamic_flat
+  File "/usr/local/lib/python3.12/dist-packages/b12x/moe/fused_moe/_impl.py", line 11460 in _tp_moe_dynamic_launch_op
+  File "/usr/local/lib/python3.12/dist-packages/torch/_library/custom_ops.py", line 502 in wrapped_fn
+  File "/usr/local/lib/python3.12/dist-packages/torch/_dynamo/eval_frame.py", line 1446 in _fn
+  File "/usr/local/lib/python3.12/dist-packages/torch/_compile.py", line 54 in inner
+  File "/usr/local/lib/python3.12/dist-packages/torch/_library/custom_ops.py", line 441 in backend_impl
+  File "/usr/local/lib/python3.12/dist-packages/torch/_ops.py", line 882 in redispatch
+  File "/usr/local/lib/python3.12/dist-packages/torch/_library/custom_ops.py", line 826 in adinplaceorview_impl
+  File "/usr/local/lib/python3.12/dist-packages/torch/_ops.py", line 882 in redispatch
+  File "/usr/local/lib/python3.12/dist-packages/torch/_library/autograd.py", line 41 in forward_no_grad
+  File "/usr/local/lib/python3.12/dist-packages/torch/_library/autograd.py", line 123 in autograd_impl
+  File "/usr/local/lib/python3.12/dist-packages/torch/_ops.py", line 1279 in __call__
+  File "/usr/local/lib/python3.12/dist-packages/b12x/moe/fused_moe/_impl.py", line 11677 in _launch_dynamic
+  File "/usr/local/lib/python3.12/dist-packages/b12x/moe/fused_moe/_impl.py", line 12936 in b12x_moe_fp4
+  File "/usr/local/lib/python3.12/dist-packages/b12x/moe/fused_moe/execution.py", line 307 in prewarm
+  File "/opt/ds41/b12x_slots.py", line 316 in execution
+  File "/opt/ds41/b12x_slots.py", line 342 in execute
+  File "/opt/ds41/b12x_slots.py", line 390 in _run
+  File "/opt/ds41/b12x_slots.py", line 372 in run
+  File "/opt/ds41/tools/bench_expert_callback.py", line 62 in <module>
+
+Extension modules: numpy._core._multiarray_umath, numpy.linalg._umath_linalg, torch._C, torch._C._dynamo.autograd_compiler, torch._C._dynamo.eval_frame, torch._C._dynamo.guards, torch._C._dynamo.utils, torch._C._fft, torch._C._linalg, torch._C._nested, torch._C._nn, torch._C._sparse, torch._C._special, cuda.bindings._bindings.cydriver, cuda.bindings.cydriver, cuda.bindings.driver, cuda.bindings._bindings.cyruntime_ptds, cuda.bindings._bindings.cyruntime, cuda.bindings.cyruntime, cuda.bindings.runtime, _b12x_loader_storage, cuda.bindings._internal.utils, cuda.bindings._internal.nvrtc, cuda.bindings.cynvrtc, cuda.bindings.nvrtc, numpy.random._common, numpy.random.bit_generator, numpy.random._bounded_integers, numpy.random._mt19937, numpy.random.mtrand, numpy.random._philox, numpy.random._pcg64, numpy.random._sfc64, numpy.random._generator, cuda_utils (total: 35)

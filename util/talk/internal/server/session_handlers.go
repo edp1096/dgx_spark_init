@@ -269,3 +269,34 @@ func (s *Server) contextSession(w http.ResponseWriter, r *http.Request, sessionI
 	}
 	writeJSON(w, http.StatusOK, state)
 }
+
+func (s *Server) bulkDeleteSessions(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		methodNotAllowed(w)
+		return
+	}
+	var req struct {
+		IDs []string `json:"ids"`
+	}
+	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 1<<20)).Decode(&req); err != nil || len(req.IDs) == 0 || len(req.IDs) > 10000 {
+		http.Error(w, "삭제할 대화를 1~10000개 선택하세요", 400)
+		return
+	}
+	seen := make(map[string]bool)
+	ids := make([]string, 0, len(req.IDs))
+	for _, id := range req.IDs {
+		if strings.TrimSpace(id) == "" {
+			http.Error(w, "invalid session id", 400)
+			return
+		}
+		if !seen[id] {
+			ids = append(ids, id)
+			seen[id] = true
+		}
+	}
+	if err := s.db.DeleteSessions(ids); err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}

@@ -1,14 +1,14 @@
 # DeepSeek V4.1 Flash 모델세트
 
-`ds41` 세트는 TP2 SSD expert streaming LLM, 워커 Nemotron ASR 및 헤드 Extra Media·SSH·Collector·Documents를 연결한다. 문맥은 65,536이며 요청별 최대 출력 기본값 16,384는 Talk 설정을 따른다.
+`ds41` 세트는 TP2 SSD expert streaming LLM, 워커 Nemotron ASR·Magpie TTS 및 헤드 Extra Media·SSH·Collector·Documents를 연결한다. 문맥은 65,536이며 요청별 최대 출력 기본값 16,384는 Talk 설정을 따른다.
 
-`start_support: true`인 세트는 등록된 Extra 서비스도 먼저 시작한다. ASR 등 주변 서비스가 준비된 후 LLM을 시작하고 직전에 메모리를 다시 검사한다. 세트 중지는 기존처럼 공용 Extra를 유지한다. 다른 세트의 시작 동작은 바뀌지 않는다.
+`start_support: true`인 세트는 등록된 Extra 서비스도 먼저 시작한다. ASR과 Extra가 준비된 후 LLM을 시작하고 직전에 메모리를 다시 검사한다. Magpie TTS는 `start_after_llm: true`로 LLM 준비 후 시작한다. 이미 워커 TTS가 실행 중이면 LLM 재기동 전에 잠시 중지해 기존 115GiB 기동 메모리 기준을 유지한다. 세트 중지는 기존처럼 공용 Extra를 유지한다. 다른 세트의 시작 동작은 바뀌지 않는다.
 
 LLM은 `ds41-cluster` 컨트롤러가 두 랭크를 함께 관리한다. 실행 코드는 앱에 포함된 `assets/recipes/ds41.tar.gz`를 앱 데이터 디렉터리에 풀고 워커로 전달한다. 실행 시 작업 저장소 경로를 참조하지 않는다. 호스트, HF 캐시, 컨테이너 이름, API 포트와 통신망 설정은 카탈로그에서 전달된다.
 
 현재 준비된 원본 체크포인트와 rank별 packed expert, `dgx-ds41-stream:b12x8` 이미지가 두 호스트에 필요하다. 새 시스템용 이미지 빌드·체크포인트 다운로드·expert packing 자동 설치는 이 등록 작업의 범위에 포함하지 않았다. 기존 `compose_yaml/ds41f_vllm` 준비 절차를 사용한다.
 
-현재 실행값은 target expert 224개/레이어, draft 128개/레이어, KV 2GiB/rank, DSpark 5, prefill scheduler 8192, expert kernel 2048, shared I/O buffer, scratch 384MiB다. Engram은 native reader를 쓰고 초기 자동 튜닝은 4096토큰으로 제한한다. 별도로 검증한 원본 MXFP8 dense 연산 설정 8개를 초기화 마지막에 적용한다. Decoder row 실험과 probe 제어는 꺼진다. 부족한 메모리에 맞춰 캐시를 자동 축소하지 않고 launch 메모리 검사에서 중단한다.
+현재 실행값은 target expert 224개/레이어, draft 128개/레이어, KV 2GiB/rank, DSpark 5, prefill scheduler 8192, expert kernel 2048, shared I/O buffer, scratch 384MiB다. Engram은 `native_hint` C 읽기와 다음 프리필 청크 사전 읽기를 쓰고 초기 자동 튜닝은 4096토큰으로 제한한다. 별도로 검증한 원본 MXFP8 dense 연산 설정 8개를 초기화 마지막에 적용한다. Decoder row 실험과 probe 제어는 꺼진다. 부족한 메모리에 맞춰 캐시를 자동 축소하지 않고 launch 메모리 검사에서 중단한다.
 
 런타임 변경 후 패키지를 재생성한다:
 
@@ -56,3 +56,20 @@ Talk 내장 패키지와 Linux arm64 바이너리를 갱신했고 실제 채팅�
 모델의 메모리 견적은 헤드108/워커107GiB이며 기동 전 런타임 검사는 각각
 116/115GiB를 요구한다. 워커 ASR·헤드 Extra와 함께 정상 기동하고 음성 인식도
 확인했다. Go orchestrator/config/server 테스트와 reader·초기화 순서 검사가 통과했다.
+
+## 다음 청크 Engram 사전 읽기
+
+2026-09-13 후속 측정으로 다음 입력 청크의 알려진 Engram 행을 읽기 스레드
+2개로 미리 읽도록 기본 적용했다. 원본 해시·가중치·demand 읽기는 유지하며,
+최대 한 청크만 준비한다. 캐시를 비운 27,964토큰 입력의 3회 중앙값은
+TTFT 46.79→42.48초, pp 598→658tok/s(+10.16%)다. 반복 입력과 tg는 거의 같다.
+[구현·실측 조건](../../../compose_yaml/ds41f_vllm/docs/ENGRAM_NEXT_PREFETCH.md)을 참조한다.
+
+## 작은 Engram 행 사전 요청
+
+2026-09-13 추가 비교에서 mmap 자체는 이득이 없어 제외했다. 작은 demand
+읽기에 WILLNEED를 먼저 요청하는 `native_hint`만 기본 적용했다. 캐시를 비운
+400토큰 숫자 생성의 3회 중앙값 tg는 39.16→40.59(+3.65%)이며, 캐시가 있으면
+40.98→40.95로 거의 같다. 512행을 넘는 읽기 배치는 이 사전 요청을 생략한다.
+이전 다음 청크 사전 읽기는 계속 켜져 있고, DCP는 구조·통신 검토 후 보류했다.
+[상세 검증](../../../compose_yaml/ds41f_vllm/docs/MMAP_ENGRAM_READER.md).

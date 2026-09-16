@@ -1,0 +1,25 @@
+{
+  "available_bytes": 10701893632,
+  "swap_free_bytes": 17179865088,
+  "memory_pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=27\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=27",
+  "thermal_millic": {
+    "acpitz": 58800
+  },
+  "container_id": "058754621ea1cb8baff53bc3f4245a881205ae24fb2a2f46e77aafed38397f2d",
+  "status": "running",
+  "oom_killed": false,
+  "cgroup": {
+    "current": 95853346816,
+    "peak": 95853445120,
+    "max": 107374182400
+  },
+  "events": {
+    "low": 0,
+    "high": 0,
+    "max": 0,
+    "oom": 0,
+    "oom_kill": 0,
+    "oom_group_kill": 0
+  },
+  "reason": "host_available_below_floor"
+}

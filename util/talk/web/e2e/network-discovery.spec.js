@@ -1,3 +1,4 @@
+import { expectControlValue } from './select-helpers.js';
 import { expect, test } from '@playwright/test';
 
 test('discovers physical workers in the host selector without starting services', async ({ page, request }) => {
@@ -19,7 +20,7 @@ test('discovers physical workers in the host selector without starting services'
   await editor.getByLabel('이 컴퓨터를 헤드로 사용하고 워커 자동 탐색').check();
   await editor.getByRole('button',{name:'워커 탐색 · 주소 맞추기'}).click();
   await expect(editor.getByText('현재 헤드: spark-head',{exact:false})).toBeVisible();
-  await expect(editor.getByLabel('워커 장비',{exact:true})).toHaveValue('worker-physical-id');
+  await expectControlValue(editor.getByLabel('워커 장비',{exact:true}), 'worker-physical-id');
   expect(requests).toBe(1);
   // Discovery is a preview: unsaved edits must not change running configuration.
   const current=await (await request.get('/api/config')).json();

@@ -1,0 +1,137 @@
+[
+  {
+    "variant": "Full vocabulary / 1024",
+    "korean_tg_weighted": 38.09790830471301,
+    "context": 1048576,
+    "kv_capacity": 1114112,
+    "prefill": {
+      "needle_1800": {
+        "tokens": 25246.0,
+        "ttft": 10.345650621980894,
+        "effective_pp": 2440.252519871594,
+        "correct": true
+      },
+      "needle_7200": {
+        "tokens": 100846.0,
+        "ttft": 43.81536308550858,
+        "effective_pp": 2301.6127882631567,
+        "correct": true
+      },
+      "needle_14400": {
+        "tokens": 201647.0,
+        "ttft": 95.01066962249752,
+        "effective_pp": 2122.3616337112117,
+        "correct": true
+      }
+    },
+    "eligible": true
+  },
+  {
+    "variant": "ko64k / 1024",
+    "korean_tg_weighted": 40.74963431789528,
+    "context": 1048576,
+    "kv_capacity": 1114112,
+    "prefill": {
+      "needle_1800": {
+        "tokens": 25246.0,
+        "ttft": 10.503406700503547,
+        "effective_pp": 2403.601109608531,
+        "correct": true
+      },
+      "needle_7200": {
+        "tokens": 100846.0,
+        "ttft": 43.37876621048781,
+        "effective_pp": 2324.7779688030446,
+        "correct": true
+      },
+      "needle_14400": {
+        "tokens": 201647.0,
+        "ttft": 94.2509247525013,
+        "effective_pp": 2139.4697243503547,
+        "correct": true
+      }
+    },
+    "eligible": true
+  },
+  {
+    "variant": "ko64k / 2048",
+    "korean_tg_weighted": 42.134776600881736,
+    "context": 1048576,
+    "kv_capacity": 1114112,
+    "prefill": {
+      "needle_1800": {
+        "tokens": 25246.0,
+        "ttft": 8.643699252483202,
+        "effective_pp": 2920.7402134852405,
+        "correct": false
+      },
+      "needle_7200": {
+        "tokens": 100846.0,
+        "ttft": 38.32137560749834,
+        "effective_pp": 2631.5861161379466,
+        "correct": true
+      },
+      "needle_14400": {
+        "tokens": 201647.0,
+        "ttft": 81.73145445849514,
+        "effective_pp": 2467.1896681148673,
+        "correct": true
+      }
+    },
+    "eligible": false
+  },
+  {
+    "variant": "ko64k / 4096",
+    "korean_tg_weighted": 40.76225676879849,
+    "context": 1048576,
+    "kv_capacity": 1114112,
+    "prefill": {
+      "needle_1800": {
+        "tokens": 25246.0,
+        "ttft": 8.260502197503229,
+        "effective_pp": 3056.2306499513684,
+        "correct": false
+      },
+      "needle_7200": {
+        "tokens": 100846.0,
+        "ttft": 34.4784884545079,
+        "effective_pp": 2924.896203992808,
+        "correct": false
+      },
+      "needle_14400": {
+        "tokens": 201647.0,
+        "ttft": 75.6137514685106,
+        "effective_pp": 2666.8032743220792,
+        "correct": false
+      }
+    },
+    "eligible": false
+  },
+  {
+    "variant": "ko64k / 8192",
+    "korean_tg_weighted": 39.35409217086594,
+    "context": 1048576,
+    "kv_capacity": 1114112,
+    "prefill": {
+      "needle_1800": {
+        "tokens": 25246.0,
+        "ttft": 8.682279747488792,
+        "effective_pp": 2907.761640288312,
+        "correct": false
+      },
+      "needle_7200": {
+        "tokens": 100846.0,
+        "ttft": 33.746283819986274,
+        "effective_pp": 2988.3586749268625,
+        "correct": false
+      },
+      "needle_14400": {
+        "tokens": 201647.0,
+        "ttft": 71.15077763149748,
+        "effective_pp": 2834.080058047512,
+        "correct": false
+      }
+    },
+    "eligible": false
+  }
+]

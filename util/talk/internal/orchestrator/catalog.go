@@ -23,6 +23,7 @@ type Host struct {
 }
 
 type Component struct {
+	StartAfterLLM   bool              `json:"start_after_llm,omitempty" yaml:"start_after_llm,omitempty"`
 	AutoAddress     bool              `json:"auto_address,omitempty" yaml:"auto_address,omitempty"`
 	RuntimeOptions  map[string]string `json:"runtime_options,omitempty" yaml:"runtime_options,omitempty"`
 	Host            string            `json:"host" yaml:"host"`
@@ -266,7 +267,7 @@ func validateDeployment(catalog Catalog, component Component) error {
 		if _, err := composeAsset(component.ComposeAsset); err != nil {
 			return fmt.Errorf("component %q: unknown compose recipe", component.ID)
 		}
-	case "glm53-cluster", "dspark-cluster", "ds41-cluster":
+	case "glm53-cluster", "dspark-cluster", "ds41-cluster", "qwen38-cluster":
 		if component.WorkerContainer == "" || component.WorkerHost == component.Host {
 			return fmt.Errorf("component %q: cluster requires a distinct worker", component.ID)
 		}
@@ -291,5 +292,5 @@ func validateDeployment(catalog Catalog, component Component) error {
 }
 
 func (c Component) isCluster() bool {
-	return c.Controller == "glm53-cluster" || c.Controller == "dspark-cluster" || c.Controller == "ds41-cluster"
+	return c.Controller == "qwen38-cluster" || c.Controller == "glm53-cluster" || c.Controller == "dspark-cluster" || c.Controller == "ds41-cluster"
 }

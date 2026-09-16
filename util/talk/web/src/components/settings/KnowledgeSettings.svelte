@@ -1,4 +1,5 @@
 <script>
+  import Select from '../Select.svelte';
   import { onMount } from 'svelte';
   import {
     collectKnowledgeSource, createKnowledgeCollection, deleteKnowledgeCollection, deleteKnowledgeDocument,
@@ -213,7 +214,7 @@
     <small>지식 보관함을 불러오는 중…</small>
   {:else}
     <div class="knowledge-picker">
-      <label>현재 보관함<select bind:value={selectedID} onchange={selectCollection}>{#each collections as collection}<option value={collection.id}>{collection.name} · {collection.documents}</option>{/each}</select></label>
+      <label>현재 보관함<Select bind:value={selectedID} onchange={selectCollection}>{#each collections as collection}<option value={collection.id}>{collection.name} · {collection.documents}</option>{/each}</Select></label>
       <label class="knowledge-enabled"><input type="checkbox" bind:checked={selected.enabled} disabled={!selected} /> 대화 검색에 사용</label>
     </div>
     {#if selected}
@@ -238,7 +239,7 @@
   <legend>문서</legend>
   <div class="knowledge-source">
     <input type="url" bind:value={sourceURL} onkeydown={(event) => event.key === 'Enter' && collectURL()} placeholder="웹 문서 주소" aria-label="웹 문서 주소" />
-    <select bind:value={sourceMode} aria-label="수집 방식"><option value="auto">자동</option><option value="direct">직접 요청</option><option value="browser">브라우저</option></select>
+    <Select bind:value={sourceMode} aria-label="수집 방식"><option value="auto">자동</option><option value="direct">직접 요청</option><option value="browser">브라우저</option></Select>
     <button onclick={collectURL} disabled={busy || !selectedID || !sourceURL.trim()}>주소 가져오기</button>
   </div>
   <small>자동은 가벼운 직접 요청을 먼저 사용하고, 본문이 부족한 HTML만 격리된 Chromium으로 다시 읽습니다.{health ? ` Collector · ${health.status === 'ok' ? 'online' : 'offline'}` : ''}</small>

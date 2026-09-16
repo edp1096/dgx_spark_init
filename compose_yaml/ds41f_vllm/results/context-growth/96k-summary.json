@@ -1,0 +1,12 @@
+{
+  "context_tested_at_startup": 98304,
+  "kv_bytes_per_rank": 2147483648,
+  "guard_floor_gib": 10,
+  "guard_cgroup_gib": 96,
+  "outcome": "stopped during startup autotuning before readiness; no long request sent",
+  "head_available_gib_at_stop": 9.966915130615234,
+  "head_cgroup_gib_at_stop": 89.2703857421875,
+  "oom": false,
+  "attempted_128k": false,
+  "reason": "host_available_below_floor"
+}

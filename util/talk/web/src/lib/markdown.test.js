@@ -45,3 +45,13 @@ test('does not rewrite strong-like text inside code', () => {
   const source = '`**한경(온라인)**은`\n\n```text\n**한경(온라인)**은\n```';
   assert.equal(normalizeMarkdown(source), source);
 });
+
+
+test('single tildes remain literal in Korean numeric ranges', () => {
+  const source = '아침 7~8시가 17°C, 한낮 15~16시에 29°C. 낮 0~20% (오후 3~5시).';
+  const html = parseMarkdown(source);
+  assert.doesNotMatch(html, /<del>/);
+  for (const range of ['7~8', '15~16', '0~20', '3~5']) assert.ok(html.includes(range));
+  assert.match(parseMarkdown('~~취소~~와 ~물결~'), /<del>취소<\/del>와 ~물결~/);
+  assert.match(parseMarkdown('`a~b`'), /<code>a~b<\/code>/);
+});

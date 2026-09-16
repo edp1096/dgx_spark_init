@@ -1,0 +1,33 @@
+{
+  "eligible": false,
+  "correct": 1,
+  "total": 6,
+  "failures": [
+    {
+      "name": "needle_7200",
+      "repeat": 0,
+      "text": "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+    },
+    {
+      "name": "needle_14400",
+      "repeat": 0,
+      "text": "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+    },
+    {
+      "name": "needle_1800",
+      "repeat": 1,
+      "text": "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+    },
+    {
+      "name": "needle_7200",
+      "repeat": 1,
+      "text": "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+    },
+    {
+      "name": "needle_14400",
+      "repeat": 1,
+      "text": "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+    }
+  ],
+  "decision": "Reject; invalid output despite lower prefill latency. Root cause not isolated."
+}

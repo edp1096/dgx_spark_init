@@ -17,7 +17,7 @@ services:
                 - -e
                 - fetch('http://127.0.0.1:8696/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))
             timeout: 5s
-        image: sparktalk-extra-documents:0.4.0
+        image: sparktalk-extra-documents:0.5.2
         init: true
         mem_limit: 1g
         pids_limit: 128

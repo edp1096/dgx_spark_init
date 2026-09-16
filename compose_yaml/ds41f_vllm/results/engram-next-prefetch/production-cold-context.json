@@ -1,0 +1,26 @@
+{
+  "seconds": 42.021776527999464,
+  "answer": "silver-forest-827",
+  "usage": {
+    "prompt_tokens": 27964,
+    "total_tokens": 27971,
+    "completion_tokens": 7,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "created_cache_tokens": 0,
+      "multimodal_tokens": null
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "metrics": {
+    "time_to_first_token_ms": 41723.984085001575,
+    "generation_time_ms": 257.972477000294,
+    "queue_time_ms": 0.019967999833170325,
+    "mean_itl_ms": 42.99541283338234,
+    "tokens_per_second": 0.16673829838449558,
+    "speculative_decoding": null
+  },
+  "support_services": "head Extra x4, worker ASR"
+}

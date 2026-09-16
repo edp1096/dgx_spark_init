@@ -1,0 +1,5 @@
+{
+  "vllm_kv_cache_interface": "f1a63db8d1404d8e8998e70f3a373e8e93d159e62be6dc108d0840a9ce0accf3",
+  "flashinfer_sm120_sparse": "0b93e36914f2614dde2a6ecc23c546ca486f53a7e3ecd99ad7ef43b3ac51b245",
+  "vllm_pynccl": "579f58bfe934bda4414d7098bce95cc721ddeeff004c64300a01d34d3193e25c"
+}

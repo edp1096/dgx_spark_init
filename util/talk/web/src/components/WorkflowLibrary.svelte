@@ -1,4 +1,5 @@
 <script>
+  import Select from './Select.svelte';
  import {onMount} from 'svelte';
  export let onnotify=()=>{};
  let items=[],skills=[],draft=null,original='',busy=false,search='',deleting=false;
@@ -28,9 +29,9 @@
  <details><summary>사용 스킬 · {s.skills.join(', ')||'선택 필요'}</summary><div class="checks">{#each skills as skill}<label><input type="checkbox" bind:group={s.skills} value={skill.name} disabled={draft.builtin} />{skill.name}</label>{/each}</div></details>
  <label>완료 조건<textarea aria-label={`단계 ${i+1} 완료 조건`} bind:value={s.done_when} readonly={draft.builtin} required maxlength="2000" rows="2"></textarea></label>
  <details><summary>검증·재시도 · {tools[s.verify_tool]||s.verify_tool}</summary>
- <label>필요한 실행 근거<select bind:value={s.verify_tool} onchange={()=>{if(s.verify_tool!=='ssh_exec')s.verify_command='';}} disabled={draft.builtin}>{#each Object.entries(tools) as [value,label]}<option {value}>{label}</option>{/each}</select></label>
+ <label>필요한 실행 근거<Select bind:value={s.verify_tool} onchange={()=>{if(s.verify_tool!=='ssh_exec')s.verify_command='';}} disabled={draft.builtin}>{#each Object.entries(tools) as [value,label]}<option {value}>{label}</option>{/each}</Select></label>
  {#if s.verify_tool==='ssh_exec'}<label>검증 명령 일치 (선택)<input bind:value={s.verify_command} readonly={draft.builtin} placeholder="예: go test ./..." /><small>입력하면 이 명령의 성공 결과만 검증 근거로 인정합니다.</small></label>{/if}
- <label>검증 실패 시 돌아갈 단계<select bind:value={s.on_failure} disabled={draft.builtin}><option value={-1}>중단</option>{#each draft.steps.slice(0,i) as prev,j}<option value={j}>{j+1}. {prev.name}</option>{/each}</select></label>
+ <label>검증 실패 시 돌아갈 단계<Select bind:value={s.on_failure} disabled={draft.builtin}><option value={-1}>중단</option>{#each draft.steps.slice(0,i) as prev,j}<option value={j}>{j+1}. {prev.name}</option>{/each}</Select></label>
  {#if s.on_failure>=0}<label>자동 재시도 횟수<input type="number" min="0" max="2" bind:value={s.max_retries} readonly={draft.builtin} /></label>{/if}
  </details></fieldset>{/each}
  {#if draft.builtin}<button type="button" onclick={()=>edit(draft,true)}>복사해서 수정</button>{:else}<header><button type="button" disabled={draft.steps.length>=8} onclick={()=>draft.steps=[...draft.steps,step()]}>단계 추가</button><label class="check"><input type="checkbox" bind:checked={draft.enabled} />사용</label><button type="submit" disabled={busy}>저장</button>{#if original}<button type="button" onclick={()=>deleting=!deleting}>삭제</button>{/if}</header>{/if}

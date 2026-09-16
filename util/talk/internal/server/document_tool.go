@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"time"
@@ -15,10 +16,11 @@ import (
 	"sparktalk/internal/db"
 	"sparktalk/internal/llm"
 	"sparktalk/internal/media"
+	"sparktalk/internal/orchestrator"
 )
 
 func documentToolDefinition() llm.Tool {
-	return llm.Tool{Type: "function", Function: llm.ToolFunction{Name: "document_generate", Description: "Create a downloadable DOCX report, PPTX presentation, XLSX spreadsheet, HWP/HWPX Korean document, or PDF. Office files include a separately rendered PDF when available; its layout may differ from the Office original. Warnings indicate PDF generation failure. Use only when the user wants an actual file. Supply finished content, never code, paths or URLs. Titles/body may be Korean; output filenames use ASCII. For docx/pdf/hwp/hwpx provide sections, for pptx provide slides, for xlsx provide sheets with columns and rows. XLSX formulas are recalculated; use explicit formula objects and date objects. Split long slides; Inline PNG/JPEG/WebP conversation attachments can be included in section images; arbitrary HTML is not supported.", Parameters: json.RawMessage(`{"type":"object","properties":{"format":{"type":"string","enum":["docx","pptx","xlsx","pdf","hwp","hwpx"]},"title":{"type":"string","maxLength":240},"filename":{"type":"string","description":"ASCII file stem without extension"},"sections":{"type":"array","maxItems":80,"items":{"type":"object","properties":{"heading":{"type":"string"},"paragraphs":{"type":"array","items":{"type":"string"}},"table":{"type":"array","description":"Rectangular rows; first row is the header. Up to 100 rows and 8 columns.","items":{"type":"array","items":{"type":"string"}}},"images":{"type":"array","maxItems":6,"description":"Inline images after this section table/body. DOCX/PDF/HWP/HWPX only. Use actual conversation attachment IDs.","items":{"type":"object","properties":{"image_id":{"type":"string"},"width_cm":{"type":"number","minimum":1,"maximum":16,"description":"Default 12 cm; aspect ratio preserved"},"caption":{"type":"string","maxLength":240}},"required":["image_id"],"additionalProperties":false}}},"required":["paragraphs"]}},"slides":{"type":"array","maxItems":40,"items":{"type":"object","properties":{"title":{"type":"string","maxLength":120},"bullets":{"type":"array","maxItems":8,"items":{"type":"string","maxLength":200}}},"required":["title","bullets"]}},"sheets":{"type":"array","minItems":1,"maxItems":8,"description":"XLSX only. Row 1 contains column titles; data starts at row 2. Up to 20000 cells total. Formulas can reference only supplied cells; use SUM, AVERAGE, COUNT, COUNTA, MIN, MAX, IF, AND, OR, NOT, ROUND, ROUNDUP, ROUNDDOWN, ABS, COUNTIF, SUMIF, IFERROR. AND/OR/NOT require individual cells or comparisons, not ranges. Strings are literal, not formulas.","items":{"type":"object","properties":{"name":{"type":"string","maxLength":31},"columns":{"type":"array","minItems":1,"maxItems":32,"items":{"type":"object","properties":{"title":{"type":"string"},"width":{"type":"number","minimum":6,"maximum":60},"format":{"type":"string","enum":["general","number","integer","currency","percent","date"]}},"required":["title"],"additionalProperties":false}},"rows":{"type":"array","maxItems":1000,"items":{"type":"array","items":{"anyOf":[{"type":"string"},{"type":"number"},{"type":"boolean"},{"type":"null"},{"type":"object","properties":{"formula":{"type":"string","maxLength":512}},"required":["formula"],"additionalProperties":false},{"type":"object","properties":{"date":{"type":"string","description":"YYYY-MM-DD"}},"required":["date"],"additionalProperties":false}]}}},"freeze_header":{"type":"boolean","description":"Default true"},"filter":{"type":"boolean","description":"Default true"},"orientation":{"type":"string","enum":["portrait","landscape"]}},"required":["name","columns","rows"],"additionalProperties":false}}},"required":["format","title"]}`)}}
+	return llm.Tool{Type: "function", Function: llm.ToolFunction{Name: "document_generate", Description: "Create a downloadable DOCX report, PPTX presentation, XLSX spreadsheet, HWP/HWPX Korean document, or PDF. Office files include a separately rendered PDF when available; its layout may differ from the Office original. Warnings indicate PDF generation failure. Use only when the user wants an actual file. This tool cannot create HTML, CSS, JS or other source files. For a runnable web app, return complete html/css/javascript fenced code blocks for the artifact preview and HTML/ZIP download. Do not invent file_write. Supply finished document content, never code, paths or URLs. Send sections as a JSON array, not a JSON-encoded string. Titles/body may be Korean; output filenames use ASCII. For docx/pdf/hwp/hwpx provide sections, for pptx provide slides, for xlsx provide sheets with columns and rows. XLSX formulas are recalculated; use explicit formula objects and date objects. Use ordered blocks for rich content, tables, charts, images and mixed layouts. Existing image attachments work in all formats; PPTX also supports existing MP3/WAV/MP4 attachments. Use styles and page options instead of imitating tables with text. PPTX native tables accept table:{rows,widths,style} or table blocks; widths set relative column sizes. Cell objects also accept width in the same relative units; it sets the shared column width, and colspan widths sum the covered columns. Conflicting cell or table widths are rejected. Use returned presentation.slide_count and tables[].split/slide_numbers as facts, never guess. Attachment names are the actual output filenames. Set filename to an ASCII stem for a custom filename. Do not claim visual inspection from structure metadata. Follow format-specific block descriptions. PDF is a separate static preview; interactive features and complex layout may differ.", Parameters: orchestrator.DocumentToolSchema()}}
 }
 
 var documentStem = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$`)
@@ -40,6 +42,10 @@ func (s *Server) executeDocumentGenerateForSession(ctx context.Context, sessionI
 	}
 	if input.Format != "docx" && input.Format != "pptx" && input.Format != "xlsx" && input.Format != "pdf" && input.Format != "hwp" && input.Format != "hwpx" {
 		return registeredToolResult{}, fmt.Errorf("지원하지 않는 문서 형식입니다")
+	}
+	switch strings.ToLower(filepath.Ext(input.Filename)) {
+	case ".html", ".htm", ".css", ".js", ".mjs", ".ts", ".tsx", ".jsx", ".py", ".sh":
+		return registeredToolResult{}, fmt.Errorf("document_generate는 코드 파일(%s)을 만들 수 없습니다. 웹 앱은 완성된 html/css/javascript 코드 블록으로 답변하면 아티팩트에서 실행·HTML/ZIP 다운로드할 수 있습니다. DOCX로 우회하거나 file_write를 호출하지 마세요", filepath.Ext(input.Filename))
 	}
 	stem := input.Filename
 	if !documentStem.MatchString(stem) {
@@ -70,10 +76,11 @@ func (s *Server) executeDocumentGenerateForSession(ctx context.Context, sessionI
 		return registeredToolResult{}, fmt.Errorf("문서 생성 HTTP %d: %.1000s", response.StatusCode, body)
 	}
 	var output struct {
-		Warning   string `json:"warning"`
-		Text      string `json:"text"`
-		PageCount int    `json:"page_count"`
-		Files     []struct {
+		Warning      string          `json:"warning"`
+		Text         string          `json:"text"`
+		PageCount    int             `json:"page_count"`
+		Presentation json.RawMessage `json:"presentation"`
+		Files        []struct {
 			Name string `json:"name"`
 			MIME string `json:"mime"`
 			Data string `json:"data"`
@@ -129,6 +136,6 @@ func (s *Server) executeDocumentGenerateForSession(ctx context.Context, sessionI
 		}
 		attachments = append(attachments, item)
 	}
-	result, _ := json.Marshal(map[string]any{"attachments": attachments, "preview_available": input.Format == "pdf" || expected == 2, "warning": output.Warning, "preview": "PDF generated from the same content; layout may differ from the Office original."})
+	result, _ := json.Marshal(map[string]any{"attachments": attachments, "presentation": output.Presentation, "verification": "Use attachment names and presentation metadata as generated facts. visually_verified=false means layout/legibility has not been visually inspected; do not claim you viewed the file.", "preview_available": input.Format == "pdf" || expected == 2, "warning": output.Warning, "preview": "PDF generated from the same content; layout may differ from the Office original."})
 	return registeredToolResult{Result: string(result), Attachments: attachments}, nil
 }

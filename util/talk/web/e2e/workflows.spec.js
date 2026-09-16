@@ -1,3 +1,4 @@
+import { expectControlValue } from './select-helpers.js';
 import {test,expect} from '@playwright/test';
 import {createServer} from 'node:http';
 
@@ -20,14 +21,14 @@ test('procedure editor, ordered execution, persistent pause and resume',async({p
   await page.goto('/');await page.getByRole('button',{name:'▤ 라이브러리',exact:true}).click();await page.getByRole('button',{name:'작업 절차',exact:true}).click();
   await page.getByRole('button',{name:'document-production',exact:true}).click();await page.getByRole('button',{name:'복사해서 수정',exact:true}).click();
   await page.getByLabel('절차 이름',{exact:true}).fill('procedure-e2e');await page.getByLabel('절차 설명',{exact:true}).fill('문서 작성 실사용 검사');
-  await page.getByRole('button',{name:'단계 2 위로',exact:true}).click();await expect(page.getByLabel('단계 1 이름',{exact:true})).toHaveValue('작성');
-  await page.getByRole('button',{name:'단계 1 아래로',exact:true}).click();await expect(page.getByLabel('단계 1 이름',{exact:true})).toHaveValue('구성');
+  await page.getByRole('button',{name:'단계 2 위로',exact:true}).click();await expectControlValue(page.getByLabel('단계 1 이름',{exact:true}), '작성');
+  await page.getByRole('button',{name:'단계 1 아래로',exact:true}).click();await expectControlValue(page.getByLabel('단계 1 이름',{exact:true}), '구성');
   await page.setViewportSize({width:390,height:760});expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBe(390);await page.screenshot({path:'/tmp/talk-workflow-editor-mobile.png'});
   await page.getByRole('button',{name:'저장',exact:true}).click();await expect(page.getByRole('button',{name:'procedure-e2e',exact:true})).toBeVisible();
   await page.setViewportSize({width:1280,height:800});await page.getByRole('button',{name:'대화로 돌아가기',exact:true}).click();
   await page.locator('.composer textarea').fill('문서 작성해 줘.');await page.getByRole('button',{name:'입력 도구 열기',exact:true}).click();await page.getByRole('button',{name:'스킬·작업 절차',exact:true}).click();
   await page.getByText('작업 절차 선택 · 실행 순서 미리보기',{exact:true}).click();await page.getByRole('button',{name:/^procedure-e2e/}).click();await page.getByRole('button',{name:'이 순서로 적용',exact:true}).click();
-  await expect(page.locator('.composer textarea')).toHaveValue(/^@workflow:procedure-e2e/);await page.getByRole('button',{name:'메시지 전송',exact:true}).click();
+  await expectControlValue(page.locator('.composer textarea'), /^@workflow:procedure-e2e/);await page.getByRole('button',{name:'메시지 전송',exact:true}).click();
   await expect.poll(async()=>{const runs=await(await request.get(`/api/sessions/${session.id}/workflows`)).json();return runs[0]?.status;}).toBe('paused');
   await page.reload();await page.locator('.workflow-runs > summary').click();await page.locator('.workflow-runs > details > summary').click();await expect(page.getByRole('button',{name:'이 작업 이어하기',exact:true})).toBeVisible();
   await page.getByRole('button',{name:'이 작업 이어하기',exact:true}).click();await page.getByRole('button',{name:'메시지 전송',exact:true}).click();

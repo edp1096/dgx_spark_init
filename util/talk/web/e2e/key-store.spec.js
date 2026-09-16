@@ -1,3 +1,4 @@
+import { selectOption } from './select-helpers.js';
 import { expect, test } from '@playwright/test';
 
 test('configures physical key replicas without losing them on settings save', async ({ page }) => {
@@ -42,7 +43,7 @@ test('configures physical key replicas without losing them on settings save', as
   await sync.getByRole('button', { name: '선택한 호스트에 동기화 설정' }).click();
   await expect(sync.locator('.replicas > div')).toHaveCount(2);
   await expect(sync).toContainText('192.0.2.61');
-  await sync.getByLabel('관리 권한 이전 대상').selectOption('worker');
+  await selectOption(sync.getByLabel('관리 권한 이전 대상'), 'worker');
   await sync.getByRole('button', { name: '관리 권한 이전', exact: true }).click();
   await expect(sync.locator('summary').first()).toContainText('관리: worker');
   await page.setViewportSize({ width: 390, height: 850 });

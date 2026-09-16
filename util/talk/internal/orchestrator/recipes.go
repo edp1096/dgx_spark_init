@@ -17,6 +17,8 @@ import (
 
 func recipeID(c Component) string {
 	switch c.Controller {
+	case "qwen38-cluster":
+		return "qwen38-tp2"
 	case "glm53-cluster":
 		return "glm53"
 	case "ds41-cluster":
@@ -32,13 +34,23 @@ var recipeOptionNames = map[string]bool{
 	"HEAD_NCCL_IF": true, "WORKER_NCCL_IF": true, "HEAD_NCCL_HCA": true, "WORKER_NCCL_HCA": true,
 	"NCCL_SUBNET": true, "MASTER_PORT": true, "MAX_MODEL_LEN": true, "MAX_NUM_SEQS": true,
 	"GPU_MEMORY_UTILIZATION": true, "GPU_MEMORY_UTILIZATION_TEXT": true,
-	"KV_CACHE_MEMORY": true, "CACHE_RAM_MIB": true, "MTP_TOKENS": true, "DFLASH_TOKENS": true,
+	"DRAFT_VOCAB": true, "KV_CACHE_MEMORY": true, "CACHE_RAM_MIB": true, "MTP_TOKENS": true, "DFLASH_TOKENS": true,
 	"DSPARK_ENABLE_DSML_RECOVERY": true, "DSPARK_ENABLE_DSPARK_SWA_PREFIX": true,
 }
 
 func validateRecipeOptions(c Component) error {
 
 	for k, v := range c.RuntimeOptions {
+		moeTP1 := c.ComposeAsset == "compose.ornith35.yaml" || c.ComposeAsset == "compose.gemma26.yaml"
+		if k == "DRAFT_VOCAB" && ((!moeTP1 && c.ComposeAsset != "compose.flash-next.yaml") || (v != "off" && v != "ko64k")) {
+			return fmt.Errorf("%s: DRAFT_VOCAB requires a supported model and off or ko64k", c.ID)
+		}
+		if moeTP1 && k == "MTP_TOKENS" && v != "0" && v != "1" && v != "3" {
+			return fmt.Errorf("%s: MTP_TOKENS must be 0, 1 or 3", c.ID)
+		}
+		if c.Controller == "qwen38-cluster" && ((k == "MAX_MODEL_LEN" && v != "262144" && v != "524288" && v != "1048576") || (k == "MODEL_VARIANT" && v != "abliterated")) {
+			return fmt.Errorf("Qwen TP2 requires the tested abliteration checkpoint and 256K/512K/1M context")
+		}
 		if !recipeOptionNames[k] || strings.ContainsAny(v, "\x00\r\n") {
 			return fmt.Errorf("%s: unsupported runtime option %s", c.ID, k)
 		}
@@ -194,6 +206,19 @@ func (c *Controller) materializeRecipe(ctx context.Context, component Component)
 		}
 		if values["MAX_MODEL_LEN"] == "" {
 			values["MAX_MODEL_LEN"] = "65536"
+		}
+	}
+	if id == "qwen38-tp2" {
+		values["HEAD_CONTAINER"] = component.Container
+		values["WORKER_CONTAINER"] = component.WorkerContainer
+		values["QWEN_TP2_HEAD_CACHE"] = filepath.Join(dataDir, "cache", "sglang-flash-next-tp2")
+		values["QWEN_TP2_WORKER_CACHE"] = filepath.Join(c.host(component.WorkerHost).DataDir, "cache", "sglang-flash-next-tp2")
+		values["QWEN_TP2_BIND"] = component.BindAddress
+		if values["QWEN_TP2_BIND"] == "" {
+			values["QWEN_TP2_BIND"] = "127.0.0.1"
+		}
+		if values["MAX_MODEL_LEN"] == "" {
+			values["MAX_MODEL_LEN"] = "1048576"
 		}
 	}
 	keys := make([]string, 0, len(values))

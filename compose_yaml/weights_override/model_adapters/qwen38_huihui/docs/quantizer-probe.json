@@ -1,0 +1,152 @@
+{
+  "layers": [
+    {
+      "layer": 2,
+      "source_norm2": 1031.5118314430565,
+      "source_q8_error2": 0.031008881385936826,
+      "delta_norm2": 1.8083538489431064,
+      "nvfp4_error2": 9.274110287557512,
+      "target_norm2": 1031.5166730118694,
+      "original_requantized_equal": 4,
+      "original_requantized_differing_bytes": {
+        "weight": 0,
+        "weight_scale": 0,
+        "weight_scale_2": 0
+      },
+      "experts": 4,
+      "source_q8_relative_error": 0.0054828446779458025,
+      "nvfp4_relative_error": 0.09481957448708254
+    },
+    {
+      "layer": 4,
+      "source_norm2": 1036.5821380213745,
+      "source_q8_error2": 0.03015345858221305,
+      "delta_norm2": 1.6663685699612465,
+      "nvfp4_error2": 9.355237665896961,
+      "target_norm2": 1036.6088918173855,
+      "original_requantized_equal": 2,
+      "original_requantized_differing_bytes": {
+        "weight": 16323,
+        "weight_scale": 3480,
+        "weight_scale_2": 2
+      },
+      "experts": 4,
+      "source_q8_relative_error": 0.0053934506068938045,
+      "nvfp4_relative_error": 0.09499919990420701
+    },
+    {
+      "layer": 30,
+      "source_norm2": 1054.8887828545428,
+      "source_q8_error2": 0.03070886127054314,
+      "delta_norm2": 1.7165711418046286,
+      "nvfp4_error2": 9.515618340364576,
+      "target_norm2": 1054.8914467372624,
+      "original_requantized_equal": 2,
+      "original_requantized_differing_bytes": {
+        "weight": 2314,
+        "weight_scale": 0,
+        "weight_scale_2": 2
+      },
+      "experts": 4,
+      "source_q8_relative_error": 0.00539546052062241,
+      "nvfp4_relative_error": 0.09497616334523448
+    },
+    {
+      "layer": 46,
+      "source_norm2": 1186.0451809177682,
+      "source_q8_error2": 0.03519537455952651,
+      "delta_norm2": 1.7673229641675086,
+      "nvfp4_error2": 10.678973256673851,
+      "target_norm2": 1186.0806458450822,
+      "original_requantized_equal": 4,
+      "original_requantized_differing_bytes": {
+        "weight": 0,
+        "weight_scale": 0,
+        "weight_scale_2": 0
+      },
+      "experts": 4,
+      "source_q8_relative_error": 0.005447436533395807,
+      "nvfp4_relative_error": 0.09488720185182614
+    },
+    {
+      "layer": 47,
+      "source_norm2": 1349.018093205988,
+      "source_q8_error2": 0.04055852433095909,
+      "delta_norm2": 1.9582122761752316,
+      "nvfp4_error2": 12.133769410391475,
+      "target_norm2": 1349.051575795099,
+      "original_requantized_equal": 3,
+      "original_requantized_differing_bytes": {
+        "weight": 2886,
+        "weight_scale": 631,
+        "weight_scale_2": 1
+      },
+      "experts": 4,
+      "source_q8_relative_error": 0.005483175990562752,
+      "nvfp4_relative_error": 0.09483826317425495
+    }
+  ],
+  "scale_diagnostics": [
+    {
+      "layer": 4,
+      "expert": 1,
+      "original": 4.904610977973789e-05,
+      "recomputed": 4.904610614175908e-05,
+      "relative_difference": 7.417466590988728e-08,
+      "same_scale_differing_bytes": {
+        "weight": 0,
+        "weight_scale": 0,
+        "weight_scale_2": 0
+      }
+    },
+    {
+      "layer": 4,
+      "expert": 2,
+      "original": 3.560384357115254e-05,
+      "recomputed": 3.560383993317373e-05,
+      "relative_difference": 1.0217938408310862e-07,
+      "same_scale_differing_bytes": {
+        "weight": 0,
+        "weight_scale": 0,
+        "weight_scale_2": 0
+      }
+    },
+    {
+      "layer": 30,
+      "expert": 0,
+      "original": 3.2879059290280566e-05,
+      "recomputed": 3.287905565230176e-05,
+      "relative_difference": 1.1064728996571815e-07,
+      "same_scale_differing_bytes": {
+        "weight": 0,
+        "weight_scale": 0,
+        "weight_scale_2": 0
+      }
+    },
+    {
+      "layer": 30,
+      "expert": 2,
+      "original": 3.0154275009408593e-05,
+      "recomputed": 3.015427319041919e-05,
+      "relative_difference": 6.032277025324946e-08,
+      "same_scale_differing_bytes": {
+        "weight": 0,
+        "weight_scale": 0,
+        "weight_scale_2": 0
+      }
+    },
+    {
+      "layer": 47,
+      "expert": 3,
+      "original": 4.4323151087155566e-05,
+      "recomputed": 4.432314744917676e-05,
+      "relative_difference": 8.207852370284126e-08,
+      "same_scale_differing_bytes": {
+        "weight": 0,
+        "weight_scale": 0,
+        "weight_scale_2": 0
+      }
+    }
+  ],
+  "note": "All sampled original tensors reproduce bit-for-bit when original global weight scales are supplied. Default CPU recomputation differs by at most approximately 1.2e-7 relative in global scale."
+}

@@ -1,0 +1,24 @@
+{
+  "pipeline": "qwen38_gguf_delta",
+  "sources": {
+    "original": [
+      "unsloth/Qwen3.8-Flash-Next-GGUF",
+      "38bb39ee97821de2c9009abb7e93950eec396e66"
+    ],
+    "donor": [
+      "huihui-ai/Huihui-Qwen3.8-Flash-Next-abliterated-GGUF",
+      "7e3bfc316b880fefeb049596f11c49d6a18e05fb"
+    ],
+    "base": [
+      "RadixArk/Qwen3.8-Flash-Next-NVFP4",
+      "7b719225242aacd3dbd3f9407468c2ee9a9d2594"
+    ]
+  },
+  "helper_image": "dgx-sglang-qwen38-fn:sm121-b12x-head-v1",
+  "architecture": "Qwen4ExpForConditionalGeneration",
+  "text_config": {
+    "hidden_size": 2560,
+    "num_hidden_layers": 48,
+    "num_experts": 512
+  }
+}

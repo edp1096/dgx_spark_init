@@ -1,0 +1,19 @@
+{
+  "context": 1048576,
+  "input_tokens": 1046528,
+  "needle_positions": [
+    104652,
+    523264,
+    941875
+  ],
+  "expected": {
+    "amber": "MTZXZV6634ZL",
+    "birch": "HVRDCG83VUH9",
+    "cobalt": "E5V8CUNTC3T6"
+  },
+  "kv_dtype": "fp8_e4m3",
+  "time_started": 1789362093.6147358,
+  "elapsed_s": 159.65000798398978,
+  "error": "AssertionError('No response')",
+  "passed": false
+}

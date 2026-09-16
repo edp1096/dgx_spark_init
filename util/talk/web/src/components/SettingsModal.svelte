@@ -1,4 +1,5 @@
 <script>
+  import Select from './Select.svelte';
   import MicrophoneHelp from './MicrophoneHelp.svelte';
   import SettingsField from './settings/SettingsField.svelte';
   import SettingsHelp from './settings/SettingsHelp.svelte';
@@ -16,6 +17,8 @@
   import ToolDiscoverySettings from './settings/ToolDiscoverySettings.svelte';
   import { applyExternalModelType, normalizePublicSettings } from '../lib/settings.js';
   import { modelCapabilities, normalizeReasoningEffort, reasoningEffortLabel, thinkingToggleValue } from '../lib/model-capabilities.js';
+
+  import { outputPresets, selectedOutputPreset, effectiveOutputReserve, applyOutputPreset } from '../lib/context-presets.js';
 
   export let settings;
   export let initialTab = 'chat';
@@ -49,6 +52,14 @@
   $: modelProfile = modelCapabilities(settings?.model?.model_type);
   $: gemmaThinkingValue = thinkingToggleValue(settings?.model?.reasoning_effort);
   $: if (settings?.model && (modelProfile.family === 'qwen3.8' || modelProfile.family === 'qwen3.8-exl3' || (modelProfile.family === 'glm5.3' || modelProfile.family === 'deepseek-v4'))) settings.model.reasoning_effort = normalizeReasoningEffort(settings.model.model_type, settings.model.reasoning_effort);
+  let customOutput = false;
+  $: outputPreset = customOutput ? 'custom' : selectedOutputPreset(settings?.context);
+  $: autoOutput = effectiveOutputReserve(settings?.context);
+  function selectOutputPreset(value) {
+    customOutput = value === 'custom';
+    applyOutputPreset(settings.context, value);
+    settings = settings;
+  }
   $: externalMode = settings?.runtime?.mode === 'external';
   $: currentBundle = runtime?.bundles?.find((bundle) => bundle.id === runtime?.selected_bundle) || runtime?.bundles?.[0];
   const ttsLanguages = ['auto', 'ko-KR', 'en-US', 'ja-JP', 'zh-CN', 'ar-MSA', 'ar-AE', 'ar-SA', 'de-DE', 'es-ES', 'fr-FR', 'hi-IN', 'it-IT', 'pt-BR', 'vi-VN'];
@@ -179,6 +190,7 @@
         <fieldset>
           <legend><span>추론 기본값</span> <SettingsHelp title="추론 기본값">
             {#if modelProfile.family === 'gemma4'}<p>Gemma 4는 Thinking을 켜거나 끄며, 단계별 추론 강도는 지원하지 않습니다.</p><p>Thinking 예산은 최대 생각 토큰 수입니다. 512 권장, 0이면 제한하지 않습니다.</p>
+            {:else if modelProfile.family === 'qwen3.5'}<p>Ornith와 Qwen3.5는 Thinking 켜짐·꺼짐을 사용합니다.</p>
             {:else if modelProfile.family === 'qwen3.8' || modelProfile.family === 'qwen3.8-exl3'}<p>Qwen3.8은 Thinking 꺼짐과 Low·Medium·XHigh 단계를 지원합니다.</p>
             {:else if modelProfile.family === 'glm5.3' || modelProfile.family === 'deepseek-v4'}<p>{modelProfile.family === 'deepseek-v4' ? 'DeepSeek V4' : 'GLM-5.3 Flash'}는 꺼짐·Low·High·Max를 사용합니다.</p>
             {:else}<p>연결한 모델이 지원하는 추론 강도를 선택하거나 직접 입력합니다.</p>{/if}
@@ -187,9 +199,9 @@
             <div class="settings-toggle-field"><span>기본 Thinking</span><button type="button" class:active={gemmaThinkingValue === 'on'} onclick={toggleDefaultThinking} aria-pressed={gemmaThinkingValue === 'on'}>{gemmaThinkingValue === 'on' ? 'Thinking 켜짐' : 'Thinking 꺼짐'}</button></div>
             {#if modelProfile.family === 'gemma4'}<label class="settings-field-row settings-number-row"><span>Thinking 예산</span><input type="number" min="0" step="128" bind:value={settings.model.thinking_budget} /></label>{/if}
           {:else if modelProfile.family === 'qwen3.8' || modelProfile.family === 'qwen3.8-exl3'}
-            <label class="settings-field-row"><span>기본 추론 강도</span><select bind:value={settings.model.reasoning_effort} aria-label="기본 reasoning effort">{#each modelProfile.reasoningLevels as level}<option value={level}>{reasoningEffortLabel(level, settings.model.model_type)}</option>{/each}</select></label>
+            <label class="settings-field-row"><span>기본 추론 강도</span><Select bind:value={settings.model.reasoning_effort} aria-label="기본 reasoning effort">{#each modelProfile.reasoningLevels as level}<option value={level}>{reasoningEffortLabel(level, settings.model.model_type)}</option>{/each}</Select></label>
           {:else if (modelProfile.family === 'glm5.3' || modelProfile.family === 'deepseek-v4')}
-            <label class="settings-field-row"><span>기본 추론 강도</span><select bind:value={settings.model.reasoning_effort} aria-label="기본 reasoning effort">{#each modelProfile.reasoningLevels as level}<option value={level}>{reasoningEffortLabel(level)}</option>{/each}</select></label>
+            <label class="settings-field-row"><span>기본 추론 강도</span><Select bind:value={settings.model.reasoning_effort} aria-label="기본 reasoning effort">{#each modelProfile.reasoningLevels as level}<option value={level}>{reasoningEffortLabel(level)}</option>{/each}</Select></label>
           {:else}
             <label class="settings-field-row"><span>기본 추론 강도</span><input bind:value={settings.model.reasoning_effort} list="settings-reasoning-levels" placeholder="직접 입력 또는 목록에서 선택" /></label>
             <datalist id="settings-reasoning-levels">{#each modelProfile.reasoningLevels as level}<option value={level}></option>{/each}</datalist>
@@ -198,10 +210,16 @@
         <fieldset class="context-settings">
           <legend><span>지능형 문맥 관리</span> <SettingsHelp title="지능형 문맥 관리"><p>문맥 한도는 실행 중인 모델 서버가 지원하는 값 이내로 설정하세요. 0이면 서버에서 자동 감지합니다.</p><p>입력 예산 = 문맥 한도 − 최대 출력 − 안전 여유. 입력 예산에 자동 정리 시작 비율(50~95%)을 곱한 지점에서 오래된 원문을 요약합니다.</p><p>최대 출력은 생각 과정을 포함한 한 번의 응답 상한입니다. 최근 원문 유지와 이미지 추정값도 토큰 단위입니다.</p><p>대화와 첨부 원본은 보관되며, 모델로 보내는 활성 문맥만 정리합니다.</p></SettingsHelp></legend>
           <label class="check"><input type="checkbox" bind:checked={settings.context.enabled} /> 오래된 원문을 구조화 요약으로 전환</label>
+          <label class="context-preset"><span>출력 프리셋</span><Select aria-label="문맥 크기별 출력 프리셋" value={outputPreset} onchange={event => selectOutputPreset(event.currentTarget.value)}>
+            <option value="custom">직접 설정</option>
+            <option value="auto">자동 · 현재 문맥 크기에 맞춤</option>
+            {#each outputPresets as preset}<option value={String(preset.output)}>{preset.label}</option>{/each}
+          </Select></label>
+          <p class="settings-help">프리셋은 최대 출력만 변경합니다. 서버 문맥 용량은 바뀌지 않습니다. 자동은 모델 전환 시 문맥 크기에 맞춰 조정합니다.</p>
           <div class="context-fields">
             <label class="context-row"><span>문맥 한도 <small>0 = 자동 감지</small></span><span class="context-number"><input aria-label="모델 context window (0은 백엔드 자동 감지)" type="number" min="0" step="1024" bind:value={settings.context.window_tokens} /><small>토큰</small></span></label>
             <label class="context-row"><span>자동 정리 시작 비율</span><span class="context-number"><input aria-label="자동 정리 시작 비율" type="number" min="50" max="95" bind:value={settings.context.compact_at_percent} /><small>%</small></span></label>
-            <label class="context-row"><span>최대 출력 <small>생각 과정 포함</small></span><span class="context-number"><input aria-label="최대 출력 토큰 (생각 과정 포함)" type="number" min="256" step="256" bind:value={settings.context.output_reserve} /><small>토큰</small></span></label>
+            <label class="context-row"><span>최대 출력 <small>생각 과정 포함</small></span><span class="context-number">{#if settings.context.output_auto}<input aria-label="최대 출력 토큰 (생각 과정 포함)" type="number" value={autoOutput} disabled title={settings.context.window_tokens > 0 ? '현재 문맥 크기 기준' : '문맥 감지 전 저장값 · 요청 시 자동 계산'} />{:else}<input aria-label="최대 출력 토큰 (생각 과정 포함)" type="number" min="256" step="256" bind:value={settings.context.output_reserve} />{/if}<small>토큰</small></span></label>
             <label class="context-row"><span>안전 여유</span><span class="context-number"><input aria-label="안전 여유 토큰" type="number" min="256" step="256" bind:value={settings.context.safety_margin} /><small>토큰</small></span></label>
             <label class="context-row"><span>최근 원문 유지</span><span class="context-number"><input aria-label="최근 원문 유지 토큰" type="number" min="256" step="256" bind:value={settings.context.recent_tokens} /><small>토큰</small></span></label>
             <label class="context-row"><span>이미지 1장당 추정</span><span class="context-number"><input aria-label="이미지 장당 보수적 추정 토큰" type="number" min="1" step="128" bind:value={settings.context.image_tokens} /><small>토큰</small></span></label>
@@ -254,9 +272,9 @@
           <label class="check"><input type="checkbox" bind:checked={settings.tts.omit_parentheticals} disabled={!settings.tts.enabled} /> 괄호 속 부연설명 읽지 않기</label>
 
           <div class="settings-form-row three">
-            <label class="settings-field-row"><span>언어</span><select bind:value={settings.tts.language}>{#each ttsLanguages as language}<option value={language}>{language}</option>{/each}</select></label>
-            <label class="settings-field-row"><span>자동 한자 독음</span><select bind:value={settings.tts.hanja_reading}><option value="korean">한국어</option><option value="japanese">일본어</option><option value="chinese">중국어</option></select></label>
-            <label class="settings-field-row"><span>화자</span><select bind:value={settings.tts.voice}>{#each ttsVoices as voice}<option value={typeof voice === 'string' ? voice : voice.value}>{typeof voice === 'string' ? voice : voice.label}</option>{/each}</select></label>
+            <label class="settings-field-row"><span>언어</span><Select bind:value={settings.tts.language}>{#each ttsLanguages as language}<option value={language}>{language}</option>{/each}</Select></label>
+            <label class="settings-field-row"><span>자동 한자 독음</span><Select bind:value={settings.tts.hanja_reading}><option value="korean">한국어</option><option value="japanese">일본어</option><option value="chinese">중국어</option></Select></label>
+            <label class="settings-field-row"><span>화자</span><Select bind:value={settings.tts.voice}>{#each ttsVoices as voice}<option value={typeof voice === 'string' ? voice : voice.value}>{typeof voice === 'string' ? voice : voice.label}</option>{/each}</Select></label>
           </div>
 
 
@@ -286,12 +304,12 @@
           <legend>이미지 생성</legend>
           <label class="check"><input type="checkbox" bind:checked={settings.image.enabled} /> 대화형 이미지 생성·편집 도구 활성화</label>
           <label class="settings-field-row"><span>기본 해상도</span><input bind:value={settings.image.default_size} placeholder="1024x1024" /></label>
-          <label class="settings-field-row"><span>기능 수준</span><select bind:value={settings.image.mode}>
+          <label class="settings-field-row"><span>기능 수준</span><Select bind:value={settings.image.mode}>
             <option value="basic">기본 생성</option>
             <option value="reference">생성·참조 편집</option>
             <option value="paint">생성·편집·배경 제거</option>
             <option value="extended">확장 생성·편집</option>
-          </select></label>
+          </Select></label>
           {#if serviceHealth?.image}<div class="media-usage"><span>이미지 API · {serviceHealth.image.status === 'ok' ? 'online' : serviceHealth.image.status}{serviceHealth.image.model ? ` · ${serviceHealth.image.model}` : ''}</span></div>{/if}
           <small>현재 엔진: {settings.image.model || '미설정'}. 엔진 기동과 상태는 운영 패널에서 관리합니다.</small>
         </fieldset>
@@ -345,16 +363,16 @@
         <div class="settings-section" hidden={systemSection !== 'connection'}>
         <fieldset>
           <legend><span>모델 연결</span> <SettingsHelp title="모델 연결"><p>외부 API 주소에는 /v1을 붙이지 않습니다. 모델 유형에 맞는 응답 제어를 사용합니다.</p><p>세트 관리형에서는 기본 세트와 자동 기동을 설정합니다. 실행 중 세트 전환은 운영 패널에서 진행합니다.</p><p>최소 확보 메모리는 새 엔진을 올릴 때 남겨둘 통합메모리 GiB입니다.</p></SettingsHelp></legend>
-          <label class="settings-field-row"><span>실행 방식</span><select bind:value={settings.runtime.mode}><option value="managed">세트 관리형 (로컬·원격)</option><option value="external">외부 OpenAI 호환 API</option></select></label>
+          <label class="settings-field-row"><span>실행 방식</span><Select bind:value={settings.runtime.mode}><option value="managed">세트 관리형 (로컬·원격)</option><option value="external">외부 OpenAI 호환 API</option></Select></label>
           {#if externalMode}
             <label class="settings-field-row"><span>모델 API 주소</span><input bind:value={settings.model.endpoint} placeholder="http://서버주소:8000" /></label>
             <label class="settings-field-row"><span>모델 ID</span><input bind:value={settings.model.default_model} /></label>
-            <label class="settings-field-row"><span>모델 유형</span><select value={settings.model.model_type} onchange={selectExternalModelType}><option value="glm5.3">GLM-5.3 Flash</option><option value="qwen3.8">Qwen3.8</option><option value="gemma4">Gemma 4</option><option value="deepseek-v4">DeepSeek V4</option><option value="generic">일반 OpenAI 호환</option></select></label>
+            <label class="settings-field-row"><span>모델 유형</span><Select value={settings.model.model_type} onchange={selectExternalModelType}><option value="glm5.3">GLM-5.3 Flash</option><option value="qwen3.5">Qwen3.5 / Ornith</option><option value="qwen3.8">Qwen3.8</option><option value="gemma4">Gemma 4 (SGLang)</option><option value="gemma4-vllm">Gemma 4 (vLLM)</option><option value="deepseek-v4">DeepSeek V4</option><option value="generic">일반 OpenAI 호환</option></Select></label>
             <label class="settings-field-row"><span>API 키</span><input type="password" bind:value={settingsAPIKey} autocomplete="new-password" placeholder={settings.api_key_set ? '저장된 키 유지' : '필요한 경우 입력'} /></label>
             {#if settings.api_key_set}<label class="check"><input type="checkbox" bind:checked={clearAPIKey} /> 저장된 API 키 삭제</label>{/if}
             <small>GLM-5.3 Flash를 선택하면 512K 문맥과 Max 리즈닝을 적용합니다. ASR·TTS·이미지 생성·Extra 등 부가 기능은 각 설정에서 개별 관리합니다.</small>
           {:else}
-            <SettingsField title="기본 AI 세트"><select bind:value={settings.runtime.bundle}>{#each settings.runtime.catalog?.bundles || runtime?.bundles || [] as bundle}<option value={bundle.id}>{bundle.name}</option>{/each}</select><svelte:fragment slot="help"><p>실행 중 세트 전환은 우상단 운영 패널에서 진행합니다.</p></svelte:fragment></SettingsField>
+            <SettingsField title="기본 AI 세트"><Select bind:value={settings.runtime.bundle}>{#each settings.runtime.catalog?.bundles || runtime?.bundles || [] as bundle}<option value={bundle.id}>{bundle.name}</option>{/each}</Select><svelte:fragment slot="help"><p>실행 중 세트 전환은 우상단 운영 패널에서 진행합니다.</p></svelte:fragment></SettingsField>
             <label class="check"><input type="checkbox" bind:checked={settings.runtime.auto_start} /> SparkTalk 시작 시 기본 세트 자동 기동</label>
             <details class="system-advanced"><summary>메모리·모델 경로</summary>
             <label class="settings-field-row settings-number-row"><span>최소 확보 메모리</span><input type="number" min="1" max="64" step="1" bind:value={settings.runtime.memory_reserve_gib} /></label>
@@ -391,14 +409,17 @@
 </div>
 
 <style>
-  .context-fields { display: grid; gap: 6px; }
-  .context-settings .context-row { display: grid; grid-template-columns: minmax(0, 1fr) 154px; align-items: center; gap: 10px; margin: 0; }
+  .context-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 20px; }
+  .context-settings .context-preset { display: grid; grid-template-columns: 90px minmax(0, 1fr); align-items: center; gap: 10px; }
+  .context-preset select { min-width: 0; }
+  .context-settings .context-row { display: grid; grid-template-columns: minmax(0, 1fr) 120px; align-items: center; gap: 10px; margin: 0; }
   .context-row > span:first-child { min-width: 0; }
   .context-row > span:first-child small { display: inline; margin-left: 5px; font-size: 11px; }
   .context-number { display: grid; grid-template-columns: minmax(0, 1fr) 26px; align-items: center; gap: 6px; }
   .context-number input { width: 100%; min-width: 0; box-sizing: border-box; text-align: right; padding: 7px 8px; }
   .context-number small { margin: 0; font-size: 11px; }
-  @media (max-width: 520px) {
+  @media (max-width: 700px) {
+    .context-fields { grid-template-columns: minmax(0, 1fr); }
     .context-settings .context-row { grid-template-columns: minmax(0, 1fr) 128px; gap: 6px; }
     .context-row > span:first-child small { display: block; margin-left: 0; }
   }

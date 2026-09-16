@@ -20,9 +20,9 @@ test('keeps scalar labels beside their controls throughout settings on desktop a
         for (const detail of el.querySelectorAll('details')) detail.open = true;
         const issues = []; let count = 0;
         for (const label of el.querySelectorAll('label')) {
-          const input = label.querySelector(':scope > input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]), :scope > select') || (label.htmlFor ? label.control : null);
+          const input = label.querySelector(':scope > input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]), :scope > .select-trigger') || (label.htmlFor ? label.control : null);
           if (!input || !input.checkVisibility()) continue;
-          const title = label.htmlFor ? label : label.querySelector(':scope > span');
+          const title = label.contains(input) ? label.querySelector(':scope > span:not([hidden])') : label;
           if (!title) { issues.push(`Missing inline title: ${label.textContent.slice(0, 60)}`); continue; }
           const a = title.getBoundingClientRect(), b = input.getBoundingClientRect();
           if (b.left < a.right - 1 || b.bottom <= a.top || a.bottom <= b.top) issues.push(`Stacked control: ${title.textContent}`);

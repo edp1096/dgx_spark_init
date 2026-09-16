@@ -1,0 +1,25 @@
+{
+  "image": "sparktalk-extra-documents:0.5.0",
+  "image_id": "sha256:6cd68c4e364b53d8b81b1e262d99ee479fdff8543d70401842886469d8d2b42c",
+  "status": "running",
+  "oom_killed": false,
+  "memory_peak_bytes": 231477248,
+  "memory_events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+  "source_hashes_match": true,
+  "talk_pid": 3662233,
+  "talk_health": 200,
+  "documents_health": {
+    "status": "ok",
+    "version": "0.5.0",
+    "formats": [
+      "docx",
+      "pptx",
+      "xlsx",
+      "pdf",
+      "hwp",
+      "hwpx"
+    ],
+    "busy": false
+  },
+  "llm_health": 200
+}

@@ -1,0 +1,25 @@
+{
+  "seconds": 12.619638701002259,
+  "exact": true,
+  "usage": {
+    "prompt_tokens": 36,
+    "total_tokens": 436,
+    "completion_tokens": 400,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "created_cache_tokens": 0,
+      "multimodal_tokens": null
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "metrics": {
+    "time_to_first_token_ms": 3757.761853001284,
+    "generation_time_ms": 8852.519583000685,
+    "queue_time_ms": 0.019807997887255624,
+    "mean_itl_ms": 22.186765872182168,
+    "tokens_per_second": 31.720148517701766,
+    "speculative_decoding": null
+  }
+}

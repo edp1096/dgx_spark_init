@@ -1,4 +1,5 @@
 <script>
+  import Select from './Select.svelte';
   import MicrophoneHelp from './MicrophoneHelp.svelte';
   import { tick } from 'svelte';
   import { modelCapabilities, normalizeReasoningEffort, thinkingToggleValue, reasoningEffortLabel } from '../lib/model-capabilities.js';
@@ -37,6 +38,19 @@
   export let onRuntimeAction = async () => {};
   export let onRefreshRuntime = async () => {};
 
+  let queueBusy = false;
+  let queueMessage = '';
+  async function clearQueue() {
+    if (queueBusy) return;
+    queueBusy = true;
+    queueMessage = '';
+    try {
+      const response = await fetch('/api/emergency/clear-queue', { method: 'POST' });
+      if (!response.ok) throw new Error(await response.text());
+      queueMessage = (await response.json()).message;
+    } catch (error) { queueMessage = error.message; }
+    finally { queueBusy = false; }
+  }
   let statusOpen = false;
   let controlsSection = 'model';
   let modelTrigger, toolsTrigger, statusTrigger;
@@ -48,6 +62,38 @@
     if (!controlsOpen) onToggleControls();
     await tick();
     document.querySelector('.quick-panel .quick-field select, .quick-panel .quick-field input, .quick-panel .quick-field button:not(:disabled)')?.focus();
+  }
+  function anchorQuickPanel(panel, trigger) {
+    let anchor = trigger;
+    function position() {
+      if (!anchor) return;
+      const rect = anchor.getBoundingClientRect();
+      const header = anchor.closest('.chat-header').getBoundingClientRect();
+      const leftEdge = Math.max(8, header.left + 8);
+      const rightEdge = Math.min(window.innerWidth - 8, header.right - 8);
+      const width = Math.max(0, Math.min(390, rightEdge - leftEdge));
+      const top = rect.bottom + 8;
+      panel.style.width = `${width}px`;
+      panel.style.left = `${Math.max(leftEdge, Math.min(rect.right - width, rightEdge - width))}px`;
+      panel.style.top = `${top}px`;
+      panel.style.maxHeight = `${Math.max(0, window.innerHeight - top - 8)}px`;
+    }
+    const observer = new ResizeObserver(position);
+    const header = trigger.closest('.chat-header');
+    for (const node of [header, header.querySelector('.header-actions'), modelTrigger, toolsTrigger]) {
+      if (node) observer.observe(node);
+    }
+    window.addEventListener('resize', position);
+    window.addEventListener('scroll', position, true);
+    position();
+    return {
+      update(next) { anchor = next; position(); },
+      destroy() {
+        observer.disconnect();
+        window.removeEventListener('resize', position);
+        window.removeEventListener('scroll', position, true);
+      },
+    };
   }
   function closeQuickPanel() { onCloseControls(); (controlsSection === 'model' ? modelTrigger : toolsTrigger)?.focus(); }
   function onEscape(event) {
@@ -148,13 +194,13 @@
 </header>
 
 {#if controlsOpen}
-  <div class="quick-panel" role="dialog" aria-label={controlsSection === 'model' ? '모델 및 대화 설정' : '대화 도구 설정'}>
+  <div class="quick-panel" use:anchorQuickPanel={controlsSection === 'model' ? modelTrigger : toolsTrigger} role="dialog" aria-label={controlsSection === 'model' ? '모델 및 대화 설정' : '대화 도구 설정'}>
     <div class="quick-heading"><strong>{controlsSection === 'model' ? '모델·추론' : '대화 도구'}</strong><button type="button" onclick={closeQuickPanel} aria-label="대화 제어 닫기">×</button></div>
     {#if controlsSection === 'model'}
-      <label class="quick-field"><span>모델</span><select bind:value={selectedModel} aria-label="모델 선택">
+      <label class="quick-field"><span>모델</span><Select bind:value={selectedModel} aria-label="모델 선택">
         {#if !models.length}<option value={selectedModel}>{selectedModel || '모델 없음'}</option>{/if}
         {#each models as model}<option value={model}>{model}</option>{/each}
-      </select></label>
+      </Select></label>
       {#if modelProfile.reasoning === 'toggle'}
         <div class="quick-field"><span>추론</span><button class="thinking-toggle" class:active={gemmaThinkingValue === 'on'} onclick={toggleThinking} aria-pressed={gemmaThinkingValue === 'on'}>{gemmaThinkingValue === 'on' ? 'Thinking 켜짐' : 'Thinking 꺼짐'}</button></div>
       {:else if modelProfile.family === 'qwen3.8' || modelProfile.family === 'qwen3.8-exl3' || modelProfile.family === 'glm5.3' || modelProfile.family === 'deepseek-v4'}
@@ -163,6 +209,12 @@
         <label class="quick-field"><span>추론 강도</span><input bind:value={reasoningEffort} list="reasoning-levels" placeholder="기본값" aria-label="Reasoning effort" /></label>
       {/if}
       <small class="quick-note">변경한 값은 다음 메시지부터 적용됩니다.</small>
+          <div class="emergency-queue">
+            <button type="button" class="new-group" onclick={clearQueue} disabled={queueBusy}>{queueBusy ? '큐 비우는 중…' : '큐 비우기'}</button>
+            <small>현재 모델 서버의 모든 대화에서 실행·대기 중인 요청을 취소합니다.</small>
+            {#if queueMessage}<p role="status">{queueMessage}</p>{/if}
+          </div>
+
     {:else}
       <div class="quick-field"><span>웹검색</span><button class="web-toggle" class:active={webToolsEnabled} onclick={() => webToolsEnabled = !webToolsEnabled} aria-label="웹검색 자동 사용" aria-pressed={webToolsEnabled}>{webToolsEnabled ? '자동' : '꺼짐'}</button></div>
       <div class="quick-field"><span>음성대기</span><button class="voice-mode-toggle" class:active={voiceModeActive} class:speaking={continuousVoiceState === 'speaking'} onclick={onToggleContinuousVoice} disabled={!activeSession || !microphoneAvailable || ['requesting', 'stopping'].includes(continuousVoiceState)} aria-pressed={voiceModeActive} aria-label={voiceModeLabel}>{voiceModeLabel.replace(/^음성대기 /, '')}</button></div>
@@ -196,7 +248,7 @@
   .speaking .tool-active-dot { background: #ed727f; animation: voice-recording-pulse 1.2s ease-in-out infinite; }
   .chat-header .status { display: block; padding: 8px 0; }
   .chat-header .connection-popover { max-height: calc(100dvh - 80px); overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; }
-  .quick-panel { position: fixed; z-index: 20; top: 64px; right: 20px; display: grid; gap: 14px; width: min(390px, calc(100vw - 24px)); max-height: calc(100dvh - 80px); overflow-y: auto; padding: 14px; border: 1px solid var(--quick-border); border-radius: 12px; color: var(--quick-text); background: var(--quick-bg); box-shadow: 0 12px 35px #0005; }
+  .quick-panel { position: fixed; z-index: 20; box-sizing: border-box; display: grid; gap: 14px; width: min(390px, calc(100vw - 24px)); max-height: calc(100dvh - 80px); overflow-y: auto; padding: 14px; border: 1px solid var(--quick-border); border-radius: 12px; color: var(--quick-text); background: var(--quick-bg); box-shadow: 0 12px 35px #0005; }
   .quick-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
   .quick-heading strong { font-size: 13px; }
   .quick-panel button { padding: 7px 10px; border: 1px solid var(--quick-border); border-radius: 8px; color: var(--quick-text); background: var(--quick-input); font: inherit; font-size: 12px; }
@@ -229,7 +281,14 @@
     .model-menu-toggle, .tools-menu-toggle { padding: 0 7px; gap: 4px; font-size: 11px; }
     .chat-header .status { font-size: 10px; }
     .chat-header .chat-title { padding: 0 3px; font-size: 12px; }
-    .quick-panel { top: 58px; right: 8px; width: calc(100vw - 16px); max-height: calc(100dvh - 74px); }
     .chat-header .connection-popover { position: fixed; top: 58px; right: 8px; width: calc(100vw - 16px); max-height: calc(100dvh - 74px); }
   }
+
+
+.emergency-queue { display: grid; gap: .4rem; padding: .65rem 0 0; border-top: 1px solid var(--quick-border); }
+.emergency-queue button { text-align: center; color: #df858b; border-color: #b15d674d; background: #b15d6712; }
+.emergency-queue button:hover:not(:disabled) { background: #b15d6726; }
+.emergency-queue button:disabled { opacity: .4; cursor: default; }
+.emergency-queue small { color: #858e9e; font-size: 11px; line-height: 1.5; }
+.emergency-queue p { margin: 0; font-size: .85rem; overflow-wrap: anywhere; }
 </style>

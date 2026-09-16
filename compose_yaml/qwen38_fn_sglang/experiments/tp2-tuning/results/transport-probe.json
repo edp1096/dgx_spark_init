@@ -1,0 +1,110 @@
+[
+  {
+    "repeat": 0,
+    "api": "native",
+    "stream": true,
+    "seed": 42,
+    "text": "KEY_1800_0",
+    "passed": true,
+    "revisions": []
+  },
+  {
+    "repeat": 0,
+    "api": "native",
+    "stream": true,
+    "seed": null,
+    "text": "KEY_1800_0",
+    "passed": true,
+    "revisions": []
+  },
+  {
+    "repeat": 0,
+    "api": "chat",
+    "stream": true,
+    "seed": 42,
+    "text": "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+    "passed": false,
+    "revisions": []
+  },
+  {
+    "repeat": 0,
+    "api": "chat",
+    "stream": true,
+    "seed": null,
+    "text": "KEY_1800_0",
+    "passed": true,
+    "revisions": []
+  },
+  {
+    "repeat": 0,
+    "api": "chat",
+    "stream": false,
+    "seed": 42,
+    "text": "KEY_1800_0",
+    "passed": true,
+    "revisions": []
+  },
+  {
+    "repeat": 0,
+    "api": "native",
+    "stream": false,
+    "seed": 42,
+    "text": "KEY_1800_0",
+    "passed": true,
+    "revisions": []
+  },
+  {
+    "repeat": 1,
+    "api": "native",
+    "stream": true,
+    "seed": 42,
+    "text": "KEY_1800_0",
+    "passed": true,
+    "revisions": []
+  },
+  {
+    "repeat": 1,
+    "api": "native",
+    "stream": true,
+    "seed": null,
+    "text": "KEY_1800_0",
+    "passed": true,
+    "revisions": []
+  },
+  {
+    "repeat": 1,
+    "api": "chat",
+    "stream": true,
+    "seed": 42,
+    "text": "KEY_1800_0",
+    "passed": true,
+    "revisions": []
+  },
+  {
+    "repeat": 1,
+    "api": "chat",
+    "stream": true,
+    "seed": null,
+    "text": "KEY_1800_0",
+    "passed": true,
+    "revisions": []
+  },
+  {
+    "repeat": 1,
+    "api": "chat",
+    "stream": false,
+    "seed": 42,
+    "text": "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+    "passed": false,
+    "revisions": []
+  },
+  {
+    "repeat": 1,
+    "api": "native",
+    "stream": false,
+    "seed": 42,
+    "text": "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+    "passed": false,
+    "revisions": []
+  }
+]

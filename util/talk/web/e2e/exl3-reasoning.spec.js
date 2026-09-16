@@ -1,3 +1,5 @@
+import { optionTexts } from './select-helpers.js';
+import { expectControlValue, selectOption } from './select-helpers.js';
 import { expect, test } from '@playwright/test';
 
 test('EXL3 offers native effort in chat and saves the default level', async ({ page, request }) => {
@@ -15,7 +17,7 @@ test('EXL3 offers native effort in chat and saves the default level', async ({ p
   await page.goto('/');
   await page.getByRole('button', { name: '모델 및 대화 설정', exact: true }).click();
   const slider = page.locator('.quick-panel').getByRole('slider', { name: 'Reasoning effort' });
-  await expect(slider).toHaveValue('3');
+  await expectControlValue(slider, '3');
   for (const [index, label] of ['꺼짐', '낮음', '중간', '매우 높음'].entries()) {
     await slider.fill(String(index));
     await expect(slider).toHaveAttribute('aria-valuetext', label);
@@ -23,8 +25,8 @@ test('EXL3 offers native effort in chat and saves the default level', async ({ p
   await page.getByRole('button', { name: '대화 제어 닫기', exact: true }).click();
   await page.locator('.settings-button').click();
   const defaults = page.getByLabel('기본 reasoning effort', { exact: true });
-  await expect(defaults.locator('option')).toHaveText(['꺼짐', '낮음', '중간', '매우 높음']);
-  await defaults.selectOption('low');
+  await expect.poll(() => optionTexts(defaults)).toEqual(['꺼짐', '낮음', '중간', '매우 높음']);
+  await selectOption(defaults, 'low');
   const saved = page.waitForResponse(response => response.url().endsWith('/api/config') && response.request().method() === 'PUT');
   await page.getByRole('button', { name: '저장', exact: true }).click();
   const response = await saved;
@@ -33,6 +35,6 @@ test('EXL3 offers native effort in chat and saves the default level', async ({ p
   initial = false;
   await page.reload();
   await page.getByRole('button', { name: '모델 및 대화 설정', exact: true }).click();
-  await expect(slider).toHaveValue('1');
+  await expectControlValue(slider, '1');
   } finally { await request.put('/api/config', { data: original }); }
 });

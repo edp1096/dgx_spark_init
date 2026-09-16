@@ -1,6 +1,6 @@
 # Qwen3.8 Flash-Next · SGLang · 단일 DGX Spark
 
-`dealignai/Qwen3.8-Flash-Next-ABLITERATED-NVFP4`를 단일 GB10에서
+`edp1096/Huihui-RadixArk-Qwen3.8-Flash-Next-abliterated-NVFP4`를 단일 GB10에서
 SGLang으로 실행한다. SparkTalk의 Flash-Next 세트가 사용하는 정식 런타임이며,
 이전 vLLM 구성은 비교와 복구 목적으로 별도 폴더에 남겨 둔다.
 
@@ -21,6 +21,17 @@ SGLang으로 실행한다. SparkTalk의 Flash-Next 세트가 사용하는 정식
 
 - SGLang PLE backend PR #37068: `0977d22bb005695fef0aee4bc59adfab45b7a496`
 - 단일 Spark SM121 recipe: `4f425ca561f767997738e894ee578673e79b01b1`
+
+## 모델 준비
+
+TP1과 TP2는 같은 체크포인트를 사용한다. TP2에서는 두 서버에 각각 준비한다.
+
+```sh
+hf download edp1096/Huihui-RadixArk-Qwen3.8-Flash-Next-abliterated-NVFP4 \
+  --local-dir "$HOME/.cache/huggingface/edp1096/Huihui-RadixArk-Qwen3.8-Flash-Next-abliterated-NVFP4"
+```
+
+모델 생성 방식과 검증 범위는 [변환 기록](../weights_override/model_adapters/qwen38_huihui/docs/README.md)에 있다. TP2 사용법은 [TP2 문서](docs/tp2.md)를 따른다. 이전 vLLM 비교·복구 설정과 과거 실측 기록은 당시 모델을 유지한다.
 
 ## 빌드
 
@@ -88,3 +99,13 @@ SparkTalk에서는 설정 → 시스템 → 서비스 구성의 해당 Flash-Nex
 `runtime_options.DRAFT_VOCAB` (`off`/`ko64k`)다. SparkTalk은 내장 Compose로
 환경변수를 전달하며 외부 compose_yaml 파일을 읽지 않는다. 실행 호스트에는
 위 새 이미지가 필요하다. 이 옵션은 SGLang TP1 전용이며 EXL3에는 적용하지 않는다.
+
+## 두 Spark의 TP2 실험
+
+기존 TP1 설정과 별도로 `compose.tp2.yaml`과 `manage_tp2.py`를 사용한다.
+BF16 KV와 256K·512K·1M 시험 절차는 [TP2 문서](docs/tp2.md)를 참고한다.
+
+
+TP2의 기본 이미지는 `dgx-sglang-qwen38-fn:sm121-b12x-head-v1`이다.
+BF16 출력층 일부만 최적화해 tg를 약 3.5~3.8% 개선했으며, pp는 그대로다.
+빌드와 1M 검증 결과는 [TP2 문서](docs/tp2.md)를 참고한다.

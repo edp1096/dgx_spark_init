@@ -1,0 +1,141 @@
+QWEN_TP2_ARGS ["--model-path", "/hf/hub/models--dealignai--Qwen3.8-Flash-Next-ABLITERATED-NVFP4/snapshots/be794b990578ef3031eccf9f28e675a289a09ee9", "--served-model-name", "qwen3.8-flash-next", "--host", "0.0.0.0", "--port", "8012", "--tp-size", "2", "--nnodes", "2", "--node-rank", "0", "--dist-init-addr", "10.200.0.1:29780", "--load-format", "auto", "--weight-loader-drop-cache-after-load", "--context-length", "262144", "--max-total-tokens", "327680", "--mem-fraction-static", "0.70", "--chunked-prefill-size", "1024", "--max-running-requests", "1", "--page-size", "64", "--cuda-graph-max-bs-decode", "1", "--kv-cache-dtype", "bfloat16", "--prefill-attention-backend", "triton", "--decode-attention-backend", "trtllm_mha", "--quantization", "modelopt_fp4", "--fp4-gemm-backend", "flashinfer_cutlass", "--ple-offload-embedding", "--ple-offload-backend", "file", "--ple-offload-dir", "/ple", "--mamba-radix-cache-strategy", "extra_buffer", "--reasoning-parser", "qwen3", "--tool-call-parser", "qwen3_coder", "--mm-feature-transport", "cpu", "--speculative-algorithm", "NEXTN", "--speculative-num-steps", "3", "--speculative-eagle-topk", "1", "--speculative-num-draft-tokens", "4", "--speculative-draft-model-quantization", "unquant", "--disable-flashinfer-autotune", "--enable-metrics"]
+NCCL version 2.29.7+cuda13.2
+SGLANG_WEIGHT_PROGRESS current=1 total=206 elapsed_seconds=2.9 eta_seconds=595.7
+SGLANG_WEIGHT_PROGRESS current=4 total=206 elapsed_seconds=7.3 eta_seconds=370.8
+SGLANG_WEIGHT_PROGRESS current=8 total=206 elapsed_seconds=13.1 eta_seconds=323.6
+SGLANG_WEIGHT_PROGRESS current=12 total=206 elapsed_seconds=18.8 eta_seconds=304.1
+SGLANG_WEIGHT_PROGRESS current=16 total=206 elapsed_seconds=24.6 eta_seconds=291.9
+SGLANG_WEIGHT_PROGRESS current=20 total=206 elapsed_seconds=30.2 eta_seconds=280.9
+SGLANG_WEIGHT_PROGRESS current=24 total=206 elapsed_seconds=35.9 eta_seconds=272.3
+SGLANG_WEIGHT_PROGRESS current=28 total=206 elapsed_seconds=41.4 eta_seconds=262.9
+SGLANG_WEIGHT_PROGRESS current=32 total=206 elapsed_seconds=47.1 eta_seconds=256.0
+SGLANG_WEIGHT_PROGRESS current=36 total=206 elapsed_seconds=52.6 eta_seconds=248.4
+SGLANG_WEIGHT_PROGRESS current=40 total=206 elapsed_seconds=58.4 eta_seconds=242.4
+SGLANG_WEIGHT_PROGRESS current=44 total=206 elapsed_seconds=64.1 eta_seconds=235.9
+SGLANG_WEIGHT_PROGRESS current=48 total=206 elapsed_seconds=69.9 eta_seconds=230.2
+SGLANG_WEIGHT_PROGRESS current=52 total=206 elapsed_seconds=75.6 eta_seconds=223.9
+SGLANG_WEIGHT_PROGRESS current=56 total=206 elapsed_seconds=81.3 eta_seconds=217.7
+SGLANG_WEIGHT_PROGRESS current=60 total=206 elapsed_seconds=87.2 eta_seconds=212.1
+SGLANG_WEIGHT_PROGRESS current=64 total=206 elapsed_seconds=92.8 eta_seconds=205.8
+SGLANG_WEIGHT_PROGRESS current=68 total=206 elapsed_seconds=98.5 eta_seconds=199.8
+SGLANG_WEIGHT_PROGRESS current=72 total=206 elapsed_seconds=104.1 eta_seconds=193.8
+SGLANG_WEIGHT_PROGRESS current=76 total=206 elapsed_seconds=109.7 eta_seconds=187.7
+SGLANG_WEIGHT_PROGRESS current=80 total=206 elapsed_seconds=115.3 eta_seconds=181.6
+SGLANG_WEIGHT_PROGRESS current=84 total=206 elapsed_seconds=121.0 eta_seconds=175.8
+SGLANG_WEIGHT_PROGRESS current=88 total=206 elapsed_seconds=126.9 eta_seconds=170.2
+SGLANG_WEIGHT_PROGRESS current=92 total=206 elapsed_seconds=132.5 eta_seconds=164.2
+SGLANG_WEIGHT_PROGRESS current=96 total=206 elapsed_seconds=138.2 eta_seconds=158.3
+SGLANG_WEIGHT_PROGRESS current=100 total=206 elapsed_seconds=143.8 eta_seconds=152.4
+SGLANG_WEIGHT_PROGRESS current=104 total=206 elapsed_seconds=149.7 eta_seconds=146.8
+SGLANG_WEIGHT_PROGRESS current=108 total=206 elapsed_seconds=155.5 eta_seconds=141.1
+SGLANG_WEIGHT_PROGRESS current=112 total=206 elapsed_seconds=161.2 eta_seconds=135.3
+SGLANG_WEIGHT_PROGRESS current=116 total=206 elapsed_seconds=166.7 eta_seconds=129.3
+SGLANG_WEIGHT_PROGRESS current=120 total=206 elapsed_seconds=172.4 eta_seconds=123.6
+SGLANG_WEIGHT_PROGRESS current=124 total=206 elapsed_seconds=178.2 eta_seconds=117.9
+SGLANG_WEIGHT_PROGRESS current=128 total=206 elapsed_seconds=183.8 eta_seconds=112.0
+SGLANG_WEIGHT_PROGRESS current=132 total=206 elapsed_seconds=189.4 eta_seconds=106.2
+SGLANG_WEIGHT_PROGRESS current=136 total=206 elapsed_seconds=195.1 eta_seconds=100.4
+SGLANG_WEIGHT_PROGRESS current=140 total=206 elapsed_seconds=200.8 eta_seconds=94.7
+SGLANG_WEIGHT_PROGRESS current=144 total=206 elapsed_seconds=206.7 eta_seconds=89.0
+SGLANG_WEIGHT_PROGRESS current=148 total=206 elapsed_seconds=212.4 eta_seconds=83.2
+SGLANG_WEIGHT_PROGRESS current=152 total=206 elapsed_seconds=218.0 eta_seconds=77.4
+SGLANG_WEIGHT_PROGRESS current=156 total=206 elapsed_seconds=223.6 eta_seconds=71.7
+SGLANG_WEIGHT_PROGRESS current=160 total=206 elapsed_seconds=229.3 eta_seconds=65.9
+SGLANG_WEIGHT_PROGRESS current=164 total=206 elapsed_seconds=235.1 eta_seconds=60.2
+SGLANG_WEIGHT_PROGRESS current=168 total=206 elapsed_seconds=240.8 eta_seconds=54.5
+SGLANG_WEIGHT_PROGRESS current=172 total=206 elapsed_seconds=246.3 eta_seconds=48.7
+SGLANG_WEIGHT_PROGRESS current=176 total=206 elapsed_seconds=251.8 eta_seconds=42.9
+SGLANG_WEIGHT_PROGRESS current=180 total=206 elapsed_seconds=257.6 eta_seconds=37.2
+SGLANG_WEIGHT_PROGRESS current=184 total=206 elapsed_seconds=263.0 eta_seconds=31.5
+SGLANG_WEIGHT_PROGRESS current=188 total=206 elapsed_seconds=268.6 eta_seconds=25.7
+SGLANG_WEIGHT_PROGRESS current=192 total=206 elapsed_seconds=274.1 eta_seconds=20.0
+SGLANG_WEIGHT_PROGRESS current=193 total=206 elapsed_seconds=276.6 eta_seconds=18.6
+SGLANG_WEIGHT_PROGRESS current=194 total=206 elapsed_seconds=277.7 eta_seconds=17.2
+SGLANG_WEIGHT_PROGRESS current=195 total=206 elapsed_seconds=291.1 eta_seconds=16.4
+SGLANG_WEIGHT_PROGRESS current=196 total=206 elapsed_seconds=302.6 eta_seconds=15.4
+SGLANG_WEIGHT_PROGRESS current=197 total=206 elapsed_seconds=303.6 eta_seconds=13.9
+SGLANG_WEIGHT_PROGRESS current=198 total=206 elapsed_seconds=304.1 eta_seconds=12.3
+SGLANG_WEIGHT_PROGRESS current=199 total=206 elapsed_seconds=305.6 eta_seconds=10.7
+SGLANG_WEIGHT_PROGRESS current=200 total=206 elapsed_seconds=309.1 eta_seconds=9.3
+SGLANG_WEIGHT_PROGRESS current=201 total=206 elapsed_seconds=313.1 eta_seconds=7.8
+SGLANG_WEIGHT_PROGRESS current=202 total=206 elapsed_seconds=317.4 eta_seconds=6.3
+SGLANG_WEIGHT_PROGRESS current=203 total=206 elapsed_seconds=321.6 eta_seconds=4.8
+SGLANG_WEIGHT_PROGRESS current=204 total=206 elapsed_seconds=322.0 eta_seconds=3.2
+SGLANG_WEIGHT_PROGRESS current=205 total=206 elapsed_seconds=322.4 eta_seconds=1.6
+SGLANG_WEIGHT_PROGRESS current=206 total=206 elapsed_seconds=322.9 eta_seconds=0.0
+SGLANG_WEIGHT_PROGRESS current=1 total=206 elapsed_seconds=1.3 eta_seconds=268.1
+SGLANG_WEIGHT_PROGRESS current=4 total=206 elapsed_seconds=1.7 eta_seconds=85.7
+SGLANG_WEIGHT_PROGRESS current=8 total=206 elapsed_seconds=2.4 eta_seconds=59.3
+SGLANG_WEIGHT_PROGRESS current=12 total=206 elapsed_seconds=3.1 eta_seconds=50.0
+SGLANG_WEIGHT_PROGRESS current=16 total=206 elapsed_seconds=3.6 eta_seconds=42.4
+SGLANG_WEIGHT_PROGRESS current=20 total=206 elapsed_seconds=4.3 eta_seconds=40.3
+SGLANG_WEIGHT_PROGRESS current=24 total=206 elapsed_seconds=4.8 eta_seconds=36.6
+SGLANG_WEIGHT_PROGRESS current=28 total=206 elapsed_seconds=5.3 eta_seconds=33.9
+SGLANG_WEIGHT_PROGRESS current=32 total=206 elapsed_seconds=5.9 eta_seconds=32.0
+SGLANG_WEIGHT_PROGRESS current=36 total=206 elapsed_seconds=6.4 eta_seconds=30.2
+SGLANG_WEIGHT_PROGRESS current=40 total=206 elapsed_seconds=6.9 eta_seconds=28.6
+SGLANG_WEIGHT_PROGRESS current=44 total=206 elapsed_seconds=7.4 eta_seconds=27.2
+SGLANG_WEIGHT_PROGRESS current=48 total=206 elapsed_seconds=7.9 eta_seconds=26.1
+SGLANG_WEIGHT_PROGRESS current=52 total=206 elapsed_seconds=8.5 eta_seconds=25.1
+SGLANG_WEIGHT_PROGRESS current=56 total=206 elapsed_seconds=9.0 eta_seconds=24.1
+SGLANG_WEIGHT_PROGRESS current=60 total=206 elapsed_seconds=9.5 eta_seconds=23.2
+SGLANG_WEIGHT_PROGRESS current=64 total=206 elapsed_seconds=10.0 eta_seconds=22.1
+SGLANG_WEIGHT_PROGRESS current=68 total=206 elapsed_seconds=10.5 eta_seconds=21.3
+SGLANG_WEIGHT_PROGRESS current=72 total=206 elapsed_seconds=11.0 eta_seconds=20.5
+SGLANG_WEIGHT_PROGRESS current=76 total=206 elapsed_seconds=11.5 eta_seconds=19.7
+SGLANG_WEIGHT_PROGRESS current=80 total=206 elapsed_seconds=12.1 eta_seconds=19.0
+SGLANG_WEIGHT_PROGRESS current=84 total=206 elapsed_seconds=12.5 eta_seconds=18.2
+SGLANG_WEIGHT_PROGRESS current=88 total=206 elapsed_seconds=13.0 eta_seconds=17.4
+SGLANG_WEIGHT_PROGRESS current=92 total=206 elapsed_seconds=13.5 eta_seconds=16.7
+SGLANG_WEIGHT_PROGRESS current=96 total=206 elapsed_seconds=14.1 eta_seconds=16.1
+SGLANG_WEIGHT_PROGRESS current=100 total=206 elapsed_seconds=14.8 eta_seconds=15.7
+SGLANG_WEIGHT_PROGRESS current=104 total=206 elapsed_seconds=15.3 eta_seconds=15.0
+SGLANG_WEIGHT_PROGRESS current=108 total=206 elapsed_seconds=15.8 eta_seconds=14.3
+SGLANG_WEIGHT_PROGRESS current=112 total=206 elapsed_seconds=16.3 eta_seconds=13.7
+SGLANG_WEIGHT_PROGRESS current=116 total=206 elapsed_seconds=16.8 eta_seconds=13.0
+SGLANG_WEIGHT_PROGRESS current=120 total=206 elapsed_seconds=17.3 eta_seconds=12.4
+SGLANG_WEIGHT_PROGRESS current=124 total=206 elapsed_seconds=17.8 eta_seconds=11.8
+SGLANG_WEIGHT_PROGRESS current=128 total=206 elapsed_seconds=18.4 eta_seconds=11.2
+SGLANG_WEIGHT_PROGRESS current=132 total=206 elapsed_seconds=18.9 eta_seconds=10.6
+SGLANG_WEIGHT_PROGRESS current=136 total=206 elapsed_seconds=19.5 eta_seconds=10.0
+SGLANG_WEIGHT_PROGRESS current=140 total=206 elapsed_seconds=19.9 eta_seconds=9.4
+SGLANG_WEIGHT_PROGRESS current=144 total=206 elapsed_seconds=20.4 eta_seconds=8.8
+SGLANG_WEIGHT_PROGRESS current=148 total=206 elapsed_seconds=21.0 eta_seconds=8.2
+SGLANG_WEIGHT_PROGRESS current=152 total=206 elapsed_seconds=21.5 eta_seconds=7.6
+SGLANG_WEIGHT_PROGRESS current=156 total=206 elapsed_seconds=21.9 eta_seconds=7.0
+SGLANG_WEIGHT_PROGRESS current=160 total=206 elapsed_seconds=22.5 eta_seconds=6.5
+SGLANG_WEIGHT_PROGRESS current=164 total=206 elapsed_seconds=23.1 eta_seconds=5.9
+SGLANG_WEIGHT_PROGRESS current=168 total=206 elapsed_seconds=23.6 eta_seconds=5.3
+SGLANG_WEIGHT_PROGRESS current=172 total=206 elapsed_seconds=24.1 eta_seconds=4.8
+SGLANG_WEIGHT_PROGRESS current=176 total=206 elapsed_seconds=24.6 eta_seconds=4.2
+SGLANG_WEIGHT_PROGRESS current=180 total=206 elapsed_seconds=25.3 eta_seconds=3.7
+SGLANG_WEIGHT_PROGRESS current=184 total=206 elapsed_seconds=25.8 eta_seconds=3.1
+SGLANG_WEIGHT_PROGRESS current=188 total=206 elapsed_seconds=26.0 eta_seconds=2.5
+SGLANG_WEIGHT_PROGRESS current=192 total=206 elapsed_seconds=26.1 eta_seconds=1.9
+SGLANG_WEIGHT_PROGRESS current=193 total=206 elapsed_seconds=26.1 eta_seconds=1.8
+SGLANG_WEIGHT_PROGRESS current=194 total=206 elapsed_seconds=26.1 eta_seconds=1.6
+SGLANG_WEIGHT_PROGRESS current=195 total=206 elapsed_seconds=60.7 eta_seconds=3.4
+SGLANG_WEIGHT_PROGRESS current=196 total=206 elapsed_seconds=61.0 eta_seconds=3.1
+SGLANG_WEIGHT_PROGRESS current=197 total=206 elapsed_seconds=61.0 eta_seconds=2.8
+SGLANG_WEIGHT_PROGRESS current=198 total=206 elapsed_seconds=61.0 eta_seconds=2.5
+SGLANG_WEIGHT_PROGRESS current=199 total=206 elapsed_seconds=61.0 eta_seconds=2.1
+SGLANG_WEIGHT_PROGRESS current=200 total=206 elapsed_seconds=61.0 eta_seconds=1.8
+SGLANG_WEIGHT_PROGRESS current=201 total=206 elapsed_seconds=61.0 eta_seconds=1.5
+SGLANG_WEIGHT_PROGRESS current=202 total=206 elapsed_seconds=61.0 eta_seconds=1.2
+SGLANG_WEIGHT_PROGRESS current=203 total=206 elapsed_seconds=61.0 eta_seconds=0.9
+SGLANG_WEIGHT_PROGRESS current=204 total=206 elapsed_seconds=61.0 eta_seconds=0.6
+SGLANG_WEIGHT_PROGRESS current=205 total=206 elapsed_seconds=61.0 eta_seconds=0.3
+SGLANG_WEIGHT_PROGRESS current=206 total=206 elapsed_seconds=61.0 eta_seconds=0.0
+[TensorRT-LLM][INFO] Set logger level to INFO
+2026-09-13 18:08:02  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:130): TileLang begins to compile kernel `kernel` with `out_idx=None`
+2026-09-13 18:08:06  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:138): TileLang completes to compile kernel `kernel`
+[2026-09-13 18:08:18] INFO:     127.0.0.1:48476 - "GET /model_info HTTP/1.1" 200 OK
+2026-09-13 18:08:27  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:130): TileLang begins to compile kernel `kernel` with `out_idx=None`
+2026-09-13 18:08:30  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:138): TileLang completes to compile kernel `kernel`
+2026-09-13 18:08:31  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:130): TileLang begins to compile kernel `kernel` with `out_idx=None`
+2026-09-13 18:08:32  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:138): TileLang completes to compile kernel `kernel`
+[2026-09-13 18:08:34] INFO:     127.0.0.1:48490 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-09-13 18:08:34] INFO:     127.0.0.1:43080 - "POST /freeze_gc HTTP/1.1" 200 OK
+[2026-09-13 18:08:40] INFO:     127.0.0.1:43092 - "GET /health HTTP/1.1" 200 OK
+[2026-09-13 18:08:40] INFO:     127.0.0.1:43098 - "GET /get_server_info HTTP/1.1" 200 OK
+[2026-09-13 18:08:42] INFO:     127.0.0.1:43406 - "POST /generate HTTP/1.1" 200 OK

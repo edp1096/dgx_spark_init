@@ -1,4 +1,5 @@
 <script>
+  import Select from './Select.svelte';
   import { onMount } from 'svelte';
   import { searchConversationPage } from '../api.js';
 
@@ -92,8 +93,8 @@
     <form class="search-modal-form" onsubmit={(event) => { event.preventDefault(); restart(); }}>
       <div class="search-modal-input"><span aria-hidden="true">⌕</span><input bind:this={input} bind:value={query} maxlength="200" aria-label="검색어" placeholder="대화 제목이나 메시지 검색" /><button type="submit" disabled={!query.trim() || loading}>검색</button></div>
       <div class="search-modal-filters">
-        <label>정렬<select bind:value={sort} onchange={restart}><option value="relevance">관련도순</option><option value="recent">최신순</option></select></label>
-        <label>범위<select bind:value={scope} onchange={restart}><option value="all">제목과 본문</option><option value="title">제목만</option><option value="content">본문만</option></select></label>
+        <label>정렬<Select bind:value={sort} onchange={restart}><option value="relevance">관련도순</option><option value="recent">최신순</option></Select></label>
+        <label>범위<Select bind:value={scope} onchange={restart}><option value="all">제목과 본문</option><option value="title">제목만</option><option value="content">본문만</option></Select></label>
         <label>시작일<input type="date" bind:value={dateFrom} onchange={restart} /></label>
         <label>종료일<input type="date" bind:value={dateTo} onchange={restart} /></label>
       </div>

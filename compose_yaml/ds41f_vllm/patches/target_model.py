@@ -623,6 +623,9 @@ class DeepseekV4Model(nn.Module, EagleModelMixin):
                 # a replica skipping the hash still has to reach it.
                 engram_hashes, engram_mask = self.engram_hash.dummy_hashes(input_ids)
             if engram_hashes is not None:
+                prefetch=getattr(self.engram_hash,'next_prefetcher',None)
+                if prefetch is not None and prefetch.verify_enabled:
+                    prefetch.verify_hashes(engram_hashes)
                 # Gather all Engram rows before entering the decoder layers.
                 # One gather feeds every layer sharing the DP-split table.
                 gathered_hashes = gather_engram_hashes(engram_hashes)

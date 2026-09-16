@@ -1,0 +1,17 @@
+{
+  "text": "SPARK-6821-CEDAR",
+  "reasoning": "",
+  "tool_calls": [],
+  "finish_reason": "stop",
+  "usage": {
+    "prompt_tokens": 66038,
+    "total_tokens": 66049,
+    "completion_tokens": 11,
+    "prompt_tokens_details": null,
+    "reasoning_tokens": 0
+  },
+  "seconds": 27.012331828998867,
+  "ttft_s": 26.827699944988126,
+  "stream_tg_estimate": 54.16182613084434,
+  "passed": true
+}

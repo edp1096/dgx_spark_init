@@ -65,7 +65,8 @@ while time.monotonic()<end and not (a.output/f'stop-rank{a.rank}').exists():
    (a.output/f'tripped-rank{a.rank}.json').write_text(json.dumps(row|{'reason':reason},indent=2)+'\n')
    break
  emit(row)
- if seen and d and not d['State']['Running']:break
+ # Docker can expose 'created' briefly before starting; keep watching it.
+ if seen and d and d['State']['Status'] in ('exited','dead'):break
  time.sleep(.5)
 emit({'event':'watchdog_finished'})
 for child in children:

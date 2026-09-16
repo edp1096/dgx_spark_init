@@ -1,0 +1,3 @@
+ok  	sparktalk/internal/config	(cached)
+ok  	sparktalk/internal/orchestrator	0.884s
+ok  	sparktalk/internal/server	(cached)

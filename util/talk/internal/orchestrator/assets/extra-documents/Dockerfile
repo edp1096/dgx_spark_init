@@ -27,14 +27,13 @@ FROM node:24-bookworm-slim
 RUN apt-get update && apt-get install -y --no-install-recommends fonts-noto-cjk && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY package.json package-lock.json ./
-# PptxGenJS text-only output does not use its image-size dependency.
-RUN npm ci --omit=dev --ignore-scripts && node -e "require('fs').rmSync('node_modules/image-size', {recursive:true,force:true})" && npm cache clean --force
+RUN npm ci --omit=dev --ignore-scripts && npm cache clean --force
 COPY --from=hwp /out/ /app/node_modules/@rhwp/core/
 COPY --from=hwp /hwp-licenses /licenses/rhwp
 COPY --from=calc /licenses /licenses/go
 COPY THIRD_PARTY_NOTICES.md /licenses/THIRD_PARTY_NOTICES.md
 COPY --from=calc /document-calc /usr/local/bin/document-calc
-COPY *.mjs ./
+COPY *.mjs document-schema.json ./
 RUN node patch-exceljs.mjs && node -e "require('exceljs')" && node license-manifest.mjs
 USER node
 ENV BIND_ADDRESS=0.0.0.0 PORT=8696

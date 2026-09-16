@@ -1,4 +1,7 @@
 <script>
+  import Select from '../Select.svelte';
+  import SetOrderEditor from './SetOrderEditor.svelte';
+  let ordering = false;
   import SettingsField from './SettingsField.svelte';
   import { request } from '../../api/request.js';
   import { resolveSetMembers, setDeploymentValue, resetDeployment, hostIsUsed } from '../../lib/runtime-sets.js';
@@ -127,7 +130,11 @@
 {#if catalog}
 <fieldset class="set-editor">
   <legend>AI 세트 편집</legend>
-  <label class="settings-field-row"><span>편집할 세트</span><select bind:value={selected} onchange={() => { choosingServices = false; }}>{#each catalog.bundles as item}<option value={item.id}>{item.name}</option>{/each}</select></label>
+  {#if ordering}
+    <SetOrderEditor bind:catalog onclose={() => ordering = false} />
+  {:else}
+  <div class="buttons"><button type="button" onclick={() => ordering = true}>표시 순서</button></div>
+  <label class="settings-field-row"><span>편집할 세트</span><Select bind:value={selected} onchange={() => { choosingServices = false; }}>{#each catalog.bundles as item}<option value={item.id}>{item.name}</option>{/each}</Select></label>
   {#if bundle}
     <div class="set-heading"><span>{members.length}개 서비스 · {displayContext ? Math.round(displayContext / 1024) + 'K 문맥' : '문맥 자동'}</span><button type="button" onclick={duplicateBundle}>세트 복제</button></div>
     <label class="settings-field-row"><span>세트 이름</span><input bind:value={bundle.name} /></label>
@@ -138,7 +145,7 @@
     <label class="settings-field-row"><span>설명</span><input bind:value={bundle.description} /></label>
     <div class="grid">
       <label class="settings-field-row"><span>모델 ID</span><input bind:value={bundle.model_id} /></label>
-      <label class="settings-field-row"><span>모델 유형</span><select bind:value={bundle.model_type}><option value="glm5.3">GLM 5.3</option><option value="qwen3.8">Qwen3.8</option><option value="gemma4">Gemma 4</option><option value="deepseek-v4">DeepSeek V4</option><option value="generic">일반 OpenAI 호환</option></select></label>
+      <label class="settings-field-row"><span>모델 유형</span><Select bind:value={bundle.model_type}><option value="glm5.3">GLM 5.3</option><option value="qwen3.5">Qwen3.5 / Ornith</option><option value="qwen3.8">Qwen3.8</option><option value="gemma4">Gemma 4 (SGLang)</option><option value="gemma4-vllm">Gemma 4 (vLLM)</option><option value="deepseek-v4">DeepSeek V4</option><option value="generic">일반 OpenAI 호환</option></Select></label>
       <label class="settings-field-row settings-number-row"><span>문맥 토큰 수</span><input type="number" min="0" bind:value={bundle.context_tokens} /></label>
     </div>
 
@@ -162,7 +169,7 @@
           {#if component.controller !== 'external'}
             <label class="check"><input type="checkbox" checked={component.auto_address ?? false} onchange={(event) => updateDeployment(component.id, 'auto_address', event.currentTarget.checked)} /> 헤드·워커 주소 자동 연동</label>
           {/if}
-          <label class="settings-field-row"><span>실행 호스트</span><select value={component.host ?? ""} oninput={(event) => updateDeployment(component.id, "host", event.currentTarget.value)}>{#each Object.keys(catalog.hosts) as host}<option value={host}>{host === 'local' ? '로컬 · 이 컴퓨터' : host}</option>{/each}</select></label>
+          <label class="settings-field-row"><span>실행 호스트</span><Select value={component.host ?? ""} oninput={(event) => updateDeployment(component.id, "host", event.currentTarget.value)}>{#each Object.keys(catalog.hosts) as host}<option value={host}>{host === 'local' ? '로컬 · 이 컴퓨터' : host}</option>{/each}</Select></label>
           <label class="settings-field-row"><span>API 주소</span><input value={component.endpoint ?? ""} oninput={(event) => updateDeployment(component.id, "endpoint", event.currentTarget.value)} placeholder="http://서버:포트" /></label>
           <label class="settings-field-row"><span>상태 확인 URL</span><input value={component.health_url ?? ""} oninput={(event) => updateDeployment(component.id, "health_url", event.currentTarget.value)} /></label>
           <button type="button" disabled={!!probingID} onclick={() => probe(component)}>{probingID === component.id ? '확인 중…' : 'API 연결 시험'}</button>
@@ -176,8 +183,8 @@
           <div class="grid">
           <label class="settings-field-row"><span>서비스 ID</span><input value={component.id} readonly /></label>
           <label class="settings-field-row"><span>이름</span><input value={component.name ?? ""} oninput={(event) => updateDeployment(component.id, "name", event.currentTarget.value)} /></label>
-          <label class="settings-field-row"><span>공통 역할</span><select value={component.role} onchange={(event) => updateDefinition(component.id, "role", event.currentTarget.value)}>{#if component.role === 'tool'}<option value="tool">Extra (레시피에서 역할 결정)</option>{/if}{#each roles as role}<option value={role}>{role}</option>{/each}</select></label>
-          <label class="settings-field-row"><span>제어 방식</span><select value={component.controller ?? ""} oninput={(event) => updateDeployment(component.id, "controller", event.currentTarget.value)}><option value="compose">Docker Compose</option><option value="glm53-cluster">GLM Head + Worker</option><option value="dspark-cluster">DSpark Head + Worker</option><option value="ds41-cluster">DS4.1 SSD Head + Worker</option><option value="external">연결 전용</option></select></label>
+          <label class="settings-field-row"><span>공통 역할</span><Select value={component.role} onchange={(event) => updateDefinition(component.id, "role", event.currentTarget.value)}>{#if component.role === 'tool'}<option value="tool">Extra (레시피에서 역할 결정)</option>{/if}{#each roles as role}<option value={role}>{role}</option>{/each}</Select></label>
+          <label class="settings-field-row"><span>제어 방식</span><Select value={component.controller ?? ""} oninput={(event) => updateDeployment(component.id, "controller", event.currentTarget.value)}><option value="compose">Docker Compose</option><option value="glm53-cluster">GLM Head + Worker</option><option value="dspark-cluster">DSpark Head + Worker</option><option value="ds41-cluster">DS4.1 SSD Head + Worker</option><option value="qwen38-cluster">Qwen Flash-Next TP2</option><option value="external">연결 전용</option></Select></label>
           <label class="settings-field-row"><span>서비스 모델 ID</span><input value={component.model ?? ""} oninput={(event) => updateDeployment(component.id, "model", event.currentTarget.value)} /></label>
           {#if component.controller !== 'external'}
             <label class="settings-field-row"><span>컨테이너 이름</span><input value={component.container ?? ""} oninput={(event) => updateDeployment(component.id, "container", event.currentTarget.value)} /></label>
@@ -189,19 +196,24 @@
             <label class="settings-field-row"><span>서버 바인딩 주소</span><input value={component.bind_address ?? ""} oninput={(event) => updateDeployment(component.id, "bind_address", event.currentTarget.value)} placeholder="127.0.0.1" /></label>
             <label class="settings-field-row settings-number-row"><span>서버 공개 포트</span><input type="number" min="0" max="65535" value={component.port ?? ""} oninput={(event) => updateDeployment(component.id, "port", Number(event.currentTarget.value))} placeholder="0: 레시피 기본값" /></label>
             {#if component.compose_asset === 'compose.flash-next.yaml'}
-              <SettingsField title="초안 어휘"><select value={component.runtime_options?.DRAFT_VOCAB ?? 'ko64k'} oninput={(event) => updateDeployment(component.id, "runtime_options", {...component.runtime_options, DRAFT_VOCAB:event.currentTarget.value})}><option value="ko64k">한국어 포함 64K (기본)</option><option value="off">전체 어휘</option></select><svelte:fragment slot="help"><p>초안 생성 속도를 높이는 설정입니다. 변경 후 서비스를 다시 시작해야 합니다.</p></svelte:fragment></SettingsField>
+              <SettingsField title="초안 어휘"><Select value={component.runtime_options?.DRAFT_VOCAB ?? 'ko64k'} oninput={(event) => updateDeployment(component.id, "runtime_options", {...component.runtime_options, DRAFT_VOCAB:event.currentTarget.value})}><option value="ko64k">한국어 포함 64K (기본)</option><option value="off">전체 어휘</option></Select><svelte:fragment slot="help"><p>초안 생성 속도를 높이는 설정입니다. 변경 후 서비스를 다시 시작해야 합니다.</p></svelte:fragment></SettingsField>
             {/if}
-          {:else if ['glm53-cluster', 'dspark-cluster', 'ds41-cluster'].includes(component.controller)}
+          {:else if ['glm53-cluster', 'dspark-cluster', 'ds41-cluster', 'qwen38-cluster'].includes(component.controller)}
             <label class="settings-field-row settings-number-row"><span>API 공개 포트</span><input type="number" min="0" max="65535" value={component.port ?? ""} oninput={(event) => updateDeployment(component.id, "port", Number(event.currentTarget.value))} placeholder="0: 기본 포트" /></label>
-            <label class="settings-field-row"><span>가중치</span><select value={component.runtime_options?.MODEL_VARIANT ?? 'official'} oninput={(event) => updateDeployment(component.id, "runtime_options", {...component.runtime_options, MODEL_VARIANT:event.currentTarget.value})}><option value="official">공식 원본</option>{#if component.controller !== "ds41-cluster"}<option value="abliterated">Abliterated</option>{/if}</select></label>
+            {#if component.controller === 'qwen38-cluster'}
+              <label class="settings-field-row"><span>문맥 한도</span><Select value={component.runtime_options?.MAX_MODEL_LEN ?? '1048576'} oninput={(event) => { bundle.context_tokens = Number(event.currentTarget.value); updateDeployment(component.id, "runtime_options", {...component.runtime_options, MAX_MODEL_LEN:event.currentTarget.value}); }}><option value="262144">256K</option><option value="524288">512K</option><option value="1048576">1M</option></Select></label>
+              <small>검증된 NVFP4 체크포인트 · BF16 KV · 전체 초안 어휘를 사용합니다. 문맥 변경 후 재기동이 필요합니다.</small>
+            {:else}
+            <label class="settings-field-row"><span>가중치</span><Select value={component.runtime_options?.MODEL_VARIANT ?? 'official'} oninput={(event) => updateDeployment(component.id, "runtime_options", {...component.runtime_options, MODEL_VARIANT:event.currentTarget.value})}><option value="official">공식 원본</option>{#if component.controller !== "ds41-cluster"}<option value="abliterated">Abliterated</option>{/if}</Select></label>
+            {/if}
             {#if component.controller === 'dspark-cluster'}
-              <SettingsField title="도구 호출 형식 복구"><select value={component.runtime_options?.DSPARK_ENABLE_DSML_RECOVERY ?? '1'} oninput={(event) => updateDeployment(component.id, "runtime_options", {...component.runtime_options, DSPARK_ENABLE_DSML_RECOVERY:event.currentTarget.value})}><option value="1">사용 (기본)</option><option value="0">사용 안 함</option></select><svelte:fragment slot="help"><p>도구 호출 표기가 일부 누락된 응답을 복구합니다. 변경 후 서비스를 다시 시작해야 합니다.</p></svelte:fragment></SettingsField>
-              <SettingsField title="반복 요청 캐시 보완"><select value={component.runtime_options?.DSPARK_ENABLE_DSPARK_SWA_PREFIX ?? '0'} oninput={(event) => updateDeployment(component.id, "runtime_options", {...component.runtime_options, DSPARK_ENABLE_DSPARK_SWA_PREFIX:event.currentTarget.value})}><option value="0">사용 안 함 (기본)</option><option value="1">사용</option></select><svelte:fragment slot="help"><p>반복 질문에서 응답이 끊길 때 사용합니다. 짧은 요청의 지연이 늘 수 있습니다.</p></svelte:fragment></SettingsField>
+              <SettingsField title="도구 호출 형식 복구"><Select value={component.runtime_options?.DSPARK_ENABLE_DSML_RECOVERY ?? '1'} oninput={(event) => updateDeployment(component.id, "runtime_options", {...component.runtime_options, DSPARK_ENABLE_DSML_RECOVERY:event.currentTarget.value})}><option value="1">사용 (기본)</option><option value="0">사용 안 함</option></Select><svelte:fragment slot="help"><p>도구 호출 표기가 일부 누락된 응답을 복구합니다. 변경 후 서비스를 다시 시작해야 합니다.</p></svelte:fragment></SettingsField>
+              <SettingsField title="반복 요청 캐시 보완"><Select value={component.runtime_options?.DSPARK_ENABLE_DSPARK_SWA_PREFIX ?? '0'} oninput={(event) => updateDeployment(component.id, "runtime_options", {...component.runtime_options, DSPARK_ENABLE_DSPARK_SWA_PREFIX:event.currentTarget.value})}><option value="0">사용 안 함 (기본)</option><option value="1">사용</option></Select><svelte:fragment slot="help"><p>반복 질문에서 응답이 끊길 때 사용합니다. 짧은 요청의 지연이 늘 수 있습니다.</p></svelte:fragment></SettingsField>
             {/if}
             {#each [['HEAD_RAIL_IP','헤드 통신 IP','10.200.0.1'],['WORKER_RAIL_IP','워커 통신 IP','10.200.0.2'],['HEAD_NCCL_IF','헤드 통신 인터페이스','enp1s0f1np1'],['WORKER_NCCL_IF','워커 통신 인터페이스','enp1s0f1np1'],['HEAD_NCCL_HCA','헤드 HCA','rocep1s0f1'],['WORKER_NCCL_HCA','워커 HCA','rocep1s0f1']] as [key,label,fallback]}
               <label class="settings-field-row"><span>{label}</span><input value={component.runtime_options?.[key] ?? fallback} oninput={(event) => updateDeployment(component.id, "runtime_options", {...component.runtime_options,[key]:event.currentTarget.value})} /></label>
             {/each}
-            <label class="settings-field-row"><span>워커 호스트</span><select value={component.worker_host ?? ""} oninput={(event) => updateDeployment(component.id, "worker_host", event.currentTarget.value)}>{#each Object.keys(catalog.hosts) as host}<option value={host}>{host}</option>{/each}</select></label>
+            <label class="settings-field-row"><span>워커 호스트</span><Select value={component.worker_host ?? ""} oninput={(event) => updateDeployment(component.id, "worker_host", event.currentTarget.value)}>{#each Object.keys(catalog.hosts) as host}<option value={host}>{host}</option>{/each}</Select></label>
             <label class="settings-field-row"><span>워커 컨테이너</span><input value={component.worker_container ?? ""} oninput={(event) => updateDeployment(component.id, "worker_container", event.currentTarget.value)} /></label>
             <label class="settings-field-row settings-number-row"><span>워커 예상 메모리 GiB</span><input type="number" min="0" step="0.1" value={component.worker_memory_gib ?? ""} oninput={(event) => updateDeployment(component.id, "worker_memory_gib", Number(event.currentTarget.value))} /></label>
             <small>앱에 내장된 실행 패키지를 사용합니다. 통신망 설정은 실제 연결과 일치해야 합니다.</small>
@@ -222,7 +234,7 @@
       <div class="network-actions">
         <button type="button" disabled={discovering} onclick={discoverNetwork}>{discovering ? '장비 확인 중…' : '워커 탐색 · 주소 맞추기'}</button>
         {#if networkResult?.candidates?.length}
-          <label class="settings-field-row"><span>워커 장비</span><select aria-label="워커 장비" bind:value={chosenWorker}><option value="">자동 선택</option>{#each networkResult.candidates as node}<option value={node.id}>{node.hostname} · {node.address}</option>{/each}</select></label>
+          <label class="settings-field-row"><span>워커 장비</span><Select aria-label="워커 장비" bind:value={chosenWorker}><option value="">자동 선택</option>{#each networkResult.candidates as node}<option value={node.id}>{node.hostname} · {node.address}</option>{/each}</Select></label>
         {/if}
       </div>
       {#if networkResult?.local}<small>현재 헤드: {networkResult.local.hostname} · {networkResult.local.address || '이 컴퓨터'}</small>{/if}
@@ -231,7 +243,7 @@
     {/if}
     <small>주소를 비우면 SparkTalk 호스트에서 실행합니다. 원격 호스트는 앱 실행 계정의 SSH 키와 known_hosts를 사용합니다. Extra SSH 서비스와는 별도 연결입니다.</small>
     <div class="host-selection">
-      <label class="settings-field-row"><span>편집할 실행 호스트</span><select bind:value={selectedHost}>{#each Object.keys(catalog.hosts) as id}<option value={id}>{id === 'local' ? '로컬 (local)' : id === 'worker' ? '워커 (worker)' : id}</option>{/each}</select></label>
+      <label class="settings-field-row"><span>편집할 실행 호스트</span><Select bind:value={selectedHost}>{#each Object.keys(catalog.hosts) as id}<option value={id}>{id === 'local' ? '로컬 (local)' : id === 'worker' ? '워커 (worker)' : id}</option>{/each}</Select></label>
       <button type="button" onclick={addHost}>호스트 추가</button>
     </div>
     {#each Object.entries(catalog.hosts).filter(([id]) => id === selectedHost) as [id, host] (id)}
@@ -255,6 +267,7 @@
     <button type="button" disabled={busy || !source.trim()} onclick={importSource}>검증 후 불러오기</button>
   </details>
   {#if message}<p role="status">{message}</p>{/if}
+  {/if}
 </fieldset>
 {/if}
 

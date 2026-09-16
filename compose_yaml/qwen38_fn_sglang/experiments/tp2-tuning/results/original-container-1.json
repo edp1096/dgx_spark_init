@@ -1,0 +1,81 @@
+{
+  "image": "dgx-sglang-qwen38-fn:sm121-b12x-head-v1",
+  "image_id": "sha256:5b15fbfd6e5438844d8625fb9e81a6bd115940184a77270f1ccee13800ba6cc1",
+  "args": [
+    "/opt/qwen-tp2/entrypoint.py"
+  ],
+  "labels": {
+    "ai.radixark.base.image": "lmsysorg/sglang:nightly-dev-cu13-20260817-d91c3682@sha256:fa8774dd128600a09fd6d46670b06fb69a55dac8a3881e50ccf0916a45eb39af",
+    "ai.radixark.base.sglang_commit": "d91c3682",
+    "ai.radixark.overlay.commits": "3ea3a37a1,12070370f",
+    "ai.radixark.overlay.prs": "Qiaolin-Yu/sglang-qwen-next#38",
+    "ai.sglang.build.commit": "d91c3682b0b429e4c70df63cd57f819588ce29b0",
+    "ai.sglang.build.url": "https://github.com/sgl-project/sglang/actions/runs/31981245489",
+    "ai.sglang.image.tag": "lmsysorg/sglang:nightly-dev-20260817-d91c3682",
+    "com.docker.compose.config-hash": "167220f14cc5a920ebaa12fc97d0d5691063592a2da15d3cb6b8979f1ba53e89",
+    "com.docker.compose.container-number": "1",
+    "com.docker.compose.depends_on": "",
+    "com.docker.compose.image": "sha256:5b15fbfd6e5438844d8625fb9e81a6bd115940184a77270f1ccee13800ba6cc1",
+    "com.docker.compose.oneoff": "False",
+    "com.docker.compose.project": "sglang_qwen38_fn_tp2",
+    "com.docker.compose.project.config_files": "/home/edp1096/.local/share/sparktalk/runtime/recipes/qwen38-tp2-2de9288465383387/compose.tp2.yaml",
+    "com.docker.compose.project.working_dir": "/home/edp1096/.local/share/sparktalk/runtime/recipes/qwen38-tp2-2de9288465383387",
+    "com.docker.compose.replace": "sglang-qwen38-fn-tp2-1",
+    "com.docker.compose.service": "sglang",
+    "com.docker.compose.version": "5.0.2",
+    "com.nvidia.cudnn.version": "9.14.0.64-1",
+    "maintainer": "NVIDIA CORPORATION <cudatools@nvidia.com>",
+    "org.opencontainers.image.revision": "d91c3682b0b429e4c70df63cd57f819588ce29b0",
+    "org.opencontainers.image.source": "https://github.com/sgl-project/sglang",
+    "org.opencontainers.image.url": "https://github.com/sgl-project/sglang/actions/runs/31981245489",
+    "org.opencontainers.image.version": "lmsysorg/sglang:nightly-dev-20260817-d91c3682",
+    "qwen.tp2.probe": "20260915-111832"
+  },
+  "mounts": [
+    {
+      "Type": "bind",
+      "Source": "/home/edp1096/.cache/huggingface",
+      "Destination": "/hf",
+      "Mode": "ro",
+      "RW": false,
+      "Propagation": "rprivate"
+    },
+    {
+      "Type": "bind",
+      "Source": "/home/edp1096/.local/share/sparktalk/cache/sglang-flash-next-tp2/rank1",
+      "Destination": "/root/.cache/sglang",
+      "Mode": "rw",
+      "RW": true,
+      "Propagation": "rprivate"
+    },
+    {
+      "Type": "bind",
+      "Source": "/home/edp1096/.local/share/sparktalk/cache/sglang-flash-next-tp2/rank1/ple",
+      "Destination": "/ple",
+      "Mode": "rw",
+      "RW": true,
+      "Propagation": "rprivate"
+    },
+    {
+      "Type": "bind",
+      "Source": "/home/edp1096/.local/share/sparktalk/runtime/recipes/qwen38-tp2-2de9288465383387/tp2",
+      "Destination": "/opt/qwen-tp2",
+      "Mode": "ro",
+      "RW": false,
+      "Propagation": "rprivate"
+    }
+  ],
+  "state": {
+    "Status": "running",
+    "Running": true,
+    "Paused": false,
+    "Restarting": false,
+    "OOMKilled": false,
+    "Dead": false,
+    "Pid": 415689,
+    "ExitCode": 0,
+    "Error": "",
+    "StartedAt": "2026-09-15T02:18:43.815950506Z",
+    "FinishedAt": "0001-01-01T00:00:00Z"
+  }
+}

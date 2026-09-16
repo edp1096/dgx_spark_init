@@ -23,6 +23,10 @@ import (
 )
 
 type Server struct {
+	generationMu     sync.Mutex
+	generations      map[uint64]context.CancelFunc
+	generationID     uint64
+	queueClearing    bool
 	mu               sync.RWMutex
 	runtimeMu        sync.Mutex
 	cfg              config.Config
@@ -99,6 +103,7 @@ func New(cfg config.Config, configPath string, store *db.DB, client *llm.Client,
 	s := &Server{cfg: cfg, startup: cfg.Server, configPath: configPath, db: store, llm: client, asr: asr.New(cfg.ASR), tts: tts.New(cfg.TTS), sshClient: supportssh.New(cfg.Extra.SSHEndpoint), media: mediaStore, knowledge: knowledgeStore, knowledgeIndex: &knowledge.Extractor{}, collector: knowledge.NewCollectorClient(cfg.Extra.CollectorEndpoint), runtime: runtimeController, contextWindows: make(map[string]int), approvals: make(map[string]*toolApproval), knowledgeJobs: make(map[string]*knowledgeJobRun), knowledgeJobSem: make(chan struct{}, 1), knowledgeOCRJobs: make(map[string]*knowledgeOCRRun), knowledgeOCRSem: make(chan struct{}, 1)}
 	mux := http.NewServeMux()
 	mux.HandleFunc("/api/health", s.health)
+	mux.HandleFunc("/api/emergency/clear-queue", s.emergencyQueue)
 	mux.HandleFunc("/api/config", s.configuration)
 	mux.HandleFunc("/api/credentials/huggingface", s.huggingFaceToken)
 	mux.HandleFunc("/api/models/prepare", s.modelPreparation)
@@ -144,6 +149,7 @@ func New(cfg config.Config, configPath string, store *db.DB, client *llm.Client,
 	mux.HandleFunc("/api/groups", s.groups)
 	mux.HandleFunc("/api/groups/", s.group)
 	mux.HandleFunc("/api/sessions", s.sessions)
+	mux.HandleFunc("/api/sessions/bulk-delete", s.bulkDeleteSessions)
 	mux.HandleFunc("/api/sessions/", s.session)
 	mux.HandleFunc("/api/chat", s.chat)
 	mux.Handle("/", spaHandler(web))

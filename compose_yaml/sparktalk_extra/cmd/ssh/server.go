@@ -146,13 +146,13 @@ func (a *api) trust(w http.ResponseWriter, r *http.Request) {
 
 func (a *api) execute(w http.ResponseWriter, r *http.Request) {
 	var req execRequest
-	if err := decodeJSON(w, r, &req); err != nil {
+	if err := decodeJSONLimit(w, r, &req, 6*maxCommandBytes+65536); err != nil {
 		writeError(w, http.StatusBadRequest, err.Error(), nil)
 		return
 	}
 	req.Command = strings.TrimSpace(req.Command)
-	if req.Command == "" || len(req.Command) > 8192 || strings.ContainsRune(req.Command, 0) {
-		writeError(w, http.StatusBadRequest, "command must contain 1 to 8192 valid characters", nil)
+	if req.Command == "" || len(req.Command) > maxCommandBytes || strings.ContainsRune(req.Command, 0) {
+		writeError(w, http.StatusBadRequest, "command must contain 1 to 1048576 bytes and no NUL", nil)
 		return
 	}
 	select {
@@ -207,7 +207,9 @@ func (a *api) execute(w http.ResponseWriter, r *http.Request) {
 	if !emit(streamEvent{Type: "start"}) {
 		return
 	}
-	if err := session.Start(req.Command); err != nil {
+	command, input := commandTransport(req.Command)
+	session.Stdin = input
+	if err := session.Start(command); err != nil {
 		_ = emit(streamEvent{Type: "exit", Error: "start command: " + err.Error()})
 		return
 	}
@@ -395,7 +397,11 @@ func (a *api) writeConnectError(w http.ResponseWriter, err error) {
 }
 
 func decodeJSON(w http.ResponseWriter, r *http.Request, target any) error {
-	decoder := json.NewDecoder(http.MaxBytesReader(w, r.Body, 32*1024))
+	return decodeJSONLimit(w, r, target, 32*1024)
+}
+
+func decodeJSONLimit(w http.ResponseWriter, r *http.Request, target any, limit int64) error {
+	decoder := json.NewDecoder(http.MaxBytesReader(w, r.Body, limit))
 	decoder.DisallowUnknownFields()
 	if err := decoder.Decode(target); err != nil {
 		return errors.New("invalid JSON request")
@@ -423,4 +429,15 @@ func requestLog(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 		fmt.Printf("%s %s %s\n", r.Method, r.URL.Path, time.Since(started).Round(time.Millisecond))
 	})
+}
+
+const maxCommandBytes = 1 << 20
+
+// Keep short commands unchanged. Spool long scripts before executing so commands
+// such as read/cat cannot consume subsequent script lines from standard input.
+func commandTransport(command string) (string, io.Reader) {
+	if len(command) <= 8192 {
+		return command, nil
+	}
+	return `umask 077; sparktalk_script=$(mktemp) || exit 1; trap 'rm -f -- "$sparktalk_script"' EXIT; trap 'exit 129' HUP; trap 'exit 130' INT; trap 'exit 143' TERM; cat > "$sparktalk_script" || exit 1; "${SHELL:-/bin/sh}" "$sparktalk_script" < /dev/null`, strings.NewReader(command)
 }

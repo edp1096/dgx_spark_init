@@ -1,3 +1,4 @@
+import { selectOption, controlValue, expectControlValue } from './select-helpers.js';
 import { test, expect } from '@playwright/test';
 import { createServer } from 'node:http';
 
@@ -20,9 +21,9 @@ test('composes selections, persists a combination and sends the preview as one s
     expect((await request.put('/api/config', { data: cfg })).ok()).toBeTruthy();
     await page.goto('/'); await page.locator('.settings-button').click();
     await page.getByRole('tab', { name: '프로필', exact: true }).click();
-    await page.getByRole('combobox', { name: '프롬프트 작성 방식', exact: true }).selectOption('compose');
+    await selectOption(page.getByRole('combobox', { name: '프롬프트 작성 방식', exact: true }), 'compose');
     await page.getByRole('tab', { name: '프로필', exact: true }).click();
-    await page.getByRole('combobox', { name: '페르소나', exact: true }).selectOption('colleague');
+    await selectOption(page.getByRole('combobox', { name: '페르소나', exact: true }), 'colleague');
     await page.locator('summary').filter({ hasText: /^답변 길이 / }).click();
     await page.getByLabel('간결하게', { exact: true }).check();
     await page.getByLabel('자세하게', { exact: true }).check();
@@ -30,7 +31,7 @@ test('composes selections, persists a combination and sends the preview as one s
     await page.getByLabel('간결하게', { exact: true }).check();
     await page.locator('summary').filter({ hasText: /^근거·검증 / }).click();
     await page.getByLabel('사실·추론 구분', { exact: true }).check();
-    const preview = await page.getByLabel('최종 프롬프트 미리보기').inputValue();
+    const preview = await controlValue(page.getByLabel('최종 프롬프트 미리보기'));
     expect(preview).toContain('[페르소나]'); expect(preview).toContain('[답변 길이]'); expect(preview).toContain('[근거·검증]');
     await page.getByText('조합 저장·관리', { exact: true }).click();
     page.once('dialog', dialog => dialog.accept('검증 조합'));
@@ -39,9 +40,9 @@ test('composes selections, persists a combination and sends the preview as one s
     await expect.poll(async () => (await (await request.get('/api/config')).json()).model.system_prompt).toBe(preview);
     await page.reload(); await page.locator('.settings-button').click();
     await page.getByRole('tab', { name: '프로필', exact: true }).click();
-    await expect(page.getByRole('combobox', { name: '프롬프트 작성 방식', exact: true })).toHaveValue('compose');
-    await expect(page.getByLabel('저장한 조합').locator('option:checked')).toHaveText('검증 조합');
-    await expect(page.getByLabel('최종 프롬프트 미리보기')).toHaveValue(preview);
+    await expectControlValue(page.getByRole('combobox', { name: '프롬프트 작성 방식', exact: true }), 'compose');
+    await expect(page.getByLabel('저장한 조합')).toContainText('검증 조합');
+    await expectControlValue(page.getByLabel('최종 프롬프트 미리보기'), preview);
     await page.setViewportSize({ width: 390, height: 700 });
     expect(await page.locator('.settings-modal').evaluate(el => el.scrollWidth <= el.clientWidth)).toBeTruthy();
     session = await (await request.post('/api/sessions', { data: { title: 'Prompt composition' } })).json();
@@ -65,7 +66,7 @@ test('creates and deletes a custom condition without leaving stale saved referen
   try {
     await page.goto('/'); await page.locator('.settings-button').click();
     await page.getByRole('tab', { name: '프로필', exact: true }).click();
-    await page.getByRole('combobox', { name: '프롬프트 작성 방식', exact: true }).selectOption('compose');
+    await selectOption(page.getByRole('combobox', { name: '프롬프트 작성 방식', exact: true }), 'compose');
     await page.getByText('페르소나·조건 편집', { exact: true }).click();
     await page.getByRole('button', { name: '조건 추가', exact: true }).click();
     await page.getByLabel('항목 이름').fill('테스트 표기'); await page.getByLabel('항목 내용').fill('테스트 조건을 적용한다.');
@@ -82,9 +83,9 @@ test('creates and deletes a custom condition without leaving stale saved referen
     await expect.poll(async () => (await (await request.get('/api/config')).json()).model.prompt_composer.combinations.some(s => s.name === '삭제 검사 조합')).toBeTruthy();
     await page.reload(); await page.locator('.settings-button').click();
     await page.getByRole('tab', { name: '프로필', exact: true }).click();
-    await expect(page.getByLabel('최종 프롬프트 미리보기')).not.toHaveValue(/테스트 조건/);
-    await page.getByRole('combobox', { name: '프롬프트 작성 방식', exact: true }).selectOption('direct');
-    await page.getByRole('combobox', { name: '프롬프트 내용', exact: true }).selectOption('custom');
+    await expectControlValue(page.getByLabel('최종 프롬프트 미리보기'), /테스트 조건/, true);
+    await selectOption(page.getByRole('combobox', { name: '프롬프트 작성 방식', exact: true }), 'direct');
+    await selectOption(page.getByRole('combobox', { name: '프롬프트 내용', exact: true }), 'custom');
     await expect(page.locator('textarea.system-prompt')).toBeEditable();
   } finally { await request.put('/api/config', { data: original }); }
 });
@@ -102,28 +103,28 @@ test('distinguishes clearing a preset, fresh text, and editing a copy across sav
     await page.goto('/'); await page.locator('.settings-button').click();
     await page.getByRole('tab', { name: '프로필', exact: true }).click();
     const source = page.getByRole('combobox', { name: '프롬프트 내용', exact: true });
-    await expect(source).toHaveValue('preset:테스트 프리셋');
-    await source.selectOption('custom');
-    await expect(page.locator('textarea.system-prompt')).toHaveValue('');
+    await expectControlValue(source, 'preset:테스트 프리셋');
+    await selectOption(source, 'custom');
+    await expectControlValue(page.locator('textarea.system-prompt'), '');
     await page.locator('textarea.system-prompt').fill('직접 쓴 내용');
-    await source.selectOption('preset:테스트 프리셋');
+    await selectOption(source, 'preset:테스트 프리셋');
     await page.getByRole('button', { name: '현재 내용으로 직접 편집', exact: true }).click();
-    await expect(source).toHaveValue('custom');
-    await expect(page.locator('textarea.system-prompt')).toHaveValue('직전 프리셋의 지침입니다.');
+    await expectControlValue(source, 'custom');
+    await expectControlValue(page.locator('textarea.system-prompt'), '직전 프리셋의 지침입니다.');
     await page.locator('textarea.system-prompt').fill('복사해서 수정한 내용');
     await page.getByRole('button', { name: '저장', exact: true }).click();
     await expect.poll(async () => (await (await request.get('/api/config')).json()).model.system_prompt).toBe('복사해서 수정한 내용');
     let saved = await (await request.get('/api/config')).json();
     expect(saved.model.system_prompt_preset).toBe('');
     expect(saved.model.system_prompt_presets[0].prompt).toBe('직전 프리셋의 지침입니다.');
-    await source.selectOption('preset:테스트 프리셋');
-    await source.selectOption('none');
+    await selectOption(source, 'preset:테스트 프리셋');
+    await selectOption(source, 'none');
     await expect(page.locator('textarea.system-prompt')).toHaveCount(0);
     await page.getByRole('button', { name: '저장', exact: true }).click();
     await expect.poll(async () => (await (await request.get('/api/config')).json()).model.system_prompt).toBe('');
     await page.reload(); await page.locator('.settings-button').click();
     await page.getByRole('tab', { name: '프로필', exact: true }).click();
-    await expect(page.getByRole('combobox', { name: '프롬프트 내용', exact: true })).toHaveValue('none');
+    await expectControlValue(page.getByRole('combobox', { name: '프롬프트 내용', exact: true }), 'none');
     saved = await (await request.get('/api/config')).json();
     expect(saved.model.system_prompt_preset).toBe('');
     expect(saved.model.system_prompt_presets[0].prompt).toBe('직전 프리셋의 지침입니다.');

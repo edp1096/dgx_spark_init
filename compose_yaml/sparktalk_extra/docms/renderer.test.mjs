@@ -105,3 +105,9 @@ test('images reject invalid bytes and unsupported slideshow use',()=>{
  assert.throws(()=>validate({format:'hwp',title:'test',sections:[{paragraphs:[],images:[{data:'AAAA',width_px:1,height_px:1}]}]}));
  assert.throws(()=>validate({format:'pptx',title:'test',slides:[{title:'s',bullets:[]}],sections:[{images:[{}]}]}));
 });
+
+ test('long sections preserve paragraph count and total content limit',()=>{
+ const input={format:'pdf',title:'test',sections:[{paragraphs:Array.from({length:200},(_,i)=>`문단 ${i}`)}]};
+ assert.equal(validate(input).sections[0].paragraphs.length,200);
+ assert.throws(()=>validate({...input,sections:[{paragraphs:Array(200).fill('x'.repeat(1000))}]}),/Document content exceeds limit/);
+ });

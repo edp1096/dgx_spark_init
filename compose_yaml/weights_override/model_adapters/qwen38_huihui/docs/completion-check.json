@@ -1,0 +1,10 @@
+{
+  "status": "complete",
+  "public_anonymous_access": true,
+  "revision": "40f09f531da577a4fcfbd6b368e7b6ebacde403e",
+  "verified_weight_shards": 206,
+  "remote_metadata_hashes_match": true,
+  "main_bundle": "flash-next-tp2",
+  "main_model": "edp1096/Huihui-RadixArk-Qwen3.8-Flash-Next-abliterated-NVFP4",
+  "main_health": "ok"
+}

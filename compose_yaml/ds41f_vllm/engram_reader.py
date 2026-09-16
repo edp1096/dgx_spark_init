@@ -121,16 +121,16 @@ class _Job(C.Structure):
 _LOAD_LOCK = threading.Lock()
 
 
-def _load_unlocked():
+def _load_unlocked(source=_SOURCE):
     root = Path(os.environ.get('XDG_CACHE_HOME', str(Path.home()/'.cache')))/'ds41-engram-reader'
     root.mkdir(parents=True, exist_ok=True)
-    tag = hashlib.sha256((_SOURCE + os.uname().machine).encode()).hexdigest()[:20]
+    tag = hashlib.sha256((source + os.uname().machine).encode()).hexdigest()[:20]
     library = root/f'{tag}.so'
     if not library.exists():
         tmp = root/f'{tag}.{os.getpid()}.so'
         try:
             subprocess.run(['cc','-O3','-std=c11','-shared','-fPIC','-pthread','-x','c','-','-o',str(tmp)],
-                           input=_SOURCE,text=True,check=True,capture_output=True)
+                           input=source,text=True,check=True,capture_output=True)
             os.replace(tmp,library)
         finally:
             tmp.unlink(missing_ok=True)
@@ -141,15 +141,15 @@ def _load_unlocked():
     return lib
 
 
-def _load():
+def _load(source=_SOURCE):
     with _LOAD_LOCK:
-        return _load_unlocked()
+        return _load_unlocked(source)
 
 
 class Reader:
-    def __init__(self, threads=32):
+    def __init__(self, threads=32, *, _source=_SOURCE):
         if not 1 <= threads <= 64: raise ValueError('reader threads must be 1..64')
-        self._lock=threading.Lock(); self._lib=_load(); self._pid=os.getpid()
+        self._lock=threading.Lock(); self._lib=_load(_source); self._pid=os.getpid()
         self._ptr=self._lib.er_create(threads)
         if not self._ptr: raise RuntimeError('native reader worker creation failed')
         atexit.register(self.close)
@@ -178,3 +178,25 @@ class Reader:
             if not self._ptr: raise RuntimeError('reader is closed')
             error=self._lib.er_read(self._ptr,args,len(jobs),chunk)
         if error: raise OSError(error,os.strerror(error))
+
+def advise_small_jobs(jobs):
+    if sum(len(j[2]) for j in jobs)>512:return
+    page=os.sysconf('SC_PAGE_SIZE')
+    for fd,base,rows,width,buf in jobs:
+        if base<0 or width<1 or base+width>2**63-1:continue
+        if any(row<0 or row>(2**63-1-base-width)//width for row in rows):continue
+        pages={offset for row in rows for offset in
+               range((base+row*width)//page,(base+(row+1)*width-1)//page+1)}
+        for offset in sorted(pages):
+            if 0<=offset*page<2**63-page:
+                try:
+                    os.posix_fadvise(fd,offset*page,page,os.POSIX_FADV_WILLNEED)
+                except OSError:
+                    pass  # Optional hint; authoritative pread still reports errors.
+
+
+class AdvisedReader(Reader):
+    """Same pread pool, with bounded current-row I/O hints for small batches."""
+    def read(self,jobs,chunk=16):
+        advise_small_jobs(jobs)
+        return super().read(jobs,chunk)
