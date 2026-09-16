@@ -28,10 +28,10 @@ class PaintRequest(base.ImageRequest):
     anypaint_image: str | None = Field(default=None, max_length=32 * 1024 * 1024)
     anypaint_mask: str | None = Field(default=None, max_length=32 * 1024 * 1024)
     mask_box: list[int] | None = None
-    outpaint_left: int = Field(default=0, ge=0, le=512, multiple_of=16)
-    outpaint_top: int = Field(default=0, ge=0, le=512, multiple_of=16)
-    outpaint_right: int = Field(default=0, ge=0, le=512, multiple_of=16)
-    outpaint_bottom: int = Field(default=0, ge=0, le=512, multiple_of=16)
+    outpaint_left: int = Field(default=0, ge=0, le=1536, multiple_of=16)
+    outpaint_top: int = Field(default=0, ge=0, le=1536, multiple_of=16)
+    outpaint_right: int = Field(default=0, ge=0, le=1536, multiple_of=16)
+    outpaint_bottom: int = Field(default=0, ge=0, le=1536, multiple_of=16)
 
 
 def decode_image(value):
@@ -47,14 +47,13 @@ def decode_image(value):
         raise HTTPException(400, "invalid image data URL") from exc
 
 
-def trial_size(width, height):
+def generation_size(width, height):
     if any(n < 256 or n > 1024 or n % 16 for n in (width, height)):
-        raise HTTPException(400, "trial output dimensions must be 256..1024 multiples of 16; use a smaller source before extending a 1024 image")
+        raise HTTPException(400, "generation output must have each dimension 256..1024 and divisible by 16")
 
 
 def prepare_paint(request):
     source = decode_image(request.anypaint_image)
-    trial_size(*source.size)
     pads = (request.outpaint_left, request.outpaint_top, request.outpaint_right, request.outpaint_bottom)
     if request.operation in ("inpaint", "object_remove"):
         if any(pads):
@@ -78,7 +77,8 @@ def prepare_paint(request):
             raise HTTPException(400, "outpaint requires nonzero padding and no mask")
         left, top, right, bottom = pads
         size = (source.width + left + right, source.height + top + bottom)
-        trial_size(*size)
+        if size[0] * size[1] > 16_777_216:
+            raise HTTPException(400, "expanded canvas exceeds 16 megapixels")
         canvas = Image.new("RGB", size, (0, 255, 0))
         canvas.paste(source, (left, top))
         mask = Image.new("L", size, 255)
@@ -88,6 +88,35 @@ def prepare_paint(request):
     rgba = source.convert("RGBA")
     rgba.putalpha(ImageOps.invert(mask))
     return rgba
+
+
+def fit_masked_edit(original):
+    """Bound GPU work; resize image and edit mask together, then pad if needed."""
+    scale = min(1.0, 1024 / max(original.size))
+    content_size = tuple(max(1, round(n * scale)) for n in original.size)
+    rgb = original.convert("RGB").resize(content_size, Image.Resampling.LANCZOS)
+    alpha = original.getchannel("A").resize(content_size, Image.Resampling.NEAREST)
+    size = tuple(max(256, (n + 15) // 16 * 16) for n in content_size)
+    canvas = Image.new("RGBA", size, (0, 0, 0, 255))
+    rgb.putalpha(alpha)
+    canvas.paste(rgb, (0, 0))
+    return canvas, content_size
+
+
+def restore_masked_edit(encoded, original, content_size):
+    with Image.open(io.BytesIO(base64.b64decode(encoded))) as result:
+        edited = result.convert("RGB").crop((0, 0, *content_size))
+        edited = edited.resize(original.size, Image.Resampling.LANCZOS)
+    mask = ImageOps.invert(original.getchannel("A"))
+    result = Image.composite(edited, original.convert("RGB"), mask)
+    return base64.b64encode(png_bytes(result)).decode()
+
+
+def restore_output_size(encoded, output_size, content_size):
+    with Image.open(io.BytesIO(base64.b64decode(encoded))) as result:
+        result = result.convert("RGB").crop((0, 0, *content_size))
+        result = result.resize(output_size, Image.Resampling.LANCZOS)
+    return base64.b64encode(png_bytes(result)).decode()
 
 
 def paint_workflow(request, image_name, size, seed, prefix):
@@ -145,16 +174,9 @@ async def cutout(data):
 
 
 def preserve_original(encoded, canvas, request):
-    # Feather only INSIDE the original region. Green padding must never leak
-    # through at the canvas edge or into the generated extension.
     mask = Image.new("L", canvas.size, 0)
-    draw = ImageDraw.Draw(mask)
     left, top = request.outpaint_left, request.outpaint_top
-    right, bottom = canvas.width - request.outpaint_right - 1, canvas.height - request.outpaint_bottom - 1
-    for inset in range(16):
-        box = (left + (inset if left else 0), top + (inset if top else 0),
-               right - (inset if request.outpaint_right else 0), bottom - (inset if request.outpaint_bottom else 0))
-        draw.rectangle(box, fill=round(255 * (inset + 1) / 16))
+    mask.paste(255, (left, top, canvas.width - request.outpaint_right, canvas.height - request.outpaint_bottom))
     with Image.open(io.BytesIO(base64.b64decode(encoded))) as generated:
         output = Image.composite(canvas.convert("RGB"), generated.convert("RGB"), mask)
         buffer = io.BytesIO()
@@ -191,11 +213,21 @@ async def generate(request: PaintRequest):
     seed = base.request_seed(request.seed)
     prefix = f"nvfp4-api/{uuid.uuid4().hex}"
     path = None
+    original_paint = None
+    original_canvas = None
+    output_size = None
+    working_content_size = None
     async with base.generation_lock:
         try:
             if request.operation in ("inpaint", "outpaint", "object_remove"):
                 image = prepare_paint(request)
+                if request.operation in ("inpaint", "object_remove"):
+                    original_paint = image.copy()
+                    image, working_content_size = fit_masked_edit(image)
                 if request.operation == "outpaint":
+                    original_canvas = image.convert("RGB")
+                    output_size = original_canvas.size
+                    image, working_content_size = fit_masked_edit(image)
                     image = image.convert("RGB")
                 elif request.operation == "object_remove":
                     mask = ImageOps.invert(image.getchannel("A")).point(lambda n: 255 if n >= 128 else 0)
@@ -209,7 +241,9 @@ async def generate(request: PaintRequest):
                 encoded = await cutout(png_bytes(image))
                 return {"created": int(time.time()), "seed": 0, "data": [{"b64_json": encoded}]}
             if request.operation in ("background_cleanup", "background_remove"):
-                trial_size(*image.size)
+                output_size = image.size
+                image, working_content_size = fit_masked_edit(image.convert("RGBA"))
+                image = image.convert("RGB")
             if image is not None:
                 directory = base.INPUT_ROOT / "nvfp4-api"
                 directory.mkdir(parents=True, exist_ok=True)
@@ -222,14 +256,18 @@ async def generate(request: PaintRequest):
                 graph = paint_workflow(request, image_name, image.size, seed, prefix)
             else:
                 width, height = base.parse_size(request.size)
-                trial_size(width, height)
+                generation_size(width, height)
                 graph = base.workflow(request.prompt.strip(), width, height, seed, prefix,
                     [image_name] if image is not None else None)
             encoded = await base.execute_workflow(graph)
+            if original_paint is not None:
+                encoded = restore_masked_edit(encoded, original_paint, working_content_size)
+            if output_size is not None:
+                encoded = restore_output_size(encoded, output_size, working_content_size)
             if request.operation == "background_remove":
                 encoded = await cutout(base64.b64decode(encoded))
             if request.operation == "outpaint" and request.preserve_source:
-                encoded = preserve_original(encoded, image, request)
+                encoded = preserve_original(encoded, original_canvas, request)
         except (httpx.HTTPError, KeyError, RuntimeError, TimeoutError) as exc:
             raise HTTPException(500, str(exc)) from exc
         finally:

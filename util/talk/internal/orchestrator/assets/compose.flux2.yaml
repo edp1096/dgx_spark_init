@@ -1,6 +1,6 @@
 services:
   runtime:
-    image: sparktalk-flux2-paint:trial4
+    image: sparktalk-flux2-paint:trial6
     build:
       context: ${SPARKTALK_BUILD_DIR:?Embedded build assets required}
     pull_policy: never
