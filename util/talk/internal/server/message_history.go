@@ -13,11 +13,16 @@ var embeddedDataPattern = regexp.MustCompile(`(?i)data:[^;\s]+;base64,[^\s"']+`)
 // modelHistory separates the visible transcript from the model-facing
 // transcript. Failed and cancelled requests remain visible, but are converted
 // to short text-only exchanges so broken media and large error payloads cannot
-// poison later requests. currentPendingID is the one request allowed to carry
+// poison later requests. currentRequestID is the pending or explicitly retried request allowed to carry
 // its original attachments while it is being generated.
-func modelHistory(items []db.Message, currentPendingID int64) []db.Message {
+func modelHistory(items []db.Message, currentRequestID int64) []db.Message {
 	out := make([]db.Message, 0, len(items))
 	for _, item := range items {
+		if currentRequestID != 0 && item.ID == currentRequestID && item.Role == "user" {
+			item.Status, item.Error = db.MessageCompleted, ""
+			out = append(out, item)
+			continue
+		}
 		status := item.Status
 		if status == "" {
 			status = db.MessageCompleted
@@ -26,7 +31,7 @@ func modelHistory(items []db.Message, currentPendingID int64) []db.Message {
 		case db.MessageCompleted:
 			out = append(out, item)
 		case db.MessagePending:
-			if item.ID == currentPendingID {
+			if item.ID == currentRequestID {
 				out = append(out, item)
 			}
 		case db.MessageFailed, db.MessageCancelled:

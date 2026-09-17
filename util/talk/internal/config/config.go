@@ -89,16 +89,17 @@ type ServerConfig struct {
 }
 
 type ModelConfig struct {
-	Endpoint            string          `yaml:"endpoint" json:"endpoint"`
-	DefaultModel        string          `yaml:"default_model" json:"default_model"`
-	ModelType           string          `yaml:"model_type" json:"model_type"`
-	APIKey              string          `yaml:"api_key" json:"-"`
-	ReasoningEffort     string          `yaml:"reasoning_effort" json:"reasoning_effort"`
-	ThinkingBudget      int             `yaml:"thinking_budget" json:"thinking_budget"`
-	SystemPrompt        string          `yaml:"system_prompt" json:"system_prompt"`
-	SystemPromptPreset  string          `yaml:"system_prompt_preset,omitempty" json:"system_prompt_preset"`
-	SystemPromptPresets []PromptPreset  `yaml:"system_prompt_presets,omitempty" json:"system_prompt_presets"`
-	PromptComposer      *PromptComposer `yaml:"prompt_composer,omitempty" json:"prompt_composer"`
+	VideoInputs         map[string]string `yaml:"video_inputs,omitempty" json:"video_inputs,omitempty"`
+	Endpoint            string            `yaml:"endpoint" json:"endpoint"`
+	DefaultModel        string            `yaml:"default_model" json:"default_model"`
+	ModelType           string            `yaml:"model_type" json:"model_type"`
+	APIKey              string            `yaml:"api_key" json:"-"`
+	ReasoningEffort     string            `yaml:"reasoning_effort" json:"reasoning_effort"`
+	ThinkingBudget      int               `yaml:"thinking_budget" json:"thinking_budget"`
+	SystemPrompt        string            `yaml:"system_prompt" json:"system_prompt"`
+	SystemPromptPreset  string            `yaml:"system_prompt_preset,omitempty" json:"system_prompt_preset"`
+	SystemPromptPresets []PromptPreset    `yaml:"system_prompt_presets,omitempty" json:"system_prompt_presets"`
+	PromptComposer      *PromptComposer   `yaml:"prompt_composer,omitempty" json:"prompt_composer"`
 }
 
 type PromptPreset struct {
@@ -391,6 +392,7 @@ func saveNormalized(path string, cfg Config) error {
 }
 
 func (c *Config) Normalize() {
+
 	if c.Version < 2 {
 		c.Version = 2
 	}
@@ -1084,4 +1086,17 @@ func isLowerHex(value string) bool {
 		}
 	}
 	return true
+}
+
+// Video transport is deployment-specific: same model name on another server
+// must not inherit an override from this deployment.
+func (m ModelConfig) VideoInputMode() string {
+	key := strings.TrimRight(strings.TrimSpace(m.Endpoint), "/") + "\n" + m.DefaultModel
+	if mode := m.VideoInputs[key]; mode == "frames" || mode == "native" {
+		return mode
+	}
+	if m.ModelType == "deepseek-v4" {
+		return "frames"
+	}
+	return "native"
 }

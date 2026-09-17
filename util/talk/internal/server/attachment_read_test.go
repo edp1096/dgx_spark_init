@@ -5,6 +5,10 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"image"
+	"image/jpeg"
+	"net/http"
+	"net/http/httptest"
 	"sparktalk/internal/db"
 	"sparktalk/internal/knowledge"
 	"sparktalk/internal/llm"
@@ -40,7 +44,7 @@ func TestAttachmentReadZIPPagesAndIsolation(t *testing.T) {
 		json.Unmarshal([]byte(v.Result), &out)
 		return out
 	}
-	if len(read("", 0)["attachments"].([]any)) != 1 {
+	if len(read("", 0)["attachments"].([]any)) != 2 {
 		t.Fatal("file list missing")
 	}
 	first := read(a.ID, 0)
@@ -56,5 +60,41 @@ func TestAttachmentReadZIPPagesAndIsolation(t *testing.T) {
 	args, _ := json.Marshal(map[string]any{"attachment_id": a.ID})
 	if _, e = other.handlers["attachment_read"](context.Background(), llm.ToolCall{Function: llm.FunctionCall{Arguments: string(args)}}, nil, nil); e == nil {
 		t.Fatal("cross-session attachment exposed")
+	}
+}
+
+func TestAttachmentReadListsAndReloadsStoredVideo(t *testing.T) {
+	s, _ := testImageServer(t)
+	a, err := s.media.SaveReader(bytes.NewReader(append([]byte{0, 0, 0, 12}, []byte("ftypisomvideo")...)), "clip.mp4", "video/mp4", media.MaxAttachmentBytes)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = s.db.AddMessage("session", "user", "analyze", "", nil, []db.Attachment{a}); err != nil {
+		t.Fatal(err)
+	}
+	frames := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		jpeg.Encode(w, image.NewRGBA(image.Rect(0, 0, 16, 8)), nil)
+	}))
+	defer frames.Close()
+	s.cfg.Model.VideoInputs = map[string]string{s.cfg.Model.Endpoint + "\n" + s.cfg.Model.DefaultModel: "frames"}
+	s.cfg.ASR.Enabled = false
+	s.cfg.ASR.FFmpegEndpoint = frames.URL
+	reg := completionToolRegistry{handlers: make(map[string]registeredToolHandler)}
+	s.registerAttachmentReader(&reg, "session")
+	call := func(args string) (registeredToolResult, error) {
+		return reg.handlers["attachment_read"](context.Background(), llm.ToolCall{Function: llm.FunctionCall{Arguments: args}}, nil, nil)
+	}
+	listed, err := call(`{}`)
+	if err != nil || !strings.Contains(listed.Result, a.ID) {
+		t.Fatalf("video omitted: %s %v", listed.Result, err)
+	}
+	args, _ := json.Marshal(map[string]string{"attachment_id": a.ID})
+	loaded, err := call(string(args))
+	if err != nil {
+		t.Fatal(err)
+	}
+	b, _ := json.Marshal(loaded.Followups)
+	if strings.Contains(string(b), "video_url") || !strings.Contains(string(b), "data:image/jpeg;base64,") || !strings.Contains(string(b), a.ID) {
+		t.Fatalf("media reload payload incorrect: %s", b)
 	}
 }

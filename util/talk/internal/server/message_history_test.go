@@ -46,3 +46,16 @@ func TestInterruptedCodeRemainsAvailableForContinuation(t *testing.T) {
 		t.Fatalf("continuation history lost or replayed incomplete tools: %+v", got)
 	}
 }
+
+func TestExplicitRetryRestoresOnlySelectedFailedRequest(t *testing.T) {
+	for _, status := range []string{db.MessageFailed, db.MessageCancelled} {
+		items := []db.Message{
+			{ID: 1, Role: "user", Status: db.MessageFailed, Content: "old", Attachments: []db.Attachment{{ID: "old", MIME: "video/mp4"}}},
+			{ID: 3, Role: "user", Status: status, Content: "analyze", Error: "At most 0 video(s)", Attachments: []db.Attachment{{ID: "retry", MIME: "video/mp4"}}},
+		}
+		got := modelHistory(items, 3)
+		if len(got) != 3 || len(got[0].Attachments) != 0 || len(got[2].Attachments) != 1 || got[2].Attachments[0].ID != "retry" || got[2].Error != "" || got[2].Content != "analyze" {
+			t.Fatalf("retry lost media or replayed error: %+v", got)
+		}
+	}
+}

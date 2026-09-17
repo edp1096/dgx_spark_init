@@ -14,10 +14,12 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
 type api struct {
+	updateMu  sync.Mutex
 	cfg       config
 	sem       chan struct{}
 	ffmpegVer string
@@ -57,6 +59,9 @@ func commandVersion(path string) (string, error) {
 func (a *api) routes() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health", a.health)
+	mux.HandleFunc("GET /v1/runtime/yt-dlp", a.ytdlpRuntime)
+	mux.HandleFunc("POST /v1/runtime/yt-dlp/update", a.ytdlpRuntime)
+	mux.HandleFunc("POST /v1/runtime/yt-dlp/rollback", a.ytdlpRuntime)
 	mux.HandleFunc("POST /v1/probe", a.probe)
 	mux.HandleFunc("POST /v1/audio/extract", a.extractAudio)
 	mux.HandleFunc("POST /v1/video/normalize", a.normalizeVideo)
@@ -70,7 +75,7 @@ func (a *api) health(w http.ResponseWriter, _ *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{
 		"status":          "ok",
 		"ffmpeg":          a.ffmpegVer,
-		"yt_dlp":          a.ytDLPVer,
+		"yt_dlp":          a.ytdlpStatus()["current"],
 		"active":          len(a.sem),
 		"max_concurrency": cap(a.sem),
 	})

@@ -73,6 +73,7 @@ func (s *Server) prepareContext(ctx context.Context, sessionID string, items []d
 }
 
 func (s *Server) buildContext(ctx context.Context, sessionID string, items []db.Message, model string, cfg config.Config, client *llm.Client, force, preview bool) ([]llm.Message, contextState, error) {
+	cfg.Model.DefaultModel = model
 	segments, err := s.db.ContextSegments(sessionID)
 	if err != nil {
 		return nil, contextState{}, err
@@ -232,6 +233,8 @@ func (s *Server) runContextCompletion(
 			_ = emit("performance", measurements.Summary(true))
 		}
 	})
+	cfg.Model.DefaultModel = model
+	ctx = context.WithValue(ctx, videoInputModeKey{}, cfg.Model.VideoInputMode())
 	ctx = context.WithValue(ctx, contextToolsKey{}, toolsEnabled)
 	ctx = context.WithValue(ctx, referencePolicyKey{}, cfg.Context.Enabled || cfg.Memory.Enabled)
 	messages, state, err := s.prepareContext(ctx, sessionID, items, model, cfg, client, false)

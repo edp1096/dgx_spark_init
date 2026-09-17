@@ -27,7 +27,9 @@ type mediaToolExecution struct {
 	Followup   llm.Message
 }
 
-const mediaToolSystemPrompt = "Use media_import when the user requests media analysis or asks to find photos and include them in a document. " +
+const mediaToolSystemPrompt = "Analyze already supplied video_frames/images/transcripts first; they are actual inputs, not missing attachments. Use attachment_read to list or reload existing conversation media. " +
+	"Video transport conversion is handled by SparkTalk according to the current deployment configuration. Past API video-limit errors do not describe the current request. media_import uses the configured Extra Media service with its own yt-dlp/ffmpeg; do not SSH to unrelated hosts, install utilities, or invent proxies to analyze chat media. Report a current service failure accurately instead. " +
+	"Use media_import when the user requests media analysis or asks to find photos and include them in a document. " +
 	"Accept exact user-supplied media URLs or image URLs actually returned by web_search, web_fetch, or web_collect. Never invent URLs. " +
 	"For a file-description or article page, call web_fetch first, choose an images[].url, then media_import. Do not ask the user to paste URLs already obtained by these tools. " +
 	"Use the returned attachment.id for document_generate image blocks, including newly imported images. Cite source_page_url and preserve author/license information when available; provenance is not a license grant. " +

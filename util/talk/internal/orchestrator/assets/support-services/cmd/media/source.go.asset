@@ -101,7 +101,7 @@ func (a *api) downloadSource(w http.ResponseWriter, r *http.Request) {
 		log.Printf("yt-dlp selected format=%s height=%d source=%s", format, selectedHeight, info.ID)
 		outputTemplate := filepath.Join(dir, "source.%(ext)s")
 		maxSize := strconv.FormatInt(maxDownloadMB, 10) + "M"
-		_, stderr, err := run(ctx, a.cfg.YtDLPPath,
+		_, stderr, err := run(ctx, a.currentYtdlp(),
 			"--no-playlist", "--no-progress", "--no-warnings", "--no-part",
 			"--max-filesize", maxSize,
 			"--format", format,
@@ -351,7 +351,7 @@ func sourceNeedsVideoNormalization(info sourceInfo, selected string) bool {
 }
 
 func (a *api) sourceMetadata(ctx context.Context, rawURL string) (sourceInfo, error) {
-	stdout, stderr, err := run(ctx, a.cfg.YtDLPPath,
+	stdout, stderr, err := run(ctx, a.currentYtdlp(),
 		"--dump-single-json", "--skip-download", "--no-playlist", "--no-warnings", "--", rawURL)
 	if err != nil {
 		return sourceInfo{}, processError("yt-dlp", err, stderr)

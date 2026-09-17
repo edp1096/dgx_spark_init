@@ -1,4 +1,5 @@
 <script>
+  import MediaRuntimeSettings from './settings/MediaRuntimeSettings.svelte';
   import Select from './Select.svelte';
   import BrowserSettings from './settings/BrowserSettings.svelte';
   import MicrophoneHelp from './MicrophoneHelp.svelte';
@@ -50,6 +51,7 @@
     { id: 'features', label: '기능' },
     { id: 'system', label: '시스템' },
   ];
+  $: videoDeploymentKey = `${(settings?.model?.endpoint || '').replace(/\/+$/,'')}\n${settings?.model?.default_model || ''}`;
   $: modelProfile = modelCapabilities(settings?.model?.model_type);
   $: gemmaThinkingValue = thinkingToggleValue(settings?.model?.reasoning_effort);
   $: if (settings?.model && (modelProfile.family === 'qwen3.8' || modelProfile.family === 'qwen3.8-exl3' || (modelProfile.family === 'glm5.3' || modelProfile.family === 'deepseek-v4'))) settings.model.reasoning_effort = normalizeReasoningEffort(settings.model.model_type, settings.model.reasoning_effort);
@@ -319,10 +321,13 @@
         </div>
         <div class="settings-section" hidden={featureSection !== 'web'}>
         <fieldset>
-          <legend><span>웹·미디어 도구</span> <SettingsHelp title="웹·미디어 도구"><p>기본 24 · 최대 64. 한 라운드에 여러 도구를 호출할 수 있으며, 작업 절차에서는 단계마다 적용됩니다.</p><p>검색 1회당 최대 건수입니다. 기본 15 · 최대 30이며, 검색엔진의 실제 결과 수에 따라 줄어듭니다.</p><p>0보다 큰 시간으로 입력합니다. 예: 15s(15초), 1m(1분). 기본 15초이며 웹 검색·페이지 읽기에 적용됩니다.</p></SettingsHelp></legend>
+          <legend><span>웹·미디어 도구</span> <SettingsHelp title="웹·미디어 도구"><p>기본 256 · 최대 1024. 한 라운드에 여러 도구를 호출할 수 있으며, 작업 절차에서는 단계마다 적용됩니다.</p><p>검색 1회당 최대 건수입니다. 기본 15 · 최대 30이며, 검색엔진의 실제 결과 수에 따라 줄어듭니다.</p><p>0보다 큰 시간으로 입력합니다. 예: 15s(15초), 1m(1분). 기본 15초이며 웹 검색·페이지 읽기에 적용됩니다.</p></SettingsHelp></legend>
           <button type="button" onclick={() => { activeTab = "system"; systemSection = "services"; }}>웹·미디어 서비스 상태·실행 관리</button>
           <label class="check"><input type="checkbox" bind:checked={settings.tools.enabled} /> web_search / web_fetch 활성화</label>
           <label class="check"><input type="checkbox" bind:checked={settings.tools.media_import_enabled} /> URL 미디어 자동 가져오기</label>
+          <label class="settings-field-row"><span>현재 모델의 영상 전달 방식</span><Select value={settings.model.video_inputs?.[videoDeploymentKey] || (settings.model.model_type === 'deepseek-v4' ? 'frames' : 'native')} onchange={(event)=>{settings.model.video_inputs={...settings.model.video_inputs,[videoDeploymentKey]:event.currentTarget.value};}}><option value="frames">대표 프레임 이미지 + 음성 전사</option><option value="native">원본 영상 (모델 서버의 영상 입력 허용 필요)</option></Select></label>
+          <small>서버 주소·모델명별로 저장됩니다. 대표 프레임은 시간순 8장을 사용합니다. 음성 전사는 음성 인식 설정이 활성화되어 있어야 합니다.</small>
+          <MediaRuntimeSettings />
           <label class="check"><input type="checkbox" bind:checked={settings.extra.collector_enabled} /> 격리 브라우저 Collector 활성화</label>
           <label class="settings-field-row settings-number-row"><span>최대 호출 라운드 (≤ 1024)</span><input type="number" min="1" max="1024" bind:value={settings.tools.max_rounds} /></label>
 

@@ -117,6 +117,8 @@ func New(cfg config.Config, configPath string, store *db.DB, client *llm.Client,
 	mux.HandleFunc("/api/models/prepare", s.modelPreparation)
 	mux.HandleFunc("/api/ssh/key-store", s.sshKeyStore)
 	mux.HandleFunc("/api/support", s.supportServices)
+	mux.HandleFunc("/api/media/yt-dlp", s.mediaRuntime)
+	mux.HandleFunc("/api/media/yt-dlp/", s.mediaRuntime)
 	mux.HandleFunc("/api/runtime", s.runtimeStatus)
 	mux.HandleFunc("/api/runtime/catalog/parse", s.runtimeCatalogParse)
 	mux.HandleFunc("/api/runtime/probe", s.runtimeProbe)

@@ -60,7 +60,7 @@ func TestContinuousToolsBudgetArchivesAndReplaysWithoutLosingLatest(t *testing.T
 		fmt.Fprintf(w, "data: %s\n\ndata: [DONE]\n\n", chunk)
 	}))
 	defer backend.Close()
-	cfg := config.Config{Context: config.ContextConfig{Enabled: true, WindowTokens: 2700, OutputReserve: 512, SafetyMargin: 256, CompactAtPercent: 80, RecentTokens: 128, ImageTokens: 100}, Tools: config.ToolsConfig{MaxRounds: 3}}
+	cfg := config.Config{Context: config.ContextConfig{Enabled: true, WindowTokens: 3100, OutputReserve: 512, SafetyMargin: 256, CompactAtPercent: 80, RecentTokens: 128, ImageTokens: 100}, Tools: config.ToolsConfig{MaxRounds: 3}}
 	server := &Server{db: store, cfg: cfg}
 	states := []contextState{}
 	var reported *performance.Summary

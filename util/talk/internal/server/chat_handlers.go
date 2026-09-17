@@ -173,7 +173,7 @@ func (s *Server) messageAction(w http.ResponseWriter, r *http.Request) {
 		selectedUserVariant = len(parent.Variants) - 1
 	}
 	mediaSink := s.persistMediaAttachments(parent.ID, selectedUserVariant, parent.Attachments, importedMediaReplacements(target.ToolTrace))
-	result, err := s.runContextCompletion(r.Context(), target.SessionID, modelHistory(history, 0), req.Model, req.ReasoningEffort, cfg, client, req.ToolsEnabled, emit, mediaSink)
+	result, err := s.runContextCompletion(r.Context(), target.SessionID, modelHistory(history, parent.ID), req.Model, req.ReasoningEffort, cfg, client, req.ToolsEnabled, emit, mediaSink)
 	if err == nil {
 		err = s.db.ReplaceAssistantWithAttachments(target.ID, result.Content, result.Reasoning, result.ToolTrace, result.Attachments, userVariant, result.Performance)
 		_ = s.db.UpdateSession(target.SessionID, "", req.Model, req.ReasoningEffort)
@@ -275,6 +275,8 @@ func (s *Server) generateTitle(client *llm.Client, sessionID, model, userText st
 	_ = s.db.UpdateSessionTitle(sessionID, title)
 }
 
+type videoInputModeKey struct{}
+
 func (s *Server) llmMessages(ctx context.Context, items []db.Message, cfg config.Config) ([]llm.Message, error) {
 	messages := make([]llm.Message, 0, len(items))
 	latestVideoItem, latestVideoAttachment := -1, -1
@@ -319,13 +321,17 @@ func (s *Server) llmMessages(ctx context.Context, items []db.Message, cfg config
 				textParts = append(textParts, documentAttachmentBlock(attachment, cached))
 				continue
 			}
-			if isVideo && cfg.Model.ModelType == "deepseek-v4" {
+			mode := cfg.Model.VideoInputMode()
+			if requestMode, ok := ctx.Value(videoInputModeKey{}).(string); ok {
+				mode = requestMode
+			}
+			if isVideo && mode == "frames" {
 				frameURL, duration, err := s.videoFrameSheet(ctx, attachment, cfg.ASR.FFmpegEndpoint)
 				if err != nil {
 					return nil, err
 				}
 				parts = append(parts, map[string]any{"type": "image_url", "image_url": map[string]string{"url": frameURL}})
-				textParts = append(textParts, fmt.Sprintf("<video_frames filename=%q duration_seconds=%q>Eight representative frames sampled across the video in chronological order, left to right then top to bottom (4 columns, 2 rows). These are sparse still frames, not continuous video; do not invent unseen motion or dialogue.</video_frames>", attachment.Name, duration))
+				textParts = append(textParts, fmt.Sprintf("<video_frames attachment_id=%q filename=%q duration_seconds=%q>Already loaded from SparkTalk storage; no SSH search or download is needed. Eight representative frames sampled across the video in chronological order, left to right then top to bottom (4 columns, 2 rows). These are sparse still frames, not continuous video; do not invent unseen motion or dialogue.</video_frames>", attachment.ID, attachment.Name, duration))
 				if !cfg.ASR.Enabled {
 					textParts = append(textParts, "Audio transcription is disabled. Summarize visible evidence only and explicitly state that speech/audio was not analyzed.")
 				}

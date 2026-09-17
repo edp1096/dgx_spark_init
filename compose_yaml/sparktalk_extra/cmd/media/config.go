@@ -8,6 +8,7 @@ import (
 )
 
 type config struct {
+	UpdateDir      string
 	ListenAddr     string
 	TempDir        string
 	MaxUploadBytes int64
@@ -47,9 +48,7 @@ func loadConfig() (config, error) {
 		return config{}, fmt.Errorf("invalid SPARKTALK_EXTRA_MEDIA_MAX_VIDEO_HEIGHT")
 	}
 	ytDLPPath := env("YTDLP_PATH", "/usr/local/bin/yt-dlp")
-	if override := "/var/lib/sparktalk-extra/media/bin/yt-dlp"; isExecutable(override) {
-		ytDLPPath = override
-	}
+
 	return config{
 		ListenAddr:     envAny([]string{"SPARKTALK_EXTRA_MEDIA_LISTEN_ADDR", "SPARKTALK_MEDIA_API_LISTEN_ADDR", "SPARK_MEDIA_API_LISTEN_ADDR", "FFMPEG_API_LISTEN_ADDR"}, "0.0.0.0:8698"),
 		TempDir:        envAny([]string{"SPARKTALK_EXTRA_MEDIA_TEMP_DIR", "SPARKTALK_MEDIA_API_TEMP_DIR", "SPARK_MEDIA_API_TEMP_DIR", "FFMPEG_API_TEMP_DIR"}, "/tmp/sparktalk-extra-media"),
