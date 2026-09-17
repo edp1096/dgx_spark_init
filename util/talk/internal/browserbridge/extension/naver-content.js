@@ -1,7 +1,7 @@
 // DOM input handling adapted from the user-uploaded naver-review-extension-mvp.
 (() => {
- if(globalThis.__TALK_REVIEW_BRIDGE_V11__)return;
- globalThis.__TALK_REVIEW_BRIDGE_V11__=true;
+ if(globalThis.__TALK_REVIEW_BRIDGE_V13__)return;
+ globalThis.__TALK_REVIEW_BRIDGE_V13__=true;
  const clean=s=>String(s||'').replace(/\s+/g,' ').trim();
  const visible=el=>{const r=el.getBoundingClientRect(),s=getComputedStyle(el);return r.width>0&&r.height>0&&s.display!=='none'&&s.visibility!=='hidden';};
  const operable=el=>visible(el)||[...(el.labels||[])].some(visible);
@@ -10,7 +10,10 @@
  // Identify the review action, independently of the reward copy after it.
  const reviewButton=el=>{
   if(el.closest('nav,[role="navigation"],[class*="MyLNB_"]'))return false;
+  const area=el.getAttribute('data-shp-area')||el.getAttribute('data-nlog-area');
+  if(['rvw.pntop','rvw.ntcop'].includes(area)||el.closest('[class*="productBox_guide_point"],[class*="reviewPointGuide_"]'))return false;
   const label=text(el).replace(/\s+/g,'');
+  if(/^(?:한달사용)?(?:상품)?(?:리뷰|후기)작성시/.test(label))return false;
   return label.length<=100 && /^(?:한달사용리뷰(?:쓰기|쓰고)?|(?:상품)?(?:리뷰|후기)(?:작성(?:하기)?|쓰기|쓰고))/.test(label)
    && !/삭제|수정|신고|취소|등록완료/.test(label);
  };
@@ -146,7 +149,7 @@
    if(!visible(editor)||editor.disabled||editor.readOnly)continue;
    for(let root=editor.parentElement;root;root=root.parentElement){
     if(!visible(root))continue;
-    if(clicks(root).some(reviewButton))break;
+    if(clicks(root).some(button=>{if(!reviewButton(button))return false;const item=findItem(button);return item&&!item.root.contains(editor);}))break;
     if([...root.querySelectorAll('textarea,[contenteditable="true"]')].filter(visible).length!==1)break;
     const context=text(root), semantic=root.matches('form,[role="dialog"]');
     // IMPORTANT: Naver's review submit button is disabled until rating/text are valid.
@@ -189,7 +192,7 @@
    nav.push({id,label:text(el)});
   }
   const loading=[...document.querySelectorAll('[aria-busy="true"],[role="progressbar"]')].some(visible);
-  return {ok:true,version:11,url:location.href,title:document.title,items:found,navigation:nav,forms:getForms(product),editors:editorDiagnostics(),buttons:buttons.filter(e=>/리뷰|후기/.test(text(e))).slice(0,50).map(text),
+  return {ok:true,version:13,url:location.href,title:document.title,items:found,navigation:nav,forms:getForms(product),editors:editorDiagnostics(),buttons:buttons.filter(e=>/리뷰|후기/.test(text(e))).slice(0,50).map(text),
    status:found.length?'items_found':reviewButtons.length?'extraction_failed':loading?'loading_observed':'no_review_items_detected',
    diagnostics:{review_button_count:reviewButtons.length,unmatched:unmatched.slice(0,8),loading_observed:loading,ready_state:document.readyState},
    guidance:'Only items with id are actionable review candidates. Diagnostic fragments are not a complete product list; never claim that only the first few products mentioned there have loaded. This is the live rendered DOM in the user Chrome, not an HTML fetch. Empty items do NOT prove lazy loading. Use navigation targets or scroll; extraction_failed means visible review buttons were not matched to product names.'};
@@ -377,7 +380,7 @@
   } catch(e) {return {ok:false,status:clicked?'uncertain':'blocked',attempted_submit:clicked,error:e.message};} finally {observer?.disconnect();}
  }
  chrome.runtime.onMessage.addListener((m,s,reply)=>{
-  if(s.id!==chrome.runtime.id||m?.type!=='TALK_REVIEW_V11')return;
+  if(s.id!==chrome.runtime.id||m?.type!=='TALK_REVIEW_V13')return;
   (async()=>{
    if(m.action==='inspect')return inspect(m.product||'');
    if(m.action==='scroll')return scrollPage(Math.max(1,Math.min(4,Number(m.steps)||2)));
@@ -412,6 +415,7 @@
     }
     v.button.click();return {ok:true,click_dispatched:true,label:text(v.button),note:'DOM click dispatched; this does not prove that a popup opened.'};
    }
+   if(m.action==='close_state')return {ok:true,dirty:[...document.querySelectorAll('textarea,[contenteditable="true"]')].filter(visible).some(el=>String(el.value??el.textContent).trim())};
    if(m.action==='prepare_resume')return prepareResumeDraft();
    if(m.action==='prepare_rating')return prepareRating(m);
    if(m.action==='prepare_answer')return prepareAnswer(m);

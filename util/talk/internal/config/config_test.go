@@ -217,7 +217,7 @@ func TestLoadOldConfigDefaultsToolsToEnabled(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !cfg.Tools.Enabled || cfg.Tools.MaxRounds != 24 || cfg.Tools.SearchResults != 15 {
+	if !cfg.Tools.Enabled || cfg.Tools.MaxRounds != 256 || cfg.Tools.SearchResults != 15 {
 		t.Fatalf("old config did not receive tool defaults: %+v", cfg.Tools)
 	}
 	if !cfg.Tools.MediaImportEnabled {
@@ -299,7 +299,7 @@ func TestNormalizeAppearanceTheme(t *testing.T) {
 }
 
 func TestExpandedToolLimits(t *testing.T) {
-	for _, tc := range []struct{ rounds, results, wantRounds, wantResults int }{{24, 15, 24, 15}, {64, 30, 64, 30}, {100, 100, 64, 30}, {8, 5, 8, 5}, {0, 0, 24, 15}} {
+	for _, tc := range []struct{ rounds, results, wantRounds, wantResults int }{{24, 15, 24, 15}, {64, 30, 64, 30}, {100, 100, 100, 30}, {256, 15, 256, 15}, {1024, 15, 1024, 15}, {1025, 15, 1024, 15}, {8, 5, 8, 5}, {0, 0, 256, 15}} {
 		c := Config{Tools: ToolsConfig{MaxRounds: tc.rounds, SearchResults: tc.results}}
 		c.Normalize()
 		if c.Tools.MaxRounds != tc.wantRounds || c.Tools.SearchResults != tc.wantResults {

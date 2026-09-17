@@ -9,6 +9,8 @@ function observationText(observation) {
  return [labels[observation.failure], observation.before_windows ? `새 팝업 ${(observation.new_windows || []).filter(w => w.type === 'popup').length}개 · 재사용 팝업 ${(observation.reused_windows || []).filter(w => w.type === 'popup').length}개` : '', observation.open_result?.error, observation.open_result?.method === 'chrome_mouse_input' ? 'Chrome 마우스 입력 전달됨' : '', `기존 탭 ${observation.before_tabs?.length || 0}개 · 새 탭 ${observation.new_tabs?.length || 0}개 · 주소 변경 ${observation.changed_tabs?.length || 0}개`].filter(Boolean).join('\n');
 }
 export function browserToolPreview(result) {
+  if (result.status === 'popup_closed' || result.status === 'already_closed') return '리뷰 팝업 닫힘';
+  if (result.status === 'refreshed') return '탭 새로고침 완료 · 상품 목록 재조회 가능';
   if (result.error) return [result.error, observationText(result.observation)].filter(Boolean).join('\n');
   if (Array.isArray(result.results)) {
     const lines = result.results.map(item => `${item.product || item.id || '구매후기'} · ${item.status === 'submitted' ? '등록 완료' : item.ok ? '완료' : '실패'}${item.error ? `\n${item.error}` : ''}${item.observation ? `\n${observationText(item.observation)}` : ''}`);

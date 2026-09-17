@@ -230,7 +230,11 @@ func runCompletionLoopForSessionWithMedia(
 				}
 			}
 			if err == nil {
-				err = fmt.Errorf("도구 실행 한도(%d라운드)에 도달했습니다. 마지막 응답은 확보된 결과로 정리했습니다. 추가 작업은 설정 > 기능에서 최대 호출 라운드를 늘리거나 이어서 요청하세요.", toolConfig.MaxRounds)
+				guidance := "설정 > 기능에서 최대 호출 라운드를 늘리거나 이어서 요청하세요."
+				if toolConfig.MaxRounds >= 1024 {
+					guidance = "설정 가능한 최대값에 도달했습니다. 추가 작업은 이어서 요청하세요."
+				}
+				err = fmt.Errorf("도구 실행 한도(%d라운드)에 도달했습니다. 마지막 응답은 확보된 결과로 정리했습니다. %s", toolConfig.MaxRounds, guidance)
 			}
 			return completionResult{Content: content, Reasoning: allReasoning.String(), ToolTrace: trace, Attachments: outputAttachments}, err
 		}

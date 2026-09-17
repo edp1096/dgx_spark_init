@@ -23,7 +23,7 @@ const fs=require('node:fs'),os=require('node:os'),path=require('node:path');
   await page.evaluate(url=>{const a=document.createElement('a');a.id='open';a.href=url;a.target='_blank';a.rel='noopener';a.textContent='리뷰쓰고 최대 150원 받기';document.querySelector('#open').replaceWith(a);},'https://shopping.naver.com:'+new URL(process.env.FIXTURE_URL).port+'/popup/reviews/form');
  }
  if(['popup_window','popup_reuse','resume_source','resume_popup','resume_dom'].includes(mode)){
-  const writer='https://shopping.naver.com:'+new URL(process.env.FIXTURE_URL).port+'/popup/reviews/form'+(mode==='resume_popup'?'?resume=1':mode==='resume_dom'?'?resume_dom=1':'');
+  const writer='https://shopping.naver.com:'+new URL(process.env.FIXTURE_URL).port+(mode==='resume_popup'?'/popup/reviews/monthly-form':'/popup/reviews/form')+(mode==='resume_popup'?'?resume=1':mode==='resume_dom'?'?resume_dom=1':'');
   if(mode==='popup_reuse'){
    const popupEvent=context.waitForEvent('page');
    await page.evaluate(url=>{window.reviewPopup=window.open(url,'reviewEditor','popup=yes,width=520,height=680');},writer);
@@ -37,8 +37,13 @@ const fs=require('node:fs'),os=require('node:os'),path=require('node:path');
   const old=await context.newPage();await context.route('https://shopping.naver.com/old-detail',r=>r.fulfill({contentType:'text/html',body:'<title>Existing review detail</title>'}));await old.goto('https://shopping.naver.com/old-detail');
  }
  console.log('READY');console.error('fixture ready');
+ let capturedSubmissions=null;
  const lines=require('node:readline').createInterface({input:process.stdin});
  for await(const line of lines){
+  if(line==='close_ready'){
+   capturedSubmissions=0;for(const p of context.pages().filter(p=>p.url().startsWith('https://shopping.naver.com')))capturedSubmissions+=await p.evaluate(()=>window.submissions||0);
+   await page.locator('#review').evaluate(el=>el.hidden=true);console.log('CLOSE_READY');continue;
+  }
   if(line==='edit'){
    const writer=context.pages().find(p=>p.url().includes('/popup/reviews/form'));
    if(!writer)throw Error('popup writer missing');
@@ -49,7 +54,7 @@ const fs=require('node:fs'),os=require('node:os'),path=require('node:path');
   if(line==='finish')break;
  }
  lines.close();
- let submissions=0;for(const tab of context.pages().filter(p=>p.url().startsWith('https://shopping.naver.com')))submissions+=await tab.evaluate(()=>window.submissions||0);const expected=['idle','unmatched'].includes(mode)?0:2;if(submissions!==expected)throw Error('Unexpected submissions '+submissions);
+ let submissions=0;for(const tab of context.pages().filter(p=>p.url().startsWith('https://shopping.naver.com')))submissions+=await tab.evaluate(()=>window.submissions||0);if(capturedSubmissions!==null)submissions=capturedSubmissions;const expected=['idle','unmatched'].includes(mode)?0:2;if(submissions!==expected)throw Error('Unexpected submissions '+submissions);
  console.log('PASS: Chrome extension, websocket, item discovery, sequential submission, persistent duplicate guard');
  }finally{await context.close();fs.rmSync(dir,{recursive:true,force:true});}
 })().catch(e=>{console.error(e);process.exitCode=1;});

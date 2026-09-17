@@ -75,7 +75,7 @@ func (b *Bridge) settings(w http.ResponseWriter, r *http.Request) {
 	defer b.mu.Unlock()
 	switch r.Method {
 	case "GET":
-		json.NewEncoder(w).Encode(map[string]any{"connected": b.conn != nil, "paired": b.token != "", "extension_protocol": b.protocol, "update_required": b.conn != nil && b.protocol < 11})
+		json.NewEncoder(w).Encode(map[string]any{"connected": b.conn != nil, "paired": b.token != "", "extension_protocol": b.protocol, "update_required": b.conn != nil && b.protocol < 13})
 	case "POST", "DELETE":
 		if !sameOrigin(r) {
 			http.Error(w, "same-origin request required", 403)

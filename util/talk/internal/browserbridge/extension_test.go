@@ -30,7 +30,7 @@ func runChromeExtension(t *testing.T, mode string) {
 		if r.URL.Query().Get("resume") == "1" {
 			w.Write([]byte(`<script>window.resumed=confirm("작성 중이던 리뷰가 있습니다. 이어서 작성하시겠습니까?");if(!window.resumed)location.href="/cancelled";</script>`))
 		}
-		w.Write([]byte(`<!doctype html><meta charset="utf-8"><section><h2>테스트 머그컵 리뷰 작성</h2><input type="radio" name="rating" aria-label="5점"><input type="radio" name="rating" aria-label="4점"><div class="wrapBox_wrap_box__test"><strong>품질은 어떤가요?</strong><div role="radiogroup"><a href="#" role="radio" aria-checked="false" data-value="1">보통이에요</a><a href="#" role="radio" aria-checked="false" data-value="2">좋아요</a></div></div><div class="Review_inner"><textarea></textarea></div><button id="submit">리뷰 등록</button></section><div role="status" id="notice"></div><script>document.querySelectorAll('[role="radio"]').forEach(el=>el.onclick=e=>{e.preventDefault();if(!e.isTrusted)throw Error("Untrusted evaluation");el.parentElement.querySelectorAll('[role="radio"]').forEach(x=>x.setAttribute("aria-checked",String(x===el)));});window.submissions=0;document.querySelector('input').onclick=e=>window.ratingTrusted=e.isTrusted;document.querySelector('textarea').oninput=e=>window.textTrusted=e.isTrusted;document.querySelector('#submit').onclick=e=>{if(!e.isTrusted||!window.ratingTrusted||!window.textTrusted)throw Error('Untrusted popup interaction');window.submissions++;document.querySelector('#notice').textContent='리뷰 등록이 완료되었습니다';};</script>`))
+		w.Write([]byte(`<!doctype html><meta charset="utf-8"><section><div><a role="button" aria-haspopup="true" aria-expanded="false" data-shp-area="rvw.pntop" href="#">리뷰 작성 시 포인트 <span>10원</span> 적립</a><h2>테스트 머그컵 리뷰 작성</h2></div><input type="radio" name="rating" aria-label="5점"><input type="radio" name="rating" aria-label="4점"><div class="wrapBox_wrap_box__test"><strong>품질은 어떤가요?</strong><div role="radiogroup"><a href="#" role="radio" aria-checked="false" data-value="1">보통이에요</a><a href="#" role="radio" aria-checked="false" data-value="2">좋아요</a></div></div><div class="Review_inner"><textarea></textarea></div><button id="submit">리뷰 등록</button></section><div role="status" id="notice"></div><script>document.querySelectorAll('[role="radio"]').forEach(el=>el.onclick=e=>{e.preventDefault();if(!e.isTrusted)throw Error("Untrusted evaluation");el.parentElement.querySelectorAll('[role="radio"]').forEach(x=>x.setAttribute("aria-checked",String(x===el)));});window.submissions=0;document.querySelector('input').onclick=e=>window.ratingTrusted=e.isTrusted;document.querySelector('textarea').oninput=e=>window.textTrusted=e.isTrusted;document.querySelector('#submit').onclick=e=>{if(!e.isTrusted||!window.ratingTrusted||!window.textTrusted)throw Error('Untrusted popup interaction');window.submissions++;document.querySelector('#notice').textContent='리뷰 등록이 완료되었습니다';};</script>`))
 	}))
 	defer fixture.Close()
 	b, s := setup(t)
@@ -133,8 +133,10 @@ func runChromeExtension(t *testing.T, mode string) {
 	if !strings.Contains(string(raw), `"trusted_event":true`) || !strings.Contains(string(raw), `"user_activation":true`) {
 		t.Fatalf("click was not trusted %s", raw)
 	}
+	popupTabID := 0
 	if mode == "popup_window" || mode == "popup_reuse" || mode == "resume_source" || (mode == "resume_popup" || mode == "resume_dom") {
 		var opened struct {
+			TabID       int    `json:"tab_id"`
 			WindowID    int    `json:"window_id"`
 			WindowType  string `json:"window_type"`
 			Observation struct {
@@ -147,6 +149,7 @@ func runChromeExtension(t *testing.T, mode string) {
 		if json.Unmarshal(raw, &opened) != nil || opened.WindowType != "popup" || opened.WindowID == 0 {
 			t.Fatalf("not a real popup window %s", raw)
 		}
+		popupTabID = opened.TabID
 		if mode == "popup_window" && (len(opened.Observation.New) != 1 || opened.Observation.New[0].Type != "popup") {
 			t.Fatalf("popup creation not recorded %s", raw)
 		}
@@ -171,6 +174,12 @@ func runChromeExtension(t *testing.T, mode string) {
 	raw = call("fill", map[string]any{"reviews": drafts[:1]})
 	if !strings.Contains(string(raw), `"status":"filled"`) || !strings.Contains(string(raw), `"submitted":false`) {
 		t.Fatalf("fill failed %s", raw)
+	}
+	if mode == "popup_window" {
+		blocked := call("close_popup", map[string]any{"tab_id": popupTabID})
+		if !strings.Contains(string(blocked), "작성 중") {
+			t.Fatalf("unsaved popup was not protected: %s", blocked)
+		}
 	}
 	raw = call("read_current", map[string]any{"target_id": listing.Items[0].ID})
 	var snapshot map[string]any
@@ -203,6 +212,33 @@ func runChromeExtension(t *testing.T, mode string) {
 	raw = call("submit", args)
 	if strings.Contains(string(raw), `"status":"submitted"`) || !strings.Contains(string(raw), "중복") {
 		t.Fatalf("duplicate not blocked %s", raw)
+	}
+	if mode == "popup_window" {
+		in.Write([]byte("close_ready\n"))
+		if !scan.Scan() || scan.Text() != "CLOSE_READY" {
+			t.Fatal("close fixture failed")
+		}
+		closed := call("close_popup", map[string]any{"tab_id": popupTabID})
+		if !strings.Contains(string(closed), `"status":"popup_closed"`) {
+			t.Fatalf("close failed %s", closed)
+		}
+		again := call("close_popup", map[string]any{"tab_id": popupTabID})
+		if !strings.Contains(string(again), `"status":"already_closed"`) {
+			t.Fatalf("close retry failed %s", again)
+		}
+		mainID := tabs.Tabs[0].ID
+		blocked := call("close_popup", map[string]any{"tab_id": mainID})
+		if !strings.Contains(string(blocked), "일반 탭") {
+			t.Fatalf("normal tab not protected %s", blocked)
+		}
+		refreshed := call("refresh", map[string]any{"tab_id": mainID})
+		if !strings.Contains(string(refreshed), `"status":"refreshed"`) {
+			t.Fatalf("refresh failed %s", refreshed)
+		}
+		fresh := call("inspect", map[string]any{"tab_id": mainID})
+		if !strings.Contains(string(fresh), "테스트 머그컵") {
+			t.Fatalf("reload inspection failed %s", fresh)
+		}
 	}
 	in.Write([]byte("finish\n"))
 	in.Close()

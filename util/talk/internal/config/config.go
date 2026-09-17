@@ -664,10 +664,10 @@ func (c *Config) Normalize() {
 		c.TTS.Timeout = "10m"
 	}
 	if c.Tools.MaxRounds <= 0 {
-		c.Tools.MaxRounds = 24
+		c.Tools.MaxRounds = 256
 	}
-	if c.Tools.MaxRounds > 64 {
-		c.Tools.MaxRounds = 64
+	if c.Tools.MaxRounds > 1024 {
+		c.Tools.MaxRounds = 1024
 	}
 	if c.Tools.SearchResults <= 0 {
 		c.Tools.SearchResults = 15

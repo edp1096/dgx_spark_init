@@ -18,7 +18,7 @@ async function connect(){
   const {server,token}=await chrome.storage.local.get(['server','token']);if(!server||!token)return;
   const u=new URL('/api/browser/connect',server);u.protocol=u.protocol==='https:'?'wss:':'ws:';
   const ws=new WebSocket(u);socket=ws;
-  ws.onopen=()=>{ws.send(JSON.stringify({token,protocol:11}));clearInterval(heartbeat);heartbeat=setInterval(()=>{if(ws.readyState===WebSocket.OPEN)ws.send('{}');},20000);};
+  ws.onopen=()=>{ws.send(JSON.stringify({token,protocol:13}));clearInterval(heartbeat);heartbeat=setInterval(()=>{if(ws.readyState===WebSocket.OPEN)ws.send('{}');},20000);};
   let serial=Promise.resolve();
   ws.onmessage=e=>{const cmd=JSON.parse(e.data);if(cmd.ready){authenticated=true;return;}if(cmd.cancel){cancelled.add(cmd.cancel);return;}serial=serial.then(async()=>{activeID=cmd.id;let result;try{result=await run(cmd);}catch(err){result={ok:false,error:err.message,observation:err.observation};}if(ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify({id:cmd.id,result}));}).catch(()=>{});};
   ws.onclose=()=>{if(socket!==ws)return;clearInterval(heartbeat);if(activeID)cancelled.add(activeID);authenticated=false;socket=null;};
@@ -38,7 +38,7 @@ async function frames(tabId){
  await chrome.scripting.executeScript({target:{tabId,allFrames:true},files:['naver-content.js']}).catch(()=>{});
  return (await chrome.webNavigation.getAllFrames({tabId})).filter(f=>allowed(f.url));
 }
-async function send(tabId,frameId,msg){return chrome.tabs.sendMessage(tabId,{...msg,type:'TALK_REVIEW_V11'},{frameId});}
+async function send(tabId,frameId,msg){return chrome.tabs.sendMessage(tabId,{...msg,type:'TALK_REVIEW_V13'},{frameId});}
 async function inspect(tabId,product=''){const out=[];for(const f of await frames(tabId)){try{const r=await send(tabId,f.frameId,{action:'inspect',product});if(r?.ok)out.push({frame_id:f.frameId,...r});}catch(e){out.push({frame_id:f.frameId,url:f.url,ok:false,error:e.message});}}return out;}
 async function remember(items){const {targets={}}=await chrome.storage.session.get('targets');for(const v of items)targets[v.id]=v;const values=Object.values(targets).sort((a,b)=>b.at-a.at).slice(0,500);await chrome.storage.session.set({targets:Object.fromEntries(values.map(v=>[v.id,v]))});}
 async function getTarget(id){const {targets={}}=await chrome.storage.session.get('targets');const t=targets[id];if(!t||Date.now()-t.at>30*60*1000)throw Error('상품 대상이 만료됐습니다. 구매상품 목록을 다시 조회하세요.');return t;}
@@ -76,6 +76,7 @@ async function realReviewClick(t,check,request={action:'prepare_open',id:t.id,ur
  }catch(error){error.pointerPressed=pressed;throw error;}finally{if(attached)await chrome.debugger.detach(debuggee).catch(()=>{});}
 }
 async function fillPopup(form,draft,check){
+ delete form.completedSnapshot;
  const target={tab_id:form.tabId,frame_id:form.frameId};
  const rawAnswers=Array.isArray(draft.answers)?draft.answers:[];
  const normalizedAnswers=rawAnswers.flatMap(a=>Array.isArray(a?.option_ids)?a.option_ids.map(option_id=>({...a,option_id})):a?.option_id?[a]:[]);
@@ -114,7 +115,9 @@ async function submitPopup(form,snapshot,check){
  try{
   const clicked=await realReviewClick(target,check,{action:'prepare_submit',form_id:form.id,product:snapshot.product,text:snapshot.text,rating:snapshot.rating,answers:snapshot.answers});
   pressed=true;
-  return await send(form.tabId,form.frameId,{action:'observe_submit',receipt:clicked.receipt});
+  const result=await send(form.tabId,form.frameId,{action:'observe_submit',receipt:clicked.receipt});
+  if(result?.status==='submitted')form.completedSnapshot=snapshot;
+  return result;
  }catch(error){
   const attempted=pressed||!!error.pointerPressed;
   return {ok:false,status:attempted?'uncertain':'blocked',attempted_submit:attempted,error:error.message};
@@ -219,7 +222,7 @@ async function openFormInner(t,check){
     const detail=await readPopup(tab.id);
     const reused=beforePopupForms.has(tab.id)&&JSON.stringify(detail.map(f=>f.forms||[]))!==beforePopupForms.get(tab.id);
     if(reused&&!observation.reused_windows.some(w=>w.id===tab.window_id))observation.reused_windows.push({id:tab.window_id,type:tab.window_type});
-    const isReviewPopup=tab.window_type==='popup'&&/\/popup\/reviews\/form(?:[?#]|$)/.test(String(tab.url||''));
+    const isReviewPopup=tab.window_type==='popup'&&/\/popup\/reviews\/(?:monthly-)?form(?:[?#]|$)/.test(String(tab.url||''));
     const eligible=tab.id===t.tab_id||!beforeByID.has(tab.id)||observation.changed_tabs.some(v=>v.id===tab.id)||reused||isReviewPopup;
     for(const f of detail){
      observed.push({window_id:tab.window_id,window_type:tab.window_type,tab_id:tab.id,frame_id:f.frame_id,url:f.url,forms:f.forms||[],editors:f.editors||[],error:f.error});
@@ -243,6 +246,49 @@ async function openFormInner(t,check){
 async function run(cmd){
  const a=cmd.args||{};
  const check=()=>{if(cancelled.has(cmd.id)||!authenticated||(cmd.expires&&Date.now()>cmd.expires))throw Error('브라우저 작업이 취소되거나 연결이 끊겼습니다.');};check();
+ if(cmd.action==='refresh'){
+  if(!Number.isInteger(a.tab_id)||a.tab_id<=0)throw Error('새로고침할 tab_id가 필요합니다.');
+  const tab=await chrome.tabs.get(a.tab_id),win=await chrome.windows.get(tab.windowId);
+  if(!allowed(tab.url)||win.type==='popup')throw Error('네이버 메인 탭만 새로고침할 수 있습니다.');
+  for(const frame of await frames(tab.id)){
+   const state=await send(tab.id,frame.frameId,{action:'close_state'});
+   if(!state?.ok||state.dirty)throw Error('작성 중인 내용이 있어 새로고침하지 않았습니다.');
+  }
+  let complete=false;
+  const updated=(id,change)=>{if(id===tab.id&&change.status==='complete')complete=true;};
+  chrome.tabs.onUpdated.addListener(updated);
+  try{
+   check();await chrome.tabs.reload(tab.id);
+   for(let n=0;n<75&&!complete;n++){await pause(200);check();}
+   if(!complete)return {ok:false,status:'refresh_unconfirmed',tab_id:tab.id,error:'새로고침은 요청했지만 로딩 완료를 확인하지 못했습니다. inspect로 상태를 확인하세요.'};
+   const current=await chrome.tabs.get(tab.id);
+   const {targets={}}=await chrome.storage.session.get('targets');
+   for(const [id,target] of Object.entries(targets))if(target.tab_id===tab.id)delete targets[id];
+   await chrome.storage.session.set({targets});
+   return {ok:true,status:'refreshed',tab_id:tab.id,url:current.url,title:current.title,guidance:'inspect this tab again; previous product IDs are invalid after reload.'};
+  }finally{chrome.tabs.onUpdated.removeListener(updated);}
+ }
+ if(cmd.action==='close_popup'){
+  if(!Number.isInteger(a.tab_id)||a.tab_id<=0)throw Error('닫을 리뷰 팝업의 tab_id가 필요합니다.');
+  let tab;try{tab=await chrome.tabs.get(a.tab_id);}catch{return {ok:true,status:'already_closed',tab_id:a.tab_id};}
+  const win=await chrome.windows.get(tab.windowId);
+  if(win.type!=='popup'||!allowed(tab.url)||!/^\/popup\/reviews\/(?:form|monthly-form|redirect)$/.test(new URL(tab.url).pathname))throw Error('네이버 리뷰 팝업만 닫을 수 있습니다. 일반 탭은 닫지 않았습니다.');
+  const available=await frames(tab.id);if(!available.length)throw Error('팝업 상태를 확인하지 못했습니다.');
+  for(const frame of available){
+   const state=await send(tab.id,frame.frameId,{action:'close_state'});
+   if(!state?.ok)throw Error('작성 중인 내용 확인 실패');
+   if(state.dirty){
+    const form=[...openedForms.values()].find(f=>f.tabId===tab.id&&f.frameId===frame.frameId&&f.completedSnapshot);
+    if(!form)throw Error('작성 중이거나 등록 결과가 불확실한 내용이 있어 닫지 않았습니다.');
+    const current=await send(tab.id,frame.frameId,{...form.completedSnapshot,form_id:form.id,action:'verify_snapshot'});
+    if(!current?.ok)throw Error('등록 후 수정된 내용이 있어 닫지 않았습니다.');
+   }
+  }
+  check();const latest=await chrome.tabs.get(tab.id);if(latest.url!==tab.url||latest.windowId!==tab.windowId)throw Error('팝업이 변경되어 닫지 않았습니다.');
+  await chrome.tabs.remove(tab.id);
+  for(const [id,form] of openedForms)if(form.tabId===tab.id)openedForms.delete(id);
+  return {ok:true,status:'popup_closed',tab_id:tab.id,window_id:tab.windowId};
+ }
  if(cmd.action==='tabs')return {ok:true,tabs:(await chrome.tabs.query({})).filter(t=>allowed(t.url)).map(t=>({tab_id:t.id,title:t.title,url:t.url}))};
  if(['inspect','navigate','scroll'].includes(cmd.action)){
   let tabId=a.tab_id,details,actionResult;

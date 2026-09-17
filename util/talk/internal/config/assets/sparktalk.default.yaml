@@ -100,7 +100,7 @@ tools:
   media_import_enabled: true
   # 작업에 맞는 내장 절차만 필요할 때 불러옵니다.
   skills_enabled: true
-  max_rounds: 24
+  max_rounds: 256
   search_results: 15
   timeout: 15s
 

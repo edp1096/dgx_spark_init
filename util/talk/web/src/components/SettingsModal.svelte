@@ -324,7 +324,7 @@
           <label class="check"><input type="checkbox" bind:checked={settings.tools.enabled} /> web_search / web_fetch 활성화</label>
           <label class="check"><input type="checkbox" bind:checked={settings.tools.media_import_enabled} /> URL 미디어 자동 가져오기</label>
           <label class="check"><input type="checkbox" bind:checked={settings.extra.collector_enabled} /> 격리 브라우저 Collector 활성화</label>
-          <label class="settings-field-row settings-number-row"><span>최대 호출 라운드 (≤ 64)</span><input type="number" min="1" max="64" bind:value={settings.tools.max_rounds} /></label>
+          <label class="settings-field-row settings-number-row"><span>최대 호출 라운드 (≤ 1024)</span><input type="number" min="1" max="1024" bind:value={settings.tools.max_rounds} /></label>
 
           <label class="settings-field-row settings-number-row"><span>검색 결과 수 (≤ 30)</span><input type="number" min="1" max="30" bind:value={settings.tools.search_results} /></label>
 

@@ -8,7 +8,7 @@ const fs=require('node:fs'),path=require('node:path'),assert=require('node:asser
  await page.setContent(`<main><article><a href="https://smartstore.naver.com/shop/products/123">테스트 머그컵</a><button id="open">리뷰 작성</button></article><form hidden id="review"><h2>테스트 머그컵 리뷰 작성</h2><label><input type="radio" name="rating" value="5" aria-label="5점">5점</label><label><input type="radio" name="unrelated" value="5">옵션</label><textarea placeholder="리뷰 내용"></textarea><button type="button" id="submit">리뷰 등록</button></form><div role="status" id="notice"></div></main>`);
  await page.evaluate(()=>{
   window.chrome={runtime:{id:'test',onMessage:{addListener:f=>window.listener=f}}};
-  window.post=(m)=>new Promise(r=>window.listener({type:'TALK_REVIEW_V11',...m},{id:'test'},r));
+  window.post=(m)=>new Promise(r=>window.listener({type:'TALK_REVIEW_V13',...m},{id:'test'},r));
   window.submissions=0;
   document.querySelector('#open').onclick=()=>document.querySelector('#review').hidden=false;
   document.querySelector('#submit').onclick=()=>{window.submissions++;document.querySelector('#notice').textContent='리뷰 등록이 완료되었습니다';};
