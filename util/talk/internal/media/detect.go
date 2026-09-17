@@ -70,7 +70,7 @@ func classifyMedia(data []byte, name, declared string, imageOnly bool) (string, 
 			return "video/webm", nil
 		}
 	}
-	return "", fmt.Errorf("supported attachment types: PNG, JPEG, WebP, MP3, WAV, OGG, AVI, MOV, MP4, WMV, WebM, PDF, text/markup/data files, DOCX, PPTX, XLSX, ODF, EPUB, HWPX")
+	return "", fmt.Errorf("supported attachment types: PNG, JPEG, WebP, MP3, WAV, OGG, AVI, MOV, MP4, WMV, WebM, ZIP, PDF, text/markup/data files, DOCX, PPTX, XLSX, ODF, EPUB, HWPX")
 }
 
 func classifyDocument(data []byte, extension, declared string) string {
@@ -99,6 +99,9 @@ func classifyDocument(data []byte, extension, declared string) string {
 	archive, err := zip.NewReader(bytes.NewReader(data), int64(len(data)))
 	if err != nil || len(archive.File) > 10000 {
 		return ""
+	}
+	if extension == ".zip" {
+		return "application/zip"
 	}
 	entries := make(map[string]bool, len(archive.File))
 	var mimetype string

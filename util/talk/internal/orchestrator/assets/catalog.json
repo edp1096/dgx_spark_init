@@ -1,513 +1,513 @@
 {
-  "network": {
-    "enabled": true
+ "network": {
+  "enabled": true
+ },
+ "components": [
+  {
+   "id": "flash-next",
+   "name": "Huihui-RadixArk Qwen3.8 Flash-Next",
+   "role": "llm",
+   "container": "sglang-qwen38-fn",
+   "health_url": "http://127.0.0.1:8000/health",
+   "model": "edp1096/Huihui-RadixArk-Qwen3.8-Flash-Next-abliterated-NVFP4",
+   "memory_gib": 96.0,
+   "startup_timeout_seconds": 1200,
+   "compose_asset": "compose.flash-next.yaml",
+   "progress_kind": "sglang",
+   "auto_address": true
   },
-  "components": [
-    {
-      "id": "flash-next",
-      "name": "Huihui-RadixArk Qwen3.8 Flash-Next",
-      "role": "llm",
-      "container": "sglang-qwen38-fn",
-      "health_url": "http://127.0.0.1:8000/health",
-      "model": "edp1096/Huihui-RadixArk-Qwen3.8-Flash-Next-abliterated-NVFP4",
-      "memory_gib": 96.0,
-      "startup_timeout_seconds": 1200,
-      "compose_asset": "compose.flash-next.yaml",
-      "progress_kind": "sglang",
-      "auto_address": true
-    },
-    {
-      "id": "gemma31",
-      "name": "Gemma4 31B",
-      "role": "llm",
-      "container": "sglang-gemma4-31b",
-      "health_url": "http://127.0.0.1:8000/health",
-      "model": "Huihui-gemma-4-31B-it-abliterated-v2-NVFP4",
-      "memory_gib": 64.0,
-      "startup_timeout_seconds": 1200,
-      "compose_asset": "compose.gemma31.yaml",
-      "progress_kind": "sglang",
-      "auto_address": true
-    },
-    {
-      "id": "flux2",
-      "name": "FLUX.2 Klein 4B",
-      "role": "image",
-      "container": "flux2-klein-nvfp4-api",
-      "health_url": "http://127.0.0.1:8691/health",
-      "model": "flux2-klein-4b-nvfp4",
-      "memory_gib": 13,
-      "startup_timeout_seconds": 300,
-      "compose_asset": "compose.flux2.yaml",
-      "progress_kind": "comfy",
-      "auto_address": true
-    },
-    {
-      "id": "dreamlite",
-      "name": "DreamLite Mobile (시험)",
-      "role": "image",
-      "container": "sparktalk-dreamlite-mobile",
-      "health_url": "http://127.0.0.1:8691/health",
-      "model": "carlofkl/DreamLite-mobile",
-      "memory_gib": 8.4,
-      "startup_timeout_seconds": 300,
-      "compose_asset": "compose.dreamlite.yaml",
-      "progress_kind": "service",
-      "auto_address": true
-    },
-    {
-      "id": "nemotron-asr",
-      "name": "Nemotron ASR",
-      "role": "asr",
-      "container": "sparktalk-nemotron-asr",
-      "health_url": "http://127.0.0.1:8693/ready",
-      "model": "nemotron-3.5-asr-streaming-0.6b",
-      "memory_gib": 1.3,
-      "startup_timeout_seconds": 180,
-      "compose_asset": "compose.nemotron-asr.yaml",
-      "progress_kind": "service",
-      "auto_address": true
-    },
-    {
-      "id": "magpie-tts",
-      "name": "Magpie TTS",
-      "role": "tts",
-      "container": "sparktalk-magpie-tts",
-      "health_url": "http://127.0.0.1:8692/ready",
-      "model": "magpietts",
-      "memory_gib": 1.2,
-      "startup_timeout_seconds": 180,
-      "compose_asset": "compose.magpie-tts.yaml",
-      "progress_kind": "service",
-      "auto_address": true
-    },
-    {
-      "id": "extra-media",
-      "name": "Extra Media",
-      "role": "tool",
-      "container": "sparktalk-extra-media",
-      "health_url": "http://127.0.0.1:8690/health",
-      "memory_gib": 0.1,
-      "startup_timeout_seconds": 90,
-      "compose_asset": "compose.extra-media.yaml",
-      "progress_kind": "service",
-      "auto_address": true
-    },
-    {
-      "id": "extra-ssh",
-      "name": "Extra SSH",
-      "role": "tool",
-      "container": "sparktalk-extra-ssh",
-      "health_url": "http://127.0.0.1:8699/health",
-      "memory_gib": 0.1,
-      "startup_timeout_seconds": 90,
-      "compose_asset": "compose.extra-ssh.yaml",
-      "progress_kind": "service",
-      "auto_address": true
-    },
-    {
-      "id": "extra-collector",
-      "name": "Extra Collector",
-      "role": "tool",
-      "container": "sparktalk-extra-collector",
-      "health_url": "http://127.0.0.1:8695/health",
-      "memory_gib": 0.3,
-      "startup_timeout_seconds": 120,
-      "compose_asset": "compose.extra-collector.yaml",
-      "progress_kind": "service",
-      "auto_address": true
-    },
-    {
-      "id": "glm53",
-      "name": "GLM 5.3 Flash EXL3",
-      "role": "llm",
-      "host": "local",
-      "controller": "glm53-cluster",
-      "endpoint": "http://127.0.0.1:8000",
-      "health_url": "http://127.0.0.1:8000/health",
-      "container": "glm53-head",
-      "worker_host": "worker",
-      "worker_container": "glm53-worker",
-      "model": "glm-5.3-flash",
-      "memory_gib": 110,
-      "worker_memory_gib": 108,
-      "startup_timeout_seconds": 3600,
-      "progress_kind": "service",
-      "auto_address": true
-    },
-    {
-      "id": "ds4fve",
-      "name": "DeepSeek V4 Flash VE",
-      "role": "llm",
-      "host": "local",
-      "controller": "dspark-cluster",
-      "endpoint": "http://127.0.0.1:8888",
-      "port": 8888,
-      "health_url": "http://127.0.0.1:8888/health",
-      "container": "deepseek-v4-flash-vllm-dspark-1",
-      "worker_host": "worker",
-      "worker_container": "deepseek-v4-flash-vllm-dspark-1",
-      "model": "deepseek-v4-flash-vision-exp",
-      "memory_gib": 111,
-      "worker_memory_gib": 109,
-      "startup_timeout_seconds": 3600,
-      "progress_kind": "service",
-      "auto_address": true
-    },
-    {
-      "id": "extra-documents",
-      "name": "Extra Documents",
-      "role": "tool",
-      "container": "sparktalk-extra-documents",
-      "endpoint": "http://127.0.0.1:8696",
-      "health_url": "http://127.0.0.1:8696/health",
-      "memory_gib": 0.4,
-      "startup_timeout_seconds": 600,
-      "compose_asset": "compose.extra-documents.yaml",
-      "progress_kind": "service",
-      "auto_address": true
-    },
-    {
-      "id": "ds41",
-      "name": "DeepSeek V4.1 Flash",
-      "role": "llm",
-      "host": "local",
-      "controller": "ds41-cluster",
-      "endpoint": "http://127.0.0.1:8010",
-      "port": 8010,
-      "health_url": "http://127.0.0.1:8010/health",
-      "container": "ds41-stream-0",
-      "worker_host": "worker",
-      "worker_container": "ds41-stream-1",
-      "model": "deepseek-v4.1-flash",
-      "memory_gib": 108,
-      "worker_memory_gib": 107,
-      "startup_timeout_seconds": 3600,
-      "progress_kind": "service",
-      "auto_address": true
-    },
-    {
-      "id": "flash-next-tp2",
-      "name": "Huihui-RadixArk Qwen3.8 Flash-Next TP2",
-      "role": "llm",
-      "host": "local",
-      "controller": "qwen38-cluster",
-      "endpoint": "http://127.0.0.1:8012",
-      "port": 8012,
-      "health_url": "http://127.0.0.1:8012/health",
-      "container": "sglang-qwen38-fn-tp2-0",
-      "worker_host": "worker",
-      "worker_container": "sglang-qwen38-fn-tp2-1",
-      "model": "edp1096/Huihui-RadixArk-Qwen3.8-Flash-Next-abliterated-NVFP4",
-      "memory_gib": 83,
-      "worker_memory_gib": 81,
-      "startup_timeout_seconds": 1800,
-      "progress_kind": "sglang",
-      "auto_address": true,
-      "runtime_options": {
-        "MAX_MODEL_LEN": "1048576"
-      }
-    },
-    {
-      "id": "ornith35",
-      "name": "Huihui Ornith 1.5 35B",
-      "role": "llm",
-      "container": "vllm-ornith35",
-      "health_url": "http://127.0.0.1:8000/health",
-      "model": "edp1096/Huihui-Ornith-1.5-35B-A3B-NVFP4",
-      "memory_gib": 70.0,
-      "startup_timeout_seconds": 1200,
-      "compose_asset": "compose.ornith35.yaml",
-      "progress_kind": "vllm",
-      "auto_address": true
-    },
-    {
-      "id": "gemma26",
-      "name": "Huihui Gemma 4 26B",
-      "role": "llm",
-      "container": "sglang-gemma26",
-      "health_url": "http://127.0.0.1:8000/health",
-      "model": "edp1096/Huihui-Gemma-4-26B-A4B-it-NVFP4",
-      "memory_gib": 82.0,
-      "startup_timeout_seconds": 1200,
-      "compose_asset": "compose.gemma26.yaml",
-      "progress_kind": "vllm",
-      "auto_address": true
-    }
-  ],
-  "bundles": [
-    {
-      "id": "ds4fve",
-      "name": "DeepSeek V4 Flash VE",
-      "description": "2× DGX Spark · 공식 Vision Exp · DSpark TP2 + 워커 Extra 3종·Nemotron ASR. · 워커 Magpie TTS",
-      "model_type": "deepseek-v4",
-      "model_id": "deepseek-v4-flash-vision-exp",
-      "context_tokens": 1048576,
-      "components": [
-        "ds4fve",
-        "extra-media",
-        "extra-ssh",
-        "extra-collector",
-        "nemotron-asr",
-        "magpie-tts"
-      ],
-      "bindings": {
-        "extra-media": {
-          "host": "worker",
-          "endpoint": "http://192.168.100.60:8690",
-          "health_url": "http://192.168.100.60:8690/health",
-          "bind_address": "192.168.100.60",
-          "port": 8690
-        },
-        "extra-ssh": {
-          "host": "worker",
-          "endpoint": "http://192.168.100.60:8699",
-          "health_url": "http://192.168.100.60:8699/health",
-          "bind_address": "192.168.100.60",
-          "port": 8699
-        },
-        "extra-collector": {
-          "host": "worker",
-          "endpoint": "http://192.168.100.60:8695",
-          "health_url": "http://192.168.100.60:8695/health",
-          "bind_address": "192.168.100.60",
-          "port": 8695
-        },
-        "nemotron-asr": {
-          "host": "worker",
-          "endpoint": "http://192.168.100.60:8693",
-          "health_url": "http://192.168.100.60:8693/ready",
-          "bind_address": "192.168.100.60",
-          "port": 8693
-        },
-        "magpie-tts": {
-          "host": "worker",
-          "endpoint": "http://192.168.100.60:8692",
-          "health_url": "http://192.168.100.60:8692/ready",
-          "bind_address": "192.168.100.60",
-          "port": 8692,
-          "memory_gib": 1.6
-        }
-      }
-    },
-    {
-      "id": "ds41",
-      "name": "DeepSeek V4.1 Flash",
-      "description": "2× DGX Spark · SSD expert streaming · 64K · 워커 ASR·헤드 Extra 도구 · 워커 Magpie TTS",
-      "model_type": "deepseek-v4",
-      "model_id": "deepseek-v4.1-flash",
-      "context_tokens": 65536,
-      "components": [
-        "ds41",
-        "extra-media",
-        "extra-ssh",
-        "extra-collector",
-        "nemotron-asr",
-        "extra-documents",
-        "magpie-tts"
-      ],
-      "bindings": {
-        "extra-media": {
-          "host": "local",
-          "endpoint": "http://127.0.0.1:8690",
-          "health_url": "http://127.0.0.1:8690/health",
-          "bind_address": "127.0.0.1",
-          "port": 8690
-        },
-        "extra-ssh": {
-          "host": "local",
-          "endpoint": "http://127.0.0.1:8699",
-          "health_url": "http://127.0.0.1:8699/health",
-          "bind_address": "127.0.0.1",
-          "port": 8699
-        },
-        "extra-collector": {
-          "host": "local",
-          "endpoint": "http://127.0.0.1:8695",
-          "health_url": "http://127.0.0.1:8695/health",
-          "bind_address": "127.0.0.1",
-          "port": 8695
-        },
-        "nemotron-asr": {
-          "host": "worker",
-          "endpoint": "http://192.168.100.60:8693",
-          "health_url": "http://192.168.100.60:8693/ready",
-          "bind_address": "192.168.100.60",
-          "port": 8693
-        },
-        "extra-documents": {
-          "host": "local",
-          "endpoint": "http://127.0.0.1:8696",
-          "health_url": "http://127.0.0.1:8696/health",
-          "bind_address": "127.0.0.1",
-          "port": 8696
-        },
-        "magpie-tts": {
-          "host": "worker",
-          "endpoint": "http://192.168.100.60:8692",
-          "health_url": "http://192.168.100.60:8692/ready",
-          "bind_address": "192.168.100.60",
-          "port": 8692,
-          "memory_gib": 1.6,
-          "start_after_llm": true
-        }
-      },
-      "start_support": true
-    },
-    {
-      "id": "gemma26",
-      "name": "Gemma 4 26B",
-      "description": "1× DGX Spark · 1M 위치 보간 실험 · FP8 KV · 이미지·ASR·TTS·Extra",
-      "model_type": "gemma4",
-      "model_id": "edp1096/Huihui-Gemma-4-26B-A4B-it-NVFP4",
-      "context_tokens": 1048576,
-      "components": [
-        "gemma26",
-        "flux2",
-        "nemotron-asr",
-        "magpie-tts",
-        "extra-media",
-        "extra-ssh",
-        "extra-collector"
-      ]
-    },
-    {
-      "id": "gemma",
-      "name": "Gemma4 31B",
-      "description": "Gemma 4 31B 기반 대화 세트",
-      "model_type": "gemma4",
-      "model_id": "Huihui-gemma-4-31B-it-abliterated-v2-NVFP4",
-      "context_tokens": 65536,
-      "components": [
-        "gemma31",
-        "flux2",
-        "nemotron-asr",
-        "magpie-tts",
-        "extra-media",
-        "extra-ssh",
-        "extra-collector"
-      ]
-    },
-    {
-      "id": "glm53-worker-extra",
-      "name": "GLM 5.3 Flash EXL3",
-      "description": "2× DGX Spark EXL3·DFlash2 + 워커 Extra 3종. 메모리 예상치는 실측 후 조정하세요. · 워커 Magpie TTS",
-      "model_type": "glm5.3",
-      "model_id": "glm-5.3-flash",
-      "context_tokens": 524288,
-      "components": [
-        "glm53",
-        "extra-media",
-        "extra-ssh",
-        "extra-collector",
-        "magpie-tts"
-      ],
-      "bindings": {
-        "extra-media": {
-          "host": "worker",
-          "endpoint": "http://192.168.100.60:8690",
-          "health_url": "http://192.168.100.60:8690/health",
-          "bind_address": "192.168.100.60",
-          "port": 8690
-        },
-        "extra-ssh": {
-          "host": "worker",
-          "endpoint": "http://192.168.100.60:8699",
-          "health_url": "http://192.168.100.60:8699/health",
-          "bind_address": "192.168.100.60",
-          "port": 8699
-        },
-        "extra-collector": {
-          "host": "worker",
-          "endpoint": "http://192.168.100.60:8695",
-          "health_url": "http://192.168.100.60:8695/health",
-          "bind_address": "192.168.100.60",
-          "port": 8695
-        },
-        "magpie-tts": {
-          "host": "worker",
-          "endpoint": "http://192.168.100.60:8692",
-          "health_url": "http://192.168.100.60:8692/ready",
-          "bind_address": "192.168.100.60",
-          "port": 8692,
-          "memory_gib": 1.6
-        }
-      }
-    },
-    {
-      "id": "ornith35",
-      "name": "Ornith 1.5 35B",
-      "description": "1× DGX Spark · 1M YaRN · FP8 KV · 이미지·ASR·TTS·Extra",
-      "model_type": "qwen3.5",
-      "model_id": "edp1096/Huihui-Ornith-1.5-35B-A3B-NVFP4",
-      "context_tokens": 1048576,
-      "components": [
-        "ornith35",
-        "flux2",
-        "nemotron-asr",
-        "magpie-tts",
-        "extra-media",
-        "extra-ssh",
-        "extra-collector"
-      ]
-    },
-    {
-      "id": "flash-next",
-      "name": "Qwen3.8 Flash-Next",
-      "description": "64K 문맥과 Flash-Next를 사용하는 고성능 세트",
-      "model_type": "qwen3.8",
-      "model_id": "edp1096/Huihui-RadixArk-Qwen3.8-Flash-Next-abliterated-NVFP4",
-      "context_tokens": 65536,
-      "components": [
-        "flash-next",
-        "flux2",
-        "nemotron-asr",
-        "magpie-tts",
-        "extra-media",
-        "extra-ssh",
-        "extra-collector"
-      ]
-    },
-    {
-      "id": "flash-next-tp2",
-      "name": "Qwen3.8 Flash-Next TP2",
-      "description": "2× DGX Spark · 1M 문맥 · BF16 KV · 이미지·ASR·TTS·Extra",
-      "model_type": "qwen3.8",
-      "model_id": "edp1096/Huihui-RadixArk-Qwen3.8-Flash-Next-abliterated-NVFP4",
-      "context_tokens": 1048576,
-      "components": [
-        "flash-next-tp2",
-        "flux2",
-        "nemotron-asr",
-        "magpie-tts",
-        "extra-media",
-        "extra-ssh",
-        "extra-collector",
-        "extra-documents"
-      ],
-      "bindings": {
-        "flux2": {
-          "start_after_llm": true
-        },
-        "nemotron-asr": {
-          "start_after_llm": true
-        },
-        "magpie-tts": {
-          "start_after_llm": true
-        }
-      },
-      "start_support": true
-    }
-  ],
-  "hosts": {
-    "local": {},
-    "worker": {
-      "address": "192.168.100.60",
-      "user": "edp1096",
-      "port": 22,
-      "data_dir": "/home/edp1096/.local/share/sparktalk",
-      "model_cache": "/home/edp1096/.cache/huggingface",
-      "memory_reserve_gib": 2
-    }
+  {
+   "id": "gemma31",
+   "name": "Gemma4 31B",
+   "role": "llm",
+   "container": "sglang-gemma4-31b",
+   "health_url": "http://127.0.0.1:8000/health",
+   "model": "Huihui-gemma-4-31B-it-abliterated-v2-NVFP4",
+   "memory_gib": 64.0,
+   "startup_timeout_seconds": 1200,
+   "compose_asset": "compose.gemma31.yaml",
+   "progress_kind": "sglang",
+   "auto_address": true
+  },
+  {
+   "id": "flux2",
+   "name": "FLUX.2 Klein 4B",
+   "role": "image",
+   "container": "flux2-klein-nvfp4-api",
+   "health_url": "http://127.0.0.1:8691/health",
+   "model": "flux2-klein-4b-nvfp4",
+   "memory_gib": 13,
+   "startup_timeout_seconds": 300,
+   "compose_asset": "compose.flux2.yaml",
+   "progress_kind": "comfy",
+   "auto_address": true
+  },
+  {
+   "id": "dreamlite",
+   "name": "DreamLite Mobile (시험)",
+   "role": "image",
+   "container": "sparktalk-dreamlite-mobile",
+   "health_url": "http://127.0.0.1:8691/health",
+   "model": "carlofkl/DreamLite-mobile",
+   "memory_gib": 8.4,
+   "startup_timeout_seconds": 300,
+   "compose_asset": "compose.dreamlite.yaml",
+   "progress_kind": "service",
+   "auto_address": true
+  },
+  {
+   "id": "nemotron-asr",
+   "name": "Nemotron ASR",
+   "role": "asr",
+   "container": "sparktalk-nemotron-asr",
+   "health_url": "http://127.0.0.1:8693/ready",
+   "model": "nemotron-3.5-asr-streaming-0.6b",
+   "memory_gib": 1.3,
+   "startup_timeout_seconds": 180,
+   "compose_asset": "compose.nemotron-asr.yaml",
+   "progress_kind": "service",
+   "auto_address": true
+  },
+  {
+   "id": "magpie-tts",
+   "name": "Magpie TTS",
+   "role": "tts",
+   "container": "sparktalk-magpie-tts",
+   "health_url": "http://127.0.0.1:8692/ready",
+   "model": "magpietts",
+   "memory_gib": 1.2,
+   "startup_timeout_seconds": 180,
+   "compose_asset": "compose.magpie-tts.yaml",
+   "progress_kind": "service",
+   "auto_address": true
+  },
+  {
+   "id": "extra-media",
+   "name": "Extra Media",
+   "role": "tool",
+   "container": "sparktalk-extra-media",
+   "health_url": "http://127.0.0.1:8690/health",
+   "memory_gib": 0.1,
+   "startup_timeout_seconds": 90,
+   "compose_asset": "compose.extra-media.yaml",
+   "progress_kind": "service",
+   "auto_address": true
+  },
+  {
+   "id": "extra-ssh",
+   "name": "Extra SSH",
+   "role": "tool",
+   "container": "sparktalk-extra-ssh",
+   "health_url": "http://127.0.0.1:8699/health",
+   "memory_gib": 0.1,
+   "startup_timeout_seconds": 90,
+   "compose_asset": "compose.extra-ssh.yaml",
+   "progress_kind": "service",
+   "auto_address": true
+  },
+  {
+   "id": "extra-collector",
+   "name": "Extra Collector",
+   "role": "tool",
+   "container": "sparktalk-extra-collector",
+   "health_url": "http://127.0.0.1:8695/health",
+   "memory_gib": 0.3,
+   "startup_timeout_seconds": 120,
+   "compose_asset": "compose.extra-collector.yaml",
+   "progress_kind": "service",
+   "auto_address": true
+  },
+  {
+   "id": "glm53",
+   "name": "GLM 5.3 Flash EXL3",
+   "role": "llm",
+   "host": "local",
+   "controller": "glm53-cluster",
+   "endpoint": "http://127.0.0.1:8000",
+   "health_url": "http://127.0.0.1:8000/health",
+   "container": "glm53-head",
+   "worker_host": "worker",
+   "worker_container": "glm53-worker",
+   "model": "glm-5.3-flash",
+   "memory_gib": 110,
+   "worker_memory_gib": 108,
+   "startup_timeout_seconds": 3600,
+   "progress_kind": "service",
+   "auto_address": true
+  },
+  {
+   "id": "ds4fve",
+   "name": "DeepSeek V4 Flash VE",
+   "role": "llm",
+   "host": "local",
+   "controller": "dspark-cluster",
+   "endpoint": "http://127.0.0.1:8888",
+   "port": 8888,
+   "health_url": "http://127.0.0.1:8888/health",
+   "container": "deepseek-v4-flash-vllm-dspark-1",
+   "worker_host": "worker",
+   "worker_container": "deepseek-v4-flash-vllm-dspark-1",
+   "model": "deepseek-v4-flash-vision-exp",
+   "memory_gib": 111,
+   "worker_memory_gib": 109,
+   "startup_timeout_seconds": 3600,
+   "progress_kind": "service",
+   "auto_address": true
+  },
+  {
+   "id": "extra-documents",
+   "name": "Extra Documents",
+   "role": "tool",
+   "container": "sparktalk-extra-documents",
+   "endpoint": "http://127.0.0.1:8696",
+   "health_url": "http://127.0.0.1:8696/health",
+   "memory_gib": 0.4,
+   "startup_timeout_seconds": 600,
+   "compose_asset": "compose.extra-documents.yaml",
+   "progress_kind": "service",
+   "auto_address": true
+  },
+  {
+   "id": "ds41",
+   "name": "DeepSeek V4.1 Flash",
+   "role": "llm",
+   "host": "local",
+   "controller": "ds41-cluster",
+   "endpoint": "http://127.0.0.1:8010",
+   "port": 8010,
+   "health_url": "http://127.0.0.1:8010/health",
+   "container": "ds41-stream-0",
+   "worker_host": "worker",
+   "worker_container": "ds41-stream-1",
+   "model": "deepseek-v4.1-flash",
+   "memory_gib": 108,
+   "worker_memory_gib": 107,
+   "startup_timeout_seconds": 3600,
+   "progress_kind": "service",
+   "auto_address": true
+  },
+  {
+   "id": "flash-next-tp2",
+   "name": "Huihui-RadixArk Qwen3.8 Flash-Next TP2",
+   "role": "llm",
+   "host": "local",
+   "controller": "qwen38-cluster",
+   "endpoint": "http://127.0.0.1:8012",
+   "port": 8012,
+   "health_url": "http://127.0.0.1:8012/health",
+   "container": "sglang-qwen38-fn-tp2-0",
+   "worker_host": "worker",
+   "worker_container": "sglang-qwen38-fn-tp2-1",
+   "model": "edp1096/Huihui-RadixArk-Qwen3.8-Flash-Next-abliterated-NVFP4",
+   "memory_gib": 83,
+   "worker_memory_gib": 81,
+   "startup_timeout_seconds": 1800,
+   "progress_kind": "sglang",
+   "auto_address": true,
+   "runtime_options": {
+    "MAX_MODEL_LEN": "1048576"
+   }
+  },
+  {
+   "id": "ornith35",
+   "name": "Huihui Ornith 1.5 35B",
+   "role": "llm",
+   "container": "vllm-ornith35",
+   "health_url": "http://127.0.0.1:8000/health",
+   "model": "edp1096/Huihui-Ornith-1.5-35B-A3B-NVFP4",
+   "memory_gib": 70.0,
+   "startup_timeout_seconds": 1200,
+   "compose_asset": "compose.ornith35.yaml",
+   "progress_kind": "vllm",
+   "auto_address": true
+  },
+  {
+   "id": "gemma26",
+   "name": "Huihui Gemma 4 26B",
+   "role": "llm",
+   "container": "sglang-gemma26",
+   "health_url": "http://127.0.0.1:8000/health",
+   "model": "edp1096/Huihui-Gemma-4-26B-A4B-it-NVFP4",
+   "memory_gib": 82.0,
+   "startup_timeout_seconds": 1200,
+   "compose_asset": "compose.gemma26.yaml",
+   "progress_kind": "vllm",
+   "auto_address": true
   }
+ ],
+ "bundles": [
+  {
+   "id": "ds4fve",
+   "name": "DeepSeek V4 Flash VE",
+   "description": "2× DGX Spark · 공식 Vision Exp · DSpark TP2 + 헤드 Extra 도구 · 워커 ASR·TTS",
+   "model_type": "deepseek-v4",
+   "model_id": "deepseek-v4-flash-vision-exp",
+   "context_tokens": 1048576,
+   "components": [
+    "ds4fve",
+    "extra-media",
+    "extra-ssh",
+    "extra-collector",
+    "nemotron-asr",
+    "magpie-tts"
+   ],
+   "bindings": {
+    "extra-media": {
+     "host": "local",
+     "endpoint": "http://127.0.0.1:8690",
+     "health_url": "http://127.0.0.1:8690/health",
+     "bind_address": "127.0.0.1",
+     "port": 8690
+    },
+    "extra-ssh": {
+     "host": "local",
+     "endpoint": "http://127.0.0.1:8699",
+     "health_url": "http://127.0.0.1:8699/health",
+     "bind_address": "127.0.0.1",
+     "port": 8699
+    },
+    "extra-collector": {
+     "host": "local",
+     "endpoint": "http://127.0.0.1:8695",
+     "health_url": "http://127.0.0.1:8695/health",
+     "bind_address": "127.0.0.1",
+     "port": 8695
+    },
+    "nemotron-asr": {
+     "host": "worker",
+     "endpoint": "http://192.168.100.60:8693",
+     "health_url": "http://192.168.100.60:8693/ready",
+     "bind_address": "192.168.100.60",
+     "port": 8693
+    },
+    "magpie-tts": {
+     "host": "worker",
+     "endpoint": "http://192.168.100.60:8692",
+     "health_url": "http://192.168.100.60:8692/ready",
+     "bind_address": "192.168.100.60",
+     "port": 8692,
+     "memory_gib": 1.6
+    }
+   }
+  },
+  {
+   "id": "ds41",
+   "name": "DeepSeek V4.1 Flash",
+   "description": "2× DGX Spark · SSD expert streaming · 64K · 워커 ASR·헤드 Extra 도구 · 워커 Magpie TTS",
+   "model_type": "deepseek-v4",
+   "model_id": "deepseek-v4.1-flash",
+   "context_tokens": 65536,
+   "components": [
+    "ds41",
+    "extra-media",
+    "extra-ssh",
+    "extra-collector",
+    "nemotron-asr",
+    "extra-documents",
+    "magpie-tts"
+   ],
+   "bindings": {
+    "extra-media": {
+     "host": "local",
+     "endpoint": "http://127.0.0.1:8690",
+     "health_url": "http://127.0.0.1:8690/health",
+     "bind_address": "127.0.0.1",
+     "port": 8690
+    },
+    "extra-ssh": {
+     "host": "local",
+     "endpoint": "http://127.0.0.1:8699",
+     "health_url": "http://127.0.0.1:8699/health",
+     "bind_address": "127.0.0.1",
+     "port": 8699
+    },
+    "extra-collector": {
+     "host": "local",
+     "endpoint": "http://127.0.0.1:8695",
+     "health_url": "http://127.0.0.1:8695/health",
+     "bind_address": "127.0.0.1",
+     "port": 8695
+    },
+    "nemotron-asr": {
+     "host": "worker",
+     "endpoint": "http://192.168.100.60:8693",
+     "health_url": "http://192.168.100.60:8693/ready",
+     "bind_address": "192.168.100.60",
+     "port": 8693
+    },
+    "extra-documents": {
+     "host": "local",
+     "endpoint": "http://127.0.0.1:8696",
+     "health_url": "http://127.0.0.1:8696/health",
+     "bind_address": "127.0.0.1",
+     "port": 8696
+    },
+    "magpie-tts": {
+     "host": "worker",
+     "endpoint": "http://192.168.100.60:8692",
+     "health_url": "http://192.168.100.60:8692/ready",
+     "bind_address": "192.168.100.60",
+     "port": 8692,
+     "memory_gib": 1.6,
+     "start_after_llm": true
+    }
+   },
+   "start_support": true
+  },
+  {
+   "id": "gemma26",
+   "name": "Gemma 4 26B",
+   "description": "1× DGX Spark · 1M 위치 보간 실험 · FP8 KV · 이미지·ASR·TTS·Extra",
+   "model_type": "gemma4",
+   "model_id": "edp1096/Huihui-Gemma-4-26B-A4B-it-NVFP4",
+   "context_tokens": 1048576,
+   "components": [
+    "gemma26",
+    "flux2",
+    "nemotron-asr",
+    "magpie-tts",
+    "extra-media",
+    "extra-ssh",
+    "extra-collector"
+   ]
+  },
+  {
+   "id": "gemma",
+   "name": "Gemma4 31B",
+   "description": "Gemma 4 31B 기반 대화 세트",
+   "model_type": "gemma4",
+   "model_id": "Huihui-gemma-4-31B-it-abliterated-v2-NVFP4",
+   "context_tokens": 65536,
+   "components": [
+    "gemma31",
+    "flux2",
+    "nemotron-asr",
+    "magpie-tts",
+    "extra-media",
+    "extra-ssh",
+    "extra-collector"
+   ]
+  },
+  {
+   "id": "glm53-worker-extra",
+   "name": "GLM 5.3 Flash EXL3",
+   "description": "2× DGX Spark EXL3·DFlash2 + 워커 Extra 3종. 메모리 예상치는 실측 후 조정하세요. · 워커 Magpie TTS",
+   "model_type": "glm5.3",
+   "model_id": "glm-5.3-flash",
+   "context_tokens": 524288,
+   "components": [
+    "glm53",
+    "extra-media",
+    "extra-ssh",
+    "extra-collector",
+    "magpie-tts"
+   ],
+   "bindings": {
+    "extra-media": {
+     "host": "worker",
+     "endpoint": "http://192.168.100.60:8690",
+     "health_url": "http://192.168.100.60:8690/health",
+     "bind_address": "192.168.100.60",
+     "port": 8690
+    },
+    "extra-ssh": {
+     "host": "worker",
+     "endpoint": "http://192.168.100.60:8699",
+     "health_url": "http://192.168.100.60:8699/health",
+     "bind_address": "192.168.100.60",
+     "port": 8699
+    },
+    "extra-collector": {
+     "host": "worker",
+     "endpoint": "http://192.168.100.60:8695",
+     "health_url": "http://192.168.100.60:8695/health",
+     "bind_address": "192.168.100.60",
+     "port": 8695
+    },
+    "magpie-tts": {
+     "host": "worker",
+     "endpoint": "http://192.168.100.60:8692",
+     "health_url": "http://192.168.100.60:8692/ready",
+     "bind_address": "192.168.100.60",
+     "port": 8692,
+     "memory_gib": 1.6
+    }
+   }
+  },
+  {
+   "id": "ornith35",
+   "name": "Ornith 1.5 35B",
+   "description": "1× DGX Spark · 1M YaRN · FP8 KV · 이미지·ASR·TTS·Extra",
+   "model_type": "qwen3.5",
+   "model_id": "edp1096/Huihui-Ornith-1.5-35B-A3B-NVFP4",
+   "context_tokens": 1048576,
+   "components": [
+    "ornith35",
+    "flux2",
+    "nemotron-asr",
+    "magpie-tts",
+    "extra-media",
+    "extra-ssh",
+    "extra-collector"
+   ]
+  },
+  {
+   "id": "flash-next",
+   "name": "Qwen3.8 Flash-Next",
+   "description": "64K 문맥과 Flash-Next를 사용하는 고성능 세트",
+   "model_type": "qwen3.8",
+   "model_id": "edp1096/Huihui-RadixArk-Qwen3.8-Flash-Next-abliterated-NVFP4",
+   "context_tokens": 65536,
+   "components": [
+    "flash-next",
+    "flux2",
+    "nemotron-asr",
+    "magpie-tts",
+    "extra-media",
+    "extra-ssh",
+    "extra-collector"
+   ]
+  },
+  {
+   "id": "flash-next-tp2",
+   "name": "Qwen3.8 Flash-Next TP2",
+   "description": "2× DGX Spark · 1M 문맥 · BF16 KV · 이미지·ASR·TTS·Extra",
+   "model_type": "qwen3.8",
+   "model_id": "edp1096/Huihui-RadixArk-Qwen3.8-Flash-Next-abliterated-NVFP4",
+   "context_tokens": 1048576,
+   "components": [
+    "flash-next-tp2",
+    "flux2",
+    "nemotron-asr",
+    "magpie-tts",
+    "extra-media",
+    "extra-ssh",
+    "extra-collector",
+    "extra-documents"
+   ],
+   "bindings": {
+    "flux2": {
+     "start_after_llm": true
+    },
+    "nemotron-asr": {
+     "start_after_llm": true
+    },
+    "magpie-tts": {
+     "start_after_llm": true
+    }
+   },
+   "start_support": true
+  }
+ ],
+ "hosts": {
+  "local": {},
+  "worker": {
+   "address": "192.168.100.60",
+   "user": "edp1096",
+   "port": 22,
+   "data_dir": "/home/edp1096/.local/share/sparktalk",
+   "model_cache": "/home/edp1096/.cache/huggingface",
+   "memory_reserve_gib": 2
+  }
+ }
 }

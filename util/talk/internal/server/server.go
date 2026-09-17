@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"sparktalk/internal/asr"
+	"sparktalk/internal/browserbridge"
 	"sparktalk/internal/config"
 	"sparktalk/internal/db"
 	"sparktalk/internal/knowledge"
@@ -23,40 +24,42 @@ import (
 )
 
 type Server struct {
-	generationMu     sync.Mutex
-	generations      map[uint64]context.CancelFunc
-	generationID     uint64
-	queueClearing    bool
-	mu               sync.RWMutex
-	runtimeMu        sync.Mutex
-	cfg              config.Config
-	startup          config.ServerConfig
-	configPath       string
-	db               *db.DB
-	llm              *llm.Client
-	asr              *asr.Client
-	tts              *tts.Client
-	sshClient        *supportssh.Client
-	media            *media.Store
-	knowledge        *knowledge.Store
-	knowledgeIndex   *knowledge.Extractor
-	collector        *knowledge.CollectorClient
-	runtime          *orchestrator.Controller
-	server           *http.Server
-	contextMu        sync.Mutex
-	contextWindows   map[string]int
-	compactionMu     sync.Mutex
-	asrMu            sync.Mutex
-	ttsMu            sync.Mutex
-	documentMu       sync.Mutex
-	knowledgeJobMu   sync.Mutex
-	knowledgeJobs    map[string]*knowledgeJobRun
-	knowledgeJobSem  chan struct{}
-	knowledgeOCRMu   sync.Mutex
-	knowledgeOCRJobs map[string]*knowledgeOCRRun
-	knowledgeOCRSem  chan struct{}
-	approvalsMu      sync.Mutex
-	approvals        map[string]*toolApproval
+	browserSubmissions browserSubmissionState
+	browser            *browserbridge.Bridge
+	generationMu       sync.Mutex
+	generations        map[uint64]context.CancelFunc
+	generationID       uint64
+	queueClearing      bool
+	mu                 sync.RWMutex
+	runtimeMu          sync.Mutex
+	cfg                config.Config
+	startup            config.ServerConfig
+	configPath         string
+	db                 *db.DB
+	llm                *llm.Client
+	asr                *asr.Client
+	tts                *tts.Client
+	sshClient          *supportssh.Client
+	media              *media.Store
+	knowledge          *knowledge.Store
+	knowledgeIndex     *knowledge.Extractor
+	collector          *knowledge.CollectorClient
+	runtime            *orchestrator.Controller
+	server             *http.Server
+	contextMu          sync.Mutex
+	contextWindows     map[string]int
+	compactionMu       sync.Mutex
+	asrMu              sync.Mutex
+	ttsMu              sync.Mutex
+	documentMu         sync.Mutex
+	knowledgeJobMu     sync.Mutex
+	knowledgeJobs      map[string]*knowledgeJobRun
+	knowledgeJobSem    chan struct{}
+	knowledgeOCRMu     sync.Mutex
+	knowledgeOCRJobs   map[string]*knowledgeOCRRun
+	knowledgeOCRSem    chan struct{}
+	approvalsMu        sync.Mutex
+	approvals          map[string]*toolApproval
 }
 
 func New(cfg config.Config, configPath string, store *db.DB, client *llm.Client, embedded fs.FS) (*Server, error) {
@@ -101,7 +104,12 @@ func New(cfg config.Config, configPath string, store *db.DB, client *llm.Client,
 		client = llm.New(cfg.Model.Endpoint, cfg.Model.DefaultModel, cfg.Model.APIKey, cfg.Model.ModelType).WithThinkingBudget(cfg.Model.ThinkingBudget)
 	}
 	s := &Server{cfg: cfg, startup: cfg.Server, configPath: configPath, db: store, llm: client, asr: asr.New(cfg.ASR), tts: tts.New(cfg.TTS), sshClient: supportssh.New(cfg.Extra.SSHEndpoint), media: mediaStore, knowledge: knowledgeStore, knowledgeIndex: &knowledge.Extractor{}, collector: knowledge.NewCollectorClient(cfg.Extra.CollectorEndpoint), runtime: runtimeController, contextWindows: make(map[string]int), approvals: make(map[string]*toolApproval), knowledgeJobs: make(map[string]*knowledgeJobRun), knowledgeJobSem: make(chan struct{}, 1), knowledgeOCRJobs: make(map[string]*knowledgeOCRRun), knowledgeOCRSem: make(chan struct{}, 1)}
+	s.browser, err = browserbridge.New(cfg.Server.Database + ".browser-key")
+	if err != nil {
+		return nil, err
+	}
 	mux := http.NewServeMux()
+	s.browser.Register(mux)
 	mux.HandleFunc("/api/health", s.health)
 	mux.HandleFunc("/api/emergency/clear-queue", s.emergencyQueue)
 	mux.HandleFunc("/api/config", s.configuration)

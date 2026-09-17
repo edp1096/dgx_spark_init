@@ -1,0 +1,23 @@
+const {chromium}=require('../../web/node_modules/playwright');
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
+(async()=>{const browser=await chromium.launch({executablePath:'/usr/bin/google-chrome',headless:true,args:['--no-sandbox']});try{
+ const page=await browser.newPage();await page.goto('http://localhost:8585');
+ const question=(title)=>`<div class="wrapBox_wrap_box__test"><strong>${title}</strong><div role="radiogroup">${['나빠요','보통이에요','좋아요'].map((label,i)=>`<a href="#" role="radio" aria-checked="false" data-value="${i+1}">${label}</a>`).join('')}</div></div>`;
+ await page.setContent(`<div class="writeForm_write_form__test"><h2>테스트 상품 리뷰</h2><div class="wrapBox_wrap_box__test"><strong>상품에 만족하셨나요?</strong><div role="radiogroup">${[5,4,3,2,1].map(n=>`<button role="radio" data-value="${n}" aria-checked="false"><span>${n}</span></button>`).join('')}</div></div>${question('품질은 어떤가요?')}${question('포장은 어떤가요?')}<label for="reviewInput">최소 10자 이상 입력해주세요.</label><textarea id="reviewInput" maxlength="5000"></textarea><button disabled>등록</button></div>`);
+ await page.evaluate(()=>{window.chrome={runtime:{id:'test',onMessage:{addListener:f=>window.listener=f}}};window.post=m=>new Promise(r=>window.listener({type:'TALK_REVIEW_V11',...m},{id:'test'},r));document.querySelectorAll('[role="radio"]').forEach(el=>el.onclick=e=>{e.preventDefault();el.parentElement.querySelectorAll('[role="radio"]').forEach(x=>x.setAttribute('aria-checked',String(x===el)));});});
+ await page.addScriptTag({content:fs.readFileSync(path.join(__dirname,'../../internal/browserbridge/extension/naver-content.js'),'utf8')});
+ const state=await page.evaluate(()=>post({action:'inspect',product:'테스트 상품'}));assert.equal(state.forms.length,1);
+ const form=state.forms[0];assert.equal(form.questions.length,2);assert.equal(form.submit_disabled,true);
+ const fields={form_id:form.id,product:'테스트 상품',rating:5,text:'좋은 상품 보내주셔서 감사합니다.'};
+ const invoke=m=>page.evaluate(m=>post(m),m);
+ const click=async m=>{const r=await invoke(m);assert.equal(r.ok,true,r.error);await page.mouse.click(r.point?.x??r.x,r.point?.y??r.y);};
+ await click({...fields,action:'prepare_rating'});
+ const answers=form.questions.map(q=>({question_id:q.id,option_id:q.options[2].id}));
+ for(const a of answers)await click({...fields,...a,action:'prepare_answer'});
+ await page.locator('textarea').fill(fields.text);
+ let result=await invoke({...fields,answers,action:'verify_snapshot'});assert.equal(result.ok,true,result.error);assert.equal(result.rating,5);assert.equal(result.answers.length,2);
+ const wrong=await invoke({...fields,question_id:answers[0].question_id,option_id:answers[1].option_id,action:'prepare_answer'});assert.equal(wrong.ok,false);
+ await page.locator('[role="radiogroup"]').nth(1).locator('[role="radio"]').nth(1).click();
+ const stale=await invoke({...result,action:'verify_snapshot'});assert.equal(stale.ok,false);
+ console.log('Additional evaluations: disabled form discovery, descending stars, independent numeric questions, selected answers, foreign option rejection and stale snapshot passed.');
+}finally{await browser.close();}})().catch(e=>{console.error(e);process.exit(1)});

@@ -38,6 +38,7 @@ type registeredToolResult struct {
 type registeredToolHandler func(context.Context, llm.ToolCall, []llm.Message, eventEmitter) (registeredToolResult, error)
 
 type completionToolRegistry struct {
+	sessionID   string
 	definitions []llm.Tool
 	prompts     []string
 	handlers    map[string]registeredToolHandler
@@ -47,7 +48,13 @@ type completionToolRegistry struct {
 }
 
 func newCompletionToolRegistry(server *Server, sessionID string, cfg config.ToolsConfig, webEnabled bool, mediaSink mediaAttachmentSink) completionToolRegistry {
-	registry := completionToolRegistry{handlers: make(map[string]registeredToolHandler), skills: map[string]skills.Skill{}, loaded: map[string]bool{}}
+	registry := completionToolRegistry{sessionID: sessionID, handlers: make(map[string]registeredToolHandler), skills: map[string]skills.Skill{}, loaded: map[string]bool{}}
+	if server != nil && server.db != nil && sessionID != "" {
+		server.registerAttachmentReader(&registry, sessionID)
+	}
+	if server != nil {
+		server.registerBrowserTools(&registry)
+	}
 	activeToolsets := make(map[string]bool)
 	contextReadEnabled := false
 	if server != nil {

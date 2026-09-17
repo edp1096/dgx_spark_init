@@ -36,6 +36,8 @@ func SupportsOCR(mimeType string) bool {
 
 func (e *Extractor) Extract(path, mimeType string) ([]Page, error) {
 	switch mimeType {
+	case "application/zip":
+		return extractZIPAttachment(path)
 	case "application/pdf":
 		return e.extractPDF(path)
 	case "text/html":

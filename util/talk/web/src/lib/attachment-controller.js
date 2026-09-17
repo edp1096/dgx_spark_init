@@ -52,7 +52,7 @@ export function createAttachmentController({ uploadFile, uploadURL, onState = ()
     const dropped = Array.from(files || []);
     const mediaFiles = dropped.filter(isSupportedAttachmentFile);
     if (!mediaFiles.length || blocked || !sessionId) {
-		if (dropped.length && !blocked) onError(sessionId, '지원되는 이미지·음성·비디오·문서 파일만 첨부할 수 있습니다.');
+		if (dropped.length && !blocked) onError(sessionId, '지원되는 이미지·음성·비디오·문서·ZIP 파일만 첨부할 수 있습니다.');
       return false;
     }
     const oversized = mediaFiles.find((file) => file.size > (attachmentKind(file) === 'image' ? maxImageBytes : maxAttachmentBytes));

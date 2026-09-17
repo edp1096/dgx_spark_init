@@ -11,7 +11,7 @@ import (
 
 const (
 	documentExtractionFingerprint = "sparktalk-document-v1"
-	maxDocumentPromptRunes        = 24000
+	maxDocumentPromptRunes        = 256000
 	maxDocumentCacheRunes         = 4_000_000
 )
 
@@ -65,6 +65,10 @@ func (s *Server) extractDocumentAttachment(ctx context.Context, item db.Attachme
 
 func documentAttachmentBlock(item db.Attachment, cached media.DocumentCache) string {
 	text, truncated := truncateCollectedText(cached.Text, maxDocumentPromptRunes)
-	return fmt.Sprintf("<document_attachment filename=%q type=%q pages=%q truncated=%q>\n%s\n</document_attachment>",
-		item.Name, item.MIME, fmt.Sprint(cached.PageCount), fmt.Sprint(truncated), text)
+	guidance := ""
+	if truncated {
+		guidance = fmt.Sprintf("\n<attachment_read_required>Only the first %d characters are shown. Read the remainder with attachment_read(attachment_id=%q, offset=%d) and follow next_offset until has_more=false before judging file completeness or contents. Truncation here is NOT a missing or corrupt file.</attachment_read_required>", maxDocumentPromptRunes, item.ID, maxDocumentPromptRunes)
+	}
+	return fmt.Sprintf("<document_attachment attachment_id=%q filename=%q type=%q pages=%q truncated=%q>\n%s\n</document_attachment>%s",
+		item.ID, item.Name, item.MIME, fmt.Sprint(cached.PageCount), fmt.Sprint(truncated), text, guidance)
 }

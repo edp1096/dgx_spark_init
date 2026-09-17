@@ -1,4 +1,5 @@
 <script>
+  import { browserToolPreview } from '../lib/browser-tools.js';
   import { onDestroy, tick } from 'svelte';
   import DOMPurify from 'dompurify';
   import 'katex/dist/katex.min.css';
@@ -223,6 +224,7 @@
     if (!tool.result) return '';
     try {
       const parsed = JSON.parse(tool.result);
+      if (tool.name === 'browser_reviews') return browserToolPreview(parsed);
       if (tool.name === 'memory_manage') {
         if (parsed.memories) return parsed.memories.length
           ? parsed.memories.map((item) => `#${item.id} · ${memoryKindLabel(item.kind)} · ${memoryPriorityLabel(item.priority)} · ${item.enabled ? '사용' : '중지'}\n${item.title || '제목 없음'}\n${item.content}`).join('\n\n')
@@ -265,6 +267,7 @@
     if (tool.name === 'web_search') return '웹 검색';
     if (tool.name === 'web_fetch') return '페이지 읽기';
 		if (tool.name === 'web_collect') return '브라우저 수집';
+    if (tool.name === 'browser_reviews') return '구매후기';
     if (tool.name === 'ssh_exec') return 'SSH 실행';
     if (tool.name === 'document_generate') return '문서 생성';
     if (tool.name === 'media_import') return '미디어 가져오기';
@@ -413,7 +416,15 @@
                   {/if}
                   {#if tool.approval_error}<p class="tool-error">{tool.approval_error}</p>{/if}
                   <div class="tool-approval-actions"><button onclick={() => onToolApproval(tool, 'reject')} disabled={tool.approving}>거부</button><button class="approve" class:danger={tool.action === 'delete'} onclick={() => onToolApproval(tool, 'once')} disabled={tool.approving}>{tool.approving ? '처리 중…' : memoryApprovalButton(tool.action)}</button></div>
-				{:else if tool.approval_kind === 'knowledge_import'}
+				{:else if tool.approval_kind === 'browser_reviews'}
+                  <div class="tool-approval-title"><strong>구매후기 등록</strong><span>{tool.reviews?.length || 0}개</span></div>
+                  {#each tool.reviews || [] as review}
+                    <section><strong>{review.product}</strong><small> · 별점 {review.rating}/5</small><p class="memory-proposal-content">{review.text}</p></section>
+                  {/each}
+                  <small>승인한 내용 그대로 Chrome에서 등록합니다. 내용을 바꾸려면 취소 후 수정해 주세요.</small>
+                  {#if tool.approval_error}<p class="tool-error">{tool.approval_error}</p>{/if}
+                  <div class="tool-approval-actions"><button onclick={() => onToolApproval(tool, 'reject')} disabled={tool.approving}>취소</button><button class="approve" onclick={() => onToolApproval(tool, 'once')} disabled={tool.approving}>{tool.approving ? '처리 중…' : '이대로 등록'}</button></div>
+                {:else if tool.approval_kind === 'knowledge_import'}
 					<div class="tool-approval-title"><strong>지식 가져오기 승인</strong><span>{tool.collection_name} · {tool.urls?.length || 0}개</span></div>
 					<div class="knowledge-import-urls">{#each tool.urls || [] as url}<code>{url}</code>{/each}</div>
 					<small>승인하면 원문을 내려받아 보관하고 검색 가능한 형태로 색인합니다.</small>

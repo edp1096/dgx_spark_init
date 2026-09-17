@@ -1,5 +1,6 @@
 <script>
   import Select from './Select.svelte';
+  import BrowserSettings from './settings/BrowserSettings.svelte';
   import MicrophoneHelp from './MicrophoneHelp.svelte';
   import SettingsField from './settings/SettingsField.svelte';
   import SettingsHelp from './settings/SettingsHelp.svelte';
@@ -285,13 +286,15 @@
       </div>
 
       <div id="settings-panel-features" class="settings-tab-panel" class:active={activeTab === 'features'} role="tabpanel" aria-labelledby="settings-tab-features">
-        <div class="settings-section-navigation" role="group" aria-label="기능 설정 분류">
+        <div class="settings-section-navigation feature-navigation" role="group" aria-label="기능 설정 분류">
           <button type="button" aria-pressed={featureSection === 'web'} onclick={() => { featureSection = 'web'; }}>웹·미디어</button>
           <button type="button" aria-pressed={featureSection === 'documents'} onclick={() => { featureSection = 'documents'; }}>문서</button>
           <button type="button" aria-pressed={featureSection === 'image'} onclick={() => { featureSection = 'image'; }}>이미지</button>
           <button type="button" aria-pressed={featureSection === 'skills'} onclick={() => { featureSection = 'skills'; }}>스킬·기록</button>
+          <button type="button" aria-pressed={featureSection === 'browser'} onclick={() => { featureSection = 'browser'; }}>브라우저</button>
           <button type="button" aria-pressed={featureSection === 'ssh'} onclick={() => { featureSection = 'ssh'; }}>SSH·키</button>
         </div>
+        <div class="settings-section" hidden={featureSection !== 'browser'}><BrowserSettings /></div>
         <div class="settings-section" hidden={featureSection !== 'documents'}>
           <fieldset><legend><span>문서 생성</span> <SettingsHelp title="문서 생성"><p>보고서는 본문·표·첨부 이미지, 발표자료는 제목·목록을 지원합니다. 스프레드시트는 여러 시트·기본 수식·숫자 서식을 지원합니다. Office 파일과 같은 내용의 PDF도 생성합니다. 원본과 배치가 다를 수 있으며 PDF 생성 실패 시 원본만 반환합니다. 서비스 주소와 실행 상태는 시스템의 지원 서비스에서 관리합니다.</p></SettingsHelp></legend>
             <label class="check"><input type="checkbox" bind:checked={settings.extra.documents_enabled} /> DOCX·PPTX·XLSX·PDF·HWP·HWPX 파일 생성 활성화</label>
@@ -426,6 +429,8 @@
 
   .settings-section-navigation { display: flex; gap: 4px; margin-bottom: 16px; padding: 4px; border: 1px solid #80808040; border-radius: 10px; }
   .settings-section-navigation button { flex: 1; padding: 9px 6px; border: 0; border-radius: 7px; background: transparent; color: inherit; font: inherit; font-size: 13px; }
+  .feature-navigation { flex-wrap: wrap; }
+  .feature-navigation button { flex: 1 0 auto; white-space: nowrap; }
   .settings-section-navigation button[aria-pressed=true] { background: #6584ed22; color: inherit; font-weight: 650; }
   .system-navigation { overflow-x: auto; scrollbar-width: thin; }
   .system-navigation button { flex: 1 0 auto; white-space: nowrap; padding: 9px 10px; }
