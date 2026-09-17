@@ -8,6 +8,7 @@
   import { markdownView } from '../lib/markdown-view.js';
   import { artifactsFromMessage } from '../lib/artifacts.js';
   import Avatar from './Avatar.svelte';
+  import SpeechPreview from './SpeechPreview.svelte';
   import MediaAttachments from './MediaAttachments.svelte';
   import InferenceMetrics from './InferenceMetrics.svelte';
   import { initialMessageStart, messageWindowAround, shiftedMessageWindow } from '../lib/message-window.js';
@@ -35,6 +36,7 @@
   export let onBeginEdit = () => {};
   export let onToolApproval = () => {};
   export let ttsEnabled = false;
+  export let speechOmitParentheticals = true;
   export let speechLoadingKey = '';
   export let speechPlayingKey = '';
   export let onSpeakReply = () => {};
@@ -487,6 +489,7 @@
         {/if}
         {#if message.role === 'assistant'}
           <InferenceMetrics performance={message.performance} />
+          {#if message.content && !running}<SpeechPreview original={message.content} omitParentheticals={speechOmitParentheticals} />{/if}
           <div class="message-actions">
             {#if variantIndices(message, index).length > 1}
               <div class="variant-pager" aria-label="답변 버전 선택">

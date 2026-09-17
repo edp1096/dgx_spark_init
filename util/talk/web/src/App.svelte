@@ -1219,6 +1219,7 @@
       onBeginEdit={beginEdit}
       onToolApproval={respondToToolApproval}
       ttsEnabled={settings?.tts?.enabled ?? false}
+      speechOmitParentheticals={settings?.tts?.omit_parentheticals === true}
       {speechLoadingKey}
       {speechPlayingKey}
       onSpeakReply={speakReply}

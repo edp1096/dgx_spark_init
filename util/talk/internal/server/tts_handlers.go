@@ -75,3 +75,21 @@ func (s *Server) synthesizeSpeech(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 }
+
+// Preview uses exactly the same language/hanja processing as synthesis without
+// contacting Magpie or retaining speech text in persistent logs.
+func (s *Server) previewSpeech(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		methodNotAllowed(w)
+		return
+	}
+	var request struct {
+		Text string `json:"text"`
+	}
+	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, maxTTSRequestBytes)).Decode(&request); err != nil {
+		http.Error(w, "invalid TTS request", http.StatusBadRequest)
+		return
+	}
+	w.Header().Set("Cache-Control", "no-store")
+	writeJSON(w, http.StatusOK, map[string]any{"parts": s.ttsSnapshot().SpeechParts(request.Text)})
+}

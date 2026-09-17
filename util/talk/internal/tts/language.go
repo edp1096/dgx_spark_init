@@ -8,8 +8,8 @@ import (
 )
 
 type SpeechPart struct {
-	Text     string
-	Language string
+	Text     string `json:"text"`
+	Language string `json:"language"`
 }
 
 type textScript uint8

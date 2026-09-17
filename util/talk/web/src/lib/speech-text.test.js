@@ -18,7 +18,7 @@ test('speech text keeps block pauses and removes trailing source links', () => {
   assert.equal(result.includes('기상청'), false);
   assert.equal(result.includes('🌦️'), false);
   assert.equal(result.includes('☂️'), false);
-  assert.match(result, /기온: 최고 28도, 최저 22도/u);
+  assert.match(result, /기온: 최고 이십팔 도, 최저 이십이 도/u);
   assert.match(result, /가능\.\n우산 챙기세요!/u);
   assert.match(result, /신길동 내일 날씨\.\n기온:/u);
 });
@@ -107,7 +107,7 @@ test('removes visual list bullets and ordinal markers without dropping content n
 2026년 자료`;
   assert.equal(
     speechTextFromMarkdown(markdown),
-    '첫 번째 항목.\n두 번째 항목.\n세 번째 항목.\n네 번째 항목.\n다섯 번째 항목.\n수량은 3개.\n2026년 자료.',
+    '첫 번째 항목.\n두 번째 항목.\n세 번째 항목.\n네 번째 항목.\n다섯 번째 항목.\n수량은 세 개.\n이천이십육 년 자료.',
   );
 });
 
@@ -141,7 +141,7 @@ test('continuous speech chunker omits full-width parenthetical asides', () => {
 
 test('stream chunker emits completed visual lines and sentences once', () => {
   const chunker = createSpeechChunker();
-  assert.deepEqual(chunker.push('## 날씨\n기온은 20도입니다. 다음'), ['날씨.','기온은 20도입니다.']);
+  assert.deepEqual(chunker.push('## 날씨\n기온은 20도입니다. 다음'), ['날씨.','기온은 이십 도입니다.']);
   assert.deepEqual(chunker.push(' 문장입니다\n[기상청](https://example.com)\n'), ['다음 문장입니다.']);
   assert.deepEqual(chunker.finish(), []);
 });

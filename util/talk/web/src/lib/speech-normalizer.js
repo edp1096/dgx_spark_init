@@ -1,3 +1,4 @@
+import { classifySpeechNotation, readKoreanSpeech } from './speech-semantics.js';
 import { normalizeChatSpeech } from './chat-speech/index.js';
 
 export function sourceOnlyLine(line) {
@@ -32,7 +33,9 @@ function normalizeSimpleExpressions(text) {
     `(${number}(?:\\s+(?:더하기|빼기|곱하기|나누기)\\s+(${number}))+)\\s*=\\s*`,
     'gu',
   );
-  return String(text || '')
+  const input = String(text || '');
+  if (!/[=+×✕÷*]/u.test(input) && !/계산|수식|나누기|빼기/u.test(input)) return input;
+  return input
     .replace(new RegExp(`(${number})\\s*\\+\\s*(?=${number})`, 'gu'), '$1 더하기 ')
     .replace(new RegExp(`(${number})\\s*[-−]\\s*(?=${number})`, 'gu'), '$1 빼기 ')
     .replace(new RegExp(`(${number})\\s*[×✕*]\\s*(?=${number})`, 'gu'), '$1 곱하기 ')
@@ -80,15 +83,15 @@ export function normalizeSpeechNotation(text) {
     .replace(/[ㅠㅜ](?:[\s._-]*[ㅠㅜ])+/gu, '')
     .replace(/ㅡ(?:[\s._-]*ㅡ)+/gu, '');
 
-  const semanticNotation = normalizeSimpleExpressions(normalizeNumericSlashLists(normalizeChatSpeech(visualEmojiRemoved)))
+  const semanticNotation = normalizeSimpleExpressions(normalizeNumericSlashLists(classifySpeechNotation(normalizeChatSpeech(visualEmojiRemoved))))
     .replace(/(-?\d+(?:\.\d+)?)\s*m\s*\/\s*s\b/giu, (_match, number) => `초속 ${compactDecimal(number)}미터`)
     .replace(/(-?\d+(?:\.\d+)?)\s*km\s*\/\s*h\b/giu, (_match, number) => `시속 ${compactDecimal(number)}킬로미터`)
     .replace(/(-?\d+(?:\.\d+)?)\s*mm\s*\/\s*h\b/giu, (_match, number) => `시간당 ${compactDecimal(number)}밀리미터`)
-    .replace(/(-?\d+(?:[.,]\d+)?)\s*[~～‐‑‒–—―]\s*(-?\d+(?:[.,]\d+)?)\s*(?:°\s*F|℉)/giu, '화씨 $1도에서 $2도')
+    .replace(/(-?\d+(?:[.,]\d+)?)\s*[~～‐‑‒–—―-]\s*(-?\d+(?:[.,]\d+)?)\s*(?:°\s*F|℉)/giu, '화씨 $1도에서 $2도')
     .replace(/(-?\d+(?:[.,]\d+)?)\s*(?:°\s*F|℉)/giu, '화씨 $1도')
-    .replace(/(-?\d+(?:[.,]\d+)?)\s*[~～‐‑‒–—―]\s*(-?\d+(?:[.,]\d+)?)\s*(?:°\s*C|℃)/giu, '$1도에서 $2도')
+    .replace(/(-?\d+(?:[.,]\d+)?)\s*[~～‐‑‒–—―-]\s*(-?\d+(?:[.,]\d+)?)\s*(?:°\s*C|℃)/giu, '$1도에서 $2도')
     .replace(/(-?\d+(?:[.,]\d+)?)\s*(?:°\s*C|℃)/giu, '$1도')
-    .replace(/(-?\d+(?:[.,]\d+)?)\s*[~～‐‑‒–—―]\s*(-?\d+(?:[.,]\d+)?)\s*%/gu, '$1퍼센트에서 $2퍼센트')
+    .replace(/(-?\d+(?:[.,]\d+)?)\s*[~～‐‑‒–—―-]\s*(-?\d+(?:[.,]\d+)?)\s*%/gu, '$1퍼센트에서 $2퍼센트')
     .replace(/(-?\d+(?:[.,]\d+)?)\s*%/gu, '$1퍼센트')
     .replace(/(-?\d+(?:[.,]\d+)?)\s*[~～‐‑‒–—―]\s*(-?\d+(?:[.,]\d+)?)/gu, '$1에서 $2')
     .replace(/(?:°\s*C|℃)/giu, '섭씨')
@@ -96,15 +99,15 @@ export function normalizeSpeechNotation(text) {
     .replace(/[~～]+/gu, ', ')
     .replace(/\t+/gu, ', ');
 
-  return removeVisualSymbols(semanticNotation)
+  return removeVisualSymbols(semanticNotation.replace(/(?<![\d])-(\d+(?:\.\d+)?)도/gu, '영하 $1도'))
     .replace(/[ \t]{2,}/gu, ' ')
     .trim();
 }
 
 function stripListMarker(line) {
   return line
-    .replace(/^(?:[-*+]|[•◦▪▫‣⁃●○◆◇■□▶▷])\s*(?:\[[ xX✓✔]\]\s*)?/u, '')
-    .replace(/^(?:\(\d{1,3}\)|\d{1,3}[.)]|[①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳])\s*/u, '');
+    .replace(/^(?:[-*+]\s+|[•◦▪▫‣⁃●○◆◇■□▶▷]\s*)(?:\[[ xX✓✔]\]\s*)?/u, '')
+    .replace(/^(?:\(\d{1,3}\)|\d{1,3}[.)](?!\d)|[①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳])\s*/u, '');
 }
 
 function removeParentheticalAsides(value) {
@@ -121,11 +124,11 @@ export function cleanMarkdownLine(line, { omitParentheticals = false } = {}) {
   if (!value || /^\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?$/u.test(value)) return '';
   value = value.replace(/^#{1,6}\s+/u, '').replace(/^>\s?/u, '').trim();
   value = stripListMarker(value)
-    .replace(/^[-*+]\s+/u, '')
     .replace(/!\[[^\]]*\]\([^)]+\)/gu, '')
     .replace(/\[([^\]]+)\]\([^)]+\)/gu, '$1')
     .replace(/https?:\/\/\S+/giu, '')
-    .replace(/<[^>]+>/gu, '')
+    .replace(/<\/?[A-Za-z][^>]*>/gu, '')
+    .replace(/(\d)\s*\*\s*(?=-?\d)/gu, '$1 × ')
     .replace(/~~([^~]+)~~/gu, '$1')
     .replace(/[*_`]+/gu, '')
     .trim();
@@ -134,7 +137,7 @@ export function cleanMarkdownLine(line, { omitParentheticals = false } = {}) {
   if (value.startsWith('|') && value.endsWith('|')) {
     value = value.slice(1, -1).split('|').map((cell) => cell.trim()).filter(Boolean).join(', ');
   }
-  value = normalizeSpeechNotation(value);
+  value = readKoreanSpeech(normalizeSpeechNotation(value));
   if (!value) return '';
   if (!/[.!?。！？…:;]$/u.test(value)) value += '.';
   return value;

@@ -148,6 +148,7 @@ func New(cfg config.Config, configPath string, store *db.DB, client *llm.Client,
 	mux.HandleFunc("/api/tool-audit", s.toolAudits)
 	mux.HandleFunc("/api/asr/transcribe", s.transcribeVoice)
 	mux.HandleFunc("/api/tts/speech", s.synthesizeSpeech)
+	mux.HandleFunc("/api/tts/preview", s.previewSpeech)
 	mux.HandleFunc("/api/ssh/hosts", s.sshHosts)
 	mux.HandleFunc("/api/ssh/hosts/", s.sshHost)
 	mux.HandleFunc("/api/ssh/keys", s.sshKeys)
