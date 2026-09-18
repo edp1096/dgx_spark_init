@@ -68,7 +68,7 @@ func TestQwenTP2BundleAndEmbeddedRuntime(t *testing.T) {
 		}
 	}
 	source := filepath.Join("..", "..", "..", "..", "compose_yaml", "qwen38_fn_sglang")
-	for _, name := range []string{"manage_tp2.py", "compose.tp2.yaml", "tp2/entrypoint.py", "tp2/watchdog.py"} {
+	for _, name := range []string{"ensure_rail.py", "manage_tp2.py", "compose.tp2.yaml", "tp2/entrypoint.py", "tp2/watchdog.py"} {
 		want, e := os.ReadFile(filepath.Join(source, name))
 		if e != nil {
 			t.Fatal(e)

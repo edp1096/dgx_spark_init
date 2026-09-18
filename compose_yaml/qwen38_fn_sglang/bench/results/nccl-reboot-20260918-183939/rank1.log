@@ -1,0 +1,167 @@
+spark-bb75:1:1 [0] NCCL INFO ENV/Plugin: Could not find: libnccl-env.so
+spark-bb75:1:1 [0] NCCL INFO cudaDriverVersion 13000
+spark-bb75:1:1 [0] NCCL INFO NCCL_SOCKET_IFNAME set to =enp1s0f1np1
+spark-bb75:1:1 [0] NCCL INFO NCCL version 2.29.7+cuda13.2
+spark-bb75:1:1 [0] NCCL INFO NCCL git version stable b81d6a5a3
+spark-bb75:1:1 [0] NCCL INFO NET/Plugin: Could not find: libnccl-net.so
+spark-bb75:1:1 [0] NCCL INFO dlvsym failed on mlx5dv_get_data_direct_sysfs_path - /lib/aarch64-linux-gnu/libmlx5.so: undefined symbol: mlx5dv_get_data_direct_sysfs_path, version MLX5_1.25 version MLX5_1.25
+spark-bb75:1:1 [0] NCCL INFO dlvsym failed on mlx5dv_reg_dmabuf_mr - /lib/aarch64-linux-gnu/libmlx5.so: undefined symbol: mlx5dv_reg_dmabuf_mr, version MLX5_1.25 version MLX5_1.25
+spark-bb75:1:1 [0] NCCL INFO NCCL_IB_HCA set to =rocep1s0f1
+spark-bb75:1:1 [0] NCCL INFO NET/IB: [1] rocep1s0f1:uverbs1:1/RoCE provider=Mlx5 speed=200000 context=0x2367e720 pciPath=/sys/devices/pci0000:00/0000:00:00.0/0000:01:00.0 ar=0
+spark-bb75:1:1 [0] NCCL INFO NET/IB : Made virtual device [0] name=rocep1s0f1 speed=200000 ndevs=1
+spark-bb75:1:1 [0] NCCL INFO NET/IB : Using [0]rocep1s0f1:1/RoCE [RO]; OOB enp1s0f1np1:10.200.0.2<0>
+spark-bb75:1:1 [0] NCCL INFO Initialized NET plugin IB
+spark-bb75:1:1 [0] NCCL INFO Assigned NET plugin IB to comm
+spark-bb75:1:1 [0] NCCL INFO GIN/Plugin: Could not find: libnccl-gin.so
+spark-bb75:1:1 [0] NCCL INFO Assigned GIN plugin GIN_IB_GDAKI to comm
+spark-bb75:1:1 [0] NCCL INFO Assigned RMA plugin GIN_IB_PROXY to comm
+spark-bb75:1:1 [0] NCCL INFO Using network IB
+spark-bb75:1:1 [0] NCCL INFO [Rank 1] ncclCommInitRankConfig comm 0x21c58630 rank 1 nranks 2 cudaDev 0 nvmlDev 0 busId f01000 commId 0xc7f8c7057bf7b14b - Init START
+spark-bb75:1:1 [0] NCCL INFO RAS client listening socket at 127.0.0.1<28028>
+spark-bb75:1:1 [0] NCCL INFO NET/GIN_IB_GDAKI : GPU Direct RDMA Disabled for HCA 0 'rocep1s0f1'
+spark-bb75:1:1 [0] NCCL INFO NET/IB : GPU Direct RDMA Disabled for HCA 0 'rocep1s0f1'
+spark-bb75:1:1 [0] NCCL INFO ncclTopoGetCpuAffinity: Affinity for GPU 0 is empty, ignoring. (GPU affinity =  ; CPU affinity = 0-19).
+spark-bb75:1:1 [0] NCCL INFO comm 0x21c58630 rank 1 nRanks 2 nNodes 2 localRanks 1 localRank 0 MNNVL 0
+spark-bb75:1:1 [0] NCCL INFO Trees [0] -1/-1/-1->1->0 [1] -1/-1/-1->1->0 [2] -1/-1/-1->1->0 [3] -1/-1/-1->1->0 [4] 0/-1/-1->1->-1 [5] 0/-1/-1->1->-1 [6] 0/-1/-1->1->-1 [7] 0/-1/-1->1->-1
+spark-bb75:1:1 [0] NCCL INFO P2P Chunksize set to 262144
+spark-bb75:1:1 [0] NCCL INFO PROFILER/Plugin: Could not find: libnccl-profiler.so
+spark-bb75:1:1 [0] NCCL INFO Check P2P Type isAllDirectP2p 1 directMode 0 isAllCudaP2p 1
+spark-bb75:1:81 [0] NCCL INFO [Proxy Service] Device 0 CPU core 0
+spark-bb75:1:82 [0] NCCL INFO [Proxy Service UDS] Device 0 CPU core 7
+spark-bb75:1:81 [0] NCCL INFO New proxy recv connection 0 from local rank 0, transport 2
+spark-bb75:1:83 [0] NCCL INFO [Proxy Progress] Device 0 CPU core 7
+spark-bb75:1:1 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0xe0b41c004f70
+spark-bb75:1:1 [0] NCCL INFO Channel 00/0 : 0[0] -> 1[0] [receive] via NET/IB/0
+spark-bb75:1:81 [0] NCCL INFO New proxy recv connection 1 from local rank 0, transport 2
+spark-bb75:1:1 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0xe0b41c004ff8
+spark-bb75:1:1 [0] NCCL INFO Channel 01/0 : 0[0] -> 1[0] [receive] via NET/IB/0
+spark-bb75:1:81 [0] NCCL INFO New proxy recv connection 2 from local rank 0, transport 2
+spark-bb75:1:1 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0xe0b41c005080
+spark-bb75:1:1 [0] NCCL INFO Channel 02/0 : 0[0] -> 1[0] [receive] via NET/IB/0
+spark-bb75:1:81 [0] NCCL INFO New proxy recv connection 3 from local rank 0, transport 2
+spark-bb75:1:1 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0xe0b41c005108
+spark-bb75:1:1 [0] NCCL INFO Channel 03/0 : 0[0] -> 1[0] [receive] via NET/IB/0
+spark-bb75:1:81 [0] NCCL INFO New proxy recv connection 4 from local rank 0, transport 2
+spark-bb75:1:1 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0xe0b41c005190
+spark-bb75:1:1 [0] NCCL INFO Channel 04/0 : 0[0] -> 1[0] [receive] via NET/IB/0
+spark-bb75:1:81 [0] NCCL INFO New proxy recv connection 5 from local rank 0, transport 2
+spark-bb75:1:1 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0xe0b41c005218
+spark-bb75:1:1 [0] NCCL INFO Channel 05/0 : 0[0] -> 1[0] [receive] via NET/IB/0
+spark-bb75:1:81 [0] NCCL INFO New proxy recv connection 6 from local rank 0, transport 2
+spark-bb75:1:1 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0xe0b41c0052a0
+spark-bb75:1:1 [0] NCCL INFO Channel 06/0 : 0[0] -> 1[0] [receive] via NET/IB/0
+spark-bb75:1:81 [0] NCCL INFO New proxy recv connection 7 from local rank 0, transport 2
+spark-bb75:1:1 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0xe0b41c005328
+spark-bb75:1:1 [0] NCCL INFO Channel 07/0 : 0[0] -> 1[0] [receive] via NET/IB/0
+spark-bb75:1:81 [0] NCCL INFO New proxy send connection 8 from local rank 0, transport 2
+spark-bb75:1:1 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0xe0b41c0053b0
+spark-bb75:1:1 [0] NCCL INFO Channel 00/0 : 1[0] -> 0[0] [send] via NET/IB/0
+spark-bb75:1:81 [0] NCCL INFO New proxy send connection 9 from local rank 0, transport 2
+spark-bb75:1:1 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0xe0b41c005438
+spark-bb75:1:1 [0] NCCL INFO Channel 01/0 : 1[0] -> 0[0] [send] via NET/IB/0
+spark-bb75:1:81 [0] NCCL INFO New proxy send connection 10 from local rank 0, transport 2
+spark-bb75:1:1 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0xe0b41c0054c0
+spark-bb75:1:1 [0] NCCL INFO Channel 02/0 : 1[0] -> 0[0] [send] via NET/IB/0
+spark-bb75:1:81 [0] NCCL INFO New proxy send connection 11 from local rank 0, transport 2
+spark-bb75:1:1 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0xe0b41c005548
+spark-bb75:1:1 [0] NCCL INFO Channel 03/0 : 1[0] -> 0[0] [send] via NET/IB/0
+spark-bb75:1:81 [0] NCCL INFO New proxy send connection 12 from local rank 0, transport 2
+spark-bb75:1:1 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0xe0b41c0055d0
+spark-bb75:1:1 [0] NCCL INFO Channel 04/0 : 1[0] -> 0[0] [send] via NET/IB/0
+spark-bb75:1:81 [0] NCCL INFO New proxy send connection 13 from local rank 0, transport 2
+spark-bb75:1:1 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0xe0b41c005658
+spark-bb75:1:1 [0] NCCL INFO Channel 05/0 : 1[0] -> 0[0] [send] via NET/IB/0
+spark-bb75:1:81 [0] NCCL INFO New proxy send connection 14 from local rank 0, transport 2
+spark-bb75:1:1 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0xe0b41c0056e0
+spark-bb75:1:1 [0] NCCL INFO Channel 06/0 : 1[0] -> 0[0] [send] via NET/IB/0
+spark-bb75:1:81 [0] NCCL INFO New proxy send connection 15 from local rank 0, transport 2
+spark-bb75:1:1 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0xe0b41c005768
+spark-bb75:1:1 [0] NCCL INFO Channel 07/0 : 1[0] -> 0[0] [send] via NET/IB/0
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbResiliencyInit: Resiliency is disabled on the send communicator (comm=0xe0b41c011000)
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbResiliencyInit: Resiliency is disabled on the recv communicator (comm=0xe0b41c04c000)
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbRecvCommInit: Receive work requests will be posted on-demand
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbResiliencyInit: Resiliency is disabled on the send communicator (comm=0xe0b41c08b000)
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbSenderQpsCreate: QP created: port=1 dev=0 devName=rocep1s0f1 ndevs=1 nmdevs=1 qp_num=552 pkey=0 pd=0xe0b41c010e00
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbConnect: NCCL Dev 0 IbDev 0 Port 1 qp_num 552 mtu 3 GID 3 (0/200C80AFFFF0000) ctsFifoRkey=0x1beeeb ctsFifoLkey=0x1beeeb
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbConnect: IbDev 0 Port 1 qp_num 552 query_ece={supported=1, vendor_id=0x15b3, options=0x30000002, comp_mask=0x0}
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbSenderQpsCreate: QP created: port=1 dev=0 devName=rocep1s0f1 ndevs=1 nmdevs=1 qp_num=553 pkey=0 pd=0xe0b41c010e00
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbConnect: NCCL Dev 0 IbDev 0 Port 1 qp_num 553 mtu 3 GID 3 (0/200C80AFFFF0000) ctsFifoRkey=0x1bedea ctsFifoLkey=0x1bedea
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbConnect: IbDev 0 Port 1 qp_num 553 query_ece={supported=1, vendor_id=0x15b3, options=0x30000002, comp_mask=0x0}
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbResiliencyInit: Resiliency is disabled on the recv communicator (comm=0xe0b41c134000)
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbRecvCommInit: Receive work requests will be posted on-demand
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbResiliencyInit: Resiliency is disabled on the send communicator (comm=0xe0b41c173000)
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbResiliencyInit: Resiliency is disabled on the recv communicator (comm=0xe0b41c1ae000)
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbRecvCommInit: Receive work requests will be posted on-demand
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbResiliencyInit: Resiliency is disabled on the send communicator (comm=0xe0b41c1ed000)
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbResiliencyInit: Resiliency is disabled on the recv communicator (comm=0xe0b41c228000)
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbRecvCommInit: Receive work requests will be posted on-demand
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbResiliencyInit: Resiliency is disabled on the send communicator (comm=0xe0b41c267000)
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbResiliencyInit: Resiliency is disabled on the recv communicator (comm=0xe0b41c2a2000)
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbRecvCommInit: Receive work requests will be posted on-demand
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbResiliencyInit: Resiliency is disabled on the send communicator (comm=0xe0b41c2e1000)
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbResiliencyInit: Resiliency is disabled on the recv communicator (comm=0xe0b41c31c000)
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbRecvCommInit: Receive work requests will be posted on-demand
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbResiliencyInit: Resiliency is disabled on the send communicator (comm=0xe0b41c35b000)
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbResiliencyInit: Resiliency is disabled on the recv communicator (comm=0xe0b41c396000)
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbRecvCommInit: Receive work requests will be posted on-demand
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbResiliencyInit: Resiliency is disabled on the send communicator (comm=0xe0b41c3d5000)
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbResiliencyInit: Resiliency is disabled on the recv communicator (comm=0xe0b41c410000)
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbRecvCommInit: Receive work requests will be posted on-demand
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbSenderQpsToRts: Set ECE: IbDev 0 Port 1 qp_num 552 set_ece={supported=1, vendor_id=0x15b3, options=0x30000002, comp_mask=0x0}
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbSenderQpsToRts: Set ECE: IbDev 0 Port 1 qp_num 553 set_ece={supported=1, vendor_id=0x15b3, options=0x30000002, comp_mask=0x0}
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbReceiverQpsCreateToRts: QP created: port=1 dev=0 devName=rocep1s0f1 ndevs=1 nmdevs=1 qp_num=554 pkey=0 pd=0xe0b41c010e00
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbReceiverQpsCreateToRts: QP created: port=1 dev=0 devName=rocep1s0f1 ndevs=1 nmdevs=1 qp_num=555 pkey=0 pd=0xe0b41c010e00
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbSenderQpsCreate: QP created: port=1 dev=0 devName=rocep1s0f1 ndevs=1 nmdevs=1 qp_num=556 pkey=0 pd=0xe0b41c010e00
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbConnect: NCCL Dev 0 IbDev 0 Port 1 qp_num 556 mtu 3 GID 3 (0/200C80AFFFF0000) ctsFifoRkey=0x1bebe8 ctsFifoLkey=0x1bebe8
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbConnect: IbDev 0 Port 1 qp_num 556 query_ece={supported=1, vendor_id=0x15b3, options=0x30000002, comp_mask=0x0}
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbReceiverQpsCreateToRts: QP created: port=1 dev=0 devName=rocep1s0f1 ndevs=1 nmdevs=1 qp_num=557 pkey=0 pd=0xe0b41c010e00
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbReceiverQpsCreateToRts: QP created: port=1 dev=0 devName=rocep1s0f1 ndevs=1 nmdevs=1 qp_num=558 pkey=0 pd=0xe0b41c010e00
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbSenderQpsCreate: QP created: port=1 dev=0 devName=rocep1s0f1 ndevs=1 nmdevs=1 qp_num=559 pkey=0 pd=0xe0b41c010e00
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbConnect: NCCL Dev 0 IbDev 0 Port 1 qp_num 559 mtu 3 GID 3 (0/200C80AFFFF0000) ctsFifoRkey=0x1be9e6 ctsFifoLkey=0x1be9e6
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbConnect: IbDev 0 Port 1 qp_num 559 query_ece={supported=1, vendor_id=0x15b3, options=0x30000002, comp_mask=0x0}
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbReceiverQpsCreateToRts: QP created: port=1 dev=0 devName=rocep1s0f1 ndevs=1 nmdevs=1 qp_num=560 pkey=0 pd=0xe0b41c010e00
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbReceiverQpsCreateToRts: QP created: port=1 dev=0 devName=rocep1s0f1 ndevs=1 nmdevs=1 qp_num=561 pkey=0 pd=0xe0b41c010e00
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbSenderQpsCreate: QP created: port=1 dev=0 devName=rocep1s0f1 ndevs=1 nmdevs=1 qp_num=562 pkey=0 pd=0xe0b41c010e00
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbConnect: NCCL Dev 0 IbDev 0 Port 1 qp_num 562 mtu 3 GID 3 (0/200C80AFFFF0000) ctsFifoRkey=0x1be7e4 ctsFifoLkey=0x1be7e4
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbConnect: IbDev 0 Port 1 qp_num 562 query_ece={supported=1, vendor_id=0x15b3, options=0x30000002, comp_mask=0x0}
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbReceiverQpsCreateToRts: QP created: port=1 dev=0 devName=rocep1s0f1 ndevs=1 nmdevs=1 qp_num=563 pkey=0 pd=0xe0b41c010e00
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbReceiverQpsCreateToRts: QP created: port=1 dev=0 devName=rocep1s0f1 ndevs=1 nmdevs=1 qp_num=564 pkey=0 pd=0xe0b41c010e00
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbSenderQpsCreate: QP created: port=1 dev=0 devName=rocep1s0f1 ndevs=1 nmdevs=1 qp_num=565 pkey=0 pd=0xe0b41c010e00
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbConnect: NCCL Dev 0 IbDev 0 Port 1 qp_num 565 mtu 3 GID 3 (0/200C80AFFFF0000) ctsFifoRkey=0x1be5e2 ctsFifoLkey=0x1be5e2
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbConnect: IbDev 0 Port 1 qp_num 565 query_ece={supported=1, vendor_id=0x15b3, options=0x30000002, comp_mask=0x0}
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbReceiverQpsCreateToRts: QP created: port=1 dev=0 devName=rocep1s0f1 ndevs=1 nmdevs=1 qp_num=566 pkey=0 pd=0xe0b41c010e00
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbReceiverQpsCreateToRts: QP created: port=1 dev=0 devName=rocep1s0f1 ndevs=1 nmdevs=1 qp_num=567 pkey=0 pd=0xe0b41c010e00
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbSenderQpsCreate: QP created: port=1 dev=0 devName=rocep1s0f1 ndevs=1 nmdevs=1 qp_num=568 pkey=0 pd=0xe0b41c010e00
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbConnect: NCCL Dev 0 IbDev 0 Port 1 qp_num 568 mtu 3 GID 3 (0/200C80AFFFF0000) ctsFifoRkey=0x1be3e0 ctsFifoLkey=0x1be3e0
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbConnect: IbDev 0 Port 1 qp_num 568 query_ece={supported=1, vendor_id=0x15b3, options=0x30000002, comp_mask=0x0}
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbReceiverQpsCreateToRts: QP created: port=1 dev=0 devName=rocep1s0f1 ndevs=1 nmdevs=1 qp_num=569 pkey=0 pd=0xe0b41c010e00
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbReceiverQpsCreateToRts: QP created: port=1 dev=0 devName=rocep1s0f1 ndevs=1 nmdevs=1 qp_num=570 pkey=0 pd=0xe0b41c010e00
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbSenderQpsCreate: QP created: port=1 dev=0 devName=rocep1s0f1 ndevs=1 nmdevs=1 qp_num=571 pkey=0 pd=0xe0b41c010e00
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbConnect: NCCL Dev 0 IbDev 0 Port 1 qp_num 571 mtu 3 GID 3 (0/200C80AFFFF0000) ctsFifoRkey=0x1be1de ctsFifoLkey=0x1be1de
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbConnect: IbDev 0 Port 1 qp_num 571 query_ece={supported=1, vendor_id=0x15b3, options=0x30000002, comp_mask=0x0}
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbReceiverQpsCreateToRts: QP created: port=1 dev=0 devName=rocep1s0f1 ndevs=1 nmdevs=1 qp_num=572 pkey=0 pd=0xe0b41c010e00
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbReceiverQpsCreateToRts: QP created: port=1 dev=0 devName=rocep1s0f1 ndevs=1 nmdevs=1 qp_num=573 pkey=0 pd=0xe0b41c010e00
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbReceiverQpsCreateToRts: QP created: port=1 dev=0 devName=rocep1s0f1 ndevs=1 nmdevs=1 qp_num=574 pkey=0 pd=0xe0b41c010e00
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbReceiverQpsCreateToRts: QP created: port=1 dev=0 devName=rocep1s0f1 ndevs=1 nmdevs=1 qp_num=575 pkey=0 pd=0xe0b41c010e00
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbSenderQpsToRts: Set ECE: IbDev 0 Port 1 qp_num 556 set_ece={supported=1, vendor_id=0x15b3, options=0x30000002, comp_mask=0x0}
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbSenderQpsToRts: Set ECE: IbDev 0 Port 1 qp_num 559 set_ece={supported=1, vendor_id=0x15b3, options=0x30000002, comp_mask=0x0}
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbSenderQpsToRts: Set ECE: IbDev 0 Port 1 qp_num 562 set_ece={supported=1, vendor_id=0x15b3, options=0x30000002, comp_mask=0x0}
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbSenderQpsToRts: Set ECE: IbDev 0 Port 1 qp_num 565 set_ece={supported=1, vendor_id=0x15b3, options=0x30000002, comp_mask=0x0}
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbSenderQpsToRts: Set ECE: IbDev 0 Port 1 qp_num 568 set_ece={supported=1, vendor_id=0x15b3, options=0x30000002, comp_mask=0x0}
+spark-bb75:1:81 [0] NCCL INFO NET/IB: ncclIbSenderQpsToRts: Set ECE: IbDev 0 Port 1 qp_num 571 set_ece={supported=1, vendor_id=0x15b3, options=0x30000002, comp_mask=0x0}
+spark-bb75:1:1 [0] NCCL INFO Connected all rings, use ring PXN 0 GDR 0
+spark-bb75:1:1 [0] NCCL INFO Connected all trees
+spark-bb75:1:1 [0] NCCL INFO Connected binomial trees
+spark-bb75:1:81 [0] NCCL INFO New proxy send connection 16 from local rank 0, transport 2
+spark-bb75:1:1 [0] NCCL INFO Connected to proxy localRank 0 -> connection 0xe0b41c0057f0
+spark-bb75:1:1 [0] NCCL INFO TUNER/Plugin: Could not find: libnccl-tuner.so
+spark-bb75:1:1 [0] NCCL INFO threadThresholds 8/8/64 | 16/8/64 | 512 | 512
+spark-bb75:1:1 [0] NCCL INFO 8 coll channels, 8 collnet channels, 0 nvls channels, 8 p2p channels, 1 p2p channels per peer
+spark-bb75:1:1 [0] NCCL INFO Symmetric memory is not supported. cuMemEnable 0, globalGinSupport 0, globalNicFused 0 cuMemGdrSupport 0
+spark-bb75:1:1 [0] NCCL INFO ncclCommInitRankConfig comm 0x21c58630 rank 1 nranks 2 cudaDev 0 nvmlDev 0 busId f01000 commId 0xc7f8c7057bf7b14b - Init COMPLETE
+spark-bb75:1:1 [0] NCCL INFO Init timings - ncclCommInitRankConfig: rank 1 nranks 2 total 0.44 (kernels 0.15, alloc 0.07, bootstrap 0.02, allgathers 0.00, topo 0.00, graphs 0.00, connections 0.20, rest 0.00)
+{"rank": 1, "bytes": 16384, "iterations": 20, "ms": 0.028645099999380363, "exact": true}
+{"rank": 1, "bytes": 16777216, "iterations": 20, "ms": 1.3532221499986008, "exact": true}
+{"rank": 1, "bytes": 268435456, "iterations": 20, "ms": 20.868389399998932, "exact": true}
+spark-bb75:1:1 [0] NCCL INFO comm 0x21c58630 rank 1 nranks 2 cudaDev 0 busId f01000 - Destroy COMPLETE
+spark-bb75:1:1 [0] NCCL INFO ENV/Plugin: Closing env plugin ncclEnvDefault

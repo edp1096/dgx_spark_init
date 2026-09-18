@@ -56,3 +56,13 @@ preserved but are no longer needed by selective preparation.
 존중한다. `DSPARK_ENABLE_DSPARK_SWA_PREFIX=0`은 유지하며 반복 응답이 끊기는 경우
 선택적으로 켤 수 있다. 짧은 요청에서 약 0.15초의 추가 지연이 관측됐다.
 모델·이미지 pin과 가중치 준비 방식은 유지한다. 변경 후 두 rank를 다시 시작해야 한다.
+
+## 재부팅 후 RoCE 주소 복원
+
+관리 스크립트의 `start`는 모델 실행 전에 양쪽 RoCE IPv4 주소를 확인하고,
+주소가 없는 활성 포트에만 다시 할당한 뒤 양방향 ping으로 확인한다.
+다른 IPv4 주소가 있거나 케이블이 연결되지 않았으면 변경하지 않고 실패한다.
+영구 Netplan 설정은 필요하지 않으며 `./manage.sh network`로 모델을 띄우지 않고
+네트워크 준비만 실행할 수도 있다. 워커 SSH 주소는 재부팅 후에도 접근 가능한
+관리 LAN 주소를 사용해야 한다. Docker 직접 실행은 이 절차를 거치지 않는다.
+DS4 Flash는 `.env`의 `VLLM_HOST_IP`(없으면 `MASTER_ADDR`), `WORKER_VLLM_HOST_IP`, `NCCL_SOCKET_IFNAME`, `WORKER_NCCL_SOCKET_IFNAME`을 사용한다. `NCCL_SUBNET`이 없으면 `DSPARK_RAIL_PREFIX`(기본 24)로 서브넷을 정한다. 자동 복원은 노드당 하나의 정확한 인터페이스 이름만 지원한다.

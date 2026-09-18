@@ -5,7 +5,7 @@ import gzip,io,tarfile
 here=Path(__file__).resolve().parent
 root=next(p for p in here.parents if (p/'compose_yaml/qwen38_fn_sglang').is_dir())
 source=root/'compose_yaml/qwen38_fn_sglang'
-files={name:source/name for name in ['manage_tp2.py','compose.tp2.yaml','tp2/entrypoint.py','tp2/watchdog.py']}
+files={name:source/name for name in ['ensure_rail.py','manage_tp2.py','compose.tp2.yaml','tp2/entrypoint.py','tp2/watchdog.py']}
 files.update({name:here/name for name in ['manage.sh','models.sh','runtime.sh','env.sample']})
 buf=io.BytesIO()
 with tarfile.open(fileobj=buf,mode='w') as tar:

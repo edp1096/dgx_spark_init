@@ -91,3 +91,13 @@ docker build -f Dockerfile.tp2-vocab -t dgx-sglang-qwen38-fn:sm121-tp2-vocab-v1 
 ```
 
 워커에도 같은 이미지 ID를 복사한다. TP1 설정은 이 변경 대상이 아니다.
+
+## 재부팅 후 RoCE 주소 복원
+
+관리 스크립트의 `start`는 모델 실행 전에 양쪽 RoCE IPv4 주소를 확인하고,
+주소가 없는 활성 포트에만 다시 할당한 뒤 양방향 ping으로 확인한다.
+다른 IPv4 주소가 있거나 케이블이 연결되지 않았으면 변경하지 않고 실패한다.
+영구 Netplan 설정은 필요하지 않으며 `python3 manage_tp2.py network`로 모델을 띄우지 않고
+네트워크 준비만 실행할 수도 있다. 워커 SSH 주소는 재부팅 후에도 접근 가능한
+관리 LAN 주소를 사용해야 한다. Docker 직접 실행은 이 절차를 거치지 않는다.
+Qwen 주소·인터페이스는 `QWEN_TP2_HEAD`, `QWEN_TP2_WORKER_RAIL`, `HEAD_NCCL_IF`, `WORKER_NCCL_IF`, `NCCL_SUBNET`을 사용한다.

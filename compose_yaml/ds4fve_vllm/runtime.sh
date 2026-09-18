@@ -15,7 +15,8 @@ case "${1:-status}" in
  setup) "$script_dir/runtime.sh" image; "$script_dir/models.sh" prepare ;;
  image) docker pull "$DSPARK_VLLM_IMAGE"; ssh -o BatchMode=yes -o ConnectTimeout=10 "$WORKER_HOST" docker pull "$DSPARK_VLLM_IMAGE" ;;
  model|prepare) exec bash "$script_dir/models.sh" prepare ;;
- start) exec bash "$script_dir/upstream/start-deepseek-v4-flash-dspark.sh" ;;
+ network) exec python3 "$script_dir/ensure_rail.py" ;;
+ start) python3 "$script_dir/ensure_rail.py"; exec bash "$script_dir/upstream/start-deepseek-v4-flash-dspark.sh" ;;
  stop) exec bash "$script_dir/upstream/stop-deepseek-v4-flash-dspark.sh" ;;
  restart) "$script_dir/runtime.sh" stop; exec "$script_dir/runtime.sh" start ;;
  status) exec bash "$script_dir/upstream/status-deepseek-v4-flash-dspark.sh" ;;

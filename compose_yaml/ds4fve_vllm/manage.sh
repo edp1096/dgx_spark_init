@@ -4,7 +4,7 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 usage() {
  cat <<'EOF'
 Usage: ./manage.sh COMMAND [OPTIONS]
-Commands: setup image model start stop restart status logs validate
+Commands: setup image model start stop restart status logs validate network
   setup       Prepare image, model, and worker files; does not start the server.
   image       Build or pull the runtime image (legacy alias: build).
   model       Prepare model weights and worker copy (legacy alias: prepare).
@@ -21,7 +21,7 @@ action="${1:-status}"
 case "$action" in -h|--help|help) usage; exit 0;; esac
 shift "$(( $# > 0 ? 1 : 0 ))"
 case "$action" in build) action=image;; prepare) action=model;; esac
-case "$action" in setup|image|model|start|stop|restart|status|logs|validate) ;; *) echo "Unknown command: $action" >&2; exit 2;; esac
+case "$action" in setup|image|model|start|stop|restart|status|logs|validate|network) ;; *) echo "Unknown command: $action" >&2; exit 2;; esac
 variant=''; ask=0; log_host=''
 while (( $# )); do
  case "$1" in

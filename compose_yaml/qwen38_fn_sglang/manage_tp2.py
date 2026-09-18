@@ -2,6 +2,7 @@
 """Manage the separate, guarded SGLang TP2 deployment on two Sparks."""
 import argparse,datetime,ipaddress,json,os,re,shlex,subprocess,time
 from pathlib import Path
+from ensure_rail import ensure_rail
 ROOT=Path(__file__).resolve().parent
 WORKER=os.environ.get('QWEN_TP2_WORKER','edp1096@192.168.100.60')
 WORKER_ROOT=Path(os.environ.get('QWEN_TP2_WORKER_ROOT',str(ROOT)))
@@ -58,6 +59,15 @@ def stop():
         if not token:raise RuntimeError('Refusing to stop an unlabelled container')
         if d['State']['Running']:run(rank,['docker','stop','-t','30',d['Id']])
         run(rank,['python3','-c',f"from pathlib import Path;p=Path.home()/'.local/state/qwen38-tp2'/{token!r};(p/'stop-rank{rank}').touch()"])
+def network():
+    ensure_rail(WORKER, os.environ.get('QWEN_TP2_HEAD','10.200.0.1'),
+                os.environ.get('QWEN_TP2_WORKER_RAIL','10.200.0.2'),
+                os.environ.get('HEAD_NCCL_IF','enp1s0f1np1'),
+                os.environ.get('WORKER_NCCL_IF','enp1s0f1np1'),
+                os.environ.get('NCCL_SUBNET','10.200.0.0/24'))
+    for rank in (0,1):
+        print('Rank',rank,'RoCEv2 GID',gid(rank),flush=True)
+
 def start(context,token):
     for rank in (0,1):
         run(rank,['python3','-c',f"from pathlib import Path;p=Path.home()/'.local/state/qwen38-tp2'/{token!r};assert not p.exists(),'Choose a fresh --token for each start'"])
@@ -68,6 +78,7 @@ def start(context,token):
         for container in names:
             d=inspect(rank,container)
             if d and d['State']['Running']:raise RuntimeError(f'Rank {rank}: stop {container} first')
+    network()
     ids=[output(rank,['docker','image','inspect',IMAGE,'--format','{{.Id}}']).strip() for rank in (0,1)]
     if len(set(ids))!=1:raise RuntimeError('Peer images differ')
     run(1,['mkdir','-p',str(ROOT)])
@@ -89,12 +100,13 @@ def start(context,token):
     (Path.home()/'.local/state/qwen38-tp2/last-start.json').write_text(json.dumps({'token':token,'context':context,'image':ids[0]},indent=2)+'\n')
     print('Started guarded TP2:',token,'context',context,flush=True)
 if __name__=='__main__':
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('action',choices=('start','stop','status'))
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('action',choices=('start','stop','status','network'))
     p.add_argument('--context',type=int,choices=(262144,524288,1048576),default=262144)
     p.add_argument('--token',default=datetime.datetime.now().strftime('%Y%m%d-%H%M%S'))
     a=p.parse_args()
     if not re.fullmatch(r'[A-Za-z0-9_-]+',a.token):raise ValueError('Invalid probe token')
     if a.action=='stop':stop()
+    elif a.action=='network':network()
     elif a.action=='start':start(a.context,a.token)
     else:
         for rank in (0,1):
