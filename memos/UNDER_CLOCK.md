@@ -1,5 +1,8 @@
 source: https://forums.developer.nvidia.com/t/cooler-gb10-temps-almost-no-performance-lost/372662
 
+
+## CPU
+
 * sudo nano /etc/systemd/system/nvidia-cpu-limit.service
 ```ini
 [Unit]
@@ -16,6 +19,28 @@ RemainAfterExit=yes
 [Install]
 WantedBy=multi-user.target
 ```
+
+* One shot creation
+
+```sh
+sudo tee /etc/systemd/system/nvidia-cpu-limit.service >/dev/null <<'EOF'
+[Unit]
+Description=Set CPU Frequency Limits
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/bash -c 'for p in /sys/devices/system/cpu/cpufreq/policy*; do max=$$(cat "$$p/cpuinfo_max_freq"); echo $$((max * 70 / 100)) > "$$p/scaling_max_freq"; done && echo "CPU : clock capped to 70%%"'
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+EOF
+sudo systemctl daemon-reload
+sudo systemctl enable --now nvidia-cpu-limit.service
+```
+
+
+## GPU
 
 * sudo nano /etc/systemd/system/nvidia-gpu-limit.service
 ```ini
@@ -34,5 +59,24 @@ RemainAfterExit=yes
 WantedBy=multi-user.target
 ```
 
-* sudo systemctl enable nvidia-cpu-limit.service
-* sudo systemctl enable nvidia-gpu-limit.service
+* One shot creation
+
+```sh
+sudo tee /etc/systemd/system/nvidia-gpu-limit.service >/dev/null <<'EOF'
+[Unit]
+Description=Set NVIDIA GPU Power Limits
+After=nvidia-persistenced.service
+Wants=nvidia-persistenced.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/bash -c 'sleep 5 && nvidia-smi -pm 1 && nvidia-smi -lgc 0,2100 && echo "GPU : Persistence enabled, Clock limit set to 2100MHz"'
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+EOF
+sudo systemctl daemon-reload
+sudo systemctl enable --now nvidia-gpu-limit.service
+```
+
