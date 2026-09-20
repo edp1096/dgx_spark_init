@@ -524,6 +524,18 @@ func (c *Config) Normalize() {
 		c.migrateGemmaOwnNVFP4()
 		c.Runtime.BuiltinRevision = 11
 	}
+	if c.Runtime.BuiltinRevision < 12 {
+		c.migrateQwenQADTP1()
+		c.Runtime.BuiltinRevision = 12
+	}
+	if c.Runtime.BuiltinRevision < 13 {
+		c.migrateQwenTP1Context1M()
+		c.Runtime.BuiltinRevision = 13
+	}
+	if c.Runtime.BuiltinRevision < 14 {
+		c.migrateQwenQADFlux()
+		c.Runtime.BuiltinRevision = 14
+	}
 	c.normalizeRuntimeDisplayNames()
 	if catalog, err := orchestrator.ValidateCatalog(*c.Runtime.Catalog); err == nil {
 		c.Runtime.Catalog = &catalog

@@ -43,7 +43,7 @@ func TestFlashNextRuntimeProfileUsesShortLocalName(t *testing.T) {
 		t.Fatal(err)
 	}
 	compose := string(data)
-	for _, required := range []string{"dgx-sglang-qwen38-fn:sm121", "container_name: sglang-qwen38-fn"} {
+	for _, required := range []string{"dgx-sglang-qwen38-qad:sm121", "container_name: sglang-qwen38-fn"} {
 		if !strings.Contains(compose, required) {
 			t.Fatalf("Flash-Next compose is missing %q", required)
 		}

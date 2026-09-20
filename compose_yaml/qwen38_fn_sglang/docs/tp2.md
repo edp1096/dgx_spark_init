@@ -2,6 +2,9 @@
 
 기존 `compose.yaml`은 TP1용이다. TP2는 원본 NVFP4 체크포인트와 출력층 최적화 이미지를 사용하는 `compose.tp2.yaml`과 `manage_tp2.py`로 기동한다. 두 노드의 NCCL RoCE 통신과 TP별 PLE 파일 분할을 사용한다. SparkTalk에는 `Qwen3.8 Flash-Next TP2 · 1M` 세트로도 등록되어 있다. API 포트는 8012다.
 
+TP1은 이제 QAD 체크포인트를 사용하지만, 이 TP2 경로는
+`edp1096/Huihui-RadixArk-Qwen3.8-Flash-Next-abliterated-NVFP4`를 유지한다.
+
 ## 준비
 
 두 노드에서 같은 경로에 체크포인트와 같은 ID의 `dgx-sglang-qwen38-fn:sm121-tp2-vocab-v1` 이미지가 필요하다. 워커 기본 주소는 `edp1096@192.168.100.60`, 통신망은 `10.200.0.1/2`, 인터페이스/HCA는 `enp1s0f1np1`/`rocep1s0f1`이다. 관리 스크립트는 소스만 동기화한다. 모델과 이미지의 최초 복사는 별도로 한다.

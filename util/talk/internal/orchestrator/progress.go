@@ -175,7 +175,7 @@ func inferSGLangProgress(component Component, logs string) progressInfo {
 	if flashNext && hasAny(logs, "using attn output gate", "PLE table: resident set capped") {
 		return progressInfo{
 			Key: "main-weights", Phase: modelDisplayName(component) + " 체크포인트 적재",
-			Detail: "206개 NVFP4 샤드를 열고 첫 샤드 완료를 기다리고 있습니다.", Progress: .16,
+			Detail: "체크포인트 샤드를 열고 첫 샤드 완료를 기다리고 있습니다.", Progress: .16,
 		}
 	}
 	if flashNext && hasAny(logs, "PLE table", "ple_offload_backend", "file-backed") {

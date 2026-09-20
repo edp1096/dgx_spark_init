@@ -18,7 +18,7 @@ func TestQwenTP2BundleAndEmbeddedRuntime(t *testing.T) {
 		t.Fatal(err)
 	}
 	model := "edp1096/Huihui-RadixArk-Qwen3.8-Flash-Next-abliterated-NVFP4"
-	for _, id := range []string{"flash-next", "flash-next-tp2"} {
+	for _, id := range []string{"flash-next-tp2"} {
 		component, _ := cat.Component(id)
 		bundle, _ := cat.Bundle(id)
 		if component.Model != model || bundle.ModelID != model {
@@ -26,7 +26,7 @@ func TestQwenTP2BundleAndEmbeddedRuntime(t *testing.T) {
 		}
 	}
 	tp1, err := assets.ReadFile("assets/compose.flash-next.yaml")
-	if err != nil || !strings.Contains(string(tp1), "/hf/"+model) {
+	if err != nil || !strings.Contains(string(tp1), "/hf/hub/models--local-inference-lab--Qwen3.8-Flash-Next-NVFP4/snapshots/7c4f1bc1a2d6847e0cbc01ac6b823f00251de8dd") {
 		t.Fatalf("stale TP1 model path: %v", err)
 	}
 	b, ok := cat.Bundle("flash-next-tp2")

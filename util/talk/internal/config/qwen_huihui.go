@@ -29,7 +29,14 @@ func (c *Config) migrateQwenHuihuiModel() {
 		}
 	}
 	if c.Runtime.Mode == "managed" && c.Model.DefaultModel == "qwen3.8-flash-next" {
-		d, _ := defaults.Component("flash-next")
+		id := c.Runtime.ActiveBundle
+		if id == "" {
+			id = c.Runtime.Bundle
+		}
+		if id != "flash-next-tp2" {
+			id = "flash-next"
+		}
+		d, _ := defaults.Component(id)
 		c.Model.DefaultModel = d.Model
 	}
 }

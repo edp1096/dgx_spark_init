@@ -1,0 +1,17 @@
+Text, parsed reasoning and parsed tool-call probes passed
+Vision, legacy off, tool round trip, counting and MTP probes passed; acceptance lengths=[3.5625]
+Concurrent requests, SSE and >8K QSA retrieval passed
+Cold/cached prefix branches and two-turn conversation passed
+Configured context=1048576, allocated KV=1048576, request input limit=1048570
+Beginning actual prompt_tokens=130925 retrieval
+Finished 130925 tokens in 83.4s: answer='MAPLE,COMET', correct=True
+Configured context=1048576, allocated KV=1048576, request input limit=1048570
+Beginning actual prompt_tokens=1048431 retrieval
+Finished 1048431 tokens in 1045.1s: answer='MAPLE,COMET', correct=True
+sglang warmup: input=122, output=256, TTFT=0.378s, total=5.165s
+sglang cold_128: input=1082, output=256, TTFT=2.857s, total=7.303s
+sglang cached_128: input=1082, output=256, TTFT=0.418s, total=4.893s
+sglang cold_2048: input=16442, output=256, TTFT=9.412s, total=13.931s
+sglang cached_2048: input=16442, output=256, TTFT=0.458s, total=4.978s
+sglang cold_8000: input=64058, output=256, TTFT=36.182s, total=40.560s
+sglang cached_8000: input=64058, output=256, TTFT=0.686s, total=5.050s

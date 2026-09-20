@@ -1,0 +1,547 @@
+[
+  {
+    "name": "plain_text",
+    "seconds": 0.7355149970007915,
+    "request": {
+      "model": "qwen38-qad-sglang-trial",
+      "messages": [
+        {
+          "role": "user",
+          "content": "17 더하기 8의 값을 숫자만 답하세요."
+        }
+      ],
+      "temperature": 0,
+      "max_tokens": 1024,
+      "stream": false,
+      "chat_template_kwargs": {
+        "enable_thinking": false
+      }
+    },
+    "response": {
+      "id": "368ab7d6acae4317bb65d6b2e1f92e10",
+      "object": "chat.completion",
+      "created": 1789747256,
+      "model": "qwen38-qad-sglang-trial",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "25",
+            "reasoning_content": null,
+            "tool_calls": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "matched_stop": 248046
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 26,
+        "total_tokens": 29,
+        "completion_tokens": 3,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "metadata": {
+        "weight_version": "default"
+      }
+    }
+  },
+  {
+    "name": "reasoning",
+    "seconds": 1.4207365549991664,
+    "request": {
+      "model": "qwen38-qad-sglang-trial",
+      "messages": [
+        {
+          "role": "user",
+          "content": "A box contains 12 red balls and 5 blue balls. How many balls total? Think briefly, then give only the number in your final answer."
+        }
+      ],
+      "temperature": 0,
+      "max_tokens": 1024,
+      "stream": false,
+      "chat_template_kwargs": {
+        "enable_thinking": true,
+        "reasoning_effort": "low"
+      }
+    },
+    "response": {
+      "id": "d49b74244fc14578b9e56085278f1acb",
+      "object": "chat.completion",
+      "created": 1789747258,
+      "model": "qwen38-qad-sglang-trial",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "\n\n17",
+            "reasoning_content": "The user asks for the total number of balls in a box containing 12 red balls and 5 blue balls. This is a simple addition: 12 + 5 = 17.\n",
+            "tool_calls": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "matched_stop": 248046
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 72,
+        "total_tokens": 119,
+        "completion_tokens": 47,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 43
+      },
+      "metadata": {
+        "weight_version": "default"
+      }
+    }
+  },
+  {
+    "name": "tool_call",
+    "seconds": 1.2729182240000227,
+    "request": {
+      "model": "qwen38-qad-sglang-trial",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Call get_weather for Seoul now. Use the tool; do not guess the weather."
+        }
+      ],
+      "temperature": 0,
+      "max_tokens": 1024,
+      "stream": false,
+      "chat_template_kwargs": {
+        "enable_thinking": false
+      },
+      "tools": [
+        {
+          "type": "function",
+          "function": {
+            "name": "get_weather",
+            "description": "Get current weather for a city.",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "city": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "city"
+              ],
+              "additionalProperties": false
+            }
+          }
+        }
+      ],
+      "tool_choice": "auto"
+    },
+    "response": {
+      "id": "d6e6943360504c7c871fc8668db7cd63",
+      "object": "chat.completion",
+      "created": 1789747259,
+      "model": "qwen38-qad-sglang-trial",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "",
+            "reasoning_content": null,
+            "tool_calls": [
+              {
+                "id": "call_38a1aa3c4f9447168e239a71",
+                "index": 0,
+                "type": "function",
+                "function": {
+                  "name": "get_weather",
+                  "arguments": "{\"city\": \"Seoul\"}"
+                }
+              }
+            ]
+          },
+          "logprobs": null,
+          "finish_reason": "tool_calls",
+          "matched_stop": null
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 303,
+        "total_tokens": 330,
+        "completion_tokens": 27,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "metadata": {
+        "weight_version": "default"
+      }
+    }
+  },
+  {
+    "name": "legacy_thinking_off",
+    "seconds": 0.3832220040003449,
+    "response": {
+      "id": "e72edc05a9f740b4b1825b60677972bb",
+      "object": "chat.completion",
+      "created": 1789747259,
+      "model": "qwen38-qad-sglang-trial",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "56",
+            "reasoning_content": null,
+            "tool_calls": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "matched_stop": 248046
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 23,
+        "total_tokens": 26,
+        "completion_tokens": 3,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "metadata": {
+        "weight_version": "default"
+      }
+    }
+  },
+  {
+    "name": "vision_red_blue",
+    "seconds": 0.7917704350002168,
+    "response": {
+      "id": "31b2e7f4640a4941bda7fb077d1073fe",
+      "object": "chat.completion",
+      "created": 1789747260,
+      "model": "qwen38-qad-sglang-trial",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": " red, blue",
+            "reasoning_content": null,
+            "tool_calls": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "matched_stop": 248046
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 112,
+        "total_tokens": 116,
+        "completion_tokens": 4,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "image_tokens": 72
+        },
+        "reasoning_tokens": 0
+      },
+      "metadata": {
+        "weight_version": "default"
+      }
+    }
+  },
+  {
+    "name": "vision_yellow_green",
+    "seconds": 0.5353761940004915,
+    "response": {
+      "id": "3f8d69b06a564569b062a8e523b1a620",
+      "object": "chat.completion",
+      "created": 1789747261,
+      "model": "qwen38-qad-sglang-trial",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "yellow, green",
+            "reasoning_content": null,
+            "tool_calls": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "matched_stop": 248046
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 112,
+        "total_tokens": 116,
+        "completion_tokens": 4,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "image_tokens": 72
+        },
+        "reasoning_tokens": 0
+      },
+      "metadata": {
+        "weight_version": "default"
+      }
+    }
+  },
+  {
+    "name": "tool_round_trip",
+    "seconds": 0.656916899000862,
+    "response": {
+      "id": "40f25acd5c4044ee95bdd0f1123d64a2",
+      "object": "chat.completion",
+      "created": 1789747261,
+      "model": "qwen38-qad-sglang-trial",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "23",
+            "reasoning_content": null,
+            "tool_calls": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "matched_stop": 248046
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 347,
+        "total_tokens": 350,
+        "completion_tokens": 3,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "metadata": {
+        "weight_version": "default"
+      }
+    }
+  },
+  {
+    "name": "counting",
+    "seconds": 3.029521332000513,
+    "response": {
+      "id": "b685eef1153244a0a5a7bc6f08330e38",
+      "object": "chat.completion",
+      "created": 1789747264,
+      "model": "qwen38-qad-sglang-trial",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40",
+            "reasoning_content": null,
+            "tool_calls": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "matched_stop": 248046
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 35,
+        "total_tokens": 185,
+        "completion_tokens": 150,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "metadata": {
+        "weight_version": "default"
+      }
+    }
+  },
+  {
+    "name": "speculative_metrics",
+    "accept_lengths": [
+      3.35
+    ]
+  },
+  {
+    "seconds": 5.684168256999328,
+    "response": {
+      "id": "2b28f9bec04542eabf14bf2353c5af39",
+      "object": "chat.completion",
+      "created": 1789747270,
+      "model": "qwen38-qad-sglang-trial",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60",
+            "reasoning_content": null,
+            "tool_calls": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "matched_stop": 248046
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 31,
+        "total_tokens": 261,
+        "completion_tokens": 230,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "metadata": {
+        "weight_version": "default"
+      }
+    },
+    "name": "concurrent_count_1"
+  },
+  {
+    "seconds": 6.95703524000055,
+    "response": {
+      "id": "1ebc88c3d3e949d98dc74b2ac1e78ad5",
+      "object": "chat.completion",
+      "created": 1789747271,
+      "model": "qwen38-qad-sglang-trial",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160",
+            "reasoning_content": null,
+            "tool_calls": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "matched_stop": 248046
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 34,
+        "total_tokens": 333,
+        "completion_tokens": 299,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "metadata": {
+        "weight_version": "default"
+      }
+    },
+    "name": "concurrent_count_101"
+  },
+  {
+    "seconds": 0.419472018000306,
+    "response": {
+      "chunks": [
+        {
+          "id": "bf3274e7290a4734a24fb360ea0042fa",
+          "object": "chat.completion.chunk",
+          "created": 1789747272,
+          "model": "qwen38-qad-sglang-trial",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "reasoning_content": null,
+                "role": "assistant",
+                "content": ""
+              },
+              "logprobs": null,
+              "finish_reason": null,
+              "matched_stop": null
+            }
+          ]
+        },
+        {
+          "id": "bf3274e7290a4734a24fb360ea0042fa",
+          "object": "chat.completion.chunk",
+          "created": 1789747272,
+          "model": "qwen38-qad-sglang-trial",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "reasoning_content": null,
+                "content": "1"
+              },
+              "logprobs": null,
+              "finish_reason": null,
+              "matched_stop": null
+            }
+          ]
+        },
+        {
+          "id": "bf3274e7290a4734a24fb360ea0042fa",
+          "object": "chat.completion.chunk",
+          "created": 1789747272,
+          "model": "qwen38-qad-sglang-trial",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "reasoning_content": null,
+                "content": "6"
+              },
+              "logprobs": null,
+              "finish_reason": null,
+              "matched_stop": null
+            }
+          ]
+        },
+        {
+          "id": "bf3274e7290a4734a24fb360ea0042fa",
+          "object": "chat.completion.chunk",
+          "created": 1789747272,
+          "model": "qwen38-qad-sglang-trial",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "reasoning_content": null
+              },
+              "logprobs": null,
+              "finish_reason": "stop",
+              "matched_stop": 248046
+            }
+          ]
+        }
+      ],
+      "done": true
+    },
+    "name": "streaming"
+  },
+  {
+    "seconds": 16.923238552999464,
+    "response": {
+      "id": "330caf4076834acb8d643c713b843310",
+      "object": "chat.completion",
+      "created": 1789747289,
+      "model": "qwen38-qad-sglang-trial",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "CEDAR, ORBIT",
+            "reasoning_content": null,
+            "tool_calls": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "matched_stop": 248046
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 14463,
+        "total_tokens": 14469,
+        "completion_tokens": 6,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "metadata": {
+        "weight_version": "default"
+      }
+    },
+    "name": "long_qsa_retrieval"
+  }
+]

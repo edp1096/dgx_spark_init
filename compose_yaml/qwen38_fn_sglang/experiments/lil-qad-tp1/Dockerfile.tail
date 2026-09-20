@@ -1,0 +1,3 @@
+FROM dgx-sglang-qwen38-qad:ple-trial
+COPY qad/qad_gdn.py qad/qad_loader.py qad/patch_loader.py /opt/qad-tp1/
+RUN python3 /opt/qad-tp1/patch_loader.py

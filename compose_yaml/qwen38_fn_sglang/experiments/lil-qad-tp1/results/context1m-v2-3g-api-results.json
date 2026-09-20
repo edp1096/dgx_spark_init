@@ -1,0 +1,8 @@
+[
+  {
+    "name": "capacity",
+    "configured_context": 1048576,
+    "allocated_tokens": 1048576,
+    "max_req_input_len": 1048570
+  }
+]

@@ -72,6 +72,14 @@ func TestInferStructuredSGLangWeightProgress(t *testing.T) {
 	}
 }
 
+func TestQADUsesActual36ShardETA(t *testing.T) {
+	c := Component{ID: "flash-next", ProgressKind: "sglang"}
+	info := inferProgress(c, "Load weight begin.\nSGLANG_WEIGHT_PROGRESS current=18 total=36 elapsed_seconds=300.0 eta_seconds=300.0\n")
+	if info.Detail != "18/36 샤드 · NVFP4 본체 모델" || info.ETA != "05:00" {
+		t.Fatalf("QAD got the legacy 206-shard estimate: %#v", info)
+	}
+}
+
 func TestFlashNextStructuredETAKeepsSlowQuantizationTail(t *testing.T) {
 	component := Component{ID: "flash-next", Name: "Qwen3.8 Flash-Next", ProgressKind: "sglang"}
 	logs := "Load weight begin.\nSGLANG_WEIGHT_PROGRESS current=192 total=206 elapsed_seconds=342.0 eta_seconds=24.9\n"

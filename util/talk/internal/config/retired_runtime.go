@@ -94,6 +94,11 @@ func (c *Config) removeRetiredRuntimes() {
 			}
 		}
 		bundle.Components = members
+		for id := range bundle.Bindings {
+			if !available[id] {
+				delete(bundle.Bindings, id)
+			}
+		}
 		catalog.Bundles = append(catalog.Bundles, bundle)
 		fallback = bundle.ID
 	}

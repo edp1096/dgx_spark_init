@@ -1,0 +1,63 @@
+[
+  {
+    "name": "capacity",
+    "configured_context": 1048576,
+    "allocated_tokens": 1048576,
+    "max_req_input_len": 1048570
+  },
+  {
+    "name": "context_retrieval",
+    "target_tokens": 130944,
+    "input_tokens": 130925,
+    "seconds": 87.98648565999974,
+    "response": {
+      "text": "MAPLE, COMET",
+      "output_ids": [
+        17092,
+        841,
+        11,
+        7439,
+        1300,
+        248046
+      ],
+      "meta_info": {
+        "id": "edb5960aeb2e4f35bcf18d56cad4181e",
+        "finish_reason": {
+          "type": "stop",
+          "matched": 248046
+        },
+        "prompt_tokens": 130925,
+        "weight_version": "default",
+        "num_retractions": 0,
+        "reasoning_tokens": 0,
+        "completion_tokens": 6,
+        "cached_tokens": 0,
+        "cached_tokens_details": null,
+        "dp_rank": null,
+        "e2e_latency": 87.95620525100094,
+        "spec_accept_rate": 1.0,
+        "spec_accept_length": 3.0,
+        "spec_num_correct_drafts": 6,
+        "spec_num_proposed_drafts": 6,
+        "spec_verify_ct": 2,
+        "spec_accepted_drafts": 6,
+        "spec_proposed_drafts": 6,
+        "spec_correct_drafts_histogram": [
+          0,
+          0,
+          0,
+          2
+        ],
+        "spec_accept_histogram": [
+          0,
+          0,
+          0,
+          2
+        ],
+        "response_sent_to_client_ts": 1789762146.449912
+      }
+    },
+    "diverse": true,
+    "correct": true
+  }
+]

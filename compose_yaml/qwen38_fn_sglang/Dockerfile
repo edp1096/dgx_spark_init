@@ -18,7 +18,7 @@ ADD https://github.com/hashd1ve/qwen38-flash-next-one-dgx-spark/archive/${SPARK_
 RUN mkdir -p /src/recipe \
     && tar -xzf /tmp/recipe.tar.gz --strip-components=1 -C /src/recipe
 
-FROM ${SGLANG_BASE}
+FROM ${SGLANG_BASE} AS legacy
 
 USER root
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -87,3 +87,19 @@ COPY draft_vocab.json install_vocab.py launch.py /opt/sparktalk-flash-next/
 RUN python3 /opt/sparktalk-flash-next/install_vocab.py \
       /opt/sparktalk-flash-next/draft_vocab.json \
       /opt/sparktalk-flash-next/draft_vocab.pt
+
+# QAD TP1 is an explicit target. The default remains the legacy base used by TP2.
+FROM legacy AS qad-tp1
+ENV PYTHONPATH=/opt/qad-tp1
+RUN apt-get update && apt-get install -y --no-install-recommends liburing-dev && rm -rf /var/lib/apt/lists/*
+RUN python3 -m pip install --no-deps nvidia-cutlass-dsl==4.7.0 nvidia-cutlass-dsl-libs-base==4.7.0 nvidia-cutlass-dsl-libs-core==4.7.0 nvidia-cutlass-dsl-libs-cu12==4.7.0 nvidia-cutlass-dsl-libs-cu13==4.7.0
+# Source commits may share a package version; force the pinned source install.
+RUN python3 -m pip install --force-reinstall --no-deps https://github.com/lukealonso/b12x/archive/9043b448622764a598969518d413b3fd8b3c0c07.tar.gz
+COPY qad/ /opt/qad-tp1/
+RUN python3 /opt/qad-tp1/patch_sglang.py
+RUN python3 /opt/qad-tp1/patch_stage2.py
+RUN patch --batch --fuzz=0 -p4 -d /sgl-workspace/sglang/python/sglang/srt < /opt/qad-tp1/patches/qsa-fp8-pr36644.diff
+RUN python3 /opt/qad-tp1/patch_gdn.py
+RUN python3 /opt/qad-tp1/patch_loader.py
+
+FROM legacy AS default

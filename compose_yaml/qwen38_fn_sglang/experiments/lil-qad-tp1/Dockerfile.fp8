@@ -1,0 +1,3 @@
+FROM dgx-sglang-qwen38-qad:sm121-v2
+COPY qad/patches/qsa-fp8-pr36644.diff /opt/qad-tp1/qsa-fp8-pr36644.diff
+RUN patch --batch --fuzz=0 -p4 -d /sgl-workspace/sglang/python/sglang/srt < /opt/qad-tp1/qsa-fp8-pr36644.diff

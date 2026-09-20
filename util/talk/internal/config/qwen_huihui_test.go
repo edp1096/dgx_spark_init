@@ -28,7 +28,7 @@ func TestHuihuiModelMigrationPreservesCustomSettings(t *testing.T) {
 	c.Normalize()
 	c.Normalize()
 	x, _ := c.Runtime.Catalog.Component("flash-next")
-	if x.Model != "edp1096/Huihui-RadixArk-Qwen3.8-Flash-Next-abliterated-NVFP4" || x.Name != "My Qwen" || x.Endpoint != "http://custom:8000" {
+	if x.Model != "local-inference-lab/Qwen3.8-Flash-Next-NVFP4" || x.Name != "My Qwen" || x.Endpoint != "http://custom:8000" {
 		t.Fatalf("migration changed custom settings: %+v", x)
 	}
 	y, _ := c.Runtime.Catalog.Component("flash-next-tp2")

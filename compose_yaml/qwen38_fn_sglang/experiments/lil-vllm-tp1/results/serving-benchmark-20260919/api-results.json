@@ -1,0 +1,121 @@
+[
+  {
+    "name": "warmup",
+    "engine": "vllm",
+    "seconds": 4.42333696300193,
+    "first_content_seconds": 0.5155055610011914,
+    "usage": {
+      "prompt_tokens": 122,
+      "total_tokens": 378,
+      "completion_tokens": 256,
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "finish_reason": "length",
+    "done": true,
+    "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 6"
+  },
+  {
+    "name": "cold_128",
+    "engine": "vllm",
+    "seconds": 4.485931205999805,
+    "first_content_seconds": 0.6182066930014116,
+    "usage": {
+      "prompt_tokens": 1082,
+      "total_tokens": 1338,
+      "completion_tokens": 256,
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "finish_reason": "length",
+    "done": true,
+    "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 6"
+  },
+  {
+    "name": "cached_128",
+    "engine": "vllm",
+    "seconds": 4.584267002999695,
+    "first_content_seconds": 0.662160739000683,
+    "usage": {
+      "prompt_tokens": 1082,
+      "total_tokens": 1338,
+      "completion_tokens": 256,
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "finish_reason": "length",
+    "done": true,
+    "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 6"
+  },
+  {
+    "name": "cold_2048",
+    "engine": "vllm",
+    "seconds": 11.180967186999624,
+    "first_content_seconds": 7.222699862999434,
+    "usage": {
+      "prompt_tokens": 16442,
+      "total_tokens": 16698,
+      "completion_tokens": 256,
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "finish_reason": "length",
+    "done": true,
+    "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 6"
+  },
+  {
+    "name": "cached_2048",
+    "engine": "vllm",
+    "seconds": 6.069180990998575,
+    "first_content_seconds": 2.1019283030000224,
+    "usage": {
+      "prompt_tokens": 16442,
+      "total_tokens": 16698,
+      "completion_tokens": 256,
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "finish_reason": "length",
+    "done": true,
+    "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 6"
+  },
+  {
+    "name": "cold_8000",
+    "engine": "vllm",
+    "seconds": 34.049950525000895,
+    "first_content_seconds": 30.109205669999938,
+    "usage": {
+      "prompt_tokens": 64058,
+      "total_tokens": 64314,
+      "completion_tokens": 256,
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "finish_reason": "length",
+    "done": true,
+    "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 6"
+  },
+  {
+    "name": "cached_8000",
+    "engine": "vllm",
+    "seconds": 5.962790135999967,
+    "first_content_seconds": 2.16498658600176,
+    "usage": {
+      "prompt_tokens": 64058,
+      "total_tokens": 64314,
+      "completion_tokens": 256,
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "finish_reason": "length",
+    "done": true,
+    "text": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,8"
+  }
+]

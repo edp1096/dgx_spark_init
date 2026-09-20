@@ -47,7 +47,7 @@ GLM·DeepSeek 클러스터도 앱 내장 실행 패키지를 사용한다. 외�
 
 | 세트 | 주 채팅 모델 | 문맥 | 공통 구성 |
 |---|---|---:|---|
-| Flash-Next 세트 (기본) | Qwen3.8 Flash-Next NVFP4 | 64K | FLUX.2·Nemotron ASR·Magpie TTS·Extra |
+| Flash-Next 세트 (기본) | Qwen3.8 Flash-Next QAD NVFP4 | 1M | FLUX.2·Nemotron ASR·Magpie TTS·Extra |
 | Gemma 세트 | Gemma 4 31B NVFP4 + DFlash | 64K | FLUX.2·Nemotron ASR·Magpie TTS·Extra |
 | GLM 5.3 Flash EXL3 + 워커 Extra | GLM 5.3 Flash EXL3 + DFlash2, Spark 2대 | 512K | 워커의 Media·Collector·SSH |
 
@@ -68,12 +68,13 @@ CUDA Graph·보정 워밍업 순으로 표시한다. Flash-Next 전용 SGLang �
 저장소의 각 런타임 README에 따라 아래 로컬 이미지를 빌드하고 모델을 받아 둔다.
 그 이후의 일상적인 기동·중지·전환에는 Compose 명령이 필요 없다.
 Gemma·Qwen Flash-Next는 이미지가 없으면 앱에 내장된 빌드 파일·패치로 자동 빌드한다. compose_yaml 체크아웃은 필요 없다. 모델 가중치는 별도로 준비해야 한다.
+Flash-Next TP1은 `local-inference-lab/Qwen3.8-Flash-Next-NVFP4`의 고정 revision을 Hub 캐시에 준비한다. [TP1 준비 절차](../../compose_yaml/qwen38_fn_sglang/README.md)를 따른다. TP2는 기존 Huihui 체크포인트를 유지한다. Talk TP1 내장 구성은 FP8 KV·B12X GDN·체크포인트 PLE·YaRN 4를 사용하며 문맥은 1,048,576 토큰, 동시 요청은 1개다. FLUX·ASR·TTS는 LLM 준비 후 시작한다. 기존 내장 64K 세트는 설정 revision 13에서 1M으로 이행하고 revision 14에서 FLUX를 포함한다. 단독 Compose 기본값은 64K를 유지하며, 별도 1M 실행법과 검증 결과는 같은 문서에 기록한다.
 지원 서비스 4종은 이미지가 없으면 실행 호스트에서 내장 자산으로 빌드한다.
 ASR은 원격 이미지가 없으면 앱 실행 머신의 이미지를 SSH로 전달한다. TTS는 이미지가 없으면 실행 호스트에서
 앱에 내장된 Dockerfile과 패치로 빌드한다. `compose_yaml` 폴더는 필요 없다.
 
 ```text
-dgx-sglang-qwen38-fn:sm121-vocab1
+dgx-sglang-qwen38-qad:sm121-v2
 dgx-sglang-gemma4-31b-dflash:2ef0fe4-toolindex1
 dgx-flux2-klein-nvfp4:4b
 sparktalk-nemotron-asr:0.6b-q8
@@ -557,7 +558,7 @@ SSH 주소·계정·인증키 설정을 사용한다. 관리 연결용 SSH 개�
 Flash-Next SGLang TP1은 **한국어 포함 64K 초안 어휘**를 기본으로 사용합니다.
 서비스 구성에서 전체 어휘로 되돌릴 수 있으며, 내장 Compose가
 `runtime_options.DRAFT_VOCAB=ko64k`를 실행 환경에 반영합니다. 실행 호스트에는
-`dgx-sglang-qwen38-fn:sm121-vocab1` 이미지가 필요합니다. 저장 후 서비스를
+`dgx-sglang-qwen38-qad:sm121-v2` 이미지가 필요합니다. 저장 후 서비스를
 다시 시작해야 하며 토크나이저가 다르면 실행 전 검증에서 중단합니다.
 [성능 측정 및 한계](../../compose_yaml/qwen38_fn_sglang/bench/results/2026-09-06-recheck/README.md)를 참고하세요.
 

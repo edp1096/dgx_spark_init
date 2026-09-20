@@ -149,7 +149,7 @@ func TestManagedDefaultBundleAndActiveModelCanDiffer(t *testing.T) {
 	if cfg.Runtime.ActiveBundle != "flash-next" {
 		t.Fatalf("startup default changed active model: %q", cfg.Runtime.ActiveBundle)
 	}
-	if cfg.Model.DefaultModel != "edp1096/Huihui-RadixArk-Qwen3.8-Flash-Next-abliterated-NVFP4" || cfg.Model.ModelType != "qwen3.8" || cfg.Context.WindowTokens != 65536 {
+	if cfg.Model.DefaultModel != "local-inference-lab/Qwen3.8-Flash-Next-NVFP4" || cfg.Model.ModelType != "qwen3.8" || cfg.Context.WindowTokens != 1048576 {
 		t.Fatalf("active model profile was not applied: %+v", cfg.Model)
 	}
 }

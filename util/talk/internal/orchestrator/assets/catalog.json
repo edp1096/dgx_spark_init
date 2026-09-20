@@ -5,13 +5,13 @@
  "components": [
   {
    "id": "flash-next",
-   "name": "Huihui-RadixArk Qwen3.8 Flash-Next",
+   "name": "Qwen3.8 Flash-Next QAD",
    "role": "llm",
    "container": "sglang-qwen38-fn",
    "health_url": "http://127.0.0.1:8000/health",
-   "model": "edp1096/Huihui-RadixArk-Qwen3.8-Flash-Next-abliterated-NVFP4",
-   "memory_gib": 96.0,
-   "startup_timeout_seconds": 1200,
+   "model": "local-inference-lab/Qwen3.8-Flash-Next-NVFP4",
+   "memory_gib": 100.0,
+   "startup_timeout_seconds": 1800,
    "compose_asset": "compose.flash-next.yaml",
    "progress_kind": "sglang",
    "auto_address": true
@@ -454,10 +454,10 @@
   {
    "id": "flash-next",
    "name": "Qwen3.8 Flash-Next",
-   "description": "64K 문맥과 Flash-Next를 사용하는 고성능 세트",
+   "description": "1× DGX Spark · SGLang/B12X · QAD · FP8 KV · 1M 문맥 · FLUX·ASR/TTS",
    "model_type": "qwen3.8",
-   "model_id": "edp1096/Huihui-RadixArk-Qwen3.8-Flash-Next-abliterated-NVFP4",
-   "context_tokens": 65536,
+   "model_id": "local-inference-lab/Qwen3.8-Flash-Next-NVFP4",
+   "context_tokens": 1048576,
    "components": [
     "flash-next",
     "flux2",
@@ -466,7 +466,18 @@
     "extra-media",
     "extra-ssh",
     "extra-collector"
-   ]
+   ],
+   "bindings": {
+    "nemotron-asr": {
+     "start_after_llm": true
+    },
+    "magpie-tts": {
+     "start_after_llm": true
+    },
+    "flux2": {
+     "start_after_llm": true
+    }
+   }
   },
   {
    "id": "flash-next-tp2",

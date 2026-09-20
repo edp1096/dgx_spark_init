@@ -1,0 +1,1 @@
+{"unix_seconds": 1789757144.1671515, "metrics": ["vllm:num_requests_running{engine=\"0\",model_name=\"qwen38-qad-vllm-trial\"} 1.0", "vllm:kv_cache_usage_perc{engine=\"0\",model_name=\"qwen38-qad-vllm-trial\"} 0.44110233574189217"]}

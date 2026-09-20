@@ -7,10 +7,11 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      target: qad-tp1
       args:
         SGLANG_PLE_COMMIT: 0977d22bb005695fef0aee4bc59adfab45b7a496
         SPARK_RECIPE_COMMIT: 4f425ca561f767997738e894ee578673e79b01b1
-    image: dgx-sglang-qwen38-fn:sm121-vocab1
+    image: dgx-sglang-qwen38-qad:sm121-v3
     container_name: sglang-qwen38-fn
     ipc: host
     shm_size: "16gb"
@@ -19,20 +20,28 @@ services:
     cpuset: "5-9,15-19"
     ports:
       - "8000:30000"
+    security_opt: ["seccomp=unconfined"]
+    ulimits:
+      memlock: {soft: -1, hard: -1}
     environment:
+      SGLANG_QAD_B12X_GDN: "1"
+      SGLANG_QAD_PLE_IO_URING: "1"
+      B12X_POLICY_MODE: auto
       HF_HOME: /hf
       HF_HUB_OFFLINE: "1"
       PYTHONUNBUFFERED: "1"
       PYTORCH_CUDA_ALLOC_CONF: "expandable_segments:True"
+      B12X_COMPILE_CACHE_DIR: /root/.cache/sglang/b12x-compile
+      TRITON_CACHE_DIR: /root/.cache/sglang/triton
       TORCHINDUCTOR_CACHE_DIR: /root/.cache/sglang/inductor
       MAX_JOBS: "1"
       TORCHINDUCTOR_COMPILE_THREADS: "4"
-      SGLANG_QWEN4_PLE_FILE_RSS_BUDGET_GB: "8"
+      SGLANG_QWEN4_PLE_FILE_RSS_BUDGET_GB: "4"
       SPARKTALK_FLASH_NEXT_DRAFT_VOCAB: ${SPARKTALK_FLASH_NEXT_DRAFT_VOCAB:-ko64k}
     volumes:
       - ${SPARKTALK_HF_CACHE:-${HOME}/.cache/huggingface}:/hf
-      - ${SPARKTALK_DATA_DIR:-${HOME}/.local/share/sparktalk}/cache/sglang-flash-next:/root/.cache/sglang
-      - ${SPARKTALK_DATA_DIR:-${HOME}/.local/share/sparktalk}/cache/sglang-flash-next/ple:/ple
+      - ${SPARKTALK_DATA_DIR:-${HOME}/.local/share/sparktalk}/cache/sglang-flash-next-qad:/root/.cache/sglang
+      - ${SPARKTALK_DATA_DIR:-${HOME}/.local/share/sparktalk}/cache/sglang-flash-next-qad/ple:/ple
     deploy:
       resources:
         reservations:
@@ -43,9 +52,9 @@ services:
     entrypoint: ["python3", "/opt/sparktalk-flash-next/launch.py"]
     command:
       - --model-path
-      - /hf/edp1096/Huihui-RadixArk-Qwen3.8-Flash-Next-abliterated-NVFP4
+      - /hf/hub/models--local-inference-lab--Qwen3.8-Flash-Next-NVFP4/snapshots/7c4f1bc1a2d6847e0cbc01ac6b823f00251de8dd
       - --served-model-name
-      - edp1096/Huihui-RadixArk-Qwen3.8-Flash-Next-abliterated-NVFP4
+      - local-inference-lab/Qwen3.8-Flash-Next-NVFP4
       - --host
       - 0.0.0.0
       - --port
@@ -58,9 +67,11 @@ services:
       - --context-length
       - "65536"
       - --mem-fraction-static
-      - "0.79"
+      - "0.80"
       - --chunked-prefill-size
-      - "1024"
+      - "512"
+      - --max-total-tokens
+      - "131072"
       - --max-running-requests
       - "2"
       - --page-size
@@ -71,8 +82,13 @@ services:
       - triton
       - --decode-attention-backend
       - trtllm_mha
+      - --kv-cache-dtype
+      - fp8_e4m3
       - --quantization
-      - modelopt_fp4
+      - modelopt_mixed
+      - --moe-runner-backend
+      - flashinfer_cutlass
+      - --disable-shared-experts-fusion
       - --fp4-gemm-backend
       - flashinfer_cutlass
       - --ple-offload-embedding
@@ -97,7 +113,7 @@ services:
       - --speculative-num-draft-tokens
       - "4"
       - --speculative-draft-model-quantization
-      - unquant
+      - modelopt_mixed
       - --allow-auto-truncate
       - --disable-flashinfer-autotune
       - --enable-metrics

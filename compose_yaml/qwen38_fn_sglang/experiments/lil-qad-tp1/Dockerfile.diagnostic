@@ -1,0 +1,11 @@
+FROM dgx-sglang-qwen38-qad:sm121-v3-candidate
+COPY experiments/lil-qad-tp1/diagnose_finite.py /opt/qad-tp1/
+RUN python3 - <<'PY'
+from pathlib import Path
+p=Path('/sgl-workspace/sglang/python/sglang/srt/models/qwen4_exp.py')
+s=p.read_text()
+old='        return loaded_params\n'
+assert s.count(old)==1
+s=s.replace(old,'        from diagnose_finite import install\n        install(self)\n'+old)
+p.write_text(s)
+PY

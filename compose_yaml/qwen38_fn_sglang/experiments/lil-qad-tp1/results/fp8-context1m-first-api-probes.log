@@ -1,0 +1,21 @@
+Text, parsed reasoning and parsed tool-call probes passed
+Vision, legacy off, tool round trip, counting and MTP probes passed; acceptance lengths=[3.575]
+Concurrent requests, SSE and >8K QSA retrieval passed
+Cold/cached prefix branches and two-turn conversation passed
+Configured context=1048576, allocated KV=1048576, request input limit=1048570
+Beginning actual prompt_tokens=130925 retrieval
+Finished 130925 tokens in 77.8s: answer='!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!', correct=False
+Traceback (most recent call last):
+  File "/home/edp1096/workspace/dgx_spark_init/compose_yaml/qwen38_fn_sglang/experiments/lil-qad-tp1/probe_context.py", line 112, in <module>
+    main()
+  File "/home/edp1096/workspace/dgx_spark_init/compose_yaml/qwen38_fn_sglang/experiments/lil-qad-tp1/probe_context.py", line 108, in main
+    raise AssertionError(f'Long-input retrieval failed at {failures}; allocation alone is not qualification')
+AssertionError: Long-input retrieval failed at [130925]; allocation alone is not qualification
+Traceback (most recent call last):
+  File "/home/edp1096/workspace/dgx_spark_init/compose_yaml/qwen38_fn_sglang/experiments/lil-qad-tp1/probe_full_context.py", line 26, in <module>
+    main()
+  File "/home/edp1096/workspace/dgx_spark_init/compose_yaml/qwen38_fn_sglang/experiments/lil-qad-tp1/probe_full_context.py", line 20, in main
+    subprocess.run([sys.executable,str(HERE/script),'--output',str(output),*extra],check=True)
+  File "/usr/lib/python3.12/subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['/usr/bin/python3', '/home/edp1096/workspace/dgx_spark_init/compose_yaml/qwen38_fn_sglang/experiments/lil-qad-tp1/probe_context.py', '--output', '/tmp/qad-sgl-fp8-context1m-1/diverse-results.json', '--targets', '131072', '--diverse']' returned non-zero exit status 1.

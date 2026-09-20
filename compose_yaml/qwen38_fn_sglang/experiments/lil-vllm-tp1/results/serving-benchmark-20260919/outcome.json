@@ -1,0 +1,20 @@
+{
+  "status": "passed",
+  "minimum_available_gib": 11.692302703857422,
+  "guard_gib": 3.0,
+  "healthy_seconds": 131.35704580699894,
+  "elapsed_seconds": 206.66827634999936,
+  "final_state": {
+    "Status": "exited",
+    "Running": false,
+    "Paused": false,
+    "Restarting": false,
+    "OOMKilled": false,
+    "Dead": false,
+    "Pid": 0,
+    "ExitCode": 0,
+    "Error": "",
+    "StartedAt": "2026-09-18T20:41:46.198177936Z",
+    "FinishedAt": "2026-09-18T20:45:12.493751636Z"
+  }
+}

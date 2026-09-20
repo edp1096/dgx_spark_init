@@ -1,0 +1,170 @@
+[
+  {
+    "name": "capacity",
+    "configured_context": 524288,
+    "allocated_tokens": 524288,
+    "max_req_input_len": 524282
+  },
+  {
+    "name": "context_retrieval",
+    "target_tokens": 65408,
+    "input_tokens": 65391,
+    "seconds": 64.38097082899912,
+    "response": {
+      "text": "MAPLE, COMET",
+      "output_ids": [
+        17092,
+        841,
+        11,
+        7439,
+        1300,
+        248046
+      ],
+      "meta_info": {
+        "id": "902cfe4980a048cda0ec071d3f96d16a",
+        "finish_reason": {
+          "type": "stop",
+          "matched": 248046
+        },
+        "prompt_tokens": 65391,
+        "weight_version": "default",
+        "num_retractions": 0,
+        "reasoning_tokens": 0,
+        "completion_tokens": 6,
+        "cached_tokens": 0,
+        "cached_tokens_details": null,
+        "dp_rank": null,
+        "e2e_latency": 64.35692457799996,
+        "spec_accept_rate": 1.0,
+        "spec_accept_length": 3.0,
+        "spec_num_correct_drafts": 6,
+        "spec_num_proposed_drafts": 6,
+        "spec_verify_ct": 2,
+        "spec_accepted_drafts": 6,
+        "spec_proposed_drafts": 6,
+        "spec_correct_drafts_histogram": [
+          0,
+          0,
+          0,
+          2
+        ],
+        "spec_accept_histogram": [
+          0,
+          0,
+          0,
+          2
+        ],
+        "response_sent_to_client_ts": 1789749346.8625128
+      }
+    },
+    "correct": true
+  },
+  {
+    "name": "context_retrieval",
+    "target_tokens": 262016,
+    "input_tokens": 261999,
+    "seconds": 299.8557423180009,
+    "response": {
+      "text": "MAPLE, COMET",
+      "output_ids": [
+        17092,
+        841,
+        11,
+        7439,
+        1300,
+        248046
+      ],
+      "meta_info": {
+        "id": "18931eae0e344953979f0cf928e5cf21",
+        "finish_reason": {
+          "type": "stop",
+          "matched": 248046
+        },
+        "prompt_tokens": 261999,
+        "weight_version": "default",
+        "num_retractions": 0,
+        "reasoning_tokens": 0,
+        "completion_tokens": 6,
+        "cached_tokens": 0,
+        "cached_tokens_details": null,
+        "dp_rank": null,
+        "e2e_latency": 299.8205364160003,
+        "spec_accept_rate": 1.0,
+        "spec_accept_length": 3.0,
+        "spec_num_correct_drafts": 6,
+        "spec_num_proposed_drafts": 6,
+        "spec_verify_ct": 2,
+        "spec_accepted_drafts": 6,
+        "spec_proposed_drafts": 6,
+        "spec_correct_drafts_histogram": [
+          0,
+          0,
+          0,
+          2
+        ],
+        "spec_accept_histogram": [
+          0,
+          0,
+          0,
+          2
+        ],
+        "response_sent_to_client_ts": 1789749647.5642412
+      }
+    },
+    "correct": true
+  },
+  {
+    "name": "context_retrieval",
+    "target_tokens": 524160,
+    "input_tokens": 524151,
+    "seconds": 745.011225272001,
+    "response": {
+      "text": "MAPLE, COMET",
+      "output_ids": [
+        17092,
+        841,
+        11,
+        7439,
+        1300,
+        248046
+      ],
+      "meta_info": {
+        "id": "bd1804d0a3a94383a19b22bce2c448f9",
+        "finish_reason": {
+          "type": "stop",
+          "matched": 248046
+        },
+        "prompt_tokens": 524151,
+        "weight_version": "default",
+        "num_retractions": 0,
+        "reasoning_tokens": 0,
+        "completion_tokens": 6,
+        "cached_tokens": 0,
+        "cached_tokens_details": null,
+        "dp_rank": null,
+        "e2e_latency": 744.9562961600004,
+        "spec_accept_rate": 1.0,
+        "spec_accept_length": 3.0,
+        "spec_num_correct_drafts": 6,
+        "spec_num_proposed_drafts": 6,
+        "spec_verify_ct": 2,
+        "spec_accepted_drafts": 6,
+        "spec_proposed_drafts": 6,
+        "spec_correct_drafts_histogram": [
+          0,
+          0,
+          0,
+          2
+        ],
+        "spec_accept_histogram": [
+          0,
+          0,
+          0,
+          2
+        ],
+        "response_sent_to_client_ts": 1789750394.1083972
+      }
+    },
+    "correct": true
+  }
+]

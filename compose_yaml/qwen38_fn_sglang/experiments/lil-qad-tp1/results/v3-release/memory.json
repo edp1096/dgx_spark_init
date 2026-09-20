@@ -1,0 +1,478 @@
+[
+  {
+    "seconds": 0.9,
+    "available_gib": 117.29
+  },
+  {
+    "seconds": 5.9,
+    "available_gib": 116.7
+  },
+  {
+    "seconds": 10.9,
+    "available_gib": 115.98
+  },
+  {
+    "seconds": 15.9,
+    "available_gib": 114.14
+  },
+  {
+    "seconds": 21.0,
+    "available_gib": 58.49
+  },
+  {
+    "seconds": 26.0,
+    "available_gib": 34.41
+  },
+  {
+    "seconds": 31.0,
+    "available_gib": 34.39
+  },
+  {
+    "seconds": 36.0,
+    "available_gib": 33.38
+  },
+  {
+    "seconds": 41.0,
+    "available_gib": 32.21
+  },
+  {
+    "seconds": 46.0,
+    "available_gib": 30.84
+  },
+  {
+    "seconds": 51.0,
+    "available_gib": 33.76
+  },
+  {
+    "seconds": 56.1,
+    "available_gib": 32.91
+  },
+  {
+    "seconds": 61.1,
+    "available_gib": 32.08
+  },
+  {
+    "seconds": 66.1,
+    "available_gib": 32.83
+  },
+  {
+    "seconds": 71.1,
+    "available_gib": 31.92
+  },
+  {
+    "seconds": 76.1,
+    "available_gib": 30.85
+  },
+  {
+    "seconds": 81.1,
+    "available_gib": 29.84
+  },
+  {
+    "seconds": 86.1,
+    "available_gib": 32.98
+  },
+  {
+    "seconds": 91.1,
+    "available_gib": 31.88
+  },
+  {
+    "seconds": 96.2,
+    "available_gib": 30.96
+  },
+  {
+    "seconds": 101.2,
+    "available_gib": 29.97
+  },
+  {
+    "seconds": 106.2,
+    "available_gib": 32.97
+  },
+  {
+    "seconds": 111.2,
+    "available_gib": 32.09
+  },
+  {
+    "seconds": 116.2,
+    "available_gib": 31.18
+  },
+  {
+    "seconds": 121.2,
+    "available_gib": 30.19
+  },
+  {
+    "seconds": 126.2,
+    "available_gib": 29.28
+  },
+  {
+    "seconds": 131.3,
+    "available_gib": 32.37
+  },
+  {
+    "seconds": 136.3,
+    "available_gib": 31.2
+  },
+  {
+    "seconds": 141.3,
+    "available_gib": 30.02
+  },
+  {
+    "seconds": 146.3,
+    "available_gib": 28.98
+  },
+  {
+    "seconds": 151.3,
+    "available_gib": 32.16
+  },
+  {
+    "seconds": 156.3,
+    "available_gib": 31.05
+  },
+  {
+    "seconds": 161.3,
+    "available_gib": 30.0
+  },
+  {
+    "seconds": 166.4,
+    "available_gib": 28.94
+  },
+  {
+    "seconds": 171.4,
+    "available_gib": 31.93
+  },
+  {
+    "seconds": 176.4,
+    "available_gib": 31.13
+  },
+  {
+    "seconds": 181.4,
+    "available_gib": 30.23
+  },
+  {
+    "seconds": 186.4,
+    "available_gib": 29.24
+  },
+  {
+    "seconds": 191.4,
+    "available_gib": 32.56
+  },
+  {
+    "seconds": 196.4,
+    "available_gib": 31.73
+  },
+  {
+    "seconds": 201.5,
+    "available_gib": 30.83
+  },
+  {
+    "seconds": 206.5,
+    "available_gib": 30.06
+  },
+  {
+    "seconds": 211.5,
+    "available_gib": 29.16
+  },
+  {
+    "seconds": 216.5,
+    "available_gib": 32.33
+  },
+  {
+    "seconds": 221.5,
+    "available_gib": 31.44
+  },
+  {
+    "seconds": 226.5,
+    "available_gib": 30.5
+  },
+  {
+    "seconds": 231.5,
+    "available_gib": 29.53
+  },
+  {
+    "seconds": 236.6,
+    "available_gib": 28.76
+  },
+  {
+    "seconds": 241.6,
+    "available_gib": 31.9
+  },
+  {
+    "seconds": 246.6,
+    "available_gib": 30.75
+  },
+  {
+    "seconds": 251.6,
+    "available_gib": 29.68
+  },
+  {
+    "seconds": 256.6,
+    "available_gib": 28.65
+  },
+  {
+    "seconds": 261.6,
+    "available_gib": 31.72
+  },
+  {
+    "seconds": 266.6,
+    "available_gib": 30.36
+  },
+  {
+    "seconds": 271.7,
+    "available_gib": 29.44
+  },
+  {
+    "seconds": 276.7,
+    "available_gib": 28.46
+  },
+  {
+    "seconds": 281.7,
+    "available_gib": 31.55
+  },
+  {
+    "seconds": 286.7,
+    "available_gib": 30.61
+  },
+  {
+    "seconds": 291.7,
+    "available_gib": 29.56
+  },
+  {
+    "seconds": 296.7,
+    "available_gib": 28.74
+  },
+  {
+    "seconds": 301.8,
+    "available_gib": 31.78
+  },
+  {
+    "seconds": 306.8,
+    "available_gib": 31.01
+  },
+  {
+    "seconds": 311.8,
+    "available_gib": 30.11
+  },
+  {
+    "seconds": 316.8,
+    "available_gib": 29.23
+  },
+  {
+    "seconds": 321.8,
+    "available_gib": 32.42
+  },
+  {
+    "seconds": 326.8,
+    "available_gib": 31.41
+  },
+  {
+    "seconds": 331.8,
+    "available_gib": 30.56
+  },
+  {
+    "seconds": 336.9,
+    "available_gib": 29.66
+  },
+  {
+    "seconds": 341.9,
+    "available_gib": 28.7
+  },
+  {
+    "seconds": 346.9,
+    "available_gib": 31.95
+  },
+  {
+    "seconds": 351.9,
+    "available_gib": 31.13
+  },
+  {
+    "seconds": 356.9,
+    "available_gib": 30.18
+  },
+  {
+    "seconds": 361.9,
+    "available_gib": 29.35
+  },
+  {
+    "seconds": 366.9,
+    "available_gib": 28.51
+  },
+  {
+    "seconds": 372.0,
+    "available_gib": 31.61
+  },
+  {
+    "seconds": 377.0,
+    "available_gib": 30.71
+  },
+  {
+    "seconds": 382.0,
+    "available_gib": 29.83
+  },
+  {
+    "seconds": 387.0,
+    "available_gib": 28.94
+  },
+  {
+    "seconds": 392.0,
+    "available_gib": 30.01
+  },
+  {
+    "seconds": 397.0,
+    "available_gib": 32.05
+  },
+  {
+    "seconds": 402.1,
+    "available_gib": 31.3
+  },
+  {
+    "seconds": 407.1,
+    "available_gib": 30.63
+  },
+  {
+    "seconds": 412.1,
+    "available_gib": 29.91
+  },
+  {
+    "seconds": 417.1,
+    "available_gib": 32.22
+  },
+  {
+    "seconds": 422.1,
+    "available_gib": 34.04
+  },
+  {
+    "seconds": 427.1,
+    "available_gib": 33.09
+  },
+  {
+    "seconds": 432.1,
+    "available_gib": 29.22
+  },
+  {
+    "seconds": 437.2,
+    "available_gib": 28.48
+  },
+  {
+    "seconds": 442.2,
+    "available_gib": 28.05
+  },
+  {
+    "seconds": 447.2,
+    "available_gib": 27.72
+  },
+  {
+    "seconds": 452.2,
+    "available_gib": 26.86
+  },
+  {
+    "seconds": 457.2,
+    "available_gib": 26.68
+  },
+  {
+    "seconds": 462.2,
+    "available_gib": 26.88
+  },
+  {
+    "seconds": 467.2,
+    "available_gib": 27.43
+  },
+  {
+    "seconds": 472.3,
+    "available_gib": 27.64
+  },
+  {
+    "seconds": 477.3,
+    "available_gib": 27.66
+  },
+  {
+    "seconds": 482.3,
+    "available_gib": 27.04
+  },
+  {
+    "seconds": 487.3,
+    "available_gib": 27.21
+  },
+  {
+    "seconds": 493.3,
+    "available_gib": 27.18
+  },
+  {
+    "seconds": 498.3,
+    "available_gib": 27.25
+  },
+  {
+    "seconds": 503.4,
+    "available_gib": 27.41
+  },
+  {
+    "seconds": 508.4,
+    "available_gib": 27.52
+  },
+  {
+    "seconds": 513.4,
+    "available_gib": 27.69
+  },
+  {
+    "seconds": 518.4,
+    "available_gib": 27.84
+  },
+  {
+    "seconds": 523.4,
+    "available_gib": 27.98
+  },
+  {
+    "seconds": 528.4,
+    "available_gib": 28.06
+  },
+  {
+    "seconds": 533.5,
+    "available_gib": 28.29
+  },
+  {
+    "seconds": 538.5,
+    "available_gib": 28.45
+  },
+  {
+    "seconds": 543.5,
+    "available_gib": 28.53
+  },
+  {
+    "seconds": 548.5,
+    "available_gib": 28.71
+  },
+  {
+    "seconds": 553.5,
+    "available_gib": 28.82
+  },
+  {
+    "seconds": 558.6,
+    "available_gib": 28.9
+  },
+  {
+    "seconds": 563.6,
+    "available_gib": 28.94
+  },
+  {
+    "seconds": 568.6,
+    "available_gib": 28.99
+  },
+  {
+    "seconds": 573.6,
+    "available_gib": 28.93
+  },
+  {
+    "seconds": 578.6,
+    "available_gib": 29.0
+  },
+  {
+    "seconds": 583.6,
+    "available_gib": 29.03
+  },
+  {
+    "seconds": 588.7,
+    "available_gib": 29.06
+  },
+  {
+    "seconds": 593.7,
+    "available_gib": 28.98
+  }
+]
