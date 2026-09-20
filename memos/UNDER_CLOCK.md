@@ -9,7 +9,8 @@ After=multi-user.target
 [Service]
 Type=oneshot
 # Use schedutil governor, then cap each cpufreq policy at 70% of hardware max
-ExecStart=/usr/bin/bash -c 'cpupower frequency-set -g schedutil; for p in /sys/devices/system/cpu/cpufreq/policy*; do max=$(cat "$p/cpuinfo_max_freq"); echo $((max * 70 / 100)) > "$p/scaling_max_freq"; done && echo "CPU : schedutil governor, clock capped to 70%"'
+#ExecStart=/usr/bin/bash -c 'cpupower frequency-set -g schedutil; for p in /sys/devices/system/cpu/cpufreq/policy*; do max=$(cat "$p/cpuinfo_max_freq"); echo $((max * 70 / 100)) > "$p/scaling_max_freq"; done && echo "CPU : schedutil governor, clock capped to 70%"'
+ExecStart=/usr/bin/bash -c 'for p in /sys/devices/system/cpu/cpufreq/policy*; do max=$(cat "$p/cpuinfo_max_freq"); echo $((max * 70 / 100)) > "$p/scaling_max_freq"; done && echo "CPU : clock capped to 70%"'
 RemainAfterExit=yes
 
 [Install]
