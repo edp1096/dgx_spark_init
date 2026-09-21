@@ -16,7 +16,7 @@
   import { createStreamHandlers } from './lib/chat-stream.js';
   import { createChatSessionController } from './lib/chat-session-controller.js';
   import {
-    listSessions, createSession, deleteSession, deleteSessions, renameSession, listMessages, streamChat,
+    listSessions, createSession, deleteSession, deleteSessions, renameSession, listMessages, streamChat, steerChat,
     getHealth, getModels, getConfig, retryMessage, editMessage as editChatMessage, uploadAttachment, uploadMediaURL,
     setSessionGroup, listGroups, createGroup, renameGroup, moveGroup, deleteGroup,
     getContextState, compactContext, clearContext, answerToolApproval, transcribeVoice,
@@ -650,9 +650,40 @@
     if (event.key === 'Escape') editingTitle = false;
   }
 
+  function addTurnInput(run, reply, data, sessionId) {
+    if (sessionRuns[sessionId] !== run) return;
+    const index = run.messages.indexOf(reply);
+    const parent = run.messages[index - 1];
+    if (parent?.role !== 'user') return;
+    if (!(parent.turn_inputs || []).some(item => item.id === data.id)) {
+      parent.turn_inputs = [...(parent.turn_inputs || []), data];
+      publishMessages(sessionId, run.messages);
+    }
+  }
+
+  async function sendAdditionalInput(content) {
+    const sessionId = activeId;
+    const run = sessionRuns[sessionId];
+    if (!run || run.steeringSending) return;
+    if (!run.turnId) { setSessionError(sessionId, '추가 입력을 받을 준비 중입니다. 잠시 후 전송하세요.'); return; }
+    if (!run.pendingInput || run.pendingInput.content !== content) run.pendingInput = { id: crypto.randomUUID(), content };
+    const entry = run.pendingInput;
+    run.steeringSending = true; sessionRuns = { ...sessionRuns };
+    stopReplySpeech();
+    try {
+      const saved = await steerChat(sessionId, run.turnId, entry.id, content);
+      addTurnInput(run, run.messages[run.retryingIndex], saved, sessionId);
+      if (activeId === sessionId && input.trim() === content) input = '';
+      if (run.pendingInput === entry) run.pendingInput = null;
+      setSessionError(sessionId, '');
+    } catch (e) { setSessionError(sessionId, e.message); }
+    finally { run.steeringSending = false; sessionRuns = { ...sessionRuns }; }
+  }
+
   async function send() {
     const content = input.trim();
-    if (!content || running || uploadingAttachments || voiceState !== 'idle' || !activeId) return;
+    if (!content || uploadingAttachments || voiceState !== 'idle' || !activeId) return;
+    if (running) { await sendAdditionalInput(content); return; }
     const sessionId = activeId;
     stopReplySpeech();
     voiceController.clearAutoSend(sessionId);
@@ -901,6 +932,20 @@
   }
   function streamHandlersFor(message, sessionId = activeId, messageList = messages) {
     const handlers = createStreamHandlers(message, () => publishMessages(sessionId, messageList));
+    const ownerRun = sessionRuns[sessionId];
+    handlers.turnStarted = (data) => {
+      if (ownerRun && sessionRuns[sessionId] === ownerRun) {
+        ownerRun.turnId = data.accepting ? data.turn_id : null;
+        sessionRuns = { ...sessionRuns };
+      }
+    };
+    handlers.steeringApplied = (inputs) => {
+      if (!ownerRun || sessionRuns[sessionId] !== ownerRun) return;
+      for (const item of inputs) addTurnInput(ownerRun, message, item, sessionId);
+      message.content = ''; message.reasoning_content = ''; message.activity = 'reasoning';
+      publishMessages(sessionId, messageList);
+    };
+
     handlers.workflow = () => { workflowVersion++; };
     const handleDelta = handlers.delta;
     handlers.delta = (delta) => {
@@ -1263,6 +1308,8 @@
       {onPaste}
       onStop={stop}
       onSend={send}
+      steeringReady={Boolean(sessionRuns[activeId]?.turnId)}
+      steeringSending={Boolean(sessionRuns[activeId]?.steeringSending)}
       onStartVoice={startVoiceInput}
       onStopVoice={stopVoiceInput}
     />

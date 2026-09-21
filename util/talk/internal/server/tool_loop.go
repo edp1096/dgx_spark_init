@@ -89,7 +89,7 @@ func runCompletionLoopForSessionWithMedia(
 	mediaSink mediaAttachmentSink,
 ) (completionResult, error) {
 	stage, inStage := ctx.Value(workflowStageKey{}).(*workflowStage)
-	if !inStage {
+	if !inStage && ctx.Value(steeringContinuationKey{}) != true {
 		marker, goal := workflowMarker(messages)
 		if marker != "" {
 			return server.runWorkflow(ctx, sessionID, marker, goal, messages, client, model, reasoningEffort, systemPrompt, toolConfig, toolsEnabled, emit, mediaSink)
@@ -176,26 +176,35 @@ func runCompletionLoopForSessionWithMedia(
 	referencePolicy, _ := ctx.Value(referencePolicyKey{}).(bool)
 	conversation := assembleModelConversation(systemPrompt, messages, registry.prompts, toolConfig.MaxRounds*3, referencePolicy)
 	conversation = retainLatestVideoInput(conversation)
+	for _, input := range turnFrom(ctx).appliedInputs() {
+		conversation = append(conversation, llm.Message{Role: "user", Content: input.Content})
+	}
 
 	refs := make(map[string]int64)
-	requestOnce := func(messages []llm.Message, effort string, definitions []llm.Tool, receiver func(string, string) error) (llm.StreamResult, error) {
-		prepared, err := updateRequestContext(ctx, client.InputMessages(messages), definitions, refs, emit)
-		if err != nil {
-			return llm.StreamResult{}, err
-		}
-		copy(messages, prepared)
-		result, err := client.Stream(ctx, prepared, model, effort, definitions, receiver)
-		emitContextUsage(ctx, result.Usage, emit)
+	request := func(input []llm.Message, effort string, definitions []llm.Tool, receiver func(string, string) error) (llm.StreamResult, error) {
+		current := input
+		result, err := steeredRequest(ctx, &current, inStage, emit, func(requestCtx context.Context, messages []llm.Message) (llm.StreamResult, error) {
+			once := func(messages []llm.Message, effort string, definitions []llm.Tool, receiver func(string, string) error) (llm.StreamResult, error) {
+				prepared, err := updateRequestContext(requestCtx, client.InputMessages(messages), definitions, refs, emit)
+				if err != nil {
+					return llm.StreamResult{}, err
+				}
+				copy(messages, prepared)
+				result, err := client.Stream(requestCtx, prepared, model, effort, definitions, receiver)
+				emitContextUsage(requestCtx, result.Usage, emit)
+				return result, err
+			}
+			result, err := continueLimitedText(requestCtx, messages, effort, definitions, receiver, once, !inStage)
+			if err == nil {
+				result, err = recoverEmptyFinal(requestCtx, client, messages, model, result, receiver)
+			}
+			return result, err
+		})
+		conversation = current
 		return result, err
-	}
-	request := func(messages []llm.Message, effort string, definitions []llm.Tool, receiver func(string, string) error) (llm.StreamResult, error) {
-		return continueLimitedText(ctx, messages, effort, definitions, receiver, requestOnce, !inStage)
 	}
 	if !useTools {
 		result, err := request(conversation, reasoningEffort, nil, textEmitter(emit))
-		if err == nil {
-			result, err = recoverEmptyFinal(ctx, client, conversation, model, result, textEmitter(emit))
-		}
 		return completionResult{Content: result.Content, Reasoning: result.Reasoning, ToolTrace: trace}, err
 	}
 
@@ -213,9 +222,6 @@ func runCompletionLoopForSessionWithMedia(
 				return nil
 			}
 			result, err := request(conversation, reasoningEffort, nil, finalEmitter)
-			if err == nil {
-				result, err = recoverEmptyFinal(ctx, client, conversation, model, result, finalEmitter)
-			}
 			if allReasoning.Len() > 0 && result.Reasoning != "" {
 				allReasoning.WriteString("\n\n")
 			}
@@ -288,7 +294,6 @@ func runCompletionLoopForSessionWithMedia(
 			return completionResult{Reasoning: allReasoning.String(), ToolTrace: trace}, fmt.Errorf("단계의 도구 실행 한도에 도달했습니다")
 		}
 		if len(result.ToolCalls) == 0 {
-			result, err = recoverEmptyFinal(ctx, client, conversation, model, result, textEmitter(emit))
 			if allReasoning.Len() > 0 && result.Reasoning != "" {
 				allReasoning.WriteString("\n\n")
 			}
@@ -312,7 +317,7 @@ func runCompletionLoopForSessionWithMedia(
 			}); err != nil {
 				return completionResult{Reasoning: allReasoning.String(), ToolTrace: trace}, err
 			}
-			execution, toolErr := registry.execute(ctx, call, conversation, emit)
+			execution, toolErr := executeTurnTool(ctx, call, conversation, emit, registry.execute)
 			if server != nil && server.db != nil && call.Function.Name != "ssh_exec" && call.Function.Name != "memory_propose" && call.Function.Name != "memory_manage" && call.Function.Name != "knowledge_import" {
 				decision, detail := "executed", ""
 				if toolErr != nil {

@@ -57,7 +57,7 @@ func modelHistory(items []db.Message, currentRequestID int64) []db.Message {
 				label = "사용자가 중지한 이전 요청"
 				fallback = "사용자가 생성을 중지했습니다."
 			}
-			request := "[" + label + "]\n요청: " + compactHistoryText(item.Content, 800)
+			request := "[" + label + "]\n요청: " + compactHistoryText(userTurnContent(item), 800)
 			for _, attachment := range item.Attachments {
 				request += fmt.Sprintf("\n첨부: %s (%s, %s)", compactHistoryText(attachment.Name, 160), attachment.MIME, humanBytes(attachment.Size))
 			}

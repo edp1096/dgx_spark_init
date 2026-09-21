@@ -24,6 +24,8 @@ import (
 )
 
 type Server struct {
+	turnMu             sync.Mutex
+	turns              map[string]*activeTurn
 	browserSubmissions browserSubmissionState
 	browser            *browserbridge.Bridge
 	generationMu       sync.Mutex
@@ -163,6 +165,7 @@ func New(cfg config.Config, configPath string, store *db.DB, client *llm.Client,
 	mux.HandleFunc("/api/sessions/bulk-delete", s.bulkDeleteSessions)
 	mux.HandleFunc("/api/sessions/", s.session)
 	mux.HandleFunc("/api/chat", s.chat)
+	mux.HandleFunc("/api/chat/steer", s.steerChat)
 	mux.Handle("/", spaHandler(web))
 	s.server = &http.Server{Addr: cfg.Server.ListenAddr, Handler: mux, ReadHeaderTimeout: 10 * time.Second}
 	if err := s.db.RecoverKnowledgeOCR(); err != nil {

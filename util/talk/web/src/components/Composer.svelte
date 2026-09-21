@@ -9,6 +9,8 @@
   export let uploadingAttachments = false;
   export let sourceDownloading = false;
   export let running = false;
+  export let steeringReady = false;
+  export let steeringSending = false;
   export let activeId = '';
   export let input = '';
   export let element;
@@ -169,9 +171,10 @@
       </button>
       {#if !microphoneAvailable}<MicrophoneHelp compact />{/if}
     </div>
-    <textarea bind:this={element} bind:value={input} oninput={resizeComposerInput} onkeydown={onKeydown} onpaste={onPaste} placeholder={activeId ? '메시지를 입력하세요' : '새 대화를 만든 뒤 메시지를 입력하세요'} rows="1" disabled={!activeId || running}></textarea>
+    <textarea bind:this={element} bind:value={input} oninput={resizeComposerInput} onkeydown={onKeydown} onpaste={onPaste} placeholder={activeId ? (running ? '추가 지시를 입력하세요' : '메시지를 입력하세요') : '새 대화를 만든 뒤 메시지를 입력하세요'} rows="1" disabled={!activeId}></textarea>
     <div class="composer-submit">
-      {#if running}<button class="send stop" onclick={onStop} aria-label="응답 중지" title="응답 중지">■</button>{:else}<button class="send" onclick={onSend} disabled={!activeId || !input.trim() || uploadingAttachments || voiceState !== 'idle'} aria-label="메시지 전송" title="메시지 전송">↑</button>{/if}
+      {#if running}<button class="send stop" onclick={onStop} aria-label="응답 중지" title="응답 중지">■</button>{/if}
+      <button class="send" onclick={onSend} disabled={!activeId || !input.trim() || uploadingAttachments || voiceState !== 'idle' || (running && (!steeringReady || steeringSending))} aria-label={running ? '추가 지시 전송' : '메시지 전송'} title={running ? '추가 지시 전송' : '메시지 전송'}>↑</button>
     </div>
   </div>
 	{#if voiceState !== 'idle'}

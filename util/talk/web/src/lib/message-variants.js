@@ -30,6 +30,7 @@ export function applyVariant(message, variantIndex) {
   const variant = message.variants?.[variantIndex];
   if (!variant) return false;
   message.content = variant.content || '';
+  message.turn_inputs = variant.turn_inputs || [];
   message.reasoning_content = variant.reasoning_content || '';
   message.tool_trace = variant.tool_trace || [];
   message.attachments = variant.attachments || [];

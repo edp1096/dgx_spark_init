@@ -31,6 +31,7 @@ type Group struct {
 }
 
 type Message struct {
+	TurnInputs  []TurnInput          `json:"turn_inputs,omitempty"`
 	Performance *performance.Summary `json:"performance,omitempty"`
 	ID          int64                `json:"id"`
 	SessionID   string               `json:"session_id"`
@@ -63,6 +64,7 @@ type Attachment struct {
 }
 
 type ResponseVariant struct {
+	TurnInputs    []TurnInput          `json:"turn_inputs,omitempty"`
 	Performance   *performance.Summary `json:"performance,omitempty"`
 	Content       string               `json:"content"`
 	Reasoning     string               `json:"reasoning_content,omitempty"`
@@ -185,6 +187,12 @@ func Open(path string) (*DB, error) {
 			created_at DATETIME NOT NULL
 		);
 		CREATE INDEX IF NOT EXISTS idx_messages_session ON messages(session_id, id);
+        CREATE TABLE IF NOT EXISTS turn_inputs (
+            seq INTEGER PRIMARY KEY AUTOINCREMENT,
+            message_id INTEGER NOT NULL REFERENCES messages(id) ON DELETE CASCADE,
+            base_hash TEXT NOT NULL, input_id TEXT NOT NULL, content TEXT NOT NULL,
+            UNIQUE(message_id,base_hash,input_id)
+        );
 		CREATE TABLE IF NOT EXISTS context_tool_archive (
  id INTEGER PRIMARY KEY AUTOINCREMENT,
  session_id TEXT NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,

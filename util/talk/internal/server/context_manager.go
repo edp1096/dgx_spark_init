@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"unicode/utf8"
@@ -213,6 +214,32 @@ func (s *Server) runContextCompletion(
 	mediaSink mediaAttachmentSink,
 ) (answer completionResult, runErr error) {
 	defer func() { answer.Content = cleanInternalEvidence(answer.Content) }()
+	var releaseTurn func()
+	var turnErr error
+	ctx, releaseTurn, turnErr = s.claimTurn(ctx, sessionID)
+	if turnErr != nil {
+		return completionResult{}, turnErr
+	}
+	defer releaseTurn()
+	turn := turnFrom(ctx)
+	// Read persisted follow-ups before announcing the new turn as ready.
+	for i := range items {
+		if items[i].Role == "user" && items[i].ID > 0 {
+			inputs, err := s.db.TurnInputs(items[i].ID, items[i].Content)
+			if err != nil {
+				return completionResult{}, err
+			}
+			items[i].TurnInputs = inputs
+			turn.anchor, turn.base = items[i].ID, items[i].Content
+		}
+	}
+	turn.mu.Lock()
+	turn.accepting = turn.anchor > 0
+	turn.mu.Unlock()
+	if err := emit("turn_started", map[string]any{"turn_id": turn.token, "accepting": turn.anchor > 0}); err != nil {
+		return completionResult{}, err
+	}
+
 	tracked, release, err := s.trackGeneration(ctx)
 	if err != nil {
 		return completionResult{}, err
@@ -233,6 +260,9 @@ func (s *Server) runContextCompletion(
 			_ = emit("performance", measurements.Summary(true))
 		}
 	})
+	if cfg.Runtime.Mode != "" {
+		client = client.WithBackendCancellation(ctx)
+	}
 	cfg.Model.DefaultModel = model
 	ctx = context.WithValue(ctx, videoInputModeKey{}, cfg.Model.VideoInputMode())
 	ctx = context.WithValue(ctx, contextToolsKey{}, toolsEnabled)
@@ -245,6 +275,17 @@ func (s *Server) runContextCompletion(
 	ctx = llm.WithOutputLimit(ctx, cfg.Context.EffectiveOutputReserve(state.WindowTokens))
 	_ = emit("context", state)
 	result, err := runCompletionLoopForSessionWithMedia(s, sessionID, ctx, client, messages, model, reasoningEffort, cfg.Model.SystemPrompt, cfg.Tools, toolsEnabled, emit, mediaSink)
+	// A workflow may finish between a stage's final request and its final report.
+	// Consume accepted late inputs without re-running the completed workflow.
+	for err == nil && turn.inferenceEnded(true) {
+		evidence, _ := json.Marshal(result.ToolTrace)
+		followupMessages := append(append([]llm.Message(nil), messages...), llm.Message{Role: "assistant", Content: result.Content + "\nCompleted tool results; preserve these and do not repeat completed actions:\n" + string(evidence)})
+		next, nextErr := runCompletionLoopForSessionWithMedia(s, sessionID, context.WithValue(ctx, steeringContinuationKey{}, true), client, followupMessages, model, reasoningEffort, cfg.Model.SystemPrompt, cfg.Tools, toolsEnabled, emit, mediaSink)
+		next.ToolTrace = append(result.ToolTrace, next.ToolTrace...)
+		next.Attachments = append(result.Attachments, next.Attachments...)
+		result, err = next, nextErr
+	}
+
 	if err == nil || result.Content != "" || result.Reasoning != "" || len(result.ToolTrace) > 0 || !isContextOverflow(err) {
 		return result, err
 	}
@@ -334,7 +375,7 @@ func estimateMessages(items []db.Message, imageTokens int) int {
 }
 
 func estimateMessage(item db.Message, imageTokens int) int {
-	total := 8 + estimateTextTokens(item.Content)
+	total := 8 + estimateTextTokens(userTurnContent(item))
 	for _, attachment := range item.Attachments {
 		switch {
 		case strings.HasPrefix(attachment.MIME, "image/"):
@@ -363,7 +404,7 @@ func estimateTextTokens(text string) int {
 func (s *Server) contextTranscript(items []db.Message, cfg config.Config) string {
 	var out strings.Builder
 	for _, item := range items {
-		fmt.Fprintf(&out, "[message:%d role:%s]\n%s\n", item.ID, item.Role, item.Content+contextToolEvidence(item))
+		fmt.Fprintf(&out, "[message:%d role:%s]\n%s\n", item.ID, item.Role, userTurnContent(item)+contextToolEvidence(item))
 		for _, attachment := range item.Attachments {
 			fmt.Fprintf(&out, "- attachment: %s (%s, %d bytes, id=%s)\n", attachment.Name, attachment.MIME, attachment.Size, attachment.ID)
 			if s.media == nil {

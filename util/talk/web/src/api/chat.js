@@ -27,6 +27,8 @@ export async function consumeSSE(response, handlers) {
       const raw = block.match(/^data:\s*(.+)$/m)?.[1];
       if (!raw) continue;
       const data = JSON.parse(raw);
+      if (event === 'turn_started') handlers.turnStarted?.(data);
+      if (event === 'steering_applied') handlers.steeringApplied?.(data);
       if (event === 'delta') handlers.delta?.(data.delta || '');
       if (event === 'reasoning') handlers.reasoning?.(data.delta || '');
       if (event === 'tool_start') handlers.toolStart?.(data);
@@ -45,4 +47,10 @@ export async function consumeSSE(response, handlers) {
     }
   }
   if (!completed) throw new Error('완료 신호 없이 응답 연결이 끊겼습니다. 생성된 내용이 불완전할 수 있습니다.');
+}
+
+export async function steerChat(sessionId, turnId, inputId, content) {
+  const response = await fetch('/api/chat/steer', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: sessionId, turn_id: turnId, input_id: inputId, content }) });
+  if (!response.ok) throw new Error((await response.text()) || `HTTP ${response.status}`);
+  return response.json();
 }

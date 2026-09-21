@@ -70,7 +70,7 @@ func (s *Server) previewContextMessages(items []db.Message, cfg config.Config) (
 	out := make([]llm.Message, 0, len(items))
 	incomplete := false
 	for _, item := range items {
-		parts := []map[string]any{{"type": "text", "text": item.Content + contextToolEvidence(item)}}
+		parts := []map[string]any{{"type": "text", "text": userTurnContent(item) + contextToolEvidence(item)}}
 		for _, a := range item.Attachments {
 			if strings.HasPrefix(a.MIME, "image/") {
 				parts = append(parts, map[string]any{"type": "image_url"})

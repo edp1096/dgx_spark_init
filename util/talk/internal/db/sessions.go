@@ -106,7 +106,14 @@ func (d *DB) Messages(sessionID string) ([]Message, error) {
 		syncCurrentAttachments(&item)
 		out = append(out, item)
 	}
-	return out, rows.Err()
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	rows.Close()
+	if err := d.loadTurnInputs(out); err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (d *DB) AddMessage(sessionID, role, content, reasoning string, toolTrace []ToolEvent, attachments []Attachment) (Message, error) {

@@ -480,6 +480,11 @@
             <MediaAttachments attachments={message.attachments} />
           {/if}
           <div class="bubble prose" use:markdownView={render(message.role === 'assistant' ? visibleAssistantContent(message.content || (running && (index === messages.length - 1 || index === retryingIndex) ? '▍' : '')) : message.content)}></div>
+          {#if message.role === 'user'}
+            {#each message.turn_inputs || [] as extra (extra.id)}
+              <div class="bubble prose"><small>추가 지시</small><div use:markdownView={render(extra.content)}></div></div>
+            {/each}
+          {/if}
         {/if}
         {#if message.status === 'failed' || message.status === 'cancelled'}
           <div class="message-status" class:cancelled={message.status === 'cancelled'}>

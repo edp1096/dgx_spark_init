@@ -50,6 +50,13 @@ func (s *Server) chat(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	turnCtx, releaseTurn, turnErr := s.claimTurn(r.Context(), req.SessionID)
+	if turnErr != nil {
+		http.Error(w, turnErr.Error(), http.StatusConflict)
+		return
+	}
+	defer releaseTurn()
+	r = r.WithContext(turnCtx)
 	count, _ := s.db.CompletedUserMessageCount(req.SessionID)
 	pending, err := s.db.AddPendingMessage(req.SessionID, req.Content, attachments)
 	if err != nil {
@@ -143,6 +150,13 @@ func (s *Server) messageAction(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	turnCtx, releaseTurn, turnErr := s.claimTurn(r.Context(), target.SessionID)
+	if turnErr != nil {
+		http.Error(w, turnErr.Error(), http.StatusConflict)
+		return
+	}
+	defer releaseTurn()
+	r = r.WithContext(turnCtx)
 	cfg, client := s.snapshot()
 	if req.Model == "" {
 		req.Model = cfg.Model.DefaultModel
@@ -209,6 +223,13 @@ func (s *Server) editMessage(w http.ResponseWriter, r *http.Request, messageID i
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	turnCtx, releaseTurn, turnErr := s.claimTurn(r.Context(), target.SessionID)
+	if turnErr != nil {
+		http.Error(w, turnErr.Error(), http.StatusConflict)
+		return
+	}
+	defer releaseTurn()
+	r = r.WithContext(turnCtx)
 	cfg, client := s.snapshot()
 	if req.Model == "" {
 		req.Model = cfg.Model.DefaultModel
@@ -225,7 +246,7 @@ func (s *Server) editMessage(w http.ResponseWriter, r *http.Request, messageID i
 			return
 		}
 	}
-	requestHistory := append(append([]db.Message{}, history...), db.Message{Role: "user", Content: req.Content, Attachments: attachments})
+	requestHistory := append(append([]db.Message{}, history...), db.Message{ID: target.ID, Role: "user", Content: req.Content, Attachments: attachments})
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("X-Accel-Buffering", "no")
@@ -291,6 +312,7 @@ func (s *Server) llmMessages(ctx context.Context, items []db.Message, cfg config
 		if item.Role == "assistant" {
 			item.Content = cleanInternalEvidence(item.Content)
 		}
+		item.Content = userTurnContent(item)
 		item.Content += contextToolEvidence(item)
 		if len(item.Attachments) == 0 {
 			messages = append(messages, llm.Message{Role: item.Role, Content: item.Content})

@@ -54,3 +54,11 @@ test('backend limit remains an error even if a done event follows',async()=>{
  await assert.rejects(consumeSSE(response('event: error\ndata: {"error":"출력 한도"}\n\nevent: done\ndata: {}\n\n'),{done:()=>done=true}),/출력 한도/);
  assert.equal(done,false);
 });
+
+test('steering events are decoded separately from generated content', async () => {
+  let turn, inputs, answer='';
+  await consumeSSE(response('event: turn_started\ndata: {"turn_id":"run-one","accepting":true}\n\nevent: steering_applied\ndata: [{"id":"input-one","content":"수정 지시"}]\n\nevent: delta\ndata: {"delta":"새 답변"}\n\nevent: done\ndata: {}\n\n'), {
+    turnStarted: data => { turn=data; }, steeringApplied: data => { inputs=data; }, delta: text => { answer+=text; },
+  });
+  assert.equal(turn.turn_id,'run-one');assert.equal(inputs[0].content,'수정 지시');assert.equal(answer,'새 답변');
+});

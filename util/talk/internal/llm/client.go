@@ -74,6 +74,7 @@ type toolCallAccum struct {
 }
 
 type Client struct {
+	nativeAbort    bool
 	endpoint       string
 	model          string
 	modelType      string
@@ -281,17 +282,22 @@ func (c *Client) Stream(ctx context.Context, messages []Message, model, reasonin
 	if c.modelType == "gemma4-vllm" && gemmaThinkingEnabled(reasoningEffort) && c.thinkingBudget > 0 {
 		payload["thinking_token_budget"] = c.thinkingBudget
 	}
+	if err := ctx.Err(); err != nil {
+		return StreamResult{}, err
+	}
+	transportCtx, finishStream := c.streamContext(ctx, payload)
+	defer finishStream()
 	body, err := json.Marshal(payload)
 	if err != nil {
 		return StreamResult{}, err
 	}
 	measurement := newStreamPerformance(ctx)
 	defer measurement.publish(true)
-	resp, err := c.post(ctx, body)
+	resp, err := c.post(transportCtx, body)
 	if err != nil {
 		return StreamResult{}, err
 	}
-	defer resp.Body.Close()
+	defer func() { finishStream(); resp.Body.Close() }()
 	if resp.StatusCode != http.StatusOK {
 		detail, _ := io.ReadAll(io.LimitReader(resp.Body, 8192))
 		return StreamResult{}, fmt.Errorf("chat completion: HTTP %d: %s", resp.StatusCode, strings.TrimSpace(string(detail)))
