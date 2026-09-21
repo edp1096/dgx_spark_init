@@ -236,6 +236,9 @@ func (c *Controller) prepareOrStartComponent(ctx context.Context, component Comp
 		if mode != "" {
 			service["environment"].(map[string]any)["SPARKTALK_FLASH_NEXT_DRAFT_VOCAB"] = mode
 		}
+		if err := applyQwenQADCheckpoint(service, component); err != nil {
+			return err
+		}
 	}
 	// Use Compose interpolation only for host-side paths and declared published
 	// ports. The API endpoint can independently refer to a proxy or SSH tunnel.

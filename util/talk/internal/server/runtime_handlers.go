@@ -81,7 +81,7 @@ func (s *Server) runtimeAction(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	case "components":
-		err = s.runtime.ComponentAction(parts[1], parts[2], cfg.Runtime.ActiveBundle)
+		err = s.runtime.ComponentActionWithReserve(parts[1], parts[2], cfg.Runtime.MemoryReserveGiB, cfg.Runtime.ActiveBundle)
 	default:
 		http.Error(w, "unknown runtime resource", http.StatusNotFound)
 		return

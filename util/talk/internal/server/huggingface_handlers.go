@@ -99,13 +99,17 @@ func (s *Server) modelPreparation(w http.ResponseWriter, r *http.Request) {
 	if req.Action == "" {
 		req.Action = "model"
 	}
-	if (req.Action != "model" && req.Action != "setup") || (req.Variant != "official" && req.Variant != "abliterated") {
+	if (req.Action != "model" && req.Action != "setup") || (req.Variant != "official" && req.Variant != "abliterated" && req.Variant != "huihui_lil") {
 		http.Error(w, "invalid preparation options", 400)
 		return
 	}
 	component, ok := s.runtime.Catalog().Component(req.Component)
 	if !ok {
 		http.Error(w, "unknown service", 404)
+		return
+	}
+	if req.Variant == "huihui_lil" && component.ComposeAsset != "compose.flash-next.yaml" {
+		http.Error(w, "local Huihui/LIL preparation requires Qwen QAD TP1", 400)
 		return
 	}
 	if component.AutoAddress && component.WorkerHost == "worker" {

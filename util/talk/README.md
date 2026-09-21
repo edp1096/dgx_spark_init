@@ -598,3 +598,14 @@ DSML 단독 적용의 18개 응답이 기준과 같았고, SWA 보완은 짧은 
 GLM의 가변 초안 길이는 현재 Entrpi DFlash2 엔진이 초기화 단계에서 거부하므로
 설정 화면이나 기본 레시피에 추가하지 않았다.
 [GLM 검토 기록](../../compose_yaml/glm53f_vllm/bench/reports/2026-09-09/README.md)을 참조한다.
+
+Flash-Next **TP1 QAD**는 세트 편집의 가중치 선택에서 원본 LIL QAD와
+`huginnfork/Qwen3.8-Flash-Next-NVFP4-Abliterated`를 전환할 수 있다.
+모델 준비에서 해당 TP1 가중치를 먼저 다운로드하고 저장·재기동한다.
+체크포인트 경로·API 모델 ID는 함께 전환되며 TP2에는 적용하지 않는다.
+[Compose 선택 파일과 고정 revision](../../compose_yaml/qwen38_fn_sglang/README.md#tp1-가중치-선택-원본-qad--abliterated).
+
+TP1 QAD의 이미지·음성 동시 사용 구성은 `MTP_TOKENS=0`(초안 생성 가속 끄기)을
+사용한다. 1M 컨텍스트·FP8 KV는 유지하고 기본 GDN으로 실행한다. Qwen을 먼저
+기동해 실제 1M KV를 확보한 뒤 FLUX·ASR·TTS를 올린다. 개별 서비스 시작에도
+메모리 검사가 적용되며, 기존 MTP 3단계 모드는 추가 메모리가 필요한 선택 사항이다.

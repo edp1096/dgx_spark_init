@@ -24,3 +24,7 @@ python3 convert.py --profile qwen38_huihui \
 
 Qwen은 기존 로컬 Docker 변환 환경을 사용한다. 파일 다운로드·모델 기동은 하지 않는다.
 원본은 보존하며, 변환 후 구동 검증은 별도다.
+
+LIL QAD의 혼합 MXFP8/NVFP4 구조에 Huihui GGUF 변경량을 반영하는 별도 후보 변환기는
+[`model_adapters/qwen38_lil_huihui`](model_adapters/qwen38_lil_huihui/README.md)에 있다.
+기존 RadixArk 프로필과 입력·재양자화 방식이 다르며, 실행 검증 전에는 운영 모델로 사용하지 않는다.

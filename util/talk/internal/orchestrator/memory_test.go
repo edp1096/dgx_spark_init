@@ -63,3 +63,52 @@ func TestCacheReclaimDoesNotMaskInsufficientCapacity(t *testing.T) {
 		t.Fatal("non-GLM start must not reclaim", attempted, err)
 	}
 }
+
+func TestComponentStartCannotBorrowOtherLLMMemory(t *testing.T) {
+	plan := componentStartMemoryPlan(Component{Role: "image", MemoryGiB: 13}, 0)
+	if plan.FreedGiB != 0 {
+		t.Fatal("single start credited another model")
+	}
+	if err := validateMemoryHeadroom(SystemMemory{AvailableGiB: 11, FreeGiB: 5}, plan, 4); err == nil {
+		t.Fatal("unsafe FLUX start accepted")
+	}
+}
+
+func TestQADVariantsUseSameMemoryGuard(t *testing.T) {
+	for _, variant := range []string{"official", "abliterated"} {
+		component := Component{ComposeAsset: "compose.flash-next.yaml", Role: "llm", MemoryGiB: 100, RuntimeOptions: map[string]string{"MODEL_VARIANT": variant}}
+		plan := componentStartMemoryPlan(component.qwenQADModel(), 0)
+		plan.NeededGiB += 13 + 1.3 + 1.2
+		if err := validateMemoryHeadroom(SystemMemory{AvailableGiB: 116.9, FreeGiB: 15}, plan, 4); err == nil {
+			t.Fatalf("%s must use the same capacity check", variant)
+		}
+	}
+}
+
+func TestQADMemoryReservationTracksActualMTPProfile(t *testing.T) {
+	for _, model := range []string{QwenQADOfficial, QwenQADAbliterated} {
+		c := Component{ComposeAsset: "compose.flash-next.yaml", Model: model, MemoryGiB: 97, RuntimeOptions: map[string]string{"MTP_TOKENS": "0"}}
+		if c.runtimeMemoryEstimate().MemoryGiB != 97 {
+			t.Fatal("native no-MTP budget")
+		}
+		c.RuntimeOptions["MTP_TOKENS"] = "3"
+		if c.runtimeMemoryEstimate().MemoryGiB != 100 {
+			t.Fatal("MTP must reserve its extra allocations")
+		}
+		c.MemoryGiB = 108
+		if c.runtimeMemoryEstimate().MemoryGiB != 108 {
+			t.Fatal("larger user reservation lost")
+		}
+	}
+	plan := memoryPlan{NeededGiB: 97 + 13 + 1.3 + 1.2, RequiresCUDAStart: true}
+	if err := validateMemoryHeadroom(SystemMemory{AvailableGiB: 116.9, FreeGiB: 15}, plan, 4); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestResidentMemoryDoesNotCreditReclaimableCheckpointCache(t *testing.T) {
+	stat := []byte("anon 1073741824\nfile 1099511627776\ninactive_file 549755813888\n")
+	if anonymousMemoryGiB(stat) != 1 {
+		t.Fatal("file cache must not be counted as memory released by stopping a service")
+	}
+}

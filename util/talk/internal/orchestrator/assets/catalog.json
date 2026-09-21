@@ -10,11 +10,14 @@
    "container": "sglang-qwen38-fn",
    "health_url": "http://127.0.0.1:8000/health",
    "model": "local-inference-lab/Qwen3.8-Flash-Next-NVFP4",
-   "memory_gib": 100.0,
+   "memory_gib": 97,
    "startup_timeout_seconds": 1800,
    "compose_asset": "compose.flash-next.yaml",
    "progress_kind": "sglang",
-   "auto_address": true
+   "auto_address": true,
+   "runtime_options": {
+    "MTP_TOKENS": "0"
+   }
   },
   {
    "id": "gemma31",

@@ -3,7 +3,9 @@
     "sglang": {
       "environment": {
         "SGLANG_ALLOW_OVERWRITE_LONGER_CONTEXT_LEN": "1",
-        "SGLANG_QWEN4_PLE_FILE_RSS_BUDGET_GB": "0.5"
+        "SGLANG_QWEN4_PLE_FILE_RSS_BUDGET_GB": "0.5",
+        "SPARKTALK_FLASH_NEXT_DRAFT_VOCAB": "off",
+        "SGLANG_QAD_B12X_GDN": "0"
       },
       "command": [
         "--model-path",
@@ -59,16 +61,6 @@
         "qwen3_coder",
         "--mm-feature-transport",
         "cpu",
-        "--speculative-algorithm",
-        "NEXTN",
-        "--speculative-num-steps",
-        "3",
-        "--speculative-eagle-topk",
-        "1",
-        "--speculative-num-draft-tokens",
-        "4",
-        "--speculative-draft-model-quantization",
-        "modelopt_mixed",
         "--disable-flashinfer-autotune",
         "--enable-metrics",
         "--max-mamba-cache-size",

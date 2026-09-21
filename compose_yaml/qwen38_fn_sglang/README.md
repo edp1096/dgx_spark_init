@@ -62,7 +62,7 @@ docker compose build
 중에는 PLE 정식 backend와 SM121 QSA 패치가 실제 Python 모듈에 반영됐는지
 검증한다. Compose는 `qad-tp1` 빌드 대상을 선택한다. Dockerfile의 기본 대상은
 TP2 기반 이미지 호환을 위해 기존 런타임을 유지한다. 새 태그는
-`dgx-sglang-qwen38-qad:sm121-v3`이며 기존 TP2 태그를 덮어쓰지 않는다.
+`dgx-sglang-qwen38-qad:sm121-v4`이며 기존 TP2 태그를 덮어쓰지 않는다.
 
 ## 단독 실행과 확인
 
@@ -124,7 +124,7 @@ docker compose up -d
 SPARKTALK_FLASH_NEXT_DRAFT_VOCAB=off docker compose up -d
 ```
 
-이미지 `dgx-sglang-qwen38-qad:sm121-v3`에는 실행 래퍼와 검증된 어휘 목록이
+이미지 `dgx-sglang-qwen38-qad:sm121-v4`에는 실행 래퍼와 검증된 어휘 목록이
 포함된다. `ko64k`는 토크나이저 SHA256이 다르면 모델 로드 전에 중단한다.
 기존 `sm121` 이미지에는 이 옵션이 없으므로 새 이미지를 먼저 준비해야 한다.
 
@@ -143,3 +143,81 @@ BF16 KV와 256K·512K·1M 시험 절차는 [TP2 문서](docs/tp2.md)를 참고�
 TP2의 기본 이미지는 `dgx-sglang-qwen38-fn:sm121-b12x-head-v1`이다.
 BF16 출력층 일부만 최적화해 tg를 약 3.5~3.8% 개선했으며, pp는 그대로다.
 빌드와 1M 검증 결과는 [TP2 문서](docs/tp2.md)를 참고한다.
+
+## TP1 가중치 선택: 원본 QAD / Abliterated
+
+기본 원본은 `local-inference-lab/Qwen3.8-Flash-Next-NVFP4`이며,
+`huginnfork/Qwen3.8-Flash-Next-NVFP4-Abliterated`도 선택할 수 있다.
+여기서 원본은 기존 LIL QAD 체크포인트를 뜻하며 Qwen BF16 모델을 뜻하지 않는다.
+TP2는 이 선택의 영향을 받지 않는다. 두 모델은 별도 Hub snapshot에 보관한다.
+
+```sh
+# Abliterated 다운로드 (기존 원본은 보존)
+hf download huginnfork/Qwen3.8-Flash-Next-NVFP4-Abliterated \
+  --revision 93a1b466ce773185f21a49d1649b7933ce0fc910 \
+  --cache-dir "$HOME/.cache/huggingface/hub"
+
+# 64K 기본 구성: 가중치 선택
+# 모델 파일이 준비된 뒤 실행한다.
+docker compose --env-file model.abliterated.env up -d
+# 원본으로 복귀
+docker compose --env-file model.official.env up -d
+
+# 1M 구성에서도 동일한 선택 파일 사용
+docker compose --env-file model.abliterated.env \
+  -f compose.yaml -f compose.context1m.yaml up -d
+```
+
+`SPARKTALK_HF_CACHE`를 별도로 설정했다면 해당 경로의 `hub`에 다운로드한다.
+선택 파일은 모델 경로와 API 모델 이름을 함께 지정한다. API 요청의 `model`에도
+선택한 저장소 ID를 사용한다. 실행 중인 모델 교체에는 컨테이너 재생성이 필요하다.
+
+Talk에서는 설정 → 모델 준비에서 TP1과 가중치를 선택해 다운로드하고,
+AI 세트 편집 → TP1 서비스 → 가중치에서 같은 모델을 선택·저장한 후 재기동한다.
+모델 준비는 지정된 서비스 호스트에서 수행하며 TP2/다른 서버로 이동하지 않는다.
+Talk의 1M·FP8 KV·Flux·ASR·TTS 설정은 가중치 선택으로 변경되지 않는다.
+
+2026-09-21 확인: Abliterated 고정 revision의 `config.json`,
+`hf_quant_config.json`, `model.safetensors.index.json`, `tokenizer.json`,
+`chat_template.jinja`가 기존 원본과 바이트 단위로 같다. 선택/렌더링/설정 왕복은
+테스트했지만 Abliterated의 실제 추론 및 1M 정확도·성능은 별도 검증 대상이다.
+
+## 1M + 이미지·음성 동시 구성
+
+`compose.context1m.shared.yaml`은 1M 컨텍스트와 1M FP8 KV를 유지하면서
+MTP 초안 모델을 적재하지 않는 구성이다. 이 경로는 기본 SGLang GDN을 사용한다.
+초안 생성 가속을 포기해 메모리를 확보하므로 생성 속도는 기존 MTP 구성과 다를 수 있다.
+
+```sh
+docker compose --env-file model.abliterated.env \
+  -f compose.yaml -f compose.context1m.shared.yaml up -d
+```
+
+Qwen의 실제 1M KV 할당이 끝난 다음 FLUX·ASR·TTS를 시작한다.
+다른 GPU 서비스가 먼저 메모리를 점유하면 SGLang이 KV 풀을 자동 축소할 수 있다.
+`/server_info`의 `max_total_num_tokens`가 1048576 이상인지 확인한다.
+Talk는 이 용량이 `context_length`보다 작으면 기동 완료로 처리하지 않는다.
+
+Talk TP1의 `MTP_TOKENS=0`은 이 경로에 대응한다. `3`은 기존 MTP 가속 경로다.
+두 모드의 최소 Qwen 메모리 예산은 각각 97GiB/100GiB이며, 더 큰 사용자 예약은
+유지한다. FLUX 13GiB, ASR 1.3GiB, TTS 1.2GiB 및 최소 여유 4GiB는 그대로다.
+전체 세트 시작뿐 아니라 로컬 단일 GPU 서비스의 개별 시작·재시작에도 메모리
+검사를 적용하며, 실제로 중지하지 않는 다른 LLM의 메모리를 반환 예정으로 계산하지 않는다.
+
+### TP1 QAD 라우터 PDL 순서 수정 (v4)
+
+`qad/patch_router_pdl.py`는 라우터가 새로 생성된 bias를 PDL 생산 완료 대기 전에
+읽던 문제를 수정한다. bias 읽기를 `gdc_wait()` 뒤로 옮기며, PDL과 라우팅 계산은
+유지한다. 이전 코드는 지연된 bias 생산자 회귀 검사에서 NaN을 만들고, v4는 같은
+검사와 Torch 수치 비교를 통과한다. `qad/test_router_ordering.py`로 GPU 일반 실행과
+CUDA 그래프 재실행을 검사할 수 있다. 이 패치는 QAD TP1 빌드에만 적용한다.
+
+### Huihui/LIL model name
+
+The local TP1 derivative is `edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-NVFP4-QAD`.
+Use `model.huihui-lil.env` to select it. The internal `huihui_lil` variant key is
+unchanged so saved selections remain compatible. The previous model directory is
+retained as a symlink to the renamed directory, without copying weights. Talk
+also recognizes the previous model ID when inferring the TP1 variant.
+The model card is maintained in
+`../weights_override/model_adapters/qwen38_lil_huihui/docs/MODEL_CARD.md`.

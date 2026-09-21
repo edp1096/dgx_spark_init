@@ -41,6 +41,9 @@ var recipeOptionNames = map[string]bool{
 func validateRecipeOptions(c Component) error {
 
 	for k, v := range c.RuntimeOptions {
+		if c.ComposeAsset == "compose.flash-next.yaml" && k == "MTP_TOKENS" && v != "0" && v != "3" {
+			return fmt.Errorf("QAD MTP_TOKENS must be 0 or 3")
+		}
 		moeTP1 := c.ComposeAsset == "compose.ornith35.yaml" || c.ComposeAsset == "compose.gemma26.yaml"
 		if k == "DRAFT_VOCAB" && ((!moeTP1 && c.ComposeAsset != "compose.flash-next.yaml") || (v != "off" && v != "ko64k")) {
 			return fmt.Errorf("%s: DRAFT_VOCAB requires a supported model and off or ko64k", c.ID)
@@ -60,7 +63,7 @@ func validateRecipeOptions(c Component) error {
 				return fmt.Errorf("%s: DSV41_PRELOAD_COUNT requires DS41 and an integer 0..224", c.ID)
 			}
 		}
-		if k == "MODEL_VARIANT" && v != "official" && v != "abliterated" {
+		if k == "MODEL_VARIANT" && v != "official" && v != "abliterated" && !(c.ComposeAsset == "compose.flash-next.yaml" && v == "huihui_lil") {
 			return fmt.Errorf("invalid model variant")
 		}
 		if k == "MODEL_VARIANT" && c.Controller == "ds41-cluster" && v != "official" {
@@ -270,7 +273,7 @@ func (c *Controller) PrepareModel(ctx context.Context, component Component, vari
 		ctx = context.WithValue(ctx, recipeProgressKey{}, progress[0])
 		progress[0]("실행 상태 확인 중")
 	}
-	if recipeID(component) == "" {
+	if recipeID(component) == "" && component.ComposeAsset != "compose.flash-next.yaml" {
 		return fmt.Errorf("this service has no embedded model preparation recipe")
 	}
 	options := map[string]string{}
@@ -293,7 +296,12 @@ func (c *Controller) PrepareModel(ctx context.Context, component Component, vari
 		c.finishOperation("failed", "실행 중인 모델은 준비할 수 없습니다")
 		return fmt.Errorf("%s 중지 후 모델을 준비하세요", component.Name)
 	}
-	err := c.runEmbeddedRecipe(ctx, component, action, token)
+	var err error
+	if component.ComposeAsset == "compose.flash-next.yaml" {
+		err = c.prepareQwenQAD(ctx, component, action, token)
+	} else {
+		err = c.runEmbeddedRecipe(ctx, component, action, token)
+	}
 	if err != nil {
 		c.finishOperation("failed", err.Error())
 	}

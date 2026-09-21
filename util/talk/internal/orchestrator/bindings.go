@@ -62,7 +62,7 @@ func (c Catalog) ResolveComponent(bundleID, componentID string) (Component, bool
 	for _, id := range bundle.Components {
 		if id == componentID {
 			base, exists := c.Component(id)
-			return bundle.Bindings[id].Apply(base).runtimeMemoryEstimate(), exists
+			return bundle.Bindings[id].Apply(base).qwenQADModel().runtimeMemoryEstimate(), exists
 		}
 	}
 	return Component{}, false
@@ -198,5 +198,15 @@ func componentDefaults(component Component) Component {
 	return component
 }
 
-// Use the memory reservation declared in the deployment.
-func (c Component) runtimeMemoryEstimate() Component { return c }
+// Enforce the measured floor for the fixed TP1 QAD profiles, while retaining
+// larger user reservations. MTP=0 uses native GDN and omits draft weights/KV.
+func (c Component) runtimeMemoryEstimate() Component {
+	if c.ComposeAsset == "compose.flash-next.yaml" && (c.Model == QwenQADOfficial || c.Model == QwenQADAbliterated || c.Model == QwenQADHuihuiLIL) {
+		floor := 100.0
+		if c.RuntimeOptions["MTP_TOKENS"] == "0" {
+			floor = 97
+		}
+		c.MemoryGiB = max(c.MemoryGiB, floor)
+	}
+	return c
+}

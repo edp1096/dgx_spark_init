@@ -11,7 +11,7 @@ services:
       args:
         SGLANG_PLE_COMMIT: 0977d22bb005695fef0aee4bc59adfab45b7a496
         SPARK_RECIPE_COMMIT: 4f425ca561f767997738e894ee578673e79b01b1
-    image: dgx-sglang-qwen38-qad:sm121-v3
+    image: dgx-sglang-qwen38-qad:sm121-v4
     container_name: sglang-qwen38-fn
     ipc: host
     shm_size: "16gb"
@@ -52,9 +52,9 @@ services:
     entrypoint: ["python3", "/opt/sparktalk-flash-next/launch.py"]
     command:
       - --model-path
-      - /hf/hub/models--local-inference-lab--Qwen3.8-Flash-Next-NVFP4/snapshots/7c4f1bc1a2d6847e0cbc01ac6b823f00251de8dd
+      - ${QWEN_QAD_MODEL_PATH:-/hf/hub/models--local-inference-lab--Qwen3.8-Flash-Next-NVFP4/snapshots/7c4f1bc1a2d6847e0cbc01ac6b823f00251de8dd}
       - --served-model-name
-      - local-inference-lab/Qwen3.8-Flash-Next-NVFP4
+      - ${QWEN_QAD_MODEL_ID:-local-inference-lab/Qwen3.8-Flash-Next-NVFP4}
       - --host
       - 0.0.0.0
       - --port

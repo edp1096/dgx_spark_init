@@ -1,0 +1,898 @@
+[
+  {
+    "name": "adapter-base",
+    "operation": "identity_edit",
+    "seconds": 8.009432614000616,
+    "before": {
+      "used_gib": 113.33968734741211,
+      "available_gib": 8.285419464111328,
+      "free_gib": 3.3275299072265625,
+      "swap_gib": 0.16085052490234375
+    },
+    "after": {
+      "used_gib": 113.13458633422852,
+      "available_gib": 8.490520477294922,
+      "free_gib": 3.6938705444335938,
+      "swap_gib": 0.16083526611328125
+    },
+    "peak_used_gib": 115.52986907958984,
+    "increment_gib": 2.1901817321777344,
+    "gpu_after": "1067694, 218\n1068136, 92156\n1085367, 1923\n1085497, 1510\n1246520, 3600",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB",
+    "cpu_anon_gib": 2.3096351623535156,
+    "file_cache_gib": 2.892078399658203,
+    "unique_storage_bytes": {
+      "cuda:0": 639512,
+      "cpu": 6644687644
+    },
+    "pinned_total": 0,
+    "torch_allocated": 67825664,
+    "torch_reserved": 85983232,
+    "model_objects": 3,
+    "lora_loaders": []
+  },
+  {
+    "name": "adapter-combined",
+    "operation": "background_remove",
+    "seconds": 12.395753804999913,
+    "before": {
+      "used_gib": 113.49554443359375,
+      "available_gib": 8.129562377929688,
+      "free_gib": 3.763538360595703,
+      "swap_gib": 0.160858154296875
+    },
+    "after": {
+      "used_gib": 113.32754898071289,
+      "available_gib": 8.297557830810547,
+      "free_gib": 3.3396682739257812,
+      "swap_gib": 0.16085052490234375
+    },
+    "peak_used_gib": 115.89712524414062,
+    "increment_gib": 2.401580810546875,
+    "gpu_after": "1067694, 218\n1068136, 92156\n1085367, 1923\n1085497, 1510\n1246520, 4016",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ],
+    "cpu_anon_gib": 2.3051109313964844,
+    "file_cache_gib": 2.5543212890625,
+    "unique_storage_bytes": {
+      "cpu": 6720709404,
+      "cuda:0": 639512
+    },
+    "pinned_total": 0,
+    "torch_allocated": 67825664,
+    "torch_reserved": 85983232,
+    "model_objects": 3,
+    "lora_loaders": [
+      {
+        "path": "/opt/ComfyUI/models/loras/fal-flux2-klein-4b-background-remove.safetensors",
+        "cache": {
+          "bytes_by_device": {
+            "cpu": 76021760
+          },
+          "tensor_types": {
+            "Tensor": 136
+          }
+        }
+      }
+    ]
+  },
+  {
+    "name": "adapter-object",
+    "operation": "object_remove",
+    "seconds": 13.795541445999334,
+    "before": {
+      "used_gib": 107.89086151123047,
+      "available_gib": 13.734245300292969,
+      "free_gib": 8.986679077148438,
+      "swap_gib": 0.160858154296875
+    },
+    "after": {
+      "used_gib": 113.47640609741211,
+      "available_gib": 8.148700714111328,
+      "free_gib": 3.78271484375,
+      "swap_gib": 0.160858154296875
+    },
+    "peak_used_gib": 115.87702560424805,
+    "increment_gib": 7.986164093017578,
+    "gpu_after": "1067694, 218\n1068136, 92156\n1085367, 1923\n1085497, 1510\n1246520, 4112",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB",
+    "cpu_anon_gib": 2.29522705078125,
+    "file_cache_gib": 2.322063446044922,
+    "unique_storage_bytes": {
+      "cpu": 6720709404,
+      "cuda:0": 639512
+    },
+    "pinned_total": 0,
+    "torch_allocated": 67825664,
+    "torch_reserved": 85983232,
+    "model_objects": 3,
+    "lora_loaders": [
+      {
+        "path": "/opt/ComfyUI/models/loras/fal-flux2-klein-4b-object-remove.safetensors",
+        "cache": {
+          "bytes_by_device": {
+            "cpu": 76021760
+          },
+          "tensor_types": {
+            "Tensor": 136
+          }
+        }
+      }
+    ]
+  },
+  {
+    "name": "background",
+    "operation": "background_cleanup",
+    "seconds": 10.26511636000032,
+    "before": {
+      "used_gib": 113.34460067749023,
+      "available_gib": 8.280506134033203,
+      "free_gib": 3.9290618896484375,
+      "swap_gib": 0.16733169555664062
+    },
+    "after": {
+      "used_gib": 112.96510314941406,
+      "available_gib": 8.660003662109375,
+      "free_gib": 3.92352294921875,
+      "swap_gib": 0.16733169555664062
+    },
+    "peak_used_gib": 115.45494079589844,
+    "increment_gib": 2.110340118408203,
+    "gpu_after": "1067694, 218\n1068136, 92156\n1085367, 1923\n1085497, 1510\n1219998, 3748",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB",
+    "cpu_anon_gib": 2.3329696655273438,
+    "file_cache_gib": 2.65875244140625,
+    "unique_storage_bytes": {
+      "cuda:0": 639512,
+      "cpu": 6720709404
+    },
+    "pinned_total": 0,
+    "torch_allocated": 67825664,
+    "torch_reserved": 106954752,
+    "model_objects": 3,
+    "lora_loaders": [
+      {
+        "path": "/opt/ComfyUI/models/loras/fal-flux2-klein-4b-background-remove.safetensors",
+        "cache": {
+          "bytes_by_device": {
+            "cpu": 76021760
+          },
+          "tensor_types": {
+            "Tensor": 136
+          }
+        }
+      }
+    ]
+  },
+  {
+    "name": "generate",
+    "operation": "generate",
+    "seconds": 9.004957217999618,
+    "before": {
+      "used_gib": 107.64292907714844,
+      "available_gib": 13.982177734375,
+      "free_gib": 8.675041198730469,
+      "swap_gib": 0.1610870361328125
+    },
+    "after": {
+      "used_gib": 114.08690643310547,
+      "available_gib": 7.538200378417969,
+      "free_gib": 4.950107574462891,
+      "swap_gib": 0.167388916015625
+    },
+    "peak_used_gib": 116.53160095214844,
+    "increment_gib": 8.888671875,
+    "gpu_after": "1067694, 218\n1068136, 92156\n1085367, 1923\n1085497, 1510\n1219998, 4772",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB",
+    "cpu_anon_gib": 2.148345947265625,
+    "file_cache_gib": 0.8214454650878906,
+    "unique_storage_bytes": {
+      "cuda:0": 639512,
+      "cpu": 6644687644
+    },
+    "pinned_total": 0,
+    "torch_allocated": 67825664,
+    "torch_reserved": 106954752,
+    "model_objects": 3,
+    "lora_loaders": []
+  },
+  {
+    "name": "inpaint",
+    "operation": "inpaint",
+    "seconds": 13.706765168000857,
+    "before": {
+      "used_gib": 112.97610855102539,
+      "available_gib": 8.648998260498047,
+      "free_gib": 3.9124755859375,
+      "swap_gib": 0.16733169555664062
+    },
+    "after": {
+      "used_gib": 112.90038681030273,
+      "available_gib": 8.724720001220703,
+      "free_gib": 3.9703750610351562,
+      "swap_gib": 0.16733169555664062
+    },
+    "peak_used_gib": 115.92782974243164,
+    "increment_gib": 2.95172119140625,
+    "gpu_after": "1067694, 218\n1068136, 92156\n1085367, 1923\n1085497, 1510\n1219998, 3812",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB",
+    "cpu_anon_gib": 2.373279571533203,
+    "file_cache_gib": 2.476299285888672,
+    "unique_storage_bytes": {
+      "cuda:0": 639512,
+      "cpu": 6644687644
+    },
+    "pinned_total": 0,
+    "torch_allocated": 67825664,
+    "torch_reserved": 106954752,
+    "model_objects": 3,
+    "lora_loaders": []
+  },
+  {
+    "name": "object",
+    "operation": "object_remove",
+    "seconds": 10.726081118000366,
+    "before": {
+      "used_gib": 113.0636215209961,
+      "available_gib": 8.561485290527344,
+      "free_gib": 3.8810386657714844,
+      "swap_gib": 0.16733932495117188
+    },
+    "after": {
+      "used_gib": 113.33269500732422,
+      "available_gib": 8.292411804199219,
+      "free_gib": 3.940967559814453,
+      "swap_gib": 0.16733169555664062
+    },
+    "peak_used_gib": 115.76375198364258,
+    "increment_gib": 2.7001304626464844,
+    "gpu_after": "1067694, 218\n1068136, 92156\n1085367, 1923\n1085497, 1510\n1219998, 4036",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB",
+    "cpu_anon_gib": 2.342304229736328,
+    "file_cache_gib": 2.3225860595703125,
+    "unique_storage_bytes": {
+      "cuda:0": 639512,
+      "cpu": 6720709404
+    },
+    "pinned_total": 0,
+    "torch_allocated": 67825664,
+    "torch_reserved": 106954752,
+    "model_objects": 3,
+    "lora_loaders": [
+      {
+        "path": "/opt/ComfyUI/models/loras/fal-flux2-klein-4b-object-remove.safetensors",
+        "cache": {
+          "bytes_by_device": {
+            "cpu": 76021760
+          },
+          "tensor_types": {
+            "Tensor": 136
+          }
+        }
+      }
+    ]
+  },
+  {
+    "name": "outpaint",
+    "operation": "outpaint",
+    "seconds": 10.767962010000701,
+    "before": {
+      "used_gib": 113.33951187133789,
+      "available_gib": 8.285594940185547,
+      "free_gib": 4.040657043457031,
+      "swap_gib": 0.16738510131835938
+    },
+    "after": {
+      "used_gib": 113.04964828491211,
+      "available_gib": 8.575458526611328,
+      "free_gib": 3.8950233459472656,
+      "swap_gib": 0.16733932495117188
+    },
+    "peak_used_gib": 115.95149230957031,
+    "increment_gib": 2.611980438232422,
+    "gpu_after": "1067694, 218\n1068136, 92156\n1085367, 1923\n1085497, 1510\n1219998, 4036",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB",
+    "cpu_anon_gib": 2.3167495727539062,
+    "file_cache_gib": 2.407958984375,
+    "unique_storage_bytes": {
+      "cuda:0": 639512,
+      "cpu": 6720709404
+    },
+    "pinned_total": 0,
+    "torch_allocated": 67825664,
+    "torch_reserved": 106954752,
+    "model_objects": 3,
+    "lora_loaders": [
+      {
+        "path": "/opt/ComfyUI/models/loras/fal-flux2-klein-4b-outpaint.safetensors",
+        "cache": {
+          "bytes_by_device": {
+            "cpu": 76021760
+          },
+          "tensor_types": {
+            "Tensor": 136
+          }
+        }
+      }
+    ]
+  },
+  {
+    "name": "reference",
+    "operation": "identity_edit",
+    "seconds": 8.177538939000442,
+    "before": {
+      "used_gib": 114.11240768432617,
+      "available_gib": 7.512699127197266,
+      "free_gib": 4.923686981201172,
+      "swap_gib": 0.16738510131835938
+    },
+    "after": {
+      "used_gib": 113.30672454833984,
+      "available_gib": 8.318382263183594,
+      "free_gib": 4.121650695800781,
+      "swap_gib": 0.16738510131835938
+    },
+    "peak_used_gib": 115.84882354736328,
+    "increment_gib": 1.7364158630371094,
+    "gpu_after": "1067694, 218\n1068136, 92156\n1085367, 1923\n1085497, 1510\n1219998, 4260",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB",
+    "cpu_anon_gib": 2.2617111206054688,
+    "file_cache_gib": 1.9890251159667969,
+    "unique_storage_bytes": {
+      "cuda:0": 639512,
+      "cpu": 6644687644
+    },
+    "pinned_total": 0,
+    "torch_allocated": 67825664,
+    "torch_reserved": 106954752,
+    "model_objects": 3,
+    "lora_loaders": []
+  },
+  {
+    "name": "rembg",
+    "operation": "background_remove",
+    "seconds": 2.066512108000097,
+    "before": {
+      "used_gib": 112.90986633300781,
+      "available_gib": 8.715240478515625,
+      "free_gib": 3.9608383178710938,
+      "swap_gib": 0.16733169555664062
+    },
+    "after": {
+      "used_gib": 113.13667678833008,
+      "available_gib": 8.48843002319336,
+      "free_gib": 3.4135894775390625,
+      "swap_gib": 0.16733169555664062
+    },
+    "peak_used_gib": 113.43213272094727,
+    "increment_gib": 0.5222663879394531,
+    "gpu_after": "1067694, 218\n1068136, 92156\n1085367, 1923\n1085497, 1510\n1219998, 3812",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ],
+    "cpu_anon_gib": 2.368011474609375,
+    "file_cache_gib": 2.796123504638672,
+    "unique_storage_bytes": {
+      "cuda:0": 639512,
+      "cpu": 6644687644
+    },
+    "pinned_total": 0,
+    "torch_allocated": 67825664,
+    "torch_reserved": 106954752,
+    "model_objects": 3,
+    "lora_loaders": []
+  },
+  {
+    "name": "repeat-0-background",
+    "operation": "background_cleanup",
+    "seconds": 10.414683026998318,
+    "before": {
+      "used_gib": 113.41976928710938,
+      "available_gib": 8.205337524414062,
+      "free_gib": 4.195976257324219,
+      "swap_gib": 0.16675567626953125
+    },
+    "after": {
+      "used_gib": 113.11439514160156,
+      "available_gib": 8.510711669921875,
+      "free_gib": 3.7852859497070312,
+      "swap_gib": 0.16252899169921875
+    },
+    "peak_used_gib": 115.58800888061523,
+    "increment_gib": 2.1682395935058594,
+    "gpu_after": "1067694, 218\n1068136, 92156\n1085367, 1923\n1085497, 1510\n1219998, 4036",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB",
+    "cpu_anon_gib": 2.38232421875,
+    "file_cache_gib": 2.4416351318359375,
+    "unique_storage_bytes": {
+      "cuda:0": 639512,
+      "cpu": 6720709404
+    },
+    "pinned_total": 0,
+    "torch_allocated": 67825664,
+    "torch_reserved": 106954752,
+    "model_objects": 3,
+    "lora_loaders": [
+      {
+        "path": "/opt/ComfyUI/models/loras/fal-flux2-klein-4b-background-remove.safetensors",
+        "cache": {
+          "bytes_by_device": {
+            "cpu": 76021760
+          },
+          "tensor_types": {
+            "Tensor": 136
+          }
+        }
+      }
+    ]
+  },
+  {
+    "name": "repeat-0-object",
+    "operation": "object_remove",
+    "seconds": 10.781326487000115,
+    "before": {
+      "used_gib": 113.03376388549805,
+      "available_gib": 8.59134292602539,
+      "free_gib": 3.7380943298339844,
+      "swap_gib": 0.16730117797851562
+    },
+    "after": {
+      "used_gib": 113.42485046386719,
+      "available_gib": 8.20025634765625,
+      "free_gib": 4.190925598144531,
+      "swap_gib": 0.16675567626953125
+    },
+    "peak_used_gib": 115.97650146484375,
+    "increment_gib": 2.942737579345703,
+    "gpu_after": "1067694, 218\n1068136, 92156\n1085367, 1923\n1085497, 1510\n1219998, 3972",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB",
+    "cpu_anon_gib": 2.3685684204101562,
+    "file_cache_gib": 2.08697509765625,
+    "unique_storage_bytes": {
+      "cuda:0": 639512,
+      "cpu": 6720709404
+    },
+    "pinned_total": 0,
+    "torch_allocated": 67825664,
+    "torch_reserved": 106954752,
+    "model_objects": 3,
+    "lora_loaders": [
+      {
+        "path": "/opt/ComfyUI/models/loras/fal-flux2-klein-4b-object-remove.safetensors",
+        "cache": {
+          "bytes_by_device": {
+            "cpu": 76021760
+          },
+          "tensor_types": {
+            "Tensor": 136
+          }
+        }
+      }
+    ]
+  },
+  {
+    "name": "repeat-0-outpaint",
+    "operation": "outpaint",
+    "seconds": 10.913023122000595,
+    "before": {
+      "used_gib": 113.15457916259766,
+      "available_gib": 8.470527648925781,
+      "free_gib": 3.395679473876953,
+      "swap_gib": 0.16733169555664062
+    },
+    "after": {
+      "used_gib": 113.02641296386719,
+      "available_gib": 8.59869384765625,
+      "free_gib": 3.7454757690429688,
+      "swap_gib": 0.16730117797851562
+    },
+    "peak_used_gib": 115.58503723144531,
+    "increment_gib": 2.4304580688476562,
+    "gpu_after": "1067694, 218\n1068136, 92156\n1085367, 1923\n1085497, 1510\n1219998, 3620",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB",
+    "cpu_anon_gib": 2.378795623779297,
+    "file_cache_gib": 2.889690399169922,
+    "unique_storage_bytes": {
+      "cuda:0": 639512,
+      "cpu": 6720709404
+    },
+    "pinned_total": 0,
+    "torch_allocated": 67825664,
+    "torch_reserved": 106954752,
+    "model_objects": 3,
+    "lora_loaders": [
+      {
+        "path": "/opt/ComfyUI/models/loras/fal-flux2-klein-4b-outpaint.safetensors",
+        "cache": {
+          "bytes_by_device": {
+            "cpu": 76021760
+          },
+          "tensor_types": {
+            "Tensor": 136
+          }
+        }
+      }
+    ]
+  },
+  {
+    "name": "repeat-1-background",
+    "operation": "background_cleanup",
+    "seconds": 10.640092214998731,
+    "before": {
+      "used_gib": 113.36672973632812,
+      "available_gib": 8.258377075195312,
+      "free_gib": 4.214141845703125,
+      "swap_gib": 0.16206741333007812
+    },
+    "after": {
+      "used_gib": 113.06868743896484,
+      "available_gib": 8.556419372558594,
+      "free_gib": 3.7426185607910156,
+      "swap_gib": 0.16204071044921875
+    },
+    "peak_used_gib": 115.84484100341797,
+    "increment_gib": 2.4781112670898438,
+    "gpu_after": "1067694, 218\n1068136, 92156\n1085367, 1923\n1085497, 1510\n1219998, 4004",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB",
+    "cpu_anon_gib": 2.3736228942871094,
+    "file_cache_gib": 2.5256309509277344,
+    "unique_storage_bytes": {
+      "cuda:0": 639512,
+      "cpu": 6720709404
+    },
+    "pinned_total": 0,
+    "torch_allocated": 67825664,
+    "torch_reserved": 106954752,
+    "model_objects": 3,
+    "lora_loaders": [
+      {
+        "path": "/opt/ComfyUI/models/loras/fal-flux2-klein-4b-background-remove.safetensors",
+        "cache": {
+          "bytes_by_device": {
+            "cpu": 76021760
+          },
+          "tensor_types": {
+            "Tensor": 136
+          }
+        }
+      }
+    ]
+  },
+  {
+    "name": "repeat-1-object",
+    "operation": "object_remove",
+    "seconds": 10.711971607999658,
+    "before": {
+      "used_gib": 112.93292236328125,
+      "available_gib": 8.692184448242188,
+      "free_gib": 3.8983840942382812,
+      "swap_gib": 0.162200927734375
+    },
+    "after": {
+      "used_gib": 113.35748672485352,
+      "available_gib": 8.267620086669922,
+      "free_gib": 4.223415374755859,
+      "swap_gib": 0.16206741333007812
+    },
+    "peak_used_gib": 115.87142944335938,
+    "increment_gib": 2.938507080078125,
+    "gpu_after": "1067694, 218\n1068136, 92156\n1085367, 1923\n1085497, 1510\n1219998, 4004",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB",
+    "cpu_anon_gib": 2.378459930419922,
+    "file_cache_gib": 2.025787353515625,
+    "unique_storage_bytes": {
+      "cuda:0": 639512,
+      "cpu": 6720709404
+    },
+    "pinned_total": 0,
+    "torch_allocated": 67825664,
+    "torch_reserved": 106954752,
+    "model_objects": 3,
+    "lora_loaders": [
+      {
+        "path": "/opt/ComfyUI/models/loras/fal-flux2-klein-4b-object-remove.safetensors",
+        "cache": {
+          "bytes_by_device": {
+            "cpu": 76021760
+          },
+          "tensor_types": {
+            "Tensor": 136
+          }
+        }
+      }
+    ]
+  },
+  {
+    "name": "repeat-1-outpaint",
+    "operation": "outpaint",
+    "seconds": 10.307291156999781,
+    "before": {
+      "used_gib": 113.12609481811523,
+      "available_gib": 8.499011993408203,
+      "free_gib": 3.7735557556152344,
+      "swap_gib": 0.16252899169921875
+    },
+    "after": {
+      "used_gib": 112.90256881713867,
+      "available_gib": 8.722537994384766,
+      "free_gib": 3.84747314453125,
+      "swap_gib": 0.162200927734375
+    },
+    "peak_used_gib": 115.7073974609375,
+    "increment_gib": 2.5813026428222656,
+    "gpu_after": "1067694, 218\n1068136, 92156\n1085367, 1923\n1085497, 1510\n1219998, 3780",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB",
+    "cpu_anon_gib": 2.365142822265625,
+    "file_cache_gib": 2.5617637634277344,
+    "unique_storage_bytes": {
+      "cuda:0": 639512,
+      "cpu": 6720709404
+    },
+    "pinned_total": 0,
+    "torch_allocated": 67825664,
+    "torch_reserved": 106954752,
+    "model_objects": 3,
+    "lora_loaders": [
+      {
+        "path": "/opt/ComfyUI/models/loras/fal-flux2-klein-4b-outpaint.safetensors",
+        "cache": {
+          "bytes_by_device": {
+            "cpu": 76021760
+          },
+          "tensor_types": {
+            "Tensor": 136
+          }
+        }
+      }
+    ]
+  },
+  {
+    "name": "repeat-2-background",
+    "operation": "background_cleanup",
+    "seconds": 10.31696001400087,
+    "before": {
+      "used_gib": 113.06319808959961,
+      "available_gib": 8.561908721923828,
+      "free_gib": 3.683269500732422,
+      "swap_gib": 0.16172409057617188
+    },
+    "after": {
+      "used_gib": 113.02931213378906,
+      "available_gib": 8.595794677734375,
+      "free_gib": 3.8264617919921875,
+      "swap_gib": 0.16172409057617188
+    },
+    "peak_used_gib": 115.73914337158203,
+    "increment_gib": 2.675945281982422,
+    "gpu_after": "1067694, 218\n1068136, 92156\n1085367, 1923\n1085497, 1510\n1219998, 3780",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB",
+    "cpu_anon_gib": 2.3848419189453125,
+    "file_cache_gib": 2.5459823608398438,
+    "unique_storage_bytes": {
+      "cuda:0": 639512,
+      "cpu": 6720709404
+    },
+    "pinned_total": 0,
+    "torch_allocated": 67825664,
+    "torch_reserved": 106954752,
+    "model_objects": 3,
+    "lora_loaders": [
+      {
+        "path": "/opt/ComfyUI/models/loras/fal-flux2-klein-4b-background-remove.safetensors",
+        "cache": {
+          "bytes_by_device": {
+            "cpu": 76021760
+          },
+          "tensor_types": {
+            "Tensor": 136
+          }
+        }
+      }
+    ]
+  },
+  {
+    "name": "repeat-2-object",
+    "operation": "object_remove",
+    "seconds": 10.546437017001153,
+    "before": {
+      "used_gib": 113.45719528198242,
+      "available_gib": 8.167911529541016,
+      "free_gib": 4.088710784912109,
+      "swap_gib": 0.1620330810546875
+    },
+    "after": {
+      "used_gib": 113.0559310913086,
+      "available_gib": 8.569175720214844,
+      "free_gib": 3.6905364990234375,
+      "swap_gib": 0.16172409057617188
+    },
+    "peak_used_gib": 115.77798080444336,
+    "increment_gib": 2.3207855224609375,
+    "gpu_after": "1067694, 218\n1068136, 92156\n1085367, 1923\n1085497, 1510\n1219998, 3972",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB",
+    "cpu_anon_gib": 2.3711204528808594,
+    "file_cache_gib": 2.5872116088867188,
+    "unique_storage_bytes": {
+      "cuda:0": 639512,
+      "cpu": 6720709404
+    },
+    "pinned_total": 0,
+    "torch_allocated": 67825664,
+    "torch_reserved": 106954752,
+    "model_objects": 3,
+    "lora_loaders": [
+      {
+        "path": "/opt/ComfyUI/models/loras/fal-flux2-klein-4b-object-remove.safetensors",
+        "cache": {
+          "bytes_by_device": {
+            "cpu": 76021760
+          },
+          "tensor_types": {
+            "Tensor": 136
+          }
+        }
+      }
+    ]
+  },
+  {
+    "name": "repeat-2-outpaint",
+    "operation": "outpaint",
+    "seconds": 10.542514111000855,
+    "before": {
+      "used_gib": 113.08527755737305,
+      "available_gib": 8.53982925415039,
+      "free_gib": 3.725982666015625,
+      "swap_gib": 0.16204071044921875
+    },
+    "after": {
+      "used_gib": 113.44443130493164,
+      "available_gib": 8.180675506591797,
+      "free_gib": 4.101505279541016,
+      "swap_gib": 0.1620330810546875
+    },
+    "peak_used_gib": 115.95959091186523,
+    "increment_gib": 2.8743133544921875,
+    "gpu_after": "1067694, 218\n1068136, 92156\n1085367, 1923\n1085497, 1510\n1219998, 4004",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB",
+    "cpu_anon_gib": 2.3774452209472656,
+    "file_cache_gib": 2.1342010498046875,
+    "unique_storage_bytes": {
+      "cuda:0": 639512,
+      "cpu": 6720709404
+    },
+    "pinned_total": 0,
+    "torch_allocated": 67825664,
+    "torch_reserved": 106954752,
+    "model_objects": 3,
+    "lora_loaders": [
+      {
+        "path": "/opt/ComfyUI/models/loras/fal-flux2-klein-4b-outpaint.safetensors",
+        "cache": {
+          "bytes_by_device": {
+            "cpu": 76021760
+          },
+          "tensor_types": {
+            "Tensor": 136
+          }
+        }
+      }
+    ]
+  },
+  {
+    "name": "return-base",
+    "operation": "identity_edit",
+    "seconds": 8.026765757000248,
+    "before": {
+      "used_gib": 113.04233169555664,
+      "available_gib": 8.582775115966797,
+      "free_gib": 3.8134078979492188,
+      "swap_gib": 0.16172409057617188
+    },
+    "after": {
+      "used_gib": 113.25573348999023,
+      "available_gib": 8.369373321533203,
+      "free_gib": 4.173126220703125,
+      "swap_gib": 0.16170883178710938
+    },
+    "peak_used_gib": 115.72974014282227,
+    "increment_gib": 2.687408447265625,
+    "gpu_after": "1067694, 218\n1068136, 92156\n1085367, 1923\n1085497, 1510\n1219998, 3748",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB",
+    "cpu_anon_gib": 2.369373321533203,
+    "file_cache_gib": 2.3680458068847656,
+    "unique_storage_bytes": {
+      "cuda:0": 639512,
+      "cpu": 6644687644
+    },
+    "pinned_total": 0,
+    "torch_allocated": 67825664,
+    "torch_reserved": 106954752,
+    "model_objects": 3,
+    "lora_loaders": []
+  }
+]

@@ -305,6 +305,14 @@ func (c *Controller) bundleMemoryPlan(ctx context.Context, bundle Bundle) memory
 		component, _ := c.Catalog().ResolveComponent(bundle.ID, id)
 		desired[component.DeploymentKey()] = struct{}{}
 	}
+	llmNeedsStart := false
+	for _, id := range bundle.Components {
+		component, _ := c.Catalog().ResolveComponent(bundle.ID, id)
+		if component.Role == "llm" && c.local(component) && c.componentNeedsStart(ctx, component) {
+			llmNeedsStart = true
+		}
+	}
+	needsStart := false
 	gpuByPID := gpuMemoryByPID(ctx)
 	plan := memoryPlan{}
 	for _, component := range c.Catalog().Deployments(bundle.ID) {
@@ -319,19 +327,33 @@ func (c *Controller) bundleMemoryPlan(ctx context.Context, bundle Bundle) memory
 			}
 		}
 		if _, wanted := desired[component.DeploymentKey()]; wanted {
+			if running && component.StartAfterLLM && llmNeedsStart {
+				// runBundleStart stops deferred services before loading the LLM.
+				needsStart = true
+				plan.NeededGiB += component.MemoryGiB
+				plan.FreedGiB += gpuMemory + containerAnonymousMemoryGiB(ctx, component.Container)
+				plan.RequiresCUDAStart = plan.RequiresCUDAStart || isCUDAComponent(component)
+				continue
+			}
 			if !running {
+				needsStart = true
 				plan.NeededGiB += component.MemoryGiB
 				plan.RequiresCUDAStart = plan.RequiresCUDAStart || isCUDAComponent(component)
 				continue
 			}
 			healthy := c.isHealthy(ctx, component)
 			if !healthy {
+				needsStart = true
 				// Restarting releases the current allocation before rebuilding it.
 				plan.NeededGiB += max(0, component.MemoryGiB-gpuMemory)
 				plan.RequiresCUDAStart = plan.RequiresCUDAStart || isCUDAComponent(component)
 				continue
 			}
-			plan.NeededGiB += healthyComponentRemainingMemory(component, gpuMemory)
+			resident := gpuMemory
+			if component.ComposeAsset == "compose.flux2.yaml" {
+				resident += containerAnonymousMemoryGiB(ctx, component.Container)
+			}
+			plan.NeededGiB += healthyComponentRemainingMemory(component, resident)
 			continue
 		}
 		if component.Role == "llm" && running {
@@ -341,6 +363,9 @@ func (c *Controller) bundleMemoryPlan(ctx context.Context, bundle Bundle) memory
 			plan.FreedGiB += gpuMemory
 		}
 	}
+	if !needsStart {
+		plan.NeededGiB = 0
+	}
 	return plan
 }
 
@@ -349,14 +374,14 @@ func (c *Controller) bundleMemoryPlan(ctx context.Context, bundle Bundle) memory
 // not reported by nvidia-smi, so subtracting GPU usage from the catalog peak
 // would count that memory twice. FLUX is different: its API becomes healthy
 // before the generation model is loaded and still needs its remaining peak.
-func healthyComponentRemainingMemory(component Component, gpuMemory float64) float64 {
+func healthyComponentRemainingMemory(component Component, residentMemory float64) float64 {
 	if component.Role != "image" {
 		return 0
 	}
-	if gpuMemory <= 0 {
+	if residentMemory <= 0 {
 		return component.MemoryGiB
 	}
-	return max(0, component.MemoryGiB-gpuMemory)
+	return max(0, component.MemoryGiB-residentMemory)
 }
 
 func validateMemoryHeadroom(memory SystemMemory, plan memoryPlan, reserveGiB float64) error {
@@ -414,6 +439,10 @@ func (c *Controller) StopBundle(bundleID string) error {
 }
 
 func (c *Controller) ComponentAction(componentID, action string, bundleIDs ...string) error {
+	return c.ComponentActionWithReserve(componentID, action, 4, bundleIDs...)
+}
+
+func (c *Controller) ComponentActionWithReserve(componentID, action string, reserveGiB float64, bundleIDs ...string) error {
 	var component Component
 	var ok bool
 	if len(bundleIDs) > 0 {
@@ -438,6 +467,16 @@ func (c *Controller) ComponentAction(componentID, action string, bundleIDs ...st
 	}
 	if err := c.begin(Operation{Action: action, ComponentID: componentID, State: "running", Phase: component.Name, StartedAt: time.Now()}); err != nil {
 		return err
+	}
+	if action == "start" || action == "restart" {
+		bundleID := ""
+		if len(bundleIDs) > 0 {
+			bundleID = bundleIDs[0]
+		}
+		if err := c.checkLocalComponentStart(context.Background(), component, action == "restart", reserveGiB, bundleID); err != nil {
+			c.finishOperation("failed", err.Error())
+			return err
+		}
 	}
 	go func() {
 		var err error
@@ -668,7 +707,7 @@ func (c *Controller) startAndWait(component Component) error {
 	ctx, cancel := context.WithTimeout(context.Background(), commandTimeout)
 	defer cancel()
 	if c.isHealthy(ctx, component) {
-		return nil
+		return c.checkQwenCapacity(ctx, component)
 	}
 	if err := c.startComponent(ctx, component); err != nil {
 		return err
@@ -681,6 +720,9 @@ func (c *Controller) startAndWait(component Component) error {
 	deadline := startedAt.Add(timeout)
 	for time.Now().Before(deadline) {
 		if c.isHealthy(context.Background(), component) {
+			if err := c.checkQwenCapacity(context.Background(), component); err != nil {
+				return err
+			}
 			c.updateOperation(component.ID, progressInfo{Key: "ready:" + component.ID, Phase: component.Name + " API 응답 확인", Detail: "서비스가 요청을 받을 준비를 마쳤습니다.", Progress: 1})
 			return nil
 		}

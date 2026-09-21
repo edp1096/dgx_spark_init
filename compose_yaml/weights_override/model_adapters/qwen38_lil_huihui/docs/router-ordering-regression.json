@@ -1,0 +1,92 @@
+{
+  "router_probe": [
+    {
+      "source": "fixed",
+      "pdl": true,
+      "nan_rows": 0,
+      "first": null,
+      "max_sum_error": 2.384185791015625e-07
+    },
+    {
+      "source": "fixed",
+      "pdl": false,
+      "nan_rows": 0,
+      "first": null,
+      "max_sum_error": 2.384185791015625e-07
+    },
+    {
+      "source": "gemm",
+      "pdl": true,
+      "nan_rows": 736,
+      "first": {
+        "iteration": 0,
+        "logits_finite": true,
+        "bias_finite": true,
+        "nan_row_count": 736,
+        "rows_preview": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21
+        ]
+      },
+      "max_sum_error": 2.384185791015625e-07
+    },
+    {
+      "source": "gemm",
+      "pdl": false,
+      "nan_rows": 0,
+      "first": null,
+      "max_sum_error": 2.384185791015625e-07
+    }
+  ],
+  "delayed_bias_dependency": [
+    {
+      "variant": "before_wait",
+      "nan_rows": 15360
+    },
+    {
+      "variant": "pdl_disabled",
+      "nan_rows": 0
+    },
+    {
+      "variant": "after_wait",
+      "nan_rows": 0
+    }
+  ],
+  "fixed_regression": [
+    "{\"delayed_bias_repetitions\": 20, \"passed\": true}",
+    "{\"rows\": 1, \"eager_repetitions\": 30, \"passed\": true}",
+    "{\"rows\": 1, \"graph_replays\": 10, \"passed\": true}",
+    "{\"rows\": 2, \"eager_repetitions\": 30, \"passed\": true}",
+    "{\"rows\": 2, \"graph_replays\": 10, \"passed\": true}",
+    "{\"rows\": 16, \"eager_repetitions\": 30, \"passed\": true}",
+    "{\"rows\": 16, \"graph_replays\": 10, \"passed\": true}",
+    "{\"rows\": 137, \"eager_repetitions\": 30, \"passed\": true}",
+    "{\"rows\": 137, \"graph_replays\": 10, \"passed\": true}",
+    "{\"rows\": 4096, \"eager_repetitions\": 30, \"passed\": true}",
+    "{\"rows\": 4096, \"graph_replays\": 10, \"passed\": true}"
+  ],
+  "unpatched_regression": [
+    "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+    "AssertionError: Router produced nonfinite weights"
+  ],
+  "patch_sha256": "a30473c0625600aae4b497327326f5f5982f81832c272c4856c668dcc7a3800c",
+  "image_id": "sha256:20ad5421b4e665fd6545b3366d3701fcf9777637614afb1ff2b8d4002d0f2fd9"
+}

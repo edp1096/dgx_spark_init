@@ -196,6 +196,14 @@
             <label class="settings-field-row"><span>서버 바인딩 주소</span><input value={component.bind_address ?? ""} oninput={(event) => updateDeployment(component.id, "bind_address", event.currentTarget.value)} placeholder="127.0.0.1" /></label>
             <label class="settings-field-row settings-number-row"><span>서버 공개 포트</span><input type="number" min="0" max="65535" value={component.port ?? ""} oninput={(event) => updateDeployment(component.id, "port", Number(event.currentTarget.value))} placeholder="0: 레시피 기본값" /></label>
             {#if component.compose_asset === 'compose.flash-next.yaml'}
+              <SettingsField title="가중치"><Select value={component.runtime_options?.MODEL_VARIANT ?? (component.model === 'edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-NVFP4-QAD' ? 'huihui_lil' : component.model === 'huginnfork/Qwen3.8-Flash-Next-NVFP4-Abliterated' ? 'abliterated' : 'official')} oninput={(event) => {
+                const variant = event.currentTarget.value;
+                const model = variant === 'huihui_lil' ? 'edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-NVFP4-QAD' : variant === 'abliterated' ? 'huginnfork/Qwen3.8-Flash-Next-NVFP4-Abliterated' : 'local-inference-lab/Qwen3.8-Flash-Next-NVFP4';
+                bundle.model_id = model;
+                updateDeployment(component.id, 'model', model);
+                updateDeployment(component.id, 'runtime_options', {...component.runtime_options, MODEL_VARIANT:variant});
+              }}><option value="official">원본 QAD (local-inference-lab)</option><option value="abliterated">Abliterated (huginnfork)</option><option value="huihui_lil">Huihui / LIL QAD (로컬 변환)</option></Select><svelte:fragment slot="help"><p>원본과 Huginnfork는 모델 준비에서 다운로드합니다. Huihui / LIL은 서버에 변환·실행 검증을 마친 로컬 모델이 있어야 하며, 모델 준비는 파일을 검증합니다. 저장 후 재시작하세요. TP1 전용이며 1M 설정은 유지됩니다.</p></svelte:fragment></SettingsField>
+              <SettingsField title="초안 생성 가속"><Select value={component.runtime_options?.MTP_TOKENS ?? '3'} oninput={(event) => updateDeployment(component.id, 'runtime_options', {...component.runtime_options, MTP_TOKENS:event.currentTarget.value})}><option value="3">MTP 3단계</option><option value="0">사용 안 함 (메모리 절약)</option></Select><svelte:fragment slot="help"><p>끄면 초안 모델과 추가 캐시 적재를 생략합니다. 본체의 문맥 한도는 유지되며 응답 속도가 달라질 수 있습니다. 변경 후 재기동이 필요합니다.</p></svelte:fragment></SettingsField>
               <SettingsField title="초안 어휘"><Select value={component.runtime_options?.DRAFT_VOCAB ?? 'ko64k'} oninput={(event) => updateDeployment(component.id, "runtime_options", {...component.runtime_options, DRAFT_VOCAB:event.currentTarget.value})}><option value="ko64k">한국어 포함 64K (기본)</option><option value="off">전체 어휘</option></Select><svelte:fragment slot="help"><p>초안 생성 속도를 높이는 설정입니다. 변경 후 서비스를 다시 시작해야 합니다.</p></svelte:fragment></SettingsField>
             {/if}
           {:else if ['glm53-cluster', 'dspark-cluster', 'ds41-cluster', 'qwen38-cluster'].includes(component.controller)}

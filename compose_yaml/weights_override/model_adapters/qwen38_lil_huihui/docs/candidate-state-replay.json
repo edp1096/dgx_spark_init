@@ -1,0 +1,160 @@
+{
+  "candidate-131072.json": [
+    {
+      "name": "capacity",
+      "configured_context": 1048576,
+      "allocated_tokens": 1048576,
+      "max_req_input_len": 1048570
+    },
+    {
+      "name": "context_retrieval",
+      "target_tokens": 130944,
+      "input_tokens": 130925,
+      "seconds": 89.18751356400026,
+      "response": {
+        "text": "MAPLE, COMET",
+        "output_ids": [
+          17092,
+          841,
+          11,
+          7439,
+          1300,
+          248046
+        ],
+        "meta_info": {
+          "id": "1f48ad9f4f2649bf982a5929e6b32ade",
+          "finish_reason": {
+            "type": "stop",
+            "matched": 248046
+          },
+          "prompt_tokens": 130925,
+          "weight_version": "default",
+          "num_retractions": 0,
+          "forward_entry_time": 1789937642.5234478,
+          "prefill_finished_time": 1789937731.388744,
+          "queue_time": 0.00040149688720703125,
+          "reasoning_tokens": 0,
+          "completion_tokens": 6,
+          "cached_tokens": 0,
+          "cached_tokens_details": null,
+          "dp_rank": null,
+          "e2e_latency": 89.16482595699927,
+          "request_received_ts": 1789937642.5196908,
+          "api_server_dispatch_finish_ts": 1789937642.5211847,
+          "request_finished_ts": 1789937731.6845167,
+          "decode_throughput": 4340282.558588261,
+          "response_sent_to_client_ts": 1789937731.6847298
+        }
+      },
+      "diverse": true,
+      "correct": true
+    }
+  ],
+  "candidate-1048576.json": [
+    {
+      "name": "capacity",
+      "configured_context": 1048576,
+      "allocated_tokens": 1048576,
+      "max_req_input_len": 1048570
+    },
+    {
+      "name": "context_retrieval",
+      "target_tokens": 1048448,
+      "input_tokens": 1048435,
+      "seconds": 1125.4470542939998,
+      "response": {
+        "text": "MAPLE, COMET",
+        "output_ids": [
+          17092,
+          841,
+          11,
+          7439,
+          1300,
+          248046
+        ],
+        "meta_info": {
+          "id": "99d5cf1964a64a6c9e3231773f47570d",
+          "finish_reason": {
+            "type": "stop",
+            "matched": 248046
+          },
+          "prompt_tokens": 1048435,
+          "weight_version": "default",
+          "num_retractions": 0,
+          "forward_entry_time": 1789937744.450783,
+          "prefill_finished_time": 1789938869.5182846,
+          "queue_time": 0.0008544921875,
+          "reasoning_tokens": 0,
+          "completion_tokens": 6,
+          "cached_tokens": 0,
+          "cached_tokens_details": null,
+          "dp_rank": null,
+          "e2e_latency": 1125.3679766239984,
+          "request_received_ts": 1789937744.4282608,
+          "api_server_dispatch_finish_ts": 1789937744.4394453,
+          "request_finished_ts": 1789938869.7962375,
+          "decode_throughput": 1806358.4917107176,
+          "response_sent_to_client_ts": 1789938869.796639
+        }
+      },
+      "diverse": true,
+      "correct": true
+    }
+  ],
+  "candidate-post-1m-vision.json": [
+    {
+      "text": "SPARK-7429-MINT",
+      "reasoning": "",
+      "tool_calls": [],
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 6037,
+        "total_tokens": 6047,
+        "completion_tokens": 10,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "seconds": 4.2705334090023825,
+      "ttft_s": 3.9164076910019503,
+      "stream_tg_estimate": 25.41470314784936,
+      "name": "long_needle"
+    },
+    {
+      "text": "Red",
+      "reasoning": "",
+      "tool_calls": [],
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 90,
+        "total_tokens": 92,
+        "completion_tokens": 2,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "image_tokens": 64
+        },
+        "reasoning_tokens": 0
+      },
+      "seconds": 0.49822513600156526,
+      "ttft_s": 0.44134418700195965,
+      "stream_tg_estimate": 17.580578692646878,
+      "name": "vision"
+    },
+    {
+      "text": "SPARK-7429-MINT",
+      "reasoning": "",
+      "tool_calls": [],
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 6037,
+        "total_tokens": 6047,
+        "completion_tokens": 10,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "seconds": 0.7940339719971234,
+      "ttft_s": 0.4207613569997193,
+      "stream_tg_estimate": 24.111064242048908,
+      "name": "long_needle"
+    }
+  ]
+}

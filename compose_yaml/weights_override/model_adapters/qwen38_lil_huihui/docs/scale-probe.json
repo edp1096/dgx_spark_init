@@ -1,0 +1,162 @@
+[
+  {
+    "layer": 2,
+    "expert": 0,
+    "fresh_error": 0.03727871924638748,
+    "fresh_cosine": 0.5455731153488159,
+    "fixed_error": 0.03460574895143509,
+    "fixed_cosine": 0.552796483039856
+  },
+  {
+    "layer": 2,
+    "expert": 1,
+    "fresh_error": 0.03512762859463692,
+    "fresh_cosine": 0.54421466588974,
+    "fixed_error": 0.03327427804470062,
+    "fixed_cosine": 0.5452277660369873
+  },
+  {
+    "layer": 2,
+    "expert": 127,
+    "fresh_error": 0.03471053019165993,
+    "fresh_cosine": 0.5320560336112976,
+    "fixed_error": 0.03279149532318115,
+    "fixed_cosine": 0.5358868837356567
+  },
+  {
+    "layer": 2,
+    "expert": 511,
+    "fresh_error": 0.03764215111732483,
+    "fresh_cosine": 0.5687789916992188,
+    "fixed_error": 0.03563207387924194,
+    "fixed_cosine": 0.5679806470870972
+  },
+  {
+    "layer": 4,
+    "expert": 0,
+    "fresh_error": 0.03674620762467384,
+    "fresh_cosine": 0.5352955460548401,
+    "fixed_error": 0.03445654362440109,
+    "fixed_cosine": 0.5413564443588257
+  },
+  {
+    "layer": 4,
+    "expert": 1,
+    "fresh_error": 0.03713433817028999,
+    "fresh_cosine": 0.5525891184806824,
+    "fixed_error": 0.03487319499254227,
+    "fixed_cosine": 0.5562348365783691
+  },
+  {
+    "layer": 4,
+    "expert": 127,
+    "fresh_error": 0.039364054799079895,
+    "fresh_cosine": 0.5576808452606201,
+    "fixed_error": 0.03641660138964653,
+    "fixed_cosine": 0.5628015995025635
+  },
+  {
+    "layer": 4,
+    "expert": 511,
+    "fresh_error": 0.037439290434122086,
+    "fresh_cosine": 0.5458007454872131,
+    "fixed_error": 0.03539973869919777,
+    "fixed_cosine": 0.5427097678184509
+  },
+  {
+    "layer": 30,
+    "expert": 0,
+    "fresh_error": 0.04334099218249321,
+    "fresh_cosine": 0.5395761728286743,
+    "fixed_error": 0.03707702085375786,
+    "fixed_cosine": 0.5747225284576416
+  },
+  {
+    "layer": 30,
+    "expert": 1,
+    "fresh_error": 0.03481428697705269,
+    "fresh_cosine": 0.5156316757202148,
+    "fixed_error": 0.032982900738716125,
+    "fixed_cosine": 0.5156161189079285
+  },
+  {
+    "layer": 30,
+    "expert": 127,
+    "fresh_error": 0.03761829063296318,
+    "fresh_cosine": 0.5557250380516052,
+    "fixed_error": 0.035372260957956314,
+    "fixed_cosine": 0.5565735697746277
+  },
+  {
+    "layer": 30,
+    "expert": 511,
+    "fresh_error": 0.03736991435289383,
+    "fresh_cosine": 0.5440505743026733,
+    "fixed_error": 0.035358037799596786,
+    "fixed_cosine": 0.5418779253959656
+  },
+  {
+    "layer": 46,
+    "expert": 0,
+    "fresh_error": 0.03552717715501785,
+    "fresh_cosine": 0.5249572992324829,
+    "fixed_error": 0.03353927657008171,
+    "fixed_cosine": 0.5261425971984863
+  },
+  {
+    "layer": 46,
+    "expert": 1,
+    "fresh_error": 0.03548081964254379,
+    "fresh_cosine": 0.5436480045318604,
+    "fixed_error": 0.03352396562695503,
+    "fixed_cosine": 0.5448025465011597
+  },
+  {
+    "layer": 46,
+    "expert": 127,
+    "fresh_error": 0.03688906133174896,
+    "fresh_cosine": 0.5413278341293335,
+    "fixed_error": 0.03483223170042038,
+    "fixed_cosine": 0.5410051941871643
+  },
+  {
+    "layer": 46,
+    "expert": 511,
+    "fresh_error": 0.03594290465116501,
+    "fresh_cosine": 0.5430806279182434,
+    "fixed_error": 0.03377792239189148,
+    "fixed_cosine": 0.5451338291168213
+  },
+  {
+    "layer": 47,
+    "expert": 0,
+    "fresh_error": 0.034862812608480453,
+    "fresh_cosine": 0.5137611031532288,
+    "fixed_error": 0.032433800399303436,
+    "fixed_cosine": 0.5208241939544678
+  },
+  {
+    "layer": 47,
+    "expert": 1,
+    "fresh_error": 0.03628379479050636,
+    "fresh_cosine": 0.540736198425293,
+    "fixed_error": 0.03428402543067932,
+    "fixed_cosine": 0.5398818254470825
+  },
+  {
+    "layer": 47,
+    "expert": 127,
+    "fresh_error": 0.03473939001560211,
+    "fresh_cosine": 0.522685170173645,
+    "fixed_error": 0.032720450311899185,
+    "fixed_cosine": 0.5245445966720581
+  },
+  {
+    "layer": 47,
+    "expert": 511,
+    "fresh_error": 0.03760816901922226,
+    "fresh_cosine": 0.5240296125411987,
+    "fixed_error": 0.034403037279844284,
+    "fixed_cosine": 0.5428129434585571
+  }
+]

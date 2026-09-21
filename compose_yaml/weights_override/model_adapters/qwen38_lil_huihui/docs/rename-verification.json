@@ -1,0 +1,53 @@
+{
+  "model": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-NVFP4-QAD",
+  "models_api": {
+    "object": "list",
+    "data": [
+      {
+        "id": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-NVFP4-QAD",
+        "object": "model",
+        "created": 1789967758,
+        "owned_by": "sglang",
+        "root": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-NVFP4-QAD",
+        "parent": null,
+        "max_model_len": 1048576
+      }
+    ]
+  },
+  "smoke": {
+    "id": "29a09332e8bd41f18e57981d5766de14",
+    "object": "chat.completion",
+    "created": 1789967740,
+    "model": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-NVFP4-QAD",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "323",
+          "reasoning_content": null,
+          "tool_calls": null
+        },
+        "logprobs": null,
+        "finish_reason": "stop",
+        "matched_stop": 248046
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 28,
+      "total_tokens": 32,
+      "completion_tokens": 4,
+      "prompt_tokens_details": null,
+      "reasoning_tokens": 0
+    },
+    "metadata": {
+      "weight_version": "default"
+    }
+  },
+  "readme_sha256": "6ba7d275c46c62cfcb6abefb32aadad1d31c6ede79814b97d9aea1cef051970d",
+  "legacy_directory_symlink": true,
+  "tp2_unchanged": true,
+  "weights_and_model_metadata_unchanged": true,
+  "runtime_image_and_options_unchanged_except_model_name": true,
+  "talk_rebuilt_and_restarted": true
+}

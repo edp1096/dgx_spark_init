@@ -174,7 +174,10 @@ func ValidateCatalog(catalog Catalog) (Catalog, error) {
 			if !exists || seen[id] {
 				return Catalog{}, fmt.Errorf("bundle %q: unknown or duplicate component %q", bundle.ID, id)
 			}
-			component = bundle.Bindings[id].Apply(component)
+			component = bundle.Bindings[id].Apply(component).qwenQADModel()
+			if component.ComposeAsset == "compose.flash-next.yaml" {
+				bundle.ModelID = component.Model
+			}
 			if err := validateDeployment(catalog, component); err != nil {
 				return Catalog{}, fmt.Errorf("bundle %q: %w", bundle.ID, err)
 			}
