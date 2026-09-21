@@ -1,6 +1,6 @@
 services:
   runtime:
-    image: dgx-sglang-qwen38-qad:sm121-v4
+    image: dgx-sglang-qwen38-qad:sm121-v5
     build:
       context: ${SPARKTALK_BUILD_DIR:?Embedded build assets required}
       dockerfile: Dockerfile

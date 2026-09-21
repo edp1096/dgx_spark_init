@@ -34,7 +34,7 @@ print("QAD ready: " + path, flush=True)
 	if component.qwenQADVariant() == "huihui_lil" {
 		script = qwenQADLocalVerificationScript()
 	}
-	cmd := hostCommand(ctx, c.host(component.Host), "docker", "run", "--rm", "-i", "-e", "HF_HUB_OFFLINE=0", "-e", "HF_HOME=/hf", "-v", cache+":/hf", "--entrypoint", "python3", "dgx-sglang-qwen38-qad:sm121-v4", "-u", "-c", script, repo, revision)
+	cmd := hostCommand(ctx, c.host(component.Host), "docker", "run", "--rm", "-i", "-e", "HF_HUB_OFFLINE=0", "-e", "HF_HOME=/hf", "-v", cache+":/hf", "--entrypoint", "python3", "dgx-sglang-qwen38-qad:sm121-v5", "-u", "-c", script, repo, revision)
 	cmd.Stdin = bytes.NewBufferString(strings.TrimSpace(token) + "\n")
 	report := recipeReporter(ctx)
 	if report == nil {

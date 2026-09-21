@@ -11,7 +11,7 @@ services:
       args:
         SGLANG_PLE_COMMIT: 0977d22bb005695fef0aee4bc59adfab45b7a496
         SPARK_RECIPE_COMMIT: 4f425ca561f767997738e894ee578673e79b01b1
-    image: dgx-sglang-qwen38-qad:sm121-v4
+    image: dgx-sglang-qwen38-qad:sm121-v5
     container_name: sglang-qwen38-fn
     ipc: host
     shm_size: "16gb"

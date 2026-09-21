@@ -1,7 +1,7 @@
 # Qwen3.8 Flash-Next · SGLang TP1
 
 1 Spark에서 local-inference-lab NVFP4/MXFP8 모델 실행.
-이미지는 `dgx-sglang-qwen38-qad:sm121-v4`이며, 양자화·PLE 지원과 라우터 오류 수정이 포함돼 있다.
+이미지는 `dgx-sglang-qwen38-qad:sm121-v5`이며, 양자화·PLE 지원과 라우터 오류 수정이 포함돼 있다.
 
 ## 준비 및 빌드
 

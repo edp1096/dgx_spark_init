@@ -77,6 +77,10 @@ assert "ple_offload_dir" in fields
 print("SparkTalk Flash-Next patches verified")
 PY
 
+# Common video decoding support; independent of QAD and model weights.
+COPY patches/video/ /opt/sparktalk-flash-next/patches/video/
+RUN python3 /opt/sparktalk-flash-next/patches/video/patch_video_fallback.py
+
 ENV MAX_JOBS=1 \
     TORCHINDUCTOR_COMPILE_THREADS=4 \
     PYTHONUNBUFFERED=1

@@ -1,6 +1,6 @@
 # Qualified and deployed: Huihui/LIL TP1
 
-Talk's `flash-next` TP1 bundle now uses the local `edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-NVFP4-QAD` checkpoint and `dgx-sglang-qwen38-qad:sm121-v4`. Context and allocated KV are both 1,048,576 tokens, MTP is disabled, and Qwen/Flux/ASR/TTS run together. TP2's saved bundle was compared before/after and is unchanged. No diagnostic hooks remain.
+Talk's `flash-next` TP1 bundle now uses `edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-NVFP4-QAD` with `dgx-sglang-qwen38-qad:sm121-v5`. Context and allocated KV remain 1,048,576 tokens. MTP is enabled (3 steps, 4 draft tokens); the local reserve is 1.5 GiB. The v5 video fix adds a common SGLang PyAV fallback for Decord metadata failures without transcoding. The 1M concurrent-load qualification below was performed on v4 with MTP disabled; it is historical evidence, not a claim that this workload was repeated on v5. TP2's saved configuration is unchanged.
 
 ## Root cause and fix
 

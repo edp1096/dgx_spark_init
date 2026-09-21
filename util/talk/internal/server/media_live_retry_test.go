@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http/httptest"
 	"os"
+	"path/filepath"
 	"sparktalk/internal/config"
 	"sparktalk/internal/db"
 	"sparktalk/internal/llm"
@@ -39,7 +40,11 @@ func TestLiveStoredVideoRetry(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	a, err := s.media.SaveReader(bytes.NewReader(data), "actual-short.mp4", "video/mp4", media.MaxAttachmentBytes)
+	videoName := os.Getenv("TALK_LIVE_VIDEO_NAME")
+	if videoName == "" {
+		videoName = filepath.Base(videoPath)
+	}
+	a, err := s.media.SaveReader(bytes.NewReader(data), videoName, "", media.MaxAttachmentBytes)
 	if err != nil {
 		t.Fatal(err)
 	}
