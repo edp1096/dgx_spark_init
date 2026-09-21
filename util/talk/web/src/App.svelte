@@ -1,4 +1,5 @@
 <script>
+  import { createClientID } from './lib/client-id.js';
   import WorkflowRuns from './components/WorkflowRuns.svelte';
   let workflowVersion=0;
   import { onMount, tick } from 'svelte';
@@ -666,11 +667,11 @@
     const run = sessionRuns[sessionId];
     if (!run || run.steeringSending) return;
     if (!run.turnId) { setSessionError(sessionId, '추가 입력을 받을 준비 중입니다. 잠시 후 전송하세요.'); return; }
-    if (!run.pendingInput || run.pendingInput.content !== content) run.pendingInput = { id: crypto.randomUUID(), content };
-    const entry = run.pendingInput;
     run.steeringSending = true; sessionRuns = { ...sessionRuns };
     stopReplySpeech();
     try {
+      if (!run.pendingInput || run.pendingInput.content !== content) run.pendingInput = { id: createClientID(), content };
+      const entry = run.pendingInput;
       const saved = await steerChat(sessionId, run.turnId, entry.id, content);
       addTurnInput(run, run.messages[run.retryingIndex], saved, sessionId);
       if (activeId === sessionId && input.trim() === content) input = '';

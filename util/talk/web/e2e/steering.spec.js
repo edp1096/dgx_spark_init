@@ -2,6 +2,10 @@ import { test, expect } from '@playwright/test';
 import { createServer } from 'node:http';
 
 test('additional input interrupts inference, survives navigation/reload, and does not duplicate', async ({ page, request }) => {
+  // Match LAN HTTP browsers, where randomUUID is unavailable.
+  await page.addInitScript(() => Object.defineProperty(crypto, 'randomUUID', { value: undefined }));
+  const pageErrors = [];
+  page.on('pageerror', error => pageErrors.push(error.message));
   let calls = 0, oldClosed = false;
   let resume;
   const resumed = new Promise(resolve => { resume = resolve; });
@@ -37,6 +41,7 @@ test('additional input interrupts inference, survives navigation/reload, and doe
     await expect(input).toBeEnabled();
     await input.fill('한국어로 바꿔');await page.getByRole('button',{name:'추가 지시 전송',exact:true}).click();
     await expect(input).toHaveValue('');
+    expect(pageErrors).toEqual([]);
     await expect(page.getByText('한국어로 바꿔',{exact:true})).toBeVisible();
     await expect.poll(()=>calls).toBe(2);await expect.poll(()=>oldClosed).toBe(true);
     await page.getByText('별도 대화방',{exact:true}).first().click();
