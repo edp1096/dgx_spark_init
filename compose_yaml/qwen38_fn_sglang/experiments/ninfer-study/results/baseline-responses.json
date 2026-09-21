@@ -1,0 +1,410 @@
+[
+  {
+    "name": "warmup",
+    "seconds": 1.386366556995199,
+    "response": {
+      "id": "c365fbbbc72145959e1fbbc0a0420ad2",
+      "object": "chat.completion",
+      "created": 1790014053,
+      "model": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-NVFP4-QAD",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "OK",
+            "reasoning_content": null,
+            "tool_calls": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "matched_stop": 248046
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 15,
+        "total_tokens": 17,
+        "completion_tokens": 2,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "metadata": {
+        "weight_version": "default"
+      }
+    }
+  },
+  {
+    "name": "ko",
+    "seconds": 2.9835083359939745,
+    "response": {
+      "id": "4d67a860cf1c48cfab0319a09024b7d2",
+      "object": "chat.completion",
+      "created": 1790014056,
+      "model": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-NVFP4-QAD",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "17 곱하기 19의 결과는 **323**입니다.\n\n**계산 과정:**\n17 × 19 = 17 × (20 - 1) = 340 - 17 = 323",
+            "reasoning_content": null,
+            "tool_calls": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "matched_stop": 248046
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 41,
+        "total_tokens": 98,
+        "completion_tokens": 57,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "metadata": {
+        "weight_version": "default"
+      }
+    }
+  },
+  {
+    "name": "code",
+    "seconds": 3.637631395991775,
+    "response": {
+      "id": "fe2d04a7dacb4ed9825895d69484bab7",
+      "object": "chat.completion",
+      "created": 1790014059,
+      "model": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-NVFP4-QAD",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "```python\ndef binary_search(arr: list, target: int) -> int:\n    left, right = 0, len(arr) - 1\n    while left <= right:\n        mid = (left + right) // 2\n        if arr[mid] == target:\n            return mid\n        elif arr[mid] < target:\n            left = mid + 1\n        else:\n            right = mid - 1\n    return -1\n```",
+            "reasoning_content": null,
+            "tool_calls": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "matched_stop": 248046
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 31,
+        "total_tokens": 132,
+        "completion_tokens": 101,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "metadata": {
+        "weight_version": "default"
+      }
+    }
+  },
+  {
+    "name": "json",
+    "seconds": 1.0001502640079707,
+    "response": {
+      "id": "64d50eac27f94614ab3d8606558114f7",
+      "object": "chat.completion",
+      "created": 1790014060,
+      "model": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-NVFP4-QAD",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"name\": \"sample\",\n  \"count\": 7,\n  \"enabled\": true\n}",
+            "reasoning_content": null,
+            "tool_calls": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "matched_stop": 248046
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 32,
+        "total_tokens": 58,
+        "completion_tokens": 26,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "metadata": {
+        "weight_version": "default"
+      }
+    }
+  },
+  {
+    "name": "prose",
+    "seconds": 4.901907556995866,
+    "response": {
+      "id": "aebaadbcadee442eb7de2162ee20e278",
+      "object": "chat.completion",
+      "created": 1790014065,
+      "model": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-NVFP4-QAD",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "During spring and summer, leaves appear green because chlorophyll, the pigment essential for photosynthesis, dominates and masks other colors. As autumn approaches, shorter days and cooler temperatures cause trees to stop producing chlorophyll, allowing the yellow and orange pigments (carotenoids) that were always present to become visible. Additionally, some trees produce new red and purple pigments called anthocyanins in response to bright sunlight and trapped sugars in the leaves, creating the vibrant, multi-colored display characteristic of fall foliage.",
+            "reasoning_content": null,
+            "tool_calls": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "matched_stop": 248046
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 25,
+        "total_tokens": 130,
+        "completion_tokens": 105,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "metadata": {
+        "weight_version": "default"
+      }
+    }
+  },
+  {
+    "name": "ko_repeat",
+    "seconds": 3.0398921640007757,
+    "response": {
+      "id": "ff803a515e09404fb2e00f3f74af75ef",
+      "object": "chat.completion",
+      "created": 1790014068,
+      "model": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-NVFP4-QAD",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "17 곱하기 19의 결과는 **323**입니다.\n\n**계산 과정:**\n1. $17 \\times 19$는 $17 \\times (20 - 1)$로 생각할 수 있습니다.\n2. 먼저 $17 \\times 20 = 340$을 계산합니다.\n3. 여기서 $17 \\times 1 = 17$을 빼면 됩니다.\n4. $340 - 17 = 323$이 됩니다.",
+            "reasoning_content": null,
+            "tool_calls": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "matched_stop": 248046
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 41,
+        "total_tokens": 159,
+        "completion_tokens": 118,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "metadata": {
+        "weight_version": "default"
+      }
+    }
+  },
+  {
+    "name": "code_repeat",
+    "seconds": 2.147939539005165,
+    "response": {
+      "id": "80856142f4384f0eba1fcb6b41814c1e",
+      "object": "chat.completion",
+      "created": 1790014071,
+      "model": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-NVFP4-QAD",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "```python\ndef binary_search(arr: list, target: int) -> int:\n    left, right = 0, len(arr) - 1\n    while left <= right:\n        mid = (left + right) // 2\n        if arr[mid] == target:\n            return mid\n        elif arr[mid] < target:\n            left = mid + 1\n        else:\n            right = mid - 1\n    return -1\n```",
+            "reasoning_content": null,
+            "tool_calls": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "matched_stop": 248046
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 31,
+        "total_tokens": 132,
+        "completion_tokens": 101,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "metadata": {
+        "weight_version": "default"
+      }
+    }
+  },
+  {
+    "name": "json_repeat",
+    "seconds": 0.8083294319949346,
+    "response": {
+      "id": "64c64e875925494eb637cd39aa695e25",
+      "object": "chat.completion",
+      "created": 1790014071,
+      "model": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-NVFP4-QAD",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"name\": \"sample\",\n  \"count\": 7,\n  \"enabled\": true\n}",
+            "reasoning_content": null,
+            "tool_calls": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "matched_stop": 248046
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 32,
+        "total_tokens": 58,
+        "completion_tokens": 26,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "metadata": {
+        "weight_version": "default"
+      }
+    }
+  },
+  {
+    "name": "prose_repeat",
+    "seconds": 3.7419879880035296,
+    "response": {
+      "id": "9aed564ece2c42b48685873c27f0fe8a",
+      "object": "chat.completion",
+      "created": 1790014075,
+      "model": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-NVFP4-QAD",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "During spring and summer, leaves appear green because chlorophyll, the pigment responsible for photosynthesis, dominates and masks other colors. As autumn approaches, shorter days and cooler temperatures cause trees to stop producing chlorophyll, allowing the yellow and orange pigments (carotenoids) that were always present but hidden to become visible. Additionally, some trees produce new red and purple pigments called anthocyanins in response to bright sunlight and trapped sugars in the leaves, creating the vibrant, multi-colored display characteristic of the season.",
+            "reasoning_content": null,
+            "tool_calls": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "matched_stop": 248046
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 25,
+        "total_tokens": 132,
+        "completion_tokens": 107,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "metadata": {
+        "weight_version": "default"
+      }
+    }
+  },
+  {
+    "name": "long",
+    "seconds": 27.89905402000295,
+    "response": {
+      "id": "c81531586ba14e0dbc5ece68d49b0c5d",
+      "object": "chat.completion",
+      "created": 1790014103,
+      "model": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-NVFP4-QAD",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "BLUE-731",
+            "reasoning_content": null,
+            "tool_calls": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "matched_stop": 248046
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 32033,
+        "total_tokens": 32039,
+        "completion_tokens": 6,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "metadata": {
+        "weight_version": "default"
+      }
+    }
+  },
+  {
+    "name": "long_reuse",
+    "seconds": 0.6000779540045187,
+    "response": {
+      "id": "58e1cdbc98df48b187e6ed7aeffee6df",
+      "object": "chat.completion",
+      "created": 1790014104,
+      "model": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-NVFP4-QAD",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "BLUE-731",
+            "reasoning_content": null,
+            "tool_calls": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "matched_stop": 248046
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 32033,
+        "total_tokens": 32039,
+        "completion_tokens": 6,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "metadata": {
+        "weight_version": "default"
+      }
+    }
+  },
+  {
+    "name": "branch",
+    "seconds": 0.5529251209954964,
+    "response": {
+      "id": "3291ca15b9a347f9a0a04b45655b72f8",
+      "object": "chat.completion",
+      "created": 1790014104,
+      "model": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-NVFP4-QAD",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "42",
+            "reasoning_content": null,
+            "tool_calls": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "matched_stop": 248046
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 32041,
+        "total_tokens": 32044,
+        "completion_tokens": 3,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "metadata": {
+        "weight_version": "default"
+      }
+    }
+  }
+]

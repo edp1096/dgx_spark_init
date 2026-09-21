@@ -2,7 +2,8 @@
 
 The speculative checkpoint views alias one allocation. B12X verify reads the
 persistent slot in the last index column and writes only intermediate columns.
-SGLang's existing accepted-token scatter remains the sole commit operation.
+SGLang owns accepted-token commit: scatter for the default snapshots, or
+its native fold for the opt-in ReplaySSM verify path.
 """
 from dataclasses import replace
 import os
@@ -37,8 +38,14 @@ def join_state_pool(pool):
     state=pool.mamba_cache
     temporal=state.temporal
     intermediate=getattr(state,'intermediate_ssm',None)
-    if any(getattr(state,n,None) is not None for n in ('replayssm_d','replayssm_rawv')):
-        raise ValueError('QAD B12X GDN does not combine with ReplaySSM')
+    replay = getattr(state, 'replayssm_rawv', None) is not None
+    if getattr(state, 'replayssm_d', None) is not None:
+        raise ValueError('QAD B12X GDN does not support the decode ReplaySSM ring')
+    if replay and (os.environ.get('SGLANG_QAD_REPLAY_VERIFY') != '1'
+                   or not getattr(pool, 'replayssm_spec_fold', False)
+                   or getattr(pool, 'replayssm_is_kda', False)
+                   or intermediate is not None):
+        raise ValueError('QAD replay verify requires opt-in GDN fold-every-commit without snapshots')
     if temporal.dtype!=torch.float32 or temporal.shape[-3:]!=(48,128,128):
         raise ValueError('QAD B12X GDN is qualified for TP1 48x128x128 FP32 state')
     pool.qad_persistent_slots=temporal.shape[1]
@@ -110,6 +117,23 @@ def verify(backend,layer,forward_batch,mixed_qkv,a,b,kwargs):
     if int(getattr(forward_batch.spec_info,'topk',1) or 1)!=1:
         raise ValueError('B12X GDN verify requires a linear MTP chain')
     pool=backend.req_to_token_pool.mamba_pool
+    if getattr(pool, 'replayssm_spec_fold', False):
+        if os.environ.get('SGLANG_QAD_REPLAY_VERIFY') != '1':
+            raise ValueError('QAD replay verify is not enabled')
+        from sglang.kernels.ops.attention.fla.layernorm_gated import rms_norm_gated
+        q,k,v = torch.split(mixed_qkv, [layer.q_dim, layer.k_dim, layer.v_dim], dim=-1)
+        tokens = mixed_qkv.shape[0]
+        cache = backend.req_to_token_pool.mamba2_layer_cache(layer.layer_id)
+        output = backend._replayssm_fold_target_verify(
+            layer=layer, query=q.reshape(1,tokens,16,128),
+            key=k.reshape(1,tokens,16,128), value=v.reshape(1,tokens,48,128),
+            a=a,b=b,layer_cache=cache,ssm_states=cache.temporal,
+            cache_indices=backend.forward_metadata.mamba_cache_indices,
+            query_start_loc=backend.forward_metadata.query_start_loc,
+            retrieve_parent_token=None)
+        return rms_norm_gated(x=output.reshape(-1,128), weight=kwargs['qad_norm_weight'],
+            bias=None,z=kwargs['qad_z'].reshape(-1,128),eps=kwargs['qad_eps'],
+            norm_before_gate=True,is_rms_norm=True,activation=kwargs['qad_gate']).reshape(1,tokens,48,128)
     li=backend.req_to_token_pool.mamba2_layer_index(layer.layer_id)
     state=pool.qad_state_pool[li]
     steps=forward_batch.spec_info.draft_token_num

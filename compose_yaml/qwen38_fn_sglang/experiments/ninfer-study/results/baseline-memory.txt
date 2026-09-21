@@ -1,0 +1,1 @@
+[2026-09-21 18:06:47] Mamba Cache is allocated. max_mamba_cache_size: 8, conv_state size: 0.02GB, ssm_state size: 0.95GB intermediate_ssm_state_cache size: 0.84GB intermediate_conv_window_cache size: 0.01GB

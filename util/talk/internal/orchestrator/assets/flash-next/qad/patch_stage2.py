@@ -34,6 +34,7 @@ s=s[:start]+'''    def process_weights_after_loading(self, layer):
 '''+s[end:]
 ast.parse(s);p.write_text(s)
 print('Installed mixed-precision vision and BF16-activation B12X W4A16 adapter')
+patch('layers/logits_processor.py', 'import logging\n', 'import logging\nimport os\n')
 patch('layers/logits_processor.py',
 '''        elif hasattr(lm_head, "weight"):
             # Normal linear layer''',
@@ -44,7 +45,10 @@ patch('layers/logits_processor.py',
                 and hidden_states.shape[1] == 2560
                 and hidden_states.dtype == torch.bfloat16
                 and lm_head.weight.dtype == torch.bfloat16
-                and lm_head.weight.shape == (248320, 2560)):
+                and (lm_head.weight.shape == (248320, 2560)
+                     or (lm_head.weight.shape == (65536, 2560)
+                         and hidden_states.shape[0] == 1
+                         and os.environ.get("SGLANG_QAD_DRAFT_GEMV") == "1"))):
                 from b12x.gemm.bf16_gemv import mm
                 return mm(hidden_states.contiguous(), lm_head.weight, output_dtype=torch.bfloat16)
             # Normal linear layer''')

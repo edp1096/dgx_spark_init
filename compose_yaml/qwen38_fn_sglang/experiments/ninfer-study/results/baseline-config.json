@@ -1,0 +1,11 @@
+{
+  "context_length": 1048576,
+  "max_total_tokens": 1048576,
+  "max_running_requests": 1,
+  "enable_hierarchical_cache": false,
+  "hicache_storage_backend": null,
+  "enable_linear_replayssm_spec": false,
+  "mamba_ssm_dtype": null,
+  "speculative_num_steps": 3,
+  "speculative_num_draft_tokens": 4
+}

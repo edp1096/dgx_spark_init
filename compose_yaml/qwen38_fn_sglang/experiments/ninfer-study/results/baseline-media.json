@@ -1,0 +1,120 @@
+[
+  {
+    "name": "tool",
+    "seconds": 2.585370145010529,
+    "response": {
+      "id": "7e6322e7db0046b488cc04d9a94dcd69",
+      "object": "chat.completion",
+      "created": 1790014116,
+      "model": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-NVFP4-QAD",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "",
+            "reasoning_content": null,
+            "tool_calls": [
+              {
+                "id": "call_e2296e5c77da499e91f78dce",
+                "index": 0,
+                "type": "function",
+                "function": {
+                  "name": "get_weather",
+                  "arguments": "{\"city\": \"Seoul\"}"
+                }
+              }
+            ]
+          },
+          "logprobs": null,
+          "finish_reason": "tool_calls",
+          "matched_stop": null
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 288,
+        "total_tokens": 315,
+        "completion_tokens": 27,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "metadata": {
+        "weight_version": "default"
+      }
+    }
+  },
+  {
+    "name": "image",
+    "seconds": 0.5465714979945915,
+    "response": {
+      "id": "360135fc9bb64ae387dca6688489df59",
+      "object": "chat.completion",
+      "created": 1790014116,
+      "model": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-NVFP4-QAD",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "Red",
+            "reasoning_content": null,
+            "tool_calls": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "matched_stop": 248046
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 87,
+        "total_tokens": 89,
+        "completion_tokens": 2,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "image_tokens": 64
+        },
+        "reasoning_tokens": 0
+      },
+      "metadata": {
+        "weight_version": "default"
+      }
+    }
+  },
+  {
+    "name": "video",
+    "seconds": 3.3047635770053603,
+    "response": {
+      "id": "df730e260ecc4d9c8ca3d3ef20ad929b",
+      "object": "chat.completion",
+      "created": 1790014119,
+      "model": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-NVFP4-QAD",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "Red, Blue",
+            "reasoning_content": null,
+            "tool_calls": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "matched_stop": 248046
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 240,
+        "total_tokens": 244,
+        "completion_tokens": 4,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "video_tokens": 200
+        },
+        "reasoning_tokens": 0
+      },
+      "metadata": {
+        "weight_version": "default"
+      }
+    }
+  }
+]
