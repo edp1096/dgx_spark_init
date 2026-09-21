@@ -15,7 +15,6 @@ The 101 changed Q8 tensors comprise 96 output/shared projections plus routed
 expert down projections in five layers. Original Q8 ranges are downloaded with
 HTTP 206 range and SHA256 checks against the earlier full audit. The full Huihui
 checkpoint is downloaded again. Each changed donor range is also hash checked.
-No MiaAI code is used.
 
 LIL's high-precision QAD training weights are unavailable. The candidate uses:
 

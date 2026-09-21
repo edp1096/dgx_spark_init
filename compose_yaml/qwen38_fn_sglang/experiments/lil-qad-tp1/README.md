@@ -27,9 +27,9 @@ Baseline image: `dgx-sglang-qwen38-fn:sm121-vocab1`.
   `[2500012, 10]`, representing 160 columns with 16-element scale blocks.
 - The unmodified baseline Qwen4 PLE file offload accepts BF16/FP8, not packed NVFP4. Loading
   U8 as numerical BF16 values or dropping block/global scales is invalid.
-- `nvfp4_ple.py` is independently implemented from the E2M1 representation.
+- `../../qad/nvfp4_ple.py` decodes the E2M1 representation.
   It decodes selected rows without expanding the complete table. Global FP32
-  scale multiplication precedes BF16 output rounding. No MiaAI code was used.
+  scale multiplication precedes BF16 output rounding.
 
 ## Verified on GB10, 2026-09-18
 
@@ -83,7 +83,6 @@ docker run --rm --gpus all --network none --memory 3g \
 - Checkpoint metadata: https://huggingface.co/local-inference-lab/Qwen3.8-Flash-Next-NVFP4
 - SGLang runtime/interfaces: https://github.com/sgl-project/sglang (Apache-2.0).
 - Optional B12X library: https://github.com/local-inference-lab/b12x (Apache-2.0).
-- No new MiaAI implementation or downstream MiaAI-derived runtime code was copied.
 
 ## Integration checks, 2026-09-18
 
@@ -149,6 +148,3 @@ python3 compose_yaml/qwen38_fn_sglang/experiments/lil-qad-tp1/smoke_test.py \
 This checks deterministic arithmetic text, parsed reasoning, and a parsed
 function call. It writes request/response evidence before assertions. It does
 not test vision, MTP, long context or benchmark model quality.
-
-No new MiaAI implementation was copied. Existing SGLang image dependencies are
-inherited; this work is not a new audit of the entire inherited image.

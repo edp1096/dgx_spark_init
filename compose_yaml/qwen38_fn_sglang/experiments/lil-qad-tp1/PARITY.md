@@ -2,7 +2,6 @@
 
 This is a port of checkpoint support and selected kernels, not a claim that
 two different serving engines become identical by copying command-line flags.
-All source references below are Apache-2.0. No MiaAI implementation is used.
 
 | Area | SGLang v3 | Reference vLLM |
 | --- | --- | --- |

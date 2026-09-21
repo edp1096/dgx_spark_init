@@ -1,0 +1,632 @@
+{
+  "status": "Extended qualification completed; experimental. Full 1M disk restoration is not supported with the tested 1 GB host pool.",
+  "payload_version": "QADHC002",
+  "model": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-NVFP4-QAD",
+  "context_length": 1048576,
+  "max_total_tokens": 1048576,
+  "mtp": {
+    "algorithm": "NEXTN",
+    "steps": 3,
+    "draft_tokens": 4,
+    "vocab": "ko64k"
+  },
+  "hicache": {
+    "backend": "file",
+    "host_budget_gb": 1,
+    "kv_host_capacity_tokens": 54336,
+    "mamba_host_slots": 2
+  },
+  "cpu_tests_passed": 17,
+  "native_cuda_roundtrip_passed": true,
+  "image_id": "sha256:4164a34474f1e20f0ca18bd15235994838c94f369b8643c271621bc1a99bd89b",
+  "source_sha256": {
+    "qad_hicache.py": "35d2d7a61fcfc3825658615c59b2b684d4631928b6e2ac29c2cb0b1dd1933c30",
+    "patch_hicache.py": "2abe5e78e5c1f56c61ac123edd66754c4a35d80675a9ed5009826bed37d9a193",
+    "test_hicache.py": "dfe8be59c61bcef881ef3d940bbb96c0e60e9ad1c9c69702420e3a9fd038f2ef",
+    "test_hicache_gpu.py": "c4cca8884fcf01f29029aa7f34cf3ac0e16b3a348eb737ad319e5adc0eacfe70"
+  },
+  "runtime_images": {
+    "long_context_runtime_image": "sha256:296677721d1abdd03833f4ccd36da35791ee62c6a78f9b33d995dfebf20f720a",
+    "final_admission_guard_image": "sha256:4164a34474f1e20f0ca18bd15235994838c94f369b8643c271621bc1a99bd89b",
+    "difference": "Final image additionally rejects requests which cannot fit the scheduler page reserve. Payload and transfer algorithms unchanged.",
+    "http_guard_runtime_image": "sha256:4164a34474f1e20f0ca18bd15235994838c94f369b8643c271621bc1a99bd89b",
+    "final_source_image": "sha256:3d0f193c54fcdfee1853b3038206506624020cbdd090e684b083bc0f48f0e089",
+    "payload_ast_sha256": "eb55b6b525500a8ce57a1f808edad6054a82f04aa7684e49e9be415463647561",
+    "post_http_test_change": "Only the error-message input-length suggestion was rounded down to a complete page; rejection predicate and payload/transfer code are unchanged. Covered by the final 17-test CPU run."
+  },
+  "near_capacity_rejection": {
+    "input_tokens": 1048512,
+    "max_new_tokens": 32,
+    "page_reserve_tokens": 64,
+    "max_total_tokens": 1048576,
+    "required_tokens_before_other_reserves": 1048608,
+    "outcome": "not admitted; repeated scheduler budget rejection, no prefill started",
+    "cancel_method": "close only this test client; native disconnect handler aborts its request",
+    "observed_at": 1790002683.2123332
+  },
+  "admission_guard_http_test": [
+    {
+      "path": "/generate",
+      "status": 400,
+      "seconds": 3.6184603739966406,
+      "body": "{\"error\":{\"message\":\"Request cannot fit the KV admission budget: 1048512 input tokens, 0 output-reserve tokens and 64 page-reserve tokens require less than 1048576 total tokens. Reduce the input to at most 1048511 tokens for this output budget.\"}}"
+    },
+    {
+      "path": "/v1/completions",
+      "status": 400,
+      "seconds": 0.37762598499830347,
+      "body": "{\"object\":\"error\",\"message\":\"Request cannot fit the KV admission budget: 1048512 input tokens, 0 output-reserve tokens and 64 page-reserve tokens require less than 1048576 total tokens. Reduce the input to at most 1048511 tokens for this output budget.\",\"type\":\"BadRequestError\",\"param\":null,\"code\":400}"
+    }
+  ],
+  "conversation_cases": {
+    "session_a": {
+      "expected": "ALPHA-48271",
+      "reference_correct": true,
+      "live_correct": true,
+      "disk_correct": true,
+      "ids_equal": true,
+      "disk_hit": {
+        "device": 0,
+        "host": 0,
+        "storage": 4480,
+        "storage_backend": "HiCacheFile"
+      }
+    },
+    "session_b": {
+      "expected": "BRAVO-93604",
+      "reference_correct": true,
+      "live_correct": true,
+      "disk_correct": true,
+      "ids_equal": true,
+      "disk_hit": {
+        "device": 0,
+        "host": 0,
+        "storage": 4480,
+        "storage_backend": "HiCacheFile"
+      }
+    },
+    "branch_a": {
+      "expected": "ALPHA-48271",
+      "reference_correct": true,
+      "live_correct": true,
+      "disk_correct": true,
+      "ids_equal": true,
+      "disk_hit": {
+        "device": 0,
+        "host": 0,
+        "storage": 4480,
+        "storage_backend": "HiCacheFile"
+      }
+    },
+    "edited_a": {
+      "expected": "DELTA-75319",
+      "reference_correct": true,
+      "live_correct": true,
+      "disk_correct": true,
+      "ids_equal": true,
+      "disk_hit": {
+        "device": 0,
+        "host": 0,
+        "storage": 4480,
+        "storage_backend": "HiCacheFile"
+      }
+    },
+    "tool_a": {
+      "expected": "ECHO-24680",
+      "reference_correct": true,
+      "live_correct": true,
+      "disk_correct": true,
+      "ids_equal": true,
+      "disk_hit": {
+        "device": 0,
+        "host": 0,
+        "storage": 4544,
+        "storage_backend": "HiCacheFile"
+      }
+    },
+    "tool_edited": {
+      "expected": "FOXTROT-13579",
+      "reference_correct": true,
+      "live_correct": true,
+      "disk_correct": true,
+      "ids_equal": true,
+      "disk_hit": {
+        "device": 0,
+        "host": 0,
+        "storage": 4544,
+        "storage_backend": "HiCacheFile"
+      }
+    }
+  },
+  "corrupt_mamba": {
+    "damaged_states": 2,
+    "storage_tokens": 0,
+    "ids_equal": true,
+    "text": "ALPHA-48271"
+  },
+  "corrupt_kv": {
+    "damaged_pages": 70,
+    "ids_equal": true,
+    "text": "ALPHA-48271"
+  },
+  "abort_and_queue": {
+    "abort_ack": "",
+    "elapsed_after_abort": 1.0330665170040447,
+    "aborted": {
+      "elapsed": 4.551101247998304,
+      "result": {
+        "text": "",
+        "output_ids": [],
+        "meta_info": {
+          "id": "qad-validation-abort-v2",
+          "finish_reason": {
+            "type": "abort",
+            "message": "Abort in waiting queue"
+          },
+          "weight_version": "default",
+          "e2e_latency": 4.531410367999342,
+          "input_token_logprobs": [],
+          "output_token_logprobs": [],
+          "output_token_logprobs_length": 0,
+          "completion_tokens": 0,
+          "response_sent_to_client_ts": 1790001223.0489817
+        }
+      }
+    },
+    "queued_text": "BRAVO-93604"
+  },
+  "long_context_cases": {
+    "131072": {
+      "cold_seconds": 76.33694960799767,
+      "warm_seconds": 3.0641651720070513,
+      "disk_seconds": 76.14811999599624,
+      "warm_ids_equal": true,
+      "disk_ids_equal": true,
+      "cold_text": "Initial audit secret code: KESTREL-48271\nBackup code: CORAL-93604",
+      "disk_text": "Initial audit secret code: KESTREL-48271\nBackup code: CORAL-93604",
+      "warm_hit": {
+        "device": 126976,
+        "host": 0,
+        "storage": 0,
+        "storage_backend": "HiCacheFile"
+      },
+      "disk_hit": null
+    },
+    "262144": {
+      "cold_seconds": 160.88081279100152,
+      "warm_seconds": 3.4039992990001338,
+      "disk_seconds": 161.11044235900044,
+      "warm_ids_equal": true,
+      "disk_ids_equal": true,
+      "cold_text": "Initial audit secret code: KESTREL-48271\nBackup code: CORAL-93604",
+      "disk_text": "Initial audit secret code: KESTREL-48271\nBackup code: CORAL-93604",
+      "warm_hit": {
+        "device": 258048,
+        "host": 0,
+        "storage": 0,
+        "storage_backend": "HiCacheFile"
+      },
+      "disk_hit": null
+    },
+    "524288": {
+      "cold_seconds": 369.98027729000023,
+      "warm_seconds": 4.347608612995828,
+      "disk_seconds": 368.5457366490009,
+      "warm_ids_equal": true,
+      "disk_ids_equal": true,
+      "cold_text": "Initial audit secret code: KESTREL-48271\nBackup code: CORAL-93604",
+      "disk_text": "Initial audit secret code: KESTREL-48271\nBackup code: CORAL-93604",
+      "warm_hit": {
+        "device": 520192,
+        "host": 0,
+        "storage": 0,
+        "storage_backend": "HiCacheFile"
+      },
+      "disk_hit": null
+    },
+    "1048000": {
+      "cold_seconds": 1054.8218289049983,
+      "warm_seconds": 6.628937765999581,
+      "disk_seconds": 1046.813595161002,
+      "warm_ids_equal": true,
+      "disk_ids_equal": true,
+      "cold_text": "Initial audit secret code: KESTREL-48271\nBackup code: CORAL-93604",
+      "disk_text": "Initial audit secret code: KESTREL-48271\nBackup code: CORAL-93604",
+      "warm_hit": {
+        "device": 1044480,
+        "host": 0,
+        "storage": 0,
+        "storage_backend": "HiCacheFile"
+      },
+      "disk_hit": null
+    }
+  },
+  "multimodal": {
+    "image-red": {
+      "responses": [
+        "red",
+        "red"
+      ],
+      "expected": "red",
+      "correct": true,
+      "seconds": [
+        0.6195491739927093,
+        0.5548540829913691
+      ],
+      "disk_hit_tokens_from_backend_log": 2048,
+      "note": "OpenAI usage cached_tokens remains 0 with the current reporting configuration; backend prefetch/prefill logs show the hit."
+    },
+    "image-blue": {
+      "responses": [
+        "blue",
+        "blue"
+      ],
+      "expected": "blue",
+      "correct": true,
+      "seconds": [
+        1.6091722139972262,
+        0.5547303860075772
+      ],
+      "disk_hit_tokens_from_backend_log": 2048,
+      "note": "OpenAI usage cached_tokens remains 0 with the current reporting configuration; backend prefetch/prefill logs show the hit."
+    },
+    "video-webm": {
+      "responses": [
+        "RED then BLUE",
+        "RED then BLUE"
+      ],
+      "expected": "red then blue",
+      "correct": true,
+      "seconds": [
+        3.2378209969901945,
+        1.4365009350003675
+      ],
+      "disk_hit_tokens_from_backend_log": 2240,
+      "note": "OpenAI usage cached_tokens remains 0 with the current reporting configuration; backend prefetch/prefill logs show the hit."
+    }
+  },
+  "services": {
+    "started": 1790005069.3100486,
+    "ended": 1790005178.4768724,
+    "results": {
+      "tts_warm": {
+        "seconds": 0.7078104359970894,
+        "bytes": 258048,
+        "duration": 5.851428571428571,
+        "content_type": "audio/pcm"
+      },
+      "asr_warm": {
+        "seconds": 0.3518235240044305,
+        "result": {
+          "text": "The blue box contains seven tools. This is a simultaneous speech and image generation test."
+        }
+      },
+      "flux_warm": {
+        "seconds": 10.967320069001289,
+        "png_bytes": 191883
+      },
+      "llm": {
+        "seconds": 29.135648961004335,
+        "meta": {
+          "id": "qad-check-services-llm-23072d48bdf045eb958ced669bd6bd9a",
+          "finish_reason": {
+            "type": "length",
+            "length": 512
+          },
+          "prompt_tokens": 1047040,
+          "weight_version": "default",
+          "num_retractions": 0,
+          "forward_entry_time": 1790005081.7097962,
+          "prefill_finished_time": 1790005098.7331207,
+          "queue_time": 0.040924787521362305,
+          "reasoning_tokens": 0,
+          "completion_tokens": 512,
+          "cached_tokens": 1044480,
+          "cached_tokens_details": {
+            "device": 1044480,
+            "host": 0,
+            "storage": 0,
+            "storage_backend": "HiCacheFile"
+          },
+          "dp_rank": null,
+          "e2e_latency": 29.058207756010233,
+          "spec_accept_rate": 0.8044444444444444,
+          "spec_accept_length": 3.4133333333333336,
+          "spec_num_correct_drafts": 362,
+          "spec_num_proposed_drafts": 450,
+          "spec_verify_ct": 150,
+          "spec_accepted_drafts": 362,
+          "spec_proposed_drafts": 450,
+          "spec_correct_drafts_histogram": [
+            15,
+            15,
+            13,
+            107
+          ],
+          "spec_accept_histogram": [
+            15,
+            15,
+            13,
+            107
+          ],
+          "request_received_ts": 1790005081.5921493,
+          "api_server_dispatch_finish_ts": 1790005081.6070578,
+          "request_finished_ts": 1790005110.650357,
+          "decode_throughput": 208.5839766428721,
+          "response_sent_to_client_ts": 1790005110.6552224
+        },
+        "output_tokens": 512
+      },
+      "flux": {
+        "seconds": 17.83898592600599,
+        "png_bytes": 875519
+      },
+      "tts": {
+        "seconds": 9.158222584999749,
+        "bytes": 258048,
+        "duration": 5.851428571428571,
+        "content_type": "audio/pcm"
+      },
+      "asr": {
+        "seconds": 0.11853528299252503,
+        "result": {
+          "text": "The blue box contains seven tools. This is a simultaneous speech and image generation test."
+        }
+      },
+      "outpaint_lora": {
+        "seconds": 16.470337405000464,
+        "png_bytes": 270760
+      }
+    },
+    "system_memory": {
+      "min_available_gib": 3.242206573486328,
+      "max_swap_used_gib": 2.9725265502929688,
+      "swap_out_mib": 2403.91015625,
+      "swap_in_mib": 277.78515625,
+      "sample_interval_seconds": 2
+    },
+    "image_dimensions": {
+      "flux-warm": [
+        512,
+        512
+      ],
+      "services-flux": [
+        1024,
+        1024
+      ],
+      "services-outpaint": [
+        640,
+        640
+      ]
+    },
+    "image_integrity": {
+      "png_decode": true,
+      "outpaint_preserves_source": true,
+      "dimensions": {
+        "flux-warm": [
+          512,
+          512
+        ],
+        "services-flux": [
+          1024,
+          1024
+        ],
+        "services-outpaint": [
+          640,
+          640
+        ]
+      }
+    }
+  },
+  "restart": {
+    "input_tokens": 53248,
+    "cold_seconds": 31.46191572699172,
+    "restored_seconds": 12.086985016008839,
+    "hits": {
+      "device": 0,
+      "host": 0,
+      "storage": 49152,
+      "storage_backend": "HiCacheFile"
+    },
+    "output_token_ids_equal": true,
+    "max_abs_output_logprob_difference": 0.03260253742337227,
+    "output_text": "Initial audit secret code: KESTREL-48271\nBackup code: CORAL-93604",
+    "fresh_process": true,
+    "startup_cache_flush": false,
+    "image_id": "sha256:4164a34474f1e20f0ca18bd15235994838c94f369b8643c271621bc1a99bd89b"
+  },
+  "limitations": [
+    "With a 1 GB host cache, long prefixes do not obtain full disk restoration; staged/streaming restoration is not implemented.",
+    "Same model weights and numerical runtime settings are required; use a separate storage directory after changing them.",
+    "Nonempty request cache_salt did not yield usable disk hits in this pinned upstream UnifiedRadixCache path; tenant isolation is not qualified.",
+    "Greedy token equality on synthetic cases does not prove bitwise logit equality or general long-context recall accuracy.",
+    "Interrupted writer testing covers process termination before atomic rename, not power-loss durability."
+  ],
+  "runtime_defaults_changed": false,
+  "published": false,
+  "comparisons": {
+    "session_a": {
+      "prompt_tokens": 4521,
+      "reference_seconds": 3.036208631005138,
+      "candidate_seconds": 0.5461265100020682,
+      "output_token_ids_equal": true,
+      "max_abs_output_logprob_difference": 0.017739392817020416,
+      "cache_hits": {
+        "device": 0,
+        "host": 0,
+        "storage": 4480,
+        "storage_backend": "HiCacheFile"
+      },
+      "output_text": "ALPHA-48271"
+    },
+    "session_b": {
+      "prompt_tokens": 4522,
+      "reference_seconds": 3.042549329009489,
+      "candidate_seconds": 0.6948095339903375,
+      "output_token_ids_equal": true,
+      "max_abs_output_logprob_difference": 0.020145684480667114,
+      "cache_hits": {
+        "device": 0,
+        "host": 0,
+        "storage": 4480,
+        "storage_backend": "HiCacheFile"
+      },
+      "output_text": "BRAVO-93604"
+    },
+    "branch_a": {
+      "prompt_tokens": 4528,
+      "reference_seconds": 2.998461359005887,
+      "candidate_seconds": 0.5934708139975555,
+      "output_token_ids_equal": true,
+      "max_abs_output_logprob_difference": 0.001719751162454486,
+      "cache_hits": {
+        "device": 0,
+        "host": 0,
+        "storage": 4480,
+        "storage_backend": "HiCacheFile"
+      },
+      "output_text": "ALPHA-48271"
+    },
+    "edited_a": {
+      "prompt_tokens": 4522,
+      "reference_seconds": 3.014353646998643,
+      "candidate_seconds": 0.6942656220053323,
+      "output_token_ids_equal": true,
+      "max_abs_output_logprob_difference": 0.054020741023123264,
+      "cache_hits": {
+        "device": 0,
+        "host": 0,
+        "storage": 4480,
+        "storage_backend": "HiCacheFile"
+      },
+      "output_text": "DELTA-75319"
+    },
+    "tool_a": {
+      "prompt_tokens": 4588,
+      "reference_seconds": 3.088216044998262,
+      "candidate_seconds": 0.5450280770019162,
+      "output_token_ids_equal": true,
+      "max_abs_output_logprob_difference": 0.2997320145368576,
+      "cache_hits": {
+        "device": 0,
+        "host": 0,
+        "storage": 4544,
+        "storage_backend": "HiCacheFile"
+      },
+      "output_text": "ECHO-24680"
+    },
+    "tool_edited": {
+      "prompt_tokens": 4589,
+      "reference_seconds": 3.1771946669905446,
+      "candidate_seconds": 0.6378338849899592,
+      "output_token_ids_equal": true,
+      "max_abs_output_logprob_difference": 0.02725130319595337,
+      "cache_hits": {
+        "device": 0,
+        "host": 0,
+        "storage": 4544,
+        "storage_backend": "HiCacheFile"
+      },
+      "output_text": "FOXTROT-13579"
+    },
+    "131072-warm": {
+      "prompt_tokens": 131072,
+      "reference_seconds": 76.33694960799767,
+      "candidate_seconds": 3.0641651720070513,
+      "output_token_ids_equal": true,
+      "max_abs_output_logprob_difference": 0.034216299653053284,
+      "cache_hits": {
+        "device": 126976,
+        "host": 0,
+        "storage": 0,
+        "storage_backend": "HiCacheFile"
+      },
+      "output_text": "Initial audit secret code: KESTREL-48271\nBackup code: CORAL-93604"
+    },
+    "131072-disk": {
+      "prompt_tokens": 131072,
+      "reference_seconds": 76.33694960799767,
+      "candidate_seconds": 76.14811999599624,
+      "output_token_ids_equal": true,
+      "max_abs_output_logprob_difference": 0.03342777490615845,
+      "cache_hits": null,
+      "output_text": "Initial audit secret code: KESTREL-48271\nBackup code: CORAL-93604"
+    },
+    "262144-warm": {
+      "prompt_tokens": 262144,
+      "reference_seconds": 160.88081279100152,
+      "candidate_seconds": 3.4039992990001338,
+      "output_token_ids_equal": true,
+      "max_abs_output_logprob_difference": 0.046283673495054245,
+      "cache_hits": {
+        "device": 258048,
+        "host": 0,
+        "storage": 0,
+        "storage_backend": "HiCacheFile"
+      },
+      "output_text": "Initial audit secret code: KESTREL-48271\nBackup code: CORAL-93604"
+    },
+    "262144-disk": {
+      "prompt_tokens": 262144,
+      "reference_seconds": 160.88081279100152,
+      "candidate_seconds": 161.11044235900044,
+      "output_token_ids_equal": true,
+      "max_abs_output_logprob_difference": 0.014788424596190453,
+      "cache_hits": null,
+      "output_text": "Initial audit secret code: KESTREL-48271\nBackup code: CORAL-93604"
+    },
+    "524288-warm": {
+      "prompt_tokens": 524288,
+      "reference_seconds": 369.98027729000023,
+      "candidate_seconds": 4.347608612995828,
+      "output_token_ids_equal": true,
+      "max_abs_output_logprob_difference": 0.03067117929458618,
+      "cache_hits": {
+        "device": 520192,
+        "host": 0,
+        "storage": 0,
+        "storage_backend": "HiCacheFile"
+      },
+      "output_text": "Initial audit secret code: KESTREL-48271\nBackup code: CORAL-93604"
+    },
+    "524288-disk": {
+      "prompt_tokens": 524288,
+      "reference_seconds": 369.98027729000023,
+      "candidate_seconds": 368.5457366490009,
+      "output_token_ids_equal": true,
+      "max_abs_output_logprob_difference": 0.08874203264713287,
+      "cache_hits": null,
+      "output_text": "Initial audit secret code: KESTREL-48271\nBackup code: CORAL-93604"
+    },
+    "1048000-warm": {
+      "prompt_tokens": 1048000,
+      "reference_seconds": 1054.8218289049983,
+      "candidate_seconds": 6.628937765999581,
+      "output_token_ids_equal": true,
+      "max_abs_output_logprob_difference": 0.033175572752952576,
+      "cache_hits": {
+        "device": 1044480,
+        "host": 0,
+        "storage": 0,
+        "storage_backend": "HiCacheFile"
+      },
+      "output_text": "Initial audit secret code: KESTREL-48271\nBackup code: CORAL-93604"
+    },
+    "1048000-disk": {
+      "prompt_tokens": 1048000,
+      "reference_seconds": 1054.8218289049983,
+      "candidate_seconds": 1046.813595161002,
+      "output_token_ids_equal": true,
+      "max_abs_output_logprob_difference": 0.06524915993213654,
+      "cache_hits": null,
+      "output_text": "Initial audit secret code: KESTREL-48271\nBackup code: CORAL-93604"
+    }
+  },
+  "completed_at_utc": "2026-09-21T15:59:51.616184+00:00",
+  "largest_tested_input_tokens": 1048000,
+  "largest_observed_disk_hit_tokens": 49152,
+  "full_1m_disk_restore": false,
+  "test_runtime_stopped": true,
+  "auxiliary_services_restored_to_stopped": true,
+  "cpu_test_log_sha256": "2776e7ebd0ad11e11a013a280d864ace8389bfc6b9715507c110c6a656717abb"
+}

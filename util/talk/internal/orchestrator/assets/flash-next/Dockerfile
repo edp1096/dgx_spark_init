@@ -106,5 +106,6 @@ RUN patch --batch --fuzz=0 -p4 -d /sgl-workspace/sglang/python/sglang/srt < /opt
 RUN python3 /opt/qad-tp1/patch_gdn.py
 RUN python3 /opt/qad-tp1/patch_loader.py
 RUN python3 /opt/qad-tp1/patch_router_pdl.py
+RUN python3 /opt/qad-tp1/patch_hicache.py
 
 FROM legacy AS default
