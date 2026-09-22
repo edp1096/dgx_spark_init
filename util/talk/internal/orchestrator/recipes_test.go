@@ -354,3 +354,38 @@ with tempfile.TemporaryDirectory() as folder:
 		t.Fatalf("missing actionable recovery guidance: %v %s", err, out)
 	}
 }
+
+// runtime.sh's network/start actions require this helper in a freshly extracted
+// package, not merely in the developer's standalone checkout.
+func TestDS4FVERailHelperIsPackaged(t *testing.T) {
+	data, err := assets.ReadFile("assets/recipes/ds4fve.tar.gz")
+	if err != nil {
+		t.Fatal(err)
+	}
+	gz, err := gzip.NewReader(bytes.NewReader(data))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer gz.Close()
+	tr := tar.NewReader(gz)
+	found := false
+	for {
+		h, err := tr.Next()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			t.Fatal(err)
+		}
+		if h.Name == "ensure_rail.py" && h.Typeflag == tar.TypeReg {
+			body, err := io.ReadAll(tr)
+			if err != nil || len(body) == 0 {
+				t.Fatal("empty rail helper", err)
+			}
+			found = true
+		}
+	}
+	if !found {
+		t.Fatal("DS4FVE start/network depends on missing ensure_rail.py")
+	}
+}

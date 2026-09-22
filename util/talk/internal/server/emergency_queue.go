@@ -17,14 +17,24 @@ func (s *Server) trackGeneration(parent context.Context) (context.Context, func(
 	if s.queueClearing {
 		return nil, nil, fmt.Errorf("비상 큐 비우기 중입니다. 완료 후 다시 요청하세요")
 	}
-	ctx, cancel := context.WithCancel(parent)
+	tracked, finish, err := s.tasks.Track(parent)
+	if err != nil {
+		return nil, nil, err
+	}
+	ctx, cancel := context.WithCancel(tracked)
 	if s.generations == nil {
 		s.generations = make(map[uint64]context.CancelFunc)
 	}
 	s.generationID++
 	id := s.generationID
 	s.generations[id] = cancel
-	return ctx, func() { cancel(); s.generationMu.Lock(); delete(s.generations, id); s.generationMu.Unlock() }, nil
+	return ctx, func() {
+		defer finish()
+		cancel()
+		s.generationMu.Lock()
+		delete(s.generations, id)
+		s.generationMu.Unlock()
+	}, nil
 }
 
 func clearInferenceQueue(ctx context.Context, endpoint, key string) error {

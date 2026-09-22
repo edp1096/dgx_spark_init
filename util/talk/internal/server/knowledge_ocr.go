@@ -72,11 +72,16 @@ func (s *Server) scheduleKnowledgeOCR(documentID string) {
 		s.knowledgeOCRMu.Unlock()
 		return
 	}
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, finish, err := s.tasks.Track(context.Background())
+	if err != nil {
+		s.knowledgeOCRMu.Unlock()
+		return
+	}
+	ctx, cancel := context.WithCancel(ctx)
 	run := &knowledgeOCRRun{cancel: cancel, done: make(chan struct{})}
 	s.knowledgeOCRJobs[documentID] = run
 	s.knowledgeOCRMu.Unlock()
-	go s.runKnowledgeOCR(ctx, documentID, run)
+	go func() { defer finish(); s.runKnowledgeOCR(ctx, documentID, run) }()
 }
 
 func (s *Server) knowledgeOCRActive(documentID string) bool {

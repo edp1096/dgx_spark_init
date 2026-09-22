@@ -38,6 +38,7 @@ type registeredToolResult struct {
 type registeredToolHandler func(context.Context, llm.ToolCall, []llm.Message, eventEmitter) (registeredToolResult, error)
 
 type completionToolRegistry struct {
+	audit       func(llm.ToolCall, error)
 	sessionID   string
 	definitions []llm.Tool
 	prompts     []string
@@ -49,11 +50,25 @@ type completionToolRegistry struct {
 
 func newCompletionToolRegistry(server *Server, sessionID string, cfg config.ToolsConfig, webEnabled bool, mediaSink mediaAttachmentSink) completionToolRegistry {
 	registry := completionToolRegistry{sessionID: sessionID, handlers: make(map[string]registeredToolHandler), skills: map[string]skills.Skill{}, loaded: map[string]bool{}}
+	if server != nil && server.db != nil {
+		registry.audit = func(call llm.ToolCall, err error) {
+			if call.Function.Name == "ssh_exec" || call.Function.Name == "memory_propose" || call.Function.Name == "memory_manage" || call.Function.Name == "knowledge_import" {
+				return
+			}
+			decision, detail := "executed", ""
+			if err != nil {
+				decision, detail = "execution_error", compactHistoryText(err.Error(), 300)
+			}
+			_ = server.db.AddToolAudit(sessionID, call.Function.Name, "", "execute", decision, detail)
+		}
+	}
+
 	if server != nil && server.db != nil && sessionID != "" {
 		server.registerAttachmentReader(&registry, sessionID)
 	}
 	if server != nil {
 		server.registerBrowserTools(&registry)
+		server.registerPluginTools(&registry)
 	}
 	activeToolsets := make(map[string]bool)
 	contextReadEnabled := false
@@ -315,7 +330,10 @@ func (r *completionToolRegistry) register(definition llm.Tool, handler registere
 	r.handlers[name] = handler
 }
 
-func (r completionToolRegistry) execute(ctx context.Context, call llm.ToolCall, conversation []llm.Message, emit eventEmitter) (registeredToolResult, error) {
+func (r completionToolRegistry) execute(ctx context.Context, call llm.ToolCall, conversation []llm.Message, emit eventEmitter) (result registeredToolResult, err error) {
+	if r.audit != nil {
+		defer func() { r.audit(call, err) }()
+	}
 	handler, ok := r.handlers[call.Function.Name]
 	if !ok {
 		return registeredToolResult{}, fmt.Errorf("unknown tool: %s", call.Function.Name)

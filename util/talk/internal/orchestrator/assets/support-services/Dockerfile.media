@@ -49,5 +49,7 @@ COPY --from=builder /out/sparktalk-extra-media /usr/local/bin/sparktalk-extra-me
 COPY --from=tools /tmp/yt-dlp /usr/local/bin/yt-dlp
 COPY --from=tools /tmp/deno-bin/deno /usr/local/bin/deno
 
+RUN mkdir -p /var/lib/sparktalk-extra/media/bin && chown 1000:1000 /var/lib/sparktalk-extra/media/bin
+
 EXPOSE 8698
 ENTRYPOINT ["/usr/local/bin/sparktalk-extra-media"]

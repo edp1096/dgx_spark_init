@@ -28,11 +28,11 @@ build: web go-build
 web:
 	cd web && $(NPM) install && $(NPM) run build
 
-go-build: support-assets-check
+go-build: support-assets-check recipe-assets-check
 	$(GO) build ./...
 
 # Create single-file deployment binaries for Linux and Windows.
-dist: support-assets-check web
+dist: support-assets-check recipe-assets-check web
 	$(MKDIR_DIST)
 	$(BUILD_LINUX_AMD64)
 	$(BUILD_LINUX_ARM64)
@@ -49,3 +49,18 @@ support-assets:
 
 support-assets-check:
 	$(GO) run ./cmd/package-support --check
+
+.PHONY: check-platforms test
+check-platforms:
+	$(GO) run ./cmd/check-platforms
+
+test: support-assets-check recipe-assets-check
+	$(GO) test ./...
+	cd web && $(NPM) test
+
+.PHONY: recipe-assets recipe-assets-check
+recipe-assets:
+	$(GO) run ./cmd/package-recipes
+
+recipe-assets-check:
+	$(GO) run ./cmd/package-recipes --check

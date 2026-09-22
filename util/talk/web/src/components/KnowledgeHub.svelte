@@ -3,6 +3,7 @@
   import KnowledgeSettings from './settings/KnowledgeSettings.svelte';
   import MemoryLibrary from './MemoryLibrary.svelte';
   import SkillLibrary from './SkillLibrary.svelte';
+  import PluginLibrary from './PluginLibrary.svelte';
   import WorkflowLibrary from './WorkflowLibrary.svelte';
   import KnowledgeJobs from './KnowledgeJobs.svelte';
 
@@ -61,6 +62,7 @@
     <button class:active={activeTab === 'memory'} onclick={() => activeTab = 'memory'}>기억</button>
     <button class:active={activeTab === 'knowledge'} onclick={() => activeTab = 'knowledge'}>지식</button>
     <button class:active={activeTab === 'workflows'} onclick={() => activeTab = 'workflows'}>작업 절차</button>
+    <button class:active={activeTab === 'plugins'} onclick={() => activeTab = 'plugins'}>플러그인</button>
     <button class:active={activeTab === 'skills'} onclick={() => activeTab = 'skills'}>스킬</button>
   </nav>
   <div class="knowledge-hub-body">
@@ -69,6 +71,7 @@
       <nav class="knowledge-hub-tabs" aria-label="지식 보기"><button class:active={knowledgeTab === 'sources'} onclick={() => knowledgeTab='sources'}>자료실</button><button class:active={knowledgeTab === 'jobs'} onclick={() => knowledgeTab='jobs'}>가져오기 작업</button></nav>
       {#if knowledgeTab === 'sources'}<KnowledgeSettings onnotify={notify} health={health?.extra?.collector} onjobcreated={jobCreated} />{:else}<KnowledgeJobs onnotify={notify} refreshKey={jobRefreshKey} />{/if}
     {:else if activeTab === 'workflows'}<WorkflowLibrary onnotify={notify} />
+    {:else if activeTab === 'plugins'}<PluginLibrary onnotify={notify} />
     {:else}<SkillLibrary onnotify={notify} />{/if}
   </div>
       <dialog bind:this={helpDialog} onclose={()=>helpOpen=false} onclick={event=>{if(event.target!==helpDialog)return;const r=helpDialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)helpDialog.close();}} id="library-help" class="library-help" aria-labelledby="library-help-title">

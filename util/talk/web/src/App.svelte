@@ -1,5 +1,4 @@
 <script>
-  import { createClientID } from './lib/client-id.js';
   import WorkflowRuns from './components/WorkflowRuns.svelte';
   let workflowVersion=0;
   import { onMount, tick } from 'svelte';
@@ -42,6 +41,7 @@
   let collapsedGroups = {};
   let foldersCollapsed = false;
   let activeId = '';
+  let selectionVersion = 0;
   let messages = [];
   let messageSessionId = '';
   let reasoningOpen = {};
@@ -146,7 +146,7 @@
       messageSessionId = sessionId;
       scrollBottom(changedSession);
     },
-    onRuns: (runs) => { sessionRuns = runs; },
+    onRuns: (runs) => { sessionRuns = runs; scrollBottom(); },
     onError: (message) => { error = message; },
   });
 
@@ -226,6 +226,7 @@
     window.addEventListener('dragleave', onWindowDragLeave, true);
     window.addEventListener('drop', onWindowDrop, true);
     return () => {
+      chatController.dispose();
       clearInterval(healthTimer);
       clearInterval(runtimeTimer);
       clearTimeout(dragResetTimer);
@@ -391,9 +392,10 @@
   }
 
   async function select(id, { closeMobile = true, closeWorkspace = true } = {}) {
+    const version = ++selectionVersion;
     if (activeId && activeId !== id) stopReplySpeech();
     await chatController.activate(id);
-    if (activeId !== id) return;
+    if (activeId !== id || version !== selectionVersion) return;
     attachmentController.select(id);
     reasoningOpen = {};
     editingMessageId = null;
@@ -664,21 +666,14 @@
 
   async function sendAdditionalInput(content) {
     const sessionId = activeId;
-    const run = sessionRuns[sessionId];
-    if (!run || run.steeringSending) return;
-    if (!run.turnId) { setSessionError(sessionId, '추가 입력을 받을 준비 중입니다. 잠시 후 전송하세요.'); return; }
-    run.steeringSending = true; sessionRuns = { ...sessionRuns };
     stopReplySpeech();
     try {
-      if (!run.pendingInput || run.pendingInput.content !== content) run.pendingInput = { id: createClientID(), content };
-      const entry = run.pendingInput;
-      const saved = await steerChat(sessionId, run.turnId, entry.id, content);
-      addTurnInput(run, run.messages[run.retryingIndex], saved, sessionId);
-      if (activeId === sessionId && input.trim() === content) input = '';
-      if (run.pendingInput === entry) run.pendingInput = null;
-      setSessionError(sessionId, '');
+      const sent = await chatController.sendInput(sessionId, content, steerChat, (run, saved) => {
+        addTurnInput(run, run.messages[run.retryingIndex], saved, sessionId);
+      });
+      if (sent && activeId === sessionId && input.trim() === content) input = '';
+      if (sent) setSessionError(sessionId, '');
     } catch (e) { setSessionError(sessionId, e.message); }
-    finally { run.steeringSending = false; sessionRuns = { ...sessionRuns }; }
   }
 
   async function send() {

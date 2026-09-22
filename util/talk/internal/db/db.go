@@ -322,6 +322,10 @@ func Open(path string) (*DB, error) {
 		conn.Close()
 		return nil, fmt.Errorf("migrate: %w", err)
 	}
+	if err := migratePlugins(conn); err != nil {
+		conn.Close()
+		return nil, fmt.Errorf("migrate plugins: %w", err)
+	}
 	if err := migrateKnowledge(conn); err != nil {
 		conn.Close()
 		return nil, fmt.Errorf("migrate knowledge: %w", err)

@@ -111,7 +111,7 @@ func (s *Server) chat(w http.ResponseWriter, r *http.Request) {
 
 	if err == nil && count == 0 {
 		userText, sessionID, model := req.Content, req.SessionID, req.Model
-		go s.generateTitle(client, sessionID, model, userText)
+		s.scheduleTitle(client, sessionID, model, userText)
 	}
 }
 
@@ -282,18 +282,29 @@ func (s *Server) editMessage(w http.ResponseWriter, r *http.Request, messageID i
 	} else {
 		fmt.Fprint(w, "event: done\ndata: {}\n\n")
 		if len(history) == 0 {
-			go s.generateTitle(client, target.SessionID, req.Model, req.Content)
+			s.scheduleTitle(client, target.SessionID, req.Model, req.Content)
 		}
 	}
 	flusher.Flush()
 }
 
-func (s *Server) generateTitle(client *llm.Client, sessionID, model, userText string) {
-	title, err := client.GenerateTitle(context.Background(), model, userText)
-	if err != nil || title == "" {
-		title = fallbackTitle(userText)
+// Titles outlive the requesting browser, but are drained before the DB closes.
+func (s *Server) scheduleTitle(client *llm.Client, sessionID, model, userText string) {
+	ctx, finish, err := s.tasks.Track(context.Background())
+	if err != nil {
+		return
 	}
-	_ = s.db.UpdateSessionTitle(sessionID, title)
+	go func() {
+		defer finish()
+		title, err := client.GenerateTitle(ctx, model, userText)
+		if ctx.Err() != nil {
+			return
+		}
+		if err != nil || title == "" {
+			title = fallbackTitle(userText)
+		}
+		_ = s.db.UpdateSessionTitle(sessionID, title)
+	}()
 }
 
 type videoInputModeKey struct{}

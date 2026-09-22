@@ -3,8 +3,10 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/fs"
+	"net"
 	"net/http"
 	"path"
 	"strings"
@@ -19,11 +21,15 @@ import (
 	"sparktalk/internal/llm"
 	"sparktalk/internal/media"
 	"sparktalk/internal/orchestrator"
+	"sparktalk/internal/plugins"
 	supportssh "sparktalk/internal/support/ssh"
+	"sparktalk/internal/tasklife"
 	"sparktalk/internal/tts"
 )
 
 type Server struct {
+	tasks              tasklife.Group
+	plugins            *plugins.Manager
 	turnMu             sync.Mutex
 	turns              map[string]*activeTurn
 	browserSubmissions browserSubmissionState
@@ -110,64 +116,25 @@ func New(cfg config.Config, configPath string, store *db.DB, client *llm.Client,
 	if err != nil {
 		return nil, err
 	}
-	mux := http.NewServeMux()
-	s.browser.Register(mux)
-	mux.HandleFunc("/api/health", s.health)
-	mux.HandleFunc("/api/emergency/clear-queue", s.emergencyQueue)
-	mux.HandleFunc("/api/config", s.configuration)
-	mux.HandleFunc("/api/credentials/huggingface", s.huggingFaceToken)
-	mux.HandleFunc("/api/models/prepare", s.modelPreparation)
-	mux.HandleFunc("/api/ssh/key-store", s.sshKeyStore)
-	mux.HandleFunc("/api/support", s.supportServices)
-	mux.HandleFunc("/api/media/yt-dlp", s.mediaRuntime)
-	mux.HandleFunc("/api/media/yt-dlp/", s.mediaRuntime)
-	mux.HandleFunc("/api/runtime", s.runtimeStatus)
-	mux.HandleFunc("/api/runtime/catalog/parse", s.runtimeCatalogParse)
-	mux.HandleFunc("/api/runtime/probe", s.runtimeProbe)
-	mux.HandleFunc("/api/runtime/network/discover", s.networkDiscover)
-	mux.HandleFunc("/api/runtime/", s.runtimeAction)
-	mux.HandleFunc("/api/models", s.models)
-	mux.HandleFunc("/api/images", s.uploadImage)
-	mux.HandleFunc("/api/images/", s.image)
-	mux.HandleFunc("/api/files", s.uploadFile)
-	mux.HandleFunc("/api/files/", s.file)
-	mux.HandleFunc("/api/media", s.mediaUsage)
-	mux.HandleFunc("/api/media/source", s.uploadSource)
-	mux.HandleFunc("/api/memories", s.memories)
-	mux.HandleFunc("/api/memories/", s.memory)
-	mux.HandleFunc("/api/knowledge/collections", s.knowledgeCollections)
-	mux.HandleFunc("/api/knowledge/collections/", s.knowledgeCollection)
-	mux.HandleFunc("/api/knowledge/documents", s.knowledgeDocuments)
-	mux.HandleFunc("/api/knowledge/documents/", s.knowledgeDocument)
-	mux.HandleFunc("/api/knowledge/sources", s.collectKnowledgeSource)
-	mux.HandleFunc("/api/knowledge/jobs", s.knowledgeJobList)
-	mux.HandleFunc("/api/knowledge/jobs/", s.knowledgeJobAction)
-	mux.HandleFunc("/api/knowledge/search", s.searchKnowledge)
-	mux.HandleFunc("/api/search/page", s.searchConversationPage)
-	mux.HandleFunc("/api/search", s.searchConversations)
-	mux.HandleFunc("/api/workflows", s.workflowCatalog)
-	mux.HandleFunc("/api/workflows/", s.workflowItem)
-	mux.HandleFunc("/api/skills", s.skillCatalog)
-	mux.HandleFunc("/api/skills/", s.skillItem)
-	mux.HandleFunc("/api/tool-audit", s.toolAudits)
-	mux.HandleFunc("/api/asr/transcribe", s.transcribeVoice)
-	mux.HandleFunc("/api/tts/speech", s.synthesizeSpeech)
-	mux.HandleFunc("/api/tts/preview", s.previewSpeech)
-	mux.HandleFunc("/api/ssh/hosts", s.sshHosts)
-	mux.HandleFunc("/api/ssh/hosts/", s.sshHost)
-	mux.HandleFunc("/api/ssh/keys", s.sshKeys)
-	mux.HandleFunc("/api/ssh/keys/", s.sshKey)
-	mux.HandleFunc("/api/tool-approvals/", s.toolApproval)
-	mux.HandleFunc("/api/messages/", s.messageAction)
-	mux.HandleFunc("/api/groups", s.groups)
-	mux.HandleFunc("/api/groups/", s.group)
-	mux.HandleFunc("/api/sessions", s.sessions)
-	mux.HandleFunc("/api/sessions/bulk-delete", s.bulkDeleteSessions)
-	mux.HandleFunc("/api/sessions/", s.session)
-	mux.HandleFunc("/api/chat", s.chat)
-	mux.HandleFunc("/api/chat/steer", s.steerChat)
-	mux.Handle("/", spaHandler(web))
-	s.server = &http.Server{Addr: cfg.Server.ListenAddr, Handler: mux, ReadHeaderTimeout: 10 * time.Second}
+	s.plugins, err = plugins.New(context.Background(), store, s.pluginServices(), plugins.Builtins())
+	if err != nil {
+		return nil, fmt.Errorf("plugin runtime: %w", err)
+	}
+	initialized := false
+	defer func() {
+		if !initialized {
+			s.tasks.Stop()
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			_ = s.plugins.Close(ctx)
+			_ = s.tasks.Wait(ctx)
+		}
+	}()
+	if err = s.plugins.OpenPackages(context.Background(), cfg.Server.Database+".plugins"); err != nil {
+		return nil, fmt.Errorf("plugin packages: %w", err)
+	}
+	mux := s.routes(web)
+	s.server = &http.Server{Addr: cfg.Server.ListenAddr, Handler: mux, BaseContext: func(net.Listener) context.Context { return s.tasks.Context() }, ReadHeaderTimeout: 10 * time.Second}
 	if err := s.db.RecoverKnowledgeOCR(); err != nil {
 		return nil, fmt.Errorf("recover knowledge OCR: %w", err)
 	}
@@ -179,14 +146,32 @@ func New(cfg config.Config, configPath string, store *db.DB, client *llm.Client,
 	if cfg.Runtime.Mode == "managed" && cfg.Runtime.AutoStart {
 		_ = s.runtime.StartBundle(context.Background(), cfg.Runtime.Bundle, cfg.Runtime.MemoryReserveGiB)
 	}
+	initialized = true
 	return s, nil
 }
 
+func (s *Server) Shutdown(ctx context.Context) error {
+	s.tasks.Stop()
+	var httpErr, pluginErr error
+	if s.server != nil {
+		httpErr = s.server.Shutdown(ctx)
+	}
+	if s.plugins != nil {
+		pluginErr = s.plugins.Close(ctx)
+	}
+	return errors.Join(httpErr, pluginErr, s.tasks.Wait(ctx))
+}
 func (s *Server) ListenAndServe() error {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	s.server.RegisterOnShutdown(cancel)
-	go s.runKeySync(ctx)
+	defer func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		_ = s.Shutdown(ctx)
+	}()
+	ctx, finish, err := s.tasks.Track(context.Background())
+	if err != nil {
+		return err
+	}
+	go func() { defer finish(); s.runKeySync(ctx) }()
 	return s.server.ListenAndServe()
 }
 

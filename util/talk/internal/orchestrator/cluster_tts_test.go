@@ -28,8 +28,31 @@ func TestClusterMagpiePlacementAndStartup(t *testing.T) {
 			t.Fatalf("%s: wrong startup order: %v", id, order)
 		}
 	}
-	local, _ := c.ResolveComponent("flash-next", "magpie-tts")
-	if local.Host == "worker" || local.StartAfterLLM {
-		t.Fatal("cluster binding leaked into Qwen")
+	// QAD TP1 starts auxiliary models after the LLM to reserve its KV cache first.
+	bundle, _ := c.Bundle("flash-next")
+	order := c.startupOrder(c.StartBundleMembers(bundle))
+	llmIndex := -1
+	for i, id := range order {
+		if id == "flash-next" {
+			llmIndex = i
+		}
+	}
+	if llmIndex < 0 {
+		t.Fatal("Qwen missing from startup order")
+	}
+	for _, id := range []string{"magpie-tts", "nemotron-asr", "flux2"} {
+		local, ok := c.ResolveComponent("flash-next", id)
+		if !ok || local.Host == "worker" || !local.StartAfterLLM {
+			t.Fatalf("invalid QAD auxiliary binding: %s %+v", id, local)
+		}
+		position := -1
+		for i, member := range order {
+			if member == id {
+				position = i
+			}
+		}
+		if position <= llmIndex {
+			t.Fatalf("%s must start after Qwen: %v", id, order)
+		}
 	}
 }

@@ -45,8 +45,9 @@ func TestSharedExtraResolvesPerSet(t *testing.T) {
 	for _, bundle := range catalog.Bundles {
 		for _, component := range catalog.BundleComponents(bundle.ID) {
 			if component.ServiceRole() == "collector" {
+				// DS4FVE deliberately keeps Extra tools on the head; only ASR/TTS use the worker.
 				want := "local"
-				if bundle.ID == "glm53-worker-extra" || bundle.ID == "ds4fve" {
+				if bundle.ID == "glm53-worker-extra" {
 					want = "worker"
 				}
 				if component.Host != want {

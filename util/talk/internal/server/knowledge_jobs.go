@@ -118,11 +118,16 @@ func (s *Server) scheduleKnowledgeJob(id string) {
 		s.knowledgeJobMu.Unlock()
 		return
 	}
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, finish, err := s.tasks.Track(context.Background())
+	if err != nil {
+		s.knowledgeJobMu.Unlock()
+		return
+	}
+	ctx, cancel := context.WithCancel(ctx)
 	run := &knowledgeJobRun{cancel: cancel, done: make(chan struct{})}
 	s.knowledgeJobs[id] = run
 	s.knowledgeJobMu.Unlock()
-	go s.runKnowledgeJob(ctx, id, run)
+	go func() { defer finish(); s.runKnowledgeJob(ctx, id, run) }()
 }
 
 func (s *Server) stopKnowledgeJob(id string, timeout time.Duration) bool {

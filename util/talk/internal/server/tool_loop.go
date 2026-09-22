@@ -318,13 +318,6 @@ func runCompletionLoopForSessionWithMedia(
 				return completionResult{Reasoning: allReasoning.String(), ToolTrace: trace}, err
 			}
 			execution, toolErr := executeTurnTool(ctx, call, conversation, emit, registry.execute)
-			if server != nil && server.db != nil && call.Function.Name != "ssh_exec" && call.Function.Name != "memory_propose" && call.Function.Name != "memory_manage" && call.Function.Name != "knowledge_import" {
-				decision, detail := "executed", ""
-				if toolErr != nil {
-					decision, detail = "execution_error", compactHistoryText(toolErr.Error(), 300)
-				}
-				_ = server.db.AddToolAudit(sessionID, call.Function.Name, "", "execute", decision, detail)
-			}
 			toolResult := execution.Result
 			toolFollowups = append(toolFollowups, execution.Followups...)
 			if toolErr == nil && execution.Attachment != nil {

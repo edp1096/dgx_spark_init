@@ -1,8 +1,14 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"fmt"
+	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	chat "sparktalk"
 	"sparktalk/internal/config"
@@ -35,8 +41,24 @@ func main() {
 		os.Exit(1)
 	}
 
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+	shutdownDone := make(chan struct{})
+	go func() {
+		defer close(shutdownDone)
+		<-ctx.Done()
+		shutdown, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+		defer cancel()
+		if err := srv.Shutdown(shutdown); err != nil {
+			fmt.Fprintf(os.Stderr, "shutdown: %v\n", err)
+		}
+	}()
 	fmt.Printf("SparkTalk: http://%s (model endpoint: %s)\n", cfg.Server.ListenAddr, cfg.Model.Endpoint)
-	if err := srv.ListenAndServe(); err != nil {
+	err = srv.ListenAndServe()
+	if errors.Is(err, http.ErrServerClosed) {
+		<-shutdownDone
+	}
+	if err != nil && !errors.Is(err, http.ErrServerClosed) {
 		fmt.Fprintf(os.Stderr, "server: %v\n", err)
 		os.Exit(1)
 	}

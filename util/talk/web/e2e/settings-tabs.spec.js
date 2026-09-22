@@ -182,7 +182,7 @@ test('groups feature settings and preserves drafts across sections', async ({ pa
   await page.locator('.settings-button').click();
   await page.getByRole('tab', { name: '기능', exact: true }).click();
   const navigation = page.getByRole('group', { name: '기능 설정 분류' });
-  await expect(navigation.getByRole('button')).toHaveCount(5);
+  await expect(navigation.getByRole('button')).toHaveText(['웹·미디어', '문서', '이미지', '스킬·기록', '브라우저', 'SSH·키']);
   await navigation.getByRole('button', { name: '웹·미디어', exact: true }).click();
   await page.getByLabel('검색 결과 수 (≤ 30)', { exact: true }).fill('7');
   await navigation.getByRole('button', { name: '이미지', exact: true }).click();
