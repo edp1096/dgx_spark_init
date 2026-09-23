@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/textproto"
+	"os"
 	"strings"
 	"testing"
 
@@ -311,5 +312,38 @@ func TestOrnithImageOnlyDeploymentUsesFrames(t *testing.T) {
 	text := string(data)
 	if strings.Contains(text, "video_url") || !strings.Contains(text, "data:image/jpeg;base64,") || !strings.Contains(text, "Audio transcription is disabled") {
 		t.Fatalf("incorrect image-only Ornith payload: %s", text)
+	}
+}
+
+func TestLargeNativeVideoUsesFrames(t *testing.T) {
+	store, _ := media.New(t.TempDir() + "/chat.db")
+	f, err := os.CreateTemp(t.TempDir(), "video")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f.Close()
+	f.Write(append([]byte{0, 0, 0, 24}, []byte("ftypisom0000")...))
+	f.Truncate(65 << 20)
+	f.Seek(0, 0)
+	video, err := store.SaveReader(f, "long.mp4", "video/mp4", media.MaxRemoteVideoBytes)
+	if err != nil {
+		t.Fatal(err)
+	}
+	called := false
+	frames := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		called = true
+		w.Header().Set("X-Video-Duration", "4795")
+		jpeg.Encode(w, image.NewRGBA(image.Rect(0, 0, 16, 8)), nil)
+	}))
+	defer frames.Close()
+	cfg := config.Config{Model: config.ModelConfig{ModelType: "qwen3.5"}, ASR: config.ASRConfig{FFmpegEndpoint: frames.URL}}
+	s := &Server{media: store}
+	messages, err := s.llmMessages(context.Background(), []db.Message{{Role: "user", Content: "요약", Attachments: []db.Attachment{video}}}, cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	b, _ := json.Marshal(messages)
+	if !called || strings.Contains(string(b), "video_url") || !strings.Contains(string(b), "Audio transcription is disabled") {
+		t.Fatalf("unexpected large-video payload %s", b)
 	}
 }

@@ -199,3 +199,44 @@ func TestTranscriptCacheFollowsMediaCleanup(t *testing.T) {
 		t.Fatalf("document cache was not removed with media: %v", err)
 	}
 }
+
+func TestLargeRemoteVideoStreamingAndRange(t *testing.T) {
+	store, _ := New(t.TempDir() + "/chat.db")
+	path := filepath.Join(t.TempDir(), "large.mp4")
+	f, err := os.Create(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	f.Write(append([]byte{0, 0, 0, 24}, []byte("ftypisom0000")...))
+	f.Truncate(65 << 20)
+	f.Seek(0, 0)
+	defer f.Close()
+	item, err := store.SaveReader(f, "large.mp4", "video/mp4", MaxRemoteVideoBytes)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Caller-provided size cannot bypass the actual stored-file checks.
+	item.Size = 1
+	validated, err := store.Validate([]db.Attachment{item})
+	if err != nil || validated[0].Size != 65<<20 {
+		t.Fatalf("validate %v %v", validated, err)
+	}
+	if _, err = store.DataURL(item); err == nil {
+		t.Fatal("large video was inlined")
+	}
+	req := httptest.NewRequest("GET", "/", nil)
+	req.Header.Set("Range", "bytes=0-15")
+	rec := httptest.NewRecorder()
+	store.Serve(rec, req, item.ID, item.Name, item.MIME)
+	if rec.Code != 206 || rec.Body.Len() != 16 {
+		t.Fatalf("range %d %d", rec.Code, rec.Body.Len())
+	}
+	f.Seek(0, 0)
+	if _, err = store.SaveReader(f, "large.txt", "text/plain", MaxRemoteVideoBytes); err == nil {
+		t.Fatal("large nonvideo accepted")
+	}
+	entries, _ := os.ReadDir(store.dir)
+	if len(entries) != 1 {
+		t.Fatalf("failed import left files: %v", entries)
+	}
+}

@@ -51,7 +51,7 @@ func (s *Server) importMediaSource(ctx context.Context, rawURL string) (db.Attac
 	}
 	payload, _ := json.Marshal(map[string]any{
 		"url":             parsed.String(),
-		"max_download_mb": media.MaxAttachmentBytes >> 20,
+		"max_download_mb": media.MaxRemoteVideoBytes >> 20,
 		"max_height":      720,
 	})
 	request, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint+"/v1/source/download", bytes.NewReader(payload))
@@ -73,7 +73,7 @@ func (s *Server) importMediaSource(ctx context.Context, rawURL string) (db.Attac
 		return db.Attachment{}, fmt.Errorf("SparkTalk Extra Media HTTP %d: %s", response.StatusCode, strings.TrimSpace(string(detail)))
 	}
 	name := sourceResponseName(response)
-	item, err := s.media.SaveReader(response.Body, name, response.Header.Get("Content-Type"), media.MaxAttachmentBytes)
+	item, err := s.media.SaveReader(response.Body, name, response.Header.Get("Content-Type"), media.MaxRemoteVideoBytes)
 	if err != nil {
 		return db.Attachment{}, err
 	}

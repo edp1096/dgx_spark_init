@@ -13,6 +13,7 @@ import (
 	"sparktalk/internal/config"
 	"sparktalk/internal/db"
 	"sparktalk/internal/llm"
+	"sparktalk/internal/media"
 )
 
 func (s *Server) chat(w http.ResponseWriter, r *http.Request) {
@@ -358,7 +359,7 @@ func (s *Server) llmMessages(ctx context.Context, items []db.Message, cfg config
 			if requestMode, ok := ctx.Value(videoInputModeKey{}).(string); ok {
 				mode = requestMode
 			}
-			if isVideo && mode == "frames" {
+			if isVideo && (mode == "frames" || attachment.Size > media.MaxAttachmentBytes) {
 				frameURL, duration, err := s.videoFrameSheet(ctx, attachment, cfg.ASR.FFmpegEndpoint)
 				if err != nil {
 					return nil, err

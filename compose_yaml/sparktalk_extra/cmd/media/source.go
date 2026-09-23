@@ -98,6 +98,9 @@ func (a *api) downloadSource(w http.ResponseWriter, r *http.Request) {
 		}
 
 		format, selectedHeight := selectDownloadFormat(info, maxDownloadMB, maxHeight)
+		if format == "" {
+			return &httpError{Status: http.StatusRequestEntityTooLarge, Message: fmt.Sprintf("no downloadable video/audio combination with known size fits %d MiB and height %d; retrying unchanged limits will not help", maxDownloadMB, maxHeight)}
+		}
 		log.Printf("yt-dlp selected format=%s height=%d source=%s", format, selectedHeight, info.ID)
 		outputTemplate := filepath.Join(dir, "source.%(ext)s")
 		maxSize := strconv.FormatInt(maxDownloadMB, 10) + "M"
@@ -278,7 +281,7 @@ func selectDownloadFormat(info sourceInfo, maxDownloadMB int64, maxHeight int) (
 	if bestFormat != "" {
 		return bestFormat, bestHeight
 	}
-	return fmt.Sprintf("best[height<=%d][filesize<%dM]/best[height<=%d]", maxHeight, maxDownloadMB, maxHeight), maxHeight
+	return "", 0
 }
 
 func sourceAudioPreference(info sourceInfo) (string, int, bool) {

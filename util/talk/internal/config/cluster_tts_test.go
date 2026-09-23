@@ -13,8 +13,9 @@ func TestClusterSwitchRoutesMagpieWithoutChangingVoice(t *testing.T) {
 			t.Fatalf("%s: wrong TTS profile: %+v", id, cfg.TTS)
 		}
 	}
+	cfg.ASR.Enabled = true
 	cfg.ApplyManagedBundle("flash-next")
-	if cfg.TTS.Enabled || cfg.ASR.Enabled {
-		t.Fatal("QAD must disable speech services absent from its default set")
+	if cfg.TTS.Enabled || !cfg.ASR.Enabled {
+		t.Fatal("QAD must enable ASR and keep TTS disabled")
 	}
 }

@@ -212,9 +212,18 @@ func runCompletionLoopForSessionWithMedia(
 	outputAttachments := []db.Attachment{}
 	toolRounds := 0
 	procedureRounds := 0
+	recovery := &mediaRecovery{inputs: len(turnFrom(ctx).appliedInputs())}
+	execute := recovery.execute(registry.execute)
 	for {
-		if toolRounds >= toolConfig.MaxRounds && !inStage {
-			conversation = append(conversation, llm.Message{Role: "user", Content: toolLimitFinalInstruction})
+		if recovery.exhausted() && len(turnFrom(ctx).appliedInputs()) != recovery.inputs {
+			*recovery = mediaRecovery{inputs: len(turnFrom(ctx).appliedInputs())}
+		}
+		if (toolRounds >= toolConfig.MaxRounds || recovery.exhausted()) && !inStage {
+			instruction := toolLimitFinalInstruction
+			if recovery.exhausted() {
+				instruction = mediaRecoveryFinalInstruction
+			}
+			conversation = append(conversation, llm.Message{Role: "user", Content: instruction})
 			finalEmitter := func(kind, text string) error {
 				if kind == "reasoning" {
 					return emit(kind, map[string]string{"delta": text})
@@ -227,6 +236,9 @@ func runCompletionLoopForSessionWithMedia(
 			}
 			allReasoning.WriteString(result.Reasoning)
 			content, leaked := cleanToolProtocol(result.Content)
+			if recovery.exhausted() && (content == "" || leaked) {
+				content = "영상 가져오기에 실패했고 복구 시도를 중단했습니다. 영상·전사를 확보하지 못해 전체 내용을 요약할 수 없습니다. 도구에 표시된 미디어 서비스 오류를 해결해야 합니다."
+			}
 			if leaked && content == "" {
 				content = fmt.Sprintf("추가 도구 호출이 필요하지만 실행 한도(%d회)에 도달했습니다. 최대 호출 라운드를 늘리거나 새 요청으로 계속해 주세요.", toolConfig.MaxRounds)
 			}
@@ -235,7 +247,7 @@ func runCompletionLoopForSessionWithMedia(
 					return completionResult{Content: content, Reasoning: allReasoning.String(), ToolTrace: trace, Attachments: outputAttachments}, emitErr
 				}
 			}
-			if err == nil {
+			if err == nil && !recovery.exhausted() {
 				guidance := "설정 > 기능에서 최대 호출 라운드를 늘리거나 이어서 요청하세요."
 				if toolConfig.MaxRounds >= 1024 {
 					guidance = "설정 가능한 최대값에 도달했습니다. 추가 작업은 이어서 요청하세요."
@@ -253,7 +265,7 @@ func runCompletionLoopForSessionWithMedia(
 				}
 			}
 		}
-		if inStage && toolRounds >= toolConfig.MaxRounds {
+		if inStage && (toolRounds >= toolConfig.MaxRounds || recovery.exhausted()) {
 			definitions = []llm.Tool{workflowReportTool()}
 			conversation = append(conversation, llm.Message{Role: "user", Content: "No more work-tool rounds are available. Submit workflow_report now using existing evidence. If this stage is incomplete, report blocked or failed honestly."})
 		}
@@ -317,7 +329,7 @@ func runCompletionLoopForSessionWithMedia(
 			}); err != nil {
 				return completionResult{Reasoning: allReasoning.String(), ToolTrace: trace}, err
 			}
-			execution, toolErr := executeTurnTool(ctx, call, conversation, emit, registry.execute)
+			execution, toolErr := executeTurnTool(ctx, call, conversation, emit, execute)
 			toolResult := execution.Result
 			toolFollowups = append(toolFollowups, execution.Followups...)
 			if toolErr == nil && execution.Attachment != nil {

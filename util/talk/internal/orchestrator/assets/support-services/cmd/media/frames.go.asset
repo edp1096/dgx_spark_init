@@ -22,6 +22,25 @@ func (a *api) videoFrames(w http.ResponseWriter, r *http.Request) {
 			return fmt.Errorf("video duration unavailable")
 		}
 		output := filepath.Join(filepath.Dir(input), "frames.jpg")
+		if duration > 120 {
+			// Seek to each sample instead of decoding hours of intervening frames.
+			for i := 0; i < 8; i++ {
+				frame := filepath.Join(filepath.Dir(input), fmt.Sprintf("sample-%02d.jpg", i))
+				_, stderr, err = run(ctx, a.cfg.FFmpegPath, "-nostdin", "-hide_banner", "-loglevel", "error", "-y", "-threads", "2",
+					"-ss", strconv.FormatFloat(float64(i)*duration/8, 'f', 3, 64), "-i", input, "-map", "0:v:0", "-an", "-sn", "-dn",
+					"-vf", "scale=512:512:force_original_aspect_ratio=decrease,pad=512:512:(ow-iw)/2:(oh-ih)/2", "-filter_threads", "1", "-frames:v", "1", "-q:v", "3", frame)
+				if err != nil {
+					return processError("ffmpeg sample", err, stderr)
+				}
+			}
+			_, stderr, err = run(ctx, a.cfg.FFmpegPath, "-nostdin", "-hide_banner", "-loglevel", "error", "-y", "-threads", "2",
+				"-i", filepath.Join(filepath.Dir(input), "sample-%02d.jpg"), "-vf", "tile=4x2:nb_frames=8", "-filter_threads", "1", "-frames:v", "1", "-q:v", "3", output)
+			if err != nil {
+				return processError("ffmpeg sheet", err, stderr)
+			}
+			w.Header().Set("X-Video-Duration", strconv.FormatFloat(duration, 'f', 3, 64))
+			return serveFile(w, output, "image/jpeg", "frames.jpg")
+		}
 		filter := fmt.Sprintf("fps=fps=%.12f:start_time=0:round=up,scale=512:512:force_original_aspect_ratio=decrease,pad=512:512:(ow-iw)/2:(oh-ih)/2,tile=4x2:nb_frames=8", 8/duration)
 		_, stderr, err = run(ctx, a.cfg.FFmpegPath, "-nostdin", "-hide_banner", "-loglevel", "error", "-y", "-threads", "2", "-i", input, "-map", "0:v:0", "-an", "-sn", "-dn", "-vf", filter, "-filter_threads", "1", "-frames:v", "1", "-q:v", "3", output)
 		if err != nil {

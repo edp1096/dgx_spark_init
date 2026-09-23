@@ -27,7 +27,8 @@
 
   function stateLabel(component) {
     if (component.health === 'online') return '온라인';
-    if (component.health === 'starting') return '준비 중';
+    if (component.health === 'starting') return '기동 중';
+    if (component.health === 'unresponsive') return component.phase || '연결 이상';
     if (component.health === 'failed') return '실패';
     if (component.status === 'exited') return '중지됨';
     if (component.status === 'missing') return '컨테이너 없음';
@@ -81,7 +82,7 @@
   <div class="runtime-components">
     {#each selectedComponents as component}
       <div class="runtime-component">
-        <span class:online={component.health === 'online'} class:starting={component.health === 'starting'} class:failed={component.health === 'failed'}><i></i><span><b>{component.name}</b><small>{component.phase || component.model || component.role} · {component.host || 'local'}</small></span></span>
+        <span class:online={component.health === 'online'} class:starting={component.health === 'starting'} class:failed={component.health === 'failed' || component.health === 'unresponsive'} title={component.health_error ? `최근 상태 확인: ${component.health_error} · ${component.health_latency_ms ?? 0}ms · 연속 실패 ${component.health_failures ?? 0}회` : `상태 확인 ${component.health_latency_ms ?? 0}ms`}><i></i><span><b>{component.name}</b><small>{component.phase || component.model || component.role} · {component.host || 'local'}</small></span></span>
         <div><b>{stateLabel(component)}</b><small>{component.gpu_memory_gib ? formatGiB(component.gpu_memory_gib) : ''}</small></div>
       </div>
     {/each}

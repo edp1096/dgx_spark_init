@@ -36,15 +36,16 @@ func TestLiveStoredVideoRetry(t *testing.T) {
 	if videoPath == "" {
 		t.Fatal("TALK_LIVE_VIDEO_FILE must point to a local video fixture")
 	}
-	data, err := os.ReadFile(videoPath)
+	file, err := os.Open(videoPath)
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer file.Close()
 	videoName := os.Getenv("TALK_LIVE_VIDEO_NAME")
 	if videoName == "" {
 		videoName = filepath.Base(videoPath)
 	}
-	a, err := s.media.SaveReader(bytes.NewReader(data), videoName, "", media.MaxAttachmentBytes)
+	a, err := s.media.SaveReader(file, videoName, "", media.MaxRemoteVideoBytes)
 	if err != nil {
 		t.Fatal(err)
 	}

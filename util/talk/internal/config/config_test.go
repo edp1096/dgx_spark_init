@@ -34,7 +34,7 @@ func TestLoadCreatesEmbeddedDefaultAndSaveReloads(t *testing.T) {
 	if !cfg.Context.Enabled || cfg.Context.CompactAtPercent != 80 || cfg.Context.OutputReserve != 16384 {
 		t.Fatalf("generated context defaults are incomplete: %+v", cfg.Context)
 	}
-	if cfg.ASR.Enabled || cfg.ASR.FFmpegEndpoint != "http://127.0.0.1:8690" ||
+	if !cfg.ASR.Enabled || cfg.ASR.FFmpegEndpoint != "http://127.0.0.1:8690" ||
 		cfg.ASR.Endpoint != "http://127.0.0.1:8693" || cfg.ASR.Model != "nemotron-3.5-asr-streaming-0.6b" ||
 		cfg.ASR.VoiceLanguage != "ko-KR" || cfg.ASR.MediaLanguage != "auto" {
 		t.Fatalf("generated ASR defaults are incomplete: %+v", cfg.ASR)
@@ -226,7 +226,7 @@ func TestLoadOldConfigDefaultsToolsToEnabled(t *testing.T) {
 	if !cfg.Context.Enabled || cfg.Context.RecentTokens != 32768 {
 		t.Fatalf("old config did not receive context defaults: %+v", cfg.Context)
 	}
-	if cfg.ASR.Enabled || !cfg.ASR.FilterFillers || cfg.ASR.Model != "nemotron-3.5-asr-streaming-0.6b" ||
+	if !cfg.ASR.Enabled || !cfg.ASR.FilterFillers || cfg.ASR.Model != "nemotron-3.5-asr-streaming-0.6b" ||
 		cfg.ASR.VoiceLanguage != "ko-KR" || cfg.ASR.MediaLanguage != "auto" || cfg.ASR.Timeout != "30m" {
 		t.Fatalf("old config did not receive ASR defaults: %+v", cfg.ASR)
 	}

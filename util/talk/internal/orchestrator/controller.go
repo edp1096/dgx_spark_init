@@ -25,6 +25,11 @@ type SystemMemory struct {
 }
 
 type ComponentStatus struct {
+	HealthCheckedAt *time.Time `json:"health_checked_at,omitempty"`
+	LastHealthyAt   *time.Time `json:"last_healthy_at,omitempty"`
+	HealthLatencyMS int64      `json:"health_latency_ms"`
+	HealthFailures  int        `json:"health_failures,omitempty"`
+	HealthError     string     `json:"health_error,omitempty"`
 	Component
 	Status       string  `json:"status"`
 	Health       string  `json:"health"`
@@ -71,14 +76,16 @@ type Snapshot struct {
 }
 
 type Controller struct {
-	keyStoreMu    sync.Mutex
-	keyStorePeers map[string]Host
-	catalog       Catalog
-	client        *http.Client
-	mu            sync.RWMutex
-	op            Operation
-	dataDir       string
-	modelCache    string
+	statusMu       sync.Mutex
+	statusMonitors map[string]*statusMonitor
+	keyStoreMu     sync.Mutex
+	keyStorePeers  map[string]Host
+	catalog        Catalog
+	client         *http.Client
+	mu             sync.RWMutex
+	op             Operation
+	dataDir        string
+	modelCache     string
 }
 
 const minimumCUDAImmediateFreeGiB = 4.0
@@ -635,38 +642,10 @@ func estimateFlashNextWeightProgress(info progressInfo, elapsed time.Duration) p
 }
 
 func (c *Controller) componentStatus(ctx context.Context, component Component, gpuByPID map[int]float64) ComponentStatus {
-	status := ComponentStatus{Component: component, Status: "missing", Health: "offline"}
-	if component.Controller == "external" {
-		status.Status = "external"
-		if c.httpHealthy(ctx, component) {
-			status.Health = "online"
-		}
-		return status
-	}
-	state, err := c.inspectComponent(ctx, component)
-	if err != nil {
-		status.Error = err.Error()
-		return status
-	}
-	status.Status = state
-	if state == "running" {
-		if c.isHealthy(ctx, component) {
-			status.Health = "online"
-		} else {
-			logs := c.componentLogs(ctx, component)
-			if failure := startupFailure(logs); failure != "" {
-				status.Health = "failed"
-				status.Phase = failure
-			} else {
-				status.Health = "starting"
-				info := inferProgress(component, logs)
-				status.Phase, status.Progress, status.ETA = info.Phase, info.Progress, info.ETA
-			}
-		}
-		if c.local(component) {
-			for _, pid := range containerPIDs(ctx, component.Container) {
-				status.GPUMemoryGiB += gpuByPID[pid]
-			}
+	status := c.observedStatus(ctx, component)
+	if status.Status == "running" && c.local(component) {
+		for _, pid := range containerPIDs(ctx, component.Container) {
+			status.GPUMemoryGiB += gpuByPID[pid]
 		}
 	}
 	return status

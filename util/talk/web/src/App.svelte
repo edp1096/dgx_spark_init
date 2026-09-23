@@ -274,12 +274,23 @@
     catch (e) { models = []; }
   }
 
+  let healthRefresh = null, runtimeRefresh = null;
   async function refreshHealth() {
+    if (healthRefresh) return healthRefresh;
+    healthRefresh = loadHealth();
+    try { await healthRefresh; } finally { healthRefresh = null; }
+  }
+  async function loadHealth() {
     try { health = await getHealth(); }
     catch (e) { health = { status: 'degraded', model: '', error: e.message }; }
   }
 
   async function refreshRuntime() {
+    if (runtimeRefresh) return runtimeRefresh;
+    runtimeRefresh = loadRuntime();
+    try { await runtimeRefresh; } finally { runtimeRefresh = null; }
+  }
+  async function loadRuntime() {
     try {
       const previousOperation = runtimeState?.operation?.state;
       const next = await getRuntime();

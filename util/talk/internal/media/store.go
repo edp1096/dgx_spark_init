@@ -1,7 +1,6 @@
 package media
 
 import (
-	"bytes"
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/hex"
@@ -20,11 +19,12 @@ import (
 )
 
 const (
-	MaxImageBytes      = 15 << 20
-	MaxAttachmentBytes = 64 << 20
-	MaxMessageBytes    = 96 << 20
-	maxImagePixels     = 40_000_000
-	maxAttachments     = 6
+	MaxImageBytes       = 15 << 20
+	MaxAttachmentBytes  = 64 << 20
+	MaxRemoteVideoBytes = 512 << 20
+	MaxMessageBytes     = 96 << 20
+	maxImagePixels      = 40_000_000
+	maxAttachments      = 6
 )
 
 var mediaIDPattern = regexp.MustCompile(`^[a-f0-9]{32}$`)
@@ -59,7 +59,10 @@ func (s *Store) save(header *multipart.FileHeader, limit int64, imageOnly bool) 
 // SaveReader stores a trusted media response while enforcing the same limits
 // and signature checks as a browser file upload.
 func (s *Store) SaveReader(reader io.Reader, name, declaredMIME string, limit int64) (db.Attachment, error) {
-	return s.saveReader(reader, name, declaredMIME, limit, false)
+	if limit <= MaxAttachmentBytes {
+		return s.saveReader(reader, name, declaredMIME, limit, false)
+	}
+	return s.saveRemoteVideo(reader, name, declaredMIME, limit)
 }
 
 func (s *Store) saveReader(reader io.Reader, originalName, declaredMIME string, limit int64, imageOnly bool) (db.Attachment, error) {
@@ -96,15 +99,21 @@ func (s *Store) Validate(items []db.Attachment) ([]db.Attachment, error) {
 	var total int64
 	for _, item := range items {
 		name := cleanName(item.Name)
-		data, mimeType, err := s.read(item.ID, name, item.MIME, false)
+		file, mimeType, size, err := s.inspect(item.ID, name, item.MIME)
 		if err != nil {
 			return nil, err
 		}
-		total += int64(len(data))
+		file.Close()
+		if size > MaxAttachmentBytes {
+			// Large videos are processed as bounded frame sheets, not inline data.
+			out = append(out, db.Attachment{ID: item.ID, Name: name, MIME: mimeType, Size: size, URL: mediaURL(item.ID, name, mimeType)})
+			continue
+		}
+		total += size
 		if total > MaxMessageBytes {
 			return nil, fmt.Errorf("attachments may total at most %d MB per message", MaxMessageBytes>>20)
 		}
-		out = append(out, db.Attachment{ID: item.ID, Name: name, MIME: mimeType, Size: int64(len(data)), URL: mediaURL(item.ID, name, mimeType)})
+		out = append(out, db.Attachment{ID: item.ID, Name: name, MIME: mimeType, Size: size, URL: mediaURL(item.ID, name, mimeType)})
 	}
 	return out, nil
 }
@@ -139,20 +148,28 @@ func (s *Store) Open(item db.Attachment) (*os.File, error) {
 }
 
 func (s *Store) Serve(w http.ResponseWriter, r *http.Request, id, name, mimeHint string) {
-	data, mimeType, err := s.read(id, name, mimeHint, false)
+	file, mimeType, _, err := s.inspect(id, name, mimeHint)
 	if err != nil {
 		http.NotFound(w, r)
 		return
 	}
+	defer file.Close()
 	w.Header().Set("Content-Type", mimeType)
 	w.Header().Set("Cache-Control", "private, max-age=86400")
 	w.Header().Set("X-Content-Type-Options", "nosniff")
-	http.ServeContent(w, r, cleanName(name), fileModTime(filepath.Join(s.dir, id)), bytes.NewReader(data))
+	http.ServeContent(w, r, cleanName(name), fileModTime(filepath.Join(s.dir, id)), file)
 }
 
 func (s *Store) read(id, name, mimeHint string, imageOnly bool) ([]byte, string, error) {
 	if !mediaIDPattern.MatchString(id) {
 		return nil, "", fmt.Errorf("invalid media id")
+	}
+	info, err := os.Stat(filepath.Join(s.dir, id))
+	if err != nil {
+		return nil, "", err
+	}
+	if info.Size() > MaxAttachmentBytes {
+		return nil, "", fmt.Errorf("large video must be processed through frame extraction")
 	}
 	data, err := os.ReadFile(filepath.Join(s.dir, id))
 	if err != nil {
@@ -193,4 +210,95 @@ func randomID() (string, error) {
 		return "", err
 	}
 	return hex.EncodeToString(value[:]), nil
+}
+
+// inspect validates large videos from their signature without allocating their body.
+func (s *Store) inspect(id, name, hint string) (*os.File, string, int64, error) {
+	f, err := s.Open(db.Attachment{ID: id})
+	if err != nil {
+		return nil, "", 0, err
+	}
+	fail := func(err error) (*os.File, string, int64, error) { f.Close(); return nil, "", 0, err }
+	info, err := f.Stat()
+	if err != nil {
+		return fail(err)
+	}
+	size := info.Size()
+	if size > MaxRemoteVideoBytes {
+		return fail(fmt.Errorf("stored media exceeds remote video limit"))
+	}
+	limit := int64(MaxAttachmentBytes)
+	if size > limit {
+		limit = 512
+	}
+	data, err := io.ReadAll(io.LimitReader(f, limit))
+	if err != nil {
+		return fail(err)
+	}
+	kind, err := classifyMedia(data, cleanName(name), hint, false)
+	if err != nil {
+		return fail(err)
+	}
+	if size > MaxAttachmentBytes && !strings.HasPrefix(kind, "video/") {
+		return fail(fmt.Errorf("only remote videos may exceed attachment limit"))
+	}
+	if _, err = f.Seek(0, io.SeekStart); err != nil {
+		return fail(err)
+	}
+	return f, kind, size, nil
+}
+
+func (s *Store) saveRemoteVideo(reader io.Reader, name, hint string, limit int64) (db.Attachment, error) {
+	if limit > MaxRemoteVideoBytes {
+		limit = MaxRemoteVideoBytes
+	}
+	f, err := os.CreateTemp(s.dir, ".import-")
+	if err != nil {
+		return db.Attachment{}, err
+	}
+	defer os.Remove(f.Name())
+	size, err := io.Copy(f, io.LimitReader(reader, limit+1))
+	closeErr := f.Close()
+	if err != nil {
+		return db.Attachment{}, err
+	}
+	if closeErr != nil {
+		return db.Attachment{}, closeErr
+	}
+	if size < 1 || size > limit {
+		return db.Attachment{}, fmt.Errorf("remote media exceeds %d MiB limit or is empty", limit>>20)
+	}
+	// Small files retain full document/image validation.
+	limitRead := int64(MaxAttachmentBytes)
+	if size > limitRead {
+		limitRead = 512
+	}
+	input, err := os.Open(f.Name())
+	if err != nil {
+		return db.Attachment{}, err
+	}
+	data, err := io.ReadAll(io.LimitReader(input, limitRead))
+	input.Close()
+	if err != nil {
+		return db.Attachment{}, err
+	}
+	name = cleanName(name)
+	kind, err := classifyMedia(data, name, hint, false)
+	if err != nil {
+		return db.Attachment{}, err
+	}
+	if size > MaxAttachmentBytes && !strings.HasPrefix(kind, "video/") {
+		return db.Attachment{}, fmt.Errorf("only remote videos may exceed attachment limit")
+	}
+	if strings.HasPrefix(kind, "image/") && size > MaxImageBytes {
+		return db.Attachment{}, fmt.Errorf("image exceeds size limit")
+	}
+	id, err := randomID()
+	if err != nil {
+		return db.Attachment{}, err
+	}
+	if err = os.Rename(f.Name(), filepath.Join(s.dir, id)); err != nil {
+		return db.Attachment{}, err
+	}
+	return db.Attachment{ID: id, Name: name, MIME: kind, Size: size, URL: mediaURL(id, name, kind)}, nil
 }

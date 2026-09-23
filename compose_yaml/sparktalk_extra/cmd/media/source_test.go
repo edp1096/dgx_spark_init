@@ -121,3 +121,17 @@ func TestSourceNeedsVideoNormalization(t *testing.T) {
 		t.Fatal("high-fps H.264 and AV1 must be normalized")
 	}
 }
+
+func TestLongVideoLimitDoesNotFallBackToUnavailableMuxedFormat(t *testing.T) {
+	info := sourceInfo{Formats: []sourceFormat{
+		{ID: "160", Height: 144, VideoCodec: "avc1", AudioCodec: "none", FileSize: 47 << 20},
+		{ID: "135", Height: 480, VideoCodec: "avc1", AudioCodec: "none", FileSize: 446 << 20},
+		{ID: "139", VideoCodec: "none", AudioCodec: "mp4a", FileSize: 28 << 20},
+	}}
+	if format, _ := selectDownloadFormat(info, 64, 720); format != "" {
+		t.Fatalf("must report no fit, got %s", format)
+	}
+	if format, height := selectDownloadFormat(info, 512, 720); format != "135+139" || height != 480 {
+		t.Fatalf("got %s height %d", format, height)
+	}
+}
