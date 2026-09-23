@@ -5,7 +5,7 @@ const fs=require('node:fs'),os=require('node:os'),path=require('node:path');
  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'talk-extension-'));
  fs.cpSync(path.resolve(__dirname,'../../internal/browserbridge/extension'),path.join(dir,'extension'),{recursive:true});
  const manifestPath=path.join(dir,'extension/manifest.json'),manifest=JSON.parse(fs.readFileSync(manifestPath));
- manifest.host_permissions.push('http://127.0.0.1/*');fs.writeFileSync(manifestPath,JSON.stringify(manifest));
+ manifest.host_permissions.push('http://127.0.0.1/*','https://*.naver.com/*','https://*.naverpay.com/*');fs.writeFileSync(manifestPath,JSON.stringify(manifest));
  const ext=path.join(dir,'extension');
  const context=await chromium.launchPersistentContext(path.join(dir,'profile'),{executablePath:'/home/edp1096/.cache/ms-playwright/chromium-1243/chrome-linux-arm64/chrome',headless:true,args:['--no-sandbox','--ignore-certificate-errors','--host-resolver-rules=MAP shopping.naver.com 127.0.0.1',`--disable-extensions-except=${ext}`,`--load-extension=${ext}`]});
  try{
@@ -13,7 +13,7 @@ const fs=require('node:fs'),os=require('node:os'),path=require('node:path');
  context.on('console',m=>console.error('chrome:',m.text()));
  const worker=context.serviceWorkers()[0]||await context.waitForEvent('serviceworker');
  await worker.evaluate(async ({server,token})=>{await chrome.storage.local.set({server,token});},{server:process.env.BRIDGE_URL,token:process.env.BRIDGE_TOKEN});
- const popup=await context.newPage();await popup.goto(new URL('connect.html',worker.url()).href);await popup.evaluate(()=>chrome.runtime.sendMessage({type:'CONNECT'}));console.error('extension configured');
+ const popup=await context.newPage();await popup.goto(new URL('connect.html',worker.url()).href);await popup.evaluate(()=>chrome.runtime.sendMessage({type:'CONNECT'}));await popup.waitForFunction(async()=> (await chrome.scripting.getRegisteredContentScripts()).length===2);console.error('extension configured');
  await context.route('https://shopping.naver.com/**',route=>route.fulfill({contentType:'text/html',body:`<!doctype html><meta charset="utf-8"><article><a href="https://smartstore.naver.com/example/products/123">테스트 머그컵</a><button id="open">리뷰쓰고 최대 150원 받기</button></article><article><a href="https://smartstore.naver.com/example/products/456">테스트 수건</a><button id="open2">한달사용리뷰 쓰고 최대 10원 받기</button></article><form id="review" hidden><h2>테스트 머그컵 리뷰 작성</h2><input type="radio" aria-label="5점"><textarea></textarea><button type="button" id="submit">리뷰 등록</button></form><div role="status" id="notice"></div><script>window.submissions=0;document.querySelector('#open').onclick=()=>{document.querySelector('h2').textContent='테스트 머그컵 리뷰 작성';document.querySelector('#review').hidden=false;};document.querySelector('#open2').onclick=()=>{document.querySelector('h2').textContent='테스트 수건 리뷰 작성';document.querySelector('#review').hidden=false;};document.querySelector('#submit').onclick=()=>{window.submissions++;document.querySelector('#notice').textContent='리뷰 등록이 완료되었습니다';};</script>`}));
  const page=await context.newPage();await page.goto('https://shopping.naver.com/test-purchases');
  if(mode==='trusted'){

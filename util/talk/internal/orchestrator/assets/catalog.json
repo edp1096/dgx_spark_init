@@ -457,26 +457,18 @@
   {
    "id": "flash-next",
    "name": "Qwen3.8 Flash-Next",
-   "description": "1× DGX Spark · SGLang/B12X · QAD · FP8 KV · 1M 문맥 · FLUX·ASR/TTS",
+   "description": "1× DGX Spark · SGLang/B12X · QAD · FP8 KV · 1M 문맥 · FLUX·Extra",
    "model_type": "qwen3.8",
    "model_id": "local-inference-lab/Qwen3.8-Flash-Next-NVFP4",
    "context_tokens": 1048576,
    "components": [
     "flash-next",
     "flux2",
-    "nemotron-asr",
-    "magpie-tts",
     "extra-media",
     "extra-ssh",
     "extra-collector"
    ],
    "bindings": {
-    "nemotron-asr": {
-     "start_after_llm": true
-    },
-    "magpie-tts": {
-     "start_after_llm": true
-    },
     "flux2": {
      "start_after_llm": true
     }

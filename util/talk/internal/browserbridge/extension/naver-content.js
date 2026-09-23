@@ -1,7 +1,7 @@
 // DOM input handling adapted from the user-uploaded naver-review-extension-mvp.
 (() => {
- if(globalThis.__TALK_REVIEW_BRIDGE_V13__)return;
- globalThis.__TALK_REVIEW_BRIDGE_V13__=true;
+ if(globalThis.__TALK_REVIEW_BRIDGE_V14__)return;
+ globalThis.__TALK_REVIEW_BRIDGE_V14__=true;
  const clean=s=>String(s||'').replace(/\s+/g,' ').trim();
  const visible=el=>{const r=el.getBoundingClientRect(),s=getComputedStyle(el);return r.width>0&&r.height>0&&s.display!=='none'&&s.visibility!=='hidden';};
  const operable=el=>visible(el)||[...(el.labels||[])].some(visible);
@@ -192,7 +192,7 @@
    nav.push({id,label:text(el)});
   }
   const loading=[...document.querySelectorAll('[aria-busy="true"],[role="progressbar"]')].some(visible);
-  return {ok:true,version:13,url:location.href,title:document.title,items:found,navigation:nav,forms:getForms(product),editors:editorDiagnostics(),buttons:buttons.filter(e=>/리뷰|후기/.test(text(e))).slice(0,50).map(text),
+  return {ok:true,version:14,url:location.href,title:document.title,items:found,navigation:nav,forms:getForms(product),editors:editorDiagnostics(),buttons:buttons.filter(e=>/리뷰|후기/.test(text(e))).slice(0,50).map(text),
    status:found.length?'items_found':reviewButtons.length?'extraction_failed':loading?'loading_observed':'no_review_items_detected',
    diagnostics:{review_button_count:reviewButtons.length,unmatched:unmatched.slice(0,8),loading_observed:loading,ready_state:document.readyState},
    guidance:'Only items with id are actionable review candidates. Diagnostic fragments are not a complete product list; never claim that only the first few products mentioned there have loaded. This is the live rendered DOM in the user Chrome, not an HTML fetch. Empty items do NOT prove lazy loading. Use navigation targets or scroll; extraction_failed means visible review buttons were not matched to product names.'};
@@ -208,7 +208,7 @@
    const observer=new MutationObserver(()=>{lastChange=Date.now();changes++;});
    observer.observe(document.body,{childList:true,subtree:true,characterData:true});
    try{
-    scroller.scrollBy({top:Math.max(300,scroller.clientHeight*0.8),behavior:'instant'});
+    globalThis.__talkDOM.scroll(scroller,Math.max(300,scroller.clientHeight*0.8));
     const started=Date.now();
     while(Date.now()-started<4000){await new Promise(r=>setTimeout(r,150));if(Date.now()-started>=1800&&Date.now()-lastChange>=600&&!document.querySelector('[aria-busy="true"]'))break;}
    }finally{observer.disconnect();}
@@ -221,26 +221,9 @@
   return {...snapshots.at(-1),items:[...all.values()],scroll:{steps:movement,added_items:[...all.keys()].filter(id=>!snapshots[0].items.some(v=>v.id===id)).length,complete:false},
    guidance:'Scrolled the existing client DOM and waited for mutations. complete=false: reaching a quiet viewport does not prove that the whole purchase history was loaded. A virtualized item may need to be brought back into view before submitting.'};
  }
-  function nativeSetValue(el, value) {
-    if (el instanceof HTMLTextAreaElement || el instanceof HTMLInputElement) {
-      const proto = el instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
-      const setter = Object.getOwnPropertyDescriptor(proto, "value")?.set;
-      if (setter) setter.call(el, value);
-      else el.value = value;
-      el.dispatchEvent(new InputEvent("input", { bubbles: true, inputType: "insertText", data: value }));
-      el.dispatchEvent(new Event("change", { bubbles: true }));
-      return;
-    }
-    if (el.isContentEditable) {
-      el.focus();
-      el.textContent = value;
-      el.dispatchEvent(new InputEvent("input", { bubbles: true, inputType: "insertText", data: value }));
-      el.dispatchEvent(new Event("change", { bubbles: true }));
-    }
-  }
 
 
- const wait=ms=>new Promise(r=>setTimeout(r,ms));
+
  function readCurrent(a){
   const f=forms.get(a.form_id);
   if(!f||!f.editor.isConnected||!visible(f.editor)||!productMatches(text(f.root),a.product))throw Error('현재 리뷰 입력창을 확인할 수 없습니다.');
@@ -256,11 +239,7 @@
   return f;
  }
  function inputPoint(el){
-  el.scrollIntoView({block:'center',behavior:'instant'});
-  const r=el.getBoundingClientRect(),left=Math.max(0,r.left),right=Math.min(innerWidth,r.right),top=Math.max(0,r.top),bottom=Math.min(innerHeight,r.bottom);
-  if(right<=left||bottom<=top)throw Error('클릭 요소가 화면 안에 없습니다.');
-  const x=(left+right)/2,y=(top+bottom)/2,hit=document.elementFromPoint(x,y);
-  if(hit!==el&&!el.contains(hit))throw Error('다른 요소가 클릭 대상을 가리고 있습니다.');
+  const {x,y}=globalThis.__talkDOM.point(el);
   const id=idFor(el);clickReports.set(id,{trusted_event:null});
   el.addEventListener('click',event=>clickReports.set(id,{trusted_event:event.isTrusted,user_activation:navigator.userActivation.isActive}),{once:true,capture:true});
   return {ok:true,point:{x,y},click_id:id,label:text(el)};
@@ -297,14 +276,11 @@
  function setSelectAnswer(a){
   const {root}=currentForm(a),question=resolveQuestion(root,a.question_id);if(!question)throw Error('추가 질문을 찾지 못했습니다.');
   const option=resolveOption(question,a.option_id);if(!option||option.tagName!=='OPTION')throw Error('선택 옵션을 찾지 못했습니다.');
-  const select=option.parentElement;select.value=option.value;select.dispatchEvent(new Event('input',{bubbles:true}));select.dispatchEvent(new Event('change',{bubbles:true}));return {ok:true};
+  return {ok:globalThis.__talkDOM.select(option.parentElement,option.value)};
  }
 
  function prepareText(a){
-  const {editor}=currentForm(a);editor.scrollIntoView({block:'center',behavior:'instant'});editor.focus();
-  if(editor instanceof HTMLTextAreaElement)editor.select();
-  else {const range=document.createRange();range.selectNodeContents(editor);const selection=getSelection();selection.removeAllRanges();selection.addRange(range);}
-  if(document.activeElement!==editor&&!editor.contains(document.activeElement))throw Error('입력칸 포커스를 확인하지 못했습니다.');
+  const {editor}=currentForm(a);globalThis.__talkDOM.focus(editor,true);
   return {ok:true};
  }
  function verifySnapshot(a){
@@ -338,82 +314,25 @@
   pendingSubmissions.set(receipt,state);setTimeout(()=>pendingSubmissions.delete(receipt),60000);
   return {...point,receipt};
  }
- async function submit(a){
-  let clicked=false,observer;
-  try {
-  const f=forms.get(a.form_id);
-  if(!f||!f.editor.isConnected||!visible(f.editor)||!productMatches(text(f.root),a.product))throw Error('상품 입력창이 변경됐습니다.');
-  if(typeof a.text!=='string'||a.text.trim().length<1||a.text.length>10000||!Number.isInteger(a.rating)||a.rating<1||a.rating>5)throw Error('리뷰 내용 또는 별점이 올바르지 않습니다.');
-  const {root,editor}=f;
-  if(a.action==='submit_current'){
-   const current=readCurrent(a);
-   if(current.text!==a.text||current.rating!==a.rating)throw Error('확인한 뒤 입력 내용이나 별점이 바뀌었습니다. 덮어쓰거나 등록하지 않았습니다.');
-  }else{
-  // Match an explicit rating label within this review form; never arbitrary radios.
-  const ratingCandidates=[...root.querySelectorAll('input[type="radio"],[role="radio"]')].filter(isStarRatingControl).filter(el=>ratingValue(el)===a.rating&&operable(el));
-  if(ratingCandidates.length!==1)throw Error('별점 대상을 하나로 확인하지 못했습니다.');
-  const rating=ratingCandidates[0];rating.click();
-  editor.focus();nativeSetValue(editor,a.text);await wait(300);
-  if(clean(editor.value??editor.textContent)!==clean(a.text))throw Error('입력한 리뷰 내용 검증 실패');
-  if(selectedRating(root)!==a.rating)throw Error('선택된 별점을 확인하지 못했습니다.');
-  }
-  if(a.action==='fill')return {ok:true,status:'filled',submitted:false,product:a.product,text:editor.value??editor.textContent,rating:a.rating};
-  const submitters=clicks(root).filter(e=>/^(리뷰|후기|상품평)\s*등록$|^작성\s*완료$|^등록$/.test(text(e)));
-  if(submitters.length!==1)throw Error('리뷰 등록 버튼을 하나로 확인하지 못했습니다.');
-  const noticeSelector='[role="alert"],[role="status"],[role="dialog"],.toast';
-  const changed=new Set();
-  observer=new MutationObserver(records=>{
-   for(const r of records){
-    const el=r.target.nodeType===1?r.target:r.target.parentElement;
-    const owner=el?.closest(noticeSelector);if(owner)changed.add(owner);
-    for(const n of r.addedNodes||[])if(n.nodeType===1){if(n.matches(noticeSelector))changed.add(n);for(const v of n.querySelectorAll(noticeSelector))changed.add(v);}
-   }
-  });
-  observer.observe(document.body,{childList:true,subtree:true,characterData:true});
-  clicked=true;submitters[0].click();
-  for(let i=0;i<30;i++){
-   await wait(300);
-   const notice=[...changed].find(el=>el.isConnected&&visible(el)&&/(리뷰|후기|상품평).{0,20}(등록|작성).{0,10}(완료|되었습니다|됐습니다)/.test(text(el)));
-   if(notice)return {ok:true,status:'submitted',evidence:text(notice).slice(0,500)};
-  }
-  return {ok:false,status:'uncertain',attempted_submit:true,error:'등록 버튼은 눌렀지만 완료 메시지를 확인하지 못했습니다. 구매내역에서 확인하고 자동 재시도하지 마세요.'};
-  } catch(e) {return {ok:false,status:clicked?'uncertain':'blocked',attempted_submit:clicked,error:e.message};} finally {observer?.disconnect();}
- }
  chrome.runtime.onMessage.addListener((m,s,reply)=>{
-  if(s.id!==chrome.runtime.id||m?.type!=='TALK_REVIEW_V13')return;
+  if(s.id!==chrome.runtime.id||m?.type!=='TALK_REVIEW_V14')return;
   (async()=>{
    if(m.action==='inspect')return inspect(m.product||'');
    if(m.action==='scroll')return scrollPage(Math.max(1,Math.min(4,Number(m.steps)||2)));
-   if(m.action==='navigate'){
+   if(m.action==='prepare_navigation'){
     const v=navigation.get(m.id);
     if(!v||v.url!==location.href||!v.el.isConnected||!visible(v.el)||text(v.el)!==v.label||!navButton(v.el))throw Error('메뉴 대상이 변경됐습니다. 다시 조회하세요.');
     if(v.el.tagName==='A'){
      const u=new URL(v.el.href,location.href);
      if(u.protocol!=='https:'||!['naver.com','naverpay.com'].some(h=>u.hostname===h||u.hostname.endsWith('.'+h)))throw Error('허용되지 않은 이동 주소');
     }
-    v.el.click();return {ok:true,clicked:v.label};
+    return inputPoint(v.el);
    }
    if(m.action==='click_report')return {ok:true,...clickReports.get(m.id)};
-   if(m.action==='open'||m.action==='prepare_open'){
+   if(m.action==='prepare_open'){
     const v=items.get(m.id);
     if(!v||v.url!==location.href||m.url!==location.href||!v.button.isConnected||!visible(v.button)||!reviewButton(v.button)||productIn(v.root)!==v.product)throw Error('구매상품 대상이 바뀌었습니다. 다시 조회하세요.');
-    v.button.scrollIntoView({block:'center',behavior:'instant'});
-    if(m.action==='prepare_open'){
-     const box=v.button.getBoundingClientRect();
-     const left=Math.max(0,box.left),right=Math.min(innerWidth,box.right),top=Math.max(0,box.top),bottom=Math.min(innerHeight,box.bottom);
-     if(right<=left||bottom<=top)throw Error('리뷰 버튼이 화면 안에 보이지 않습니다.');
-     const x=(left+right)/2,y=(top+bottom)/2,hit=document.elementFromPoint(x,y);
-     if(hit!==v.button&&!v.button.contains(hit))throw Error('다른 요소가 리뷰 버튼을 가리고 있습니다.');
-     clickReports.set(m.id,{trusted_event:null});
-     v.button.addEventListener('click',event=>clickReports.set(m.id,{trusted_event:event.isTrusted,user_activation:navigator.userActivation.isActive}),{once:true,capture:true});
-     return {ok:true,label:text(v.button),point:{x,y}};
-    }
-    const href=v.button.tagName==='A'?v.button.href:'';
-    if(href&&v.button.target==='_blank'){
-     const u=new URL(href,location.href);
-     if(u.protocol==='https:'&&['naver.com','naverpay.com'].some(h=>u.hostname===h||u.hostname.endsWith('.'+h)))return {ok:true,open_url:u.href,label:text(v.button),click_dispatched:false};
-    }
-    v.button.click();return {ok:true,click_dispatched:true,label:text(v.button),note:'DOM click dispatched; this does not prove that a popup opened.'};
+    return inputPoint(v.button);
    }
    if(m.action==='close_state')return {ok:true,dirty:[...document.querySelectorAll('textarea,[contenteditable="true"]')].filter(visible).some(el=>String(el.value??el.textContent).trim())};
    if(m.action==='prepare_resume')return prepareResumeDraft();
@@ -428,7 +347,6 @@
     const result=await state.promise;pendingSubmissions.delete(m.receipt);return result;
    }
    if(m.action==='read_current')return readCurrent(m);
-   if(['submit','fill','submit_current'].includes(m.action))return submit(m);
    throw Error('지원하지 않는 작업');
   })().then(reply,e=>reply({ok:false,error:e.message}));return true;
  });

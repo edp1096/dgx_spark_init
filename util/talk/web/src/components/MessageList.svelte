@@ -226,7 +226,7 @@
     if (!tool.result) return '';
     try {
       const parsed = JSON.parse(tool.result);
-      if (tool.name === 'browser_reviews') return browserToolPreview(parsed);
+      if (tool.name === 'browser_reviews' || tool.name === 'browser') return browserToolPreview(parsed);
       if (tool.name === 'memory_manage') {
         if (parsed.memories) return parsed.memories.length
           ? parsed.memories.map((item) => `#${item.id} · ${memoryKindLabel(item.kind)} · ${memoryPriorityLabel(item.priority)} · ${item.enabled ? '사용' : '중지'}\n${item.title || '제목 없음'}\n${item.content}`).join('\n\n')
@@ -270,6 +270,7 @@
     if (tool.name === 'web_fetch') return '페이지 읽기';
 		if (tool.name === 'web_collect') return '브라우저 수집';
     if (tool.name === 'browser_reviews') return '구매후기';
+    if (tool.name === 'browser') return '브라우저';
     if (tool.name === 'ssh_exec') return 'SSH 실행';
     if (tool.name === 'document_generate') return '문서 생성';
     if (tool.name === 'media_import') return '미디어 가져오기';

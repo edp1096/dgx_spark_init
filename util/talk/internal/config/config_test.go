@@ -34,12 +34,12 @@ func TestLoadCreatesEmbeddedDefaultAndSaveReloads(t *testing.T) {
 	if !cfg.Context.Enabled || cfg.Context.CompactAtPercent != 80 || cfg.Context.OutputReserve != 16384 {
 		t.Fatalf("generated context defaults are incomplete: %+v", cfg.Context)
 	}
-	if !cfg.ASR.Enabled || cfg.ASR.FFmpegEndpoint != "http://127.0.0.1:8690" ||
+	if cfg.ASR.Enabled || cfg.ASR.FFmpegEndpoint != "http://127.0.0.1:8690" ||
 		cfg.ASR.Endpoint != "http://127.0.0.1:8693" || cfg.ASR.Model != "nemotron-3.5-asr-streaming-0.6b" ||
 		cfg.ASR.VoiceLanguage != "ko-KR" || cfg.ASR.MediaLanguage != "auto" {
 		t.Fatalf("generated ASR defaults are incomplete: %+v", cfg.ASR)
 	}
-	if !cfg.TTS.Enabled || cfg.TTS.Endpoint != "http://127.0.0.1:8692" ||
+	if cfg.TTS.Enabled || cfg.TTS.Endpoint != "http://127.0.0.1:8692" ||
 		cfg.TTS.Model != "magpietts" || cfg.TTS.Language != "auto" || cfg.TTS.HanjaReading != "korean" ||
 		cfg.TTS.Voice != "Sofia" || cfg.TTS.SampleRate != 22050 || !cfg.TTS.OmitParentheticals {
 		t.Fatalf("generated TTS defaults are incomplete: %+v", cfg.TTS)
@@ -226,11 +226,11 @@ func TestLoadOldConfigDefaultsToolsToEnabled(t *testing.T) {
 	if !cfg.Context.Enabled || cfg.Context.RecentTokens != 32768 {
 		t.Fatalf("old config did not receive context defaults: %+v", cfg.Context)
 	}
-	if !cfg.ASR.Enabled || !cfg.ASR.FilterFillers || cfg.ASR.Model != "nemotron-3.5-asr-streaming-0.6b" ||
+	if cfg.ASR.Enabled || !cfg.ASR.FilterFillers || cfg.ASR.Model != "nemotron-3.5-asr-streaming-0.6b" ||
 		cfg.ASR.VoiceLanguage != "ko-KR" || cfg.ASR.MediaLanguage != "auto" || cfg.ASR.Timeout != "30m" {
 		t.Fatalf("old config did not receive ASR defaults: %+v", cfg.ASR)
 	}
-	if !cfg.TTS.Enabled || cfg.TTS.Voice != "Sofia" || cfg.TTS.HanjaReading != "korean" || cfg.TTS.SampleRate != 22050 || !cfg.TTS.OmitParentheticals {
+	if cfg.TTS.Enabled || cfg.TTS.Voice != "Sofia" || cfg.TTS.HanjaReading != "korean" || cfg.TTS.SampleRate != 22050 || !cfg.TTS.OmitParentheticals {
 		t.Fatalf("old config did not receive TTS defaults: %+v", cfg.TTS)
 	}
 	if cfg.Appearance.AssistantAvatar != "preset:spark" || cfg.Appearance.UserAvatar != "preset:person-blue" {

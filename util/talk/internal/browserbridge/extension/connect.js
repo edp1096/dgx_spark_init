@@ -34,3 +34,15 @@ document.querySelector('#disconnect').onclick=async()=>{
   await chrome.runtime.sendMessage({type:'CONNECT'});await refresh();
  }catch(e){status.textContent=e.message;}
 };
+
+async function refreshSiteCount(){
+ try{const permissions=await chrome.permissions.getAll();document.querySelector('#siteCount').textContent=`허용된 사이트 패턴 ${(permissions.origins||[]).length}개`;}catch{document.querySelector('#siteCount').textContent='사이트 권한을 확인할 수 없습니다.';}
+}
+document.querySelector('#manageSites').onclick=()=>chrome.runtime.openOptionsPage();
+chrome.permissions.onAdded.addListener(refreshSiteCount);
+chrome.permissions.onRemoved.addListener(refreshSiteCount);
+refreshSiteCount();
+
+document.querySelector('#releaseTabs').onclick=async()=>{
+ try{const result=await chrome.runtime.sendMessage({type:'RELEASE_TABS'});status.textContent=result.ok?'작업을 중지하고 탭 연결을 해제했습니다. 탭은 닫지 않았습니다.':result.error;}catch(e){status.textContent=e.message;}
+};

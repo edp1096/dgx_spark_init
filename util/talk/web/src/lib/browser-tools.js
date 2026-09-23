@@ -19,6 +19,6 @@ export function browserToolPreview(result) {
   }
   if (Array.isArray(result.items)) return [`상품 ${result.items.length}개`, ...result.items.map(item => `${item.product}\n${item.summary || ''}`)].join('\n\n');
   if (Array.isArray(result.tabs)) return result.tabs.map(tab => `${tab.title}\n${tab.url}`).join('\n\n');
-  if (result.text != null) return [result.product, `별점 ${result.rating}/5`, result.text, result.submitted === false ? '입력 완료 · 미등록' : ''].filter(Boolean).join('\n');
+  if (result.text != null && result.rating != null) return [result.product, `별점 ${result.rating}/5`, result.text, result.submitted === false ? '입력 완료 · 미등록' : ''].filter(Boolean).join('\n');
   return JSON.stringify(result, null, 2);
 }

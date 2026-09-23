@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "SparkTalk 브라우저",
-  "description": "로그인된 네이버 구매내역과 리뷰 팝업을 Talk와 연결해 별점·리뷰·추가 질문을 입력합니다.",
-  "version": "0.9.6",
+  "description": "Talk와 브라우저를 연결하여 허용한 사이트에서 조회·입력·탭 관리를 수행합니다.",
+  "version": "1.0.2",
   "minimum_chrome_version": "116",
   "permissions": [
     "debugger",
@@ -12,10 +12,7 @@
     "webNavigation",
     "alarms"
   ],
-  "host_permissions": [
-    "https://*.naver.com/*",
-    "https://*.naverpay.com/*"
-  ],
+  "host_permissions": [],
   "optional_host_permissions": [
     "http://*/*",
     "https://*/*"
@@ -31,34 +28,14 @@
       "32": "spark.png"
     }
   },
-  "content_scripts": [
-    {
-      "matches": [
-        "https://*.naver.com/*",
-        "https://*.naverpay.com/*"
-      ],
-      "js": [
-        "naver-content.js"
-      ],
-      "all_frames": true,
-      "run_at": "document_idle"
-    },
-    {
-      "matches": [
-        "https://shopping.naver.com/popup/reviews/form*",
-        "https://shopping.naver.com/popup/reviews/monthly-form*"
-      ],
-      "js": [
-        "resume-draft.js"
-      ],
-      "run_at": "document_start",
-      "world": "MAIN"
-    }
-  ],
   "icons": {
     "16": "spark.png",
     "32": "spark.png",
     "48": "spark.png",
     "128": "spark.png"
+  },
+  "options_ui": {
+    "page": "sites.html",
+    "open_in_tab": true
   }
 }

@@ -35,7 +35,7 @@ func TestBrowserSubmitRequiresExactApproval(t *testing.T) {
 				t.Fatal(err)
 			}
 			defer ws.Close()
-			websocket.JSON.Send(ws, map[string]any{"token": token, "protocol": 8})
+			websocket.JSON.Send(ws, map[string]any{"token": token, "protocol": 14})
 			var ready any
 			websocket.JSON.Receive(ws, &ready)
 			s := &Server{browser: b, approvals: make(map[string]*toolApproval)}

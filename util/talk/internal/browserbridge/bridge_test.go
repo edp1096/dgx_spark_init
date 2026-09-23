@@ -118,3 +118,36 @@ func TestBridgeDisconnectFailsPending(t *testing.T) {
 		t.Fatal("request hung")
 	}
 }
+
+func TestBridgeSessionIsOnWire(t *testing.T) {
+	b, s := setup(t)
+	ws := dial(t, s, b.token)
+	var ready any
+	if err := websocket.JSON.Receive(ws, &ready); err != nil {
+		t.Fatal(err)
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	done := make(chan error, 1)
+	go func() {
+		_, err := b.CallSession(ctx, "conversation-a", "browser", map[string]any{"action": "observe", "tab_id": 17})
+		done <- err
+	}()
+	var req struct {
+		ID      string `json:"id"`
+		Session string `json:"session_id"`
+		Action  string `json:"action"`
+	}
+	if err := websocket.JSON.Receive(ws, &req); err != nil {
+		t.Fatal(err)
+	}
+	if req.Session != "conversation-a" || req.Action != "browser" {
+		t.Fatalf("wrong routing: %+v", req)
+	}
+	if err := websocket.JSON.Send(ws, map[string]any{"id": req.ID, "result": map[string]any{"ok": true}}); err != nil {
+		t.Fatal(err)
+	}
+	if err := <-done; err != nil {
+		t.Fatal(err)
+	}
+}

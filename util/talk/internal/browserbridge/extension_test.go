@@ -222,6 +222,10 @@ func runChromeExtension(t *testing.T, mode string) {
 		if !strings.Contains(string(closed), `"status":"popup_closed"`) {
 			t.Fatalf("close failed %s", closed)
 		}
+		remaining := call("resolve", map[string]any{"ids": []string{listing.Items[1].ID}})
+		if !strings.Contains(string(remaining), listing.Items[1].ID) || strings.Contains(string(remaining), `"ok":false`) {
+			t.Fatalf("closing popup discarded purchase-list targets: %s", remaining)
+		}
 		again := call("close_popup", map[string]any{"tab_id": popupTabID})
 		if !strings.Contains(string(again), `"status":"already_closed"`) {
 			t.Fatalf("close retry failed %s", again)
@@ -247,5 +251,33 @@ func runChromeExtension(t *testing.T, mode string) {
 	}
 	if err := cmd.Wait(); err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestChromeGenericBrowser(t *testing.T) {
+	if os.Getenv("TALK_BROWSER_E2E") != "1" {
+		t.Skip("set TALK_BROWSER_E2E=1 to run Chromium fixture")
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+	cmd := exec.CommandContext(ctx, "node", "../../tests/browser/generic.cjs")
+	if out, err := cmd.CombinedOutput(); err != nil {
+		t.Fatalf("generic browser: %v\n%s", err, out)
+	} else {
+		t.Log(string(out))
+	}
+}
+
+func TestChromeOptionalSitePermissions(t *testing.T) {
+	if os.Getenv("TALK_BROWSER_E2E") != "1" {
+		t.Skip("set TALK_BROWSER_E2E=1 to run Chromium fixture")
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+	cmd := exec.CommandContext(ctx, "node", "../../tests/browser/permissions.cjs")
+	if out, err := cmd.CombinedOutput(); err != nil {
+		t.Fatalf("site permissions: %v\n%s", err, out)
+	} else {
+		t.Log(string(out))
 	}
 }

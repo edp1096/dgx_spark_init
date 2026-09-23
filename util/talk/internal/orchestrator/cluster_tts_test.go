@@ -28,7 +28,7 @@ func TestClusterMagpiePlacementAndStartup(t *testing.T) {
 			t.Fatalf("%s: wrong startup order: %v", id, order)
 		}
 	}
-	// QAD TP1 starts auxiliary models after the LLM to reserve its KV cache first.
+	// QAD TP1 keeps FLUX deferred and prioritizes Extra services over speech models.
 	bundle, _ := c.Bundle("flash-next")
 	order := c.startupOrder(c.StartBundleMembers(bundle))
 	llmIndex := -1
@@ -40,7 +40,25 @@ func TestClusterMagpiePlacementAndStartup(t *testing.T) {
 	if llmIndex < 0 {
 		t.Fatal("Qwen missing from startup order")
 	}
-	for _, id := range []string{"magpie-tts", "nemotron-asr", "flux2"} {
+	for _, removed := range []string{"magpie-tts", "nemotron-asr"} {
+		for _, member := range order {
+			if member == removed {
+				t.Fatalf("QAD unexpectedly starts %s: %v", removed, order)
+			}
+		}
+	}
+	for _, required := range []string{"extra-media", "extra-ssh", "extra-collector"} {
+		found := false
+		for _, member := range bundle.Components {
+			if member == required {
+				found = true
+			}
+		}
+		if !found {
+			t.Fatalf("QAD missing %s: %v", required, order)
+		}
+	}
+	for _, id := range []string{"flux2"} {
 		local, ok := c.ResolveComponent("flash-next", id)
 		if !ok || local.Host == "worker" || !local.StartAfterLLM {
 			t.Fatalf("invalid QAD auxiliary binding: %s %+v", id, local)

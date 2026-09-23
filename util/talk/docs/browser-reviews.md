@@ -1,5 +1,7 @@
 # 구매후기
 
+범용 브라우저 도구와 공통 실행 구조는 [브라우저 제어](browser.md)를 참고한다.
+
 설정 → 기능 → 브라우저에서 확장 ZIP을 받아 압축을 풀고, Chrome의 개발자 모드에서 로드한다. 같은 화면에서 연결 키를 발급해 확장에 Talk 주소와 함께 입력한다. 네이버 로그인과 구매내역은 사용자 Chrome에 유지된다.
 
 Talk에 구매상품 조회를 요청하고 실제 사용 소감·별점을 전달한다. 표시된 초안의 **이대로 등록**을 누르면 최대 10개를 순서대로 처리한다. 서버 별도 설치는 없다.
@@ -25,3 +27,5 @@ TALK_BROWSER_E2E=1 go test ./internal/browserbridge -v
 0.7.0: 리뷰 버튼은 `chrome.debugger`의 `Input.dispatchMouseEvent`로 누른다. 버튼 위의 가림 요소를 확인하고 클릭 때만 연결한 뒤 해제한다. 기존 DOM click과 구분해 trusted event·user activation 결과를 기록한다. 확장 manifest의 debugger 권한이 필요하다. [Chrome 공식 문서](https://developer.chrome.com/docs/extensions/reference/api/debugger).
 
 0.8.0: Chrome의 popup window 생성·동일 이름 팝업 재사용을 구분하고 windowId를 기록한다. 팝업의 별점·등록은 Chrome 마우스 입력, 본문은 Input.insertText로 입력한다. 별도 팝업 및 재사용 팝업에서 검증했고, 수동 수정 뒤 기존 스냅샷 등록 차단과 수정 내용 그대로 등록도 검증했다.
+
+1.0.0: 네이버 상품·폼 해석을 어댑터로 분리하고 범용 브라우저와 Chrome 입력·탭 실행부를 공유한다. 대화별 탭 소유권과 연결 세대별 명령 취소를 적용한다.

@@ -75,7 +75,7 @@ func (b *Bridge) settings(w http.ResponseWriter, r *http.Request) {
 	defer b.mu.Unlock()
 	switch r.Method {
 	case "GET":
-		json.NewEncoder(w).Encode(map[string]any{"connected": b.conn != nil, "paired": b.token != "", "extension_protocol": b.protocol, "update_required": b.conn != nil && b.protocol < 13})
+		json.NewEncoder(w).Encode(map[string]any{"connected": b.conn != nil, "paired": b.token != "", "extension_protocol": b.protocol, "update_required": b.conn != nil && b.protocol < 14})
 	case "POST", "DELETE":
 		if !sameOrigin(r) {
 			http.Error(w, "same-origin request required", 403)
@@ -155,6 +155,7 @@ func (b *Bridge) serve(ws *websocket.Conn) {
 		b.mu.Unlock()
 		return
 	}
+	ws.MaxPayloadBytes = 16 << 20 // Bounded screenshot responses after authentication.
 	b.conn = ws
 	b.protocol = auth.Protocol
 	b.mu.Unlock()
@@ -194,6 +195,14 @@ func (b *Bridge) serve(ws *websocket.Conn) {
 	}
 }
 func (b *Bridge) Call(ctx context.Context, action string, args any) (json.RawMessage, error) {
+	return b.CallSession(ctx, "legacy", action, args)
+}
+
+func (b *Bridge) CallSession(ctx context.Context, sessionID, action string, args any) (json.RawMessage, error) {
+	if sessionID == "" {
+		sessionID = "legacy"
+	}
+
 	id := randomID()
 	ch := make(chan json.RawMessage, 1)
 	b.mu.Lock()
@@ -211,7 +220,7 @@ func (b *Bridge) Call(ctx context.Context, action string, args any) (json.RawMes
 	if deadline, ok := ctx.Deadline(); ok {
 		expires = deadline
 	}
-	err := websocket.JSON.Send(ws, map[string]any{"id": id, "action": action, "args": args, "expires": expires.UnixMilli()})
+	err := websocket.JSON.Send(ws, map[string]any{"id": id, "session_id": sessionID, "action": action, "args": args, "expires": expires.UnixMilli()})
 	b.sendMu.Unlock()
 	if err != nil {
 		return nil, err

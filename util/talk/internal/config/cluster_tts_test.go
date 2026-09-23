@@ -14,7 +14,7 @@ func TestClusterSwitchRoutesMagpieWithoutChangingVoice(t *testing.T) {
 		}
 	}
 	cfg.ApplyManagedBundle("flash-next")
-	if cfg.TTS.Endpoint != "http://127.0.0.1:8692" {
-		t.Fatal("worker endpoint leaked into Qwen")
+	if cfg.TTS.Enabled || cfg.ASR.Enabled {
+		t.Fatal("QAD must disable speech services absent from its default set")
 	}
 }
