@@ -84,6 +84,22 @@ func (s *Server) runSubtitle(j jobs.Job, inputDir, inputPath, sourceURL, languag
 		}
 		_ = s.saveJobPreservingRuntime(j)
 	}
+	var speakerSegments []subtitleSpeakerSegment
+	if decodeSubtitleJobParams(j.Params, s.config().Recognition).Diarization {
+		j.Params["stage"] = "diarization"
+		_ = s.saveJobPreservingRuntime(j)
+		var err error
+		speakerSegments, err = s.subtitleSpeakers(j.ID, preparedDir, manifest)
+		if s.jobCancelled(j.ID) {
+			return
+		}
+		if err != nil {
+			j.Params["diarization_warning"] = "화자 구분 실패: " + err.Error() + ". 일반 자막으로 계속합니다."
+		} else {
+			delete(j.Params, "diarization_warning")
+		}
+		_ = s.saveJobPreservingRuntime(j)
+	}
 	if err := s.prepareRecognitionRuntime(stdcontext.Background(), &j); err != nil {
 		s.fail(j, fmt.Errorf("recognition model preparation: %w", err))
 		return
@@ -132,9 +148,23 @@ func (s *Server) runSubtitle(j jobs.Job, inputDir, inputPath, sourceURL, languag
 				return
 			}
 		} else {
+			if len(speakerSegments) > 0 {
+				for wi := range words {
+					words[wi].Speakers = subtitleSpeakerIDs(words[wi].Start+manifest.Segments[index].Start, words[wi].End+manifest.Segments[index].Start, speakerSegments)
+					words[wi].Diarized = true
+				}
+			}
 			segmentCues = cuesFromTimestamps(text, words, manifest.Segments[index].Start)
 			if len(segmentCues) == 0 && strings.TrimSpace(text) != "" {
 				segmentCues = append(segmentCues, subtitleCue{Start: manifest.Segments[index].Start, End: manifest.Segments[index].End, Text: strings.TrimSpace(text)})
+			}
+		}
+		if len(speakerSegments) > 0 {
+			for ci := range segmentCues {
+				if !segmentCues[ci].Diarized {
+					segmentCues[ci].Diarized = true
+					segmentCues[ci].Speakers = subtitleSpeakerIDs(segmentCues[ci].Start, segmentCues[ci].End, speakerSegments)
+				}
 			}
 		}
 		cues = append(cues, segmentCues...)
@@ -192,6 +222,21 @@ func (s *Server) runSubtitle(j jobs.Job, inputDir, inputPath, sourceURL, languag
 		return
 	}
 	_ = s.saveJobPreservingRuntime(j)
+	speakers := map[int]bool{}
+	for _, cue := range cues {
+		for _, id := range cue.Speakers {
+			speakers[id] = true
+		}
+	}
+	speakerIDs := []int{}
+	for id := 1; id <= 8; id++ {
+		if speakers[id] {
+			speakerIDs = append(speakerIDs, id)
+		}
+	}
+	if len(speakerIDs) > 0 {
+		j.Params["speaker_ids"] = speakerIDs
+	}
 	if err := s.writeSubtitleCueArchive(j.ID, cues); err != nil {
 		s.fail(j, err)
 		return

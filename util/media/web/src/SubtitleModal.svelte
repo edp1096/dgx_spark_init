@@ -50,6 +50,7 @@
     <div class="subtitle-modal" role="dialog" aria-modal="true" aria-label="자막 결과 크게 보기">
       <header><div><strong>자막 결과</strong><small title={result.detail}>{result.detail}</small></div><button type="button" aria-label="닫기" onclick={closeModal}>×</button></header>
       <div class="subtitle-modal-content">
+        {#if result.warning}<p role="status">{result.warning}</p>{/if}
         {#if result.mediaSrc}
           <div class="subtitle-modal-player">
             {#if result.audio}
@@ -66,7 +67,7 @@
       </div>
       <footer>
         <div>{#each result.outputs as output}<a href={output.url} target="_blank" rel="noreferrer">{output.label} ↗</a>{/each}</div>
-        <button type="button" onclick={() => onRegenerate(result.jobID)}>자막 재생성</button>
+        <button type="button" onclick={() => onRegenerate(result.jobID)}>자막 재생성·화자 이름</button>
         {#if result.canSelectFrames}<button type="button" onclick={() => onSelectFrames(result.jobID)}>장면 선택</button><button type="button" onclick={() => onUpscale(result.jobID)}>업스케일</button>{/if}
         <button type="button" onclick={closeModal}>닫기</button>
       </footer>

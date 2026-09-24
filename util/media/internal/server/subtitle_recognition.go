@@ -13,16 +13,21 @@ import (
 const autoMultilingualLanguage = "AutoMultilingual"
 
 type timedWord struct {
-	Text  string  `json:"text"`
-	Start float64 `json:"start"`
-	End   float64 `json:"end"`
+	Speakers []int   `json:"speakers,omitempty"`
+	Diarized bool    `json:"diarized,omitempty"`
+	Text     string  `json:"text"`
+	Start    float64 `json:"start"`
+	End      float64 `json:"end"`
 }
 
 type subtitleCue struct {
-	Start      float64 `json:"start"`
-	End        float64 `json:"end"`
-	Text       string  `json:"text"`
-	Translated string  `json:"translated,omitempty"`
+	Speakers     []int             `json:"speakers,omitempty"`
+	Diarized     bool              `json:"diarized,omitempty"`
+	SpeakerNames map[string]string `json:"speaker_names,omitempty"`
+	Start        float64           `json:"start"`
+	End          float64           `json:"end"`
+	Text         string            `json:"text"`
+	Translated   string            `json:"translated,omitempty"`
 }
 
 func (s *Server) recoverSubtitleSegment(inputDir, sourcePath string, absoluteOffset float64, language, context string) ([]subtitleCue, string, error) {
@@ -131,9 +136,11 @@ func cuesFromTimestamps(transcript string, words []timedWord, offset float64) []
 	for index := range restored {
 		text := cueTokenText(restored[start:index+1], exact)
 		duration := restored[index].End - restored[start].Start
-		if duration >= 6 || utf8.RuneCountInString(text) >= 60 || hasSentenceEnding(text) || index == len(restored)-1 {
+		speakerChanges := index+1 < len(restored) && fmt.Sprint(restored[index].Speakers) != fmt.Sprint(restored[index+1].Speakers)
+		if speakerChanges || duration >= 6 || utf8.RuneCountInString(text) >= 60 || hasSentenceEnding(text) || index == len(restored)-1 {
 			if text != "" {
 				cues = append(cues, subtitleCue{
+					Speakers: restored[start].Speakers, Diarized: restored[start].Diarized,
 					Start: offset + restored[start].Start,
 					End:   offset + restored[index].End,
 					Text:  text,

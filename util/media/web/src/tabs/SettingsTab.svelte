@@ -268,6 +268,7 @@
           <h3>자막</h3>
           <label>ASR 모델<input bind:value={settings.recognition.model} required></label>
           <div class="fields">
+            <label>화자 구분 API<input bind:value={settings.recognition.diarization_endpoint} placeholder="http://127.0.0.1:8693"></label>
             <label>기본 언어<select bind:value={settings.recognition.default_language}>{#each recognitionLanguages as option}<option value={option[0]}>{option[1]}</option>{/each}</select></label>
             <label>최대 업로드 MB<input type="number" min="1" bind:value={settings.recognition.max_upload_mb}></label>
             <label>구간 길이(초)<input type="number" min="5" max="180" bind:value={settings.recognition.segment_seconds}></label>

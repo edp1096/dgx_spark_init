@@ -1,4 +1,5 @@
 <script>
+  import TranscriptView from './TranscriptView.svelte';
   import { attachmentKind, canPreviewVideo, formatAttachmentSize } from '../lib/attachments.js';
 
   export let attachments = [];
@@ -36,6 +37,9 @@
       <a class="media-file" href={attachment.url} target="_blank" rel="noreferrer" title={attachment.name}>
         <span>▶</span><strong>{attachment.name}</strong><small>{formatAttachmentSize(attachment.size)} · 브라우저 미리보기 미지원</small>
       </a>
+    {/if}
+    {#if kind === 'audio' || kind === 'video'}
+      <TranscriptView attachment={attachment} />
     {/if}
   {/each}
 </div>

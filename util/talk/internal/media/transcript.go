@@ -5,13 +5,17 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sparktalk/internal/asr"
 	"strings"
 )
 
 type TranscriptCache struct {
-	Fingerprint string `json:"fingerprint"`
-	Text        string `json:"text"`
-	Language    string `json:"language,omitempty"`
+	Turns             []asr.Turn `json:"turns,omitempty"`
+	DiarizationStatus string     `json:"diarization_status,omitempty"`
+	Warning           string     `json:"warning,omitempty"`
+	Fingerprint       string     `json:"fingerprint"`
+	Text              string     `json:"text"`
+	Language          string     `json:"language,omitempty"`
 }
 
 func (s *Store) LoadTranscript(id, fingerprint string) (TranscriptCache, bool, error) {
@@ -29,7 +33,7 @@ func (s *Store) LoadTranscript(id, fingerprint string) (TranscriptCache, bool, e
 	if err := json.Unmarshal(data, &cached); err != nil {
 		return TranscriptCache{}, false, err
 	}
-	if cached.Fingerprint != fingerprint || strings.TrimSpace(cached.Text) == "" {
+	if (fingerprint != "" && cached.Fingerprint != fingerprint) || strings.TrimSpace(cached.Text) == "" {
 		return TranscriptCache{}, false, nil
 	}
 	return cached, true, nil

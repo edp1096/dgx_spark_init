@@ -2,7 +2,7 @@
 set -euo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-ref="${NEMO_SPEECH_REF:-4f9676226f667d14608487df744f375db87127f8}"
+ref="${NEMO_SPEECH_REF:-97a15afa5caa9bce5baaa86c1184103877af4101}"
 destination="$root/artifacts/$ref"
 
 if [[ -e "$destination" ]]; then

@@ -13,10 +13,14 @@
   let mode = 'none'
   let formats = ['srt', 'txt']
   let previousID = ''
+  let speakerNames = {}
+  let speakerIDs = []
   let releaseScroll = null
 
   $: if (job?.id && job.id !== previousID) {
     previousID = job.id
+    speakerNames = {...(job.params?.speaker_names || {})}
+    speakerIDs = job.params?.speaker_ids || []
     mode = job.params?.translation_mode || 'none'
     formats = Array.isArray(job.params?.output_formats) && job.params.output_formats.length
       ? [...job.params.output_formats]
@@ -42,7 +46,7 @@
 
   function submit() {
     if (!job || busy || !formats.length) return
-    onSubmit({ translation_mode: mode, output_formats: formats })
+    onSubmit({ translation_mode: mode, output_formats: formats, ...(speakerIDs.length ? {speaker_names:speakerNames} : {}) })
   }
 
   onDestroy(() => releaseScroll?.())
@@ -64,6 +68,12 @@
             <button type="button" class:active={mode === 'bilingual'} onclick={() => mode = 'bilingual'}><strong>원문 + 번역문</strong><small>한 큐에 두 줄로 표시</small></button>
           </div>
         </fieldset>
+        {#if speakerIDs.length}
+          <fieldset class="speaker-names"><legend>화자 이름</legend>
+            <p>빈칸은 ‘화자 1’처럼 표시합니다. 이름을 바꿔도 화자 구분은 유지됩니다.</p>
+            {#each speakerIDs as id}<label>화자 {id}<input aria-label={`화자 ${id} 이름`} maxlength="40" bind:value={speakerNames[id]} placeholder={`화자 ${id}`} /></label>{/each}
+          </fieldset>
+        {/if}
         <fieldset>
           <legend>결과 파일</legend>
           <div class="subtitle-format-options">
@@ -85,7 +95,8 @@
   header{position:static;display:flex;align-items:center;justify-content:space-between;height:50px;padding:8px 14px;border-bottom:1px solid #303731;background:#181e19}
   header>div{display:grid;min-width:0;gap:2px} header strong{font-size:13px} header small{overflow:hidden;max-width:480px;color:#7d877e;font-size:9px;text-overflow:ellipsis;white-space:nowrap}
   header button{border:0;color:#aeb7af;background:transparent;font-size:22px}
-  .subtitle-regenerate-content{display:grid;gap:14px;padding:16px}.subtitle-regenerate-content>p{margin:0;color:#8f9990;font-size:10px;line-height:1.6}
+  .speaker-names label{display:grid;grid-template-columns:70px minmax(0,1fr);gap:8px;align-items:center;margin:6px 0;font-size:12px}.speaker-names input{min-width:0;box-sizing:border-box;padding:7px;color:inherit;background:transparent;border:1px solid #789757;border-radius:5px}.speaker-names p{font-size:11px;line-height:1.5}
+  .subtitle-regenerate-content{max-height:65vh;overflow:auto;display:grid;gap:14px;padding:16px}.subtitle-regenerate-content>p{margin:0;color:#8f9990;font-size:10px;line-height:1.6}
   fieldset{margin:0;border:1px solid #303831;border-radius:10px;padding:10px;background:#111512}legend{padding:0 5px;color:#b9c2ba;font-size:10px}
   .subtitle-mode-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.subtitle-mode-options button{display:grid;gap:4px;min-height:62px;border:1px solid #384139;border-radius:8px;padding:9px;color:#cbd2cc;background:#1a201b;text-align:left}.subtitle-mode-options button small{color:#758077;font-size:8px;line-height:1.4}.subtitle-mode-options button strong{font-size:10px}.subtitle-mode-options button.active{border-color:#789757;color:#e8ffd8;background:#26301f;box-shadow:0 0 0 2px #a8e56d0c}.subtitle-mode-options button.active small{color:#a8bf95}
   .subtitle-format-options{display:flex;flex-wrap:wrap;gap:6px}.subtitle-format-options button{border:1px solid #384139;border-radius:7px;padding:6px 9px;color:#8c968e;background:#1a201b;font-size:9px}.subtitle-format-options button.active{border-color:#789757;color:#dfffc5;background:#26301f}.format-warning{display:block;margin-top:7px;color:#eaa0a5;font-size:9px}

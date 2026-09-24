@@ -11,8 +11,9 @@ import (
 )
 
 type subtitleRegenerateRequest struct {
-	TranslationMode string   `json:"translation_mode"`
-	OutputFormats   []string `json:"output_formats"`
+	SpeakerNames    map[string]string `json:"speaker_names"`
+	TranslationMode string            `json:"translation_mode"`
+	OutputFormats   []string          `json:"output_formats"`
 }
 
 // regenerateSubtitle only rebuilds display files from already recognized cues.
@@ -53,6 +54,16 @@ func (s *Server) regenerateSubtitle(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusConflict)
 		return
 	}
+	if request.SpeakerNames != nil {
+		if err := validateSpeakerNames(request.SpeakerNames, cues); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		for i := range cues {
+			cues[i].SpeakerNames = request.SpeakerNames
+		}
+		migrated = true
+	}
 	if migrated {
 		if err := s.writeSubtitleCueArchive(job.ID, cues); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -89,6 +100,9 @@ func (s *Server) regenerateSubtitle(w http.ResponseWriter, r *http.Request) {
 	}
 	if job.Params == nil {
 		job.Params = map[string]any{}
+	}
+	if request.SpeakerNames != nil {
+		job.Params["speaker_names"] = request.SpeakerNames
 	}
 	job.Params["translation_mode"] = request.TranslationMode
 	job.Params["output_formats"] = formats

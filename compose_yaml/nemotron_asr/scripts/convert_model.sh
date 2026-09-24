@@ -6,7 +6,7 @@ model_dir="${NEMO_MODEL_DIR:-${HOME}/.cache/nemo-speech}"
 cache_dir="${HF_HOME:-${HOME}/.cache/huggingface}"
 outtype="${1:-f16}"
 outfile="nemotron-3.5-asr-streaming-0.6b.${outtype}.gguf"
-ref="${NEMO_SPEECH_REF:-4f9676226f667d14608487df744f375db87127f8}"
+ref="${NEMO_SPEECH_REF:-97a15afa5caa9bce5baaa86c1184103877af4101}"
 
 mkdir -p "$model_dir" "$cache_dir"
 if [[ -e "$model_dir/$outfile" ]]; then

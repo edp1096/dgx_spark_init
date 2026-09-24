@@ -33,6 +33,13 @@ func (s *Server) writeSubtitleOutputs(id string, segments []subtitleCue, formats
 }
 
 func segmentText(segment subtitleCue, mode string) string {
+	text := subtitleBody(segment, mode)
+	if label := subtitleSpeakerLabel(segment); label != "" {
+		return "[" + label + "] " + text
+	}
+	return text
+}
+func subtitleBody(segment subtitleCue, mode string) string {
 	switch mode {
 	case "translated":
 		return segment.Translated

@@ -1,6 +1,6 @@
 services:
   runtime:
-    image: sparktalk-nemotron-asr:0.6b-q8
+    image: sparktalk-nemotron-asr:0.6b-q8-diar1
     container_name: sparktalk-nemotron-asr
     restart: unless-stopped
     init: true

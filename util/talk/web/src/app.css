@@ -554,7 +554,7 @@ textarea::placeholder { color: #777f8f; }
 .settings-modal { display: grid; width: min(680px, 100%); height: min(780px, calc(100dvh - 40px)); max-height: calc(100dvh - 40px); grid-template-rows: auto auto minmax(0, 1fr) auto; overflow: hidden; border: 1px solid #343948; border-radius: 16px; background: #151821; box-shadow: 0 25px 80px #000a; }
 .modal-title { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px 12px; }
 .modal-title h2 { margin: 0; font-size: 20px; }
-.modal-title button { width: 32px; height: 32px; border: 0; border-radius: 8px; color: #9ca3b2; background: #222631; font-size: 20px; }
+.modal-title button { display: grid; place-items: center; flex: 0 0 32px; width: 32px; height: 32px; padding: 0; line-height: 1; border: 0; border-radius: 8px; color: #9ca3b2; background: #222631; font-size: 20px; }
 .settings-tabs { display: flex; gap: 4px; padding: 0 20px 10px; overflow-x: auto; border-bottom: 1px solid #292e3a; scrollbar-width: none; }
 .settings-tabs::-webkit-scrollbar { display: none; }
 .settings-tabs button { position: relative; flex: 1 0 auto; min-width: 74px; height: 34px; padding: 0 12px; border: 0; border-radius: 8px; color: #7f8899; background: transparent; font-size: 12px; white-space: nowrap; }

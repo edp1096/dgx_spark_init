@@ -6,6 +6,7 @@ import (
 )
 
 type subtitleJobParams struct {
+	Diarization     bool     `json:"diarization,omitempty"`
 	Language        string   `json:"language"`
 	Context         string   `json:"context,omitempty"`
 	Source          string   `json:"source"`
@@ -42,6 +43,9 @@ func (p subtitleJobParams) toMap() map[string]any {
 		"language": p.Language, "context": p.Context, "source": p.Source,
 		"output_formats": p.OutputFormats, "translation_mode": p.TranslationMode,
 		"target_language": p.TargetLanguage, "stage": p.Stage, "queued_at": p.QueuedAt,
+	}
+	if p.Diarization {
+		result["diarization"] = true
 	}
 	if p.SourceJobID != "" {
 		result["source_job_id"] = p.SourceJobID

@@ -83,6 +83,7 @@ export class VideoModalController {
         captionLang: captionLanguage(job),
         captionLabel: job.params?.translation_mode === 'none' ? '원문' : job.params?.target_language || '번역',
         transcript: job.params?.text,
+        warning: job.params?.diarization_warning || '',
         prompt: job.prompt,
         detail: details.join(' · '),
         canSelectFrames: Boolean(job.media_url && !isAudioMedia(job)),

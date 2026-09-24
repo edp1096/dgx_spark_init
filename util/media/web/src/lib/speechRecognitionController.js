@@ -69,6 +69,7 @@ export class SpeechRecognitionController {
       if (source === 'url' && state.recognitionForm.media_source) form.append('media_source', state.recognitionForm.media_source)
       form.append('language', state.recognitionForm.language)
       form.append('context', state.recognitionForm.context)
+      form.append('diarization', String(Boolean(state.recognitionForm.diarization)))
       form.append('output_formats', state.recognitionForm.output_formats.join(','))
       form.append('translation_mode', state.recognitionForm.translation_mode)
       form.append('target_language', state.recognitionForm.target_language)

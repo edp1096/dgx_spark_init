@@ -172,7 +172,7 @@
 <div class="modal-backdrop" role="presentation">
   <SettingsToast {toast} onclose={closeToast} />
   <div class="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settings-title">
-    <div class="modal-title"><h2 id="settings-title">설정</h2><button onclick={onclose} aria-label="닫기">×</button></div>
+    <div class="modal-title"><h2 id="settings-title">설정</h2><button onclick={onclose} aria-label="닫기"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg></button></div>
     <div class="settings-tabs" role="tablist" aria-label="설정 분류">
       {#each settingsTabs as tab, index}
         <button id={`settings-tab-${tab.id}`} type="button" role="tab" aria-selected={activeTab === tab.id} aria-controls={`settings-panel-${tab.id}`} class:active={activeTab === tab.id} tabindex={activeTab === tab.id ? 0 : -1} onclick={() => activeTab = tab.id} onkeydown={(event) => tabKeydown(event, index)}>{tab.label}</button>
@@ -261,6 +261,7 @@
           </div>
           <datalist id="asr-languages">{#each ['auto', 'ko-KR', 'ja-JP', 'en-US', 'en-GB', 'zh-CN', 'es-US', 'es-ES', 'fr-FR', 'fr-CA', 'it-IT', 'pt-BR', 'pt-PT', 'nl-NL', 'de-DE', 'tr-TR', 'ru-RU', 'ar-AR', 'hi-IN', 'vi-VN', 'uk-UA', 'pl-PL', 'sv-SE', 'cs-CZ', 'nb-NO', 'da-DK', 'bg-BG', 'fi-FI', 'hr-HR', 'sk-SK', 'hu-HU', 'ro-RO', 'et-EE', 'Filipino', 'Cantonese', 'Thai', 'Indonesian', 'Malay', 'Persian', 'Greek'] as language}<option value={language}></option>{/each}</datalist>
 
+          <label class="check"><input type="checkbox" bind:checked={settings.asr.diarization} /> 첨부 영상·녹음의 화자 구분 (최대 8명)</label>
           <label>문맥·전문용어 힌트<textarea rows="3" bind:value={settings.asr.prompt} placeholder="예: 한국어 기술 대화. 주요 용어: SparkTalk, DGX Spark, SGLang, Qwen3-ASR"></textarea></label>
 
           <label class="check"><input type="checkbox" bind:checked={settings.asr.filter_fillers} /> 음성대기에서 단독 추임새·문장부호 무시</label>

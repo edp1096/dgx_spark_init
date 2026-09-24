@@ -43,6 +43,7 @@ type Speech struct {
 }
 
 type Recognition struct {
+	DiarizationEndpoint        string   `yaml:"diarization_endpoint" json:"diarization_endpoint"`
 	Model                      string   `yaml:"model" json:"model"`
 	DefaultLanguage            string   `yaml:"default_language" json:"default_language"`
 	MaxUploadMB                int64    `yaml:"max_upload_mb" json:"max_upload_mb"`
@@ -282,6 +283,9 @@ func Normalize(cfg Config) Config {
 	}
 	if cfg.Recognition.Model == "Qwen/Qwen3-ASR-1.7B-hf" {
 		cfg.Recognition.Model = "Qwen/Qwen3-ASR-1.7B"
+	}
+	if cfg.Recognition.DiarizationEndpoint == "" {
+		cfg.Recognition.DiarizationEndpoint = "http://127.0.0.1:8693"
 	}
 	if cfg.Recognition.SegmentSeconds == 0 {
 		cfg.Recognition.SegmentSeconds = 180

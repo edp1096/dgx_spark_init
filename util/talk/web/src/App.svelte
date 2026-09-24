@@ -2,6 +2,7 @@
   import WorkflowRuns from './components/WorkflowRuns.svelte';
   let workflowVersion=0;
   import { onMount, tick } from 'svelte';
+  import AvatarPreview from './components/AvatarPreview.svelte';
   import SettingsModal from './components/SettingsModal.svelte';
   import Sidebar from './components/Sidebar.svelte';
   import ChatHeader from './components/ChatHeader.svelte';
@@ -51,6 +52,7 @@
   let modelType = 'generic';
   let webToolsEnabled = false;
   let assistantName = 'SparkTalk';
+  let avatarPreviewRole = null;
   let appearance = { assistant_avatar: 'preset:spark', user_avatar: 'preset:person-blue', theme: 'system' };
   let input = '';
   let running = false;
@@ -1198,7 +1200,7 @@
       onRemoveSession={remove}
       onRemoveSelected={removeSelected}
       onOpenSettings={openSettings}
-      onOpenProfile={() => openSettings('character')}
+      onViewAvatar={() => avatarPreviewRole = 'assistant'}
       onOpenLibrary={openLibrary}
       {libraryOpen}
       onStartResize={startResize}
@@ -1260,7 +1262,7 @@
       assistantAvatar={appearance.assistant_avatar}
       userName={appearance.user_name || '나'}
       userAvatar={appearance.user_avatar}
-      onOpenProfile={role => openSettings(role === 'user' ? 'user' : 'character')}
+      onViewAvatar={role => avatarPreviewRole = role}
       {variantIndices}
       {variantPosition}
       onShowAdjacentVariant={showAdjacentVariant}
@@ -1335,6 +1337,17 @@
 
 {#if dragActive}
   <div class="drop-overlay" role="region" aria-label="미디어 드롭 영역"><div><span>＋</span><strong>미디어를 여기에 놓으세요</strong><small>이미지 · MP3/WAV/OGG · AVI/MOV/MP4/OGG/WMV/WebM · 최대 6개</small></div></div>
+{/if}
+
+{#if avatarPreviewRole}
+  {@const role = avatarPreviewRole}
+  <AvatarPreview
+    value={role === 'user' ? appearance.user_avatar : appearance.assistant_avatar}
+    fallback={role === 'user' ? 'person-blue' : 'spark'}
+    name={role === 'user' ? (appearance.user_name || '나') : assistantName}
+    onclose={() => avatarPreviewRole = null}
+    onsettings={() => openSettings(role === 'user' ? 'user' : 'character')}
+  />
 {/if}
 
 {#if settingsOpen && settings}

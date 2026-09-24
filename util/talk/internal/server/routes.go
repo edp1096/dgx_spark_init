@@ -31,6 +31,7 @@ func (s *Server) routes(web fs.FS) *http.ServeMux {
 	mux.HandleFunc("/api/files/", s.file)
 	mux.HandleFunc("/api/media", s.mediaUsage)
 	mux.HandleFunc("/api/media/source", s.uploadSource)
+	mux.HandleFunc("/api/media/transcript/", s.attachmentTranscript)
 	mux.HandleFunc("/api/memories", s.memories)
 	mux.HandleFunc("/api/memories/", s.memory)
 	mux.HandleFunc("/api/knowledge/collections", s.knowledgeCollections)

@@ -52,6 +52,7 @@ type RuntimeConfig struct {
 // Audio attachments become text; video attachments keep their visual stream and
 // gain a transcript of their audio track.
 type ASRConfig struct {
+	Diarization    bool   `yaml:"diarization" json:"diarization"`
 	Enabled        bool   `yaml:"enabled" json:"enabled"`
 	FFmpegEndpoint string `yaml:"ffmpeg_endpoint" json:"ffmpeg_endpoint"`
 	Endpoint       string `yaml:"endpoint" json:"endpoint"`

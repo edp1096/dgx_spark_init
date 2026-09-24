@@ -134,7 +134,8 @@ func (s *Server) createSubtitle(w http.ResponseWriter, r *http.Request) {
 		sourceKind = "video_job"
 	}
 	params := subtitleJobParams{
-		Language: language, Context: context, Source: sourceKind, SourceJobID: reuseVideoID,
+		Diarization: r.FormValue("diarization") == "true",
+		Language:    language, Context: context, Source: sourceKind, SourceJobID: reuseVideoID,
 		OutputFormats: formats, TranslationMode: translationMode, TargetLanguage: targetLanguage,
 		MediaPart: mediaPart, MediaSource: mediaSource, Stage: "queued",
 	}

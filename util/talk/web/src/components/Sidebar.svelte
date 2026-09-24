@@ -26,7 +26,7 @@
   export let onChangeSessionGroup = () => {};
   export let onRemoveSession = () => {};
   export let onOpenSettings = () => {};
-  export let onOpenProfile = () => {};
+  export let onViewAvatar = () => {};
   export let onOpenLibrary = () => {};
   export let libraryOpen = false;
   export let onStartResize = () => {};
@@ -158,7 +158,7 @@
 </script>
 
 <aside class="sidebar">
-  <div class="brand"><button type="button" class="mark profile-avatar" aria-label="AI 캐릭터 설정" title="AI 캐릭터 설정" onclick={onOpenProfile}><Avatar value={assistantAvatar} alt={assistantName} /></button><strong class="character-name" title={assistantName}>{assistantName}</strong><button class="sidebar-close" onclick={onclose} aria-label="사이드바 닫기">×</button></div>
+  <div class="brand"><button type="button" class="mark profile-avatar" aria-label="AI 아바타 크게 보기" title="AI 아바타 크게 보기" onclick={onViewAvatar}><Avatar value={assistantAvatar} alt={assistantName} /></button><strong class="character-name" title={assistantName}>{assistantName}</strong><button class="sidebar-close" onclick={onclose} aria-label="사이드바 닫기">×</button></div>
   <div class="sidebar-actions">
     <button class="new-chat" onclick={onAddSession}>＋ 새 대화</button>
     <button class="new-group" onclick={onAddGroup} title="그룹 만들기" aria-label="그룹 만들기">＋ 폴더</button>

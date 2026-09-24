@@ -65,6 +65,7 @@
     <label>구간 길이<input value={`${config?.recognition.segment_seconds || 180}초`} disabled></label>
   </div>
   <label>컨텍스트·전문용어<textarea bind:value={form.context} rows="4" placeholder="선택 사항 · 인명, 제품명, 전문용어 등을 입력하세요."></textarea></label>
+  <label><input type="checkbox" bind:checked={form.diarization}>화자 구분 · 이름은 자막 생성 후 지정</label>
   <fieldset class="format-options">
     <legend>결과 형식 <small>복수 선택 가능</small></legend>
     <label><input type="checkbox" value="srt" bind:group={form.output_formats}>SRT 자막</label>

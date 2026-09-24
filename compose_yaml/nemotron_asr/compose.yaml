@@ -5,10 +5,10 @@ services:
       context: .
       target: runtime
       args:
-        NEMO_SPEECH_REF: ${NEMO_SPEECH_REF:-4f9676226f667d14608487df744f375db87127f8}
+        NEMO_SPEECH_REF: ${NEMO_SPEECH_REF:-97a15afa5caa9bce5baaa86c1184103877af4101}
         CUDA_ARCH: ${NEMO_CUDA_ARCH:-121}
         BUILD_JOBS: ${NEMO_BUILD_JOBS:-2}
-    image: sparktalk-nemotron-asr:0.6b-q8
+    image: sparktalk-nemotron-asr:0.6b-q8-diar1
     container_name: sparktalk-nemotron-asr
     restart: unless-stopped
     ports:

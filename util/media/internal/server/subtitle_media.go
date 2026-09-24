@@ -203,6 +203,7 @@ func (s *Server) callMultipartToFileStreamingContext(ctx context.Context, url st
 		return err
 	}
 	defer resp.Body.Close()
+	_ = reader.Close()
 	producerErr := <-producerDone
 	if producerErr != nil {
 		return producerErr

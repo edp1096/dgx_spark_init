@@ -333,7 +333,7 @@ func (c *Controller) prepareOrStartComponent(ctx context.Context, component Comp
 func ensureLocalServiceImage(ctx context.Context, host Host, image string) error {
 	switch image {
 	case "sparktalk-extra-media:latest", "sparktalk-extra-ssh:latest", "sparktalk-extra-collector:latest",
-		"sparktalk-nemotron-asr:0.6b-q8", "sparktalk-magpie-tts:v2607-longform1", "sparktalk-magpie-tts:v2607-longform2":
+		"sparktalk-nemotron-asr:0.6b-q8", "sparktalk-nemotron-asr:0.6b-q8-diar1", "sparktalk-magpie-tts:v2607-longform1", "sparktalk-magpie-tts:v2607-longform2":
 	default:
 		return nil
 	}

@@ -25,7 +25,7 @@
   export let userName = '나';
   export let assistantAvatar = 'preset:spark';
   export let userAvatar = 'preset:person-blue';
-  export let onOpenProfile = () => {};
+  export let onViewAvatar = () => {};
   export let variantIndices = () => [];
   export let variantPosition = () => 0;
   export let onShowAdjacentVariant = () => {};
@@ -379,14 +379,14 @@
 
 <section class="messages" bind:this={element} use:codeCardActions onscroll={handleScroll}>
   {#if !messages.length}
-    <div class="welcome"><button type="button" class="mark large profile-avatar" aria-label="AI 캐릭터 설정" title="AI 캐릭터 설정" onclick={() => onOpenProfile('assistant')}><Avatar value={assistantAvatar} alt={assistantName} /></button><h1>무엇을 도와드릴까요?</h1><p>{assistantName}에게 메시지를 보내세요.</p></div>
+    <div class="welcome"><button type="button" class="mark large profile-avatar" aria-label="AI 아바타 크게 보기" title="AI 아바타 크게 보기" onclick={() => onViewAvatar('assistant')}><Avatar value={assistantAvatar} alt={assistantName} /></button><h1>무엇을 도와드릴까요?</h1><p>{assistantName}에게 메시지를 보내세요.</p></div>
   {/if}
   {#if topSpacerHeight > 0}<div class="message-virtual-spacer" style:height={`${topSpacerHeight}px`} aria-hidden="true"></div>{/if}
   {#each visibleMessages as message, offset (messageKey(message, visibleStart + offset))}
     {@const index = visibleStart + offset}
     {@const messageArtifacts = artifactsFromMessage(message, index)}
     <article class:mine={message.role === 'user'} class:message-failed={message.status === 'failed'} class:message-cancelled={message.status === 'cancelled'} data-message-id={message.id || ''} data-message-index={index}>
-      <button type="button" class="avatar profile-avatar" aria-label={message.role === 'user' ? '내 프로필 설정' : 'AI 캐릭터 설정'} title={message.role === 'user' ? '내 프로필 설정' : 'AI 캐릭터 설정'} onclick={() => onOpenProfile(message.role)}><Avatar value={message.role === 'user' ? userAvatar : assistantAvatar} fallback={message.role === 'user' ? 'person-blue' : 'spark'} alt={message.role === 'user' ? userName : assistantName} /></button>
+      <button type="button" class="avatar profile-avatar" aria-label={message.role === 'user' ? '사용자 아바타 크게 보기' : 'AI 아바타 크게 보기'} title={message.role === 'user' ? '사용자 아바타 크게 보기' : 'AI 아바타 크게 보기'} onclick={() => onViewAvatar(message.role)}><Avatar value={message.role === 'user' ? userAvatar : assistantAvatar} fallback={message.role === 'user' ? 'person-blue' : 'spark'} alt={message.role === 'user' ? userName : assistantName} /></button>
       <div class="message-body">
         <div class="speaker-name">{message.role === 'user' ? userName : assistantName}</div>
         {#if message.reasoning_content}

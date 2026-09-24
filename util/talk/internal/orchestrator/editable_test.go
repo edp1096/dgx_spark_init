@@ -246,7 +246,7 @@ func TestControllerBootUsesSavedCatalogWithoutRuntimeMutations(t *testing.T) {
 }
 
 func TestExtraImageTransfer(t *testing.T) {
-	for _, image := range []string{"sparktalk-extra-media:latest", "sparktalk-nemotron-asr:0.6b-q8", "sparktalk-magpie-tts:v2607-longform2"} {
+	for _, image := range []string{"sparktalk-extra-media:latest", "sparktalk-nemotron-asr:0.6b-q8-diar1", "sparktalk-magpie-tts:v2607-longform2"} {
 		for _, fail := range []bool{false, true} {
 			t.Run(image+fmt.Sprint(fail), func(t *testing.T) {
 				dir := t.TempDir()

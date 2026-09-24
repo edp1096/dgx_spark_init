@@ -141,7 +141,7 @@
   let speechForm = { text: '', instructions: '', language: 'Korean', speaker: 'Sohee', seed: -1 }
   let recognitionForm = {
     source: 'url', url: '', language: 'Auto', context: '',
-    output_formats: ['srt', 'txt'], translation_mode: 'none', target_language: 'Korean',
+    output_formats: ['srt', 'txt'], translation_mode: 'none', target_language: 'Korean', diarization: false,
     media_part: '', media_source: ''
   }
   let recognitionFile = null

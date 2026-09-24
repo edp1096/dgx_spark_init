@@ -142,6 +142,7 @@ func (c *Config) Normalize() {
 	}
 	if c.Runtime.BuiltinRevision < 12 {
 		c.migrateQwenQADTP1()
+		c.migrateNemotronDiarizationBudget()
 		c.Runtime.BuiltinRevision = 12
 	}
 	if c.Runtime.BuiltinRevision < 13 {
