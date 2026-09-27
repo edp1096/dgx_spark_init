@@ -1,72 +1,15 @@
-# GLM-5.3 Flash — 2× DGX Spark
+# GLM 5.3 Flash NVFP4 · vLLM TP2
 
-Head: `192.168.100.61` · Worker: `192.168.100.60` · API: port `8000`
-
-## 최초 1회
-
-Head에서 실행한다.
+두 DGX Spark에서 NVIDIA 원본 또는 Huihui 변환본을 실행합니다. 기본은 **1M 문맥, FP8 KV 약 9.54GiB/호스트, DFlash2 K5, CUDA Graph와 비동기 스케줄링**입니다. 1M을 가득 채운 요청은 한 번에 하나만 수용합니다.
 
 ```bash
-test -f ~/.ssh/id_ed25519 || \
-  ssh-keygen -t ed25519 -a 64 -f ~/.ssh/id_ed25519 -N ''
-
-ssh-copy-id -i ~/.ssh/id_ed25519.pub edp1096@192.168.100.60
-
-ssh -o BatchMode=yes edp1096@192.168.100.60 hostname
-
-cd /home/edp1096/workspace/dgx_spark_init/compose_yaml/glm53f_vllm
-./manage.sh setup
+./manage.sh setup --official     # Huihui는 --abliterated
 ./manage.sh start
-```
-
-`setup`은 모델을 Head에 한 번 다운로드하고 Worker로 동기화하며, QSFP
-주소(`10.200.0.1`/`10.200.0.2`)와 양쪽 이미지를 준비한다. 중단되면 같은
-명령을 다시 실행하면 이어받는다.
-
-## 평소 사용
-
-```bash
-./manage.sh start
-./manage.sh stop
-./manage.sh restart
 ./manage.sh status
-./manage.sh logs
-./manage.sh logs worker
 ```
 
-API 주소는 `http://192.168.100.61:8000/v1`, 모델명은
-`glm-5.3-flash`이다.
+`env.sample`을 기준으로 `.env`의 두 호스트·RoCE 주소를 맞춥니다. 이미지는 고정된 Pilcothink 0.28 ARM64 버전을 자동으로 받고 워커에 전달합니다. 본체와 `incoai/GLM-5.3-Flash-DFlash2`를 함께 준비하며, 기존 완료된 캐시는 재사용합니다. 선택은 `MODEL_VARIANT=official|abliterated`, DFlash 비활성화는 `DFLASH_TOKENS=0`입니다. MTP는 별도이며 미검증이라 끕니다.
 
-## 설정
+Huihui 실측: 일반 문장 32~36t/s, 코드 43~49t/s, 구조화 출력 47~50t/s(128 출력 토큰). 기능 9개·RGB 3종, 실제 1,047,622토큰 입력의 코드 5개 회수 통과. 1M 처리에는 약 19분 11초가 걸렸습니다. CPU 70%·GPU 2100MHz 제한에서 측정했습니다. 시작 과정의 스왑 쓰기는 남아 있습니다.
 
-설정 파일은 `.env`다. 파일이 없으면 `manage.sh`가 `env.sample`을 복사해
-자동 생성한다. 기본값은 Entrpi `v2.3-tier1`, EXL3 4bpw, DFlash2, 최대
-524K context다.
-
-Lovesenko `o_proj` 이식을 쓰려면 `./manage.sh model --abliterated`를
-실행한다. 이미지 준비까지 필요하면 `./manage.sh setup --abliterated`를 쓴다.
-공개 donor `lovesenko/GLM-5.3-Flash-tr3-4bpw-Abliterated`의 revision
-`c8f58e6aa9117c73607d692978b22f091d80450c`에서 L0–44의 BF16 텐서
-45개(3.50 GiB)만 Head에 받은 뒤 Worker로 동기화한다. 기존 캐시는
-manifest와 SHA256으로 검증해 재사용하며 모델 전체를 받지 않는다.
-MTP와 BrandonMusic EXL3 원본 파일은 유지한다. 이전 Dealign 캐시도
-삭제하지 않는다. 다운로드·검증·이식은 이 디렉터리의 스크립트로 독립 실행된다.
-
-OS 포맷이나 DHCP 변경 후에는 `.env`의 `HEAD_LAN_IP`와
-`WORKER_LAN_IP`만 새 주소로 바꾸고, 위 SSH 키 등록과 `manage.sh setup`을
-다시 실행한다. QSFP 주소는 `manage.sh`가 매번 복구한다.
-
-DFlash2는 비상업용 라이선스다. 상업용이면 `.env`를 다음과 같이 바꾼다.
-
-```dotenv
-SPEC_METHOD=none
-MTP_TOKENS=4
-```
-
-## 공통 관리 명령
-
-`manage.sh setup|image|model|start|stop|restart|status|logs|validate`를 사용한다.
-`setup`에 모델 준비가 포함된다. 설정은 `.env`/`env.sample`, 모델 종류는
-`MODEL_VARIANT=official|abliterated`이며 `setup`/`model`에 `--official` 또는
-`--abliterated`를 지정할 수 있다. HF_TOKEN 환경변수 또는 `--ask-token` 숨김 입력을
-사용한다. 명령과 옵션은 `./manage.sh --help`로 확인한다.
+[검증 조건과 결과](docs/pilco-reproduction/README.md) · [Huihui 결과](docs/pilco-reproduction/huihui/spec-measured.md) · [Pilcothink 원본 레시피](https://github.com/gpdev-Pilcothink/DGX_Spark_vllm_Dockerfile/tree/main/0.28/GLM53-flash)

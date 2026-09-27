@@ -1,0 +1,18 @@
+{
+  "local": {
+    "one_m_swap_out_mib": 0.0,
+    "one_m_swap_in_mib": 147.3984375,
+    "startup_and_warmup_swap_out_gib": 5.294315338134766,
+    "one_m_min_available_gib": 2.0468978881835938,
+    "boot_count": 1,
+    "scope": "whole-host counters, including Talk/Extra/TTS; not per-process attribution"
+  },
+  "192.168.100.60": {
+    "one_m_swap_out_mib": 518.828125,
+    "one_m_swap_in_mib": 42.59375,
+    "startup_and_warmup_swap_out_gib": 3.5056495666503906,
+    "one_m_min_available_gib": 2.2467994689941406,
+    "boot_count": 1,
+    "scope": "whole-host counters, including Talk/Extra/TTS; not per-process attribution"
+  }
+}

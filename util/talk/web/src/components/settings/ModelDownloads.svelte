@@ -15,7 +15,7 @@
   if (model?.compose_asset === 'compose.flash-next.yaml' && variant === 'huihui_lil') return [];
   if (model?.compose_asset === 'compose.flash-next.yaml') return [variant === 'abliterated' ? 'huginnfork/Qwen3.8-Flash-Next-NVFP4-Abliterated' : 'local-inference-lab/Qwen3.8-Flash-Next-NVFP4'];
   if (model?.controller === 'dspark-cluster') return [variant === 'abliterated' ? 'drowzeys/keys-DeepSeekV4Flash-Vision-EXP-ablit' : 'deepseek-ai/DeepSeek-V4-Flash-Vision-Exp'];
-  if (model?.controller === 'glm53-cluster') return ['brandonmusic/GLM-5.3-Flash-tr3-4bpw', 'local-inference-lab/GLM-5.3-Flash-DFlash2-MXFP8', ...(variant === 'abliterated' ? ['lovesenko/GLM-5.3-Flash-tr3-4bpw-Abliterated'] : [])];
+  if (model?.controller === 'glm53-cluster') return variant === 'official' ? ['nvidia/GLM-5.3-Flash-NVFP4'] : [];
   return [];
  }
  async function request(path, method = 'GET', body) {
@@ -48,6 +48,7 @@
  <legend>모델 준비</legend>
  <label class="settings-field-row"><span>모델</span><Select bind:value={component}>{#each models as model}<option value={model.id}>{model.name}</option>{/each}</Select></label>
  <label class="settings-field-row"><span>가중치</span><Select bind:value={variant}><option value="official">원본</option><option value="abliterated">{selectedModel?.compose_asset === 'compose.flash-next.yaml' ? 'Abliterated (Huginnfork)' : 'Abliterated'}</option>{#if selectedModel?.compose_asset === 'compose.flash-next.yaml'}<option value="huihui_lil">Huihui / LIL QAD (로컬 변환)</option>{/if}</Select></label>
+ {#if selectedModel?.controller === 'glm53-cluster' && variant === 'abliterated'}<p>서버에 준비된 Huihui GLM NVFP4 변환 모델을 확인하고 워커로 복사합니다. 여기서 새로 변환하지 않습니다.</p>{/if}
  {#if variant === 'huihui_lil'}<p>서버에 있는 Huihui / LIL 변환 모델의 파일과 실행 검증 기록을 확인합니다. 모델을 새로 다운로드하거나 변환하지 않습니다.</p>{/if}
  {#if repositories.length}
   <div class="model-sources">

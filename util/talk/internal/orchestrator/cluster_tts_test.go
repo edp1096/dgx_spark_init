@@ -7,7 +7,7 @@ func TestClusterMagpiePlacementAndStartup(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, id := range []string{"glm53-worker-extra", "ds4fve", "ds41"} {
+	for _, id := range []string{"ds4fve", "ds41"} {
 		b, _ := c.Bundle(id)
 		tts, ok := c.ResolveComponent(id, "magpie-tts")
 		if !ok || tts.Host != "worker" || tts.Endpoint != "http://192.168.100.60:8692" || tts.MemoryGiB != 1.6 {

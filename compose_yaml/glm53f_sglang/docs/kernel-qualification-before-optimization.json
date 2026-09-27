@@ -1,0 +1,69 @@
+{
+  "scope": "Sparse attention kernel tests; full-model results and limitations are in qualification.json",
+  "sglang_commit": "425a1f8f247d0cc17f2a3f3c2dba6c0bdf936552",
+  "b12x_commit": "9043b448622764a598969518d413b3fd8b3c0c07",
+  "adapter_sha256": "1547ded02fe7bba5d8c19961c0277530a545a8367b597e5c149749ee376e19be",
+  "device": "GB10 SM121",
+  "tests": {
+    "sparse-test.log": [
+      {
+        "rows": 1,
+        "heads": 32,
+        "tail": 0,
+        "max_error": 0.0004422813653945923,
+        "seconds": 3.4876586679993125
+      },
+      {
+        "rows": 1,
+        "heads": 32,
+        "tail": 3,
+        "max_error": 0.015460968017578125,
+        "seconds": 0.006145456000012928
+      },
+      {
+        "rows": 7,
+        "heads": 32,
+        "tail": 3,
+        "max_error": 0.020659446716308594,
+        "seconds": 0.9508545240005333
+      },
+      {
+        "rows": 1,
+        "heads": 64,
+        "tail": 3,
+        "max_error": 0.016469955444335938,
+        "seconds": 0.6007901989996753
+      }
+    ],
+    "sparse-sglang-test.log": [
+      {
+        "rows": 1,
+        "heads": 32,
+        "tail": 0,
+        "max_error": 0.0004422813653945923,
+        "seconds": 6.345944212000177
+      },
+      {
+        "rows": 1,
+        "heads": 32,
+        "tail": 3,
+        "max_error": 0.015460968017578125,
+        "seconds": 0.2002437729997837
+      },
+      {
+        "rows": 7,
+        "heads": 32,
+        "tail": 3,
+        "max_error": 0.020659446716308594,
+        "seconds": 0.02117890299996361
+      },
+      {
+        "rows": 1,
+        "heads": 64,
+        "tail": 3,
+        "max_error": 0.016469955444335938,
+        "seconds": 0.00773117100015952
+      }
+    ]
+  }
+}

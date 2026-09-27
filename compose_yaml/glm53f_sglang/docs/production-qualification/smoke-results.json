@@ -1,0 +1,225 @@
+[
+  {
+    "test": "korean",
+    "passed": true,
+    "seconds": 0.827547708999191,
+    "response": {
+      "id": "a4381ffb71b243ba8bb0cdb6a7c98d7a",
+      "object": "chat.completion",
+      "created": 1790528770,
+      "model": "glm-5.3-flash",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "검증 완료.",
+            "reasoning_content": null,
+            "tool_calls": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "matched_stop": 154827
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 34,
+        "total_tokens": 42,
+        "completion_tokens": 8,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "metadata": {
+        "weight_version": "default",
+        "weight_versions": [
+          {
+            "version": "default",
+            "start": 0,
+            "end": 8
+          }
+        ]
+      }
+    }
+  },
+  {
+    "test": "arithmetic",
+    "passed": true,
+    "seconds": 0.747265049998532,
+    "response": {
+      "id": "89336c8707384ebfa2112b57b531eb2d",
+      "object": "chat.completion",
+      "created": 1790528771,
+      "model": "glm-5.3-flash",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "437",
+            "reasoning_content": null,
+            "tool_calls": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "matched_stop": 154827
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 30,
+        "total_tokens": 33,
+        "completion_tokens": 3,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "metadata": {
+        "weight_version": "default",
+        "weight_versions": [
+          {
+            "version": "default",
+            "start": 0,
+            "end": 3
+          }
+        ]
+      }
+    }
+  },
+  {
+    "test": "multi_turn",
+    "passed": true,
+    "seconds": 0.5764912250015186,
+    "response": {
+      "id": "0601e9aa48d24d28a45eba9f5f5a5de3",
+      "object": "chat.completion",
+      "created": 1790528771,
+      "model": "glm-5.3-flash",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "파란소나무-731",
+            "reasoning_content": null,
+            "tool_calls": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "matched_stop": 154827
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 49,
+        "total_tokens": 58,
+        "completion_tokens": 9,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "metadata": {
+        "weight_version": "default",
+        "weight_versions": [
+          {
+            "version": "default",
+            "start": 0,
+            "end": 9
+          }
+        ]
+      }
+    }
+  },
+  {
+    "test": "tool_call",
+    "passed": true,
+    "seconds": 10.25430520500231,
+    "response": {
+      "id": "0cf3ae0b5fb24df394b4c219102cb1d4",
+      "object": "chat.completion",
+      "created": 1790528781,
+      "model": "glm-5.3-flash",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "",
+            "reasoning_content": null,
+            "tool_calls": [
+              {
+                "id": "call_1958048a8e0e4b7fbdfef614",
+                "index": 0,
+                "type": "function",
+                "function": {
+                  "name": "get_weather",
+                  "arguments": "{\"city\": \"Seoul\"}"
+                }
+              }
+            ]
+          },
+          "logprobs": null,
+          "finish_reason": "tool_calls",
+          "matched_stop": null
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 169,
+        "total_tokens": 181,
+        "completion_tokens": 12,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "metadata": {
+        "weight_version": "default",
+        "weight_versions": [
+          {
+            "version": "default",
+            "start": 0,
+            "end": 12
+          }
+        ]
+      }
+    }
+  },
+  {
+    "test": "image",
+    "passed": true,
+    "seconds": 1.832866238997667,
+    "response": {
+      "id": "890d951bb7bc4ade9e8f7e4bc4712a9f",
+      "object": "chat.completion",
+      "created": 1790528783,
+      "model": "glm-5.3-flash",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "빨강",
+            "reasoning_content": null,
+            "tool_calls": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "matched_stop": 154827
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 135,
+        "total_tokens": 140,
+        "completion_tokens": 5,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "image_tokens": 100
+        },
+        "reasoning_tokens": 0
+      },
+      "metadata": {
+        "weight_version": "default",
+        "weight_versions": [
+          {
+            "version": "default",
+            "start": 0,
+            "end": 5
+          }
+        ]
+      }
+    }
+  }
+]

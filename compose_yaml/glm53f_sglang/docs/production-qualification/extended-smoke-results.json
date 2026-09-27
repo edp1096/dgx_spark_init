@@ -1,0 +1,185 @@
+[
+  {
+    "test": "thinking_on",
+    "passed": true,
+    "seconds": 3.427918586996384,
+    "response": {
+      "id": "d3bf1cdf8d624b87aa6110d4125a5110",
+      "object": "chat.completion",
+      "created": 1790528787,
+      "model": "glm-5.3-flash",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "437",
+            "reasoning_content": "The user is asking 19 × 23 in Korean, and wants only the number as the final answer.\n\n19 × 23 = 19 × 23\n= 19 × 20 + 19 × 3\n= 380 + 57\n= 437\n\nLet me verify: 19 × 23 = (20 - 1) × 23 = 460 - 23 = 437. Yes, 437.\n\nThe user says \"최종 답변은 숫자만 출력하세요\" which means \"output only the number as the final answer.\" So I should just output 437.",
+            "tool_calls": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "matched_stop": 154827
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 33,
+        "total_tokens": 171,
+        "completion_tokens": 138,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 135
+      },
+      "metadata": {
+        "weight_version": "default",
+        "weight_versions": [
+          {
+            "version": "default",
+            "start": 0,
+            "end": 138
+          }
+        ]
+      }
+    }
+  },
+  {
+    "test": "streaming_thinking_off",
+    "passed": true,
+    "seconds": 0.9620206440013135,
+    "content": "스트리밍 확인",
+    "reasoning": "",
+    "done": true
+  },
+  {
+    "test": "near_8k_context",
+    "passed": true,
+    "seconds": 53.66213231499569,
+    "response": {
+      "id": "243dc77b698440508c9792986d0c9d61",
+      "object": "chat.completion",
+      "created": 1790528841,
+      "model": "glm-5.3-flash",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "푸른하늘-4829",
+            "reasoning_content": null,
+            "tool_calls": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "matched_stop": 154827
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 7794,
+        "total_tokens": 7806,
+        "completion_tokens": 12,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "metadata": {
+        "weight_version": "default",
+        "weight_versions": [
+          {
+            "version": "default",
+            "start": 0,
+            "end": 12
+          }
+        ]
+      }
+    }
+  },
+  {
+    "test": "automatic_tool_roundtrip",
+    "passed": true,
+    "seconds": 11.94006931700278,
+    "tool_call": {
+      "id": "5d7c58b7b76e4ee2999b2e1b90adfcbd",
+      "object": "chat.completion",
+      "created": 1790528843,
+      "model": "glm-5.3-flash",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "",
+            "reasoning_content": null,
+            "tool_calls": [
+              {
+                "id": "call_3c2df35fec714ec4b6e44e32",
+                "index": 0,
+                "type": "function",
+                "function": {
+                  "name": "get_temperature",
+                  "arguments": "{\"city\": \"Seoul\"}"
+                }
+              }
+            ]
+          },
+          "logprobs": null,
+          "finish_reason": "tool_calls",
+          "matched_stop": null
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 188,
+        "total_tokens": 200,
+        "completion_tokens": 12,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "metadata": {
+        "weight_version": "default",
+        "weight_versions": [
+          {
+            "version": "default",
+            "start": 0,
+            "end": 12
+          }
+        ]
+      }
+    },
+    "final_response": {
+      "id": "4375974ede4f424fa554b061d0db5c52",
+      "object": "chat.completion",
+      "created": 1790528853,
+      "model": "glm-5.3-flash",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "21",
+            "reasoning_content": null,
+            "tool_calls": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "matched_stop": 154827
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 217,
+        "total_tokens": 219,
+        "completion_tokens": 2,
+        "prompt_tokens_details": {
+          "cached_tokens": 128
+        },
+        "reasoning_tokens": 0
+      },
+      "metadata": {
+        "weight_version": "default",
+        "weight_versions": [
+          {
+            "version": "default",
+            "start": 0,
+            "end": 2
+          }
+        ]
+      }
+    }
+  }
+]

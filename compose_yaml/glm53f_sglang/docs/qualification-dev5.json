@@ -1,0 +1,274 @@
+{
+  "status": "functional_pass_with_decode_graph_and_4096_prefill",
+  "date": "2026-09-27",
+  "model": "edp1096/Huihui-GLM-5.3-Flash-abliterated-NVFP4",
+  "model_revision": "48437d914cbde5c750093b9606a98508cb5430c0",
+  "image": "dgx-sglang-glm53:sm121-dev5",
+  "image_equivalence": {
+    "head_image": "sha256:2a25ae9286de0cd5a91727db19c79c05aad6e3ba9524fee645b8d502d2630696",
+    "worker_image": "sha256:2a25ae9286de0cd5a91727db19c79c05aad6e3ba9524fee645b8d502d2630696",
+    "rootfs_equal": true,
+    "config_equal": true
+  },
+  "sglang_commit": "425a1f8f247d0cc17f2a3f3c2dba6c0bdf936552",
+  "transformers": "5.17.0",
+  "b12x_commit": "9043b448622764a598969518d413b3fd8b3c0c07",
+  "hardware": {
+    "hosts": 2,
+    "device": "DGX Spark GB10 SM121",
+    "tensor_parallel": 2,
+    "cpu_limit_percent": 70,
+    "gpu_max_mhz": 2100,
+    "transport": "NCCL IB / RoCE, active SGLang RC QPs verified"
+  },
+  "settings": {
+    "context_length": 1048576,
+    "actual_kv_tokens": 1048576,
+    "kv_cache_dtype": "fp8_e4m3",
+    "kv_pool_gib_per_rank_log": 7.09,
+    "mamba_slots": 8,
+    "max_running_requests": 1,
+    "chunked_prefill_size": 4096,
+    "mem_fraction_static": 0.88,
+    "cuda_graph": true,
+    "mtp": false,
+    "dflash": false,
+    "disk_kv_persistence": false,
+    "enable_cache_report": true,
+    "zero_cache_reporting": "This pinned SGLang UsageProcessor returns prompt_tokens_details=null when cached_tokens=0; server setting checked before each test run.",
+    "pytorch_alloc_conf": "expandable_segments:True",
+    "cuda_graph_phases": {
+      "decode": {
+        "backend": "full",
+        "bs": [
+          1
+        ]
+      },
+      "prefill": {
+        "backend": "disabled"
+      }
+    }
+  },
+  "smoke_tests": [
+    {
+      "test": "korean",
+      "passed": true,
+      "seconds": 0.720927167996706
+    },
+    {
+      "test": "arithmetic",
+      "passed": true,
+      "seconds": 0.425559470000735
+    },
+    {
+      "test": "multi_turn",
+      "passed": true,
+      "seconds": 0.832864209995023
+    },
+    {
+      "test": "tool_call",
+      "passed": true,
+      "seconds": 1.7635470930035808
+    },
+    {
+      "test": "image",
+      "passed": true,
+      "seconds": 1.077025758997479
+    },
+    {
+      "test": "thinking_on",
+      "passed": true,
+      "seconds": 5.986003641002753
+    },
+    {
+      "test": "streaming_thinking_off",
+      "passed": true,
+      "seconds": 0.5841705389975687
+    },
+    {
+      "test": "near_8k_context",
+      "passed": true,
+      "seconds": 5.177626458993473
+    },
+    {
+      "test": "automatic_tool_roundtrip",
+      "passed": true,
+      "seconds": 2.1665178109979024
+    }
+  ],
+  "image_tests": [
+    {
+      "test": "red",
+      "passed": true,
+      "prompt_tokens": 135
+    },
+    {
+      "test": "green",
+      "passed": true,
+      "prompt_tokens": 135
+    },
+    {
+      "test": "blue",
+      "passed": true,
+      "prompt_tokens": 135
+    }
+  ],
+  "long_context": [
+    {
+      "limit": 1048576,
+      "passed": true,
+      "seconds": 705.1272499390034,
+      "prompt_tokens": 1047622,
+      "cached_tokens": 0,
+      "actual": {
+        "STONE": "a7c9f2d4",
+        "LARCH": "b6e1a8c3",
+        "RIVER": "d9f4b2e7",
+        "CLOUD": "c5a3e9f1",
+        "ORBIT": "e8b6d1a4"
+      },
+      "expected": {
+        "STONE": "a7c9f2d4",
+        "LARCH": "b6e1a8c3",
+        "RIVER": "d9f4b2e7",
+        "CLOUD": "c5a3e9f1",
+        "ORBIT": "e8b6d1a4"
+      },
+      "usage": {
+        "prompt_tokens": 1047622,
+        "total_tokens": 1047683,
+        "completion_tokens": 61,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      }
+    }
+  ],
+  "comparison": {
+    "scope": "One identical 1M retrieval request, no KV cache reuse, same model/TP2/CPU-GPU caps. New SGLang uses 4096-token chunks and decode graph; baselines use 1024 chunks and eager. Not a general engine throughput benchmark.",
+    "vllm_seconds": 818.2893618709968,
+    "previous_sglang_seconds": 882.7841184860008,
+    "sglang_seconds": 705.1272499390034,
+    "elapsed_reduction_vs_previous_percent": 20.12461085635341,
+    "elapsed_reduction_vs_vllm_percent": 13.829107062231783
+  },
+  "telemetry_during_1m": {
+    "head": {
+      "samples": 344,
+      "boot_ids": [
+        "6eb0905a-08ca-4918-907a-b96ba443be4b"
+      ],
+      "min_available_gib": 10.201835632324219,
+      "max_swap_used_gib": 4.075325012207031,
+      "min_swap_used_gib": 4.058326721191406,
+      "cpu_max_khz": [
+        1965600,
+        2730000
+      ],
+      "max_thermal_sensor_c": 80.8
+    },
+    "worker": {
+      "samples": 345,
+      "boot_ids": [
+        "a9785e49-f11a-4418-ada0-ef1a2707e8d2"
+      ],
+      "min_available_gib": 11.941627502441406,
+      "max_swap_used_gib": 2.41033935546875,
+      "min_swap_used_gib": 2.40960693359375,
+      "cpu_max_khz": [
+        1965600,
+        2730000
+      ],
+      "max_thermal_sensor_c": 80.5
+    }
+  },
+  "warnings": {
+    "head_nv_err_no_memory_count": 0,
+    "worker_nv_err_no_memory_count": 0,
+    "oom_killed": false,
+    "host_reboot": false,
+    "inference_request_failed": false,
+    "interpretation": "No driver allocation warnings from final-image startup through qualification."
+  },
+  "limitations": [
+    "Qualified for this GLM NVFP4 TP2 image and one concurrent request only.",
+    "Video, MTP/DFlash, prefill CUDA graphs, multi-request concurrency and sustained soak were not qualified.",
+    "MoE remains FlashInfer CUTLASS; B12X MoE numerical experiments were not adopted.",
+    "Head loading remains slow and increases swap usage transiently; no loading optimization is claimed.",
+    "Talk GLM default remains vLLM."
+  ],
+  "files_sha256": {
+    "Dockerfile": "fb3001a4e6f98f1cf0ece8f0310a96e7b8f806f5ee819b906f595c4bc1085fdc",
+    "glm53_b12x.py": "4ab34aa57e017584d2d1a596e9b5207a2a49162f21391ee085c555c731ffe975",
+    "patch_runtime.py": "6d0a890e322b64f6aa424fcb17f88717459784d156e49a3d66f9ed65cc3ac95c",
+    "entrypoint.sh": "69ee70009d0bc642a9202854051353ceacf208a0c1a5404ba080d3d07a438f01",
+    "compose.yaml": "683f12abedfd8e2018885150c1754c9197d9a4a91baf7b0a551992389132a9cf",
+    "env.sample": "d438d28c9f2a67cbb66ea7b5796eb0565a784b949486b66df1be13e74564f44b",
+    "validate_processor.py": "84ade03e62c5aad52f1d30190e1d2b691280be2d384f4c46d179bfe752bb25a7",
+    "test_sparse_gpu.py": "7eddf23baa23355a11422619789d2c0ad56dbb61078d6f7fb4bbafe2b078c704",
+    "prepare_chat_template.py": "4da70957e97e42b4eb4a56158663d3e950e8ac4f40e35e049894e3f7844650e7",
+    "compose.head.yaml": "7a686201790344dd29913d58f0c12a885dd99700e95aecae159c16a70cbf5c44",
+    "compose.worker.yaml": "ab4fed7ef03726b83a6ac2804ef1a4de6d70c185b36d33b16be47f1e96b01752"
+  },
+  "evidence_directory": "/home/edp1096/.cache/runtime-inspection/glm53-sglang/optimization",
+  "restored_services": {
+    "selected_bundle": "flash-next",
+    "components": [
+      {
+        "id": "flash-next",
+        "status": "running",
+        "health": "online",
+        "error": null
+      },
+      {
+        "id": "flux2",
+        "status": "running",
+        "health": "online",
+        "error": null
+      },
+      {
+        "id": "nemotron-asr",
+        "status": "running",
+        "health": "online",
+        "error": null
+      }
+    ]
+  },
+  "restored_qad_context_and_kv_tokens": 1048576,
+  "baseline_report": "docs/qualification-before-optimization.json",
+  "allocator_investigation": "docs/allocator-investigation.json",
+  "swap_io_during_1m": {
+    "head": {
+      "sample_start": 1790504823.4598122,
+      "sample_end": 1790505533.5934463,
+      "swap_in_mib": 40.96484375,
+      "swap_out_mib": 0.0,
+      "page_size_bytes": 4096,
+      "scope": "whole host counters bracketing the 1M request; not process attribution"
+    },
+    "worker": {
+      "sample_start": 1790504823.8688676,
+      "sample_end": 1790505533.9867053,
+      "swap_in_mib": 3.3671875,
+      "swap_out_mib": 0.0,
+      "page_size_bytes": 4096,
+      "scope": "whole host counters bracketing the 1M request; not process attribution"
+    }
+  },
+  "load_seconds": {
+    "head": 779.87,
+    "worker": 218.42
+  },
+  "cold_graph_capture": {
+    "head": {
+      "seconds": 9.05,
+      "memory_delta_gb_log": 1.36,
+      "scope": "capture phase including warmup; not isolated graph-pool storage"
+    },
+    "worker": {
+      "seconds": 9.06,
+      "memory_delta_gb_log": 1.63,
+      "scope": "capture phase including warmup; not isolated graph-pool storage"
+    }
+  },
+  "optimization_report": "docs/optimization.json"
+}

@@ -75,10 +75,8 @@ func TestEmbeddedRecipeMaterializesInAppDataDirectory(t *testing.T) {
 		}
 		if id == "glm53" {
 			for _, value := range []string{
-				"ABLIT_HOST_PATH=" + shellQuote(filepath.Join(cache, "glm53-lovesenko-oproj")),
-				"ABLIT_LAYERS='0-44'", "ABLIT_INCLUDE_MTP='0'",
-				"ABLIT_DONOR='lovesenko/GLM-5.3-Flash-tr3-4bpw-Abliterated'",
-				"ABLIT_DONOR_REVISION='c8f58e6aa9117c73607d692978b22f091d80450c'",
+				"GLM53_CACHE_PATH=" + shellQuote(filepath.Join(filepath.Dir(cache), "glm53-nvfp4")),
+				"VLLM_BIND='127.0.0.1'",
 			} {
 				if !strings.Contains(string(env), value) {
 					t.Errorf("GLM recipe missing %s", value)
@@ -174,6 +172,11 @@ func TestGLMEmbeddedRecipeMatchesIndependentSources(t *testing.T) {
 		if !bytes.Equal(packed, source) {
 			t.Errorf("repack GLM recipe: %s differs from independent source", h.Name)
 		}
+		standalone, err := os.ReadFile(filepath.Join("..", "..", "..", "..", "compose_yaml", "glm53f_sglang", h.Name))
+		if err != nil || !bytes.Equal(source, standalone) {
+			t.Errorf("GLM standalone/embedded source mismatch: %s: %v", h.Name, err)
+		}
+
 	}
 }
 
@@ -330,13 +333,21 @@ from pathlib import Path
 spec=importlib.util.spec_from_file_location('check',__import__('sys').argv[1]);m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
 with tempfile.TemporaryDirectory() as folder:
  root=Path(folder);model=root/'model';draft=root/'draft';model.mkdir();draft.mkdir()
- for p in [model/'config.json',draft/'config.json']:p.write_text('{}')
- header=json.dumps({'w':{'dtype':'U8','shape':[1],'data_offsets':[0,1]}}).encode();blob=struct.pack('<Q',len(header))+header+b'x'
- index={'weight_map':{str(i):f'model-{i}.safetensors' for i in range(120)}}
+ (model/'config.json').write_text(json.dumps({'architectures':['Glm5NextForConditionalGeneration'],'quantization_config':{'quant_method':'modelopt','quant_algo':'NVFP4'}}))
+ for name in ['tokenizer.json','tokenizer_config.json']:(model/name).write_text('{}')
+ header=json.dumps({str(i):{'dtype':'U8','shape':[1],'data_offsets':[0,1]} for i in range(33)}).encode();blob=struct.pack('<Q',len(header))+header+b'x'
+ index={'weight_map':{str(i):f'model-{i}.safetensors' for i in range(33)}}
  (model/'model.safetensors.index.json').write_text(json.dumps(index))
  for name in index['weight_map'].values():(model/name).write_bytes(blob)
  (draft/'model.safetensors').write_bytes(blob)
+ draft_config={'architectures':['DFlash2DraftModel'],'num_target_layers':45,'vocab_size':154880,'dflash_config':{'target_layer_ids':[5,14,24,33,42]}}
+ (draft/'config.json').write_text(json.dumps(draft_config))
  m.check(model,draft)
+ (draft/'model.safetensors').write_bytes(blob[:-1])
+ try:m.check(model,draft)
+ except ValueError:pass
+ else:raise AssertionError('truncated draft accepted')
+ (draft/'model.safetensors').write_bytes(blob)
  bad=model/'model-0.safetensors';bad.write_bytes(blob[:-1])
  try:m.check(model,draft)
  except ValueError:pass
@@ -387,5 +398,49 @@ func TestDS4FVERailHelperIsPackaged(t *testing.T) {
 	}
 	if !found {
 		t.Fatal("DS4FVE start/network depends on missing ensure_rail.py")
+	}
+}
+
+func TestGLMNVFP4ModelSelectionIgnoresRetiredPaths(t *testing.T) {
+	script, err := filepath.Abs(filepath.Join("recipe_sources", "glm53", "select_model.sh"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for variant, suffix := range map[string]string{
+		"official":    "nvidia/GLM-5.3-Flash-NVFP4",
+		"abliterated": "edp1096/Huihui-GLM-5.3-Flash-abliterated-NVFP4",
+	} {
+		cmd := exec.Command("bash", "-c", `source "$1"; printf '%s' "$MODEL_HOST_PATH"`, "bash", script)
+		cmd.Env = append(os.Environ(), "HF_CACHE=/tmp/test-hf", "MODEL_VARIANT="+variant, "MODEL_HOST_PATH=/tmp/retired-exl3")
+		out, err := cmd.CombinedOutput()
+		if err != nil || string(out) != "/tmp/test-hf/"+suffix {
+			t.Fatalf("%s: %v %s", variant, err, out)
+		}
+	}
+}
+
+func TestGLMRecipeRejectsUnqualifiedMTP(t *testing.T) {
+	for _, value := range []string{"1", "3", "4"} {
+		if validateRecipeOptions(Component{ID: "glm53", Controller: "glm53-cluster", RuntimeOptions: map[string]string{"MTP_TOKENS": value}}) == nil {
+			t.Fatalf("accepted unqualified MTP configuration: %s", value)
+		}
+	}
+	if err := validateRecipeOptions(Component{ID: "glm53", Controller: "glm53-cluster", RuntimeOptions: map[string]string{"MTP_TOKENS": "0"}}); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestGLMSGLangOptions(t *testing.T) {
+	for _, value := range []string{"0", "5"} {
+		c := Component{ID: "glm53", Controller: "glm53-cluster", ProgressKind: "sglang", RuntimeOptions: map[string]string{"DFLASH_TOKENS": value}}
+		if err := validateRecipeOptions(c); err != nil {
+			t.Fatal(err)
+		}
+	}
+	for key, value := range map[string]string{"DFLASH_TOKENS": "7", "MAX_NUM_SEQS": "2", "KV_CACHE_MEMORY": "12884901888", "GPU_MEMORY_UTILIZATION": "0.85"} {
+		c := Component{ID: "glm53", Controller: "glm53-cluster", ProgressKind: "sglang", RuntimeOptions: map[string]string{key: value}}
+		if validateRecipeOptions(c) == nil {
+			t.Fatalf("accepted incompatible GLM option %s=%s", key, value)
+		}
 	}
 }

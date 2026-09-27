@@ -14,6 +14,7 @@ set -a
 . "$env_file"
 set +a
 if [[ ${RUNTIME_HF_TOKEN+x} ]]; then export HF_TOKEN="$RUNTIME_HF_TOKEN"; fi
+source "$script_dir/select_model.sh"
 
 : "${WORKER_LAN_IP:?WORKER_LAN_IP is required}"
 : "${WORKER_USER:?WORKER_USER is required}"
@@ -110,7 +111,7 @@ setup_rail() {
 
 remote_compose() {
   ssh "${ssh_opts[@]}" "$worker" \
-    "cd '$remote_dir' && docker compose -f compose.yaml -f compose.worker.yaml $*"
+    "cd '$remote_dir' && set -a && . ./.env && . ./select_model.sh && set +a && docker compose -f compose.yaml -f compose.worker.yaml $*"
 }
 
 drop_caches() {
@@ -120,20 +121,42 @@ drop_caches() {
     "docker run --rm --privileged alpine:3.22 sh -c 'sync; echo 3 > /proc/sys/vm/drop_caches'"
 }
 
+prepare_image() {
+  require_ssh
+  local image="${GLM53_IMAGE:-pilcothink/vllm_spark_glm53@sha256:09da6eb394216d174ab8692758d90f9f458398d9c8fbc11ba6f04e93d5cf6392}"
+  if ! docker image inspect "$image" >/dev/null 2>&1; then
+    if [[ "$image" == dgx-vllm-moe-tp1:* ]]; then
+      echo "Local runtime image missing: $image. Build/import it on the head first." >&2
+      return 1
+    fi
+    docker pull "$image"
+  fi
+  local head_id worker_id
+  head_id=$(docker image inspect --format '{{.Id}}' "$image")
+  worker_id=$(ssh "${ssh_opts[@]}" "$worker" "docker image inspect --format '{{.Id}}' '$image'" 2>/dev/null || true)
+  if [[ "$head_id" != "$worker_id" ]]; then
+    docker save "$image" | ssh "${ssh_opts[@]}" "$worker" docker load
+  fi
+  worker_id=$(ssh "${ssh_opts[@]}" "$worker" "docker image inspect --format '{{.Id}}' '$image'")
+  [[ "$head_id" == "$worker_id" ]] || { echo 'Worker image mismatch' >&2; return 1; }
+}
+
 setup() {
   setup_rail
+  prepare_image
   "$script_dir/models.sh" prepare
   sync_compose
-  remote_compose pull glm53
-  "${head_compose[@]}" pull glm53
 }
 
 start() {
-  python3 "$script_dir/check_models.py" "$MODEL_HOST_PATH" "$DFLASH_HOST_PATH" 헤드
+  local draft_path=""
+  [[ "${DFLASH_TOKENS:-5}" == 0 ]] || draft_path="$DRAFT_MODEL_HOST_PATH"
+  python3 "$script_dir/check_models.py" "$MODEL_HOST_PATH" 헤드 "$draft_path"
   setup_rail
   sync_compose
+  prepare_image
   local remote_check
-  printf -v remote_check 'python3 %q %q %q %q' "$remote_dir/check_models.py" "$MODEL_HOST_PATH" "$DFLASH_HOST_PATH" 워커
+  printf -v remote_check 'python3 %q %q %q %q' "$remote_dir/check_models.py" "$MODEL_HOST_PATH" 워커 "$draft_path"
   ssh "${ssh_opts[@]}" "$worker" "$remote_check"
   drop_caches
   remote_compose up -d glm53
@@ -179,7 +202,7 @@ case "${1:-}" in
     echo "Setup complete. Start the cluster with: ./manage.sh start"
     ;;
   model) "$script_dir/models.sh" prepare ;;
-  image) require_ssh; sync_compose; remote_compose pull glm53; "${head_compose[@]}" pull glm53 ;;
+  image) require_ssh; sync_compose; prepare_image ;;
   validate) "${head_compose[@]}" config -q ;;
   start) start ;;
   stop) stop ;;

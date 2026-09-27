@@ -421,7 +421,7 @@ func (c *Controller) checkRemoteMemory(ctx context.Context, bundle Bundle, defau
 		if !c.local(component) {
 			plan := plans[component.Host]
 			if !c.componentRunning(ctx, component) {
-				plan.NeededGiB += component.MemoryGiB
+				plan.NeededGiB += component.startupMemoryGiB()
 				plan.RequiresCUDAStart = plan.RequiresCUDAStart || isCUDAComponent(component)
 			}
 			plans[component.Host] = plan

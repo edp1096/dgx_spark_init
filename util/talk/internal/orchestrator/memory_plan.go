@@ -55,22 +55,22 @@ func (c *Controller) bundleMemoryPlan(ctx context.Context, bundle Bundle) memory
 			if running && component.StartAfterLLM && llmNeedsStart {
 				// runBundleStart stops deferred services before loading the LLM.
 				needsStart = true
-				plan.NeededGiB += component.MemoryGiB
+				plan.NeededGiB += component.startupMemoryGiB()
 				plan.FreedGiB += gpuMemory + containerAnonymousMemoryGiB(ctx, component.Container)
 				plan.RequiresCUDAStart = plan.RequiresCUDAStart || isCUDAComponent(component)
 				continue
 			}
 			if !running {
 				needsStart = true
-				plan.NeededGiB += component.MemoryGiB
+				plan.NeededGiB += component.startupMemoryGiB()
 				plan.RequiresCUDAStart = plan.RequiresCUDAStart || isCUDAComponent(component)
 				continue
 			}
-			healthy := c.isHealthy(ctx, component)
+			healthy := !c.componentNeedsStart(ctx, component)
 			if !healthy {
 				needsStart = true
 				// Restarting releases the current allocation before rebuilding it.
-				plan.NeededGiB += max(0, component.MemoryGiB-gpuMemory)
+				plan.NeededGiB += max(0, component.startupMemoryGiB()-gpuMemory-containerAnonymousMemoryGiB(ctx, component.Container))
 				plan.RequiresCUDAStart = plan.RequiresCUDAStart || isCUDAComponent(component)
 				continue
 			}
@@ -131,4 +131,13 @@ func validateMemoryHeadroom(memory SystemMemory, plan memoryPlan, reserveGiB flo
 		}
 	}
 	return nil
+}
+
+// Startup admission does not reserve an optional transcription workspace as
+// if it were already allocated during model loading. MemoryGiB retains peak.
+func (c Component) startupMemoryGiB() float64 {
+	if c.StartupMemoryGiB > 0 {
+		return min(c.StartupMemoryGiB, c.MemoryGiB)
+	}
+	return c.MemoryGiB
 }

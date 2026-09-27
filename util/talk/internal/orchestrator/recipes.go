@@ -54,6 +54,20 @@ func validateRecipeOptions(c Component) error {
 		if c.Controller == "qwen38-cluster" && ((k == "MAX_MODEL_LEN" && v != "262144" && v != "524288" && v != "1048576") || (k == "MODEL_VARIANT" && v != "abliterated")) {
 			return fmt.Errorf("Qwen TP2 requires the tested abliteration checkpoint and 256K/512K/1M context")
 		}
+		if c.Controller == "glm53-cluster" && k == "MTP_TOKENS" && v != "0" {
+			return fmt.Errorf("GLM MTP is not qualified for this TP2/1M recipe; MTP_TOKENS must be 0")
+		}
+		if c.Controller == "glm53-cluster" && k == "DFLASH_TOKENS" && v != "0" && v != "5" {
+			return fmt.Errorf("GLM DFlash2 supports DFLASH_TOKENS=0 or 5 in this profile")
+		}
+		if c.Controller == "glm53-cluster" && c.ProgressKind == "sglang" {
+			if k == "KV_CACHE_MEMORY" || k == "GPU_MEMORY_UTILIZATION" {
+				return fmt.Errorf("GLM SGLang does not use the vLLM option %s", k)
+			}
+			if k == "MAX_NUM_SEQS" && v != "1" {
+				return fmt.Errorf("GLM SGLang requires MAX_NUM_SEQS=1")
+			}
+		}
 		if !recipeOptionNames[k] || strings.ContainsAny(v, "\x00\r\n") {
 			return fmt.Errorf("%s: unsupported runtime option %s", c.ID, k)
 		}
@@ -100,22 +114,20 @@ func (c *Controller) materializeRecipe(ctx context.Context, component Component)
 	}
 	values := map[string]string{
 		"MODEL_KIND": id, "HF_CACHE": cache, "API_PORT": strconv.Itoa(component.Port), "VLLM_PORT": strconv.Itoa(component.Port),
-		"MODEL_HOST_PATH":   filepath.Join(cache, map[string]string{"glm53": "glm53-exl3"}[id]),
+		"MODEL_HOST_PATH":   cache,
 		"SERVED_MODEL_NAME": component.Model,
 	}
 	if component.Port == 0 {
 		values["API_PORT"] = "8000"
 		values["VLLM_PORT"] = "8888"
 	}
-	values["GLM53_CACHE_PATH"] = filepath.Join(filepath.Dir(cache), "glm53-vllm")
-	values["DFLASH_HOST_PATH"] = filepath.Join(cache, "glm53-dflash2-mxfp8")
-	values["ABLIT_HOST_PATH"] = filepath.Join(cache, "glm53-ablit-oproj")
 	if id == "glm53" {
-		values["ABLIT_HOST_PATH"] = filepath.Join(cache, "glm53-lovesenko-oproj")
-		values["ABLIT_LAYERS"] = "0-44"
-		values["ABLIT_INCLUDE_MTP"] = "0"
-		values["ABLIT_DONOR"] = "lovesenko/GLM-5.3-Flash-tr3-4bpw-Abliterated"
-		values["ABLIT_DONOR_REVISION"] = "c8f58e6aa9117c73607d692978b22f091d80450c"
+		values["MODEL_HOST_PATH"] = filepath.Join(cache, "nvidia", "GLM-5.3-Flash-NVFP4")
+		values["GLM53_CACHE_PATH"] = filepath.Join(filepath.Dir(cache), "glm53-nvfp4")
+		values["VLLM_BIND"] = component.BindAddress
+		if values["VLLM_BIND"] == "" {
+			values["VLLM_BIND"] = "127.0.0.1"
+		}
 	}
 	values["CONTEXT_SIZE"] = component.RuntimeOptions["MAX_MODEL_LEN"]
 	if values["CONTEXT_SIZE"] == "" {

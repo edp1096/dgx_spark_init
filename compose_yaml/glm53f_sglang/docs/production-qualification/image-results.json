@@ -1,0 +1,137 @@
+[
+  {
+    "name": "red",
+    "passed": true,
+    "seconds": 0.590604484998039,
+    "response": {
+      "id": "f5d2458dd681454d9c622762296eca2f",
+      "object": "chat.completion",
+      "created": 1790528854,
+      "model": "glm-5.3-flash",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "RED",
+            "reasoning_content": null,
+            "tool_calls": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "matched_stop": 154827
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 135,
+        "total_tokens": 137,
+        "completion_tokens": 2,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "image_tokens": 100
+        },
+        "reasoning_tokens": 0
+      },
+      "metadata": {
+        "weight_version": "default",
+        "weight_versions": [
+          {
+            "version": "default",
+            "start": 0,
+            "end": 2
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "green",
+    "passed": true,
+    "seconds": 0.6598977190005826,
+    "response": {
+      "id": "f36b137ac0394ef196e8f80dd92c27c5",
+      "object": "chat.completion",
+      "created": 1790528855,
+      "model": "glm-5.3-flash",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "GREEN",
+            "reasoning_content": null,
+            "tool_calls": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "matched_stop": 154827
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 135,
+        "total_tokens": 137,
+        "completion_tokens": 2,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "image_tokens": 100
+        },
+        "reasoning_tokens": 0
+      },
+      "metadata": {
+        "weight_version": "default",
+        "weight_versions": [
+          {
+            "version": "default",
+            "start": 0,
+            "end": 2
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "blue",
+    "passed": true,
+    "seconds": 0.6605524569968111,
+    "response": {
+      "id": "9a243119dbee4996baa2c6f77d372cf1",
+      "object": "chat.completion",
+      "created": 1790528855,
+      "model": "glm-5.3-flash",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "BLUE",
+            "reasoning_content": null,
+            "tool_calls": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "matched_stop": 154827
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 135,
+        "total_tokens": 137,
+        "completion_tokens": 2,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "image_tokens": 100
+        },
+        "reasoning_tokens": 0
+      },
+      "metadata": {
+        "weight_version": "default",
+        "weight_versions": [
+          {
+            "version": "default",
+            "start": 0,
+            "end": 2
+          }
+        ]
+      }
+    }
+  }
+]

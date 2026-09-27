@@ -42,6 +42,7 @@ type Component struct {
 	Container             string  `json:"container" yaml:"container"`
 	HealthURL             string  `json:"health_url" yaml:"health_url"`
 	Model                 string  `json:"model,omitempty" yaml:"model,omitempty"`
+	StartupMemoryGiB      float64 `json:"startup_memory_gib,omitempty" yaml:"startup_memory_gib,omitempty"`
 	MemoryGiB             float64 `json:"memory_gib" yaml:"memory_gib"`
 	StartupTimeoutSeconds int     `json:"startup_timeout_seconds" yaml:"startup_timeout_seconds"`
 	ComposeAsset          string  `json:"compose_asset" yaml:"compose_asset"`
@@ -247,7 +248,7 @@ func validateDeployment(catalog Catalog, component Component) error {
 	if err := validateRecipeOptions(component); err != nil {
 		return err
 	}
-	if component.MemoryGiB < 0 || component.WorkerMemoryGiB < 0 || component.StartupTimeoutSeconds < 0 {
+	if component.StartupMemoryGiB < 0 || component.MemoryGiB < 0 || component.WorkerMemoryGiB < 0 || component.StartupTimeoutSeconds < 0 {
 		return fmt.Errorf("component %q: invalid memory/timeout", component.ID)
 	}
 

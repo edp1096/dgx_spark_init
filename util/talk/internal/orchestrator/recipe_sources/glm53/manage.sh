@@ -6,11 +6,11 @@ usage() {
 Usage: ./manage.sh COMMAND [OPTIONS]
 Commands: setup image model start stop restart status logs validate
   setup       Prepare image, model, and worker files; does not start the server.
-  image       Build or pull the runtime image (legacy alias: build).
+  image       Prepare and synchronize the runtime image (legacy alias: build).
   model       Prepare model weights and worker copy (legacy alias: prepare).
 Options for setup/model:
-  --official       Select original weights / disable the runtime ablation.
-  --abliterated    Select abliterated weights / enable the runtime ablation.
+  --official       Select the original NVIDIA NVFP4 checkpoint.
+  --abliterated    Select the locally converted Huihui NVFP4 checkpoint.
   --ask-token      Read a Hugging Face token without echoing it.
 Environment: HF_TOKEN (download only; never saved by this command).
 Configuration: .env (copy of env.sample); MODEL_VARIANT=official|abliterated.
@@ -60,7 +60,7 @@ if [[ -n "$variant" ]]; then
 import sys,os,tempfile
 from pathlib import Path
 p=Path(sys.argv[1]);kind,variant=sys.argv[2:];updates={'MODEL_VARIANT':variant}
-if kind=='glm53': updates['ABLIT']='1' if variant=='abliterated' else '0'
+# GLM selects an independent NVFP4 checkpoint in select_model.sh.
 if kind=='ds4fve': updates['ABLITERATED']='1' if variant=='abliterated' else '0'
 if kind=='flash-next-exl3': updates['ABLIT_LAMBDA']='1.5' if variant=='abliterated' else '0'
 lines=p.read_text().splitlines()

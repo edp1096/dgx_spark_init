@@ -29,63 +29,56 @@ if [[ -z "${NCCL_IB_GID_INDEX:-}" ]]; then
   exit 2
 fi
 
-[[ -f /models/glm53-exl3/config.json ]] || {
-  echo "EXL3 weights are missing; run the download profile on this node first." >&2
-  exit 2
-}
-
-case "${ABLIT:-0}" in
-  1|true|TRUE|yes|YES|on|ON)
-    [[ -f /opt/glm53/ablit/MANIFEST.json ]] || {
-      echo "ABLIT=1 but donor tensors are missing; run ./manage.sh setup on the head." >&2
-      exit 2
-    }
-    python3 /opt/glm53/ablit-code/patch_ablit.py
-    ;;
+draft_path=""
+case "${DFLASH_TOKENS:-5}" in
+ 0) ;;
+ [1-7]) draft_path="${DRAFT_MODEL_HOST_PATH:?DFlash checkpoint required}" ;;
+ *) echo 'DFLASH_TOKENS must be an integer from 0 to 7' >&2; exit 2 ;;
 esac
-
-args=(
-  vllm serve /models/glm53-exl3
-  --served-model-name glm-5.3-flash
-  --host 0.0.0.0 --port "${API_PORT:-8000}"
-  --trust-remote-code --quantization exl3
-  --tensor-parallel-size 2
-  --gpu-memory-utilization "${GPU_MEMORY_UTILIZATION:-0.85}"
-  --max-model-len "${MAX_MODEL_LEN:-524288}"
-  --max-num-seqs "${MAX_NUM_SEQS:-4}"
-  --block-size "${BLOCK_SIZE:-2304}"
-  --mm-processor-cache-gb "${MM_PROCESSOR_CACHE_GB:-0.5}"
-  --tool-call-parser glm47 --enable-auto-tool-choice
-  --reasoning-parser glm45
-  --default-chat-template-kwargs '{"enable_thinking": false}'
-  --distributed-executor-backend mp
-  --nnodes 2 --node-rank "$NODE_RANK"
+if [[ "${NCCL_NCHANNELS:-auto}" != auto ]]; then
+  [[ "$NCCL_NCHANNELS" =~ ^[1-9][0-9]*$ ]] || { echo 'Invalid NCCL_NCHANNELS' >&2; exit 2; }
+  export NCCL_MIN_NCHANNELS="$NCCL_NCHANNELS" NCCL_MAX_NCHANNELS="$NCCL_NCHANNELS"
+fi
+python3 /opt/glm53/check_models.py "${MODEL_HOST_PATH:?}" "rank $NODE_RANK" "$draft_path"
+python3 /opt/glm53/prepare_chat_template.py "$MODEL_HOST_PATH" /cache/chat_template.jinja
+args=(vllm serve "$MODEL_HOST_PATH"
+  --chat-template /cache/chat_template.jinja
+  --served-model-name "${SERVED_MODEL_NAME:-glm-5.3-flash}"
+  --host "${VLLM_BIND:-127.0.0.1}" --port "${API_PORT:-8000}"
+  --moe-backend b12x --linear-backend b12x
+  --skip-mm-profiling --mm-processor-cache-gb 0.5
+  --dtype bfloat16 --block-size 256 --no-enable-flashinfer-autotune
+  --mamba-cache-mode align --enable-prefix-caching --enable-chunked-prefill
+  --tensor-parallel-size 2 --distributed-executor-backend mp
+  --data-parallel-backend mp --nnodes 2 --node-rank "$NODE_RANK"
   --master-addr "$HEAD_RAIL_IP" --master-port "${MASTER_PORT:-29521}"
+  --gpu-memory-utilization "${GPU_MEMORY_UTILIZATION:-0.88}"
+  --max-model-len "${MAX_MODEL_LEN:-1048576}"
+  --max-num-seqs "${MAX_NUM_SEQS:-4}"
+  --max-num-batched-tokens "${MAX_NUM_BATCHED_TOKENS:-1024}"
+  --kv-cache-dtype "${KV_CACHE_DTYPE:-fp8}"
+  --async-scheduling --max-cudagraph-capture-size "${MAX_CUDAGRAPH_CAPTURE_SIZE:-16}"
+  --prefix-cache-retention-interval "${PREFIX_CACHE_RETENTION_INTERVAL:-4608}"
+  --tool-call-parser glm47 --enable-auto-tool-choice --reasoning-parser glm45
 )
-
-[[ -n "${LOAD_FORMAT:-}" ]] && args+=(--load-format "$LOAD_FORMAT")
-[[ -n "${MAX_NUM_BATCHED_TOKENS:-}" ]] && args+=(--max-num-batched-tokens "$MAX_NUM_BATCHED_TOKENS")
-[[ -n "${KV_CACHE_DTYPE:-}" ]] && args+=(--kv-cache-dtype "$KV_CACHE_DTYPE")
-[[ -n "${KV_CACHE_DTYPE_SKIP_LAYERS:-}" ]] && args+=(--kv-cache-dtype-skip-layers "$KV_CACHE_DTYPE_SKIP_LAYERS")
-[[ -n "${ATTENTION_BACKEND:-}" ]] && args+=(--attention-backend "$ATTENTION_BACKEND")
-[[ -n "${KV_CACHE_MEMORY:-}" ]] && args+=(--kv-cache-memory "$KV_CACHE_MEMORY")
-[[ -n "${PREFIX_MATCH_UNIT:-}" ]] && args+=(--prefix-match-unit "$PREFIX_MATCH_UNIT")
-[[ -n "${KDA_PREFILL_BACKEND:-}" ]] && args+=(--kda-prefill-backend "$KDA_PREFILL_BACKEND")
-[[ -n "${MIXED_PREFILL_DECODE_WEIGHT:-}" ]] && args+=(--mixed-prefill-decode-weight "$MIXED_PREFILL_DECODE_WEIGHT")
-[[ -n "${MIXED_PREFILL_CAP:-}" ]] && args+=(--mixed-prefill-token-cap "$MIXED_PREFILL_CAP")
-[[ "${SKIP_MM_PROFILING:-1}" != 0 ]] && args+=(--skip-mm-profiling)
-[[ "${ENFORCE_EAGER:-0}" != 0 ]] && args+=(--enforce-eager)
-
+: "${KV_CACHE_MEMORY=10240000000}"
+[[ -z "$KV_CACHE_MEMORY" ]] || args+=(--kv-cache-memory-bytes "$KV_CACHE_MEMORY")
+[[ "${ENFORCE_EAGER:-0}" == 0 ]] || args+=(--enforce-eager)
+if [[ -n "$draft_path" ]]; then
+  spec=$(python3 - "$draft_path" "${DFLASH_TOKENS:-5}" <<'PY'
+import json,sys
+print(json.dumps({'method':'dflash','model':sys.argv[1],'num_speculative_tokens':int(sys.argv[2]),
+ 'attention_backend':'TRITON_ATTN','kv_cache_dtype':'auto','draft_sample_method':'probabilistic',
+ 'rejection_sample_method':'standard','enable_adaptive_verification':False,'disable_eagle_block_drop':False}))
+PY
+  )
+  args+=(--speculative-config "$spec" --per-request-spec-decode-metrics summary)
+fi
 if [[ "${MTP_TOKENS:-0}" != 0 ]]; then
-  args+=(--speculative-config "{\"method\":\"mtp\",\"num_speculative_tokens\":${MTP_TOKENS}}")
-elif [[ "${SPEC_METHOD:-dflash}" == dflash ]]; then
-  [[ -f /models/glm53-dflash2/config.json && -f /models/glm53-dflash2/model.safetensors ]] || {
-    echo "DFlash2 weights are incomplete; set SPEC_METHOD=none or run the download profile." >&2
-    exit 2
-  }
-  args+=(--speculative-config "{\"method\":\"dflash\",\"model\":\"/models/glm53-dflash2\",\"num_speculative_tokens\":${DFLASH_TOKENS:-7}}")
+  echo "MTP is not qualified for this TP2/1M recipe; MTP_TOKENS must be 0." >&2
+  exit 2
 fi
 
 args+=("${headless[@]}")
-echo "Starting GLM-5.3 rank=$NODE_RANK host=$VLLM_HOST_IP gid=$NCCL_IB_GID_INDEX"
+echo "Starting GLM NVFP4 rank=$NODE_RANK host=$VLLM_HOST_IP gid=$NCCL_IB_GID_INDEX"
 exec "${args[@]}"

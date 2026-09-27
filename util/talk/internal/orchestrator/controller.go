@@ -549,7 +549,11 @@ func (c *Controller) runBundleStart(bundle Bundle, reserveGiB float64) {
 }
 
 func (c *Controller) componentNeedsStart(ctx context.Context, component Component) bool {
-	return !c.componentRunning(ctx, component) || !c.isHealthy(ctx, component)
+	if !c.componentRunning(ctx, component) || !c.isHealthy(ctx, component) {
+		return true
+	}
+	var capacity *modelCapacityError
+	return errors.As(c.checkSGLangCapacity(ctx, component), &capacity)
 }
 
 func (c *Controller) waitForBundleHeadroom(bundle Bundle, reserveGiB float64, phase string, timeout time.Duration) error {
@@ -586,7 +590,14 @@ func (c *Controller) startAndWait(component Component) error {
 	ctx, cancel := context.WithTimeout(context.Background(), commandTimeout)
 	defer cancel()
 	if c.isHealthy(ctx, component) {
-		return c.checkQwenCapacity(ctx, component)
+		err := c.checkSGLangCapacity(ctx, component)
+		var capacity *modelCapacityError
+		if !errors.As(err, &capacity) {
+			return err
+		}
+		if err := c.stopComponent(ctx, component); err != nil {
+			return err
+		}
 	}
 	if err := c.startComponent(ctx, component); err != nil {
 		return err
@@ -599,7 +610,7 @@ func (c *Controller) startAndWait(component Component) error {
 	deadline := startedAt.Add(timeout)
 	for time.Now().Before(deadline) {
 		if c.isHealthy(context.Background(), component) {
-			if err := c.checkQwenCapacity(context.Background(), component); err != nil {
+			if err := c.checkSGLangCapacity(context.Background(), component); err != nil {
 				return err
 			}
 			c.updateOperation(component.ID, progressInfo{Key: "ready:" + component.ID, Phase: component.Name + " API 응답 확인", Detail: "서비스가 요청을 받을 준비를 마쳤습니다.", Progress: 1})

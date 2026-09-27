@@ -4,10 +4,10 @@
     "source": "internal/orchestrator/recipe_sources/glm53",
     "files": [
       "README.md",
-      "ablit/LICENSE.MiaAI",
-      "ablit/ablit_runtime.py",
-      "ablit/fetch_transplant.py",
-      "ablit/patch_ablit.py",
+      "Dockerfile",
+      "patch_runtime.py",
+      "glm53_b12x.py",
+      "validate_processor.py",
       "check_models.py",
       "compose.head.yaml",
       "compose.worker.yaml",
@@ -16,7 +16,9 @@
       "env.sample",
       "manage.sh",
       "models.sh",
-      "runtime.sh"
+      "prepare_chat_template.py",
+      "runtime.sh",
+      "select_model.sh"
     ]
   },
   {

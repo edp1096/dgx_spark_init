@@ -1,0 +1,345 @@
+[
+  {
+    "test": "thinking_on",
+    "passed": true,
+    "seconds": 1.6524388500038185,
+    "response": {
+      "id": "chatcmpl-a2860c064c7f3a78",
+      "object": "chat.completion",
+      "created": 1790524699,
+      "model": "glm-5.3-flash",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "437",
+            "refusal": null,
+            "annotations": null,
+            "audio": null,
+            "function_call": null,
+            "reasoning": "19 × 23 = 19 × 23\n\nLet me calculate: 19 × 23 = 19 × 20 + 19 × 3 = 380 + 57 = 437"
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "stop_reason": 154827,
+          "token_ids": null,
+          "routed_experts": null
+        }
+      ],
+      "service_tier": null,
+      "system_fingerprint": "vllm-0.28.1rc1.dev475+g6fbb00b18.d20260907-tp2-e2ff7b4a",
+      "usage": {
+        "prompt_tokens": 33,
+        "total_tokens": 79,
+        "completion_tokens": 46,
+        "prompt_tokens_details": null,
+        "completion_tokens_details": {
+          "reasoning_tokens": 42
+        }
+      },
+      "prompt_logprobs": null,
+      "prompt_token_ids": null,
+      "prompt_text": null,
+      "kv_transfer_params": null,
+      "ec_transfer_params": null,
+      "metrics": {
+        "time_to_first_token_ms": null,
+        "generation_time_ms": null,
+        "queue_time_ms": null,
+        "mean_itl_ms": null,
+        "tokens_per_second": null,
+        "speculative_decoding": {
+          "mean_acceptance_length": 4.181818181818182,
+          "draft_acceptance_rate": 0.6363636363636364,
+          "acceptance_histogram": [
+            1,
+            2,
+            2,
+            0,
+            1,
+            5
+          ],
+          "num_spec_steps": 11,
+          "num_accepted_draft_tokens": 35,
+          "num_draft_tokens": 55,
+          "num_spec_tokens": 5,
+          "per_step_accepted": [
+            5,
+            2,
+            1,
+            1,
+            5,
+            5,
+            5,
+            5,
+            4,
+            0,
+            2
+          ],
+          "per_step_drafted": [
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5
+          ]
+        }
+      }
+    }
+  },
+  {
+    "test": "streaming_thinking_off",
+    "passed": true,
+    "seconds": 0.48562401399976807,
+    "content": "스트리밍 확인",
+    "reasoning": "",
+    "done": true
+  },
+  {
+    "test": "near_8k_context",
+    "passed": true,
+    "seconds": 9.12710834400059,
+    "response": {
+      "id": "chatcmpl-b07197ef861f658a",
+      "object": "chat.completion",
+      "created": 1790524701,
+      "model": "glm-5.3-flash",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "푸른하늘-4829",
+            "refusal": null,
+            "annotations": null,
+            "audio": null,
+            "function_call": null,
+            "reasoning": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "stop_reason": 154827,
+          "token_ids": null,
+          "routed_experts": null
+        }
+      ],
+      "service_tier": null,
+      "system_fingerprint": "vllm-0.28.1rc1.dev475+g6fbb00b18.d20260907-tp2-e2ff7b4a",
+      "usage": {
+        "prompt_tokens": 7794,
+        "total_tokens": 7806,
+        "completion_tokens": 12,
+        "prompt_tokens_details": null,
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "prompt_logprobs": null,
+      "prompt_token_ids": null,
+      "prompt_text": null,
+      "kv_transfer_params": null,
+      "ec_transfer_params": null,
+      "metrics": {
+        "time_to_first_token_ms": null,
+        "generation_time_ms": null,
+        "queue_time_ms": null,
+        "mean_itl_ms": null,
+        "tokens_per_second": null,
+        "speculative_decoding": {
+          "mean_acceptance_length": 2.4,
+          "draft_acceptance_rate": 0.28,
+          "acceptance_histogram": [
+            2,
+            2,
+            0,
+            0,
+            0,
+            1
+          ],
+          "num_spec_steps": 5,
+          "num_accepted_draft_tokens": 7,
+          "num_draft_tokens": 25,
+          "num_spec_tokens": 5,
+          "per_step_accepted": [
+            0,
+            0,
+            1,
+            5,
+            1
+          ],
+          "per_step_drafted": [
+            5,
+            5,
+            5,
+            5,
+            5
+          ]
+        }
+      }
+    }
+  },
+  {
+    "test": "automatic_tool_roundtrip",
+    "passed": true,
+    "seconds": 9.029820967996784,
+    "tool_call": {
+      "id": "chatcmpl-b97b7c99f7d69e94",
+      "object": "chat.completion",
+      "created": 1790524710,
+      "model": "glm-5.3-flash",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": null,
+            "refusal": null,
+            "annotations": null,
+            "audio": null,
+            "function_call": null,
+            "tool_calls": [
+              {
+                "id": "chatcmpl-tool-93844d6982f2d62a",
+                "type": "function",
+                "function": {
+                  "name": "get_temperature",
+                  "arguments": "{\"city\": \"Seoul\"}"
+                }
+              }
+            ],
+            "reasoning": null
+          },
+          "logprobs": null,
+          "finish_reason": "tool_calls",
+          "stop_reason": 154829,
+          "token_ids": null,
+          "routed_experts": null
+        }
+      ],
+      "service_tier": null,
+      "system_fingerprint": "vllm-0.28.1rc1.dev475+g6fbb00b18.d20260907-tp2-e2ff7b4a",
+      "usage": {
+        "prompt_tokens": 188,
+        "total_tokens": 200,
+        "completion_tokens": 12,
+        "prompt_tokens_details": null,
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "prompt_logprobs": null,
+      "prompt_token_ids": null,
+      "prompt_text": null,
+      "kv_transfer_params": null,
+      "ec_transfer_params": null,
+      "metrics": {
+        "time_to_first_token_ms": null,
+        "generation_time_ms": null,
+        "queue_time_ms": null,
+        "mean_itl_ms": null,
+        "tokens_per_second": null,
+        "speculative_decoding": {
+          "mean_acceptance_length": 6.0,
+          "draft_acceptance_rate": 1.0,
+          "acceptance_histogram": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            2
+          ],
+          "num_spec_steps": 2,
+          "num_accepted_draft_tokens": 10,
+          "num_draft_tokens": 10,
+          "num_spec_tokens": 5,
+          "per_step_accepted": [
+            5,
+            5
+          ],
+          "per_step_drafted": [
+            5,
+            5
+          ]
+        }
+      }
+    },
+    "final_response": {
+      "id": "chatcmpl-83e3a5537839bee4",
+      "object": "chat.completion",
+      "created": 1790524711,
+      "model": "glm-5.3-flash",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "21",
+            "refusal": null,
+            "annotations": null,
+            "audio": null,
+            "function_call": null,
+            "reasoning": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "stop_reason": 154827,
+          "token_ids": null,
+          "routed_experts": null
+        }
+      ],
+      "service_tier": null,
+      "system_fingerprint": "vllm-0.28.1rc1.dev475+g6fbb00b18.d20260907-tp2-e2ff7b4a",
+      "usage": {
+        "prompt_tokens": 217,
+        "total_tokens": 219,
+        "completion_tokens": 2,
+        "prompt_tokens_details": null,
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "prompt_logprobs": null,
+      "prompt_token_ids": null,
+      "prompt_text": null,
+      "kv_transfer_params": null,
+      "ec_transfer_params": null,
+      "metrics": {
+        "time_to_first_token_ms": null,
+        "generation_time_ms": null,
+        "queue_time_ms": null,
+        "mean_itl_ms": null,
+        "tokens_per_second": null,
+        "speculative_decoding": {
+          "mean_acceptance_length": 2.0,
+          "draft_acceptance_rate": 0.2,
+          "acceptance_histogram": [
+            0,
+            1,
+            0,
+            0,
+            0,
+            0
+          ],
+          "num_spec_steps": 1,
+          "num_accepted_draft_tokens": 1,
+          "num_draft_tokens": 5,
+          "num_spec_tokens": 5,
+          "per_step_accepted": [
+            1
+          ],
+          "per_step_drafted": [
+            5
+          ]
+        }
+      }
+    }
+  }
+]

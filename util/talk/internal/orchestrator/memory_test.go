@@ -112,3 +112,18 @@ func TestResidentMemoryDoesNotCreditReclaimableCheckpointCache(t *testing.T) {
 		t.Fatal("file cache must not be counted as memory released by stopping a service")
 	}
 }
+
+func TestASRStartupBudgetDoesNotReserveLongTranscriptionWorkspace(t *testing.T) {
+	component := Component{Role: "asr", MemoryGiB: 6, StartupMemoryGiB: 3.5}
+	plan := componentStartMemoryPlan(component, 0)
+	plan.NeededGiB += 100 + 13
+	if err := validateMemoryHeadroom(SystemMemory{AvailableGiB: 118.4, FreeGiB: 114}, plan, 1.5); err != nil {
+		t.Fatal(err)
+	}
+	if component.MemoryGiB != 6 {
+		t.Fatal("processing peak was reduced")
+	}
+	if err := validateMemoryHeadroom(SystemMemory{AvailableGiB: 116, FreeGiB: 114}, plan, 1.5); err == nil {
+		t.Fatal("actual startup shortage must still fail")
+	}
+}

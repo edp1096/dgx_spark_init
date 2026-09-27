@@ -22,6 +22,7 @@ type Deployment struct {
 	WorkerContainer       *string            `json:"worker_container,omitempty" yaml:"worker_container,omitempty"`
 	WorkerMemoryGiB       *float64           `json:"worker_memory_gib,omitempty" yaml:"worker_memory_gib,omitempty"`
 	ManagePath            *string            `json:"manage_path,omitempty" yaml:"manage_path,omitempty"`
+	StartupMemoryGiB      *float64           `json:"startup_memory_gib,omitempty" yaml:"startup_memory_gib,omitempty"`
 	MemoryGiB             *float64           `json:"memory_gib,omitempty" yaml:"memory_gib,omitempty"`
 	StartupTimeoutSeconds *int               `json:"startup_timeout_seconds,omitempty" yaml:"startup_timeout_seconds,omitempty"`
 	Model                 *string            `json:"model,omitempty" yaml:"model,omitempty"`

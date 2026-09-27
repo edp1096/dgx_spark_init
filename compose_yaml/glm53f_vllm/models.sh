@@ -1,187 +1,83 @@
 #!/usr/bin/env bash
 set -euo pipefail
-
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 if [[ -f "$script_dir/.env" ]]; then
-  set -a
-  # shellcheck disable=SC1091
-  . "$script_dir/.env"
-  set +a
-if [[ ${RUNTIME_HF_TOKEN+x} ]]; then export HF_TOKEN="$RUNTIME_HF_TOKEN"; fi
+ set -a; source "$script_dir/.env"; set +a
 fi
-
-model_dir="${MODEL_HOST_PATH:-${HOME}/.cache/huggingface/glm53-exl3}"
-draft_dir="${DFLASH_HOST_PATH:-${HOME}/.cache/huggingface/glm53-dflash2-mxfp8}"
-cache_dir="${GLM53_CACHE_PATH:-${HOME}/.cache/glm53-vllm}"
-ablit_dir="${ABLIT_HOST_PATH:-${HOME}/.cache/huggingface/glm53-lovesenko-oproj}"
-worker_ip="${WORKER_LAN_IP:-}"
-worker_user="${WORKER_USER:-$(id -un)}"
-sync_host="${MODEL_SYNC_HOST:-$worker_ip}"
-worker_target="${worker_user}@${sync_host}"
+source "$script_dir/select_model.sh"
+if [[ ${RUNTIME_HF_TOKEN+x} ]]; then export HF_TOKEN="$RUNTIME_HF_TOKEN"; fi
+worker="${WORKER_USER:-$(id -un)}@${MODEL_SYNC_HOST:-${WORKER_LAN_IP:-}}"
 ssh_opts=(-o BatchMode=yes -o ConnectTimeout=10)
-
-usage() {
-  echo "usage: $0 download | sync | prepare | status" >&2
-  exit 2
+for path in "$MODEL_HOST_PATH" "$DRAFT_MODEL_HOST_PATH"; do
+ [[ "$path" =~ ^/[A-Za-z0-9._/-]+$ ]] || { echo 'Unsupported model path' >&2; exit 2; }
+done
+draft_path=""
+[[ "${DFLASH_TOKENS:-5}" == 0 ]] || draft_path="$DRAFT_MODEL_HOST_PATH"
+check() { python3 "$script_dir/check_models.py" "$MODEL_HOST_PATH" "${1:-헤드}" "$draft_path"; }
+check_target() { python3 "$script_dir/check_models.py" "$MODEL_HOST_PATH" 헤드; }
+download_snapshot() {
+ mkdir -p "$HF_CACHE" "$HF_CACHE/.glm53-xet-$(id -u)"
+ docker run --rm --network host --memory 2g --user "$(id -u):$(id -g)" \
+  -e HF_TOKEN -e HF_HOME="$HF_CACHE" -e HOME=/tmp \
+  -e HF_XET_CACHE="$HF_CACHE/.glm53-xet-$(id -u)" \
+  -e HF_HUB_DISABLE_XET=0 -e HF_XET_HIGH_PERFORMANCE=0 \
+  -e HF_XET_NUM_CONCURRENT_RANGE_GETS=1 \
+  -e HF_XET_DATA_MAX_CONCURRENT_FILE_DOWNLOADS=1 \
+  -e HF_XET_CLIENT_AC_INITIAL_DOWNLOAD_CONCURRENCY=1 \
+  -e HF_XET_CLIENT_AC_MIN_DOWNLOAD_CONCURRENCY=1 \
+  -e HF_XET_CLIENT_AC_MAX_DOWNLOAD_CONCURRENCY=1 \
+  -v "$HF_CACHE:$HF_CACHE" --entrypoint python3 \
+  "${GLM53_IMAGE:-pilcothink/vllm_spark_glm53@sha256:09da6eb394216d174ab8692758d90f9f458398d9c8fbc11ba6f04e93d5cf6392}" -c \
+  'import sys; from huggingface_hub import snapshot_download; snapshot_download(sys.argv[1], revision=sys.argv[2], local_dir=sys.argv[3], max_workers=1)' \
+  "$1" "$2" "$3"
 }
-
-safe_path() {
-  [[ "$1" == /* && "$1" =~ ^/[A-Za-z0-9._/-]+$ ]] || {
-    echo "unsafe or non-absolute model path: $1" >&2
-    exit 2
-  }
-}
-safe_path "$model_dir"
-safe_path "$draft_dir"
-safe_path "$cache_dir"
-safe_path "$ablit_dir"
-
-ablit_enabled() {
-  case "${ABLIT:-0}" in
-    1|true|TRUE|yes|YES|on|ON) return 0 ;;
-    *) return 1 ;;
-  esac
-}
-
-model_ok() {
-  local dir=$1 count
-  [[ -f "$dir/config.json" ]] || return 1
-  count=$(find "$dir" -maxdepth 1 -name '*.safetensors' -type f | wc -l)
-  (( count >= 120 ))
-}
-
-draft_ok() {
-  local dir=$1 size
-  [[ -f "$dir/config.json" && -f "$dir/model.safetensors" ]] || return 1
-  size=$(stat -c %s "$dir/model.safetensors" 2>/dev/null || echo 0)
-  (( size >= 1000000000 ))
-}
-
-ablit_ok() {
-  python3 "$script_dir/ablit/fetch_transplant.py" "$1" --check
-}
-
 download() {
-  mkdir -p "$model_dir" "$draft_dir" "$ablit_dir" \
-    "$cache_dir/jit/triton" "$cache_dir/jit/flashinfer" \
-    "$cache_dir/jit/b12x" "$cache_dir/jit/vllm"
-
-  docker compose \
-    --project-directory "$script_dir" \
-    --profile download \
-    -f "$script_dir/compose.yaml" \
-    run --rm download
-
-  model_ok "$model_dir" || {
-    echo "EXL3 download incomplete: expected config.json and at least 120 safetensor shards" >&2
-    exit 1
-  }
-  draft_ok "$draft_dir" || {
-    echo "DFlash2 download incomplete: expected config.json and a >=1 GB model.safetensors" >&2
-    exit 1
-  }
-  if ablit_enabled; then
-    python3 "$script_dir/ablit/fetch_transplant.py" "$ablit_dir"
-    ablit_ok "$ablit_dir" || {
-      echo "o_proj donor download incomplete: expected Lovesenko manifest and 45 verified tensors" >&2
-      exit 1
-    }
+ local repo revision
+ if [[ "${MODEL_VARIANT:-official}" == official ]]; then
+  repo=nvidia/GLM-5.3-Flash-NVFP4
+  revision=09b04e5e74bca08ca8549fc736d4cdd8624bfde3
+  # Reuse the original HF cache without another copy of the 190 GiB checkpoint.
+  local snapshot="$HF_CACHE/hub/models--nvidia--GLM-5.3-Flash-NVFP4/snapshots/$revision"
+  if [[ ! -e "$MODEL_HOST_PATH" && ! -L "$MODEL_HOST_PATH" && -f "$snapshot/model.safetensors.index.json" ]]; then
+   mkdir -p "$(dirname "$MODEL_HOST_PATH")"
+   ln -s "../hub/models--nvidia--GLM-5.3-Flash-NVFP4/snapshots/$revision" "$MODEL_HOST_PATH"
   fi
-  echo "Local checkpoints are complete."
+ else
+  repo=edp1096/Huihui-GLM-5.3-Flash-abliterated-NVFP4
+  revision=48437d914cbde5c750093b9606a98508cb5430c0
+ fi
+ if ! check_target >/dev/null 2>&1; then
+  download_snapshot "$repo" "$revision" "$MODEL_HOST_PATH"
+ fi
+ if [[ -n "$draft_path" ]] && ! python3 - "$script_dir" "$draft_path" <<'PYDRAFT'
+import sys
+from pathlib import Path
+sys.path.insert(0,sys.argv[1])
+from check_models import check_draft
+try:check_draft(Path(sys.argv[2]))
+except (OSError,ValueError,KeyError,TypeError):sys.exit(1)
+PYDRAFT
+ then
+  download_snapshot incoai/GLM-5.3-Flash-DFlash2 bf582e4eacc1810f76656d1811693ff6c6737d2a "$draft_path"
+ fi
+ check
 }
-
-require_worker() {
-  [[ -n "$worker_ip" && -n "$sync_host" ]] || {
-    echo "WORKER_LAN_IP is not set in .env" >&2
-    exit 2
-  }
-  ssh "${ssh_opts[@]}" "$worker_target" true || {
-    echo "SSH failed for $worker_target." >&2
-    echo "Verify the host key and install this head's public key first:" >&2
-    echo "  ssh ${worker_user}@${worker_ip}" >&2
-    echo "  ssh-copy-id ${worker_user}@${worker_ip}" >&2
-    exit 1
-  }
-}
-
 sync_models() {
-  model_ok "$model_dir" || {
-    echo "Local EXL3 checkpoint is incomplete; run '$0 download' first." >&2
-    exit 1
-  }
-  draft_ok "$draft_dir" || {
-    echo "Local DFlash2 checkpoint is incomplete; run '$0 download' first." >&2
-    exit 1
-  }
-  if ablit_enabled && ! ablit_ok "$ablit_dir"; then
-    echo "Local o_proj donor is incomplete; run '$0 download' first." >&2
-    exit 1
-  fi
-  require_worker
-
-  ssh "${ssh_opts[@]}" "$worker_target" \
-    "mkdir -p '$model_dir' '$draft_dir' '$cache_dir/jit/triton' '$cache_dir/jit/flashinfer' '$cache_dir/jit/b12x' '$cache_dir/jit/vllm'"
-  if ablit_enabled; then
-    ssh "${ssh_opts[@]}" "$worker_target" "mkdir -p '$ablit_dir'"
-  fi
-
-  # No --delete: interrupted transfers resume and unrelated worker files remain.
-  rsync -a --partial --human-readable --info=progress2 \
-    -e "ssh -o BatchMode=yes -o ConnectTimeout=10" \
-    "$model_dir/" "$worker_target:$model_dir/"
-  rsync -a --partial --human-readable --info=progress2 \
-    -e "ssh -o BatchMode=yes -o ConnectTimeout=10" \
-    "$draft_dir/" "$worker_target:$draft_dir/"
-  if ablit_enabled; then
-    rsync -a --partial --human-readable --info=progress2 \
-      -e "ssh -o BatchMode=yes -o ConnectTimeout=10" \
-      "$ablit_dir/" "$worker_target:$ablit_dir/"
-  fi
-
-  ssh "${ssh_opts[@]}" "$worker_target" \
-    "test -f '$model_dir/config.json' && [ \$(find '$model_dir' -maxdepth 1 -name '*.safetensors' -type f | wc -l) -ge 120 ] && test -f '$draft_dir/config.json' && test \$(stat -c %s '$draft_dir/model.safetensors') -ge 1000000000"
-  if ablit_enabled; then
-    ssh "${ssh_opts[@]}" "$worker_target" \
-      "python3 - '$ablit_dir' --check" < "$script_dir/ablit/fetch_transplant.py"
-  fi
-  echo "Worker checkpoints are complete at $sync_host."
+ check
+ [[ -n "${WORKER_LAN_IP:-}" ]] || { echo 'WORKER_LAN_IP required' >&2; exit 2; }
+ for path in "$MODEL_HOST_PATH" "$draft_path"; do
+  [[ -n "$path" ]] || continue
+  ssh "${ssh_opts[@]}" "$worker" "mkdir -p '$path'"
+  rsync -aL --checksum --partial --human-readable --info=progress2 \
+   -e 'ssh -o BatchMode=yes -o ConnectTimeout=10' \
+   "$path/" "$worker:$path/"
+ done
+ ssh "${ssh_opts[@]}" "$worker" "python3 - '$MODEL_HOST_PATH' 워커 '$draft_path'" < "$script_dir/check_models.py"
 }
-
-status() {
-  if model_ok "$model_dir"; then echo "local EXL3: complete"; else echo "local EXL3: missing/incomplete"; fi
-  if draft_ok "$draft_dir"; then echo "local DFlash2: complete"; else echo "local DFlash2: missing/incomplete"; fi
-  if ablit_enabled; then
-    if ablit_ok "$ablit_dir"; then echo "local o_proj donor: complete"; else echo "local o_proj donor: missing/incomplete"; fi
-  else
-    echo "o_proj transplant: disabled"
-  fi
-  [[ -n "$worker_ip" ]] || { echo "worker: WORKER_LAN_IP is not set"; return; }
-  if ssh "${ssh_opts[@]}" "$worker_target" \
-    "test -f '$model_dir/config.json' && [ \$(find '$model_dir' -maxdepth 1 -name '*.safetensors' -type f | wc -l) -ge 120 ]"; then
-    echo "worker EXL3: complete"
-  else
-    echo "worker EXL3: unreachable or incomplete"
-  fi
-  if ssh "${ssh_opts[@]}" "$worker_target" \
-    "test -f '$draft_dir/config.json' && test \$(stat -c %s '$draft_dir/model.safetensors' 2>/dev/null || echo 0) -ge 1000000000"; then
-    echo "worker DFlash2: complete"
-  else
-    echo "worker DFlash2: unreachable or incomplete"
-  fi
-  if ablit_enabled; then
-    if ssh "${ssh_opts[@]}" "$worker_target" \
-      "python3 - '$ablit_dir' --check" < "$script_dir/ablit/fetch_transplant.py"; then
-      echo "worker o_proj donor: complete"
-    else
-      echo "worker o_proj donor: unreachable or incomplete"
-    fi
-  fi
-}
-
 case "${1:-}" in
-  download) download ;;
-  sync) sync_models ;;
-  prepare) download; sync_models ;;
-  status) status ;;
-  *) usage ;;
+ download) download ;;
+ sync) sync_models ;;
+ prepare) download; sync_models ;;
+ status) check ;;
+ *) echo 'usage: models.sh download | sync | prepare | status' >&2; exit 2 ;;
 esac

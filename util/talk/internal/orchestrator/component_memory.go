@@ -51,5 +51,5 @@ func (c *Controller) checkLocalComponentStart(ctx context.Context, target Compon
 }
 
 func componentStartMemoryPlan(target Component, currentGPU float64) memoryPlan {
-	return memoryPlan{NeededGiB: target.MemoryGiB, FreedGiB: currentGPU, RequiresCUDAStart: isCUDAComponent(target)}
+	return memoryPlan{NeededGiB: target.startupMemoryGiB(), FreedGiB: currentGPU, RequiresCUDAStart: isCUDAComponent(target)}
 }

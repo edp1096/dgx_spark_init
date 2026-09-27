@@ -1,0 +1,25 @@
+{
+  "seconds": 730.2604594230652,
+  "actual": {
+    "STONE": "a7c9f2d4",
+    "LARCH": "b6e1a8c3",
+    "RIVER": "d9f4b2e7",
+    "CLOUD": "c5a3e9f1",
+    "ORBIT": "e8b6d1a4"
+  },
+  "expected": {
+    "STONE": "a7c9f2d4",
+    "LARCH": "b6e1a8c3",
+    "RIVER": "d9f4b2e7",
+    "CLOUD": "c5a3e9f1",
+    "ORBIT": "e8b6d1a4"
+  },
+  "usage": {
+    "prompt_tokens": 1047622,
+    "total_tokens": 1047683,
+    "completion_tokens": 61,
+    "prompt_tokens_details": null,
+    "reasoning_tokens": 0
+  },
+  "passed": true
+}

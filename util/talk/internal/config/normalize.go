@@ -142,7 +142,6 @@ func (c *Config) Normalize() {
 	}
 	if c.Runtime.BuiltinRevision < 12 {
 		c.migrateQwenQADTP1()
-		c.migrateNemotronDiarizationBudget()
 		c.Runtime.BuiltinRevision = 12
 	}
 	if c.Runtime.BuiltinRevision < 13 {
@@ -152,6 +151,26 @@ func (c *Config) Normalize() {
 	if c.Runtime.BuiltinRevision < 14 {
 		c.migrateQwenQADFlux()
 		c.Runtime.BuiltinRevision = 14
+	}
+	if c.Runtime.BuiltinRevision < 15 {
+		c.migrateNemotronDiarizationBudget()
+		c.Runtime.BuiltinRevision = 15
+	}
+	if c.Runtime.BuiltinRevision < 16 {
+		c.migrateGLMNVFP4()
+		c.Runtime.BuiltinRevision = 16
+	}
+	if c.Runtime.BuiltinRevision < 17 {
+		c.migrateGLMLongContext()
+		c.Runtime.BuiltinRevision = 17
+	}
+	if c.Runtime.BuiltinRevision < 18 {
+		c.migrateGLMSGLang()
+		c.Runtime.BuiltinRevision = 18
+	}
+	if c.Runtime.BuiltinRevision < 19 {
+		c.removeGLMMagpie()
+		c.Runtime.BuiltinRevision = 19
 	}
 	c.normalizeRuntimeDisplayNames()
 	if catalog, err := orchestrator.ValidateCatalog(*c.Runtime.Catalog); err == nil {
