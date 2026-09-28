@@ -15,7 +15,7 @@ import (
 	"sparktalk/internal/media"
 )
 
-func (s *Server) transcribeAttachment(ctx context.Context, item db.Attachment, cfg config.ASRConfig) (media.TranscriptCache, error) {
+func (s *Server) transcribeAttachment(ctx context.Context, item db.Attachment, cfg config.ASRConfig) (output media.TranscriptCache, resultErr error) {
 	fingerprint := transcriptFingerprint(cfg)
 	if cached, ok, err := s.media.LoadTranscript(item.ID, fingerprint); err == nil && ok {
 		return cached, nil
@@ -28,15 +28,20 @@ func (s *Server) transcribeAttachment(ctx context.Context, item db.Attachment, c
 	if cached, ok, err := s.media.LoadTranscript(item.ID, fingerprint); err == nil && ok {
 		return cached, nil
 	}
+	client := s.asrSnapshot()
+	if client == nil {
+		client = asr.New(cfg)
+	}
+	client, release, err := s.prepareASRWorkload(ctx, client)
+	if err != nil {
+		return media.TranscriptCache{}, err
+	}
+	defer finishWorkload(release, &resultErr)
 	file, err := s.media.Open(item)
 	if err != nil {
 		return media.TranscriptCache{}, fmt.Errorf("open %s for transcription: %w", item.Name, err)
 	}
 	defer file.Close()
-	client := s.asrSnapshot()
-	if client == nil {
-		client = asr.New(cfg)
-	}
 	result, err := client.Transcribe(ctx, file, item.Name, item.MIME)
 	if err != nil {
 		return media.TranscriptCache{}, fmt.Errorf("transcribe %s: %w", item.Name, err)

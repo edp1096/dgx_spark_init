@@ -56,10 +56,25 @@ func (s *Server) health(w http.ResponseWriter, r *http.Request) {
 		}
 		imageHealth = imagegen.New(cfg.Image.Endpoint, cfg.Image.Model, timeout).Health(r.Context())
 	}
+	asrHealth := s.asrSnapshot().Health(r.Context())
+	if s.runtime != nil && cfg.Runtime.Mode == "managed" {
+		if cfg.Image.Enabled && s.runtime.OnDemandIdle(r.Context(), cfg.Runtime.ActiveBundle, "flux2") {
+			imageHealth["status"] = "standby"
+			delete(imageHealth, "error")
+		}
+		if cfg.ASR.Enabled && s.runtime.OnDemandIdle(r.Context(), cfg.Runtime.ActiveBundle, "nemotron-asr") {
+			asrHealth.ASR.Status = "standby"
+			asrHealth.ASR.Error = ""
+		}
+		if s.runtime.OnDemandIdle(r.Context(), cfg.Runtime.ActiveBundle, "extra-media") {
+			asrHealth.FFmpeg.Status = "standby"
+			asrHealth.FFmpeg.Error = ""
+		}
+	}
 	sharedHealth := supportHealth(r.Context(), cfg)
 	writeJSON(w, http.StatusOK, map[string]any{
 		"status": status, "endpoint": cfg.Model.Endpoint, "model": model, "error": errorText(err),
-		"asr":   s.asrSnapshot().Health(r.Context()),
+		"asr":   asrHealth,
 		"tts":   s.ttsSnapshot().Health(r.Context()),
 		"image": imageHealth,
 		"extra": sharedHealth,

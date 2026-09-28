@@ -16,13 +16,16 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get update && apt-get install -y --no-install-recommends \
-      ca-certificates cmake git ninja-build build-essential pkg-config \
+      ca-certificates cmake git ninja-build build-essential pkg-config python3 \
       libsentencepiece-dev libssl-dev
 
 WORKDIR /src
 RUN git clone --filter=blob:none https://github.com/NVIDIA/NeMo-Speech.cpp.git . \
     && git checkout --detach "${NEMO_SPEECH_REF}" \
     && git submodule update --init --depth 1 ggml llama.cpp third_party/cpp-httplib
+
+COPY patches/release_workspace.py /tmp/release_workspace.py
+RUN python3 /tmp/release_workspace.py && rm /tmp/release_workspace.py
 
 # Build only the CUDA ASR runtime and its HTTP server. TTS, NMT, gRPC,
 # microphone capture and developer tools are intentionally absent.
@@ -74,6 +77,7 @@ COPY --from=builder /src/build/cuda-server/bin/ ./
 COPY --from=builder /src/LICENSE /src/NOTICE /src/THIRD_PARTY_NOTICES.md ./licenses/
 
 ENV LD_LIBRARY_PATH=/opt/nemo-speech
+ENV SPARKTALK_RELEASE_WORKSPACE=1
 EXPOSE 8693
 COPY scripts/entrypoint.sh /opt/nemo-speech/entrypoint.sh
 ENTRYPOINT ["/bin/sh", "/opt/nemo-speech/entrypoint.sh"]

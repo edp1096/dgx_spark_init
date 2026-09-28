@@ -22,7 +22,7 @@
         "--context-length",
         "1048576",
         "--mem-fraction-static",
-        "0.85",
+        "0.86",
         "--chunked-prefill-size",
         "4096",
         "--max-total-tokens",

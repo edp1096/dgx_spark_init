@@ -25,7 +25,7 @@ func (c *Controller) checkLocalComponentStart(ctx context.Context, target Compon
 	}
 	current := 0.0
 	if running {
-		current = allocated(target) + containerAnonymousMemoryGiB(ctx, target.Container)
+		current = allocated(target) + containerHostResidentMemoryGiB(ctx, target.Container)
 	}
 	plan := componentStartMemoryPlan(target, current)
 	for _, component := range c.Catalog().Deployments(bundleID) {
@@ -35,7 +35,7 @@ func (c *Controller) checkLocalComponentStart(ctx context.Context, target Compon
 		if c.componentRunning(ctx, component) {
 			resident := allocated(component)
 			if component.ComposeAsset == "compose.flux2.yaml" {
-				resident += containerAnonymousMemoryGiB(ctx, component.Container)
+				resident += containerHostResidentMemoryGiB(ctx, component.Container)
 			}
 			plan.NeededGiB += healthyComponentRemainingMemory(component, resident)
 		}

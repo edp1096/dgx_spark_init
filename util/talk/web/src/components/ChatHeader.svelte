@@ -131,6 +131,7 @@
 
   function statusLabel(status) {
     if (status === 'ok') return '온라인';
+    if (status === 'standby') return '요청 시 실행';
     if (status === 'disabled') return '사용 안 함';
     if (status === 'checking') return '확인 중';
     return '오프라인';

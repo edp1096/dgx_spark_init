@@ -165,3 +165,17 @@ func TestOldProcessWithNoHistoryIsNotStarting(t *testing.T) {
 		t.Fatal(got)
 	}
 }
+
+func TestCapacityMismatchBypassesTransientHealthGrace(t *testing.T) {
+	now := time.Now()
+	h := healthHistory{}
+	h.record(now, 0, nil)
+	h.record(now.Add(time.Second), 0, &modelCapacityError{Model: "QAD", Context: 1048576, Capacity: 758656})
+	if got := h.health(now.Add(time.Second), containerObservation{state: "running", started: now}, time.Minute); got != "failed" {
+		t.Fatalf("capacity mismatch shown as %s", got)
+	}
+	h.record(now.Add(2*time.Second), 0, nil)
+	if got := h.health(now.Add(2*time.Second), containerObservation{state: "running", started: now}, time.Minute); got != "online" {
+		t.Fatalf("recovered capacity shown as %s", got)
+	}
+}

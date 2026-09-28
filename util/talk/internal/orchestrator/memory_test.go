@@ -108,7 +108,7 @@ func TestQADMemoryReservationTracksActualMTPProfile(t *testing.T) {
 
 func TestResidentMemoryDoesNotCreditReclaimableCheckpointCache(t *testing.T) {
 	stat := []byte("anon 1073741824\nfile 1099511627776\ninactive_file 549755813888\n")
-	if anonymousMemoryGiB(stat) != 1 {
+	if hostResidentMemoryGiB(stat) != 1 {
 		t.Fatal("file cache must not be counted as memory released by stopping a service")
 	}
 }
@@ -125,5 +125,74 @@ func TestASRStartupBudgetDoesNotReserveLongTranscriptionWorkspace(t *testing.T) 
 	}
 	if err := validateMemoryHeadroom(SystemMemory{AvailableGiB: 116, FreeGiB: 114}, plan, 1.5); err == nil {
 		t.Fatal("actual startup shortage must still fail")
+	}
+}
+
+func TestTiledFluxAdmissionAtReportedHeadroom(t *testing.T) {
+	memory := SystemMemory{AvailableGiB: 14.4, FreeGiB: 6.9}
+	if err := validateMemoryHeadroom(memory, memoryPlan{NeededGiB: 13, RequiresCUDAStart: true}, 1.5); err == nil {
+		t.Fatal("old budget should reproduce rejection")
+	}
+	if err := validateMemoryHeadroom(memory, memoryPlan{NeededGiB: 12, RequiresCUDAStart: true}, 1.5); err != nil {
+		t.Fatal(err)
+	}
+	if err := validateMemoryHeadroom(SystemMemory{AvailableGiB: 13, FreeGiB: 6}, memoryPlan{NeededGiB: 12, RequiresCUDAStart: true}, 1.5); err == nil {
+		t.Fatal("reserve must remain enforced")
+	}
+}
+
+func TestPhasedFluxAtWarmQwenHeadroom(t *testing.T) {
+	m := SystemMemory{AvailableGiB: 7, FreeGiB: 5.2}
+	if err := validateMemoryHeadroom(m, memoryPlan{NeededGiB: 5.25, RequiresCUDAStart: true}, 1.5); err != nil {
+		t.Fatal(err)
+	}
+	if err := validateMemoryHeadroom(m, memoryPlan{NeededGiB: 12, RequiresCUDAStart: true}, 1.5); err == nil {
+		t.Fatal("old budget must fail")
+	}
+	if err := validateMemoryHeadroom(SystemMemory{AvailableGiB: 6.5, FreeGiB: 5}, memoryPlan{NeededGiB: 5.25, RequiresCUDAStart: true}, 1.5); err == nil {
+		t.Fatal("low reserve must still fail")
+	}
+}
+
+func TestHostResidentIncludesSharedAndKernelWithoutFileCache(t *testing.T) {
+	stat := []byte("anon 1073741824\nshmem 536870912\nfile 1099511627776\nkernel 268435456\nslab_reclaimable 134217728\n")
+	if got := hostResidentMemoryGiB(stat); got != 1.625 {
+		t.Fatalf("host resident = %v", got)
+	}
+}
+
+func TestCurrentHuihuiQADBudgetIncludesHostMemory(t *testing.T) {
+	c := Component{ComposeAsset: "compose.flash-next.yaml", Model: QwenQADHuihuiLIL, MemoryGiB: 100, RuntimeOptions: map[string]string{"MTP_TOKENS": "3"}}
+	if got := c.runtimeMemoryEstimate().MemoryGiB; got != 108 {
+		t.Fatalf("budget=%v", got)
+	}
+	c.MemoryGiB = 112
+	if got := c.runtimeMemoryEstimate().MemoryGiB; got != 112 {
+		t.Fatalf("user budget lost: %v", got)
+	}
+}
+
+func TestObservedBudgetIncludesCoreHostAndRetainedAuxiliaries(t *testing.T) {
+	cat, _ := LoadCatalog()
+	b, _ := cat.Bundle("flash-next")
+	core, _ := cat.ResolveComponent(b.ID, "flash-next")
+	image, _ := cat.ResolveComponent(b.ID, "flux2")
+	speech, _ := cat.ResolveComponent(b.ID, "nemotron-asr")
+	states := []ComponentStatus{{Component: core, ResidentMemoryGiB: core.MemoryGiB + 8}}
+	if got := observedBundleBudget(cat, b, states); got != b.MemoryGiB+8 {
+		t.Fatalf("core host omitted: %v", got)
+	}
+	states = append(states, ComponentStatus{Component: image, ResidentMemoryGiB: 5}, ComponentStatus{Component: speech, ResidentMemoryGiB: 5})
+	if got := observedBundleBudget(cat, b, states); got < b.MemoryGiB+8+3.8 {
+		t.Fatalf("retained auxiliaries omitted: %v", got)
+	}
+}
+
+func TestResidentWeightsDoNotHideRequestWorkspace(t *testing.T) {
+	c := Component{MemoryGiB: 5.25, WorkspaceMemoryGiB: 2.5}
+	for _, tc := range []struct{ resident, want float64 }{{0, 5.25}, {2, 3.25}, {7, 2.5}} {
+		if got := workloadAdditionalMemory(c, tc.resident); got != tc.want {
+			t.Fatalf("resident %.2f: got %.2f want %.2f", tc.resident, got, tc.want)
+		}
 	}
 }

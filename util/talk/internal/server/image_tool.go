@@ -176,7 +176,12 @@ func paddingSchema() map[string]any {
 	return map[string]any{"type": "integer", "minimum": 0, "maximum": 1536, "multipleOf": 16}
 }
 
-func (s *Server) executeImageCapabilities(ctx context.Context, cfg config.ImageConfig) (registeredToolResult, error) {
+func (s *Server) executeImageCapabilities(ctx context.Context, cfg config.ImageConfig) (output registeredToolResult, resultErr error) {
+	release, err := s.acquireWorkload(ctx, "flux2")
+	if err != nil {
+		return registeredToolResult{}, err
+	}
+	defer finishWorkload(release, &resultErr)
 	client, err := imageClient(cfg)
 	if err != nil {
 		return registeredToolResult{}, err
@@ -189,7 +194,7 @@ func (s *Server) executeImageCapabilities(ctx context.Context, cfg config.ImageC
 	return registeredToolResult{Result: string(data)}, nil
 }
 
-func (s *Server) executeImageGenerateTool(ctx context.Context, sessionID string, cfg config.ImageConfig, call llm.ToolCall, emit eventEmitter) (registeredToolResult, error) {
+func (s *Server) executeImageGenerateTool(ctx context.Context, sessionID string, cfg config.ImageConfig, call llm.ToolCall, emit eventEmitter) (output registeredToolResult, resultErr error) {
 	var args imageGenerationArgs
 	if err := json.Unmarshal([]byte(call.Function.Arguments), &args); err != nil {
 		return registeredToolResult{}, errors.New("image_generate received invalid arguments")
@@ -277,6 +282,11 @@ func (s *Server) executeImageGenerateTool(ctx context.Context, sessionID string,
 		_ = emit("tool_output", map[string]any{"id": call.ID, "stream": "stdout", "delta": text + "\n"})
 	}
 
+	release, err := s.acquireWorkload(ctx, "flux2")
+	if err != nil {
+		return registeredToolResult{}, err
+	}
+	defer finishWorkload(release, &resultErr)
 	var generated []generatedImage
 	switch args.Operation {
 	case "video_keyframes":

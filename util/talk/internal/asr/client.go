@@ -49,8 +49,17 @@ type Status struct {
 }
 
 type Client struct {
-	cfg  config.ASRConfig
-	http *http.Client
+	cfg   config.ASRConfig
+	http  *http.Client
+	admit func(context.Context, int64, bool) error
+}
+
+// WithAdmission returns a request-local client. The callback receives the
+// extracted 16kHz mono PCM16 WAV size before anything is submitted to ASR.
+func (c *Client) WithAdmission(admit func(context.Context, int64, bool) error) *Client {
+	copy := *c
+	copy.admit = admit
+	return &copy
 }
 
 func New(cfg config.ASRConfig) *Client {
@@ -134,7 +143,7 @@ func (c *Client) transcribe(ctx context.Context, source io.Reader, filename, mim
 
 	var audio io.Reader = ffmpegResp.Body
 	var spool *os.File
-	if diarize {
+	if diarize || c.admit != nil {
 		spool, err = os.CreateTemp("", "sparktalk-diar-*.wav")
 		if err != nil {
 			return Result{}, err
@@ -153,6 +162,11 @@ func (c *Client) transcribe(ctx context.Context, source io.Reader, filename, mim
 			return Result{}, err
 		}
 		audio = spool
+		if c.admit != nil {
+			if err := c.admit(ctx, n, diarize); err != nil {
+				return Result{}, err
+			}
+		}
 	}
 	pipeReader, pipeWriter := io.Pipe()
 	multipartWriter := multipart.NewWriter(pipeWriter)

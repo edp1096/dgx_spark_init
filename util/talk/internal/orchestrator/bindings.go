@@ -204,6 +204,12 @@ func componentDefaults(component Component) Component {
 func (c Component) runtimeMemoryEstimate() Component {
 	if c.ComposeAsset == "compose.flash-next.yaml" && (c.Model == QwenQADOfficial || c.Model == QwenQADAbliterated || c.Model == QwenQADHuihuiLIL) {
 		floor := 100.0
+		// Current Huihui LIL TP1/MTP profile: ~99.1 GiB device allocation
+		// plus ~8 GiB non-reclaimable host allocations. The old 100 GiB
+		// floor covered device memory only. This is a startup budget, not a cap.
+		if c.Model == QwenQADHuihuiLIL {
+			floor = 108
+		}
 		if c.RuntimeOptions["MTP_TOKENS"] == "0" {
 			floor = 97
 		}

@@ -94,3 +94,17 @@ func TestHealthyButUndersizedQADRequiresRestart(t *testing.T) {
 		t.Fatal("adequate healthy KV must not restart")
 	}
 }
+
+func TestHealthProbeRejectsHTTPHealthyButUndersizedKV(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/server_info" {
+			fmt.Fprint(w, `{"context_length":1048576,"max_total_num_tokens":758656}`)
+		}
+	}))
+	defer server.Close()
+	c, _ := NewController()
+	_, err := c.probeHealth(context.Background(), Component{ComposeAsset: "compose.flash-next.yaml", HealthURL: server.URL + "/health"})
+	if err == nil || !strings.Contains(err.Error(), "758656") {
+		t.Fatalf("undersized online: %v", err)
+	}
+}

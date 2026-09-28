@@ -47,6 +47,9 @@ esac
 func TestModelStopLeavesSharedServicesRunning(t *testing.T) {
 	log := fakeSupportDocker(t)
 	cat, _ := LoadCatalog()
+	for i := range cat.Bundles {
+		cat.Bundles[i].WorkloadSwap = false
+	}
 	c, _ := NewControllerWithCatalog(cat)
 	if err := c.StopBundle("flash-next"); err != nil {
 		t.Fatal(err)
@@ -83,6 +86,9 @@ func TestSupportInventoryIncludesGlobalDocumentsAndSetBindings(t *testing.T) {
 	api := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(200) }))
 	defer api.Close()
 	cat, _ := LoadCatalog()
+	for i := range cat.Bundles {
+		cat.Bundles[i].WorkloadSwap = false
+	}
 	for i := range cat.Components {
 		if cat.Components[i].IsSupport() {
 			cat.Components[i].Controller = "external"

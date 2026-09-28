@@ -12,6 +12,44 @@ func normalizedMemoryReserve(reserveGiB float64) float64 {
 	return reserveGiB
 }
 
+// The catalog is a cold-start estimate. A running allocation must never be
+// displayed as smaller than it actually is. For alternating auxiliaries,
+// account for both the largest workload and all currently retained services.
+func observedBundleBudget(catalog Catalog, bundle Bundle, statuses []ComponentStatus) float64 {
+	budget := bundle.MemoryGiB
+	groups := map[string]float64{}
+	observedGroups := map[string]float64{}
+	residentAux := 0.0
+	for _, id := range bundle.Components {
+		component, ok := catalog.ResolveComponent(bundle.ID, id)
+		if !ok {
+			continue
+		}
+		s := ComponentStatus{Component: component}
+		for _, status := range statuses {
+			if status.ID == id {
+				s = status
+				break
+			}
+		}
+		if s.Host != "local" && s.Host != "" {
+			continue
+		}
+		group := workloadGroup(s.ID)
+		if bundle.WorkloadSwap && group != "" {
+			groups[group] += s.MemoryGiB
+			observedGroups[group] += max(s.MemoryGiB, s.ResidentMemoryGiB+s.WorkspaceMemoryGiB)
+			residentAux += s.ResidentMemoryGiB
+		} else {
+			budget += max(0, s.ResidentMemoryGiB-s.MemoryGiB)
+		}
+	}
+	if bundle.WorkloadSwap {
+		budget += max(residentAux, max(observedGroups["image"], observedGroups["speech"])) - max(groups["image"], groups["speech"])
+	}
+	return budget
+}
+
 func immediateFreeReserve(reserveGiB float64) float64 {
 	if reserveGiB < minimumCUDAImmediateFreeGiB {
 		return reserveGiB
@@ -40,7 +78,27 @@ func (c *Controller) bundleMemoryPlan(ctx context.Context, bundle Bundle) memory
 	needsStart := false
 	gpuByPID := gpuMemoryByPID(ctx)
 	plan := memoryPlan{}
+	if bundle.WorkloadSwap {
+		full, _ := c.Catalog().Bundle(bundle.ID)
+		// These services are not loaded at bundle startup. Their actual request
+		// budget is checked when invoked (ASR also depends on decoded length).
+		for _, id := range full.Components {
+			if workloadGroup(id) == "" {
+				continue
+			}
+			x, _ := c.Catalog().ResolveComponent(bundle.ID, id)
+			if c.componentRunning(ctx, x) {
+				for _, pid := range containerPIDs(ctx, x.Container) {
+					plan.FreedGiB += gpuByPID[pid]
+				}
+				plan.FreedGiB += containerHostResidentMemoryGiB(ctx, x.Container)
+			}
+		}
+	}
 	for _, component := range c.Catalog().Deployments(bundle.ID) {
+		if bundle.WorkloadSwap && workloadGroup(component.ID) != "" {
+			continue
+		}
 		if !c.local(component) || component.Controller == "external" || (component.IsSupport() && !bundle.StartSupport) {
 			continue
 		}
@@ -56,7 +114,7 @@ func (c *Controller) bundleMemoryPlan(ctx context.Context, bundle Bundle) memory
 				// runBundleStart stops deferred services before loading the LLM.
 				needsStart = true
 				plan.NeededGiB += component.startupMemoryGiB()
-				plan.FreedGiB += gpuMemory + containerAnonymousMemoryGiB(ctx, component.Container)
+				plan.FreedGiB += gpuMemory + containerHostResidentMemoryGiB(ctx, component.Container)
 				plan.RequiresCUDAStart = plan.RequiresCUDAStart || isCUDAComponent(component)
 				continue
 			}
@@ -70,13 +128,13 @@ func (c *Controller) bundleMemoryPlan(ctx context.Context, bundle Bundle) memory
 			if !healthy {
 				needsStart = true
 				// Restarting releases the current allocation before rebuilding it.
-				plan.NeededGiB += max(0, component.startupMemoryGiB()-gpuMemory-containerAnonymousMemoryGiB(ctx, component.Container))
+				plan.NeededGiB += max(0, component.startupMemoryGiB()-gpuMemory-containerHostResidentMemoryGiB(ctx, component.Container))
 				plan.RequiresCUDAStart = plan.RequiresCUDAStart || isCUDAComponent(component)
 				continue
 			}
 			resident := gpuMemory
 			if component.ComposeAsset == "compose.flux2.yaml" {
-				resident += containerAnonymousMemoryGiB(ctx, component.Container)
+				resident += containerHostResidentMemoryGiB(ctx, component.Container)
 			}
 			plan.NeededGiB += healthyComponentRemainingMemory(component, resident)
 			continue
@@ -106,7 +164,7 @@ func healthyComponentRemainingMemory(component Component, residentMemory float64
 	if residentMemory <= 0 {
 		return component.MemoryGiB
 	}
-	return max(0, component.MemoryGiB-residentMemory)
+	return workloadAdditionalMemory(component, residentMemory)
 }
 
 func validateMemoryHeadroom(memory SystemMemory, plan memoryPlan, reserveGiB float64) error {

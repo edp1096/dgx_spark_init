@@ -19,6 +19,9 @@ func TestIndividualGPUStartChecksBeforeChangingContainer(t *testing.T) {
 				t.Fatal(err)
 			}
 			catalog, _ := LoadCatalog()
+			for i := range catalog.Bundles {
+				catalog.Bundles[i].WorkloadSwap = false
+			}
 			for i := range catalog.Components {
 				if catalog.Components[i].ID == "flux2" {
 					catalog.Components[i].MemoryGiB = 1000000

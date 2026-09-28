@@ -31,13 +31,15 @@ type ComponentStatus struct {
 	HealthFailures  int        `json:"health_failures,omitempty"`
 	HealthError     string     `json:"health_error,omitempty"`
 	Component
-	Status       string  `json:"status"`
-	Health       string  `json:"health"`
-	GPUMemoryGiB float64 `json:"gpu_memory_gib"`
-	Progress     float64 `json:"progress,omitempty"`
-	Phase        string  `json:"phase,omitempty"`
-	ETA          string  `json:"eta,omitempty"`
-	Error        string  `json:"error,omitempty"`
+	Status            string  `json:"status"`
+	Health            string  `json:"health"`
+	GPUMemoryGiB      float64 `json:"gpu_memory_gib"`
+	HostMemoryGiB     float64 `json:"host_memory_gib"`
+	ResidentMemoryGiB float64 `json:"resident_memory_gib"`
+	Progress          float64 `json:"progress,omitempty"`
+	Phase             string  `json:"phase,omitempty"`
+	ETA               string  `json:"eta,omitempty"`
+	Error             string  `json:"error,omitempty"`
 }
 
 type OperationStep struct {
@@ -51,6 +53,7 @@ type OperationStep struct {
 }
 
 type Operation struct {
+	requestedAt time.Time
 	Action      string          `json:"action,omitempty"`
 	BundleID    string          `json:"bundle_id,omitempty"`
 	ComponentID string          `json:"component_id,omitempty"`
@@ -76,6 +79,9 @@ type Snapshot struct {
 }
 
 type Controller struct {
+	memoryProbe    func() SystemMemory
+	workloadOnce   sync.Once
+	workloadQueue  chan struct{}
 	statusMu       sync.Mutex
 	statusMonitors map[string]*statusMonitor
 	keyStoreMu     sync.Mutex
@@ -183,13 +189,19 @@ func (c *Controller) Snapshot(ctx context.Context, selectedBundle string) Snapsh
 		}
 	}
 	probes.Wait()
+	bundles := append([]Bundle(nil), catalog.Bundles...)
+	for i := range bundles {
+		if bundles[i].ID == selectedBundle {
+			bundles[i].MemoryGiB = observedBundleBudget(catalog, bundles[i], statuses)
+		}
+	}
 	dockerState := "online"
 	if err := commandOK(ctx, "docker", "info", "--format", "{{.ServerVersion}}"); err != nil {
 		dockerState = "offline"
 	}
 	return Snapshot{
 		SelectedBundle: selectedBundle,
-		Bundles:        append([]Bundle(nil), c.Catalog().Bundles...),
+		Bundles:        bundles,
 		Components:     statuses,
 		Memory:         readSystemMemory(),
 		Hosts:          hostStatuses,
@@ -341,6 +353,12 @@ func (c *Controller) ComponentActionWithReserve(componentID, action string, rese
 	if component.Controller == "external" {
 		return errors.New("연결 전용 서비스는 외부에서 시작·중지하세요")
 	}
+	if len(bundleIDs) > 0 && (action == "start" || action == "restart") {
+		b, _ := c.Catalog().Bundle(bundleIDs[0])
+		if b.WorkloadSwap && workloadGroup(componentID) != "" {
+			return errors.New("이 서비스는 작업 요청 시 자동으로 시작하고 완료 후 종료합니다")
+		}
+	}
 	if action != "start" && action != "stop" && action != "restart" && !(action == "prepare" && component.IsSupport() && component.Controller == "compose") {
 		return errors.New("action must be start, stop, or restart")
 	}
@@ -384,6 +402,9 @@ func (c *Controller) ComponentActionWithReserve(componentID, action string, rese
 func (c *Controller) begin(op Operation) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
+	if op.Action == "workload" && c.op.Action != "workload" && c.op.StartedAt.After(op.requestedAt) {
+		return errors.New("대기 중 실행 구성이 변경되었습니다. 다시 요청하세요")
+	}
 	if c.op.State == "running" {
 		return errors.New("another runtime operation is already running")
 	}
@@ -509,6 +530,12 @@ func (c *Controller) runBundleStart(bundle Bundle, reserveGiB float64) {
 			}
 		}
 	}
+	if bundle.WorkloadSwap {
+		if err := c.stopWorkloads(ctx, bundle); err != nil {
+			c.finishOperation("failed", err.Error())
+			return
+		}
+	}
 	if err := c.waitForBundleHeadroom(bundle, reserveGiB, "세트 기동 전 메모리 재확인", 15*time.Second); err != nil {
 		c.failCurrentStep(err.Error())
 		c.finishOperation("failed", err.Error())
@@ -518,6 +545,9 @@ func (c *Controller) runBundleStart(bundle Bundle, reserveGiB float64) {
 	ordered := c.Catalog().startupOrder(bundle)
 	var failures []string
 	for index, id := range ordered {
+		if bundle.WorkloadSwap && workloadGroup(id) != "" {
+			continue
+		}
 		component, _ := c.Catalog().ResolveComponent(bundle.ID, id)
 		if component.Role == "llm" && c.componentNeedsStart(ctx, component) {
 			if err := c.waitForBundleHeadroom(bundle, reserveGiB, "언어 모델 기동 직전 메모리 확인", 15*time.Second); err != nil {
@@ -583,11 +613,15 @@ func (c *Controller) waitForBundleHeadroom(bundle Bundle, reserveGiB float64, ph
 }
 
 func (c *Controller) startAndWait(component Component) error {
+	return c.startAndWaitContext(context.Background(), component)
+}
+
+func (c *Controller) startAndWaitContext(parent context.Context, component Component) error {
 	commandTimeout := 3 * time.Minute
 	if component.isCluster() && component.StartupTimeoutSeconds > 0 {
 		commandTimeout = time.Duration(component.StartupTimeoutSeconds) * time.Second
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), commandTimeout)
+	ctx, cancel := context.WithTimeout(parent, commandTimeout+max(5*time.Minute, time.Duration(component.StartupTimeoutSeconds)*time.Second))
 	defer cancel()
 	if c.isHealthy(ctx, component) {
 		err := c.checkSGLangCapacity(ctx, component)
@@ -609,14 +643,17 @@ func (c *Controller) startAndWait(component Component) error {
 	startedAt := time.Now()
 	deadline := startedAt.Add(timeout)
 	for time.Now().Before(deadline) {
-		if c.isHealthy(context.Background(), component) {
-			if err := c.checkSGLangCapacity(context.Background(), component); err != nil {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+		if c.isHealthy(ctx, component) {
+			if err := c.checkSGLangCapacity(ctx, component); err != nil {
 				return err
 			}
 			c.updateOperation(component.ID, progressInfo{Key: "ready:" + component.ID, Phase: component.Name + " API 응답 확인", Detail: "서비스가 요청을 받을 준비를 마쳤습니다.", Progress: 1})
 			return nil
 		}
-		logs := c.componentLogs(context.Background(), component)
+		logs := c.componentLogs(ctx, component)
 		if failure := startupFailure(logs); failure != "" {
 			return errors.New(failure)
 		}
@@ -628,10 +665,14 @@ func (c *Controller) startAndWait(component Component) error {
 			info = progressInfo{Key: "init", Phase: component.Name + " 준비 중", Detail: "컨테이너 로그를 기다리고 있습니다.", Progress: .05}
 		}
 		c.updateOperation(component.ID, info)
-		if component.Controller != "external" && !c.componentRunning(context.Background(), component) {
+		if component.Controller != "external" && !c.componentRunning(ctx, component) {
 			return fmt.Errorf("container stopped during startup: %s", lastLogLine(logs))
 		}
-		time.Sleep(2 * time.Second)
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-time.After(2 * time.Second):
+		}
 	}
 	return fmt.Errorf("startup timed out after %s", timeout)
 }
@@ -658,6 +699,9 @@ func (c *Controller) componentStatus(ctx context.Context, component Component, g
 		for _, pid := range containerPIDs(ctx, component.Container) {
 			status.GPUMemoryGiB += gpuByPID[pid]
 		}
+		status.HostMemoryGiB = containerHostResidentMemoryGiB(ctx, component.Container)
+		status.ResidentMemoryGiB = status.GPUMemoryGiB + status.HostMemoryGiB
+		status.WorkspaceMemoryGiB = liveWorkspaceMemory(ctx, component)
 	}
 	return status
 }

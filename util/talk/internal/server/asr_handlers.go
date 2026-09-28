@@ -41,7 +41,14 @@ func (s *Server) transcribeVoice(w http.ResponseWriter, r *http.Request) {
 	// attachment transcription share the same queue but use separate languages.
 	s.asrMu.Lock()
 	defer s.asrMu.Unlock()
-	result, err := s.asrSnapshot().TranscribeVoice(r.Context(), file, header.Filename, mimeType)
+	client, release, err := s.prepareASRWorkload(r.Context(), s.asrSnapshot())
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusServiceUnavailable)
+		return
+	}
+	defer release()
+	result, err := client.TranscribeVoice(r.Context(), file, header.Filename, mimeType)
+	finishWorkload(release, &err)
 	if err != nil {
 		if errors.Is(err, asr.ErrNoAudio) {
 			http.Error(w, "recording has no audio", http.StatusUnprocessableEntity)

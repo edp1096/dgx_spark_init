@@ -3,6 +3,7 @@ import asyncio
 import base64
 import binascii
 import io
+import os
 import time
 import uuid
 from typing import Literal
@@ -13,6 +14,17 @@ from PIL import Image, ImageDraw, ImageOps, ImageChops, ImageFilter, Unidentifie
 from pydantic import ConfigDict, Field
 
 import base_api as base
+
+# All generation, reference and LoRA/LanPaint graphs originate here.
+if os.getenv("SPARKTALK_FLUX_PHASED") == "1":
+    original_workflow = base.workflow
+    def phased_workflow(*args, **kwargs):
+        graph = original_workflow(*args, **kwargs)
+        clip_name = graph.pop("2")["inputs"]["clip_name"]
+        text = graph["4"]["inputs"]["text"]
+        graph["4"] = {"class_type": "SparkTalkTextEncode", "inputs": {"text": text, "clip_name": clip_name}}
+        return graph
+    base.workflow = phased_workflow
 
 app = base.app
 app.router.routes = [route for route in app.router.routes if getattr(route, "path", "") not in ("/v1/images/generations", "/health")]
@@ -274,3 +286,11 @@ async def generate(request: PaintRequest):
             if path is not None:
                 path.unlink(missing_ok=True)
     return {"created": int(time.time()), "seed": seed, "data": [{"b64_json": encoded}]}
+
+
+@app.get("/v1/runtime/memory")
+async def runtime_memory():
+    async with httpx.AsyncClient(timeout=3) as client:
+        response = await client.get(f"{base.COMFY_URL}/sparktalk/memory")
+        response.raise_for_status()
+        return response.json()

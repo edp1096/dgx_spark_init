@@ -1,16 +1,20 @@
 services:
   runtime:
-    image: sparktalk-flux2-paint:trial6
+    image: sparktalk-flux2-paint:resident1
     build:
       context: ${SPARKTALK_BUILD_DIR:?Embedded build assets required}
     pull_policy: never
     container_name: flux2-klein-nvfp4-api
     restart: unless-stopped
+    # Equal limits disable container swap; this is a ceiling, not a reservation.
+    mem_limit: "112g"
+    memswap_limit: "112g"
     init: true
     network_mode: host
     ipc: host
     gpus: all
     environment:
+      SPARKTALK_FLUX_PHASED: "1"
       API_PORT: "${SPARKTALK_PORT:-8691}"
       COMFY_PORT: "8188"
       COMFY_KITCHEN_BACKEND: cuda

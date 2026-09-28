@@ -13,4 +13,10 @@ COPY api.py prepare_lora.py rembg_worker.py start.sh /opt/nvfp4-api/
 RUN chmod +x /opt/nvfp4-api/start.sh
 # On GB10 unified memory, pinned staging reduces MemAvailable by about 6 GiB.
 # Keep the model/cache policy and numerical path unchanged.
-RUN sed -i 's/--disable-auto-launch/--disable-auto-launch --disable-pinned-memory/' /opt/nvfp4-api/base_start.sh
+RUN sed -i 's/--disable-auto-launch/--disable-auto-launch --disable-pinned-memory --cache-classic/' /opt/nvfp4-api/base_start.sh
+COPY patch_vae_tiling.py /tmp/patch_vae_tiling.py
+RUN python /tmp/patch_vae_tiling.py && rm /tmp/patch_vae_tiling.py
+
+COPY phased/ /opt/ComfyUI/custom_nodes/sparktalk_phased/
+
+ENV SPARKTALK_FLUX_PHASED=1

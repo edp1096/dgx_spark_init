@@ -39,6 +39,18 @@ func (s *Server) mediaRuntime(w http.ResponseWriter, r *http.Request) {
 	cfg, _ := s.snapshot()
 	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Minute)
 	defer cancel()
+	release, err := s.acquireWorkload(ctx, "extra-media")
+	if err != nil {
+		http.Error(w, err.Error(), 503)
+		return
+	}
+	completed := false
+	defer func() {
+		if !completed {
+			cancel()
+		}
+		_ = release()
+	}()
 	req, err := http.NewRequestWithContext(ctx, r.Method, strings.TrimRight(cfg.SupportEndpoint("media"), "/")+path, nil)
 	if err != nil {
 		http.Error(w, err.Error(), 502)
@@ -54,8 +66,16 @@ func (s *Server) mediaRuntime(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "현재 미디어 서비스가 yt-dlp 업데이트 API를 제공하지 않습니다. 미디어 서비스를 갱신하세요.", 502)
 		return
 	}
+	data, readErr := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
+	resp.Body.Close()
+	finishWorkload(release, &readErr)
+	if readErr != nil {
+		http.Error(w, readErr.Error(), 502)
+		return
+	}
+	completed = true
 	w.Header().Set("Content-Type", resp.Header.Get("Content-Type"))
 	w.Header().Set("Cache-Control", "no-store")
 	w.WriteHeader(resp.StatusCode)
-	io.Copy(w, io.LimitReader(resp.Body, 1<<20))
+	w.Write(data)
 }

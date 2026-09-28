@@ -44,12 +44,14 @@ type Component struct {
 	Model                 string  `json:"model,omitempty" yaml:"model,omitempty"`
 	StartupMemoryGiB      float64 `json:"startup_memory_gib,omitempty" yaml:"startup_memory_gib,omitempty"`
 	MemoryGiB             float64 `json:"memory_gib" yaml:"memory_gib"`
+	WorkspaceMemoryGiB    float64 `json:"workspace_memory_gib,omitempty" yaml:"workspace_memory_gib,omitempty"`
 	StartupTimeoutSeconds int     `json:"startup_timeout_seconds" yaml:"startup_timeout_seconds"`
 	ComposeAsset          string  `json:"compose_asset" yaml:"compose_asset"`
 	ProgressKind          string  `json:"progress_kind" yaml:"progress_kind"`
 }
 
 type Bundle struct {
+	WorkloadSwap  bool                  `json:"workload_swap,omitempty" yaml:"workload_swap,omitempty"`
 	StartSupport  bool                  `json:"start_support,omitempty" yaml:"start_support,omitempty"`
 	Bindings      map[string]Deployment `json:"bindings,omitempty" yaml:"bindings,omitempty"`
 	ID            string                `json:"id" yaml:"id"`
@@ -207,6 +209,25 @@ func ValidateCatalog(catalog Catalog) (Catalog, error) {
 		if !roles["llm"] || bundle.ModelID == "" || bundle.ModelType == "" {
 			return Catalog{}, fmt.Errorf("bundle %q: model profile is required", bundle.ID)
 		}
+		if bundle.WorkloadSwap {
+			if bundle.ID != "flash-next" {
+				return Catalog{}, fmt.Errorf("workload swap requires QAD TP1")
+			}
+			groups := map[string]float64{}
+			for _, id := range bundle.Components {
+				if group := workloadGroup(id); group != "" {
+					x := bundle.Bindings[id].Apply(catalog.byComponent[id])
+					if x.Controller != "compose" || (x.Host != "" && x.Host != "local") {
+						return Catalog{}, fmt.Errorf("workload swap requires local managed %s", id)
+					}
+					groups[group] += x.MemoryGiB
+					if !x.IsSupport() {
+						bundle.MemoryGiB -= x.MemoryGiB
+					}
+				}
+			}
+			bundle.MemoryGiB += max(groups["image"], groups["speech"])
+		}
 		catalog.Bundles[i] = bundle
 		catalog.byBundle[bundle.ID] = bundle
 	}
@@ -248,7 +269,7 @@ func validateDeployment(catalog Catalog, component Component) error {
 	if err := validateRecipeOptions(component); err != nil {
 		return err
 	}
-	if component.StartupMemoryGiB < 0 || component.MemoryGiB < 0 || component.WorkerMemoryGiB < 0 || component.StartupTimeoutSeconds < 0 {
+	if component.WorkspaceMemoryGiB < 0 || component.StartupMemoryGiB < 0 || component.MemoryGiB < 0 || component.WorkerMemoryGiB < 0 || component.StartupTimeoutSeconds < 0 {
 		return fmt.Errorf("component %q: invalid memory/timeout", component.ID)
 	}
 

@@ -14,7 +14,7 @@
   }
   $: selectedComponents = (runtime?.components || []).filter((component) => selectedBundle?.components?.includes(component.id));
   $: operationRunning = runtime?.operation?.state === 'running';
-  $: selectedBundleOnline = selectedComponents.length > 0 && selectedComponents.every((component) => component.health === 'online');
+  $: selectedBundleOnline = selectedComponents.length > 0 && selectedComponents.every((component) => component.health === 'online' || isOnDemand(component));
   $: targetIsSelected = targetBundle === runtime?.selected_bundle;
   $: primaryLabel = operationRunning ? '처리 중' : !targetIsSelected ? '전환' : selectedBundleOnline ? '실행 중' : '시작';
   $: memoryPercent = runtime?.memory?.total_gib ? Math.min(100, Math.max(0, runtime.memory.used_gib / runtime.memory.total_gib * 100)) : 0;
@@ -25,11 +25,16 @@
     return Number.isFinite(Number(value)) ? `${Number(value).toFixed(1)} GiB` : '—';
   }
 
+  function isOnDemand(component) {
+    return selectedBundle?.workload_swap && ['flux2', 'nemotron-asr', 'extra-media'].includes(component.id);
+  }
+
   function stateLabel(component) {
     if (component.health === 'online') return '온라인';
     if (component.health === 'starting') return '기동 중';
     if (component.health === 'unresponsive') return component.phase || '연결 이상';
     if (component.health === 'failed') return '실패';
+    if (isOnDemand(component) && ['exited', 'missing'].includes(component.status)) return '요청 시 실행';
     if (component.status === 'exited') return '중지됨';
     if (component.status === 'missing') return '컨테이너 없음';
     return '오프라인';
@@ -52,7 +57,7 @@
 
   {#if runtime?.memory}
     <div class="runtime-memory">
-      <div><span>통합메모리</span><b>{formatGiB(runtime.memory.used_gib)} / {formatGiB(runtime.memory.total_gib)}</b></div>
+      <div><span>시스템 전체 통합메모리</span><b>{formatGiB(runtime.memory.used_gib)} / {formatGiB(runtime.memory.total_gib)}</b></div>
       <div class="runtime-memory-track"><i style={`width:${memoryPercent}%`}></i></div>
       <small>시스템 가용 {formatGiB(runtime.memory.available_gib)} · 즉시 여유 {formatGiB(runtime.memory.free_gib)}</small>
     </div>
@@ -83,15 +88,16 @@
     {#each selectedComponents as component}
       <div class="runtime-component">
         <span class:online={component.health === 'online'} class:starting={component.health === 'starting'} class:failed={component.health === 'failed' || component.health === 'unresponsive'} title={component.health_error ? `최근 상태 확인: ${component.health_error} · ${component.health_latency_ms ?? 0}ms · 연속 실패 ${component.health_failures ?? 0}회` : `상태 확인 ${component.health_latency_ms ?? 0}ms`}><i></i><span><b>{component.name}</b><small>{component.phase || component.model || component.role} · {component.host || 'local'}</small></span></span>
-        <div><b>{stateLabel(component)}</b><small>{component.gpu_memory_gib ? formatGiB(component.gpu_memory_gib) : ''}</small></div>
+        <div><b>{stateLabel(component)}</b><small title={`GPU ${formatGiB(component.gpu_memory_gib)} + CPU·공유·커널 ${formatGiB(component.host_memory_gib)} · 회수 가능한 파일 캐시 제외`}>{component.resident_memory_gib ? `상주 ${formatGiB(component.resident_memory_gib)}` : component.id === 'nemotron-asr' ? '입력별 예산 산정' : `예산 ${formatGiB(component.memory_gib)}`}</small></div>
       </div>
     {/each}
   </div>
 
+  {#if selectedBundle?.workload_swap}<small class="runtime-workload-note">Qwen 유지 · 부가 모델 재사용 · 부족할 때 유휴 모델 회수</small>{/if}
   <div class="runtime-switch">
     <Select bind:value={targetBundle} aria-label="전환할 AI 세트">
       {#each runtime?.bundles || [] as bundle}
-        <option value={bundle.id}>{bundle.name} · 약 {formatGiB(bundle.memory_gib)}</option>
+        <option value={bundle.id}>{bundle.name} · 예상 예산 {formatGiB(bundle.memory_gib)}</option>
       {/each}
     </Select>
     <button type="button" class="primary" disabled={busy || operationRunning || !targetBundle || (targetIsSelected && selectedBundleOnline)} onclick={() => onAction('start', targetBundle)}>{primaryLabel}</button>

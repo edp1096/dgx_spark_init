@@ -1,8 +1,11 @@
 services:
   runtime:
-    image: sparktalk-nemotron-asr:0.6b-q8-diar1
+    image: sparktalk-nemotron-asr:0.6b-q8-diar2-workspace
     container_name: sparktalk-nemotron-asr
     restart: unless-stopped
+    # Equal limits disable container swap; this is a ceiling, not a reservation.
+    mem_limit: "112g"
+    memswap_limit: "112g"
     init: true
     ports: ["${SPARKTALK_BIND_ADDR:-127.0.0.1}:${SPARKTALK_PORT:-8693}:8693"]
     gpus: all

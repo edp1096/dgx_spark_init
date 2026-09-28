@@ -8,9 +8,10 @@ import (
 	"strings"
 )
 
-// Account for anonymous host allocations already deducted from MemAvailable.
-// Do not credit reclaimable file cache (including mmap checkpoint pages).
-func containerAnonymousMemoryGiB(ctx context.Context, container string) float64 {
+// Account for resident host allocations outside CUDA device memory. Include
+// anonymous pages, shared memory and unreclaimable kernel pages, but never
+// ordinary checkpoint file cache. shmem is a subset of file, not anon.
+func containerHostResidentMemoryGiB(ctx context.Context, container string) float64 {
 	for _, pid := range containerPIDs(ctx, container) {
 		data, err := os.ReadFile("/proc/" + strconv.Itoa(pid) + "/cgroup")
 		if err != nil {
@@ -28,21 +29,24 @@ func containerAnonymousMemoryGiB(ctx context.Context, container string) float64 
 			if err != nil {
 				continue
 			}
-			return anonymousMemoryGiB(stat)
+			return hostResidentMemoryGiB(stat)
 		}
 	}
 	return 0
 }
 
-func anonymousMemoryGiB(stat []byte) float64 {
+func hostResidentMemoryGiB(stat []byte) float64 {
+	values := map[string]uint64{}
 	for _, line := range strings.Split(string(stat), "\n") {
 		fields := strings.Fields(line)
-		if len(fields) == 2 && fields[0] == "anon" {
+		if len(fields) == 2 {
 			n, err := strconv.ParseUint(fields[1], 10, 64)
 			if err == nil {
-				return bytesToGiB(n)
+				values[fields[0]] = n
 			}
 		}
 	}
-	return 0
+	kernel := values["kernel"]
+	reclaimable := min(kernel, values["slab_reclaimable"])
+	return bytesToGiB(values["anon"] + values["shmem"] + kernel - reclaimable)
 }

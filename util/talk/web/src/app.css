@@ -283,6 +283,7 @@ header { display: flex; align-items: center; gap: 13px; padding: 12px 20px; bord
 .runtime-component small { overflow: hidden; color: #717c8e; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
 .runtime-component > div { align-items: flex-end; }
 .runtime-component > div b { color: #8f9aaa; font-size: 9px; font-weight: 550; }
+.runtime-workload-note { display: block; padding: 0 3px; color: #8f99aa; font-size: 10px; line-height: 1.6; word-break: keep-all; overflow-wrap: anywhere; }
 .runtime-switch { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 6px; }
 .runtime-switch select, .runtime-switch button.select-trigger { min-width: 0; height: 31px; padding: 0 7px; border: 1px solid #343b49; border-radius: 7px; color: #c7ceda; background: #11151c; font-size: 10px; }
 .runtime-switch button { height: 31px; padding: 0 10px; border: 1px solid #3b4352; border-radius: 7px; color: #aab4c4; background: #202530; font-size: 10px; }

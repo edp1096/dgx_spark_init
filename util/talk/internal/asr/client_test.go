@@ -3,6 +3,7 @@ package asr
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -69,5 +70,31 @@ func TestTranscribeRecognizesMissingAudio(t *testing.T) {
 	_, err := client.Transcribe(context.Background(), strings.NewReader("video"), "silent.mp4", "video/mp4")
 	if err != ErrNoAudio {
 		t.Fatalf("got %v, want ErrNoAudio", err)
+	}
+}
+
+func TestAdmissionSeesDecodedBytesAndRejectsBeforeASR(t *testing.T) {
+	calls := 0
+	backend := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/v1/audio/extract" {
+			io.Copy(io.Discard, r.Body)
+			io.WriteString(w, strings.Repeat("x", 64000))
+			return
+		}
+		calls++
+		io.Copy(io.Discard, r.Body)
+		io.WriteString(w, `{"text":"unexpected"}`)
+	}))
+	defer backend.Close()
+	c := New(config.ASRConfig{Enabled: true, Endpoint: backend.URL, FFmpegEndpoint: backend.URL})
+	c = c.WithAdmission(func(ctx context.Context, n int64, diar bool) error {
+		if n != 64000 || diar {
+			t.Errorf("incorrect decoded admission: %d %v", n, diar)
+		}
+		return errors.New("insufficient headroom")
+	})
+	_, err := c.TranscribeVoice(context.Background(), strings.NewReader("compressed"), "short.webm", "audio/webm")
+	if err == nil || !strings.Contains(err.Error(), "insufficient headroom") || calls != 0 {
+		t.Fatalf("admission bypass: %v calls=%d", err, calls)
 	}
 }

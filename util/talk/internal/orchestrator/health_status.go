@@ -2,6 +2,7 @@ package orchestrator
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -26,6 +27,7 @@ type healthHistory struct {
 	latency  time.Duration
 	failures int
 	detail   string
+	capacity *modelCapacityError
 }
 
 type statusMonitor struct {
@@ -41,6 +43,10 @@ func (h *healthHistory) reset(identity string) {
 func (h *healthHistory) record(now time.Time, latency time.Duration, err error) {
 	h.checked = now
 	h.latency = latency
+	h.capacity = nil
+	if err != nil {
+		errors.As(err, &h.capacity)
+	}
 	if err == nil {
 		h.lastOK = now
 		h.failures = 0
@@ -56,6 +62,9 @@ func (h healthHistory) health(now time.Time, instance containerObservation, star
 	}
 	if instance.state != "running" && instance.state != "external" {
 		return "offline"
+	}
+	if h.capacity != nil {
+		return "failed"
 	}
 	if !h.checked.IsZero() && h.failures == 0 {
 		return "online"
@@ -131,7 +140,7 @@ func (c *Controller) probeHealth(ctx context.Context, component Component) (time
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return time.Since(begin), fmt.Errorf("health HTTP %d", resp.StatusCode)
 	}
-	return time.Since(begin), nil
+	return time.Since(begin), c.checkSGLangCapacity(ctx, component)
 }
 func (c *Controller) observedStatus(ctx context.Context, component Component) ComponentStatus {
 	result := ComponentStatus{Component: component, Status: "unknown", Health: "unresponsive"}
@@ -208,6 +217,10 @@ func (c *Controller) observedStatus(ctx context.Context, component Component) Co
 	result.HealthLatencyMS = h.latency.Milliseconds()
 	result.HealthFailures = h.failures
 	result.HealthError = h.detail
+	if h.capacity != nil {
+		result.Phase = fmt.Sprintf("KV %d / %d 토큰", h.capacity.Capacity, h.capacity.Context)
+		result.Error = h.detail
+	}
 	if result.Health == "unresponsive" {
 		result.Phase = "연결 이상"
 		if strings.Contains(h.detail, "timed out") {

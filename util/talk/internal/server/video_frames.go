@@ -12,7 +12,12 @@ import (
 	"sparktalk/internal/db"
 )
 
-func (s *Server) videoFrameSheet(ctx context.Context, item db.Attachment, endpoint string) (string, string, error) {
+func (s *Server) videoFrameSheet(ctx context.Context, item db.Attachment, endpoint string) (output string, duration string, resultErr error) {
+	release, err := s.acquireWorkload(ctx, "extra-media")
+	if err != nil {
+		return "", "", err
+	}
+	defer finishWorkload(release, &resultErr)
 	file, err := s.media.Open(item)
 	if err != nil {
 		return "", "", err

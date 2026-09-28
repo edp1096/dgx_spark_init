@@ -172,6 +172,51 @@ func (c *Config) Normalize() {
 		c.removeGLMMagpie()
 		c.Runtime.BuiltinRevision = 19
 	}
+	if c.Runtime.BuiltinRevision < 20 {
+		if c.Runtime.Catalog != nil {
+			for i := range c.Runtime.Catalog.Bundles {
+				b := &c.Runtime.Catalog.Bundles[i]
+				if b.ID == "flash-next" {
+					b.WorkloadSwap = true
+				}
+			}
+		}
+		c.Runtime.BuiltinRevision = 20
+	}
+	if c.Runtime.BuiltinRevision < 21 {
+		if c.Runtime.Catalog != nil {
+			for i := range c.Runtime.Catalog.Components {
+				x := &c.Runtime.Catalog.Components[i]
+				if x.ID == "flux2" && x.ComposeAsset == "compose.flux2.yaml" && x.MemoryGiB == 13 {
+					x.MemoryGiB = 12
+				}
+			}
+		}
+		c.Runtime.BuiltinRevision = 21
+	}
+	if c.Runtime.BuiltinRevision < 22 {
+		if c.Runtime.Catalog != nil {
+			for i := range c.Runtime.Catalog.Components {
+				x := &c.Runtime.Catalog.Components[i]
+				if x.ID == "flux2" && x.ComposeAsset == "compose.flux2.yaml" && (x.MemoryGiB == 12 || x.MemoryGiB == 13) {
+					x.MemoryGiB = 5.25
+				}
+			}
+		}
+		c.Runtime.BuiltinRevision = 22
+	}
+
+	if c.Runtime.BuiltinRevision < 23 {
+		if c.Runtime.Catalog != nil {
+			for i := range c.Runtime.Catalog.Components {
+				x := &c.Runtime.Catalog.Components[i]
+				if x.ID == "flux2" && x.ComposeAsset == "compose.flux2.yaml" && x.WorkspaceMemoryGiB == 0 {
+					x.WorkspaceMemoryGiB = 4.5
+				}
+			}
+		}
+		c.Runtime.BuiltinRevision = 23
+	}
 	c.normalizeRuntimeDisplayNames()
 	if catalog, err := orchestrator.ValidateCatalog(*c.Runtime.Catalog); err == nil {
 		c.Runtime.Catalog = &catalog

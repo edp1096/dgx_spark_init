@@ -242,6 +242,7 @@ html[data-theme="light"] .runtime-steps li b { color: #637086; }
 html[data-theme="light"] .runtime-steps li.current b { color: #344054; }
 html[data-theme="light"] .runtime-steps li:not(:last-child)::after { background: #d7dde7; }
 html[data-theme="light"] .runtime-steps li > i { border-color: #cbd4e1; background: #fff; }
+html[data-theme="light"] .runtime-workload-note { color: #637086; }
 html[data-theme="light"] .runtime-switch select { border-color: #cfd6e1; color: #344054; background: #fff; }
 html[data-theme="light"] .runtime-switch button { border-color: #cbd3df; color: #4d5a6e; background: #eef1f5; }
 html[data-theme="light"] .drawer-ssh-grants p { border-color: #dce2ea; }

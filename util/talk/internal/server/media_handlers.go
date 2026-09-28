@@ -39,7 +39,7 @@ func (s *Server) uploadSource(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, item)
 }
 
-func (s *Server) importMediaSource(ctx context.Context, rawURL string) (db.Attachment, error) {
+func (s *Server) importMediaSource(ctx context.Context, rawURL string) (output db.Attachment, resultErr error) {
 	parsed, err := url.Parse(strings.TrimSpace(rawURL))
 	if err != nil || (parsed.Scheme != "http" && parsed.Scheme != "https") || parsed.Host == "" {
 		return db.Attachment{}, fmt.Errorf("media URL must use http or https")
@@ -49,6 +49,11 @@ func (s *Server) importMediaSource(ctx context.Context, rawURL string) (db.Attac
 	if endpoint == "" {
 		return db.Attachment{}, fmt.Errorf("SparkTalk Extra Media endpoint is not configured")
 	}
+	release, err := s.acquireWorkload(ctx, "extra-media")
+	if err != nil {
+		return db.Attachment{}, err
+	}
+	defer finishWorkload(release, &resultErr)
 	payload, _ := json.Marshal(map[string]any{
 		"url":             parsed.String(),
 		"max_download_mb": media.MaxRemoteVideoBytes >> 20,
