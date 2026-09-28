@@ -1,0 +1,66 @@
+[
+  {
+    "source": "compose_yaml/nemotron_asr/Dockerfile",
+    "target": "nemotron-asr/Dockerfile"
+  },
+  {
+    "source": "compose_yaml/nemotron_asr/patches/release_workspace.py",
+    "target": "nemotron-asr/patches/release_workspace.py"
+  },
+  {
+    "source": "compose_yaml/nemotron_asr/scripts/entrypoint.sh",
+    "target": "nemotron-asr/scripts/entrypoint.sh"
+  },
+  {
+    "source": "compose_yaml/ornith35_vllm/Dockerfile",
+    "target": "ornith35/Dockerfile"
+  },
+  {
+    "source": "compose_yaml/ornith35_vllm/launch.py",
+    "target": "ornith35/launch.py"
+  },
+  {
+    "source": "compose_yaml/ornith35_vllm/patch_runtime.py",
+    "target": "ornith35/patch_runtime.py"
+  },
+  {
+    "source": "compose_yaml/ornith35_vllm/draft_vocab/install_shortlist.py",
+    "target": "ornith35/draft_vocab/install_shortlist.py"
+  },
+  {
+    "source": "compose_yaml/ornith35_vllm/draft_vocab/draft_shortlist.py",
+    "target": "ornith35/draft_vocab/draft_shortlist.py"
+  },
+  {
+    "source": "compose_yaml/ornith35_vllm/draft_vocab/ornith-ko64k.json",
+    "target": "ornith35/draft_vocab/ornith-ko64k.json"
+  },
+  {
+    "source": "compose_yaml/gemma26_sglang/Dockerfile",
+    "target": "gemma26/Dockerfile"
+  },
+  {
+    "source": "compose_yaml/gemma26_sglang/launch.py",
+    "target": "gemma26/launch.py"
+  },
+  {
+    "source": "compose_yaml/gemma26_sglang/patch_rope.py",
+    "target": "gemma26/patch_rope.py"
+  },
+  {
+    "source": "compose_yaml/gemma26_sglang/patch_tool_index.py",
+    "target": "gemma26/patch_tool_index.py"
+  },
+  {
+    "source": "compose_yaml/gemma26_sglang/chat_template.jinja",
+    "target": "gemma26/chat_template.jinja"
+  },
+  {
+    "source": "compose_yaml/gemma26_sglang/base/chat_template.jinja",
+    "target": "gemma26/base/chat_template.jinja"
+  },
+  {
+    "source": "compose_yaml/gemma26_sglang/base/patch_tool_index.py",
+    "target": "gemma26/base/patch_tool_index.py"
+  }
+]

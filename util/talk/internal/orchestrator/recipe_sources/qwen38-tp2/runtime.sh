@@ -7,6 +7,7 @@ export QWEN_TP2_API_PORT="$API_PORT" QWEN_TP2_DIST_PORT="$MASTER_PORT"
 export QWEN_TP2_HEAD_CONTAINER="$HEAD_CONTAINER" QWEN_TP2_WORKER_CONTAINER="$WORKER_CONTAINER"
 export QWEN_TP2_MODEL="$SERVED_MODEL_NAME"
 case ${1:-status} in
+ setup|model|prepare|image) exec bash prepare.sh "$1";;
  start) bash models.sh; exec python3 manage_tp2.py start --context "$MAX_MODEL_LEN";;
  stop|status) exec python3 manage_tp2.py "$1";;
  validate) bash models.sh;;

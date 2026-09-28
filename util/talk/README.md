@@ -36,92 +36,30 @@ GNUWin32의 GNU Make를 사용할 수 있습니다.
 Svelte UI가 Go 바이너리에 포함되므로 배포할 때 `dist/`의 운영체제별
 바이너리 하나만 복사하면 됩니다.
 
-## DGX Spark 통합 운영
+## DGX Spark 최초 실행
 
-기본 `managed` 모드에서는 브라우저가 SparkTalk 한 서버에만 연결한다. Go
-백엔드가 검증된 Docker Compose 조리법을 바이너리에 내장하고, 채팅 모델·이미지·
-ASR·TTS를 편집 가능한 AI 세트로 기동한다. 지원 서비스 4종은 별도로 제어한다. 서비스별 실행 호스트와 API
-주소를 지정할 수 있고, 원격 호스트는 SSH로 제어한다. 정상 실행 중인 컨테이너는
-재사용하며 중지·실패한 컨테이너는 저장한 Compose 설정으로 재생성한다.
-GLM·DeepSeek 클러스터도 앱 내장 실행 패키지를 사용한다. 외부 `manage.sh`나 개발 저장소 경로를 참조하지 않는다.
-
-| 세트 | 주 채팅 모델 | 문맥 | 공통 구성 |
-|---|---|---:|---|
-| Flash-Next 세트 (기본) | Qwen3.8 Flash-Next QAD NVFP4 | 1M | FLUX.2·Nemotron ASR·Magpie TTS·Extra |
-| Gemma 세트 | Gemma 4 31B NVFP4 + DFlash | 64K | FLUX.2·Nemotron ASR·Magpie TTS·Extra |
-| GLM 5.3 Flash EXL3 + 워커 Extra | GLM 5.3 Flash EXL3 + DFlash2, Spark 2대 | 512K | 워커의 Media·Collector·SSH |
-
-우상단의 **연결됨**을 누르면 현재 세트, 전체 통합메모리, 구성요소별 상태와
-GPU 메모리, 기동 단계·진행률·예상 시간을 확인할 수 있다. 같은 곳에서 세트를
-시작·전환·중지한다. 전환할 때 다른 LLM을 먼저 내리고, 대형 LLM의 콜드 스타트
-동안 FLUX.2를 잠시 내려 여유를 확보한 뒤 복구한다. 설정한 최소 확보 메모리를
-지키기 어렵다고 예상되면 기동 전에 중단한다.
-
-기동 단계는 런타임 로그에 맞춰 구분한다. Flash-Next는 체크포인트·SSD PLE·MTP·
-KV 캐시·CUDA Graph, Gemma는 본체·DFlash 계열 draft·FP8 KV 캐시·
-CUDA Graph·보정 워밍업 순으로 표시한다. Flash-Next 전용 SGLang 이미지는 Docker
-로그에서도 본체·MTP의 실제 샤드 수와 ETA가 갱신되도록 보강했다. 완료한 단계도
-최근 이력에 남으므로 긴 모델 기동 중 현재 위치와 다음 단계로 넘어간 시점을 함께
-확인할 수 있다.
-
-모델 가중치와 Docker 이미지 자체는 Go 바이너리에 넣지 않는다. 최초 사용 전에
-저장소의 각 런타임 README에 따라 아래 로컬 이미지를 빌드하고 모델을 받아 둔다.
-그 이후의 일상적인 기동·중지·전환에는 Compose 명령이 필요 없다.
-Gemma·Qwen Flash-Next는 이미지가 없으면 앱에 내장된 빌드 파일·패치로 자동 빌드한다. compose_yaml 체크아웃은 필요 없다. 모델 가중치는 별도로 준비해야 한다.
-Flash-Next TP1은 `local-inference-lab/Qwen3.8-Flash-Next-NVFP4`의 고정 revision을 Hub 캐시에 준비한다. [TP1 준비 절차](../../compose_yaml/qwen38_fn_sglang/README.md)를 따른다. TP2는 기존 Huihui 체크포인트를 유지한다. Talk TP1 내장 구성은 FP8 KV·B12X GDN·체크포인트 PLE·YaRN 4를 사용하며 문맥은 1,048,576 토큰, 동시 요청은 1개다. FLUX·ASR·TTS는 LLM 준비 후 시작한다. 기존 내장 64K 세트는 설정 revision 13에서 1M으로 이행하고 revision 14에서 FLUX를 포함한다. 단독 Compose 기본값은 64K를 유지하며, 별도 1M 실행법과 검증 결과는 같은 문서에 기록한다.
-지원 서비스 4종은 이미지가 없으면 실행 호스트에서 내장 자산으로 빌드한다.
-ASR은 원격 이미지가 없으면 앱 실행 머신의 이미지를 SSH로 전달한다. TTS는 이미지가 없으면 실행 호스트에서
-앱에 내장된 Dockerfile과 패치로 빌드한다. `compose_yaml` 폴더는 필요 없다.
-
-```text
-dgx-sglang-qwen38-qad:sm121-v2
-dgx-sglang-gemma4-31b-dflash:2ef0fe4-toolindex1
-dgx-flux2-klein-nvfp4:4b
-sparktalk-nemotron-asr:0.6b-q8
-sparktalk-magpie-tts:v2607-longform2
-sparktalk-extra-media:0.1.0
-sparktalk-extra-ssh:0.1.0
-sparktalk-extra-collector:0.1.0
-sparktalk-extra-documents:0.4.0
-```
-
-GLM·DeepSeek는 **설정 → 시스템 → 모델 준비**에서 준비한다.
-`모델만 준비`는 가중치 다운로드·패치·워커 복사를, `전체 준비`는 이미지 준비까지
-포함한다. 실행 중인 해당 모델을 중지한 뒤 준비하며, 완료 후 세트를 기동한다.
-
-Hugging Face 토큰은 같은 화면에서 등록·교체·삭제한다. 앱 데이터 폴더의
-`credentials/huggingface.token`에 0600 권한으로 보관하고, 조회 API에는 등록 여부만
-반환한다. 세트 YAML/JSON·일반 설정·설정 내보내기에는 토큰을 넣지 않는다.
-기본 저장 방식은 파일 권한 보호이며 OS 키링 암호화 저장은 아니다.
-
-내장 패키지는 `internal/orchestrator/assets/recipes`에 포함되며 앱 데이터 폴더의
-`runtime/recipes`에 풀린다. 개발 저장소 없이 같은 실행 파일로 모델을 준비하고
-클러스터를 제어한다. Docker·SSH·다운로드 네트워크와 모델 저장 공간은 필요하다.
-그 밖의 서비스는 설정에 지정된 Docker 이미지를 사용한다.
-
-SparkTalk만 실행하면 된다.
+DGX Spark에는 `dist/sparktalk-linux-arm64` 한 파일을 복사한다. 쓰기 가능한 폴더에서 실행하면 설정·DB·웹 화면이 자동 생성된다. Go·Node.js·개발 저장소는 필요 없다.
 
 ```bash
-cd /home/edp1096/workspace/dgx_spark_init/util/talk
-make dist
-cd dist
+chmod +x sparktalk-linux-arm64
 ./sparktalk-linux-arm64
 ```
 
-설정의 **시스템**에서 기본 세트, 앱 시작 시 자동기동, 최소 확보 메모리,
-데이터·모델 캐시 경로를 관리한다. **AI 세트 편집**에서 세트를 복제하고 서비스별
-실행 호스트·API 주소·상태 확인 URL·공개 포트를 수정한다. 특별히 외부 OpenAI 호환
-API를 붙여야 할 때는 설정의 실행 방식을 `external`로 바꾼다. 모델 유형에서
-**GLM-5.3 Flash**를 선택하면 512K 문맥과 Max 리즈닝이 적용된다.
-ASR·TTS·이미지 생성·Extra 등 부가 기능 설정은 모델 전환 시 유지되며 개별 관리한다.
+브라우저에서 `http://서버주소:8585`에 접속한다. 호스트에는 NVIDIA 드라이버·Container Toolkit, Docker Engine·Compose와 Docker 실행 권한이 필요하다. 두 Spark 구성은 양쪽에 Docker·Python3·rsync와 SSH 인증·호스트 신뢰 설정이 필요하다. 앱은 호스트 운영체제 패키지를 임의 설치하지 않는다.
 
-```bash
-curl -fsS http://127.0.0.1:8585/api/health
-curl -fsS http://127.0.0.1:8585/api/runtime
-```
+**설정 → 시스템 → 모델 준비**에서 모델을 선택하고 **전체 준비**를 실행한다. 이미지 빌드·가중치 다운로드·필요한 변환을 진행하고, TP2는 워커에도 준비한다. 접근 제한 모델은 Hugging Face 이용 조건에 동의하고 같은 화면에서 토큰을 등록한다. 토큰은 별도 0600 파일에 보관하며 명령행·설정 내보내기에 넣지 않는다.
 
-직접 실행한 SparkTalk은 `Ctrl+C`로 종료한다. 아래 사용자 systemd 서비스를
-설치했다면 `systemctl --user stop sparktalk`을 사용한다.
+지원 세트는 Qwen QAD TP1, Qwen TP2, Gemma 31B/26B, Ornith 35B, GLM 5.3, DeepSeek V4 Flash/V4.1이다. FLUX·ASR·TTS도 같은 화면에서 준비한다. Media·Collector·SSH·Documents는 지원 서비스 화면에서 준비·시작한다. 정상적으로 준비된 이미지와 가중치는 재사용한다.
+
+- Huihui QAD는 공개 모델을 다운로드한다. 이 서버에서 원본을 다시 변환할 필요는 없다.
+- FLUX는 본체·VAE·텍스트 인코더·LoRA·배경 제거 모델을 준비한다. 최초 인코더 변환은 언어 모델 기동 전 충분한 메모리에서 수행한다.
+- ASR은 전사·화자 구분 GGUF를 받는다. TTS는 음성 모델·코덱·토크나이저를 준비하고 필요한 GGUF 변환을 수행한다.
+- DeepSeek V4.1은 모델 다운로드 뒤 rank별 expert packing도 수행하므로 GPU·SSD 공간과 시간이 추가로 필요하다.
+- DeepSeek V4 Flash ablit은 빈 캐시에서 원본을 먼저 받은 후 선택 가중치를 적용한다.
+
+Qwen QAD의 기본 문맥은 1M이다. 실제 KV 용량을 함께 검사하며, 부가 모델은 여유가 있으면 재사용하고 부족하면 유휴 모델을 회수한다. 초기 최소 여유는 1.5GiB이다. Qwen·FLUX·ASR은 컨테이너 스왑을 금지한다. 표시 예산은 실제 점유량과 구분한다.
+
+최초 준비는 네트워크·레지스트리 접근·디스크 여유에 따라 오래 걸릴 수 있다. 준비 완료 후 세트를 시작한다. 브라우저 제어 확장 ZIP은 앱에서 내려받을 수 있으며 브라우저 설치·사이트 권한 허용은 별도다.
 
 ## DGX Spark 자동기동
 

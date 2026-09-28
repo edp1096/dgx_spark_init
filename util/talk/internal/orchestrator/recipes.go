@@ -281,11 +281,14 @@ func (c *Controller) runEmbeddedRecipe(ctx context.Context, component Component,
 }
 
 func (c *Controller) PrepareModel(ctx context.Context, component Component, variant, action, token string, progress ...func(string)) error {
+	if action != "model" && action != "setup" {
+		return fmt.Errorf("invalid preparation action")
+	}
 	if len(progress) > 0 && progress[0] != nil {
 		ctx = context.WithValue(ctx, recipeProgressKey{}, progress[0])
 		progress[0]("실행 상태 확인 중")
 	}
-	if recipeID(component) == "" && component.ComposeAsset != "compose.flash-next.yaml" {
+	if recipeID(component) == "" && embeddedBuildAsset(component.ComposeAsset) == "" {
 		return fmt.Errorf("this service has no embedded model preparation recipe")
 	}
 	options := map[string]string{}
@@ -294,6 +297,9 @@ func (c *Controller) PrepareModel(ctx context.Context, component Component, vari
 	}
 	options["MODEL_VARIANT"] = variant
 	component.RuntimeOptions = options
+	if err := validateRecipeOptions(component); err != nil {
+		return err
+	}
 	if err := c.begin(Operation{Action: "prepare", ComponentID: component.ID, State: "running", Phase: "모델 준비", StartedAt: time.Now()}); err != nil {
 		return err
 	}
@@ -309,8 +315,8 @@ func (c *Controller) PrepareModel(ctx context.Context, component Component, vari
 		return fmt.Errorf("%s 중지 후 모델을 준비하세요", component.Name)
 	}
 	var err error
-	if component.ComposeAsset == "compose.flash-next.yaml" {
-		err = c.prepareQwenQAD(ctx, component, action, token)
+	if recipeID(component) == "" {
+		err = c.prepareSingleService(ctx, component, action, token)
 	} else {
 		err = c.runEmbeddedRecipe(ctx, component, action, token)
 	}

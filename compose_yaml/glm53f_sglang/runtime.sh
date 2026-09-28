@@ -202,7 +202,7 @@ case "${1:-}" in
     setup
     echo "Setup complete. Start the cluster with: ./manage.sh start"
     ;;
-  model) "$script_dir/models.sh" prepare ;;
+  model) prepare_image; "$script_dir/models.sh" prepare ;;
   image) require_ssh; sync_compose; prepare_image ;;
   validate) "${head_compose[@]}" config -q ;;
   start) start ;;

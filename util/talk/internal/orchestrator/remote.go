@@ -251,6 +251,23 @@ func (c *Controller) prepareOrStartComponent(ctx context.Context, component Comp
 		return err
 	}
 	env := runtimePathEnvironment(component, dataDir, modelCache)
+	if component.ServiceRole() == "ssh" {
+		ids, idErr := executeHost(ctx, host, nil, "sh", "-c", "printf '%s:%s' \"$(id -u)\" \"$(id -g)\"")
+		if idErr != nil {
+			return idErr
+		}
+		parts := strings.Split(strings.TrimSpace(string(ids)), ":")
+		if len(parts) != 2 {
+			return fmt.Errorf("cannot determine execution host UID/GID")
+		}
+		for _, v := range parts {
+			if _, e := strconv.ParseUint(v, 10, 32); e != nil {
+				return fmt.Errorf("invalid host UID/GID")
+			}
+		}
+		env = append(env, "PUID="+parts[0], "PGID="+parts[1])
+	}
+
 	if component.BindAddress != "" {
 		env = append(env, "SPARKTALK_BIND_ADDR="+component.BindAddress)
 	}
@@ -309,6 +326,10 @@ func (c *Controller) prepareOrStartComponent(ctx context.Context, component Comp
 				return fmt.Errorf("build embedded runtime: %w", err)
 			}
 		}
+	}
+	token, _ := ctx.Value(preparationTokenKey{}).(string)
+	if err := c.ensureModelAssets(ctx, component, token); err != nil {
+		return err
 	}
 	if prepareOnly {
 		return nil

@@ -536,6 +536,19 @@ func (c *Controller) runBundleStart(bundle Bundle, reserveGiB float64) {
 			return
 		}
 	}
+	// FLUX's one-time encoder conversion must precede the large core allocation.
+	if !c.componentRunning(ctx, llm) {
+		for _, id := range bundle.Components {
+			auxiliary, _ := c.Catalog().ResolveComponent(bundle.ID, id)
+			if auxiliary.ComposeAsset == "compose.flux2.yaml" {
+				c.updateOperation(id, progressInfo{Key: "prepare:" + id, Phase: "FLUX 최초 자산 확인·준비"})
+				if err := c.prepareOrStartComponent(ctx, auxiliary, true); err != nil {
+					c.finishOperation("failed", err.Error())
+					return
+				}
+			}
+		}
+	}
 	if err := c.waitForBundleHeadroom(bundle, reserveGiB, "세트 기동 전 메모리 재확인", 15*time.Second); err != nil {
 		c.failCurrentStep(err.Error())
 		c.finishOperation("failed", err.Error())
@@ -617,9 +630,9 @@ func (c *Controller) startAndWait(component Component) error {
 }
 
 func (c *Controller) startAndWaitContext(parent context.Context, component Component) error {
-	commandTimeout := 3 * time.Minute
+	commandTimeout := 24 * time.Hour
 	if component.isCluster() && component.StartupTimeoutSeconds > 0 {
-		commandTimeout = time.Duration(component.StartupTimeoutSeconds) * time.Second
+		commandTimeout = max(commandTimeout, time.Duration(component.StartupTimeoutSeconds)*time.Second)
 	}
 	ctx, cancel := context.WithTimeout(parent, commandTimeout+max(5*time.Minute, time.Duration(component.StartupTimeoutSeconds)*time.Second))
 	defer cancel()

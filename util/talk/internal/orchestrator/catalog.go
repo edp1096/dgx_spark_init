@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-//go:embed assets/*
+//go:embed all:assets
 var assets embed.FS
 
 type Host struct {

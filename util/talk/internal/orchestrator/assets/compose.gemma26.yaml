@@ -1,5 +1,7 @@
 services:
   runtime:
+    build:
+      context: ${SPARKTALK_BUILD_DIR:?Embedded build assets required}
     image: dgx-sglang-gemma26:2ef0fe4-toolindex1
     pull_policy: never
     container_name: sglang-gemma26

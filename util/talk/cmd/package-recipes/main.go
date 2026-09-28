@@ -19,9 +19,10 @@ import (
 )
 
 type recipe struct {
-	ID     string   `json:"id"`
-	Source string   `json:"source"`
-	Files  []string `json:"files"`
+	ID        string            `json:"id"`
+	Source    string            `json:"source"`
+	Files     []string          `json:"files"`
+	Overrides map[string]string `json:"overrides,omitempty"`
 }
 
 func main() {
@@ -56,12 +57,25 @@ func render(root string, r recipe) ([]byte, error) {
 		if !validMember(name) || (i > 0 && name == names[i-1]) {
 			return nil, fmt.Errorf("invalid or duplicate recipe member: %q", name)
 		}
-		source := filepath.Join(root, r.Source, filepath.FromSlash(name))
+		sourceRoot, sourceName := filepath.Join(root, r.Source), name
+		if override, ok := r.Overrides[name]; ok {
+			for _, part := range strings.Split(filepath.ToSlash(override), "/") {
+				if strings.HasPrefix(part, ".") && part != ".." {
+					return nil, fmt.Errorf("hidden override path forbidden")
+				}
+			}
+			if filepath.IsAbs(override) {
+				return nil, fmt.Errorf("absolute override forbidden")
+			}
+			sourceRoot = filepath.Join(root, filepath.Dir(override))
+			sourceName = filepath.Base(override)
+		}
+		source := filepath.Join(sourceRoot, filepath.FromSlash(sourceName))
 		// Do not follow symlinks inside the source tree, including parent directories.
 		relative := ""
-		for _, part := range strings.Split(name, "/") {
+		for _, part := range strings.Split(sourceName, "/") {
 			relative = filepath.Join(relative, part)
-			info, err := os.Lstat(filepath.Join(root, r.Source, relative))
+			info, err := os.Lstat(filepath.Join(sourceRoot, relative))
 			if err != nil {
 				return nil, err
 			}

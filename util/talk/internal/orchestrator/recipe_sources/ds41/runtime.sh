@@ -34,7 +34,7 @@ case ${1:-status} in
   docker ps -a --filter "name=$HEAD_CONTAINER"
   remote "docker ps -a --filter name=$(quote "$WORKER_CONTAINER")";;
  setup|model|prepare|image)
-  echo 'Automatic DS41 image/model preparation is not available; prepare the pinned checkpoint, packed experts and b12x8 image first.' >&2; exit 2;;
+  exec bash prepare.sh "$1";;
  validate)
   echo 'DS41 requires the prepared b12x8 image, pinned HF checkpoint and rank-specific packed experts on both hosts.'
   bash models.sh 0

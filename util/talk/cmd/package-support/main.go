@@ -47,6 +47,28 @@ func run(check bool) error {
 		return err
 	}
 	expected := map[string][]byte{"support-services.json": manifest}
+	var runtimeSources []struct {
+		Source string `json:"source"`
+		Target string `json:"target"`
+	}
+	runtimeRaw, err := os.ReadFile(filepath.Join(cwd, "internal/orchestrator/runtime_sources.json"))
+	if err != nil {
+		return err
+	}
+	if err = json.Unmarshal(runtimeRaw, &runtimeSources); err != nil {
+		return err
+	}
+	for _, item := range runtimeSources {
+		if filepath.IsAbs(item.Source) || filepath.IsAbs(item.Target) || strings.Contains(item.Source, "..") || strings.Contains(item.Target, "..") {
+			return fmt.Errorf("invalid runtime source path")
+		}
+		b, e := os.ReadFile(filepath.Join(cwd, "../..", item.Source))
+		if e != nil {
+			return e
+		}
+		expected[assetPath(item.Target)] = b
+	}
+
 	copyFile := func(from, to string) error {
 		b, e := os.ReadFile(filepath.Join(source, from))
 		if e == nil {

@@ -1,5 +1,8 @@
 services:
   runtime:
+    build:
+      context: ${SPARKTALK_BUILD_DIR:?Embedded build assets required}
+      target: runtime
     image: sparktalk-nemotron-asr:0.6b-q8-diar2-workspace
     container_name: sparktalk-nemotron-asr
     restart: unless-stopped

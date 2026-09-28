@@ -15,6 +15,7 @@ services:
     gpus: all
     environment:
       SPARKTALK_FLUX_PHASED: "1"
+      HF_HUB_OFFLINE: "1"
       API_PORT: "${SPARKTALK_PORT:-8691}"
       COMFY_PORT: "8188"
       COMFY_KITCHEN_BACKEND: cuda

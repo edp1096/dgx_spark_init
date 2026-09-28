@@ -2,11 +2,8 @@ package orchestrator
 
 import (
 	"context"
-	"crypto/sha256"
 	"encoding/json"
-	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -96,12 +93,13 @@ func TestQADVariantBindingRoundTripKeepsTP2(t *testing.T) {
 
 func TestQADPreparationUsesPinnedVariantWithoutStartingGPU(t *testing.T) {
 	dir := t.TempDir()
-	script := "#!/bin/sh\ncase \"$*\" in *config) cat;; run*) cat > /dev/null; printf '%s\\n' \"$@\" > \"$QAD_TEST_ARGS\";; esac\n"
+	script := "#!/bin/sh\ncase \"$*\" in *config) cat;; run*) cat > \"$QAD_TEST_PAYLOAD\"; printf '%s\\n' \"$@\" > \"$QAD_TEST_ARGS\";; esac\n"
 	if err := os.WriteFile(filepath.Join(dir, "docker"), []byte(script), 0700); err != nil {
 		t.Fatal(err)
 	}
 	argsPath := filepath.Join(dir, "args")
 	t.Setenv("QAD_TEST_ARGS", argsPath)
+	t.Setenv("QAD_TEST_PAYLOAD", filepath.Join(dir, "payload"))
 	t.Setenv("PATH", dir+":"+os.Getenv("PATH"))
 	c, _ := NewController()
 	c.ConfigurePaths(dir, filepath.Join(dir, "cache"))
@@ -114,7 +112,21 @@ func TestQADPreparationUsesPinnedVariantWithoutStartingGPU(t *testing.T) {
 		t.Fatal(err)
 	}
 	args := string(raw)
-	for _, want := range []string{QwenQADAbliterated, "93a1b466ce773185f21a49d1649b7933ce0fc910", filepath.Join(dir, "cache") + ":/hf"} {
+	payload, err := os.ReadFile(filepath.Join(dir, "payload"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var request struct {
+		Items []modelAsset `json:"items"`
+		Token string       `json:"token"`
+	}
+	if err = json.Unmarshal(payload, &request); err != nil {
+		t.Fatal(err)
+	}
+	if len(request.Items) != 1 || request.Items[0].Repo != QwenQADAbliterated || request.Items[0].Revision != "93a1b466ce773185f21a49d1649b7933ce0fc910" || request.Token != "test-secret-token" {
+		t.Fatalf("invalid preparation request")
+	}
+	for _, want := range []string{filepath.Join(dir, "cache") + ":/hf"} {
 		if !strings.Contains(args, want) {
 			t.Fatalf("missing %s", want)
 		}
@@ -167,46 +179,6 @@ func TestQADNoMTPKeepsFullContextAndDisablesDraftShortlist(t *testing.T) {
 			t.Fatal("non-speculative GDN must use native implementation")
 		}
 
-	}
-}
-
-func TestQADLocalPreparationRejectsChangedArtifacts(t *testing.T) {
-	for _, mode := range []string{"valid", "weights", "config", "qualification"} {
-		t.Run(mode, func(t *testing.T) {
-			dir := t.TempDir()
-			root := filepath.Join(dir, QwenQADHuihuiLIL)
-			if err := os.MkdirAll(root, 0700); err != nil {
-				t.Fatal(err)
-			}
-			hash := func(b []byte) string { return fmt.Sprintf("%x", sha256.Sum256(b)) }
-			weights := []byte("known checkpoint fixture")
-			config := []byte("{}")
-			index := []byte(`{"weight_map":{"w":"model.safetensors"}}`)
-			manifest, _ := json.Marshal(map[string]any{
-				"status": "candidate_verified", "output_shard_hashes": map[string]string{"model.safetensors": hash(weights)},
-				"metadata_sha256": map[string]string{"config.json": hash(config), "model.safetensors.index.json": hash(index)},
-			})
-			qualification, _ := json.Marshal(map[string]string{"status": "passed", "manifest_sha256": hash(manifest)})
-			files := map[string][]byte{"model.safetensors": weights, "config.json": config, "model.safetensors.index.json": index, "transfer-manifest.json": manifest, "runtime-qualification.json": qualification}
-			switch mode {
-			case "weights":
-				files["model.safetensors"] = []byte("changed")
-			case "config":
-				files["config.json"] = []byte(`{"changed":true}`)
-			case "qualification":
-				files["runtime-qualification.json"] = []byte(`{"status":"passed","manifest_sha256":"stale"}`)
-			}
-			for name, data := range files {
-				if err := os.WriteFile(filepath.Join(root, name), data, 0600); err != nil {
-					t.Fatal(err)
-				}
-			}
-			script := strings.Replace(qwenQADLocalVerificationScript(), `Path("/hf")`, "Path("+fmt.Sprintf("%q", dir)+")", 1)
-			output, err := exec.Command("python3", "-c", script, QwenQADHuihuiLIL).CombinedOutput()
-			if (err == nil) != (mode == "valid") {
-				t.Fatalf("unexpected verification result: %v %s", err, output)
-			}
-		})
 	}
 }
 

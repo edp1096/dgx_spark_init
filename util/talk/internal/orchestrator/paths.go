@@ -1,8 +1,11 @@
 package orchestrator
 
 import (
+	"context"
 	"fmt"
 	"path/filepath"
+	"strconv"
+	"strings"
 )
 
 // Preparation and launch must resolve paths from the same execution host.
@@ -35,4 +38,23 @@ func runtimePathEnvironment(component Component, data, cache string) []string {
 		env = append(env, "SPARKTALK_MAGPIE_MODEL_DIR="+filepath.Join(filepath.Dir(cache), "nemo-speech", "magpie-v2607"))
 	}
 	return env
+}
+
+// Use the execution host identity for bind-mounted preparation outputs.
+func executionUser(ctx context.Context, host Host) (string, error) {
+	raw, err := executeHost(ctx, host, nil, "sh", "-c", "printf '%s:%s' \"$(id -u)\" \"$(id -g)\"")
+	if err != nil {
+		return "", err
+	}
+	id := strings.TrimSpace(string(raw))
+	parts := strings.Split(id, ":")
+	if len(parts) != 2 {
+		return "", fmt.Errorf("cannot determine execution host UID/GID")
+	}
+	for _, part := range parts {
+		if _, err := strconv.ParseUint(part, 10, 32); err != nil {
+			return "", fmt.Errorf("invalid host UID/GID")
+		}
+	}
+	return id, nil
 }

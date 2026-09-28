@@ -1,6 +1,7 @@
 APP := sparktalk
 GO ?= go
 NPM ?= npm
+PYTHON ?= python3
 
 ifeq ($(OS),Windows_NT)
 MKDIR_DIST := if not exist dist mkdir dist
@@ -56,6 +57,7 @@ check-platforms:
 
 test: support-assets-check recipe-assets-check
 	$(GO) test ./...
+	$(PYTHON) -B -m unittest discover -s tests/first_install -v
 	cd web && $(NPM) test
 
 .PHONY: recipe-assets recipe-assets-check

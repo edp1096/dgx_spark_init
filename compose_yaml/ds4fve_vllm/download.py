@@ -6,7 +6,7 @@ import requests
 import shutil
 from tensor_patch import apply_bundle
 from pathlib import Path
-from huggingface_hub import HfApi, hf_hub_download
+from huggingface_hub import HfApi, hf_hub_download, snapshot_download
 
 home = Path(os.environ['HF_HOME'])
 token_file = Path('/run/secrets/hf_token')
@@ -20,6 +20,8 @@ root = home/'hub'/('models--'+repo.replace('/', '--'))
 original = home/'hub'/('models--'+os.environ['DSPARK_MODEL_OFFICIAL'].replace('/', '--'))/'blobs'
 snapshot = root/'snapshots'/info.sha
 if variant == 'abliterated':
+    snapshot_download(os.environ['DSPARK_MODEL_OFFICIAL'], revision=os.environ['DSPARK_REVISION'], token=token or False, max_workers=1)
+
     # Pinned recipe: validate tensor names and every reconstructed shard against HF SHA-256.
     original_info = HfApi(token=token).model_info(os.environ['DSPARK_MODEL_OFFICIAL'], revision=os.environ['DSPARK_REVISION'], files_metadata=True)
     originals = {e.rfilename: e for e in original_info.siblings}
@@ -27,7 +29,7 @@ if variant == 'abliterated':
     bundle.mkdir(parents=True, exist_ok=True)
     def fetch_range(name, start, end):
         url = f'https://huggingface.co/{repo}/resolve/{info.sha}/{name}?range={start}-{end}'
-        with requests.get(url, headers={'Authorization': 'Bearer '+token, 'Range': f'bytes={start}-{end}'}, stream=True, timeout=120) as response:
+        with requests.get(url, headers={**({'Authorization': 'Bearer '+token} if token else {}), 'Range': f'bytes={start}-{end}'}, stream=True, timeout=120) as response:
             response.raise_for_status()
             if response.status_code != 206 or not response.headers.get('Content-Range', '').startswith(f'bytes {start}-{end}/'):
                 raise ValueError('Server ignored range; refusing full-shard download')

@@ -15,7 +15,7 @@ func QwenQADCheckpoint(variant string) (repo, revision string, err error) {
 	case "", "official":
 		return QwenQADOfficial, "7c4f1bc1a2d6847e0cbc01ac6b823f00251de8dd", nil
 	case "huihui_lil":
-		return QwenQADHuihuiLIL, "local", nil
+		return QwenQADHuihuiLIL, "f29f46c27369be39bf78de12408024a4299ea0b1", nil
 	case "abliterated":
 		return QwenQADAbliterated, "93a1b466ce773185f21a49d1649b7933ce0fc910", nil
 	default:

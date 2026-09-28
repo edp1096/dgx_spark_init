@@ -104,6 +104,16 @@ func (s *Server) modelPreparation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	component, ok := s.runtime.Catalog().Component(req.Component)
+	cfg, _ := s.snapshot()
+	bundle := cfg.Runtime.ActiveBundle
+	if bundle == "" {
+		bundle = cfg.Runtime.Bundle
+	}
+	if resolved, exists := s.runtime.Catalog().ResolveComponent(bundle, req.Component); exists {
+		component = resolved
+		ok = true
+	}
+
 	if !ok {
 		http.Error(w, "unknown service", 404)
 		return

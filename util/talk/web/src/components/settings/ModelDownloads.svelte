@@ -6,16 +6,18 @@
  let token = '', configured = false, saving = false, message = '', state = '';
  let logs = [], elapsed = '', startedAt = '';
  let component = '', variant = 'abliterated', timer;
- $: models = (catalog?.components || []).filter(c => (['glm53-cluster','dspark-cluster'].includes(c.controller) || c.compose_asset === 'compose.flash-next.yaml'));
+ $: models = (catalog?.components || []).filter(c => (['glm53-cluster','dspark-cluster','ds41-cluster','qwen38-cluster'].includes(c.controller) || ['compose.flash-next.yaml','compose.ornith35.yaml','compose.gemma26.yaml','compose.gemma31.yaml','compose.nemotron-asr.yaml','compose.magpie-tts.yaml','compose.flux2.yaml','compose.dreamlite.yaml'].includes(c.compose_asset)));
  $: if (!component && models.length) component = models[0].id;
  $: selectedModel = models.find(model => model.id === component);
+ $: hasVariants = ['glm53-cluster','dspark-cluster'].includes(selectedModel?.controller) || selectedModel?.compose_asset === 'compose.flash-next.yaml';
+ $: if (!hasVariants) variant = selectedModel?.controller === 'qwen38-cluster' ? 'abliterated' : 'official';
  $: if (variant === 'huihui_lil' && selectedModel?.compose_asset !== 'compose.flash-next.yaml') variant = 'abliterated';
  $: repositories = modelRepositories(selectedModel, variant);
  function modelRepositories(model, variant) {
-  if (model?.compose_asset === 'compose.flash-next.yaml' && variant === 'huihui_lil') return [];
+  if (model?.compose_asset === 'compose.flash-next.yaml' && variant === 'huihui_lil') return ['edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-NVFP4-QAD'];
   if (model?.compose_asset === 'compose.flash-next.yaml') return [variant === 'abliterated' ? 'huginnfork/Qwen3.8-Flash-Next-NVFP4-Abliterated' : 'local-inference-lab/Qwen3.8-Flash-Next-NVFP4'];
   if (model?.controller === 'dspark-cluster') return [variant === 'abliterated' ? 'drowzeys/keys-DeepSeekV4Flash-Vision-EXP-ablit' : 'deepseek-ai/DeepSeek-V4-Flash-Vision-Exp'];
-  if (model?.controller === 'glm53-cluster') return variant === 'official' ? ['nvidia/GLM-5.3-Flash-NVFP4'] : [];
+  if (model?.controller === 'glm53-cluster') return variant === 'official' ? ['nvidia/GLM-5.3-Flash-NVFP4'] : ['edp1096/Huihui-GLM-5.3-Flash-abliterated-NVFP4'];
   return [];
  }
  async function request(path, method = 'GET', body) {
@@ -47,9 +49,9 @@
 <fieldset>
  <legend>모델 준비</legend>
  <label class="settings-field-row"><span>모델</span><Select bind:value={component}>{#each models as model}<option value={model.id}>{model.name}</option>{/each}</Select></label>
- <label class="settings-field-row"><span>가중치</span><Select bind:value={variant}><option value="official">원본</option><option value="abliterated">{selectedModel?.compose_asset === 'compose.flash-next.yaml' ? 'Abliterated (Huginnfork)' : 'Abliterated'}</option>{#if selectedModel?.compose_asset === 'compose.flash-next.yaml'}<option value="huihui_lil">Huihui / LIL QAD (로컬 변환)</option>{/if}</Select></label>
- {#if selectedModel?.controller === 'glm53-cluster' && variant === 'abliterated'}<p>서버에 준비된 Huihui GLM NVFP4 변환 모델을 확인하고 워커로 복사합니다. 여기서 새로 변환하지 않습니다.</p>{/if}
- {#if variant === 'huihui_lil'}<p>서버에 있는 Huihui / LIL 변환 모델의 파일과 실행 검증 기록을 확인합니다. 모델을 새로 다운로드하거나 변환하지 않습니다.</p>{/if}
+ {#if hasVariants}<label class="settings-field-row"><span>가중치</span><Select bind:value={variant}><option value="official">원본</option><option value="abliterated">{selectedModel?.compose_asset === 'compose.flash-next.yaml' ? 'Abliterated (Huginnfork)' : 'Abliterated'}</option>{#if selectedModel?.compose_asset === 'compose.flash-next.yaml'}<option value="huihui_lil">Huihui QAD</option>{/if}</Select></label>{/if}
+ {#if selectedModel?.controller === 'glm53-cluster' && variant === 'abliterated'}<p>Huihui GLM NVFP4 모델을 다운로드하고 워커로 복사합니다.</p>{/if}
+ {#if variant === 'huihui_lil'}<p>공개된 Huihui QAD 모델을 다운로드합니다. 기존에 준비된 정상 모델은 재사용합니다.</p>{/if}
  {#if repositories.length}
   <div class="model-sources">
    <strong>다운로드할 모델 저장소</strong>
