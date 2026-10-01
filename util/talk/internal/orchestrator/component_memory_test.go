@@ -25,6 +25,7 @@ func TestIndividualGPUStartChecksBeforeChangingContainer(t *testing.T) {
 			for i := range catalog.Components {
 				if catalog.Components[i].ID == "flux2" {
 					catalog.Components[i].MemoryGiB = 1000000
+					catalog.Components[i].StartupMemoryGiB = 1000000
 				}
 			}
 			c, err := NewControllerWithCatalog(catalog)

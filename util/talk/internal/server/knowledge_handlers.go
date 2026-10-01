@@ -279,7 +279,7 @@ func normalizeKnowledgeSourceRequest(input *knowledgeSourceRequest) error {
 // conversational import tool. Persisting external material must happen only
 // after the caller has obtained explicit user intent or UI approval.
 func (s *Server) importKnowledgeSource(ctx context.Context, input knowledgeSourceRequest) (knowledgeSourceResponse, int, error) {
-	collected, err := s.collectorSnapshot().Collect(ctx, input.URL, input.Mode, s.knowledge)
+	collected, err := s.collectSource(ctx, input.URL, input.Mode, true)
 	if err != nil {
 		return knowledgeSourceResponse{}, http.StatusBadGateway, err
 	}

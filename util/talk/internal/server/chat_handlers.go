@@ -378,6 +378,17 @@ func (s *Server) llmMessages(ctx context.Context, items []db.Message, cfg config
 				if isVideo {
 					typeName, fieldName = "video_url", "video_url"
 				}
+				if isImage {
+					origin := item.Role
+					if generatedOrigin, ok := ctx.Value(imageAttachmentOriginKey{}).(string); ok {
+						origin = generatedOrigin
+					}
+					dimensions := ""
+					if evidence, err := s.imageEvidence(attachment.ID, "", "", map[string]db.Attachment{attachment.ID: attachment}); err == nil {
+						dimensions = fmt.Sprintf(" dimensions=%dx%d pixels", evidence.Width, evidence.Height)
+					}
+					parts = append(parts, map[string]any{"type": "text", "text": fmt.Sprintf("Image attachment %d: id=%q filename=%q origin=%q%s. The immediately following image belongs to this ID; do not assign another attachment's description to it.", attachmentIndex+1, attachment.ID, attachment.Name, origin, dimensions)})
+				}
 				parts = append(parts, map[string]any{"type": typeName, fieldName: map[string]string{"url": dataURL}})
 			}
 			if isImage {

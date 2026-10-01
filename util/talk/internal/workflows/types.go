@@ -3,6 +3,7 @@ package workflows
 import "sparktalk/internal/skills"
 
 type Step struct {
+	ImagePhase    string   `json:"image_phase,omitempty"`
 	Name          string   `json:"name"`
 	Skills        []string `json:"skills"`
 	Goal          string   `json:"goal"`
@@ -75,6 +76,18 @@ func Defaults() []Definition {
 	}
 	defs[1].Steps[2].OnFailure = 1
 	defs[1].Steps[2].MaxRetries = 1
+	imageSteps := []Step{
+		step("스타일·구도 생성", "image-creation", "원본 인물과 요청한 스타일·동작·구도로 장면을 생성한다. reference_generate의 head_targets 또는 reference_groups에 인물별 보정 계획을 선언한다. 동일 인물 사진이 여러 장이면 reference_groups로 묶고 생성용·머리 보정용 원본을 각각 선택한다. 이 단계에서는 얼굴 스왑을 하지 않는다.", "생성 이미지 ID와 원본별 인물 배치 및 보정 계획을 남긴다.", "image_generate"),
+		step("구도·동작 검토", "image-creation", "생성 이미지를 실제로 읽고 인물 수, 누가 무엇을 하는지, 손과 물체의 연결, 스타일을 원래 요청과 대조한다. 얼굴 닮음은 다음 단계에서 처리한다. 동작이 잘못됐으면 failed로 보고한다.", "실제 이미지 읽기 근거와 요청 항목별 관찰을 남긴다. 동작을 확인하지 못하면 완료로 보고하지 않는다.", "attachment_read"),
+		step("인물별 얼굴 보정", "image-creation", "앞 단계에서 확인한 장면에 선언된 BFS 보정 계획을 순서대로 수행한다. 새 장면·스타일·구도로 다시 생성하지 않는다. 각 보정은 직전 결과를 사용한다.", "선언된 모든 머리 보정이 실제로 실행됐다. 대상이 없으면 없음을 명시한다. 실패한 보정은 failed로 보고한다.", ""),
+		step("최종 결과 검토", "image-creation", "최종 이미지와 얼굴 보정 전 장면, 원본 사진을 실제로 읽어 대조한다. 얼굴 닮음뿐 아니라 다른 인물, 표정, 스타일, 요청한 동작이 변했는지 확인한다. 이 단계에서는 이미지를 다시 생성하지 않는다.", "최종 이미지 ID와 관측한 차이·남은 결함을 제시한다. 실행 성공을 그림 품질 성공으로 간주하지 않는다. 요청 불충족이면 failed로 보고한다.", "attachment_read"),
+	}
+	for i, phase := range []string{"scene", "composition", "heads", "review"} {
+		imageSteps[i].ImagePhase = phase
+	}
+	imageSteps[1].OnFailure = 0
+	imageSteps[1].MaxRetries = 1
+	defs = append(defs, Definition{Name: "identity-image-production", Description: "참조 인물·캐릭터 이미지 제작: 스타일·구도 생성 → 구도·동작 검토 → 인물별 BFS 얼굴 보정 → 최종 검토. 잘못된 구도는 한 번 재생성하며, 완성도 부족은 실패로 표시합니다.", Steps: imageSteps})
 	for i := range defs {
 		defs[i].Enabled = true
 		defs[i].Builtin = true

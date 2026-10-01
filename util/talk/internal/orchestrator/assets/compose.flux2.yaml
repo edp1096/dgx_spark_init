@@ -1,11 +1,11 @@
 services:
   runtime:
-    image: sparktalk-flux2-paint:resident1
+    image: sparktalk-flux2-paint:resident4
     build:
       context: ${SPARKTALK_BUILD_DIR:?Embedded build assets required}
     pull_policy: never
     container_name: flux2-klein-nvfp4-api
-    restart: unless-stopped
+    restart: "no"
     # Equal limits disable container swap; this is a ceiling, not a reservation.
     mem_limit: "112g"
     memswap_limit: "112g"

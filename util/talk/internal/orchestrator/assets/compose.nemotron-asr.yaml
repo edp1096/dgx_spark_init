@@ -5,7 +5,8 @@ services:
       target: runtime
     image: sparktalk-nemotron-asr:0.6b-q8-diar2-workspace
     container_name: sparktalk-nemotron-asr
-    restart: unless-stopped
+    # Startup belongs to Talk's memory-checked workload path, including retries.
+    restart: "no"
     # Equal limits disable container swap; this is a ceiling, not a reservation.
     mem_limit: "112g"
     memswap_limit: "112g"

@@ -1,0 +1,108 @@
+{
+  "qwen_1m": {
+    "prompt_tokens": 1048024,
+    "answer": "42",
+    "capacity_tokens": 1048576
+  },
+  "phases": {
+    "qwen_startup": {
+      "samples": 161,
+      "min_available_gib": 18.104366302490234,
+      "swap_written_mib": 0.0,
+      "oom_kill_delta": 0
+    },
+    "qwen_prefill": {
+      "samples": 38,
+      "min_available_gib": 16.201648712158203,
+      "swap_written_mib": 0.0,
+      "oom_kill_delta": 0
+    },
+    "flux_start": {
+      "samples": 137,
+      "min_available_gib": 15.905517578125,
+      "swap_written_mib": 0.0,
+      "oom_kill_delta": 0
+    },
+    "flux_prepare": {
+      "samples": 20,
+      "min_available_gib": 13.298267364501953,
+      "swap_written_mib": 0.0,
+      "oom_kill_delta": 0
+    },
+    "flux_generate_1": {
+      "samples": 50,
+      "min_available_gib": 7.182903289794922,
+      "swap_written_mib": 0.74609375,
+      "oom_kill_delta": 0
+    },
+    "flux_generate_2": {
+      "samples": 18,
+      "min_available_gib": 7.308326721191406,
+      "swap_written_mib": 0.0,
+      "oom_kill_delta": 0
+    },
+    "flux_reclaim": {
+      "samples": 2,
+      "min_available_gib": 8.171073913574219,
+      "swap_written_mib": 0.0,
+      "oom_kill_delta": 0
+    },
+    "asr_start": {
+      "samples": 18,
+      "min_available_gib": 8.656028747558594,
+      "swap_written_mib": 0.0,
+      "oom_kill_delta": 0
+    },
+    "asr_diarize": {
+      "samples": 3,
+      "min_available_gib": 8.584903717041016,
+      "swap_written_mib": 0.0,
+      "oom_kill_delta": 0
+    },
+    "asr_transcribe": {
+      "samples": 3,
+      "min_available_gib": 7.718971252441406,
+      "swap_written_mib": 0.0,
+      "oom_kill_delta": 0
+    },
+    "bfs_cold": {
+      "samples": 73,
+      "min_available_gib": 4.349292755126953,
+      "swap_written_mib": 73.375,
+      "oom_kill_delta": 0
+    },
+    "bfs_reclaim": {
+      "samples": 1,
+      "min_available_gib": 11.124744415283203,
+      "swap_written_mib": 0.0,
+      "oom_kill_delta": 0
+    },
+    "qwen_1m_setup": {
+      "samples": 1,
+      "min_available_gib": 16.778778076171875,
+      "swap_written_mib": 0.0,
+      "oom_kill_delta": 0
+    },
+    "qwen_1m": {
+      "samples": 2058,
+      "min_available_gib": 14.49664306640625,
+      "swap_written_mib": 0.0,
+      "oom_kill_delta": 0
+    }
+  },
+  "limitations": [
+    "Qwen cold-start 108 GiB fallback remains conservative; complete early loading peak was not sampled.",
+    "INT4 KV is not enabled.",
+    "ASR used 71.89 seconds of repeated synthesized speech; not an accuracy or hour-long benchmark.",
+    "BFS used synthetic turtle images for memory testing, not face-quality evaluation.",
+    "Host swap writes occurred in initial Flux/BFS runs; Qwen 1M and ASR tests did not add swap writes."
+  ],
+  "new_flux_budgets_gib": {
+    "startup": 3.75,
+    "cold_total": 10,
+    "warm_workspace": 2.5,
+    "text_reload": 4,
+    "cold_workspace": 6.5,
+    "bfs_cold_workspace": 8.5
+  }
+}

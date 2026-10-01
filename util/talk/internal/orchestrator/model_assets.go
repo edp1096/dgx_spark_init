@@ -152,17 +152,18 @@ if [ ! -s ` + model + ` ]; then python /src/convert_model.py /models/magpie_tts_
 
 func (c *Controller) prepareFluxWeights(ctx context.Context, component Component, token string) error {
 	host := c.host(component.Host)
-	const image = "sparktalk-flux2-paint:resident1"
+	const image = "sparktalk-flux2-paint:resident3"
 	probe := `import os,sys
 from pathlib import Path
 sys.path.insert(0,'/opt/nvfp4-api')
 from prepare_models import FILES,LOCAL_UNCENSORED_NVFP4
-from prepare_lora import ADAPTERS
+from prepare_lora import ADAPTERS,BFS_ADAPTER
 from huggingface_hub import try_to_load_from_cache
 if not LOCAL_UNCENSORED_NVFP4.is_file():
  print('conversion');sys.exit(2)
 files=[try_to_load_from_cache(repo,name) for repo,name,_ in FILES]
 files += [try_to_load_from_cache('fal/flux-2-klein-4B-'+kind+'-lora',name,revision=rev) for kind,rev,name in ADAPTERS]
+files += [try_to_load_from_cache(BFS_ADAPTER[0],BFS_ADAPTER[2],revision=BFS_ADAPTER[1])]
 if not all(isinstance(p,str) and Path(p).is_file() for p in files) or not Path('/root/.cache/huggingface/rembg/u2net.onnx').is_file():sys.exit(1)
 print('ready')`
 	common := []string{"docker", "run", "--rm", "-i", "--memory", "112g", "--memory-swap", "112g", "-v", "media-hf-cache:/root/.cache/huggingface", "--entrypoint", "python"}

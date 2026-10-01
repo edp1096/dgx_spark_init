@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"net/http"
 	"sort"
+	"sparktalk/internal/db"
 	"sparktalk/internal/workflows"
 	"strings"
 )
 
-var workflowEvidenceTools = map[string]bool{"": true, "ssh_exec": true, "web_search": true, "web_fetch": true, "web_collect": true, "media_import": true, "image_generate": true, "knowledge_search": true, "document_generate": true}
+var workflowEvidenceTools = map[string]bool{"": true, "ssh_exec": true, "web_search": true, "web_fetch": true, "web_collect": true, "media_import": true, "image_generate": true, "attachment_read": true, "knowledge_search": true, "document_generate": true}
 
 func (s *Server) allWorkflows() ([]workflows.Definition, error) {
 	items := workflows.Defaults()
@@ -47,6 +48,11 @@ func (s *Server) validateWorkflow(x workflows.Definition) error {
 		known[v.Name] = true
 	}
 	for i, step := range x.Steps {
+		switch step.ImagePhase {
+		case "", "scene", "composition", "heads", "review":
+		default:
+			return fmt.Errorf("%d단계의 이미지 단계가 잘못됐습니다", i+1)
+		}
 		if strings.TrimSpace(step.Name) == "" || len([]rune(step.Name)) > 80 || strings.TrimSpace(step.Goal) == "" || strings.TrimSpace(step.DoneWhen) == "" || len([]rune(step.Goal)) > 4000 || len([]rune(step.DoneWhen)) > 2000 || len(step.Skills) < 1 || len(step.Skills) > 4 || !workflowEvidenceTools[step.VerifyTool] || len(step.VerifyCommand) > 2000 || (step.VerifyCommand != "" && step.VerifyTool != "ssh_exec") || step.OnFailure < -1 || step.OnFailure >= i || step.MaxRetries < 0 || step.MaxRetries > 2 {
 			return fmt.Errorf("%d단계의 목표·완료 조건·검증 설정을 확인하세요", i+1)
 		}
@@ -70,7 +76,7 @@ func (s *Server) workflowCatalog(w http.ResponseWriter, r *http.Request) {
 	}
 	if r.URL.Query().Get("selection") == "1" {
 		cfg, _ := s.snapshot()
-		registry := newCompletionToolRegistry(s, "", cfg.Tools, cfg.Tools.Enabled, nil)
+		registry := newCompletionToolRegistry(s, "", cfg.Tools, cfg.Tools.Enabled, func(db.Attachment) error { return nil })
 		if registry.err != nil {
 			http.Error(w, registry.err.Error(), 500)
 			return
@@ -83,7 +89,13 @@ func (s *Server) workflowCatalog(w http.ResponseWriter, r *http.Request) {
 		for _, item := range items {
 			missing := []string{}
 			for _, step := range item.Steps {
+				if step.ImagePhase == "heads" && cfg.Image.Mode != "paint" {
+					missing = append(missing, "BFS 얼굴 보정(paint 모드)")
+				}
 				if step.VerifyTool != "" {
+					if step.VerifyTool == "attachment_read" && s.db != nil {
+						continue
+					}
 					if _, ok := registry.handlers[step.VerifyTool]; !ok {
 						missing = append(missing, step.VerifyTool)
 					}

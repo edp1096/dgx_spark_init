@@ -3,7 +3,7 @@
  import {onMount} from 'svelte';
  export let onnotify=()=>{};
  let items=[],skills=[],draft=null,original='',busy=false,search='',deleting=false;
- const tools={'':'작성 결과 확인',ssh_exec:'SSH 실행 성공',web_search:'웹 검색',web_fetch:'페이지 읽기',web_collect:'웹 수집',media_import:'미디어 가져오기',image_generate:'이미지 생성',knowledge_search:'지식 검색',document_generate:'문서 생성'};
+ const tools={'':'작성 결과 확인',ssh_exec:'SSH 실행 성공',web_search:'웹 검색',web_fetch:'페이지 읽기',web_collect:'웹 수집',media_import:'미디어 가져오기',image_generate:'이미지 생성',attachment_read:'첨부 이미지 읽기',knowledge_search:'지식 검색',document_generate:'문서 생성'};
  async function api(path,method='GET',body){const r=await fetch(path,{method,headers:{'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});if(!r.ok)throw Error(await r.text());return r.status===204?null:r.json();}
  async function load(){try{[items,skills]=await Promise.all([api('/api/workflows'),api('/api/skills')]);}catch(e){onnotify(e.message,'error');}}
  onMount(load);
@@ -27,6 +27,7 @@
  <header><label>단계 이름<input aria-label={`단계 ${i+1} 이름`} bind:value={s.name} readonly={draft.builtin} maxlength="80" required /></label>{#if !draft.builtin}<button type="button" aria-label={`단계 ${i+1} 위로`} disabled={i===0} onclick={()=>move(i,-1)}>↑</button><button type="button" aria-label={`단계 ${i+1} 아래로`} disabled={i===draft.steps.length-1} onclick={()=>move(i,1)}>↓</button><button type="button" disabled={draft.steps.length===1} onclick={()=>remove(i)}>단계 삭제</button>{/if}</header>
  <label>목표·필요 입력<textarea aria-label={`단계 ${i+1} 목표`} bind:value={s.goal} readonly={draft.builtin} required maxlength="4000" rows="2"></textarea></label>
  <details><summary>사용 스킬 · {s.skills.join(', ')||'선택 필요'}</summary><div class="checks">{#each skills as skill}<label><input type="checkbox" bind:group={s.skills} value={skill.name} disabled={draft.builtin} />{skill.name}</label>{/each}</div></details>
+ {#if s.skills.includes('image-creation')}<label>이미지 단계<Select bind:value={s.image_phase} disabled={draft.builtin}><option value="">일반 생성·편집</option><option value="scene">스타일·구도 생성</option><option value="composition">구도·동작 검토 (읽기 전용)</option><option value="heads">얼굴 보정만 실행</option><option value="review">최종 검토 (읽기 전용)</option></Select></label>{/if}
  <label>완료 조건<textarea aria-label={`단계 ${i+1} 완료 조건`} bind:value={s.done_when} readonly={draft.builtin} required maxlength="2000" rows="2"></textarea></label>
  <details><summary>검증·재시도 · {tools[s.verify_tool]||s.verify_tool}</summary>
  <label>필요한 실행 근거<Select bind:value={s.verify_tool} onchange={()=>{if(s.verify_tool!=='ssh_exec')s.verify_command='';}} disabled={draft.builtin}>{#each Object.entries(tools) as [value,label]}<option {value}>{label}</option>{/each}</Select></label>

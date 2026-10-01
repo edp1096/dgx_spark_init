@@ -35,7 +35,7 @@ test('shows managed set, memory, engines, and set controls from the connection b
   const panel = page.getByRole('region', { name: 'DGX Spark 운영' });
   await expect(panel).toBeVisible();
   await expect(panel.getByText('Flash-Next 세트', { exact: true })).toBeVisible();
-  await expect(panel.getByText('통합메모리', { exact: true })).toBeVisible();
+  await expect(panel.getByText('시스템 전체 통합메모리', { exact: true })).toBeVisible();
   await expect(panel.getByText('시스템 가용 13.5 GiB · 즉시 여유 3.2 GiB', { exact: true })).toBeVisible();
   await expect(panel.getByText('Qwen3.8 Flash-Next', { exact: true })).toBeVisible();
   await expectControlValue(panel.getByRole('combobox', { name: '전환할 AI 세트' }), 'flash-next');
@@ -81,7 +81,7 @@ test('keeps managed model controls reachable by touch scrolling on mobile', asyn
   await page.locator('.status').click();
 
   const drawer = page.getByRole('dialog', { name: 'DGX Spark 운영 상태' });
-  const stop = drawer.getByRole('button', { name: '중지' });
+  const stop = drawer.getByRole('button', { name: '모델 세트 중지', exact: true });
 
   await expect(drawer).toHaveCSS('overflow-y', 'auto');
   expect(await drawer.evaluate((node) => node.scrollHeight)).toBeGreaterThan(
@@ -90,4 +90,28 @@ test('keeps managed model controls reachable by touch scrolling on mobile', asyn
   await stop.scrollIntoViewIfNeeded();
   await expect(stop).toBeVisible();
   expect(await drawer.evaluate((node) => node.scrollTop)).toBeGreaterThan(0);
+});
+
+test('shared Extra occupancy is visible on mobile without changing model startup readiness', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 640 });
+  const snapshot = structuredClone(runtimeSnapshot);
+  snapshot.support_services = [
+    { id: 'extra-media', name: 'Extra Media', role: 'media', host: 'local', controller: 'compose', status: 'running', health: 'online', memory_measured: true, resident_memory_gib: 40 / 1024, host_memory_gib: 40 / 1024, gpu_memory_gib: 0, memory_gib: .1 },
+    { id: 'extra-collector', name: 'Extra Collector', role: 'collector', host: 'worker', controller: 'compose', status: 'running', health: 'online', memory_measured: false, resident_memory_gib: 0, memory_gib: .3 },
+    { id: 'extra-documents', name: 'Extra Documents', role: 'documents', host: 'local', controller: 'compose', status: 'exited', health: 'offline', memory_measured: false, memory_gib: .4 },
+  ];
+  await routeManagedRuntime(page, snapshot);
+  await page.goto('/');
+  await page.locator('.status').click();
+  const panel = page.getByRole('region', { name: 'DGX Spark 운영' });
+  const extras = panel.getByRole('region', { name: 'Extra 서비스' });
+  await expect(extras.getByRole('group')).toHaveCount(3);
+  const media = extras.getByRole('group', { name: 'Extra Media', exact: true });
+  await expect(media).toContainText('점유 40.0 MiB');
+  await expect(media).toContainText('예산 102.4 MiB');
+  await expect(extras.getByRole('group', { name: 'Extra Collector', exact: true })).toContainText('점유 측정 불가');
+  await expect(extras.getByRole('group', { name: 'Extra Documents', exact: true })).toContainText('점유 0.0 MiB');
+  await expect(panel.getByRole('button', { name: '실행 중', exact: true })).toBeDisabled();
+  const drawer = page.getByRole('dialog', { name: 'DGX Spark 운영 상태' });
+  expect(await drawer.evaluate(node => node.scrollWidth <= node.clientWidth)).toBe(true);
 });

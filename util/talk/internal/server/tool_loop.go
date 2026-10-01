@@ -95,7 +95,9 @@ func runCompletionLoopForSessionWithMedia(
 			return server.runWorkflow(ctx, sessionID, marker, goal, messages, client, model, reasoningEffort, systemPrompt, toolConfig, toolsEnabled, emit, mediaSink)
 		}
 	}
-	ctx = context.WithValue(ctx, turnImageKey{}, &turnImages{sessionID: sessionID, items: make(map[string]db.Attachment)})
+	if images, ok := ctx.Value(turnImageKey{}).(*turnImages); !ok || images.sessionID != sessionID {
+		ctx = context.WithValue(ctx, turnImageKey{}, &turnImages{sessionID: sessionID, items: make(map[string]db.Attachment), requiredOriginals: requestedOriginalImages(server, sessionID)})
+	}
 	registry := newCompletionToolRegistry(server, sessionID, toolConfig, toolsEnabled, mediaSink)
 	if inStage {
 		for name := range stage.Skills {
@@ -215,6 +217,18 @@ func runCompletionLoopForSessionWithMedia(
 	recovery := &mediaRecovery{inputs: len(turnFrom(ctx).appliedInputs())}
 	execute := recovery.execute(registry.execute)
 	for {
+		if pendingHeadCall(ctx) == nil {
+			if notice := headPlanFailureNotice(ctx); notice != "" {
+				if err := emit("delta", map[string]string{"delta": notice}); err != nil {
+					return completionResult{}, err
+				}
+				out := completionResult{Content: notice, Reasoning: allReasoning.String(), ToolTrace: trace, Attachments: outputAttachments}
+				if inStage {
+					out.Report = &workflows.Report{Status: "failed", Summary: notice}
+				}
+				return out, nil
+			}
+		}
 		if recovery.exhausted() && len(turnFrom(ctx).appliedInputs()) != recovery.inputs {
 			*recovery = mediaRecovery{inputs: len(turnFrom(ctx).appliedInputs())}
 		}
@@ -236,6 +250,11 @@ func runCompletionLoopForSessionWithMedia(
 			}
 			allReasoning.WriteString(result.Reasoning)
 			content, leaked := cleanToolProtocol(result.Content)
+			if pendingHeadCall(ctx) != nil {
+				content = "도구 실행 한도에 도달해 얼굴 보정 계획이 완료되지 않았습니다. 현재 이미지는 중간 결과입니다."
+			} else if notice := headPlanFailureNotice(ctx); notice != "" {
+				content = notice
+			}
 			if recovery.exhausted() && (content == "" || leaked) {
 				content = "영상 가져오기에 실패했고 복구 시도를 중단했습니다. 영상·전사를 확보하지 못해 전체 내용을 요약할 수 없습니다. 도구에 표시된 미디어 서비스 오류를 해결해야 합니다."
 			}
@@ -269,13 +288,48 @@ func runCompletionLoopForSessionWithMedia(
 			definitions = []llm.Tool{workflowReportTool()}
 			conversation = append(conversation, llm.Message{Role: "user", Content: "No more work-tool rounds are available. Submit workflow_report now using existing evidence. If this stage is incomplete, report blocked or failed honestly."})
 		}
-		result, err := request(conversation, reasoningEffort, definitions, textEmitter(emit))
+		pendingHead := pendingHeadCall(ctx)
+		guardHeadCompletion := pendingHead != nil || headPlanFailureNotice(ctx) != ""
+		modelEmitter := textEmitter(emit)
+		if guardHeadCompletion {
+			modelEmitter = func(kind, text string) error {
+				if kind == "delta" {
+					return nil
+				}
+				return emit(kind, map[string]string{"delta": text})
+			}
+		}
+		result, err := request(conversation, reasoningEffort, definitions, modelEmitter)
 		if err != nil {
 			if allReasoning.Len() > 0 && result.Reasoning != "" {
 				allReasoning.WriteString("\n\n")
 			}
 			allReasoning.WriteString(result.Reasoning)
 			return completionResult{Content: result.Content, Reasoning: allReasoning.String(), ToolTrace: trace, Attachments: outputAttachments}, err
+		}
+		if pendingHead != nil {
+			calls := make([]llm.ToolCall, 0, len(result.ToolCalls))
+			selected := false
+			for _, call := range result.ToolCalls {
+				var a imageGenerationArgs
+				if call.Function.Name == "image_generate" && json.Unmarshal([]byte(call.Function.Arguments), &a) == nil && a.Operation == "head_swap" {
+					if selected {
+						continue
+					}
+					selected = true
+					// The declared plan owns the subject/reference pairing and latest
+					// base. The model cannot accidentally swap the reference IDs later.
+					call.Function.Arguments = pendingHead.Function.Arguments
+				}
+				calls = append(calls, call)
+			}
+			result.ToolCalls = calls
+		}
+		if pendingHead != nil && (len(result.ToolCalls) == 0 || (inStage && len(result.ToolCalls) == 1 && result.ToolCalls[0].Function.Name == "workflow_report" && strings.Contains(result.ToolCalls[0].Function.Arguments, `"completed"`))) {
+			// Completion text cannot bypass the declared correction plan. Execute
+			// through the normal tool path so admission, trace and media events apply.
+			result.Content = ""
+			result.ToolCalls = []llm.ToolCall{*pendingHead}
 		}
 		for _, call := range result.ToolCalls {
 			if call.Function.Name == "workflow_report" && inStage {
@@ -285,6 +339,10 @@ func runCompletionLoopForSessionWithMedia(
 				var report workflows.Report
 				if json.Unmarshal([]byte(call.Function.Arguments), &report) != nil || (report.Status != "completed" && report.Status != "blocked" && report.Status != "failed") {
 					return completionResult{}, fmt.Errorf("잘못된 단계 완료 보고입니다")
+				}
+				if notice := headPlanFailureNotice(ctx); notice != "" && report.Status == "completed" {
+					report.Status = "failed"
+					report.Summary = notice
 				}
 				return completionResult{Content: report.Summary, Reasoning: mergeReasoning(allReasoning.String(), result.Reasoning), ToolTrace: trace, Attachments: outputAttachments, Report: &report}, nil
 			}
@@ -311,6 +369,14 @@ func runCompletionLoopForSessionWithMedia(
 			}
 			allReasoning.WriteString(result.Reasoning)
 			content, _ := cleanToolProtocol(result.Content)
+			if notice := headPlanFailureNotice(ctx); notice != "" {
+				content = notice
+			}
+			if guardHeadCompletion && content != "" {
+				if emitErr := emit("delta", map[string]string{"delta": content}); emitErr != nil {
+					return completionResult{}, emitErr
+				}
+			}
 			return completionResult{Content: content, Reasoning: allReasoning.String(), ToolTrace: trace, Attachments: outputAttachments}, err
 		}
 		if allReasoning.Len() > 0 && result.Reasoning != "" {
@@ -330,6 +396,7 @@ func runCompletionLoopForSessionWithMedia(
 				return completionResult{Reasoning: allReasoning.String(), ToolTrace: trace}, err
 			}
 			execution, toolErr := executeTurnTool(ctx, call, conversation, emit, execute)
+			failHeadCall(ctx, call, toolErr)
 			toolResult := execution.Result
 			toolFollowups = append(toolFollowups, execution.Followups...)
 			if toolErr == nil && execution.Attachment != nil {

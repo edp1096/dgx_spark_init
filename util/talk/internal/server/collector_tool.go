@@ -43,7 +43,7 @@ func (s *Server) executeWebCollect(ctx context.Context, call llm.ToolCall) (stri
 	if arguments.URL == "" || arguments.Mode != "auto" && arguments.Mode != "direct" && arguments.Mode != "browser" {
 		return "", fmt.Errorf("web_collect requires a URL and a valid mode")
 	}
-	collected, err := s.collectorSnapshot().Inspect(ctx, arguments.URL, arguments.Mode)
+	collected, err := s.collectSource(ctx, arguments.URL, arguments.Mode, false)
 	if err != nil {
 		return "", err
 	}

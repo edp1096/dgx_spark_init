@@ -269,16 +269,25 @@ func run(ctx context.Context, executable string, args ...string) ([]byte, []byte
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 	err := cmd.Run()
+	if err == nil && stdout.Truncated {
+		err = fmt.Errorf("process stdout exceeds %d bytes; output was truncated", stdout.Limit)
+		// Do not let warnings on stderr hide the actual failure.
+		return stdout.Bytes(), stderr.Bytes(), &httpError{Status: http.StatusUnprocessableEntity, Message: filepath.Base(executable) + ": " + err.Error()}
+	}
 	return stdout.Bytes(), stderr.Bytes(), err
 }
 
 type limitedBuffer struct {
-	Data  []byte
-	Limit int
+	Data      []byte
+	Limit     int
+	Truncated bool
 }
 
 func (b *limitedBuffer) Write(p []byte) (int, error) {
 	available := b.Limit - len(b.Data)
+	if len(p) > available {
+		b.Truncated = true
+	}
 	if available > 0 {
 		if len(p) < available {
 			available = len(p)
@@ -291,6 +300,10 @@ func (b *limitedBuffer) Write(p []byte) (int, error) {
 func (b *limitedBuffer) Bytes() []byte { return b.Data }
 
 func processError(tool string, err error, stderr []byte) error {
+	var apiErr *httpError
+	if errors.As(err, &apiErr) {
+		return apiErr
+	}
 	message := strings.TrimSpace(string(stderr))
 	if message == "" {
 		message = err.Error()

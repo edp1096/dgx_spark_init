@@ -1,5 +1,6 @@
 <script>
   import Select from './Select.svelte';
+  import RuntimeComponent from './RuntimeComponent.svelte';
   export let runtime = null;
   export let busy = false;
   export let onAction = async () => {};
@@ -26,10 +27,12 @@
   }
 
   function isOnDemand(component) {
-    return selectedBundle?.workload_swap && ['flux2', 'nemotron-asr', 'extra-media'].includes(component.id);
+    return selectedBundle?.workload_swap && ['nemotron-asr', 'extra-media', 'extra-documents', 'extra-collector'].includes(component.id);
   }
 
   function stateLabel(component) {
+    if (component.busy === true) return '작업 중';
+    if (component.core_ready === false) return '본체 미적재';
     if (component.health === 'online') return '온라인';
     if (component.health === 'starting') return '기동 중';
     if (component.health === 'unresponsive') return component.phase || '연결 이상';
@@ -86,14 +89,22 @@
 
   <div class="runtime-components">
     {#each selectedComponents as component}
-      <div class="runtime-component">
-        <span class:online={component.health === 'online'} class:starting={component.health === 'starting'} class:failed={component.health === 'failed' || component.health === 'unresponsive'} title={component.health_error ? `최근 상태 확인: ${component.health_error} · ${component.health_latency_ms ?? 0}ms · 연속 실패 ${component.health_failures ?? 0}회` : `상태 확인 ${component.health_latency_ms ?? 0}ms`}><i></i><span><b>{component.name}</b><small>{component.phase || component.model || component.role} · {component.host || 'local'}</small></span></span>
-        <div><b>{stateLabel(component)}</b><small title={`GPU ${formatGiB(component.gpu_memory_gib)} + CPU·공유·커널 ${formatGiB(component.host_memory_gib)} · 회수 가능한 파일 캐시 제외`}>{component.resident_memory_gib ? `상주 ${formatGiB(component.resident_memory_gib)}` : component.id === 'nemotron-asr' ? '입력별 예산 산정' : `예산 ${formatGiB(component.memory_gib)}`}</small></div>
-      </div>
+      <RuntimeComponent {component} state={stateLabel(component)} />
     {/each}
   </div>
 
-  {#if selectedBundle?.workload_swap}<small class="runtime-workload-note">Qwen 유지 · 부가 모델 재사용 · 부족할 때 유휴 모델 회수</small>{/if}
+  {#if runtime?.support_services?.length}
+    <section class="runtime-support" aria-label="Extra 서비스">
+      <strong>Extra 서비스</strong>
+      <div class="runtime-components">
+        {#each runtime.support_services as component (component.id)}
+          <RuntimeComponent {component} state={stateLabel(component)} />
+        {/each}
+      </div>
+    </section>
+  {/if}
+
+  {#if selectedBundle?.workload_swap}<small class="runtime-workload-note">Qwen·Klein 본체 유지 · 부가 요소 재사용 · 부족할 때 유휴 메모리 회수</small>{/if}
   <div class="runtime-switch">
     <Select bind:value={targetBundle} aria-label="전환할 AI 세트">
       {#each runtime?.bundles || [] as bundle}

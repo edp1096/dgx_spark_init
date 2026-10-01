@@ -209,6 +209,15 @@
     return name === 'image_capabilities' || name === 'krea_capabilities';
   }
 
+  function imageReferenceGroups(tool) {
+    try {const groups=JSON.parse(tool.result || '{}').reference_groups;return Array.isArray(groups)?groups:[];} catch{return [];}
+  }
+  function imageToolInputs(tool) {
+    if (!isImageGenerateTool(tool.name)) return [];
+    try { const inputs = JSON.parse(tool.result || '{}').input_images; return Array.isArray(inputs) ? inputs : []; }
+    catch { return []; }
+  }
+
   function toolArgument(tool) {
     try {
       const args = JSON.parse(tool.arguments || '{}');
@@ -463,6 +472,35 @@
                   {:else if tool.approval_answered && !tool.approved}<p class="tool-error">사용자가 실행을 거부했습니다.</p>
                   {:else if tool.running && !tool.output}<p class="tool-running">{toolRunningLabel(tool)}</p>{/if}
                   {#if toolPreview(tool)}<pre class:ssh-output={tool.name === 'ssh_exec'}>{toolPreview(tool)}</pre>{/if}
+                  {#each imageReferenceGroups(tool) as group}
+                    <details class="image-input-evidence"><summary>{group.subject} · 후보 {group.candidates?.length || 0}장</summary>
+                      <small>후보 전체는 대화 모델이 검토하며, 아래 표시된 선택 사진만 해당 생성·보정 단계에 전달됩니다.</small>
+                      <div class="image-input-grid">
+                        {#each group.candidates || [] as candidate, index}
+                          <div class="image-input-card">
+                            <small>후보 {index + 1}{candidate.id === group.scene_image_id ? ' · 장면 생성 선택' : ''}{candidate.id === group.head_image_id ? ' · 얼굴 보정 선택' : ''}</small>
+                            <MediaAttachments attachments={[{id:candidate.id,name:candidate.name,mime:'image/png',url:candidate.url}]} />
+                          </div>
+                        {/each}
+                      </div>
+                      <small>{group.selection_reason}</small>
+                    </details>
+                  {/each}
+                  {#if imageToolInputs(tool).length}
+                    <div class="image-input-evidence" aria-label="실제 사용한 입력 이미지">
+                      <small>실제 사용한 입력 이미지</small>
+                      <div class="image-input-grid">
+                        {#each imageToolInputs(tool) as input}
+                          <div class="image-input-card">
+                            <small>{input.index} · {input.role === 'mask' ? '마스크' : input.role === 'source' ? '편집 대상' : '참조'} · {input.origin === 'user' ? '원본 첨부' : '생성 결과'}</small>
+                            <MediaAttachments attachments={[{id:input.id,name:input.name,mime:'image/png',url:input.url}]} />
+                            {#if input.description}<small>{input.description}</small>{/if}
+                            {#if input.crop_box?.length === 4}<small>사용 영역: {input.crop_box.join(', ')}</small>{/if}
+                          </div>
+                        {/each}
+                      </div>
+                    </div>
+                  {/if}
                   {#if tool.output && sshResultMeta(tool)}<small class="tool-exit-meta">{sshResultMeta(tool)}</small>{/if}
                   {#if !tool.running && tool.error}<p class="tool-error">{tool.error}</p>{/if}
                 </div>
@@ -534,3 +572,10 @@
   {/each}
   {#if bottomSpacerHeight > 0}<div class="message-virtual-spacer" style:height={`${bottomSpacerHeight}px`} aria-hidden="true"></div>{/if}
 </section>
+
+<style>
+  .image-input-evidence { margin: 10px 0; }
+  .image-input-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 6px; }
+  .image-input-card { min-width: 0; padding: 8px; border: 1px solid #80808040; border-radius: 8px; }
+  .image-input-card > small { display: block; overflow-wrap: anywhere; }
+</style>

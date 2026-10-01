@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"strings"
 	"time"
@@ -35,6 +36,76 @@ type Result struct {
 	Image   []byte
 	Seed    int64
 	Control []byte
+}
+
+type ReferenceImage struct {
+	Data []byte
+	MIME string
+}
+
+// Edit sends ordered references to Klein's existing multi-reference endpoint.
+// A failed edit is never retried as text-only generation.
+func (c *Client) Edit(ctx context.Context, images []ReferenceImage, prompt, size string, seed *int64) (Result, error) {
+	if len(images) < 1 || len(images) > 4 {
+		return Result{}, errors.New("image editing requires one to four reference images")
+	}
+	var body bytes.Buffer
+	form := multipart.NewWriter(&body)
+	for i, item := range images {
+		ext := map[string]string{"image/png": ".png", "image/jpeg": ".jpg", "image/webp": ".webp"}[item.MIME]
+		if ext == "" || len(item.Data) == 0 {
+			return Result{}, errors.New("reference images must be nonempty PNG, JPEG, or WebP files")
+		}
+		part, err := form.CreateFormFile("image", fmt.Sprintf("reference-%d%s", i+1, ext))
+		if err != nil {
+			return Result{}, err
+		}
+		if _, err = part.Write(item.Data); err != nil {
+			return Result{}, err
+		}
+	}
+	fields := map[string]string{"model": c.model, "prompt": prompt, "size": size, "n": "1", "response_format": "b64_json"}
+	if seed != nil {
+		fields["seed"] = fmt.Sprint(*seed)
+	}
+	for key, value := range fields {
+		if err := form.WriteField(key, value); err != nil {
+			return Result{}, err
+		}
+	}
+	if err := form.Close(); err != nil {
+		return Result{}, err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.endpoint+"/v1/images/edits", &body)
+	if err != nil {
+		return Result{}, err
+	}
+	req.Header.Set("Content-Type", form.FormDataContentType())
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return Result{}, fmt.Errorf("reference image API request: %w", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode >= 300 {
+		return Result{}, fmt.Errorf("reference image API returned HTTP %d: %s", resp.StatusCode, responseError(resp))
+	}
+	var output struct {
+		Seed int64 `json:"seed"`
+		Data []struct {
+			Base64 string `json:"b64_json"`
+		} `json:"data"`
+	}
+	if err := json.NewDecoder(io.LimitReader(resp.Body, 32<<20)).Decode(&output); err != nil {
+		return Result{}, err
+	}
+	if len(output.Data) == 0 || output.Data[0].Base64 == "" {
+		return Result{}, errors.New("reference image API response did not contain an image")
+	}
+	data, err := base64.StdEncoding.DecodeString(output.Data[0].Base64)
+	if err != nil {
+		return Result{}, err
+	}
+	return Result{Image: data, Seed: output.Seed}, nil
 }
 
 type SegmentResult struct {

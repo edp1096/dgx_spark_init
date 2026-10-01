@@ -38,3 +38,20 @@ test('procedure editor, ordered execution, persistent pause and resume',async({p
   const runs=await(await request.get(`/api/sessions/${session.id}/workflows`)).json();expect(runs[0].steps[1].history).toHaveLength(1);expect(runs[0].skills).toBeUndefined();
  }finally{if(session)await request.delete(`/api/sessions/${session.id}`);await request.delete('/api/workflows/procedure-e2e');await request.put('/api/config',{data:original});backend.closeAllConnections();await new Promise(resolve=>backend.close(resolve));}
 });
+
+test('portrait image workflow exposes four ordered stages on mobile',async({page,request})=>{
+ const defs=await(await request.get('/api/workflows')).json();
+ const workflow=defs.find(x=>x.name==='identity-image-production');
+ expect(workflow.steps.map(x=>x.image_phase)).toEqual(['scene','composition','heads','review']);
+ expect(workflow.steps[1].on_failure).toBe(0);
+ expect(workflow.steps[1].max_retries).toBe(1);
+ await page.setViewportSize({width:390,height:844});
+ await page.goto('/');await page.getByRole('button',{name:'사이드바 열기 또는 닫기',exact:true}).click();await page.getByRole('button',{name:'▤ 라이브러리',exact:true}).click();await page.getByRole('button',{name:'작업 절차',exact:true}).click();
+ await page.getByRole('button',{name:'identity-image-production',exact:true}).click();
+ await expect(page.locator('fieldset')).toHaveCount(4);
+ await expect(page.locator('fieldset').nth(0)).toContainText('스타일·구도 생성');
+ await expect(page.locator('fieldset').nth(1)).toContainText('구도·동작 검토');
+ await expect(page.locator('fieldset').nth(2)).toContainText('인물별 얼굴 보정');
+ await expect(page.locator('fieldset').nth(3)).toContainText('최종 결과 검토');
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBe(390);
+});

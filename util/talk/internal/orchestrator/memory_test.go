@@ -128,6 +128,39 @@ func TestASRStartupBudgetDoesNotReserveLongTranscriptionWorkspace(t *testing.T) 
 	}
 }
 
+func TestStartupStagingPeakIsNotClampedToServingBudget(t *testing.T) {
+	component := Component{Role: "llm", MemoryGiB: 10, StartupMemoryGiB: 14}
+	plan := componentStartMemoryPlan(component, 0)
+	// The steady allocation fits, but the temporary loading peak does not.
+	if err := validateMemoryHeadroom(SystemMemory{AvailableGiB: 13, FreeGiB: 13}, plan, 1.5); err == nil {
+		t.Fatal("startup staging peak must not be clipped to the serving budget")
+	}
+	if err := validateMemoryHeadroom(SystemMemory{AvailableGiB: 16, FreeGiB: 16}, plan, 1.5); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestSequentialStartupPeaksDoNotAccumulate(t *testing.T) {
+	var phases startupMemoryPhases
+	phases.add(Component{MemoryGiB: 10, StartupMemoryGiB: 14}, 0)
+	phases.add(Component{MemoryGiB: 6, StartupMemoryGiB: 9}, 0)
+	// Both retained models (16) plus the larger temporary peak (4).
+	// 23 would count two non-overlapping loading buffers simultaneously.
+	if phases.needed() != 20 {
+		t.Fatalf("unexpected phase budget: %v", phases.needed())
+	}
+	var restart startupMemoryPhases
+	restart.add(Component{MemoryGiB: 10, StartupMemoryGiB: 14}, 12)
+	if restart.needed() != 2 {
+		t.Fatal("restart double-counted already resident allocation")
+	}
+	var lazy startupMemoryPhases
+	lazy.add(Component{MemoryGiB: 6, StartupMemoryGiB: 3.5}, 0)
+	if lazy.needed() != 3.5 {
+		t.Fatal("startup reserved an unrequested workload")
+	}
+}
+
 func TestTiledFluxAdmissionAtReportedHeadroom(t *testing.T) {
 	memory := SystemMemory{AvailableGiB: 14.4, FreeGiB: 6.9}
 	if err := validateMemoryHeadroom(memory, memoryPlan{NeededGiB: 13, RequiresCUDAStart: true}, 1.5); err == nil {
@@ -183,7 +216,7 @@ func TestObservedBudgetIncludesCoreHostAndRetainedAuxiliaries(t *testing.T) {
 		t.Fatalf("core host omitted: %v", got)
 	}
 	states = append(states, ComponentStatus{Component: image, ResidentMemoryGiB: 5}, ComponentStatus{Component: speech, ResidentMemoryGiB: 5})
-	if got := observedBundleBudget(cat, b, states); got < b.MemoryGiB+8+3.8 {
+	if got := observedBundleBudget(cat, b, states); got < core.MemoryGiB+8+10 {
 		t.Fatalf("retained auxiliaries omitted: %v", got)
 	}
 }
@@ -194,5 +227,17 @@ func TestResidentWeightsDoNotHideRequestWorkspace(t *testing.T) {
 		if got := workloadAdditionalMemory(c, tc.resident); got != tc.want {
 			t.Fatalf("resident %.2f: got %.2f want %.2f", tc.resident, got, tc.want)
 		}
+	}
+}
+
+func TestPersistedKleinProfileMigratesWithoutChangingCustomBudgets(t *testing.T) {
+	old := Component{ComposeAsset: "compose.flux2.yaml", Model: "flux2-klein-4b-nvfp4", MemoryGiB: 5.25, WorkspaceMemoryGiB: 4.5}
+	updated := componentDefaults(old)
+	if updated.MemoryGiB != 10 || updated.StartupMemoryGiB != 3.75 || updated.WorkspaceMemoryGiB != 6.5 {
+		t.Fatal(updated)
+	}
+	old.MemoryGiB = 14
+	if got := componentDefaults(old); got.MemoryGiB != 14 || got.StartupMemoryGiB != 0 {
+		t.Fatal("custom reservation changed", got)
 	}
 }

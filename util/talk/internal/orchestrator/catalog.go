@@ -217,6 +217,9 @@ func ValidateCatalog(catalog Catalog) (Catalog, error) {
 			for _, id := range bundle.Components {
 				if group := workloadGroup(id); group != "" {
 					x := bundle.Bindings[id].Apply(catalog.byComponent[id])
+					if x.IsSupport() && (x.Controller != "compose" || (x.Host != "" && x.Host != "local")) {
+						continue
+					}
 					if x.Controller != "compose" || (x.Host != "" && x.Host != "local") {
 						return Catalog{}, fmt.Errorf("workload swap requires local managed %s", id)
 					}
@@ -226,7 +229,7 @@ func ValidateCatalog(catalog Catalog) (Catalog, error) {
 					}
 				}
 			}
-			bundle.MemoryGiB += max(groups["image"], groups["speech"])
+			bundle.MemoryGiB += maxWorkloadBudget(groups)
 		}
 		catalog.Bundles[i] = bundle
 		catalog.byBundle[bundle.ID] = bundle

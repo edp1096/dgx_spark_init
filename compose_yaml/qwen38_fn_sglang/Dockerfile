@@ -107,5 +107,7 @@ RUN python3 /opt/qad-tp1/patch_gdn.py
 RUN python3 /opt/qad-tp1/patch_loader.py
 RUN python3 /opt/qad-tp1/patch_router_pdl.py
 RUN python3 /opt/qad-tp1/patch_hicache.py
+RUN python3 /opt/qad-tp1/patch_qsa_topk.py
+RUN python3 /opt/qad-tp1/patch_memory_report.py
 
 FROM legacy AS default

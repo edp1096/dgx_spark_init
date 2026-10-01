@@ -14,7 +14,10 @@ import (
 
 func workloadTestController(t *testing.T) *Controller {
 	t.Helper()
-	api := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(200) }))
+	api := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprint(w, `{"status":"ok","core_ready":true,"busy":false,"active":0}`)
+	}))
 	t.Cleanup(api.Close)
 	dir := t.TempDir()
 	t.Setenv("PATH", dir+":"+os.Getenv("PATH"))
@@ -34,6 +37,7 @@ esac
 	cat, _ := LoadCatalog()
 	for i := range cat.Components {
 		cat.Components[i].HealthURL = api.URL
+		cat.Components[i].Endpoint = api.URL
 		if workloadGroup(cat.Components[i].ID) != "" {
 			cat.Components[i].MemoryGiB = 0.001
 		}
@@ -96,7 +100,7 @@ func TestWorkloadBudgetUsesPeakNotASRStartup(t *testing.T) {
 		t.Fatal(err)
 	}
 	b, _ := c.Catalog().Bundle("flash-next")
-	if c.workloadBudget(b) != 6.1 || b.MemoryGiB != 103.1 {
+	if c.workloadBudget(b) != 10 || b.MemoryGiB != 107 {
 		t.Fatalf("budget=%v bundle=%v", c.workloadBudget(b), b.MemoryGiB)
 	}
 	for i := range cat.Components {
@@ -233,8 +237,8 @@ func TestWorkloadReleasesOnLowHeadroomOrCancellation(t *testing.T) {
 			if err := release(); err != nil {
 				t.Fatal(err)
 			}
-			if _, err := os.Stat(os.Getenv("WORKLOAD_TEST_STATE")); !os.IsNotExist(err) {
-				t.Fatal("unsafe service retained")
+			if _, err := os.Stat(os.Getenv("WORKLOAD_TEST_STATE")); err != nil {
+				t.Fatal("Klein core was stopped instead of reclaiming modules")
 			}
 		})
 	}
@@ -266,11 +270,46 @@ func TestASRDecodedRequestBudgetReplacesGenericSixGiB(t *testing.T) {
 	}
 }
 
+func TestImageRequestWorkspaceCannotBeReplacedBySmallerLiveBudget(t *testing.T) {
+	c := workloadTestController(t)
+	// Simulate resident image weights with a small default allocation. The
+	// requested BFS workspace still has to fit on its own before inference.
+	for i := range c.catalog.Components {
+		if c.catalog.Components[i].ID == "flux2" {
+			c.catalog.Components[i].MemoryGiB = .25
+			c.catalog.Components[i].WorkspaceMemoryGiB = .25
+		}
+	}
+	if err := os.WriteFile(os.Getenv("WORKLOAD_TEST_STATE"), []byte("running"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	c.memoryProbe = func() SystemMemory { return SystemMemory{AvailableGiB: 9, FreeGiB: 8} }
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+	defer cancel()
+	if release, err := c.AcquireWorkload(ctx, "flash-next", "flux2", 1.5, 8.0); err == nil {
+		_ = release()
+		t.Fatal("BFS workspace admitted with less than the required reserve")
+	}
+	c.memoryProbe = func() SystemMemory { return SystemMemory{AvailableGiB: 10, FreeGiB: 9} }
+	release, err := c.AcquireWorkload(context.Background(), "flash-next", "flux2", 1.5, 8.0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := release(); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestFluxWorkspaceTracksTextWeightResidency(t *testing.T) {
 	for _, tc := range []struct {
 		body             string
 		configured, want float64
-	}{{`{"workspace_gib":2.5}`, 4.5, 2.5}, {`{"workspace_gib":4.5}`, 4.5, 4.5}, {`{"workspace_gib":0}`, 4.5, 4.5}, {`{"workspace_gib":2.5}`, 6, 6}} {
+	}{{`{"workspace_gib":2.5}`, 4.5, 2.5}, {`{"workspace_gib":4.5}`, 4.5, 6.5}, {`{"workspace_gib":0}`, 4.5, 6.5}, {`{"workspace_gib":2.5}`, 6, 6},
+		{`{"memory_schema":1,"workspace_kind":"additional","workspace_gib":3.25}`, 4.5, 3.25},
+		{`{"memory_schema":1,"workspace_kind":"additional","workspace_gib":7}`, 6, 7},
+		{`{"memory_schema":1,"workspace_kind":"total","workspace_gib":3.25}`, 4.5, 6.5},
+		{`{"memory_schema":2,"workspace_kind":"additional","workspace_gib":2.5}`, 4.5, 6.5},
+		{`{"workspace_gib":3.25}`, 4.5, 6.5}} {
 		api := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.URL.Path != "/v1/runtime/memory" {
 				t.Errorf("wrong path %s", r.URL.Path)
@@ -280,6 +319,19 @@ func TestFluxWorkspaceTracksTextWeightResidency(t *testing.T) {
 		c := Component{ID: "flux2", ComposeAsset: "compose.flux2.yaml", Endpoint: api.URL, WorkspaceMemoryGiB: tc.configured}
 		if got := liveWorkspaceMemory(context.Background(), c); got != tc.want {
 			t.Fatalf("workspace=%v want=%v", got, tc.want)
+		}
+		api.Close()
+	}
+}
+
+func TestColdLoRAWorkspaceIncludesTextReload(t *testing.T) {
+	for _, tc := range []struct{ reload, total, want float64 }{{4, 6.5, 8.5}, {0, 2.5, 4.5}} {
+		api := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			fmt.Fprintf(w, `{"memory_schema":1,"workspace_kind":"additional","workspace_gib":%v,"text_reload_gib":%v,"generation_workspace_gib":2.5}`, tc.total, tc.reload)
+		}))
+		c := Component{ID: "flux2", ComposeAsset: "compose.flux2.yaml", Endpoint: api.URL, WorkspaceMemoryGiB: 6.5}
+		if got := liveWorkspaceMemory(context.Background(), c, 4.5); got != tc.want {
+			t.Fatalf("got %v want %v", got, tc.want)
 		}
 		api.Close()
 	}

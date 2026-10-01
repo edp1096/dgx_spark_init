@@ -15,8 +15,9 @@ import (
 
 type workflowStageKey struct{}
 type workflowStage struct {
-	Skills   map[string]skills.Skill
-	Evidence []workflows.Evidence
+	ImagePhase string
+	Skills     map[string]skills.Skill
+	Evidence   []workflows.Evidence
 }
 
 func workflowMarker(messages []llm.Message) (string, string) {
@@ -66,13 +67,25 @@ func evidenceMatches(step workflows.Step, e workflows.Evidence) bool {
 		if x, ok := obj["error"]; ok && x != nil && x != "" {
 			return false
 		}
+		if step.VerifyTool == "attachment_read" {
+			var args struct {
+				ID string `json:"attachment_id"`
+			}
+			if json.Unmarshal([]byte(e.Arguments), &args) != nil || args.ID == "" {
+				return false
+			}
+			a, ok := obj["attachment"].(map[string]any)
+			if !ok || a["id"] != args.ID {
+				return false
+			}
+		}
 		if step.VerifyTool == "ssh_exec" {
 			code, ok := obj["exit_code"].(float64)
 			if !ok || code != 0 {
 				return false
 			}
 		}
-	} else if step.VerifyTool == "ssh_exec" {
+	} else if step.VerifyTool == "ssh_exec" || step.VerifyTool == "attachment_read" {
 		return false
 	}
 	if step.VerifyCommand != "" {
@@ -174,6 +187,11 @@ func (s *Server) runWorkflow(ctx context.Context, session, marker, goal string, 
 			_ = emit("workflow", public)
 		}
 	}()
+	var restoreErr error
+	ctx, restoreErr = s.restoreWorkflowImages(ctx, run)
+	if restoreErr != nil {
+		return answer, restoreErr
+	}
 	for run.Current < len(run.Steps) {
 		if e := ctx.Err(); e != nil {
 			return answer, e
@@ -194,6 +212,7 @@ func (s *Server) runWorkflow(ctx context.Context, session, marker, goal string, 
 			return answer, e
 		}
 		stage := &workflowStage{Skills: map[string]skills.Skill{}}
+		stage.ImagePhase = step.ImagePhase
 		prefixes := []string{}
 		for _, name := range step.Skills {
 			stage.Skills[name] = run.Skills[name]
@@ -224,8 +243,17 @@ func (s *Server) runWorkflow(ctx context.Context, session, marker, goal string, 
 		if step.VerifyCommand != "" {
 			guide += "\nRequired verification command (normal SSH permissions still apply): " + step.VerifyCommand
 		}
+		if step.ImagePhase != "" {
+			guide += "\nImage phase: " + step.ImagePhase + ". Scene stages declare head_targets but defer BFS to the heads stage. Completing this stage does not mean the entire image task is complete. Composition/review stages only read existing images; if defects remain report failed. The heads stage only runs the declared correction plan."
+		}
 		guide += "\nWork only on this stage. Do not start other workflows. End with workflow_report, including a complete deliverable for the next stage. User intent and existing tool permissions remain authoritative."
-		stageMessages := append(append([]llm.Message{}, messages...), llm.Message{Role: "user", Content: guide})
+		stageMessages := append([]llm.Message{}, messages...)
+		visuals, visualErr := s.workflowImageInputs(ctx, step.ImagePhase)
+		if visualErr != nil {
+			return answer, visualErr
+		}
+		stageMessages = append(stageMessages, visuals...)
+		stageMessages = append(stageMessages, llm.Message{Role: "user", Content: guide})
 		stageEmit := func(kind string, value any) error {
 			if kind == "tool_result" {
 				// Persist observed effects before the next model request, including on process restart.
@@ -268,6 +296,16 @@ func (s *Server) runWorkflow(ctx context.Context, session, marker, goal string, 
 			return answer, fmt.Errorf("%s: 단계 완료 보고가 없어 검증하지 못했습니다", step.Name)
 		}
 		report := result.Report
+		if step.ImagePhase != "" {
+			// Image stages use observed effects, not model-copied opaque IDs.
+			// Required tool kinds and exact read image IDs are still verified below.
+			report.Evidence = nil
+			for _, proof := range state.Evidence {
+				if proof.Error == "" && proof.Result != "" {
+					report.Evidence = append(report.Evidence, proof.ID)
+				}
+			}
+		}
 		state.Status = report.Status
 		if report.Status == "completed" && strings.TrimSpace(report.Summary) == "" {
 			state.Status = "unverified"
@@ -284,6 +322,31 @@ func (s *Server) runWorkflow(ctx context.Context, session, marker, goal string, 
 			if !valid {
 				state.Status = "unverified"
 				state.Error = "필요한 도구의 성공 근거가 없습니다"
+			}
+		}
+
+		if state.Status == "completed" {
+			for _, required := range requiredWorkflowImageReads(ctx, step.ImagePhase) {
+				matched := false
+				for _, id := range report.Evidence {
+					for _, proof := range state.Evidence {
+						if id != proof.ID || !evidenceMatches(workflows.Step{VerifyTool: "attachment_read"}, proof) {
+							continue
+						}
+						var args struct {
+							ID string `json:"attachment_id"`
+						}
+						json.Unmarshal([]byte(proof.Arguments), &args)
+						if args.ID == required {
+							matched = true
+						}
+					}
+				}
+				if !matched {
+					state.Status = "unverified"
+					state.Error = "필요한 생성 이미지 읽기 근거가 없습니다: " + required
+					break
+				}
 			}
 		}
 		if state.Status != "completed" {

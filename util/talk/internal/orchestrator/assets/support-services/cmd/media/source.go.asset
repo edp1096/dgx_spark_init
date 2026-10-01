@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math"
 	"mime"
 	"net"
 	"net/http"
@@ -52,6 +53,51 @@ type sourceFormat struct {
 	Language       string  `json:"language,omitempty"`
 	LanguagePref   int     `json:"language_preference,omitempty"`
 	FormatNote     string  `json:"format_note,omitempty"`
+}
+
+// yt-dlp can calculate byte estimates as floating-point JSON numbers. Preserve
+// exact integer sizes, and round estimates up so the download budget stays safe.
+func (f *sourceFormat) UnmarshalJSON(data []byte) error {
+	type plain sourceFormat
+	var decoded struct {
+		plain
+		FileSize       json.RawMessage `json:"filesize"`
+		FileSizeApprox json.RawMessage `json:"filesize_approx"`
+	}
+	if err := json.Unmarshal(data, &decoded); err != nil {
+		return err
+	}
+	for _, field := range []struct {
+		name string
+		raw  json.RawMessage
+		dest *int64
+	}{
+		{"filesize", decoded.FileSize, &decoded.plain.FileSize},
+		{"filesize_approx", decoded.FileSizeApprox, &decoded.plain.FileSizeApprox},
+	} {
+		value, err := sourceByteSize(field.raw)
+		if err != nil {
+			return fmt.Errorf("formats.%s: %w", field.name, err)
+		}
+		*field.dest = value
+	}
+	*f = sourceFormat(decoded.plain)
+	return nil
+}
+
+func sourceByteSize(raw json.RawMessage) (int64, error) {
+	value := strings.TrimSpace(string(raw))
+	if value == "" || value == "null" {
+		return 0, nil
+	}
+	if size, err := strconv.ParseInt(value, 10, 64); err == nil && size >= 0 {
+		return size, nil
+	}
+	size, err := strconv.ParseFloat(value, 64)
+	if err != nil || math.IsNaN(size) || math.IsInf(size, 0) || size < 0 || size >= float64(math.MaxInt64) {
+		return 0, errors.New("byte size must be a nonnegative number within int64 range")
+	}
+	return int64(math.Ceil(size)), nil
 }
 
 func ytDLPVersion(path string) (string, error) {
@@ -361,7 +407,7 @@ func (a *api) sourceMetadata(ctx context.Context, rawURL string) (sourceInfo, er
 	}
 	var info sourceInfo
 	if err := json.Unmarshal(stdout, &info); err != nil {
-		return sourceInfo{}, &httpError{Status: http.StatusUnprocessableEntity, Message: "yt-dlp returned invalid metadata"}
+		return sourceInfo{}, &httpError{Status: http.StatusUnprocessableEntity, Message: fmt.Sprintf("yt-dlp metadata decode failed (%d bytes): %v", len(stdout), err)}
 	}
 	if info.ID == "" && info.Title == "" {
 		return sourceInfo{}, &httpError{Status: http.StatusUnprocessableEntity, Message: "yt-dlp found no media"}

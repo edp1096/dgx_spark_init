@@ -15,6 +15,7 @@ test('manages all support services independently and saves deployment bindings',
     version: key === 'documents' ? '0.4.0' : '0.1.0',
     enabled: true, status: key === 'documents' ? 'running' : 'missing',
     health: key === 'documents' ? 'online' : 'offline',
+    memory_measured: key === 'documents', resident_memory_gib: key === 'documents' ? 24 / 1024 : 0,
   }));
   const actions = [];
   let saved;
@@ -44,6 +45,8 @@ test('manages all support services independently and saves deployment bindings',
   await expect(media).toContainText('이미지 준비 필요');
   await expect(media).toContainText('상태: 정지');
   await expect(docs).toContainText('준비 완료');
+  await expect(docs).toContainText('점유 24.0 MiB');
+  await expect(docs).toContainText('예산 409.6 MiB');
   await docs.getByRole('button', { name: '이미지 준비', exact: true }).click();
   await expect(docs).toContainText('준비 완료');
   expect(actions.at(-1)).toEqual({ id: 'extra-documents', action: 'prepare' });

@@ -1,0 +1,95 @@
+{
+  "ready": {
+    "time": 1790789578.7218113,
+    "phase": "asr_start",
+    "available_gib": 8.66619873046875,
+    "pswpout": 7283395,
+    "oom_kill": 0
+  },
+  "scope": "3.59s Flite speech; functional ASR/streaming diarization and memory test, not an accuracy benchmark",
+  "asr_transcribe": {
+    "seconds": 0.07079118900583126,
+    "host": {
+      "time": 1790789578.7929742,
+      "phase": "asr_transcribe",
+      "available_gib": 8.655948638916016,
+      "pswpout": 7283395,
+      "oom_kill": 0
+    },
+    "response": {
+      "duration": 3.5946249961853027,
+      "language": "en-US",
+      "task": "transcribe",
+      "text": "Hello world, this is a speed recognition test.",
+      "words": [
+        {
+          "confidence": 1,
+          "end": 1.12,
+          "start": 0.96,
+          "word": "Hello"
+        },
+        {
+          "confidence": 1,
+          "end": 1.6,
+          "start": 1.28,
+          "word": "world,"
+        },
+        {
+          "confidence": 1,
+          "end": 1.84,
+          "start": 1.76,
+          "word": "this"
+        },
+        {
+          "confidence": 1,
+          "end": 2,
+          "start": 1.92,
+          "word": "is"
+        },
+        {
+          "confidence": 1,
+          "end": 2.32,
+          "start": 2.24,
+          "word": "a"
+        },
+        {
+          "confidence": 1,
+          "end": 2.64,
+          "start": 2.32,
+          "word": "speed"
+        },
+        {
+          "confidence": 1,
+          "end": 3.44,
+          "start": 2.8,
+          "word": "recognition"
+        },
+        {
+          "confidence": 1,
+          "end": 3.6,
+          "start": 3.52,
+          "word": "test."
+        }
+      ]
+    }
+  },
+  "asr_diarize": {
+    "seconds": 0.030543771004886366,
+    "host": {
+      "time": 1790789578.823821,
+      "phase": "asr_diarize",
+      "available_gib": 8.648834228515625,
+      "pswpout": 7283395,
+      "oom_kill": 0
+    },
+    "response": {
+      "segments": [
+        {
+          "end": 3.578999921768904,
+          "speaker": 1,
+          "start": 0
+        }
+      ]
+    }
+  }
+}

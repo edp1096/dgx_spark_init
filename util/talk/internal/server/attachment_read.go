@@ -40,6 +40,21 @@ func (s *Server) registerAttachmentReader(registry *completionToolRegistry, sess
 			}
 		}
 		response := map[string]any{"attachments": files}
+		generated := false
+		if turn, ok := ctx.Value(turnImageKey{}).(*turnImages); ok && turn.sessionID == sessionID {
+			turn.mu.Lock()
+			for _, a := range turn.items {
+				if !seen[a.ID] {
+					files = append(files, a)
+					seen[a.ID] = true
+				}
+				if a.ID == args.ID {
+					generated = true
+				}
+			}
+			turn.mu.Unlock()
+			response["attachments"] = files
+		}
 		if args.ID != "" {
 			var found *db.Attachment
 			for i := range files {
@@ -53,6 +68,9 @@ func (s *Server) registerAttachmentReader(registry *completionToolRegistry, sess
 			}
 
 			if !isDocumentAttachment(*found) {
+				if generated {
+					ctx = context.WithValue(ctx, imageAttachmentOriginKey{}, "assistant")
+				}
 				cfg, _ := s.snapshot()
 				followups, err := s.llmMessages(ctx, []db.Message{{Role: "user", Content: "Existing conversation attachment loaded for analysis. Use the supplied visuals/transcript; no SSH download is needed.", Attachments: []db.Attachment{*found}}}, cfg)
 				if err != nil {

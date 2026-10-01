@@ -1,6 +1,7 @@
 <script>
   import Select from '../Select.svelte';
   import SettingsHelp from './SettingsHelp.svelte';
+  import { residentMemoryLabel, memoryBudgetLabel, residentMemoryDetail } from '../../lib/runtime-memory.js';
   import { onMount, onDestroy } from 'svelte';
   export let settings;
   export let onstatus = () => {};
@@ -56,6 +57,7 @@
   }
   function dirty(row) { const staged = deployment(row); return staged.host !== row.host || staged.endpoint !== row.endpoint || (snapshot?.managed && staged.port !== row.port); }
   function status(row) {
+    if (row.health === 'standby') return '요청 시 실행';
     if (row.health === 'online') return '준비 완료';
     if (row.health === 'failed') return '오류';
     if (row.status === 'running') return '실행 중 · 준비 확인 중';
@@ -94,6 +96,8 @@
       <div class="service-state">
         <span>설치: {row.installed === 'ready' ? '이미지 준비됨' : row.installed === 'missing' ? '이미지 준비 필요' : row.installed === 'external' ? '외부 서비스' : '확인 불가'}</span>
         <strong>상태: {status(row)}</strong>
+        <span title={residentMemoryDetail(row)}>{residentMemoryLabel(row)}</span>
+        <span title="현재 구성의 예상 메모리 예산">{memoryBudgetLabel(row)}</span>
         <span>준비 버전: {row.version}</span>
         {#if row.running_image}<span>실행 이미지: {row.running_image}</span>{/if}
       </div>

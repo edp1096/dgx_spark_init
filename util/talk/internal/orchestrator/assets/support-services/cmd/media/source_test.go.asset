@@ -2,11 +2,66 @@ package main
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"net"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
+
+func TestSourceMetadataFloatingByteEstimates(t *testing.T) {
+	var info sourceInfo
+	if err := json.Unmarshal([]byte(`{"id":"archive","duration":4075,"formats":[
+		{"format_id":"video","height":480,"vcodec":"avc1","acodec":"none","filesize_approx":12582912.25},
+		{"format_id":"audio","vcodec":"none","acodec":"mp4a","filesize":1.5e6},
+		{"format_id":"unknown","filesize":null,"filesize_approx":null}
+	]}`), &info); err != nil {
+		t.Fatal(err)
+	}
+	if info.Formats[0].FileSizeApprox != 12582913 || info.Formats[1].FileSize != 1500000 || info.Formats[2].FileSize != 0 {
+		t.Fatalf("unexpected byte sizes: %+v", info.Formats)
+	}
+	if format, height := selectDownloadFormat(info, 64, 720); format != "video+audio" || height != 480 {
+		t.Fatalf("selected %q at %dp", format, height)
+	}
+}
+
+func TestSourceByteSizeBounds(t *testing.T) {
+	for _, test := range []struct {
+		raw  string
+		want int64
+	}{
+		{"0", 0}, {"12.0", 12}, {"12.01", 13}, {"1.2e2", 120},
+		{"9007199254740993", 9007199254740993},
+		{"9223372036854775807", 9223372036854775807},
+	} {
+		got, err := sourceByteSize(json.RawMessage(test.raw))
+		if err != nil || got != test.want {
+			t.Fatalf("size(%s) = %d, %v; want %d", test.raw, got, err, test.want)
+		}
+	}
+	for _, raw := range []string{"-1", "-0.5", "1e100", "9223372036854775808", `"123"`, "true", "{}"} {
+		if _, err := sourceByteSize(json.RawMessage(raw)); err == nil {
+			t.Fatalf("accepted invalid size %s", raw)
+		}
+	}
+}
+
+func TestSourceMetadataDecodeFailureReportsCause(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "yt-dlp")
+	if err := os.WriteFile(path, []byte("#!/bin/sh\nprintf '%s' '{\"id\":\"broken\",\"formats\":['\n"), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	a := &api{cfg: config{YtDLPPath: path}}
+	_, err := a.sourceMetadata(context.Background(), "https://example.com/video")
+	var apiErr *httpError
+	if !errors.As(err, &apiErr) || !strings.Contains(apiErr.Message, "metadata decode failed") || !strings.Contains(apiErr.Message, "unexpected end of JSON input") {
+		t.Fatalf("missing decoder cause: %v", err)
+	}
+}
 
 func TestValidateSourceURL(t *testing.T) {
 	lookup := func(_ context.Context, host string) ([]net.IPAddr, error) {

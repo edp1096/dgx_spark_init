@@ -25,17 +25,22 @@ type SystemMemory struct {
 }
 
 type ComponentStatus struct {
-	HealthCheckedAt *time.Time `json:"health_checked_at,omitempty"`
-	LastHealthyAt   *time.Time `json:"last_healthy_at,omitempty"`
-	HealthLatencyMS int64      `json:"health_latency_ms"`
-	HealthFailures  int        `json:"health_failures,omitempty"`
-	HealthError     string     `json:"health_error,omitempty"`
+	RequestMemoryGiB float64       `json:"request_memory_gib,omitempty"`
+	EngineMemory     *EngineMemory `json:"engine_memory,omitempty"`
+	CoreReady        *bool         `json:"core_ready,omitempty"`
+	Busy             *bool         `json:"busy,omitempty"`
+	HealthCheckedAt  *time.Time    `json:"health_checked_at,omitempty"`
+	LastHealthyAt    *time.Time    `json:"last_healthy_at,omitempty"`
+	HealthLatencyMS  int64         `json:"health_latency_ms"`
+	HealthFailures   int           `json:"health_failures,omitempty"`
+	HealthError      string        `json:"health_error,omitempty"`
 	Component
 	Status            string  `json:"status"`
 	Health            string  `json:"health"`
 	GPUMemoryGiB      float64 `json:"gpu_memory_gib"`
 	HostMemoryGiB     float64 `json:"host_memory_gib"`
 	ResidentMemoryGiB float64 `json:"resident_memory_gib"`
+	MemoryMeasured    bool    `json:"memory_measured"`
 	Progress          float64 `json:"progress,omitempty"`
 	Phase             string  `json:"phase,omitempty"`
 	ETA               string  `json:"eta,omitempty"`
@@ -69,16 +74,18 @@ type Operation struct {
 }
 
 type Snapshot struct {
-	SelectedBundle string                `json:"selected_bundle"`
-	Bundles        []Bundle              `json:"bundles"`
-	Components     []ComponentStatus     `json:"components"`
-	Memory         SystemMemory          `json:"memory"`
-	Hosts          map[string]HostStatus `json:"hosts"`
-	Operation      Operation             `json:"operation"`
-	Docker         string                `json:"docker"`
+	SelectedBundle  string                `json:"selected_bundle"`
+	Bundles         []Bundle              `json:"bundles"`
+	Components      []ComponentStatus     `json:"components"`
+	SupportServices []ComponentStatus     `json:"support_services"`
+	Memory          SystemMemory          `json:"memory"`
+	Hosts           map[string]HostStatus `json:"hosts"`
+	Operation       Operation             `json:"operation"`
+	Docker          string                `json:"docker"`
 }
 
 type Controller struct {
+	engineMemory   map[string]engineMemoryObservation
 	memoryProbe    func() SystemMemory
 	workloadOnce   sync.Once
 	workloadQueue  chan struct{}
@@ -151,12 +158,23 @@ func (c *Controller) Snapshot(ctx context.Context, selectedBundle string) Snapsh
 	components := catalog.ModelComponents(selectedBundle)
 	gpuByPID := gpuMemoryByPID(ctx)
 	statuses := make([]ComponentStatus, len(components))
+	supportComponents := catalog.SupportComponents(selectedBundle)
+	supportStatuses := make([]ComponentStatus, len(supportComponents))
 	var probes sync.WaitGroup
 	for i, component := range components {
 		probes.Add(1)
 		go func(i int, component Component) {
 			defer probes.Done()
 			statuses[i] = c.componentStatus(ctx, component, gpuByPID)
+		}(i, component)
+	}
+	for i, component := range supportComponents {
+		probes.Add(1)
+		go func(i int, component Component) {
+			defer probes.Done()
+			probeCtx, cancel := context.WithTimeout(ctx, 6*time.Second)
+			defer cancel()
+			supportStatuses[i] = c.componentStatus(probeCtx, component, gpuByPID)
 		}(i, component)
 	}
 	hostStatuses := make(map[string]HostStatus)
@@ -200,13 +218,14 @@ func (c *Controller) Snapshot(ctx context.Context, selectedBundle string) Snapsh
 		dockerState = "offline"
 	}
 	return Snapshot{
-		SelectedBundle: selectedBundle,
-		Bundles:        bundles,
-		Components:     statuses,
-		Memory:         readSystemMemory(),
-		Hosts:          hostStatuses,
-		Operation:      op,
-		Docker:         dockerState,
+		SelectedBundle:  selectedBundle,
+		Bundles:         bundles,
+		Components:      statuses,
+		SupportServices: supportStatuses,
+		Memory:          readSystemMemory(),
+		Hosts:           hostStatuses,
+		Operation:       op,
+		Docker:          dockerState,
 	}
 }
 
@@ -355,8 +374,8 @@ func (c *Controller) ComponentActionWithReserve(componentID, action string, rese
 	}
 	if len(bundleIDs) > 0 && (action == "start" || action == "restart") {
 		b, _ := c.Catalog().Bundle(bundleIDs[0])
-		if b.WorkloadSwap && workloadGroup(componentID) != "" {
-			return errors.New("이 서비스는 작업 요청 시 자동으로 시작하고 완료 후 종료합니다")
+		if b.WorkloadSwap && workloadGroup(componentID) != "" && !component.IsSupport() && componentID != "flux2" {
+			return errors.New("이 서비스는 작업 요청 시 자동으로 시작하고 여유가 있으면 재사용합니다")
 		}
 	}
 	if action != "start" && action != "stop" && action != "restart" && !(action == "prepare" && component.IsSupport() && component.Controller == "compose") {
@@ -389,6 +408,11 @@ func (c *Controller) ComponentActionWithReserve(componentID, action string, rese
 			}
 		default:
 			err = c.startAndWait(component)
+		}
+		if err == nil && componentID == "flux2" && (action == "start" || action == "restart") && len(bundleIDs) > 0 {
+			if b, ok := c.Catalog().Bundle(bundleIDs[0]); ok && b.WorkloadSwap {
+				err = c.fluxRuntimeAction(context.Background(), component, "prepare")
+			}
 		}
 		if err != nil {
 			c.finishOperation("failed", err.Error())
@@ -530,7 +554,7 @@ func (c *Controller) runBundleStart(bundle Bundle, reserveGiB float64) {
 			}
 		}
 	}
-	if bundle.WorkloadSwap {
+	if bundle.WorkloadSwap && c.componentNeedsStart(ctx, llm) {
 		if err := c.stopWorkloads(ctx, bundle); err != nil {
 			c.finishOperation("failed", err.Error())
 			return
@@ -587,6 +611,12 @@ func (c *Controller) runBundleStart(bundle Bundle, reserveGiB float64) {
 		c.completeCurrentStep()
 		c.finishOperation("failed", strings.Join(failures, "; "))
 		return
+	}
+	if bundle.WorkloadSwap {
+		if err := c.prepareResidentImage(ctx, bundle, reserveGiB); err != nil {
+			c.finishOperation("failed", "Qwen 유지 · Klein 사전 적재 실패: "+err.Error())
+			return
+		}
 	}
 	c.finishOperation("complete", "")
 }
@@ -708,13 +738,26 @@ func estimateFlashNextWeightProgress(info progressInfo, elapsed time.Duration) p
 
 func (c *Controller) componentStatus(ctx context.Context, component Component, gpuByPID map[int]float64) ComponentStatus {
 	status := c.observedStatus(ctx, component)
+	if component.Controller == "compose" && c.local(component) {
+		status.RequestMemoryGiB, _ = supportRequestMemoryGiB(component)
+	}
 	if status.Status == "running" && c.local(component) {
 		for _, pid := range containerPIDs(ctx, component.Container) {
 			status.GPUMemoryGiB += gpuByPID[pid]
 		}
-		status.HostMemoryGiB = containerHostResidentMemoryGiB(ctx, component.Container)
+		var hostMeasured bool
+		status.HostMemoryGiB, hostMeasured = containerHostResidentMemory(ctx, component.Container)
 		status.ResidentMemoryGiB = status.GPUMemoryGiB + status.HostMemoryGiB
+		status.MemoryMeasured = hostMeasured && (!isCUDAComponent(component) || gpuByPID != nil)
+		if status.Health == "online" {
+			status.EngineMemory = c.observedEngineMemory(component)
+		}
 		status.WorkspaceMemoryGiB = liveWorkspaceMemory(ctx, component)
+		if component.ID == "flux2" && component.ComposeAsset == "compose.flux2.yaml" {
+			if state, err := c.fluxMemoryState(ctx, component); err == nil {
+				status.CoreReady, status.Busy = state.CoreReady, state.Busy
+			}
+		}
 	}
 	return status
 }

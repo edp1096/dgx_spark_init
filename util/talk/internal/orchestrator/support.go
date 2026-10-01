@@ -105,6 +105,11 @@ func (c *Controller) SupportSnapshot(ctx context.Context, bundle string) []Suppo
 			defer cancel()
 			spec, _ := component.SupportSpec()
 			status := c.componentStatus(ctx, component, nil)
+			if c.OnDemandIdle(ctx, bundle, component.ID) {
+				status.Phase = "요청 시 실행"
+				status.Health = "standby"
+				status.Error = ""
+			}
 			installed := "external"
 			detail := ""
 			if component.Controller != "external" {

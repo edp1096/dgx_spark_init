@@ -27,6 +27,8 @@ VAE = "flux2-vae.safetensors"
 OUTPUT_ROOT = Path("/opt/ComfyUI/output").resolve()
 INPUT_ROOT = Path("/opt/ComfyUI/input").resolve()
 generation_lock = asyncio.Lock()
+active_prompt_id: str | None = None
+cancelled_prompts: set[str] = set()
 
 
 class ImageRequest(BaseModel):
@@ -125,6 +127,8 @@ async def comfy_ready() -> bool:
 async def wait_for_output(client: httpx.AsyncClient, prompt_id: str) -> dict[str, Any]:
     deadline = time.monotonic() + 30 * 60
     while time.monotonic() < deadline:
+        if prompt_id in cancelled_prompts:
+            raise RuntimeError('image generation cancelled')
         response = await client.get(f"{COMFY_URL}/history/{prompt_id}")
         response.raise_for_status()
         history = response.json().get(prompt_id)
@@ -141,7 +145,9 @@ async def wait_for_output(client: httpx.AsyncClient, prompt_id: str) -> dict[str
 
 
 async def execute_workflow(graph: dict[str, Any]) -> str:
+    global active_prompt_id
     image: dict[str, Any] | None = None
+    prompt_id = None
     try:
         async with httpx.AsyncClient(timeout=30 * 60) as client:
             submitted = await client.post(f"{COMFY_URL}/prompt", json={"prompt": graph})
@@ -149,11 +155,17 @@ async def execute_workflow(graph: dict[str, Any]) -> str:
             body = submitted.json()
             if body.get("node_errors"):
                 raise RuntimeError(f"invalid workflow: {body['node_errors']}")
-            image = await wait_for_output(client, body["prompt_id"])
+            prompt_id = body['prompt_id']
+            active_prompt_id = prompt_id
+            image = await wait_for_output(client, prompt_id)
             viewed = await client.get(f"{COMFY_URL}/view", params=image)
             viewed.raise_for_status()
             return base64.b64encode(viewed.content).decode("ascii")
     finally:
+        if prompt_id is not None:
+            cancelled_prompts.discard(prompt_id)
+            if active_prompt_id == prompt_id:
+                active_prompt_id = None
         if image is not None:
             candidate = (OUTPUT_ROOT / image["subfolder"] / image["filename"]).resolve()
             if candidate.is_relative_to(OUTPUT_ROOT):

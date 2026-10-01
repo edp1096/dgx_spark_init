@@ -2,12 +2,38 @@ package main
 
 import (
 	"bytes"
+	"context"
+	"errors"
 	"mime/multipart"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
+
+func TestRunRejectsTruncatedOutput(t *testing.T) {
+	stdout, stderr, err := run(context.Background(), "sh", "-c", "echo warning >&2; head -c 8388609 /dev/zero")
+	if len(stdout) != 8*1024*1024 || !strings.Contains(string(stderr), "warning") {
+		t.Fatalf("unexpected capture: stdout %d, stderr %q", len(stdout), stderr)
+	}
+	var apiErr *httpError
+	if !errors.As(processError("test", err, stderr), &apiErr) || !strings.Contains(apiErr.Message, "output was truncated") {
+		t.Fatalf("overflow hidden by warning: %v", err)
+	}
+}
+
+func TestLimitedBufferExactLimitIsNotTruncated(t *testing.T) {
+	b := &limitedBuffer{Limit: 3}
+	_, _ = b.Write([]byte("abc"))
+	if b.Truncated || string(b.Bytes()) != "abc" {
+		t.Fatalf("exact limit treated as overflow: %+v", b)
+	}
+	_, _ = b.Write([]byte("d"))
+	if !b.Truncated || string(b.Bytes()) != "abc" {
+		t.Fatalf("overflow not detected: %+v", b)
+	}
+}
 
 func TestSafeExtension(t *testing.T) {
 	tests := map[string]string{

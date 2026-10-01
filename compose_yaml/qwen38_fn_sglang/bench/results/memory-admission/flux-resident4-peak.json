@@ -1,0 +1,62 @@
+{
+  "image": {
+    "image": "sparktalk-flux2-paint:resident4",
+    "image_id": "sha256:c6fd829e686307a02e938222154474f450e10cb82763d8c8f44b76ed0ff4d9cb",
+    "started_at": "2026-10-01T06:59:03.389320371Z"
+  },
+  "baseline": {
+    "time": 1790842619.9573944,
+    "phase": "baseline",
+    "used_gib": 103.27423477172852,
+    "available_gib": 18.350872039794922,
+    "pswpout": 7302209,
+    "oom_kill": 0
+  },
+  "peak_additional_gib": 11.167346954345703,
+  "min_available_gib": 7.183525085449219,
+  "swap_written_mib": 3.32421875,
+  "oom_kills": 0,
+  "phases": {
+    "startup": {
+      "total_additional_peak_gib": 1.0738906860351562
+    },
+    "prepare": {
+      "total_additional_peak_gib": 3.589008331298828
+    },
+    "generate_cold": {
+      "total_additional_peak_gib": 9.735626220703125
+    },
+    "generate_warm": {
+      "total_additional_peak_gib": 9.70492172241211
+    },
+    "identity_edit": {
+      "total_additional_peak_gib": 9.513965606689453
+    },
+    "inpaint": {
+      "total_additional_peak_gib": 9.611690521240234
+    },
+    "outpaint": {
+      "total_additional_peak_gib": 11.167346954345703
+    },
+    "object_remove": {
+      "total_additional_peak_gib": 10.956832885742188
+    },
+    "background_cleanup": {
+      "total_additional_peak_gib": 10.749767303466797
+    },
+    "background_remove": {
+      "total_additional_peak_gib": 9.049922943115234
+    },
+    "bfs_cold": {
+      "total_additional_peak_gib": 10.516899108886719
+    },
+    "generate_after_bfs": {
+      "total_additional_peak_gib": 9.649993896484375
+    },
+    "reclaim": {
+      "total_additional_peak_gib": 5.284694671630859
+    }
+  },
+  "completed": 10,
+  "scope": "FLUX restart and 1024 workloads with Qwen left resident; 100ms host MemTotal-MemAvailable sampling. Not a theoretical maximum over all sizes and references."
+}

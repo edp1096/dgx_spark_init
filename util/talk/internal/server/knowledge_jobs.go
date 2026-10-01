@@ -229,7 +229,7 @@ func (s *Server) runKnowledgeJob(ctx context.Context, id string, run *knowledgeJ
 }
 
 func (s *Server) importKnowledgeJobItem(ctx context.Context, job db.KnowledgeJob, item db.KnowledgeJobItem) error {
-	collected, err := s.collectorSnapshot().Collect(ctx, item.SourceURL, "auto", s.knowledge)
+	collected, err := s.collectSource(ctx, item.SourceURL, "auto", true)
 	if err != nil {
 		return err
 	}

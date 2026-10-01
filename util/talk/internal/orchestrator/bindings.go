@@ -187,6 +187,13 @@ func migrateExtraBindings(catalog *Catalog) {
 }
 
 func componentDefaults(component Component) Component {
+	// Migrate only the former built-in Klein profile. Persisted catalogs must
+	// receive the measured phase split too; preserve custom reservations.
+	if component.ComposeAsset == "compose.flux2.yaml" && component.Model == "flux2-klein-4b-nvfp4" && component.MemoryGiB == 5.25 && component.StartupMemoryGiB == 0 && component.WorkspaceMemoryGiB == 4.5 {
+		component.MemoryGiB = 10
+		component.StartupMemoryGiB = 3.75
+		component.WorkspaceMemoryGiB = 6.5
+	}
 	if component.Host == "" {
 		component.Host = "local"
 	}
@@ -199,14 +206,16 @@ func componentDefaults(component Component) Component {
 	return component
 }
 
-// Enforce the measured floor for the fixed TP1 QAD profiles, while retaining
-// larger user reservations. MTP=0 uses native GDN and omits draft weights/KV.
+// Cold-start fallback for the fixed TP1 QAD recipes, retaining larger user
+// reservations. Running QAD budgets use the validated engine receipt and live
+// residency in observedBundleBudget; these values are not measured occupancy.
+// MTP=0 uses native GDN and omits draft weights/KV.
 func (c Component) runtimeMemoryEstimate() Component {
 	if c.ComposeAsset == "compose.flash-next.yaml" && (c.Model == QwenQADOfficial || c.Model == QwenQADAbliterated || c.Model == QwenQADHuihuiLIL) {
 		floor := 100.0
-		// Current Huihui LIL TP1/MTP profile: ~99.1 GiB device allocation
-		// plus ~8 GiB non-reclaimable host allocations. The old 100 GiB
-		// floor covered device memory only. This is a startup budget, not a cap.
+		// Keep the conservative Huihui loading fallback until a complete cold
+		// loading profile is qualified. Do not derive it by adding independent
+		// load/KV/allocator maxima, which overlap in both ownership and time.
 		if c.Model == QwenQADHuihuiLIL {
 			floor = 108
 		}

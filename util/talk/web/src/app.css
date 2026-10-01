@@ -271,6 +271,8 @@ header { display: flex; align-items: center; gap: 13px; padding: 12px 20px; bord
 .runtime-steps li.current b { color: #d3dcf0; }
 .runtime-steps li small { overflow: hidden; color: #657185; font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
 .runtime-components { overflow: hidden; border: 1px solid #2d3441; border-radius: 9px; }
+.runtime-support { display: grid; gap: 5px; min-width: 0; }
+.runtime-support > strong { color: #8f9aaa; font-size: 10px; font-weight: 550; }
 .runtime-component { display: grid; min-width: 0; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px; padding: 8px 9px; border-top: 1px solid #282e39; }
 .runtime-component:first-child { border-top: 0; }
 .runtime-component > span { min-width: 0; display: flex; align-items: center; gap: 8px; }

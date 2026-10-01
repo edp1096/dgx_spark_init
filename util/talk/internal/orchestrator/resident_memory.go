@@ -12,6 +12,12 @@ import (
 // anonymous pages, shared memory and unreclaimable kernel pages, but never
 // ordinary checkpoint file cache. shmem is a subset of file, not anon.
 func containerHostResidentMemoryGiB(ctx context.Context, container string) float64 {
+	memory, _ := containerHostResidentMemory(ctx, container)
+	return memory
+}
+
+// Keep failed measurements distinct from a successfully measured zero.
+func containerHostResidentMemory(ctx context.Context, container string) (float64, bool) {
 	for _, pid := range containerPIDs(ctx, container) {
 		data, err := os.ReadFile("/proc/" + strconv.Itoa(pid) + "/cgroup")
 		if err != nil {
@@ -29,10 +35,10 @@ func containerHostResidentMemoryGiB(ctx context.Context, container string) float
 			if err != nil {
 				continue
 			}
-			return hostResidentMemoryGiB(stat)
+			return hostResidentMemoryGiB(stat), len(stat) > 0
 		}
 	}
-	return 0
+	return 0, false
 }
 
 func hostResidentMemoryGiB(stat []byte) float64 {

@@ -1,0 +1,125 @@
+{
+  "context": 1048576,
+  "capacity": 1048576,
+  "model": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-NVFP4-QAD",
+  "cases": [
+    {
+      "name": "korean",
+      "passed": true,
+      "seconds": 0.594685848991503,
+      "response": {
+        "id": "96cb569537ca4f3da6541b2a5f203cbe",
+        "object": "chat.completion",
+        "created": 1790787889,
+        "model": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-NVFP4-QAD",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "42",
+              "reasoning_content": null,
+              "tool_calls": null
+            },
+            "logprobs": null,
+            "finish_reason": "stop",
+            "matched_stop": 248046
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 28,
+          "total_tokens": 31,
+          "completion_tokens": 3,
+          "prompt_tokens_details": null,
+          "reasoning_tokens": 0
+        },
+        "metadata": {
+          "weight_version": "default"
+        }
+      }
+    },
+    {
+      "name": "vision",
+      "passed": true,
+      "seconds": 0.8596978060086258,
+      "response": {
+        "id": "469a0368d7ea4a859f95e7b70bb2ef33",
+        "object": "chat.completion",
+        "created": 1790787890,
+        "model": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-NVFP4-QAD",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "Red, Blue",
+              "reasoning_content": null,
+              "tool_calls": null
+            },
+            "logprobs": null,
+            "finish_reason": "stop",
+            "matched_stop": 248046
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 102,
+          "total_tokens": 106,
+          "completion_tokens": 4,
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "image_tokens": 72
+          },
+          "reasoning_tokens": 0
+        },
+        "metadata": {
+          "weight_version": "default"
+        }
+      }
+    },
+    {
+      "name": "tool",
+      "passed": true,
+      "seconds": 1.5907461349997902,
+      "response": {
+        "id": "4a084481989e44fbb8e18d8f9d50b8c1",
+        "object": "chat.completion",
+        "created": 1790787892,
+        "model": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-NVFP4-QAD",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "",
+              "reasoning_content": null,
+              "tool_calls": [
+                {
+                  "id": "call_2c49fb6d72114458a2f47d0d",
+                  "index": 0,
+                  "type": "function",
+                  "function": {
+                    "name": "add",
+                    "arguments": "{\"a\": 17, \"b\": 25}"
+                  }
+                }
+              ]
+            },
+            "logprobs": null,
+            "finish_reason": "tool_calls",
+            "matched_stop": null
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 309,
+          "total_tokens": 346,
+          "completion_tokens": 37,
+          "prompt_tokens_details": null,
+          "reasoning_tokens": 0
+        },
+        "metadata": {
+          "weight_version": "default"
+        }
+      }
+    }
+  ]
+}

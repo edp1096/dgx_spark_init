@@ -182,6 +182,9 @@ func (c *Controller) observedStatus(ctx context.Context, component Component) Co
 		instance.oom = instance.oom || worker.oom
 	}
 	result.Status = instance.state
+	if monitor.history.identity != instance.identity {
+		c.recordEngineMemory(component, nil, 0, 0)
+	}
 	monitor.history.reset(instance.identity)
 	if instance.state != "running" && instance.state != "external" || instance.oom {
 		monitor.history = healthHistory{identity: instance.identity}

@@ -29,7 +29,7 @@ func (s *Server) executeDocumentGenerate(ctx context.Context, call llm.ToolCall)
 	return s.executeDocumentGenerateForSession(ctx, "", call)
 }
 
-func (s *Server) executeDocumentGenerateForSession(ctx context.Context, sessionID string, call llm.ToolCall) (registeredToolResult, error) {
+func (s *Server) executeDocumentGenerateForSession(ctx context.Context, sessionID string, call llm.ToolCall) (toolResult registeredToolResult, resultErr error) {
 	if len(call.Function.Arguments) > 1<<20 {
 		return registeredToolResult{}, fmt.Errorf("문서 요청이 너무 큽니다")
 	}
@@ -55,6 +55,11 @@ func (s *Server) executeDocumentGenerateForSession(ctx context.Context, sessionI
 	if err != nil {
 		return registeredToolResult{}, err
 	}
+	release, err := s.acquireWorkload(ctx, "extra-documents")
+	if err != nil {
+		return registeredToolResult{}, err
+	}
+	defer finishWorkload(release, &resultErr)
 	cfg, _ := s.snapshot()
 	ctx, cancel := context.WithTimeout(ctx, 100*time.Second)
 	defer cancel()

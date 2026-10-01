@@ -20,6 +20,7 @@ func observedBundleBudget(catalog Catalog, bundle Bundle, statuses []ComponentSt
 	groups := map[string]float64{}
 	observedGroups := map[string]float64{}
 	residentAux := 0.0
+	retainedImage := 0.0
 	for _, id := range bundle.Components {
 		component, ok := catalog.ResolveComponent(bundle.ID, id)
 		if !ok {
@@ -40,12 +41,29 @@ func observedBundleBudget(catalog Catalog, bundle Bundle, statuses []ComponentSt
 			groups[group] += s.MemoryGiB
 			observedGroups[group] += max(s.MemoryGiB, s.ResidentMemoryGiB+s.WorkspaceMemoryGiB)
 			residentAux += s.ResidentMemoryGiB
+			if s.ID == "flux2" {
+				retainedImage += s.ResidentMemoryGiB
+			}
 		} else {
-			budget += max(0, s.ResidentMemoryGiB-s.MemoryGiB)
+			if s.MemoryMeasured && s.Health == "online" && s.EngineMemory != nil && s.EngineMemory.valid(s.EngineMemory.Context, s.EngineMemory.Capacity) {
+				// A loaded fixed KV pool is already resident. Replace the cold
+				// profile with the observed allocation and only its unretained
+				// high-water allowance; never add individual allocator subsets.
+				extra := max(s.WorkspaceMemoryGiB, s.EngineMemory.PeakReserved-s.EngineMemory.Reserved)
+				budget += s.ResidentMemoryGiB + extra - s.MemoryGiB
+			} else {
+				budget += max(0, s.ResidentMemoryGiB-s.MemoryGiB)
+			}
 		}
 	}
 	if bundle.WorkloadSwap {
-		budget += max(residentAux, max(observedGroups["image"], observedGroups["speech"])) - max(groups["image"], groups["speech"])
+		peak := observedGroups["image"]
+		for group, value := range observedGroups {
+			if group != "image" {
+				peak = max(peak, retainedImage+value)
+			}
+		}
+		budget += max(residentAux, peak) - maxWorkloadBudget(groups)
 	}
 	return budget
 }
@@ -78,15 +96,22 @@ func (c *Controller) bundleMemoryPlan(ctx context.Context, bundle Bundle) memory
 	needsStart := false
 	gpuByPID := gpuMemoryByPID(ctx)
 	plan := memoryPlan{}
-	if bundle.WorkloadSwap {
+	// runBundleStart waits for each service before starting the next one.
+	// Retained allocations accumulate; temporary loading peaks do not overlap.
+	startup := startupMemoryPhases{}
+	if bundle.WorkloadSwap && llmNeedsStart {
 		full, _ := c.Catalog().Bundle(bundle.ID)
+		full = c.workloadBundle(full)
 		// These services are not loaded at bundle startup. Their actual request
 		// budget is checked when invoked (ASR also depends on decoded length).
 		for _, id := range full.Components {
 			if workloadGroup(id) == "" {
 				continue
 			}
-			x, _ := c.Catalog().ResolveComponent(bundle.ID, id)
+			x, _ := c.Catalog().ResolveSupport(bundle.ID, id)
+			if !c.local(x) || x.Controller == "external" {
+				continue
+			}
 			if c.componentRunning(ctx, x) {
 				for _, pid := range containerPIDs(ctx, x.Container) {
 					plan.FreedGiB += gpuByPID[pid]
@@ -113,14 +138,14 @@ func (c *Controller) bundleMemoryPlan(ctx context.Context, bundle Bundle) memory
 			if running && component.StartAfterLLM && llmNeedsStart {
 				// runBundleStart stops deferred services before loading the LLM.
 				needsStart = true
-				plan.NeededGiB += component.startupMemoryGiB()
+				startup.add(component, 0)
 				plan.FreedGiB += gpuMemory + containerHostResidentMemoryGiB(ctx, component.Container)
 				plan.RequiresCUDAStart = plan.RequiresCUDAStart || isCUDAComponent(component)
 				continue
 			}
 			if !running {
 				needsStart = true
-				plan.NeededGiB += component.startupMemoryGiB()
+				startup.add(component, 0)
 				plan.RequiresCUDAStart = plan.RequiresCUDAStart || isCUDAComponent(component)
 				continue
 			}
@@ -128,7 +153,7 @@ func (c *Controller) bundleMemoryPlan(ctx context.Context, bundle Bundle) memory
 			if !healthy {
 				needsStart = true
 				// Restarting releases the current allocation before rebuilding it.
-				plan.NeededGiB += max(0, component.startupMemoryGiB()-gpuMemory-containerHostResidentMemoryGiB(ctx, component.Container))
+				startup.add(component, gpuMemory+containerHostResidentMemoryGiB(ctx, component.Container))
 				plan.RequiresCUDAStart = plan.RequiresCUDAStart || isCUDAComponent(component)
 				continue
 			}
@@ -146,11 +171,30 @@ func (c *Controller) bundleMemoryPlan(ctx context.Context, bundle Bundle) memory
 			plan.FreedGiB += gpuMemory
 		}
 	}
+	plan.NeededGiB += startup.needed()
 	if !needsStart {
 		plan.NeededGiB = 0
 	}
 	return plan
 }
+
+// Serving budgets below the loading peak identify transient staging. When a
+// startup budget is smaller (lazy workspace), retain the startup budget rather
+// than reserving optional work that has not been requested. Counting all retained
+// allocations plus the largest transient remains conservative for any start order.
+type startupMemoryPhases struct {
+	retained, transient float64
+}
+
+func (p *startupMemoryPhases) add(component Component, current float64) {
+	startup := component.startupMemoryGiB()
+	retained := min(startup, component.MemoryGiB)
+	additional := max(0, retained-current)
+	p.retained += additional
+	p.transient = max(p.transient, max(0, startup-current)-additional)
+}
+
+func (p startupMemoryPhases) needed() float64 { return p.retained + p.transient }
 
 // Healthy LLM, ASR and TTS services have already loaded their steady-state
 // weights. Their host-side allocations are included in MemAvailable but are
@@ -191,11 +235,11 @@ func validateMemoryHeadroom(memory SystemMemory, plan memoryPlan, reserveGiB flo
 	return nil
 }
 
-// Startup admission does not reserve an optional transcription workspace as
-// if it were already allocated during model loading. MemoryGiB retains peak.
+// Loading and serving are separate phases. Startup may be smaller (deferred
+// ASR workspace) or larger (weight staging) than the serving budget.
 func (c Component) startupMemoryGiB() float64 {
 	if c.StartupMemoryGiB > 0 {
-		return min(c.StartupMemoryGiB, c.MemoryGiB)
+		return c.StartupMemoryGiB
 	}
 	return c.MemoryGiB
 }

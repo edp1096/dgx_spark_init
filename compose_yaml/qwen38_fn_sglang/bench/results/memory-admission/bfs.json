@@ -1,0 +1,70 @@
+{
+  "before": {
+    "status": "ok",
+    "busy": false,
+    "memory_schema": 1,
+    "workspace_kind": "additional",
+    "cuda_allocated_gib": 2.3542046546936035,
+    "cuda_reserved_gib": 2.412109375,
+    "cuda_peak_allocated_gib": 2.891331672668457,
+    "core_ready": true,
+    "core_object": 280248334706512,
+    "core_loaded_gib": 2.291435405611992,
+    "text_weights_cached": false,
+    "text_weights_on_device": false,
+    "workspace_gib": 4.5
+  },
+  "host_before": {
+    "time": 1790790025.1892312,
+    "phase": "bfs_cold",
+    "available_gib": 11.553062438964844,
+    "pswpout": 7283395,
+    "oom_kill": 0
+  },
+  "scope": "BFS full-size compute/memory test using generated turtle references, not identity quality",
+  "seconds": 18.218864836002467,
+  "after": {
+    "status": "ok",
+    "busy": false,
+    "memory_schema": 1,
+    "workspace_kind": "additional",
+    "cuda_allocated_gib": 2.6988258361816406,
+    "cuda_reserved_gib": 2.7109375,
+    "cuda_peak_allocated_gib": 4.184764385223389,
+    "core_ready": true,
+    "core_object": 280248334706512,
+    "core_loaded_gib": 2.291435405611992,
+    "text_weights_cached": true,
+    "text_weights_on_device": false,
+    "workspace_gib": 4.5
+  },
+  "host_after": {
+    "time": 1790790043.4339876,
+    "phase": "bfs_cold",
+    "available_gib": 9.903400421142578,
+    "pswpout": 7302179,
+    "oom_kill": 0
+  },
+  "reclaimed": {
+    "status": "ok",
+    "busy": false,
+    "memory_schema": 1,
+    "workspace_kind": "additional",
+    "cuda_allocated_gib": 2.3542046546936035,
+    "cuda_reserved_gib": 2.455078125,
+    "cuda_peak_allocated_gib": 4.184764385223389,
+    "core_ready": true,
+    "core_object": 280248334706512,
+    "core_loaded_gib": 2.291435405611992,
+    "text_weights_cached": false,
+    "text_weights_on_device": false,
+    "workspace_gib": 4.5
+  },
+  "host_reclaimed": {
+    "time": 1790790043.6961207,
+    "phase": "bfs_reclaim",
+    "available_gib": 11.407825469970703,
+    "pswpout": 7302179,
+    "oom_kill": 0
+  }
+}

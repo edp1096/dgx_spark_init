@@ -72,6 +72,16 @@ func (s *Server) health(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	sharedHealth := supportHealth(r.Context(), cfg)
+	if s.runtime != nil && cfg.Runtime.Mode == "managed" {
+		for _, spec := range orchestrator.SupportSpecs() {
+			if s.runtime.OnDemandIdle(r.Context(), cfg.Runtime.ActiveBundle, spec.ID) {
+				if state, ok := sharedHealth[spec.Key].(map[string]any); ok {
+					state["status"] = "standby"
+					delete(state, "error")
+				}
+			}
+		}
+	}
 	writeJSON(w, http.StatusOK, map[string]any{
 		"status": status, "endpoint": cfg.Model.Endpoint, "model": model, "error": errorText(err),
 		"asr":   asrHealth,

@@ -237,8 +237,15 @@ func TestSnapshotUsesSelectedBinding(t *testing.T) {
 	api := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(200) }))
 	defer api.Close()
 	catalog, _ := LoadCatalog()
+	for i := range catalog.Components {
+		if catalog.Components[i].IsSupport() {
+			catalog.Components[i].Controller = "external"
+			catalog.Components[i].HealthURL = api.URL
+		}
+	}
 	for i := range catalog.Bundles {
 		bundle := &catalog.Bundles[i]
+		bundle.WorkloadSwap = false
 		if bundle.ID != "glm53-worker-extra" {
 			continue
 		}
@@ -258,12 +265,26 @@ func TestSnapshotUsesSelectedBinding(t *testing.T) {
 	if snapshot.SelectedBundle != "glm53-worker-extra" || len(snapshot.Components) != len(catalog.ModelComponents("glm53-worker-extra")) {
 		t.Fatalf("wrong snapshot: %+v", snapshot)
 	}
+	if len(snapshot.SupportServices) != len(catalog.SupportComponents("glm53-worker-extra")) {
+		t.Fatalf("shared services missing: %+v", snapshot.SupportServices)
+	}
 	for _, component := range snapshot.Components {
 		if component.Health != "online" || component.Endpoint != api.URL {
 			t.Fatalf("base endpoint used: %+v", component)
 		}
+		if component.IsSupport() {
+			t.Fatal("support mixed into model startup state")
+		}
+	}
+	for _, component := range snapshot.SupportServices {
+		if component.Health != "online" || component.MemoryMeasured {
+			t.Fatalf("wrong shared service state or external memory measurement: %+v", component)
+		}
 		if component.ID == "extra-collector" && component.Host != "worker" {
 			t.Fatal("local status substituted")
+		}
+		if component.ID == "extra-documents" && component.Host != "local" {
+			t.Fatal("global service lost")
 		}
 	}
 }

@@ -35,6 +35,9 @@ func (c *Controller) checkSGLangCapacity(ctx context.Context, component Componen
 	var info struct {
 		Context  int `json:"context_length"`
 		Capacity int `json:"max_total_num_tokens"`
+		States   []struct {
+			Memory *EngineMemory `json:"qad_memory"`
+		} `json:"internal_states"`
 	}
 	if resp.StatusCode != 200 {
 		return fmt.Errorf("%s KV 용량 확인 HTTP %d", label, resp.StatusCode)
@@ -47,6 +50,13 @@ func (c *Controller) checkSGLangCapacity(ctx context.Context, component Componen
 	}
 	if info.Capacity < info.Context {
 		return &modelCapacityError{Model: label, Context: info.Context, Capacity: info.Capacity}
+	}
+	if component.ComposeAsset == "compose.flash-next.yaml" {
+		var receipt *EngineMemory
+		if len(info.States) == 1 {
+			receipt = info.States[0].Memory
+		}
+		c.recordEngineMemory(component, receipt, info.Context, info.Capacity)
 	}
 	return nil
 }

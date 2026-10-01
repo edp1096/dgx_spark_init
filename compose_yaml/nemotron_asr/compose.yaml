@@ -10,7 +10,9 @@ services:
         BUILD_JOBS: ${NEMO_BUILD_JOBS:-2}
     image: sparktalk-nemotron-asr:0.6b-q8-diar2-workspace
     container_name: sparktalk-nemotron-asr
-    restart: unless-stopped
+    # Talk checks Qwen's remaining memory before starting ASR. Docker must not
+    # bypass that check after an ASR failure or a host reboot.
+    restart: "no"
     # Equal limits disable container swap; this is a ceiling, not a reservation.
     mem_limit: "112g"
     memswap_limit: "112g"

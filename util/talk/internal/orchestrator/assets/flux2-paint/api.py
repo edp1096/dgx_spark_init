@@ -14,15 +14,24 @@ from PIL import Image, ImageDraw, ImageOps, ImageChops, ImageFilter, Unidentifie
 from pydantic import ConfigDict, Field
 
 import base_api as base
+_cutout_worker = None
 
 # All generation, reference and LoRA/LanPaint graphs originate here.
 if os.getenv("SPARKTALK_FLUX_PHASED") == "1":
     original_workflow = base.workflow
     def phased_workflow(*args, **kwargs):
         graph = original_workflow(*args, **kwargs)
+        graph['1']['class_type'] = 'SparkTalkUNETLoader'
+        graph['3']['class_type'] = 'SparkTalkVAELoader'
         clip_name = graph.pop("2")["inputs"]["clip_name"]
         text = graph["4"]["inputs"]["text"]
         graph["4"] = {"class_type": "SparkTalkTextEncode", "inputs": {"text": text, "clip_name": clip_name}}
+        reference_scales = [node for node in graph.values() if node['class_type'] == 'ImageScale']
+        if reference_scales:
+            for node in reference_scales:
+                pixels = min(1048576, node['inputs']['width'] * node['inputs']['height']) // len(reference_scales)
+                node['class_type'] = 'SparkTalkReferenceScale'
+                node['inputs'] = {'image': node['inputs']['image'], 'max_pixels': max(256, pixels)}
         return graph
     base.workflow = phased_workflow
 
@@ -32,11 +41,14 @@ app.router.routes = [route for route in app.router.routes if getattr(route, "pat
 
 class PaintRequest(base.ImageRequest):
     model_config = ConfigDict(extra="forbid")
-    operation: Literal["generate", "identity_edit", "inpaint", "outpaint", "object_remove", "background_cleanup", "background_remove"] = "generate"
+    operation: Literal["generate", "identity_edit", "head_swap", "inpaint", "outpaint", "object_remove", "background_cleanup", "background_remove"] = "generate"
     output_format: Literal["png"] = "png"
     preserve_source: bool = False
     background_method: Literal["rembg", "lora_rembg"] = "rembg"
     source_image: str | None = Field(default=None, max_length=32 * 1024 * 1024)
+    head_image: str | None = Field(default=None, max_length=32 * 1024 * 1024)
+    reference_crop_box: list[int] | None = None
+    head_swap_strength: float = Field(default=1.0, ge=0.1, le=1.5)
     anypaint_image: str | None = Field(default=None, max_length=32 * 1024 * 1024)
     anypaint_mask: str | None = Field(default=None, max_length=32 * 1024 * 1024)
     mask_box: list[int] | None = None
@@ -168,10 +180,82 @@ def png_bytes(image):
     return buffer.getvalue()
 
 
+HEAD_SWAP_TRIGGER = ('head_swap: start with Picture 1 as the base image, keeping its lighting, environment, and background. '
+                     'Replace its head with the head from Picture 2, preserving the identity, hair, eyes, and nose of Picture 2. '
+                     'Keep the head direction and expression from Picture 1. Keep the body, clothing, pose, framing, and background intact. ')
+
+
+def checked_box(box, image, name):
+    if not isinstance(box, list) or len(box) != 4 or any(type(n) is not int for n in box):
+        raise HTTPException(400, f'{name} must be [left, top, right, bottom] in original image pixels')
+    l, t, r, b = box
+    if not (0 <= l < r <= image.width and 0 <= t < b <= image.height) or min(r-l, b-t) < 32:
+        raise HTTPException(400, f'{name} must be within the image and at least 32 pixels per side')
+    return tuple(box)
+
+
+def head_swap_inputs(request):
+    if not request.source_image or not request.head_image:
+        raise HTTPException(400, 'head_swap requires target source_image first and head_image reference second')
+    original = decode_image(request.source_image)
+    head = decode_image(request.head_image)
+    box = checked_box(request.mask_box, original, 'mask_box') if request.mask_box is not None else None
+    target = original.crop(box) if box else original.copy()
+    if request.reference_crop_box is not None:
+        head = head.crop(checked_box(request.reference_crop_box, head, 'reference_crop_box'))
+    scale = min(1024 / max(target.size), max(1.0, 512 / min(target.size)))
+    size = tuple(max(256, min(1024, int(n * scale) // 16 * 16)) for n in target.size)
+    target = target.resize(size, Image.Resampling.LANCZOS)
+    return original, target, head, box
+
+
+def restore_head_swap(encoded, original, box):
+    with Image.open(io.BytesIO(base64.b64decode(encoded))) as output:
+        output = output.convert('RGB')
+    if box is None:
+        return base64.b64encode(png_bytes(output.resize(original.size, Image.Resampling.LANCZOS))).decode()
+    l, t, r, b = box
+    edited = output.resize((r-l, b-t), Image.Resampling.LANCZOS)
+    # Feather strictly INSIDE the selected rectangle; every outside pixel
+    # remains an exact copy of the original, including other people's heads.
+    edge = min(12, max(2, min(edited.size) // 16))
+    alpha = Image.new('L', edited.size, 0)
+    ImageDraw.Draw(alpha).rectangle((edge, edge, edited.width-edge-1, edited.height-edge-1), fill=255)
+    alpha = alpha.filter(ImageFilter.GaussianBlur(edge / 2))
+    canvas = original.copy()
+    canvas.paste(edited, (l, t), alpha)
+    return base64.b64encode(png_bytes(canvas)).decode()
+
+
+async def generate_head_swap(request, seed, prefix):
+    original, target, head, box = head_swap_inputs(request)
+    paths = []
+    directory = base.INPUT_ROOT / 'nvfp4-api'
+    directory.mkdir(parents=True, exist_ok=True)
+    try:
+        for image in (target, head):
+            path = directory / f'{uuid.uuid4().hex}.png'
+            paths.append(path)
+            image.save(path)
+        graph = base.workflow(HEAD_SWAP_TRIGGER + request.prompt.strip(), *target.size, seed, prefix,
+                              [f'nvfp4-api/{p.name}' for p in paths])
+        graph['40'] = {'class_type': 'SparkTalkBFSLoader', 'inputs': {
+            'model': ['1', 0], 'lora_name': 'bfs-head-v1-flux2-klein-4b.safetensors',
+            'strength_model': request.head_swap_strength}}
+        graph['9']['inputs']['model'] = ['40', 0]
+        encoded = await base.execute_workflow(graph)
+        return restore_head_swap(encoded, original, box)
+    finally:
+        for path in paths:
+            path.unlink(missing_ok=True)
+
+
 async def cutout(data):
+    global _cutout_worker
     worker = await asyncio.create_subprocess_exec(
         "/opt/rembg-venv/bin/python", "/opt/nvfp4-api/rembg_worker.py",
         stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
+    _cutout_worker = worker
     try:
         output, error = await asyncio.wait_for(worker.communicate(data), timeout=120)
         if worker.returncode != 0:
@@ -180,6 +264,8 @@ async def cutout(data):
             raise RuntimeError("rembg did not return a PNG image")
         return base64.b64encode(output).decode("ascii")
     finally:
+        if _cutout_worker is worker:
+            _cutout_worker = None
         if worker.returncode is None:
             worker.kill()
             await worker.wait()
@@ -201,7 +287,8 @@ async def health():
     if not await base.comfy_ready():
         raise HTTPException(503, "NVFP4 runtime is starting")
     return {"status": "ok", "model": base.MODEL_ID,
-            "outpaint_lora": "fal/flux-2-klein-4B-outpaint-lora", "outpaint_lora_strength": 1.1, "remove_loras": ["object-remove", "background-remove"], "background_cutout": "rembg u2net CPU"}
+            "outpaint_lora": "fal/flux-2-klein-4B-outpaint-lora", "outpaint_lora_strength": 1.1, "remove_loras": ["object-remove", "background-remove"], "background_cutout": "rembg u2net CPU",
+            "head_swap_lora": "Alissonerdx/BFS-Best-Face-Swap", "head_swap_version": "Klein 4B V1 BF16"}
 
 
 @app.post("/v1/images/generations")
@@ -214,14 +301,18 @@ async def generate(request: PaintRequest):
         raise HTTPException(409, "image generation is already running")
     # Fail instead of silently dropping arguments from a different operation.
     paint_fields = {"anypaint_image", "anypaint_mask", "mask_box", "outpaint_left", "outpaint_top", "outpaint_right", "outpaint_bottom"}
-    if request.operation not in ("inpaint", "outpaint", "object_remove") and request.model_fields_set & paint_fields:
+    allowed_paint = paint_fields if request.operation != 'head_swap' else paint_fields - {'mask_box'}
+    if request.operation not in ("inpaint", "outpaint", "object_remove") and request.model_fields_set & allowed_paint:
         raise HTTPException(400, "mask and padding fields require inpaint or outpaint")
-    if request.operation not in ("identity_edit", "background_cleanup", "background_remove") and request.source_image is not None:
+    if request.operation not in ("identity_edit", "head_swap", "background_cleanup", "background_remove") and request.source_image is not None:
         raise HTTPException(400, "source_image requires identity_edit")
     if request.preserve_source and request.operation != "outpaint":
         raise HTTPException(400, "preserve_source is only supported for outpaint")
     if request.background_method != "rembg" and request.operation != "background_remove":
         raise HTTPException(400, "background_method requires background_remove")
+    head_fields = {'head_image', 'reference_crop_box', 'head_swap_strength'}
+    if request.operation != 'head_swap' and request.model_fields_set & head_fields:
+        raise HTTPException(400, 'head reference/crop/strength fields require head_swap')
     seed = base.request_seed(request.seed)
     prefix = f"nvfp4-api/{uuid.uuid4().hex}"
     path = None
@@ -231,6 +322,9 @@ async def generate(request: PaintRequest):
     working_content_size = None
     async with base.generation_lock:
         try:
+            if request.operation == 'head_swap':
+                encoded = await generate_head_swap(request, seed, prefix)
+                return {"created": int(time.time()), "seed": seed, "data": [{"b64_json": encoded}]}
             if request.operation in ("inpaint", "outpaint", "object_remove"):
                 image = prepare_paint(request)
                 if request.operation in ("inpaint", "object_remove"):
@@ -293,4 +387,87 @@ async def runtime_memory():
     async with httpx.AsyncClient(timeout=3) as client:
         response = await client.get(f"{base.COMFY_URL}/sparktalk/memory")
         response.raise_for_status()
-        return response.json()
+        state = response.json()
+        state['busy'] = bool(state.get('busy')) or base.generation_lock.locked()
+        return state
+
+
+async def runtime_control(action):
+    if base.generation_lock.locked():
+        raise HTTPException(409, 'Image generation is active')
+    async with base.generation_lock:
+        async with httpx.AsyncClient(timeout=180) as client:
+            if action == 'prepare':
+                response = await client.get(f'{base.COMFY_URL}/sparktalk/memory')
+                response.raise_for_status()
+                state = response.json()
+                # A resident LoRA view also owns the same core weights. Do not
+                # switch it back to the canonical patcher on every retry.
+                if state.get('core_ready'):
+                    return state
+            payload = {'unet_name': base.DIFFUSION_MODEL, 'vae_name': base.VAE} if action == 'prepare' else {}
+            response = await client.post(f'{base.COMFY_URL}/sparktalk/{action}', json=payload)
+            if not response.is_success:
+                raise HTTPException(response.status_code, response.text[-2000:])
+            state = response.json()
+            if action == 'prepare' and not state.get('core_ready'):
+                graph = base.workflow('warmup', 256, 256, 0, f'nvfp4-api/warmup-{uuid.uuid4().hex}')
+                graph.pop('2', None)
+                graph['4'] = {'class_type': 'SparkTalkWarmupConditioning', 'inputs': {'model': ['1', 0]}}
+                graph['8']['inputs']['steps'] = 1
+                # No text encoder or LoRA; output is discarded and the common
+                # executor removes the temporary PNG after reading it.
+                await base.execute_workflow(graph)
+                response = await client.get(f'{base.COMFY_URL}/sparktalk/memory')
+                response.raise_for_status()
+                state = response.json()
+                if not state.get('core_ready'):
+                    raise HTTPException(503, 'Core residency not confirmed after warmup')
+            return state
+
+
+@app.post('/v1/runtime/prepare')
+async def runtime_prepare():
+    return await runtime_control('prepare')
+
+
+@app.post('/v1/runtime/reclaim')
+async def runtime_reclaim():
+    return await runtime_control('reclaim')
+
+
+@app.post('/v1/runtime/cancel')
+async def runtime_cancel():
+    # Interrupt first, without waiting on the generation lock. The Comfy queue
+    # and API request must both finish before the caller may change weights.
+    async with httpx.AsyncClient(timeout=10) as client:
+        owned_prompt = base.active_prompt_id
+        worker = _cutout_worker
+        if owned_prompt is not None:
+            response = await client.get(f'{base.COMFY_URL}/queue')
+            response.raise_for_status()
+            running = response.json().get('queue_running', [])
+            if any(len(entry) > 1 and entry[1] == owned_prompt for entry in running):
+                response = await client.post(f'{base.COMFY_URL}/interrupt')
+                response.raise_for_status()
+            # Delete only this API request's queued prompt, never another
+            # client's pending work. Its wait loop also needs cancellation.
+            response = await client.post(f'{base.COMFY_URL}/queue', json={'delete': [owned_prompt]})
+            response.raise_for_status()
+            base.cancelled_prompts.add(owned_prompt)
+        if worker is not None and worker.returncode is None:
+            try:
+                worker.kill()
+            except ProcessLookupError:
+                pass
+            await worker.wait()
+        deadline = time.monotonic() + 60
+        while time.monotonic() < deadline:
+            response = await client.get(f'{base.COMFY_URL}/queue')
+            response.raise_for_status()
+            running = response.json().get('queue_running', [])
+            owned_running = owned_prompt is not None and any(len(entry) > 1 and entry[1] == owned_prompt for entry in running)
+            if not owned_running and not base.generation_lock.locked():
+                return {'status': 'ok'}
+            await asyncio.sleep(.1)
+    raise HTTPException(409, 'Image cancellation is not confirmed; core retained')
