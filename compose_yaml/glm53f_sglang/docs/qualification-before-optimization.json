@@ -1,0 +1,343 @@
+{
+  "status": "functional_pass_after_expandable_allocator",
+  "date": "2026-09-27",
+  "model": "edp1096/Huihui-GLM-5.3-Flash-abliterated-NVFP4",
+  "model_revision": "48437d914cbde5c750093b9606a98508cb5430c0",
+  "image": "dgx-sglang-glm53:sm121-dev4",
+  "image_equivalence": {
+    "head_image": "sha256:57fd9992defcef3106aa23e074cc4a91331749556c4304c891313ee850d0776e",
+    "worker_image": "sha256:4a122b4690a496f09f65dc2356a5182341267748a75f6f6d1e0c2ae274b7c69f",
+    "rootfs_equal": true,
+    "config_equal": true,
+    "layers": [
+      "sha256:e17beae36f949985cd5c8957b0fb37277d87b187669186eefe27d594dd1ef738",
+      "sha256:a114cb034194caeb80775f13056be8039e188e2f2e902c1d2b135bfc0d214d8c",
+      "sha256:5d098350ead1fe9884bb116fb3ff3d52ca42c0c15f563a3ae0699e076b5275d9",
+      "sha256:ab080d97eeffbd61418402c5ffece19d289faffc975da70dc865a0a42bae325a",
+      "sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef",
+      "sha256:9e8afd01582452c1a3254caa40feeb4f32418abb54177f99663a58f3ebe022e3",
+      "sha256:fdb5c9bcf16b58539209a7e6a469bea3a5b5434d2c4e9d4719968e22fe0ef1d7",
+      "sha256:d460eb5c5792016a15ba7acb68a03d761f527a0fbf998131403a7e9ee87aaa7e",
+      "sha256:454552153bc452fbc71528ad123a2717b79169c835e0be58f630a44596eaa3c0",
+      "sha256:655d599335c8b3bcc18024100527de5cbcc98080d6ef3f1237769e4fb4305ea5",
+      "sha256:13ad2d65f868dd118a17e846bde69fae4afb9b402b6462926bf2de2011bed749",
+      "sha256:e5abbc9e67adc3645b0a80f3acb9002768da1ab5805243c545401f2f3812b46e",
+      "sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef",
+      "sha256:98c6440e98d47f1d0482fbb4673a353b52e5b28a4e6a351dd3a0f005d9e2a402",
+      "sha256:67df68f6951f2f0ebb490e040eb1a0f182d1f3ffea27004e4cc249962d2139c4",
+      "sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef",
+      "sha256:1feff41e377fb557db5e7bcbbd5eef6a49932ee3bc498e0a7b53e5bface505e3",
+      "sha256:9f2488dc6b5174a5963d7e2c68b5a3e38f74ad42bb1b4659726b419976b2efad",
+      "sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef",
+      "sha256:b0557f0e7073d9b15e4a9a3cb732e0e35d06378ffa80412b458bc0371847a4ec",
+      "sha256:1e7921ac501d9a3359210b474c2786479a18fb34327528f39026d4061b9ecdcc",
+      "sha256:43c56be7905cf6114db907d6fd49594037dff37ee7c641209b487a5131d83a01",
+      "sha256:75181c9e5f46506bbc436b840db0b612859cb634aeadd3b9e41b692eb71a3ec0",
+      "sha256:8dd84552374b586fa9a7e2fc0b7584564925ddf7ad70052a823f865fdbb4f572",
+      "sha256:854dd1bb96b5cc0479d3ba302676b7d1f9976be1b9be13c0436d01161fdf8cc3",
+      "sha256:dc96bb4d7f389516f5248dafb41661e30b0390c1a252ca3b75a70b34371a917b",
+      "sha256:e2d501d27eda78f022dcf9c28af06500bca4cb7ca7afe7c70f470b1d0bad85ec",
+      "sha256:c240c22be231fc2c68dbfbaef5deed2184d31e4e36b18d71e3dcee09498c4b09",
+      "sha256:0be763ea57cb9b68fc7af1ac8c702fc224f635271687d5c62c035f1c17fd29b5",
+      "sha256:84eca8a49e6a5ce8342cded80dcbe4911a8f1937eb1a0df78b43679cf602a793",
+      "sha256:171fb3058ca3e1d3326eeb4329c410f30bd8c02fe310ad7a42550421130accf7",
+      "sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef",
+      "sha256:9eaa5f0992375f9aaffaa43cf358925543a4172cbfd3844a6baac51ec559c959",
+      "sha256:fd2b694b4030ae03fa52438a228c1516e80022a3409113d52564fa6edbcc8b6c",
+      "sha256:0942ec60966efb10d8e152bddb115a51a817bb7d9cf7d6787120009ffe8a0eac",
+      "sha256:3c56b2cf4ffd66f1d5c4a19bc206874ec03722712419837c09b197d9662b2091",
+      "sha256:735ad2ebe9a71100f8755bdfd83e56e92db3d059616d122b0a219951b8637f1b",
+      "sha256:d6718fddd360de4680d23a58f2ac79f01e68afdd805509c7efe26aaf2aef35d0",
+      "sha256:3e2eb8cc094aa7f3e21ca3ce4316bf99c225ac0e6e61a72f45f85b37b1b6537c",
+      "sha256:7b7eae0d8a1d250913372990894de87835a5fdcdb0235148f1930ea056a35df5",
+      "sha256:c3be90b2198737c3c3a657827436478a2cbd715991407930b5ddb2ebebb5cdb1",
+      "sha256:974a1a094484ce643cacbe901dcc375629e62776cc1cf3bd48c462dacd1bcd11",
+      "sha256:62742402239e8a5506a051109585d2cdac0318dd6b6cfb7001e1f4abc6b1237f",
+      "sha256:d69471e7682ef77a9450ddda2c3cd10d65fb133accadd07551f9238c982ed3db",
+      "sha256:a5bb449d394f51d2b25d19309ed85347a1928c5cf2ffd2a576e2a3560bde2698",
+      "sha256:112c162f155abe284ce77b4dc81d2cb7193d1218c71dc870ecaa3c815de227eb",
+      "sha256:d370deb630c0e6806bbddd0fae874195499799deab53be04b50cac228ac77964",
+      "sha256:b6eae564a79cc8a86cb3148f89dddf1eb8401639a035575eac9645bf6d94bda7",
+      "sha256:8f620da7ebffa3e477488ce4742f6d9c50f1f9e57fc775a4c18e91467906057b",
+      "sha256:00af3188c0490f4f2e7a42793e005193fda57ebc83c023bc4991defb5a0fad2f",
+      "sha256:150e1a735363d283f886c1ddfa3a2e5b72b058f871230c24059217dbb6be5408",
+      "sha256:234c511acaf3b89b4a8848276d4fd0d2e1809865e923fa1efe6816ce0e166527",
+      "sha256:f479318a209d1b215f00e69c29fd4a7c5472d08296ea8d9b682c69037c46c672",
+      "sha256:5d091e3a53d42f94d481ebb1ea1e7a0331c0f7bcb62251b0bf1889950446aba0",
+      "sha256:231a9183decff0d4ad3d218d02852ca6497a4d4c1ee83ce6660a53fc1a5872a9",
+      "sha256:e45c3ebf214cc90c561a52dfaecad25eced16fd919a9d4beb53328b66e8996fe",
+      "sha256:a9a27b64ef731972d7153a21e5df30e1b0832ed9021b4334e0fb363e6dec0b06",
+      "sha256:5541cc2a030a1563bea04a3d5a4e7d7994e6f17fc27b00e454a4dd9e6ff906d9",
+      "sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef",
+      "sha256:062f2f0bd5f9d2051a63910f872217194afe04420a3187cd256df3d8ab87cc0a",
+      "sha256:e6321ba6fc509b35c531643e950d895ad2f4c8f998a97529ac3bcb061532cabd",
+      "sha256:68e79034e769c64468f90356612dad0b171cae0e2cfee50a1f3928dfbd125a6c",
+      "sha256:aaad5b413e99de691c6712eb8830f632baac1e011566f734fdfdc817147b29d2",
+      "sha256:3d2691cc47e7300b343929a3b2a316509d9bd9501665842e01e04fe2bf24fe82",
+      "sha256:68f18de76f5841785d0d4e559ff26557fef72fcd910194c425b56f82650f6a8c",
+      "sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef",
+      "sha256:4ecda4467445c6a518fdf58e0eaabea357e12907b7eaeac3e11f7c39c0081b7e",
+      "sha256:0e292ce1040fec335e4e26763509ae6c05144d068e3439791a1e9eb0209939f8",
+      "sha256:486fb4d1244ff79aab33ff5776db04f3deb41465b9895210922d948894ab2644",
+      "sha256:92c513419cd99d7627141d6dc56e1935bb750bcf48f06def6944e1c2044828cf",
+      "sha256:4baf0d2ddf9eddcc42cb325162e82442aa3763f4e8b59cf53e729184d4dd7eaf",
+      "sha256:6acaa1539e3a0fdaa5529e6b37ae22425b04c5883d8c863e54cecf3fc834da9b",
+      "sha256:fdf07cbdb2d1799ddc466e559d7678a63993a5ea043118e3b48d5ec507952d5e",
+      "sha256:b7fca1d55796f78048c8898123695cc109386276cc3d79bfc309f0cbbf953ef6",
+      "sha256:6394e7ff2216d68c136c2a8083a3c46c7dc8b1cb2b3395832d21cc5c1749605a",
+      "sha256:e1d2532d5dc5f3a6603f0f523b4c56ab18ce06c9cc2d6fc68b6ff0d3368b1c53",
+      "sha256:363fdb7a8f7b2a31177acb506a3a1df3bde2946a2c872956885a1608d61e2212",
+      "sha256:b9e757c86624eb0344a714be69e7581cfadbbbc758fa274662889b31f339ca18",
+      "sha256:5bd0147556ab8a4ae4aa6f72329a115b11d4193a966672b3f7512f3244b501e4",
+      "sha256:33db66c82b50b6aa35f60b3d29ac05e61d09ddba12ce3d7e19ac9eb9fd019956",
+      "sha256:3f12070da9d5028d10510412ec92b6b931de480afc6a59bac4ed3ec727352db0",
+      "sha256:4d7a3ec31d54b0447f58707546ec46a64a7a489f836655911d82ee0398c63532",
+      "sha256:748ff0cb1469947037748e9f2fcee8f0ce6f31aefd827e2374cd14b0636b7ee5",
+      "sha256:f842f0f9175f5411e48b13b86fd06db6fdff247427886c6d41c86a8da25bd8f8",
+      "sha256:5e3fa8069e957cbd75cfe644374e4c7d79a9b137ddec2fb91de0b5413f032e5b",
+      "sha256:75a8a7e4d9fb12d0c569be48500a20f33474a916d0906ab52f708150900dd222",
+      "sha256:9393feb60196fbdd967b4695ecda49c2ea3a8f0a5e937215d7b4f87a7a6352af",
+      "sha256:992bdbce621468d3401dd915f15ead8d6bf239ee768317d8218e8e959c39daa9",
+      "sha256:d2c7abe01edcca4184198b8e7b9375edcf732f796ca15a36fb3d5672b6ce3513",
+      "sha256:4710257310035822cc8fbb19eff61ee375780c2b4705638bd3b13d1badbc5d25",
+      "sha256:ef0f54936d0669f165c74f4015185426e69f51e535b0a287e77fdcbb02930201",
+      "sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef",
+      "sha256:3bd0a86ec277464fe34ace893b8c1aa3fb3c80f403d44e454fff562cec90b882",
+      "sha256:86e1881325c83b2b34eb1e14e0f6cbbece75be15f2e5ac80e163331b02b814d6",
+      "sha256:b0bb8aa154c795bfe9b2690adc76331ace58edfc84c8c58b30f6e3e16645e9fc"
+    ]
+  },
+  "sglang_commit": "425a1f8f247d0cc17f2a3f3c2dba6c0bdf936552",
+  "transformers": "5.17.0",
+  "b12x_commit": "9043b448622764a598969518d413b3fd8b3c0c07",
+  "hardware": {
+    "hosts": 2,
+    "device": "DGX Spark GB10 SM121",
+    "tensor_parallel": 2,
+    "cpu_limit_percent": 70,
+    "gpu_max_mhz": 2100,
+    "transport": "NCCL IB / RoCE, active SGLang RC QPs verified"
+  },
+  "settings": {
+    "context_length": 1048576,
+    "actual_kv_tokens": 1048576,
+    "kv_cache_dtype": "fp8_e4m3",
+    "kv_pool_gib_per_rank_log": 7.09,
+    "mamba_slots": 8,
+    "max_running_requests": 1,
+    "chunked_prefill_size": 1024,
+    "mem_fraction_static": 0.88,
+    "cuda_graph": false,
+    "mtp": false,
+    "dflash": false,
+    "disk_kv_persistence": false,
+    "enable_cache_report": true,
+    "zero_cache_reporting": "This pinned SGLang UsageProcessor returns prompt_tokens_details=null when cached_tokens=0; server setting checked before each test run.",
+    "pytorch_alloc_conf": "expandable_segments:True"
+  },
+  "smoke_tests": [
+    {
+      "test": "korean",
+      "passed": true,
+      "seconds": 0.9973956760004512
+    },
+    {
+      "test": "arithmetic",
+      "passed": true,
+      "seconds": 0.5202690919977613
+    },
+    {
+      "test": "multi_turn",
+      "passed": true,
+      "seconds": 1.0739926490023208
+    },
+    {
+      "test": "tool_call",
+      "passed": true,
+      "seconds": 2.0579277879987785
+    },
+    {
+      "test": "image",
+      "passed": true,
+      "seconds": 1.2715211309987353
+    },
+    {
+      "test": "thinking_on",
+      "passed": true,
+      "seconds": 8.295630294996954
+    },
+    {
+      "test": "streaming_thinking_off",
+      "passed": true,
+      "seconds": 0.7392917699980899
+    },
+    {
+      "test": "near_8k_context",
+      "passed": true,
+      "seconds": 6.756177135001053
+    },
+    {
+      "test": "automatic_tool_roundtrip",
+      "passed": true,
+      "seconds": 2.421539965998818
+    }
+  ],
+  "image_tests": [
+    {
+      "test": "red",
+      "passed": true,
+      "prompt_tokens": 135
+    },
+    {
+      "test": "green",
+      "passed": true,
+      "prompt_tokens": 135
+    },
+    {
+      "test": "blue",
+      "passed": true,
+      "prompt_tokens": 135
+    }
+  ],
+  "long_context": [
+    {
+      "limit": 262144,
+      "passed": true,
+      "seconds": 196.63761682800032,
+      "prompt_tokens": 261192,
+      "cached_tokens": 0,
+      "actual": {
+        "STONE": "a7c9f2d4",
+        "LARCH": "b6e1a8c3",
+        "RIVER": "d9f4b2e7"
+      },
+      "expected": {
+        "STONE": "a7c9f2d4",
+        "LARCH": "b6e1a8c3",
+        "RIVER": "d9f4b2e7"
+      },
+      "usage": {
+        "prompt_tokens": 261192,
+        "total_tokens": 261229,
+        "completion_tokens": 37,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      }
+    },
+    {
+      "limit": 1048576,
+      "passed": true,
+      "seconds": 882.7841184860008,
+      "prompt_tokens": 1047622,
+      "cached_tokens": 0,
+      "actual": {
+        "STONE": "a7c9f2d4",
+        "LARCH": "b6e1a8c3",
+        "RIVER": "d9f4b2e7",
+        "CLOUD": "c5a3e9f1",
+        "ORBIT": "e8b6d1a4"
+      },
+      "expected": {
+        "STONE": "a7c9f2d4",
+        "LARCH": "b6e1a8c3",
+        "RIVER": "d9f4b2e7",
+        "CLOUD": "c5a3e9f1",
+        "ORBIT": "e8b6d1a4"
+      },
+      "usage": {
+        "prompt_tokens": 1047622,
+        "total_tokens": 1047683,
+        "completion_tokens": 61,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      }
+    }
+  ],
+  "comparison": {
+    "scope": "One identical 1M retrieval request, zero KV cache hits, same model/TP2/CPU-GPU caps; not a general throughput benchmark",
+    "vllm_seconds": 818.2893618709968,
+    "sglang_seconds": 882.7841184860008,
+    "sglang_elapsed_increase_percent": 7.881656492214262
+  },
+  "telemetry_during_1m": {
+    "head": {
+      "samples": 431,
+      "boot_ids": [
+        "6eb0905a-08ca-4918-907a-b96ba443be4b"
+      ],
+      "min_available_gib": 11.500221252441406,
+      "max_swap_used_gib": 4.0349884033203125,
+      "min_swap_used_gib": 4.0280914306640625,
+      "cpu_max_khz": [
+        1965600,
+        2730000
+      ],
+      "max_thermal_sensor_c": 80.8
+    },
+    "worker": {
+      "samples": 430,
+      "boot_ids": [
+        "a9785e49-f11a-4418-ada0-ef1a2707e8d2"
+      ],
+      "min_available_gib": 13.343948364257812,
+      "max_swap_used_gib": 2.419757843017578,
+      "min_swap_used_gib": 2.419452667236328,
+      "cpu_max_khz": [
+        1965600,
+        2730000
+      ],
+      "max_thermal_sensor_c": 80.9
+    }
+  },
+  "warnings": {
+    "head_nv_err_no_memory_count": 0,
+    "worker_nv_err_no_memory_count": 0,
+    "oom_killed": false,
+    "host_reboot": false,
+    "inference_request_failed": false,
+    "interpretation": "Zero driver allocation warnings in the B 256K/1M test window; baseline warnings and analysis preserved in docs."
+  },
+  "limitations": [
+    "GLM-specific image, not a general replacement for the QAD base image.",
+    "Transformers 5.17.0 intentionally overrides the SGLang dependency pin to supply Glm5NextProcessor; unrelated model plugins can report import warnings.",
+    "Inherited CUTLASS 4.7.0 overrides package metadata pins; tested GLM paths only.",
+    "Head weight loading took 760.42s in the allocator B test with significant transient swap usage; worker took 218.82s.",
+    "Video, speculative decoding, CUDA graphs and multi-request concurrency were not qualified.",
+    "Existing Talk GLM default remains vLLM."
+  ],
+  "files_sha256": {
+    "Dockerfile": "f2334c26b515384fce65688e9528e68c9a3c9ebd10e30502e35fc0949d5be8a4",
+    "glm53_b12x.py": "1547ded02fe7bba5d8c19961c0277530a545a8367b597e5c149749ee376e19be",
+    "patch_runtime.py": "6d0a890e322b64f6aa424fcb17f88717459784d156e49a3d66f9ed65cc3ac95c",
+    "entrypoint.sh": "b0cd9f5c748871b19f15460b2ea9b423b1bc3ebf79f03dce38d88a0ad5deb7c7",
+    "validate_processor.py": "84ade03e62c5aad52f1d30190e1d2b691280be2d384f4c46d179bfe752bb25a7",
+    "compose.yaml": "328eb4313ca9dd9485a012e073f39285e3b7e2b6ec9463276bae4820524e4248"
+  },
+  "evidence_directory": "/home/edp1096/.cache/runtime-inspection/glm53-sglang/investigation",
+  "restored_services": {
+    "selected_bundle": "flash-next",
+    "components": [
+      {
+        "id": "flash-next",
+        "status": "running",
+        "health": "online",
+        "error": null
+      },
+      {
+        "id": "flux2",
+        "status": "running",
+        "health": "online",
+        "error": null
+      },
+      {
+        "id": "nemotron-asr",
+        "status": "running",
+        "health": "online",
+        "error": null
+      }
+    ]
+  },
+  "restored_qad_context_and_kv_tokens": 1048576,
+  "baseline_report": "docs/qualification-before-allocator.json",
+  "allocator_investigation": "docs/allocator-investigation.json"
+}

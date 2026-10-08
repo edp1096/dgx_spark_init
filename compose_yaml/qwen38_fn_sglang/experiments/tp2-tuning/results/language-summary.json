@@ -1,0 +1,54 @@
+{
+  "language-comparison": {
+    "current": {
+      "samples": 12,
+      "with_hanzi": 5,
+      "hanzi_characters": 31,
+      "length_limited": 9
+    },
+    "p08": {
+      "samples": 12,
+      "with_hanzi": 6,
+      "hanzi_characters": 51,
+      "length_limited": 9
+    },
+    "rule": {
+      "samples": 12,
+      "with_hanzi": 5,
+      "hanzi_characters": 23,
+      "length_limited": 9
+    },
+    "rule_p08": {
+      "samples": 12,
+      "with_hanzi": 6,
+      "hanzi_characters": 49,
+      "length_limited": 9
+    }
+  },
+  "language-strict": {
+    "current": {
+      "samples": 8,
+      "with_hanzi": 4,
+      "hanzi_characters": 38,
+      "length_limited": 6
+    },
+    "strict": {
+      "samples": 8,
+      "with_hanzi": 2,
+      "hanzi_characters": 18,
+      "length_limited": 6
+    },
+    "strict_p08": {
+      "samples": 8,
+      "with_hanzi": 4,
+      "hanzi_characters": 22,
+      "length_limited": 6
+    },
+    "strict_t05_p08": {
+      "samples": 8,
+      "with_hanzi": 3,
+      "hanzi_characters": 13,
+      "length_limited": 6
+    }
+  }
+}

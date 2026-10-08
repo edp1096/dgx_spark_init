@@ -1,0 +1,525 @@
+{
+  "qualification": {
+    "status": "passed",
+    "validated_at": "2026-09-20T22:46:40.636453+00:00",
+    "model": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-NVFP4-QAD",
+    "manifest_sha256": "bda866b3ffac457d102475c8e516cf5e131a2ed3cec690cc7f493b717f686704",
+    "image_tag": "dgx-sglang-qwen38-qad:sm121-v4",
+    "image_id": "sha256:20ad5421b4e665fd6545b3366d3701fcf9777637614afb1ff2b8d4002d0f2fd9",
+    "context_tokens": 1048576,
+    "tested_input_tokens": 1048435,
+    "retrieval_correct": true,
+    "retrieval_seconds": 1107.2348052439993,
+    "diagnostic_hooks": false,
+    "mtp_tokens": 0,
+    "minimum_available_gib": 5.229,
+    "concurrent_services": [
+      "Qwen",
+      "Flux",
+      "ASR",
+      "TTS"
+    ],
+    "cold_late_flux": true,
+    "early_overlap_requests": 9,
+    "late_overlap_requests": 3,
+    "post_long_smoke_passed": true,
+    "router_fix": "Read bias after gdc_wait; preserve PDL and routing numerics",
+    "router_patch_sha256": "a30473c0625600aae4b497327326f5f5982f81832c272c4856c668dcc7a3800c"
+  },
+  "long_context": {
+    "name": "context_retrieval",
+    "target_tokens": 1048448,
+    "input_tokens": 1048435,
+    "seconds": 1107.2348052439993,
+    "response": {
+      "text": "MAPLE, COMET",
+      "output_ids": [
+        17092,
+        841,
+        11,
+        7439,
+        1300,
+        248046
+      ],
+      "meta_info": {
+        "id": "6250ea2450ee40648ea25a3abda1078d",
+        "finish_reason": {
+          "type": "stop",
+          "matched": 248046
+        },
+        "prompt_tokens": 1048435,
+        "weight_version": "default",
+        "num_retractions": 0,
+        "forward_entry_time": 1789943130.2363453,
+        "prefill_finished_time": 1789944237.1002905,
+        "queue_time": 0.0008323192596435547,
+        "reasoning_tokens": 0,
+        "completion_tokens": 6,
+        "cached_tokens": 0,
+        "cached_tokens_details": null,
+        "dp_rank": null,
+        "e2e_latency": 1107.1528633659982,
+        "request_received_ts": 1789943130.2155638,
+        "api_server_dispatch_finish_ts": 1789943130.227055,
+        "request_finished_ts": 1789944237.3684273,
+        "decode_throughput": 1717033.964549675,
+        "response_sent_to_client_ts": 1789944237.368754
+      }
+    },
+    "diverse": true,
+    "correct": true
+  },
+  "early_overlap": [
+    {
+      "name": "asr",
+      "seconds": 0.3165256590000354,
+      "result": {
+        "text": "안녕하세요. 이미지와 음성긴 문맥을 함께 처리하는 시험입니다."
+      },
+      "overlap_round": 0,
+      "round_started_at": 1789943131.8202996
+    },
+    {
+      "name": "tts",
+      "seconds": 8.577290451001318,
+      "bytes": 213036,
+      "content_type": "audio/wav",
+      "overlap_round": 0,
+      "round_started_at": 1789943131.8202996
+    },
+    {
+      "name": "generate",
+      "seconds": 9.49087865799811,
+      "size": [
+        1024,
+        1024
+      ],
+      "seed": 775894927,
+      "overlap_round": 0,
+      "round_started_at": 1789943131.8202996
+    },
+    {
+      "name": "asr",
+      "seconds": 0.3211754270014353,
+      "result": {
+        "text": "안녕하세요. 이미지와 음성긴 문맥을 함께 처리하는 시험입니다."
+      },
+      "overlap_round": 1,
+      "round_started_at": 1789943231.3178189
+    },
+    {
+      "name": "tts",
+      "seconds": 3.2217933840001933,
+      "bytes": 235564,
+      "content_type": "audio/wav",
+      "overlap_round": 1,
+      "round_started_at": 1789943231.3178189
+    },
+    {
+      "name": "inpaint",
+      "seconds": 29.370876239998324,
+      "size": [
+        1024,
+        1024
+      ],
+      "seed": 1485760501,
+      "overlap_round": 1,
+      "round_started_at": 1789943231.3178189
+    },
+    {
+      "name": "asr",
+      "seconds": 0.2083012540024356,
+      "result": {
+        "text": "안녕하세요. 이미지와 음성 긴 문맥을 함께 처리하는 시험입니다."
+      },
+      "overlap_round": 2,
+      "round_started_at": 1789943350.6932402
+    },
+    {
+      "name": "tts",
+      "seconds": 0.7349963399974513,
+      "bytes": 215084,
+      "content_type": "audio/wav",
+      "overlap_round": 2,
+      "round_started_at": 1789943350.6932402
+    },
+    {
+      "name": "object_remove",
+      "seconds": 19.95359217299847,
+      "size": [
+        1024,
+        1024
+      ],
+      "seed": 601620513,
+      "overlap_round": 2,
+      "round_started_at": 1789943350.6932402
+    }
+  ],
+  "late_overlap": [
+    {
+      "name": "asr",
+      "seconds": 0.1186851540041971,
+      "result": {
+        "text": "안녕하세요. 이미지와 음성긴 문맥을 함께 처리하는 시험입니다."
+      },
+      "observed_load_at_start": [
+        {
+          "dp_rank": 0,
+          "num_reqs": 0,
+          "num_waiting_reqs": 0,
+          "num_tokens": 851968,
+          "num_pending_tokens": 0,
+          "ts_tic": 33908.394244195
+        }
+      ]
+    },
+    {
+      "name": "tts",
+      "seconds": 2.6391659490036545,
+      "bytes": 215084,
+      "content_type": "audio/wav",
+      "observed_load_at_start": [
+        {
+          "dp_rank": 0,
+          "num_reqs": 0,
+          "num_waiting_reqs": 0,
+          "num_tokens": 851968,
+          "num_pending_tokens": 0,
+          "ts_tic": 33908.394244195
+        }
+      ]
+    },
+    {
+      "name": "inpaint",
+      "seconds": 31.317390416996204,
+      "size": [
+        1024,
+        1024
+      ],
+      "seed": 471282322,
+      "observed_load_at_start": [
+        {
+          "dp_rank": 0,
+          "num_reqs": 0,
+          "num_waiting_reqs": 0,
+          "num_tokens": 851968,
+          "num_pending_tokens": 0,
+          "ts_tic": 33908.394244195
+        }
+      ]
+    }
+  ],
+  "cold_flux_restart": {
+    "started": 1789943860.6516716,
+    "load": [
+      {
+        "dp_rank": 0,
+        "num_reqs": 0,
+        "num_waiting_reqs": 0,
+        "num_tokens": 802816,
+        "num_pending_tokens": 0,
+        "ts_tic": 33842.97579934
+      }
+    ],
+    "completed_overlap_requests": 9,
+    "ready": 1789943870.917874,
+    "load_when_ready": [
+      {
+        "dp_rank": 0,
+        "num_reqs": 0,
+        "num_waiting_reqs": 0,
+        "num_tokens": 806912,
+        "num_pending_tokens": 0,
+        "ts_tic": 33853.244784588
+      }
+    ]
+  },
+  "post_long_smoke": {
+    "base": "http://127.0.0.1:8000",
+    "results": [
+      {
+        "text": "READY",
+        "reasoning": "",
+        "tool_calls": [],
+        "finish_reason": "stop",
+        "usage": {
+          "prompt_tokens": 16,
+          "total_tokens": 18,
+          "completion_tokens": 2,
+          "prompt_tokens_details": null,
+          "reasoning_tokens": 0
+        },
+        "seconds": 0.28787238099903334,
+        "ttft_s": 0.2477366120001534,
+        "stream_tg_estimate": 24.915431420484477,
+        "name": "warmup"
+      },
+      {
+        "text": "3973",
+        "reasoning": "",
+        "tool_calls": [],
+        "finish_reason": "stop",
+        "usage": {
+          "prompt_tokens": 28,
+          "total_tokens": 33,
+          "completion_tokens": 5,
+          "prompt_tokens_details": null,
+          "reasoning_tokens": 0
+        },
+        "seconds": 0.42018755699973553,
+        "ttft_s": 0.2593616340018343,
+        "stream_tg_estimate": 24.871612271438355,
+        "name": "arithmetic",
+        "passed": true
+      },
+      {
+        "text": "{\n  \"name\": \"테스트\",\n  \"count\": 7\n}",
+        "reasoning": "",
+        "tool_calls": [],
+        "finish_reason": "stop",
+        "usage": {
+          "prompt_tokens": 42,
+          "total_tokens": 62,
+          "completion_tokens": 20,
+          "prompt_tokens_details": null,
+          "reasoning_tokens": 0
+        },
+        "seconds": 1.0337495220010169,
+        "ttft_s": 0.2747362029986107,
+        "stream_tg_estimate": 25.032498803805268,
+        "name": "json",
+        "passed": true
+      },
+      {
+        "text": "[-3, 0, 2, 2, 9]",
+        "reasoning": "",
+        "tool_calls": [],
+        "finish_reason": "stop",
+        "usage": {
+          "prompt_tokens": 39,
+          "total_tokens": 55,
+          "completion_tokens": 16,
+          "prompt_tokens_details": null,
+          "reasoning_tokens": 0
+        },
+        "seconds": 0.8656007649988169,
+        "ttft_s": 0.27165261099435156,
+        "stream_tg_estimate": 25.25472955655862,
+        "name": "sorting",
+        "passed": true
+      },
+      {
+        "text": "내일 자료 보내드릴게요.",
+        "reasoning": "",
+        "tool_calls": [],
+        "finish_reason": "stop",
+        "usage": {
+          "prompt_tokens": 38,
+          "total_tokens": 47,
+          "completion_tokens": 9,
+          "prompt_tokens_details": null,
+          "reasoning_tokens": 0
+        },
+        "seconds": 0.5846581129953847,
+        "ttft_s": 0.264957808998588,
+        "stream_tg_estimate": 25.023435698954348,
+        "name": "korean"
+      },
+      {
+        "text": "서버가 다운된 것이 아니라, 워커만 재시작하고 있습니다.",
+        "reasoning": "",
+        "tool_calls": [],
+        "finish_reason": "stop",
+        "usage": {
+          "prompt_tokens": 34,
+          "total_tokens": 52,
+          "completion_tokens": 18,
+          "prompt_tokens_details": null,
+          "reasoning_tokens": 0
+        },
+        "seconds": 0.9481946430023527,
+        "ttft_s": 0.2691718040005071,
+        "stream_tg_estimate": 25.035976735318314,
+        "name": "translation"
+      },
+      {
+        "text": "def unique_ordered(items):\n    seen = set()\n    result = []\n    for item in items:\n        if item not in seen:\n            seen.add(item)\n            result.append(item)\n    return result",
+        "reasoning": "",
+        "tool_calls": [],
+        "finish_reason": "stop",
+        "usage": {
+          "prompt_tokens": 36,
+          "total_tokens": 84,
+          "completion_tokens": 48,
+          "prompt_tokens_details": null,
+          "reasoning_tokens": 0
+        },
+        "seconds": 2.143959419998282,
+        "ttft_s": 0.26833404299395625,
+        "stream_tg_estimate": 25.058308858598686,
+        "name": "coding"
+      },
+      {
+        "text": "형사: \"자네, 이 그림을 훔치려다 걸렸군. 왜 하필 이 그림인가?\"\n\n도둑: \"그냥... 그림이 저를 부르는 것 같아서요. 형사님도 느끼지 않으셨나요? 이 붓터치에 담긴 슬픔을요.\"\n\n형사: \"슬픔? 자네가 느끼는 건 슬픔이 아니라 체포의 공포일세. 손목에 수갑 채우기 전에 솔직히 말해. 진짜 이유는 뭐야?\"\n\n도둑: \"사실은... 이 그림이 너무 비싸서, 훔치면 돈이 될 것 같아서요. 예술적 감동은 덤이죠.\"\n\n형사: \"하! 결국 돈이었군. 자, 가세. 감옥에서 그 슬픔을 더 깊이 음미하게.\"",
+        "reasoning": "",
+        "tool_calls": [],
+        "finish_reason": "stop",
+        "usage": {
+          "prompt_tokens": 39,
+          "total_tokens": 227,
+          "completion_tokens": 188,
+          "prompt_tokens_details": null,
+          "reasoning_tokens": 0
+        },
+        "seconds": 8.475917386997025,
+        "ttft_s": 0.2714034899981925,
+        "stream_tg_estimate": 22.792331434578177,
+        "name": "fiction"
+      },
+      {
+        "text": "",
+        "reasoning": "",
+        "tool_calls": [
+          {
+            "id": "call_0039da35a679407b99ffc1a5",
+            "index": 0,
+            "type": "function",
+            "function": {
+              "name": "get_weather",
+              "arguments": ""
+            }
+          },
+          {
+            "id": null,
+            "index": 0,
+            "type": "function",
+            "function": {
+              "name": null,
+              "arguments": "{"
+            }
+          },
+          {
+            "id": null,
+            "index": 0,
+            "type": "function",
+            "function": {
+              "name": null,
+              "arguments": "\"city\": \"Seoul\""
+            }
+          },
+          {
+            "id": null,
+            "index": 0,
+            "type": "function",
+            "function": {
+              "name": null,
+              "arguments": "}"
+            }
+          }
+        ],
+        "finish_reason": "tool_calls",
+        "usage": {
+          "prompt_tokens": 292,
+          "total_tokens": 319,
+          "completion_tokens": 27,
+          "prompt_tokens_details": null,
+          "reasoning_tokens": 0
+        },
+        "seconds": 1.5249203529965598,
+        "ttft_s": 0.7249754229997052,
+        "stream_tg_estimate": 32.50223737289295,
+        "name": "tool"
+      },
+      {
+        "text": "Red",
+        "reasoning": "",
+        "tool_calls": [],
+        "finish_reason": "stop",
+        "usage": {
+          "prompt_tokens": 90,
+          "total_tokens": 92,
+          "completion_tokens": 2,
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "image_tokens": 64
+          },
+          "reasoning_tokens": 0
+        },
+        "seconds": 0.32956594500137726,
+        "ttft_s": 0.29030544299894245,
+        "stream_tg_estimate": 25.470891837755495,
+        "name": "vision",
+        "passed": true
+      },
+      {
+        "text": "SPARK-7429-MINT",
+        "reasoning": "",
+        "tool_calls": [],
+        "finish_reason": "stop",
+        "usage": {
+          "prompt_tokens": 6037,
+          "total_tokens": 6047,
+          "completion_tokens": 10,
+          "prompt_tokens_details": null,
+          "reasoning_tokens": 0
+        },
+        "seconds": 3.8425318259978667,
+        "ttft_s": 3.476879273999657,
+        "stream_tg_estimate": 24.613529840874914,
+        "name": "long_needle",
+        "passed": true
+      },
+      {
+        "text": "A hash table is one of the most efficient data structures in computer science, designed to store and retrieve information almost instantly. To understand how it works, imagine a large array of empty buckets, each identified by a unique index number. When you want to store a piece of data, such as a user’s profile, you don’t just place it in the next available spot. Instead, you use a special mathematical function called a \"hash function.\" This function takes your data (the key) and converts it into a specific number, which serves as the index for the bucket where the data will be stored. For example, if the hash function turns the name \"Alice\" into the number 5, Alice’s profile is placed in bucket 5. Retrieving the data is equally fast: you simply run \"Alice\" through the same hash function, get the number 5, and look directly in bucket 5. This process allows for average time complexity of O(1), meaning the speed of access does not slow down significantly as the amount of data grows.\n\nHowever, a common problem arises when two different keys produce the same index. This is known as a \"collision.\" For instance, both \"Alice\" and \"Bob\" might hash to bucket 5. If",
+        "reasoning": "",
+        "tool_calls": [],
+        "finish_reason": "length",
+        "usage": {
+          "prompt_tokens": 41,
+          "total_tokens": 297,
+          "completion_tokens": 256,
+          "prompt_tokens_details": null,
+          "reasoning_tokens": 0
+        },
+        "seconds": 11.180762627001968,
+        "ttft_s": 0.2763964960031444,
+        "stream_tg_estimate": 23.385128207965113,
+        "name": "speed_0"
+      },
+      {
+        "text": "A hash table is a fundamental data structure designed to store and retrieve information with exceptional speed, often operating in constant time, denoted as O(1). To understand how it works, imagine a large array of empty slots, like a row of mailboxes. When you want to store a piece of data, such as a user’s profile, you don’t just place it in the next available box. Instead, you use a mathematical function called a \"hash function\" to convert the unique identifier (the key, like a username) into a specific index number. This index tells the computer exactly which mailbox slot to use. For example, if the hash function turns the name \"Alice\" into the number 5, Alice’s data is stored in slot 5. When you later need to find Alice’s data, you run \"Alice\" through the same hash function, get 5, and look directly in slot 5. This direct access is what makes hash tables so efficient compared to searching through a list one item at a time.\n\nHowever, a significant challenge arises when two different keys produce the same index. This is known as a \"collision.\" For instance, both \"Alice\" and \"Bob\" might hash to slot 5. Since a single slot cannot",
+        "reasoning": "",
+        "tool_calls": [],
+        "finish_reason": "length",
+        "usage": {
+          "prompt_tokens": 41,
+          "total_tokens": 297,
+          "completion_tokens": 256,
+          "prompt_tokens_details": null,
+          "reasoning_tokens": 0
+        },
+        "seconds": 10.670036165996862,
+        "ttft_s": 0.2782757649983978,
+        "stream_tg_estimate": 24.538672001665763,
+        "name": "speed_1"
+      },
+      {
+        "text": "A hash table is one of the most powerful and widely used data structures in computer science, primarily because it allows for extremely fast data retrieval. To understand how it works, imagine a large array of buckets, or slots, where you store items. The core mechanism that determines which bucket an item goes into is called a hash function. When you want to store a piece of data, such as a user’s name, the hash function takes that input and converts it into a numerical index. This index corresponds to a specific position in the array. Ideally, this process is instantaneous, allowing you to place or retrieve data in constant time, often denoted as O(1).\n\nHowever, real-world data is rarely perfect. A common problem arises when two different inputs produce the same hash index. This scenario is known as a collision. For instance, if the names \"Alice\" and \"Bob\" both hash to index 5, they cannot occupy the same slot simultaneously. To handle this, hash tables employ specific collision resolution strategies. The two most common methods are chaining and open addressing. In chaining, each bucket in the array actually points to a linked list or another dynamic structure. If a collision occurs, the new item is simply added to the list at that index. When searching",
+        "reasoning": "",
+        "tool_calls": [],
+        "finish_reason": "length",
+        "usage": {
+          "prompt_tokens": 41,
+          "total_tokens": 297,
+          "completion_tokens": 256,
+          "prompt_tokens_details": null,
+          "reasoning_tokens": 0
+        },
+        "seconds": 10.99390971899993,
+        "ttft_s": 0.27978135199373355,
+        "stream_tg_estimate": 23.80034952588995,
+        "name": "speed_2"
+      }
+    ]
+  }
+}

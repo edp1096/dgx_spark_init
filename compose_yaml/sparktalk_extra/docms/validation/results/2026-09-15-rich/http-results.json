@@ -1,0 +1,208 @@
+{
+  "endpoint": "http://127.0.0.1:8696",
+  "rows": [
+    {
+      "format": "docx",
+      "repeat": 0,
+      "seconds": 0.32633383400388993,
+      "sizes": {
+        "document.docx": 11370,
+        "document.pdf": 67210
+      },
+      "passed": true
+    },
+    {
+      "format": "hwp",
+      "repeat": 0,
+      "seconds": 0.6102956339891534,
+      "sizes": {
+        "document.hwp": 8192,
+        "document.pdf": 67210
+      },
+      "passed": true
+    },
+    {
+      "format": "hwpx",
+      "repeat": 0,
+      "seconds": 0.6092666379990987,
+      "sizes": {
+        "document.hwpx": 8812,
+        "document.pdf": 67210
+      },
+      "passed": true
+    },
+    {
+      "format": "pdf",
+      "repeat": 0,
+      "seconds": 0.2755033299908973,
+      "sizes": {
+        "document.pdf": 67210
+      },
+      "passed": true
+    },
+    {
+      "format": "pptx",
+      "repeat": 0,
+      "seconds": 0.2950281810190063,
+      "sizes": {
+        "document.pptx": 273134,
+        "document.pdf": 71331
+      },
+      "passed": true
+    },
+    {
+      "format": "xlsx",
+      "repeat": 0,
+      "seconds": 0.41201102201011963,
+      "sizes": {
+        "document.xlsx": 13509,
+        "document.pdf": 76701
+      },
+      "passed": true
+    },
+    {
+      "format": "docx",
+      "repeat": 1,
+      "seconds": 0.2977168450015597,
+      "sizes": {
+        "document.docx": 11370,
+        "document.pdf": 67210
+      },
+      "passed": true
+    },
+    {
+      "format": "hwp",
+      "repeat": 1,
+      "seconds": 0.5927468180016149,
+      "sizes": {
+        "document.hwp": 8192,
+        "document.pdf": 67210
+      },
+      "passed": true
+    },
+    {
+      "format": "hwpx",
+      "repeat": 1,
+      "seconds": 0.6050749150163028,
+      "sizes": {
+        "document.hwpx": 8812,
+        "document.pdf": 67210
+      },
+      "passed": true
+    },
+    {
+      "format": "pdf",
+      "repeat": 1,
+      "seconds": 0.28935059800278395,
+      "sizes": {
+        "document.pdf": 67210
+      },
+      "passed": true
+    },
+    {
+      "format": "pptx",
+      "repeat": 1,
+      "seconds": 0.31327680600224994,
+      "sizes": {
+        "document.pptx": 273134,
+        "document.pdf": 71331
+      },
+      "passed": true
+    },
+    {
+      "format": "xlsx",
+      "repeat": 1,
+      "seconds": 0.39115027801017277,
+      "sizes": {
+        "document.xlsx": 13508,
+        "document.pdf": 76701
+      },
+      "passed": true
+    },
+    {
+      "format": "docx",
+      "repeat": 2,
+      "seconds": 0.2974943640001584,
+      "sizes": {
+        "document.docx": 11370,
+        "document.pdf": 67210
+      },
+      "passed": true
+    },
+    {
+      "format": "hwp",
+      "repeat": 2,
+      "seconds": 0.6173079389845952,
+      "sizes": {
+        "document.hwp": 8192,
+        "document.pdf": 67210
+      },
+      "passed": true
+    },
+    {
+      "format": "hwpx",
+      "repeat": 2,
+      "seconds": 0.6269823490001727,
+      "sizes": {
+        "document.hwpx": 8812,
+        "document.pdf": 67210
+      },
+      "passed": true
+    },
+    {
+      "format": "pdf",
+      "repeat": 2,
+      "seconds": 0.28325814902200364,
+      "sizes": {
+        "document.pdf": 67210
+      },
+      "passed": true
+    },
+    {
+      "format": "pptx",
+      "repeat": 2,
+      "seconds": 0.30664747598348185,
+      "sizes": {
+        "document.pptx": 273134,
+        "document.pdf": 71331
+      },
+      "passed": true
+    },
+    {
+      "format": "xlsx",
+      "repeat": 2,
+      "seconds": 0.3926323619962204,
+      "sizes": {
+        "document.xlsx": 13506,
+        "document.pdf": 76701
+      },
+      "passed": true
+    }
+  ],
+  "summary": {
+    "docx": {
+      "median_seconds": 0.2977168450015597,
+      "runs": 3
+    },
+    "hwp": {
+      "median_seconds": 0.6102956339891534,
+      "runs": 3
+    },
+    "hwpx": {
+      "median_seconds": 0.6092666379990987,
+      "runs": 3
+    },
+    "pdf": {
+      "median_seconds": 0.28325814902200364,
+      "runs": 3
+    },
+    "pptx": {
+      "median_seconds": 0.30664747598348185,
+      "runs": 3
+    },
+    "xlsx": {
+      "median_seconds": 0.3926323619962204,
+      "runs": 3
+    }
+  }
+}

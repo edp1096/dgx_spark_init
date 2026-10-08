@@ -1,0 +1,18 @@
+{
+  "aux_loading": "dynamic",
+  "model_paths": {
+    "text_encoders": [
+      "/opt/ComfyUI/models/text_encoders"
+    ],
+    "vae": [
+      "/opt/ComfyUI/models/vae"
+    ],
+    "clip_projections": [
+      "/opt/ComfyUI/models/clip_projections"
+    ]
+  },
+  "dits": {
+    "h3": "/opt/ComfyUI/models/diffusion_models/minimax_h3_fl2va_pruned_nvfp4.safetensors",
+    "qwim": "/opt/ComfyUI/models/diffusion_models/qwen-image21-uc-nvfp4.safetensors"
+  }
+}

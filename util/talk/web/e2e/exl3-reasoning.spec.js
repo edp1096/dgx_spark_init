@@ -1,0 +1,40 @@
+import { optionTexts } from './select-helpers.js';
+import { expectControlValue, selectOption } from './select-helpers.js';
+import { expect, test } from '@playwright/test';
+
+test('EXL3 offers native effort in chat and saves the default level', async ({ page, request }) => {
+  const original = await (await request.get('/api/config')).json();
+  try {
+  let initial = true;
+  await page.route('**/api/config', async route => {
+    if (route.request().method() !== 'GET') return route.continue();
+    const response = await route.fetch();
+    const config = await response.json();
+    config.model.model_type = 'qwen38fn_exl3';
+    if (initial) config.model.reasoning_effort = 'on';
+    await route.fulfill({ json: config });
+  });
+  await page.goto('/');
+  await page.getByRole('button', { name: '모델 및 대화 설정', exact: true }).click();
+  const slider = page.locator('.quick-panel').getByRole('slider', { name: 'Reasoning effort' });
+  await expectControlValue(slider, '3');
+  for (const [index, label] of ['꺼짐', '낮음', '중간', '매우 높음'].entries()) {
+    await slider.fill(String(index));
+    await expect(slider).toHaveAttribute('aria-valuetext', label);
+  }
+  await page.getByRole('button', { name: '대화 제어 닫기', exact: true }).click();
+  await page.locator('.settings-button').click();
+  const defaults = page.getByLabel('기본 reasoning effort', { exact: true });
+  await expect.poll(() => optionTexts(defaults)).toEqual(['꺼짐', '낮음', '중간', '매우 높음']);
+  await selectOption(defaults, 'low');
+  const saved = page.waitForResponse(response => response.url().endsWith('/api/config') && response.request().method() === 'PUT');
+  await page.getByRole('button', { name: '저장', exact: true }).click();
+  const response = await saved;
+  expect(response.ok()).toBeTruthy();
+  expect((await response.json()).config.model.reasoning_effort).toBe('low');
+  initial = false;
+  await page.reload();
+  await page.getByRole('button', { name: '모델 및 대화 설정', exact: true }).click();
+  await expectControlValue(slider, '1');
+  } finally { await request.put('/api/config', { data: original }); }
+});

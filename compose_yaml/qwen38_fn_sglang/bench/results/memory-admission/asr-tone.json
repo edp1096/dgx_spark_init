@@ -1,0 +1,40 @@
+{
+  "ready": {
+    "time": 1790789448.2664378,
+    "phase": "asr_start",
+    "available_gib": 9.870597839355469,
+    "pswpout": 7283395,
+    "oom_kill": 0
+  },
+  "scope": "20s synthetic tone; memory/endpoint test, not transcription accuracy",
+  "asr_transcribe": {
+    "seconds": 0.22278937700320967,
+    "host": {
+      "time": 1790789448.4895852,
+      "phase": "asr_transcribe",
+      "available_gib": 9.036544799804688,
+      "pswpout": 7283395,
+      "oom_kill": 0
+    },
+    "response": {
+      "duration": 20,
+      "language": "",
+      "task": "transcribe",
+      "text": "",
+      "words": []
+    }
+  },
+  "asr_diarize": {
+    "seconds": 0.0804836090101162,
+    "host": {
+      "time": 1790789448.5703545,
+      "phase": "asr_diarize",
+      "available_gib": 8.880107879638672,
+      "pswpout": 7283395,
+      "oom_kill": 0
+    },
+    "response": {
+      "segments": []
+    }
+  }
+}

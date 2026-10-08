@@ -1,0 +1,53 @@
+[
+  {
+    "name": "asr",
+    "seconds": 0.3321592230004171,
+    "result": {
+      "text": "안녕하세요. 이미지와 음성 긴 문맥을 함께 처리하는 시험입니다."
+    },
+    "observed_load_at_start": [
+      {
+        "dp_rank": 0,
+        "num_reqs": 0,
+        "num_waiting_reqs": 0,
+        "num_tokens": 851968,
+        "num_pending_tokens": 0,
+        "ts_tic": 14434.639059055
+      }
+    ]
+  },
+  {
+    "name": "tts",
+    "seconds": 5.550913978999233,
+    "bytes": 225324,
+    "content_type": "audio/wav",
+    "observed_load_at_start": [
+      {
+        "dp_rank": 0,
+        "num_reqs": 0,
+        "num_waiting_reqs": 0,
+        "num_tokens": 851968,
+        "num_pending_tokens": 0,
+        "ts_tic": 14434.639059055
+      }
+    ]
+  },
+  {
+    "name": "inpaint",
+    "seconds": 27.93407912099974,
+    "size": [
+      1024,
+      1024
+    ],
+    "observed_load_at_start": [
+      {
+        "dp_rank": 0,
+        "num_reqs": 0,
+        "num_waiting_reqs": 0,
+        "num_tokens": 851968,
+        "num_pending_tokens": 0,
+        "ts_tic": 14434.639059055
+      }
+    ]
+  }
+]

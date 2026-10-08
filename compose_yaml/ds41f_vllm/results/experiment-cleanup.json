@@ -1,0 +1,22 @@
+{
+  "removed_files": [
+    "engram_mmap.py",
+    "engram_uring.c",
+    "engram_uring.py",
+    "expert_callback.c",
+    "expert_pointer.cpp",
+    "tools/bench_expert_callback.py",
+    "tools/bench_mmap_hints.py",
+    "tools/bench_uring_rows.py",
+    "tools/prepare_uring_probe.py",
+    "tools/run_callback_component.py",
+    "tools/test_engram_uring.py",
+    "tools/test_expert_callback.py",
+    "tools/test_engram_mmap.py",
+    "tools/bench_engram_mmap.py",
+    "tools/benchmark_dcp_transport.py",
+    "tools/run_dcp_transport.sh",
+    "tools/check_context_growth.py"
+  ],
+  "preserved": "adopted native_hint, Engram prefetch, generic memory guards, docs and measurement evidence"
+}

@@ -1,0 +1,36 @@
+{
+  "rows": [
+    {
+      "queries": 1,
+      "selected_keys": 2051,
+      "relative_l2": 0.0028671633917838335,
+      "max_abs": 0.00048828125,
+      "sglang_graph_ms": 0.011931200325489045,
+      "b12x_graph_ms": 0.07877600193023682
+    },
+    {
+      "queries": 4,
+      "selected_keys": 2051,
+      "relative_l2": 0.0029480084776878357,
+      "max_abs": 0.0009765625,
+      "sglang_graph_ms": 0.029139199852943422,
+      "b12x_graph_ms": 0.08332160115242004
+    },
+    {
+      "queries": 16,
+      "selected_keys": 2051,
+      "relative_l2": 0.002953384770080447,
+      "max_abs": 0.0009765625,
+      "sglang_graph_ms": 0.1373568058013916,
+      "b12x_graph_ms": 0.3664047956466675
+    },
+    {
+      "queries": 128,
+      "selected_keys": 2051,
+      "relative_l2": 0.0029233586974442005,
+      "max_abs": 0.0009765625,
+      "sglang_graph_ms": 1.1727888107299804,
+      "b12x_graph_ms": 3.1183151245117187
+    }
+  ]
+}

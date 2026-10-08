@@ -1,0 +1,30 @@
+{
+  "id": "94efb9f79f0f40a7bddf6edf55b73d6c",
+  "object": "chat.completion",
+  "created": 1791048589,
+  "model": "qad5500-ablit-65536",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "42",
+        "reasoning_content": null,
+        "tool_calls": null
+      },
+      "logprobs": null,
+      "finish_reason": "stop",
+      "matched_stop": 248046
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 28,
+    "total_tokens": 31,
+    "completion_tokens": 3,
+    "prompt_tokens_details": null,
+    "reasoning_tokens": 0
+  },
+  "metadata": {
+    "weight_version": "default"
+  }
+}

@@ -1,0 +1,474 @@
+[
+  {
+    "trial": 0,
+    "prompt_id": 0,
+    "enabled": false,
+    "reply": {
+      "id": "chatcmpl-9f131d3797c3a586",
+      "object": "chat.completion",
+      "created": 1789205950,
+      "model": "deepseek-v4.1-flash",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "```python\ndef binary_search(arr: list[int], target: int) -> int:\n    \"\"\"Return index of target in sorted arr, or -1 if not found.\"\"\"\n    lo, hi = 0, len(arr) - 1\n    while lo <= hi:\n        mid = (lo + hi) // 2\n        if arr[mid] == target:\n            return mid\n        elif arr[mid] < target:\n            lo = mid + 1\n        else:\n            hi = mid - 1\n    return -1\n```",
+            "refusal": null,
+            "annotations": null,
+            "audio": null,
+            "function_call": null,
+            "reasoning": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "stop_reason": null,
+          "token_ids": null,
+          "routed_experts": null
+        }
+      ],
+      "service_tier": null,
+      "system_fingerprint": "vllm-0.1.dev20904+g179dd0fa9-tp2-bccfe9ab",
+      "usage": {
+        "prompt_tokens": 3530,
+        "total_tokens": 3644,
+        "completion_tokens": 114,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "created_cache_tokens": 0,
+          "multimodal_tokens": null
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "prompt_logprobs": null,
+      "prompt_token_ids": null,
+      "prompt_text": null,
+      "kv_transfer_params": null,
+      "ec_transfer_params": null,
+      "metrics": {
+        "time_to_first_token_ms": 17764.11071800021,
+        "generation_time_ms": 3979.2966760001036,
+        "queue_time_ms": 0.02084700008708751,
+        "mean_itl_ms": 35.21501483185933,
+        "tokens_per_second": 5.242968497727554,
+        "speculative_decoding": null
+      }
+    },
+    "exact_output": true
+  },
+  {
+    "trial": 0,
+    "prompt_id": 0,
+    "enabled": true,
+    "reply": {
+      "id": "chatcmpl-b354c6ecf2cb8c66",
+      "object": "chat.completion",
+      "created": 1789205972,
+      "model": "deepseek-v4.1-flash",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "```python\ndef binary_search(arr: list[int], target: int) -> int:\n    \"\"\"Return index of target in sorted arr, or -1 if not found.\"\"\"\n    lo, hi = 0, len(arr) - 1\n    while lo <= hi:\n        mid = (lo + hi) // 2\n        if arr[mid] == target:\n            return mid\n        elif arr[mid] < target:\n            lo = mid + 1\n        else:\n            hi = mid - 1\n    return -1\n```",
+            "refusal": null,
+            "annotations": null,
+            "audio": null,
+            "function_call": null,
+            "reasoning": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "stop_reason": null,
+          "token_ids": null,
+          "routed_experts": null
+        }
+      ],
+      "service_tier": null,
+      "system_fingerprint": "vllm-0.1.dev20904+g179dd0fa9-tp2-bccfe9ab",
+      "usage": {
+        "prompt_tokens": 3530,
+        "total_tokens": 3644,
+        "completion_tokens": 114,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "created_cache_tokens": 0,
+          "multimodal_tokens": null
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "prompt_logprobs": null,
+      "prompt_token_ids": null,
+      "prompt_text": null,
+      "kv_transfer_params": null,
+      "ec_transfer_params": null,
+      "metrics": {
+        "time_to_first_token_ms": 17391.755078000187,
+        "generation_time_ms": 4189.311931999782,
+        "queue_time_ms": 0.022510999770020135,
+        "mean_itl_ms": 37.073556920352054,
+        "tokens_per_second": 5.282407952636266,
+        "speculative_decoding": null
+      }
+    },
+    "exact_output": true
+  },
+  {
+    "trial": 0,
+    "prompt_id": 1,
+    "enabled": false,
+    "reply": {
+      "id": "chatcmpl-af544cf5c8944e60",
+      "object": "chat.completion",
+      "created": 1789205994,
+      "model": "deepseek-v4.1-flash",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "Concurrency is about dealing with multiple tasks at once by interleaving their execution, so progress can be made on each without completing them simultaneously. Parallelism is about actually executing multiple tasks at the same time, typically using multiple CPU cores or processors. In short, concurrency is a program-structure concept, while parallelism is a hardware-execution concept.",
+            "refusal": null,
+            "annotations": null,
+            "audio": null,
+            "function_call": null,
+            "reasoning": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "stop_reason": null,
+          "token_ids": null,
+          "routed_experts": null
+        }
+      ],
+      "service_tier": null,
+      "system_fingerprint": "vllm-0.1.dev20904+g179dd0fa9-tp2-bccfe9ab",
+      "usage": {
+        "prompt_tokens": 3488,
+        "total_tokens": 3560,
+        "completion_tokens": 72,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "created_cache_tokens": 0,
+          "multimodal_tokens": null
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "prompt_logprobs": null,
+      "prompt_token_ids": null,
+      "prompt_text": null,
+      "kv_transfer_params": null,
+      "ec_transfer_params": null,
+      "metrics": {
+        "time_to_first_token_ms": 17631.632554000134,
+        "generation_time_ms": 2989.6120539997355,
+        "queue_time_ms": 0.021007000214012805,
+        "mean_itl_ms": 42.107212028165286,
+        "tokens_per_second": 3.4915448300374696,
+        "speculative_decoding": null
+      }
+    },
+    "exact_output": true
+  },
+  {
+    "trial": 0,
+    "prompt_id": 1,
+    "enabled": true,
+    "reply": {
+      "id": "chatcmpl-a72a97eb873706ed",
+      "object": "chat.completion",
+      "created": 1789206015,
+      "model": "deepseek-v4.1-flash",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "Concurrency is about dealing with multiple tasks at once by interleaving their execution, so progress can be made on each without completing them simultaneously. Parallelism is about actually executing multiple tasks at the same time, typically using multiple CPU cores or processors. In short, concurrency is a program-structure concept, while parallelism is a hardware-execution concept.",
+            "refusal": null,
+            "annotations": null,
+            "audio": null,
+            "function_call": null,
+            "reasoning": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "stop_reason": null,
+          "token_ids": null,
+          "routed_experts": null
+        }
+      ],
+      "service_tier": null,
+      "system_fingerprint": "vllm-0.1.dev20904+g179dd0fa9-tp2-bccfe9ab",
+      "usage": {
+        "prompt_tokens": 3488,
+        "total_tokens": 3560,
+        "completion_tokens": 72,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "created_cache_tokens": 0,
+          "multimodal_tokens": null
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "prompt_logprobs": null,
+      "prompt_token_ids": null,
+      "prompt_text": null,
+      "kv_transfer_params": null,
+      "ec_transfer_params": null,
+      "metrics": {
+        "time_to_first_token_ms": 17189.22053999995,
+        "generation_time_ms": 3411.7492029999994,
+        "queue_time_ms": 0.010847000339708757,
+        "mean_itl_ms": 48.05280567605633,
+        "tokens_per_second": 3.494981105171762,
+        "speculative_decoding": null
+      }
+    },
+    "exact_output": true
+  },
+  {
+    "trial": 1,
+    "prompt_id": 0,
+    "enabled": true,
+    "reply": {
+      "id": "chatcmpl-b76b161864c8cefa",
+      "object": "chat.completion",
+      "created": 1789206037,
+      "model": "deepseek-v4.1-flash",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "```python\ndef binary_search(arr: list[int], target: int) -> int:\n    \"\"\"Return index of target in sorted arr, or -1 if not found.\"\"\"\n    lo, hi = 0, len(arr) - 1\n    while lo <= hi:\n        mid = (lo + hi) // 2\n        if arr[mid] == target:\n            return mid\n        elif arr[mid] < target:\n            lo = mid + 1\n        else:\n            hi = mid - 1\n    return -1\n```",
+            "refusal": null,
+            "annotations": null,
+            "audio": null,
+            "function_call": null,
+            "reasoning": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "stop_reason": null,
+          "token_ids": null,
+          "routed_experts": null
+        }
+      ],
+      "service_tier": null,
+      "system_fingerprint": "vllm-0.1.dev20904+g179dd0fa9-tp2-bccfe9ab",
+      "usage": {
+        "prompt_tokens": 3530,
+        "total_tokens": 3644,
+        "completion_tokens": 114,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "created_cache_tokens": 0,
+          "multimodal_tokens": null
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "prompt_logprobs": null,
+      "prompt_token_ids": null,
+      "prompt_text": null,
+      "kv_transfer_params": null,
+      "ec_transfer_params": null,
+      "metrics": {
+        "time_to_first_token_ms": 17394.431536999946,
+        "generation_time_ms": 4108.126691000052,
+        "queue_time_ms": 0.002832000063790474,
+        "mean_itl_ms": 36.35510346017745,
+        "tokens_per_second": 5.301694746793084,
+        "speculative_decoding": null
+      }
+    },
+    "exact_output": true
+  },
+  {
+    "trial": 1,
+    "prompt_id": 0,
+    "enabled": false,
+    "reply": {
+      "id": "chatcmpl-8d206346b3388f25",
+      "object": "chat.completion",
+      "created": 1789206059,
+      "model": "deepseek-v4.1-flash",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "```python\ndef binary_search(arr: list[int], target: int) -> int:\n    \"\"\"Return index of target in sorted arr, or -1 if not found.\"\"\"\n    lo, hi = 0, len(arr) - 1\n    while lo <= hi:\n        mid = (lo + hi) // 2\n        if arr[mid] == target:\n            return mid\n        elif arr[mid] < target:\n            lo = mid + 1\n        else:\n            hi = mid - 1\n    return -1\n```",
+            "refusal": null,
+            "annotations": null,
+            "audio": null,
+            "function_call": null,
+            "reasoning": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "stop_reason": null,
+          "token_ids": null,
+          "routed_experts": null
+        }
+      ],
+      "service_tier": null,
+      "system_fingerprint": "vllm-0.1.dev20904+g179dd0fa9-tp2-bccfe9ab",
+      "usage": {
+        "prompt_tokens": 3530,
+        "total_tokens": 3644,
+        "completion_tokens": 114,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "created_cache_tokens": 0,
+          "multimodal_tokens": null
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "prompt_logprobs": null,
+      "prompt_token_ids": null,
+      "prompt_text": null,
+      "kv_transfer_params": null,
+      "ec_transfer_params": null,
+      "metrics": {
+        "time_to_first_token_ms": 17873.877687999993,
+        "generation_time_ms": 3820.276532999742,
+        "queue_time_ms": 0.02022399985435186,
+        "mean_itl_ms": 33.80775692920126,
+        "tokens_per_second": 5.25487183499641,
+        "speculative_decoding": null
+      }
+    },
+    "exact_output": true
+  },
+  {
+    "trial": 1,
+    "prompt_id": 1,
+    "enabled": true,
+    "reply": {
+      "id": "chatcmpl-abb05cc75bc7f23c",
+      "object": "chat.completion",
+      "created": 1789206081,
+      "model": "deepseek-v4.1-flash",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "Concurrency is about dealing with multiple tasks at once by interleaving their execution, so progress can be made on each without completing them simultaneously. Parallelism is about actually executing multiple tasks at the same time, typically using multiple CPU cores or processors. In short, concurrency is a program-structure concept, while parallelism is a hardware-execution concept.",
+            "refusal": null,
+            "annotations": null,
+            "audio": null,
+            "function_call": null,
+            "reasoning": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "stop_reason": null,
+          "token_ids": null,
+          "routed_experts": null
+        }
+      ],
+      "service_tier": null,
+      "system_fingerprint": "vllm-0.1.dev20904+g179dd0fa9-tp2-bccfe9ab",
+      "usage": {
+        "prompt_tokens": 3488,
+        "total_tokens": 3560,
+        "completion_tokens": 72,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "created_cache_tokens": 0,
+          "multimodal_tokens": null
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "prompt_logprobs": null,
+      "prompt_token_ids": null,
+      "prompt_text": null,
+      "kv_transfer_params": null,
+      "ec_transfer_params": null,
+      "metrics": {
+        "time_to_first_token_ms": 17255.199618999995,
+        "generation_time_ms": 3195.997233000071,
+        "queue_time_ms": 0.02032000020335545,
+        "mean_itl_ms": 45.01404553521227,
+        "tokens_per_second": 3.5205763516455817,
+        "speculative_decoding": null
+      }
+    },
+    "exact_output": true
+  },
+  {
+    "trial": 1,
+    "prompt_id": 1,
+    "enabled": false,
+    "reply": {
+      "id": "chatcmpl-8799b1ff7a09b06e",
+      "object": "chat.completion",
+      "created": 1789206102,
+      "model": "deepseek-v4.1-flash",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "Concurrency is about dealing with multiple tasks at once by interleaving their execution, so progress can be made on each without completing them simultaneously. Parallelism is about actually executing multiple tasks at the same time, typically using multiple CPU cores or processors. In short, concurrency is a program-structure concept, while parallelism is a hardware-execution concept.",
+            "refusal": null,
+            "annotations": null,
+            "audio": null,
+            "function_call": null,
+            "reasoning": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "stop_reason": null,
+          "token_ids": null,
+          "routed_experts": null
+        }
+      ],
+      "service_tier": null,
+      "system_fingerprint": "vllm-0.1.dev20904+g179dd0fa9-tp2-bccfe9ab",
+      "usage": {
+        "prompt_tokens": 3488,
+        "total_tokens": 3560,
+        "completion_tokens": 72,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "created_cache_tokens": 0,
+          "multimodal_tokens": null
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "prompt_logprobs": null,
+      "prompt_token_ids": null,
+      "prompt_text": null,
+      "kv_transfer_params": null,
+      "ec_transfer_params": null,
+      "metrics": {
+        "time_to_first_token_ms": 17639.81197699968,
+        "generation_time_ms": 2929.453122000268,
+        "queue_time_ms": 0.009856000360741746,
+        "mean_itl_ms": 41.25990312676434,
+        "tokens_per_second": 3.500368129510886,
+        "speculative_decoding": null
+      }
+    },
+    "exact_output": true
+  }
+]

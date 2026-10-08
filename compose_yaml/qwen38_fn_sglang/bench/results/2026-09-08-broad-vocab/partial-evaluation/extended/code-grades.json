@@ -1,0 +1,28 @@
+[
+  {
+    "mode": "ko64k",
+    "id": "code_shortlist",
+    "repeat": 0,
+    "passed": false,
+    "groups": [
+      false,
+      false,
+      false
+    ],
+    "execution_attempted": false,
+    "error": "No final answer; reasoning text is not submitted code"
+  },
+  {
+    "mode": "ko64k",
+    "id": "code_telemetry",
+    "repeat": 0,
+    "passed": false,
+    "groups": [
+      false,
+      false,
+      false
+    ],
+    "execution_attempted": false,
+    "error": "No final answer; reasoning text is not submitted code"
+  }
+]

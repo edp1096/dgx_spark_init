@@ -1,0 +1,5 @@
+.env
+node_modules
+runs
+**/node_modules
+validation

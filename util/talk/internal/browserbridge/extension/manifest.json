@@ -1,0 +1,41 @@
+{
+  "manifest_version": 3,
+  "name": "SparkTalk 브라우저",
+  "description": "Talk와 브라우저를 연결하여 허용한 사이트에서 조회·입력·탭 관리를 수행합니다.",
+  "version": "1.0.2",
+  "minimum_chrome_version": "116",
+  "permissions": [
+    "debugger",
+    "tabs",
+    "scripting",
+    "storage",
+    "webNavigation",
+    "alarms"
+  ],
+  "host_permissions": [],
+  "optional_host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ],
+  "background": {
+    "service_worker": "service-worker.js",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "connect.html",
+    "default_icon": {
+      "16": "spark.png",
+      "32": "spark.png"
+    }
+  },
+  "icons": {
+    "16": "spark.png",
+    "32": "spark.png",
+    "48": "spark.png",
+    "128": "spark.png"
+  },
+  "options_ui": {
+    "page": "sites.html",
+    "open_in_tab": true
+  }
+}

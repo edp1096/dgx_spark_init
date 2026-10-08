@@ -1,0 +1,22 @@
+services:
+  api:
+    init: true
+    build:
+      context: .
+    image: sparktalk-sana-sprint-nf4:0.6b
+    container_name: sana-sprint-nf4-api
+    restart: "no"
+    network_mode: host
+    ipc: host
+    gpus: all
+    environment:
+      API_PORT: "${SANA_API_PORT:-8707}"
+      HF_TOKEN: "${HF_TOKEN:-}"
+      HF_HOME: /root/.cache/huggingface
+    volumes:
+      - hf-cache:/root/.cache/huggingface
+
+volumes:
+  hf-cache:
+    name: media-hf-cache
+    external: true

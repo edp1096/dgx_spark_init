@@ -1,0 +1,82 @@
+name: glm5-3-flash
+x-glm53-image:
+  image: ${GLM53_IMAGE:-pilcothink/vllm_spark_glm53@sha256:09da6eb394216d174ab8692758d90f9f458398d9c8fbc11ba6f04e93d5cf6392}
+services:
+  glm53:
+    image: ${GLM53_IMAGE:-pilcothink/vllm_spark_glm53@sha256:09da6eb394216d174ab8692758d90f9f458398d9c8fbc11ba6f04e93d5cf6392}
+    init: true
+    restart: 'no'
+    network_mode: host
+    ipc: host
+    shm_size: 32gb
+    cap_add:
+    - IPC_LOCK
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      stack:
+        soft: 67108864
+        hard: 67108864
+    devices:
+    - /dev/infiniband:/dev/infiniband
+    deploy:
+      resources:
+        reservations:
+          devices:
+          - driver: nvidia
+            count: all
+            capabilities:
+            - gpu
+    environment:
+      HEAD_RAIL_IP: ${HEAD_RAIL_IP:?set HEAD_RAIL_IP in .env}
+      WORKER_RAIL_IP: ${WORKER_RAIL_IP:?set WORKER_RAIL_IP in .env}
+      NCCL_SUBNET: ${NCCL_SUBNET:-169.254.0.0/16}
+      NCCL_IB_GID_INDEX: ${NCCL_IB_GID_INDEX:-}
+      MASTER_PORT: ${MASTER_PORT:-29521}
+      API_PORT: ${API_PORT:-8000}
+      GPU_MEMORY_UTILIZATION: ${GPU_MEMORY_UTILIZATION:-0.88}
+      NCCL_IGNORE_CPU_AFFINITY: '1'
+      NCCL_DEBUG: ${NCCL_DEBUG:-WARN}
+      NCCL_NCHANNELS: ${NCCL_NCHANNELS:-auto}
+      TORCH_NCCL_ASYNC_ERROR_HANDLING: '1'
+      MODEL_HOST_PATH: ${MODEL_HOST_PATH:?select NVFP4 checkpoint}
+      DRAFT_MODEL_HOST_PATH: ${DRAFT_MODEL_HOST_PATH:-${HOME}/.cache/huggingface/incoai/GLM-5.3-Flash-DFlash2}
+      SERVED_MODEL_NAME: ${SERVED_MODEL_NAME:-glm-5.3-flash}
+      MAX_MODEL_LEN: ${MAX_MODEL_LEN:-1048576}
+      MAX_NUM_SEQS: ${MAX_NUM_SEQS:-4}
+      MAX_NUM_BATCHED_TOKENS: ${MAX_NUM_BATCHED_TOKENS:-1024}
+      MTP_TOKENS: ${MTP_TOKENS:-0}
+      DFLASH_TOKENS: ${DFLASH_TOKENS:-5}
+      ENFORCE_EAGER: ${ENFORCE_EAGER:-0}
+      MAX_CUDAGRAPH_CAPTURE_SIZE: ${MAX_CUDAGRAPH_CAPTURE_SIZE:-16}
+      PREFIX_CACHE_RETENTION_INTERVAL: ${PREFIX_CACHE_RETENTION_INTERVAL:-4608}
+      HF_HUB_OFFLINE: '1'
+      TRANSFORMERS_OFFLINE: '1'
+      VLLM_ENGINE_READY_TIMEOUT_S: '3600'
+      VLLM_GLM53_SPLIT_TARGET_BLOCK_SIZE: auto
+      VLLM_ALLOW_LONG_MAX_MODEL_LEN: '1'
+      VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS: '0'
+      CUTE_DSL_ARCH: sm_121a
+      TORCH_USE_RTLD_GLOBAL: '1'
+      TORCHINDUCTOR_COMPILE_THREADS: '1'
+      HF_HOME: /cache/huggingface
+      KV_CACHE_DTYPE: ${KV_CACHE_DTYPE:-fp8}
+      KV_CACHE_MEMORY: ${KV_CACHE_MEMORY-10240000000}
+      VLLM_BIND: ${VLLM_BIND:-127.0.0.1}
+    volumes:
+    - type: bind
+      source: ${HF_CACHE:-${HOME}/.cache/huggingface}
+      target: ${HF_CACHE:-${HOME}/.cache/huggingface}
+      read_only: true
+      bind:
+        create_host_path: false
+    - ${GLM53_CACHE_PATH:-${HOME}/.cache/glm53-nvfp4}:/cache
+    - ${GLM53_CACHE_PATH:-${HOME}/.cache/glm53-nvfp4}:/root/.cache
+    - ./entrypoint.sh:/opt/glm53/entrypoint.sh:ro
+    - ./check_models.py:/opt/glm53/check_models.py:ro
+    - ./prepare_chat_template.py:/opt/glm53/prepare_chat_template.py:ro
+    entrypoint:
+    - /opt/nvidia/nvidia_entrypoint.sh
+    command:
+    - /opt/glm53/entrypoint.sh

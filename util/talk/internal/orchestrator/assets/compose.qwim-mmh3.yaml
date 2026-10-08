@@ -1,0 +1,31 @@
+services:
+  runtime:
+    image: sparktalk-qwim-mmh3:nvfp4-resident2
+    build:
+      context: ${SPARKTALK_BUILD_DIR:?Embedded build assets required}
+    pull_policy: never
+    container_name: sparktalk-qwim-mmh3
+    restart: "no"
+    stop_grace_period: 10s
+    init: true
+    mem_limit: "36g"
+    memswap_limit: "36g"
+    network_mode: host
+    ipc: host
+    gpus: all
+    tmpfs:
+      - /job:size=256m,mode=1777
+    environment:
+      STATE_DIR: /state
+      HF_HOME: /hf
+      HF_HUB_OFFLINE: "1"
+      COMFY_KITCHEN_BACKEND: cuda
+      API_PORT: "${SPARKTALK_PORT:-8730}"
+      API_HOST: "${SPARKTALK_BIND_ADDR:-127.0.0.1}"
+    volumes:
+      - state:/state
+      - ${SPARKTALK_MODEL_CACHE:-${HOME}/.cache/huggingface}:/hf:ro
+
+volumes:
+  state:
+    name: sparktalk-qwim-mmh3-state

@@ -1,0 +1,94 @@
+services:
+  exporter:
+    init: true
+    image: trt-edge-llm-exporter:0.10.0
+    build:
+      context: .
+      target: exporter
+    profiles: [tools]
+    volumes:
+      - "${TRT_EDGE_MODEL_DIR:-${HOME}/workspace/heretic_models/Huihui-RadixArk-Qwen3.8-27B-abliterated-NVFP4}:/model:ro"
+      - "${TRT_EDGE_DRAFT_DIR:-${HOME}/.cache/huggingface/hub/models--incoai--Qwen3.8-27B-DFlash2}:/draft:ro"
+      - "${TRT_EDGE_WORKSPACE_DIR:-./workspace}:/workspace"
+
+  runtime:
+    init: true
+    image: trt-edge-llm-runtime:0.10.0-trt11
+    build:
+      context: .
+      target: runtime
+      args:
+        TRT_EDGE_RUNTIME_IMAGE: ${TRT_EDGE_RUNTIME_IMAGE:-nvcr.io/nvidia/pytorch:26.07-py3}
+        TRT_EDGE_CUDA_VERSION: ${TRT_EDGE_CUDA_VERSION:-13.3}
+    profiles: [tools]
+    ipc: host
+    ulimits:
+      memlock: -1
+      stack: 67108864
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    volumes:
+      - "${TRT_EDGE_MODEL_DIR:-${HOME}/workspace/heretic_models/Huihui-RadixArk-Qwen3.8-27B-abliterated-NVFP4}:/model:ro"
+      - "${TRT_EDGE_DRAFT_DIR:-${HOME}/.cache/huggingface/hub/models--incoai--Qwen3.8-27B-DFlash2}:/draft:ro"
+      - "${TRT_EDGE_WORKSPACE_DIR:-./workspace}:/workspace"
+
+  server:
+    init: true
+    image: trt-edge-llm-runtime:0.10.0-trt11
+    build:
+      context: .
+      target: runtime
+      args:
+        TRT_EDGE_RUNTIME_IMAGE: ${TRT_EDGE_RUNTIME_IMAGE:-nvcr.io/nvidia/pytorch:26.07-py3}
+        TRT_EDGE_CUDA_VERSION: ${TRT_EDGE_CUDA_VERSION:-13.3}
+    container_name: trt-edge-llm-server
+    ipc: host
+    ulimits:
+      memlock: -1
+      stack: 67108864
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    ports:
+      - "${TRT_EDGE_HOST:-127.0.0.1}:${TRT_EDGE_PORT:-8696}:8000"
+    volumes:
+      - "${TRT_EDGE_WORKSPACE_DIR:-./workspace}:/workspace:ro"
+      - "../../util/media/web/public:/media-assets:ro"
+    command:
+      - python
+      - -m
+      - experimental.server
+      - --model
+      - "/workspace/engines/${TRT_EDGE_ENGINE_SUBDIR:-dflash-ddtree-32k}"
+      - --spec-decode-engine-dir
+      - "/workspace/engines/${TRT_EDGE_ENGINE_SUBDIR:-dflash-ddtree-32k}"
+      - --multimodal-engine-dir
+      - "/workspace/engines/${TRT_EDGE_MULTIMODAL_ENGINE_SUBDIR:-dflash-ddtree-32k}"
+      - --allowed-local-media-path
+      - /media-assets
+      - --max-input-len
+      - "${TRT_EDGE_MAX_INPUT_LEN:-32768}"
+      - --max-kv-cache-capacity
+      - "${TRT_EDGE_MAX_KV_CACHE_CAPACITY:-32768}"
+      - --max-batch-size
+      - "1"
+      - --draft-top-k
+      - "${TRT_EDGE_DRAFT_TOP_K:-2}"
+      - --draft-step
+      - "${TRT_EDGE_DRAFT_STEP:-1}"
+      - --verify-tree-size
+      - "${TRT_EDGE_VERIFY_TREE_SIZE:-16}"
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8000"
+    restart: unless-stopped

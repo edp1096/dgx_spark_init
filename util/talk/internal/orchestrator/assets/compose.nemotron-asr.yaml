@@ -1,0 +1,18 @@
+services:
+  runtime:
+    build:
+      context: ${SPARKTALK_BUILD_DIR:?Embedded build assets required}
+      target: runtime
+    image: sparktalk-nemotron-asr:0.1.0
+    container_name: sparktalk-nemotron-asr
+    # Startup belongs to Talk's memory-checked workload path, including retries.
+    restart: "no"
+    # Equal limits disable container swap; this is a ceiling, not a reservation.
+    mem_limit: "112g"
+    memswap_limit: "112g"
+    init: true
+    ports: ["${SPARKTALK_BIND_ADDR:-127.0.0.1}:${SPARKTALK_PORT:-8693}:8693"]
+    gpus: all
+    volumes:
+      - ${SPARKTALK_NEMO_MODEL_DIR:-${HOME}/.cache/nemo-speech}:/models:ro
+    command: ["serve", "--host", "0.0.0.0", "--port", "8693", "--no-ui", "--threads", "1", "--asr.batching.enabled=false", "--asr.streaming.rnnt_right_context", "1", "--asr-model", "/models/nemotron-3.5-asr-streaming-0.6b.q5_k.gguf"]

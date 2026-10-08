@@ -1,0 +1,7 @@
+Text, parsed reasoning and parsed tool-call probes passed
+Vision, legacy off, tool round trip, counting and MTP probes passed; acceptance lengths=[3.35]
+Concurrent requests, SSE and >8K QSA retrieval passed
+Cold/cached prefix branches and two-turn conversation passed
+Configured context=65536, allocated KV=131072, request input limit=65530
+Beginning actual prompt_tokens=65398 retrieval
+Finished 65398 tokens in 62.0s: answer='MAPLE,COMET', correct=True

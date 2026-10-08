@@ -1,0 +1,7 @@
+ARG DOCUMENT_IMAGE=sparktalk-extra-documents:0.4.0
+FROM ${DOCUMENT_IMAGE}
+USER root
+RUN apt-get update && apt-get install -y --no-install-recommends python3-venv librsvg2-bin poppler-utils && rm -rf /var/lib/apt/lists/*
+COPY validation/requirements.txt /tmp/requirements.txt
+RUN python3 -m venv /opt/verify && /opt/verify/bin/pip install --no-cache-dir -r /tmp/requirements.txt
+USER node

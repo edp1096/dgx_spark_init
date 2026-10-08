@@ -1,0 +1,9 @@
+{
+  "b12x_slots.py": "9384ad6254e4e644aa8c078ae0fbe78362bd084b32288c57bc927258e2804ec1",
+  "expert_prefetch.py": "04a67ac961868cbe60f9dc3705798fecdccfa45777702d1620c3a759e0a36f62",
+  "streaming_moe.py": "be02516f374eb2d8f3aa9dc2d721efd79ffe9b8cf43006d1a7f0c79ed0a844ff",
+  "launch.sh": "9842de9e90ad0f7520b2b6c6d7b5311567c094f1ce91fbd1ad7cff1c3d423df3",
+  "manage.sh": "7474b0cec7d4b1ebd00822f82fc071ce7dd9898195eabddcd6397979e17af21e",
+  "patches/target_model.py": "45e6fa07869689ea787d7d4d6c2a2df56f8d8e071a40aabe3b22d60aa676904d",
+  "patches/mounts.txt": "dc175019f265f80291e7d182bf1178954e1b95fa6f99e01cc9437b64ecee049d"
+}

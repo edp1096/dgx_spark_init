@@ -1,0 +1,95 @@
+{
+  "rank": 1,
+  "rows": [
+    {
+      "tokens": 513,
+      "active": 384,
+      "phase": "cold",
+      "missing": 384,
+      "read_bytes": 3609722880,
+      "max_abs_error": 0.0
+    },
+    {
+      "tokens": 513,
+      "active": 384,
+      "phase": "warm",
+      "missing": 160,
+      "read_bytes": 1504051200,
+      "max_abs_error": 1.1641532182693481e-10
+    },
+    {
+      "tokens": 1537,
+      "active": 256,
+      "phase": "cold",
+      "missing": 256,
+      "read_bytes": 2406481920,
+      "max_abs_error": 9.313225746154785e-10
+    },
+    {
+      "tokens": 1537,
+      "active": 256,
+      "phase": "warm",
+      "missing": 32,
+      "read_bytes": 300810240,
+      "max_abs_error": 9.313225746154785e-10
+    },
+    {
+      "tokens": 2048,
+      "active": 384,
+      "phase": "cold",
+      "missing": 384,
+      "read_bytes": 3609722880,
+      "max_abs_error": 1.862645149230957e-09
+    },
+    {
+      "tokens": 2048,
+      "active": 384,
+      "phase": "warm",
+      "missing": 160,
+      "read_bytes": 1504051200,
+      "max_abs_error": 1.862645149230957e-09
+    },
+    {
+      "tokens": 3073,
+      "active": 384,
+      "phase": "cold",
+      "missing": 384,
+      "read_bytes": 3609722880,
+      "max_abs_error": 9.313225746154785e-10
+    },
+    {
+      "tokens": 3073,
+      "active": 384,
+      "phase": "warm",
+      "missing": 160,
+      "read_bytes": 1504051200,
+      "max_abs_error": 9.313225746154785e-10
+    }
+  ],
+  "callback_failure_drained": true,
+  "cross_stream_and_layer": true,
+  "stats": {
+    "slot_hits": 1568,
+    "slot_misses": 3008,
+    "packed_read_bytes": 28276162560,
+    "graph_replays": 43,
+    "routed_pipeline_batches": 12,
+    "routed_pipeline_bytes": 15642132480,
+    "prefetch_issued": 0,
+    "prefetch_read_bytes": 0,
+    "prefetch_consumed": 0,
+    "prefetch_ready": 0,
+    "prefetch_late": 0,
+    "prefetch_cancelled": 0,
+    "prefetch_unused": 0,
+    "demand_read_bytes": 28276162560,
+    "io_batches": 18,
+    "io_overlaps": 0,
+    "staging_bytes": 3008102400,
+    "staging_banks": 2,
+    "prefetch_pending": 0,
+    "execution_buffer_bytes": 157532160,
+    "scratch_bytes": 805306368,
+    "gpu_cache_bytes": 4211343360
+  }
+}

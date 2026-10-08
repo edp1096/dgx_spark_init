@@ -1,0 +1,43 @@
+{
+  "scope": "Native SGLang FP8 writer sparse attention comparison and 1/6-row CUDA graph replay after different prefill shapes, modified queries and indices.",
+  "adapter_sha256": "05c3527a4d0f080d39c52a752366edee254cee42e11fb1c59388fb577664a545",
+  "device": "GB10 SM121",
+  "tests": [
+    {
+      "rows": 1,
+      "heads": 32,
+      "tail": 0,
+      "max_error": 0.0004422813653945923,
+      "seconds": 9.269970059998741
+    },
+    {
+      "rows": 1,
+      "heads": 32,
+      "tail": 3,
+      "max_error": 0.015460968017578125,
+      "seconds": 0.007576293995953165
+    },
+    {
+      "rows": 7,
+      "heads": 32,
+      "tail": 3,
+      "max_error": 0.020659446716308594,
+      "seconds": 0.9734952930011787
+    },
+    {
+      "rows": 1,
+      "heads": 64,
+      "tail": 3,
+      "max_error": 0.016469955444335938,
+      "seconds": 0.6261125110031571
+    }
+  ],
+  "graph_eager_zero_tolerance_equal": true,
+  "baseline_report": "docs/kernel-qualification-before-optimization.json",
+  "graph_rows": [
+    1,
+    6
+  ],
+  "graph_replays_per_shape": 3,
+  "image": "dgx-sglang-glm53:sm121-dev6"
+}

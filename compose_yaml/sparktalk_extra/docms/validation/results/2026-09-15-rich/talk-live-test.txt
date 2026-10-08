@@ -1,0 +1,4 @@
+=== RUN   TestLiveDocumentTableAndImage
+--- PASS: TestLiveDocumentTableAndImage (0.33s)
+PASS
+ok  	sparktalk/internal/server	0.337s

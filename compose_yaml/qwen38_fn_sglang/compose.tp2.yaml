@@ -1,0 +1,71 @@
+# TP2 alternative; TP1 compose.yaml remains unchanged. Use manage_tp2.py.
+name: sglang_qwen38_fn_tp2
+services:
+  sglang:
+    init: true
+    image: ${QWEN_TP2_IMAGE:-dgx-sglang-qwen38-fn:sm121-tp2-vocab-v1}
+    container_name: ${QWEN_TP2_CONTAINER:?container required}
+    ipc: host
+    shm_size: 16gb
+    mem_limit: 104g
+    memswap_limit: 104g
+    cpuset: 5-9,15-19
+    environment:
+      CUTE_DSL_ARCH: sm_121a
+      HF_HOME: /hf
+      HF_HUB_OFFLINE: '1'
+      PYTHONUNBUFFERED: '1'
+      PYTORCH_CUDA_ALLOC_CONF: expandable_segments:True
+      TORCHINDUCTOR_CACHE_DIR: /root/.cache/sglang/inductor
+      MAX_JOBS: '1'
+      TORCHINDUCTOR_COMPILE_THREADS: '4'
+      SGLANG_QWEN4_PLE_FILE_RSS_BUDGET_GB: '8'
+      SPARKTALK_FLASH_NEXT_DRAFT_VOCAB: ${SPARKTALK_FLASH_NEXT_DRAFT_VOCAB:-ko64k}
+      QWEN_TP2_CHUNK: ${QWEN_TP2_CHUNK:-1024}
+      QWEN_TP2_MODEL: ${QWEN_TP2_MODEL}
+      QWEN_TP2_BIND: ${QWEN_TP2_BIND}
+      QWEN_TP2_RANK: ${QWEN_TP2_RANK}
+      QWEN_TP2_CONTEXT: ${QWEN_TP2_CONTEXT:-262144}
+      QWEN_TP2_API_PORT: ${QWEN_TP2_API_PORT:-8012}
+      QWEN_TP2_HEAD: ${QWEN_TP2_HEAD:-10.200.0.1}
+      QWEN_TP2_DIST_PORT: ${QWEN_TP2_DIST_PORT:-29780}
+      NCCL_NET: IB
+      NCCL_IB_HCA: ${QWEN_TP2_HCA}
+      NCCL_IB_GID_INDEX: ${QWEN_TP2_GID:?validated RoCE GID required}
+      NCCL_SOCKET_IFNAME: ${QWEN_TP2_IF}
+      GLOO_SOCKET_IFNAME: ${QWEN_TP2_IF}
+      NCCL_IB_DISABLE: '0'
+      NCCL_CUMEM_ENABLE: '0'
+      NCCL_NVLS_ENABLE: '0'
+      NCCL_IGNORE_CPU_AFFINITY: '1'
+      NCCL_DEBUG: WARN
+    volumes:
+    - ${QWEN_TP2_HF_CACHE:?cache required}:/hf:ro
+    - ${QWEN_TP2_CACHE_ROOT:?runtime cache required}/rank${QWEN_TP2_RANK}:/root/.cache/sglang
+    - ${QWEN_TP2_CACHE_ROOT:?runtime cache required}/rank${QWEN_TP2_RANK}/ple:/ple
+    - ./tp2:/opt/qwen-tp2:ro
+    deploy:
+      resources:
+        reservations:
+          devices:
+          - driver: nvidia
+            count: all
+            capabilities:
+            - gpu
+    entrypoint:
+    - python3
+    - /opt/qwen-tp2/entrypoint.py
+    command: []
+    restart: 'no'
+    network_mode: host
+    labels:
+      qwen.tp2.probe: ${QWEN_TP2_TOKEN:?probe token required}
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      core: 0
+    cap_add:
+    - IPC_LOCK
+    devices:
+    - /dev/infiniband:/dev/infiniband

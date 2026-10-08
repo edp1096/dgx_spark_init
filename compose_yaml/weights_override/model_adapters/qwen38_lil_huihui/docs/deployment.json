@@ -1,0 +1,24 @@
+{
+  "model": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-NVFP4-QAD",
+  "context_tokens": 1048576,
+  "allocated_kv_tokens": 1048576,
+  "diagnostic_hooks": null,
+  "answer": "3973",
+  "image_id": "sha256:20ad5421b4e665fd6545b3366d3701fcf9777637614afb1ff2b8d4002d0f2fd9",
+  "restart_policy": {
+    "Name": "unless-stopped",
+    "MaximumRetryCount": 0
+  },
+  "tp2_bundle_unchanged": true,
+  "active_bundle": "flash-next",
+  "binding": {
+    "runtime_options": {
+      "MODEL_VARIANT": "huihui_lil",
+      "MTP_TOKENS": "0"
+    },
+    "memory_gib": 97,
+    "model": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-NVFP4-QAD"
+  },
+  "preparation_state": "complete",
+  "runtime_operation_state": "complete"
+}

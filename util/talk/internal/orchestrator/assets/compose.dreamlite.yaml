@@ -1,0 +1,19 @@
+services:
+  runtime:
+    image: sparktalk-dreamlite-mobile:trial1
+    build:
+      context: ${SPARKTALK_BUILD_DIR:?Embedded build assets required}
+    pull_policy: never
+    container_name: sparktalk-dreamlite-mobile
+    restart: unless-stopped
+    init: true
+    ports: ["${SPARKTALK_BIND_ADDR:-127.0.0.1}:${SPARKTALK_PORT:-8691}:8691"]
+    ipc: host
+    gpus: all
+    environment:
+      PYTORCH_CUDA_ALLOC_CONF: expandable_segments:True
+    volumes:
+      - media-hf-cache:/root/.cache/huggingface
+volumes:
+  media-hf-cache:
+    name: media-hf-cache

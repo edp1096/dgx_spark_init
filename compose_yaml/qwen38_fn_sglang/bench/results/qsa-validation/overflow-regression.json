@@ -1,0 +1,146 @@
+{
+  "cases": [
+    {
+      "width": 4096,
+      "distribution": "uniform",
+      "rows": 4,
+      "graph_replay": true,
+      "passed": true
+    },
+    {
+      "width": 4096,
+      "distribution": "normal",
+      "rows": 4,
+      "graph_replay": true,
+      "passed": true
+    },
+    {
+      "width": 4096,
+      "distribution": "constant",
+      "rows": 4,
+      "graph_replay": true,
+      "passed": true
+    },
+    {
+      "width": 4096,
+      "distribution": "negative",
+      "rows": 4,
+      "graph_replay": true,
+      "passed": true
+    },
+    {
+      "width": 4096,
+      "distribution": "bf16",
+      "rows": 4,
+      "graph_replay": true,
+      "passed": true
+    },
+    {
+      "width": 32768,
+      "distribution": "uniform",
+      "rows": 4,
+      "graph_replay": true,
+      "passed": true
+    },
+    {
+      "width": 32768,
+      "distribution": "normal",
+      "rows": 4,
+      "graph_replay": true,
+      "passed": true
+    },
+    {
+      "width": 32768,
+      "distribution": "constant",
+      "rows": 4,
+      "graph_replay": true,
+      "passed": true
+    },
+    {
+      "width": 32768,
+      "distribution": "negative",
+      "rows": 4,
+      "graph_replay": true,
+      "passed": true
+    },
+    {
+      "width": 32768,
+      "distribution": "bf16",
+      "rows": 4,
+      "graph_replay": true,
+      "passed": true
+    },
+    {
+      "width": 65536,
+      "distribution": "uniform",
+      "rows": 4,
+      "graph_replay": true,
+      "passed": true
+    },
+    {
+      "width": 65536,
+      "distribution": "normal",
+      "rows": 4,
+      "graph_replay": true,
+      "passed": true
+    },
+    {
+      "width": 65536,
+      "distribution": "constant",
+      "rows": 4,
+      "graph_replay": true,
+      "passed": true
+    },
+    {
+      "width": 65536,
+      "distribution": "negative",
+      "rows": 4,
+      "graph_replay": true,
+      "passed": true
+    },
+    {
+      "width": 65536,
+      "distribution": "bf16",
+      "rows": 4,
+      "graph_replay": true,
+      "passed": true
+    },
+    {
+      "width": 262144,
+      "distribution": "uniform",
+      "rows": 4,
+      "graph_replay": true,
+      "passed": true
+    },
+    {
+      "width": 262144,
+      "distribution": "normal",
+      "rows": 4,
+      "graph_replay": true,
+      "passed": true
+    },
+    {
+      "width": 262144,
+      "distribution": "constant",
+      "rows": 4,
+      "graph_replay": true,
+      "passed": true
+    },
+    {
+      "width": 262144,
+      "distribution": "negative",
+      "rows": 4,
+      "graph_replay": true,
+      "passed": true
+    },
+    {
+      "width": 262144,
+      "distribution": "bf16",
+      "rows": 4,
+      "graph_replay": true,
+      "passed": true
+    }
+  ],
+  "passed": 20,
+  "row_checks": 160
+}

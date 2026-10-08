@@ -1,0 +1,873 @@
+diff --git a/experimental/server/api_server.py b/experimental/server/api_server.py
+index b96263e..92195a5 100644
+--- a/experimental/server/api_server.py
++++ b/experimental/server/api_server.py
+@@ -58,7 +58,8 @@ from .batching import BatcherOverflow, RequestBatcher, resolve_batch_size
+ from .engine import (OMNI_AUDIO_SAMPLE_RATE, AudioParams, SamplingParams,
+                      _normalize_logit_bias, _validate_logit_bias_spec_decode,
+                      finish_reason_name)
+-from .tool_calling import (ToolConfig, parse_assistant_output,
++from .tool_calling import (ToolConfig, incremental_tool_parser,
++                           parse_assistant_output, thinking_starts_in_prompt,
+                            validate_tool_request)
+ from .video_sampling import MAX_SOURCE_BYTES as MAX_VIDEO_SOURCE_BYTES
+
+@@ -225,6 +226,56 @@ def _bool_field(body, name, default):
+     return value
+
+
++def _reasoning_control(body: Dict[str, Any]) -> Tuple[bool, Optional[str]]:
++    """Resolve OpenAI-style effort into Edge-LLM's thinking controls.
++
++    Qwen3.8 exposes low/medium/xhigh in its tokenizer template, while clients
++    commonly send the wider none/minimal/low/medium/high/xhigh/max vocabulary
++    (or a 0..1 effort).  Preserve the three native levels and map adjacent
++    client values deterministically.  An explicit ``enable_thinking`` boolean
++    controls on/off and takes precedence over the effort-derived state.
++    """
++    explicit = body.get("enable_thinking")
++    if explicit is not None and not isinstance(explicit, bool):
++        raise ValueError("'enable_thinking' must be a boolean")
++
++    raw = body.get("reasoning_effort")
++    enabled_from_effort = False
++    normalized: Optional[str] = None
++    if raw is not None:
++        if isinstance(raw, bool):
++            raise ValueError(
++                "'reasoning_effort' must be a name or a number in [0, 1]")
++        if isinstance(raw, (int, float)):
++            value = float(raw)
++            if not math.isfinite(value) or not 0.0 <= value <= 1.0:
++                raise ValueError("'reasoning_effort' must be in [0, 1]")
++            enabled_from_effort = value > 0.0
++            if enabled_from_effort:
++                normalized = ("low" if value < 1 / 3 else
++                              "medium" if value < 2 / 3 else "xhigh")
++        elif isinstance(raw, str):
++            value = raw.strip().lower()
++            if value in ("", "none", "off", "false"):
++                enabled_from_effort = False
++            elif value in ("minimal", "low"):
++                enabled_from_effort, normalized = True, "low"
++            elif value == "medium":
++                enabled_from_effort, normalized = True, "medium"
++            elif value in ("high", "xhigh", "max"):
++                enabled_from_effort, normalized = True, "xhigh"
++            else:
++                raise ValueError(
++                    "'reasoning_effort' must be none, minimal, low, medium, "
++                    "high, xhigh, max, or a number in [0, 1]")
++        else:
++            raise ValueError(
++                "'reasoning_effort' must be a name or a number in [0, 1]")
++
++    enabled = explicit if explicit is not None else enabled_from_effort
++    return enabled, normalized if enabled else None
++
++
+ # Whole-request cap for JSON endpoints. Derived from the per-video cap so one
+ # maximum-size video still fits: base64 inflates it by 4/3, plus JSON framing.
+ MAX_REQUEST_BODY_BYTES = -(-MAX_VIDEO_SOURCE_BYTES // 3) * 4 + 1024 * 1024
+@@ -950,7 +1001,7 @@ def _create_app(llm_instance,
+         try:
+             sampling = parse_sampling_params(body, default_max_tokens=2048)
+             stream = _bool_field(body, "stream", False)
+-            enable_thinking = _bool_field(body, "enable_thinking", False)
++            enable_thinking, reasoning_effort = _reasoning_control(body)
+             disable_spec_decode = _bool_field(body, "disable_spec_decode",
+                                               False)
+         except ValueError as exc:
+@@ -1024,6 +1075,7 @@ def _create_app(llm_instance,
+                 messages,
+                 tool_config=tool_config,
+                 enable_thinking=enable_thinking,
++                reasoning_effort=reasoning_effort,
+             )
+
+         audio_params, audio_error = _parse_audio_request(body, llm_instance)
+@@ -1041,6 +1093,7 @@ def _create_app(llm_instance,
+             top_k=top_k,
+             max_tokens=max_tokens,
+             enable_thinking=enable_thinking,
++            reasoning_effort=reasoning_effort,
+             disable_spec_decode=disable_spec_decode,
+             stop=stop,
+             logit_bias=logit_bias,
+@@ -1071,7 +1124,8 @@ def _create_app(llm_instance,
+                     messages,
+                     params,
+                     tools=tool_config.tools,
+-                    tool_choice=tool_config.tool_choice)
++                    tool_choice=tool_config.tool_choice,
++                    tool_config=tool_config)
+             except (ValueError, KeyError) as exc:
+                 sem.release()
+                 admission.release()
+@@ -1492,11 +1546,16 @@ def _create_app(llm_instance,
+ class _ThinkingStateMachine:
+     """Tracks <think>...</think> boundaries across streaming deltas."""
+
+-    def __init__(self, thinking_enabled: bool):
++    _PROTOCOL_END_TOKENS = (IM_END_TOKEN, "<|endoftext|>")
++
++    def __init__(self,
++                 thinking_enabled: bool,
++                 starts_in_reasoning: bool = False):
+         self._enabled = thinking_enabled
+-        self._in_think = False
+-        self._think_opened = False
++        self._in_think = thinking_enabled and starts_in_reasoning
++        self._think_opened = thinking_enabled and starts_in_reasoning
+         self._buf = ""
++        self._reasoning_parts: List[str] = []
+
+     def feed(self, text: str):
+         """Yield (field, text) pairs: field is 'reasoning' or 'content'."""
+@@ -1507,43 +1566,68 @@ class _ThinkingStateMachine:
+         self._buf += text
+         while self._buf:
+             if not self._in_think:
+-                idx = self._buf.find(THINK_OPEN_TAG)
+-                if idx == -1:
+-                    if len(self._buf) > len(THINK_OPEN_TAG):
+-                        safe = self._buf[:-len(THINK_OPEN_TAG)]
+-                        self._buf = self._buf[len(safe):]
+-                        if safe and self._think_opened:
+-                            yield "content", safe
+-                        elif safe:
+-                            yield "content", safe
++                markers = (THINK_OPEN_TAG, ) + self._PROTOCOL_END_TOKENS
++                marker = self._first_marker(markers)
++                if marker is None:
++                    safe = self._take_safe_prefix(markers)
++                    if safe:
++                        yield "content", safe
+                     break
+-                if idx > 0 and self._think_opened:
+-                    yield "content", self._buf[:idx]
+-                elif idx > 0:
++                idx, value = marker
++                if idx > 0:
+                     yield "content", self._buf[:idx]
+-                self._buf = self._buf[idx + len(THINK_OPEN_TAG):]
+-                self._in_think = True
+-                self._think_opened = True
++                self._buf = self._buf[idx + len(value):]
++                if value == THINK_OPEN_TAG:
++                    self._in_think = True
++                    self._think_opened = True
+             else:
+-                idx = self._buf.find(THINK_CLOSE_TAG)
+-                if idx == -1:
+-                    if len(self._buf) > len(THINK_CLOSE_TAG):
+-                        safe = self._buf[:-len(THINK_CLOSE_TAG)]
+-                        self._buf = self._buf[len(safe):]
+-                        if safe:
+-                            yield "reasoning", safe
++                markers = (THINK_CLOSE_TAG, ) + self._PROTOCOL_END_TOKENS
++                marker = self._first_marker(markers)
++                if marker is None:
++                    safe = self._take_safe_prefix(markers)
++                    if safe:
++                        self._reasoning_parts.append(safe)
++                        yield "reasoning", safe
+                     break
++                idx, value = marker
+                 if idx > 0:
+-                    yield "reasoning", self._buf[:idx]
+-                self._buf = self._buf[idx + len(THINK_CLOSE_TAG):]
+-                self._in_think = False
++                    reasoning = self._buf[:idx]
++                    self._reasoning_parts.append(reasoning)
++                    yield "reasoning", reasoning
++                self._buf = self._buf[idx + len(value):]
++                if value == THINK_CLOSE_TAG:
++                    self._in_think = False
++
++    def _first_marker(self, markers):
++        found = [(index, marker) for marker in markers
++                 if (index := self._buf.find(marker)) >= 0]
++        return min(found, key=lambda item: item[0]) if found else None
++
++    def _take_safe_prefix(self, markers):
++        keep = 0
++        for marker in markers:
++            limit = min(len(self._buf), len(marker) - 1)
++            for size in range(limit, 0, -1):
++                if marker.startswith(self._buf[-size:]):
++                    keep = max(keep, size)
++                    break
++        if keep:
++            safe, self._buf = self._buf[:-keep], self._buf[-keep:]
++        else:
++            safe, self._buf = self._buf, ""
++        return safe
+
+     def flush(self):
+         """Flush remaining buffer at end of stream."""
+         if self._buf:
+             field = "reasoning" if self._in_think else "content"
++            if field == "reasoning":
++                self._reasoning_parts.append(self._buf)
+             yield field, self._buf
+             self._buf = ""
++        if self._in_think and self._reasoning_parts:
++            yield "content", "".join(self._reasoning_parts)
++            self._in_think = False
+
+
+ def _sse_error(message: str) -> str:
+@@ -1677,7 +1761,11 @@ def _generate_stream_sse_inner(llm_instance,
+                                              prompt_tokens=prompt_tokens)
+         return
+
+-    sm = _ThinkingStateMachine(enable_thinking)
++    sm = _ThinkingStateMachine(
++        enable_thinking,
++        starts_in_reasoning=(enable_thinking and thinking_starts_in_prompt(
++            llm_instance.model_dir)),
++    )
+     audio_id = f"audio-{response_id}"
+     finish_reason: Optional[str] = None
+     error_message: Optional[str] = None
+@@ -1791,10 +1879,47 @@ def _generate_tool_stream_sse(llm_instance,
+                           null_usage=include_usage,
+                           **kw)
+
++    parser = incremental_tool_parser(
++        llm_instance.model_dir,
++        tool_config,
++        getattr(params, "enable_thinking", False),
++    )
+     text_parts: List[str] = []
+     finish_reason: Optional[str] = None
+     error_message: Optional[str] = None
+     completion_tokens = 0
++    tool_index = 0
++
++    def emit_events(events):
++        nonlocal tool_index
++        for event in events:
++            if event["type"] == "reasoning" and event["text"]:
++                yield emit({"reasoning": event["text"]})
++            elif event["type"] == "content" and event["text"]:
++                yield emit({"content": event["text"]})
++            elif event["type"] == "tool_call":
++                call = event["tool_call"]
++                yield emit({
++                    "tool_calls": [{
++                        "index": tool_index,
++                        "id": call.id,
++                        "type": "function",
++                        "function": {
++                            "name": call.name,
++                            "arguments": "",
++                        },
++                    }]
++                })
++                if call.arguments:
++                    yield emit({
++                        "tool_calls": [{
++                            "index": tool_index,
++                            "function": {
++                                "arguments": call.arguments,
++                            },
++                        }]
++                    })
++                tool_index += 1
+
+     try:
+         for delta in llm_instance.generate_stream(
+@@ -1806,7 +1931,11 @@ def _generate_tool_stream_sse(llm_instance,
+                 tool_choice=tool_config.tool_choice):
+             completion_tokens += len(delta.token_ids or [])
+             if delta.text:
+-                text_parts.append(delta.text)
++                text = delta.text.replace(IM_END_TOKEN, "")
++                if parser is not None:
++                    yield from emit_events(parser.feed(text))
++                else:
++                    text_parts.append(text)
+             if delta.finished:
+                 finish_reason = delta.finish_reason or "stop"
+     except Exception as exc:
+@@ -1814,38 +1943,13 @@ def _generate_tool_stream_sse(llm_instance,
+         finish_reason = "error"
+         error_message = str(exc)
+
+-    output_text = "".join(text_parts).replace(IM_END_TOKEN, "")
+-    parsed = parse_assistant_output(output_text, tool_config,
+-                                    llm_instance.model_dir)
+-    tool_index = 0
+-    for event in parsed.events:
+-        if event["type"] == "reasoning" and event["text"]:
+-            yield emit({"reasoning": event["text"]})
+-        elif event["type"] == "content" and event["text"]:
+-            yield emit({"content": event["text"]})
+-        elif event["type"] == "tool_call":
+-            call = event["tool_call"]
+-            yield emit({
+-                "tool_calls": [{
+-                    "index": tool_index,
+-                    "id": call.id,
+-                    "type": "function",
+-                    "function": {
+-                        "name": call.name,
+-                        "arguments": "",
+-                    },
+-                }]
+-            })
+-            if call.arguments:
+-                yield emit({
+-                    "tool_calls": [{
+-                        "index": tool_index,
+-                        "function": {
+-                            "arguments": call.arguments,
+-                        },
+-                    }]
+-                })
+-            tool_index += 1
++    if parser is not None:
++        yield from emit_events(parser.flush())
++    else:
++        output_text = "".join(text_parts)
++        parsed = parse_assistant_output(output_text, tool_config,
++                                        llm_instance.model_dir)
++        yield from emit_events(parsed.events)
+
+     finish = "tool_calls" if tool_index else finish_reason or "stop"
+     if error_message and "EDGELLM_INPUT_TOO_LONG" in error_message:
+diff --git a/experimental/server/engine.py b/experimental/server/engine.py
+index 2eb413c..729f80c 100644
+--- a/experimental/server/engine.py
++++ b/experimental/server/engine.py
+@@ -89,6 +89,7 @@ class SamplingParams:
+     top_k: int = 50
+     max_tokens: int = 2048
+     enable_thinking: bool = False
++    reasoning_effort: Optional[str] = None
+     disable_spec_decode: bool = False
+     num_logprobs: int = 0
+     stop: List[str] = field(default_factory=list)
+@@ -1275,6 +1276,7 @@ class LLM:
+         tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+         tool_config: Optional[ToolConfig] = None,
+         enable_thinking: bool = False,
++        reasoning_effort: Optional[str] = None,
+     ):
+         """Prepare messages for the C++ runtime."""
+         tool_config = tool_config or validate_tool_request(
+@@ -1285,8 +1287,9 @@ class LLM:
+                                             self._video_model_family,
+                                             self._video_frame_limits)
+
+-        if needs_tool_chat_template(messages, template_tools,
+-                                    tool_config.tool_choice):
++        if (reasoning_effort is not None
++                or needs_tool_chat_template(messages, template_tools,
++                                            tool_config.tool_choice)):
+             template_tool_choice = None
+             if tool_config.tool_choice != "none":
+                 template_tool_choice = self._tool_choice_for_template(
+@@ -1297,6 +1300,7 @@ class LLM:
+                 tool_choice=template_tool_choice,
+                 add_generation_prompt=True,
+                 enable_thinking=enable_thinking,
++                reasoning_effort=reasoning_effort,
+             )
+             cpp_messages = _convert_messages_to_cpp(
+                 self._rt,
+@@ -1318,6 +1322,7 @@ class LLM:
+         tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+         tool_config: Optional[ToolConfig] = None,
+         enable_thinking: bool = False,
++        reasoning_effort: Optional[str] = None,
+     ) -> Optional[int]:
+         """Best-effort prompt token count via the HF tokenizer: exact for
+         tool-templated requests, within a few tokens for plain ones (HF vs
+@@ -1340,6 +1345,7 @@ class LLM:
+                 tool_choice=template_tool_choice,
+                 add_generation_prompt=True,
+                 enable_thinking=enable_thinking,
++                reasoning_effort=reasoning_effort,
+             )
+             return formatter.count_tokens(prompt)
+         except Exception:
+@@ -1372,6 +1378,7 @@ class LLM:
+                 tool_choice=tool_config.tool_choice,
+                 tool_config=tool_config,
+                 enable_thinking=params.enable_thinking,
++                reasoning_effort=params.reasoning_effort,
+             ))
+
+         audio_buffers = _load_audio_buffers(self._rt, messages)
+@@ -1558,7 +1565,14 @@ class LLM:
+         params = sampling_params or SamplingParams()
+
+         channel = self._rt.StreamChannel.create()
+-        channel.set_skip_special_tokens(True)
++        # Tool/reasoning delimiters are registered as special tokens for Qwen.
++        # Keep them in the internal stream so the HTTP layer can split
++        # reasoning and parse tool calls incrementally; it removes the
++        # protocol markers before emitting OpenAI SSE. Plain chat retains the
++        # upstream skip behavior.
++        expose_protocol_tokens = (params.enable_thinking or bool(tools)
++                                  or tool_choice not in (None, "none"))
++        channel.set_skip_special_tokens(not expose_protocol_tokens)
+
+         # Admission spans decode through inference; the HTTP layer acquires
+         # it itself before prebuilding (and owns the release), so only the
+diff --git a/experimental/server/tool_calling.py b/experimental/server/tool_calling.py
+index c60e48c..9f6fa83 100644
+--- a/experimental/server/tool_calling.py
++++ b/experimental/server/tool_calling.py
+@@ -122,6 +122,214 @@ def parse_assistant_output(text: str, tool_config: ToolConfig,
+     return ParsedAssistantOutput(expanded, malformed=malformed)
+
+
++class IncrementalQwenToolParser:
++    """Incrementally split Qwen XML output without leaking tool markup.
++
++    Qwen's tool template guarantees ``<tool_call>...</tool_call>`` blocks.
++    Ordinary answer and reasoning text can therefore be forwarded as soon as
++    it is safe, while only a possible marker suffix and an active tool block
++    need to be buffered.  Completed blocks still use the shared parser below,
++    keeping argument coercion and tool-name validation in one place.
++    """
++
++    _THINK_OPEN = "<think>"
++    _THINK_CLOSE = "</think>"
++    _TOOL_OPEN = "<tool_call>"
++    _TOOL_CLOSE = "</tool_call>"
++    _FUNCTION_OPEN = "<function="
++    _FUNCTION_CLOSE = "</function>"
++    _PROTOCOL_END_TOKENS = ("<|im_end|>", "<|endoftext|>")
++
++    def __init__(self,
++                 tool_config: ToolConfig,
++                 starts_in_reasoning: bool = False):
++        self._tool_config = tool_config
++        self._state = "reasoning" if starts_in_reasoning else "content"
++        self._buffer = ""
++        self._tool_block = ""
++        self._tool_close = self._TOOL_CLOSE
++        self._reasoning_text = ""
++
++    def feed(self, text: str) -> List[Dict[str, Any]]:
++        if text:
++            self._buffer += text
++        return self._drain(final=False)
++
++    def flush(self) -> List[Dict[str, Any]]:
++        return self._drain(final=True)
++
++    def _drain(self, *, final: bool) -> List[Dict[str, Any]]:
++        events: List[Dict[str, Any]] = []
++        while self._buffer:
++            if self._state == "content":
++                marker = self._first_marker(
++                    (self._THINK_OPEN, self._TOOL_OPEN,
++                     self._FUNCTION_OPEN) + self._PROTOCOL_END_TOKENS)
++                if marker is not None:
++                    index, value = marker
++                    if index:
++                        events.append({
++                            "type": "content",
++                            "text": self._buffer[:index],
++                        })
++                    self._buffer = self._buffer[index + len(value):]
++                    if value == self._THINK_OPEN:
++                        self._state = "reasoning"
++                    elif value not in self._PROTOCOL_END_TOKENS:
++                        self._start_tool(value)
++                    continue
++                safe = self._take_safe_prefix(
++                    (self._THINK_OPEN, self._TOOL_OPEN,
++                     self._FUNCTION_OPEN) + self._PROTOCOL_END_TOKENS, final)
++                if safe:
++                    events.append({"type": "content", "text": safe})
++                break
++
++            if self._state == "reasoning":
++                marker = self._first_marker(
++                    (self._THINK_CLOSE, self._TOOL_OPEN,
++                     self._FUNCTION_OPEN) + self._PROTOCOL_END_TOKENS)
++                if marker is not None:
++                    index, value = marker
++                    if index:
++                        events.append({
++                            "type": "reasoning",
++                            "text": self._buffer[:index],
++                        })
++                    self._buffer = self._buffer[index + len(value):]
++                    if value == self._THINK_CLOSE:
++                        self._state = "content"
++                    elif value not in self._PROTOCOL_END_TOKENS:
++                        self._start_tool(value)
++                    continue
++                safe = self._take_safe_prefix(
++                    (self._THINK_CLOSE, self._TOOL_OPEN,
++                     self._FUNCTION_OPEN) + self._PROTOCOL_END_TOKENS, final)
++                if safe:
++                    events.append({"type": "reasoning", "text": safe})
++                break
++
++            index = self._buffer.find(self._tool_close)
++            if index >= 0:
++                self._tool_block += (self._buffer[:index] +
++                                     self._tool_close)
++                self._buffer = self._buffer[index + len(self._tool_close):]
++                events.extend(self._parse_tool_block_or_content(
++                    self._tool_block))
++                self._tool_block = ""
++                self._state = "content"
++                continue
++            if final:
++                self._tool_block += self._buffer
++                self._buffer = ""
++                events.extend(self._parse_tool_block_or_content(
++                    self._tool_block))
++                self._tool_block = ""
++                self._state = "content"
++            else:
++                self._tool_block += self._take_safe_prefix(
++                    (self._tool_close, ), final=False)
++            break
++        if final and self._state == "tool" and self._tool_block:
++            events.extend(self._parse_tool_block_or_content(self._tool_block))
++            self._tool_block = ""
++            self._state = "content"
++        self._reasoning_text += "".join(
++            event["text"] for event in events
++            if event["type"] == "reasoning")
++        if final and self._state == "reasoning" and self._reasoning_text:
++            # Some Qwen checkpoints end with EOS without emitting </think>.
++            # Preserve the reasoning channel already streamed, but also give
++            # OpenAI clients a non-empty final answer instead of losing the
++            # entire response in a hidden reasoning drawer.
++            events.append({
++                "type": "content",
++                "text": self._reasoning_text,
++            })
++            self._state = "content"
++        return events
++
++    def _start_tool(self, marker: str) -> None:
++        self._state = "tool"
++        self._tool_block = marker
++        self._tool_close = (self._FUNCTION_CLOSE
++                            if marker == self._FUNCTION_OPEN else
++                            self._TOOL_CLOSE)
++
++    def _first_marker(self, markers: Sequence[str]) -> Optional[Tuple[int,
++                                                                      str]]:
++        found = [(index, marker) for marker in markers
++                 if (index := self._buffer.find(marker)) >= 0]
++        return min(found, key=lambda item: item[0]) if found else None
++
++    def _take_safe_prefix(self, markers: Sequence[str], final: bool) -> str:
++        if final:
++            safe, self._buffer = self._buffer, ""
++            return safe
++        keep = 0
++        for marker in markers:
++            limit = min(len(self._buffer), len(marker) - 1)
++            for size in range(limit, 0, -1):
++                if marker.startswith(self._buffer[-size:]):
++                    keep = max(keep, size)
++                    break
++        if keep:
++            safe, self._buffer = self._buffer[:-keep], self._buffer[-keep:]
++        else:
++            safe, self._buffer = self._buffer, ""
++        return safe
++
++    def _parse_tool_block_or_content(
++            self, block: str) -> List[Dict[str, Any]]:
++        calls = _parse_tool_block(block, self._tool_config)
++        if calls:
++            return [{"type": "tool_call", "tool_call": call}
++                    for call in calls]
++        return [{"type": "content", "text": block}]
++
++
++def _model_chat_template(model_dir: str) -> str:
++    try:
++        with open(os.path.join(model_dir, "tokenizer_config.json"),
++                  encoding="utf-8") as f:
++            template = json.load(f).get("chat_template", "")
++    except (OSError, ValueError, AttributeError):
++        return ""
++    return template if isinstance(template, str) else ""
++
++
++def thinking_starts_in_prompt(model_dir: str) -> bool:
++    """Whether this tokenizer's generation prompt pre-opens ``<think>``."""
++    template = _model_chat_template(model_dir)
++    return ("add_generation_prompt" in template
++            and "{{- '<think>\\n' }}" in template)
++
++
++def incremental_tool_parser(model_dir: str,
++                            tool_config: ToolConfig,
++                            enable_thinking: bool = False
++                            ) -> Optional[IncrementalQwenToolParser]:
++    """Return the narrow streaming parser only for a matching Qwen template.
++
++    Other model protocols retain the existing whole-response parser.  This
++    avoids prematurely exposing raw JSON or Python-style calls as user-facing
++    content when their output format has no unambiguous opening delimiter.
++    """
++    template = _model_chat_template(model_dir)
++    required = (
++        "<tool_call>",
++        "</tool_call>",
++        "<function=example_function_name>",
++    )
++    if not all(item in template for item in required):
++        return None
++    return IncrementalQwenToolParser(
++        tool_config,
++        starts_in_reasoning=(enable_thinking
++                             and thinking_starts_in_prompt(model_dir)),
++    )
++
++
+ def _validate_tools(tools: Sequence[Dict[str, Any]]) -> set[str]:
+     names: set[str] = set()
+     for idx, tool in enumerate(tools):
+diff --git a/experimental/server/tool_chat_template.py b/experimental/server/tool_chat_template.py
+index 16c6122..b3498d4 100644
+--- a/experimental/server/tool_chat_template.py
++++ b/experimental/server/tool_chat_template.py
+@@ -200,6 +200,7 @@ class ToolChatTemplateFormatter:
+         tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+         add_generation_prompt: bool = True,
+         enable_thinking: Optional[bool] = None,
++        reasoning_effort: Optional[str] = None,
+     ) -> str:
+         """Format messages and tools into a model-native prompt."""
+         owner = self._load_template_owner()
+@@ -212,22 +213,28 @@ class ToolChatTemplateFormatter:
+         }
+         if enable_thinking is not None:
+             kwargs["enable_thinking"] = enable_thinking
++        if reasoning_effort is not None:
++            kwargs["reasoning_effort"] = reasoning_effort
+         if tool_choice is not None:
+             kwargs["tool_choice"] = tool_choice
+
+         try:
+             prompt = owner.apply_chat_template(normalized_messages, **kwargs)
+         except TypeError as exc:
+-            if "enable_thinking" not in kwargs:
+-                raise ToolChatTemplateError(
+-                    f"Failed to apply tool-aware chat template: {exc}"
+-                ) from exc
+-            # Older tokenizers may reject Qwen-style enable_thinking.
+-            kwargs.pop("enable_thinking", None)
+-            try:
+-                prompt = owner.apply_chat_template(normalized_messages,
+-                                                   **kwargs)
+-            except Exception as retry_exc:
++            # Older tokenizers may reject Qwen-style template kwargs. Drop
++            # the most specific optional field first, then the boolean.
++            retry_exc: Exception = exc
++            for optional in ("reasoning_effort", "enable_thinking"):
++                if optional not in kwargs:
++                    continue
++                kwargs.pop(optional)
++                try:
++                    prompt = owner.apply_chat_template(normalized_messages,
++                                                       **kwargs)
++                    break
++                except TypeError as current:
++                    retry_exc = current
++            else:
+                 raise ToolChatTemplateError(
+                     "Failed to apply tool-aware chat template: "
+                     f"{retry_exc}") from retry_exc
+diff --git a/tests/python-unittests/test_tool_calling.py b/tests/python-unittests/test_tool_calling.py
+index 66b4821..b8bab50 100644
+--- a/tests/python-unittests/test_tool_calling.py
++++ b/tests/python-unittests/test_tool_calling.py
+@@ -18,9 +18,13 @@ import json
+ import pytest
+
+ from experimental.server.api_server import (_build_message_body,
+-                                            _generate_stream_sse)
++                                            _generate_stream_sse,
++                                            _reasoning_control,
++                                            _ThinkingStateMachine)
+ from experimental.server.engine import StreamDelta
+-from experimental.server.tool_calling import (parse_assistant_output,
++from experimental.server.tool_calling import (incremental_tool_parser,
++                                              parse_assistant_output,
++                                              thinking_starts_in_prompt,
+                                               validate_tool_request)
+
+
+@@ -49,6 +53,15 @@ def _tool_config(tool_choice="auto"):
+     }], _tools(), tool_choice)
+
+
++def _write_qwen_tool_template(path):
++    path.joinpath("tokenizer_config.json").write_text(
++        json.dumps({
++            "chat_template":
++            ("{% if add_generation_prompt %}{{- '<think>\\n' }}{% endif %}"
++             "<tool_call></tool_call><function=example_function_name>")
++        }))
++
++
+ def test_validates_tool_request():
+     messages = [{
+         "role":
+@@ -126,6 +139,146 @@ def test_parses_tool_calls(tmp_path):
+     assert json.loads(parsed.tool_calls[0].arguments) == {"city": "Paris"}
+
+
++def test_qwen_tool_parser_streams_text_and_buffers_only_tool_markup(tmp_path):
++    _write_qwen_tool_template(tmp_path)
++    parser = incremental_tool_parser(str(tmp_path), _tool_config())
++    assert parser is not None
++
++    assert parser.feed("<thi") == []
++    events = parser.feed("nk>brief plan</thi")
++    assert events == [{"type": "reasoning", "text": "brief plan"}]
++    events = parser.feed("nk>Answer starts <tool_")
++    assert events == [{"type": "content", "text": "Answer starts "}]
++    assert parser.feed(
++        "call><function=get_weather><parameter=city>Par") == []
++    events = parser.feed("is</parameter></function></tool_call>")
++    assert len(events) == 1 and events[0]["type"] == "tool_call"
++    assert events[0]["tool_call"].name == "get_weather"
++    assert json.loads(events[0]["tool_call"].arguments) == {"city": "Paris"}
++    assert parser.flush() == []
++
++
++def test_qwen_tool_parser_flushes_plain_and_incomplete_output(tmp_path):
++    _write_qwen_tool_template(tmp_path)
++    parser = incremental_tool_parser(str(tmp_path), _tool_config())
++    assert parser.feed("plain answer<tool_") == [{
++        "type": "content",
++        "text": "plain answer",
++    }]
++    assert parser.flush() == [{"type": "content", "text": "<tool_"}]
++
++    parser = incremental_tool_parser(str(tmp_path), _tool_config())
++    assert parser.feed("<tool_call>") == []
++    assert parser.flush() == [{
++        "type": "content",
++        "text": "<tool_call>",
++    }]
++
++
++def test_qwen_parser_starts_in_reasoning_when_template_preopens_tag(tmp_path):
++    _write_qwen_tool_template(tmp_path)
++    assert thinking_starts_in_prompt(str(tmp_path))
++    parser = incremental_tool_parser(str(tmp_path),
++                                     _tool_config(),
++                                     enable_thinking=True)
++    assert parser.feed("hidden reasoning</thi") == [{
++        "type": "reasoning",
++        "text": "hidden reasoning",
++    }]
++    assert parser.feed("nk>visible answer") == [{
++        "type": "content",
++        "text": "visible answer",
++    }]
++
++
++def test_qwen_parser_falls_back_when_reasoning_never_closes(tmp_path):
++    _write_qwen_tool_template(tmp_path)
++    parser = incremental_tool_parser(str(tmp_path),
++                                     _tool_config(),
++                                     enable_thinking=True)
++    assert parser.feed("reasoning and final answer") == [{
++        "type": "reasoning",
++        "text": "reasoning and final answer",
++    }]
++    assert parser.flush() == [{
++        "type": "content",
++        "text": "reasoning and final answer",
++    }]
++
++
++def test_qwen_parser_accepts_tool_call_without_reasoning_close(tmp_path):
++    _write_qwen_tool_template(tmp_path)
++    parser = incremental_tool_parser(str(tmp_path),
++                                     _tool_config(),
++                                     enable_thinking=True)
++    events = parser.feed(
++        "plan<tool_call><function=get_weather>"
++        "<parameter=city>Seoul</parameter></function></tool_call>")
++    assert events[0] == {"type": "reasoning", "text": "plan"}
++    assert events[1]["type"] == "tool_call"
++    assert json.loads(events[1]["tool_call"].arguments) == {"city": "Seoul"}
++    assert parser.flush() == []
++
++
++def test_qwen_parser_accepts_function_when_runtime_strips_outer_tags(tmp_path):
++    _write_qwen_tool_template(tmp_path)
++    parser = incremental_tool_parser(str(tmp_path), _tool_config())
++    assert parser.feed("\n<funct") == [{"type": "content", "text": "\n"}]
++    events = parser.feed(
++        "ion=get_weather><parameter=city>Seoul</parameter></function>\n")
++    assert events[0]["type"] == "tool_call"
++    assert json.loads(events[0]["tool_call"].arguments) == {"city": "Seoul"}
++    assert events[1] == {"type": "content", "text": "\n"}
++    assert parser.flush() == []
++
++
++def test_qwen_parser_strips_protocol_token_split_across_deltas(tmp_path):
++    _write_qwen_tool_template(tmp_path)
++    parser = incremental_tool_parser(str(tmp_path), _tool_config())
++    assert parser.feed("answer<|im_") == [{
++        "type": "content",
++        "text": "answer",
++    }]
++    assert parser.feed("end|>") == []
++    assert parser.flush() == []
++
++
++def test_thinking_stream_strips_protocol_token_split_across_deltas():
++    parser = _ThinkingStateMachine(True, starts_in_reasoning=True)
++    assert list(parser.feed("plan</think>493<|i")) == [
++        ("reasoning", "plan"),
++        ("content", "493"),
++    ]
++    assert list(parser.feed("m_end|>")) == []
++    assert list(parser.flush()) == []
++
++
++@pytest.mark.parametrize(
++    ("body", "expected"),
++    [
++        ({}, (False, None)),
++        ({"reasoning_effort": "none"}, (False, None)),
++        ({"reasoning_effort": "minimal"}, (True, "low")),
++        ({"reasoning_effort": "medium"}, (True, "medium")),
++        ({"reasoning_effort": "high"}, (True, "xhigh")),
++        ({"reasoning_effort": 0.2}, (True, "low")),
++        ({"reasoning_effort": 0.5}, (True, "medium")),
++        ({"reasoning_effort": 0.9}, (True, "xhigh")),
++        ({
++            "enable_thinking": False,
++            "reasoning_effort": "xhigh"
++        }, (False, None)),
++    ],
++)
++def test_reasoning_control(body, expected):
++    assert _reasoning_control(body) == expected
++
++
++def test_reasoning_control_rejects_invalid_effort():
++    with pytest.raises(ValueError, match="reasoning_effort"):
++        _reasoning_control({"reasoning_effort": "ultra"})
++
++
+ def test_filters_forced_tool(tmp_path):
+     text = "<tool_call>{\"name\":\"other\",\"arguments\":{}}</tool_call>"
+     parsed = parse_assistant_output(

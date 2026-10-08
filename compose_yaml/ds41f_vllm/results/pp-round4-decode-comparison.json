@@ -1,0 +1,8 @@
+{
+  "all_four_answers_byte_identical_to_previous_validated_run": true,
+  "all_normal_stop": true,
+  "old_weighted_tg": 17.684059627091877,
+  "new_weighted_tg": 18.610491485689327,
+  "change_percent": 5.238796283960512,
+  "limitation": "Four requests, including immediate repeats; initial expert-cache state differs across serving runs. This is a regression check, not a general decode speedup claim."
+}

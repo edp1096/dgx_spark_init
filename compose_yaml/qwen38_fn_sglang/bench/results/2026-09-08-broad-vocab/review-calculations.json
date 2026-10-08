@@ -1,0 +1,17 @@
+{
+  "finance_cost_APR_crosscheck": {
+    "assumptions": "12 payments at month ends; down payment and B fee at time zero; APR represented as 12*monthly IRR",
+    "A": {
+      "net_principal": 1000000,
+      "payment": 95000,
+      "monthly_irr": 0.020757415739554586,
+      "nominal_APR": 0.24908898887465503
+    },
+    "B": {
+      "net_principal": 1150000,
+      "payment": 105000,
+      "monthly_irr": 0.01434150311434601,
+      "nominal_APR": 0.17209803737215212
+    }
+  }
+}

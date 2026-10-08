@@ -1,0 +1,9 @@
+{
+  "all_four_texts_identical": true,
+  "all_stopped_normally": true,
+  "baseline_code_behavior_validated": true,
+  "baseline_weighted_decode_tps": 17.845529124631156,
+  "candidate_weighted_decode_tps": 17.684059627091877,
+  "change_percent": -0.9048176515898954,
+  "note": "Two short prompts, each followed by its immediate repeat; not a broad generation-throughput benchmark."
+}

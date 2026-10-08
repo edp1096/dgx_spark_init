@@ -1,0 +1,1 @@
+{"aux_loading":"dynamic","model_paths":{"text_encoders":["/opt/ComfyUI/models/text_encoders"],"vae":["/opt/ComfyUI/models/vae"]},"dits":{"qwim":"/opt/ComfyUI/models/diffusion_models/qwen-image21-uc-nvfp4.safetensors"}}

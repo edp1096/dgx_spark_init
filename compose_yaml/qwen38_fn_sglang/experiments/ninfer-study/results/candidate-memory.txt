@@ -1,0 +1,2 @@
+[2026-09-21 18:18:00] Mamba Cache is allocated. max_mamba_cache_size: 8, conv_state size: 0.02GB, ssm_state size: 0.95GB intermediate_ssm_state_cache size: 0.00GB intermediate_conv_window_cache size: 0.01GB
+[2026-09-21 18:18:00] GDN ReplaySSM ring buffers allocated (record_len=4, fold=True): d=0.000GB, k=0.000GB, g=0.000GB rawv=0.015GB, rawk=0.005GB, beta=0.000GB

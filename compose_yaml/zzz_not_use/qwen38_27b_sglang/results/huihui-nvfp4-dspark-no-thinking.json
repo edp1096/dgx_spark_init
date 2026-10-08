@@ -1,0 +1,14 @@
+{
+  "label": "huihui-nvfp4-dspark-no-thinking",
+  "model": "Huihui-Qwen3.8-27B-abliterated-NVFP4",
+  "thinking": false,
+  "cases": [
+    {"case": "code_en", "elapsed_seconds": 17.147, "completion_tokens": 512, "client_tokens_per_second": 29.859, "finish_reason": "length", "accept_length": 3.825, "accept_rate": 0.4036},
+    {"case": "math_en", "elapsed_seconds": 12.09, "completion_tokens": 512, "client_tokens_per_second": 42.349, "finish_reason": "length", "accept_length": 4.325, "accept_rate": 0.475},
+    {"case": "technical_ko", "elapsed_seconds": 34.049, "completion_tokens": 512, "client_tokens_per_second": 15.037, "finish_reason": "length", "accept_length": 4.325, "accept_rate": 0.475},
+    {"case": "prose_ko", "elapsed_seconds": 40.802, "completion_tokens": 490, "client_tokens_per_second": 12.009, "finish_reason": "stop", "accept_length": 1.65, "accept_rate": 0.0929}
+  ],
+  "completion_tokens": 2026,
+  "elapsed_seconds": 104.088,
+  "client_tokens_per_second": 19.464
+}

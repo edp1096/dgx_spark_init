@@ -1,0 +1,6 @@
+{
+  "status": "ok",
+  "model": "edp1096/Huihui-RadixArk-Qwen3.8-Flash-Next-abliterated-NVFP4",
+  "endpoint": "http://127.0.0.1:8000",
+  "error": ""
+}

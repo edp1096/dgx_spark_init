@@ -1,0 +1,55 @@
+PHASE seed 1
+PHASE baseline 1
+b12x policy fallback: moe.decode is using a heuristic on nvidia gb10 (compute capability 12.1, 48 SMs) because profile 'nvidia.gb10.48sm' does not cover the query; query={'activation': 'silu', 'hidden_size': 5120, 'intermediate_size': 1152, 'num_experts': 224, 'num_tokens': 1, 'numerical_recipe': 'deepseek_v41', 'quant_mode': 'w4a8_mx', 'routed_rows': 6, 'source_format': 'fp4_e8m0_k32', 'top_k': 6}
+PHASE callback-eager 1
+PHASE callback-eager-complete 1
+PHASE capture 1
+PHASE captured 1
+PHASE parity 1 hit
+{"tokens": 1, "state": "hit", "variant": "baseline", "trial": -1, "warmup": true, "ms": 0.4226903000623376}
+{"tokens": 1, "state": "hit", "variant": "callback", "trial": -1, "warmup": true, "ms": 1.0704248833159606}
+{"tokens": 1, "state": "hit", "variant": "callback", "trial": 0, "warmup": false, "ms": 0.9245792666964311}
+{"tokens": 1, "state": "hit", "variant": "baseline", "trial": 0, "warmup": false, "ms": 0.42255776667540584}
+{"tokens": 1, "state": "hit", "variant": "baseline", "trial": 1, "warmup": false, "ms": 0.42182898335643887}
+{"tokens": 1, "state": "hit", "variant": "callback", "trial": 1, "warmup": false, "ms": 0.9668271166447084}
+{"tokens": 1, "state": "hit", "variant": "callback", "trial": 2, "warmup": false, "ms": 0.6258784166372303}
+{"tokens": 1, "state": "hit", "variant": "baseline", "trial": 2, "warmup": false, "ms": 0.4228247167096318}
+PHASE parity 1 evict
+{"tokens": 1, "state": "evict", "variant": "baseline", "trial": -1, "warmup": true, "ms": 8.751486416561724}
+{"tokens": 1, "state": "evict", "variant": "callback", "trial": -1, "warmup": true, "ms": 8.136832500288923}
+{"tokens": 1, "state": "evict", "variant": "callback", "trial": 0, "warmup": false, "ms": 8.48401416624256}
+{"tokens": 1, "state": "evict", "variant": "baseline", "trial": 0, "warmup": false, "ms": 8.70761866644898}
+{"tokens": 1, "state": "evict", "variant": "baseline", "trial": 1, "warmup": false, "ms": 8.239716250197185}
+{"tokens": 1, "state": "evict", "variant": "callback", "trial": 1, "warmup": false, "ms": 8.041175666827863}
+{"tokens": 1, "state": "evict", "variant": "callback", "trial": 2, "warmup": false, "ms": 8.515819416667606}
+{"tokens": 1, "state": "evict", "variant": "baseline", "trial": 2, "warmup": false, "ms": 8.796342500014967}
+PHASE seed 6
+PHASE baseline 6
+b12x policy fallback: moe.decode is using a heuristic on nvidia gb10 (compute capability 12.1, 48 SMs) because profile 'nvidia.gb10.48sm' does not cover the query; query={'activation': 'silu', 'hidden_size': 5120, 'intermediate_size': 1152, 'num_experts': 224, 'num_tokens': 6, 'numerical_recipe': 'deepseek_v41', 'quant_mode': 'w4a8_mx', 'routed_rows': 36, 'source_format': 'fp4_e8m0_k32', 'top_k': 6}
+PHASE callback-eager 6
+PHASE callback-eager-complete 6
+PHASE capture 6
+PHASE captured 6
+PHASE parity 6 hit
+{"tokens": 6, "state": "hit", "variant": "baseline", "trial": -1, "warmup": true, "ms": 2.121141716634156}
+{"tokens": 6, "state": "hit", "variant": "callback", "trial": -1, "warmup": true, "ms": 2.5409027166460874}
+{"tokens": 6, "state": "hit", "variant": "callback", "trial": 0, "warmup": false, "ms": 2.6948624833797417}
+{"tokens": 6, "state": "hit", "variant": "baseline", "trial": 0, "warmup": false, "ms": 2.1084895167102027}
+{"tokens": 6, "state": "hit", "variant": "baseline", "trial": 1, "warmup": false, "ms": 2.120894550049949}
+{"tokens": 6, "state": "hit", "variant": "callback", "trial": 1, "warmup": false, "ms": 2.3928443166369107}
+{"tokens": 6, "state": "hit", "variant": "callback", "trial": 2, "warmup": false, "ms": 2.599618833240432}
+{"tokens": 6, "state": "hit", "variant": "baseline", "trial": 2, "warmup": false, "ms": 2.093045049938761}
+PHASE parity 6 evict
+Traceback (most recent call last):
+  File "/opt/ds41/tools/bench_expert_callback.py", line 92, in <module>
+    for ids in seq:reference.append(layer.run(x,weights,ids).clone())
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/ds41/b12x_slots.py", line 372, in run
+    result=self._run(x,weights,ids,on_load_start)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/ds41/b12x_slots.py", line 386, in _run
+    mapped=self.ensure(needed,on_load_start)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/ds41/b12x_slots.py", line 197, in ensure
+    raise ValueError('Invalid routed expert ID')
+ValueError: Invalid routed expert ID

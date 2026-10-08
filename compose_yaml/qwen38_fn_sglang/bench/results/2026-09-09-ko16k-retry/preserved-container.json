@@ -1,0 +1,18 @@
+{
+  "id": "8d43512c60783d9a4c460ac14f3235e9b0efc6ef71155123a468e857fec7ae4b",
+  "original_name": "qwen-fn-vocab-memory-ko16k",
+  "archived_name": "qwen-fn-vocab-memory-ko16k-crash-0248",
+  "state": {
+    "Status": "exited",
+    "Running": false,
+    "Paused": false,
+    "Restarting": false,
+    "OOMKilled": false,
+    "Dead": false,
+    "Pid": 0,
+    "ExitCode": 255,
+    "Error": "",
+    "StartedAt": "2026-09-08T17:42:36.587693537Z",
+    "FinishedAt": "2026-09-08T17:47:21.84950816Z"
+  }
+}

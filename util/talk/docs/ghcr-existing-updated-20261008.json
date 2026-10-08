@@ -1,0 +1,62 @@
+{
+  "date": "2026-10-08",
+  "images": [
+    {
+      "service": "QAD",
+      "local": "dgx-sglang-qwen38-qad:sm121-v5-memory",
+      "remote": "ghcr.io/edp1096/sglang-qwen38-qad:sm121-v5-memory",
+      "previous": "ghcr.io/edp1096/sglang-qwen38-qad:sm121-v5",
+      "expected_digest": "sha256:95b4633b7224deaad847a553c6550891fd3bdad97ad9d8e0c70c843239d26e72",
+      "architecture": "linux/arm64",
+      "bytes": 14635412565,
+      "previous_digest": "sha256:c79141f03a89b8888920f629ac638a6915eec5abb0dabe75688977c3c58b75f5",
+      "remote_digest": "sha256:95b4633b7224deaad847a553c6550891fd3bdad97ad9d8e0c70c843239d26e72",
+      "push_seconds": 5.368614593986422,
+      "verified": true
+    },
+    {
+      "service": "Extra Media",
+      "local": "sparktalk-extra-media:0.1.0",
+      "remote": "ghcr.io/edp1096/sparktalk-extra-media:0.1.0",
+      "previous": "ghcr.io/edp1096/sparktalk-extra-media:0.1.0",
+      "expected_digest": "sha256:fdb2b9930fe4a6efe437ed7cde07127afef17aab9d8331208c8192d2a7aa5cf7",
+      "architecture": "linux/arm64",
+      "bytes": 286170795,
+      "previous_digest": "sha256:3bb2d1fcff78d881714a0df42b9494d0070243f00c7e3d80d2f3b8c027f81cc8",
+      "remote_digest": "sha256:fdb2b9930fe4a6efe437ed7cde07127afef17aab9d8331208c8192d2a7aa5cf7",
+      "push_seconds": 6.402091145981103,
+      "verified": true
+    },
+    {
+      "service": "Extra SSH",
+      "local": "sparktalk-extra-ssh:0.3.0",
+      "remote": "ghcr.io/edp1096/sparktalk-extra-ssh:0.3.0",
+      "previous": "ghcr.io/edp1096/sparktalk-extra-ssh:0.1.0",
+      "expected_digest": "sha256:abcdf26e744d13e4485321392b0382f1d9fd464b5958ecb2475a81231ff66e0b",
+      "architecture": "linux/arm64",
+      "bytes": 35540428,
+      "previous_digest": "sha256:5f2f99c3b772b9e156de41652785b164115fccfc530f889617d15cf7127be785",
+      "remote_digest": "sha256:abcdf26e744d13e4485321392b0382f1d9fd464b5958ecb2475a81231ff66e0b",
+      "push_seconds": 6.585888862959109,
+      "verified": true
+    }
+  ],
+  "complete": true,
+  "already_current": [
+    {
+      "remote": "ghcr.io/edp1096/sparktalk-extra-collector:0.1.0",
+      "digest": "sha256:7f1d0016baa1acedbd45168e03d8d62a3ebcc9f6fbd894e33b81dfab5658f078",
+      "verified": true,
+      "action": "already_current"
+    },
+    {
+      "remote": "ghcr.io/edp1096/sparktalk-extra-documents:0.5.2",
+      "digest": "sha256:4a10c394924f5fe46d8b8ca391ec65488bac05f008c4339bf678a7ad21cbc232",
+      "verified": true,
+      "action": "already_current"
+    }
+  ],
+  "registry_mutated": true,
+  "new_repositories_published": [],
+  "authorization": "User explicitly authorized existing image updates and requires approval of items and names before publishing new images."
+}

@@ -1,0 +1,38 @@
+[
+  {
+    "prompt": "대한민국의 수도는 어디인가? 한 단어로 답해.",
+    "text": "서울",
+    "usage": {
+      "prompt_tokens": 23,
+      "total_tokens": 26,
+      "completion_tokens": 3
+    },
+    "total_seconds": 8.651001748999988,
+    "ttft_seconds": 7.79357316900132,
+    "decode_tokens_per_second": 2.3325557914142614
+  },
+  {
+    "prompt": "Write a Python function add(a, b) that returns their sum. Output only code.",
+    "text": "def add(a, b):\n    return a + b",
+    "usage": {
+      "prompt_tokens": 22,
+      "total_tokens": 34,
+      "completion_tokens": 12
+    },
+    "total_seconds": 30.25923521000368,
+    "ttft_seconds": 19.258476178998535,
+    "decode_tokens_per_second": 0.9999310019424109
+  },
+  {
+    "prompt": "Count from 1 to 10, separated by commas.",
+    "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10",
+    "usage": {
+      "prompt_tokens": 16,
+      "total_tokens": 45,
+      "completion_tokens": 29
+    },
+    "total_seconds": 20.69520976900094,
+    "ttft_seconds": 8.939723802999652,
+    "decode_tokens_per_second": 2.3818666519598084
+  }
+]

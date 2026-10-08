@@ -1,0 +1,2136 @@
+{
+  "date": "2026-10-08",
+  "status": "deployed and verified",
+  "engine_version": "0.2.0",
+  "source_commit": "6a3ca369370782acee0dd155e34394ba60b920c4",
+  "upstream_release": "https://github.com/NVIDIA/NeMo-Speech.cpp/releases/tag/v0.2.0",
+  "previous_engine_version": "0.1.0",
+  "previous_source_commit": "97a15afa5caa9bce5baaa86c1184103877af4101",
+  "local_runtime_image": "sparktalk-nemotron-asr:0.1.0",
+  "image_release_version": "0.1.0",
+  "image_id": "sha256:7a5ed2ff0ff51adc52c63a5364db4fba10e72b5082cde973960ff8a854313f15",
+  "source_provenance": {
+    "upstream_tag": "v0.2.0",
+    "commit": "6a3ca369370782acee0dd155e34394ba60b920c4",
+    "llama_cpp_commit": "bd4f514db14d87fded667787a7a963bfbaa98e89",
+    "cpp_httplib_commit": "62d899feac3cf9215a55f2b43da250fdd98d2156",
+    "base_builder": "sparktalk-nemotron-builder:workspace",
+    "models_downloaded": false,
+    "fresh_dependencies_downloaded": false,
+    "cached_runtime_os_base": "sparktalk-nemotron-asr:0.6b-q5-k-diar2-workspace",
+    "old_runtime_code_removed_before_copy": true,
+    "runtime_binaries_and_ggml_libraries": "Newly compiled official v0.2.0 sources, then one custom workspace-release patch",
+    "custom_source_diff_files": 7,
+    "custom_source_diff_sha256": "ff4158b8e4ca2b6a9b529acbaed0cdaf76b933777a262f42293549b481483632",
+    "canonical_dockerfile_sha256": "2a1499c34c858dd4bd926c4eba68af5913199474e216a1bf10c62496085b7f2a",
+    "cached_dockerfile_sha256": "dd20db213c19009fe1c8aa0cd9e234bcf3fef424bfcad8be0c7d6921bfa8f1b5",
+    "cached_patch_application": "The canonical Python patch was applied on the host to seven upstream source files and copied over the stock builder; the cached builder lacks Python."
+  },
+  "custom_runtime_patches": [
+    {
+      "file": "compose_yaml/nemotron_asr/patches/release_workspace.py",
+      "purpose": "Release request workspaces and reclaimable host heap while keeping weights and model/state tensor containers resident.",
+      "changed_source_files": 7,
+      "inference_or_model_format_changes": false,
+      "kept_after_stock_comparison": true
+    }
+  ],
+  "upstream_build_patches": "Official v0.2.0 configure-time llama.cpp/ggml patches are retained. They are not custom SparkTalk patches.",
+  "weights": {
+    "nemotron-3.5-asr-streaming-0.6b.q5_k.gguf": {
+      "bytes": 528061920,
+      "sha256": "f0dab30ca22a606c2ab9a65efae88421851c6ca4ab01160708ab733b4467ce58"
+    },
+    "Nemotron-3-Diarization.q8_0.gguf": {
+      "bytes": 107012128,
+      "sha256": "08456d9e22cd9a323c0364d98375f3746d6e68507ebb705cd46438c534c7a3a1"
+    }
+  },
+  "model_downloaded": false,
+  "converter": {
+    "bytes": 528061920,
+    "sha256": "f0dab30ca22a606c2ab9a65efae88421851c6ca4ab01160708ab733b4467ce58",
+    "matches_qualified_release": true,
+    "model_downloaded": false,
+    "quantizer_source": "v0.2.0 ggml 0.25.1",
+    "device": "CPU"
+  },
+  "corpus_response_comparison": {
+    "requests_each": 150,
+    "stock_vs_previous_text_mismatches": 0,
+    "patched_vs_stock_text_mismatches": 0,
+    "patched_vs_stock_full_response_mismatches": 0,
+    "long_asr_600s_full_response_equal": true,
+    "diar_two_speakers_full_response_equal": true,
+    "long_diar_600s_full_response_equal": true
+  },
+  "qualifications": {
+    "previous-production": {
+      "tag": "previous-production",
+      "image": null,
+      "success": true,
+      "weights_downloaded": false,
+      "upstream_version": "0.1.0",
+      "device": "CUDA",
+      "gpu_and_host_memory_are_not_added": true,
+      "baseline_used_bytes": 110058377216.0,
+      "ready": {
+        "capabilities": [
+          "asr",
+          "diarization"
+        ],
+        "device": "auto",
+        "ready": true
+      },
+      "startup_seconds": 0.0019664409337565303,
+      "pid_before": 1556360,
+      "version": "nemo-speech 0.1.0",
+      "languages": {
+        "ko100": {
+          "samples": 100,
+          "cer": 0.08500669344042838,
+          "latency_mean_seconds": 0.11219819237128831
+        },
+        "ko": {
+          "samples": 20,
+          "cer": 0.1087866108786611,
+          "latency_mean_seconds": 0.0771435197093524
+        },
+        "en": {
+          "samples": 10,
+          "cer": 0.0558055805580558,
+          "latency_mean_seconds": 0.07702457702253014
+        },
+        "ja": {
+          "samples": 10,
+          "cer": 0.09070294784580499,
+          "latency_mean_seconds": 0.07758887399686501
+        },
+        "zh": {
+          "samples": 10,
+          "cer": 0.17534246575342466,
+          "latency_mean_seconds": 0.07030959530966356
+        }
+      },
+      "short_quality_reused_after_fixture_fix": true,
+      "long_asr_600s": {
+        "latency_seconds": 17.67107366491109,
+        "segments": 0,
+        "speakers": [],
+        "text_characters": 5782
+      },
+      "diar_two_speakers": {
+        "latency_seconds": 0.12979594699572772,
+        "segments": 4,
+        "speakers": [
+          1,
+          2
+        ],
+        "text_characters": 0
+      },
+      "long_diar_600s": {
+        "latency_seconds": 1.8865149029297754,
+        "segments": 165,
+        "speakers": [
+          1
+        ],
+        "text_characters": 0
+      },
+      "repeat_matches": true,
+      "state": {
+        "Status": "running",
+        "Running": true,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 1556257,
+        "ExitCode": 0,
+        "Error": "",
+        "StartedAt": "2026-10-08T05:10:21.254225407Z",
+        "FinishedAt": "0001-01-01T00:00:00Z"
+      },
+      "pid_after": 1556360,
+      "memory": {
+        "baseline": {
+          "available_bytes": {
+            "min_gib": 19.12295150756836,
+            "peak_gib": 19.156814575195312,
+            "median_gib": 19.125255584716797
+          },
+          "free_bytes": {
+            "min_gib": 1.7116279602050781,
+            "peak_gib": 1.7455482482910156,
+            "median_gib": 1.7140541076660156
+          },
+          "used_bytes": {
+            "min_gib": 102.46829223632812,
+            "peak_gib": 102.50215530395508,
+            "median_gib": 102.49985122680664
+          }
+        },
+        "startup": {
+          "available_bytes": {
+            "min_gib": 19.092853546142578,
+            "peak_gib": 19.60196304321289,
+            "median_gib": 19.519412994384766
+          },
+          "free_bytes": {
+            "min_gib": 1.6815223693847656,
+            "peak_gib": 2.1897659301757812,
+            "median_gib": 2.1068286895751953
+          },
+          "used_bytes": {
+            "min_gib": 102.02314376831055,
+            "peak_gib": 102.53225326538086,
+            "median_gib": 102.10569381713867
+          },
+          "cgroup_bytes": {
+            "min_gib": 2.002338409423828,
+            "peak_gib": 2.084564208984375,
+            "median_gib": 2.0334548950195312
+          },
+          "cgroup_anon_bytes": {
+            "min_gib": 1.36895751953125,
+            "peak_gib": 1.4490928649902344,
+            "median_gib": 1.3825454711914062
+          },
+          "cgroup_file_bytes": {
+            "min_gib": 0.6208648681640625,
+            "peak_gib": 0.6215972900390625,
+            "median_gib": 0.6208648681640625
+          },
+          "cgroup_swap_bytes": {
+            "min_gib": 0.0,
+            "peak_gib": 0.0,
+            "median_gib": 0.0
+          },
+          "rss_bytes": {
+            "min_gib": 1.5372581481933594,
+            "peak_gib": 1.5372581481933594,
+            "median_gib": 1.5372581481933594
+          },
+          "gpu_bytes": {
+            "min_gib": 1.6416015625,
+            "peak_gib": 1.6416015625,
+            "median_gib": 1.6416015625
+          }
+        },
+        "idle_before": {
+          "available_bytes": {
+            "min_gib": 19.326377868652344,
+            "peak_gib": 19.90483856201172,
+            "median_gib": 19.47872543334961
+          },
+          "free_bytes": {
+            "min_gib": 1.7969779968261719,
+            "peak_gib": 2.516437530517578,
+            "median_gib": 1.9820365905761719
+          },
+          "used_bytes": {
+            "min_gib": 101.72026824951172,
+            "peak_gib": 102.2987289428711,
+            "median_gib": 102.14638137817383
+          },
+          "cgroup_bytes": {
+            "min_gib": 2.00079345703125,
+            "peak_gib": 2.004302978515625,
+            "median_gib": 2.0042457580566406
+          },
+          "cgroup_anon_bytes": {
+            "min_gib": 1.3689498901367188,
+            "peak_gib": 1.36895751953125,
+            "median_gib": 1.36895751953125
+          },
+          "cgroup_file_bytes": {
+            "min_gib": 0.6181449890136719,
+            "peak_gib": 0.6215972900390625,
+            "median_gib": 0.6215972900390625
+          },
+          "cgroup_swap_bytes": {
+            "min_gib": 0.0,
+            "peak_gib": 0.0,
+            "median_gib": 0.0
+          },
+          "rss_bytes": {
+            "min_gib": 1.5331230163574219,
+            "peak_gib": 1.5372581481933594,
+            "median_gib": 1.5331230163574219
+          },
+          "gpu_bytes": {
+            "min_gib": 1.6416015625,
+            "peak_gib": 1.6416015625,
+            "median_gib": 1.6416015625
+          }
+        },
+        "idle_short": {
+          "available_bytes": {
+            "min_gib": 19.470558166503906,
+            "peak_gib": 19.888858795166016,
+            "median_gib": 19.678436279296875
+          },
+          "free_bytes": {
+            "min_gib": 1.4753761291503906,
+            "peak_gib": 2.4889373779296875,
+            "median_gib": 2.048910140991211
+          },
+          "used_bytes": {
+            "min_gib": 101.73624801635742,
+            "peak_gib": 102.15454864501953,
+            "median_gib": 101.94667053222656
+          },
+          "cgroup_bytes": {
+            "min_gib": 1.9966239929199219,
+            "peak_gib": 2.00079345703125,
+            "median_gib": 1.997802734375
+          },
+          "cgroup_anon_bytes": {
+            "min_gib": 1.36895751953125,
+            "peak_gib": 1.36895751953125,
+            "median_gib": 1.36895751953125
+          },
+          "cgroup_file_bytes": {
+            "min_gib": 0.6151542663574219,
+            "peak_gib": 0.6181449890136719,
+            "median_gib": 0.6151542663574219
+          },
+          "cgroup_swap_bytes": {
+            "min_gib": 0.0,
+            "peak_gib": 0.0,
+            "median_gib": 0.0
+          },
+          "rss_bytes": {
+            "min_gib": 1.5331230163574219,
+            "peak_gib": 1.5331230163574219,
+            "median_gib": 1.5331230163574219
+          },
+          "gpu_bytes": {
+            "min_gib": 1.6416015625,
+            "peak_gib": 1.6416015625,
+            "median_gib": 1.6416015625
+          }
+        },
+        "long_asr_600s": {
+          "available_bytes": {
+            "min_gib": 18.47214126586914,
+            "peak_gib": 19.805561065673828,
+            "median_gib": 19.197494506835938
+          },
+          "free_bytes": {
+            "min_gib": 0.8091163635253906,
+            "peak_gib": 1.7820014953613281,
+            "median_gib": 1.1674575805664062
+          },
+          "used_bytes": {
+            "min_gib": 101.81954574584961,
+            "peak_gib": 103.1529655456543,
+            "median_gib": 102.4276123046875
+          },
+          "cgroup_bytes": {
+            "min_gib": 1.7685470581054688,
+            "peak_gib": 2.254596710205078,
+            "median_gib": 2.1755332946777344
+          },
+          "cgroup_anon_bytes": {
+            "min_gib": 1.1789970397949219,
+            "peak_gib": 1.6263885498046875,
+            "median_gib": 1.5679817199707031
+          },
+          "cgroup_file_bytes": {
+            "min_gib": 0.5745315551757812,
+            "peak_gib": 0.6151542663574219,
+            "median_gib": 0.5938186645507812
+          },
+          "cgroup_swap_bytes": {
+            "min_gib": 0.0,
+            "peak_gib": 0.0,
+            "median_gib": 0.0
+          },
+          "rss_bytes": {
+            "min_gib": 1.3419990539550781,
+            "peak_gib": 1.7906761169433594,
+            "median_gib": 1.7289161682128906
+          },
+          "gpu_bytes": {
+            "min_gib": 1.6416015625,
+            "peak_gib": 1.9453125,
+            "median_gib": 1.9453125
+          }
+        },
+        "idle_after_long_asr_600s": {
+          "available_bytes": {
+            "min_gib": 19.787010192871094,
+            "peak_gib": 19.933212280273438,
+            "median_gib": 19.87636947631836
+          },
+          "free_bytes": {
+            "min_gib": 1.758148193359375,
+            "peak_gib": 1.9069137573242188,
+            "median_gib": 1.8497962951660156
+          },
+          "used_bytes": {
+            "min_gib": 101.69189453125,
+            "peak_gib": 101.83809661865234,
+            "median_gib": 101.74873733520508
+          },
+          "cgroup_bytes": {
+            "min_gib": 1.6526870727539062,
+            "peak_gib": 1.6526985168457031,
+            "median_gib": 1.6526870727539062
+          },
+          "cgroup_anon_bytes": {
+            "min_gib": 1.0655555725097656,
+            "peak_gib": 1.0655555725097656,
+            "median_gib": 1.0655555725097656
+          },
+          "cgroup_file_bytes": {
+            "min_gib": 0.5745315551757812,
+            "peak_gib": 0.5745315551757812,
+            "median_gib": 0.5745315551757812
+          },
+          "cgroup_swap_bytes": {
+            "min_gib": 0.0,
+            "peak_gib": 0.0,
+            "median_gib": 0.0
+          },
+          "rss_bytes": {
+            "min_gib": 1.2264900207519531,
+            "peak_gib": 1.2264900207519531,
+            "median_gib": 1.2264900207519531
+          },
+          "gpu_bytes": {
+            "min_gib": 1.6416015625,
+            "peak_gib": 1.9453125,
+            "median_gib": 1.6416015625
+          }
+        },
+        "diar_two_speakers": {
+          "available_bytes": {
+            "min_gib": 19.776874542236328,
+            "peak_gib": 19.784442901611328,
+            "median_gib": 19.784442901611328
+          },
+          "free_bytes": {
+            "min_gib": 1.7477684020996094,
+            "peak_gib": 1.7555809020996094,
+            "median_gib": 1.7555809020996094
+          },
+          "used_bytes": {
+            "min_gib": 101.84066390991211,
+            "peak_gib": 101.84823226928711,
+            "median_gib": 101.84066390991211
+          },
+          "cgroup_bytes": {
+            "min_gib": 1.6583404541015625,
+            "peak_gib": 1.6700859069824219,
+            "median_gib": 1.6647758483886719
+          },
+          "cgroup_anon_bytes": {
+            "min_gib": 1.0702705383300781,
+            "peak_gib": 1.0822944641113281,
+            "median_gib": 1.0771636962890625
+          },
+          "cgroup_file_bytes": {
+            "min_gib": 0.5745315551757812,
+            "peak_gib": 0.5747756958007812,
+            "median_gib": 0.5745315551757812
+          },
+          "cgroup_swap_bytes": {
+            "min_gib": 0.0,
+            "peak_gib": 0.0,
+            "median_gib": 0.0
+          },
+          "rss_bytes": {
+            "min_gib": 1.2313270568847656,
+            "peak_gib": 1.2433509826660156,
+            "median_gib": 1.23809814453125
+          },
+          "gpu_bytes": {
+            "min_gib": 1.6416015625,
+            "peak_gib": 1.6416015625,
+            "median_gib": 1.6416015625
+          }
+        },
+        "idle_after_diar_two_speakers": {
+          "available_bytes": {
+            "min_gib": 19.52914047241211,
+            "peak_gib": 20.277057647705078,
+            "median_gib": 20.000946044921875
+          },
+          "free_bytes": {
+            "min_gib": 1.5210342407226562,
+            "peak_gib": 2.2689476013183594,
+            "median_gib": 2.0068206787109375
+          },
+          "used_bytes": {
+            "min_gib": 101.34804916381836,
+            "peak_gib": 102.09596633911133,
+            "median_gib": 101.62416076660156
+          },
+          "cgroup_bytes": {
+            "min_gib": 1.6583175659179688,
+            "peak_gib": 1.6583404541015625,
+            "median_gib": 1.6583175659179688
+          },
+          "cgroup_anon_bytes": {
+            "min_gib": 1.0702705383300781,
+            "peak_gib": 1.0702705383300781,
+            "median_gib": 1.0702705383300781
+          },
+          "cgroup_file_bytes": {
+            "min_gib": 0.5747756958007812,
+            "peak_gib": 0.5747756958007812,
+            "median_gib": 0.5747756958007812
+          },
+          "cgroup_swap_bytes": {
+            "min_gib": 0.0,
+            "peak_gib": 0.0,
+            "median_gib": 0.0
+          },
+          "rss_bytes": {
+            "min_gib": 1.2313270568847656,
+            "peak_gib": 1.2313270568847656,
+            "median_gib": 1.2313270568847656
+          },
+          "gpu_bytes": {
+            "min_gib": 1.6416015625,
+            "peak_gib": 1.6416015625,
+            "median_gib": 1.6416015625
+          }
+        },
+        "long_diar_600s": {
+          "available_bytes": {
+            "min_gib": 19.606189727783203,
+            "peak_gib": 19.99151611328125,
+            "median_gib": 19.7586669921875
+          },
+          "free_bytes": {
+            "min_gib": 1.6108245849609375,
+            "peak_gib": 1.9791374206542969,
+            "median_gib": 1.7574043273925781
+          },
+          "used_bytes": {
+            "min_gib": 101.63359069824219,
+            "peak_gib": 102.01891708374023,
+            "median_gib": 101.86643981933594
+          },
+          "cgroup_bytes": {
+            "min_gib": 1.6518478393554688,
+            "peak_gib": 1.8373298645019531,
+            "median_gib": 1.8373298645019531
+          },
+          "cgroup_anon_bytes": {
+            "min_gib": 1.0635490417480469,
+            "peak_gib": 1.2486953735351562,
+            "median_gib": 1.2486953735351562
+          },
+          "cgroup_file_bytes": {
+            "min_gib": 0.5747756958007812,
+            "peak_gib": 0.5747756958007812,
+            "median_gib": 0.5747756958007812
+          },
+          "cgroup_swap_bytes": {
+            "min_gib": 0.0,
+            "peak_gib": 0.0,
+            "median_gib": 0.0
+          },
+          "rss_bytes": {
+            "min_gib": 1.2246055603027344,
+            "peak_gib": 1.4097518920898438,
+            "median_gib": 1.4097518920898438
+          },
+          "gpu_bytes": {
+            "min_gib": 1.6416015625,
+            "peak_gib": 1.65625,
+            "median_gib": 1.6416015625
+          }
+        },
+        "idle_after_long_diar_600s": {
+          "available_bytes": {
+            "min_gib": 19.547924041748047,
+            "peak_gib": 20.264972686767578,
+            "median_gib": 19.699718475341797
+          },
+          "free_bytes": {
+            "min_gib": 1.5439872741699219,
+            "peak_gib": 2.3287887573242188,
+            "median_gib": 1.7033843994140625
+          },
+          "used_bytes": {
+            "min_gib": 101.36013412475586,
+            "peak_gib": 102.07718276977539,
+            "median_gib": 101.92538833618164
+          },
+          "cgroup_bytes": {
+            "min_gib": 1.6422157287597656,
+            "peak_gib": 1.6518478393554688,
+            "median_gib": 1.6518440246582031
+          },
+          "cgroup_anon_bytes": {
+            "min_gib": 1.0635490417480469,
+            "peak_gib": 1.0635490417480469,
+            "median_gib": 1.0635490417480469
+          },
+          "cgroup_file_bytes": {
+            "min_gib": 0.5652542114257812,
+            "peak_gib": 0.5747756958007812,
+            "median_gib": 0.5747756958007812
+          },
+          "cgroup_swap_bytes": {
+            "min_gib": 0.0,
+            "peak_gib": 0.0,
+            "median_gib": 0.0
+          },
+          "rss_bytes": {
+            "min_gib": 1.2246055603027344,
+            "peak_gib": 1.2246055603027344,
+            "median_gib": 1.2246055603027344
+          },
+          "gpu_bytes": {
+            "min_gib": 1.6416015625,
+            "peak_gib": 1.65625,
+            "median_gib": 1.6416015625
+          }
+        },
+        "repeat_after_long": {
+          "available_bytes": {
+            "min_gib": 19.288558959960938,
+            "peak_gib": 20.211456298828125,
+            "median_gib": 20.052658081054688
+          },
+          "free_bytes": {
+            "min_gib": 2.1164703369140625,
+            "peak_gib": 2.3043670654296875,
+            "median_gib": 2.1621360778808594
+          },
+          "used_bytes": {
+            "min_gib": 101.41365051269531,
+            "peak_gib": 102.3365478515625,
+            "median_gib": 101.57244873046875
+          },
+          "cgroup_bytes": {
+            "min_gib": 1.5887069702148438,
+            "peak_gib": 1.6456413269042969,
+            "median_gib": 1.5987548828125
+          },
+          "cgroup_anon_bytes": {
+            "min_gib": 1.0182647705078125,
+            "peak_gib": 1.0749664306640625,
+            "median_gib": 1.0281181335449219
+          },
+          "cgroup_file_bytes": {
+            "min_gib": 0.5570793151855469,
+            "peak_gib": 0.5652542114257812,
+            "median_gib": 0.5571250915527344
+          },
+          "cgroup_swap_bytes": {
+            "min_gib": 0.0,
+            "peak_gib": 0.0,
+            "median_gib": 0.0
+          },
+          "rss_bytes": {
+            "min_gib": 1.1816749572753906,
+            "peak_gib": 1.23602294921875,
+            "median_gib": 1.1915550231933594
+          },
+          "gpu_bytes": {
+            "min_gib": 1.6416015625,
+            "peak_gib": 1.6708984375,
+            "median_gib": 1.6708984375
+          }
+        },
+        "idle_final": {
+          "available_bytes": {
+            "min_gib": 19.894813537597656,
+            "peak_gib": 20.458946228027344,
+            "median_gib": 20.187705993652344
+          },
+          "free_bytes": {
+            "min_gib": 1.9798698425292969,
+            "peak_gib": 2.5493507385253906,
+            "median_gib": 2.278898239135742
+          },
+          "used_bytes": {
+            "min_gib": 101.1661605834961,
+            "peak_gib": 101.73029327392578,
+            "median_gib": 101.4374008178711
+          },
+          "cgroup_bytes": {
+            "min_gib": 1.5858116149902344,
+            "peak_gib": 1.5861587524414062,
+            "median_gib": 1.5858840942382812
+          },
+          "cgroup_anon_bytes": {
+            "min_gib": 1.0157585144042969,
+            "peak_gib": 1.0157585144042969,
+            "median_gib": 1.0157585144042969
+          },
+          "cgroup_file_bytes": {
+            "min_gib": 0.5571250915527344,
+            "peak_gib": 0.5571250915527344,
+            "median_gib": 0.5571250915527344
+          },
+          "cgroup_swap_bytes": {
+            "min_gib": 0.0,
+            "peak_gib": 0.0,
+            "median_gib": 0.0
+          },
+          "rss_bytes": {
+            "min_gib": 1.1768608093261719,
+            "peak_gib": 1.1768608093261719,
+            "median_gib": 1.1768608093261719
+          },
+          "gpu_bytes": {
+            "min_gib": 1.6416015625,
+            "peak_gib": 1.6708984375,
+            "median_gib": 1.6416015625
+          }
+        }
+      },
+      "host_oom_kill_delta": 0,
+      "host_swap_written_bytes": 712704,
+      "host_swap_used_delta_bytes": 98304,
+      "host_swap_used_peak_delta_bytes": 98304
+    },
+    "v020-stock": {
+      "tag": "v020-stock",
+      "image": "sparktalk-nemotron-asr:0.1.0-stock",
+      "success": true,
+      "weights_downloaded": false,
+      "upstream_version": "0.2.0",
+      "device": "CUDA",
+      "gpu_and_host_memory_are_not_added": true,
+      "baseline_used_bytes": 108513353728,
+      "ready": {
+        "capabilities": [
+          "asr",
+          "diarization"
+        ],
+        "device": "auto",
+        "ready": true
+      },
+      "startup_seconds": 2.341046829940751,
+      "pid_before": 1718724,
+      "version": "nemo-speech 0.2.0",
+      "languages": {
+        "ko100": {
+          "samples": 100,
+          "cer": 0.08500669344042838,
+          "latency_mean_seconds": 0.08854655622621067
+        },
+        "ko": {
+          "samples": 20,
+          "cer": 0.1087866108786611,
+          "latency_mean_seconds": 0.048147261899430305
+        },
+        "en": {
+          "samples": 10,
+          "cer": 0.0558055805580558,
+          "latency_mean_seconds": 0.05039709781995043
+        },
+        "ja": {
+          "samples": 10,
+          "cer": 0.09070294784580499,
+          "latency_mean_seconds": 0.04698364530922845
+        },
+        "zh": {
+          "samples": 10,
+          "cer": 0.17534246575342466,
+          "latency_mean_seconds": 0.04264472561189905
+        }
+      },
+      "long_asr_600s": {
+        "latency_seconds": 16.96336794900708,
+        "segments": 0,
+        "speakers": [],
+        "text_characters": 5782
+      },
+      "diar_two_speakers": {
+        "latency_seconds": 0.10232548101339489,
+        "segments": 4,
+        "speakers": [
+          1,
+          2
+        ],
+        "text_characters": 0
+      },
+      "long_diar_600s": {
+        "latency_seconds": 1.9743080189218745,
+        "segments": 165,
+        "speakers": [
+          1
+        ],
+        "text_characters": 0
+      },
+      "repeat_matches": true,
+      "state": {
+        "Status": "running",
+        "Running": true,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 1718591,
+        "ExitCode": 0,
+        "Error": "",
+        "StartedAt": "2026-10-08T06:31:36.13484083Z",
+        "FinishedAt": "0001-01-01T00:00:00Z"
+      },
+      "pid_after": 1718724,
+      "memory": {
+        "baseline": {
+          "available_bytes": {
+            "min_gib": 20.563858032226562,
+            "peak_gib": 20.564411163330078,
+            "median_gib": 20.564170837402344
+          },
+          "free_bytes": {
+            "min_gib": 2.400867462158203,
+            "peak_gib": 2.4016036987304688,
+            "median_gib": 2.4013633728027344
+          },
+          "used_bytes": {
+            "min_gib": 101.06069564819336,
+            "peak_gib": 101.06124877929688,
+            "median_gib": 101.0609359741211
+          }
+        },
+        "startup": {
+          "available_bytes": {
+            "min_gib": 18.841079711914062,
+            "peak_gib": 20.557964324951172,
+            "median_gib": 19.48963165283203
+          },
+          "free_bytes": {
+            "min_gib": 1.7942237854003906,
+            "peak_gib": 2.509368896484375,
+            "median_gib": 2.1756362915039062
+          },
+          "used_bytes": {
+            "min_gib": 101.06714248657227,
+            "peak_gib": 102.78402709960938,
+            "median_gib": 102.1354751586914
+          },
+          "cgroup_bytes": {
+            "min_gib": 0.07315826416015625,
+            "peak_gib": 1.1784019470214844,
+            "median_gib": 0.5924243927001953
+          },
+          "cgroup_anon_bytes": {
+            "min_gib": 0.000621795654296875,
+            "peak_gib": 0.53900146484375,
+            "median_gib": 0.2781944274902344
+          },
+          "cgroup_file_bytes": {
+            "min_gib": 0.06993865966796875,
+            "peak_gib": 0.6251602172851562,
+            "median_gib": 0.3606243133544922
+          },
+          "cgroup_swap_bytes": {
+            "min_gib": 0.0,
+            "peak_gib": 0.0,
+            "median_gib": 0.0
+          },
+          "rss_bytes": {
+            "min_gib": 0.001529693603515625,
+            "peak_gib": 0.62481689453125,
+            "median_gib": 0.4488410949707031
+          },
+          "gpu_bytes": {
+            "min_gib": 0.0,
+            "peak_gib": 1.07421875,
+            "median_gib": 0.41015625
+          }
+        },
+        "idle_before": {
+          "available_bytes": {
+            "min_gib": 18.79361343383789,
+            "peak_gib": 18.84119415283203,
+            "median_gib": 18.80833625793457
+          },
+          "free_bytes": {
+            "min_gib": 2.2451553344726562,
+            "peak_gib": 2.2934494018554688,
+            "median_gib": 2.2598800659179688
+          },
+          "used_bytes": {
+            "min_gib": 102.7839126586914,
+            "peak_gib": 102.83149337768555,
+            "median_gib": 102.81677055358887
+          },
+          "cgroup_bytes": {
+            "min_gib": 1.084930419921875,
+            "peak_gib": 1.0863761901855469,
+            "median_gib": 1.085174560546875
+          },
+          "cgroup_anon_bytes": {
+            "min_gib": 0.4432487487792969,
+            "peak_gib": 0.4432487487792969,
+            "median_gib": 0.4432487487792969
+          },
+          "cgroup_file_bytes": {
+            "min_gib": 0.6290817260742188,
+            "peak_gib": 0.6290817260742188,
+            "median_gib": 0.6290817260742188
+          },
+          "cgroup_swap_bytes": {
+            "min_gib": 0.0,
+            "peak_gib": 0.0,
+            "median_gib": 0.0
+          },
+          "rss_bytes": {
+            "min_gib": 0.62481689453125,
+            "peak_gib": 0.62481689453125,
+            "median_gib": 0.62481689453125
+          },
+          "gpu_bytes": {
+            "min_gib": 1.07421875,
+            "peak_gib": 1.07421875,
+            "median_gib": 1.07421875
+          }
+        },
+        "short_requests": {
+          "available_bytes": {
+            "min_gib": 17.493541717529297,
+            "peak_gib": 18.818603515625,
+            "median_gib": 18.02579116821289
+          },
+          "free_bytes": {
+            "min_gib": 1.8884735107421875,
+            "peak_gib": 2.3276901245117188,
+            "median_gib": 2.0275840759277344
+          },
+          "used_bytes": {
+            "min_gib": 102.80650329589844,
+            "peak_gib": 104.13156509399414,
+            "median_gib": 103.59931564331055
+          },
+          "cgroup_bytes": {
+            "min_gib": 1.084930419921875,
+            "peak_gib": 1.8161163330078125,
+            "median_gib": 1.4356880187988281
+          },
+          "cgroup_anon_bytes": {
+            "min_gib": 0.4432487487792969,
+            "peak_gib": 1.1668739318847656,
+            "median_gib": 0.7876682281494141
+          },
+          "cgroup_file_bytes": {
+            "min_gib": 0.6290817260742188,
+            "peak_gib": 0.6327400207519531,
+            "median_gib": 0.6324958801269531
+          },
+          "cgroup_swap_bytes": {
+            "min_gib": 0.0,
+            "peak_gib": 0.0,
+            "median_gib": 0.0
+          },
+          "rss_bytes": {
+            "min_gib": 0.62481689453125,
+            "peak_gib": 1.354583740234375,
+            "median_gib": 0.9730739593505859
+          },
+          "gpu_bytes": {
+            "min_gib": 1.07421875,
+            "peak_gib": 1.8681640625,
+            "median_gib": 1.70703125
+          }
+        },
+        "idle_short": {
+          "available_bytes": {
+            "min_gib": 17.301753997802734,
+            "peak_gib": 17.533756256103516,
+            "median_gib": 17.48355484008789
+          },
+          "free_bytes": {
+            "min_gib": 1.9142570495605469,
+            "peak_gib": 2.0412673950195312,
+            "median_gib": 1.9632301330566406
+          },
+          "used_bytes": {
+            "min_gib": 104.09135055541992,
+            "peak_gib": 104.3233528137207,
+            "median_gib": 104.14155197143555
+          },
+          "cgroup_bytes": {
+            "min_gib": 1.8143997192382812,
+            "peak_gib": 1.8168601989746094,
+            "median_gib": 1.816375732421875
+          },
+          "cgroup_anon_bytes": {
+            "min_gib": 1.1668739318847656,
+            "peak_gib": 1.1674728393554688,
+            "median_gib": 1.1674728393554688
+          },
+          "cgroup_file_bytes": {
+            "min_gib": 0.6327400207519531,
+            "peak_gib": 0.6327400207519531,
+            "median_gib": 0.6327400207519531
+          },
+          "cgroup_swap_bytes": {
+            "min_gib": 0.0,
+            "peak_gib": 0.0,
+            "median_gib": 0.0
+          },
+          "rss_bytes": {
+            "min_gib": 1.3551826477050781,
+            "peak_gib": 1.3551826477050781,
+            "median_gib": 1.3551826477050781
+          },
+          "gpu_bytes": {
+            "min_gib": 1.86328125,
+            "peak_gib": 1.8720703125,
+            "median_gib": 1.8720703125
+          }
+        },
+        "long_asr_600s": {
+          "available_bytes": {
+            "min_gib": 16.146221160888672,
+            "peak_gib": 17.459510803222656,
+            "median_gib": 16.87049102783203
+          },
+          "free_bytes": {
+            "min_gib": 1.4692230224609375,
+            "peak_gib": 2.196186065673828,
+            "median_gib": 2.0085525512695312
+          },
+          "used_bytes": {
+            "min_gib": 104.16559600830078,
+            "peak_gib": 105.47888565063477,
+            "median_gib": 104.7546157836914
+          },
+          "cgroup_bytes": {
+            "min_gib": 1.8148765563964844,
+            "peak_gib": 2.0711517333984375,
+            "median_gib": 1.9771156311035156
+          },
+          "cgroup_anon_bytes": {
+            "min_gib": 1.1674728393554688,
+            "peak_gib": 1.4227409362792969,
+            "median_gib": 1.3299484252929688
+          },
+          "cgroup_file_bytes": {
+            "min_gib": 0.6327400207519531,
+            "peak_gib": 0.6327400207519531,
+            "median_gib": 0.6327400207519531
+          },
+          "cgroup_swap_bytes": {
+            "min_gib": 0.0,
+            "peak_gib": 0.0,
+            "median_gib": 0.0
+          },
+          "rss_bytes": {
+            "min_gib": 1.3551826477050781,
+            "peak_gib": 1.6104660034179688,
+            "median_gib": 1.5174903869628906
+          },
+          "gpu_bytes": {
+            "min_gib": 1.8720703125,
+            "peak_gib": 2.1728515625,
+            "median_gib": 2.1728515625
+          }
+        },
+        "idle_after_long_asr_600s": {
+          "available_bytes": {
+            "min_gib": 16.41364288330078,
+            "peak_gib": 16.947784423828125,
+            "median_gib": 16.64559555053711
+          },
+          "free_bytes": {
+            "min_gib": 1.5549659729003906,
+            "peak_gib": 2.0880889892578125,
+            "median_gib": 1.7868003845214844
+          },
+          "used_bytes": {
+            "min_gib": 104.67732238769531,
+            "peak_gib": 105.21146392822266,
+            "median_gib": 104.97951126098633
+          },
+          "cgroup_bytes": {
+            "min_gib": 1.8414344787597656,
+            "peak_gib": 1.8414344787597656,
+            "median_gib": 1.8414344787597656
+          },
+          "cgroup_anon_bytes": {
+            "min_gib": 1.1940383911132812,
+            "peak_gib": 1.1940383911132812,
+            "median_gib": 1.1940383911132812
+          },
+          "cgroup_file_bytes": {
+            "min_gib": 0.6327400207519531,
+            "peak_gib": 0.6327400207519531,
+            "median_gib": 0.6327400207519531
+          },
+          "cgroup_swap_bytes": {
+            "min_gib": 0.0,
+            "peak_gib": 0.0,
+            "median_gib": 0.0
+          },
+          "rss_bytes": {
+            "min_gib": 1.3815803527832031,
+            "peak_gib": 1.3815803527832031,
+            "median_gib": 1.3815803527832031
+          },
+          "gpu_bytes": {
+            "min_gib": 2.1728515625,
+            "peak_gib": 2.1728515625,
+            "median_gib": 2.1728515625
+          }
+        },
+        "diar_two_speakers": {
+          "available_bytes": {
+            "min_gib": 16.61922836303711,
+            "peak_gib": 16.623634338378906,
+            "median_gib": 16.623634338378906
+          },
+          "free_bytes": {
+            "min_gib": 1.7589836120605469,
+            "peak_gib": 1.7633895874023438,
+            "median_gib": 1.7633895874023438
+          },
+          "used_bytes": {
+            "min_gib": 105.00147247314453,
+            "peak_gib": 105.00587844848633,
+            "median_gib": 105.00147247314453
+          },
+          "cgroup_bytes": {
+            "min_gib": 1.8420562744140625,
+            "peak_gib": 1.842193603515625,
+            "median_gib": 1.8420562744140625
+          },
+          "cgroup_anon_bytes": {
+            "min_gib": 1.1940383911132812,
+            "peak_gib": 1.1942024230957031,
+            "median_gib": 1.1940383911132812
+          },
+          "cgroup_file_bytes": {
+            "min_gib": 0.6327400207519531,
+            "peak_gib": 0.6327438354492188,
+            "median_gib": 0.6327400207519531
+          },
+          "cgroup_swap_bytes": {
+            "min_gib": 0.0,
+            "peak_gib": 0.0,
+            "median_gib": 0.0
+          },
+          "rss_bytes": {
+            "min_gib": 1.3816337585449219,
+            "peak_gib": 1.3817481994628906,
+            "median_gib": 1.3816337585449219
+          },
+          "gpu_bytes": {
+            "min_gib": 2.1728515625,
+            "peak_gib": 2.1728515625,
+            "median_gib": 2.1728515625
+          }
+        },
+        "idle_after_diar_two_speakers": {
+          "available_bytes": {
+            "min_gib": 16.2440185546875,
+            "peak_gib": 16.694107055664062,
+            "median_gib": 16.58705711364746
+          },
+          "free_bytes": {
+            "min_gib": 1.5403900146484375,
+            "peak_gib": 1.8807716369628906,
+            "median_gib": 1.7475624084472656
+          },
+          "used_bytes": {
+            "min_gib": 104.93099975585938,
+            "peak_gib": 105.38108825683594,
+            "median_gib": 105.03804969787598
+          },
+          "cgroup_bytes": {
+            "min_gib": 1.8424186706542969,
+            "peak_gib": 1.842437744140625,
+            "median_gib": 1.8424186706542969
+          },
+          "cgroup_anon_bytes": {
+            "min_gib": 1.1942024230957031,
+            "peak_gib": 1.1942024230957031,
+            "median_gib": 1.1942024230957031
+          },
+          "cgroup_file_bytes": {
+            "min_gib": 0.6327438354492188,
+            "peak_gib": 0.6327438354492188,
+            "median_gib": 0.6327438354492188
+          },
+          "cgroup_swap_bytes": {
+            "min_gib": 0.0,
+            "peak_gib": 0.0,
+            "median_gib": 0.0
+          },
+          "rss_bytes": {
+            "min_gib": 1.3817481994628906,
+            "peak_gib": 1.3817481994628906,
+            "median_gib": 1.3817481994628906
+          },
+          "gpu_bytes": {
+            "min_gib": 2.1728515625,
+            "peak_gib": 2.1767578125,
+            "median_gib": 2.1767578125
+          }
+        },
+        "long_diar_600s": {
+          "available_bytes": {
+            "min_gib": 16.140357971191406,
+            "peak_gib": 16.701553344726562,
+            "median_gib": 16.359323501586914
+          },
+          "free_bytes": {
+            "min_gib": 1.5191459655761719,
+            "peak_gib": 2.049266815185547,
+            "median_gib": 1.7439498901367188
+          },
+          "used_bytes": {
+            "min_gib": 104.92355346679688,
+            "peak_gib": 105.48474884033203,
+            "median_gib": 105.26578330993652
+          },
+          "cgroup_bytes": {
+            "min_gib": 1.8424186706542969,
+            "peak_gib": 2.02545166015625,
+            "median_gib": 2.02545166015625
+          },
+          "cgroup_anon_bytes": {
+            "min_gib": 1.1942024230957031,
+            "peak_gib": 1.3767471313476562,
+            "median_gib": 1.3767471313476562
+          },
+          "cgroup_file_bytes": {
+            "min_gib": 0.6327438354492188,
+            "peak_gib": 0.6327438354492188,
+            "median_gib": 0.6327438354492188
+          },
+          "cgroup_swap_bytes": {
+            "min_gib": 0.0,
+            "peak_gib": 0.0,
+            "median_gib": 0.0
+          },
+          "rss_bytes": {
+            "min_gib": 1.3817481994628906,
+            "peak_gib": 1.5642929077148438,
+            "median_gib": 1.5642929077148438
+          },
+          "gpu_bytes": {
+            "min_gib": 2.1767578125,
+            "peak_gib": 2.181640625,
+            "median_gib": 2.1767578125
+          }
+        },
+        "idle_after_long_diar_600s": {
+          "available_bytes": {
+            "min_gib": 16.05628204345703,
+            "peak_gib": 16.674400329589844,
+            "median_gib": 16.185691833496094
+          },
+          "free_bytes": {
+            "min_gib": 1.6977005004882812,
+            "peak_gib": 2.219024658203125,
+            "median_gib": 1.7650184631347656
+          },
+          "used_bytes": {
+            "min_gib": 104.9507064819336,
+            "peak_gib": 105.5688247680664,
+            "median_gib": 105.43941497802734
+          },
+          "cgroup_bytes": {
+            "min_gib": 1.8535346984863281,
+            "peak_gib": 1.8540229797363281,
+            "median_gib": 1.8537750244140625
+          },
+          "cgroup_anon_bytes": {
+            "min_gib": 1.2054176330566406,
+            "peak_gib": 1.2054176330566406,
+            "median_gib": 1.2054176330566406
+          },
+          "cgroup_file_bytes": {
+            "min_gib": 0.6327438354492188,
+            "peak_gib": 0.6327438354492188,
+            "median_gib": 0.6327438354492188
+          },
+          "cgroup_swap_bytes": {
+            "min_gib": 0.0,
+            "peak_gib": 0.0,
+            "median_gib": 0.0
+          },
+          "rss_bytes": {
+            "min_gib": 1.3929634094238281,
+            "peak_gib": 1.3929634094238281,
+            "median_gib": 1.3929634094238281
+          },
+          "gpu_bytes": {
+            "min_gib": 2.181640625,
+            "peak_gib": 2.181640625,
+            "median_gib": 2.181640625
+          }
+        },
+        "repeat_after_long": {
+          "available_bytes": {
+            "min_gib": 16.645732879638672,
+            "peak_gib": 16.647422790527344,
+            "median_gib": 16.646577835083008
+          },
+          "free_bytes": {
+            "min_gib": 2.1912460327148438,
+            "peak_gib": 2.1929359436035156,
+            "median_gib": 2.1920909881591797
+          },
+          "used_bytes": {
+            "min_gib": 104.9776840209961,
+            "peak_gib": 104.97937393188477,
+            "median_gib": 104.97852897644043
+          },
+          "cgroup_bytes": {
+            "min_gib": 1.8535499572753906,
+            "peak_gib": 1.8538665771484375,
+            "median_gib": 1.853708267211914
+          },
+          "cgroup_anon_bytes": {
+            "min_gib": 1.2054176330566406,
+            "peak_gib": 1.2054214477539062,
+            "median_gib": 1.2054195404052734
+          },
+          "cgroup_file_bytes": {
+            "min_gib": 0.6327438354492188,
+            "peak_gib": 0.6327438354492188,
+            "median_gib": 0.6327438354492188
+          },
+          "cgroup_swap_bytes": {
+            "min_gib": 0.0,
+            "peak_gib": 0.0,
+            "median_gib": 0.0
+          },
+          "rss_bytes": {
+            "min_gib": 1.3929672241210938,
+            "peak_gib": 1.3929672241210938,
+            "median_gib": 1.3929672241210938
+          },
+          "gpu_bytes": {
+            "min_gib": 2.181640625,
+            "peak_gib": 2.181640625,
+            "median_gib": 2.181640625
+          }
+        },
+        "idle_final": {
+          "available_bytes": {
+            "min_gib": 16.331417083740234,
+            "peak_gib": 16.671283721923828,
+            "median_gib": 16.534072875976562
+          },
+          "free_bytes": {
+            "min_gib": 1.8744163513183594,
+            "peak_gib": 2.2161865234375,
+            "median_gib": 2.0779151916503906
+          },
+          "used_bytes": {
+            "min_gib": 104.95382308959961,
+            "peak_gib": 105.2936897277832,
+            "median_gib": 105.09103393554688
+          },
+          "cgroup_bytes": {
+            "min_gib": 1.85333251953125,
+            "peak_gib": 1.8535423278808594,
+            "median_gib": 1.85333251953125
+          },
+          "cgroup_anon_bytes": {
+            "min_gib": 1.2054214477539062,
+            "peak_gib": 1.2054214477539062,
+            "median_gib": 1.2054214477539062
+          },
+          "cgroup_file_bytes": {
+            "min_gib": 0.6327438354492188,
+            "peak_gib": 0.6327438354492188,
+            "median_gib": 0.6327438354492188
+          },
+          "cgroup_swap_bytes": {
+            "min_gib": 0.0,
+            "peak_gib": 0.0,
+            "median_gib": 0.0
+          },
+          "rss_bytes": {
+            "min_gib": 1.3929672241210938,
+            "peak_gib": 1.3929672241210938,
+            "median_gib": 1.3929672241210938
+          },
+          "gpu_bytes": {
+            "min_gib": 2.1796875,
+            "peak_gib": 2.181640625,
+            "median_gib": 2.1796875
+          }
+        }
+      },
+      "host_oom_kill_delta": 0,
+      "host_swap_written_bytes": 11071488,
+      "host_swap_used_delta_bytes": 2785280,
+      "host_swap_used_peak_delta_bytes": 2785280
+    },
+    "v020-patched": {
+      "tag": "v020-patched",
+      "image": "sparktalk-nemotron-asr:0.1.0",
+      "success": true,
+      "weights_downloaded": false,
+      "upstream_version": "0.2.0",
+      "device": "CUDA",
+      "gpu_and_host_memory_are_not_added": true,
+      "baseline_used_bytes": 108751810560,
+      "ready": {
+        "capabilities": [
+          "asr",
+          "diarization"
+        ],
+        "device": "auto",
+        "ready": true
+      },
+      "startup_seconds": 1.5205841970164329,
+      "pid_before": 1722409,
+      "version": "nemo-speech 0.2.0",
+      "languages": {
+        "ko100": {
+          "samples": 100,
+          "cer": 0.08500669344042838,
+          "latency_mean_seconds": 0.10006720102857798
+        },
+        "ko": {
+          "samples": 20,
+          "cer": 0.1087866108786611,
+          "latency_mean_seconds": 0.06936734759365208
+        },
+        "en": {
+          "samples": 10,
+          "cer": 0.0558055805580558,
+          "latency_mean_seconds": 0.06999545800499618
+        },
+        "ja": {
+          "samples": 10,
+          "cer": 0.09070294784580499,
+          "latency_mean_seconds": 0.06876748158829286
+        },
+        "zh": {
+          "samples": 10,
+          "cer": 0.17534246575342466,
+          "latency_mean_seconds": 0.06377165707526729
+        }
+      },
+      "long_asr_600s": {
+        "latency_seconds": 16.618813327979296,
+        "segments": 0,
+        "speakers": [],
+        "text_characters": 5782
+      },
+      "diar_two_speakers": {
+        "latency_seconds": 0.11152935994323343,
+        "segments": 4,
+        "speakers": [
+          1,
+          2
+        ],
+        "text_characters": 0
+      },
+      "long_diar_600s": {
+        "latency_seconds": 1.9951349509647116,
+        "segments": 165,
+        "speakers": [
+          1
+        ],
+        "text_characters": 0
+      },
+      "repeat_matches": true,
+      "state": {
+        "Status": "running",
+        "Running": true,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 1722241,
+        "ExitCode": 0,
+        "Error": "",
+        "StartedAt": "2026-10-08T06:33:16.418815637Z",
+        "FinishedAt": "0001-01-01T00:00:00Z"
+      },
+      "pid_after": 1722409,
+      "memory": {
+        "baseline": {
+          "available_bytes": {
+            "min_gib": 20.32834243774414,
+            "peak_gib": 20.34349822998047,
+            "median_gib": 20.342090606689453
+          },
+          "free_bytes": {
+            "min_gib": 5.844322204589844,
+            "peak_gib": 5.859302520751953,
+            "median_gib": 5.857933044433594
+          },
+          "used_bytes": {
+            "min_gib": 101.28160858154297,
+            "peak_gib": 101.2967643737793,
+            "median_gib": 101.28301620483398
+          }
+        },
+        "startup": {
+          "available_bytes": {
+            "min_gib": 18.729583740234375,
+            "peak_gib": 20.347904205322266,
+            "median_gib": 19.879718780517578
+          },
+          "free_bytes": {
+            "min_gib": 3.979766845703125,
+            "peak_gib": 5.8640289306640625,
+            "median_gib": 5.291969299316406
+          },
+          "used_bytes": {
+            "min_gib": 101.27720260620117,
+            "peak_gib": 102.89552307128906,
+            "median_gib": 101.74538803100586
+          },
+          "cgroup_bytes": {
+            "min_gib": 0.0084075927734375,
+            "peak_gib": 0.842010498046875,
+            "median_gib": 0.3950004577636719
+          },
+          "cgroup_anon_bytes": {
+            "min_gib": 0.00061798095703125,
+            "peak_gib": 0.53155517578125,
+            "median_gib": 0.1791534423828125
+          },
+          "cgroup_file_bytes": {
+            "min_gib": 0.0056304931640625,
+            "peak_gib": 0.2930335998535156,
+            "median_gib": 0.2075939178466797
+          },
+          "cgroup_swap_bytes": {
+            "min_gib": 0.0,
+            "peak_gib": 0.0,
+            "median_gib": 0.0
+          },
+          "rss_bytes": {
+            "min_gib": 0.001522064208984375,
+            "peak_gib": 0.6287460327148438,
+            "median_gib": 0.34680938720703125
+          },
+          "gpu_bytes": {
+            "min_gib": 0.0,
+            "peak_gib": 1.07421875,
+            "median_gib": 0.166015625
+          }
+        },
+        "idle_before": {
+          "available_bytes": {
+            "min_gib": 18.68688201904297,
+            "peak_gib": 18.729583740234375,
+            "median_gib": 18.706695556640625
+          },
+          "free_bytes": {
+            "min_gib": 3.5124473571777344,
+            "peak_gib": 3.979766845703125,
+            "median_gib": 3.9484405517578125
+          },
+          "used_bytes": {
+            "min_gib": 102.89552307128906,
+            "peak_gib": 102.93822479248047,
+            "median_gib": 102.91841125488281
+          },
+          "cgroup_bytes": {
+            "min_gib": 0.7470016479492188,
+            "peak_gib": 0.7490081787109375,
+            "median_gib": 0.74700927734375
+          },
+          "cgroup_anon_bytes": {
+            "min_gib": 0.4434661865234375,
+            "peak_gib": 0.4434661865234375,
+            "median_gib": 0.4434661865234375
+          },
+          "cgroup_file_bytes": {
+            "min_gib": 0.2930335998535156,
+            "peak_gib": 0.2930335998535156,
+            "median_gib": 0.2930335998535156
+          },
+          "cgroup_swap_bytes": {
+            "min_gib": 0.0,
+            "peak_gib": 0.0,
+            "median_gib": 0.0
+          },
+          "rss_bytes": {
+            "min_gib": 0.6287460327148438,
+            "peak_gib": 0.6287460327148438,
+            "median_gib": 0.6287460327148438
+          },
+          "gpu_bytes": {
+            "min_gib": 1.07421875,
+            "peak_gib": 1.07421875,
+            "median_gib": 1.07421875
+          }
+        },
+        "short_requests": {
+          "available_bytes": {
+            "min_gib": 16.740520477294922,
+            "peak_gib": 18.684574127197266,
+            "median_gib": 17.54201889038086
+          },
+          "free_bytes": {
+            "min_gib": 1.942596435546875,
+            "peak_gib": 3.508838653564453,
+            "median_gib": 2.2768287658691406
+          },
+          "used_bytes": {
+            "min_gib": 102.94053268432617,
+            "peak_gib": 104.88458633422852,
+            "median_gib": 104.08308792114258
+          },
+          "cgroup_bytes": {
+            "min_gib": 0.7477340698242188,
+            "peak_gib": 1.6882286071777344,
+            "median_gib": 1.3817787170410156
+          },
+          "cgroup_anon_bytes": {
+            "min_gib": 0.4434661865234375,
+            "peak_gib": 1.3804740905761719,
+            "median_gib": 1.0746269226074219
+          },
+          "cgroup_file_bytes": {
+            "min_gib": 0.2925453186035156,
+            "peak_gib": 0.2930335998535156,
+            "median_gib": 0.2930335998535156
+          },
+          "cgroup_swap_bytes": {
+            "min_gib": 0.0,
+            "peak_gib": 0.0,
+            "median_gib": 0.0
+          },
+          "rss_bytes": {
+            "min_gib": 0.6287460327148438,
+            "peak_gib": 1.5707588195800781,
+            "median_gib": 1.2632026672363281
+          },
+          "gpu_bytes": {
+            "min_gib": 1.07421875,
+            "peak_gib": 1.759765625,
+            "median_gib": 1.6201171875
+          }
+        },
+        "idle_short": {
+          "available_bytes": {
+            "min_gib": 16.834095001220703,
+            "peak_gib": 16.93885040283203,
+            "median_gib": 16.891244888305664
+          },
+          "free_bytes": {
+            "min_gib": 2.2088241577148438,
+            "peak_gib": 2.3946685791015625,
+            "median_gib": 2.3469371795654297
+          },
+          "used_bytes": {
+            "min_gib": 104.6862564086914,
+            "peak_gib": 104.79101181030273,
+            "median_gib": 104.73386192321777
+          },
+          "cgroup_bytes": {
+            "min_gib": 1.6697502136230469,
+            "peak_gib": 1.6710624694824219,
+            "median_gib": 1.6709518432617188
+          },
+          "cgroup_anon_bytes": {
+            "min_gib": 1.3637008666992188,
+            "peak_gib": 1.3637008666992188,
+            "median_gib": 1.3637008666992188
+          },
+          "cgroup_file_bytes": {
+            "min_gib": 0.2925453186035156,
+            "peak_gib": 0.2925453186035156,
+            "median_gib": 0.2925453186035156
+          },
+          "cgroup_swap_bytes": {
+            "min_gib": 0.0,
+            "peak_gib": 0.0,
+            "median_gib": 0.0
+          },
+          "rss_bytes": {
+            "min_gib": 1.5539779663085938,
+            "peak_gib": 1.5539779663085938,
+            "median_gib": 1.5539779663085938
+          },
+          "gpu_bytes": {
+            "min_gib": 1.6357421875,
+            "peak_gib": 1.7294921875,
+            "median_gib": 1.6357421875
+          }
+        },
+        "long_asr_600s": {
+          "available_bytes": {
+            "min_gib": 16.331703186035156,
+            "peak_gib": 17.60886001586914,
+            "median_gib": 16.861547470092773
+          },
+          "free_bytes": {
+            "min_gib": 1.9839859008789062,
+            "peak_gib": 2.76092529296875,
+            "median_gib": 2.0218963623046875
+          },
+          "used_bytes": {
+            "min_gib": 104.0162467956543,
+            "peak_gib": 105.29340362548828,
+            "median_gib": 104.76355934143066
+          },
+          "cgroup_bytes": {
+            "min_gib": 1.3704185485839844,
+            "peak_gib": 1.9285430908203125,
+            "median_gib": 1.8691978454589844
+          },
+          "cgroup_anon_bytes": {
+            "min_gib": 1.0375900268554688,
+            "peak_gib": 1.6211395263671875,
+            "median_gib": 1.5656356811523438
+          },
+          "cgroup_file_bytes": {
+            "min_gib": 0.28850555419921875,
+            "peak_gib": 0.2925453186035156,
+            "median_gib": 0.28850555419921875
+          },
+          "cgroup_swap_bytes": {
+            "min_gib": 0.0,
+            "peak_gib": 0.0,
+            "median_gib": 0.0
+          },
+          "rss_bytes": {
+            "min_gib": 1.2278671264648438,
+            "peak_gib": 1.8114166259765625,
+            "median_gib": 1.7559127807617188
+          },
+          "gpu_bytes": {
+            "min_gib": 1.6357421875,
+            "peak_gib": 1.9384765625,
+            "median_gib": 1.9384765625
+          }
+        },
+        "idle_after_long_asr_600s": {
+          "available_bytes": {
+            "min_gib": 17.700794219970703,
+            "peak_gib": 17.76459503173828,
+            "median_gib": 17.724422454833984
+          },
+          "free_bytes": {
+            "min_gib": 2.8345298767089844,
+            "peak_gib": 2.897380828857422,
+            "median_gib": 2.85797119140625
+          },
+          "used_bytes": {
+            "min_gib": 103.86051177978516,
+            "peak_gib": 103.92431259155273,
+            "median_gib": 103.90068435668945
+          },
+          "cgroup_bytes": {
+            "min_gib": 1.3045768737792969,
+            "peak_gib": 1.3045768737792969,
+            "median_gib": 1.3045768737792969
+          },
+          "cgroup_anon_bytes": {
+            "min_gib": 1.0019111633300781,
+            "peak_gib": 1.0019111633300781,
+            "median_gib": 1.0019111633300781
+          },
+          "cgroup_file_bytes": {
+            "min_gib": 0.28850555419921875,
+            "peak_gib": 0.28850555419921875,
+            "median_gib": 0.28850555419921875
+          },
+          "cgroup_swap_bytes": {
+            "min_gib": 0.0,
+            "peak_gib": 0.0,
+            "median_gib": 0.0
+          },
+          "rss_bytes": {
+            "min_gib": 1.1921882629394531,
+            "peak_gib": 1.1921882629394531,
+            "median_gib": 1.1921882629394531
+          },
+          "gpu_bytes": {
+            "min_gib": 1.6357421875,
+            "peak_gib": 1.9384765625,
+            "median_gib": 1.6357421875
+          }
+        },
+        "diar_two_speakers": {
+          "available_bytes": {
+            "min_gib": 17.73154067993164,
+            "peak_gib": 17.748886108398438,
+            "median_gib": 17.748886108398438
+          },
+          "free_bytes": {
+            "min_gib": 2.8643264770507812,
+            "peak_gib": 2.881671905517578,
+            "median_gib": 2.881671905517578
+          },
+          "used_bytes": {
+            "min_gib": 103.876220703125,
+            "peak_gib": 103.8935661315918,
+            "median_gib": 103.876220703125
+          },
+          "cgroup_bytes": {
+            "min_gib": 1.3157539367675781,
+            "peak_gib": 1.3232002258300781,
+            "median_gib": 1.3157539367675781
+          },
+          "cgroup_anon_bytes": {
+            "min_gib": 1.0129508972167969,
+            "peak_gib": 1.0202140808105469,
+            "median_gib": 1.0129508972167969
+          },
+          "cgroup_file_bytes": {
+            "min_gib": 0.28850555419921875,
+            "peak_gib": 0.28850555419921875,
+            "median_gib": 0.28850555419921875
+          },
+          "cgroup_swap_bytes": {
+            "min_gib": 0.0,
+            "peak_gib": 0.0,
+            "median_gib": 0.0
+          },
+          "rss_bytes": {
+            "min_gib": 1.2032279968261719,
+            "peak_gib": 1.2104911804199219,
+            "median_gib": 1.2032279968261719
+          },
+          "gpu_bytes": {
+            "min_gib": 1.6357421875,
+            "peak_gib": 1.6357421875,
+            "median_gib": 1.6357421875
+          }
+        },
+        "idle_after_diar_two_speakers": {
+          "available_bytes": {
+            "min_gib": 17.70819854736328,
+            "peak_gib": 17.748985290527344,
+            "median_gib": 17.73324203491211
+          },
+          "free_bytes": {
+            "min_gib": 2.8409156799316406,
+            "peak_gib": 2.8817214965820312,
+            "median_gib": 2.8659515380859375
+          },
+          "used_bytes": {
+            "min_gib": 103.8761215209961,
+            "peak_gib": 103.91690826416016,
+            "median_gib": 103.89186477661133
+          },
+          "cgroup_bytes": {
+            "min_gib": 1.309326171875,
+            "peak_gib": 1.309326171875,
+            "median_gib": 1.309326171875
+          },
+          "cgroup_anon_bytes": {
+            "min_gib": 1.0065078735351562,
+            "peak_gib": 1.0065078735351562,
+            "median_gib": 1.0065078735351562
+          },
+          "cgroup_file_bytes": {
+            "min_gib": 0.28850555419921875,
+            "peak_gib": 0.28850555419921875,
+            "median_gib": 0.28850555419921875
+          },
+          "cgroup_swap_bytes": {
+            "min_gib": 0.0,
+            "peak_gib": 0.0,
+            "median_gib": 0.0
+          },
+          "rss_bytes": {
+            "min_gib": 1.1967849731445312,
+            "peak_gib": 1.1967849731445312,
+            "median_gib": 1.1967849731445312
+          },
+          "gpu_bytes": {
+            "min_gib": 1.6357421875,
+            "peak_gib": 1.6357421875,
+            "median_gib": 1.6357421875
+          }
+        },
+        "long_diar_600s": {
+          "available_bytes": {
+            "min_gib": 17.477256774902344,
+            "peak_gib": 17.740127563476562,
+            "median_gib": 17.492774963378906
+          },
+          "free_bytes": {
+            "min_gib": 2.6098175048828125,
+            "peak_gib": 2.8728370666503906,
+            "median_gib": 2.6254119873046875
+          },
+          "used_bytes": {
+            "min_gib": 103.88497924804688,
+            "peak_gib": 104.1478500366211,
+            "median_gib": 104.13233184814453
+          },
+          "cgroup_bytes": {
+            "min_gib": 1.309326171875,
+            "peak_gib": 1.5357284545898438,
+            "median_gib": 1.5357284545898438
+          },
+          "cgroup_anon_bytes": {
+            "min_gib": 1.0065078735351562,
+            "peak_gib": 1.2320137023925781,
+            "median_gib": 1.2320137023925781
+          },
+          "cgroup_file_bytes": {
+            "min_gib": 0.28850555419921875,
+            "peak_gib": 0.28850555419921875,
+            "median_gib": 0.28850555419921875
+          },
+          "cgroup_swap_bytes": {
+            "min_gib": 0.0,
+            "peak_gib": 0.0,
+            "median_gib": 0.0
+          },
+          "rss_bytes": {
+            "min_gib": 1.1967849731445312,
+            "peak_gib": 1.4222908020019531,
+            "median_gib": 1.4222908020019531
+          },
+          "gpu_bytes": {
+            "min_gib": 1.6357421875,
+            "peak_gib": 1.650390625,
+            "median_gib": 1.6357421875
+          }
+        },
+        "idle_after_long_diar_600s": {
+          "available_bytes": {
+            "min_gib": 17.506763458251953,
+            "peak_gib": 17.555213928222656,
+            "median_gib": 17.528141021728516
+          },
+          "free_bytes": {
+            "min_gib": 2.630535125732422,
+            "peak_gib": 2.6790084838867188,
+            "median_gib": 2.6528568267822266
+          },
+          "used_bytes": {
+            "min_gib": 104.06989288330078,
+            "peak_gib": 104.11834335327148,
+            "median_gib": 104.09696578979492
+          },
+          "cgroup_bytes": {
+            "min_gib": 1.3479881286621094,
+            "peak_gib": 1.347991943359375,
+            "median_gib": 1.3479881286621094
+          },
+          "cgroup_anon_bytes": {
+            "min_gib": 1.0450973510742188,
+            "peak_gib": 1.0450973510742188,
+            "median_gib": 1.0450973510742188
+          },
+          "cgroup_file_bytes": {
+            "min_gib": 0.28850555419921875,
+            "peak_gib": 0.28850555419921875,
+            "median_gib": 0.28850555419921875
+          },
+          "cgroup_swap_bytes": {
+            "min_gib": 0.0,
+            "peak_gib": 0.0,
+            "median_gib": 0.0
+          },
+          "rss_bytes": {
+            "min_gib": 1.2353744506835938,
+            "peak_gib": 1.2353744506835938,
+            "median_gib": 1.2353744506835938
+          },
+          "gpu_bytes": {
+            "min_gib": 1.6357421875,
+            "peak_gib": 1.650390625,
+            "median_gib": 1.6357421875
+          }
+        },
+        "repeat_after_long": {
+          "available_bytes": {
+            "min_gib": 17.457870483398438,
+            "peak_gib": 17.502288818359375,
+            "median_gib": 17.460464477539062
+          },
+          "free_bytes": {
+            "min_gib": 2.5816421508789062,
+            "peak_gib": 2.6243209838867188,
+            "median_gib": 2.5842361450195312
+          },
+          "used_bytes": {
+            "min_gib": 104.12281799316406,
+            "peak_gib": 104.167236328125,
+            "median_gib": 104.16464233398438
+          },
+          "cgroup_bytes": {
+            "min_gib": 1.3527755737304688,
+            "peak_gib": 1.3672714233398438,
+            "median_gib": 1.3619880676269531
+          },
+          "cgroup_anon_bytes": {
+            "min_gib": 1.0499191284179688,
+            "peak_gib": 1.0641708374023438,
+            "median_gib": 1.0590553283691406
+          },
+          "cgroup_file_bytes": {
+            "min_gib": 0.28850555419921875,
+            "peak_gib": 0.28850555419921875,
+            "median_gib": 0.28850555419921875
+          },
+          "cgroup_swap_bytes": {
+            "min_gib": 0.0,
+            "peak_gib": 0.0,
+            "median_gib": 0.0
+          },
+          "rss_bytes": {
+            "min_gib": 1.2401962280273438,
+            "peak_gib": 1.2544479370117188,
+            "median_gib": 1.2493324279785156
+          },
+          "gpu_bytes": {
+            "min_gib": 1.6357421875,
+            "peak_gib": 1.6357421875,
+            "median_gib": 1.6357421875
+          }
+        },
+        "idle_final": {
+          "available_bytes": {
+            "min_gib": 17.484107971191406,
+            "peak_gib": 17.54778289794922,
+            "median_gib": 17.499332427978516
+          },
+          "free_bytes": {
+            "min_gib": 2.6078720092773438,
+            "peak_gib": 2.67132568359375,
+            "median_gib": 2.6230239868164062
+          },
+          "used_bytes": {
+            "min_gib": 104.07732391357422,
+            "peak_gib": 104.14099884033203,
+            "median_gib": 104.12577438354492
+          },
+          "cgroup_bytes": {
+            "min_gib": 1.3514213562011719,
+            "peak_gib": 1.3514366149902344,
+            "median_gib": 1.3514213562011719
+          },
+          "cgroup_anon_bytes": {
+            "min_gib": 1.0485877990722656,
+            "peak_gib": 1.0485877990722656,
+            "median_gib": 1.0485877990722656
+          },
+          "cgroup_file_bytes": {
+            "min_gib": 0.28850555419921875,
+            "peak_gib": 0.28850555419921875,
+            "median_gib": 0.28850555419921875
+          },
+          "cgroup_swap_bytes": {
+            "min_gib": 0.0,
+            "peak_gib": 0.0,
+            "median_gib": 0.0
+          },
+          "rss_bytes": {
+            "min_gib": 1.2388648986816406,
+            "peak_gib": 1.2388648986816406,
+            "median_gib": 1.2388648986816406
+          },
+          "gpu_bytes": {
+            "min_gib": 1.6357421875,
+            "peak_gib": 1.6357421875,
+            "median_gib": 1.6357421875
+          }
+        }
+      },
+      "host_oom_kill_delta": 0,
+      "host_swap_written_bytes": 1359872,
+      "host_swap_used_delta_bytes": 339968,
+      "host_swap_used_peak_delta_bytes": 339968
+    }
+  },
+  "production_checks": {
+    "runtime_version_output": "nemo-speech 0.2.0",
+    "talk_voice_http_status": 200,
+    "talk_voice_response": {
+      "text": "수소이온은 전자가 벗겨져 나간 양성자이다.",
+      "language": ""
+    },
+    "talk_video_test": "TestWorkloadSwapLive ASR-only, EXL3 bundle, AAC MP4 created from cached human speech, diarization enabled only in isolated test configuration; passed.",
+    "talk_video_test_seconds": 1.32,
+    "video_transcription_and_diarization_seconds": 1.19121351,
+    "go_test_all": "passed",
+    "packaged_support_check": "passed",
+    "packaged_recipe_check": "passed",
+    "four_platform_binaries_rebuilt": true,
+    "active_bundle_unchanged": "qwen38fn_exl3",
+    "speak_rate_unchanged": 1.3,
+    "final_active_bundle": "qwen38fn_exl3",
+    "final_speak_rate": 1.3
+  },
+  "memory_measurement_notes": [
+    "DGX Spark unified memory: GPU readings and host/cgroup readings are reported separately and are not added.",
+    "Global host swap counters include unrelated activity; neither stock nor patched ASR container was OOM-killed, and container swap stayed at zero.",
+    "Stock qualification overlapped the short incremental C++ patch build; old production qualification overlapped the full CUDA build. Latencies are operational observations, not a controlled performance ranking.",
+    "Each variant was tested sequentially while the original serving ASR, EXL3, QWIM/MMH3 and TTS stayed alive."
+  ],
+  "raw_artifacts": "/home/edp1096/.cache/model-download-jobs/nemo-asr-v020-deploy-20261008",
+  "ghcr_publication": "Excluded at user request; rebuild locally from compose_yaml/nemotron_asr/Dockerfile.",
+  "production_idle": {
+    "idle_seconds": 130.0190278859809,
+    "same_core_container_ids_and_pids": true,
+    "before": [
+      {
+        "name": "/sparktalk-qwen38fn_exl3",
+        "id": "cf436dec0dc7e72a04624c2c306f3f56c15c47e165b85818687d64e268ae3446",
+        "pid": 1547267,
+        "image": "sparktalk-qwen38fn_exl3:1.5.4-managed1"
+      },
+      {
+        "name": "/sparktalk-qwim-mmh3",
+        "id": "c1ffeceacf237ecd8fd4080c632c065770562f4d1c775160e53d2bd0a7abcac8",
+        "pid": 1534355,
+        "image": "sparktalk-qwim-mmh3:nvfp4-resident2"
+      },
+      {
+        "name": "/sparktalk-nemotron-asr",
+        "id": "368f805f746eaa5f9193e627a67f83ae5608900ec51eb93f8a6c0f3958692d32",
+        "pid": 1735570,
+        "image": "sparktalk-nemotron-asr:0.1.0"
+      },
+      {
+        "name": "/sparktalk-qwen3-tts",
+        "id": "f4603d25541c67829cfb48b113b3ac0117ea99a94d08dc72c1d266cb4d9edd66",
+        "pid": 1557140,
+        "image": "sparktalk-qwen3-tts:0.6b-q8-lifecycle1"
+      }
+    ],
+    "after": [
+      {
+        "name": "/sparktalk-qwen38fn_exl3",
+        "id": "cf436dec0dc7e72a04624c2c306f3f56c15c47e165b85818687d64e268ae3446",
+        "pid": 1547267,
+        "image": "sparktalk-qwen38fn_exl3:1.5.4-managed1",
+        "oom_killed": false
+      },
+      {
+        "name": "/sparktalk-qwim-mmh3",
+        "id": "c1ffeceacf237ecd8fd4080c632c065770562f4d1c775160e53d2bd0a7abcac8",
+        "pid": 1534355,
+        "image": "sparktalk-qwim-mmh3:nvfp4-resident2",
+        "oom_killed": false
+      },
+      {
+        "name": "/sparktalk-nemotron-asr",
+        "id": "368f805f746eaa5f9193e627a67f83ae5608900ec51eb93f8a6c0f3958692d32",
+        "pid": 1735570,
+        "image": "sparktalk-nemotron-asr:0.1.0",
+        "oom_killed": false
+      },
+      {
+        "name": "/sparktalk-qwen3-tts",
+        "id": "f4603d25541c67829cfb48b113b3ac0117ea99a94d08dc72c1d266cb4d9edd66",
+        "pid": 1557140,
+        "image": "sparktalk-qwen3-tts:0.6b-q8-lifecycle1",
+        "oom_killed": false
+      }
+    ],
+    "host_oom_delta": 0,
+    "swap_peak_delta_mib": 0.0,
+    "minimum_system_available_gib": 19.881011962890625,
+    "minimum_immediately_free_gib": 2.7325172424316406,
+    "idle_gpu_median_gib": 1.5537109375,
+    "idle_cgroup_anon_median_gib": 0.8334884643554688,
+    "other_core_models_unchanged_from_before_upgrade": true
+  }
+}

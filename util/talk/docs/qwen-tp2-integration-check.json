@@ -1,0 +1,200 @@
+{
+  "operation": [
+    {
+      "state": "running",
+      "phase": "Qwen3.8 Flash-Next TP2 체크포인트 적재",
+      "detail": "52/206 샤드 · NVFP4 본체 모델"
+    },
+    {
+      "state": "running",
+      "phase": "Qwen3.8 Flash-Next TP2 체크포인트 적재",
+      "detail": "76/206 샤드 · NVFP4 본체 모델"
+    },
+    {
+      "state": "running",
+      "phase": "Qwen3.8 Flash-Next TP2 체크포인트 적재",
+      "detail": "96/206 샤드 · NVFP4 본체 모델"
+    },
+    {
+      "state": "running",
+      "phase": "Qwen3.8 Flash-Next TP2 체크포인트 적재",
+      "detail": "116/206 샤드 · NVFP4 본체 모델"
+    },
+    {
+      "state": "running",
+      "phase": "Qwen3.8 Flash-Next TP2 체크포인트 적재",
+      "detail": "140/206 샤드 · NVFP4 본체 모델"
+    },
+    {
+      "state": "running",
+      "phase": "Qwen3.8 Flash-Next TP2 체크포인트 적재",
+      "detail": "160/206 샤드 · NVFP4 본체 모델"
+    },
+    {
+      "state": "running",
+      "phase": "Qwen3.8 Flash-Next TP2 체크포인트 적재",
+      "detail": "184/206 샤드 · NVFP4 본체 모델"
+    },
+    {
+      "state": "running",
+      "phase": "Qwen3.8 Flash-Next TP2 체크포인트 적재",
+      "detail": "195/206 샤드 · NVFP4 본체 모델"
+    },
+    {
+      "state": "running",
+      "phase": "Qwen3.8 Flash-Next TP2 체크포인트 적재",
+      "detail": "199/206 샤드 · NVFP4 본체 모델"
+    },
+    {
+      "state": "running",
+      "phase": "Qwen3.8 Flash-Next TP2 체크포인트 적재",
+      "detail": "200/206 샤드 · NVFP4 본체 모델"
+    },
+    {
+      "state": "running",
+      "phase": "Qwen3.8 Flash-Next TP2 체크포인트 적재",
+      "detail": "201/206 샤드 · NVFP4 본체 모델"
+    },
+    {
+      "state": "running",
+      "phase": "Qwen3.8 Flash-Next TP2 체크포인트 적재",
+      "detail": "205/206 샤드 · NVFP4 본체 모델"
+    },
+    {
+      "state": "running",
+      "phase": "DFlash 가중치 적재",
+      "detail": "176/206 샤드 · 보조 예측 모델"
+    },
+    {
+      "state": "running",
+      "phase": "DFlash 가중치 적재",
+      "detail": "194/206 샤드 · 보조 예측 모델"
+    },
+    {
+      "state": "running",
+      "phase": "FLUX 컨테이너 시작",
+      "detail": "이미지 API 프로세스를 시작하고 있습니다."
+    },
+    {
+      "state": "complete",
+      "phase": "준비 완료",
+      "detail": "선택한 구성을 사용할 수 있습니다."
+    }
+  ],
+  "context_tokens": 1048576,
+  "endpoint": "http://127.0.0.1:8012",
+  "answers": [
+    {
+      "content": "주인님, 17 더하기 25는 42입니다. 안녕하세요!",
+      "status": "completed",
+      "performance": {
+        "pp": 1352.3405603838248,
+        "tg": 51.400652752823504,
+        "ttft": 3.222561038,
+        "pp_estimated": true,
+        "tg_estimated": true,
+        "ttft_estimated": true,
+        "prompt_tokens": 4358,
+        "cached_tokens": 0,
+        "output_tokens": 21,
+        "calls": 1
+      }
+    }
+  ],
+  "performance_events": [
+    {
+      "prompt_tokens": 0,
+      "cached_tokens": 0,
+      "output_tokens": 0,
+      "calls": 1,
+      "live": true
+    },
+    {
+      "tg": 39.7800460477901,
+      "ttft": 3.222561038,
+      "tg_estimated": true,
+      "ttft_estimated": true,
+      "prompt_tokens": 0,
+      "cached_tokens": 0,
+      "output_tokens": 13,
+      "calls": 1,
+      "live": true
+    },
+    {
+      "pp": 1352.3405603838248,
+      "tg": 51.400652752823504,
+      "ttft": 3.222561038,
+      "pp_estimated": true,
+      "tg_estimated": true,
+      "ttft_estimated": true,
+      "prompt_tokens": 4358,
+      "cached_tokens": 0,
+      "output_tokens": 21,
+      "calls": 1,
+      "live": true
+    },
+    {
+      "pp": 1352.3405603838248,
+      "tg": 51.400652752823504,
+      "ttft": 3.222561038,
+      "pp_estimated": true,
+      "tg_estimated": true,
+      "ttft_estimated": true,
+      "prompt_tokens": 4358,
+      "cached_tokens": 0,
+      "output_tokens": 21,
+      "calls": 1
+    }
+  ],
+  "passed": true,
+  "server": {
+    "context_length": 1048576,
+    "tp_size": 2,
+    "nnodes": 2,
+    "kv_cache_dtype": "bfloat16",
+    "max_total_num_tokens": 1114112,
+    "allow_auto_truncate": false
+  },
+  "health": {
+    "asr": {
+      "status": null
+    },
+    "extra": {
+      "status": null
+    },
+    "image": {
+      "status": "disabled"
+    },
+    "status": "ok",
+    "tts": {
+      "status": "ok"
+    }
+  },
+  "stop_operation": {
+    "state": "complete",
+    "phase": "중지 완료"
+  },
+  "stopped_components": [
+    {
+      "id": "flash-next-tp2",
+      "status": "exited",
+      "health": "offline"
+    },
+    {
+      "id": "flux2",
+      "status": "exited",
+      "health": "offline"
+    },
+    {
+      "id": "nemotron-asr",
+      "status": "exited",
+      "health": "offline"
+    },
+    {
+      "id": "magpie-tts",
+      "status": "exited",
+      "health": "offline"
+    }
+  ],
+  "selected_bundle_after_restart": "flash-next-tp2"
+}

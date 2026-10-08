@@ -1,0 +1,766 @@
+package llm
+
+import (
+	"bufio"
+	"bytes"
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
+	"net/http"
+	"sparktalk/internal/modelidentity"
+	"strconv"
+	"strings"
+	"time"
+)
+
+// ErrOutputLimit distinguishes a server-confirmed token limit from interrupted transport.
+var ErrOutputLimit = errors.New("출력 토큰 한도에 도달해 응답이 잘렸습니다")
+
+type Message struct {
+	// ReferenceContext marks ephemeral recall/checkpoint data, never API input.
+	ReferenceContext bool       `json:"-"`
+	ReasoningContent string     `json:"reasoning_content,omitempty"`
+	Role             string     `json:"role"`
+	Content          any        `json:"content,omitempty"`
+	ToolCalls        []ToolCall `json:"tool_calls,omitempty"`
+	ToolCallID       string     `json:"tool_call_id,omitempty"`
+}
+
+type Tool struct {
+	Type     string       `json:"type"`
+	Function ToolFunction `json:"function"`
+}
+
+type ToolFunction struct {
+	Name        string          `json:"name"`
+	Description string          `json:"description"`
+	Parameters  json.RawMessage `json:"parameters"`
+}
+
+type ToolCall struct {
+	ID       string       `json:"id"`
+	Type     string       `json:"type"`
+	Function FunctionCall `json:"function"`
+}
+
+type FunctionCall struct {
+	Name      string `json:"name"`
+	Arguments string `json:"arguments"`
+}
+
+type StreamResult struct {
+	FinishReason string
+	Content      string
+	Reasoning    string
+	ToolCalls    []ToolCall
+	Usage        Usage
+}
+
+type Usage struct {
+	PromptTokens        int `json:"prompt_tokens"`
+	CompletionTokens    int `json:"completion_tokens"`
+	TotalTokens         int `json:"total_tokens"`
+	PromptTokensDetails *struct {
+		CachedTokens *int `json:"cached_tokens"`
+	} `json:"prompt_tokens_details,omitempty"`
+}
+
+type toolCallAccum struct {
+	ID        string
+	Type      string
+	Name      string
+	Arguments strings.Builder
+}
+
+type Client struct {
+	nativeAbort    bool
+	endpoint       string
+	model          string
+	modelType      string
+	thinkingBudget int
+	apiKey         string
+	http           *http.Client
+}
+
+// WithThinkingBudget applies a hard reasoning-token limit to Gemma 4 requests.
+// A non-positive value leaves the model's thinking length unrestricted.
+func (c *Client) WithThinkingBudget(tokens int) *Client {
+	if tokens > 0 {
+		c.thinkingBudget = tokens
+	}
+	return c
+}
+
+func New(endpoint, model, apiKey string, modelType ...string) *Client {
+	typeName := "generic"
+	if len(modelType) > 0 {
+		typeName = strings.ToLower(strings.TrimSpace(modelType[0]))
+	}
+	return &Client{
+		endpoint: strings.TrimRight(endpoint, "/"), model: modelidentity.CanonicalID(model), modelType: modelidentity.CanonicalID(typeName), apiKey: apiKey,
+		http: &http.Client{Timeout: 0},
+	}
+}
+
+func gemmaThinkingEnabled(effort string) bool {
+	switch strings.ToLower(strings.TrimSpace(effort)) {
+	case "", "0", "0.0", "none", "off", "false", "no_think", "disabled":
+		return false
+	default:
+		return true
+	}
+}
+
+func applyReasoningOptions(payload map[string]any, modelType, effort string) {
+	modelType = modelidentity.CanonicalID(modelType)
+	effort = NormalizeReasoningEffort(modelType, effort)
+	if modelType == "deepseek-v4" {
+		options := map[string]any{"thinking": effort != "off"}
+		if effort != "off" {
+			options["reasoning_effort"] = effort
+		}
+		payload["chat_template_kwargs"] = options
+		return
+	}
+	if modelType == "glm5.3" {
+		enabled := effort != "off"
+		payload["chat_template_kwargs"] = map[string]any{
+			"enable_thinking": enabled,
+			"clear_thinking":  true,
+		}
+		if enabled {
+			payload["reasoning_effort"] = effort
+		}
+		return
+	}
+	if modelType == "qwen3.8-gguf" || modelType == "qwen38fn_exl3" {
+		options := map[string]any{"enable_thinking": effort != "none"}
+		if effort != "none" {
+			// Pass directly to the model template; top-level forwarding varies by server version.
+			options["reasoning_effort"] = effort
+		}
+		payload["chat_template_kwargs"] = options
+		return
+	}
+	if modelType == "gemma4" || modelType == "gemma4-vllm" || modelType == "qwen3.5" {
+		payload["chat_template_kwargs"] = map[string]any{"enable_thinking": gemmaThinkingEnabled(effort)}
+		return
+	}
+	if value := reasoningValue(effort); value != nil {
+		payload["reasoning_effort"] = value
+	}
+}
+
+func NormalizeReasoningEffort(modelType, effort string) string {
+	modelType = modelidentity.CanonicalID(modelType)
+	raw := strings.TrimSpace(effort)
+	effort = strings.ToLower(raw)
+	switch modelType {
+	case "glm5.3", "deepseek-v4":
+		switch effort {
+		case "", "none", "off", "false", "disabled", "0", "0.0":
+			return "off"
+		case "low", "high", "max":
+			return effort
+		default:
+			return "max"
+		}
+	case "qwen3.8":
+		switch effort {
+		case "none", "low", "medium", "xhigh":
+			return effort
+		default:
+			return "medium"
+		}
+	case "qwen3.8-gguf", "qwen38fn_exl3":
+		if !gemmaThinkingEnabled(effort) {
+			return "none"
+		}
+		switch effort {
+		case "low", "medium", "xhigh":
+			return effort
+		default:
+			return "xhigh" // Preserve the previous enabled template default.
+		}
+	case "gemma4", "gemma4-vllm", "qwen3.5":
+		if gemmaThinkingEnabled(effort) {
+			return "on"
+		}
+		return "none"
+	default:
+		return raw
+	}
+}
+
+func (c *Client) Models(ctx context.Context) ([]string, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, c.endpoint+"/v1/models", nil)
+	if err != nil {
+		return nil, err
+	}
+	c.authorize(req)
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("models: HTTP %d", resp.StatusCode)
+	}
+	var payload struct {
+		Data []struct {
+			ID string `json:"id"`
+		} `json:"data"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
+		return nil, err
+	}
+	models := make([]string, 0, len(payload.Data))
+	for _, item := range payload.Data {
+		if item.ID != "" {
+			models = append(models, item.ID)
+		}
+	}
+	if len(models) == 0 {
+		return nil, fmt.Errorf("models: empty model list")
+	}
+	return models, nil
+}
+
+func (c *Client) Model(ctx context.Context) (string, error) {
+	if c.model != "" {
+		return c.model, nil
+	}
+	models, err := c.Models(ctx)
+	if err != nil {
+		return "", err
+	}
+	return models[0], nil
+}
+
+func (c *Client) Stream(ctx context.Context, messages []Message, model, reasoningEffort string, tools []Tool, emit func(kind, text string) error) (StreamResult, error) {
+	if model == "" {
+		var err error
+		model, err = c.Model(ctx)
+		if err != nil {
+			return StreamResult{}, err
+		}
+	}
+	messages = c.InputMessages(messages)
+	payload := map[string]any{
+		"model": modelidentity.CanonicalID(model), "messages": messages, "stream": true, "temperature": 0.7,
+		"separate_reasoning": true, "stream_reasoning": true,
+		"stream_options": map[string]bool{"include_usage": true},
+	}
+	if c.modelType == "gemma4" || c.modelType == "gemma4-vllm" {
+		payload["temperature"] = 1.0
+		payload["top_p"] = 0.95
+		payload["top_k"] = 64
+	}
+	if limit, ok := ctx.Value(outputLimitKey{}).(int); ok && limit > 0 {
+		payload["max_completion_tokens"] = limit
+	}
+	if len(tools) > 0 {
+		payload["tools"] = tools
+		payload["tool_choice"] = "auto"
+	}
+	applyReasoningOptions(payload, c.modelType, reasoningEffort)
+	if c.modelType == "deepseek-v4" {
+		for _, message := range messages {
+			if message.Role == "assistant" && message.ReasoningContent != "" {
+				// The round-limit instruction is a new user message; without this flag
+				// the encoder would discard the current tool turn's reasoning again.
+				payload["chat_template_kwargs"].(map[string]any)["drop_thinking"] = false
+				break
+			}
+		}
+	}
+
+	if c.modelType == "gemma4" && gemmaThinkingEnabled(reasoningEffort) && c.thinkingBudget > 0 {
+		// The pinned SGLang OpenAI protocol exposes custom_params but does not
+		// forward its native max_thinking_tokens field from chat completions.
+		payload["custom_params"] = map[string]any{"thinking_budget": c.thinkingBudget}
+	}
+	if c.modelType == "gemma4-vllm" && gemmaThinkingEnabled(reasoningEffort) && c.thinkingBudget > 0 {
+		payload["thinking_token_budget"] = c.thinkingBudget
+	}
+	if err := ctx.Err(); err != nil {
+		return StreamResult{}, err
+	}
+	transportCtx, finishStream := c.streamContext(ctx, payload)
+	defer finishStream()
+	body, err := json.Marshal(payload)
+	if err != nil {
+		return StreamResult{}, err
+	}
+	measurement := newStreamPerformance(ctx)
+	defer measurement.publish(true)
+	resp, err := c.post(transportCtx, body)
+	if err != nil {
+		return StreamResult{}, err
+	}
+	defer func() { finishStream(); resp.Body.Close() }()
+	if resp.StatusCode != http.StatusOK {
+		detail, _ := io.ReadAll(io.LimitReader(resp.Body, 8192))
+		return StreamResult{}, fmt.Errorf("chat completion: HTTP %d: %s", resp.StatusCode, strings.TrimSpace(string(detail)))
+	}
+
+	var answer, reasoning strings.Builder
+	var usage Usage
+	var finishReason string
+	done := false
+	toolCalls := make(map[int]*toolCallAccum)
+	var toolOrder []int
+	scanner := bufio.NewScanner(resp.Body)
+	scanner.Buffer(make([]byte, 64*1024), 1024*1024)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if !strings.HasPrefix(line, "data:") {
+			continue
+		}
+		data := strings.TrimSpace(strings.TrimPrefix(line, "data:"))
+		if data == "[DONE]" {
+			done = true
+			break
+		}
+		if data == "" {
+			continue
+		}
+		var chunk struct {
+			Error   json.RawMessage  `json:"error"`
+			Usage   Usage            `json:"usage"`
+			Metrics *responseMetrics `json:"metrics"`
+			Timings *responseTimings `json:"timings"`
+			Choices []struct {
+				FinishReason string `json:"finish_reason"`
+				Delta        struct {
+					Content          string `json:"content"`
+					ReasoningContent string `json:"reasoning_content"`
+					Reasoning        string `json:"reasoning"`
+					ToolCalls        []struct {
+						Index    int    `json:"index"`
+						ID       string `json:"id"`
+						Type     string `json:"type"`
+						Function struct {
+							Name      string `json:"name"`
+							Arguments string `json:"arguments"`
+						} `json:"function"`
+					} `json:"tool_calls"`
+				} `json:"delta"`
+			} `json:"choices"`
+		}
+		if err := json.Unmarshal([]byte(data), &chunk); err != nil {
+			return StreamResult{Content: answer.String(), Reasoning: reasoning.String(), Usage: usage}, fmt.Errorf("응답 스트림 형식 오류로 생성이 중단됐습니다: %w", err)
+		}
+		if len(chunk.Error) > 0 && string(chunk.Error) != "null" {
+			return StreamResult{Content: answer.String(), Reasoning: reasoning.String(), Usage: usage}, fmt.Errorf("모델 서버가 생성을 중단했습니다: %s", chunk.Error)
+		}
+		if chunk.Usage.TotalTokens > 0 || chunk.Usage.PromptTokens > 0 || chunk.Usage.CompletionTokens > 0 {
+			usage = chunk.Usage
+			measurement.usage = usage
+		}
+		if chunk.Metrics != nil {
+			measurement.metrics = chunk.Metrics
+		}
+		if chunk.Timings != nil {
+			measurement.timings = chunk.Timings
+		}
+		if len(chunk.Choices) == 0 {
+			continue
+		}
+		if chunk.Choices[0].FinishReason != "" {
+			finishReason = chunk.Choices[0].FinishReason
+		}
+		delta := chunk.Choices[0].Delta
+		reasoningDelta := delta.ReasoningContent
+		if reasoningDelta == "" {
+			reasoningDelta = delta.Reasoning
+		}
+		generated := reasoningDelta + delta.Content
+		for _, call := range delta.ToolCalls {
+			generated += call.Function.Name + call.Function.Arguments
+		}
+		measurement.generated(generated, time.Now())
+		measurement.publish(false)
+		if reasoningDelta != "" {
+			reasoning.WriteString(reasoningDelta)
+			if err := emit("reasoning", reasoningDelta); err != nil {
+				return StreamResult{Content: answer.String(), Reasoning: reasoning.String(), ToolCalls: assembleToolCalls(toolOrder, toolCalls)}, err
+			}
+		}
+		if delta.Content != "" {
+			answer.WriteString(delta.Content)
+			if err := emit("delta", delta.Content); err != nil {
+				return StreamResult{Content: answer.String(), Reasoning: reasoning.String(), ToolCalls: assembleToolCalls(toolOrder, toolCalls)}, err
+			}
+		}
+		for _, call := range delta.ToolCalls {
+			acc, ok := toolCalls[call.Index]
+			if !ok {
+				acc = &toolCallAccum{}
+				toolCalls[call.Index] = acc
+				toolOrder = append(toolOrder, call.Index)
+			}
+			if call.ID != "" {
+				acc.ID = call.ID
+			}
+			if call.Type != "" {
+				acc.Type = call.Type
+			}
+			acc.Name += call.Function.Name
+			acc.Arguments.WriteString(call.Function.Arguments)
+		}
+	}
+	result := StreamResult{Content: answer.String(), Reasoning: reasoning.String(), ToolCalls: assembleToolCalls(toolOrder, toolCalls), Usage: usage, FinishReason: finishReason}
+	if err := scanner.Err(); err != nil {
+		return result, fmt.Errorf("응답 수신 중 연결이 중단됐습니다: %w", err)
+	}
+	switch finishReason {
+	case "length":
+		budget := ""
+		if limit, _ := ctx.Value(outputLimitKey{}).(int); limit > 0 {
+			budget = fmt.Sprintf(", 요청 상한 %d토큰", limit)
+		}
+		return result, fmt.Errorf("%w (finish_reason=length%s). 생각 과정도 이 한도를 사용합니다. 설정 > 대화 > 지능형 문맥 관리의 최대 출력 토큰을 늘리거나 이어서 생성을 요청하세요.", ErrOutputLimit, budget)
+	case "content_filter":
+		return result, fmt.Errorf("모델 서버의 콘텐츠 필터로 응답이 중단됐습니다 (finish_reason=content_filter).")
+	case "stop", "tool_calls", "function_call":
+		return result, nil
+	case "":
+		if done {
+			return result, nil
+		} // Some compatible servers only send [DONE].
+		return result, fmt.Errorf("종료 신호 없이 응답 연결이 끝났습니다. 생성된 내용이 불완전할 수 있습니다.")
+	default:
+		return result, fmt.Errorf("모델 서버가 응답을 종료했습니다 (finish_reason=%s).", finishReason)
+	}
+}
+
+func (c *Client) ContextWindow(ctx context.Context) (int, error) {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+	errors := make([]string, 0, 3)
+	for _, path := range []string{"/v1/models", "/model_info", "/get_model_info"} {
+		value, err := c.contextWindowFrom(ctx, c.endpoint+path)
+		if value > 0 {
+			return value, nil
+		}
+		if err != nil {
+			errors = append(errors, err.Error())
+		}
+	}
+	return 0, fmt.Errorf("context window discovery failed: %s", strings.Join(errors, "; "))
+}
+
+func (c *Client) contextWindowFrom(ctx context.Context, endpoint string) (int, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
+	if err != nil {
+		return 0, err
+	}
+	c.authorize(req)
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return 0, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return 0, fmt.Errorf("model info: HTTP %d", resp.StatusCode)
+	}
+	var payload any
+	if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
+		return 0, err
+	}
+	return findContextWindow(payload), nil
+}
+
+func findContextWindow(value any) int {
+	if values, ok := value.([]any); ok {
+		for _, item := range values {
+			if found := findContextWindow(item); found > 0 {
+				return found
+			}
+		}
+		return 0
+	}
+	info, ok := value.(map[string]any)
+	if !ok {
+		return 0
+	}
+	for _, key := range []string{"context_len", "max_model_len", "max_total_num_tokens", "max_num_tokens"} {
+		if value, ok := info[key].(float64); ok && value > 0 {
+			return int(value)
+		}
+	}
+	for _, key := range []string{"data", "models", "model_info"} {
+		if found := findContextWindow(info[key]); found > 0 {
+			return found
+		}
+	}
+	return 0
+}
+
+func (c *Client) SummarizeContext(ctx context.Context, model, previous, transcript string) (string, error) {
+	if model == "" {
+		var err error
+		model, err = c.Model(ctx)
+		if err != nil {
+			return "", err
+		}
+	}
+	prompt := `Update a durable conversation checkpoint from the supplied previous checkpoint and transcript.
+Return concise Markdown with exactly these headings: Objective, Decisions, Constraints, Facts, Artifacts, Completed, Unresolved, Next Steps.
+Preserve exact file paths, commands, URLs, numbers, user preferences, failures, message references, and archive_id references. Do not invent information. Use an explicit None entry for empty sections. Attachments must be represented by their names, types, and any conclusions stated in the transcript.`
+	content := "Previous checkpoint:\n" + strings.TrimSpace(previous) + "\n\nNew transcript:\n" + transcript
+	payload := map[string]any{
+		"model":    modelidentity.CanonicalID(model),
+		"messages": []Message{{Role: "system", Content: prompt}, {Role: "user", Content: content}},
+		"stream":   false, "temperature": 0.1, "max_completion_tokens": 4096,
+	}
+	applyReasoningOptions(payload, c.modelType, "none")
+	body, _ := json.Marshal(payload)
+	// Large local contexts can require minutes or hours of prefill. As with
+	// streaming completion, honor the caller's deadline/cancellation instead
+	// of discarding valid work at an unrelated fixed three-minute boundary.
+	resp, err := c.post(ctx, body)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		detail, _ := io.ReadAll(io.LimitReader(resp.Body, 8192))
+		return "", fmt.Errorf("context summary: HTTP %d: %s", resp.StatusCode, strings.TrimSpace(string(detail)))
+	}
+	var result struct {
+		Choices []struct {
+			FinishReason string `json:"finish_reason"`
+			Message      struct {
+				Content string `json:"content"`
+			} `json:"message"`
+		} `json:"choices"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return "", err
+	}
+	if len(result.Choices) == 0 || strings.TrimSpace(result.Choices[0].Message.Content) == "" {
+		return "", fmt.Errorf("context summary returned no content")
+	}
+	text := strings.TrimSpace(result.Choices[0].Message.Content)
+	if err := validateCheckpoint(text, result.Choices[0].FinishReason); err != nil {
+		return "", err
+	}
+	return text, nil
+}
+
+func assembleToolCalls(order []int, accs map[int]*toolCallAccum) []ToolCall {
+	out := make([]ToolCall, 0, len(order))
+	for _, index := range order {
+		acc := accs[index]
+		if acc == nil || acc.Name == "" {
+			continue
+		}
+		id := acc.ID
+		if id == "" {
+			id = fmt.Sprintf("call_%d", index)
+		}
+		callType := acc.Type
+		if callType == "" {
+			callType = "function"
+		}
+		out = append(out, ToolCall{ID: id, Type: callType, Function: FunctionCall{
+			Name: acc.Name, Arguments: sanitizeToolArgs(acc.Arguments.String()),
+		}})
+	}
+	return out
+}
+
+func sanitizeToolArgs(args string) string {
+	original := args
+	if json.Valid([]byte(args)) {
+		return args
+	}
+	for len(args) > 0 && (args[len(args)-1] == '}' || args[len(args)-1] == ']') {
+		args = args[:len(args)-1]
+		if json.Valid([]byte(args)) {
+			return args
+		}
+	}
+	return original
+}
+
+func (c *Client) GenerateTitle(ctx context.Context, model, userText string) (string, error) {
+	if model == "" {
+		var err error
+		model, err = c.Model(ctx)
+		if err != nil {
+			return "", err
+		}
+	}
+	payload := map[string]any{
+		"model": modelidentity.CanonicalID(model),
+		"messages": []Message{
+			{Role: "system", Content: "Create a concise topic title for a chat request. Do not answer or solve the request. Describe its subject and intent. Use the user's language. Return only the title without quotes or terminal punctuation. Maximum 24 characters."},
+			{Role: "user", Content: "Chat request:\n" + userText + "\n\nReturn a topic title, not the answer."},
+		},
+		"stream": false, "temperature": 0.2, "max_completion_tokens": 48,
+	}
+	applyReasoningOptions(payload, c.modelType, "none")
+	body, _ := json.Marshal(payload)
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+	resp, err := c.post(ctx, body)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("title generation: HTTP %d", resp.StatusCode)
+	}
+	var result struct {
+		Choices []struct {
+			Message struct {
+				Content string `json:"content"`
+			} `json:"message"`
+		} `json:"choices"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return "", err
+	}
+	if len(result.Choices) == 0 {
+		return "", fmt.Errorf("title generation returned no choices")
+	}
+	title := strings.Trim(strings.TrimSpace(result.Choices[0].Message.Content), "\"'`#* ")
+	if runes := []rune(title); len(runes) > 40 {
+		title = string(runes[:40])
+	}
+	return title, nil
+}
+
+func (c *Client) Health(ctx context.Context) (string, error) {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+	models, err := c.Models(ctx)
+	if err != nil {
+		return "", err
+	}
+	if c.model == "" {
+		return models[0], nil
+	}
+	for _, model := range models {
+		if model == c.model {
+			return model, nil
+		}
+	}
+	return c.model, fmt.Errorf("configured model is not available")
+}
+
+func (c *Client) post(ctx context.Context, body []byte) (*http.Response, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.endpoint+"/v1/chat/completions", bytes.NewReader(body))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	c.authorize(req)
+	return c.http.Do(req)
+}
+
+func (c *Client) authorize(req *http.Request) {
+	if c.apiKey != "" {
+		req.Header.Set("Authorization", "Bearer "+c.apiKey)
+	}
+}
+
+func reasoningValue(value string) any {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return nil
+	}
+	if number, err := strconv.ParseFloat(value, 64); err == nil && number >= 0 && number <= 0.99 {
+		return number
+	}
+	return value
+}
+
+// WithOutputLimit keeps the server's output reservation and actual API request aligned.
+type outputLimitKey struct{}
+
+func WithOutputLimit(ctx context.Context, tokens int) context.Context {
+	return context.WithValue(ctx, outputLimitKey{}, tokens)
+}
+func validateCheckpoint(text, finish string) error {
+	if finish != "stop" {
+		return fmt.Errorf("context summary did not finish normally (%s); previous checkpoint retained", finish)
+	}
+	headings := []string{"Objective", "Decisions", "Constraints", "Facts", "Artifacts", "Completed", "Unresolved", "Next Steps"}
+	seen := make(map[string]bool)
+	bodies := make(map[string]string)
+	current := ""
+	for _, line := range strings.Split(text, "\n") {
+		line = strings.TrimSpace(line)
+		if strings.HasPrefix(line, "#") {
+			current = strings.TrimSpace(strings.TrimLeft(line, "#"))
+			seen[current] = true
+		} else if current != "" {
+			bodies[current] += line
+		}
+	}
+	for _, heading := range headings {
+		if !seen[heading] || strings.TrimSpace(bodies[heading]) == "" {
+			return fmt.Errorf("context summary missing %s; previous checkpoint retained", heading)
+		}
+	}
+	return nil
+}
+
+// InputMessages exposes the message form that Stream actually serializes.
+func (c *Client) InputMessages(messages []Message) []Message {
+	if c.modelType == "qwen3.5" || c.modelType == "gemma4-vllm" {
+		messages = retainRecentImages(messages, 4)
+	}
+	if c.modelType == "deepseek-v4" {
+		return messages
+	}
+	gemma := c.modelType == "gemma4" || c.modelType == "gemma4-vllm"
+	lastUser := -1
+	for i := range messages {
+		if messages[i].Role == "user" {
+			lastUser = i
+		}
+	}
+	// Preserve Gemma's reasoning only within the current user turn's tool chain.
+	// Historical reasoning must not be replayed into a new user turn.
+	messages = append([]Message(nil), messages...)
+	for i := range messages {
+		if gemma && lastUser >= 0 && i > lastUser && messages[i].Role == "assistant" && len(messages[i].ToolCalls) > 0 {
+			continue
+		}
+		messages[i].ReasoningContent = ""
+	}
+	return messages
+}
+
+// Bound the actual request, including images returned during tool rounds.
+// Keep the saved transcript unchanged and explicitly mark omitted visual input.
+func retainRecentImages(messages []Message, limit int) []Message {
+	out := append([]Message(nil), messages...)
+	remaining := limit
+	for i := len(out) - 1; i >= 0; i-- {
+		parts, ok := out[i].Content.([]map[string]any)
+		if !ok {
+			continue
+		}
+		filtered := append([]map[string]any(nil), parts...)
+		for j := len(parts) - 1; j >= 0; j-- {
+			if parts[j]["type"] != "image_url" {
+				continue
+			}
+			if remaining > 0 {
+				remaining--
+				continue
+			}
+			filtered[j] = map[string]any{"type": "text", "text": "[Earlier image omitted from this model request to respect the 4-image limit. Its attachment remains in the conversation, but its visual contents are not visible here. Do not claim to have inspected it.]"}
+		}
+		out[i].Content = filtered
+	}
+	return out
+}

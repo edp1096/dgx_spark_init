@@ -1,0 +1,22 @@
+diff --git a/python/litert_lm_cli/commands/openai_handler.py b/python/litert_lm_cli/commands/openai_handler.py
+index e3888f6..76c0ab5 100644
+--- a/python/litert_lm_cli/commands/openai_handler.py
++++ b/python/litert_lm_cli/commands/openai_handler.py
+@@ -1254,7 +1254,7 @@ class OpenAIHandler(http.server.BaseHTTPRequestHandler):
+           else None
+       )
+       constrained_decoding_config = litert_lm.ConstrainedDecodingConfig(
+-          enable=True,
++          enable=response_format is not None,
+           provider=provider,
+       )
+       with engine.create_conversation(
+@@ -1351,7 +1351,7 @@ class OpenAIHandler(http.server.BaseHTTPRequestHandler):
+           else None
+       )
+       constrained_decoding_config = litert_lm.ConstrainedDecodingConfig(
+-          enable=True,
++          enable=response_format is not None,
+           provider=provider,
+       )
+       with engine.create_conversation(

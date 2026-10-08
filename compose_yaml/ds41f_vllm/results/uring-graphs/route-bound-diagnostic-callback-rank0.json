@@ -1,0 +1,238 @@
+{
+  "scope": "single target layer 0; real original packed TP2 experts; not whole-model tg",
+  "rank": 0,
+  "slots": 224,
+  "record_bytes": 9400320,
+  "runs": [
+    {
+      "tokens": 1,
+      "state": "hit",
+      "variant": "baseline",
+      "trial": -1,
+      "warmup": true,
+      "ms": 0.4226903000623376
+    },
+    {
+      "tokens": 1,
+      "state": "hit",
+      "variant": "callback",
+      "trial": -1,
+      "warmup": true,
+      "ms": 1.0704248833159606
+    },
+    {
+      "tokens": 1,
+      "state": "hit",
+      "variant": "callback",
+      "trial": 0,
+      "warmup": false,
+      "ms": 0.9245792666964311
+    },
+    {
+      "tokens": 1,
+      "state": "hit",
+      "variant": "baseline",
+      "trial": 0,
+      "warmup": false,
+      "ms": 0.42255776667540584
+    },
+    {
+      "tokens": 1,
+      "state": "hit",
+      "variant": "baseline",
+      "trial": 1,
+      "warmup": false,
+      "ms": 0.42182898335643887
+    },
+    {
+      "tokens": 1,
+      "state": "hit",
+      "variant": "callback",
+      "trial": 1,
+      "warmup": false,
+      "ms": 0.9668271166447084
+    },
+    {
+      "tokens": 1,
+      "state": "hit",
+      "variant": "callback",
+      "trial": 2,
+      "warmup": false,
+      "ms": 0.6258784166372303
+    },
+    {
+      "tokens": 1,
+      "state": "hit",
+      "variant": "baseline",
+      "trial": 2,
+      "warmup": false,
+      "ms": 0.4228247167096318
+    },
+    {
+      "tokens": 1,
+      "state": "evict",
+      "variant": "baseline",
+      "trial": -1,
+      "warmup": true,
+      "ms": 8.751486416561724
+    },
+    {
+      "tokens": 1,
+      "state": "evict",
+      "variant": "callback",
+      "trial": -1,
+      "warmup": true,
+      "ms": 8.136832500288923
+    },
+    {
+      "tokens": 1,
+      "state": "evict",
+      "variant": "callback",
+      "trial": 0,
+      "warmup": false,
+      "ms": 8.48401416624256
+    },
+    {
+      "tokens": 1,
+      "state": "evict",
+      "variant": "baseline",
+      "trial": 0,
+      "warmup": false,
+      "ms": 8.70761866644898
+    },
+    {
+      "tokens": 1,
+      "state": "evict",
+      "variant": "baseline",
+      "trial": 1,
+      "warmup": false,
+      "ms": 8.239716250197185
+    },
+    {
+      "tokens": 1,
+      "state": "evict",
+      "variant": "callback",
+      "trial": 1,
+      "warmup": false,
+      "ms": 8.041175666827863
+    },
+    {
+      "tokens": 1,
+      "state": "evict",
+      "variant": "callback",
+      "trial": 2,
+      "warmup": false,
+      "ms": 8.515819416667606
+    },
+    {
+      "tokens": 1,
+      "state": "evict",
+      "variant": "baseline",
+      "trial": 2,
+      "warmup": false,
+      "ms": 8.796342500014967
+    },
+    {
+      "tokens": 6,
+      "state": "hit",
+      "variant": "baseline",
+      "trial": -1,
+      "warmup": true,
+      "ms": 2.121141716634156
+    },
+    {
+      "tokens": 6,
+      "state": "hit",
+      "variant": "callback",
+      "trial": -1,
+      "warmup": true,
+      "ms": 2.5409027166460874
+    },
+    {
+      "tokens": 6,
+      "state": "hit",
+      "variant": "callback",
+      "trial": 0,
+      "warmup": false,
+      "ms": 2.6948624833797417
+    },
+    {
+      "tokens": 6,
+      "state": "hit",
+      "variant": "baseline",
+      "trial": 0,
+      "warmup": false,
+      "ms": 2.1084895167102027
+    },
+    {
+      "tokens": 6,
+      "state": "hit",
+      "variant": "baseline",
+      "trial": 1,
+      "warmup": false,
+      "ms": 2.120894550049949
+    },
+    {
+      "tokens": 6,
+      "state": "hit",
+      "variant": "callback",
+      "trial": 1,
+      "warmup": false,
+      "ms": 2.3928443166369107
+    },
+    {
+      "tokens": 6,
+      "state": "hit",
+      "variant": "callback",
+      "trial": 2,
+      "warmup": false,
+      "ms": 2.599618833240432
+    },
+    {
+      "tokens": 6,
+      "state": "hit",
+      "variant": "baseline",
+      "trial": 2,
+      "warmup": false,
+      "ms": 2.093045049938761
+    }
+  ],
+  "parity": [
+    {
+      "tokens": 1,
+      "state": "hit",
+      "outputs": 60,
+      "exact": true,
+      "callback": {
+        "hits": 360,
+        "misses": 0,
+        "bytes": 0,
+        "calls": 60
+      }
+    },
+    {
+      "tokens": 1,
+      "state": "evict",
+      "outputs": 12,
+      "exact": true,
+      "callback": {
+        "hits": 0,
+        "misses": 72,
+        "bytes": 676823040,
+        "calls": 12
+      }
+    },
+    {
+      "tokens": 6,
+      "state": "hit",
+      "outputs": 60,
+      "exact": true,
+      "callback": {
+        "hits": 2160,
+        "misses": 0,
+        "bytes": 0,
+        "calls": 60
+      }
+    }
+  ]
+}

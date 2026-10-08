@@ -1,0 +1,43 @@
+{
+  "elapsed_seconds": 22.46980201399856,
+  "response": {
+    "id": "chatcmpl-8c12ea4d06780810",
+    "object": "chat.completion",
+    "created": 1789144398,
+    "model": "deepseek-v4.1-flash",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "서울",
+          "refusal": null,
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "reasoning": null
+        },
+        "logprobs": null,
+        "finish_reason": "stop",
+        "stop_reason": null,
+        "token_ids": null,
+        "routed_experts": null
+      }
+    ],
+    "service_tier": null,
+    "system_fingerprint": "vllm-0.1.dev20904+g179dd0fa9-tp2-35e8d488",
+    "usage": {
+      "prompt_tokens": 23,
+      "total_tokens": 26,
+      "completion_tokens": 3,
+      "prompt_tokens_details": null,
+      "completion_tokens_details": null
+    },
+    "prompt_logprobs": null,
+    "prompt_token_ids": null,
+    "prompt_text": null,
+    "kv_transfer_params": null,
+    "ec_transfer_params": null,
+    "metrics": null
+  }
+}

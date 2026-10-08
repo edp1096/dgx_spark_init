@@ -1,0 +1,234 @@
+{
+  "configured_context": 65536,
+  "allocated_bytes": 2147420160,
+  "pool_blocks": 15534,
+  "common_block_bytes": 138240,
+  "current_admission_blocks": 5422,
+  "dcp2_estimated_admission_blocks": 4654,
+  "saved_admission_mib": 101.25,
+  "raw_shardable_mib": 112.5,
+  "raw_half_saved_mib": 56.25,
+  "current_admission_mib": 714.814453125,
+  "dcp2_estimated_admission_mib": 613.564453125,
+  "reported_pool_tokens_equivalent": 187760.27738841757,
+  "estimated_dcp_pool_tokens_equivalent": 218744.35410399656,
+  "groups": [
+    {
+      "group": 0,
+      "kind": "SlidingWindowMLASpec",
+      "layers": [
+        "language_model.model.layers.0.attn.swa_cache",
+        "language_model.model.layers.15.attn.swa_cache",
+        "language_model.model.layers.30.attn.swa_cache"
+      ],
+      "blocks": 259,
+      "dcp2_blocks": 259,
+      "sharded": false
+    },
+    {
+      "group": 1,
+      "kind": "SlidingWindowMLASpec",
+      "layers": [
+        "language_model.model.layers.1.attn.swa_cache",
+        "language_model.model.layers.16.attn.swa_cache",
+        "language_model.model.layers.31.attn.swa_cache"
+      ],
+      "blocks": 259,
+      "dcp2_blocks": 259,
+      "sharded": false
+    },
+    {
+      "group": 2,
+      "kind": "SlidingWindowMLASpec",
+      "layers": [
+        "language_model.model.layers.2.attn.swa_cache",
+        "language_model.model.layers.17.attn.swa_cache",
+        "language_model.model.layers.32.attn.swa_cache"
+      ],
+      "blocks": 259,
+      "dcp2_blocks": 259,
+      "sharded": false
+    },
+    {
+      "group": 3,
+      "kind": "SlidingWindowMLASpec",
+      "layers": [
+        "language_model.model.layers.3.attn.swa_cache",
+        "language_model.model.layers.18.attn.swa_cache",
+        "language_model.model.layers.33.attn.swa_cache"
+      ],
+      "blocks": 259,
+      "dcp2_blocks": 259,
+      "sharded": false
+    },
+    {
+      "group": 4,
+      "kind": "SlidingWindowMLASpec",
+      "layers": [
+        "language_model.model.layers.4.attn.swa_cache",
+        "language_model.model.layers.19.attn.swa_cache",
+        "language_model.model.layers.34.attn.swa_cache"
+      ],
+      "blocks": 259,
+      "dcp2_blocks": 259,
+      "sharded": false
+    },
+    {
+      "group": 5,
+      "kind": "SlidingWindowMLASpec",
+      "layers": [
+        "language_model.model.layers.5.attn.swa_cache",
+        "language_model.model.layers.20.attn.swa_cache",
+        "language_model.model.layers.35.attn.swa_cache"
+      ],
+      "blocks": 259,
+      "dcp2_blocks": 259,
+      "sharded": false
+    },
+    {
+      "group": 6,
+      "kind": "SlidingWindowMLASpec",
+      "layers": [
+        "language_model.model.layers.6.attn.swa_cache",
+        "language_model.model.layers.21.attn.swa_cache",
+        "language_model.model.layers.36.attn.swa_cache"
+      ],
+      "blocks": 259,
+      "dcp2_blocks": 259,
+      "sharded": false
+    },
+    {
+      "group": 7,
+      "kind": "SlidingWindowMLASpec",
+      "layers": [
+        "language_model.model.layers.7.attn.swa_cache",
+        "language_model.model.layers.22.attn.swa_cache",
+        "language_model.model.layers.37.attn.swa_cache"
+      ],
+      "blocks": 259,
+      "dcp2_blocks": 259,
+      "sharded": false
+    },
+    {
+      "group": 8,
+      "kind": "SlidingWindowMLASpec",
+      "layers": [
+        "language_model.model.layers.8.attn.swa_cache",
+        "language_model.model.layers.23.attn.swa_cache",
+        "language_model.model.layers.38.attn.swa_cache"
+      ],
+      "blocks": 259,
+      "dcp2_blocks": 259,
+      "sharded": false
+    },
+    {
+      "group": 9,
+      "kind": "SlidingWindowMLASpec",
+      "layers": [
+        "language_model.model.layers.9.attn.swa_cache",
+        "language_model.model.layers.24.attn.swa_cache",
+        "language_model.model.layers.39.attn.swa_cache"
+      ],
+      "blocks": 259,
+      "dcp2_blocks": 259,
+      "sharded": false
+    },
+    {
+      "group": 10,
+      "kind": "SlidingWindowMLASpec",
+      "layers": [
+        "language_model.model.layers.10.attn.swa_cache",
+        "language_model.model.layers.25.attn.swa_cache",
+        "model.layers.40.attn.swa_cache"
+      ],
+      "blocks": 259,
+      "dcp2_blocks": 259,
+      "sharded": false
+    },
+    {
+      "group": 11,
+      "kind": "SlidingWindowMLASpec",
+      "layers": [
+        "language_model.model.layers.11.attn.swa_cache",
+        "language_model.model.layers.26.attn.swa_cache",
+        "model.layers.41.attn.swa_cache"
+      ],
+      "blocks": 259,
+      "dcp2_blocks": 259,
+      "sharded": false
+    },
+    {
+      "group": 12,
+      "kind": "SlidingWindowMLASpec",
+      "layers": [
+        "language_model.model.layers.12.attn.swa_cache",
+        "language_model.model.layers.27.attn.swa_cache",
+        "model.layers.42.attn.swa_cache"
+      ],
+      "blocks": 259,
+      "dcp2_blocks": 259,
+      "sharded": false
+    },
+    {
+      "group": 13,
+      "kind": "SlidingWindowMLASpec",
+      "layers": [
+        "language_model.model.layers.13.attn.swa_cache",
+        "language_model.model.layers.28.attn.swa_cache"
+      ],
+      "blocks": 259,
+      "dcp2_blocks": 259,
+      "sharded": false
+    },
+    {
+      "group": 14,
+      "kind": "SlidingWindowMLASpec",
+      "layers": [
+        "language_model.model.layers.14.attn.swa_cache",
+        "language_model.model.layers.29.attn.swa_cache"
+      ],
+      "blocks": 259,
+      "dcp2_blocks": 259,
+      "sharded": false
+    },
+    {
+      "group": 15,
+      "kind": "MLAAttentionSpec",
+      "layers": [
+        "language_model.model.layers.2.attn",
+        "language_model.model.layers.2.attn.indexer.k_cache",
+        "language_model.model.layers.8.attn",
+        "language_model.model.layers.8.attn.indexer.k_cache",
+        "language_model.model.layers.14.attn",
+        "language_model.model.layers.14.attn.indexer.k_cache"
+      ],
+      "blocks": 512,
+      "dcp2_blocks": 256,
+      "sharded": true
+    },
+    {
+      "group": 16,
+      "kind": "CircularBufferSpec",
+      "layers": [
+        "language_model.model.layers.2.attn.compressor.state_cache",
+        "language_model.model.layers.8.attn.compressor.state_cache",
+        "language_model.model.layers.14.attn.compressor.state_cache"
+      ],
+      "blocks": 1,
+      "dcp2_blocks": 1,
+      "sharded": false
+    },
+    {
+      "group": 17,
+      "kind": "MLAAttentionSpec",
+      "layers": [
+        "language_model.model.layers.20.attn",
+        "language_model.model.layers.20.attn.indexer.k_cache"
+      ],
+      "blocks": 1024,
+      "dcp2_blocks": 512,
+      "sharded": true
+    }
+  ],
+  "scope": "Static estimate retaining current grouping/padding and replicated SWA/draft/rings; excludes DCP workspace, prefix retention effects, and runtime scheduling."
+}

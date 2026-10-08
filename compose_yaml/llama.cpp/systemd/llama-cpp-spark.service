@@ -1,0 +1,18 @@
+[Unit]
+Description=llama.cpp Gemma 4 OpenAI-compatible server
+After=network-online.target
+Wants=network-online.target
+Before=media-app.service sparktalk.service
+
+[Service]
+Type=simple
+WorkingDirectory=%h/workspace/dgx_spark_init/compose_yaml/llama.cpp
+EnvironmentFile=-%h/workspace/dgx_spark_init/compose_yaml/llama.cpp/llama-server.env
+ExecStart=%h/workspace/dgx_spark_init/compose_yaml/llama.cpp/scripts/run_host.sh
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=30
+LimitNOFILE=1048576
+
+[Install]
+WantedBy=default.target

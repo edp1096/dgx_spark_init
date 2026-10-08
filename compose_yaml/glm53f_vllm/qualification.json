@@ -1,0 +1,53 @@
+{
+  "status": "pilcothink_runtime_pass",
+  "image": "pilcothink/vllm_spark_glm53@sha256:09da6eb394216d174ab8692758d90f9f458398d9c8fbc11ba6f04e93d5cf6392",
+  "models": [
+    "nvidia/GLM-5.3-Flash-NVFP4",
+    "edp1096/Huihui-GLM-5.3-Flash-abliterated-NVFP4"
+  ],
+  "settings": {
+    "context": 1048576,
+    "tp": 2,
+    "kv_cache_bytes": 10240000000,
+    "kv_dtype": "fp8",
+    "dflash_tokens": 5,
+    "draft": "incoai/GLM-5.3-Flash-DFlash2",
+    "max_num_seqs": 4,
+    "graph_capture_max": 16,
+    "async_scheduling": true,
+    "max_batched_tokens": 1024
+  },
+  "huihui_long_context": {
+    "seconds": 1151.347008228302,
+    "actual": {
+      "STONE": "a7c9f2d4",
+      "LARCH": "b6e1a8c3",
+      "RIVER": "d9f4b2e7",
+      "CLOUD": "c5a3e9f1",
+      "ORBIT": "e8b6d1a4"
+    },
+    "expected": {
+      "STONE": "a7c9f2d4",
+      "LARCH": "b6e1a8c3",
+      "RIVER": "d9f4b2e7",
+      "CLOUD": "c5a3e9f1",
+      "ORBIT": "e8b6d1a4"
+    },
+    "usage": {
+      "prompt_tokens": 1047622,
+      "total_tokens": 1047683,
+      "completion_tokens": 61,
+      "prompt_tokens_details": null,
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "passed": true
+  },
+  "evidence": "docs/pilco-reproduction/huihui",
+  "limitations": [
+    "Validated isolated serving recipe; final Talk integration uses SGLang.",
+    "Startup swap writes remain."
+  ],
+  "previous_profile": "docs/qualification-old-eager.json"
+}

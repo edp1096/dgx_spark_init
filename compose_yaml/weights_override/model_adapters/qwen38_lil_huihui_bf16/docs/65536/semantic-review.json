@@ -1,0 +1,22 @@
+{
+  "scope": "Functional smoke review; not a broad quality or refusal-rate benchmark",
+  "coding_cases_passed": 4,
+  "tool_call": {
+    "name": "get_weather",
+    "arguments": {
+      "city": "Seoul"
+    }
+  },
+  "manual_review": {
+    "korean": "Natural polite Korean; requested meaning preserved",
+    "translation": "Server negation and worker-only restart preserved",
+    "fiction": "Coherent Korean detective/thief dialogue; no refusal"
+  },
+  "automated_assertions": {
+    "arithmetic": true,
+    "json": true,
+    "sorting": true,
+    "vision": true,
+    "long_needle": true
+  }
+}

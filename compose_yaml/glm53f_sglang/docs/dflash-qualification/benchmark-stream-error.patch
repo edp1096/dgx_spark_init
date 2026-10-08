@@ -1,0 +1,9 @@
+--- a/runner/throughput.py
++++ b/runner/throughput.py
+@@ -607,4 +607,6 @@
+     measurement = client
+     try:
+         async with measurement.stream_completion(payload) as response:
++            if response.status_code >= 400:
++                await response.aread()
+             response.raise_for_status()

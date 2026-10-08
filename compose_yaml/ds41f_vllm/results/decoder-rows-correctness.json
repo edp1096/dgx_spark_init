@@ -1,0 +1,522 @@
+[
+  {
+    "fixture": "talk-tools-r5",
+    "reply": {
+      "id": "chatcmpl-b8c11a1bd2c0dd07",
+      "object": "chat.completion",
+      "created": 1789204513,
+      "model": "deepseek-v4.1-flash",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "cobalt731",
+            "refusal": null,
+            "annotations": null,
+            "audio": null,
+            "function_call": null,
+            "reasoning": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "stop_reason": null,
+          "token_ids": null,
+          "routed_experts": null
+        }
+      ],
+      "service_tier": null,
+      "system_fingerprint": "vllm-0.1.dev20904+g179dd0fa9-tp2-bccfe9ab",
+      "usage": {
+        "prompt_tokens": 6308,
+        "total_tokens": 6312,
+        "completion_tokens": 4,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "created_cache_tokens": 0,
+          "multimodal_tokens": null
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "prompt_logprobs": null,
+      "prompt_token_ids": null,
+      "prompt_text": null,
+      "kv_transfer_params": null,
+      "ec_transfer_params": null,
+      "metrics": {
+        "time_to_first_token_ms": 36673.56430200016,
+        "generation_time_ms": 477.6449060000232,
+        "queue_time_ms": 0.02881699992940412,
+        "mean_itl_ms": 159.2149686666744,
+        "tokens_per_second": 0.1076680970895191,
+        "speculative_decoding": null
+      }
+    },
+    "ranks": {
+      "0": [
+        {
+          "input_rows": 4092,
+          "output_rows": 1,
+          "layer": 39,
+          "scope": "routed_experts_only",
+          "validation": [
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            }
+          ]
+        },
+        {
+          "input_rows": 2216,
+          "output_rows": 1,
+          "layer": 39,
+          "scope": "routed_experts_only",
+          "validation": [
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            }
+          ]
+        }
+      ],
+      "1": [
+        {
+          "input_rows": 4092,
+          "output_rows": 1,
+          "layer": 39,
+          "scope": "routed_experts_only",
+          "validation": [
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            }
+          ]
+        },
+        {
+          "input_rows": 2216,
+          "output_rows": 1,
+          "layer": 39,
+          "scope": "routed_experts_only",
+          "validation": [
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "fixture": "mixed-document-r5",
+    "reply": {
+      "id": "chatcmpl-95c1fb3e34c38892",
+      "object": "chat.completion",
+      "created": 1789204551,
+      "model": "deepseek-v4.1-flash",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "marble482",
+            "refusal": null,
+            "annotations": null,
+            "audio": null,
+            "function_call": null,
+            "reasoning": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "stop_reason": null,
+          "token_ids": null,
+          "routed_experts": null
+        }
+      ],
+      "service_tier": null,
+      "system_fingerprint": "vllm-0.1.dev20904+g179dd0fa9-tp2-bccfe9ab",
+      "usage": {
+        "prompt_tokens": 12934,
+        "total_tokens": 12938,
+        "completion_tokens": 4,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "created_cache_tokens": 0,
+          "multimodal_tokens": null
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "prompt_logprobs": null,
+      "prompt_token_ids": null,
+      "prompt_text": null,
+      "kv_transfer_params": null,
+      "ec_transfer_params": null,
+      "metrics": {
+        "time_to_first_token_ms": 58267.115685000135,
+        "generation_time_ms": 748.7671379999483,
+        "queue_time_ms": 0.02396800005044497,
+        "mean_itl_ms": 249.58904599998277,
+        "tokens_per_second": 0.06777836420742472,
+        "speculative_decoding": null
+      }
+    },
+    "ranks": {
+      "0": [
+        {
+          "input_rows": 4092,
+          "output_rows": 1,
+          "layer": 39,
+          "scope": "routed_experts_only",
+          "validation": [
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            }
+          ]
+        },
+        {
+          "input_rows": 4092,
+          "output_rows": 1,
+          "layer": 39,
+          "scope": "routed_experts_only",
+          "validation": [
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            }
+          ]
+        },
+        {
+          "input_rows": 4092,
+          "output_rows": 1,
+          "layer": 39,
+          "scope": "routed_experts_only",
+          "validation": [
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            }
+          ]
+        },
+        {
+          "input_rows": 658,
+          "output_rows": 1,
+          "layer": 39,
+          "scope": "routed_experts_only",
+          "validation": [
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            }
+          ]
+        }
+      ],
+      "1": [
+        {
+          "input_rows": 4092,
+          "output_rows": 1,
+          "layer": 39,
+          "scope": "routed_experts_only",
+          "validation": [
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            }
+          ]
+        },
+        {
+          "input_rows": 4092,
+          "output_rows": 1,
+          "layer": 39,
+          "scope": "routed_experts_only",
+          "validation": [
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            }
+          ]
+        },
+        {
+          "input_rows": 4092,
+          "output_rows": 1,
+          "layer": 39,
+          "scope": "routed_experts_only",
+          "validation": [
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            }
+          ]
+        },
+        {
+          "input_rows": 658,
+          "output_rows": 1,
+          "layer": 39,
+          "scope": "routed_experts_only",
+          "validation": [
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            }
+          ]
+        }
+      ]
+    }
+  }
+]

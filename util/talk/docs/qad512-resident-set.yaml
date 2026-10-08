@@ -1,0 +1,182 @@
+# Qualified single-host QAD 512K + resident Image DiT / ASR / TTS.
+# Single-bundle preset; model preparation uses the existing host cache.
+hosts:
+  local:
+    memory_reserve_gib: 1.5
+components:
+- auto_address: true
+  host: local
+  controller: compose
+  endpoint: http://127.0.0.1:8000
+  bind_address: 127.0.0.1
+  port: 8000
+  id: flash-next
+  name: Qwen 3.8 Flash-Next QAD
+  role: llm
+  container: sglang-qwen38-fn
+  health_url: http://127.0.0.1:8000/health
+  model: local-inference-lab/Qwen3.8-Flash-Next-NVFP4
+  memory_gib: 100
+  startup_timeout_seconds: 1800
+  compose_asset: compose.flash-next.yaml
+  progress_kind: sglang
+- auto_address: true
+  host: local
+  controller: compose
+  endpoint: http://127.0.0.1:8691
+  bind_address: 127.0.0.1
+  port: 8691
+  id: flux2
+  name: Qwen Image 2.1
+  role: image
+  container: sparktalk-qwen-image21
+  health_url: http://127.0.0.1:8691/health
+  model: qwen-image-2.1-uc-nvfp4
+  startup_memory_gib: 2.5
+  memory_gib: 14
+  workspace_memory_gib: 10
+  startup_timeout_seconds: 300
+  compose_asset: compose.qwen-image21.yaml
+  progress_kind: comfy
+- auto_address: true
+  host: local
+  controller: compose
+  endpoint: http://127.0.0.1:8693
+  bind_address: 127.0.0.1
+  port: 8693
+  id: nemotron-asr
+  name: Nemotron 3.5 ASR
+  role: asr
+  container: sparktalk-nemotron-asr
+  health_url: http://127.0.0.1:8693/ready
+  model: nemotron-3.5-asr-streaming-0.6b
+  startup_memory_gib: 3.5
+  memory_gib: 6
+  startup_timeout_seconds: 180
+  compose_asset: compose.nemotron-asr.yaml
+  progress_kind: service
+- auto_address: true
+  host: local
+  controller: compose
+  endpoint: http://127.0.0.1:8692
+  bind_address: 127.0.0.1
+  port: 8692
+  id: qwen3-tts
+  name: Qwen3-TTS 0.6B
+  role: tts
+  container: sparktalk-qwen3-tts
+  health_url: http://127.0.0.1:8692/ready
+  model: qwen3-tts-0.6b-q8
+  startup_memory_gib: 3
+  memory_gib: 4
+  workspace_memory_gib: 1.5
+  startup_timeout_seconds: 180
+  compose_asset: compose.qwen3-tts.yaml
+  progress_kind: service
+- auto_address: true
+  host: local
+  controller: compose
+  endpoint: http://127.0.0.1:8690
+  bind_address: 127.0.0.1
+  port: 8690
+  id: extra-media
+  name: Extra Media
+  role: tool
+  container: sparktalk-extra-media
+  health_url: http://127.0.0.1:8690/health
+  memory_gib: 0.1
+  startup_timeout_seconds: 90
+  compose_asset: compose.extra-media.yaml
+  progress_kind: service
+- auto_address: true
+  host: local
+  controller: compose
+  endpoint: http://127.0.0.1:8699
+  bind_address: 127.0.0.1
+  port: 8699
+  id: extra-ssh
+  name: Extra SSH
+  role: tool
+  container: sparktalk-extra-ssh
+  health_url: http://127.0.0.1:8699/health
+  memory_gib: 0.1
+  startup_timeout_seconds: 90
+  compose_asset: compose.extra-ssh.yaml
+  progress_kind: service
+- auto_address: true
+  host: local
+  controller: compose
+  endpoint: http://127.0.0.1:8695
+  bind_address: 127.0.0.1
+  port: 8695
+  id: extra-collector
+  name: Extra Collector
+  role: tool
+  container: sparktalk-extra-collector
+  health_url: http://127.0.0.1:8695/health
+  memory_gib: 0.3
+  startup_timeout_seconds: 120
+  compose_asset: compose.extra-collector.yaml
+  progress_kind: service
+- auto_address: true
+  host: local
+  controller: compose
+  endpoint: http://127.0.0.1:8696
+  bind_address: 127.0.0.1
+  port: 8696
+  id: extra-documents
+  name: Extra Documents
+  role: tool
+  container: sparktalk-extra-documents
+  health_url: http://127.0.0.1:8696/health
+  memory_gib: 0.4
+  startup_timeout_seconds: 600
+  compose_asset: compose.extra-documents.yaml
+  progress_kind: service
+bundles:
+- workload_swap: true
+  bindings:
+    extra-collector:
+      keep_resident: false
+    extra-media:
+      keep_resident: false
+    extra-ssh:
+      keep_resident: false
+    flash-next:
+      runtime_options:
+        MAX_MODEL_LEN: '524288'
+        MODEL_VARIANT: huihui_lil
+        MTP_TOKENS: '3'
+      memory_gib: 94
+      model: edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-NVFP4-QAD
+      startup_memory_gib: 108
+    flux2:
+      start_after_llm: true
+      keep_resident: true
+      runtime_options:
+        IMAGE_RESIDENCY: dit
+      memory_gib: 14
+      startup_memory_gib: 7
+      workspace_memory_gib: 6
+    nemotron-asr:
+      start_after_llm: true
+      keep_resident: true
+    qwen3-tts:
+      start_after_llm: true
+      keep_resident: true
+  id: flash-next
+  name: Qwen 3.8 Flash-Next QAD
+  description: 1× DGX Spark · QAD · FP8 KV 512K · MTP 3 · Qwen Image 2.1 DiT·ASR·TTS
+    상주 · Extra 요청 시 실행
+  model_type: qwen3.8
+  model_id: edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-NVFP4-QAD
+  context_tokens: 524288
+  components:
+  - flash-next
+  - extra-media
+  - extra-ssh
+  - extra-collector
+  - flux2
+  - nemotron-asr
+  - qwen3-tts
+  start_support: false

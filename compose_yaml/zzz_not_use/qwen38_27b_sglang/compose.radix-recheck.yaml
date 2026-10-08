@@ -1,0 +1,5 @@
+services:
+  sglang:
+    environment:
+      TORCHINDUCTOR_CACHE_DIR: /root/.cache/sglang/inductor-radix-recheck-20260817
+      SGLANG_CACHE_DIR: /root/.cache/sglang/radix-recheck-20260817

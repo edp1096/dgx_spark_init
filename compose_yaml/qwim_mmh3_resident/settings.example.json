@@ -1,0 +1,12 @@
+{
+  "aux_loading": "dynamic",
+  "model_paths": {
+    "text_encoders": ["/models/text_encoders"],
+    "vae": ["/models/vae"],
+    "clip_projections": ["/models/clip_projections"]
+  },
+  "dits": {
+    "h3": "/models/diffusion_models/minimax_h3_fl2va_pruned_nvfp4.safetensors",
+    "qwim": "/models/diffusion_models/qwen-image21-uc-nvfp4.safetensors"
+  }
+}

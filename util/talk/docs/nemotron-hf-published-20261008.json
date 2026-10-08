@@ -1,0 +1,37 @@
+{
+  "repository": "edp1096/nemotron-3.5-asr-streaming-0.6b-gguf",
+  "url": "https://huggingface.co/edp1096/nemotron-3.5-asr-streaming-0.6b-gguf",
+  "revision": "38cbd02bedab2b7f7aafc93b1c6b9e58e589e3e1",
+  "commit_url": "https://huggingface.co/edp1096/nemotron-3.5-asr-streaming-0.6b-gguf/commit/38cbd02bedab2b7f7aafc93b1c6b9e58e589e3e1",
+  "private": false,
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 1272,
+      "sha256": "037d7ce95837bc1d6dfd2571cdd2548d95f98ae10aefa79c1916105d3821c32d"
+    },
+    {
+      "path": "LICENSE",
+      "bytes": 2629,
+      "sha256": "be21b29b1c69af5b4a4e60a6bd7bc933eec374e52be29d1ebb9e6a17a6588491"
+    },
+    {
+      "path": "SHA256SUMS",
+      "bytes": 108,
+      "sha256": "9790cb121dcfe63144a20a8812f7110d32d472f8e25d926128f787db2f9a5327"
+    },
+    {
+      "path": "nemotron-3.5-asr-streaming-0.6b.q5_k.gguf",
+      "bytes": 528061920,
+      "sha256": "f0dab30ca22a606c2ab9a65efae88421851c6ca4ab01160708ab733b4467ce58"
+    }
+  ],
+  "model_remote_lfs_sha256": "f0dab30ca22a606c2ab9a65efae88421851c6ca4ab01160708ab733b4467ce58",
+  "remote_text_files_identical": true,
+  "notice_uploaded": false,
+  "model_redownloaded": false,
+  "success": true,
+  "anonymous_public_access_verified": true,
+  "upload_container_exit_code": 0,
+  "upload_container_oom_killed": false
+}

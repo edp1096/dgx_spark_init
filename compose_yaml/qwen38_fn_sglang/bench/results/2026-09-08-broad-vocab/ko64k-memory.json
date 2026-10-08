@@ -1,0 +1,70 @@
+{
+  "mode": "ko64k",
+  "baseline": {
+    "MemTotal": 130595995648,
+    "MemAvailable": 125808357376,
+    "MemFree": 112708026368,
+    "SwapTotal": 17179865088,
+    "SwapFree": 16384446464,
+    "Cached": 13772161024
+  },
+  "phases": {
+    "loading": {
+      "samples": 3160,
+      "min_available_gib": 20.938247680664062,
+      "median_available_gib": 30.683422088623047,
+      "max_extra_memory_gib": 96.22991561889648,
+      "median_extra_memory_gib": 86.4847412109375
+    },
+    "ready_idle": {
+      "samples": 123,
+      "min_available_gib": 24.965248107910156,
+      "median_available_gib": 25.43828582763672,
+      "max_extra_memory_gib": 92.20291519165039,
+      "median_extra_memory_gib": 91.72987747192383
+    },
+    "benchmark": {
+      "samples": 11923,
+      "min_available_gib": 25.635208129882812,
+      "median_available_gib": 26.35877227783203,
+      "max_extra_memory_gib": 91.53295516967773,
+      "median_extra_memory_gib": 90.80939102172852
+    },
+    "post_idle": {
+      "samples": 127,
+      "min_available_gib": 26.32474136352539,
+      "median_available_gib": 26.37774658203125,
+      "max_extra_memory_gib": 90.84342193603516,
+      "median_extra_memory_gib": 90.7904167175293
+    }
+  },
+  "head_measurements": [
+    {
+      "after_allocated_bytes": 86259699712,
+      "after_reserved_bytes": 87382032384,
+      "before": {
+        "allocated_bytes": 88466427904,
+        "prior_peak_allocated_bytes": 90799874560,
+        "reserved_bytes": 89542098944
+      },
+      "draft_head_bytes": 335544320,
+      "draft_head_dtype": "torch.bfloat16",
+      "draft_head_shape": [
+        65536,
+        2560
+      ],
+      "init_peak_allocated_bytes": 90073894912,
+      "shares_target_head": false,
+      "shortlist_size": 65536
+    }
+  ],
+  "cache_logs": [
+    "2026-09-08T14:16:20.562450573Z [2026-09-08 14:16:20] Mamba Cache is allocated. max_mamba_cache_size: 18, conv_state size: 0.04GB, ssm_state size: 2.00GB intermediate_ssm_state_cache size: 1.27GB intermediate_conv_window_cache size: 0.01GB ",
+    "2026-09-08T14:16:21.135403891Z [2026-09-08 14:16:21] KV Cache is allocated. dtype: torch.bfloat16, #tokens: 65536, K size: 0.75 GB, V size: 0.75 GB",
+    "2026-09-08T14:16:21.143360775Z [2026-09-08 14:16:21] KV Cache is allocated. dtype: torch.bfloat16, #tokens: 65536, K size: 0.06 GB, V size: 0.06 GB",
+    "2026-09-08T14:16:29.675044040Z [2026-09-08 14:16:29] max_total_num_tokens=65536, chunked_prefill_size=1024, max_prefill_tokens=16384, max_running_requests=2, context_len=65536, available_gpu_mem=26.72 GB"
+  ],
+  "aborted": false,
+  "abort_reason": "",
+  "monitor_error": null
+}

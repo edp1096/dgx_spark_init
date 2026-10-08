@@ -1,0 +1,70 @@
+[
+  {
+    "name": "capacity",
+    "configured_context": 1048576,
+    "allocated_tokens": 1048576,
+    "max_req_input_len": 1048570
+  },
+  {
+    "name": "context_retrieval",
+    "target_tokens": 1048448,
+    "input_tokens": 1048435,
+    "seconds": 1132.242781551031,
+    "response": {
+      "text": "MAPLE, COMET",
+      "output_ids": [
+        17092,
+        841,
+        11,
+        7439,
+        1300,
+        248046
+      ],
+      "meta_info": {
+        "id": "3ac0f61d975f46e9b69edae989011478",
+        "finish_reason": {
+          "type": "stop",
+          "matched": 248046
+        },
+        "prompt_tokens": 1048435,
+        "weight_version": "default",
+        "num_retractions": 0,
+        "forward_entry_time": 1791049159.5296788,
+        "prefill_finished_time": 1791050291.3554053,
+        "queue_time": 0.0010721683502197266,
+        "reasoning_tokens": 0,
+        "completion_tokens": 6,
+        "cached_tokens": 0,
+        "cached_tokens_details": null,
+        "dp_rank": null,
+        "e2e_latency": 1132.0485377860005,
+        "spec_accept_rate": 1.0,
+        "spec_accept_length": 3.0,
+        "spec_num_correct_drafts": 6,
+        "spec_num_proposed_drafts": 6,
+        "spec_verify_ct": 2,
+        "spec_accepted_drafts": 6,
+        "spec_proposed_drafts": 6,
+        "spec_correct_drafts_histogram": [
+          0,
+          0,
+          0,
+          2
+        ],
+        "spec_accept_histogram": [
+          0,
+          0,
+          0,
+          2
+        ],
+        "request_received_ts": 1791049159.50089,
+        "api_server_dispatch_finish_ts": 1791049159.5165653,
+        "request_finished_ts": 1791050291.549428,
+        "decode_throughput": 1644736.5214945867,
+        "response_sent_to_client_ts": 1791050291.5499036
+      }
+    },
+    "diverse": true,
+    "correct": true
+  }
+]

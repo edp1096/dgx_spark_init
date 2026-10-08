@@ -1,0 +1,13 @@
+{
+  "repo": "edp1096/Huihui-RadixArk-Qwen3.8-Flash-Next-abliterated-NVFP4",
+  "revision": "40f09f531da577a4fcfbd6b368e7b6ebacde403e",
+  "path": "/hf/edp1096/Huihui-RadixArk-Qwen3.8-Flash-Next-abliterated-NVFP4",
+  "local_only": true,
+  "sha256": {
+    "config.json": "e765305daba0951974308f4d32c075b52a6a45974730d273f2216718a994d624",
+    "hf_quant_config.json": "7e69ef4b94302ae5b6f453b913621f698d5631a1d023d8b3e9e3b829721b98e8",
+    "model.safetensors.index.json": "da5ca9c3b65e48e151329e64e141c2fa700bf2f99aec53cc014e4b52a6ff7a84",
+    "PROVENANCE.json": "51b730d5dcf3fc2d338776c41fdd360fa18f6350d567fae35080ac513ab6b782",
+    "tokenizer.json": "0997f410c57a1f4e53b09e4be8f4a172d90edd9564368fb0847030937229b9f3"
+  }
+}

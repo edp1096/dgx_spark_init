@@ -1,0 +1,150 @@
+{
+  "operation": {
+    "action": "start",
+    "bundle_id": "ds41",
+    "component_id": "ds41",
+    "state": "complete",
+    "phase": "준비 완료",
+    "detail": "선택한 구성을 사용할 수 있습니다.",
+    "progress": 1,
+    "started_at": "2026-09-12T22:52:59.715224407+09:00",
+    "finished_at": "2026-09-12T22:55:25.467700744+09:00",
+    "steps": [
+      {
+        "phase": "기동 계획 준비",
+        "state": "complete",
+        "started_at": "2026-09-12T22:52:59.715224631+09:00",
+        "finished_at": "2026-09-12T22:53:02.285026244+09:00"
+      },
+      {
+        "phase": "세트 기동 전 메모리 재확인",
+        "detail": "시스템 가용 117.3 GiB · 즉시 여유 109.2 GiB · 추가 예상 105.0 GiB · 최소 확보 8.0 GiB",
+        "state": "complete",
+        "started_at": "2026-09-12T22:53:02.285026244+09:00",
+        "finished_at": "2026-09-12T22:53:02.285045316+09:00"
+      },
+      {
+        "component_id": "extra-media",
+        "phase": "Extra Media 시작",
+        "detail": "컨테이너와 실행 설정을 확인하고 있습니다.",
+        "state": "complete",
+        "started_at": "2026-09-12T22:53:02.285045316+09:00",
+        "finished_at": "2026-09-12T22:53:02.295155321+09:00"
+      },
+      {
+        "component_id": "extra-ssh",
+        "phase": "Extra SSH 시작",
+        "detail": "컨테이너와 실행 설정을 확인하고 있습니다.",
+        "state": "complete",
+        "started_at": "2026-09-12T22:53:02.295155321+09:00",
+        "finished_at": "2026-09-12T22:53:02.306342519+09:00"
+      },
+      {
+        "component_id": "extra-collector",
+        "phase": "Extra Collector 시작",
+        "detail": "컨테이너와 실행 설정을 확인하고 있습니다.",
+        "state": "complete",
+        "started_at": "2026-09-12T22:53:02.306342519+09:00",
+        "finished_at": "2026-09-12T22:53:02.318457101+09:00"
+      },
+      {
+        "component_id": "nemotron-asr",
+        "phase": "Nemotron ASR 시작",
+        "detail": "컨테이너와 실행 설정을 확인하고 있습니다.",
+        "state": "complete",
+        "started_at": "2026-09-12T22:53:02.318457101+09:00",
+        "finished_at": "2026-09-12T22:53:02.68615557+09:00"
+      },
+      {
+        "component_id": "extra-documents",
+        "phase": "Extra Documents 시작",
+        "detail": "컨테이너와 실행 설정을 확인하고 있습니다.",
+        "state": "complete",
+        "started_at": "2026-09-12T22:53:02.68615557+09:00",
+        "finished_at": "2026-09-12T22:53:03.975725653+09:00"
+      },
+      {
+        "phase": "언어 모델 기동 직전 메모리 확인",
+        "detail": "시스템 가용 117.3 GiB · 즉시 여유 109.2 GiB · 추가 예상 105.0 GiB · 최소 확보 8.0 GiB",
+        "state": "complete",
+        "started_at": "2026-09-12T22:53:03.975725653+09:00",
+        "finished_at": "2026-09-12T22:53:03.975726821+09:00"
+      },
+      {
+        "component_id": "ds41",
+        "phase": "DeepSeek V4.1 Flash 시작",
+        "detail": "컨테이너와 실행 설정을 확인하고 있습니다.",
+        "state": "complete",
+        "started_at": "2026-09-12T22:53:03.975726821+09:00",
+        "finished_at": "2026-09-12T22:53:09.103920635+09:00"
+      },
+      {
+        "component_id": "ds41",
+        "phase": "보조 서비스 시작",
+        "detail": "API 프로세스를 시작하고 있습니다.",
+        "state": "complete",
+        "started_at": "2026-09-12T22:53:09.103920635+09:00",
+        "finished_at": "2026-09-12T22:53:42.685616915+09:00"
+      },
+      {
+        "component_id": "ds41",
+        "phase": "경량 모델 적재",
+        "detail": "음성 모델을 메모리에 올리고 있습니다.",
+        "state": "complete",
+        "started_at": "2026-09-12T22:53:42.685616915+09:00",
+        "finished_at": "2026-09-12T22:55:25.467699112+09:00"
+      },
+      {
+        "component_id": "ds41",
+        "phase": "DeepSeek V4.1 Flash API 응답 확인",
+        "detail": "서비스가 요청을 받을 준비를 마쳤습니다.",
+        "state": "complete",
+        "started_at": "2026-09-12T22:55:25.467699112+09:00",
+        "finished_at": "2026-09-12T22:55:25.467700744+09:00"
+      }
+    ]
+  },
+  "ranks": [
+    {
+      "rank": 0,
+      "preload": {
+        "rank": 0,
+        "count": 224,
+        "loaded": 8952,
+        "verified_slots": 0,
+        "seconds": 12.64083756999753,
+        "profile_sha256": "5047e668206935f17cabc5a739a8d72854b54d6daf86bbb010778a3a5f6a0293",
+        "read_bytes": 84151664640,
+        "gpu_cache_bytes": 87836590080
+      },
+      "runtime_source": "/home/edp1096/.local/share/sparktalk/runtime/recipes/ds41-981ae16d319ad6ec"
+    },
+    {
+      "rank": 1,
+      "preload": {
+        "rank": 1,
+        "count": 224,
+        "loaded": 8952,
+        "verified_slots": 0,
+        "seconds": 12.679630670987535,
+        "profile_sha256": "5047e668206935f17cabc5a739a8d72854b54d6daf86bbb010778a3a5f6a0293",
+        "read_bytes": 84151664640,
+        "gpu_cache_bytes": 87836590080
+      },
+      "runtime_source": "/home/edp1096/.local/share/sparktalk/runtime/recipes/ds41-981ae16d319ad6ec"
+    }
+  ],
+  "debug_rpc_status": 404,
+  "talk": {
+    "answer": "15",
+    "performance": {
+      "pp": 220.09495240645316,
+      "tg": 2.3190550674407544,
+      "ttft": 19.81419927800016,
+      "prompt_tokens": 4361,
+      "cached_tokens": 0,
+      "output_tokens": 2,
+      "calls": 1
+    }
+  }
+}

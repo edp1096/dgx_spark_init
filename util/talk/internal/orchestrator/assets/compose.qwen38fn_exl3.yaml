@@ -1,0 +1,27 @@
+services:
+  runtime:
+    image: sparktalk-qwen38fn_exl3:1.5.4-managed1
+    build:
+      context: ${SPARKTALK_BUILD_DIR:-.}
+      dockerfile: Dockerfile
+      target: qwen38fn_exl3-runtime
+    pull_policy: never
+    container_name: sparktalk-qwen38fn_exl3
+    restart: unless-stopped
+    ipc: host
+    mem_limit: "112g"
+    memswap_limit: "112g"
+    cpuset: "5-9,15-19"
+    ports: ["${SPARKTALK_BIND_ADDR:-127.0.0.1}:${SPARKTALK_PORT:-18002}:30000"]
+    environment:
+      PYTHONUNBUFFERED: "1"
+      HF_HUB_OFFLINE: "1"
+      EXL3_INT8_GEMV: "0"
+      EXL3_NGRAM_STREAM: "1"
+      EXL3_MOE_CPU_OFFLOAD: "0"
+      EXL3_MOE_CPU_SPLIT: "0"
+      TRITON_CACHE_DIR: /runtime/triton
+    volumes:
+      - ${SPARKTALK_HF_CACHE:-${HOME}/.cache/huggingface}:/hf:ro
+      - ${SPARKTALK_DATA_DIR:-${HOME}/.local/share/sparktalk}/cache/qwen38fn_exl3:/runtime
+    gpus: all

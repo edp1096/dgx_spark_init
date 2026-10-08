@@ -1,0 +1,158 @@
+{
+  "post_long_short_request": {
+    "text": "OK",
+    "seconds": 1.2063095280000198,
+    "max_completion_tokens": 8192,
+    "usage": {
+      "prompt_tokens": 9,
+      "total_tokens": 11,
+      "completion_tokens": 2,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "created_cache_tokens": 0,
+        "multimodal_tokens": null
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    }
+  },
+  "ranks": {
+    "0": {
+      "image_id": "sha256:218d187738649f9349127e2d76fb71a9dc6d08b4a2d47c09c582a894259cf021",
+      "image_name": "dgx-ds41-stream:b12x8",
+      "max_batched_tokens": 4096,
+      "settings": {
+        "DSV41_SHARED_BUFFERS": "1",
+        "DSV41_SCRATCH_MIB": "384",
+        "DSV41_FINAL_DECODER_ROWS": "0",
+        "DSV41_EXPERT_IO": "batch_overlap",
+        "DSV41_PREFETCH_TEST": "0",
+        "DSV41_KERNEL_TOKENS": "2048",
+        "DSV41_MODEL_GRAPHS": "0",
+        "DSV41_SLOTS_PER_LAYER": "224",
+        "DSV41_BENCH_CONTROL": "0",
+        "DSV41_ROUTED_PIPELINE": "0"
+      },
+      "host_available_gib": 16.195846557617188,
+      "cgroup_memory_bytes": {
+        "current": 96923820032,
+        "peak": 96923897856,
+        "max": 107374182400
+      },
+      "memory_events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+      "counters": {
+        "hits": 0,
+        "misses": 0,
+        "read_bytes": 0,
+        "read_seconds": 0.0,
+        "rank": 0,
+        "cache_bytes": 0,
+        "slot_hits": 99200,
+        "slot_misses": 26624,
+        "packed_read_bytes": 250274119680,
+        "graph_replays": 4703,
+        "routed_pipeline_batches": 0,
+        "routed_pipeline_bytes": 0,
+        "prefetch_issued": 0,
+        "prefetch_read_bytes": 0,
+        "prefetch_consumed": 0,
+        "prefetch_ready": 0,
+        "prefetch_late": 0,
+        "prefetch_cancelled": 0,
+        "prefetch_unused": 0,
+        "demand_read_bytes": 250274119680,
+        "io_batches": 2726,
+        "io_overlaps": 2686,
+        "staging_bytes": 0,
+        "staging_banks": 0,
+        "prefetch_pending": 0,
+        "execution_buffer_bytes": 75689160,
+        "scratch_bytes": 402653184,
+        "gpu_cache_bytes": 87836590080
+      },
+      "source_sha256": {
+        "b12x_slots.py": "995ae8a9d2161793275ef73662a870d071b84e8a4732b8d9735730b33aee01e1",
+        "routed_pipeline.py": "1c8e7b9c0c1a3c62809341e46b6ef5e8ac851ce87033ab9338e8097bb26f9229",
+        "launch.sh": "fae5e2da82b9e8b0e9eab86243ed2249ae4f6ba693c55c2efd48af6ca7211ee5",
+        "manage.sh": "6aee9bc7d40ad8327f3be55f1daafd980e16fb007fe4054a53a4b72ea5694a07",
+        "streaming_moe.py": "5b7362f913b3de6c90594c6d43f024ebacf378fa6accbb98cdd481ec7a2414f6",
+        "decoder_rows.py": "f450bd37af1737e4817a8ea58a076839f01ed8998ef6957113c49acf21e6a2e9",
+        "patches/target_model.py": "9f22ef8a95b2c0670ef3805fea350c817ced982696b7a0672c0be7460efde9cc",
+        "patches/model_state.py": "3d6a1a16b4e91c0ecc76df613a62c5f75d2faa85c2360418e822e4d5aa4b7a03",
+        "patches/vl_model.py": "1878645ea04ebd190fe3d069d09b4486d11a6d5cf403041a2875a82287386fbc"
+      }
+    },
+    "1": {
+      "image_id": "sha256:30a5fcab6d3b2508be6d79b316ba9da726a73cc83373f210fee46f776c06c5a4",
+      "image_name": "dgx-ds41-stream:b12x8",
+      "max_batched_tokens": 4096,
+      "settings": {
+        "DSV41_EXPERT_IO": "batch_overlap",
+        "DSV41_SLOTS_PER_LAYER": "224",
+        "DSV41_ROUTED_PIPELINE": "0",
+        "DSV41_SHARED_BUFFERS": "1",
+        "DSV41_BENCH_CONTROL": "0",
+        "DSV41_KERNEL_TOKENS": "2048",
+        "DSV41_FINAL_DECODER_ROWS": "0",
+        "DSV41_MODEL_GRAPHS": "0",
+        "DSV41_PREFETCH_TEST": "0",
+        "DSV41_SCRATCH_MIB": "384"
+      },
+      "host_available_gib": 15.894039154052734,
+      "cgroup_memory_bytes": {
+        "current": 96241094656,
+        "peak": 96244391936,
+        "max": 107374182400
+      },
+      "memory_events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+      "counters": {
+        "hits": 0,
+        "misses": 0,
+        "read_bytes": 0,
+        "read_seconds": 0.0,
+        "rank": 1,
+        "cache_bytes": 0,
+        "slot_hits": 99200,
+        "slot_misses": 26624,
+        "packed_read_bytes": 250274119680,
+        "graph_replays": 4703,
+        "routed_pipeline_batches": 0,
+        "routed_pipeline_bytes": 0,
+        "prefetch_issued": 0,
+        "prefetch_read_bytes": 0,
+        "prefetch_consumed": 0,
+        "prefetch_ready": 0,
+        "prefetch_late": 0,
+        "prefetch_cancelled": 0,
+        "prefetch_unused": 0,
+        "demand_read_bytes": 250274119680,
+        "io_batches": 2726,
+        "io_overlaps": 2686,
+        "staging_bytes": 0,
+        "staging_banks": 0,
+        "prefetch_pending": 0,
+        "execution_buffer_bytes": 75689160,
+        "scratch_bytes": 402653184,
+        "gpu_cache_bytes": 87836590080
+      },
+      "source_sha256": {
+        "b12x_slots.py": "995ae8a9d2161793275ef73662a870d071b84e8a4732b8d9735730b33aee01e1",
+        "routed_pipeline.py": "1c8e7b9c0c1a3c62809341e46b6ef5e8ac851ce87033ab9338e8097bb26f9229",
+        "launch.sh": "fae5e2da82b9e8b0e9eab86243ed2249ae4f6ba693c55c2efd48af6ca7211ee5",
+        "manage.sh": "6aee9bc7d40ad8327f3be55f1daafd980e16fb007fe4054a53a4b72ea5694a07",
+        "streaming_moe.py": "5b7362f913b3de6c90594c6d43f024ebacf378fa6accbb98cdd481ec7a2414f6",
+        "decoder_rows.py": "f450bd37af1737e4817a8ea58a076839f01ed8998ef6957113c49acf21e6a2e9",
+        "patches/target_model.py": "9f22ef8a95b2c0670ef3805fea350c817ced982696b7a0672c0be7460efde9cc",
+        "patches/model_state.py": "3d6a1a16b4e91c0ecc76df613a62c5f75d2faa85c2360418e822e4d5aa4b7a03",
+        "patches/vl_model.py": "1878645ea04ebd190fe3d069d09b4486d11a6d5cf403041a2875a82287386fbc"
+      }
+    }
+  },
+  "sparktalk": {
+    "context_tokens": 65536,
+    "output_allowance": 8192,
+    "reasoning_effort": "max"
+  },
+  "health_status": 200
+}

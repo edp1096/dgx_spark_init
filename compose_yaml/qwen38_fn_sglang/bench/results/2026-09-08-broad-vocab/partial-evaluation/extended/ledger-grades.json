@@ -1,0 +1,46 @@
+[
+  {
+    "mode": "ko64k",
+    "id": "long_ledger",
+    "repeat": 0,
+    "groups": [
+      false,
+      false,
+      false
+    ],
+    "parsed": {
+      "동부": {
+        "orders": 59,
+        "units": 770,
+        "revenue": 1012000
+      },
+      "서부": {
+        "orders": 59,
+        "units": 770,
+        "revenue": 1012000
+      },
+      "남부": {
+        "orders": 59,
+        "units": 770,
+        "revenue": 1012000
+      }
+    },
+    "expected": {
+      "동부": {
+        "orders": 54,
+        "units": 700,
+        "revenue": 985000
+      },
+      "서부": {
+        "orders": 55,
+        "units": 713,
+        "revenue": 998500
+      },
+      "남부": {
+        "orders": 54,
+        "units": 705,
+        "revenue": 987900
+      }
+    }
+  }
+]

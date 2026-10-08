@@ -1,0 +1,5 @@
+Short text passed
+Beginning actual prompt_tokens=130925
+Completed 130925 tokens: 'MAPLE, COMET', seconds=75.36, correct=True
+Beginning actual prompt_tokens=1048431
+Completed 1048431 tokens: 'MAPLE, COMET', seconds=1229.37, correct=True

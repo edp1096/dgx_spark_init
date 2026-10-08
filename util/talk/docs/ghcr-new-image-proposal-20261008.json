@@ -1,0 +1,280 @@
+{
+  "date": "2026-10-08",
+  "items": [],
+  "approval_required_for": "both publication items and repository/tag names",
+  "approval_received": false,
+  "published": false,
+  "model_weights_included": false,
+  "version_policy": "Tags use our deployment-image release version; engine versions, quantization and residency belong in descriptions and labels.",
+  "approval_note": "No new GHCR image publication candidates remain. All ten originally considered serving runtimes are covered by local Dockerfile/source builds; future new publication items/names still require user approval.",
+  "image_naming_policy": "User-directed: Qwen Image 2.1 uses qwim21 in published repository names; standalone sparktalk-qwim21 and combined sparktalk-qwim21-mmh3.",
+  "scope": "No new GHCR serving runtime publications; retain existing QAD/Extra packages and existing upstream base images.",
+  "already_published": [
+    "sglang-qwen38-qad",
+    "sparktalk-extra-media",
+    "sparktalk-extra-ssh",
+    "sparktalk-extra-collector",
+    "sparktalk-extra-documents"
+  ],
+  "external_upstream": [
+    {
+      "service": "DeepSeek V4 Flash Vision Exp",
+      "image": "ghcr.io/anemll/dspark-vllm-gx10:0.1.1@sha256:a83948492cf13df455170fb42885f5ef4db54fefe0feff0f841ecbff464ac9d8",
+      "action": "use the existing upstream image"
+    }
+  ],
+  "shared_runtime": {
+    "Qwen RadixArk NVFP4": "Already published sglang-qwen38-qad:sm121-v5-memory; model variant is a runtime setting."
+  },
+  "not_in_active_bundle_inventory": [
+    "DreamLite trial runtime",
+    "retired FLUX runtime",
+    "retired Magpie runtime",
+    "TensorFold/quantization experiment images",
+    "unrelated standalone applications"
+  ],
+  "user_excluded": [
+    {
+      "service": "DeepSeek V4.1",
+      "repository": "sparktalk-ds41",
+      "reason": "User explicitly excluded DS41 from new publication candidates."
+    },
+    {
+      "service": "모델 다운로드·검증 준비 도구",
+      "repository": "sparktalk-model-prepare",
+      "reason": "User rejects proliferation of one-off installation tools as separately published images."
+    },
+    {
+      "service": "Nemotron ASR Q5_K CPU 변환 도구",
+      "repository": "sparktalk-nemotron-converter",
+      "reason": "User rejects proliferation of one-off installation tools as separately published images."
+    },
+    {
+      "service": "Nemotron ASR runtime",
+      "repository": "sparktalk-nemotron-asr",
+      "reason": "User prefers rebuilding Nemotron ASR from the Dockerfile instead of publishing a new GHCR runtime package."
+    },
+    {
+      "service": "Gemma 4 31B",
+      "repository": "sparktalk-gemma4-31b",
+      "reason": "Use Dockerfile builds for Gemma and Ornith; pinned upstream base manifests are available remotely."
+    },
+    {
+      "service": "Gemma 4 26B",
+      "repository": "sparktalk-gemma4-26b",
+      "reason": "Use Dockerfile builds for Gemma and Ornith; pinned upstream base manifests are available remotely."
+    },
+    {
+      "service": "Ornith 35B",
+      "repository": "sparktalk-ornith35",
+      "reason": "Use Dockerfile builds for Gemma and Ornith; pinned upstream base manifests are available remotely."
+    },
+    {
+      "service": "Qwen Image 2.1 DiT 상주",
+      "repository": "sparktalk-qwim21",
+      "reason": "User chose Dockerfile/source rebuilds for QWIM21 standalone and QWIM21/MMH3 instead of publishing complete runtime images."
+    },
+    {
+      "service": "Qwen Image 2.1 + MiniMax H3 합본",
+      "repository": "sparktalk-qwim21-mmh3",
+      "reason": "User chose Dockerfile/source rebuilds for QWIM21 standalone and QWIM21/MMH3 instead of publishing complete runtime images."
+    },
+    {
+      "service": "Qwen3-TTS 0.6B Q8",
+      "repository": "sparktalk-qwen3-tts",
+      "reason": "User chose Dockerfile and lifecycle-patch rebuilds using the published Q8 GGUFs instead of a separate GHCR runtime image."
+    },
+    {
+      "service": "Qwen 3.8 Flash-Next EXL3",
+      "repository": "sparktalk-qwen38fn-exl3",
+      "reason": "Actual Dockerfile rebuild verified from a published base and pinned public sources; no separate GHCR runtime publication required."
+    },
+    {
+      "service": "Qwen 3.8 Flash-Next TP2",
+      "repository": "sparktalk-qwen38fn-tp2",
+      "reason": "Actual Dockerfile rebuild verified from a published base and pinned public sources; no separate GHCR runtime publication required."
+    },
+    {
+      "service": "GLM 5.3 Flash-Next TP2",
+      "repository": "sparktalk-glm53fn-tp2",
+      "reason": "Actual Dockerfile rebuild verified from a published base and pinned public sources; no separate GHCR runtime publication required."
+    }
+  ],
+  "preparation_image_policy": "Keep download/verification and model conversion as local installation mechanisms, not separately published GHCR packages.",
+  "local_build_only": [
+    {
+      "service": "Nemotron 3.5 ASR Q5_K",
+      "local": "sparktalk-nemotron-asr:0.1.0",
+      "expected_digest": "sha256:7a5ed2ff0ff51adc52c63a5364db4fba10e72b5082cde973960ff8a854313f15",
+      "architecture": "linux/arm64",
+      "image_bytes": 1712470608,
+      "approval": "not requested",
+      "superseded_remote": "ghcr.io/edp1096/sparktalk-nemotron-asr:0.6b-q5-k-diar2-workspace",
+      "category": "runtime",
+      "upstream_engine": "NeMo-Speech.cpp 0.2.0",
+      "upstream_commit": "6a3ca369370782acee0dd155e34394ba60b920c4",
+      "custom_patches": [
+        "asr-workspace-release-v1"
+      ],
+      "qualification": "Q5_K stock/patched responses identical for 150 corpus requests, 600-second ASR, two-speaker diarization and 600-second diarization; Q5 reproduction SHA-256 unchanged.",
+      "previously_proposed_remote": "ghcr.io/edp1096/sparktalk-nemotron-asr:0.1.0",
+      "publication": false,
+      "build_recipe": "compose_yaml/nemotron_asr/Dockerfile",
+      "reason": "User prefers rebuilding Nemotron ASR from the Dockerfile instead of publishing a new GHCR runtime package."
+    },
+    {
+      "service": "Gemma 4 31B",
+      "local": "dgx-sglang-gemma4-31b-dflash:2ef0fe4-toolindex1",
+      "expected_digest": "sha256:e31a7ee963f6d69b3e9ee6745adb2ead17d55dd43d900339029deac4e33f8e2a",
+      "architecture": "linux/arm64",
+      "image_bytes": 17811262409,
+      "approval": "not requested",
+      "category": "runtime",
+      "qualification": "Existing configured local image; this inventory audit does not rerun GPU workloads.",
+      "previously_proposed_remote": "ghcr.io/edp1096/sparktalk-gemma4-31b:0.1.0",
+      "publication": false,
+      "build_recipe": "compose_yaml/gemma4_31b_sglang/Dockerfile.dflash",
+      "upstream_base": "lmsysorg/sglang@sha256:febfb971c7352570fc445c466ebd6ffc9d896024958e544a60f2137fd85856b1",
+      "upstream_base_manifest_verified": true,
+      "reason": "Use Dockerfile builds for Gemma and Ornith; pinned upstream base manifests are available remotely."
+    },
+    {
+      "service": "Gemma 4 26B",
+      "local": "dgx-sglang-gemma26:2ef0fe4-toolindex1",
+      "expected_digest": "sha256:e405adeddc0e9bc7b197a55472de9a15822c65c9f95e53c482d6d90b101f7db2",
+      "architecture": "linux/arm64",
+      "image_bytes": 17811291803,
+      "approval": "not requested",
+      "category": "runtime",
+      "qualification": "Existing configured local image; this inventory audit does not rerun GPU workloads.",
+      "previously_proposed_remote": "ghcr.io/edp1096/sparktalk-gemma4-26b:0.1.0",
+      "publication": false,
+      "build_recipe": "compose_yaml/gemma26_sglang/Dockerfile",
+      "upstream_base": "lmsysorg/sglang@sha256:febfb971c7352570fc445c466ebd6ffc9d896024958e544a60f2137fd85856b1",
+      "upstream_base_manifest_verified": true,
+      "reason": "Use Dockerfile builds for Gemma and Ornith; pinned upstream base manifests are available remotely."
+    },
+    {
+      "service": "Ornith 35B",
+      "local": "dgx-vllm-moe-tp1:b40673cd0-v5",
+      "expected_digest": "sha256:69a282e0cb2cb46ca5ea1b0c2481164a24c249391e2ef12a50204e51b975a40e",
+      "architecture": "linux/arm64",
+      "image_bytes": 10113313014,
+      "approval": "not requested",
+      "category": "runtime",
+      "qualification": "Existing configured local image; this inventory audit does not rerun GPU workloads.",
+      "previously_proposed_remote": "ghcr.io/edp1096/sparktalk-ornith35:0.1.0",
+      "publication": false,
+      "build_recipe": "compose_yaml/ornith35_vllm/Dockerfile",
+      "upstream_base": "eugr/spark-vllm-b12x@sha256:8e7e062186f841453ef0ec6f713043c5b65447decc3835206685128c18e42262",
+      "upstream_base_manifest_verified": true,
+      "reason": "Use Dockerfile builds for Gemma and Ornith; pinned upstream base manifests are available remotely."
+    },
+    {
+      "service": "Qwen Image 2.1 DiT 상주",
+      "local": "sparktalk-qwen-image21:nvfp4-int8-v5-dit-resident",
+      "expected_digest": "sha256:96b019e6a6a440e6ea2126b4eef1fffb4a9d283cc3af6dfff7fb2d9ebb48ce1f",
+      "architecture": "linux/arm64",
+      "image_bytes": 12067466930,
+      "approval": "not requested",
+      "superseded_remote": "ghcr.io/edp1096/sparktalk-qwen-image21:nvfp4-int8-v5-dit-resident",
+      "superseded_names": [
+        "ghcr.io/edp1096/sparktalk-qwen-image21:0.1.0"
+      ],
+      "category": "runtime",
+      "previously_proposed_remote": "ghcr.io/edp1096/sparktalk-qwim21:0.1.0",
+      "publication": false,
+      "build_recipe": "compose_yaml/qwen-image21/Dockerfile",
+      "upstream_base": "nvcr.io/nvidia/pytorch:26.07-py3",
+      "reason": "User chose Dockerfile/source rebuilds for QWIM21 standalone and QWIM21/MMH3 instead of publishing complete runtime images."
+    },
+    {
+      "service": "Qwen Image 2.1 + MiniMax H3 합본",
+      "local": "sparktalk-qwim-mmh3:nvfp4-resident2",
+      "expected_digest": "sha256:ff470aee5e4f8a78e41c9fa5c6b4c88654276628aea74f4eb95750996e0e0094",
+      "architecture": "linux/arm64",
+      "image_bytes": 12069097346,
+      "approval": "not requested",
+      "superseded_names": [
+        "ghcr.io/edp1096/sparktalk-qwim-mmh3:0.1.0"
+      ],
+      "category": "runtime",
+      "previously_proposed_remote": "ghcr.io/edp1096/sparktalk-qwim21-mmh3:0.1.0",
+      "publication": false,
+      "build_recipe": "compose_yaml/qwim_mmh3_service/Dockerfile",
+      "upstream_base": "nvcr.io/nvidia/pytorch:26.07-py3",
+      "reason": "User chose Dockerfile/source rebuilds for QWIM21 standalone and QWIM21/MMH3 instead of publishing complete runtime images."
+    },
+    {
+      "service": "Qwen3-TTS 0.6B Q8",
+      "local": "sparktalk-qwen3-tts:0.6b-q8-lifecycle1",
+      "expected_digest": "sha256:4e621922947ce800f44274cc2b653fd5bca68e9a6dc95c2b1f7f954808b2f47c",
+      "architecture": "linux/arm64",
+      "image_bytes": 1658640010,
+      "approval": "not requested",
+      "superseded_remote": "ghcr.io/edp1096/sparktalk-qwen3-tts:0.6b-q8-lifecycle1",
+      "category": "runtime",
+      "previously_proposed_remote": "ghcr.io/edp1096/sparktalk-qwen3-tts:0.1.0",
+      "publication": false,
+      "build_recipe": "compose_yaml/qwen3_tts_gguf/Dockerfile",
+      "upstream_source": "https://github.com/ServeurpersoCom/qwentts.cpp",
+      "source_commit": "51512f129a7419567f4b8abfb06801451789b8f1",
+      "model_source": "Serveurperso/Qwen3-TTS-GGUF",
+      "reason": "User chose Dockerfile and lifecycle-patch rebuilds using the published Q8 GGUFs instead of a separate GHCR runtime image."
+    },
+    {
+      "service": "Qwen 3.8 Flash-Next EXL3",
+      "local": "sparktalk-qwen38fn_exl3:1.5.4-managed1",
+      "expected_digest": "sha256:46393182a7bef0df2f4b067f05aab2e2bad34f0d01b83b959d033ca82b3d253b",
+      "architecture": "linux/arm64",
+      "image_bytes": 14758878044,
+      "approval": "not requested",
+      "superseded_remote": "ghcr.io/edp1096/sparktalk-qwen38fn-exl3:1.5.4-managed1",
+      "category": "runtime",
+      "previously_proposed_remote": "ghcr.io/edp1096/sparktalk-qwen38fn-exl3:0.1.0",
+      "publication": false,
+      "build_recipe": "compose_yaml/qwen38fn_exl3/Dockerfile",
+      "upstream_base": "lmsysorg/sglang:qwen38flashnext@sha256:12d3392bdc8be8d35e9a95f191df6aef99c5114bdbefd41bfdc7e760e6d25ec1",
+      "rebuild_verified": true,
+      "rebuild_audit": "util/talk/docs/ghcr-rebuild-audit-20261008.json",
+      "reason": "Actual Dockerfile rebuild verified from a published base and pinned public sources; no separate GHCR runtime publication required."
+    },
+    {
+      "service": "Qwen 3.8 Flash-Next TP2",
+      "local": "dgx-sglang-qwen38-fn:sm121-tp2-vocab-v1",
+      "expected_digest": "sha256:f41fe082e2921f81bb51f731dfe2fa0d3d40227a0695a19f4efc371830c9aab7",
+      "architecture": "linux/arm64",
+      "image_bytes": 14266637340,
+      "approval": "not requested",
+      "category": "runtime",
+      "qualification": "Existing configured local image; this inventory audit does not rerun GPU workloads.",
+      "previously_proposed_remote": "ghcr.io/edp1096/sparktalk-qwen38fn-tp2:0.1.0",
+      "publication": false,
+      "build_recipe": "compose_yaml/qwen38_fn_sglang/Dockerfile.tp2-first-install",
+      "upstream_base": "lmsysorg/sglang:qwen38flashnext@sha256:12d3392bdc8be8d35e9a95f191df6aef99c5114bdbefd41bfdc7e760e6d25ec1",
+      "rebuild_verified": true,
+      "rebuild_audit": "util/talk/docs/ghcr-rebuild-audit-20261008.json",
+      "reason": "Actual Dockerfile rebuild verified from a published base and pinned public sources; no separate GHCR runtime publication required."
+    },
+    {
+      "service": "GLM 5.3 Flash-Next TP2",
+      "local": "dgx-sglang-glm53:sm121-dev6",
+      "expected_digest": "sha256:8566f13bbaa6ab5111bd06f742fc1246047a7d9232070083c8682008a22d6238",
+      "architecture": "linux/arm64",
+      "image_bytes": 17823068705,
+      "approval": "not requested",
+      "category": "runtime",
+      "qualification": "Existing configured local image; this inventory audit does not rerun GPU workloads.",
+      "superseded_names": [
+        "ghcr.io/edp1096/sparktalk-glm53:0.1.0"
+      ],
+      "previously_proposed_remote": "ghcr.io/edp1096/sparktalk-glm53fn-tp2:0.1.0",
+      "publication": false,
+      "build_recipe": "compose_yaml/glm53f_sglang/Dockerfile",
+      "upstream_base": "ghcr.io/edp1096/sglang-qwen38-qad:sm121-v5@sha256:c79141f03a89b8888920f629ac638a6915eec5abb0dabe75688977c3c58b75f5",
+      "rebuild_verified": true,
+      "rebuild_audit": "util/talk/docs/ghcr-rebuild-audit-20261008.json",
+      "reason": "Actual Dockerfile rebuild verified from a published base and pinned public sources; no separate GHCR runtime publication required."
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "id": "korean_arithmetic",
+  "repeat": -1,
+  "content": "{\"remaining\": 182, \"boxes\": 16}",
+  "reasoning": "",
+  "tool_calls": {},
+  "usage": {
+    "prompt_tokens": 84,
+    "total_tokens": 97,
+    "completion_tokens": 13
+  },
+  "elapsed_s": 6.018733636999968,
+  "ttft_s": 5.392333469000732,
+  "finish_reason": "stop",
+  "passed": true
+}

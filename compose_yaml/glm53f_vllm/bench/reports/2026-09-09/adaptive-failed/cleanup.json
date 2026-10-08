@@ -1,0 +1,22 @@
+{
+  "exit_code": 0,
+  "worker_env_restored": true,
+  "final": {
+    "head": {
+      "boot": "ccc4bda2-bff7-43e5-a7f0-ac093ba632ac",
+      "available": 126520659968,
+      "swap": 338898944,
+      "swap_free": 16840966144,
+      "pressure": "some avg10=0.00 avg60=0.00 avg300=0.07 total=24805059\nfull avg10=0.00 avg60=0.00 avg300=0.07 total=24778913",
+      "gpu": "49, 208, 4.87"
+    },
+    "worker": {
+      "boot": "1094b293-01b2-446f-ae13-e3ba1770665f",
+      "available": 125447536640,
+      "swap": 2391203840,
+      "swap_free": 14788661248,
+      "pressure": "some avg10=0.00 avg60=0.00 avg300=0.06 total=19344210\nfull avg10=0.00 avg60=0.00 avg300=0.06 total=19327700",
+      "gpu": "51, 1995, 8.26"
+    }
+  }
+}

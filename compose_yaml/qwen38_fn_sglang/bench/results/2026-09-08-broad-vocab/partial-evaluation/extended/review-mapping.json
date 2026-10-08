@@ -1,0 +1,58 @@
+[
+  {
+    "mode": "ko64k",
+    "id": "life_schedule",
+    "repeat": 0,
+    "answer_sha256": "cc4edf8739f589aa5cd6b6eb66b512382becb6b38693706d9d8050c7febe87d7",
+    "truncated": false
+  },
+  {
+    "mode": "ko64k",
+    "id": "science_bayes",
+    "repeat": 0,
+    "answer_sha256": "eedcd7b5a35272594d32be6c62b82e8b4d3be9d3f119a3fa4829b5dd7ccebb19",
+    "truncated": false
+  },
+  {
+    "mode": "ko64k",
+    "id": "code_shortlist",
+    "repeat": 0,
+    "answer_sha256": "cee229dd179cf96f1b063aed8f892f6ade1a5f9fa75cb6bc4fd5d36591239f20",
+    "truncated": true
+  },
+  {
+    "mode": "ko64k",
+    "id": "code_telemetry",
+    "repeat": 0,
+    "answer_sha256": "65ca89136fc1bc2892fe252bb34a85ff389400173fae44232cb6d25c4049d416",
+    "truncated": true
+  },
+  {
+    "mode": "ko64k",
+    "id": "code_html_review",
+    "repeat": 0,
+    "answer_sha256": "6bd40b0c2b4536dfb65691b017a6a5f8f72cd330159d05c60722182a4f4eb4db",
+    "truncated": false
+  },
+  {
+    "mode": "ko64k",
+    "id": "research_memory",
+    "repeat": 0,
+    "answer_sha256": "ea6379c079c1008aef625446961219dd8681baffc4cccc5182fb2be1941ae440",
+    "truncated": true
+  },
+  {
+    "mode": "ko64k",
+    "id": "human_history",
+    "repeat": 0,
+    "answer_sha256": "e992dbd86044eda13bc7a58e65bc33db87dfd113094e9ae5038e67b60e273ecc",
+    "truncated": false
+  },
+  {
+    "mode": "ko64k",
+    "id": "long_ledger",
+    "repeat": 0,
+    "answer_sha256": "ec94a7088c60256d7db7952205293646be2aba0fb3892ff47d742040750e7e55",
+    "truncated": true
+  }
+]

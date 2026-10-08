@@ -1,0 +1,12 @@
+{
+  "baseline_retention_interval": 0,
+  "candidate_retention_interval": 128,
+  "baseline_shared_prefix_tokens": 856,
+  "candidate_shared_prefix_tokens": 6252,
+  "changed_memory_baseline_ttft_seconds": 57.13913276099993,
+  "changed_memory_candidate_ttft_seconds": 0.8980970419979712,
+  "changed_memory_ratio": 63.62244845377077,
+  "changed_memory_latency_reduction_percent": 98.42822773360157,
+  "all_six_markers_correct": true,
+  "note": "One A/B/B sequence per arm, different KV cache salts; candidate first request followed an engine restart and includes cold-start effects. Not a controlled cold-prefill or decode-rate comparison."
+}

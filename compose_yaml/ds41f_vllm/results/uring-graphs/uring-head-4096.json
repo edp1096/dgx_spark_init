@@ -1,0 +1,469 @@
+{
+  "scope": "synthetic component latency, not model tg; two tables, configurable random rows/table",
+  "rank": 0,
+  "rows_per_table": 4096,
+  "runs": [
+    {
+      "cold": false,
+      "trial": 0,
+      "reader": "native_hint",
+      "ms": 4.503939002461266,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 0,
+      "reader": "uring8",
+      "ms": 18.830244996934198,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 0,
+      "reader": "uring64",
+      "ms": 17.736663998221047,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 0,
+      "reader": "uring64_hint",
+      "ms": 17.353971998090856,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 1,
+      "reader": "uring64_hint",
+      "ms": 18.036476001725532,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 1,
+      "reader": "uring64",
+      "ms": 17.391813002177514,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 1,
+      "reader": "uring8",
+      "ms": 17.540630004077684,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 1,
+      "reader": "native_hint",
+      "ms": 4.639988001144957,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 2,
+      "reader": "native_hint",
+      "ms": 4.6012679958948866,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 2,
+      "reader": "uring8",
+      "ms": 17.583894994459115,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 2,
+      "reader": "uring64",
+      "ms": 16.995152000163216,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 2,
+      "reader": "uring64_hint",
+      "ms": 17.043713000020944,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 3,
+      "reader": "uring64_hint",
+      "ms": 16.855565998412203,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 3,
+      "reader": "uring64",
+      "ms": 16.97928000066895,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 3,
+      "reader": "uring8",
+      "ms": 17.643815001065377,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 3,
+      "reader": "native_hint",
+      "ms": 5.120297006214969,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 4,
+      "reader": "native_hint",
+      "ms": 4.543666997051332,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 4,
+      "reader": "uring8",
+      "ms": 17.46269300201675,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 4,
+      "reader": "uring64",
+      "ms": 17.49754199408926,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 4,
+      "reader": "uring64_hint",
+      "ms": 17.37882000452373,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 5,
+      "reader": "uring64_hint",
+      "ms": 17.720071999065112,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 5,
+      "reader": "uring64",
+      "ms": 16.90878299996257,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 5,
+      "reader": "uring8",
+      "ms": 17.10939300392056,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 5,
+      "reader": "native_hint",
+      "ms": 4.68944400199689,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 6,
+      "reader": "native_hint",
+      "ms": 4.608852003002539,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 6,
+      "reader": "uring8",
+      "ms": 17.805160998250358,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 6,
+      "reader": "uring64",
+      "ms": 17.248306001420133,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 6,
+      "reader": "uring64_hint",
+      "ms": 17.27336300245952,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 7,
+      "reader": "uring64_hint",
+      "ms": 16.465417000290472,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 7,
+      "reader": "uring64",
+      "ms": 16.610026999842376,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 7,
+      "reader": "uring8",
+      "ms": 16.99163200100884,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 7,
+      "reader": "native_hint",
+      "ms": 4.848695003602188,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 0,
+      "reader": "native_hint",
+      "ms": 176.76509800367057,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 0,
+      "reader": "uring8",
+      "ms": 215.01378399989335,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 0,
+      "reader": "uring64",
+      "ms": 83.72329499979969,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 0,
+      "reader": "uring64_hint",
+      "ms": 80.16178300022148,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 1,
+      "reader": "uring64_hint",
+      "ms": 99.55536200141069,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 1,
+      "reader": "uring64",
+      "ms": 84.11267500196118,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 1,
+      "reader": "uring8",
+      "ms": 207.29105599457398,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 1,
+      "reader": "native_hint",
+      "ms": 143.19839700328885,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 2,
+      "reader": "native_hint",
+      "ms": 170.3679979982553,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 2,
+      "reader": "uring8",
+      "ms": 217.5753440023982,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 2,
+      "reader": "uring64",
+      "ms": 79.8102580010891,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 2,
+      "reader": "uring64_hint",
+      "ms": 77.6595140050631,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 3,
+      "reader": "uring64_hint",
+      "ms": 96.2282660038909,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 3,
+      "reader": "uring64",
+      "ms": 86.54215800197562,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 3,
+      "reader": "uring8",
+      "ms": 207.07399399543647,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 3,
+      "reader": "native_hint",
+      "ms": 140.91560000088066,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 4,
+      "reader": "native_hint",
+      "ms": 167.07610100274906,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 4,
+      "reader": "uring8",
+      "ms": 220.14810600376222,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 4,
+      "reader": "uring64",
+      "ms": 81.64331700390903,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 4,
+      "reader": "uring64_hint",
+      "ms": 79.8031849990366,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 5,
+      "reader": "uring64_hint",
+      "ms": 104.0676650009118,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 5,
+      "reader": "uring64",
+      "ms": 87.77717799966922,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 5,
+      "reader": "uring8",
+      "ms": 212.60078599880217,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 5,
+      "reader": "native_hint",
+      "ms": 139.04679199913517,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 6,
+      "reader": "native_hint",
+      "ms": 173.1967759988038,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 6,
+      "reader": "uring8",
+      "ms": 219.99957299703965,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 6,
+      "reader": "uring64",
+      "ms": 82.64951899764128,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 6,
+      "reader": "uring64_hint",
+      "ms": 85.01850600441685,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 7,
+      "reader": "uring64_hint",
+      "ms": 99.47295500023756,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 7,
+      "reader": "uring64",
+      "ms": 92.36449099989841,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 7,
+      "reader": "uring8",
+      "ms": 214.7924230011995,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 7,
+      "reader": "native_hint",
+      "ms": 141.30660799855832,
+      "exact": true
+    }
+  ],
+  "medians_ms": {
+    "False": {
+      "native_hint": 4.624420002073748,
+      "uring8": 17.5622624992684,
+      "uring64": 17.121729000791674,
+      "uring64_hint": 17.313667500275187
+    },
+    "True": {
+      "native_hint": 155.13724900301895,
+      "uring8": 214.90310350054642,
+      "uring64": 83.91798500088044,
+      "uring64_hint": 90.62338600415387
+    }
+  }
+}

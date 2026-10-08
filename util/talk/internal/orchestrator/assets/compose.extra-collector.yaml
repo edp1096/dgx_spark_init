@@ -1,0 +1,41 @@
+services:
+    runtime:
+        build:
+            context: ${SPARKTALK_BUILD_DIR:?Embedded build assets required}
+            dockerfile: Dockerfile.collector
+        cap_drop:
+            - ALL
+        container_name: sparktalk-extra-collector
+        cpus: 2
+        environment:
+            HOME: /tmp/sparktalk-extra-collector-home
+            SPARKTALK_EXTRA_COLLECTOR_BROWSER_WAIT_MS: ${SPARKTALK_EXTRA_COLLECTOR_BROWSER_WAIT_MS:-1200}
+            SPARKTALK_EXTRA_COLLECTOR_CHROMIUM_PATH: /usr/bin/chromium
+            SPARKTALK_EXTRA_COLLECTOR_LISTEN_ADDR: 0.0.0.0:8695
+            SPARKTALK_EXTRA_COLLECTOR_MAX_CONCURRENCY: ${SPARKTALK_EXTRA_COLLECTOR_MAX_CONCURRENCY:-1}
+            SPARKTALK_EXTRA_COLLECTOR_MAX_MB: ${SPARKTALK_EXTRA_COLLECTOR_MAX_MB:-256}
+            SPARKTALK_EXTRA_COLLECTOR_TIMEOUT_SECONDS: ${SPARKTALK_EXTRA_COLLECTOR_TIMEOUT_SECONDS:-120}
+            TZ: ${TZ:-Asia/Seoul}
+        healthcheck:
+            interval: 15s
+            retries: 3
+            start_period: 10s
+            test:
+                - CMD
+                - /usr/local/bin/sparktalk-extra-collector
+                - -healthcheck
+            timeout: 5s
+        image: sparktalk-extra-collector:0.1.0
+        init: true
+        mem_limit: 2g
+        pids_limit: 256
+        ports:
+            - ${SPARKTALK_BIND_ADDR:-127.0.0.1}:${SPARKTALK_PORT:-8695}:8695
+        pull_policy: never
+        read_only: true
+        restart: unless-stopped
+        security_opt:
+            - no-new-privileges:true
+        tmpfs:
+            - /tmp:size=${SPARKTALK_EXTRA_COLLECTOR_TMPFS_SIZE:-1024m},mode=1777
+        user: ${PUID:-1000}:${PGID:-1000}

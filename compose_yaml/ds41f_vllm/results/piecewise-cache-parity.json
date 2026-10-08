@@ -1,0 +1,23 @@
+{
+  "files": [
+    "model-graphs-off-0-engine.log",
+    "model-graphs-off-1-engine.log",
+    "engram-prestage-only-0-engine.log",
+    "model-graphs-on-0-engine.log",
+    "model-graphs-on-1-engine.log"
+  ],
+  "compared_steps_from_end": 93,
+  "keys": [
+    "slot_hits",
+    "slot_misses",
+    "packed_read_bytes",
+    "graph_replays"
+  ],
+  "all_suffixes_equal": true,
+  "final": {
+    "slot_hits": 102719,
+    "slot_misses": 13819,
+    "packed_read_bytes": 129903022080,
+    "graph_replays": 5759
+  }
+}

@@ -1,0 +1,33 @@
+diff --git a/packages/ltx-core/src/ltx_core/text_encoders/gemma/gemma_assets.py b/packages/ltx-core/src/ltx_core/text_encoders/gemma/gemma_assets.py
+index d666d3a..7b94da4 100644
+--- a/packages/ltx-core/src/ltx_core/text_encoders/gemma/gemma_assets.py
++++ b/packages/ltx-core/src/ltx_core/text_encoders/gemma/gemma_assets.py
+@@ -8,6 +8,7 @@ from __future__ import annotations
+
+ import json
+ import logging
++import os
+ from collections.abc import Mapping
+ from dataclasses import dataclass
+ from pathlib import Path
+@@ -107,6 +108,20 @@ class GemmaAssets:
+         with safetensors.safe_open(str(path), framework="pt") as f:
+             meta = f.metadata() or {}
+             raw_config = meta.get(GEMMA_CONFIG_METADATA_KEY)
++            if raw_config is None and (fallback := os.environ.get("LTX_GEMMA_CONFIG_FALLBACK")):
++                fallback_path = Path(fallback)
++                if not fallback_path.is_file():
++                    raise FileNotFoundError(
++                        f"LTX_GEMMA_CONFIG_FALLBACK does not exist: {fallback_path}"
++                    )
++                with safetensors.safe_open(str(fallback_path), framework="pt") as fallback_file:
++                    raw_config = (fallback_file.metadata() or {}).get(GEMMA_CONFIG_METADATA_KEY)
++                if raw_config is None:
++                    raise ValueError(
++                        f"Fallback text encoder {fallback_path} is also missing metadata key "
++                        f"{GEMMA_CONFIG_METADATA_KEY!r}."
++                    )
++                logger.warning("Using Gemma config metadata from fallback %s for %s", fallback_path, path)
+             if raw_config is None:
+                 raise ValueError(
+                     f"Safetensors text-encoder {path} is missing metadata key "

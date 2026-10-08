@@ -1,0 +1,10 @@
+[
+  {
+    "rank": 0,
+    "log": "{\"rank\": 0, \"elements\": 4096, \"ms\": 167.77377030084608, \"exact\": true}\n{\"rank\": 0, \"elements\": 4194304, \"ms\": 1.8183174994192086, \"exact\": true}\n/usr/local/lib/python3.12/dist-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.\n  return func(*args, **kwargs)\n"
+  },
+  {
+    "rank": 1,
+    "log": "{\"rank\": 1, \"elements\": 4096, \"ms\": 167.82260960026179, \"exact\": true}\n{\"rank\": 1, \"elements\": 4194304, \"ms\": 1.7765998010872863, \"exact\": true}\n"
+  }
+]

@@ -1,0 +1,12 @@
+Worker connected: spark-bb75 (192.168.100.60)
+QSFP rail ready: 10.200.0.1 -> 10.200.0.2 via enp1s0f1np1
+Clearing cold filesystem cache on both nodes.
+ Container glm53-worker Recreate 
+ Container glm53-worker Recreated 
+ Container glm53-worker Starting 
+ Container glm53-worker Started 
+ Container glm53-head Recreate 
+ Container glm53-head Recreated 
+ Container glm53-head Starting 
+ Container glm53-head Started 
+Cluster started. Follow readiness with: ./manage.sh logs

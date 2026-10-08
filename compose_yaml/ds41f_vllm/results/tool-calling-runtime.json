@@ -1,0 +1,45 @@
+{
+  "checked_utc": "2026-09-12T03:04:44.464734+00:00",
+  "checks": [
+    {
+      "label": "identity_with_auto_tools",
+      "status": 200,
+      "finish_reason": "stop"
+    },
+    {
+      "label": "auto_tool_call",
+      "status": 200,
+      "finish_reason": "tool_calls"
+    },
+    {
+      "label": "tool_result_round_trip",
+      "status": 200,
+      "finish_reason": "stop"
+    },
+    {
+      "label": "reasoning_separation",
+      "status": 200,
+      "finish_reason": "stop"
+    }
+  ],
+  "launch_sha256": "9d6afac8774ee449039435e158be910865a8bab1803a0803ba00b53e4607f704",
+  "health": 200,
+  "ranks": {
+    "0": {
+      "running": true,
+      "image": "dgx-ds41-stream:b12x8",
+      "started_at": "2026-09-12T03:00:29.416114275Z",
+      "auto_tool_choice": true,
+      "tool_parser": "deepseek_v41",
+      "reasoning_parser": "deepseek_v41"
+    },
+    "1": {
+      "running": true,
+      "image": "dgx-ds41-stream:b12x8",
+      "started_at": "2026-09-12T03:00:29.018073885Z",
+      "auto_tool_choice": true,
+      "tool_parser": "deepseek_v41",
+      "reasoning_parser": "deepseek_v41"
+    }
+  }
+}

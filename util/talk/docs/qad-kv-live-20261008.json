@@ -1,0 +1,868 @@
+{
+  "measured_date": "2026-10-08",
+  "timezone": "Asia/Seoul",
+  "hardware": {
+    "system_memory_gib": 121.62510681152344,
+    "gpu": "NVIDIA GB10 / DGX Spark"
+  },
+  "model": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-NVFP4-QAD",
+  "variant": "huihui_lil",
+  "mtp_tokens": 3,
+  "kv_dtype": "FP8 e4m3fn",
+  "measurement": {
+    "system_sampling_interval_seconds": 0.2,
+    "gpu_sampling_interval_seconds": 1,
+    "units": "GiB",
+    "resident_accounting": "GPU allocation + host pages outside CUDA; RSS is not added to GPU allocation",
+    "actual_kv_validation": "native server_info context_length and max_total_num_tokens",
+    "workloads": "Cached Korean MP4 with speaker diarization, GPU Korean TTS, two 1024x1024 penguin generations",
+    "guard_policy": "unchanged; 1.5 GiB available reserve and 10 GiB immediate free for cold auxiliary CUDA startup",
+    "resident_image_whole_service_budget_gib": 24,
+    "resident_image_keep_models_loaded": true,
+    "scope": "Fixed KV pool allocation, startup and short auxiliary workloads; not a full-context quality or concurrency stress test",
+    "raw_directory": "/home/edp1096/.cache/model-download-jobs/tts-gguf-comparison-20261008/qad-512-384-live"
+  },
+  "profiles": {
+    "512k": {
+      "actual_context_and_capacity_tokens": 524288,
+      "startup_seconds": 483.3642073009396,
+      "kv_and_qsa_gib": 6.907118201255798,
+      "llm_resident_gib": 90.74524926394224,
+      "idle_system_memory": {
+        "total_gib": 121.62510681152344,
+        "used_gib": 97.31779861450195,
+        "available_gib": 24.307308197021484,
+        "free_gib": 14.625312805175781
+      },
+      "native_allocator": {
+        "schema": 1,
+        "unit": "GiB",
+        "context_tokens": 524288,
+        "capacity_tokens": 524288,
+        "kv_dtype": "torch.float8_e4m3fn",
+        "mtp_layers": 1,
+        "target_load_delta_gib": 75.85733032226562,
+        "draft_load_delta_gib": 4.251991271972656,
+        "kv_and_qsa_gib": 6.907118201255798,
+        "mamba_cache_gib": 1.8279876708984375,
+        "cuda_allocated_gib": 83.23323440551758,
+        "cuda_reserved_gib": 84.328125,
+        "cuda_peak_allocated_gib": 85.55072355270386,
+        "cuda_peak_reserved_gib": 86.451171875
+      },
+      "modes": {
+        "on-demand": {
+          "all_requested_workloads_completed": true,
+          "checks": [
+            {
+              "elapsed_seconds": 8.682519608,
+              "name": "asr",
+              "ok": true
+            },
+            {
+              "elapsed_seconds": 7.897413134,
+              "name": "tts",
+              "ok": true
+            },
+            {
+              "elapsed_seconds": 86.058847308,
+              "name": "image-initial",
+              "ok": true
+            },
+            {
+              "elapsed_seconds": 29.063506207,
+              "name": "image-repeat",
+              "ok": true
+            }
+          ],
+          "failure": "",
+          "same_llm_id_and_pid": true,
+          "capacity_after_workloads": 524288,
+          "min_available_gib": 14.191474914550781,
+          "min_free_gib": 3.3266067504882812,
+          "snapshots": [
+            {
+              "stage": "initial",
+              "system_memory": {
+                "total_gib": 121.62510681152344,
+                "used_gib": 97.3089828491211,
+                "available_gib": 24.316123962402344,
+                "free_gib": 14.604869842529297
+              },
+              "components": [
+                {
+                  "id": "flash-next",
+                  "status": "running",
+                  "gpu_memory_gib": 84.861328125,
+                  "host_memory_gib": 5.884000279009342,
+                  "resident_memory_gib": 90.74532840400934
+                },
+                {
+                  "id": "flux2",
+                  "status": "exited",
+                  "gpu_memory_gib": 0,
+                  "host_memory_gib": 0,
+                  "resident_memory_gib": 0
+                },
+                {
+                  "id": "nemotron-asr",
+                  "status": "exited",
+                  "gpu_memory_gib": 0,
+                  "host_memory_gib": 0,
+                  "resident_memory_gib": 0
+                },
+                {
+                  "id": "qwen3-tts",
+                  "status": "exited",
+                  "gpu_memory_gib": 0,
+                  "host_memory_gib": 0,
+                  "resident_memory_gib": 0
+                }
+              ]
+            },
+            {
+              "stage": "asr",
+              "system_memory": {
+                "total_gib": 121.62510681152344,
+                "used_gib": 99.3067398071289,
+                "available_gib": 22.31836700439453,
+                "free_gib": 11.851703643798828
+              },
+              "components": [
+                {
+                  "id": "flash-next",
+                  "status": "running",
+                  "gpu_memory_gib": 84.861328125,
+                  "host_memory_gib": 5.884013660252094,
+                  "resident_memory_gib": 90.7453417852521
+                },
+                {
+                  "id": "flux2",
+                  "status": "exited",
+                  "gpu_memory_gib": 0,
+                  "host_memory_gib": 0,
+                  "resident_memory_gib": 0
+                },
+                {
+                  "id": "nemotron-asr",
+                  "status": "running",
+                  "gpu_memory_gib": 1.5224609375,
+                  "host_memory_gib": 0.6081737875938416,
+                  "resident_memory_gib": 2.1306347250938416
+                },
+                {
+                  "id": "qwen3-tts",
+                  "status": "exited",
+                  "gpu_memory_gib": 0,
+                  "host_memory_gib": 0,
+                  "resident_memory_gib": 0
+                }
+              ]
+            },
+            {
+              "stage": "tts",
+              "system_memory": {
+                "total_gib": 121.62510681152344,
+                "used_gib": 101.74167251586914,
+                "available_gib": 19.883434295654297,
+                "free_gib": 9.450035095214844
+              },
+              "components": [
+                {
+                  "id": "flash-next",
+                  "status": "running",
+                  "gpu_memory_gib": 84.861328125,
+                  "host_memory_gib": 5.884459115564823,
+                  "resident_memory_gib": 90.74578724056482
+                },
+                {
+                  "id": "flux2",
+                  "status": "exited",
+                  "gpu_memory_gib": 0,
+                  "host_memory_gib": 0,
+                  "resident_memory_gib": 0
+                },
+                {
+                  "id": "nemotron-asr",
+                  "status": "running",
+                  "gpu_memory_gib": 1.5224609375,
+                  "host_memory_gib": 0.6081545948982239,
+                  "resident_memory_gib": 2.130615532398224
+                },
+                {
+                  "id": "qwen3-tts",
+                  "status": "running",
+                  "gpu_memory_gib": 2.4072265625,
+                  "host_memory_gib": 0.5963532403111458,
+                  "resident_memory_gib": 3.003579802811146
+                }
+              ]
+            },
+            {
+              "stage": "image-initial",
+              "system_memory": {
+                "total_gib": 121.62510681152344,
+                "used_gib": 102.87862014770508,
+                "available_gib": 18.74648666381836,
+                "free_gib": 7.217185974121094
+              },
+              "components": [
+                {
+                  "id": "flash-next",
+                  "status": "running",
+                  "gpu_memory_gib": 84.861328125,
+                  "host_memory_gib": 5.865713454782963,
+                  "resident_memory_gib": 90.72704157978296
+                },
+                {
+                  "id": "flux2",
+                  "status": "running",
+                  "gpu_memory_gib": 0.408203125,
+                  "host_memory_gib": 3.281947560608387,
+                  "resident_memory_gib": 3.690150685608387
+                },
+                {
+                  "id": "nemotron-asr",
+                  "status": "exited",
+                  "gpu_memory_gib": 0,
+                  "host_memory_gib": 0,
+                  "resident_memory_gib": 0
+                },
+                {
+                  "id": "qwen3-tts",
+                  "status": "running",
+                  "gpu_memory_gib": 2.4072265625,
+                  "host_memory_gib": 0.5963402166962624,
+                  "resident_memory_gib": 3.0035667791962624
+                }
+              ]
+            },
+            {
+              "stage": "image-repeat",
+              "system_memory": {
+                "total_gib": 121.62510681152344,
+                "used_gib": 102.87183380126953,
+                "available_gib": 18.753273010253906,
+                "free_gib": 7.402973175048828
+              },
+              "components": [
+                {
+                  "id": "flash-next",
+                  "status": "running",
+                  "gpu_memory_gib": 84.861328125,
+                  "host_memory_gib": 5.865999557077885,
+                  "resident_memory_gib": 90.72732768207788
+                },
+                {
+                  "id": "flux2",
+                  "status": "running",
+                  "gpu_memory_gib": 0.408203125,
+                  "host_memory_gib": 3.2759353071451187,
+                  "resident_memory_gib": 3.6841384321451187
+                },
+                {
+                  "id": "nemotron-asr",
+                  "status": "exited",
+                  "gpu_memory_gib": 0,
+                  "host_memory_gib": 0,
+                  "resident_memory_gib": 0
+                },
+                {
+                  "id": "qwen3-tts",
+                  "status": "running",
+                  "gpu_memory_gib": 2.4072265625,
+                  "host_memory_gib": 0.5963783636689186,
+                  "resident_memory_gib": 3.0036049261689186
+                }
+              ]
+            }
+          ],
+          "artifacts": "/home/edp1096/.cache/model-download-jobs/tts-gguf-comparison-20261008/qad-512-384-live/512k/on-demand"
+        },
+        "resident": {
+          "all_requested_workloads_completed": false,
+          "checks": [
+            {
+              "elapsed_seconds": 0.049019782,
+              "error": "Qwen Image 2.1 작업 전 메모리 확인: 통합메모리 부족 예상: 시스템 가용 25.5 GiB, 반환 예정 0.0 GiB, 추가 예상 24.0 GiB, 기동 후 약 1.5 GiB (최소 여유 1.5 GiB)",
+              "name": "image-resident-initial",
+              "ok": false
+            }
+          ],
+          "failure": "Qwen Image 2.1 작업 전 메모리 확인: 통합메모리 부족 예상: 시스템 가용 25.5 GiB, 반환 예정 0.0 GiB, 추가 예상 24.0 GiB, 기동 후 약 1.5 GiB (최소 여유 1.5 GiB)",
+          "same_llm_id_and_pid": true,
+          "capacity_after_workloads": 524288,
+          "min_available_gib": 25.481353759765625,
+          "min_free_gib": 14.093681335449219,
+          "snapshots": [
+            {
+              "stage": "initial",
+              "system_memory": {
+                "total_gib": 121.62510681152344,
+                "used_gib": 96.13362503051758,
+                "available_gib": 25.49148178100586,
+                "free_gib": 14.103839874267578
+              },
+              "components": [
+                {
+                  "id": "flash-next",
+                  "status": "running",
+                  "gpu_memory_gib": 84.861328125,
+                  "host_memory_gib": 5.866181693971157,
+                  "resident_memory_gib": 90.72750981897116
+                },
+                {
+                  "id": "flux2",
+                  "status": "exited",
+                  "gpu_memory_gib": 0,
+                  "host_memory_gib": 0,
+                  "resident_memory_gib": 0
+                },
+                {
+                  "id": "nemotron-asr",
+                  "status": "exited",
+                  "gpu_memory_gib": 0,
+                  "host_memory_gib": 0,
+                  "resident_memory_gib": 0
+                },
+                {
+                  "id": "qwen3-tts",
+                  "status": "exited",
+                  "gpu_memory_gib": 0,
+                  "host_memory_gib": 0,
+                  "resident_memory_gib": 0
+                }
+              ]
+            },
+            {
+              "stage": "image-resident-initial",
+              "system_memory": {
+                "total_gib": 121.62510681152344,
+                "used_gib": 96.13781356811523,
+                "available_gib": 25.487293243408203,
+                "free_gib": 14.099620819091797
+              },
+              "components": [
+                {
+                  "id": "flash-next",
+                  "status": "running",
+                  "gpu_memory_gib": 84.861328125,
+                  "host_memory_gib": 5.866181693971157,
+                  "resident_memory_gib": 90.72750981897116
+                },
+                {
+                  "id": "flux2",
+                  "status": "exited",
+                  "gpu_memory_gib": 0,
+                  "host_memory_gib": 0,
+                  "resident_memory_gib": 0
+                },
+                {
+                  "id": "nemotron-asr",
+                  "status": "exited",
+                  "gpu_memory_gib": 0,
+                  "host_memory_gib": 0,
+                  "resident_memory_gib": 0
+                },
+                {
+                  "id": "qwen3-tts",
+                  "status": "exited",
+                  "gpu_memory_gib": 0,
+                  "host_memory_gib": 0,
+                  "resident_memory_gib": 0
+                }
+              ]
+            }
+          ],
+          "artifacts": "/home/edp1096/.cache/model-download-jobs/tts-gguf-comparison-20261008/qad-512-384-live/512k/resident"
+        }
+      },
+      "swap": {
+        "initial_used_gib": 1.01531982421875,
+        "max_used_gib": 1.01531982421875,
+        "net_change_gib": -0.00012969970703125
+      },
+      "startup_min_available_gib": 24.051429748535156,
+      "startup_min_free_gib": 1.9586944580078125
+    },
+    "384k": {
+      "actual_context_and_capacity_tokens": 393216,
+      "startup_seconds": 481.2281861299416,
+      "kv_and_qsa_gib": 5.180555701255798,
+      "llm_resident_gib": 88.95953131467104,
+      "idle_system_memory": {
+        "total_gib": 121.62510681152344,
+        "used_gib": 95.73318862915039,
+        "available_gib": 25.891918182373047,
+        "free_gib": 17.472705841064453
+      },
+      "native_allocator": {
+        "schema": 1,
+        "unit": "GiB",
+        "context_tokens": 393216,
+        "capacity_tokens": 393216,
+        "kv_dtype": "torch.float8_e4m3fn",
+        "mtp_layers": 1,
+        "target_load_delta_gib": 75.63256072998047,
+        "draft_load_delta_gib": 4.4403228759765625,
+        "kv_and_qsa_gib": 5.180555701255798,
+        "mamba_cache_gib": 1.8279876708984375,
+        "cuda_allocated_gib": 81.4816780090332,
+        "cuda_reserved_gib": 82.5703125,
+        "cuda_peak_allocated_gib": 83.8055911064148,
+        "cuda_peak_reserved_gib": 84.712890625
+      },
+      "modes": {
+        "on-demand": {
+          "all_requested_workloads_completed": true,
+          "checks": [
+            {
+              "elapsed_seconds": 8.737292268000001,
+              "name": "asr",
+              "ok": true
+            },
+            {
+              "elapsed_seconds": 8.058868973,
+              "name": "tts",
+              "ok": true
+            },
+            {
+              "elapsed_seconds": 87.934171086,
+              "name": "image-initial",
+              "ok": true
+            },
+            {
+              "elapsed_seconds": 28.743512604,
+              "name": "image-repeat",
+              "ok": true
+            }
+          ],
+          "failure": "",
+          "same_llm_id_and_pid": true,
+          "capacity_after_workloads": 393216,
+          "min_available_gib": 13.821846008300781,
+          "min_free_gib": 2.5194931030273438,
+          "snapshots": [
+            {
+              "stage": "initial",
+              "system_memory": {
+                "total_gib": 121.62510681152344,
+                "used_gib": 95.67032623291016,
+                "available_gib": 25.95478057861328,
+                "free_gib": 17.506614685058594
+              },
+              "components": [
+                {
+                  "id": "flash-next",
+                  "status": "running",
+                  "gpu_memory_gib": 83.103515625,
+                  "host_memory_gib": 5.856098644435406,
+                  "resident_memory_gib": 88.9596142694354
+                },
+                {
+                  "id": "flux2",
+                  "status": "exited",
+                  "gpu_memory_gib": 0,
+                  "host_memory_gib": 0,
+                  "resident_memory_gib": 0
+                },
+                {
+                  "id": "nemotron-asr",
+                  "status": "exited",
+                  "gpu_memory_gib": 0,
+                  "host_memory_gib": 0,
+                  "resident_memory_gib": 0
+                },
+                {
+                  "id": "qwen3-tts",
+                  "status": "exited",
+                  "gpu_memory_gib": 0,
+                  "host_memory_gib": 0,
+                  "resident_memory_gib": 0
+                }
+              ]
+            },
+            {
+              "stage": "asr",
+              "system_memory": {
+                "total_gib": 121.62510681152344,
+                "used_gib": 97.50447845458984,
+                "available_gib": 24.120628356933594,
+                "free_gib": 14.63333511352539
+              },
+              "components": [
+                {
+                  "id": "flash-next",
+                  "status": "running",
+                  "gpu_memory_gib": 83.103515625,
+                  "host_memory_gib": 5.856115840375423,
+                  "resident_memory_gib": 88.95963146537542
+                },
+                {
+                  "id": "flux2",
+                  "status": "exited",
+                  "gpu_memory_gib": 0,
+                  "host_memory_gib": 0,
+                  "resident_memory_gib": 0
+                },
+                {
+                  "id": "nemotron-asr",
+                  "status": "running",
+                  "gpu_memory_gib": 1.5224609375,
+                  "host_memory_gib": 0.6074885353446007,
+                  "resident_memory_gib": 2.1299494728446007
+                },
+                {
+                  "id": "qwen3-tts",
+                  "status": "exited",
+                  "gpu_memory_gib": 0,
+                  "host_memory_gib": 0,
+                  "resident_memory_gib": 0
+                }
+              ]
+            },
+            {
+              "stage": "tts",
+              "system_memory": {
+                "total_gib": 121.62510681152344,
+                "used_gib": 100.18553924560547,
+                "available_gib": 21.43956756591797,
+                "free_gib": 11.670452117919922
+              },
+              "components": [
+                {
+                  "id": "flash-next",
+                  "status": "running",
+                  "gpu_memory_gib": 83.103515625,
+                  "host_memory_gib": 5.856420986354351,
+                  "resident_memory_gib": 88.95993661135435
+                },
+                {
+                  "id": "flux2",
+                  "status": "exited",
+                  "gpu_memory_gib": 0,
+                  "host_memory_gib": 0,
+                  "resident_memory_gib": 0
+                },
+                {
+                  "id": "nemotron-asr",
+                  "status": "running",
+                  "gpu_memory_gib": 1.5224609375,
+                  "host_memory_gib": 0.6074688658118248,
+                  "resident_memory_gib": 2.129929803311825
+                },
+                {
+                  "id": "qwen3-tts",
+                  "status": "running",
+                  "gpu_memory_gib": 2.4072265625,
+                  "host_memory_gib": 0.5966949537396431,
+                  "resident_memory_gib": 3.003921516239643
+                }
+              ]
+            },
+            {
+              "stage": "image-initial",
+              "system_memory": {
+                "total_gib": 121.62510681152344,
+                "used_gib": 103.38746643066406,
+                "available_gib": 18.237640380859375,
+                "free_gib": 6.283412933349609
+              },
+              "components": [
+                {
+                  "id": "flash-next",
+                  "status": "running",
+                  "gpu_memory_gib": 83.103515625,
+                  "host_memory_gib": 5.837688446044922,
+                  "resident_memory_gib": 88.94120407104492
+                },
+                {
+                  "id": "flux2",
+                  "status": "running",
+                  "gpu_memory_gib": 0.408203125,
+                  "host_memory_gib": 3.2321917563676834,
+                  "resident_memory_gib": 3.6403948813676834
+                },
+                {
+                  "id": "nemotron-asr",
+                  "status": "running",
+                  "gpu_memory_gib": 1.5224609375,
+                  "host_memory_gib": 0.6074719503521919,
+                  "resident_memory_gib": 2.129932887852192
+                },
+                {
+                  "id": "qwen3-tts",
+                  "status": "running",
+                  "gpu_memory_gib": 2.4072265625,
+                  "host_memory_gib": 0.5966769233345985,
+                  "resident_memory_gib": 3.0039034858345985
+                }
+              ]
+            },
+            {
+              "stage": "image-repeat",
+              "system_memory": {
+                "total_gib": 121.62510681152344,
+                "used_gib": 101.09907913208008,
+                "available_gib": 20.52602767944336,
+                "free_gib": 8.819766998291016
+              },
+              "components": [
+                {
+                  "id": "flash-next",
+                  "status": "running",
+                  "gpu_memory_gib": 83.103515625,
+                  "host_memory_gib": 5.837734222412109,
+                  "resident_memory_gib": 88.94124984741211
+                },
+                {
+                  "id": "flux2",
+                  "status": "running",
+                  "gpu_memory_gib": 0.408203125,
+                  "host_memory_gib": 3.2361347153782845,
+                  "resident_memory_gib": 3.6443378403782845
+                },
+                {
+                  "id": "nemotron-asr",
+                  "status": "running",
+                  "gpu_memory_gib": 1.5224609375,
+                  "host_memory_gib": 0.6074719503521919,
+                  "resident_memory_gib": 2.129932887852192
+                },
+                {
+                  "id": "qwen3-tts",
+                  "status": "running",
+                  "gpu_memory_gib": 2.4072265625,
+                  "host_memory_gib": 0.5967188850045204,
+                  "resident_memory_gib": 3.0039454475045204
+                }
+              ]
+            }
+          ],
+          "artifacts": "/home/edp1096/.cache/model-download-jobs/tts-gguf-comparison-20261008/qad-512-384-live/384k/on-demand"
+        },
+        "resident": {
+          "all_requested_workloads_completed": false,
+          "checks": [
+            {
+              "elapsed_seconds": 84.065314538,
+              "name": "image-resident-initial",
+              "ok": true
+            },
+            {
+              "elapsed_seconds": 3.480817749,
+              "error": "transcribe sample-video.mp4: Qwen Image 2.1 실행 중에는 가중치 파일 캐시를 회수하지 않습니다",
+              "name": "asr-resident",
+              "ok": false
+            }
+          ],
+          "failure": "transcribe sample-video.mp4: Qwen Image 2.1 실행 중에는 가중치 파일 캐시를 회수하지 않습니다",
+          "same_llm_id_and_pid": true,
+          "capacity_after_workloads": 393216,
+          "min_available_gib": 12.194286346435547,
+          "min_free_gib": 2.591217041015625,
+          "snapshots": [
+            {
+              "stage": "initial",
+              "system_memory": {
+                "total_gib": 121.62510681152344,
+                "used_gib": 95.30487442016602,
+                "available_gib": 26.320232391357422,
+                "free_gib": 15.985782623291016
+              },
+              "components": [
+                {
+                  "id": "flash-next",
+                  "status": "running",
+                  "gpu_memory_gib": 83.103515625,
+                  "host_memory_gib": 5.849677577614784,
+                  "resident_memory_gib": 88.95319320261478
+                },
+                {
+                  "id": "flux2",
+                  "status": "exited",
+                  "gpu_memory_gib": 0,
+                  "host_memory_gib": 0,
+                  "resident_memory_gib": 0
+                },
+                {
+                  "id": "nemotron-asr",
+                  "status": "exited",
+                  "gpu_memory_gib": 0,
+                  "host_memory_gib": 0,
+                  "resident_memory_gib": 0
+                },
+                {
+                  "id": "qwen3-tts",
+                  "status": "exited",
+                  "gpu_memory_gib": 0,
+                  "host_memory_gib": 0,
+                  "resident_memory_gib": 0
+                }
+              ]
+            },
+            {
+              "stage": "image-resident-initial",
+              "system_memory": {
+                "total_gib": 121.62510681152344,
+                "used_gib": 107.6768798828125,
+                "available_gib": 13.948226928710938,
+                "free_gib": 4.638694763183594
+              },
+              "components": [
+                {
+                  "id": "flash-next",
+                  "status": "running",
+                  "gpu_memory_gib": 83.103515625,
+                  "host_memory_gib": 5.831270731985569,
+                  "resident_memory_gib": 88.93478635698557
+                },
+                {
+                  "id": "flux2",
+                  "status": "running",
+                  "gpu_memory_gib": 9.189453125,
+                  "host_memory_gib": 3.317603185772896,
+                  "resident_memory_gib": 12.507056310772896
+                },
+                {
+                  "id": "nemotron-asr",
+                  "status": "exited",
+                  "gpu_memory_gib": 0,
+                  "host_memory_gib": 0,
+                  "resident_memory_gib": 0
+                },
+                {
+                  "id": "qwen3-tts",
+                  "status": "exited",
+                  "gpu_memory_gib": 0,
+                  "host_memory_gib": 0,
+                  "resident_memory_gib": 0
+                }
+              ]
+            },
+            {
+              "stage": "asr-resident",
+              "system_memory": {
+                "total_gib": 121.62510681152344,
+                "used_gib": 107.83390808105469,
+                "available_gib": 13.79119873046875,
+                "free_gib": 4.379302978515625
+              },
+              "components": [
+                {
+                  "id": "flash-next",
+                  "status": "running",
+                  "gpu_memory_gib": 83.103515625,
+                  "host_memory_gib": 5.831297434866428,
+                  "resident_memory_gib": 88.93481305986643
+                },
+                {
+                  "id": "flux2",
+                  "status": "running",
+                  "gpu_memory_gib": 9.189453125,
+                  "host_memory_gib": 3.317620426416397,
+                  "resident_memory_gib": 12.507073551416397
+                },
+                {
+                  "id": "nemotron-asr",
+                  "status": "exited",
+                  "gpu_memory_gib": 0,
+                  "host_memory_gib": 0,
+                  "resident_memory_gib": 0
+                },
+                {
+                  "id": "qwen3-tts",
+                  "status": "exited",
+                  "gpu_memory_gib": 0,
+                  "host_memory_gib": 0,
+                  "resident_memory_gib": 0
+                }
+              ]
+            }
+          ],
+          "artifacts": "/home/edp1096/.cache/model-download-jobs/tts-gguf-comparison-20261008/qad-512-384-live/384k/resident"
+        }
+      },
+      "resident_retry_startup_seconds": 487.5125993990805,
+      "resident_retry_idle_system_memory": {
+        "total_gib": 121.62510681152344,
+        "used_gib": 95.4140853881836,
+        "available_gib": 26.211021423339844,
+        "free_gib": 15.928340911865234
+      },
+      "swap": {
+        "initial_used_gib": 1.0151901245117188,
+        "max_used_gib": 1.0151901245117188,
+        "net_change_gib": -0.002410888671875
+      },
+      "startup_min_available_gib": 25.51021957397461,
+      "startup_min_free_gib": 2.058208465576172
+    }
+  },
+  "swap": {
+    "initial_used_gib": 1.01531982421875,
+    "max_used_gib": 1.0857963562011719,
+    "final_used_gib": 1.0857124328613281
+  },
+  "restoration": {
+    "selected_bundle": "flash-next-radixark",
+    "actual_nvfp4_kv_tokens": 1048576,
+    "asr": {
+      "text": "영상은 팔육사 사팔공 초당 이십사 에프 피 에스 입니다.",
+      "language": ""
+    },
+    "system_memory": {
+      "total_gib": 121.62510681152344,
+      "used_gib": 108.06717681884766,
+      "available_gib": 13.557929992675781,
+      "free_gib": 6.900569915771484
+    },
+    "components": [
+      {
+        "id": "flash-next-radixark",
+        "status": "running",
+        "health": "online",
+        "resident_memory_gib": 100.34470777213573
+      },
+      {
+        "id": "nemotron-asr",
+        "status": "running",
+        "health": "online",
+        "resident_memory_gib": 2.114204652607441
+      }
+    ],
+    "support_components": [
+      {
+        "id": "extra-media",
+        "status": "running",
+        "health": "online"
+      },
+      {
+        "id": "extra-ssh",
+        "status": "running",
+        "health": "online"
+      },
+      {
+        "id": "extra-collector",
+        "status": "exited",
+        "health": "offline"
+      },
+      {
+        "id": "extra-documents",
+        "status": "exited",
+        "health": "offline"
+      }
+    ],
+    "original_qad_context_tokens": 655360,
+    "restore_error": null,
+    "public_configuration_matches_original": true,
+    "max_swap_increase_mib_from_trial_start": 72.16796875
+  },
+  "conclusion": {
+    "on_demand": "Both 512K and 384K completed all workloads with the same LLM process and unchanged actual KV capacity.",
+    "resident_512k": "Rejected before first image by the 24 GiB image budget + 1.5 GiB reserve; not an observed CUDA OOM.",
+    "resident_384k": "First resident image completed. Cold ASR was blocked at roughly 4.4 GiB immediate free against the 10 GiB CUDA startup floor, and cache reclaim was refused while the resident image service was running. TTS and repeat image were not reached; not an observed CUDA OOM.",
+    "comparison": "384K saves 1.7265625 GiB of allocated KV/QSA versus 512K. The on-demand 384K run retained ASR whereas 512K reclaimed it for image startup. Neither resident trial completed all requested workloads under the current guards.",
+    "retry": "The initial runner hit a 409 conflict between cleanup operations before the 384K resident trial. A cleanup-wait retry was added, QAD 384K was booted again, and the resident workload was measured. The early interrupted restoration is not a model memory failure."
+  }
+}

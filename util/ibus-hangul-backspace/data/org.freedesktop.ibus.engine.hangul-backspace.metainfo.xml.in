@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="inputmethod">
+  <id>org.freedesktop.ibus.engine.hangul-backspace</id>
+  <name>hangul-backspace</name>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-2</project_license>
+  <summary>hangul-backspace</summary>
+  <description>
+    <p>hangul-backspace provides continuous BackSpace deletion across the
+    boundary between active Hangul preedit and committed text.</p>
+  </description>
+  <project_group>IBus</project_group>
+  <translation type="gettext">hangul-backspace</translation>
+</component>

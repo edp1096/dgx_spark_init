@@ -1,0 +1,27 @@
+services:
+  runtime:
+    image: sparktalk-flux2-paint:resident4
+    build:
+      context: ${SPARKTALK_BUILD_DIR:?Embedded build assets required}
+    pull_policy: never
+    container_name: flux2-klein-nvfp4-api
+    restart: "no"
+    # Equal limits disable container swap; this is a ceiling, not a reservation.
+    mem_limit: "112g"
+    memswap_limit: "112g"
+    init: true
+    network_mode: host
+    ipc: host
+    gpus: all
+    environment:
+      SPARKTALK_FLUX_PHASED: "1"
+      HF_HUB_OFFLINE: "1"
+      API_PORT: "${SPARKTALK_PORT:-8691}"
+      COMFY_PORT: "8188"
+      COMFY_KITCHEN_BACKEND: cuda
+      PYTORCH_CUDA_ALLOC_CONF: expandable_segments:True
+    volumes:
+      - media-hf-cache:/root/.cache/huggingface
+volumes:
+  media-hf-cache:
+    name: media-hf-cache

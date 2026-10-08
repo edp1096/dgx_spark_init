@@ -1,0 +1,15 @@
+{
+  "variant": "head",
+  "context": 1048576,
+  "long": true,
+  "image": "dgx-sglang-qwen38-fn:b12x-probe",
+  "moe": "0",
+  "head": "1",
+  "source_hashes": {
+    "adapter.py": "543a980da57c69d5e36518a1c1be9e447f928d4c29069e83d50d078bd6f51d00",
+    "bench.py": "f2edd319509b4c62814b73251811ab4c4a5f889931500cde1fdc747fd5a8f258",
+    "runtime/tp2/entrypoint.py": "66406bbefa43ffcd74a1f5c4d1417e19f3fab75fcd7ef55f339044427eaf69b0",
+    "runtime/tp2/adapter.py": "543a980da57c69d5e36518a1c1be9e447f928d4c29069e83d50d078bd6f51d00",
+    "runtime/compose.tp2.yaml": "ff49ace747c655c4274d9c956a0dccdbef8315f34c7a46e8f94f938fcd1d2146"
+  }
+}

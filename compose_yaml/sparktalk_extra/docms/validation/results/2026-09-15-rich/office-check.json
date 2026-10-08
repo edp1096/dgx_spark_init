@@ -1,0 +1,86 @@
+[
+  {
+    "file": "/out/rich-chart-pie-as2ZUY/document.pptx",
+    "seconds": 1.3383573399914894,
+    "passed": true,
+    "output": "pptx: visible-controller open/save passed\n",
+    "error": ""
+  },
+  {
+    "file": "/out/rich-OCWcU2/document.docx",
+    "seconds": 1.3307266939955298,
+    "passed": true,
+    "output": "docx: visible-controller open/save passed\n",
+    "error": ""
+  },
+  {
+    "file": "/out/rich-sheet-options-a31JUb/document.xlsx",
+    "seconds": 1.4784047020075377,
+    "passed": true,
+    "output": "xlsx: visible-controller open/save passed\n",
+    "error": ""
+  },
+  {
+    "file": "/out/rich-YwI2A7/document.pptx",
+    "seconds": 1.3420297949924134,
+    "passed": true,
+    "output": "pptx: visible-controller open/save passed\n",
+    "error": ""
+  },
+  {
+    "file": "/out/rich-chart-line-WEfOgQ/document.pptx",
+    "seconds": 1.3493971579882782,
+    "passed": true,
+    "output": "pptx: visible-controller open/save passed\n",
+    "error": ""
+  },
+  {
+    "file": "/out/rich-chart-scatter-aEjZ0v/document.pptx",
+    "seconds": 1.3408855340094306,
+    "passed": true,
+    "output": "pptx: visible-controller open/save passed\n",
+    "error": ""
+  },
+  {
+    "file": "/out/rich-xlsx-x2Klzu/document.xlsx",
+    "seconds": 1.3397740280197468,
+    "passed": true,
+    "output": "xlsx: visible-controller open/save passed\n",
+    "error": ""
+  },
+  {
+    "file": "/out/rich-nested-wfhdX5/document.docx",
+    "seconds": 1.3841419079981279,
+    "passed": true,
+    "output": "docx: visible-controller open/save passed\n",
+    "error": ""
+  },
+  {
+    "file": "/out/rich-chart-area-id7NnE/document.pptx",
+    "seconds": 1.3497081469977275,
+    "passed": true,
+    "output": "pptx: visible-controller open/save passed\n",
+    "error": ""
+  },
+  {
+    "file": "/out/rich-chart-doughnut-dVVeZq/document.pptx",
+    "seconds": 1.316725751006743,
+    "passed": true,
+    "output": "pptx: visible-controller open/save passed\n",
+    "error": ""
+  },
+  {
+    "file": "/out/rich-presentation-C4Whoj/document.pptx",
+    "seconds": 1.661343437997857,
+    "passed": true,
+    "output": "pptx: visible-controller open/save passed\n",
+    "error": ""
+  },
+  {
+    "file": "/out/rich-chart-bar-amh28h/document.pptx",
+    "seconds": 1.321444354020059,
+    "passed": true,
+    "output": "pptx: visible-controller open/save passed\n",
+    "error": ""
+  }
+]

@@ -1,0 +1,19 @@
+b12x policy fallback: moe.decode is using a heuristic on nvidia gb10 (compute capability 12.1, 48 SMs) because profile 'nvidia.gb10.48sm' does not cover the query; query={'activation': 'silu', 'hidden_size': 5120, 'intermediate_size': 1152, 'num_experts': 8, 'num_tokens': 1, 'numerical_recipe': 'deepseek_v41', 'quant_mode': 'w4a8_mx', 'routed_rows': 2, 'source_format': 'fp4_e8m0_k32', 'top_k': 2}
+EXPERT_IO_EXACT_PASS 1 overlap
+EXPERT_IO_EXACT_PASS 1 batch
+EXPERT_IO_EXACT_PASS 1 batch_overlap
+b12x policy fallback: moe.decode is using a heuristic on nvidia gb10 (compute capability 12.1, 48 SMs) because profile 'nvidia.gb10.48sm' does not cover the query; query={'activation': 'silu', 'hidden_size': 5120, 'intermediate_size': 1152, 'num_experts': 8, 'num_tokens': 6, 'numerical_recipe': 'deepseek_v41', 'quant_mode': 'w4a8_mx', 'routed_rows': 12, 'source_format': 'fp4_e8m0_k32', 'top_k': 2}
+EXPERT_IO_EXACT_PASS 6 overlap
+EXPERT_IO_EXACT_PASS 6 batch
+EXPERT_IO_EXACT_PASS 6 batch_overlap
+b12x policy fallback: moe.decode is using a heuristic on nvidia gb10 (compute capability 12.1, 48 SMs) because profile 'nvidia.gb10.48sm' does not cover the query; query={'activation': 'silu', 'hidden_size': 5120, 'intermediate_size': 1152, 'num_experts': 8, 'num_tokens': 32, 'numerical_recipe': 'deepseek_v41', 'quant_mode': 'w4a8_mx', 'routed_rows': 64, 'source_format': 'fp4_e8m0_k32', 'top_k': 2}
+EXPERT_IO_EXACT_PASS 17 overlap
+EXPERT_IO_EXACT_PASS 17 batch
+EXPERT_IO_EXACT_PASS 17 batch_overlap
+EXPERT_IO_CONCURRENT_PASS overlap
+EXPERT_IO_CONCURRENT_PASS batch_overlap
+EXPERT_IO_CROSS_STREAM_PASS
+EXPERT_IO_CALLBACK_FAILURE_DRAIN_PASS overlap
+EXPERT_IO_CALLBACK_FAILURE_DRAIN_PASS batch_overlap
+EXPERT_IO_READ_ERROR_PASS
+{'slot_hits': 0, 'slot_misses': 248, 'packed_read_bytes': 2331279360, 'graph_replays': 40, 'prefetch_issued': 0, 'prefetch_read_bytes': 0, 'prefetch_consumed': 0, 'prefetch_ready': 0, 'prefetch_late': 0, 'prefetch_cancelled': 0, 'prefetch_unused': 0, 'demand_read_bytes': 2331279360, 'io_batches': 23, 'io_overlaps': 12, 'prefetch_pending': 0, 'scratch_bytes': 536870912, 'gpu_cache_bytes': 75202560}

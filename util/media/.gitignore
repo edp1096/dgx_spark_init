@@ -1,0 +1,7 @@
+/dist/
+/data/
+/media.yaml
+/web/dist/
+/web/node_modules/
+__pycache__/
+*.pyc

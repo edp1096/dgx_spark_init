@@ -1,0 +1,65 @@
+package orchestrator
+
+import (
+	"context"
+	"io/fs"
+	"path/filepath"
+	"strings"
+)
+
+func embeddedBuildAsset(compose string) string {
+	for _, spec := range SupportSpecs() {
+		if compose == "compose."+spec.ID+".yaml" {
+			return spec.BuildAsset
+		}
+	}
+	switch compose {
+	case "compose.nemotron-asr.yaml":
+		return "nemotron-asr"
+	case "compose.ornith35.yaml":
+		return "ornith35"
+	case "compose.gemma26.yaml":
+		return "gemma26"
+	case "compose.flux2.yaml":
+		return "flux2-paint"
+	case "compose.qwim-mmh3.yaml":
+		return "qwim-mmh3"
+	case "compose.qwen-image21.yaml":
+		return "qwen-image21"
+	case "compose.dreamlite.yaml":
+		return "dreamlite"
+	case "compose.extra-documents.yaml":
+		return "extra-documents"
+	case "compose.qwen3-tts.yaml":
+		return "qwen3-tts"
+	case "compose.gemma31.yaml":
+		return "gemma31"
+	case "compose.flash-next.yaml":
+		return "flash-next"
+	case "compose.qwen38fn_exl3.yaml":
+		return "qwen38fn_exl3"
+	}
+	return ""
+}
+
+// Build inputs travel with the executable, including nested patches. The target
+// host needs Docker and upstream network access, never the workspace checkout.
+func materializeBuildAssets(ctx context.Context, host Host, name, directory string) error {
+	root := "assets/" + name
+	return fs.WalkDir(assets, root, func(path string, entry fs.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+		target := filepath.Join(directory, strings.TrimSuffix(strings.TrimPrefix(strings.TrimPrefix(path, root), "/"), ".asset"))
+		if entry.IsDir() {
+			_, err := executeHost(ctx, host, nil, "mkdir", "-p", target)
+			return err
+		}
+		content, err := assets.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		_, err = executeHost(ctx, host, content, "sh", "-c", `umask 077; cat > "$1"`, "sh", target)
+		return err
+	})
+}

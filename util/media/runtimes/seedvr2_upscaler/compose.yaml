@@ -1,0 +1,25 @@
+services:
+  api:
+    init: true
+    build:
+      context: .
+    image: dgx-seedvr2-upscaler:latest
+    container_name: seedvr2-upscaler-api
+    restart: unless-stopped
+    network_mode: host
+    ipc: host
+    gpus: all
+    environment:
+      HF_TOKEN: ${HF_TOKEN:-}
+      API_PORT: "8698"
+      PYTORCH_CUDA_ALLOC_CONF: expandable_segments:True
+    volumes:
+      - hf-cache:/root/.cache/huggingface
+      - seedvr2-models:/opt/ComfyUI/models/SEEDVR2
+
+volumes:
+  hf-cache:
+    name: media-hf-cache
+    external: true
+  seedvr2-models:
+    name: media-seedvr2-models

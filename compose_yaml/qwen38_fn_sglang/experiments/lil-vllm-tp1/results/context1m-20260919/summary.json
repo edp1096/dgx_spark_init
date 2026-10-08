@@ -1,0 +1,59 @@
+{
+  "host": "gx10-2 / spark-f05a",
+  "result": "passed",
+  "context_length": 1048576,
+  "kv_cache_dtype": "fp8",
+  "allocated_kv_tokens": 1318640,
+  "kv_memory_gib": 18.24,
+  "max_running_requests": 1,
+  "guard_gib": 3,
+  "minimum_available_gib": 11.14780044555664,
+  "healthy_seconds": 177.968322662,
+  "oom_killed": false,
+  "exit_code": 0,
+  "max_swap_growth_gib": 0.0,
+  "prefix_cache_evidence": "Server logs confirm successful reset before both requests and final 0.0% hit rate. API usage omits prompt_tokens_details.",
+  "requests": [
+    {
+      "name": "retrieval",
+      "input_tokens": 130925,
+      "diverse": true,
+      "status": "completed",
+      "seconds": 75.35845423499995,
+      "ttft_seconds": 75.3398207939972,
+      "answer": "MAPLE, COMET",
+      "usage": {
+        "prompt_tokens": 130925,
+        "total_tokens": 130931,
+        "completion_tokens": 6
+      },
+      "finish_reason": "stop",
+      "stream_done": true,
+      "correct": true
+    },
+    {
+      "name": "retrieval",
+      "input_tokens": 1048431,
+      "diverse": false,
+      "status": "completed",
+      "seconds": 1229.3668051250024,
+      "ttft_seconds": 1229.3645350110019,
+      "answer": "MAPLE, COMET",
+      "usage": {
+        "prompt_tokens": 1048431,
+        "total_tokens": 1048437,
+        "completion_tokens": 6
+      },
+      "finish_reason": "stop",
+      "stream_done": true,
+      "correct": true
+    }
+  ],
+  "reproduction_sha256": {
+    "compose.context1m.yaml": "b2a194960d270323f2ef3159e6c6e47f2e71d2d9a8b2aa4c156bd0af7fe57be5",
+    "config.yarn1m.json": "a91d3889b3cf449b0f141eaeaeba2a4a86b5645886593c04fc933b1d6704b5d7",
+    "Dockerfile": "9ffad244cb41fe4e0f4d8b46b879a2e80499a1c1f1a3096d76012ad5d8befac5",
+    "probe.py": "6176bab05a0a8b157aa864025773dbdcc871758ead17c1f4245c74dad134ffd6",
+    "validate.py": "2adf9bca6a55981484d6c11d91a3175afe7c455606d45dbd7102d164501a3d7b"
+  }
+}

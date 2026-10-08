@@ -1,0 +1,30 @@
+{
+  "id": "9e22ffbaa1dd4650a05357981cab222a",
+  "object": "chat.completion",
+  "created": 1791048589,
+  "model": "qad5500-ablit-65536",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "\n\n17",
+        "reasoning_content": "The user asks for the total number of balls in a box containing 12 red balls and 5 blue balls. This is simply 12 + 5 = 17.\n",
+        "tool_calls": null
+      },
+      "logprobs": null,
+      "finish_reason": "stop",
+      "matched_stop": 248046
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 72,
+    "total_tokens": 116,
+    "completion_tokens": 44,
+    "prompt_tokens_details": null,
+    "reasoning_tokens": 40
+  },
+  "metadata": {
+    "weight_version": "default"
+  }
+}

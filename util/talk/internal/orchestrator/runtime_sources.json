@@ -1,0 +1,186 @@
+[
+  {
+    "source": "compose_yaml/nemotron_asr/Dockerfile",
+    "target": "nemotron-asr/Dockerfile"
+  },
+  {
+    "source": "compose_yaml/nemotron_asr/patches/release_workspace.py",
+    "target": "nemotron-asr/patches/release_workspace.py"
+  },
+  {
+    "source": "compose_yaml/nemotron_asr/scripts/entrypoint.sh",
+    "target": "nemotron-asr/scripts/entrypoint.sh"
+  },
+  {
+    "source": "compose_yaml/nemotron_asr/scripts/prepare_q5.py",
+    "target": "nemotron-asr/scripts/prepare_q5.py"
+  },
+  {
+    "source": "compose_yaml/ornith35_vllm/Dockerfile",
+    "target": "ornith35/Dockerfile"
+  },
+  {
+    "source": "compose_yaml/ornith35_vllm/launch.py",
+    "target": "ornith35/launch.py"
+  },
+  {
+    "source": "compose_yaml/ornith35_vllm/patch_runtime.py",
+    "target": "ornith35/patch_runtime.py"
+  },
+  {
+    "source": "compose_yaml/ornith35_vllm/draft_vocab/install_shortlist.py",
+    "target": "ornith35/draft_vocab/install_shortlist.py"
+  },
+  {
+    "source": "compose_yaml/ornith35_vllm/draft_vocab/draft_shortlist.py",
+    "target": "ornith35/draft_vocab/draft_shortlist.py"
+  },
+  {
+    "source": "compose_yaml/ornith35_vllm/draft_vocab/ornith-ko64k.json",
+    "target": "ornith35/draft_vocab/ornith-ko64k.json"
+  },
+  {
+    "source": "compose_yaml/gemma26_sglang/Dockerfile",
+    "target": "gemma26/Dockerfile"
+  },
+  {
+    "source": "compose_yaml/gemma26_sglang/launch.py",
+    "target": "gemma26/launch.py"
+  },
+  {
+    "source": "compose_yaml/gemma26_sglang/patch_rope.py",
+    "target": "gemma26/patch_rope.py"
+  },
+  {
+    "source": "compose_yaml/gemma26_sglang/patch_tool_index.py",
+    "target": "gemma26/patch_tool_index.py"
+  },
+  {
+    "source": "compose_yaml/gemma26_sglang/chat_template.jinja",
+    "target": "gemma26/chat_template.jinja"
+  },
+  {
+    "source": "compose_yaml/gemma26_sglang/base/chat_template.jinja",
+    "target": "gemma26/base/chat_template.jinja"
+  },
+  {
+    "source": "compose_yaml/gemma26_sglang/base/patch_tool_index.py",
+    "target": "gemma26/base/patch_tool_index.py"
+  },
+  {
+    "source": "compose_yaml/qwen-image21/Dockerfile",
+    "target": "qwen-image21/Dockerfile"
+  },
+  {
+    "source": "compose_yaml/qwen-image21/api.py",
+    "target": "qwen-image21/api.py"
+  },
+  {
+    "source": "compose_yaml/qwen-image21/prepare_models.py",
+    "target": "qwen-image21/prepare_models.py"
+  },
+  {
+    "source": "compose_yaml/qwen-image21/start.sh",
+    "target": "qwen-image21/start.sh"
+  },
+  {
+    "source": "compose_yaml/qwen-image21/run_comfy.py",
+    "target": "qwen-image21/run_comfy.py"
+  },
+  {
+    "source": "compose_yaml/qwen38fn_exl3/Dockerfile",
+    "target": "qwen38fn_exl3/Dockerfile"
+  },
+  {
+    "source": "compose_yaml/qwen38fn_exl3/constraints.txt",
+    "target": "qwen38fn_exl3/constraints.txt"
+  },
+  {
+    "source": "compose_yaml/qwen38fn_exl3/launch.py",
+    "target": "qwen38fn_exl3/launch.py"
+  },
+  {
+    "source": "compose_yaml/qwen38fn_exl3/release_weight_cache.py",
+    "target": "qwen38fn_exl3/release_weight_cache.py"
+  },
+  {
+    "source": "compose_yaml/qwen38fn_exl3/compose.yaml",
+    "target": "compose.qwen38fn_exl3.yaml"
+  },
+  {
+    "source": "compose_yaml/qwim_mmh3_service/prepare_models.py",
+    "target": "qwim-mmh3/prepare_models.py"
+  },
+  {
+    "source": "compose_yaml/qwim_mmh3_service/start.sh",
+    "target": "qwim-mmh3/start.sh"
+  },
+  {
+    "source": "compose_yaml/qwim_mmh3_service/api.py",
+    "target": "qwim-mmh3/api.py"
+  },
+  {
+    "source": "compose_yaml/qwim_mmh3_service/settings.json",
+    "target": "qwim-mmh3/settings.json"
+  },
+  {
+    "source": "compose_yaml/qwim_mmh3_service/worker.py",
+    "target": "qwim-mmh3/worker.py"
+  },
+  {
+    "source": "compose_yaml/qwim_mmh3_service/generation_progress.py",
+    "target": "qwim-mmh3/generation_progress.py"
+  },
+  {
+    "source": "compose_yaml/qwim_mmh3_service/Dockerfile",
+    "target": "qwim-mmh3/Dockerfile"
+  },
+  {
+    "source": "compose_yaml/qwim_mmh3_service/ClipProj/clipproj_projection.py",
+    "target": "qwim-mmh3/ClipProj/clipproj_projection.py"
+  },
+  {
+    "source": "compose_yaml/qwim_mmh3_service/ClipProj/clipproj_pinning.py",
+    "target": "qwim-mmh3/ClipProj/clipproj_pinning.py"
+  },
+  {
+    "source": "compose_yaml/qwim_mmh3_service/ClipProj/clipproj_nodes.py",
+    "target": "qwim-mmh3/ClipProj/clipproj_nodes.py"
+  },
+  {
+    "source": "compose_yaml/qwim_mmh3_service/ClipProj/__init__.py",
+    "target": "qwim-mmh3/ClipProj/__init__.py"
+  },
+  {
+    "source": "compose_yaml/qwim_mmh3_service/ClipProj/LICENSE",
+    "target": "qwim-mmh3/ClipProj/LICENSE"
+  },
+  {
+    "source": "compose_yaml/qwim_mmh3_service/ClipProj/UPSTREAM.txt",
+    "target": "qwim-mmh3/ClipProj/UPSTREAM.txt"
+  },
+  {
+    "source": "compose_yaml/qwen3_tts_gguf/Dockerfile",
+    "target": "qwen3-tts/Dockerfile"
+  },
+  {
+    "source": "compose_yaml/qwen3_tts_gguf/patches/runtime_lifecycle.py",
+    "target": "qwen3-tts/patches/runtime_lifecycle.py"
+  },
+  {
+    "source": "compose_yaml/qwen38_fn_sglang/radixark_launch.py",
+    "target": "flash-next/radixark_launch.py"
+  },
+  {
+    "source": "compose_yaml/qwen38_fn_sglang/checkpoint.radixark.json",
+    "target": "model-prepare/radixark-local.json"
+  },
+  {
+    "source": "compose_yaml/qwen-image21/resident_worker.py",
+    "target": "qwen-image21/resident_worker.py"
+  },
+  {
+    "source": "compose_yaml/qwen-image21/resident_settings.json",
+    "target": "qwen-image21/resident_settings.json"
+  }
+]

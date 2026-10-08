@@ -1,0 +1,66 @@
+use_default_settings: true
+
+general:
+  instance_name: "SearXNG"
+  debug: false
+
+search:
+  safe_search: 0
+  autocomplete: "duckduckgo"
+  default_lang: "auto"
+  formats:
+    - html
+    - json
+
+server:
+  secret_key: "change-this-to-random-string"
+  limiter: false
+  image_proxy: true
+  port: 8080
+  bind_address: "0.0.0.0"
+
+redis:
+  url: "redis://redis:6379/0"
+
+ui:
+  static_use_hash: true
+
+engines:
+  # Google
+  - name: google
+    engine: google
+    shortcut: g
+    disabled: false
+
+  # DuckDuckGo
+  - name: duckduckgo
+    engine: duckduckgo
+    shortcut: ddg
+    disabled: false
+
+  # Bing
+  - name: bing
+    engine: bing
+    shortcut: bi
+    disabled: false
+
+  # Brave
+  - name: brave
+    engine: brave
+    shortcut: br
+    disabled: false
+
+  # Wikipedia
+  - name: wikipedia
+    engine: wikipedia
+    shortcut: wp
+    disabled: false
+
+  # Disable some noisy engines
+  - name: yahoo
+    engine: yahoo
+    disabled: true
+
+  - name: qwant
+    engine: qwant
+    disabled: true

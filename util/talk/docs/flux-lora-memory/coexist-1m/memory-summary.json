@@ -1,0 +1,6 @@
+{
+  "min_available_gib": 4.973,
+  "max_swap_gib": 0.171,
+  "samples": 14775,
+  "note": "Native GDN full-1M phase only; earlier diagnostic trials excluded."
+}

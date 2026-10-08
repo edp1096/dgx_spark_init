@@ -1,0 +1,64 @@
+recipe_version: "1"
+name: Gemma4 bg-digitalservices 26B A4B NVFP4
+description: vLLM serving bg-digitalservices Gemma4 26B A4B NVFP4 on DGX Spark
+model: bg-digitalservices/Gemma-4-26B-A4B-it-NVFP4
+container: ${VLLM_IMAGE:-vllm-node-tf5:latest}
+cluster_only: false
+solo_only: false
+
+mode: ray-head
+service: vllm-head
+container_name: vllm-gemma4-head
+hf_cache: /home/edp1096/.cache/huggingface
+volumes:
+  - ../../patches/gemma4_patched.py:/opt/gemma4_patched.py:ro
+eth_if: enp1s0f0np0
+ib_hca: rocep1s0f0,roceP2p1s0f0
+head_ip: 169.254.141.58
+node_ip: 169.254.141.58
+master_port: 6379
+
+build_args:
+  - --tf5
+
+mods:
+  - mods/fix-gemma4-tool-parser
+
+env:
+  HF_TOKEN: ${HF_TOKEN}
+  PYTORCH_CUDA_ALLOC_CONF: expandable_segments:True
+  VLLM_MARLIN_USE_ATOMIC_ADD: "1"
+  VLLM_NVFP4_GEMM_BACKEND: FLASHINFER_CUTLASS
+
+pre_commands:
+  - cp /opt/gemma4_patched.py /usr/local/lib/python3.12/dist-packages/vllm/model_executor/models/gemma4.py
+
+defaults:
+  host: 0.0.0.0
+  port: 8000
+  tensor_parallel: 2
+  gpu_memory_utilization: 0.70
+  max_model_len: 262144
+  max_num_seqs: 4
+  max_num_batched_tokens: 8192
+
+command: |
+  vllm serve bg-digitalservices/Gemma-4-26B-A4B-it-NVFP4 \
+    --host {host} \
+    --port {port} \
+    --distributed-executor-backend ray \
+    --tensor-parallel-size {tensor_parallel} \
+    --max-model-len {max_model_len} \
+    --max-num-seqs {max_num_seqs} \
+    --gpu-memory-utilization {gpu_memory_utilization} \
+    --quantization modelopt \
+    --dtype auto \
+    --kv-cache-dtype fp8 \
+    --max-num-batched-tokens {max_num_batched_tokens} \
+    --moe-backend marlin \
+    --attention-backend TRITON_ATTN \
+    --enable-prefix-caching \
+    --enable-auto-tool-choice \
+    --tool-call-parser gemma4 \
+    --reasoning-parser gemma4 \
+    --trust-remote-code

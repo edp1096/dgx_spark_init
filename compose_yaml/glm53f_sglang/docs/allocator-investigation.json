@@ -1,0 +1,317 @@
+{
+  "date": "2026-09-27",
+  "change": "PYTORCH_ALLOC_CONF=expandable_segments:True",
+  "evidence": "DeepGEMM fp8_fp4_mqa_logits score tensors grow across prefill chunks; allocator snapshot shows retained 196/198/200/202/204 MiB inactive blocks.",
+  "baseline_256k": {
+    "seconds": 203.42067,
+    "driver_warnings": 4,
+    "torch_alloc_retries": 0,
+    "torch_ooms": 0
+  },
+  "after_long_context": [
+    {
+      "limit": 262144,
+      "passed": true,
+      "seconds": 196.63761682800032,
+      "prompt_tokens": 261192,
+      "cached_tokens": 0,
+      "actual": {
+        "STONE": "a7c9f2d4",
+        "LARCH": "b6e1a8c3",
+        "RIVER": "d9f4b2e7"
+      },
+      "expected": {
+        "STONE": "a7c9f2d4",
+        "LARCH": "b6e1a8c3",
+        "RIVER": "d9f4b2e7"
+      },
+      "usage": {
+        "prompt_tokens": 261192,
+        "total_tokens": 261229,
+        "completion_tokens": 37,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      }
+    },
+    {
+      "limit": 1048576,
+      "passed": true,
+      "seconds": 882.7841184860008,
+      "prompt_tokens": 1047622,
+      "cached_tokens": 0,
+      "actual": {
+        "STONE": "a7c9f2d4",
+        "LARCH": "b6e1a8c3",
+        "RIVER": "d9f4b2e7",
+        "CLOUD": "c5a3e9f1",
+        "ORBIT": "e8b6d1a4"
+      },
+      "expected": {
+        "STONE": "a7c9f2d4",
+        "LARCH": "b6e1a8c3",
+        "RIVER": "d9f4b2e7",
+        "CLOUD": "c5a3e9f1",
+        "ORBIT": "e8b6d1a4"
+      },
+      "usage": {
+        "prompt_tokens": 1047622,
+        "total_tokens": 1047683,
+        "completion_tokens": 61,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      }
+    }
+  ],
+  "allocator": {
+    "run-a": {
+      "0": {
+        "allocated_bytes.all.current": 104488942080,
+        "reserved_bytes.all.current": 115708264448,
+        "num_alloc_retries": 0,
+        "num_ooms": 0
+      },
+      "1": {
+        "allocated_bytes.all.current": 104488942080,
+        "reserved_bytes.all.current": 110570242048,
+        "num_alloc_retries": 0,
+        "num_ooms": 0
+      }
+    },
+    "run-b": {
+      "0": {
+        "allocated_bytes.all.current": 104807739392,
+        "reserved_bytes.all.current": 105843261440,
+        "num_alloc_retries": 0,
+        "num_ooms": 0
+      },
+      "1": {
+        "allocated_bytes.all.current": 104807739392,
+        "reserved_bytes.all.current": 105843261440,
+        "num_alloc_retries": 0,
+        "num_ooms": 0
+      }
+    }
+  },
+  "telemetry_1m": {
+    "head": {
+      "samples": 431,
+      "boot_ids": [
+        "6eb0905a-08ca-4918-907a-b96ba443be4b"
+      ],
+      "min_available_gib": 11.500221252441406,
+      "max_swap_used_gib": 4.0349884033203125,
+      "min_swap_used_gib": 4.0280914306640625,
+      "cpu_max_khz": [
+        1965600,
+        2730000
+      ],
+      "max_thermal_sensor_c": 80.8
+    },
+    "worker": {
+      "samples": 430,
+      "boot_ids": [
+        "a9785e49-f11a-4418-ada0-ef1a2707e8d2"
+      ],
+      "min_available_gib": 13.343948364257812,
+      "max_swap_used_gib": 2.419757843017578,
+      "min_swap_used_gib": 2.419452667236328,
+      "cpu_max_khz": [
+        1965600,
+        2730000
+      ],
+      "max_thermal_sensor_c": 80.9
+    }
+  },
+  "driver_warnings": {
+    "head": [],
+    "worker": []
+  },
+  "stage_profile": {
+    "chunk_tokens": 1024,
+    "note": "Nested GPU event totals overlap; do not sum decoder/indexer/substage durations. Head rank only.",
+    "rows": [
+      {
+        "time": 1790490402.514539,
+        "kind": "profile",
+        "step": 32,
+        "seq": 21504,
+        "gpu_ms": {
+          "kda": 68.76243221759796,
+          "decoder_layer": 709.6693487167358,
+          "mqa_logits": 4.125151991844177,
+          "topk": 2.3251200020313263,
+          "indexer": 12.438560128211975,
+          "sparse_attention": 57.95750379562378,
+          "moe": 327.45932722091675
+        },
+        "calls": {
+          "kda": 34,
+          "decoder_layer": 45,
+          "mqa_logits": 11,
+          "topk": 11,
+          "indexer": 11,
+          "sparse_attention": 11,
+          "moe": 42
+        },
+        "wall_seconds": 0.7167613909987267,
+        "before": {
+          "allocated_bytes.all.current": 104475742720,
+          "reserved_bytes.all.current": 104989720576,
+          "active_bytes.all.current": 104475742720,
+          "inactive_split_bytes.all.current": 327331328,
+          "num_alloc_retries": 0,
+          "num_ooms": 0,
+          "num_device_alloc": 422,
+          "num_device_free": 91
+        },
+        "after": {
+          "allocated_bytes.all.current": 104476400128,
+          "reserved_bytes.all.current": 104989720576,
+          "active_bytes.all.current": 104476400128,
+          "inactive_split_bytes.all.current": 328771072,
+          "num_alloc_retries": 0,
+          "num_ooms": 0,
+          "num_device_alloc": 422,
+          "num_device_free": 91
+        }
+      },
+      {
+        "time": 1790490449.575522,
+        "kind": "profile",
+        "step": 96,
+        "seq": 87040,
+        "gpu_ms": {
+          "kda": 70.16079938411713,
+          "decoder_layer": 710.1540851593018,
+          "mqa_logits": 15.994079947471619,
+          "topk": 5.412927985191345,
+          "indexer": 28.054304361343384,
+          "sparse_attention": 57.636319637298584,
+          "moe": 305.31763219833374
+        },
+        "calls": {
+          "kda": 34,
+          "decoder_layer": 45,
+          "mqa_logits": 11,
+          "topk": 11,
+          "indexer": 11,
+          "sparse_attention": 11,
+          "moe": 42
+        },
+        "wall_seconds": 0.7175239610005519,
+        "before": {
+          "allocated_bytes.all.current": 104479221248,
+          "reserved_bytes.all.current": 104991817728,
+          "active_bytes.all.current": 104479221248,
+          "inactive_split_bytes.all.current": 359504384,
+          "num_alloc_retries": 0,
+          "num_ooms": 0,
+          "num_device_alloc": 423,
+          "num_device_free": 91
+        },
+        "after": {
+          "allocated_bytes.all.current": 104479878656,
+          "reserved_bytes.all.current": 104991817728,
+          "active_bytes.all.current": 104479878656,
+          "inactive_split_bytes.all.current": 358846976,
+          "num_alloc_retries": 0,
+          "num_ooms": 0,
+          "num_device_alloc": 423,
+          "num_device_free": 91
+        }
+      },
+      {
+        "time": 1790490574.4965234,
+        "kind": "profile",
+        "step": 256,
+        "seq": 250880,
+        "gpu_ms": {
+          "kda": 78.09923243522644,
+          "decoder_layer": 833.800350189209,
+          "mqa_logits": 56.29708766937256,
+          "topk": 13.640735983848572,
+          "indexer": 79.82342386245728,
+          "sparse_attention": 59.7357439994812,
+          "moe": 330.43164825439453
+        },
+        "calls": {
+          "kda": 34,
+          "decoder_layer": 45,
+          "mqa_logits": 11,
+          "topk": 11,
+          "indexer": 11,
+          "sparse_attention": 11,
+          "moe": 42
+        },
+        "wall_seconds": 0.8415214679989731,
+        "before": {
+          "allocated_bytes.all.current": 104487917568,
+          "reserved_bytes.all.current": 114380767232,
+          "active_bytes.all.current": 104487917568,
+          "inactive_split_bytes.all.current": 373876736,
+          "num_alloc_retries": 0,
+          "num_ooms": 0,
+          "num_device_alloc": 469,
+          "num_device_free": 91
+        },
+        "after": {
+          "allocated_bytes.all.current": 104488574976,
+          "reserved_bytes.all.current": 114380767232,
+          "active_bytes.all.current": 104488574976,
+          "inactive_split_bytes.all.current": 373219328,
+          "num_alloc_retries": 0,
+          "num_ooms": 0,
+          "num_device_alloc": 469,
+          "num_device_free": 91
+        }
+      }
+    ]
+  },
+  "scope": "Cold-start allocator A/B, same model/image/TP2/clock limits and 256K prompt. Stage instrumentation in 256K; only forward memory counters in 1M. Not a general throughput benchmark.",
+  "limits": [
+    "The B12X MoE substitution did not meet the preselected cross-kernel numerical threshold on random activations. No timing claim or runtime substitution was made; one-token BF16-reference errors were similar for both kernels.",
+    "Exact internal NVIDIA driver recovery mechanism is unknown; PyTorch allocation retry and OOM counters stayed zero even during baseline driver warnings.",
+    "Snapshot demonstrates retained growing score buffers; this does not prove every historical warning had the same cause.",
+    "One test per long-context size; no concurrency or sustained soak qualification."
+  ],
+  "moe_microbenchmark": {
+    "layer": 3,
+    "tp_rank": 0,
+    "tp_size": 2,
+    "hidden": 4096,
+    "local_intermediate": 1024,
+    "experts": 288,
+    "topk": 8,
+    "scope": "one layer kernel benchmark, random BF16 inputs/routing, real checkpoint weights; no TP communication",
+    "rows": [
+      {
+        "tokens": 1,
+        "relative_l2": 0.06373084336519241,
+        "cosine": 0.9979832172393799,
+        "max_abs": 0.0020008087158203125,
+        "finite": true,
+        "bf16_dequant_reference": {
+          "cutlass_relative_l2": 0.16011299192905426,
+          "b12x_relative_l2": 0.15949571132659912
+        },
+        "numerically_close": false
+      },
+      {
+        "tokens": 128,
+        "relative_l2": 0.052280016243457794,
+        "cosine": 0.9986342191696167,
+        "max_abs": 0.002532958984375,
+        "finite": true,
+        "numerically_close": false
+      },
+      {
+        "tokens": 1024,
+        "relative_l2": 0.052782654762268066,
+        "cosine": 0.9986076354980469,
+        "max_abs": 0.00347900390625,
+        "finite": true,
+        "numerically_close": false
+      }
+    ]
+  }
+}

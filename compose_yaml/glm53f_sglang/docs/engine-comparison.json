@@ -1,0 +1,596 @@
+{
+  "scope": "Same Huihui NVFP4 model, TP2, 1M configured context, concurrency 1, CPU70% GPU2100MHz; compares qualified configurations, not identically tuned engine internals",
+  "engines": {
+    "vllm": {
+      "requests": 51,
+      "sequence_failures": [
+        "short-cached-1",
+        "short-cold-2",
+        "short-cached-2",
+        "short-cold-4",
+        "short-cached-4",
+        "sustained-0",
+        "sustained-1",
+        "sustained-2",
+        "sustained-3",
+        "sustained-4",
+        "sustained-5",
+        "sustained-6",
+        "sustained-7",
+        "sustained-8",
+        "sustained-9"
+      ],
+      "groups": {
+        "short-cold": {
+          "requests": 5,
+          "ttft_s": {
+            "median": 0.5102087630002643,
+            "min": 0.5033686979950289,
+            "max": 0.5139938959982828
+          },
+          "decode_tps": {
+            "median": 4.192619241881157,
+            "min": 4.125497540572979,
+            "max": 4.207779721574792
+          },
+          "elapsed_s": {
+            "median": 61.32468060099927,
+            "min": 48.28226204699604,
+            "max": 62.32042656100384
+          },
+          "completion_tokens": [
+            200,
+            256
+          ],
+          "prompt_tokens": [
+            34
+          ],
+          "actual_cache_hits": [
+            0.0
+          ]
+        },
+        "short-cached": {
+          "requests": 5,
+          "ttft_s": {
+            "median": 0.02395342600357253,
+            "min": 0.021122645994182676,
+            "max": 0.06995569099672139
+          },
+          "decode_tps": {
+            "median": 4.1551340689740375,
+            "min": 4.1202207004889475,
+            "max": 4.194214634695932
+          },
+          "elapsed_s": {
+            "median": 61.439963128003,
+            "min": 60.8408078890061,
+            "max": 61.911163047996524
+          },
+          "completion_tokens": [
+            256
+          ],
+          "prompt_tokens": [
+            34
+          ],
+          "actual_cache_hits": [
+            34.0
+          ]
+        },
+        "prefix-cold": {
+          "requests": 3,
+          "ttft_s": {
+            "median": 4.299759173998609,
+            "min": 4.296732068003621,
+            "max": 4.450814774005266
+          },
+          "decode_tps": {
+            "median": 4.1617390894503945,
+            "min": 4.102986327903883,
+            "max": 4.197128229782845
+          },
+          "elapsed_s": {
+            "median": 65.72340830800385,
+            "min": 65.05573758699757,
+            "max": 66.4466814930056
+          },
+          "completion_tokens": [
+            256
+          ],
+          "prompt_tokens": [
+            6183
+          ],
+          "actual_cache_hits": [
+            0.0
+          ]
+        },
+        "prefix-cached": {
+          "requests": 3,
+          "ttft_s": {
+            "median": 0.0411826849958743,
+            "min": 0.03849210099724587,
+            "max": 0.0455817649999517
+          },
+          "decode_tps": {
+            "median": 4.140290192594282,
+            "min": 4.100998774333785,
+            "max": 4.160091314227096
+          },
+          "elapsed_s": {
+            "median": 61.628464332003205,
+            "min": 61.34244562499953,
+            "max": 62.22124483399966
+          },
+          "completion_tokens": [
+            256
+          ],
+          "prompt_tokens": [
+            6183
+          ],
+          "actual_cache_hits": [
+            6183.0
+          ]
+        },
+        "chat": {
+          "requests": 24,
+          "ttft_s": {
+            "median": 0.4965918849957234,
+            "min": 0.48579515899473336,
+            "max": 3.5917661630010116
+          },
+          "elapsed_s": {
+            "median": 0.9694481605001783,
+            "min": 0.7358928989997366,
+            "max": 3.841387020998809
+          },
+          "completion_tokens": [
+            2,
+            3
+          ],
+          "prompt_tokens": [
+            37,
+            48,
+            49,
+            59,
+            60,
+            70,
+            71,
+            72,
+            81,
+            83,
+            85,
+            92,
+            95,
+            98,
+            103,
+            107,
+            111,
+            115,
+            119,
+            124
+          ],
+          "actual_cache_hits": [
+            0.0,
+            38.0,
+            39.0,
+            49.0,
+            50.0,
+            60.0,
+            61.0,
+            62.0,
+            71.0,
+            73.0,
+            74.0,
+            82.0,
+            85.0,
+            87.0,
+            93.0,
+            97.0,
+            100.0,
+            105.0,
+            109.0,
+            113.0
+          ]
+        },
+        "sustained": {
+          "requests": 10,
+          "ttft_s": {
+            "median": 0.5104841094980657,
+            "min": 0.4851053220045287,
+            "max": 0.5469841879967134
+          },
+          "decode_tps": {
+            "median": 4.150278840132872,
+            "min": 4.052505388991001,
+            "max": 4.182345442784399
+          },
+          "elapsed_s": {
+            "median": 61.93109040299532,
+            "min": 61.45653890899848,
+            "max": 63.44136134300061
+          },
+          "completion_tokens": [
+            256
+          ],
+          "prompt_tokens": [
+            38
+          ],
+          "actual_cache_hits": [
+            0.0
+          ]
+        }
+      },
+      "telemetry": {
+        "local": {
+          "min_available_gib": 7.190929412841797,
+          "swapin_mib": 73.57421875,
+          "swapout_mib": 0.0,
+          "boot_ids": [
+            "6eb0905a-08ca-4918-907a-b96ba443be4b"
+          ]
+        },
+        "192.168.100.60": {
+          "min_available_gib": 11.01812744140625,
+          "swapin_mib": 7.0078125,
+          "swapout_mib": 0.00390625,
+          "boot_ids": [
+            "a9785e49-f11a-4418-ada0-ef1a2707e8d2"
+          ]
+        }
+      },
+      "initial_warmup_excluded_from_metrics": true
+    },
+    "sglang": {
+      "requests": 82,
+      "sequence_failures": [
+        "short-cold-0",
+        "short-cached-0",
+        "short-cold-1",
+        "short-cached-1",
+        "short-cold-2",
+        "short-cached-2",
+        "short-cold-3",
+        "short-cached-3",
+        "short-cold-4",
+        "short-cached-4",
+        "sustained-0",
+        "sustained-1",
+        "sustained-3",
+        "sustained-4",
+        "sustained-5",
+        "sustained-6",
+        "sustained-7",
+        "sustained-8",
+        "sustained-9",
+        "sustained-10",
+        "sustained-11",
+        "sustained-12",
+        "sustained-13",
+        "sustained-14",
+        "sustained-15",
+        "sustained-16",
+        "sustained-17",
+        "sustained-18",
+        "sustained-19",
+        "sustained-20",
+        "sustained-22",
+        "sustained-23",
+        "sustained-24",
+        "sustained-25",
+        "sustained-26",
+        "sustained-27",
+        "sustained-28",
+        "sustained-29",
+        "sustained-30",
+        "sustained-31",
+        "sustained-32",
+        "sustained-33",
+        "sustained-35",
+        "sustained-36",
+        "sustained-37",
+        "sustained-38",
+        "sustained-39",
+        "sustained-40"
+      ],
+      "groups": {
+        "short-cold": {
+          "requests": 5,
+          "ttft_s": {
+            "median": 0.226861742004985,
+            "min": 0.22609578099945793,
+            "max": 0.23441314699448412
+          },
+          "decode_tps": {
+            "median": 15.622829997535069,
+            "min": 15.601690024475758,
+            "max": 15.689513481683543
+          },
+          "elapsed_s": {
+            "median": 16.549327748005453,
+            "min": 16.484597467999265,
+            "max": 16.570664737999323
+          },
+          "completion_tokens": [
+            256
+          ],
+          "prompt_tokens": [
+            34
+          ],
+          "actual_cache_hits": [
+            0
+          ]
+        },
+        "short-cached": {
+          "requests": 5,
+          "ttft_s": {
+            "median": 0.2788418999989517,
+            "min": 0.27623338300327305,
+            "max": 0.2795905489983852
+          },
+          "decode_tps": {
+            "median": 15.602062217145788,
+            "min": 15.597914075026482,
+            "max": 15.682074551914642
+          },
+          "elapsed_s": {
+            "median": 16.62378358800197,
+            "min": 16.5369822710054,
+            "max": 16.627381111997238
+          },
+          "completion_tokens": [
+            256
+          ],
+          "prompt_tokens": [
+            34
+          ],
+          "actual_cache_hits": [
+            0
+          ]
+        },
+        "prefix-cold": {
+          "requests": 3,
+          "ttft_s": {
+            "median": 3.5242241360028856,
+            "min": 3.522280987002887,
+            "max": 3.530156717999489
+          },
+          "decode_tps": {
+            "median": 15.560423353509588,
+            "min": 15.557155090322771,
+            "max": 15.565641877305204
+          },
+          "elapsed_s": {
+            "median": 19.912577773997327,
+            "min": 19.91021822699986,
+            "max": 19.915545106996433
+          },
+          "completion_tokens": [
+            256
+          ],
+          "prompt_tokens": [
+            6183
+          ],
+          "actual_cache_hits": [
+            0
+          ]
+        },
+        "prefix-cached": {
+          "requests": 3,
+          "ttft_s": {
+            "median": 0.30712899300124263,
+            "min": 0.2981976869996288,
+            "max": 0.3193394400004763
+          },
+          "decode_tps": {
+            "median": 15.548316494758428,
+            "min": 15.540648195481115,
+            "max": 15.559113841776059
+          },
+          "elapsed_s": {
+            "median": 16.715848120002192,
+            "min": 16.6875672640017,
+            "max": 16.72004118699988
+          },
+          "completion_tokens": [
+            256
+          ],
+          "prompt_tokens": [
+            6183
+          ],
+          "actual_cache_hits": [
+            6144
+          ]
+        },
+        "chat": {
+          "requests": 24,
+          "ttft_s": {
+            "median": 0.2684419399993203,
+            "min": 0.21915780999552226,
+            "max": 0.3510956819955027
+          },
+          "elapsed_s": {
+            "median": 0.38411734650071594,
+            "min": 0.28223921499738935,
+            "max": 0.4803698629984865
+          },
+          "completion_tokens": [
+            2,
+            3
+          ],
+          "prompt_tokens": [
+            37,
+            48,
+            49,
+            59,
+            60,
+            70,
+            71,
+            72,
+            81,
+            83,
+            85,
+            92,
+            95,
+            98,
+            103,
+            107,
+            111,
+            115,
+            119,
+            124
+          ],
+          "actual_cache_hits": [
+            0,
+            64
+          ]
+        },
+        "sustained": {
+          "requests": 41,
+          "ttft_s": {
+            "median": 0.29361026299739024,
+            "min": 0.2901666120014852,
+            "max": 0.2977555709949229
+          },
+          "decode_tps": {
+            "median": 15.595150446302762,
+            "min": 15.571949179155649,
+            "max": 15.818215530490212
+          },
+          "elapsed_s": {
+            "median": 16.643727875998593,
+            "min": 3.438375293997524,
+            "max": 16.67350951499975
+          },
+          "completion_tokens": [
+            50,
+            54,
+            71,
+            116,
+            121,
+            224,
+            256
+          ],
+          "prompt_tokens": [
+            38
+          ],
+          "actual_cache_hits": [
+            0
+          ]
+        }
+      },
+      "telemetry": {
+        "local": {
+          "min_available_gib": 10.796318054199219,
+          "swapin_mib": 24.234375,
+          "swapout_mib": 0.0,
+          "boot_ids": [
+            "6eb0905a-08ca-4918-907a-b96ba443be4b"
+          ]
+        },
+        "192.168.100.60": {
+          "min_available_gib": 12.129829406738281,
+          "swapin_mib": 2.07421875,
+          "swapout_mib": 0.0,
+          "boot_ids": [
+            "a9785e49-f11a-4418-ada0-ef1a2707e8d2"
+          ]
+        }
+      },
+      "initial_warmup_excluded_from_metrics": true
+    }
+  },
+  "startup_memory": {
+    "vllm": {
+      "local": {
+        "swap_written_gib": 3.2945327758789062,
+        "swap_read_gib": 1.2781028747558594,
+        "peak_swap_used_gib": 3.651195526123047,
+        "minimum_available_gib": 6.979679107666016
+      },
+      "192.168.100.60": {
+        "swap_written_gib": 2.280132293701172,
+        "swap_read_gib": 0.6474113464355469,
+        "peak_swap_used_gib": 2.631175994873047,
+        "minimum_available_gib": 10.753311157226562
+      }
+    },
+    "sglang": {
+      "local": {
+        "swap_written_gib": 26.044708251953125,
+        "swap_read_gib": 1.1956291198730469,
+        "peak_swap_used_gib": 15.999980926513672,
+        "minimum_available_gib": 0.7659683227539062
+      },
+      "192.168.100.60": {
+        "swap_written_gib": 23.018733978271484,
+        "swap_read_gib": 0.8738594055175781,
+        "peak_swap_used_gib": 15.99985122680664,
+        "minimum_available_gib": 3.4816627502441406
+      }
+    }
+  },
+  "decision": "No engine superiority or Talk default switch qualified: neither local setup reproduces the optimized forum stack; startup swap and synthetic sequence failures remain.",
+  "artifacts": "/home/edp1096/.cache/runtime-inspection/glm53-engine-comparison",
+  "qualification": {
+    "vllm": {
+      "functional_passed": 9,
+      "functional_total": 9,
+      "rgb_passed": 3,
+      "multi_turn_arithmetic_passed": 24,
+      "sequence_tested": 27,
+      "sequence_failed": 15,
+      "completion": {
+        "completed": true,
+        "sustained_requests": 10,
+        "sustained_s": 620.838795798998
+      }
+    },
+    "sglang": {
+      "functional_passed": 9,
+      "functional_total": 9,
+      "rgb_passed": 3,
+      "multi_turn_arithmetic_passed": 24,
+      "sequence_tested": 58,
+      "sequence_failed": 48,
+      "completion": {
+        "completed": true,
+        "sustained_requests": 41,
+        "sustained_s": 606.9614440760051
+      }
+    }
+  },
+  "matched_requests": {
+    "count": 51,
+    "sequence_tested": 27,
+    "vllm_sequence_failed": 15,
+    "sglang_sequence_failed": 19
+  },
+  "kernel_events": {
+    "local": [
+      "Sep 27 22:06:35 spark-f05a kernel: NVRM: nvCheckOkFailedNoLog: Check failed: Out of memory [NV_ERR_NO_MEMORY] (0x00000051) returned from _memdescAllocInternal(pMemDesc) @ mem_desc.c:1359"
+    ],
+    "192.168.100.60": []
+  },
+  "kernel_events_scope": "Both startups and inference, excluding final QAD restoration; recovered allocation warning is distinct from an OOM kill.",
+  "initial_attempt": {
+    "engine": "vllm",
+    "outcome": "Benchmark harness stopped after a numeric-sequence assertion failure, not an engine crash. Restarted and reran with semantic failures recorded rather than aborting the remaining comparisons.",
+    "failed_request": {
+      "label": "short-cached-0",
+      "time": 1790513579.0662446,
+      "elapsed_s": 61.61984169999778,
+      "ttft_s": 0.06954653200227767,
+      "decode_tps": 4.142962356206531,
+      "usage": {
+        "prompt_tokens": 34,
+        "total_tokens": 290,
+        "completion_tokens": 256,
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "finish_reason": "length",
+      "content": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 76, 77, 78, 79, 80, 81, 82, 83, 84",
+      "sequence_correct": false
+    }
+  }
+}

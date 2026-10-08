@@ -1,0 +1,88 @@
+[
+  {
+    "started": 1789450706.492498,
+    "finished": 1789450707.1088552,
+    "verify_calls": 8.0,
+    "accept_length": 3.125,
+    "text": "",
+    "reasoning": "",
+    "calls": [
+      {
+        "id": "call_ea455175322c4680a7afa6ce",
+        "index": 0,
+        "type": "function",
+        "function": {
+          "name": "get_weather",
+          "arguments": ""
+        }
+      },
+      {
+        "id": null,
+        "index": 0,
+        "type": "function",
+        "function": {
+          "name": null,
+          "arguments": "{"
+        }
+      },
+      {
+        "id": null,
+        "index": 0,
+        "type": "function",
+        "function": {
+          "name": null,
+          "arguments": "\"location\": \"서울\""
+        }
+      },
+      {
+        "id": null,
+        "index": 0,
+        "type": "function",
+        "function": {
+          "name": null,
+          "arguments": "}"
+        }
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 316,
+      "total_tokens": 342,
+      "completion_tokens": 26,
+      "prompt_tokens_details": null,
+      "reasoning_tokens": 0
+    },
+    "finish": "tool_calls",
+    "ttft": 0.3122983669745736,
+    "tg": 90.80019110344841,
+    "elapsed": 0.5876281839737203,
+    "hanzi": [],
+    "passed": true,
+    "name": "tool_call"
+  },
+  {
+    "started": 1789450707.110148,
+    "finished": 1789450707.4932365,
+    "verify_calls": 2.0,
+    "accept_length": 1.0,
+    "text": "빨강",
+    "reasoning": "",
+    "calls": [],
+    "usage": {
+      "prompt_tokens": 91,
+      "total_tokens": 94,
+      "completion_tokens": 3,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "image_tokens": 64
+      },
+      "reasoning_tokens": 0
+    },
+    "finish": "stop",
+    "ttft": 0.26217753198579885,
+    "tg": 18.205065057808035,
+    "elapsed": 0.3720370679802727,
+    "hanzi": [],
+    "passed": true,
+    "name": "image"
+  }
+]

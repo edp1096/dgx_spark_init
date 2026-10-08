@@ -1,0 +1,420 @@
+{
+  "engine": "llama-12b-i1-q4_k_m-mtp2-q8-mmproj-q8-master-jpeg",
+  "endpoint": "http://127.0.0.1:5000",
+  "model": "huihui-gemma4-12b",
+  "generated_at": "2026-08-24T13:52:30.29553859+09:00",
+  "results": [
+    {
+      "case": {
+        "id": "cat-bento",
+        "image": "../../compose_yaml/llama.cpp/benchmark-results/vision-assets/prompt-examples/sogni-cat-bento.jpg",
+        "motion": "The camera remains static. One of the cat's rice paws makes a tiny wave, while the food arrangement stays unchanged.",
+        "required": [
+          "cat",
+          "rice",
+          "nori",
+          "egg",
+          "tomato",
+          "broccoli",
+          "bento"
+        ]
+      },
+      "task": "describe",
+      "output": "A high-angle, close-up shot features a stylized cat face made of white sushi rice, centered within a rectangular wooden bento box. The cat's face is composed of rounded grains of rice, with two thin, curved black lines forming closed eyes and a small, triangular nose. Three black whiskers extend from each side of the face, and two small, rounded rice paws sit at the bottom, each featuring three distinct whiskers. The cat is nestled atop a bed of bright yellow, folded egg omelet (tamagoyaki) that occupies the lower half of the frame. Surrounding the rice face are vibrant vegetables: two large red cherry tomatoes, two smaller yellow-orange tomatoes, and four clusters of deep green broccoli florets. The composition is balanced and compact, emphasizing the contrast between the white rice, yellow egg, and multi-colored vegetables against the warm wood grain of the container.",
+      "latency_ms": 4560,
+      "words": 142,
+      "hits": 6,
+      "total": 7,
+      "missing": [
+        "nori"
+      ]
+    },
+    {
+      "case": {
+        "id": "cat-bento",
+        "image": "../../compose_yaml/llama.cpp/benchmark-results/vision-assets/prompt-examples/sogni-cat-bento.jpg",
+        "motion": "The camera remains static. One of the cat's rice paws makes a tiny wave, while the food arrangement stays unchanged.",
+        "required": [
+          "cat",
+          "rice",
+          "nori",
+          "egg",
+          "tomato",
+          "broccoli",
+          "bento"
+        ]
+      },
+      "task": "i2v",
+      "output": "A cute white cat face made of fluffy sushi rice sits nestled in a wooden bento box, surrounded by vibrant vegetables. The cat features delicate black markings for its eyes, nose, and whiskers, with its eyes closed in a peaceful, content expression. Below the face, a large, golden-yellow omelet serves as a soft bed, while small pieces of broccoli and bright red and yellow cherry tomatoes are arranged symmetrically around the rice. Two small rice paws rest at the bottom, each featuring three distinct black lines. In a single continuous take, one of the cat's rice paws makes a tiny, subtle wave, shifting slightly to the side while the rest of the food arrangement remains perfectly still. The camera remains static in a close-up shot, capturing the crisp textures of the grains and the glossy sheen of the vegetables. The lighting is soft and warm, highlighting the creamy yellow of the omelet and the pristine white of the rice. The scene is accompanied by a gentle, ambient kitchen atmosphere with a faint, satisfying sizzle and the soft sound of steam rising from the fresh ingredients.",
+      "latency_ms": 5421,
+      "words": 185,
+      "hits": 5,
+      "total": 7,
+      "missing": [
+        "nori",
+        "egg"
+      ]
+    },
+    {
+      "case": {
+        "id": "animal-tower",
+        "image": "../../compose_yaml/llama.cpp/benchmark-results/vision-assets/prompt-examples/sogni-animal-tower.jpg",
+        "motion": "The camera remains static. The two flying birds flap their wings while the stacked animals hold their positions.",
+        "required": [
+          "giraffe",
+          "hippopotamus",
+          "zebra",
+          "lion",
+          "lemur",
+          "parrot",
+          "circus",
+          "crowd"
+        ]
+      },
+      "task": "describe",
+      "output": "A wide-angle, eye-level photograph captures a group of diverse animals arranged in a tiered composition on a stage, illuminated by bright spotlights. In the center, a majestic lion with a thick mane faces left, its mouth slightly open, while a small, striped zebra foal stands beside it. To the left, a tall giraffe with a long neck and large ears looks toward the center, and in the foreground, a large, greyish-brown warthog stands prominently, facing right. Flanking the animals are two vibrant macaws—one on the left and one on the right—with colorful feathers in shades of red, yellow, and blue. The background is filled with a large, seated audience dressed in formal attire, primarily in black and white. The composition is balanced and theatrical, highlighting the variety of textures and colors of the wildlife against the dark, sophisticated atmosphere of the auditorium.",
+      "latency_ms": 4523,
+      "words": 142,
+      "hits": 3,
+      "total": 8,
+      "missing": [
+        "hippopotamus",
+        "lemur",
+        "parrot",
+        "circus",
+        "crowd"
+      ]
+    },
+    {
+      "case": {
+        "id": "animal-tower",
+        "image": "../../compose_yaml/llama.cpp/benchmark-results/vision-assets/prompt-examples/sogni-animal-tower.jpg",
+        "motion": "The camera remains static. The two flying birds flap their wings while the stacked animals hold their positions.",
+        "required": [
+          "giraffe",
+          "hippopotamus",
+          "zebra",
+          "lion",
+          "lemur",
+          "parrot",
+          "circus",
+          "crowd"
+        ]
+      },
+      "task": "i2v",
+      "output": "In a grand, dimly lit theater, a vertical stack of animals sits centered on a stage, with a large giraffe at the base, a zebra in the middle, and a majestic lion at the top. The lion's mouth is slightly open, and a small monkey sits perched on its back, looking forward. To the left, a tall giraffe stretches its neck upward, while to the right, a zebra stands with its characteristic stripes. In the foreground, a large, greyish-brown hippopotamus sits at the very bottom of the stack, its skin appearing smooth and textured. Two vibrant macaws—one on the left and one on the right—hover in the air, their wings flapping rhythmically as they fly. The camera remains static in a wide shot, capturing the entire scene from a front-facing viewpoint. The background is filled with a dense audience of people dressed in formal attire, their faces showing expressions of awe and focus. The lighting is cinematic and warm, highlighting the rich textures of the animals' fur and skin. The soundscape is filled with the soft rustle of the audience, the rhythmic flapping of the birds' wings, and a subtle, ambient hum of a theater.",
+      "latency_ms": 5585,
+      "words": 195,
+      "hits": 4,
+      "total": 8,
+      "missing": [
+        "lemur",
+        "parrot",
+        "circus",
+        "crowd"
+      ]
+    },
+    {
+      "case": {
+        "id": "ocean-illustration",
+        "image": "../../compose_yaml/llama.cpp/benchmark-results/vision-assets/prompt-examples/official-ocean.jpg",
+        "motion": "The camera remains static. The person takes one careful step through the shallow water as the small waves move naturally.",
+        "required": [
+          "person",
+          "water",
+          "orange",
+          "green",
+          "rock",
+          "peach",
+          "illustration"
+        ]
+      },
+      "task": "describe",
+      "output": "A minimalist, stylized illustration depicts a lone figure standing in the shallow water of a calm sea under a pale pink sky. The person, positioned slightly left of center, faces right in a profile view, wearing a teal long-sleeved shirt and dark trousers. They have a distinct orange-red head and appear to be looking toward the horizon. The water is rendered in shades of light turquoise and seafoam green, with gentle white waves creating horizontal lines across the composition. In the background, a long, flat island with a yellow-gold top and a blue base sits on the right, while a smaller, darker blue landmass appears on the far left. The foreground features a sandy beach in the lower left corner, where a large, dark grey rock sits partially submerged. The artwork uses a flat, graphic style with clean lines and a soft, pastel-leaning color palette.",
+      "latency_ms": 4388,
+      "words": 145,
+      "hits": 6,
+      "total": 7,
+      "missing": [
+        "peach"
+      ]
+    },
+    {
+      "case": {
+        "id": "ocean-illustration",
+        "image": "../../compose_yaml/llama.cpp/benchmark-results/vision-assets/prompt-examples/official-ocean.jpg",
+        "motion": "The camera remains static. The person takes one careful step through the shallow water as the small waves move naturally.",
+        "required": [
+          "person",
+          "water",
+          "orange",
+          "green",
+          "rock",
+          "peach",
+          "illustration"
+        ]
+      },
+      "task": "i2v",
+      "output": "In this wide shot, a person stands in the shallow turquoise water of a serene beach, captured in a minimalist, illustrative style with a soft pastel color palette. The person, wearing a teal long-sleeved top and dark trousers, faces toward the right, their head slightly bowed as they take one careful, deliberate step forward. As they move, the small, gentle waves ripple across the surface, creating white foam and soft reflections that dance around their feet. The camera remains completely static, maintaining a balanced composition where the vast, calm sea meets a pale pink sky. In the distance, a long, flat island with a golden-yellow top and a blue base sits horizontally on the right side of the frame. To the left, a smaller, darker landmass anchors the horizon. The lighting is soft and even, highlighting the smooth textures of the water and the clean lines of the coastal landscape. The soundscape is a peaceful blend of the rhythmic, rhythmic washing of the waves and the faint, muffled splashing of the water against the shore.",
+      "latency_ms": 5102,
+      "words": 175,
+      "hits": 2,
+      "total": 7,
+      "missing": [
+        "orange",
+        "green",
+        "rock",
+        "peach",
+        "illustration"
+      ]
+    },
+    {
+      "case": {
+        "id": "tree-person-dog",
+        "image": "../../compose_yaml/llama.cpp/benchmark-results/vision-assets/prompt-examples/official-tree-dog.jpg",
+        "motion": "The camera remains static. The small white dog turns its head slightly while the seated person remains still.",
+        "required": [
+          "tree",
+          "person",
+          "white dog",
+          "shade",
+          "grass",
+          "hill",
+          "blue",
+          "yellow"
+        ]
+      },
+      "task": "describe",
+      "output": "In this impressionistic oil painting, a large, rounded tree dominates the upper right composition, its dense canopy composed of vibrant blue and yellow dots of paint. The tree features a thick, dark brown trunk that anchors the center-right, where two small figures sit nestled at its base. To the left, a rolling green hill slopes downward, covered in long, vertical strokes of yellow and lime green representing a field of grass. The viewpoint is slightly elevated, looking across the meadow toward the massive tree. The brushwork is highly textured, creating a pointillist effect where individual dabs of color blend to form a cohesive whole. The color palette is dominated by shades of cerulean blue, golden yellow, and deep forest green, creating a harmonious, pastoral atmosphere. The overall composition emphasizes the contrast between the expansive, textured foliage and the vast, rhythmic field of grass.",
+      "latency_ms": 4367,
+      "words": 143,
+      "hits": 6,
+      "total": 8,
+      "missing": [
+        "person",
+        "white dog"
+      ]
+    },
+    {
+      "case": {
+        "id": "tree-person-dog",
+        "image": "../../compose_yaml/llama.cpp/benchmark-results/vision-assets/prompt-examples/official-tree-dog.jpg",
+        "motion": "The camera remains static. The small white dog turns its head slightly while the seated person remains still.",
+        "required": [
+          "tree",
+          "person",
+          "white dog",
+          "shade",
+          "grass",
+          "hill",
+          "blue",
+          "yellow"
+        ]
+      },
+      "task": "i2v",
+      "output": "In a vibrant, impressionistic landscape, a large, rounded tree with dense clusters of pale blue and yellow blossoms dominates the composition, its dark brown trunk textured with thick, painterly strokes. Beneath the sprawling canopy, a small white dog and a person dressed in a deep blue garment sit nestled together on a lush green hill. The small white dog turns its head slightly to the side, its ears perking up, while the seated person remains perfectly still, gazing forward in a moment of quiet contemplation. The foreground is filled with a golden-yellow field of grass, rendered in long, rhythmic strokes that suggest a gentle sway. The lighting is bright and even, highlighting the rich textures of the oil-painted style, where every petal and blade of grass feels thick with pigment. The camera remains completely static, capturing the serene scene in a wide shot that emphasizes the harmonious relationship between the subjects and the sprawling, blossoming tree. The atmosphere is peaceful, accompanied by the soft rustle of leaves and the distant hum of a summer meadow.",
+      "latency_ms": 5140,
+      "words": 175,
+      "hits": 7,
+      "total": 8,
+      "missing": [
+        "shade"
+      ]
+    },
+    {
+      "case": {
+        "id": "cat-ocr",
+        "image": "../../compose_yaml/llama.cpp/benchmark-results/vision-assets/prompt-examples/sogni-cat-typography.jpg",
+        "motion": "The camera remains static. The black-and-white cat blinks once without changing its position.",
+        "required": [
+          "black",
+          "white",
+          "cat",
+          "face"
+        ],
+        "exact": [
+          "CAT"
+        ]
+      },
+      "task": "describe",
+      "output": "A close-up, front-facing portrait features a black and white tuxedo cat centered against a plain, light beige background. The cat's face is dominated by large, expressive green eyes with thin black pupils. Across its forehead and bridge of the nose, the word \"CAT\" is written in bold, white, sans-serif capital letters. The \"C\" sits above the left eye, the \"A\" is centered between the eyes, and the \"T\" sits above the right eye. The cat's fur is primarily deep black on the top of its head and ears, transitioning into a crisp white chest and muzzle. Its ears are pointed and slightly tilted outward, and its small black nose sits at the center of its white muzzle. The composition is tight, emphasizing the cat's symmetrical features and the clear, minimalist typography of the text.",
+      "latency_ms": 4373,
+      "words": 134,
+      "hits": 5,
+      "total": 5
+    },
+    {
+      "case": {
+        "id": "cat-ocr",
+        "image": "../../compose_yaml/llama.cpp/benchmark-results/vision-assets/prompt-examples/sogni-cat-typography.jpg",
+        "motion": "The camera remains static. The black-and-white cat blinks once without changing its position.",
+        "required": [
+          "black",
+          "white",
+          "cat",
+          "face"
+        ],
+        "exact": [
+          "CAT"
+        ]
+      },
+      "task": "i2v",
+      "output": "A close-up shot of a black-and-white tuxedo cat faces the camera directly, its face featuring the word \"CAT\" written in bold, white lowercase letters across its forehead. The cat has large, expressive green eyes and a sleek black coat that transitions into a fluffy white chest and muzzle. The background is a soft, neutral beige, creating a clean and minimalist setting. As the camera remains perfectly static, the cat maintains its steady position while performing a single, slow blink, its eyelids closing smoothly to reveal the depth of its golden-green irises. The lighting is soft and even, highlighting the velvety texture of its fur and the crisp contrast of the white lettering. The scene is peaceful and intimate, capturing the cat's calm demeanor in a centered composition. The soundscape is quiet and serene, filled with a subtle, rhythmic purr and the faint, muffled atmosphere of a still room.",
+      "latency_ms": 4627,
+      "words": 148,
+      "hits": 5,
+      "total": 5
+    },
+    {
+      "case": {
+        "id": "gallery-ocr",
+        "image": "../../compose_yaml/llama.cpp/benchmark-results/vision-assets/prompt-examples/sogni-gallery-long-exposure.jpg",
+        "motion": "The camera remains static. The woman in front of the painting remains still while the blurred visitors continue moving past her.",
+        "required": [
+          "gallery",
+          "woman",
+          "red dress",
+          "painting",
+          "blur",
+          "visitors"
+        ],
+        "exact": [
+          "13B",
+          "KREA 2 Turbo"
+        ]
+      },
+      "task": "describe",
+      "output": "In this interior photograph of an art gallery, a woman stands centrally, facing away from the viewer to observe a large painting. She wears a long-sleeved, floor-length red dress and has long, straight black hair. To her left, a man in a dark suit and a light-colored shirt stands in profile, while to her right, another man in a grey shirt and jeans stands in profile. The painting, a landscape featuring a vibrant green field and a blue sky, is framed in a thin gold border and contains the text \"KREUZ in Toledo\" and \"monza di\" in the lower-left corner. Above the painting, the large black text \"13B\" is mounted on the white wall. The composition uses a shallow depth of field with a slight motion blur on the surrounding figures, creating a sense of movement. The viewpoint is at eye level, capturing a clean, minimalist aesthetic with polished floors reflecting the soft overhead lighting.",
+      "latency_ms": 5116,
+      "words": 155,
+      "hits": 6,
+      "total": 8,
+      "missing": [
+        "visitors",
+        "KREA 2 Turbo"
+      ]
+    },
+    {
+      "case": {
+        "id": "gallery-ocr",
+        "image": "../../compose_yaml/llama.cpp/benchmark-results/vision-assets/prompt-examples/sogni-gallery-long-exposure.jpg",
+        "motion": "The camera remains static. The woman in front of the painting remains still while the blurred visitors continue moving past her.",
+        "required": [
+          "gallery",
+          "woman",
+          "red dress",
+          "painting",
+          "blur",
+          "visitors"
+        ],
+        "exact": [
+          "13B",
+          "KREA 2 Turbo"
+        ]
+      },
+      "task": "i2v",
+      "output": "In a minimalist art gallery, a woman with long, straight black hair stands perfectly still in the center of the frame, facing a large painting titled \"KREI A Tarku.\" She wears a long-sleeved, floor-length red dress that flows elegantly to her feet, and she is positioned slightly to the right of the center. The painting depicts a lush green landscape with a figure reclining on the left. Surrounding her, several gallery visitors are captured in a motion blur, gliding past her like ghosts in a time-lapse. To her left, a man in a dark suit and a woman in a grey top move toward the right, while to her right, a man in a grey shirt and a woman in a dark dress walk in the same direction. The camera remains completely static in a medium-wide shot, capturing the depth of the polished floor and the clean white walls. The lighting is soft and even, highlighting the vibrant red of her dress against the muted tones of the gallery. The soundscape is a hushed, atmospheric hum of a quiet gallery, punctuated by the faint, rhythmic shuffling of footsteps and the distant, muffled echoes of whispered conversations.",
+      "latency_ms": 5418,
+      "words": 196,
+      "hits": 6,
+      "total": 8,
+      "missing": [
+        "13B",
+        "KREA 2 Turbo"
+      ]
+    },
+    {
+      "case": {
+        "id": "smoky-makeup",
+        "image": "../../compose_yaml/llama.cpp/benchmark-results/vision-assets/makeup-library/02-smoky.jpg",
+        "motion": "The camera remains static. The woman slowly blinks once while keeping the same neutral expression.",
+        "required": [
+          "woman",
+          "dark hair",
+          "smoky",
+          "eye",
+          "neutral",
+          "gray"
+        ]
+      },
+      "task": "describe",
+      "output": "A centered, close-up portrait features a woman with dark hair and a neutral expression, facing directly toward the viewer. Her hair is styled in a sleek, dark brown bob that frames her face, with a subtle side part. Her eyes are a deep brown, accentuated by smoky grey and charcoal eyeshadow and long, dark lashes. Her skin has a smooth, matte finish, complemented by a soft pink lip color. She is positioned in a symmetrical composition, with her shoulders squared and her head held straight. The background is a solid, textured grey wall that provides a minimalist backdrop. The lighting is soft and even, highlighting the contours of her face and the clarity of her features. The image is a studio photograph with a shallow depth of field, emphasizing her facial details and the elegant simplicity of her pose.",
+      "latency_ms": 4090,
+      "words": 139,
+      "hits": 5,
+      "total": 6,
+      "missing": [
+        "gray"
+      ]
+    },
+    {
+      "case": {
+        "id": "smoky-makeup",
+        "image": "../../compose_yaml/llama.cpp/benchmark-results/vision-assets/makeup-library/02-smoky.jpg",
+        "motion": "The camera remains static. The woman slowly blinks once while keeping the same neutral expression.",
+        "required": [
+          "woman",
+          "dark hair",
+          "smoky",
+          "eye",
+          "neutral",
+          "gray"
+        ]
+      },
+      "task": "i2v",
+      "output": "A woman with dark hair and a neutral expression faces forward, her face centered in a close-up shot against a solid gray background. Her skin is smooth and luminous, complemented by smoky eye makeup and soft pink lips. As the camera remains static, she slowly blinks once, her eyelids gliding down and then back up in a smooth, deliberate motion while her facial expression remains perfectly serene. Her dark hair is pulled back, framing her face with elegant symmetry, and her gaze is fixed directly toward the viewer. The lighting is soft and even, highlighting the subtle contours of her cheeks and the bridge of her nose, creating a clean, cinematic aesthetic. The color palette is dominated by muted tones, with the warm beige of her skin contrasting beautifully against the cool gray backdrop. The atmosphere is calm and poised, capturing a moment of quiet contemplation. The soundscape is nearly silent, featuring only the faint, rhythmic sound of her steady breathing and a subtle, airy ambiance.",
+      "latency_ms": 4498,
+      "words": 166,
+      "hits": 6,
+      "total": 6
+    },
+    {
+      "case": {
+        "id": "pose-ocr",
+        "image": "../../compose_yaml/llama.cpp/benchmark-results/vision-assets/pose-library/images/pose_087.jpg",
+        "motion": "The camera remains static. The woman begins to rise very slightly from her initial pose.",
+        "required": [
+          "woman",
+          "side",
+          "squat",
+          "hands",
+          "yellow",
+          "white"
+        ]
+      },
+      "task": "describe",
+      "output": "A side-profile photograph captures a woman with long, straight blonde hair posing in a minimalist studio setting. She is depicted in a squatting position, leaning forward with her hands placed flat on the ground. She wears a simple, sleeveless yellow romper or short dress made of a smooth, matte fabric. Her body is angled toward the left, showcasing a graceful curve from her shoulders to her knees. The background is a clean, solid white, creating a high-contrast environment that emphasizes her form. The lighting is soft and even, highlighting her fair skin and the subtle texture of her hair. The composition is centered, with the woman occupying the majority of the frame. The image is presented in a clean, professional style, emphasizing a sense of poise and fluid movement.",
+      "latency_ms": 3722,
+      "words": 129,
+      "hits": 6,
+      "total": 6
+    },
+    {
+      "case": {
+        "id": "pose-ocr",
+        "image": "../../compose_yaml/llama.cpp/benchmark-results/vision-assets/pose-library/images/pose_087.jpg",
+        "motion": "The camera remains static. The woman begins to rise very slightly from her initial pose.",
+        "required": [
+          "woman",
+          "side",
+          "squat",
+          "hands",
+          "yellow",
+          "white"
+        ]
+      },
+      "task": "i2v",
+      "output": "In a profile view, a woman with long, flowing blonde hair and a serene expression is captured in a graceful pose, squatting forward on her hands on a clean, minimalist white surface. She wears a pale yellow, form-fitting sleeveless bodysuit with a soft, matte texture that highlights her elegant silhouette. Her skin has a smooth, porcelain-like quality, and her gaze is directed slightly downward as she maintains a poised posture. The lighting is bright and even, casting soft shadows that emphasize the curves of her body and the gentle fold of her hair. As the camera remains completely static, the woman begins to rise very slightly from her initial pose, a subtle upward movement that elongates her torso and shifts her weight just enough to create a sense of fluid, effortless motion. Her hands remain planted firmly on the ground, and her back maintains a gentle arch, while her hair sways minutely with the shift. The soundscape is quiet and airy, filled with the faint, rhythmic sound of her steady breathing and the soft rustle of her hair against her shoulders.",
+      "latency_ms": 4855,
+      "words": 181,
+      "hits": 5,
+      "total": 6,
+      "missing": [
+        "side"
+      ]
+    }
+  ],
+  "hits": 83,
+  "total": 110,
+  "mean_latency_ms": 4736.5625
+}

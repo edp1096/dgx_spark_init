@@ -1,0 +1,13 @@
+{
+  "image": "dgx-sglang-qwen38-fn:sm121-b12x-head-v1",
+  "head_image_id": "sha256:5b15fbfd6e5438844d8625fb9e81a6bd115940184a77270f1ccee13800ba6cc1",
+  "worker_image_id": "sha256:5b15fbfd6e5438844d8625fb9e81a6bd115940184a77270f1ccee13800ba6cc1",
+  "same_image": true,
+  "standalone_default": "dgx-sglang-qwen38-fn:sm121-b12x-head-v1",
+  "talk_recipe_default": "dgx-sglang-qwen38-fn:sm121-b12x-head-v1",
+  "compiler_arch": "sm_121a",
+  "talk_health_status": 200,
+  "talk_rebuilt": true,
+  "models_left_stopped": true,
+  "canonical_worker_sources_synced": true
+}

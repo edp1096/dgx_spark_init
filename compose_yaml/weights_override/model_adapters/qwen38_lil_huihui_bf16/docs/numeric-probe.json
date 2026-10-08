@@ -1,0 +1,78 @@
+{
+  "status": "passed",
+  "scope": "numerical reconstruction only; not an inference-quality benchmark",
+  "results": [
+    {
+      "tensor": "model.language_model.layers.0.mlp.experts.0.down_proj",
+      "kind": "nvfp4",
+      "target_relative_error": 0.03231150656938553,
+      "delta_relative_l2": 0.037568189203739166,
+      "delta_effective_cosine": 0.561337240773755,
+      "scale_choice": "original"
+    },
+    {
+      "tensor": "model.language_model.layers.0.mlp.experts.1.down_proj",
+      "kind": "nvfp4",
+      "target_relative_error": 0.031425733119249344,
+      "delta_relative_l2": 0.0361783429980278,
+      "delta_effective_cosine": 0.5463227839586917,
+      "scale_choice": "original"
+    },
+    {
+      "tensor": "model.language_model.layers.0.mlp.experts.127.down_proj",
+      "kind": "nvfp4",
+      "target_relative_error": 0.03346880525350571,
+      "delta_relative_l2": 0.03852367401123047,
+      "delta_effective_cosine": 0.54989650569188,
+      "scale_choice": "original"
+    },
+    {
+      "tensor": "model.language_model.layers.0.mlp.experts.511.down_proj",
+      "kind": "nvfp4",
+      "target_relative_error": 0.034253016114234924,
+      "delta_relative_l2": 0.03965990990400314,
+      "delta_effective_cosine": 0.5565259712738315,
+      "scale_choice": "original"
+    },
+    {
+      "tensor": "model.language_model.layers.1.mlp.experts.0.down_proj",
+      "kind": "nvfp4",
+      "target_relative_error": 0.03457796946167946,
+      "delta_relative_l2": 0.03990994766354561,
+      "delta_effective_cosine": 0.5537484114224672,
+      "scale_choice": "original"
+    },
+    {
+      "tensor": "model.language_model.layers.1.mlp.experts.1.down_proj",
+      "kind": "nvfp4",
+      "target_relative_error": 0.035423602908849716,
+      "delta_relative_l2": 0.04087865352630615,
+      "delta_effective_cosine": 0.5544127604719731,
+      "scale_choice": "original"
+    },
+    {
+      "tensor": "model.language_model.layers.1.mlp.experts.127.down_proj",
+      "kind": "nvfp4",
+      "target_relative_error": 0.03335611894726753,
+      "delta_relative_l2": 0.03819042444229126,
+      "delta_effective_cosine": 0.5404679703536674,
+      "scale_choice": "original"
+    },
+    {
+      "tensor": "model.language_model.layers.1.mlp.experts.511.down_proj",
+      "kind": "nvfp4",
+      "target_relative_error": 0.035133399069309235,
+      "delta_relative_l2": 0.041009411215782166,
+      "delta_effective_cosine": 0.5692050143605697,
+      "scale_choice": "original"
+    },
+    {
+      "tensor": "model.language_model.layers.0.linear_attn.out_proj",
+      "kind": "mxfp8",
+      "target_relative_error": 0.01647980883717537,
+      "delta_relative_l2": 0.03853490576148033,
+      "delta_effective_cosine": 0.9101892768619873,
+      "scale_choice": "fresh"
+    }
+  ]
+}

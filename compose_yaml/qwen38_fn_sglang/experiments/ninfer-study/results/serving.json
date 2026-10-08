@@ -1,0 +1,123 @@
+{
+  "timing": "Wall-clock HTTP completion, exactly 256 output tokens; round 0 excluded; median of 3. No claim of identical generated tokens or MTP acceptance.",
+  "fixed_output": {
+    "ko": {
+      "baseline": {
+        "median_seconds": 8.45814288200927,
+        "tokens_per_wall_second": 30.266691349530152,
+        "round_seconds": [
+          9.092445832007797,
+          7.905662992008729,
+          8.45814288200927
+        ],
+        "accept_lengths": [
+          2.245614035087719,
+          2.4854368932038833,
+          2.392523364485981
+        ]
+      },
+      "candidate": {
+        "median_seconds": 8.169069538998883,
+        "tokens_per_wall_second": 31.337718301682216,
+        "round_seconds": [
+          9.207741987993359,
+          8.169069538998883,
+          8.124777967997943
+        ],
+        "accept_lengths": [
+          2.0813008130081303,
+          2.327272727272727,
+          2.226086956521739
+        ]
+      },
+      "wall_time_reduction_pct": 3.4176928321375866
+    },
+    "code": {
+      "baseline": {
+        "median_seconds": 6.01022167300107,
+        "tokens_per_wall_second": 42.59410283484139,
+        "round_seconds": [
+          6.01022167300107,
+          6.180598435996217,
+          5.947526503994595
+        ],
+        "accept_lengths": [
+          3.1604938271604937,
+          3.0476190476190474,
+          3.2
+        ]
+      },
+      "candidate": {
+        "median_seconds": 5.789384952004184,
+        "tokens_per_wall_second": 44.21885953729459,
+        "round_seconds": [
+          6.014038453009562,
+          5.476343014001031,
+          5.789384952004184
+        ],
+        "accept_lengths": [
+          3.1219512195121952,
+          3.1604938271604937,
+          3.1604938271604937
+        ]
+      },
+      "wall_time_reduction_pct": 3.674352345254106
+    }
+  },
+  "functional": {
+    "baseline": {
+      "arithmetic_ko": true,
+      "arithmetic_ko_repeat": true,
+      "json": true,
+      "long_recall": true,
+      "prefix_reuse": true,
+      "branch": true,
+      "code_syntax": true,
+      "image": true,
+      "video": true,
+      "tool": true
+    },
+    "candidate": {
+      "arithmetic_ko": true,
+      "arithmetic_ko_repeat": true,
+      "json": true,
+      "long_recall": true,
+      "prefix_reuse": true,
+      "branch": true,
+      "code_syntax": true,
+      "image": true,
+      "video": true,
+      "tool": true
+    }
+  },
+  "long_prefix": {
+    "baseline": {
+      "long": {
+        "seconds": 27.89905402000295,
+        "prompt_tokens": 32033
+      },
+      "long_reuse": {
+        "seconds": 0.6000779540045187,
+        "prompt_tokens": 32033
+      },
+      "branch": {
+        "seconds": 0.5529251209954964,
+        "prompt_tokens": 32041
+      }
+    },
+    "candidate": {
+      "long": {
+        "seconds": 27.465852964000078,
+        "prompt_tokens": 32033
+      },
+      "long_reuse": {
+        "seconds": 0.5747619500034489,
+        "prompt_tokens": 32033
+      },
+      "branch": {
+        "seconds": 0.5455519430106506,
+        "prompt_tokens": 32041
+      }
+    }
+  }
+}

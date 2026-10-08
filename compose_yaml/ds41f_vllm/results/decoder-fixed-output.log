@@ -1,0 +1,9 @@
+{"trial": 0, "prompt_id": 0, "enabled": false, "output_tokens": 114, "tg": 28.396977958824866}
+{"trial": 0, "prompt_id": 0, "enabled": true, "output_tokens": 114, "tg": 26.9734032304582}
+{"trial": 0, "prompt_id": 1, "enabled": false, "output_tokens": 72, "tg": 23.748900766241785}
+{"trial": 0, "prompt_id": 1, "enabled": true, "output_tokens": 72, "tg": 20.810439389146392}
+{"trial": 1, "prompt_id": 0, "enabled": true, "output_tokens": 114, "tg": 27.506454522825855}
+{"trial": 1, "prompt_id": 0, "enabled": false, "output_tokens": 114, "tg": 29.579010583108392}
+{"trial": 1, "prompt_id": 1, "enabled": true, "output_tokens": 72, "tg": 22.21528831968123}
+{"trial": 1, "prompt_id": 1, "enabled": false, "output_tokens": 72, "tg": 24.236605619932327}
+FIXED_OUTPUT_TG_PASS

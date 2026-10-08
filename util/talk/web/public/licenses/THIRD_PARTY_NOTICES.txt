@@ -1,0 +1,9 @@
+SoundTouchJS core 2.1.1 (@soundtouchjs/core)
+Copyright (c) Olli Parviainen, Ryan Berdeen, Jakub Fiala and Steve 'Cutter' Blades.
+Licensed under the Mozilla Public License, version 2.0.
+License: /licenses/SoundTouchJS-MPL-2.0.txt
+Source code for this exact release (v2.1.1) is available at:
+https://github.com/cutterbl/SoundTouchJS/tree/d9e39a7ddcf74c7a145bbba45856f30068c82b79/packages/core
+Unmodified package and source maps:
+https://registry.npmjs.org/@soundtouchjs/core/-/core-2.1.1.tgz
+Project: https://github.com/cutterbl/SoundTouchJS

@@ -1,0 +1,5 @@
+{
+  "eligible": false,
+  "reason": "Four of six retrieval requests emitted only exclamation marks.",
+  "diagnostics": "Token IDs match between native and chat APIs. Native/chat and streaming/nonstreaming tests show intermittent failures; no endpoint-only explanation. Top-k330 and B12x head40 microchecks passed. Root cause unresolved."
+}

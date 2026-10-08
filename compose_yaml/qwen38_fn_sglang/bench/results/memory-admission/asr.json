@@ -1,0 +1,1049 @@
+{
+  "ready": {
+    "time": 1790789597.8627279,
+    "phase": "asr_start",
+    "available_gib": 8.723625183105469,
+    "pswpout": 7283395,
+    "oom_kill": 0
+  },
+  "scope": "71.89s repeated Flite speech; memory test, not an accuracy benchmark",
+  "asr_transcribe": {
+    "seconds": 0.8109149829979287,
+    "host": {
+      "time": 1790789598.6739972,
+      "phase": "asr_transcribe",
+      "available_gib": 8.599895477294922,
+      "pswpout": 7283395,
+      "oom_kill": 0
+    },
+    "response": {
+      "duration": 71.89250183105469,
+      "language": "en-US",
+      "task": "transcribe",
+      "text": "Hello world, this is a speed recognition test. Hello World, this is a speed racognition test. Hello World, this is a speed drag cognition test. Hello World this is a speed drag of nation test is a speed drack of nation testo world this is a speed drack of nation testo world this is a speed drack of nation test is a speed drack of nation test is a speed drack of nation test is a speed drack of nation testo world this is a speed drack of nation test is a speed drack of nation testo world this is a speed drack of nation testo world this is a speed drack of nation testo world this is a speed drack of nation testo world this is a speed drack of nation testo world this is a speed drack of nation test is a speed drack of nation testo world this is a speed drack of nation testo world this is a speed drack of nation test",
+      "words": [
+        {
+          "confidence": 1,
+          "end": 1.12,
+          "start": 0.96,
+          "word": "Hello"
+        },
+        {
+          "confidence": 1,
+          "end": 1.6,
+          "start": 1.28,
+          "word": "world,"
+        },
+        {
+          "confidence": 1,
+          "end": 1.84,
+          "start": 1.76,
+          "word": "this"
+        },
+        {
+          "confidence": 1,
+          "end": 2,
+          "start": 1.92,
+          "word": "is"
+        },
+        {
+          "confidence": 1,
+          "end": 2.32,
+          "start": 2.24,
+          "word": "a"
+        },
+        {
+          "confidence": 1,
+          "end": 2.64,
+          "start": 2.32,
+          "word": "speed"
+        },
+        {
+          "confidence": 1,
+          "end": 3.44,
+          "start": 2.8,
+          "word": "recognition"
+        },
+        {
+          "confidence": 1,
+          "end": 3.6,
+          "start": 3.52,
+          "word": "test."
+        },
+        {
+          "confidence": 1,
+          "end": 4.56,
+          "start": 4.32,
+          "word": "Hello"
+        },
+        {
+          "confidence": 1,
+          "end": 4.96,
+          "start": 4.72,
+          "word": "World,"
+        },
+        {
+          "confidence": 1,
+          "end": 5.36,
+          "start": 5.28,
+          "word": "this"
+        },
+        {
+          "confidence": 1,
+          "end": 5.52,
+          "start": 5.44,
+          "word": "is"
+        },
+        {
+          "confidence": 1,
+          "end": 5.68,
+          "start": 5.6,
+          "word": "a"
+        },
+        {
+          "confidence": 1,
+          "end": 6.08,
+          "start": 5.76,
+          "word": "speed"
+        },
+        {
+          "confidence": 1,
+          "end": 6.96,
+          "start": 6.24,
+          "word": "racognition"
+        },
+        {
+          "confidence": 1,
+          "end": 7.04,
+          "start": 6.96,
+          "word": "test."
+        },
+        {
+          "confidence": 1,
+          "end": 8.16,
+          "start": 7.84,
+          "word": "Hello"
+        },
+        {
+          "confidence": 1,
+          "end": 8.48,
+          "start": 8.24,
+          "word": "World,"
+        },
+        {
+          "confidence": 1,
+          "end": 8.88,
+          "start": 8.8,
+          "word": "this"
+        },
+        {
+          "confidence": 1,
+          "end": 9.04,
+          "start": 8.96,
+          "word": "is"
+        },
+        {
+          "confidence": 1,
+          "end": 9.2,
+          "start": 9.12,
+          "word": "a"
+        },
+        {
+          "confidence": 1,
+          "end": 9.6,
+          "start": 9.36,
+          "word": "speed"
+        },
+        {
+          "confidence": 1,
+          "end": 10,
+          "start": 9.68,
+          "word": "drag"
+        },
+        {
+          "confidence": 1,
+          "end": 10.48,
+          "start": 10,
+          "word": "cognition"
+        },
+        {
+          "confidence": 1,
+          "end": 10.64,
+          "start": 10.56,
+          "word": "test."
+        },
+        {
+          "confidence": 1,
+          "end": 11.68,
+          "start": 11.44,
+          "word": "Hello"
+        },
+        {
+          "confidence": 1,
+          "end": 12.08,
+          "start": 11.84,
+          "word": "World"
+        },
+        {
+          "confidence": 1,
+          "end": 12.56,
+          "start": 12.48,
+          "word": "this"
+        },
+        {
+          "confidence": 1,
+          "end": 12.64,
+          "start": 12.56,
+          "word": "is"
+        },
+        {
+          "confidence": 1,
+          "end": 12.88,
+          "start": 12.8,
+          "word": "a"
+        },
+        {
+          "confidence": 1,
+          "end": 13.2,
+          "start": 12.96,
+          "word": "speed"
+        },
+        {
+          "confidence": 1,
+          "end": 13.6,
+          "start": 13.36,
+          "word": "drag"
+        },
+        {
+          "confidence": 1,
+          "end": 13.76,
+          "start": 13.68,
+          "word": "of"
+        },
+        {
+          "confidence": 1,
+          "end": 13.92,
+          "start": 13.84,
+          "word": "nation"
+        },
+        {
+          "confidence": 1,
+          "end": 14.24,
+          "start": 14.16,
+          "word": "test"
+        },
+        {
+          "confidence": 1,
+          "end": 16.16,
+          "start": 16.08,
+          "word": "is"
+        },
+        {
+          "confidence": 1,
+          "end": 16.4,
+          "start": 16.32,
+          "word": "a"
+        },
+        {
+          "confidence": 1,
+          "end": 16.8,
+          "start": 16.48,
+          "word": "speed"
+        },
+        {
+          "confidence": 1,
+          "end": 17.12,
+          "start": 16.96,
+          "word": "drack"
+        },
+        {
+          "confidence": 1,
+          "end": 17.28,
+          "start": 17.2,
+          "word": "of"
+        },
+        {
+          "confidence": 1,
+          "end": 17.44,
+          "start": 17.36,
+          "word": "nation"
+        },
+        {
+          "confidence": 1,
+          "end": 18.8,
+          "start": 17.68,
+          "word": "testo"
+        },
+        {
+          "confidence": 1,
+          "end": 19.12,
+          "start": 18.96,
+          "word": "world"
+        },
+        {
+          "confidence": 1,
+          "end": 19.52,
+          "start": 19.44,
+          "word": "this"
+        },
+        {
+          "confidence": 1,
+          "end": 19.68,
+          "start": 19.6,
+          "word": "is"
+        },
+        {
+          "confidence": 1,
+          "end": 19.84,
+          "start": 19.76,
+          "word": "a"
+        },
+        {
+          "confidence": 1,
+          "end": 20.08,
+          "start": 19.92,
+          "word": "speed"
+        },
+        {
+          "confidence": 1,
+          "end": 20.4,
+          "start": 20.24,
+          "word": "drack"
+        },
+        {
+          "confidence": 1,
+          "end": 20.56,
+          "start": 20.48,
+          "word": "of"
+        },
+        {
+          "confidence": 1,
+          "end": 20.72,
+          "start": 20.64,
+          "word": "nation"
+        },
+        {
+          "confidence": 1,
+          "end": 22.24,
+          "start": 21.04,
+          "word": "testo"
+        },
+        {
+          "confidence": 1,
+          "end": 22.56,
+          "start": 22.32,
+          "word": "world"
+        },
+        {
+          "confidence": 1,
+          "end": 22.88,
+          "start": 22.8,
+          "word": "this"
+        },
+        {
+          "confidence": 1,
+          "end": 23.2,
+          "start": 23.12,
+          "word": "is"
+        },
+        {
+          "confidence": 1,
+          "end": 23.44,
+          "start": 23.36,
+          "word": "a"
+        },
+        {
+          "confidence": 1,
+          "end": 23.84,
+          "start": 23.52,
+          "word": "speed"
+        },
+        {
+          "confidence": 1,
+          "end": 24.32,
+          "start": 24,
+          "word": "drack"
+        },
+        {
+          "confidence": 1,
+          "end": 24.4,
+          "start": 24.32,
+          "word": "of"
+        },
+        {
+          "confidence": 1,
+          "end": 24.56,
+          "start": 24.48,
+          "word": "nation"
+        },
+        {
+          "confidence": 1,
+          "end": 24.88,
+          "start": 24.8,
+          "word": "test"
+        },
+        {
+          "confidence": 1,
+          "end": 26.8,
+          "start": 26.72,
+          "word": "is"
+        },
+        {
+          "confidence": 1,
+          "end": 27.2,
+          "start": 27.12,
+          "word": "a"
+        },
+        {
+          "confidence": 1,
+          "end": 27.44,
+          "start": 27.2,
+          "word": "speed"
+        },
+        {
+          "confidence": 1,
+          "end": 27.84,
+          "start": 27.6,
+          "word": "drack"
+        },
+        {
+          "confidence": 1,
+          "end": 27.92,
+          "start": 27.84,
+          "word": "of"
+        },
+        {
+          "confidence": 1,
+          "end": 28.08,
+          "start": 28,
+          "word": "nation"
+        },
+        {
+          "confidence": 1,
+          "end": 28.4,
+          "start": 28.32,
+          "word": "test"
+        },
+        {
+          "confidence": 1,
+          "end": 30.4,
+          "start": 30.32,
+          "word": "is"
+        },
+        {
+          "confidence": 1,
+          "end": 30.8,
+          "start": 30.72,
+          "word": "a"
+        },
+        {
+          "confidence": 1,
+          "end": 31.04,
+          "start": 30.8,
+          "word": "speed"
+        },
+        {
+          "confidence": 1,
+          "end": 31.52,
+          "start": 31.2,
+          "word": "drack"
+        },
+        {
+          "confidence": 1,
+          "end": 31.6,
+          "start": 31.52,
+          "word": "of"
+        },
+        {
+          "confidence": 1,
+          "end": 31.76,
+          "start": 31.68,
+          "word": "nation"
+        },
+        {
+          "confidence": 1,
+          "end": 32,
+          "start": 31.92,
+          "word": "test"
+        },
+        {
+          "confidence": 1,
+          "end": 34.08,
+          "start": 34,
+          "word": "is"
+        },
+        {
+          "confidence": 1,
+          "end": 34.32,
+          "start": 34.24,
+          "word": "a"
+        },
+        {
+          "confidence": 1,
+          "end": 34.64,
+          "start": 34.4,
+          "word": "speed"
+        },
+        {
+          "confidence": 1,
+          "end": 35.04,
+          "start": 34.8,
+          "word": "drack"
+        },
+        {
+          "confidence": 1,
+          "end": 35.12,
+          "start": 35.04,
+          "word": "of"
+        },
+        {
+          "confidence": 1,
+          "end": 35.28,
+          "start": 35.2,
+          "word": "nation"
+        },
+        {
+          "confidence": 1,
+          "end": 36.72,
+          "start": 35.52,
+          "word": "testo"
+        },
+        {
+          "confidence": 1,
+          "end": 37.04,
+          "start": 36.8,
+          "word": "world"
+        },
+        {
+          "confidence": 1,
+          "end": 37.44,
+          "start": 37.36,
+          "word": "this"
+        },
+        {
+          "confidence": 1,
+          "end": 37.68,
+          "start": 37.6,
+          "word": "is"
+        },
+        {
+          "confidence": 1,
+          "end": 37.84,
+          "start": 37.76,
+          "word": "a"
+        },
+        {
+          "confidence": 1,
+          "end": 38.24,
+          "start": 38,
+          "word": "speed"
+        },
+        {
+          "confidence": 1,
+          "end": 38.64,
+          "start": 38.4,
+          "word": "drack"
+        },
+        {
+          "confidence": 1,
+          "end": 38.72,
+          "start": 38.64,
+          "word": "of"
+        },
+        {
+          "confidence": 1,
+          "end": 38.88,
+          "start": 38.8,
+          "word": "nation"
+        },
+        {
+          "confidence": 1,
+          "end": 39.12,
+          "start": 39.04,
+          "word": "test"
+        },
+        {
+          "confidence": 1,
+          "end": 41.2,
+          "start": 41.12,
+          "word": "is"
+        },
+        {
+          "confidence": 1,
+          "end": 41.52,
+          "start": 41.44,
+          "word": "a"
+        },
+        {
+          "confidence": 1,
+          "end": 41.84,
+          "start": 41.6,
+          "word": "speed"
+        },
+        {
+          "confidence": 1,
+          "end": 42.16,
+          "start": 41.92,
+          "word": "drack"
+        },
+        {
+          "confidence": 1,
+          "end": 42.24,
+          "start": 42.16,
+          "word": "of"
+        },
+        {
+          "confidence": 1,
+          "end": 42.4,
+          "start": 42.32,
+          "word": "nation"
+        },
+        {
+          "confidence": 1,
+          "end": 43.92,
+          "start": 42.64,
+          "word": "testo"
+        },
+        {
+          "confidence": 1,
+          "end": 44.24,
+          "start": 44,
+          "word": "world"
+        },
+        {
+          "confidence": 1,
+          "end": 44.64,
+          "start": 44.56,
+          "word": "this"
+        },
+        {
+          "confidence": 1,
+          "end": 44.88,
+          "start": 44.8,
+          "word": "is"
+        },
+        {
+          "confidence": 1,
+          "end": 45.12,
+          "start": 45.04,
+          "word": "a"
+        },
+        {
+          "confidence": 1,
+          "end": 45.44,
+          "start": 45.2,
+          "word": "speed"
+        },
+        {
+          "confidence": 1,
+          "end": 45.84,
+          "start": 45.6,
+          "word": "drack"
+        },
+        {
+          "confidence": 1,
+          "end": 45.92,
+          "start": 45.84,
+          "word": "of"
+        },
+        {
+          "confidence": 1,
+          "end": 46.08,
+          "start": 46,
+          "word": "nation"
+        },
+        {
+          "confidence": 1,
+          "end": 47.52,
+          "start": 46.24,
+          "word": "testo"
+        },
+        {
+          "confidence": 1,
+          "end": 47.84,
+          "start": 47.68,
+          "word": "world"
+        },
+        {
+          "confidence": 1,
+          "end": 48.32,
+          "start": 48.24,
+          "word": "this"
+        },
+        {
+          "confidence": 1,
+          "end": 48.48,
+          "start": 48.4,
+          "word": "is"
+        },
+        {
+          "confidence": 1,
+          "end": 48.72,
+          "start": 48.64,
+          "word": "a"
+        },
+        {
+          "confidence": 1,
+          "end": 49.04,
+          "start": 48.8,
+          "word": "speed"
+        },
+        {
+          "confidence": 1,
+          "end": 49.44,
+          "start": 49.2,
+          "word": "drack"
+        },
+        {
+          "confidence": 1,
+          "end": 49.52,
+          "start": 49.44,
+          "word": "of"
+        },
+        {
+          "confidence": 1,
+          "end": 49.68,
+          "start": 49.6,
+          "word": "nation"
+        },
+        {
+          "confidence": 1,
+          "end": 51.12,
+          "start": 49.92,
+          "word": "testo"
+        },
+        {
+          "confidence": 1,
+          "end": 51.44,
+          "start": 51.28,
+          "word": "world"
+        },
+        {
+          "confidence": 1,
+          "end": 51.92,
+          "start": 51.84,
+          "word": "this"
+        },
+        {
+          "confidence": 1,
+          "end": 52.08,
+          "start": 52,
+          "word": "is"
+        },
+        {
+          "confidence": 1,
+          "end": 52.24,
+          "start": 52.16,
+          "word": "a"
+        },
+        {
+          "confidence": 1,
+          "end": 52.64,
+          "start": 52.4,
+          "word": "speed"
+        },
+        {
+          "confidence": 1,
+          "end": 52.96,
+          "start": 52.72,
+          "word": "drack"
+        },
+        {
+          "confidence": 1,
+          "end": 53.12,
+          "start": 53.04,
+          "word": "of"
+        },
+        {
+          "confidence": 1,
+          "end": 53.2,
+          "start": 53.12,
+          "word": "nation"
+        },
+        {
+          "confidence": 1,
+          "end": 54.72,
+          "start": 53.44,
+          "word": "testo"
+        },
+        {
+          "confidence": 1,
+          "end": 54.96,
+          "start": 54.8,
+          "word": "world"
+        },
+        {
+          "confidence": 1,
+          "end": 55.44,
+          "start": 55.36,
+          "word": "this"
+        },
+        {
+          "confidence": 1,
+          "end": 55.6,
+          "start": 55.52,
+          "word": "is"
+        },
+        {
+          "confidence": 1,
+          "end": 55.84,
+          "start": 55.76,
+          "word": "a"
+        },
+        {
+          "confidence": 1,
+          "end": 56.24,
+          "start": 56,
+          "word": "speed"
+        },
+        {
+          "confidence": 1,
+          "end": 56.56,
+          "start": 56.32,
+          "word": "drack"
+        },
+        {
+          "confidence": 1,
+          "end": 56.64,
+          "start": 56.56,
+          "word": "of"
+        },
+        {
+          "confidence": 1,
+          "end": 56.8,
+          "start": 56.72,
+          "word": "nation"
+        },
+        {
+          "confidence": 1,
+          "end": 58.32,
+          "start": 57.04,
+          "word": "testo"
+        },
+        {
+          "confidence": 1,
+          "end": 58.56,
+          "start": 58.4,
+          "word": "world"
+        },
+        {
+          "confidence": 1,
+          "end": 59.04,
+          "start": 58.96,
+          "word": "this"
+        },
+        {
+          "confidence": 1,
+          "end": 59.2,
+          "start": 59.12,
+          "word": "is"
+        },
+        {
+          "confidence": 1,
+          "end": 59.44,
+          "start": 59.36,
+          "word": "a"
+        },
+        {
+          "confidence": 1,
+          "end": 59.84,
+          "start": 59.6,
+          "word": "speed"
+        },
+        {
+          "confidence": 1,
+          "end": 60.24,
+          "start": 59.92,
+          "word": "drack"
+        },
+        {
+          "confidence": 1,
+          "end": 60.32,
+          "start": 60.24,
+          "word": "of"
+        },
+        {
+          "confidence": 1,
+          "end": 60.48,
+          "start": 60.4,
+          "word": "nation"
+        },
+        {
+          "confidence": 1,
+          "end": 60.72,
+          "start": 60.64,
+          "word": "test"
+        },
+        {
+          "confidence": 1,
+          "end": 62.8,
+          "start": 62.72,
+          "word": "is"
+        },
+        {
+          "confidence": 1,
+          "end": 63.12,
+          "start": 63.04,
+          "word": "a"
+        },
+        {
+          "confidence": 1,
+          "end": 63.44,
+          "start": 63.2,
+          "word": "speed"
+        },
+        {
+          "confidence": 1,
+          "end": 63.84,
+          "start": 63.52,
+          "word": "drack"
+        },
+        {
+          "confidence": 1,
+          "end": 63.92,
+          "start": 63.84,
+          "word": "of"
+        },
+        {
+          "confidence": 1,
+          "end": 64.08,
+          "start": 64,
+          "word": "nation"
+        },
+        {
+          "confidence": 1,
+          "end": 65.52,
+          "start": 64.32,
+          "word": "testo"
+        },
+        {
+          "confidence": 1,
+          "end": 65.84,
+          "start": 65.68,
+          "word": "world"
+        },
+        {
+          "confidence": 1,
+          "end": 66.24,
+          "start": 66.16,
+          "word": "this"
+        },
+        {
+          "confidence": 1,
+          "end": 66.4,
+          "start": 66.32,
+          "word": "is"
+        },
+        {
+          "confidence": 1,
+          "end": 66.64,
+          "start": 66.56,
+          "word": "a"
+        },
+        {
+          "confidence": 1,
+          "end": 67.04,
+          "start": 66.8,
+          "word": "speed"
+        },
+        {
+          "confidence": 1,
+          "end": 67.36,
+          "start": 67.12,
+          "word": "drack"
+        },
+        {
+          "confidence": 1,
+          "end": 67.44,
+          "start": 67.36,
+          "word": "of"
+        },
+        {
+          "confidence": 1,
+          "end": 67.6,
+          "start": 67.52,
+          "word": "nation"
+        },
+        {
+          "confidence": 1,
+          "end": 69.04,
+          "start": 67.84,
+          "word": "testo"
+        },
+        {
+          "confidence": 1,
+          "end": 69.36,
+          "start": 69.12,
+          "word": "world"
+        },
+        {
+          "confidence": 1,
+          "end": 69.76,
+          "start": 69.68,
+          "word": "this"
+        },
+        {
+          "confidence": 1,
+          "end": 70,
+          "start": 69.92,
+          "word": "is"
+        },
+        {
+          "confidence": 1,
+          "end": 70.24,
+          "start": 70.16,
+          "word": "a"
+        },
+        {
+          "confidence": 1,
+          "end": 70.56,
+          "start": 70.32,
+          "word": "speed"
+        },
+        {
+          "confidence": 1,
+          "end": 70.96,
+          "start": 70.72,
+          "word": "drack"
+        },
+        {
+          "confidence": 1,
+          "end": 71.04,
+          "start": 70.96,
+          "word": "of"
+        },
+        {
+          "confidence": 1,
+          "end": 71.2,
+          "start": 71.12,
+          "word": "nation"
+        },
+        {
+          "confidence": 1,
+          "end": 71.52,
+          "start": 71.44,
+          "word": "test"
+        }
+      ]
+    }
+  },
+  "asr_diarize": {
+    "seconds": 0.24979379499563947,
+    "host": {
+      "time": 1790789598.9242904,
+      "phase": "asr_diarize",
+      "available_gib": 8.583080291748047,
+      "pswpout": 7283395,
+      "oom_kill": 0
+    },
+    "response": {
+      "segments": [
+        {
+          "end": 71.87899839514493,
+          "speaker": 1,
+          "start": 0
+        }
+      ]
+    }
+  }
+}

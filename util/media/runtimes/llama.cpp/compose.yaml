@@ -1,0 +1,62 @@
+services:
+  llama-server:
+    init: true
+    container_name: llama-cpp-spark
+    image: llama.cpp-spark:c060ca9
+    build:
+      context: .
+      args:
+        LLAMA_CPP_REF: ${LLAMA_CPP_REF:-c060ca974c773c7c3d17fd1b66dc9d312bc292c0}
+    ports:
+      - "${LLAMA_BIND_ADDR:-0.0.0.0}:${LLAMA_PORT:-8696}:8696"
+    environment:
+      MODEL_ALIAS: ${LLAMA_MODEL_ALIAS:-huihui-gemma4-12b}
+      MODEL_FILE: ${LLAMA_MODEL_FILE:-Huihui-gemma-4-12B-it-abliterated.i1-Q4_K_M.gguf}
+      MTP_FILE: ${LLAMA_MTP_FILE:-gemma-4-12B-it-assistant-Q8_0.gguf}
+      MTP_ENABLED: ${LLAMA_MTP_ENABLED:-true}
+      MTP_TOKENS: ${LLAMA_MTP_TOKENS:-3}
+      MMPROJ_FILE: ${LLAMA_MMPROJ_FILE:-mmproj-model-q8_0.gguf}
+      MMPROJ_ENABLED: ${LLAMA_MMPROJ_ENABLED:-true}
+      CONTEXT_SIZE: ${LLAMA_CONTEXT_SIZE:-65536}
+    volumes:
+      - "${LLAMA_MODEL_DIR:-/home/edp1096/.cache/gguf/huihui-gemma4-12b-i1}:/models:ro"
+      - "/home/edp1096/.cache/gguf/llama-cache:/root/.cache/llama.cpp"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    working_dir: /llama.cpp
+    command:
+      - bash
+      - -c
+      - |
+        args=(
+          -m "/models/$${MODEL_FILE}"
+          --alias "$${MODEL_ALIAS}"
+          --jinja
+          --reasoning off
+          --no-mmap
+          --ctx-size "$${CONTEXT_SIZE}"
+          --parallel 1
+          --host 0.0.0.0
+          --port 8696
+          --n-gpu-layers all
+          --flash-attn on
+        )
+        if [[ "$${MMPROJ_ENABLED}" == "true" && -f "/models/$${MMPROJ_FILE}" ]]; then
+          args+=(--mmproj "/models/$${MMPROJ_FILE}")
+        else
+          args+=(--no-mmproj)
+        fi
+        if [[ "$${MTP_ENABLED}" == "true" && -f "/models/$${MTP_FILE}" ]]; then
+          args+=(
+            --spec-type draft-mtp
+            --spec-draft-n-max "$${MTP_TOKENS}"
+            --spec-draft-model "/models/$${MTP_FILE}"
+            --spec-draft-ngl all
+          )
+        fi
+        exec ./llama-server "$${args[@]}"

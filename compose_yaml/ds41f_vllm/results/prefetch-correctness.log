@@ -1,0 +1,8 @@
+b12x policy fallback: moe.decode is using a heuristic on nvidia gb10 (compute capability 12.1, 48 SMs) because profile 'nvidia.gb10.48sm' does not cover the query; query={'activation': 'silu', 'hidden_size': 5120, 'intermediate_size': 1152, 'num_experts': 4, 'num_tokens': 5, 'numerical_recipe': 'deepseek_v41', 'quant_mode': 'w4a8_mx', 'routed_rows': 10, 'source_format': 'fp4_e8m0_k32', 'top_k': 2}
+b12x policy fallback: moe.decode is using a heuristic on nvidia gb10 (compute capability 12.1, 48 SMs) because profile 'nvidia.gb10.48sm' does not cover the query; query={'activation': 'silu', 'hidden_size': 5120, 'intermediate_size': 1152, 'num_experts': 6, 'num_tokens': 5, 'numerical_recipe': 'deepseek_v41', 'quant_mode': 'w4a8_mx', 'routed_rows': 10, 'source_format': 'fp4_e8m0_k32', 'top_k': 2}
+READY_PREFETCH_PROMOTION_AND_EXACT_OUTPUT_PASS
+LATE_PREFETCH_CROSS_STREAM_PASS
+UNUSED_FORECAST_NEVER_EVICTS_OR_CORRUPTS_RESIDENTS_PASS
+RESET_DRAINS_READS_BEFORE_SLOT_REUSE_PASS
+READ_FAILURE_PROPAGATION_PASS
+{'slot_hits': 27, 'slot_misses': 18, 'packed_read_bytes': 225607680, 'graph_replays': 11, 'prefetch_issued': 9, 'prefetch_read_bytes': 56401920, 'prefetch_consumed': 4, 'prefetch_ready': 2, 'prefetch_late': 2, 'prefetch_cancelled': 2, 'prefetch_unused': 2, 'demand_read_bytes': 169205760, 'prefetch_pending': 0, 'scratch_bytes': 536870912, 'gpu_cache_bytes': 56401920}

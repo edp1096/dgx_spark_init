@@ -1,0 +1,28 @@
+{
+  "time": "2026-09-08T23:03:27.187164+09:00",
+  "cause": "Original guard rejected periodic CPU-only SparkTalk key-store status helper",
+  "verified_helper": {
+    "Image": "sha256:3e9f3890915f15b524dcab671357bb6c3d87014c2bed09d0388880a642711428",
+    "Config": {
+      "Entrypoint": [
+        "/usr/local/bin/sparktalk-extra-ssh"
+      ],
+      "Cmd": [
+        "-key-store",
+        "status"
+      ]
+    },
+    "HostConfig": {
+      "NetworkMode": "none",
+      "Runtime": "runc",
+      "Privileged": false,
+      "DeviceRequests": null,
+      "Devices": [],
+      "Binds": []
+    }
+  },
+  "completed_requests_retained": 16,
+  "interrupted_request": "code_telemetry repeat 0",
+  "oom": false,
+  "resume": "same prompts/settings, new load, skip completed requests"
+}

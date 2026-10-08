@@ -1,0 +1,34 @@
+{
+  "context": 1048576,
+  "input_tokens": 1046528,
+  "needle_positions": [
+    104652,
+    523264,
+    941875
+  ],
+  "expected": {
+    "amber": "MTZXZV6634ZL",
+    "birch": "HVRDCG83VUH9",
+    "cobalt": "E5V8CUNTC3T6"
+  },
+  "kv_dtype": "fp8_e4m3",
+  "time_started": 1789362852.7972221,
+  "elapsed_s": 1316.0403534570069,
+  "ttft_s": 1315.114804429002,
+  "tg_estimate": 59.424188601403394,
+  "pp_estimate": 795.769309626457,
+  "response": {
+    "text": "{\n  \"amber\": \"MTZXZV6634ZL\",\n  \"birch\": \"HVRDCG83VUH9\",\n  \"cobalt\": \"E5V8CUNTC3T6\"\n}",
+    "usage": {
+      "prompt_tokens": 1046528,
+      "total_tokens": 1046584,
+      "completion_tokens": 56
+    }
+  },
+  "matched": {
+    "amber": true,
+    "birch": true,
+    "cobalt": true
+  },
+  "passed": true
+}

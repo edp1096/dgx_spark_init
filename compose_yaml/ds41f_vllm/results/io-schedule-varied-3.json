@@ -1,0 +1,70 @@
+[
+  {
+    "prompt": "Write a Python function that groups a list of words by anagram. Include type hints. Return only code.",
+    "text": "```python\nfrom collections import defaultdict\nfrom typing import Iterable\n\ndef group_anagrams(words: Iterable[str]) -> list[list[str]]:\n    groups: dict[tuple[str, ...], list[str]] = defaultdict(list)\n    for word in words:\n        key = tuple(sorted(word))\n        groups[key].append(word)\n    return list(groups.values())\n```",
+    "usage": {
+      "prompt_tokens": 26,
+      "total_tokens": 104,
+      "completion_tokens": 78
+    },
+    "finish_reason": "stop",
+    "requested_max_tokens": 160,
+    "total_seconds": 10.646538004999456,
+    "ttft_seconds": 3.816116857997258,
+    "overall_tokens_per_second": 7.326325230170817,
+    "first_content_event_tokens": 1,
+    "content_events": 16,
+    "decode_tokens_per_second": 11.273096979356026
+  },
+  {
+    "prompt": "Explain how a refrigerator moves heat in 80 to 100 words.",
+    "text": "A refrigerator moves heat using a compressor, condenser coils, expansion valve, and evaporator coils. The compressor pressurizes a refrigerant, heating it, which then flows through condenser coils on the back, releasing heat into the kitchen. The refrigerant cools and liquefies, then passes through an expansion valve, dropping in pressure and temperature. In the evaporator coils inside the fridge, the cold refrigerant absorbs heat from the food compartment, turning back into gas. The cycle repeats, continuously transferring heat from inside the refrigerator to the outside environment.",
+    "usage": {
+      "prompt_tokens": 18,
+      "total_tokens": 125,
+      "completion_tokens": 107
+    },
+    "finish_reason": "stop",
+    "requested_max_tokens": 160,
+    "total_seconds": 10.76115498499712,
+    "ttft_seconds": 1.8383108069974696,
+    "overall_tokens_per_second": 9.943170612185792,
+    "first_content_event_tokens": 1,
+    "content_events": 41,
+    "decode_tokens_per_second": 11.879620206901718
+  },
+  {
+    "prompt": "한국어로 TCP와 UDP의 차이를 세 문장으로 설명해.",
+    "text": "TCP는 연결 지향 프로토콜로 데이터를 보내기 전에 연결을 설정하고, 수신 확인과 재전송을 통해 데이터가 순서대로 정확히 도착하도록 보장합니다. 반면 UDP는 비연결형 프로토콜로 별도의 연결 설정이나 수신 확인 없이 데이터그램을 독립적으로 전송해 속도가 빠르지만 손실이나 순서 뒤바뀜이 발생할 수 있습니다. 따라서 TCP는 파일 전송이나 웹 통신처럼 신뢰성이 중요한 경우에, UDP는 실시간 스트리밍이나 게임처럼 속도가 중요한 경우에 주로 사용됩니다.",
+    "usage": {
+      "prompt_tokens": 22,
+      "total_tokens": 170,
+      "completion_tokens": 148
+    },
+    "finish_reason": "stop",
+    "requested_max_tokens": 160,
+    "total_seconds": 10.822701229000813,
+    "ttft_seconds": 1.0602070899985847,
+    "overall_tokens_per_second": 13.674959408785586,
+    "first_content_event_tokens": 1,
+    "content_events": 56,
+    "decode_tokens_per_second": 15.05762747787156
+  },
+  {
+    "prompt": "Write a PostgreSQL query returning the top three products by total revenue in each category from sales(category, product, revenue). Return only SQL.",
+    "text": "```sql\nSELECT category, product, total_revenue\nFROM (\n    SELECT category, product, SUM(revenue) AS total_revenue,\n           ROW_NUMBER() OVER (PARTITION BY category ORDER BY SUM(revenue) DESC) AS rn\n    FROM sales\n    GROUP BY category, product\n) t\nWHERE rn <= 3\nORDER BY category, total_revenue DESC;\n```",
+    "usage": {
+      "prompt_tokens": 32,
+      "total_tokens": 117,
+      "completion_tokens": 85
+    },
+    "finish_reason": "stop",
+    "requested_max_tokens": 160,
+    "total_seconds": 6.3813247759972,
+    "ttft_seconds": 1.6619441689981613,
+    "overall_tokens_per_second": 13.320118154731778,
+    "first_content_event_tokens": 1,
+    "content_events": 18,
+    "decode_tokens_per_second": 17.79894587764854
+  }
+]

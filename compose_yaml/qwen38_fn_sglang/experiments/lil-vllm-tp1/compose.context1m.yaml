@@ -1,0 +1,112 @@
+{
+  "name": "qwen38_qad_vllm_trial",
+  "services": {
+    "runtime": {
+      "image": "dgx-qwen38-lil-vllm:context1m-v1",
+      "container_name": "qwen38-qad-vllm-trial",
+      "init": true,
+      "restart": "no",
+      "ipc": "host",
+      "gpus": "all",
+      "mem_limit": "112g",
+      "memswap_limit": "112g",
+      "security_opt": [
+        "seccomp=unconfined"
+      ],
+      "ports": [
+        "127.0.0.1:8017:8000"
+      ],
+      "environment": {
+        "VLLM_PLE_TABLE_MEMORY": "disk",
+        "CUTE_DSL_ARCH": "sm_121a",
+        "SAFETENSORS_FAST_GPU": "1",
+        "VLLM_WORKER_MULTIPROC_METHOD": "spawn",
+        "VLLM_SSM_CONV_STATE_LAYOUT": "DS",
+        "VLLM_USE_AOT_COMPILE": "1",
+        "VLLM_USE_MEGA_AOT_ARTIFACT": "1",
+        "VLLM_USE_V2_MODEL_RUNNER": "1",
+        "B12X_POLICY_MODE": "auto",
+        "HF_HOME": "/hf",
+        "HF_HUB_OFFLINE": "1",
+        "PYTHONUNBUFFERED": "1",
+        "VLLM_ALLOW_LONG_MAX_MODEL_LEN": "1",
+        "TMPDIR": "/trial-cache/tmp",
+        "VLLM_SERVER_DEV_MODE": "1"
+      },
+      "volumes": [
+        "${HOME}/.cache/huggingface:/hf:ro",
+        "${HOME}/.cache/lil-vllm-tp1:/trial-cache",
+        "${HOME}/.cache/lil-vllm-tp1/compile:/root/.cache",
+        "./config.yarn1m.json:/hf/hub/models--local-inference-lab--Qwen3.8-Flash-Next-NVFP4/snapshots/7c4f1bc1a2d6847e0cbc01ac6b823f00251de8dd/config.json:ro"
+      ],
+      "entrypoint": [
+        "vllm"
+      ],
+      "command": [
+        "serve",
+        "/hf/hub/models--local-inference-lab--Qwen3.8-Flash-Next-NVFP4/snapshots/7c4f1bc1a2d6847e0cbc01ac6b823f00251de8dd",
+        "--served-model-name",
+        "qwen38-qad-vllm-trial",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8000",
+        "--trust-remote-code",
+        "--tensor-parallel-size",
+        "1",
+        "--pipeline-parallel-size",
+        "1",
+        "--mamba-cache-mode",
+        "align",
+        "--enable-prefix-caching",
+        "--enable-chunked-prefill",
+        "--dtype",
+        "bfloat16",
+        "--kv-cache-dtype",
+        "fp8",
+        "--quantization",
+        "modelopt_mixed",
+        "--block-size",
+        "16",
+        "--load-format",
+        "b12x",
+        "--max-model-len",
+        "1048576",
+        "--max-num-seqs",
+        "1",
+        "--max-num-batched-tokens",
+        "4096",
+        "--speculative-config",
+        "{\"method\": \"mtp\", \"num_speculative_tokens\": 4}",
+        "--gdn-decode-kernel",
+        "b12x",
+        "--linear-backend",
+        "b12x",
+        "--moe-backend",
+        "b12x",
+        "--no-enable-flashinfer-autotune",
+        "--mm-encoder-tp-mode",
+        "data",
+        "--reasoning-parser",
+        "qwen3",
+        "--tool-call-parser",
+        "qwen3_xml",
+        "--enable-auto-tool-choice",
+        "--compilation-config",
+        "{\"pass_config\": {\"fuse_act_quant\": true}}",
+        "--gpu-memory-utilization",
+        "0.8"
+      ],
+      "ulimits": {
+        "memlock": {
+          "soft": -1,
+          "hard": -1
+        },
+        "stack": {
+          "soft": 67108864,
+          "hard": 67108864
+        }
+      }
+    }
+  }
+}

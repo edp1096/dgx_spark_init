@@ -1,0 +1,450 @@
+{
+  "engine": "llama-v1-i1-q4_k_m-mmproj-q8-jpeg",
+  "endpoint": "http://127.0.0.1:5000",
+  "model": "huihui-gemma4-e2b",
+  "generated_at": "2026-08-24T02:45:59.794337753+09:00",
+  "results": [
+    {
+      "case": {
+        "id": "cat-bento",
+        "image": "/home/edp1096/workspace/dgx_spark_init/compose_yaml/llama.cpp/benchmark-results/vision-assets/prompt-examples/sogni-cat-bento.jpg",
+        "motion": "The camera remains static. One of the cat's rice paws makes a tiny wave, while the food arrangement stays unchanged.",
+        "required": [
+          "cat",
+          "rice",
+          "nori",
+          "egg",
+          "tomato",
+          "broccoli",
+          "bento"
+        ]
+      },
+      "task": "describe",
+      "output": "The image displays a close-up of a dish featuring a cat-shaped arrangement made from what appears to be noodles or a similar textured food, set against a background of green vegetables and red tomatoes. The central element is a light-colored, possibly yellow or white, food item shaped like a cat's face with black markings for eyes and whiskers. Surrounding this central piece are pieces of bright green broccoli florets and whole red tomatoes. The overall composition is a top-down view, focusing intently on the food arrangement. The texture of the main food item appears soft and layered, suggesting a noodle or pasta-like substance.",
+      "latency_ms": 1546,
+      "words": 103,
+      "hits": 3,
+      "total": 7,
+      "missing": [
+        "rice",
+        "nori",
+        "egg",
+        "bento"
+      ]
+    },
+    {
+      "case": {
+        "id": "cat-bento",
+        "image": "/home/edp1096/workspace/dgx_spark_init/compose_yaml/llama.cpp/benchmark-results/vision-assets/prompt-examples/sogni-cat-bento.jpg",
+        "motion": "The camera remains static. One of the cat's rice paws makes a tiny wave, while the food arrangement stays unchanged.",
+        "required": [
+          "cat",
+          "rice",
+          "nori",
+          "egg",
+          "tomato",
+          "broccoli",
+          "bento"
+        ]
+      },
+      "task": "i2v",
+      "output": "The camera remains static, capturing a close-up shot of a fluffy white cat's face resting on a bed of yellow rice, with the food arrangement remaining unchanged. One of the cat's rice paws gently makes a tiny wave, causing a subtle ripple effect across the surface of the rice. The lighting is bright and warm, highlighting the texture of the fluffy white fur and the glistening grains of the yellow rice. The background shows the surrounding arrangement of vibrant green broccoli florets and glossy red tomatoes. The texture of the cooked egg noodles forms a soft, voluminous base beneath the cat. The soundscape is silent, emphasizing the subtle movement of the paw.",
+      "latency_ms": 1387,
+      "words": 112,
+      "hits": 5,
+      "total": 7,
+      "missing": [
+        "nori",
+        "bento"
+      ]
+    },
+    {
+      "case": {
+        "id": "animal-tower",
+        "image": "/home/edp1096/workspace/dgx_spark_init/compose_yaml/llama.cpp/benchmark-results/vision-assets/prompt-examples/sogni-animal-tower.jpg",
+        "motion": "The camera remains static. The two flying birds flap their wings while the stacked animals hold their positions.",
+        "required": [
+          "giraffe",
+          "hippopotamus",
+          "zebra",
+          "lion",
+          "lemur",
+          "parrot",
+          "circus",
+          "crowd"
+        ]
+      },
+      "task": "describe",
+      "output": "The image displays a group of animals, including a lion, a giraffe, a zebra, and a rhinoceros, positioned together in what appears to be an indoor setting. The lion is on the left, the giraffe is standing tall in the center-left, and the zebra is positioned near the center. The rhinoceros is in the foreground, facing forward. The composition places these animals close together, suggesting a group portrait. The lighting is somewhat dim, highlighting the textures of the animals' hides. There is visible text at the bottom, which reads \"ernest\" and \"ernest\" again, followed by \"ernest\" and \"ernest\" again, and finally \"ernest\" and \"ernest\" again. The photographic style appears to be a photograph.",
+      "latency_ms": 1545,
+      "words": 113,
+      "hits": 3,
+      "total": 8,
+      "missing": [
+        "hippopotamus",
+        "lemur",
+        "parrot",
+        "circus",
+        "crowd"
+      ]
+    },
+    {
+      "case": {
+        "id": "animal-tower",
+        "image": "/home/edp1096/workspace/dgx_spark_init/compose_yaml/llama.cpp/benchmark-results/vision-assets/prompt-examples/sogni-animal-tower.jpg",
+        "motion": "The camera remains static. The two flying birds flap their wings while the stacked animals hold their positions.",
+        "required": [
+          "giraffe",
+          "hippopotamus",
+          "zebra",
+          "lion",
+          "lemur",
+          "parrot",
+          "circus",
+          "crowd"
+        ]
+      },
+      "task": "i2v",
+      "output": "The two flying birds flap their wings while the stacked animals hold their positions. The camera remains static, capturing a wide shot of a group of animals arranged in a vertical stack, featuring a lion at the top, followed by a giraffe, a zebra, and a rhinoceros at the bottom. The lion's mane is rich and textured, the giraffe's neck stretches upwards, the zebra's stripes are sharply defined, and the rhinoceros's hide appears thick and dark. The two birds, one with vibrant orange and black plumage and the other with red and blue feathers, are actively flapping their wings in mid-air, creating a dynamic contrast against the background. The lighting is bright and even, highlighting the textures of the animals and the vibrancy of the birds. The scene is set against a dark, possibly indoor or shaded background, emphasizing the subjects.",
+      "latency_ms": 1724,
+      "words": 141,
+      "hits": 3,
+      "total": 8,
+      "missing": [
+        "hippopotamus",
+        "lemur",
+        "parrot",
+        "circus",
+        "crowd"
+      ]
+    },
+    {
+      "case": {
+        "id": "ocean-illustration",
+        "image": "/home/edp1096/workspace/dgx_spark_init/compose_yaml/llama.cpp/benchmark-results/vision-assets/prompt-examples/official-ocean.jpg",
+        "motion": "The camera remains static. The person takes one careful step through the shallow water as the small waves move naturally.",
+        "required": [
+          "person",
+          "water",
+          "orange",
+          "green",
+          "rock",
+          "peach",
+          "illustration"
+        ]
+      },
+      "task": "describe",
+      "output": "The image is a horizontal landscape photograph depicting a body of water under a bright sky. The water occupies the majority of the frame, showing a light greenish-blue hue with visible ripples and reflections. In the foreground, there is a strip of lighter, possibly sandy or shallow water along the bottom edge. A single human figure is visible in the middle ground, standing in the water and facing toward the right. The figure appears to be wearing dark clothing. The horizon line separates the water from a pale, light-colored sky, which transitions to a slightly warmer tone near the horizon. The overall composition emphasizes the expanse of the water and the open sky.",
+      "latency_ms": 1341,
+      "words": 113,
+      "hits": 2,
+      "total": 7,
+      "missing": [
+        "person",
+        "orange",
+        "rock",
+        "peach",
+        "illustration"
+      ]
+    },
+    {
+      "case": {
+        "id": "ocean-illustration",
+        "image": "/home/edp1096/workspace/dgx_spark_init/compose_yaml/llama.cpp/benchmark-results/vision-assets/prompt-examples/official-ocean.jpg",
+        "motion": "The camera remains static. The person takes one careful step through the shallow water as the small waves move naturally.",
+        "required": [
+          "person",
+          "water",
+          "orange",
+          "green",
+          "rock",
+          "peach",
+          "illustration"
+        ]
+      },
+      "task": "i2v",
+      "output": "The person takes one careful step through the shallow, clear water, causing small, gentle waves to move naturally across the surface. The scene is set on a wide expanse of calm water meeting a distant horizon under a bright, clear sky. The water is a pale turquoise near the shore, transitioning to a slightly deeper hue further out, with subtle ripples catching the sunlight. The person, wearing dark clothing, moves deliberately through the water. The camera remains static, capturing this slow, deliberate progression. The soundscape is dominated by the gentle lapping of water against the shore and the soft, continuous sound of the small waves moving naturally.",
+      "latency_ms": 1301,
+      "words": 107,
+      "hits": 2,
+      "total": 7,
+      "missing": [
+        "orange",
+        "green",
+        "rock",
+        "peach",
+        "illustration"
+      ]
+    },
+    {
+      "case": {
+        "id": "tree-person-dog",
+        "image": "/home/edp1096/workspace/dgx_spark_init/compose_yaml/llama.cpp/benchmark-results/vision-assets/prompt-examples/official-tree-dog.jpg",
+        "motion": "The camera remains static. The small white dog turns its head slightly while the seated person remains still.",
+        "required": [
+          "tree",
+          "person",
+          "white dog",
+          "shade",
+          "grass",
+          "hill",
+          "blue",
+          "yellow"
+        ]
+      },
+      "task": "describe",
+      "output": "The image displays a close-up view of a dense canopy of a tree with numerous small, bright blue or light blue blossoms covering the branches, suggesting springtime. The foliage is lush and vibrant. In the foreground, there is a sloping expanse of bright green grass illuminated by sunlight, with patches of yellow interspersed. The trunk of the tree is visible near the base, appearing dark brown. The composition is dominated by the canopy extending across the upper portion of the frame, contrasting with the bright, sunlit ground below. The photographic style appears to be naturalistic, capturing the texture of the blossoms and grass. There is some faint, illegible text visible at the very bottom edge.",
+      "latency_ms": 1390,
+      "words": 115,
+      "hits": 4,
+      "total": 8,
+      "missing": [
+        "person",
+        "white dog",
+        "shade",
+        "hill"
+      ]
+    },
+    {
+      "case": {
+        "id": "tree-person-dog",
+        "image": "/home/edp1096/workspace/dgx_spark_init/compose_yaml/llama.cpp/benchmark-results/vision-assets/prompt-examples/official-tree-dog.jpg",
+        "motion": "The camera remains static. The small white dog turns its head slightly while the seated person remains still.",
+        "required": [
+          "tree",
+          "person",
+          "white dog",
+          "shade",
+          "grass",
+          "hill",
+          "blue",
+          "yellow"
+        ]
+      },
+      "task": "i2v",
+      "output": "The small white dog turns its head slightly to the left, while the seated person remains perfectly still. The scene is a vibrant outdoor setting under bright daylight, featuring a dense canopy of bright green foliage and a foreground filled with lush, sunlit yellow grass. The large, rounded canopy of the tree dominates the upper frame, composed of numerous small, bright blue-green leaves, with patches of lighter, almost white blossoms visible throughout. The camera remains static, capturing the entire scene in a medium-wide shot from a slightly low viewpoint, emphasizing the texture of the grass and the volume of the tree canopy. The lighting is bright and natural, casting soft shadows across the yellow field. The soundscape is quiet, perhaps with the gentle rustling of leaves in a light breeze.",
+      "latency_ms": 1533,
+      "words": 130,
+      "hits": 6,
+      "total": 8,
+      "missing": [
+        "shade",
+        "hill"
+      ]
+    },
+    {
+      "case": {
+        "id": "cat-ocr",
+        "image": "/home/edp1096/workspace/dgx_spark_init/compose_yaml/llama.cpp/benchmark-results/vision-assets/prompt-examples/sogni-cat-typography.jpg",
+        "motion": "The camera remains static. The black-and-white cat blinks once without changing its position.",
+        "required": [
+          "black",
+          "white",
+          "cat",
+          "face"
+        ],
+        "exact": [
+          "CAT"
+        ]
+      },
+      "task": "describe",
+      "output": "A close-up photograph features a black and white cat looking directly at the viewer. The cat has black fur on its back and head, contrasting with white fur on its chest and muzzle. Its eyes are large and appear to be a yellowish-green color. The cat's expression is alert and direct. The background is a plain, light beige or off-white color, providing a neutral setting that emphasizes the cat. The lighting is even, highlighting the texture of the fur. The text \"CAT\" is visible in white lettering across the lower portion of the image, superimposed over the cat's white chest area.",
+      "latency_ms": 1266,
+      "words": 101,
+      "hits": 4,
+      "total": 5,
+      "missing": [
+        "face"
+      ]
+    },
+    {
+      "case": {
+        "id": "cat-ocr",
+        "image": "/home/edp1096/workspace/dgx_spark_init/compose_yaml/llama.cpp/benchmark-results/vision-assets/prompt-examples/sogni-cat-typography.jpg",
+        "motion": "The camera remains static. The black-and-white cat blinks once without changing its position.",
+        "required": [
+          "black",
+          "white",
+          "cat",
+          "face"
+        ],
+        "exact": [
+          "CAT"
+        ]
+      },
+      "task": "i2v",
+      "output": "The black-and-white cat, positioned centrally in the frame, blinks slowly once, its dark eyes momentarily closing and then reopening without any change in its physical position. The cat's fur exhibits crisp detail, with stark black patches contrasting against the bright white areas of its chest and muzzle. The lighting is even, highlighting the texture of the fur and the wetness of the eyes. The camera remains static, capturing a close-up view of the cat's face. The soundscape is silent except for the subtle, soft breathing of the cat.",
+      "latency_ms": 1182,
+      "words": 88,
+      "hits": 4,
+      "total": 5,
+      "missing": [
+        "CAT"
+      ]
+    },
+    {
+      "case": {
+        "id": "gallery-ocr",
+        "image": "/home/edp1096/workspace/dgx_spark_init/compose_yaml/llama.cpp/benchmark-results/vision-assets/prompt-examples/sogni-gallery-long-exposure.jpg",
+        "motion": "The camera remains static. The woman in front of the painting remains still while the blurred visitors continue moving past her.",
+        "required": [
+          "gallery",
+          "woman",
+          "red dress",
+          "painting",
+          "blur",
+          "visitors"
+        ],
+        "exact": [
+          "13B",
+          "KREA 2 Turbo"
+        ]
+      },
+      "task": "describe",
+      "output": "The image displays an interior view of what appears to be an art gallery or exhibition space. In the center, there is a large rectangular framed artwork hanging on a light-colored wall. The artwork itself is a photograph featuring several individuals, with at least three figures visible, some of whom are partially obscured. In the foreground, there are several blurred figures, suggesting motion or a long exposure photographic style, with one figure prominently in the center wearing a red garment. To the right, another blurred figure is visible. The text \"13B\" is clearly visible in black on the wall near the artwork. The overall lighting is bright, illuminating the white walls.",
+      "latency_ms": 1366,
+      "words": 111,
+      "hits": 3,
+      "total": 8,
+      "missing": [
+        "woman",
+        "red dress",
+        "painting",
+        "visitors",
+        "KREA 2 Turbo"
+      ]
+    },
+    {
+      "case": {
+        "id": "gallery-ocr",
+        "image": "/home/edp1096/workspace/dgx_spark_init/compose_yaml/llama.cpp/benchmark-results/vision-assets/prompt-examples/sogni-gallery-long-exposure.jpg",
+        "motion": "The camera remains static. The woman in front of the painting remains still while the blurred visitors continue moving past her.",
+        "required": [
+          "gallery",
+          "woman",
+          "red dress",
+          "painting",
+          "blur",
+          "visitors"
+        ],
+        "exact": [
+          "13B",
+          "KREA 2 Turbo"
+        ]
+      },
+      "task": "i2v",
+      "output": "The camera remains static, capturing a wide view of a brightly lit, minimalist art gallery space where a large framed painting hangs on a white wall. In the foreground, a woman with dark hair, wearing a red dress, stands still directly in front of the painting. Behind her, several visitors are visible, appearing as blurred streaks of motion as they continuously move past her in various directions, creating a dynamic contrast with the stationary subject. The lighting is even and bright, highlighting the texture of the wall and the surface of the painting. The environment is clean and modern, with a smooth, light-colored floor reflecting the ambient light. The soundscape is a low, ambient murmur of conversation and footsteps, punctuated by the soft, continuous movement sounds of the passing visitors.",
+      "latency_ms": 1542,
+      "words": 130,
+      "hits": 6,
+      "total": 8,
+      "missing": [
+        "13B",
+        "KREA 2 Turbo"
+      ]
+    },
+    {
+      "case": {
+        "id": "smoky-makeup",
+        "image": "/home/edp1096/workspace/dgx_spark_init/compose_yaml/llama.cpp/benchmark-results/vision-assets/makeup-library/02-smoky.jpg",
+        "motion": "The camera remains static. The woman slowly blinks once while keeping the same neutral expression.",
+        "required": [
+          "woman",
+          "dark hair",
+          "smoky",
+          "eye",
+          "neutral",
+          "gray"
+        ]
+      },
+      "task": "describe",
+      "output": "A close-up portrait features a woman with dark hair pulled back, looking directly at the camera. She has prominent eyes, defined eyebrows, and full lips, with a relatively smooth complexion. The lighting is soft and even, highlighting her facial features against a plain, light gray background. The woman is wearing what appears to be a strapless garment, revealing her shoulders and décolletage. The composition is centered on her face, occupying most of the frame. The photographic style is professional studio lighting, emphasizing texture and form. There is some faint, illegible text visible near the bottom edge, appearing as \"at\" followed by other characters.",
+      "latency_ms": 1349,
+      "words": 103,
+      "hits": 4,
+      "total": 6,
+      "missing": [
+        "smoky",
+        "neutral"
+      ]
+    },
+    {
+      "case": {
+        "id": "smoky-makeup",
+        "image": "/home/edp1096/workspace/dgx_spark_init/compose_yaml/llama.cpp/benchmark-results/vision-assets/makeup-library/02-smoky.jpg",
+        "motion": "The camera remains static. The woman slowly blinks once while keeping the same neutral expression.",
+        "required": [
+          "woman",
+          "dark hair",
+          "smoky",
+          "eye",
+          "neutral",
+          "gray"
+        ]
+      },
+      "task": "i2v",
+      "output": "The woman's face, framed by dark hair pulled back tightly, is centered in a medium close-up shot, maintaining a neutral expression. Her eyes slowly and deliberately blink once, revealing a momentary shift in the moisture of her eyes before returning to their original state. The lighting is soft and even, highlighting the smooth texture of her skin against the muted, cool gray background. The composition is symmetrical, focusing entirely on her facial features. The camera remains static, holding this precise viewpoint, capturing the subtle, slow movement of the blink across her eyes. The soundscape is silent, emphasizing the stillness of the moment.",
+      "latency_ms": 1298,
+      "words": 102,
+      "hits": 5,
+      "total": 6,
+      "missing": [
+        "smoky"
+      ]
+    },
+    {
+      "case": {
+        "id": "pose-ocr",
+        "image": "/home/edp1096/workspace/dgx_spark_init/compose_yaml/llama.cpp/benchmark-results/vision-assets/pose-library/images/pose_087.jpg",
+        "motion": "The camera remains static. The woman begins to rise very slightly from her initial pose.",
+        "required": [
+          "woman",
+          "side",
+          "squat",
+          "hands",
+          "yellow",
+          "white"
+        ]
+      },
+      "task": "describe",
+      "output": "A photograph captures a single individual, appearing to be a woman, positioned in a low, squatting posture. The subject has blonde hair and is looking towards the viewer. The lighting is bright, illuminating the subject against a plain, light background. The individual is wearing a light yellow or cream-colored top. The pose involves the subject's body being lowered in a squatting position, with the hands resting on the ground in front of them. The composition focuses entirely on the person and their posture. The text visible at the bottom reads \"profile view,squatting,forward on hands\".",
+      "latency_ms": 1226,
+      "words": 94,
+      "hits": 4,
+      "total": 6,
+      "missing": [
+        "side",
+        "white"
+      ]
+    },
+    {
+      "case": {
+        "id": "pose-ocr",
+        "image": "/home/edp1096/workspace/dgx_spark_init/compose_yaml/llama.cpp/benchmark-results/vision-assets/pose-library/images/pose_087.jpg",
+        "motion": "The camera remains static. The woman begins to rise very slightly from her initial pose.",
+        "required": [
+          "woman",
+          "side",
+          "squat",
+          "hands",
+          "yellow",
+          "white"
+        ]
+      },
+      "task": "i2v",
+      "output": "The woman, with blonde hair, is in a squatting position, resting on her hands and knees, with her body low to the ground, against a plain, light background. The lighting is bright and even, highlighting the texture of her skin and clothing. The camera remains static, capturing a medium shot from a slightly low angle that emphasizes her posture. The woman begins to rise very slightly from her initial pose, slowly pushing up from her squatting position, engaging her core muscles as she transitions from the low crouch to a more upright, partially standing posture while maintaining contact with her hands and knees. The soundscape is silent, emphasizing the subtle movement of her body.",
+      "latency_ms": 1368,
+      "words": 114,
+      "hits": 3,
+      "total": 6,
+      "missing": [
+        "side",
+        "yellow",
+        "white"
+      ]
+    }
+  ],
+  "hits": 61,
+  "total": 110,
+  "mean_latency_ms": 1397.75
+}

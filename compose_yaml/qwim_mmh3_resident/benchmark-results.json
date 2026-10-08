@@ -1,0 +1,363 @@
+{
+  "date": "2026-10-07",
+  "device": "NVIDIA GB10 / DGX Spark",
+  "aux_loading": "dynamic",
+  "worker_sha256": "fe0803601dccd30b17055b1025f1323849b4b5b72c156cf90fa0979ee154dbdf",
+  "image": "sha256:a7783884107c4c499f19d7fb2dd3e7171a51d2d8d181a81c1f87838702b9e68d",
+  "profiles": {
+    "h3": {
+      "width": 864,
+      "height": 480,
+      "frames": 124,
+      "fps": 24,
+      "steps": 20,
+      "encoder": "Qwen3-VL 4B FP8 + ClipProj v3.1"
+    },
+    "qwim": {
+      "width": 1024,
+      "height": 1024,
+      "steps": 40,
+      "encoder": "Qwen3-VL 8B W4A8"
+    }
+  },
+  "one_time_startup_seconds": 46.059,
+  "cases": [
+    {
+      "case": "01-h3-hybrid",
+      "kind": "h3",
+      "conditioning_cached": false,
+      "seconds": 204.694,
+      "stages_seconds": {
+        "encode": 5.862,
+        "release_encoder": 0.186,
+        "sample": 180.236,
+        "release_sample_workspace": 0.146,
+        "decode_video": 15.032,
+        "release_video_vae": 0.125,
+        "decode_audio": 0.693,
+        "release_audio_vae": 0.129,
+        "save": 2.27
+      },
+      "sampling_steps_completed": 20,
+      "same_worker_pid": 58,
+      "idle_available_GiB": 18.207,
+      "min_available_GiB": 17.132
+    },
+    {
+      "case": "02-qwim-hybrid",
+      "kind": "qwim",
+      "conditioning_cached": false,
+      "seconds": 33.925,
+      "stages_seconds": {
+        "encode": 5.419,
+        "release_encoder": 0.123,
+        "sample": 26.395,
+        "release_sample_workspace": 0.126,
+        "decode_video": 1.166,
+        "release_video_vae": 0.142,
+        "save": 0.543
+      },
+      "sampling_steps_completed": 40,
+      "same_worker_pid": 58,
+      "idle_available_GiB": 17.424,
+      "min_available_GiB": 13.103
+    },
+    {
+      "case": "03-h3-hybrid",
+      "kind": "h3",
+      "conditioning_cached": true,
+      "seconds": 197.825,
+      "stages_seconds": {
+        "encode": 0.0,
+        "release_encoder": 0.11,
+        "sample": 179.842,
+        "release_sample_workspace": 0.146,
+        "decode_video": 14.629,
+        "release_video_vae": 0.167,
+        "decode_audio": 0.531,
+        "release_audio_vae": 0.132,
+        "save": 2.255
+      },
+      "sampling_steps_completed": 20,
+      "same_worker_pid": 58,
+      "idle_available_GiB": 16.991,
+      "min_available_GiB": 13.657
+    },
+    {
+      "case": "04-qwim-hybrid",
+      "kind": "qwim",
+      "conditioning_cached": true,
+      "seconds": 27.756,
+      "stages_seconds": {
+        "encode": 0.001,
+        "release_encoder": 0.115,
+        "sample": 25.907,
+        "release_sample_workspace": 0.117,
+        "decode_video": 0.936,
+        "release_video_vae": 0.132,
+        "save": 0.538
+      },
+      "sampling_steps_completed": 40,
+      "same_worker_pid": 58,
+      "idle_available_GiB": 17.038,
+      "min_available_GiB": 14.143
+    },
+    {
+      "case": "05-h3-hybrid",
+      "kind": "h3",
+      "conditioning_cached": false,
+      "seconds": 200.922,
+      "stages_seconds": {
+        "encode": 2.374,
+        "release_encoder": 0.189,
+        "sample": 179.986,
+        "release_sample_workspace": 0.154,
+        "decode_video": 15.279,
+        "release_video_vae": 0.169,
+        "decode_audio": 0.539,
+        "release_audio_vae": 0.134,
+        "save": 2.086
+      },
+      "sampling_steps_completed": 20,
+      "same_worker_pid": 58,
+      "idle_available_GiB": 17.748,
+      "min_available_GiB": 13.756
+    },
+    {
+      "case": "06-qwim-hybrid",
+      "kind": "qwim",
+      "conditioning_cached": false,
+      "seconds": 32.769,
+      "stages_seconds": {
+        "encode": 4.549,
+        "release_encoder": 0.123,
+        "sample": 26.233,
+        "release_sample_workspace": 0.118,
+        "decode_video": 1.071,
+        "release_video_vae": 0.136,
+        "save": 0.528
+      },
+      "sampling_steps_completed": 40,
+      "same_worker_pid": 58,
+      "idle_available_GiB": 17.583,
+      "min_available_GiB": 12.785
+    }
+  ],
+  "previous_baseline_seconds": {
+    "full_h3_to_qwim_first_image": 74.25643640896305,
+    "h3_first_generation": 207.52012546395417,
+    "h3_slow_repeat": 412.8663731890265,
+    "qwim_resident_repeat": 27.08996980905067
+  },
+  "guard_triggered": false,
+  "min_available_GiB": 12.785,
+  "idle_models_only_dits": true,
+  "quality": [
+    {
+      "file": "01-h3-hybrid.mp4",
+      "bytes": 861782,
+      "duration": 5.166688,
+      "streams": [
+        {
+          "type": "video",
+          "codec": "h264",
+          "frames": 124
+        },
+        {
+          "type": "audio",
+          "codec": "aac",
+          "frames": 163
+        }
+      ],
+      "decoded_frames": 124,
+      "frame_shapes": [
+        [
+          480,
+          864,
+          3
+        ],
+        [
+          480,
+          864,
+          3
+        ],
+        [
+          480,
+          864,
+          3
+        ]
+      ],
+      "frame_std": [
+        65.49071651506927,
+        72.22932804236348,
+        77.40506553950125
+      ],
+      "sample_frame_hashes": [
+        "f3dab2df78bd3f67cf9d5f26f146baa57c94934b3a7d3786ea1bd4ebeafd9e13",
+        "26b34aceff15eeabe0316f43ca054400625680219e396a051dfd01ce715c3ee7",
+        "cd0eca2698051dfa8ca88b309f7d885a1d814ed3f28306cc701ce7393c0bdf32"
+      ],
+      "prior_frame_mae": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "decoded_audio_samples": 165334,
+      "audio_peak": 0.6713020205497742
+    },
+    {
+      "file": "02-qwim-hybrid.png",
+      "bytes": 1399082,
+      "shape": [
+        1024,
+        1024,
+        4
+      ],
+      "pixel_std": 62.12255347130742,
+      "prior_pixels_identical": true,
+      "prior_pixel_mae": 0.0
+    },
+    {
+      "file": "03-h3-hybrid.mp4",
+      "bytes": 861782,
+      "duration": 5.166688,
+      "streams": [
+        {
+          "type": "video",
+          "codec": "h264",
+          "frames": 124
+        },
+        {
+          "type": "audio",
+          "codec": "aac",
+          "frames": 163
+        }
+      ],
+      "decoded_frames": 124,
+      "frame_shapes": [
+        [
+          480,
+          864,
+          3
+        ],
+        [
+          480,
+          864,
+          3
+        ],
+        [
+          480,
+          864,
+          3
+        ]
+      ],
+      "frame_std": [
+        65.49071651506927,
+        72.22932804236348,
+        77.40506553950125
+      ],
+      "sample_frame_hashes": [
+        "f3dab2df78bd3f67cf9d5f26f146baa57c94934b3a7d3786ea1bd4ebeafd9e13",
+        "26b34aceff15eeabe0316f43ca054400625680219e396a051dfd01ce715c3ee7",
+        "cd0eca2698051dfa8ca88b309f7d885a1d814ed3f28306cc701ce7393c0bdf32"
+      ],
+      "decoded_audio_samples": 165334,
+      "audio_peak": 0.6713020205497742
+    },
+    {
+      "file": "04-qwim-hybrid.png",
+      "bytes": 1399082,
+      "shape": [
+        1024,
+        1024,
+        4
+      ],
+      "pixel_std": 62.12255347130742,
+      "prior_pixels_identical": true,
+      "prior_pixel_mae": 0.0
+    },
+    {
+      "file": "05-h3-hybrid.mp4",
+      "bytes": 887102,
+      "duration": 5.166688,
+      "streams": [
+        {
+          "type": "video",
+          "codec": "h264",
+          "frames": 124
+        },
+        {
+          "type": "audio",
+          "codec": "aac",
+          "frames": 163
+        }
+      ],
+      "decoded_frames": 124,
+      "frame_shapes": [
+        [
+          480,
+          864,
+          3
+        ],
+        [
+          480,
+          864,
+          3
+        ],
+        [
+          480,
+          864,
+          3
+        ]
+      ],
+      "frame_std": [
+        68.10275167079509,
+        72.91768161610108,
+        75.7985485198468
+      ],
+      "sample_frame_hashes": [
+        "4979b0236a3aafb40a1eab41377a2e2a7b9295507764d4ca5a94a0919333feda",
+        "b3146d2a3edd0cceeffdaa3de0038a60db6877f36513dcb23de876410868d300",
+        "d9ffb9af620a57c17668b527135986c4425f011ec34a68771d40dc1d29060f15"
+      ],
+      "decoded_audio_samples": 165334,
+      "audio_peak": 0.04510919004678726
+    },
+    {
+      "file": "06-qwim-hybrid.png",
+      "bytes": 1428001,
+      "shape": [
+        1024,
+        1024,
+        4
+      ],
+      "pixel_std": 66.11308902721166
+    }
+  ],
+  "restored": {
+    "config_equal": true,
+    "unchanged_services": {
+      "/sparktalk-qwen38fn_exl3": true,
+      "/sparktalk-nemotron-asr": true,
+      "/sparktalk-magpie-tts": true
+    },
+    "running": {
+      "/sparktalk-qwen38fn_exl3": true,
+      "/sparktalk-nemotron-asr": true,
+      "/sparktalk-magpie-tts": true,
+      "/sparktalk-qwen-image21": true
+    },
+    "memory": {
+      "available_GiB": 27.0189208984375,
+      "free_GiB": 13.193439483642578,
+      "swap_used_GiB": 1.3312721252441406
+    }
+  },
+  "artifacts": "/home/edp1096/.cache/model-download-jobs/mmh3-hybrid-20261007",
+  "limits": [
+    "Experimental text-to-video and text-to-image only; no reference-image path tested.",
+    "Initial resident DiT startup reported separately.",
+    "Two-entry CPU prompt-conditioning cache; repeated prompt and changed seed can skip encoder.",
+    "Identical checkpoint, resolution, sampler and steps to previous benchmark; static allocation differs."
+  ]
+}

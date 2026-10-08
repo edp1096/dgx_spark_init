@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/home/edp1096/workspace/dgx_spark_init/compose_yaml/ds41_vllm/check_decoder_rows.py", line 45, in <module>
+    assert checks and all('validation' in x for x in checks), (rank,checks)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: (0, [])

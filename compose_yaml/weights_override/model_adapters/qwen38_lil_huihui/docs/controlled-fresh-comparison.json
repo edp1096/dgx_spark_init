@@ -1,0 +1,134 @@
+{
+  "official": {
+    "checks": [
+      {
+        "name": "warmup"
+      },
+      {
+        "name": "arithmetic",
+        "passed": true
+      },
+      {
+        "name": "json",
+        "passed": true
+      },
+      {
+        "name": "sorting",
+        "passed": true
+      },
+      {
+        "name": "korean"
+      },
+      {
+        "name": "translation"
+      },
+      {
+        "name": "coding"
+      },
+      {
+        "name": "fiction"
+      },
+      {
+        "name": "tool"
+      },
+      {
+        "name": "vision",
+        "passed": true
+      },
+      {
+        "name": "long_needle",
+        "passed": true
+      },
+      {
+        "name": "speed_0"
+      },
+      {
+        "name": "speed_1"
+      },
+      {
+        "name": "speed_2"
+      }
+    ],
+    "needle_repeats": [
+      {
+        "flush": false,
+        "text": "SPARK-7429-MINT"
+      },
+      {
+        "flush": true,
+        "text": "SPARK-7429-MINT"
+      },
+      {
+        "flush": false,
+        "text": "SPARK-7429-MINT"
+      }
+    ],
+    "nonfinite_markers": 0
+  },
+  "candidate": {
+    "checks": [
+      {
+        "name": "warmup"
+      },
+      {
+        "name": "arithmetic",
+        "passed": true
+      },
+      {
+        "name": "json",
+        "passed": true
+      },
+      {
+        "name": "sorting",
+        "passed": true
+      },
+      {
+        "name": "korean"
+      },
+      {
+        "name": "translation"
+      },
+      {
+        "name": "coding"
+      },
+      {
+        "name": "fiction"
+      },
+      {
+        "name": "tool"
+      },
+      {
+        "name": "vision",
+        "passed": true
+      },
+      {
+        "name": "long_needle",
+        "passed": true
+      },
+      {
+        "name": "speed_0"
+      },
+      {
+        "name": "speed_1"
+      },
+      {
+        "name": "speed_2"
+      }
+    ],
+    "needle_repeats": [
+      {
+        "flush": false,
+        "text": "SPARK-7429-MINT"
+      },
+      {
+        "flush": true,
+        "text": "SPARK-7429-MINT"
+      },
+      {
+        "flush": false,
+        "text": "SPARK-7429-MINT"
+      }
+    ],
+    "nonfinite_markers": 0
+  }
+}

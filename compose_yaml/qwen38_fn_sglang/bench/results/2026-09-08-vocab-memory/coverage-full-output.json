@@ -1,0 +1,130 @@
+{
+  "rows": [
+    {
+      "name": "ko_explain",
+      "tokens": 256,
+      "outside64": 3,
+      "outside64_pct": 1.17,
+      "outside128": 1
+    },
+    {
+      "name": "ko_plan",
+      "tokens": 256,
+      "outside64": 4,
+      "outside64_pct": 1.56,
+      "outside128": 0
+    },
+    {
+      "name": "ko_story",
+      "tokens": 256,
+      "outside64": 5,
+      "outside64_pct": 1.95,
+      "outside128": 4
+    },
+    {
+      "name": "ko_compare",
+      "tokens": 256,
+      "outside64": 2,
+      "outside64_pct": 0.78,
+      "outside128": 1
+    },
+    {
+      "name": "code_python",
+      "tokens": 256,
+      "outside64": 0,
+      "outside64_pct": 0.0,
+      "outside128": 0
+    },
+    {
+      "name": "code_go",
+      "tokens": 256,
+      "outside64": 11,
+      "outside64_pct": 4.3,
+      "outside128": 0
+    },
+    {
+      "name": "json",
+      "tokens": 336,
+      "outside64": 7,
+      "outside64_pct": 2.08,
+      "outside128": 0
+    },
+    {
+      "name": "en_prose",
+      "tokens": 256,
+      "outside64": 3,
+      "outside64_pct": 1.17,
+      "outside128": 0
+    }
+  ],
+  "total": 2128,
+  "outside64": 35,
+  "outside64_pct": 1.644736842105263,
+  "examples": [
+    [
+      "Workers",
+      5
+    ],
+    [
+      " UNIQUE",
+      4
+    ],
+    [
+      "(Process",
+      2
+    ],
+    [
+      " �",
+      2
+    ],
+    [
+      " �",
+      2
+    ],
+    [
+      " bufferSize",
+      2
+    ],
+    [
+      " �",
+      1
+    ],
+    [
+      " �",
+      1
+    ],
+    [
+      "Ethernet",
+      1
+    ],
+    [
+      " �",
+      1
+    ],
+    [
+      "\"sync",
+      1
+    ],
+    [
+      " bounded",
+      1
+    ],
+    [
+      "\twg",
+      1
+    ],
+    [
+      ".jobs",
+      1
+    ],
+    [
+      " Whisper",
+      1
+    ]
+  ],
+  "method": "Retokenize rendered content from full-benchmark.json; not original sampled token IDs or measured MTP rejection rate.",
+  "source": "full-benchmark.json",
+  "contains_outside64_rows": 7,
+  "rows_over_5_percent": 0,
+  "limitations": "Eight synthetic prompts, one output each. This does not estimate the distribution or frequency of real user tasks."
+}

@@ -1,0 +1,12 @@
+b12x policy fallback: moe.decode is using a heuristic on nvidia gb10 (compute capability 12.1, 48 SMs) because profile 'nvidia.gb10.48sm' does not cover the query; query={'activation': 'silu', 'hidden_size': 5120, 'intermediate_size': 1152, 'num_experts': 3, 'num_tokens': 3, 'numerical_recipe': 'deepseek_v41', 'quant_mode': 'w4a8_mx', 'routed_rows': 6, 'source_format': 'fp4_e8m0_k32', 'top_k': 2}
+run 0 seconds 0.032002373998693656 relative_l2 0.0 max_abs 0.0
+run 1 seconds 0.0022123360031400807 relative_l2 0.0 max_abs 0.0
+b12x policy fallback: moe.decode is using a heuristic on nvidia gb10 (compute capability 12.1, 48 SMs) because profile 'nvidia.gb10.48sm' does not cover the query; query={'activation': 'silu', 'hidden_size': 5120, 'intermediate_size': 1152, 'num_experts': 2, 'num_tokens': 5, 'numerical_recipe': 'deepseek_v41', 'quant_mode': 'w4a8_mx', 'routed_rows': 10, 'source_format': 'fp4_e8m0_k32', 'top_k': 2}
+B12X_NATIVE_PASS
+SLOT_TEST 0 max_error 0.0 {'slot_hits': 0, 'slot_misses': 3, 'packed_read_bytes': 28200960, 'graph_replays': 2, 'scratch_bytes': 268435456, 'gpu_cache_bytes': 18800640}
+SLOT_TEST 1 max_error 0.0 {'slot_hits': 1, 'slot_misses': 5, 'packed_read_bytes': 47001600, 'graph_replays': 4, 'scratch_bytes': 268435456, 'gpu_cache_bytes': 18800640}
+FIXED_SLOT_GRAPH_EVICTION_PASS
+SHARED_SCRATCH_CROSS_LAYER_REPLAY_PASS
+b12x policy fallback: moe.decode is using a heuristic on nvidia gb10 (compute capability 12.1, 48 SMs) because profile 'nvidia.gb10.48sm' does not cover the query; query={'activation': 'silu', 'hidden_size': 5120, 'intermediate_size': 1152, 'num_experts': 2, 'num_tokens': 1, 'numerical_recipe': 'deepseek_v41', 'quant_mode': 'w4a8_mx', 'routed_rows': 2, 'source_format': 'fp4_e8m0_k32', 'top_k': 2}
+BUCKET_PADDING_AND_SHAPE_REPLAY_PASS
+CROSS_STREAM_SCRATCH_AND_SLOT_ORDER_PASS

@@ -1,0 +1,44 @@
+{
+  "normalized_block_identical": true,
+  "payload_identical": true,
+  "records": [
+    {
+      "file": "qwen38_fn_sglang/bench/results/2026-09-08-broad-vocab/reboot-2026-09-09/current-kernel.log",
+      "block": [
+        "BERT: Error records from previous boot:",
+        "[Hardware Error]: It has been corrected by h/w and requires no further action",
+        "[Hardware Error]: event severity: corrected",
+        "[Hardware Error]:  Error 0, type: corrected",
+        "[Hardware Error]:   section type: unknown, 3c1e3f4b-1e1a-43df-af28-59820e958e3c",
+        "[Hardware Error]:   section length: 0x3e",
+        "[Hardware Error]:   00000000: 000d0000 544d0000 0044494b 00000000  ......MTKID.....",
+        "[Hardware Error]:   00000010: 00000000 00000020 00000022 56190000  .... ...\"......V",
+        "[Hardware Error]:   00000020: a451e0a4 c2964450 0ae9a1c7 0000fa95  ..Q.PD..........",
+        "[Hardware Error]:   00000030: 00 00 00 00 00 00 00 00 00 00 00 00 00 00        ..............",
+        "BERT: Total records found: 1"
+      ],
+      "payload_hex": "00000d0000004d544b4944000000000000000000200000002200000000001956a4e051a4504496c2c7a1e90a95fa00000000000000000000000000000000",
+      "payload_bytes": 62,
+      "payload_sha256": "d17d22c25324d1f7b00ee92a731088a8b8204b0b53576f5bebf6755f423eb67b"
+    },
+    {
+      "file": "qwen38_fn_sglang/bench/results/2026-09-09-ko16k-vs32k-vs64k/reboot-2026-09-09-0248/current-kernel.log",
+      "block": [
+        "BERT: Error records from previous boot:",
+        "[Hardware Error]: It has been corrected by h/w and requires no further action",
+        "[Hardware Error]: event severity: corrected",
+        "[Hardware Error]:  Error 0, type: corrected",
+        "[Hardware Error]:   section type: unknown, 3c1e3f4b-1e1a-43df-af28-59820e958e3c",
+        "[Hardware Error]:   section length: 0x3e",
+        "[Hardware Error]:   00000000: 000d0000 544d0000 0044494b 00000000  ......MTKID.....",
+        "[Hardware Error]:   00000010: 00000000 00000020 00000022 56190000  .... ...\"......V",
+        "[Hardware Error]:   00000020: a451e0a4 c2964450 0ae9a1c7 0000fa95  ..Q.PD..........",
+        "[Hardware Error]:   00000030: 00 00 00 00 00 00 00 00 00 00 00 00 00 00        ..............",
+        "BERT: Total records found: 1"
+      ],
+      "payload_hex": "00000d0000004d544b4944000000000000000000200000002200000000001956a4e051a4504496c2c7a1e90a95fa00000000000000000000000000000000",
+      "payload_bytes": 62,
+      "payload_sha256": "d17d22c25324d1f7b00ee92a731088a8b8204b0b53576f5bebf6755f423eb67b"
+    }
+  ]
+}

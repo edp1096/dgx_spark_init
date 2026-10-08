@@ -1,0 +1,25 @@
+{
+  "b12x_commit": "ce419b52681b7922bb0972d4b58b590a3fd005b2",
+  "vllm_fork_commit": "66c293578412417476f842c1da5805d3a3d959a8",
+  "qsa_plan": {
+    "max_seq_len": 1048576,
+    "max_batch": 1,
+    "max_q_rows": 1024,
+    "q_heads": 12,
+    "kv_heads": 1,
+    "head_dim": 256,
+    "kv_dtype": "float8_e4m3fn",
+    "mrope_sections": [
+      11,
+      11,
+      10
+    ],
+    "plan_accepted": true,
+    "workspace_bytes": 161100800,
+    "cuda_peak_allocated_bytes": 0
+  },
+  "rope_source": "get_rope yarn branch supports MRotaryEmbedding scaling_factor; QSA bind consumes its cos_sin_cache",
+  "public_recipe_context": 262144,
+  "single_1m_request_tested": false,
+  "production_changed": false
+}

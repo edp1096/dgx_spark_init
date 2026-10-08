@@ -1,0 +1,9 @@
+<!doctype html>
+<html lang="ko">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>사이트 관리 · SparkTalk</title><link rel="stylesheet" href="sites.css"></head>
+<body><main>
+<header><img src="spark.png" width="36" height="36" alt=""><div><span class="brand">SparkTalk 브라우저</span><h1>사이트 관리</h1></div></header>
+<p class="intro">Talk가 접근할 수 있는 사이트를 관리합니다. 로그인 상태는 브라우저에 유지됩니다.</p>
+<section aria-labelledby="addTitle"><h2 id="addTitle">사이트 추가</h2><form id="addSite"><label for="site">사이트 주소</label><div class="add-row"><input id="site" type="url" placeholder="https://example.com" required><button type="submit" class="primary">허용</button></div></form><p id="siteStatus" role="status" aria-live="polite"></p></section>
+<section aria-labelledby="listTitle"><div class="list-heading"><h2 id="listTitle">허용된 사이트 <span id="siteCount"></span></h2><label class="search">사이트 검색<input id="filter" type="search" placeholder="주소로 검색"></label></div><p class="hint">사이트를 해제하면 다음 작업부터 접근할 수 없습니다. 현재 Talk 연결 서버는 용도를 구분해 표시합니다.</p><ul id="allowedSites" aria-label="허용된 사이트"></ul><p id="empty" hidden>검색 결과가 없습니다.</p></section>
+</main><script src="sites.js"></script></body></html>

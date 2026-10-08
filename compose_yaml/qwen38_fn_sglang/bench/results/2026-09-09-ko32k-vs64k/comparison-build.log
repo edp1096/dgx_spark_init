@@ -1,0 +1,148 @@
+{
+  "modes": {
+    "ko64k": {
+      "requests": 48,
+      "tokens": 73226,
+      "elapsed_s": 2462.8614669630333,
+      "pooled_end_to_end_tok_s": 29.73208236933251,
+      "pooled_decode_tok_s": 30.177747784444257,
+      "mean_request_decode_tok_s": 32.6217482750442,
+      "median_ttft_s": 0.2933051569998497,
+      "spec_accept_rate": 0.5177487969872376,
+      "spec_accept_length": 2.5533858707022805,
+      "truncated": 14,
+      "missing_final": 6,
+      "quality": {
+        "requests": 48,
+        "points": 99,
+        "max_points": 144,
+        "full_pass": 24,
+        "material_errors": 14
+      },
+      "coverage": {
+        "tokens": 73226,
+        "outside": {
+          "ko64k": 919,
+          "ko32k": 2983
+        },
+        "outside_pct": {
+          "ko64k": 1.2550187092016496,
+          "ko32k": 4.073689673066943
+        }
+      },
+      "final_coverage": {
+        "tokens": 45167,
+        "outside": {
+          "ko64k": 347,
+          "ko32k": 713
+        },
+        "outside_pct": {
+          "ko64k": 0.7682600128412337,
+          "ko32k": 1.578586135895676
+        }
+      },
+      "thermal": {
+        "metrics": {
+          "temperature_c": {
+            "samples": 244,
+            "min": 53.0,
+            "max": 66.0,
+            "median": 63.0
+          },
+          "gpu_util_pct": {
+            "samples": 244,
+            "min": 0.0,
+            "max": 96.0,
+            "median": 96.0
+          },
+          "power_w": {
+            "samples": 244,
+            "min": 9.06,
+            "max": 34.12,
+            "median": 20.99
+          },
+          "sm_clock_mhz": {
+            "samples": 244,
+            "min": 1982.0,
+            "max": 1989.0,
+            "median": 1989.0
+          }
+        },
+        "invalid_lines_excluded": 1
+      }
+    },
+    "ko32k": {
+      "requests": 48,
+      "tokens": 72178,
+      "elapsed_s": 2423.3727810779947,
+      "pooled_end_to_end_tok_s": 29.78410938819445,
+      "pooled_decode_tok_s": 30.21642796979769,
+      "mean_request_decode_tok_s": 33.39292139243824,
+      "median_ttft_s": 0.2632420759996421,
+      "spec_accept_rate": 0.48399297888001813,
+      "spec_accept_length": 2.452114829284865,
+      "truncated": 15,
+      "missing_final": 6,
+      "quality": {
+        "requests": 48,
+        "points": 97,
+        "max_points": 144,
+        "full_pass": 22,
+        "material_errors": 14
+      },
+      "coverage": {
+        "tokens": 72178,
+        "outside": {
+          "ko64k": 988,
+          "ko32k": 3050
+        },
+        "outside_pct": {
+          "ko64k": 1.368838150128848,
+          "ko32k": 4.2256643298512016
+        }
+      },
+      "final_coverage": {
+        "tokens": 42368,
+        "outside": {
+          "ko64k": 337,
+          "ko32k": 691
+        },
+        "outside_pct": {
+          "ko64k": 0.7954116314199395,
+          "ko32k": 1.6309478851963746
+        }
+      },
+      "thermal": {
+        "metrics": {
+          "temperature_c": {
+            "samples": 241,
+            "min": 54.0,
+            "max": 67.0,
+            "median": 64.0
+          },
+          "gpu_util_pct": {
+            "samples": 241,
+            "min": 0.0,
+            "max": 96.0,
+            "median": 96.0
+          },
+          "power_w": {
+            "samples": 241,
+            "min": 9.97,
+            "max": 36.42,
+            "median": 23.25
+          },
+          "sm_clock_mhz": {
+            "samples": 241,
+            "min": 2086.0,
+            "max": 2093.0,
+            "median": 2086.0
+          }
+        },
+        "invalid_lines_excluded": 0
+      }
+    }
+  },
+  "ratio": 1.023026208072218,
+  "complete_pairs": 32
+}

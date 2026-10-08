@@ -1,0 +1,8 @@
+FROM dgx-ds41-stream:marlin1
+ARG B12X_REVISION=789bbb3c846565c41f3404af3e0d7c9ce8702f7f
+RUN pip install --no-deps --no-cache-dir "git+https://github.com/local-inference-lab/b12x.git@${B12X_REVISION}"
+COPY patches /opt/ds41/patches
+COPY *.py /opt/ds41/
+COPY tools /opt/ds41/tools
+RUN while read src dst; do if [ -n "$src" ]; then cp "/opt/ds41/patches/$src" "/usr/local/lib/python3.12/dist-packages/vllm/$dst"; fi; done < /opt/ds41/patches/mounts.txt
+ENV VLLM_PLUGINS=""

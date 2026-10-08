@@ -1,0 +1,154 @@
+# Keep the existing Compose project identity across directory renames.
+name: sglang_qwen38_fn
+
+services:
+  sglang:
+    depends_on:
+      model-prepare:
+        condition: service_completed_successfully
+    init: true
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: qad-tp1
+      args:
+        SGLANG_PLE_COMMIT: 0977d22bb005695fef0aee4bc59adfab45b7a496
+        SPARK_RECIPE_COMMIT: 4f425ca561f767997738e894ee578673e79b01b1
+    image: dgx-sglang-qwen38-qad:sm121-v5-memory
+    container_name: sglang-qwen38-fn
+    ipc: host
+    shm_size: "16gb"
+    mem_limit: "112g"
+    memswap_limit: "112g"
+    cpuset: "5-9,15-19"
+    ports:
+      - "8000:30000"
+    security_opt: ["seccomp=unconfined"]
+    ulimits:
+      memlock: {soft: -1, hard: -1}
+    environment:
+      SGLANG_QAD_B12X_GDN: "1"
+      SGLANG_QAD_PLE_IO_URING: "1"
+      B12X_POLICY_MODE: auto
+      HF_HOME: /hf
+      HF_HUB_OFFLINE: "1"
+      PYTHONUNBUFFERED: "1"
+      PYTORCH_CUDA_ALLOC_CONF: "expandable_segments:True"
+      B12X_COMPILE_CACHE_DIR: /root/.cache/sglang/b12x-compile
+      TRITON_CACHE_DIR: /root/.cache/sglang/triton
+      TORCHINDUCTOR_CACHE_DIR: /root/.cache/sglang/inductor
+      MAX_JOBS: "1"
+      TORCHINDUCTOR_COMPILE_THREADS: "4"
+      SGLANG_QWEN4_PLE_FILE_RSS_BUDGET_GB: "4"
+      SPARKTALK_FLASH_NEXT_DRAFT_VOCAB: ${SPARKTALK_FLASH_NEXT_DRAFT_VOCAB:-ko64k}
+    volumes:
+      - ${QWEN_HF_CACHE:-${SPARKTALK_HF_CACHE:-${HOME}/.cache/huggingface}}:/hf
+      - ${QWEN_DATA_DIR:-${SPARKTALK_DATA_DIR:-${HOME}/.local/share/qwen38-fn}}/cache/sglang-flash-next-qad:/root/.cache/sglang
+      - ${QWEN_DATA_DIR:-${SPARKTALK_DATA_DIR:-${HOME}/.local/share/qwen38-fn}}/cache/sglang-flash-next-qad/ple:/ple
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    entrypoint: ["python3", "/opt/sparktalk-flash-next/launch.py"]
+    command:
+      - --model-path
+      - ${QWEN_QAD_MODEL_PATH:-/hf/hub/models--local-inference-lab--Qwen3.8-Flash-Next-NVFP4/snapshots/7c4f1bc1a2d6847e0cbc01ac6b823f00251de8dd}
+      - --served-model-name
+      - ${QWEN_QAD_MODEL_ID:-local-inference-lab/Qwen3.8-Flash-Next-NVFP4}
+      - --host
+      - 0.0.0.0
+      - --port
+      - "30000"
+      - --load-format
+      - auto
+      - --weight-loader-drop-cache-after-load
+      - --tp-size
+      - "1"
+      - --context-length
+      - "65536"
+      - --mem-fraction-static
+      - "0.80"
+      - --chunked-prefill-size
+      - "512"
+      - --max-total-tokens
+      - "131072"
+      - --max-running-requests
+      - "2"
+      - --page-size
+      - "64"
+      - --cuda-graph-max-bs-decode
+      - "2"
+      - --prefill-attention-backend
+      - triton
+      - --decode-attention-backend
+      - trtllm_mha
+      - --kv-cache-dtype
+      - fp8_e4m3
+      - --quantization
+      - modelopt_mixed
+      - --moe-runner-backend
+      - flashinfer_cutlass
+      - --disable-shared-experts-fusion
+      - --fp4-gemm-backend
+      - flashinfer_cutlass
+      - --ple-offload-embedding
+      - --ple-offload-backend
+      - file
+      - --ple-offload-dir
+      - /ple
+      - --mamba-radix-cache-strategy
+      - extra_buffer
+      - --reasoning-parser
+      - qwen3
+      - --tool-call-parser
+      - qwen3_coder
+      - --mm-feature-transport
+      - cpu
+      - --speculative-algorithm
+      - NEXTN
+      - --speculative-num-steps
+      - "3"
+      - --speculative-eagle-topk
+      - "1"
+      - --speculative-num-draft-tokens
+      - "4"
+      - --speculative-draft-model-quantization
+      - modelopt_mixed
+      - --allow-auto-truncate
+      - --disable-flashinfer-autotune
+      - --enable-metrics
+    healthcheck:
+      test:
+        - CMD
+        - python3
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:30000/health', timeout=5)"
+      interval: 15s
+      timeout: 10s
+      retries: 80
+      start_period: 15m
+    restart: unless-stopped
+
+  model-prepare:
+    build:
+      context: .
+      dockerfile: Dockerfile.prepare
+    image: qwen38-fn-model-prepare:step5500
+    user: "${QWEN_UID:-1000}:${QWEN_GID:-1000}"
+    mem_limit: 2g
+    memswap_limit: 2g
+    environment:
+      HOME: /tmp
+      HF_HOME: /hf
+      HF_HUB_OFFLINE: "0"
+      HF_XET_HIGH_PERFORMANCE: "0"
+      HF_XET_NUM_CONCURRENT_RANGE_GETS: "1"
+      HF_HUB_DISABLE_PROGRESS_BARS: "1"
+      QWEN_QAD_MODEL_ID: ${QWEN_QAD_MODEL_ID:-local-inference-lab/Qwen3.8-Flash-Next-NVFP4}
+      QWEN_QAD_REVISION: ${QWEN_QAD_REVISION:-7c4f1bc1a2d6847e0cbc01ac6b823f00251de8dd}
+      QWEN_QAD_MODEL_PATH: ${QWEN_QAD_MODEL_PATH:-/hf/hub/models--local-inference-lab--Qwen3.8-Flash-Next-NVFP4/snapshots/7c4f1bc1a2d6847e0cbc01ac6b823f00251de8dd}
+    volumes:
+      - ${QWEN_HF_CACHE:-${SPARKTALK_HF_CACHE:-${HOME}/.cache/huggingface}}:/hf

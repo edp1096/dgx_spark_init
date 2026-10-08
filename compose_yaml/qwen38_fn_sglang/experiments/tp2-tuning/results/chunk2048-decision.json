@@ -1,0 +1,6 @@
+{
+  "eligible": false,
+  "reason": "One of six retrieval requests emitted 32 exclamation marks. Do not adopt or include that response as a valid speed win.",
+  "recheck": "Same failed prompt passed 4/4 immediately afterward.",
+  "kernel_probe": "180 random and 150 tied/zero/padded-logit top-k tests passed; root cause remains unproven."
+}

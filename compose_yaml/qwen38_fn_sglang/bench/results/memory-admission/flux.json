@@ -1,0 +1,98 @@
+{
+  "prepared": {
+    "status": "ok",
+    "busy": false,
+    "memory_schema": 1,
+    "workspace_kind": "additional",
+    "cuda_allocated_gib": 2.2917046546936035,
+    "cuda_reserved_gib": 2.314453125,
+    "cuda_peak_allocated_gib": 2.296431064605713,
+    "core_ready": true,
+    "core_object": 280248334706512,
+    "core_loaded_gib": 2.291435405611992,
+    "text_weights_cached": false,
+    "text_weights_on_device": false,
+    "workspace_gib": 4.5
+  },
+  "prepared_host": {
+    "time": 1790789239.8124928,
+    "phase": "flux_prepare",
+    "available_gib": 13.392349243164062,
+    "pswpout": 7283204,
+    "oom_kill": 0
+  },
+  "flux_generate_1": {
+    "seconds": 12.397928015998332,
+    "memory": {
+      "status": "ok",
+      "busy": false,
+      "memory_schema": 1,
+      "workspace_kind": "additional",
+      "cuda_allocated_gib": 2.3545875549316406,
+      "cuda_reserved_gib": 2.412109375,
+      "cuda_peak_allocated_gib": 2.891331672668457,
+      "core_ready": true,
+      "core_object": 280248334706512,
+      "core_loaded_gib": 2.291435405611992,
+      "text_weights_cached": true,
+      "text_weights_on_device": true,
+      "workspace_gib": 2.5
+    },
+    "host": {
+      "time": 1790789252.2384846,
+      "phase": "flux_generate_1",
+      "available_gib": 8.267513275146484,
+      "pswpout": 7283395,
+      "oom_kill": 0
+    },
+    "image_bytes": 1620259
+  },
+  "flux_generate_2": {
+    "seconds": 4.727668521009036,
+    "memory": {
+      "status": "ok",
+      "busy": false,
+      "memory_schema": 1,
+      "workspace_kind": "additional",
+      "cuda_allocated_gib": 2.3545875549316406,
+      "cuda_reserved_gib": 2.412109375,
+      "cuda_peak_allocated_gib": 2.891331672668457,
+      "core_ready": true,
+      "core_object": 280248334706512,
+      "core_loaded_gib": 2.291435405611992,
+      "text_weights_cached": true,
+      "text_weights_on_device": true,
+      "workspace_gib": 2.5
+    },
+    "host": {
+      "time": 1790789256.9867294,
+      "phase": "flux_generate_2",
+      "available_gib": 8.171073913574219,
+      "pswpout": 7283395,
+      "oom_kill": 0
+    },
+    "image_bytes": 1620259
+  },
+  "reclaim": {
+    "status": "ok",
+    "busy": false,
+    "memory_schema": 1,
+    "workspace_kind": "additional",
+    "cuda_allocated_gib": 2.3542046546936035,
+    "cuda_reserved_gib": 2.412109375,
+    "cuda_peak_allocated_gib": 2.891331672668457,
+    "core_ready": true,
+    "core_object": 280248334706512,
+    "core_loaded_gib": 2.291435405611992,
+    "text_weights_cached": false,
+    "text_weights_on_device": false,
+    "workspace_gib": 4.5
+  },
+  "reclaimed_host": {
+    "time": 1790789257.2661805,
+    "phase": "flux_reclaim",
+    "available_gib": 11.673606872558594,
+    "pswpout": 7283395,
+    "oom_kill": 0
+  }
+}

@@ -1,0 +1,60 @@
+services:
+  ui:
+    init: true
+    build:
+      context: .
+      target: ui
+      args:
+        AI_TOOLKIT_COMMIT: 27a03a91f23eb1b757d5ec2e80ee3e129cfcc350
+    image: dgx-ostris-ai-toolkit-ui:latest
+    container_name: ostris-ai-toolkit-ui
+    restart: unless-stopped
+    network_mode: host
+    ipc: host
+    gpus: all
+    environment:
+      HF_TOKEN: ${HF_TOKEN:-}
+      AI_TOOLKIT_AUTH: ${AI_TOOLKIT_AUTH:-}
+      AI_TOOLKIT_STATE_ROOT: /data/official-ui
+      AI_TOOLKIT_FILE_SERVER_WORKERS: "2"
+      NODE_ENV: production
+      TZ: Asia/Seoul
+    volumes:
+      - hf-cache:/root/.cache/huggingface
+      - ./data:/data
+      - ./data/datasets:/opt/ai-toolkit/datasets
+      - ./data/output:/opt/ai-toolkit/output
+
+  api:
+    profiles: ["legacy-api"]
+    init: true
+    build:
+      context: .
+      target: api
+      args:
+        AI_TOOLKIT_COMMIT: 27a03a91f23eb1b757d5ec2e80ee3e129cfcc350
+    image: dgx-krea2-lora-trainer:latest
+    container_name: krea2-lora-trainer-api
+    restart: unless-stopped
+    network_mode: host
+    ipc: host
+    gpus: all
+    environment:
+      HF_TOKEN: ${HF_TOKEN:-}
+      CIVITAI_API_KEY: ${CIVITAI_API_KEY:-}
+      API_PORT: "8704"
+      TRAINER_DATA_ROOT: /data
+      AI_TOOLKIT_ROOT: /opt/ai-toolkit
+      REGISTERED_LORA_ROOT: /registered-loras
+    volumes:
+      - hf-cache:/root/.cache/huggingface
+      - ./data:/data
+      - krea-user-loras:/registered-loras
+
+volumes:
+  hf-cache:
+    name: media-hf-cache
+    external: true
+  krea-user-loras:
+    name: media-krea-user-loras
+    external: true

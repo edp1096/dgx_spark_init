@@ -1,0 +1,4 @@
+# Preserve original diagnostic log whitespace.
+*.log -whitespace
+# A patch context line intentionally begins with a space.
+*.patch -whitespace

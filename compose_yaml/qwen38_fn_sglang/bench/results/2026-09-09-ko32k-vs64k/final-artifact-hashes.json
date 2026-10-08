@@ -1,0 +1,15 @@
+{
+  "qwen38_fn_sglang/bench/results/2026-09-09-ko32k-vs64k/README.md": "febfd1d13211e37443697ed1c6ab48c002a65993ae0207f0f87b067eb31ada5f",
+  "qwen38_fn_sglang/bench/results/2026-09-09-ko32k-vs64k/interpretation.md": "eb1552e55e67e7a7b60a9502145baff7400606507e40b45ff0dc7b760fd79ba9",
+  "qwen38_fn_sglang/bench/results/2026-09-09-ko32k-vs64k/comparison-summary.json": "edce53480f6faf761cd3f836eb6532e18940ff1e7a9637cc1ad87c8456dd035d",
+  "qwen38_fn_sglang/bench/results/2026-09-09-ko32k-vs64k/quality-summary.json": "aab2055bfe92d648c10b812435dc9169f8ec5d0fe9c0a58f23cb60864496b59a",
+  "qwen38_fn_sglang/bench/results/2026-09-09-ko32k-vs64k/prose-reviews.json": "9d865e112d7bd727e2c70ae5a1bad8d026e2f983431017d9d89c86d07a24bbbc",
+  "qwen38_fn_sglang/bench/results/2026-09-09-ko32k-vs64k/code-grades.json": "291fdee5b62293d5128fa6e0e6d46c4024a5dbf64db3d22acad9f2522e3ed7f9",
+  "qwen38_fn_sglang/bench/results/2026-09-09-ko32k-vs64k/ledger-grades.json": "941db69704826f41ba3b5ec0111f9f882441d6a4a067557e6b732aafede7883d",
+  "qwen38_fn_sglang/bench/results/2026-09-09-ko32k-vs64k/ko32k-benchmark.json": "e1691694b784c3e6ea0fd826c2b9176cc3fd4fe3baf75ba911dfe2dfa888eee9",
+  "qwen38_fn_sglang/bench/results/2026-09-09-ko32k-vs64k/ko64k-benchmark.json": "ee4fe523f6ff6e16a97bc52d02ebdcc9a6741481e1becc190547697f1a4f9d2c",
+  "qwen38_fn_sglang/bench/summarize_vocab_pair.py": "0ddcea16bef3921c9da3e9af16c99d52367b25c1ae1283c85d20324e0855bc96",
+  "qwen38_fn_sglang/bench/summarize_broad_quality.py": "bbcf422da2b02cbc25de55264ec55fcd3cf0e5417af038eaa37d869eb7a7598e",
+  "qwen38_fn_sglang/bench/grade_broad_code.py": "e77dfe0e956d8230067d670fb929ed328c539e7245e370ca9bda2218182c93b0",
+  "qwen38_fn_sglang/bench/prepare_broad_review.py": "8d313f2296e337657a2f6cacc092af713587f075a004c761fdff6c8fe8d6d100"
+}

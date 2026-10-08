@@ -1,0 +1,181 @@
+{
+  "date": "2026-10-08",
+  "configured_bundle_count": 10,
+  "configured_component_refs": [
+    {
+      "component": "ornith35",
+      "images": [
+        "dgx-vllm-moe-tp1:b40673cd0-v5"
+      ]
+    },
+    {
+      "component": "qwen38fn_exl3",
+      "images": [
+        "sparktalk-qwen38fn_exl3:1.5.4-managed1"
+      ]
+    },
+    {
+      "component": "flash-next",
+      "images": [
+        "dgx-sglang-qwen38-qad:sm121-v5-memory"
+      ]
+    },
+    {
+      "component": "flash-next-tp2",
+      "images": [
+        "dgx-sglang-qwen38-fn:sm121-tp2-vocab-v1"
+      ]
+    },
+    {
+      "component": "gemma31",
+      "images": [
+        "dgx-sglang-gemma4-31b-dflash:2ef0fe4-toolindex1"
+      ]
+    },
+    {
+      "component": "flux2",
+      "images": [
+        "sparktalk-qwen-image21:nvfp4-int8-v5-dit-resident"
+      ]
+    },
+    {
+      "component": "nemotron-asr",
+      "images": [
+        "sparktalk-nemotron-asr:0.1.0"
+      ]
+    },
+    {
+      "component": "qwen3-tts",
+      "images": [
+        "sparktalk-qwen3-tts:0.6b-q8-lifecycle1"
+      ]
+    },
+    {
+      "component": "extra-media",
+      "images": [
+        "sparktalk-extra-media:0.1.0"
+      ]
+    },
+    {
+      "component": "extra-ssh",
+      "images": [
+        "sparktalk-extra-ssh:0.3.0"
+      ]
+    },
+    {
+      "component": "extra-collector",
+      "images": [
+        "sparktalk-extra-collector:0.1.0"
+      ]
+    },
+    {
+      "component": "extra-documents",
+      "images": [
+        "sparktalk-extra-documents:0.5.2"
+      ]
+    },
+    {
+      "component": "gemma26",
+      "images": [
+        "dgx-sglang-gemma26:2ef0fe4-toolindex1"
+      ]
+    },
+    {
+      "component": "glm53",
+      "images": [
+        "dgx-sglang-glm53:sm121-dev6"
+      ]
+    },
+    {
+      "component": "ds4fve",
+      "images": [
+        "ghcr.io/anemll/dspark-vllm-gx10:0.1.1@sha256:a83948492cf13df455170fb42885f5ef4db54fefe0feff0f841ecbff464ac9d8"
+      ]
+    },
+    {
+      "component": "ds41",
+      "images": [
+        "dgx-ds41-stream:b12x8"
+      ]
+    },
+    {
+      "component": "qwim-mmh3",
+      "images": [
+        "sparktalk-qwim-mmh3:nvfp4-resident2"
+      ]
+    },
+    {
+      "component": "flash-next-radixark",
+      "images": [
+        "dgx-sglang-qwen38-qad:sm121-v5-memory"
+      ]
+    }
+  ],
+  "owner_packages": [
+    {
+      "name": "media-access-api",
+      "visibility": "public",
+      "updated_at": "2026-09-21T05:40:13Z"
+    },
+    {
+      "name": "sglang-qwen38-qad",
+      "visibility": "public",
+      "updated_at": "2026-10-08T05:07:24Z"
+    },
+    {
+      "name": "sparktalk-extra-media",
+      "visibility": "private",
+      "updated_at": "2026-10-08T05:07:32Z"
+    },
+    {
+      "name": "sparktalk-extra-collector",
+      "visibility": "private",
+      "updated_at": "2026-09-30T06:14:49Z"
+    },
+    {
+      "name": "sparktalk-extra-documents",
+      "visibility": "private",
+      "updated_at": "2026-09-30T06:14:32Z"
+    },
+    {
+      "name": "sparktalk-extra-ssh",
+      "visibility": "private",
+      "updated_at": "2026-10-08T05:07:40Z"
+    }
+  ],
+  "new_runtime_count": 0,
+  "new_preparation_tool_count": 0,
+  "new_publication_total": 0,
+  "publication_approval": "not needed; no new candidates",
+  "proposal_file": "util/talk/docs/ghcr-new-image-proposal-20261008.json",
+  "scope": "All configured runtime images retained for coverage; publication candidates exclude user-excluded services and preparation tools.",
+  "coverage": {
+    "referenced_unique_runtime_images": 17,
+    "new_runtime_images": 11,
+    "already_published_images": 5,
+    "upstream_published_images": 1,
+    "unclassified_images": []
+  },
+  "publication_candidates_after_user_exclusions": {
+    "runtime": 0,
+    "preparation": 0,
+    "total": 0
+  },
+  "user_excluded_from_publication": [
+    "DeepSeek V4.1",
+    "Model download/verification preparation image",
+    "Nemotron ASR model conversion image",
+    "Nemotron ASR runtime; build locally from Dockerfile",
+    "Gemma 4 31B runtime; local Dockerfile build",
+    "Gemma 4 26B runtime; local Dockerfile build",
+    "Ornith 35B runtime; local Dockerfile build",
+    "Qwen Image 2.1 standalone runtime; local Dockerfile build",
+    "Qwen Image 2.1 + MiniMax H3 runtime; local Dockerfile build",
+    "Qwen3-TTS runtime; local Dockerfile and lifecycle-patch build",
+    "Qwen38FN EXL3 runtime; verified local Dockerfile rebuild",
+    "Qwen38FN TP2 runtime; verified local Dockerfile rebuild",
+    "GLM53FN TP2 runtime; verified local Dockerfile rebuild"
+  ],
+  "coverage_note": "All 17 configured runtime images are classified. No new GHCR runtime publication is required. Ten serving runtime builds are covered by Dockerfiles/source recipes; DS41 and preparation tools remain excluded. Existing QAD/Extra packages and external/public base images are retained.",
+  "rebuild_audit": "util/talk/docs/ghcr-rebuild-audit-20261008.json"
+}

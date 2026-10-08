@@ -1,0 +1,99 @@
+name: qwen38_qad_sglang_trial
+services:
+  runtime:
+    image: dgx-sglang-qwen38-qad:tail-trial
+    build:
+      context: ../..
+      dockerfile: experiments/lil-qad-tp1/Dockerfile.tail
+    container_name: qwen38-qad-sglang-trial
+    init: true
+    restart: 'no'
+    ipc: host
+    shm_size: 4gb
+    mem_limit: 112g
+    memswap_limit: 112g
+    gpus: all
+    ports: ['127.0.0.1:8016:30000']
+    security_opt: [seccomp=unconfined]
+    ulimits:
+      memlock: {soft: -1, hard: -1}
+    environment:
+      SGLANG_QAD_B12X_GDN: "1"
+      SGLANG_QAD_PLE_IO_URING: "1"
+      B12X_POLICY_MODE: auto
+      SPARKTALK_FLASH_NEXT_DRAFT_VOCAB: 'ko64k'
+      SGLANG_ALLOW_OVERWRITE_LONGER_CONTEXT_LEN: '1'
+      HF_HUB_OFFLINE: '1'
+      HF_HOME: /hf
+      PYTHONUNBUFFERED: '1'
+      PYTORCH_CUDA_ALLOC_CONF: 'expandable_segments:True'
+      B12X_COMPILE_CACHE_DIR: /trial-cache/b12x-compile
+      TRITON_CACHE_DIR: /trial-cache/triton
+      SGLANG_QWEN4_PLE_FILE_RSS_BUDGET_GB: '0.5'
+      MAX_JOBS: '1'
+      TORCHINDUCTOR_COMPILE_THREADS: '1'
+    volumes:
+      - ${HOME}/.cache/huggingface:/hf:ro
+      - ${HOME}/.local/share/sparktalk/cache/lil-qad-ple-tp1:/trial-cache
+    entrypoint: ['python3', '/opt/sparktalk-flash-next/launch.py']
+    command:
+      - --model-path
+      - /hf/hub/models--local-inference-lab--Qwen3.8-Flash-Next-NVFP4/snapshots/7c4f1bc1a2d6847e0cbc01ac6b823f00251de8dd
+      - --served-model-name
+      - qwen38-qad-sglang-trial
+      - --host
+      - 0.0.0.0
+      - --port
+      - '30000'
+      - --tp-size
+      - '1'
+      - --context-length
+      - '1048576'
+      - --max-total-tokens
+      - '1048576'
+      - --max-running-requests
+      - '1'
+      - --max-mamba-cache-size
+      - '8'
+      - --mem-fraction-static
+      - '0.85'
+      - --chunked-prefill-size
+      - '4096'
+      - --kv-cache-dtype
+      - fp8_e4m3
+      - --quantization
+      - modelopt_mixed
+      - --fp4-gemm-backend
+      - flashinfer_cutlass
+      - --moe-runner-backend
+      - flashinfer_cutlass
+      - --ple-offload-embedding
+      - --ple-offload-backend
+      - file
+      - --ple-offload-dir
+      - /trial-cache/ple-7c4f1bc1
+      - --weight-loader-drop-cache-after-load
+      - --prefill-attention-backend
+      - triton
+      - --decode-attention-backend
+      - trtllm_mha
+      - --cuda-graph-max-bs-decode
+      - '1'
+      - --disable-shared-experts-fusion
+      - --speculative-algorithm
+      - NEXTN
+      - --speculative-num-steps
+      - '3'
+      - --speculative-eagle-topk
+      - '1'
+      - --speculative-num-draft-tokens
+      - '4'
+      - --speculative-draft-model-quantization
+      - modelopt_mixed
+      - --reasoning-parser
+      - qwen3
+      - --tool-call-parser
+      - qwen3_coder
+      - --disable-flashinfer-autotune
+      - --json-model-override-args
+      - '{"text_config": {"rope_parameters": {"mrope_interleaved": true, "mrope_section": [11, 11, 10], "rope_type": "yarn", "rope_theta": 10000000, "partial_rotary_factor": 0.25, "factor": 4.0, "original_max_position_embeddings": 262144}}}'

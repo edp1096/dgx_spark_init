@@ -1,0 +1,5 @@
+# Qualification only: upstream removed the deepseek_v41 numerical recipe.
+# This image must not replace the serving image without numerical validation.
+FROM dgx-ds41-stream:b12x8
+RUN python3 -m pip install --no-deps --no-build-isolation --no-cache-dir "https://codeload.github.com/local-inference-lab/b12x/tar.gz/323107ff948ca532f1f7c793b4b550c30ba5212b"
+LABEL ds41.b12x.commit="323107ff948ca532f1f7c793b4b550c30ba5212b"

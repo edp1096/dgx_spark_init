@@ -1,0 +1,43 @@
+diff --git a/experimental/server/engine.py b/experimental/server/engine.py
+index a5d8493..c49d695 100644
+--- a/experimental/server/engine.py
++++ b/experimental/server/engine.py
+@@ -1971,6 +1971,17 @@ def _convert_messages_to_cpp(rt_module, messages: List[Dict[str, Any]]):
+     return cpp_messages
+
+
++def _load_local_image(rt_module, path: str):
++    """Load WebP through Pillow because the C++ image loader accepts PNG/JPEG."""
++    if Path(path).suffix.lower() != ".webp":
++        return rt_module.load_image_from_path(path)
++    from PIL import Image as PILImage
++    converted = io.BytesIO()
++    with PILImage.open(path) as webp:
++        webp.save(converted, format="PNG")
++    return rt_module.load_image_from_bytes(converted.getvalue())
++
++
+ def _load_image_buffers(rt_module,
+                         messages: List[Dict[str, Any]],
+                         video_family_fn=lambda: "qwen",
+@@ -2048,7 +2059,7 @@ def _load_image_buffers(rt_module,
+             if itype == "image":
+                 path = item.get("image", "")
+                 if path and os.path.isfile(path):
+-                    image = rt_module.load_image_from_path(path)
++                    image = _load_local_image(rt_module, path)
+             else:
+                 ref = item.get("image_url", "")
+                 url = ref.get("url", "") if isinstance(ref, dict) else ref
+@@ -2069,9 +2080,9 @@ def _load_image_buffers(rt_module,
+                         data = converted.getvalue()
+                     image = rt_module.load_image_from_bytes(data)
+                 elif url.startswith("file:"):
+-                    image = rt_module.load_image_from_path(resolve_file_url(url))
++                    image = _load_local_image(rt_module, resolve_file_url(url))
+                 elif url and os.path.isfile(url):
+-                    image = rt_module.load_image_from_path(url)
++                    image = _load_local_image(rt_module, url)
+                 elif url:
+                     raise ValueError(
+                         "image_url currently supports data: and allowed local file URLs"

@@ -1,0 +1,12 @@
+{
+  "status": "stopped_by_available_memory_guard",
+  "minimum_available_gib": 2.98,
+  "guard_gib": 3,
+  "guard_seconds_since_start": 1798.1,
+  "oom_killed": false,
+  "input_tokens": 1048431,
+  "prefill_tokens_at_guard_log": 565760,
+  "pending_tokens_at_guard_log": 482671,
+  "full_input_completed": false,
+  "note": "Server log was captured before docker stop; additional chunks ran during stop grace period. Exit 137 after the stop grace period is not OOMKilled."
+}

@@ -1,0 +1,30 @@
+{
+  "talk": {
+    "content": "spark-final-ok",
+    "performance": {
+      "pp": 340.6728581705227,
+      "tg": 10.502767126252163,
+      "ttft": 20.427250753000408,
+      "prompt_tokens": 6959,
+      "cached_tokens": 0,
+      "output_tokens": 6,
+      "calls": 1
+    },
+    "temporary_session_deleted": true,
+    "output_reserve": 16384
+  },
+  "asr": {
+    "status": 200,
+    "text": "Hello, this is a speech recognition test."
+  },
+  "runtime": {
+    "image": "dgx-ds41-stream:b12x8",
+    "prefill_tokens": 8192,
+    "kernel_tokens": 2048,
+    "engram_reader": "native",
+    "autotune_tokens": 4096,
+    "dense_profile": true,
+    "benchmark_controls": false,
+    "source_files_identical": 39
+  }
+}

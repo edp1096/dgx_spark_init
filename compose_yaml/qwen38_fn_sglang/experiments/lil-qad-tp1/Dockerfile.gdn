@@ -1,0 +1,6 @@
+FROM dgx-sglang-qwen38-qad:fp8-trial
+RUN python3 -m pip install --no-deps nvidia-cutlass-dsl==4.7.0 nvidia-cutlass-dsl-libs-base==4.7.0 nvidia-cutlass-dsl-libs-core==4.7.0 nvidia-cutlass-dsl-libs-cu12==4.7.0 nvidia-cutlass-dsl-libs-cu13==4.7.0
+# Different B12X source commits can publish the same package version.
+RUN python3 -m pip install --force-reinstall --no-deps https://github.com/lukealonso/b12x/archive/9043b448622764a598969518d413b3fd8b3c0c07.tar.gz
+COPY qad/qad_gdn.py qad/patch_gdn.py /opt/qad-tp1/
+RUN python3 /opt/qad-tp1/patch_gdn.py

@@ -1,0 +1,6 @@
+b12x policy fallback: moe.decode is using a heuristic on nvidia gb10 (compute capability 12.1, 48 SMs) because profile 'nvidia.gb10.48sm' does not cover the query; query={'activation': 'silu', 'hidden_size': 5120, 'intermediate_size': 1152, 'num_experts': 4, 'num_tokens': 5, 'numerical_recipe': 'deepseek_v41', 'quant_mode': 'w4a8_mx', 'routed_rows': 10, 'source_format': 'fp4_e8m0_k32', 'top_k': 2}
+b12x policy fallback: moe.decode is using a heuristic on nvidia gb10 (compute capability 12.1, 48 SMs) because profile 'nvidia.gb10.48sm' does not cover the query; query={'activation': 'silu', 'hidden_size': 5120, 'intermediate_size': 1152, 'num_experts': 4, 'num_tokens': 1, 'numerical_recipe': 'deepseek_v41', 'quant_mode': 'w4a8_mx', 'routed_rows': 2, 'source_format': 'fp4_e8m0_k32', 'top_k': 2}
+BREAKABLE_REAL_ROUTING_PASS [[4, 5], [6, 7]]
+BREAKABLE_REAL_ROUTING_PASS [[0, 383], [1, 382]]
+BREAKABLE_REAL_ROUTING_PASS [[0, 1], [2, 3]]
+BreakableCUDAGraphCapture(graphs=2, eager_breaks=1) {'slot_hits': 32, 'slot_misses': 14, 'packed_read_bytes': 131604480, 'graph_replays': 15, 'prefetch_issued': 0, 'prefetch_read_bytes': 0, 'prefetch_consumed': 0, 'prefetch_ready': 0, 'prefetch_late': 0, 'prefetch_cancelled': 0, 'prefetch_unused': 0, 'demand_read_bytes': 131604480, 'prefetch_pending': 0, 'scratch_bytes': 536870912, 'gpu_cache_bytes': 37601280}

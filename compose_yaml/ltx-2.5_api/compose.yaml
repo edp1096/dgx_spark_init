@@ -1,0 +1,38 @@
+name: ltx2_5_api
+
+services:
+  api:
+    init: true
+    build:
+      context: .
+    image: dgx-ltx2.5-nvfp4-api:latest
+    container_name: ltx2-5-nvfp4-api
+    restart: unless-stopped
+    network_mode: host
+    ipc: host
+    gpus: all
+    environment:
+      HF_TOKEN: ${HF_TOKEN:-}
+      LTX_LORA_PATH: ${LTX_LORA_PATH:-}
+      LTX_LORA_STRENGTH: ${LTX_LORA_STRENGTH:-0.5}
+      API_PORT: "8695"
+      LTX_MODEL_DIR: /models/ltx-2.5
+      LTX_DEFAULT_WIDTH: "768"
+      LTX_DEFAULT_HEIGHT: "512"
+      LTX_DEFAULT_FRAMES: "121"
+      LTX_DEFAULT_FPS: "24"
+      LTX_SOL_MODE: ${LTX_SOL_MODE:-auto}
+      LTX_SOL_MIN_TOKENS: ${LTX_SOL_MIN_TOKENS:-32000}
+      LTX_SOL_EXACT_ADALN: ${LTX_SOL_EXACT_ADALN:-1}
+      SOL_ATTN_STRICT: "0"
+      PYTORCH_CUDA_ALLOC_CONF: expandable_segments:True
+    volumes:
+      - hf-cache:/root/.cache/huggingface
+      - ltx-models:/models
+
+volumes:
+  hf-cache:
+    name: media-hf-cache
+    external: true
+  ltx-models:
+    name: media-ltx-models

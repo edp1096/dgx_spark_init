@@ -1,0 +1,24 @@
+@uri = http://127.0.0.1:8000
+@model = Huihui-Qwen3.8-27B-abliterated-FP8
+
+### Health check
+GET {{uri}}/health
+
+### List models
+GET {{uri}}/v1/models
+
+### Korean generation test
+POST {{uri}}/v1/chat/completions
+Content-Type: application/json
+
+{
+  "model": "{{model}}",
+  "messages": [
+    {
+      "role": "user",
+      "content": "한 문장으로 답해라. 지금 정상적으로 추론 중인가?"
+    }
+  ],
+  "temperature": 0,
+  "max_tokens": 256
+}

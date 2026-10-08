@@ -1,0 +1,10 @@
+const vm=require('node:vm'),fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
+let resumed=false;const delegated=[];
+const window={confirm:message=>{delegated.push(message);return false;}};
+const context=vm.createContext({window,document:{documentElement:{setAttribute:()=>{resumed=true;}}}});
+vm.runInContext(fs.readFileSync(path.join(__dirname,'../../internal/browserbridge/extension/resume-draft.js'),'utf8'),context);
+assert.equal(window.confirm('작성 중이던 리뷰가 있습니다. 이어서 작성하시겠습니까?'),true);
+assert.equal(resumed,true);assert.equal(delegated.length,0);
+for(const message of ['리뷰를 등록하시겠습니까?','정말 삭제하시겠습니까?','결제하시겠습니까?'])assert.equal(window.confirm(message),false);
+assert.equal(delegated.length,3);
+console.log('PASS: resume draft only; registration, deletion and payment confirms remain native');

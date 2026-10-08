@@ -1,0 +1,40 @@
+{"fixture": "talk-tools-r5", "trial": -1, "enabled": false, "pp": 193.19743208390327, "ttft_seconds": 32.65055931799998}
+{"fixture": "talk-tools-r5", "trial": -1, "enabled": true, "pp": 196.33976756887503, "ttft_seconds": 32.12800179199985}
+{"fixture": "mixed-document-r5", "trial": -1, "enabled": false, "pp": 240.93791515663838, "ttft_seconds": 53.68190066300007}
+{"fixture": "mixed-document-r5", "trial": -1, "enabled": true, "pp": 246.55977340404854, "ttft_seconds": 52.45789216000002}
+{"fixture": "talk-tools-r5", "trial": 0, "enabled": true, "pp": 197.61775469002907, "ttft_seconds": 31.920233350999982}
+{"fixture": "talk-tools-r5", "trial": 0, "enabled": false, "pp": 192.24902782888825, "ttft_seconds": 32.8116402359999}
+Traceback (most recent call last):
+  File "/home/edp1096/workspace/dgx_spark_init/compose_yaml/ds41_vllm/bench_decoder_rows.py", line 32, in <module>
+    with urllib.request.urlopen(request,timeout=900) as r:reply=json.load(r)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/urllib/request.py", line 215, in urlopen
+    return opener.open(url, data, timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/urllib/request.py", line 515, in open
+    response = self._open(req, data)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/urllib/request.py", line 532, in _open
+    result = self._call_chain(self.handle_open, protocol, protocol +
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/urllib/request.py", line 492, in _call_chain
+    result = func(*args)
+             ^^^^^^^^^^^
+  File "/usr/lib/python3.12/urllib/request.py", line 1373, in http_open
+    return self.do_open(http.client.HTTPConnection, req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/urllib/request.py", line 1348, in do_open
+    r = h.getresponse()
+        ^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/http/client.py", line 1457, in getresponse
+    response.begin()
+  File "/usr/lib/python3.12/http/client.py", line 336, in begin
+    version, status, reason = self._read_status()
+                              ^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/http/client.py", line 297, in _read_status
+    line = str(self.fp.readline(_MAXLINE + 1), "iso-8859-1")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/socket.py", line 707, in readinto
+    return self._sock.recv_into(b)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+KeyboardInterrupt

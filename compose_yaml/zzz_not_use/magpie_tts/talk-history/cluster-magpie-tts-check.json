@@ -1,0 +1,22 @@
+{
+  "worker": "192.168.100.60",
+  "endpoint": "http://192.168.100.60:8692",
+  "requests": [
+    {
+      "seconds": 0.358,
+      "pcm_bytes": 188416,
+      "rms": 2082.11,
+      "content_type": "audio/pcm"
+    },
+    {
+      "seconds": 5.7,
+      "pcm_bytes": 387072,
+      "rms": 2079.06,
+      "content_type": "audio/pcm"
+    }
+  ],
+  "scope": "standalone worker speech generation, not simultaneous LLM peak qualification",
+  "worker_cgroup_peak_bytes": 1517719552,
+  "worker_cgroup_oom": 0,
+  "budget_gib": 1.6
+}

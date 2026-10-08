@@ -1,0 +1,88 @@
+servers:
+  - proxy:
+      name: "DGX Spark #1"
+      address: 192.168.100.60
+      port: 22
+      username: edp1096
+      authmethod: password # password or privatekey or agent
+      password: 1
+      privatekey: /home/username/.ssh/mykey.pem
+    tunnels:
+      - name: arcane
+        internaladdr: 127.0.0.1
+        internalport: 3552
+        localport: 4552
+
+      - name: monitor
+        internaladdr: 127.0.0.1
+        internalport: 11000
+        localport: 11000
+
+      - name: jupyterlab
+        internaladdr: 127.0.0.1
+        internalport: 11002
+        localport: 11002
+
+      - name: dashboard
+        internaladdr: 127.0.0.1
+        internalport: 11003
+        localport: 11003
+
+      - name: dashboard
+        internaladdr: 127.0.0.1
+        internalport: 11004
+        localport: 11004
+
+      - name: money_print_turbo
+        internaladdr: 127.0.0.1
+        internalport: 11005
+        localport: 11005
+
+      - name: playbook_vllm
+        internaladdr: 127.0.0.1
+        internalport: 8000
+        localport: 18000
+
+  - proxy:
+      name: "DGX Spark #2"
+      address: 192.168.100.61
+      port: 22
+      username: edp1096
+      authmethod: password # password or privatekey or agent
+      password: 1
+      privatekey: /home/username/.ssh/mykey.pem
+    tunnels:
+      - name: arcane
+        internaladdr: 127.0.0.1
+        internalport: 3552
+        localport: 5552
+
+      - name: monitor
+        internaladdr: 127.0.0.1
+        internalport: 11000
+        localport: 21000
+
+      - name: jupyterlab
+        internaladdr: 127.0.0.1
+        internalport: 11002
+        localport: 21002
+
+      - name: dashboard
+        internaladdr: 127.0.0.1
+        internalport: 11003
+        localport: 21003
+
+      - name: dashboard
+        internaladdr: 127.0.0.1
+        internalport: 11004
+        localport: 21004
+
+      - name: money_print_turbo
+        internaladdr: 127.0.0.1
+        internalport: 11005
+        localport: 21005
+
+      - name: playbook_vllm
+        internaladdr: 127.0.0.1
+        internalport: 8000
+        localport: 28000

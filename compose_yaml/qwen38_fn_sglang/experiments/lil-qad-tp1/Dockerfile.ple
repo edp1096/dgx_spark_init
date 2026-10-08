@@ -1,0 +1,3 @@
+FROM dgx-sglang-qwen38-qad:gdn-trial
+RUN apt-get update && apt-get install -y --no-install-recommends liburing-dev && rm -rf /var/lib/apt/lists/*
+COPY qad/ple_embedding.py qad/ple_disk.py /opt/qad-tp1/

@@ -1,0 +1,36 @@
+[
+  {
+    "trial": 0,
+    "output": "graphs-hot-on-0.json",
+    "total_seconds": 37.423973911994835,
+    "decode_tps": [
+      11.308429079126483,
+      37.87371491867936,
+      8.840369311202311,
+      16.939979045495324
+    ],
+    "last_counters": {
+      "hits": 0,
+      "misses": 0,
+      "read_bytes": 0,
+      "read_seconds": 0.0,
+      "rank": 0,
+      "cache_bytes": 0,
+      "slot_hits": 122241,
+      "slot_misses": 10574,
+      "packed_read_bytes": 99398983680,
+      "graph_replays": 6060,
+      "prefetch_issued": 0,
+      "prefetch_read_bytes": 0,
+      "prefetch_consumed": 0,
+      "prefetch_ready": 0,
+      "prefetch_late": 0,
+      "prefetch_cancelled": 0,
+      "prefetch_unused": 0,
+      "demand_read_bytes": 99398983680,
+      "prefetch_pending": 0,
+      "scratch_bytes": 1073741824,
+      "gpu_cache_bytes": 87836590080
+    }
+  }
+]

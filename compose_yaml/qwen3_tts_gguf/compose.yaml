@@ -1,0 +1,18 @@
+services:
+  api:
+    build:
+      context: .
+      target: runtime
+    image: sparktalk-qwen3-tts:0.6b-q8-lifecycle1
+    container_name: sparktalk-qwen3-tts
+    restart: "no"
+    init: true
+    stop_grace_period: 30s
+    gpus: all
+    mem_limit: "12g"
+    memswap_limit: "12g"
+    cpus: 4
+    ports:
+      - "${QWEN_TTS_BIND_ADDR:-127.0.0.1}:${QWEN_TTS_PORT:-8692}:8692"
+    volumes:
+      - "${QWEN_TTS_MODEL_DIR:-${HOME}/.cache/qwen3-tts}:/models:ro"

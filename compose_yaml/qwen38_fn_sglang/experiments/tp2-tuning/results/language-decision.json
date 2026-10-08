@@ -1,0 +1,15 @@
+{
+  "status": "complete",
+  "sampling_change": false,
+  "automatic_language_guide": false,
+  "nonthinking": {
+    "current_hanzi_responses": "5/12",
+    "top_p_08_hanzi_responses": "6/12",
+    "loose_guide_hanzi_responses": "5/12"
+  },
+  "strong_guide": "Mixed small-sample results; not consistently superior.",
+  "thinking": "One of four fresh xhigh replies completed under the 8192 output cap. Empty/truncated replies excluded from successful-language counts.",
+  "affected_conversation_replay": "4/4 completed, 0 Hanja in either condition; original fault not reproduced. Text-only replay omits tool definitions and recall.",
+  "compatibility_controls": "Requested Chinese quotation, requested Hanja, English and JSON all passed with the guide.",
+  "decision": "Retain existing sampling and persona; no reliable reduction demonstrated, do not claim the language-mixing problem fixed."
+}

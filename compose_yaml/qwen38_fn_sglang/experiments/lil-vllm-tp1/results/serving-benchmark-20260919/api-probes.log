@@ -1,0 +1,7 @@
+vllm warmup: input=122, output=256, TTFT=0.516s, total=4.423s
+vllm cold_128: input=1082, output=256, TTFT=0.618s, total=4.486s
+vllm cached_128: input=1082, output=256, TTFT=0.662s, total=4.584s
+vllm cold_2048: input=16442, output=256, TTFT=7.223s, total=11.181s
+vllm cached_2048: input=16442, output=256, TTFT=2.102s, total=6.069s
+vllm cold_8000: input=64058, output=256, TTFT=30.109s, total=34.050s
+vllm cached_8000: input=64058, output=256, TTFT=2.165s, total=5.963s

@@ -1,0 +1,68 @@
+# DeepSeek V4 Flash Vision Exp — 2 Spark measurement
+
+Run from this directory with `./manage.sh`.
+
+- Commit: `b1b8dfb84d855a166a05f32a90c269118b208987`
+- Image: `ghcr.io/anemll/dspark-vllm-gx10:0.1.1@sha256:a83948492cf13df455170fb42885f5ef4db54fefe0feff0f841ecbff464ac9d8`
+- Official weights: `deepseek-ai/DeepSeek-V4-Flash-Vision-Exp@86f746b36186f0e567729a5c06a8c918caba82a9`
+- Config: `.env` (private, ignored). Both ranks use local SSD caches.
+- Initial API: `http://127.0.0.1:8888/v1` on head.
+- TP 2, context 1048576, sequences 6, batch 8192, GPU utilization 0.835, DSpark k6.
+- No Extra, ASR, TTS services in this deployment.
+
+`manage.sh` reconstructs the pinned upstream checkout and applies the committed image-limit/C128A backport automatically. Configure `.env` network/cache paths before use.
+C128A prefill caching is enabled by default; set `DSPARK_ENABLE_C128A_PREFILL_CACHE=0` to disable it.
+2× Spark / ablit check (2026-09-07, 3 cold requests per length): median first-token time fell 22.00→20.76 s at 32K and 98.84→88.65 s at 128K. Short-input/decode gains were inconsistent; basic text/image checks passed.
+
+## Abliterated variant
+
+The upstream launcher supports `ABLITERATED=1`, with separate checkpoint
+`drowzeys/keys-DeepSeekV4Flash-Vision-EXP-ablit` and revision key
+`DSPARK_REVISION_ABLITERATED`. Current prepared configuration pins
+`48095b3452a17f3e3ae8f77892399389c45de9e1` from the upstream overlay script.
+Runtime validation is separate from checkpoint preparation. Gated access requires
+account agreement and a token with access. Do not put tokens in this repository.
+Switching requires stopping both ranks, preparing the selected checkpoint on
+both nodes, and starting again. It does not abliterate official weights at runtime.
+This recipe uses selective tensor ranges and verifies reconstructed shard hashes;
+it does not download each changed shard in full.
+Equal architecture suggests similar RAM requirements; measure rather than assume.
+
+## 공통 관리 명령
+
+`manage.sh setup|image|model|start|stop|restart|status|logs|validate`를 사용한다.
+`setup`에 모델 준비가 포함된다. 설정은 `.env`/`env.sample`, 모델 종류는
+`MODEL_VARIANT=official|abliterated`이며 `setup`/`model`에 `--official` 또는
+`--abliterated`를 지정할 수 있다. HF_TOKEN 환경변수 또는 `--ask-token` 숨김 입력을
+사용한다. 명령과 옵션은 `./manage.sh --help`로 확인한다.
+
+## Selective abliterated preparation
+
+`model --abliterated` requires the pinned official model in each host's cache.
+It fetches safetensors headers and L10–35 `attn.wo_b.weight` / scale byte ranges,
+then reconstructs separate blobs using the local original. Every reconstructed
+shard must match the published abliterated SHA-256 before it becomes usable.
+Header/layout or hash mismatches stop preparation; there is no automatic full-shard fallback.
+The worker receives the small patch bundle and reconstructs from its own original
+cache. Original blobs are never modified. The final checkpoint still occupies
+space for changed shards locally; this optimization reduces network downloads,
+not necessarily disk usage. Partial downloads left by the old downloader are
+preserved but are no longer needed by selective preparation.
+
+## 2026-09-09 도구 호출·캐시 검증
+
+[54개 응답과 CPU 회귀검사 결과](bench/reports/2026-09-09/README.md)에 따라
+`DSPARK_ENABLE_DSML_RECOVERY=1`을 기본값으로 사용한다. 기존의 명시적인 `0` 설정은
+존중한다. `DSPARK_ENABLE_DSPARK_SWA_PREFIX=0`은 유지하며 반복 응답이 끊기는 경우
+선택적으로 켤 수 있다. 짧은 요청에서 약 0.15초의 추가 지연이 관측됐다.
+모델·이미지 pin과 가중치 준비 방식은 유지한다. 변경 후 두 rank를 다시 시작해야 한다.
+
+## 재부팅 후 RoCE 주소 복원
+
+관리 스크립트의 `start`는 모델 실행 전에 양쪽 RoCE IPv4 주소를 확인하고,
+주소가 없는 활성 포트에만 다시 할당한 뒤 양방향 ping으로 확인한다.
+다른 IPv4 주소가 있거나 케이블이 연결되지 않았으면 변경하지 않고 실패한다.
+영구 Netplan 설정은 필요하지 않으며 `./manage.sh network`로 모델을 띄우지 않고
+네트워크 준비만 실행할 수도 있다. 워커 SSH 주소는 재부팅 후에도 접근 가능한
+관리 LAN 주소를 사용해야 한다. Docker 직접 실행은 이 절차를 거치지 않는다.
+DS4 Flash는 `.env`의 `VLLM_HOST_IP`(없으면 `MASTER_ADDR`), `WORKER_VLLM_HOST_IP`, `NCCL_SOCKET_IFNAME`, `WORKER_NCCL_SOCKET_IFNAME`을 사용한다. `NCCL_SUBNET`이 없으면 `DSPARK_RAIL_PREFIX`(기본 24)로 서브넷을 정한다. 자동 복원은 노드당 하나의 정확한 인터페이스 이름만 지원한다.

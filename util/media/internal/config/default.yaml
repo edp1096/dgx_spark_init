@@ -1,0 +1,80 @@
+listen: 0.0.0.0:8686
+data_dir: data
+
+engines:
+  image:
+    endpoint: http://127.0.0.1:8691
+  speech:
+    endpoint: http://127.0.0.1:8692
+  recognition:
+    endpoint: http://127.0.0.1:8694
+  video:
+    endpoint: http://127.0.0.1:8695
+  prompt:
+    endpoint: http://127.0.0.1:8696
+  media:
+    endpoint: http://127.0.0.1:8697
+  trainer:
+    endpoint: http://127.0.0.1:8704
+  upscale:
+    endpoint: http://127.0.0.1:8698
+  garment:
+    endpoint: http://127.0.0.1:8705
+  faceswap:
+    endpoint: http://127.0.0.1:8706
+  character:
+    endpoint: http://127.0.0.1:8191
+
+image:
+  model: krea2-turbo-nvfp4
+  default_checkpoint: official-int8
+  visible_checkpoints: [official-int8, official, chriscole-edit-v1.1, moody-v7, moody-cutie-v4, moody-amateur-v1, ray-v1, ray-v2, ray-v2-nvfp4, ray-v3, ray-v4, ray-v4-nvfp4]
+  default_mode: create
+  default_prompt_enhancer: false
+  backends:
+    create:
+      endpoint: http://127.0.0.1:8691
+      model: krea2-turbo-nvfp4
+  default_width: 1024
+  default_height: 1024
+  max_reference_images: 4
+
+speech:
+  custom_voice_model: Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice
+  default_language: Korean
+  default_speaker: Sohee
+
+recognition:
+  model: Qwen/Qwen3-ASR-1.7B
+  default_language: Auto
+  max_upload_mb: 16384
+  segment_seconds: 180
+  default_output_formats: [srt, txt]
+  default_translation_mode: bilingual
+  default_translation_language: Korean
+
+video:
+  model: Lightricks/LTX-2.5-distilled-nvfp4
+  default_width: 768
+  default_height: 512
+  default_frames: 121
+  default_fps: 24
+  default_motion_lora_enabled: false
+  default_motion_lora_strength: 0.5
+  acceleration: auto
+
+prompt_enhancement:
+  model: huihui-gemma4-12b
+  default_enabled: true
+  vision_enabled: true
+  max_tokens: 600
+
+image_metadata:
+  creator: ""
+  copyright: ""
+  website: ""
+  note: ""
+
+storage:
+  cleanup_on_startup: true
+  temp_retention_hours: 24

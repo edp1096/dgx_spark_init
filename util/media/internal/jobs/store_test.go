@@ -1,0 +1,274 @@
+package jobs
+
+import (
+	"errors"
+	"os"
+	"path/filepath"
+	"testing"
+	"time"
+)
+
+func TestDeleteRemovesFinishedJobAndFiles(t *testing.T) {
+	dir := t.TempDir()
+	store, err := New(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	id := "finished-job"
+	inputDir := filepath.Join(dir, "inputs", id)
+	if err = os.MkdirAll(inputDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err = os.WriteFile(filepath.Join(inputDir, "input.wav"), []byte("audio"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err = os.WriteFile(store.OutputPath(id+".txt"), []byte("text"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err = os.WriteFile(store.OutputPath(id+".player.vtt"), []byte("WEBVTT\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err = os.WriteFile(store.OutputPath(id+"-partial.mp4"), []byte("partial"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err = os.WriteFile(store.OutputPath(id+"2.png"), []byte("unrelated"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	job := Job{ID: id, Kind: "recognition", Status: "completed", OutputURL: "/api/outputs/" + id + ".txt", CaptionURL: "/api/outputs/" + id + ".player.vtt", CreatedAt: time.Now()}
+	if err = store.Save(job); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = store.Delete(id); err != nil {
+		t.Fatal(err)
+	}
+	if _, ok := store.Get(id); ok {
+		t.Fatal("deleted job remains in store")
+	}
+	if _, err = os.Stat(inputDir); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("input directory still exists: %v", err)
+	}
+	if _, err = os.Stat(store.OutputPath(id + ".txt")); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("output still exists: %v", err)
+	}
+	if _, err = os.Stat(store.OutputPath(id + ".player.vtt")); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("caption still exists: %v", err)
+	}
+	if _, err = os.Stat(store.OutputPath(id + "-partial.mp4")); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("unregistered partial output still exists: %v", err)
+	}
+	if _, err = os.Stat(store.OutputPath(id + "2.png")); err != nil {
+		t.Fatalf("unrelated prefix output was removed: %v", err)
+	}
+}
+
+func TestDeleteRejectsActiveJob(t *testing.T) {
+	store, err := New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	job := Job{ID: "active-job", Kind: "image", Status: "running", CreatedAt: time.Now()}
+	if err = store.Save(job); err != nil {
+		t.Fatal(err)
+	}
+	if err = store.Delete(job.ID); !errors.Is(err, ErrActive) {
+		t.Fatalf("Delete() error = %v, want %v", err, ErrActive)
+	}
+	if _, ok := store.Get(job.ID); !ok {
+		t.Fatal("active job was removed")
+	}
+}
+
+func TestDeleteFinishedKeepsActiveJobs(t *testing.T) {
+	store, err := New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, job := range []Job{
+		{ID: "done", Status: "completed", CreatedAt: time.Now()},
+		{ID: "failed", Status: "failed", CreatedAt: time.Now()},
+		{ID: "queued", Status: "queued", CreatedAt: time.Now()},
+		{ID: "running", Status: "running", CreatedAt: time.Now()},
+	} {
+		if err = store.Save(job); err != nil {
+			t.Fatal(err)
+		}
+	}
+	deleted, err := store.DeleteFinished()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if deleted != 2 {
+		t.Fatalf("deleted = %d, want 2", deleted)
+	}
+	if got := len(store.List()); got != 2 {
+		t.Fatalf("remaining jobs = %d, want 2", got)
+	}
+	if _, ok := store.Get("queued"); !ok {
+		t.Fatal("queued job was deleted")
+	}
+	if _, ok := store.Get("running"); !ok {
+		t.Fatal("running job was deleted")
+	}
+}
+
+func TestListOrdersNewestFirstDeterministically(t *testing.T) {
+	store, err := New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	old := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
+	newest := old.Add(time.Second)
+	for _, job := range []Job{
+		{ID: "old", CreatedAt: old},
+		{ID: "same-a", CreatedAt: newest},
+		{ID: "same-b", CreatedAt: newest},
+	} {
+		if err = store.Save(job); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	list := store.List()
+	if len(list) != 3 {
+		t.Fatalf("jobs = %d, want 3", len(list))
+	}
+	if list[2].ID != "old" {
+		t.Fatalf("oldest job = %q, want old", list[2].ID)
+	}
+	if !list[0].UpdatedAt.After(list[1].UpdatedAt) {
+		t.Fatalf("equal creation times were not ordered by latest update: %q then %q", list[0].ID, list[1].ID)
+	}
+}
+
+func TestStoreDoesNotShareMutableJobMetadata(t *testing.T) {
+	store, err := New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	original := Job{
+		ID:     "metadata-owner",
+		Status: "queued",
+		Params: map[string]any{
+			"stage": "queued",
+			"media": map[string]any{"progress": float64(0)},
+			"items": []any{map[string]any{"name": "first"}},
+		},
+		Outputs: map[string]string{"txt": "/api/outputs/original.txt"},
+	}
+	if err := store.Save(original); err != nil {
+		t.Fatal(err)
+	}
+
+	original.Params["stage"] = "caller-mutated"
+	original.Params["media"].(map[string]any)["progress"] = float64(50)
+	original.Params["items"].([]any)[0].(map[string]any)["name"] = "caller-mutated"
+	original.Outputs["txt"] = "caller-mutated"
+
+	fetched, ok := store.Get(original.ID)
+	if !ok {
+		t.Fatal("saved job not found")
+	}
+	if fetched.Params["stage"] != "queued" || fetched.Params["media"].(map[string]any)["progress"] != float64(0) || fetched.Params["items"].([]any)[0].(map[string]any)["name"] != "first" || fetched.Outputs["txt"] != "/api/outputs/original.txt" {
+		t.Fatalf("store metadata changed through caller alias: %#v", fetched)
+	}
+
+	fetched.Params["stage"] = "fetched-mutated"
+	fetched.Params["media"].(map[string]any)["progress"] = float64(100)
+	fetched.Outputs["txt"] = "fetched-mutated"
+	again, _ := store.Get(original.ID)
+	if again.Params["stage"] != "queued" || again.Params["media"].(map[string]any)["progress"] != float64(0) || again.Outputs["txt"] != "/api/outputs/original.txt" {
+		t.Fatalf("store metadata changed through fetched alias: %#v", again)
+	}
+}
+
+func TestTagsNormalizePersistAndRemoveOrphans(t *testing.T) {
+	dir := t.TempDir()
+	store, err := New(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, job := range []Job{
+		{ID: "first", Status: "completed", CreatedAt: time.Now()},
+		{ID: "second", Status: "completed", CreatedAt: time.Now()},
+	} {
+		if err := store.Save(job); err != nil {
+			t.Fatal(err)
+		}
+	}
+	first, err := store.UpdateTags("first", []string{"  Portrait  ", "인물 사진", "portrait"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(first.Tags) != 2 || first.Tags[0] != "Portrait" || first.Tags[1] != "인물 사진" {
+		t.Fatalf("normalized tags = %#v", first.Tags)
+	}
+	second, err := store.UpdateTags("second", []string{"PORTRAIT"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(second.Tags) != 1 || second.Tags[0] != "Portrait" {
+		t.Fatalf("canonical tag = %#v", second.Tags)
+	}
+	catalog := store.Tags()
+	if len(catalog) != 2 || catalog[0].Count+catalog[1].Count != 3 {
+		t.Fatalf("catalog = %#v", catalog)
+	}
+
+	reloaded, err := New(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	persisted, _ := reloaded.Get("first")
+	if len(persisted.Tags) != 2 {
+		t.Fatalf("persisted tags = %#v", persisted.Tags)
+	}
+	if err := reloaded.Delete("first"); err != nil {
+		t.Fatal(err)
+	}
+	if len(reloaded.Tags()) != 1 || reloaded.Tags()[0].Name != "Portrait" || reloaded.Tags()[0].Count != 1 {
+		t.Fatalf("orphan catalog after delete = %#v", reloaded.Tags())
+	}
+	if err := reloaded.Delete("second"); err != nil {
+		t.Fatal(err)
+	}
+	if len(reloaded.Tags()) != 0 {
+		t.Fatalf("catalog retained orphan tags = %#v", reloaded.Tags())
+	}
+}
+
+func TestUpdateTagsRejectsInvalidValues(t *testing.T) {
+	store, err := New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := store.Save(Job{ID: "tagged", Status: "completed"}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := store.UpdateTags("tagged", []string{"comma,tag"}); !errors.Is(err, ErrInvalidTags) {
+		t.Fatalf("UpdateTags() error = %v, want %v", err, ErrInvalidTags)
+	}
+}
+
+func TestWorkerSaveCannotRestoreClearedTags(t *testing.T) {
+	store, err := New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	job := Job{ID: "running", Status: "running", Tags: []string{"기존"}}
+	if err := store.Save(job); err != nil {
+		t.Fatal(err)
+	}
+	stale, _ := store.Get(job.ID)
+	if _, err := store.UpdateTags(job.ID, []string{}); err != nil {
+		t.Fatal(err)
+	}
+	stale.Status = "completed"
+	if err := store.Save(stale); err != nil {
+		t.Fatal(err)
+	}
+	persisted, _ := store.Get(job.ID)
+	if len(persisted.Tags) != 0 {
+		t.Fatalf("stale worker restored tags: %#v", persisted.Tags)
+	}
+}

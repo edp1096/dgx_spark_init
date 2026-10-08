@@ -1,0 +1,83 @@
+[
+  {
+    "name": "asr",
+    "seconds": 1.2776898880001681,
+    "result": {
+      "text": "안녕하세요. 이미지와 음성기인 문맥을 함께 처리하는 시험입니다."
+    },
+    "overlap_round": 0,
+    "round_started_at": 1789923652.9092765
+  },
+  {
+    "name": "tts",
+    "seconds": 2.1208063539997966,
+    "bytes": 227372,
+    "content_type": "audio/wav",
+    "overlap_round": 0,
+    "round_started_at": 1789923652.9092765
+  },
+  {
+    "name": "generate",
+    "seconds": 17.153671390000454,
+    "size": [
+      1024,
+      1024
+    ],
+    "overlap_round": 0,
+    "round_started_at": 1789923652.9092765
+  },
+  {
+    "name": "asr",
+    "seconds": 0.3497363709993806,
+    "result": {
+      "text": "안녕하세요. 이미지와 음성 긴 문맥을 함께 처리하는 시험입니다."
+    },
+    "overlap_round": 1,
+    "round_started_at": 1789923760.0658388
+  },
+  {
+    "name": "tts",
+    "seconds": 3.9162752109987196,
+    "bytes": 231468,
+    "content_type": "audio/wav",
+    "overlap_round": 1,
+    "round_started_at": 1789923760.0658388
+  },
+  {
+    "name": "inpaint",
+    "seconds": 30.323869046000254,
+    "size": [
+      1024,
+      1024
+    ],
+    "overlap_round": 1,
+    "round_started_at": 1789923760.0658388
+  },
+  {
+    "name": "asr",
+    "seconds": 0.34946197899989784,
+    "result": {
+      "text": "안녕하세요. 이미지와 음성긴 문맥을 함께 처리하는 시험입니다."
+    },
+    "overlap_round": 2,
+    "round_started_at": 1789923880.3925266
+  },
+  {
+    "name": "tts",
+    "seconds": 6.232454996999877,
+    "bytes": 223276,
+    "content_type": "audio/wav",
+    "overlap_round": 2,
+    "round_started_at": 1789923880.3925266
+  },
+  {
+    "name": "object_remove",
+    "seconds": 19.53703446399959,
+    "size": [
+      1024,
+      1024
+    ],
+    "overlap_round": 2,
+    "round_started_at": 1789923880.3925266
+  }
+]

@@ -1,0 +1,23 @@
+{
+  "gpu": "NVIDIA GB10",
+  "baseline_image": "sha256:c79141f03a89b8888920f629ac638a6915eec5abb0dabe75688977c3c58b75f5",
+  "candidate_image": "sha256:940ca2bdc5a47b4258dca202c4c9856a5845a1612fefe8ef56815b8126108adb",
+  "source_base_commit": "79f06044c2edb5f5e9bcd3ed0cebcef0aeb0658c",
+  "disk_hicache_enabled": false,
+  "unit_replay_result": "32 rounds; every accepted length; native snapshot/replay outputs, states and prefix tracking bitwise equal",
+  "unit_replay_reference": "SGLang native, not B12X",
+  "default_path_regression": "7 existing QAD GDN tests passed",
+  "runtime_adapter_executable_ast_matches_source": true,
+  "source_sha256": {
+    "qad_gdn.py": "31d2b0f3f8e91c07a1ee046fc184b89b2a15df569e8530a77bc0191bc948d420",
+    "patch_stage2.py": "567b6bda481a5e8227179747d343ed88ef94d027a68f6f9311f3deecbc8d6f13"
+  },
+  "qualification_scope": {
+    "kv_capacity": 1048576,
+    "largest_input_tokens": 32041,
+    "max_running_requests": 1,
+    "flux_asr_tts_loaded": false,
+    "full_1m_input_retested": false,
+    "production_defaults_changed": false
+  }
+}

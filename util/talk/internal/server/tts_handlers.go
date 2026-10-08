@@ -1,0 +1,111 @@
+package server
+
+import (
+	"encoding/json"
+	"io"
+	"net/http"
+	"strconv"
+	"strings"
+)
+
+const maxTTSRequestBytes = 128 << 10
+
+func (s *Server) synthesizeSpeech(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		methodNotAllowed(w)
+		return
+	}
+	var request struct {
+		Text string `json:"text"`
+	}
+	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, maxTTSRequestBytes)).Decode(&request); err != nil {
+		http.Error(w, "invalid TTS request", http.StatusBadRequest)
+		return
+	}
+	if strings.TrimSpace(request.Text) == "" {
+		http.Error(w, "text is required", http.StatusBadRequest)
+		return
+	}
+	client := s.ttsSnapshot()
+	if !client.Enabled() {
+		http.Error(w, "TTS is disabled", http.StatusBadRequest)
+		return
+	}
+	parts := client.SpeechParts(request.Text)
+	if len(parts) == 0 {
+		http.Error(w, "text is required", http.StatusBadRequest)
+		return
+	}
+	release, err := s.acquireWorkload(r.Context(), "qwen3-tts")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusServiceUnavailable)
+		return
+	}
+	var outcome error
+	defer func() { _ = release(outcome) }()
+	s.ttsMu.Lock()
+	defer s.ttsMu.Unlock()
+	stream, err := client.SpeechStreamLanguage(r.Context(), parts[0].Text, parts[0].Language)
+	if err != nil {
+		outcome = err
+		http.Error(w, err.Error(), http.StatusBadGateway)
+		return
+	}
+	w.Header().Set("Content-Type", "audio/pcm")
+	w.Header().Set("Cache-Control", "no-store")
+	w.Header().Set("X-Audio-Sample-Rate", strconv.Itoa(stream.SampleRate))
+	w.Header().Set("X-Audio-Speak-Rate", strconv.FormatFloat(client.SpeakRate(), 'f', -1, 64))
+	w.Header().Set("X-Audio-Channels", "1")
+	w.Header().Set("X-Audio-Sample-Format", "s16le")
+	w.WriteHeader(http.StatusOK)
+	flusher, _ := w.(http.Flusher)
+	buffer := make([]byte, 32<<10)
+	for index := range parts {
+		if index > 0 {
+			stream, err = client.SpeechStreamLanguage(r.Context(), parts[index].Text, parts[index].Language)
+			if err != nil {
+				outcome = err
+				return
+			}
+		}
+		for {
+			n, readErr := stream.Body.Read(buffer)
+			if n > 0 {
+				if _, writeErr := w.Write(buffer[:n]); writeErr != nil {
+					outcome = writeErr
+					stream.Body.Close()
+					return
+				}
+				if flusher != nil {
+					flusher.Flush()
+				}
+			}
+			if readErr != nil {
+				stream.Body.Close()
+				if readErr != io.EOF {
+					outcome = readErr
+					return
+				}
+				break
+			}
+		}
+	}
+}
+
+// Preview uses exactly the same language/hanja processing as synthesis without
+// contacting Qwen or retaining speech text in persistent logs.
+func (s *Server) previewSpeech(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		methodNotAllowed(w)
+		return
+	}
+	var request struct {
+		Text string `json:"text"`
+	}
+	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, maxTTSRequestBytes)).Decode(&request); err != nil {
+		http.Error(w, "invalid TTS request", http.StatusBadRequest)
+		return
+	}
+	w.Header().Set("Cache-Control", "no-store")
+	writeJSON(w, http.StatusOK, map[string]any{"parts": s.ttsSnapshot().SpeechParts(request.Text)})
+}

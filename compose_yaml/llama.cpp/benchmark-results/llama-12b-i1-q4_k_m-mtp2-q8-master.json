@@ -1,0 +1,3250 @@
+{
+  "engine": "llama-12b-i1-q4_k_m-mtp2-q8-master",
+  "endpoint": "http://127.0.0.1:5000",
+  "model": "huihui-gemma4-12b",
+  "generated_at": "2026-08-24T13:53:56.350261526+09:00",
+  "results": [
+    {
+      "test": {
+        "id": "t2i-short-en",
+        "category": "short expansion",
+        "mode": "t2i",
+        "input": "Student girl is dancing.",
+        "min_words": 55,
+        "max_words": 100,
+        "must": [
+          "student girl",
+          "danc"
+        ]
+      },
+      "output": "A full-body image of a student girl dancing energetically at the peak of a clear, expressive movement, with balanced anatomy and a readable silhouette. Her clothing and hair respond naturally to the motion without obscuring her pose. Coherent lighting defines her form against a clean, unobtrusive setting, while natural perspective, crisp subject detail, convincing depth, and a balanced composition keep attention on the dance.",
+      "words": 64,
+      "latency_ms": 1732,
+      "checks": [
+        {
+          "name": "minimum word count",
+          "passed": true,
+          "detail": "64 \u003e= 55"
+        },
+        {
+          "name": "maximum word count",
+          "passed": true,
+          "detail": "64 \u003c= 100"
+        },
+        {
+          "name": "contains: student girl",
+          "passed": true
+        },
+        {
+          "name": "contains: danc",
+          "passed": true
+        },
+        {
+          "name": "single paragraph",
+          "passed": true
+        },
+        {
+          "name": "no wrapper",
+          "passed": true
+        },
+        {
+          "name": "valid UTF-8",
+          "passed": true
+        }
+      ],
+      "passed": 7,
+      "total": 7,
+      "usage": {
+        "completion_tokens": 80,
+        "prompt_tokens": 463,
+        "prompt_tokens_details": {
+          "cached_tokens": 440
+        },
+        "total_tokens": 543
+      },
+      "api_timings": {
+        "cache_n": 440,
+        "draft_n": 62,
+        "draft_n_accepted": 49,
+        "predicted_ms": 1455.928,
+        "predicted_n": 80,
+        "predicted_per_second": 54.26092499079625,
+        "predicted_per_token_ms": 18.42946835443038,
+        "prompt_ms": 272.299,
+        "prompt_n": 23,
+        "prompt_per_second": 84.4659730663719,
+        "prompt_per_token_ms": 11.839086956521738
+      }
+    },
+    {
+      "test": {
+        "id": "t2i-short-ko",
+        "category": "Korean translation",
+        "mode": "t2i",
+        "input": "비 오는 밤의 서울 골목에서 빨간 우산을 든 젊은 한국인 여성",
+        "min_words": 55,
+        "max_words": 100,
+        "must": [
+          "rain",
+          "Seoul",
+          "red umbrella",
+          "Korean woman"
+        ]
+      },
+      "output": "A young Korean woman stands in a Seoul alleyway at night during a rainfall, holding a vibrant red umbrella that provides a bold pop of color against the urban atmosphere. The scene captures her in a clear, expressive pose, with her features and silhouette defined by the soft glow of surrounding streetlights. The wet pavement reflects the city's ambiance, creating a sense of depth and texture, while the coherent lighting highlights the glistening raindrops and the rich details of her surroundings in a balanced, atmospheric composition.",
+      "words": 86,
+      "latency_ms": 2543,
+      "checks": [
+        {
+          "name": "minimum word count",
+          "passed": true,
+          "detail": "86 \u003e= 55"
+        },
+        {
+          "name": "maximum word count",
+          "passed": true,
+          "detail": "86 \u003c= 100"
+        },
+        {
+          "name": "contains: rain",
+          "passed": true
+        },
+        {
+          "name": "contains: Seoul",
+          "passed": true
+        },
+        {
+          "name": "contains: red umbrella",
+          "passed": true
+        },
+        {
+          "name": "contains: Korean woman",
+          "passed": true
+        },
+        {
+          "name": "single paragraph",
+          "passed": true
+        },
+        {
+          "name": "no wrapper",
+          "passed": true
+        },
+        {
+          "name": "valid UTF-8",
+          "passed": true
+        }
+      ],
+      "passed": 9,
+      "total": 9,
+      "usage": {
+        "completion_tokens": 100,
+        "prompt_tokens": 477,
+        "prompt_tokens_details": {
+          "cached_tokens": 440
+        },
+        "total_tokens": 577
+      },
+      "api_timings": {
+        "cache_n": 440,
+        "draft_n": 96,
+        "draft_n_accepted": 51,
+        "predicted_ms": 2256.275,
+        "predicted_n": 100,
+        "predicted_per_second": 43.877630164762714,
+        "predicted_per_token_ms": 22.790656565656565,
+        "prompt_ms": 282.611,
+        "prompt_n": 37,
+        "prompt_per_second": 130.92200940515409,
+        "prompt_per_token_ms": 7.638135135135135
+      }
+    },
+    {
+      "test": {
+        "id": "t2i-visible-text-en",
+        "category": "exact visible text",
+        "mode": "t2i",
+        "input": "A studio product photograph of a matte black wristwatch. The watch face must show exactly \"SPARK 07:30\". No logo and no other text.",
+        "must": [
+          "matte black",
+          "wristwatch",
+          "no logo",
+          "no other text"
+        ],
+        "exact": [
+          "\"SPARK 07:30\""
+        ]
+      },
+      "output": "A studio product photograph of a matte black wristwatch, where the watch face clearly displays the text \"SPARK 07:30\" with no other logo or text present. The watch is captured in a balanced composition that highlights its sleek silhouette and smooth texture, with coherent studio lighting defining its matte finish. The framing provides a clear view of the face, emphasizing the crisp typography and the precise placement of the hands against the dark, sophisticated background.",
+      "words": 75,
+      "latency_ms": 2246,
+      "checks": [
+        {
+          "name": "contains: matte black",
+          "passed": true
+        },
+        {
+          "name": "contains: wristwatch",
+          "passed": true
+        },
+        {
+          "name": "contains: no logo",
+          "passed": false
+        },
+        {
+          "name": "contains: no other text",
+          "passed": false
+        },
+        {
+          "name": "exact: \"SPARK 07:30\"",
+          "passed": true
+        },
+        {
+          "name": "single paragraph",
+          "passed": true
+        },
+        {
+          "name": "no wrapper",
+          "passed": true
+        },
+        {
+          "name": "valid UTF-8",
+          "passed": true
+        }
+      ],
+      "passed": 6,
+      "total": 8,
+      "usage": {
+        "completion_tokens": 91,
+        "prompt_tokens": 491,
+        "prompt_tokens_details": {
+          "cached_tokens": 440
+        },
+        "total_tokens": 582
+      },
+      "api_timings": {
+        "cache_n": 440,
+        "draft_n": 82,
+        "draft_n_accepted": 49,
+        "predicted_ms": 1927.504,
+        "predicted_n": 91,
+        "predicted_per_second": 46.69251010633442,
+        "predicted_per_token_ms": 21.41671111111111,
+        "prompt_ms": 314.475,
+        "prompt_n": 51,
+        "prompt_per_second": 162.17505366086334,
+        "prompt_per_token_ms": 6.166176470588236
+      }
+    },
+    {
+      "test": {
+        "id": "t2i-visible-text-ko",
+        "category": "exact Korean text",
+        "mode": "t2i",
+        "input": "밤의 작은 네온 간판 가게. 간판에는 정확히 \"오늘도 빛나\"라고 쓰고, 다른 글자는 절대 넣지 않는다.",
+        "must": [
+          "neon",
+          "no other text"
+        ],
+        "exact": [
+          "\"오늘도 빛나\""
+        ]
+      },
+      "output": "A small neon sign shop at night featuring a glowing sign that reads exactly \"오늘도 빛나\" with no other text present. The vibrant neon illumination casts a colorful glow over the storefront, highlighting the crisp lettering and the shop's atmosphere. The composition captures the cozy, nighttime ambiance with a clear focus on the sign's radiance, balanced perspective, and rich textures, creating a serene and luminous scene.",
+      "words": 66,
+      "latency_ms": 2144,
+      "checks": [
+        {
+          "name": "contains: neon",
+          "passed": true
+        },
+        {
+          "name": "contains: no other text",
+          "passed": true
+        },
+        {
+          "name": "exact: \"오늘도 빛나\"",
+          "passed": true
+        },
+        {
+          "name": "single paragraph",
+          "passed": true
+        },
+        {
+          "name": "no wrapper",
+          "passed": true
+        },
+        {
+          "name": "valid UTF-8",
+          "passed": true
+        }
+      ],
+      "passed": 6,
+      "total": 6,
+      "usage": {
+        "completion_tokens": 83,
+        "prompt_tokens": 489,
+        "prompt_tokens_details": {
+          "cached_tokens": 440
+        },
+        "total_tokens": 572
+      },
+      "api_timings": {
+        "cache_n": 440,
+        "draft_n": 78,
+        "draft_n_accepted": 43,
+        "predicted_ms": 1838.385,
+        "predicted_n": 83,
+        "predicted_per_second": 44.60436742031729,
+        "predicted_per_token_ms": 22.41932926829268,
+        "prompt_ms": 300.756,
+        "prompt_n": 49,
+        "prompt_per_second": 162.922767958079,
+        "prompt_per_token_ms": 6.1378775510204076
+      }
+    },
+    {
+      "test": {
+        "id": "t2i-count-color-space",
+        "category": "count and spatial binding",
+        "mode": "t2i",
+        "input": "Exactly three ceramic cups in one row: a small red cup on the left, a tall cobalt-blue cup in the center, and a wide cream cup on the right. Nothing else on the table.",
+        "must": [
+          "exactly three",
+          "red",
+          "left",
+          "cobalt-blue",
+          "center",
+          "cream",
+          "right",
+          "nothing else"
+        ]
+      },
+      "output": "Exactly three ceramic cups are arranged in a single row on a table, featuring a small red cup on the left, a tall cobalt-blue cup in the center, and a wide cream cup on the right. The composition is clean and balanced, with no other objects on the table to distract from the trio. The cups exhibit distinct shapes and sizes, captured with coherent lighting that highlights their smooth textures and rich colors, while a clear perspective and crisp focus emphasize their orderly alignment.",
+      "words": 84,
+      "latency_ms": 2383,
+      "checks": [
+        {
+          "name": "contains: exactly three",
+          "passed": true
+        },
+        {
+          "name": "contains: red",
+          "passed": true
+        },
+        {
+          "name": "contains: left",
+          "passed": true
+        },
+        {
+          "name": "contains: cobalt-blue",
+          "passed": true
+        },
+        {
+          "name": "contains: center",
+          "passed": true
+        },
+        {
+          "name": "contains: cream",
+          "passed": true
+        },
+        {
+          "name": "contains: right",
+          "passed": true
+        },
+        {
+          "name": "contains: nothing else",
+          "passed": false
+        },
+        {
+          "name": "single paragraph",
+          "passed": true
+        },
+        {
+          "name": "no wrapper",
+          "passed": true
+        },
+        {
+          "name": "valid UTF-8",
+          "passed": true
+        }
+      ],
+      "passed": 10,
+      "total": 11,
+      "usage": {
+        "completion_tokens": 96,
+        "prompt_tokens": 499,
+        "prompt_tokens_details": {
+          "cached_tokens": 440
+        },
+        "total_tokens": 595
+      },
+      "api_timings": {
+        "cache_n": 440,
+        "draft_n": 88,
+        "draft_n_accepted": 52,
+        "predicted_ms": 2066.63,
+        "predicted_n": 96,
+        "predicted_per_second": 45.968557506665434,
+        "predicted_per_token_ms": 21.754,
+        "prompt_ms": 311.831,
+        "prompt_n": 59,
+        "prompt_per_second": 189.20505017140695,
+        "prompt_per_token_ms": 5.285271186440678
+      }
+    },
+    {
+      "test": {
+        "id": "t2i-multi-subject-binding",
+        "category": "multi-subject binding",
+        "mode": "t2i",
+        "input": "On the left, an elderly woman in a yellow raincoat holds a silver cane. On the right, a teenage boy in a green cap carries a blue backpack. Neither person holds an umbrella.",
+        "must": [
+          "left",
+          "elderly woman",
+          "yellow raincoat",
+          "silver cane",
+          "right",
+          "teenage boy",
+          "green cap",
+          "blue backpack",
+          "Neither",
+          "umbrella"
+        ]
+      },
+      "output": "An elderly woman in a yellow raincoat stands on the left holding a silver cane, while a teenage boy wearing a green cap stands on the right carrying a blue backpack. Neither person holds an umbrella. The composition balances the two figures in a clear spatial relationship, showcasing their distinct silhouettes and natural poses against a clean, unobtrusive setting. With coherent lighting and crisp textures, the image emphasizes the contrast between the woman's weathered features and the boy's youthful energy, all captured with a balanced perspective and convincing depth.",
+      "words": 89,
+      "latency_ms": 2392,
+      "checks": [
+        {
+          "name": "contains: left",
+          "passed": true
+        },
+        {
+          "name": "contains: elderly woman",
+          "passed": true
+        },
+        {
+          "name": "contains: yellow raincoat",
+          "passed": true
+        },
+        {
+          "name": "contains: silver cane",
+          "passed": true
+        },
+        {
+          "name": "contains: right",
+          "passed": true
+        },
+        {
+          "name": "contains: teenage boy",
+          "passed": true
+        },
+        {
+          "name": "contains: green cap",
+          "passed": true
+        },
+        {
+          "name": "contains: blue backpack",
+          "passed": true
+        },
+        {
+          "name": "contains: Neither",
+          "passed": true
+        },
+        {
+          "name": "contains: umbrella",
+          "passed": true
+        },
+        {
+          "name": "single paragraph",
+          "passed": true
+        },
+        {
+          "name": "no wrapper",
+          "passed": true
+        },
+        {
+          "name": "valid UTF-8",
+          "passed": true
+        }
+      ],
+      "passed": 13,
+      "total": 13,
+      "usage": {
+        "completion_tokens": 104,
+        "prompt_tokens": 496,
+        "prompt_tokens_details": {
+          "cached_tokens": 440
+        },
+        "total_tokens": 600
+      },
+      "api_timings": {
+        "cache_n": 440,
+        "draft_n": 86,
+        "draft_n_accepted": 60,
+        "predicted_ms": 2049.439,
+        "predicted_n": 104,
+        "predicted_per_second": 50.25765587558352,
+        "predicted_per_token_ms": 19.897466019417475,
+        "prompt_ms": 337.692,
+        "prompt_n": 56,
+        "prompt_per_second": 165.8315861791218,
+        "prompt_per_token_ms": 6.030214285714286
+      }
+    },
+    {
+      "test": {
+        "id": "t2i-negation",
+        "category": "negative constraints",
+        "mode": "t2i",
+        "input": "An empty white gallery with one blue cube in the exact center. No people, no windows, no plants, no signs, and no visible text.",
+        "must": [
+          "empty white gallery",
+          "one blue cube",
+          "center",
+          "no people",
+          "no windows",
+          "no plants",
+          "no signs",
+          "no visible text"
+        ]
+      },
+      "output": "An empty white gallery features a single blue cube positioned in the exact center of the space. The scene is devoid of people, windows, plants, signs, and any visible text, creating a minimalist and serene atmosphere. The composition emphasizes the clean geometry of the cube against the expansive white walls, with coherent lighting and a balanced perspective that highlights the stark contrast between the solid blue form and the surrounding void.",
+      "words": 71,
+      "latency_ms": 1911,
+      "checks": [
+        {
+          "name": "contains: empty white gallery",
+          "passed": true
+        },
+        {
+          "name": "contains: one blue cube",
+          "passed": false
+        },
+        {
+          "name": "contains: center",
+          "passed": true
+        },
+        {
+          "name": "contains: no people",
+          "passed": false
+        },
+        {
+          "name": "contains: no windows",
+          "passed": false
+        },
+        {
+          "name": "contains: no plants",
+          "passed": false
+        },
+        {
+          "name": "contains: no signs",
+          "passed": false
+        },
+        {
+          "name": "contains: no visible text",
+          "passed": false
+        },
+        {
+          "name": "single paragraph",
+          "passed": true
+        },
+        {
+          "name": "no wrapper",
+          "passed": true
+        },
+        {
+          "name": "valid UTF-8",
+          "passed": true
+        }
+      ],
+      "passed": 5,
+      "total": 11,
+      "usage": {
+        "completion_tokens": 81,
+        "prompt_tokens": 488,
+        "prompt_tokens_details": {
+          "cached_tokens": 440
+        },
+        "total_tokens": 569
+      },
+      "api_timings": {
+        "cache_n": 440,
+        "draft_n": 68,
+        "draft_n_accepted": 46,
+        "predicted_ms": 1601.644,
+        "predicted_n": 81,
+        "predicted_per_second": 49.9486777336287,
+        "predicted_per_token_ms": 20.02055,
+        "prompt_ms": 305.073,
+        "prompt_n": 48,
+        "prompt_per_second": 157.33939089988297,
+        "prompt_per_token_ms": 6.355687499999999
+      }
+    },
+    {
+      "test": {
+        "id": "t2i-detailed-preserve",
+        "category": "detailed prompt restraint",
+        "mode": "t2i",
+        "input": "A documentary-style 35mm color photograph, eye-level medium shot, of two female marine biologists in orange dry suits kneeling beside a tide pool at dawn; the older scientist on the left labels a glass vial while the younger scientist on the right photographs a purple starfish without touching it. Cool fog, wet basalt, subdued cyan and amber palette, natural grain, no cinematic glow, no extra people.",
+        "max_words": 120,
+        "must": [
+          "documentary-style",
+          "35mm",
+          "two female marine biologists",
+          "orange dry suits",
+          "older scientist",
+          "left",
+          "glass vial",
+          "younger scientist",
+          "right",
+          "purple starfish",
+          "without touching",
+          "no cinematic glow",
+          "no extra people"
+        ]
+      },
+      "output": "A documentary-style 35mm color photograph captures an eye-level medium shot of two female marine biologists in orange dry suits kneeling beside a tide pool at dawn. The older scientist on the left is focused on labeling a glass vial, while the younger scientist on the right photographs a purple starfish without touching it. The scene is characterized by cool fog and wet basalt, featuring a subdued cyan and amber palette with natural grain. The composition maintains a clean, realistic look with no cinematic glow and no extra people.",
+      "words": 88,
+      "latency_ms": 2301,
+      "checks": [
+        {
+          "name": "maximum word count",
+          "passed": true,
+          "detail": "88 \u003c= 120"
+        },
+        {
+          "name": "contains: documentary-style",
+          "passed": true
+        },
+        {
+          "name": "contains: 35mm",
+          "passed": true
+        },
+        {
+          "name": "contains: two female marine biologists",
+          "passed": true
+        },
+        {
+          "name": "contains: orange dry suits",
+          "passed": true
+        },
+        {
+          "name": "contains: older scientist",
+          "passed": true
+        },
+        {
+          "name": "contains: left",
+          "passed": true
+        },
+        {
+          "name": "contains: glass vial",
+          "passed": true
+        },
+        {
+          "name": "contains: younger scientist",
+          "passed": true
+        },
+        {
+          "name": "contains: right",
+          "passed": true
+        },
+        {
+          "name": "contains: purple starfish",
+          "passed": true
+        },
+        {
+          "name": "contains: without touching",
+          "passed": true
+        },
+        {
+          "name": "contains: no cinematic glow",
+          "passed": true
+        },
+        {
+          "name": "contains: no extra people",
+          "passed": true
+        },
+        {
+          "name": "single paragraph",
+          "passed": true
+        },
+        {
+          "name": "no wrapper",
+          "passed": true
+        },
+        {
+          "name": "valid UTF-8",
+          "passed": true
+        }
+      ],
+      "passed": 17,
+      "total": 17,
+      "usage": {
+        "completion_tokens": 103,
+        "prompt_tokens": 540,
+        "prompt_tokens_details": {
+          "cached_tokens": 440
+        },
+        "total_tokens": 643
+      },
+      "api_timings": {
+        "cache_n": 440,
+        "draft_n": 82,
+        "draft_n_accepted": 63,
+        "predicted_ms": 1936.822,
+        "predicted_n": 103,
+        "predicted_per_second": 52.66359014922383,
+        "predicted_per_token_ms": 18.988450980392155,
+        "prompt_ms": 358.993,
+        "prompt_n": 100,
+        "prompt_per_second": 278.55696350625226,
+        "prompt_per_token_ms": 3.58993
+      }
+    },
+    {
+      "test": {
+        "id": "t2i-composer-restraint",
+        "category": "composer consolidation",
+        "mode": "t2i",
+        "input": "subject: middle-aged Korean potter; action: trimming a celadon bowl; wardrobe: indigo work apron; setting: sunlit rural workshop; framing: waist-up three-quarter view; lighting: soft north-window light; texture: clay dust on hands; palette: celadon green, warm wood, indigo; style: editorial photograph; constraints: one person, no text, no extra pottery tools",
+        "max_words": 115,
+        "must": [
+          "middle-aged Korean potter",
+          "celadon bowl",
+          "indigo work apron",
+          "rural workshop",
+          "three-quarter",
+          "north-window light",
+          "clay dust",
+          "one person",
+          "no text",
+          "no extra pottery tools"
+        ]
+      },
+      "output": "An editorial photograph of a middle-aged Korean potter trimming a celadon bowl in a sunlit rural workshop. Captured in a waist-up three-quarter view, the potter wears a deep indigo work apron while their hands, coated in fine clay dust, perform the precise shaping. The scene is bathed in soft north-window light, highlighting a palette of celadon green, warm wood, and indigo. The composition features a single person with no extra pottery tools visible, emphasizing the clean textures of the clay and the serene, balanced atmosphere of the workspace.",
+      "words": 88,
+      "latency_ms": 2584,
+      "checks": [
+        {
+          "name": "maximum word count",
+          "passed": true,
+          "detail": "88 \u003c= 115"
+        },
+        {
+          "name": "contains: middle-aged Korean potter",
+          "passed": true
+        },
+        {
+          "name": "contains: celadon bowl",
+          "passed": true
+        },
+        {
+          "name": "contains: indigo work apron",
+          "passed": true
+        },
+        {
+          "name": "contains: rural workshop",
+          "passed": true
+        },
+        {
+          "name": "contains: three-quarter",
+          "passed": true
+        },
+        {
+          "name": "contains: north-window light",
+          "passed": true
+        },
+        {
+          "name": "contains: clay dust",
+          "passed": true
+        },
+        {
+          "name": "contains: one person",
+          "passed": false
+        },
+        {
+          "name": "contains: no text",
+          "passed": false
+        },
+        {
+          "name": "contains: no extra pottery tools",
+          "passed": true
+        },
+        {
+          "name": "single paragraph",
+          "passed": true
+        },
+        {
+          "name": "no wrapper",
+          "passed": true
+        },
+        {
+          "name": "valid UTF-8",
+          "passed": true
+        }
+      ],
+      "passed": 12,
+      "total": 14,
+      "usage": {
+        "completion_tokens": 112,
+        "prompt_tokens": 540,
+        "prompt_tokens_details": {
+          "cached_tokens": 440
+        },
+        "total_tokens": 652
+      },
+      "api_timings": {
+        "cache_n": 440,
+        "draft_n": 96,
+        "draft_n_accepted": 64,
+        "predicted_ms": 2257.741,
+        "predicted_n": 112,
+        "predicted_per_second": 49.16418668040311,
+        "predicted_per_token_ms": 20.34000900900901,
+        "prompt_ms": 322.915,
+        "prompt_n": 100,
+        "prompt_per_second": 309.6790176981558,
+        "prompt_per_token_ms": 3.22915
+      }
+    },
+    {
+      "test": {
+        "id": "t2i-unusual-medium",
+        "category": "medium preservation",
+        "mode": "t2i",
+        "input": "A childlike wax-crayon drawing on rough beige paper of a purple rhinoceros riding a yellow bicycle, front view, intentionally uneven outlines, only five colors, no photorealism.",
+        "must": [
+          "wax-crayon",
+          "rough beige paper",
+          "purple rhinoceros",
+          "yellow bicycle",
+          "front view",
+          "uneven outlines",
+          "five colors",
+          "no photorealism"
+        ],
+        "forbidden": [
+          "photorealistic",
+          "cinematic photograph"
+        ]
+      },
+      "output": "A childlike wax-crayon drawing on rough beige paper features a purple rhinoceros riding a yellow bicycle, captured from a front view. The image is defined by intentionally uneven outlines and a palette of only five colors, emphasizing a simple, hand-drawn aesthetic. The rhinoceros's form is expressive and charming, with the texture of the wax-crayon visible in every stroke, while the bicycle maintains a clear, balanced composition against the warm, textured paper.",
+      "words": 71,
+      "latency_ms": 2125,
+      "checks": [
+        {
+          "name": "contains: wax-crayon",
+          "passed": true
+        },
+        {
+          "name": "contains: rough beige paper",
+          "passed": true
+        },
+        {
+          "name": "contains: purple rhinoceros",
+          "passed": true
+        },
+        {
+          "name": "contains: yellow bicycle",
+          "passed": true
+        },
+        {
+          "name": "contains: front view",
+          "passed": true
+        },
+        {
+          "name": "contains: uneven outlines",
+          "passed": true
+        },
+        {
+          "name": "contains: five colors",
+          "passed": true
+        },
+        {
+          "name": "contains: no photorealism",
+          "passed": false
+        },
+        {
+          "name": "avoids: photorealistic",
+          "passed": true
+        },
+        {
+          "name": "avoids: cinematic photograph",
+          "passed": true
+        },
+        {
+          "name": "single paragraph",
+          "passed": true
+        },
+        {
+          "name": "no wrapper",
+          "passed": true
+        },
+        {
+          "name": "valid UTF-8",
+          "passed": true
+        }
+      ],
+      "passed": 12,
+      "total": 13,
+      "usage": {
+        "completion_tokens": 90,
+        "prompt_tokens": 493,
+        "prompt_tokens_details": {
+          "cached_tokens": 440
+        },
+        "total_tokens": 583
+      },
+      "api_timings": {
+        "cache_n": 440,
+        "draft_n": 78,
+        "draft_n_accepted": 50,
+        "predicted_ms": 1822.975,
+        "predicted_n": 90,
+        "predicted_per_second": 48.82129486142158,
+        "predicted_per_token_ms": 20.482865168539323,
+        "prompt_ms": 297.264,
+        "prompt_n": 53,
+        "prompt_per_second": 178.2926960546854,
+        "prompt_per_token_ms": 5.6087547169811325
+      }
+    },
+    {
+      "test": {
+        "id": "control-minimal",
+        "category": "control non-invention",
+        "mode": "control",
+        "input": "An elderly Korean woman wearing an indigo hanbok, natural skin texture, soft overcast light.",
+        "min_words": 40,
+        "max_words": 80,
+        "must": [
+          "elderly Korean woman",
+          "indigo hanbok",
+          "natural skin texture",
+          "soft overcast light"
+        ],
+        "forbidden": [
+          "standing",
+          "sitting",
+          "left",
+          "right",
+          "low-angle",
+          "high-angle",
+          "close-up",
+          "full-body"
+        ]
+      },
+      "output": "An elderly Korean woman wearing an indigo hanbok, featuring natural skin texture and soft overcast lighting, rendered with high-quality material and texture details, depth, and a polished visual finish.",
+      "words": 29,
+      "latency_ms": 1297,
+      "checks": [
+        {
+          "name": "minimum word count",
+          "passed": false,
+          "detail": "29 \u003e= 40"
+        },
+        {
+          "name": "maximum word count",
+          "passed": true,
+          "detail": "29 \u003c= 80"
+        },
+        {
+          "name": "contains: elderly Korean woman",
+          "passed": true
+        },
+        {
+          "name": "contains: indigo hanbok",
+          "passed": true
+        },
+        {
+          "name": "contains: natural skin texture",
+          "passed": true
+        },
+        {
+          "name": "contains: soft overcast light",
+          "passed": true
+        },
+        {
+          "name": "avoids: standing",
+          "passed": true
+        },
+        {
+          "name": "avoids: sitting",
+          "passed": true
+        },
+        {
+          "name": "avoids: left",
+          "passed": true
+        },
+        {
+          "name": "avoids: right",
+          "passed": true
+        },
+        {
+          "name": "avoids: low-angle",
+          "passed": true
+        },
+        {
+          "name": "avoids: high-angle",
+          "passed": true
+        },
+        {
+          "name": "avoids: close-up",
+          "passed": true
+        },
+        {
+          "name": "avoids: full-body",
+          "passed": true
+        },
+        {
+          "name": "single paragraph",
+          "passed": true
+        },
+        {
+          "name": "no wrapper",
+          "passed": true
+        },
+        {
+          "name": "valid UTF-8",
+          "passed": true
+        }
+      ],
+      "passed": 16,
+      "total": 17,
+      "usage": {
+        "completion_tokens": 38,
+        "prompt_tokens": 233,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 271
+      },
+      "api_timings": {
+        "cache_n": 0,
+        "draft_n": 34,
+        "draft_n_accepted": 20,
+        "predicted_ms": 780.645,
+        "predicted_n": 38,
+        "predicted_per_second": 47.39670400758348,
+        "predicted_per_token_ms": 21.098513513513513,
+        "prompt_ms": 305.894,
+        "prompt_n": 233,
+        "prompt_per_second": 761.7017659712188,
+        "prompt_per_token_ms": 1.3128497854077255
+      }
+    },
+    {
+      "test": {
+        "id": "control-text",
+        "category": "control exact text",
+        "mode": "control",
+        "input": "A courier wearing a plain gray jacket with the exact chest patch text \"NORTH-12\". Preserve the reference geometry; add no bag and no hat.",
+        "must": [
+          "gray jacket",
+          "no bag",
+          "no hat"
+        ],
+        "exact": [
+          "\"NORTH-12\""
+        ]
+      },
+      "output": "A courier wearing a plain gray jacket featuring the exact chest patch text \"NORTH-12\", with no bag and no hat.",
+      "words": 20,
+      "latency_ms": 714,
+      "checks": [
+        {
+          "name": "contains: gray jacket",
+          "passed": true
+        },
+        {
+          "name": "contains: no bag",
+          "passed": true
+        },
+        {
+          "name": "contains: no hat",
+          "passed": true
+        },
+        {
+          "name": "exact: \"NORTH-12\"",
+          "passed": true
+        },
+        {
+          "name": "single paragraph",
+          "passed": true
+        },
+        {
+          "name": "no wrapper",
+          "passed": true
+        },
+        {
+          "name": "valid UTF-8",
+          "passed": true
+        }
+      ],
+      "passed": 7,
+      "total": 7,
+      "usage": {
+        "completion_tokens": 27,
+        "prompt_tokens": 246,
+        "prompt_tokens_details": {
+          "cached_tokens": 197
+        },
+        "total_tokens": 273
+      },
+      "api_timings": {
+        "cache_n": 197,
+        "draft_n": 22,
+        "draft_n_accepted": 17,
+        "predicted_ms": 506.544,
+        "predicted_n": 27,
+        "predicted_per_second": 51.32821630500016,
+        "predicted_per_token_ms": 19.48246153846154,
+        "prompt_ms": 203.999,
+        "prompt_n": 49,
+        "prompt_per_second": 240.19725586890132,
+        "prompt_per_token_ms": 4.163244897959183
+      }
+    },
+    {
+      "test": {
+        "id": "control-count",
+        "category": "control count binding",
+        "mode": "control",
+        "input": "Exactly two red wooden mannequins and one blue metal mannequin, no additional figures, matte materials, clean studio lighting.",
+        "must": [
+          "exactly two",
+          "red wooden",
+          "one blue metal",
+          "no additional figures",
+          "matte",
+          "studio lighting"
+        ]
+      },
+      "output": "Exactly two red wooden mannequins and one blue metal mannequin, featuring matte materials and clean studio lighting.",
+      "words": 17,
+      "latency_ms": 645,
+      "checks": [
+        {
+          "name": "contains: exactly two",
+          "passed": true
+        },
+        {
+          "name": "contains: red wooden",
+          "passed": true
+        },
+        {
+          "name": "contains: one blue metal",
+          "passed": true
+        },
+        {
+          "name": "contains: no additional figures",
+          "passed": false
+        },
+        {
+          "name": "contains: matte",
+          "passed": true
+        },
+        {
+          "name": "contains: studio lighting",
+          "passed": true
+        },
+        {
+          "name": "single paragraph",
+          "passed": true
+        },
+        {
+          "name": "no wrapper",
+          "passed": true
+        },
+        {
+          "name": "valid UTF-8",
+          "passed": true
+        }
+      ],
+      "passed": 8,
+      "total": 9,
+      "usage": {
+        "completion_tokens": 21,
+        "prompt_tokens": 238,
+        "prompt_tokens_details": {
+          "cached_tokens": 197
+        },
+        "total_tokens": 259
+      },
+      "api_timings": {
+        "cache_n": 197,
+        "draft_n": 18,
+        "draft_n_accepted": 13,
+        "predicted_ms": 413.789,
+        "predicted_n": 21,
+        "predicted_per_second": 48.333812643642055,
+        "predicted_per_token_ms": 20.68945,
+        "prompt_ms": 227.794,
+        "prompt_n": 41,
+        "prompt_per_second": 179.98718140073927,
+        "prompt_per_token_ms": 5.555951219512195
+      }
+    },
+    {
+      "test": {
+        "id": "control-style-only",
+        "category": "control style restraint",
+        "mode": "control",
+        "input": "Render the referenced structure as a monochrome charcoal sketch on ivory paper, preserving its composition and silhouette, with no added background objects.",
+        "must": [
+          "monochrome charcoal sketch",
+          "ivory paper",
+          "preserving",
+          "composition",
+          "silhouette",
+          "no added background objects"
+        ],
+        "forbidden": [
+          "camera",
+          "angle"
+        ]
+      },
+      "output": "A monochrome charcoal sketch on ivory paper, preserving the reference's composition and silhouette with no additional background objects, featuring rich texture, soft shading, and a clean, artistic finish.",
+      "words": 28,
+      "latency_ms": 1009,
+      "checks": [
+        {
+          "name": "contains: monochrome charcoal sketch",
+          "passed": true
+        },
+        {
+          "name": "contains: ivory paper",
+          "passed": true
+        },
+        {
+          "name": "contains: preserving",
+          "passed": true
+        },
+        {
+          "name": "contains: composition",
+          "passed": true
+        },
+        {
+          "name": "contains: silhouette",
+          "passed": true
+        },
+        {
+          "name": "contains: no added background objects",
+          "passed": false
+        },
+        {
+          "name": "avoids: camera",
+          "passed": true
+        },
+        {
+          "name": "avoids: angle",
+          "passed": true
+        },
+        {
+          "name": "single paragraph",
+          "passed": true
+        },
+        {
+          "name": "no wrapper",
+          "passed": true
+        },
+        {
+          "name": "valid UTF-8",
+          "passed": true
+        }
+      ],
+      "passed": 10,
+      "total": 11,
+      "usage": {
+        "completion_tokens": 37,
+        "prompt_tokens": 240,
+        "prompt_tokens_details": {
+          "cached_tokens": 197
+        },
+        "total_tokens": 277
+      },
+      "api_timings": {
+        "cache_n": 197,
+        "draft_n": 34,
+        "draft_n_accepted": 19,
+        "predicted_ms": 779.495,
+        "predicted_n": 37,
+        "predicted_per_second": 46.18374716964188,
+        "predicted_per_token_ms": 21.652638888888887,
+        "prompt_ms": 225.946,
+        "prompt_n": 43,
+        "prompt_per_second": 190.31095925575136,
+        "prompt_per_token_ms": 5.2545581395348835
+      }
+    },
+    {
+      "test": {
+        "id": "edit-clothing-preserve",
+        "category": "edit preservation",
+        "mode": "edit",
+        "input": "Change: replace only the blue jacket with a red raincoat. Preserve: the same person's identity, face, hairstyle, pose, hands, framing, cafe background, warm lighting, and every other garment.",
+        "min_words": 45,
+        "max_words": 100,
+        "must": [
+          "blue jacket",
+          "red raincoat",
+          "identity",
+          "face",
+          "hairstyle",
+          "pose",
+          "hands",
+          "framing",
+          "cafe background",
+          "warm lighting",
+          "every other garment"
+        ]
+      },
+      "output": "Replace the blue jacket with a red raincoat while preserving the person's identity, face, hairstyle, pose, hands, framing, cafe background, and warm lighting, as well as every other garment.",
+      "words": 29,
+      "latency_ms": 1102,
+      "checks": [
+        {
+          "name": "minimum word count",
+          "passed": false,
+          "detail": "29 \u003e= 45"
+        },
+        {
+          "name": "maximum word count",
+          "passed": true,
+          "detail": "29 \u003c= 100"
+        },
+        {
+          "name": "contains: blue jacket",
+          "passed": true
+        },
+        {
+          "name": "contains: red raincoat",
+          "passed": true
+        },
+        {
+          "name": "contains: identity",
+          "passed": true
+        },
+        {
+          "name": "contains: face",
+          "passed": true
+        },
+        {
+          "name": "contains: hairstyle",
+          "passed": true
+        },
+        {
+          "name": "contains: pose",
+          "passed": true
+        },
+        {
+          "name": "contains: hands",
+          "passed": true
+        },
+        {
+          "name": "contains: framing",
+          "passed": true
+        },
+        {
+          "name": "contains: cafe background",
+          "passed": true
+        },
+        {
+          "name": "contains: warm lighting",
+          "passed": true
+        },
+        {
+          "name": "contains: every other garment",
+          "passed": true
+        },
+        {
+          "name": "single paragraph",
+          "passed": true
+        },
+        {
+          "name": "no wrapper",
+          "passed": true
+        },
+        {
+          "name": "valid UTF-8",
+          "passed": true
+        }
+      ],
+      "passed": 15,
+      "total": 16,
+      "usage": {
+        "completion_tokens": 41,
+        "prompt_tokens": 192,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 233
+      },
+      "api_timings": {
+        "cache_n": 0,
+        "draft_n": 32,
+        "draft_n_accepted": 26,
+        "predicted_ms": 736.064,
+        "predicted_n": 41,
+        "predicted_per_second": 54.34310059994783,
+        "predicted_per_token_ms": 18.4016,
+        "prompt_ms": 259.546,
+        "prompt_n": 192,
+        "prompt_per_second": 739.7532614642491,
+        "prompt_per_token_ms": 1.3518020833333333
+      }
+    },
+    {
+      "test": {
+        "id": "edit-expression",
+        "category": "minimal edit",
+        "mode": "edit",
+        "input": "Change: make the subject wink with the left eye only. Preserve: identity, right eye, mouth expression, head angle, hair, clothing, background, lighting, crop, and image style.",
+        "min_words": 45,
+        "max_words": 100,
+        "must": [
+          "wink",
+          "left eye",
+          "right eye",
+          "mouth expression",
+          "head angle",
+          "identity",
+          "background",
+          "lighting",
+          "crop"
+        ]
+      },
+      "output": "Make the subject wink with the left eye only while preserving the identity, right eye, mouth expression, head angle, hair, clothing, background, lighting, crop, and image style.",
+      "words": 27,
+      "latency_ms": 788,
+      "checks": [
+        {
+          "name": "minimum word count",
+          "passed": false,
+          "detail": "27 \u003e= 45"
+        },
+        {
+          "name": "maximum word count",
+          "passed": true,
+          "detail": "27 \u003c= 100"
+        },
+        {
+          "name": "contains: wink",
+          "passed": true
+        },
+        {
+          "name": "contains: left eye",
+          "passed": true
+        },
+        {
+          "name": "contains: right eye",
+          "passed": true
+        },
+        {
+          "name": "contains: mouth expression",
+          "passed": true
+        },
+        {
+          "name": "contains: head angle",
+          "passed": true
+        },
+        {
+          "name": "contains: identity",
+          "passed": true
+        },
+        {
+          "name": "contains: background",
+          "passed": true
+        },
+        {
+          "name": "contains: lighting",
+          "passed": true
+        },
+        {
+          "name": "contains: crop",
+          "passed": true
+        },
+        {
+          "name": "single paragraph",
+          "passed": true
+        },
+        {
+          "name": "no wrapper",
+          "passed": true
+        },
+        {
+          "name": "valid UTF-8",
+          "passed": true
+        }
+      ],
+      "passed": 13,
+      "total": 14,
+      "usage": {
+        "completion_tokens": 38,
+        "prompt_tokens": 189,
+        "prompt_tokens_details": {
+          "cached_tokens": 132
+        },
+        "total_tokens": 227
+      },
+      "api_timings": {
+        "cache_n": 132,
+        "draft_n": 26,
+        "draft_n_accepted": 24,
+        "predicted_ms": 594.036,
+        "predicted_n": 38,
+        "predicted_per_second": 62.28578739335664,
+        "predicted_per_token_ms": 16.055027027027027,
+        "prompt_ms": 192.121,
+        "prompt_n": 57,
+        "prompt_per_second": 296.6880247344122,
+        "prompt_per_token_ms": 3.370543859649123
+      }
+    },
+    {
+      "test": {
+        "id": "edit-multi-reference",
+        "category": "reference role binding",
+        "mode": "edit",
+        "input": "Change: dress the person from the primary image in the black lace bodysuit from the clothing reference and match the body pose from the pose reference. Preserve: primary person's face, identity, hair color, body proportions, room, camera angle, and lighting.",
+        "must": [
+          "primary image",
+          "black lace bodysuit",
+          "clothing reference",
+          "pose reference",
+          "face",
+          "identity",
+          "hair color",
+          "body proportions",
+          "room",
+          "camera angle",
+          "lighting"
+        ]
+      },
+      "output": "Dress the person in the black lace bodysuit from the clothing reference while matching the body pose from the pose reference, preserving the primary person's face, identity, hair color, body proportions, room, camera angle, and lighting.",
+      "words": 36,
+      "latency_ms": 948,
+      "checks": [
+        {
+          "name": "contains: primary image",
+          "passed": false
+        },
+        {
+          "name": "contains: black lace bodysuit",
+          "passed": true
+        },
+        {
+          "name": "contains: clothing reference",
+          "passed": true
+        },
+        {
+          "name": "contains: pose reference",
+          "passed": true
+        },
+        {
+          "name": "contains: face",
+          "passed": true
+        },
+        {
+          "name": "contains: identity",
+          "passed": true
+        },
+        {
+          "name": "contains: hair color",
+          "passed": true
+        },
+        {
+          "name": "contains: body proportions",
+          "passed": true
+        },
+        {
+          "name": "contains: room",
+          "passed": true
+        },
+        {
+          "name": "contains: camera angle",
+          "passed": true
+        },
+        {
+          "name": "contains: lighting",
+          "passed": true
+        },
+        {
+          "name": "single paragraph",
+          "passed": true
+        },
+        {
+          "name": "no wrapper",
+          "passed": true
+        },
+        {
+          "name": "valid UTF-8",
+          "passed": true
+        }
+      ],
+      "passed": 13,
+      "total": 14,
+      "usage": {
+        "completion_tokens": 47,
+        "prompt_tokens": 202,
+        "prompt_tokens_details": {
+          "cached_tokens": 132
+        },
+        "total_tokens": 249
+      },
+      "api_timings": {
+        "cache_n": 132,
+        "draft_n": 32,
+        "draft_n_accepted": 30,
+        "predicted_ms": 730.714,
+        "predicted_n": 47,
+        "predicted_per_second": 62.952126276491214,
+        "predicted_per_token_ms": 15.885086956521741,
+        "prompt_ms": 213.634,
+        "prompt_n": 70,
+        "prompt_per_second": 327.66319967795386,
+        "prompt_per_token_ms": 3.0519142857142856
+      }
+    },
+    {
+      "test": {
+        "id": "edit-sign-text",
+        "category": "edit exact text",
+        "mode": "edit",
+        "input": "Change: replace only the cafe sign wording with exactly \"달빛 다방\". Preserve: sign shape, letter placement, all people, faces, tables, reflections, framing, color grade, and all other visible text unchanged.",
+        "must": [
+          "replace only",
+          "all other visible text unchanged"
+        ],
+        "exact": [
+          "\"달빛 다방\""
+        ]
+      },
+      "output": "Replace only the cafe sign wording with \"달빛 다방\" while preserving the sign shape, letter placement, all people, faces, tables, reflections, framing, color grade, and all other visible text.",
+      "words": 29,
+      "latency_ms": 877,
+      "checks": [
+        {
+          "name": "contains: replace only",
+          "passed": true
+        },
+        {
+          "name": "contains: all other visible text unchanged",
+          "passed": false
+        },
+        {
+          "name": "exact: \"달빛 다방\"",
+          "passed": true
+        },
+        {
+          "name": "single paragraph",
+          "passed": true
+        },
+        {
+          "name": "no wrapper",
+          "passed": true
+        },
+        {
+          "name": "valid UTF-8",
+          "passed": true
+        }
+      ],
+      "passed": 5,
+      "total": 6,
+      "usage": {
+        "completion_tokens": 43,
+        "prompt_tokens": 195,
+        "prompt_tokens_details": {
+          "cached_tokens": 132
+        },
+        "total_tokens": 238
+      },
+      "api_timings": {
+        "cache_n": 132,
+        "draft_n": 30,
+        "draft_n_accepted": 29,
+        "predicted_ms": 680.614,
+        "predicted_n": 43,
+        "predicted_per_second": 61.70898629766651,
+        "predicted_per_token_ms": 16.20509523809524,
+        "prompt_ms": 193.848,
+        "prompt_n": 63,
+        "prompt_per_second": 324.9969047913829,
+        "prompt_per_token_ms": 3.076952380952381
+      }
+    },
+    {
+      "test": {
+        "id": "paint-inpaint",
+        "category": "masked replacement",
+        "mode": "paint",
+        "input": "Inside the painted mask only, replace the broken lamp with a small brass desk lamp matching the room's warm light and perspective. Keep everything outside the mask unchanged.",
+        "must": [
+          "mask",
+          "broken lamp",
+          "small brass desk lamp",
+          "warm light",
+          "perspective",
+          "outside",
+          "unchanged"
+        ]
+      },
+      "output": "Replace the broken lamp with a small brass desk lamp that matches the room's warm lighting and perspective, ensuring the surrounding environment remains completely unchanged.",
+      "words": 25,
+      "latency_ms": 905,
+      "checks": [
+        {
+          "name": "contains: mask",
+          "passed": false
+        },
+        {
+          "name": "contains: broken lamp",
+          "passed": true
+        },
+        {
+          "name": "contains: small brass desk lamp",
+          "passed": true
+        },
+        {
+          "name": "contains: warm light",
+          "passed": true
+        },
+        {
+          "name": "contains: perspective",
+          "passed": true
+        },
+        {
+          "name": "contains: outside",
+          "passed": false
+        },
+        {
+          "name": "contains: unchanged",
+          "passed": true
+        },
+        {
+          "name": "single paragraph",
+          "passed": true
+        },
+        {
+          "name": "no wrapper",
+          "passed": true
+        },
+        {
+          "name": "valid UTF-8",
+          "passed": true
+        }
+      ],
+      "passed": 8,
+      "total": 10,
+      "usage": {
+        "completion_tokens": 30,
+        "prompt_tokens": 234,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 264
+      },
+      "api_timings": {
+        "cache_n": 0,
+        "draft_n": 24,
+        "draft_n_accepted": 17,
+        "predicted_ms": 552.479,
+        "predicted_n": 30,
+        "predicted_per_second": 52.490682903784574,
+        "predicted_per_token_ms": 19.051000000000002,
+        "prompt_ms": 269.654,
+        "prompt_n": 234,
+        "prompt_per_second": 867.7787090122898,
+        "prompt_per_token_ms": 1.1523675213675213
+      }
+    },
+    {
+      "test": {
+        "id": "paint-remove",
+        "category": "masked removal",
+        "mode": "paint",
+        "input": "Remove the person inside the mask and reconstruct the uninterrupted brick wall and pavement behind them. Do not alter any unmasked person, shadow, sign, or window.",
+        "must": [
+          "remove",
+          "person",
+          "brick wall",
+          "pavement",
+          "unmasked",
+          "shadow",
+          "sign",
+          "window"
+        ]
+      },
+      "output": "Remove the person within the mask to reveal the uninterrupted brick wall and pavement behind them, ensuring the texture, perspective, and lighting of the background remain consistent while preserving all unmasked people, shadows, signs, and windows.",
+      "words": 36,
+      "latency_ms": 1083,
+      "checks": [
+        {
+          "name": "contains: remove",
+          "passed": true
+        },
+        {
+          "name": "contains: person",
+          "passed": true
+        },
+        {
+          "name": "contains: brick wall",
+          "passed": true
+        },
+        {
+          "name": "contains: pavement",
+          "passed": true
+        },
+        {
+          "name": "contains: unmasked",
+          "passed": true
+        },
+        {
+          "name": "contains: shadow",
+          "passed": true
+        },
+        {
+          "name": "contains: sign",
+          "passed": true
+        },
+        {
+          "name": "contains: window",
+          "passed": true
+        },
+        {
+          "name": "single paragraph",
+          "passed": true
+        },
+        {
+          "name": "no wrapper",
+          "passed": true
+        },
+        {
+          "name": "valid UTF-8",
+          "passed": true
+        }
+      ],
+      "passed": 11,
+      "total": 11,
+      "usage": {
+        "completion_tokens": 45,
+        "prompt_tokens": 233,
+        "prompt_tokens_details": {
+          "cached_tokens": 183
+        },
+        "total_tokens": 278
+      },
+      "api_timings": {
+        "cache_n": 183,
+        "draft_n": 38,
+        "draft_n_accepted": 26,
+        "predicted_ms": 873.269,
+        "predicted_n": 45,
+        "predicted_per_second": 50.385390984908426,
+        "predicted_per_token_ms": 19.847022727272726,
+        "prompt_ms": 205.836,
+        "prompt_n": 50,
+        "prompt_per_second": 242.9118327211955,
+        "prompt_per_token_ms": 4.11672
+      }
+    },
+    {
+      "test": {
+        "id": "paint-outpaint-no-prompt-drift",
+        "category": "outpaint continuity",
+        "mode": "paint",
+        "input": "Extend the image to the right with a seamless continuation of the existing beach, horizon, sky, lighting, lens perspective, and film grain. Introduce no new people, buildings, boats, animals, or text.",
+        "must": [
+          "right",
+          "seamless",
+          "beach",
+          "horizon",
+          "sky",
+          "lighting",
+          "lens perspective",
+          "film grain",
+          "no new people",
+          "buildings",
+          "boats",
+          "animals",
+          "text"
+        ]
+      },
+      "output": "Extend the image to the right with a seamless continuation of the beach, horizon, and sky, maintaining the exact same lighting, lens perspective, and film grain while ensuring no new people, buildings, boats, animals, or text are introduced.",
+      "words": 38,
+      "latency_ms": 1012,
+      "checks": [
+        {
+          "name": "contains: right",
+          "passed": true
+        },
+        {
+          "name": "contains: seamless",
+          "passed": true
+        },
+        {
+          "name": "contains: beach",
+          "passed": true
+        },
+        {
+          "name": "contains: horizon",
+          "passed": true
+        },
+        {
+          "name": "contains: sky",
+          "passed": true
+        },
+        {
+          "name": "contains: lighting",
+          "passed": true
+        },
+        {
+          "name": "contains: lens perspective",
+          "passed": true
+        },
+        {
+          "name": "contains: film grain",
+          "passed": true
+        },
+        {
+          "name": "contains: no new people",
+          "passed": true
+        },
+        {
+          "name": "contains: buildings",
+          "passed": true
+        },
+        {
+          "name": "contains: boats",
+          "passed": true
+        },
+        {
+          "name": "contains: animals",
+          "passed": true
+        },
+        {
+          "name": "contains: text",
+          "passed": true
+        },
+        {
+          "name": "single paragraph",
+          "passed": true
+        },
+        {
+          "name": "no wrapper",
+          "passed": true
+        },
+        {
+          "name": "valid UTF-8",
+          "passed": true
+        }
+      ],
+      "passed": 16,
+      "total": 16,
+      "usage": {
+        "completion_tokens": 49,
+        "prompt_tokens": 243,
+        "prompt_tokens_details": {
+          "cached_tokens": 183
+        },
+        "total_tokens": 292
+      },
+      "api_timings": {
+        "cache_n": 183,
+        "draft_n": 34,
+        "draft_n_accepted": 31,
+        "predicted_ms": 782.218,
+        "predicted_n": 49,
+        "predicted_per_second": 61.36396758959779,
+        "predicted_per_token_ms": 16.296208333333333,
+        "prompt_ms": 226.72,
+        "prompt_n": 60,
+        "prompt_per_second": 264.64361326746643,
+        "prompt_per_token_ms": 3.7786666666666666
+      }
+    },
+    {
+      "test": {
+        "id": "paint-text",
+        "category": "masked exact text",
+        "mode": "paint",
+        "input": "Replace only the masked label with clean black lettering that reads exactly \"BATCH 042\" while matching the paper texture and print perspective. All unmasked packaging remains identical.",
+        "must": [
+          "masked label",
+          "black lettering",
+          "paper texture",
+          "print perspective",
+          "unmasked packaging",
+          "identical"
+        ],
+        "exact": [
+          "\"BATCH 042\""
+        ]
+      },
+      "output": "Replace the masked label with clean black lettering that reads exactly \"BATCH 042,\" ensuring the text perfectly matches the original paper texture and print perspective while keeping all other unmasked packaging elements identical.",
+      "words": 33,
+      "latency_ms": 957,
+      "checks": [
+        {
+          "name": "contains: masked label",
+          "passed": true
+        },
+        {
+          "name": "contains: black lettering",
+          "passed": true
+        },
+        {
+          "name": "contains: paper texture",
+          "passed": true
+        },
+        {
+          "name": "contains: print perspective",
+          "passed": true
+        },
+        {
+          "name": "contains: unmasked packaging",
+          "passed": true
+        },
+        {
+          "name": "contains: identical",
+          "passed": true
+        },
+        {
+          "name": "exact: \"BATCH 042\"",
+          "passed": false
+        },
+        {
+          "name": "single paragraph",
+          "passed": true
+        },
+        {
+          "name": "no wrapper",
+          "passed": true
+        },
+        {
+          "name": "valid UTF-8",
+          "passed": true
+        }
+      ],
+      "passed": 9,
+      "total": 10,
+      "usage": {
+        "completion_tokens": 41,
+        "prompt_tokens": 236,
+        "prompt_tokens_details": {
+          "cached_tokens": 183
+        },
+        "total_tokens": 277
+      },
+      "api_timings": {
+        "cache_n": 183,
+        "draft_n": 32,
+        "draft_n_accepted": 24,
+        "predicted_ms": 737.57,
+        "predicted_n": 41,
+        "predicted_per_second": 54.23214067817292,
+        "predicted_per_token_ms": 18.43925,
+        "prompt_ms": 217.005,
+        "prompt_n": 53,
+        "prompt_per_second": 244.23400382479667,
+        "prompt_per_token_ms": 4.094433962264151
+      }
+    },
+    {
+      "test": {
+        "id": "t2v-chronology",
+        "category": "video chronology",
+        "mode": "t2v",
+        "input": "A red paper airplane rests on a school desk. A breeze lifts it, it circles once around the empty classroom, then lands on the same desk. Static eye-level camera. Only soft wind and paper rustling; no music and no people.",
+        "min_words": 150,
+        "max_words": 220,
+        "must": [
+          "red paper airplane",
+          "school desk",
+          "breeze",
+          "circles once",
+          "empty classroom",
+          "same desk",
+          "static",
+          "eye-level",
+          "wind",
+          "paper rustling",
+          "no music",
+          "no people"
+        ]
+      },
+      "output": "A vibrant red paper airplane rests motionless on the polished surface of a wooden school desk in a quiet, sun-drenched classroom. A gentle breeze sweeps through the room, catching the underside of the paper and lifting the plane into the air, where it glides in a smooth, graceful circle around the empty space. The plane eventually descends, landing perfectly back on the same desk, settling with a slight tilt. The camera remains static at an eye-level viewpoint, capturing the depth of the room where rows of chairs and desks are arranged in perfect order. The lighting is soft and cinematic, casting long, gentle shadows across the floor and highlighting the crisp texture of the paper. The soundscape is minimalist and serene, consisting only of the soft whistle of the wind and the delicate, rhythmic rustling of the paper as it moves through the air, with no music or people present to break the stillness.",
+      "words": 154,
+      "latency_ms": 3922,
+      "checks": [
+        {
+          "name": "minimum word count",
+          "passed": true,
+          "detail": "154 \u003e= 150"
+        },
+        {
+          "name": "maximum word count",
+          "passed": true,
+          "detail": "154 \u003c= 220"
+        },
+        {
+          "name": "contains: red paper airplane",
+          "passed": true
+        },
+        {
+          "name": "contains: school desk",
+          "passed": true
+        },
+        {
+          "name": "contains: breeze",
+          "passed": true
+        },
+        {
+          "name": "contains: circles once",
+          "passed": false
+        },
+        {
+          "name": "contains: empty classroom",
+          "passed": false
+        },
+        {
+          "name": "contains: same desk",
+          "passed": true
+        },
+        {
+          "name": "contains: static",
+          "passed": true
+        },
+        {
+          "name": "contains: eye-level",
+          "passed": true
+        },
+        {
+          "name": "contains: wind",
+          "passed": true
+        },
+        {
+          "name": "contains: paper rustling",
+          "passed": false
+        },
+        {
+          "name": "contains: no music",
+          "passed": true
+        },
+        {
+          "name": "contains: no people",
+          "passed": false
+        },
+        {
+          "name": "single paragraph",
+          "passed": true
+        },
+        {
+          "name": "no wrapper",
+          "passed": true
+        },
+        {
+          "name": "valid UTF-8",
+          "passed": true
+        }
+      ],
+      "passed": 13,
+      "total": 17,
+      "usage": {
+        "completion_tokens": 181,
+        "prompt_tokens": 302,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 483
+      },
+      "api_timings": {
+        "cache_n": 0,
+        "draft_n": 152,
+        "draft_n_accepted": 106,
+        "predicted_ms": 3484.741,
+        "predicted_n": 181,
+        "predicted_per_second": 51.653767094885964,
+        "predicted_per_token_ms": 19.359672222222223,
+        "prompt_ms": 330.231,
+        "prompt_n": 302,
+        "prompt_per_second": 914.5113572014741,
+        "prompt_per_token_ms": 1.0934801324503312
+      }
+    },
+    {
+      "test": {
+        "id": "t2v-dialogue",
+        "category": "exact dialogue",
+        "mode": "t2v",
+        "input": "At a quiet Seoul bus stop at night, an elderly Korean man checks the empty road, smiles, and says exactly in Korean: \"오늘은 천천히 가도 돼.\" A bus approaches but does not arrive before the shot ends. Slow dolly-in, medium shot. Rain ambience only, no music.",
+        "min_words": 150,
+        "max_words": 220,
+        "must": [
+          "Seoul bus stop",
+          "elderly Korean man",
+          "empty road",
+          "bus approaches",
+          "does not arrive",
+          "slow dolly-in",
+          "medium shot",
+          "rain",
+          "no music"
+        ],
+        "exact": [
+          "오늘은 천천히 가도 돼."
+        ]
+      },
+      "output": "At a quiet Seoul bus stop at night, an elderly Korean man stands under the warm glow of a street lamp, his face etched with gentle wrinkles as he looks out toward the empty road. He wears a thick, charcoal-grey wool coat and a soft knitted scarf, his hands resting naturally at his sides. A subtle, peaceful smile plays on his lips as he watches the glistening asphalt, and he speaks the words, \"오늘은 천천히 가도 돼,\" his voice carrying a tone of calm contentment. In the background, the city lights blur into soft bokeh, reflecting off the wet pavement and the glass panes of the shelter. As he speaks, a bus with glowing headlights and a vibrant yellow frame slowly approaches from the distance, its tires cutting through the damp air, though it does not reach its stop before the scene concludes. The camera performs a slow dolly-in, moving from a medium shot to a closer view of his expressive face, capturing the depth of his serene expression. The only sound is the consistent, rhythmic patter of falling rain against the ground and the shelter, with no music to distract from the peaceful atmosphere.",
+      "words": 195,
+      "latency_ms": 5397,
+      "checks": [
+        {
+          "name": "minimum word count",
+          "passed": true,
+          "detail": "195 \u003e= 150"
+        },
+        {
+          "name": "maximum word count",
+          "passed": true,
+          "detail": "195 \u003c= 220"
+        },
+        {
+          "name": "contains: Seoul bus stop",
+          "passed": true
+        },
+        {
+          "name": "contains: elderly Korean man",
+          "passed": true
+        },
+        {
+          "name": "contains: empty road",
+          "passed": true
+        },
+        {
+          "name": "contains: bus approaches",
+          "passed": false
+        },
+        {
+          "name": "contains: does not arrive",
+          "passed": false
+        },
+        {
+          "name": "contains: slow dolly-in",
+          "passed": true
+        },
+        {
+          "name": "contains: medium shot",
+          "passed": true
+        },
+        {
+          "name": "contains: rain",
+          "passed": true
+        },
+        {
+          "name": "contains: no music",
+          "passed": true
+        },
+        {
+          "name": "exact: 오늘은 천천히 가도 돼.",
+          "passed": false
+        },
+        {
+          "name": "single paragraph",
+          "passed": true
+        },
+        {
+          "name": "no wrapper",
+          "passed": true
+        },
+        {
+          "name": "valid UTF-8",
+          "passed": true
+        }
+      ],
+      "passed": 12,
+      "total": 15,
+      "usage": {
+        "completion_tokens": 229,
+        "prompt_tokens": 314,
+        "prompt_tokens_details": {
+          "cached_tokens": 234
+        },
+        "total_tokens": 543
+      },
+      "api_timings": {
+        "cache_n": 234,
+        "draft_n": 226,
+        "draft_n_accepted": 115,
+        "predicted_ms": 5170.635,
+        "predicted_n": 229,
+        "predicted_per_second": 44.09516432701206,
+        "predicted_per_token_ms": 22.678223684210526,
+        "prompt_ms": 224.027,
+        "prompt_n": 80,
+        "prompt_per_second": 357.09981386172205,
+        "prompt_per_token_ms": 2.8003375
+      }
+    },
+    {
+      "test": {
+        "id": "t2v-count-direction",
+        "category": "video count and direction",
+        "mode": "t2v",
+        "input": "Exactly four white robots walk from right to left across a red salt flat in one continuous line. The second robot briefly waves once, but the others never raise their arms. Wide locked-off shot, no cuts, no vehicles, only footsteps and wind.",
+        "min_words": 150,
+        "max_words": 220,
+        "must": [
+          "exactly four",
+          "white robots",
+          "right to left",
+          "red salt flat",
+          "second robot",
+          "waves once",
+          "others",
+          "never raise",
+          "wide",
+          "locked-off",
+          "no cuts",
+          "no vehicles",
+          "footsteps",
+          "wind"
+        ]
+      },
+      "output": "Exactly four sleek white robots walk in a perfectly straight, continuous line from the right side of the frame toward the left across a vast, crimson-hued red salt flat. The robots feature smooth, rounded bodies with polished surfaces that catch the light, and they move with a synchronized, fluid gait. While the entire group maintains a steady pace, the second robot from the right briefly raises its arm to give a single, subtle wave, while the other three robots keep their arms perfectly still. The environment is a minimalist expanse of textured red earth, stretching toward the horizon under a clear sky. Captured in a wide locked-off shot with no cuts, the camera remains completely static, emphasizing the scale of the landscape. The only sounds are the rhythmic, muffled thuds of their footsteps against the salt and the constant, low-frequency whistle of the wind blowing across the open plain. The lighting is bright and cinematic, casting soft shadows that ground each robot in the expansive, colorful terrain.",
+      "words": 167,
+      "latency_ms": 4724,
+      "checks": [
+        {
+          "name": "minimum word count",
+          "passed": true,
+          "detail": "167 \u003e= 150"
+        },
+        {
+          "name": "maximum word count",
+          "passed": true,
+          "detail": "167 \u003c= 220"
+        },
+        {
+          "name": "contains: exactly four",
+          "passed": true
+        },
+        {
+          "name": "contains: white robots",
+          "passed": true
+        },
+        {
+          "name": "contains: right to left",
+          "passed": false
+        },
+        {
+          "name": "contains: red salt flat",
+          "passed": true
+        },
+        {
+          "name": "contains: second robot",
+          "passed": true
+        },
+        {
+          "name": "contains: waves once",
+          "passed": false
+        },
+        {
+          "name": "contains: others",
+          "passed": false
+        },
+        {
+          "name": "contains: never raise",
+          "passed": false
+        },
+        {
+          "name": "contains: wide",
+          "passed": true
+        },
+        {
+          "name": "contains: locked-off",
+          "passed": true
+        },
+        {
+          "name": "contains: no cuts",
+          "passed": true
+        },
+        {
+          "name": "contains: no vehicles",
+          "passed": false
+        },
+        {
+          "name": "contains: footsteps",
+          "passed": true
+        },
+        {
+          "name": "contains: wind",
+          "passed": true
+        },
+        {
+          "name": "single paragraph",
+          "passed": true
+        },
+        {
+          "name": "no wrapper",
+          "passed": true
+        },
+        {
+          "name": "valid UTF-8",
+          "passed": true
+        }
+      ],
+      "passed": 14,
+      "total": 19,
+      "usage": {
+        "completion_tokens": 198,
+        "prompt_tokens": 303,
+        "prompt_tokens_details": {
+          "cached_tokens": 234
+        },
+        "total_tokens": 501
+      },
+      "api_timings": {
+        "cache_n": 234,
+        "draft_n": 188,
+        "draft_n_accepted": 104,
+        "predicted_ms": 4312.533,
+        "predicted_n": 198,
+        "predicted_per_second": 45.680809862788294,
+        "predicted_per_token_ms": 21.891030456852793,
+        "prompt_ms": 254.422,
+        "prompt_n": 69,
+        "prompt_per_second": 271.20296200800243,
+        "prompt_per_token_ms": 3.6872753623188403
+      }
+    },
+    {
+      "test": {
+        "id": "t2v-no-invention",
+        "category": "video negative constraints",
+        "mode": "t2v",
+        "input": "A single candle burns steadily in a completely dark room for the entire shot. Extreme close-up, camera remains static. The flame does not flicker or go out. No hands, faces, windows, smoke, dialogue, sound effects, or music; only near-silence.",
+        "min_words": 150,
+        "max_words": 220,
+        "must": [
+          "single candle",
+          "entire shot",
+          "extreme close-up",
+          "static",
+          "does not flicker",
+          "go out",
+          "no hands",
+          "faces",
+          "windows",
+          "smoke",
+          "dialogue",
+          "sound effects",
+          "music",
+          "near-silence"
+        ]
+      },
+      "output": "A single candle burns with unwavering steadiness in a completely dark room, its golden flame serving as the sole source of light. In an extreme close-up, the camera remains perfectly static, focusing on the intricate details of the wax and the core of the fire. The flame is constant, neither flickering nor going out, casting a warm, amber glow that creates soft highlights and deep shadows across the surrounding space. The candle's body is made of smooth, creamy wax that slowly melts, forming a rounded pool at the base of the wick. There are no hands, faces, windows, or plumes of smoke visible, leaving the composition pure and uncluttered. The atmosphere is defined by a profound near-silence, devoid of any dialogue, music, or distinct sound effects, creating a meditative and intimate visual experience. The lighting is cinematic and concentrated, emphasizing the vibrant orange and yellow hues of the fire against the velvety black void of the background. The texture of the wick is slightly charred and textured, standing upright as it absorbs the liquid wax.",
+      "words": 175,
+      "latency_ms": 5050,
+      "checks": [
+        {
+          "name": "minimum word count",
+          "passed": true,
+          "detail": "175 \u003e= 150"
+        },
+        {
+          "name": "maximum word count",
+          "passed": true,
+          "detail": "175 \u003c= 220"
+        },
+        {
+          "name": "contains: single candle",
+          "passed": true
+        },
+        {
+          "name": "contains: entire shot",
+          "passed": false
+        },
+        {
+          "name": "contains: extreme close-up",
+          "passed": true
+        },
+        {
+          "name": "contains: static",
+          "passed": true
+        },
+        {
+          "name": "contains: does not flicker",
+          "passed": false
+        },
+        {
+          "name": "contains: go out",
+          "passed": false
+        },
+        {
+          "name": "contains: no hands",
+          "passed": true
+        },
+        {
+          "name": "contains: faces",
+          "passed": true
+        },
+        {
+          "name": "contains: windows",
+          "passed": true
+        },
+        {
+          "name": "contains: smoke",
+          "passed": true
+        },
+        {
+          "name": "contains: dialogue",
+          "passed": true
+        },
+        {
+          "name": "contains: sound effects",
+          "passed": true
+        },
+        {
+          "name": "contains: music",
+          "passed": true
+        },
+        {
+          "name": "contains: near-silence",
+          "passed": true
+        },
+        {
+          "name": "single paragraph",
+          "passed": true
+        },
+        {
+          "name": "no wrapper",
+          "passed": true
+        },
+        {
+          "name": "valid UTF-8",
+          "passed": true
+        }
+      ],
+      "passed": 16,
+      "total": 19,
+      "usage": {
+        "completion_tokens": 211,
+        "prompt_tokens": 308,
+        "prompt_tokens_details": {
+          "cached_tokens": 234
+        },
+        "total_tokens": 519
+      },
+      "api_timings": {
+        "cache_n": 234,
+        "draft_n": 204,
+        "draft_n_accepted": 109,
+        "predicted_ms": 4710.751,
+        "predicted_n": 211,
+        "predicted_per_second": 44.57887924876522,
+        "predicted_per_token_ms": 22.43214761904762,
+        "prompt_ms": 223.296,
+        "prompt_n": 74,
+        "prompt_per_second": 331.39868157065064,
+        "prompt_per_token_ms": 3.0175135135135136
+      }
+    },
+    {
+      "test": {
+        "id": "sub-ko-marker-batch",
+        "category": "subtitle marker integrity",
+        "mode": "subtitle",
+        "input": "[[0000]] すみません、次の電車は何時ですか？\n[[0001]] The last train left ten minutes ago.\n[[0002]] じゃあ、今夜はここに泊まるしかないね。\n[[0003]] Don't jump to conclusions. I'll call a taxi.\n[[0004]] 本当に助かるよ。\n[[0005]] It should be here by 12:45.\n[[0006]] 料金は三千円くらいかな。\n[[0007]] Probably, unless traffic gets worse.",
+        "must": [
+          "막차",
+          "택시",
+          "교통",
+          "천"
+        ],
+        "exact": [
+          "[[0000]]",
+          "[[0001]]",
+          "[[0002]]",
+          "[[0003]]",
+          "[[0004]]",
+          "[[0005]]",
+          "[[0006]]",
+          "[[0007]]",
+          "12:45"
+        ]
+      },
+      "output": "[[0000]] 죄송합니다, 다음 열차는 몇 시인가요?\n[[0001]] 막차는 10분 전에 떠났어요.\n[[0002]] 그럼 오늘 밤은 여기 묵을 수밖에 없겠네.\n[[0003]] 성급하게 생각하지 마. 택시를 부를게.\n[[0004]] 정말 고마워.\n[[0005]] 12시 45분까지는 올 거야.\n[[0006]] 요금은 3,000엔 정도일 거야.\n[[0007]] 교통 체증이 심해지지 않는다면 그럴 거야.",
+      "words": 45,
+      "latency_ms": 3274,
+      "checks": [
+        {
+          "name": "contains: 막차",
+          "passed": true
+        },
+        {
+          "name": "contains: 택시",
+          "passed": true
+        },
+        {
+          "name": "contains: 교통",
+          "passed": true
+        },
+        {
+          "name": "contains: 천",
+          "passed": false
+        },
+        {
+          "name": "exact: [[0000]]",
+          "passed": true
+        },
+        {
+          "name": "exact: [[0001]]",
+          "passed": true
+        },
+        {
+          "name": "exact: [[0002]]",
+          "passed": true
+        },
+        {
+          "name": "exact: [[0003]]",
+          "passed": true
+        },
+        {
+          "name": "exact: [[0004]]",
+          "passed": true
+        },
+        {
+          "name": "exact: [[0005]]",
+          "passed": true
+        },
+        {
+          "name": "exact: [[0006]]",
+          "passed": true
+        },
+        {
+          "name": "exact: [[0007]]",
+          "passed": true
+        },
+        {
+          "name": "exact: 12:45",
+          "passed": false
+        },
+        {
+          "name": "single paragraph",
+          "passed": false
+        },
+        {
+          "name": "no wrapper",
+          "passed": false
+        },
+        {
+          "name": "valid UTF-8",
+          "passed": true
+        }
+      ],
+      "passed": 12,
+      "total": 16,
+      "usage": {
+        "completion_tokens": 154,
+        "prompt_tokens": 205,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 359
+      },
+      "api_timings": {
+        "cache_n": 0,
+        "draft_n": 124,
+        "draft_n_accepted": 93,
+        "predicted_ms": 2868.552,
+        "predicted_n": 154,
+        "predicted_per_second": 53.33701463316683,
+        "predicted_per_token_ms": 18.748705882352944,
+        "prompt_ms": 254.784,
+        "prompt_n": 205,
+        "prompt_per_second": 804.6031147952775,
+        "prompt_per_token_ms": 1.2428487804878048
+      }
+    },
+    {
+      "test": {
+        "id": "sub-ko-idioms",
+        "category": "subtitle idiom translation",
+        "mode": "subtitle",
+        "input": "[[0000]] We're not out of the woods yet.\n[[0001]] You really hit the nail on the head.\n[[0002]] Let's call it a day before this gets out of hand.",
+        "must": [
+          "아직",
+          "정확",
+          "오늘"
+        ],
+        "exact": [
+          "[[0000]]",
+          "[[0001]]",
+          "[[0002]]"
+        ],
+        "forbidden": [
+          "woods",
+          "nail",
+          "call it a day"
+        ]
+      },
+      "output": "[[0000]] 아직 끝난 게 아니에요.\n[[0001]] 정말 핵심을 찌르셨네요.\n[[0002]] 일이 더 커지기 전에 오늘은 이만 마칩시다.",
+      "words": 17,
+      "latency_ms": 1234,
+      "checks": [
+        {
+          "name": "contains: 아직",
+          "passed": true
+        },
+        {
+          "name": "contains: 정확",
+          "passed": false
+        },
+        {
+          "name": "contains: 오늘",
+          "passed": true
+        },
+        {
+          "name": "exact: [[0000]]",
+          "passed": true
+        },
+        {
+          "name": "exact: [[0001]]",
+          "passed": true
+        },
+        {
+          "name": "exact: [[0002]]",
+          "passed": true
+        },
+        {
+          "name": "avoids: woods",
+          "passed": true
+        },
+        {
+          "name": "avoids: nail",
+          "passed": true
+        },
+        {
+          "name": "avoids: call it a day",
+          "passed": true
+        },
+        {
+          "name": "single paragraph",
+          "passed": false
+        },
+        {
+          "name": "no wrapper",
+          "passed": false
+        },
+        {
+          "name": "valid UTF-8",
+          "passed": true
+        }
+      ],
+      "passed": 9,
+      "total": 12,
+      "usage": {
+        "completion_tokens": 50,
+        "prompt_tokens": 125,
+        "prompt_tokens_details": {
+          "cached_tokens": 59
+        },
+        "total_tokens": 175
+      },
+      "api_timings": {
+        "cache_n": 59,
+        "draft_n": 44,
+        "draft_n_accepted": 27,
+        "predicted_ms": 1009.851,
+        "predicted_n": 50,
+        "predicted_per_second": 48.52200968261654,
+        "predicted_per_token_ms": 20.609204081632654,
+        "prompt_ms": 164.334,
+        "prompt_n": 66,
+        "prompt_per_second": 401.6210887582606,
+        "prompt_per_token_ms": 2.489909090909091
+      }
+    },
+    {
+      "test": {
+        "id": "sub-ko-register",
+        "category": "subtitle register and honorifics",
+        "mode": "subtitle",
+        "input": "[[0000]] 先生、昨日はご迷惑をおかけして申し訳ありませんでした。\n[[0001]] 気にしなくていいよ。次から気をつけてね。\n[[0002]] はい、必ず確認いたします。",
+        "must": [
+          "선생님",
+          "죄송",
+          "다음부터",
+          "확인"
+        ],
+        "exact": [
+          "[[0000]]",
+          "[[0001]]",
+          "[[0002]]"
+        ]
+      },
+      "output": "[[0000]] 선생님, 어제는 폐를 끼쳐드려 죄송했습니다.\n[[0001]] 신경 쓰지 마. 다음부터 주의해 줘.\n[[0002]] 네, 반드시 확인하겠습니다.",
+      "words": 17,
+      "latency_ms": 1162,
+      "checks": [
+        {
+          "name": "contains: 선생님",
+          "passed": true
+        },
+        {
+          "name": "contains: 죄송",
+          "passed": true
+        },
+        {
+          "name": "contains: 다음부터",
+          "passed": true
+        },
+        {
+          "name": "contains: 확인",
+          "passed": true
+        },
+        {
+          "name": "exact: [[0000]]",
+          "passed": true
+        },
+        {
+          "name": "exact: [[0001]]",
+          "passed": true
+        },
+        {
+          "name": "exact: [[0002]]",
+          "passed": true
+        },
+        {
+          "name": "single paragraph",
+          "passed": false
+        },
+        {
+          "name": "no wrapper",
+          "passed": false
+        },
+        {
+          "name": "valid UTF-8",
+          "passed": true
+        }
+      ],
+      "passed": 8,
+      "total": 10,
+      "usage": {
+        "completion_tokens": 54,
+        "prompt_tokens": 125,
+        "prompt_tokens_details": {
+          "cached_tokens": 59
+        },
+        "total_tokens": 179
+      },
+      "api_timings": {
+        "cache_n": 59,
+        "draft_n": 42,
+        "draft_n_accepted": 34,
+        "predicted_ms": 966.482,
+        "predicted_n": 54,
+        "predicted_per_second": 54.838062167738244,
+        "predicted_per_token_ms": 18.235509433962264,
+        "prompt_ms": 156.808,
+        "prompt_n": 66,
+        "prompt_per_second": 420.8968930156625,
+        "prompt_per_token_ms": 2.3758787878787877
+      }
+    },
+    {
+      "test": {
+        "id": "sub-ko-technical",
+        "category": "subtitle technical accuracy",
+        "mode": "subtitle",
+        "input": "[[0000]] Set the aperture to f/2.8 and keep the shutter at one-fiftieth.\n[[0001]] The encoder is dropping frames because the buffer is full.\n[[0002]] Do not normalize the dialogue track before removing the noise floor.",
+        "must": [
+          "조리개",
+          "셔터",
+          "인코더",
+          "프레임",
+          "버퍼",
+          "노이즈"
+        ],
+        "exact": [
+          "[[0000]]",
+          "[[0001]]",
+          "[[0002]]",
+          "f/2.8",
+          "1/50"
+        ]
+      },
+      "output": "[[0000]] 조리개를 f/2.8로 맞추고 셔터 스피드는 1/50으로 유지하세요.\n[[0001]] 버퍼가 가득 차서 인코더에서 프레임 드랍이 발생하고 있습니다.\n[[0002]] 노이즈 플로어를 제거하기 전에 대화 트랙을 노멀라이즈하지 마세요.",
+      "words": 26,
+      "latency_ms": 1767,
+      "checks": [
+        {
+          "name": "contains: 조리개",
+          "passed": true
+        },
+        {
+          "name": "contains: 셔터",
+          "passed": true
+        },
+        {
+          "name": "contains: 인코더",
+          "passed": true
+        },
+        {
+          "name": "contains: 프레임",
+          "passed": true
+        },
+        {
+          "name": "contains: 버퍼",
+          "passed": true
+        },
+        {
+          "name": "contains: 노이즈",
+          "passed": true
+        },
+        {
+          "name": "exact: [[0000]]",
+          "passed": true
+        },
+        {
+          "name": "exact: [[0001]]",
+          "passed": true
+        },
+        {
+          "name": "exact: [[0002]]",
+          "passed": true
+        },
+        {
+          "name": "exact: f/2.8",
+          "passed": true
+        },
+        {
+          "name": "exact: 1/50",
+          "passed": true
+        },
+        {
+          "name": "single paragraph",
+          "passed": false
+        },
+        {
+          "name": "no wrapper",
+          "passed": false
+        },
+        {
+          "name": "valid UTF-8",
+          "passed": true
+        }
+      ],
+      "passed": 12,
+      "total": 14,
+      "usage": {
+        "completion_tokens": 91,
+        "prompt_tokens": 135,
+        "prompt_tokens_details": {
+          "cached_tokens": 59
+        },
+        "total_tokens": 226
+      },
+      "api_timings": {
+        "cache_n": 59,
+        "draft_n": 68,
+        "draft_n_accepted": 57,
+        "predicted_ms": 1552.823,
+        "predicted_n": 91,
+        "predicted_per_second": 57.95895604328375,
+        "predicted_per_token_ms": 17.25358888888889,
+        "prompt_ms": 164.365,
+        "prompt_n": 76,
+        "prompt_per_second": 462.3855443677182,
+        "prompt_per_token_ms": 2.162697368421053
+      }
+    },
+    {
+      "test": {
+        "id": "sub-ko-names-numbers",
+        "category": "subtitle entity preservation",
+        "mode": "subtitle",
+        "input": "[[0000]] Dr. Reyes sent build v2.7.14 to Mina at 09:05.\n[[0001]] Keep API_KEY unchanged and restart node GB10-A.\n[[0002]] The checksum is A7F3-19C0, not A7F3-91C0.",
+        "must": [
+          "미나"
+        ],
+        "exact": [
+          "[[0000]]",
+          "[[0001]]",
+          "[[0002]]",
+          "v2.7.14",
+          "09:05",
+          "API_KEY",
+          "GB10-A",
+          "A7F3-19C0",
+          "A7F3-91C0"
+        ]
+      },
+      "output": "[[0000]] 레예스 박사가 09:05에 미나에게 빌드 v2.7.14를 보냈습니다.\n[[0001]] API_KEY는 그대로 두고 GB10-A 노드를 재시작하세요.\n[[0002]] 체크섬은 A7F3-91C0가 아니라 A7F3-19C0입니다.",
+      "words": 20,
+      "latency_ms": 1817,
+      "checks": [
+        {
+          "name": "contains: 미나",
+          "passed": true
+        },
+        {
+          "name": "exact: [[0000]]",
+          "passed": true
+        },
+        {
+          "name": "exact: [[0001]]",
+          "passed": true
+        },
+        {
+          "name": "exact: [[0002]]",
+          "passed": true
+        },
+        {
+          "name": "exact: v2.7.14",
+          "passed": true
+        },
+        {
+          "name": "exact: 09:05",
+          "passed": true
+        },
+        {
+          "name": "exact: API_KEY",
+          "passed": true
+        },
+        {
+          "name": "exact: GB10-A",
+          "passed": true
+        },
+        {
+          "name": "exact: A7F3-19C0",
+          "passed": true
+        },
+        {
+          "name": "exact: A7F3-91C0",
+          "passed": true
+        },
+        {
+          "name": "single paragraph",
+          "passed": false
+        },
+        {
+          "name": "no wrapper",
+          "passed": false
+        },
+        {
+          "name": "valid UTF-8",
+          "passed": true
+        }
+      ],
+      "passed": 11,
+      "total": 13,
+      "usage": {
+        "completion_tokens": 93,
+        "prompt_tokens": 152,
+        "prompt_tokens_details": {
+          "cached_tokens": 59
+        },
+        "total_tokens": 245
+      },
+      "api_timings": {
+        "cache_n": 59,
+        "draft_n": 70,
+        "draft_n_accepted": 59,
+        "predicted_ms": 1590.603,
+        "predicted_n": 93,
+        "predicted_per_second": 57.839699786810414,
+        "predicted_per_token_ms": 17.28916304347826,
+        "prompt_ms": 170.641,
+        "prompt_n": 93,
+        "prompt_per_second": 545.0038384678946,
+        "prompt_per_token_ms": 1.8348494623655913
+      }
+    },
+    {
+      "test": {
+        "id": "sub-en-from-ko",
+        "category": "Korean to English subtitle",
+        "mode": "subtitle",
+        "input": "[[0000]] 오늘 회의는 취소된 게 아니라 내일 오전으로 미뤄졌습니다.\n[[0001]] 비가 그치면 장비부터 옮기자.\n[[0002]] 설마 그 말을 진심으로 한 건 아니지?",
+        "must": [
+          "postponed",
+          "tomorrow morning",
+          "rain",
+          "equipment",
+          "serious"
+        ],
+        "exact": [
+          "[[0000]]",
+          "[[0001]]",
+          "[[0002]]"
+        ]
+      },
+      "output": "[[0000]] Today's meeting hasn't been canceled; it's been postponed until tomorrow morning.\n[[0001]] Let's move the equipment as soon as the rain stops.\n[[0002]] Surely you didn't mean that seriously, did you?",
+      "words": 32,
+      "latency_ms": 1314,
+      "checks": [
+        {
+          "name": "contains: postponed",
+          "passed": true
+        },
+        {
+          "name": "contains: tomorrow morning",
+          "passed": true
+        },
+        {
+          "name": "contains: rain",
+          "passed": true
+        },
+        {
+          "name": "contains: equipment",
+          "passed": true
+        },
+        {
+          "name": "contains: serious",
+          "passed": true
+        },
+        {
+          "name": "exact: [[0000]]",
+          "passed": true
+        },
+        {
+          "name": "exact: [[0001]]",
+          "passed": true
+        },
+        {
+          "name": "exact: [[0002]]",
+          "passed": true
+        },
+        {
+          "name": "single paragraph",
+          "passed": false
+        },
+        {
+          "name": "no wrapper",
+          "passed": false
+        },
+        {
+          "name": "valid UTF-8",
+          "passed": true
+        }
+      ],
+      "passed": 9,
+      "total": 11,
+      "usage": {
+        "completion_tokens": 65,
+        "prompt_tokens": 110,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 175
+      },
+      "api_timings": {
+        "cache_n": 0,
+        "draft_n": 48,
+        "draft_n_accepted": 40,
+        "predicted_ms": 1100.272,
+        "predicted_n": 65,
+        "predicted_per_second": 58.167434961536784,
+        "predicted_per_token_ms": 17.19175,
+        "prompt_ms": 163.65,
+        "prompt_n": 110,
+        "prompt_per_second": 672.1662083715246,
+        "prompt_per_token_ms": 1.4877272727272728
+      }
+    },
+    {
+      "test": {
+        "id": "sub-en-from-ja",
+        "category": "Japanese ambiguity to English",
+        "mode": "subtitle",
+        "input": "[[0000]] ちょっと、それは聞いてないよ。\n[[0001]] まあ、悪くはないんじゃない？\n[[0002]] 先に行ってて。すぐ追いつくから。",
+        "must": [
+          "didn't",
+          "not bad",
+          "go ahead",
+          "catch up"
+        ],
+        "exact": [
+          "[[0000]]",
+          "[[0001]]",
+          "[[0002]]"
+        ]
+      },
+      "output": "[[0000]] Hey, I didn't hear that.\n[[0001]] Well, it's not bad, is it?\n[[0002]] Go ahead. I'll catch up with you soon.",
+      "words": 22,
+      "latency_ms": 1047,
+      "checks": [
+        {
+          "name": "contains: didn't",
+          "passed": true
+        },
+        {
+          "name": "contains: not bad",
+          "passed": true
+        },
+        {
+          "name": "contains: go ahead",
+          "passed": true
+        },
+        {
+          "name": "contains: catch up",
+          "passed": true
+        },
+        {
+          "name": "exact: [[0000]]",
+          "passed": true
+        },
+        {
+          "name": "exact: [[0001]]",
+          "passed": true
+        },
+        {
+          "name": "exact: [[0002]]",
+          "passed": true
+        },
+        {
+          "name": "single paragraph",
+          "passed": false
+        },
+        {
+          "name": "no wrapper",
+          "passed": false
+        },
+        {
+          "name": "valid UTF-8",
+          "passed": true
+        }
+      ],
+      "passed": 8,
+      "total": 10,
+      "usage": {
+        "completion_tokens": 53,
+        "prompt_tokens": 92,
+        "prompt_tokens_details": {
+          "cached_tokens": 35
+        },
+        "total_tokens": 145
+      },
+      "api_timings": {
+        "cache_n": 35,
+        "draft_n": 38,
+        "draft_n_accepted": 34,
+        "predicted_ms": 867.535,
+        "predicted_n": 53,
+        "predicted_per_second": 59.93994478608933,
+        "predicted_per_token_ms": 16.683365384615385,
+        "prompt_ms": 146.574,
+        "prompt_n": 57,
+        "prompt_per_second": 388.88206639649593,
+        "prompt_per_token_ms": 2.5714736842105266
+      }
+    }
+  ],
+  "passed": 352,
+  "total": 406,
+  "mean_latency_ms": 1951.6969696969697
+}

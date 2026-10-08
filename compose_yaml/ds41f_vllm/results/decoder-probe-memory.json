@@ -1,0 +1,22 @@
+{
+  "0": {
+    "samples": 3477,
+    "boot_ids": [
+      "309849e3-8913-4921-8711-058c0d6ad092"
+    ],
+    "min_available_gib": 14.682754516601562,
+    "max_cgroup_bytes": 98257879040,
+    "max_oom_events": 0,
+    "max_oom_kills": 0
+  },
+  "1": {
+    "samples": 3493,
+    "boot_ids": [
+      "bb0488d7-e8b3-4a75-a4f2-a8f9683a0cbc"
+    ],
+    "min_available_gib": 12.027420043945312,
+    "max_cgroup_bytes": 97738121216,
+    "max_oom_events": 0,
+    "max_oom_kills": 0
+  }
+}

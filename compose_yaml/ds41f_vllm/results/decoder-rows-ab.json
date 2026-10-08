@@ -1,0 +1,1159 @@
+{
+  "image": "sha256:218d187738649f9349127e2d76fb71a9dc6d08b4a2d47c09c582a894259cf021",
+  "container": "ff7903d3c2f20ce474749a65f710b1090ce37bedb5ad5c8212a700e81cd64fc9",
+  "cmd": [
+    "/repo/snapshots/dba1be0a40aa45a94ad051997016db3960a90277",
+    "--served-model-name",
+    "deepseek-v4.1-flash",
+    "--host",
+    "0.0.0.0",
+    "--port",
+    "8010",
+    "--tokenizer-mode",
+    "deepseek_v41",
+    "--enable-auto-tool-choice",
+    "--tool-call-parser",
+    "deepseek_v41",
+    "--reasoning-parser",
+    "deepseek_v41",
+    "--enable-per-request-metrics",
+    "--enable-prompt-tokens-details",
+    "--tensor-parallel-size",
+    "2",
+    "--gpu-memory-utilization",
+    "0.65",
+    "--distributed-executor-backend",
+    "mp",
+    "--nnodes",
+    "2",
+    "--node-rank",
+    "0",
+    "--master-addr",
+    "10.200.0.1",
+    "--master-port",
+    "29641",
+    "--enforce-eager",
+    "--language-model-only",
+    "--engram-config",
+    "{\"cpu_offload\":false}",
+    "--max-model-len",
+    "65536",
+    "--max-num-seqs",
+    "1",
+    "--max-num-batched-tokens",
+    "4096",
+    "--kv-cache-memory-bytes",
+    "2147483648",
+    "--block-size",
+    "128",
+    "--prefix-cache-retention-interval",
+    "128",
+    "--load-format",
+    "safetensors",
+    "--safetensors-load-strategy",
+    "lazy",
+    "--default-chat-template-kwargs",
+    "{\"thinking\":false}",
+    "--speculative-config",
+    "{\"method\":\"dspark\",\"num_speculative_tokens\":5,\"draft_sample_method\":\"probabilistic\",\"rejection_sample_method\":\"block\",\"enable_adaptive_verification\":false}"
+  ],
+  "source_sha256": {
+    "decoder_rows.py": "f450bd37af1737e4817a8ea58a076839f01ed8998ef6957113c49acf21e6a2e9",
+    "streaming_moe.py": "5b7362f913b3de6c90594c6d43f024ebacf378fa6accbb98cdd481ec7a2414f6",
+    "patches/base_model.py": "3c75022f8d0223e298632e0c6582f1828b6b8082d500eba3c67caf2ec65a9aab",
+    "patches/flashinfer_sparse.py": "ab7712f977aa59db6e357310f20e38e1a506170a61ebaa6a2495d59d8a07ccc3",
+    "patches/vl_model.py": "1878645ea04ebd190fe3d069d09b4486d11a6d5cf403041a2875a82287386fbc",
+    "patches/engram.py": "2b42a49c0528d4ada27ab08e5761e7c08074689f42a9182b7e90fb2a038de283",
+    "patches/sparse_attn_indexer.py": "8a8a1502357e11204a8ce49f207c70cd2b888518a1cea7c49790adb57aeac517",
+    "patches/model_state.py": "3d6a1a16b4e91c0ecc76df613a62c5f75d2faa85c2360418e822e4d5aa4b7a03",
+    "patches/attention.py": "c33b2be82a659c23da87982a09abe7fc37af23c690e683270ea13689f851fa1a",
+    "patches/sparse_swa.py": "356b4693d174ee5bd714275be96422d542bfd6f18139693ed4e3000b4e240f34",
+    "patches/target_model.py": "9f22ef8a95b2c0670ef3805fea350c817ced982696b7a0672c0be7460efde9cc",
+    "patches/weight_utils.py": "7c825315aa54aa8eb5c03e98c54ede2044c0d2e0b844010ab361bd401d1edef3",
+    "patches/cudagraph_utils.py": "3a4d54b225d2d0abc3ef5fc00480a7566ffbc6e1d1c2c8e8e7c07353dfda06ca"
+  },
+  "trials": 3,
+  "warmup_reused_after_user_interruption": true,
+  "runs": [
+    {
+      "fixture": "talk-tools-r5",
+      "trial": 0,
+      "warmup": false,
+      "enabled": true,
+      "request_sha256": "9b65742894c8e115a907604c468c79529e9113975645360344adbb25889b1f29",
+      "elapsed_seconds": 32.7353317080001,
+      "reply": {
+        "id": "chatcmpl-a1b086732bb5a60e",
+        "object": "chat.completion",
+        "created": 1789204949,
+        "model": "deepseek-v4.1-flash",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "cobalt731",
+              "refusal": null,
+              "annotations": null,
+              "audio": null,
+              "function_call": null,
+              "reasoning": null
+            },
+            "logprobs": null,
+            "finish_reason": "stop",
+            "stop_reason": null,
+            "token_ids": null,
+            "routed_experts": null
+          }
+        ],
+        "service_tier": null,
+        "system_fingerprint": "vllm-0.1.dev20904+g179dd0fa9-tp2-bccfe9ab",
+        "usage": {
+          "prompt_tokens": 6308,
+          "total_tokens": 6312,
+          "completion_tokens": 4,
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "created_cache_tokens": 0,
+            "multimodal_tokens": null
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "prompt_logprobs": null,
+        "prompt_token_ids": null,
+        "prompt_text": null,
+        "kv_transfer_params": null,
+        "ec_transfer_params": null,
+        "metrics": {
+          "time_to_first_token_ms": 32294.01378800003,
+          "generation_time_ms": 426.0533059998579,
+          "queue_time_ms": 0.0234569999975065,
+          "mean_itl_ms": 142.0177686666193,
+          "tokens_per_second": 0.12224913807507161,
+          "speculative_decoding": null
+        }
+      },
+      "ranks": {
+        "0": {
+          "selection": [
+            {
+              "input_rows": 4092,
+              "output_rows": 1,
+              "layer": 39,
+              "scope": "routed_experts_only"
+            },
+            {
+              "input_rows": 2216,
+              "output_rows": 1,
+              "layer": 39,
+              "scope": "routed_experts_only"
+            }
+          ]
+        },
+        "1": {
+          "selection": [
+            {
+              "input_rows": 4092,
+              "output_rows": 1,
+              "layer": 39,
+              "scope": "routed_experts_only"
+            },
+            {
+              "input_rows": 2216,
+              "output_rows": 1,
+              "layer": 39,
+              "scope": "routed_experts_only"
+            }
+          ]
+        }
+      },
+      "pp": 195.3303185355039,
+      "ttft_seconds": 32.29403724500003
+    },
+    {
+      "fixture": "talk-tools-r5",
+      "trial": 0,
+      "warmup": false,
+      "enabled": false,
+      "request_sha256": "9b65742894c8e115a907604c468c79529e9113975645360344adbb25889b1f29",
+      "elapsed_seconds": 33.41011003299991,
+      "reply": {
+        "id": "chatcmpl-ab3fcfa24113963a",
+        "object": "chat.completion",
+        "created": 1789204982,
+        "model": "deepseek-v4.1-flash",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "cobalt731",
+              "refusal": null,
+              "annotations": null,
+              "audio": null,
+              "function_call": null,
+              "reasoning": null
+            },
+            "logprobs": null,
+            "finish_reason": "stop",
+            "stop_reason": null,
+            "token_ids": null,
+            "routed_experts": null
+          }
+        ],
+        "service_tier": null,
+        "system_fingerprint": "vllm-0.1.dev20904+g179dd0fa9-tp2-bccfe9ab",
+        "usage": {
+          "prompt_tokens": 6308,
+          "total_tokens": 6312,
+          "completion_tokens": 4,
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "created_cache_tokens": 0,
+            "multimodal_tokens": null
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "prompt_logprobs": null,
+        "prompt_token_ids": null,
+        "prompt_text": null,
+        "kv_transfer_params": null,
+        "ec_transfer_params": null,
+        "metrics": {
+          "time_to_first_token_ms": 32955.16630900011,
+          "generation_time_ms": 435.3708789999473,
+          "queue_time_ms": 0.02195199999732722,
+          "mean_itl_ms": 145.12362633331577,
+          "tokens_per_second": 0.11979441892409945,
+          "speculative_decoding": null
+        }
+      },
+      "ranks": {
+        "0": {
+          "selection": []
+        },
+        "1": {
+          "selection": []
+        }
+      },
+      "pp": 191.41156627321507,
+      "ttft_seconds": 32.9551882610001
+    },
+    {
+      "fixture": "mixed-document-r5",
+      "trial": 0,
+      "warmup": false,
+      "enabled": true,
+      "request_sha256": "225af9d6e09afd63ca42083c321921c76a049a030ef5b39b86cfd1bb756fcb09",
+      "elapsed_seconds": 53.18249158799995,
+      "reply": {
+        "id": "chatcmpl-a7bf6dfb31bb550f",
+        "object": "chat.completion",
+        "created": 1789205016,
+        "model": "deepseek-v4.1-flash",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "marble482",
+              "refusal": null,
+              "annotations": null,
+              "audio": null,
+              "function_call": null,
+              "reasoning": null
+            },
+            "logprobs": null,
+            "finish_reason": "stop",
+            "stop_reason": null,
+            "token_ids": null,
+            "routed_experts": null
+          }
+        ],
+        "service_tier": null,
+        "system_fingerprint": "vllm-0.1.dev20904+g179dd0fa9-tp2-bccfe9ab",
+        "usage": {
+          "prompt_tokens": 12934,
+          "total_tokens": 12938,
+          "completion_tokens": 4,
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "created_cache_tokens": 0,
+            "multimodal_tokens": null
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "prompt_logprobs": null,
+        "prompt_token_ids": null,
+        "prompt_text": null,
+        "kv_transfer_params": null,
+        "ec_transfer_params": null,
+        "metrics": {
+          "time_to_first_token_ms": 52408.618856999965,
+          "generation_time_ms": 741.9434910000291,
+          "queue_time_ms": 0.021537000066018663,
+          "mean_itl_ms": 247.3144970000097,
+          "tokens_per_second": 0.07525790552901868,
+          "speculative_decoding": null
+        }
+      },
+      "ranks": {
+        "0": {
+          "selection": [
+            {
+              "input_rows": 4092,
+              "output_rows": 1,
+              "layer": 39,
+              "scope": "routed_experts_only"
+            },
+            {
+              "input_rows": 4092,
+              "output_rows": 1,
+              "layer": 39,
+              "scope": "routed_experts_only"
+            },
+            {
+              "input_rows": 4092,
+              "output_rows": 1,
+              "layer": 39,
+              "scope": "routed_experts_only"
+            },
+            {
+              "input_rows": 658,
+              "output_rows": 1,
+              "layer": 39,
+              "scope": "routed_experts_only"
+            }
+          ]
+        },
+        "1": {
+          "selection": [
+            {
+              "input_rows": 4092,
+              "output_rows": 1,
+              "layer": 39,
+              "scope": "routed_experts_only"
+            },
+            {
+              "input_rows": 4092,
+              "output_rows": 1,
+              "layer": 39,
+              "scope": "routed_experts_only"
+            },
+            {
+              "input_rows": 4092,
+              "output_rows": 1,
+              "layer": 39,
+              "scope": "routed_experts_only"
+            },
+            {
+              "input_rows": 658,
+              "output_rows": 1,
+              "layer": 39,
+              "scope": "routed_experts_only"
+            }
+          ]
+        }
+      },
+      "pp": 246.79146831346938,
+      "ttft_seconds": 52.40864039400003
+    },
+    {
+      "fixture": "mixed-document-r5",
+      "trial": 0,
+      "warmup": false,
+      "enabled": false,
+      "request_sha256": "225af9d6e09afd63ca42083c321921c76a049a030ef5b39b86cfd1bb756fcb09",
+      "elapsed_seconds": 54.39040490799994,
+      "reply": {
+        "id": "chatcmpl-875b1708a3679a52",
+        "object": "chat.completion",
+        "created": 1789205070,
+        "model": "deepseek-v4.1-flash",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "marble482",
+              "refusal": null,
+              "annotations": null,
+              "audio": null,
+              "function_call": null,
+              "reasoning": null
+            },
+            "logprobs": null,
+            "finish_reason": "stop",
+            "stop_reason": null,
+            "token_ids": null,
+            "routed_experts": null
+          }
+        ],
+        "service_tier": null,
+        "system_fingerprint": "vllm-0.1.dev20904+g179dd0fa9-tp2-bccfe9ab",
+        "usage": {
+          "prompt_tokens": 12934,
+          "total_tokens": 12938,
+          "completion_tokens": 4,
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "created_cache_tokens": 0,
+            "multimodal_tokens": null
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "prompt_logprobs": null,
+        "prompt_token_ids": null,
+        "prompt_text": null,
+        "kv_transfer_params": null,
+        "ec_transfer_params": null,
+        "metrics": {
+          "time_to_first_token_ms": 53556.66645799988,
+          "generation_time_ms": 801.1399650001749,
+          "queue_time_ms": 0.023601000066264533,
+          "mean_itl_ms": 267.0466550000583,
+          "tokens_per_second": 0.07358648671127219,
+          "speculative_decoding": null
+        }
+      },
+      "ranks": {
+        "0": {
+          "selection": []
+        },
+        "1": {
+          "selection": []
+        }
+      },
+      "pp": 241.5012146087001,
+      "ttft_seconds": 53.55669005899995
+    },
+    {
+      "fixture": "talk-tools-r5",
+      "trial": 1,
+      "warmup": false,
+      "enabled": false,
+      "request_sha256": "9b65742894c8e115a907604c468c79529e9113975645360344adbb25889b1f29",
+      "elapsed_seconds": 33.198843989000125,
+      "reply": {
+        "id": "chatcmpl-a13c9fc34db9dc20",
+        "object": "chat.completion",
+        "created": 1789205125,
+        "model": "deepseek-v4.1-flash",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "cobalt731",
+              "refusal": null,
+              "annotations": null,
+              "audio": null,
+              "function_call": null,
+              "reasoning": null
+            },
+            "logprobs": null,
+            "finish_reason": "stop",
+            "stop_reason": null,
+            "token_ids": null,
+            "routed_experts": null
+          }
+        ],
+        "service_tier": null,
+        "system_fingerprint": "vllm-0.1.dev20904+g179dd0fa9-tp2-bccfe9ab",
+        "usage": {
+          "prompt_tokens": 6308,
+          "total_tokens": 6312,
+          "completion_tokens": 4,
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "created_cache_tokens": 0,
+            "multimodal_tokens": null
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "prompt_logprobs": null,
+        "prompt_token_ids": null,
+        "prompt_text": null,
+        "kv_transfer_params": null,
+        "ec_transfer_params": null,
+        "metrics": {
+          "time_to_first_token_ms": 32771.48391600008,
+          "generation_time_ms": 406.18053799994414,
+          "queue_time_ms": 0.022800999886385398,
+          "mean_itl_ms": 135.39351266664804,
+          "tokens_per_second": 0.12056303738757429,
+          "speculative_decoding": null
+        }
+      },
+      "ranks": {
+        "0": {
+          "selection": []
+        },
+        "1": {
+          "selection": []
+        }
+      },
+      "pp": 192.4844177385643,
+      "ttft_seconds": 32.771506716999966
+    },
+    {
+      "fixture": "talk-tools-r5",
+      "trial": 1,
+      "warmup": false,
+      "enabled": true,
+      "request_sha256": "9b65742894c8e115a907604c468c79529e9113975645360344adbb25889b1f29",
+      "elapsed_seconds": 32.658583489999955,
+      "reply": {
+        "id": "chatcmpl-82f07118d6036144",
+        "object": "chat.completion",
+        "created": 1789205159,
+        "model": "deepseek-v4.1-flash",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "cobalt731",
+              "refusal": null,
+              "annotations": null,
+              "audio": null,
+              "function_call": null,
+              "reasoning": null
+            },
+            "logprobs": null,
+            "finish_reason": "stop",
+            "stop_reason": null,
+            "token_ids": null,
+            "routed_experts": null
+          }
+        ],
+        "service_tier": null,
+        "system_fingerprint": "vllm-0.1.dev20904+g179dd0fa9-tp2-bccfe9ab",
+        "usage": {
+          "prompt_tokens": 6308,
+          "total_tokens": 6312,
+          "completion_tokens": 4,
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "created_cache_tokens": 0,
+            "multimodal_tokens": null
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "prompt_logprobs": null,
+        "prompt_token_ids": null,
+        "prompt_text": null,
+        "kv_transfer_params": null,
+        "ec_transfer_params": null,
+        "metrics": {
+          "time_to_first_token_ms": 32180.602027000077,
+          "generation_time_ms": 456.4715429999069,
+          "queue_time_ms": 0.023856999860072392,
+          "mean_itl_ms": 152.15718099996897,
+          "tokens_per_second": 0.1225600080663115,
+          "speculative_decoding": null
+        }
+      },
+      "ranks": {
+        "0": {
+          "selection": [
+            {
+              "input_rows": 4092,
+              "output_rows": 1,
+              "layer": 39,
+              "scope": "routed_experts_only"
+            },
+            {
+              "input_rows": 2216,
+              "output_rows": 1,
+              "layer": 39,
+              "scope": "routed_experts_only"
+            }
+          ]
+        },
+        "1": {
+          "selection": [
+            {
+              "input_rows": 4092,
+              "output_rows": 1,
+              "layer": 39,
+              "scope": "routed_experts_only"
+            },
+            {
+              "input_rows": 2216,
+              "output_rows": 1,
+              "layer": 39,
+              "scope": "routed_experts_only"
+            }
+          ]
+        }
+      },
+      "pp": 196.0187070057757,
+      "ttft_seconds": 32.18062588399994
+    },
+    {
+      "fixture": "mixed-document-r5",
+      "trial": 1,
+      "warmup": false,
+      "enabled": false,
+      "request_sha256": "225af9d6e09afd63ca42083c321921c76a049a030ef5b39b86cfd1bb756fcb09",
+      "elapsed_seconds": 54.44144742599997,
+      "reply": {
+        "id": "chatcmpl-930efa09862c708b",
+        "object": "chat.completion",
+        "created": 1789205193,
+        "model": "deepseek-v4.1-flash",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "marble482",
+              "refusal": null,
+              "annotations": null,
+              "audio": null,
+              "function_call": null,
+              "reasoning": null
+            },
+            "logprobs": null,
+            "finish_reason": "stop",
+            "stop_reason": null,
+            "token_ids": null,
+            "routed_experts": null
+          }
+        ],
+        "service_tier": null,
+        "system_fingerprint": "vllm-0.1.dev20904+g179dd0fa9-tp2-bccfe9ab",
+        "usage": {
+          "prompt_tokens": 12934,
+          "total_tokens": 12938,
+          "completion_tokens": 4,
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "created_cache_tokens": 0,
+            "multimodal_tokens": null
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "prompt_logprobs": null,
+        "prompt_token_ids": null,
+        "prompt_text": null,
+        "kv_transfer_params": null,
+        "ec_transfer_params": null,
+        "metrics": {
+          "time_to_first_token_ms": 53644.56401300004,
+          "generation_time_ms": 764.9596080000265,
+          "queue_time_ms": 0.024432999907730846,
+          "mean_itl_ms": 254.9865360000088,
+          "tokens_per_second": 0.07351654147650262,
+          "speculative_decoding": null
+        }
+      },
+      "ranks": {
+        "0": {
+          "selection": []
+        },
+        "1": {
+          "selection": []
+        }
+      },
+      "pp": 241.10551065091363,
+      "ttft_seconds": 53.64458844599995
+    },
+    {
+      "fixture": "mixed-document-r5",
+      "trial": 1,
+      "warmup": false,
+      "enabled": true,
+      "request_sha256": "225af9d6e09afd63ca42083c321921c76a049a030ef5b39b86cfd1bb756fcb09",
+      "elapsed_seconds": 53.43589522299999,
+      "reply": {
+        "id": "chatcmpl-a4391ae0325cb9db",
+        "object": "chat.completion",
+        "created": 1789205248,
+        "model": "deepseek-v4.1-flash",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "marble482",
+              "refusal": null,
+              "annotations": null,
+              "audio": null,
+              "function_call": null,
+              "reasoning": null
+            },
+            "logprobs": null,
+            "finish_reason": "stop",
+            "stop_reason": null,
+            "token_ids": null,
+            "routed_experts": null
+          }
+        ],
+        "service_tier": null,
+        "system_fingerprint": "vllm-0.1.dev20904+g179dd0fa9-tp2-bccfe9ab",
+        "usage": {
+          "prompt_tokens": 12934,
+          "total_tokens": 12938,
+          "completion_tokens": 4,
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "created_cache_tokens": 0,
+            "multimodal_tokens": null
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "prompt_logprobs": null,
+        "prompt_token_ids": null,
+        "prompt_text": null,
+        "kv_transfer_params": null,
+        "ec_transfer_params": null,
+        "metrics": {
+          "time_to_first_token_ms": 52452.93722899987,
+          "generation_time_ms": 951.2331250000443,
+          "queue_time_ms": 0.023632999955225387,
+          "mean_itl_ms": 317.0777083333481,
+          "tokens_per_second": 0.07490051757166571,
+          "speculative_decoding": null
+        }
+      },
+      "ranks": {
+        "0": {
+          "selection": [
+            {
+              "input_rows": 4092,
+              "output_rows": 1,
+              "layer": 39,
+              "scope": "routed_experts_only"
+            },
+            {
+              "input_rows": 4092,
+              "output_rows": 1,
+              "layer": 39,
+              "scope": "routed_experts_only"
+            },
+            {
+              "input_rows": 4092,
+              "output_rows": 1,
+              "layer": 39,
+              "scope": "routed_experts_only"
+            },
+            {
+              "input_rows": 658,
+              "output_rows": 1,
+              "layer": 39,
+              "scope": "routed_experts_only"
+            }
+          ]
+        },
+        "1": {
+          "selection": [
+            {
+              "input_rows": 4092,
+              "output_rows": 1,
+              "layer": 39,
+              "scope": "routed_experts_only"
+            },
+            {
+              "input_rows": 4092,
+              "output_rows": 1,
+              "layer": 39,
+              "scope": "routed_experts_only"
+            },
+            {
+              "input_rows": 4092,
+              "output_rows": 1,
+              "layer": 39,
+              "scope": "routed_experts_only"
+            },
+            {
+              "input_rows": 658,
+              "output_rows": 1,
+              "layer": 39,
+              "scope": "routed_experts_only"
+            }
+          ]
+        }
+      },
+      "pp": 246.5829500363828,
+      "ttft_seconds": 52.45296086199983
+    },
+    {
+      "fixture": "talk-tools-r5",
+      "trial": 2,
+      "warmup": false,
+      "enabled": true,
+      "request_sha256": "9b65742894c8e115a907604c468c79529e9113975645360344adbb25889b1f29",
+      "elapsed_seconds": 32.54877026600002,
+      "reply": {
+        "id": "chatcmpl-8d8a775a24e36b11",
+        "object": "chat.completion",
+        "created": 1789205302,
+        "model": "deepseek-v4.1-flash",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "cobalt731",
+              "refusal": null,
+              "annotations": null,
+              "audio": null,
+              "function_call": null,
+              "reasoning": null
+            },
+            "logprobs": null,
+            "finish_reason": "stop",
+            "stop_reason": null,
+            "token_ids": null,
+            "routed_experts": null
+          }
+        ],
+        "service_tier": null,
+        "system_fingerprint": "vllm-0.1.dev20904+g179dd0fa9-tp2-bccfe9ab",
+        "usage": {
+          "prompt_tokens": 6308,
+          "total_tokens": 6312,
+          "completion_tokens": 4,
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "created_cache_tokens": 0,
+            "multimodal_tokens": null
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "prompt_logprobs": null,
+        "prompt_token_ids": null,
+        "prompt_text": null,
+        "kv_transfer_params": null,
+        "ec_transfer_params": null,
+        "metrics": {
+          "time_to_first_token_ms": 32052.10441700001,
+          "generation_time_ms": 474.7285999999349,
+          "queue_time_ms": 0.022481000087282155,
+          "mean_itl_ms": 158.24286666664497,
+          "tokens_per_second": 0.12297539074613952,
+          "speculative_decoding": null
+        }
+      },
+      "ranks": {
+        "0": {
+          "selection": [
+            {
+              "input_rows": 4092,
+              "output_rows": 1,
+              "layer": 39,
+              "scope": "routed_experts_only"
+            },
+            {
+              "input_rows": 2216,
+              "output_rows": 1,
+              "layer": 39,
+              "scope": "routed_experts_only"
+            }
+          ]
+        },
+        "1": {
+          "selection": [
+            {
+              "input_rows": 4092,
+              "output_rows": 1,
+              "layer": 39,
+              "scope": "routed_experts_only"
+            },
+            {
+              "input_rows": 2216,
+              "output_rows": 1,
+              "layer": 39,
+              "scope": "routed_experts_only"
+            }
+          ]
+        }
+      },
+      "pp": 196.80455042615924,
+      "ttft_seconds": 32.0521268980001
+    },
+    {
+      "fixture": "talk-tools-r5",
+      "trial": 2,
+      "warmup": false,
+      "enabled": false,
+      "request_sha256": "9b65742894c8e115a907604c468c79529e9113975645360344adbb25889b1f29",
+      "elapsed_seconds": 33.31970413399995,
+      "reply": {
+        "id": "chatcmpl-bb3f2256e792dbb7",
+        "object": "chat.completion",
+        "created": 1789205335,
+        "model": "deepseek-v4.1-flash",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "cobalt731",
+              "refusal": null,
+              "annotations": null,
+              "audio": null,
+              "function_call": null,
+              "reasoning": null
+            },
+            "logprobs": null,
+            "finish_reason": "stop",
+            "stop_reason": null,
+            "token_ids": null,
+            "routed_experts": null
+          }
+        ],
+        "service_tier": null,
+        "system_fingerprint": "vllm-0.1.dev20904+g179dd0fa9-tp2-bccfe9ab",
+        "usage": {
+          "prompt_tokens": 6308,
+          "total_tokens": 6312,
+          "completion_tokens": 4,
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "created_cache_tokens": 0,
+            "multimodal_tokens": null
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "prompt_logprobs": null,
+        "prompt_token_ids": null,
+        "prompt_text": null,
+        "kv_transfer_params": null,
+        "ec_transfer_params": null,
+        "metrics": {
+          "time_to_first_token_ms": 32879.07056800009,
+          "generation_time_ms": 420.34441600003447,
+          "queue_time_ms": 0.024097000050460338,
+          "mean_itl_ms": 140.11480533334483,
+          "tokens_per_second": 0.12012223043323557,
+          "speculative_decoding": null
+        }
+      },
+      "ranks": {
+        "0": {
+          "selection": []
+        },
+        "1": {
+          "selection": []
+        }
+      },
+      "pp": 191.85457164775605,
+      "ttft_seconds": 32.879094665000146
+    },
+    {
+      "fixture": "mixed-document-r5",
+      "trial": 2,
+      "warmup": false,
+      "enabled": true,
+      "request_sha256": "225af9d6e09afd63ca42083c321921c76a049a030ef5b39b86cfd1bb756fcb09",
+      "elapsed_seconds": 53.731685638000044,
+      "reply": {
+        "id": "chatcmpl-b84d15477521c282",
+        "object": "chat.completion",
+        "created": 1789205369,
+        "model": "deepseek-v4.1-flash",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "marble482",
+              "refusal": null,
+              "annotations": null,
+              "audio": null,
+              "function_call": null,
+              "reasoning": null
+            },
+            "logprobs": null,
+            "finish_reason": "stop",
+            "stop_reason": null,
+            "token_ids": null,
+            "routed_experts": null
+          }
+        ],
+        "service_tier": null,
+        "system_fingerprint": "vllm-0.1.dev20904+g179dd0fa9-tp2-bccfe9ab",
+        "usage": {
+          "prompt_tokens": 12934,
+          "total_tokens": 12938,
+          "completion_tokens": 4,
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "created_cache_tokens": 0,
+            "multimodal_tokens": null
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "prompt_logprobs": null,
+        "prompt_token_ids": null,
+        "prompt_text": null,
+        "kv_transfer_params": null,
+        "ec_transfer_params": null,
+        "metrics": {
+          "time_to_first_token_ms": 52812.39646900008,
+          "generation_time_ms": 887.6988109998365,
+          "queue_time_ms": 0.023665000071559916,
+          "mean_itl_ms": 295.89960366661217,
+          "tokens_per_second": 0.0744877635531824,
+          "speculative_decoding": null
+        }
+      },
+      "ranks": {
+        "0": {
+          "selection": [
+            {
+              "input_rows": 4092,
+              "output_rows": 1,
+              "layer": 39,
+              "scope": "routed_experts_only"
+            },
+            {
+              "input_rows": 4092,
+              "output_rows": 1,
+              "layer": 39,
+              "scope": "routed_experts_only"
+            },
+            {
+              "input_rows": 4092,
+              "output_rows": 1,
+              "layer": 39,
+              "scope": "routed_experts_only"
+            },
+            {
+              "input_rows": 658,
+              "output_rows": 1,
+              "layer": 39,
+              "scope": "routed_experts_only"
+            }
+          ]
+        },
+        "1": {
+          "selection": [
+            {
+              "input_rows": 4092,
+              "output_rows": 1,
+              "layer": 39,
+              "scope": "routed_experts_only"
+            },
+            {
+              "input_rows": 4092,
+              "output_rows": 1,
+              "layer": 39,
+              "scope": "routed_experts_only"
+            },
+            {
+              "input_rows": 4092,
+              "output_rows": 1,
+              "layer": 39,
+              "scope": "routed_experts_only"
+            },
+            {
+              "input_rows": 658,
+              "output_rows": 1,
+              "layer": 39,
+              "scope": "routed_experts_only"
+            }
+          ]
+        }
+      },
+      "pp": 244.90462211068237,
+      "ttft_seconds": 52.812420134000156
+    },
+    {
+      "fixture": "mixed-document-r5",
+      "trial": 2,
+      "warmup": false,
+      "enabled": false,
+      "request_sha256": "225af9d6e09afd63ca42083c321921c76a049a030ef5b39b86cfd1bb756fcb09",
+      "elapsed_seconds": 54.345932473000175,
+      "reply": {
+        "id": "chatcmpl-8e13488427a66c5a",
+        "object": "chat.completion",
+        "created": 1789205424,
+        "model": "deepseek-v4.1-flash",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "marble482",
+              "refusal": null,
+              "annotations": null,
+              "audio": null,
+              "function_call": null,
+              "reasoning": null
+            },
+            "logprobs": null,
+            "finish_reason": "stop",
+            "stop_reason": null,
+            "token_ids": null,
+            "routed_experts": null
+          }
+        ],
+        "service_tier": null,
+        "system_fingerprint": "vllm-0.1.dev20904+g179dd0fa9-tp2-bccfe9ab",
+        "usage": {
+          "prompt_tokens": 12934,
+          "total_tokens": 12938,
+          "completion_tokens": 4,
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "created_cache_tokens": 0,
+            "multimodal_tokens": null
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "prompt_logprobs": null,
+        "prompt_token_ids": null,
+        "prompt_text": null,
+        "kv_transfer_params": null,
+        "ec_transfer_params": null,
+        "metrics": {
+          "time_to_first_token_ms": 53458.17782500012,
+          "generation_time_ms": 855.3934829999434,
+          "queue_time_ms": 0.02302500001860608,
+          "mean_itl_ms": 285.13116099998115,
+          "tokens_per_second": 0.07364641844884215,
+          "speculative_decoding": null
+        }
+      },
+      "ranks": {
+        "0": {
+          "selection": []
+        },
+        "1": {
+          "selection": []
+        }
+      },
+      "pp": 241.94614418659285,
+      "ttft_seconds": 53.45820085000014
+    }
+  ]
+}

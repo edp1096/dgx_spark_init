@@ -1,0 +1,47 @@
+name: gemma26_vllm
+services:
+  vllm:
+    image: dgx-vllm-moe-tp1:b40673cd0-v6
+    build:
+      context: ./runtime
+    container_name: vllm-gemma26
+    init: true
+    restart: unless-stopped
+    ipc: host
+    shm_size: 8gb
+    mem_limit: 90g
+    memswap_limit: 90g
+    cpuset: "5-9,15-19"
+    gpus: all
+    ports:
+      - "${SPARKTALK_BIND_ADDR:-127.0.0.1}:${SPARKTALK_PORT:-8000}:8000"
+    environment:
+      MODEL_FAMILY: gemma26
+      MOE_BACKEND: auto
+      MTP_TOKENS: "${MTP_TOKENS:-1}"
+      DRAFT_VOCAB: ${DRAFT_VOCAB:-off}
+      DRAFT_MODEL_PATH: /hf/google/gemma-4-26B-A4B-it-assistant
+      SPARKTALK_TRITON_SPEC_SPLIT: "1"
+      SPARKTALK_GEMMA_PREFILL_SKIP: "1"
+      MODEL_PATH: /hf/coolthor/Huihui-gemma-4-26B-A4B-it-abliterated-FP8-Dynamic
+      SERVED_MODEL_NAME: coolthor/Huihui-gemma-4-26B-A4B-it-abliterated-FP8-Dynamic
+      CONTEXT_LENGTH: "${CONTEXT_LENGTH:-1048576}"
+      HF_HOME: /hf
+      HF_HUB_OFFLINE: "1"
+      TRANSFORMERS_OFFLINE: "1"
+      VLLM_ALLOW_LONG_MAX_MODEL_LEN: "1"
+      PYTHONUNBUFFERED: "1"
+      KV_CACHE_BYTES: "${KV_CACHE_BYTES:-34359738368}"
+      PREFILL_CHUNK: "${PREFILL_CHUNK:-4096}"
+      GPU_MEMORY_UTILIZATION: "${GPU_MEMORY_UTILIZATION:-0.70}"
+      MAX_JOBS: "2"
+      TORCHINDUCTOR_COMPILE_THREADS: "2"
+    volumes:
+      - ${SPARKTALK_HF_CACHE:-${HOME}/.cache/huggingface}:/hf
+      - ${SPARKTALK_DATA_DIR:-${HOME}/.local/share/sparktalk}/cache/vllm-gemma26:/root/.cache/vllm
+    healthcheck:
+      test: [CMD, python3, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health',timeout=5)"]
+      interval: 15s
+      timeout: 10s
+      retries: 120
+      start_period: 15m

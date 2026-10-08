@@ -1,0 +1,55 @@
+✔ reject invalid shape and oversized slide instead of silently clipping (0.648514ms)
+✔ render docx with searchable Korean PDF (172.98801ms)
+✔ render pptx with searchable Korean PDF (90.266089ms)
+✔ render pdf with searchable Korean PDF (90.879659ms)
+✔ spreadsheet rejects unsafe formulas, cycles, invalid dates and shape (2.233319ms)
+✔ XLSX recalculates cross-sheet formulas, retains types/styles and prints Korean (134.789843ms)
+✔ XLSX calculation errors fail instead of returning an apparently valid workbook (17.793399ms)
+✔ Office originals remain downloadable when PDF generation fails (36.350449ms)
+✔ long Korean spreadsheet prints repeated headers and the final row (238.049428ms)
+✔ slides remain one PDF page each with searchable final bullet (101.787581ms)
+✔ dense Korean slide content stays inside its page (85.965371ms)
+✔ filters include a hidden scoped database name for each sheet (88.641684ms)
+✔ hwp preserves tables, inline images and following paragraphs without a spurious page break (235.819805ms)
+✔ hwpx preserves tables, inline images and following paragraphs without a spurious page break (116.69737ms)
+✔ images reject invalid bytes and unsupported slideshow use (0.428865ms)
+✔ long sections preserve paragraph count and total content limit (0.603794ms)
+ARTIFACT docx /tmp/rich-aj8u2v
+✔ rich docx (167.363608ms)
+ARTIFACT pptx /tmp/rich-u5H2M5
+✔ rich pptx (102.245646ms)
+HANCOM hwp 1
+ARTIFACT hwp /tmp/rich-hancom-j4IFcm
+✔ rich hwp (268.558082ms)
+HANCOM hwpx 1
+ARTIFACT hwpx /tmp/rich-hancom-sgppDm
+✔ rich hwpx (133.773584ms)
+ARTIFACT xlsx /tmp/rich-xlsx-HVf87W
+✔ rich spreadsheet (173.015529ms)
+ARTIFACT advanced-pptx /tmp/rich-presentation-S44ggh 8
+✔ PPTX images, media, columns and long table preserve final content (128.890672ms)
+ARTIFACT nested-docx /tmp/rich-nested-PUQGRn
+✔ DOCX nested cell content, landscape sections and cached TOC (111.154714ms)
+ARTIFACT hancom-page hwp /tmp/rich-page-TzuMWn
+✔ Hancom page layout and page numbers hwp (76.570926ms)
+ARTIFACT hancom-page hwpx /tmp/rich-page-WePBLQ
+✔ Hancom page layout and page numbers hwpx (64.217879ms)
+ARTIFACT xlsx-options /tmp/rich-sheet-options-27XtUv
+✔ XLSX native merges, images, tables, rich text, protection and print options (129.017825ms)
+✔ PPTX native chart bar (78.409844ms)
+✔ PPTX native chart line (67.398001ms)
+✔ PPTX native chart area (64.933082ms)
+✔ PPTX native chart pie (59.593081ms)
+✔ PPTX native chart doughnut (88.529731ms)
+✔ PPTX native chart scatter (69.632569ms)
+✔ slide image honors requested centimeter width (0.347681ms)
+✔ PPTX table paths share widths and report saved structure (267.176653ms)
+✔ cell.width resolves grid widths, merged sums and conflicts (117.976399ms)
+ℹ tests 35
+ℹ suites 0
+ℹ pass 35
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3983.151783

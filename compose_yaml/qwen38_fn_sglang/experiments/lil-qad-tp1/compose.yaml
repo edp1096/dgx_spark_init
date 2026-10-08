@@ -1,0 +1,70 @@
+name: qwen38_qad_sglang_trial
+services:
+  runtime:
+    image: dgx-sglang-qwen38-qad:tp1-trial1
+    build: .
+    container_name: qwen38-qad-sglang-trial
+    init: true
+    restart: 'no'
+    ipc: host
+    shm_size: 4gb
+    mem_limit: 108g
+    memswap_limit: 108g
+    gpus: all
+    ports: ['127.0.0.1:8016:30000']
+    environment:
+      HF_HUB_OFFLINE: '1'
+      HF_HOME: /hf
+      PYTHONUNBUFFERED: '1'
+      PYTORCH_CUDA_ALLOC_CONF: 'expandable_segments:True'
+      SGLANG_QWEN4_PLE_FILE_RSS_BUDGET_GB: '4'
+      MAX_JOBS: '1'
+      TORCHINDUCTOR_COMPILE_THREADS: '1'
+    volumes:
+      - ${HOME}/.cache/huggingface:/hf:ro
+      - ${HOME}/.local/share/sparktalk/cache/lil-qad-tp1:/trial-cache
+    entrypoint: ['python3', '-m', 'sglang.launch_server']
+    command:
+      - --model-path
+      - /hf/hub/models--local-inference-lab--Qwen3.8-Flash-Next-NVFP4/snapshots/7c4f1bc1a2d6847e0cbc01ac6b823f00251de8dd
+      - --served-model-name
+      - qwen38-qad-sglang-trial
+      - --host
+      - 0.0.0.0
+      - --port
+      - '30000'
+      - --tp-size
+      - '1'
+      - --context-length
+      - '4096'
+      - --max-total-tokens
+      - '8192'
+      - --max-running-requests
+      - '1'
+      - --mem-fraction-static
+      - '0.80'
+      - --chunked-prefill-size
+      - '512'
+      - --quantization
+      - modelopt_mixed
+      - --fp4-gemm-backend
+      - flashinfer_cutlass
+      - --moe-runner-backend
+      - flashinfer_cutlass
+      - --ple-offload-embedding
+      - --ple-offload-backend
+      - file
+      - --ple-offload-dir
+      - /trial-cache/ple-7c4f1bc1
+      - --weight-loader-drop-cache-after-load
+      - --prefill-attention-backend
+      - triton
+      - --decode-attention-backend
+      - trtllm_mha
+      - --disable-cuda-graph
+      - --language-model-only
+      - --reasoning-parser
+      - qwen3
+      - --tool-call-parser
+      - qwen3_coder
+      - --disable-flashinfer-autotune

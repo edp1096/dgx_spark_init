@@ -1,0 +1,8 @@
+{
+  "architecture": "from_inputs",
+  "text_config": {},
+  "match_source_structure": true,
+  "runtime_tp": 1,
+  "tensor_adapter": "fused_experts",
+  "fp8_transfer": "base_plus_delta"
+}

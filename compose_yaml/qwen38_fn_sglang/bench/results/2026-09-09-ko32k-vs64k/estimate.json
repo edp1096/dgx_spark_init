@@ -1,0 +1,15 @@
+{
+  "created": "2026-09-09T01:36:51.962870+09:00",
+  "kind": "estimate-before-measurement",
+  "candidate_ids": 32768,
+  "extra_head_bytes": 167772160,
+  "expected_duration_minutes": [
+    50,
+    75
+  ],
+  "comparison": "existing 64k 48 primary responses; no supplement",
+  "source": "/home/edp1096/workspace/dgx_spark_init/compose_yaml/qwen38_fn_sglang/bench/results/2026-09-08-broad-vocab",
+  "context_length": 65536,
+  "kv_tokens": 65536,
+  "mamba_slots": 18
+}

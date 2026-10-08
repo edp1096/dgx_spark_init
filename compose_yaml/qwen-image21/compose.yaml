@@ -1,0 +1,24 @@
+services:
+  runtime:
+    image: sparktalk-qwen-image21:nvfp4-int8-v5-dit-resident
+    build: .
+    container_name: sparktalk-qwen-image21
+    restart: "no"
+    stop_grace_period: 10s
+    init: true
+    mem_limit: "112g"
+    memswap_limit: "112g"
+    network_mode: host
+    ipc: host
+    gpus: all
+    environment:
+      HF_HOME: /hf
+      HF_HUB_OFFLINE: "1"
+      COMFY_KITCHEN_BACKEND: cuda
+      SPARKTALK_KEEP_MODELS_LOADED: "${SPARKTALK_KEEP_MODELS_LOADED:-0}"
+      SPARKTALK_IMAGE_RESIDENCY: "${SPARKTALK_IMAGE_RESIDENCY:-legacy}"
+      API_PORT: "${QWEN_IMAGE_API_PORT:-8691}"
+      API_HOST: "${QWEN_IMAGE_API_HOST:-127.0.0.1}"
+      COMFY_PORT: "${QWEN_IMAGE_COMFY_PORT:-8188}"
+    volumes:
+      - ${QWEN_IMAGE_MODEL_CACHE:-${HOME}/.cache/huggingface}:/hf:ro

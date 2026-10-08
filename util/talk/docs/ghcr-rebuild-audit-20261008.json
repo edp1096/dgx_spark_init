@@ -1,0 +1,98 @@
+{
+  "status": "complete",
+  "weights_downloaded": false,
+  "gpu_model_servers_started": false,
+  "public_bases_verified": {
+    "exl3_and_tp2": "lmsysorg/sglang:qwen38flashnext@sha256:12d3392bdc8be8d35e9a95f191df6aef99c5114bdbefd41bfdc7e760e6d25ec1",
+    "glm53": "ghcr.io/edp1096/sglang-qwen38-qad:sm121-v5@sha256:c79141f03a89b8888920f629ac638a6915eec5abb0dabe75688977c3c58b75f5"
+  },
+  "exl3_fixes": [
+    "Made the public-source runtime stage the default instead of the optional unpublished local reuse stage.",
+    "Fixed fastapi-slim dependency replacement to match the pinned upstream TOML containing spaces."
+  ],
+  "packaged_support_check": "passed",
+  "packaged_recipes_check": "passed",
+  "orchestrator_tests": "passed",
+  "date": "2026-10-08",
+  "exl3_source_comparison": {
+    "version_mismatches": {},
+    "file_hash_mismatches": [],
+    "package_tree_mismatches": {
+      "exllamav3": [],
+      "tabbyAPI": []
+    },
+    "package_tree_file_counts": {
+      "exllamav3": 556,
+      "tabbyAPI": 106
+    }
+  },
+  "exl3_cuda_extension_compilation_seconds": 1003.9,
+  "exl3_native_extension_load": "passed",
+  "exl3_native_probe_oom": false,
+  "tp2_video_regression_tests": 3,
+  "tp2_actual_video_decoding": {
+    "frames": 726,
+    "fps": 23.976221928665787,
+    "rgb_batch_shape": [
+      3,
+      180,
+      320,
+      3
+    ]
+  },
+  "core_containers_and_pids_unchanged": true,
+  "verification_scope": "Builds with locally cached published base images and pinned public source archives; no model weights downloaded or loaded. Source and dependency comparisons, EXL3 native extension load, and TP2 video tests were completed. TP2/GLM services were not started.",
+  "raw_artifacts": "/home/edp1096/.cache/model-download-jobs/ghcr-rebuild-audit-20261008",
+  "separate_runtime_publication_required": false,
+  "shared_base_to_retain": "ghcr.io/edp1096/sglang-qwen38-qad:sm121-v5@sha256:c79141f03a89b8888920f629ac638a6915eec5abb0dabe75688977c3c58b75f5",
+  "rebuilt_images": {
+    "exl3": {
+      "temporary_tag": "sparktalk-rebuild-audit-exl3:20261008",
+      "image_id": "sha256:031ebb895f15444e822c2c89cf7cc412977caf332e7038f7acd717590385a8f5",
+      "architecture": "arm64",
+      "bytes": 14544686279
+    },
+    "tp2": {
+      "temporary_tag": "sparktalk-rebuild-audit-tp2:20261008",
+      "image_id": "sha256:e4963f0f700377068d0076b5b71772c086eadd8ceafc6c582daf361c0adcf960",
+      "architecture": "arm64",
+      "bytes": 14266642820
+    },
+    "glm53": {
+      "temporary_tag": "sparktalk-rebuild-audit-glm53:20261008",
+      "image_id": "sha256:3f70d129593600dccb6bfa264757d9d8a0e033fc0c601eab754151ac8f0789e5",
+      "architecture": "arm64",
+      "bytes": 17823068705
+    }
+  },
+  "source_comparison_summary": {
+    "tp2": {
+      "file_hash_mismatches": [],
+      "version_mismatches": {},
+      "package_tree_mismatches": {
+        "sglang": [
+          "srt/utils/video_decoder.py",
+          "srt/utils/video_fallback.py"
+        ],
+        "b12x": []
+      },
+      "package_tree_file_counts": {
+        "sglang": 3353,
+        "b12x": 430
+      }
+    },
+    "glm53": {
+      "file_hash_mismatches": [],
+      "version_mismatches": {},
+      "package_tree_mismatches": {
+        "sglang": [],
+        "b12x": []
+      },
+      "package_tree_file_counts": {
+        "sglang": 3906,
+        "b12x": 429
+      }
+    }
+  },
+  "temporary_audit_image_tags_removed": true
+}

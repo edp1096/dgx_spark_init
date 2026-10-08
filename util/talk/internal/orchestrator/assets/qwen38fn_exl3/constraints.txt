@@ -1,0 +1,8 @@
+torch==2.13.0+cu130
+triton==3.7.1
+transformers==5.12.1
+numpy==2.3.5
+safetensors==0.8.0
+pydantic==2.13.4
+fastapi==0.141.1
+tokenizers==0.22.2

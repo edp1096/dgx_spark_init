@@ -1,0 +1,90 @@
+[
+  {
+    "started": 1789452058.624497,
+    "finished": 1789452067.8661125,
+    "verify_calls": 2.0,
+    "accept_length": 4.0,
+    "text": "KEY_1800_0",
+    "reasoning": "",
+    "calls": [],
+    "usage": {
+      "prompt_tokens": 25246,
+      "total_tokens": 25255,
+      "completion_tokens": 9,
+      "prompt_tokens_details": null,
+      "reasoning_tokens": 0
+    },
+    "finish": "stop",
+    "ttft": 9.116833517997293,
+    "tg": 73.06431243564755,
+    "elapsed": 9.226326096977573,
+    "hanzi": [],
+    "passed": true
+  },
+  {
+    "started": 1789452067.9175334,
+    "finished": 1789452077.169989,
+    "verify_calls": 2.0,
+    "accept_length": 4.0,
+    "text": "KEY_1800_0",
+    "reasoning": "",
+    "calls": [],
+    "usage": {
+      "prompt_tokens": 25246,
+      "total_tokens": 25255,
+      "completion_tokens": 9,
+      "prompt_tokens_details": null,
+      "reasoning_tokens": 0
+    },
+    "finish": "stop",
+    "ttft": 9.125861688982695,
+    "tg": 71.96032417210539,
+    "elapsed": 9.23703406198183,
+    "hanzi": [],
+    "passed": true
+  },
+  {
+    "started": 1789452077.220917,
+    "finished": 1789452086.4744916,
+    "verify_calls": 2.0,
+    "accept_length": 4.0,
+    "text": "KEY_1800_0",
+    "reasoning": "",
+    "calls": [],
+    "usage": {
+      "prompt_tokens": 25246,
+      "total_tokens": 25255,
+      "completion_tokens": 9,
+      "prompt_tokens_details": null,
+      "reasoning_tokens": 0
+    },
+    "finish": "stop",
+    "ttft": 9.130324176017893,
+    "tg": 73.93671335442096,
+    "elapsed": 9.2385248200153,
+    "hanzi": [],
+    "passed": true
+  },
+  {
+    "started": 1789452086.5285537,
+    "finished": 1789452095.7983792,
+    "verify_calls": 2.0,
+    "accept_length": 4.0,
+    "text": "KEY_1800_0",
+    "reasoning": "",
+    "calls": [],
+    "usage": {
+      "prompt_tokens": 25246,
+      "total_tokens": 25255,
+      "completion_tokens": 9,
+      "prompt_tokens_details": null,
+      "reasoning_tokens": 0
+    },
+    "finish": "stop",
+    "ttft": 9.145137421000982,
+    "tg": 73.04534269246031,
+    "elapsed": 9.254658435005695,
+    "hanzi": [],
+    "passed": true
+  }
+]

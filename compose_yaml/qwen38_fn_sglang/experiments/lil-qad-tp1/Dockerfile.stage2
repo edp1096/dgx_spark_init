@@ -1,0 +1,4 @@
+FROM dgx-sglang-qwen38-qad:tp1-trial1
+RUN python3 -m pip install --no-deps https://github.com/local-inference-lab/b12x/archive/ce419b52681b7922bb0972d4b58b590a3fd005b2.tar.gz
+COPY qad/qad_b12x.py qad/qad_moe.py qad/patch_stage2.py /opt/qad-tp1/
+RUN python3 /opt/qad-tp1/patch_stage2.py

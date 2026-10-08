@@ -1,0 +1,27 @@
+services:
+  api:
+    init: true
+    build:
+      context: .
+    image: dgx-krea2-turbo-nvfp4:latest
+    container_name: krea2-turbo-nvfp4-api
+    restart: unless-stopped
+    network_mode: host
+    ipc: host
+    gpus: all
+    environment:
+      HF_TOKEN: ${HF_TOKEN:-}
+      API_PORT: "8691"
+      COMFY_KITCHEN_BACKEND: cuda
+      PYTORCH_CUDA_ALLOC_CONF: expandable_segments:True
+    volumes:
+      - hf-cache:/root/.cache/huggingface
+      - krea-user-loras:/opt/ComfyUI/models/loras/user
+
+volumes:
+  hf-cache:
+    name: media-hf-cache
+    external: true
+  krea-user-loras:
+    name: media-krea-user-loras
+    external: true

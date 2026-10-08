@@ -1,0 +1,354 @@
+{
+  "scope": "synthetic component latency, not model tg; two tables, 72 unique rows/table = TP2 six-token shape",
+  "rank": 0,
+  "runs": [
+    {
+      "cold": false,
+      "trial": 0,
+      "reader": "native",
+      "ms": 0.12169699766673148,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 0,
+      "reader": "mmap",
+      "ms": 0.37605000034091063,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 0,
+      "reader": "mmap_willneed",
+      "ms": 0.6026920018484816,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 1,
+      "reader": "mmap_willneed",
+      "ms": 0.5867229992873035,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 1,
+      "reader": "mmap",
+      "ms": 0.38041900188545696,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 1,
+      "reader": "native",
+      "ms": 0.24366499928873964,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 2,
+      "reader": "native",
+      "ms": 0.20956899970769882,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 2,
+      "reader": "mmap",
+      "ms": 0.3337779999128543,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 2,
+      "reader": "mmap_willneed",
+      "ms": 0.5412680002336856,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 3,
+      "reader": "mmap_willneed",
+      "ms": 0.4878109975834377,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 3,
+      "reader": "mmap",
+      "ms": 0.25734599694260396,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 3,
+      "reader": "native",
+      "ms": 0.16395299826399423,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 4,
+      "reader": "native",
+      "ms": 0.10116900011780672,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 4,
+      "reader": "mmap",
+      "ms": 0.270112999714911,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 4,
+      "reader": "mmap_willneed",
+      "ms": 0.48342700029024854,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 5,
+      "reader": "mmap_willneed",
+      "ms": 0.48246699952869676,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 5,
+      "reader": "mmap",
+      "ms": 0.23187300030258484,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 5,
+      "reader": "native",
+      "ms": 0.15198500113910995,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 6,
+      "reader": "native",
+      "ms": 0.15448100020876154,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 6,
+      "reader": "mmap",
+      "ms": 0.23008099742583,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 6,
+      "reader": "mmap_willneed",
+      "ms": 0.4739230025734287,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 7,
+      "reader": "mmap_willneed",
+      "ms": 0.47302700113505125,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 7,
+      "reader": "mmap",
+      "ms": 0.3686580021167174,
+      "exact": true
+    },
+    {
+      "cold": false,
+      "trial": 7,
+      "reader": "native",
+      "ms": 0.32797000312712044,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 0,
+      "reader": "native",
+      "ms": 5.425457999081118,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 0,
+      "reader": "mmap",
+      "ms": 4.459707000933122,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 0,
+      "reader": "mmap_willneed",
+      "ms": 1.9978839991381392,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 1,
+      "reader": "mmap_willneed",
+      "ms": 1.6979939973680303,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 1,
+      "reader": "mmap",
+      "ms": 4.750733001856133,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 1,
+      "reader": "native",
+      "ms": 3.0909470006008632,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 2,
+      "reader": "native",
+      "ms": 3.164467001624871,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 2,
+      "reader": "mmap",
+      "ms": 3.395652998733567,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 2,
+      "reader": "mmap_willneed",
+      "ms": 1.8519160003052093,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 3,
+      "reader": "mmap_willneed",
+      "ms": 1.8970519995491486,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 3,
+      "reader": "mmap",
+      "ms": 6.249206999200396,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 3,
+      "reader": "native",
+      "ms": 3.6337820019980427,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 4,
+      "reader": "native",
+      "ms": 3.7347590005083475,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 4,
+      "reader": "mmap",
+      "ms": 3.7186779991316143,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 4,
+      "reader": "mmap_willneed",
+      "ms": 1.9792920029431116,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 5,
+      "reader": "mmap_willneed",
+      "ms": 1.8225870007881895,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 5,
+      "reader": "mmap",
+      "ms": 4.624715998943429,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 5,
+      "reader": "native",
+      "ms": 3.5592060012277216,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 6,
+      "reader": "native",
+      "ms": 3.2832680008141324,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 6,
+      "reader": "mmap",
+      "ms": 4.226185999868903,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 6,
+      "reader": "mmap_willneed",
+      "ms": 1.6798979995655827,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 7,
+      "reader": "mmap_willneed",
+      "ms": 2.5122879997070413,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 7,
+      "reader": "mmap",
+      "ms": 5.548547000216786,
+      "exact": true
+    },
+    {
+      "cold": true,
+      "trial": 7,
+      "reader": "native",
+      "ms": 4.146185001445701,
+      "exact": true
+    }
+  ],
+  "medians_ms": {
+    "False": {
+      "native": 0.1592169992363779,
+      "mmap": 0.30194549981388263,
+      "mmap_willneed": 0.4856189989368431
+    },
+    "True": {
+      "native": 3.596494001612882,
+      "mmap": 4.542211499938276,
+      "mmap_willneed": 1.874483999927179
+    }
+  }
+}

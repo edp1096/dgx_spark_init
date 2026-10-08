@@ -1,0 +1,838 @@
+QWEN_TP2_ARGS ["--model-path", "/hf/hub/models--dealignai--Qwen3.8-Flash-Next-ABLITERATED-NVFP4/snapshots/be794b990578ef3031eccf9f28e675a289a09ee9", "--served-model-name", "qwen38-sglang-b12x-probe", "--host", "127.0.0.1", "--port", "8014", "--moe-runner-backend", "flashinfer_cutlass", "--tp-size", "2", "--nnodes", "2", "--node-rank", "0", "--dist-init-addr", "10.200.0.1:29980", "--load-format", "auto", "--weight-loader-drop-cache-after-load", "--context-length", "262144", "--max-total-tokens", "327680", "--mem-fraction-static", "0.70", "--chunked-prefill-size", "1024", "--max-running-requests", "1", "--page-size", "64", "--cuda-graph-max-bs-decode", "1", "--kv-cache-dtype", "bfloat16", "--prefill-attention-backend", "triton", "--decode-attention-backend", "trtllm_mha", "--quantization", "modelopt_fp4", "--fp4-gemm-backend", "flashinfer_cutlass", "--ple-offload-embedding", "--ple-offload-backend", "file", "--ple-offload-dir", "/ple", "--mamba-radix-cache-strategy", "extra_buffer", "--reasoning-parser", "qwen3", "--tool-call-parser", "qwen3_coder", "--mm-feature-transport", "cpu", "--speculative-algorithm", "NEXTN", "--speculative-num-steps", "3", "--speculative-eagle-topk", "1", "--speculative-num-draft-tokens", "4", "--speculative-draft-model-quantization", "unquant", "--disable-flashinfer-autotune", "--enable-metrics"]
+NCCL version 2.29.7+cuda13.2
+SGLANG_WEIGHT_PROGRESS current=1 total=206 elapsed_seconds=2.9 eta_seconds=589.5
+SGLANG_WEIGHT_PROGRESS current=4 total=206 elapsed_seconds=7.0 eta_seconds=355.5
+SGLANG_WEIGHT_PROGRESS current=8 total=206 elapsed_seconds=12.7 eta_seconds=313.4
+SGLANG_WEIGHT_PROGRESS current=12 total=206 elapsed_seconds=18.3 eta_seconds=295.5
+SGLANG_WEIGHT_PROGRESS current=16 total=206 elapsed_seconds=23.9 eta_seconds=284.3
+SGLANG_WEIGHT_PROGRESS current=20 total=206 elapsed_seconds=29.4 eta_seconds=273.0
+SGLANG_WEIGHT_PROGRESS current=24 total=206 elapsed_seconds=34.9 eta_seconds=264.4
+SGLANG_WEIGHT_PROGRESS current=28 total=206 elapsed_seconds=40.6 eta_seconds=258.2
+SGLANG_WEIGHT_PROGRESS current=32 total=206 elapsed_seconds=46.2 eta_seconds=251.2
+SGLANG_WEIGHT_PROGRESS current=36 total=206 elapsed_seconds=52.0 eta_seconds=245.5
+SGLANG_WEIGHT_PROGRESS current=40 total=206 elapsed_seconds=57.6 eta_seconds=239.1
+SGLANG_WEIGHT_PROGRESS current=44 total=206 elapsed_seconds=63.3 eta_seconds=233.2
+SGLANG_WEIGHT_PROGRESS current=48 total=206 elapsed_seconds=69.2 eta_seconds=227.6
+SGLANG_WEIGHT_PROGRESS current=52 total=206 elapsed_seconds=74.9 eta_seconds=221.9
+SGLANG_WEIGHT_PROGRESS current=56 total=206 elapsed_seconds=80.6 eta_seconds=215.8
+SGLANG_WEIGHT_PROGRESS current=60 total=206 elapsed_seconds=86.4 eta_seconds=210.3
+SGLANG_WEIGHT_PROGRESS current=64 total=206 elapsed_seconds=92.1 eta_seconds=204.4
+SGLANG_WEIGHT_PROGRESS current=68 total=206 elapsed_seconds=97.9 eta_seconds=198.6
+SGLANG_WEIGHT_PROGRESS current=72 total=206 elapsed_seconds=103.6 eta_seconds=192.8
+SGLANG_WEIGHT_PROGRESS current=76 total=206 elapsed_seconds=109.3 eta_seconds=187.0
+SGLANG_WEIGHT_PROGRESS current=80 total=206 elapsed_seconds=115.2 eta_seconds=181.4
+SGLANG_WEIGHT_PROGRESS current=84 total=206 elapsed_seconds=120.8 eta_seconds=175.4
+SGLANG_WEIGHT_PROGRESS current=88 total=206 elapsed_seconds=126.3 eta_seconds=169.4
+SGLANG_WEIGHT_PROGRESS current=92 total=206 elapsed_seconds=132.0 eta_seconds=163.6
+SGLANG_WEIGHT_PROGRESS current=96 total=206 elapsed_seconds=137.8 eta_seconds=157.9
+SGLANG_WEIGHT_PROGRESS current=100 total=206 elapsed_seconds=143.4 eta_seconds=152.0
+SGLANG_WEIGHT_PROGRESS current=104 total=206 elapsed_seconds=149.0 eta_seconds=146.1
+SGLANG_WEIGHT_PROGRESS current=108 total=206 elapsed_seconds=154.8 eta_seconds=140.5
+SGLANG_WEIGHT_PROGRESS current=112 total=206 elapsed_seconds=160.4 eta_seconds=134.6
+SGLANG_WEIGHT_PROGRESS current=116 total=206 elapsed_seconds=166.2 eta_seconds=128.9
+SGLANG_WEIGHT_PROGRESS current=120 total=206 elapsed_seconds=171.8 eta_seconds=123.1
+SGLANG_WEIGHT_PROGRESS current=124 total=206 elapsed_seconds=177.4 eta_seconds=117.3
+SGLANG_WEIGHT_PROGRESS current=128 total=206 elapsed_seconds=183.0 eta_seconds=111.5
+SGLANG_WEIGHT_PROGRESS current=132 total=206 elapsed_seconds=188.6 eta_seconds=105.7
+SGLANG_WEIGHT_PROGRESS current=136 total=206 elapsed_seconds=194.1 eta_seconds=99.9
+SGLANG_WEIGHT_PROGRESS current=140 total=206 elapsed_seconds=200.2 eta_seconds=94.4
+SGLANG_WEIGHT_PROGRESS current=144 total=206 elapsed_seconds=205.7 eta_seconds=88.6
+SGLANG_WEIGHT_PROGRESS current=148 total=206 elapsed_seconds=211.4 eta_seconds=82.8
+SGLANG_WEIGHT_PROGRESS current=152 total=206 elapsed_seconds=217.1 eta_seconds=77.1
+SGLANG_WEIGHT_PROGRESS current=156 total=206 elapsed_seconds=222.7 eta_seconds=71.4
+SGLANG_WEIGHT_PROGRESS current=160 total=206 elapsed_seconds=228.3 eta_seconds=65.6
+SGLANG_WEIGHT_PROGRESS current=164 total=206 elapsed_seconds=233.9 eta_seconds=59.9
+SGLANG_WEIGHT_PROGRESS current=168 total=206 elapsed_seconds=239.5 eta_seconds=54.2
+SGLANG_WEIGHT_PROGRESS current=172 total=206 elapsed_seconds=245.2 eta_seconds=48.5
+SGLANG_WEIGHT_PROGRESS current=176 total=206 elapsed_seconds=250.9 eta_seconds=42.8
+SGLANG_WEIGHT_PROGRESS current=180 total=206 elapsed_seconds=256.7 eta_seconds=37.1
+SGLANG_WEIGHT_PROGRESS current=184 total=206 elapsed_seconds=262.2 eta_seconds=31.3
+SGLANG_WEIGHT_PROGRESS current=188 total=206 elapsed_seconds=267.6 eta_seconds=25.6
+SGLANG_WEIGHT_PROGRESS current=192 total=206 elapsed_seconds=273.1 eta_seconds=19.9
+SGLANG_WEIGHT_PROGRESS current=193 total=206 elapsed_seconds=275.7 eta_seconds=18.6
+SGLANG_WEIGHT_PROGRESS current=194 total=206 elapsed_seconds=276.8 eta_seconds=17.1
+SGLANG_WEIGHT_PROGRESS current=195 total=206 elapsed_seconds=290.2 eta_seconds=16.4
+SGLANG_WEIGHT_PROGRESS current=196 total=206 elapsed_seconds=301.8 eta_seconds=15.4
+SGLANG_WEIGHT_PROGRESS current=197 total=206 elapsed_seconds=307.2 eta_seconds=14.0
+SGLANG_WEIGHT_PROGRESS current=198 total=206 elapsed_seconds=310.7 eta_seconds=12.6
+SGLANG_WEIGHT_PROGRESS current=199 total=206 elapsed_seconds=321.1 eta_seconds=11.3
+SGLANG_WEIGHT_PROGRESS current=200 total=206 elapsed_seconds=344.7 eta_seconds=10.3
+SGLANG_WEIGHT_PROGRESS current=201 total=206 elapsed_seconds=368.0 eta_seconds=9.2
+SGLANG_WEIGHT_PROGRESS current=202 total=206 elapsed_seconds=391.2 eta_seconds=7.7
+SGLANG_WEIGHT_PROGRESS current=203 total=206 elapsed_seconds=411.1 eta_seconds=6.1
+SGLANG_WEIGHT_PROGRESS current=204 total=206 elapsed_seconds=412.8 eta_seconds=4.0
+SGLANG_WEIGHT_PROGRESS current=205 total=206 elapsed_seconds=414.6 eta_seconds=2.0
+SGLANG_WEIGHT_PROGRESS current=206 total=206 elapsed_seconds=416.3 eta_seconds=0.0
+SGLANG_WEIGHT_PROGRESS current=1 total=206 elapsed_seconds=1.3 eta_seconds=274.3
+SGLANG_WEIGHT_PROGRESS current=4 total=206 elapsed_seconds=1.7 eta_seconds=84.7
+SGLANG_WEIGHT_PROGRESS current=8 total=206 elapsed_seconds=2.2 eta_seconds=54.1
+SGLANG_WEIGHT_PROGRESS current=12 total=206 elapsed_seconds=2.7 eta_seconds=43.7
+SGLANG_WEIGHT_PROGRESS current=16 total=206 elapsed_seconds=3.2 eta_seconds=38.1
+SGLANG_WEIGHT_PROGRESS current=20 total=206 elapsed_seconds=4.0 eta_seconds=36.9
+SGLANG_WEIGHT_PROGRESS current=24 total=206 elapsed_seconds=4.4 eta_seconds=33.5
+SGLANG_WEIGHT_PROGRESS current=28 total=206 elapsed_seconds=5.0 eta_seconds=31.7
+SGLANG_WEIGHT_PROGRESS current=32 total=206 elapsed_seconds=5.5 eta_seconds=30.1
+SGLANG_WEIGHT_PROGRESS current=36 total=206 elapsed_seconds=6.0 eta_seconds=28.6
+SGLANG_WEIGHT_PROGRESS current=40 total=206 elapsed_seconds=6.5 eta_seconds=27.0
+SGLANG_WEIGHT_PROGRESS current=44 total=206 elapsed_seconds=7.1 eta_seconds=26.2
+SGLANG_WEIGHT_PROGRESS current=48 total=206 elapsed_seconds=7.6 eta_seconds=25.0
+SGLANG_WEIGHT_PROGRESS current=52 total=206 elapsed_seconds=8.1 eta_seconds=24.0
+SGLANG_WEIGHT_PROGRESS current=56 total=206 elapsed_seconds=8.7 eta_seconds=23.3
+SGLANG_WEIGHT_PROGRESS current=60 total=206 elapsed_seconds=9.2 eta_seconds=22.3
+SGLANG_WEIGHT_PROGRESS current=64 total=206 elapsed_seconds=9.7 eta_seconds=21.5
+SGLANG_WEIGHT_PROGRESS current=68 total=206 elapsed_seconds=10.2 eta_seconds=20.7
+SGLANG_WEIGHT_PROGRESS current=72 total=206 elapsed_seconds=10.7 eta_seconds=20.0
+SGLANG_WEIGHT_PROGRESS current=76 total=206 elapsed_seconds=11.3 eta_seconds=19.3
+SGLANG_WEIGHT_PROGRESS current=80 total=206 elapsed_seconds=11.8 eta_seconds=18.7
+SGLANG_WEIGHT_PROGRESS current=84 total=206 elapsed_seconds=12.4 eta_seconds=18.0
+SGLANG_WEIGHT_PROGRESS current=88 total=206 elapsed_seconds=12.9 eta_seconds=17.3
+SGLANG_WEIGHT_PROGRESS current=92 total=206 elapsed_seconds=13.4 eta_seconds=16.7
+SGLANG_WEIGHT_PROGRESS current=96 total=206 elapsed_seconds=14.0 eta_seconds=16.0
+SGLANG_WEIGHT_PROGRESS current=100 total=206 elapsed_seconds=14.5 eta_seconds=15.3
+SGLANG_WEIGHT_PROGRESS current=104 total=206 elapsed_seconds=15.2 eta_seconds=14.9
+SGLANG_WEIGHT_PROGRESS current=108 total=206 elapsed_seconds=15.7 eta_seconds=14.3
+SGLANG_WEIGHT_PROGRESS current=112 total=206 elapsed_seconds=16.2 eta_seconds=13.6
+SGLANG_WEIGHT_PROGRESS current=116 total=206 elapsed_seconds=16.8 eta_seconds=13.0
+SGLANG_WEIGHT_PROGRESS current=120 total=206 elapsed_seconds=17.3 eta_seconds=12.4
+SGLANG_WEIGHT_PROGRESS current=124 total=206 elapsed_seconds=17.8 eta_seconds=11.8
+SGLANG_WEIGHT_PROGRESS current=128 total=206 elapsed_seconds=18.3 eta_seconds=11.2
+SGLANG_WEIGHT_PROGRESS current=132 total=206 elapsed_seconds=18.9 eta_seconds=10.6
+SGLANG_WEIGHT_PROGRESS current=136 total=206 elapsed_seconds=19.4 eta_seconds=10.0
+SGLANG_WEIGHT_PROGRESS current=140 total=206 elapsed_seconds=19.9 eta_seconds=9.4
+SGLANG_WEIGHT_PROGRESS current=144 total=206 elapsed_seconds=20.5 eta_seconds=8.8
+SGLANG_WEIGHT_PROGRESS current=148 total=206 elapsed_seconds=21.0 eta_seconds=8.2
+SGLANG_WEIGHT_PROGRESS current=152 total=206 elapsed_seconds=21.5 eta_seconds=7.6
+SGLANG_WEIGHT_PROGRESS current=156 total=206 elapsed_seconds=22.0 eta_seconds=7.1
+SGLANG_WEIGHT_PROGRESS current=160 total=206 elapsed_seconds=22.6 eta_seconds=6.5
+SGLANG_WEIGHT_PROGRESS current=164 total=206 elapsed_seconds=23.1 eta_seconds=5.9
+SGLANG_WEIGHT_PROGRESS current=168 total=206 elapsed_seconds=23.6 eta_seconds=5.3
+SGLANG_WEIGHT_PROGRESS current=172 total=206 elapsed_seconds=24.1 eta_seconds=4.8
+SGLANG_WEIGHT_PROGRESS current=176 total=206 elapsed_seconds=24.7 eta_seconds=4.2
+SGLANG_WEIGHT_PROGRESS current=180 total=206 elapsed_seconds=25.1 eta_seconds=3.6
+SGLANG_WEIGHT_PROGRESS current=184 total=206 elapsed_seconds=25.7 eta_seconds=3.1
+SGLANG_WEIGHT_PROGRESS current=188 total=206 elapsed_seconds=25.9 eta_seconds=2.5
+SGLANG_WEIGHT_PROGRESS current=192 total=206 elapsed_seconds=25.9 eta_seconds=1.9
+SGLANG_WEIGHT_PROGRESS current=193 total=206 elapsed_seconds=26.0 eta_seconds=1.7
+SGLANG_WEIGHT_PROGRESS current=194 total=206 elapsed_seconds=26.0 eta_seconds=1.6
+SGLANG_WEIGHT_PROGRESS current=195 total=206 elapsed_seconds=59.6 eta_seconds=3.4
+SGLANG_WEIGHT_PROGRESS current=196 total=206 elapsed_seconds=59.8 eta_seconds=3.1
+SGLANG_WEIGHT_PROGRESS current=197 total=206 elapsed_seconds=59.8 eta_seconds=2.7
+SGLANG_WEIGHT_PROGRESS current=198 total=206 elapsed_seconds=59.8 eta_seconds=2.4
+SGLANG_WEIGHT_PROGRESS current=199 total=206 elapsed_seconds=59.8 eta_seconds=2.1
+SGLANG_WEIGHT_PROGRESS current=200 total=206 elapsed_seconds=59.8 eta_seconds=1.8
+SGLANG_WEIGHT_PROGRESS current=201 total=206 elapsed_seconds=59.9 eta_seconds=1.5
+SGLANG_WEIGHT_PROGRESS current=202 total=206 elapsed_seconds=59.9 eta_seconds=1.2
+SGLANG_WEIGHT_PROGRESS current=203 total=206 elapsed_seconds=59.9 eta_seconds=0.9
+SGLANG_WEIGHT_PROGRESS current=204 total=206 elapsed_seconds=59.9 eta_seconds=0.6
+SGLANG_WEIGHT_PROGRESS current=205 total=206 elapsed_seconds=59.9 eta_seconds=0.3
+SGLANG_WEIGHT_PROGRESS current=206 total=206 elapsed_seconds=59.9 eta_seconds=0.0
+[TensorRT-LLM][INFO] Set logger level to INFO
+2026-09-14 06:37:39  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:130): TileLang begins to compile kernel `kernel` with `out_idx=None`
+2026-09-14 06:37:42  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:138): TileLang completes to compile kernel `kernel`
+B12X_PROBE_HEAD active: BF16 1x2560 by 124160x2560
+[2026-09-14 06:37:47] INFO:     127.0.0.1:42772 - "GET /model_info HTTP/1.1" 200 OK
+2026-09-14 06:37:48  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:130): TileLang begins to compile kernel `kernel` with `out_idx=None`
+2026-09-14 06:37:52  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:138): TileLang completes to compile kernel `kernel`
+2026-09-14 06:37:52  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:130): TileLang begins to compile kernel `kernel` with `out_idx=None`
+[2026-09-14 06:37:54] INFO:     127.0.0.1:52202 - "GET /health HTTP/1.1" 503 Service Unavailable
+2026-09-14 06:37:54  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:138): TileLang completes to compile kernel `kernel`
+B12X_PROBE_HEAD active: BF16 1x2560 by 124160x2560
+[2026-09-14 06:37:55] INFO:     127.0.0.1:42778 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[2026-09-14 06:37:55] INFO:     127.0.0.1:52212 - "POST /freeze_gc HTTP/1.1" 200 OK
+[2026-09-14 06:38:15] INFO:     127.0.0.1:39950 - "GET /health HTTP/1.1" 200 OK
+[2026-09-14 06:38:18] INFO:     127.0.0.1:39954 - "POST /generate HTTP/1.1" 200 OK
+[2026-09-14 06:38:21] INFO:     127.0.0.1:57984 - "GET /flush_cache HTTP/1.1" 200 OK
+[2026-09-14 06:38:21] INFO:     127.0.0.1:57994 - "POST /generate HTTP/1.1" 200 OK
+[2026-09-14 06:38:23] INFO:     127.0.0.1:58004 - "GET /flush_cache HTTP/1.1" 200 OK
+[2026-09-14 06:38:23] INFO:     127.0.0.1:58008 - "POST /generate HTTP/1.1" 200 OK
+[2026-09-14 06:38:26] INFO:     127.0.0.1:58010 - "GET /flush_cache HTTP/1.1" 200 OK
+[2026-09-14 06:38:26] INFO:     127.0.0.1:58022 - "POST /generate HTTP/1.1" 200 OK
+[2026-09-14 06:38:28] INFO:     127.0.0.1:58032 - "POST /generate HTTP/1.1" 200 OK
+[2026-09-14 06:38:32] INFO:     127.0.0.1:37030 - "GET /flush_cache HTTP/1.1" 200 OK
+[2026-09-14 06:38:32] INFO:     127.0.0.1:37032 - "POST /generate HTTP/1.1" 200 OK
+[2026-09-14 06:38:35] INFO:     127.0.0.1:37036 - "GET /flush_cache HTTP/1.1" 200 OK
+[2026-09-14 06:38:35] INFO:     127.0.0.1:37040 - "POST /generate HTTP/1.1" 200 OK
+[2026-09-14 06:38:39] INFO:     127.0.0.1:37052 - "GET /flush_cache HTTP/1.1" 200 OK
+[2026-09-14 06:38:39] INFO:     127.0.0.1:37056 - "POST /generate HTTP/1.1" 200 OK
+[2026-09-14 06:38:42] INFO:     127.0.0.1:57204 - "GET /flush_cache HTTP/1.1" 200 OK
+[2026-09-14 06:38:42] INFO:     127.0.0.1:57218 - "POST /generate HTTP/1.1" 200 OK
+[2026-09-14 06:38:46] INFO:     127.0.0.1:57222 - "GET /flush_cache HTTP/1.1" 200 OK
+[2026-09-14 06:38:46] INFO:     127.0.0.1:57232 - "POST /generate HTTP/1.1" 200 OK
+[2026-09-14 06:38:49] INFO:     127.0.0.1:57240 - "GET /flush_cache HTTP/1.1" 200 OK
+[2026-09-14 06:38:49] INFO:     127.0.0.1:57248 - "POST /generate HTTP/1.1" 200 OK
+[2026-09-14 06:38:53] INFO:     127.0.0.1:34682 - "GET /flush_cache HTTP/1.1" 200 OK
+[2026-09-14 06:38:53] INFO:     127.0.0.1:34688 - "POST /generate HTTP/1.1" 200 OK
+[2026-09-14 06:38:57] INFO:     127.0.0.1:34690 - "GET /flush_cache HTTP/1.1" 200 OK
+[2026-09-14 06:38:57] INFO:     127.0.0.1:34696 - "POST /generate HTTP/1.1" 200 OK
+[2026-09-14 06:39:00] INFO:     127.0.0.1:34710 - "GET /flush_cache HTTP/1.1" 200 OK
+[2026-09-14 06:39:00] INFO:     127.0.0.1:34716 - "POST /generate HTTP/1.1" 200 OK
+[2026-09-14 06:39:04] INFO:     127.0.0.1:49332 - "GET /flush_cache HTTP/1.1" 200 OK
+[2026-09-14 06:39:04] INFO:     127.0.0.1:49348 - "POST /generate HTTP/1.1" 200 OK
+[2026-09-14 06:39:07] INFO:     127.0.0.1:49350 - "POST /generate HTTP/1.1" 200 OK
+[2026-09-14 06:39:14] INFO:     127.0.0.1:51762 - "GET /flush_cache HTTP/1.1" 200 OK
+[2026-09-14 06:39:14] INFO:     127.0.0.1:51764 - "POST /generate HTTP/1.1" 200 OK
+[2026-09-14 06:39:23] INFO:     127.0.0.1:49564 - "GET /flush_cache HTTP/1.1" 200 OK
+[2026-09-14 06:39:23] INFO:     127.0.0.1:49570 - "POST /generate HTTP/1.1" 200 OK
+[2026-09-14 06:39:31] INFO:     127.0.0.1:45142 - "GET /flush_cache HTTP/1.1" 200 OK
+[2026-09-14 06:39:31] INFO:     127.0.0.1:45144 - "POST /generate HTTP/1.1" 200 OK
+/sgl-workspace/sglang/python/sglang/launch_server.py:56: UserWarning: 'python -m sglang.launch_server' is still supported, but 'sglang serve' is the recommended entrypoint.
+  Example: sglang serve --model-path <model> [options]
+  warnings.warn(
+[transformers] Unrecognized keys in `rope_parameters` for 'rope_type'='default': {'mrope_section', 'mrope_interleaved'}
+[transformers] Unrecognized keys in `rope_parameters` for 'rope_type'='default': {'mrope_section', 'mrope_interleaved'}
+[2026-09-14 06:29:21] Breakable CUDA graph is incompatible with multimodal model; disabling prefill CUDA graph.
+[2026-09-14 06:29:21] Failed to get GPU memory capacity from nvidia-smi. Falling back to torch.cuda.mem_get_info(). Reported total GPU memory per device (MiB): [124546], using min: 124546 MiB.
+[2026-09-14 06:29:21] Setting page size to 64 for compressed QSA (full//ratio compressed addressing).
+[2026-09-14 06:29:21] Attention backend not specified. Use flashinfer backend by default.
+[2026-09-14 06:29:23] server_args=ServerArgs(model_path='/hf/hub/models--dealignai--Qwen3.8-Flash-Next-ABLITERATED-NVFP4/snapshots/be794b990578ef3031eccf9f28e675a289a09ee9', tokenizer_path='/hf/hub/models--dealignai--Qwen3.8-Flash-Next-ABLITERATED-NVFP4/snapshots/be794b990578ef3031eccf9f28e675a289a09ee9', tokenizer_mode='auto', tokenizer_backend='huggingface', tokenizer_worker_num=1, detokenizer_worker_num=1, skip_tokenizer_init=False, load_format='auto', model_loader_extra_config='{}', trust_remote_code=False, context_length=262144, is_embedding=False, enable_multimodal=None, revision=None, model_impl='auto', model_config_parser='auto', json_model_override_args='{}', dtype='auto', quantization='modelopt_fp4', quantization_param_path=None, kv_cache_dtype='bfloat16', enable_fp32_lm_head=False, modelopt_quant=None, modelopt_checkpoint_restore_path=None, modelopt_checkpoint_save_path=None, modelopt_export_path=None, quantize_and_serve=False, rl_quant_profile=None, enable_tf32_matmul=False, mem_fraction_static=0.7, max_running_requests=1, max_queued_requests=None, max_total_tokens=327680, chunked_prefill_size=1024, enable_dynamic_chunking=False, max_prefill_tokens=16384, prefill_max_requests=None, schedule_policy='fcfs', enable_priority_scheduling=False, disable_priority_preemption=False, default_priority_value=None, abort_on_priority_when_disabled=False, schedule_low_priority_values_first=False, priority_scheduling_preemption_threshold=10, retraction_policy='length', schedule_conservativeness=1.0, page_size=64, c128_page_size=16, swa_full_tokens_ratio=0.8, disable_hybrid_swa_memory=False, radix_eviction_policy='lru', prefill_only_disable_kv_cache=False, disable_radix_cache=False, enable_page_major_kv_layout=False, enable_unified_memory=False, disable_chunked_prefix_cache=False, disable_overlap_schedule=False, num_continuous_decode_steps=1, scheduler_recv_interval=1, enable_mixed_chunk=False, nccl_port=None, dist_timeout=None, dist_init_addr='10.200.0.1:29980', nnodes=2, node_rank=0, tp_size=2, dcp_size=1, pp_size=1, pp_max_micro_batch_size=None, pp_async_batch_depth=0, dp_size=1, load_balance_method='round_robin', attn_cp_size=1, moe_dp_size=1, dwdp_size=1, dcp_comm_backend='ag_rs', dcp_replicate_q_proj=None, enable_prefill_cp=False, cp_strategy=None, enable_dsa_cache_layer_split=False, enable_dsa_prefill_context_parallel=False, dsa_prefill_cp_mode='round-robin-split', enable_prefill_context_parallel=False, prefill_cp_mode='in-seq-split', enable_cp_decode_attn_tp=False, enable_dp_attention=False, enable_dp_attention_local_control_broadcast=False, enable_dp_lm_head=False, enable_attn_tp_input_scattered=False, disable_attn_tp_gather=False, enable_p2p_check=False, device='cuda', base_gpu_id=0, gpu_id_step=1, random_seed=838961743, mlx_enable_sampling=False, watchdog_timeout=300, soft_watchdog_timeout=None, sleep_on_idle=False, use_ray=False, custom_sigquit_handler=None, numa_node=None, gc_threshold=None, host='127.0.0.1', port=8014, fastapi_root_path='', smg_grpc_mode=False, grpc_mode=False, grpc_port=None, sidecar=None, sidecar_args=None, skip_server_warmup=False, warmups=None, enable_http2=False, http2_max_concurrent_streams=200, ssl_keyfile=None, ssl_certfile=None, ssl_ca_certs=None, ssl_keyfile_password=None, enable_ssl_refresh=False, api_key=None, admin_api_key=None, served_model_name='qwen38-sglang-b12x-probe', weight_version='default', chat_template=None, hf_chat_template_name=None, completion_template=None, file_storage_path='sglang_storage', enable_cache_report=False, reasoning_parser='qwen3', default_chat_template_kwargs=None, strip_thinking_cache=False, enable_strict_thinking=False, tool_call_parser='qwen3_coder', tool_server=None, sampling_defaults='model', asr_max_buffer_seconds=60, asr_max_concurrent_sessions=32, preferred_sampling_params=None, allow_auto_truncate=False, stream_interval=1, batch_notify_size=16, stream_response_default_include_usage=False, incremental_streaming_output=False, enable_streaming_session=False, enable_session_radix_cache=False, log_level='info', log_level_http=None, log_requests=False, log_requests_level=2, log_requests_format='text', log_requests_target=None, uvicorn_access_log_exclude_prefixes=[], crash_dump_folder=None, show_time_cost=False, enable_metrics=True, smg_http_sidecar_port=None, enable_mfu_metrics=False, enable_metrics_for_all_schedulers=False, load_snapshot_publish_interval=15, tokenizer_metrics_custom_labels_header='x-custom-labels', tokenizer_metrics_allowed_custom_labels=None, extra_metric_labels=None, bucket_time_to_first_token=None, bucket_inter_token_latency=None, bucket_e2e_request_latency=None, prompt_tokens_buckets=None, generation_tokens_buckets=None, gc_warning_threshold_secs=0.0, decode_log_interval=40, enable_request_time_stats_logging=False, kv_events_config=None, enable_forward_pass_metrics=False, forward_pass_metrics_worker_id='', forward_pass_metrics_ipc_name=None, enable_trace=False, trace_modules='request', otlp_traces_endpoint='localhost:4317', export_metrics_to_file=False, export_metrics_to_file_dir=None, stat_loggers=None, constrained_json_whitespace_pattern=None, constrained_json_disable_any_whitespace=False, attention_backend='flashinfer', decode_attention_backend='trtllm_mha', prefill_attention_backend='triton', sampling_backend='flashinfer', grammar_backend='xgrammar', radix_cache_backend=None, mm_attention_backend=None, fp8_gemm_runner_backend='auto', fp4_gemm_runner_backend='flashinfer_cutlass', bf16_gemm_backend='auto', dsa_prefill_backend=None, dsa_decode_backend=None, dsa_paged_mqa_logits_backend='auto', dsa_topk_backend='sgl-kernel', disable_flashinfer_autotune=True, flashinfer_autotune_skip_ops=None, mamba_backend='triton', cuda_graph_config=CudaGraphConfig(decode=PhaseConfig(backend='full', max_bs=1, bs=[1], tc_compiler='eager', full_prefill_max_req=None, full_prefill_prefix_chunk_tokens=None), prefill=PhaseConfig(backend='disabled', max_bs=1024, bs=[4, 8, 12, 16, 20, 24, 28, 32, 48, 64, 80, 96, 112, 128, 144, 160, 176, 192, 208, 224, 240, 256, 288, 320, 352, 384, 416, 448, 480, 512, 576, 640, 704, 768, 832, 896, 960, 1024], tc_compiler='eager', full_prefill_max_req=None, full_prefill_prefix_chunk_tokens=None)), cuda_graph_backend_decode=None, cuda_graph_backend_prefill=None, cuda_graph_max_bs_decode=1, cuda_graph_max_bs_prefill=None, cuda_graph_bs_decode=None, cuda_graph_bs_prefill=None, cuda_graph_tc_compiler=None, disable_prefill_cuda_graph=False, disable_decode_cuda_graph=False, disable_cuda_graph=False, disable_cuda_graph_padding=False, enable_profile_cuda_graph=False, enable_cudagraph_gc=False, debug_cuda_graph=False, enable_layerwise_nvtx_marker=False, enable_nccl_nvls=False, enable_symm_mem=False, triton_attention_reduce_in_fp32=False, triton_attention_num_kv_splits=8, triton_attention_split_tile_size=None, flashinfer_mla_disable_ragged=False, enable_fused_qk_norm_rope=False, enable_precise_embedding_interpolation=False, enable_fused_moe_sum_all_reduce=False, enable_deepseek_v4_fp4_indexer=False, disable_custom_all_reduce=False, enable_mscclpp=False, enable_torch_symm_mem=False, enable_scattered_sconv=False, pre_warm_nccl=False, enable_quant_communications=False, enable_flashinfer_allreduce_fusion=False, enforce_disable_flashinfer_allreduce_fusion=False, flashinfer_allreduce_fusion_backend=None, enable_aiter_allreduce_fusion=False, enable_torch_compile=False, enable_torch_compile_debug_mode=False, torch_compile_max_bs=32, speculative_algorithm='EAGLE', speculative_draft_model_path='/hf/hub/models--dealignai--Qwen3.8-Flash-Next-ABLITERATED-NVFP4/snapshots/be794b990578ef3031eccf9f28e675a289a09ee9', speculative_draft_model_revision=None, speculative_draft_load_format=None, speculative_num_steps=3, speculative_eagle_topk=1, speculative_num_draft_tokens=4, speculative_dflash_block_size=None, speculative_dspark_block_size=None, speculative_dspark_sps_table_path=None, speculative_dspark_confidence_sts_path=None, speculative_dspark_align_verify_tokens_to_graph_tier=False, speculative_accept_threshold_single=1.0, speculative_accept_threshold_acc=1.0, speculative_use_rejection_sampling=False, speculative_token_map=None, speculative_attention_mode='prefill', speculative_draft_attention_backend=None, speculative_draft_kv_cache_dtype=None, speculative_draft_window_size=None, speculative_moe_runner_backend='flashinfer_cutlass', speculative_moe_a2a_backend=None, speculative_draft_model_quantization=None, _speculative_draft_quantization_explicitly_set=True, speculative_skip_dp_mlp_sync=False, enable_multi_layer_eagle=False, speculative_adaptive=False, speculative_adaptive_config=None, decoupled_spec_bind_endpoint=None, decoupled_spec_connect_endpoints=None, decoupled_spec_rank=None, decoupled_spec_role='null', spec_trace_dir=None, speculative_ngram_min_bfs_breadth=1, speculative_ngram_max_bfs_breadth=10, speculative_ngram_match_type='BFS', speculative_ngram_max_trie_depth=18, speculative_ngram_capacity=10000000, speculative_ngram_external_corpus_path=None, speculative_ngram_external_sam_budget=0, speculative_ngram_external_corpus_max_tokens=10000000, ep_size=1, moe_a2a_backend='none', moe_runner_backend='flashinfer_cutlass', flashinfer_mxfp4_moe_precision='default', deepep_mode='auto', fuseep_mode=2, deepep_dispatcher_output_dtype='auto', ep_num_redundant_experts=0, ep_dispatch_algorithm=None, init_expert_location='trivial', enable_eplb=False, eplb_algorithm='auto', eplb_rebalance_num_iterations=1000, eplb_rebalance_layers_per_chunk=None, eplb_min_rebalancing_utilization_threshold=1.0, expert_distribution_recorder_mode=None, expert_distribution_recorder_buffer_size=1000, expert_balancedness_report_mode='off', deepep_config=None, moe_dense_tp_size=None, elastic_ep_backend=None, enable_elastic_expert_backup=False, mooncake_ib_device=None, enable_waterfill=False, ep_join_mode=None, ep_join_rank_offset=0, elastic_ep_initial_size=None, max_ep_size=None, elastic_ep_scale_timeout=600, elastic_ep_rejoin=False, disable_flashinfer_cutlass_moe_fp4_allgather=False, disable_shared_experts_fusion=False, enforce_shared_experts_fusion=False, max_mamba_cache_size=None, mamba_ssm_dtype=None, mamba_max_states_per_path=-1, enable_mamba_cache_stochastic_rounding=False, mamba_cache_philox_rounds=0, mamba_full_memory_ratio=0.9, mamba_radix_cache_strategy='extra_buffer', uses_mamba_radix_cache=True, mamba_track_interval=256, enable_int8_mamba_checkpoint=False, int8_mamba_ckpt_size=None, linear_attn_backend='triton', linear_attn_decode_backend=None, linear_attn_prefill_backend=None, ple_offload_embedding=True, ple_offload_backend='file', ple_offload_dir='/ple', linear_attn_verify_backend=None, enable_linear_replayssm=False, linear_replayssm_cache_len=16, enable_linear_replayssm_spec=False, enable_hierarchical_cache=False, hicache_ratio=2.0, hicache_size=0, hicache_write_policy='write_through', hicache_io_backend='kernel', hicache_mem_layout='page_first', hicache_storage_backend=None, hicache_storage_prefetch_policy='timeout', hicache_storage_backend_extra_config=None, enable_hisparse=False, hisparse_config=None, enable_broadcast_mm_inputs_process=False, enable_prefix_mm_cache=False, mm_enable_dp_encoder=False, mm_process_config={}, mm_processor_worker_num=0, mm_io_worker_num=0, allowed_media_domains=[], media_url_max_file_size_mb=64, mm_preprocess_cache_size_mb=None, trust_mm_content_hashes=False, limit_mm_data_per_request=None, enable_mm_global_cache=False, image_processor_backend='auto', mm_global_cache_backend='mooncake', disable_fast_image_processor=False, mm_feature_transport='cpu', keep_mm_feature_on_device=False, enable_lora=None, enable_lora_overlap_loading=None, max_lora_rank=None, lora_target_modules=None, lora_paths=None, max_loaded_loras=None, max_loras_per_batch=8, lora_eviction_policy='lru', lora_backend='csgmv', max_lora_chunk_size=16, experts_shared_outer_loras=None, lora_use_virtual_experts=False, lora_strict_loading=False, lora_drain_wait_threshold=0.0, enable_two_batch_overlap=False, enable_single_batch_overlap=False, tbo_token_distribution_threshold=0.48, cpu_offload_gb=0, offload_group_size=-1, offload_num_in_group=1, offload_prefetch_step=1, offload_mode='cpu', enable_lmcache=False, lmcache_config_file=None, enable_flexkv=False, flexkv_config_file=None, kt_weight_path=None, kt_method='AMXINT4', kt_cpuinfer=None, kt_threadpool_count=2, kt_num_gpu_experts=None, kt_max_deferred_experts_per_token=None, dllm_algorithm=None, dllm_algorithm_config=None, dllm_fdfo=True, disaggregation_mode='null', disaggregation_transfer_backend='mooncake', disaggregation_bootstrap_port=8998, disaggregation_ib_device=None, disaggregation_decode_enable_radix_cache=False, disaggregation_decode_enable_offload_kvcache=False, disaggregation_decode_retraction_backup=None, num_reserved_decode_tokens=512, disaggregation_decode_extra_slots=None, disaggregation_decode_polling_interval=1, optimistic_prefill_attempts=0, encoder_only=False, language_only=False, language_model_only=False, encoder_transfer_backend='zmq_to_scheduler', encoder_urls=[], encoder_bootstrap_port=8997, encoder_register_urls=[], enable_adaptive_dispatch_to_encoder=False, enable_pdmux=False, pdmux_config_path=None, sm_group_num=8, startup_weight_load_mode='serial', custom_weight_loader=[], weight_loader_disable_mmap=False, weight_loader_prefetch_checkpoints=False, weight_loader_prefetch_num_threads=4, weight_loader_drop_cache_after_load=True, remote_instance_weight_loader_seed_instance_ip=None, remote_instance_weight_loader_seed_instance_service_port=None, remote_instance_weight_loader_send_weights_group_ports=None, remote_instance_weight_loader_backend='nccl', remote_instance_weight_loader_start_seed_via_transfer_engine=False, engine_info_bootstrap_port=6789, modelexpress_config=None, download_dir=None, model_checksum=None, delete_ckpt_after_loading=False, decrypted_config_file=None, decrypted_draft_config_file=None, checkpoint_engine_wait_weights_before_ready=False, enable_prefill_delayer=False, prefill_delayer_max_delay_passes=30, prefill_delayer_token_usage_low_watermark=None, prefill_delayer_forward_passes_buckets=None, prefill_delayer_wait_seconds_buckets=None, prefill_delayer_queue_min_ratio=None, prefill_delayer_max_delay_ms=None, min_free_slots_delay=None, enable_deterministic_inference=False, rl_on_policy_target=None, kv_canary='none', kv_canary_real_data='none', kv_canary_sweep_interval=0, enable_dynamic_batch_tokenizer=False, dynamic_batch_tokenizer_batch_size=32, dynamic_batch_tokenizer_batch_timeout=0.002, enable_tokenizer_batch_encode=False, disable_tokenizer_batch_decode=False, debug_tensor_dump_output_folder=None, debug_tensor_dump_layers=None, debug_tensor_dump_input_file=None, enable_memory_saver=False, enable_weights_cpu_backup=False, enable_draft_weights_cpu_backup=False, enable_custom_logit_processor=False, enable_return_hidden_states=False, return_hidden_states_mode=None, enable_return_routed_experts=False, enable_return_indexer_topk=False, disable_outlines_disk_cache=False, enable_mis=False, weight_cache_mode='off', weight_cache_socket=None, weight_cache_timeout=1800, forward_hooks=None, msprobe_dump_config=None)
+[2026-09-14 06:29:24] torchcodec is not installed; audio inputs will fail at request time
+[2026-09-14 06:29:24] Ignore import error when loading sglang.srt.multimodal.processors.mimo_v2: No module named 'torchcodec'
+[2026-09-14 06:29:24] Ignore import error when loading sglang.srt.multimodal.processors.sarashina2_vision: cannot import name 'MultimodalDataItem' from 'sglang.srt.managers.mm_utils' (/sgl-workspace/sglang/python/sglang/srt/managers/mm_utils.py)
+[transformers] Unrecognized keys in `rope_parameters` for 'rope_type'='default': {'mrope_section', 'mrope_interleaved'}
+[transformers] Unrecognized keys in `rope_parameters` for 'rope_type'='default': {'mrope_section', 'mrope_interleaved'}
+[2026-09-14 06:29:25] Ignore import error when loading sglang.srt.models.sarashina2_vision: cannot import name 'MultimodalDataItem' from 'sglang.srt.managers.mm_utils' (/sgl-workspace/sglang/python/sglang/srt/managers/mm_utils.py)
+[2026-09-14 06:29:25] Multimodal data loading enabled with 16 worker threads (auto).
+[transformers] Unrecognized keys in `rope_parameters` for 'rope_type'='default': {'mrope_section', 'mrope_interleaved'}
+[2026-09-14 06:29:27] Multimodal processor concurrency enabled with 2 isolated worker threads (auto).
+[2026-09-14 06:29:27] Using default HuggingFace chat template with detected content format: openai
+[2026-09-14 06:29:27] Auto-detected template features: reasoning_config=ReasoningToggleConfig(toggle_param='enable_thinking', default_enabled=True, special_case=None, effort_kwarg=None), reasoning_parser=qwen3, tool_call_parser=qwen3_coder
+[transformers] Unrecognized keys in `rope_parameters` for 'rope_type'='default': {'mrope_interleaved', 'mrope_section'}
+[transformers] Unrecognized keys in `rope_parameters` for 'rope_type'='default': {'mrope_interleaved', 'mrope_section'}
+[transformers] Unrecognized keys in `rope_parameters` for 'rope_type'='default': {'mrope_interleaved', 'mrope_section'}
+[transformers] Unrecognized keys in `rope_parameters` for 'rope_type'='default': {'mrope_interleaved', 'mrope_section'}
+[2026-09-14 06:29:28 TP0] torchcodec is not installed; audio inputs will fail at request time
+[2026-09-14 06:29:28 TP0] Ignore import error when loading sglang.srt.multimodal.processors.mimo_v2: No module named 'torchcodec'
+[2026-09-14 06:29:28 TP0] Ignore import error when loading sglang.srt.multimodal.processors.sarashina2_vision: cannot import name 'MultimodalDataItem' from 'sglang.srt.managers.mm_utils' (/sgl-workspace/sglang/python/sglang/srt/managers/mm_utils.py)
+[2026-09-14 06:29:28 TP0] Multimodal data loading enabled with 16 worker threads (auto).
+[2026-09-14 06:29:29 TP0] Init torch distributed begin.
+[2026-09-14 06:29:29 TP0] sglang is using nccl==2.29.7
+[2026-09-14 06:29:30 TP0] CustomAllreduce is disabled because this process group spans across nodes.
+[2026-09-14 06:29:30 TP0] Init torch distributed ends. elapsed=1.09 s, mem usage=0.68 GB
+[2026-09-14 06:29:30 TP0] Ignore import error when loading sglang.srt.models.sarashina2_vision: cannot import name 'MultimodalDataItem' from 'sglang.srt.managers.mm_utils' (/sgl-workspace/sglang/python/sglang/srt/managers/mm_utils.py)
+[2026-09-14 06:29:31 TP0] Load weight begin. avail mem=112.58 GB
+[2026-09-14 06:29:31 TP0] Using ModelOptModelLoader due to ModelOpt quantization config.
+[2026-09-14 06:29:31 TP0] ModelOptModelLoader: Loading base model...
+[2026-09-14 06:29:31 TP0] Model is already quantized, loading directly...
+[2026-09-14 06:29:31 TP0] Detected nvfp4 checkpoint. Please note that the format is experimental and subject to change.
+[2026-09-14 06:29:31 TP0] Multimodal attention backend not set. Use triton_attn.
+[2026-09-14 06:29:31 TP0] Using triton_attn as multimodal attention backend.
+[2026-09-14 06:29:31 TP0] FlashInfer TRTLLM MoE deferred finalize is disabled (moe_runner_backend=flashinfer_cutlass, quant_method=ModelOptNvFp4FusedMoEMethod).
+[2026-09-14 06:29:32 TP0] PLE table: file-backed mmap /ple/ple_table_160000768x160_float8_e4m3fn_25600122880B_rows0-160000768.bin (23.8 GiB, torch.float8_e4m3fn)
+[2026-09-14 06:29:32 TP0] PLE table: WILLNEED prefetch on for gathers of >= 2048 rows (row = 160 B)
+[2026-09-14 06:29:32 TP0] PLE table: resident set capped at 8.0 GiB, checked every 30 s
+[2026-09-14 06:29:32 TP0] using attn output gate!
+[2026-09-14 06:29:34 TP0] multimem all-gather disabled because the TP group spans across nodes.
+
+Multi-thread loading shards:   0% Completed | 0/206 [00:00<?, ?it/s]
+Multi-thread loading shards:   0% Completed | 1/206 [00:02<09:45,  2.85s/it]
+Multi-thread loading shards:   1% Completed | 2/206 [00:04<06:39,  1.96s/it]
+Multi-thread loading shards:   1% Completed | 3/206 [00:05<05:43,  1.69s/it]
+Multi-thread loading shards:   2% Completed | 4/206 [00:07<05:23,  1.60s/it]
+Multi-thread loading shards:   2% Completed | 5/206 [00:08<05:05,  1.52s/it]
+Multi-thread loading shards:   3% Completed | 6/206 [00:09<04:53,  1.47s/it]
+Multi-thread loading shards:   3% Completed | 7/206 [00:11<04:50,  1.46s/it]
+Multi-thread loading shards:   4% Completed | 8/206 [00:12<04:47,  1.45s/it]
+Multi-thread loading shards:   4% Completed | 9/206 [00:14<04:41,  1.43s/it]
+Multi-thread loading shards:   5% Completed | 10/206 [00:15<04:38,  1.42s/it]
+Multi-thread loading shards:   5% Completed | 11/206 [00:16<04:34,  1.41s/it]
+Multi-thread loading shards:   6% Completed | 12/206 [00:18<04:35,  1.42s/it]
+Multi-thread loading shards:   6% Completed | 13/206 [00:19<04:27,  1.39s/it]
+Multi-thread loading shards:   7% Completed | 14/206 [00:20<04:24,  1.38s/it]
+Multi-thread loading shards:   7% Completed | 15/206 [00:22<04:36,  1.45s/it]
+Multi-thread loading shards:   8% Completed | 16/206 [00:23<04:32,  1.43s/it]
+Multi-thread loading shards:   8% Completed | 17/206 [00:25<04:24,  1.40s/it]
+Multi-thread loading shards:   9% Completed | 18/206 [00:26<04:19,  1.38s/it]
+Multi-thread loading shards:   9% Completed | 19/206 [00:27<04:17,  1.38s/it]
+Multi-thread loading shards:  10% Completed | 20/206 [00:29<04:16,  1.38s/it]
+Multi-thread loading shards:  10% Completed | 21/206 [00:30<04:12,  1.36s/it]
+Multi-thread loading shards:  11% Completed | 22/206 [00:31<04:09,  1.36s/it]
+Multi-thread loading shards:  11% Completed | 23/206 [00:33<04:07,  1.35s/it]
+Multi-thread loading shards:  12% Completed | 24/206 [00:34<04:14,  1.40s/it]
+Multi-thread loading shards:  12% Completed | 25/206 [00:36<04:12,  1.40s/it]
+Multi-thread loading shards:  13% Completed | 26/206 [00:37<04:13,  1.41s/it]
+Multi-thread loading shards:  13% Completed | 27/206 [00:39<04:14,  1.42s/it]
+Multi-thread loading shards:  14% Completed | 28/206 [00:40<04:14,  1.43s/it]
+Multi-thread loading shards:  14% Completed | 29/206 [00:41<04:11,  1.42s/it]
+Multi-thread loading shards:  15% Completed | 30/206 [00:43<04:06,  1.40s/it]
+Multi-thread loading shards:  15% Completed | 31/206 [00:44<04:06,  1.41s/it]
+Multi-thread loading shards:  16% Completed | 32/206 [00:46<04:05,  1.41s/it]
+Multi-thread loading shards:  16% Completed | 33/206 [00:47<04:04,  1.42s/it]
+Multi-thread loading shards:  17% Completed | 34/206 [00:49<04:06,  1.44s/it]
+Multi-thread loading shards:  17% Completed | 35/206 [00:50<04:04,  1.43s/it]
+Multi-thread loading shards:  17% Completed | 36/206 [00:51<04:05,  1.44s/it]
+Multi-thread loading shards:  18% Completed | 37/206 [00:53<04:00,  1.42s/it]
+Multi-thread loading shards:  18% Completed | 38/206 [00:54<03:56,  1.41s/it]
+Multi-thread loading shards:  19% Completed | 39/206 [00:56<03:58,  1.43s/it]
+Multi-thread loading shards:  19% Completed | 40/206 [00:57<03:54,  1.42s/it]
+Multi-thread loading shards:  20% Completed | 41/206 [00:59<03:53,  1.42s/it]
+Multi-thread loading shards:  20% Completed | 42/206 [01:00<03:52,  1.42s/it]
+Multi-thread loading shards:  21% Completed | 43/206 [01:01<03:54,  1.44s/it]
+Multi-thread loading shards:  21% Completed | 44/206 [01:03<03:51,  1.43s/it]
+Multi-thread loading shards:  22% Completed | 45/206 [01:04<03:45,  1.40s/it]
+Multi-thread loading shards:  22% Completed | 46/206 [01:06<03:44,  1.40s/it]
+Multi-thread loading shards:  23% Completed | 47/206 [01:07<03:48,  1.44s/it]
+Multi-thread loading shards:  23% Completed | 48/206 [01:09<03:52,  1.47s/it]
+Multi-thread loading shards:  24% Completed | 49/206 [01:10<03:45,  1.44s/it]
+Multi-thread loading shards:  24% Completed | 50/206 [01:11<03:45,  1.45s/it]
+Multi-thread loading shards:  25% Completed | 51/206 [01:13<03:42,  1.44s/it]
+Multi-thread loading shards:  25% Completed | 52/206 [01:14<03:45,  1.47s/it]
+Multi-thread loading shards:  26% Completed | 53/206 [01:16<03:41,  1.45s/it]
+Multi-thread loading shards:  26% Completed | 54/206 [01:17<03:35,  1.42s/it]
+Multi-thread loading shards:  27% Completed | 55/206 [01:19<03:33,  1.42s/it]
+Multi-thread loading shards:  27% Completed | 56/206 [01:20<03:35,  1.44s/it]
+Multi-thread loading shards:  28% Completed | 57/206 [01:22<03:34,  1.44s/it]
+Multi-thread loading shards:  28% Completed | 58/206 [01:23<03:34,  1.45s/it]
+Multi-thread loading shards:  29% Completed | 59/206 [01:24<03:32,  1.44s/it]
+Multi-thread loading shards:  29% Completed | 60/206 [01:26<03:33,  1.46s/it]
+Multi-thread loading shards:  30% Completed | 61/206 [01:27<03:24,  1.41s/it]
+Multi-thread loading shards:  30% Completed | 62/206 [01:29<03:22,  1.41s/it]
+Multi-thread loading shards:  31% Completed | 63/206 [01:30<03:25,  1.44s/it]
+Multi-thread loading shards:  31% Completed | 64/206 [01:32<03:27,  1.46s/it]
+Multi-thread loading shards:  32% Completed | 65/206 [01:33<03:27,  1.47s/it]
+Multi-thread loading shards:  32% Completed | 66/206 [01:35<03:22,  1.45s/it]
+Multi-thread loading shards:  33% Completed | 67/206 [01:36<03:18,  1.43s/it]
+Multi-thread loading shards:  33% Completed | 68/206 [01:37<03:18,  1.44s/it]
+Multi-thread loading shards:  33% Completed | 69/206 [01:39<03:15,  1.42s/it]
+Multi-thread loading shards:  34% Completed | 70/206 [01:40<03:14,  1.43s/it]
+Multi-thread loading shards:  34% Completed | 71/206 [01:42<03:13,  1.43s/it]
+Multi-thread loading shards:  35% Completed | 72/206 [01:43<03:13,  1.45s/it]
+Multi-thread loading shards:  35% Completed | 73/206 [01:44<03:09,  1.42s/it]
+Multi-thread loading shards:  36% Completed | 74/206 [01:46<03:06,  1.41s/it]
+Multi-thread loading shards:  36% Completed | 75/206 [01:47<03:04,  1.41s/it]
+Multi-thread loading shards:  37% Completed | 76/206 [01:49<03:07,  1.44s/it]
+Multi-thread loading shards:  37% Completed | 77/206 [01:50<03:10,  1.48s/it]
+Multi-thread loading shards:  38% Completed | 78/206 [01:52<03:07,  1.47s/it]
+Multi-thread loading shards:  38% Completed | 79/206 [01:53<03:05,  1.46s/it]
+Multi-thread loading shards:  39% Completed | 80/206 [01:55<03:03,  1.46s/it]
+Multi-thread loading shards:  39% Completed | 81/206 [01:56<02:58,  1.43s/it]
+Multi-thread loading shards:  40% Completed | 82/206 [01:57<02:52,  1.39s/it]
+Multi-thread loading shards:  40% Completed | 83/206 [01:59<02:53,  1.41s/it]
+Multi-thread loading shards:  41% Completed | 84/206 [02:00<02:54,  1.43s/it]
+Multi-thread loading shards:  41% Completed | 85/206 [02:02<02:51,  1.41s/it]
+Multi-thread loading shards:  42% Completed | 86/206 [02:03<02:48,  1.41s/it]
+Multi-thread loading shards:  42% Completed | 87/206 [02:04<02:47,  1.41s/it]
+Multi-thread loading shards:  43% Completed | 88/206 [02:06<02:44,  1.39s/it]
+Multi-thread loading shards:  43% Completed | 89/206 [02:07<02:43,  1.40s/it]
+Multi-thread loading shards:  44% Completed | 90/206 [02:09<02:40,  1.39s/it]
+Multi-thread loading shards:  44% Completed | 91/206 [02:10<02:42,  1.42s/it]
+Multi-thread loading shards:  45% Completed | 92/206 [02:12<02:42,  1.42s/it]
+Multi-thread loading shards:  45% Completed | 93/206 [02:13<02:41,  1.43s/it]
+Multi-thread loading shards:  46% Completed | 94/206 [02:14<02:39,  1.43s/it]
+Multi-thread loading shards:  46% Completed | 95/206 [02:16<02:39,  1.43s/it]
+Multi-thread loading shards:  47% Completed | 96/206 [02:17<02:37,  1.43s/it]
+Multi-thread loading shards:  47% Completed | 97/206 [02:19<02:33,  1.40s/it]
+Multi-thread loading shards:  48% Completed | 98/206 [02:20<02:29,  1.38s/it]
+Multi-thread loading shards:  48% Completed | 99/206 [02:21<02:31,  1.42s/it]
+Multi-thread loading shards:  49% Completed | 100/206 [02:23<02:32,  1.44s/it]
+Multi-thread loading shards:  49% Completed | 101/206 [02:24<02:28,  1.42s/it]
+Multi-thread loading shards:  50% Completed | 102/206 [02:26<02:25,  1.40s/it]
+Multi-thread loading shards:  50% Completed | 103/206 [02:27<02:23,  1.39s/it]
+Multi-thread loading shards:  50% Completed | 104/206 [02:28<02:24,  1.42s/it]
+Multi-thread loading shards:  51% Completed | 105/206 [02:30<02:22,  1.42s/it]
+Multi-thread loading shards:  51% Completed | 106/206 [02:31<02:23,  1.43s/it]
+Multi-thread loading shards:  52% Completed | 107/206 [02:33<02:22,  1.44s/it]
+Multi-thread loading shards:  52% Completed | 108/206 [02:34<02:22,  1.45s/it]
+Multi-thread loading shards:  53% Completed | 109/206 [02:36<02:18,  1.43s/it]
+Multi-thread loading shards:  53% Completed | 110/206 [02:37<02:16,  1.43s/it]
+Multi-thread loading shards:  54% Completed | 111/206 [02:38<02:14,  1.41s/it]
+Multi-thread loading shards:  54% Completed | 112/206 [02:40<02:13,  1.42s/it]
+Multi-thread loading shards:  55% Completed | 113/206 [02:41<02:12,  1.43s/it]
+Multi-thread loading shards:  55% Completed | 114/206 [02:43<02:11,  1.43s/it]
+Multi-thread loading shards:  56% Completed | 115/206 [02:44<02:10,  1.43s/it]
+Multi-thread loading shards:  56% Completed | 116/206 [02:46<02:09,  1.44s/it]
+Multi-thread loading shards:  57% Completed | 117/206 [02:47<02:05,  1.41s/it]
+Multi-thread loading shards:  57% Completed | 118/206 [02:48<02:03,  1.41s/it]
+Multi-thread loading shards:  58% Completed | 119/206 [02:50<02:01,  1.40s/it]
+Multi-thread loading shards:  58% Completed | 120/206 [02:51<02:02,  1.43s/it]
+Multi-thread loading shards:  59% Completed | 121/206 [02:53<01:59,  1.41s/it]
+Multi-thread loading shards:  59% Completed | 122/206 [02:54<01:59,  1.42s/it]
+Multi-thread loading shards:  60% Completed | 123/206 [02:55<01:56,  1.40s/it]
+Multi-thread loading shards:  60% Completed | 124/206 [02:57<01:54,  1.40s/it]
+Multi-thread loading shards:  61% Completed | 125/206 [02:58<01:53,  1.40s/it]
+Multi-thread loading shards:  61% Completed | 126/206 [03:00<01:50,  1.38s/it]
+Multi-thread loading shards:  62% Completed | 127/206 [03:01<01:50,  1.40s/it]
+Multi-thread loading shards:  62% Completed | 128/206 [03:02<01:49,  1.40s/it]
+Multi-thread loading shards:  63% Completed | 129/206 [03:04<01:48,  1.42s/it]
+Multi-thread loading shards:  63% Completed | 130/206 [03:05<01:47,  1.42s/it]
+Multi-thread loading shards:  64% Completed | 131/206 [03:07<01:44,  1.40s/it]
+Multi-thread loading shards:  64% Completed | 132/206 [03:08<01:42,  1.39s/it]
+Multi-thread loading shards:  65% Completed | 133/206 [03:09<01:40,  1.38s/it]
+Multi-thread loading shards:  65% Completed | 134/206 [03:11<01:38,  1.37s/it]
+Multi-thread loading shards:  66% Completed | 135/206 [03:12<01:38,  1.39s/it]
+Multi-thread loading shards:  66% Completed | 136/206 [03:14<01:38,  1.41s/it]
+Multi-thread loading shards:  67% Completed | 137/206 [03:15<01:38,  1.43s/it]
+Multi-thread loading shards:  67% Completed | 138/206 [03:17<01:37,  1.44s/it]
+Multi-thread loading shards:  67% Completed | 139/206 [03:18<01:40,  1.50s/it]
+Multi-thread loading shards:  68% Completed | 140/206 [03:20<01:37,  1.48s/it]
+Multi-thread loading shards:  68% Completed | 141/206 [03:21<01:33,  1.44s/it]
+Multi-thread loading shards:  69% Completed | 142/206 [03:22<01:30,  1.41s/it]
+Multi-thread loading shards:  69% Completed | 143/206 [03:24<01:28,  1.41s/it]
+Multi-thread loading shards:  70% Completed | 144/206 [03:25<01:28,  1.42s/it]
+Multi-thread loading shards:  70% Completed | 145/206 [03:27<01:25,  1.41s/it]
+Multi-thread loading shards:  71% Completed | 146/206 [03:28<01:23,  1.40s/it]
+Multi-thread loading shards:  71% Completed | 147/206 [03:29<01:23,  1.42s/it]
+Multi-thread loading shards:  72% Completed | 148/206 [03:31<01:22,  1.43s/it]
+Multi-thread loading shards:  72% Completed | 149/206 [03:32<01:20,  1.41s/it]
+Multi-thread loading shards:  73% Completed | 150/206 [03:34<01:18,  1.40s/it]
+Multi-thread loading shards:  73% Completed | 151/206 [03:35<01:18,  1.43s/it]
+Multi-thread loading shards:  74% Completed | 152/206 [03:37<01:18,  1.46s/it]
+Multi-thread loading shards:  74% Completed | 153/206 [03:38<01:16,  1.44s/it]
+Multi-thread loading shards:  75% Completed | 154/206 [03:39<01:14,  1.43s/it]
+Multi-thread loading shards:  75% Completed | 155/206 [03:41<01:11,  1.41s/it]
+Multi-thread loading shards:  76% Completed | 156/206 [03:42<01:09,  1.40s/it]
+Multi-thread loading shards:  76% Completed | 157/206 [03:43<01:07,  1.38s/it]
+Multi-thread loading shards:  77% Completed | 158/206 [03:45<01:05,  1.37s/it]
+Multi-thread loading shards:  77% Completed | 159/206 [03:46<01:05,  1.39s/it]
+Multi-thread loading shards:  78% Completed | 160/206 [03:48<01:04,  1.41s/it]
+Multi-thread loading shards:  78% Completed | 161/206 [03:49<01:02,  1.38s/it]
+Multi-thread loading shards:  79% Completed | 162/206 [03:50<01:00,  1.38s/it]
+Multi-thread loading shards:  79% Completed | 163/206 [03:52<01:00,  1.40s/it]
+Multi-thread loading shards:  80% Completed | 164/206 [03:53<00:59,  1.42s/it]
+Multi-thread loading shards:  80% Completed | 165/206 [03:55<00:58,  1.42s/it]
+Multi-thread loading shards:  81% Completed | 166/206 [03:56<00:56,  1.40s/it]
+Multi-thread loading shards:  81% Completed | 167/206 [03:57<00:54,  1.39s/it]
+Multi-thread loading shards:  82% Completed | 168/206 [03:59<00:54,  1.42s/it]
+Multi-thread loading shards:  82% Completed | 169/206 [04:00<00:52,  1.42s/it]
+Multi-thread loading shards:  83% Completed | 170/206 [04:02<00:50,  1.41s/it]
+Multi-thread loading shards:  83% Completed | 171/206 [04:03<00:49,  1.42s/it]
+Multi-thread loading shards:  83% Completed | 172/206 [04:05<00:48,  1.44s/it]
+Multi-thread loading shards:  84% Completed | 173/206 [04:06<00:46,  1.42s/it]
+Multi-thread loading shards:  84% Completed | 174/206 [04:08<00:45,  1.42s/it]
+Multi-thread loading shards:  85% Completed | 175/206 [04:09<00:44,  1.43s/it]
+Multi-thread loading shards:  85% Completed | 176/206 [04:10<00:42,  1.43s/it]
+Multi-thread loading shards:  86% Completed | 177/206 [04:12<00:41,  1.44s/it]
+Multi-thread loading shards:  86% Completed | 178/206 [04:13<00:40,  1.43s/it]
+Multi-thread loading shards:  87% Completed | 179/206 [04:15<00:38,  1.43s/it]
+Multi-thread loading shards:  87% Completed | 180/206 [04:16<00:37,  1.44s/it]
+Multi-thread loading shards:  88% Completed | 181/206 [04:18<00:35,  1.43s/it]
+Multi-thread loading shards:  88% Completed | 182/206 [04:19<00:33,  1.42s/it]
+Multi-thread loading shards:  89% Completed | 183/206 [04:20<00:32,  1.40s/it]
+Multi-thread loading shards:  89% Completed | 184/206 [04:22<00:30,  1.39s/it]
+Multi-thread loading shards:  90% Completed | 185/206 [04:23<00:28,  1.37s/it]
+Multi-thread loading shards:  90% Completed | 186/206 [04:24<00:27,  1.38s/it]
+Multi-thread loading shards:  91% Completed | 187/206 [04:26<00:26,  1.38s/it]
+Multi-thread loading shards:  91% Completed | 188/206 [04:27<00:24,  1.37s/it]
+Multi-thread loading shards:  92% Completed | 189/206 [04:28<00:23,  1.36s/it]
+Multi-thread loading shards:  92% Completed | 190/206 [04:30<00:21,  1.36s/it]
+Multi-thread loading shards:  93% Completed | 191/206 [04:31<00:20,  1.37s/it]
+Multi-thread loading shards:  93% Completed | 192/206 [04:33<00:19,  1.38s/it]
+Multi-thread loading shards:  94% Completed | 193/206 [04:35<00:22,  1.73s/it]
+Multi-thread loading shards:  94% Completed | 194/206 [04:36<00:18,  1.56s/it]
+Multi-thread loading shards:  95% Completed | 195/206 [04:50<00:56,  5.10s/it]
+Multi-thread loading shards:  95% Completed | 196/206 [05:01<01:10,  7.05s/it]
+Multi-thread loading shards:  96% Completed | 197/206 [05:07<00:58,  6.55s/it]
+Multi-thread loading shards:  96% Completed | 198/206 [05:10<00:45,  5.63s/it]
+Multi-thread loading shards:  97% Completed | 199/206 [05:21<00:49,  7.08s/it]
+Multi-thread loading shards:  97% Completed | 200/206 [05:44<01:12, 12.04s/it][2026-09-14 06:35:33 TP0] PLE table: trimmed resident set 11.8 -> 0.0 GiB (budget 8.0 GiB)
+
+Multi-thread loading shards:  98% Completed | 201/206 [06:07<01:17, 15.41s/it]
+Multi-thread loading shards:  98% Completed | 202/206 [06:31<01:10, 17.73s/it]
+Multi-thread loading shards:  99% Completed | 203/206 [06:51<00:55, 18.38s/it]
+Multi-thread loading shards:  99% Completed | 204/206 [06:52<00:26, 13.39s/it]
+Multi-thread loading shards: 100% Completed | 205/206 [06:54<00:09,  9.90s/it]
+Multi-thread loading shards: 100% Completed | 206/206 [06:56<00:00,  7.44s/it]
+Multi-thread loading shards: 100% Completed | 206/206 [06:56<00:00,  2.02s/it]
+[2026-09-14 06:36:34 TP0] PLE table: trimmed resident set 11.9 -> 0.0 GiB (budget 8.0 GiB)
+[2026-09-14 06:36:34 TP0] Load weight end. elapsed=423.53 s, type=Qwen4ExpForConditionalGeneration, quant=modelopt_fp4, quant_algo=NVFP4, avail mem=69.18 GB, mem usage=43.40 GB.
+[transformers] Unrecognized keys in `rope_parameters` for 'rope_type'='default': {'mrope_interleaved', 'mrope_section'}
+[transformers] Unrecognized keys in `rope_parameters` for 'rope_type'='default': {'mrope_interleaved', 'mrope_section'}
+[2026-09-14 06:36:35 TP0] Init torch distributed begin.
+[2026-09-14 06:36:35 TP0] Init torch distributed ends. elapsed=0.02 s, mem usage=0.00 GB
+[2026-09-14 06:36:35 TP0] Load weight begin. avail mem=68.92 GB
+[2026-09-14 06:36:35 TP0] Using ModelOptModelLoader due to ModelOpt quantization config.
+[2026-09-14 06:36:35 TP0] ModelOptModelLoader: Loading base model...
+[2026-09-14 06:36:35 TP0] Model is already quantized, loading directly...
+[2026-09-14 06:36:35 TP0] Detected nvfp4 checkpoint. Please note that the format is experimental and subject to change.
+[2026-09-14 06:36:35 TP0] multimem all-gather disabled because the TP group spans across nodes.
+
+Multi-thread loading shards:   0% Completed | 0/206 [00:00<?, ?it/s]
+Multi-thread loading shards:   0% Completed | 1/206 [00:01<04:29,  1.31s/it]
+Multi-thread loading shards:   1% Completed | 2/206 [00:01<02:05,  1.62it/s]
+Multi-thread loading shards:   2% Completed | 4/206 [00:01<00:59,  3.37it/s]
+Multi-thread loading shards:   3% Completed | 6/206 [00:01<00:41,  4.78it/s]
+Multi-thread loading shards:   3% Completed | 7/206 [00:02<00:38,  5.18it/s]
+Multi-thread loading shards:   4% Completed | 8/206 [00:02<00:35,  5.58it/s]
+Multi-thread loading shards:   4% Completed | 9/206 [00:02<00:32,  6.07it/s]
+Multi-thread loading shards:   5% Completed | 10/206 [00:02<00:29,  6.58it/s]
+Multi-thread loading shards:   5% Completed | 11/206 [00:02<00:29,  6.57it/s]
+Multi-thread loading shards:   6% Completed | 12/206 [00:02<00:27,  7.00it/s]
+Multi-thread loading shards:   6% Completed | 13/206 [00:02<00:27,  7.04it/s]
+Multi-thread loading shards:   7% Completed | 14/206 [00:02<00:26,  7.34it/s]
+Multi-thread loading shards:   7% Completed | 15/206 [00:03<00:27,  6.96it/s]
+Multi-thread loading shards:   8% Completed | 17/206 [00:03<00:33,  5.65it/s]
+Multi-thread loading shards:   9% Completed | 18/206 [00:03<00:32,  5.87it/s]
+Multi-thread loading shards:   9% Completed | 19/206 [00:03<00:29,  6.43it/s]
+Multi-thread loading shards:  10% Completed | 20/206 [00:03<00:28,  6.55it/s]
+Multi-thread loading shards:  10% Completed | 21/206 [00:04<00:26,  6.99it/s]
+Multi-thread loading shards:  11% Completed | 22/206 [00:04<00:25,  7.21it/s]
+Multi-thread loading shards:  12% Completed | 24/206 [00:04<00:21,  8.29it/s]
+Multi-thread loading shards:  12% Completed | 25/206 [00:04<00:25,  7.18it/s]
+Multi-thread loading shards:  13% Completed | 26/206 [00:04<00:24,  7.44it/s]
+Multi-thread loading shards:  13% Completed | 27/206 [00:04<00:24,  7.34it/s]
+Multi-thread loading shards:  14% Completed | 28/206 [00:04<00:22,  7.78it/s]
+Multi-thread loading shards:  14% Completed | 29/206 [00:05<00:23,  7.58it/s]
+Multi-thread loading shards:  15% Completed | 30/206 [00:05<00:23,  7.34it/s]
+Multi-thread loading shards:  15% Completed | 31/206 [00:05<00:22,  7.68it/s]
+Multi-thread loading shards:  16% Completed | 32/206 [00:05<00:23,  7.35it/s]
+Multi-thread loading shards:  17% Completed | 34/206 [00:05<00:21,  8.15it/s]
+Multi-thread loading shards:  17% Completed | 35/206 [00:05<00:23,  7.16it/s]
+Multi-thread loading shards:  17% Completed | 36/206 [00:06<00:22,  7.64it/s]
+Multi-thread loading shards:  18% Completed | 37/206 [00:06<00:23,  7.30it/s]
+Multi-thread loading shards:  19% Completed | 39/206 [00:06<00:19,  8.43it/s]
+Multi-thread loading shards:  19% Completed | 40/206 [00:06<00:19,  8.31it/s]
+Multi-thread loading shards:  20% Completed | 41/206 [00:06<00:22,  7.25it/s]
+Multi-thread loading shards:  20% Completed | 42/206 [00:06<00:22,  7.33it/s]
+Multi-thread loading shards:  21% Completed | 43/206 [00:06<00:22,  7.40it/s]
+Multi-thread loading shards:  21% Completed | 44/206 [00:07<00:21,  7.38it/s]
+Multi-thread loading shards:  22% Completed | 45/206 [00:07<00:21,  7.39it/s]
+Multi-thread loading shards:  22% Completed | 46/206 [00:07<00:21,  7.27it/s]
+Multi-thread loading shards:  23% Completed | 47/206 [00:07<00:20,  7.86it/s]
+Multi-thread loading shards:  23% Completed | 48/206 [00:07<00:19,  7.91it/s]
+Multi-thread loading shards:  24% Completed | 49/206 [00:07<00:20,  7.65it/s]
+Multi-thread loading shards:  24% Completed | 50/206 [00:07<00:20,  7.44it/s]
+Multi-thread loading shards:  25% Completed | 51/206 [00:07<00:20,  7.61it/s]
+Multi-thread loading shards:  26% Completed | 53/206 [00:08<00:20,  7.39it/s]
+Multi-thread loading shards:  27% Completed | 55/206 [00:08<00:17,  8.84it/s]
+Multi-thread loading shards:  27% Completed | 56/206 [00:08<00:20,  7.17it/s]
+Multi-thread loading shards:  28% Completed | 58/206 [00:08<00:19,  7.50it/s]
+Multi-thread loading shards:  29% Completed | 60/206 [00:09<00:18,  7.85it/s]
+Multi-thread loading shards:  30% Completed | 61/206 [00:09<00:18,  7.95it/s]
+Multi-thread loading shards:  30% Completed | 62/206 [00:09<00:18,  7.88it/s]
+Multi-thread loading shards:  31% Completed | 63/206 [00:09<00:18,  7.84it/s]
+Multi-thread loading shards:  31% Completed | 64/206 [00:09<00:18,  7.49it/s]
+Multi-thread loading shards:  32% Completed | 65/206 [00:09<00:18,  7.60it/s]
+Multi-thread loading shards:  32% Completed | 66/206 [00:09<00:18,  7.42it/s]
+Multi-thread loading shards:  33% Completed | 67/206 [00:10<00:20,  6.87it/s]
+Multi-thread loading shards:  33% Completed | 69/206 [00:10<00:18,  7.39it/s]
+Multi-thread loading shards:  34% Completed | 71/206 [00:10<00:17,  7.65it/s]
+Multi-thread loading shards:  35% Completed | 73/206 [00:10<00:16,  8.26it/s]
+Multi-thread loading shards:  36% Completed | 74/206 [00:11<00:18,  7.24it/s]
+Multi-thread loading shards:  37% Completed | 76/206 [00:11<00:16,  7.73it/s]
+Multi-thread loading shards:  37% Completed | 77/206 [00:11<00:18,  7.11it/s]
+Multi-thread loading shards:  38% Completed | 79/206 [00:11<00:16,  7.57it/s]
+Multi-thread loading shards:  39% Completed | 80/206 [00:11<00:17,  7.32it/s]
+Multi-thread loading shards:  39% Completed | 81/206 [00:11<00:16,  7.46it/s]
+Multi-thread loading shards:  40% Completed | 82/206 [00:12<00:15,  7.82it/s]
+Multi-thread loading shards:  40% Completed | 83/206 [00:12<00:15,  7.86it/s]
+Multi-thread loading shards:  41% Completed | 84/206 [00:12<00:16,  7.38it/s]
+Multi-thread loading shards:  41% Completed | 85/206 [00:12<00:16,  7.53it/s]
+Multi-thread loading shards:  42% Completed | 86/206 [00:12<00:15,  7.75it/s]
+Multi-thread loading shards:  42% Completed | 87/206 [00:12<00:16,  7.03it/s]
+Multi-thread loading shards:  43% Completed | 88/206 [00:12<00:15,  7.58it/s]
+Multi-thread loading shards:  43% Completed | 89/206 [00:12<00:15,  7.70it/s]
+Multi-thread loading shards:  44% Completed | 90/206 [00:13<00:15,  7.51it/s]
+Multi-thread loading shards:  44% Completed | 91/206 [00:13<00:14,  7.74it/s]
+Multi-thread loading shards:  45% Completed | 92/206 [00:13<00:15,  7.19it/s]
+Multi-thread loading shards:  45% Completed | 93/206 [00:13<00:14,  7.70it/s]
+Multi-thread loading shards:  46% Completed | 94/206 [00:13<00:15,  7.27it/s]
+Multi-thread loading shards:  46% Completed | 95/206 [00:13<00:14,  7.81it/s]
+Multi-thread loading shards:  47% Completed | 96/206 [00:13<00:14,  7.55it/s]
+Multi-thread loading shards:  47% Completed | 97/206 [00:14<00:14,  7.71it/s]
+Multi-thread loading shards:  48% Completed | 98/206 [00:14<00:14,  7.43it/s]
+Multi-thread loading shards:  48% Completed | 99/206 [00:14<00:14,  7.62it/s]
+Multi-thread loading shards:  49% Completed | 100/206 [00:14<00:14,  7.57it/s]
+Multi-thread loading shards:  50% Completed | 102/206 [00:14<00:18,  5.57it/s]
+Multi-thread loading shards:  50% Completed | 103/206 [00:15<00:16,  6.16it/s]
+Multi-thread loading shards:  50% Completed | 104/206 [00:15<00:15,  6.46it/s]
+Multi-thread loading shards:  51% Completed | 105/206 [00:15<00:15,  6.62it/s]
+Multi-thread loading shards:  51% Completed | 106/206 [00:15<00:14,  7.09it/s]
+Multi-thread loading shards:  52% Completed | 107/206 [00:15<00:13,  7.50it/s]
+Multi-thread loading shards:  52% Completed | 108/206 [00:15<00:14,  6.89it/s]
+Multi-thread loading shards:  53% Completed | 110/206 [00:15<00:13,  7.25it/s]
+Multi-thread loading shards:  54% Completed | 112/206 [00:16<00:11,  7.85it/s]
+Multi-thread loading shards:  55% Completed | 113/206 [00:16<00:11,  7.96it/s]
+Multi-thread loading shards:  55% Completed | 114/206 [00:16<00:11,  7.81it/s]
+Multi-thread loading shards:  56% Completed | 115/206 [00:16<00:11,  7.84it/s]
+Multi-thread loading shards:  56% Completed | 116/206 [00:16<00:12,  7.15it/s]
+Multi-thread loading shards:  57% Completed | 118/206 [00:16<00:11,  7.57it/s]
+Multi-thread loading shards:  58% Completed | 119/206 [00:17<00:11,  7.51it/s]
+Multi-thread loading shards:  58% Completed | 120/206 [00:17<00:10,  7.95it/s]
+Multi-thread loading shards:  59% Completed | 121/206 [00:17<00:10,  7.78it/s]
+Multi-thread loading shards:  59% Completed | 122/206 [00:17<00:11,  7.60it/s]
+Multi-thread loading shards:  60% Completed | 123/206 [00:17<00:10,  7.64it/s]
+Multi-thread loading shards:  60% Completed | 124/206 [00:17<00:10,  7.58it/s]
+Multi-thread loading shards:  61% Completed | 125/206 [00:17<00:11,  7.30it/s]
+Multi-thread loading shards:  61% Completed | 126/206 [00:18<00:10,  7.46it/s]
+Multi-thread loading shards:  62% Completed | 127/206 [00:18<00:10,  7.51it/s]
+Multi-thread loading shards:  62% Completed | 128/206 [00:18<00:10,  7.78it/s]
+Multi-thread loading shards:  63% Completed | 129/206 [00:18<00:10,  7.12it/s]
+Multi-thread loading shards:  63% Completed | 130/206 [00:18<00:09,  7.75it/s]
+Multi-thread loading shards:  64% Completed | 131/206 [00:18<00:09,  7.74it/s]
+Multi-thread loading shards:  64% Completed | 132/206 [00:18<00:10,  7.21it/s]
+Multi-thread loading shards:  65% Completed | 133/206 [00:18<00:09,  7.30it/s]
+Multi-thread loading shards:  65% Completed | 134/206 [00:19<00:10,  6.80it/s]
+Multi-thread loading shards:  66% Completed | 136/206 [00:19<00:09,  7.41it/s]
+Multi-thread loading shards:  67% Completed | 137/206 [00:19<00:08,  7.74it/s]
+Multi-thread loading shards:  67% Completed | 138/206 [00:19<00:08,  7.85it/s]
+Multi-thread loading shards:  67% Completed | 139/206 [00:19<00:08,  8.21it/s]
+Multi-thread loading shards:  68% Completed | 140/206 [00:19<00:08,  8.13it/s]
+Multi-thread loading shards:  68% Completed | 141/206 [00:20<00:08,  7.26it/s]
+Multi-thread loading shards:  69% Completed | 142/206 [00:20<00:08,  7.42it/s]
+Multi-thread loading shards:  69% Completed | 143/206 [00:20<00:08,  7.36it/s]
+Multi-thread loading shards:  70% Completed | 144/206 [00:20<00:08,  7.52it/s]
+Multi-thread loading shards:  70% Completed | 145/206 [00:20<00:08,  7.40it/s]
+Multi-thread loading shards:  71% Completed | 146/206 [00:20<00:07,  7.52it/s]
+Multi-thread loading shards:  71% Completed | 147/206 [00:20<00:08,  6.91it/s]
+Multi-thread loading shards:  72% Completed | 149/206 [00:21<00:07,  7.59it/s]
+Multi-thread loading shards:  73% Completed | 150/206 [00:21<00:07,  7.96it/s]
+Multi-thread loading shards:  73% Completed | 151/206 [00:21<00:07,  7.17it/s]
+Multi-thread loading shards:  74% Completed | 153/206 [00:21<00:06,  7.94it/s]
+Multi-thread loading shards:  75% Completed | 154/206 [00:21<00:07,  7.38it/s]
+Multi-thread loading shards:  75% Completed | 155/206 [00:21<00:06,  7.90it/s]
+Multi-thread loading shards:  76% Completed | 156/206 [00:22<00:06,  7.71it/s]
+Multi-thread loading shards:  76% Completed | 157/206 [00:22<00:06,  7.35it/s]
+Multi-thread loading shards:  77% Completed | 158/206 [00:22<00:06,  7.72it/s]
+Multi-thread loading shards:  77% Completed | 159/206 [00:22<00:06,  7.51it/s]
+Multi-thread loading shards:  78% Completed | 160/206 [00:22<00:06,  7.57it/s]
+Multi-thread loading shards:  78% Completed | 161/206 [00:22<00:05,  7.65it/s]
+Multi-thread loading shards:  79% Completed | 162/206 [00:22<00:05,  7.46it/s]
+Multi-thread loading shards:  79% Completed | 163/206 [00:22<00:05,  7.74it/s]
+Multi-thread loading shards:  80% Completed | 164/206 [00:23<00:05,  8.00it/s]
+Multi-thread loading shards:  80% Completed | 165/206 [00:23<00:05,  7.96it/s]
+Multi-thread loading shards:  81% Completed | 166/206 [00:23<00:05,  7.70it/s]
+Multi-thread loading shards:  81% Completed | 167/206 [00:23<00:05,  7.69it/s]
+Multi-thread loading shards:  82% Completed | 168/206 [00:23<00:05,  7.36it/s]
+Multi-thread loading shards:  82% Completed | 169/206 [00:23<00:05,  7.31it/s]
+Multi-thread loading shards:  83% Completed | 170/206 [00:23<00:04,  7.85it/s]
+Multi-thread loading shards:  83% Completed | 171/206 [00:24<00:04,  7.09it/s]
+Multi-thread loading shards:  84% Completed | 173/206 [00:24<00:04,  7.71it/s]
+Multi-thread loading shards:  84% Completed | 174/206 [00:24<00:04,  7.54it/s]
+Multi-thread loading shards:  85% Completed | 176/206 [00:24<00:03,  7.90it/s]
+Multi-thread loading shards:  86% Completed | 178/206 [00:24<00:03,  7.81it/s]
+Multi-thread loading shards:  87% Completed | 180/206 [00:25<00:02,  8.75it/s]
+Multi-thread loading shards:  88% Completed | 181/206 [00:25<00:03,  7.59it/s]
+Multi-thread loading shards:  88% Completed | 182/206 [00:25<00:03,  7.54it/s]
+Multi-thread loading shards:  89% Completed | 183/206 [00:25<00:03,  7.33it/s]
+Multi-thread loading shards:  90% Completed | 185/206 [00:25<00:02,  9.72it/s]
+Multi-thread loading shards:  91% Completed | 187/206 [00:25<00:01, 10.24it/s][2026-09-14 06:37:02 TP0] Running online NVFP4 quantization for MoE expert weights in layer 0 (mtp.layers.0.mlp.experts).
+
+Multi-thread loading shards:  94% Completed | 194/206 [00:38<00:01, 10.24it/s]
+Multi-thread loading shards:  95% Completed | 195/206 [00:59<00:31,  2.89s/it]
+Multi-thread loading shards:  95% Completed | 196/206 [00:59<00:25,  2.60s/it]
+Multi-thread loading shards: 100% Completed | 206/206 [00:59<00:00,  3.44it/s]
+[2026-09-14 06:37:36 TP0] Load weight end. elapsed=60.87 s, type=Qwen4ExpForCausalLMMTP, quant=modelopt_fp4, quant_algo=NVFP4, avail mem=70.49 GB, mem usage=-1.57 GB.
+[2026-09-14 06:37:36 TP0] Reserving 0.10 GB of the KV budget for post-sizing multimodal allocations (feature-transport pools + embedding cache).
+[2026-09-14 06:37:36 TP0] Mamba Cache is allocated. max_mamba_cache_size: 176, conv_state size: 0.18GB, ssm_state size: 9.33GB intermediate_ssm_state_cache size: 0.42GB intermediate_conv_window_cache size: 0.00GB
+[2026-09-14 06:37:37 TP0] KV Cache is allocated. dtype: torch.bfloat16, #tokens: 327680, K size: 1.88 GB, V size: 1.88 GB
+[2026-09-14 06:37:37 TP0] Memory pool end. avail mem=55.54 GB
+[2026-09-14 06:37:37 TP0] KV Cache is allocated. dtype: torch.bfloat16, #tokens: 327680, K size: 0.16 GB, V size: 0.16 GB
+[2026-09-14 06:37:37 TP0] Memory pool end. avail mem=55.21 GB
+[2026-09-14 06:37:38 TP0] Linear attention kernel backend: decode=triton, prefill=triton, verify=triton
+[2026-09-14 06:37:38 TP0] Using hybrid linear attention backend for hybrid GDN models.
+[2026-09-14 06:37:38 TP0] GDN kernel dispatcher: decode=TritonGDNKernel, extend=TritonGDNKernel, verify=TritonGDNKernel packed_decode=True
+[2026-09-14 06:37:38 TP0] Using QSA for sparse full-attention layers.
+[2026-09-14 06:37:38 TP0] Using hybrid attention backend for decode and prefill: decode_backend=trtllm_mha, prefill_backend=triton.
+[2026-09-14 06:37:38 TP0] Warning: Attention backend specified by --attention-backend or default backend might be overridden.The feature of hybrid attention backend is experimental and unstable. Please raise an issue if you encounter any problem.
+[2026-09-14 06:37:38 TP0] Linear attention kernel backend: decode=triton, prefill=triton, verify=triton
+[2026-09-14 06:37:38 TP0] Using hybrid linear attention backend for hybrid GDN models.
+[2026-09-14 06:37:38 TP0] GDN kernel dispatcher: decode=TritonGDNKernel, extend=TritonGDNKernel, verify=TritonGDNKernel packed_decode=True
+[2026-09-14 06:37:38 TP0] Using QSA for sparse full-attention layers.
+[2026-09-14 06:37:38 TP0] Using hybrid attention backend for decode and prefill: decode_backend=trtllm_mha, prefill_backend=triton.
+[2026-09-14 06:37:38 TP0] Warning: Attention backend specified by --attention-backend or default backend might be overridden.The feature of hybrid attention backend is experimental and unstable. Please raise an issue if you encounter any problem.
+[2026-09-14 06:37:38 TP0] QSA MTP index sharing enabled: draft decode steps reuse the draft-extend selection for layers [0]
+[2026-09-14 06:37:38 TP0] Disable prefill CUDA graph because cuda_graph_config resolved prefill.backend='disabled' (e.g. via --cuda-graph-backend-prefill=disabled or auto-disable rules).
+[2026-09-14 06:37:38 TP0] Capture target verify CUDA graph begin. backend=full, num_tokens_per_req=4, bs=[1], avail mem=55.20 GB
+
+  0%|          | 0/1 [00:00<?, ?it/s]
+Capturing batches (bs=1 avail_mem=55.20 GB):   0%|          | 0/1 [00:00<?, ?it/s]
+
+
+Capturing batches (bs=1 avail_mem=55.20 GB):   0%|          | 0/1 [00:00<?, ?it/s][06:37:39] : Warning: Data race detected: `Logits(bx, position)`is written by multiple threads in loop (token,), Example:
+  batch = 1
+  bx = 0
+  by = 0
+  context_len = (- 63)
+  group = (- 1)
+  max_pages = 1
+  position = (- 64)
+  token = 1
+  token_OTHER_ = 0
+  tx = 0
+If you believe this is a false positive, pass `PassKey.TL_DISABLE_DATA_RACE_CHECK` to pass key to disable this check.
+
+
+
+Capturing batches (bs=1 avail_mem=55.20 GB):   0%|          | 0/1 [00:04<?, ?it/s][2026-09-14 06:37:43 TP0] Using the Codex/Kimi K3 KDA Qwen3.8 QSA kernel on SM121 (radixark/KDA-1.5#4, submission b4181149c8884ddb)
+
+Capturing batches (bs=1 avail_mem=55.20 GB): 100%|██████████| 1/1 [00:04<00:00,  4.89s/it]
+Capturing batches (bs=1 avail_mem=55.20 GB): 100%|██████████| 1/1 [00:04<00:00,  4.89s/it]
+[2026-09-14 06:37:43 TP0] Capture target verify CUDA graph end. elapsed=5.34 s, mem usage=1.29 GB, avail mem=53.90 GB.
+[2026-09-14 06:37:43 TP0] Disable prefill CUDA graph because cuda_graph_config resolved prefill.backend='disabled' (e.g. via --cuda-graph-backend-prefill=disabled or auto-disable rules).
+[2026-09-14 06:37:43 TP0] Capture draft decode CUDA graph begin. backend=full, num_tokens_per_req=1, bs=[1], avail mem=53.90 GB
+
+  0%|          | 0/1 [00:00<?, ?it/s]
+Capturing batches (bs=1 avail_mem=53.90 GB):   0%|          | 0/1 [00:00<?, ?it/s]
+Capturing batches (bs=1 avail_mem=53.90 GB): 100%|██████████| 1/1 [00:01<00:00,  1.51s/it]
+Capturing batches (bs=1 avail_mem=53.90 GB): 100%|██████████| 1/1 [00:01<00:00,  1.51s/it]
+[2026-09-14 06:37:45 TP0] Capture draft decode CUDA graph end. elapsed=1.95 s, mem usage=0.04 GB, avail mem=53.87 GB.
+[2026-09-14 06:37:45 TP0] Capture draft extend CUDA graph begin. backend=full, num_tokens_per_req=4, bs=[1], avail mem=53.87 GB
+
+  0%|          | 0/1 [00:00<?, ?it/s]
+Capturing batches (bs=1 avail_mem=53.87 GB):   0%|          | 0/1 [00:00<?, ?it/s]
+Capturing batches (bs=1 avail_mem=53.87 GB): 100%|██████████| 1/1 [00:00<00:00, 29.35it/s]
+[2026-09-14 06:37:46 TP0] Capture draft extend CUDA graph end. elapsed=0.48 s, mem usage=0.07 GB, avail mem=53.80 GB.
+[2026-09-14 06:37:46 TP0] max_total_num_tokens=327680, chunked_prefill_size=1024, max_prefill_tokens=16384, max_running_requests=1, context_len=262144, available_gpu_mem=53.80 GB
+[2026-09-14 06:37:46 TP0] Init Unified Radix Cache. Components: (<ComponentType.FULL: 0>, <ComponentType.MAMBA: 2>). Tree Core: UnifiedTreeCore
+[2026-09-14 06:37:46 TP0] Tree cache initialized: source=default impl=UnifiedRadixCache hybrid_swa=False hybrid_ssm=True hicache_attached=False streaming_wrapped=False
+[2026-09-14 06:37:46] Engine startup timings (s): load_weight=484.40, kv_cache_allocation=1.07, scheduler_e2e=498.66, cuda_graph={prefill=0.00, decode=0.00, target_verify=5.34, draft_prefill=0.00, draft_decode=1.95, draft_extend=0.48}, tokenizer_e2e=503.61
+[2026-09-14 06:37:46] INFO:     Started server process [58]
+[2026-09-14 06:37:46] INFO:     Waiting for application startup.
+[2026-09-14 06:37:46] Using default chat sampling params from model generation config: {'temperature': 1.0, 'top_k': 20, 'top_p': 0.95}
+[2026-09-14 06:37:46] INFO:     Application startup complete.
+[2026-09-14 06:37:46] INFO:     Uvicorn running on http://127.0.0.1:8014 (Press CTRL+C to quit)
+/usr/local/lib/python3.12/dist-packages/torch/distributed/c10d_logger.py:83: FutureWarning: `torch.distributed.all_gather_into_tensor` is deprecated. Please use `torch.distributed.all_gather_single` instead.
+  return func(*args, **kwargs)
+[2026-09-14 06:37:55 TP0] Prefill batch, #new-seq: 1, #new-token: 128, #cached-token: 0, full token usage: 0.00, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 13.97
+[2026-09-14 06:37:55] Freezing GC in Tokenizer Manager process. gen0: 510->0, gen1: 4063->0, gen2: 1021501->0
+[2026-09-14 06:37:55] The server is fired up and ready to roll!
+[2026-09-14 06:37:55 TP0] Freezing GC in Scheduler process. gen0: 101->0, gen1: 1658->0, gen2: 1150397->0
+[2026-09-14 06:37:55] Freezing GC in Detokenizer Manager process. gen0: 398->0, gen1: 1175->0, gen2: 847040->0
+[2026-09-14 06:38:15 TP0] Prefill batch, #new-seq: 1, #new-token: 64, #cached-token: 0, full token usage: 0.00, mamba usage: 0.00, #running-req: 0, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 3.25
+[2026-09-14 06:38:18 TP0] Prefill batch, #new-seq: 1, #new-token: 512, #cached-token: 0, full token usage: 0.00, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 130.63
+[2026-09-14 06:38:21 TP0] Reset HybridReqToTokenPool
+[2026-09-14 06:38:21 TP0] Cache flushed successfully!
+[2026-09-14 06:38:21 TP0] Prefill batch, #new-seq: 1, #new-token: 512, #cached-token: 0, full token usage: 0.00, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 213.09
+[2026-09-14 06:38:23 TP0] Decode batch, #running-req: 1, #full token: 0, full token usage: 0.00, mamba num: 0, mamba usage: 0.00, accept len: 3.25, accept rate: 0.75, cuda graph: True, gen throughput (token/s): 3.46, #queue-req: 0
+[2026-09-14 06:38:23 TP0] Reset HybridReqToTokenPool
+[2026-09-14 06:38:23 TP0] Cache flushed successfully!
+[2026-09-14 06:38:24 TP0] Prefill batch, #new-seq: 1, #new-token: 512, #cached-token: 0, full token usage: 0.00, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 188.86
+[2026-09-14 06:38:26 TP0] Reset HybridReqToTokenPool
+[2026-09-14 06:38:26 TP0] Cache flushed successfully!
+[2026-09-14 06:38:26 TP0] Prefill batch, #new-seq: 1, #new-token: 512, #cached-token: 0, full token usage: 0.00, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 212.90
+[2026-09-14 06:38:29 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.01, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 3072, cuda graph: False, input throughput (token/s): 338.27
+[2026-09-14 06:38:29 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.01, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 2048, cuda graph: False, input throughput (token/s): 2683.13
+[2026-09-14 06:38:30 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.01, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 1024, cuda graph: False, input throughput (token/s): 2546.43
+[2026-09-14 06:38:30 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.01, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 109608.41
+[2026-09-14 06:38:30 TP0] Decode batch, #running-req: 1, #full token: 4160, full token usage: 0.01, mamba num: 4, mamba usage: 0.02, accept len: 3.40, accept rate: 0.80, cuda graph: True, gen throughput (token/s): 20.34, #queue-req: 0
+[2026-09-14 06:38:32 TP0] Reset HybridReqToTokenPool
+[2026-09-14 06:38:32 TP0] Cache flushed successfully!
+[2026-09-14 06:38:33 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.01, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 3072, cuda graph: False, input throughput (token/s): 371.27
+[2026-09-14 06:38:33 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.01, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 2048, cuda graph: False, input throughput (token/s): 2647.18
+[2026-09-14 06:38:33 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.01, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 1024, cuda graph: False, input throughput (token/s): 2541.67
+[2026-09-14 06:38:33 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.01, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 110479.53
+[2026-09-14 06:38:35 TP0] Reset HybridReqToTokenPool
+[2026-09-14 06:38:35 TP0] Cache flushed successfully!
+[2026-09-14 06:38:36 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.01, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 3072, cuda graph: False, input throughput (token/s): 374.33
+[2026-09-14 06:38:36 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.01, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 2048, cuda graph: False, input throughput (token/s): 2645.54
+[2026-09-14 06:38:37 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.01, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 1024, cuda graph: False, input throughput (token/s): 2535.25
+[2026-09-14 06:38:37 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.01, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 103448.08
+[2026-09-14 06:38:39 TP0] Reset HybridReqToTokenPool
+[2026-09-14 06:38:39 TP0] Cache flushed successfully!
+[2026-09-14 06:38:40 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.01, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 3072, cuda graph: False, input throughput (token/s): 372.56
+[2026-09-14 06:38:40 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.01, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 2048, cuda graph: False, input throughput (token/s): 2667.07
+[2026-09-14 06:38:40 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.01, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 1024, cuda graph: False, input throughput (token/s): 2554.15
+[2026-09-14 06:38:40 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.01, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 112971.86
+[2026-09-14 06:38:42 TP0] Reset HybridReqToTokenPool
+[2026-09-14 06:38:42 TP0] Cache flushed successfully!
+[2026-09-14 06:38:43 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.01, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 3072, cuda graph: False, input throughput (token/s): 371.93
+[2026-09-14 06:38:44 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.01, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 2048, cuda graph: False, input throughput (token/s): 2646.42
+[2026-09-14 06:38:44 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.01, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 1024, cuda graph: False, input throughput (token/s): 2535.09
+[2026-09-14 06:38:44 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.01, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 113415.89
+[2026-09-14 06:38:46 TP0] Reset HybridReqToTokenPool
+[2026-09-14 06:38:46 TP0] Cache flushed successfully!
+[2026-09-14 06:38:47 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.01, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 3072, cuda graph: False, input throughput (token/s): 372.92
+[2026-09-14 06:38:47 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.01, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 2048, cuda graph: False, input throughput (token/s): 2654.41
+[2026-09-14 06:38:48 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.01, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 1024, cuda graph: False, input throughput (token/s): 2546.81
+[2026-09-14 06:38:48 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.01, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 111151.48
+[2026-09-14 06:38:49 TP0] Reset HybridReqToTokenPool
+[2026-09-14 06:38:49 TP0] Cache flushed successfully!
+[2026-09-14 06:38:50 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.01, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 3072, cuda graph: False, input throughput (token/s): 373.50
+[2026-09-14 06:38:51 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.01, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 2048, cuda graph: False, input throughput (token/s): 2638.14
+[2026-09-14 06:38:51 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.01, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 1024, cuda graph: False, input throughput (token/s): 2536.21
+[2026-09-14 06:38:51 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.01, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 111081.64
+[2026-09-14 06:38:53 TP0] Reset HybridReqToTokenPool
+[2026-09-14 06:38:53 TP0] Cache flushed successfully!
+[2026-09-14 06:38:54 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.01, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 3072, cuda graph: False, input throughput (token/s): 374.32
+[2026-09-14 06:38:54 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.01, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 2048, cuda graph: False, input throughput (token/s): 2632.75
+[2026-09-14 06:38:55 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.01, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 1024, cuda graph: False, input throughput (token/s): 2532.33
+[2026-09-14 06:38:55 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.01, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 112529.09
+[2026-09-14 06:38:57 TP0] Reset HybridReqToTokenPool
+[2026-09-14 06:38:57 TP0] Cache flushed successfully!
+[2026-09-14 06:38:57 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.01, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 3072, cuda graph: False, input throughput (token/s): 372.29
+[2026-09-14 06:38:58 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.01, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 2048, cuda graph: False, input throughput (token/s): 2644.19
+[2026-09-14 06:38:58 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.01, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 1024, cuda graph: False, input throughput (token/s): 2535.12
+[2026-09-14 06:38:58 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.01, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 110573.64
+[2026-09-14 06:39:00 TP0] Reset HybridReqToTokenPool
+[2026-09-14 06:39:00 TP0] Cache flushed successfully!
+[2026-09-14 06:39:01 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.01, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 3072, cuda graph: False, input throughput (token/s): 372.69
+[2026-09-14 06:39:01 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.01, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 2048, cuda graph: False, input throughput (token/s): 2649.73
+[2026-09-14 06:39:02 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.01, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 1024, cuda graph: False, input throughput (token/s): 2521.12
+[2026-09-14 06:39:02 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.01, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 112641.20
+[2026-09-14 06:39:04 TP0] Reset HybridReqToTokenPool
+[2026-09-14 06:39:04 TP0] Cache flushed successfully!
+[2026-09-14 06:39:04 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.01, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 3072, cuda graph: False, input throughput (token/s): 372.73
+[2026-09-14 06:39:05 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.01, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 2048, cuda graph: False, input throughput (token/s): 2635.55
+[2026-09-14 06:39:05 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.01, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 1024, cuda graph: False, input throughput (token/s): 2539.37
+[2026-09-14 06:39:05 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.01, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 110265.02
+[2026-09-14 06:39:08 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 3072, full token usage: 0.02, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 12288, cuda graph: False, input throughput (token/s): 370.62
+[2026-09-14 06:39:08 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.02, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 11264, cuda graph: False, input throughput (token/s): 2628.54
+[2026-09-14 06:39:09 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.02, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 10240, cuda graph: False, input throughput (token/s): 2629.16
+[2026-09-14 06:39:09 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.03, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 9216, cuda graph: False, input throughput (token/s): 2614.66
+[2026-09-14 06:39:10 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.03, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 8192, cuda graph: False, input throughput (token/s): 2606.68
+[2026-09-14 06:39:10 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.03, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 7168, cuda graph: False, input throughput (token/s): 2607.90
+[2026-09-14 06:39:10 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.03, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 6144, cuda graph: False, input throughput (token/s): 2611.94
+[2026-09-14 06:39:11 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.04, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 5120, cuda graph: False, input throughput (token/s): 2614.52
+[2026-09-14 06:39:11 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.04, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 4096, cuda graph: False, input throughput (token/s): 2599.29
+[2026-09-14 06:39:12 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.04, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 3072, cuda graph: False, input throughput (token/s): 2594.15
+[2026-09-14 06:39:12 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.05, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 2048, cuda graph: False, input throughput (token/s): 2598.05
+[2026-09-14 06:39:12 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.05, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 1024, cuda graph: False, input throughput (token/s): 2467.27
+[2026-09-14 06:39:12 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.05, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 105487.00
+[2026-09-14 06:39:13 TP0] Decode batch, #running-req: 1, #full token: 16448, full token usage: 0.05, mamba num: 4, mamba usage: 0.02, accept len: 4.00, accept rate: 1.00, cuda graph: True, gen throughput (token/s): 3.73, #queue-req: 0
+[2026-09-14 06:39:14 TP0] Reset HybridReqToTokenPool
+[2026-09-14 06:39:14 TP0] Cache flushed successfully!
+[2026-09-14 06:39:15 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.01, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 15360, cuda graph: False, input throughput (token/s): 368.39
+[2026-09-14 06:39:16 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.01, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 14336, cuda graph: False, input throughput (token/s): 2644.94
+[2026-09-14 06:39:16 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.01, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 13312, cuda graph: False, input throughput (token/s): 2645.52
+[2026-09-14 06:39:16 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.02, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 12288, cuda graph: False, input throughput (token/s): 2652.22
+[2026-09-14 06:39:17 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.02, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 11264, cuda graph: False, input throughput (token/s): 2610.77
+[2026-09-14 06:39:17 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.02, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 10240, cuda graph: False, input throughput (token/s): 2635.90
+[2026-09-14 06:39:17 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.03, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 9216, cuda graph: False, input throughput (token/s): 2613.85
+[2026-09-14 06:39:18 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.03, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 8192, cuda graph: False, input throughput (token/s): 2615.18
+[2026-09-14 06:39:18 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.03, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 7168, cuda graph: False, input throughput (token/s): 2596.73
+[2026-09-14 06:39:19 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.03, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 6144, cuda graph: False, input throughput (token/s): 2602.26
+[2026-09-14 06:39:19 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.04, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 5120, cuda graph: False, input throughput (token/s): 2586.53
+[2026-09-14 06:39:19 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.04, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 4096, cuda graph: False, input throughput (token/s): 2583.64
+[2026-09-14 06:39:20 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.04, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 3072, cuda graph: False, input throughput (token/s): 2586.64
+[2026-09-14 06:39:20 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.05, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 2048, cuda graph: False, input throughput (token/s): 2584.49
+[2026-09-14 06:39:21 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.05, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 1024, cuda graph: False, input throughput (token/s): 2486.54
+[2026-09-14 06:39:21 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.05, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 109074.71
+[2026-09-14 06:39:23 TP0] Reset HybridReqToTokenPool
+[2026-09-14 06:39:23 TP0] Cache flushed successfully!
+[2026-09-14 06:39:23 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.01, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 15360, cuda graph: False, input throughput (token/s): 369.97
+[2026-09-14 06:39:24 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.01, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 14336, cuda graph: False, input throughput (token/s): 2640.88
+[2026-09-14 06:39:24 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.01, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 13312, cuda graph: False, input throughput (token/s): 2659.26
+[2026-09-14 06:39:25 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.02, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 12288, cuda graph: False, input throughput (token/s): 2644.34
+[2026-09-14 06:39:25 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.02, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 11264, cuda graph: False, input throughput (token/s): 2631.89
+[2026-09-14 06:39:25 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.02, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 10240, cuda graph: False, input throughput (token/s): 2627.88
+[2026-09-14 06:39:26 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.03, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 9216, cuda graph: False, input throughput (token/s): 2590.53
+[2026-09-14 06:39:26 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.03, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 8192, cuda graph: False, input throughput (token/s): 2598.67
+[2026-09-14 06:39:27 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.03, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 7168, cuda graph: False, input throughput (token/s): 2603.97
+[2026-09-14 06:39:27 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.03, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 6144, cuda graph: False, input throughput (token/s): 2591.57
+[2026-09-14 06:39:27 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.04, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 5120, cuda graph: False, input throughput (token/s): 2585.56
+[2026-09-14 06:39:28 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.04, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 4096, cuda graph: False, input throughput (token/s): 2578.82
+[2026-09-14 06:39:28 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.04, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 3072, cuda graph: False, input throughput (token/s): 2587.91
+[2026-09-14 06:39:29 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.05, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 2048, cuda graph: False, input throughput (token/s): 2590.15
+[2026-09-14 06:39:29 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.05, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 1024, cuda graph: False, input throughput (token/s): 2472.14
+[2026-09-14 06:39:29 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.05, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 107256.06
+[2026-09-14 06:39:31 TP0] Reset HybridReqToTokenPool
+[2026-09-14 06:39:31 TP0] Cache flushed successfully!
+[2026-09-14 06:39:32 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.01, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 15360, cuda graph: False, input throughput (token/s): 370.26
+[2026-09-14 06:39:32 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.01, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 14336, cuda graph: False, input throughput (token/s): 2638.48
+[2026-09-14 06:39:32 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.01, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 13312, cuda graph: False, input throughput (token/s): 2630.99
+[2026-09-14 06:39:33 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.02, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 12288, cuda graph: False, input throughput (token/s): 2630.70
+[2026-09-14 06:39:33 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.02, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 11264, cuda graph: False, input throughput (token/s): 2607.42
+[2026-09-14 06:39:34 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.02, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 10240, cuda graph: False, input throughput (token/s): 2628.12
+[2026-09-14 06:39:34 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.03, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 9216, cuda graph: False, input throughput (token/s): 2617.92
+[2026-09-14 06:39:34 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.03, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 8192, cuda graph: False, input throughput (token/s): 2623.23
+[2026-09-14 06:39:35 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.03, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 7168, cuda graph: False, input throughput (token/s): 2614.70
+[2026-09-14 06:39:35 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.03, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 6144, cuda graph: False, input throughput (token/s): 2614.12
+[2026-09-14 06:39:36 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.04, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 5120, cuda graph: False, input throughput (token/s): 2600.40
+[2026-09-14 06:39:36 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.04, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 4096, cuda graph: False, input throughput (token/s): 2603.59
+[2026-09-14 06:39:36 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.04, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 3072, cuda graph: False, input throughput (token/s): 2582.72
+[2026-09-14 06:39:37 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.05, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 2048, cuda graph: False, input throughput (token/s): 2589.34
+[2026-09-14 06:39:37 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.05, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 1024, cuda graph: False, input throughput (token/s): 2448.82
+[2026-09-14 06:39:37 TP0] Prefill batch, #new-seq: 1, #new-token: 1024, #cached-token: 0, full token usage: 0.05, mamba usage: 0.02, #running-req: 0, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 104827.65
+[2026-09-14 06:39:59] SIGTERM received. signum=None frame=None. Draining requests and shutting down...
+[2026-09-14 06:40:02] Gracefully exiting... Remaining number of requests 0. Remaining requests remaining_rids=[].
+[rank0]:[W914 06:40:03.950463376 ProcessGroupNCCL.cpp:1624] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())
+[2026-09-14 06:40:03] kill_process_tree called: parent_pid=58, include_parent=True, pid=58

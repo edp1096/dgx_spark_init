@@ -1,0 +1,7 @@
+{
+  "all_four_answers_identical": true,
+  "old_weighted_tg": 18.610491485689327,
+  "new_weighted_tg": 18.44205529989298,
+  "percent_change": -0.9050603844926175,
+  "limitation": "Four requests with immediate repeats, different initial cache states; regression check rather than a general speedup measurement."
+}

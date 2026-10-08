@@ -1,0 +1,7 @@
+data/org.freedesktop.ibus.engine.hangul-backspace.metainfo.xml.in
+setup/keycapturedialog.py
+setup/main.py
+setup/hangul-backspace.desktop.in.in
+setup/setup.ui
+src/engine.c
+src/main.c

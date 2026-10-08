@@ -1,0 +1,14 @@
+{
+  "local": {
+    "kernel_error_lines": [],
+    "image": "sha256:8566f13bbaa6ab5111bd06f742fc1246047a7d9232070083c8682008a22d6238",
+    "oom_killed": false,
+    "running": true
+  },
+  "10.200.0.2": {
+    "kernel_error_lines": [],
+    "image": "sha256:8566f13bbaa6ab5111bd06f742fc1246047a7d9232070083c8682008a22d6238",
+    "oom_killed": false,
+    "running": true
+  }
+}

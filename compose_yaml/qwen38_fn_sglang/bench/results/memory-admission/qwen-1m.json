@@ -1,0 +1,56 @@
+{
+  "memory": {
+    "schema": 1,
+    "unit": "GiB",
+    "context_tokens": 1048576,
+    "capacity_tokens": 1048576,
+    "kv_dtype": "torch.float8_e4m3fn",
+    "mtp_layers": 1,
+    "target_load_delta_gib": 75.68917083740234,
+    "draft_load_delta_gib": 4.293888092041016,
+    "kv_and_qsa_gib": 13.813368201255798,
+    "mamba_cache_gib": 1.8279876708984375,
+    "cuda_allocated_gib": 90.54916763305664,
+    "cuda_reserved_gib": 94.26953125,
+    "cuda_peak_allocated_gib": 93.09447526931763,
+    "cuda_peak_reserved_gib": 94.26953125
+  },
+  "host": {
+    "time": 1790791290.2275925,
+    "phase": "qwen_1m",
+    "available_gib": 14.68817138671875,
+    "free_gib": 10.887630462646484,
+    "pswpout": 7302179,
+    "oom_kill": 0
+  },
+  "response": {
+    "id": "d63845289c104263aeda77ad2e35e925",
+    "object": "chat.completion",
+    "created": 1790791290,
+    "model": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-NVFP4-QAD",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "42",
+          "reasoning_content": null,
+          "tool_calls": null
+        },
+        "logprobs": null,
+        "finish_reason": "stop",
+        "matched_stop": 248046
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 1048024,
+      "total_tokens": 1048027,
+      "completion_tokens": 3,
+      "prompt_tokens_details": null,
+      "reasoning_tokens": 0
+    },
+    "metadata": {
+      "weight_version": "default"
+    }
+  }
+}

@@ -1,0 +1,96 @@
+# Cached RadixArk TP1, 1M KV, LLM only. Use with compose.yaml; preparation is strictly offline.
+services:
+  model-prepare:
+    network_mode: none
+    command: ["--check"]
+    entrypoint: ["python", "-u", "/opt/radixark/prepare_model.py"]
+    environment:
+      HF_HUB_OFFLINE: "1"
+      QWEN_QAD_MODEL_ID: edp1096/Huihui-RadixArk-Qwen3.8-Flash-Next-abliterated-NVFP4
+      QWEN_QAD_REVISION: 40f09f531da577a4fcfbd6b368e7b6ebacde403e
+      QWEN_QAD_MODEL_PATH: /hf/edp1096/Huihui-RadixArk-Qwen3.8-Flash-Next-abliterated-NVFP4
+    volumes:
+      - ./prepare_model.py:/opt/radixark/prepare_model.py:ro
+      - ./checkpoint.huihui-lil.json:/opt/radixark/checkpoint.huihui-lil.json:ro
+      - ./checkpoint.radixark.json:/opt/radixark/checkpoint.radixark.json:ro
+  sglang:
+    container_name: sglang-qwen38-fn-radixark
+    ports: !override ["18003:30000"]
+    entrypoint: ["python3", "/opt/radixark/launch.py"]
+    environment:
+      SGLANG_QAD_B12X_GDN: "0"
+      SGLANG_QWEN4_PLE_FILE_RSS_BUDGET_GB: "0.5"
+      SPARKTALK_FLASH_NEXT_DRAFT_VOCAB: ko64k
+    volumes:
+      - ./radixark_launch.py:/opt/radixark/launch.py:ro
+      - ./radixark_launch.py:/opt/qad-tp1/qad_loader.py:ro
+    command:
+      - --model-path
+      - /hf/edp1096/Huihui-RadixArk-Qwen3.8-Flash-Next-abliterated-NVFP4
+      - --served-model-name
+      - edp1096/Huihui-RadixArk-Qwen3.8-Flash-Next-abliterated-NVFP4
+      - --host
+      - 0.0.0.0
+      - --port
+      - "30000"
+      - --load-format
+      - auto
+      - --weight-loader-drop-cache-after-load
+      - --tp-size
+      - "1"
+      - --context-length
+      - "1048576"
+      - --max-total-tokens
+      - "1048576"
+      - --mem-fraction-static
+      - "0.92"
+      - --chunked-prefill-size
+      - "4096"
+      - --max-running-requests
+      - "1"
+      - --page-size
+      - "64"
+      - --cuda-graph-max-bs-decode
+      - "1"
+      - --prefill-attention-backend
+      - triton
+      - --decode-attention-backend
+      - trtllm_mha
+      - --kv-cache-dtype
+      - fp8_e4m3
+      - --quantization
+      - modelopt_fp4
+      - --moe-runner-backend
+      - flashinfer_cutlass
+      - --fp4-gemm-backend
+      - flashinfer_cutlass
+      - --disable-shared-experts-fusion
+      - --ple-offload-embedding
+      - --ple-offload-backend
+      - file
+      - --ple-offload-dir
+      - /ple
+      - --mamba-radix-cache-strategy
+      - extra_buffer
+      - --reasoning-parser
+      - qwen3
+      - --tool-call-parser
+      - qwen3_coder
+      - --mm-feature-transport
+      - cpu
+      - --speculative-algorithm
+      - NEXTN
+      - --speculative-num-steps
+      - "3"
+      - --speculative-eagle-topk
+      - "1"
+      - --speculative-num-draft-tokens
+      - "4"
+      - --speculative-draft-model-quantization
+      - modelopt_fp4
+      - --disable-flashinfer-autotune
+      - --enable-metrics
+      - --max-mamba-cache-size
+      - "8"
+      - --json-model-override-args
+      - '{"text_config":{"rope_parameters":{"mrope_interleaved":true,"mrope_section":[11,11,10],"rope_type":"yarn","rope_theta":10000000,"partial_rotary_factor":0.25,"factor":4.0,"original_max_position_embeddings":262144}}}'

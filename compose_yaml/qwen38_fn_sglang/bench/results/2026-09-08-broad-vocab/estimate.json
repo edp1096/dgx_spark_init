@@ -1,0 +1,40 @@
+{
+  "created": "2026-09-08T21:01:05.662358+09:00",
+  "kind": "estimate-before-measurement",
+  "model": "dealignai/Qwen3.8-Flash-Next-ABLITERATED-NVFP4",
+  "image": "dgx-sglang-qwen38-fn:sm121-vocab1",
+  "valid_tokenizer_ids": 248077,
+  "output_head_rows": 248320,
+  "hidden_size": 2560,
+  "dtype": "bfloat16",
+  "shared_target_head_bytes": 1271398400,
+  "variants": [
+    {
+      "mode": "ko64k",
+      "candidate_ids": 65536,
+      "extra_head_bytes": 335544320,
+      "transient_clone_plus_subset_bytes": 1606942720
+    },
+    {
+      "mode": "ko128k",
+      "candidate_ids": 131072,
+      "extra_head_bytes": 671088640,
+      "transient_clone_plus_subset_bytes": 1942487040
+    },
+    {
+      "mode": "full",
+      "candidate_ids": 248077,
+      "scored_output_rows": 248320,
+      "extra_head_bytes": 0,
+      "transient_clone_plus_subset_bytes": 0
+    }
+  ],
+  "notes": [
+    "Full off mode shares the target lm_head; shortlist modes allocate a gathered copy.",
+    "Extra head size is not total engine memory. Logits, CUDA graphs, KV pools and allocator reservations are separate.",
+    "Context length 65536, KV max_total_tokens 65536, max_mamba_cache_size 18, MTP steps 3 / draft tokens 4 fixed for all trials.",
+    "Prior production automatic-KV trials retained >=20.79 GiB MemAvailable; fixed KV cap is lower and more conservative.",
+    "Stop experiment at MemAvailable <16 GiB; never run two model servers at once.",
+    "Original model container is stopped and will remain untouched."
+  ]
+}

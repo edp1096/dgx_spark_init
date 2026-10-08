@@ -1,0 +1,30 @@
+name: extra_documents
+services:
+    documents:
+        build: .
+        cap_drop:
+            - ALL
+        container_name: sparktalk-extra-documents
+        cpus: 2
+        healthcheck:
+            interval: 15s
+            retries: 3
+            start_period: 10s
+            test:
+                - CMD
+                - node
+                - -e
+                - fetch('http://127.0.0.1:8696/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))
+            timeout: 5s
+        image: sparktalk-extra-documents:0.4.0
+        init: true
+        mem_limit: 1g
+        pids_limit: 128
+        ports:
+            - ${BIND_ADDRESS:-127.0.0.1}:${PORT:-8696}:8696
+        read_only: true
+        restart: unless-stopped
+        security_opt:
+            - no-new-privileges:true
+        tmpfs:
+            - /tmp:rw,nosuid,size=512m

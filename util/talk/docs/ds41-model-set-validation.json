@@ -1,0 +1,35 @@
+{
+  "local": {
+    "min_available_gib": 15.07,
+    "last_available_gib": 16.22,
+    "rebooted": false,
+    "swap_growth_gib": 0.0
+  },
+  "worker": {
+    "min_available_gib": 12.9,
+    "last_available_gib": 14.69,
+    "rebooted": false,
+    "swap_growth_gib": -0.0
+  },
+  "start": "2026-09-12T21:22:04.123512463+09:00",
+  "ready": "2026-09-12T21:24:15.392023284+09:00",
+  "start_order": [
+    "extra-media",
+    "extra-ssh",
+    "extra-collector",
+    "nemotron-asr",
+    "extra-documents",
+    "ds41"
+  ],
+  "talk": {
+    "answer": "5",
+    "input_tokens": 4686,
+    "pp": 147.0404,
+    "ttft_seconds": 31.8688,
+    "output_tokens": 2
+  },
+  "asr": {
+    "status": 200,
+    "body": "{\"text\":\"Hello, this is a speech recognition test.\",\"language\":\"\"}\n"
+  }
+}

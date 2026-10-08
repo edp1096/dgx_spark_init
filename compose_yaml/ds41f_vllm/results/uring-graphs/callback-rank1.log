@@ -1,0 +1,51 @@
+PHASE seed 1
+PHASE baseline 1
+b12x policy fallback: moe.decode is using a heuristic on nvidia gb10 (compute capability 12.1, 48 SMs) because profile 'nvidia.gb10.48sm' does not cover the query; query={'activation': 'silu', 'hidden_size': 5120, 'intermediate_size': 1152, 'num_experts': 224, 'num_tokens': 1, 'numerical_recipe': 'deepseek_v41', 'quant_mode': 'w4a8_mx', 'routed_rows': 6, 'source_format': 'fp4_e8m0_k32', 'top_k': 6}
+PHASE callback-eager 1
+PHASE callback-eager-complete 1
+PHASE capture 1
+PHASE captured 1
+PHASE parity 1 hit
+{"tokens": 1, "state": "hit", "variant": "baseline", "trial": -1, "warmup": true, "ms": 0.4228722832825345, "cpu_callback_ms_per_call": null}
+{"tokens": 1, "state": "hit", "variant": "callback", "trial": -1, "warmup": true, "ms": 0.5730445333028911, "cpu_callback_ms_per_call": 0.0003138666666666667}
+{"tokens": 1, "state": "hit", "variant": "callback", "trial": 0, "warmup": false, "ms": 0.6649034666528072, "cpu_callback_ms_per_call": 0.0005413333333333333}
+{"tokens": 1, "state": "hit", "variant": "baseline", "trial": 0, "warmup": false, "ms": 0.4230490667396225, "cpu_callback_ms_per_call": null}
+{"tokens": 1, "state": "hit", "variant": "baseline", "trial": 1, "warmup": false, "ms": 0.42197386671129306, "cpu_callback_ms_per_call": null}
+{"tokens": 1, "state": "hit", "variant": "callback", "trial": 1, "warmup": false, "ms": 0.5632298666265948, "cpu_callback_ms_per_call": 0.00011946666666666667}
+{"tokens": 1, "state": "hit", "variant": "callback", "trial": 2, "warmup": false, "ms": 0.5509178665912865, "cpu_callback_ms_per_call": 0.0007466666666666666}
+{"tokens": 1, "state": "hit", "variant": "baseline", "trial": 2, "warmup": false, "ms": 0.43165653332835063, "cpu_callback_ms_per_call": null}
+PHASE parity 1 evict
+{"tokens": 1, "state": "evict", "variant": "baseline", "trial": -1, "warmup": true, "ms": 8.002505417001279, "cpu_callback_ms_per_call": null}
+{"tokens": 1, "state": "evict", "variant": "callback", "trial": -1, "warmup": true, "ms": 7.672509333739678, "cpu_callback_ms_per_call": 7.0183013333333335}
+{"tokens": 1, "state": "evict", "variant": "callback", "trial": 0, "warmup": false, "ms": 7.877128082933875, "cpu_callback_ms_per_call": 7.258954666666667}
+{"tokens": 1, "state": "evict", "variant": "baseline", "trial": 0, "warmup": false, "ms": 8.27450274967608, "cpu_callback_ms_per_call": null}
+{"tokens": 1, "state": "evict", "variant": "baseline", "trial": 1, "warmup": false, "ms": 7.732632000018687, "cpu_callback_ms_per_call": null}
+{"tokens": 1, "state": "evict", "variant": "callback", "trial": 1, "warmup": false, "ms": 7.689788083856304, "cpu_callback_ms_per_call": 7.122328083333334}
+{"tokens": 1, "state": "evict", "variant": "callback", "trial": 2, "warmup": false, "ms": 7.719326749793254, "cpu_callback_ms_per_call": 7.135245416666667}
+{"tokens": 1, "state": "evict", "variant": "baseline", "trial": 2, "warmup": false, "ms": 7.804933416385514, "cpu_callback_ms_per_call": null}
+PHASE seed 6
+PHASE baseline 6
+b12x policy fallback: moe.decode is using a heuristic on nvidia gb10 (compute capability 12.1, 48 SMs) because profile 'nvidia.gb10.48sm' does not cover the query; query={'activation': 'silu', 'hidden_size': 5120, 'intermediate_size': 1152, 'num_experts': 224, 'num_tokens': 6, 'numerical_recipe': 'deepseek_v41', 'quant_mode': 'w4a8_mx', 'routed_rows': 36, 'source_format': 'fp4_e8m0_k32', 'top_k': 6}
+PHASE callback-eager 6
+PHASE callback-eager-complete 6
+PHASE capture 6
+PHASE captured 6
+PHASE parity 6 hit
+{"tokens": 6, "state": "hit", "variant": "baseline", "trial": -1, "warmup": true, "ms": 2.1168595000441806, "cpu_callback_ms_per_call": null}
+{"tokens": 6, "state": "hit", "variant": "callback", "trial": -1, "warmup": true, "ms": 2.5819515000572815, "cpu_callback_ms_per_call": 0.0006930666666666667}
+{"tokens": 6, "state": "hit", "variant": "callback", "trial": 0, "warmup": false, "ms": 2.322688316659575, "cpu_callback_ms_per_call": 0.0005688}
+{"tokens": 6, "state": "hit", "variant": "baseline", "trial": 0, "warmup": false, "ms": 2.147165100056251, "cpu_callback_ms_per_call": null}
+{"tokens": 6, "state": "hit", "variant": "baseline", "trial": 1, "warmup": false, "ms": 2.119795783316173, "cpu_callback_ms_per_call": null}
+{"tokens": 6, "state": "hit", "variant": "callback", "trial": 1, "warmup": false, "ms": 2.7222512500884477, "cpu_callback_ms_per_call": 0.000676}
+{"tokens": 6, "state": "hit", "variant": "callback", "trial": 2, "warmup": false, "ms": 2.756102449954293, "cpu_callback_ms_per_call": 0.0007586666666666666}
+{"tokens": 6, "state": "hit", "variant": "baseline", "trial": 2, "warmup": false, "ms": 2.1114099166879896, "cpu_callback_ms_per_call": null}
+PHASE parity 6 evict
+{"tokens": 6, "state": "evict", "variant": "baseline", "trial": -1, "warmup": true, "ms": 44.69605841707865, "cpu_callback_ms_per_call": null}
+{"tokens": 6, "state": "evict", "variant": "callback", "trial": -1, "warmup": true, "ms": 44.41712516684978, "cpu_callback_ms_per_call": 41.89974375}
+{"tokens": 6, "state": "evict", "variant": "callback", "trial": 0, "warmup": false, "ms": 44.65260383343169, "cpu_callback_ms_per_call": 42.41653983333333}
+{"tokens": 6, "state": "evict", "variant": "baseline", "trial": 0, "warmup": false, "ms": 45.126843999848155, "cpu_callback_ms_per_call": null}
+{"tokens": 6, "state": "evict", "variant": "baseline", "trial": 1, "warmup": false, "ms": 44.8250546669442, "cpu_callback_ms_per_call": null}
+{"tokens": 6, "state": "evict", "variant": "callback", "trial": 1, "warmup": false, "ms": 44.25274275005601, "cpu_callback_ms_per_call": 41.71748133333333}
+{"tokens": 6, "state": "evict", "variant": "callback", "trial": 2, "warmup": false, "ms": 44.74000141696403, "cpu_callback_ms_per_call": 42.20680266666667}
+{"tokens": 6, "state": "evict", "variant": "baseline", "trial": 2, "warmup": false, "ms": 44.18066283324151, "cpu_callback_ms_per_call": null}
+{"1-hit": {"baseline": 0.4230490667396225, "callback": 0.5632298666265948}, "1-evict": {"baseline": 7.804933416385514, "callback": 7.719326749793254}, "6-hit": {"baseline": 2.119795783316173, "callback": 2.7222512500884477}, "6-evict": {"baseline": 44.8250546669442, "callback": 44.65260383343169}}

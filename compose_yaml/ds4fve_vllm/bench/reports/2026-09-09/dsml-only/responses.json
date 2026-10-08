@@ -1,0 +1,374 @@
+[
+  {
+    "id": "repeat_json60",
+    "repeat": 0,
+    "content": "{\"numbers\":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60],\"sum\":1830}",
+    "reasoning": "",
+    "tool_calls": {},
+    "usage": {
+      "prompt_tokens": 51,
+      "total_tokens": 180,
+      "completion_tokens": 129,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    },
+    "elapsed_s": 1.646865294998861,
+    "ttft_s": 0.176111149999997,
+    "finish_reason": "stop",
+    "passed": true
+  },
+  {
+    "id": "repeat_long_facts",
+    "repeat": 0,
+    "content": "{\"담당자\":\"박민수\",\"장소\":\"서울\",\"수량\":37,\"총액\":44400}",
+    "reasoning": "",
+    "tool_calls": {},
+    "usage": {
+      "prompt_tokens": 19692,
+      "total_tokens": 19720,
+      "completion_tokens": 28,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    },
+    "elapsed_s": 13.04432576599902,
+    "ttft_s": 12.644073608000326,
+    "finish_reason": "stop",
+    "passed": true
+  },
+  {
+    "id": "korean_arithmetic",
+    "repeat": 0,
+    "content": "{\"remaining\": 182, \"boxes\": 16}",
+    "reasoning": "",
+    "tool_calls": {},
+    "usage": {
+      "prompt_tokens": 79,
+      "total_tokens": 92,
+      "completion_tokens": 13,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    },
+    "elapsed_s": 0.5449750080006197,
+    "ttft_s": 0.26716645499982405,
+    "finish_reason": "stop",
+    "passed": true
+  },
+  {
+    "id": "tool_auto",
+    "repeat": 0,
+    "content": "",
+    "reasoning": "",
+    "tool_calls": {
+      "0": {
+        "name": "get_weather",
+        "arguments": "{\"city\": \"서울\", \"date\": \"2026-09-10\"}"
+      }
+    },
+    "usage": {
+      "prompt_tokens": 334,
+      "total_tokens": 401,
+      "completion_tokens": 67,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    },
+    "elapsed_s": 1.130875285000002,
+    "ttft_s": 0.6425264079989574,
+    "finish_reason": "tool_calls",
+    "passed": true
+  },
+  {
+    "id": "tool_required",
+    "repeat": 0,
+    "content": "",
+    "reasoning": "",
+    "tool_calls": {
+      "0": {
+        "name": "get_weather",
+        "arguments": "{\"city\": \"부산\", \"date\": \"2026-09-11\"}"
+      }
+    },
+    "usage": {
+      "prompt_tokens": 320,
+      "total_tokens": 387,
+      "completion_tokens": 67,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    },
+    "elapsed_s": 1.366301318999831,
+    "ttft_s": 0.8790254610012198,
+    "finish_reason": "stop",
+    "passed": false
+  },
+  {
+    "id": "tool_none",
+    "repeat": 0,
+    "content": "{\"status\":\"not_requested\"}",
+    "reasoning": "",
+    "tool_calls": {},
+    "usage": {
+      "prompt_tokens": 324,
+      "total_tokens": 332,
+      "completion_tokens": 8,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    },
+    "elapsed_s": 0.5578727170013735,
+    "ttft_s": 0.4172966610003641,
+    "finish_reason": "stop",
+    "passed": true
+  },
+  {
+    "id": "repeat_json60",
+    "repeat": 1,
+    "content": "{\"numbers\":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60],\"sum\":1830}",
+    "reasoning": "",
+    "tool_calls": {},
+    "usage": {
+      "prompt_tokens": 51,
+      "total_tokens": 180,
+      "completion_tokens": 129,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    },
+    "elapsed_s": 1.6996561710002425,
+    "ttft_s": 0.22814898300021014,
+    "finish_reason": "stop",
+    "passed": true
+  },
+  {
+    "id": "repeat_long_facts",
+    "repeat": 1,
+    "content": "{\"담당자\":\"박민수\",\"장소\":\"서울\",\"수량\":37,\"총액\":44400}",
+    "reasoning": "",
+    "tool_calls": {},
+    "usage": {
+      "prompt_tokens": 19692,
+      "total_tokens": 19720,
+      "completion_tokens": 28,
+      "prompt_tokens_details": {
+        "cached_tokens": 19456
+      }
+    },
+    "elapsed_s": 0.9009545370008709,
+    "ttft_s": 0.42224145700129156,
+    "finish_reason": "stop",
+    "passed": true
+  },
+  {
+    "id": "korean_arithmetic",
+    "repeat": 1,
+    "content": "{\"remaining\": 182, \"boxes\": 16}",
+    "reasoning": "",
+    "tool_calls": {},
+    "usage": {
+      "prompt_tokens": 79,
+      "total_tokens": 92,
+      "completion_tokens": 13,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    },
+    "elapsed_s": 0.5558119609995629,
+    "ttft_s": 0.27004886000031547,
+    "finish_reason": "stop",
+    "passed": true
+  },
+  {
+    "id": "tool_auto",
+    "repeat": 1,
+    "content": "",
+    "reasoning": "",
+    "tool_calls": {
+      "0": {
+        "name": "get_weather",
+        "arguments": "{\"city\": \"서울\", \"date\": \"2026-09-10\"}"
+      }
+    },
+    "usage": {
+      "prompt_tokens": 334,
+      "total_tokens": 401,
+      "completion_tokens": 67,
+      "prompt_tokens_details": {
+        "cached_tokens": 256
+      }
+    },
+    "elapsed_s": 0.9804264920003334,
+    "ttft_s": 0.4929052410006989,
+    "finish_reason": "tool_calls",
+    "passed": true
+  },
+  {
+    "id": "tool_required",
+    "repeat": 1,
+    "content": "",
+    "reasoning": "",
+    "tool_calls": {
+      "0": {
+        "name": "get_weather",
+        "arguments": "{\"city\": \"부산\", \"date\": \"2026-09-11\"}"
+      }
+    },
+    "usage": {
+      "prompt_tokens": 320,
+      "total_tokens": 387,
+      "completion_tokens": 67,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    },
+    "elapsed_s": 1.145447757000511,
+    "ttft_s": 0.650534038000842,
+    "finish_reason": "stop",
+    "passed": false
+  },
+  {
+    "id": "tool_none",
+    "repeat": 1,
+    "content": "{\"status\":\"not_requested\"}",
+    "reasoning": "",
+    "tool_calls": {},
+    "usage": {
+      "prompt_tokens": 324,
+      "total_tokens": 332,
+      "completion_tokens": 8,
+      "prompt_tokens_details": {
+        "cached_tokens": 256
+      }
+    },
+    "elapsed_s": 0.33162964199982525,
+    "ttft_s": 0.2637995420009247,
+    "finish_reason": "stop",
+    "passed": true
+  },
+  {
+    "id": "repeat_json60",
+    "repeat": 2,
+    "content": "{\"numbers\":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60],\"sum\":1830}",
+    "reasoning": "",
+    "tool_calls": {},
+    "usage": {
+      "prompt_tokens": 51,
+      "total_tokens": 180,
+      "completion_tokens": 129,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    },
+    "elapsed_s": 1.7064958570008457,
+    "ttft_s": 0.22615920700081915,
+    "finish_reason": "stop",
+    "passed": true
+  },
+  {
+    "id": "repeat_long_facts",
+    "repeat": 2,
+    "content": "{\"담당자\":\"박민수\",\"장소\":\"서울\",\"수량\":37,\"총액\":44400}",
+    "reasoning": "",
+    "tool_calls": {},
+    "usage": {
+      "prompt_tokens": 19692,
+      "total_tokens": 19720,
+      "completion_tokens": 28,
+      "prompt_tokens_details": {
+        "cached_tokens": 19456
+      }
+    },
+    "elapsed_s": 0.8924203909991775,
+    "ttft_s": 0.4169875959996716,
+    "finish_reason": "stop",
+    "passed": true
+  },
+  {
+    "id": "korean_arithmetic",
+    "repeat": 2,
+    "content": "{\"remaining\": 182, \"boxes\": 16}",
+    "reasoning": "",
+    "tool_calls": {},
+    "usage": {
+      "prompt_tokens": 79,
+      "total_tokens": 92,
+      "completion_tokens": 13,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    },
+    "elapsed_s": 0.5493788250005309,
+    "ttft_s": 0.268318435000765,
+    "finish_reason": "stop",
+    "passed": true
+  },
+  {
+    "id": "tool_auto",
+    "repeat": 2,
+    "content": "",
+    "reasoning": "",
+    "tool_calls": {
+      "0": {
+        "name": "get_weather",
+        "arguments": "{\"city\": \"서울\", \"date\": \"2026-09-10\"}"
+      }
+    },
+    "usage": {
+      "prompt_tokens": 334,
+      "total_tokens": 401,
+      "completion_tokens": 67,
+      "prompt_tokens_details": {
+        "cached_tokens": 256
+      }
+    },
+    "elapsed_s": 0.9808096649994695,
+    "ttft_s": 0.4915710549994401,
+    "finish_reason": "tool_calls",
+    "passed": true
+  },
+  {
+    "id": "tool_required",
+    "repeat": 2,
+    "content": "",
+    "reasoning": "",
+    "tool_calls": {
+      "0": {
+        "name": "get_weather",
+        "arguments": "{\"city\": \"부산\", \"date\": \"2026-09-11\"}"
+      }
+    },
+    "usage": {
+      "prompt_tokens": 320,
+      "total_tokens": 387,
+      "completion_tokens": 67,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    },
+    "elapsed_s": 1.1401133220006159,
+    "ttft_s": 0.6502625640005135,
+    "finish_reason": "stop",
+    "passed": false
+  },
+  {
+    "id": "tool_none",
+    "repeat": 2,
+    "content": "{\"status\":\"not_requested\"}",
+    "reasoning": "",
+    "tool_calls": {},
+    "usage": {
+      "prompt_tokens": 324,
+      "total_tokens": 332,
+      "completion_tokens": 8,
+      "prompt_tokens_details": {
+        "cached_tokens": 256
+      }
+    },
+    "elapsed_s": 0.3249802010013809,
+    "ttft_s": 0.25848485300048196,
+    "finish_reason": "stop",
+    "passed": true
+  }
+]

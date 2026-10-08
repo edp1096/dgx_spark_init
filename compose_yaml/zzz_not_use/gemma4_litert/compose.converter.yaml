@@ -1,0 +1,31 @@
+services:
+  converter:
+    build:
+      context: .
+      dockerfile: Dockerfile.converter
+    image: gemma4-litert-converter:arm64
+    platform: linux/arm64
+    init: true
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
+    working_dir: /project
+    environment:
+      HOME: /work/home
+      GEMMA4_LITERT_BUILD_ROOT: /work
+      XDG_CACHE_HOME: /work/cache
+      HF_HOME: /work/cache/huggingface
+      PIP_CACHE_DIR: /work/cache/pip
+      GOCACHE: /work/cache/go-build
+      GOMODCACHE: /work/cache/go-mod
+      BAZELISK_HOME: /work/cache/bazelisk
+      BAZELISK_VERSION: "${BAZELISK_VERSION:-v1.25.0}"
+      BAZEL_OUTPUT_ROOT: /work/cache/bazel
+      HF_TOKEN: "${HF_TOKEN:-}"
+      BUILD_JOBS: "${BUILD_JOBS:-10}"
+    volumes:
+      - type: bind
+        source: .
+        target: /project
+        read_only: true
+      - type: bind
+        source: ${GEMMA4_LITERT_CONTAINER_DATA_DIR:-${HOME}/.local/share/gemma4-litert-build}
+        target: /work

@@ -1,0 +1,212 @@
+[
+  {
+    "name": "models",
+    "response": {
+      "object": "list",
+      "data": [
+        {
+          "id": "qwen38-qad-vllm-trial",
+          "object": "model",
+          "created": 1789756611,
+          "owned_by": "vllm",
+          "root": "/hf/hub/models--local-inference-lab--Qwen3.8-Flash-Next-NVFP4/snapshots/7c4f1bc1a2d6847e0cbc01ac6b823f00251de8dd",
+          "parent": null,
+          "max_model_len": 1048576,
+          "permission": [
+            {
+              "id": "modelperm-891ef87909c90211",
+              "object": "model_permission",
+              "created": 1789756611,
+              "allow_create_engine": false,
+              "allow_sampling": true,
+              "allow_logprobs": true,
+              "allow_search_indices": false,
+              "allow_view": true,
+              "allow_fine_tuning": false,
+              "organization": "*",
+              "group": null,
+              "is_blocking": false
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "short",
+    "response": {
+      "id": "chatcmpl-a8f6237a210c698f",
+      "object": "chat.completion",
+      "created": 1789756611,
+      "model": "qwen38-qad-vllm-trial",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "25",
+            "refusal": null,
+            "annotations": null,
+            "audio": null,
+            "function_call": null,
+            "reasoning": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "stop_reason": null,
+          "token_ids": null,
+          "routed_experts": null
+        }
+      ],
+      "service_tier": null,
+      "system_fingerprint": "vllm-0.1.dev20759+gb40673cd0.d20260913-bda541cd",
+      "usage": {
+        "prompt_tokens": 26,
+        "total_tokens": 29,
+        "completion_tokens": 3,
+        "prompt_tokens_details": null,
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "prompt_logprobs": null,
+      "prompt_token_ids": null,
+      "prompt_text": null,
+      "kv_transfer_params": null,
+      "ec_transfer_params": null,
+      "metrics": null
+    }
+  },
+  {
+    "name": "retrieval",
+    "input_tokens": 130925,
+    "diverse": true,
+    "status": "completed",
+    "seconds": 75.35845423499995,
+    "ttft_seconds": 75.3398207939972,
+    "answer": "MAPLE, COMET",
+    "usage": {
+      "prompt_tokens": 130925,
+      "total_tokens": 130931,
+      "completion_tokens": 6
+    },
+    "finish_reason": "stop",
+    "stream_done": true,
+    "correct": true,
+    "events": [
+      {
+        "id": "cmpl-a7ae5571249d8e5f",
+        "object": "text_completion",
+        "created": 1789756613,
+        "model": "qwen38-qad-vllm-trial",
+        "choices": [
+          {
+            "index": 0,
+            "text": "MAP",
+            "logprobs": null,
+            "finish_reason": null,
+            "stop_reason": null,
+            "prompt_token_ids": null,
+            "token_ids": null
+          }
+        ]
+      },
+      {
+        "id": "cmpl-a7ae5571249d8e5f",
+        "object": "text_completion",
+        "created": 1789756613,
+        "model": "qwen38-qad-vllm-trial",
+        "choices": [
+          {
+            "index": 0,
+            "text": "LE, COMET",
+            "logprobs": null,
+            "finish_reason": "stop",
+            "stop_reason": null,
+            "prompt_token_ids": null,
+            "token_ids": null
+          }
+        ]
+      },
+      {
+        "id": "cmpl-a7ae5571249d8e5f",
+        "object": "text_completion",
+        "created": 1789756613,
+        "model": "qwen38-qad-vllm-trial",
+        "choices": [],
+        "usage": {
+          "prompt_tokens": 130925,
+          "total_tokens": 130931,
+          "completion_tokens": 6
+        },
+        "system_fingerprint": "vllm-0.1.dev20759+gb40673cd0.d20260913-bda541cd"
+      }
+    ]
+  },
+  {
+    "name": "retrieval",
+    "input_tokens": 1048431,
+    "diverse": false,
+    "status": "completed",
+    "seconds": 1229.3668051250024,
+    "ttft_seconds": 1229.3645350110019,
+    "answer": "MAPLE, COMET",
+    "usage": {
+      "prompt_tokens": 1048431,
+      "total_tokens": 1048437,
+      "completion_tokens": 6
+    },
+    "finish_reason": "stop",
+    "stream_done": true,
+    "correct": true,
+    "events": [
+      {
+        "id": "cmpl-881ebf4c9831a129",
+        "object": "text_completion",
+        "created": 1789756691,
+        "model": "qwen38-qad-vllm-trial",
+        "choices": [
+          {
+            "index": 0,
+            "text": "MAP",
+            "logprobs": null,
+            "finish_reason": null,
+            "stop_reason": null,
+            "prompt_token_ids": null,
+            "token_ids": null
+          }
+        ]
+      },
+      {
+        "id": "cmpl-881ebf4c9831a129",
+        "object": "text_completion",
+        "created": 1789756691,
+        "model": "qwen38-qad-vllm-trial",
+        "choices": [
+          {
+            "index": 0,
+            "text": "LE, COMET",
+            "logprobs": null,
+            "finish_reason": "stop",
+            "stop_reason": null,
+            "prompt_token_ids": null,
+            "token_ids": null
+          }
+        ]
+      },
+      {
+        "id": "cmpl-881ebf4c9831a129",
+        "object": "text_completion",
+        "created": 1789756691,
+        "model": "qwen38-qad-vllm-trial",
+        "choices": [],
+        "usage": {
+          "prompt_tokens": 1048431,
+          "total_tokens": 1048437,
+          "completion_tokens": 6
+        },
+        "system_fingerprint": "vllm-0.1.dev20759+gb40673cd0.d20260913-bda541cd"
+      }
+    ]
+  }
+]

@@ -1,0 +1,10 @@
+{
+  "requests": 24,
+  "exact_answer_tool_semantic_pass": 18,
+  "strict_protocol_pass": 15,
+  "prose_requests": 6,
+  "prose_truncated": 6,
+  "prose_tokens": 4608,
+  "prose_elapsed_s": 204.40643130899844,
+  "prose_pooled_end_to_end_tok_s": 22.543322000637783
+}

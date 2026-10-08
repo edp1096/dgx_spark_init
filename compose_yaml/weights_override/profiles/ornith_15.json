@@ -1,0 +1,12 @@
+{
+  "architecture": "Qwen3_5MoeForConditionalGeneration",
+  "text_config": {
+    "hidden_size": 2048,
+    "num_hidden_layers": 40,
+    "num_experts": 256
+  },
+  "runtime_tp": 1,
+  "precision_notes": "Official base mixes FP8 projections and W4A16 NVFP4 experts. Read actual base quantization_config; do not reuse Qwen3.8 target counts.",
+  "validation_status": "metadata_only; real-weight conversion and runtime unverified",
+  "tensor_adapter": "fused_experts"
+}

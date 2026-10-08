@@ -1,0 +1,13 @@
+{
+  "architecture": "Gemma4ForConditionalGeneration",
+  "text_config": {
+    "hidden_size": 2816,
+    "num_hidden_layers": 30,
+    "num_experts": 128
+  },
+  "runtime_tp": 1,
+  "precision_notes": "Base uses W4A4 NVFP4. Verify packed/unpacked expert mapping and activation calibration. Assistant checkpoint is separate.",
+  "validation_status": "metadata_only; real-weight conversion and runtime unverified",
+  "tensor_adapter": "fused_experts",
+  "expert_prefix_mode": "gemma4"
+}

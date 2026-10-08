@@ -1,0 +1,23 @@
+{
+  "status": "passed",
+  "results": [
+    {
+      "tensor": "model.language_model.layers.0.linear_attn.out_proj",
+      "native_cosine": 0.9996458769096482,
+      "gguf_order_cosine": 0.036581579364179426
+    },
+    {
+      "tensor": "model.language_model.layers.0.mlp.experts.down_proj.expert_0",
+      "native_cosine": 0.9954302837557147
+    },
+    {
+      "tensor": "model.language_model.layers.1.linear_attn.out_proj",
+      "native_cosine": 0.9996456768153951,
+      "gguf_order_cosine": 0.05194864474952227
+    },
+    {
+      "tensor": "model.language_model.layers.1.mlp.experts.down_proj.expert_0",
+      "native_cosine": 0.9953869119642375
+    }
+  ]
+}

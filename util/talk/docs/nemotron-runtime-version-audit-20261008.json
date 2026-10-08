@@ -1,0 +1,31 @@
+{
+  "source_commit": "97a15afa5caa9bce5baaa86c1184103877af4101",
+  "source_date": "2026-09-24T07:00:48Z",
+  "source_subject": "feat(diar): make Nemotron 3 Diarization the default diarizer (#52)",
+  "v0.2.0_commit": "6a3ca369370782acee0dd155e34394ba60b920c4",
+  "relationship": "behind",
+  "ahead_by": 0,
+  "behind_by": 4,
+  "total_commits": 0,
+  "release_tag_url": "https://github.com/NVIDIA/NeMo-Speech.cpp/releases/tag/v0.2.0",
+  "runtime_version_output": "nemo-speech 0.1.0",
+  "local_runtime_image": "sparktalk-nemotron-asr:0.6b-q5-k-diar2-workspace",
+  "custom_patch": "compose_yaml/nemotron_asr/patches/release_workspace.py",
+  "patch_purpose": "Release ASR/diarization request graph caches, scheduler activation pools and reclaimable host heap while retaining model/state tensor containers and weight buffers.",
+  "patch_does_not_modify": [
+    "GGUF loader",
+    "Q5 quantization kernel",
+    "ASR model inference mathematics"
+  ],
+  "v020_patch_anchor_check": {
+    "passed": true,
+    "output": "",
+    "test_scope": "This initial check covered source anchors only. Earlier official-release smoke tests and subsequent production source-build qualification are separate artifacts; see the superseding production record."
+  },
+  "source_refs": {
+    "upstream_compare": "https://github.com/NVIDIA/NeMo-Speech.cpp/compare/97a15afa5caa9bce5baaa86c1184103877af4101...v0.2.0",
+    "v020_quantization": "https://github.com/NVIDIA/NeMo-Speech.cpp/blob/v0.2.0/conversion/quantization.py"
+  },
+  "audit_phase": "Historical pre-upgrade snapshot",
+  "superseded_by": "nemotron-v020-production-20261008.json"
+}

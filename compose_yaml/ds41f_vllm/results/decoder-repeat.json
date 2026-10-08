@@ -1,0 +1,378 @@
+[
+  {
+    "enabled": false,
+    "reply": {
+      "id": "chatcmpl-b025c9997d0a7216",
+      "object": "chat.completion",
+      "created": 1789205616,
+      "model": "deepseek-v4.1-flash",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "```python\ndef binary_search(arr: list[int], target: int) -> int:\n    \"\"\"Return the index of target in sorted arr, or -1 if not found.\"\"\"\n    lo, hi = 0, len(arr) - 1\n    while lo <= hi:\n        mid = (lo + hi) // 2\n        if arr[mid] == target:\n            return mid\n        elif arr[mid] < target:\n            lo = mid + 1\n        else:\n            hi = mid - 1\n    return -1\n```",
+            "refusal": null,
+            "annotations": null,
+            "audio": null,
+            "function_call": null,
+            "reasoning": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "stop_reason": null,
+          "token_ids": null,
+          "routed_experts": null
+        }
+      ],
+      "service_tier": null,
+      "system_fingerprint": "vllm-0.1.dev20904+g179dd0fa9-tp2-bccfe9ab",
+      "usage": {
+        "prompt_tokens": 3399,
+        "total_tokens": 3514,
+        "completion_tokens": 115,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "created_cache_tokens": 0,
+          "multimodal_tokens": null
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "prompt_logprobs": null,
+      "prompt_token_ids": null,
+      "prompt_text": null,
+      "kv_transfer_params": null,
+      "ec_transfer_params": null,
+      "metrics": {
+        "time_to_first_token_ms": 15445.134903000053,
+        "generation_time_ms": 6059.364653999637,
+        "queue_time_ms": 0.04330499996285653,
+        "mean_itl_ms": 53.152321526312605,
+        "tokens_per_second": 5.347718029670103,
+        "speculative_decoding": null
+      }
+    },
+    "ranks": {
+      "0": [],
+      "1": []
+    }
+  },
+  {
+    "enabled": false,
+    "reply": {
+      "id": "chatcmpl-81fc57ea9cb7cbc1",
+      "object": "chat.completion",
+      "created": 1789205639,
+      "model": "deepseek-v4.1-flash",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "```python\ndef binary_search(arr: list[int], target: int) -> int:\n    \"\"\"Return index of target in sorted arr, or -1 if not found.\"\"\"\n    lo, hi = 0, len(arr) - 1\n    while lo <= hi:\n        mid = (lo + hi) // 2\n        if arr[mid] == target:\n            return mid\n        elif arr[mid] < target:\n            lo = mid + 1\n        else:\n            hi = mid - 1\n    return -1\n```",
+            "refusal": null,
+            "annotations": null,
+            "audio": null,
+            "function_call": null,
+            "reasoning": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "stop_reason": null,
+          "token_ids": null,
+          "routed_experts": null
+        }
+      ],
+      "service_tier": null,
+      "system_fingerprint": "vllm-0.1.dev20904+g179dd0fa9-tp2-bccfe9ab",
+      "usage": {
+        "prompt_tokens": 3399,
+        "total_tokens": 3513,
+        "completion_tokens": 114,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "created_cache_tokens": 0,
+          "multimodal_tokens": null
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "prompt_logprobs": null,
+      "prompt_token_ids": null,
+      "prompt_text": null,
+      "kv_transfer_params": null,
+      "ec_transfer_params": null,
+      "metrics": {
+        "time_to_first_token_ms": 15467.957823000233,
+        "generation_time_ms": 5711.471875999905,
+        "queue_time_ms": 0.024779999876045622,
+        "mean_itl_ms": 50.543998902654025,
+        "tokens_per_second": 5.382581194118831,
+        "speculative_decoding": null
+      }
+    },
+    "ranks": {
+      "0": [],
+      "1": []
+    }
+  },
+  {
+    "enabled": true,
+    "reply": {
+      "id": "chatcmpl-916d187903eddd51",
+      "object": "chat.completion",
+      "created": 1789205661,
+      "model": "deepseek-v4.1-flash",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "```python\nfrom typing import List, Optional\n\ndef binary_search(arr: List[int], target: int) -> Optional[int]:\n    \"\"\"Return index of target in sorted arr, or None if not found.\"\"\"\n    lo, hi = 0, len(arr) - 1\n    while lo <= hi:\n        mid = (lo + hi) // 2\n        if arr[mid] == target:\n            return mid\n        elif arr[mid] < target:\n            lo = mid + 1\n        else:\n            hi = mid - 1\n    return None\n```",
+            "refusal": null,
+            "annotations": null,
+            "audio": null,
+            "function_call": null,
+            "reasoning": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "stop_reason": null,
+          "token_ids": null,
+          "routed_experts": null
+        }
+      ],
+      "service_tier": null,
+      "system_fingerprint": "vllm-0.1.dev20904+g179dd0fa9-tp2-bccfe9ab",
+      "usage": {
+        "prompt_tokens": 3399,
+        "total_tokens": 3519,
+        "completion_tokens": 120,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "created_cache_tokens": 0,
+          "multimodal_tokens": null
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "prompt_logprobs": null,
+      "prompt_token_ids": null,
+      "prompt_text": null,
+      "kv_transfer_params": null,
+      "ec_transfer_params": null,
+      "metrics": {
+        "time_to_first_token_ms": 15484.180933000061,
+        "generation_time_ms": 6524.227445999713,
+        "queue_time_ms": 0.022796999928687,
+        "mean_itl_ms": 54.82544072268667,
+        "tokens_per_second": 5.452461528953767,
+        "speculative_decoding": null
+      }
+    },
+    "ranks": {
+      "0": [
+        {
+          "input_rows": 3399,
+          "output_rows": 1,
+          "layer": 39,
+          "scope": "routed_experts_only",
+          "validation": [
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            }
+          ]
+        }
+      ],
+      "1": [
+        {
+          "input_rows": 3399,
+          "output_rows": 1,
+          "layer": 39,
+          "scope": "routed_experts_only",
+          "validation": [
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "enabled": true,
+    "reply": {
+      "id": "chatcmpl-9b12cf4151040580",
+      "object": "chat.completion",
+      "created": 1789205683,
+      "model": "deepseek-v4.1-flash",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "```python\ndef binary_search(arr: list[int], target: int) -> int:\n    \"\"\"Return index of target in sorted arr, or -1 if not found.\"\"\"\n    lo, hi = 0, len(arr) - 1\n    while lo <= hi:\n        mid = (lo + hi) // 2\n        if arr[mid] == target:\n            return mid\n        elif arr[mid] < target:\n            lo = mid + 1\n        else:\n            hi = mid - 1\n    return -1\n```",
+            "refusal": null,
+            "annotations": null,
+            "audio": null,
+            "function_call": null,
+            "reasoning": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "stop_reason": null,
+          "token_ids": null,
+          "routed_experts": null
+        }
+      ],
+      "service_tier": null,
+      "system_fingerprint": "vllm-0.1.dev20904+g179dd0fa9-tp2-bccfe9ab",
+      "usage": {
+        "prompt_tokens": 3399,
+        "total_tokens": 3513,
+        "completion_tokens": 114,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "created_cache_tokens": 0,
+          "multimodal_tokens": null
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "prompt_logprobs": null,
+      "prompt_token_ids": null,
+      "prompt_text": null,
+      "kv_transfer_params": null,
+      "ec_transfer_params": null,
+      "metrics": {
+        "time_to_first_token_ms": 15430.650349000189,
+        "generation_time_ms": 6839.5494139999755,
+        "queue_time_ms": 0.025197000013577053,
+        "mean_itl_ms": 60.52698596460155,
+        "tokens_per_second": 5.1189482453318735,
+        "speculative_decoding": null
+      }
+    },
+    "ranks": {
+      "0": [
+        {
+          "input_rows": 3399,
+          "output_rows": 1,
+          "layer": 39,
+          "scope": "routed_experts_only",
+          "validation": [
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            }
+          ]
+        }
+      ],
+      "1": [
+        {
+          "input_rows": 3399,
+          "output_rows": 1,
+          "layer": 39,
+          "scope": "routed_experts_only",
+          "validation": [
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            },
+            {
+              "max_abs": 0.0,
+              "rms": 0.0,
+              "within_tolerance": true
+            }
+          ]
+        }
+      ]
+    }
+  }
+]

@@ -1,0 +1,114 @@
+{
+  "model": "nvidia/GLM-5.3-Flash-NVFP4",
+  "revision": "09b04e5e74bca08ca8549fc736d4cdd8624bfde3",
+  "image": "dgx-vllm-moe-tp1:b40673cd0-v5",
+  "architecture": "Glm5NextForConditionalGeneration",
+  "resolved_quantization": "modelopt_fp4",
+  "tensor_parallel_size": 2,
+  "max_model_len": 1048576,
+  "max_num_seqs": 1,
+  "engine_config_validated": true,
+  "checkpoint_preflight_validated": true,
+  "runtime_validated": true,
+  "reason": "Huihui TP2 cold-cache 1M retrieval and nine API regression tests passed",
+  "candidate": "edp1096/Huihui-GLM-5.3-Flash-abliterated-NVFP4",
+  "image_id": "sha256:69a282e0cb2cb46ca5ea1b0c2481164a24c249391e2ef12a50204e51b975a40e",
+  "backends": {
+    "moe": "b12x",
+    "linear": "b12x",
+    "attention": "B12X"
+  },
+  "block_size": 256,
+  "nccl_all_reduce_validated": true,
+  "nccl_transport": "NET/IB",
+  "gdr_reported": false,
+  "validated_at": "2026-09-27T01:31:30.094451+00:00",
+  "tested_prompt_tokens": 1047622,
+  "tests": [
+    {
+      "test": "korean",
+      "passed": true
+    },
+    {
+      "test": "arithmetic",
+      "passed": true
+    },
+    {
+      "test": "multi_turn",
+      "passed": true
+    },
+    {
+      "test": "tool_call",
+      "passed": true
+    },
+    {
+      "test": "image",
+      "passed": true
+    },
+    {
+      "test": "thinking_on",
+      "passed": true
+    },
+    {
+      "test": "streaming_thinking_off",
+      "passed": true
+    },
+    {
+      "test": "near_8k_context",
+      "passed": true
+    },
+    {
+      "test": "automatic_tool_roundtrip",
+      "passed": true
+    },
+    {
+      "test": "cold_cache_1m_retrieval",
+      "passed": true,
+      "prompt_tokens": 1047622,
+      "cached_tokens": 0,
+      "seconds": 818.2893618709968,
+      "records_correct": 5
+    }
+  ],
+  "mtp_weights_present": true,
+  "mtp_qualified": false,
+  "speculative_decoding_enabled": false,
+  "enforce_eager": true,
+  "gpu_kv_capacity_tokens": 1198083,
+  "max_num_batched_tokens": 1024,
+  "kv_cache_bytes": 12884901888,
+  "kv_cache_dtype": "fp8_e4m3",
+  "split_cache": true,
+  "target_block_size": 1024,
+  "recurrent_state_block_size": 1024,
+  "test_conditions": {
+    "cpu_max_frequency_percent": 70,
+    "gpu_max_clock_mhz": 2100
+  },
+  "telemetry": {
+    "head": {
+      "samples": 402,
+      "min_available_gib": 6.549354553222656,
+      "max_thermal_c": 80.7,
+      "boot_ids": [
+        "6eb0905a-08ca-4918-907a-b96ba443be4b"
+      ],
+      "cpu_max_khz": [
+        1965600,
+        2730000
+      ]
+    },
+    "worker": {
+      "samples": 402,
+      "min_available_gib": 10.925460815429688,
+      "max_thermal_c": 80.3,
+      "boot_ids": [
+        "a9785e49-f11a-4418-ada0-ef1a2707e8d2"
+      ],
+      "cpu_max_khz": [
+        1965600,
+        2730000
+      ]
+    }
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "pid": 2901442,
+  "health_status": 200,
+  "binary_sha256": "a64aedf711d0bd96fa4950dec40efa55d82e1bc0d08c48ea94dcc29affab5f96",
+  "tp2_image": "dgx-sglang-qwen38-fn:sm121-b12x-head-v1",
+  "model_containers_left_stopped": true
+}

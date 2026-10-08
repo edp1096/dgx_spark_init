@@ -1,0 +1,5 @@
+services:
+  api:
+    environment:
+      LTX_TEXT_ENCODER_PATH: /models/ltx-2.5/text_encoders/community/Gemma-4-12B-it-uncensored-heretic - DeepNeuralNerd -LTX 2.5-ComfyUI-bf16.safetensors
+      LTX_GEMMA_CONFIG_FALLBACK: /models/ltx-2.5/text_encoders/gemma4-12b-with-proj-ltx-2.5-bf16.safetensors

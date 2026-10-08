@@ -1,0 +1,17 @@
+{
+  "head_state": {
+    "Status": "exited",
+    "Running": false,
+    "Paused": false,
+    "Restarting": false,
+    "OOMKilled": false,
+    "Dead": false,
+    "Pid": 0,
+    "ExitCode": 255,
+    "Error": "",
+    "StartedAt": "2026-09-11T21:05:07.797588418Z",
+    "FinishedAt": "2026-09-11T21:07:06.813000208Z"
+  },
+  "uptime": "2026-09-12 06:06:56",
+  "note": "Head reboot interrupted final startup and the smoke test before any response. Restart both recipe ranks and repeat final checks."
+}

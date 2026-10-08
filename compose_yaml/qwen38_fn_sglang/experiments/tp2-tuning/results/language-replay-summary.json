@@ -1,0 +1,86 @@
+{
+  "case_user_message_id": 1739,
+  "history_messages": 8,
+  "effort": "xhigh",
+  "rows": [
+    {
+      "started": 1789450707.6524448,
+      "finished": 1789450760.977199,
+      "finish": "stop",
+      "usage": {
+        "prompt_tokens": 2355,
+        "total_tokens": 4670,
+        "completion_tokens": 2315,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 2276
+      },
+      "ttft": 1.545075235015247,
+      "elapsed": 53.311107190995244,
+      "variant": "current",
+      "repeat": 0,
+      "hanzi_count": 0,
+      "answer_chars": 62,
+      "answer_sha256": "b548932c5df248312e829265b609aa27bb91037cf69d667ffc52e36415ad8838"
+    },
+    {
+      "started": 1789450760.9798486,
+      "finished": 1789450774.4690115,
+      "finish": "stop",
+      "usage": {
+        "prompt_tokens": 2425,
+        "total_tokens": 3030,
+        "completion_tokens": 605,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 1
+      },
+      "ttft": 1.1804295599868055,
+      "elapsed": 13.47626949698315,
+      "variant": "guide",
+      "repeat": 0,
+      "hanzi_count": 0,
+      "answer_chars": 899,
+      "answer_sha256": "d2e25b61613d9f928f64b5654e634182a1fbf94b12b44d9b8c388f43ef0f736c"
+    },
+    {
+      "started": 1789450774.4697216,
+      "finished": 1789450864.7858782,
+      "finish": "stop",
+      "usage": {
+        "prompt_tokens": 2355,
+        "total_tokens": 6745,
+        "completion_tokens": 4390,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 3811
+      },
+      "ttft": 0.16278320099809207,
+      "elapsed": 90.30297384201549,
+      "variant": "current",
+      "repeat": 1,
+      "hanzi_count": 0,
+      "answer_chars": 889,
+      "answer_sha256": "6906a4cce6500d2bdf39c579136d1601d1f76f0859a908071d1e217389394db3"
+    },
+    {
+      "started": 1789450864.7865884,
+      "finished": 1789450896.840101,
+      "finish": "stop",
+      "usage": {
+        "prompt_tokens": 2425,
+        "total_tokens": 3738,
+        "completion_tokens": 1313,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 1234
+      },
+      "ttft": 0.1639908539946191,
+      "elapsed": 32.03953476098832,
+      "variant": "guide",
+      "repeat": 1,
+      "hanzi_count": 0,
+      "answer_chars": 123,
+      "answer_sha256": "39ee66eb113c9378d49c256993cce7e6ef0c4e782d75563abd5a231059380fcb"
+    }
+  ],
+  "completed": true,
+  "tools_included": false,
+  "recall_included": false
+}

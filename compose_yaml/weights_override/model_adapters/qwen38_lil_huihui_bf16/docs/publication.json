@@ -1,0 +1,12 @@
+{
+  "phase": "complete",
+  "time": 1791100672.6394377,
+  "repo_id": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-NVFP4-QAD",
+  "revision": "d8a260c0792cf2db93c5aaf8d397fd837b69901b",
+  "verified_weight_shards": 43,
+  "commit_message": "qad step-5500",
+  "url": "https://huggingface.co/edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-NVFP4-QAD/commit/d8a260c0792cf2db93c5aaf8d397fd837b69901b",
+  "remote_readme_verified": true,
+  "latest_upstream_description_identical": true,
+  "completed_xet_payload_bytes": 24658121735
+}

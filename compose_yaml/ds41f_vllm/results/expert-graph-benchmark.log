@@ -1,0 +1,4 @@
+b12x policy fallback: moe.decode is using a heuristic on nvidia gb10 (compute capability 12.1, 48 SMs) because profile 'nvidia.gb10.48sm' does not cover the query; query={'activation': 'silu', 'hidden_size': 5120, 'intermediate_size': 1152, 'num_experts': 128, 'num_tokens': 1, 'numerical_recipe': 'deepseek_v41', 'quant_mode': 'w4a8_mx', 'routed_rows': 6, 'source_format': 'fp4_e8m0_k32', 'top_k': 6}
+{"graph": "0", "ms_per_layer": 1.75484174003941, "slot_hits": 318, "slot_misses": 6, "packed_read_bytes": 56401920, "graph_replays": 1, "gpu_cache_bytes": 1203240960}
+{"graph": "1", "ms_per_layer": 0.3431748399452772, "slot_hits": 636, "slot_misses": 6, "packed_read_bytes": 56401920, "graph_replays": 54, "gpu_cache_bytes": 1203240960}
+GRAPH_EAGER_PARITY_PASS

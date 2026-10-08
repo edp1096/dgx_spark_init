@@ -1,0 +1,1 @@
+BOUNDED_READER_AND_FULL_EVICTION_PASS {'slot_hits': 32, 'slot_misses': 32, 'packed_read_bytes': 300810240, 'graph_replays': 0, 'scratch_bytes': 0, 'gpu_cache_bytes': 0}

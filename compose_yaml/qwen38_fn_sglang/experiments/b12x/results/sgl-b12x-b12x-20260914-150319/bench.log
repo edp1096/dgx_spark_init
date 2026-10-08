@@ -1,0 +1,11 @@
+[transformers] You are using a model of type `qwen4_exp` to instantiate a model of type ``. This may be expected if you are loading a checkpoint that shares a subset of the architecture (e.g., loading a `sam2_video` checkpoint into `Sam2Model`), but is otherwise not supported and can yield errors. Please verify that the checkpoint is compatible with the model you are instantiating.
+{"input_tokens": 512, "completion_tokens": 128, "cached_tokens": 0, "ttft_s": 0.28081541499705054, "elapsed_s": 2.411489268997684, "pp": 1823.2617322855215, "tg": 59.605556130301224, "repeat": 0, "quality_ok": true}
+{"input_tokens": 512, "completion_tokens": 128, "cached_tokens": 0, "ttft_s": 0.2824623890046496, "elapsed_s": 2.3860283459944185, "pp": 1812.6307074163137, "tg": 60.37367146868012, "repeat": 1, "quality_ok": true}
+{"input_tokens": 512, "completion_tokens": 128, "cached_tokens": 0, "ttft_s": 0.280307366992929, "elapsed_s": 2.457913284000824, "pp": 1826.5663349936701, "tg": 58.32092896519235, "repeat": 2, "quality_ok": true}
+{"input_tokens": 4096, "completion_tokens": 128, "cached_tokens": 0, "ttft_s": 1.5535934950021328, "elapsed_s": 3.5649421749985777, "pp": 2636.468299575609, "tg": 63.141712455457736, "repeat": 0, "quality_ok": true}
+{"input_tokens": 4096, "completion_tokens": 128, "cached_tokens": 0, "ttft_s": 1.5621912170026917, "elapsed_s": 3.562893228008761, "pp": 2621.9581543025297, "tg": 63.477718971320975, "repeat": 1, "quality_ok": true}
+Traceback (most recent call last):
+  File "/probe/bench.py", line 32, in <module>
+    row=generate(ids);row['repeat']=repeat;row['quality_ok']=row['text'].lstrip().startswith('42');assert row['quality_ok'],row
+                                                                                                          ~~~^^^^^^^^^^^^^^
+AssertionError: {'input_tokens': 4096, 'completion_tokens': 128, 'cached_tokens': 0, 'ttft_s': 1.3031067500123754, 'elapsed_s': 3.012318820008659, 'pp': 3143.257449906618, 'tg': 74.30324313136646, 'text': '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!', 'repeat': 2, 'quality_ok': False}

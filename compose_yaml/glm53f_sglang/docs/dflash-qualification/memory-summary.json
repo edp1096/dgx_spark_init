@@ -1,0 +1,14 @@
+{
+  "local": {
+    "one_m_swap_out_mib": 134.15234375,
+    "all_swap_out_gib": 6.108203887939453,
+    "one_m_min_available_gib": 2.3758468627929688,
+    "boot_count": 1
+  },
+  "192.168.100.60": {
+    "one_m_swap_out_mib": 0.0,
+    "all_swap_out_gib": 2.998443603515625,
+    "one_m_min_available_gib": 3.5690994262695312,
+    "boot_count": 1
+  }
+}

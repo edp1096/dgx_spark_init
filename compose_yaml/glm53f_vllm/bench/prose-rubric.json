@@ -1,0 +1,16 @@
+{
+  "prose_cache": [
+    "Explains TTL expiration and explicit invalidation correctly.",
+    "Explains a stampede and gives a mitigation that addresses simultaneous recomputation.",
+    "Distinguishes acceptable stale data from requirements for fresh data when choosing a strategy."
+  ],
+  "prose_search": [
+    "States sorted prerequisite and O(log n) versus O(n) lookup cost.",
+    "Accounts for O(n log n) sorting and amortization over multiple queries.",
+    "Contrasts one/few versus many queries and discusses an additional practical condition such as updates."
+  ],
+  "limitations": [
+    "Score only criteria visibly satisfied in the submitted text; report truncation and length compliance separately.",
+    "These narrow criteria do not certify complete technical correctness."
+  ]
+}

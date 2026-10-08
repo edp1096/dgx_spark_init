@@ -1,0 +1,37 @@
+{
+  "baseline": {
+    "b12x_slots.py": "3daadde02b019ff17289aaf4292a48640cb12f453614959bac4b44187af18a5e",
+    "expert_io.py": "f07e22a65fd9f7b6424e8ca3cfe72391d82ee007761284683623ae6b2ee5b34e",
+    "launch.sh": "4267064a870c8423d2c2a6b7ff2428df1192c0bc5c18e6318fadb0daa4c6fbb5",
+    "manage.sh": "e878cfb654d1361bff66d313248c9f64dcbe93864a20f6c0abafc5cf115ad082",
+    "cache_control.py": "2ecfcb4b6a6b224050e95ee9c58611da9977a97616c7f161e3561ef350f181f6",
+    "bench_prefill.py": "e2ed9872180748f9fc2e7af68c68ffc74887a69bb64eb5e28aa3b59b60e3fc33",
+    "check_prefill_tiles.py": "86e17fc8ac5a8d6ff7ad4cc9e49a625dec80c1575e5b6f3418c784478cb93602"
+  },
+  "buffer_candidate": {
+    "b12x_slots.py": "f074d38084c267515adece8c30768ce4f4beab2ad1eb12303ee615a04e1c1dd0",
+    "cache_control.py": "d325d5a30a6b113736f8621f2e2d05eef512947e821433171ff83ac592d3782c",
+    "launch.sh": "6f20b1f73892dbe7f04fe811ddf65de9e52397192d533e2d02215b9c65f7c04f",
+    "manage.sh": "1e5097ff5915b4c238216213022bad06dd0247899f216789ad0cc08ba2a00048",
+    "bench_prefill.py": "5567f4b016b3155eae172fabb2d7aa6bf43ba55eae1793966f114e9a23961fd9"
+  },
+  "baseline_image": "sha256:218d187738649f9349127e2d76fb71a9dc6d08b4a2d47c09c582a894259cf021",
+  "candidate_b12x_commit": "081b235931dbbcedcf0eb5899bae990c5dec5238",
+  "selected_source_sha256": {
+    "b12x_slots.py": "704bebbdb79f70318174a6e2404a8ae4250475c4d995402334c8288992da0ba4",
+    "routed_pipeline.py": "1c8e7b9c0c1a3c62809341e46b6ef5e8ac851ce87033ab9338e8097bb26f9229",
+    "cache_control.py": "ef533bd84f91a01fe9a324739d2056f5ffb7bacf155375a9732bc058c5db94b1",
+    "launch.sh": "47a6ab3f69544031b5a3ad487b0d1928d9dc6b92477cfe6d7f79589d49cc0673",
+    "manage.sh": "573a07b7c77433e399e3782222d0381aa1cc11e492ef8e9ad43486633bc48d97"
+  },
+  "selected_defaults": {
+    "scheduler": 2048,
+    "kernel": 2048,
+    "shared_buffers": true,
+    "scratch_mib": 384,
+    "routed_pipeline": false,
+    "benchmark_control": false,
+    "image": "dgx-ds41-stream:b12x8"
+  },
+  "reboot_cleared_private_tmp_fixtures": true
+}

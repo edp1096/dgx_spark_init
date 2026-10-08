@@ -1,0 +1,20 @@
+{
+  "5": {
+    "all_finish_stop": true,
+    "merge_intervals_cases_passed": 6,
+    "merge_code_identical": true,
+    "sql_identical_ignoring_case": true
+  },
+  "3": {
+    "all_finish_stop": true,
+    "merge_intervals_cases_passed": 6,
+    "merge_code_identical": true,
+    "sql_identical_ignoring_case": true
+  },
+  "2": {
+    "all_finish_stop": true,
+    "merge_intervals_cases_passed": 6,
+    "merge_code_identical": true,
+    "sql_identical_ignoring_case": true
+  }
+}

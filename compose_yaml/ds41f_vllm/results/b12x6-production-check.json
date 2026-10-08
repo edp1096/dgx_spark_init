@@ -1,0 +1,11 @@
+{
+  "image": "dgx-ds41-stream:b12x6",
+  "prefetch_test": "0",
+  "gpu_cache_bytes": 87836590080,
+  "prefetch_issued": 0,
+  "smoke_outputs": [
+    "서울",
+    "def add(a, b):\n    return a + b",
+    "1, 2, 3, 4, 5, 6, 7, 8, 9, 10"
+  ]
+}

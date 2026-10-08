@@ -1,0 +1,6 @@
+{
+  "status": "suspended",
+  "reason": "Unexpected host reboot; diagnostic inspection requested",
+  "checked": "2026-09-09T01:08:44.194815+09:00",
+  "diagnostic_report": "reboot-2026-09-09/status.json"
+}

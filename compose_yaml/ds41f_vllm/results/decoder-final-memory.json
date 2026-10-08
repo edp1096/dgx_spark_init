@@ -1,0 +1,18 @@
+{
+  "0": {
+    "min_available_gib": 15.022441864013672,
+    "boot_ids": [
+      "309849e3-8913-4921-8711-058c0d6ad092"
+    ],
+    "max_oom_events": 0,
+    "max_oom_kills": 0
+  },
+  "1": {
+    "min_available_gib": 14.170124053955078,
+    "boot_ids": [
+      "bb0488d7-e8b3-4a75-a4f2-a8f9683a0cbc"
+    ],
+    "max_oom_events": 0,
+    "max_oom_kills": 0
+  }
+}

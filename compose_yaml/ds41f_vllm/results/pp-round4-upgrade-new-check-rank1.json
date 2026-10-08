@@ -1,0 +1,115 @@
+{
+  "rank": 1,
+  "write_reference": false,
+  "rows": [
+    {
+      "layer": 0,
+      "tokens": 1,
+      "execution_ms": 0.3623857667359213,
+      "finite": true,
+      "max_abs_error": 0.0,
+      "relative_l2_error": 0.0,
+      "numeric_close": true
+    },
+    {
+      "layer": 0,
+      "tokens": 5,
+      "execution_ms": 1.467740999457116,
+      "finite": true,
+      "max_abs_error": 0.0,
+      "relative_l2_error": 0.0,
+      "numeric_close": true
+    },
+    {
+      "layer": 0,
+      "tokens": 6,
+      "execution_ms": 1.7297811321138095,
+      "finite": true,
+      "max_abs_error": 0.0,
+      "relative_l2_error": 0.0,
+      "numeric_close": true
+    },
+    {
+      "layer": 0,
+      "tokens": 16,
+      "execution_ms": 1.2164784672980506,
+      "finite": true,
+      "max_abs_error": 0.0,
+      "relative_l2_error": 0.0,
+      "numeric_close": true
+    },
+    {
+      "layer": 0,
+      "tokens": 512,
+      "execution_ms": 3.6247767333406955,
+      "finite": true,
+      "max_abs_error": 0.0,
+      "relative_l2_error": 0.0,
+      "numeric_close": true
+    },
+    {
+      "layer": 0,
+      "tokens": 2048,
+      "execution_ms": 8.574349865860617,
+      "finite": true,
+      "max_abs_error": 0.0,
+      "relative_l2_error": 0.0,
+      "numeric_close": true
+    },
+    {
+      "layer": 40,
+      "tokens": 1,
+      "execution_ms": 0.19462196699654064,
+      "finite": true,
+      "max_abs_error": 0.0,
+      "relative_l2_error": 0.0,
+      "numeric_close": true
+    },
+    {
+      "layer": 40,
+      "tokens": 5,
+      "execution_ms": 0.45935063196035725,
+      "finite": true,
+      "max_abs_error": 0.0,
+      "relative_l2_error": 0.0,
+      "numeric_close": true
+    },
+    {
+      "layer": 40,
+      "tokens": 6,
+      "execution_ms": 0.5427949343963215,
+      "finite": true,
+      "max_abs_error": 0.0,
+      "relative_l2_error": 0.0,
+      "numeric_close": true
+    },
+    {
+      "layer": 40,
+      "tokens": 16,
+      "execution_ms": 1.0413631661018978,
+      "finite": true,
+      "max_abs_error": 0.0,
+      "relative_l2_error": 0.0,
+      "numeric_close": true
+    },
+    {
+      "layer": 40,
+      "tokens": 512,
+      "execution_ms": 2.571173031659176,
+      "finite": true,
+      "max_abs_error": 0.0,
+      "relative_l2_error": 0.0,
+      "numeric_close": true
+    },
+    {
+      "layer": 40,
+      "tokens": 2048,
+      "execution_ms": 4.945542166630427,
+      "finite": true,
+      "max_abs_error": 0.0,
+      "relative_l2_error": 0.0,
+      "numeric_close": true
+    }
+  ],
+  "packed_abi_identical": true
+}

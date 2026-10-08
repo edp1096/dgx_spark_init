@@ -1,0 +1,18 @@
+{
+  "head": {
+    "min_available_gib": 41.22449493408203,
+    "guard_trip": false,
+    "oom": false,
+    "boot_ids": [
+      "7828740f-f459-488a-a8b2-33e0831c8cb3"
+    ]
+  },
+  "worker": {
+    "min_available_gib": 42.98616409301758,
+    "guard_trip": false,
+    "oom": false,
+    "boot_ids": [
+      "76002ab3-9666-4ab6-a6b7-eb2faf301296"
+    ]
+  }
+}

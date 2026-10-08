@@ -1,0 +1,26 @@
+{
+  "memory": {
+    "schema": 1,
+    "unit": "GiB",
+    "context_tokens": 1048576,
+    "capacity_tokens": 1048576,
+    "kv_dtype": "torch.float8_e4m3fn",
+    "mtp_layers": 1,
+    "target_load_delta_gib": 75.68917083740234,
+    "draft_load_delta_gib": 4.293888092041016,
+    "kv_and_qsa_gib": 13.813368201255798,
+    "mamba_cache_gib": 1.8279876708984375,
+    "cuda_allocated_gib": 89.78467035293579,
+    "cuda_reserved_gib": 90.880859375,
+    "cuda_peak_allocated_gib": 92.08172655105591,
+    "cuda_peak_reserved_gib": 93.041015625
+  },
+  "host": {
+    "time": 1790789131.7600632,
+    "phase": "qwen_startup",
+    "available_gib": 18.24571990966797,
+    "free_gib": 3.7535247802734375,
+    "pswpout": 7283204,
+    "oom_kill": 0
+  }
+}

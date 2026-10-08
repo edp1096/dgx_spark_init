@@ -1,0 +1,89 @@
+package server
+
+import (
+	"context"
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"strings"
+
+	"sparktalk/internal/asr"
+	"sparktalk/internal/config"
+	"sparktalk/internal/db"
+	"sparktalk/internal/media"
+)
+
+func (s *Server) transcribeAttachment(ctx context.Context, item db.Attachment, cfg config.ASRConfig) (output media.TranscriptCache, resultErr error) {
+	fingerprint := transcriptFingerprint(cfg)
+	if cached, ok, err := s.media.LoadTranscript(item.ID, fingerprint); err == nil && ok {
+		return cached, nil
+	}
+
+	// The deployed ASR service handles one request at a time. Serializing
+	// cache misses also prevents two chat rooms from transcribing the same file.
+	s.asrMu.Lock()
+	defer s.asrMu.Unlock()
+	if cached, ok, err := s.media.LoadTranscript(item.ID, fingerprint); err == nil && ok {
+		return cached, nil
+	}
+	client := s.asrSnapshot()
+	if client == nil {
+		client = asr.New(cfg)
+	}
+	client, release, err := s.prepareASRWorkload(ctx, client)
+	if err != nil {
+		return media.TranscriptCache{}, err
+	}
+	defer finishWorkload(release, &resultErr)
+	file, err := s.media.Open(item)
+	if err != nil {
+		return media.TranscriptCache{}, fmt.Errorf("open %s for transcription: %w", item.Name, err)
+	}
+	defer file.Close()
+	result, err := client.Transcribe(ctx, file, item.Name, item.MIME)
+	if err != nil {
+		return media.TranscriptCache{}, fmt.Errorf("transcribe %s: %w", item.Name, err)
+	}
+	cached := media.TranscriptCache{Fingerprint: fingerprint, Text: result.Text, Language: result.Language, Turns: result.Turns, DiarizationStatus: result.DiarizationStatus, Warning: result.Warning}
+	if err := s.media.SaveTranscript(item.ID, cached); err != nil {
+		return media.TranscriptCache{}, fmt.Errorf("cache transcript for %s: %w", item.Name, err)
+	}
+	return cached, nil
+}
+
+func transcriptFingerprint(cfg config.ASRConfig) string {
+	data, _ := json.Marshal(struct {
+		Version        int
+		Diarization    bool
+		FFmpegEndpoint string
+		Endpoint       string
+		Model          string
+		MediaLanguage  string
+		Prompt         string
+	}{4, cfg.Diarization, cfg.FFmpegEndpoint, cfg.Endpoint, cfg.Model, cfg.MediaLanguage, cfg.Prompt})
+	sum := sha256.Sum256(data)
+	return hex.EncodeToString(sum[:])
+}
+
+func transcriptBlock(item db.Attachment, cached media.TranscriptCache) string {
+	language := strings.TrimSpace(cached.Language)
+	if language == "" {
+		language = "unknown"
+	}
+	text := cached.Text
+	if len(cached.Turns) > 0 {
+		var lines strings.Builder
+		for _, turn := range cached.Turns {
+			fmt.Fprintf(&lines, "[%.2f–%.2f] %s: %s\n", turn.Start, turn.End, asr.SpeakerLabel(turn.Speakers), turn.Text)
+		}
+		text = lines.String()
+	}
+	if cached.Warning != "" {
+		text += "\n" + cached.Warning
+	}
+	return fmt.Sprintf("<media_transcript filename=%q language=%q>\n%s\n</media_transcript>", item.Name, language, text)
+}
+
+func isNoAudio(err error) bool { return errors.Is(err, asr.ErrNoAudio) }

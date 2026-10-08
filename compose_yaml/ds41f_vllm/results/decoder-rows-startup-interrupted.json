@@ -1,0 +1,36 @@
+{
+  "status": "interrupted_before_model_ready",
+  "new_decoder_path_enabled": false,
+  "measurements": null,
+  "head_last_telemetry": {
+    "time_ns": 1789203415570986900,
+    "boot_id": "a32cf68f-1dbd-42a1-a15f-9239ea766bcf",
+    "available_bytes": 123427876864,
+    "swap_free_bytes": 17179865088,
+    "memory_pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=158\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=139",
+    "thermal_millic": {
+      "acpitz": 58700
+    },
+    "container_id": "2c0b1a8a049a4cc264e824d5fdfbc6976f54eb43a4a575498682aaa97fcd8df4",
+    "status": "running",
+    "oom_killed": false,
+    "cgroup": {
+      "current": 2435207168,
+      "peak": 2435207168,
+      "max": 107374182400
+    },
+    "events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "head_boot_before": "a32cf68f-1dbd-42a1-a15f-9239ea766bcf",
+  "head_boot_after": "309849e3-8913-4921-8711-058c0d6ad092",
+  "worker_boot_unchanged": "bb0488d7-e8b3-4a75-a4f2-a8f9683a0cbc",
+  "cause": "unknown",
+  "monitor_oom_events": 0
+}

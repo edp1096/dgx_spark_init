@@ -1,0 +1,18 @@
+[
+  {
+    "rank": 0,
+    "samples": 2909,
+    "minimum_available_gib": 11.298290252685547,
+    "max_cgroup_gib": 91.99009323120117,
+    "oom": false,
+    "guard_trips": 0
+  },
+  {
+    "rank": 1,
+    "samples": 2888,
+    "minimum_available_gib": 12.493072509765625,
+    "max_cgroup_gib": 92.23635482788086,
+    "oom": false,
+    "guard_trips": 0
+  }
+]

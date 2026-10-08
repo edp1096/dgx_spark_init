@@ -1,0 +1,41 @@
+services:
+  comfyui:
+    init: true
+    container_name: comfyui-spark
+    image: edp1096/comfyui-spark:v1
+    ports:
+      - "8188:8188"
+    environment:
+      - PIP_ROOT_USER_ACTION=ignore
+    volumes:
+      - "${HOME}/.cache/comfyui/model:/root/play/ComfyUI/models"
+      - "${HOME}/.cache/comfyui/custom_node:/root/play/ComfyUI/custom_nodes"
+      - "${HOME}/.cache/comfyui/user:/root/play/ComfyUI/user"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    stdin_open: true
+    tty: true
+    entrypoint: >
+      /bin/bash -c "
+      cd /root/play/ComfyUI;
+
+      ## Current tag is v0.13.0
+
+      ## If change to master
+      # git pull origin master;
+
+      ## or to specific vertion tag
+      # git fetch --all --tags;
+      # git reset --hard FETCH_HEAD;
+      # git checkout -f v0.13.0;
+
+      ## Then update dependency
+      # pip install -r requirements.txt;
+
+      python3 main.py --listen 0.0.0.0 --port 8188
+      "

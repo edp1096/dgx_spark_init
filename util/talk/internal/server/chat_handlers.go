@@ -1,0 +1,480 @@
+package server
+
+import (
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"net/http"
+	"strconv"
+	"strings"
+	"unicode/utf8"
+
+	"sparktalk/internal/config"
+	"sparktalk/internal/db"
+	"sparktalk/internal/llm"
+	"sparktalk/internal/media"
+)
+
+func (s *Server) chat(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		methodNotAllowed(w)
+		return
+	}
+	var req struct {
+		SessionID       string          `json:"session_id"`
+		Content         string          `json:"content"`
+		Model           string          `json:"model"`
+		ReasoningEffort string          `json:"reasoning_effort"`
+		ToolsEnabled    bool            `json:"tools_enabled"`
+		Attachments     []db.Attachment `json:"attachments"`
+	}
+	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 1<<20)).Decode(&req); err != nil {
+		http.Error(w, "invalid request", 400)
+		return
+	}
+	req.Content = strings.TrimSpace(req.Content)
+	if req.SessionID == "" || req.Content == "" {
+		http.Error(w, "session_id and content are required", 400)
+		return
+	}
+	cfg, client := s.snapshot()
+	if req.Model == "" {
+		req.Model = cfg.Model.DefaultModel
+	}
+	if req.ReasoningEffort == "" {
+		req.ReasoningEffort = cfg.Model.ReasoningEffort
+	}
+	req.ReasoningEffort = llm.NormalizeReasoningEffort(cfg.Model.ModelType, req.ReasoningEffort)
+	attachments, err := s.media.Validate(req.Attachments)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	turnCtx, releaseTurn, turnErr := s.claimTurn(r.Context(), req.SessionID)
+	if turnErr != nil {
+		http.Error(w, turnErr.Error(), http.StatusConflict)
+		return
+	}
+	defer releaseTurn()
+	r = r.WithContext(turnCtx)
+	count, _ := s.db.CompletedUserMessageCount(req.SessionID)
+	pending, err := s.db.AddPendingMessage(req.SessionID, req.Content, attachments)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+	_ = s.db.UpdateSession(req.SessionID, "", req.Model, req.ReasoningEffort)
+	history, err := s.db.Messages(req.SessionID)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("X-Accel-Buffering", "no")
+	flusher, ok := w.(http.Flusher)
+	if !ok {
+		http.Error(w, "streaming unsupported", 500)
+		return
+	}
+	emit := func(kind string, payload any) error {
+		data, _ := json.Marshal(payload)
+		if _, err := fmt.Fprintf(w, "event: %s\ndata: %s\n\n", kind, data); err != nil {
+			return err
+		}
+		flusher.Flush()
+		return nil
+	}
+	mediaSink := s.persistMediaAttachments(pending.ID, 0, attachments, nil)
+	result, err := s.runContextCompletion(r.Context(), req.SessionID, modelHistory(history, pending.ID), req.Model, req.ReasoningEffort, cfg, client, req.ToolsEnabled, emit, mediaSink)
+	if err != nil {
+		status := db.MessageFailed
+		failure := compactHistoryText(err.Error(), 2000)
+		if errors.Is(err, context.Canceled) || errors.Is(r.Context().Err(), context.Canceled) {
+			status = db.MessageCancelled
+			failure = "사용자가 생성을 중지했습니다."
+		}
+		_ = s.db.FailPendingTurn(pending.ID, status, failure, result.Content, result.Reasoning, result.ToolTrace, result.Performance)
+		payload, _ := json.Marshal(map[string]string{"error": failure})
+		fmt.Fprintf(w, "event: error\ndata: %s\n\n", payload)
+	} else {
+		if _, completeErr := s.db.CompletePendingTurnWithAttachments(pending.ID, result.Content, result.Reasoning, result.ToolTrace, result.Attachments, result.Performance); completeErr != nil {
+			_ = s.db.FailPendingTurn(pending.ID, db.MessageFailed, compactHistoryText(completeErr.Error(), 2000), result.Content, result.Reasoning, result.ToolTrace, result.Performance)
+			payload, _ := json.Marshal(map[string]string{"error": completeErr.Error()})
+			fmt.Fprintf(w, "event: error\ndata: %s\n\n", payload)
+			err = completeErr
+		} else {
+			fmt.Fprint(w, "event: done\ndata: {}\n\n")
+		}
+	}
+	flusher.Flush()
+
+	if err == nil && count == 0 {
+		userText, sessionID, model := req.Content, req.SessionID, req.Model
+		s.scheduleTitle(client, sessionID, model, userText)
+	}
+}
+
+func (s *Server) messageAction(w http.ResponseWriter, r *http.Request) {
+	rest := strings.Trim(strings.TrimPrefix(r.URL.Path, "/api/messages/"), "/")
+	parts := strings.Split(rest, "/")
+	if r.Method != http.MethodPost || len(parts) != 2 || (parts[1] != "retry" && parts[1] != "edit") {
+		http.NotFound(w, r)
+		return
+	}
+	messageID, err := strconv.ParseInt(parts[0], 10, 64)
+	if err != nil {
+		http.Error(w, "invalid message id", http.StatusBadRequest)
+		return
+	}
+	if parts[1] == "edit" {
+		s.editMessage(w, r, messageID)
+		return
+	}
+	var req struct {
+		Model           string `json:"model"`
+		ReasoningEffort string `json:"reasoning_effort"`
+		ToolsEnabled    bool   `json:"tools_enabled"`
+		UserVariant     *int   `json:"user_variant"`
+	}
+	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 1<<20)).Decode(&req); err != nil {
+		http.Error(w, "invalid request", http.StatusBadRequest)
+		return
+	}
+	userVariant := -1
+	if req.UserVariant != nil {
+		userVariant = *req.UserVariant
+	}
+	target, history, err := s.db.RetryContext(messageID, userVariant)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	turnCtx, releaseTurn, turnErr := s.claimTurn(r.Context(), target.SessionID)
+	if turnErr != nil {
+		http.Error(w, turnErr.Error(), http.StatusConflict)
+		return
+	}
+	defer releaseTurn()
+	r = r.WithContext(turnCtx)
+	cfg, client := s.snapshot()
+	if req.Model == "" {
+		req.Model = cfg.Model.DefaultModel
+	}
+	if req.ReasoningEffort == "" {
+		req.ReasoningEffort = cfg.Model.ReasoningEffort
+	}
+	req.ReasoningEffort = llm.NormalizeReasoningEffort(cfg.Model.ModelType, req.ReasoningEffort)
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("X-Accel-Buffering", "no")
+	flusher, ok := w.(http.Flusher)
+	if !ok {
+		http.Error(w, "streaming unsupported", 500)
+		return
+	}
+	emit := func(kind string, payload any) error {
+		data, _ := json.Marshal(payload)
+		if _, err := fmt.Fprintf(w, "event: %s\ndata: %s\n\n", kind, data); err != nil {
+			return err
+		}
+		flusher.Flush()
+		return nil
+	}
+	parent := history[len(history)-1]
+	selectedUserVariant := userVariant
+	if selectedUserVariant < 0 {
+		selectedUserVariant = len(parent.Variants) - 1
+	}
+	mediaSink := s.persistMediaAttachments(parent.ID, selectedUserVariant, parent.Attachments, importedMediaReplacements(target.ToolTrace))
+	result, err := s.runContextCompletion(r.Context(), target.SessionID, modelHistory(history, parent.ID), req.Model, req.ReasoningEffort, cfg, client, req.ToolsEnabled, emit, mediaSink)
+	if err == nil {
+		err = s.db.ReplaceAssistantWithAttachments(target.ID, result.Content, result.Reasoning, result.ToolTrace, result.Attachments, userVariant, result.Performance)
+		_ = s.db.UpdateSession(target.SessionID, "", req.Model, req.ReasoningEffort)
+	}
+	if err != nil {
+		payload, _ := json.Marshal(map[string]string{"error": err.Error()})
+		fmt.Fprintf(w, "event: error\ndata: %s\n\n", payload)
+	} else {
+		fmt.Fprint(w, "event: done\ndata: {}\n\n")
+	}
+	flusher.Flush()
+}
+
+func (s *Server) editMessage(w http.ResponseWriter, r *http.Request, messageID int64) {
+	var req struct {
+		Content         string           `json:"content"`
+		Model           string           `json:"model"`
+		ReasoningEffort string           `json:"reasoning_effort"`
+		ToolsEnabled    bool             `json:"tools_enabled"`
+		Attachments     *[]db.Attachment `json:"attachments"`
+	}
+	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 1<<20)).Decode(&req); err != nil {
+		http.Error(w, "invalid request", http.StatusBadRequest)
+		return
+	}
+	req.Content = strings.TrimSpace(req.Content)
+	if req.Content == "" {
+		http.Error(w, "content is required", http.StatusBadRequest)
+		return
+	}
+	target, _, history, err := s.db.EditContext(messageID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	turnCtx, releaseTurn, turnErr := s.claimTurn(r.Context(), target.SessionID)
+	if turnErr != nil {
+		http.Error(w, turnErr.Error(), http.StatusConflict)
+		return
+	}
+	defer releaseTurn()
+	r = r.WithContext(turnCtx)
+	cfg, client := s.snapshot()
+	if req.Model == "" {
+		req.Model = cfg.Model.DefaultModel
+	}
+	if req.ReasoningEffort == "" {
+		req.ReasoningEffort = cfg.Model.ReasoningEffort
+	}
+	req.ReasoningEffort = llm.NormalizeReasoningEffort(cfg.Model.ModelType, req.ReasoningEffort)
+	attachments := target.Attachments
+	if req.Attachments != nil {
+		attachments, err = s.media.Validate(*req.Attachments)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+	}
+	requestHistory := append(append([]db.Message{}, history...), db.Message{ID: target.ID, Role: "user", Content: req.Content, Attachments: attachments})
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("X-Accel-Buffering", "no")
+	flusher, ok := w.(http.Flusher)
+	if !ok {
+		http.Error(w, "streaming unsupported", http.StatusInternalServerError)
+		return
+	}
+	emit := func(kind string, payload any) error {
+		data, _ := json.Marshal(payload)
+		if _, err := fmt.Fprintf(w, "event: %s\ndata: %s\n\n", kind, data); err != nil {
+			return err
+		}
+		flusher.Flush()
+		return nil
+	}
+	mediaSink := func(item db.Attachment) error {
+		validated, validateErr := s.media.Validate(append(append([]db.Attachment{}, attachments...), item))
+		if validateErr != nil {
+			return validateErr
+		}
+		attachments = validated
+		return nil
+	}
+	result, err := s.runContextCompletion(r.Context(), target.SessionID, modelHistory(requestHistory, 0), req.Model, req.ReasoningEffort, cfg, client, req.ToolsEnabled, emit, mediaSink)
+	if err == nil {
+		err = s.db.AppendEditedBranchWithAnswerAttachments(messageID, req.Content, attachments, result.Content, result.Reasoning, result.ToolTrace, result.Attachments, result.Performance)
+		_ = s.db.UpdateSession(target.SessionID, "", req.Model, req.ReasoningEffort)
+	}
+	if err != nil {
+		payload, _ := json.Marshal(map[string]string{"error": err.Error()})
+		fmt.Fprintf(w, "event: error\ndata: %s\n\n", payload)
+	} else {
+		fmt.Fprint(w, "event: done\ndata: {}\n\n")
+		if len(history) == 0 {
+			s.scheduleTitle(client, target.SessionID, req.Model, req.Content)
+		}
+	}
+	flusher.Flush()
+}
+
+// Titles outlive the requesting browser, but are drained before the DB closes.
+func (s *Server) scheduleTitle(client *llm.Client, sessionID, model, userText string) {
+	ctx, finish, err := s.tasks.Track(context.Background())
+	if err != nil {
+		return
+	}
+	go func() {
+		defer finish()
+		title, err := client.GenerateTitle(ctx, model, userText)
+		if ctx.Err() != nil {
+			return
+		}
+		if err != nil || title == "" {
+			title = fallbackTitle(userText)
+		}
+		_ = s.db.UpdateSessionTitle(sessionID, title)
+	}()
+}
+
+type videoInputModeKey struct{}
+
+func (s *Server) llmMessages(ctx context.Context, items []db.Message, cfg config.Config) ([]llm.Message, error) {
+	messages := make([]llm.Message, 0, len(items))
+	latestVideoItem, latestVideoAttachment := -1, -1
+	for itemIndex, item := range items {
+		for attachmentIndex, attachment := range item.Attachments {
+			if strings.HasPrefix(attachment.MIME, "video/") {
+				latestVideoItem, latestVideoAttachment = itemIndex, attachmentIndex
+			}
+		}
+	}
+	for itemIndex, item := range items {
+		if item.Role == "assistant" {
+			item.Content = cleanInternalEvidence(item.Content)
+		}
+		item.Content = userTurnContent(item)
+		item.Content += contextToolEvidence(item)
+		if len(item.Attachments) == 0 {
+			messages = append(messages, llm.Message{Role: item.Role, Content: item.Content})
+			continue
+		}
+		parts := make([]map[string]any, 0, len(item.Attachments)+1)
+		textParts := []string{item.Content}
+		for attachmentIndex, attachment := range item.Attachments {
+			isAudio := strings.HasPrefix(attachment.MIME, "audio/")
+			isVideo := strings.HasPrefix(attachment.MIME, "video/")
+			isImage := strings.HasPrefix(attachment.MIME, "image/")
+			isDocument := isDocumentAttachment(attachment)
+			isLatestVideo := isVideo && itemIndex == latestVideoItem && attachmentIndex == latestVideoAttachment
+			if isVideo && !isLatestVideo {
+				fingerprint := transcriptFingerprint(cfg.ASR)
+				if cached, ok, cacheErr := s.media.LoadTranscript(attachment.ID, fingerprint); cacheErr == nil && ok {
+					textParts = append(textParts, transcriptBlock(attachment, cached))
+				} else {
+					textParts = append(textParts, fmt.Sprintf("<media_reference filename=%q type=%q status=%q>Historical video retained in the visible conversation; raw frames omitted from this model request.</media_reference>", attachment.Name, attachment.MIME, "historical"))
+				}
+				continue
+			}
+			if isDocument {
+				cached, err := s.extractDocumentAttachment(ctx, attachment)
+				if err != nil {
+					return nil, err
+				}
+				textParts = append(textParts, documentAttachmentBlock(attachment, cached))
+				continue
+			}
+			mode := cfg.Model.VideoInputMode()
+			if requestMode, ok := ctx.Value(videoInputModeKey{}).(string); ok {
+				mode = requestMode
+			}
+			if isVideo && (mode == "frames" || attachment.Size > media.MaxInlineBytes) {
+				frameURL, duration, err := s.videoFrameSheet(ctx, attachment, cfg.ASR.FFmpegEndpoint)
+				if err != nil {
+					return nil, err
+				}
+				parts = append(parts, map[string]any{"type": "image_url", "image_url": map[string]string{"url": frameURL}})
+				textParts = append(textParts, fmt.Sprintf("<video_frames attachment_id=%q filename=%q duration_seconds=%q>Already loaded from SparkTalk storage; no SSH search or download is needed. Eight representative frames sampled across the video in chronological order, left to right then top to bottom (4 columns, 2 rows). These are sparse still frames, not continuous video; do not invent unseen motion or dialogue.</video_frames>", attachment.ID, attachment.Name, duration))
+				if !cfg.ASR.Enabled {
+					textParts = append(textParts, "Audio transcription is disabled. Summarize visible evidence only and explicitly state that speech/audio was not analyzed.")
+				}
+			} else if isImage || isVideo {
+				dataURL, err := s.media.DataURL(attachment)
+				if err != nil {
+					return nil, fmt.Errorf("read media %s: %w", attachment.Name, err)
+				}
+				typeName, fieldName := "image_url", "image_url"
+				if isVideo {
+					typeName, fieldName = "video_url", "video_url"
+				}
+				if isImage {
+					origin := item.Role
+					if generatedOrigin, ok := ctx.Value(imageAttachmentOriginKey{}).(string); ok {
+						origin = generatedOrigin
+					}
+					dimensions := ""
+					if evidence, err := s.imageEvidence(attachment.ID, "", "", map[string]db.Attachment{attachment.ID: attachment}); err == nil {
+						dimensions = fmt.Sprintf(" dimensions=%dx%d pixels", evidence.Width, evidence.Height)
+					}
+					parts = append(parts, map[string]any{"type": "text", "text": fmt.Sprintf("Image attachment %d: id=%q filename=%q origin=%q%s. The immediately following image belongs to this ID; do not assign another attachment's description to it.", attachmentIndex+1, attachment.ID, attachment.Name, origin, dimensions)})
+				}
+				parts = append(parts, map[string]any{"type": typeName, fieldName: map[string]string{"url": dataURL}})
+			}
+			if isImage {
+				continue
+			}
+			if !cfg.ASR.Enabled {
+				if isAudio {
+					return nil, fmt.Errorf("음성 첨부를 처리하려면 설정에서 ASR을 활성화해야 합니다")
+				}
+				continue
+			}
+			cached, err := s.transcribeAttachment(ctx, attachment, cfg.ASR)
+			if err != nil {
+				if isVideo {
+					if !isNoAudio(err) {
+						textParts = append(textParts, fmt.Sprintf("<media_transcript filename=%q status=%q>\nInspect the video frames directly; its audio transcript is unavailable.\n</media_transcript>", attachment.Name, "unavailable"))
+					}
+					continue
+				}
+				return nil, err
+			}
+			textParts = append(textParts, transcriptBlock(attachment, cached))
+		}
+		parts = append(parts, map[string]any{"type": "text", "text": strings.Join(textParts, "\n\n")})
+		messages = append(messages, llm.Message{Role: item.Role, Content: parts})
+	}
+	return messages, nil
+}
+
+func fallbackTitle(text string) string {
+	text = strings.Join(strings.Fields(text), " ")
+	if utf8.RuneCountInString(text) <= 28 {
+		return text
+	}
+	return string([]rune(text)[:28]) + "…"
+}
+
+func (s *Server) persistMediaAttachments(messageID int64, variantIndex int, initial []db.Attachment, replacements map[string]string) mediaAttachmentSink {
+	attachments := append([]db.Attachment{}, initial...)
+	return func(item db.Attachment) error {
+		replaceID := replacements[item.SourceURL]
+		// Retrying a page can yield a poster instead of its video. Keep the
+		// original playable media; only replace it with the same media kind.
+		for _, existing := range attachments {
+			if existing.ID == replaceID && (strings.HasPrefix(existing.MIME, "video/") || strings.HasPrefix(existing.MIME, "audio/")) &&
+				strings.SplitN(existing.MIME, "/", 2)[0] != strings.SplitN(item.MIME, "/", 2)[0] {
+				replaceID = ""
+				break
+			}
+		}
+		candidate := make([]db.Attachment, 0, len(attachments)+1)
+		for _, existing := range attachments {
+			if replaceID == "" || existing.ID != replaceID {
+				candidate = append(candidate, existing)
+			}
+		}
+		validated, err := s.media.Validate(append(candidate, item))
+		if err != nil {
+			return err
+		}
+		canonical := validated[len(validated)-1]
+		canonical.SourceURL = item.SourceURL
+		if err := s.db.ReplaceMessageVariantAttachment(messageID, variantIndex, replaceID, canonical); err != nil {
+			return err
+		}
+		attachments = validated
+		if replaceID != "" {
+			delete(replacements, item.SourceURL)
+		}
+		return nil
+	}
+}
+
+func importedMediaReplacements(trace []db.ToolEvent) map[string]string {
+	replacements := make(map[string]string)
+	for _, event := range trace {
+		if event.Name != "media_import" || event.Result == "" {
+			continue
+		}
+		var result struct {
+			SourceURL  string        `json:"source_url"`
+			Attachment db.Attachment `json:"attachment"`
+		}
+		if json.Unmarshal([]byte(event.Result), &result) == nil && result.SourceURL != "" && result.Attachment.ID != "" {
+			replacements[result.SourceURL] = result.Attachment.ID
+		}
+	}
+	return replacements
+}

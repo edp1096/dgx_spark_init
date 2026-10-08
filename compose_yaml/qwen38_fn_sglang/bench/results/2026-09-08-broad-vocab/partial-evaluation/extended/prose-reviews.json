@@ -1,0 +1,52 @@
+[
+  {
+    "review_id": "Veedcd7b5a3527259",
+    "groups": [
+      true,
+      true,
+      false
+    ],
+    "material_error": true,
+    "notes": "TP90·FP495·90/585는 정확. 조건부 독립 설명에서 불량 여부 조건을 생략한 주변확률 곱셈 등식을 제시하여 조건부 독립과 무조건 독립을 혼동."
+  },
+  {
+    "review_id": "V6bd40b0c2b4536df",
+    "groups": [
+      false,
+      false,
+      false
+    ],
+    "material_error": true,
+    "notes": "숨겨진 링크 수집은 지적하지만 숨겨진 표 누출을 해결하지 않음. 공개 링크 텍스트를 제거하도록 요구사항을 오독. template 내부 링크/표 회귀 부재, 표 본문이 후처리로 추가되는 점과 중첩 표 수집도 오판."
+  },
+  {
+    "review_id": "Vea6379c079c1008a",
+    "groups": [
+      false,
+      false,
+      false
+    ],
+    "material_error": false,
+    "notes": "토큰 한도 내 최종 답변 없음. 추론 텍스트는 제출 답변으로 채점하지 않음. 파일 손상과 무관."
+  },
+  {
+    "review_id": "Vcc4edf8739f589aa",
+    "groups": [
+      true,
+      false,
+      true
+    ],
+    "material_error": true,
+    "notes": "박물관/식사 시간 준수. 기본 일정 공원 60분을 45분으로 줄여 명시 체류 요구 위반. 지연 대안은 축소 활동/동일 이동시간을 명시. 휴식을 공원 방문 뒤에 둘 수 있다는 해법을 놓침."
+  },
+  {
+    "review_id": "Ve992dbd86044eda1",
+    "groups": [
+      true,
+      true,
+      true
+    ],
+    "material_error": false,
+    "notes": "본관과 접근성 차이·사료 대조·연결 및 납부 기록 제안 충족. 사료 동기를 추론 이상으로 단정하는 표현은 한계."
+  }
+]

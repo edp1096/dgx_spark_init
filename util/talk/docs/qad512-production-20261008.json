@@ -1,0 +1,480 @@
+{
+  "date": "2026-10-08",
+  "profile": "QAD 512K / MTP3 / resident single QWIM DiT + ASR + Qwen3-TTS Q8 + on-demand Extra",
+  "actual_context_tokens": 524288,
+  "actual_kv_capacity_tokens": 524288,
+  "startup_seconds": 540.7246564220404,
+  "core_services": [
+    {
+      "engine_memory": {
+        "schema": 1,
+        "unit": "GiB",
+        "context_tokens": 524288,
+        "capacity_tokens": 524288,
+        "kv_dtype": "torch.float8_e4m3fn",
+        "mtp_layers": 1,
+        "target_load_delta_gib": 75.67784118652344,
+        "draft_load_delta_gib": 4.2707366943359375,
+        "kv_and_qsa_gib": 6.907118201255798,
+        "mamba_cache_gib": 1.8279876708984375,
+        "cuda_allocated_gib": 83.25377893447876,
+        "cuda_reserved_gib": 84.349609375,
+        "cuda_peak_allocated_gib": 85.55072355270386,
+        "cuda_peak_reserved_gib": 86.451171875
+      },
+      "health_checked_at": "2026-10-08T12:56:36.747775077+09:00",
+      "last_healthy_at": "2026-10-08T12:56:36.747775077+09:00",
+      "health_latency_ms": 1003,
+      "model_presentation": {
+        "selected_variant": "huihui_lil",
+        "weights": [
+          {
+            "id": "official",
+            "label": "원본",
+            "format": "NVFP4 QAD",
+            "model_id": "local-inference-lab/Qwen3.8-Flash-Next-NVFP4",
+            "repositories": [
+              "local-inference-lab/Qwen3.8-Flash-Next-NVFP4"
+            ]
+          },
+          {
+            "id": "abliterated",
+            "label": "Abliterated",
+            "format": "NVFP4",
+            "model_id": "huginnfork/Qwen3.8-Flash-Next-NVFP4-Abliterated",
+            "repositories": [
+              "huginnfork/Qwen3.8-Flash-Next-NVFP4-Abliterated"
+            ]
+          },
+          {
+            "id": "huihui_lil",
+            "label": "Abliterated · QAD",
+            "format": "NVFP4 QAD",
+            "model_id": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-NVFP4-QAD",
+            "repositories": [
+              "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-NVFP4-QAD"
+            ]
+          }
+        ]
+      },
+      "auto_address": true,
+      "runtime_options": {
+        "MAX_MODEL_LEN": "524288",
+        "MODEL_VARIANT": "huihui_lil",
+        "MTP_TOKENS": "3"
+      },
+      "host": "local",
+      "controller": "compose",
+      "endpoint": "http://127.0.0.1:8000",
+      "bind_address": "127.0.0.1",
+      "port": 8000,
+      "id": "flash-next",
+      "name": "Qwen 3.8 Flash-Next QAD",
+      "role": "llm",
+      "container": "sglang-qwen38-fn",
+      "health_url": "http://127.0.0.1:8000/health",
+      "model": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-NVFP4-QAD",
+      "startup_memory_gib": 108,
+      "memory_gib": 94,
+      "startup_timeout_seconds": 1800,
+      "compose_asset": "compose.flash-next.yaml",
+      "progress_kind": "sglang",
+      "status": "running",
+      "health": "online",
+      "gpu_memory_gib": 84.8828125,
+      "host_memory_gib": 5.868742771446705,
+      "resident_memory_gib": 90.7515552714467,
+      "memory_measured": true
+    },
+    {
+      "core_ready": true,
+      "busy": false,
+      "health_checked_at": "2026-10-08T12:56:35.743568832+09:00",
+      "last_healthy_at": "2026-10-08T12:56:35.743568832+09:00",
+      "health_latency_ms": 1,
+      "model_presentation": {
+        "selected_variant": "official",
+        "weights": [
+          {
+            "id": "official",
+            "label": "Uncensored",
+            "format": "NVFP4 · W4A8 · BF16 VAE",
+            "model_id": "qwen-image-2.1-uc-nvfp4",
+            "repositories": [
+              "abenzerps/Qwen-Image-2.1-Uncensored-GGUF",
+              "Comfy-Org/Qwen-Image-2.1"
+            ]
+          }
+        ]
+      },
+      "keep_resident": true,
+      "start_after_llm": true,
+      "auto_address": true,
+      "runtime_options": {
+        "IMAGE_RESIDENCY": "dit"
+      },
+      "host": "local",
+      "controller": "compose",
+      "endpoint": "http://127.0.0.1:8691",
+      "bind_address": "127.0.0.1",
+      "port": 8691,
+      "id": "flux2",
+      "name": "Qwen Image 2.1",
+      "role": "image",
+      "container": "sparktalk-qwen-image21",
+      "health_url": "http://127.0.0.1:8691/health",
+      "model": "qwen-image-2.1-uc-nvfp4",
+      "startup_memory_gib": 7,
+      "memory_gib": 14,
+      "workspace_memory_gib": 6,
+      "startup_timeout_seconds": 300,
+      "compose_asset": "compose.qwen-image21.yaml",
+      "progress_kind": "comfy",
+      "status": "running",
+      "health": "online",
+      "gpu_memory_gib": 5.765625,
+      "host_memory_gib": 2.983081243932247,
+      "resident_memory_gib": 8.748706243932247,
+      "memory_measured": true
+    },
+    {
+      "health_checked_at": "2026-10-08T12:56:35.743252208+09:00",
+      "last_healthy_at": "2026-10-08T12:56:35.743252208+09:00",
+      "health_latency_ms": 0,
+      "model_presentation": {
+        "selected_variant": "official",
+        "weights": [
+          {
+            "id": "official",
+            "label": "원본",
+            "format": "Q5_K · 화자 구분 Q8_0",
+            "model_id": "nemotron-3.5-asr-streaming-0.6b",
+            "repositories": [
+              "nvidia/nemotron-3.5-asr-streaming-0.6b",
+              "nvidia/Nemotron-3-Diarization"
+            ]
+          }
+        ]
+      },
+      "keep_resident": true,
+      "start_after_llm": true,
+      "auto_address": true,
+      "host": "local",
+      "controller": "compose",
+      "endpoint": "http://127.0.0.1:8693",
+      "bind_address": "127.0.0.1",
+      "port": 8693,
+      "id": "nemotron-asr",
+      "name": "Nemotron 3.5 ASR",
+      "role": "asr",
+      "container": "sparktalk-nemotron-asr",
+      "health_url": "http://127.0.0.1:8693/ready",
+      "model": "nemotron-3.5-asr-streaming-0.6b",
+      "startup_memory_gib": 3.5,
+      "memory_gib": 6,
+      "startup_timeout_seconds": 180,
+      "compose_asset": "compose.nemotron-asr.yaml",
+      "progress_kind": "service",
+      "status": "running",
+      "health": "online",
+      "gpu_memory_gib": 1.5205078125,
+      "host_memory_gib": 0.8235936313867569,
+      "resident_memory_gib": 2.344101443886757,
+      "memory_measured": true
+    },
+    {
+      "health_checked_at": "2026-10-08T12:56:35.741549729+09:00",
+      "last_healthy_at": "2026-10-08T12:56:35.741549729+09:00",
+      "health_latency_ms": 0,
+      "model_presentation": {
+        "selected_variant": "official",
+        "weights": [
+          {
+            "id": "official",
+            "label": "원본",
+            "format": "Q8_0 본체 · Q8_0 오디오 codec",
+            "model_id": "qwen3-tts-0.6b-q8",
+            "repositories": [
+              "Serveurperso/Qwen3-TTS-GGUF"
+            ]
+          }
+        ]
+      },
+      "keep_resident": true,
+      "start_after_llm": true,
+      "auto_address": true,
+      "host": "local",
+      "controller": "compose",
+      "endpoint": "http://127.0.0.1:8692",
+      "bind_address": "127.0.0.1",
+      "port": 8692,
+      "id": "qwen3-tts",
+      "name": "Qwen3-TTS 0.6B",
+      "role": "tts",
+      "container": "sparktalk-qwen3-tts",
+      "health_url": "http://127.0.0.1:8692/ready",
+      "model": "qwen3-tts-0.6b-q8",
+      "startup_memory_gib": 3,
+      "memory_gib": 4,
+      "workspace_memory_gib": 1.5,
+      "startup_timeout_seconds": 180,
+      "compose_asset": "compose.qwen3-tts.yaml",
+      "progress_kind": "service",
+      "status": "running",
+      "health": "online",
+      "gpu_memory_gib": 2.4072265625,
+      "host_memory_gib": 0.5970370694994926,
+      "resident_memory_gib": 3.0042636319994926,
+      "memory_measured": true
+    }
+  ],
+  "core_resident_memory_gib": 104.8486265912652,
+  "final_system_memory": {
+    "total_gib": 121.62510681152344,
+    "used_gib": 110.2226676940918,
+    "available_gib": 11.40243911743164,
+    "free_gib": 6.583381652832031
+  },
+  "image_residency": {
+    "status": "ok",
+    "model": "qwen-image-2.1-uc-nvfp4",
+    "busy": false,
+    "active": 0,
+    "queued": 0,
+    "idle_for_seconds": 40.03160432190634,
+    "quiescing": false,
+    "core_ready": true,
+    "dit_loaded_gib": 3.909243941307068,
+    "loaded_models": [
+      "QwenImage21"
+    ],
+    "residency": "dit",
+    "memory_schema": 2,
+    "workspace_kind": "whole-service",
+    "memory_gib": 14.0,
+    "workspace_gib": 6.0,
+    "reference_cache_dtype": "int8",
+    "process_reclaim": true,
+    "keep_models_loaded": true
+  },
+  "workload_checks": [
+    {
+      "elapsed_seconds": 5.268225042,
+      "name": "asr-initial",
+      "ok": true
+    },
+    {
+      "elapsed_seconds": 2.211083989,
+      "name": "tts-initial",
+      "ok": true
+    },
+    {
+      "elapsed_seconds": 0.015664673,
+      "name": "unused-cuda-cache",
+      "ok": true
+    },
+    {
+      "elapsed_seconds": 0.000971902,
+      "name": "image-startup",
+      "ok": true
+    },
+    {
+      "elapsed_seconds": 41.46953348,
+      "name": "image-first",
+      "ok": true
+    },
+    {
+      "elapsed_seconds": 1.381548584,
+      "name": "asr-after-image",
+      "ok": true
+    },
+    {
+      "elapsed_seconds": 1.6397267279999999,
+      "name": "tts-after-image",
+      "ok": true
+    },
+    {
+      "elapsed_seconds": 0.66514322,
+      "name": "llm-after-image",
+      "ok": true
+    },
+    {
+      "elapsed_seconds": 30.70840388,
+      "name": "image-repeat",
+      "ok": true
+    },
+    {
+      "elapsed_seconds": 12.177192692,
+      "name": "extra-work-and-stop",
+      "ok": true
+    },
+    {
+      "elapsed_seconds": 130.054766875,
+      "name": "idle-over-grace",
+      "ok": true
+    },
+    {
+      "elapsed_seconds": 37.72224487,
+      "name": "image-after-idle",
+      "ok": true
+    }
+  ],
+  "resident_processes_before": {
+    "sglang-qwen38-fn": "c7fe7dc320503945772b8de8723415889083599a4542332e7e6244a050329f29 1251750",
+    "sparktalk-nemotron-asr": "4f1400f99b26f3f5436a0bcd816c30620746abec9a7ed29e7bda6d5a026b0bfa 1344290",
+    "sparktalk-qwen-image21": "4e21a1eaa58c7dafaf8091ffe96172def0f01653354afb9c9ec80ade37d07ebe 1360751",
+    "sparktalk-qwen3-tts": "2d4709a5528d992c8250cfb3ee6b4f134a75bfe3fa5a699a9edac1ed2deae772 1348709"
+  },
+  "resident_processes_after": {
+    "sglang-qwen38-fn": "c7fe7dc320503945772b8de8723415889083599a4542332e7e6244a050329f29 1251750",
+    "sparktalk-nemotron-asr": "4f1400f99b26f3f5436a0bcd816c30620746abec9a7ed29e7bda6d5a026b0bfa 1344290",
+    "sparktalk-qwen-image21": "4e21a1eaa58c7dafaf8091ffe96172def0f01653354afb9c9ec80ade37d07ebe 1360751",
+    "sparktalk-qwen3-tts": "2d4709a5528d992c8250cfb3ee6b4f134a75bfe3fa5a699a9edac1ed2deae772 1348709"
+  },
+  "quality": [
+    {
+      "case": 1,
+      "same_seed_pixels_equal_to_512k_trial": true,
+      "sha256": "45b78d1aff2eb8d94b1d437ae254b85baa80e069fea07b761df55ecd9a52e6fb"
+    },
+    {
+      "case": 2,
+      "same_seed_pixels_equal_to_512k_trial": true,
+      "sha256": "fb24ce0b7e299992cb7a0e27533ae5494d07359c280e72f1771406557b76edbb"
+    }
+  ],
+  "memory_sampling": {
+    "system_interval_seconds": 0.2,
+    "gpu_interval_seconds": 1,
+    "workload_min_available_gib": 6.997112274169922,
+    "workload_min_free_gib": 3.0840606689453125,
+    "host_swap_peak_increase_mib": 195.7109375,
+    "host_swap_final_increase_mib": 135.40234375,
+    "swap_attribution": "host-wide; not attributed exclusively to these services"
+  },
+  "native_edit_cancel": {
+    "outside_mask_pixels_exact": true,
+    "edit_seconds": 82.64057965192478,
+    "cancellation_seconds": 1.014349655015394,
+    "canceled_case": "504c5c6ee6784bab9012ea88413cd50f",
+    "same_container_id_and_pid": true,
+    "initial_image_state": {
+      "status": "ok",
+      "model": "qwen-image-2.1-uc-nvfp4",
+      "busy": false,
+      "active": 0,
+      "queued": 0,
+      "idle_for_seconds": 40.6535290350439,
+      "quiescing": false,
+      "core_ready": true,
+      "dit_loaded_gib": 3.909243941307068,
+      "loaded_models": [
+        "QwenImage21"
+      ],
+      "residency": "dit",
+      "memory_schema": 2,
+      "workspace_kind": "whole-service",
+      "memory_gib": 14.0,
+      "workspace_gib": 6.0,
+      "reference_cache_dtype": "int8",
+      "process_reclaim": true,
+      "keep_models_loaded": true
+    },
+    "final_image_state": {
+      "status": "ok",
+      "model": "qwen-image-2.1-uc-nvfp4",
+      "busy": false,
+      "active": 0,
+      "queued": 0,
+      "idle_for_seconds": 0.019122661906294525,
+      "quiescing": false,
+      "core_ready": true,
+      "dit_loaded_gib": 3.909243941307068,
+      "loaded_models": [
+        "QwenImage21"
+      ],
+      "residency": "dit",
+      "memory_schema": 2,
+      "workspace_kind": "whole-service",
+      "memory_gib": 14.0,
+      "workspace_gib": 6.0,
+      "reference_cache_dtype": "int8",
+      "process_reclaim": true,
+      "keep_models_loaded": true
+    },
+    "after_cancel_generation": true
+  },
+  "raw_artifacts": "/home/edp1096/.cache/model-download-jobs/tts-gguf-comparison-20261008/qad512-production",
+  "container_safety": {
+    "sglang-qwen38-fn": {
+      "id": "c7fe7dc320503945772b8de8723415889083599a4542332e7e6244a050329f29",
+      "pid": 1251750,
+      "running": true,
+      "oom_killed": false,
+      "image": "dgx-sglang-qwen38-qad:sm121-v5-memory",
+      "memory_limit": 120259084288,
+      "memory_swap_limit": 120259084288,
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+      "memory.swap.current": "0"
+    },
+    "sparktalk-qwen-image21": {
+      "id": "4e21a1eaa58c7dafaf8091ffe96172def0f01653354afb9c9ec80ade37d07ebe",
+      "pid": 1360751,
+      "running": true,
+      "oom_killed": false,
+      "image": "sparktalk-qwen-image21:nvfp4-int8-v5-dit-resident",
+      "memory_limit": 120259084288,
+      "memory_swap_limit": 120259084288,
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+      "memory.swap.current": "0"
+    },
+    "sparktalk-nemotron-asr": {
+      "id": "4f1400f99b26f3f5436a0bcd816c30620746abec9a7ed29e7bda6d5a026b0bfa",
+      "pid": 1344290,
+      "running": true,
+      "oom_killed": false,
+      "image": "sparktalk-nemotron-asr:0.6b-q5-k-diar2-workspace",
+      "memory_limit": 120259084288,
+      "memory_swap_limit": 120259084288,
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+      "memory.swap.current": "0"
+    },
+    "sparktalk-qwen3-tts": {
+      "id": "2d4709a5528d992c8250cfb3ee6b4f134a75bfe3fa5a699a9edac1ed2deae772",
+      "pid": 1348709,
+      "running": true,
+      "oom_killed": false,
+      "image": "sparktalk-qwen3-tts:0.6b-q8-lifecycle1",
+      "memory_limit": 12884901888,
+      "memory_swap_limit": 12884901888,
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+      "memory.swap.current": "0"
+    }
+  },
+  "worker_stage_evidence": {
+    "all_requests_dit_gib": [
+      3.909243941307068
+    ],
+    "idle_loaded_models": [
+      [
+        "QwenImage21"
+      ]
+    ],
+    "worker_event_min_available_gib": 7.889530181884766,
+    "worker_event_min_free_gib": 3.4875869750976562,
+    "note": "worker stage observations include editing and cancellation; separate from 200ms whole-host workload sampling"
+  },
+  "settings_scope": {
+    "only_changed_bundle": "flash-next",
+    "other_bundles_unchanged": true,
+    "speak_rate_preserved": 1.3
+  },
+  "validation": {
+    "go_test_all_packages": "pass",
+    "image_api_and_prepare_tests": "8 passed",
+    "embedded_support_assets": "118 files verified",
+    "recipe_assets": "verified",
+    "binaries": "linux/windows amd64/arm64 rebuilt",
+    "weights_downloaded": false
+  }
+}

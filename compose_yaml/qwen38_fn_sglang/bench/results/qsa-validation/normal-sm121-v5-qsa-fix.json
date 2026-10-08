@@ -1,0 +1,97 @@
+{
+  "cache_geometry": [
+    {
+      "tokens": 262144,
+      "attention_layers_including_mtp": 13,
+      "fp8_bytes_per_token": 14144.0,
+      "hypothetical_int4_bytes_per_token": 8320.0,
+      "fp8_gib": 3.453125,
+      "hypothetical_int4_gib": 2.03125,
+      "saving_gib": 1.421875,
+      "excludes": [
+        "page padding",
+        "request rings",
+        "recurrent states",
+        "graphs",
+        "workspace",
+        "weights",
+        "host memory"
+      ],
+      "int4_runtime_supported": false,
+      "model_quality_tested": false
+    },
+    {
+      "tokens": 524288,
+      "attention_layers_including_mtp": 13,
+      "fp8_bytes_per_token": 14144.0,
+      "hypothetical_int4_bytes_per_token": 8320.0,
+      "fp8_gib": 6.90625,
+      "hypothetical_int4_gib": 4.0625,
+      "saving_gib": 2.84375,
+      "excludes": [
+        "page padding",
+        "request rings",
+        "recurrent states",
+        "graphs",
+        "workspace",
+        "weights",
+        "host memory"
+      ],
+      "int4_runtime_supported": false,
+      "model_quality_tested": false
+    },
+    {
+      "tokens": 1048576,
+      "attention_layers_including_mtp": 13,
+      "fp8_bytes_per_token": 14144.0,
+      "hypothetical_int4_bytes_per_token": 8320.0,
+      "fp8_gib": 13.8125,
+      "hypothetical_int4_gib": 8.125,
+      "saving_gib": 5.6875,
+      "excludes": [
+        "page padding",
+        "request rings",
+        "recurrent states",
+        "graphs",
+        "workspace",
+        "weights",
+        "host memory"
+      ],
+      "int4_runtime_supported": false,
+      "model_quality_tested": false
+    }
+  ],
+  "scope": "source audit and small selector test; no full-model quality or throughput claim",
+  "selector_checks": [
+    {
+      "tokens": 131072,
+      "blocks": 32768,
+      "queries": 1,
+      "distribution": "normal",
+      "selected_set_matches_reference": true,
+      "missing_reference_indices": 0,
+      "installed_median_ms": 0.020183999836444852,
+      "torch_exact_median_ms": 0.07856319844722748
+    },
+    {
+      "tokens": 262144,
+      "blocks": 65536,
+      "queries": 1,
+      "distribution": "normal",
+      "selected_set_matches_reference": true,
+      "missing_reference_indices": 0,
+      "installed_median_ms": 0.0341855987906456,
+      "torch_exact_median_ms": 0.07872159779071808
+    },
+    {
+      "tokens": 1048576,
+      "blocks": 262144,
+      "queries": 1,
+      "distribution": "normal",
+      "selected_set_matches_reference": true,
+      "missing_reference_indices": 0,
+      "installed_median_ms": 0.09104320108890533,
+      "torch_exact_median_ms": 0.09592480063438416
+    }
+  ]
+}

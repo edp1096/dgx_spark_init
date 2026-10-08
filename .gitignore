@@ -1,0 +1,18 @@
+/.claude
+/낙서.md
+__pycache__
+cufile.log
+AGENTS.md
+memos/agent_archive/
+/compose_yaml/browseforge/
+/compose_yaml/ltx-2.5_api/.env
+/compose_yaml/ltx-2.5_api/test-results/
+/compose_yaml/nemotron_asr/artifacts/
+/compose_yaml/nemotron_asr/results/
+
+# Per-install Compose configuration; env.sample is the committed template.
+/compose_yaml/**/.env
+/compose_yaml/**/.env.*
+
+# Local verification logs, database backups, and deployment binaries.
+/.cache/

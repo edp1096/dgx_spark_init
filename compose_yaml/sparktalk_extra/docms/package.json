@@ -1,0 +1,25 @@
+{
+  "name": "sparktalk-extra-documents",
+  "version": "0.5.2",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test renderer.test.mjs"
+  },
+  "dependencies": {
+    "@rhwp/core": "0.8.6",
+    "cfb": "1.2.2",
+    "docx": "9.7.1",
+    "exceljs": "4.4.0",
+    "jszip": "3.10.1",
+    "pdfmake": "0.3.11",
+    "pptxgenjs": "4.0.1"
+  },
+  "overrides": {
+    "exceljs": {
+      "uuid": "11.1.1",
+      "unzipper": "0.12.3"
+    }
+  }
+}

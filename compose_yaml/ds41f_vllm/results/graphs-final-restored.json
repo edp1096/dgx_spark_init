@@ -1,0 +1,59 @@
+{
+  "smoke_pass": true,
+  "nodes": [
+    {
+      "rank": 0,
+      "image": "dgx-ds41-stream:b12x6",
+      "running": true,
+      "settings": {
+        "DSV41_SLOTS_PER_LAYER": "224",
+        "DSV41_MODEL_GRAPHS": "0",
+        "DSV41_SHORT_CONTEXT_GRAPHS": "0",
+        "DSV41_PACKED_DIR": "/packed",
+        "DSV41_SCRATCH_MIB": "256",
+        "DSV41_BENCH_CONTROL": "0",
+        "DSV41_ENGRAM_PRESTAGE": "0",
+        "DSV41_ENGRAM_DISK_THREADS": "8",
+        "DSV41_EXPERT_STREAMING": "1",
+        "DSV41_EXPERT_GRAPHS": "1",
+        "DSV41_ENGRAM_DISK": "1",
+        "DSV41_READ_THREADS": "4",
+        "DSV41_ATTENTION_GRAPHS": "0",
+        "DSV41_MOE_BACKEND": "b12x_slots",
+        "DSV41_PREFETCH_TEST": "0",
+        "DSV41_MODEL": "/repo/snapshots/dba1be0a40aa45a94ad051997016db3960a90277",
+        "DSV41_EXPERT_CACHE_GIB": "8",
+        "DSV41_GPU_CACHE_GIB": "48",
+        "DSV41_RELEASE_CHECKPOINT_CACHE": "1",
+        "DSV41_SLOT_IO": "direct"
+      }
+    },
+    {
+      "rank": 1,
+      "image": "dgx-ds41-stream:b12x6",
+      "running": true,
+      "settings": {
+        "DSV41_BENCH_CONTROL": "0",
+        "DSV41_MODEL": "/repo/snapshots/dba1be0a40aa45a94ad051997016db3960a90277",
+        "DSV41_EXPERT_CACHE_GIB": "8",
+        "DSV41_ENGRAM_DISK": "1",
+        "DSV41_SLOTS_PER_LAYER": "224",
+        "DSV41_SCRATCH_MIB": "256",
+        "DSV41_MOE_BACKEND": "b12x_slots",
+        "DSV41_EXPERT_GRAPHS": "1",
+        "DSV41_RELEASE_CHECKPOINT_CACHE": "1",
+        "DSV41_READ_THREADS": "4",
+        "DSV41_ATTENTION_GRAPHS": "0",
+        "DSV41_GPU_CACHE_GIB": "48",
+        "DSV41_MODEL_GRAPHS": "0",
+        "DSV41_ENGRAM_DISK_THREADS": "8",
+        "DSV41_PACKED_DIR": "/packed",
+        "DSV41_SLOT_IO": "direct",
+        "DSV41_PREFETCH_TEST": "0",
+        "DSV41_SHORT_CONTEXT_GRAPHS": "0",
+        "DSV41_ENGRAM_PRESTAGE": "0",
+        "DSV41_EXPERT_STREAMING": "1"
+      }
+    }
+  ]
+}

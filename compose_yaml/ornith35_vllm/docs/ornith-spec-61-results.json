@@ -1,0 +1,92 @@
+{
+  "host": "192.168.100.61",
+  "model": "edp1096/Huihui-Ornith-1.5-35B-A3B-NVFP4",
+  "image": "dgx-vllm-moe-tp1:b40673cd0-v3",
+  "target_context": 1048576,
+  "draft_context": 65536,
+  "kv_cache_bytes": 34359738368,
+  "kv_cache_dtype": "fp8",
+  "input_tasks": [
+    "korean",
+    "code",
+    "math"
+  ],
+  "repeats_per_task": 3,
+  "output_tokens": 512,
+  "temperature": 0,
+  "seed": 1096,
+  "runs": {
+    "ar": {
+      "median_tg": 80.51033741442961,
+      "median_ttft": 0.10678419101168402,
+      "mean_tg_by_task": {
+        "korean": 80.44024052659795,
+        "code": 80.35648423362105,
+        "math": 80.49973640985728
+      },
+      "acceptance_rate": null,
+      "checks": {
+        "warmup": true,
+        "arithmetic": true,
+        "korean": true,
+        "code": true,
+        "tool_call": true,
+        "vision": true,
+        "long_retrieval": true
+      },
+      "long_input_tokens": 79973,
+      "long_ttft": 23.052892929001246,
+      "long_tg": 65.75331855257369,
+      "backend": "FLASHINFER/LBNHC",
+      "draft_tokens": 0
+    },
+    "mtp1": {
+      "median_tg": 105.86359064453352,
+      "median_ttft": 0.11340540199307725,
+      "mean_tg_by_task": {
+        "korean": 101.89448616541853,
+        "code": 105.96796950396013,
+        "math": 106.56086612527785
+      },
+      "acceptance_rate": 0.8025851938895417,
+      "checks": {
+        "warmup": true,
+        "arithmetic": true,
+        "korean": true,
+        "code": true,
+        "tool_call": true,
+        "vision": true,
+        "long_retrieval": true
+      },
+      "long_input_tokens": 79973,
+      "long_ttft": 26.531874376989435,
+      "long_tg": 51.957207325551686,
+      "backend": "FLASHINFER/LBNHC",
+      "draft_tokens": 1
+    },
+    "dflash2": {
+      "median_tg": 96.35208463948302,
+      "median_ttft": 0.14548728000954725,
+      "mean_tg_by_task": {
+        "korean": 77.5561511256426,
+        "code": 107.27672552453217,
+        "math": 104.61869630040182
+      },
+      "acceptance_rate": 0.2039447731755424,
+      "checks": {
+        "warmup": true,
+        "arithmetic": true,
+        "korean": true,
+        "code": true,
+        "tool_call": true,
+        "vision": true,
+        "long_retrieval": true
+      },
+      "long_input_tokens": 79973,
+      "long_ttft": 32.494053964008344,
+      "long_tg": 47.5552773972008,
+      "backend": "TRITON_ATTN/BLHNC",
+      "draft_tokens": 10
+    }
+  }
+}

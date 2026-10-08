@@ -1,0 +1,57 @@
+PROBE ONLY: upstream default recipe; not a precision-preserving serving change
+b12x policy fallback: moe.decode is using a heuristic on nvidia gb10 (compute capability 12.1, 48 SMs) because profile 'nvidia.gb10.48sm' does not cover the query; query={'activation': 'silu', 'hidden_size': 5120, 'intermediate_size': 1152, 'num_experts': 224, 'num_tokens': 1, 'numerical_recipe': 'default', 'quant_mode': 'w4a8_mx', 'routed_rows': 6, 'source_format': 'fp4_e8m0_k32', 'top_k': 6}
+{"layer": 0, "tokens": 1, "execution_ms": 0.36569776667268644, "finite": true, "output_dtype": "torch.bfloat16", "max_abs_error": 0.0011830329895019531, "relative_l2_error": 0.042526062577962875, "numeric_close": false}
+b12x policy fallback: moe.decode is using a heuristic on nvidia gb10 (compute capability 12.1, 48 SMs) because profile 'nvidia.gb10.48sm' does not cover the query; query={'activation': 'silu', 'hidden_size': 5120, 'intermediate_size': 1152, 'num_experts': 224, 'num_tokens': 5, 'numerical_recipe': 'default', 'quant_mode': 'w4a8_mx', 'routed_rows': 30, 'source_format': 'fp4_e8m0_k32', 'top_k': 6}
+Traceback (most recent call last):
+  File "/opt/ds41/tools/probe_b12x_default_recipe.py", line 38, in <module>
+    runpy.run_path(str(Path(__file__).with_name('check_b12x_upgrade.py')), run_name='__main__')
+  File "<frozen runpy>", line 286, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 88, in _run_code
+  File "/opt/ds41/tools/check_b12x_upgrade.py", line 39, in <module>
+    output=cache.execute(x,weights,mapped,ids.shape).clone()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/ds41/b12x_slots.py", line 357, in execute
+    fused_moe.run(binding=call['binding'])
+  File "/usr/local/lib/python3.12/dist-packages/b12x/moe/fused_moe/_impl.py", line 12936, in b12x_moe_fp4
+    _launch_dynamic(
+  File "/usr/local/lib/python3.12/dist-packages/b12x/moe/fused_moe/_impl.py", line 11677, in _launch_dynamic
+    torch.ops.b12x.tp_moe_dynamic_launch(
+  File "/usr/local/lib/python3.12/dist-packages/torch/_ops.py", line 1279, in __call__
+    return self._op(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/_library/custom_ops.py", line 441, in backend_impl
+    result = self._backend_fns[device_type](*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/_compile.py", line 54, in inner
+    return disable_fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/_dynamo/eval_frame.py", line 1446, in _fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/_library/custom_ops.py", line 502, in wrapped_fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/b12x/moe/fused_moe/_impl.py", line 11460, in _tp_moe_dynamic_launch_op
+    _launch_dynamic_flat(
+  File "/usr/local/lib/python3.12/dist-packages/b12x/moe/fused_moe/_impl.py", line 11232, in _launch_dynamic_flat
+    compiled(
+  File "/usr/local/lib/python3.12/dist-packages/nvidia_cutlass_dsl/dsl_packages/cutlass/base_dsl/jit_executor.py", line 1077, in run_compiled_program
+    raise cuda_helpers.create_cuda_runtime_error(error_code)
+cutlass.base_dsl.common.DSLCudaRuntimeError:
+[91m[1merror:[0m CUDA_ERROR_COOPERATIVE_LAUNCH_TOO_LARGE (error code: 720)
+
+
+[0m
+  [94m= note:[0m error code 720
+  [94m= note:[0m
+- [1mError name: CUDA_ERROR_COOPERATIVE_LAUNCH_TOO_LARGE
+- Error code: 720
+- CUDA_TOOLKIT_PATH: not set
+- Target SM ARCH: unknown (unspecified)[0m
+
+[94m📊 GPU Information:[0m
+[1m- CUDA devices available: 1 (current: <CUdevice 0>)
+- Architecture: [94mBlackwell[0m ([92msm_121a[0m)
+- Compatible SM archs: [92msm_121a[0m
+- Total Memory: [94m121.63 GB[0m

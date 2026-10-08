@@ -1,0 +1,30 @@
+{
+  "results": [
+    {
+      "submitted": 1,
+      "skipped_busy": 0,
+      "rows": 17992,
+      "bytes": 4749888,
+      "read_seconds": 1.1948617880007077,
+      "plan_seconds": 0.00588501099991845,
+      "stage_seconds": 0.6542354950070148,
+      "stages": 30,
+      "errors": 0,
+      "verified_tokens": 8023,
+      "enabled": true
+    },
+    {
+      "submitted": 1,
+      "skipped_busy": 0,
+      "rows": 33128,
+      "bytes": 8745792,
+      "read_seconds": 2.6139695900019433,
+      "plan_seconds": 0.006747761999577051,
+      "stage_seconds": 1.0225565449945861,
+      "stages": 30,
+      "errors": 0,
+      "verified_tokens": 8023,
+      "enabled": true
+    }
+  ]
+}

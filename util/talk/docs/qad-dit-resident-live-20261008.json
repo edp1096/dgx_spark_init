@@ -1,0 +1,528 @@
+{
+  "date": "2026-10-08",
+  "hardware": "DGX Spark / NVIDIA GB10",
+  "system_memory_gib": 121.62510681152344,
+  "policy": {
+    "image_dit": "Full static GPU residency; protected against Comfy eviction and checked after every stage",
+    "image_auxiliaries": "W4A8 TE and BF16 VAE use dynamic loading and are discarded after each stage; no discarded-model CPU copy",
+    "image_checkpoints": [
+      {
+        "repo": "abenzerps/Qwen-Image-2.1-Uncensored-GGUF",
+        "revision": "6b34e59458d3eb7ba6a6f86a116aed5253dc02c3",
+        "file": "qwen-image-2.1-UC-NVFP4.safetensors",
+        "sha256": "7cdf87660e84aecf740b5b0f65c848549ba8a74d88ac201976931ca4c780d121"
+      },
+      {
+        "repo": "Comfy-Org/Qwen-Image-2.1",
+        "revision": "cb504a4090723e43f17ad01cec0359490e2de613",
+        "file": "text_encoders/qwen3vl_8b_w4a8.safetensors",
+        "sha256": "7754425e55e7bea2bfde4dde59a4cc236cb44e5ee9c215ea66ef8d47012824eb"
+      },
+      {
+        "repo": "Comfy-Org/Qwen-Image-2.1",
+        "revision": "cb504a4090723e43f17ad01cec0359490e2de613",
+        "file": "vae/qwen_image_2.1_vae_bf16.safetensors",
+        "sha256": "bb21f7473051e1ac368515dd3f2e15cd44d7a11748ee8823e1ddca3e4876b7c9"
+      }
+    ],
+    "reference_cache": "INT8",
+    "llm": "Huihui Qwen3.8 Flash-Next QAD, FP8 KV, MTP 3",
+    "asr_tts": "Nemotron ASR + speaker model and Qwen3-TTS Q8 main/codec retained",
+    "extra": "Media video audio extraction, actual Chromium example.com collection, PDF creation, explicit Extra shutdown, SSH health",
+    "reservation": "14 GiB whole image service + 1.5 GiB system reserve; cold image CUDA bootstrap floor 10 GiB; trial watchdog stops image worker below 5 GiB available",
+    "scope": "1024x1024 text-to-image, 40 Euler/simple steps, serialized auxiliary jobs; experimental standalone worker, not a production editing-service deployment",
+    "no_model_download": true,
+    "source_image": "sparktalk-qwen-image21:nvfp4-int8-v4-resident"
+  },
+  "measurement": {
+    "system_interval_seconds": 0.2,
+    "gpu_rss_interval_seconds": 1,
+    "accounting": "GPU allocation plus host residency outside CUDA. RSS is recorded separately and not added to GPU allocation. System swap values cover all host processes; page ownership is not identified."
+  },
+  "profiles": {
+    "512k": {
+      "all_checks_passed": true,
+      "actual_kv_tokens": 524288,
+      "kv_and_qsa_gib": 6.907118201255798,
+      "same_llm_id_and_pid": true,
+      "same_four_resident_ids_and_pids": true,
+      "identities_before": {
+        "sglang-qwen38-fn": "d51e9edaf356315fdbe77bb63e9db8f1506abfd33eb73b4df0deb176e77c2197 971140",
+        "sparktalk-nemotron-asr": "40d080f737ab4b0b93bb031d6d6a5638242821d7ef70596f530d965ae49bfbaf 1038400",
+        "sparktalk-qwen-image21-dit-trial": "fd079f4d5b2266f90e969a64ba333de132ad3f71dd783f97fc942133d3e00109 1042584",
+        "sparktalk-qwen3-tts": "82694cf128b2137bcd2e8d9ed3d2969fbe1a928c51f76e81152826ee15ea291f 1039344"
+      },
+      "identities_after": {
+        "sglang-qwen38-fn": "d51e9edaf356315fdbe77bb63e9db8f1506abfd33eb73b4df0deb176e77c2197 971140",
+        "sparktalk-nemotron-asr": "40d080f737ab4b0b93bb031d6d6a5638242821d7ef70596f530d965ae49bfbaf 1038400",
+        "sparktalk-qwen-image21-dit-trial": "fd079f4d5b2266f90e969a64ba333de132ad3f71dd783f97fc942133d3e00109 1042584",
+        "sparktalk-qwen3-tts": "82694cf128b2137bcd2e8d9ed3d2969fbe1a928c51f76e81152826ee15ea291f 1039344"
+      },
+      "checks": [
+        {
+          "elapsed_seconds": 3.6947553600000003,
+          "name": "asr-initial",
+          "ok": true
+        },
+        {
+          "elapsed_seconds": 2.036006976,
+          "name": "tts-initial",
+          "ok": true
+        },
+        {
+          "elapsed_seconds": 0.029952848,
+          "name": "unused-cuda-cache",
+          "ok": true
+        },
+        {
+          "elapsed_seconds": 27.403858824,
+          "name": "image-startup",
+          "ok": true
+        },
+        {
+          "elapsed_seconds": 37.592037614,
+          "name": "image-first",
+          "ok": true
+        },
+        {
+          "elapsed_seconds": 1.1332161570000001,
+          "name": "asr-after-image",
+          "ok": true
+        },
+        {
+          "elapsed_seconds": 1.626950467,
+          "name": "tts-after-image",
+          "ok": true
+        },
+        {
+          "elapsed_seconds": 0.584079208,
+          "name": "llm-after-image",
+          "ok": true
+        },
+        {
+          "elapsed_seconds": 28.754561514,
+          "name": "image-repeat",
+          "ok": true
+        },
+        {
+          "elapsed_seconds": 12.371066836,
+          "name": "extra-work-and-stop",
+          "ok": true
+        },
+        {
+          "elapsed_seconds": 130.059249529,
+          "name": "idle-over-grace",
+          "ok": true
+        },
+        {
+          "elapsed_seconds": 34.37418969,
+          "name": "image-after-idle",
+          "ok": true
+        }
+      ],
+      "steady_system_memory": {
+        "total_gib": 121.62510681152344,
+        "used_gib": 108.27145767211914,
+        "available_gib": 13.353649139404297,
+        "free_gib": 7.8673553466796875
+      },
+      "steady_components": [
+        {
+          "id": "flash-next",
+          "status": "running",
+          "health": "online",
+          "gpu_gib": 84.8828125,
+          "host_outside_cuda_gib": 5.858404830098152,
+          "total_resident_gib": 90.74121733009815
+        },
+        {
+          "id": "flux2",
+          "status": "running",
+          "health": "online",
+          "gpu_gib": 4.576171875,
+          "host_outside_cuda_gib": 2.2686207741498947,
+          "total_resident_gib": 6.844792649149895
+        },
+        {
+          "id": "nemotron-asr",
+          "status": "running",
+          "health": "online",
+          "gpu_gib": 1.5205078125,
+          "host_outside_cuda_gib": 0.8565868735313416,
+          "total_resident_gib": 2.3770946860313416
+        },
+        {
+          "id": "qwen3-tts",
+          "status": "running",
+          "health": "online",
+          "gpu_gib": 2.4072265625,
+          "host_outside_cuda_gib": 0.5970066338777542,
+          "total_resident_gib": 3.004233196377754
+        }
+      ],
+      "steady_four_component_total_gib": 102.96733786165714,
+      "min_system_available_gib": 7.601341247558594,
+      "min_system_free_gib": 2.4655914306640625,
+      "max_system_used_gib": 114.02376556396484,
+      "swap": {
+        "initial_system_used_gib": 1.0385246276855469,
+        "peak_increase_mib": 232.4609375,
+        "net_change_mib": 142.3203125
+      },
+      "dit_loaded_min_gib": 3.909243941307068,
+      "dit_loaded_max_gib": 3.909243941307068,
+      "all_observed_post_release_models_only_dit": true,
+      "quality_against_previous_same_seed_outputs": [
+        {
+          "image": 1,
+          "size": [
+            1024,
+            1024
+          ],
+          "pixels_identical": true,
+          "mean_absolute_channel_difference": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "image": 2,
+          "size": [
+            1024,
+            1024
+          ],
+          "pixels_identical": true,
+          "mean_absolute_channel_difference": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "image_cases": [
+        {
+          "case": "0f5a86b8a8913fc006da3f93e523f729",
+          "conditioning_cache_hit": false,
+          "stage_seconds": {
+            "encode_end": 7.900563281960785,
+            "release_encoder_end": 0.1307100149570033,
+            "sample_end": 27.336687913979404,
+            "release_sample_workspace_end": 0.10850235295947641,
+            "decode_video_end": 1.269235691986978,
+            "release_video_vae_end": 0.12584800098557025,
+            "save_end": 0.3947068681009114
+          },
+          "min_available_gib": 12.061988830566406,
+          "max_torch_allocated_gib": 4.009591579437256,
+          "max_torch_reserved_gib": 6.111328125
+        },
+        {
+          "case": "0f19a4bd22b22b5a650b6225eaeb20c3",
+          "conditioning_cache_hit": true,
+          "stage_seconds": {
+            "encode_end": 0.001003263983875513,
+            "release_encoder_end": 0.1154781139921397,
+            "sample_end": 25.61776620708406,
+            "release_sample_workspace_end": 0.10975131497252733,
+            "decode_video_end": 1.9251575999660417,
+            "release_video_vae_end": 0.12700821098405868,
+            "save_end": 0.5161070529138669
+          },
+          "min_available_gib": 11.561344146728516,
+          "max_torch_allocated_gib": 4.009591579437256,
+          "max_torch_reserved_gib": 6.111328125
+        },
+        {
+          "case": "944683d1082b1129a0efd5ff019a2006",
+          "conditioning_cache_hit": false,
+          "stage_seconds": {
+            "encode_end": 5.926241536973976,
+            "release_encoder_end": 0.12134090601466596,
+            "sample_end": 26.014318190980703,
+            "release_sample_workspace_end": 0.10926353000104427,
+            "decode_video_end": 1.2237323670415208,
+            "release_video_vae_end": 0.11538106703665107,
+            "save_end": 0.44624228007160127
+          },
+          "min_available_gib": 11.60898208618164,
+          "max_torch_allocated_gib": 4.012261867523193,
+          "max_torch_reserved_gib": 6.111328125
+        }
+      ],
+      "cold_boot_seconds": 510.5605988029856,
+      "post_idle_prompt_changed": true,
+      "artifacts": "/home/edp1096/.cache/model-download-jobs/tts-gguf-comparison-20261008/qad-dit-resident-live/512k"
+    },
+    "384k": {
+      "all_checks_passed": true,
+      "actual_kv_tokens": 393216,
+      "kv_and_qsa_gib": 5.180555701255798,
+      "same_llm_id_and_pid": true,
+      "same_four_resident_ids_and_pids": true,
+      "identities_before": {
+        "sglang-qwen38-fn": "ebc09d940353e1c23057705d1a8c61f7941316264621d463c413f0bc340bafe4 852716",
+        "sparktalk-nemotron-asr": "a7a212a33d9dc9e8b63b3bd4c8ff5f92fc92f72472c7d4891e7bfec4263cfdd6 945239",
+        "sparktalk-qwen-image21-dit-trial": "c05dec40f504e07dbed556b75db393d416a1815a1b450c63398b5a7b381f56da 947072",
+        "sparktalk-qwen3-tts": "c40f7d7f0a3a222046a6d9fdc5dcba3da7f642b9ff0dd19407eec4c4019acfff 946102"
+      },
+      "identities_after": {
+        "sglang-qwen38-fn": "ebc09d940353e1c23057705d1a8c61f7941316264621d463c413f0bc340bafe4 852716",
+        "sparktalk-nemotron-asr": "a7a212a33d9dc9e8b63b3bd4c8ff5f92fc92f72472c7d4891e7bfec4263cfdd6 945239",
+        "sparktalk-qwen-image21-dit-trial": "c05dec40f504e07dbed556b75db393d416a1815a1b450c63398b5a7b381f56da 947072",
+        "sparktalk-qwen3-tts": "c40f7d7f0a3a222046a6d9fdc5dcba3da7f642b9ff0dd19407eec4c4019acfff 946102"
+      },
+      "checks": [
+        {
+          "elapsed_seconds": 8.670323566,
+          "name": "asr-initial",
+          "ok": true
+        },
+        {
+          "elapsed_seconds": 6.9201431509999995,
+          "name": "tts-initial",
+          "ok": true
+        },
+        {
+          "elapsed_seconds": 0.014636705,
+          "name": "unused-cuda-cache",
+          "ok": true
+        },
+        {
+          "elapsed_seconds": 26.402365138,
+          "name": "image-startup",
+          "ok": true
+        },
+        {
+          "elapsed_seconds": 36.405103934,
+          "name": "image-first",
+          "ok": true
+        },
+        {
+          "elapsed_seconds": 1.20997078,
+          "name": "asr-after-image",
+          "ok": true
+        },
+        {
+          "elapsed_seconds": 1.667026348,
+          "name": "tts-after-image",
+          "ok": true
+        },
+        {
+          "elapsed_seconds": 0.379775361,
+          "name": "llm-after-image",
+          "ok": true
+        },
+        {
+          "elapsed_seconds": 27.955310918,
+          "name": "image-repeat",
+          "ok": true
+        },
+        {
+          "elapsed_seconds": 12.5407461,
+          "name": "extra-work-and-stop",
+          "ok": true
+        },
+        {
+          "elapsed_seconds": 130.050031815,
+          "name": "idle-over-grace",
+          "ok": true
+        },
+        {
+          "elapsed_seconds": 27.552365338,
+          "name": "image-after-idle",
+          "ok": true
+        }
+      ],
+      "steady_system_memory": {
+        "total_gib": 121.62510681152344,
+        "used_gib": 107.31943893432617,
+        "available_gib": 14.305667877197266,
+        "free_gib": 6.222282409667969
+      },
+      "steady_components": [
+        {
+          "id": "flash-next",
+          "status": "running",
+          "health": "online",
+          "gpu_gib": 83.125,
+          "host_outside_cuda_gib": 5.857017122209072,
+          "total_resident_gib": 88.98201712220907
+        },
+        {
+          "id": "flux2",
+          "status": "running",
+          "health": "online",
+          "gpu_gib": 4.576171875,
+          "host_outside_cuda_gib": 2.24698868393898,
+          "total_resident_gib": 6.82316055893898
+        },
+        {
+          "id": "nemotron-asr",
+          "status": "running",
+          "health": "online",
+          "gpu_gib": 1.5224609375,
+          "host_outside_cuda_gib": 0.8541777282953262,
+          "total_resident_gib": 2.3766386657953262
+        },
+        {
+          "id": "qwen3-tts",
+          "status": "running",
+          "health": "online",
+          "gpu_gib": 2.4072265625,
+          "host_outside_cuda_gib": 0.5969714447855949,
+          "total_resident_gib": 3.004198007285595
+        }
+      ],
+      "steady_four_component_total_gib": 101.18601435422897,
+      "min_system_available_gib": 10.717353820800781,
+      "min_system_free_gib": 2.5923728942871094,
+      "max_system_used_gib": 110.90775299072266,
+      "swap": {
+        "initial_system_used_gib": 1.0365104675292969,
+        "peak_increase_mib": 2.125,
+        "net_change_mib": 2.11328125
+      },
+      "dit_loaded_min_gib": 3.909243941307068,
+      "dit_loaded_max_gib": 3.909243941307068,
+      "all_observed_post_release_models_only_dit": true,
+      "quality_against_previous_same_seed_outputs": [
+        {
+          "image": 1,
+          "size": [
+            1024,
+            1024
+          ],
+          "pixels_identical": true,
+          "mean_absolute_channel_difference": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "image": 2,
+          "size": [
+            1024,
+            1024
+          ],
+          "pixels_identical": true,
+          "mean_absolute_channel_difference": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "image_cases": [
+        {
+          "case": "82570a7e6d01fd77ba40a5c9bc0ed687",
+          "conditioning_cache_hit": false,
+          "stage_seconds": {
+            "encode_end": 7.462618074030615,
+            "release_encoder_end": 0.11113998899236321,
+            "sample_end": 26.64981426508166,
+            "release_sample_workspace_end": 0.10168720502406359,
+            "decode_video_end": 1.2593171590706334,
+            "release_video_vae_end": 0.12193811510223895,
+            "save_end": 0.39263880101498216
+          },
+          "min_available_gib": 13.431503295898438,
+          "max_torch_allocated_gib": 4.009591579437256,
+          "max_torch_reserved_gib": 6.111328125
+        },
+        {
+          "case": "deabf0434f13756353199080beba08bd",
+          "conditioning_cache_hit": true,
+          "stage_seconds": {
+            "encode_end": 0.00032595195807516575,
+            "release_encoder_end": 0.09471937199123204,
+            "sample_end": 25.650367915979587,
+            "release_sample_workspace_end": 0.10866043902933598,
+            "decode_video_end": 0.993604589952156,
+            "release_video_vae_end": 0.12093220406677574,
+            "save_end": 0.5177905500167981
+          },
+          "min_available_gib": 13.3021240234375,
+          "max_torch_allocated_gib": 4.009591579437256,
+          "max_torch_reserved_gib": 6.111328125
+        },
+        {
+          "case": "ab6f4fb3ccdf9c0a2862cd270ba8e520",
+          "conditioning_cache_hit": true,
+          "stage_seconds": {
+            "encode_end": 0.0007076639449223876,
+            "release_encoder_end": 0.08912316698115319,
+            "sample_end": 25.441625591018237,
+            "release_sample_workspace_end": 0.10814075998496264,
+            "decode_video_end": 0.99590406101197,
+            "release_video_vae_end": 0.12508281599730253,
+            "save_end": 0.4504699120298028
+          },
+          "min_available_gib": 12.581596374511719,
+          "max_torch_allocated_gib": 4.009591579437256,
+          "max_torch_reserved_gib": 6.111328125
+        }
+      ],
+      "cold_boot_seconds": 0,
+      "post_idle_prompt_changed": false,
+      "artifacts": "/home/edp1096/.cache/model-download-jobs/tts-gguf-comparison-20261008/qad-dit-resident-live/384k",
+      "cold_boot_note": "LLM was retained from the first actual 384K boot; auxiliary services were stopped and reloaded for the valid repeat.",
+      "original_cold_boot_seconds": 494.0407174869906
+    }
+  },
+  "raw_directory": "/home/edp1096/.cache/model-download-jobs/tts-gguf-comparison-20261008/qad-dit-resident-live",
+  "excluded_trials": {
+    "directory": "/home/edp1096/.cache/model-download-jobs/tts-gguf-comparison-20261008/qad-dit-resident-live/invalid-ttl",
+    "reason": "The production Talk manager still treated TTS as on-demand and reclaimed it after two minutes while the trial controller pinned it. Both trials were excluded, production ASR/TTS pin flags were aligned, old production idle timers were canceled by restarting Talk without restarting the LLM, and both profiles were repeated.",
+    "production_stop_evidence": {
+      "action": "idle-reclaim",
+      "component_id": "qwen3-tts",
+      "state": "complete",
+      "phase": "준비 완료",
+      "detail": "선택한 구성을 사용할 수 있습니다.",
+      "progress": 1,
+      "started_at": "2026-10-08T11:23:00.219393168+09:00",
+      "finished_at": "2026-10-08T11:23:00.842478932+09:00",
+      "steps": [
+        {
+          "phase": "Qwen3-TTS 0.6B 유휴 메모리 반환",
+          "state": "complete",
+          "started_at": "2026-10-08T11:23:00.219394736+09:00",
+          "finished_at": "2026-10-08T11:23:00.842478932+09:00"
+        }
+      ]
+    }
+  },
+  "reproduction_source_sha256": {
+    "/home/edp1096/.cache/model-download-jobs/tts-gguf-comparison-20261008/qad-dit-resident-live/assets/generation_progress.py": "673b9a2ecf4cbc6a26b94b3ea4d4b8f5b02db2ed5eed9b85386ba0bd07dcaac0",
+    "/home/edp1096/.cache/model-download-jobs/tts-gguf-comparison-20261008/qad-dit-resident-live/assets/api.py": "41d79f077245a098d53c1b2753964ea402b47fc5bfeb1df0bdd429ea95e17e65",
+    "/home/edp1096/.cache/model-download-jobs/tts-gguf-comparison-20261008/qad-dit-resident-live/assets/worker.py": "2ee2489192092382a7855024fe2da46a87a23706fbaff2b72f60a9c2cc9a1f75",
+    "/home/edp1096/.cache/model-download-jobs/tts-gguf-comparison-20261008/qad-dit-resident-live/assets/start.sh": "af8a04f489085083db183cc4f11633bbbce93fa7a88cdeae8895b6ecbbbb2718",
+    "/home/edp1096/.cache/model-download-jobs/tts-gguf-comparison-20261008/qad-dit-resident-live/resume-pinned.py": "8a2310423a183b5c11c9f1d890c4e7e32248762ccd5baf5b3e4a9e42cdeed482",
+    "/home/edp1096/workspace/dgx_spark_init/util/talk/internal/server/qad_profiles_live_test.go": "c09e121cd5d765302722e972c7a997f05db6fcfe13bc1cc159a26793b784fb56"
+  },
+  "restoration": {
+    "selected_bundle": "flash-next-radixark",
+    "actual_nvfp4_kv_tokens": 1048576,
+    "asr_transcription": {
+      "text": "영상은 팔육사 사팔공 초당 이십사 에프 피 에스 입니다.",
+      "language": ""
+    },
+    "system_memory": {
+      "total_gib": 121.62510681152344,
+      "used_gib": 108.43411636352539,
+      "available_gib": 13.190990447998047,
+      "free_gib": 5.8492889404296875
+    },
+    "restore_error": null,
+    "public_configuration_matches_original": true,
+    "qad_saved_context_tokens": 655360,
+    "speak_rate": 1.3
+  },
+  "conclusion": "Both profiles completed the pinned-DiT/dynamic-TE-VAE trial with the same four model processes and unchanged actual KV capacity, including Extra execution/shutdown and >2 minutes idle reuse. 512K also reloaded the TE for a new post-idle prompt. 384K is not required for these successful workloads; 512K had more observed host-wide swap growth. Earlier smart-memory whole-model-residency trials did not test this policy."
+}

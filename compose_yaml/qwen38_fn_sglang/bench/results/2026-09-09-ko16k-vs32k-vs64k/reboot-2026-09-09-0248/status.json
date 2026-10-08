@@ -1,0 +1,75 @@
+{
+  "ko16k-telemetry.jsonl": {
+    "valid_rows": 981,
+    "invalid_rows": [
+      {
+        "line": 982,
+        "bytes": 1684
+      }
+    ],
+    "last": {
+      "time": "2026-09-09T02:46:42.212771+09:00",
+      "monotonic": 7545.601798446,
+      "phase": "loading",
+      "MemTotal": 130595991552,
+      "MemAvailable": 33508421632,
+      "MemFree": 23109279744,
+      "SwapTotal": 17179865088,
+      "SwapFree": 16968450048,
+      "Cached": 11072225280,
+      "memory.current": 4865249280,
+      "memory.peak": 5104721920,
+      "memory.events": {
+        "low": "0",
+        "high": "0",
+        "max": "0",
+        "oom": "0",
+        "oom_kill": "0",
+        "oom_group_kill": "0"
+      }
+    },
+    "min_available_gib": 30.892650604248047,
+    "max_additional_swap_mib": 0.0
+  },
+  "thermal.jsonl": {
+    "valid_rows": 24,
+    "invalid_rows": [
+      {
+        "line": 25,
+        "bytes": 255
+      }
+    ],
+    "last": {
+      "time": "2026-09-09T02:46:25.813856+09:00",
+      "values": {
+        "temperature_c": "49",
+        "gpu_util_pct": "1",
+        "power_w": "9.29",
+        "sm_clock_mhz": "2093"
+      },
+      "exit_code": 0
+    }
+  },
+  "container": {
+    "state": {
+      "Status": "exited",
+      "Running": false,
+      "Paused": false,
+      "Restarting": false,
+      "OOMKilled": false,
+      "Dead": false,
+      "Pid": 0,
+      "ExitCode": 255,
+      "Error": "",
+      "StartedAt": "2026-09-08T17:42:36.587693537Z",
+      "FinishedAt": "2026-09-08T17:47:21.84950816Z"
+    },
+    "restart": {
+      "Name": "no",
+      "MaximumRetryCount": 0
+    }
+  },
+  "boot_started": "2026-09-09 02:48:41",
+  "boot_id": "ccc4bda2-bff7-43e5-a7f0-ac093ba632ac",
+  "completed_16k_responses": 0
+}

@@ -1,0 +1,44 @@
+{
+  "checks": {
+    "llm": 200,
+    "talk": 200,
+    "extra-media": 200,
+    "extra-ssh": 200,
+    "extra-collector": 200,
+    "extra-documents": 200,
+    "asr": 200
+  },
+  "response": "restored-native-ok",
+  "max_model_len": 65536,
+  "reader": "native_hint",
+  "engram_prefetch": "1",
+  "model_graphs": "0",
+  "expert_graphs": "1",
+  "bench_control": "0",
+  "metrics": {
+    "time_to_first_token_ms": 937.020327000937,
+    "generation_time_ms": 403.11816900066333,
+    "queue_time_ms": 0.027216003218200058,
+    "mean_itl_ms": 80.62363380013267,
+    "tokens_per_second": 4.477149203534882,
+    "speculative_decoding": null
+  },
+  "usage": {
+    "prompt_tokens": 12,
+    "total_tokens": 18,
+    "completion_tokens": 6,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "created_cache_tokens": 0,
+      "multimodal_tokens": null
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "head_min_available_gib": 14.610301971435547,
+  "head_guard_trips": 0,
+  "head_boot_ids": [
+    "be1034db-6fac-423a-940f-22b72a906905"
+  ]
+}

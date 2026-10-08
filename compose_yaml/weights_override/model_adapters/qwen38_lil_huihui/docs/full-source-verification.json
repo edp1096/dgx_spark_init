@@ -1,0 +1,11 @@
+{
+  "status": "complete",
+  "revision": "7e3bfc316b880fefeb049596f11c49d6a18e05fb",
+  "sha256": {
+    "UD-Q4_K_XL/Qwen3.8-Flash-Next-UD-Q4_K_XL-00001-of-00004.gguf": "290a31ca20b74ed2c21b257d378a5678d821ad9fdd8feb1fc52c719761668903",
+    "UD-Q4_K_XL/Qwen3.8-Flash-Next-UD-Q4_K_XL-00002-of-00004.gguf": "0ebf70d076e0e98f74dc414a90b92c67d7267876ae524bc7799cf463e27b754b",
+    "UD-Q4_K_XL/Qwen3.8-Flash-Next-UD-Q4_K_XL-00004-of-00004.gguf": "983901b3e47686f56f5fcec87ba8c51e7e2c6996277dd77bc3fc804a1d563da3",
+    "mmproj-model-bf16.gguf": "dbac7334a8a433abd6cd1d1db82398ba123faa2f328696da20848e605e645ca1",
+    "UD-Q4_K_XL/Qwen3.8-Flash-Next-UD-Q4_K_XL-00003-of-00004.gguf": "e9b12f44e13e60d6ef9396449f7b4356b2e2911222b8183a596830c2418db19a"
+  }
+}

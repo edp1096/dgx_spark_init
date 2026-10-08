@@ -1,0 +1,72 @@
+package orchestrator
+
+import "testing"
+
+func TestClusterQwenTTSPlacementAndStartup(t *testing.T) {
+	c, err := LoadCatalog()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, id := range []string{"ds4fve", "ds41", "glm53-worker-extra"} {
+		b, _ := c.Bundle(id)
+		tts, ok := c.ResolveComponent(id, "qwen3-tts")
+		if !ok || tts.Host != "worker" || tts.Endpoint != "http://192.168.100.60:8692" || tts.MemoryGiB != 4 {
+			t.Fatalf("%s: invalid worker TTS binding: %+v", id, tts)
+		}
+		order := c.startupOrder(c.StartBundleMembers(b))
+		llmIndex, ttsIndex := -1, -1
+		for i, member := range order {
+			x, _ := c.ResolveComponent(id, member)
+			if x.Role == "llm" {
+				llmIndex = i
+			}
+			if member == "qwen3-tts" {
+				ttsIndex = i
+			}
+		}
+		if llmIndex < 0 || ttsIndex < 0 || (ttsIndex > llmIndex) != (id != "ds4fve") {
+			t.Fatalf("%s: wrong startup order: %v", id, order)
+		}
+	}
+	// QAD TP1 includes TTS as a deferred workload after the resident LLM.
+	bundle, _ := c.Bundle("flash-next")
+	order := c.startupOrder(c.StartBundleMembers(bundle))
+	llmIndex, ttsIndex := -1, -1
+	for i, id := range order {
+		if id == "flash-next" {
+			llmIndex = i
+		}
+		if id == "qwen3-tts" {
+			ttsIndex = i
+		}
+	}
+	if llmIndex < 0 || ttsIndex <= llmIndex || !bundle.WorkloadSwap {
+		t.Fatalf("TTS is not deferred after QAD: %v", order)
+	}
+	for _, required := range []string{"extra-media", "extra-ssh", "extra-collector"} {
+		found := false
+		for _, member := range bundle.Components {
+			if member == required {
+				found = true
+			}
+		}
+		if !found {
+			t.Fatalf("QAD missing %s: %v", required, order)
+		}
+	}
+	for _, id := range []string{"flux2", "nemotron-asr"} {
+		local, ok := c.ResolveComponent("flash-next", id)
+		if !ok || local.Host == "worker" || !local.StartAfterLLM {
+			t.Fatalf("invalid QAD auxiliary binding: %s %+v", id, local)
+		}
+		position := -1
+		for i, member := range order {
+			if member == id {
+				position = i
+			}
+		}
+		if position <= llmIndex {
+			t.Fatalf("%s must start after Qwen: %v", id, order)
+		}
+	}
+}

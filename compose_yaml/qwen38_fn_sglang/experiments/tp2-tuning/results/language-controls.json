@@ -1,0 +1,103 @@
+[
+  {
+    "started": 1789450529.6306946,
+    "finished": 1789450530.3127666,
+    "verify_calls": 9.0,
+    "accept_length": 1.8888888888888888,
+    "text": "원문: 你好，世界。\n번역: 안녕하세요, 세상아.",
+    "reasoning": "",
+    "calls": [],
+    "usage": {
+      "prompt_tokens": 106,
+      "total_tokens": 124,
+      "completion_tokens": 18,
+      "prompt_tokens_details": null,
+      "reasoning_tokens": 0
+    },
+    "finish": "stop",
+    "ttft": 0.15685646299971268,
+    "tg": 34.03842829522009,
+    "elapsed": 0.6562919790158048,
+    "hanzi": [
+      "你",
+      "好",
+      "世",
+      "界"
+    ],
+    "passed": true,
+    "name": "quote"
+  },
+  {
+    "started": 1789450530.3139627,
+    "finished": 1789450531.031622,
+    "verify_calls": 10.0,
+    "accept_length": 1.5,
+    "text": "경복궁은 한자로 **景福宮**이라고 적습니다.",
+    "reasoning": "",
+    "calls": [],
+    "usage": {
+      "prompt_tokens": 99,
+      "total_tokens": 115,
+      "completion_tokens": 16,
+      "prompt_tokens_details": null,
+      "reasoning_tokens": 0
+    },
+    "finish": "stop",
+    "ttft": 0.15235281898640096,
+    "tg": 27.103831226699743,
+    "elapsed": 0.7057801139890216,
+    "hanzi": [
+      "景",
+      "福",
+      "宮"
+    ],
+    "passed": true,
+    "name": "hanja_requested"
+  },
+  {
+    "started": 1789450531.0318017,
+    "finished": 1789450532.5426977,
+    "verify_calls": 24.0,
+    "accept_length": 1.9583333333333333,
+    "text": "A cache is a high-speed memory storage that temporarily holds frequently accessed data to reduce the time needed to retrieve it from slower main memory or disk. By serving these requests directly from the cache, systems can significantly improve overall performance and efficiency.",
+    "reasoning": "",
+    "calls": [],
+    "usage": {
+      "prompt_tokens": 100,
+      "total_tokens": 148,
+      "completion_tokens": 48,
+      "prompt_tokens_details": null,
+      "reasoning_tokens": 0
+    },
+    "finish": "stop",
+    "ttft": 0.1566084379737731,
+    "tg": 35.01945235926994,
+    "elapsed": 1.4987196599831805,
+    "hanzi": [],
+    "passed": true,
+    "name": "english"
+  },
+  {
+    "started": 1789450532.5429082,
+    "finished": 1789450533.0629907,
+    "verify_calls": 6.0,
+    "accept_length": 3.0,
+    "text": "{\n  \"name\": \"Alice\",\n  \"count\": 3\n}",
+    "reasoning": "",
+    "calls": [],
+    "usage": {
+      "prompt_tokens": 107,
+      "total_tokens": 126,
+      "completion_tokens": 19,
+      "prompt_tokens_details": null,
+      "reasoning_tokens": 0
+    },
+    "finish": "stop",
+    "ttft": 0.16088420199230313,
+    "tg": 52.296706771096396,
+    "elapsed": 0.505074134998722,
+    "hanzi": [],
+    "passed": true,
+    "name": "json"
+  }
+]

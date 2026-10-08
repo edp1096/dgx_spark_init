@@ -1,0 +1,123 @@
+{
+  "kind": "offline route replay, NOT speed measurements",
+  "source": {
+    "train": {
+      "file": "io-schedule-varied-warmup-routes-rank0.jsonl",
+      "sha256": "8a758a3dc099e4e79535a678529cdda9c8b5f7000713b274d0fe051e6a830cfb"
+    },
+    "test": {
+      "file": "cache-layout-heldout-warmup-routes-rank0.jsonl",
+      "sha256": "7f82028d3f4fdbd67172e949ff403285db4b712006b3e01a3b0694a93fc3e109"
+    }
+  },
+  "limitations": [
+    "Historical traces, not the current 4096-scheduler workload.",
+    "Phase inferred from tokens >16; short prefill tails may be classified as TG.",
+    "Demand misses/group counts omit kernel time and async overlap.",
+    "Static split does not adapt/promote during PP; one candidate policy, not an optimum."
+  ],
+  "variants": {
+    "current_cold": {
+      "pp": {
+        "calls": 320,
+        "misses": 4159,
+        "groups": 320,
+        "hits": 15083
+      },
+      "tg": {
+        "calls": 9600,
+        "hits": 197652,
+        "misses": 10336,
+        "groups": 9600
+      },
+      "preload_experts": 0,
+      "preload_gib_per_rank": 0.0,
+      "total_reads_including_preload": 14495
+    },
+    "seeded_224": {
+      "pp": {
+        "calls": 320,
+        "hits": 17260,
+        "misses": 1982,
+        "groups": 320
+      },
+      "tg": {
+        "calls": 9600,
+        "hits": 201001,
+        "misses": 6987,
+        "groups": 9600
+      },
+      "preload_experts": 8952,
+      "preload_gib_per_rank": 78.37234497070312,
+      "total_reads_including_preload": 17921
+    },
+    "seeded_64": {
+      "pp": {
+        "calls": 320,
+        "hits": 15968,
+        "misses": 3274,
+        "groups": 320
+      },
+      "tg": {
+        "calls": 9600,
+        "hits": 198750,
+        "misses": 9238,
+        "groups": 9600
+      },
+      "preload_experts": 2560,
+      "preload_gib_per_rank": 22.412109375,
+      "total_reads_including_preload": 15072
+    },
+    "seeded_128": {
+      "pp": {
+        "calls": 320,
+        "hits": 16642,
+        "misses": 2600,
+        "groups": 320
+      },
+      "tg": {
+        "calls": 9600,
+        "hits": 200007,
+        "misses": 7981,
+        "groups": 9600
+      },
+      "preload_experts": 5120,
+      "preload_gib_per_rank": 44.82421875,
+      "total_reads_including_preload": 15701
+    },
+    "seeded_split_192_32": {
+      "pp": {
+        "calls": 320,
+        "hits": 13636,
+        "misses": 5606,
+        "groups": 660
+      },
+      "tg": {
+        "calls": 9600,
+        "hits": 197425,
+        "misses": 10563,
+        "groups": 9600
+      },
+      "preload_experts": 7680,
+      "preload_gib_per_rank": 67.236328125,
+      "total_reads_including_preload": 23849
+    },
+    "seeded_split_160_64": {
+      "pp": {
+        "calls": 320,
+        "hits": 11904,
+        "misses": 7338,
+        "groups": 640
+      },
+      "tg": {
+        "calls": 9600,
+        "hits": 190500,
+        "misses": 17488,
+        "groups": 9600
+      },
+      "preload_experts": 6400,
+      "preload_gib_per_rank": 56.0302734375,
+      "total_reads_including_preload": 31226
+    }
+  }
+}

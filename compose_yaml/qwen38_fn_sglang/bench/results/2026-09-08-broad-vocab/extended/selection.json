@@ -1,0 +1,20 @@
+{
+  "criterion": "Any truncated or missing-final-answer request in the 48 primary 64K requests",
+  "selected": [
+    "life_schedule",
+    "science_bayes",
+    "code_shortlist",
+    "code_telemetry",
+    "code_html_review",
+    "research_memory",
+    "human_history",
+    "long_ledger"
+  ],
+  "before_any_primary_128k_response": true,
+  "primary_tasks_sha256": "fef298d743334fc477f6d64f7b9a14fc108c83aad6999ae531e0b2f706eee21a",
+  "rounds": 1,
+  "thinking_max_tokens": 8192,
+  "other_max_tokens": 3072,
+  "order": "Each mode immediately after its primary requests, before unloading",
+  "purpose": "Completion/quality follow-up; does not replace the frozen primary 96 requests"
+}

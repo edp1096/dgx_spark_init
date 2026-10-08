@@ -1,0 +1,288 @@
+{
+  "base": "http://192.168.100.60:30125",
+  "results": [
+    {
+      "text": "READY",
+      "reasoning": "",
+      "tool_calls": [],
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 16,
+        "total_tokens": 18,
+        "completion_tokens": 2,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "seconds": 7.118485482991673,
+      "ttft_s": 7.044703060993925,
+      "stream_tg_estimate": 13.553363699967967,
+      "name": "warmup"
+    },
+    {
+      "text": "3973",
+      "reasoning": "",
+      "tool_calls": [],
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 28,
+        "total_tokens": 33,
+        "completion_tokens": 5,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "seconds": 0.7146178329712711,
+      "ttft_s": 0.5190051139798015,
+      "stream_tg_estimate": 20.448568071764466,
+      "name": "arithmetic",
+      "passed": true
+    },
+    {
+      "text": "{\"name\": \"테스트\", \"count\": 7}",
+      "reasoning": "",
+      "tool_calls": [],
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 42,
+        "total_tokens": 56,
+        "completion_tokens": 14,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "seconds": 0.8679268389823847,
+      "ttft_s": 0.45949525997275487,
+      "stream_tg_estimate": 31.829076565339463,
+      "name": "json",
+      "passed": true
+    },
+    {
+      "text": "[-3, 0, 2, 2, 9]",
+      "reasoning": "",
+      "tool_calls": [],
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 39,
+        "total_tokens": 55,
+        "completion_tokens": 16,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "seconds": 0.7216588000301272,
+      "ttft_s": 0.4055043610278517,
+      "stream_tg_estimate": 47.445166505766004,
+      "name": "sorting",
+      "passed": true
+    },
+    {
+      "text": "내일 자료 보내드릴게요.",
+      "reasoning": "",
+      "tool_calls": [],
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 38,
+        "total_tokens": 47,
+        "completion_tokens": 9,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "seconds": 0.5376477160025388,
+      "ttft_s": 0.3953899670159444,
+      "stream_tg_estimate": 56.235952396195145,
+      "name": "korean"
+    },
+    {
+      "text": "서버가 다운된 것이 아니라, 워커만 재시작하고 있습니다.",
+      "reasoning": "",
+      "tool_calls": [],
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 34,
+        "total_tokens": 52,
+        "completion_tokens": 18,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "seconds": 0.8368459430057555,
+      "ttft_s": 0.4017378260032274,
+      "stream_tg_estimate": 39.070748937329576,
+      "name": "translation"
+    },
+    {
+      "text": "def unique_ordered(items):\n    seen = set()\n    result = []\n    for item in items:\n        if item not in seen:\n            seen.add(item)\n            result.append(item)\n    return result",
+      "reasoning": "",
+      "tool_calls": [],
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 36,
+        "total_tokens": 84,
+        "completion_tokens": 48,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "seconds": 1.3540214439854026,
+      "ttft_s": 0.39666754397330806,
+      "stream_tg_estimate": 49.09365282724208,
+      "name": "coding"
+    },
+    {
+      "text": "형사: \"자네, 이 그림을 훔친 게 맞나?\"\n\n도둑: \"아니요, 형사님. 저는 그냥 그림과 눈을 맞춘 것뿐입니다.\"\n\n형사: \"눈을 맞춘다고? 손에는 그림이 쥐어져 있는데?\"\n\n도둑: \"그건... 그림이 저를 따라온 겁니다. 저는 그저 도망치느라 바빴을 뿐이죠.\"\n\n형사: \"변명은 좋군. 하지만 증거는 명확해. 자네 손에 묻은 페인트 자국 말이야.\"\n\n도둑: \"아, 그건... 그림이 저에게 키스한 흔적입니다.\"\n\n형사: \"키스? 하, 자네는 정말 재밌는 도둑이군. 어서 수갑 차고 경찰서로 가세.\"\n\n도둑: \"네, 형사님. 하지만 다음엔 더 예쁜 그림을 훔칠 테니 기대하세요.\"",
+      "reasoning": "",
+      "tool_calls": [],
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 39,
+        "total_tokens": 247,
+        "completion_tokens": 208,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "seconds": 7.5201422270038165,
+      "ttft_s": 0.399472194025293,
+      "stream_tg_estimate": 29.070298025509466,
+      "name": "fiction"
+    },
+    {
+      "text": "",
+      "reasoning": "",
+      "tool_calls": [
+        {
+          "id": "call_62ff9f8eb5b742eeacc4baac",
+          "index": 0,
+          "type": "function",
+          "function": {
+            "name": "get_weather",
+            "arguments": ""
+          }
+        },
+        {
+          "id": null,
+          "index": 0,
+          "type": "function",
+          "function": {
+            "name": null,
+            "arguments": "{"
+          }
+        },
+        {
+          "id": null,
+          "index": 0,
+          "type": "function",
+          "function": {
+            "name": null,
+            "arguments": "\"city\": \"Seoul\""
+          }
+        },
+        {
+          "id": null,
+          "index": 0,
+          "type": "function",
+          "function": {
+            "name": null,
+            "arguments": "}"
+          }
+        }
+      ],
+      "finish_reason": "tool_calls",
+      "usage": {
+        "prompt_tokens": 292,
+        "total_tokens": 319,
+        "completion_tokens": 27,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "seconds": 1.2006096430122852,
+      "ttft_s": 0.8367381120333448,
+      "stream_tg_estimate": 71.45379010567547,
+      "name": "tool"
+    },
+    {
+      "text": "Red",
+      "reasoning": "",
+      "tool_calls": [],
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 90,
+        "total_tokens": 92,
+        "completion_tokens": 2,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "image_tokens": 64
+        },
+        "reasoning_tokens": 0
+      },
+      "seconds": 0.5860424420097843,
+      "ttft_s": 0.5276573650189675,
+      "stream_tg_estimate": 17.1276643200674,
+      "name": "vision",
+      "passed": true
+    },
+    {
+      "text": "SPARK-7429-MINT",
+      "reasoning": "",
+      "tool_calls": [],
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 6037,
+        "total_tokens": 6047,
+        "completion_tokens": 10,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "seconds": 3.841195623972453,
+      "ttft_s": 3.6188064820016734,
+      "stream_tg_estimate": 40.46960170916317,
+      "name": "long_needle",
+      "passed": true
+    },
+    {
+      "text": "A hash table is one of the most powerful and widely used data structures in computer science, designed to store and retrieve data with remarkable speed. At its core, a hash table works by mapping unique keys to specific values, allowing for near-instantaneous access to information. To understand how it functions, imagine a large array of empty slots, often referred to as \"buckets.\" When you want to store a piece of data, such as a user’s profile linked to their username, the system takes the username (the key) and runs it through a mathematical function known as a hash function. This function converts the key into a numerical index, which corresponds to a specific slot in the array. The value associated with that key is then stored in that slot.\n\nThe primary advantage of this approach is efficiency. Unlike searching through a list one item at a time, which can take a long time as the list grows, a hash table allows you to jump directly to the correct location. Ideally, this operation takes constant time, meaning the speed of retrieval does not degrade significantly as the amount of data increases. However, this ideal scenario relies on the hash function distributing keys evenly across the available slots. In reality, two different keys might produce the same index. This phenomenon is known as a",
+      "reasoning": "",
+      "tool_calls": [],
+      "finish_reason": "length",
+      "usage": {
+        "prompt_tokens": 41,
+        "total_tokens": 297,
+        "completion_tokens": 256,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "seconds": 7.521795676962938,
+      "ttft_s": 0.4013173870043829,
+      "stream_tg_estimate": 35.81220103705761,
+      "name": "speed_0"
+    },
+    {
+      "text": "A hash table is one of the most powerful and widely used data structures in computer science, designed to store and retrieve data with exceptional speed. At its core, a hash table works by mapping unique keys to specific values, allowing for near-instantaneous access. To understand how it functions, imagine a large array of buckets, each capable of holding data. When you want to store a piece of information, you provide a unique key, such as a username or an ID number. This key is passed through a mathematical function known as a hash function. The hash function transforms the key into a numerical index, which corresponds to a specific position in the array. This process is deterministic, meaning the same key will always produce the same index, ensuring that you can retrieve the data later by using the same key.\n\nHowever, a significant challenge arises when two different keys produce the same index. This scenario is known as a collision. Since the hash function compresses a vast range of possible keys into a limited number of array slots, collisions are inevitable. To handle this, hash tables employ specific strategies. The most common method is separate chaining, where each bucket in the array points to a linked list or another dynamic structure. If a collision occurs, the new entry is simply added to the",
+      "reasoning": "",
+      "tool_calls": [],
+      "finish_reason": "length",
+      "usage": {
+        "prompt_tokens": 41,
+        "total_tokens": 297,
+        "completion_tokens": 256,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "seconds": 7.036811523954384,
+      "ttft_s": 0.41170266398694366,
+      "stream_tg_estimate": 38.489933582955985,
+      "name": "speed_1"
+    },
+    {
+      "text": "A hash table is one of the most fundamental and efficient data structures in computer science, designed to store and retrieve data with remarkable speed. At its core, a hash table works by mapping unique keys to specific values, allowing for average-case constant time complexity, or O(1), for insertions, deletions, and lookups. To understand how this magic happens, we must look at the underlying mechanism of hashing.\n\nThe process begins with a hash function. When you want to store a piece of data, you provide a unique key, such as a username or an ID number. The hash function takes this key and performs a mathematical calculation to produce an integer, known as a hash code. This hash code is then used to determine the index in an underlying array where the data should be stored. Ideally, every unique key produces a unique index, meaning each slot in the array holds only one item. This direct mapping is what makes hash tables so fast; instead of searching through a list one by one, the computer calculates exactly where the data should be and goes straight there.\n\nHowever, reality is rarely perfect. Since the number of possible keys is often infinite while the size of the underlying array is finite, two different keys can sometimes produce the same hash code. This",
+      "reasoning": "",
+      "tool_calls": [],
+      "finish_reason": "length",
+      "usage": {
+        "prompt_tokens": 41,
+        "total_tokens": 297,
+        "completion_tokens": 256,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 0
+      },
+      "seconds": 6.923966233967803,
+      "ttft_s": 0.40653291798662394,
+      "stream_tg_estimate": 39.12583184774949,
+      "name": "speed_2"
+    }
+  ]
+}

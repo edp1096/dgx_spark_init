@@ -1,0 +1,28 @@
+[
+  {
+    "graphs": false,
+    "seconds": 16.28866187499807,
+    "usage": {
+      "prompt_tokens": 500,
+      "total_tokens": 614,
+      "completion_tokens": 114,
+      "prompt_tokens_details": null,
+      "completion_tokens_details": null
+    },
+    "text": "```python\ndef binary_search(arr: list[int], target: int) -> int:\n    \"\"\"Return index of target in sorted arr, or -1 if not found.\"\"\"\n    lo, hi = 0, len(arr) - 1\n    while lo <= hi:\n        mid = (lo + hi) // 2\n        if arr[mid] == target:\n            return mid\n        elif arr[mid] < target:\n            lo = mid + 1\n        else:\n            hi = mid - 1\n    return -1\n```",
+    "finish_reason": "stop"
+  },
+  {
+    "graphs": true,
+    "seconds": 16.846176200000627,
+    "usage": {
+      "prompt_tokens": 500,
+      "total_tokens": 614,
+      "completion_tokens": 114,
+      "prompt_tokens_details": null,
+      "completion_tokens_details": null
+    },
+    "text": "```python\ndef binary_search(arr: list[int], target: int) -> int:\n    \"\"\"Return index of target in sorted arr, or -1 if not found.\"\"\"\n    lo, hi = 0, len(arr) - 1\n    while lo <= hi:\n        mid = (lo + hi) // 2\n        if arr[mid] == target:\n            return mid\n        elif arr[mid] < target:\n            lo = mid + 1\n        else:\n            hi = mid - 1\n    return -1\n```",
+    "finish_reason": "stop"
+  }
+]

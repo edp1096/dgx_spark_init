@@ -1,0 +1,14 @@
+# Refresh application code without rebuilding the unchanged pinned WASM.
+# The normal Dockerfile remains the complete reproducible source build.
+ARG BASE=sparktalk-extra-documents:0.4.0
+FROM ${BASE}
+USER root
+WORKDIR /app
+RUN cp -a node_modules/@rhwp/core /tmp/rhwp-core
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev --ignore-scripts && rm -rf node_modules/@rhwp/core && mv /tmp/rhwp-core node_modules/@rhwp/core && npm cache clean --force
+COPY *.mjs document-schema.json ./
+COPY document-calc /usr/local/bin/document-calc
+COPY THIRD_PARTY_NOTICES.md /licenses/THIRD_PARTY_NOTICES.md
+RUN node patch-exceljs.mjs && node license-manifest.mjs
+USER node

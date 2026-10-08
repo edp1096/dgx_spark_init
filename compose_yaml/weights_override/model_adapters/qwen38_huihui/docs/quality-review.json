@@ -1,0 +1,32 @@
+{
+  "radix": {
+    "code_tests_passed": 4,
+    "code_tests_total": 4,
+    "tool_name_and_args_passed": true,
+    "manual_korean_honorific": "passed",
+    "manual_translation_negation_preserved": "passed",
+    "manual_fiction_coherent_and_on_topic": "passed",
+    "exact_cases": {
+      "arithmetic": true,
+      "json": true,
+      "sorting": true,
+      "vision": true,
+      "long_needle": true
+    }
+  },
+  "candidate": {
+    "code_tests_passed": 4,
+    "code_tests_total": 4,
+    "tool_name_and_args_passed": true,
+    "manual_korean_honorific": "passed",
+    "manual_translation_negation_preserved": "passed",
+    "manual_fiction_coherent_and_on_topic": "passed",
+    "exact_cases": {
+      "arithmetic": true,
+      "json": true,
+      "sorting": true,
+      "vision": true,
+      "long_needle": true
+    }
+  }
+}

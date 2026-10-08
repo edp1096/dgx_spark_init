@@ -1,0 +1,8 @@
+{
+  "/home/edp1096/workspace/dgx_spark_init/compose_yaml/qwen38_fn_sglang/bench/vocab_memory.py": "c376ca903a0c98af4d3dca28ebc1e04c472a59b8a22718f991ad6bd8def9cdb0",
+  "/home/edp1096/workspace/dgx_spark_init/compose_yaml/qwen38_fn_sglang/bench/broad_vocab.py": "f676def4271ffeb22c51a5f832fc47f21b06b5bff7eae3b4e74b88b8d1686376",
+  "/home/edp1096/workspace/dgx_spark_init/compose_yaml/qwen38_fn_sglang/bench/results/2026-09-09-ko16k-vs32k-vs64k/tasks.json": "fef298d743334fc477f6d64f7b9a14fc108c83aad6999ae531e0b2f706eee21a",
+  "/home/edp1096/workspace/dgx_spark_init/compose_yaml/qwen38_fn_sglang/bench/results/2026-09-09-ko16k-vs32k-vs64k/prepared.json": "1b1c06bc913fbf065662a924f7c78930dfea4cc39e8e92c68bac918650e4ef7c",
+  "/home/edp1096/workspace/dgx_spark_init/compose_yaml/qwen38_fn_sglang/bench/results/2026-09-09-ko16k-vs32k-vs64k/.runtime/ko16k.pt": "785b5ab96af201123dbdbe711847e52fbf01c474d020125e5ed818853d2a4f42",
+  "/home/edp1096/workspace/dgx_spark_init/compose_yaml/qwen38_fn_sglang/bench/results/2026-09-09-ko16k-vs32k-vs64k/.runtime/eagle_worker_v2.py": "e12eadca8e3f2870a0951b76483fb5e56dc4e7f7766653e3f86902861e663bae"
+}

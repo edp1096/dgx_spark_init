@@ -1,0 +1,42 @@
+{
+  "session_id": "chat-1789193222822854648",
+  "turns": [
+    {
+      "expected": "cobalt731",
+      "text": "cobalt731",
+      "done": true,
+      "performance": {
+        "pp": 133.50711617698744,
+        "tg": 17.399480380101494,
+        "ttft": 47.43569664700044,
+        "prompt_tokens": 6333,
+        "cached_tokens": 0,
+        "output_tokens": 254,
+        "calls": 1
+      },
+      "first_generated_event_seconds": 47.491930558000604,
+      "elapsed_seconds": 62.03849933899983
+    },
+    {
+      "expected": "amber962",
+      "text": "amber962",
+      "done": true,
+      "performance": {
+        "pp": 69.44984262546778,
+        "tg": 17.178644760156754,
+        "ttft": 8.2583339720004,
+        "prompt_tokens": 6362,
+        "cached_tokens": 6144,
+        "output_tokens": 136,
+        "calls": 1
+      },
+      "first_generated_event_seconds": 8.626391232999595,
+      "elapsed_seconds": 16.484105575000285
+    }
+  ],
+  "temporary_session_deleted": true,
+  "reasoning_effort": "max",
+  "context_tokens": 65536,
+  "output_allowance": 8192,
+  "stored_metrics_match": true
+}

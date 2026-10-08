@@ -1,0 +1,42 @@
+{
+  "host": "127.0.0.1",
+  "port": "19280",
+  "public_base_url": "http://127.0.0.1:19280",
+  "no_sandbox": true,
+  "profiles_dir": "/data/browseforge/profiles",
+  "data_dir": "/data/browseforge/data",
+  "log_file": "/data/browseforge/logs/server.log",
+  "default_runtime_id": "browseforge-chromium",
+  "runtimes": {
+    "camoufox": {
+      "enabled": false,
+      "family": "firefox",
+      "display_name": "Camoufox"
+    },
+    "cloakbrowser": {
+      "enabled": false,
+      "family": "chromium",
+      "display_name": "CloakBrowser"
+    },
+    "browseforge-chromium": {
+      "enabled": true,
+      "binary_path": "/opt/browseforge/browsers/browseforge-chromium/chrome",
+      "skip_auto_update": true,
+      "family": "chromium",
+      "display_name": "BrowseForge Chromium",
+      "settings": {
+        "safe_gpu": false,
+        "auto_safe_gpu_fallback": true,
+        "isolated_runtime_cache": true,
+        "repair_transient_cache_on_launch_failure": true,
+        "fingerprint_platform": "auto",
+        "storage_quota_mb": 0,
+        "target_platform_policy": "warn",
+        "native_mode": "enabled",
+        "plugins_pdf": "enabled",
+        "extra_args": []
+      }
+    }
+  },
+  "fingerprint_dir": "/data/browseforge/data"
+}

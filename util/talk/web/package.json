@@ -1,0 +1,26 @@
+{
+  "name": "sparktalk-web",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "test": "node --test src/lib/*.test.js",
+    "test:e2e": "npm run build && playwright test"
+  },
+  "dependencies": {
+    "@soundtouchjs/core": "2.1.1",
+    "@sveltejs/vite-plugin-svelte": "^7.0.0",
+    "dompurify": "^3.4.1",
+    "fflate": "^0.8.3",
+    "katex": "^0.18.5",
+    "marked": "^18.0.2",
+    "marked-katex-extension": "^5.1.12",
+    "svelte": "^5.55.4",
+    "vite": "^8.0.10"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.62.1"
+  }
+}

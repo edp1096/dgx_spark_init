@@ -1,0 +1,118 @@
+{
+  "date": "2026-10-08",
+  "images": [
+    {
+      "remote": "ghcr.io/edp1096/sglang-qwen38-qad:sm121-v5",
+      "remote_exit_code": 0,
+      "remote_digest": "sha256:c79141f03a89b8888920f629ac638a6915eec5abb0dabe75688977c3c58b75f5",
+      "remote_error": null,
+      "local": "dgx-sglang-qwen38-qad:sm121-v5-memory",
+      "local_id": "sha256:95b4633b7224deaad847a553c6550891fd3bdad97ad9d8e0c70c843239d26e72",
+      "local_repo_digests": [
+        "dgx-sglang-qwen38-qad@sha256:95b4633b7224deaad847a553c6550891fd3bdad97ad9d8e0c70c843239d26e72",
+        "sparktalk-qwen38fn_exl3@sha256:95b4633b7224deaad847a553c6550891fd3bdad97ad9d8e0c70c843239d26e72"
+      ],
+      "action": "update"
+    },
+    {
+      "remote": "ghcr.io/edp1096/sparktalk-extra-media:0.1.0",
+      "remote_exit_code": 0,
+      "remote_digest": "sha256:3bb2d1fcff78d881714a0df42b9494d0070243f00c7e3d80d2f3b8c027f81cc8",
+      "remote_error": null,
+      "local": "sparktalk-extra-media:0.1.0",
+      "local_id": "sha256:fdb2b9930fe4a6efe437ed7cde07127afef17aab9d8331208c8192d2a7aa5cf7",
+      "local_repo_digests": [
+        "sparktalk-extra-media@sha256:fdb2b9930fe4a6efe437ed7cde07127afef17aab9d8331208c8192d2a7aa5cf7"
+      ],
+      "action": "update"
+    },
+    {
+      "remote": "ghcr.io/edp1096/sparktalk-extra-ssh:0.1.0",
+      "remote_exit_code": 0,
+      "remote_digest": "sha256:5f2f99c3b772b9e156de41652785b164115fccfc530f889617d15cf7127be785",
+      "remote_error": null,
+      "local": "sparktalk-extra-ssh:0.3.0",
+      "local_id": "sha256:abcdf26e744d13e4485321392b0382f1d9fd464b5958ecb2475a81231ff66e0b",
+      "local_repo_digests": [
+        "sparktalk-extra-ssh@sha256:abcdf26e744d13e4485321392b0382f1d9fd464b5958ecb2475a81231ff66e0b"
+      ],
+      "action": "update"
+    },
+    {
+      "remote": "ghcr.io/edp1096/sparktalk-extra-collector:0.1.0",
+      "remote_exit_code": 0,
+      "remote_digest": "sha256:7f1d0016baa1acedbd45168e03d8d62a3ebcc9f6fbd894e33b81dfab5658f078",
+      "remote_error": null,
+      "local": "sparktalk-extra-collector:0.1.0",
+      "local_id": "sha256:7f1d0016baa1acedbd45168e03d8d62a3ebcc9f6fbd894e33b81dfab5658f078",
+      "local_repo_digests": [
+        "sparktalk-extra-collector@sha256:7f1d0016baa1acedbd45168e03d8d62a3ebcc9f6fbd894e33b81dfab5658f078",
+        "ghcr.io/edp1096/sparktalk-extra-collector@sha256:7f1d0016baa1acedbd45168e03d8d62a3ebcc9f6fbd894e33b81dfab5658f078"
+      ],
+      "action": "current"
+    },
+    {
+      "remote": "ghcr.io/edp1096/sparktalk-extra-documents:0.5.2",
+      "remote_exit_code": 0,
+      "remote_digest": "sha256:4a10c394924f5fe46d8b8ca391ec65488bac05f008c4339bf678a7ad21cbc232",
+      "remote_error": null,
+      "local": "sparktalk-extra-documents:0.5.2",
+      "local_id": "sha256:4a10c394924f5fe46d8b8ca391ec65488bac05f008c4339bf678a7ad21cbc232",
+      "local_repo_digests": [
+        "sparktalk-extra-documents@sha256:4a10c394924f5fe46d8b8ca391ec65488bac05f008c4339bf678a7ad21cbc232",
+        "ghcr.io/edp1096/sparktalk-extra-documents@sha256:4a10c394924f5fe46d8b8ca391ec65488bac05f008c4339bf678a7ad21cbc232"
+      ],
+      "action": "current"
+    },
+    {
+      "remote": "ghcr.io/edp1096/sparktalk-qwen-image21:nvfp4-int8-v5-dit-resident",
+      "remote_exit_code": 1,
+      "remote_digest": null,
+      "remote_error": "ERROR: ghcr.io/edp1096/sparktalk-qwen-image21:nvfp4-int8-v5-dit-resident: not found",
+      "local": "sparktalk-qwen-image21:nvfp4-int8-v5-dit-resident",
+      "local_id": "sha256:96b019e6a6a440e6ea2126b4eef1fffb4a9d283cc3af6dfff7fb2d9ebb48ce1f",
+      "local_repo_digests": [
+        "sparktalk-qwen-image21@sha256:96b019e6a6a440e6ea2126b4eef1fffb4a9d283cc3af6dfff7fb2d9ebb48ce1f"
+      ],
+      "action": "new_tag"
+    },
+    {
+      "remote": "ghcr.io/edp1096/sparktalk-qwen3-tts:0.6b-q8-lifecycle1",
+      "remote_exit_code": 1,
+      "remote_digest": null,
+      "remote_error": "ERROR: ghcr.io/edp1096/sparktalk-qwen3-tts:0.6b-q8-lifecycle1: not found",
+      "local": "sparktalk-qwen3-tts:0.6b-q8-lifecycle1",
+      "local_id": "sha256:4e621922947ce800f44274cc2b653fd5bca68e9a6dc95c2b1f7f954808b2f47c",
+      "local_repo_digests": [
+        "sparktalk-qwen3-tts@sha256:4e621922947ce800f44274cc2b653fd5bca68e9a6dc95c2b1f7f954808b2f47c"
+      ],
+      "action": "new_tag"
+    },
+    {
+      "remote": "ghcr.io/edp1096/sparktalk-nemotron-asr:0.6b-q5-k-diar2-workspace",
+      "remote_exit_code": 1,
+      "remote_digest": null,
+      "remote_error": "ERROR: ghcr.io/edp1096/sparktalk-nemotron-asr:0.6b-q5-k-diar2-workspace: not found",
+      "local": "sparktalk-nemotron-asr:0.6b-q5-k-diar2-workspace",
+      "local_id": "sha256:3b0c7f19c80569b18e90762ca699eae3232a9ef9f7d1b551b4daeec7fdd6c3c9",
+      "local_repo_digests": [
+        "sparktalk-nemotron-asr@sha256:3b0c7f19c80569b18e90762ca699eae3232a9ef9f7d1b551b4daeec7fdd6c3c9"
+      ],
+      "action": "new_tag"
+    },
+    {
+      "remote": "ghcr.io/edp1096/sparktalk-qwen38fn_exl3:1.5.4-managed1",
+      "remote_exit_code": 1,
+      "remote_digest": null,
+      "remote_error": "ERROR: ghcr.io/edp1096/sparktalk-qwen38fn_exl3:1.5.4-managed1: not found",
+      "local": "sparktalk-qwen38fn_exl3:1.5.4-managed1",
+      "local_id": "sha256:46393182a7bef0df2f4b067f05aab2e2bad34f0d01b83b959d033ca82b3d253b",
+      "local_repo_digests": [
+        "sparktalk-qwen38fn_exl3@sha256:46393182a7bef0df2f4b067f05aab2e2bad34f0d01b83b959d033ca82b3d253b"
+      ],
+      "action": "new_tag"
+    }
+  ],
+  "registry_mutated": false,
+  "note": "Registry manifests inspected only; no layers pulled or images pushed."
+}

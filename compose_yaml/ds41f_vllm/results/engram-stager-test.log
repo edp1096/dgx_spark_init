@@ -1,0 +1,10 @@
+[transformers] You are using a model of type `deepseek_v41` to instantiate a model of type ``. This may be expected if you are loading a checkpoint that shares a subset of the architecture (e.g., loading a `sam2_video` checkpoint into `Sam2Model`), but is otherwise not supported and can yield errors. Please verify that the checkpoint is compatible with the model you are instantiating.
+INFO 09-11 19:09:28 [engram.py:440] Built engram token map (129280 -> 99092 ids) for layers (1, 14)
+INFO 09-11 19:09:28 [engram.py:813] Engram DISK mode: layer 1 rows [0, 192001740) read from model-00047-of-00048.safetensors (off=664) and model-00047-of-00048.safetensors (off=98305579672); 8 threads, chunk 16
+INFO 09-11 19:09:28 [engram.py:813] Engram DISK mode: layer 14 rows [0, 192007016) read from model-00048-of-00048.safetensors (off=672) and model-00048-of-00048.safetensors (off=98308271264); 8 threads, chunk 16
+ENGRAM_PRESTAGE enabled: 2 tables, heads [0,12), capacity=16
+ENGRAM_PRESTAGE_EXACT_PASS rank 0
+INFO 09-11 19:09:28 [engram.py:813] Engram DISK mode: layer 1 rows [192001740, 384006168) read from model-00047-of-00048.safetensors (off=49152446104) and model-00047-of-00048.safetensors (off=99841593592); 8 threads, chunk 16
+INFO 09-11 19:09:28 [engram.py:813] Engram DISK mode: layer 14 rows [192007016, 384016682) read from model-00048-of-00048.safetensors (off=49153796768) and model-00048-of-00048.safetensors (off=99844327392); 8 threads, chunk 16
+ENGRAM_PRESTAGE enabled: 2 tables, heads [12,24), capacity=16
+ENGRAM_PRESTAGE_EXACT_PASS rank 1

@@ -1,0 +1,22 @@
+ARG COLLECTOR_BASE_IMAGE=debian:bookworm-slim
+FROM golang:1.25-bookworm AS builder
+WORKDIR /src
+COPY go.mod go.sum ./
+RUN go mod download
+COPY cmd/collector ./cmd/collector
+RUN CGO_ENABLED=0 go test ./cmd/collector \
+    && CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/sparktalk-extra-collector ./cmd/collector
+
+FROM ${COLLECTOR_BASE_IMAGE}
+
+LABEL org.opencontainers.image.source="https://github.com/edp1096/dgx_spark_init"
+
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates chromium fonts-liberation fonts-noto-cjk tzdata \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /out/sparktalk-extra-collector /usr/local/bin/sparktalk-extra-collector
+
+EXPOSE 8695
+ENTRYPOINT ["/usr/local/bin/sparktalk-extra-collector"]

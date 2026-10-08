@@ -1,0 +1,74 @@
+{
+  "conditions": "Identical requests; zero KV hits; reset expert slots; warmups excluded. Read counts are the last periodic log snapshot.",
+  "settings": [
+    {
+      "label": "pp-round5-batch2048",
+      "max_batched_tokens": 2048,
+      "kernel_tokens": 2048,
+      "shared_buffers": true,
+      "routed_pipeline": false,
+      "image_name": "dgx-ds41-stream:b12x8",
+      "cases": {
+        "mixed-document-r5": {
+          "prompt_tokens": 12934,
+          "trials": 2,
+          "pp": 190.87830011837463,
+          "median_ttft_seconds": 67.76047399299999,
+          "min_pp": 190.82935593867094,
+          "max_pp": 190.92726941106247,
+          "min_host_available_gib": 15.794292449951172,
+          "approx_median_expert_read_gib_per_rank": 330.018310546875,
+          "pp_gain_percent": 0.0,
+          "ttft_reduction_percent": 0.0
+        },
+        "talk-tools-r5": {
+          "prompt_tokens": 6308,
+          "trials": 2,
+          "pp": 159.3806490273884,
+          "median_ttft_seconds": 39.57822507850028,
+          "min_pp": 159.06578507906545,
+          "max_pp": 159.6967619675943,
+          "min_host_available_gib": 14.926807403564453,
+          "approx_median_expert_read_gib_per_rank": 201.8840789794922,
+          "pp_gain_percent": 0.0,
+          "ttft_reduction_percent": 0.0
+        }
+      }
+    },
+    {
+      "label": "pp-round5-batch4096",
+      "max_batched_tokens": 4096,
+      "kernel_tokens": 2048,
+      "shared_buffers": true,
+      "routed_pipeline": false,
+      "image_name": "dgx-ds41-stream:b12x8",
+      "cases": {
+        "mixed-document-r5": {
+          "prompt_tokens": 12934,
+          "trials": 2,
+          "pp": 241.29091069733317,
+          "median_ttft_seconds": 53.60336600400001,
+          "min_pp": 241.16758375778804,
+          "max_pp": 241.414363833903,
+          "min_host_available_gib": 14.961170196533203,
+          "approx_median_expert_read_gib_per_rank": 242.65485763549805,
+          "pp_gain_percent": 26.41086522024494,
+          "ttft_reduction_percent": 20.892870363425263
+        },
+        "talk-tools-r5": {
+          "prompt_tokens": 6308,
+          "trials": 2,
+          "pp": 192.85597359584605,
+          "median_ttft_seconds": 32.708366550000164,
+          "min_pp": 192.44992864375322,
+          "max_pp": 193.26373557740055,
+          "min_host_available_gib": 15.04422378540039,
+          "approx_median_expert_read_gib_per_rank": 160.50484657287598,
+          "pp_gain_percent": 21.00338075716155,
+          "ttft_reduction_percent": 17.357672090838573
+        }
+      }
+    }
+  ]
+}
+

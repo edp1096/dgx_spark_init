@@ -1,0 +1,21 @@
+{
+  "0": {
+    "output_tokens_per_call": [
+      577,
+      577
+    ],
+    "tg": 44.0798293421828,
+    "median_ttft_seconds": 16.79644660199847,
+    "all_exact": true
+  },
+  "224": {
+    "output_tokens_per_call": [
+      577,
+      577
+    ],
+    "tg": 43.67299062353673,
+    "median_ttft_seconds": 7.999814404500285,
+    "all_exact": true
+  },
+  "tg_change_percent": -0.9229589241098513
+}

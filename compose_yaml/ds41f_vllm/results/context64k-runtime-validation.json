@@ -1,0 +1,30 @@
+{
+  "checked_utc": "2026-09-12T03:17:40.964453+00:00",
+  "post_long_short_reply": "OK",
+  "output_allowance": 8192,
+  "health": 200,
+  "ranks": {
+    "0": {
+      "running": true,
+      "image": "dgx-ds41-stream:b12x8",
+      "model_len": 65536,
+      "kv_cache_bytes": 2147483648,
+      "expert_bytes": 87836590080,
+      "available_host_gib": 16.14806365966797
+    },
+    "1": {
+      "running": true,
+      "image": "dgx-ds41-stream:b12x8",
+      "model_len": 65536,
+      "kv_cache_bytes": 2147483648,
+      "expert_bytes": 87836590080,
+      "available_host_gib": 15.965953826904297
+    }
+  },
+  "source_sha256": {
+    "launch.sh": "0831582231acacc70a18accc658248e8124f8dcef1542f1452f6d0b80948d058",
+    "manage.sh": "40cf684a9cb47c05254eca31bfc3255f19ec47f1b90fe648119327c68e54b0a3",
+    "check_sparktalk.py": "95324c92826e33287b3c31da65506f6cab03d3b15672ea70859ca43872922c97",
+    "check_context_capacity.py": "5da6973e1ec1019228bfd0f21c1b2d83b765bd9cb439f311327b1050a6bae831"
+  }
+}

@@ -1,0 +1,1239 @@
+[
+  {
+    "name": "baseline-generate",
+    "operation": "generate",
+    "seconds": 7.927232971000194,
+    "before": {
+      "used_gib": 4.868305206298828,
+      "available_gib": 116.75869369506836,
+      "free_gib": 113.16542053222656,
+      "swap_gib": 0.3059654235839844
+    },
+    "after": {
+      "used_gib": 19.39694595336914,
+      "available_gib": 102.23005294799805,
+      "free_gib": 97.10610961914062,
+      "swap_gib": 0.3059539794921875
+    },
+    "peak_used_gib": 21.745208740234375,
+    "increment_gib": 16.876903533935547,
+    "gpu_after": "1602482, 6660",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  {
+    "name": "classic-0-background",
+    "operation": "background_cleanup",
+    "seconds": 7.27989636699931,
+    "before": {
+      "used_gib": 19.836040496826172,
+      "available_gib": 101.79095840454102,
+      "free_gib": 96.54143524169922,
+      "swap_gib": 0.3057289123535156
+    },
+    "after": {
+      "used_gib": 19.711727142333984,
+      "available_gib": 101.9152717590332,
+      "free_gib": 96.66454315185547,
+      "swap_gib": 0.3057289123535156
+    },
+    "peak_used_gib": 22.104785919189453,
+    "increment_gib": 2.2687454223632812,
+    "gpu_after": "1615614, 6692",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  {
+    "name": "classic-0-object",
+    "operation": "object_remove",
+    "seconds": 7.332869333000417,
+    "before": {
+      "used_gib": 19.997901916503906,
+      "available_gib": 101.62909698486328,
+      "free_gib": 96.3812255859375,
+      "swap_gib": 0.30573272705078125
+    },
+    "after": {
+      "used_gib": 19.836109161376953,
+      "available_gib": 101.79088973999023,
+      "free_gib": 96.54136657714844,
+      "swap_gib": 0.3057289123535156
+    },
+    "peak_used_gib": 22.2872314453125,
+    "increment_gib": 2.2893295288085938,
+    "gpu_after": "1615614, 6692",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  {
+    "name": "classic-0-outpaint",
+    "operation": "outpaint",
+    "seconds": 7.113169708998612,
+    "before": {
+      "used_gib": 19.76172637939453,
+      "available_gib": 101.86527252197266,
+      "free_gib": 96.62709045410156,
+      "swap_gib": 0.3057365417480469
+    },
+    "after": {
+      "used_gib": 19.983081817626953,
+      "available_gib": 101.64391708374023,
+      "free_gib": 96.39604568481445,
+      "swap_gib": 0.30573272705078125
+    },
+    "peak_used_gib": 22.342601776123047,
+    "increment_gib": 2.5808753967285156,
+    "gpu_after": "1615614, 6692",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  {
+    "name": "classic-1-background",
+    "operation": "background_cleanup",
+    "seconds": 7.239655243996822,
+    "before": {
+      "used_gib": 19.638256072998047,
+      "available_gib": 101.98874282836914,
+      "free_gib": 96.73522186279297,
+      "swap_gib": 0.30572509765625
+    },
+    "after": {
+      "used_gib": 19.639217376708984,
+      "available_gib": 101.9877815246582,
+      "free_gib": 96.73317337036133,
+      "swap_gib": 0.3057212829589844
+    },
+    "peak_used_gib": 22.04964828491211,
+    "increment_gib": 2.4113922119140625,
+    "gpu_after": "1615614, 6692",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  {
+    "name": "classic-1-object",
+    "operation": "object_remove",
+    "seconds": 7.253600621999794,
+    "before": {
+      "used_gib": 19.656570434570312,
+      "available_gib": 101.97042846679688,
+      "free_gib": 96.71831130981445,
+      "swap_gib": 0.3057289123535156
+    },
+    "after": {
+      "used_gib": 19.64206314086914,
+      "available_gib": 101.98493576049805,
+      "free_gib": 96.73141479492188,
+      "swap_gib": 0.30572509765625
+    },
+    "peak_used_gib": 22.025585174560547,
+    "increment_gib": 2.3690147399902344,
+    "gpu_after": "1615614, 6692",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  {
+    "name": "classic-1-outpaint",
+    "operation": "outpaint",
+    "seconds": 7.144279509000626,
+    "before": {
+      "used_gib": 19.706645965576172,
+      "available_gib": 101.92035293579102,
+      "free_gib": 96.66962432861328,
+      "swap_gib": 0.3057289123535156
+    },
+    "after": {
+      "used_gib": 19.657546997070312,
+      "available_gib": 101.96945190429688,
+      "free_gib": 96.71733474731445,
+      "swap_gib": 0.3057289123535156
+    },
+    "peak_used_gib": 22.05438995361328,
+    "increment_gib": 2.3477439880371094,
+    "gpu_after": "1615614, 6692",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  {
+    "name": "classic-2-background",
+    "operation": "background_cleanup",
+    "seconds": 7.109067208999477,
+    "before": {
+      "used_gib": 19.603126525878906,
+      "available_gib": 102.02387237548828,
+      "free_gib": 96.7664794921875,
+      "swap_gib": 0.305633544921875
+    },
+    "after": {
+      "used_gib": 19.580585479736328,
+      "available_gib": 102.04641342163086,
+      "free_gib": 96.78782272338867,
+      "swap_gib": 0.3056221008300781
+    },
+    "peak_used_gib": 21.97658920288086,
+    "increment_gib": 2.373462677001953,
+    "gpu_after": "1615614, 6692",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  {
+    "name": "classic-2-object",
+    "operation": "object_remove",
+    "seconds": 7.073418528998445,
+    "before": {
+      "used_gib": 19.589069366455078,
+      "available_gib": 102.03792953491211,
+      "free_gib": 96.78200912475586,
+      "swap_gib": 0.3057212829589844
+    },
+    "after": {
+      "used_gib": 19.59381103515625,
+      "available_gib": 102.03318786621094,
+      "free_gib": 96.77579498291016,
+      "swap_gib": 0.305633544921875
+    },
+    "peak_used_gib": 21.990310668945312,
+    "increment_gib": 2.4012413024902344,
+    "gpu_after": "1615614, 6692",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  {
+    "name": "classic-2-outpaint",
+    "operation": "outpaint",
+    "seconds": 6.861130805002176,
+    "before": {
+      "used_gib": 19.64684295654297,
+      "available_gib": 101.98015594482422,
+      "free_gib": 96.72554779052734,
+      "swap_gib": 0.3057212829589844
+    },
+    "after": {
+      "used_gib": 19.589305877685547,
+      "available_gib": 102.03769302368164,
+      "free_gib": 96.78177261352539,
+      "swap_gib": 0.3057212829589844
+    },
+    "peak_used_gib": 21.99325942993164,
+    "increment_gib": 2.346416473388672,
+    "gpu_after": "1615614, 6692",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  {
+    "name": "classic-base",
+    "operation": "identity_edit",
+    "seconds": 9.397637989000941,
+    "before": {
+      "used_gib": 4.930339813232422,
+      "available_gib": 116.69665908813477,
+      "free_gib": 111.46345138549805,
+      "swap_gib": 0.3058319091796875
+    },
+    "after": {
+      "used_gib": 19.746482849121094,
+      "available_gib": 101.8805160522461,
+      "free_gib": 96.642333984375,
+      "swap_gib": 0.3057365417480469
+    },
+    "peak_used_gib": 22.174144744873047,
+    "increment_gib": 17.243804931640625,
+    "gpu_after": "1615614, 6692",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  {
+    "name": "integration-background",
+    "operation": "background_cleanup",
+    "seconds": 7.250428778999776,
+    "before": {
+      "used_gib": 108.55198287963867,
+      "available_gib": 13.075016021728516,
+      "free_gib": 3.960926055908203,
+      "swap_gib": 1.4771308898925781
+    },
+    "after": {
+      "used_gib": 108.57807159423828,
+      "available_gib": 13.048927307128906,
+      "free_gib": 3.833110809326172,
+      "swap_gib": 1.4750633239746094
+    },
+    "peak_used_gib": 110.9587173461914,
+    "increment_gib": 2.4067344665527344,
+    "gpu_after": "1659256, 1192\n1659721, 1300\n1677340, 6672\n1678622, 218\n1679526, 86812",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  {
+    "name": "integration-inpaint",
+    "operation": "inpaint",
+    "seconds": 10.373221582001861,
+    "before": {
+      "used_gib": 108.57978439331055,
+      "available_gib": 13.04721450805664,
+      "free_gib": 3.8313980102539062,
+      "swap_gib": 1.4750595092773438
+    },
+    "after": {
+      "used_gib": 108.6447525024414,
+      "available_gib": 12.982246398925781,
+      "free_gib": 4.166496276855469,
+      "swap_gib": 1.4751014709472656
+    },
+    "peak_used_gib": 111.18896102905273,
+    "increment_gib": 2.6091766357421875,
+    "gpu_after": "1659256, 1192\n1659721, 1300\n1677340, 6672\n1678622, 218\n1679526, 86812",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  {
+    "name": "integration-object",
+    "operation": "object_remove",
+    "seconds": 7.37015343499661,
+    "before": {
+      "used_gib": 108.48876190185547,
+      "available_gib": 13.138236999511719,
+      "free_gib": 4.095268249511719,
+      "swap_gib": 1.4800796508789062
+    },
+    "after": {
+      "used_gib": 108.5477409362793,
+      "available_gib": 13.07925796508789,
+      "free_gib": 3.965167999267578,
+      "swap_gib": 1.4771308898925781
+    },
+    "peak_used_gib": 110.96232604980469,
+    "increment_gib": 2.4735641479492188,
+    "gpu_after": "1659256, 1192\n1659721, 1300\n1677340, 6672\n1678622, 218\n1679526, 86812",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  {
+    "name": "integration-outpaint",
+    "operation": "outpaint",
+    "seconds": 15.754324531000748,
+    "before": {
+      "used_gib": 100.71912002563477,
+      "available_gib": 20.907878875732422,
+      "free_gib": 10.752540588378906,
+      "swap_gib": 1.4146003723144531
+    },
+    "after": {
+      "used_gib": 108.48626327514648,
+      "available_gib": 13.140735626220703,
+      "free_gib": 4.099609375,
+      "swap_gib": 1.4800796508789062
+    },
+    "peak_used_gib": 110.84603118896484,
+    "increment_gib": 10.126911163330078,
+    "gpu_after": "1659256, 1192\n1659721, 1300\n1677340, 6672\n1678622, 218\n1679526, 86812",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  {
+    "name": "integration-rembg",
+    "operation": "background_remove",
+    "seconds": 9.23693342900151,
+    "before": {
+      "used_gib": 108.64527130126953,
+      "available_gib": 12.981727600097656,
+      "free_gib": 4.165550231933594,
+      "swap_gib": 1.4751014709472656
+    },
+    "after": {
+      "used_gib": 108.33499526977539,
+      "available_gib": 13.292003631591797,
+      "free_gib": 3.8448143005371094,
+      "swap_gib": 1.4741439819335938
+    },
+    "peak_used_gib": 111.04696273803711,
+    "increment_gib": 2.401691436767578,
+    "gpu_after": "1659256, 1192\n1659721, 1300\n1677340, 6672\n1678622, 218\n1679526, 86812",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "isolated-background",
+    "operation": "background_cleanup",
+    "seconds": 11.364161885001522,
+    "before": {
+      "used_gib": 5.210308074951172,
+      "available_gib": 116.41669082641602,
+      "free_gib": 111.2259635925293,
+      "swap_gib": 0.3058509826660156
+    },
+    "after": {
+      "used_gib": 19.833213806152344,
+      "available_gib": 101.79378509521484,
+      "free_gib": 96.5902328491211,
+      "swap_gib": 0.3058509826660156
+    },
+    "peak_used_gib": 22.216407775878906,
+    "increment_gib": 17.006099700927734,
+    "gpu_after": "1607389, 6672",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  {
+    "name": "isolated-inpaint",
+    "operation": "inpaint",
+    "seconds": 14.26412966800126,
+    "before": {
+      "used_gib": 5.374088287353516,
+      "available_gib": 116.25291061401367,
+      "free_gib": 111.04987716674805,
+      "swap_gib": 0.3058509826660156
+    },
+    "after": {
+      "used_gib": 19.75568389892578,
+      "available_gib": 101.8713150024414,
+      "free_gib": 96.65006256103516,
+      "swap_gib": 0.30584716796875
+    },
+    "peak_used_gib": 22.23391342163086,
+    "increment_gib": 16.859825134277344,
+    "gpu_after": "1608403, 6692",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  {
+    "name": "isolated-object",
+    "operation": "object_remove",
+    "seconds": 11.519498882000335,
+    "before": {
+      "used_gib": 5.572429656982422,
+      "available_gib": 116.05456924438477,
+      "free_gib": 110.88019943237305,
+      "swap_gib": 0.30585479736328125
+    },
+    "after": {
+      "used_gib": 19.9227294921875,
+      "available_gib": 101.70426940917969,
+      "free_gib": 96.51376342773438,
+      "swap_gib": 0.3058509826660156
+    },
+    "peak_used_gib": 22.315868377685547,
+    "increment_gib": 16.743438720703125,
+    "gpu_after": "1606495, 6672",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  {
+    "name": "isolated-outpaint",
+    "operation": "outpaint",
+    "seconds": 11.234381447000487,
+    "before": {
+      "used_gib": 5.293628692626953,
+      "available_gib": 116.33337020874023,
+      "free_gib": 111.18742370605469,
+      "swap_gib": 0.3059425354003906
+    },
+    "after": {
+      "used_gib": 19.947860717773438,
+      "available_gib": 101.67913818359375,
+      "free_gib": 96.50521850585938,
+      "swap_gib": 0.3059234619140625
+    },
+    "peak_used_gib": 22.275386810302734,
+    "increment_gib": 16.98175811767578,
+    "gpu_after": "1605340, 6672",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  {
+    "name": "isolated-reference",
+    "operation": "identity_edit",
+    "seconds": 9.361740148997342,
+    "before": {
+      "used_gib": 5.275337219238281,
+      "available_gib": 116.3516616821289,
+      "free_gib": 111.2273178100586,
+      "swap_gib": 0.3059539794921875
+    },
+    "after": {
+      "used_gib": 19.752052307128906,
+      "available_gib": 101.87494659423828,
+      "free_gib": 96.72970581054688,
+      "swap_gib": 0.3059539794921875
+    },
+    "peak_used_gib": 22.196212768554688,
+    "increment_gib": 16.920875549316406,
+    "gpu_after": "1604541, 6692",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  {
+    "name": "isolated-rembg",
+    "operation": "background_remove",
+    "seconds": 1.6220065760026046,
+    "before": {
+      "used_gib": 5.308235168457031,
+      "available_gib": 116.31876373291016,
+      "free_gib": 111.09708023071289,
+      "swap_gib": 0.3058433532714844
+    },
+    "after": {
+      "used_gib": 5.418907165527344,
+      "available_gib": 116.20809173583984,
+      "free_gib": 110.98440551757812,
+      "swap_gib": 0.3058433532714844
+    },
+    "peak_used_gib": 5.8363189697265625,
+    "increment_gib": 0.5280838012695312,
+    "gpu_after": "1609373, 170",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "no-pins-0-background",
+    "operation": "background_cleanup",
+    "seconds": 6.996541172000434,
+    "before": {
+      "used_gib": 13.439556121826172,
+      "available_gib": 108.18744277954102,
+      "free_gib": 97.07748031616211,
+      "swap_gib": 0.3051033020019531
+    },
+    "after": {
+      "used_gib": 13.425060272216797,
+      "available_gib": 108.20193862915039,
+      "free_gib": 97.03592681884766,
+      "swap_gib": 0.3051033020019531
+    },
+    "peak_used_gib": 15.846920013427734,
+    "increment_gib": 2.4073638916015625,
+    "gpu_after": "1645137, 6692",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  {
+    "name": "no-pins-0-object",
+    "operation": "object_remove",
+    "seconds": 7.369124933000421,
+    "before": {
+      "used_gib": 13.603912353515625,
+      "available_gib": 108.02308654785156,
+      "free_gib": 96.96949005126953,
+      "swap_gib": 0.30512237548828125
+    },
+    "after": {
+      "used_gib": 13.441673278808594,
+      "available_gib": 108.1853256225586,
+      "free_gib": 97.07536315917969,
+      "swap_gib": 0.3051033020019531
+    },
+    "peak_used_gib": 15.874855041503906,
+    "increment_gib": 2.2709426879882812,
+    "gpu_after": "1645137, 6692",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  {
+    "name": "no-pins-0-outpaint",
+    "operation": "outpaint",
+    "seconds": 7.124239070999465,
+    "before": {
+      "used_gib": 13.487430572509766,
+      "available_gib": 108.13956832885742,
+      "free_gib": 97.1426887512207,
+      "swap_gib": 0.30512237548828125
+    },
+    "after": {
+      "used_gib": 13.58697509765625,
+      "available_gib": 108.04002380371094,
+      "free_gib": 96.9864273071289,
+      "swap_gib": 0.30512237548828125
+    },
+    "peak_used_gib": 15.984565734863281,
+    "increment_gib": 2.4971351623535156,
+    "gpu_after": "1645137, 6692",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  {
+    "name": "no-pins-1-background",
+    "operation": "background_cleanup",
+    "seconds": 7.029317001997697,
+    "before": {
+      "used_gib": 13.465873718261719,
+      "available_gib": 108.16112518310547,
+      "free_gib": 96.99222183227539,
+      "swap_gib": 0.3050956726074219
+    },
+    "after": {
+      "used_gib": 13.419975280761719,
+      "available_gib": 108.20702362060547,
+      "free_gib": 97.03709030151367,
+      "swap_gib": 0.3050956726074219
+    },
+    "peak_used_gib": 15.834121704101562,
+    "increment_gib": 2.3682479858398438,
+    "gpu_after": "1645137, 6692",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  {
+    "name": "no-pins-1-object",
+    "operation": "object_remove",
+    "seconds": 7.357885899000394,
+    "before": {
+      "used_gib": 13.412261962890625,
+      "available_gib": 108.21473693847656,
+      "free_gib": 97.04718780517578,
+      "swap_gib": 0.3050956726074219
+    },
+    "after": {
+      "used_gib": 13.467041015625,
+      "available_gib": 108.15995788574219,
+      "free_gib": 96.99105453491211,
+      "swap_gib": 0.3050956726074219
+    },
+    "peak_used_gib": 15.832550048828125,
+    "increment_gib": 2.4202880859375,
+    "gpu_after": "1645137, 6692",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  {
+    "name": "no-pins-1-outpaint",
+    "operation": "outpaint",
+    "seconds": 6.976958848001232,
+    "before": {
+      "used_gib": 13.42080307006836,
+      "available_gib": 108.20619583129883,
+      "free_gib": 97.0401840209961,
+      "swap_gib": 0.3051033020019531
+    },
+    "after": {
+      "used_gib": 13.410140991210938,
+      "available_gib": 108.21685791015625,
+      "free_gib": 97.04930877685547,
+      "swap_gib": 0.3050956726074219
+    },
+    "peak_used_gib": 15.828899383544922,
+    "increment_gib": 2.4080963134765625,
+    "gpu_after": "1645137, 6692",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  {
+    "name": "no-pins-2-background",
+    "operation": "background_cleanup",
+    "seconds": 7.147393403000024,
+    "before": {
+      "used_gib": 13.404613494873047,
+      "available_gib": 108.22238540649414,
+      "free_gib": 97.0495491027832,
+      "swap_gib": 0.3050880432128906
+    },
+    "after": {
+      "used_gib": 13.492542266845703,
+      "available_gib": 108.13445663452148,
+      "free_gib": 96.93820571899414,
+      "swap_gib": 0.30446624755859375
+    },
+    "peak_used_gib": 15.856525421142578,
+    "increment_gib": 2.4519119262695312,
+    "gpu_after": "1645137, 6692",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  {
+    "name": "no-pins-2-object",
+    "operation": "object_remove",
+    "seconds": 7.377417749998131,
+    "before": {
+      "used_gib": 13.427921295166016,
+      "available_gib": 108.19907760620117,
+      "free_gib": 97.02753067016602,
+      "swap_gib": 0.30509185791015625
+    },
+    "after": {
+      "used_gib": 13.39529800415039,
+      "available_gib": 108.2317008972168,
+      "free_gib": 97.05886459350586,
+      "swap_gib": 0.3050880432128906
+    },
+    "peak_used_gib": 15.806324005126953,
+    "increment_gib": 2.3784027099609375,
+    "gpu_after": "1645137, 6692",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  {
+    "name": "no-pins-2-outpaint",
+    "operation": "outpaint",
+    "seconds": 6.892403224999725,
+    "before": {
+      "used_gib": 13.43691635131836,
+      "available_gib": 108.19008255004883,
+      "free_gib": 97.02014923095703,
+      "swap_gib": 0.3050956726074219
+    },
+    "after": {
+      "used_gib": 13.430461883544922,
+      "available_gib": 108.19653701782227,
+      "free_gib": 97.02499008178711,
+      "swap_gib": 0.30509185791015625
+    },
+    "peak_used_gib": 15.836925506591797,
+    "increment_gib": 2.4000091552734375,
+    "gpu_after": "1645137, 6692",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  {
+    "name": "no-pins-base",
+    "operation": "identity_edit",
+    "seconds": 9.65551866700116,
+    "before": {
+      "used_gib": 4.9747467041015625,
+      "available_gib": 116.65225219726562,
+      "free_gib": 111.39316940307617,
+      "swap_gib": 0.3055686950683594
+    },
+    "after": {
+      "used_gib": 13.47134017944336,
+      "available_gib": 108.15565872192383,
+      "free_gib": 97.15877914428711,
+      "swap_gib": 0.30512237548828125
+    },
+    "peak_used_gib": 15.87664794921875,
+    "increment_gib": 10.901901245117188,
+    "gpu_after": "1645137, 6692",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  {
+    "name": "no-pins-isolated-background",
+    "operation": "background_cleanup",
+    "seconds": 9.884203633999277,
+    "before": {
+      "used_gib": 5.271068572998047,
+      "available_gib": 116.35593032836914,
+      "free_gib": 105.10750579833984,
+      "swap_gib": 0.304412841796875
+    },
+    "after": {
+      "used_gib": 13.604320526123047,
+      "available_gib": 108.02267837524414,
+      "free_gib": 96.77312850952148,
+      "swap_gib": 0.304412841796875
+    },
+    "peak_used_gib": 16.02069854736328,
+    "increment_gib": 10.749629974365234,
+    "gpu_after": "1650270, 6672",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  {
+    "name": "no-pins-isolated-inpaint",
+    "operation": "inpaint",
+    "seconds": 12.731886236000719,
+    "before": {
+      "used_gib": 5.375633239746094,
+      "available_gib": 116.2513656616211,
+      "free_gib": 104.99696731567383,
+      "swap_gib": 0.30434417724609375
+    },
+    "after": {
+      "used_gib": 13.661872863769531,
+      "available_gib": 107.96512603759766,
+      "free_gib": 96.70902252197266,
+      "swap_gib": 0.30434417724609375
+    },
+    "peak_used_gib": 16.139965057373047,
+    "increment_gib": 10.764331817626953,
+    "gpu_after": "1651064, 6692",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  {
+    "name": "no-pins-isolated-lora-rembg",
+    "operation": "background_remove",
+    "seconds": 10.94587950499772,
+    "before": {
+      "used_gib": 5.125164031982422,
+      "available_gib": 116.50183486938477,
+      "free_gib": 105.2455825805664,
+      "swap_gib": 0.30434417724609375
+    },
+    "after": {
+      "used_gib": 13.536052703857422,
+      "available_gib": 108.09094619750977,
+      "free_gib": 96.83380126953125,
+      "swap_gib": 0.3043212890625
+    },
+    "peak_used_gib": 15.978630065917969,
+    "increment_gib": 10.853466033935547,
+    "gpu_after": "1652143, 6672",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "no-pins-isolated-object",
+    "operation": "object_remove",
+    "seconds": 10.065868801997567,
+    "before": {
+      "used_gib": 5.391155242919922,
+      "available_gib": 116.23584365844727,
+      "free_gib": 104.9891242980957,
+      "swap_gib": 0.304412841796875
+    },
+    "after": {
+      "used_gib": 13.634220123291016,
+      "available_gib": 107.99277877807617,
+      "free_gib": 96.74446105957031,
+      "swap_gib": 0.304412841796875
+    },
+    "peak_used_gib": 16.048294067382812,
+    "increment_gib": 10.65713882446289,
+    "gpu_after": "1649334, 6672",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  {
+    "name": "no-pins-isolated-outpaint",
+    "operation": "outpaint",
+    "seconds": 9.788052808999055,
+    "before": {
+      "used_gib": 5.18731689453125,
+      "available_gib": 116.43968200683594,
+      "free_gib": 105.19556427001953,
+      "swap_gib": 0.304412841796875
+    },
+    "after": {
+      "used_gib": 13.641132354736328,
+      "available_gib": 107.98586654663086,
+      "free_gib": 96.73993682861328,
+      "swap_gib": 0.304412841796875
+    },
+    "peak_used_gib": 16.02804183959961,
+    "increment_gib": 10.84072494506836,
+    "gpu_after": "1648377, 6672",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  {
+    "name": "sequence-0-background",
+    "operation": "background_cleanup",
+    "seconds": 7.006932688000234,
+    "before": {
+      "used_gib": 19.737823486328125,
+      "available_gib": 101.88917541503906,
+      "free_gib": 96.66425323486328,
+      "swap_gib": 0.30583953857421875
+    },
+    "after": {
+      "used_gib": 19.691478729248047,
+      "available_gib": 101.93552017211914,
+      "free_gib": 96.71147918701172,
+      "swap_gib": 0.30583953857421875
+    },
+    "peak_used_gib": 22.122478485107422,
+    "increment_gib": 2.384654998779297,
+    "gpu_after": "1610042, 6692",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  {
+    "name": "sequence-0-object",
+    "operation": "object_remove",
+    "seconds": 7.100702554002055,
+    "before": {
+      "used_gib": 19.79724884033203,
+      "available_gib": 101.82975006103516,
+      "free_gib": 96.60429382324219,
+      "swap_gib": 0.30583953857421875
+    },
+    "after": {
+      "used_gib": 19.739517211914062,
+      "available_gib": 101.88748168945312,
+      "free_gib": 96.66255950927734,
+      "swap_gib": 0.30583953857421875
+    },
+    "peak_used_gib": 22.133407592773438,
+    "increment_gib": 2.3361587524414062,
+    "gpu_after": "1610042, 6692",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  {
+    "name": "sequence-0-outpaint",
+    "operation": "outpaint",
+    "seconds": 6.894722781002201,
+    "before": {
+      "used_gib": 19.732669830322266,
+      "available_gib": 101.89432907104492,
+      "free_gib": 96.66848754882812,
+      "swap_gib": 0.3058433532714844
+    },
+    "after": {
+      "used_gib": 19.803691864013672,
+      "available_gib": 101.82330703735352,
+      "free_gib": 96.59785079956055,
+      "swap_gib": 0.30583953857421875
+    },
+    "peak_used_gib": 22.27849578857422,
+    "increment_gib": 2.545825958251953,
+    "gpu_after": "1610042, 6692",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  {
+    "name": "sequence-1-background",
+    "operation": "background_cleanup",
+    "seconds": 7.003361827002664,
+    "before": {
+      "used_gib": 19.620258331298828,
+      "available_gib": 102.00674057006836,
+      "free_gib": 96.77987289428711,
+      "swap_gib": 0.3058319091796875
+    },
+    "after": {
+      "used_gib": 19.630199432373047,
+      "available_gib": 101.99679946899414,
+      "free_gib": 96.76889038085938,
+      "swap_gib": 0.3058319091796875
+    },
+    "peak_used_gib": 22.033344268798828,
+    "increment_gib": 2.4130859375,
+    "gpu_after": "1610042, 6692",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  {
+    "name": "sequence-1-object",
+    "operation": "object_remove",
+    "seconds": 7.090607408001233,
+    "before": {
+      "used_gib": 19.61806869506836,
+      "available_gib": 102.00893020629883,
+      "free_gib": 96.78342056274414,
+      "swap_gib": 0.3058319091796875
+    },
+    "after": {
+      "used_gib": 19.618576049804688,
+      "available_gib": 102.0084228515625,
+      "free_gib": 96.78155517578125,
+      "swap_gib": 0.3058319091796875
+    },
+    "peak_used_gib": 22.033336639404297,
+    "increment_gib": 2.4152679443359375,
+    "gpu_after": "1610042, 6692",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  {
+    "name": "sequence-1-outpaint",
+    "operation": "outpaint",
+    "seconds": 6.962112438002805,
+    "before": {
+      "used_gib": 19.68468475341797,
+      "available_gib": 101.94231414794922,
+      "free_gib": 96.7182731628418,
+      "swap_gib": 0.30583953857421875
+    },
+    "after": {
+      "used_gib": 19.615211486816406,
+      "available_gib": 102.01178741455078,
+      "free_gib": 96.7862777709961,
+      "swap_gib": 0.3058319091796875
+    },
+    "peak_used_gib": 21.995410919189453,
+    "increment_gib": 2.3107261657714844,
+    "gpu_after": "1610042, 6692",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  {
+    "name": "sequence-2-background",
+    "operation": "background_cleanup",
+    "seconds": 7.014800824999838,
+    "before": {
+      "used_gib": 19.60043716430664,
+      "available_gib": 102.02656173706055,
+      "free_gib": 96.79631805419922,
+      "swap_gib": 0.3058319091796875
+    },
+    "after": {
+      "used_gib": 19.630802154541016,
+      "available_gib": 101.99619674682617,
+      "free_gib": 96.76515579223633,
+      "swap_gib": 0.3058319091796875
+    },
+    "peak_used_gib": 22.044509887695312,
+    "increment_gib": 2.444072723388672,
+    "gpu_after": "1610042, 6692",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  {
+    "name": "sequence-2-object",
+    "operation": "object_remove",
+    "seconds": 7.193183609000698,
+    "before": {
+      "used_gib": 19.63698959350586,
+      "available_gib": 101.99000930786133,
+      "free_gib": 96.76103973388672,
+      "swap_gib": 0.3058319091796875
+    },
+    "after": {
+      "used_gib": 19.6014404296875,
+      "available_gib": 102.02555847167969,
+      "free_gib": 96.79531478881836,
+      "swap_gib": 0.3058319091796875
+    },
+    "peak_used_gib": 22.03072738647461,
+    "increment_gib": 2.39373779296875,
+    "gpu_after": "1610042, 6692",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  {
+    "name": "sequence-2-outpaint",
+    "operation": "outpaint",
+    "seconds": 6.864375164001103,
+    "before": {
+      "used_gib": 19.629261016845703,
+      "available_gib": 101.99773788452148,
+      "free_gib": 96.76982879638672,
+      "swap_gib": 0.3058319091796875
+    },
+    "after": {
+      "used_gib": 19.621742248535156,
+      "available_gib": 102.00525665283203,
+      "free_gib": 96.77628707885742,
+      "swap_gib": 0.3058319091796875
+    },
+    "peak_used_gib": 22.037246704101562,
+    "increment_gib": 2.4079856872558594,
+    "gpu_after": "1610042, 6692",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  {
+    "name": "sequence-base",
+    "operation": "identity_edit",
+    "seconds": 9.3996578160004,
+    "before": {
+      "used_gib": 5.180717468261719,
+      "available_gib": 116.44628143310547,
+      "free_gib": 111.22235488891602,
+      "swap_gib": 0.3058433532714844
+    },
+    "after": {
+      "used_gib": 19.727046966552734,
+      "available_gib": 101.89995193481445,
+      "free_gib": 96.67411041259766,
+      "swap_gib": 0.3058433532714844
+    },
+    "peak_used_gib": 22.12506866455078,
+    "increment_gib": 16.944351196289062,
+    "gpu_after": "1610042, 6692",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  {
+    "name": "sequence-return-base",
+    "operation": "identity_edit",
+    "seconds": 4.96438880000278,
+    "before": {
+      "used_gib": 19.63066864013672,
+      "available_gib": 101.99633026123047,
+      "free_gib": 96.76528930664062,
+      "swap_gib": 0.3058319091796875
+    },
+    "after": {
+      "used_gib": 19.54810333251953,
+      "available_gib": 102.07889556884766,
+      "free_gib": 96.84641647338867,
+      "swap_gib": 0.3058319091796875
+    },
+    "peak_used_gib": 21.97311019897461,
+    "increment_gib": 2.3424415588378906,
+    "gpu_after": "1610042, 6692",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  {
+    "name": "trial4-total-inpaint",
+    "operation": "inpaint",
+    "seconds": 13.287693178001064,
+    "before": {
+      "used_gib": 8.496471405029297,
+      "available_gib": 113.13052749633789,
+      "free_gib": 98.89799118041992,
+      "swap_gib": 0.3039436340332031
+    },
+    "after": {
+      "used_gib": 16.951187133789062,
+      "available_gib": 104.67581176757812,
+      "free_gib": 90.18441009521484,
+      "swap_gib": 0.3039360046386719
+    },
+    "peak_used_gib": 19.33684539794922,
+    "increment_gib": 10.840373992919922,
+    "gpu_after": "1659256, 1192\n1659721, 1300\n1666411, 6692",
+    "size": [
+      1024,
+      1024
+    ],
+    "mode": "RGB"
+  }
+]

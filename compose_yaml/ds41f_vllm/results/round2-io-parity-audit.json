@@ -1,0 +1,42 @@
+{
+  "io-schedule-varied": {
+    "timed_responses": 32,
+    "all_text_usage_finish_identical": true,
+    "same_final_counters_each_arm_by_rank": {
+      "0": {
+        "slot_misses": 13819,
+        "packed_read_bytes": 129903022080,
+        "demand_read_bytes": 129903022080,
+        "gpu_cache_bytes": 87836590080,
+        "graph_replays": 5759
+      },
+      "1": {
+        "slot_misses": 13936,
+        "packed_read_bytes": 131002859520,
+        "demand_read_bytes": 131002859520,
+        "gpu_cache_bytes": 87836590080,
+        "graph_replays": 5802
+      }
+    }
+  },
+  "io-heldout": {
+    "timed_responses": 32,
+    "all_text_usage_finish_identical": true,
+    "same_final_counters_each_arm_by_rank": {
+      "0": {
+        "slot_misses": 14713,
+        "packed_read_bytes": 138306908160,
+        "demand_read_bytes": 138306908160,
+        "gpu_cache_bytes": 87836590080,
+        "graph_replays": 10618
+      },
+      "1": {
+        "slot_misses": 14713,
+        "packed_read_bytes": 138306908160,
+        "demand_read_bytes": 138306908160,
+        "gpu_cache_bytes": 87836590080,
+        "graph_replays": 10661
+      }
+    }
+  }
+}

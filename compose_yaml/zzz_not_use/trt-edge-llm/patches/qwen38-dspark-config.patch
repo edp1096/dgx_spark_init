@@ -1,0 +1,48 @@
+diff --git a/tensorrt_edgellm/config.py b/tensorrt_edgellm/config.py
+index e8f2813..e0da69e 100644
+--- a/tensorrt_edgellm/config.py
++++ b/tensorrt_edgellm/config.py
+@@ -1387,6 +1387,13 @@ def make_dspark_draft_config(
+     """Build a DSpark draft ModelConfig from a DeepSpec DSpark checkpoint."""
+     _, llm_dict = load_checkpoint_config_dicts(draft_dir)
+     dspark_config = llm_dict.get("dspark_config", {}) or {}
++    if not dspark_config:
++        # Early Qwen3.8 DSpark checkpoints used the DFlash metadata key while
++        # identifying the actual projector explicitly.  Normalize only that
++        # unambiguous form and leave genuine DFlash checkpoints untouched.
++        legacy_config = llm_dict.get("dflash_config", {}) or {}
++        if legacy_config.get("projector_type") == "dspark":
++            dspark_config = legacy_config
+
+     quant = _parse_quant(draft_dir, llm_dict)
+     target_layer_ids = list(
+diff --git a/tensorrt_edgellm/model.py b/tensorrt_edgellm/model.py
+index ce089a9..56b270e 100644
+--- a/tensorrt_edgellm/model.py
++++ b/tensorrt_edgellm/model.py
+@@ -300,6 +300,10 @@ class AutoModel:
+                     with open(draft_cfg_path) as f:
+                         draft_cfg = json.load(f)
+                     dspark_cfg = draft_cfg.get("dspark_config", {})
++                    if not dspark_cfg:
++                        legacy_cfg = draft_cfg.get("dflash_config", {}) or {}
++                        if legacy_cfg.get("projector_type") == "dspark":
++                            dspark_cfg = legacy_cfg
+                     config.dspark_target_layer_ids = (
+                         dspark_cfg.get("target_layer_ids")
+                         or draft_cfg.get("target_layer_ids", []))
+diff --git a/tensorrt_edgellm/scripts/export.py b/tensorrt_edgellm/scripts/export.py
+index 2afaa3b..51367d4 100644
+--- a/tensorrt_edgellm/scripts/export.py
++++ b/tensorrt_edgellm/scripts/export.py
+@@ -1556,6 +1556,10 @@ def _export_dspark_sidecars(dspark_draft_dir: str, draft_out_dir: str) -> None:
+
+     cfg = _load_config(dspark_draft_dir)
+     dspark_cfg = cfg.get("dspark_config", {}) or {}
++    if not dspark_cfg:
++        legacy_cfg = cfg.get("dflash_config", {}) or {}
++        if legacy_cfg.get("projector_type") == "dspark":
++            dspark_cfg = legacy_cfg
+     markov_type = str(
+         dspark_cfg.get("markov_head_type", cfg.get("markov_head_type", "")))
+     enable_confidence = bool(

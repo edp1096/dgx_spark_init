@@ -1,0 +1,9 @@
+PREFIX_PASS 0
+PREFIX_PASS 1
+PREFIX_PASS 2
+DECODE_PASS 0 False
+Traceback (most recent call last):
+  File "/home/edp1096/workspace/dgx_spark_init/compose_yaml/ds41_vllm/check_decoder_continuation.py", line 52, in <module>
+    else:assert text==reference,{'baseline':reference,'candidate':text}
+                ^^^^^^^^^^^^^^^
+AssertionError: {'baseline': '```python\ndef binary_search(arr: list[int], target: int) -> int:\n    """Return index of target in sorted arr, or -1 if not found."""\n    lo, hi = 0, len(arr) - 1\n    while lo <= hi:\n        mid = (lo + hi) // 2\n        if arr[mid] == target:\n            return mid\n        elif arr[mid] < target:\n            lo = mid + 1\n        else:\n            hi = mid - 1\n    return -1\n```', 'candidate': '```python\nfrom typing import List, Optional\n\ndef binary_search(arr: List[int], target: int) -> Optional[int]:\n    """Return index of target in sorted arr, or None if not found."""\n    lo, hi = 0, len(arr) - 1\n    while lo <= hi:\n        mid = (lo + hi) // 2\n        if arr[mid] == target:\n            return mid\n        elif arr[mid] < target:\n            lo = mid + 1\n        else:\n            hi = mid - 1\n    return None\n```'}

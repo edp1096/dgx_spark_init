@@ -1,0 +1,5 @@
+results/
+**/__pycache__/
+profile.enabled
+*-control.json
+*-control.json.next

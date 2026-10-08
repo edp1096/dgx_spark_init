@@ -1,0 +1,12 @@
+{
+  "version": "0.0.0.dev1+gd91c3682b",
+  "kv_cache_dtype": "auto",
+  "max_total_num_tokens": 202368,
+  "speculative_algorithm": "EAGLE",
+  "speculative_token_map": null,
+  "speculative_use_rejection_sampling": false,
+  "disable_overlap_schedule": false,
+  "random_seed": 595305611,
+  "chunked_prefill_size": 1024,
+  "mem_fraction_static": 0.79
+}

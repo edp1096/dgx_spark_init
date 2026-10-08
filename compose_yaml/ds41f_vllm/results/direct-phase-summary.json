@@ -1,0 +1,28 @@
+{
+  "0": {
+    "verification_steps": 12,
+    "tokens_per_step": 6,
+    "mean_ms": {
+      "total_ms": 313.48544516731636,
+      "router_ms": 3.689148665216635,
+      "slot_read_ms": 151.2792465861518,
+      "expert_graph_ms": 51.16765441683432,
+      "shared_ms": 17.019147244354826,
+      "tp_reduce_ms": 32.907233834218154,
+      "between_moe_ms": 55.28927866483476
+    }
+  },
+  "1": {
+    "verification_steps": 12,
+    "tokens_per_step": 6,
+    "mean_ms": {
+      "total_ms": 313.4397934142423,
+      "router_ms": 3.800143429543823,
+      "slot_read_ms": 158.73681459197542,
+      "expert_graph_ms": 51.77267356096612,
+      "shared_ms": 18.62930440014073,
+      "tp_reduce_ms": 22.932994409832947,
+      "between_moe_ms": 55.38052274641814
+    }
+  }
+}

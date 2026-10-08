@@ -1,0 +1,109 @@
+{
+  "date": "2026-10-08",
+  "method": "Read local GGUF header and bounded HTTP range reads (at most 2 MiB each) of the two pinned HF GGUF files. No remote full model file was downloaded. Compare actual tensor storage dtypes, dimensions and layouts.",
+  "items": [
+    {
+      "variant": "our_q5_k",
+      "source": "/home/edp1096/.cache/nemo-speech/nemotron-3.5-asr-streaming-0.6b.q5_k.gguf",
+      "serving_engine": "NVIDIA NeMo-Speech.cpp",
+      "gguf_architecture": "asr",
+      "file_bytes": 528061920,
+      "sha256": "f0dab30ca22a606c2ab9a65efae88421851c6ca4ab01160708ab733b4467ce58",
+      "sha256_source": "configured and runtime-startup-verified hash",
+      "tensor_count": 657,
+      "tensor_types": {
+        "F32": {
+          "count": 355,
+          "elements": 15102368,
+          "bytes": 60409472
+        },
+        "Q5_K": {
+          "count": 266,
+          "elements": 609091584,
+          "bytes": 418750464
+        },
+        "F16": {
+          "count": 36,
+          "elements": 24075008,
+          "bytes": 48150016
+        }
+      },
+      "tensor_bytes": 527309952,
+      "header_bytes": 751956,
+      "remote_bytes_read": 0,
+      "pointwise_quantized_q5_tensors": 48,
+      "q6_k_tensor_count": 0
+    },
+    {
+      "variant": "handy_q5_k_m",
+      "source": "https://huggingface.co/handy-computer/nemotron-3.5-asr-streaming-0.6b-gguf/resolve/8139c4ec14bdc45c361adf8d57c27c28e7478272/nemotron-3.5-asr-streaming-0.6b-Q5_K_M.gguf",
+      "serving_engine": "transcribe.cpp",
+      "gguf_architecture": "parakeet",
+      "file_bytes": 559647200,
+      "sha256": "86429e8c4f7fdcf9b3312269ad1ca6669478ba7805331c4aea7a2e33e9910d65",
+      "sha256_source": "Hugging Face LFS metadata",
+      "tensor_count": 653,
+      "tensor_types": {
+        "F32": {
+          "count": 378,
+          "elements": 728096,
+          "bytes": 2912384
+        },
+        "Q5_K": {
+          "count": 195,
+          "elements": 510525440,
+          "bytes": 350986240
+        },
+        "Q8_0": {
+          "count": 32,
+          "elements": 51240960,
+          "bytes": 54443520
+        },
+        "F16": {
+          "count": 48,
+          "elements": 75497472,
+          "bytes": 150994944
+        }
+      },
+      "tensor_bytes": 559337088,
+      "header_bytes": 310109,
+      "remote_bytes_read": 2097152,
+      "pointwise_quantized_q5_tensors": 0,
+      "q6_k_tensor_count": 0
+    },
+    {
+      "variant": "mudler_q5_k",
+      "source": "https://huggingface.co/mudler/parakeet-cpp-gguf/resolve/741158ae71e64ef5c89385862c18f777d07a97a1/nemotron-3.5-asr-streaming-0.6b-q5_k.gguf",
+      "serving_engine": "mudler/parakeet.cpp",
+      "gguf_architecture": "parakeet",
+      "file_bytes": 784801888,
+      "sha256": "7bb14605a707f821560952521034002c91653d676272a80dca0cd2aa886d0ab2",
+      "sha256_source": "Hugging Face LFS metadata",
+      "tensor_count": 657,
+      "tensor_types": {
+        "F32": {
+          "count": 439,
+          "elements": 104436272,
+          "bytes": 417745088
+        },
+        "Q5_K": {
+          "count": 218,
+          "elements": 533594112,
+          "bytes": 366845952
+        }
+      },
+      "tensor_bytes": 784591040,
+      "header_bytes": 210844,
+      "remote_bytes_read": 2097152,
+      "pointwise_quantized_q5_tensors": 0,
+      "q6_k_tensor_count": 0
+    }
+  ],
+  "sources": {
+    "our_conversion": "compose_yaml/nemotron_asr/scripts/prepare_q5.py",
+    "handy_policy": "https://github.com/handy-computer/transcribe.cpp/blob/95d82e5134fba4b18ad6a46f3baf950f53bcfc3b/docs/tools/quantization.md",
+    "mudler_policy": "https://github.com/mudler/parakeet.cpp/blob/5c9b0fbbd8e611d88e47d7e1ebae9bca9b447e8f/docs/quantization.md"
+  },
+  "accuracy_and_speed_comparison": "No new inference comparison conducted; file size and storage precision alone do not determine recognition quality or whole-service memory.",
+  "publication_candidates_changed": false
+}

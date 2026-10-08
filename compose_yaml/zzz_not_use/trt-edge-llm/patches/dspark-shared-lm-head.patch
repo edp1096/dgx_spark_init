@@ -1,0 +1,43 @@
+diff --git a/tensorrt_edgellm/model.py b/tensorrt_edgellm/model.py
+index 56b270e..ee0c64a 100644
+--- a/tensorrt_edgellm/model.py
++++ b/tensorrt_edgellm/model.py
+@@ -441,8 +441,15 @@ class AutoModel:
+                     "dspark_draft requires dspark_draft_dir to be set.")
+             from .models.dspark.modeling_dspark_draft import DSparkDraftModel
++            base_config = config
++            base_model_dir = model_dir
++            base_tie_word_embeddings = base_config.tie_word_embeddings
++            draft_has_lm_head = _checkpoint_has_dflash_lm_head(
++                dspark_draft_dir)
+             config = make_dspark_draft_config(
+                 dspark_draft_dir,
+                 _default_attention_scale_for_model_dir(dspark_draft_dir))
++            if not draft_has_lm_head:
++                config = _inherit_dflash_lm_head_quant(config, base_config)
+             model_class = DSparkDraftModel
+             model_dir = dspark_draft_dir
+             if key_remap is None:
+@@ -526,7 +534,8 @@ class AutoModel:
+             else:
+                 apply_reduced_vocab_after_load = True
+
+-        if variant == "dflash_draft" and not draft_has_lm_head:
++        if (variant in ("dflash_draft", "dspark_draft")
++                and not draft_has_lm_head):
+             next_pre_repack_hook = pre_repack_hook
+
+             def _load_pre_repack_dflash_lm_head(loaded_model: nn.Module):
+@@ -550,9 +559,10 @@ class AutoModel:
+         if callable(refresh_router_bias):
+             refresh_router_bias()
+-        if variant == "dflash_draft":
++        if variant in ("dflash_draft", "dspark_draft"):
+             if draft_has_lm_head:
+                 logging.getLogger(__name__).info(
+-                    "DFlash lm_head source: draft checkpoint buffers")
++                    "%s lm_head source: draft checkpoint buffers",
++                    variant.removesuffix("_draft"))
+         if apply_reduced_vocab_after_load:
+             from .vocab_reduction.onnx_export import \
+                 apply_reduced_vocab_from_dir

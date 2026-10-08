@@ -1,0 +1,33 @@
+diff --git a/experimental/server/engine.py b/experimental/server/engine.py
+index b0bf17a..d9533c0 100644
+--- a/experimental/server/engine.py
++++ b/experimental/server/engine.py
+@@ -679,17 +679,22 @@ class LLM:
+                 raise ValueError(
+                     f"spec_base.engine/spec_draft.engine not found in: {engine_dir}"
+                 )
+-            if multimodal_engine_dir:
+-                logger.warning(
+-                    "multimodal_engine_dir=%r is ignored for spec-decode engines",
+-                    multimodal_engine_dir)
+             # Spec-decode dir (spec_base.engine + spec_draft.engine): route through
+             # the spec-decode path by promoting engine_dir to eagle_engine_dir.
+             self._engine_dir = engine_dir
+             self._model_dir = engine_dir
+             self._eagle_engine_dir = engine_dir
+-            self._multimodal_engine_dir = ""
+-            self._is_multimodal = False
++            if multimodal_engine_dir:
++                if not validate_multimodal_engine_dir(
++                        multimodal_engine_dir):
++                    raise ValueError(
++                        "no visual or audio encoder engine found in: "
++                        f"{multimodal_engine_dir}")
++                self._multimodal_engine_dir = multimodal_engine_dir
++                self._is_multimodal = True
++            else:
++                self._multimodal_engine_dir = ""
++                self._is_multimodal = False
+             logger.info("Using pre-built spec-decode engine: %s",
+                         self._engine_dir)
+             return

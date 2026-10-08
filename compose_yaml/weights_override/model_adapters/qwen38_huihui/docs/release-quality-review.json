@@ -1,0 +1,14 @@
+{
+  "tp1-main": {
+    "exact_checks": 5,
+    "code_execution_checks": 4,
+    "tool_call": "passed",
+    "manual_korean_translation_fiction_review": "passed"
+  },
+  "tp2": {
+    "exact_checks": 5,
+    "code_execution_checks": 4,
+    "tool_call": "passed",
+    "manual_korean_translation_fiction_review": "passed"
+  }
+}

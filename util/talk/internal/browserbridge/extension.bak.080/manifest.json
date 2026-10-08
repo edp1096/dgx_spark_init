@@ -1,0 +1,13 @@
+{
+ "manifest_version":3,
+ "name":"SparkTalk 브라우저",
+ "description":"로그인된 네이버 구매내역을 Talk와 연결하고 승인한 구매후기를 등록합니다.",
+ "version":"0.8.0",
+ "minimum_chrome_version":"116",
+ "permissions":["debugger","tabs","scripting","storage","webNavigation","alarms"],
+ "host_permissions":["https://*.naver.com/*","https://*.naverpay.com/*"],
+ "optional_host_permissions":["http://*/*","https://*/*"],
+ "background":{"service_worker":"service-worker.js","type":"module"},
+ "action":{"default_popup":"connect.html"},
+ "content_scripts":[{"matches":["https://*.naver.com/*","https://*.naverpay.com/*"],"js":["naver-content.js"],"all_frames":true,"run_at":"document_idle"}]
+}

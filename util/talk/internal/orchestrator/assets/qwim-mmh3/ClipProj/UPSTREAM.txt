@@ -1,0 +1,3 @@
+Source: https://github.com/nicolab28/ComfyUI-ClipProj
+Qualified source snapshot from 2026-10-07, included in sparktalk-mmh3-swap-test:20261007.
+The unmodified Python modules and MIT license are preserved here for reproducible builds.

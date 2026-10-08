@@ -1,0 +1,107 @@
+{
+  "conditions": "Identical requests; zero KV hits; reset expert slots; warmups excluded. Read counts are the last periodic log snapshot.",
+  "settings": [
+    {
+      "label": "pp-round4-control",
+      "max_batched_tokens": 2048,
+      "kernel_tokens": 512,
+      "shared_buffers": false,
+      "routed_pipeline": false,
+      "image_name": null,
+      "cases": {
+        "mixed-document": {
+          "prompt_tokens": 12270,
+          "trials": 2,
+          "pp": 171.20167597214063,
+          "median_ttft_seconds": 71.66988098699949,
+          "min_pp": 170.80959653349814,
+          "max_pp": 171.59555952445442,
+          "min_host_available_gib": 14.938770294189453,
+          "approx_median_expert_read_gib_per_rank": 310.105676651001,
+          "pp_gain_percent": 0.0,
+          "ttft_reduction_percent": 0.0
+        },
+        "talk-tools": {
+          "prompt_tokens": 6313,
+          "trials": 2,
+          "pp": 139.49489204939331,
+          "median_ttft_seconds": 45.25615995100088,
+          "min_pp": 135.2269375068012,
+          "max_pp": 144.04103195300968,
+          "min_host_available_gib": 14.790084838867188,
+          "approx_median_expert_read_gib_per_rank": 202.89525032043457,
+          "pp_gain_percent": 0.0,
+          "ttft_reduction_percent": 0.0
+        }
+      }
+    },
+    {
+      "label": "pp-round4-shared512",
+      "max_batched_tokens": 2048,
+      "kernel_tokens": 512,
+      "shared_buffers": true,
+      "routed_pipeline": false,
+      "image_name": null,
+      "cases": {
+        "mixed-document": {
+          "prompt_tokens": 12270,
+          "trials": 2,
+          "pp": 171.3078779225575,
+          "median_ttft_seconds": 71.62545193250116,
+          "min_pp": 171.1635750609726,
+          "max_pp": 171.45242430425094,
+          "min_host_available_gib": 14.953693389892578,
+          "approx_median_expert_read_gib_per_rank": 310.25450706481934,
+          "pp_gain_percent": 0.06203324226461415,
+          "ttft_reduction_percent": 0.06199124916418386
+        },
+        "talk-tools": {
+          "prompt_tokens": 6313,
+          "trials": 2,
+          "pp": 144.2455055790471,
+          "median_ttft_seconds": 43.765682083499996,
+          "min_pp": 144.14857908120862,
+          "max_pp": 144.34256251268155,
+          "min_host_available_gib": 13.999153137207031,
+          "approx_median_expert_read_gib_per_rank": 202.43124961853027,
+          "pp_gain_percent": 3.4055824266107537,
+          "ttft_reduction_percent": 3.2934254013478714
+        }
+      }
+    },
+    {
+      "label": "pp-round4-native2048",
+      "max_batched_tokens": 2048,
+      "kernel_tokens": 2048,
+      "shared_buffers": true,
+      "routed_pipeline": false,
+      "image_name": null,
+      "cases": {
+        "mixed-document": {
+          "prompt_tokens": 12270,
+          "trials": 2,
+          "pp": 193.2206214977697,
+          "median_ttft_seconds": 63.50256027300202,
+          "min_pp": 192.866490944714,
+          "max_pp": 193.5760549120895,
+          "min_host_available_gib": 14.95125961303711,
+          "approx_median_expert_read_gib_per_rank": 309.53661918640137,
+          "pp_gain_percent": 12.861407693936467,
+          "ttft_reduction_percent": 11.395750350804935
+        },
+        "talk-tools": {
+          "prompt_tokens": 6313,
+          "trials": 2,
+          "pp": 158.28887055291017,
+          "median_ttft_seconds": 39.88280068399763,
+          "min_pp": 157.9258555258118,
+          "max_pp": 158.65355830829245,
+          "min_host_available_gib": 14.948173522949219,
+          "approx_median_expert_read_gib_per_rank": 202.2780418395996,
+          "pp_gain_percent": 13.47287934877368,
+          "ttft_reduction_percent": 11.873210791240396
+        }
+      }
+    }
+  ]
+}

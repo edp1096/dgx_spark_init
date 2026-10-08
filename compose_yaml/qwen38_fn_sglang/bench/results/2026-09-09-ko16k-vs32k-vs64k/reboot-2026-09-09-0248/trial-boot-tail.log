@@ -1,0 +1,100 @@
+Sep 09 02:20:18 spark-f05a systemd[1]: Starting sysstat-collect.service - system activity accounting tool...
+Sep 09 02:20:18 spark-f05a systemd[1]: sysstat-collect.service: Deactivated successfully.
+Sep 09 02:20:18 spark-f05a systemd[1]: Finished sysstat-collect.service - system activity accounting tool.
+Sep 09 02:25:01 spark-f05a CRON[189593]: pam_unix(cron:session): session opened for user root(uid=0) by root(uid=0)
+Sep 09 02:25:01 spark-f05a CRON[189594]: (root) CMD (command -v debian-sa1 > /dev/null && debian-sa1 1 1)
+Sep 09 02:25:01 spark-f05a CRON[189593]: pam_unix(cron:session): session closed for user root
+Sep 09 02:30:18 spark-f05a systemd[1]: Starting sysstat-collect.service - system activity accounting tool...
+Sep 09 02:30:18 spark-f05a systemd[1]: sysstat-collect.service: Deactivated successfully.
+Sep 09 02:30:18 spark-f05a systemd[1]: Finished sysstat-collect.service - system activity accounting tool.
+Sep 09 02:31:46 spark-f05a systemd[1]: docker-5ff415762e599b22ecbed1286380b03ca40973c72dbc3372c19ff2da26f2b472.scope: Deactivated successfully.
+Sep 09 02:31:46 spark-f05a systemd[1]: docker-5ff415762e599b22ecbed1286380b03ca40973c72dbc3372c19ff2da26f2b472.scope: Consumed 53min 14.986s CPU time.
+Sep 09 02:31:46 spark-f05a dockerd[2463]: time="2026-09-09T02:31:46.454769924+09:00" level=info msg="ignoring event" container=5ff415762e599b22ecbed1286380b03ca40973c72dbc3372c19ff2da26f2b472 module=libcontainerd namespace=moby topic=/tasks/delete type="*events.TaskDelete"
+Sep 09 02:31:46 spark-f05a containerd[2143]: time="2026-09-09T02:31:46.455124800+09:00" level=info msg="shim disconnected" id=5ff415762e599b22ecbed1286380b03ca40973c72dbc3372c19ff2da26f2b472 namespace=moby
+Sep 09 02:31:46 spark-f05a containerd[2143]: time="2026-09-09T02:31:46.455162975+09:00" level=info msg="cleaning up after shim disconnected" id=5ff415762e599b22ecbed1286380b03ca40973c72dbc3372c19ff2da26f2b472 namespace=moby
+Sep 09 02:31:46 spark-f05a containerd[2143]: time="2026-09-09T02:31:46.455190559+09:00" level=info msg="cleaning up dead shim" id=5ff415762e599b22ecbed1286380b03ca40973c72dbc3372c19ff2da26f2b472 namespace=moby
+Sep 09 02:31:46 spark-f05a kernel: docker0: port 1(veth44ffb48) entered disabled state
+Sep 09 02:31:46 spark-f05a kernel: veth68fff5e: renamed from eth0
+Sep 09 02:31:46 spark-f05a systemd-networkd[1415]: veth44ffb48: Lost carrier
+Sep 09 02:31:46 spark-f05a systemd-networkd[1415]: docker0: Lost carrier
+Sep 09 02:31:46 spark-f05a NetworkManager[1762]: <info>  [1788888706.5709] manager: (veth68fff5e): new Veth device (/org/freedesktop/NetworkManager/Devices/42)
+Sep 09 02:31:46 spark-f05a avahi-daemon[1608]: Interface veth44ffb48.IPv6 no longer relevant for mDNS.
+Sep 09 02:31:46 spark-f05a avahi-daemon[1608]: Leaving mDNS multicast group on interface veth44ffb48.IPv6 with address fe80::507e:68ff:fef2:4469.
+Sep 09 02:31:46 spark-f05a systemd-networkd[1415]: veth44ffb48: Link DOWN
+Sep 09 02:31:46 spark-f05a avahi-daemon[1608]: Withdrawing address record for fe80::507e:68ff:fef2:4469 on veth44ffb48.
+Sep 09 02:31:46 spark-f05a kernel: docker0: port 1(veth44ffb48) entered disabled state
+Sep 09 02:31:46 spark-f05a kernel: veth44ffb48 (unregistering): left allmulticast mode
+Sep 09 02:31:46 spark-f05a kernel: veth44ffb48 (unregistering): left promiscuous mode
+Sep 09 02:31:46 spark-f05a kernel: docker0: port 1(veth44ffb48) entered disabled state
+Sep 09 02:31:46 spark-f05a systemd[1]: run-docker-netns-bd361790cdf4.mount: Deactivated successfully.
+Sep 09 02:31:46 spark-f05a systemd[1]: var-lib-docker-rootfs-overlayfs-5ff415762e599b22ecbed1286380b03ca40973c72dbc3372c19ff2da26f2b472.mount: Deactivated successfully.
+Sep 09 02:35:01 spark-f05a CRON[205476]: pam_unix(cron:session): session opened for user root(uid=0) by root(uid=0)
+Sep 09 02:35:01 spark-f05a CRON[205477]: (root) CMD (command -v debian-sa1 > /dev/null && debian-sa1 1 1)
+Sep 09 02:35:01 spark-f05a CRON[205476]: pam_unix(cron:session): session closed for user root
+Sep 09 02:40:08 spark-f05a systemd[1]: Starting sysstat-collect.service - system activity accounting tool...
+Sep 09 02:40:08 spark-f05a systemd[1]: sysstat-collect.service: Deactivated successfully.
+Sep 09 02:40:08 spark-f05a systemd[1]: Finished sysstat-collect.service - system activity accounting tool.
+Sep 09 02:41:04 spark-f05a systemd[1]: Starting apt-news.service - Update APT News...
+Sep 09 02:41:04 spark-f05a systemd[1]: Starting esm-cache.service - Update the local ESM caches...
+Sep 09 02:41:04 spark-f05a systemd[1]: apt-news.service: Deactivated successfully.
+Sep 09 02:41:04 spark-f05a systemd[1]: Finished apt-news.service - Update APT News.
+Sep 09 02:41:05 spark-f05a kernel: audit: type=1400 audit(1788889265.004:179): apparmor="DENIED" operation="capable" class="cap" profile="ubuntu_pro_esm_cache_systemd_detect_virt" pid=212468 comm="systemd-detect-" capability=38  capname="perfmon"
+Sep 09 02:41:05 spark-f05a kernel: audit: type=1400 audit(1788889265.005:180): apparmor="DENIED" operation="capable" class="cap" profile="ubuntu_pro_esm_cache//cloud_id" pid=212463 comm="cloud-id" capability=38  capname="perfmon"
+Sep 09 02:41:05 spark-f05a systemd[1]: esm-cache.service: Deactivated successfully.
+Sep 09 02:41:05 spark-f05a systemd[1]: Finished esm-cache.service - Update the local ESM caches.
+Sep 09 02:41:10 spark-f05a NetworkManager[1762]: <info>  [1788889270.6457] dhcp4 (enP7s7): state changed new lease, address=192.168.100.61
+Sep 09 02:41:10 spark-f05a avahi-daemon[1608]: Joining mDNS multicast group on interface enP7s7.IPv4 with address 192.168.100.61.
+Sep 09 02:41:10 spark-f05a avahi-daemon[1608]: IP_ADD_MEMBERSHIP failed: No buffer space available
+Sep 09 02:41:10 spark-f05a dbus-daemon[1610]: [system] Activating via systemd: service name='org.freedesktop.nm_dispatcher' unit='dbus-org.freedesktop.nm-dispatcher.service' requested by ':1.12' (uid=0 pid=1762 comm="/usr/sbin/NetworkManager --no-daemon" label="unconfined")
+Sep 09 02:41:10 spark-f05a systemd[1]: Starting NetworkManager-dispatcher.service - Network Manager Script Dispatcher Service...
+Sep 09 02:41:10 spark-f05a dbus-daemon[1610]: [system] Successfully activated service 'org.freedesktop.nm_dispatcher'
+Sep 09 02:41:10 spark-f05a systemd[1]: Started NetworkManager-dispatcher.service - Network Manager Script Dispatcher Service.
+Sep 09 02:41:15 spark-f05a dbus-daemon[1610]: [system] Activating via systemd: service name='org.freedesktop.PackageKit' unit='packagekit.service' requested by ':1.122' (uid=0 pid=213224 comm="/usr/bin/gdbus call --system --dest org.freedeskto" label="unconfined")
+Sep 09 02:41:16 spark-f05a systemd[1]: Starting packagekit.service - PackageKit Daemon...
+Sep 09 02:41:16 spark-f05a PackageKit[213228]: daemon start
+Sep 09 02:41:16 spark-f05a dbus-daemon[1610]: [system] Successfully activated service 'org.freedesktop.PackageKit'
+Sep 09 02:41:16 spark-f05a systemd[1]: Started packagekit.service - PackageKit Daemon.
+Sep 09 02:41:20 spark-f05a systemd[1]: NetworkManager-dispatcher.service: Deactivated successfully.
+Sep 09 02:42:20 spark-f05a systemd[1]: tmp-containerd\x2dmount2542368822.mount: Deactivated successfully.
+Sep 09 02:42:20 spark-f05a systemd[1]: var-lib-docker-rootfs-overlayfs-425db80818379260bd665042ef2cf9053139ea223aee752a34ae21783d9fee21.mount: Deactivated successfully.
+Sep 09 02:42:20 spark-f05a containerd[2143]: time="2026-09-09T02:42:20.975569754+09:00" level=info msg="connecting to shim 425db80818379260bd665042ef2cf9053139ea223aee752a34ae21783d9fee21" address="unix:///run/containerd/s/b79c3a62aebf0d25dcafc5921dcb17d7474a3bfb84749f16add966259d4df310" namespace=moby protocol=ttrpc version=3
+Sep 09 02:42:21 spark-f05a systemd[1]: Started docker-425db80818379260bd665042ef2cf9053139ea223aee752a34ae21783d9fee21.scope - libcontainer container 425db80818379260bd665042ef2cf9053139ea223aee752a34ae21783d9fee21.
+Sep 09 02:42:21 spark-f05a dockerd[2463]: time="2026-09-09T02:42:21.030962837+09:00" level=info msg="sbJoin: gwep4 ''->'', gwep6 ''->''" eid=a3adeeb66881 ep=elated_sinoussi net=none nid=56e24ac94324
+Sep 09 02:42:21 spark-f05a systemd[1]: docker-425db80818379260bd665042ef2cf9053139ea223aee752a34ae21783d9fee21.scope: Deactivated successfully.
+Sep 09 02:42:21 spark-f05a systemd[1]: docker-425db80818379260bd665042ef2cf9053139ea223aee752a34ae21783d9fee21.scope: Consumed 1.071s CPU time.
+Sep 09 02:42:21 spark-f05a dockerd[2463]: time="2026-09-09T02:42:21.982685689+09:00" level=info msg="ignoring event" container=425db80818379260bd665042ef2cf9053139ea223aee752a34ae21783d9fee21 module=libcontainerd namespace=moby topic=/tasks/delete type="*events.TaskDelete"
+Sep 09 02:42:21 spark-f05a containerd[2143]: time="2026-09-09T02:42:21.982775433+09:00" level=info msg="shim disconnected" id=425db80818379260bd665042ef2cf9053139ea223aee752a34ae21783d9fee21 namespace=moby
+Sep 09 02:42:21 spark-f05a containerd[2143]: time="2026-09-09T02:42:21.982797033+09:00" level=info msg="cleaning up after shim disconnected" id=425db80818379260bd665042ef2cf9053139ea223aee752a34ae21783d9fee21 namespace=moby
+Sep 09 02:42:21 spark-f05a containerd[2143]: time="2026-09-09T02:42:21.982817464+09:00" level=info msg="cleaning up dead shim" id=425db80818379260bd665042ef2cf9053139ea223aee752a34ae21783d9fee21 namespace=moby
+Sep 09 02:42:21 spark-f05a systemd[1]: run-docker-netns-92c4f3d1aa72.mount: Deactivated successfully.
+Sep 09 02:42:21 spark-f05a systemd[1]: var-lib-docker-rootfs-overlayfs-425db80818379260bd665042ef2cf9053139ea223aee752a34ae21783d9fee21.mount: Deactivated successfully.
+Sep 09 02:42:36 spark-f05a systemd[1]: tmp-containerd\x2dmount3818798450.mount: Deactivated successfully.
+Sep 09 02:42:36 spark-f05a systemd[1]: var-lib-docker-rootfs-overlayfs-8d43512c60783d9a4c460ac14f3235e9b0efc6ef71155123a468e857fec7ae4b.mount: Deactivated successfully.
+Sep 09 02:42:36 spark-f05a containerd[2143]: time="2026-09-09T02:42:36.594913949+09:00" level=info msg="connecting to shim 8d43512c60783d9a4c460ac14f3235e9b0efc6ef71155123a468e857fec7ae4b" address="unix:///run/containerd/s/a0bc4e952ca12384dacfb3f2285c1b7540b69c0f80b2af40bc9d95e0775794b4" namespace=moby protocol=ttrpc version=3
+Sep 09 02:42:36 spark-f05a systemd[1]: Started docker-8d43512c60783d9a4c460ac14f3235e9b0efc6ef71155123a468e857fec7ae4b.scope - libcontainer container 8d43512c60783d9a4c460ac14f3235e9b0efc6ef71155123a468e857fec7ae4b.
+Sep 09 02:42:36 spark-f05a NetworkManager[1762]: <info>  [1788889356.9355] manager: (vethb590314): new Veth device (/org/freedesktop/NetworkManager/Devices/43)
+Sep 09 02:42:36 spark-f05a kernel: docker0: port 1(vethb590314) entered blocking state
+Sep 09 02:42:36 spark-f05a kernel: docker0: port 1(vethb590314) entered disabled state
+Sep 09 02:42:36 spark-f05a kernel: vethb590314: entered allmulticast mode
+Sep 09 02:42:36 spark-f05a kernel: vethb590314: entered promiscuous mode
+Sep 09 02:42:36 spark-f05a systemd-networkd[1415]: vethb590314: Link UP
+Sep 09 02:42:36 spark-f05a kernel: eth0: renamed from vethf41435a
+Sep 09 02:42:36 spark-f05a systemd-networkd[1415]: vethb590314: Gained carrier
+Sep 09 02:42:36 spark-f05a systemd-networkd[1415]: docker0: Gained carrier
+Sep 09 02:42:36 spark-f05a NetworkManager[1762]: <info>  [1788889356.9407] device (vethb590314): carrier: link connected
+Sep 09 02:42:36 spark-f05a NetworkManager[1762]: <info>  [1788889356.9409] device (docker0): carrier: link connected
+Sep 09 02:42:36 spark-f05a kernel: docker0: port 1(vethb590314) entered blocking state
+Sep 09 02:42:36 spark-f05a kernel: docker0: port 1(vethb590314) entered forwarding state
+Sep 09 02:42:36 spark-f05a dockerd[2463]: time="2026-09-09T02:42:36.942421244+09:00" level=info msg="sbJoin: gwep4 ''->'2e098093dfd2', gwep6 ''->''" eid=2e098093dfd2 ep=qwen-fn-vocab-memory-ko16k net=bridge nid=1ce83f3db6df
+Sep 09 02:42:38 spark-f05a avahi-daemon[1608]: Joining mDNS multicast group on interface vethb590314.IPv6 with address fe80::bc54:f8ff:fef0:c530.
+Sep 09 02:42:38 spark-f05a avahi-daemon[1608]: New relevant interface vethb590314.IPv6 for mDNS.
+Sep 09 02:42:38 spark-f05a systemd-networkd[1415]: vethb590314: Gained IPv6LL
+Sep 09 02:42:38 spark-f05a avahi-daemon[1608]: Registering new address record for fe80::bc54:f8ff:fef0:c530 on vethb590314.*.
+Sep 09 02:44:58 spark-f05a systemd[1]: Starting fwupd-refresh.service - Refresh fwupd metadata and update motd...
+Sep 09 02:44:58 spark-f05a systemd[1]: fwupd-refresh.service: Deactivated successfully.
+Sep 09 02:44:58 spark-f05a systemd[1]: Finished fwupd-refresh.service - Refresh fwupd metadata and update motd.
+Sep 09 02:45:01 spark-f05a CRON[245033]: pam_unix(cron:session): session opened for user root(uid=0) by root(uid=0)
+Sep 09 02:45:01 spark-f05a CRON[245034]: (root) CMD (command -v debian-sa1 > /dev/null && debian-sa1 1 1)
+Sep 09 02:45:01 spark-f05a CRON[245033]: pam_unix(cron:session): session closed for user root
+Sep 09 02:46:21 spark-f05a PackageKit[213228]: daemon quit
+Sep 09 02:46:21 spark-f05a systemd[1]: packagekit.service: Deactivated successfully.

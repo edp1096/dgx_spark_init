@@ -1,0 +1,68 @@
+{
+  "checked": "2026-09-09T01:08:44.194815+09:00",
+  "status": "interrupted_by_host_reboot_not_complete",
+  "boot_started": "2026-09-09 00:40:56",
+  "current_boot_id": "5e1f1e25-f190-4b8b-9692-8e8f9005213e",
+  "last_valid_memory_sample": {
+    "time": "2026-09-09T00:40:33.266504+09:00",
+    "monotonic": 43004.431763784,
+    "phase": "benchmark",
+    "MemTotal": 130595995648,
+    "MemAvailable": 27846823936,
+    "MemFree": 13631442944,
+    "SwapTotal": 17179865088,
+    "SwapFree": 16310198272,
+    "Cached": 14984388608,
+    "memory.current": 18599309312,
+    "memory.peak": 35037659136,
+    "memory.events": {
+      "low": "0",
+      "high": "0",
+      "max": "0",
+      "oom": "0",
+      "oom_kill": "0",
+      "oom_group_kill": "0"
+    }
+  },
+  "min_available_gib": 20.887123107910156,
+  "current_phase": "128K primary research_memory request; 18 primary 128K requests completed",
+  "preserved_requests": {
+    "ko64k_primary": 48,
+    "ko64k_extended": 8,
+    "ko128k_primary": 18,
+    "ko128k_extended": 0
+  },
+  "files": {
+    "ko128k-telemetry.jsonl": {
+      "bytes": 3268608,
+      "sha256": "121f9ec7665f547a2643da1b11560c3413ab0272badfb6399268d6acec6f322d",
+      "valid_rows": 7868,
+      "invalid_rows": 1,
+      "null_bytes": 59
+    },
+    "thermal.jsonl": {
+      "bytes": 92746,
+      "sha256": "a967c1c274103c55216ddaf29b14c0c9553283d2b4c7dd91695188339f8873f9",
+      "valid_rows": 574,
+      "invalid_rows": 1,
+      "null_bytes": 162
+    },
+    "ko128k-benchmark.jsonl": {
+      "bytes": 316980,
+      "sha256": "bd3fa27bc251ab7be58162f1120683254f74c63d05e07cc46c0773ac708858f6",
+      "valid_rows": 18,
+      "invalid_rows": 0,
+      "null_bytes": 0
+    }
+  },
+  "invalid_json_files": [],
+  "findings": [
+    "Previous boot journal ends at 00:40:33 without normal shutdown sequence; new boot began at 00:40:56 KST.",
+    "No OOM-killer/panic/Xid recorded near interruption; last MemAvailable about25.94GiB and GPU63C.",
+    "Current boot BERT reports a corrected hardware error of unknown section type; causality unconfirmed.",
+    "Historical NVIDIA allocation errors at Sep8 18:06 and20:14 predate this benchmark; not evidence of this reboot cause.",
+    "Raw telemetry tails contain NUL bytes; originals preserved, valid rows copied to recovered files.",
+    "Live pstore inaccessible without sudo password; no new crash dump visible in /var/crash.",
+    "No benchmark restart performed."
+  ]
+}

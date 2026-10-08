@@ -1,0 +1,15 @@
+{
+  "id": "example",
+  "name": "입력 반환 예제",
+  "version": "1.0.0",
+  "api_version": 1,
+  "data_version": 1,
+  "description": "외부 패키지 SDK 예제",
+  "executable": "plugin",
+  "platform": "linux/arm64",
+  "permissions": [],
+  "operations": [
+    {"name":"echo","description":"입력 반환","parameters":{"type":"object"},"tool":false,"background":false,"timeout_seconds":10}
+  ],
+  "panels": [{"id":"main","title":"입력 반환","operations":["echo"]}]
+}

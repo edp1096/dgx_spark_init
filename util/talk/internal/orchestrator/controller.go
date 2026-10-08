@@ -1,0 +1,1074 @@
+package orchestrator
+
+import (
+	"bufio"
+	"bytes"
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"net/http"
+	"os"
+	"os/exec"
+	"reflect"
+	"sort"
+	"strconv"
+	"strings"
+	"sync"
+	"time"
+)
+
+type SystemMemory struct {
+	TotalGiB     float64 `json:"total_gib"`
+	UsedGiB      float64 `json:"used_gib"`
+	AvailableGiB float64 `json:"available_gib"`
+	FreeGiB      float64 `json:"free_gib"`
+}
+
+type ComponentStatus struct {
+	RequestMemoryGiB float64       `json:"request_memory_gib,omitempty"`
+	EngineMemory     *EngineMemory `json:"engine_memory,omitempty"`
+	CoreReady        *bool         `json:"core_ready,omitempty"`
+	Busy             *bool         `json:"busy,omitempty"`
+	HealthCheckedAt  *time.Time    `json:"health_checked_at,omitempty"`
+	LastHealthyAt    *time.Time    `json:"last_healthy_at,omitempty"`
+	HealthLatencyMS  int64         `json:"health_latency_ms"`
+	HealthFailures   int           `json:"health_failures,omitempty"`
+	HealthError      string        `json:"health_error,omitempty"`
+	Component
+	Status            string  `json:"status"`
+	Health            string  `json:"health"`
+	GPUMemoryGiB      float64 `json:"gpu_memory_gib"`
+	HostMemoryGiB     float64 `json:"host_memory_gib"`
+	ResidentMemoryGiB float64 `json:"resident_memory_gib"`
+	MemoryMeasured    bool    `json:"memory_measured"`
+	Progress          float64 `json:"progress,omitempty"`
+	Phase             string  `json:"phase,omitempty"`
+	ETA               string  `json:"eta,omitempty"`
+	Error             string  `json:"error,omitempty"`
+}
+
+type OperationStep struct {
+	Key         string    `json:"-"`
+	ComponentID string    `json:"component_id,omitempty"`
+	Phase       string    `json:"phase"`
+	Detail      string    `json:"detail,omitempty"`
+	State       string    `json:"state"`
+	StartedAt   time.Time `json:"started_at"`
+	FinishedAt  time.Time `json:"finished_at,omitempty"`
+}
+
+type Operation struct {
+	requestedAt time.Time
+	Action      string          `json:"action,omitempty"`
+	BundleID    string          `json:"bundle_id,omitempty"`
+	ComponentID string          `json:"component_id,omitempty"`
+	State       string          `json:"state,omitempty"`
+	Phase       string          `json:"phase,omitempty"`
+	Detail      string          `json:"detail,omitempty"`
+	Progress    float64         `json:"progress,omitempty"`
+	ETA         string          `json:"eta,omitempty"`
+	Error       string          `json:"error,omitempty"`
+	StartedAt   time.Time       `json:"started_at,omitempty"`
+	FinishedAt  time.Time       `json:"finished_at,omitempty"`
+	Steps       []OperationStep `json:"steps,omitempty"`
+}
+
+type Snapshot struct {
+	SelectedBundle  string                `json:"selected_bundle"`
+	Bundles         []Bundle              `json:"bundles"`
+	Components      []ComponentStatus     `json:"components"`
+	SupportServices []ComponentStatus     `json:"support_services"`
+	Memory          SystemMemory          `json:"memory"`
+	Hosts           map[string]HostStatus `json:"hosts"`
+	Operation       Operation             `json:"operation"`
+	Docker          string                `json:"docker"`
+}
+
+type Controller struct {
+	idleMu         sync.Mutex
+	idleLeases     map[string]*idleWorkloadLease
+	idleDuration   time.Duration
+	idleLifecycle  context.Context
+	idleCancel     context.CancelFunc
+	idleClosed     bool
+	engineMemory   map[string]engineMemoryObservation
+	memoryProbe    func() SystemMemory
+	workloadOnce   sync.Once
+	workloadQueue  chan struct{}
+	statusMu       sync.Mutex
+	statusMonitors map[string]*statusMonitor
+	keyStoreMu     sync.Mutex
+	keyStorePeers  map[string]Host
+	catalog        Catalog
+	client         *http.Client
+	mu             sync.RWMutex
+	op             Operation
+	dataDir        string
+	modelCache     string
+}
+
+const minimumCUDAImmediateFreeGiB = 4.0
+
+type memoryPlan struct {
+	NeededGiB          float64
+	FreedGiB           float64
+	RequiresCUDAStart  bool
+	MinimumCUDAFreeGiB float64
+}
+
+func NewController() (*Controller, error) {
+	catalog, err := LoadCatalog()
+	if err != nil {
+		return nil, err
+	}
+	return newController(catalog), nil
+}
+
+func NewControllerWithCatalog(catalog Catalog) (*Controller, error) {
+	validated, err := ValidateCatalog(catalog)
+	if err != nil {
+		return nil, err
+	}
+	return newController(validated), nil
+}
+
+func newController(catalog Catalog) *Controller {
+	imageCtx, cancel := context.WithCancel(context.Background())
+	return &Controller{
+		catalog:       catalog,
+		client:        &http.Client{Timeout: 3 * time.Second},
+		idleLifecycle: imageCtx,
+		idleCancel:    cancel,
+	}
+}
+
+func (c *Controller) Catalog() Catalog { c.mu.RLock(); defer c.mu.RUnlock(); return c.catalog }
+
+// ConfigurePaths supplies default local host paths to Compose recipes.
+func (c *Controller) ConfigurePaths(dataDir, modelCache string) {
+	c.mu.Lock()
+	c.dataDir = strings.TrimSpace(dataDir)
+	c.modelCache = strings.TrimSpace(modelCache)
+	c.mu.Unlock()
+}
+
+func (c *Controller) Snapshot(ctx context.Context, selectedBundle string) Snapshot {
+	catalog := c.Catalog()
+	if active := c.ActiveBundlePreferred(ctx, selectedBundle); active != "" {
+		selectedBundle = active
+	}
+	c.mu.RLock()
+	op := c.op
+	op.Steps = append([]OperationStep(nil), c.op.Steps...)
+	c.mu.RUnlock()
+
+	if op.Action == "start" && op.State == "running" && op.BundleID != "" {
+		selectedBundle = op.BundleID
+	}
+	components := catalog.ModelComponents(selectedBundle)
+	gpuByPID := gpuMemoryByPID(ctx)
+	statuses := make([]ComponentStatus, len(components))
+	supportComponents := catalog.SupportComponents(selectedBundle)
+	supportStatuses := make([]ComponentStatus, len(supportComponents))
+	var probes sync.WaitGroup
+	for i, component := range components {
+		probes.Add(1)
+		go func(i int, component Component) {
+			defer probes.Done()
+			statuses[i] = c.componentStatus(ctx, component, gpuByPID)
+		}(i, component)
+	}
+	for i, component := range supportComponents {
+		probes.Add(1)
+		go func(i int, component Component) {
+			defer probes.Done()
+			probeCtx, cancel := context.WithTimeout(ctx, 6*time.Second)
+			defer cancel()
+			supportStatuses[i] = c.componentStatus(probeCtx, component, gpuByPID)
+		}(i, component)
+	}
+	hostStatuses := make(map[string]HostStatus)
+	var hostMu sync.Mutex
+	if bundle, ok := catalog.Bundle(selectedBundle); ok {
+		selectedHosts := map[string]bool{}
+		for _, id := range bundle.Components {
+			component, _ := catalog.ResolveComponent(bundle.ID, id)
+			if component.Controller == "external" || component.IsSupport() {
+				continue
+			}
+			selectedHosts[component.Host] = true
+			if component.WorkerHost != "" {
+				selectedHosts[component.WorkerHost] = true
+			}
+		}
+		for id := range selectedHosts {
+			probes.Add(1)
+			go func(id string) {
+				defer probes.Done()
+				memory, err := c.hostMemory(ctx, id)
+				status := HostStatus{Memory: memory}
+				if err != nil {
+					status.Error = err.Error()
+				}
+				hostMu.Lock()
+				hostStatuses[id] = status
+				hostMu.Unlock()
+			}(id)
+		}
+	}
+	probes.Wait()
+	bundles := append([]Bundle(nil), catalog.Bundles...)
+	for i := range bundles {
+		if bundles[i].ID == selectedBundle {
+			bundles[i].MemoryGiB = observedBundleBudget(catalog, bundles[i], statuses)
+		}
+	}
+	dockerState := "online"
+	if err := commandOK(ctx, "docker", "info", "--format", "{{.ServerVersion}}"); err != nil {
+		dockerState = "offline"
+	}
+	return Snapshot{
+		SelectedBundle:  selectedBundle,
+		Bundles:         bundles,
+		Components:      statuses,
+		SupportServices: supportStatuses,
+		Memory:          readSystemMemory(),
+		Hosts:           hostStatuses,
+		Operation:       op,
+		Docker:          dockerState,
+	}
+}
+
+// ActiveBundle returns the managed set currently serving, or the target set
+// while a switch is in progress. It deliberately does not use the configured
+// startup default.
+func (c *Controller) ActiveBundle(ctx context.Context) string {
+	c.mu.RLock()
+	op := c.op
+	c.mu.RUnlock()
+	if op.Action == "start" && op.State == "running" && op.BundleID != "" {
+		return op.BundleID
+	}
+	for _, bundle := range c.Catalog().Bundles {
+		for _, id := range bundle.Components {
+			component, _ := c.Catalog().ResolveComponent(bundle.ID, id)
+			if component.Role == "llm" && c.componentRunning(ctx, component) {
+				return bundle.ID
+			}
+		}
+	}
+	return ""
+}
+
+func activeBundleFromStatuses(catalog Catalog, statuses []ComponentStatus) string {
+	byID := make(map[string]ComponentStatus, len(statuses))
+	for _, status := range statuses {
+		byID[status.ID] = status
+	}
+	for _, bundle := range catalog.Bundles {
+		for _, id := range bundle.Components {
+			component, _ := catalog.ResolveComponent(bundle.ID, id)
+			if component.Role == "llm" && byID[id].Status == "running" {
+				return bundle.ID
+			}
+		}
+	}
+	return ""
+}
+
+func (c *Controller) StartBundle(ctx context.Context, bundleID string, reserveGiB float64) error {
+	bundle, ok := c.Catalog().Bundle(bundleID)
+	if !ok {
+		return fmt.Errorf("unknown bundle %q", bundleID)
+	}
+	bundle = c.Catalog().StartBundleMembers(bundle)
+	if err := c.begin(Operation{Action: "start", BundleID: bundleID, State: "running", Phase: "기동 계획 준비", StartedAt: time.Now()}); err != nil {
+		return err
+	}
+	err := c.checkBundleStart(ctx, bundle, reserveGiB)
+	var coldCache *cudaStartMemoryError
+	if errors.As(err, &coldCache) {
+		if attempted, reclaimErr := c.reclaimGLMStartupCache(ctx, bundle); attempted {
+			err = reclaimErr
+			if err == nil {
+				err = c.checkBundleStart(ctx, bundle, reserveGiB)
+			}
+		}
+	}
+	if err != nil {
+		c.failCurrentStep(err.Error())
+		c.finishOperation("failed", err.Error())
+		return err
+	}
+	go c.runBundleStart(bundle, normalizedMemoryReserve(reserveGiB))
+	return nil
+}
+
+// CheckBundleStart estimates unified-memory headroom after replacing another
+// managed LLM and starting missing members of the requested set.
+func (c *Controller) CheckBundleStart(ctx context.Context, bundleID string, reserveGiB float64) error {
+	bundle, ok := c.Catalog().Bundle(bundleID)
+	if !ok {
+		return fmt.Errorf("unknown bundle %q", bundleID)
+	}
+	return c.checkBundleStart(ctx, bundle, reserveGiB)
+}
+
+func (c *Controller) checkBundleStart(ctx context.Context, bundle Bundle, reserveGiB float64) error {
+	bundle = c.Catalog().StartBundleMembers(bundle)
+	for _, component := range c.Catalog().ModelComponents(bundle.ID) {
+		if err := c.CheckAutoCluster(component); err != nil {
+			return err
+		}
+	}
+	plan := c.bundleMemoryPlan(ctx, bundle)
+	if err := validateMemoryHeadroom(readSystemMemory(), plan, c.localMemoryReserve(bundle, reserveGiB)); err != nil {
+		return err
+	}
+	return c.checkRemoteMemory(ctx, bundle, reserveGiB)
+}
+
+func (c *Controller) StopBundle(bundleID string) error {
+	bundle, ok := c.Catalog().Bundle(bundleID)
+	if !ok {
+		return fmt.Errorf("unknown bundle %q", bundleID)
+	}
+	bundle = c.Catalog().ModelBundle(bundle)
+	if err := c.begin(Operation{Action: "stop", BundleID: bundleID, State: "running", Phase: "세트 중지", StartedAt: time.Now()}); err != nil {
+		return err
+	}
+	go func() {
+		var failures []string
+		for index := len(bundle.Components) - 1; index >= 0; index-- {
+			component, _ := c.Catalog().ResolveComponent(bundle.ID, bundle.Components[index])
+			c.updateOperation(component.ID, progressInfo{
+				Key: "stop:" + component.ID, Phase: component.Name + " 중지", Detail: "컨테이너를 안전하게 종료하고 있습니다.",
+				Progress: float64(len(bundle.Components)-1-index) / float64(len(bundle.Components)),
+			})
+			if err := c.stopComponent(context.Background(), component); err != nil && !isMissingContainer(err) {
+				failures = append(failures, component.Name+": "+err.Error())
+			}
+		}
+		if len(failures) > 0 {
+			c.finishOperation("failed", strings.Join(failures, "; "))
+			return
+		}
+		c.finishOperation("complete", "")
+	}()
+	return nil
+}
+
+func (c *Controller) ComponentAction(componentID, action string, bundleIDs ...string) error {
+	return c.ComponentActionWithReserve(componentID, action, 4, bundleIDs...)
+}
+
+func (c *Controller) ComponentActionWithReserve(componentID, action string, reserveGiB float64, bundleIDs ...string) error {
+	var component Component
+	var ok bool
+	if len(bundleIDs) > 0 {
+		component, ok = c.Catalog().ResolveSupport(bundleIDs[0], componentID)
+	} else {
+		component, ok = c.Catalog().Component(componentID)
+		for _, bundle := range c.Catalog().Bundles {
+			candidate, exists := c.Catalog().ResolveComponent(bundle.ID, componentID)
+			if exists && !reflect.DeepEqual(candidate, component) {
+				return errors.New("세트별 배치가 있는 서비스는 세트 ID가 필요합니다")
+			}
+		}
+	}
+	if !ok {
+		return fmt.Errorf("unknown component %q", componentID)
+	}
+	if component.Controller == "external" {
+		return errors.New("연결 전용 서비스는 외부에서 시작·중지하세요")
+	}
+	if len(bundleIDs) > 0 && (action == "start" || action == "restart") {
+		b, _ := c.Catalog().Bundle(bundleIDs[0])
+		if b.WorkloadSwap && workloadGroup(componentID) != "" && !component.KeepResident && !component.IsSupport() && componentID != "flux2" {
+			return errors.New("이 서비스는 작업 요청 시 자동으로 시작하고 여유가 있으면 재사용합니다")
+		}
+	}
+	if action != "start" && action != "stop" && action != "restart" && !(action == "prepare" && component.IsSupport() && component.Controller == "compose") {
+		return errors.New("action must be start, stop, or restart")
+	}
+	if err := c.begin(Operation{Action: action, ComponentID: componentID, State: "running", Phase: component.Name, StartedAt: time.Now()}); err != nil {
+		return err
+	}
+	if action == "start" || action == "restart" {
+		bundleID := ""
+		if len(bundleIDs) > 0 {
+			bundleID = bundleIDs[0]
+		}
+		if err := c.checkLocalComponentStart(context.Background(), component, action == "restart", reserveGiB, bundleID); err != nil {
+			c.finishOperation("failed", err.Error())
+			return err
+		}
+	}
+	go func() {
+		var err error
+		switch action {
+		case "prepare":
+			err = c.prepareOrStartComponent(context.Background(), component, true)
+		case "stop":
+			err = c.stopComponent(context.Background(), component)
+		case "restart":
+			err = c.stopComponent(context.Background(), component)
+			if err == nil || isMissingContainer(err) {
+				err = c.startAndWait(component)
+			}
+		default:
+			err = c.startAndWait(component)
+		}
+		if err == nil && componentID == "flux2" && (action == "start" || action == "restart") && len(bundleIDs) > 0 {
+			if b, ok := c.Catalog().Bundle(bundleIDs[0]); ok && b.WorkloadSwap && !isQwenImage21(component) {
+				err = c.fluxRuntimeAction(context.Background(), component, "prepare")
+			}
+		}
+		if err != nil {
+			c.finishOperation("failed", err.Error())
+			return
+		}
+		c.finishOperation("complete", "")
+	}()
+	return nil
+}
+
+func (c *Controller) begin(op Operation) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if op.Action == "workload" && c.op.Action != "workload" && c.op.StartedAt.After(op.requestedAt) {
+		return errors.New("대기 중 실행 구성이 변경되었습니다. 다시 요청하세요")
+	}
+	if c.op.State == "running" {
+		return errors.New("another runtime operation is already running")
+	}
+	if op.Phase != "" {
+		op.Steps = []OperationStep{{Key: "plan", Phase: op.Phase, State: "current", StartedAt: time.Now()}}
+	}
+	c.op = op
+	return nil
+}
+
+func (c *Controller) updateOperation(componentID string, info progressInfo) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if info.Key == "" {
+		info.Key = info.Phase
+	}
+	now := time.Now()
+	last := len(c.op.Steps) - 1
+	if last < 0 || c.op.Steps[last].Key != info.Key || c.op.Steps[last].ComponentID != componentID {
+		if last >= 0 && c.op.Steps[last].State == "current" {
+			c.op.Steps[last].State = "complete"
+			c.op.Steps[last].FinishedAt = now
+		}
+		c.op.Steps = append(c.op.Steps, OperationStep{
+			Key: info.Key, ComponentID: componentID, Phase: info.Phase, Detail: info.Detail,
+			State: "current", StartedAt: now,
+		})
+		if len(c.op.Steps) > 16 {
+			c.op.Steps = append([]OperationStep(nil), c.op.Steps[len(c.op.Steps)-16:]...)
+		}
+	} else {
+		c.op.Steps[last].Phase = info.Phase
+		c.op.Steps[last].Detail = info.Detail
+	}
+	c.op.ComponentID = componentID
+	c.op.Phase = info.Phase
+	c.op.Detail = info.Detail
+	c.op.Progress = info.Progress
+	c.op.ETA = info.ETA
+}
+
+func (c *Controller) failCurrentStep(detail string) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if last := len(c.op.Steps) - 1; last >= 0 && c.op.Steps[last].State == "current" {
+		c.op.Steps[last].State = "failed"
+		c.op.Steps[last].Detail = detail
+		c.op.Steps[last].FinishedAt = time.Now()
+	}
+}
+
+func (c *Controller) completeCurrentStep() {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if last := len(c.op.Steps) - 1; last >= 0 && c.op.Steps[last].State == "current" {
+		c.op.Steps[last].State = "complete"
+		c.op.Steps[last].FinishedAt = time.Now()
+	}
+}
+
+func (c *Controller) finishOperation(state, message string) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.op.State = state
+	c.op.Error = message
+	c.op.Progress = 1
+	c.op.ETA = ""
+	c.op.FinishedAt = time.Now()
+	if last := len(c.op.Steps) - 1; last >= 0 && c.op.Steps[last].State == "current" {
+		if state == "complete" {
+			c.op.Steps[last].State = "complete"
+		} else {
+			c.op.Steps[last].State = "failed"
+		}
+		c.op.Steps[last].FinishedAt = c.op.FinishedAt
+	}
+	if state == "complete" {
+		if c.op.Action == "stop" {
+			c.op.Phase = "중지 완료"
+		} else {
+			c.op.Phase = "준비 완료"
+		}
+		c.op.Detail = "선택한 구성을 사용할 수 있습니다."
+	}
+}
+
+func (c *Controller) runBundleStart(bundle Bundle, reserveGiB float64) {
+	ctx := context.Background()
+	var llm Component
+	for _, id := range bundle.Components {
+		component, _ := c.Catalog().ResolveComponent(bundle.ID, id)
+		if component.Role == "llm" {
+			llm = component
+		}
+	}
+	for _, component := range c.Catalog().Deployments(bundle.ID) {
+		if component.Role == "llm" && component.DeploymentKey() != llm.DeploymentKey() && component.Controller != "external" {
+			if !c.componentRunning(ctx, component) {
+				continue
+			}
+			c.updateOperation(component.ID, progressInfo{
+				Key: "replace:" + component.ID, Phase: component.Name + " 중지", Detail: "기존 언어 모델의 메모리를 반환하고 있습니다.", Progress: .02,
+			})
+			if err := c.stopComponent(ctx, component); err != nil && !isMissingContainer(err) {
+				c.failCurrentStep(err.Error())
+				c.finishOperation("failed", component.Name+": "+err.Error())
+				return
+			}
+		}
+	}
+	// Alternate image/video sets replace only an idle image engine.
+	var image Component
+	for _, id := range bundle.Components {
+		x, _ := c.Catalog().ResolveComponent(bundle.ID, id)
+		if x.Role == "image" {
+			image = x
+		}
+	}
+	if image.ID != "" {
+		for _, x := range c.Catalog().Deployments(bundle.ID) {
+			if x.Role == "image" && x.DeploymentKey() != image.DeploymentKey() && c.local(x) && x.Controller == "compose" && c.componentRunning(ctx, x) {
+				if isQwenImage21(x) {
+					if err := c.stopIdleWorkload(ctx, x); err != nil {
+						c.finishOperation("failed", err.Error())
+						return
+					}
+				} else {
+					if err := c.stopComponent(ctx, x); err != nil {
+						c.finishOperation("failed", err.Error())
+						return
+					}
+				}
+			}
+		}
+	}
+	// Deferred services must also release their memory when already running
+	// from another set; otherwise they still consume the LLM startup headroom.
+	if c.componentNeedsStart(ctx, llm) {
+		for _, id := range bundle.Components {
+			component, _ := c.Catalog().ResolveComponent(bundle.ID, id)
+			if component.StartAfterLLM && c.componentRunning(ctx, component) {
+				c.updateOperation(component.ID, progressInfo{Key: "defer:" + id, Phase: component.Name + " 기동 대기", Detail: "언어 모델 준비 후 다시 시작합니다."})
+				if err := c.stopComponent(ctx, component); err != nil && !isMissingContainer(err) {
+					c.failCurrentStep(err.Error())
+					c.finishOperation("failed", component.Name+": "+err.Error())
+					return
+				}
+			}
+		}
+	}
+	if bundle.WorkloadSwap && c.componentNeedsStart(ctx, llm) {
+		if err := c.stopWorkloads(ctx, bundle); err != nil {
+			c.finishOperation("failed", err.Error())
+			return
+		}
+	}
+	// FLUX's one-time encoder conversion must precede the large core allocation.
+	if !c.componentRunning(ctx, llm) {
+		for _, id := range bundle.Components {
+			auxiliary, _ := c.Catalog().ResolveComponent(bundle.ID, id)
+			if auxiliary.ComposeAsset == "compose.flux2.yaml" || isQwenImage21(auxiliary) || (isManagedTTS(auxiliary) && bundle.WorkloadSwap) {
+				c.updateOperation(id, progressInfo{Key: "prepare:" + id, Phase: auxiliary.Name + " 최초 자산 확인·준비"})
+				if err := c.prepareOrStartComponent(ctx, auxiliary, true); err != nil {
+					c.finishOperation("failed", err.Error())
+					return
+				}
+			}
+		}
+	}
+	if err := c.waitForBundleHeadroom(bundle, reserveGiB, "세트 기동 전 메모리 재확인", 15*time.Second); err != nil {
+		c.failCurrentStep(err.Error())
+		c.finishOperation("failed", err.Error())
+		return
+	}
+
+	ordered := c.Catalog().startupOrder(bundle)
+	var failures []string
+	for index, id := range ordered {
+		component, _ := c.Catalog().ResolveComponent(bundle.ID, id)
+		if bundle.WorkloadSwap && workloadGroup(id) != "" && !component.KeepResident {
+			continue
+		}
+		if component.Role == "llm" && c.componentNeedsStart(ctx, component) {
+			if err := c.waitForBundleHeadroom(bundle, reserveGiB, "언어 모델 기동 직전 메모리 확인", 15*time.Second); err != nil {
+				c.failCurrentStep(err.Error())
+				c.finishOperation("failed", err.Error())
+				return
+			}
+		}
+		c.updateOperation(component.ID, progressInfo{
+			Key: "start:" + component.ID, Phase: component.Name + " 시작", Detail: "컨테이너와 실행 설정을 확인하고 있습니다.",
+			Progress: float64(index) / float64(len(ordered)),
+		})
+		if err := c.startAndWait(component); err != nil {
+			message := component.Name + ": " + err.Error()
+			c.failCurrentStep(err.Error())
+			failures = append(failures, message)
+			if component.Role == "llm" {
+				c.finishOperation("failed", strings.Join(failures, "; "))
+				return
+			}
+		}
+	}
+	if len(failures) > 0 {
+		c.completeCurrentStep()
+		c.finishOperation("failed", strings.Join(failures, "; "))
+		return
+	}
+	if bundle.WorkloadSwap {
+		if err := c.prepareResidentImage(ctx, bundle, reserveGiB); err != nil {
+			c.finishOperation("failed", "Qwen 유지 · Klein 사전 적재 실패: "+err.Error())
+			return
+		}
+	}
+	c.AdoptIdleWorkloads(bundle.ID)
+	c.finishOperation("complete", "")
+}
+
+func (c *Controller) componentNeedsStart(ctx context.Context, component Component) bool {
+	if !c.componentRunning(ctx, component) || !c.isHealthy(ctx, component) {
+		return true
+	}
+	var capacity *modelCapacityError
+	return errors.As(c.checkSGLangCapacity(ctx, component), &capacity)
+}
+
+func (c *Controller) waitForBundleHeadroom(bundle Bundle, reserveGiB float64, phase string, timeout time.Duration) error {
+	deadline := time.Now().Add(timeout)
+	var lastErr error
+	for {
+		memory := readSystemMemory()
+		plan := c.bundleMemoryPlan(context.Background(), bundle)
+		lastErr = validateMemoryHeadroom(memory, plan, c.localMemoryReserve(bundle, reserveGiB))
+		if lastErr == nil {
+			lastErr = c.checkRemoteMemory(context.Background(), bundle, reserveGiB)
+		}
+		c.updateOperation("", progressInfo{
+			Key:      "memory:" + phase,
+			Phase:    phase,
+			Detail:   fmt.Sprintf("시스템 가용 %.1f GiB · 즉시 여유 %.1f GiB · 추가 예상 %.1f GiB · 최소 확보 %.1f GiB", memory.AvailableGiB, memory.FreeGiB, plan.NeededGiB, reserveGiB),
+			Progress: .04,
+		})
+		if lastErr == nil {
+			return nil
+		}
+		if time.Now().After(deadline) {
+			return lastErr
+		}
+		time.Sleep(time.Second)
+	}
+}
+
+func (c *Controller) startAndWait(component Component) error {
+	return c.startAndWaitContext(context.Background(), component)
+}
+
+func (c *Controller) startAndWaitContext(parent context.Context, component Component) (resultErr error) {
+	defer func() {
+		if resultErr == nil && component.ComposeAsset == "compose.qwen38fn_exl3.yaml" {
+			resultErr = c.prepareQwen38FNEXL3Headroom(parent, component)
+		}
+		if resultErr == nil && (isQwenImage21(component) || (isManagedTTS(component) && c.local(component))) {
+			c.workloadActivity(component)()
+		}
+	}()
+	commandTimeout := 24 * time.Hour
+	if component.isCluster() && component.StartupTimeoutSeconds > 0 {
+		commandTimeout = max(commandTimeout, time.Duration(component.StartupTimeoutSeconds)*time.Second)
+	}
+	ctx, cancel := context.WithTimeout(parent, commandTimeout+max(5*time.Minute, time.Duration(component.StartupTimeoutSeconds)*time.Second))
+	defer cancel()
+	if c.isHealthy(ctx, component) {
+		err := c.checkSGLangCapacity(ctx, component)
+		var capacity *modelCapacityError
+		if !errors.As(err, &capacity) {
+			return err
+		}
+		if err := c.stopComponent(ctx, component); err != nil {
+			return err
+		}
+	}
+	if err := c.startComponent(ctx, component); err != nil {
+		return err
+	}
+	timeout := time.Duration(component.StartupTimeoutSeconds) * time.Second
+	if timeout <= 0 {
+		timeout = 5 * time.Minute
+	}
+	startedAt := time.Now()
+	deadline := startedAt.Add(timeout)
+	for time.Now().Before(deadline) {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+		if c.isHealthy(ctx, component) {
+			if err := c.checkSGLangCapacity(ctx, component); err != nil {
+				return err
+			}
+			c.updateOperation(component.ID, progressInfo{Key: "ready:" + component.ID, Phase: component.Name + " API 응답 확인", Detail: "서비스가 요청을 받을 준비를 마쳤습니다.", Progress: 1})
+			return nil
+		}
+		logs := c.componentLogs(ctx, component)
+		if failure := startupFailure(logs); failure != "" {
+			return errors.New(failure)
+		}
+		info := inferProgress(component, logs)
+		if component.ID == "flash-next" {
+			info = estimateFlashNextWeightProgress(info, time.Since(startedAt))
+		}
+		if info.Phase == "" {
+			info = progressInfo{Key: "init", Phase: component.Name + " 준비 중", Detail: "컨테이너 로그를 기다리고 있습니다.", Progress: .05}
+		}
+		c.updateOperation(component.ID, info)
+		if component.Controller != "external" && !c.componentRunning(ctx, component) {
+			return fmt.Errorf("container stopped during startup: %s", lastLogLine(logs))
+		}
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-time.After(2 * time.Second):
+		}
+	}
+	return fmt.Errorf("startup timed out after %s", timeout)
+}
+
+func estimateFlashNextWeightProgress(info progressInfo, elapsed time.Duration) progressInfo {
+	if info.Key != "main-weights" || info.ETA != "" {
+		return info
+	}
+	const expected = 9 * time.Minute
+	if elapsed < 0 {
+		elapsed = 0
+	}
+	ratio := min(1, float64(elapsed)/float64(expected))
+	info.Progress = .16 + ratio*.32
+	remaining := max(0, expected-elapsed)
+	seconds := int(remaining.Round(time.Second).Seconds())
+	info.ETA = fmt.Sprintf("%02d:%02d", seconds/60, seconds%60)
+	return info
+}
+
+func (c *Controller) componentStatus(ctx context.Context, component Component, gpuByPID map[int]float64) ComponentStatus {
+	status := c.observedStatus(ctx, component)
+	if component.Controller == "compose" && c.local(component) {
+		status.RequestMemoryGiB, _ = supportRequestMemoryGiB(component)
+	}
+	if status.Status == "running" && c.local(component) {
+		for _, pid := range containerPIDs(ctx, component.Container) {
+			status.GPUMemoryGiB += gpuByPID[pid]
+		}
+		var hostMeasured bool
+		status.HostMemoryGiB, hostMeasured = containerHostResidentMemory(ctx, component.Container)
+		status.ResidentMemoryGiB = status.GPUMemoryGiB + status.HostMemoryGiB
+		status.MemoryMeasured = hostMeasured && (!isCUDAComponent(component) || gpuByPID != nil)
+		if status.Health == "online" {
+			status.EngineMemory = c.observedEngineMemory(component)
+		}
+		status.WorkspaceMemoryGiB = liveWorkspaceMemory(ctx, component)
+		if component.ID == "flux2" && (component.ComposeAsset == "compose.flux2.yaml" || isQwenImage21(component)) {
+			if state, err := c.fluxMemoryState(ctx, component); err == nil {
+				status.CoreReady, status.Busy = state.CoreReady, state.Busy
+			}
+		}
+	}
+	return status
+}
+
+func (c *Controller) isHealthy(ctx context.Context, component Component) bool {
+	if component.Controller != "external" && !c.componentRunning(ctx, component) {
+		return false
+	}
+	if component.isCluster() {
+		worker := Component{Host: component.WorkerHost, Container: component.WorkerContainer}
+		if !c.componentRunning(ctx, worker) {
+			return false
+		}
+	}
+	return c.httpHealthy(ctx, component)
+}
+
+func (c *Controller) httpHealthy(ctx context.Context, component Component) bool {
+	if component.HealthURL == "" {
+		return true
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, component.HealthURL, nil)
+	if err != nil {
+		return false
+	}
+	response, err := c.client.Do(req)
+	if err != nil {
+		return false
+	}
+	defer response.Body.Close()
+	if component.ComposeAsset == "compose.qwim-mmh3.yaml" {
+		var state struct {
+			Status     string `json:"status"`
+			VideoModel string `json:"video_model"`
+			Features   struct {
+				Progress bool `json:"progress"`
+				ETA      bool `json:"eta"`
+			} `json:"features"`
+		}
+		return response.StatusCode == 200 && json.NewDecoder(response.Body).Decode(&state) == nil && state.Status == "ok" && state.VideoModel == "minimax-h3-nvfp4" && state.Features.Progress && state.Features.ETA
+	}
+	return response.StatusCode >= 200 && response.StatusCode < 300
+}
+
+func inspectContainer(ctx context.Context, container string) (string, int, error) {
+	command := exec.CommandContext(ctx, "docker", "inspect", "-f", "{{.State.Status}}|{{.State.Pid}}", container)
+	output, err := command.Output()
+	if err != nil {
+		return "", 0, err
+	}
+	parts := strings.Split(strings.TrimSpace(string(output)), "|")
+	if len(parts) != 2 {
+		return "", 0, errors.New("unexpected docker inspect response")
+	}
+	pid, _ := strconv.Atoi(parts[1])
+	return parts[0], pid, nil
+}
+
+func containerExists(ctx context.Context, container string) bool {
+	_, _, err := inspectContainer(ctx, container)
+	return err == nil
+}
+
+func stopContainer(ctx context.Context, container string) error {
+	if !containerExists(ctx, container) {
+		return fmt.Errorf("No such container: %s", container)
+	}
+	state, _, err := inspectContainer(ctx, container)
+	if err != nil || state != "running" {
+		return err
+	}
+	stopCtx, cancel := context.WithTimeout(ctx, 45*time.Second)
+	defer cancel()
+	return runCommand(stopCtx, nil, "docker", "stop", "-t", "30", container)
+}
+
+func isMissingContainer(err error) bool {
+	if err == nil {
+		return false
+	}
+	message := strings.ToLower(err.Error())
+	return strings.Contains(message, "no such container") || strings.Contains(message, "no such object")
+}
+
+func runCommand(ctx context.Context, stdin []byte, name string, args ...string) error {
+	return runCommandEnv(ctx, stdin, nil, name, args...)
+}
+
+func runCommandEnv(ctx context.Context, stdin []byte, environment []string, name string, args ...string) error {
+	command := exec.CommandContext(ctx, name, args...)
+	if environment != nil {
+		command.Env = environment
+	}
+	if stdin != nil {
+		command.Stdin = bytes.NewReader(stdin)
+	}
+	output, err := command.CombinedOutput()
+	if err != nil {
+		message := strings.TrimSpace(string(output))
+		if message == "" {
+			message = err.Error()
+		}
+		return errors.New(message)
+	}
+	return nil
+}
+
+func commandOK(ctx context.Context, name string, args ...string) error {
+	commandCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
+	defer cancel()
+	return runCommand(commandCtx, nil, name, args...)
+}
+
+func containerLogs(ctx context.Context, container string) string {
+	commandCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
+	defer cancel()
+	startedAt, _ := exec.CommandContext(commandCtx, "docker", "inspect", "-f", "{{.State.StartedAt}}", container).Output()
+	args := []string{"logs", "--tail", "240"}
+	if value := strings.TrimSpace(string(startedAt)); value != "" {
+		args = append(args, "--since", value)
+	}
+	args = append(args, container)
+	output, _ := exec.CommandContext(commandCtx, "docker", args...).CombinedOutput()
+	return strings.ReplaceAll(string(output), "\r", "\n")
+}
+
+func startupFailure(logs string) string {
+	lower := strings.ToLower(logs)
+	if strings.Contains(lower, "cuda error: out of memory") ||
+		strings.Contains(lower, "cuda out of memory") ||
+		strings.Contains(lower, "nv_err_no_memory") {
+		return "CUDA 메모리 부족: 새 GPU 컨텍스트 또는 모델 메모리를 할당하지 못했습니다."
+	}
+	return ""
+}
+
+func lastLogLine(logs string) string {
+	lines := strings.Split(strings.TrimSpace(logs), "\n")
+	if len(lines) == 0 {
+		return "no logs"
+	}
+	return lines[len(lines)-1]
+}
+
+func readSystemMemory() SystemMemory {
+	data, err := os.ReadFile("/proc/meminfo")
+	if err != nil {
+		return SystemMemory{}
+	}
+	return parseSystemMemory(data)
+}
+
+func parseSystemMemory(data []byte) SystemMemory {
+	values := map[string]uint64{}
+	scanner := bufio.NewScanner(bytes.NewReader(data))
+	for scanner.Scan() {
+		fields := strings.Fields(scanner.Text())
+		if len(fields) < 2 {
+			continue
+		}
+		value, _ := strconv.ParseUint(fields[1], 10, 64)
+		values[strings.TrimSuffix(fields[0], ":")] = value * 1024
+	}
+	total, available := values["MemTotal"], values["MemAvailable"]
+	return SystemMemory{
+		TotalGiB:     bytesToGiB(total),
+		UsedGiB:      bytesToGiB(total - available),
+		AvailableGiB: bytesToGiB(available),
+		FreeGiB:      bytesToGiB(values["MemFree"]),
+	}
+}
+
+func bytesToGiB(value uint64) float64 {
+	return float64(value) / float64(uint64(1)<<30)
+}
+
+func gpuMemoryByPID(ctx context.Context) map[int]float64 {
+	commandCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
+	defer cancel()
+	output, err := exec.CommandContext(commandCtx, "nvidia-smi", "--query-compute-apps=pid,used_memory", "--format=csv,noheader,nounits").Output()
+	if err != nil {
+		return nil
+	}
+	result := make(map[int]float64)
+	for _, line := range strings.Split(strings.TrimSpace(string(output)), "\n") {
+		parts := strings.Split(line, ",")
+		if len(parts) != 2 {
+			continue
+		}
+		pid, _ := strconv.Atoi(strings.TrimSpace(parts[0]))
+		mib, _ := strconv.ParseFloat(strings.TrimSpace(parts[1]), 64)
+		result[pid] = mib / 1024
+	}
+	return result
+}
+
+func containerPIDs(ctx context.Context, container string) []int {
+	commandCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
+	defer cancel()
+	output, err := exec.CommandContext(commandCtx, "docker", "top", container, "-eo", "pid").Output()
+	if err != nil {
+		return nil
+	}
+	var pids []int
+	for index, line := range strings.Split(strings.TrimSpace(string(output)), "\n") {
+		if index == 0 {
+			continue
+		}
+		pid, err := strconv.Atoi(strings.TrimSpace(line))
+		if err == nil {
+			pids = append(pids, pid)
+		}
+	}
+	return pids
+}
+
+// Only an actual GLM start may reclaim caches; status/probe checks stay read-only.
+// Its existing launcher also drops filesystem caches before loading the model.
+type cudaStartMemoryError struct{ message string }
+
+func (e *cudaStartMemoryError) Error() string { return e.message }
+
+func (c *Controller) reclaimGLMStartupCache(ctx context.Context, bundle Bundle) (bool, error) {
+	hosts := map[string]bool{}
+	for _, component := range c.Catalog().ModelComponents(bundle.ID) {
+		if component.Controller == "glm53-cluster" {
+			hosts[component.Host] = true
+			hosts[component.WorkerHost] = true
+		}
+	}
+	if len(hosts) == 0 {
+		return false, nil
+	}
+	for id := range hosts {
+		memory, err := c.hostMemory(ctx, id)
+		if err != nil {
+			return true, err
+		}
+		if memory.FreeGiB >= minimumCUDAImmediateFreeGiB {
+			continue
+		}
+		c.updateOperation("", progressInfo{Key: "reclaim:" + id, Phase: "GLM 기동용 파일 캐시 반환", Detail: id + "의 파일 캐시를 반환한 뒤 메모리를 다시 검사합니다.", Progress: .01})
+		if _, err := executeHost(ctx, c.host(id), nil, "docker", "run", "--rm", "--privileged", "alpine:3.22", "sh", "-c", "sync; echo 3 > /proc/sys/vm/drop_caches"); err != nil {
+			return true, fmt.Errorf("%s 파일 캐시 반환 실패: %w", id, err)
+		}
+	}
+	return true, nil
+}
+
+// Small services normally start first. Explicitly deferred services preserve
+// startup headroom for models with a larger loading/tuning peak.
+func (c Catalog) startupOrder(bundle Bundle) []string {
+	ordered := append([]string(nil), bundle.Components...)
+	priority := func(id string) int {
+		component, _ := c.ResolveComponent(bundle.ID, id)
+		if component.Role == "llm" {
+			return 1
+		}
+		if component.StartAfterLLM {
+			if c.qad512DiTResident(bundle) && component.Role == "image" {
+				return 3
+			}
+			return 2
+		}
+		return 0
+	}
+	sort.SliceStable(ordered, func(i, j int) bool { return priority(ordered[i]) < priority(ordered[j]) })
+	return ordered
+}

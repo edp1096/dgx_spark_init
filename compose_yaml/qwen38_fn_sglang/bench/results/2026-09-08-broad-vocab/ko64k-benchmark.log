@@ -1,0 +1,42 @@
+Resuming after 16 completed requests
+17/48 code_telemetry round=1 tokens=4096 elapsed=186.5s decode=22.358842434923332 accept=0.432 truncated=True
+18/48 code_html_review round=1 tokens=2048 elapsed=55.5s decode=38.11535573235716 accept=0.676 truncated=True
+19/48 research_memory round=1 tokens=4096 elapsed=122.9s decode=34.154458973115226 accept=0.613 truncated=True
+20/48 human_translation round=1 tokens=210 elapsed=7.0s decode=30.898222051045227 accept=0.486 truncated=False
+21/48 human_history round=1 tokens=1536 elapsed=50.6s decode=30.543481436396625 accept=0.458 truncated=True
+22/48 human_writing round=1 tokens=79 elapsed=2.6s decode=32.71821040982973 accept=0.505 truncated=False
+23/48 dialogue_constraints round=1 tokens=355 elapsed=9.8s decode=37.546049497876936 accept=0.656 truncated=False
+24/48 long_ledger round=1 tokens=2048 elapsed=55.3s decode=40.823515126593804 accept=0.733 truncated=True
+25/48 long_ledger round=2 tokens=2048 elapsed=52.5s decode=43.17323724331424 accept=0.788 truncated=True
+26/48 dialogue_constraints round=2 tokens=267 elapsed=7.7s decode=35.72597354234258 accept=0.611 truncated=False
+27/48 human_writing round=2 tokens=94 elapsed=3.1s decode=32.55835960626297 accept=0.482 truncated=False
+28/48 human_history round=2 tokens=1386 elapsed=46.1s decode=30.219604478698642 accept=0.452 truncated=False
+29/48 human_translation round=2 tokens=223 elapsed=7.5s decode=30.53822288598751 accept=0.446 truncated=False
+30/48 research_memory round=2 tokens=4096 elapsed=154.6s decode=26.920903576937693 accept=0.472 truncated=True
+31/48 code_html_review round=2 tokens=2048 elapsed=59.7s decode=35.178437589620145 accept=0.585 truncated=True
+32/48 code_telemetry round=2 tokens=4096 elapsed=165.2s decode=25.216231991282456 accept=0.478 truncated=True
+33/48 code_shortlist round=2 tokens=4096 elapsed=183.5s decode=22.44642575677439 accept=0.416 truncated=True
+34/48 science_lab round=2 tokens=1071 elapsed=28.9s decode=37.45526888848318 accept=0.634 truncated=False
+35/48 science_trial round=2 tokens=2888 elapsed=92.0s decode=31.488198623498292 accept=0.502 truncated=False
+36/48 science_bayes round=2 tokens=1519 elapsed=45.5s decode=33.55988971241779 accept=0.528 truncated=False
+37/48 contract_reading round=2 tokens=646 elapsed=19.9s decode=32.868005351012975 accept=0.503 truncated=False
+38/48 finance_cost round=2 tokens=939 elapsed=24.9s decode=38.01211931078766 accept=0.629 truncated=False
+39/48 finance_budget round=2 tokens=1080 elapsed=30.3s decode=35.94702594860549 accept=0.584 truncated=False
+40/48 life_schedule round=2 tokens=1536 elapsed=37.0s decode=41.85040274657721 accept=0.739 truncated=True
+41/48 life_router round=2 tokens=1151 elapsed=35.4s decode=32.70391921636107 accept=0.505 truncated=False
+42/48 life_energy round=2 tokens=1192 elapsed=35.7s decode=33.63148389478222 accept=0.528 truncated=False
+43/48 life_food round=2 tokens=353 elapsed=13.9s decode=25.901153264709652 accept=0.324 truncated=False
+44/48 med_cancer round=2 tokens=968 elapsed=33.3s decode=29.28984536907414 accept=0.421 truncated=False
+45/48 med_diabetes round=2 tokens=709 elapsed=22.4s decode=32.10441529898048 accept=0.488 truncated=False
+46/48 med_rhinitis round=2 tokens=1318 elapsed=39.8s decode=33.3270339739487 accept=0.509 truncated=False
+47/48 med_gout round=2 tokens=1137 elapsed=36.1s decode=31.713305173995007 accept=0.476 truncated=False
+48/48 med_cold round=2 tokens=870 elapsed=30.4s decode=28.808458124050155 accept=0.402 truncated=False
+Supplement frozen: life_schedule, science_bayes, code_shortlist, code_telemetry, code_html_review, research_memory, human_history, long_ledger
+SUPPLEMENT 1/8 life_schedule tokens=2084 elapsed=48.9s truncated=False
+SUPPLEMENT 2/8 science_bayes tokens=1828 elapsed=50.6s truncated=False
+SUPPLEMENT 3/8 code_shortlist tokens=8192 elapsed=345.5s truncated=True
+SUPPLEMENT 4/8 code_telemetry tokens=8192 elapsed=340.9s truncated=True
+SUPPLEMENT 5/8 code_html_review tokens=2995 elapsed=76.3s truncated=False
+SUPPLEMENT 6/8 research_memory tokens=8192 elapsed=307.9s truncated=True
+SUPPLEMENT 7/8 human_history tokens=1319 elapsed=45.5s truncated=False
+SUPPLEMENT 8/8 long_ledger tokens=3072 elapsed=73.9s truncated=True

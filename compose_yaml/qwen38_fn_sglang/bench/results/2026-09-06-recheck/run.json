@@ -1,0 +1,8 @@
+{
+  "boot_id": "0540b415-ba4f-43dd-a0a0-90ffa1990af5",
+  "started": "2026-09-06T17:11:13.150303+09:00",
+  "image": "sha256:ecb60e9705433d3cf4172567ff084c586c1b89a158288b8251c93d812d0fca50",
+  "rounds": 3,
+  "seed": 595305611,
+  "idle_seconds": 300
+}

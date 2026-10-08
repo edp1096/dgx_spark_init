@@ -1,0 +1,106 @@
+{
+  "status": "passed",
+  "qualified_at": "2026-10-03T17:59:58.545993+00:00",
+  "worker": "192.168.100.60",
+  "model_directory": "/home/edp1096/.cache/model-download-jobs/qwen38-qad5500-bf16/outputs/Huihui-Qwen3.8-Flash-Next-NVFP4-QAD5500-BF16Delta",
+  "runtime_image": "sha256:95b4633b7224deaad847a553c6550891fd3bdad97ad9d8e0c70c843239d26e72",
+  "runtime_configuration": {
+    "tp": 1,
+    "concurrency": 1,
+    "kv_cache_dtype": "fp8_e4m3",
+    "mtp_steps": 3,
+    "ple_offload": "file",
+    "context_1m_yarn_factor": 4
+  },
+  "scope": "Functional/numerical qualification; not a broad quality or refusal-rate benchmark",
+  "contexts": {
+    "65536": {
+      "status": "passed",
+      "actual_input_tokens": 65398,
+      "retrieved": "MAPLE, COMET",
+      "seconds": 38.93204537901329,
+      "cached_tokens": 0,
+      "post_long_response": "42",
+      "smoke_cases": 14,
+      "streamed_256_token_trials_tps": [
+        35.81220103705761,
+        38.489933582955985,
+        39.12583184774949
+      ],
+      "semantic_review": {
+        "scope": "Functional smoke review; not a broad quality or refusal-rate benchmark",
+        "coding_cases_passed": 4,
+        "tool_call": {
+          "name": "get_weather",
+          "arguments": {
+            "city": "Seoul"
+          }
+        },
+        "manual_review": {
+          "korean": "Natural polite Korean; requested meaning preserved",
+          "translation": "Server negation and worker-only restart preserved",
+          "fiction": "Coherent Korean detective/thief dialogue; no refusal"
+        },
+        "automated_assertions": {
+          "arithmetic": true,
+          "json": true,
+          "sorting": true,
+          "vision": true,
+          "long_needle": true
+        }
+      }
+    },
+    "1048576": {
+      "status": "passed",
+      "actual_input_tokens": 1048435,
+      "retrieved": "MAPLE, COMET",
+      "seconds": 1132.242781551031,
+      "cached_tokens": 0,
+      "post_long_response": "42",
+      "smoke_cases": 14,
+      "streamed_256_token_trials_tps": [
+        33.322232242927555,
+        34.35065199603872,
+        37.07947719941728
+      ],
+      "semantic_review": {
+        "scope": "Functional smoke review; not a broad quality or refusal-rate benchmark",
+        "coding_cases_passed": 4,
+        "tool_call": {
+          "name": "get_weather",
+          "arguments": {
+            "city": "Seoul"
+          }
+        },
+        "manual_review": {
+          "korean": "Natural polite Korean; requested meaning preserved",
+          "translation": "Server negation and worker-only restart preserved",
+          "fiction": "Coherent Korean detective/thief dialogue; no refusal"
+        },
+        "automated_assertions": {
+          "arithmetic": true,
+          "json": true,
+          "sorting": true,
+          "vision": true,
+          "long_needle": true
+        },
+        "code_identical_to_64k_tested_function": true,
+        "code_sha256": "1d723ad6f7644f11a7904a1939e56dacd6d86d8482ac7e2130269bf05980358c"
+      }
+    }
+  },
+  "parsed_reasoning": "passed; final answer 17 and nonempty parsed reasoning",
+  "baseline_1m": {
+    "actual_input_tokens": 1048435,
+    "seconds": 1128.032104835962,
+    "retrieved": "MAPLE, COMET"
+  },
+  "validation_containers": {
+    "stopped": true,
+    "oom_killed": false,
+    "exit_codes": [
+      0,
+      0
+    ]
+  }
+}
