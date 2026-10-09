@@ -1,10 +1,12 @@
 #!/usr/bin/python3
-"""Optional GNOME Wayland/VTE regression test in a private desktop session.
+"""Optional GNOME Wayland input regression test in a private desktop session.
 
 Requires gnome-shell with --headless, dbus-run-session, dconf, and Python GI
 bindings for Gtk 3, Vte 2.91 and IBus. No physical input devices are opened.
+GTK entry and Chrome/Chromium modes exercise ordinary graphical text fields.
 """
 import argparse
+import json
 import os
 from pathlib import Path
 import shutil
@@ -56,7 +58,85 @@ def reader(root):
             output.write(data)
 
 
-def session(root, binary, im_module):
+def entry(root, version):
+    import gi
+    gi.require_version("Gtk", version + ".0")
+    from gi.repository import Gtk, GLib
+    window = Gtk.Window(title="Isolated GTK Entry Test")
+    window.set_default_size(900, 300)
+    widget = Gtk.Entry()
+    preedit = [""]
+
+    def report(*args):
+        value = widget.get_text()
+        cursor = widget.get_position()
+        value = value[:cursor] + preedit[0] + value[cursor:]
+        path = root / "browser-state.next"
+        path.write_text(json.dumps({"value": value}))
+        path.replace(root / "browser-state.json")
+
+    def composing(widget, text):
+        preedit[0] = text
+        report()
+
+    widget.connect("changed", report)
+    delegate = widget.get_delegate() if version == "4" else widget
+    delegate.connect("preedit-changed", composing)
+    if version == "4":
+        window.set_child(widget)
+    else:
+        window.add(widget)
+        window.show_all()
+    window.present()
+    widget.grab_focus()
+    report()
+    (root / "ready").touch()
+    GLib.MainLoop().run()
+
+
+def browser_page(root):
+    from http.server import BaseHTTPRequestHandler, HTTPServer
+
+    page = """<!doctype html><meta charset=utf-8>
+    <textarea id=field autofocus style='width:90vw;height:70vh;font-size:30px'></textarea>
+    <script>
+    let seq=0; const field=document.querySelector('#field');
+    function report(event) {
+      fetch('/state', {method:'POST', body:JSON.stringify({seq:++seq,
+        value:field.value, event:event.type, composing:event.isComposing || false})});
+    }
+    ['input','compositionend','focus'].forEach(name => field.addEventListener(name,report));
+    field.focus(); report({type:'ready'});
+    </script>""".encode()
+
+    class Handler(BaseHTTPRequestHandler):
+        latest = 0
+
+        def log_message(self, *args):
+            pass
+
+        def do_GET(self):
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/html; charset=utf-8')
+            self.end_headers()
+            self.wfile.write(page)
+
+        def do_POST(self):
+            state = json.loads(self.rfile.read(int(self.headers['Content-Length'])))
+            if state['seq'] > Handler.latest:
+                Handler.latest = state['seq']
+                path = root / 'browser-state.next'
+                path.write_text(json.dumps(state))
+                path.replace(root / 'browser-state.json')
+            self.send_response(204)
+            self.end_headers()
+
+    server = HTTPServer(('127.0.0.1', 0), Handler)
+    (root / 'browser.url').write_text('http://127.0.0.1:%d/' % server.server_port)
+    server.serve_forever()
+
+
+def session(root, binary, im_module, browser=None, entry_version=None):
     import gi
     gi.require_version("IBus", "1.0")
     from gi.repository import Gio, GLib, IBus
@@ -75,8 +155,18 @@ def session(root, binary, im_module):
         subprocess.run(["gsettings", "set", schema, key, value], check=True)
 
     def received():
+        if browser or entry_version:
+            path = root / "browser-state.json"
+            return json.loads(path.read_text())["value"].encode() if path.exists() else b""
         path = root / "bytes"
         return path.read_bytes() if path.exists() else b""
+
+    def check_compositor():
+        log = (root / "shell.log").read_text()
+        for marker in ("CLUTTER_IS_INPUT_DEVICE",
+                       "meta_wayland_text_input_focus_delete_surrounding",
+                       "clutter_input_focus_delete_surrounding"):
+            assert marker not in log, "Compositor rejected input: " + marker
 
     try:
         # Registry and settings belong exclusively to this dbus-run-session.
@@ -104,8 +194,22 @@ def session(root, binary, im_module):
                    (shell.poll() is not None and sys.exit("Private compositor exited")))
         os.environ["WAYLAND_DISPLAY"] = "hangul-test"
         os.environ["GTK_IM_MODULE"] = im_module
-        start([sys.executable, str(Path(__file__).resolve()), "--terminal", str(root)], "terminal")
-        wait_until(lambda: (root / "ready").exists())
+        if browser:
+            start([sys.executable, str(Path(__file__).resolve()), "--browser-page", str(root)], "page")
+            wait_until(lambda: (root / "browser.url").exists())
+            start([str(browser), "--ozone-platform=wayland", "--no-first-run",
+                   "--no-default-browser-check", "--disable-background-networking",
+                   "--disable-extensions", "--password-store=basic",
+                   "--user-data-dir=" + str(root / "browser-profile"),
+                   (root / "browser.url").read_text()], "browser")
+            wait_until(lambda: (root / "browser-state.json").exists())
+        elif entry_version:
+            start([sys.executable, str(Path(__file__).resolve()), "--entry" + entry_version,
+                   str(root)], "entry")
+            wait_until(lambda: (root / "ready").exists())
+        else:
+            start([sys.executable, str(Path(__file__).resolve()), "--terminal", str(root)], "terminal")
+            wait_until(lambda: (root / "ready").exists())
         bus = Gio.bus_get_sync(Gio.BusType.SESSION, None)
 
         def call(path, interface, method, args=None):
@@ -155,6 +259,42 @@ def session(root, binary, im_module):
         assert ibus.set_global_engine("hangul-backspace")
         time.sleep(0.5)
 
+        if browser or entry_version:
+            client = "browser" if browser else "gtk" + entry_version
+            for label, keys, expected in [
+                    ("composing", [19, 37] * 8, "가" * 8),
+                    ("committed", [19, 37] * 8 + [57], "가" * 8 + " ")]:
+                for code in keys:
+                    tap(code)
+                time.sleep(0.3)
+                assert received().decode() == expected, (label, received())
+                hold()
+                assert received() == b"", (label, received())
+                print(f"PASS {client}/{label}: held Backspace emptied the field", flush=True)
+            for label, keys, expected in [
+                    ("jamo-order", [38, 31, 57], "ㅣㄴ "),
+                    ("normal-composition", [31, 38, 57], "니 ")]:
+                for code in keys:
+                    tap(code)
+                time.sleep(0.2)
+                assert received().decode() == expected, (label, received())
+                hold()
+                assert received() == b"", (label, received())
+                print(f"PASS {client}/{label}", flush=True)
+            key(42, True)
+            tap(57)
+            key(42, False)
+            for code in [19, 37] * 8:
+                tap(code)
+            time.sleep(0.2)
+            assert received() == b"rk" * 8, received()
+            hold()
+            assert received() == b"", received()
+            print(f"PASS {client}/latin", flush=True)
+            remote("Stop")
+            check_compositor()
+            return
+
         for label, keys, prefix in [
                 ("composing", [19, 37] * 3, "가가".encode()),
                 ("committed", [19, 37] * 3 + [57], "가가가 ".encode())]:
@@ -197,8 +337,7 @@ def session(root, binary, im_module):
         assert len(suffix) >= 5 and suffix == b"\x7f" * len(suffix), data
         print(f"PASS {im_module}/latin: {len(suffix)} deletions", flush=True)
         remote("Stop")
-        shell_log = (root / "shell.log").read_text()
-        assert "CLUTTER_IS_INPUT_DEVICE" not in shell_log, "Compositor rejected forwarded keys"
+        check_compositor()
     finally:
         for process in reversed(processes):
             process.terminate()
@@ -213,17 +352,27 @@ def session(root, binary, im_module):
 
 
 def main():
-    if len(sys.argv) == 3 and sys.argv[1] in ("--terminal", "--reader"):
-        {"--terminal": terminal, "--reader": reader}[sys.argv[1]](Path(sys.argv[2]))
+    if len(sys.argv) == 3 and sys.argv[1] in ("--entry3", "--entry4"):
+        entry(Path(sys.argv[2]), sys.argv[1][-1])
+        return
+    if len(sys.argv) == 3 and sys.argv[1] in ("--terminal", "--reader", "--browser-page"):
+        {"--terminal": terminal, "--reader": reader,
+         "--browser-page": browser_page}[sys.argv[1]](Path(sys.argv[2]))
         return
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--binary", type=Path, required=True)
     parser.add_argument("--schema-dir", type=Path, required=True)
     parser.add_argument("--im-module", choices=("wayland", "ibus"), default="wayland")
+    parser.add_argument("--browser", type=Path,
+                        help="Test Chrome/Chromium instead of VTE, using a temporary profile")
+    parser.add_argument("--gtk-entry", choices=("3", "4"),
+                        help="Test a GTK entry instead of VTE")
     parser.add_argument("--session", type=Path, help=argparse.SUPPRESS)
     args = parser.parse_args()
+    if args.browser and args.gtk_entry:
+        parser.error("Choose either --browser or --gtk-entry")
     if args.session:
-        session(args.session, args.binary, args.im_module)
+        session(args.session, args.binary, args.im_module, args.browser, args.gtk_entry)
         return
     binary = args.binary.resolve(strict=True)
     schemas = args.schema_dir.resolve(strict=True)
@@ -232,6 +381,7 @@ def main():
     for command in ("gnome-shell", "dbus-run-session", "gsettings"):
         if not shutil.which(command):
             parser.error("Missing dependency: " + command)
+    browser = args.browser.resolve(strict=True) if args.browser else None
     root = Path(tempfile.mkdtemp(prefix="hangul-backspace-native."))
     env = os.environ.copy()
     for name, directory in [("XDG_RUNTIME_DIR", "run"), ("XDG_CONFIG_HOME", "config"),
@@ -247,11 +397,14 @@ def main():
                LIBGL_ALWAYS_SOFTWARE="1", XDG_SESSION_TYPE="wayland",
                XDG_CURRENT_DESKTOP="GNOME")
     print("Private test session and logs:", root, flush=True)
+    extra = ["--browser", str(browser)] if browser else []
+    if args.gtk_entry:
+        extra += ["--gtk-entry", args.gtk_entry]
     with (root / "session.log").open("w") as log:
         result = subprocess.run([
             "dbus-run-session", "--", sys.executable, str(Path(__file__).resolve()),
             "--session", str(root), "--binary", str(binary), "--schema-dir", str(schemas),
-            "--im-module", args.im_module], env=env, stdout=log, stderr=log, timeout=60)
+            "--im-module", args.im_module] + extra, env=env, stdout=log, stderr=log, timeout=90)
     output = (root / "session.log").read_text()
     if result.returncode:
         print(output[-4000:])

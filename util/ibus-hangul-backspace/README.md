@@ -32,6 +32,15 @@ Releasing Backspace ends this handling. Fresh presses and Latin input use the
 terminal's normal Backspace mapping. Terminals configured to require `0x08`
 instead of DEL are not supported by this fallback.
 
+For native Wayland text fields that provide surrounding text, held repeats
+after composition becomes empty delete the preceding character through the
+input-method protocol. This also works with GTK 3 clients whose key repeat
+cannot start after the initial press was consumed. The engine checks support,
+UTF-8 validity and cursor bounds before every deletion, and stops requesting
+deletion at the beginning of the buffer. Other native events remain unhandled
+so the compositor can preserve their source device and repeat metadata.
+Direct IBus clients continue to use their input module's key forwarding.
+
 Set `HANGUL_BACKSPACE_TRACE=1` when starting the engine to log Backspace
 press/release events, capabilities, and composition state to stderr. The trace
 does not include input text.
@@ -53,6 +62,12 @@ and IBus. From the source directory, after building and running `make check`:
 Add `--im-module ibus` to test the direct GTK IBus path. Both variants use
 temporary settings, their own D-Bus and Wayland socket, and a virtual keyboard
 inside that desktop. They do not change Tilix launchers or desktop settings.
+
+Add `--gtk-entry 3` or `--gtk-entry 4` to test an ordinary GTK text field
+instead of VTE (the corresponding Python GI binding is required). Add
+`--browser /path/to/chrome` to test Chrome/Chromium against a local textarea
+using a temporary profile. These modes check composition, committed text,
+jamo order, Latin input, and that deletion stops after release.
 
 ## Installed files
 

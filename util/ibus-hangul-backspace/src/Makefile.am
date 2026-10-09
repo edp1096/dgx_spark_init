@@ -112,7 +112,7 @@ test_ustring_LDADD = $(IBUS_LIBS)
 test_ustring_SOURCES = test-ustring.c ustring.c ustring.h
 
 test_backspace_CFLAGS = $(IBUS_CFLAGS) $(HANGUL_CFLAGS)
-test_backspace_LDADD = libinternal.a $(IBUS_LIBS) $(HANGUL_LIBS)
+test_backspace_LDADD = libinternal.a $(IBUS_LIBS) $(HANGUL_LIBS) -ldl
 test_backspace_SOURCES = test-backspace.c
 test_backspace_DEPENDENCIES = libinternal.a test-schemas/gschemas.compiled
 

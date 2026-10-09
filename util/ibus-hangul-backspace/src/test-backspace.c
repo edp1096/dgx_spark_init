@@ -1,10 +1,12 @@
 /* Regression tests; no keys or settings reach the user's desktop. */
 #include <ibus.h>
+#include <dlfcn.h>
 #include "engine.h"
 
 static GDBusConnection *connection;
 static GArray *forwarded;
 static GString *committed;
+static guint deleted_count;
 
 typedef struct {
     guint keyval;
@@ -34,6 +36,20 @@ ibus_engine_commit_text (IBusEngine *engine, IBusText *text)
     g_object_unref (text);
 }
 
+void
+ibus_engine_delete_surrounding_text (IBusEngine *engine, gint offset, guint count)
+{
+    typedef void (*DeleteFunc) (IBusEngine *, gint, guint);
+    DeleteFunc real_delete = (DeleteFunc) dlsym (RTLD_NEXT,
+                                                "ibus_engine_delete_surrounding_text");
+    g_assert_nonnull (real_delete);
+    g_assert_cmpint (offset, ==, -1);
+    g_assert_cmpuint (count, ==, 1);
+    deleted_count += count;
+    /* Exercise IBus's actual cache updates as well as recording the request. */
+    real_delete (engine, offset, count);
+}
+
 static gboolean
 key (Fixture *fixture, guint keyval, guint modifiers)
 {
@@ -56,6 +72,7 @@ setup (Fixture *fixture, gconstpointer data)
     g_object_ref_sink (fixture->engine);
     g_array_set_size (forwarded, 0);
     g_string_truncate (committed, 0);
+    deleted_count = 0;
 #if IBUS_CHECK_VERSION(1, 5, 28)
     IBUS_ENGINE_GET_CLASS (fixture->engine)->set_content_type (
         fixture->engine, IBUS_INPUT_PURPOSE_TERMINAL, 0);
@@ -124,17 +141,95 @@ assert_forwarded (guint count)
 }
 
 static void
+test_native_client (Fixture *fixture, guint purpose)
+{
+    IBUS_ENGINE_GET_CLASS (fixture->engine)->set_content_type (
+        fixture->engine, purpose, 0);
+    IBUS_ENGINE_GET_CLASS (fixture->engine)->set_capabilities (
+        fixture->engine, IBUS_CAP_PREEDIT_TEXT | IBUS_CAP_FOCUS |
+                         IBUS_CAP_SURROUNDING_TEXT);
+    empty_composition (fixture);
+#if IBUS_CHECK_VERSION(1, 5, 28)
+    /* Native clients need the original device and repeat metadata. Returning
+     * FALSE lets GNOME deliver that event; ForwardKeyEvent loses them. */
+    for (guint i = 0; i < 5; i++)
+        g_assert_false (key (fixture, IBUS_BackSpace, 0));
+    g_assert_false (key (fixture, IBUS_BackSpace, IBUS_RELEASE_MASK));
+    g_assert_false (key (fixture, IBUS_BackSpace, 0));
+    assert_forwarded (0);
+#else
+    for (guint i = 0; i < 5; i++)
+        g_assert_true (key (fixture, IBUS_BackSpace, 0));
+    assert_forwarded (5);
+#endif
+}
+
+static void
 test_nonterminal (Fixture *fixture, gconstpointer data)
+{
+    test_native_client (fixture, IBUS_INPUT_PURPOSE_FREE_FORM);
+}
+
+static void
+test_url (Fixture *fixture, gconstpointer data)
+{
+    test_native_client (fixture, IBUS_INPUT_PURPOSE_URL);
+}
+
+#if IBUS_CHECK_VERSION(1, 5, 28)
+static void
+test_surrounding_repeats (Fixture *fixture, gconstpointer data)
+{
+    IBUS_ENGINE_GET_CLASS (fixture->engine)->set_content_type (
+        fixture->engine, IBUS_INPUT_PURPOSE_FREE_FORM, 0);
+    IBUS_ENGINE_GET_CLASS (fixture->engine)->set_capabilities (
+        fixture->engine, IBUS_CAP_PREEDIT_TEXT | IBUS_CAP_FOCUS |
+                         IBUS_CAP_SURROUNDING_TEXT);
+    empty_composition (fixture);
+    IBUS_ENGINE_GET_CLASS (fixture->engine)->set_surrounding_text (
+        fixture->engine, ibus_text_new_from_static_string ("앞가나다"), 4, 4);
+    for (guint i = 0; i < 4; i++)
+        g_assert_true (key (fixture, IBUS_BackSpace, 0));
+    g_assert_cmpuint (deleted_count, ==, 4);
+    /* Do not depend on a new client update between repeated presses, and
+     * never send more deletion requests after the buffer becomes empty. */
+    for (guint i = 0; i < 20; i++)
+        g_assert_false (key (fixture, IBUS_BackSpace, 0));
+    g_assert_cmpuint (deleted_count, ==, 4);
+    assert_forwarded (0);
+}
+
+static void
+test_surrounding_bounds (Fixture *fixture, gconstpointer data)
+{
+    IBUS_ENGINE_GET_CLASS (fixture->engine)->set_content_type (
+        fixture->engine, IBUS_INPUT_PURPOSE_FREE_FORM, 0);
+    IBUS_ENGINE_GET_CLASS (fixture->engine)->set_capabilities (
+        fixture->engine, IBUS_CAP_SURROUNDING_TEXT);
+    empty_composition (fixture);
+    IBUS_ENGINE_GET_CLASS (fixture->engine)->set_surrounding_text (
+        fixture->engine, ibus_text_new_from_static_string ("가나다"), 0, 0);
+    g_assert_false (key (fixture, IBUS_BackSpace, 0));
+    IBUS_ENGINE_GET_CLASS (fixture->engine)->set_surrounding_text (
+        fixture->engine, ibus_text_new_from_static_string ("가나다"), 99, 99);
+    g_assert_false (key (fixture, IBUS_BackSpace, 0));
+    g_assert_cmpuint (deleted_count, ==, 0);
+    assert_forwarded (0);
+}
+
+static void
+test_surrounding_unsupported (Fixture *fixture, gconstpointer data)
 {
     IBUS_ENGINE_GET_CLASS (fixture->engine)->set_content_type (
         fixture->engine, IBUS_INPUT_PURPOSE_FREE_FORM, 0);
     empty_composition (fixture);
-    for (guint i = 0; i < 5; i++)
-        g_assert_true (key (fixture, IBUS_BackSpace, 0));
-    assert_forwarded (5);
+    IBUS_ENGINE_GET_CLASS (fixture->engine)->set_surrounding_text (
+        fixture->engine, ibus_text_new_from_static_string ("가나다"), 3, 3);
+    g_assert_false (key (fixture, IBUS_BackSpace, 0));
+    g_assert_cmpuint (deleted_count, ==, 0);
+    assert_forwarded (0);
 }
 
-#if IBUS_CHECK_VERSION(1, 5, 28)
 static void
 test_sync_client (Fixture *fixture, gconstpointer data)
 {
@@ -229,8 +324,12 @@ main (int argc, char **argv)
     ADD_TEST ("terminal-without-forwarding", test_terminal_repeats, FALSE);
     ADD_TEST ("reset", test_reset, TRUE);
     ADD_TEST ("sync-client", test_sync_client, TRUE);
+    ADD_TEST ("surrounding-repeats", test_surrounding_repeats, TRUE);
+    ADD_TEST ("surrounding-bounds", test_surrounding_bounds, TRUE);
+    ADD_TEST ("surrounding-unsupported", test_surrounding_unsupported, TRUE);
 #endif
     ADD_TEST ("nonterminal", test_nonterminal, TRUE);
+    ADD_TEST ("url", test_url, TRUE);
     ADD_TEST ("empty-context", test_empty_context, TRUE);
     ADD_TEST ("latin-mode", test_latin_mode, TRUE);
     ADD_TEST ("control-shortcut", test_control_backspace, TRUE);

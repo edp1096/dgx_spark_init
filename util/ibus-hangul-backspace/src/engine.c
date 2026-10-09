@@ -1383,6 +1383,38 @@ ibus_hangul_engine_process_candidate_key_event (IBusHangulEngine    *hangul,
 }
 
 static gboolean
+ibus_hangul_engine_delete_previous_character (IBusHangulEngine *hangul)
+{
+    IBusText *text = NULL;
+    guint cursor = 0, anchor = 0;
+    gboolean valid;
+
+    if (!(hangul->caps & IBUS_CAP_SURROUNDING_TEXT))
+        return FALSE;
+
+    ibus_engine_get_surrounding_text (IBUS_ENGINE (hangul), &text,
+                                     &cursor, &anchor);
+    /* Mutter converts character offsets to byte offsets using the client's
+     * surrounding buffer. Never request deletion without a real character
+     * before the cursor: an empty/unsupported buffer cannot be dereferenced.
+     * IBus updates its cached text and cursor after each deletion, so repeats
+     * remain bounded even before the client sends another surrounding update.
+     * IBus does not update its cached anchor after each deletion; use the
+     * cursor for this sequence that started by deleting active preedit. */
+    valid = text != NULL &&
+            ibus_text_get_text (text) != NULL &&
+            g_utf8_validate (ibus_text_get_text (text), -1, NULL) &&
+            cursor > 0 && cursor <= ibus_text_get_length (text);
+    if (text != NULL)
+        g_object_unref (text);
+    if (!valid)
+        return FALSE;
+
+    ibus_engine_delete_surrounding_text (IBUS_ENGINE (hangul), -1, 1);
+    return TRUE;
+}
+
+static gboolean
 ibus_hangul_engine_process_key_event (IBusEngine     *engine,
                                       guint           keyval,
                                       guint           keycode,
@@ -1511,8 +1543,7 @@ ibus_hangul_engine_process_key_event (IBusEngine     *engine,
             hangul->backspace_sequence = TRUE;
         } else if (hangul->backspace_sequence) {
 #if IBUS_CHECK_VERSION(1, 5, 28)
-            if (hangul->input_purpose == IBUS_INPUT_PURPOSE_TERMINAL &&
-                !(hangul->caps & IBUS_CAP_SYNC_PROCESS_KEY_V2)) {
+            if (!(hangul->caps & IBUS_CAP_SYNC_PROCESS_KEY_V2)) {
                 /* Native Wayland terminals receive keys through the
                  * compositor. Mutter 50 cannot forward these synthetic
                  * events without a source device, and GTK 3 cannot start
@@ -1520,19 +1551,28 @@ ibus_hangul_engine_process_key_event (IBusEngine     *engine,
                  * by Hangul composition. Terminal input contexts accept
                  * control characters: send DEL through the commit path
                  * for each repeat after composition becomes empty. */
-                ibus_engine_commit_text (
-                    engine, ibus_text_new_from_static_string ("\177"));
+                if (hangul->input_purpose == IBUS_INPUT_PURPOSE_TERMINAL) {
+                    ibus_engine_commit_text (
+                        engine, ibus_text_new_from_static_string ("\177"));
+                    retval = TRUE;
+                } else {
+                    /* Legacy GTK clients cannot start their own repeat
+                     * after the initial key was used by composition. Use
+                     * validated surrounding text instead of synthetic keys. */
+                    retval = ibus_hangul_engine_delete_previous_character (hangul);
+                }
+                /* With no surrounding character to delete, leave the original
+                 * event unhandled. Modern clients retain its repeat metadata;
+                 * ForwardKeyEvent would lose the device and repeat flag. */
             } else
 #endif
             {
-                /* The initial press was consumed while decomposing Hangul.
-                 * Forward repeats so the client can delete committed text.
-                 * Repeated delete_surrounding_text can crash Mutter's
-                 * Wayland input-focus path. */
+                /* Direct IBus clients receive forwarded repeats through
+                 * their own input module, preserving normal key handling. */
                 ibus_engine_forward_key_event (engine, orig_keyval, keycode,
                                                modifiers);
+                retval = TRUE;
             }
-            retval = TRUE;
         }
 
         if (hangul->preedit_mode == PREEDIT_MODE_NONE) {
