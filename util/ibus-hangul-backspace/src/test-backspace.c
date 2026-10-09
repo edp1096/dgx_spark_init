@@ -6,6 +6,7 @@
 static GDBusConnection *connection;
 static GArray *forwarded;
 static GString *committed;
+static GString *preediting;
 static guint deleted_count;
 
 typedef struct {
@@ -34,6 +35,23 @@ ibus_engine_commit_text (IBusEngine *engine, IBusText *text)
     g_string_append (committed, ibus_text_get_text (text));
     g_object_ref_sink (text);
     g_object_unref (text);
+}
+
+void
+ibus_engine_update_preedit_text (IBusEngine *engine, IBusText *text,
+                                guint cursor, gboolean visible)
+{
+    g_string_assign (preediting, visible ? ibus_text_get_text (text) : "");
+    g_object_ref_sink (text);
+    g_object_unref (text);
+}
+
+void
+ibus_engine_update_preedit_text_with_mode (IBusEngine *engine, IBusText *text,
+                                          guint cursor, gboolean visible,
+                                          IBusPreeditFocusMode mode)
+{
+    ibus_engine_update_preedit_text (engine, text, cursor, visible);
 }
 
 void
@@ -72,6 +90,7 @@ setup (Fixture *fixture, gconstpointer data)
     g_object_ref_sink (fixture->engine);
     g_array_set_size (forwarded, 0);
     g_string_truncate (committed, 0);
+    g_string_truncate (preediting, 0);
     deleted_count = 0;
 #if IBUS_CHECK_VERSION(1, 5, 28)
     IBUS_ENGINE_GET_CLASS (fixture->engine)->set_content_type (
@@ -296,6 +315,65 @@ test_reorder_opt_in (Fixture *fixture, gconstpointer data)
     g_assert_cmpstr (committed->str, ==, "니");
 }
 
+#if IBUS_CHECK_VERSION(1, 5, 28)
+static void
+test_repeated_jamo (Fixture *fixture, gconstpointer data)
+{
+    g_assert_true (key (fixture, IBUS_e, 0));
+    g_assert_true (key (fixture, IBUS_e, 0));
+    g_assert_cmpstr (committed->str, ==, "");
+    g_assert_cmpstr (preediting->str, ==, "ㄷㄷ");
+    g_assert_true (key (fixture, IBUS_e, 0));
+    g_assert_cmpstr (committed->str, ==, "ㄷㄷ");
+    g_assert_cmpstr (preediting->str, ==, "ㄷ");
+    key (fixture, IBUS_space, 0);
+    g_assert_cmpstr (committed->str, ==, "ㄷㄷㄷ");
+    g_assert_cmpstr (preediting->str, ==, "");
+}
+
+static void
+test_repeated_jamo_vowel (Fixture *fixture, gconstpointer data)
+{
+    g_assert_true (key (fixture, IBUS_e, 0));
+    g_assert_true (key (fixture, IBUS_e, 0));
+    g_assert_true (key (fixture, IBUS_k, 0));
+    g_assert_cmpstr (preediting->str, ==, "ㄷ다");
+    g_assert_cmpstr (committed->str, ==, "");
+    g_assert_true (key (fixture, IBUS_r, 0));
+    g_assert_cmpstr (preediting->str, ==, "ㄷ닥");
+    g_assert_true (key (fixture, IBUS_k, 0));
+    g_assert_cmpstr (committed->str, ==, "ㄷ다");
+    g_assert_cmpstr (preediting->str, ==, "가");
+    key (fixture, IBUS_space, 0);
+    g_assert_cmpstr (committed->str, ==, "ㄷ다가");
+}
+
+static void
+test_repeated_jamo_backspace (Fixture *fixture, gconstpointer data)
+{
+    g_assert_true (key (fixture, IBUS_e, 0));
+    g_assert_true (key (fixture, IBUS_e, 0));
+    g_assert_true (key (fixture, IBUS_BackSpace, 0));
+    g_assert_cmpstr (preediting->str, ==, "ㄷ");
+    g_assert_true (key (fixture, IBUS_BackSpace, 0));
+    g_assert_cmpstr (preediting->str, ==, "");
+    g_assert_cmpstr (committed->str, ==, "");
+}
+
+static void
+test_repeated_jamo_sync (Fixture *fixture, gconstpointer data)
+{
+    IBUS_ENGINE_GET_CLASS (fixture->engine)->set_capabilities (
+        fixture->engine, IBUS_CAP_SYNC_PROCESS_KEY_V2);
+    g_assert_true (key (fixture, IBUS_e, 0));
+    g_assert_true (key (fixture, IBUS_e, 0));
+    g_assert_cmpstr (committed->str, ==, "ㄷ");
+    g_assert_cmpstr (preediting->str, ==, "ㄷ");
+    key (fixture, IBUS_space, 0);
+    g_assert_cmpstr (committed->str, ==, "ㄷㄷ");
+}
+#endif
+
 int
 main (int argc, char **argv)
 {
@@ -315,6 +393,7 @@ main (int argc, char **argv)
     g_assert_no_error (error);
     forwarded = g_array_new (FALSE, FALSE, sizeof (ForwardedKey));
     committed = g_string_new (NULL);
+    preediting = g_string_new (NULL);
 
 #define ADD_TEST(name, func, forwarding) \
     g_test_add ("/backspace/" name, Fixture, GINT_TO_POINTER (forwarding), \
@@ -327,6 +406,10 @@ main (int argc, char **argv)
     ADD_TEST ("surrounding-repeats", test_surrounding_repeats, TRUE);
     ADD_TEST ("surrounding-bounds", test_surrounding_bounds, TRUE);
     ADD_TEST ("surrounding-unsupported", test_surrounding_unsupported, TRUE);
+    ADD_TEST ("repeated-jamo", test_repeated_jamo, TRUE);
+    ADD_TEST ("repeated-jamo-vowel", test_repeated_jamo_vowel, TRUE);
+    ADD_TEST ("repeated-jamo-backspace", test_repeated_jamo_backspace, TRUE);
+    ADD_TEST ("repeated-jamo-sync", test_repeated_jamo_sync, TRUE);
 #endif
     ADD_TEST ("nonterminal", test_nonterminal, TRUE);
     ADD_TEST ("url", test_url, TRUE);
@@ -339,6 +422,7 @@ main (int argc, char **argv)
     result = g_test_run ();
 
     g_string_free (committed, TRUE);
+    g_string_free (preediting, TRUE);
     g_array_unref (forwarded);
     g_dbus_connection_close_sync (connection, NULL, NULL);
     g_object_unref (connection);

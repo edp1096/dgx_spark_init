@@ -923,13 +923,38 @@ ibus_hangul_engine_process_edit_and_commit (IBusHangulEngine *hangul)
         }
     } else {
         if (hic_commit_text != NULL && hic_commit_text[0] != 0) {
-            IBusText *text;
+            gboolean defer_commit = FALSE;
+            gboolean native_preedit = FALSE;
+            gboolean had_deferred_preedit = ustring_length (hangul->preedit) > 0;
+#if IBUS_CHECK_VERSION(1, 5, 28)
+            native_preedit = !(hangul->caps & IBUS_CAP_SYNC_PROCESS_KEY_V2);
+            /* Chromium's Wayland text-input-v3 client omits a new preedit
+             * when it equals the previous one, even after committing it.
+             * Keep the first identical pair together as preedit (e.g. ㄷㄷ)
+             * so the next update differs. The existing preedit buffer also
+             * preserves normal Backspace, vowel composition and flushing. */
+            if (native_preedit &&
+                !had_deferred_preedit &&
+                hic_preedit_text != NULL && hic_preedit_text[0] != 0 &&
+                ucschar_strlen (hic_commit_text) == ucschar_strlen (hic_preedit_text) &&
+                memcmp (hic_commit_text, hic_preedit_text,
+                        ucschar_strlen (hic_commit_text) * sizeof (ucschar)) == 0)
+                defer_commit = TRUE;
+#endif
+            ustring_append_ucs4 (hangul->preedit, hic_commit_text, -1);
+            if (!defer_commit) {
+                IBusText *text;
 
-            /* clear preedit text before commit */
-            ibus_hangul_engine_clear_preedit_text (hangul);
-
-            text = ibus_text_new_from_ucs4 (hic_commit_text);
-            ibus_engine_commit_text (engine, text);
+                /* A native commit replaces the previous composition. An
+                 * intermediate empty preedit can make xterm.js finalize that
+                 * old composition a second time before the new one arrives. */
+                if (!native_preedit || hic_preedit_text == NULL ||
+                    hic_preedit_text[0] == 0)
+                    ibus_hangul_engine_clear_preedit_text (hangul);
+                text = ibus_text_new_from_ucs4 (ustring_begin (hangul->preedit));
+                ibus_engine_commit_text (engine, text);
+                ustring_clear (hangul->preedit);
+            }
         }
     }
 

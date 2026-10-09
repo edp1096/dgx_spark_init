@@ -21,6 +21,11 @@ Automatic jamo reordering is disabled by default: `ls` produces `ㅣㄴ`, while
 alternative behavior explicitly. Existing saved values take precedence over
 the default; turn that setting off if an earlier installation enabled it.
 
+On native Wayland input paths, identical consecutive jamo such as `ㄷㄷ` are
+kept together temporarily as preedit. Chromium can otherwise drop the new
+composition when it equals the one just committed. The engine preserves both
+characters when composing a following vowel, deleting, or committing the text.
+
 ### Backspace diagnostics and tests
 
 Native Wayland terminals can consume the first Backspace press while Hangul
@@ -72,14 +77,16 @@ jamo order, Latin input, and that deletion stops after release.
 Add `--vscode /usr/bin/code` to reproduce the VS Code integrated-terminal
 issue in an isolated profile. A temporary test extension records terminal
 input without launching a user shell; nothing is installed in the host VS Code.
-Terminal tests compare every Backspace press after composition ends with
-the actual DEL bytes received, so partial deletion loss fails the test.
+When Backspace first consumes a composition, terminal tests compare every
+remaining press with the actual DEL bytes received, so partial deletion loss
+fails the test. Add `--composition-only` with `--vscode` to check repeated jamo
+without running the known failing terminal deletion test. Add `--vscode-editor`
+with `--vscode` to check an isolated editor document instead of the terminal.
 
 Known limitation on GNOME 50 Wayland: VS Code's integrated terminal can lose
 held Backspace events after Hangul composition becomes empty. This remains
-unresolved; the VS Code editor was reported to work normally. The optional
-VS Code test currently reproduces this failure. No GNOME extension is included
-or required by this package.
+unresolved. The full optional VS Code terminal test currently reproduces this
+failure. No GNOME extension is included or required by this package.
 
 ## Installed files
 
