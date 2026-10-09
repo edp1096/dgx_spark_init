@@ -69,6 +69,18 @@ instead of VTE (the corresponding Python GI binding is required). Add
 using a temporary profile. These modes check composition, committed text,
 jamo order, Latin input, and that deletion stops after release.
 
+Add `--vscode /usr/bin/code` to reproduce the VS Code integrated-terminal
+issue in an isolated profile. A temporary test extension records terminal
+input without launching a user shell; nothing is installed in the host VS Code.
+Terminal tests compare every Backspace press after composition ends with
+the actual DEL bytes received, so partial deletion loss fails the test.
+
+Known limitation on GNOME 50 Wayland: VS Code's integrated terminal can lose
+held Backspace events after Hangul composition becomes empty. This remains
+unresolved; the VS Code editor was reported to work normally. The optional
+VS Code test currently reproduces this failure. No GNOME extension is included
+or required by this package.
+
 ## Installed files
 
 - `~/.local/libexec/hangul-backspace`

@@ -136,7 +136,43 @@ def browser_page(root):
     server.serve_forever()
 
 
-def session(root, binary, im_module, browser=None, entry_version=None):
+def vscode_extension(root):
+    """Record actual integrated-terminal input without running a user shell."""
+    extension = root / "test-extension"
+    extension.mkdir()
+    (extension / "package.json").write_text(json.dumps({
+        "name": "backspace-test", "publisher": "local", "version": "0.0.1",
+        "engines": {"vscode": "^1.80.0"}, "main": "extension.js",
+        "activationEvents": ["onStartupFinished"]}))
+    (extension / "extension.js").write_text("""
+const vscode = require('vscode');
+const fs = require('fs');
+const path = require('path');
+exports.activate = async function(context) {
+  const root = path.dirname(context.extensionPath);
+  const write = new vscode.EventEmitter();
+  const terminal = vscode.window.createTerminal({name: 'Isolated Backspace Test', pty: {
+    onDidWrite: write.event,
+    open() { write.fire('Private input test\\r\\n'); },
+    close() {},
+    handleInput(data) { fs.appendFileSync(path.join(root, 'bytes'), data); }
+  }});
+  context.subscriptions.push(terminal, write);
+  terminal.show();
+  await vscode.commands.executeCommand('workbench.action.terminal.focus');
+  fs.writeFileSync(path.join(root, 'ready'), '');
+};
+""")
+    profile = root / "code-profile/User"
+    profile.mkdir(parents=True)
+    (profile / "settings.json").write_text(json.dumps({
+        "workbench.startupEditor": "none", "update.mode": "none",
+        "telemetry.telemetryLevel": "off", "security.workspace.trust.enabled": False,
+        "terminal.integrated.gpuAcceleration": "off"}))
+    return extension
+
+
+def session(root, binary, im_module, browser=None, entry_version=None, vscode=None):
     import gi
     gi.require_version("IBus", "1.0")
     from gi.repository import Gio, GLib, IBus
@@ -203,6 +239,14 @@ def session(root, binary, im_module, browser=None, entry_version=None):
                    "--user-data-dir=" + str(root / "browser-profile"),
                    (root / "browser.url").read_text()], "browser")
             wait_until(lambda: (root / "browser-state.json").exists())
+        elif vscode:
+            extension = vscode_extension(root)
+            start([str(vscode), "--new-window", "--ozone-platform=wayland", "--password-store=basic",
+                   "--user-data-dir=" + str(root / "code-profile"),
+                   "--extensions-dir=" + str(root / "code-extensions"),
+                   "--extensionDevelopmentPath=" + str(extension),
+                   "--skip-welcome", "--skip-release-notes", "--disable-workspace-trust"], "code")
+            wait_until(lambda: (root / "ready").exists(), timeout=40)
         elif entry_version:
             start([sys.executable, str(Path(__file__).resolve()), "--entry" + entry_version,
                    str(root)], "entry")
@@ -239,14 +283,14 @@ def session(root, binary, im_module, browser=None, entry_version=None):
             key(code, False)
             time.sleep(0.08)
 
-        def hold():
-            key(14, True)
+        def hold(code=14):
+            key(code, True)
             time.sleep(1.2)
-            key(14, False)
+            key(code, False)
             time.sleep(0.3)
             snapshot = received()
             time.sleep(0.3)
-            assert received() == snapshot, "Deletion continued after release"
+            assert received() == snapshot, "Input continued after release"
 
         time.sleep(3)
         tap(1)  # Dismiss the private desktop's initial overview.
@@ -295,18 +339,24 @@ def session(root, binary, im_module, browser=None, entry_version=None):
             check_compositor()
             return
 
+        client = "vscode" if vscode else im_module
         for label, keys, prefix in [
                 ("composing", [19, 37] * 3, "가가".encode()),
                 ("committed", [19, 37] * 3 + [57], "가가가 ".encode())]:
             offset = len(received())
             for code in keys:
                 tap(code)
+            trace_offset = (root / "engine.log").stat().st_size
             hold()
             data = received()[offset:]
             assert data.startswith(prefix), (label, data)
             suffix = data[len(prefix):]
             assert len(suffix) >= 5 and suffix == b"\x7f" * len(suffix), (label, data)
-            print(f"PASS {im_module}/{label}: {len(suffix)} deletions", flush=True)
+            events = (root / "engine.log").read_text()[trace_offset:].splitlines()
+            presses = [event for event in events if "backspace event " in event and "release=0 " in event]
+            composing = sum("composing=1 " in event for event in presses)
+            assert len(suffix) == len(presses) - composing, (label, len(suffix), len(presses), composing)
+            print(f"PASS {client}/{label}: {len(suffix)} deletions", flush=True)
             offset = len(received())
             tap(14)
             time.sleep(0.2)
@@ -320,7 +370,40 @@ def session(root, binary, im_module, browser=None, entry_version=None):
                 tap(code)
             time.sleep(0.2)
             assert received()[offset:] == expected, (label, received()[offset:])
-            print(f"PASS {im_module}/{label}", flush=True)
+            print(f"PASS {client}/{label}", flush=True)
+
+        if vscode:
+            for label, taps in [("held-consonant", 0), ("tapped-then-held-consonant", 2)]:
+                offset = len(received())
+                for _ in range(taps):
+                    tap(30)  # a -> ㅁ
+                hold(30)
+                tap(57)  # Commit the last preedit before counting PTY input.
+                data = received()[offset:].decode()
+                assert data.endswith(" ") and set(data[:-1]) == {"ㅁ"}, (label, data)
+                count = len(data) - 1 - taps
+                assert 25 <= count <= 40, (label, count)
+                print(f"PASS vscode/{label}: {count} repeated consonants", flush=True)
+            for code in [19, 37] * 3:
+                tap(code)
+            tap(14)
+            tap(14)  # Empty composition with two distinct presses first.
+            offset = len(received())
+            trace_offset = (root / "engine.log").stat().st_size
+            hold()
+            presses = [line for line in (root / "engine.log").read_text()[trace_offset:].splitlines()
+                       if "backspace event " in line and "release=0 " in line]
+            assert received()[offset:] == b"\x7f" * len(presses), received()[offset:]
+            print(f"PASS vscode/tapped-then-held-backspace: {len(presses)} deletions", flush=True)
+            offset = len(received())
+            tap(19)
+            tap(37)
+            key(29, True)
+            tap(30)  # Ctrl+A after an active composition.
+            key(29, False)
+            time.sleep(0.2)
+            assert received()[offset:] == "가".encode() + b"\x01", received()[offset:]
+            print("PASS vscode/control-after-composition", flush=True)
 
         # Latin mode must retain the terminal's normal key handling as well.
         key(42, True)
@@ -335,7 +418,7 @@ def session(root, binary, im_module, browser=None, entry_version=None):
         assert data.startswith(b"rkrk"), data
         suffix = data[4:]
         assert len(suffix) >= 5 and suffix == b"\x7f" * len(suffix), data
-        print(f"PASS {im_module}/latin: {len(suffix)} deletions", flush=True)
+        print(f"PASS {client}/latin: {len(suffix)} deletions", flush=True)
         remote("Stop")
         check_compositor()
     finally:
@@ -367,12 +450,15 @@ def main():
                         help="Test Chrome/Chromium instead of VTE, using a temporary profile")
     parser.add_argument("--gtk-entry", choices=("3", "4"),
                         help="Test a GTK entry instead of VTE")
+    parser.add_argument("--vscode", type=Path,
+                        help="Test VS Code's integrated terminal with an isolated test extension")
     parser.add_argument("--session", type=Path, help=argparse.SUPPRESS)
     args = parser.parse_args()
-    if args.browser and args.gtk_entry:
-        parser.error("Choose either --browser or --gtk-entry")
+    if sum(bool(mode) for mode in (args.browser, args.gtk_entry, args.vscode)) > 1:
+        parser.error("Choose only one of --browser, --gtk-entry or --vscode")
     if args.session:
-        session(args.session, args.binary, args.im_module, args.browser, args.gtk_entry)
+        session(args.session, args.binary, args.im_module, args.browser, args.gtk_entry,
+                args.vscode)
         return
     binary = args.binary.resolve(strict=True)
     schemas = args.schema_dir.resolve(strict=True)
@@ -382,6 +468,7 @@ def main():
         if not shutil.which(command):
             parser.error("Missing dependency: " + command)
     browser = args.browser.resolve(strict=True) if args.browser else None
+    vscode = args.vscode.resolve(strict=True) if args.vscode else None
     root = Path(tempfile.mkdtemp(prefix="hangul-backspace-native."))
     env = os.environ.copy()
     for name, directory in [("XDG_RUNTIME_DIR", "run"), ("XDG_CONFIG_HOME", "config"),
@@ -400,6 +487,8 @@ def main():
     extra = ["--browser", str(browser)] if browser else []
     if args.gtk_entry:
         extra += ["--gtk-entry", args.gtk_entry]
+    if vscode:
+        extra += ["--vscode", str(vscode)]
     with (root / "session.log").open("w") as log:
         result = subprocess.run([
             "dbus-run-session", "--", sys.executable, str(Path(__file__).resolve()),
