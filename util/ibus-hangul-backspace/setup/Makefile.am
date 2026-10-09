@@ -56,13 +56,14 @@ CLEANFILES = \
 	hangul-backspace-setup \
 	config.py \
 	*.pyc \
+	$(desktop_in_files) \
 	hangul-backspace.desktop \
 	$(NULL)
 
 EXTRA_DIST = \
 	config.py.in \
 	hangul-backspace-setup.in \
-	hangul-backspace.desktop.in \
+	$(desktop_in_in_files) \
 	$(hicolor_icon_64_DATA) \
 	$(hicolor_icon_scalable_DATA) \
 	$(NULL)

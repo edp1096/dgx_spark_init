@@ -51,11 +51,16 @@ libinternal_a_CFLAGS = \
 
 check_PROGRAMS = \
 	test-ustring \
+	test-backspace \
 	$(NULL)
 
 TESTS = \
 	$(check_PROGRAMS) \
 	$(NULL)
+
+AM_TESTS_ENVIRONMENT = \
+	GSETTINGS_BACKEND=memory; export GSETTINGS_BACKEND; \
+	GSETTINGS_SCHEMA_DIR="$(abs_builddir)/test-schemas"; export GSETTINGS_SCHEMA_DIR;
 
 libexec_PROGRAMS = hangul-backspace
 
@@ -88,6 +93,7 @@ EXTRA_DIST = \
 
 CLEANFILES = \
 	hangul-backspace.xml \
+	test-schemas/gschemas.compiled \
 	$(NULL)
 
 hangul-backspace.xml: hangul-backspace.xml.in
@@ -104,6 +110,15 @@ test: hangul-backspace
 test_ustring_CFLAGS = $(IBUS_CFLAGS) $(HANGUL_CFLAGS)
 test_ustring_LDADD = $(IBUS_LIBS)
 test_ustring_SOURCES = test-ustring.c ustring.c ustring.h
+
+test_backspace_CFLAGS = $(IBUS_CFLAGS) $(HANGUL_CFLAGS)
+test_backspace_LDADD = libinternal.a $(IBUS_LIBS) $(HANGUL_LIBS)
+test_backspace_SOURCES = test-backspace.c
+test_backspace_DEPENDENCIES = libinternal.a test-schemas/gschemas.compiled
+
+test-schemas/gschemas.compiled: $(top_srcdir)/data/org.freedesktop.ibus.engine.hangul-backspace.gschema.xml
+	$(MKDIR_P) test-schemas
+	glib-compile-schemas --strict --targetdir=test-schemas $(top_srcdir)/data
 
 check-local:
 		$(builddir)/test-ustring

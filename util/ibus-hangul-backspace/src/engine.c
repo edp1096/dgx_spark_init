@@ -250,7 +250,7 @@ static HotkeyList off_keys;
 static int lookup_table_orientation = 0;
 static IBusKeymap *keymap = NULL;
 static gboolean word_commit = FALSE;
-static gboolean auto_reorder = TRUE;
+static gboolean auto_reorder = FALSE;
 static gboolean disable_latin_mode = FALSE;
 static int initial_input_mode = INPUT_MODE_LATIN;
 /**
@@ -258,6 +258,7 @@ static int initial_input_mode = INPUT_MODE_LATIN;
  * See: https://github.com/libhangul/ibus-hangul/issues/42
  */
 static gboolean use_event_forwarding = TRUE;
+static gboolean trace_backspace = FALSE;
 /**
  * whether to use client commit
  * See: https://github.com/libhangul/ibus-hangul/pull/68
@@ -392,6 +393,8 @@ void
 ibus_hangul_init (IBusBus *bus)
 {
     GVariant* value = NULL;
+
+    trace_backspace = g_strcmp0 (g_getenv ("HANGUL_BACKSPACE_TRACE"), "1") == 0;
 
     last_context_id = 0;
 
@@ -1391,6 +1394,17 @@ ibus_hangul_engine_process_key_event (IBusEngine     *engine,
     gboolean retval;
     guint orig_keyval = keyval;
 
+    if (trace_backspace && keyval == IBUS_BackSpace) {
+        g_printerr ("backspace event time=%" G_GINT64_FORMAT
+                    " release=%d code=%u state=0x%x caps=0x%x mode=%d input=%d"
+                    " purpose=%u sequence=%d preedit=%u composing=%d forwarding=%d\n",
+                    g_get_monotonic_time (), !!(modifiers & IBUS_RELEASE_MASK),
+                    keycode, modifiers, hangul->caps, hangul->preedit_mode,
+                    hangul->input_mode, hangul->input_purpose,
+                    hangul->backspace_sequence, ustring_length (hangul->preedit),
+                    !hangul_ic_is_empty (hangul->context), use_event_forwarding);
+    }
+
     if (modifiers & IBUS_RELEASE_MASK) {
         if (keyval == IBUS_BackSpace)
             hangul->backspace_sequence = FALSE;
@@ -1496,13 +1510,28 @@ ibus_hangul_engine_process_key_event (IBusEngine     *engine,
         if (retval) {
             hangul->backspace_sequence = TRUE;
         } else if (hangul->backspace_sequence) {
-            /* The initial BackSpace press was consumed while decomposing the
-             * active Hangul syllable. Forward subsequent repeat presses so
-             * the client can continue deleting committed text. Do not use
-             * delete_surrounding_text here: repeated direct deletion can
-             * crash Mutter's Wayland input-focus path. */
-            ibus_engine_forward_key_event (engine, orig_keyval, keycode,
-                                           modifiers);
+#if IBUS_CHECK_VERSION(1, 5, 28)
+            if (hangul->input_purpose == IBUS_INPUT_PURPOSE_TERMINAL &&
+                !(hangul->caps & IBUS_CAP_SYNC_PROCESS_KEY_V2)) {
+                /* Native Wayland terminals receive keys through the
+                 * compositor. Mutter 50 cannot forward these synthetic
+                 * events without a source device, and GTK 3 cannot start
+                 * client-side repeat when the initial press was consumed
+                 * by Hangul composition. Terminal input contexts accept
+                 * control characters: send DEL through the commit path
+                 * for each repeat after composition becomes empty. */
+                ibus_engine_commit_text (
+                    engine, ibus_text_new_from_static_string ("\177"));
+            } else
+#endif
+            {
+                /* The initial press was consumed while decomposing Hangul.
+                 * Forward repeats so the client can delete committed text.
+                 * Repeated delete_surrounding_text can crash Mutter's
+                 * Wayland input-focus path. */
+                ibus_engine_forward_key_event (engine, orig_keyval, keycode,
+                                               modifiers);
+            }
             retval = TRUE;
         }
 

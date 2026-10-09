@@ -34,6 +34,7 @@ EXTRA_DIST = \
 	install-user.sh \
 	uninstall-user.sh \
 	README.md \
+	tests/native-backspace.py \
 	hangul-backspace.spec.in \
 	$(NULL)
 

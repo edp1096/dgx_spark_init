@@ -18,9 +18,9 @@
       <description></description>
     </key>
     <key name="auto-reorder" type="b">
-      <default>true</default>
+      <default>false</default>
       <summary>Auto reorder</summary>
-      <description></description>
+      <description>Reorder out-of-order jamo into a syllable. Disabled by default to preserve typing order, for example ls produces ㅣㄴ rather than 니.</description>
     </key>
     <key name="switch-keys" type="s">
       <default>'Hangul,Shift+space'</default>
