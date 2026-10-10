@@ -128,6 +128,14 @@
     "target": "qwim-mmh3/worker.py"
   },
   {
+    "source": "compose_yaml/qwim_mmh3_service/sol_runtime.py",
+    "target": "qwim-mmh3/sol_runtime.py"
+  },
+  {
+    "source": "compose_yaml/qwim_mmh3_service/image_inputs.py",
+    "target": "qwim-mmh3/image_inputs.py"
+  },
+  {
     "source": "compose_yaml/qwim_mmh3_service/generation_progress.py",
     "target": "qwim-mmh3/generation_progress.py"
   },
@@ -182,5 +190,41 @@
   {
     "source": "compose_yaml/qwen-image21/resident_settings.json",
     "target": "qwen-image21/resident_settings.json"
+  },
+  {
+    "source": "compose_yaml/sparktalk_extra/embedding/Dockerfile",
+    "target": "embedding/Dockerfile"
+  },
+  {
+    "source": "compose_yaml/sparktalk_extra/embedding/server.py",
+    "target": "embedding/server.py"
+  },
+  {
+    "source": "compose_yaml/sparktalk_extra/embedding/prepare.py",
+    "target": "embedding/prepare.py"
+  },
+  {
+    "source": "compose_yaml/qwen38fn_exl3_q4/Dockerfile",
+    "target": "qwen38fn_exl3_q4/Dockerfile"
+  },
+  {
+    "source": "compose_yaml/qwen38fn_exl3_q4/launch.py",
+    "target": "qwen38fn_exl3_q4/launch.py"
+  },
+  {
+    "source": "compose_yaml/qwen38fn_exl3_q4/release_weight_cache.py",
+    "target": "qwen38fn_exl3_q4/release_weight_cache.py"
+  },
+  {
+    "source": "compose_yaml/qwen38fn_exl3_q4/velogb10-exl3-yarn.patch",
+    "target": "qwen38fn_exl3_q4/velogb10-exl3-yarn.patch"
+  },
+  {
+    "source": "compose_yaml/qwen38fn_exl3_q4/velogb10-exl3-schema.patch",
+    "target": "qwen38fn_exl3_q4/velogb10-exl3-schema.patch"
+  },
+  {
+    "source": "compose_yaml/qwen38fn_exl3_q4/compose.yaml",
+    "target": "compose.qwen38fn_exl3_q4.yaml"
   }
 ]

@@ -33,6 +33,25 @@
       "auto_address": true
     },
     {
+      "id": "qwen38fn_exl3_q4",
+      "name": "Qwen 3.8 Flash-Next EXL3 4bit",
+      "role": "llm",
+      "host": "local",
+      "controller": "compose",
+      "endpoint": "http://127.0.0.1:18004",
+      "bind_address": "127.0.0.1",
+      "port": 18004,
+      "container": "sparktalk-qwen38fn-exl3-q4",
+      "health_url": "http://127.0.0.1:18004/health",
+      "model": "qwen38fn_exl3_q4",
+      "memory_gib": 100,
+      "workspace_memory_gib": 4,
+      "startup_timeout_seconds": 1800,
+      "compose_asset": "compose.qwen38fn_exl3_q4.yaml",
+      "progress_kind": "service",
+      "auto_address": true
+    },
+    {
       "id": "flash-next",
       "role": "llm",
       "container": "sglang-qwen38-fn",
@@ -287,7 +306,27 @@
       },
       "endpoint": "http://127.0.0.1:18003",
       "port": 18003,
-      "name": "Qwen 3.8 Flash-Next NVFP4"
+      "name": "Qwen 3.8 Flash-Next NVFP4",
+      "workspace_memory_gib": 8
+    },
+    {
+      "id": "extra-embedding",
+      "name": "EmbeddingGemma 2",
+      "role": "tool",
+      "controller": "compose",
+      "host": "local",
+      "container": "sparktalk-embedding",
+      "endpoint": "http://127.0.0.1:8701",
+      "health_url": "http://127.0.0.1:8701/health",
+      "bind_address": "127.0.0.1",
+      "port": 8701,
+      "compose_asset": "compose.extra-embedding.yaml",
+      "memory_gib": 4,
+      "startup_timeout_seconds": 180,
+      "auto_address": true,
+      "model": "google/embeddinggemma-2",
+      "keep_resident": true,
+      "start_after_llm": true
     }
   ],
   "bundles": [
@@ -320,7 +359,8 @@
         "extra-media",
         "extra-ssh",
         "extra-collector",
-        "qwen3-tts"
+        "qwen3-tts",
+        "extra-embedding"
       ],
       "bindings": {
         "nemotron-asr": {
@@ -335,7 +375,31 @@
         }
       },
       "workload_swap": true,
-      "name": "Qwen 3.8 Flash-Next EXL3"
+      "name": "Qwen 3.8 Flash-Next EXL3 3bit"
+    },
+    {
+      "id": "qwen38fn_exl3_q4",
+      "name": "Qwen 3.8 Flash-Next EXL3 4bit",
+      "description": "VeloGB10 · EXL3 4bit HQ h6 ng6 · Q8 KV 1M·YaRN 4·MTP 3 · ASR·임베딩 상주 · Extra",
+      "model_type": "qwen38fn_exl3",
+      "model_id": "qwen38fn_exl3_q4",
+      "context_tokens": 1048576,
+      "components": [
+        "qwen38fn_exl3_q4",
+        "nemotron-asr",
+        "extra-media",
+        "extra-ssh",
+        "extra-collector",
+        "extra-documents",
+        "extra-embedding"
+      ],
+      "bindings": {
+        "nemotron-asr": {
+          "start_after_llm": true,
+          "keep_resident": true
+        }
+      },
+      "workload_swap": true
     },
     {
       "id": "flash-next-radixark",
@@ -349,11 +413,13 @@
         "extra-media",
         "extra-ssh",
         "extra-collector",
-        "extra-documents"
+        "extra-documents",
+        "extra-embedding"
       ],
       "bindings": {
         "nemotron-asr": {
-          "start_after_llm": true
+          "start_after_llm": true,
+          "keep_resident": true
         }
       },
       "name": "Qwen 3.8 Flash-Next NVFP4",

@@ -36,6 +36,8 @@ func embeddedBuildAsset(compose string) string {
 		return "gemma31"
 	case "compose.flash-next.yaml":
 		return "flash-next"
+	case "compose.qwen38fn_exl3_q4.yaml":
+		return "qwen38fn_exl3_q4"
 	case "compose.qwen38fn_exl3.yaml":
 		return "qwen38fn_exl3"
 	}

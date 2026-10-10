@@ -29,6 +29,7 @@ type Config struct {
 	ASR         ASRConfig         `yaml:"asr" json:"asr"`
 	TTS         TTSConfig         `yaml:"tts" json:"tts"`
 	Context     ContextConfig     `yaml:"context" json:"context"`
+	Embedding   EmbeddingConfig   `yaml:"embedding" json:"embedding"`
 	Memory      MemoryConfig      `yaml:"memory" json:"memory"`
 	Tools       ToolsConfig       `yaml:"tools" json:"tools"`
 	Image       ImageConfig       `yaml:"image" json:"image"`
@@ -140,6 +141,13 @@ func (c ContextConfig) EffectiveOutputReserve(window int) int {
 	return max(1, (window-c.SafetyMargin)/4)
 }
 
+type EmbeddingConfig struct {
+	Enabled       bool    `yaml:"enabled" json:"enabled"`
+	Endpoint      string  `yaml:"endpoint" json:"endpoint"`
+	Timeout       string  `yaml:"timeout" json:"timeout"`
+	MinSimilarity float64 `yaml:"min_similarity" json:"min_similarity"`
+}
+
 // MemoryConfig controls bounded cross-session recall. The source transcript
 // stays in SQLite; only a small relevant excerpt is added to model context.
 type MemoryConfig struct {
@@ -199,6 +207,7 @@ type PublicConfig struct {
 	ASR         ASRConfig         `json:"asr"`
 	TTS         TTSConfig         `json:"tts"`
 	Context     ContextConfig     `json:"context"`
+	Embedding   EmbeddingConfig   `json:"embedding"`
 	Memory      MemoryConfig      `json:"memory"`
 	Tools       ToolsConfig       `json:"tools"`
 	Image       ImageConfig       `json:"image"`
@@ -548,6 +557,15 @@ func (c Config) Validate() error {
 	if c.Context.OutputReserve < 256 || c.Context.SafetyMargin < 256 || c.Context.RecentTokens < 256 || c.Context.ImageTokens < 1 {
 		return errors.New("context token budgets are too small")
 	}
+	if c.Embedding.Enabled && (!strings.HasPrefix(c.Embedding.Endpoint, "http://") && !strings.HasPrefix(c.Embedding.Endpoint, "https://")) {
+		return errors.New("embedding.endpoint must be an HTTP URL")
+	}
+	if c.Embedding.MinSimilarity < 0 || c.Embedding.MinSimilarity > 1 || math.IsNaN(c.Embedding.MinSimilarity) || math.IsInf(c.Embedding.MinSimilarity, 0) {
+		return errors.New("embedding.min_similarity must be between 0 and 1")
+	}
+	if _, err := time.ParseDuration(c.Embedding.Timeout); c.Embedding.Timeout != "" && err != nil {
+		return errors.New("invalid embedding.timeout")
+	}
 	if c.Memory.MaxResults < 1 || c.Memory.MaxResults > 12 {
 		return errors.New("memory.max_results must be between 1 and 12")
 	}
@@ -564,7 +582,7 @@ func (c Config) Validate() error {
 }
 
 func (c Config) Public() PublicConfig {
-	public := PublicConfig{Attachments: c.Attachments.Normalized(), Version: c.Version, Server: c.Server, Runtime: c.Runtime, Model: c.Model, ASR: c.ASR, TTS: c.TTS, Context: c.Context, Memory: c.Memory, Tools: c.Tools, Image: c.Image, Extra: c.Extra, Appearance: c.Appearance, APIKeySet: c.Model.APIKey != ""}
+	public := PublicConfig{Attachments: c.Attachments.Normalized(), Version: c.Version, Server: c.Server, Runtime: c.Runtime, Model: c.Model, ASR: c.ASR, TTS: c.TTS, Context: c.Context, Memory: c.Memory, Embedding: c.Embedding, Tools: c.Tools, Image: c.Image, Extra: c.Extra, Appearance: c.Appearance, APIKeySet: c.Model.APIKey != ""}
 	public.Model.APIKey = ""
 	return public
 }

@@ -109,6 +109,7 @@ func (s *Server) configuration(w http.ResponseWriter, r *http.Request) {
 			ASR         config.ASRConfig        `json:"asr"`
 			TTS         config.TTSConfig        `json:"tts"`
 			Context     config.ContextConfig    `json:"context"`
+			Embedding   *config.EmbeddingConfig `json:"embedding"`
 			Memory      config.MemoryConfig     `json:"memory"`
 			Tools       config.ToolsConfig      `json:"tools"`
 			Image       config.ImageConfig      `json:"image"`
@@ -123,6 +124,10 @@ func (s *Server) configuration(w http.ResponseWriter, r *http.Request) {
 		}
 		old, _ := s.snapshot()
 		next := config.Config{Version: req.Version, Server: req.Server, Runtime: req.Runtime, Model: req.Model, ASR: req.ASR, TTS: req.TTS, Context: req.Context, Memory: req.Memory, Tools: req.Tools, Image: req.Image, Extra: req.Extra, Appearance: req.Appearance}
+		next.Embedding = old.Embedding
+		if req.Embedding != nil {
+			next.Embedding = *req.Embedding
+		}
 		next.Attachments = old.Attachments
 		if req.Attachments != nil {
 			next.Attachments = *req.Attachments

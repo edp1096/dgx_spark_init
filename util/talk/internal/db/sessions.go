@@ -268,6 +268,35 @@ func (d *DB) UpdateSessionTitle(id, title string) error {
 	return err
 }
 
+func (d *DB) SessionTitleState(id string) (title string, manual bool, err error) {
+	err = d.conn.QueryRow(`SELECT title,title_manual FROM sessions WHERE id=?`, id).Scan(&title, &manual)
+	return
+}
+
+// Both manual edits and another model title supersede a delayed title request.
+func (d *DB) UpdateSessionTitleIfUnchanged(id, expected, title string) (bool, error) {
+	result, err := d.conn.Exec(`UPDATE sessions SET title=?,updated_at=? WHERE id=? AND title_manual=0 AND title=? AND title<>?`, title, time.Now(), id, expected, title)
+	if err != nil {
+		return false, err
+	}
+	changed, err := result.RowsAffected()
+	return changed > 0, err
+}
+
+// Explicit user instructions can rename protected titles and remain protected
+// from future automatic changes. A concurrent UI edit always wins.
+func (d *DB) UpdateSessionTitleFromTool(id, expected, title string, expectedManual, userRequested bool) (bool, error) {
+	if expectedManual && !userRequested {
+		return false, nil
+	}
+	result, err := d.conn.Exec(`UPDATE sessions SET title=?,title_manual=?,updated_at=? WHERE id=? AND title=? AND title_manual=? AND (title<>? OR title_manual<>?)`, title, userRequested, time.Now(), id, expected, expectedManual, title, userRequested)
+	if err != nil {
+		return false, err
+	}
+	changed, err := result.RowsAffected()
+	return changed > 0, err
+}
+
 func (d *DB) RenameSession(id, title string) error {
 	result, err := d.conn.Exec(`UPDATE sessions SET title=?, title_manual=1, updated_at=? WHERE id=?`, title, time.Now(), id)
 	if err != nil {

@@ -2,6 +2,8 @@ package config
 
 func (c Config) SupportEnabled(key string) bool {
 	switch key {
+	case "embedding":
+		return c.SemanticSearchEnabled()
 	case "media":
 		return c.Tools.MediaImportEnabled
 	case "collector":
@@ -15,6 +17,8 @@ func (c Config) SupportEnabled(key string) bool {
 }
 func (c Config) SupportEndpoint(key string) string {
 	switch key {
+	case "embedding":
+		return c.Embedding.Endpoint
 	case "media":
 		if c.Extra.MediaEndpoint != "" {
 			return c.Extra.MediaEndpoint

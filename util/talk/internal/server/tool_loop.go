@@ -99,6 +99,8 @@ func runCompletionLoopForSessionWithMedia(
 	if images, ok := ctx.Value(turnImageKey{}).(*turnImages); !ok || images.sessionID != sessionID {
 		ctx = context.WithValue(ctx, turnImageKey{}, &turnImages{sessionID: sessionID, items: make(map[string]db.Attachment), requiredOriginals: requestedOriginalImagesForContext(ctx, server, sessionID)})
 	}
+	// Tool-produced image/user messages must not authorize conversation changes.
+	ctx = context.WithValue(ctx, sessionTitleRequestKey{}, currentTitleRequestText(messages))
 	registry := newCompletionToolRegistryForContext(ctx, server, sessionID, toolConfig, toolsEnabled, mediaSink)
 	if inStage {
 		for name := range stage.Skills {

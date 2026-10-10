@@ -29,6 +29,7 @@ func isQwenImage21(x Component) bool {
 
 type idleWorkloadState struct {
 	Status    string   `json:"status"`
+	Ready     *bool    `json:"ready"`
 	Busy      *bool    `json:"busy"`
 	Queued    int      `json:"queued"`
 	Quiescing bool     `json:"quiescing"`
@@ -305,6 +306,9 @@ func (c *Controller) acquireManagedWorkload(ctx context.Context, b Bundle, x Com
 		}
 		return nil, err
 	}
+	if x.ServiceRole() == "embedding" && !c.embeddingCoreRunning(ctx, b) {
+		return fail(fmt.Errorf("의미 검색을 사용하려면 모델 세트를 먼저 시작하세요"))
+	}
 	if len(requested) > 0 && requested[0] > 0 {
 		x.MemoryGiB = max(x.MemoryGiB, requested[0])
 	}
@@ -340,7 +344,11 @@ func (c *Controller) acquireManagedWorkload(ctx context.Context, b Bundle, x Com
 			memory = c.memoryProbe()
 		}
 		needed := workloadAdditionalMemory(x, resident)
-		err := validateMemoryHeadroom(memory, memoryPlan{NeededGiB: needed, RequiresCUDAStart: !running, MinimumCUDAFreeGiB: managedAuxiliaryCUDAFreeGiB}, normalizedMemoryReserve(reserve))
+		coldFree := managedAuxiliaryCUDAFreeGiB
+		if x.ComposeAsset == "compose.extra-embedding.yaml" {
+			coldFree = 4
+		}
+		err := validateMemoryHeadroom(memory, memoryPlan{NeededGiB: needed, RequiresCUDAStart: !running, MinimumCUDAFreeGiB: coldFree}, normalizedMemoryReserve(reserve))
 		if err == nil {
 			break
 		}
@@ -361,8 +369,14 @@ func (c *Controller) acquireManagedWorkload(ctx context.Context, b Bundle, x Com
 		var cold *cudaStartMemoryError
 		if !running && !cacheReclaimed && errors.As(err, &cold) {
 			cacheReclaimed = true
-			if e := c.reclaimAuxiliaryFileCache(ctx, b); e != nil {
-				return fail(e)
+			var cacheErr error
+			if x.ComposeAsset == "compose.extra-embedding.yaml" {
+				cacheErr = c.reclaimEmbeddingFileCache(ctx, x)
+			} else {
+				cacheErr = c.reclaimAuxiliaryFileCache(ctx, b)
+			}
+			if cacheErr != nil {
+				return fail(cacheErr)
 			}
 			continue
 		}
@@ -370,6 +384,29 @@ func (c *Controller) acquireManagedWorkload(ctx context.Context, b Bundle, x Com
 	}
 	if err := c.startAndWaitContext(ctx, x); err != nil {
 		return fail(err)
+	}
+	if x.ComposeAsset == "compose.extra-embedding.yaml" {
+		state, err := c.workloadIdleState(ctx, x)
+		if err != nil {
+			return fail(err)
+		}
+		if state.Ready == nil {
+			return fail(fmt.Errorf("embedding readiness was not reported"))
+		}
+		if !*state.Ready {
+			// Preparation hashes the checkpoint and warms its file cache. Reclaim
+			// those closed pages after preparation, before the first CUDA model load.
+			if err := c.reclaimEmbeddingFileCache(ctx, x); err != nil {
+				return fail(err)
+			}
+			memory := readSystemMemory()
+			if c.memoryProbe != nil {
+				memory = c.memoryProbe()
+			}
+			if err := validateMemoryHeadroom(memory, memoryPlan{NeededGiB: x.MemoryGiB, RequiresCUDAStart: true, MinimumCUDAFreeGiB: 4}, normalizedMemoryReserve(reserve)); err != nil {
+				return fail(err)
+			}
+		}
 	}
 	c.updateOperation(x.ID, progressInfo{Key: "workload:execute", Phase: x.Name + " 처리 중", Detail: "연속 요청은 같은 프로세스를 이어서 사용합니다."})
 	return release, nil
@@ -382,9 +419,9 @@ func (c *Controller) AdoptIdleWorkloads(bundleID string) {
 	if !ok {
 		return
 	}
-	for _, id := range b.Components {
-		x, found := c.Catalog().ResolveComponent(bundleID, id)
-		if found && (isQwenImage21(x) || (isManagedTTS(x) && c.local(x))) {
+	for _, id := range c.workloadBundle(b).Components {
+		x, found := c.Catalog().ResolveSupport(bundleID, id)
+		if found && (x.ComposeAsset == "compose.extra-embedding.yaml" || isQwenImage21(x) || (isManagedTTS(x) && c.local(x))) {
 			c.workloadActivity(x)()
 		}
 	}

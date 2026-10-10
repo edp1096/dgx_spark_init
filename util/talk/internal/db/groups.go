@@ -101,6 +101,34 @@ func (d *DB) SetSessionGroup(sessionID, groupID string) error {
 	return rowsAffected(result, err)
 }
 
+// MoveSessionGroupIfUnchanged protects a newer UI move from a pending tool call.
+// The destination check is part of the UPDATE, so a concurrently deleted folder
+// cannot leave a dangling session assignment.
+func (d *DB) MoveSessionGroupIfUnchanged(sessionID, expectedGroupID, groupID string) (bool, error) {
+	if _, err := d.Session(sessionID); err != nil {
+		return false, err
+	}
+	if groupID != "" {
+		var exists int
+		if err := d.conn.QueryRow(`SELECT 1 FROM chat_groups WHERE id=?`, groupID).Scan(&exists); err != nil {
+			return false, err
+		}
+	}
+	var value any
+	if groupID != "" {
+		value = groupID
+	}
+	result, err := d.conn.Exec(`UPDATE sessions SET group_id=?,updated_at=?
+		WHERE id=? AND COALESCE(group_id,'')=? AND COALESCE(group_id,'')<>?
+		AND (?='' OR EXISTS(SELECT 1 FROM chat_groups WHERE id=?))`,
+		value, time.Now(), sessionID, expectedGroupID, groupID, groupID, groupID)
+	if err != nil {
+		return false, err
+	}
+	rows, err := result.RowsAffected()
+	return rows > 0, err
+}
+
 func rowsAffected(result sql.Result, err error) error {
 	if err != nil {
 		return err

@@ -141,8 +141,8 @@ func TestResidentBundleMemoryIncludesRetainedModelsAndOneWorkspace(t *testing.T)
 	}
 	b, _ := catalog.Bundle("qwen38fn_exl3")
 	core, _ := catalog.ResolveComponent(b.ID, "qwen38fn_exl3")
-	// Joint image/video startup floor 18 + ASR 3.5 + TTS 2.5 + workspace 10.
-	if b.MemoryGiB != core.MemoryGiB+34 {
+	// Joint image/video startup floor 18 + ASR 3.5 + TTS 2.5 + embedding 4 + workspace 10.
+	if b.MemoryGiB != core.MemoryGiB+38 {
 		t.Fatalf("resident stack not reserved: %+v", b)
 	}
 	var states []ComponentStatus
@@ -150,7 +150,7 @@ func TestResidentBundleMemoryIncludesRetainedModelsAndOneWorkspace(t *testing.T)
 		x, _ := catalog.ResolveComponent(b.ID, id)
 		states = append(states, ComponentStatus{Component: x, ResidentMemoryGiB: resident, MemoryMeasured: true})
 	}
-	if got := observedBundleBudget(catalog, b, states); got != core.MemoryGiB+36 {
+	if got := observedBundleBudget(catalog, b, states); got != core.MemoryGiB+40 {
 		t.Fatalf("observed residency/workspace lost or double-counted: %v", got)
 	}
 	qad, _ := catalog.Bundle("flash-next")

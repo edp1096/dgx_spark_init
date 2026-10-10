@@ -28,12 +28,14 @@
     } catch (e) { if (e.name !== 'AbortError') error = e.message; }
     finally { loading = false; }
   }
-  function enabled(key) { return key === 'media' ? settings.tools.media_import_enabled : settings.extra[enabledFields[key]]; }
+  function enabled(key) { if (key === 'embedding') return settings.embedding.enabled; return key === 'media' ? settings.tools.media_import_enabled : settings.extra[enabledFields[key]]; }
   function setEnabled(key, value) {
-    if (key === 'media') settings = { ...settings, tools: { ...settings.tools, media_import_enabled: value } };
+    if (key === 'embedding') settings = { ...settings, embedding: { ...settings.embedding, enabled: value } };
+    else if (key === 'media') settings = { ...settings, tools: { ...settings.tools, media_import_enabled: value } };
     else settings = { ...settings, extra: { ...settings.extra, [enabledFields[key]]: value } };
   }
   function deployment(row) {
+    if (!snapshot?.managed && row.key === 'embedding') return { endpoint: settings.embedding.endpoint, host: 'external' };
     if (!snapshot?.managed) return { endpoint: settings.extra[endpointFields[row.key]] || (row.key === 'media' ? settings.asr.ffmpeg_endpoint : ''), host: 'external' };
     const definition = settings.runtime.catalog?.components?.find(c => c.id === row.id) || row;
     const bundle = settings.runtime.catalog?.bundles?.find(b => b.id === snapshot.bundle_id);
@@ -41,6 +43,7 @@
   }
   function edit(row, field, value) {
     if (!snapshot.managed) {
+      if (row.key === "embedding") { settings = { ...settings, embedding: { ...settings.embedding, endpoint: value } }; return; }
       settings = { ...settings, extra: { ...settings.extra, [endpointFields[row.key]]: value } };
       if (row.key === 'media') settings.asr.ffmpeg_endpoint = value;
       return;
@@ -108,7 +111,7 @@
       {#if dirty(row)}<small>배치 변경을 저장한 뒤 서비스를 조작하세요.</small>{/if}
       {#if snapshot.managed}
         <div class="buttons">
-          <button type="button" disabled={busy || dirty(row) || row.controller === 'external'} onclick={() => action(row, 'prepare')}>이미지 준비</button>
+          <button type="button" disabled={busy || dirty(row) || row.controller === 'external'} onclick={() => action(row, 'prepare')}>{row.key === "embedding" ? "모델·서비스 준비" : "이미지 준비"}</button>
           <button type="button" disabled={busy || dirty(row) || running || row.controller === 'external'} onclick={() => action(row, 'start')}>시작</button>
           <button type="button" disabled={busy || dirty(row) || !running || row.controller === 'external'} onclick={() => action(row, 'stop')}>중지</button>
           <button type="button" disabled={busy || dirty(row) || !running || row.controller === 'external'} onclick={() => action(row, 'restart')}>재시작</button>

@@ -31,8 +31,8 @@ func TestSharedExtraResolvesPerSet(t *testing.T) {
 			extras++
 		}
 	}
-	if extras != 4 {
-		t.Fatalf("want 4 definitions, got %d", extras)
+	if extras != len(SupportSpecs()) {
+		t.Fatalf("want shared support definitions, got %d", extras)
 	}
 	local, _ := catalog.ResolveComponent("flash-next", "extra-collector")
 	remote, _ := catalog.ResolveComponent("glm53-worker-extra", "extra-collector")
@@ -249,6 +249,7 @@ func TestSnapshotUsesSelectedBinding(t *testing.T) {
 	catalog, _ := LoadCatalog()
 	for i := range catalog.Components {
 		if catalog.Components[i].IsSupport() {
+			catalog.Components[i].KeepResident = false
 			catalog.Components[i].Controller = "external"
 			catalog.Components[i].HealthURL = api.URL
 		}

@@ -18,6 +18,7 @@ func (s *Server) routes(web fs.FS) *http.ServeMux {
 	mux.HandleFunc("/api/credentials/huggingface", s.huggingFaceToken)
 	mux.HandleFunc("/api/models/prepare", s.modelPreparation)
 	mux.HandleFunc("/api/ssh/key-store", s.sshKeyStore)
+	mux.HandleFunc("/api/retrieval/status", s.retrievalStatus)
 	mux.HandleFunc("/api/support", s.supportServices)
 	mux.HandleFunc("/api/media/yt-dlp", s.mediaRuntime)
 	mux.HandleFunc("/api/media/yt-dlp/", s.mediaRuntime)

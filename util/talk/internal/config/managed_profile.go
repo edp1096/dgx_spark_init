@@ -50,6 +50,8 @@ func (c *Config) ApplyManagedBundle(bundle string) {
 			c.Extra.MediaEndpoint, c.ASR.FFmpegEndpoint = endpoint, endpoint
 		case "ssh":
 			c.Extra.SSHEndpoint = endpoint
+		case "embedding":
+			c.Embedding.Endpoint = endpoint
 		case "documents":
 			c.Extra.DocumentsEndpoint = endpoint
 		case "collector":
@@ -77,6 +79,8 @@ func (c *Config) ApplyManagedBundle(bundle string) {
 			c.Extra.SSHEndpoint = endpoint
 		case "collector":
 			c.Extra.CollectorEndpoint = endpoint
+		case "embedding":
+			c.Embedding.Endpoint = endpoint
 		case "documents":
 			c.Extra.DocumentsEndpoint = endpoint
 		}

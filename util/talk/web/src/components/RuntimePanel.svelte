@@ -14,6 +14,7 @@
     targetBundle = selectedBundle.id;
   }
   $: selectedComponents = (runtime?.components || []).filter((component) => selectedBundle?.components?.includes(component.id));
+  $: residentServices = selectedComponents.filter(c => c.keep_resident).map(c => c.id === 'extra-embedding' ? '의미 검색' : ({ image: '이미지', asr: 'ASR', tts: 'TTS' }[c.role] || c.name));
   $: operationRunning = runtime?.operation?.state === 'running';
   $: selectedBundleOnline = selectedComponents.length > 0 && selectedComponents.every((component) => component.health === 'online' || isOnDemand(component));
   $: targetIsSelected = targetBundle === runtime?.selected_bundle;
@@ -105,7 +106,7 @@
   {/if}
 
   {#if selectedBundle?.workload_swap}
-    <small class="runtime-workload-note">{selectedComponents.some(component => ['image', 'asr', 'tts'].includes(component.role)) ? (selectedComponents.some(component => component.keep_resident) ? '이미지·ASR·TTS 상주 · 같은 프로세스 재사용' : (selectedComponents.some(component => ['image', 'tts'].includes(component.role)) ? '연속 이미지·TTS 작업 재사용 · 2분 유휴 또는 메모리 부족 시 회수' : 'ASR·Extra 요청 시 실행 · 대화 모델 상주 유지')) : 'Extra 요청 시 실행 · 대화 모델 상주 유지'}</small>
+    <small class="runtime-workload-note">{selectedComponents.some(component => ['image', 'asr', 'tts'].includes(component.role)) ? (residentServices.length ? `${residentServices.join('·')} 상주 · 같은 프로세스 재사용` : (selectedComponents.some(component => ['image', 'tts'].includes(component.role)) ? '연속 이미지·TTS 작업 재사용 · 2분 유휴 또는 메모리 부족 시 회수' : 'ASR·Extra 요청 시 실행 · 대화 모델 상주 유지')) : 'Extra 요청 시 실행 · 대화 모델 상주 유지'}</small>
   {/if}
   <div class="runtime-switch">
     <Select bind:value={targetBundle} aria-label="전환할 AI 세트">

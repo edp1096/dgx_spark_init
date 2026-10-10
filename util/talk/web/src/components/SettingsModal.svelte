@@ -159,6 +159,7 @@
         tts: settings.tts,
         context: settings.context,
         memory: settings.memory,
+        embedding: settings.embedding,
         tools: settings.tools,
         image: settings.image,
         extra: settings.extra,
@@ -254,7 +255,7 @@
       </div>
 
       <div id="settings-panel-memory" class="settings-tab-panel" class:active={activeTab === 'memory'} role="tabpanel" aria-labelledby="settings-tab-memory">
-        <MemorySettings config={settings.memory} />
+        <MemorySettings config={settings.memory} embedding={settings.embedding} />
       </div>
 
       <div id="settings-panel-voice" class="settings-tab-panel" class:active={activeTab === 'voice'} role="tabpanel" aria-labelledby="settings-tab-voice">

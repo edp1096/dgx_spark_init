@@ -28,6 +28,8 @@ export async function consumeSSE(response, handlers) {
       if (!raw) continue;
       const data = JSON.parse(raw);
       if (event === 'turn_started') handlers.turnStarted?.(data);
+      if (event === 'session_title') handlers.sessionTitle?.(data);
+      if (event === 'session_folder') handlers.sessionFolder?.(data);
       if (event === 'steering_applied') handlers.steeringApplied?.(data);
       if (event === 'delta') handlers.delta?.(data.delta || '');
       if (event === 'reasoning') handlers.reasoning?.(data.delta || '');

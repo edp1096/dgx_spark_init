@@ -31,7 +31,7 @@ func TestDisplayNamesPreserveCustomNamesBindingsAndRuntimeIdentity(t *testing.T)
 	for _, c := range cfg.Runtime.Catalog.Components {
 		switch c.ID {
 		case "qwen38fn_exl3":
-			if c.Name != "Qwen 3.8 Flash-Next EXL3" || c.Model != "qwen38fn_exl3" {
+			if c.Name != "Qwen 3.8 Flash-Next EXL3 3bit" || c.Model != "qwen38fn_exl3" {
 				t.Fatal(c)
 			}
 		case "nemotron-asr":

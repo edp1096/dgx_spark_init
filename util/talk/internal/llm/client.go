@@ -599,10 +599,12 @@ func (c *Client) GenerateTitle(ctx context.Context, model, userText string) (str
 	payload := map[string]any{
 		"model": modelidentity.CanonicalID(model),
 		"messages": []Message{
-			{Role: "system", Content: "Create a concise topic title for a chat request. Do not answer or solve the request. Describe its subject and intent. Use the user's language. Return only the title without quotes or terminal punctuation. Maximum 24 characters."},
+			{Role: "system", Content: "Create a concise topic title for a chat request. Do not answer or solve the request. Describe its subject and intent. Use the user's language. Call session_title with the title, without quotes or terminal punctuation. Maximum 24 characters."},
 			{Role: "user", Content: "Chat request:\n" + userText + "\n\nReturn a topic title, not the answer."},
 		},
 		"stream": false, "temperature": 0.2, "max_completion_tokens": 48,
+		"tools":       []Tool{{Type: "function", Function: ToolFunction{Name: "session_title", Description: "Set a concise topic title in the user's language.", Parameters: json.RawMessage(`{"type":"object","properties":{"title":{"type":"string","minLength":1,"maxLength":40}},"required":["title"],"additionalProperties":false}`)}}},
+		"tool_choice": map[string]any{"type": "function", "function": map[string]string{"name": "session_title"}},
 	}
 	applyReasoningOptions(payload, c.modelType, "none")
 	body, _ := json.Marshal(payload)
@@ -619,7 +621,8 @@ func (c *Client) GenerateTitle(ctx context.Context, model, userText string) (str
 	var result struct {
 		Choices []struct {
 			Message struct {
-				Content string `json:"content"`
+				Content   string     `json:"content"`
+				ToolCalls []ToolCall `json:"tool_calls"`
 			} `json:"message"`
 		} `json:"choices"`
 	}
@@ -630,6 +633,18 @@ func (c *Client) GenerateTitle(ctx context.Context, model, userText string) (str
 		return "", fmt.Errorf("title generation returned no choices")
 	}
 	title := strings.Trim(strings.TrimSpace(result.Choices[0].Message.Content), "\"'`#* ")
+	for _, call := range result.Choices[0].Message.ToolCalls {
+		if call.Function.Name == "session_title" {
+			var args struct {
+				Title string `json:"title"`
+			}
+			if err := json.Unmarshal([]byte(call.Function.Arguments), &args); err != nil {
+				return "", err
+			}
+			title = strings.TrimSpace(args.Title)
+			break
+		}
+	}
 	if runes := []rune(title); len(runes) > 40 {
 		title = string(runes[:40])
 	}

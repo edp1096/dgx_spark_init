@@ -59,9 +59,9 @@ func TestQwenTTSMigrationReplacesLegacyAndPreservesUserState(t *testing.T) {
 		}
 	}
 	for _, b := range cfg.Runtime.Catalog.Bundles {
-		if b.ID == "flash-next-radixark" {
+		if b.ID == "flash-next-radixark" || b.ID == "qwen38fn_exl3_q4" {
 			continue
-		} // Explicit LLM-only set.
+		} // Coding sets omit TTS.
 		x, ok := cfg.Runtime.Catalog.ResolveComponent(b.ID, "qwen3-tts")
 		if !ok || x.MemoryGiB < 4 {
 			t.Fatal("set missing Qwen/budget", b.ID, x)
@@ -83,9 +83,9 @@ func TestBuiltinSpeechSetsHaveQwenTTSAndSwitchPreservesToggle(t *testing.T) {
 	cfg.Normalize()
 	cfg.TTS.Enabled = true
 	for _, b := range cfg.Runtime.Catalog.Bundles {
-		if b.ID == "flash-next-radixark" {
+		if b.ID == "flash-next-radixark" || b.ID == "qwen38fn_exl3_q4" {
 			continue
-		} // Tested separately as LLM-only.
+		} // Coding sets omit TTS.
 		cfg.ApplyManagedBundle(b.ID)
 		if !cfg.TTS.Enabled || cfg.TTS.Model != "qwen3-tts-0.6b-q8" {
 			t.Fatal("TTS unavailable in set", b.ID, cfg.TTS)

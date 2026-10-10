@@ -60,8 +60,8 @@ func TestEXL3ColdStartBesideHealthyResidentImage(t *testing.T) {
 	}
 	b, _ := c.Catalog().Bundle("qwen38fn_exl3")
 	plan := c.bundleMemoryPlan(context.Background(), b)
-	if math.Abs(plan.NeededGiB-92) > .001 || plan.FreedGiB != 0 || !plan.RequiresCUDAStart {
-		t.Fatalf("expected LLM85 + ASR3.5 + TTS3 + image0.5, got %+v", plan)
+	if math.Abs(plan.NeededGiB-96) > .001 || plan.FreedGiB != 0 || !plan.RequiresCUDAStart {
+		t.Fatalf("expected LLM85 + ASR3.5 + TTS3 + image0.5 + embedding4, got %+v", plan)
 	}
 	if err := validateMemoryHeadroom(SystemMemory{AvailableGiB: 100, FreeGiB: 71}, plan, 1.5); err != nil {
 		t.Fatalf("reported incident must now pass startup admission: %v", err)

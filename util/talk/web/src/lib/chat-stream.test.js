@@ -62,3 +62,22 @@ test('steering events are decoded separately from generated content', async () =
   });
   assert.equal(turn.turn_id,'run-one');assert.equal(inputs[0].content,'수정 지시');assert.equal(answer,'새 답변');
 });
+
+
+test('session title events stay separate from the assistant answer', async () => {
+  let title, answer = '';
+  await consumeSSE(response('event: session_title\ndata: {"session_id":"chat-one","title":"GPU 의미 검색","changed":true}\n\nevent: delta\ndata: {"delta":"27입니다."}\n\nevent: done\ndata: {}\n\n'), {
+    sessionTitle: data => { title = data; }, delta: text => { answer += text; },
+  });
+  assert.deepEqual(title, { session_id: 'chat-one', title: 'GPU 의미 검색', changed: true });
+  assert.equal(answer, '27입니다.');
+});
+
+test('session folder events stay separate from the assistant answer', async () => {
+  let folder, answer = '';
+  await consumeSSE(response('event: session_folder\ndata: {"session_id":"chat-one","group_id":"news","changed":true}\n\nevent: delta\ndata: {"delta":"뉴스 폴더로 옮겼습니다."}\n\nevent: done\ndata: {}\n\n'), {
+    sessionFolder: data => { folder = data; }, delta: text => { answer += text; },
+  });
+  assert.deepEqual(folder, { session_id: 'chat-one', group_id: 'news', changed: true });
+  assert.equal(answer, '뉴스 폴더로 옮겼습니다.');
+});

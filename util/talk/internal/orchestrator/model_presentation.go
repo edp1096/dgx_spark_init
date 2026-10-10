@@ -11,8 +11,9 @@ type runtimeName struct {
 
 var runtimeNames = map[string]runtimeName{
 	"ornith35":            {"Ornith 1.5 35B", []string{"Huihui Ornith 1.5 35B"}},
-	"qwen38fn_exl3":       {"Qwen 3.8 Flash-Next EXL3", []string{"Qwen3.8 Flash-Next EXL3", "Huihui Qwen3.8 EXL3", "Huihui Qwen3.8 Native EXL3", "Qwen3.8 EXL3", "Qwen3.8 Native EXL3", "Flash-Next EXL3", "Flash-Next EXL3 세트"}},
+	"qwen38fn_exl3":       {"Qwen 3.8 Flash-Next EXL3 3bit", []string{"Qwen 3.8 Flash-Next EXL3", "Qwen3.8 Flash-Next EXL3", "Huihui Qwen3.8 EXL3", "Huihui Qwen3.8 Native EXL3", "Qwen3.8 EXL3", "Qwen3.8 Native EXL3", "Flash-Next EXL3", "Flash-Next EXL3 세트"}},
 	"flash-next":          {"Qwen 3.8 Flash-Next QAD", []string{"Flash-Next", "Flash-Next 세트", "Qwen3.8 Flash-Next", "Qwen3.8 Flash-Next QAD", "Huihui-RadixArk Qwen3.8 Flash-Next"}},
+	"qwen38fn_exl3_q4":    {"Qwen 3.8 Flash-Next EXL3 4bit", nil},
 	"flash-next-radixark": {"Qwen 3.8 Flash-Next NVFP4", nil},
 	"flash-next-tp2":      {"Qwen 3.8 Flash-Next TP2", []string{"Qwen3.8 Flash-Next TP2", "Huihui-RadixArk Qwen3.8 Flash-Next TP2"}},
 	"gemma26":             {"Gemma 4 26B", []string{"Huihui Gemma 4 26B"}},
@@ -94,6 +95,8 @@ func modelPresentation(c Component) *ModelPresentation {
 	default:
 		label, format := "원본", ""
 		switch c.ComposeAsset {
+		case "compose.qwen38fn_exl3_q4.yaml":
+			selected, label, format = "abliterated", "Abliterated", "EXL3 4bit HQ h6 ng6 · VeloGB10"
 		case "compose.qwen38fn_exl3.yaml":
 			selected, label, format = "abliterated", "Abliterated", "EXL3 3bit HQ h6 ng6"
 		case "compose.ornith35.yaml", "compose.gemma26.yaml", "compose.gemma31.yaml":
@@ -104,6 +107,8 @@ func modelPresentation(c Component) *ModelPresentation {
 			format = "Q5_K · 화자 구분 Q8_0"
 		case "compose.qwen3-tts.yaml":
 			format = "Q8_0 본체 · Q8_0 오디오 codec"
+		case "compose.extra-embedding.yaml":
+			format = "BF16 · 텍스트 270M · 768차원"
 		case "compose.dreamlite.yaml":
 			format = ""
 		case "compose.flux2.yaml":

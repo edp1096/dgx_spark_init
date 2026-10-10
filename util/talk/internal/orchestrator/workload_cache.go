@@ -75,3 +75,45 @@ for p in paths:
   seen.add(key);os.posix_fadvise(f.fileno(),0,0,os.POSIX_FADV_DONTNEED)
 print('closed auxiliary weight files advised:',len(seen))
 `
+
+// Embedding admission must not evict or inspect resident ASR/TTS weights. Only
+// this worker's closed checkpoint can be advised before its own cold start.
+func (c *Controller) reclaimEmbeddingFileCache(ctx context.Context, x Component) error {
+	if x.ComposeAsset != "compose.extra-embedding.yaml" {
+		return fmt.Errorf("not an embedding worker")
+	}
+	if c.componentRunning(ctx, x) {
+		if err := c.idleWorkloadAction(ctx, x, "quiesce"); err != nil {
+			return err
+		}
+		defer c.idleWorkloadAction(ctx, x, "resume")
+		state, err := c.workloadIdleState(ctx, x)
+		if err != nil {
+			return err
+		}
+		if state.Ready == nil || *state.Ready || *state.Busy {
+			return fmt.Errorf("embedding checkpoint is not proven closed")
+		}
+	}
+	data, cache, err := c.runtimeHostPaths(x)
+	if err != nil {
+		return err
+	}
+	host := c.host(x.Host)
+	image, err := modelPreparationImage(ctx, host, data)
+	if err != nil {
+		return err
+	}
+	user, err := executionUser(ctx, host)
+	if err != nil {
+		return err
+	}
+	script := `import os
+from pathlib import Path
+p=Path('/embedding/model.safetensors')
+if p.is_file():
+ with p.open('rb') as f:os.posix_fadvise(f.fileno(),0,0,os.POSIX_FADV_DONTNEED)
+print('closed embedding checkpoint advised')`
+	_, err = executeHost(ctx, host, nil, "docker", "run", "--rm", "--network", "none", "--user", user, "--memory", "128m", "--memory-swap", "128m", "--entrypoint", "python", "-v", filepath.Join(cache, "google", "embeddinggemma-2")+":/embedding:ro", image, "-c", script)
+	return err
+}

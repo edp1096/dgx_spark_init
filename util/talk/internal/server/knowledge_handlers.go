@@ -486,7 +486,7 @@ func (s *Server) searchKnowledge(w http.ResponseWriter, r *http.Request) {
 	}
 	collectionID, _ := strconv.ParseInt(r.URL.Query().Get("collection_id"), 10, 64)
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
-	items, err := s.db.SearchKnowledge(query, collectionID, limit)
+	items, err := s.hybridKnowledge(r.Context(), query, collectionID, limit)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

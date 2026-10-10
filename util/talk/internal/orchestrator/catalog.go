@@ -203,7 +203,7 @@ func ValidateCatalog(catalog Catalog) (Catalog, error) {
 				return Catalog{}, fmt.Errorf("bundle %q: duplicate role %q", bundle.ID, role)
 			}
 			roles[role] = true
-			if component.Controller != "external" && !component.IsSupport() {
+			if component.Controller != "external" && component.IsModelService() {
 				bundle.MemoryGiB += component.runtimeMemoryEstimate().MemoryGiB + component.WorkerMemoryGiB
 			}
 		}
@@ -219,7 +219,7 @@ func ValidateCatalog(catalog Catalog) (Catalog, error) {
 			qualified := false
 			for _, id := range bundle.Components {
 				x := bundle.Bindings[id].Apply(catalog.byComponent[id])
-				if x.ServiceRole() == "llm" && (x.ComposeAsset == "compose.flash-next.yaml" || x.ComposeAsset == "compose.qwen38fn_exl3.yaml") {
+				if x.ServiceRole() == "llm" && (x.ComposeAsset == "compose.flash-next.yaml" || x.ComposeAsset == "compose.qwen38fn_exl3.yaml" || x.ComposeAsset == "compose.qwen38fn_exl3_q4.yaml") {
 					qualified = true
 				}
 			}
@@ -244,7 +244,7 @@ func ValidateCatalog(catalog Catalog) (Catalog, error) {
 					} else {
 						groups[group] += x.MemoryGiB
 					}
-					if !x.IsSupport() {
+					if x.IsModelService() {
 						bundle.MemoryGiB -= x.MemoryGiB
 					}
 				}
@@ -262,6 +262,8 @@ func (c Component) ServiceRole() string {
 		return c.Role
 	}
 	switch c.ComposeAsset {
+	case "compose.extra-embedding.yaml":
+		return "embedding"
 	case "compose.extra-documents.yaml":
 		return "documents"
 	case "compose.extra-media.yaml":
@@ -289,8 +291,8 @@ func composeAsset(name string) ([]byte, error) {
 }
 
 func validateDeployment(catalog Catalog, component Component) error {
-	if component.KeepResident && (component.Controller != "compose" || (component.Host != "" && component.Host != "local") || (component.Role != "image" && component.Role != "asr" && component.Role != "tts")) {
-		return fmt.Errorf("component %q: keep_resident requires a local managed image, ASR or TTS service", component.ID)
+	if component.KeepResident && (component.Controller != "compose" || (component.Host != "" && component.Host != "local") || (component.Role != "image" && component.Role != "asr" && component.Role != "tts" && component.ServiceRole() != "embedding")) {
+		return fmt.Errorf("component %q: keep_resident requires a local managed image, ASR, TTS or embedding service", component.ID)
 	}
 	if err := validateRecipeOptions(component); err != nil {
 		return err

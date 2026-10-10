@@ -271,7 +271,7 @@ func (c *Controller) prepareOrStartComponent(ctx context.Context, component Comp
 		return err
 	}
 	env := runtimePathEnvironment(component, dataDir, modelCache)
-	if component.ServiceRole() == "ssh" {
+	if component.ServiceRole() == "ssh" || component.ServiceRole() == "embedding" {
 		ids, idErr := executeHost(ctx, host, nil, "sh", "-c", "printf '%s:%s' \"$(id -u)\" \"$(id -g)\"")
 		if idErr != nil {
 			return idErr
@@ -367,6 +367,9 @@ func (c *Controller) prepareOrStartComponent(ctx context.Context, component Comp
 		if _, err := executeHost(ctx, host, nil, "docker", "rm", component.Container); err != nil {
 			return err
 		}
+	}
+	if err := c.prepareNemotronColdCUDA(ctx, component); err != nil {
+		return err
 	}
 	_, err = executeHost(ctx, host, nil, "docker", "compose", "-p", "sparktalk-"+component.ID, "-f", configPath, "up", "-d")
 	return explainComposeStartError(component.Host, err)

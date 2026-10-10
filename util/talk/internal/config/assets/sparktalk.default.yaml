@@ -138,3 +138,9 @@ appearance:
 attachments:
   max_file_mb: 256
   max_files: 6
+
+embedding:
+  enabled: false
+  endpoint: http://127.0.0.1:8701
+  timeout: 20s
+  min_similarity: 0.62

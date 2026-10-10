@@ -32,7 +32,7 @@ func knowledgeSearchToolDefinition(collections []db.KnowledgeCollection) llm.Too
 		}
 	}
 	properties := map[string]any{
-		"query": map[string]any{"type": "string", "description": "Concise terms to search in stored knowledge"},
+		"query": map[string]any{"type": "string", "description": "Natural-language question or precise terms to search in stored knowledge"},
 		"limit": map[string]any{"type": "integer", "minimum": 1, "maximum": 10, "description": "Maximum matching chunks; default 5"},
 	}
 	if len(names) > 0 {
@@ -62,7 +62,7 @@ func knowledgeReadToolDefinition() llm.Tool {
 	}}
 }
 
-func (s *Server) executeKnowledgeSearch(_ context.Context, call llm.ToolCall) (string, error) {
+func (s *Server) executeKnowledgeSearch(ctx context.Context, call llm.ToolCall) (string, error) {
 	var input struct {
 		Query      string `json:"query"`
 		Collection string `json:"collection"`
@@ -86,7 +86,7 @@ func (s *Server) executeKnowledgeSearch(_ context.Context, call llm.ToolCall) (s
 			return "", fmt.Errorf("knowledge collection not found: %s", input.Collection)
 		}
 	}
-	items, err := s.db.SearchKnowledge(input.Query, collectionID, input.Limit)
+	items, err := s.hybridKnowledge(ctx, input.Query, collectionID, input.Limit)
 	if err != nil {
 		return "", err
 	}

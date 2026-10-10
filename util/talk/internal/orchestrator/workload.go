@@ -23,6 +23,8 @@ func workloadGroup(id string) string {
 		return "tts"
 	case "nemotron-asr", "extra-media":
 		return "speech"
+	case "extra-embedding":
+		return "embedding"
 	case "extra-documents":
 		return "documents"
 	case "extra-collector":
@@ -126,7 +128,7 @@ func (c *Controller) stopWorkloads(ctx context.Context, b Bundle) error {
 			}
 		}
 		var stopErr error
-		if isManagedTTS(x) {
+		if isManagedTTS(x) || x.ComposeAsset == "compose.extra-embedding.yaml" {
 			stopErr = c.stopIdleWorkload(ctx, x)
 		} else {
 			stopErr = c.stopComponent(ctx, x)
@@ -151,8 +153,13 @@ func (c *Controller) stopWorkloads(ctx context.Context, b Bundle) error {
 func (c *Controller) AcquireWorkload(ctx context.Context, bundleID, target string, reserve float64, requestedPeak ...float64) (func() error, error) {
 	b, ok := c.Catalog().Bundle(bundleID)
 	noop := func() error { return nil }
+	if target == "extra-embedding" {
+		if _, member := c.Catalog().ResolveComponent(bundleID, target); !ok || !member {
+			return nil, fmt.Errorf("의미 검색은 현재 세트에 포함되지 않습니다")
+		}
+	}
 	if ok {
-		if image, found := c.Catalog().ResolveComponent(b.ID, target); found && (isQwenImage21(image) || (isManagedTTS(image) && c.local(image))) && image.Controller == "compose" {
+		if image, found := c.Catalog().ResolveSupport(b.ID, target); found && ((image.ComposeAsset == "compose.extra-embedding.yaml" && c.local(image)) || isQwenImage21(image) || (isManagedTTS(image) && c.local(image))) && image.Controller == "compose" {
 			return c.acquireManagedWorkload(ctx, c.workloadBundle(b), image, reserve, requestedPeak...)
 		}
 	}
@@ -339,6 +346,11 @@ func (c *Controller) AcquireWorkload(ctx context.Context, bundleID, target strin
 		// A new GGML CUDA context failed at 4.7 GiB immediate free in the
 		// live 1M profile. Preserve a 6 GiB bootstrap allowance after cleanup.
 		coldFree = 6
+		if embed, ok := c.Catalog().ResolveComponent(b.ID, "extra-embedding"); ok && embed.KeepResident && c.componentRunning(ctx, embed) {
+			// With the BF16 embedding process resident, 6.3 GiB failed in
+			// cudaSetDevice. A closed-checkpoint sweep at 7.3 GiB passed.
+			coldFree = 7
+		}
 	}
 	if image, ok := c.Catalog().ResolveComponent(b.ID, "flux2"); ok && isQwenImage21(image) {
 		coldFree = managedAuxiliaryCUDAFreeGiB
@@ -448,6 +460,13 @@ func (c *Controller) AcquireWorkload(ctx context.Context, bundleID, target strin
 			if reclaimErr := c.reclaimAuxiliaryFileCache(ctx, b); reclaimErr != nil {
 				return fail(reclaimErr)
 			}
+			if radixASR {
+				if embed, ok := c.Catalog().ResolveComponent(b.ID, "extra-embedding"); ok && embed.KeepResident && c.componentRunning(ctx, embed) {
+					if err := c.idleWorkloadAction(ctx, embed, "reclaim-cache"); err != nil {
+						return fail(err)
+					}
+				}
+			}
 			cacheReclaimed = true
 			continue
 		}
@@ -491,7 +510,7 @@ func (c *Controller) reclaimIdleAuxiliary(ctx context.Context, b Bundle, target 
 		if x.KeepResident || !c.local(x) || x.Controller != "compose" || !c.componentRunning(ctx, x) {
 			continue
 		}
-		if isManagedTTS(x) {
+		if isManagedTTS(x) || x.ComposeAsset == "compose.extra-embedding.yaml" {
 			if err := c.stopIdleWorkload(ctx, x); err != nil {
 				continue
 			}
@@ -579,7 +598,7 @@ func liveWorkspaceMemory(ctx context.Context, component Component, requested ...
 // OnDemandIdle is distinct from a failed running service or a disabled feature.
 func (c *Controller) OnDemandIdle(ctx context.Context, bundleID, id string) bool {
 	b, ok := c.Catalog().Bundle(bundleID)
-	if !ok || !b.WorkloadSwap || workloadGroup(id) == "" {
+	if !ok || (!b.WorkloadSwap && id != "extra-embedding") || workloadGroup(id) == "" {
 		return false
 	}
 	for _, member := range c.workloadBundle(b).Components {

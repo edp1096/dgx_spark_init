@@ -170,6 +170,14 @@ func (c *Controller) Snapshot(ctx context.Context, selectedBundle string) Snapsh
 	gpuByPID := gpuMemoryByPID(ctx)
 	statuses := make([]ComponentStatus, len(components))
 	supportComponents := catalog.SupportComponents(selectedBundle)
+	// Resident embedding is displayed with the model components.
+	filteredSupport := supportComponents[:0]
+	for _, x := range supportComponents {
+		if !x.IsModelService() {
+			filteredSupport = append(filteredSupport, x)
+		}
+	}
+	supportComponents = filteredSupport
 	supportStatuses := make([]ComponentStatus, len(supportComponents))
 	var probes sync.WaitGroup
 	for i, component := range components {
@@ -528,6 +536,20 @@ func (c *Controller) finishOperation(state, message string) {
 
 func (c *Controller) runBundleStart(bundle Bundle, reserveGiB float64) {
 	ctx := context.Background()
+	if err := c.stopUnselectedEmbedding(ctx, bundle); err != nil {
+		c.finishOperation("failed", err.Error())
+		return
+	}
+	if bundle.ID == "flash-next-radixark" || bundle.ID == "qwen38fn_exl3_q4" {
+		asr, ok := c.Catalog().ResolveComponent(bundle.ID, "nemotron-asr")
+		embed, hasEmbed := c.Catalog().ResolveComponent(bundle.ID, "extra-embedding")
+		if ok && hasEmbed && asr.KeepResident && c.componentNeedsStart(ctx, asr) && c.componentRunning(ctx, embed) {
+			if err := c.stopIdleWorkload(ctx, embed); err != nil {
+				c.finishOperation("failed", err.Error())
+				return
+			}
+		}
+	}
 	var llm Component
 	for _, id := range bundle.Components {
 		component, _ := c.Catalog().ResolveComponent(bundle.ID, id)
@@ -582,7 +604,11 @@ func (c *Controller) runBundleStart(bundle Bundle, reserveGiB float64) {
 			component, _ := c.Catalog().ResolveComponent(bundle.ID, id)
 			if component.StartAfterLLM && c.componentRunning(ctx, component) {
 				c.updateOperation(component.ID, progressInfo{Key: "defer:" + id, Phase: component.Name + " 기동 대기", Detail: "언어 모델 준비 후 다시 시작합니다."})
-				if err := c.stopComponent(ctx, component); err != nil && !isMissingContainer(err) {
+				stop := c.stopComponent
+				if component.ServiceRole() == "embedding" {
+					stop = func(ctx context.Context, x Component) error { return c.stopIdleWorkload(ctx, x) }
+				}
+				if err := stop(ctx, component); err != nil && !isMissingContainer(err) {
 					c.failCurrentStep(err.Error())
 					c.finishOperation("failed", component.Name+": "+err.Error())
 					return
@@ -698,10 +724,16 @@ func (c *Controller) startAndWait(component Component) error {
 
 func (c *Controller) startAndWaitContext(parent context.Context, component Component) (resultErr error) {
 	defer func() {
+		if resultErr == nil && component.ServiceRole() == "embedding" && component.KeepResident {
+			resultErr = c.prepareResidentEmbedding(parent, component)
+		}
+		if resultErr == nil && component.ComposeAsset == "compose.qwen38fn_exl3_q4.yaml" {
+			resultErr = c.prepareQwen38FNEXL3Q4Headroom(parent, component)
+		}
 		if resultErr == nil && component.ComposeAsset == "compose.qwen38fn_exl3.yaml" {
 			resultErr = c.prepareQwen38FNEXL3Headroom(parent, component)
 		}
-		if resultErr == nil && (isQwenImage21(component) || (isManagedTTS(component) && c.local(component))) {
+		if resultErr == nil && (component.ComposeAsset == "compose.extra-embedding.yaml" || isQwenImage21(component) || (isManagedTTS(component) && c.local(component))) {
 			c.workloadActivity(component)()
 		}
 	}()

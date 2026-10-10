@@ -78,7 +78,7 @@ esac
 			}
 		}
 		actions = append(actions, r.Method+" "+r.URL.Path)
-		return &http.Response{StatusCode: 200, Header: make(http.Header), Body: io.NopCloser(strings.NewReader(`{"status":"ok","core_ready":true,"busy":false,"active":0,"workspace_gib":4.5}`))}, nil
+		return &http.Response{StatusCode: 200, Header: make(http.Header), Body: io.NopCloser(strings.NewReader(`{"status":"ok","core_ready":true,"ready":true,"busy":false,"active":0,"workspace_gib":4.5}`))}, nil
 	})
 	c.client.Transport = transport
 	previous := http.DefaultClient

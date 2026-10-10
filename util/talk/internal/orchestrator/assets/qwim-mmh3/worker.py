@@ -6,6 +6,7 @@ Requests are atomic JSON files in /job/requests; results go to /job/results.
 """
 import ctypes
 import gc
+import hashlib
 import importlib
 import json
 import logging
@@ -48,7 +49,9 @@ from comfy_extras.nodes_custom_sampler import BasicScheduler, BasicGuider, Rando
 from comfy_extras.nodes_audio import VAEDecodeAudio
 from comfy_extras.nodes_video import CreateVideo
 from comfy_api.latest import Types
-from PIL import Image
+from PIL import Image, ImageOps
+import numpy as np
+import sol_runtime
 
 if AUX_DYNAMIC:
     if not comfy_aimdo.control.init_devices((d.index, 0) for d in mm.get_all_torch_devices()):
@@ -134,39 +137,75 @@ def stage(name):
         emit(name + '_end', seconds=TIMINGS[name])
 
 
-def encode(kind, prompt):
+def keyframe(request, label):
+    path = request.get(label + '_frame')
+    if path is None:
+        return None
+    path = Path(path)
+    if path.parent != ROOT / 'inputs' or path.name != request['case'] + '-' + label + '.image':
+        raise ValueError('Invalid keyframe path')
+    if hashlib.sha256(path.read_bytes()).hexdigest() != request[label + '_frame_sha256']:
+        raise ValueError('Keyframe bytes do not match the admitted image')
+    with Image.open(path) as image:
+        image = ImageOps.exif_transpose(image).convert('RGB')
+        value = torch.from_numpy(np.asarray(image).copy()).float().div_(255).unsqueeze(0)
+    emit('keyframe_loaded', label=label, source_sha256=request[label + '_frame_sha256'],
+         source_width=value.shape[2], source_height=value.shape[1],
+         resolved_frame_index=0 if label == 'first' else 123)
+    return value
+
+
+def encode(kind, prompt, request):
     if kind == 'h3':
         clip = nodes.CLIPLoader().load_clip('qwen3vl_4b_fp8_scaled.safetensors', 'krea2')[0]
         clip = clipproj.NODE_CLASS_MAPPINGS['ClipProjApply']().apply(
             clip, 'mmh3-4b-ClipProj-v3.1.safetensors')[0]
-        return MiniMaxH3ImageToVideo.execute(clip, None, prompt, 864, 480, 124)[0]
+        first, last = keyframe(request, 'first'), keyframe(request, 'last')
+        vae = (nodes.VAELoader().load_vae('minimax_h3_video_vae_int8_convrot.safetensors')[0]
+               if first is not None or last is not None else None)
+        result = MiniMaxH3ImageToVideo.execute(clip, vae, prompt, request['width'], request['height'],
+                                             124, first_frame=first, last_frame=last)
+        if vae is not None:
+            anchors = result[0][0][1].get('minimax_keyframes', [])
+            expected = ([0] if first is not None else []) + ([123] if last is not None else [])
+            if [x['resolved_frame_index'] for x in anchors] != expected or any('latent' not in x for x in anchors):
+                raise RuntimeError('Image keyframes were not encoded into H3 conditioning')
+            emit('keyframes_encoded', frame_indices=expected,
+                 width=request['width'], height=request['height'])
+        return result[0]
     clip = nodes.CLIPLoader().load_clip('qwen3vl_8b_w4a8.safetensors', 'qwen_image')[0]
     encoded = TextEncodeQwenImage21.execute(clip, prompt, '', resolution=1024)
     return encoded[0], encoded[1]
 
 
-def conditioning(kind, prompt):
-    key = (kind, prompt)
+def conditioning(kind, prompt, request):
+    key = (kind, prompt, request['width'], request['height'],
+           request.get('first_frame_sha256'), request.get('last_frame_sha256'))
     if key in CONDITIONING:
         CONDITIONING.move_to_end(key)
         emit('conditioning_cache_hit')
         return CONDITIONING[key]
-    value = encode(kind, prompt)
+    value = encode(kind, prompt, request)
     CONDITIONING[key] = value
     while len(CONDITIONING) > 2:
         CONDITIONING.popitem(last=False)
     return value
 
 
-def sample(kind, cond, seed):
+def sample(kind, cond, seed, request):
     model = DITS[kind]
     if kind == 'h3':
         from comfy_extras.nodes_minimax_h3 import _empty_av_latent
-        latent, _ = _empty_av_latent(864, 480, 124)
-        guider = BasicGuider.execute(model, cond)[0]
-        sigmas = BasicScheduler.execute(model, 'simple', 20, 1.0)[0]
-        return SamplerCustomAdvanced.execute(RandomNoise.execute(seed)[0], guider,
-                    comfy.samplers.sampler_object('res_multistep'), sigmas, latent)[0]
+        latent, _ = _empty_av_latent(request['width'], request['height'], 124)
+        # The guider copies model options, so install attention before creating it.
+        with sol_runtime.sampling(model, 20) as acceleration:
+            guider = BasicGuider.execute(model, cond)[0]
+            sigmas = BasicScheduler.execute(model, 'simple', 20, 1.0)[0]
+            result = SamplerCustomAdvanced.execute(RandomNoise.execute(seed)[0], guider,
+                        comfy.samplers.sampler_object('res_multistep'), sigmas, latent)[0]
+        emit('attention_complete', acceleration=(acceleration.statistics() if acceleration
+                                                 else sol_runtime.configuration()))
+        return result
     latent = nodes.EmptyLatentImage().generate(1024, 1024, 1)[0]
     return nodes.KSampler().sample(model, seed, 40, 1.0, 'euler', 'simple',
                                   cond[0], cond[1], latent, denoise=1.0)[0]
@@ -191,18 +230,21 @@ def generate(request):
     if not CASE or any(c not in 'abcdefghijklmnopqrstuvwxyz0123456789-_' for c in CASE):
         raise ValueError('case must be a lowercase filename stem')
     TIMINGS = {}
+    torch.cuda.reset_peak_memory_stats()
     kind = request['kind']
     if kind not in DITS:
         raise ValueError('kind must be h3 or qwim')
     from generation_progress import Tracker
-    TRACKER = Tracker(ROOT, os.getenv('STATE_DIR', '/job/state'), request.get('progress_id', CASE), kind)
+    profile = (f"h3-i2v-{request['width']}x{request['height']}-124-24-20-sol-v1"
+               if kind == 'h3' and (request.get('first_frame') or request.get('last_frame')) else None)
+    TRACKER = Tracker(ROOT, os.getenv('STATE_DIR', '/job/state'), request.get('progress_id', CASE), kind, profile=profile)
     start = time.monotonic()
     with stage('encode'):
-        cond = conditioning(kind, request['prompt'])
+        cond = conditioning(kind, request['prompt'], request)
     with stage('release_encoder'):
         cleanup()
     with stage('sample'):
-        latent = sample(kind, cond, request['seed'])
+        latent = sample(kind, cond, request['seed'], request)
     with stage('release_sample_workspace'):
         cleanup()
     with stage('decode_video'):
@@ -224,7 +266,9 @@ def generate(request):
             Image.fromarray((frames[0].cpu().numpy().clip(0, 1) * 255).astype('uint8')).save(path)
     total = time.monotonic() - start
     return dict(request=request, seconds=total, stages=dict(TIMINGS), file=str(path),
-                pid=os.getpid(), status='success')
+                pid=os.getpid(), status='success',
+                peak_cuda_allocated_gib=torch.cuda.max_memory_allocated() / 2**30,
+                peak_cuda_reserved_gib=torch.cuda.max_memory_reserved() / 2**30)
 
 
 with torch.inference_mode():
@@ -237,7 +281,7 @@ with torch.inference_mode():
             DITS[kind] = model
             del model
             cleanup()
-(ROOT / 'ready.json').write_text(json.dumps(emit('ready'), indent=2))
+(ROOT / 'ready.json').write_text(json.dumps(emit('ready', acceleration=sol_runtime.configuration()), indent=2))
 while not (ROOT / 'stop').exists():
     requests = sorted((ROOT / 'requests').glob('*.json'))
     if not requests:
@@ -253,7 +297,9 @@ while not (ROOT / 'stop').exists():
             TRACKER.remember(result['stages'])
         except OSError:
             logging.warning('Could not save ETA timing history', exc_info=True)
-        result['idle'] = emit('idle')
+        result['idle'] = emit('idle', seconds=result['seconds'],
+                              peak_cuda_allocated_gib=result['peak_cuda_allocated_gib'],
+                              peak_cuda_reserved_gib=result['peak_cuda_reserved_gib'])
         TRACKER = None
     except Exception:
         result = dict(status='error', error=traceback.format_exc(), request=request)

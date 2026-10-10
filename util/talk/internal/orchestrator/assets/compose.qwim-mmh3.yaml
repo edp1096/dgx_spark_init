@@ -1,6 +1,6 @@
 services:
   runtime:
-    image: sparktalk-qwim-mmh3:nvfp4-resident2
+    image: sparktalk-qwim-mmh3:nvfp4-sol-i2v1
     build:
       context: ${SPARKTALK_BUILD_DIR:?Embedded build assets required}
     pull_policy: never
@@ -20,6 +20,7 @@ services:
       HF_HOME: /hf
       HF_HUB_OFFLINE: "1"
       COMFY_KITCHEN_BACKEND: cuda
+      MMH3_ATTENTION: sol
       API_PORT: "${SPARKTALK_PORT:-8730}"
       API_HOST: "${SPARKTALK_BIND_ADDR:-127.0.0.1}"
     volumes:

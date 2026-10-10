@@ -105,6 +105,7 @@ type Memory struct {
 }
 
 type RecallItem struct {
+	MemoryID  int64     `json:"memory_id,omitempty"`
 	Kind      string    `json:"kind"`
 	Priority  string    `json:"priority,omitempty"`
 	Title     string    `json:"title"`
@@ -406,6 +407,10 @@ func Open(path string) (*DB, error) {
 	if err := d.migrateModelIdentity(); err != nil {
 		conn.Close()
 		return nil, fmt.Errorf("migrate model identity: %w", err)
+	}
+	if err := migrateEmbeddings(conn); err != nil {
+		conn.Close()
+		return nil, fmt.Errorf("migrate retrieval: %w", err)
 	}
 	return d, nil
 }

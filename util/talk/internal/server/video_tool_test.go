@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -87,5 +88,97 @@ func TestVideoToolPersistsBeforeEventAndRejectsUnknownFields(t *testing.T) {
 	}
 	if !strings.Contains(result.Result, "video/mp4") {
 		t.Fatal("no original MP4 attachment")
+	}
+}
+
+func TestVideoToolUsesActualBranchImagesAndReportsPortraitSize(t *testing.T) {
+	s, source := testImageServer(t)
+	var calls atomic.Int32
+	var confirmImage atomic.Bool
+	backend := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "POST" {
+			w.Header().Set("Content-Type", "application/json")
+			w.Write([]byte(`{"events":[],"next":0}`))
+			return
+		}
+		calls.Add(1)
+		var payload map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			t.Error(err)
+		}
+		want := "data:image/png;base64," + base64.StdEncoding.EncodeToString(onePixelPNG)
+		if payload["first_frame"] != want || payload["last_frame"] != want {
+			t.Errorf("actual keyframe bytes were not sent: %v", payload)
+		}
+		w.Header().Set("Content-Type", "video/mp4")
+		w.Header().Set("X-Video-Width", "512")
+		w.Header().Set("X-Video-Height", "768")
+		if confirmImage.Load() {
+			w.Header().Set("X-Video-Input-Mode", "i2v")
+		}
+		w.Write(importTestVideo)
+	}))
+	defer backend.Close()
+	catalog, err := orchestrator.LoadCatalog()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for i := range catalog.Components {
+		if catalog.Components[i].ID == "qwim-mmh3" {
+			catalog.Components[i].Endpoint = backend.URL
+			catalog.Components[i].HealthURL = backend.URL + "/health"
+		}
+	}
+	s.cfg = config.Config{Runtime: config.RuntimeConfig{Mode: "external", Bundle: "qwen38fn_exl3", Catalog: &catalog}}
+	history, _ := s.db.Messages("session")
+	catalog, err = orchestrator.ValidateCatalog(catalog)
+	if err != nil {
+		t.Fatal(err)
+	}
+	resolved, ok := catalog.ResolveComponent("qwen38fn_exl3", "qwim-mmh3")
+	if !ok || resolved.Endpoint != backend.URL {
+		t.Fatal("test video backend was not isolated")
+	}
+	ctx := withRequestAttachments(context.Background(), "session", history)
+	reg := newCompletionToolRegistryForContext(ctx, s, "session", config.ToolsConfig{}, false, s.persistMediaAttachments(history[0].ID, 0, nil, nil))
+	handler := reg.handlers["video_generate"]
+	if !strings.Contains(strings.Join(reg.prompts, "\n"), "id="+source.ID) {
+		t.Fatal("model did not receive the actual image ID")
+	}
+	for _, args := range []string{
+		`{"prompt":"run","first_frame_image_id":"unknown"}`,
+		`{"prompt":"run","first_frame_image_id":""}`,
+	} {
+		if _, err := handler(ctx, llm.ToolCall{Function: llm.FunctionCall{Arguments: args}}, nil, nil); err == nil {
+			t.Fatal("invalid image fell back to text generation")
+		}
+	}
+	excluded := withRequestAttachments(context.Background(), "session", nil)
+	args := `{"prompt":"run","first_frame_image_id":"` + source.ID + `","last_frame_image_id":"` + source.ID + `"}`
+	if _, err := handler(excluded, llm.ToolCall{Function: llm.FunctionCall{Arguments: args}}, nil, nil); err == nil {
+		t.Fatal("image from a nonselected branch was accepted")
+	}
+	if calls.Load() != 0 {
+		t.Fatal("invalid images reached the backend")
+	}
+	if _, err := handler(ctx, llm.ToolCall{Function: llm.FunctionCall{Arguments: args}}, nil, nil); err == nil {
+		t.Fatal("backend that omitted image-conditioning confirmation was accepted")
+	}
+	confirmImage.Store(true)
+	result, err := handler(ctx, llm.ToolCall{Function: llm.FunctionCall{Arguments: args}}, nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var info struct {
+		InputMode string `json:"input_mode"`
+		First     string `json:"first_frame_image_id"`
+		Width     int    `json:"width"`
+		Height    int    `json:"height"`
+	}
+	if err := json.Unmarshal([]byte(result.Result), &info); err != nil {
+		t.Fatal(err)
+	}
+	if info.InputMode != "i2v" || info.First != source.ID || info.Width != 512 || info.Height != 768 || calls.Load() != 2 {
+		t.Fatalf("wrong I2V result: %s", result.Result)
 	}
 }

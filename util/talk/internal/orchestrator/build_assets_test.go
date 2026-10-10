@@ -11,7 +11,7 @@ import (
 )
 
 func TestEmbeddedBuildContextsReproduceStandaloneSources(t *testing.T) {
-	for name, folder := range map[string]string{"support-services": "sparktalk_extra", "extra-documents": "sparktalk_extra/docms", "nemotron-asr": "nemotron_asr", "qwen3-tts": "qwen3_tts_gguf", "gemma31": "gemma4_31b_sglang", "flash-next": "qwen38_fn_sglang", "qwen-image21": "qwen-image21", "qwen38fn_exl3": "qwen38fn_exl3"} {
+	for name, folder := range map[string]string{"support-services": "sparktalk_extra", "extra-documents": "sparktalk_extra/docms", "nemotron-asr": "nemotron_asr", "qwen3-tts": "qwen3_tts_gguf", "gemma31": "gemma4_31b_sglang", "flash-next": "qwen38_fn_sglang", "qwen-image21": "qwen-image21", "qwen38fn_exl3": "qwen38fn_exl3", "qwen38fn_exl3_q4": "qwen38fn_exl3_q4"} {
 		t.Run(name, func(t *testing.T) {
 			destination := t.TempDir()
 			if err := materializeBuildAssets(context.Background(), Host{}, name, destination); err != nil {

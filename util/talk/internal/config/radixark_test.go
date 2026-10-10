@@ -53,7 +53,7 @@ func TestRadixArkWithExtrasSurvivesLegacyTTSMigration(t *testing.T) {
 	c.Normalize()
 	c.ApplyManagedBundle("flash-next-radixark")
 	b, ok := c.Runtime.Catalog.Bundle("flash-next-radixark")
-	if !ok || !reflect.DeepEqual(b.Components, []string{"flash-next-radixark", "nemotron-asr", "extra-media", "extra-ssh", "extra-collector", "extra-documents"}) || c.ASR.Enabled || c.TTS.Enabled || c.Image.Enabled || c.Context.WindowTokens != 1048576 {
+	if !ok || !reflect.DeepEqual(b.Components, []string{"flash-next-radixark", "nemotron-asr", "extra-media", "extra-ssh", "extra-collector", "extra-documents", "extra-embedding"}) || c.ASR.Enabled || c.TTS.Enabled || c.Image.Enabled || c.Context.WindowTokens != 1048576 {
 		t.Fatalf("LLM/Extra profile changed: %+v", b)
 	}
 }
@@ -77,7 +77,7 @@ func TestRadixArkExtraUpgradePreservesBindingsAndLLM(t *testing.T) {
 		t.Fatal("Extra upgrade changed running LLM")
 	}
 	b, _ := c.Runtime.Catalog.Bundle("flash-next-radixark")
-	if !b.WorkloadSwap || len(b.Components) != 6 {
+	if !b.WorkloadSwap || len(b.Components) != 7 {
 		t.Fatalf("Extra lease/membership missing: %+v", b)
 	}
 }
@@ -105,8 +105,8 @@ func TestRadixArkASRUpgradeKeepsLLMAndUserPreferences(t *testing.T) {
 	c.Normalize()
 	after, _ := c.Runtime.Catalog.ResolveComponent("flash-next-radixark", "flash-next-radixark")
 	asr, ok := c.Runtime.Catalog.ResolveComponent("flash-next-radixark", "nemotron-asr")
-	if !reflect.DeepEqual(core, after) || !ok || !asr.StartAfterLLM || asr.KeepResident || c.ASR.Enabled {
-		t.Fatal("ASR migration changed LLM, user toggle or on-demand policy")
+	if !reflect.DeepEqual(core, after) || !ok || !asr.StartAfterLLM || !asr.KeepResident || c.ASR.Enabled {
+		t.Fatal("ASR migration changed LLM, user toggle or resident policy")
 	}
 	c.ASR.Enabled = true
 	c.ApplyManagedBundle("flash-next-radixark")

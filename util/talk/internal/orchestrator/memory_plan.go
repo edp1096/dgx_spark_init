@@ -87,7 +87,7 @@ func immediateFreeReserve(reserveGiB float64) float64 {
 }
 
 func isCUDAComponent(component Component) bool {
-	return component.Role == "llm" || component.Role == "image" || component.Role == "asr" || component.Role == "tts"
+	return component.ComposeAsset == "compose.extra-embedding.yaml" || component.Role == "llm" || component.Role == "image" || component.Role == "asr" || component.Role == "tts"
 }
 
 func (c *Controller) bundleMemoryPlan(ctx context.Context, bundle Bundle) memoryPlan {
@@ -98,6 +98,12 @@ func (c *Controller) bundleMemoryPlan(ctx context.Context, bundle Bundle) memory
 		desired[component.DeploymentKey()] = struct{}{}
 	}
 	llmNeedsStart := false
+	embeddingDeferForASR := false
+	if bundle.ID == "flash-next-radixark" || bundle.ID == "qwen38fn_exl3_q4" {
+		if asr, ok := c.Catalog().ResolveComponent(bundle.ID, "nemotron-asr"); ok && asr.KeepResident {
+			embeddingDeferForASR = c.componentNeedsStart(ctx, asr)
+		}
+	}
 	for _, id := range bundle.Components {
 		component, _ := c.Catalog().ResolveComponent(bundle.ID, id)
 		if component.Role == "llm" && c.local(component) && c.componentNeedsStart(ctx, component) {
@@ -109,7 +115,7 @@ func (c *Controller) bundleMemoryPlan(ctx context.Context, bundle Bundle) memory
 	plan := memoryPlan{}
 	// runBundleStart waits for each service before starting the next one.
 	// Retained allocations accumulate; temporary loading peaks do not overlap.
-	startup := startupMemoryPhases{ordered: c.Catalog().qad512DiTResident(bundle)}
+	startup := startupMemoryPhases{ordered: c.Catalog().qad512DiTResident(bundle) || (bundle.ID == "flash-next-radixark" || bundle.ID == "qwen38fn_exl3_q4")}
 	if bundle.WorkloadSwap && llmNeedsStart {
 		full, _ := c.Catalog().Bundle(bundle.ID)
 		full = c.workloadBundle(full)
@@ -146,7 +152,7 @@ func (c *Controller) bundleMemoryPlan(ctx context.Context, bundle Bundle) memory
 		if bundle.WorkloadSwap && workloadGroup(component.ID) != "" && !component.KeepResident {
 			continue
 		}
-		if !c.local(component) || component.Controller == "external" || (component.IsSupport() && !bundle.StartSupport) {
+		if !c.local(component) || component.Controller == "external" || (!component.IsModelService() && !bundle.StartSupport) {
 			continue
 		}
 		running := c.componentRunning(ctx, component)
@@ -157,7 +163,7 @@ func (c *Controller) bundleMemoryPlan(ctx context.Context, bundle Bundle) memory
 			}
 		}
 		if _, wanted := desired[component.DeploymentKey()]; wanted {
-			if running && component.StartAfterLLM && llmNeedsStart {
+			if running && component.StartAfterLLM && (llmNeedsStart || (component.ServiceRole() == "embedding" && embeddingDeferForASR)) {
 				// runBundleStart stops deferred services before loading the LLM.
 				needsStart = true
 				startup.add(component, 0)
@@ -180,11 +186,14 @@ func (c *Controller) bundleMemoryPlan(ctx context.Context, bundle Bundle) memory
 				continue
 			}
 			resident := gpuMemory
-			if component.Role == "image" {
+			if component.Role == "image" || component.ServiceRole() == "embedding" {
 				resident += containerHostResidentMemoryGiB(ctx, component.Container)
 			}
 			plan.NeededGiB += healthyComponentRemainingMemory(component, resident)
 			continue
+		}
+		if component.ServiceRole() == "embedding" && running {
+			plan.FreedGiB += gpuMemory + containerHostResidentMemoryGiB(ctx, component.Container)
 		}
 		if component.Role == "llm" && running {
 			if gpuMemory <= 0 {
@@ -213,6 +222,11 @@ type startupMemoryPhases struct {
 func (p *startupMemoryPhases) add(component Component, current float64) {
 	startup := component.startupMemoryGiB()
 	retained := min(startup, component.MemoryGiB)
+	if component.Role == "llm" && component.WorkspaceMemoryGiB > 0 {
+		// The NVFP4 loader/graph peak is temporary. Observed steady residency
+		// is below 102 GiB; reserve its full 110 GiB peak before loading auxiliaries.
+		retained = min(retained, max(0, component.MemoryGiB-component.WorkspaceMemoryGiB))
+	}
 	additional := max(0, retained-current)
 	p.peak = max(p.peak, p.retained+max(0, startup-current))
 	p.retained += additional

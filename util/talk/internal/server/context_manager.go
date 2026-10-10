@@ -99,7 +99,11 @@ func (s *Server) buildContext(ctx context.Context, sessionID string, items []db.
 		checkpoint = latest.Checkpoint
 	}
 	active := messagesAfter(items, state.SummaryThrough)
-	recalls, recallPrompt, recallTokens, recallErr := s.buildRecallContext(sessionID, items, cfg.Memory, state.SummaryThrough)
+	recallCtx := ctx
+	if preview {
+		recallCtx = context.WithValue(ctx, retrievalPreviewKey{}, true)
+	}
+	recalls, recallPrompt, recallTokens, recallErr := s.buildRecallContextWithContext(recallCtx, sessionID, items, cfg.Memory, state.SummaryThrough)
 	if recallErr != nil {
 		state.Notice = "과거 대화 검색: " + recallErr.Error()
 	} else {

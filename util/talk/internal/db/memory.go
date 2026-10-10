@@ -224,7 +224,7 @@ func (d *DB) SearchMemories(query string, limit int) ([]RecallItem, error) {
 	}
 	candidateLimit := min(limit*8, 100)
 	rows, err := d.conn.Query(`
-		SELECT memory_row.priority,memory_row.title,memory_row.content,memory_row.source_session_id,memory_row.source_message_id,memory_row.updated_at
+		SELECT memory_row.id,memory_row.priority,memory_row.title,memory_row.content,memory_row.source_session_id,memory_row.source_message_id,memory_row.updated_at
 		FROM memory_search JOIN memories AS memory_row ON memory_row.id=memory_search.rowid
 		WHERE memory_search MATCH ? AND memory_row.enabled=1 AND memory_row.kind='memory'
 		ORDER BY bm25(memory_search),memory_row.updated_at DESC LIMIT ?`, match, candidateLimit)
@@ -236,7 +236,7 @@ func (d *DB) SearchMemories(query string, limit int) ([]RecallItem, error) {
 	for rows.Next() {
 		var item RecallItem
 		item.Kind = "memory"
-		if err := rows.Scan(&item.Priority, &item.Title, &item.Content, &item.SessionID, &item.MessageID, &item.CreatedAt); err != nil {
+		if err := rows.Scan(&item.MemoryID, &item.Priority, &item.Title, &item.Content, &item.SessionID, &item.MessageID, &item.CreatedAt); err != nil {
 			return nil, err
 		}
 		if !relevantRecallMatch(item.Title, item.Content, terms) {

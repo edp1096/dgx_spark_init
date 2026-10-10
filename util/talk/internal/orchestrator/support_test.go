@@ -91,6 +91,7 @@ func TestSupportInventoryIncludesGlobalDocumentsAndSetBindings(t *testing.T) {
 	}
 	for i := range cat.Components {
 		if cat.Components[i].IsSupport() {
+			cat.Components[i].KeepResident = false
 			cat.Components[i].Controller = "external"
 			cat.Components[i].HealthURL = api.URL
 		}
@@ -110,7 +111,7 @@ func TestSupportInventoryIncludesGlobalDocumentsAndSetBindings(t *testing.T) {
 		t.Fatal(e)
 	}
 	rows := c.SupportSnapshot(context.Background(), "glm53-worker-extra")
-	if len(rows) != 4 {
+	if len(rows) != len(cat.SupportComponents("glm53-worker-extra")) {
 		t.Fatalf("support count=%d", len(rows))
 	}
 	for _, r := range rows {

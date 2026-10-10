@@ -43,20 +43,27 @@ func (c Component) SupportSpec() (SupportSpec, bool) {
 }
 func (c Component) IsSupport() bool { _, ok := c.SupportSpec(); return ok }
 
+// Embedding uses the shared installer, but its model lifetime belongs to its set.
+func (c Component) IsModelService() bool { return !c.IsSupport() || c.ServiceRole() == "embedding" }
+
 // Resolve support outside a model set as a shared service; set bindings still win.
 func (c Catalog) ResolveSupport(bundleID, id string) (Component, bool) {
 	if x, ok := c.ResolveComponent(bundleID, id); ok {
 		return x, true
 	}
 	x, ok := c.Component(id)
+	if ok && x.ServiceRole() == "embedding" {
+		return Component{}, false
+	}
 	return x, ok && x.IsSupport()
 }
 func (c Catalog) SupportComponents(bundleID string) []Component {
 	var out []Component
 	for _, x := range c.Components {
 		if x.IsSupport() {
-			resolved, _ := c.ResolveSupport(bundleID, x.ID)
-			out = append(out, resolved)
+			if resolved, ok := c.ResolveSupport(bundleID, x.ID); ok {
+				out = append(out, resolved)
+			}
 		}
 	}
 	return out
@@ -65,7 +72,7 @@ func (c Catalog) ModelBundle(bundle Bundle) Bundle {
 	ids := make([]string, 0, len(bundle.Components))
 	for _, id := range bundle.Components {
 		x, ok := c.ResolveComponent(bundle.ID, id)
-		if ok && !x.IsSupport() {
+		if ok && x.IsModelService() {
 			ids = append(ids, id)
 		}
 	}
@@ -75,7 +82,7 @@ func (c Catalog) ModelBundle(bundle Bundle) Bundle {
 func (c Catalog) ModelComponents(bundleID string) []Component {
 	out := []Component{}
 	for _, x := range c.BundleComponents(bundleID) {
-		if !x.IsSupport() {
+		if x.IsModelService() {
 			out = append(out, x)
 		}
 	}

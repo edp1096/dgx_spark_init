@@ -50,6 +50,7 @@ func TestLiveRadixArkVideoASR(t *testing.T) {
 		return strings.TrimSpace(string(b))
 	}
 	before := identity()
+	embeddingBefore := liveRadixArkEmbeddingIdentity(t, cfg)
 	f, err := os.Open(input)
 	if err != nil {
 		t.Fatal(err)
@@ -76,6 +77,9 @@ func TestLiveRadixArkVideoASR(t *testing.T) {
 	}
 	if identity() != before {
 		t.Fatal("LLM restarted during video transcription")
+	}
+	if embeddingBefore != liveRadixArkEmbeddingIdentity(t, cfg) {
+		t.Fatal("resident embedding restarted during video transcription")
 	}
 	resp, err := http.Get(strings.TrimRight(cfg.Model.Endpoint, "/") + "/server_info")
 	if err != nil {

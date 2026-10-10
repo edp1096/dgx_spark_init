@@ -9,6 +9,15 @@ import (
 
 func (c *Config) Normalize() {
 	c.Attachments = c.Attachments.Normalized()
+	if c.Embedding.Endpoint == "" {
+		c.Embedding.Endpoint = "http://127.0.0.1:8701"
+	}
+	if c.Embedding.Timeout == "" {
+		c.Embedding.Timeout = "20s"
+	}
+	if c.Embedding.MinSimilarity == 0 {
+		c.Embedding.MinSimilarity = 0.62
+	}
 
 	if c.Version < 2 {
 		c.Version = 2
@@ -276,6 +285,34 @@ func (c *Config) Normalize() {
 		c.Runtime.BuiltinRevision = 36
 	}
 	c.normalizeQwenImageNaming()
+	if c.Runtime.BuiltinRevision < 37 {
+		found := false
+		for _, x := range c.Runtime.Catalog.Components {
+			if x.ID == "extra-embedding" {
+				found = true
+			}
+		}
+		if !found {
+			if defaults, err := orchestrator.LoadCatalog(); err == nil {
+				if x, ok := defaults.Component("extra-embedding"); ok {
+					c.Runtime.Catalog.Components = append(c.Runtime.Catalog.Components, x)
+				}
+			}
+		}
+		c.Runtime.BuiltinRevision = 37
+	}
+	if c.Runtime.BuiltinRevision < 38 {
+		c.migrateResidentEmbedding()
+		c.Runtime.BuiltinRevision = 38
+	}
+	if c.Runtime.BuiltinRevision < 39 {
+		c.migrateNVFP4ResidentASR()
+		c.Runtime.BuiltinRevision = 39
+	}
+	if c.Runtime.BuiltinRevision < 40 {
+		c.addQwen38FNEXL3Q4Set()
+		c.Runtime.BuiltinRevision = 40
+	}
 	if c.Runtime.BuiltinRevision < 25 {
 		c.Runtime.BuiltinRevision = 25
 	}

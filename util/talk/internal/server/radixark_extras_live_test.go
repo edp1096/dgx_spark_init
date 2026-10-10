@@ -53,6 +53,7 @@ func TestLiveRadixArkExtras(t *testing.T) {
 		return strings.TrimSpace(string(b))
 	}
 	before := identity()
+	embeddingBefore := liveRadixArkEmbeddingIdentity(t, cfg)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
 	if err := os.MkdirAll(report, 0700); err != nil {
@@ -135,6 +136,9 @@ func TestLiveRadixArkExtras(t *testing.T) {
 	if before != identity() {
 		t.Fatal("LLM restarted during Extra work")
 	}
+	if embeddingBefore != liveRadixArkEmbeddingIdentity(t, cfg) {
+		t.Fatal("resident embedding restarted during Extra work")
+	}
 	resp, err = http.Get(strings.TrimRight(cfg.Model.Endpoint, "/") + "/server_info")
 	if err != nil {
 		t.Fatal(err)
@@ -160,4 +164,29 @@ func TestLiveRadixArkExtras(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Log(string(out))
+}
+
+func liveRadixArkEmbeddingIdentity(t *testing.T, cfg config.Config) string {
+	t.Helper()
+	if !cfg.SemanticSearchEnabled() {
+		t.Fatal("NVFP4 resident embedding must be enabled for this audit")
+	}
+	resp, err := http.Get(strings.TrimRight(cfg.Embedding.Endpoint, "/") + "/health")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	var state struct {
+		Ready  bool   `json:"ready"`
+		Device string `json:"device"`
+		Dtype  string `json:"dtype"`
+	}
+	if resp.StatusCode != 200 || json.NewDecoder(resp.Body).Decode(&state) != nil || !state.Ready || state.Device != "cuda" || state.Dtype != "bf16" {
+		t.Fatal("resident CUDA BF16 embedding unavailable", state)
+	}
+	b, err := exec.Command("docker", "inspect", "-f", "{{.Id}} {{.State.Pid}}", "sparktalk-embedding").Output()
+	if err != nil {
+		t.Fatal(err)
+	}
+	return strings.TrimSpace(string(b))
 }

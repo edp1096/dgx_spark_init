@@ -979,6 +979,24 @@
   }
   function streamHandlersFor(message, sessionId = activeId, messageList = messages) {
     const handlers = createStreamHandlers(message, () => publishMessages(sessionId, messageList));
+    handlers.sessionTitle = data => {
+      if (data.session_id !== sessionId || !data.changed || typeof data.title !== 'string') return;
+      refreshSessions().catch(() => {});
+    };
+    handlers.sessionFolder = data => {
+      if (data.session_id !== sessionId || !data.changed || typeof data.group_id !== 'string') return;
+      Promise.all([listGroups(), listSessions()]).then(([nextGroups, nextSessions]) => {
+        groups = nextGroups;
+        sessions = nextSessions;
+        const moved = sessions.find(item => item.id === sessionId);
+        if (activeId === sessionId && moved) {
+          collapsedGroups = { ...collapsedGroups, [moved.group_id || '__ungrouped__']: false };
+          if (moved.group_id) foldersCollapsed = false;
+          localStorage.setItem('sparktalk.collapsed-groups', JSON.stringify(collapsedGroups));
+          localStorage.setItem('sparktalk.folders-collapsed', String(foldersCollapsed));
+        }
+      }).catch(() => {});
+    };
     const ownerRun = sessionRuns[sessionId];
     handlers.turnStarted = (data) => {
       if (ownerRun && sessionRuns[sessionId] === ownerRun) {

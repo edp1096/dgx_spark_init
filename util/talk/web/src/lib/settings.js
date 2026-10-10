@@ -10,6 +10,7 @@ export function normalizePublicSettings(settings) {
   if (!Number.isFinite(Number(settings.runtime.memory_reserve_gib))) settings.runtime.memory_reserve_gib = 4;
   settings.model ||= {};
   settings.context ||= {};
+  settings.embedding ||= { enabled: false, endpoint: "http://127.0.0.1:8701", timeout: "20s", min_similarity: 0.62 };
   settings.memory ||= {};
   if (!Number.isFinite(Number(settings.memory.always_max_results)) || Number(settings.memory.always_max_results) < 1) settings.memory.always_max_results = 6;
   if (!Number.isFinite(Number(settings.memory.always_token_budget)) || Number(settings.memory.always_token_budget) < 256) settings.memory.always_token_budget = 1024;

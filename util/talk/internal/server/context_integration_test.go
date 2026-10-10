@@ -60,8 +60,9 @@ func TestContinuousToolsBudgetArchivesAndReplaysWithoutLosingLatest(t *testing.T
 		fmt.Fprintf(w, "data: %s\n\ndata: [DONE]\n\n", chunk)
 	}))
 	defer backend.Close()
-	// Allow the persistent code-project tool schema while still forcing the first result to be archived.
-	cfg := config.Config{Context: config.ContextConfig{Enabled: true, WindowTokens: 3800, OutputReserve: 512, SafetyMargin: 256, CompactAtPercent: 80, RecentTokens: 128, ImageTokens: 100}, Tools: config.ToolsConfig{MaxRounds: 3}}
+	// Allow persistent project and conversation-management schemas while still
+	// forcing the first result to be archived and preserving the latest result.
+	cfg := config.Config{Context: config.ContextConfig{Enabled: true, WindowTokens: 4096, OutputReserve: 512, SafetyMargin: 256, CompactAtPercent: 80, RecentTokens: 128, ImageTokens: 100}, Tools: config.ToolsConfig{MaxRounds: 3}}
 	server := &Server{db: store, cfg: cfg}
 	states := []contextState{}
 	var reported *performance.Summary

@@ -23,6 +23,11 @@ type modelAsset struct {
 
 func componentModelAssets(c Component) []modelAsset {
 	switch c.ComposeAsset {
+	case "compose.extra-embedding.yaml":
+		return []modelAsset{{Repo: "google/embeddinggemma-2", Revision: "914f7f89142e33e77833254d9c9b90c3cef7303b", Path: "/hf/google/embeddinggemma-2", Files: []string{"model.safetensors", "config.json", "config_sentence_transformers.json", "modules.json", "1_Pooling/config.json", "2_Normalize/config.json", "sentence_bert_config.json", "tokenizer.json", "tokenizer.model", "tokenizer_config.json", "preprocessor_config.json", "processor_config.json", "chat_template.jinja"}, SHA256: map[string]string{"model.safetensors": "197a32965d4b1105faf060417baa899e193fb73cd401f42ec9295234d5553d79"}}}
+
+	case "compose.qwen38fn_exl3_q4.yaml":
+		return []modelAsset{{Repo: "alesha-pro/Huihui-Qwen3.8-Flash-Next-abliterated-exl3-4bit-hq_h6_ng6", Revision: "e884d3e5e38d53e3b50a59e02d1b7a4cb1e5d75e", Path: "/hf/hub/models--alesha-pro--Huihui-Qwen3.8-Flash-Next-abliterated-exl3-4bit-hq_h6_ng6/snapshots/e884d3e5e38d53e3b50a59e02d1b7a4cb1e5d75e", HubCache: true}}
 	case "compose.qwen38fn_exl3.yaml":
 		return []modelAsset{{Repo: "alesha-pro/Huihui-Qwen3.8-Flash-Next-abliterated-exl3-3bit-hq_h6_ng6", Revision: "3b585c458f9fcf3322e76cff2c635c2cb81c5869", Path: "/hf/hub/models--alesha-pro--Huihui-Qwen3.8-Flash-Next-abliterated-exl3-3bit-hq_h6_ng6/snapshots/3b585c458f9fcf3322e76cff2c635c2cb81c5869", HubCache: true}}
 	case "compose.qwim-mmh3.yaml":

@@ -110,7 +110,7 @@ func (s *Server) chat(w http.ResponseWriter, r *http.Request) {
 	}
 	flusher.Flush()
 
-	if err == nil && count == 0 {
+	if err == nil && count == 0 && !hasSessionTitleTool(result.ToolTrace) {
 		userText, sessionID, model := req.Content, req.SessionID, req.Model
 		s.scheduleTitle(client, sessionID, model, userText)
 	}
@@ -282,7 +282,7 @@ func (s *Server) editMessage(w http.ResponseWriter, r *http.Request, messageID i
 		fmt.Fprintf(w, "event: error\ndata: %s\n\n", payload)
 	} else {
 		fmt.Fprint(w, "event: done\ndata: {}\n\n")
-		if len(history) == 0 {
+		if len(history) == 0 && !hasSessionTitleTool(result.ToolTrace) {
 			s.scheduleTitle(client, target.SessionID, req.Model, req.Content)
 		}
 	}
@@ -291,21 +291,36 @@ func (s *Server) editMessage(w http.ResponseWriter, r *http.Request, messageID i
 
 // Titles outlive the requesting browser, but are drained before the DB closes.
 func (s *Server) scheduleTitle(client *llm.Client, sessionID, model, userText string) {
+	expected := ""
+	if s.db != nil {
+		var manual bool
+		var err error
+		expected, manual, err = s.db.SessionTitleState(sessionID)
+		if err != nil || manual {
+			return
+		}
+	}
 	ctx, finish, err := s.tasks.Track(context.Background())
 	if err != nil {
 		return
 	}
 	go func() {
 		defer finish()
-		title, err := client.GenerateTitle(ctx, model, userText)
-		if ctx.Err() != nil {
-			return
-		}
-		if err != nil || title == "" {
-			title = fallbackTitle(userText)
-		}
-		_ = s.db.UpdateSessionTitle(sessionID, title)
+		s.generateSessionTitle(ctx, client, sessionID, model, userText, expected)
 	}()
+}
+
+func (s *Server) generateSessionTitle(ctx context.Context, client *llm.Client, sessionID, model, userText, expected string) {
+	title, err := client.GenerateTitle(ctx, model, userText)
+	if ctx.Err() != nil {
+		return
+	}
+	if err != nil || title == "" {
+		title = fallbackTitle(userText)
+	}
+	if s.db != nil {
+		_, _ = s.db.UpdateSessionTitleIfUnchanged(sessionID, expected, title)
+	}
 }
 
 type videoInputModeKey struct{}

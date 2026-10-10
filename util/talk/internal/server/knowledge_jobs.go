@@ -224,8 +224,13 @@ func (s *Server) runKnowledgeJob(ctx context.Context, id string, run *knowledgeJ
 		status = "completed_with_errors"
 		detail = fmt.Sprintf("%d of %d pages failed", updated.FailedItems, updated.TotalItems)
 	}
+	// A completed job must already be searchable. Publishing completion first
+	// allowed readers to observe the old processing status and miss all chunks.
+	if err := s.db.UpdateKnowledgeDocumentStatus(job.DocumentID, "ready", detail); err != nil {
+		s.failKnowledgeJob(job, err)
+		return
+	}
 	_ = s.db.SetKnowledgeJobStatus(id, status, detail, updated.TotalItems)
-	_ = s.db.UpdateKnowledgeDocumentStatus(job.DocumentID, "ready", detail)
 }
 
 func (s *Server) importKnowledgeJobItem(ctx context.Context, job db.KnowledgeJob, item db.KnowledgeJobItem) error {

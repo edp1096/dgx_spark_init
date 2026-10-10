@@ -69,6 +69,10 @@ func newCompletionToolRegistryForContext(ctx context.Context, server *Server, se
 	}
 
 	if server != nil && server.db != nil && sessionID != "" {
+		if _, staged := ctx.Value(workflowStageKey{}).(*workflowStage); !staged {
+			server.registerSessionTitleTool(&registry, sessionID)
+			server.registerSessionFolderTool(&registry, sessionID)
+		}
 		server.registerArtifactTools(&registry, sessionID)
 		server.registerAttachmentReader(&registry, sessionID)
 	}
@@ -138,7 +142,7 @@ func newCompletionToolRegistryForContext(ctx context.Context, server *Server, se
 
 	if server != nil {
 		serverCfg, _ := server.snapshot()
-		server.registerVideoTool(&registry, serverCfg, mediaSink)
+		server.registerVideoTool(ctx, &registry, serverCfg, mediaSink)
 		if serverCfg.Extra.DocumentsEnabled && server.media != nil {
 			registry.register(documentToolDefinition(), func(ctx context.Context, call llm.ToolCall, _ []llm.Message, _ eventEmitter) (registeredToolResult, error) {
 				return server.executeDocumentGenerateForSession(ctx, sessionID, call)

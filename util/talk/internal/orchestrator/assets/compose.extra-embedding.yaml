@@ -1,0 +1,42 @@
+services:
+    runtime:
+        build:
+            context: ${SPARKTALK_BUILD_DIR:?Embedded build assets required}
+            dockerfile: Dockerfile
+        cap_drop:
+            - ALL
+        container_name: sparktalk-embedding
+        cpus: 2
+        environment:
+            HF_HUB_OFFLINE: "1"
+            HOME: /tmp
+            MODEL_DIR: /hf/google/embeddinggemma-2
+            TRANSFORMERS_OFFLINE: "1"
+        gpus: all
+        healthcheck:
+            interval: 15s
+            retries: 3
+            start_period: 10s
+            test:
+                - CMD
+                - python
+                - -c
+                - import urllib.request; urllib.request.urlopen('http://127.0.0.1:8701/health',timeout=2)
+            timeout: 5s
+        image: sparktalk-embedding:0.1.1
+        init: true
+        mem_limit: 4g
+        memswap_limit: 4g
+        pids_limit: 128
+        ports:
+            - ${SPARKTALK_BIND_ADDR:-127.0.0.1}:${SPARKTALK_PORT:-8701}:8701
+        pull_policy: never
+        read_only: true
+        restart: "no"
+        security_opt:
+            - no-new-privileges:true
+        tmpfs:
+            - /tmp:rw,nosuid,size=128m
+        user: ${PUID:-1000}:${PGID:-1000}
+        volumes:
+            - ${SPARKTALK_HF_CACHE:-${HOME}/.cache/huggingface}:/hf:ro

@@ -48,7 +48,7 @@ func TestMiniMaxH3ReplacesLegacyEXL3InPlace(t *testing.T) {
 	c := Config{Runtime: RuntimeConfig{Mode: "managed", BuiltinRevision: 29, Bundle: "qwen38fn_exl3", ActiveBundle: "qwen38fn_exl3", Catalog: &catalog}}
 	c.Normalize()
 	b := c.Runtime.Catalog.Bundles[originalIndex]
-	if b.ID != "qwen38fn_exl3" || b.Name != "Qwen 3.8 Flash-Next EXL3" {
+	if b.ID != "qwen38fn_exl3" || b.Name != "Qwen 3.8 Flash-Next EXL3 3bit" {
 		t.Fatalf("EXL3 entry moved or renamed incorrectly: %+v", b)
 	}
 	if _, ok := c.Runtime.Catalog.Bundle("qwen38fn_exl3-mmh3"); ok {
@@ -92,7 +92,7 @@ func TestMiniMaxH3ConsolidatesSelectedSetAndPreservesDeployments(t *testing.T) {
 				t.Fatal("selected/default set not migrated")
 			}
 			b := c.Runtime.Catalog.Bundles[originalIndex]
-			if b.ID != "qwen38fn_exl3" || b.Name != "Qwen 3.8 Flash-Next EXL3" || b.Description != paired.Description || b.ContextTokens != paired.ContextTokens {
+			if b.ID != "qwen38fn_exl3" || b.Name != "Qwen 3.8 Flash-Next EXL3 3bit" || b.Description != paired.Description || b.ContextTokens != paired.ContextTokens {
 				t.Fatalf("paired set configuration or position lost: %+v", b)
 			}
 			if c.Image.Endpoint != "http://127.0.0.1:8731" || c.Image.Mode != "basic" {

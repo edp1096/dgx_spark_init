@@ -28,6 +28,8 @@ import (
 )
 
 type Server struct {
+	retrievalMu        sync.Mutex
+	retrieval          retrievalState
 	tasks              tasklife.Group
 	plugins            *plugins.Manager
 	turnMu             sync.Mutex
@@ -152,6 +154,7 @@ func New(cfg config.Config, configPath string, store *db.DB, client *llm.Client,
 	if cfg.Runtime.Mode == "managed" && cfg.Runtime.AutoStart {
 		_ = s.runtime.StartBundle(context.Background(), cfg.Runtime.Bundle, cfg.Runtime.MemoryReserveGiB)
 	}
+	s.startEmbeddingIndexer()
 	initialized = true
 	runtimeInitialized = true
 	runtimeController.AdoptIdleWorkloads(cfg.Runtime.ActiveBundle)
