@@ -1,6 +1,6 @@
 services:
   runtime:
-    image: sparktalk-qwim-mmh3:nvfp4-resident2
+    image: sparktalk-qwim-mmh3:nvfp4-sol-i2v1
     build: .
     container_name: sparktalk-qwim-mmh3
     restart: "no"
@@ -18,6 +18,7 @@ services:
       HF_HOME: /hf
       HF_HUB_OFFLINE: "1"
       COMFY_KITCHEN_BACKEND: cuda
+      MMH3_ATTENTION: sol
       API_PORT: "${MMH3_API_PORT:-8730}"
       API_HOST: "${MMH3_API_HOST:-127.0.0.1}"
     volumes:

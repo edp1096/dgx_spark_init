@@ -46,5 +46,17 @@
     "version": "0.3.0",
     "build_asset": "support-services",
     "dockerfile": "Dockerfile.ssh"
+  },
+  {
+    "key": "embedding",
+    "id": "extra-embedding",
+    "name": "의미 검색",
+    "description": "기억·과거 대화·문서의 의미 검색",
+    "port": 8701,
+    "internal_port": 8701,
+    "image": "sparktalk-embedding:0.1.1",
+    "version": "0.1.1",
+    "build_asset": "embedding",
+    "dockerfile": "Dockerfile"
   }
 ]

@@ -5,8 +5,17 @@ Talk의 **Qwen 3.8 Flash-Next EXL3** 세트에 쓰는 공동 상주 엔진이다
 해제한다. LLM/ASR/TTS는 기존 서비스를 재사용한다. 다른 QWIM 이미지 편집 세트로 전환하면 두 이미지 엔진을 교체한다.
 
 - 이미지: 텍스트 입력, 1024×1024, 40스텝, `/v1/images/generations`.
-- 영상: 텍스트 입력, 864×480, 124프레임/24fps(약 5.17초), 20스텝, AAC 음성 포함 MP4,
-  `/v1/videos/generations`. 참조 이미지 영상화와 임의 해상도·길이는 제공하지 않는다.
+- 영상: 텍스트 입력은 864×480, 이미지 입력은 원본 비율에 맞춘 자동 해상도
+  (최대 픽셀 면적 864×480). 124프레임/24fps(약 5.17초), 20스텝, AAC 음성 포함 MP4,
+  `/v1/videos/generations`. `first_frame`·`last_frame`에 PNG/JPEG/WebP data URL을
+  전달하면 실제 0·123프레임 조건으로 인코딩한다. 이미지당 32MiB·16메가픽셀 한도다.
+  Talk의 `video_generate`는 `first_frame_image_id`·`last_frame_image_id`로 현재 대화의
+  첨부 이미지를 선택한다. 첫 프레임은 VAE 조건이므로 원본 픽셀과 완전히 같지는 않다.
+  임의 해상도·길이, 참조 영상·오디오 입력은 제공하지 않는다.
+- 영상은 SM121 GPU의 Sol-Attn 단독을 사용한다. 처음 4·마지막 2스텝과 처음 2블록,
+  텍스트·오디오 query는 dense 계산을 유지한다. Spectrum·FBC는 사용하지 않는다.
+  같은 시드라도 dense 원본과 구도·동작이 달라질 수 있다. `MMH3_ATTENTION=dense`로
+  되돌릴 수 있으며 이미지 생성에는 이 설정이 적용되지 않는다.
 - `/health`는 두 DiT 적재가 끝난 뒤 정상으로 응답한다.
 - 작업은 직렬화하며, `/v1/runtime/memory`는 실행·대기 작업을 함께 보고한다.
 - `/v1/runtime/quiesce`는 실행·대기 작업이 있으면 409를 반환한다.

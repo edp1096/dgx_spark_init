@@ -16,3 +16,7 @@ memos/agent_archive/
 
 # Local verification logs, database backups, and deployment binaries.
 /.cache/
+
+# Keep experiment scripts versioned, but retain measurements only locally.
+/compose_yaml/qwen38fn_exl3/experiments/velogb10-yarn/*.json
+/compose_yaml/qwen38fn_exl3/experiments/velogb10-q4-vs-nvfp4/results.json

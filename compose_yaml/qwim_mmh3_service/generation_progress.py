@@ -43,9 +43,10 @@ def prune(root):
 
 
 class Tracker:
-    def __init__(self, root, state, request_id, kind, clock=time.monotonic):
+    def __init__(self, root, state, request_id, kind, clock=time.monotonic, profile=None):
         self.root, self.state, self.request_id, self.kind = Path(root), Path(state), request_id, kind
         self.clock = clock
+        self.profile = profile or PROFILE[kind]
         self.started = clock()
         self.phase_started = self.started
         self.phase = 'encode'
@@ -54,7 +55,7 @@ class Tracker:
         self.completed = set()
         self.expected = {}
         try:
-            history = json.loads((self.state / 'timings.json').read_text()).get(PROFILE[kind], [])
+            history = json.loads((self.state / 'timings.json').read_text()).get(self.profile, [])
             for phase in stages(kind):
                 values = [r[phase] for r in history if isinstance(r.get(phase), (int, float)) and math.isfinite(r[phase]) and r[phase] >= 0]
                 if values:
@@ -117,9 +118,9 @@ class Tracker:
             history = json.loads(path.read_text())
         except (OSError, ValueError):
             history = {}
-        rows = history.setdefault(PROFILE[self.kind], [])
+        rows = history.setdefault(self.profile, [])
         rows.append({s: float(timings[s]) for s in stages(self.kind)})
-        history[PROFILE[self.kind]] = rows[-8:]
+        history[self.profile] = rows[-8:]
         temp = path.with_suffix('.tmp')
         temp.write_text(json.dumps(history))
         os.replace(temp, path)

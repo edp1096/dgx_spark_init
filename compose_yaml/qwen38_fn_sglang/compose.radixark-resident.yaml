@@ -1,0 +1,27 @@
+# Use after compose.yaml and compose.radixark1m.yaml. All model files must be cached.
+services:
+  sglang:
+    restart: "no"
+  nemotron-asr:
+    extends:
+      file: ../nemotron_asr/compose.yaml
+      service: api
+    build:
+      context: ../nemotron_asr
+    depends_on:
+      sglang:
+        condition: service_healthy
+  embedding:
+    extends:
+      file: ../sparktalk_extra/compose.yaml
+      service: embedding
+    build:
+      context: ../sparktalk_extra/embedding
+    depends_on:
+      nemotron-asr:
+        condition: service_healthy
+    # Load the GPU model before publishing health, after ASR's CUDA context exists.
+    command:
+      - python
+      - -c
+      - "import server; from http.server import ThreadingHTTPServer; server.get_model(); ThreadingHTTPServer(('0.0.0.0',8701),server.Handler).serve_forever()"

@@ -38,3 +38,11 @@ class Estimates(unittest.TestCase):
         with path.open('a') as f:f.write('"}\n')
         self.assertEqual(read_events(self.root,'a'*32,1)['events'],[{'event':'sample'}])
         self.assertEqual(read_events(self.root,'b'*32,0)['events'],[])
+    def test_image_conditioning_has_separate_eta_history(self):
+        plain=self.tracker();plain.remember({s:1 for s in stages('h3')})
+        i2v=Tracker(self.root,self.root/'state','a'*32,'h3',clock=lambda:self.now,profile='h3-i2v-512x768')
+        self.assertIsNone(i2v.record('encode_start')['eta_seconds'])
+        i2v.remember({s:2 for s in stages('h3')})
+        rows=json.loads((self.root/'state/timings.json').read_text())
+        self.assertEqual(rows[PROFILE['h3']][0]['encode'],1)
+        self.assertEqual(rows['h3-i2v-512x768'][0]['encode'],2)

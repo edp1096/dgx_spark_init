@@ -153,6 +153,37 @@ services:
       retries: 3
       start_period: 10s
 
+  embedding:
+    build:
+      context: ./embedding
+    image: sparktalk-embedding:0.1.1
+    container_name: sparktalk-embedding
+    restart: "no"
+    init: true
+    gpus: all
+    ports: ["${SPARKTALK_EMBEDDING_BIND_ADDR:-127.0.0.1}:${SPARKTALK_EMBEDDING_PORT:-8701}:8701"]
+    environment:
+      MODEL_DIR: /hf/google/embeddinggemma-2
+      HF_HUB_OFFLINE: "1"
+      TRANSFORMERS_OFFLINE: "1"
+      HOME: /tmp
+    volumes: ["${SPARKTALK_HF_CACHE:-${HOME}/.cache/huggingface}:/hf:ro"]
+    user: "${PUID:-1000}:${PGID:-1000}"
+    read_only: true
+    tmpfs: ["/tmp:rw,nosuid,size=128m"]
+    mem_limit: 4g
+    memswap_limit: 4g
+    cpus: 2
+    pids_limit: 128
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: ["ALL"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8701/health',timeout=2)"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
 volumes:
   ytdlp-data:
     name: sparktalk_media_api_ytdlp-data

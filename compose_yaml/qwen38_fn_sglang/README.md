@@ -140,16 +140,15 @@ CUDA 점유 95.27GiB + CUDA 외 host 점유 6.03GiB = 상주 101.31GiB,
 PDF 생성과 SSH API를 확인했고 LLM 컨테이너/PID 및 실제 1M KV가 유지됐다.
 반복 Extra 시험 중 최저 시스템 가용 메모리는 13.19GiB였다.
 
-NVFP4 세트의 Nemotron 3.5 ASR(Q5_K, 화자 구분 Q8_0)은 요청 시 GPU로 시작한다.
-Extra Media가 영상에서 16kHz mono PCM을 추출한 뒤 입력 길이별 ASR 작업 예산을
-확인한다. 새 ASR CUDA 컨텍스트 기동 전에는 SGLang을 in-place pause/resume하여
-사용하지 않는 PyTorch allocator 블록만 반환한다. 본체, 1M KV 풀과 prefix 상태는
-유지하며, 즉시 여유 6GiB와 작업 후 최소 여유를 각각 검사한다.
-실제 MP4의 한국어 전사·화자 구분·전사 캐시 재사용 및 동일 LLM PID/1M KV를 확인했다.
+NVFP4에 ASR·의미 검색을 함께 상주시킬 때는 ASR을 먼저 기동한다.
+Talk는 이 순서와 메모리 검사를 적용한다. 독립 Compose는 아래 구성을 사용한다.
 
-운영 Talk의 실제 `/api/asr/transcribe`에서도 MP4 오디오 전사를 검증했다.
-자동 정리를 사용하는 새 ASR 기동 중 가용 메모리는 최저 12.22GiB,
-완료 후 약 12.02GiB였고 LLM의 컨테이너/PID 및 실제 1M KV가 유지됐다.
+```bash
+docker compose -f compose.yaml -f compose.radixark1m.yaml -f compose.radixark-resident.yaml up -d --no-build
+```
+
+Nemotron ASR Q5_K·화자 구분 Q8_0와 EmbeddingGemma 2 BF16 가중치는 미리 준비한다.
+이미지·TTS는 이 NVFP4 구성에 포함하지 않는다.
 
 ## TP2 이미지 재생성
 

@@ -1,0 +1,980 @@
+diff --git a/kernels/exl3_bench.cu b/kernels/exl3_bench.cu
+--- a/kernels/exl3_bench.cu
++++ b/kernels/exl3_bench.cu
+@@ -2523,6 +2523,16 @@
+         }
+         out[(long long)m * h + i] = xq_f2h(acc);
+     }
++}
++
++// Request-specific JSON vocabulary masks, AFTER penalties and BEFORE any selection.
++// The EXL3 logits are fp16 (the NVFP4 mask kernel's bf16 ABI must not be reused).
++extern "C" __global__ void xq_schema_rows(__half* logits, int V,
++    const unsigned* bits, const int* flags, int words) {
++    XQ_PDL_ENTRY();
++    int row = blockIdx.y, i = blockIdx.x * blockDim.x + threadIdx.x;
++    if (i < V && flags[row] && !(bits[(long long)row * words + (i >> 5)] & (1u << (i & 31))))
++        logits[(long long)row * V + i] = __float2half(-INFINITY);
+ }
+ 
+ // ---- greedy argmax over vocab (fp32 compare, lowest-id ties). One block.
+diff --git a/src/exl3_bench.rs b/src/exl3_bench.rs
+--- a/src/exl3_bench.rs
++++ b/src/exl3_bench.rs
+@@ -261,6 +261,7 @@
+     "xq_accept",
+     // API-parity G2: device sampler (sampled lanes: plain steps + MTP verify rows)
+     "xq_sample_rows",
++    "xq_schema_rows",
+     // WP15: device penalties (decode/verify rows + draft mirror)
+     "xq_pen_rows",
+     "xq_pen_draft",
+diff --git a/src/exl3_forward.rs b/src/exl3_forward.rs
+--- a/src/exl3_forward.rs
++++ b/src/exl3_forward.rs
+@@ -2384,6 +2384,9 @@
+     // so all-greedy traffic never pays an upload.
+     samp: CudaSlice<u32>,
+     samp_live: bool,
++    schema_bits: CudaSlice<u32>,
++    schema_flags: CudaSlice<i32>,
++    schema_live: bool,
+     // WP15: per-row penalty params [w][8] read by xq_pen_rows (row 0 also by the draft mirror
+     // xq_pen_draft). pen_live = host shadow "some staged row is penalized"; it is part of every
+     // decode / verify / draft graph key, so unpenalized traffic replays graphs with no penalty
+@@ -2540,6 +2543,9 @@
+             qsa_pacc: dev.alloc_zeros::<f32>(w * cfg.num_heads * QSA_SPLITS_DEC * cfg.head_dim)?,
+             logits: dev.alloc_zeros::<u16>(w * v)?,
+             argmax: dev.alloc_zeros::<i32>(w)?,
++            schema_bits: dev.alloc_zeros::<u32>(w * crate::json_schema::vocab_words(v))?,
++            schema_flags: dev.alloc_zeros::<i32>(w)?,
++            schema_live: false,
+             // WP09: keys are fully written before read; the counters need a REAL zero (§2.2).
+             am_part: dev.alloc_zeros::<u64>(w.max(1) * XQ_AM_NB_MAX)?,
+             am_cnt: dev.htod_sync_copy(&vec![0u32; w.max(1)])?,
+@@ -10234,14 +10240,15 @@
+         // serial spine after its fork's join (design §2.3; audit in PLAN/notes_2026-09-28/TP-C.md).
+         // Capture executes nothing (no barrier runs during a capture), eager and replay run the
+         // identical barrier sequence, so a rank that fails a capture stays in lockstep eagerly.
+-        let want_graph = ladder.is_none()
++        // Schema rows have request-specific masks: keep them out of every unmasked graph.
++        let want_graph = !sc.schema_live && ladder.is_none()
+             && crate::opts::var(crate::opt!("exl3-route-check")).is_err()
+             && crate::opts::var(crate::opt!("exl3-no-graph")).is_err()
+             && !wp12_xcheck();
+         let dump_active = !want_graph
+             && crate::opts::var(crate::opt!("mtp-dump")).as_deref().map_or(false, |s| !s.is_empty());
+         let graphed = want_graph && self.graphs.lock().unwrap().contains_key(&gkey);
+-        if autotune::armed() && autotune::li_step(self, sc, m, qsa, qb)? {
++        if !sc.schema_live && autotune::armed() && autotune::li_step(self, sc, m, qsa, qb)? {
+             // TUNE T1 (§5.3): the armed --autotune harness ran this step from its LI arm's graph
+             // (bitwise twins: the trajectory is the same whichever arm runs)
+         } else if graphed {
+@@ -10639,6 +10646,11 @@
+         }
+         // WP15: penalties before BOTH the argmax and the sampler (only in pen_live graphs).
+         self.pen_rows(l, sc, m)?;
++        if sc.schema_live {
++            let words = crate::json_schema::vocab_words(v);
++            xqlaunch!(l, "xq_schema_rows", (v.div_ceil(256) as u32, m as u32, 1), (256, 1, 1), 0,
++                      (&mut sc.logits, v as i32, &sc.schema_bits, &sc.schema_flags, words as i32))?;
++        }
+         // WP09: one multi-block launch for all m rows (bitwise the same ids; escape inside).
+         self.argmax_rows(l, sc, m, v)?;
+         // API-parity G2: sampled rows overwrite their id (zero-param rows exit at once).
+@@ -12417,6 +12429,28 @@
+         }
+         self.dev.htod_copy_into(buf, &mut sc.samp)?;
+         sc.samp_live = live;
++        Ok(())
++    }
++
++    /// Stage token bitsets in scratch-row order. Ordinary traffic pays no allocation/upload.
++    /// Constrained requests use plain GPU decoding, so masks never reach speculative graphs.
++    pub fn set_schema_masks(&self, sc: &mut Scratch, rows: &[Option<Arc<Vec<u32>>>]) -> Result<()> {
++        sc.schema_live = rows.iter().any(Option::is_some);
++        if !sc.schema_live { return Ok(()); }
++        let words = crate::json_schema::vocab_words(self.cfg.vocab_size);
++        anyhow::ensure!(rows.len() <= sc.schema_flags.len(), "schema rows exceed scratch width");
++        let mut bits = vec![0u32; sc.schema_bits.len()];
++        let mut flags = vec![0i32; sc.schema_flags.len()];
++        for (r, mask) in rows.iter().enumerate() {
++            if let Some(mask) = mask {
++                anyhow::ensure!(mask.len() <= words, "schema mask exceeds vocabulary");
++                anyhow::ensure!(mask.iter().any(|&w| w != 0), "JSON schema has no legal next token");
++                bits[r * words..r * words + mask.len()].copy_from_slice(mask);
++                flags[r] = 1;
++            }
++        }
++        self.dev.htod_copy_into(bits, &mut sc.schema_bits)?;
++        self.dev.htod_copy_into(flags, &mut sc.schema_flags)?;
+         Ok(())
+     }
+ 
+diff --git a/src/exl3_serve.rs b/src/exl3_serve.rs
+--- a/src/exl3_serve.rs
++++ b/src/exl3_serve.rs
+@@ -27,6 +27,7 @@
+ }
+ 
+ struct Lane {
++    schema: Option<crate::exl3_schema::Cursor>,
+     pos: usize,          // next trunk position to write
+     last_tok: u32,       // last committed token
+     generated: usize,
+@@ -1423,6 +1424,8 @@
+         if slots.is_empty() {
+             return Ok(());
+         }
++        // A preceding constrained plain step must not leak masks into ordinary MTP traffic.
++        self.model.set_schema_masks(&mut self.sc, &[])?;
+         self.steps += 1;
+         if self.inject_panic == Some(self.steps) {
+             panic!("--inject-panic-steps: injected scheduler panic at decode step {} (liveness gate)", self.steps);
+@@ -1883,6 +1886,9 @@
+             .map(|&s| self.lanes[s].as_ref().unwrap().pen)
+             .collect();
+         self.model.set_penalties(&mut self.sc, &pens)?;
++        let masks: Vec<_> = slots.iter().map(|&s|
++            self.lanes[s].as_ref().unwrap().schema.as_ref().map(|c| c.allowed())).collect();
++        self.model.set_schema_masks(&mut self.sc, &masks)?;
+         let ids = self.model.forward_step(&mut self.sc, &toks, &poss, slots, None)?;
+         if self.tp.is_some() {
+             // TP-C: lockstep on the batched plain step's emitted ids (no wall-clock decision here)
+@@ -1905,6 +1911,16 @@
+         }
+ 
+         for (j, &s) in slots.iter().enumerate() {
++            let schema_done = if let Some(cursor) = self.lanes[s].as_mut().unwrap().schema.as_mut() {
++                match cursor.commit(ids[j] as u32) {
++                    Ok(done) => done,
++                    Err(e) => {
++                        let lane = self.lanes[s].take().unwrap();
++                        let _ = lane.tx.send(TokEvent::Finish { reason: format!("error: schema decoding failed: {e}") });
++                        continue;
++                    }
++                }
++            } else { false };
+             let t = {
+                 let lane = self.lanes[s].as_mut().unwrap();
+                 let next = ids[j] as u32;
+@@ -1919,12 +1935,14 @@
+             };
+             let (finish, reason) = {
+                 let lane = self.lanes[s].as_mut().unwrap();
+-                if lane.generated >= lane.max_new {
++                if schema_done {
++                    (true, "stop")
++                } else if lane.generated >= lane.max_new {
+                     (true, "length")
+                 } else if self.eos.contains(&t) && !lane.ignore_eos && lane.generated >= lane.min_new {
+                     (true, "stop")
+                 } else if lane.loop_feed(t) {
+-                    (true, "loop_detected") // WP08
++                    (true, if lane.schema.is_some() { "error: unprocessable: JSON schema generation stalled" } else { "loop_detected" })
+                 } else {
+                     (false, "")
+                 }
+@@ -2118,7 +2136,7 @@
+                 return;
+             }
+         };
+-        if req.schema.is_some() {
++        if req.schema.is_some() && self.tp.is_some() {
+             let _ = req.tx.send(TokEvent::Finish {
+                 reason: "error: json-schema constraint not supported on the exl3 serve path yet".into(),
+             });
+@@ -2186,6 +2204,11 @@
+         });
+         let first = crate::exl3_forward::SampParams::sampled(
+             req.temperature, req.top_p, req.top_k, req.min_p, seed, 0);
++        let mut schema = req.schema.clone().map(crate::exl3_schema::Cursor::new);
++        if let Err(e) = self.model.set_schema_masks(&mut self.sc, &[schema.as_ref().map(|c| c.allowed())]) {
++            let _ = req.tx.send(TokEvent::Finish { reason: format!("error: schema mask staging failed: {e}") });
++            return;
++        }
+         if let Err(e) = self.model.set_sampling(&mut self.sc, &[first]) {
+             let _ = req.tx.send(TokEvent::Finish { reason: format!("error: sampler staging failed: {e}") });
+             if self.tp.is_some() { self.fatal = Some(format!("{e:#}")); } // TP-D: never a one-rank skip
+@@ -2246,6 +2269,15 @@
+                 return;
+             }
+         }
++        let schema_done = if let Some(cursor) = schema.as_mut() {
++            match cursor.commit(last) {
++                Ok(done) => done,
++                Err(e) => {
++                    let _ = req.tx.send(TokEvent::Finish { reason: format!("error: schema seam failed: {e}") });
++                    return;
++                }
++            }
++        } else { false };
+         if req.tx.send(TokEvent::Tok(last)).is_err() && self.tp.is_none() {
+             // WP02: the client is gone — no lane (the prefix snapshot stays valid). TP-D: under TP
+             // the lane is created on every rank and the head's next sweep cancels it.
+@@ -2257,6 +2289,10 @@
+         crate::rprintln!("[exl3-serve] first token slot={free} {:.1} ms after receipt (queued {:.1} ms)",
+                  req.received_at.elapsed().as_secs_f64() * 1e3,
+                  t_admit.duration_since(req.received_at).as_secs_f64() * 1e3);
++        if schema_done {
++            let _ = req.tx.send(TokEvent::Finish { reason: "stop".into() });
++            return;
++        }
+         if max_new <= 1 {
+             let _ = req.tx.send(TokEvent::Finish { reason: "length".into() });
+             return;
+@@ -2270,7 +2306,8 @@
+         // seam decode step's sc.resid — exact, same composition as the bench-mtp
+         // prime and every round's re-prime), then feed the head the last prompt
+         // token with that tap (round 1's draft-extend reuses tap_row 0).
+-        let mtp = if self.model.mtp.is_some() && !crate::exl3_forward::mtp_disabled_by_opt() {
++        // Schema requests never speculate: every emitted token is masked and validated.
++        let mtp = if schema.is_none() && self.model.mtp.is_some() && !crate::exl3_forward::mtp_disabled_by_opt() {
+             match self.mtp_prime(free, *req.prompt.last().unwrap(), plen) {
+                 Ok(()) => {
+                     if crate::exl3_forward::a_xcheck_on() {
+@@ -2296,6 +2333,7 @@
+         let admit_seq = self.admit_ctr;   // CF-FCFS: FCFS order; the same on every TP rank
+         self.admit_ctr += 1;
+         self.lanes[free] = Some(Lane {
++            schema,
+             pos: req.prompt.len(),
+             last_tok: last,
+             generated: 1,
+@@ -3482,6 +3520,7 @@
+         _ => None,
+     };
+     let state = AppState {
++        schema_mode: if tp_rank.is_none() { crate::server::SchemaMode::Exl3Gpu } else { crate::server::SchemaMode::Unsupported },
+         sampling_defaults: crate::server::SamplingDefaults::QWEN38_CARD,
+         scheduler: stx,
+         tokenizer: tok,
+diff --git a/src/server.rs b/src/server.rs
+--- a/src/server.rs
++++ b/src/server.rs
+@@ -32,8 +32,12 @@
+     pub const QWEN38_CARD: Self = Self { think: (1.0, 0.95, 20), no_think: (0.7, 0.8, 20) };
+ }
+ 
++#[derive(Clone, Copy, PartialEq, Eq)]
++pub enum SchemaMode { LegacyUnenforced, Exl3Gpu, Unsupported }
++
+ #[derive(Clone)]
+ pub struct AppState {
++    pub schema_mode: SchemaMode,
+     /// Per-mode fallback sampling (a request's explicit values always win).
+     pub sampling_defaults: SamplingDefaults,
+     pub scheduler: mpsc::UnboundedSender<BatchRequest>,
+@@ -1003,35 +1007,51 @@
+     //
+     // REGRESSION FIX (2026-08-30): the 289e1a1 refactor lumped "high" into the no_think arm,
+     // so every OpenAI-convention client sending reasoning_effort=high silently LOST thinking.
+-    // W2 (Phase 13): `response_format` — compiled HERE, before any work. A supported schema arms
+-    // the token-level mask when enforcement is on; when it is off the request is still SERVED and
+-    // the response is marked `x-json-schema-enforced: none` (see warn_unenforced_schema_once).
+-    // NEVER a 400 for a schema this build can parse: refusing was `e737d08`, and it broke the
+-    // public quality benchmark (88 → 85) by hard-failing requests that used to succeed.
+-    // Flip JSON_SCHEMA_ENFORCEMENT_ENABLED to true only when the emission path is proven
+-    // end-to-end: `cargo test --lib json_schema::tests` green AND the W2 probe 6/6 enforced
+-    // across temperature × TP × spec source. Until then, serving + advertising beats refusing.
+-    const JSON_SCHEMA_ENFORCEMENT_ENABLED: bool = false;
++    // EXL3 single-GPU: compile before admission and enforce on GPU. Unsupported schemas
++    // fail explicitly. Legacy backends keep their advertised-unenforced contract; TP is
++    // refused until its constraint state/masks have been qualified in lockstep.
+     let mut schema_mask: Option<std::sync::Arc<crate::json_schema::SchemaMask>> = None;
+     let mut schema_unenforced: Option<String> = None;
+     if let Some(rf) = req.response_format.as_ref() {
+         match crate::json_schema::compile_response_format(rf) {
+             Ok(None) => {}
+-            Ok(Some(mut m)) if JSON_SCHEMA_ENFORCEMENT_ENABLED => {
++            Ok(Some(mut m)) if state.schema_mode == SchemaMode::Exl3Gpu => {
++                m.set_compact();
+                 m.set_vocab(state.tokenizer.vocab_pieces());
+                 crate::reprintln!("[req] response_format: constrained decoding armed ({})", m.summary());
+                 schema_mask = Some(std::sync::Arc::new(m));
+             }
+             Ok(Some(m)) => {
++                if state.schema_mode == SchemaMode::Unsupported {
++                    return bad_param("JSON schema enforcement is not supported on this topology".into());
++                }
+                 schema_unenforced = Some(format!(
+                     "schema compiled ({}) but this build does not enforce constrained decoding yet",
+                     m.summary()));
+             }
+             Err(e) => {
++                if state.schema_mode != SchemaMode::LegacyUnenforced { return bad_param(e); }
+                 schema_unenforced = Some(format!("schema not compiled: {e}"));
+             }
+         }
+         if let Some(why) = schema_unenforced.as_deref() { warn_unenforced_schema_once(why); }
++    }
++    if schema_mask.is_some() {
++        if let Err(e) = crate::tokenizer::enable_thinking_kwarg(req.chat_template_kwargs.as_ref()) {
++            return bad_param(e.to_string());
++        }
++        if !req.stop.is_empty() || req.max_tokens == Some(0) {
++            return bad_param("JSON schema requests require max_tokens > 0 and cannot use stop strings".into());
++        }
++        if req.tool_choice.as_ref().is_some_and(|v| v.as_str() == Some("required") || v.is_object()) {
++            return bad_param("JSON schema output cannot be combined with a forced tool call".into());
++        }
++        // A constrained final answer starts in content, never in an unclosed reasoning block.
++        let mut kwargs = req.chat_template_kwargs.clone().unwrap_or_else(|| serde_json::json!({}));
++        if !kwargs.is_object() { return bad_param("chat_template_kwargs must be an object".into()); }
++        kwargs["enable_thinking"] = serde_json::json!(false);
++        req.chat_template_kwargs = Some(kwargs);
++        req.reasoning_effort = Some("none".into());
+     }
+     // W1: `chat_template_kwargs` (arbitrary dict → the model's own template). Validate LOUDLY
+     // before any render: a malformed value used to be invisible (serde dropped the field), and
+@@ -1070,6 +1090,9 @@
+         req.tool_choice.as_ref(), req.tools.as_deref(),
+         crate::opts::var(crate::opt!("keep-tools-when-tool-choice-none")).is_ok(),
+     );
++    // Tool-looking text inside a JSON string is data, not an executable call.
++    let parse_as_tool_calls = parse_as_tool_calls && schema_mask.is_none();
++    let parse_thinking = schema_mask.is_none();
+     let mut messages = req.messages.clone();
+     if let Some(line) = force_line {
+         apply_force_line(&mut messages, &line); // S4: the ONE append (unit-tested)
+@@ -1333,8 +1356,8 @@
+         // tail check (a plain ends_with(think_open) sent thinking streams to content: exactly
+         // the 35b4b15 follow-up bug). The no-think tail `<think>\n\n</think>\n\n` trims to
+         // `</think>` and stays content.
+-        let starts_in_reasoning = prompt.trim_end().ends_with(think_open)
+-            || matches!(effort, Some("low") | Some("high"));
++        let starts_in_reasoning = parse_thinking && (prompt.trim_end().ends_with(think_open)
++            || matches!(effort, Some("low") | Some("high")));
+ 
+         // OTel generation telemetry (--otel-endpoint). Handle built ONCE per request; the hooks
+         // below forward the SAME chunk strings the SSE path yields (single source of truth —
+@@ -1463,7 +1486,7 @@
+                                         // reasoning until the close tag. Without this the raw
+                                         // think tags would leak into `content`.
+                                         let region = &acc[cs..];
+-                                        if let Some(upto) = f_open.find(&acc, cs, think_open) {
++                                        if let Some(upto) = f_open.find(&acc, cs, think_open).filter(|_| parse_thinking) {
+                                             if upto > content_emitted {
+                                                 let c = content_chunk(&completion_id, created, &model_name, &acc[content_emitted..upto]);
+                                                 if let Some(r) = &otel_req { r.delta(&c); }
+@@ -1516,7 +1539,7 @@
+             // tools::held_back_remainder, so streaming can never silently drop text the JSON
+             // mode returns (2026-08-27 user report: a malformed `function=NAME>` block with the
+             // `<` missing vanished from the SSE stream while the JSON response leaked it).
+-            let (_, done_content) = split_think(&acc, think_open, think_close);
++            let (_, done_content) = if parse_thinking { split_think(&acc, think_open, think_close) } else { (None, acc.clone()) };
+             // parse_as_tool_calls == false (keep-tools "none"): never parse — the reply is plain
+             // content; finalize_parsed then returns the raw text with finish stop/length.
+             let parsed = if parse_as_tool_calls {
+@@ -1561,7 +1584,7 @@
+                 content_emitted = acc.len();
+             }
+             {
+-                let (r_txt, c_txt) = split_think(&acc, think_open, think_close);
++                let (r_txt, c_txt) = if parse_thinking { split_think(&acc, think_open, think_close) } else { (None, acc.clone()) };
+                 log_generation(&state.tokenizer, &state.stop_ids, &completion_id, &finish,
+                                last_tok, prompt_len, n, r_txt.as_deref(), &c_txt,
+                                tool_calls.len(), req_tools.as_ref().map(|t| t.len()).unwrap_or(0),
+@@ -1597,6 +1620,10 @@
+         };
+         let mut resp = Sse::new(stream).into_response();
+         attach_schema_unenforced_header(&mut resp, schema_unenforced.is_some());
++        if schema_mask.is_some() {
++            resp.headers_mut().insert("x-json-schema-enforced", HeaderValue::from_static("gpu"));
++            resp.headers_mut().insert("x-json-schema-decoding", HeaderValue::from_static("plain"));
++        }
+         resp
+     } else {
+         crate::reprintln!("[req] sync   prompt_tokens={} max_tokens={} stop={:?}", prompt_len, req_max, req.stop);
+@@ -1651,7 +1678,7 @@
+         }
+         let completion_id = format!("chatcmpl-{}", Uuid::new_v4());
+         let (think_open, think_close, _) = state.tokenizer.think_tags();
+-        let (reasoning, content) = split_think(&text, think_open, think_close);
++        let (reasoning, content) = if parse_thinking { split_think(&text, think_open, think_close) } else { (None, text.clone()) };
+ 
+         // The model emits calls as <tool_call><function=..><parameter=..>..  -- NOT as JSON. Turn them
+         // into OpenAI tool_calls, or the harness just sees XML in the content and never invokes
+@@ -1728,6 +1755,10 @@
+         };
+         let mut resp = Json(response).into_response();
+         attach_schema_unenforced_header(&mut resp, schema_unenforced.is_some());
++        if schema_mask.is_some() {
++            resp.headers_mut().insert("x-json-schema-enforced", HeaderValue::from_static("gpu"));
++            resp.headers_mut().insert("x-json-schema-decoding", HeaderValue::from_static("plain"));
++        }
+         resp
+     }
+ }
+diff --git a/src/main.rs b/src/main.rs
+--- a/src/main.rs
++++ b/src/main.rs
+@@ -16090,6 +16090,7 @@
+         let decode_headroom = gb10_inference::batch::decode_headroom(mtp_active_at_start);
+         gb10_inference::metrics::set_max_batch(max_batch);
+         let state = AppState {
++            schema_mode: gb10_inference::server::SchemaMode::LegacyUnenforced,
+             sampling_defaults: gb10_inference::server::SamplingDefaults::LEGACY,
+             scheduler: stx,
+             tokenizer: Arc::new(tokenizer),
+diff --git a/src/lib.rs b/src/lib.rs
+--- a/src/lib.rs
++++ b/src/lib.rs
+@@ -31,6 +31,7 @@
+ pub mod mxfp4;
+ pub mod exl3;
+ pub mod exl3_rope;
++pub mod exl3_schema;
+ pub mod shard_plan;
+ pub mod exl3_bench;
+ pub mod exl3_forward;
+diff --git a/src/tokenizer.rs b/src/tokenizer.rs
+--- a/src/tokenizer.rs
++++ b/src/tokenizer.rs
+@@ -261,7 +261,13 @@
+     /// the JSON-schema FSM walk (W2): the trie is built over bytes because a piece is not always
+     /// valid UTF-8 on its own, and the schema machine consumes bytes.
+     pub fn vocab_pieces(&self) -> Vec<(u32, Vec<u8>)> {
+-        self.tokenizer.get_vocab(true).into_iter().map(|(s, id)| (id as u32, s.into_bytes())).collect()
++        // BPE spellings contain byte-mapped characters (e.g. Ġ is a space), not output
++        // UTF-8. Use exactly the byte table consumed by streaming; special tokens decode
++        // to nothing and must never be selected as JSON string contents or early EOS.
++        let tables = self.cache.as_ref().map(|c| c.stream.clone()).unwrap_or_else(||
++            TokCache::build(&self.tokenizer, &stream_json_path(self.model_dir.as_deref())).stream);
++        (0..tables.kind.len()).map(|id|
++            (id as u32, tables.piece(id as u32).unwrap_or(&[]).to_vec())).collect()
+     }
+ 
+     pub fn stop_token_ids(&self, config_eos: u32) -> Vec<u32> {
+diff --git a/src/json_schema.rs b/src/json_schema.rs
+--- a/src/json_schema.rs
++++ b/src/json_schema.rs
+@@ -352,6 +352,16 @@
+     if let Some(v) = obj.get("exclusiveMaximum") {
+         s.excl_max = Some(num_f64("exclusiveMaximum", v)?);
+     }
++    let low = s.minimum.unwrap_or(f64::NEG_INFINITY).max(s.excl_min.unwrap_or(f64::NEG_INFINITY));
++    let high = s.maximum.unwrap_or(f64::INFINITY).min(s.excl_max.unwrap_or(f64::INFINITY));
++    if low > high || (low == high && (s.excl_min.is_some_and(|x| x == low) || s.excl_max.is_some_and(|x| x == high))) {
++        return Err(err_msg("numeric bounds have no satisfying value"));
++    }
++    if ty == Ty::Integer {
++        let ilow = if s.excl_min.is_some_and(|x| x == low && low.fract() == 0.0) { low + 1.0 } else { low.ceil() };
++        let ihigh = if s.excl_max.is_some_and(|x| x == high && high.fract() == 0.0) { high - 1.0 } else { high.floor() };
++        if ilow > ihigh { return Err(err_msg("numeric bounds contain no integer")); }
++    }
+ 
+     if let Some(e) = obj.get("enum") {
+         let arr = e.as_array().ok_or_else(|| {
+@@ -392,6 +402,13 @@
+             )));
+         }
+         s.has_enum = true;
++        s.enum_str.retain(|v| s.min_len.map_or(true, |n| v.chars().count() as u64 >= n)
++            && s.max_len.map_or(true, |n| v.chars().count() as u64 <= n));
++        s.enum_int.retain(|&v| {
++            let v = v as f64;
++            v >= low && v <= high && !s.excl_min.is_some_and(|b| v <= b) && !s.excl_max.is_some_and(|b| v >= b)
++        });
++        if s.enum_str.is_empty() && s.enum_int.is_empty() { return Err(err_msg("enum and bounds have no satisfying value")); }
+     }
+ 
+     let idx = table.len() as u32;
+@@ -493,6 +510,7 @@
+ 
+ /// Advance one byte inside a string. `keep` mirrors the caller's prefix-constraint need.
+ fn str_advance(st: &mut StrState, b: u8, keep: bool) -> Step {
++    if !st.pend.is_empty() && b < 0x80 { return Step::Bad; }
+     match st.esc {
+         Esc::None => match b {
+             b'"' => Step::Closed,
+@@ -587,6 +605,40 @@
+                 Step::Bad
+             }
+         }
++    }
++}
++
++/// Match the complete decoded prefix AND a code point still pending in UTF-8/\u form.
++/// Checking only `dec` allows impossible escapes (and reaches a zero-token mask later).
++fn string_candidate(st: &StrState, candidate: &str) -> bool {
++    let bytes = candidate.as_bytes();
++    if !bytes.starts_with(&st.dec) { return false; }
++    let rest = &bytes[st.dec.len()..];
++    if !st.pend.is_empty() { return rest.starts_with(&st.pend); }
++    if st.esc == Esc::None { return true; }
++    let Some(c) = std::str::from_utf8(rest).ok().and_then(|s| s.chars().next()) else { return false };
++    let cp = c as u32;
++    let first = if cp <= 0xFFFF { cp } else { 0xD800 + ((cp - 0x10000) >> 10) };
++    let low = 0xDC00 + ((cp.saturating_sub(0x10000)) & 0x3FF);
++    match st.esc {
++        Esc::None => true,
++        Esc::Bslash => true,
++        Esc::Hex { n, acc } => first >> ((4 - n as u32) * 4) == acc,
++        Esc::WantLowBslash { hi } | Esc::WantLowU { hi } => cp > 0xFFFF && first == hi,
++        Esc::LowHex { n, acc, hi } => cp > 0xFFFF && first == hi && low >> ((4 - n as u32) * 4) == acc,
++    }
++}
++
++fn escape_viable(st: &StrState) -> bool {
++    let intersects = |n: u8, acc: u32, lo: u32, hi: u32| {
++        let shift = (4 - n as u32) * 4;
++        let a = acc << shift; let b = a + ((1u32 << shift) - 1);
++        a <= hi && b >= lo
++    };
++    match st.esc {
++        Esc::Hex { n, acc } => intersects(n, acc, 0, 0xDBFF) || intersects(n, acc, 0xE000, 0xFFFF),
++        Esc::LowHex { n, acc, .. } => intersects(n, acc, 0xDC00, 0xDFFF),
++        _ => true,
+     }
+ }
+ 
+@@ -809,6 +861,7 @@
+ /// A compiled schema: byte-level machine + token-level allowed sets, lazily built.
+ #[derive(Debug)]
+ pub struct SchemaMask {
++    compact: bool,
+     schemas: Vec<Schema>,
+     root: u32,
+     /// Index 0 is always the universal permissive schema (`Ty::Any`), used for additional
+@@ -824,6 +877,9 @@
+ }
+ 
+ impl SchemaMask {
++    /// Generated JSON uses compact structural syntax so an unwilling model cannot spend
++    /// its entire budget on indentation. Whitespace inside string values/keys remains data.
++    pub fn set_compact(&mut self) { self.compact = true; lock(&self.cache).clear(); }
+     /// The start state id.
+     pub fn start_state(&self) -> u32 {
+         self.start
+@@ -982,8 +1038,10 @@
+     fn trie_walk(&self, m: &mut Machine, node: usize, out: &mut Vec<u32>) {
+         let children = self.vocab.nodes[node].children.clone();
+         for (b, child) in children {
++            if self.compact && is_ws(b) && !matches!(m.stack.last(),
++                Some(Frame::Str { .. } | Frame::Obj { phase: ObjPhase::Key(_), .. })) { continue; }
+             let mut roll = Roll::new(m.stack.len());
+-            let alive = self.feed(m, b, Some(&mut roll));
++            let alive = self.feed(m, b, Some(&mut roll)) && self.guided_number_viable(m);
+             if alive {
+                 if let Some(tok) = self.vocab.nodes[child].token {
+                     let t = tok as usize;
+@@ -1066,6 +1124,7 @@
+                 true
+             }
+             Ty::Any => {
++                if has_enum && matches!(b, b'{' | b'[') { return false; }
+                 // Untyped: accept whatever the schema constrains. With an enum, only the value
+                 // kinds the enum actually contains may start.
+                 if has_enum && !any_str && b == b'"' {
+@@ -1130,10 +1189,12 @@
+     /// Value-string constraint check. `closing` = the terminating quote was consumed.
+     fn str_value_ok(&self, si: u32, st: &StrState, closing: bool) -> bool {
+         let s = &self.schemas[si as usize];
++        if !escape_viable(st) { return false; }
+         if let Some(mx) = s.max_len {
+             if st.cp as u64 > mx {
+                 return false;
+             }
++            if st.cp as u64 == mx && !st.is_closed_interior() { return false; }
+         }
+         if closing {
+             if !st.is_closed_interior() {
+@@ -1148,7 +1209,7 @@
+                 return false;
+             }
+         } else if !s.enum_str.is_empty()
+-            && !s.enum_str.iter().any(|e| e.as_bytes().starts_with(&st.dec))
++            && !s.enum_str.iter().any(|e| string_candidate(st, e))
+         {
+             // enum prefix rule: only bytes that keep us on the way to an allowed value.
+             return false;
+@@ -1255,9 +1316,70 @@
+         true
+     }
+ 
+-    fn key_prefix_ok(&self, si: u32, dec: &[u8]) -> bool {
++    fn key_prefix_ok(&self, si: u32, st: &StrState, seen: &[u32]) -> bool {
+         let s = &self.schemas[si as usize];
+-        s.additional || s.props.iter().any(|(n, _)| n.as_bytes().starts_with(dec))
++        escape_viable(st) && (s.additional || s.props.iter().enumerate().any(|(i, (n, _))|
++            !seen.contains(&(i as u32)) && string_candidate(st, n)))
++    }
++
++    fn another_key(&self, si: u32, seen: &[u32]) -> bool {
++        let s = &self.schemas[si as usize];
++        s.additional || seen.len() < s.props.len()
++    }
++
++    /// Guided numeric spelling uses canonical decimal prefixes for bounded numbers.
++    /// General validation still accepts exponents; generation need not explore a digit
++    /// prefix that can only be rescued by a later exponent (e.g. 999... for a 0..1 score).
++    fn guided_number_viable(&self, m: &Machine) -> bool {
++        let Some(Frame::Num { si, buf, st }) = m.stack.last() else { return true };
++        let s = &self.schemas[*si as usize];
++        let Ok(text) = std::str::from_utf8(buf) else { return false };
++        if !s.enum_int.is_empty() {
++            return s.enum_int.iter().any(|n| n.to_string().starts_with(text));
++        }
++        let integer = s.ty == Ty::Integer;
++        if integer && text.contains(['.', 'e', 'E']) { return false; }
++        if !matches!(s.ty, Ty::Integer | Ty::Number) || (s.minimum.is_none() && s.maximum.is_none() && s.excl_min.is_none() && s.excl_max.is_none()) {
++            return true;
++        }
++        if text.contains(['e', 'E']) { return false; }
++        let lo = s.minimum.unwrap_or(f64::NEG_INFINITY).max(s.excl_min.unwrap_or(f64::NEG_INFINITY));
++        let hi = s.maximum.unwrap_or(f64::INFINITY).min(s.excl_max.unwrap_or(f64::INFINITY));
++        let in_range = |x: f64| x >= lo && x <= hi
++            && !s.excl_min.is_some_and(|b| x <= b) && !s.excl_max.is_some_and(|b| x >= b);
++        let overlap = |a: f64, b: f64, a_open: bool, b_open: bool| {
++            let l = a.max(lo); let h = b.min(hi);
++            l < h || (l == h && in_range(l) && !(a_open && l == a) && !(b_open && h == b))
++        };
++        let negative = text.starts_with('-');
++        if text == "-" { return lo <= 0.0 && (hi > f64::NEG_INFINITY); }
++        let parse = text.strip_suffix('.').unwrap_or(text);
++        let Ok(v) = parse.parse::<f64>() else { return false };
++        if !v.is_finite() { return false; }
++        if let Some(dot) = text.find('.') {
++            let d = (text.len() - dot - 1) as i32;
++            // At the bound only redundant trailing zeros could follow. Prefer ending the
++            // valid number instead of letting an adversarial prompt extend zeros forever.
++            if d > 1 && text.ends_with('0') && ((!negative && v == hi) || (negative && v == lo)) { return false; }
++            let delta = 10f64.powi(-d);
++            return if negative { overlap(v - delta, v, true, false) } else { overlap(v, v + delta, false, true) };
++        }
++        let digits = text.trim_start_matches('-');
++        let abs = v.abs(); let mut scale = 1.0;
++        for _ in 0..=308 {
++            let a = abs * scale; let b = (abs + 1.0) * scale;
++            if negative {
++                if overlap(if integer { -b + 1.0 } else { -b }, -a, !integer, false) { return true; }
++                if -a < lo { break; }
++            } else {
++                if overlap(a, if integer { b - 1.0 } else { b }, false, !integer) { return true; }
++                if a > hi { break; }
++            }
++            if digits == "0" || !scale.is_finite() { break; }
++            scale *= 10.0;
++        }
++        let _ = st;
++        false
+     }
+ 
+     /// Feed ONE byte. Returns true when the byte was consumed by a live machine; false when the
+@@ -1314,6 +1436,7 @@
+                             return false;
+                         }
+                         if b == b'"' {
++                            if !self.another_key(si, &seen) { m.stack.push(Frame::Dead); return false; }
+                             m.stack.push(Frame::Obj {
+                                 si,
+                                 phase: ObjPhase::Key(StrState::new()),
+@@ -1328,7 +1451,7 @@
+                     ObjPhase::Key(mut st) => {
+                         match str_advance(&mut st, b, true) {
+                             Step::Open => {
+-                                if !self.key_prefix_ok(si, &st.dec) {
++                                if !self.key_prefix_ok(si, &st, &seen) {
+                                     m.stack.push(Frame::Dead);
+                                     return false;
+                                 }
+@@ -1385,6 +1508,7 @@
+                             return true;
+                         }
+                         if b == b'"' {
++                            if !self.another_key(si, &seen) { m.stack.push(Frame::Dead); return false; }
+                             m.stack.push(Frame::Obj {
+                                 si,
+                                 phase: ObjPhase::Key(StrState::new()),
+@@ -1416,6 +1540,7 @@
+                             return true;
+                         }
+                         if b == b',' {
++                            if !self.another_key(si, &seen) { m.stack.push(Frame::Dead); return false; }
+                             m.stack.push(Frame::Obj { si, phase: ObjPhase::KeyReq, seen, extra });
+                             return true;
+                         }
+@@ -1465,6 +1590,9 @@
+                             return true;
+                         }
+                         if b == b',' {
++                            if self.schemas[si as usize].max_items.is_some_and(|max| n >= max) {
++                                m.stack.push(Frame::Dead); return false;
++                            }
+                             m.stack.push(Frame::Arr { si, n, phase: ArrPhase::ItemReq });
+                             return true;
+                         }
+@@ -1656,6 +1784,7 @@
+     // schema into a silently-unenforced one — exactly the failure this module exists to remove.
+     let root = compile_schema(schema, depth, via, &mut table)?;
+     let mut m = SchemaMask {
++        compact: false,
+         schemas: table,
+         root,
+         start: 0,
+@@ -1677,6 +1806,66 @@
+ #[cfg(test)]
+ mod tests {
+     use super::*;
++
++    #[test]
++    fn compact_guidance_preserves_whitespace_inside_keys_and_values() {
++        let mut m=mask(r#"{"type":"object","properties":{"first name":{"type":"string","enum":["a b"]}},"required":["first name"],"additionalProperties":false}"#);
++        m.set_compact();let mut st=m.start_state();
++        assert_eq!(m.allowed(st)[1] & 1,0); // raw byte 32 (space)
++        for &b in b"{\"first name\":\"a b\"}" {
++            assert_ne!(m.allowed(st)[b as usize/32] & (1<<(b%32)),0,"compact mode removed data byte {b}");
++            st=m.step(st,b as u32).unwrap();
++        }
++        assert!(m.is_complete(st));
++    }
++
++    #[test]
++    fn guided_prefixes_never_enter_the_observed_dead_ends() {
++        let m = mask(r#"{"type":"object","properties":{"items":{"type":"string","enum":["alpha"]}},"required":["items"],"additionalProperties":false}"#);
++        assert!(walk(&m, "{\"item\\uf").is_none());
++        assert!(walk(&m, "{\"items\":\"\\ud").is_none());
++        assert!(ok(&m, "{\"items\":\"\\u0061lpha\"}"));
++        assert!(walk(&m, "{\"items\":\"alpha\",").is_none());
++        let a = mask(r#"{"type":"array","items":{"type":"integer"},"maxItems":1}"#);
++        assert!(walk(&a, "[1,").is_none());
++        let s = mask(r#"{"type":"string","maxLength":1}"#);
++        assert!(walk(&s, "\"a\\").is_none());
++        assert!(walk(&s, "\"\\udc").is_none());
++        assert!(ok(&s, "\"\\ud83d\\ude00\""));
++    }
++
++    #[test]
++    fn guided_numeric_prefixes_keep_a_valid_completion() {
++        for schema in [r#"{"type":"number","minimum":0.1,"maximum":0.9}"#,
++                       r#"{"type":"integer","minimum":20,"maximum":30}"#,
++                       r#"{"type":"integer","enum":[391]}"#] {
++            let m = mask(schema); let bits = m.allowed(m.start_state());
++            assert_eq!(bits[b'9' as usize / 32] & (1 << (b'9'%32)), 0);
++        }
++        let m=mask(r#"{"type":"number","minimum":0.1,"maximum":0.9}"#);
++        let st=walk(&m,"0.").unwrap();let bits=m.allowed(st);
++        assert_ne!(bits[b'5' as usize/32] & (1 << (b'5'%32)),0);
++        let st=walk(&m,"0.9").unwrap();let bits=m.allowed(st);
++        assert_eq!(bits[b'9' as usize/32] & (1 << (b'9'%32)),0);
++    }
++
++    #[test]
++    fn random_guided_finite_documents_always_finish() {
++        let m=mask(r#"{"type":"object","properties":{"a":{"type":"string","enum":["한글😀","alpha"]},"b":{"type":"array","items":{"type":"integer","enum":[1,12,391]},"minItems":2,"maxItems":2}},"required":["a","b"],"additionalProperties":false}"#);
++        for seed in 1..=100u64 {
++            let mut rnd=seed; let mut st=m.start_state(); let mut bytes=Vec::new();
++            for _ in 0..300 {
++                if m.is_complete(st) { break; }
++                let bits=m.allowed(st);
++                let ids:Vec<u32>=(0..256u32).filter(|&t| !matches!(t,9|10|13|32) && bits[t as usize/32] & (1<<(t%32)) != 0).collect();
++                assert!(!ids.is_empty(),"dead prefix {:?}",String::from_utf8_lossy(&bytes));
++                rnd=rnd.wrapping_mul(6364136223846793005).wrapping_add(1);
++                let t=ids[(rnd as usize)%ids.len()]; bytes.push(t as u8);st=m.step(st,t).unwrap();
++            }
++            assert!(m.is_complete(st),"did not finish {:?}",String::from_utf8_lossy(&bytes));
++            serde_json::from_slice::<Value>(&bytes).unwrap();
++        }
++    }
+ 
+     fn byte_vocab() -> Vec<(u32, Vec<u8>)> {
+         (0u32..256).map(|b| (b, vec![b as u8])).collect()
+@@ -2053,7 +2242,9 @@
+         assert_eq!(m.step(after_colon, 4), None, "1 is not a string");
+ 
+         let after_value = m.step(after_colon, 5).unwrap();
+-        assert_eq!(m.allowed(after_value).as_slice(), bits(&[3, 7, 11], words).as_slice());
++        // No unseen properties remain: a comma would enter an unfinishable duplicate-key path.
++        assert_eq!(m.allowed(after_value).as_slice(), bits(&[3, 11], words).as_slice());
++        assert_eq!(m.step(after_value, 7), None);
+ 
+         let done = m.step(after_value, 3).unwrap();
+         assert!(m.is_complete(done));
+diff --git a/src/exl3_schema.rs b/src/exl3_schema.rs
+new file mode 100644
+--- /dev/null
++++ b/src/exl3_schema.rs
+@@ -0,0 +1,58 @@
++//! Per-request constraint state. Validate tokens before they can reach the HTTP stream.
++use crate::json_schema::SchemaMask;
++use anyhow::{Context, Result};
++use std::sync::Arc;
++
++pub struct Cursor {
++    schema: Arc<SchemaMask>,
++    state: u32,
++}
++
++impl Cursor {
++    pub fn new(schema: Arc<SchemaMask>) -> Self {
++        Self { state: schema.start_state(), schema }
++    }
++
++    pub fn allowed(&self) -> Arc<Vec<u32>> { self.schema.allowed(self.state) }
++
++    pub fn commit(&mut self, token: u32) -> Result<bool> {
++        let mask = self.allowed();
++        anyhow::ensure!(mask.get(token as usize / 32).is_some_and(|w| w & (1u32 << (token % 32)) != 0),
++                        "schema sampler selected forbidden token {token}");
++        self.state = self.schema.step(self.state, token)
++            .context("schema token did not advance the JSON machine")?;
++        Ok(self.schema.is_complete(self.state))
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    fn cursor() -> Cursor {
++        let mut sm = crate::json_schema::compile_response_format(&serde_json::json!({
++            "type":"json_schema", "json_schema":{"name":"t", "schema":{
++                "type":"object", "properties":{"a":{"type":"string","enum":["한글"]}},
++                "required":["a"], "additionalProperties":false
++            }}
++        })).unwrap().unwrap();
++        sm.set_vocab((0..256u32).map(|b| (b, vec![b as u8])).collect());
++        Cursor::new(Arc::new(sm))
++    }
++    #[test]
++    fn utf8_and_completion_are_request_local() {
++        let mut a = cursor(); let mut b = cursor();
++        let bytes = "{\"a\":\"한글\"}".as_bytes();
++        for (i, &t) in bytes.iter().enumerate() {
++            assert_eq!(a.commit(t as u32).unwrap(), i + 1 == bytes.len());
++        }
++        assert!(!b.commit(b'{' as u32).unwrap());
++        assert!(a.commit(b'N' as u32).is_err());
++    }
++    #[test]
++    fn forbidden_token_does_not_advance() {
++        let mut c = cursor();
++        assert!(c.commit(b'N' as u32).is_err());
++        assert!(!c.commit(b'{' as u32).unwrap());
++        assert!(c.commit(248046).is_err());
++    }
++}
+diff --git a/tests/exl3_schema_gpu.rs b/tests/exl3_schema_gpu.rs
+new file mode 100644
+--- /dev/null
++++ b/tests/exl3_schema_gpu.rs
+@@ -0,0 +1,48 @@
++use anyhow::{ensure, Result};
++use cudarc::driver::{CudaDevice, LaunchAsync, LaunchConfig};
++use half::f16;
++
++#[test]
++#[ignore = "requires GB10 CUDA and rebuilt EXL3 PTX"]
++fn masked_fp16_rows_and_device_sampling() -> Result<()> {
++    let dev = CudaDevice::new(0)?;
++    dev.load_ptx(cudarc::nvrtc::Ptx::from_src(std::fs::read_to_string("src/ptx/exl3_bench.ptx")?),
++                 "schema_test", &["xq_schema_rows", "xq_sample_rows"])?;
++    let mut count = 0;
++    for v in [65usize, 257, 248320] {
++        let words = v.div_ceil(32);
++        // Three simultaneous rows: independent masks and an entirely unconstrained row.
++        let flags = dev.htod_sync_copy(&[1i32, 0, 1])?;
++        let mut bits = vec![0u32; 3 * words];
++        let allowed = [vec![2usize, 35, v-1], (0..v).collect(), vec![1usize, 32, v-2]];
++        for row in [0usize, 2] { for &i in &allowed[row] { bits[row*words+i/32] |= 1 << (i%32); } }
++        let bits = dev.htod_sync_copy(&bits)?;
++        let original: Vec<u16> = (0..3*v).map(|i| f16::from_f32(((i*13)%51) as f32/8.0).to_bits()).collect();
++        let mut logits = dev.htod_sync_copy(&original)?;
++        unsafe { dev.get_func("schema_test", "xq_schema_rows").unwrap().launch(
++            LaunchConfig { grid_dim:(v.div_ceil(256) as u32,3,1),block_dim:(256,1,1),shared_mem_bytes:0 },
++            (&mut logits,v as i32,&bits,&flags,words as i32))?; }
++        let got = dev.dtoh_sync_copy(&logits)?;
++        for row in 0..3 { for i in 0..v {
++            let expected = if row==1 || allowed[row].contains(&i) { original[row*v+i] } else { f16::NEG_INFINITY.to_bits() };
++            ensure!(got[row*v+i]==expected,"mask changed a legal logit or left a forbidden logit: row={row} i={i} v={v}");
++        }}
++        // Both low and high temperature/top-k modes sample ONLY from legal tokens.
++        for (temp,top_k,top_p,min_p) in [(0.7f32,20u32,0.8f32,0f32),(1.5,0,1.0,0.1)] {
++            for seed in 0..8u32 {
++                let mut params=Vec::new();
++                for row in 0..3u32 { params.extend_from_slice(&[1,temp.to_bits(),top_p.to_bits(),top_k,seed,0,row,min_p.to_bits()]); }
++                let samp=dev.htod_sync_copy(&params)?; let mut ids=dev.htod_sync_copy(&[-1i32;3])?;
++                unsafe { dev.get_func("schema_test","xq_sample_rows").unwrap().launch(
++                    LaunchConfig {grid_dim:(3,1,1),block_dim:(1024,1,1),shared_mem_bytes:0},
++                    (&mut ids,&logits,v as i32,&samp))?; }
++                for (row,&id) in dev.dtoh_sync_copy(&ids)?.iter().enumerate() {
++                    ensure!(id>=0 && allowed[row].contains(&(id as usize)),"sample escaped schema: row={row} id={id} v={v}");
++                    count+=1;
++                }
++            }
++        }
++    }
++    println!("SCHEMA_GPU_PASS sampled_rows={count}");
++    Ok(())
++}
+diff --git a/tests/exl3_schema_tokenizer.rs b/tests/exl3_schema_tokenizer.rs
+new file mode 100644
+--- /dev/null
++++ b/tests/exl3_schema_tokenizer.rs
+@@ -0,0 +1,66 @@
++use anyhow::{ensure, Result};
++use gb10_inference::{exl3_schema::Cursor, json_schema::compile_response_format, tokenizer::QwenTokenizer};
++use std::sync::Arc;
++
++#[test]
++#[ignore = "requires VELO_TOKENIZER_PATH pointing to the cached real tokenizer.json"]
++fn real_bpe_pieces_match_json_bytes_and_exclude_specials() -> Result<()> {
++    let path = std::env::var("VELO_TOKENIZER_PATH")?;
++    let tok = QwenTokenizer::from_file(&path)?;
++    let pieces = tok.vocab_pieces();
++    let mut passed = 0;
++    for value in ["펭귄", "한글😀", "인용\"\\줄\n", " 일본語 中文", "\t\r\n", ""] {
++        let doc = serde_json::json!({"value":value});
++        let raw = serde_json::to_string(&doc)?;
++        let rf = serde_json::json!({"type":"json_schema","json_schema":{"name":"real","schema":{
++            "type":"object", "properties":{"value":{"type":"string","enum":[value]}},
++            "required":["value"],"additionalProperties":false
++        }}});
++        let mut sm = compile_response_format(&rf).map_err(anyhow::Error::msg)?.unwrap();
++        sm.set_compact();
++        sm.set_vocab(pieces.clone());
++        let mut cursor = Cursor::new(Arc::new(sm));
++        let ids = tok.encode(&raw, false)?;
++        for (i,&id) in ids.iter().enumerate() {
++            ensure!(cursor.commit(id)? == (i+1==ids.len()), "completion changed before JSON ended");
++        }
++        ensure!(tok.decode(&ids,true)?==raw,"tokenizer round trip changed the document");
++        passed+=1;
++    }
++    for id in tok.stop_token_ids(248046) {
++        ensure!(pieces.iter().find(|(i,_)|*i==id).is_some_and(|(_,b)|b.is_empty()),"stop token can leak into JSON");
++    }
++    println!("SCHEMA_REAL_TOKENIZER_PASS cases={passed}");
++    Ok(())
++}
++
++#[test]
++#[ignore = "requires VELO_TOKENIZER_PATH pointing to the cached real tokenizer.json"]
++fn real_bpe_random_guidance_always_completes() -> Result<()> {
++    let tok=QwenTokenizer::from_file(&std::env::var("VELO_TOKENIZER_PATH")?)?;
++    let pieces=tok.vocab_pieces();
++    let rf=serde_json::json!({"type":"json_schema","json_schema":{"name":"random","schema":{
++        "type":"object","properties":{"a":{"type":"string","enum":["한글😀","alpha"]},
++        "b":{"type":"array","items":{"type":"integer","enum":[1,12,391]},"minItems":2,"maxItems":2}},
++        "required":["a","b"],"additionalProperties":false
++    }}});
++    let mut sm=compile_response_format(&rf).map_err(anyhow::Error::msg)?.unwrap();sm.set_compact();sm.set_vocab(pieces.clone());let sm=Arc::new(sm);
++    for seed in 1..=32u64 {
++        let mut c=Cursor::new(sm.clone());let mut rnd=seed;let mut bytes=Vec::new();let mut ids=Vec::new();let mut done=false;
++        for _ in 0..256 {
++            let bits=c.allowed();let mut legal=Vec::new();
++            for (w,&word) in bits.iter().enumerate() { let mut mask=word;while mask!=0 {
++                let i=w*32+mask.trailing_zeros() as usize;mask&=mask-1;
++                if !pieces[i].1.iter().all(u8::is_ascii_whitespace) { legal.push(i as u32); }
++            }}
++            ensure!(!legal.is_empty(),"real BPE dead end: {:?}",String::from_utf8_lossy(&bytes));
++            rnd=rnd.wrapping_mul(6364136223846793005).wrapping_add(1);let t=legal[rnd as usize%legal.len()];
++            bytes.extend_from_slice(&pieces[t as usize].1);ids.push(t);done=c.commit(t)?;if done {break;}
++        }
++        ensure!(done,"random BPE path did not finish");
++        let doc:serde_json::Value=serde_json::from_slice(&bytes)?;
++        ensure!(matches!(doc["a"].as_str(),Some("한글😀"|"alpha")) && doc["b"].as_array().is_some_and(|v|v.len()==2 && v.iter().all(|x|matches!(x.as_i64(),Some(1|12|391)))),"random JSON violated schema");
++        ensure!(tok.decode(&ids,true)?.as_bytes()==bytes,"wire decoder changed JSON bytes");
++    }
++    println!("SCHEMA_REAL_BPE_RANDOM_PASS cases=32");Ok(())
++}
