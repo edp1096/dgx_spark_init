@@ -7,6 +7,9 @@ import (
 
 func (s *Server) routes(web fs.FS) *http.ServeMux {
 	mux := http.NewServeMux()
+	mux.HandleFunc("/api/document-tasks", s.documentTaskAPI)
+	mux.HandleFunc("/api/document-tasks/", s.documentTaskAPI)
+	mux.HandleFunc("/api/sources/", s.sourceAPI)
 	mux.HandleFunc("/api/artifacts", s.artifactAPI)
 	mux.HandleFunc("/api/artifacts/", s.artifactAPI)
 	mux.HandleFunc("/api/plugins", s.pluginAPI)

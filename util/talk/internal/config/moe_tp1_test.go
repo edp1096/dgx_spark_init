@@ -14,7 +14,7 @@ func TestSingleSparkMoEMigration(t *testing.T) {
 	}
 	c.Normalize()
 	c.Normalize()
-	for _, id := range []string{"ornith35", "gemma26"} {
+	for _, id := range []string{"ornith35"} {
 		b, ok := c.Runtime.Catalog.Bundle(id)
 		if !ok || b.ContextTokens != 1048576 {
 			t.Fatalf("Missing 1M TP1 bundle: %s", id)

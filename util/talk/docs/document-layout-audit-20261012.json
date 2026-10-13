@@ -1,0 +1,230 @@
+{
+  "objective": "상세계획과 검증을 통한 talk 번역 모듈의 번역 수행 속도 및 품질 개선.",
+  "previous_goal_turn": "progress",
+  "requirements": [
+    {
+      "requirement": "Detailed common-pipeline plan and all four implementation steps",
+      "status": "verified",
+      "evidence": [
+        "/home/edp1096/.cache/model-download-jobs/document-pipeline-20261012/plan.json",
+        "internal/server/document_batch.go",
+        "internal/server/document_wire.go",
+        "internal/server/document_partial.go",
+        "internal/server/document_worker.go"
+      ]
+    },
+    {
+      "requirement": "Batch by translated entries and context/output budget while preserving checkpoints",
+      "status": "verified",
+      "evidence": [
+        "TestDocumentBatchCountsWireEntriesNotRubyAnnotations",
+        "TestDocumentBatchPlannerRespectsRetrySizeAndContextLimits",
+        "TestDocumentBatchesCommitSeparateCheckpointsAndFallbackAfterFailure",
+        "/home/edp1096/.cache/model-download-jobs/document-pipeline-20261012/report.json"
+      ]
+    },
+    {
+      "requirement": "Generic TXT/HTML processing, ruby reading context and protected formatting/image/anchor boundaries",
+      "status": "verified",
+      "evidence": [
+        "TestDocumentPlainWireCoalescesRubyButProtectsMarkup",
+        "TestDocumentRejectsEmptyLinkAndEmphasisDespiteNonemptyParagraph",
+        "TestDocumentAllowsTargetLanguageWordOrderAroundLink",
+        "TestDocumentPreservesTextOnBothSidesOfEmptyAnchor",
+        "TestIDOnlyAnchorDoesNotAcquireSourceURL",
+        "/home/edp1096/.cache/model-download-jobs/document-layout-audit-20261012/report.json"
+      ]
+    },
+    {
+      "requirement": "Partial retry preserves accepted paragraphs; ambiguous, truncated and invalid output is not accepted",
+      "status": "verified",
+      "evidence": [
+        "TestDocumentPartialBatchCommitsGoodCheckpointsOnlyOnce",
+        "TestDocumentPartialOutputRejectsAmbiguousOrMalformedIDs",
+        "TestDocumentRepairsOnlyParagraphWhoseLinkWasEmptied",
+        "TestDocumentRejectsInvisibleControlsWithoutLanguagePurityFilter",
+        "TestDocumentResumeRetriesDisconnectedUnitPreservingEightCompletedUnits"
+      ]
+    },
+    {
+      "requirement": "Measure speed, PP/TG, first response, memory, swap and quality; compare EXL3 3bit with RadixArk NVFP4, not QAD",
+      "status": "verified",
+      "evidence": [
+        "/home/edp1096/.cache/model-download-jobs/document-pipeline-20261012/report.json",
+        "/home/edp1096/.cache/model-download-jobs/document-pipeline-20261012/memory.jsonl",
+        "/home/edp1096/.cache/model-download-jobs/document-pipeline-20261012/nvfp4-server-info-final.json",
+        "/home/edp1096/.cache/model-download-jobs/document-pipeline-20261012/comparison.html"
+      ],
+      "limit": "The reported comparison is on matching Japanese/English excerpts with actual operating-set memory, not a claim of perfect translation or universal model superiority."
+    },
+    {
+      "requirement": "Preserve user task and wait for completion before runtime tests",
+      "status": "verified",
+      "evidence": [
+        "/home/edp1096/.cache/model-download-jobs/document-pipeline-20261012/monitor.log",
+        "/home/edp1096/.cache/model-download-jobs/document-pipeline-20261012/observed-completed.json",
+        "/home/edp1096/.cache/model-download-jobs/document-pipeline-20261012/baseline-exl3/shayo_opening.json"
+      ],
+      "completed_user_run": "chat-1791804593987680807",
+      "completed_units": 38
+    },
+    {
+      "requirement": "Current code retains measured request contracts and validates recorded output mappings",
+      "status": "verified",
+      "evidence": [
+        "/home/edp1096/.cache/model-download-jobs/document-layout-audit-20261012/wire-audit.json",
+        "/home/edp1096/.cache/model-download-jobs/document-layout-audit-20261012/wire-nv-audit.json",
+        "/home/edp1096/.cache/model-download-jobs/document-layout-audit-20261012/replay.log"
+      ],
+      "matched_requests": 6,
+      "recorded_replies": 8
+    },
+    {
+      "requirement": "Deploy tested binaries, preserve existing outputs and restore original model/configuration",
+      "status": "verified",
+      "evidence": [
+        "/home/edp1096/.cache/model-download-jobs/document-layout-audit-20261012/go-test-full.log",
+        "/home/edp1096/.cache/model-download-jobs/document-layout-audit-20261012/deployment.json"
+      ],
+      "running_model": "qwen38fn_exl3",
+      "all_original_checkpoints_and_outputs_unchanged": true,
+      "configuration_equal_original": true
+    }
+  ],
+  "followup_fixes": [
+    "Require nonempty content in protected inline spans while allowing natural word order outside them and within the same link.",
+    "Keep text boundaries at empty page anchors and illustrations.",
+    "Repair the affected paragraph only; preserve completed footnotes and other paragraphs.",
+    "Keep id-only HTML anchors without inventing a source-URL href.",
+    "Reject invalid document control characters by paragraph; continue accepting Hanja/kana/Latin-script mixing."
+  ],
+  "live": {
+    "seconds": 43.603185588,
+    "calls": 1,
+    "formats": [
+      "txt",
+      "md",
+      "html",
+      "zip"
+    ],
+    "protected_text": {
+      "a": [
+        "빨간 집을 ",
+        "참고 문헌을",
+        "1"
+      ],
+      "code": [
+        "x = 7"
+      ],
+      "em": [
+        "파란 새 일곱 마리만"
+      ],
+      "strong": [
+        "문을 열지 않았습니다"
+      ],
+      "sup": [
+        "1"
+      ]
+    },
+    "hrefs": [
+      "#house",
+      "#note",
+      "#note"
+    ],
+    "anchor_ids": {
+      "house": true,
+      "note": true,
+      "page2": true
+    },
+    "zip_images": 1,
+    "production_db_read_only": true
+  },
+  "memory": {
+    "samples": 22,
+    "available_gib": [
+      21.973438262939453,
+      22.18777084350586
+    ],
+    "swap_used_gib": [
+      1.6711235046386719,
+      1.6711311340332031
+    ],
+    "note": "whole-system measurement during the isolated follow-up task after the model was restored; not a claimed memory reduction from layout changes"
+  },
+  "payload_equivalence": {
+    "exl3": [
+      {
+        "case": "shayo_opening",
+        "before_entries": 109,
+        "after_entries": 109,
+        "protected_entries": 0,
+        "entire_request_equal": true,
+        "response_schema_equal": true
+      },
+      {
+        "case": "wordplay",
+        "before_entries": 58,
+        "after_entries": 58,
+        "protected_entries": 0,
+        "entire_request_equal": true,
+        "response_schema_equal": true
+      },
+      {
+        "case": "sherlock",
+        "before_entries": 29,
+        "after_entries": 29,
+        "protected_entries": 0,
+        "entire_request_equal": true,
+        "response_schema_equal": true
+      }
+    ],
+    "nvfp4": [
+      {
+        "case": "shayo_opening",
+        "before_entries": 109,
+        "after_entries": 109,
+        "protected_entries": 0,
+        "entire_request_equal": true,
+        "response_schema_equal": true
+      },
+      {
+        "case": "wordplay",
+        "before_entries": 58,
+        "after_entries": 58,
+        "protected_entries": 0,
+        "entire_request_equal": true,
+        "response_schema_equal": true
+      },
+      {
+        "case": "sherlock",
+        "before_entries": 29,
+        "after_entries": 29,
+        "protected_entries": 0,
+        "entire_request_equal": true,
+        "response_schema_equal": true
+      }
+    ]
+  },
+  "deployment": {
+    "old_pid": 1711706,
+    "pid": 1935254,
+    "configuration_unchanged": true,
+    "model_containers_unchanged_during_application_restart": true,
+    "existing_checkpoints_and_outputs_unchanged": true,
+    "protocol": "json_schema_paragraphs_v5",
+    "tests": {
+      "go_all": "passed",
+      "platform_builds": 4,
+      "layout_live_calls": 1,
+      "recorded_replies_revalidated": 8
+    },
+    "binaries": {
+      "sparktalk-linux-arm64": "14b55cbb4839792536bf281a57ffeb8771355436268907a18a66efb88489472b",
+      "sparktalk-linux-amd64": "7f06dad103d75bbc0ba9610b36a9852dd7809713509ccf3fb1a1a827313bf3f9",
+      "sparktalk-windows-arm64.exe": "14dd5264c79f2599414f7f5c7fe3a4e57a78e8720b8f20737a12032bc47d7511",
+      "sparktalk-windows-amd64.exe": "b3bd175a5863688f84190ac5cb4ccda4a3fc1be6992fe1336b07a659bd111d13"
+    }
+  },
+  "verified_at": "2026-10-12T14:26:03.989491+00:00",
+  "result": "all scoped requirements verified; remaining model-level lexical/meaning errors remain disclosed in the comparison report"
+}

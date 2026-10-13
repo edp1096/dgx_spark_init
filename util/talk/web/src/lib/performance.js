@@ -22,3 +22,23 @@ export function performanceTitle(performance, kind) {
     ? ` 캐시 재사용 ${performance.cached_tokens.toLocaleString('ko-KR')}토큰.` : '';
   return `${definitions[kind]} ${detail}${calls}${cache}`;
 }
+
+export function formatElapsed(seconds) {
+  if (typeof seconds !== 'number' || !Number.isFinite(seconds) || seconds < 0) return '';
+  if (seconds < 60) return `${new Intl.NumberFormat('ko-KR', { maximumFractionDigits: 1 }).format(seconds)}초`;
+  const total = Math.floor(seconds);
+  const hours = Math.floor(total / 3600);
+  const minutes = Math.floor(total % 3600 / 60);
+  return `${hours ? `${hours}시간 ` : ''}${minutes}분 ${total % 60}초`;
+}
+
+export function responseTiming(measured) {
+  const elapsed = formatElapsed(measured?.elapsed_seconds);
+  const date = new Date(measured?.finished_at || '');
+  if (!elapsed || !Number.isFinite(date.getTime()) || measured?.live) return null;
+  const label = { completed: '완료', cancelled: '중지', failed: '실패' }[measured.finish_status];
+  if (!label) return null;
+  return { elapsed, label, datetime: date.toISOString(),
+    clock: date.toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+    title: date.toLocaleString('ko-KR', { hour12: false }) };
+}

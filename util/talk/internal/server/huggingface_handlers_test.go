@@ -30,7 +30,8 @@ func TestLocalQADPreparationAPIScope(t *testing.T) {
 		{"qwen38fn_exl3", "official", 400},
 		{"qwen38fn_exl3", "abliterated", 409},
 		{"flash-next-tp2", "official", 400},
-		{"gemma26", "official", 400},
+		{"gemma26", "official", 404},
+		{"gemma31", "official", 404},
 		{"nemotron-asr", "abliterated", 400},
 	} {
 		w := httptest.NewRecorder()

@@ -61,6 +61,11 @@ test('preserves expanded cards and code scrolling across streamed updates and co
     await pre.evaluate(el => { el.scrollTop = 140; el.scrollLeft = 90; el.dataset.scrollIdentity = 'same-pre'; });
     await pane.evaluate(el => { el.style.scrollBehavior = 'auto'; el.scrollTop = 240; });
     const before = await pane.evaluate(el => el.scrollTop);
+    const userActions = pane.locator('article.mine .user-actions');
+    await expect(userActions).toHaveCount(1);
+    await expect(userActions.getByRole('button', { name: '＋ 기억', exact: true })).toBeDisabled();
+    await expect(userActions.getByRole('button', { name: '✎ 수정', exact: true })).toBeDisabled();
+    const userHeight = await pane.locator('article.mine').evaluate(el => el.getBoundingClientRect().height);
     const assertRetained = async () => {
       await expect(cards.first()).toHaveClass(/expanded/);
       await expect(cards.first().getByRole('button', { name: '접기', exact: true })).toHaveAttribute('aria-expanded', 'true');
@@ -75,6 +80,10 @@ test('preserves expanded cards and code scrolling across streamed updates and co
     await expect(pane.locator('article[data-message-id]:not([data-message-id=""])')).toHaveCount(2);
     await assertRetained();
     await expect(pre.locator('code')).toContainText('const streamedTail = 41;');
+    await expect(userActions.getByRole('button', { name: '✎ 수정', exact: true })).toBeEnabled();
+    await expect.poll(() => pane.locator('article.mine').evaluate((el, height) => Math.abs(el.getBoundingClientRect().height - height), userHeight)).toBeLessThan(1);
+    const after = await pane.evaluate(el => el.scrollTop);
+    await test.info().attach('completion-scroll', {body: JSON.stringify({before,after,delta:after-before}),contentType:'application/json'});
   } finally {
     append(); finish();
     if (session) await request.delete(`/api/sessions/${session.id}`);

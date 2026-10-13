@@ -19,7 +19,7 @@ func (c *Config) addSingleSparkMoEModels() {
 	for _, item := range c.Runtime.Catalog.Bundles {
 		bundles[item.ID] = true
 	}
-	for _, id := range []string{"ornith35", "gemma26"} {
+	for _, id := range []string{"ornith35"} {
 		if !components[id] {
 			if item, ok := defaults.Component(id); ok {
 				c.Runtime.Catalog.Components = append(c.Runtime.Catalog.Components, item)

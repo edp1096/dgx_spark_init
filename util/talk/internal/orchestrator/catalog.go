@@ -156,8 +156,6 @@ func ValidateCatalog(catalog Catalog) (Catalog, error) {
 			bundle.Name = "Flash-Next"
 		case "Flash-Next EXL3 세트":
 			bundle.Name = "Flash-Next EXL3"
-		case "Gemma 세트":
-			bundle.Name = "Gemma"
 		case "GLM 5.3 Flash EXL3 + 워커 Extra":
 			bundle.Name = "GLM 5.3 Flash EXL3"
 		case "DeepSeek V4 Flash Vision Exp + 워커 Extra·ASR":

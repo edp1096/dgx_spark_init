@@ -218,7 +218,7 @@ func (c *Controller) prepareOrStartComponent(ctx context.Context, component Comp
 		}
 	}
 	service["container_name"] = component.Container
-	if component.ComposeAsset == "compose.ornith35.yaml" || component.ComposeAsset == "compose.gemma26.yaml" {
+	if component.ComposeAsset == "compose.ornith35.yaml" {
 		for _, key := range []string{"MTP_TOKENS", "DRAFT_VOCAB"} {
 			if value, ok := component.RuntimeOptions[key]; ok {
 				if (key == "MTP_TOKENS" && value != "0" && value != "1" && value != "3") || (key == "DRAFT_VOCAB" && value != "off" && value != "ko64k") {

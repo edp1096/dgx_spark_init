@@ -185,7 +185,7 @@ func TestSelectDownloadFormatPrefersOriginalWithoutDRC(t *testing.T) {
 
 func TestSelectDownloadFormatSupportsAudioOnly(t *testing.T) {
 	format, height := selectDownloadFormat(sourceInfo{Formats: []sourceFormat{{ID: "audio", VideoCodec: "none", AudioCodec: "mp4a"}}}, 64, 720)
-	if format != "bestaudio/best" || height != 0 {
+	if format != "audio" || height != 0 {
 		t.Fatalf("selected %q at %dp", format, height)
 	}
 }

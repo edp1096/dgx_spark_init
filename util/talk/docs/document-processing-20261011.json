@@ -1,0 +1,316 @@
+{
+  "date": "2026-10-11T19:13:22.089006+09:00",
+  "status": "applied",
+  "summary": "원문 전체 저장과 구간별 문서 작업, 중단·재개, 누락 구간 재처리, 구조·삽화를 유지하는 HTML 내보내기를 Talk에 적용했다.",
+  "features": {
+    "operations": [
+      "translation",
+      "hierarchical_summary",
+      "multi_source_comparison"
+    ],
+    "sources": [
+      "TXT",
+      "HTML",
+      "XHTML",
+      "HTML ZIP",
+      "EPUB",
+      "EPUB3",
+      "text PDF"
+    ],
+    "outputs": [
+      "TXT",
+      "Markdown",
+      "offline HTML ZIP",
+      "single HTML with embedded images",
+      "DOCX text",
+      "PDF text",
+      "HWP text",
+      "HWPX text"
+    ],
+    "recovery": "Completed source ranges and outputs are checkpointed atomically. Browser disconnects do not stop work; server restart pauses work for explicit resume. Changed instructions create a separate revision. Budget renewal preserves prior results.",
+    "validation": "Strict JSON schema and exact source IDs/offset coverage; bounded retries, targeted short-output repair, asset integrity checks, session ownership and storage limits. Legacy archive listings/capped extraction remain readable previews and cannot be started as whole-document tasks."
+  },
+  "deployment": {
+    "pid": 661297,
+    "model": "qwen38fn_exl3",
+    "context": 1048576,
+    "reasoning": "xhigh",
+    "model_settings_unchanged": true,
+    "containers_unchanged": true,
+    "time": 1791713936.5188944,
+    "binary_sha256": {
+      "sparktalk-windows-arm64.exe": "d89804762b0512642b23898f27ac12ab5ae6c83f0cfe1ef3bbfcb3ff34f34745",
+      "sparktalk-windows-amd64.exe": "dee00c7cb5c31b1ca43ddff6e18598538a804bb7ea1b3e602df8d1aece92e9dc",
+      "sparktalk-linux-arm64": "e4550b40e356fe70b74787544ae08caac817c1637f33603533a10e22b162687c",
+      "sparktalk-linux-amd64": "ace5ec004976ae1bc82499bf293f97bd5e988b17e80ce2f40ed4d99414f50ca3"
+    }
+  },
+  "live_validation": {
+    "model": "Qwen3.8 Flash-Next EXL3 3bit",
+    "full_book_reasoning": "none (explicit test setting)",
+    "production_reasoning": "xhigh unchanged; new tasks inherit the chat setting",
+    "books": {
+      "twilight": {
+        "status": "completed",
+        "source_chars": 352740,
+        "source_blocks": 1927,
+        "source_images": 0,
+        "completed_units": 147,
+        "total_units": 147,
+        "calls": 155,
+        "completion_tokens_including_retries": 180420,
+        "recorded_processing_seconds": 4461,
+        "short_fragments_repaired": 3,
+        "repair_calls": 2,
+        "unchanged_good_fragments": true,
+        "exact_source_coverage_verified": true,
+        "outputs": {
+          "txt": {
+            "path": "/home/edp1096/.cache/model-download-jobs/document-task-20261011-complete/twilight.txt",
+            "bytes": 477942,
+            "sha256": "ceefa8291d9c3d19eead7b1e5ed8f47fc2c6863f6fe559381ca4bd43e2e2c078"
+          },
+          "md": {
+            "path": "/home/edp1096/.cache/model-download-jobs/document-task-20261011-complete/twilight.md",
+            "bytes": 478027,
+            "sha256": "e0a9a984dd50ab637846f0bb9e796f43a27b8d0fc6526846532075cba5486261"
+          },
+          "html": {
+            "path": "/home/edp1096/.cache/model-download-jobs/document-task-20261011-complete/twilight.html",
+            "bytes": 498253,
+            "sha256": "7d9243152ac04dc58122ccdfb650bb60e3a5860ab75ebea8fb3b74c492b21711"
+          },
+          "zip": {
+            "path": "/home/edp1096/.cache/model-download-jobs/document-task-20261011-complete/twilight.zip",
+            "bytes": 164904,
+            "sha256": "f475a62ff608518b41c6ac291d7417a962c4692ccf76c57ce411cf2b7831509b"
+          }
+        }
+      },
+      "alice": {
+        "status": "completed",
+        "source_chars": 165021,
+        "source_blocks": 1474,
+        "source_images": 1,
+        "completed_units": 69,
+        "total_units": 69,
+        "calls": 76,
+        "completion_tokens_including_retries": 112209,
+        "recorded_processing_seconds": 2361,
+        "short_fragments_repaired": 2,
+        "repair_calls": 2,
+        "unchanged_good_fragments": true,
+        "exact_source_coverage_verified": true,
+        "outputs": {
+          "txt": {
+            "path": "/home/edp1096/.cache/model-download-jobs/document-task-20261011-complete/alice.txt",
+            "bytes": 223844,
+            "sha256": "659142348cc40f131fd7e98d5c5452b93bc54ff793f80a77a50c899490531ef3"
+          },
+          "md": {
+            "path": "/home/edp1096/.cache/model-download-jobs/document-task-20261011-complete/alice.md",
+            "bytes": 223953,
+            "sha256": "333fcf406d0e34aad90c83953b03508c90f0accc801bab701537a2c3c289baf6"
+          },
+          "html": {
+            "path": "/home/edp1096/.cache/model-download-jobs/document-task-20261011-complete/alice.html",
+            "bytes": 371281,
+            "sha256": "82a4c024c620808e0c97e9040d2f81aa07366c2bb2819fb4b79b74baf8a39fe8"
+          },
+          "zip": {
+            "path": "/home/edp1096/.cache/model-download-jobs/document-task-20261011-complete/alice.zip",
+            "bytes": 174450,
+            "sha256": "1a33500c05c079093f3de4576befe0e6c03c3fbc31a7445e01b113cf66b19762"
+          }
+        }
+      }
+    },
+    "offline_html": {
+      "twilight": {
+        "html_bytes": 498253,
+        "images": 0,
+        "internal_links": 0,
+        "missing_internal_links": [],
+        "headings": {
+          "h2": 17
+        },
+        "entries": [
+          "index.html"
+        ]
+      },
+      "alice": {
+        "html_bytes": 234049,
+        "images": 1,
+        "internal_links": 12,
+        "missing_internal_links": [],
+        "headings": {
+          "h2": 16,
+          "h1": 1,
+          "h4": 1
+        },
+        "entries": [
+          "index.html",
+          "images/img-1a681299f61c418064cf.jpg"
+        ]
+      }
+    },
+    "offline_browser": {
+      "external_requests_blocked": true,
+      "images": [
+        {
+          "src": "images/img-1a681299f61c418064cf.jpg",
+          "complete": true,
+          "width": 800,
+          "height": 1104
+        }
+      ]
+    },
+    "image_bytes_match_stored_source": true,
+    "reasoning_sample": {
+      "none": {
+        "finish_reason": "stop",
+        "reasoning_chars": 0,
+        "seconds": 30.553752376,
+        "usage": {
+          "prompt_tokens": 683,
+          "completion_tokens": 310,
+          "total_tokens": 993,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      },
+      "xhigh": {
+        "finish_reason": "stop",
+        "reasoning_chars": 28187,
+        "seconds": 218.771343101,
+        "usage": {
+          "prompt_tokens": 719,
+          "completion_tokens": 9610,
+          "total_tokens": 10329,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      }
+    },
+    "real_extra_documents": {
+      "docx": {
+        "bytes": 8809,
+        "mime": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "seconds": 3.703269611
+      },
+      "hwp": {
+        "bytes": 13312,
+        "mime": "application/x-hwp",
+        "seconds": 0.784774252
+      },
+      "hwpx": {
+        "bytes": 7480,
+        "mime": "application/vnd.hancom.hwpx",
+        "seconds": 0.823281024
+      },
+      "pdf": {
+        "bytes": 64430,
+        "mime": "application/pdf",
+        "seconds": 0.001516322
+      }
+    },
+    "office_content_checks": "Korean text verified in DOCX XML, HWPX XML and PDF text extraction; HWP file signature verified.",
+    "text_pdf_source": {
+      "blocks": 1,
+      "chars": 81,
+      "embedded_korean_text_verified": true
+    }
+  },
+  "memory": {
+    "validation_process_observed_vm_hwm_mib": 45.05078125,
+    "vm_hwm_sample_before_process_exit": true,
+    "llm_gpu_mib": {
+      "start": 69518,
+      "min": 69518,
+      "max": 69596,
+      "last": 69596
+    },
+    "system_available_gib_min": 14.944435119628906,
+    "swap_used_gib": {
+      "start": 1.5827598571777344,
+      "last": 1.5611991882324219
+    },
+    "system_measurement_note": "Builds, browser checks and other service lifecycle changes occurred concurrently; system totals are not the document feature cost.",
+    "text_pdf_extraction_peak_rss_mib": 308.6953125,
+    "text_pdf_extraction_seconds": 1.87
+  },
+  "checks": {
+    "go_test_all": "passed",
+    "go_vet": "passed",
+    "focused_race_checks": "passed",
+    "javascript_unit_tests": {
+      "passed": 132,
+      "failed": 0
+    },
+    "document_export_steering_workflow_e2e": {
+      "passed": 8,
+      "failed": 0
+    },
+    "document_budget_and_http_isolation_e2e": {
+      "passed": 10,
+      "failed": 0
+    },
+    "linux_windows_arm64_amd64_builds": "passed",
+    "baseline_ui_failures": [
+      {
+        "test": "avatar-profile",
+        "reason": "Test expects profile settings immediately; current avatar opens its preview.",
+        "verified_on_previous_binary": true,
+        "resolution": {
+          "status": "resolved",
+          "follow_up": "ui-regressions-20261011.json"
+        }
+      },
+      {
+        "test": "runtime-panel",
+        "reason": "Non-unique text locator matches four elements.",
+        "verified_on_previous_binary": true,
+        "resolution": {
+          "status": "resolved",
+          "follow_up": "ui-regressions-20261011.json"
+        }
+      },
+      {
+        "test": "code-card streamed scroll preservation",
+        "reason": "Outer scroll delta 30 pixels exceeds test tolerance 5 pixels.",
+        "verified_on_previous_binary": true,
+        "resolution": {
+          "status": "resolved",
+          "follow_up": "ui-regressions-20261011.json"
+        }
+      }
+    ],
+    "test_harness_fix": "LAN-origin HTTP tests now forward to the configured test port; restored the legacy test server prompt settings to its saved original after detecting the hardcoded address.",
+    "logs": [
+      "/tmp/sparktalk-document-go-tests-final5.log",
+      "/tmp/sparktalk-document-race-final4.log",
+      "/tmp/sparktalk-document-8-e2e-final.log",
+      "/tmp/sparktalk-document-focused-e2e-final4.log",
+      "/tmp/sparktalk-document-repair-live.log",
+      "/tmp/sparktalk-document-race-final5.log",
+      "/tmp/sparktalk-document-pdf-source-live.log"
+    ],
+    "ui_regression_follow_up": {
+      "status": "resolved",
+      "browser_tests_passed": 96,
+      "failed": 0,
+      "report": "ui-regressions-20261011.json"
+    }
+  },
+  "limits": [
+    "Exact source coverage and short-output checks do not certify literary accuracy. The none-effort 3bit trial still showed proper-name and meaning errors (e.g. made out rendered as 주장했다).",
+    "Earlier untyped inferred glossary terms could distort contextual meanings; final code accepts tentative person/place/organization spellings and keeps user-pinned terms separate.",
+    "Alice #11 supplied HTML contains one cover image; all 12 internal links and that image were checked offline. Other structure/illustration cases use fixtures.",
+    "Actual model inference was tested on the currently loaded EXL3 3bit model; other serving backends were not benchmarked here.",
+    "OCR, image PDF reconstruction, SVG rendering, original CSS reproduction and illustrations in office-format exports remain deferred.",
+    "Earlier free-form partial chat translations are retained as history; new document requests create tracked tasks rather than inferring checkpoints from prose."
+  ],
+  "quality_policy": "간헐적인 한자·가나·알파벳 혼입은 사용자의 지시에 따라 모델 한계로 인정하며 강제 문자 필터를 추가하지 않는다."
+}

@@ -1,0 +1,363 @@
+{
+  "date": "2026-10-13",
+  "causes": [
+    "HTML source formatting newlines were treated as authored line breaks in both model input and text export",
+    "Nested block separators were appended instead of merged",
+    "Whole-document converter inserted paragraph boundaries every 1800 characters",
+    "DOCX stored newline characters in text runs without explicit break elements"
+  ],
+  "fixes": [
+    "DOM-aware ASCII whitespace normalization for normal prose",
+    "Preserve br, paragraph, verse, code, explicit whitespace policies and plain-text line breaks",
+    "Transient wire input normalization; immutable source positions and completed translations unchanged",
+    "Snapshot v4 structure recovery only when raw hash and every source ID/text/offset and asset identity match",
+    "Paragraph-aware TXT/Markdown rendering and explicit Markdown hard breaks",
+    "Remove conversion chunk paragraphs; pagination remains the format engine responsibility",
+    "Encode authored DOCX hard breaks as w:br"
+  ],
+  "tests": {
+    "go_all": "passed",
+    "recorded_model_replies_revalidated": 8,
+    "document_service_tests": 20,
+    "browser_book_audits": 3,
+    "platform_builds": 4,
+    "long_native_paragraph": [
+      {
+        "format": "hwp",
+        "source_characters": 20519,
+        "paragraphs": 2,
+        "body_and_line_breaks_exact": true,
+        "pages": 13,
+        "seconds": 0.622
+      },
+      {
+        "format": "hwpx",
+        "source_characters": 20519,
+        "paragraphs": 2,
+        "body_and_line_breaks_exact": true,
+        "pages": 13,
+        "seconds": 0.545
+      }
+    ]
+  },
+  "books": [
+    {
+      "after": {
+        "lines": 1515,
+        "max_consecutive_newlines": 4,
+        "three_plus_newline_runs": 6
+      },
+      "before": {
+        "lines": 3082,
+        "max_consecutive_newlines": 16,
+        "three_plus_newline_runs": 56
+      },
+      "checkpoints_unchanged": true,
+      "files": {
+        "output.html": {
+          "bytes": 298833,
+          "mime": "text/html; charset=utf-8",
+          "sha256": "37e111a8d9b3a9ebfe388ab6e0b6923fce7997cc415c1a9894241926fc837313"
+        },
+        "output.md": {
+          "bytes": 249774,
+          "mime": "text/markdown; charset=utf-8",
+          "sha256": "5d43b12a1378babe131dc3cbeb06e03fee5376c0ebee5089b24bb43208b85989"
+        },
+        "output.txt": {
+          "bytes": 246949,
+          "mime": "text/plain; charset=utf-8",
+          "sha256": "9d68458c612b8dcd02dbda888b92b319594a0e60b35bee715b812a79348127b4"
+        },
+        "output.zip": {
+          "bytes": 93525,
+          "mime": "application/zip",
+          "sha256": "755ac87faa0c7ae6b7bad461fd2d9106dd89bb426902e3e8d07c728e8197e152"
+        }
+      },
+      "model_calls": 0,
+      "non_whitespace_content_unchanged": true,
+      "run": "chat-1791804593987680807",
+      "session": "chat-1791804532471788219",
+      "source_version": 4
+    },
+    {
+      "after": {
+        "lines": 879,
+        "max_consecutive_newlines": 5,
+        "three_plus_newline_runs": 8
+      },
+      "before": {
+        "lines": 1810,
+        "max_consecutive_newlines": 15,
+        "three_plus_newline_runs": 36
+      },
+      "checkpoints_unchanged": true,
+      "files": {
+        "output.html": {
+          "bytes": 225651,
+          "mime": "text/html; charset=utf-8",
+          "sha256": "d59feb41ad766d1612a29892e863b760eb3b1a217fb491b5675cb2f7f531d9a8"
+        },
+        "output.md": {
+          "bytes": 203336,
+          "mime": "text/markdown; charset=utf-8",
+          "sha256": "43577f494ee2cfe7d760b0521cbea6497ca658fda5bff383738816e83941af32"
+        },
+        "output.txt": {
+          "bytes": 201703,
+          "mime": "text/plain; charset=utf-8",
+          "sha256": "55f724ce51060383020029bbb2431d0a3ff0b4725a3e738d983564f72efe7172"
+        },
+        "output.zip": {
+          "bytes": 76893,
+          "mime": "application/zip",
+          "sha256": "6db68a9ae1f908c5b83520eb9df96dfd6b76364ba7e90f6ca3d97a0b536a26de"
+        }
+      },
+      "model_calls": 0,
+      "non_whitespace_content_unchanged": true,
+      "run": "chat-1791784571896538049",
+      "session": "chat-1791784517738091247",
+      "source_version": 4
+    },
+    {
+      "after": {
+        "lines": 5246,
+        "max_consecutive_newlines": 2,
+        "three_plus_newline_runs": 0
+      },
+      "before": {
+        "lines": 13559,
+        "max_consecutive_newlines": 11,
+        "three_plus_newline_runs": 2615
+      },
+      "checkpoints_unchanged": true,
+      "files": {
+        "output.html": {
+          "bytes": 932502,
+          "mime": "text/html; charset=utf-8",
+          "sha256": "4d817cf344a900b588d750c66073d00a06664e3e49436a29417b106151c9a978"
+        },
+        "output.md": {
+          "bytes": 733372,
+          "mime": "text/markdown; charset=utf-8",
+          "sha256": "532e8c578019943007df08c364d0f5ab10c14973b474085c549570d844f0e8f9"
+        },
+        "output.txt": {
+          "bytes": 733268,
+          "mime": "text/plain; charset=utf-8",
+          "sha256": "2bd13025ecc9c49493896edc0af7cb3b8b0c6959f2cde01790da0938dc1793e5"
+        },
+        "output.zip": {
+          "bytes": 384521,
+          "mime": "application/zip",
+          "sha256": "6fabd1a35b168f13e0065220ac8df3fcf549626d3cce696c68a91724132c2b6b"
+        }
+      },
+      "model_calls": 0,
+      "non_whitespace_content_unchanged": true,
+      "run": "chat-1791719302825162593",
+      "session": "chat-1791716007391613355",
+      "source_version": 4
+    }
+  ],
+  "browser": [
+    {
+      "run": "chat-1791719302825162593",
+      "visible_non_whitespace_text_unchanged": true,
+      "structure_unchanged": true,
+      "images": [
+        [
+          668,
+          1000
+        ]
+      ]
+    },
+    {
+      "run": "chat-1791784571896538049",
+      "visible_non_whitespace_text_unchanged": true,
+      "structure_unchanged": true,
+      "images": []
+    },
+    {
+      "run": "chat-1791804593987680807",
+      "visible_non_whitespace_text_unchanged": true,
+      "structure_unchanged": true,
+      "images": [
+        [
+          16,
+          16
+        ]
+      ]
+    }
+  ],
+  "rich_conversion": [
+    {
+      "format": "docx",
+      "seconds": 4.14930188190192,
+      "bytes": 269105,
+      "sha256": "10c1b41ae8bfc4b6f454601afa07fa1891b7804fa7452793acb14e603e6da655",
+      "body_exact": true,
+      "pdf_text_exact": true,
+      "pdf_pages": 157,
+      "warning": null
+    },
+    {
+      "format": "pdf",
+      "seconds": 4.080343592911959,
+      "bytes": 2108106,
+      "sha256": "2a359a06ef9a357f1f90d8ad25f76855ba0e9d5a7a21e82fd8be3016676f6fac",
+      "body_exact": true,
+      "pdf_text_exact": true,
+      "pdf_pages": 157,
+      "warning": null
+    },
+    {
+      "format": "hwp",
+      "seconds": 66.98043261398561,
+      "bytes": 331776,
+      "sha256": "6118126bd9b2a2876bf22bc03d4e71846d771627ea02dcf212a01d58e4654b6d",
+      "body_exact": true,
+      "pdf_text_exact": true,
+      "pdf_pages": 157,
+      "warning": null
+    },
+    {
+      "format": "hwpx",
+      "seconds": 67.4932439608965,
+      "bytes": 282293,
+      "sha256": "0f850c7ab9d5cce0c11c56dd768307f6790a745eb7466ebb318aefd0e8226f3c",
+      "body_exact": true,
+      "pdf_text_exact": true,
+      "pdf_pages": 157,
+      "warning": null
+    }
+  ],
+  "sherlock_pdf_pages": {
+    "before": 216,
+    "after": 157
+  },
+  "deployment": {
+    "old_pid": 1935254,
+    "pid": 2088665,
+    "model_calls": 0,
+    "configuration_unchanged": true,
+    "source_checkpoints_and_workflow_state_unchanged": true,
+    "model_containers_unchanged": true,
+    "documents_version": "0.5.4",
+    "protocol": "json_schema_paragraphs_v6",
+    "downloads": [
+      {
+        "run": "chat-1791804593987680807",
+        "name": "output.html",
+        "bytes": 298833,
+        "sha256": "37e111a8d9b3a9ebfe388ab6e0b6923fce7997cc415c1a9894241926fc837313"
+      },
+      {
+        "run": "chat-1791804593987680807",
+        "name": "output.md",
+        "bytes": 249774,
+        "sha256": "5d43b12a1378babe131dc3cbeb06e03fee5376c0ebee5089b24bb43208b85989"
+      },
+      {
+        "run": "chat-1791804593987680807",
+        "name": "output.txt",
+        "bytes": 246949,
+        "sha256": "9d68458c612b8dcd02dbda888b92b319594a0e60b35bee715b812a79348127b4"
+      },
+      {
+        "run": "chat-1791804593987680807",
+        "name": "output.zip",
+        "bytes": 93525,
+        "sha256": "755ac87faa0c7ae6b7bad461fd2d9106dd89bb426902e3e8d07c728e8197e152"
+      },
+      {
+        "run": "chat-1791784571896538049",
+        "name": "output.html",
+        "bytes": 225651,
+        "sha256": "d59feb41ad766d1612a29892e863b760eb3b1a217fb491b5675cb2f7f531d9a8"
+      },
+      {
+        "run": "chat-1791784571896538049",
+        "name": "output.md",
+        "bytes": 203336,
+        "sha256": "43577f494ee2cfe7d760b0521cbea6497ca658fda5bff383738816e83941af32"
+      },
+      {
+        "run": "chat-1791784571896538049",
+        "name": "output.txt",
+        "bytes": 201703,
+        "sha256": "55f724ce51060383020029bbb2431d0a3ff0b4725a3e738d983564f72efe7172"
+      },
+      {
+        "run": "chat-1791784571896538049",
+        "name": "output.zip",
+        "bytes": 76893,
+        "sha256": "6db68a9ae1f908c5b83520eb9df96dfd6b76364ba7e90f6ca3d97a0b536a26de"
+      },
+      {
+        "run": "chat-1791719302825162593",
+        "name": "output.docx",
+        "bytes": 269105,
+        "sha256": "10c1b41ae8bfc4b6f454601afa07fa1891b7804fa7452793acb14e603e6da655"
+      },
+      {
+        "run": "chat-1791719302825162593",
+        "name": "output.html",
+        "bytes": 932502,
+        "sha256": "4d817cf344a900b588d750c66073d00a06664e3e49436a29417b106151c9a978"
+      },
+      {
+        "run": "chat-1791719302825162593",
+        "name": "output.hwp",
+        "bytes": 331776,
+        "sha256": "6118126bd9b2a2876bf22bc03d4e71846d771627ea02dcf212a01d58e4654b6d"
+      },
+      {
+        "run": "chat-1791719302825162593",
+        "name": "output.hwpx",
+        "bytes": 282293,
+        "sha256": "0f850c7ab9d5cce0c11c56dd768307f6790a745eb7466ebb318aefd0e8226f3c"
+      },
+      {
+        "run": "chat-1791719302825162593",
+        "name": "output.md",
+        "bytes": 733372,
+        "sha256": "532e8c578019943007df08c364d0f5ab10c14973b474085c549570d844f0e8f9"
+      },
+      {
+        "run": "chat-1791719302825162593",
+        "name": "output.pdf",
+        "bytes": 2108106,
+        "sha256": "2a359a06ef9a357f1f90d8ad25f76855ba0e9d5a7a21e82fd8be3016676f6fac"
+      },
+      {
+        "run": "chat-1791719302825162593",
+        "name": "output.txt",
+        "bytes": 733268,
+        "sha256": "2bd13025ecc9c49493896edc0af7cb3b8b0c6959f2cde01790da0938dc1793e5"
+      },
+      {
+        "run": "chat-1791719302825162593",
+        "name": "output.zip",
+        "bytes": 384521,
+        "sha256": "6fabd1a35b168f13e0065220ac8df3fcf549626d3cce696c68a91724132c2b6b"
+      }
+    ],
+    "binaries": {
+      "sparktalk-linux-arm64": "9b07f45979fd2124ab80670d2f83c16ea57d7ec02995a67320e92d9686ea42b2",
+      "sparktalk-linux-amd64": "d39dd7e1d5cc600560f229e11e86bfe7ed465a44b0f374445e839f78120521d6",
+      "sparktalk-windows-arm64.exe": "05cfc277f571b13d9a4b841bcb417061dce9557102cf559a9fe0de7154437e96",
+      "sparktalk-windows-amd64.exe": "33fc600d11a31fbf42924666f4b9be0abccd1df666666db06ce8d1f535495edb"
+    }
+  },
+  "document_runtime_matches_embedded_sources": true,
+  "rollback_backup": "/home/edp1096/.cache/model-download-jobs/document-whitespace-20261013/deploy-backup",
+  "model_calls": 0,
+  "limitations": [
+    "External CSS stylesheets are not fetched; existing safe HTML structure and supported whitespace modes are used",
+    "Author-specified consecutive br elements are retained",
+    "Stored wording and translation errors were not edited"
+  ]
+}

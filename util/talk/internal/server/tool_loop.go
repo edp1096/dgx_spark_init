@@ -101,6 +101,7 @@ func runCompletionLoopForSessionWithMedia(
 	}
 	// Tool-produced image/user messages must not authorize conversation changes.
 	ctx = context.WithValue(ctx, sessionTitleRequestKey{}, currentTitleRequestText(messages))
+	ctx = context.WithValue(ctx, documentTurnEffortKey{}, reasoningEffort)
 	registry := newCompletionToolRegistryForContext(ctx, server, sessionID, toolConfig, toolsEnabled, mediaSink)
 	if inStage {
 		for name := range stage.Skills {
@@ -392,6 +393,8 @@ func runCompletionLoopForSessionWithMedia(
 			ReasoningContent: result.Reasoning,
 		})
 		toolFollowups := make([]llm.Message, 0, 1)
+		deferred := []*workflows.Run{}
+		deferredEvidence := []string{}
 		for _, call := range result.ToolCalls {
 			if err := emit("tool_start", map[string]any{
 				"id": call.ID, "name": call.Function.Name, "arguments": call.Function.Arguments,
@@ -415,6 +418,10 @@ func runCompletionLoopForSessionWithMedia(
 				return emit(event, payload)
 			}
 			execution, toolErr := executeTurnTool(ctx, call, conversation, toolEmit, execute)
+			if toolErr == nil && execution.DeferredDocument != nil {
+				deferred = append(deferred, execution.DeferredDocument)
+				deferredEvidence = append(deferredEvidence, call.ID)
+			}
 			failHeadCall(ctx, call, toolErr)
 			toolResult := execution.Result
 			toolFollowups = append(toolFollowups, execution.Followups...)
@@ -467,6 +474,44 @@ func runCompletionLoopForSessionWithMedia(
 			conversation = append(conversation, llm.Message{
 				Role: "tool", Content: toolResult, ToolCallID: call.ID,
 			})
+		}
+		if len(deferred) > 0 {
+			label := "문서 처리"
+			switch deferred[0].Document.Kind {
+			case "translate":
+				label = "번역"
+			case "summarize":
+				label = "요약"
+			case "compare":
+				label = "자료 비교"
+			}
+			content := label + " 작업을 시작했습니다. 대화방의 작업 진행에서 진행 상황과 결과를 확인할 수 있습니다."
+			if len(deferred) == 1 {
+				switch deferred[0].Status {
+				case "completed":
+					content = "문서 작업이 완료됐습니다. 대화방의 작업 진행에서 결과를 받을 수 있습니다."
+				case "paused", "waiting_model":
+					content = "저장된 문서 작업이 대기 또는 일시정지 상태입니다. 대화방의 작업 진행에서 상태를 확인하고 재개할 수 있습니다."
+				case "needs_review":
+					content = "문서 작업에 검토할 항목이 있습니다. 대화방의 작업 진행에서 상태와 결과를 확인할 수 있습니다."
+				}
+			}
+			if len(deferred) > 1 {
+				content = fmt.Sprintf("문서 작업 %d개를 시작했습니다. 대화방의 작업 진행에서 진행 상황과 결과를 확인할 수 있습니다.", len(deferred))
+			}
+			for _, run := range deferred {
+				if err := emit("workflow", *run); err != nil {
+					return completionResult{Content: content, Reasoning: allReasoning.String(), ToolTrace: trace, Attachments: outputAttachments}, err
+				}
+			}
+			if err := emit("delta", map[string]string{"delta": content}); err != nil {
+				return completionResult{Content: content, Reasoning: allReasoning.String(), ToolTrace: trace, Attachments: outputAttachments}, err
+			}
+			out := completionResult{Content: content, Reasoning: allReasoning.String(), ToolTrace: trace, Attachments: outputAttachments}
+			if inStage {
+				out.Report = &workflows.Report{Status: "blocked", Summary: content, Handoff: "Background document task is running; inspect its saved status/results before resuming this procedure.", Evidence: deferredEvidence}
+			}
+			return out, nil
 		}
 		// Every tool result must immediately follow the assistant tool_calls
 		// message. Add model-facing media only after all results, otherwise a

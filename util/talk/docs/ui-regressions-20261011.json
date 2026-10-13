@@ -1,0 +1,46 @@
+{
+  "date": "2026-10-11T19:52:50.144001+09:00",
+  "status": "applied",
+  "changes": {
+    "avatar_profile": "검사를 확대 보기 → 프로필 설정 순서로 갱신하고 사용자·AI·브랜드 아바타 및 모바일 경로를 확인했다.",
+    "runtime_panel": "선택 메뉴와 중복되는 세트 문구 대신 패널 제목을 특정해 검사한다.",
+    "completion_scroll": "저장 전 사용자 메시지에도 버튼 줄을 배치하고 ID가 생길 때까지 비활성화해, 응답 완료 시 30px 높이 증가를 제거했다."
+  },
+  "validation": {
+    "focused_browser_tests": 11,
+    "full_browser_tests": 96,
+    "javascript_unit_tests": 132,
+    "failures": 0,
+    "completion_scroll": {
+      "before": 240,
+      "after": 240,
+      "delta": 0
+    },
+    "code_card_state": "Expanded card and internal scrollTop=140, scrollLeft=90 retained; user action row height unchanged.",
+    "platform_builds": [
+      "linux-arm64",
+      "linux-amd64",
+      "windows-arm64",
+      "windows-amd64"
+    ],
+    "logs": [
+      "/tmp/sparktalk-ui-focused.log",
+      "/tmp/sparktalk-ui-all-e2e.log",
+      "/tmp/sparktalk-ui-js-tests.log",
+      "/home/edp1096/.cache/model-download-jobs/ui-regressions-20261011/scroll-browser.json"
+    ]
+  },
+  "deployment": {
+    "pid": 841621,
+    "model": "qwen38fn_exl3",
+    "reasoning": "xhigh",
+    "context_tokens": 1048576,
+    "model_settings_unchanged": true,
+    "running_container_pids_and_start_times_unchanged": true,
+    "served_assets_match_tested_build": {
+      "/assets/index-CUV_ngUj.js": "f8a46a0cab004dfd557d85a8b76bf117ca3d759328b2bf70a5e0d9212759d5d4"
+    },
+    "backup": "/home/edp1096/.cache/model-download-jobs/ui-regressions-20261011/previous"
+  },
+  "quality_policy": "간헐적인 한자·가나·알파벳 혼입은 사용자의 지시에 따라 모델 한계로 인정하며 강제 문자 필터를 추가하지 않는다."
+}

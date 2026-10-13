@@ -28,6 +28,11 @@ import (
 )
 
 type Server struct {
+	docAssetMu         sync.Mutex
+	docExportMu        sync.Mutex
+	docTaskMu          sync.Mutex
+	docInferMu         sync.Mutex
+	docTasks           map[string]*documentWorker
 	retrievalMu        sync.Mutex
 	retrieval          retrievalState
 	tasks              tasklife.Group
@@ -115,8 +120,7 @@ func New(cfg config.Config, configPath string, store *db.DB, client *llm.Client,
 		} else if activeBundle == "" {
 			activeBundle = cfg.Runtime.ActiveBundle
 		}
-		cfg.Runtime.ActiveBundle = activeBundle
-		cfg.Normalize()
+		cfg.SelectManagedBundle(activeBundle)
 		client = llm.New(cfg.Model.Endpoint, cfg.Model.DefaultModel, cfg.Model.APIKey, cfg.Model.ModelType).WithThinkingBudget(cfg.Model.ThinkingBudget)
 	}
 	s := &Server{cfg: cfg, startup: cfg.Server, configPath: configPath, db: store, llm: client, asr: asr.New(cfg.ASR), tts: tts.New(cfg.TTS), sshClient: supportssh.New(cfg.Extra.SSHEndpoint), media: mediaStore, knowledge: knowledgeStore, knowledgeIndex: &knowledge.Extractor{}, collector: knowledge.NewCollectorClient(cfg.Extra.CollectorEndpoint), runtime: runtimeController, contextWindows: make(map[string]int), approvals: make(map[string]*toolApproval), knowledgeJobs: make(map[string]*knowledgeJobRun), knowledgeJobSem: make(chan struct{}, 1), knowledgeOCRJobs: make(map[string]*knowledgeOCRRun), knowledgeOCRSem: make(chan struct{}, 1)}
@@ -155,6 +159,7 @@ func New(cfg config.Config, configPath string, store *db.DB, client *llm.Client,
 		_ = s.runtime.StartBundle(context.Background(), cfg.Runtime.Bundle, cfg.Runtime.MemoryReserveGiB)
 	}
 	s.startEmbeddingIndexer()
+	s.startSourceMaintenance()
 	initialized = true
 	runtimeInitialized = true
 	runtimeController.AdoptIdleWorkloads(cfg.Runtime.ActiveBundle)

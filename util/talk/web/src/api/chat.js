@@ -1,13 +1,13 @@
 export async function streamChat(sessionId, content, attachments, model, reasoningEffort, toolsEnabled, signal, handlers) {
-  const response = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: sessionId, content, attachments, model, reasoning_effort: reasoningEffort, tools_enabled: toolsEnabled }), signal });
+  const response = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ submission_delay_ms: handlers.submissionDelayMS?.() || 0, session_id: sessionId, content, attachments, model, reasoning_effort: reasoningEffort, tools_enabled: toolsEnabled }), signal });
   return consumeSSE(response, handlers);
 }
 export async function retryMessage(messageId, model, reasoningEffort, toolsEnabled, userVariant, signal, handlers) {
-  const response = await fetch(`/api/messages/${messageId}/retry`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model, reasoning_effort: reasoningEffort, tools_enabled: toolsEnabled, user_variant: userVariant }), signal });
+  const response = await fetch(`/api/messages/${messageId}/retry`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ submission_delay_ms: handlers.submissionDelayMS?.() || 0, model, reasoning_effort: reasoningEffort, tools_enabled: toolsEnabled, user_variant: userVariant }), signal });
   return consumeSSE(response, handlers);
 }
 export async function editMessage(messageId, content, attachments, model, reasoningEffort, toolsEnabled, signal, handlers) {
-  const response = await fetch(`/api/messages/${messageId}/edit`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content, attachments, model, reasoning_effort: reasoningEffort, tools_enabled: toolsEnabled }), signal });
+  const response = await fetch(`/api/messages/${messageId}/edit`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ submission_delay_ms: handlers.submissionDelayMS?.() || 0, content, attachments, model, reasoning_effort: reasoningEffort, tools_enabled: toolsEnabled }), signal });
   return consumeSSE(response, handlers);
 }
 export async function consumeSSE(response, handlers) {

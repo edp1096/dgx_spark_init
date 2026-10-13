@@ -1,0 +1,511 @@
+{
+  "date": "2026-10-13",
+  "title": "여학생 번역 결과 및 문서 번역 모듈 검수",
+  "session_id": "chat-1791821149756693723",
+  "run_id": "chat-1791821219604718768",
+  "source": "https://www.aozora.gr.jp/cards/000035/files/275_13903.html",
+  "verdict": {
+    "throughput": "648 seconds, normal completion without transport errors",
+    "whitespace": "previous duplicate/newline defects absent; remaining larger gaps authored in source",
+    "translation_completeness": "fail: first body paragraph substantially omitted",
+    "semantic_quality": "fail: reversals, wrong entities, mistranslated words and bibliographic errors",
+    "automatic_quality_gate": "fail: truncated paragraph passed and task was marked completed"
+  },
+  "metrics": {
+    "elapsed_seconds": 648,
+    "request_seconds": 646.716112777,
+    "calls": 5,
+    "retry_calls": 0,
+    "prompt_tokens": 28637,
+    "output_tokens_including_reasoning": 26118,
+    "pp_weighted": 765.4905105586743,
+    "tg_weighted": 42.969958211312566,
+    "prefill_seconds_from_native_rate": 37.41,
+    "generation_seconds_from_native_rate": 607.8199999999999,
+    "pp_range": [
+      686.599099099099,
+      930.952380952381
+    ],
+    "tg_range": [
+      41.58564483843294,
+      47.23225030084236
+    ],
+    "reasoning_chars": 15788,
+    "source_chars_without_ruby_annotations": 31632,
+    "translation_chars": 35021,
+    "source_blocks": 906,
+    "annotation_blocks": 474,
+    "source_version": 4,
+    "protocols": [
+      "json_schema_paragraphs_v6"
+    ]
+  },
+  "structural": {
+    "source_blocks": 906,
+    "unique_source_ids_and_output_presence": "pass",
+    "all_source_piece_offsets_match": true,
+    "raw_source_hash_matches_snapshot": true,
+    "paragraph_groups": 112,
+    "paragraph_groups_reviewed": 112,
+    "pdf_text_matches_saved_txt_except_whitespace": false,
+    "pdf_pages": 13,
+    "large_omissions_confirmed": 1,
+    "recorded_finish_reason": [
+      "stop",
+      "stop",
+      "stop",
+      "stop",
+      "stop"
+    ],
+    "current_short_guard_detected_paragraphs": 0,
+    "first_paragraph_source_chars": 675,
+    "first_paragraph_output_chars": 108,
+    "first_paragraph_ratio": 0.16,
+    "current_short_guard_ratio": 0.125,
+    "gaiji_unique_images": 1,
+    "gaiji_occurrences": 2,
+    "script_mixing_excluded_from_quality_judgment": true,
+    "review_is_audit_not_a_corrected_edition": true,
+    "pdf_content_difference": {
+      "added_generated_title": "문서 처리 결과",
+      "omitted_characters": "ادام",
+      "omitted_character_count": 4,
+      "source": "model-generated foreign-script noise in paragraph 12; not present in Japanese source",
+      "counted_as_semantic_translation_error": false
+    }
+  },
+  "findings": [
+    {
+      "id": "Q01",
+      "paragraphs": [
+        3
+      ],
+      "severity": "critical",
+      "category": "omission",
+      "source": "675자 첫 본문 문단",
+      "actual": "108자만 번역하고 “데코짱이”에서 끊김",
+      "expected": "상자·주사위 비유, 전분·아침·허무·후회까지 번역",
+      "detail": "원문과 저장된 출력 자체를 대조. 출력·PDF 변환에서 잘린 것이 아님. 길이 16%로 기존 12.5% 검사 통과."
+    },
+    {
+      "id": "Q02",
+      "paragraphs": [
+        9
+      ],
+      "severity": "major",
+      "category": "lexical",
+      "source": "たどん",
+      "actual": "타돈",
+      "expected": "숯덩이/숯 경단",
+      "detail": "눈을 숯덩이에 빗댄 뜻을 음차만 해서는 전달하지 못함."
+    },
+    {
+      "id": "Q03",
+      "paragraphs": [
+        10
+      ],
+      "severity": "major",
+      "category": "lexical",
+      "source": "おタクワンの臭い",
+      "actual": "오뎅 냄새",
+      "expected": "단무지 냄새",
+      "detail": ""
+    },
+    {
+      "id": "Q04",
+      "paragraphs": [
+        11
+      ],
+      "severity": "major",
+      "category": "subject",
+      "source": "二匹もつれ合いながら、走って来た",
+      "actual": "두 마리 데리고 달려왔다",
+      "expected": "두 마리가 뒤엉켜 달려왔다",
+      "detail": "달려온 주체를 바꿈."
+    },
+    {
+      "id": "Q05",
+      "paragraphs": [
+        11
+      ],
+      "severity": "major",
+      "category": "lexical",
+      "source": "野良犬",
+      "actual": "길잡이 개",
+      "expected": "들개/떠돌이 개",
+      "detail": ""
+    },
+    {
+      "id": "Q06",
+      "paragraphs": [
+        16
+      ],
+      "severity": "major",
+      "category": "meaning_reversal",
+      "source": "おみおつけの温まるまで",
+      "actual": "된장국이 식을 때까지",
+      "expected": "된장국이 데워질 때까지",
+      "detail": ""
+    },
+    {
+      "id": "Q07",
+      "paragraphs": [
+        16
+      ],
+      "severity": "major",
+      "category": "lexical",
+      "source": "おひつ",
+      "actual": "시루",
+      "expected": "밥통/밥을 담아 두는 통",
+      "detail": ""
+    },
+    {
+      "id": "Q08",
+      "paragraphs": [
+        16
+      ],
+      "severity": "major",
+      "category": "lexical",
+      "source": "トコロテン",
+      "actual": "냉모밀",
+      "expected": "우무(도코로텐)",
+      "detail": "음식과 비유의 대상이 바뀜."
+    },
+    {
+      "id": "Q09",
+      "paragraphs": [
+        18
+      ],
+      "severity": "major",
+      "category": "request_generation",
+      "source": "近衛さん",
+      "actual": "근위 공",
+      "expected": "고노에 씨",
+      "detail": "중계 모델이 만든 작업 instructions에 “근위”가 이미 포함되어 있었음. 사용자는 URL과 “번역해라”만 지시함."
+    },
+    {
+      "id": "Q10",
+      "paragraphs": [
+        27
+      ],
+      "severity": "minor",
+      "category": "idiom",
+      "source": "角をためて牛を殺す",
+      "actual": "뿔을 재려다 소를 잡다",
+      "expected": "뿔을 바로잡으려다 소를 죽이다(교각살우)",
+      "detail": ""
+    },
+    {
+      "id": "Q11",
+      "paragraphs": [
+        38
+      ],
+      "severity": "major",
+      "category": "lexical",
+      "source": "キザ",
+      "actual": "키치(kitsch)",
+      "expected": "젠체함/허세",
+      "detail": "서로 다른 단어를 연결함."
+    },
+    {
+      "id": "Q12",
+      "paragraphs": [
+        42,
+        57
+      ],
+      "severity": "major",
+      "category": "cultural_substitution",
+      "source": "和服",
+      "actual": "한복",
+      "expected": "기모노/일본 옷",
+      "detail": ""
+    },
+    {
+      "id": "Q13",
+      "paragraphs": [
+        48
+      ],
+      "severity": "major",
+      "category": "proper_name",
+      "source": "神田",
+      "actual": "신오바시",
+      "expected": "간다",
+      "detail": "원문의 지명을 다른 곳으로 바꿈."
+    },
+    {
+      "id": "Q14",
+      "paragraphs": [
+        11,
+        54,
+        55,
+        56
+      ],
+      "severity": "major",
+      "category": "entity_consistency",
+      "source": "ジャピイ",
+      "actual": "자피이 → 재피",
+      "expected": "같은 개 이름을 일관되게 유지",
+      "detail": ""
+    },
+    {
+      "id": "Q15",
+      "paragraphs": [
+        56
+      ],
+      "severity": "major",
+      "category": "meaning_reversal",
+      "source": "頭を打ってやる",
+      "actual": "머리를 쓰다듬어 준다",
+      "expected": "머리를 때려 준다",
+      "detail": ""
+    },
+    {
+      "id": "Q16",
+      "paragraphs": [
+        59
+      ],
+      "severity": "major",
+      "category": "lexical",
+      "source": "せんの小金井の家",
+      "actual": "센 쪽 코가네이의 집",
+      "expected": "예전에 살던 고가네이 집",
+      "detail": "시간 표현을 장소 수식처럼 처리함."
+    },
+    {
+      "id": "Q17",
+      "paragraphs": [
+        61
+      ],
+      "severity": "major",
+      "category": "lexical",
+      "source": "三枚におろして",
+      "actual": "세 토막 내어",
+      "expected": "양쪽 살과 뼈를 분리해 포를 떠서",
+      "detail": ""
+    },
+    {
+      "id": "Q18",
+      "paragraphs": [
+        62
+      ],
+      "severity": "major",
+      "category": "meaning_reversal",
+      "source": "なんでも、どうでも、よくなって来る",
+      "actual": "뭐든, 어떻게든, 좋아진다",
+      "expected": "뭐든 어찌 되든 상관없어진다",
+      "detail": "무관심·자포자기 정서를 호전처럼 옮김."
+    },
+    {
+      "id": "Q19",
+      "paragraphs": [
+        63,
+        64,
+        65,
+        67,
+        68,
+        82
+      ],
+      "severity": "major",
+      "category": "proper_name",
+      "source": "今井田",
+      "actual": "이이다",
+      "expected": "이마이다",
+      "detail": ""
+    },
+    {
+      "id": "Q20",
+      "paragraphs": [
+        63
+      ],
+      "severity": "major",
+      "category": "lexical",
+      "source": "両切の煙草",
+      "actual": "롤링 스테이트 담배",
+      "expected": "両切라는 담배 형태에 맞는 번역",
+      "detail": "원문에 없는 영어식 명칭을 생성함."
+    },
+    {
+      "id": "Q21",
+      "paragraphs": [
+        65
+      ],
+      "severity": "minor",
+      "category": "unsupported_addition",
+      "source": "ほほと笑った",
+      "actual": "볼을 붉히며 웃으셨다",
+      "expected": "호호 웃으셨다",
+      "detail": "얼굴이 붉어졌다는 동작은 원문에 없음."
+    },
+    {
+      "id": "Q22",
+      "paragraphs": [
+        68
+      ],
+      "severity": "major",
+      "category": "lexical",
+      "source": "何やら用事があるとかで",
+      "actual": "어째 쓸모가 있다면서",
+      "expected": "무슨 볼일이 있다면서",
+      "detail": ""
+    },
+    {
+      "id": "Q23",
+      "paragraphs": [
+        70,
+        71,
+        72
+      ],
+      "severity": "major",
+      "category": "source_parser",
+      "source": "class=gaiji, JIS X 0213 1-87-25 (濹)",
+      "actual": "[삽화: ※(「さんずい＋…」…)]동기담",
+      "expected": "문자 이미지임을 구분하여 글자로 취급",
+      "detail": "문자 이미지 1종·본문 2곳을 일반 삽화로 취급함. JIS 좌표는 euc_jis_2004 디코더로 濹 확인."
+    },
+    {
+      "id": "Q24",
+      "paragraphs": [
+        95
+      ],
+      "severity": "minor",
+      "category": "wording",
+      "source": "一夜おくれて",
+      "actual": "밤하루 늦게",
+      "expected": "하룻밤 늦게",
+      "detail": ""
+    },
+    {
+      "id": "Q25",
+      "paragraphs": [
+        96
+      ],
+      "severity": "major",
+      "category": "entity_consistency",
+      "source": "カア (앞부분에서 개로 소개)",
+      "actual": "까악 / 까마귀",
+      "expected": "개 이름 카아",
+      "detail": "개의 앞다리·절름발이 묘사를 까마귀에 붙임. 단순 표기 혼입 문제가 아님."
+    },
+    {
+      "id": "Q26",
+      "paragraphs": [
+        100
+      ],
+      "severity": "major",
+      "category": "bibliography",
+      "source": "角川文庫、角川書店",
+      "actual": "가와데문고, 가와데서점",
+      "expected": "가도카와문고, 가도카와서점",
+      "detail": "서지의 출판사를 다른 회사로 바꿈. 잘못된 표기를 학습 용어표에도 저장함."
+    }
+  ],
+  "finding_counts": {
+    "critical": 1,
+    "major": 22,
+    "minor": 3
+  },
+  "repeat": {
+    "scope": "first 3 of 14 checkpoints only; one repeat, no fixed seed",
+    "model": "qwen38fn_exl3",
+    "effort": "low",
+    "temperature": 0.7,
+    "native_reasoning_budget": 2048,
+    "calls": 1,
+    "seconds": 132.145612995,
+    "performance": {
+      "pp": 159.54198473282443,
+      "tg": 43.68642447418738,
+      "ttft": 0.641268294,
+      "ttft_estimated": true,
+      "prompt_tokens": 6097,
+      "cached_tokens": 5888,
+      "output_tokens": 5712,
+      "calls": 1
+    },
+    "source_prompt_tokens_equal_original": true,
+    "first_paragraph_chars": 827,
+    "first_paragraph_full_content_restored_in_repeat": true,
+    "remaining_lexical_errors": [
+      "たどん → 타당",
+      "おタクワン → 오뎅",
+      "おひつ → 시께",
+      "トコロテン → 밀국수"
+    ],
+    "corrected_errors_in_repeat": [
+      "first paragraph truncation",
+      "野良犬 → 들개",
+      "温まる → 따뜻해질"
+    ],
+    "limits": "Warm prompt cache reused 5888/6097 tokens. This repeat cannot estimate an error rate or isolate quantization/model/runtime causes."
+  },
+  "memory": {
+    "exit_code": 0,
+    "samples": 265,
+    "sample_interval_seconds": 0.5,
+    "scope": "isolated rerun of the first three checkpoints, not the completed full-book peak",
+    "system_available_gib": {
+      "min": 18.510440826416016,
+      "max": 18.738399505615234
+    },
+    "swap_used_gib": {
+      "before": 1.6476478576660156,
+      "after": 1.6476173400878906,
+      "max": 1.6476478576660156
+    },
+    "model_cgroup_gib": {
+      "before": 11.191207885742188,
+      "max": 11.482795715332031
+    },
+    "existing_checkpoints_and_outputs_unchanged": true
+  },
+  "module_findings": [
+    {
+      "id": "M1",
+      "finding": "Current short-output heuristic triggers only below 12.5% for source paragraphs over 160 characters; 675 → 108 (16%) passed.",
+      "code": "internal/server/document_quality.go:10",
+      "consequence": "Model truncation accepted as completed with no review warning."
+    },
+    {
+      "id": "M2",
+      "finding": "Persistent glossary admits person/place/organization only, and prior output context is limited to 800 characters. Animal names and work titles lack reliable long-distance carryover.",
+      "code": "internal/server/document_worker.go:updateDocumentGlossary; internal/server/document_partial.go:documentContextBefore; internal/server/document_batch.go:documentContextTail",
+      "consequence": "カア, explicitly a dog early in the work, becomes a crow near the end. The output demonstrates continuity failure; no isolated causality ablation was performed."
+    },
+    {
+      "id": "M3",
+      "finding": "The chat model inserted an incorrect name mapping (近衛 → 근위) into document_task instructions, though the user only supplied a URL and asked for translation.",
+      "consequence": "Request construction contributes a bad translation constraint."
+    },
+    {
+      "id": "M4",
+      "finding": "Aozora gaiji character images are represented as illustrations and their technical alt descriptions appear inside book titles.",
+      "consequence": "JIS 1-87-25 (濹) occurred twice; text/PDF render it as an illustration label."
+    },
+    {
+      "id": "M5",
+      "finding": "PDF text extraction lost four Arabic characters generated by the model. Japanese-source content is otherwise preserved from the saved TXT, after stripping the generated title and whitespace.",
+      "consequence": "Minor foreign-script export fidelity limitation; excluded from semantic quality scoring."
+    }
+  ],
+  "recommended_order": [
+    "Reject and selectively retry suspicious incomplete paragraphs using length, sentence coverage and endings together; preserve good checkpoints.",
+    "Strengthen entity/name continuity for people, animals, places, organizations and work titles; avoid inventing name conventions in generated task instructions.",
+    "Handle encoded character images as text where a deterministic Unicode mapping is available.",
+    "Evaluate targeted semantic verification and low/medium or model alternatives on the same frozen source only after the validation defects are addressed."
+  ],
+  "not_inferred": [
+    "Cannot attribute these errors specifically to EXL3 3bit quantization without a matched higher-precision/model comparison.",
+    "One repeat cannot establish an error probability.",
+    "Original full-book peak memory is unavailable; memory figures are only from the isolated repeat."
+  ],
+  "production_mutation": false,
+  "validation_model_calls": 1,
+  "existing_translation_replaced": false,
+  "review_browser": {
+    "all": 112,
+    "flagged": 29,
+    "searched": 1,
+    "errors": []
+  },
+  "completed_workflow_and_downloads_verified_unchanged": true
+}

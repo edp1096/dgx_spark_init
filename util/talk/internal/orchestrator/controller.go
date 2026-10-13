@@ -1088,12 +1088,25 @@ func (c *Controller) reclaimGLMStartupCache(ctx context.Context, bundle Bundle) 
 // startup headroom for models with a larger loading/tuning peak.
 func (c Catalog) startupOrder(bundle Bundle) []string {
 	ordered := append([]string(nil), bundle.Components...)
+	residentEmbeddingHosts := map[string]bool{}
+	for _, id := range ordered {
+		component, _ := c.ResolveComponent(bundle.ID, id)
+		if component.ServiceRole() == "embedding" && component.KeepResident && component.StartAfterLLM {
+			residentEmbeddingHosts[component.Host] = true
+		}
+	}
 	priority := func(id string) int {
 		component, _ := c.ResolveComponent(bundle.ID, id)
 		if component.Role == "llm" {
 			return 1
 		}
 		if component.StartAfterLLM {
+			// Bootstrap the resident embedding CUDA context before TTS consumes
+			// its immediate-free headroom on the same host. Both stay resident;
+			// the LLM loader peak still precedes either deferred service.
+			if isManagedTTS(component) && residentEmbeddingHosts[component.Host] {
+				return 3
+			}
 			if c.qad512DiTResident(bundle) && component.Role == "image" {
 				return 3
 			}

@@ -6,8 +6,8 @@
     "description": "영상·음성 가져오기와 변환",
     "port": 8690,
     "internal_port": 8698,
-    "image": "sparktalk-extra-media:0.1.0",
-    "version": "0.1.0",
+    "image": "sparktalk-extra-media:0.1.1",
+    "version": "0.1.1",
     "build_asset": "support-services",
     "dockerfile": "Dockerfile.media"
   },
@@ -30,8 +30,8 @@
     "description": "HWP·오피스·PDF 생성",
     "port": 8696,
     "internal_port": 8696,
-    "image": "sparktalk-extra-documents:0.5.2",
-    "version": "0.5.2",
+    "image": "sparktalk-extra-documents:0.5.6",
+    "version": "0.5.6",
     "build_asset": "extra-documents",
     "dockerfile": "Dockerfile"
   },

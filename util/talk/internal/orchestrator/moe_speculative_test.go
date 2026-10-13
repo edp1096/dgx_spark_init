@@ -9,7 +9,7 @@ import (
 )
 
 func TestMoESpeculativeDeploymentOptions(t *testing.T) {
-	for _, id := range []string{"ornith35", "gemma26"} {
+	for _, id := range []string{"ornith35"} {
 		for _, tokens := range []string{"0", "1", "3", "invalid"} {
 			t.Run(id+"/"+tokens, func(t *testing.T) {
 				dir := t.TempDir()

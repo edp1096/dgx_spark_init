@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -60,12 +61,15 @@ type ToolEvent struct {
 }
 
 type Attachment struct {
-	ID        string `json:"id"`
-	Name      string `json:"name"`
-	MIME      string `json:"mime"`
-	Size      int64  `json:"size"`
-	URL       string `json:"url"`
-	SourceURL string `json:"source_url,omitempty"`
+	ID                  string `json:"id"`
+	Name                string `json:"name"`
+	MIME                string `json:"mime"`
+	Size                int64  `json:"size"`
+	URL                 string `json:"url"`
+	SourceURL           string `json:"source_url,omitempty"`
+	SourceAudioLanguage string `json:"source_audio_language,omitempty"`
+	SourceAudioFormat   string `json:"source_audio_format,omitempty"`
+	SourceAudioOriginal bool   `json:"source_audio_original,omitempty"`
 }
 
 type ResponseVariant struct {
@@ -164,7 +168,13 @@ type SSHConversationGrant struct {
 }
 
 func Open(path string) (*DB, error) {
-	conn, err := sql.Open("sqlite", path)
+	dsn := path
+	separator := "?"
+	if strings.Contains(dsn, "?") {
+		separator = "&"
+	}
+	dsn += separator + "_pragma=foreign_keys(1)&_pragma=busy_timeout(5000)"
+	conn, err := sql.Open("sqlite", dsn)
 	if err != nil {
 		return nil, err
 	}
@@ -411,6 +421,10 @@ func Open(path string) (*DB, error) {
 	if err := migrateEmbeddings(conn); err != nil {
 		conn.Close()
 		return nil, fmt.Errorf("migrate retrieval: %w", err)
+	}
+	if err := d.initSources(); err != nil {
+		conn.Close()
+		return nil, err
 	}
 	return d, nil
 }

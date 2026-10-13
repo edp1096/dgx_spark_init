@@ -66,8 +66,7 @@ func (s *Server) runtimeAction(w http.ResponseWriter, r *http.Request) {
 			err = s.runtime.StartBundle(r.Context(), bundle.ID, cfg.Runtime.MemoryReserveGiB)
 			if err == nil {
 				next := cfg
-				next.Runtime.ActiveBundle = bundle.ID
-				next.Normalize()
+				next.SelectManagedBundle(bundle.ID)
 				if saveErr := config.Save(s.configPath, next); saveErr != nil {
 					err = saveErr
 				} else {

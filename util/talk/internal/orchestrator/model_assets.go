@@ -60,14 +60,10 @@ func componentModelAssets(c Component) []modelAsset {
 			return []modelAsset{release}
 		}
 		return []modelAsset{{Repo: repo, Revision: rev, Path: "/hf/hub/models--" + strings.ReplaceAll(repo, "/", "--") + "/snapshots/" + rev, HubCache: true}}
-	case "compose.gemma31.yaml":
-		return []modelAsset{{Repo: "lyf/Huihui-gemma-4-31B-it-abliterated-v2-NVFP4", Revision: "985633e8001d0bfd9b621738234394744b992907", Path: "/hf/hub/models--lyf--Huihui-gemma-4-31B-it-abliterated-v2-NVFP4/snapshots/985633e8001d0bfd9b621738234394744b992907", HubCache: true}, {Repo: "z-lab/gemma-4-31B-it-DFlash", Revision: "eabd648301ce28583cc14757912e5e0f84e152e1", Path: "/hf/hub/models--z-lab--gemma-4-31B-it-DFlash/snapshots/eabd648301ce28583cc14757912e5e0f84e152e1", HubCache: true}}
 	case "compose.dreamlite.yaml":
 		return []modelAsset{{Repo: "carlofkl/DreamLite-mobile", Revision: "6695c3f4be230f0493fa5dbf78be3bc4d3bb2ab4", Path: "/hf/hub/models--carlofkl--DreamLite-mobile/snapshots/6695c3f4be230f0493fa5dbf78be3bc4d3bb2ab4", HubCache: true, Pipeline: true}}
 	case "compose.ornith35.yaml":
 		return []modelAsset{{Repo: "edp1096/Huihui-Ornith-1.5-35B-A3B-NVFP4", Revision: "4ca22bf685b6afe269ebbceb3c297ddeade912ca", Path: "/hf/edp1096/Huihui-Ornith-1.5-35B-A3B-NVFP4"}}
-	case "compose.gemma26.yaml":
-		return []modelAsset{{Repo: "edp1096/Huihui-Gemma-4-26B-A4B-it-NVFP4", Revision: "4bce3d23429ef48f7aac4982a4714cc16ad1cc24", Path: "/hf/edp1096/Huihui-Gemma-4-26B-A4B-it-NVFP4"}, {Repo: "google/gemma-4-26B-A4B-it-assistant", Revision: "6e5aaaf4c42b98394530b8fda2e95cadd65c151c", Path: "/hf/google/gemma-4-26B-A4B-it-assistant"}}
 	case "compose.nemotron-asr.yaml":
 		return []modelAsset{{Repo: "nvidia/nemotron-3.5-asr-streaming-0.6b", Revision: "ea30d66debe3740a08b573244286791d423d6b3e", Path: "/tmp/models", Files: []string{"nemotron-3.5-asr-streaming-0.6b.q8_0.gguf"}, SHA256: map[string]string{"nemotron-3.5-asr-streaming-0.6b.q8_0.gguf": "3fc991d3badad7277c11030a7519832cddaf2057aafed6d4b25147e953a070b1"}}, {Repo: "nvidia/Nemotron-3-Diarization", Revision: "f667ed73aee57d40cc39428eb768b4fd87a0a29e", Path: "/tmp/models", Files: []string{"Nemotron-3-Diarization.q8_0.gguf"}, SHA256: map[string]string{"Nemotron-3-Diarization.q8_0.gguf": "08456d9e22cd9a323c0364d98375f3746d6e68507ebb705cd46438c534c7a3a1"}}}
 	case "compose.qwen3-tts.yaml":

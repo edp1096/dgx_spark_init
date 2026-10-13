@@ -52,16 +52,25 @@ diff --git a/src/exl3_forward.rs b/src/exl3_forward.rs
              // WP09: keys are fully written before read; the counters need a REAL zero (§2.2).
              am_part: dev.alloc_zeros::<u64>(w.max(1) * XQ_AM_NB_MAX)?,
              am_cnt: dev.htod_sync_copy(&vec![0u32; w.max(1)])?,
-@@ -10234,14 +10240,15 @@
+@@ -10209,7 +10215,7 @@
+         // WP15: a penalized step is its own graph (bit 40), so unpenalized steps replay the
+         // pre-WP15 graphs untouched. WP04: the base key is gkey_of (shared with the precapture,
+         // which runs unpenalized: pen_live is false at boot).
+-        let gkey = gkey_of(m, qsa, qb) | ((sc.pen_live as usize) << 40) | sk(sc) // TP-C: + the scratch id
++        let gkey = gkey_of(m, qsa, qb) | ((sc.pen_live as usize) << 40) | ((sc.schema_live as usize) << 45) | sk(sc) // TP-C: + the scratch id
+             | self.vp_key(sc, m); // TP-H #4: the vocab-parallel greedy tail = its own graph
+ 
+         // RoPE: gather this step's rows from the load-time table. The table was built
+@@ -10234,6 +10240,8 @@
          // serial spine after its fork's join (design §2.3; audit in PLAN/notes_2026-09-28/TP-C.md).
          // Capture executes nothing (no barrier runs during a capture), eager and replay run the
          // identical barrier sequence, so a rank that fails a capture stays in lockstep eagerly.
--        let want_graph = ladder.is_none()
-+        // Schema rows have request-specific masks: keep them out of every unmasked graph.
-+        let want_graph = !sc.schema_live && ladder.is_none()
++        // Schema masks live in persistent device buffers, uploaded before replay. Bit 45
++        // distinguishes graphs containing the mask kernel from unmasked graphs.
+         let want_graph = ladder.is_none()
              && crate::opts::var(crate::opt!("exl3-route-check")).is_err()
              && crate::opts::var(crate::opt!("exl3-no-graph")).is_err()
-             && !wp12_xcheck();
+@@ -10241,7 +10249,7 @@
          let dump_active = !want_graph
              && crate::opts::var(crate::opt!("mtp-dump")).as_deref().map_or(false, |s| !s.is_empty());
          let graphed = want_graph && self.graphs.lock().unwrap().contains_key(&gkey);
@@ -70,7 +79,7 @@ diff --git a/src/exl3_forward.rs b/src/exl3_forward.rs
              // TUNE T1 (§5.3): the armed --autotune harness ran this step from its LI arm's graph
              // (bitwise twins: the trajectory is the same whichever arm runs)
          } else if graphed {
-@@ -10639,6 +10646,11 @@
+@@ -10639,6 +10647,11 @@
          }
          // WP15: penalties before BOTH the argmax and the sampler (only in pen_live graphs).
          self.pen_rows(l, sc, m)?;
@@ -82,7 +91,7 @@ diff --git a/src/exl3_forward.rs b/src/exl3_forward.rs
          // WP09: one multi-block launch for all m rows (bitwise the same ids; escape inside).
          self.argmax_rows(l, sc, m, v)?;
          // API-parity G2: sampled rows overwrite their id (zero-param rows exit at once).
-@@ -12417,6 +12429,28 @@
+@@ -12417,6 +12430,28 @@
          }
          self.dev.htod_copy_into(buf, &mut sc.samp)?;
          sc.samp_live = live;
@@ -265,7 +274,18 @@ diff --git a/src/server.rs b/src/server.rs
      /// Per-mode fallback sampling (a request's explicit values always win).
      pub sampling_defaults: SamplingDefaults,
      pub scheduler: mpsc::UnboundedSender<BatchRequest>,
-@@ -1003,35 +1007,51 @@
+@@ -612,6 +616,10 @@
+     /// Per-request override of the server's --reasoning-effort default (which is 'no_think').
+     #[serde(default)]
+     reasoning_effort: Option<String>,
++    /// Optional reasoning cap for EXL3 structured output. Counts generated reasoning tokens;
++    /// closing marker and final answer still consume max_completion_tokens.
++    #[serde(default)]
++    reasoning_budget_tokens: Option<usize>,
+     /// vLLM's `truncate_prompt_tokens`: keep the LAST n tokens of the prompt (left-truncation)
+     /// instead of receiving the over-length 400. Same semantics as /v1/tokenize's field; integer >= 1.
+     /// (2026-09-06: this field previously worked on /v1/tokenize ONLY — the chat path silently
+@@ -1003,35 +1011,46 @@
      //
      // REGRESSION FIX (2026-08-30): the 289e1a1 refactor lumped "high" into the no_think arm,
      // so every OpenAI-convention client sending reasoning_effort=high silently LOST thinking.
@@ -318,46 +338,80 @@ diff --git a/src/server.rs b/src/server.rs
 +        if req.tool_choice.as_ref().is_some_and(|v| v.as_str() == Some("required") || v.is_object()) {
 +            return bad_param("JSON schema output cannot be combined with a forced tool call".into());
 +        }
-+        // A constrained final answer starts in content, never in an unclosed reasoning block.
-+        let mut kwargs = req.chat_template_kwargs.clone().unwrap_or_else(|| serde_json::json!({}));
-+        if !kwargs.is_object() { return bad_param("chat_template_kwargs must be an object".into()); }
-+        kwargs["enable_thinking"] = serde_json::json!(false);
-+        req.chat_template_kwargs = Some(kwargs);
-+        req.reasoning_effort = Some("none".into());
++
      }
      // W1: `chat_template_kwargs` (arbitrary dict → the model's own template). Validate LOUDLY
      // before any render: a malformed value used to be invisible (serde dropped the field), and
-@@ -1070,6 +1090,9 @@
+@@ -1040,6 +1059,16 @@
+         return (StatusCode::BAD_REQUEST, Json(serde_json::json!({"error": {
+             "message": e.to_string(), "type": "invalid_request_error", "code": "invalid_chat_template_kwargs",
+         }}))).into_response();
++    }
++    // Explicit request template effort precedes a server default, just like top-level effort.
++    if req.reasoning_effort.is_none() {
++        if let Some(e) = req.chat_template_kwargs.as_ref().and_then(|v| v.get("reasoning_effort")) {
++            let Some(e) = e.as_str() else { return bad_param("reasoning_effort must be a string".into()); };
++            req.reasoning_effort = Some(e.to_string());
++        }
++    }
++    if req.reasoning_budget_tokens.is_some() && schema_mask.is_none() {
++        return bad_param("reasoning_budget_tokens currently requires enforced JSON schema output".into());
+     }
+     // An unknown effort is the CLIENT's error: a 400 naming the accepted values, never the
+     // template's raise surfacing as a plain-text 500.
+@@ -1070,6 +1099,8 @@
          req.tool_choice.as_ref(), req.tools.as_deref(),
          crate::opts::var(crate::opt!("keep-tools-when-tool-choice-none")).is_ok(),
      );
 +    // Tool-looking text inside a JSON string is data, not an executable call.
 +    let parse_as_tool_calls = parse_as_tool_calls && schema_mask.is_none();
-+    let parse_thinking = schema_mask.is_none();
      let mut messages = req.messages.clone();
      if let Some(line) = force_line {
          apply_force_line(&mut messages, &line); // S4: the ONE append (unit-tested)
-@@ -1333,8 +1356,8 @@
+@@ -1082,6 +1113,23 @@
+         Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+     };
+     let render_ms = t_render.elapsed().as_secs_f64() * 1000.0;
++    let prompt_starts_in_reasoning = prompt.trim_end().ends_with(state.tokenizer.think_tags().0);
++    // JSON strings may contain literal <think> and tool examples; only a primed initial
++    // reasoning block is parsed for constrained requests. Final JSON is always plain data.
++    let parse_thinking = schema_mask.is_none() || prompt_starts_in_reasoning;
++    let parse_later_think = schema_mask.is_none();
++    if prompt_starts_in_reasoning {
++        if let Some(mask) = schema_mask.as_mut() {
++            let close = match state.tokenizer.encode(state.tokenizer.think_tags().1, false) {
++                Ok(ids) => ids,
++                Err(e) => return bad_param(format!("reasoning marker encoding failed: {e}")),
++            };
++            let stops = state.tokenizer.stop_token_ids(state.tokenizer.eos_token_id());
++            if let Err(e) = std::sync::Arc::get_mut(mask).expect("request owns its schema")
++                .set_reasoning(close, &stops, req.reasoning_budget_tokens) { return bad_param(e); }
++        }
++    }
++
+ 
+     // Optional diagnostic: dump the exact rendered prompt string so the bytes a model
+     // actually sees can be inspected/diffed across models or turns. Enable with
+@@ -1333,8 +1381,7 @@
          // tail check (a plain ends_with(think_open) sent thinking streams to content: exactly
          // the 35b4b15 follow-up bug). The no-think tail `<think>\n\n</think>\n\n` trims to
          // `</think>` and stays content.
 -        let starts_in_reasoning = prompt.trim_end().ends_with(think_open)
 -            || matches!(effort, Some("low") | Some("high"));
-+        let starts_in_reasoning = parse_thinking && (prompt.trim_end().ends_with(think_open)
-+            || matches!(effort, Some("low") | Some("high")));
++        let starts_in_reasoning = prompt_starts_in_reasoning;
  
          // OTel generation telemetry (--otel-endpoint). Handle built ONCE per request; the hooks
          // below forward the SAME chunk strings the SSE path yields (single source of truth —
-@@ -1463,7 +1486,7 @@
+@@ -1463,7 +1510,7 @@
                                          // reasoning until the close tag. Without this the raw
                                          // think tags would leak into `content`.
                                          let region = &acc[cs..];
 -                                        if let Some(upto) = f_open.find(&acc, cs, think_open) {
-+                                        if let Some(upto) = f_open.find(&acc, cs, think_open).filter(|_| parse_thinking) {
++                                        if let Some(upto) = f_open.find(&acc, cs, think_open).filter(|_| parse_later_think) {
                                              if upto > content_emitted {
                                                  let c = content_chunk(&completion_id, created, &model_name, &acc[content_emitted..upto]);
                                                  if let Some(r) = &otel_req { r.delta(&c); }
-@@ -1516,7 +1539,7 @@
+@@ -1516,7 +1563,7 @@
              // tools::held_back_remainder, so streaming can never silently drop text the JSON
              // mode returns (2026-08-27 user report: a malformed `function=NAME>` block with the
              // `<` missing vanished from the SSE stream while the JSON response leaked it).
@@ -366,7 +420,7 @@ diff --git a/src/server.rs b/src/server.rs
              // parse_as_tool_calls == false (keep-tools "none"): never parse — the reply is plain
              // content; finalize_parsed then returns the raw text with finish stop/length.
              let parsed = if parse_as_tool_calls {
-@@ -1561,7 +1584,7 @@
+@@ -1561,7 +1608,7 @@
                  content_emitted = acc.len();
              }
              {
@@ -375,7 +429,7 @@ diff --git a/src/server.rs b/src/server.rs
                  log_generation(&state.tokenizer, &state.stop_ids, &completion_id, &finish,
                                 last_tok, prompt_len, n, r_txt.as_deref(), &c_txt,
                                 tool_calls.len(), req_tools.as_ref().map(|t| t.len()).unwrap_or(0),
-@@ -1597,6 +1620,10 @@
+@@ -1597,6 +1644,10 @@
          };
          let mut resp = Sse::new(stream).into_response();
          attach_schema_unenforced_header(&mut resp, schema_unenforced.is_some());
@@ -386,7 +440,7 @@ diff --git a/src/server.rs b/src/server.rs
          resp
      } else {
          crate::reprintln!("[req] sync   prompt_tokens={} max_tokens={} stop={:?}", prompt_len, req_max, req.stop);
-@@ -1651,7 +1678,7 @@
+@@ -1651,7 +1702,7 @@
          }
          let completion_id = format!("chatcmpl-{}", Uuid::new_v4());
          let (think_open, think_close, _) = state.tokenizer.think_tags();
@@ -395,7 +449,7 @@ diff --git a/src/server.rs b/src/server.rs
  
          // The model emits calls as <tool_call><function=..><parameter=..>..  -- NOT as JSON. Turn them
          // into OpenAI tool_calls, or the harness just sees XML in the content and never invokes
-@@ -1728,6 +1755,10 @@
+@@ -1728,6 +1779,10 @@
          };
          let mut resp = Json(response).into_response();
          attach_schema_unenforced_header(&mut resp, schema_unenforced.is_some());
@@ -529,25 +583,68 @@ diff --git a/src/json_schema.rs b/src/json_schema.rs
      }
  }
  
-@@ -809,6 +861,7 @@
+@@ -809,6 +861,8 @@
  /// A compiled schema: byte-level machine + token-level allowed sets, lazily built.
  #[derive(Debug)]
  pub struct SchemaMask {
++    pub(crate) reasoning: Option<ReasoningPhase>,
 +    compact: bool,
      schemas: Vec<Schema>,
      root: u32,
      /// Index 0 is always the universal permissive schema (`Ty::Any`), used for additional
-@@ -824,6 +877,9 @@
+@@ -823,7 +877,30 @@
+     words: usize,
  }
  
++/// Request-local reasoning phase. Only ordinary text and the closing marker may be emitted;
++/// turn-ending tokens remain blocked until the constrained final answer is complete.
++#[derive(Debug, Clone)]
++pub(crate) struct ReasoningPhase {
++    pub close: Vec<u32>,
++    pub allowed: Arc<Vec<u32>>,
++    pub budget: Option<usize>,
++}
++
  impl SchemaMask {
++    pub fn set_reasoning(&mut self, close: Vec<u32>, stops: &[u32], budget: Option<usize>) -> Result<(), String> {
++        if close.is_empty() || close.iter().any(|&id| id as usize >= self.vocab_size || stops.contains(&id)) {
++            return Err("reasoning closing marker is not supported by this tokenizer".into());
++        }
++        let mut bits = vec![0u32; self.words];
++        for &id in self.vocab.by_id.keys().chain(close.iter()) {
++            if !stops.contains(&id) { bits[id as usize / 32] |= 1 << (id % 32); }
++        }
++        self.reasoning = Some(ReasoningPhase { close, allowed: Arc::new(bits), budget });
++        Ok(())
++    }
 +    /// Generated JSON uses compact structural syntax so an unwilling model cannot spend
 +    /// its entire budget on indentation. Whitespace inside string values/keys remains data.
 +    pub fn set_compact(&mut self) { self.compact = true; lock(&self.cache).clear(); }
      /// The start state id.
      pub fn start_state(&self) -> u32 {
          self.start
-@@ -982,8 +1038,10 @@
+@@ -951,7 +1028,19 @@
+         lock(&self.interner).states.get(state as usize).cloned()
+     }
+ 
+-    fn intern(&self, m: Machine) -> u32 {
++    fn intern(&self, mut m: Machine) -> u32 {
++        // Without maxLength or an enum, the exact number of characters beyond
++        // minLength cannot change any future legal token. Canonicalize that
++        // irrelevant counter so ordinary prose reuses one cached mask, instead
++        // of walking the entire vocabulary again after every emitted token.
++        for frame in &mut m.stack {
++            if let Frame::Str { si, st } = frame {
++                let schema = &self.schemas[*si as usize];
++                if schema.max_len.is_none() && schema.enum_str.is_empty() {
++                    st.cp = (st.cp as u64).min(schema.min_len.unwrap_or(0)) as u32;
++                }
++            }
++        }
+         let mut it = lock(&self.interner);
+         if let Some(&id) = it.index.get(&m) {
+             return id;
+@@ -982,8 +1071,10 @@
      fn trie_walk(&self, m: &mut Machine, node: usize, out: &mut Vec<u32>) {
          let children = self.vocab.nodes[node].children.clone();
          for (b, child) in children {
@@ -559,7 +656,7 @@ diff --git a/src/json_schema.rs b/src/json_schema.rs
              if alive {
                  if let Some(tok) = self.vocab.nodes[child].token {
                      let t = tok as usize;
-@@ -1066,6 +1124,7 @@
+@@ -1066,6 +1157,7 @@
                  true
              }
              Ty::Any => {
@@ -567,7 +664,7 @@ diff --git a/src/json_schema.rs b/src/json_schema.rs
                  // Untyped: accept whatever the schema constrains. With an enum, only the value
                  // kinds the enum actually contains may start.
                  if has_enum && !any_str && b == b'"' {
-@@ -1130,10 +1189,12 @@
+@@ -1130,10 +1222,12 @@
      /// Value-string constraint check. `closing` = the terminating quote was consumed.
      fn str_value_ok(&self, si: u32, st: &StrState, closing: bool) -> bool {
          let s = &self.schemas[si as usize];
@@ -580,7 +677,7 @@ diff --git a/src/json_schema.rs b/src/json_schema.rs
          }
          if closing {
              if !st.is_closed_interior() {
-@@ -1148,7 +1209,7 @@
+@@ -1148,7 +1242,7 @@
                  return false;
              }
          } else if !s.enum_str.is_empty()
@@ -589,7 +686,7 @@ diff --git a/src/json_schema.rs b/src/json_schema.rs
          {
              // enum prefix rule: only bytes that keep us on the way to an allowed value.
              return false;
-@@ -1255,9 +1316,70 @@
+@@ -1255,9 +1349,70 @@
          true
      }
  
@@ -662,7 +759,7 @@ diff --git a/src/json_schema.rs b/src/json_schema.rs
      }
  
      /// Feed ONE byte. Returns true when the byte was consumed by a live machine; false when the
-@@ -1314,6 +1436,7 @@
+@@ -1314,6 +1469,7 @@
                              return false;
                          }
                          if b == b'"' {
@@ -670,7 +767,7 @@ diff --git a/src/json_schema.rs b/src/json_schema.rs
                              m.stack.push(Frame::Obj {
                                  si,
                                  phase: ObjPhase::Key(StrState::new()),
-@@ -1328,7 +1451,7 @@
+@@ -1328,7 +1484,7 @@
                      ObjPhase::Key(mut st) => {
                          match str_advance(&mut st, b, true) {
                              Step::Open => {
@@ -679,7 +776,7 @@ diff --git a/src/json_schema.rs b/src/json_schema.rs
                                      m.stack.push(Frame::Dead);
                                      return false;
                                  }
-@@ -1385,6 +1508,7 @@
+@@ -1385,6 +1541,7 @@
                              return true;
                          }
                          if b == b'"' {
@@ -687,7 +784,7 @@ diff --git a/src/json_schema.rs b/src/json_schema.rs
                              m.stack.push(Frame::Obj {
                                  si,
                                  phase: ObjPhase::Key(StrState::new()),
-@@ -1416,6 +1540,7 @@
+@@ -1416,6 +1573,7 @@
                              return true;
                          }
                          if b == b',' {
@@ -695,7 +792,7 @@ diff --git a/src/json_schema.rs b/src/json_schema.rs
                              m.stack.push(Frame::Obj { si, phase: ObjPhase::KeyReq, seen, extra });
                              return true;
                          }
-@@ -1465,6 +1590,9 @@
+@@ -1465,6 +1623,9 @@
                              return true;
                          }
                          if b == b',' {
@@ -705,15 +802,16 @@ diff --git a/src/json_schema.rs b/src/json_schema.rs
                              m.stack.push(Frame::Arr { si, n, phase: ArrPhase::ItemReq });
                              return true;
                          }
-@@ -1656,6 +1784,7 @@
+@@ -1656,6 +1817,8 @@
      // schema into a silently-unenforced one — exactly the failure this module exists to remove.
      let root = compile_schema(schema, depth, via, &mut table)?;
      let mut m = SchemaMask {
++        reasoning: None,
 +        compact: false,
          schemas: table,
          root,
          start: 0,
-@@ -1677,6 +1806,66 @@
+@@ -1677,6 +1840,66 @@
  #[cfg(test)]
  mod tests {
      use super::*;
@@ -780,7 +878,7 @@ diff --git a/src/json_schema.rs b/src/json_schema.rs
  
      fn byte_vocab() -> Vec<(u32, Vec<u8>)> {
          (0u32..256).map(|b| (b, vec![b as u8])).collect()
-@@ -2053,7 +2242,9 @@
+@@ -2053,7 +2276,9 @@
          assert_eq!(m.step(after_colon, 4), None, "1 is not a string");
  
          let after_value = m.step(after_colon, 5).unwrap();
@@ -791,11 +889,60 @@ diff --git a/src/json_schema.rs b/src/json_schema.rs
  
          let done = m.step(after_value, 3).unwrap();
          assert!(m.is_complete(done));
+@@ -2245,4 +2470,47 @@
+         assert!(ok(&mask(r#"{"type":"null"}"#), "null"));
+         assert!(!ok(&mask(r#"{"type":"null"}"#), "nul"));
+     }
+-}
++    #[test]
++    fn unbounded_prose_reuses_state_after_minimum_without_losing_utf8_or_escapes() {
++        let m = mask(r#"{"type":"string","minLength":2}"#);
++        let one = walk(&m, "\"a").unwrap();
++        assert!(m.step(one, b'"' as u32).is_none());
++        let two = walk(&m, "\"ab").unwrap();
++        assert_eq!(two, walk(&m, "\"abcdef日本語한글").unwrap());
++        assert_eq!(two, walk(&m, r#""ab\uD83D\uDE00"#).unwrap());
++        let escaped = walk(&m, r#""ab\"#).unwrap();
++        assert_ne!(two, escaped);
++        assert!(m.step(escaped, b'X' as u32).is_none());
++        assert!(m.is_complete(m.step(two, b'"' as u32).unwrap()));
++        let bounded = mask(r#"{"type":"string","minLength":1,"maxLength":3}"#);
++        assert_ne!(walk(&bounded, "\"a"), walk(&bounded, "\"ab"));
++        assert!(walk(&bounded, "\"abcd").is_none());
++        let choices = mask(r#"{"type":"string","enum":["ab","abc"]}"#);
++        assert_ne!(walk(&choices, "\"ab"), walk(&choices, "\"abc"));
++    }
++
++    #[test]
++    #[ignore = "requires cached real tokenizer; compares every allowed bit against uncanonicalized states"]
++    fn real_vocab_unbounded_masks_match_uncanonical_machine() {
++        let tok = crate::tokenizer::QwenTokenizer::from_file(&std::env::var("VELO_TOKENIZER_PATH").unwrap()).unwrap();
++        let mut m = mask(r#"{"type":"object","properties":{"text":{"type":"string","minLength":1},"count":{"type":"integer","minimum":1,"maximum":4}},"required":["text","count"],"additionalProperties":false}"#);
++        m.set_compact(); m.set_vocab(tok.vocab_pieces());
++        let doc = serde_json::json!({"text":"인용 \"안녕\" 日本語 😀 plain words \\ and newline\n".repeat(3),"count":2});
++        let raw = serde_json::to_string(&doc).unwrap();
++        let ids = tok.encode(&raw, false).unwrap();
++        let mut canonical = m.start_state();
++        let mut original = (*m.machine(canonical).unwrap()).clone();
++        let mut checked = 0;
++        let start = std::time::Instant::now();
++        for &id in &ids {
++            let mut bits = vec![0u32;m.words];
++            m.trie_walk(&mut original.clone(),0,&mut bits);
++            assert_eq!(&*m.allowed(canonical), &bits, "allowed vocabulary changed at token {checked}");
++            for &b in &m.vocab.by_id[&id] { assert!(m.feed(&mut original,b,None)); }
++            canonical = m.step(canonical,id).unwrap(); checked+=1;
++        }
++        assert!(m.is_complete(canonical));
++        println!("SCHEMA_MASK_EQUIVALENCE_PASS tokens={checked} states={} elapsed={:.3}s",lock(&m.interner).states.len(),start.elapsed().as_secs_f64());
++    }
++
++}
 diff --git a/src/exl3_schema.rs b/src/exl3_schema.rs
 new file mode 100644
 --- /dev/null
 +++ b/src/exl3_schema.rs
-@@ -0,0 +1,58 @@
+@@ -0,0 +1,121 @@
 +//! Per-request constraint state. Validate tokens before they can reach the HTTP stream.
 +use crate::json_schema::SchemaMask;
 +use anyhow::{Context, Result};
@@ -804,19 +951,45 @@ new file mode 100644
 +pub struct Cursor {
 +    schema: Arc<SchemaMask>,
 +    state: u32,
++    reasoning: bool,
++    close_progress: usize,
++    reasoning_tokens: usize,
++    recent: Vec<u32>,
 +}
 +
 +impl Cursor {
 +    pub fn new(schema: Arc<SchemaMask>) -> Self {
-+        Self { state: schema.start_state(), schema }
++        Self { state: schema.start_state(), reasoning: schema.reasoning.is_some(), schema, close_progress: 0, reasoning_tokens: 0, recent: Vec::new() }
 +    }
 +
-+    pub fn allowed(&self) -> Arc<Vec<u32>> { self.schema.allowed(self.state) }
++    pub fn allowed(&self) -> Arc<Vec<u32>> {
++        if self.reasoning {
++            let r = self.schema.reasoning.as_ref().unwrap();
++            if r.budget.is_some_and(|n| self.reasoning_tokens >= n) {
++                let mut bits = vec![0; r.allowed.len()];
++                let t = r.close[self.close_progress];
++                bits[t as usize / 32] |= 1 << (t % 32);
++                return Arc::new(bits);
++            }
++            return r.allowed.clone();
++        }
++        self.schema.allowed(self.state)
++    }
 +
 +    pub fn commit(&mut self, token: u32) -> Result<bool> {
 +        let mask = self.allowed();
 +        anyhow::ensure!(mask.get(token as usize / 32).is_some_and(|w| w & (1u32 << (token % 32)) != 0),
 +                        "schema sampler selected forbidden token {token}");
++        if self.reasoning {
++            let r = self.schema.reasoning.as_ref().unwrap();
++            self.reasoning_tokens += 1;
++            self.recent.push(token);
++            if self.recent.len() > r.close.len() { self.recent.remove(0); }
++            self.close_progress = (1..=self.recent.len()).rev()
++                .find(|&n| self.recent[self.recent.len()-n..] == r.close[..n]).unwrap_or(0);
++            if self.close_progress == r.close.len() { self.reasoning = false; }
++            return Ok(false);
++        }
 +        self.state = self.schema.step(self.state, token)
 +            .context("schema token did not advance the JSON machine")?;
 +        Ok(self.schema.is_complete(self.state))
@@ -853,12 +1026,49 @@ new file mode 100644
 +        assert!(!c.commit(b'{' as u32).unwrap());
 +        assert!(c.commit(248046).is_err());
 +    }
++    fn reasoning_cursor(budget: Option<usize>) -> Cursor {
++        let mut c = cursor();
++        Arc::get_mut(&mut c.schema).unwrap().set_reasoning(vec![b'<' as u32, b'>' as u32], &[255], budget).unwrap();
++        Cursor::new(c.schema)
++    }
++    #[test]
++    fn reasoning_is_not_json_and_cannot_end_turn() {
++        let mut c = reasoning_cursor(None);
++        assert!(c.commit(255).is_err());
++        for &b in b"Consider {bad JSON} and <x then <>" { assert!(!c.commit(b as u32).unwrap()); }
++        assert!(c.commit(b'N' as u32).is_err());
++        let raw = "{\"a\":\"한글\"}";
++        for (i, &b) in raw.as_bytes().iter().enumerate() {
++            assert_eq!(c.commit(b as u32).unwrap(), i+1 == raw.len());
++        }
++    }
++    #[test]
++    fn budget_closes_reasoning_without_skipping_json_validation() {
++        let mut c = reasoning_cursor(Some(2));
++        assert!(!c.commit(b'A' as u32).unwrap());
++        assert!(!c.commit(b'B' as u32).unwrap());
++        assert!(c.commit(b'C' as u32).is_err());
++        assert!(!c.commit(b'<' as u32).unwrap());
++        assert!(c.commit(b'X' as u32).is_err());
++        assert!(!c.commit(b'>' as u32).unwrap());
++        assert!(c.commit(b'N' as u32).is_err());
++        assert!(!c.commit(b'{' as u32).unwrap());
++    }
++    #[test]
++    fn zero_budget_and_shared_schema_have_independent_phase() {
++        let a = reasoning_cursor(Some(0));
++        let mut b = Cursor::new(a.schema.clone());
++        assert!(!b.commit(b'<' as u32).unwrap());
++        assert!(!b.commit(b'>' as u32).unwrap());
++        assert_ne!(a.allowed(), b.allowed());
++    }
++
 +}
 diff --git a/tests/exl3_schema_gpu.rs b/tests/exl3_schema_gpu.rs
 new file mode 100644
 --- /dev/null
 +++ b/tests/exl3_schema_gpu.rs
-@@ -0,0 +1,48 @@
+@@ -0,0 +1,84 @@
 +use anyhow::{ensure, Result};
 +use cudarc::driver::{CudaDevice, LaunchAsync, LaunchConfig};
 +use half::f16;
@@ -907,11 +1117,47 @@ new file mode 100644
 +    println!("SCHEMA_GPU_PASS sampled_rows={count}");
 +    Ok(())
 +}
++
++#[test]
++#[ignore = "requires GB10 CUDA and rebuilt EXL3 PTX"]
++fn graph_replay_uses_current_mask_buffers() -> Result<()> {
++    use cudarc::driver::sys;
++    let dev=CudaDevice::new(0)?;
++    dev.load_ptx(cudarc::nvrtc::Ptx::from_src(std::fs::read_to_string("src/ptx/exl3_bench.ptx")?),
++        "schema_graph_test", &["xq_schema_rows"])?;
++    let mut logits=dev.htod_sync_copy(&vec![f16::ONE.to_bits();65])?;
++    let mut bits=dev.htod_sync_copy(&[1u32,0,0])?;
++    let flags=dev.htod_sync_copy(&[1i32])?;
++    let stream=gb10_inference::dsv4_gpu::blocking_compute_stream(&dev);
++    let mut graph=std::ptr::null_mut(); let mut exec=std::ptr::null_mut();
++    unsafe {
++        ensure!(sys::cuStreamBeginCapture_v2(stream.stream,sys::CUstreamCaptureMode::CU_STREAM_CAPTURE_MODE_THREAD_LOCAL)==sys::CUresult::CUDA_SUCCESS);
++        let (v,words)=(65i32,3i32);
++        let f=dev.get_func("schema_graph_test","xq_schema_rows").unwrap();
++        f.launch_on_stream(&stream, LaunchConfig {grid_dim:(1,1,1),block_dim:(256,1,1),shared_mem_bytes:0},
++            (&mut logits,v,&bits,&flags,words))?;
++        ensure!(sys::cuStreamEndCapture(stream.stream,&mut graph)==sys::CUresult::CUDA_SUCCESS);
++        ensure!(sys::cuGraphInstantiateWithFlags(&mut exec,graph,0)==sys::CUresult::CUDA_SUCCESS);
++    }
++    for token in [0usize,64,31,32,7] {
++        let mut next=vec![0u32;3];next[token/32]|=1<<(token%32);
++        dev.htod_copy_into(next,&mut bits)?;
++        dev.htod_copy_into(vec![f16::ONE.to_bits();65],&mut logits)?;
++        dev.synchronize()?;
++        unsafe {ensure!(sys::cuGraphLaunch(exec,stream.stream)==sys::CUresult::CUDA_SUCCESS);}
++        dev.synchronize()?;
++        for (i,x) in dev.dtoh_sync_copy(&logits)?.iter().enumerate() {
++            ensure!(*x == if i==token {f16::ONE.to_bits()} else {f16::NEG_INFINITY.to_bits()},"stale mask replay token={token} index={i}");
++        }
++    }
++    unsafe {sys::cuGraphExecDestroy(exec);sys::cuGraphDestroy(graph);}
++    Ok(())
++}
 diff --git a/tests/exl3_schema_tokenizer.rs b/tests/exl3_schema_tokenizer.rs
 new file mode 100644
 --- /dev/null
 +++ b/tests/exl3_schema_tokenizer.rs
-@@ -0,0 +1,66 @@
+@@ -0,0 +1,108 @@
 +use anyhow::{ensure, Result};
 +use gb10_inference::{exl3_schema::Cursor, json_schema::compile_response_format, tokenizer::QwenTokenizer};
 +use std::sync::Arc;
@@ -977,4 +1223,46 @@ new file mode 100644
 +        ensure!(tok.decode(&ids,true)?.as_bytes()==bytes,"wire decoder changed JSON bytes");
 +    }
 +    println!("SCHEMA_REAL_BPE_RANDOM_PASS cases=32");Ok(())
++}
++
++#[test]
++#[ignore = "requires cached tokenizer"]
++fn real_reasoning_then_json_keeps_literal_xml_as_data() -> Result<()> {
++    let tok=QwenTokenizer::from_file(&std::env::var("VELO_TOKENIZER_PATH")?)?;
++    let value="예시 <think>원문</think><tool_call>설명</tool_call>";
++    let rf=serde_json::json!({"type":"json_schema","json_schema":{"name":"think","schema":{
++        "type":"object","properties":{"value":{"type":"string","enum":[value]}},
++        "required":["value"],"additionalProperties":false}}});
++    let mut sm=compile_response_format(&rf).map_err(anyhow::Error::msg)?.unwrap();
++    sm.set_compact(); sm.set_vocab(tok.vocab_pieces());
++    let close=tok.encode(tok.think_tags().1,false)?;
++    sm.set_reasoning(close.clone(), &tok.stop_token_ids(tok.eos_token_id()), Some(256)).map_err(anyhow::Error::msg)?;
++    let mut cursor=Cursor::new(Arc::new(sm));
++    for id in tok.encode("한국어 의미와 인용 {example}을 확인합니다.",false)? { ensure!(!cursor.commit(id)?); }
++    for id in close { ensure!(!cursor.commit(id)?); }
++    let raw=serde_json::to_string(&serde_json::json!({"value":value}))?;
++    let ids=tok.encode(&raw,false)?;
++    for (i,id) in ids.iter().enumerate() { ensure!(cursor.commit(*id)? == (i+1==ids.len())); }
++    Ok(())
++}
++
++#[test]
++#[ignore = "requires cached tokenizer"]
++fn reviewer_field_names_and_all_categories_are_legal_without_unicode_escapes() -> Result<()> {
++ let tok=QwenTokenizer::from_file(&std::env::var("VELO_TOKENIZER_PATH")?)?;
++ let categories=["omission","duplication","addition","subject_object","negation_direction","number_unit","entity","lexical","bibliography","layout"];
++ let finding=serde_json::json!({"type":"object","properties":{
++  "evidence":{"type":"object","properties":{"source_quote":{"type":"string","minLength":1,"maxLength":128},"target_quote":{"type":"string","maxLength":128}},"required":["source_quote","target_quote"],"additionalProperties":false},
++  "finding":{"type":"object","properties":{"category":{"type":"string","enum":categories},"severity":{"type":"string","enum":["critical","major","minor"]},"explanation":{"type":"string","minLength":1,"maxLength":160},"uncertain":{"type":"boolean"}},"required":["category","severity","explanation","uncertain"],"additionalProperties":false}
++ },"required":["evidence","finding"],"additionalProperties":false});
++ let rf=serde_json::json!({"type":"json_schema","json_schema":{"name":"review","schema":{"type":"object","properties":{"checks":{"type":"object","properties":{"p000001":{"type":"array","items":finding,"maxItems":12}},"required":["p000001"],"additionalProperties":false}},"required":["checks"],"additionalProperties":false}}});
++ let mut sm=compile_response_format(&rf).map_err(anyhow::Error::msg)?.unwrap();sm.set_compact();sm.set_vocab(tok.vocab_pieces());let sm=Arc::new(sm);
++ for category in categories {
++  let doc=serde_json::json!({"checks":{"p000001":[{"evidence":{"source_quote":"quoted \"원문\"","target_quote":"번역"},"finding":{"category":category,"severity":"major","explanation":"의미 차이","uncertain":false}}]}});
++  let raw=serde_json::to_string(&doc)?;let ids=tok.encode(&raw,false)?;let mut cursor=Cursor::new(sm.clone());
++  for (i,id) in ids.iter().enumerate() {
++   ensure!(cursor.commit(*id)? == (i+1==ids.len()),"canonical review path was blocked: category={category} token={i}");
++  }
++ }
++ println!("SCHEMA_REVIEW_ENUM_PATHS_PASS cases=10");Ok(())
 +}

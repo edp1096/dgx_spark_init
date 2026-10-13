@@ -50,15 +50,17 @@ type StepState struct {
 	Retries  int        `json:"retries"`
 }
 type Run struct {
-	ID         string                  `json:"id"`
-	SessionID  string                  `json:"session_id"`
-	Status     string                  `json:"status"`
-	Goal       string                  `json:"goal"`
-	Definition Definition              `json:"definition"`
-	Skills     map[string]skills.Skill `json:"skills,omitempty"`
-	Steps      []StepState             `json:"steps"`
-	Current    int                     `json:"current"`
-	Updated    string                  `json:"updated"`
+	Conversions []DocumentConversion    `json:"conversions,omitempty"` // Read-side view only.
+	Document    *DocumentTask           `json:"document,omitempty"`
+	ID          string                  `json:"id"`
+	SessionID   string                  `json:"session_id"`
+	Status      string                  `json:"status"`
+	Goal        string                  `json:"goal"`
+	Definition  Definition              `json:"definition"`
+	Skills      map[string]skills.Skill `json:"skills,omitempty"`
+	Steps       []StepState             `json:"steps"`
+	Current     int                     `json:"current"`
+	Updated     string                  `json:"updated"`
 }
 
 func Defaults() []Definition {

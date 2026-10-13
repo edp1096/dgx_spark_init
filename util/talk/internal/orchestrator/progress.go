@@ -373,8 +373,6 @@ func etaForCurrentProgressLine(logs string, pattern *regexp.Regexp) string {
 
 func modelDisplayName(component Component) string {
 	switch component.ID {
-	case "gemma31":
-		return "Gemma 31B"
 	case "qwen27":
 		return "Qwen 27B"
 	default:

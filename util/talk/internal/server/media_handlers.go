@@ -82,6 +82,9 @@ func (s *Server) importMediaSource(ctx context.Context, rawURL string) (output d
 		return db.Attachment{}, err
 	}
 	item.SourceURL = parsed.String()
+	item.SourceAudioLanguage = response.Header.Get("X-Media-Audio-Language")
+	item.SourceAudioFormat = response.Header.Get("X-Media-Audio-Format")
+	item.SourceAudioOriginal = response.Header.Get("X-Media-Audio-Original") == "true"
 	return item, nil
 }
 

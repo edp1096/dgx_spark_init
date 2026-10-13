@@ -1,0 +1,29 @@
+{
+  "old_pid": 981815,
+  "pid": 1298243,
+  "default_effort": "low",
+  "managed_sets": [
+    "qwen38fn_exl3",
+    "qwen38fn_exl3_q4",
+    "flash-next-radixark",
+    "flash-next",
+    "flash-next-tp2"
+  ],
+  "configuration_changed_only_model_reasoning_effort": true,
+  "new_session_default_verified": "low",
+  "model_containers_unchanged": true,
+  "existing_checkpoints_and_outputs_unchanged": true,
+  "existing_session_overrides_preserved": true,
+  "tests": {
+    "go_all": "passed",
+    "frontend_unit_tests": 133,
+    "browser_tests": 4,
+    "platform_builds": 4
+  },
+  "binaries": {
+    "sparktalk-linux-arm64": "e3cada8645962b51cfbfac5f35967df13f7ebe3b729e7eea6857c35dc008a587",
+    "sparktalk-linux-amd64": "f81ad435b619472795dea0d81cda0acd5b6f89b68035b4a427f563b4fdee7f2a",
+    "sparktalk-windows-arm64.exe": "273f811aa0e40bf50458bc3623100bdcf02d64fb4816d9961ef33cf8bbd4b13a",
+    "sparktalk-windows-amd64.exe": "db0f0d0bcf1613d3b0f08399b62398b639ac359af53a4add3f895629f9528ae7"
+  }
+}

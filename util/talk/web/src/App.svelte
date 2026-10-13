@@ -258,6 +258,7 @@
       normalizePublicSettings(cfg);
       settings = cfg;
       reasoningEffort = cfg.model.reasoning_effort || '';
+      const initialReasoningEffort = reasoningEffort;
       modelType = cfg.model.model_type || 'generic';
       webToolsEnabled = cfg.tools?.enabled ?? false;
       appearance = cfg.appearance || appearance;
@@ -267,7 +268,7 @@
       [groups, sessions] = await Promise.all([listGroups(), listSessions()]);
       // Initial restoration must not close a mobile sidebar the user opened
       // while the startup requests were still in flight.
-      if (sessions.length) await select(sessions[0].id, { closeMobile: false, closeWorkspace: false });
+      if (sessions.length) await select(sessions[0].id, { closeMobile: false, closeWorkspace: false, reasoningBaseline: initialReasoningEffort });
       else {
         await chatController.activate('');
         sshConversationGrants = [];
@@ -411,7 +412,7 @@
     await select(item.id);
   }
 
-  async function select(id, { closeMobile = true, closeWorkspace = true } = {}) {
+  async function select(id, { closeMobile = true, closeWorkspace = true, reasoningBaseline = undefined } = {}) {
     const version = ++selectionVersion;
     codeProjects = []; codeProjectSession = ''; codeLoadVersion++;
     if (activeId && activeId !== id) stopReplySpeech();
@@ -429,7 +430,7 @@
     }
     const session = sessions.find((item) => item.id === id);
     selectedModel = resolveAvailableModel(models, session?.model, settings?.model?.default_model || selectedModel);
-    if (session?.reasoning_effort) reasoningEffort = normalizeReasoningEffort(modelType, session.reasoning_effort);
+    if (session?.reasoning_effort && (reasoningBaseline === undefined || reasoningEffort === reasoningBaseline)) reasoningEffort = normalizeReasoningEffort(modelType, session.reasoning_effort);
     await Promise.all([refreshContext(id), refreshSSHGrants(id), refreshCodeProjects(id)]);
     await tick();
     const pendingApproval = document.querySelector('[data-approval-id]:not([data-approval-id=""])');
@@ -895,7 +896,8 @@
 
   function startSessionRun(sessionId, runMessages, runRetryingIndex) {
     stopReplySpeech();
-    const extra = {};
+    const extra = { startedAt: performance.now() };
+    runMessages[runRetryingIndex].responseStartedAt = extra.startedAt;
     if (continuousVoiceEnabled && settings?.tts?.enabled && settings.tts.auto_play) {
       extra.speechChunker = createSpeechChunker({ omitParentheticals: settings?.tts?.omit_parentheticals === true });
       extra.speechBatcher = createSpeechBatcher();
@@ -990,14 +992,16 @@
         sessions = nextSessions;
         const moved = sessions.find(item => item.id === sessionId);
         if (activeId === sessionId && moved) {
-          collapsedGroups = { ...collapsedGroups, [moved.group_id || '__ungrouped__']: false };
-          if (moved.group_id) foldersCollapsed = false;
+          const destination = ['create', 'rename', 'move_selected'].includes(data.action) ? data.folder?.id : moved.group_id;
+          collapsedGroups = { ...collapsedGroups, [destination || moved.group_id || '__ungrouped__']: false };
+          if (destination || moved.group_id) foldersCollapsed = false;
           localStorage.setItem('sparktalk.collapsed-groups', JSON.stringify(collapsedGroups));
           localStorage.setItem('sparktalk.folders-collapsed', String(foldersCollapsed));
         }
       }).catch(() => {});
     };
     const ownerRun = sessionRuns[sessionId];
+    handlers.submissionDelayMS = () => ownerRun ? Math.max(0, performance.now() - ownerRun.startedAt) : 0;
     handlers.turnStarted = (data) => {
       if (ownerRun && sessionRuns[sessionId] === ownerRun) {
         ownerRun.turnId = data.accepting ? data.turn_id : null;

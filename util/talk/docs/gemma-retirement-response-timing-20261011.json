@@ -1,0 +1,76 @@
+{
+  "pid": 1128564,
+  "model": "qwen38fn_exl3",
+  "health": "ok",
+  "context_tokens": 1048576,
+  "reasoning_effort": "xhigh",
+  "catalog_bundles": 9,
+  "catalog_components": 19,
+  "builtin_revision": 42,
+  "gemma_sets_removed": true,
+  "containers_unchanged": true,
+  "ui_asset": "/assets/index-583Uk8ou.js",
+  "ui_sha256": "0b1ba5e15f8cefb3a0e802f30dc2b9b7d1f26c560c4d8a52a196046f05beb8b2",
+  "verification": {
+    "go_all": "passed",
+    "go_vet": "passed",
+    "go_race": [
+      "server",
+      "db",
+      "config",
+      "orchestrator",
+      "performance"
+    ],
+    "javascript_unit_tests": 133,
+    "browser_regression_tests": 96,
+    "additional_document_timing_test": "passed",
+    "support_assets": 123,
+    "archived_compose_configs": 7,
+    "builds": [
+      "linux-arm64",
+      "linux-amd64",
+      "windows-arm64",
+      "windows-amd64"
+    ]
+  },
+  "timing": {
+    "request_preparation_included": true,
+    "tools_and_waiting_included": true,
+    "finish_clock": "browser local time; stored as UTC RFC3339",
+    "variants_and_reload": "persisted",
+    "cancel_before_first_token": "persisted",
+    "live_document_activity": "waiting/reasoning/answer; counts, no raw reasoning persisted by heartbeat",
+    "document_progress_interval_seconds": 2
+  },
+  "archived_directories": [
+    "compose_yaml/zzz_not_use/gemma26_sglang",
+    "compose_yaml/zzz_not_use/gemma4_31b_sglang",
+    "compose_yaml/zzz_not_use/llama.cpp",
+    "compose_yaml/zzz_not_use/ltx-2.5_api/compose.heretic-test.yaml"
+  ],
+  "sherlock_diagnosis": {
+    "session_id": "chat-1791716007391613355",
+    "run_id": "chat-1791716245584127972",
+    "status": "canceled",
+    "finished_at": "2026-10-11T11:02:43.369474663Z",
+    "unit_inputs": 56,
+    "unit_source_characters": 2589,
+    "attempt": {
+      "protocol": "json_schema_ids_v2",
+      "reasoning_chars": 46839,
+      "content_chars": 0,
+      "revision": 1,
+      "model": "qwen38fn_exl3",
+      "finish_reason": "",
+      "prompt_tokens": 0,
+      "output_tokens": 0,
+      "seconds": 317.153727495,
+      "error": "응답 수신 중 연결이 중단됐습니다: context canceled"
+    },
+    "effort": "xhigh",
+    "website_source_download_succeeded": true,
+    "source_download_concurrent_workers": 1,
+    "document_inference_concurrency": 1,
+    "automatically_resumed": false
+  }
+}

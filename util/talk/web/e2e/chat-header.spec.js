@@ -65,3 +65,19 @@ test('does not reset a chosen model when the initial health check finishes late'
     await expect(page.getByRole('button', { name: '모델 및 대화 설정', exact: true })).toHaveAttribute('title', /second-model/);
   } finally { releaseHealth(); }
 });
+
+test('startup session restoration preserves a reasoning choice made while health is pending', async ({ page, request }) => {
+  const session = await (await request.post('/api/sessions', { data: { title: 'Startup effort race' } })).json();
+  let releaseHealth;
+  const gate = new Promise(resolve => { releaseHealth = resolve; });
+  await page.route('**/api/health', async route => { await gate; await route.fulfill({ json: { status: 'ok', model: 'test-model' } }); });
+  try {
+    await page.goto('/');
+    await page.getByRole('button', { name: '모델 및 대화 설정', exact: true }).click();
+    const effort = page.getByRole('slider', { name: 'Reasoning effort' });
+    await effort.fill('3'); await effort.fill('0');
+    const restored = page.waitForResponse(response => response.url().includes(`/api/sessions/${session.id}/context?`));
+    releaseHealth(); await restored;
+    await expect(page.locator('.quick-panel .qwen-effort-control output')).toHaveText('꺼짐');
+  } finally { releaseHealth(); await request.delete(`/api/sessions/${session.id}`); }
+});

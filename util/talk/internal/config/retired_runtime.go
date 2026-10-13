@@ -10,10 +10,12 @@ func (c *Config) removeRetiredRuntimes() {
 	}
 	removed := map[string]bool{
 		"flash-next-exl3": true, "qwen27": true, "qwen27-gguf": true, "qwen27-exl3": true,
+		"gemma": true, "gemma26": true, "gemma31": true,
 	}
 	retiredAssets := map[string]bool{
 		"compose.flash-next-exl3.yaml": true, "compose.qwen27.yaml": true,
 		"compose.qwen27-gguf.yaml": true, "compose.qwen27-exl3.yaml": true,
+		"compose.gemma.yaml": true, "compose.gemma26.yaml": true, "compose.gemma31.yaml": true,
 	}
 	components := make([]orchestrator.Component, 0, len(catalog.Components))
 	for _, component := range catalog.Components {
@@ -25,6 +27,7 @@ func (c *Config) removeRetiredRuntimes() {
 	}
 	removedBundles := map[string]bool{
 		"flash-next-exl3": true, "qwen27": true, "qwen27-gguf": true, "qwen27-exl3": true,
+		"gemma": true, "gemma26": true, "gemma31": true,
 	}
 	bundles := make([]orchestrator.Bundle, 0, len(catalog.Bundles))
 	for _, bundle := range catalog.Bundles {

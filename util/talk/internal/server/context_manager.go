@@ -130,7 +130,7 @@ func (s *Server) buildContext(ctx context.Context, sessionID string, items []db.
 		state.SkillTokens += estimateTextTokens(item.Instructions)
 	}
 	estimate := func() int {
-		return estimateModelInput(assembleModelConversation(cfg.Model.SystemPrompt, prependReferenceSystem(messages, recallPrompt, checkpoint), registry.prompts, 0, cfg.Context.Enabled || cfg.Memory.Enabled), registry.definitions, cfg.Context.ImageTokens)
+		return estimateModelInput(client.InputMessages(assembleModelConversation(cfg.Model.SystemPrompt, prependReferenceSystem(messages, recallPrompt, checkpoint), registry.prompts, 0, cfg.Context.Enabled || cfg.Memory.Enabled)), registry.definitions, cfg.Context.ImageTokens)
 	}
 	if !preview && state.Managed && (force || estimate() > state.ThresholdTokens) {
 		// Use converted media/document costs, rather than attachment placeholders.
@@ -182,7 +182,7 @@ func (s *Server) buildContext(ctx context.Context, sessionID string, items []db.
 		state.ActiveEnd = active[len(active)-1].ID
 	}
 	messages = prependReferenceSystem(messages, recallPrompt, checkpoint)
-	state.EstimatedTokens = estimateModelInput(assembleModelConversation(cfg.Model.SystemPrompt, messages, registry.prompts, 0, cfg.Context.Enabled || cfg.Memory.Enabled), registry.definitions, cfg.Context.ImageTokens)
+	state.EstimatedTokens = estimateModelInput(client.InputMessages(assembleModelConversation(cfg.Model.SystemPrompt, messages, registry.prompts, 0, cfg.Context.Enabled || cfg.Memory.Enabled)), registry.definitions, cfg.Context.ImageTokens)
 	state.SystemToolTokens = max(0, state.EstimatedTokens-state.ActiveTokens-state.SummaryTokens-state.RecallTokens-state.SkillTokens)
 	return messages, state, nil
 }

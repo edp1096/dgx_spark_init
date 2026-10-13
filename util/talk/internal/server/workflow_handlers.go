@@ -187,6 +187,14 @@ func (s *Server) workflowRuns(w http.ResponseWriter, r *http.Request, session st
 	}
 	for i := range items {
 		items[i].Skills = nil
+		if items[i].Document != nil {
+			jobs, err := s.db.DocumentConversions(session, items[i].ID)
+			if err != nil {
+				http.Error(w, err.Error(), 500)
+				return
+			}
+			items[i].Conversions = jobs
+		}
 	}
 	writeJSON(w, 200, items)
 }

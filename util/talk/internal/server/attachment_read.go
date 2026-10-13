@@ -13,17 +13,26 @@ import (
 func (s *Server) registerAttachmentReader(registry *completionToolRegistry, sessionID string) {
 	registry.register(llm.Tool{Type: "function", Function: llm.ToolFunction{
 		Name: "attachment_read", Description: "List all attachments in this conversation, including video/audio/images. Read documents as text; read media by attachment_id to load visuals/transcript using the current model transport. Omit attachment_id to list available files. Use the exact returned ID; offset pages through extracted text. Uploaded attachments exist in SparkTalk storage, not necessarily on an SSH host. Never ask for another upload merely because an SSH /tmp path is missing.",
-		Parameters: json.RawMessage(`{"type":"object","properties":{"attachment_id":{"type":"string"},"offset":{"type":"integer","minimum":0}},"additionalProperties":false}`),
+		Parameters: json.RawMessage(`{"type":"object","properties":{"attachment_id":{"type":"string"},"offset":{"type":"integer","minimum":0},"source_id":{"type":"string"}},"additionalProperties":false}`),
 	}}, func(ctx context.Context, call llm.ToolCall, _ []llm.Message, _ eventEmitter) (registeredToolResult, error) {
 		var args struct {
 			ID     string `json:"attachment_id"`
 			Offset int    `json:"offset"`
+			Source string `json:"source_id"`
 		}
 		if err := json.Unmarshal([]byte(call.Function.Arguments), &args); err != nil {
 			return registeredToolResult{}, err
 		}
 		if args.Offset < 0 {
 			return registeredToolResult{}, fmt.Errorf("offset must be nonnegative")
+		}
+		if args.Source != "" {
+			book, err := s.db.Source(sessionID, args.Source, false)
+			if err != nil {
+				return registeredToolResult{}, err
+			}
+			result, err := sourcePage(args.Source, book, args.Offset, 12000)
+			return registeredToolResult{Result: result}, err
 		}
 		attachments, err := s.conversationAttachments(ctx, sessionID)
 		if err != nil {
@@ -62,17 +71,12 @@ func (s *Server) registerAttachmentReader(registry *completionToolRegistry, sess
 				b, _ := json.Marshal(map[string]any{"attachment": found, "status": "loaded from SparkTalk storage into model input"})
 				return registeredToolResult{Result: string(b), Followups: followups}, nil
 			}
-			cached, err := s.extractDocumentAttachment(ctx, *found)
+			id, book, err := s.attachmentSource(ctx, sessionID, *found)
 			if err != nil {
 				return registeredToolResult{}, err
 			}
-			text := []rune(cached.Text)
-			start := min(args.Offset, len(text))
-			end := min(start+12000, len(text))
-			response = map[string]any{"attachment_id": args.ID, "filename": found.Name, "offset": start, "total_chars": len(text), "content": string(text[start:end]), "has_more": end < len(text)}
-			if end < len(text) {
-				response["next_offset"] = end
-			}
+			result, err := sourcePage(id, book, args.Offset, 12000)
+			return registeredToolResult{Result: result}, err
 		}
 		b, _ := json.Marshal(response)
 		return registeredToolResult{Result: string(b)}, nil

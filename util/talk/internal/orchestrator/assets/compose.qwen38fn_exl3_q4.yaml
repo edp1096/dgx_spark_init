@@ -1,6 +1,6 @@
 services:
   runtime:
-    image: sparktalk-qwen38fn-exl3-q4:0.7.3-yarn-schema1
+    image: sparktalk-qwen38fn-exl3-q4:0.7.3-yarn-schema3
     build:
       context: ${SPARKTALK_BUILD_DIR:-.}
       dockerfile: Dockerfile

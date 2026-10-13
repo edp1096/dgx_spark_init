@@ -1,6 +1,6 @@
 {
   "name": "sparktalk-extra-documents",
-  "version": "0.5.2",
+  "version": "0.5.6",
   "private": true,
   "type": "module",
   "scripts": {
@@ -14,7 +14,8 @@
     "exceljs": "4.4.0",
     "jszip": "3.10.1",
     "pdfmake": "0.3.11",
-    "pptxgenjs": "4.0.1"
+    "pptxgenjs": "4.0.1",
+    "fontkit": "2.0.4"
   },
   "overrides": {
     "exceljs": {

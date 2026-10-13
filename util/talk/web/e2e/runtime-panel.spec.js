@@ -6,7 +6,7 @@ const runtimeSnapshot = {
   bundles: [
     { id: 'qwen27', name: 'Qwen 27B 세트', memory_gib: 61.4, components: ['qwen27', 'flux2'] },
     { id: 'flash-next', name: 'Flash-Next 세트', description: '64K 문맥과 Flash-Next를 사용하는 고성능 세트', memory_gib: 99.1, components: ['flash-next', 'flux2'] },
-    { id: 'gemma', name: 'Gemma 세트', memory_gib: 67.4, components: ['gemma31', 'flux2'] },
+    { id: 'ornith35', name: 'Ornith 세트', memory_gib: 67.4, components: ['ornith35', 'flux2'] },
   ],
   components: [
     { id: 'flash-next', name: 'Qwen3.8 Flash-Next', role: 'llm', model: 'Qwen3.8-Flash-Next', status: 'running', health: 'online', gpu_memory_gib: 90.7 },
@@ -34,7 +34,7 @@ test('shows managed set, memory, engines, and set controls from the connection b
 
   const panel = page.getByRole('region', { name: 'DGX Spark 운영' });
   await expect(panel).toBeVisible();
-  await expect(panel.getByText('Flash-Next 세트', { exact: true })).toBeVisible();
+  await expect(panel.getByRole('strong')).toHaveText('Flash-Next 세트');
   await expect(panel.getByText('시스템 전체 통합메모리', { exact: true })).toBeVisible();
   await expect(panel.getByText('시스템 가용 13.5 GiB · 즉시 여유 3.2 GiB', { exact: true })).toBeVisible();
   await expect(panel.getByText('Qwen3.8 Flash-Next', { exact: true })).toBeVisible();

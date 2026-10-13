@@ -47,7 +47,7 @@ test('opens settings and saves prompt items on an ordinary HTTP origin', async (
   await page.route('http://sparktalk.test/**', async route => {
     try {
       const url = new URL(route.request().url());
-      const response = await route.fetch({ url: `http://127.0.0.1:18585${url.pathname}${url.search}` });
+      const response = await route.fetch({ url: new URL(`${url.pathname}${url.search}`, test.info().project.use.baseURL).href });
       await route.fulfill({ response });
     } catch (error) { if (!closing) throw error; }
   });

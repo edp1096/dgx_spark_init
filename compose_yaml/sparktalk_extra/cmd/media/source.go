@@ -19,6 +19,10 @@ import (
 
 const maxSourceRequestBytes = 64 * 1024
 
+// Project only fields used below. Full info JSON contains subtitle translations,
+// signed URLs and fragment lists that can exceed the bounded process capture.
+const sourceMetadataTemplate = `{"metadata": %(.{id,title,description,duration,webpage_url,extractor,extractor_key,thumbnail,live_status,language})j, "formats": %(formats.:.{format_id,ext,width,height,fps,tbr,acodec,vcodec,filesize,filesize_approx,language,language_preference,format_note}|[])j}`
+
 type sourceRequest struct {
 	URL                string `json:"url"`
 	MaxDownloadMB      int64  `json:"max_download_mb,omitempty"`
@@ -144,6 +148,9 @@ func (a *api) downloadSource(w http.ResponseWriter, r *http.Request) {
 			return &httpError{Status: http.StatusRequestEntityTooLarge, Message: fmt.Sprintf("media duration exceeds %d seconds", maxDurationSec)}
 		}
 
+		if hasSourceAudio(info) && len(sourceAudioCandidates(info)) == 0 {
+			return &httpError{Status: http.StatusUnprocessableEntity, Message: "cannot identify an original audio track; dubbed or ambiguous tracks were not downloaded"}
+		}
 		format, selectedHeight := selectDownloadFormat(info, maxDownloadMB, maxHeight)
 		if format == "" {
 			return &httpError{Status: http.StatusRequestEntityTooLarge, Message: fmt.Sprintf("no downloadable video/audio combination with known size fits %d MiB and height %d; retrying unchanged limits will not help", maxDownloadMB, maxHeight)}
@@ -195,6 +202,15 @@ func (a *api) downloadSource(w http.ResponseWriter, r *http.Request) {
 		}
 		w.Header().Set("X-Media-Title", url.QueryEscape(info.Title))
 		w.Header().Set("X-Media-Source-ID", info.ID)
+		for _, f := range info.Formats {
+			if f.ID == format || strings.HasSuffix(format, "+"+f.ID) {
+				if hasFormatAudio(f) {
+					w.Header().Set("X-Media-Audio-Language", f.Language)
+					w.Header().Set("X-Media-Audio-Format", f.ID)
+					w.Header().Set("X-Media-Audio-Original", strconv.FormatBool(isOriginalAudio(f)))
+				}
+			}
+		}
 		return serveFile(w, path, contentType, filepath.Base(path))
 	})
 }
@@ -282,6 +298,7 @@ func boundedIntLimit(requested, maximum int) int {
 // prevent two individually small streams from exceeding the final limit.
 func selectDownloadFormat(info sourceInfo, maxDownloadMB int64, maxHeight int) (string, int) {
 	limit := maxDownloadMB * 1024 * 1024 * 98 / 100
+	allowedAudio := sourceAudioCandidates(info)
 	hasVideo := false
 	for _, format := range info.Formats {
 		if format.Height > 0 && format.VideoCodec != "" && format.VideoCodec != "none" {
@@ -290,9 +307,23 @@ func selectDownloadFormat(info sourceInfo, maxDownloadMB int64, maxHeight int) (
 		}
 	}
 	if !hasVideo {
-		return "bestaudio/best", 0
+		if len(info.Formats) == 0 {
+			// Some generic extractors expose no track inventory. Preserve their
+			// fallback, without reporting a confirmed original audio track.
+			return "bestaudio/best", 0
+		}
+		// Do not let bestaudio select a localized dub after we inspected tracks.
+		best, score := "", int64(-1)
+		for _, audio := range info.Formats {
+			if !allowedAudio[audio.ID] || sourceFormatSize(audio, info.Duration) > limit {
+				continue
+			}
+			if value := formatScore(sourceFormat{}, audio); value > score {
+				best, score = audio.ID, value
+			}
+		}
+		return best, 0
 	}
-	preferredLanguage, preferredLanguageValue, hasLanguagePreference := sourceAudioPreference(info)
 	bestFormat, bestHeight, bestScore := "", 0, int64(-1)
 	for _, video := range info.Formats {
 		videoSize := sourceFormatSize(video, info.Duration)
@@ -300,7 +331,7 @@ func selectDownloadFormat(info sourceInfo, maxDownloadMB int64, maxHeight int) (
 			continue
 		}
 		if video.AudioCodec != "" && video.AudioCodec != "none" {
-			if videoSize <= limit {
+			if videoSize <= limit && allowedAudio[video.ID] {
 				score := formatScore(video, sourceFormat{})
 				if score > bestScore {
 					bestFormat, bestHeight, bestScore = video.ID, video.Height, score
@@ -313,10 +344,7 @@ func selectDownloadFormat(info sourceInfo, maxDownloadMB int64, maxHeight int) (
 			if audioSize < 1 || audio.VideoCodec != "none" || audio.AudioCodec == "" || audio.AudioCodec == "none" || videoSize+audioSize > limit {
 				continue
 			}
-			if hasLanguagePreference && audio.LanguagePref != preferredLanguageValue {
-				continue
-			}
-			if !hasLanguagePreference && preferredLanguage != "" && audio.Language != "" && audio.Language != preferredLanguage {
+			if !allowedAudio[audio.ID] {
 				continue
 			}
 			score := formatScore(video, audio)
@@ -331,25 +359,73 @@ func selectDownloadFormat(info sourceInfo, maxDownloadMB int64, maxHeight int) (
 	return "", 0
 }
 
-func sourceAudioPreference(info sourceInfo) (string, int, bool) {
-	preferredLanguage := strings.TrimSpace(info.Language)
-	maxPreference := 0
-	hasPreference := false
-	for _, format := range info.Formats {
-		if format.VideoCodec != "none" || format.AudioCodec == "" || format.AudioCodec == "none" {
+func hasFormatAudio(f sourceFormat) bool {
+	if f.AudioCodec == "none" {
+		return false
+	}
+	if f.AudioCodec != "" || f.VideoCodec == "none" {
+		return true
+	}
+	// Generic audio extractors sometimes know the container but not the codec.
+	switch strings.ToLower(f.Extension) {
+	case "mp3", "m4a", "aac", "ogg", "opus", "wav", "flac", "weba", "mka":
+		return true
+	}
+	return false
+}
+
+func hasSourceAudio(info sourceInfo) bool {
+	for _, f := range info.Formats {
+		if hasFormatAudio(f) {
+			return true
+		}
+	}
+	return false
+}
+
+func isOriginalAudio(f sourceFormat) bool {
+	// yt-dlp's YouTube extractor uses 10 for original, 5 for default.
+	return hasFormatAudio(f) && (f.LanguagePref == 10 || strings.Contains(strings.ToLower(f.FormatNote), "original"))
+}
+
+func sourceAudioCandidates(info sourceInfo) map[string]bool {
+	original := false
+	languages := map[string]bool{}
+	for _, f := range info.Formats {
+		if !hasFormatAudio(f) {
 			continue
 		}
-		if !hasPreference || format.LanguagePref > maxPreference {
-			maxPreference = format.LanguagePref
-			hasPreference = true
+		original = original || isOriginalAudio(f)
+		if f.Language != "" {
+			languages[f.Language] = true
 		}
 	}
-	// A list where every format has the zero default carries no useful
-	// preference. In that case the video's declared primary language is used.
-	if hasPreference && maxPreference == 0 {
-		hasPreference = false
+	allowed := map[string]bool{}
+	for _, f := range info.Formats {
+		if !hasFormatAudio(f) || f.ID == "" {
+			continue
+		}
+		if original {
+			if isOriginalAudio(f) {
+				allowed[f.ID] = true
+			}
+			continue
+		}
+		note := strings.ToLower(f.FormatNote)
+		if strings.Contains(note, "dub") || strings.Contains(note, "descriptive") || f.LanguagePref == -10 {
+			continue
+		}
+		if info.Language != "" && f.Language != "" && f.Language != info.Language {
+			continue
+		}
+		// With multiple languages, an unlabelled/default track is not proof of
+		// original audio. A declared primary language can resolve the selection.
+		if len(languages) > 1 && (info.Language == "" || f.Language == "") {
+			continue
+		}
+		allowed[f.ID] = true
 	}
-	return preferredLanguage, maxPreference, hasPreference
+	return allowed
 }
 
 func knownFormatSize(format sourceFormat) int64 {
@@ -419,14 +495,19 @@ func sourceNeedsVideoNormalization(info sourceInfo, selected string) bool {
 
 func (a *api) sourceMetadata(ctx context.Context, rawURL string) (sourceInfo, error) {
 	stdout, stderr, err := run(ctx, a.currentYtdlp(),
-		"--dump-single-json", "--skip-download", "--no-playlist", "--no-warnings", "--", rawURL)
+		"--print", sourceMetadataTemplate, "--skip-download", "--no-playlist", "--no-warnings", "--", rawURL)
 	if err != nil {
 		return sourceInfo{}, processError("yt-dlp", err, stderr)
 	}
-	var info sourceInfo
-	if err := json.Unmarshal(stdout, &info); err != nil {
+	var projected struct {
+		Metadata sourceInfo     `json:"metadata"`
+		Formats  []sourceFormat `json:"formats"`
+	}
+	if err := json.Unmarshal(stdout, &projected); err != nil {
 		return sourceInfo{}, &httpError{Status: http.StatusUnprocessableEntity, Message: fmt.Sprintf("yt-dlp metadata decode failed (%d bytes): %v", len(stdout), err)}
 	}
+	info := projected.Metadata
+	info.Formats = projected.Formats
 	if info.ID == "" && info.Title == "" {
 		return sourceInfo{}, &httpError{Status: http.StatusUnprocessableEntity, Message: "yt-dlp found no media"}
 	}

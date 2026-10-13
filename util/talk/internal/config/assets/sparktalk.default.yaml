@@ -30,9 +30,9 @@ model:
   model_type: qwen3.8
   api_key: ""
   # Qwen3.8: none, low, medium, xhigh. generic 유형만 기타 이름이나 0.0~0.99를 허용
-  reasoning_effort: none
+  reasoning_effort: low
   # Gemma 4 Thinking이 켜졌을 때의 최대 생각 토큰. 0은 제한하지 않습니다.
-  thinking_budget: 512
+  thinking_budget: 0
   # 모든 대화에 공통 적용할 지침입니다. 비워두면 사용하지 않습니다.
   system_prompt: ""
   # 설정 화면에서 관리하는 시스템 프롬프트 프리셋입니다.

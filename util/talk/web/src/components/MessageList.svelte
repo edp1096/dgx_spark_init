@@ -565,7 +565,7 @@
           </div>
         {/if}
         {#if message.role === 'assistant'}
-          <InferenceMetrics performance={message.performance} />
+          <InferenceMetrics performance={message.performance} startedAt={message.responseStartedAt} running={running && (index === messages.length - 1 || index === retryingIndex)} />
           {#if message.content && !running}<SpeechPreview original={message.content} omitParentheticals={speechOmitParentheticals} />{/if}
           <div class="message-actions">
             {#if visibleAssistantContent(message.content)}
@@ -594,7 +594,9 @@
               <span class="copy-feedback" role="status">{copyFeedback.text}</span>
             {/if}
           </div>
-        {:else if message.id && editingMessageId !== message.id}
+        {:else if !message.id || editingMessageId !== message.id}
+          <!-- Keep this row's layout while an optimistic user message awaits its
+               saved ID; inserting it on completion shifts the reading position. -->
           <div class="message-actions user-actions">
             {#if message.variants?.length > 1}
               <div class="variant-pager" aria-label="질문 버전 선택">
@@ -603,8 +605,8 @@
                 <button onclick={() => onShowAdjacentVariant(message, index, 1)} disabled={running || message.variant_index >= message.variants.length - 1} aria-label="다음 질문">›</button>
               </div>
             {/if}
-            <button onclick={() => onRemember(message)} disabled={running || rememberingId === message.id || rememberedIds.includes(message.id)}>{rememberedIds.includes(message.id) ? '✓ 기억됨' : rememberingId === message.id ? '기억 중…' : '＋ 기억'}</button>
-            <button onclick={() => onBeginEdit(message)} disabled={running}>✎ {message.status === 'failed' || message.status === 'cancelled' ? '수정·재시도' : '수정'}</button>
+            <button onclick={() => onRemember(message)} disabled={running || !message.id || rememberingId === message.id || rememberedIds.includes(message.id)}>{rememberedIds.includes(message.id) ? '✓ 기억됨' : rememberingId === message.id ? '기억 중…' : '＋ 기억'}</button>
+            <button onclick={() => onBeginEdit(message)} disabled={running || !message.id}>✎ {message.status === 'failed' || message.status === 'cancelled' ? '수정·재시도' : '수정'}</button>
           </div>
         {/if}
       </div>

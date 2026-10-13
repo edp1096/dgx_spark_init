@@ -9,6 +9,18 @@ func (c *Config) applyManagedRuntime() {
 	c.ApplyManagedBundle(c.Runtime.ActiveBundle)
 }
 
+// A newly selected Qwen set starts at the family default. Normalization and
+// restarting the same set retain an explicitly chosen setting.
+func (c *Config) SelectManagedBundle(bundle string) {
+	bundle = strings.ToLower(strings.TrimSpace(bundle))
+	changed := c.Runtime.ActiveBundle != bundle
+	c.Runtime.ActiveBundle = bundle
+	c.Normalize()
+	if changed && (c.Model.ModelType == "qwen3.8" || c.Model.ModelType == "qwen38fn_exl3") {
+		c.Model.ReasoningEffort = "low"
+	}
+}
+
 // ApplyManagedBundle updates only the live model profile. Runtime.Bundle is
 // the user's startup default and must not be changed by a live model switch.
 func (c *Config) ApplyManagedBundle(bundle string) {

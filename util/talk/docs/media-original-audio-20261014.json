@@ -1,0 +1,70 @@
+{
+  "date": "2026-10-14",
+  "status": "applied",
+  "source": "https://www.youtube.com/watch?v=YvgjLJE2wOw",
+  "cause": {
+    "full_metadata_bytes": 11641986,
+    "automatic_captions_bytes": 11165795,
+    "compact_metadata_bytes": 37325,
+    "unchanged_stdout_limit": 8388608
+  },
+  "changes": [
+    "Project yt-dlp metadata before capturing stdout; omit captions, URLs and fragment lists",
+    "Prefer labelled original audio across separate, audio-only and muxed formats",
+    "Do not substitute dubs when the original exceeds the download budget",
+    "Reject unresolved multilingual tracks; retain generic single-audio support",
+    "Persist selected audio language, format ID and confirmed-original flag in attachment metadata",
+    "Synchronize standalone compose sources and Talk embedded build assets"
+  ],
+  "validation": {
+    "media_race_tests": true,
+    "large_metadata_offline_pinned_ytdlp_test": true,
+    "talk_go_test_all": true,
+    "attachment_provenance_race_test": true,
+    "embedded_assets_test": true,
+    "four_platform_builds": true,
+    "download": {
+      "seconds": 13.82,
+      "bytes": 13336483,
+      "headers": {
+        "Content-Type": "video/mp4",
+        "X-Media-Audio-Format": "140-20",
+        "X-Media-Audio-Language": "en-US",
+        "X-Media-Audio-Original": "true",
+        "X-Media-Source-Id": "YvgjLJE2wOw",
+        "X-Media-Title": "Kandinsky+6.0+-+This+Open+Source+AI+Generates+Video+AND+Audio+Together"
+      }
+    },
+    "container_probe": {
+      "programs": [],
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 1280,
+          "height": 720,
+          "tags": {
+            "language": "und"
+          }
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "tags": {
+            "language": "und"
+          }
+        }
+      ],
+      "format": {
+        "duration": "205.200007"
+      }
+    }
+  },
+  "image": "sparktalk-extra-media:0.1.1",
+  "test_artifacts": "/home/edp1096/.cache/model-download-jobs/media-original-20261014",
+  "deployment": {
+    "pid": 2851102,
+    "saved_data_unchanged": true,
+    "backup": "/home/edp1096/.cache/model-download-jobs/media-original-20261014/backup"
+  }
+}

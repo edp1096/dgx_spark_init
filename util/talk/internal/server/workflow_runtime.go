@@ -104,6 +104,14 @@ func (s *Server) runWorkflow(ctx context.Context, session, marker, goal string, 
 	}
 	var run workflows.Run
 	if strings.HasPrefix(marker, "@resume:") {
+		if existing, err := s.db.DocumentRun(session, strings.TrimPrefix(marker, "@resume:")); err == nil && existing.Document != nil {
+			resumed, err := s.documentAction(ctx, session, documentStart{Action: "resume", RunID: existing.ID})
+			if err != nil {
+				return answer, err
+			}
+			answer.Content = fmt.Sprintf("문서 작업을 재개했습니다. 진행 상태는 대화방의 작업 진행에서 확인할 수 있습니다. (%s)", resumed.ID)
+			return answer, nil
+		}
 		var e error
 		run, e = s.db.ClaimWorkflowRun(strings.TrimPrefix(marker, "@resume:"), session)
 		if e != nil {

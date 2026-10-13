@@ -22,8 +22,8 @@ func TestLoadCreatesEmbeddedDefaultAndSaveReloads(t *testing.T) {
 	if cfg.Model.ModelType != "qwen3.8" {
 		t.Fatalf("generated model type = %q, want qwen3.8", cfg.Model.ModelType)
 	}
-	if cfg.Model.ThinkingBudget != 512 {
-		t.Fatalf("generated thinking budget = %d, want 512", cfg.Model.ThinkingBudget)
+	if cfg.Model.ThinkingBudget != 0 {
+		t.Fatalf("generated thinking budget = %d, want 0", cfg.Model.ThinkingBudget)
 	}
 	if cfg.Appearance.AssistantAvatar != "preset:spark" || cfg.Appearance.UserAvatar != "preset:person-blue" {
 		t.Fatalf("generated avatar defaults are incomplete: %+v", cfg.Appearance)
@@ -140,10 +140,10 @@ func TestLoadExistingConfigDoesNotInjectDefaultPromptPresets(t *testing.T) {
 }
 
 func TestManagedDefaultBundleAndActiveModelCanDiffer(t *testing.T) {
-	cfg := Config{Runtime: RuntimeConfig{Mode: "managed", Bundle: "gemma", ActiveBundle: "flash-next"}}
+	cfg := Config{Runtime: RuntimeConfig{Mode: "managed", Bundle: "ornith35", ActiveBundle: "flash-next"}}
 	cfg.Normalize()
 
-	if cfg.Runtime.Bundle != "gemma" {
+	if cfg.Runtime.Bundle != "ornith35" {
 		t.Fatalf("active model changed startup default: %q", cfg.Runtime.Bundle)
 	}
 	if cfg.Runtime.ActiveBundle != "flash-next" {

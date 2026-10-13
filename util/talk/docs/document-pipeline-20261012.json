@@ -1,0 +1,488 @@
+{
+  "results": [
+    {
+      "case": "shayo_opening",
+      "variant": "기존 EXL3 3bit",
+      "valid": true,
+      "seconds": 290.974403639,
+      "calls": 3,
+      "failed_attempts": 0,
+      "prompt_tokens": 30453,
+      "output_tokens": 13768,
+      "cached_tokens": 0,
+      "reasoning_chars": 12571,
+      "first_token_seconds": 26.268219438,
+      "pp_values": [
+        993.9520333680917,
+        1019.7870452528838,
+        995.5649419218585
+      ],
+      "tg_values": [
+        50.97480332915289,
+        55.10581704637447,
+        52.69154749447738
+      ],
+      "pp_estimated": false,
+      "tg_estimated": false,
+      "native_reasoning_budget": 2048,
+      "output_prose_chars": 8211,
+      "control_chars": 24,
+      "effective_decode_tps": 52.01238513394727
+    },
+    {
+      "case": "shayo_opening",
+      "variant": "개선 EXL3 3bit",
+      "valid": true,
+      "seconds": 141.630886803,
+      "calls": 1,
+      "failed_attempts": 0,
+      "prompt_tokens": 8628,
+      "output_tokens": 5877,
+      "cached_tokens": 0,
+      "reasoning_chars": 964,
+      "first_token_seconds": 7.392341636,
+      "pp_values": [
+        822.4976167778836
+      ],
+      "tg_values": [
+        44.8489010989011
+      ],
+      "pp_estimated": false,
+      "tg_estimated": false,
+      "native_reasoning_budget": 2048,
+      "output_prose_chars": 7921,
+      "control_chars": 0,
+      "effective_decode_tps": 43.780271848809846
+    },
+    {
+      "case": "shayo_opening",
+      "variant": "개선 NVFP4",
+      "valid": true,
+      "seconds": 242.25154872,
+      "calls": 1,
+      "failed_attempts": 0,
+      "prompt_tokens": 8628,
+      "output_tokens": 7557,
+      "cached_tokens": null,
+      "reasoning_chars": 3876,
+      "first_token_seconds": 6.312020798,
+      "pp_values": [
+        1366.9156481128566
+      ],
+      "tg_values": [
+        32.02822319336957
+      ],
+      "pp_estimated": true,
+      "tg_estimated": true,
+      "native_reasoning_budget": 0,
+      "output_prose_chars": 8022,
+      "control_chars": 0,
+      "effective_decode_tps": 32.02939357621455
+    },
+    {
+      "case": "wordplay",
+      "variant": "기존 EXL3 3bit",
+      "valid": true,
+      "seconds": 196.678050687,
+      "calls": 2,
+      "failed_attempts": 1,
+      "prompt_tokens": 24648,
+      "output_tokens": 9145,
+      "cached_tokens": 0,
+      "reasoning_chars": 6951,
+      "first_token_seconds": 20.325502569,
+      "pp_values": [
+        1069.1304347826087,
+        1044.2096365173288
+      ],
+      "tg_values": [
+        50.61353278017997,
+        54.94806528935053
+      ],
+      "pp_estimated": false,
+      "tg_estimated": false,
+      "native_reasoning_budget": 2048,
+      "output_prose_chars": 2767,
+      "control_chars": 0,
+      "effective_decode_tps": 51.85635306999336
+    },
+    {
+      "case": "wordplay",
+      "variant": "개선 EXL3 3bit",
+      "valid": true,
+      "seconds": 102.466720835,
+      "calls": 1,
+      "failed_attempts": 0,
+      "prompt_tokens": 4688,
+      "output_tokens": 4471,
+      "cached_tokens": 0,
+      "reasoning_chars": 6061,
+      "first_token_seconds": 4.47172417,
+      "pp_values": [
+        783.9464882943143
+      ],
+      "tg_values": [
+        46.3652390334958
+      ],
+      "pp_estimated": false,
+      "tg_estimated": false,
+      "native_reasoning_budget": 2048,
+      "output_prose_chars": 2918,
+      "control_chars": 0,
+      "effective_decode_tps": 45.62477832704358
+    },
+    {
+      "case": "wordplay",
+      "variant": "개선 NVFP4",
+      "valid": true,
+      "seconds": 258.280595925,
+      "calls": 1,
+      "failed_attempts": 0,
+      "prompt_tokens": 4688,
+      "output_tokens": 7472,
+      "cached_tokens": null,
+      "reasoning_chars": 13442,
+      "first_token_seconds": 2.910630961,
+      "pp_values": [
+        1610.6473348271377
+      ],
+      "tg_values": [
+        29.255807628918298
+      ],
+      "pp_estimated": true,
+      "tg_estimated": true,
+      "native_reasoning_budget": 0,
+      "output_prose_chars": 2754,
+      "control_chars": 0,
+      "effective_decode_tps": 29.25950982940904
+    },
+    {
+      "case": "sherlock",
+      "variant": "기존 EXL3 3bit",
+      "valid": true,
+      "seconds": 86.675531606,
+      "calls": 1,
+      "failed_attempts": 0,
+      "prompt_tokens": 7744,
+      "output_tokens": 3605,
+      "cached_tokens": 0,
+      "reasoning_chars": 4315,
+      "first_token_seconds": 6.781577381,
+      "pp_values": [
+        944.3902439024391
+      ],
+      "tg_values": [
+        45.982142857142854
+      ],
+      "pp_estimated": false,
+      "tg_estimated": false,
+      "native_reasoning_budget": 2048,
+      "output_prose_chars": 3536,
+      "control_chars": 0,
+      "effective_decode_tps": 45.12231288299337
+    },
+    {
+      "case": "sherlock",
+      "variant": "개선 EXL3 3bit",
+      "valid": true,
+      "seconds": 84.816227561,
+      "calls": 1,
+      "failed_attempts": 0,
+      "prompt_tokens": 4407,
+      "output_tokens": 3600,
+      "cached_tokens": 0,
+      "reasoning_chars": 3408,
+      "first_token_seconds": 4.220081526,
+      "pp_values": [
+        1099.002493765586
+      ],
+      "tg_values": [
+        44.571004085675376
+      ],
+      "pp_estimated": false,
+      "tg_estimated": false,
+      "native_reasoning_budget": 2048,
+      "output_prose_chars": 3742,
+      "control_chars": 0,
+      "effective_decode_tps": 44.667148208757396
+    },
+    {
+      "case": "sherlock",
+      "variant": "개선 NVFP4",
+      "valid": true,
+      "seconds": 104.86378942,
+      "calls": 1,
+      "failed_attempts": 0,
+      "prompt_tokens": 4407,
+      "output_tokens": 2917,
+      "cached_tokens": null,
+      "reasoning_chars": 1925,
+      "first_token_seconds": 3.251558748,
+      "pp_values": [
+        1355.349954144516
+      ],
+      "tg_values": [
+        28.697720638865867
+      ],
+      "pp_estimated": true,
+      "tg_estimated": true,
+      "native_reasoning_budget": 0,
+      "output_prose_chars": 3536,
+      "control_chars": 0,
+      "effective_decode_tps": 28.707174133554382
+    }
+  ],
+  "memory": {
+    "baseline-exl3": {
+      "samples": 263,
+      "available_gib_min": 17.98443603515625,
+      "available_gib_max": 18.09105682373047,
+      "available_gib_median": 18.029502868652344,
+      "swap_used_gib_min": 1.5686759948730469,
+      "swap_used_gib_max": 1.5686759948730469,
+      "scope": "whole operating set and OS; container RSS is not total unified GPU memory"
+    },
+    "baseline-exl3-retry": {
+      "samples": 53,
+      "available_gib_min": 18.019969940185547,
+      "available_gib_max": 18.095325469970703,
+      "available_gib_median": 18.046493530273438,
+      "swap_used_gib_min": 1.5686759948730469,
+      "swap_used_gib_max": 1.5686874389648438,
+      "scope": "whole operating set and OS; container RSS is not total unified GPU memory"
+    },
+    "improved-exl3": {
+      "samples": 193,
+      "available_gib_min": 17.87833023071289,
+      "available_gib_max": 18.07974624633789,
+      "available_gib_median": 18.010223388671875,
+      "swap_used_gib_min": 1.5687408447265625,
+      "swap_used_gib_max": 1.5688056945800781,
+      "scope": "whole operating set and OS; container RSS is not total unified GPU memory"
+    },
+    "improved-nvfp4": {
+      "samples": 329,
+      "available_gib_min": 9.056045532226562,
+      "available_gib_max": 11.653797149658203,
+      "available_gib_median": 9.574581146240234,
+      "swap_used_gib_min": 1.666839599609375,
+      "swap_used_gib_max": 1.6943588256835938,
+      "scope": "whole operating set and OS; container RSS is not total unified GPU memory"
+    },
+    "operating_set_note": "EXL3 measurements include resident Qwen Image/MiniMax, ASR and embedding; NVFP4 measurements include ASR and embedding. These are current operating sets, not isolated weight-memory comparisons."
+  },
+  "controls": {
+    "effort": "low",
+    "temperature": 0.7,
+    "fixed_seed": false,
+    "concurrency": 1,
+    "production_chats_or_jobs_created": false,
+    "user_completed_outputs_changed": false,
+    "cache": "normal serving cache retained; EXL3 reports cached tokens; SGLang did not report cached-token usage, so missing counts are unknown",
+    "native_reasoning_cap": "EXL3 3bit requests 2048 tokens; NVFP4 receives low effort without claiming an identical native token cap",
+    "sample_only_not_full_book_timing": true
+  },
+  "user_job": {
+    "title": "사양 번역",
+    "run": "chat-1791804593987680807",
+    "completed": 38,
+    "calls": 38,
+    "seconds": 3668,
+    "warning": "glossary spelling requires review: 直治 → 나오지"
+  },
+  "implementation": [
+    "model requests coalesce only DOM-proven plain paragraphs; protect links/emphasis/anchors/images/table cells/line breaks",
+    "one source representation with separate reading hints; stable ordered wire IDs map back to original storage IDs",
+    "batch limits count translated wire entries; preserve context/output bounds and per-checkpoint commits",
+    "retain complete validated paragraphs from unambiguous partial responses; reject malformed/duplicate/unexpected IDs; repair source-position context"
+  ],
+  "tests": {
+    "go_all": "passed",
+    "platform_builds": 4
+  },
+  "aggregate": {
+    "기존 EXL3 3bit": {
+      "seconds": 574.327985932,
+      "calls": 6,
+      "failed_attempts": 1,
+      "prompt_tokens": 62845,
+      "output_tokens": 26518,
+      "first_token_seconds": 53.375299388,
+      "effective_decode_tps": 50.90289518597246
+    },
+    "개선 EXL3 3bit": {
+      "seconds": 328.913835199,
+      "calls": 3,
+      "failed_attempts": 0,
+      "prompt_tokens": 17723,
+      "output_tokens": 13948,
+      "first_token_seconds": 16.084147332,
+      "effective_decode_tps": 44.58656112564998
+    },
+    "개선 NVFP4": {
+      "seconds": 605.395934065,
+      "calls": 3,
+      "failed_attempts": 0,
+      "prompt_tokens": 17723,
+      "output_tokens": 17946,
+      "first_token_seconds": 12.474210506999999,
+      "effective_decode_tps": 30.26706441502899
+    }
+  },
+  "off_control": [
+    {
+      "variant": "off-exl3",
+      "valid": true,
+      "seconds": 62.021166045,
+      "reasoning_chars": 0,
+      "calls": 1,
+      "usage": [
+        {
+          "prompt_tokens": 4664,
+          "completion_tokens": 2346,
+          "total_tokens": 7010,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      ],
+      "performance": [
+        {
+          "pp": 930.938123752495,
+          "tg": 42.23222322232223,
+          "ttft": 8.234517435,
+          "ttft_estimated": true,
+          "prompt_tokens": 4664,
+          "cached_tokens": 0,
+          "output_tokens": 2346,
+          "calls": 1
+        }
+      ]
+    },
+    {
+      "variant": "off-nvfp4",
+      "valid": true,
+      "seconds": 74.194857703,
+      "reasoning_chars": 0,
+      "calls": 1,
+      "usage": [
+        {
+          "prompt_tokens": 4664,
+          "completion_tokens": 2359,
+          "total_tokens": 7023
+        }
+      ],
+      "performance": [
+        {
+          "pp": 1634.0949974729144,
+          "tg": 33.05421614152835,
+          "ttft": 2.854179229,
+          "pp_estimated": true,
+          "tg_estimated": true,
+          "ttft_estimated": true,
+          "prompt_tokens": 4664,
+          "cached_tokens": 0,
+          "output_tokens": 2359,
+          "calls": 1
+        }
+      ]
+    }
+  ],
+  "model_identity": {
+    "context_tokens": 1048576,
+    "exl3": "qwen38fn_exl3 / TabbyAPI / EXL3 3bit HQ / Q8 KV",
+    "nvfp4": "edp1096/Huihui-RadixArk-Qwen3.8-Flash-Next-abliterated-NVFP4 / SGLang / modelopt_fp4 / FP8 KV; not QAD"
+  },
+  "deployment": {
+    "old_pid": 1298243,
+    "pid": 1711706,
+    "configuration_unchanged": true,
+    "model_containers_unchanged_during_application_restart": true,
+    "existing_checkpoints_and_outputs_unchanged": true,
+    "protocol": "json_schema_paragraphs_v5",
+    "tests": {
+      "go_all": "passed",
+      "platform_builds": 4,
+      "matched_exl3_cases": 3
+    },
+    "binaries": {
+      "sparktalk-linux-arm64": "61d0dd049592ad59f2d42ec9c1d13648d68723b6c493ac4fb603862f2f5ab894",
+      "sparktalk-linux-amd64": "5acb40c3fd42ef505d5599f998d3dea70fcaf238645122dab8bbe5bf9877a7b2",
+      "sparktalk-windows-arm64.exe": "5987b36abef7739dd1cafad240dbeff00461a2aac2dbcc844667c158d29bb6d8",
+      "sparktalk-windows-amd64.exe": "19031029ff640bfb41689c9f187036939478df39d0285b8b29822243245e4fb6"
+    }
+  },
+  "restoration": {
+    "model": "qwen38fn_exl3",
+    "config_restored": true,
+    "context": 1048576,
+    "reasoning_effort": "low"
+  },
+  "final_verification": {
+    "healthy_model": "qwen38fn_exl3",
+    "configuration_restored": true,
+    "original_container_running_states_restored": true,
+    "all_existing_checkpoint_and_output_hashes_unchanged": true,
+    "no_running_document_jobs": true,
+    "completed_user_job": "chat-1791804593987680807"
+  },
+  "quality_review": {
+    "method": "Compare matching source paragraphs and final outputs; structural coverage is checked automatically, meaning/fluency manually. This is a small, unseeded sample, not a whole-book fidelity score.",
+    "excluded": "Intermittent Hanja, kana and Latin-script mixing is excluded from quality penalties as requested.",
+    "exl3_low": {
+      "strengths": [
+        "All three improved cases passed on their first request.",
+        "Preserved the explicit トラ abbreviation in the dialogue and rendered 柳井 as 야나이."
+      ],
+      "remaining_errors": [
+        "子爵 became 남작 instead of 자작 in the Shayo sample.",
+        "こないだ was rendered 작전 in two places.",
+        "生意気言うな became 건방지다고 하지 마, changing the imperative meaning.",
+        "The English civil-practice phrase remained awkward/misrendered."
+      ]
+    },
+    "nvfp4_low": {
+      "strengths": [
+        "All three cases passed on their first request.",
+        "Rendered 子爵 as 자작, こないだ as 지난번, and civil practice as 민간 개업의.",
+        "Rendered 生意気言うな as 건방 떨지 마 and アントニム as 반의어."
+      ],
+      "remaining_errors": [
+        "柳井 became 류이 rather than 야나이 despite the reading/reference context.",
+        "高等御下宿 remained awkward (고등 어하숙); 繩目の恥辱 became 올가미의 치욕, an imprecise restraint-related expression.",
+        "The トラ abbreviation was expanded to 비극 while retaining a parenthetical abbreviation explanation.",
+        "Some dialogue register and phrasing remained inconsistent."
+      ]
+    },
+    "off_control": {
+      "exl3": "62.0 seconds, no reasoning; rendered アントニム as 안토니무(대의어), an incorrect gloss.",
+      "nvfp4": "74.2 seconds, no reasoning; rendered アントニム as 유의어, reversing the intended antonym relation.",
+      "interpretation": "Turning reasoning off reduces time but this single case does not support making off the default."
+    },
+    "judgment": "EXL3 3bit low is the practical default for this translation workflow given observed time and operating-set memory. NVFP4 corrected several specific meanings but still introduced other errors; the sample does not establish a universal quality winner. Proofreading remains necessary for both."
+  },
+  "comparison_artifact": "/home/edp1096/.cache/model-download-jobs/document-pipeline-20261012/comparison.html",
+  "evidence_directory": "/home/edp1096/.cache/model-download-jobs/document-pipeline-20261012",
+  "plan": "/home/edp1096/.cache/model-download-jobs/document-pipeline-20261012/plan.json",
+  "followup_audit": "/home/edp1096/workspace/dgx_spark_init/util/talk/docs/document-layout-audit-20261012.json",
+  "latest_deployment": {
+    "old_pid": 1711706,
+    "pid": 1935254,
+    "configuration_unchanged": true,
+    "model_containers_unchanged_during_application_restart": true,
+    "existing_checkpoints_and_outputs_unchanged": true,
+    "protocol": "json_schema_paragraphs_v5",
+    "tests": {
+      "go_all": "passed",
+      "platform_builds": 4,
+      "layout_live_calls": 1,
+      "recorded_replies_revalidated": 8
+    },
+    "binaries": {
+      "sparktalk-linux-arm64": "14b55cbb4839792536bf281a57ffeb8771355436268907a18a66efb88489472b",
+      "sparktalk-linux-amd64": "7f06dad103d75bbc0ba9610b36a9852dd7809713509ccf3fb1a1a827313bf3f9",
+      "sparktalk-windows-arm64.exe": "14dd5264c79f2599414f7f5c7fe3a4e57a78e8720b8f20737a12032bc47d7511",
+      "sparktalk-windows-amd64.exe": "b3bd175a5863688f84190ac5cb4ccda4a3fc1be6992fe1336b07a659bd111d13"
+    }
+  }
+}

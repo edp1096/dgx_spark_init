@@ -40,6 +40,29 @@ func classifyFile(f *os.File, name, hint string, imageOnly bool) (string, error)
 		return "", fmt.Errorf("supported image types: PNG, JPEG, WebP")
 	}
 	ext := strings.ToLower(filepath.Ext(name))
+	if ext == ".hwp" && bytes.HasPrefix(header, []byte{0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1}) {
+		// HWP's FileHeader stream may be far beyond the 512-byte OLE header.
+		// Scan in bounded buffers instead of passing only that header to the
+		// whole-buffer detector (which rejected valid generated HWP files).
+		signature := []byte("HWP Document File\x00")
+		buf := make([]byte, 64*1024+len(signature))
+		carry := 0
+		for {
+			n, readErr := f.Read(buf[carry : 64*1024])
+			n += carry
+			if bytes.Contains(buf[:n], signature) {
+				return "application/x-hwp", nil
+			}
+			if readErr == io.EOF {
+				break
+			}
+			if readErr != nil {
+				return "", readErr
+			}
+			carry = copy(buf, buf[max(0, n-len(signature)+1):n])
+		}
+		return "", fmt.Errorf("invalid HWP signature")
+	}
 	if kind := textTypes[ext]; kind != "" {
 		if err := validateText(f); err != nil {
 			return "", err

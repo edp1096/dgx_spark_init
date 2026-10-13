@@ -140,15 +140,12 @@ func (c *Config) Normalize() {
 		c.Runtime.BuiltinRevision = 5
 	}
 	if c.Runtime.BuiltinRevision < 9 {
-		c.migrateGemmaCheckpoint()
 		c.Runtime.BuiltinRevision = 9
 	}
 	if c.Runtime.BuiltinRevision < 10 {
-		c.migrateGemmaSGLang()
 		c.Runtime.BuiltinRevision = 10
 	}
 	if c.Runtime.BuiltinRevision < 11 {
-		c.migrateGemmaOwnNVFP4()
 		c.Runtime.BuiltinRevision = 11
 	}
 	if c.Runtime.BuiltinRevision < 12 {
@@ -313,9 +310,16 @@ func (c *Config) Normalize() {
 		c.addQwen38FNEXL3Q4Set()
 		c.Runtime.BuiltinRevision = 40
 	}
+	if c.Runtime.BuiltinRevision < 41 {
+		c.Runtime.BuiltinRevision = 41
+	}
 	if c.Runtime.BuiltinRevision < 25 {
 		c.Runtime.BuiltinRevision = 25
 	}
+	if c.Runtime.BuiltinRevision < 42 {
+		c.Runtime.BuiltinRevision = 42
+	}
+	c.removeRetiredRuntimes()
 	c.normalizeRuntimeDisplayNames()
 	if catalog, err := orchestrator.ValidateCatalog(*c.Runtime.Catalog); err == nil {
 		c.Runtime.Catalog = &catalog

@@ -1,0 +1,142 @@
+{
+  "date": "2026-10-12",
+  "task": "document HTML inline/ruby output validation and retry recovery",
+  "run_id": "chat-1791784571896538049",
+  "initial_state": {
+    "completed": 0,
+    "total": 30,
+    "calls": 5,
+    "status": "paused",
+    "cause": "Each DOM text node, including ruby fallback parentheses/readings, was required to have a nonempty translation despite allowing inline word reordering."
+  },
+  "changes": [
+    "Preserve ruby/rb/rt/rp/rtc as inline nodes.",
+    "Recover legacy inline structure only when raw hash and all block IDs/text/offsets/assets match; never replace immutable source or completed checkpoints.",
+    "Group adjacent inline text by paragraph; exclude ruby readings from model output entries, retaining exact empty annotation slots in stored coverage.",
+    "Validate explicit ID presence, uniqueness and string type, and require nonempty prose per paragraph.",
+    "Use paragraph groups for length/glossary checks and targeted quality repair; use the same validation during file export.",
+    "Pass previous validation failures to retries; after repeated failure split at paragraph boundaries while preserving source order.",
+    "Separate group identities across batched checkpoints."
+  ],
+  "tests": {
+    "go_test_all": "passed",
+    "platform_builds": [
+      "linux/arm64",
+      "linux/amd64",
+      "windows/arm64",
+      "windows/amd64"
+    ],
+    "regressions": [
+      "legacy ruby source recovery without changing IDs/text/offsets",
+      "paragraph and inline coverage with empty slots",
+      "missing/duplicate/null/whole-paragraph omissions rejected",
+      "whole-paragraph quality repair",
+      "retry feedback and adaptive split retain source tail",
+      "real completed prefix exports TXT/MD/HTML/ZIP in isolated DB"
+    ],
+    "source_recovery": {
+      "all_source_nodes_preserved": 2795,
+      "first_checkpoint_slots": 88,
+      "ruby_annotations": 42,
+      "prose_groups": 19
+    }
+  },
+  "deployment": {
+    "pid": 130829,
+    "old_pid": 3501041,
+    "config_unchanged": true,
+    "containers_unchanged": true,
+    "all_checkpoints_and_outputs_unchanged_before_resume": true,
+    "binaries": {
+      "sparktalk-windows-arm64.exe": "8c39bde0112deb093b6ed5ac8fe5466db686f22f676967cc515a12b4a64e9f11",
+      "sparktalk-windows-amd64.exe": "703f467df5aa40f4a4831e8ec6f0716dfbaec9b9222d414ab77593a3370d5e0b",
+      "sparktalk-linux-arm64": "47abee706300d307cc5bdf2689f8546a633d87bcae9822ee5dab01daf6fdb655",
+      "sparktalk-linux-amd64": "8e72007d89f13fb385547c55a1ee5587bc76a4405d2624ee52e1ebc48c82d4e4"
+    }
+  },
+  "live_verification": {
+    "in_progress": true,
+    "first_new_request": "Rejected because one full prose paragraph was empty; did not commit invalid output.",
+    "next_request": "Error-informed retry completed all first-checkpoint paragraphs and committed output.",
+    "first_checkpoint_warnings": [],
+    "first_checkpoint_prose_groups": 19,
+    "first_checkpoint_render_formats": [
+      "txt",
+      "md",
+      "html",
+      "zip"
+    ],
+    "other_task_checkpoint_and_output_records_unchanged": 260,
+    "checked_at": "2026-10-12T16:04:24.363442+09:00",
+    "status": "running",
+    "completed": 2,
+    "total": 30,
+    "calls_including_previous_failures": 8,
+    "current_activity": "reasoning",
+    "current_error": null,
+    "completed_checkpoints": [
+      {
+        "ordinal": 1,
+        "slots": 88,
+        "outputs": 88,
+        "prose_groups": 19,
+        "annotations": 42,
+        "warnings": [],
+        "seconds": 217.855617506,
+        "performance": {
+          "pp": 541.6666666666666,
+          "tg": 49.133512326092266,
+          "ttft": 6.157153751,
+          "ttft_estimated": true,
+          "prompt_tokens": 6955,
+          "cached_tokens": 0,
+          "output_tokens": 10065,
+          "calls": 1
+        },
+        "protocol": "json_schema_paragraphs_v3"
+      },
+      {
+        "ordinal": 2,
+        "slots": 76,
+        "outputs": 76,
+        "prose_groups": 12,
+        "annotations": 39,
+        "warnings": [],
+        "seconds": 218.459518573,
+        "performance": {
+          "pp": 514.7220046985121,
+          "tg": 48.414088344035804,
+          "ttft": 6.080516602,
+          "ttft_estimated": true,
+          "prompt_tokens": 6573,
+          "cached_tokens": 0,
+          "output_tokens": 9952,
+          "calls": 1
+        },
+        "protocol": "json_schema_paragraphs_v3"
+      }
+    ],
+    "completed_prefix_export_verified": 2,
+    "remaining_work": "The original translation task remains running; the whole book is not yet complete."
+  },
+  "evidence_directory": "/home/edp1096/.cache/model-download-jobs/document-structure-20261012",
+  "completion_observed": {
+    "status": "completed",
+    "completed": 30,
+    "total": 30,
+    "display_seconds": 7735,
+    "request_seconds": 7727.598109962,
+    "failed_request_seconds": 1251.918146239,
+    "successful_request_seconds": 6475.679963723,
+    "successful_calls": 28,
+    "post_fix_calls": 29,
+    "post_fix_failed_calls": 1,
+    "post_fix_reasoning_chars": 592299,
+    "post_fix_content_chars": 109168,
+    "translation_chars": 85204,
+    "translation_nonspace_chars": 63467,
+    "completed_at": "2026-10-12T08:43:51.044734733Z",
+    "mean_successful_pp": 599.2890788245116,
+    "mean_successful_tg": 47.72708286540756
+  }
+}

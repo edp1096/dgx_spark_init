@@ -48,7 +48,7 @@ func validateRecipeOptions(c Component) error {
 		if c.ComposeAsset == "compose.flash-next.yaml" && k == "MTP_TOKENS" && v != "0" && v != "3" {
 			return fmt.Errorf("QAD MTP_TOKENS must be 0 or 3")
 		}
-		moeTP1 := c.ComposeAsset == "compose.ornith35.yaml" || c.ComposeAsset == "compose.gemma26.yaml"
+		moeTP1 := c.ComposeAsset == "compose.ornith35.yaml"
 		if k == "DRAFT_VOCAB" && ((!moeTP1 && c.ComposeAsset != "compose.flash-next.yaml") || (v != "off" && v != "ko64k")) {
 			return fmt.Errorf("%s: DRAFT_VOCAB requires a supported model and off or ko64k", c.ID)
 		}

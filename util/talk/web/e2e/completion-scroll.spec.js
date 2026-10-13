@@ -27,6 +27,8 @@ for (const position of ['middle', 'bottom']) {
       await page.locator('textarea').first().press('Enter');
       const pane = page.locator('.messages');
       await expect(pane).toContainText('문단 99:');
+      await expect(pane).toContainText('응답 진행 중');
+      await expect(pane.locator('.response-timing-row')).toContainText('소요');
       await pane.evaluate((el, position) => {
         el.style.scrollBehavior = 'auto';
         el.scrollTop = position === 'middle' ? el.scrollHeight / 2 : el.scrollHeight;
@@ -37,6 +39,8 @@ for (const position of ['middle', 'bottom']) {
       finish();
       await expect(pane.locator('article[data-message-id]:not([data-message-id=""])')).toHaveCount(2);
       await expect(pane.locator('article').last()).toHaveAttribute('data-scroll-test-identity', 'retained');
+      await expect(pane.locator('.response-timing-row')).toContainText('완료');
+      await expect(pane.locator('.response-timing-row time')).toBeVisible();
       await expect.poll(async () => pane.evaluate((el, args) => args.position === 'middle' ? Math.abs(el.scrollTop - args.before) : el.scrollHeight - el.scrollTop - el.clientHeight, { position, before })).toBeLessThan(5);
     } finally {
       finish();

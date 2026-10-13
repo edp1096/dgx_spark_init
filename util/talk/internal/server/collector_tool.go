@@ -8,6 +8,7 @@ import (
 
 	"sparktalk/internal/knowledge"
 	"sparktalk/internal/llm"
+	"sparktalk/internal/sourcebook"
 )
 
 const maxWebCollectTextRunes = 20000
@@ -17,9 +18,10 @@ func webCollectToolDefinition() llm.Tool {
 		"type":"object",
 		"properties":{
 			"url":{"type":"string","description":"Public HTTP(S) page URL to inspect"},
+                "source_id":{"type":"string"},"offset":{"type":"integer","minimum":0},
 			"mode":{"type":"string","enum":["auto","direct","browser"],"description":"Use browser for JavaScript-rendered viewers; otherwise prefer auto"}
 		},
-		"required":["url"],
+
 		"additionalProperties":false
 	}`)
 	return llm.Tool{Type: "function", Function: llm.ToolFunction{
@@ -93,4 +95,57 @@ func compactCollectedPublication(source *knowledge.CollectedPublication) *knowle
 	result.Pages = append([]knowledge.CollectedPublicationPage(nil), source.Pages[:6]...)
 	result.Pages = append(result.Pages, source.Pages[len(source.Pages)-2:]...)
 	return &result
+}
+
+func (s *Server) executeWebCollectSource(ctx context.Context, session string, call llm.ToolCall) (string, error) {
+	if s.db == nil || session == "" {
+		return s.executeWebCollect(ctx, call)
+	}
+	var args struct {
+		URL    string `json:"url"`
+		Mode   string `json:"mode"`
+		Source string `json:"source_id"`
+		Offset int    `json:"offset"`
+	}
+	if err := json.Unmarshal([]byte(call.Function.Arguments), &args); err != nil {
+		return "", err
+	}
+	if args.Source != "" {
+		book, err := s.db.Source(session, args.Source, false)
+		if err != nil {
+			return "", err
+		}
+		return sourcePage(args.Source, book, args.Offset, 12000)
+	}
+	if args.URL == "" || args.Offset != 0 {
+		return "", fmt.Errorf("provide URL once, then source_id and offset")
+	}
+	if args.Mode == "" {
+		args.Mode = "auto"
+	}
+	if args.Mode != "auto" && args.Mode != "direct" && args.Mode != "browser" {
+		return "", fmt.Errorf("invalid collector mode")
+	}
+	collected, err := s.collectSource(ctx, args.URL, args.Mode, false)
+	if err != nil {
+		return "", err
+	}
+	// Collector normalized text preserves rendered content. Its DOM/image reconstruction
+	// is deliberately not claimed: direct HTML snapshots provide structured export.
+	book, err := sourcebook.Parse([]byte(collected.Text), "text/plain", collected.Manifest.FinalURL, nil)
+	if err != nil {
+		return "", err
+	}
+	book.Title = collected.Manifest.Title
+	book.Metadata = map[string]any{"method": collected.Manifest.Method, "content_type": collected.Manifest.ContentType, "links": collected.Links, "publication": compactCollectedPublication(collected.Publication)}
+	if collected.Publication != nil {
+		book.Incomplete = true
+		book.Warnings = append(book.Warnings, "viewer preview only; publication pages have not been collected")
+	}
+	book.Warnings = append(book.Warnings, "Collector rendered-text source; original layout/images are not reconstructed")
+	id, err := s.storeSource(session, book, []byte(collected.Text))
+	if err != nil {
+		return "", err
+	}
+	return sourcePage(id, book, 0, 12000)
 }

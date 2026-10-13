@@ -1,0 +1,727 @@
+{
+  "date": "2026-10-13",
+  "revision": 2,
+  "status": "safe_subset_deployed_semantic_gate_failed",
+  "title": "범용 문서 번역 엔진 교정·검증·적용 상세계획",
+  "objective": "문서 종류와 작품에 관계없이 원문 누락·의미 변형·문맥 단절을 줄이고, 검수하지 않았거나 해결하지 못한 결과를 정상 완료로 숨기지 않는다. 품질을 통과한 구성 중 총소요시간과 메모리 조건에 맞는 구성을 선택한다.",
+  "baseline": "docs/schoolgirl-translation-audit-20261013.json",
+  "known_baseline": {
+    "model": "EXL3 3bit",
+    "effort": "low",
+    "protocol": "v6",
+    "elapsed_seconds": 648,
+    "calls": 5,
+    "checkpoints": 14,
+    "source_chars_without_ruby": 31632,
+    "pp_weighted": 765.49,
+    "tg_weighted": 42.97,
+    "first_paragraph_source_chars": 675,
+    "first_paragraph_output_chars": 108,
+    "findings": 26,
+    "large_omissions": 1,
+    "major_findings": 22,
+    "original_full_run_peak_memory": "not recorded"
+  },
+  "scope": {
+    "common": [
+      "원문 스냅샷과 출처 좌표",
+      "분할·예산·체크포인트",
+      "작업 지시의 출처",
+      "시도 기록·취소·재개",
+      "개정판 발행",
+      "파일 변환과 진행 UI"
+    ],
+    "translation_specific": [
+      "원문 의미의 보존과 누락 검수",
+      "인물·대상·용어의 일관성",
+      "선별 교정과 재검수"
+    ],
+    "supported_inputs": [
+      "TXT",
+      "HTML/XHTML",
+      "EPUB",
+      "HTML ZIP",
+      "기존 추출기가 지원하는 텍스트 PDF"
+    ],
+    "supported_outputs": [
+      "TXT",
+      "MD",
+      "HTML",
+      "ZIP",
+      "PDF",
+      "DOCX",
+      "HWP",
+      "HWPX"
+    ],
+    "preservation": [
+      "문단·대화·시·목록·표·코드·각주·링크·앵커",
+      "일반 삽화와 캡션",
+      "명시된 사용자 문체·범위·언어·용어",
+      "이미 완료된 원본 결과와 다운로드"
+    ],
+    "exclusions": [
+      "새 OCR 시스템",
+      "그림 속 글자의 자동 번역",
+      "작품별 오역 치환 사전",
+      "번역 API 도입",
+      "승인되지 않은 모델 다운로드"
+    ],
+    "quality_scope": "첫 검증은 일본어→한국어와 영어→한국어. 다른 언어의 동작 가능성과 검증 완료는 구분한다. 간헐적인 문자 혼입 자체는 이번 의미 품질 탈락 사유로 삼지 않지만, 저장된 글자가 파일 변환에서 사라지는 현상은 별도 출력 결함으로 검사한다.",
+    "other_tasks": "요약·비교에도 공통 저장/분할/출력 개선은 적용하되, 원문 전체 번역의 길이·내용 보존 기준을 적용하지 않는다."
+  },
+  "evidence_and_hypotheses": [
+    {
+      "id": "E1",
+      "state": "confirmed",
+      "evidence": "675자 원문이 108자로 잘렸지만 12.5% 미만만 검사하는 조건을 통과했다. ID와 출력 존재 여부도 모두 통과했다.",
+      "code": "internal/server/document_quality.go:shortDocumentOutputs",
+      "action": "구조적 포함과 의미적 누락 검사를 분리한다. 글자 수 비율을 높이는 것만으로 해결하지 않는다."
+    },
+    {
+      "id": "E2",
+      "state": "confirmed",
+      "evidence": "도구의 instructions가 그대로 User instructions로 전달된다. 감사 사례에서는 사용자가 주지 않은 잘못된 이름 표기가 여기에 들어갔다.",
+      "code": "internal/server/document_tasks.go:registerDocumentTasks/startDocument; document_worker.go:requestDocumentUnit",
+      "action": "서버가 실제 사용자 메시지와 지정 조건을 연결하고, 모델이 생성한 전달문은 비권위 참고로 구분한다."
+    },
+    {
+      "id": "E3",
+      "state": "confirmed_gap_causality_not_isolated",
+      "evidence": "이전 번역은 800자만 전달하고, 학습 이름은 사람/장소/조직만 저장한다. repair 요청에서는 이전 문맥을 빈 문자열로 만든다. 장거리 대상 혼동은 실제 결과에서 확인됐지만 원인별 기여도는 아직 분리하지 않았다.",
+      "code": "internal/server/document_batch.go:documentContextTail; document_worker.go:updateDocumentGlossary/requestDocumentUnit",
+      "action": "원문 주변 문맥과 출처가 있는 대상 기록을 전달하고, 각 요소의 효과를 따로 비교한다."
+    },
+    {
+      "id": "E4",
+      "state": "confirmed",
+      "evidence": "표준 문자 코드가 있는 문자 이미지를 일반 삽화로 처리했다.",
+      "code": "internal/sourcebook/html.go",
+      "action": "명시적 문자 코드의 결정적 해석을 형식 파서에 추가한다. 이미지 모양을 추측하지 않는다."
+    },
+    {
+      "id": "E5",
+      "state": "confirmed",
+      "evidence": "SaveDocumentRepair는 재처리 시작 시 workflow_outputs를 삭제한다. 출력 저장도 파일별이다.",
+      "code": "internal/db/document_runs.go:SaveDocumentRepair/SaveDocumentOutput",
+      "action": "기존 개정판은 유지하고 새 run에 교정 결과와 파일을 준비한 뒤 발행한다."
+    },
+    {
+      "id": "E6",
+      "state": "unproven",
+      "evidence": "한 번의 같은 설정 재실행에서는 누락이 사라졌으나 어휘 오역은 남았다. 모델 양자화·샘플러·스키마·문맥 각각의 책임은 이 자료만으로 확정할 수 없다.",
+      "action": "동일 조건 대조와 원인 분리 시험을 수행하며, EXL3 3bit 자체가 원인이라고 단정하지 않는다."
+    }
+  ],
+  "generalization_policy": {
+    "production_rules": [
+      "작품명·장 번호·특정 문단 ID·감사에서 발견한 단어를 조건으로 번역을 바꾸지 않는다.",
+      "오뎅→단무지, 까마귀→개 이름 등의 전역 치환을 넣지 않는다.",
+      "대상 정보와 표기는 현재 문서의 근거 또는 실제 사용자 지정에서 얻는다. 평가 정답은 모델 입력과 운영 용어표에 들어가지 않는다.",
+      "Unicode/JIS처럼 명시된 문자 코드의 형식 해석은 허용한다. 사이트별 문학 번역 규칙과 구분한다.",
+      "공통 로직 검사는 실제로 오뎅·까마귀·한복을 가리키는 정상 사례도 포함한다."
+    ],
+    "partitions": [
+      {
+        "name": "development",
+        "contents": "여학생·사양·인간실격·이미 감사한 셜록 홈즈를 포함해 결함 발견 또는 수정에 사용한 모든 작품",
+        "purpose": "재현, 구현, 회귀검사"
+      },
+      {
+        "name": "selection",
+        "contents": "개발 작품과 별개인 최소 4개 문서. 일본어 소설·일본어 비문학·영어 소설·영어 비문학 각 1개 이상.",
+        "purpose": "프롬프트·경고 기준·번역/검수 프로필 선택",
+        "sampling": "각 문서에서 1,500~3,000자 내외의 자연스러운 문단 묶음 2개 이상. 별도로 장거리 대상 재등장 사례 4개 이상. 원문에 따라 길이를 조정하되 최종 평가 결과를 보고 바꾸지 않는다."
+      },
+      {
+        "name": "final",
+        "contents": "개발 및 선택과 별개인 최소 4개 완결 문서. 위 4개 언어/장르 조합을 모두 포함.",
+        "purpose": "최종 통과 판정",
+        "long_documents": "일본어와 영어에서 각각 최소 1개를 전권/전체 문서로 수행한다. 장문은 원문 30,000자 이상이며 여러 번역 배치를 거치는 자연 문서로 선택한다. 잘라 붙인 반복 입력은 사용하지 않는다."
+      }
+    ],
+    "freeze": "P0에서 실제 제목·URL/로컬 경로·판본·해시·전체 범위·선정 이유·검수 기준을 manifest로 확정한다. 지금은 선정 기준만 확정된 상태이며 별도 최종 자료가 확보됐다고 주장하지 않는다.",
+    "split_rules": [
+      "문단 무작위 분리가 아니라 작품 전체로 분리한다. 같은 작품의 다른 사이트·판본·파일 형식은 같은 분할에 둔다.",
+      "최종 자료의 결과를 보고 조정하면 그 자료를 개발 자료로 편입하고 새 최종 문서를 확보한다.",
+      "동일 작품의 TXT/HTML/PDF는 형식 회귀검사에는 사용하지만 독립 번역 표본으로 부풀리지 않는다.",
+      "일본어/영어, 소설/비문학, 문서별 결과를 각각 공개한다."
+    ],
+    "evaluator": "모델 이름과 설정을 가린 출력에 대해 원문 근거와 허용 가능한 번역 범위를 기준으로 대조 감사한다. 후보 모델 자신의 무오류 선언이나 검수 모델 간 동의만으로 정답을 확정하지 않는다. 애매한 해석은 별도 분류한다."
+  },
+  "architecture": {
+    "flow": "사용자 요청 고정 → 원문/구조 저장 → 번역 단위와 예산 구성 → 배치 번역 → 구조 검사 → 원문 대조 검수 → 필요한 문단만 교정/재검수 → 문서 전체 대상 일관성 확인 → 같은 개정판의 파일 변환 → 발행",
+    "scheduling": [
+      "우선 한 개의 선택된 모델을 상주시켜 번역·검수·교정을 순차 수행한다. 문단마다 모델을 교체하거나 별도 대형 검수 모델을 동시에 올리지 않는다.",
+      "번역 1개 배치가 구조 검사를 통과하면 해당 배치를 검수하고 필요한 교정을 마친 뒤 다음 배치로 간다. 검수를 통과한 앞부분만 이후 번역 참고로 사용한다.",
+      "한 문단의 미해결 문제 때문에 다른 원문 전체를 재번역하지 않는다. 해당 출력은 검토 필요로 보존하고, 뒤에서는 그 잘못된 번역 대신 원문 문맥을 사용한다.",
+      "문서 말미에 대상/용어 충돌과 검수 무효화 항목만 정리한다. 전체 원문을 매 요청마다 재전송하지 않는다.",
+      "GPU 모델 요청은 문서 워커 내 1개씩 수행한다. 서버의 작업 슬롯과 사용자 작업 감지를 유지한다. 벤치마크는 사용자 작업이 시작되면 중단한다."
+    ],
+    "context": {
+      "source_window": "초기 후보는 대상 문단 전후 1~2개 원문 문단. 원문의 대화/인용이 이어지면 경계를 확장하되 토큰 상한 안에서 조정한다.",
+      "target_window": "바로 앞의 검수된 번역 1~2개 문단만 참고로 전달한다. 원문보다 높은 권위를 주지 않는다.",
+      "entities": "현재 원문과 인접 원문에 나타나거나 명확히 연결되는 대상만 선택한다. 동명이인·동음이의어를 문자열 일치만으로 합치지 않는다.",
+      "initial_context_budget": "원문 주변·이전 번역·대상 기록 합계 2,048토큰을 초기 선택 후보로 잡는다. 대조 시험에서 필요한 경우 4,096토큰 후보를 검증한다. 단일 문서에 맞춰 고정하지 않는다.",
+      "distinction": "번역 대상 ID와 읽기 전용 문맥 ID를 분리한다. 문맥을 결과에 다시 출력하거나 분량 계산에 중복 반영하지 않는다.",
+      "no_book_summary_dependency": "모델이 만든 전체 줄거리 요약을 사실의 기준으로 사용하지 않는다."
+    },
+    "budgets": {
+      "formula": "전체 입력(지시+스키마+원문+문맥+대상 기록) + 추론 예약 + 번역/검수 출력 예약 + 안전 여유 <= 실제 컨텍스트 용량. 출력 예약은 서버의 실제 최대 출력 안에도 들어야 한다.",
+      "token_counting": "백엔드 토크나이저가 가능하면 실제 수를 사용하고, 아니면 언어별 관측 오차를 포함한 보수 추정을 사용한다. 응답 usage와 오차를 기록한다.",
+      "initial_batching": "현재 상한 4개 체크포인트/9,000자/128개 wire entry를 초기 기준으로 보존하되, 마지막 판단은 전체 토큰 예산으로 한다. 크기를 늘리는 실험은 품질 통과 뒤에 한다.",
+      "review_batches": "원문+번역문을 함께 넣기 때문에 번역 배치를 그대로 가정하지 않고 별도 예산으로 묶는다. 명시적 검수 대상 목록과 결과 목록을 일치시킨다.",
+      "overflows": "문단 또는 문장/대화 경계에서 축소하고 초과 원문을 자르지 않는다. 보호된 코드/표/링크를 안전하게 나눌 수 없으면 사유를 남겨 검토 필요로 둔다.",
+      "concurrency": 1,
+      "quality_repairs_per_unit_per_revision": 2,
+      "retry_accounting": "통신 재시도·형식 실패·의미 교정을 구분한다. 분할된 하위 단위도 원래 단위의 교정 횟수와 예산을 상속한다.",
+      "ceilings": "기존 작업 총시간/호출/출력토큰 상한 안에서 검수와 교정 비용도 계산한다. 예산이 끝나면 체크포인트를 보존하고 일시정지한다. 검수를 생략하고 완료 처리하지 않는다."
+    },
+    "source_mapping": {
+      "immutable": "원본 bytes, 원본 hash, source ID/block/offset, 원본 구조와 자산",
+      "derived": "별도 version/hash를 가진 번역용 정규화 뷰와 raw↔normalized span map",
+      "layout": "일반 HTML 편집 개행은 정규화하되 문단/명시적 br/시/코드의 줄과 들여쓰기는 보존한다. 링크·강조·각주 범위는 출력 스코프로 유지한다.",
+      "gaiji": "명시적이고 검증 가능한 Unicode/JIS 코드만 문자로 디코딩한다. 코드가 없거나 충돌하면 원래 자산과 근거를 유지하고 미해결을 표시한다.",
+      "old_data": "기존 소스 좌표와 ID를 덮어쓰지 않는다. 변환이 비호환이면 새 파생 버전/작업 개정판을 만들고 원본 연결을 보존한다."
+    },
+    "instructions": {
+      "authoritative": "서버가 저장된 사용자 메시지 ID/해시와 실제 문체·언어·범위·용어 지정을 연결한다. 앞선 사용자 지정이 필요한 경우 해당 메시지를 명시적으로 참조한다.",
+      "tool_hints": "대화 모델의 instructions와 자동 추출 용어는 별도 참고 필드로 저장한다. 도구가 user 권위를 스스로 선언할 수 없다.",
+      "glossary": "단순히 target 문자열이 사용자 메시지에 들어 있다는 것만으로 지정 용어로 인정하지 않는다. 출처 메시지와 원문 표현/대상 표기 관계를 보존한다.",
+      "uncertain": "근거가 없는 새 이름 표기나 범위 축소는 사용자 제약으로 승격하지 않는다. 문체 해석이 모호해도 원문 전체 보존 기본값은 유지한다.",
+      "legacy": "기존 완료 작업의 잘못된 instructions를 조용히 수정하지 않는다. 재검수/개정판에서 실제 사용자 요청을 복원하고 변경 내역을 남긴다."
+    },
+    "entity_records": {
+      "fields": [
+        "entity_id",
+        "source forms/aliases",
+        "type(person/animal/place/organization/work/term/unknown)",
+        "source evidence spans",
+        "relations with evidence",
+        "target spelling",
+        "origin(user/source/model_candidate)",
+        "state/provenance",
+        "version",
+        "occurrences/dependencies"
+      ],
+      "validation": "모델이 제안한 이름/관계는 후보로 저장한다. source span 존재는 코드로 검사하고 의미 연결은 검수 대상으로 둔다. 반복됐다는 이유로 참이 되지 않는다.",
+      "coverage": "용어 제안 목록만 믿지 않는다. 원문 대조 검수도 새 대상과 충돌을 보고할 수 있고, 서지의 제목/저자/출판사/날짜는 별도 보존 대상이다.",
+      "invalidation": "대상 표기/관계가 바뀌면 그 version을 사용한 검수와 직접 관련된 출현 문단을 stale로 표시한다. 무관한 문단은 유지한다.",
+      "cap": "저장된 전체 기록과 모델에 보내는 관련 기록을 구분한다. 한도 초과 기록을 조용히 버리거나 책 전체 용어표를 매번 보내지 않는다."
+    },
+    "review": {
+      "structural": [
+        "source span 할당 누락/중복",
+        "JSON/schema/ID 무결성",
+        "출력 중단/불완전 스트림",
+        "보호된 링크·각주·코드·숫자 구조",
+        "문단/줄바꿈/앵커/이미지 참조"
+      ],
+      "heuristic": "길이 비율, 갑작스러운 종결, 숫자·단위·부정·대상 충돌은 검수 우선순위 신호다. 이 신호가 없다고 의미 검수를 생략하거나, 신호만으로 오역을 확정하지 않는다.",
+      "semantic": "포함 대상으로 정한 모든 본문/제목/캡션/각주/서지를 원문과 대조한다. 누락, 중복, 없는 내용 추가, 주체/대상/부정/정도/시간의 변화, 어휘/관용표현, 이름/문화 대상/서지를 검사한다.",
+      "response": {
+        "reviewed": "명시적 unit/span 목록. 요청 목록과 일치해야 한다.",
+        "findings": [
+          "issue_id",
+          "category",
+          "severity",
+          "source span와 짧은 원문 인용",
+          "target span와 인용 또는 omission 위치",
+          "원문 대비 차이 설명",
+          "ambiguous 여부"
+        ],
+        "excluded": "정상 문단의 전체 재번역, 장문의 감상, 스스로 매긴 확신 점수"
+      },
+      "mechanical_checks": "source/target 참조와 인용이 해당 개정판에 실제 존재하는지, 검수 대상이 모두 반환됐는지 확인한다. 이 검사는 의미 판단의 정확성을 보증하지 않는다.",
+      "classification": "구조적으로 증명되는 결함은 바로 재처리한다. 의미 지적은 근거가 확인된 지적과 애매한 지적을 나눈다. 애매한 문장은 임의로 고치지 않고 검토 필요로 남긴다.",
+      "repair_check": "교정 후 원문과 수정문을 다시 대조한다. 이전 검수의 결론을 그대로 따라 쓰게 하지 않고 수정 대상 외 의미도 보존됐는지 확인한다.",
+      "same_model_limit": "같은 모델의 별도 검수 호출도 같은 오역을 공유할 수 있다. 검수기의 실제 누락/오경보가 기준을 넘으면 자동 교정 완료 기능을 통과시키지 않는다."
+    },
+    "correction": [
+      "변경 단위는 오류가 있는 원문 문단 또는 보호된 의미 범위다. 문자열 바꾸기가 아니라 해당 원문을 다시 번역한다.",
+      "원문·현재 번역·근거 있는 지적·주변 원문·관련 대상 기록을 제공한다.",
+      "기존 정상이던 구간은 그대로 두고 hash를 비교한다. 바뀐 문단과 접합부 및 의존 대상만 재검수한다.",
+      "반복되는 같은 오류·교정 사이의 왕복·새 오류가 나타나면 횟수 상한 안에서도 중지할 수 있다.",
+      "번역/검수/교정 프로필은 따로 고정하고 기록한다. medium 사용은 시험에서 도움이 입증된 단계에만 적용한다.",
+      "두 번의 추가 교정 뒤 미해결이면 needs_review로 종료한다. 억지로 정상 완료시키지 않는다."
+    ],
+    "states": {
+      "execution": [
+        "queued",
+        "running",
+        "paused",
+        "waiting_model",
+        "canceled",
+        "finished",
+        "failed"
+      ],
+      "phase": [
+        "prepare",
+        "translate",
+        "review",
+        "repair",
+        "final_check",
+        "export",
+        "done"
+      ],
+      "quality": [
+        "unreviewed",
+        "pending",
+        "reviewed",
+        "needs_review",
+        "stale"
+      ],
+      "quality_gate": "모든 포함 단위의 현재 output hash에 대한 검수가 유효하고 미해결 중대 지적이 없어야 일반 완료가 가능하다. reviewed는 자동 검수 절차 완료이며 완벽한 번역 보증이 아니다.",
+      "existing_status": "외부의 기존 run.status는 유지하면서 내부 phase/quality와 매핑한다. 종료 여부를 current>=2 같은 단계 번호나 completed 개수만으로 추론하지 않도록 한다.",
+      "canceled": "취소 시 원문·완료 단위·검수 기록·사용량을 보존한다. 취소/이전 시도의 늦은 응답은 attempt token과 예상 revision/hash 비교로 반영을 차단한다."
+    }
+  },
+  "persistence_plan": {
+    "reuse": "workflow_runs, workflow_units, workflow_outputs와 기존 Parent/Revision 구조를 재사용한다. 확정된 개정판은 불변으로 보고 교정은 child run으로 만든다.",
+    "task_json": [
+      "TaskSpec(실제 사용자 요청 참조/조건/도구 참고)",
+      "PipelineVersion/SourceViewVersion",
+      "ProfileSnapshot(번역/검수/교정)",
+      "Phase/QualityStatus",
+      "PublishedManifest",
+      "누적 시간/사용량과 단계별 집계"
+    ],
+    "unit_json": [
+      "안정된 원문 범위와 문맥 참조",
+      "현재 output hash/version",
+      "review 상태/참조",
+      "quality repair 횟수와 원래 unit 연결",
+      "entity/context dependency versions"
+    ],
+    "additive_tables": [
+      {
+        "name": "document_attempts",
+        "key": "(run_id, attempt_id)",
+        "purpose": "배치 요청 1회당 실제 프로필/입력 해시/대상 units/usage/timing/error/raw response 한 번 저장. 공유 배치 비용 중복 집계 방지."
+      },
+      {
+        "name": "document_reviews",
+        "key": "(run_id, review_id)",
+        "purpose": "검수 대상 source/output hash, 대상 목록, 지적과 처리 상태, 검수 프로필, 재검수/무효화 관계 저장."
+      },
+      {
+        "name": "document_entities",
+        "key": "(run_id, entity_id, version)",
+        "purpose": "출처가 있는 대상·용어 기록과 변경 이력 저장. 입력 원문은 중복 복사하지 않고 참조."
+      }
+    ],
+    "transactions": [
+      "번역/검수 결과, attempt 기록, 대상 변경, 진행률을 하나의 트랜잭션으로 반영한다.",
+      "저장 조건에 expected unit/output version과 활성 attempt를 포함해 취소/재개/중복 응답의 덮어쓰기를 막는다.",
+      "새 개정판 파일은 비공개 staging 상태에서 생성한다. 기본 TXT/MD/HTML/ZIP과 요청된 리치 형식이 같은 텍스트 revision/hash를 사용하는지 확인한 뒤 published manifest를 한 번에 바꾼다.",
+      "대용량 파일 변환 중 DB 쓰기 트랜잭션을 잡고 있지 않는다. 검증과 발행 트랜잭션을 분리한다."
+    ],
+    "outputs": "기존 개정판 URL은 유지한다. 최신 다운로드 링크만 발행된 개정판을 가리킨다. 변환 실패 시 새 번역은 보존하고 변환 단계만 재시도한다. 이전 PDF를 새 TXT 옆에 같은 결과인 것처럼 섞지 않는다.",
+    "storage": "새 테이블과 staging/개정판 파일을 기존 세션/전체 저장 한도 계산에 포함한다. source/asset는 재사용하고 실패한 staging 정리 기준을 둔다. 게시된 과거 결과는 자동 삭제하지 않는다.",
+    "compatibility": "기존 데이터의 review 상태는 legacy_unreviewed로 해석한다. 자동으로 검수 통과 기록을 만들지 않는다. 진행 중 구버전 작업은 기존 프로토콜로 마치거나 멈춘 뒤 명시적 새 개정판으로 전환한다.",
+    "rollback": "스키마 변경은 우선 additive로 제한한다. 이전 바이너리가 새 pipeline run을 실행하지 못하도록 버전 검사 또는 배포 전 해당 run 정지를 보장한다. 실제 downgrade 시험 전까지 바이너리 교체만으로 안전한 rollback이라고 주장하지 않는다."
+  },
+  "validation_design": {
+    "error_taxonomy": {
+      "critical": "문단/문장군 대량 누락·중복, 다른 원문 번역, 작업 범위 임의 축소 등 결과 사용을 훼손하는 결함",
+      "major": "주체/대상/부정/시간/핵심 어휘/이름/수치/문화 대상/서지의 의미 변화 또는 실질적 내용 추가·누락",
+      "minor": "뜻은 유지되나 어색한 표현 또는 경미한 문체 불일치",
+      "uncertain": "문맥상 복수 해석이 가능해 명백한 오류로 확정할 수 없는 사례"
+    },
+    "reviewer_calibration": {
+      "faults": "최소 80개 원문-번역 쌍. 누락·중복·첨가·주체/대상·부정/방향·수치/단위·이름/장거리 대상·어휘/서지의 8종을 각 10개 이상. 일본어와 영어에 분산하고 자연 발생 오류와 인위적 오류를 구분한다.",
+      "valid_controls": "최소 80개 정상 쌍. 의역·문장 합치기/순서 변경·짧지만 완전한 번역·은유·고유명사와 보통명사 충돌·모호한 표현을 포함한다.",
+      "metrics": [
+        "중대 오류 검출 수/전체 수",
+        "정상 문단 오경보 수/전체 수",
+        "실제 교정 뒤 해결 수",
+        "교정으로 새로 만든 오류 수",
+        "invalid/누락 review 응답 수",
+        "검수 및 교정 토큰·시간"
+      ],
+      "provisional_gate": "고정된 critical/major 통제 사례는 모두 검출하거나 미해결로 식별해야 한다. 정상 사례 오경보율 목표 <=5%, 정상 사례를 자동 수정해 새 중대 오류를 만드는 경우 0. 표본 안의 결과이며 보편적인 검출률 보장은 아니다.",
+      "no_fake_pass": "어떤 문장이든 검토 필요로 보내서 검출률만 높이는 방식은 오경보/미해결률에서 탈락시킨다."
+    },
+    "model_trials": [
+      {
+        "step": "T0",
+        "purpose": "기존 값 재현과 원인 구분",
+        "conditions": "저장된 기존 응답 replay를 먼저 수행한다. 같은 EXL3 3bit/원문/샘플러에서 기존 지시와 수정 지시, 주변 원문, 대상 기록 효과를 순차 대조한다. 상호작용이 의심되는 항목만 조합 대조한다."
+      },
+      {
+        "step": "T1",
+        "purpose": "스키마 영향 진단",
+        "conditions": "대표 배치에서 같은 조건의 schema on/off 비교. off는 검사 없는 운영 후보가 아니라 진단용이다. 차이가 재현될 때만 schema 또는 speculative decode를 추가 분리한다."
+      },
+      {
+        "step": "T2",
+        "purpose": "EXL3 3bit 번역 프로필",
+        "conditions": "low/medium × temperature 0.7/0.2의 4조건. 기타 sampler/seed 가능 여부/출력 상한을 고정한다. 대표 오류·정상·장거리 사례는 최소 3회 반복한다."
+      },
+      {
+        "step": "T3",
+        "purpose": "검수·교정 프로필 독립 선정",
+        "conditions": "번역 결과를 고정한 상태에서 low/medium 검수를 비교한다. 성공한 검수기로 교정 효율과 새 오류를 검사한다. 번역을 medium으로 올리는 것과 검수만 medium으로 하는 비용/효과를 분리한다."
+      },
+      {
+        "step": "T4",
+        "purpose": "모델/운영 구성 비교",
+        "conditions": "선정한 소수 프로필을 캐시의 EXL3 4bit 및 일반 RadixArk NVFP4에서 같은 원문으로 수행한다. QAD는 제외한다. EXL3 3bit와 일반 NVFP4의 비교는 필수로 남긴다."
+      },
+      {
+        "step": "T5",
+        "purpose": "장문 전체와 실제 운영",
+        "conditions": "품질 후보의 전체 파이프라인을 독립 최종 문서에 적용한다. EXL3 3bit와 NVFP4가 단문 품질 관문을 통과하면 같은 일본어/영어 장문을 각각 끝까지 측정한다. 앞 단계에서 명확히 탈락한 구성은 무의미한 전권 재실행 대신 탈락 근거를 기록한다."
+      }
+    ],
+    "comparisons": {
+      "constant": [
+        "동일 원문/범위/구조",
+        "같은 pipeline과 평가 기준",
+        "해당 대조에서 고정해야 하는 context/배치/샘플러",
+        "검수·교정 포함 여부",
+        "상주 보조 서비스 조건"
+      ],
+      "record": [
+        "모델 저장소/리비전/hash/양자화",
+        "서빙엔진 버전과 패치",
+        "실제 context/KV dtype",
+        "MTP/speculative 설정",
+        "temperature/top_p/top_k/seed",
+        "effort와 실제 native reasoning cap 지원",
+        "max output",
+        "prompt와 schema 버전",
+        "실제 캐시 적중",
+        "거절/재시도/미해결"
+      ],
+      "causal_limit": "동일 백엔드·원본 리비전·KV·추론 제한을 맞출 수 없는 비교는 순수 양자화 효과가 아니라 운영 구성 비교로 명시한다. seed가 같아도 엔진 간 동일 난수를 보장한다고 주장하지 않는다.",
+      "caching": "콜드/웜 프롬프트 캐시와 모델/JIT 준비 시간을 구분한다. 실제 미캐시 토큰 수가 다른 PP 수치를 단순 비교하지 않는다.",
+      "model_policy": "품질 통과 → 실제 세트 메모리 통과 → 총소요시간 순으로 선택한다. 모두 실패하면 추천 모델을 억지로 정하지 않는다.",
+      "no_global_default_change": "번역 프로필은 document task에만 적용한다. 일반 대화의 reasoning 기본값을 실험 때문에 바꾸지 않는다."
+    },
+    "performance": {
+      "clock": "요청 수락→원문 확보/준비→대기→번역→검수→교정→변환→발행까지 wall time을 기록한다. 모델 구동/컴파일은 별도로도 표시하고 실제 사용자 대기에 포함되면 총시간에도 반영한다.",
+      "throughput": "단계별 원문량/출력량/프롬프트·캐시·추론·응답 토큰/PP/TG/TTFT/요청수/재시도수. 엔진이 추론 토큰을 별도로 주지 않으면 추정 또는 분리 불가로 표기한다.",
+      "aggregation": "PP/TG는 토큰합/시간합으로 집계하고 요청별 속도의 단순 평균을 쓰지 않는다. p50/p95는 충분한 요청 표본이 있을 때만 표시한다.",
+      "target": "현재 648초였던 약 3.2만자 작업에서 검수·교정·발행 포함 20분 이내를 목표로 둔다. 독립 최종 문서에도 원문량과 토큰량별 총시간/기존 대비 증가율을 공개한다. 여학생 시간만으로 성능 통과를 정하지 않는다.",
+      "optimization_order": [
+        "정상 문단을 검수 출력에 다시 쓰지 않기",
+        "검수 배치와 출력 예산 조정",
+        "중복 지시/불필요한 문맥 제거",
+        "틀린 문단만 교정",
+        "품질을 통과한 단계의 낮은 추론 설정 선택"
+      ],
+      "unacceptable_shortcuts": [
+        "전문 검수를 일부 샘플 검수로 몰래 대체",
+        "출력/추론을 잘라 정상 종료로 취급",
+        "정상 원문을 요약",
+        "품질 탈락 구성의 속도만으로 추천"
+      ]
+    },
+    "memory": {
+      "interval": "0.5~1초 간격, 모델 적재 전/후·번역·검수·교정·출력·작업 후 안정 상태",
+      "metrics": [
+        "시스템 MemAvailable/MemFree와 최저치",
+        "swap 사용량과 pswpin/pswpout 증가량",
+        "memory PSI",
+        "프로세스 RSS/PSS",
+        "cgroup memory.current/peak",
+        "엔진이 제공하는 GPU/통합메모리 할당",
+        "KV 설정",
+        "동시에 상주한 이미지/ASR/TTS/embedding/Extra 목록"
+      ],
+      "comparison_modes": [
+        "보조 서비스 조건을 통일한 모델 비교",
+        "각 Talk 세트의 실제 상주 구성에서 수행한 운영 검증"
+      ],
+      "gates": "기동과 생성 모두 OOM 없음, 설정된 최소 가용 여유 준수, 작업 때문에 지속적인 swap-out/압박이 발생하지 않음. 기존 swap 잔량만 보고 탈락시키거나 cgroup 수치를 모델 전체 통합메모리 점유로 부르지 않는다.",
+      "limits": "짧은 재실행의 피크로 전권 피크를 대체하지 않는다. 프로세스들 사이의 공유 페이지와 GPU 메모리를 이중 합산하지 않는다."
+    },
+    "formats": {
+      "sources": "아오조라·구텐베르크·위키문헌 계열 구조와 사이트에 무관한 동일 구조 fixture를 사용한다. 실제 외부 자료는 P0에서 확보/고정하며 네트워크 장애를 번역 품질과 구분한다.",
+      "cases": [
+        "본문/제목/목록/인용",
+        "ruby/주석/각주/서지",
+        "링크/강조/앵커",
+        "명시적 br/시/코드/들여쓰기",
+        "표/숫자/단위",
+        "진짜 삽화/문자 이미지",
+        "긴 단일 문단/빈 문단/혼합 문자"
+      ],
+      "outputs": "각 형식에서 텍스트·순서·숫자·이름·문장부호·링크·이미지 위치를 확인한다. 레이아웃만 다른 비교와 실제 문자 손실을 분리한다. PDF는 추출 텍스트와 화면 표본을 함께 본다.",
+      "font_policy": "기존 글꼴의 실제 coverage를 확인하고 누락된 문자군은 사용 가능한 적절한 fallback으로 해결한다. 원문/번역문에 없는 새 글자를 만들어 보정하지 않는다.",
+      "asset_policy": "일반 삽화는 그대로 보존하고 캡션만 지정 범위에 따라 번역한다. 새 OCR은 포함하지 않는다."
+    },
+    "durability_tests": [
+      "번역/검수/교정/변환 각 단계에서 취소·프로세스 중단·재시작",
+      "동일 tool call 또는 resume 중복, 늦은 응답, 배치 일부만 정상",
+      "검수 응답의 누락 ID/잘못된 인용/허위 source 참조",
+      "교정 횟수 분할 우회 및 대상 변경에 따른 stale 검수",
+      "파일 변환 422/timeout/저장 한도 초과, staging 실패",
+      "기존 개정판 다운로드와 새 개정판 원자 발행",
+      "실제 사용자 지정 유지 및 모델이 발명한 사용자 제약 차단",
+      "요약/비교 회귀 및 구버전 completed/needs_review 표시"
+    ]
+  },
+  "phases": [
+    {
+      "id": "P0",
+      "name": "재현·평가 기준 고정",
+      "depends": [],
+      "actions": [
+        "기존 감사와 요청/응답/hash/settings를 fixture로 고정한다.",
+        "개발/선정/최종 작품을 선정하고 manifest와 source-grounded 판정 기준을 고정한다.",
+        "서버 출력 replay와 메모리/시간 계측을 테스트 복사본에서 준비한다."
+      ],
+      "gate": "결함 재현, 작품 단위 분리, 평가 지표와 표본이 모델 비교 전에 확정됨."
+    },
+    {
+      "id": "P1",
+      "name": "원문·지시·문맥의 확정 결함 수정",
+      "depends": [
+        "P0"
+      ],
+      "files": [
+        "internal/sourcebook/{book,html,translation}.go",
+        "internal/server/{document_tasks,document_wire,document_batch,document_partial,document_worker}.go"
+      ],
+      "actions": [
+        "사용자 요청 출처와 모델 전달 지시를 분리한다.",
+        "문자 이미지와 원문 정규화 뷰의 좌표를 보존한다.",
+        "문단/보호 범위를 유지하며 원문 이웃과 검수된 이전 번역을 구성한다.",
+        "repair의 이전 문맥 삭제를 없애고 예산 내 같은 문맥 구성기를 사용한다."
+      ],
+      "gate": "원문 범위 손실/중복 0, 사용자 지정/일반 삽화/기존 줄바꿈 보존, 재시도에도 문맥 유지."
+    },
+    {
+      "id": "P2",
+      "name": "검수 가능성 선행 검증",
+      "depends": [
+        "P0",
+        "P1"
+      ],
+      "files": [
+        "internal/server/document_quality.go",
+        "새 document_review.go 및 offline/live 평가 fixture"
+      ],
+      "actions": [
+        "전체 문단 검수 스키마와 근거 참조 검사를 구현한다.",
+        "최소 80개 오류/80개 정상 사례로 검출·오경보·교정 부작용을 측정한다.",
+        "문맥과 대상 기록의 효과를 분리하고 low/medium 검수 프로필을 선정한다."
+      ],
+      "gate": "검수의 정확도와 비용이 기준에 도달함. 실패하면 P3 이후 자동 완료 통합 전에 원인을 다시 분리하고 후보 설정/모델을 조정함."
+    },
+    {
+      "id": "P3",
+      "name": "저장·대상 기록·개정판 구조",
+      "depends": [
+        "P2"
+      ],
+      "files": [
+        "internal/workflows/document.go",
+        "internal/db/{sources,document_runs,document_storage}.go",
+        "새 attempt/review/entity 저장 파일"
+      ],
+      "actions": [
+        "새 상태/프로필/의존 버전과 additive tables를 구현한다.",
+        "배치당 사용량을 한 번만 저장하고 취소/늦은 응답을 방어한다.",
+        "완료 결과를 유지하는 child revision과 발행 manifest를 추가한다.",
+        "모든 새 저장 데이터를 기존 용량 제한에 포함한다."
+      ],
+      "gate": "DB 복사본에서 migration, 취소/재개, 원자 저장, 개정판 다운로드, quota/rollback 시험 통과."
+    },
+    {
+      "id": "P4",
+      "name": "전체 검수·선별 교정 통합",
+      "depends": [
+        "P3"
+      ],
+      "files": [
+        "internal/server/{document_worker,document_quality,document_partial,document_export}.go"
+      ],
+      "actions": [
+        "배치 번역→검수→최대 2회 선별 교정→재검수를 연결한다.",
+        "대상/문맥 변경으로 무효화된 검수만 다시 수행한다.",
+        "남은 문제는 needs_review, 변환 실패는 export 재시도로 분리한다."
+      ],
+      "gate": "정상 구간 hash 유지, 검수 대상 누락 0, 중대 미해결을 정상 완료로 표시하지 않음, 원본 파일 보존."
+    },
+    {
+      "id": "P5",
+      "name": "번역/검수/교정 프로필과 모델 선정",
+      "depends": [
+        "P4"
+      ],
+      "actions": [
+        "T0~T4를 선정 자료로 수행한다. P2에서 얻은 검수 자료는 재사용한다.",
+        "EXL3 3bit, EXL3 4bit, 일반 NVFP4를 비교하고 백엔드 차이를 기록한다.",
+        "한 모델 상주 구성에서 총시간/품질/메모리 조건에 맞는 소수 후보를 선정한다."
+      ],
+      "gate": "각 차이를 설명할 실제 설정/원문/usage/품질 근거 확보. 최종 자료를 튜닝에 사용하지 않음."
+    },
+    {
+      "id": "P6",
+      "name": "독립 전권·형식·운영 메모리 검증",
+      "depends": [
+        "P5"
+      ],
+      "actions": [
+        "독립 최종 4문서와 일본어/영어 장문을 검증한다.",
+        "일반 NVFP4 대 EXL3 3bit의 품질/시간/메모리 비교를 완료하거나 품질 탈락 근거를 보고한다.",
+        "8개 출력 형식과 해당 입력 형식의 구조/텍스트/삽화 보존을 확인한다.",
+        "여학생은 기존 결함 회귀와 별도 교정본 확인에만 사용한다."
+      ],
+      "gate": "검수 완료율 100%, 구조 손실/중복 0, 최종 감사의 미해결 중대 오류 0인 구성만 품질 통과. 시간/메모리도 전권 실측으로 보고."
+    },
+    {
+      "id": "P7",
+      "name": "진행 UI와 회귀검사",
+      "depends": [
+        "P4"
+      ],
+      "files": [
+        "web/src/components/DocumentTaskCard.svelte",
+        "web/src/lib/document-task.js",
+        "internal/server/document_handlers.go"
+      ],
+      "actions": [
+        "번역/검수/교정/변환 단계별 진행과 남은 문제를 표시한다.",
+        "총소요시간·종료시간·단계별 PP/TG·실제/추정 구분을 연결한다.",
+        "끝난 작업에 재개/취소가 나타나지 않도록 하고 문제 확인/선별 재검수만 제공한다.",
+        "Go/renderer/frontend/관련 browser 테스트 및 기존 4플랫폼 빌드를 수행한다."
+      ],
+      "gate": "완료·검토 필요·일시정지·취소·구버전 결과와 다운로드가 일관됨."
+    },
+    {
+      "id": "P8",
+      "name": "적용·교정본 발행·복구 확인",
+      "depends": [
+        "P6",
+        "P7"
+      ],
+      "actions": [
+        "사용자 작업이 없는 시점에 DB/config/binary/모델 상태를 백업한다.",
+        "검증된 스키마/바이너리/지원 파일을 적용하고 실제 다운로드·진행 상태를 확인한다.",
+        "기존 여학생 결과를 보존한 상태에서 교정 개정판과 근거를 발행한다.",
+        "벤치마크로 바꿨던 모델 세트와 일반 대화 설정을 복원한다."
+      ],
+      "gate": "테스트한 revision과 배포물이 일치, 기존 결과 접근 가능, 새 작업과 실패 후 복구 동작 확인."
+    }
+  ],
+  "implementation_file_map": [
+    {
+      "area": "원문/형식",
+      "files": [
+        "internal/sourcebook/book.go",
+        "internal/sourcebook/html.go",
+        "internal/sourcebook/translation.go"
+      ],
+      "work": "정규화 파생 뷰·좌표·문자 이미지·의도된 레이아웃"
+    },
+    {
+      "area": "작업 지시",
+      "files": [
+        "internal/server/document_tasks.go",
+        "internal/server/tool_registry.go",
+        "internal/server/tool_loop.go"
+      ],
+      "work": "실제 user turn 연결·TaskSpec·참고 지시 분리"
+    },
+    {
+      "area": "번역/문맥/예산",
+      "files": [
+        "internal/server/document_wire.go",
+        "internal/server/document_batch.go",
+        "internal/server/document_partial.go",
+        "internal/server/document_limits.go",
+        "internal/server/document_worker.go"
+      ],
+      "work": "공통 context builder·예산·단계별 프로필·단일 워커"
+    },
+    {
+      "area": "검수/교정",
+      "files": [
+        "internal/server/document_quality.go",
+        "internal/server/document_decode.go",
+        "internal/server/document_review.go (new)"
+      ],
+      "work": "전체 대조·근거 유효성·선별 repair·stale 검수"
+    },
+    {
+      "area": "저장/발행",
+      "files": [
+        "internal/workflows/document.go",
+        "internal/db/document_runs.go",
+        "internal/db/document_storage.go",
+        "internal/db/sources.go",
+        "internal/server/document_export.go"
+      ],
+      "work": "revision·attempt/review/entity·원자 저장·manifest"
+    },
+    {
+      "area": "UI",
+      "files": [
+        "web/src/components/DocumentTaskCard.svelte",
+        "web/src/lib/document-task.js",
+        "internal/server/document_handlers.go"
+      ],
+      "work": "진행/완료/검토필요/교정본/계측"
+    },
+    {
+      "area": "리치 출력",
+      "files": [
+        "compose_yaml/sparktalk_extra/docms",
+        "internal/orchestrator/assets/extra-documents"
+      ],
+      "work": "문자 coverage·문단/텍스트 동등성·패키지 mirror 일치"
+    }
+  ],
+  "release_gates": [
+    "서버가 원문 구조를 잃거나 중복시키는 결함 0.",
+    "검수 요청에 포함한 모든 단위가 현재 source/output hash 기준으로 검수됨.",
+    "기존 critical/major 사례가 자동으로 수정되거나 명시적인 검토 필요로 남음. 정상 완료된 교정 결과에는 중대 미해결이 없음.",
+    "독립 최종 감사에서도 중대 의미 오류가 없는 구성만 추천. 자동 검수의 거짓 통과는 별도 실패로 기록.",
+    "검수 통제 사례의 누락/오경보/교정 부작용 기준 통과.",
+    "시간과 메모리를 번역만이 아닌 검수·교정·변환까지 포함해 측정.",
+    "취소/재개/늦은 응답/부분 배치/변환 실패/개정판/구버전 데이터 회귀 통과.",
+    "여학생 한 작품의 통과만으로 배포 또는 모델 추천을 결정하지 않음."
+  ],
+  "execution_order": [
+    "P0",
+    "P1",
+    "P2",
+    "P3",
+    "P4",
+    "P5",
+    "P6",
+    "P7 (P4 이후 GPU 검증과 독립적인 UI 작업 가능)",
+    "P8"
+  ],
+  "stop_and_revise_rules": [
+    "검수기가 기본 오류를 반복해서 놓치면 UI에 검수 완료만 붙이는 방식으로 진행하지 않는다.",
+    "실패한 최종 자료에 맞춰 규칙을 추가하면 독립 최종 시험을 새로 구성한다.",
+    "정확성을 통과하는 구성의 시간 목표가 미달하면 실제 차이를 보고하고 비용을 줄인다. 품질 기준을 몰래 낮추지 않는다.",
+    "추가 모델을 동시에 올려야만 통과하는 방안은 메모리·로딩 비용까지 별도 실측하기 전 기본 운영안으로 정하지 않는다."
+  ],
+  "deliverables": [
+    "개발/선정/최종 자료 manifest와 원문 근거 평가표",
+    "모듈 수정·스키마/취소/복구/형식 회귀검사",
+    "검수기 검출/오경보/교정 부작용 표",
+    "EXL3 3bit·4bit·일반 NVFP4 조건별 품질·단계별 시간·전권 메모리 비교",
+    "원본 보존된 교정 개정판과 문제별 변경 근거",
+    "UI/실제 다운로드 확인 및 배포/복구 기록"
+  ],
+  "activity_this_turn": "Generic implementation, isolated model comparisons, renderer/UI/durability checks and safe fixes deployment completed. Automatic semantic review/correction remains unqualified; independent final4books and Schoolgirl corrected-publication were not performed. No Git/GHCR push.",
+  "revision_note": "개별 작품 회귀에 치우친 이전 계획을 대체한다. 사용자 지시 출처, 검수 선행 타당성 검사, 원문 문맥, 개정판 보존, 정확한 재시도/사용량/발행 계약, 독립 작품 평가와 전권 성능/메모리 관문을 구체화했다.",
+  "verification_result": {
+    "P0": "frozen source/case/settings/audit evidence recorded",
+    "P1": "confirmed source/provenance/context defects fixed and tested",
+    "P2": "FAIL: natural errors missed and incorrect lexical definitions; no qualification",
+    "P3": "storage/revision implementation tested on DBcopy and isolated worker; existing production records unchanged after deployment",
+    "P4": "opt-in worker implemented and exercised; automatic default enablement withheld; legacy missing-fragment retry preserves parent and remains legacy",
+    "P5": "3bit/4bit/ordinaryNVFP4 compared with actualconfig/memory; no candidate passedqualitygate",
+    "P6": "57paragraph selection whole-document workers+8formats+operational resident trials completed; final4heldoutworks notrun afterquality rejection",
+    "P7": "stagePP/TG uses measured ratioofsums; Go/race133frontend5browser and4platformbuilds pass",
+    "P8": "verified safe fixes andDocuments0.5.5 deployed, actualmanagedstartup tested,21existingdownloads identical, originalruntimeprefsrestored. Semantic correction publication NOTperformed"
+  },
+  "results_file": "document-translation-correction-results-20261013.json"
+}

@@ -1,0 +1,781 @@
+{
+  "date": "2026-10-12",
+  "scope": {
+    "model": "Qwen3.8 Flash Next EXL3 3bit",
+    "engine": "TabbyAPI",
+    "cases": [
+      "opening",
+      "wordplay",
+      "afterword"
+    ],
+    "unique_prose_source_characters": 7352,
+    "book_checkpoints": [
+      1,
+      24,
+      30
+    ],
+    "modified_order_calls": 10,
+    "original_order_calls": 9,
+    "full_book_rerun": false,
+    "configuration_changed": false
+  },
+  "controls": {
+    "identical_inputs_instructions_glossary_and_previous_context_between_modes": true,
+    "sampling_temperature": 0.7,
+    "sampling_seed_fixed": false,
+    "concurrency": 1,
+    "native_reasoning_budgets": {
+      "off": 0,
+      "low": 2048,
+      "medium": 4096,
+      "xhigh": 8192
+    },
+    "saved_last_used_budget_cleared_in_fixtures": true,
+    "order_rotated_between_cases": true,
+    "prefix_cache_not_flushed": "Normal serving cache retained; cached prompt tokens and time to first token recorded per request. Exact speedup has sampling/cache variability.",
+    "xhigh_reference": "New matching v4 xhigh run on wordplay only; other displayed xhigh outputs are historical v3 references, not controlled v4 measurements."
+  },
+  "results": [
+    {
+      "case": "opening",
+      "effort": "off",
+      "seconds": 49.964020058,
+      "attempts": 1,
+      "structural_validation": true,
+      "reasoning_budget_tokens": 0,
+      "reasoning_chars": 0,
+      "content_chars": 3687,
+      "first_answer_seconds": 6.571155527,
+      "usage": {
+        "prompt_tokens": 7365,
+        "completion_tokens": 2060,
+        "total_tokens": 9425,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "performance": {
+        "pp": 1161.6719242902209,
+        "tg": 47.26938962826985,
+        "ttft": 6.569288029,
+        "ttft_estimated": true,
+        "prompt_tokens": 7365,
+        "cached_tokens": 0,
+        "output_tokens": 2060,
+        "calls": 1
+      },
+      "started_at": "2026-10-12T18:30:33.388953394+09:00",
+      "finished_at": "2026-10-12T18:31:23.353000508+09:00"
+    },
+    {
+      "case": "opening",
+      "effort": "low",
+      "seconds": 85.061958311,
+      "attempts": 1,
+      "structural_validation": true,
+      "reasoning_budget_tokens": 2048,
+      "reasoning_chars": 3976,
+      "content_chars": 3679,
+      "first_answer_seconds": 43.484937535,
+      "usage": {
+        "prompt_tokens": 7389,
+        "completion_tokens": 4128,
+        "total_tokens": 11517,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "performance": {
+        "pp": 890.2409638554216,
+        "tg": 53.87627251370399,
+        "ttft": 6.812945025,
+        "ttft_estimated": true,
+        "prompt_tokens": 7389,
+        "cached_tokens": 0,
+        "output_tokens": 4128,
+        "calls": 1
+      },
+      "started_at": "2026-10-12T18:31:23.363000113+09:00",
+      "finished_at": "2026-10-12T18:32:48.424960424+09:00"
+    },
+    {
+      "case": "opening",
+      "effort": "medium",
+      "seconds": 117.421382249,
+      "attempts": 1,
+      "structural_validation": true,
+      "reasoning_budget_tokens": 4096,
+      "reasoning_chars": 8194,
+      "content_chars": 3954,
+      "first_answer_seconds": 73.845886645,
+      "usage": {
+        "prompt_tokens": 7363,
+        "completion_tokens": 6293,
+        "total_tokens": 13656,
+        "prompt_tokens_details": {
+          "cached_tokens": 7168
+        }
+      },
+      "performance": {
+        "pp": 78.3132530120482,
+        "tg": 54.836179853607526,
+        "ttft": 0.747398394,
+        "ttft_estimated": true,
+        "prompt_tokens": 7363,
+        "cached_tokens": 7168,
+        "output_tokens": 6293,
+        "calls": 1
+      },
+      "started_at": "2026-10-12T18:32:48.434673716+09:00",
+      "finished_at": "2026-10-12T18:34:45.856057757+09:00"
+    },
+    {
+      "case": "wordplay",
+      "effort": "off",
+      "seconds": 58.413005664,
+      "attempts": 1,
+      "structural_validation": true,
+      "reasoning_budget_tokens": 0,
+      "reasoning_chars": 0,
+      "content_chars": 4352,
+      "first_answer_seconds": 1.120112563,
+      "usage": {
+        "prompt_tokens": 12271,
+        "completion_tokens": 2825,
+        "total_tokens": 15096,
+        "prompt_tokens_details": {
+          "cached_tokens": 12032
+        }
+      },
+      "performance": {
+        "pp": 256.98924731182797,
+        "tg": 49.54401964223079,
+        "ttft": 1.119143444,
+        "ttft_estimated": true,
+        "prompt_tokens": 12271,
+        "cached_tokens": 12032,
+        "output_tokens": 2825,
+        "calls": 1
+      },
+      "started_at": "2026-10-12T18:36:27.457728324+09:00",
+      "finished_at": "2026-10-12T18:37:25.870735764+09:00"
+    },
+    {
+      "case": "wordplay",
+      "effort": "low",
+      "seconds": 107.040275712,
+      "attempts": 1,
+      "structural_validation": true,
+      "reasoning_budget_tokens": 2048,
+      "reasoning_chars": 5139,
+      "content_chars": 4399,
+      "first_answer_seconds": 55.538953394,
+      "usage": {
+        "prompt_tokens": 12295,
+        "completion_tokens": 4756,
+        "total_tokens": 17051,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "performance": {
+        "pp": 1046.3829787234042,
+        "tg": 50.015774529393205,
+        "ttft": 10.352829952,
+        "ttft_estimated": true,
+        "prompt_tokens": 12295,
+        "cached_tokens": 0,
+        "output_tokens": 4756,
+        "calls": 1
+      },
+      "started_at": "2026-10-12T18:37:25.879444287+09:00",
+      "finished_at": "2026-10-12T18:39:12.919722047+09:00"
+    },
+    {
+      "case": "wordplay",
+      "effort": "medium",
+      "seconds": 101.582261756,
+      "attempts": 1,
+      "structural_validation": true,
+      "reasoning_budget_tokens": 4096,
+      "reasoning_chars": 3767,
+      "content_chars": 4359,
+      "first_answer_seconds": 39.868552608,
+      "usage": {
+        "prompt_tokens": 12269,
+        "completion_tokens": 4229,
+        "total_tokens": 16498,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "performance": {
+        "pp": 866.454802259887,
+        "tg": 48.47546996790464,
+        "ttft": 10.829882889,
+        "ttft_estimated": true,
+        "prompt_tokens": 12269,
+        "cached_tokens": 0,
+        "output_tokens": 4229,
+        "calls": 1
+      },
+      "started_at": "2026-10-12T18:34:45.865661632+09:00",
+      "finished_at": "2026-10-12T18:36:27.447925644+09:00"
+    },
+    {
+      "case": "wordplay",
+      "effort": "xhigh",
+      "seconds": 241.168317609,
+      "attempts": 1,
+      "structural_validation": true,
+      "reasoning_budget_tokens": 8192,
+      "reasoning_chars": 19252,
+      "content_chars": 4302,
+      "first_answer_seconds": 190.059567486,
+      "usage": {
+        "prompt_tokens": 12307,
+        "completion_tokens": 10956,
+        "total_tokens": 23263,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "performance": {
+        "pp": 731.6884661117717,
+        "tg": 48.89325240985362,
+        "ttft": 10.478270503,
+        "ttft_estimated": true,
+        "prompt_tokens": 12307,
+        "cached_tokens": 0,
+        "output_tokens": 10956,
+        "calls": 1
+      },
+      "started_at": "2026-10-12T18:39:12.9336791+09:00",
+      "finished_at": "2026-10-12T18:43:14.101998677+09:00"
+    },
+    {
+      "case": "afterword",
+      "effort": "off",
+      "seconds": 44.261676512,
+      "attempts": 1,
+      "structural_validation": true,
+      "reasoning_budget_tokens": 0,
+      "reasoning_chars": 0,
+      "content_chars": 3475,
+      "first_answer_seconds": 0.724735477,
+      "usage": {
+        "prompt_tokens": 8369,
+        "completion_tokens": 2034,
+        "total_tokens": 10403,
+        "prompt_tokens_details": {
+          "cached_tokens": 8192
+        }
+      },
+      "performance": {
+        "pp": 431.70731707317077,
+        "tg": 46.523330283623054,
+        "ttft": 0.724081108,
+        "ttft_estimated": true,
+        "prompt_tokens": 8369,
+        "cached_tokens": 8192,
+        "output_tokens": 2034,
+        "calls": 1
+      },
+      "started_at": "2026-10-12T18:46:58.52294783+09:00",
+      "finished_at": "2026-10-12T18:47:42.784626742+09:00"
+    },
+    {
+      "case": "afterword",
+      "effort": "low",
+      "seconds": 95.185627969,
+      "attempts": 1,
+      "structural_validation": true,
+      "reasoning_budget_tokens": 2048,
+      "reasoning_chars": 6654,
+      "content_chars": 3790,
+      "first_answer_seconds": 48.247770862,
+      "usage": {
+        "prompt_tokens": 8393,
+        "completion_tokens": 4271,
+        "total_tokens": 12664,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "performance": {
+        "pp": 972.5376593279258,
+        "tg": 49.45576655859194,
+        "ttft": 7.256128595,
+        "ttft_estimated": true,
+        "prompt_tokens": 8393,
+        "cached_tokens": 0,
+        "output_tokens": 4271,
+        "calls": 1
+      },
+      "started_at": "2026-10-12T18:43:14.110910984+09:00",
+      "finished_at": "2026-10-12T18:44:49.296540857+09:00"
+    },
+    {
+      "case": "afterword",
+      "effort": "medium",
+      "seconds": 129.204061774,
+      "attempts": 1,
+      "structural_validation": true,
+      "reasoning_budget_tokens": 4096,
+      "reasoning_chars": 9929,
+      "content_chars": 3460,
+      "first_answer_seconds": 95.504939293,
+      "usage": {
+        "prompt_tokens": 8367,
+        "completion_tokens": 6163,
+        "total_tokens": 14530,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "performance": {
+        "pp": 804.5192307692307,
+        "tg": 51.955825324565836,
+        "ttft": 7.333453665,
+        "ttft_estimated": true,
+        "prompt_tokens": 8367,
+        "cached_tokens": 0,
+        "output_tokens": 6163,
+        "calls": 1
+      },
+      "started_at": "2026-10-12T18:44:49.310064289+09:00",
+      "finished_at": "2026-10-12T18:46:58.514128351+09:00"
+    }
+  ],
+  "aggregate": {
+    "off": {
+      "cases": 3,
+      "total_seconds": 152.638702234,
+      "mean_seconds": 50.87956741133333,
+      "retry_count": 0,
+      "total_reasoning_chars": 0,
+      "all_structurally_valid": true,
+      "matched_wordplay_speedup_vs_xhigh": 4.128675024809283
+    },
+    "low": {
+      "cases": 3,
+      "total_seconds": 287.287861992,
+      "mean_seconds": 95.762620664,
+      "retry_count": 0,
+      "total_reasoning_chars": 15769,
+      "all_structurally_valid": true,
+      "matched_wordplay_speedup_vs_xhigh": 2.253061438835245
+    },
+    "medium": {
+      "cases": 3,
+      "total_seconds": 348.207705779,
+      "mean_seconds": 116.06923525966667,
+      "retry_count": 0,
+      "total_reasoning_chars": 21890,
+      "all_structurally_valid": true,
+      "matched_wordplay_speedup_vs_xhigh": 2.374118408470614
+    },
+    "xhigh": {
+      "cases": 1,
+      "total_seconds": 241.168317609,
+      "mean_seconds": 241.168317609,
+      "retry_count": 0,
+      "total_reasoning_chars": 19252,
+      "all_structurally_valid": true
+    }
+  },
+  "memory": {
+    "off": {
+      "samples": 30,
+      "system_available_GiB": [
+        17.561771392822266,
+        17.754169464111328
+      ],
+      "system_swap_used_GiB": [
+        1.5652694702148438,
+        1.5702400207519531
+      ],
+      "container_memory_current_GiB_not_total_GPU_memory": [
+        12.278778076171875,
+        12.492637634277344
+      ]
+    },
+    "low": {
+      "samples": 57,
+      "system_available_GiB": [
+        17.54973602294922,
+        17.74736785888672
+      ],
+      "system_swap_used_GiB": [
+        1.5668106079101562,
+        1.5702934265136719
+      ],
+      "container_memory_current_GiB_not_total_GPU_memory": [
+        12.208885192871094,
+        12.459274291992188
+      ]
+    },
+    "medium": {
+      "samples": 69,
+      "system_available_GiB": [
+        17.534988403320312,
+        17.754161834716797
+      ],
+      "system_swap_used_GiB": [
+        1.5675811767578125,
+        1.5702590942382812
+      ],
+      "container_memory_current_GiB_not_total_GPU_memory": [
+        12.226871490478516,
+        12.436805725097656
+      ]
+    },
+    "xhigh": {
+      "samples": 49,
+      "system_available_GiB": [
+        17.56151580810547,
+        17.741825103759766
+      ],
+      "system_swap_used_GiB": [
+        1.5702667236328125,
+        1.5702934265136719
+      ],
+      "container_memory_current_GiB_not_total_GPU_memory": [
+        12.173324584960938,
+        12.298988342285156
+      ]
+    }
+  },
+  "quality_review": {
+    "method": "Read original prose and generated paragraphs; distinguish structural ID/paragraph coverage from semantic fidelity. Repeated-span scan is a diagnostic, not a semantic quality score.",
+    "excluded": "Intermittent Hanja/kana/Latin-script mixing, as requested.",
+    "v3_problem": "Lexically ordered p1,p10,p100,...p2 output forced the model to jump through source passages. Long repeated passages, missing nouns and fragmented dialogue occurred at multiple efforts including historical xhigh.",
+    "v4_observations": [
+      "All ten new requests passed structural validation on the first attempt.",
+      "No >=40-character exact repeated span within a prose paragraph was found in the corrected-order samples; manual review found short repetitions and grammar/meaning errors still remaining.",
+      "off opening restored the family clause and removed the previous long duplicated photo description.",
+      "low opening called the male child’s older sisters 언니들 rather than 누나들.",
+      "off wordplay translated the bee as 봉 and reversed the imperative 生意気言うな into 건방지다고 말해라.",
+      "low wordplay retained a short repeated parenthetical phrase 반의어의 약어.",
+      "medium wordplay translated restraint-related shame as 교수형의 치욕, adding a hanging/execution meaning absent from the source.",
+      "Corrected-order xhigh wordplay removed the former long duplicated paragraph and retained previously missing nouns, but mistranslations/awkward phrasings remained.",
+      "medium afterword was generally smoother and correctly rendered the stay at the friend’s home and psychiatric-hospital reference; this does not establish a consistent quality advantage across all samples."
+    ],
+    "judgment": "low is a reasonable provisional speed/quality compromise for this model and workflow. off is fastest but rougher; medium costs more overall without a consistent fidelity advantage in this small sample. None was verified as publication-ready."
+  },
+  "schema_fix": {
+    "protocol": "json_schema_paragraphs_v4",
+    "wire_ids": "p000001,p000002,...",
+    "immutable_saved_source_and_output_ids_unchanged": true,
+    "legacy_response_aliases_accepted": true,
+    "regression_test": "TestDocumentSchemaPropertyOrderFollowsSourceAcrossDecimalBoundaries checks the serialized wire schema and original-ID round trip over 163 slots."
+  },
+  "validation": {
+    "go_test_all": "passed",
+    "platform_builds": [
+      "linux/arm64",
+      "linux/amd64",
+      "windows/arm64",
+      "windows/amd64"
+    ],
+    "existing_checkpoint_and_output_hashes_unchanged": true
+  },
+  "deployment": {
+    "old_pid": 130829,
+    "pid": 981815,
+    "configuration_unchanged": true,
+    "model_containers_unchanged": true,
+    "all_existing_checkpoint_and_output_hashes_unchanged": true,
+    "new_default_effort": false,
+    "protocol": "json_schema_paragraphs_v4",
+    "binaries": {
+      "sparktalk-windows-arm64.exe": "aa24e2bcdfaadd07ff5ad820fd837a66a2ef106c884c5c5a03bb490de9be72ab",
+      "sparktalk-windows-amd64.exe": "0cc49807a2bd042f66e0317eaa129c102271925cafb4843d88dafd225d4b920e",
+      "sparktalk-linux-arm64": "53fc7d6ae5d84f2acd2a35ae3aab0c7d5f44f122df6ee804de0dbd418ec9c757",
+      "sparktalk-linux-amd64": "deb85e0cf4200dc4a5d7070a5318d3d4b2b3b31c4342c26001a5c0b0e4104316"
+    }
+  },
+  "artifact": "/home/edp1096/.cache/model-download-jobs/document-effort-ordered-20261012/comparison.html",
+  "evidence_directory": "/home/edp1096/.cache/model-download-jobs/document-effort-ordered-20261012",
+  "original_order_results": [
+    {
+      "case": "opening",
+      "effort": "off",
+      "seconds": 49.000867049,
+      "attempts": 1,
+      "structural_validation": true,
+      "reasoning_budget_tokens": 0,
+      "reasoning_chars": 0,
+      "content_chars": 3665,
+      "first_answer_seconds": 6.257340871,
+      "usage": {
+        "prompt_tokens": 7175,
+        "completion_tokens": 1965,
+        "total_tokens": 9140,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "performance": {
+        "pp": 1189.8839137645107,
+        "tg": 45.782851817334574,
+        "ttft": 6.255328256,
+        "ttft_estimated": true,
+        "prompt_tokens": 7175,
+        "cached_tokens": 0,
+        "output_tokens": 1965,
+        "calls": 1
+      },
+      "started_at": "2026-10-12T18:17:00.506624008+09:00",
+      "finished_at": "2026-10-12T18:17:49.507524609+09:00"
+    },
+    {
+      "case": "opening",
+      "effort": "low",
+      "seconds": 84.943823884,
+      "attempts": 1,
+      "structural_validation": true,
+      "reasoning_budget_tokens": 2048,
+      "reasoning_chars": 4368,
+      "content_chars": 3618,
+      "first_answer_seconds": 43.559106799,
+      "usage": {
+        "prompt_tokens": 7199,
+        "completion_tokens": 4017,
+        "total_tokens": 11216,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "performance": {
+        "pp": 920.5882352941176,
+        "tg": 52.18238503507404,
+        "ttft": 6.383110514,
+        "ttft_estimated": true,
+        "prompt_tokens": 7199,
+        "cached_tokens": 0,
+        "output_tokens": 4017,
+        "calls": 1
+      },
+      "started_at": "2026-10-12T18:17:49.51955215+09:00",
+      "finished_at": "2026-10-12T18:19:14.46337781+09:00"
+    },
+    {
+      "case": "opening",
+      "effort": "medium",
+      "seconds": 113.00807284,
+      "attempts": 1,
+      "structural_validation": true,
+      "reasoning_budget_tokens": 4096,
+      "reasoning_chars": 8246,
+      "content_chars": 3570,
+      "first_answer_seconds": 76.700511706,
+      "usage": {
+        "prompt_tokens": 7173,
+        "completion_tokens": 6030,
+        "total_tokens": 13203,
+        "prompt_tokens_details": {
+          "cached_tokens": 7168
+        }
+      },
+      "performance": {
+        "pp": 2.3255813953488373,
+        "tg": 54.476465805402476,
+        "ttft": 0.343791154,
+        "ttft_estimated": true,
+        "prompt_tokens": 7173,
+        "cached_tokens": 7168,
+        "output_tokens": 6030,
+        "calls": 1
+      },
+      "started_at": "2026-10-12T18:19:14.475690967+09:00",
+      "finished_at": "2026-10-12T18:21:07.483766431+09:00"
+    },
+    {
+      "case": "wordplay",
+      "effort": "off",
+      "seconds": 50.95903061,
+      "attempts": 1,
+      "structural_validation": true,
+      "reasoning_budget_tokens": 0,
+      "reasoning_chars": 0,
+      "content_chars": 3952,
+      "first_answer_seconds": 0.933761408,
+      "usage": {
+        "prompt_tokens": 11905,
+        "completion_tokens": 2265,
+        "total_tokens": 14170,
+        "prompt_tokens_details": {
+          "cached_tokens": 11776
+        }
+      },
+      "performance": {
+        "pp": 379.4117647058823,
+        "tg": 45.11952191235059,
+        "ttft": 0.933277759,
+        "ttft_estimated": true,
+        "prompt_tokens": 11905,
+        "cached_tokens": 11776,
+        "output_tokens": 2265,
+        "calls": 1
+      },
+      "started_at": "2026-10-12T18:25:28.87375399+09:00",
+      "finished_at": "2026-10-12T18:26:19.832786072+09:00"
+    },
+    {
+      "case": "wordplay",
+      "effort": "low",
+      "seconds": 113.30295123,
+      "attempts": 1,
+      "structural_validation": true,
+      "reasoning_budget_tokens": 2048,
+      "reasoning_chars": 5746,
+      "content_chars": 4778,
+      "first_answer_seconds": 53.082331284,
+      "usage": {
+        "prompt_tokens": 11929,
+        "completion_tokens": 4877,
+        "total_tokens": 16806,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "performance": {
+        "pp": 872.0029239766083,
+        "tg": 49.039718451483154,
+        "ttft": 10.536276671,
+        "ttft_estimated": true,
+        "prompt_tokens": 11929,
+        "cached_tokens": 0,
+        "output_tokens": 4877,
+        "calls": 1
+      },
+      "started_at": "2026-10-12T18:21:07.497088326+09:00",
+      "finished_at": "2026-10-12T18:23:00.800041652+09:00"
+    },
+    {
+      "case": "wordplay",
+      "effort": "medium",
+      "seconds": 148.050900415,
+      "attempts": 1,
+      "structural_validation": true,
+      "reasoning_budget_tokens": 4096,
+      "reasoning_chars": 10405,
+      "content_chars": 4203,
+      "first_answer_seconds": 93.761627518,
+      "usage": {
+        "prompt_tokens": 11903,
+        "completion_tokens": 6638,
+        "total_tokens": 18541,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "performance": {
+        "pp": 773.4243014944769,
+        "tg": 50.12837939888235,
+        "ttft": 10.47926026,
+        "ttft_estimated": true,
+        "prompt_tokens": 11903,
+        "cached_tokens": 0,
+        "output_tokens": 6638,
+        "calls": 1
+      },
+      "started_at": "2026-10-12T18:23:00.809175279+09:00",
+      "finished_at": "2026-10-12T18:25:28.860077374+09:00"
+    },
+    {
+      "case": "afterword",
+      "effort": "off",
+      "seconds": 35.985370131,
+      "attempts": 1,
+      "structural_validation": true,
+      "reasoning_budget_tokens": 0,
+      "reasoning_chars": 0,
+      "content_chars": 2977,
+      "first_answer_seconds": 0.752659191,
+      "usage": {
+        "prompt_tokens": 8151,
+        "completion_tokens": 1690,
+        "total_tokens": 9841,
+        "prompt_tokens_details": {
+          "cached_tokens": 7936
+        }
+      },
+      "performance": {
+        "pp": 488.6363636363636,
+        "tg": 47.740112994350284,
+        "ttft": 0.752316937,
+        "ttft_estimated": true,
+        "prompt_tokens": 8151,
+        "cached_tokens": 7936,
+        "output_tokens": 1690,
+        "calls": 1
+      },
+      "started_at": "2026-10-12T18:27:34.879884185+09:00",
+      "finished_at": "2026-10-12T18:28:10.86525622+09:00"
+    },
+    {
+      "case": "afterword",
+      "effort": "low",
+      "seconds": 92.470270777,
+      "attempts": 1,
+      "structural_validation": true,
+      "reasoning_budget_tokens": 2048,
+      "reasoning_chars": 6343,
+      "content_chars": 3777,
+      "first_answer_seconds": 50.640275341,
+      "usage": {
+        "prompt_tokens": 8175,
+        "completion_tokens": 4138,
+        "total_tokens": 12313,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "performance": {
+        "pp": 781.548757170172,
+        "tg": 50.568251252596845,
+        "ttft": 7.226083881,
+        "ttft_estimated": true,
+        "prompt_tokens": 8175,
+        "cached_tokens": 0,
+        "output_tokens": 4138,
+        "calls": 1
+      },
+      "started_at": "2026-10-12T18:28:10.873441318+09:00",
+      "finished_at": "2026-10-12T18:29:43.343713583+09:00"
+    },
+    {
+      "case": "afterword",
+      "effort": "medium",
+      "seconds": 75.024639706,
+      "attempts": 1,
+      "structural_validation": true,
+      "reasoning_budget_tokens": 4096,
+      "reasoning_chars": 4336,
+      "content_chars": 3246,
+      "first_answer_seconds": 31.375660659,
+      "usage": {
+        "prompt_tokens": 8149,
+        "completion_tokens": 3019,
+        "total_tokens": 11168,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "performance": {
+        "pp": 934.5183486238532,
+        "tg": 45.65940713853599,
+        "ttft": 7.310320351,
+        "ttft_estimated": true,
+        "prompt_tokens": 8149,
+        "cached_tokens": 0,
+        "output_tokens": 3019,
+        "calls": 1
+      },
+      "started_at": "2026-10-12T18:26:19.845962109+09:00",
+      "finished_at": "2026-10-12T18:27:34.870603671+09:00"
+    }
+  ]
+}

@@ -8,31 +8,36 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 	"unicode/utf8"
 
 	"sparktalk/internal/config"
 	"sparktalk/internal/db"
 	"sparktalk/internal/llm"
 	"sparktalk/internal/media"
+	"sparktalk/internal/performance"
 )
 
 func (s *Server) chat(w http.ResponseWriter, r *http.Request) {
+	started := time.Now()
 	if r.Method != http.MethodPost {
 		methodNotAllowed(w)
 		return
 	}
 	var req struct {
-		SessionID       string          `json:"session_id"`
-		Content         string          `json:"content"`
-		Model           string          `json:"model"`
-		ReasoningEffort string          `json:"reasoning_effort"`
-		ToolsEnabled    bool            `json:"tools_enabled"`
-		Attachments     []db.Attachment `json:"attachments"`
+		SubmissionDelayMS float64         `json:"submission_delay_ms"`
+		SessionID         string          `json:"session_id"`
+		Content           string          `json:"content"`
+		Model             string          `json:"model"`
+		ReasoningEffort   string          `json:"reasoning_effort"`
+		ToolsEnabled      bool            `json:"tools_enabled"`
+		Attachments       []db.Attachment `json:"attachments"`
 	}
 	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 1<<20)).Decode(&req); err != nil {
 		http.Error(w, "invalid request", 400)
 		return
 	}
+	started = submissionStart(started, req.SubmissionDelayMS)
 	req.Content = strings.TrimSpace(req.Content)
 	if req.SessionID == "" || req.Content == "" {
 		http.Error(w, "session_id and content are required", 400)
@@ -95,16 +100,21 @@ func (s *Server) chat(w http.ResponseWriter, r *http.Request) {
 			status = db.MessageCancelled
 			failure = "사용자가 생성을 중지했습니다."
 		}
+		result.Performance = performance.Finish(result.Performance, started, status)
+		_ = emit("performance", result.Performance)
 		_ = s.db.FailPendingTurn(pending.ID, status, failure, result.Content, result.Reasoning, result.ToolTrace, result.Performance)
 		payload, _ := json.Marshal(map[string]string{"error": failure})
 		fmt.Fprintf(w, "event: error\ndata: %s\n\n", payload)
 	} else {
+		result.Performance = performance.Finish(result.Performance, started, db.MessageCompleted)
 		if _, completeErr := s.db.CompletePendingTurnWithAttachments(pending.ID, result.Content, result.Reasoning, result.ToolTrace, result.Attachments, result.Performance); completeErr != nil {
+			result.Performance.FinishStatus = db.MessageFailed
 			_ = s.db.FailPendingTurn(pending.ID, db.MessageFailed, compactHistoryText(completeErr.Error(), 2000), result.Content, result.Reasoning, result.ToolTrace, result.Performance)
 			payload, _ := json.Marshal(map[string]string{"error": completeErr.Error()})
 			fmt.Fprintf(w, "event: error\ndata: %s\n\n", payload)
 			err = completeErr
 		} else {
+			_ = emit("performance", result.Performance)
 			fmt.Fprint(w, "event: done\ndata: {}\n\n")
 		}
 	}
@@ -117,6 +127,7 @@ func (s *Server) chat(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) messageAction(w http.ResponseWriter, r *http.Request) {
+	started := time.Now()
 	rest := strings.Trim(strings.TrimPrefix(r.URL.Path, "/api/messages/"), "/")
 	parts := strings.Split(rest, "/")
 	if r.Method != http.MethodPost || len(parts) != 2 || (parts[1] != "retry" && parts[1] != "edit") {
@@ -133,15 +144,17 @@ func (s *Server) messageAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var req struct {
-		Model           string `json:"model"`
-		ReasoningEffort string `json:"reasoning_effort"`
-		ToolsEnabled    bool   `json:"tools_enabled"`
-		UserVariant     *int   `json:"user_variant"`
+		SubmissionDelayMS float64 `json:"submission_delay_ms"`
+		Model             string  `json:"model"`
+		ReasoningEffort   string  `json:"reasoning_effort"`
+		ToolsEnabled      bool    `json:"tools_enabled"`
+		UserVariant       *int    `json:"user_variant"`
 	}
 	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 1<<20)).Decode(&req); err != nil {
 		http.Error(w, "invalid request", http.StatusBadRequest)
 		return
 	}
+	started = submissionStart(started, req.SubmissionDelayMS)
 	userVariant := -1
 	if req.UserVariant != nil {
 		userVariant = *req.UserVariant
@@ -190,6 +203,7 @@ func (s *Server) messageAction(w http.ResponseWriter, r *http.Request) {
 	mediaSink := s.persistMediaAttachments(parent.ID, selectedUserVariant, parent.Attachments, importedMediaReplacements(target.ToolTrace))
 	result, err := s.runContextCompletion(r.Context(), target.SessionID, modelHistory(history, parent.ID), req.Model, req.ReasoningEffort, cfg, client, req.ToolsEnabled, emit, mediaSink)
 	if err == nil {
+		result.Performance = performance.Finish(result.Performance, started, db.MessageCompleted)
 		err = s.db.ReplaceAssistantWithAttachments(target.ID, result.Content, result.Reasoning, result.ToolTrace, result.Attachments, userVariant, result.Performance)
 		_ = s.db.UpdateSession(target.SessionID, "", req.Model, req.ReasoningEffort)
 	}
@@ -197,23 +211,27 @@ func (s *Server) messageAction(w http.ResponseWriter, r *http.Request) {
 		payload, _ := json.Marshal(map[string]string{"error": err.Error()})
 		fmt.Fprintf(w, "event: error\ndata: %s\n\n", payload)
 	} else {
+		_ = emit("performance", result.Performance)
 		fmt.Fprint(w, "event: done\ndata: {}\n\n")
 	}
 	flusher.Flush()
 }
 
 func (s *Server) editMessage(w http.ResponseWriter, r *http.Request, messageID int64) {
+	started := time.Now()
 	var req struct {
-		Content         string           `json:"content"`
-		Model           string           `json:"model"`
-		ReasoningEffort string           `json:"reasoning_effort"`
-		ToolsEnabled    bool             `json:"tools_enabled"`
-		Attachments     *[]db.Attachment `json:"attachments"`
+		SubmissionDelayMS float64          `json:"submission_delay_ms"`
+		Content           string           `json:"content"`
+		Model             string           `json:"model"`
+		ReasoningEffort   string           `json:"reasoning_effort"`
+		ToolsEnabled      bool             `json:"tools_enabled"`
+		Attachments       *[]db.Attachment `json:"attachments"`
 	}
 	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 1<<20)).Decode(&req); err != nil {
 		http.Error(w, "invalid request", http.StatusBadRequest)
 		return
 	}
+	started = submissionStart(started, req.SubmissionDelayMS)
 	req.Content = strings.TrimSpace(req.Content)
 	if req.Content == "" {
 		http.Error(w, "content is required", http.StatusBadRequest)
@@ -274,6 +292,7 @@ func (s *Server) editMessage(w http.ResponseWriter, r *http.Request, messageID i
 	}
 	result, err := s.runContextCompletion(r.Context(), target.SessionID, modelHistory(requestHistory, 0), req.Model, req.ReasoningEffort, cfg, client, req.ToolsEnabled, emit, mediaSink)
 	if err == nil {
+		result.Performance = performance.Finish(result.Performance, started, db.MessageCompleted)
 		err = s.db.AppendEditedBranchWithAnswerAttachments(messageID, req.Content, attachments, result.Content, result.Reasoning, result.ToolTrace, result.Attachments, result.Performance)
 		_ = s.db.UpdateSession(target.SessionID, "", req.Model, req.ReasoningEffort)
 	}
@@ -281,6 +300,7 @@ func (s *Server) editMessage(w http.ResponseWriter, r *http.Request, messageID i
 		payload, _ := json.Marshal(map[string]string{"error": err.Error()})
 		fmt.Fprintf(w, "event: error\ndata: %s\n\n", payload)
 	} else {
+		_ = emit("performance", result.Performance)
 		fmt.Fprint(w, "event: done\ndata: {}\n\n")
 		if len(history) == 0 && !hasSessionTitleTool(result.ToolTrace) {
 			s.scheduleTitle(client, target.SessionID, req.Model, req.Content)
@@ -492,4 +512,14 @@ func importedMediaReplacements(trace []db.ToolEvent) map[string]string {
 		}
 	}
 	return replacements
+}
+
+// Include browser preparation before fetch (for example scrolling the new turn).
+// A duration avoids depending on client/server clock synchronization. Only a
+// bounded, finite delay is accepted; API callers can omit it.
+func submissionStart(received time.Time, delayMS float64) time.Time {
+	if delayMS > 0 && delayMS <= 60000 {
+		return received.Add(-time.Duration(delayMS * float64(time.Millisecond)))
+	}
+	return received
 }

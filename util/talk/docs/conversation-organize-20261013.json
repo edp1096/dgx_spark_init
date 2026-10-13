@@ -1,0 +1,52 @@
+{
+  "date": "2026-10-13",
+  "status": "applied",
+  "tools": [
+    "conversation_search",
+    "conversation_read",
+    "session_folder.move_selected"
+  ],
+  "behavior": [
+    "Search distinct chats by title/body or saved document-task kind, with stable pagination and current-chat exclusion by default",
+    "Keyword and document-kind searches form a union so older manual translation chats remain discoverable",
+    "Read bounded message excerpts before moving selected chats; paginate long messages without loading entire books",
+    "Batch moves validate observed chat metadata and destination; skip concurrent changes, roll back database errors",
+    "Historical chat text is reference data, not authorization; tool arguments quote the current user request",
+    "Refresh folders and chats after a tool move and expand the destination folder",
+    "Manual UI is chat menu > 그룹 이동; drag-and-drop is not supported"
+  ],
+  "validation": {
+    "go_test_all": true,
+    "focused_db_server_race": true,
+    "browser_tests": 3,
+    "live_model": "qwen38fn_exl3",
+    "live_cases_passed": 2,
+    "live_cases": [
+      "Original request with actual translation and model-discussion fixtures",
+      "Same request after a prior erroneous assistant capability claim"
+    ],
+    "initial_live_finding": "Kind-only search missed old manual translation chats; corrected search instructions and query/kind union semantics",
+    "guard_verified": "An attempt to move unread chats was rejected; the model read them and completed the requested move",
+    "context_regression_fixture": "Adjusted test window to accommodate added schemas while still asserting archival of the older result and retention of the latest result",
+    "four_platform_builds": true
+  },
+  "deployment": {
+    "pid": 1926480,
+    "backup": "/home/edp1096/.cache/model-download-jobs/conversation-organize-20261013/backup",
+    "saved_data_unchanged_on_deploy": true
+  },
+  "organization": {
+    "folder": "번역",
+    "moved_chats": [
+      "라쇼몽 번역",
+      "여학생 번역",
+      "사양 번역",
+      "인간실격 번역",
+      "셜록홈즈의 모험",
+      "구텐베르크 프로젝트 Twilight 번역",
+      "위키백과 페이지 번역"
+    ],
+    "restored_to_ungrouped": "번역 폴더 생성 및 대화방 이동",
+    "messages_and_document_data_unchanged": true
+  }
+}

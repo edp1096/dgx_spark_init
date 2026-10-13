@@ -34,7 +34,7 @@ func TestEmbeddingMigrationPreservesCoreAndScopesSearch(t *testing.T) {
 	if !reflect.DeepEqual(before, after) || c.Runtime.ActiveBundle != "flash-next" || !c.Embedding.Enabled {
 		t.Fatal("migration changed core or user preference")
 	}
-	for _, id := range []string{"qwen38fn_exl3", "flash-next-radixark", "flash-next", "gemma26"} {
+	for _, id := range []string{"qwen38fn_exl3", "flash-next-radixark", "flash-next"} {
 		c.Runtime.ActiveBundle = id
 		want := id == "qwen38fn_exl3" || id == "flash-next-radixark"
 		if c.SemanticSearchEnabled() != want {

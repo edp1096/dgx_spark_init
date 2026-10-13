@@ -1,24 +1,38 @@
-// Package performance describes inference-only measurements, shared by the
-// streaming client, response storage and UI. Durations are in seconds.
+// Package performance describes inference measurements and whole-response timing,
+// shared by the streaming client, response storage and UI. Durations are in seconds.
 package performance
 
 import (
 	"math"
 	"sync"
+	"time"
 )
 
 type Summary struct {
-	PP            *float64 `json:"pp,omitempty"`
-	TG            *float64 `json:"tg,omitempty"`
-	TTFT          *float64 `json:"ttft,omitempty"`
-	PPEstimated   bool     `json:"pp_estimated,omitempty"`
-	TGEstimated   bool     `json:"tg_estimated,omitempty"`
-	TTFTEstimated bool     `json:"ttft_estimated,omitempty"`
-	PromptTokens  int      `json:"prompt_tokens"`
-	CachedTokens  int      `json:"cached_tokens"`
-	OutputTokens  int      `json:"output_tokens"`
-	Calls         int      `json:"calls"`
-	Live          bool     `json:"live,omitempty"`
+	Totals         *Totals  `json:"totals,omitempty"`
+	ElapsedSeconds *float64 `json:"elapsed_seconds,omitempty"`
+	FinishedAt     string   `json:"finished_at,omitempty"`
+	FinishStatus   string   `json:"finish_status,omitempty"`
+	PP             *float64 `json:"pp,omitempty"`
+	TG             *float64 `json:"tg,omitempty"`
+	TTFT           *float64 `json:"ttft,omitempty"`
+	PPEstimated    bool     `json:"pp_estimated,omitempty"`
+	TGEstimated    bool     `json:"tg_estimated,omitempty"`
+	TTFTEstimated  bool     `json:"ttft_estimated,omitempty"`
+	PromptTokens   int      `json:"prompt_tokens"`
+	CachedTokens   int      `json:"cached_tokens"`
+	OutputTokens   int      `json:"output_tokens"`
+	Calls          int      `json:"calls"`
+	Live           bool     `json:"live,omitempty"`
+}
+
+// Keep the measured numerators and denominators for durable aggregation.
+// A stored rate alone cannot reconstruct speculative decode or cached prefill.
+type Totals struct {
+	PrefillTokens  float64 `json:"prefill_tokens"`
+	PrefillSeconds float64 `json:"prefill_seconds"`
+	DecodeTokens   float64 `json:"decode_tokens"`
+	DecodeSeconds  float64 `json:"decode_seconds"`
 }
 
 // Sample belongs to one model request. Updates replace the same sample, so
@@ -78,6 +92,30 @@ func (a *Accumulator) Summary(live bool) *Summary {
 	}
 	result.PP = rate(ppTokens, ppTime)
 	result.TG = rate(tgTokens, tgTime)
+	result.Totals = &Totals{ppTokens, ppTime, tgTokens, tgTime}
+	return result
+}
+
+// Combine only summaries that retain measured totals. Older records remain
+// readable, but their rates must not be averaged or turned into invented times.
+func Combine(summaries []*Summary) *Summary {
+	var a Accumulator
+	calls := 0
+	for _, s := range summaries {
+		if s == nil || s.Totals == nil {
+			continue
+		}
+		t := s.Totals
+		calls += max(1, s.Calls)
+		a.Start()(Sample{PromptTokens: s.PromptTokens, CachedTokens: s.CachedTokens, OutputTokens: s.OutputTokens,
+			PrefillTokens: t.PrefillTokens, PrefillSeconds: t.PrefillSeconds,
+			DecodeTokens: t.DecodeTokens, DecodeSeconds: t.DecodeSeconds,
+			TTFT: s.TTFT, PPEstimated: s.PPEstimated, TGEstimated: s.TGEstimated, TTFTEstimated: s.TTFTEstimated})
+	}
+	result := a.Summary(false)
+	if result != nil {
+		result.Calls = calls
+	}
 	return result
 }
 
@@ -100,4 +138,20 @@ func Optional(values []*Summary) *Summary {
 		return nil
 	}
 	return values[0]
+}
+
+// Finish includes request preparation, tools and waiting. Elapsed time uses the
+// monotonic clock; the wall clock timestamp is only used for display.
+func Finish(summary *Summary, started time.Time, status string) *Summary {
+	result := Summary{}
+	if summary != nil {
+		result = *summary
+	}
+	now := time.Now()
+	elapsed := max(0, now.Sub(started).Seconds())
+	result.ElapsedSeconds = &elapsed
+	result.FinishedAt = now.UTC().Format(time.RFC3339Nano)
+	result.FinishStatus = status
+	result.Live = false
+	return &result
 }

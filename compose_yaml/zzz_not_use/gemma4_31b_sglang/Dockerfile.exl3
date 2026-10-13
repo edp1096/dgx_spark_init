@@ -1,0 +1,39 @@
+ARG SGLANG_COMMIT=2ef0fe46693d1b88271943de5eb49a2848a512d8
+ARG EXL3_REUSE_IMAGE=sparktalk-qwen38fn_exl3:1.5.4-managed1
+
+FROM ubuntu:24.04@sha256:33ceb71981b602c1a7443a53469e4dba065f7503eab3078a2d7a57a2ab987517 AS source
+ARG SGLANG_COMMIT
+ADD https://github.com/sgl-project/sglang/archive/${SGLANG_COMMIT}.tar.gz /tmp/sglang.tar.gz
+RUN mkdir -p /tmp/sglang-main && tar -xzf /tmp/sglang.tar.gz --strip-components=1 -C /tmp/sglang-main
+
+FROM lmsysorg/sglang@sha256:febfb971c7352570fc445c466ebd6ffc9d896024958e544a60f2137fd85856b1 AS base
+USER root
+COPY --from=source /tmp/sglang-main/python/sglang/ /sgl-workspace/sglang/python/sglang/
+COPY chat_template.jinja patch_tool_index.py patch_image_chunks.py /opt/gemma4/
+RUN python3 /opt/gemma4/patch_tool_index.py && python3 /opt/gemma4/patch_image_chunks.py
+
+# First installation builds the pinned extension without loading model weights.
+FROM base AS exl3-build
+ADD https://github.com/turboderp-org/exllamav3/archive/16a49792a3c93d8432d72e6c4bce800841566577.tar.gz /tmp/exllamav3.tar.gz
+RUN mkdir -p /opt/exllamav3 && tar -xzf /tmp/exllamav3.tar.gz --strip-components=1 -C /opt/exllamav3
+ENV MAX_JOBS=2 TORCH_CUDA_ARCH_LIST=12.1
+RUN EXLLAMA_NOCOMPILE=1 python3 -m pip install --no-deps --no-build-isolation /opt/exllamav3 \
+ && python3 -m pip wheel --no-deps --no-build-isolation --wheel-dir /tmp/exl3-wheels /opt/exllamav3 \
+ && python3 -m pip install --no-deps --force-reinstall /tmp/exl3-wheels/exllamav3-1.5.4*.whl
+
+# Existing qualified ExLlamaV3 images can supply the identical compiled extension.
+FROM ${EXL3_REUSE_IMAGE} AS exl3-reuse
+FROM base AS reuse
+COPY --from=exl3-reuse /usr/local/lib/python3.12/dist-packages/exllamav3 /usr/local/lib/python3.12/dist-packages/exllamav3
+COPY --from=exl3-reuse /usr/local/lib/python3.12/dist-packages/exllamav3_ext.cpython-312-aarch64-linux-gnu.so /usr/local/lib/python3.12/dist-packages/
+COPY --from=exl3-reuse /usr/local/lib/python3.12/dist-packages/exllamav3-1.5.4.dist-info /usr/local/lib/python3.12/dist-packages/exllamav3-1.5.4.dist-info
+COPY exl3_assistant/ /opt/gemma4/exl3_assistant/
+COPY launch_exl3.py /opt/gemma4/
+ENV PYTHONPATH=/opt/gemma4/exl3_assistant SPARKTALK_GEMMA_ASSISTANT_EXL3=1 PYTHONUNBUFFERED=1 HF_HUB_OFFLINE=1
+ENTRYPOINT ["python3", "/opt/gemma4/launch_exl3.py"]
+
+FROM exl3-build AS runtime
+COPY exl3_assistant/ /opt/gemma4/exl3_assistant/
+COPY launch_exl3.py /opt/gemma4/
+ENV PYTHONPATH=/opt/gemma4/exl3_assistant SPARKTALK_GEMMA_ASSISTANT_EXL3=1 PYTHONUNBUFFERED=1 HF_HUB_OFFLINE=1
+ENTRYPOINT ["python3", "/opt/gemma4/launch_exl3.py"]

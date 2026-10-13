@@ -13,7 +13,7 @@ func TestDisplayNamesPreserveCustomNamesBindingsAndRuntimeIdentity(t *testing.T)
 			cat.Components[i].Name = "Huihui Qwen3.8 Native EXL3"
 		case "nemotron-asr":
 			cat.Components[i].Name = "Nemotron ASR Q5_K"
-		case "gemma26":
+		case "ornith35":
 			cat.Components[i].Name = "내 문서 모델"
 		}
 	}
@@ -38,7 +38,7 @@ func TestDisplayNamesPreserveCustomNamesBindingsAndRuntimeIdentity(t *testing.T)
 			if c.Name != "Nemotron 3.5 ASR" {
 				t.Fatal(c)
 			}
-		case "gemma26":
+		case "ornith35":
 			if c.Name != "내 문서 모델" {
 				t.Fatal("custom name overwritten")
 			}

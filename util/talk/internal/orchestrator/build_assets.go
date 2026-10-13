@@ -18,8 +18,6 @@ func embeddedBuildAsset(compose string) string {
 		return "nemotron-asr"
 	case "compose.ornith35.yaml":
 		return "ornith35"
-	case "compose.gemma26.yaml":
-		return "gemma26"
 	case "compose.flux2.yaml":
 		return "flux2-paint"
 	case "compose.qwim-mmh3.yaml":
@@ -32,8 +30,6 @@ func embeddedBuildAsset(compose string) string {
 		return "extra-documents"
 	case "compose.qwen3-tts.yaml":
 		return "qwen3-tts"
-	case "compose.gemma31.yaml":
-		return "gemma31"
 	case "compose.flash-next.yaml":
 		return "flash-next"
 	case "compose.qwen38fn_exl3_q4.yaml":

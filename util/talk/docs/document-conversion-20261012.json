@@ -1,0 +1,138 @@
+{
+  "cause": {
+    "rich_document_limit_characters": 160000,
+    "stored_translation_characters": 314634,
+    "stored_translation_utf8_bytes": 741426
+  },
+  "changes": [
+    "Dedicated validated whole-text conversion route; original rich document tool keeps its limit",
+    "Whole-text limits: 1000000 Unicode code points, 4 MiB UTF-8, 20000 paragraphs, 300 second worker timeout",
+    "Hancom edits batched before pagination",
+    "PDF fallback fonts preserve the eight Thai/extended Latin characters present in this translation"
+  ],
+  "validation": {
+    "go_test_all": "passed",
+    "renderer_tests_passed": 38,
+    "support_assets": 125,
+    "recipe_assets": "passed",
+    "platform_builds": 4
+  },
+  "runtime": {
+    "pid": 3501041,
+    "health": "ok",
+    "model": "qwen38fn_exl3",
+    "model_config_unchanged": true,
+    "extra_documents_image": "sparktalk-extra-documents:0.5.3"
+  },
+  "production": [
+    {
+      "format": "docx",
+      "seconds": 6.008311197045259,
+      "peak_mib": 372.5859375,
+      "observed_mib": 363.01171875,
+      "runtime_images": [
+        "sparktalk-extra-documents:0.5.3"
+      ],
+      "formats": [
+        "txt",
+        "md",
+        "html",
+        "zip",
+        "docx",
+        "pdf"
+      ]
+    },
+    {
+      "format": "pdf",
+      "seconds": 0.004356043064035475,
+      "peak_mib": 0.0,
+      "observed_mib": 0.0,
+      "runtime_images": [],
+      "formats": [
+        "txt",
+        "md",
+        "html",
+        "zip",
+        "docx",
+        "pdf"
+      ]
+    },
+    {
+      "format": "hwp",
+      "seconds": 71.30275918601546,
+      "peak_mib": 446.46484375,
+      "observed_mib": 413.15234375,
+      "runtime_images": [
+        "sparktalk-extra-documents:0.5.3"
+      ],
+      "formats": [
+        "txt",
+        "md",
+        "html",
+        "zip",
+        "docx",
+        "pdf",
+        "hwp"
+      ]
+    },
+    {
+      "format": "hwpx",
+      "seconds": 70.61716606107075,
+      "peak_mib": 448.4296875,
+      "observed_mib": 414.9296875,
+      "runtime_images": [
+        "sparktalk-extra-documents:0.5.3"
+      ],
+      "formats": [
+        "txt",
+        "md",
+        "html",
+        "zip",
+        "docx",
+        "pdf",
+        "hwp",
+        "hwpx"
+      ]
+    }
+  ],
+  "content": {
+    "normalized_body_characters": 229343,
+    "docx_exact": true,
+    "hwpx_xml_exact": true,
+    "pdf_exact": true,
+    "models_unchanged": true,
+    "formats": {
+      "output.hwp": 349184,
+      "output.hwpx": 284809,
+      "output.pdf": 2150936,
+      "output.html": 933555,
+      "output.zip": 386262,
+      "output.txt": 741426,
+      "output.docx": 269833,
+      "output.md": 741538
+    }
+  },
+  "hancom_reopen": {
+    "hwp": {
+      "text_preserved": true,
+      "pages": 281
+    },
+    "hwpx": {
+      "text_preserved": true,
+      "pages": 286
+    }
+  },
+  "ui": {
+    "download_links": [
+      "단일 HTML",
+      "텍스트",
+      "Markdown",
+      "DOCX 받기",
+      "PDF 받기",
+      "HWP 받기",
+      "HWPX 받기"
+    ],
+    "page_errors": []
+  },
+  "extra_documents_state": "running"
+}

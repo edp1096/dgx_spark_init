@@ -16,9 +16,6 @@ var runtimeNames = map[string]runtimeName{
 	"qwen38fn_exl3_q4":    {"Qwen 3.8 Flash-Next EXL3 4bit", nil},
 	"flash-next-radixark": {"Qwen 3.8 Flash-Next NVFP4", nil},
 	"flash-next-tp2":      {"Qwen 3.8 Flash-Next TP2", []string{"Qwen3.8 Flash-Next TP2", "Huihui-RadixArk Qwen3.8 Flash-Next TP2"}},
-	"gemma26":             {"Gemma 4 26B", []string{"Huihui Gemma 4 26B"}},
-	"gemma31":             {"Gemma 4 31B", []string{"Gemma", "Gemma 31B", "Gemma4 31B"}},
-	"gemma":               {"Gemma 4 31B", []string{"Gemma", "Gemma 세트", "Gemma 31B", "Gemma4 31B"}},
 	"glm53":               {"GLM 5.3 Flash", []string{"GLM 5.3 Flash NVFP4"}},
 	"glm53-worker-extra":  {"GLM 5.3 Flash", []string{"GLM 5.3 Flash NVFP4"}},
 	"ds4fve":              {"DeepSeek V4 Flash Vision Exp", []string{"DeepSeek V4 Flash VE", "DeepSeek V4 Flash Vision Exp + 워커 Extra·ASR"}},
@@ -99,7 +96,7 @@ func modelPresentation(c Component) *ModelPresentation {
 			selected, label, format = "abliterated", "Abliterated", "EXL3 4bit HQ h6 ng6 · VeloGB10"
 		case "compose.qwen38fn_exl3.yaml":
 			selected, label, format = "abliterated", "Abliterated", "EXL3 3bit HQ h6 ng6"
-		case "compose.ornith35.yaml", "compose.gemma26.yaml", "compose.gemma31.yaml":
+		case "compose.ornith35.yaml":
 			selected, label, format = "abliterated", "Abliterated", "NVFP4"
 		case "compose.qwen-image21.yaml":
 			label, format = "Uncensored", "NVFP4 · W4A8 · BF16 VAE"

@@ -1,0 +1,27 @@
+{
+  "issue": "document_task silently ignored singular source_id and reported ambiguous invalid source count/instructions",
+  "fix": [
+    "accept source_id as an explicit single-source alias",
+    "normalize before idempotency hashing",
+    "reject conflicting aliases and unknown argument fields",
+    "report source count and instructions length separately"
+  ],
+  "checks": {
+    "server_and_llm_regression": "passed",
+    "focused_document_tests": "passed",
+    "focused_race_tests": "passed",
+    "server_vet": "passed",
+    "builds": 4
+  },
+  "deployment": {
+    "dist_binaries_updated": true,
+    "running_server_restarted": true,
+    "pending_restart": false,
+    "reason": "applied with document recovery fixes",
+    "server_pid": 1823856,
+    "active_document_runs": [
+      "chat-1791719302825162593"
+    ],
+    "model_containers_unchanged": true
+  }
+}

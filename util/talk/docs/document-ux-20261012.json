@@ -1,0 +1,48 @@
+{
+  "changes": [
+    "Primary status, progress, elapsed/completion time and PP/TG/TTFT remain visible",
+    "Completed document prioritizes ZIP result download; other formats and conversion grouped separately",
+    "Warnings, model/reasoning details, glossary, unit results and task management use collapsible sections",
+    "Editing retains entered instructions on failure and explains separate task behavior",
+    "Light/dark themes, narrow mobile layout, keyboard controls and automatic refresh preserve usability",
+    "Context rail moves above expanded task panel to avoid overlap"
+  ],
+  "validation": {
+    "browser_tests_passed": 14,
+    "tested_widths": [
+      1280,
+      390
+    ],
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "platform_builds": 4
+  },
+  "deployment": {
+    "pid": 3354917,
+    "health": "ok",
+    "model": "qwen38fn_exl3",
+    "saved_run_units_outputs_unchanged": true,
+    "config_unchanged": true,
+    "containers_unchanged": true,
+    "ui_asset": "/assets/index-Cg7NhM5A.js",
+    "ui_sha256": "634c97f70510c957795ba3a0eba79514fdd4935526cfe7c731eb887f0182f752"
+  },
+  "live_ui": [
+    {
+      "width": 1440,
+      "heading": "문서 번역",
+      "status": "완료",
+      "primary": "결과 받기\nZIP\n다른 형식\n⌄",
+      "page_errors": []
+    },
+    {
+      "width": 390,
+      "heading": "문서 번역",
+      "status": "완료",
+      "primary": "결과 받기\nZIP\n다른 형식\n⌄",
+      "page_errors": []
+    }
+  ]
+}

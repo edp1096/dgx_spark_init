@@ -1,8 +1,6 @@
 package orchestrator
 
 import (
-	"bytes"
-	"os"
 	"strings"
 	"testing"
 )
@@ -12,7 +10,7 @@ func TestEmbeddedCatalogIsComplete(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, id := range []string{"flash-next", "gemma"} {
+	for _, id := range []string{"flash-next", "qwen38fn_exl3", "qwen38fn_exl3_q4", "flash-next-radixark"} {
 		bundle, ok := catalog.Bundle(id)
 		if !ok || bundle.MemoryGiB <= 0 || bundle.ModelID == "" {
 			t.Fatalf("invalid bundle %q: %+v", id, bundle)
@@ -75,52 +73,33 @@ func TestRetired27BEXL3IsNotEmbedded(t *testing.T) {
 	}
 }
 
-func TestGemmaRuntimeProfileStaysInSync(t *testing.T) {
+func TestRetiredGemmaRuntimesHaveNoEmbeddedAssets(t *testing.T) {
 	catalog, err := LoadCatalog()
 	if err != nil {
 		t.Fatal(err)
 	}
-	bundle, ok := catalog.Bundle("gemma")
-	if !ok || bundle.ContextTokens != 65536 {
-		t.Fatalf("unexpected Gemma context: %+v", bundle)
-	}
-	component, ok := catalog.Component("gemma31")
-	if !ok || component.Container != "sglang-gemma4-31b" {
-		t.Fatalf("unexpected gemma31 component: %+v", component)
-	}
-	data, err := composeAsset(component.ComposeAsset)
-	if err != nil {
-		t.Fatal(err)
-	}
-	compose := string(data)
-	for _, required := range []string{
-		"dgx-sglang-gemma4-31b-dflash:2ef0fe4-toolindex1",
-		"SPARKTALK_BUILD_DIR",
-		"dockerfile: Dockerfile.dflash",
-		"container_name: sglang-gemma4-31b",
-		"/opt/gemma4/chat_template.jinja",
-		"eabd648301ce28583cc14757912e5e0f84e152e1",
-		"--speculative-draft-kv-cache-dtype",
-		"--num-continuous-decode-steps",
-	} {
-		if !strings.Contains(compose, required) {
-			t.Fatalf("Gemma compose is missing %q", required)
+	for _, id := range []string{"gemma", "gemma26", "gemma31"} {
+		if _, ok := catalog.Component(id); ok {
+			t.Fatalf("retired component: %s", id)
+		}
+		if _, ok := catalog.Bundle(id); ok {
+			t.Fatalf("retired bundle: %s", id)
 		}
 	}
-}
-
-func TestGemmaBuildAssetsAreEmbeddedAndMatchStandalone(t *testing.T) {
-	for _, name := range []string{"Dockerfile.dflash", "patch_tool_index.py", "chat_template.jinja"} {
-		embedded, err := assets.ReadFile("assets/gemma31/" + name)
-		if err != nil {
-			t.Fatal(err)
+	for _, asset := range []string{"compose.gemma26.yaml", "compose.gemma31.yaml"} {
+		if _, err := composeAsset(asset); err == nil {
+			t.Fatalf("retired compose still available: %s", asset)
 		}
-		standalone, err := os.ReadFile("../../../../compose_yaml/gemma4_31b_sglang/" + name)
-		if err != nil {
-			t.Fatal(err)
+		if embeddedBuildAsset(asset) != "" || len(componentModelAssets(Component{ComposeAsset: asset})) != 0 {
+			t.Fatalf("retired preparation: %s", asset)
 		}
-		if !bytes.Equal(embedded, standalone) {
-			t.Fatalf("Gemma build asset out of sync: %s", name)
+	}
+	for _, path := range []string{"assets/gemma26/Dockerfile", "assets/gemma31/Dockerfile.exl3", "assets/gemma31/launch_exl3.py"} {
+		if _, err := assets.ReadFile(path); err == nil {
+			t.Fatalf("retired build input embedded: %s", path)
 		}
+	}
+	if _, ok := catalog.Component("extra-embedding"); !ok {
+		t.Fatal("EmbeddingGemma removed with LLM sets")
 	}
 }

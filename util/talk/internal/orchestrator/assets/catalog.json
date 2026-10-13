@@ -88,18 +88,6 @@
       }
     },
     {
-      "id": "gemma31",
-      "role": "llm",
-      "container": "sglang-gemma4-31b",
-      "health_url": "http://127.0.0.1:8000/health",
-      "model": "Huihui-gemma-4-31B-it-abliterated-v2-NVFP4",
-      "memory_gib": 64.0,
-      "startup_timeout_seconds": 1200,
-      "compose_asset": "compose.gemma31.yaml",
-      "progress_kind": "sglang",
-      "auto_address": true
-    },
-    {
       "id": "flux2",
       "role": "image",
       "container": "sparktalk-qwen-image21",
@@ -195,18 +183,6 @@
       "startup_timeout_seconds": 600,
       "compose_asset": "compose.extra-documents.yaml",
       "progress_kind": "service",
-      "auto_address": true
-    },
-    {
-      "id": "gemma26",
-      "role": "llm",
-      "container": "sglang-gemma26",
-      "health_url": "http://127.0.0.1:8000/health",
-      "model": "edp1096/Huihui-Gemma-4-26B-A4B-it-NVFP4",
-      "memory_gib": 82.0,
-      "startup_timeout_seconds": 1200,
-      "compose_asset": "compose.gemma26.yaml",
-      "progress_kind": "vllm",
       "auto_address": true
     },
     {
@@ -485,38 +461,6 @@
         }
       },
       "start_support": true
-    },
-    {
-      "id": "gemma26",
-      "description": "1× DGX Spark · 1M 위치 보간 실험 · FP8 KV · 이미지·ASR·TTS·Extra",
-      "model_type": "gemma4",
-      "model_id": "edp1096/Huihui-Gemma-4-26B-A4B-it-NVFP4",
-      "context_tokens": 1048576,
-      "components": [
-        "gemma26",
-        "flux2",
-        "nemotron-asr",
-        "qwen3-tts",
-        "extra-media",
-        "extra-ssh",
-        "extra-collector"
-      ]
-    },
-    {
-      "id": "gemma",
-      "description": "Gemma 4 31B 기반 대화 세트",
-      "model_type": "gemma4",
-      "model_id": "Huihui-gemma-4-31B-it-abliterated-v2-NVFP4",
-      "context_tokens": 65536,
-      "components": [
-        "gemma31",
-        "flux2",
-        "nemotron-asr",
-        "qwen3-tts",
-        "extra-media",
-        "extra-ssh",
-        "extra-collector"
-      ]
     },
     {
       "id": "ds4fve",

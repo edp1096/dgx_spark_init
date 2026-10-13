@@ -209,7 +209,7 @@
           </SettingsHelp></legend>
           {#if modelProfile.reasoning === 'toggle'}
             <div class="settings-toggle-field"><span>기본 Thinking</span><button type="button" class:active={gemmaThinkingValue === 'on'} onclick={toggleDefaultThinking} aria-pressed={gemmaThinkingValue === 'on'}>{gemmaThinkingValue === 'on' ? 'Thinking 켜짐' : 'Thinking 꺼짐'}</button></div>
-            {#if modelProfile.family === 'gemma4'}<label class="settings-field-row settings-number-row"><span>Thinking 예산</span><input type="number" min="0" step="128" bind:value={settings.model.thinking_budget} /></label>{/if}
+            {#if modelProfile.family === 'gemma4'}<label class="settings-field-row settings-number-row"><span>Thinking 예산 (0: 제한 없음)</span><input type="number" min="0" step="128" bind:value={settings.model.thinking_budget} /></label>{/if}
           {:else if modelProfile.family === 'qwen3.8' || modelProfile.family === 'qwen38fn_exl3'}
             <label class="settings-field-row"><span>기본 추론 강도</span><Select bind:value={settings.model.reasoning_effort} aria-label="기본 reasoning effort">{#each modelProfile.reasoningLevels as level}<option value={level}>{reasoningEffortLabel(level, settings.model.model_type)}</option>{/each}</Select></label>
           {:else if (modelProfile.family === 'glm5.3' || modelProfile.family === 'deepseek-v4')}

@@ -8,7 +8,7 @@ test(`${browser.name}: shows one setup address and copies the actual HTTP origin
   await page.route('http://sparktalk.test:8088/**', async route => {
     try {
       const url = new URL(route.request().url());
-      const response = await route.fetch({ url: `http://127.0.0.1:18585${url.pathname}${url.search}` });
+      const response = await route.fetch({ url: new URL(`${url.pathname}${url.search}`, test.info().project.use.baseURL).href });
       await route.fulfill({ response });
     } catch (error) { if (!closing) throw error; }
   });

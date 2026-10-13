@@ -17,6 +17,36 @@ import (
 
 // ErrOutputLimit distinguishes a server-confirmed token limit from interrupted transport.
 var ErrOutputLimit = errors.New("출력 토큰 한도에 도달해 응답이 잘렸습니다")
+var ErrStreamInterrupted = errors.New("응답 수신 중 연결이 중단됐습니다")
+
+type HTTPError struct {
+	StatusCode int
+	Detail     string
+}
+
+func (e *HTTPError) Error() string {
+	return fmt.Sprintf("chat completion: HTTP %d: %s", e.StatusCode, e.Detail)
+}
+
+type reasoningBudgetKey struct{}
+
+// WithReasoningBudget scopes the requested reasoning budget to this one call.
+// SupportsReasoningBudget identifies the managed TabbyAPI runtime. The EXL3 Q4
+// set uses VeloGB10 despite sharing a model type; do not claim the same API there.
+func SupportsReasoningBudget(model, modelType string) bool {
+	return modelidentity.CanonicalID(modelType) == "qwen38fn_exl3" && modelidentity.CanonicalID(model) == "qwen38fn_exl3"
+}
+
+// The managed Velo schema2 runtime can cap reasoning only while enforcing a
+// JSON schema. Keep that capability separate from ordinary chat support.
+func SupportsStructuredReasoningBudget(model, modelType string) bool {
+	return SupportsReasoningBudget(model, modelType) ||
+		(modelidentity.CanonicalID(modelType) == "qwen38fn_exl3" && modelidentity.CanonicalID(model) == "qwen38fn_exl3_q4")
+}
+
+func WithReasoningBudget(ctx context.Context, tokens int) context.Context {
+	return context.WithValue(ctx, reasoningBudgetKey{}, tokens)
+}
 
 type Message struct {
 	// ReferenceContext marks ephemeral recall/checkpoint data, never API input.
@@ -171,18 +201,27 @@ func NormalizeReasoningEffort(modelType, effort string) string {
 		switch effort {
 		case "none", "low", "medium", "xhigh":
 			return effort
-		default:
+		case "on", "high":
 			return "medium"
+		case "0", "0.0", "off", "false", "no_think", "disabled":
+			return "none"
+		default:
+			return "low"
 		}
 	case "qwen3.8-gguf", "qwen38fn_exl3":
+		if effort == "" {
+			return "low"
+		}
 		if !gemmaThinkingEnabled(effort) {
 			return "none"
 		}
 		switch effort {
 		case "low", "medium", "xhigh":
 			return effort
-		default:
+		case "on", "high":
 			return "xhigh" // Preserve the previous enabled template default.
+		default:
+			return "low"
 		}
 	case "gemma4", "gemma4-vllm", "qwen3.5":
 		if gemmaThinkingEnabled(effort) {
@@ -261,11 +300,32 @@ func (c *Client) Stream(ctx context.Context, messages []Message, model, reasonin
 	if limit, ok := ctx.Value(outputLimitKey{}).(int); ok && limit > 0 {
 		payload["max_completion_tokens"] = limit
 	}
+	if err := applyRequestTemperature(ctx, payload); err != nil {
+		return StreamResult{}, err
+	}
+	if err := applyRequestSamplingParameters(ctx, payload); err != nil {
+		return StreamResult{}, err
+	}
 	if len(tools) > 0 {
 		payload["tools"] = tools
 		payload["tool_choice"] = "auto"
 	}
+	if structured, ok := ctx.Value(structuredOutputKey{}).(structuredOutput); ok {
+		if len(tools) > 0 || !json.Valid(structured.Schema) {
+			return StreamResult{}, fmt.Errorf("invalid structured-output request")
+		}
+		payload["response_format"] = map[string]any{"type": "json_schema", "json_schema": map[string]any{"name": structured.Name, "strict": true, "schema": structured.Schema}}
+	}
 	applyReasoningOptions(payload, c.modelType, reasoningEffort)
+	budgetSupported := SupportsReasoningBudget(model, c.modelType)
+	if _, structured := ctx.Value(structuredOutputKey{}).(structuredOutput); structured {
+		budgetSupported = SupportsStructuredReasoningBudget(model, c.modelType)
+	}
+	if tokens, ok := ctx.Value(reasoningBudgetKey{}).(int); ok && tokens > 0 && budgetSupported && NormalizeReasoningEffort(c.modelType, reasoningEffort) != "none" {
+		// Managed runtimes accept this outside the chat template. Ordinary chat calls
+		// omit the context value and retain their original reasoning settings.
+		payload["reasoning_budget_tokens"] = tokens
+	}
 	if c.modelType == "deepseek-v4" {
 		for _, message := range messages {
 			if message.Role == "assistant" && message.ReasoningContent != "" {
@@ -294,6 +354,9 @@ func (c *Client) Stream(ctx context.Context, messages []Message, model, reasonin
 	if err != nil {
 		return StreamResult{}, err
 	}
+	if observe, ok := ctx.Value(requestObserverKey{}).(func([]byte)); ok && observe != nil {
+		observe(append([]byte(nil), body...))
+	}
 	measurement := newStreamPerformance(ctx)
 	defer measurement.publish(true)
 	resp, err := c.post(transportCtx, body)
@@ -303,7 +366,7 @@ func (c *Client) Stream(ctx context.Context, messages []Message, model, reasonin
 	defer func() { finishStream(); resp.Body.Close() }()
 	if resp.StatusCode != http.StatusOK {
 		detail, _ := io.ReadAll(io.LimitReader(resp.Body, 8192))
-		return StreamResult{}, fmt.Errorf("chat completion: HTTP %d: %s", resp.StatusCode, strings.TrimSpace(string(detail)))
+		return StreamResult{}, &HTTPError{StatusCode: resp.StatusCode, Detail: strings.TrimSpace(string(detail))}
 	}
 
 	var answer, reasoning strings.Builder
@@ -386,13 +449,13 @@ func (c *Client) Stream(ctx context.Context, messages []Message, model, reasonin
 		if reasoningDelta != "" {
 			reasoning.WriteString(reasoningDelta)
 			if err := emit("reasoning", reasoningDelta); err != nil {
-				return StreamResult{Content: answer.String(), Reasoning: reasoning.String(), ToolCalls: assembleToolCalls(toolOrder, toolCalls)}, err
+				return StreamResult{Content: answer.String(), Reasoning: reasoning.String(), ToolCalls: assembleToolCalls(toolOrder, toolCalls), Usage: usage, FinishReason: finishReason}, err
 			}
 		}
 		if delta.Content != "" {
 			answer.WriteString(delta.Content)
 			if err := emit("delta", delta.Content); err != nil {
-				return StreamResult{Content: answer.String(), Reasoning: reasoning.String(), ToolCalls: assembleToolCalls(toolOrder, toolCalls)}, err
+				return StreamResult{Content: answer.String(), Reasoning: reasoning.String(), ToolCalls: assembleToolCalls(toolOrder, toolCalls), Usage: usage, FinishReason: finishReason}, err
 			}
 		}
 		for _, call := range delta.ToolCalls {
@@ -414,7 +477,7 @@ func (c *Client) Stream(ctx context.Context, messages []Message, model, reasonin
 	}
 	result := StreamResult{Content: answer.String(), Reasoning: reasoning.String(), ToolCalls: assembleToolCalls(toolOrder, toolCalls), Usage: usage, FinishReason: finishReason}
 	if err := scanner.Err(); err != nil {
-		return result, fmt.Errorf("응답 수신 중 연결이 중단됐습니다: %w", err)
+		return result, fmt.Errorf("%w: %w", ErrStreamInterrupted, err)
 	}
 	switch finishReason {
 	case "length":
@@ -431,7 +494,7 @@ func (c *Client) Stream(ctx context.Context, messages []Message, model, reasonin
 		if done {
 			return result, nil
 		} // Some compatible servers only send [DONE].
-		return result, fmt.Errorf("종료 신호 없이 응답 연결이 끝났습니다. 생성된 내용이 불완전할 수 있습니다.")
+		return result, fmt.Errorf("%w: 종료 신호 없이 응답 연결이 끝났습니다. 생성된 내용이 불완전할 수 있습니다.", ErrStreamInterrupted)
 	default:
 		return result, fmt.Errorf("모델 서버가 응답을 종료했습니다 (finish_reason=%s).", finishReason)
 	}
@@ -729,6 +792,7 @@ func validateCheckpoint(text, finish string) error {
 
 // InputMessages exposes the message form that Stream actually serializes.
 func (c *Client) InputMessages(messages []Message) []Message {
+	messages = c.withGemma31CompletionPolicy(messages)
 	if c.modelType == "qwen3.5" || c.modelType == "gemma4-vllm" {
 		messages = retainRecentImages(messages, 4)
 	}

@@ -1,0 +1,280 @@
+{
+  "diagnosis": {
+    "input_was_already_split": true,
+    "saved_checkpoints": 252,
+    "failed_checkpoint": 9,
+    "failed_source_chars": 2387,
+    "failed_reasoning_chars": 86134,
+    "failed_answer_chars": 0,
+    "old_request_deadline_seconds": 600,
+    "old_failure_state": "waiting_model",
+    "cause": "unbounded reasoning consumed the combined output allowance; a fixed request deadline then interrupted active generation; interruption was wrongly treated as model unavailability"
+  },
+  "single_checkpoint_budget_trials": [
+    {
+      "reasoning_budget_tokens": 2048,
+      "seconds": 65.905296582,
+      "reasoning_chars": 6487,
+      "content_chars": 1482,
+      "input_count": 21,
+      "output_count": 21,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 2262,
+        "completion_tokens": 2858,
+        "total_tokens": 5120,
+        "prompt_tokens_details": {
+          "cached_tokens": 2048
+        }
+      }
+    },
+    {
+      "reasoning_budget_tokens": 4096,
+      "seconds": 115.377537702,
+      "reasoning_chars": 13501,
+      "content_chars": 1448,
+      "input_count": 21,
+      "output_count": 21,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 2262,
+        "completion_tokens": 4891,
+        "total_tokens": 7153,
+        "prompt_tokens_details": {
+          "cached_tokens": 2048
+        }
+      }
+    },
+    {
+      "reasoning_budget_tokens": 8192,
+      "seconds": 225.614703275,
+      "reasoning_chars": 28092,
+      "content_chars": 1421,
+      "input_count": 21,
+      "output_count": 21,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 2262,
+        "completion_tokens": 8979,
+        "total_tokens": 11241,
+        "prompt_tokens_details": {
+          "cached_tokens": 2048
+        }
+      }
+    }
+  ],
+  "policy": {
+    "native_runtime": "managed EXL3 3bit TabbyAPI",
+    "xhigh_reasoning_budget_tokens": 8192,
+    "medium_reasoning_budget_tokens": 4096,
+    "low_reasoning_budget_tokens": 2048,
+    "answer_reserved_separately": true,
+    "maximum_request_checkpoints": 4,
+    "maximum_request_source_chars": 9000,
+    "maximum_request_fragments": 128,
+    "preflight_checks_context_and_output": true,
+    "checkpoint_units_remain_separate": true,
+    "batch_failure_falls_back_to_single_checkpoint": true,
+    "maximum_consecutive_checkpoint_attempts": 3,
+    "idle_timeout_seconds": 120,
+    "healthy_stream_uses_remaining_task_budget": true,
+    "incomplete_stream_is_not_model_unavailability": true,
+    "turn_reasoning_setting_is_inherited": true,
+    "split_fragments_keep_source_order": true,
+    "ordinary_chat_reasoning_unchanged": true,
+    "unsupported_runtime_allowance_preserved": true
+  },
+  "verification": {
+    "go_all": "passed",
+    "go_vet": "passed",
+    "go_race": [
+      "server",
+      "llm",
+      "db"
+    ],
+    "javascript_unit_tests": 133,
+    "browser_tests": 98,
+    "embedded_support_assets": 123,
+    "production_ui_page_errors": []
+  },
+  "deployment": {
+    "server_pid": 1823856,
+    "health": "ok",
+    "model": "qwen38fn_exl3",
+    "reasoning_effort": "xhigh",
+    "context_tokens": 1048576,
+    "containers_unchanged": true,
+    "ui_asset": "/assets/index-BXdmqh27.js",
+    "ui_sha256": "d98d28fe8bc2263902f356ad69d102d7ddcca7e6cb0baa4ad12a0c0916c6ec8c",
+    "run_id": "chat-1791719302825162593",
+    "session_id": "chat-1791716007391613355",
+    "resume_status": "running"
+  },
+  "resumed_verification": {
+    "status": "running",
+    "completed": 12,
+    "total": 252,
+    "calls": 15,
+    "original_eight_unchanged": true,
+    "units": [
+      {
+        "output_budget": 32768,
+        "retry_base": 2,
+        "ordinal": 8,
+        "stage": "process",
+        "status": "completed",
+        "attempts": [
+          {
+            "protocol": "json_schema_ids_v2",
+            "reasoning_chars": 57681,
+            "content_chars": 0,
+            "revision": 1,
+            "model": "qwen38fn_exl3",
+            "finish_reason": "length",
+            "prompt_tokens": 2262,
+            "output_tokens": 18799,
+            "seconds": 406.189176477,
+            "error": "출력 토큰 한도에 도달해 응답이 잘렸습니다 (finish_reason=length, 요청 상한 18799토큰). 생각 과정도 이 한도를 사용합니다. 설정 > 대화 > 지능형 문맥 관리의 최대 출력 토큰을 늘리거나 이어서 생성을 요청하세요."
+          },
+          {
+            "protocol": "json_schema_ids_v2",
+            "reasoning_chars": 86134,
+            "content_chars": 0,
+            "revision": 1,
+            "model": "qwen38fn_exl3",
+            "finish_reason": "",
+            "prompt_tokens": 0,
+            "output_tokens": 0,
+            "seconds": 600.001315902,
+            "error": "응답 수신 중 연결이 중단됐습니다: context deadline exceeded"
+          },
+          {
+            "batch_units": [
+              9,
+              10,
+              11,
+              12
+            ],
+            "reasoning_budget_tokens": 8192,
+            "protocol": "json_schema_ids_v2",
+            "reasoning_chars": 27066,
+            "content_chars": 5257,
+            "revision": 1,
+            "model": "qwen38fn_exl3",
+            "finish_reason": "stop",
+            "prompt_tokens": 7072,
+            "output_tokens": 11076,
+            "seconds": 274.42384855
+          }
+        ]
+      },
+      {
+        "ordinal": 9,
+        "stage": "process",
+        "status": "completed",
+        "attempts": [
+          {
+            "batch_units": [
+              9,
+              10,
+              11,
+              12
+            ],
+            "shared_with_ordinal": 8,
+            "reasoning_budget_tokens": 8192,
+            "protocol": "json_schema_ids_v2",
+            "reasoning_chars": 0,
+            "content_chars": 1184,
+            "revision": 1,
+            "model": "qwen38fn_exl3",
+            "finish_reason": "stop",
+            "prompt_tokens": 0,
+            "output_tokens": 0,
+            "seconds": 274.42384855
+          }
+        ]
+      },
+      {
+        "ordinal": 10,
+        "stage": "process",
+        "status": "completed",
+        "attempts": [
+          {
+            "batch_units": [
+              9,
+              10,
+              11,
+              12
+            ],
+            "shared_with_ordinal": 8,
+            "reasoning_budget_tokens": 8192,
+            "protocol": "json_schema_ids_v2",
+            "reasoning_chars": 0,
+            "content_chars": 1324,
+            "revision": 1,
+            "model": "qwen38fn_exl3",
+            "finish_reason": "stop",
+            "prompt_tokens": 0,
+            "output_tokens": 0,
+            "seconds": 274.42384855
+          }
+        ]
+      },
+      {
+        "ordinal": 11,
+        "stage": "process",
+        "status": "completed",
+        "attempts": [
+          {
+            "batch_units": [
+              9,
+              10,
+              11,
+              12
+            ],
+            "shared_with_ordinal": 8,
+            "reasoning_budget_tokens": 8192,
+            "protocol": "json_schema_ids_v2",
+            "reasoning_chars": 0,
+            "content_chars": 978,
+            "revision": 1,
+            "model": "qwen38fn_exl3",
+            "finish_reason": "stop",
+            "prompt_tokens": 0,
+            "output_tokens": 0,
+            "seconds": 274.42384855
+          }
+        ]
+      }
+    ]
+  },
+  "production_summary": {
+    "status": "running",
+    "completed": 12,
+    "total": 252,
+    "calls": 15,
+    "first_resumed_batch": {
+      "checkpoints": [
+        9,
+        10,
+        11,
+        12
+      ],
+      "seconds": 274.42384855,
+      "reasoning_budget_tokens": 8192,
+      "prompt_tokens": 7072,
+      "output_tokens": 11076,
+      "source_chars": 8936,
+      "source_fragments": 43,
+      "finish_reason": "stop",
+      "all_source_fragments_saved": true
+    },
+    "original_eight_unchanged": true,
+    "current_active_units": [
+      13,
+      14,
+      15,
+      16
+    ]
+  }
+}

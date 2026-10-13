@@ -24,7 +24,7 @@ RUN mkdir -p /licenses && go list -m -f '{{if not .Main}}{{.Path}} {{.Dir}}{{end
     for file in "$directory"/LICENSE* "$directory"/COPYING* "$directory"/NOTICE*; do if [ -f "$file" ]; then cp "$file" "/licenses/$name/"; fi; done; fi; done
 
 FROM node:24-bookworm-slim
-RUN apt-get update && apt-get install -y --no-install-recommends fonts-noto-cjk && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends fonts-noto-cjk fonts-noto-core && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev --ignore-scripts && npm cache clean --force

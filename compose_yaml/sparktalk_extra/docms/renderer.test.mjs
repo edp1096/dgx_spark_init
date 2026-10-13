@@ -10,6 +10,14 @@ test('reject invalid shape and oversized slide instead of silently clipping',()=
  assert.throws(()=>validate({format:'docx',title:'test',sections:[{paragraphs:[],table:[['a','b'],['c']]}]}));
  assert.throws(()=>validate({format:'html',title:'test'}));
 });
+test('PDF preserves Arabic digits, Thai and extended Latin alongside Korean',async()=>{
+ const dir=await fs.mkdtemp(path.join(os.tmpdir(),'pdf-font-fallback-'));
+ try{
+  await render({format:'pdf',title:'문자 보존',sections:[{paragraphs:['한국어 ꭓ เช่นกัน English 日本語 ادام ١٢٣']} ]},dir);
+  const extracted=execFileSync('pdftotext',[path.join(dir,'document.pdf'),'-'],{encoding:'utf8'});
+  assert.match(extracted,/ꭓ/);assert.match(extracted,/เช่นกัน/);assert.match(extracted,/日本語/);assert.match(extracted,/ادام/);assert.match(extracted,/١٢٣/);
+ }finally{await fs.rm(dir,{recursive:true,force:true});}
+});
 for(const format of ['docx','pptx','pdf'])test(`render ${format} with searchable Korean PDF`,async()=>{
  const dir=await fs.mkdtemp(path.join(os.tmpdir(),'document-test-'));
  try{
@@ -111,3 +119,9 @@ test('images reject invalid bytes and unsupported slideshow use',()=>{
  assert.equal(validate(input).sections[0].paragraphs.length,200);
  assert.throws(()=>validate({...input,sections:[{paragraphs:Array(200).fill('x'.repeat(1000))}]}),/Document content exceeds limit/);
  });
+
+test('PDF rejects unsupported glyphs instead of silently dropping saved text',async()=>{
+ const dir=await fs.mkdtemp(path.join(os.tmpdir(),'pdf-missing-glyph-'));
+ try{await assert.rejects(render({format:'pdf',title:'문자 검증',sections:[{paragraphs:['unsupported ꭰ']}]},dir),/U\+AB70/);}
+ finally{await fs.rm(dir,{recursive:true,force:true});}
+});

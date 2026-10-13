@@ -1,0 +1,844 @@
+{
+  "updated_at": "2026-10-13T03:20:32.714798+00:00",
+  "status": "safe_fixes_deployed_semantic_qualification_failed",
+  "evidence_dir": "/home/edp1096/.cache/model-download-jobs/document-correction-20261013",
+  "scope": "Generic durable translation pipeline for structured text/HTML; not a Schoolgirl-specific rewrite",
+  "verified_fixes": [
+    "Actual user instructions and provenance separated from model-invented constraints",
+    "Paragraph/ruby/character-image source coverage and protected layout",
+    "Hash-bound partial review, selective repair, bounded retries, stale-review invalidation",
+    "Repair context restricted to prior accepted non-overlapping source ranges; valid prior siblings retained",
+    "Uncapped native low output allowance includes adequate room after reasoning; previous failed fixture retained",
+    "Original-result-preserving child revisions and atomic publication; conversion-only recovery",
+    "Schema visible in model prompt; request-local sampling; native reasoning capability recorded",
+    "Velo Q4 structured output now preserves requested reasoning; reusable identical token masks avoid repeated full-vocabulary scans",
+    "Renderer font coverage checked before export; supported fallback fonts; no silent missing glyphs"
+  ],
+  "not_a_fix": "Original JSON escaping rule was already correct. Only an explicit valid quotation example and its test were added. Earlier escaping diagnosis was retracted.",
+  "qualification": {
+    "automatic_semantic_review": "not qualified",
+    "reason": "Natural lexical/entity/quantity errors missed and incorrect lexical explanations proposed by the same model; structural completion does not imply accurate translation",
+    "default_new_pipeline": "legacy; reviewed_v1 remains internal opt-in; existing missing-fragment retry keeps legacy processing in a new child revision",
+    "heldout_books": "Four independent final books frozen, not run while earlier semantic qualification gate fails",
+    "schoolgirl_revision": "not published; original preserved",
+    "operating_recommendation": "Keep original3bit configuration; no candidate qualified for automatic semantic review/correction.",
+    "model_quality_limit": "Findings apply to tested model/runtime/prompt configurations; cannot attribute all differences solely to quantization or rule out every serving effect."
+  },
+  "common_final_configuration": {
+    "selected_at": "2026-10-13T01:50:12.085050+00:00",
+    "full_pipeline_models": [
+      "EXL3 3bit",
+      "EXL3 4bit",
+      "ordinary RadixArk NVFP4"
+    ],
+    "effort": {
+      "translate": "medium",
+      "review": "medium",
+      "repair": "medium"
+    },
+    "temperature": 0.2,
+    "code": "server.context-current.test",
+    "reason": "Selection compared off/low/medium. NV low had an all-reasoning output-limit failure; choose medium for final fidelity-oriented whole-document comparison and use same requested efforts for all three. This does not change ordinary chat settings.",
+    "caveats": [
+      "Native medium cap4096 inEXL3/Velo; NV medium issoftinstruction withnohardcap",
+      "Earlier3bit621s andschema2Q41518spilotsusedlowtranslation andoldercode;retainasdevelopmentbaselines,notfinalcondition-matchedcomparison"
+    ]
+  },
+  "comparison_limits": [
+    "Operational runtime configurations, not isolated quantization causality",
+    "3bit Tabby and4bitVelo have hard native medium4096 reasoning limits; ordinary NVFP4 has soft medium instruction",
+    "Structured Velo disables MTP; ordinary NVFP4 uses NEXTN; actual tokenizer/backend/KV differ",
+    "Full worker pilot uses57paragraph Rashomon including metadata; it is selection material, not independent heldout validation",
+    "Short auxiliary-resident request does not replace full-book resident memory measurement",
+    "cgroup/RSS excludes or misattributes CUDA memory; system available/free/swap and native engine receipts are primary"
+  ],
+  "tests": {
+    "go": "all-go-tests-start-order-final.log passed",
+    "race": "review/context/stage/revision/start-order targeted race checks passed",
+    "ui": "133 frontend tests;5 relevant browser tests passed",
+    "renderer": "20 renderer+2 font cases passed;8actual output formats validated",
+    "production_copy_migration": "1004messages8runs334units5sources21outputs unchanged",
+    "builds": "Latest Linux/Windows ARM64/AMD64 installed; hashes in release/builds.json",
+    "velo": "31CPUtests,4tokenizer tests,248077maskbits compared at53states;19PTXfiles unchanged;GPUdynamic-maskgraph tests and6HTTPchecks passed",
+    "whitespace": "git diff --check passed",
+    "startup_order": "same-host deferred embedding before TTS; different-host order unaffected; NVFP4/QAD/cluster regression and race passed"
+  },
+  "deployment": {
+    "state": "verified safe subset deployed; original runtime and preferences restored",
+    "receipt": "/home/edp1096/.cache/model-download-jobs/document-correction-20261013/deployment-receipt.json",
+    "new_pid": 3592665,
+    "existing_downloads_verified": 21,
+    "existing_records_unchanged": true,
+    "user_preferences_preserved": true,
+    "committed": false,
+    "pushed": false,
+    "public_image_pushed": false,
+    "backup": "/home/edp1096/.cache/model-download-jobs/document-correction-20261013/deployment-backup-20261013T030903Z",
+    "managed_bundle_api_pass": true,
+    "documents_version": "0.5.5",
+    "runtime_restoration": {
+      "recorded_at": 1791861481.262163,
+      "running": [
+        {
+          "name": "sparktalk-extra-documents",
+          "image": "sparktalk-extra-documents:0.5.5",
+          "pid": 3626474,
+          "id": "d78176760f1931c32966595f1c8395372a44daf009a05317f27764deac713e7f"
+        },
+        {
+          "name": "sparktalk-embedding",
+          "image": "sparktalk-embedding:0.1.1",
+          "pid": 3620368,
+          "id": "ab3d5516358c7cba7c62fd39d2cc9bda0c72032827b431848cc5538503d1a449"
+        },
+        {
+          "name": "sparktalk-nemotron-asr",
+          "image": "sparktalk-nemotron-asr:0.1.0",
+          "pid": 3619553,
+          "id": "417a9921a0b902cf7ea61c43c1759308be3f8a329f5b8adbdf98b2670e9c601a"
+        },
+        {
+          "name": "sparktalk-qwen38fn_exl3",
+          "image": "sparktalk-qwen38fn_exl3:1.5.4-managed1",
+          "pid": 3611617,
+          "id": "8c6afccebf05c42479b642978a7f83545ff67be3232588cc24ee89ae61646844"
+        },
+        {
+          "name": "sparktalk-qwim-mmh3",
+          "image": "sparktalk-qwim-mmh3:nvfp4-sol-i2v1",
+          "pid": 3601760,
+          "id": "fb9e5ac1f5c269edf214ec00e8bedf15917fbae1b9fc4e44b5bb23cc54744e87"
+        },
+        {
+          "name": "sparktalk-extra-ssh",
+          "image": "sparktalk-extra-ssh:0.3.0",
+          "pid": 2276011,
+          "id": "51eda6f75505dc404ab0f5b86061ee6405ac4cd9b1bbe0cb34d20224d0b24c75"
+        }
+      ],
+      "proxy_stopped": [
+        3358960
+      ],
+      "preferences_differing_from_task_start": [],
+      "runtime_mode": "managed",
+      "startup_default_bundle": "flash-next-radixark",
+      "active_model": "qwen38fn_exl3",
+      "context": {
+        "max_seq_len": 1048576,
+        "cache_size": 1048576,
+        "cache_mode": "Q8"
+      },
+      "tts_running": false,
+      "legacy_talk_18585_preserved": true
+    },
+    "post_restore_original_data_unchanged": true,
+    "post_restore_health_pass": true
+  },
+  "failed_alternatives": [
+    "Logical-negation-focused review still missed the added negation",
+    "Independent source/target reading through English hallucinated lexical meanings and increased cost",
+    "Unconstrained JSON probe retained quotations but introduced protected-slot/entity errors; not adopted"
+  ],
+  "memory_reports": {
+    "exl3_3bit_all_core": {
+      "functional_pass": true,
+      "memory": {
+        "samples": 226,
+        "seconds": 225.17754912376404,
+        "available_first_gib": 45.75435256958008,
+        "available_min_gib": 20.024513244628906,
+        "available_last_gib": 20.284305572509766,
+        "free_min_gib": 2.2389907836914062,
+        "swap_first_gib": 1.8651771545410156,
+        "swap_last_gib": 1.8786659240722656,
+        "swap_max_gib": 1.8786773681640625,
+        "swap_in_mib": 6.0078125,
+        "swap_out_mib": 18.25390625,
+        "memory_psi_some_stall_seconds": 1.082313,
+        "memory_psi_full_stall_seconds": 1.078084,
+        "cgroup_observed_max_gib": 0.0
+      },
+      "phases": {
+        "startup": {
+          "seconds": 146.10247802734375,
+          "swap_out_mib": 1.7265625,
+          "available_min_gib": 21.902530670166016,
+          "free_min_gib": 2.2389907836914062
+        },
+        "translation": {
+          "seconds": 64.06377291679382,
+          "swap_out_mib": 16.52734375,
+          "available_min_gib": 20.024513244628906,
+          "free_min_gib": 2.3187942504882812
+        },
+        "post_request": {
+          "seconds": 15.011298179626465,
+          "swap_out_mib": 0.0,
+          "available_min_gib": 20.27822494506836,
+          "free_min_gib": 2.3184127807617188
+        }
+      }
+    },
+    "exl3_4bit_asr_embedding": {
+      "functional_pass": true,
+      "memory": {
+        "samples": 87,
+        "seconds": 86.10230875015259,
+        "available_first_gib": 23.18647003173828,
+        "available_min_gib": 18.943115234375,
+        "available_last_gib": 19.154144287109375,
+        "free_min_gib": 11.03384780883789,
+        "swap_first_gib": 1.8148574829101562,
+        "swap_last_gib": 1.814117431640625,
+        "swap_max_gib": 1.8148574829101562,
+        "swap_in_mib": 1.796875,
+        "swap_out_mib": 0.0,
+        "memory_psi_some_stall_seconds": 0.000477,
+        "memory_psi_full_stall_seconds": 0.000476,
+        "cgroup_observed_max_gib": 0.0
+      },
+      "phases": {
+        "startup": {
+          "seconds": 18.019582986831665,
+          "swap_out_mib": 0.0,
+          "available_min_gib": 19.08426284790039,
+          "free_min_gib": 11.183597564697266
+        },
+        "translation": {
+          "seconds": 53.06356596946716,
+          "swap_out_mib": 0.0,
+          "available_min_gib": 18.943115234375,
+          "free_min_gib": 11.03384780883789
+        },
+        "post_request": {
+          "seconds": 15.01915979385376,
+          "swap_out_mib": 0.0,
+          "available_min_gib": 19.11876678466797,
+          "free_min_gib": 11.186504364013672
+        }
+      }
+    },
+    "nvfp4_asr_embedding": {
+      "functional_pass": true,
+      "memory": {
+        "samples": 185,
+        "seconds": 184.18304681777954,
+        "available_first_gib": 12.180118560791016,
+        "available_min_gib": 7.717559814453125,
+        "available_last_gib": 8.19491195678711,
+        "free_min_gib": 3.1262893676757812,
+        "swap_first_gib": 1.8344383239746094,
+        "swap_last_gib": 1.8431854248046875,
+        "swap_max_gib": 1.8471183776855469,
+        "swap_in_mib": 14.53515625,
+        "swap_out_mib": 33.42578125,
+        "memory_psi_some_stall_seconds": 0.793279,
+        "memory_psi_full_stall_seconds": 0.792717,
+        "cgroup_observed_max_gib": 0.0
+      },
+      "phases": {
+        "startup": {
+          "seconds": 20.01170802116394,
+          "swap_out_mib": 26.0546875,
+          "available_min_gib": 8.823314666748047,
+          "free_min_gib": 3.1262893676757812
+        },
+        "translation": {
+          "seconds": 149.16040229797363,
+          "swap_out_mib": 7.37109375,
+          "available_min_gib": 7.717559814453125,
+          "free_min_gib": 3.184528350830078
+        },
+        "post_request": {
+          "seconds": 15.010936498641968,
+          "swap_out_mib": 0.0,
+          "available_min_gib": 8.107704162597656,
+          "free_min_gib": 3.677154541015625
+        }
+      }
+    }
+  },
+  "final_whole_document": {
+    "exl3_3bit": {
+      "worker_seconds": 686,
+      "elapsed_wall_seconds": 690.056269531,
+      "calls": 10,
+      "status": "needs_review",
+      "reviewed": 57,
+      "total": 57,
+      "unresolved": 5,
+      "formats_complete": true,
+      "stage_metrics": {
+        "repair": {
+          "calls": 1,
+          "seconds": 33.917826252,
+          "prompt_tokens": 3068,
+          "output_tokens": 1708
+        },
+        "review": {
+          "calls": 6,
+          "seconds": 390.871356914,
+          "prompt_tokens": 30210,
+          "output_tokens": 20143
+        },
+        "translate": {
+          "calls": 3,
+          "seconds": 259.94693832400003,
+          "prompt_tokens": 13226,
+          "output_tokens": 12315
+        }
+      },
+      "audit": {
+        "checked_at": "2026-10-13T02:53:11.255496+00:00",
+        "scope": "All57 final paragraphs compared with source and immutable initial translation attempt (first live snapshot was after the day-count repair, now retained as mid-review snapshot)",
+        "quality_gate": "fail",
+        "automatic_status": "needs_review",
+        "automatic_unresolved": 5,
+        "firm_major": [
+          {
+            "paragraph_index": 10,
+            "category": "negation_direction",
+            "source": "人目にかかる惧のない",
+            "target": "남의 눈에 띄지 않을 두려움이 없고",
+            "issue": "Adds a negation inside the feared event",
+            "automatic_finding": false
+          }
+        ],
+        "recovered_blank_paragraph_indices": [
+          21,
+          23,
+          25,
+          27,
+          29,
+          32,
+          34
+        ],
+        "unchanged_paragraphs": 49,
+        "positive_observations": [
+          "All57paragraphs present in final output",
+          "fox andtanuki both present;4/5days corrected;later not-hesitating polarity preserved",
+          "Bibliographic dates retained",
+          "7blankdialogueparagraphs recovered plus1daycountrepair;49otherparagraphs unchanged"
+        ],
+        "excluded": [
+          "script mixture",
+          "archaic transliteration-only complaints",
+          "unadjudicated color/clothing terms"
+        ],
+        "elapsed_wall_seconds": 690.056269531,
+        "worker_seconds": 686,
+        "calls": 10,
+        "profile": "medium allstages,temp0.2,native4096cap",
+        "formats": "8/8",
+        "changed_paragraph_indices": [
+          6,
+          21,
+          23,
+          25,
+          27,
+          29,
+          32,
+          34
+        ]
+      },
+      "memory": {
+        "samples": 692,
+        "seconds": 690.9033179283142,
+        "available_first_gib": 45.51538848876953,
+        "available_min_gib": 40.10101318359375,
+        "available_last_gib": 40.17729568481445,
+        "free_min_gib": 33.58564376831055,
+        "swap_first_gib": 1.8134307861328125,
+        "swap_last_gib": 1.8103218078613281,
+        "swap_max_gib": 1.8134307861328125,
+        "swap_in_mib": 9.17578125,
+        "swap_out_mib": 0.0,
+        "memory_psi_some_stall_seconds": 0.006619,
+        "memory_psi_full_stall_seconds": 0.006535,
+        "cgroup_observed_max_gib": 10.131153106689453
+      },
+      "format_content_check": {
+        "pdf": {
+          "pages": 4,
+          "body_equal_except_whitespace": true,
+          "title_removed": "문서 처리 결과",
+          "footers_removed": [
+            "1/4",
+            "2/4",
+            "3/4",
+            "4/4"
+          ],
+          "visual_inspection": "Page1 legible; normal wrapping and paragraph boundaries; no artificial per-slot blank lines; semantic and incidental-script issues considered separately"
+        },
+        "docx": {
+          "body_equal_except_whitespace": true,
+          "expected_characters": 5418,
+          "actual_characters": 5418
+        },
+        "hwpx": {
+          "body_equal_except_whitespace": true,
+          "expected_characters": 5418,
+          "actual_characters": 5418
+        }
+      }
+    },
+    "exl3_4bit": {
+      "worker_seconds": 1000,
+      "elapsed_wall_seconds": 1004.435710221,
+      "calls": 10,
+      "status": "completed",
+      "reviewed": 57,
+      "total": 57,
+      "unresolved": 0,
+      "formats_complete": true,
+      "stage_metrics": {
+        "repair": {
+          "calls": 3,
+          "seconds": 179.91210367600002,
+          "prompt_tokens": 7841,
+          "output_tokens": 5529
+        },
+        "review": {
+          "calls": 6,
+          "seconds": 614.229299645,
+          "prompt_tokens": 31994,
+          "output_tokens": 19731
+        },
+        "translate": {
+          "calls": 1,
+          "seconds": 205.756010245,
+          "prompt_tokens": 9016,
+          "output_tokens": 5944
+        }
+      },
+      "audit": {
+        "checked_at": "2026-10-13T02:38:38.717985+00:00",
+        "scope": "All57 initial aligned paragraphs plus all3 changed final paragraphs read against source",
+        "quality_gate": "fail",
+        "automatic_status": "completed",
+        "automatic_unresolved": 0,
+        "false_pass": true,
+        "firm_major": [
+          {
+            "paragraph_index": 10,
+            "source": "人目にかかる惧のない",
+            "target": "남의 눈에 띄지 않을 두려움이 없고",
+            "category": "negation_direction",
+            "issue": "unwanted negation inside feared event",
+            "automatic_finding": false
+          },
+          {
+            "paragraph_index": 31,
+            "source": "迷わなかったばかりではない",
+            "target": "망설인 것만이 아니다",
+            "category": "negation_direction",
+            "issue": "not only did not hesitate changed to not only hesitated",
+            "automatic_finding": false
+          }
+        ],
+        "corrected": [
+          {
+            "paragraph_index": 6,
+            "issue": "four/five days and archaic time transcription corrected"
+          },
+          {
+            "paragraph_index": 22,
+            "issue": "pushed back made explicit"
+          },
+          {
+            "paragraph_index": 29,
+            "issue": "about12cm and cultural name revised"
+          }
+        ],
+        "changes": {
+          "paragraphs_changed": 3,
+          "others_preserved": 54
+        },
+        "elapsed_wall_seconds": 1004.435710221,
+        "worker_seconds": 1000,
+        "calls": 10,
+        "formats": "8/8",
+        "profile": "medium translate/review/repair,temperature0.2,native4096cap",
+        "excluded": "script mixing, uncertain archaic transliteration and style-only complaints"
+      },
+      "memory": {
+        "samples": 1006,
+        "seconds": 1005.113796710968,
+        "available_first_gib": 23.503097534179688,
+        "available_min_gib": 21.99909210205078,
+        "available_last_gib": 23.189464569091797,
+        "free_min_gib": 17.097427368164062,
+        "swap_first_gib": 1.8289337158203125,
+        "swap_last_gib": 1.8148574829101562,
+        "swap_max_gib": 1.8289337158203125,
+        "swap_in_mib": 29.171875,
+        "swap_out_mib": 0.0,
+        "memory_psi_some_stall_seconds": 0.000102,
+        "memory_psi_full_stall_seconds": 0.000102,
+        "cgroup_observed_max_gib": 6.110599517822266
+      },
+      "format_content_check": {
+        "pdf": {
+          "pages": 4,
+          "body_equal_except_whitespace": true,
+          "title_removed": "문서 처리 결과",
+          "footers_removed": [
+            "1/4",
+            "2/4",
+            "3/4",
+            "4/4"
+          ],
+          "visual_inspection": "Page1 legible; normal paragraph wrapping, no artificial per-slot blank lines; source/translation semantics audited separately"
+        },
+        "docx": {
+          "body_equal_except_whitespace": true,
+          "expected_characters": 5475,
+          "actual_characters": 5475
+        },
+        "hwpx": {
+          "body_equal_except_whitespace": true,
+          "expected_characters": 5475,
+          "actual_characters": 5475
+        }
+      }
+    },
+    "nvfp4": {
+      "worker_seconds": 1007,
+      "elapsed_wall_seconds": 1010.44102474,
+      "calls": 4,
+      "status": "needs_review",
+      "reviewed": 57,
+      "total": 57,
+      "unresolved": 3,
+      "formats_complete": true,
+      "stage_metrics": {
+        "review": {
+          "calls": 3,
+          "seconds": 644.178659048,
+          "prompt_tokens": 25698,
+          "output_tokens": 19207
+        },
+        "translate": {
+          "calls": 1,
+          "seconds": 362.70400769,
+          "prompt_tokens": 9016,
+          "output_tokens": 13003
+        }
+      },
+      "audit": {
+        "checked_at": "2026-10-13T02:10:20.392082+00:00",
+        "scope": "All57 aligned paragraphs read against Japanese source including metadata",
+        "quality_gate": "fail",
+        "firm_major": [
+          {
+            "paragraph_index": 6,
+            "category": "number_unit",
+            "source": "四五日前に暇を出された",
+            "target": "사나흘 전에 해고를 당했다",
+            "reason": "four or five days becomes three or four days",
+            "automatic_finding": false
+          }
+        ],
+        "other_observations": [
+          "Full paragraphs and bibliographic dates retained",
+          "fox and tanuki both retained; negative polarity of fear of being seen retained",
+          "Many archaic terms are awkward but not counted as firm major errors without dictionary adjudication",
+          "Mixed-script fragments excluded under user instruction",
+          "Automatic needs_review3 comes from other uncertain findings, not the missed day-count change"
+        ],
+        "elapsed_wall_seconds": 1010.44102474,
+        "worker_seconds": 1007,
+        "calls": 4,
+        "formats": "8/8",
+        "profile": "medium translate/review/repair, temperature0.2; native NV reasoning soft instruction"
+      },
+      "memory": {
+        "samples": 1012,
+        "seconds": 1011.4565858840942,
+        "available_first_gib": 13.597129821777344,
+        "available_min_gib": 12.077228546142578,
+        "available_last_gib": 12.164531707763672,
+        "free_min_gib": 3.3443527221679688,
+        "swap_first_gib": 1.8392868041992188,
+        "swap_last_gib": 1.8381309509277344,
+        "swap_max_gib": 1.8393096923828125,
+        "swap_in_mib": 5.78125,
+        "swap_out_mib": 2.58984375,
+        "memory_psi_some_stall_seconds": 0.207009,
+        "memory_psi_full_stall_seconds": 0.206464,
+        "cgroup_observed_max_gib": 9.25833511352539
+      },
+      "format_content_check": {
+        "pdf": {
+          "pages": 4,
+          "body_equal_except_whitespace": true,
+          "title_removed": "문서 처리 결과",
+          "footers_removed": [
+            "1/4",
+            "2/4",
+            "3/4",
+            "4/4"
+          ],
+          "visual_inspection": "Page1 legible, normal wrapping and paragraph boundaries, no per-inline-slot blank-line expansion; incidental mixed scripts are excluded from quality failure per user"
+        },
+        "docx": {
+          "body_equal_except_whitespace": true,
+          "expected_characters": 5663,
+          "actual_characters": 5663
+        },
+        "hwpx": {
+          "body_equal_except_whitespace": true,
+          "expected_characters": 5663,
+          "actual_characters": 5663
+        }
+      }
+    }
+  },
+  "startup_fix": {
+    "cause": "With deferred TTS before embedding, MemAvailable18–24GiB still left MemFree2.8–3.5GiB below embedding cold CUDA minimum4GiB",
+    "change": "On the same host, deferred resident embedding starts before deferred managed TTS. LLM loader peak still comes first. ASR order retained. No memory minimum lowered and no global cache drop.",
+    "tested": "Cold image ->LLM ->ASR ->embedding ->TTS +finiteembedding +translation passed; all corePIDs preserved during request; old failed trials kept",
+    "limitations": "Short auxiliary-resident translation request and15secondpostrequest window; not full-book or concurrent image/ASR/TTS generation test",
+    "source": "internal/orchestrator/controller.go",
+    "managed_api_retest": "passed: deployed Talk bundle stop/start completed in246.7seconds with all core modules ready"
+  },
+  "natural_review_subset": {
+    "scope": "small manual natural-regression subset from pre-existing schoolgirl audit; NOT the160synthetic control rate and NOT a final-corpus evaluation",
+    "exclusions": [
+      "script mixing alone",
+      "transliteration-only complaints",
+      "stylistic synonyms",
+      "ambiguous metaphorical 찌른다 reading not used as a firm fault denominator"
+    ],
+    "controls": [
+      {
+        "id": "F1",
+        "pair": "schoolgirl-010",
+        "source": "おタクワンの臭い",
+        "target": "오뎅 냄새",
+        "issue": "food substitution"
+      },
+      {
+        "id": "F2",
+        "pair": "schoolgirl-011",
+        "source": "二匹もつれ合いながら、走って来た",
+        "target": "두 마리 데리고 달려왔다",
+        "issue": "running subject changed from the two dogs to a person carrying/leading them"
+      },
+      {
+        "id": "F3",
+        "pair": "schoolgirl-011",
+        "source": "野良犬",
+        "target": "길잡이 개",
+        "issue": "stray dog changed to guide dog"
+      },
+      {
+        "id": "F4",
+        "pair": "schoolgirl-016",
+        "source": "おみおつけの温まるまで",
+        "target": "된장국이 식을 때까지",
+        "issue": "warming changed to cooling"
+      },
+      {
+        "id": "F5",
+        "pair": "schoolgirl-016",
+        "source": "おひつ",
+        "target": "시루",
+        "issue": "rice-storage vessel changed to steamer"
+      },
+      {
+        "id": "F6",
+        "pair": "schoolgirl-016",
+        "source": "トコロテン",
+        "target": "냉모밀",
+        "issue": "gelatin noodle simile changed to buckwheat noodles"
+      },
+      {
+        "id": "F7",
+        "pair": "schoolgirl-096",
+        "source": "カア",
+        "target": "까마귀",
+        "issue": "established dog name changed to a crow"
+      }
+    ],
+    "results": [
+      {
+        "run": "reviewer-visible-capped-q4",
+        "effort": "low",
+        "detected": [
+          "F3",
+          "F4",
+          "F7"
+        ],
+        "missed": [
+          "F1",
+          "F2",
+          "F5",
+          "F6"
+        ],
+        "firm_subset_detected": 3,
+        "firm_subset_total": 7,
+        "unsafe_rationale": "ガニ direction explanation questionable; not counted in firm denominator"
+      },
+      {
+        "run": "reviewer-visible-capped-q4",
+        "effort": "medium",
+        "detected": [
+          "F3",
+          "F4",
+          "F7"
+        ],
+        "missed": [
+          "F1",
+          "F2",
+          "F5",
+          "F6"
+        ],
+        "firm_subset_detected": 3,
+        "firm_subset_total": 7,
+        "unsafe_rationale": "wrong definition of 情なくなる asserted"
+      },
+      {
+        "run": "reviewer-visible-capped-exl3",
+        "effort": "low",
+        "detected": [
+          "F3",
+          "F4",
+          "F7"
+        ],
+        "missed": [
+          "F1",
+          "F2",
+          "F5",
+          "F6"
+        ],
+        "firm_subset_detected": 3,
+        "firm_subset_total": 7,
+        "unsafe_rationale": "wrong definition of 情なくなる asserted"
+      },
+      {
+        "run": "reviewer-visible-capped-exl3",
+        "effort": "medium",
+        "detected": [
+          "F3",
+          "F4",
+          "F7"
+        ],
+        "missed": [
+          "F1",
+          "F2",
+          "F5",
+          "F6"
+        ],
+        "firm_subset_detected": 3,
+        "firm_subset_total": 7,
+        "unsafe_rationale": "wrong definition of 情なくなる asserted"
+      },
+      {
+        "run": "reviewer-visible-reserve-nvfp4",
+        "effort": "low",
+        "detected": [
+          "F1",
+          "F3",
+          "F4",
+          "F7"
+        ],
+        "missed": [
+          "F2",
+          "F5",
+          "F6"
+        ],
+        "firm_subset_detected": 4,
+        "firm_subset_total": 7,
+        "unsafe_rationale": "Wrong definitions of たどん and 情なくなる still proposed"
+      },
+      {
+        "run": "reviewer-visible-reserve-nvfp4",
+        "effort": "medium",
+        "detected": [
+          "F3",
+          "F4",
+          "F6"
+        ],
+        "missed": [
+          "F1",
+          "F2",
+          "F5"
+        ],
+        "rejected_evidence": [
+          "F7"
+        ],
+        "raw_semantic_proposals": [
+          "F3",
+          "F4",
+          "F6",
+          "F7"
+        ],
+        "firm_subset_detected": 3,
+        "firm_subset_total": 7,
+        "note": "F6 only minor; F7 source_quote borrows external context and fails exact paragraph anchoring, so not counted as accepted detection. This caused strict batch3 invalid, while worker can keep valid siblings.",
+        "unsafe_rationale": "情なくなる=정이 생기고 감동하다 is incorrect;トコロテン explanation also misstates ingredient as starch"
+      }
+    ]
+  },
+  "controlled_review_baseline": {
+    "scope": "Initial v1 3bit calibration only; not current v2 model qualification; actionable=anchored certain major/critical",
+    "results": {
+      "low": {
+        "faults": 80,
+        "controls": 80,
+        "flagged_fault": 70,
+        "flagged_control": 0,
+        "uncertain_fault_only": 9,
+        "invalid_batches": 0,
+        "missed": [
+          "cal-079-fault",
+          "cal-011-fault",
+          "cal-013-fault",
+          "cal-018-fault",
+          "cal-014-fault",
+          "cal-012-fault",
+          "cal-074-fault",
+          "cal-017-fault",
+          "cal-019-fault",
+          "cal-016-fault"
+        ],
+        "false_flags": []
+      },
+      "medium": {
+        "faults": 80,
+        "controls": 80,
+        "flagged_fault": 71,
+        "flagged_control": 1,
+        "uncertain_fault_only": 8,
+        "invalid_batches": 0,
+        "missed": [
+          "cal-079-fault",
+          "cal-071-fault",
+          "cal-013-fault",
+          "cal-018-fault",
+          "cal-074-fault",
+          "cal-015-fault",
+          "cal-017-fault",
+          "cal-019-fault",
+          "cal-016-fault"
+        ],
+        "false_flags": [
+          "cal-079-control"
+        ]
+      }
+    }
+  },
+  "nv_low_retest_limit": {
+    "baseline": "Original selection low reached9870outputtokens withnoanswer; keptfailed",
+    "retest": "Latest allowance case completed in140.35s with3922outputtokens",
+    "causal_limit": "Retest used fewer tokens than even the old limit. It demonstrates a successful retest, not proof that increased allowance alone caused success or guarantees all low requests. Unit test establishes the actual4096reservation increase. Final whole-document profile usesmedium."
+  },
+  "benchmark_release_difference": "GPU whole-document cohort used same frozen context-current binary. Subsequent changes only add weighted metrics, protect legacy retry rollout, and correct auxiliary startup order; reviewed inference prompts and settings unchanged.",
+  "remaining": [
+    "Semantic reviewer qualification failed for all3configurations",
+    "Independent4finalbooks not run because earlier quality gate failed",
+    "No automatic Schoolgirl correction revision published",
+    "20-minute full-long-document quality/performance target not demonstrated"
+  ]
+}

@@ -11,7 +11,7 @@ import (
 )
 
 func TestRetiredRuntimesMigrateToFlashNextWithoutAutostart(t *testing.T) {
-	for _, id := range []string{"flash-next-exl3", "qwen27", "qwen27-gguf", "qwen27-exl3"} {
+	for _, id := range []string{"flash-next-exl3", "qwen27", "qwen27-gguf", "qwen27-exl3", "gemma26", "gemma31", "gemma"} {
 		for _, renamed := range []bool{false, true} {
 			name := id
 			if renamed {
@@ -59,8 +59,8 @@ func TestEXL3RetirementPreservesSurvivingSelections(t *testing.T) {
 		autoStart                                  bool
 	}{
 		{"qwen27-exl3", "flash-next", "flash-next", "flash-next", false},
-		{"gemma", "qwen27-exl3", "gemma", "gemma", false},
-		{"gemma", "flash-next", "gemma", "flash-next", true},
+		{"ornith35", "qwen27-exl3", "ornith35", "ornith35", false},
+		{"ornith35", "flash-next", "ornith35", "flash-next", true},
 	} {
 		catalog, _ := orchestrator.LoadCatalog()
 		catalog.Components = append(catalog.Components, orchestrator.Component{ID: "qwen27-exl3", ComposeAsset: "compose.qwen27-exl3.yaml"})

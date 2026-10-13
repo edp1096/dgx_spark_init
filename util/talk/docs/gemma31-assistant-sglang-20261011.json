@@ -1,0 +1,464 @@
+{
+  "status": "verified and applied",
+  "date_kst": "2026-10-11",
+  "target": "lyf/Huihui-gemma-4-31B-it-abliterated-v2-NVFP4@985633e8001d0bfd9b621738234394744b992907",
+  "assistant": "edp1096/gemma-4-31B-it-assistant-exl3@359650d0d9386fbe42b820c74eefa8075017ebc6",
+  "assistant_quantization": {
+    "body_bits": 4,
+    "head_bits": 6,
+    "backend": "ExLlamaV3 1.5.4 CUDA matrices inside SGLang Frozen-KV MTP"
+  },
+  "production": {
+    "engine": "SGLang 2ef0fe46693d1b88271943de5eb49a2848a512d8",
+    "context_tokens": 262144,
+    "full_kv_tokens": 262144,
+    "swa_kv_tokens": 4194,
+    "kv_dtype": "BF16",
+    "prefill_chunk_tokens": 512,
+    "assistant_draft_steps": 7,
+    "max_running_requests": 1,
+    "prefix_cache": true,
+    "memory_budget_gib": 54,
+    "measured_memory": {
+      "gpu_peak_gib": 45.3564453125,
+      "system_available_drop_gib": 53.47140121459961,
+      "process_swap_peak_gib": 0.0,
+      "system_swap_written_mib": 0.0
+    },
+    "container": "stopped",
+    "selected_talk_bundle_preserved": "qwen38fn_exl3_q4",
+    "vision_max_soft_tokens": 280,
+    "talk_thinking_budget": 0
+  },
+  "short_response_comparison": {
+    "protocol": {
+      "output_tokens": 512,
+      "inputs_per_language_category": 3,
+      "statistic": "median wall throughput including prefill",
+      "temperature": 1,
+      "top_p": 0.95,
+      "top_k": 64,
+      "seed": 42,
+      "full_kv_tokens_each": 262144,
+      "prefix_cache": false,
+      "swa_kv_tokens": {
+        "SGLang": 3089,
+        "Velo": 1536
+      }
+    },
+    "results": [
+      {
+        "engine_assistant": "SGLang + original assistant",
+        "ko_wall_tok_s": 27.376929651517152,
+        "code_wall_tok_s": 31.002125204301393,
+        "gpu_peak_gib": 44.0693359375,
+        "system_available_drop_gib": 50.885276794433594
+      },
+      {
+        "engine_assistant": "Velo + EXL3 assistant",
+        "ko_wall_tok_s": 28.573646999404787,
+        "code_wall_tok_s": 32.61290040523028,
+        "gpu_peak_gib": 45.0263671875,
+        "system_available_drop_gib": 49.07299041748047
+      },
+      {
+        "engine_assistant": "SGLang + EXL3 assistant",
+        "ko_wall_tok_s": 28.32297762572375,
+        "code_wall_tok_s": 34.98643022851227,
+        "gpu_peak_gib": 43.5830078125,
+        "system_available_drop_gib": 51.08940124511719
+      }
+    ]
+  },
+  "full_context": {
+    "prompt_tokens": 261952,
+    "sglang_cold": {
+      "ttft_s": 2347.8997149850475,
+      "total_s": 2361.2231726159807,
+      "decode_tok_s": 6.905114464161486,
+      "recall_passed": 5,
+      "recall_total": 5,
+      "retractions": 0,
+      "completion_tokens": 93
+    },
+    "velo_cold": {
+      "ttft_s": 1333.506842511,
+      "total_s": 1343.132509013,
+      "decode_tok_s": 9.557779711242443,
+      "completion_tokens": 93
+    },
+    "sglang_cached": {
+      "cached_tokens": 261950,
+      "ttft_s": 2.026160630979575,
+      "total_s": 14.364975709933788,
+      "decode_tok_s": 7.4561454573478825,
+      "recall_passed": 5,
+      "completion_tokens": 93
+    },
+    "sglang_prefill_checkpoints": {
+      "65536": {
+        "scheduled_tokens": 65536,
+        "elapsed_s_approx": 193.22437143325806
+      },
+      "131072": {
+        "scheduled_tokens": 131072,
+        "elapsed_s_approx": 651.224371433258
+      },
+      "196608": {
+        "scheduled_tokens": 196608,
+        "elapsed_s_approx": 1373.224371433258
+      },
+      "261952": {
+        "scheduled_tokens": 261952,
+        "elapsed_s_approx": 2347.224371433258
+      }
+    },
+    "output_limits": {
+      "sglang": 128,
+      "velo": 192
+    }
+  },
+  "validation": {
+    "common_functional_checks_each": {
+      "passed": 13,
+      "total": 13
+    },
+    "talk_tool_continuation_trials": {
+      "passed": 3,
+      "total": 3
+    },
+    "production_api_checks": [
+      {
+        "name": "stream",
+        "passed": true
+      },
+      {
+        "name": "json-schema",
+        "passed": true
+      },
+      {
+        "name": "thinking-budget",
+        "passed": true
+      },
+      {
+        "name": "prefix-0",
+        "passed": true
+      },
+      {
+        "name": "prefix-1",
+        "passed": true
+      },
+      {
+        "name": "vision",
+        "passed": true
+      },
+      {
+        "name": "vision-padded",
+        "passed": true
+      },
+      {
+        "name": "parallel-tool-indices",
+        "passed": true
+      },
+      {
+        "name": "cancel-and-next-request",
+        "passed": true
+      },
+      {
+        "name": "forced-thinking-budget",
+        "passed": true
+      },
+      {
+        "name": "freeze-gc",
+        "passed": true
+      }
+    ],
+    "final_service": {
+      "passed": true,
+      "context_length": 262144,
+      "assistant_steps": 7,
+      "thinking_global_ceiling": 262144,
+      "image": "dgx-sglang-gemma4-31b-exl3mtp:2ef0fe4-exl3mtp1",
+      "image_id": "sha256:50decb83957acde06b0917c3018324a019d20149cd0221f9206c2e6531f7958c",
+      "answer": "45"
+    },
+    "talk_builtin_revision": 41,
+    "platform_binaries": [
+      "sparktalk-linux-arm64",
+      "sparktalk-linux-amd64",
+      "sparktalk-windows-amd64.exe",
+      "sparktalk-windows-arm64.exe"
+    ],
+    "go_packages_passed": [
+      "internal/config",
+      "internal/orchestrator",
+      "internal/llm"
+    ],
+    "image_chunk_unit_tests_passed": 5
+  },
+  "limits": [
+    "Velo results refer to the current Gemma serving prototype with CPU token sampling; its target and assistant execute on GPU. They do not establish an intrinsic engine limit.",
+    "SGLang and Velo use BF16 and FP16 KV respectively; both are 16-bit. SWA capacities differ as recorded.",
+    "13 functional checks and the image fixtures are bounded regression tests, not an exhaustive quality benchmark.",
+    "SGLang EXL3 versus standard BF16 assistant had identical text in13/20 greedy cases. Stock SGLang standard assistant also differs from non-speculative outputs in4/16 shared cases.",
+    "The SGLang deterministic-inference and FP32-head diagnostic did not restore exact greedy text identity and substantially reduced throughput; those flags are not applied.",
+    "Production memory includes prefix cache and vision requests; short comparison profiles have prefix cache disabled. GPU usage and CPU RSS overlap on unified memory and must not be added."
+  ],
+  "artifacts": "/home/edp1096/.cache/model-download-jobs/gemma4-talk-velo-20261011",
+  "short_answer_followup": {
+    "updated_at_kst": "2026-10-11T05:51:31.762270+09:00",
+    "applied": {
+      "thinking_budget": 0,
+      "reasoning_effort": "on",
+      "output_reserve": 131072,
+      "completion_policy": "Gemma31 only, prepended before persona/tool instructions; original saved persona and user request preserved",
+      "context_estimate": "Counts the same model-specific input normalization used by streaming",
+      "settings_label": "Thinking 예산 (0: 제한 없음)",
+      "runtime_image_unchanged": "dgx-sglang-gemma4-31b-exl3mtp:2ef0fe4-exl3mtp1"
+    },
+    "control_protocol": {
+      "model_and_kv": "Same NVFP4 target, BF16 KV, 262144 context/full KV, prefill512, GPU",
+      "sampling": "temperature0, seed42",
+      "tools": 17,
+      "output_ceiling": 8192,
+      "note": "The control payload was reconstructed from a cloned database. These observations test response scope, not isolated speed or broad factual quality."
+    },
+    "controls": [
+      {
+        "profile": "NVFP4, no assistant",
+        "cases": [
+          {
+            "case": "palace-b512",
+            "response_chars": 122,
+            "reasoning_tokens": 501,
+            "finish": "stop",
+            "channel_marker_leak": false
+          },
+          {
+            "case": "palace-b0",
+            "response_chars": 122,
+            "reasoning_tokens": 501,
+            "finish": "stop",
+            "channel_marker_leak": false
+          },
+          {
+            "case": "novel-b512",
+            "response_chars": 960,
+            "reasoning_tokens": 513,
+            "finish": "stop",
+            "channel_marker_leak": false
+          },
+          {
+            "case": "novel-b0",
+            "response_chars": 687,
+            "reasoning_tokens": 1481,
+            "finish": "stop",
+            "channel_marker_leak": false
+          }
+        ]
+      },
+      {
+        "profile": "NVFP4 + original BF16 assistant",
+        "cases": [
+          {
+            "case": "palace-b512",
+            "response_chars": 150,
+            "reasoning_tokens": 467,
+            "finish": "stop",
+            "channel_marker_leak": false
+          },
+          {
+            "case": "palace-b0",
+            "response_chars": 282,
+            "reasoning_tokens": 688,
+            "finish": "stop",
+            "channel_marker_leak": false
+          },
+          {
+            "case": "novel-b512",
+            "response_chars": 1111,
+            "reasoning_tokens": 513,
+            "finish": "stop",
+            "channel_marker_leak": false
+          },
+          {
+            "case": "novel-b0",
+            "response_chars": 858,
+            "reasoning_tokens": 964,
+            "finish": "stop",
+            "channel_marker_leak": false
+          }
+        ]
+      },
+      {
+        "profile": "NVFP4 + EXL3 assistant body4/head6",
+        "cases": [
+          {
+            "case": "palace-b512",
+            "response_chars": 232,
+            "reasoning_tokens": 513,
+            "finish": "stop",
+            "channel_marker_leak": false
+          },
+          {
+            "case": "palace-b0",
+            "response_chars": 192,
+            "reasoning_tokens": 631,
+            "finish": "stop",
+            "channel_marker_leak": false
+          },
+          {
+            "case": "novel-b512",
+            "response_chars": 1079,
+            "reasoning_tokens": 513,
+            "finish": "stop",
+            "channel_marker_leak": false
+          },
+          {
+            "case": "novel-b0",
+            "response_chars": 939,
+            "reasoning_tokens": 970,
+            "finish": "stop",
+            "channel_marker_leak": false
+          }
+        ]
+      }
+    ],
+    "ablation": [
+      {
+        "case": "neutral-on",
+        "response_chars": 2513,
+        "thinking": true,
+        "finish": "stop"
+      },
+      {
+        "case": "persona-only-on",
+        "response_chars": 1672,
+        "thinking": true,
+        "finish": "stop"
+      },
+      {
+        "case": "neutral-off",
+        "response_chars": 2603,
+        "thinking": false,
+        "finish": "stop"
+      },
+      {
+        "case": "persona-only-off",
+        "response_chars": 1785,
+        "thinking": false,
+        "finish": "stop"
+      }
+    ],
+    "production_sampling": {
+      "temperature": 1.0,
+      "top_p": 0.95,
+      "top_k": 64,
+      "seed": 42,
+      "tools": 18,
+      "output_ceiling": 131072,
+      "chars_definition": "Unicode code points, including spaces, headings and conversational framing",
+      "cases": [
+        {
+          "case": "palace-original",
+          "response_chars": 631,
+          "reasoning_tokens": 716,
+          "seconds": 56.064725558040664,
+          "finish": "stop",
+          "channel_marker_leak": false
+        },
+        {
+          "case": "palace-detailed",
+          "response_chars": 2340,
+          "reasoning_tokens": 688,
+          "seconds": 117.17620609106962,
+          "finish": "stop",
+          "channel_marker_leak": false
+        },
+        {
+          "case": "novel-complete",
+          "response_chars": 1367,
+          "reasoning_tokens": 1039,
+          "seconds": 109.22220968198963,
+          "finish": "stop",
+          "channel_marker_leak": false
+        },
+        {
+          "case": "novel-2000",
+          "response_chars": 2191,
+          "reasoning_tokens": 743,
+          "seconds": 125.41047438804526,
+          "finish": "stop",
+          "channel_marker_leak": false
+        }
+      ]
+    },
+    "verification": {
+      "json_schema": "passed",
+      "tool_continuation_fixture": "3/3 passed: search, detailed page, final17/28 response; no real web tools executed",
+      "channel_marker_leaks": 0,
+      "final_api_responses_checked": 14,
+      "go_packages": [
+        "internal/llm",
+        "internal/config",
+        "internal/orchestrator",
+        "internal/server"
+      ],
+      "support_assets": "137 verified; recipe assets verified",
+      "web_build": "passed",
+      "cross_builds": [
+        "linux-amd64",
+        "linux-arm64",
+        "windows-amd64",
+        "windows-arm64"
+      ]
+    },
+    "memory": {
+      "monitor_started_kst": "2026-10-11T05:34:36.848130+09:00",
+      "monitor_ended_kst": "2026-10-11T05:49:08.435683+09:00",
+      "scope": "Final EXL3 production probes and standard-assistant control, sequential GPU servers",
+      "gpu_peak_gib": 45.5166015625,
+      "system_available_min_gib": 64.56122207641602,
+      "model_vmswap_peak_mib": 0.0,
+      "additional_system_swap_written_mib": 0.0,
+      "returned_system_available_gib": 117.84941482543945
+    },
+    "quality_limits": {
+      "scope": "Improves premature brevity and removes default forced reasoning cutoff; does not establish general factual or instruction-following accuracy",
+      "observed_factual_error": "Detailed palace answer calls Changdeokgung + Changgyeonggung 동궁; correct term is 동궐",
+      "observed_hanja": [
+        {
+          "case": "novel-complete",
+          "characters": "情人"
+        }
+      ],
+      "minimum_length_fixture": {
+        "requested_story_min_chars": 2000,
+        "whole_response_chars": 2191,
+        "story_between_separators_chars": 1974,
+        "strict_story_only_minimum_met": false,
+        "note": "Whole response exceeds2000 but the framed story itself is slightly below2000; no claim of exact length compliance."
+      }
+    },
+    "deployment": {
+      "pid": 2461289,
+      "port": 8585,
+      "thinking_budget": 0,
+      "reasoning_effort": "on",
+      "output_reserve": 131072,
+      "active_bundle": "gemma",
+      "auto_start": false,
+      "persona_unchanged": true,
+      "legacy_instance_unchanged": true,
+      "updated_web_served": true,
+      "binaries_sha256": {
+        "sparktalk-linux-amd64": "1ade13e19cad6787dd42a9e637d6a35072cf62ccb18657afd87997747511f54a",
+        "sparktalk-linux-arm64": "fccb445fb552f7e08ab4061c095daec38b7c3e5030e58fd3f2ae69903caf2651",
+        "sparktalk-windows-amd64.exe": "fbf0f5957f47fea8a1c5142d03c7791aa463ec675b8b62ba60ec4276f9c23673",
+        "sparktalk-windows-arm64.exe": "b923a83b35e6542d42f83b979131a560747c5d9db4e08ac1640701f55b25a29f"
+      },
+      "updated_at": 1791665349.0063684
+    },
+    "artifacts": "/home/edp1096/.cache/model-download-jobs/gemma4-short-answer-20261011"
+  }
+}

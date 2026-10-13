@@ -7,20 +7,21 @@ const schema=JSON.parse(await fs.readFile(new URL('./document-schema.json',impor
 let busy=false;
 function reply(res,status,body){res.writeHead(status,{'Content-Type':'application/json'});res.end(JSON.stringify(body));}
 const server=http.createServer(async(req,res)=>{
- if(req.method==='GET'&&req.url==='/health'){reply(res,200,{status:'ok',version:'0.5.2',formats:['docx','pptx','xlsx','pdf','hwp','hwpx'],busy});return;}
+ if(req.method==='GET'&&req.url==='/health'){reply(res,200,{status:'ok',version:'0.5.6',formats:['docx','pptx','xlsx','pdf','hwp','hwpx'],text_documents:true,busy});return;}
  if(req.method==='GET'&&req.url==='/v1/documents/schema'){reply(res,200,schema);return;}
- if(req.method!=='POST'||req.url!=='/v1/documents'){reply(res,404,{error:'Not found'});return;}
+ const textDocument=req.url==='/v1/documents/text';
+ if(req.method!=='POST'||(!textDocument&&req.url!=='/v1/documents')){reply(res,404,{error:'Not found'});return;}
  if(busy){reply(res,429,{error:'Another document is being generated. Retry after it finishes.'});return;}
  busy=true;let dir,child,timer;let aborted=false;let result,status=200;
  const stop=()=>{aborted=true;if(child?.pid){try{process.kill(-child.pid,'SIGKILL');}catch{}}};
  res.on('close',()=>{if(!res.writableEnded)stop();});
  try{
-  let size=0;const chunks=[];for await(const chunk of req){size+=chunk.length;if(size>32<<20)throw Error('Request exceeds 32 MiB');chunks.push(chunk);}
+  let size=0;const chunks=[];for await(const chunk of req){size+=chunk.length;if(size>(textDocument?8<<20:32<<20))throw Error(textDocument?'Text document request exceeds 8 MiB':'Request exceeds 32 MiB');chunks.push(chunk);}
   const data=Buffer.concat(chunks);JSON.parse(data.toString());if(aborted)throw Error('Request cancelled');
   dir=await fs.mkdtemp(path.join(os.tmpdir(),'sparktalk-document-'));await fs.writeFile(path.join(dir,'input.json'),data,{mode:0o600});
-  child=spawn(process.execPath,[new URL('./worker.mjs',import.meta.url).pathname,dir],{detached:true,stdio:['ignore','ignore','pipe']});
+  child=spawn(process.execPath,[new URL('./worker.mjs',import.meta.url).pathname,dir,...(textDocument?['text']:[])],{detached:true,stdio:['ignore','ignore','pipe']});
   let detail='';child.stderr.on('data',b=>{if(detail.length<4096)detail+=b.toString();});
-  timer=setTimeout(stop,90000);
+  timer=setTimeout(stop,textDocument?300000:90000);
   const code=await new Promise((resolve,reject)=>{child.once('error',reject);child.once('exit',resolve);});
   if(code!==0||aborted)throw Error(aborted?'Document generation timed out or was cancelled':detail.trim()||'Document generation failed');
   result=JSON.parse(await fs.readFile(path.join(dir,'output.json'),'utf8'));

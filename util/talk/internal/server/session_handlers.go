@@ -190,6 +190,10 @@ func (s *Server) session(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if len(parts) == 1 && r.Method == http.MethodDelete {
+		if err := s.cancelSessionDocuments(r.Context(), id); err != nil {
+			http.Error(w, err.Error(), 409)
+			return
+		}
 		if err := s.db.DeleteSession(id); err != nil {
 			http.Error(w, err.Error(), 500)
 			return
@@ -292,6 +296,12 @@ func (s *Server) bulkDeleteSessions(w http.ResponseWriter, r *http.Request) {
 		if !seen[id] {
 			ids = append(ids, id)
 			seen[id] = true
+		}
+	}
+	for _, id := range ids {
+		if err := s.cancelSessionDocuments(r.Context(), id); err != nil {
+			http.Error(w, err.Error(), 409)
+			return
 		}
 	}
 	if err := s.db.DeleteSessions(ids); err != nil {

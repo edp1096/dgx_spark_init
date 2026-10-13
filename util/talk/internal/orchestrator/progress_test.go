@@ -123,9 +123,9 @@ func TestInferFlashNextDraftGraphMarkers(t *testing.T) {
 	}
 }
 
-func TestInferGemmaDFlashProgress(t *testing.T) {
-	component := Component{ID: "gemma31", ProgressKind: "sglang"}
-	logs := "Load weight begin.\nMulti-thread loading shards: 100% Completed | 1/1 [00:24<00:00]\nLoad weight end. type=Gemma4ForConditionalGeneration\nLoad weight begin.\nMulti-thread loading shards: 50% Completed | 1/2 [00:08<00:08]"
+func TestInferSGLangDFlashProgress(t *testing.T) {
+	component := Component{ID: "custom-dflash", ProgressKind: "sglang"}
+	logs := "Load weight begin.\nMulti-thread loading shards: 100% Completed | 1/1 [00:24<00:00]\nLoad weight end. type=Qwen3_8ForConditionalGeneration\nLoad weight begin.\nMulti-thread loading shards: 50% Completed | 1/2 [00:08<00:08]"
 	info := inferProgress(component, logs)
 	if info.Key != "draft-weights" || info.Phase != "DFlash 가중치 적재" || info.Progress != .61 {
 		t.Fatalf("unexpected DFlash progress: %#v", info)
@@ -137,7 +137,7 @@ func TestInferGemmaDFlashProgress(t *testing.T) {
 }
 
 func TestInferQwenDFlash2AndGraphProgress(t *testing.T) {
-	component := Component{ID: "gemma31", ProgressKind: "sglang"}
+	component := Component{ID: "custom-dflash", ProgressKind: "sglang"}
 	logs := "Capture target verify CUDA graph begin\nMAX_FUSED_QKV_SPLIT_DIM: <torch._dynamo warning potential risk>\nCapturing batches (bs=1):  50%|xxxxx| 1/2 [00:01<00:01, 1.00s/it]"
 	info := inferProgress(component, logs)
 	if info.Key != "cuda-graph-target" || info.Phase != "Target CUDA Graph 캡처" || info.Progress != .89 || info.ETA != "00:01" {
@@ -146,7 +146,7 @@ func TestInferQwenDFlash2AndGraphProgress(t *testing.T) {
 }
 
 func TestInferQwenTorchCompileBeforeGraphCapture(t *testing.T) {
-	component := Component{ID: "gemma31", ProgressKind: "sglang"}
+	component := Component{ID: "custom-dflash", ProgressKind: "sglang"}
 	logs := "Capture target verify CUDA graph begin\nCapturing batches: 0%| | 0/2 [00:00<?, ?it/s]\ntorch._dynamo.utils.warn_once(msg)"
 	info := inferProgress(component, logs)
 	if info.Key != "torch-compile-target" || info.Phase != "Target CUDA Graph 커널 컴파일" || info.ETA != "" {
@@ -155,7 +155,7 @@ func TestInferQwenTorchCompileBeforeGraphCapture(t *testing.T) {
 }
 
 func TestInferDraftGraphUsesOnlyDraftSection(t *testing.T) {
-	component := Component{ID: "gemma31", ProgressKind: "sglang"}
+	component := Component{ID: "custom-dflash", ProgressKind: "sglang"}
 	logs := "Capture target verify CUDA graph begin\nCapturing batches: 100%|xxxxx| 2/2 [00:10<00:00, 1.00s/it]\nCapture target verify CUDA graph end\nCapture draft verify CUDA graph begin\nCapturing batches: 0%| | 0/2 [00:00<?, ?it/s]"
 	info := inferProgress(component, logs)
 	if info.Key != "cuda-graph-draft" || info.Phase != "DFlash CUDA Graph 캡처" || info.Progress != .84 || info.ETA != "" {

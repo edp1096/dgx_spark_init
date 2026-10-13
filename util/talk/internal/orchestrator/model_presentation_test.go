@@ -13,7 +13,7 @@ func TestModelPresentationSharesNamesAndPreservesAPIIdentity(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, id := range []string{"ornith35", "qwen38fn_exl3", "flash-next", "flash-next-tp2", "gemma26", "ds4fve", "ds41"} {
+	for _, id := range []string{"ornith35", "qwen38fn_exl3", "flash-next", "flash-next-tp2", "ds4fve", "ds41"} {
 		component, _ := cat.Component(id)
 		bundle, _ := cat.Bundle(id)
 		if component.Name != bundle.Name {
@@ -44,7 +44,7 @@ func TestModelPresentationSharesNamesAndPreservesAPIIdentity(t *testing.T) {
 
 func TestModelPresentationUsesActualPreparationRepositoriesAndBoundVariant(t *testing.T) {
 	cat, _ := LoadCatalog()
-	for _, id := range []string{"qwen38fn_exl3", "flash-next", "gemma26", "gemma31", "ornith35", "flux2", "nemotron-asr", "qwen3-tts"} {
+	for _, id := range []string{"qwen38fn_exl3", "flash-next", "ornith35", "flux2", "nemotron-asr", "qwen3-tts"} {
 		component, _ := cat.Component(id)
 		for _, option := range component.ModelPresentation.Weights {
 			component.RuntimeOptions = map[string]string{"MODEL_VARIANT": option.ID}

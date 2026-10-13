@@ -212,7 +212,7 @@ func TestStreamTerminationPreservesPartialOutput(t *testing.T) {
 
 func TestEXL3ReasoningTemplateOptions(t *testing.T) {
 	for _, tc := range []struct{ input, want string }{
-		{"none", "none"}, {"off", "none"}, {"", "none"}, {"low", "low"}, {"medium", "medium"}, {"xhigh", "xhigh"}, {"on", "xhigh"}, {"high", "xhigh"},
+		{"none", "none"}, {"off", "none"}, {"", "low"}, {"low", "low"}, {"medium", "medium"}, {"xhigh", "xhigh"}, {"on", "xhigh"}, {"high", "xhigh"}, {"max", "low"}, {"unknown", "low"},
 	} {
 		p := map[string]any{}
 		applyReasoningOptions(p, "qwen38fn_exl3", tc.input)
@@ -275,5 +275,68 @@ func TestGemmaVLLMThinkingBudgetUsesNativeField(t *testing.T) {
 	}
 	if _, exists := payloads[1]["thinking_token_budget"]; exists {
 		t.Fatal("Budget should be omitted when thinking is off")
+	}
+}
+
+func TestReasoningBudgetIsPerRequestAndKeepsChatEffort(t *testing.T) {
+	var payloads []map[string]any
+	backend := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var p map[string]any
+		json.NewDecoder(r.Body).Decode(&p)
+		payloads = append(payloads, p)
+		fmt.Fprint(w, "data: [DONE]\n\n")
+	}))
+	defer backend.Close()
+	c := New(backend.URL, "qwen38fn_exl3", "", "qwen38fn_exl3")
+	for _, ctx := range []context.Context{WithReasoningBudget(context.Background(), 2048), context.Background()} {
+		if _, err := c.Stream(ctx, []Message{{Role: "user", Content: "test"}}, "qwen38fn_exl3", "xhigh", nil, func(string, string) error { return nil }); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if payloads[0]["reasoning_budget_tokens"] != float64(2048) {
+		t.Fatal("native budget not forwarded", payloads[0])
+	}
+	if _, ok := payloads[1]["reasoning_budget_tokens"]; ok {
+		t.Fatal("budget leaked into ordinary chat")
+	}
+	for _, p := range payloads {
+		if p["chat_template_kwargs"].(map[string]any)["reasoning_effort"] != "xhigh" {
+			t.Fatal("chat effort changed")
+		}
+	}
+}
+
+func TestNativeReasoningBudgetDoesNotAssumeVeloSupportsTabbyAPI(t *testing.T) {
+	if !SupportsReasoningBudget("qwen38fn_exl3", "qwen38fn_exl3") || SupportsReasoningBudget("qwen38fn_exl3_q4", "qwen38fn_exl3") || SupportsReasoningBudget("model", "generic") {
+		t.Fatal("runtime capability distinction lost")
+	}
+}
+
+func TestVeloReasoningBudgetRequiresStructuredOutput(t *testing.T) {
+	var bodies []map[string]any
+	backend := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var body map[string]any
+		json.NewDecoder(r.Body).Decode(&body)
+		bodies = append(bodies, body)
+		fmt.Fprint(w, "data: [DONE]\n\n")
+	}))
+	defer backend.Close()
+	c := New(backend.URL, "qwen38fn_exl3_q4", "", "qwen38fn_exl3")
+	budget := WithReasoningBudget(context.Background(), 256)
+	for _, ctx := range []context.Context{WithJSONSchema(budget, "test", json.RawMessage(`{"type":"object"}`)), budget, context.Background()} {
+		if _, err := c.Stream(ctx, []Message{{Role: "user", Content: "test"}}, "qwen38fn_exl3_q4", "medium", nil, func(string, string) error { return nil }); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if bodies[0]["reasoning_budget_tokens"] != float64(256) {
+		t.Fatal("structured reasoning budget absent")
+	}
+	for _, body := range bodies[1:] {
+		if _, ok := body["reasoning_budget_tokens"]; ok {
+			t.Fatal("schema-only capability leaked into chat")
+		}
+	}
+	if !SupportsStructuredReasoningBudget("qwen38fn_exl3_q4", "qwen38fn_exl3") || SupportsStructuredReasoningBudget("other", "generic") {
+		t.Fatal("incorrect schema runtime capability")
 	}
 }

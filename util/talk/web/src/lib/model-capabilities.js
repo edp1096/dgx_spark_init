@@ -26,11 +26,16 @@ export function normalizeReasoningEffort(modelType, value) {
   const profile = modelCapabilities(modelType);
   const normalized = String(value || '').trim().toLowerCase();
   if (profile.family === 'qwen38fn_exl3') {
+    if (!normalized) return 'low';
     if (THINKING_OFF_VALUES.has(normalized)) return 'none';
-    return profile.reasoningLevels.includes(normalized) ? normalized : 'xhigh';
+    if (normalized === 'on' || normalized === 'high') return 'xhigh';
+    return profile.reasoningLevels.includes(normalized) ? normalized : 'low';
   }
   if (profile.family === 'qwen3.8') {
-    return profile.reasoningLevels.includes(normalized) ? normalized : 'medium';
+    if (!normalized) return 'low';
+    if (THINKING_OFF_VALUES.has(normalized)) return 'none';
+    if (normalized === 'on' || normalized === 'high') return 'medium';
+    return profile.reasoningLevels.includes(normalized) ? normalized : 'low';
   }
   if (profile.family === 'glm5.3' || profile.family === 'deepseek-v4') {
     if (THINKING_OFF_VALUES.has(normalized)) return 'off';

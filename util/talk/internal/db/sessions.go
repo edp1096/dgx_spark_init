@@ -245,7 +245,7 @@ func (d *DB) FailPendingTurn(userMessageID int64, status, failure, partialConten
 	if _, err := tx.Exec(`UPDATE messages SET status=?,error=? WHERE id=?`, status, failure, userMessageID); err != nil {
 		return err
 	}
-	if partialContent != "" || partialReasoning != "" || len(toolTrace) > 0 {
+	if partialContent != "" || partialReasoning != "" || len(toolTrace) > 0 || performance.Optional(measured) != nil {
 		now := time.Now()
 		traceJSON, _ := json.Marshal(toolTrace)
 		variants := []ResponseVariant{{Content: partialContent, Reasoning: partialReasoning, ToolTrace: toolTrace, Performance: performance.Optional(measured), CreatedAt: now}}

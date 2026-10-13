@@ -1,0 +1,45 @@
+{
+  "cause": "Document worker did not register the existing performance observer; the document task card did not render inference metrics.",
+  "changes": [
+    "Per-call live measurements saved with document progress",
+    "Final per-call measurements persisted on original checkpoint; shared batches do not duplicate measurements",
+    "Current call and previous call shown separately; estimated values marked approximately; unavailable values remain blank"
+  ],
+  "checks": {
+    "go_server_llm_db_performance": "passed",
+    "go_race_document_performance_batch_recovery": "passed",
+    "browser_tests_passed": 4,
+    "platform_builds": 4
+  },
+  "deployment": {
+    "server_pid": 2433140,
+    "health": "ok",
+    "model": "qwen38fn_exl3",
+    "status": "running",
+    "completed_preserved": 64,
+    "containers_unchanged": true,
+    "config_unchanged": true
+  },
+  "asset": "/assets/index-BjEY8Lvi.js",
+  "asset_sha256": "3bb1f9f0e84dbfc2874d3eb2486c535dd855e5c4fd7f98ac28e4398d6f3258a5",
+  "live": {
+    "status": "running",
+    "completed": 64,
+    "active_units": [
+      65,
+      66,
+      67
+    ],
+    "performance": {
+      "tg": 43.61027569969303,
+      "ttft": 6.415975923,
+      "tg_estimated": true,
+      "ttft_estimated": true,
+      "prompt_tokens": 0,
+      "cached_tokens": 0,
+      "output_tokens": 1248,
+      "calls": 1,
+      "live": true
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "date": "2026-10-13",
+  "status": "applied",
+  "scope": "Simple file reconversion; no history controls or cumulative converted files",
+  "behavior": [
+    "Receive / rebuild controls for each document format",
+    "Rebuild reads the saved text without calling a model",
+    "Successful replacement atomically discards previous converted files for that format; failure keeps the usable file",
+    "Only the current converted file and the latest attempt status are retained; older history is compacted on startup",
+    "Original translation outputs and publication manifests remain unchanged; downloads resolve the current file",
+    "Background processing, duplicate suppression, status and timing remain available"
+  ],
+  "verification": {
+    "db_and_server_race_tests": true,
+    "browser_tests": 2,
+    "platform_builds": 4,
+    "live": {
+      "passed": true,
+      "run": "chat-1791865198218623457",
+      "session": "chat-1791784517738091247",
+      "conversion": {
+        "id": "MJKFIO3ELDVY7RTQTAQNSIHIRY",
+        "format": "pdf",
+        "status": "completed",
+        "started_at": "2026-10-13T07:13:41.289919903Z",
+        "finished_at": "2026-10-13T07:13:43.151576573Z",
+        "seconds": 1.86165667,
+        "input_hash": "3b77765ce7e40a62ab9071fc5b251eef83199adb6a52e518f2947c75094c4566",
+        "converter": "committed-text-v2",
+        "mime": "application/pdf",
+        "hash": "cbea0d3734c07cd97266f8b851a99dff063fc97a2af788bb49d0480b18c1248d",
+        "bytes": 719839,
+        "current": true
+      },
+      "existing_file_downloadable_during_conversion": true,
+      "previous_download_parameters_resolve_current_file": true,
+      "original_records_unchanged": true,
+      "body_matches_saved_translation_except_whitespace": true,
+      "model_calls_unchanged": true,
+      "translation_seconds_unchanged": true,
+      "bytes": 719839,
+      "first_lines": [
+        "인간실격",
+        "",
+        "다자이 오사무",
+        "",
+        "",
+        "서문",
+        "",
+        "나는 그 남자의 사진을 세 장 본 적이 있다."
+      ],
+      "stored_conversion_count": 1
+    }
+  },
+  "deployment": {
+    "pid": 284228,
+    "backup": "/home/edp1096/.cache/model-download-jobs/document-reconvert-simple-20261013/backup"
+  }
+}

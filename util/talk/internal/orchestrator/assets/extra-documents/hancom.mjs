@@ -12,6 +12,8 @@ export async function renderHancom(input,dir){
  await ready();const doc=HwpDocument.createEmpty();
  try{
   doc.createBlankDocument();
+  doc.beginBatch();
+  try {
   if(isExtended(input)){populateHancom(doc,input);}else{
   let forceNewParagraph=false;
   function paragraph(text,size=1100,bold=false){
@@ -21,7 +23,7 @@ export async function renderHancom(input,dir){
    if(text){ok(doc.insertText(0,index,0,text));ok(doc.applyCharFormat(0,index,0,doc.getParagraphLength(0,index),JSON.stringify({fontSize:size,bold})));}
    return index;
   }
-  paragraph(input.title,2000,true);
+  if(input.title)paragraph(input.title,2000,true);
   for(const section of input.sections){
    if(section.heading)paragraph(section.heading,1500,true);
    for(const text of section.paragraphs)paragraph(text);
@@ -44,6 +46,7 @@ export async function renderHancom(input,dir){
    }
   }
   }
+  } finally { doc.endBatch(); }
   let bytes;
   if(input.page?.page_numbers){
    // The engine's header/footer field helper writes a bare 0x15 marker to HWP.
