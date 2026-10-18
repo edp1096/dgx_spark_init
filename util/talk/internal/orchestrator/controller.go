@@ -331,7 +331,7 @@ func (c *Controller) checkBundleStart(ctx context.Context, bundle Bundle, reserv
 		}
 	}
 	plan := c.bundleMemoryPlan(ctx, bundle)
-	if err := validateMemoryHeadroom(readSystemMemory(), plan, c.localMemoryReserve(bundle, reserveGiB)); err != nil {
+	if err := c.validateBundleStartupMemory(bundle, c.startupMemory(), plan, c.localMemoryReserve(bundle, reserveGiB)); err != nil {
 		return err
 	}
 	return c.checkRemoteMemory(ctx, bundle, reserveGiB)
@@ -423,10 +423,10 @@ func (c *Controller) ComponentActionWithReserve(componentID, action string, rese
 		case "restart":
 			err = c.stopComponent(context.Background(), component)
 			if err == nil || isMissingContainer(err) {
-				err = c.startAndWait(component)
+				err = c.startWithMemoryWatch(context.Background(), component, reserveGiB)
 			}
 		default:
-			err = c.startAndWait(component)
+			err = c.startWithMemoryWatch(context.Background(), component, reserveGiB)
 		}
 		if err == nil && componentID == "flux2" && (action == "start" || action == "restart") && len(bundleIDs) > 0 {
 			if b, ok := c.Catalog().Bundle(bundleIDs[0]); ok && b.WorkloadSwap && !isQwenImage21(component) {
@@ -635,6 +635,10 @@ func (c *Controller) runBundleStart(bundle Bundle, reserveGiB float64) {
 			}
 		}
 	}
+	if err := c.prepareQwenFP4Startup(ctx, bundle, c.localMemoryReserve(bundle, reserveGiB)); err != nil {
+		c.finishOperation("failed", err.Error())
+		return
+	}
 	if err := c.waitForBundleHeadroom(bundle, reserveGiB, "세트 기동 전 메모리 재확인", 15*time.Second); err != nil {
 		c.failCurrentStep(err.Error())
 		c.finishOperation("failed", err.Error())
@@ -659,7 +663,7 @@ func (c *Controller) runBundleStart(bundle Bundle, reserveGiB float64) {
 			Key: "start:" + component.ID, Phase: component.Name + " 시작", Detail: "컨테이너와 실행 설정을 확인하고 있습니다.",
 			Progress: float64(index) / float64(len(ordered)),
 		})
-		if err := c.startAndWait(component); err != nil {
+		if err := c.startWithMemoryWatch(ctx, component, c.localMemoryReserve(bundle, reserveGiB)); err != nil {
 			message := component.Name + ": " + err.Error()
 			c.failCurrentStep(err.Error())
 			failures = append(failures, message)
@@ -696,9 +700,9 @@ func (c *Controller) waitForBundleHeadroom(bundle Bundle, reserveGiB float64, ph
 	deadline := time.Now().Add(timeout)
 	var lastErr error
 	for {
-		memory := readSystemMemory()
+		memory := c.startupMemory()
 		plan := c.bundleMemoryPlan(context.Background(), bundle)
-		lastErr = validateMemoryHeadroom(memory, plan, c.localMemoryReserve(bundle, reserveGiB))
+		lastErr = c.validateBundleStartupMemory(bundle, memory, plan, c.localMemoryReserve(bundle, reserveGiB))
 		if lastErr == nil {
 			lastErr = c.checkRemoteMemory(context.Background(), bundle, reserveGiB)
 		}

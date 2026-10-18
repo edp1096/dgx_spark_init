@@ -202,7 +202,7 @@ func (c *Controller) AcquireWorkload(ctx context.Context, bundleID, target strin
 	release := func() error {
 		once.Do(func() {
 			if operationErr == nil {
-				operationErr = ctx.Err()
+				operationErr = context.Cause(ctx)
 			}
 			cleanupCtx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
 			defer cancel()

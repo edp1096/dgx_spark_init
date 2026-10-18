@@ -74,6 +74,9 @@ func TestFP4LocalComposeMatchesStandaloneAndQualifiedRoPE(t *testing.T) {
 		t.Fatal(err)
 	}
 	s := doc["services"].(map[string]any)["runtime"].(map[string]any)
+	if s["environment"].(map[string]any)["PYTORCH_ALLOC_CONF"] != "backend:native,garbage_collection_threshold:0.7" {
+		t.Fatal("qualified UMA allocator setting is missing")
+	}
 	if s["image"] != "local/qwen38-fp4-local:csf-yarn-20261016" || s["pull_policy"] != "never" {
 		t.Fatal("wrong runtime image")
 	}

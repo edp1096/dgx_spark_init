@@ -1,0 +1,66 @@
+{
+  "status": "passed",
+  "date": "2026-10-18",
+  "scope": "Persistent SparkTalk start-button recovery for the qualified Qwen FP4-Local TP1/1M recipe. Deployed and tested through the normal stop/start API.",
+  "problem": {
+    "startup_estimate_gib": 116,
+    "configured_reserve_gib": 1.5,
+    "available_before_restart_gib": 116.9686393737793,
+    "original_strict_preflight_would_reject": true
+  },
+  "behavior": {
+    "automatic_file_cache_reclaim": true,
+    "maximum_estimate_shortfall_gib": 2,
+    "memory_watch_interval_ms": 250,
+    "configured_reserve_unchanged": true,
+    "cleanup_only_starting_model": true,
+    "automatic_pressure_retries": 1,
+    "unrelated_profiles_and_custom_budgets": "strict preflight preserved",
+    "allocator": "backend:native,garbage_collection_threshold:0.7"
+  },
+  "validation": {
+    "make_test": "passed (Go packages, 8 first-install Python tests, 135 frontend tests)",
+    "race_tests": "passed: start-button recovery, persistent-pressure cleanup, cancellation",
+    "regressions": [
+      "Reported 116.8 GiB case accepted without mutating a read-only probe.",
+      "Pressure stops only the starting model and retries once.",
+      "Persistent pressure cleans up after the second attempt and reports failure.",
+      "Cancellation cleans up without retry.",
+      "Larger shortage, larger user reserve, remote placement and custom budgets remain guarded."
+    ],
+    "real_restart": {
+      "status": "passed",
+      "transport": "standard SparkTalk runtime API only",
+      "start_accepted": true,
+      "elapsed_seconds": 314.9992129802704,
+      "min_available_gib": 2.5088539123535156,
+      "peak_used_increase_gib": 114.45978546142578,
+      "smoke_answer": "323"
+    }
+  },
+  "deployment": {
+    "production_port": 8585,
+    "pid": 650972,
+    "binary_sha256": "2122635658b0eb9e40be84a86c132f5cf5303fb798ff3d6debd81cd04e82801e",
+    "bundle": "flash-next-fp4-local",
+    "llm_status": {
+      "status": "running",
+      "health": "online",
+      "resident_memory_gib": 97.95873057842255
+    },
+    "available_gib": 18.001178741455078,
+    "container_running": true,
+    "oom_killed": false,
+    "restart_policy": "unless-stopped",
+    "temporary_compose_override_in_use": false,
+    "context_tokens": 1048576,
+    "mtp_tokens": 4
+  },
+  "source_sha256": {
+    "util/talk/internal/orchestrator/qwen_fp4_local_startup.go": "401ab1b380db4da73895888c18c4f0275fae787b872f0a353e67f6c25945e394",
+    "util/talk/internal/orchestrator/controller.go": "d2b02e7e0db0abc7ae74cc1ae70966b5c961211adc81f2222a4d7c897eb52d60",
+    "util/talk/internal/orchestrator/component_memory.go": "124fc5339557bd068e71c4bf0bd9f453f3726b79c9cb80b0b01c1830a63e668f",
+    "util/talk/internal/orchestrator/assets/compose.qwen-fp4-local.yaml": "5e72ad7b92240c48d3a3837d95294ff646fe19df35c02cec04ad659df7006fa5"
+  },
+  "evidence_directory": "/home/edp1096/.cache/model-download-jobs/qwen38-fp4-local-autostart-20261018"
+}

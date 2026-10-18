@@ -21,6 +21,9 @@ chmod +x sparktalk-linux-arm64
 DGX Spark에서 모델을 직접 실행하려면 NVIDIA 드라이버·Container Toolkit과 Docker Engine·Compose가 필요합니다.
 실행 계정에 Docker 권한이 있어야 합니다. 두 Spark를 쓰는 구성은 양쪽의 SSH 연결과 Python 3·rsync도 준비합니다.
 
+For a two-host reinstall, use the [backup and recovery guide](deploy/recovery/README.md).
+Private keys and state backups remain separate from the executable and source.
+
 ## 모델과 설정
 
 1. **설정 → 시스템 → 모델 준비**에서 사용할 모델을 선택하고 **전체 준비**를 실행합니다.

@@ -291,7 +291,7 @@ func (c *Controller) acquireManagedWorkload(ctx context.Context, b Bundle, x Com
 			cleanupCtx, cancel := context.WithTimeout(context.Background(), time.Minute)
 			defer cancel()
 			if failure == nil {
-				failure = ctx.Err()
+				failure = context.Cause(ctx)
 			}
 			memory := readSystemMemory()
 			if c.memoryProbe != nil {

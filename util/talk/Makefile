@@ -58,6 +58,7 @@ check-platforms:
 test: support-assets-check recipe-assets-check
 	$(GO) test ./...
 	$(PYTHON) -B -m unittest discover -s tests/first_install -v
+	$(PYTHON) -B -m unittest discover -s deploy/recovery -p 'test_*.py' -v
 	cd web && $(NPM) test
 
 .PHONY: recipe-assets recipe-assets-check

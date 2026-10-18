@@ -44,6 +44,8 @@
   let activeTab = initialTab;
   let systemSection = 'connection';
   let featureSection = 'web';
+  let sshSettingsOpened = false;
+  $: if (activeTab === 'features' && featureSection === 'ssh') sshSettingsOpened = true;
   let profileSection = initialProfileSection;
   const settingsTabs = [
     { id: 'chat', label: '대화' },
@@ -355,7 +357,7 @@
           <button type="button" onclick={() => { activeTab = "system"; systemSection = "services"; }}>SSH 서비스 상태·실행 관리</button>
           <label class="check"><input type="checkbox" bind:checked={settings.extra.ssh_enabled} /> 승인형 SSH 도구 활성화</label>
           {#if serviceHealth?.extra?.ssh}<div class="media-usage"><span>Extra SSH · {serviceHealth.extra.ssh.status === 'ok' ? 'online' : serviceHealth.extra.ssh.status}</span></div>{/if}
-          {#if settings.runtime.key_store_hosts?.length || (settings.extra.ssh_enabled && serviceHealth?.extra?.ssh?.status === 'ok')}
+          {#if sshSettingsOpened && (settings.runtime.key_store_hosts?.length || (settings.extra.ssh_enabled && serviceHealth?.extra?.ssh?.status === 'ok'))}
             <SSHSettings onnotify={notify} onkeystorechange={(state) => { settings.runtime.key_store_hosts = state.hosts; settings.runtime.key_store_peers = state.peers; settings = settings; }} />
           {:else if !settings.extra.ssh_enabled}
             <small class="ssh-empty">SSH 도구가 꺼져 있습니다.</small>

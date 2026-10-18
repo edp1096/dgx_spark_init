@@ -28,7 +28,7 @@
   }
 
   function isOnDemand(component) {
-    return selectedBundle?.workload_swap && !component.keep_resident && ['nemotron-asr', 'extra-media', 'extra-documents', 'extra-collector'].includes(component.id);
+    return selectedBundle?.workload_swap && !component.keep_resident && ['nemotron-asr', 'qwen3-tts', 'extra-embedding', 'extra-media', 'extra-documents', 'extra-collector'].includes(component.id);
   }
 
   function stateLabel(component) {
@@ -106,7 +106,7 @@
   {/if}
 
   {#if selectedBundle?.workload_swap}
-    <small class="runtime-workload-note">{selectedComponents.some(component => ['image', 'asr', 'tts'].includes(component.role)) ? (residentServices.length ? `${residentServices.join('·')} 상주 · 같은 프로세스 재사용` : (selectedComponents.some(component => ['image', 'tts'].includes(component.role)) ? '연속 이미지·TTS 작업 재사용 · 2분 유휴 또는 메모리 부족 시 회수' : 'ASR·Extra 요청 시 실행 · 대화 모델 상주 유지')) : 'Extra 요청 시 실행 · 대화 모델 상주 유지'}</small>
+    <small class="runtime-workload-note">{selectedComponents.some(component => ['image', 'asr', 'tts'].includes(component.role)) ? (residentServices.length ? `${residentServices.join('·')} 상주 · 같은 프로세스 재사용` : (selectedComponents.some(component => ['image', 'tts'].includes(component.role)) ? '부가 서비스 재사용 · 2분 유휴 또는 메모리 부족 시 회수' : 'ASR·Extra 요청 시 실행 · 대화 모델 상주 유지')) : 'Extra 요청 시 실행 · 대화 모델 상주 유지'}</small>
   {/if}
   <div class="runtime-switch">
     <Select bind:value={targetBundle} aria-label="전환할 AI 세트">

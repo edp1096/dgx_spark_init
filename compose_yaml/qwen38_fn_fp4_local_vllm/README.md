@@ -30,8 +30,13 @@ to the model template; its default is Medium.
 Measured model allocation was 70.69 GiB, with about 100 GiB of additional host
 memory while idle at the 1M setting. Cold loading reached about 115.4 GiB of
 additional host memory and used swap. Talk reserves 116 GiB for startup and
-retains the user's configured memory reserve; startup can be refused when
-there is insufficient headroom. Kernel compilation may take about 20 minutes
+retains the user's configured memory reserve. For this fixed recipe, Talk can
+automatically reclaim file caches and start under live memory monitoring when
+the conservative estimate misses by at most 2 GiB. It checks available memory
+every 250 ms, stops only the starting model if the configured reserve is crossed,
+and retries once after cleanup. Larger shortages and custom memory budgets
+retain the strict preflight check. The native PyTorch allocator uses a 0.7
+garbage collection threshold. Kernel compilation may take about 20 minutes
 on a first start. Compiler and checkpoint caches are isolated from other models.
 
 Both the NVIDIA baseline and this checkpoint retrieved two fields from an

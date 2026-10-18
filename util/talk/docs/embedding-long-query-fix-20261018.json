@@ -1,0 +1,90 @@
+{
+  "status": "passed",
+  "date": "2026-10-18",
+  "scope": "EmbeddingGemma 2 semantic retrieval from a long first message in a new conversation; deployed to running SparkTalk.",
+  "diagnosis": {
+    "observed_user_message_characters": 531266,
+    "observed_user_message_utf8_bytes": 554173,
+    "worker_request_limit_bytes": 262144,
+    "original_worker_error": "embedding HTTP 400: invalid request size",
+    "misleading_runtime_error": "context canceled",
+    "reason": "The full conversation message was sent as the semantic search query. Workload cleanup canceled its context without preserving the original worker error."
+  },
+  "changes": {
+    "semantic_query_max_utf8_bytes": 1024,
+    "excerpt": "opening topic plus trailing question; UTF-8 boundaries preserved",
+    "original_conversation": "unchanged",
+    "lexical_and_exact_match_queries": "unchanged",
+    "failure_handling": "CancelCause preserves the actual worker error through cleanup.",
+    "runtime_panel": "On-demand embedding and TTS no longer make an online model set appear stopped."
+  },
+  "validation": {
+    "make_test": "passed (Go packages, 8 first-install Python tests, 135 frontend tests)",
+    "web_build": "passed",
+    "regressions": [
+      "Large multibyte new-conversation query succeeds, keeps the opening topic and final instruction, and reuses its semantic cache.",
+      "Worker HTTP error survives cleanup; the LLM stays running."
+    ],
+    "live": {
+      "status": "passed",
+      "large_query_bytes": 540118,
+      "knowledge_api_http": 200,
+      "search_result_count": 3,
+      "retrieval_error": "",
+      "embedding_dimensions": 768,
+      "embedding_norm": 1.0001645080383124,
+      "embedding_pid_reused": true,
+      "embedding_pid": 1038593,
+      "embedding_ready": true,
+      "device": "cuda",
+      "dtype": "bf16",
+      "operation_state": "complete",
+      "operation_error": null,
+      "available_gib": 13.951553344726562,
+      "components": [
+        {
+          "id": "flash-next-fp4-local",
+          "status": "running",
+          "health": "online",
+          "resident_memory_gib": 99.17376627773046
+        },
+        {
+          "id": "nemotron-asr",
+          "status": "exited",
+          "health": "offline",
+          "resident_memory_gib": 0
+        },
+        {
+          "id": "qwen3-tts",
+          "status": "exited",
+          "health": "offline",
+          "resident_memory_gib": 0
+        },
+        {
+          "id": "extra-embedding",
+          "status": "running",
+          "health": "online",
+          "resident_memory_gib": 2.49434145539999
+        }
+      ],
+      "seconds": 18.582588499877602
+    }
+  },
+  "deployment": {
+    "old_pid": 650972,
+    "pid": 1037172,
+    "binary_sha256": "70f3d2e12629e0a8c38307bc0411fd4af3ee540f6b862c7faafda398fda08e9c",
+    "selected_bundle": "flash-next-fp4-local",
+    "llm_pid_unchanged": true,
+    "llm_pid": 658833,
+    "config_unchanged": false
+  },
+  "source_sha256": {
+    "util/talk/internal/server/retrieval.go": "860df4b1b9ead8028a7ac31f8ff7d09709344a5b32696fa5309ab0a0bd4be4d0",
+    "util/talk/internal/server/workload.go": "817d45be5d3f4d0c671f79c13ee6573fcc263430f60f827027308346117f8910",
+    "util/talk/internal/orchestrator/qwen_image_runtime.go": "59b15ffb528c2374c9c739dea412e7400072202dfaf436ebf2aaeaf874200960",
+    "util/talk/internal/orchestrator/workload.go": "2aecef8fd09819a3bcd77930bfda5184899df99c4cece87dbdd011e80792ce7d",
+    "util/talk/web/src/components/RuntimePanel.svelte": "4820626f303a1920f7e5e2bd0cb2788fe8f89e09d10b19ebcdebe1bb1210496f"
+  },
+  "evidence_directory": "/home/edp1096/.cache/model-download-jobs/embedding-long-query-fix-20261018"
+}

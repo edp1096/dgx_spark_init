@@ -10,10 +10,65 @@ import (
 	"sparktalk/internal/db"
 	"sparktalk/internal/embedding"
 	"sparktalk/internal/orchestrator"
+	"strings"
 	"testing"
+	"unicode/utf8"
 )
 
 func retrievalUnitVector(axis int) []float32 { v := make([]float32, 768); v[axis] = 1; return v }
+
+func TestLongNewConversationUsesBoundedSemanticQuery(t *testing.T) {
+	d, err := db.Open(filepath.Join(t.TempDir(), "long-query.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer d.Close()
+	_, _ = d.AddMemory("memory", "reference", "검색 설정", "EmbeddingGemma 2는 의미 검색에 사용한다.", "", 0)
+	sources, _ := d.PendingEmbeddings(1)
+	if err = d.CompleteEmbedding(sources[0], embedding.Profile, []db.EmbeddingSegment{{Text: sources[0].Content, Vector: retrievalUnitVector(0)}}); err != nil {
+		t.Fatal(err)
+	}
+	const topic = "검색할 주제: EmbeddingGemma 2\n"
+	const question = "마지막 질문: 의미 검색 모델을 어떻게 실행하지?"
+	query := topic + strings.Repeat("긴 참고 자료🙂 ", 50000) + question
+	original := query
+	calls := 0
+	endpoint := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		calls++
+		var in struct {
+			Task   string            `json:"task"`
+			Inputs []embedding.Input `json:"inputs"`
+		}
+		if r.ContentLength > 256*1024 {
+			http.Error(w, "invalid request size", 400)
+			return
+		}
+		if err := json.NewDecoder(r.Body).Decode(&in); err != nil || in.Task != "query" || len(in.Inputs) != 1 {
+			http.Error(w, "invalid query", 400)
+			return
+		}
+		text := in.Inputs[0].Text
+		if len(text) > semanticQueryMaxBytes || !utf8.ValidString(text) || !strings.HasPrefix(text, topic) || !strings.HasSuffix(text, question) {
+			t.Error("semantic excerpt lost the topic, final question or UTF-8 boundary")
+		}
+		_ = json.NewEncoder(w).Encode(embedding.Response{Profile: embedding.Profile, Dimensions: 768, Data: []embedding.Segment{{Text: text, Vector: retrievalUnitVector(0)}}})
+	}))
+	defer endpoint.Close()
+	s := &Server{db: d, cfg: config.Config{Runtime: config.RuntimeConfig{Mode: "external"}, Embedding: config.EmbeddingConfig{Enabled: true, Endpoint: endpoint.URL, Timeout: "1s"}}}
+	for range 2 {
+		v, err := s.queryVector(context.Background(), query)
+		if err != nil || len(v) != embedding.Dimensions {
+			t.Fatal("large new-conversation query failed", err)
+		}
+	}
+	if calls != 1 || query != original {
+		t.Fatal("semantic cache missed or original conversation changed")
+	}
+	short := "임베딩 모델을 실행해 줘"
+	if semanticQueryExcerpt(short) != short {
+		t.Fatal("short query changed")
+	}
+}
 func TestRankFusionUsesUnionAndStableIDs(t *testing.T) {
 	result := fuseRanked([]string{"a", "b", "c"}, []string{"d", "b", "a"}, func(s string) string { return s }, 4)
 	if len(result) != 4 || result[0] != "a" || result[1] != "b" || result[2] != "d" || result[3] != "c" {

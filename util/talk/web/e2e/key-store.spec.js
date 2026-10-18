@@ -1,6 +1,53 @@
 import { selectOption } from './select-helpers.js';
 import { expect, test } from '@playwright/test';
 
+test('loads SSH only when opened and keeps lookup failures inside its section', async ({ page }) => {
+  const requests = [];
+  let offline = true;
+  const error = '초기화 전에 모든 키 저장소 호스트에 연결해야 합니다';
+  await page.route('**/api/config', async route => {
+    const config = await (await route.fetch()).json();
+    config.runtime.key_store_hosts = ['local', 'worker'];
+    await route.fulfill({ json: config });
+  });
+  await page.route('**/api/health', route => route.fulfill({ json: { status: 'ok', extra: { ssh: { status: 'ok' } } } }));
+  await page.route('**/api/ssh/**', async route => {
+    const path = new URL(route.request().url()).pathname;
+    requests.push(path);
+    if (route.request().method() === 'POST') return route.fulfill({ status: 409, contentType: 'text/plain', body: error });
+    if (path === '/api/ssh/key-store') {
+      return route.fulfill({ json: { hosts: ['local', 'worker'], peers: {}, available_hosts: ['local', 'worker'], report: { error, replicas: [] } } });
+    }
+    if (offline) return route.fulfill({ status: 409, contentType: 'text/plain', body: error });
+    return route.fulfill({ json: [] });
+  });
+  await page.goto('/');
+  await page.locator('.settings-button').click();
+  for (const tab of ['음성', '시스템', '기능']) await page.getByRole('tab', { name: tab, exact: true }).click();
+  await expect(page.getByLabel('승인형 SSH 도구 활성화')).toBeHidden();
+  expect(requests).toEqual([]);
+  await expect(page.locator('.settings-toast')).toHaveCount(0);
+
+  await page.getByRole('button', { name: 'SSH·키', exact: true }).click();
+  await expect(page.locator('.ssh-settings > [role="alert"]')).toHaveCount(2);
+  await expect(page.locator('.ssh-settings')).toContainText(error);
+  await expect(page.locator('.settings-toast')).toHaveCount(0);
+  await expect(page.getByText('등록된 인증 키가 없습니다.', { exact: false })).toHaveCount(0);
+  await page.getByPlaceholder('dgx-main').first().fill('draft-key');
+  await page.getByRole('button', { name: '웹·미디어', exact: true }).click();
+  await page.getByRole('button', { name: 'SSH·키', exact: true }).click();
+  await expect(page.getByPlaceholder('dgx-main').first()).toHaveValue('draft-key');
+
+  offline = false;
+  await page.getByRole('button', { name: '키 목록 다시 불러오기' }).click();
+  await page.getByRole('button', { name: '서버 목록 다시 불러오기' }).click();
+  await expect(page.locator('.ssh-settings > [role="alert"]')).toHaveCount(0);
+  await expect(page.getByText('등록된 인증 키가 없습니다.', { exact: false })).toBeVisible();
+  await page.locator('.key-sync > summary').click();
+  await page.getByRole('button', { name: '지금 동기화', exact: true }).click();
+  await expect(page.locator('.settings-toast')).toContainText(error);
+});
+
 test('configures physical key replicas without losing them on settings save', async ({ page }) => {
   let saved;
   let extraOnline = true;

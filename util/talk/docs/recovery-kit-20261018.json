@@ -1,0 +1,23 @@
+{
+  "date": "2026-10-18",
+  "state_backup_included": false,
+  "private_keys_included": false,
+  "production_data_modified": false,
+  "tests": {
+    "make_test": "passed",
+    "recovery_tests": 8,
+    "host_checks_head": "passed",
+    "host_checks_worker": "passed",
+    "local_doc_links": "passed",
+    "extracted_kit_checksums": "passed",
+    "extracted_kit_recovery_tests": 8
+  },
+  "limits": [
+    "No actual two-host format or full GPU reinstall was performed.",
+    "No private state backup was created; the user must save one to external storage before formatting."
+  ],
+  "binary_sha256": "e7498b9cdd1c5dcb3e0101bf3f7f02aab6180c7cf62aa38a9b262d6dbdb9fe71",
+  "artifact": "/home/edp1096/workspace/dgx_spark_init/util/talk/dist/sparktalk-recovery-kit-20261018.tar.gz",
+  "artifact_bytes": 43355943,
+  "artifact_sha256": "74ef32ab1e5d0bd1e4a7fe7433661a38185599528a007134305781f3f084f468"
+}

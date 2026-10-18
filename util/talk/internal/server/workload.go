@@ -21,19 +21,19 @@ func (s *Server) acquireWorkload(ctx context.Context, target string, peak ...flo
 			target = "qwim-mmh3"
 		}
 	}
-	workCtx, cancel := context.WithCancel(ctx)
+	workCtx, cancel := context.WithCancelCause(ctx)
 	release, err := s.runtime.AcquireWorkload(workCtx, bundle, target, cfg.Runtime.MemoryReserveGiB, peak...)
 	if err != nil {
-		cancel()
+		cancel(err)
 		return nil, err
 	}
 	return func(results ...error) error {
 		for _, result := range results {
 			if result != nil {
-				cancel()
+				cancel(result)
 			}
 		}
-		defer cancel()
+		defer cancel(nil)
 		return release()
 	}, nil
 }

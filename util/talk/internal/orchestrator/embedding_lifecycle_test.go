@@ -2,11 +2,35 @@ package orchestrator
 
 import (
 	"context"
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
 )
+
+func TestEmbeddingFailureKeepsOriginalCauseDuringCleanup(t *testing.T) {
+	c, dir, _ := offlineAuxiliaryController(t)
+	t.Cleanup(c.Close)
+	x, _ := c.Catalog().ResolveComponent("flash-next-fp4-local", "extra-embedding")
+	seedAuxiliary(t, dir, x.Container, "vllm-qwen38-fp4-local")
+	ctx, cancel := context.WithCancelCause(context.Background())
+	release, err := c.AcquireWorkload(ctx, "flash-next-fp4-local", x.ID, 1.5)
+	if err != nil {
+		t.Fatal(err)
+	}
+	cause := errors.New("embedding HTTP 400: invalid request size")
+	cancel(cause)
+	if err = release(); err != nil {
+		t.Fatal(err)
+	}
+	if op := c.Operation(); op.State != "failed" || op.Error != cause.Error() {
+		t.Fatalf("actual worker error was masked during cleanup: %+v", op)
+	}
+	if _, err = os.Stat(filepath.Join(dir, "vllm-qwen38-fp4-local")); err != nil {
+		t.Fatal("embedding cleanup stopped the LLM")
+	}
+}
 
 func TestResidentEmbeddingUsesSharedQueueAndStopsOutsideItsSet(t *testing.T) {
 	c, dir, _ := offlineAuxiliaryController(t)

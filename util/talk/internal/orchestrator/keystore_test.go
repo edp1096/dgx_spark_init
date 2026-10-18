@@ -1,9 +1,40 @@
 package orchestrator
 
 import (
+	"context"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
+
+func TestKeyStoreUsesInstalledSSHImage(t *testing.T) {
+	dir := t.TempDir()
+	log := filepath.Join(dir, "docker-args")
+	t.Setenv("KEYSTORE_TEST_LOG", log)
+	t.Setenv("PATH", dir+string(os.PathListSeparator)+os.Getenv("PATH"))
+	script := "#!/bin/sh\nprintf '%s\\n' \"$@\" > \"$KEYSTORE_TEST_LOG\"\nprintf '{}'\n"
+	if err := os.WriteFile(filepath.Join(dir, "docker"), []byte(script), 0700); err != nil {
+		t.Fatal(err)
+	}
+	c, err := NewController()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(c.Close)
+	c.keyStorePeers = map[string]Host{"local": {DataDir: dir}}
+	if _, err := c.keyCommand(context.Background(), "local", "status", nil); err != nil {
+		t.Fatal(err)
+	}
+	args, err := os.ReadFile(log)
+	if err != nil {
+		t.Fatal(err)
+	}
+	spec, _ := (Component{ComposeAsset: "compose.extra-ssh.yaml"}).SupportSpec()
+	if !strings.Contains(string(args), "\n"+spec.Image+"\n-key-store\nstatus\n") || strings.Contains(string(args), ":latest") {
+		t.Fatalf("helper did not use installed SSH image: %s", args)
+	}
+}
 
 func TestKeyAuthoritySelection(t *testing.T) {
 	source := KeyReplica{Host: "head", Node: "a", Manifest: KeyManifest{Repository: "repo", Authority: "a", Epoch: 1, Version: 3}}

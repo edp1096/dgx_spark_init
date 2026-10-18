@@ -11,6 +11,7 @@ import (
 	"strings"
 	"sync/atomic"
 	"time"
+	"unicode/utf8"
 
 	"sparktalk/internal/db"
 	"sparktalk/internal/embedding"
@@ -18,6 +19,29 @@ import (
 
 const retrievalCandidates = 50
 const rrfConstant = 60.0
+
+// Recall can receive a full 1M-context user message. Only its semantic-search
+// query is bounded; conversation content and lexical/exact-match filters keep
+// the original text. A 1 KiB UTF-8 excerpt leaves ample room for the worker's
+// 2048-token query limit instead of forwarding an entire pasted document.
+const semanticQueryMaxBytes = 1024
+
+func semanticQueryExcerpt(query string) string {
+	if len(query) <= semanticQueryMaxBytes {
+		return query
+	}
+	const separator = "\n…\n"
+	head := semanticQueryMaxBytes / 4
+	for head > 0 && !utf8.RuneStart(query[head]) {
+		head--
+	}
+	tail := len(query) - (semanticQueryMaxBytes - semanticQueryMaxBytes/4 - len(separator))
+	for tail < len(query) && !utf8.RuneStart(query[tail]) {
+		tail++
+	}
+	// Keep the opening topic and the latest instruction at the end of a paste.
+	return query[:head] + separator + query[tail:]
+}
 
 type retrievalPreviewKey struct{}
 
@@ -58,7 +82,8 @@ func (s *Server) queryVector(ctx context.Context, query string) ([]float32, erro
 	if err != nil || !ready {
 		return nil, err
 	}
-	key := sha256.Sum256([]byte(cfg.Embedding.Endpoint + "\x00" + query))
+	semanticQuery := semanticQueryExcerpt(query)
+	key := sha256.Sum256([]byte(cfg.Embedding.Endpoint + "\x00" + semanticQuery))
 	s.retrievalMu.Lock()
 	cached, ok := s.retrieval.cache[key]
 	s.retrievalMu.Unlock()
@@ -76,7 +101,7 @@ func (s *Server) queryVector(ctx context.Context, query string) ([]float32, erro
 	}
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
-	result, err := s.encodeEmbedding(ctx, "query", []embedding.Input{{Text: query}})
+	result, err := s.encodeEmbedding(ctx, "query", []embedding.Input{{Text: semanticQuery}})
 	s.retrievalMu.Lock()
 	defer s.retrievalMu.Unlock()
 	if err != nil {

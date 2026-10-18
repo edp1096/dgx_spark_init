@@ -40,6 +40,7 @@ services:
       VLLM_B12X_MOE_FP4_FORCE_A16: '1'
       B12X_W4A16_A4_PREFILL: '1'
       PYTHONUNBUFFERED: '1'
+      PYTORCH_ALLOC_CONF: backend:native,garbage_collection_threshold:0.7
       OMP_NUM_THREADS: '8'
     volumes:
     - ${SPARKTALK_HF_CACHE:-${HOME}/.cache/huggingface}/edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-FP4-Local:/model:ro

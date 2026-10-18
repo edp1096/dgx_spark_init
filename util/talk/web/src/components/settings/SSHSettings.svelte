@@ -8,6 +8,10 @@
 
   let hosts = [];
   let keys = [];
+  let hostsError = '';
+  let keysError = '';
+  let hostsLoaded = false;
+  let keysLoaded = false;
   let editing = null;
   let busy = '';
   let keyBusy = '';
@@ -26,13 +30,13 @@
   }
 
   async function loadHosts() {
-    try { hosts = await listSSHHosts(); }
-    catch (error) { onnotify(error.message, 'error'); }
+    try { hosts = await listSSHHosts(); hostsError = ''; hostsLoaded = true; }
+    catch (error) { hostsError = error.message; }
   }
 
   async function loadKeys() {
-    try { keys = await listSSHKeys(); }
-    catch (error) { onnotify(error.message, 'error'); }
+    try { keys = await listSSHKeys(); keysError = ''; keysLoaded = true; }
+    catch (error) { keysError = error.message; }
   }
 
   async function generateKey() {
@@ -161,6 +165,7 @@
 <div class="ssh-settings">
   <div class="ssh-settings-head"><span>인증 키</span><small>개인키는 DB가 아닌 Extra 외부 폴더에 저장</small></div>
   <KeyStoreSettings {onnotify} onchange={(state) => { onkeystorechange(state); return loadKeys(); }} />
+  {#if keysError}<p role="alert">키 목록을 불러오지 못했습니다: {keysError} <button type="button" onclick={loadKeys}>키 목록 다시 불러오기</button></p>{/if}
   <div class="ssh-key-create">
     <label class="settings-field-row"><span>새 키 ID</span><input bind:value={newKeyID} oninput={() => replacingKey = false} placeholder="dgx-main" /></label>
     <button type="button" onclick={generateKey} disabled={keyBusy || !newKeyID.trim() || replacingKey}>Ed25519 생성</button>
@@ -178,9 +183,10 @@
         </div>
       {/each}
     </div>
-  {:else}<small class="ssh-empty">등록된 인증 키가 없습니다. 새 키를 UI에서 바로 생성할 수 있습니다.</small>{/if}
+  {:else if keysLoaded && !keysError}<small class="ssh-empty">등록된 인증 키가 없습니다. 새 키를 UI에서 바로 생성할 수 있습니다.</small>{/if}
   <datalist id="ssh-key-ids">{#each keys as key}<option value={key.id}></option>{/each}</datalist>
   <div class="ssh-settings-head"><span>등록 서버</span><button type="button" onclick={add} disabled={editing !== null}>＋ 서버 추가</button></div>
+  {#if hostsError}<p role="alert">서버 목록을 불러오지 못했습니다: {hostsError} <button type="button" onclick={loadHosts}>서버 목록 다시 불러오기</button></p>{/if}
   {#if hosts.length}
     <div class="ssh-host-list">
       {#each hosts as host}
@@ -197,7 +203,7 @@
         </div>
       {/each}
     </div>
-  {:else if editing !== 'new'}
+  {:else if hostsLoaded && !hostsError && editing !== 'new'}
     <small class="ssh-empty">등록된 SSH 서버가 없습니다.</small>
   {/if}
   {#if editing !== null}

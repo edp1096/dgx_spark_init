@@ -13,8 +13,6 @@ import (
 	"time"
 )
 
-const keyStoreImage = "sparktalk-extra-ssh:latest"
-
 type KeyManifest struct {
 	Schema     int                        `json:"schema"`
 	Repository string                     `json:"repository"`
@@ -56,6 +54,11 @@ func (c *Controller) keyCommand(ctx context.Context, hostID, action string, inpu
 	if directory == "" || !filepath.IsAbs(directory) {
 		return nil, fmt.Errorf("%s: absolute data_dir required", hostID)
 	}
+	// Use the same versioned image as the SSH service installer.
+	spec, ok := (Component{ComposeAsset: "compose.extra-ssh.yaml"}).SupportSpec()
+	if !ok || spec.Image == "" {
+		return nil, errors.New("SSH support image is not configured")
+	}
 	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
 	defer cancel()
 	// Run a network-isolated helper even when the SSH API container is stopped.
@@ -64,7 +67,7 @@ func (c *Controller) keyCommand(ctx context.Context, hostID, action string, inpu
 	if action == "trust" {
 		network = "host"
 	}
-	args := []string{"sh", "-c", `set -eu; base="$1"; network="$2"; shift 2; mkdir -p "$base/extra/ssh/keys" "$base/extra/ssh/state"; exec docker run --rm -i --network "$network" --user "$(id -u):$(id -g)" -v "$base/extra/ssh/keys:/run/sparktalk-extra/keys" -v "$base/extra/ssh/state:/var/lib/sparktalk-extra" "$@"`, "sh", directory, network, keyStoreImage, "-key-store", action}
+	args := []string{"sh", "-c", `set -eu; base="$1"; network="$2"; shift 2; mkdir -p "$base/extra/ssh/keys" "$base/extra/ssh/state"; exec docker run --rm -i --network "$network" --user "$(id -u):$(id -g)" -v "$base/extra/ssh/keys:/run/sparktalk-extra/keys" -v "$base/extra/ssh/state:/var/lib/sparktalk-extra" "$@"`, "sh", directory, network, spec.Image, "-key-store", action}
 	cmd := hostCommand(ctx, host, args...)
 	cmd.Stdin = bytes.NewReader(input)
 	var stdout, stderr bytes.Buffer
