@@ -10,21 +10,22 @@ type runtimeName struct {
 }
 
 var runtimeNames = map[string]runtimeName{
-	"ornith35":            {"Ornith 1.5 35B", []string{"Huihui Ornith 1.5 35B"}},
-	"qwen38fn_exl3":       {"Qwen 3.8 Flash-Next EXL3 3bit", []string{"Qwen 3.8 Flash-Next EXL3", "Qwen3.8 Flash-Next EXL3", "Huihui Qwen3.8 EXL3", "Huihui Qwen3.8 Native EXL3", "Qwen3.8 EXL3", "Qwen3.8 Native EXL3", "Flash-Next EXL3", "Flash-Next EXL3 세트"}},
-	"flash-next":          {"Qwen 3.8 Flash-Next QAD", []string{"Flash-Next", "Flash-Next 세트", "Qwen3.8 Flash-Next", "Qwen3.8 Flash-Next QAD", "Huihui-RadixArk Qwen3.8 Flash-Next"}},
-	"qwen38fn_exl3_q4":    {"Qwen 3.8 Flash-Next EXL3 4bit", nil},
-	"flash-next-radixark": {"Qwen 3.8 Flash-Next NVFP4", nil},
-	"flash-next-tp2":      {"Qwen 3.8 Flash-Next TP2", []string{"Qwen3.8 Flash-Next TP2", "Huihui-RadixArk Qwen3.8 Flash-Next TP2"}},
-	"glm53":               {"GLM 5.3 Flash", []string{"GLM 5.3 Flash NVFP4"}},
-	"glm53-worker-extra":  {"GLM 5.3 Flash", []string{"GLM 5.3 Flash NVFP4"}},
-	"ds4fve":              {"DeepSeek V4 Flash Vision Exp", []string{"DeepSeek V4 Flash VE", "DeepSeek V4 Flash Vision Exp + 워커 Extra·ASR"}},
-	"ds41":                {"DeepSeek V4.1 Flash", nil},
-	"flux2":               {"Qwen Image 2.1", nil},
-	"dreamlite":           {"DreamLite Mobile (시험)", nil},
-	"nemotron-asr":        {"Nemotron 3.5 ASR", []string{"Nemotron ASR", "Nemotron ASR Q5_K"}},
-	"qwen3-tts":           {"Qwen3-TTS 0.6B", []string{"Qwen3-TTS 0.6B Q8"}},
-	"extra-media":         {"Extra Media", nil}, "extra-ssh": {"Extra SSH", nil},
+	"ornith35":             {"Ornith 1.5 35B", []string{"Huihui Ornith 1.5 35B"}},
+	"qwen38fn_exl3":        {"Qwen 3.8 Flash-Next EXL3 3bit", []string{"Qwen 3.8 Flash-Next EXL3", "Qwen3.8 Flash-Next EXL3", "Huihui Qwen3.8 EXL3", "Huihui Qwen3.8 Native EXL3", "Qwen3.8 EXL3", "Qwen3.8 Native EXL3", "Flash-Next EXL3", "Flash-Next EXL3 세트"}},
+	"flash-next":           {"Qwen 3.8 Flash-Next QAD", []string{"Flash-Next", "Flash-Next 세트", "Qwen3.8 Flash-Next", "Qwen3.8 Flash-Next QAD", "Huihui-RadixArk Qwen3.8 Flash-Next"}},
+	"qwen38fn_exl3_q4":     {"Qwen 3.8 Flash-Next EXL3 4bit", nil},
+	"flash-next-radixark":  {"Qwen 3.8 Flash-Next NVFP4", nil},
+	"flash-next-fp4-local": {"Qwen 3.8 Flash-Next FP4-Local", nil},
+	"flash-next-tp2":       {"Qwen 3.8 Flash-Next TP2", []string{"Qwen3.8 Flash-Next TP2", "Huihui-RadixArk Qwen3.8 Flash-Next TP2"}},
+	"glm53":                {"GLM 5.3 Flash", []string{"GLM 5.3 Flash NVFP4"}},
+	"glm53-worker-extra":   {"GLM 5.3 Flash", []string{"GLM 5.3 Flash NVFP4"}},
+	"ds4fve":               {"DeepSeek V4 Flash Vision Exp", []string{"DeepSeek V4 Flash VE", "DeepSeek V4 Flash Vision Exp + 워커 Extra·ASR"}},
+	"ds41":                 {"DeepSeek V4.1 Flash", nil},
+	"flux2":                {"Qwen Image 2.1", nil},
+	"dreamlite":            {"DreamLite Mobile (시험)", nil},
+	"nemotron-asr":         {"Nemotron 3.5 ASR", []string{"Nemotron ASR", "Nemotron ASR Q5_K"}},
+	"qwen3-tts":            {"Qwen3-TTS 0.6B", []string{"Qwen3-TTS 0.6B Q8"}},
+	"extra-media":          {"Extra Media", nil}, "extra-ssh": {"Extra SSH", nil},
 	"extra-collector": {"Extra Collector", nil}, "extra-documents": {"Extra Documents", nil},
 }
 
@@ -98,6 +99,8 @@ func modelPresentation(c Component) *ModelPresentation {
 			selected, label, format = "abliterated", "Abliterated", "EXL3 3bit HQ h6 ng6"
 		case "compose.ornith35.yaml":
 			selected, label, format = "abliterated", "Abliterated", "NVFP4"
+		case "compose.qwen-fp4-local.yaml":
+			selected, label, format = "abliterated", "Abliterated v2", "FP4-Local"
 		case "compose.qwen-image21.yaml":
 			label, format = "Uncensored", "NVFP4 · W4A8 · BF16 VAE"
 		case "compose.nemotron-asr.yaml":

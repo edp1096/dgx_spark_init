@@ -26,11 +26,11 @@ model:
   endpoint: http://127.0.0.1:8000
   # 비워두면 /v1/models의 첫 모델을 사용합니다.
   default_model: edp1096/Huihui-RadixArk-Qwen3.8-Flash-Next-abliterated-NVFP4
-  # 모델명을 추측하지 않고 요청 형식을 명시적으로 선택합니다: qwen3.8, qwen38fn_exl3, gemma4, glm5.3, generic
+  # 모델명을 추측하지 않고 요청 형식을 명시적으로 선택합니다: qwen3.8, qwen3.8-vllm, qwen38fn_exl3, gemma4, glm5.3, generic
   model_type: qwen3.8
   api_key: ""
   # Qwen3.8: none, low, medium, xhigh. generic 유형만 기타 이름이나 0.0~0.99를 허용
-  reasoning_effort: low
+  reasoning_effort: medium
   # Gemma 4 Thinking이 켜졌을 때의 최대 생각 토큰. 0은 제한하지 않습니다.
   thinking_budget: 0
   # 모든 대화에 공통 적용할 지침입니다. 비워두면 사용하지 않습니다.

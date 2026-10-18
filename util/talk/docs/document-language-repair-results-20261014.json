@@ -1,0 +1,125 @@
+{
+  "passed": true,
+  "run_id": "document-CYOVTPF6SA5OVFCXQULCDK6DEA",
+  "parent": "document-TVY22TAJFC6FG4I4F53OIWXOY2",
+  "model": "qwen38fn_exl3",
+  "effort": "medium",
+  "status": "completed",
+  "seconds": 259,
+  "calls": 19,
+  "language_candidates": 14,
+  "checked": 14,
+  "changed_paragraphs": 13,
+  "unresolved": 0,
+  "pronouns": [
+    {
+      "record": "l000002",
+      "before": "ella는",
+      "after": "그녀는",
+      "source": "It was all very well to say “Drink me,” but the wise little Alice was\nnot going to do _that_ in a hurry. “No, I’ll look first,” she said,\n“and see whether it’s marked ‘_poison_’ or not”; for she had read\nseveral nice little histories about children who had got burnt, and\neaten up by wild beasts and other unpleasant things, all because they\n_would_ not remember the simple rules their friends had taught them:\nsuch as, that a red-hot poker will burn you if you hold it too long;\nand that if you cut your finger _very_ deeply with a knife, it usually\nbleeds; and she had never forgotten that, if you drink much from a\nbottle marked “poison,” it is almost certain to disagree with you,\nsooner or later.",
+      "reason": "원문의 'she'는 3인칭 단수 여성 대명사이며, 번역의 '그녀는'은 이에 대응하는 한국어 3인칭 단수 여성 대명사(주제 조사 포함)로, 대명사의 문법적 역할과 지시 대상이 정확히 일치한다."
+    },
+    {
+      "record": "l000003",
+      "before": "ella는",
+      "after": "그녀는",
+      "source": "And she went on planning to herself how she would manage it. “They must\ngo by the carrier,” she thought; “and how funny it’ll seem, sending\npresents to one’s own feet! And how odd the directions will look!",
+      "reason": "원문의 'she'는 3인칭 단수 여성 대명사이며, 번역의 '그녀는'은 주제 조사 '-는'을 붙인 동일한 인칭·수의 대명사로 원문의 문법적 역할(주어)을 정확히 보존하고 있다. 대명사를 고유명사로 확장한 것도 아니며, 의미와 문법 모두 원문과 일치한다."
+    }
+  ],
+  "source_paragraphs_preserved": 872,
+  "source_raw_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+  "original_downloads_preserved": {
+    "output.txt": "0a4d538956533cf6a72f5eb16e0deb661a0f681d03db5d78e601e2d814f74873",
+    "output.md": "c093af020749020e7d7e7b894a5feadd8352c6ebb17d0e430dee92ca90c6beb5",
+    "output.html": "122ee8fc9798ba5ce3d889b1a42f73fc98803b9f3bad49e9bc9e2716b7116616",
+    "output.zip": "04ca2ee6996f364529bc45a4bef1af74f1870a323d7032d94d05e84b73e7aae3"
+  },
+  "output_files": {
+    "output.txt": {
+      "sha256": "6eba3e03896aa2d6e24f54c73a4bde8aead1fcd4de0a27c90cae0f02b8fa99ef",
+      "bytes": 202696
+    },
+    "output.md": {
+      "sha256": "10e61031bcb8150ad836e510173672ea94697009eb0d578551965ec2c507801e",
+      "bytes": 203424
+    },
+    "output.html": {
+      "sha256": "ae579c728c4d05177b477dc2fa6587b954df94cd4b8363dba9e4b3033d6f8232",
+      "bytes": 238838
+    },
+    "output.zip": {
+      "sha256": "9a6d8a3124e00ee90a5a77f3b831aa31a3572498cec8ccc95aeeb8b138c8883e",
+      "bytes": 69379
+    }
+  },
+  "resident_models_unchanged": true,
+  "min_available_gib": 18.312198638916016,
+  "min_free_gib": 4.353031158447266,
+  "peak_swap_gib": 5.910602569580078,
+  "swap_delta_gib": 0.007701873779296875,
+  "stage_metrics": {
+    "language_check": {
+      "performance": {
+        "totals": {
+          "prefill_tokens": 12732,
+          "prefill_seconds": 13.520000000000001,
+          "decode_tokens": 6552,
+          "decode_seconds": 119.27000000000001
+        },
+        "pp": 941.7159763313608,
+        "tg": 54.934182946256385,
+        "ttft": 5.003935532,
+        "ttft_estimated": true,
+        "prompt_tokens": 12732,
+        "cached_tokens": 0,
+        "output_tokens": 6552,
+        "calls": 5
+      },
+      "calls": 5,
+      "seconds": 132.962867502,
+      "prompt_tokens": 12732,
+      "output_tokens": 6552
+    },
+    "language_verify": {
+      "performance": {
+        "totals": {
+          "prefill_tokens": 5438,
+          "prefill_seconds": 8.84,
+          "decode_tokens": 6018,
+          "decode_seconds": 112.61
+        },
+        "pp": 615.158371040724,
+        "tg": 53.44107983305213,
+        "ttft": 1.584624045,
+        "ttft_estimated": true,
+        "prompt_tokens": 10558,
+        "cached_tokens": 5120,
+        "output_tokens": 6018,
+        "calls": 14
+      },
+      "calls": 14,
+      "seconds": 122.02289026300001,
+      "prompt_tokens": 10558,
+      "output_tokens": 6018
+    }
+  },
+  "remaining_warnings": [],
+  "ui_verified": true,
+  "accepted_patch_replay": "13 accepted paragraph corrections replayed; all 872 published paragraphs match exactly",
+  "evidence_directory": "/home/edp1096/.cache/model-download-jobs/document-language-20261014",
+  "tests": {
+    "go_all": "passed",
+    "language_and_terms_regressions": "passed",
+    "language_race": "passed",
+    "web_unit_tests": 134,
+    "document_card_e2e": "passed",
+    "production_read_only_ui": "passed"
+  },
+  "normal_controls_preserved": [
+    "parenthetical original-language glosses",
+    "legitimate names",
+    "acronyms",
+    "URLs"
+  ]
+}

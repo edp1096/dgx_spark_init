@@ -355,7 +355,7 @@ func documentOrderedIndices(units []workflows.DocumentUnit) []int {
 }
 
 func documentModelSampling(modelType string) *llm.SamplingParameters {
-	if modelType != "qwen38fn_exl3" && modelType != "qwen3.8" {
+	if modelType != "qwen38fn_exl3" && modelType != "qwen3.8" && modelType != "qwen3.8-vllm" {
 		return nil
 	}
 	return &llm.SamplingParameters{TopP: 0.95, TopK: 20, MinP: 0, RepetitionPenalty: 1, PresencePenalty: 0, FrequencyPenalty: 0}

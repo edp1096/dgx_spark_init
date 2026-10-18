@@ -1,0 +1,454 @@
+{
+  "date": "2026-10-14",
+  "status": "deployed_verified",
+  "scope": "범용 이름 표기 일관성 및 TXT 산문 레이아웃 교정. 전체 문장 의미 검수와는 별개.",
+  "protocol": "terms_v1",
+  "production_model": "qwen38fn_exl3",
+  "effort": "medium",
+  "production": {
+    "run_id": "document-TVY22TAJFC6FG4I4F53OIWXOY2",
+    "parent": "document-L2ABCYCTZYXMKU6KYATD2UBUUA",
+    "status": "completed",
+    "source_and_output_blocks": 872,
+    "changed_paragraphs": 1,
+    "reported_changed_paragraphs": 1,
+    "checked_terms": 27,
+    "unresolved_positions": 0,
+    "calls": 3,
+    "active_seconds": 94,
+    "original_outputs_preserved": [
+      {
+        "name": "output.html",
+        "sha256": "82ef38c641d7a867ea1216185424373b62c9cb4591b6bd83aa309056b67b6bce"
+      },
+      {
+        "name": "output.md",
+        "sha256": "533b4c83656b79c04bfa1ed20ac586b5b5e9557080b177118b2ba111a881a587"
+      },
+      {
+        "name": "output.txt",
+        "sha256": "c4f1df90ff9a7d0130b01690dab7a3a0a1c554596ec93d29275ac218979aeb18"
+      },
+      {
+        "name": "output.zip",
+        "sha256": "75402bbe8920db455355e4477151e98f08c4c9b60dd861be6899e5f5ff4d3880"
+      }
+    ],
+    "downloads": [
+      {
+        "name": "output.txt",
+        "bytes": 202679,
+        "sha256": "0a4d538956533cf6a72f5eb16e0deb661a0f681d03db5d78e601e2d814f74873"
+      },
+      {
+        "name": "output.md",
+        "bytes": 203407,
+        "sha256": "c093af020749020e7d7e7b894a5feadd8352c6ebb17d0e430dee92ca90c6beb5"
+      },
+      {
+        "name": "output.html",
+        "bytes": 238825,
+        "sha256": "122ee8fc9798ba5ce3d889b1a42f73fc98803b9f3bad49e9bc9e2716b7116616"
+      },
+      {
+        "name": "output.zip",
+        "bytes": 69481,
+        "sha256": "04ca2ee6996f364529bc45a4bef1af74f1870a323d7032d94d05e84b73e7aae3"
+      }
+    ],
+    "known_dinah_extension_remaining": 0,
+    "core_models_restarted": false,
+    "warnings": [],
+    "reused_references": 334,
+    "total_changed_paragraphs_from_original": 108,
+    "previous_corrected_outputs_preserved": true,
+    "changed_paragraphs_in_recovery": 56,
+    "recovery_active_seconds": 874,
+    "recovery_model_calls": 40
+  },
+  "layout": {
+    "source_blocks": 872,
+    "wrapped_prose_paragraphs_folded": 443,
+    "authored_or_ambiguous_multiline_blocks_preserved": 193,
+    "source_snapshot_version": 6,
+    "normal_prose_layout_blocks": 679,
+    "count_explanation": "UI의 679문단은 자동 줄바꿈 형식이 적용된 전체 산문 문단 수. 그중 원문에 실제 편집상 개행이 있던 443문단의 개행을 접었다."
+  },
+  "memory": {
+    "minimum_available_gib": 16.676513671875,
+    "minimum_free_gib": 3.0426406860351562,
+    "net_swap_growth_gib": 0.03107452392578125,
+    "scope": "production correction intervals, including read-only browser checks and final engine build",
+    "core_model_containers_restarted": false
+  },
+  "request_metrics": {
+    "calls": 40,
+    "seconds": 868.5802812119998,
+    "output_tokens": 45985,
+    "prompt_tokens": 73495,
+    "failures": {
+      "invalid_term_patch": 3
+    }
+  },
+  "fresh_translation_comparison": {
+    "scope": "동일한 구텐베르크 원문 4문단, medium, 각 경로 1회, legacy 다음 terms_v1 순서. 책 전체 처리시간으로 외삽하지 않음.",
+    "results": {
+      "legacy": {
+        "seconds": 19.285744577,
+        "calls": 1,
+        "output_tokens": 767,
+        "minimum_available_gib": 16.325416564941406,
+        "minimum_free_gib": 2.9814300537109375,
+        "net_swap_growth_gib": -0.00640869140625,
+        "checked_terms": null,
+        "unresolved_positions": null
+      },
+      "terms_v1": {
+        "seconds": 68.989901665,
+        "calls": 4,
+        "output_tokens": 3611,
+        "minimum_available_gib": 16.270084381103516,
+        "minimum_free_gib": 2.8331031799316406,
+        "net_swap_growth_gib": -0.09366226196289062,
+        "checked_terms": 3,
+        "unresolved_positions": 0
+      }
+    },
+    "quality": "이름·수치·4문단 구조 유지. 새 경로에서 3개 용어 검사, 표기 변경 0건·보류 0건. 문장 전체의 의미 정확성이나 문체가 개선됐다는 판정으로 사용하지 않음."
+  },
+  "independent_controls": {
+    "english_japanese_sources": "이전 고정 자료의 Gift of the Magi 및 Kappa 발췌. 번역 표기 오류를 주입한 대조 시험.",
+    "synthetic_controls": [
+      "중국어 지명",
+      "May 인명/월 이름",
+      "Aurora 배/가수",
+      "Ann/Anna 부분 문자열"
+    ],
+    "seconds": 301.5,
+    "calls": 17,
+    "changed_paragraphs": 3,
+    "unresolved": 0,
+    "normal_controls_changed": 0
+  },
+  "review_items": [],
+  "qualification_findings": [
+    "괄호 병기를 충돌로 오인한 제안은 게시 전 차단했고 의도적인 병기 보존 검사를 추가했다.",
+    "복합 이름의 의미 요소를 삭제하는 잘못된 판정은 저장된 수정 전 체크포인트로 원복했다. 최초 파일은 변경하지 않았다.",
+    "모자장수만이의 겹조사를 인식하지 못한 경계 처리는 최종 엔진에서 수정했다. 저장된 실제 모델 응답 재생 검사에서 통과했으며, 완료된 실행의 보류 이력은 임의 수정하지 않았다.",
+    "새 작업 생성과 이전 작업 저장이 겹치는 SQLITE_BUSY를 기존 검사 30회 중 9회 재현했다. 쓰기 트랜잭션을 IMMEDIATE로 하고 읽기 전용 스냅샷을 명시해 수정 후 연속 50회 통과했다.",
+    "이전에 남았던 9곳을 재검사했으며 Dormouse 2곳과 Mock Turtle의 불완전한 이름을 교정하고 정상 병기·조사·Bill 표기를 확인했다.",
+    "1차 실제 재처리에서 55문단 교정, 1곳의 보존 인용 검증 실패. 원문 선택 제약을 보강한 최종 재처리에서 나머지 1문단 교정 및 확인 필요 0곳을 확인했다.",
+    "실제 결과를 원본 체크포인트와 승인된 수정 기록만으로 다시 계산했으며 게시된 본문과 바이트 단위로 일치했다.",
+    "완료 직후 후속 교정 요청의 정리 타이밍 문제를 수정하고 race 검사에서 30회 연속 통과했다."
+  ],
+  "limits": [
+    "관찰된 표기 사이의 일관성 검사다. 문서 전체에서 일관되게 잘못 번역한 내용이나 일반 문장의 오역까지 자동 해결하지 않는다.",
+    "검사·교정·재검증에는 모델 호출 시간이 추가된다. 기존 앨리스 교정은 실제 처리 39분 7초였으며 개발 중 일시정지 시간은 제외했다.",
+    "시·목차·표 및 불확실한 행 구분은 보존한다. 모든 개행을 일괄 삭제하지 않는다."
+  ],
+  "checks": {
+    "go_all": "recovery/go-tests-release-v3.log",
+    "document_database_race": "recovery/race-copy-final.log",
+    "successive_creation_50_runs": "db-contention-fixed.log",
+    "web_unit": "web-tests-final.log",
+    "web_build": "web-build-final.log",
+    "browser_targeted_tests": 7,
+    "browser_log": "e2e.log",
+    "actual_production_card": "recovery/production/ui-smoke.json",
+    "recorded_particle_validation": "particle-replay.log",
+    "actual_production_card_passed": true,
+    "terminal_recheck_race_30_runs": "recovery/completion-race.log",
+    "accepted_patch_replay": "recovery/production/audit.log"
+  },
+  "deployment": "/home/edp1096/.cache/model-download-jobs/document-consistency-20261014/recovery/copy-guard/deployment.json",
+  "evidence_root": "/home/edp1096/.cache/model-download-jobs/document-consistency-20261014",
+  "deployment_verified": true,
+  "committed_or_pushed": false,
+  "previous_qualification": {
+    "production": {
+      "run_id": "document-B2M3ICDBMIYK6A3SPUSLVYSIRM",
+      "parent": "chat-1791909951704209505",
+      "status": "needs_review",
+      "source_and_output_blocks": 872,
+      "changed_paragraphs": 52,
+      "reported_changed_paragraphs": 52,
+      "checked_terms": 27,
+      "unresolved_positions": 9,
+      "calls": 109,
+      "active_seconds": 2347,
+      "original_outputs_preserved": [
+        {
+          "name": "output.html",
+          "sha256": "82ef38c641d7a867ea1216185424373b62c9cb4591b6bd83aa309056b67b6bce"
+        },
+        {
+          "name": "output.md",
+          "sha256": "533b4c83656b79c04bfa1ed20ac586b5b5e9557080b177118b2ba111a881a587"
+        },
+        {
+          "name": "output.txt",
+          "sha256": "c4f1df90ff9a7d0130b01690dab7a3a0a1c554596ec93d29275ac218979aeb18"
+        },
+        {
+          "name": "output.zip",
+          "sha256": "75402bbe8920db455355e4477151e98f08c4c9b60dd861be6899e5f5ff4d3880"
+        }
+      ],
+      "downloads": [
+        {
+          "name": "output.txt",
+          "bytes": 202253,
+          "sha256": "838781335fe51720187db3899c274bc57cf7450808c63b448b76f7e9967aead7"
+        },
+        {
+          "name": "output.md",
+          "bytes": 202981,
+          "sha256": "07ec14ad1a935131316810bd8bbaed8902f3e6848d620588d1305874932cf1eb"
+        },
+        {
+          "name": "output.html",
+          "bytes": 238399,
+          "sha256": "473de31fc5f07f28feec0251087c0a2abe83673e98dc6c17d44de135a72aef9a"
+        },
+        {
+          "name": "output.zip",
+          "bytes": 69454,
+          "sha256": "0b2c58b7ccf43062c20aa704c42ae8c5169dff650c5cf69dcd0fb260ec863240"
+        }
+      ],
+      "known_dinah_extension_remaining": 0,
+      "core_models_restarted": false,
+      "warnings": [
+        "term consistency unresolved: Mock Turtle",
+        "term consistency unresolved: Dormouse",
+        "term consistency unresolved: Drawling",
+        "term consistency unresolved: Hatter",
+        "term consistency unresolved: Bill"
+      ]
+    },
+    "memory": {
+      "minimum_available_gib": 15.37807846069336,
+      "minimum_free_gib": 2.178955078125,
+      "net_swap_growth_gib_per_execution_segment": [
+        -0.0005645751953125,
+        -0.00150299072265625,
+        -0.2736930847167969
+      ],
+      "scope": "active production qualification intervals; process rebuild/restart gaps excluded",
+      "core_model_containers_restarted": false
+    },
+    "request_metrics": {
+      "prompt_tokens": 171922,
+      "maximum_single_request_prompt_tokens": 5144,
+      "output_tokens": 124688,
+      "weighted_prefill_tps": 980.6896551724138,
+      "weighted_decode_tps": 57.55241459219857,
+      "stages": {
+        "terms_decide": {
+          "performance": {
+            "totals": {
+              "prefill_tokens": 18624,
+              "prefill_seconds": 17.259999999999998,
+              "decode_tokens": 14595.5,
+              "decode_seconds": 262.614539279
+            },
+            "pp": 1079.026651216686,
+            "tg": 55.57765400221743,
+            "ttft": 1.219172433,
+            "tg_estimated": true,
+            "ttft_estimated": true,
+            "prompt_tokens": 23232,
+            "cached_tokens": 4608,
+            "output_tokens": 14600,
+            "calls": 11
+          },
+          "calls": 11,
+          "seconds": 282.80257764500004,
+          "prompt_tokens": 23232,
+          "output_tokens": 14600
+        },
+        "terms_extract": {
+          "performance": {
+            "totals": {
+              "prefill_tokens": 101416,
+              "prefill_seconds": 96.00999999999998,
+              "decode_tokens": 64204,
+              "decode_seconds": 1071.3799999999997
+            },
+            "pp": 1056.3066347255497,
+            "tg": 59.92644999906664,
+            "ttft": 1.310286051,
+            "ttft_estimated": true,
+            "prompt_tokens": 108840,
+            "cached_tokens": 7424,
+            "output_tokens": 64204,
+            "calls": 62
+          },
+          "calls": 62,
+          "seconds": 1169.4287478590002,
+          "prompt_tokens": 108840,
+          "output_tokens": 64204
+        },
+        "terms_repair": {
+          "performance": {
+            "totals": {
+              "prefill_tokens": 21602,
+              "prefill_seconds": 28.680000000000003,
+              "decode_tokens": 33304.25,
+              "decode_seconds": 610.936792519
+            },
+            "pp": 753.2078103207809,
+            "tg": 54.513413511536456,
+            "ttft": 1.114628798,
+            "tg_estimated": true,
+            "ttft_estimated": true,
+            "prompt_tokens": 22882,
+            "cached_tokens": 1280,
+            "output_tokens": 33309,
+            "calls": 19
+          },
+          "calls": 19,
+          "seconds": 642.8946351180001,
+          "prompt_tokens": 22882,
+          "output_tokens": 33309
+        },
+        "terms_verify": {
+          "performance": {
+            "totals": {
+              "prefill_tokens": 16200,
+              "prefill_seconds": 19,
+              "decode_tokens": 12575,
+              "decode_seconds": 221.42000000000004
+            },
+            "pp": 852.6315789473684,
+            "tg": 56.792521000812926,
+            "ttft": 1.155236255,
+            "ttft_estimated": true,
+            "prompt_tokens": 16968,
+            "cached_tokens": 768,
+            "output_tokens": 12575,
+            "calls": 17
+          },
+          "calls": 17,
+          "seconds": 240.8621194,
+          "prompt_tokens": 16968,
+          "output_tokens": 12575
+        }
+      },
+      "failures": {
+        "invalid_term_evidence": 13,
+        "transport": 2,
+        "invalid_term_decision": 3,
+        "invalid_term_patch": 3
+      }
+    },
+    "review_items": [
+      {
+        "source": "Mock Turtle",
+        "positions": [
+          {
+            "input_ids": [
+              "chat-1791966947984627792:b000014:0"
+            ],
+            "reason": "복합 이름의 의미 요소를 빼는 축약형으로 자동 통일하지 않습니다. 해당 교정은 보류하고 수정 전 표기를 보존했습니다."
+          },
+          {
+            "input_ids": [
+              "chat-1791966947984627792:b000561:0"
+            ],
+            "reason": "복합 이름의 의미 요소를 빼는 축약형으로 자동 통일하지 않습니다. 해당 교정은 보류하고 수정 전 표기를 보존했습니다."
+          },
+          {
+            "input_ids": [
+              "chat-1791966947984627792:b000581:0"
+            ],
+            "reason": "복합 이름의 의미 요소를 빼는 축약형으로 자동 통일하지 않습니다. 해당 교정은 보류하고 수정 전 표기를 보존했습니다."
+          }
+        ]
+      },
+      {
+        "source": "Dormouse",
+        "positions": [
+          {
+            "input_ids": [
+              "chat-1791966947984627792:b000357:0"
+            ],
+            "reason": "translated form is absent or inside another word: \"잠자리\""
+          },
+          {
+            "input_ids": [
+              "chat-1791966947984627792:b000390:0"
+            ],
+            "reason": "term evidence not anchored to original expression"
+          }
+        ]
+      },
+      {
+        "source": "Drawling",
+        "positions": [
+          {
+            "input_ids": [
+              "chat-1791966947984627792:b000582:0"
+            ],
+            "reason": "mixed spellings falsely marked consistent"
+          }
+        ]
+      },
+      {
+        "source": "Hatter",
+        "positions": [
+          {
+            "input_ids": [
+              "chat-1791966947984627792:b000414:0"
+            ],
+            "reason": "translated form is absent or inside another word: \"모자장수\""
+          }
+        ]
+      },
+      {
+        "source": "Bill",
+        "positions": [
+          {
+            "input_ids": [
+              "chat-1791966947984627792:b000146:0"
+            ],
+            "reason": "term evidence not anchored to original expression"
+          },
+          {
+            "input_ids": [
+              "chat-1791966947984627792:b000147:0"
+            ],
+            "reason": "term evidence not anchored to original expression"
+          }
+        ]
+      }
+    ]
+  },
+  "recovery": {
+    "correction_revision": "3",
+    "first_run_id": "document-L2ABCYCTZYXMKU6KYATD2UBUUA",
+    "final_run_id": "document-TVY22TAJFC6FG4I4F53OIWXOY2",
+    "first_phase_changed_paragraphs": 55,
+    "final_phase_changed_paragraphs": 1,
+    "final_unresolved_positions": 0,
+    "final_checked_terms": 27,
+    "final_reused_references": 334,
+    "fixes": [
+      "해시와 승인된 수정 연결 관계를 검증해 기존 근거를 재사용하며 실패한 위치만 재시도한다.",
+      "원문 인용을 실제 구절 선택으로 제한하고, 번역문에 없는 표기를 반환하면 실제 번역문 후보로 재시도한다.",
+      "괄호 병기와 이후 단독 사용을 보존하며 복합 이름의 의미 요소를 누락한 기준 표기를 재판정한다.",
+      "같은 문단의 인물·작품·일반명사에 같은 낱말이 있어도 각 대상에 맞게 처리한다. 보존할 표현에는 양쪽 인용과 별도 의미 검증이 필요하다.",
+      "보존 표현의 인용 실패에도 실제 구절 선택을 적용한다.",
+      "완료 직후 작업 정리 중인 순간에도 게시된 완료 상태를 기준으로 후속 교정을 시작한다."
+    ],
+    "isolated_final_trial": {
+      "calls": 7,
+      "seconds": 160,
+      "changed_paragraphs": 2,
+      "unresolved": 0
+    },
+    "actual_source_paragraphs": 872,
+    "verified_patch_replay_matches_all_published_text": true,
+    "protected_title_and_parenthetical_forms_preserved": true
+  }
+}

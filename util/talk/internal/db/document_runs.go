@@ -177,7 +177,7 @@ func (d *DB) ClaimDocumentRun(session, id string) (workflows.Run, error) {
 		return r, fmt.Errorf("task cannot be resumed (%s)", status)
 	}
 	if r.Document.Pipeline != "" {
-		if r.Document.Pipeline != workflows.DocumentPipelineVersion {
+		if r.Document.Pipeline != workflows.DocumentPipelineVersion && r.Document.Pipeline != workflows.DocumentTermsVersion {
 			return r, fmt.Errorf("unsupported document pipeline %s", r.Document.Pipeline)
 		}
 		r.Document.ExecutionID = rand.Text()

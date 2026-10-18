@@ -146,7 +146,7 @@
     <label class="settings-field-row"><span>설명</span><input bind:value={bundle.description} /></label>
     <div class="grid">
       <label class="settings-field-row"><span>모델 ID</span><input bind:value={bundle.model_id} /></label>
-      <label class="settings-field-row"><span>모델 유형</span><Select bind:value={bundle.model_type}><option value="glm5.3">GLM 5.3</option><option value="qwen3.5">Qwen 3.5 / Ornith</option><option value="qwen3.8">Qwen 3.8</option><option value="qwen38fn_exl3">Qwen 3.8 EXL3</option><option value="gemma4">Gemma 4 (SGLang)</option><option value="gemma4-vllm">Gemma 4 (vLLM)</option><option value="deepseek-v4">DeepSeek V4</option><option value="generic">일반 OpenAI 호환</option></Select></label>
+      <label class="settings-field-row"><span>모델 유형</span><Select bind:value={bundle.model_type}><option value="glm5.3">GLM 5.3</option><option value="qwen3.5">Qwen 3.5 / Ornith</option><option value="qwen3.8">Qwen 3.8</option><option value="qwen3.8-vllm">Qwen 3.8 (vLLM)</option><option value="qwen38fn_exl3">Qwen 3.8 EXL3</option><option value="gemma4">Gemma 4 (SGLang)</option><option value="gemma4-vllm">Gemma 4 (vLLM)</option><option value="deepseek-v4">DeepSeek V4</option><option value="generic">일반 OpenAI 호환</option></Select></label>
       <label class="settings-field-row settings-number-row"><span>문맥 토큰 수</span><input type="number" min="0" bind:value={bundle.context_tokens} /></label>
     </div>
 

@@ -40,6 +40,13 @@ var recipeOptionNames = map[string]bool{
 }
 
 func validateRecipeOptions(c Component) error {
+	if c.ComposeAsset == "compose.qwen-fp4-local.yaml" {
+		for key, value := range c.RuntimeOptions {
+			if key != "MODEL_VARIANT" || value != "abliterated" {
+				return fmt.Errorf("FP4-Local uses the fixed 1M context, MTP 4 and abliterated checkpoint; runtime option overrides are not supported")
+			}
+		}
+	}
 
 	for k, v := range c.RuntimeOptions {
 		if k == "IMAGE_RESIDENCY" && (c.ComposeAsset != "compose.qwen-image21.yaml" || (v != "legacy" && v != "dit") || (v == "dit" && !c.KeepResident)) {

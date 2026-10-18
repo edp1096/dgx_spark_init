@@ -212,7 +212,7 @@ func TestStreamTerminationPreservesPartialOutput(t *testing.T) {
 
 func TestEXL3ReasoningTemplateOptions(t *testing.T) {
 	for _, tc := range []struct{ input, want string }{
-		{"none", "none"}, {"off", "none"}, {"", "low"}, {"low", "low"}, {"medium", "medium"}, {"xhigh", "xhigh"}, {"on", "xhigh"}, {"high", "xhigh"}, {"max", "low"}, {"unknown", "low"},
+		{"none", "none"}, {"off", "none"}, {"", "medium"}, {"low", "low"}, {"medium", "medium"}, {"xhigh", "xhigh"}, {"on", "xhigh"}, {"high", "xhigh"}, {"max", "medium"}, {"unknown", "medium"},
 	} {
 		p := map[string]any{}
 		applyReasoningOptions(p, "qwen38fn_exl3", tc.input)

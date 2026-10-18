@@ -165,7 +165,7 @@ func applyReasoningOptions(payload map[string]any, modelType, effort string) {
 		}
 		return
 	}
-	if modelType == "qwen3.8-gguf" || modelType == "qwen38fn_exl3" {
+	if modelType == "qwen3.8-vllm" || modelType == "qwen3.8-gguf" || modelType == "qwen38fn_exl3" {
 		options := map[string]any{"enable_thinking": effort != "none"}
 		if effort != "none" {
 			// Pass directly to the model template; top-level forwarding varies by server version.
@@ -197,7 +197,7 @@ func NormalizeReasoningEffort(modelType, effort string) string {
 		default:
 			return "max"
 		}
-	case "qwen3.8":
+	case "qwen3.8", "qwen3.8-vllm":
 		switch effort {
 		case "none", "low", "medium", "xhigh":
 			return effort
@@ -206,11 +206,11 @@ func NormalizeReasoningEffort(modelType, effort string) string {
 		case "0", "0.0", "off", "false", "no_think", "disabled":
 			return "none"
 		default:
-			return "low"
+			return "medium"
 		}
 	case "qwen3.8-gguf", "qwen38fn_exl3":
 		if effort == "" {
-			return "low"
+			return "medium"
 		}
 		if !gemmaThinkingEnabled(effort) {
 			return "none"
@@ -221,7 +221,7 @@ func NormalizeReasoningEffort(modelType, effort string) string {
 		case "on", "high":
 			return "xhigh" // Preserve the previous enabled template default.
 		default:
-			return "low"
+			return "medium"
 		}
 	case "gemma4", "gemma4-vllm", "qwen3.5":
 		if gemmaThinkingEnabled(effort) {

@@ -7,13 +7,18 @@ import sys
 from pathlib import Path
 
 
+def safe_relative(name):
+    return (isinstance(name, str) and '\\' not in name and ':' not in name
+            and all(part not in ('', '.', '..') for part in name.split('/')))
+
+
 def complete(root, item):
     try:
         # A structurally complete old flat checkpoint is not the pinned release.
         # Release metadata fingerprints distinguish upgrades before reusing files.
         if not item.get('files'):
             for name, expected in item.get('sha256', {}).items():
-                if Path(name).name != name:
+                if not safe_relative(name):
                     return False
                 with (root / name).open('rb') as f:
                     if hashlib.file_digest(f, 'sha256').hexdigest() != expected:
@@ -26,6 +31,8 @@ def complete(root, item):
             return len(entries)>1 and all(not Path(n).is_absolute() and '..' not in Path(n).parts and (root/n).is_file() and (root/n).stat().st_size==size for n,size in entries.items())
         if item.get('files'):
             for name in item['files']:
+                if not safe_relative(name):
+                    return False
                 p = root / name
                 if not p.is_file() or p.stat().st_size == 0:
                     return False
@@ -51,7 +58,7 @@ def complete(root, item):
         if not shards:
             return False
         for name in shards:
-            if Path(name).name != name:
+            if not safe_relative(name) or not name.endswith('.safetensors'):
                 return False
             with (root / name).open('rb') as f:
                 raw = f.read(8)

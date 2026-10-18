@@ -19,6 +19,19 @@ const managedWorkloadIdleGrace = 2 * time.Minute
 // immediate pages for a new GB10 CUDA context beside the resident QAD engine.
 const managedAuxiliaryCUDAFreeGiB = 10.0
 
+func managedColdCUDAFreeGiB(x Component) float64 {
+	if isManagedTTS(x) {
+		// GB10 with EXL3 1M + both DiTs + ASR + embedding resident: cudaSetDevice
+		// failed at 1.8 GiB free, but full Q8 TTS loaded in 3.9 s at 5.6 GiB.
+		// Keep a 6 GiB bootstrap allowance, separate from its 4 GiB serving budget.
+		return 6
+	}
+	if x.ComposeAsset == "compose.extra-embedding.yaml" {
+		return 4
+	}
+	return managedAuxiliaryCUDAFreeGiB
+}
+
 func isManagedTTS(x Component) bool {
 	return x.ComposeAsset == "compose.qwen3-tts.yaml" && x.Model == "qwen3-tts-0.6b-q8"
 }
@@ -344,10 +357,7 @@ func (c *Controller) acquireManagedWorkload(ctx context.Context, b Bundle, x Com
 			memory = c.memoryProbe()
 		}
 		needed := workloadAdditionalMemory(x, resident)
-		coldFree := managedAuxiliaryCUDAFreeGiB
-		if x.ComposeAsset == "compose.extra-embedding.yaml" {
-			coldFree = 4
-		}
+		coldFree := managedColdCUDAFreeGiB(x)
 		err := validateMemoryHeadroom(memory, memoryPlan{NeededGiB: needed, RequiresCUDAStart: !running, MinimumCUDAFreeGiB: coldFree}, normalizedMemoryReserve(reserve))
 		if err == nil {
 			break

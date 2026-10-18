@@ -1,0 +1,282 @@
+{
+  "date": "2026-10-14",
+  "status": "implemented_deployed_verified",
+  "goal": "Talk가 저장된 원문과 번역문을 대조해 표기 충돌을 판정하고 필요한 문단만 교정·재검증·재출력한다.",
+  "scope": {
+    "first_release": [
+      "원문 근거가 있는 인물·동물·지명·기관·작품명 및 명시된 사용자 용어의 표기 충돌",
+      "기존 경고에서 실행할 수 있는 부분 교정",
+      "잘못된 자동 용어 후보의 후속 전파 방지",
+      "TXT 산문의 편집상 줄바꿈과 의미 있는 행 구분 구별"
+    ],
+    "qualification_limits": [
+      "표기 일관성과 전체 번역의 의미 정확성은 별도 판정한다.",
+      "이전 reviewed_v1 자동 의미 검수는 검증 실패 상태이므로 단순 활성화하지 않는다.",
+      "한자·가나·알파벳 혼입 자체를 오역으로 분류하지 않는다.",
+      "앨리스의 특정 이름·정답·문장·URL을 운영 코드에 넣지 않는다.",
+      "처음부터 끝까지 일관되게 잘못 번역한 내용은 표기 충돌 검사만으로 검출을 보장할 수 없다."
+    ],
+    "completion_contract": "표기 혼재와 TXT 산문 줄바꿈을 모두 이번 교정 작업에서 해결한다. 줄바꿈은 후속 과제로 유예하지 않으며, 두 경로가 모두 검증되어야 완료로 보고한다."
+  },
+  "observed_baseline": {
+    "session_id": "chat-1791909912810453934",
+    "run_id": "chat-1791909951704209505",
+    "model": "qwen38fn_exl3",
+    "effort": "low",
+    "elapsed_seconds": 1637,
+    "model_calls": 22,
+    "units": 68,
+    "source_blocks": 872,
+    "output_blocks": 872,
+    "warning_types": 6,
+    "incorrect_dinah_form_occurrences": 11,
+    "findings": [
+      "구조상 모든 입력 ID에 출력이 있지만 의미 정확성이 보장된 상태는 아님",
+      "자동 용어집에 Dinah → 디나단이 있으며 기존 값이 이후 제안으로 갱신되지 않음",
+      "표기 경고는 부분 문자열 포함 여부에 의존하며 문서 전체의 변이·사용 위치를 기록하지 않음",
+      "기존 retry_quality는 legacy 작업에서 지나치게 짧은 번역만 수리함",
+      "TXT 입력 전체를 pre-wrap으로 지정하고 모델에 preserve_lines를 전달함"
+    ]
+  },
+  "separate_change": {
+    "status": "deployed_and_verified",
+    "bundles": [
+      "qwen38fn_exl3",
+      "qwen38fn_exl3_q4",
+      "flash-next-radixark",
+      "flash-next",
+      "flash-next-tp2"
+    ],
+    "policy": "새 설치·세트 전환·생략된 요청 기본값은 medium. 명시된 low/none/xhigh와 기존 대화·완료 작업의 기록은 보존한다.",
+    "receipt": "/home/edp1096/.cache/model-download-jobs/qwen-medium-20261014/result.json"
+  },
+  "reuse": [
+    "workflows.DocumentEntity 및 원문 근거·버전 기록",
+    "DocumentRequestAttempt와 실행별 입력·출력 해시",
+    "기존 문단 체크포인트·개정판·원자적 출력 게시",
+    "기존 문서 작업 대기열·취소·재개·성능 통계",
+    "기존 문서 변환 및 단순 재변환 경로"
+  ],
+  "phases": [
+    {
+      "id": "P0",
+      "work": [
+        "읽기 전용으로 원문·번역·용어집·경고·결과물의 재현 자료를 확보하고 해시를 기록한다.",
+        "앨리스 6종 경고에 연결된 전체 원문 등장 위치와 실제 번역 표기를 수집한다.",
+        "일반명사 오인, 원어의 부분 문자열, 허용 가능한 음역 차이, 별명·동명이인 등 정상 대조 사례를 함께 고정한다.",
+        "개발용 사례와 별도 작품 검증 자료를 분리해 결과를 보기 전 판정 기준을 정한다."
+      ],
+      "exit": "기존 결과를 변경하지 않고 실제 결함과 정상 사례를 재현할 수 있다.",
+      "status": "implemented_and_verified"
+    },
+    {
+      "id": "P1",
+      "work": [
+        "자동 용어 후보에 원문 위치·인용·번역 위치·표기·작업 해시·생성 출처를 연결한다.",
+        "같은 철자라도 문맥상 다른 대상이면 별도 identity로 유지하고, 여러 표기를 한 값으로 덮어쓰지 않는다.",
+        "후보·원문 대조 확인·충돌·판단 보류 상태를 구분한다.",
+        "최초 제안을 영구 정답으로 취급하는 경로를 제거한다. 사용자 지정 용어와 모델 제안은 계속 구분한다.",
+        "변경된 표기를 사용했던 후속 문단은 의존 기록으로 재검사 대상으로 돌린다.",
+        "표기 확인 상태와 문단 전체의 의미 검수 상태를 별도로 저장한다. 표기 교정 성공이 기존 reviewed_v1 의미 검수 완료로 승격되지 않게 한다."
+      ],
+      "files": [
+        "internal/workflows/document_pipeline.go",
+        "internal/server/document_entities.go",
+        "internal/server/document_worker.go",
+        "internal/db/document_review.go"
+      ],
+      "exit": "원문 근거가 없거나 확인되지 않은 후보가 확정 표기로 전파되지 않는다.",
+      "status": "implemented_and_verified"
+    },
+    {
+      "id": "P2",
+      "work": [
+        "CPU에서 원문 위치와 번역 결과의 인덱스를 만들고, 모델이 문맥을 보고 실제 대응 표기를 추출한다.",
+        "추출한 원문·번역 인용이 해당 문단에 존재하는지 코드로 검증한다. 인용 일치 자체를 의미의 정답으로 간주하지 않는다.",
+        "명시 이름·대명사·생략·별명·다른 대상을 구별한다. 불명확한 위치는 검사 완료로 세지 않는다.",
+        "충돌 판정 요청에는 원문의 대상 설명과 각 표기의 실제 용례를 제공하며, 기존 자동 용어집은 정답으로 제시하지 않는다.",
+        "최초 값·빈도·표면 철자 일치만으로 대표 표기를 확정하지 않는다. 근거가 불충분하면 판단 보류한다.",
+        "검증 후 신규 번역의 마지막 단계에 연결하고, 기존 결과는 명시적인 검사·교정 요청으로 실행한다.",
+        "원어 단어 경계와 한국어 조사·호칭을 고려하고 디나가 디나단의 부분 문자열이라는 이유로 같은 표기로 판정하지 않는다."
+      ],
+      "exit": "다른 인물을 합치거나 일반명사를 바꾸지 않고 실제 표기 충돌을 검출한다.",
+      "status": "implemented_and_verified"
+    },
+    {
+      "id": "P3",
+      "work": [
+        "확인된 대상이 등장하는 모든 문단을 역색인으로 찾아 수정 범위를 확정한다.",
+        "기존 결과를 보존한 교정 작업에서 원문·현재 번역·확인된 표기·변경 사유만 전달한다.",
+        "모델은 바꿀 표현의 정확한 위치와 대체 표현을 제출한다. 코드가 해시·위치·중복·허용 범위를 검사한 뒤 적용한다.",
+        "조사·호칭 변경이 필요하면 인접 어절까지 명시적으로 포함하고, 대응 위치가 애매하면 문단 전체를 임의로 고치지 않는다.",
+        "전역 문자열 치환은 사용하지 않으며 수정 범위 밖의 본문은 동일하게 보존한다."
+      ],
+      "exit": "Talk 모델이 작성한 수정만 적용되고 무관한 문단과 원본 결과의 해시가 유지된다.",
+      "status": "implemented_and_verified"
+    },
+    {
+      "id": "P4",
+      "work": [
+        "수정 후 같은 대상의 전체 등장 위치에서 잔여 충돌을 다시 검사한다.",
+        "교정 전후의 문단을 원문과 대조하되 기존 판정 문구를 정답처럼 재사용하지 않는다.",
+        "문단 ID 누락·중복, HTML/ruby/링크/삽화 훼손, 변경 범위 이탈과 새 표기 변형을 차단한다.",
+        "자동 수리 시도는 문단당 최대 2회로 제한하고, 미해결 항목은 경고로 남긴다.",
+        "수정·검증·게시 단계마다 결과 해시를 고정하고 실행 취소나 재시작 후에도 동일한 정상 문단을 반복 생성하지 않는다."
+      ],
+      "exit": "자동 적용한 수정에서 새 오류가 확인되면 게시하지 않으며 검증된 결과와 미해결 결과를 구분한다.",
+      "status": "implemented_and_verified"
+    },
+    {
+      "id": "P5",
+      "work": [
+        "document_task에 review_terms/repair_terms 동작을 추가하고 UI·HTTP API·프롬프트 도구가 동일한 서버 경로를 사용하게 한다.",
+        "기존 retry_quality의 누락 구간 수리 계약은 유지한다.",
+        "경고에 원어, 발견된 표기, 위치·건수, 판정 근거와 처리 상태를 표시한다.",
+        "표기 확인 및 교정 버튼과 대화 지시를 지원하고, 완료 후 진행 중 전용 재개·취소 버튼을 표시하지 않는다.",
+        "검사한 대상 수·수정 문단 수·남은 항목 수·소요·완료 시각·pp/tg/TTFT를 표시한다. 표기 검사 완료를 전체 의미 검수 완료로 표시하지 않는다.",
+        "교정된 본문 해시로 TXT/MD/HTML/ZIP과 기존 요청 문서 형식을 재생성하고 기존 변환 캐시를 갱신한다. 변환 이력 UI를 늘리지 않는다."
+      ],
+      "files": [
+        "internal/server/document_tasks.go",
+        "internal/server/document_handlers.go",
+        "internal/server/document_revision.go",
+        "internal/server/document_export.go",
+        "web/src/components/DocumentTaskCard.svelte",
+        "web/src/lib/document-task.js"
+      ],
+      "exit": "사용자가 경고를 보고 Talk에 교정을 맡기고 실제 반영된 다운로드를 받는다.",
+      "status": "implemented_and_verified"
+    },
+    {
+      "id": "P6",
+      "work": [
+        "TXT에서 산문·시·목차·표·코드·명시 개행을 구별하는 레이아웃 정책을 마련한다.",
+        "균일한 폭으로 접힌 산문은 모델 입력과 출력에서 문단으로 처리하고 의미 있는 개행은 보존한다.",
+        "불확실한 형식은 보존하고, HTML의 구조적 줄바꿈과 ruby·각주 처리는 유지한다.",
+        "기존 파일은 원문과 저장 번역을 재사용해 안전한 레이아웃 변경만 수행한다. 단어 내부 분리가 의심되는 곳은 해당 문단만 별도 교정한다."
+      ],
+      "files": [
+        "internal/sourcebook/book.go",
+        "internal/sourcebook/whitespace.go",
+        "internal/server/document_wire.go",
+        "internal/server/document_revision.go"
+      ],
+      "exit": "앨리스 산문의 비정상 개행을 줄이면서 시·목차·표의 행과 원문 좌표를 훼손하지 않는다.",
+      "status": "implemented_and_verified"
+    },
+    {
+      "id": "P7",
+      "work": [
+        "단위·통합·브라우저 검사 후 현재 EXL3 3bit GPU에서 격리 DB를 사용해 실제 요청을 검증한다.",
+        "확인된 앨리스 결함 및 독립된 구텐베르크·아오조라·위키문헌/일반 문서 자료를 검증한다. 원문 형식과 언어의 차이도 포함한다.",
+        "처음 검사와 중단 후 재개, 동일 요청 중복, 바뀐 본문에 과거 판정 적용, 모델 장애, 결과 파일 생성 실패를 확인한다.",
+        "동일 medium 조건에서 기존 경로와 새 경로의 모델 호출·입출력 토큰·가중 pp/tg·TTFT·전체 소요를 비교한다. low 27분17초는 참고 기록으로만 사용한다.",
+        "호출은 직렬로 수행하고 시스템 가용·즉시 여유·스왑·모델 점유와 프로세스 유지 여부를 기록한다.",
+        "기준 통과 후 운영 Talk에 적용하고 정상 도구/API 경로로 앨리스 교정을 실행해 전후 결과를 검증한다."
+      ],
+      "exit": "실제 모델·UI·파일 출력까지 통과한 범위만 운영에 적용한다.",
+      "status": "implemented_and_verified"
+    }
+  ],
+  "qualification": {
+    "automatic_release_gate": [
+      "고정된 앨리스의 실제 잘못된 표기와 독립 회귀 사례에서 잘못된 자동 수정 0건",
+      "정상 대조 사례의 본문 의미 변경·다른 대상 병합 0건",
+      "알려진 표기 충돌의 검사 누락 0건, 보류는 해결 성공으로 계산하지 않음",
+      "원문에 나타난 동일 대상의 교정 대상 전체 위치 처리",
+      "허용 범위 밖의 원본/문단/첨부 변경 0건",
+      "취소·재개·재요청 시 확정된 결과 보존",
+      "결과물과 다운로드가 최신 교정 본문 해시와 일치",
+      "TXT 산문은 정상 문단으로 출력되고 시·목차·표·코드·명시 줄바꿈 보존 검사를 통과한다.",
+      "앨리스의 표기 혼재와 산문 줄바꿈을 함께 처리한 결과를 Talk의 도구/API 및 다운로드 경로에서 확인한다."
+    ],
+    "metrics": [
+      "검출률",
+      "자동 해결률",
+      "잘못된 교정 수",
+      "보류 수",
+      "검사되지 않은 위치 수",
+      "변경 문단 수",
+      "모델 호출 및 토큰",
+      "pp/tg/TTFT 및 전체 소요",
+      "메모리와 스왑 변화"
+    ],
+    "failure_policy": "이전처럼 모델 자체 검수가 오류를 반복하면 자동 확정은 보류한다. 검출·근거 표시·부분 교정 기능의 통과 범위와 실패 사례를 구분해 보고한다. 전체 의미 교정의 성공으로 확대 해석하지 않는다."
+  },
+  "execution_order": [
+    "P0",
+    "P1",
+    "P6",
+    "P2의 판정 가능성 실측",
+    "P3",
+    "P4",
+    "P5",
+    "P7"
+  ],
+  "operating_constraints": [
+    "계획 단계에서 번역 결과를 직접 수정하거나 새 번역 작업을 시작하지 않는다.",
+    "기존 Qwen 1M 및 이미지·ASR·TTS·임베딩 상주 상태를 유지한다.",
+    "진행 중 대화·문서 작업이 있으면 실제 모델 시험과 Talk 재시작은 유휴 시점에 수행한다.",
+    "서빙 엔진과 모델을 교체하거나 새 모델을 다운로드하는 작업은 포함하지 않는다.",
+    "이번에 이미 적용된 TTS 캐시 회수 수정과 medium 기본값 변경을 보존한다."
+  ],
+  "implementation": {
+    "protocol": "terms_v1",
+    "source_snapshot_version": 6,
+    "paths": [
+      "internal/server/document_terms_data.go",
+      "internal/server/document_terms_protocol.go",
+      "internal/server/document_terms_worker.go",
+      "internal/server/document_terms_repair.go",
+      "internal/server/document_terms_revision.go",
+      "internal/workflows/document_terms.go",
+      "internal/sourcebook/plain_layout.go",
+      "web/src/components/DocumentTaskCard.svelte"
+    ],
+    "supplemental_guards": [
+      "괄호 병기 보존, 일반 표기와 함께 있어 해석이 애매한 문단은 보류",
+      "원문 및 번역 이름의 물리적 줄바꿈을 검색할 때만 정규화하고 실제 바이트 좌표를 보존",
+      "정상적인 복합 이름 내부의 짧은 이름을 다시 치환하지 않음",
+      "취소 후 명시적인 재요청은 새 실행을 만들고 중복 요청은 동일 실행으로 반환",
+      "복합 이름의 의미 요소 삭제 차단 및 해시가 일치하는 기존 수정만 자동 원복",
+      "겹조사 인식과 원문 기반의 실제 모델 응답 재생 검사",
+      "SQLite 쓰기 예약을 읽기 전에 확보하고 조회 스냅샷의 읽기 전용 경로를 유지"
+    ],
+    "qualification_root": "/home/edp1096/.cache/model-download-jobs/document-consistency-20261014"
+  },
+  "results": "document-consistency-repair-results-20261014.json",
+  "qualification_outcome": {
+    "automatic_correction_scope": "조건을 통과한 이름 표기 변경 및 보존형 TXT 레이아웃 처리",
+    "production_changed_paragraphs": 52,
+    "known_dinah_extension_remaining": 0,
+    "review_positions_retained": 9,
+    "whole_document_semantic_review_qualified": false
+  },
+  "recovery_verification": {
+    "correction_revision": "3",
+    "first_run_id": "document-L2ABCYCTZYXMKU6KYATD2UBUUA",
+    "final_run_id": "document-TVY22TAJFC6FG4I4F53OIWXOY2",
+    "first_phase_changed_paragraphs": 55,
+    "final_phase_changed_paragraphs": 1,
+    "final_unresolved_positions": 0,
+    "final_checked_terms": 27,
+    "final_reused_references": 334,
+    "fixes": [
+      "해시와 승인된 수정 연결 관계를 검증해 기존 근거를 재사용하며 실패한 위치만 재시도한다.",
+      "원문 인용을 실제 구절 선택으로 제한하고, 번역문에 없는 표기를 반환하면 실제 번역문 후보로 재시도한다.",
+      "괄호 병기와 이후 단독 사용을 보존하며 복합 이름의 의미 요소를 누락한 기준 표기를 재판정한다.",
+      "같은 문단의 인물·작품·일반명사에 같은 낱말이 있어도 각 대상에 맞게 처리한다. 보존할 표현에는 양쪽 인용과 별도 의미 검증이 필요하다.",
+      "보존 표현의 인용 실패에도 실제 구절 선택을 적용한다.",
+      "완료 직후 작업 정리 중인 순간에도 게시된 완료 상태를 기준으로 후속 교정을 시작한다."
+    ],
+    "isolated_final_trial": {
+      "calls": 7,
+      "seconds": 160,
+      "changed_paragraphs": 2,
+      "unresolved": 0
+    },
+    "actual_source_paragraphs": 872,
+    "verified_patch_replay_matches_all_published_text": true,
+    "protected_title_and_parenthetical_forms_preserved": true
+  }
+}

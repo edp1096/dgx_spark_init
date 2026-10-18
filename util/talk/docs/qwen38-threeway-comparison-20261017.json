@@ -1,0 +1,1452 @@
+{
+  "status": "complete",
+  "completed_at": "2026-10-16T19:19:27.125056+00:00",
+  "evidence_directory": "/home/edp1096/.cache/model-download-jobs/qwen38-threeway-20261017",
+  "scope": "Same one-DGX-Spark workload, identical tokenizer/chat-template, request settings and 1M context limit; each checkpoint uses its verified deployed engine and MTP settings.",
+  "protocol_sha256": "3507d3511771c76e969109dafecf3da06acf7dc38e253d4c725191a8afcf273d",
+  "review_sha256": "1f7dfe580aa7c98ab57daef7c43b6f8afaee580bbff2de1496ec033667d2cf26",
+  "models": {
+    "qad": {
+      "repo_id": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-NVFP4-QAD",
+      "url": "https://huggingface.co/edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-NVFP4-QAD",
+      "image_id": "sha256:95b4633b7224deaad847a553c6550891fd3bdad97ad9d8e0c70c843239d26e72",
+      "runtime": "SGLang",
+      "context_tokens": 1048576,
+      "cpu_set": "5-9,15-19",
+      "runtime_options": {
+        "--kv-cache-dtype": "fp8_e4m3",
+        "--quantization": "modelopt_mixed",
+        "--speculative-algorithm": "NEXTN",
+        "--speculative-num-steps": "3",
+        "--speculative-num-draft-tokens": "4",
+        "--mem-fraction-static": "0.86",
+        "--max-total-tokens": "1048576",
+        "--chunked-prefill-size": "4096"
+      },
+      "weight_gib": 99.03170932456851,
+      "metadata_sha256": {
+        "config.json": "0e96c926477aa607b38761a7786255f16f4d7e7efb1867bd6d3779343045b9b0",
+        "tokenizer.json": "0997f410c57a1f4e53b09e4be8f4a172d90edd9564368fb0847030937229b9f3",
+        "chat_template.jinja": "c3cf9e34abf4f9e36c2d72165aa9c132d3e2a725b6c2586aaa3a8af9d7a81041",
+        "transfer-manifest.json": "a2960652c14e2d4fa1a0b97ba23a972c8e74e2934704d96dbf4e1c22954e1d0c"
+      },
+      "quality_score": 94.0,
+      "objective_score": 79.0,
+      "language_score": 15,
+      "objective_strict_cases_passed": 19,
+      "objective_strict_cases_total": 20,
+      "categories": {
+        "reasoning": {
+          "earned": 12.0,
+          "possible": 12
+        },
+        "instruction": {
+          "earned": 11.0,
+          "possible": 12
+        },
+        "coding": {
+          "earned": 24.0,
+          "possible": 24
+        },
+        "tools": {
+          "earned": 16.0,
+          "possible": 16
+        },
+        "format": {
+          "earned": 8.0,
+          "possible": 8
+        },
+        "vision": {
+          "earned": 8.0,
+          "possible": 8
+        },
+        "language": {
+          "earned": 15,
+          "possible": 20
+        }
+      },
+      "language_review": {
+        "language_translation": {
+          "scores": {
+            "accuracy": 1,
+            "constraints": 1,
+            "clarity": 1,
+            "coherence": 1
+          },
+          "response_sha256": "034e38586a6f09c9a4619e10db96327f5fbf378128db7689fdfa4c75c65e5bda",
+          "notes": "핵심 사실과 부정·조건 관계는 보존했지만 only the worker의 대상 제한을 워커만으로 명시하지 않았다. 존댓말 전환 자체는 의미 오류로 보지 않았다.",
+          "points": 4,
+          "alias": "C"
+        },
+        "language_explanation": {
+          "scores": {
+            "accuracy": 2,
+            "constraints": 0,
+            "clarity": 1,
+            "coherence": 1
+          },
+          "response_sha256": "dc75b21e08cb1691aaa465f8ba8975fea6d026ad4a7fd96ab1eb1abb0f24b7cc",
+          "notes": "핵심 사실과 원본·구식 가격표의 대응은 유지했고 문장과 설명 전개가 자연스럽다. 다만 578자로 상한을 넘고 메뉴판 비유를 두 문단에서 반복했다.",
+          "points": 4,
+          "alias": "C"
+        },
+        "language_fiction": {
+          "scores": {
+            "accuracy": 1,
+            "constraints": 1,
+            "clarity": 1,
+            "coherence": 0
+          },
+          "response_sha256": "2d56c73c1545336fa7edab1db83be92d71a0787d6f3af12f1296116dd8ae2a98",
+          "notes": "1178자로 분량·두 인물·대화 조건을 충족했다. 빛과 큰 그림의 소재는 앞서 나오지만 작은 집 창문이라는 결정적 이유가 뒤늦게 제시되어 포기 동기가 약하다. 빛이 필요하다는 설명과 어둠에서 가장 선명해진다는 끝 묘사도 매끄럽게 연결되지 않는다.",
+          "points": 3,
+          "alias": "A"
+        },
+        "language_rewrite": {
+          "scores": {
+            "accuracy": 1,
+            "constraints": 1,
+            "clarity": 1,
+            "coherence": 1
+          },
+          "response_sha256": "ec6c3abf7f2e520510b6a276da67eb915a8efc344027af9b01480f4fe3960436",
+          "notes": "192자·두 문단과 날짜·미확정 상태·사과·요청 미접수 사실은 지켰다. 다만 상황을 주시하고 있다는 현재 행동은 메모에 없는 사실을 보탠 것이다.",
+          "points": 4,
+          "alias": "A"
+        }
+      },
+      "objective_findings": [
+        {
+          "case": "instruction_filter",
+          "grade": {
+            "points": 3,
+            "earned": 2.0,
+            "passed": false,
+            "checks": {
+              "strict_json": true,
+              "correct_value": false,
+              "completed": true
+            },
+            "details": null
+          },
+          "answer": "[\"A\",\"B\",\"C\"]",
+          "error": null
+        }
+      ],
+      "speed": {
+        "korean": {
+          "trials": 3,
+          "all_512_tokens": true,
+          "median_decode_tps": 26.06924620587165,
+          "min_decode_tps": 24.99385625582682,
+          "max_decode_tps": 27.315188722339435,
+          "median_ttft_s": 0.38962272298522294,
+          "output_hashes": [
+            "434eaf2a0a7b95fb4278140d0d2a23cacc34b439688e604e7f78b379d3c78bab",
+            "2c1b590770db93659c74f89899caac5f7540386016d4d2447aa70753a2718d78",
+            "36db20698f19cb10e8b5a6c5e3311e6b4780664bfccee5bd3268a6fb9bdbb186"
+          ]
+        },
+        "english": {
+          "trials": 3,
+          "all_512_tokens": true,
+          "median_decode_tps": 33.22625142129698,
+          "min_decode_tps": 32.76920872022068,
+          "max_decode_tps": 33.30577423893605,
+          "median_ttft_s": 0.3958366601727903,
+          "output_hashes": [
+            "c46f78d809b50826e639cfb7147cbdc82789bf5d11342fce0fbad46262451421",
+            "c832d83b2cf1a894bc1b87a7ea25fa0622873613a878f622f864bc863fcd769e",
+            "b47a6beae08dfb41b77fc1c7027d53a1a93bc5756faa6f8e32c26894598b306b"
+          ]
+        }
+      },
+      "long_context": [
+        {
+          "context_target": 65536,
+          "actual_input_tokens": 64527,
+          "seconds": 40.069284874014556,
+          "ttft_s": 39.454181966139004,
+          "semantic_passed": true,
+          "strict_format_passed": true,
+          "checks": {
+            "strict_json": true,
+            "exact_keys": true,
+            "field_code": true,
+            "field_owner": true,
+            "field_remaining": true
+          },
+          "answer": "{\n  \"code\": \"MAPLE\",\n  \"owner\": \"COMET\",\n  \"remaining\": 3711\n}",
+          "usage": {
+            "prompt_tokens": 64527,
+            "total_tokens": 64559,
+            "completion_tokens": 32,
+            "prompt_tokens_details": null,
+            "reasoning_tokens": 0
+          },
+          "input_sha256": "5325b3794ea03e36987ba670a7686387d4234fb09028ac34d9ee293e4ff693f7",
+          "error": null
+        },
+        {
+          "context_target": 262144,
+          "actual_input_tokens": 261135,
+          "seconds": 172.56938149104826,
+          "ttft_s": 172.0115179461427,
+          "semantic_passed": true,
+          "strict_format_passed": false,
+          "checks": {
+            "strict_json": false,
+            "exact_keys": true,
+            "field_code": true,
+            "field_owner": true,
+            "field_remaining": true
+          },
+          "answer": "```json\n{\"code\":\"MAPLE\",\"owner\":\"COMET\",\"remaining\":3711}\n```",
+          "usage": {
+            "prompt_tokens": 261135,
+            "total_tokens": 261159,
+            "completion_tokens": 24,
+            "prompt_tokens_details": null,
+            "reasoning_tokens": 0
+          },
+          "input_sha256": "078265eb2945b91637baaf1335b07fa9e43532c9086afcd359d3a6c98be9bf2c",
+          "error": null
+        },
+        {
+          "context_target": 1048576,
+          "actual_input_tokens": 1047567,
+          "seconds": 1137.1878893210087,
+          "ttft_s": 1136.6732577718794,
+          "semantic_passed": true,
+          "strict_format_passed": false,
+          "checks": {
+            "strict_json": false,
+            "exact_keys": true,
+            "field_code": true,
+            "field_owner": true,
+            "field_remaining": true
+          },
+          "answer": "```json\n{\"code\":\"MAPLE\",\"owner\":\"COMET\",\"remaining\":3711}\n```",
+          "usage": {
+            "prompt_tokens": 1047567,
+            "total_tokens": 1047591,
+            "completion_tokens": 24,
+            "prompt_tokens_details": null,
+            "reasoning_tokens": 0
+          },
+          "input_sha256": "c21cb867a977a4f63c5daea228fefd09098430d1787106f2093f3ba2041c9cb2",
+          "error": null
+        }
+      ],
+      "memory": {
+        "method": "System MemAvailable decrease from immediately before this model launch; includes serving buffers and reclaimable-cache accounting, not GPU memory alone.",
+        "baseline_available_gib": 117.90930938720703,
+        "ready_idle_available_decrease_gib": 99.63522338867188,
+        "peak_available_decrease_gib": 105.83068466186523,
+        "swap_read_mib": 7.73046875,
+        "swap_write_mib": 0.6796875,
+        "phases": {
+          "loading": {
+            "samples": 504,
+            "min_available_gib": 17.916690826416016,
+            "median_available_gib": 30.9157657623291,
+            "peak_available_decrease_gib": 99.99261856079102,
+            "max_swap_used_gib": 1.3320350646972656,
+            "host_swap_io": {
+              "read_mib": 1.390625,
+              "write_mib": 0.0
+            }
+          },
+          "warmup": {
+            "samples": 1,
+            "min_available_gib": 18.2620849609375,
+            "median_available_gib": 18.2620849609375,
+            "peak_available_decrease_gib": 99.64722442626953,
+            "max_swap_used_gib": 1.3319816589355469,
+            "host_swap_io": {
+              "read_mib": 0.80078125,
+              "write_mib": 0.0
+            }
+          },
+          "ready_idle": {
+            "samples": 15,
+            "min_available_gib": 18.164913177490234,
+            "median_available_gib": 18.274085998535156,
+            "peak_available_decrease_gib": 99.7443962097168,
+            "max_swap_used_gib": 1.3319816589355469,
+            "host_swap_io": {
+              "read_mib": 0.12109375,
+              "write_mib": 0.0
+            }
+          },
+          "quality": {
+            "samples": 100,
+            "min_available_gib": 15.98388671875,
+            "median_available_gib": 17.359792709350586,
+            "peak_available_decrease_gib": 101.92542266845703,
+            "max_swap_used_gib": 1.3319664001464844,
+            "host_swap_io": {
+              "read_mib": 0.8671875,
+              "write_mib": 0.0
+            }
+          },
+          "speed": {
+            "samples": 108,
+            "min_available_gib": 15.42059326171875,
+            "median_available_gib": 15.833185195922852,
+            "peak_available_decrease_gib": 102.48871612548828,
+            "max_swap_used_gib": 1.3318443298339844,
+            "host_swap_io": {
+              "read_mib": 0.1875,
+              "write_mib": 0.0
+            }
+          },
+          "long": {
+            "samples": 1348,
+            "min_available_gib": 12.078624725341797,
+            "median_available_gib": 13.897407531738281,
+            "peak_available_decrease_gib": 105.83068466186523,
+            "max_swap_used_gib": 1.3316993713378906,
+            "host_swap_io": {
+              "read_mib": 4.3515625,
+              "write_mib": 0.6796875
+            }
+          },
+          "post_long": {
+            "samples": 1,
+            "min_available_gib": 15.28155517578125,
+            "median_available_gib": 15.28155517578125,
+            "peak_available_decrease_gib": 102.62775421142578,
+            "max_swap_used_gib": 1.3239402770996094,
+            "host_swap_io": {
+              "read_mib": 0.0,
+              "write_mib": 0.0
+            }
+          },
+          "finished_idle": {
+            "samples": 5,
+            "min_available_gib": 15.292015075683594,
+            "median_available_gib": 15.315471649169922,
+            "peak_available_decrease_gib": 102.61729431152344,
+            "max_swap_used_gib": 1.3239402770996094,
+            "host_swap_io": {
+              "read_mib": 0.0,
+              "write_mib": 0.0
+            }
+          },
+          "stopping": {
+            "samples": 5,
+            "min_available_gib": 15.382087707519531,
+            "median_available_gib": 15.39400863647461,
+            "peak_available_decrease_gib": 102.5272216796875,
+            "max_swap_used_gib": 1.3239402770996094,
+            "host_swap_io": {
+              "read_mib": 0.0,
+              "write_mib": 0.0
+            }
+          },
+          "stopped": {
+            "samples": 2,
+            "min_available_gib": 117.43096542358398,
+            "median_available_gib": 117.43463325500488,
+            "peak_available_decrease_gib": 0.4783439636230469,
+            "max_swap_used_gib": 1.3239402770996094,
+            "host_swap_io": {
+              "read_mib": 0.01171875,
+              "write_mib": 0.0
+            }
+          }
+        }
+      },
+      "startup_seconds": 503.777081489563,
+      "post_long_passed": true,
+      "container_state": {
+        "Status": "exited",
+        "ExitCode": 137,
+        "OOMKilled": false,
+        "Error": "",
+        "StartedAt": "2026-10-16T17:35:03.83332569Z",
+        "FinishedAt": "2026-10-16T18:09:52.765064029Z"
+      }
+    },
+    "local": {
+      "repo_id": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-FP4-Local",
+      "url": "https://huggingface.co/edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-FP4-Local",
+      "image_id": "sha256:6f7fa43422080b2957b1d669ff21406240db77627ee3e42fc32bf5860a392bed",
+      "runtime": "vLLM/B12X",
+      "context_tokens": 1048576,
+      "cpu_set": "5-9,15-19",
+      "runtime_options": {
+        "--kv-cache-dtype": "fp8",
+        "--quantization": "modelopt_mixed",
+        "--speculative-config": "{\"method\":\"mtp\",\"num_speculative_tokens\":4}",
+        "--gpu-memory-utilization": "0.8",
+        "--max-num-batched-tokens": "4096"
+      },
+      "weight_gib": 95.17372745648026,
+      "metadata_sha256": {
+        "config.json": "b50dbc52a0c83b0cd2a44a372c1fb6b5e0e6827d22f2611c97d4d030f92f6b28",
+        "tokenizer.json": "0997f410c57a1f4e53b09e4be8f4a172d90edd9564368fb0847030937229b9f3",
+        "chat_template.jinja": "c3cf9e34abf4f9e36c2d72165aa9c132d3e2a725b6c2586aaa3a8af9d7a81041",
+        "transfer-manifest.json": "4f4f8f3412c80f89c8a4459f6ada64650d63704be0bde67636899375bde1600b"
+      },
+      "quality_score": 94.0,
+      "objective_score": 78.0,
+      "language_score": 16,
+      "objective_strict_cases_passed": 18,
+      "objective_strict_cases_total": 20,
+      "categories": {
+        "reasoning": {
+          "earned": 11.0,
+          "possible": 12
+        },
+        "instruction": {
+          "earned": 11.0,
+          "possible": 12
+        },
+        "coding": {
+          "earned": 24.0,
+          "possible": 24
+        },
+        "tools": {
+          "earned": 16.0,
+          "possible": 16
+        },
+        "format": {
+          "earned": 8.0,
+          "possible": 8
+        },
+        "vision": {
+          "earned": 8.0,
+          "possible": 8
+        },
+        "language": {
+          "earned": 16,
+          "possible": 20
+        }
+      },
+      "language_review": {
+        "language_translation": {
+          "scores": {
+            "accuracy": 1,
+            "constraints": 1,
+            "clarity": 1,
+            "coherence": 1
+          },
+          "response_sha256": "f401d64056412ca646f41b5d6ab375c573a62168c30515427b2e2fd981a6000a",
+          "notes": "핵심 사실과 부정·조건 관계는 보존했지만 only the worker의 대상 제한을 워커만으로 명시하지 않았다. 나머지 번역과 문장 연결은 자연스럽다.",
+          "points": 4,
+          "alias": "B"
+        },
+        "language_explanation": {
+          "scores": {
+            "accuracy": 1,
+            "constraints": 1,
+            "clarity": 0,
+            "coherence": 1
+          },
+          "response_sha256": "249cb8faa330ea584a1877bc96ac4aabe756cffdc3395574a6042ae5428d876d",
+          "notes": "471자·세 문단은 지켰다. 그러나 메뉴판과 냉장고의 재료는 같은 데이터의 원본·복사본 관계가 아니어서 비유가 오해를 준다. 만약 ... 보여줄 수 있으며라는 미완성 조건문도 부자연스럽다. 핵심 사실의 전개는 대체로 유지했다.",
+          "points": 3,
+          "alias": "B"
+        },
+        "language_fiction": {
+          "scores": {
+            "accuracy": 2,
+            "constraints": 0,
+            "clarity": 1,
+            "coherence": 1
+          },
+          "response_sha256": "5bf26e02190673da7c83c02b23c8276f29ba23c59a6e22433206fb4f82551113",
+          "notes": "젖은 프레임과 낮아질 판매 가치가 도둑의 포기 동기를 구체적으로 뒷받침한다. 두 인물의 행동과 대화가 연결되고 초자연적 해결이 없다. 다만 1227자로 상한 1200자를 넘었다.",
+          "points": 4,
+          "alias": "B"
+        },
+        "language_rewrite": {
+          "scores": {
+            "accuracy": 2,
+            "constraints": 1,
+            "clarity": 1,
+            "coherence": 1
+          },
+          "response_sha256": "3ea14c6a697f6b3efce5f9dca5138ff1cae567a2ccc3c37ff2158c7d0093d5fb",
+          "notes": "192자·두 문단이며 모든 핵심 사실을 유지했다. 10월 23일은 미확정으로 남기고 재안내 시점에 일정을 다시 확인한다는 표현은 기존 진행 상황 통지 계획의 범위로 판단했다.",
+          "points": 5,
+          "alias": "B"
+        }
+      },
+      "objective_findings": [
+        {
+          "case": "reasoning_integer",
+          "grade": {
+            "points": 3,
+            "earned": 2.0,
+            "passed": false,
+            "checks": {
+              "correct_value": true,
+              "integer_only": false,
+              "completed": true
+            },
+            "details": null
+          },
+          "answer": "\n\n3x + 7 = 52 → 3x = 45 → x = 15\n\n2x² − 5 = 2(225) − 5 = 450 − 5 = 445\n\n445",
+          "error": null
+        },
+        {
+          "case": "instruction_filter",
+          "grade": {
+            "points": 3,
+            "earned": 2.0,
+            "passed": false,
+            "checks": {
+              "strict_json": true,
+              "correct_value": false,
+              "completed": true
+            },
+            "details": null
+          },
+          "answer": "[\"A\",\"B\",\"C\"]",
+          "error": null
+        }
+      ],
+      "speed": {
+        "korean": {
+          "trials": 3,
+          "all_512_tokens": true,
+          "median_decode_tps": 30.00811243715028,
+          "min_decode_tps": 29.88512373141599,
+          "max_decode_tps": 30.0782725245646,
+          "median_ttft_s": 0.5994893130846322,
+          "output_hashes": [
+            "375c0df168a0fcc66447e295f158363721ac40193d9715c5f29dbd92981a86dc",
+            "375c0df168a0fcc66447e295f158363721ac40193d9715c5f29dbd92981a86dc",
+            "375c0df168a0fcc66447e295f158363721ac40193d9715c5f29dbd92981a86dc"
+          ]
+        },
+        "english": {
+          "trials": 3,
+          "all_512_tokens": true,
+          "median_decode_tps": 39.22590568212409,
+          "min_decode_tps": 39.16965742246172,
+          "max_decode_tps": 39.53955803693006,
+          "median_ttft_s": 0.6042101141065359,
+          "output_hashes": [
+            "a496b64d43219a106353a9c8565a17bce1fc837a571cfde095927c36433f5906",
+            "a496b64d43219a106353a9c8565a17bce1fc837a571cfde095927c36433f5906",
+            "a496b64d43219a106353a9c8565a17bce1fc837a571cfde095927c36433f5906"
+          ]
+        }
+      },
+      "long_context": [
+        {
+          "context_target": 65536,
+          "actual_input_tokens": 64527,
+          "seconds": 30.955668922048062,
+          "ttft_s": 30.72032256401144,
+          "semantic_passed": true,
+          "strict_format_passed": true,
+          "checks": {
+            "strict_json": true,
+            "exact_keys": true,
+            "field_code": true,
+            "field_owner": true,
+            "field_remaining": true
+          },
+          "answer": "{\"code\":\"MAPLE\",\"owner\":\"COMET\",\"remaining\":3711}",
+          "usage": {
+            "prompt_tokens": 64527,
+            "total_tokens": 64546,
+            "completion_tokens": 19,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "input_sha256": "5325b3794ea03e36987ba670a7686387d4234fb09028ac34d9ee293e4ff693f7",
+          "error": null
+        },
+        {
+          "context_target": 262144,
+          "actual_input_tokens": 261135,
+          "seconds": 132.0416682199575,
+          "ttft_s": 131.9034523461014,
+          "semantic_passed": true,
+          "strict_format_passed": true,
+          "checks": {
+            "strict_json": true,
+            "exact_keys": true,
+            "field_code": true,
+            "field_owner": true,
+            "field_remaining": true
+          },
+          "answer": "{\"code\":\"MAPLE\",\"owner\":\"COMET\",\"remaining\":3711}",
+          "usage": {
+            "prompt_tokens": 261135,
+            "total_tokens": 261154,
+            "completion_tokens": 19,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "input_sha256": "078265eb2945b91637baaf1335b07fa9e43532c9086afcd359d3a6c98be9bf2c",
+          "error": null
+        },
+        {
+          "context_target": 1048576,
+          "actual_input_tokens": 1047567,
+          "seconds": 665.5705738179386,
+          "ttft_s": 665.5568873130251,
+          "semantic_passed": true,
+          "strict_format_passed": false,
+          "checks": {
+            "strict_json": false,
+            "exact_keys": true,
+            "field_code": true,
+            "field_owner": true,
+            "field_remaining": true
+          },
+          "answer": "```json\n{\"code\":\"MAPLE\",\"owner\":\"COMET\",\"remaining\":3711}\n```",
+          "usage": {
+            "prompt_tokens": 1047567,
+            "total_tokens": 1047591,
+            "completion_tokens": 24,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "input_sha256": "c21cb867a977a4f63c5daea228fefd09098430d1787106f2093f3ba2041c9cb2",
+          "error": null
+        }
+      ],
+      "memory": {
+        "method": "System MemAvailable decrease from immediately before this model launch; includes serving buffers and reclaimable-cache accounting, not GPU memory alone.",
+        "baseline_available_gib": 118.08141326904297,
+        "ready_idle_available_decrease_gib": 99.34321594238281,
+        "peak_available_decrease_gib": 115.56165313720703,
+        "swap_read_mib": 1461.21484375,
+        "swap_write_mib": 2385.0546875,
+        "phases": {
+          "loading": {
+            "samples": 256,
+            "min_available_gib": 2.5197601318359375,
+            "median_available_gib": 41.55924034118652,
+            "peak_available_decrease_gib": 115.56165313720703,
+            "max_swap_used_gib": 3.724578857421875,
+            "host_swap_io": {
+              "read_mib": 1194.90234375,
+              "write_mib": 2385.0546875
+            }
+          },
+          "warmup": {
+            "samples": 1,
+            "min_available_gib": 18.57221221923828,
+            "median_available_gib": 18.57221221923828,
+            "peak_available_decrease_gib": 99.50920104980469,
+            "max_swap_used_gib": 3.3054847717285156,
+            "host_swap_io": {
+              "read_mib": 1.515625,
+              "write_mib": 0.0
+            }
+          },
+          "ready_idle": {
+            "samples": 15,
+            "min_available_gib": 18.589397430419922,
+            "median_available_gib": 18.738197326660156,
+            "peak_available_decrease_gib": 99.49201583862305,
+            "max_swap_used_gib": 3.3054847717285156,
+            "host_swap_io": {
+              "read_mib": 2.546875,
+              "write_mib": 0.0
+            }
+          },
+          "quality": {
+            "samples": 88,
+            "min_available_gib": 18.39464569091797,
+            "median_available_gib": 18.537551879882812,
+            "peak_available_decrease_gib": 99.686767578125,
+            "max_swap_used_gib": 3.3054771423339844,
+            "host_swap_io": {
+              "read_mib": 43.515625,
+              "write_mib": 0.0
+            }
+          },
+          "speed": {
+            "samples": 94,
+            "min_available_gib": 18.235355377197266,
+            "median_available_gib": 18.453344345092773,
+            "peak_available_decrease_gib": 99.8460578918457,
+            "max_swap_used_gib": 3.304889678955078,
+            "host_swap_io": {
+              "read_mib": 6.08203125,
+              "write_mib": 0.0
+            }
+          },
+          "long": {
+            "samples": 827,
+            "min_available_gib": 16.671363830566406,
+            "median_available_gib": 17.018024444580078,
+            "peak_available_decrease_gib": 101.41004943847656,
+            "max_swap_used_gib": 3.3019638061523438,
+            "host_swap_io": {
+              "read_mib": 17.078125,
+              "write_mib": 0.0
+            }
+          },
+          "post_long": {
+            "samples": 1,
+            "min_available_gib": 16.98763656616211,
+            "median_available_gib": 16.98763656616211,
+            "peak_available_decrease_gib": 101.09377670288086,
+            "max_swap_used_gib": 3.3000144958496094,
+            "host_swap_io": {
+              "read_mib": 0.48046875,
+              "write_mib": 0.0
+            }
+          },
+          "finished_idle": {
+            "samples": 5,
+            "min_available_gib": 17.01434326171875,
+            "median_available_gib": 17.05081558227539,
+            "peak_available_decrease_gib": 101.06707000732422,
+            "max_swap_used_gib": 3.3000144958496094,
+            "host_swap_io": {
+              "read_mib": 0.01171875,
+              "write_mib": 0.0
+            }
+          },
+          "stopping": {
+            "samples": 4,
+            "min_available_gib": 21.169063568115234,
+            "median_available_gib": 116.89202308654785,
+            "peak_available_decrease_gib": 96.91234970092773,
+            "max_swap_used_gib": 2.6178321838378906,
+            "host_swap_io": {
+              "read_mib": 195.02734375,
+              "write_mib": 0.0
+            }
+          },
+          "stopped": {
+            "samples": 2,
+            "min_available_gib": 117.99689483642578,
+            "median_available_gib": 117.99874305725098,
+            "peak_available_decrease_gib": 0.0845184326171875,
+            "max_swap_used_gib": 1.3829383850097656,
+            "host_swap_io": {
+              "read_mib": 0.0546875,
+              "write_mib": 0.0
+            }
+          }
+        }
+      },
+      "startup_seconds": 256.13680267333984,
+      "post_long_passed": true,
+      "container_state": {
+        "Status": "exited",
+        "ExitCode": 0,
+        "OOMKilled": false,
+        "Error": "",
+        "StartedAt": "2026-10-16T18:16:16.253079196Z",
+        "FinishedAt": "2026-10-16T18:37:47.398276042Z"
+      }
+    },
+    "nvfp4": {
+      "repo_id": "edp1096/Huihui-RadixArk-Qwen3.8-Flash-Next-abliterated-NVFP4",
+      "url": "https://huggingface.co/edp1096/Huihui-RadixArk-Qwen3.8-Flash-Next-abliterated-NVFP4",
+      "image_id": "sha256:95b4633b7224deaad847a553c6550891fd3bdad97ad9d8e0c70c843239d26e72",
+      "runtime": "SGLang",
+      "context_tokens": 1048576,
+      "cpu_set": "5-9,15-19",
+      "runtime_options": {
+        "--kv-cache-dtype": "fp8_e4m3",
+        "--quantization": "modelopt_fp4",
+        "--speculative-algorithm": "NEXTN",
+        "--speculative-num-steps": "3",
+        "--speculative-num-draft-tokens": "4",
+        "--mem-fraction-static": "0.92",
+        "--max-total-tokens": "1048576",
+        "--chunked-prefill-size": "4096"
+      },
+      "weight_gib": 125.91043845843524,
+      "metadata_sha256": {
+        "config.json": "e765305daba0951974308f4d32c075b52a6a45974730d273f2216718a994d624",
+        "tokenizer.json": "0997f410c57a1f4e53b09e4be8f4a172d90edd9564368fb0847030937229b9f3",
+        "chat_template.jinja": "c3cf9e34abf4f9e36c2d72165aa9c132d3e2a725b6c2586aaa3a8af9d7a81041",
+        "transfer-manifest.json": "4688733bfc4ffeec43446551dcc64f425d0bac6a07203d28c9bb3a17084a2115"
+      },
+      "quality_score": 87.0,
+      "objective_score": 78.0,
+      "language_score": 9,
+      "objective_strict_cases_passed": 18,
+      "objective_strict_cases_total": 20,
+      "categories": {
+        "reasoning": {
+          "earned": 11.0,
+          "possible": 12
+        },
+        "instruction": {
+          "earned": 11.0,
+          "possible": 12
+        },
+        "coding": {
+          "earned": 24.0,
+          "possible": 24
+        },
+        "tools": {
+          "earned": 16.0,
+          "possible": 16
+        },
+        "format": {
+          "earned": 8.0,
+          "possible": 8
+        },
+        "vision": {
+          "earned": 8.0,
+          "possible": 8
+        },
+        "language": {
+          "earned": 9,
+          "possible": 20
+        }
+      },
+      "language_review": {
+        "language_translation": {
+          "scores": {
+            "accuracy": 1,
+            "constraints": 1,
+            "clarity": 1,
+            "coherence": 1
+          },
+          "response_sha256": "4aa44e5ee7fe8242c1633bf1ba75003113b7a7105b866de1124c642259cafbb8",
+          "notes": "시간·대기 작업 수·두 프로세스 미재시작은 보존했다. 다만 only the worker의 대상 제한을 워커만으로 명시하지 않았고 negligence를 게으름으로 좁혔다.",
+          "points": 4,
+          "alias": "A"
+        },
+        "language_explanation": {
+          "scores": {
+            "accuracy": 1,
+            "constraints": 0,
+            "clarity": 0,
+            "coherence": 0
+          },
+          "response_sha256": "d157302a85c41c6a74a46e622321339cd65e57f02df2c8c5cf26a57d81c8e9fb",
+          "notes": "559자로 상한 550자를 넘었다. 메뉴판의 비유를 한 번만 사용하듯이라는 지시문 누출로 비유가 성립하지 않는다. 원본 자체가 손상되면 복구할 수 없다는 미제공 단정을 추가해 백업 설명의 논거도 부정확해졌다.",
+          "points": 1,
+          "alias": "A"
+        },
+        "language_fiction": {
+          "scores": {
+            "accuracy": 1,
+            "constraints": 0,
+            "clarity": 0,
+            "coherence": 0
+          },
+          "response_sha256": "c145d7e2531b5dc3771fcdfe6a8da927768fe3c7e5d3c02eae31c0441326fc35",
+          "notes": "1568자로 분량 상한을 크게 넘었다. 도둑이 경비원에게 왜 가져가지 않나요라고 묻는 대목은 화자와 상황이 맞지 않는다. 그림에 갇힌다는 위협에서 물리적 파손 설명으로 넘어가는 연결과 마지막 무지함 문장의 의미도 불안정하다.",
+          "points": 1,
+          "alias": "C"
+        },
+        "language_rewrite": {
+          "scores": {
+            "accuracy": 1,
+            "constraints": 0,
+            "clarity": 1,
+            "coherence": 1
+          },
+          "response_sha256": "a57a9fb5ea003c461c4ac6e7b7b8f9dca3f14a29e79107d16e8a8351e41fcc53",
+          "notes": "171자로 하한 180자에 못 미친다. 핵심 사실은 보존했으나 정확한 일정 확인 후 신속히 연락한다는 추가 연락 약속을 보탰다.",
+          "points": 3,
+          "alias": "C"
+        }
+      },
+      "objective_findings": [
+        {
+          "case": "reasoning_integer",
+          "grade": {
+            "points": 3,
+            "earned": 2.0,
+            "passed": false,
+            "checks": {
+              "correct_value": true,
+              "integer_only": false,
+              "completed": true
+            },
+            "details": null
+          },
+          "answer": "\n\n3x + 7 = 52 → 3x = 45 → x = 15\n\n2x² − 5 = 2(15)² − 5 = 2·225 − 5 = 450 − 5 = 445\n\n445",
+          "error": null
+        },
+        {
+          "case": "instruction_filter",
+          "grade": {
+            "points": 3,
+            "earned": 2.0,
+            "passed": false,
+            "checks": {
+              "strict_json": true,
+              "correct_value": false,
+              "completed": true
+            },
+            "details": null
+          },
+          "answer": "[\"A\", \"B\", \"C\"]",
+          "error": null
+        }
+      ],
+      "speed": {
+        "korean": {
+          "trials": 3,
+          "all_512_tokens": true,
+          "median_decode_tps": 24.527603487728893,
+          "min_decode_tps": 24.216862203114857,
+          "max_decode_tps": 24.799246621466192,
+          "median_ttft_s": 0.21686227596364915,
+          "output_hashes": [
+            "3b0dbbadfb2c331f6ff3cd94f4677c1ca02c5de6f4f79f07223782a42116dca6",
+            "9e8bf900c875e49c3f6118e2c302549940047b02b6a960137e6ea286e4f8d45f",
+            "527000c9a295d567c6912362d4de7abf132836e369fdf2f2294fbe7c8bbad5f4"
+          ]
+        },
+        "english": {
+          "trials": 3,
+          "all_512_tokens": true,
+          "median_decode_tps": 29.990591766751255,
+          "min_decode_tps": 29.462707619611756,
+          "max_decode_tps": 31.018737032962253,
+          "median_ttft_s": 0.23965779202990234,
+          "output_hashes": [
+            "ba491451111dd251dbff56a5bd5092480d1394448366604357213d57de1daef6",
+            "b2dcbef30f426b74b12ee3cc3132d81ced649a4b24f43a21e728454d28b9e7f8",
+            "7fa05a5799a64ca6770ede415553e1d2df93afef9e82cde2af56e7e8a3215316"
+          ]
+        }
+      },
+      "long_context": [
+        {
+          "context_target": 65536,
+          "actual_input_tokens": 64527,
+          "seconds": 39.611370970029384,
+          "ttft_s": 38.9379512059968,
+          "semantic_passed": true,
+          "strict_format_passed": true,
+          "checks": {
+            "strict_json": true,
+            "exact_keys": true,
+            "field_code": true,
+            "field_owner": true,
+            "field_remaining": true
+          },
+          "answer": "{\n  \"code\": \"MAPLE\",\n  \"owner\": \"COMET\",\n  \"remaining\": 3711\n}",
+          "usage": {
+            "prompt_tokens": 64527,
+            "total_tokens": 64559,
+            "completion_tokens": 32,
+            "prompt_tokens_details": null,
+            "reasoning_tokens": 0
+          },
+          "input_sha256": "5325b3794ea03e36987ba670a7686387d4234fb09028ac34d9ee293e4ff693f7",
+          "error": null
+        },
+        {
+          "context_target": 262144,
+          "actual_input_tokens": 261135,
+          "seconds": 163.6070549490396,
+          "ttft_s": 163.09757792809978,
+          "semantic_passed": true,
+          "strict_format_passed": true,
+          "checks": {
+            "strict_json": true,
+            "exact_keys": true,
+            "field_code": true,
+            "field_owner": true,
+            "field_remaining": true
+          },
+          "answer": "{\"code\":\"MAPLE\",\"owner\":\"COMET\",\"remaining\":3711}",
+          "usage": {
+            "prompt_tokens": 261135,
+            "total_tokens": 261154,
+            "completion_tokens": 19,
+            "prompt_tokens_details": null,
+            "reasoning_tokens": 0
+          },
+          "input_sha256": "078265eb2945b91637baaf1335b07fa9e43532c9086afcd359d3a6c98be9bf2c",
+          "error": null
+        },
+        {
+          "context_target": 1048576,
+          "actual_input_tokens": 1047567,
+          "seconds": 1109.6218733468559,
+          "ttft_s": 1109.263828217052,
+          "semantic_passed": true,
+          "strict_format_passed": true,
+          "checks": {
+            "strict_json": true,
+            "exact_keys": true,
+            "field_code": true,
+            "field_owner": true,
+            "field_remaining": true
+          },
+          "answer": "{\"code\":\"MAPLE\",\"owner\":\"COMET\",\"remaining\":3711}",
+          "usage": {
+            "prompt_tokens": 1047567,
+            "total_tokens": 1047586,
+            "completion_tokens": 19,
+            "prompt_tokens_details": null,
+            "reasoning_tokens": 0
+          },
+          "input_sha256": "c21cb867a977a4f63c5daea228fefd09098430d1787106f2093f3ba2041c9cb2",
+          "error": null
+        }
+      ],
+      "memory": {
+        "method": "System MemAvailable decrease from immediately before this model launch; includes serving buffers and reclaimable-cache accounting, not GPU memory alone.",
+        "baseline_available_gib": 118.04774475097656,
+        "ready_idle_available_decrease_gib": 103.11487197875977,
+        "peak_available_decrease_gib": 107.83408737182617,
+        "swap_read_mib": 85.9296875,
+        "swap_write_mib": 97.015625,
+        "phases": {
+          "loading": {
+            "samples": 798,
+            "min_available_gib": 10.21365737915039,
+            "median_available_gib": 29.569616317749023,
+            "peak_available_decrease_gib": 107.83408737182617,
+            "max_swap_used_gib": 1.4294967651367188,
+            "host_swap_io": {
+              "read_mib": 30.25390625,
+              "write_mib": 90.3203125
+            }
+          },
+          "warmup": {
+            "samples": 10,
+            "min_available_gib": 14.899829864501953,
+            "median_available_gib": 15.64316177368164,
+            "peak_available_decrease_gib": 103.14791488647461,
+            "max_swap_used_gib": 1.4294700622558594,
+            "host_swap_io": {
+              "read_mib": 1.3828125,
+              "write_mib": 0.0
+            }
+          },
+          "ready_idle": {
+            "samples": 15,
+            "min_available_gib": 14.806682586669922,
+            "median_available_gib": 14.932872772216797,
+            "peak_available_decrease_gib": 103.24106216430664,
+            "max_swap_used_gib": 1.4294548034667969,
+            "host_swap_io": {
+              "read_mib": 2.9140625,
+              "write_mib": 0.0
+            }
+          },
+          "quality": {
+            "samples": 117,
+            "min_available_gib": 14.384346008300781,
+            "median_available_gib": 15.151634216308594,
+            "peak_available_decrease_gib": 103.66339874267578,
+            "max_swap_used_gib": 1.4287567138671875,
+            "host_swap_io": {
+              "read_mib": 12.24609375,
+              "write_mib": 0.0
+            }
+          },
+          "speed": {
+            "samples": 115,
+            "min_available_gib": 14.341468811035156,
+            "median_available_gib": 14.576148986816406,
+            "peak_available_decrease_gib": 103.7062759399414,
+            "max_swap_used_gib": 1.4256172180175781,
+            "host_swap_io": {
+              "read_mib": 5.546875,
+              "write_mib": 0.0
+            }
+          },
+          "long": {
+            "samples": 1312,
+            "min_available_gib": 10.439834594726562,
+            "median_available_gib": 12.03921890258789,
+            "peak_available_decrease_gib": 107.60791015625,
+            "max_swap_used_gib": 1.4238700866699219,
+            "host_swap_io": {
+              "read_mib": 30.44140625,
+              "write_mib": 6.6953125
+            }
+          },
+          "post_long": {
+            "samples": 1,
+            "min_available_gib": 13.907543182373047,
+            "median_available_gib": 13.907543182373047,
+            "peak_available_decrease_gib": 104.14020156860352,
+            "max_swap_used_gib": 1.4196052551269531,
+            "host_swap_io": {
+              "read_mib": 0.0,
+              "write_mib": 0.0
+            }
+          },
+          "finished_idle": {
+            "samples": 5,
+            "min_available_gib": 14.190467834472656,
+            "median_available_gib": 14.208198547363281,
+            "peak_available_decrease_gib": 103.8572769165039,
+            "max_swap_used_gib": 1.4196052551269531,
+            "host_swap_io": {
+              "read_mib": 0.0390625,
+              "write_mib": 0.0
+            }
+          },
+          "stopping": {
+            "samples": 3,
+            "min_available_gib": 14.25570297241211,
+            "median_available_gib": 17.188812255859375,
+            "peak_available_decrease_gib": 103.79204177856445,
+            "max_swap_used_gib": 1.4195709228515625,
+            "host_swap_io": {
+              "read_mib": 0.09765625,
+              "write_mib": 0.0
+            }
+          },
+          "stopped": {
+            "samples": 2,
+            "min_available_gib": 118.0290756225586,
+            "median_available_gib": 118.03289413452148,
+            "peak_available_decrease_gib": 0.01866912841796875,
+            "max_swap_used_gib": 1.4181556701660156,
+            "host_swap_io": {
+              "read_mib": 3.0078125,
+              "write_mib": 0.0
+            }
+          }
+        }
+      },
+      "startup_seconds": 797.9915959835052,
+      "post_long_passed": true,
+      "container_state": {
+        "Status": "exited",
+        "ExitCode": 137,
+        "OOMKilled": false,
+        "Error": "",
+        "StartedAt": "2026-10-16T18:37:59.7854416Z",
+        "FinishedAt": "2026-10-16T19:17:37.735652015Z"
+      }
+    }
+  },
+  "restoration": {
+    "config_unchanged": true,
+    "running_containers_unchanged": true,
+    "initial_running": [
+      "sparktalk-extra-media",
+      "sparktalk-extra-ssh"
+    ],
+    "final_running": [
+      "sparktalk-extra-media",
+      "sparktalk-extra-ssh"
+    ]
+  },
+  "harness_corrections": {
+    "time": 1792174565.953805,
+    "quality_protocol_unchanged": true,
+    "excluded_from_model_scores": [
+      "Local initial warmup only: cache reset HTTP 404 because vLLM development routes are disabled by default.",
+      "NVFP4 was not launched: the port availability probe rejected a recently closed TIME_WAIT socket."
+    ],
+    "corrections": [
+      "Expose development cache-reset routes only on the loopback-only isolated Local server.",
+      "Require JSON success=true for Local cache reset; retry while engine cleanup completes.",
+      "Use SO_REUSEADDR for the local listener availability probe."
+    ],
+    "completed_qad_results_retained": true
+  },
+  "actual_input_token_comparison": [
+    {
+      "case": "reasoning_integer",
+      "category": "reasoning",
+      "counts": {
+        "qad": 99,
+        "local": 99,
+        "nvfp4": 99
+      },
+      "same": true
+    },
+    {
+      "case": "reasoning_price",
+      "category": "reasoning",
+      "counts": {
+        "qad": 162,
+        "local": 162,
+        "nvfp4": 162
+      },
+      "same": true
+    },
+    {
+      "case": "reasoning_schedule",
+      "category": "reasoning",
+      "counts": {
+        "qad": 178,
+        "local": 178,
+        "nvfp4": 178
+      },
+      "same": true
+    },
+    {
+      "case": "reasoning_probability",
+      "category": "reasoning",
+      "counts": {
+        "qad": 127,
+        "local": 127,
+        "nvfp4": 127
+      },
+      "same": true
+    },
+    {
+      "case": "instruction_version",
+      "category": "instruction",
+      "counts": {
+        "qad": 246,
+        "local": 246,
+        "nvfp4": 246
+      },
+      "same": true
+    },
+    {
+      "case": "instruction_injection",
+      "category": "instruction",
+      "counts": {
+        "qad": 143,
+        "local": 143,
+        "nvfp4": 143
+      },
+      "same": true
+    },
+    {
+      "case": "instruction_filter",
+      "category": "instruction",
+      "counts": {
+        "qad": 185,
+        "local": 185,
+        "nvfp4": 185
+      },
+      "same": true
+    },
+    {
+      "case": "instruction_absence",
+      "category": "instruction",
+      "counts": {
+        "qad": 136,
+        "local": 136,
+        "nvfp4": 136
+      },
+      "same": true
+    },
+    {
+      "case": "code_intervals",
+      "category": "coding",
+      "counts": {
+        "qad": 150,
+        "local": 150,
+        "nvfp4": 150
+      },
+      "same": true
+    },
+    {
+      "case": "code_orders",
+      "category": "coding",
+      "counts": {
+        "qad": 185,
+        "local": 185,
+        "nvfp4": 185
+      },
+      "same": true
+    },
+    {
+      "case": "code_toposort",
+      "category": "coding",
+      "counts": {
+        "qad": 192,
+        "local": 192,
+        "nvfp4": 192
+      },
+      "same": true
+    },
+    {
+      "case": "code_unicode",
+      "category": "coding",
+      "counts": {
+        "qad": 167,
+        "local": 167,
+        "nvfp4": 167
+      },
+      "same": true
+    },
+    {
+      "case": "tool_weather",
+      "category": "tools",
+      "counts": {
+        "qad": 388,
+        "local": 377,
+        "nvfp4": 388
+      },
+      "same": false
+    },
+    {
+      "case": "tool_literal",
+      "category": "tools",
+      "counts": {
+        "qad": 403,
+        "local": 392,
+        "nvfp4": 403
+      },
+      "same": false
+    },
+    {
+      "case": "tool_unknown_city",
+      "category": "tools",
+      "counts": {
+        "qad": 384,
+        "local": 373,
+        "nvfp4": 384
+      },
+      "same": false
+    },
+    {
+      "case": "tool_two_turn",
+      "category": "tools",
+      "counts": {
+        "qad": 469,
+        "local": 447,
+        "nvfp4": 469
+      },
+      "same": false
+    },
+    {
+      "case": "json_unconstrained",
+      "category": "format",
+      "counts": {
+        "qad": 134,
+        "local": 134,
+        "nvfp4": 134
+      },
+      "same": true
+    },
+    {
+      "case": "json_schema",
+      "category": "format",
+      "counts": {
+        "qad": 92,
+        "local": 92,
+        "nvfp4": 92
+      },
+      "same": true
+    },
+    {
+      "case": "vision_counts",
+      "category": "vision",
+      "counts": {
+        "qad": 190,
+        "local": 190,
+        "nvfp4": 190
+      },
+      "same": true
+    },
+    {
+      "case": "vision_position",
+      "category": "vision",
+      "counts": {
+        "qad": 178,
+        "local": 178,
+        "nvfp4": 178
+      },
+      "same": true
+    },
+    {
+      "case": "language_translation",
+      "category": "language",
+      "counts": {
+        "qad": 153,
+        "local": 153,
+        "nvfp4": 153
+      },
+      "same": true
+    },
+    {
+      "case": "language_explanation",
+      "category": "language",
+      "counts": {
+        "qad": 205,
+        "local": 205,
+        "nvfp4": 205
+      },
+      "same": true
+    },
+    {
+      "case": "language_fiction",
+      "category": "language",
+      "counts": {
+        "qad": 169,
+        "local": 169,
+        "nvfp4": 169
+      },
+      "same": true
+    },
+    {
+      "case": "language_rewrite",
+      "category": "language",
+      "counts": {
+        "qad": 202,
+        "local": 202,
+        "nvfp4": 202
+      },
+      "same": true
+    }
+  ],
+  "harness_source_sha256": {
+    "cases.py": "90a9e86a2dc530e6da22a9fe98a1c1ea69faf5d7e326bec047fd2c240fd740f3",
+    "control.py": "114b4edc9774e65e5b399cfd748a6e7823ce0c5b876a24c5f20c812762465836",
+    "run.py": "2b6778fede42f7d45b8b1f3dde11909e8327178116835dabcd909163f8d8982e",
+    "code_check.py": "b5aa2e3c01aaf617b1b1611ed5990d90694fbd79c6ca49ec8d8e28d2c7fe41e9",
+    "make_long.py": "659c8f2a7185a89b8f3a2acafed8cd70ee1ac5b714ff5e77bd043757e1bcc6e2",
+    "blind_review.py": "be4d33e88e4b8028ca1c234671991cee99294b75c932037c854e712d5b28cbf9",
+    "collect.py": "f9b16c8d51a167302fb196d97bd03b36a447daf746d8a4185ea9a3461fae5c04"
+  },
+  "initial_harness_source_sha256": {
+    "run.py": "e62c1d472ba7733c8f689aec4409396264ac194af6fe447f22afceada3d07e0e",
+    "control.py": "24e436b9e090209dafbe042cdf125bb06d6d16ece36c24e19344f311d19f2fb4"
+  },
+  "interpretation": [
+    "The 100-point score is this fixed task suite: 80 objective points and 20 assistant-reviewed Korean language points; it is not a general intelligence benchmark.",
+    "Language outputs were shuffled separately for each question and graded under A/B/C labels before the assignment was revealed.",
+    "All decoding trials use 512 completion tokens; report each language separately, with median and range over three requests.",
+    "Long-input semantic correctness and exact JSON-only formatting are reported separately.",
+    "Runtime engines and MTP implementations differ as deployed; results compare usable serving configurations.",
+    "API messages and tool schemas are shared. Framework-specific serialization changes rendered tool-prompt token counts; ordinary text prompt counts match.",
+    "Startup times are recorded for reproducibility but are not ranked because existing runtime caches differ."
+  ],
+  "quality_order": [
+    "qad",
+    "local",
+    "nvfp4"
+  ],
+  "quality_rank_groups": [
+    [
+      "qad",
+      "local"
+    ],
+    [
+      "nvfp4"
+    ]
+  ],
+  "practical_order": [
+    "local",
+    "qad",
+    "nvfp4"
+  ],
+  "practical_order_basis": "This suite quality score first; break exact score ties by median Korean generation speed. Startup memory pressure is reported separately and may change the deployment choice.",
+  "korean_generation_order": [
+    "local",
+    "qad",
+    "nvfp4"
+  ],
+  "english_generation_order": [
+    "local",
+    "qad",
+    "nvfp4"
+  ],
+  "raw_responses_sha256": "ca74b659a5a0e64654934c7b3413fe46c579538b428ec7ea721c091eeff0fb95"
+}

@@ -467,7 +467,7 @@ func (s *Server) runReviewedDocument(ctx context.Context, run workflows.Run) {
 
 var errDocumentModelChanged = errors.New("task model differs from active model")
 
-func (s *Server) requestReviewedStage(ctx context.Context, run *workflows.Run, requestRun workflows.Run, u workflows.DocumentUnit, p workflows.DocumentProfile, stage string, started time.Time, baseElapsed int) (llm.StreamResult, *workflows.DocumentRequestAttempt, error) {
+func (s *Server) requestReviewedStage(ctx context.Context, run *workflows.Run, requestRun workflows.Run, u workflows.DocumentUnit, p workflows.DocumentProfile, stage string, started time.Time, baseElapsed int, custom ...documentStageRequest) (llm.StreamResult, *workflows.DocumentRequestAttempt, error) {
 	if err := s.documentSlot(ctx); err != nil {
 		return llm.StreamResult{}, nil, err
 	}
@@ -524,7 +524,9 @@ func (s *Server) requestReviewedStage(ctx context.Context, run *workflows.Run, r
 		return nil
 	}
 	var result llm.StreamResult
-	if stage == "review" {
+	if len(custom) > 0 {
+		result, err = custom[0](inferCtx, client, requestRun, u, minPositive(p.WindowTokens, cfg.Context.WindowTokens), emit)
+	} else if stage == "review" {
 		result, err = requestDocumentReview(inferCtx, client, requestRun, u, minPositive(p.WindowTokens, cfg.Context.WindowTokens), emit)
 	} else {
 		result, err = requestDocumentUnit(inferCtx, client, requestRun, u, minPositive(p.WindowTokens, cfg.Context.WindowTokens), emit)
@@ -535,6 +537,9 @@ func (s *Server) requestReviewedStage(ctx context.Context, run *workflows.Run, r
 		outputTokens = estimateTextTokens(result.Content) + estimateTextTokens(result.Reasoning)
 	}
 	protocol := documentOutputProtocol
+	if len(custom) > 0 {
+		protocol = workflows.DocumentTermsVersion
+	}
 	if stage == "review" {
 		protocol = documentReviewProtocol
 		if requestRun.Document.Pipeline != "" {

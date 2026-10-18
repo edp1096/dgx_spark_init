@@ -14,6 +14,13 @@ test('Qwen 3.8 keeps typed effort levels without unsupported high', () => {
   });
 });
 
+test('FP4-Local vLLM exposes the same four Qwen effort choices', () => {
+  assert.deepEqual(modelCapabilities('qwen3.8-vllm'), modelCapabilities('qwen3.8'));
+  for (const level of ['none', 'low', 'medium', 'xhigh']) assert.equal(normalizeReasoningEffort('qwen3.8-vllm', level), level);
+  assert.equal(normalizeReasoningEffort('qwen3.8-vllm', ''), 'medium');
+  assert.equal(normalizeReasoningEffort('qwen3.8-vllm', 'max'), 'medium');
+});
+
 test('Qwen 3.8 EXL3 exposes native effort and preserves legacy on', () => {
   assert.deepEqual(modelCapabilities('qwen38fn_exl3'), {
     family: 'qwen38fn_exl3', reasoning: 'effort', reasoningLevels: ['none', 'low', 'medium', 'xhigh'],
@@ -22,7 +29,7 @@ test('Qwen 3.8 EXL3 exposes native effort and preserves legacy on', () => {
   for (const level of ['low', 'medium', 'xhigh']) assert.equal(normalizeReasoningEffort('qwen38fn_exl3', level), level);
   for (const level of ['on', 'high']) assert.equal(normalizeReasoningEffort('qwen38fn_exl3', level), 'xhigh');
   for (const level of ['off', 'false']) assert.equal(normalizeReasoningEffort('qwen38fn_exl3', level), 'none');
-  for (const level of ['', 'max', 'unknown']) assert.equal(normalizeReasoningEffort('qwen38fn_exl3', level), 'low');
+  for (const level of ['', 'max', 'unknown']) assert.equal(normalizeReasoningEffort('qwen38fn_exl3', level), 'medium');
   assert.equal(reasoningEffortLabel('xhigh', 'qwen38fn_exl3'), '매우 높음');
 });
 
@@ -50,7 +57,7 @@ test('legacy effort values map cleanly to the Gemma toggle', () => {
 });
 
 test('Qwen 3.8 accepts only its four supported effort values', () => {
-  for (const level of ['', 'max', 'unknown']) assert.equal(normalizeReasoningEffort('qwen3.8', level), 'low');
+  for (const level of ['', 'max', 'unknown']) assert.equal(normalizeReasoningEffort('qwen3.8', level), 'medium');
   for (const level of ['off', 'false']) assert.equal(normalizeReasoningEffort('qwen3.8', level), 'none');
   assert.equal(normalizeReasoningEffort('qwen3.8', 'xhigh'), 'xhigh');
   assert.equal(normalizeReasoningEffort('qwen3.8', 'high'), 'medium');

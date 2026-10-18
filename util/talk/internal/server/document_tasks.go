@@ -43,7 +43,7 @@ type documentStart struct {
 }
 
 func documentDefinition() llm.Tool {
-	return llm.Tool{Type: "function", Function: llm.ToolFunction{Name: "document_task", Description: "Start a durable whole-document translation, summary or multi-source comparison when requested. First obtain source_id with web_fetch or attachment_read, then pass sources: [source_id] when starting. A single source_id string is also accepted. action=start requires kind and a saved source; instructions carries the requested scope/style. Processing continues across chunks and browser disconnects. Use instructions to preserve the user's exact scope/style; default scope is the entire source. start/end optionally select character offsets in a single source. Returns actual run/progress/download URLs, not a completed deliverable. Never claim completion before status completed. action=reexport rebuilds an existing document format from a completed task using saved text in the background, keeping the current file until replacement succeeds; poll action=status for conversions. The top-level status describes the original translation; reconversion is complete only when the matching conversions entry has status=completed. It never repeats translation. action=status reads an existing run; pause/resume/cancel control it. For a requested DOCX/PDF/HWP/HWPX deliverable, pass format when starting; it will be converted after processing. Document processing inherits the chat reasoning setting unless effort is explicitly specified; off/none selects a separate faster document setting. This setting does not change chat preferences. The glossary argument is only for spellings explicitly supplied by the user; omit inferred terms. This read-only processing tool cannot execute SSH, modify code or publish/upload anything.", Parameters: json.RawMessage(`{"type":"object","properties":{"action":{"type":"string","enum":["start","status","pause","resume","cancel","revise","export","reexport","retry_assets","retry_quality"]},"kind":{"type":"string","enum":["translate","summarize","compare"]},"sources":{"type":"array","description":"Saved source IDs returned by web_fetch or attachment_read. Required for start unless source_id supplies one source.","items":{"type":"string","minLength":1},"minItems":1,"maxItems":8},"source_id":{"type":"string","minLength":1,"description":"Single-source shorthand for sources: [source_id]. Prefer sources; never pass conflicting values."},"instructions":{"type":"string"},"instruction_message_ids":{"type":"array","maxItems":8,"items":{"type":"integer","minimum":1},"description":"Optional exact IDs of earlier user messages that supplied relevant document instructions. Assistant/tool messages cannot authorize constraints."},"glossary":{"type":"object","maxProperties":256,"additionalProperties":{"type":"string"}},"format":{"type":"string","enum":["docx","pdf","hwp","hwpx"]},"effort":{"type":"string","enum":["off","none","low","medium","xhigh","on","inherit"]},"run_id":{"type":"string"},"extend_budget":{"type":"boolean","description":"Renew processing limits only when the user explicitly asks to continue a budget-paused task."},"start":{"type":"integer","minimum":0},"end":{"type":"integer","minimum":0}},"required":["action"],"additionalProperties":false}`)}}
+	return llm.Tool{Type: "function", Function: llm.ToolFunction{Name: "document_task", Description: "Start a durable whole-document translation, summary or multi-source comparison when requested. First obtain source_id with web_fetch or attachment_read, then pass sources: [source_id] when starting. A single source_id string is also accepted. action=start requires kind and a saved source; instructions carries the requested scope/style. Processing continues across chunks and browser disconnects. Use instructions to preserve the user's exact scope/style; default scope is the entire source. start/end optionally select character offsets in a single source. Returns actual run/progress/download URLs, not a completed deliverable. Never claim completion before status completed. action=reexport rebuilds an existing document format from a completed task using saved text in the background, keeping the current file until replacement succeeds; poll action=status for conversions. The top-level status describes the original translation; reconversion is complete only when the matching conversions entry has status=completed. It never repeats translation. action=review_terms checks recurring names and unintended foreign-language wording in a completed Korean translation. action=repair_terms uses saved source/text to fix verified name conflicts, wrong-language words or connected phrases, and TXT prose wrapping while preserving the original result. It also checks expressions outside the glossary, including a third-language pronoun used instead of a Korean pronoun. Legitimate names, acronyms, URLs and original-language glosses are preserved. Report the returned checked counts, actual corrections and remaining warnings. action=status reads an existing run; pause/resume/cancel control it. For a requested DOCX/PDF/HWP/HWPX deliverable, pass format when starting; it will be converted after processing. Document processing inherits the chat reasoning setting unless effort is explicitly specified; off/none selects a separate faster document setting. This setting does not change chat preferences. The glossary argument is only for spellings explicitly supplied by the user; omit inferred terms. This read-only processing tool cannot execute SSH, modify code or publish/upload anything.", Parameters: json.RawMessage(`{"type":"object","properties":{"action":{"type":"string","enum":["start","status","pause","resume","cancel","revise","export","reexport","retry_assets","retry_quality","review_terms","repair_terms"]},"kind":{"type":"string","enum":["translate","summarize","compare"]},"sources":{"type":"array","description":"Saved source IDs returned by web_fetch or attachment_read. Required for start unless source_id supplies one source.","items":{"type":"string","minLength":1},"minItems":1,"maxItems":8},"source_id":{"type":"string","minLength":1,"description":"Single-source shorthand for sources: [source_id]. Prefer sources; never pass conflicting values."},"instructions":{"type":"string"},"instruction_message_ids":{"type":"array","maxItems":8,"items":{"type":"integer","minimum":1},"description":"Optional exact IDs of earlier user messages that supplied relevant document instructions. Assistant/tool messages cannot authorize constraints."},"glossary":{"type":"object","maxProperties":256,"additionalProperties":{"type":"string"}},"format":{"type":"string","enum":["docx","pdf","hwp","hwpx"]},"effort":{"type":"string","enum":["off","none","low","medium","xhigh","on","inherit"]},"run_id":{"type":"string"},"extend_budget":{"type":"boolean","description":"Renew processing limits only when the user explicitly asks to continue a budget-paused task."},"start":{"type":"integer","minimum":0},"end":{"type":"integer","minimum":0}},"required":["action"],"additionalProperties":false}`)}}
 }
 func (s *Server) registerDocumentTasks(r *completionToolRegistry, session string) {
 	r.register(documentDefinition(), func(ctx context.Context, call llm.ToolCall, _ []llm.Message, _ eventEmitter) (registeredToolResult, error) {
@@ -64,10 +64,13 @@ func (s *Server) registerDocumentTasks(r *completionToolRegistry, session string
 		if turn := turnFrom(ctx); turn != nil && turn.anchor > 0 && call.ID != "" && a.Action == "start" {
 			a.Key = fmt.Sprintf("%d/%s", turn.anchor, call.ID)
 		}
-		if a.Action == "start" || a.Action == "revise" {
+		if a.Action == "start" || a.Action == "revise" || a.Action == "repair_terms" || a.Action == "review_terms" {
 			if err := s.bindDocumentRequest(ctx, session, &a); err != nil {
 				return registeredToolResult{}, err
 			}
+		}
+		if a.Action == "start" && a.Kind == "translate" {
+			a.Pipeline = workflows.DocumentTermsVersion
 		}
 		run, e := s.documentAction(ctx, session, a)
 		if e != nil {
@@ -75,7 +78,7 @@ func (s *Server) registerDocumentTasks(r *completionToolRegistry, session string
 		}
 		data, _ := json.Marshal(s.documentResultView(run))
 		result := registeredToolResult{Result: string(data)}
-		if a.Action == "start" || a.Action == "resume" || a.Action == "revise" || a.Action == "retry_assets" || a.Action == "retry_quality" {
+		if a.Action == "start" || a.Action == "resume" || a.Action == "revise" || a.Action == "retry_assets" || a.Action == "retry_quality" || a.Action == "review_terms" || a.Action == "repair_terms" {
 			result.DeferredDocument = &run
 		}
 		return result, nil
@@ -125,7 +128,7 @@ func documentView(run workflows.Run) map[string]any {
 			}
 		}
 	}
-	return map[string]any{"conversion_pending": conversionPending, "conversions": run.Conversions, "run_id": run.ID, "status": run.Status, "finished": run.DocumentFinished(), "document": run.Document, "progress_url": base, "outputs_ready": len(outputs) > 0, "outputs": outputs, "draft_outputs": drafts}
+	return map[string]any{"conversion_pending": conversionPending, "conversions": run.Conversions, "run_id": run.ID, "status": run.Status, "finished": run.DocumentFinished(), "document": documentPublicTask(run.Document), "progress_url": base, "outputs_ready": len(outputs) > 0, "outputs": outputs, "draft_outputs": drafts}
 }
 
 func (s *Server) documentAction(ctx context.Context, session string, a documentStart) (workflows.Run, error) {
@@ -140,6 +143,30 @@ func (s *Server) documentAction(ctx context.Context, session string, a documentS
 		return run, e
 	}
 	switch a.Action {
+	case "review_terms", "repair_terms":
+		if !s.docExportMu.TryLock() {
+			return run, fmt.Errorf("document conversion already running")
+		}
+		s.docTaskMu.Lock()
+		run, e = s.db.DocumentRun(session, a.RunID)
+		// The published terminal checkpoint is authoritative. Its worker can
+		// still be removing its bookkeeping entry after publication; rejecting
+		// that tiny cleanup window makes an immediately requested recheck fail.
+		if e == nil && !run.DocumentFinished() {
+			e = fmt.Errorf("완료된 번역 작업이 필요합니다")
+		}
+		if e == nil {
+			run, e = s.createDocumentTermsRevision(run, a.Action == "repair_terms", a.RequestSpec)
+		}
+		s.docTaskMu.Unlock()
+		s.docExportMu.Unlock()
+		if e != nil {
+			return run, e
+		}
+		if run.Status == "running" || run.DocumentFinished() {
+			return run, nil
+		}
+		return s.documentAction(ctx, session, documentStart{Action: "resume", RunID: run.ID})
 	case "retry_quality":
 		if !s.docExportMu.TryLock() {
 			return run, fmt.Errorf("document conversion already running")
@@ -484,10 +511,13 @@ func (s *Server) startDocument(ctx context.Context, session string, a documentSt
 		run.Document.RequestSpec = &workflows.DocumentRequestSpec{Origin: "api", UserText: a.Instructions, Hash: documentTextHash(a.Instructions)}
 	}
 	if a.Pipeline != "" {
-		if a.Pipeline != workflows.DocumentPipelineVersion || a.Kind != "translate" {
+		if (a.Pipeline != workflows.DocumentPipelineVersion && a.Pipeline != workflows.DocumentTermsVersion) || a.Kind != "translate" {
 			return run, fmt.Errorf("unsupported document pipeline")
 		}
 		run.Document.Pipeline = a.Pipeline
+		if a.Pipeline == workflows.DocumentTermsVersion {
+			run.Document.Terms = &workflows.DocumentTerms{Repair: true, Status: "pending"}
+		}
 		run.Document.Profiles = documentProfiles(cfg, effort)
 		if a.Profiles != nil {
 			profiles, err := documentPrepareProfiles(cfg, *a.Profiles)

@@ -1,0 +1,114 @@
+services:
+  runtime:
+    build:
+      context: ${SPARKTALK_BUILD_DIR:-.}
+    image: local/qwen38-fp4-local:csf-yarn-20261016
+    pull_policy: never
+    container_name: vllm-qwen38-fp4-local
+    init: true
+    restart: unless-stopped
+    ipc: host
+    network_mode: bridge
+    gpus: all
+    security_opt:
+    - seccomp=unconfined
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      stack:
+        soft: 67108864
+        hard: 67108864
+    ports:
+    - ${SPARKTALK_BIND_ADDR:-127.0.0.1}:${SPARKTALK_PORT:-18004}:8000
+    environment:
+      HF_HUB_OFFLINE: '1'
+      TRANSFORMERS_OFFLINE: '1'
+      VLLM_NO_USAGE_STATS: '1'
+      VLLM_PLE_TABLE_MEMORY: disk
+      B12X_DISK_BACKEND: io_uring
+      CUTE_DSL_ARCH: sm_121a
+      SAFETENSORS_FAST_GPU: '1'
+      VLLM_WORKER_MULTIPROC_METHOD: spawn
+      VLLM_SSM_CONV_STATE_LAYOUT: DS
+      VLLM_USE_AOT_COMPILE: '1'
+      VLLM_USE_MEGA_AOT_ARTIFACT: '1'
+      VLLM_USE_V2_MODEL_RUNNER: '1'
+      B12X_POLICY_MODE: auto
+      VLLM_MXFP8_LM_HEAD: '1'
+      VLLM_B12X_MOE_FP4_LAYER_MAX_INPUT_SCALE: w13
+      VLLM_B12X_MOE_FP4_FORCE_A16: '1'
+      B12X_W4A16_A4_PREFILL: '1'
+      PYTHONUNBUFFERED: '1'
+      OMP_NUM_THREADS: '8'
+    volumes:
+    - ${SPARKTALK_HF_CACHE:-${HOME}/.cache/huggingface}/edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-FP4-Local:/model:ro
+    - ${SPARKTALK_BUILD_DIR:-.}/runtime-config.json:/model/config.json:ro
+    - ${SPARKTALK_DATA_DIR:-${HOME}/.local/share/sparktalk}/cache/qwen38-fp4-local:/root/.cache
+    - ${SPARKTALK_DATA_DIR:-${HOME}/.local/share/sparktalk}/cache/qwen38-fp4-local-triton:/root/.triton
+    entrypoint:
+    - vllm
+    command:
+    - serve
+    - /model
+    - --served-model-name
+    - edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-FP4-Local
+    - --host
+    - 0.0.0.0
+    - --port
+    - '8000'
+    - --tensor-parallel-size
+    - '1'
+    - --pipeline-parallel-size
+    - '1'
+    - --mamba-cache-mode
+    - align
+    - --enable-prefix-caching
+    - --enable-chunked-prefill
+    - --dtype
+    - bfloat16
+    - --kv-cache-dtype
+    - fp8
+    - --quantization
+    - modelopt_mixed
+    - --block-size
+    - '16'
+    - --load-format
+    - b12x
+    - --max-model-len
+    - '1048576'
+    - --max-num-seqs
+    - '1'
+    - --max-num-batched-tokens
+    - '4096'
+    - --speculative-config
+    - '{"method":"mtp","num_speculative_tokens":4}'
+    - --gdn-decode-kernel
+    - b12x
+    - --linear-backend
+    - b12x
+    - --moe-backend
+    - b12x
+    - --no-enable-flashinfer-autotune
+    - --mm-encoder-tp-mode
+    - data
+    - --reasoning-parser
+    - qwen3
+    - --tool-call-parser
+    - qwen3_xml
+    - --enable-auto-tool-choice
+    - --compilation-config
+    - '{"pass_config":{"fuse_act_quant":true}}'
+    - --gpu-memory-utilization
+    - '0.8'
+    healthcheck:
+      test:
+      - CMD
+      - python3
+      - -c
+      - import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health',
+        timeout=5)
+      interval: 15s
+      timeout: 10s
+      retries: 120
+      start_period: 30m

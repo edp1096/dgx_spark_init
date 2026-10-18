@@ -128,6 +128,22 @@ class LocalTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             Checkpoint(p)
 
+    def test_index_nested_shards_and_unsafe_paths(self):
+        p = self.root/'nested'
+        (p/'tensors').mkdir(parents=True)
+        shard(p/'tensors/model.safetensors', {'a': ('BF16', [1], b'\x80\x3f')})
+        index = p/'model.safetensors.index.json'
+        index.write_text(json.dumps({'weight_map': {'a': 'tensors/model.safetensors'}}))
+        cp = Checkpoint(p)
+        self.assertEqual(b''.join(cp.blocks('a')), b'\x80\x3f')
+        for name in ['/model.safetensors', 'tensors/../model.safetensors',
+                     './model.safetensors', 'tensors//model.safetensors',
+                     'C:/model.safetensors', 'tensors\\model.safetensors']:
+            with self.subTest(name=name):
+                index.write_text(json.dumps({'weight_map': {'a': name}}))
+                with self.assertRaises(ValueError):
+                    Checkpoint(p)
+
 
 if __name__ == '__main__':
     unittest.main()

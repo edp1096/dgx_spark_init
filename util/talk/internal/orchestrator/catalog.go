@@ -217,7 +217,7 @@ func ValidateCatalog(catalog Catalog) (Catalog, error) {
 			qualified := false
 			for _, id := range bundle.Components {
 				x := bundle.Bindings[id].Apply(catalog.byComponent[id])
-				if x.ServiceRole() == "llm" && (x.ComposeAsset == "compose.flash-next.yaml" || x.ComposeAsset == "compose.qwen38fn_exl3.yaml" || x.ComposeAsset == "compose.qwen38fn_exl3_q4.yaml") {
+				if x.ServiceRole() == "llm" && (x.ComposeAsset == "compose.flash-next.yaml" || x.ComposeAsset == "compose.qwen-fp4-local.yaml" || x.ComposeAsset == "compose.qwen38fn_exl3.yaml" || x.ComposeAsset == "compose.qwen38fn_exl3_q4.yaml") {
 					qualified = true
 				}
 			}

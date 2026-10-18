@@ -1,0 +1,121 @@
+{
+  "completed_at": "2026-10-16T16:40:54.415356+00:00",
+  "status": "passed",
+  "scope": "Standalone Compose and running Talk integration; original model quality findings retained.",
+  "model_id": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-FP4-Local",
+  "bundle_id": "flash-next-fp4-local",
+  "display_name": "Qwen 3.8 Flash-Next FP4-Local",
+  "request_profile": "qwen3.8-vllm",
+  "compose": "compose_yaml/qwen38_fn_fp4_local_vllm/compose.yaml",
+  "embedded_compose": "util/talk/internal/orchestrator/assets/compose.qwen-fp4-local.yaml",
+  "checkpoint_local_only": true,
+  "runtime": {
+    "image_id": "sha256:6f7fa43422080b2957b1d669ff21406240db77627ee3e42fc32bf5860a392bed",
+    "network_mode": "bridge",
+    "context": 1048576,
+    "kv_capacity_tokens": 1385768,
+    "mtp_draft_tokens": 4,
+    "kv_dtype": "fp8",
+    "runtime_config_sha256": "e80038e1bf8879e3d022c8c68c33fe1105e521849230213e253e83a9856a26e8"
+  },
+  "validation": {
+    "go_packages": [
+      "internal/config",
+      "internal/orchestrator",
+      "internal/llm",
+      "internal/server"
+    ],
+    "go_package_tests": "passed",
+    "embedded_support_and_recipe_checks": "passed",
+    "go_build": "passed",
+    "model_prepare_python_tests": 5,
+    "web_tests": 135,
+    "web_build": "passed",
+    "compose_config": "passed",
+    "real_local_checkpoint_preparation": "passed",
+    "talk_thinking_modes": [
+      {
+        "effort": "none",
+        "passed": true,
+        "seconds": 5.703637721017003
+      },
+      {
+        "effort": "low",
+        "passed": true,
+        "seconds": 7.8421988701447845
+      },
+      {
+        "effort": "medium",
+        "passed": true,
+        "seconds": 9.929794338997453
+      },
+      {
+        "effort": "xhigh",
+        "passed": true,
+        "seconds": 8.662290601991117
+      }
+    ],
+    "tts": {
+      "tts_http_status": 200,
+      "sample_rate": 24000,
+      "pcm_bytes": 215040,
+      "audio_seconds": 4.48,
+      "rms": 2895.98482932453
+    },
+    "asr": {
+      "text": "안녕하세요. 모델 연결확인입니다.",
+      "language": ""
+    },
+    "llm_kept_running_during_speech": true,
+    "production_model_preparation": "complete",
+    "production_ui_new_set_visible": true,
+    "browser_page_errors": 0
+  },
+  "deployment": {
+    "before": {
+      "startup_bundle": "flash-next-radixark",
+      "active_bundle": "flash-next-radixark",
+      "auto_start": false,
+      "memory_reserve_gib": 1.5,
+      "default_model": "edp1096/Huihui-RadixArk-Qwen3.8-Flash-Next-abliterated-NVFP4",
+      "model_type": "qwen3.8",
+      "reasoning_effort": "medium",
+      "asr_enabled": true,
+      "tts_enabled": false
+    },
+    "old_binary_sha256": "5f050d58a2a417eba916ae43527611bfa268f9be129276830a4e094ed4b1381b",
+    "new_binary_sha256": "883a8fd50c1f5fe8b694576945c4808b3501f01d0b965d69b5d064fb190a0b4e",
+    "old_config_sha256": "ec46c76226b1c158972cfd8954b45c52aec5a98aed79ddd8a54b3f7c162d2f70",
+    "pid": 2069996,
+    "started": 1792168721.7049606,
+    "status": "deployed",
+    "builtin_revision": 43,
+    "new_set_present": true,
+    "selection_and_preferences_preserved": true
+  },
+  "final_state": {
+    "test_server_stopped": true,
+    "language_and_speech_models_stopped": true,
+    "production_port": 8585,
+    "production_pid": 2069996,
+    "selected_bundle": "flash-next-radixark",
+    "startup_bundle": "flash-next-radixark",
+    "auto_start": false,
+    "support_services_running": [
+      "sparktalk-extra-media",
+      "sparktalk-extra-ssh"
+    ]
+  },
+  "original_model_quality": {
+    "status": "completed_with_findings",
+    "passed_checks": 14,
+    "total_checks": 15,
+    "failure": "Correct arithmetic result but violated an integer-only final-answer instruction. Integration does not change this result."
+  },
+  "notes": [
+    "Uses the same tested runtime image/configuration as the completed 1M GPU qualification. No repeat 1M benchmark was needed for this wiring change.",
+    "B12X and Triton compiler artifacts were reused; checkpoint packing caches remain separate.",
+    "Single-container Compose reuses the default Docker bridge, avoiding exhausted new subnet allocation without pruning existing networks.",
+    "No Hugging Face upload, container publication or git commit was performed."
+  ]
+}

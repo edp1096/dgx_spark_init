@@ -11,6 +11,7 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"sparktalk/internal/db"
 	"sparktalk/internal/llm"
 	"sparktalk/internal/performance"
 	"sparktalk/internal/sourcebook"
@@ -27,7 +28,14 @@ func (s *Server) runDocument(ctx context.Context, run workflows.Run) {
 	baseElapsed := run.Document.ElapsedSeconds
 	var nativeBase, nativeClient *llm.Client
 	fail := func(status string, e error) {
+		if errors.Is(e, db.ErrStaleDocumentExecution) {
+			return
+		}
 		run.Status = status
+		if run.Document.Pipeline == workflows.DocumentTermsVersion {
+			run.Document.Terminal = false
+			run.Document.FinishedAt = ""
+		}
 		run.Document.Performance = nil
 		run.Document.Error = e.Error()
 		run.Document.ElapsedSeconds = baseElapsed + int(time.Since(started).Seconds())
@@ -263,7 +271,7 @@ func (s *Server) runDocument(ctx context.Context, run workflows.Run) {
 				run.Document.Error = ""
 				continue
 			}
-			updateDocumentGlossary(run.Document, result)
+			updateDocumentGlossary(run.Document, result, requestUnit)
 			before := make([]workflows.DocumentUnit, 0, len(batchIndices))
 			changed := make([]workflows.DocumentUnit, 0, len(batchIndices))
 			for _, i := range batchIndices {
@@ -399,7 +407,7 @@ func (s *Server) runDocument(ctx context.Context, run workflows.Run) {
 			}
 		}
 
-		updateDocumentGlossary(run.Document, result)
+		updateDocumentGlossary(run.Document, result, *unit)
 		markDocumentUnitComplete(run, unit, attempt)
 		if run.Document.Kind == "translate" {
 			run.Document.ContextTail = documentContextTail(*unit)
@@ -423,6 +431,31 @@ func (s *Server) runDocument(ctx context.Context, run workflows.Run) {
 		case <-ctx.Done():
 			t.Stop()
 		case <-t.C:
+		}
+	}
+	if run.Document.Pipeline == workflows.DocumentTermsVersion {
+		if e = s.processDocumentTerms(ctx, &run, units, started, baseElapsed); e != nil {
+			status := "paused"
+			if errors.Is(e, errDocumentModelChanged) {
+				status = "waiting_model"
+			}
+			fail(status, e)
+			return
+		}
+		if !run.Document.Terms.Repair {
+			run.Current = 2
+			run.Document.Terminal = true
+			run.Document.Phase = "completed"
+			run.Document.FinishedAt = time.Now().UTC().Format(time.RFC3339Nano)
+			run.Status = "completed"
+			if run.Document.Terms.Unresolved > 0 {
+				run.Status = "needs_review"
+			}
+			for i := range run.Steps {
+				run.Steps[i].Status = "completed"
+			}
+			_ = s.db.SaveDocumentProgress(&run)
+			return
 		}
 	}
 	run.Current = 1
@@ -455,6 +488,29 @@ func (s *Server) runDocument(ctx context.Context, run workflows.Run) {
 			run.Document.Warnings = latest.Document.Warnings
 		}
 	}
+	if run.Document.Terms != nil && run.Document.Terms.Repair {
+		for _, format := range run.Document.Terms.Formats {
+			if format == run.Document.RequestedFormat {
+				continue
+			}
+			run.Current = 2
+			run.Document.Phase = "convert"
+			if e = s.db.SaveDocumentProgress(&run); e != nil {
+				fail("failed", e)
+				return
+			}
+			if e = s.convertDocumentTask(ctx, run, format); e != nil {
+				if ctx.Err() != nil {
+					fail("paused", ctx.Err())
+					return
+				}
+				run.Document.Warnings = append(run.Document.Warnings, "requested "+format+" conversion failed: "+e.Error())
+			} else if latest, err := s.db.DocumentRun(run.SessionID, run.ID); err == nil {
+				run.Document.Formats = latest.Document.Formats
+				run.Document.Warnings = latest.Document.Warnings
+			}
+		}
+	}
 	for _, u := range units {
 		run.Document.Warnings = append(run.Document.Warnings, u.Warnings...)
 	}
@@ -476,6 +532,27 @@ func (s *Server) runDocument(ctx context.Context, run workflows.Run) {
 	run.Document.ElapsedSeconds = baseElapsed + int(time.Since(started).Seconds())
 	run.Document.Error = ""
 	run.Document.Phase = "completed"
+	if run.Document.Pipeline == workflows.DocumentTermsVersion {
+		run.Document.Terminal = true
+		run.Document.FinishedAt = time.Now().UTC().Format(time.RFC3339Nano)
+		text, _, err := s.db.DocumentOutput(run.SessionID, run.ID, "output.txt")
+		if err != nil {
+			fail("failed", err)
+			return
+		}
+		names := []string{"output.txt", "output.md", "output.html", "output.zip"}
+		for _, format := range run.Document.Formats {
+			if format == "pdf" || format == "docx" || format == "hwp" || format == "hwpx" {
+				if _, _, err := s.db.DocumentOutput(run.SessionID, run.ID, "output."+format); err == nil {
+					names = append(names, "output."+format)
+				}
+			}
+		}
+		if err = s.db.PublishDocumentRevision(&run, names, documentTextHash(string(text))); err != nil {
+			fail("failed", err)
+			return
+		}
+	}
 	if e = s.db.SaveDocumentProgress(&run); e != nil {
 		fail("failed", e)
 	}
@@ -496,6 +573,9 @@ func requestDocumentUnit(ctx context.Context, client *llm.Client, run workflows.
 	input, _ := json.Marshal(entries)
 	previousContext := run.Document.ContextTail
 	previousContext += run.Document.EntityContext
+	if run.Document.Terms != nil {
+		previousContext = ""
+	}
 	glossary, _ := json.Marshal(activeDocumentGlossary(run.Document))
 	pinnedGlossary, _ := json.Marshal(run.Document.UserGlossary)
 	sourceURLs, _ := json.Marshal(run.Document.SourceURLs)
@@ -521,6 +601,9 @@ func requestDocumentUnit(ctx context.Context, client *llm.Client, run workflows.
 			}
 		}
 	}
+	if run.Document.Terms != nil {
+		operation += " Record newly observed proper names of people, animals, places, organizations and titled works with source evidence in terms. These are unverified candidates, not authoritative spellings."
+	}
 	properties := map[string]any{}
 	for _, id := range ids {
 		properties[id] = map[string]string{"type": "string"}
@@ -531,6 +614,9 @@ func requestDocumentUnit(ctx context.Context, client *llm.Client, run workflows.
 	schemaMap["properties"].(map[string]any)["terms"] = map[string]any{"type": "array", "maxItems": 16, "items": map[string]any{"type": "object", "properties": map[string]any{"source": map[string]string{"type": "string"}, "target": map[string]string{"type": "string"}, "kind": map[string]any{"type": "string", "enum": []string{"person", "place", "organization", "other"}}}, "required": []string{"source", "target", "kind"}, "additionalProperties": false}}
 	if run.Document.Pipeline != "" {
 		schemaMap["properties"].(map[string]any)["terms"] = documentEntityTermSchema(ids)
+		if run.Document.Terms != nil {
+			schemaMap["required"] = []string{"entries", "terms"}
+		}
 	}
 	schema, _ = json.Marshal(schemaMap)
 
@@ -980,7 +1066,13 @@ func (s *Server) exportDocument(ctx context.Context, run workflows.Run, units []
 	}
 	return nil
 }
-func updateDocumentGlossary(task *workflows.DocumentTask, result llm.StreamResult) {
+func updateDocumentGlossary(task *workflows.DocumentTask, result llm.StreamResult, units ...workflows.DocumentUnit) {
+	if task.Terms != nil {
+		for _, unit := range units {
+			task.Terms.Candidates = append(task.Terms.Candidates, documentEntityCandidates(unit, result, task.Terms.Candidates)...)
+		}
+		return
+	}
 	raw := result.Content
 	if len(result.ToolCalls) == 1 {
 		raw = result.ToolCalls[0].Function.Arguments
@@ -1053,6 +1145,9 @@ func documentOutputBudget(run workflows.Run, u workflows.DocumentUnit) int {
 func activeDocumentGlossary(task *workflows.DocumentTask) map[string]string {
 	out := map[string]string{}
 	for source, target := range task.Glossary {
+		if task.Terms != nil {
+			continue
+		}
 		kind := task.GlossaryKinds[source]
 		if kind == "person" || kind == "place" || kind == "organization" {
 			out[source] = target

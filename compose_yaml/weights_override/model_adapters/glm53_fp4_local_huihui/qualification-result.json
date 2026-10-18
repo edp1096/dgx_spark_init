@@ -1,0 +1,219 @@
+{
+  "status": "passed",
+  "runtime_validated": true,
+  "created": 1792262075.204669,
+  "scope": "Eight synthetic runtime smoke checks, including vision and 64,481-token input; not a general quality benchmark or behavioral equivalence proof.",
+  "source_base": {
+    "repo": "nvidia/GLM-5.3-Flash-FP4-Local",
+    "revision": "76348ddb2be2e35e39ecfc00e75dc07703f4f3d5"
+  },
+  "projection_count": 44,
+  "changed_weight_tensors": 44,
+  "changed_scale_tensors": 22,
+  "total_tensor_count": 295041,
+  "preserved_tensor_count": 294975,
+  "complete_shard_hashes_verified_on_both_nodes": 42,
+  "prequalification_manifest_sha256": "54cc48d5f42a54982164bc67c90b8432e488daf148730aefaf0b40ae07e1ebd1",
+  "case_results": [
+    {
+      "id": "arithmetic",
+      "passed": true,
+      "seconds": 0.8992348401807249,
+      "usage": {
+        "prompt_tokens": 35,
+        "total_tokens": 46,
+        "completion_tokens": 11,
+        "prompt_tokens_details": null,
+        "completion_tokens_details": {
+          "reasoning_tokens": 7
+        }
+      }
+    },
+    {
+      "id": "korean",
+      "passed": true,
+      "seconds": 5.731417756062001,
+      "usage": {
+        "prompt_tokens": 50,
+        "total_tokens": 181,
+        "completion_tokens": 131,
+        "prompt_tokens_details": null,
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      }
+    },
+    {
+      "id": "code",
+      "passed": true,
+      "seconds": 1.038217101013288,
+      "usage": {
+        "prompt_tokens": 69,
+        "total_tokens": 97,
+        "completion_tokens": 28,
+        "prompt_tokens_details": null,
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      }
+    },
+    {
+      "id": "structured_json",
+      "passed": true,
+      "seconds": 1.277458465890959,
+      "usage": {
+        "prompt_tokens": 33,
+        "total_tokens": 46,
+        "completion_tokens": 13,
+        "prompt_tokens_details": null,
+        "completion_tokens_details": {
+          "reasoning_tokens": 2
+        }
+      }
+    },
+    {
+      "id": "tool",
+      "passed": true,
+      "seconds": 1.276190770091489,
+      "usage": {
+        "prompt_tokens": 203,
+        "total_tokens": 222,
+        "completion_tokens": 19,
+        "prompt_tokens_details": null,
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      }
+    },
+    {
+      "id": "vision",
+      "passed": true,
+      "seconds": 1.7988569741137326,
+      "usage": {
+        "prompt_tokens": 155,
+        "total_tokens": 201,
+        "completion_tokens": 46,
+        "prompt_tokens_details": null,
+        "completion_tokens_details": {
+          "reasoning_tokens": 16
+        }
+      }
+    },
+    {
+      "id": "long_retrieval",
+      "passed": true,
+      "seconds": 43.9001916279085,
+      "usage": {
+        "prompt_tokens": 64481,
+        "total_tokens": 64536,
+        "completion_tokens": 55,
+        "prompt_tokens_details": null,
+        "completion_tokens_details": {
+          "reasoning_tokens": 36
+        }
+      }
+    },
+    {
+      "id": "post_long",
+      "passed": true,
+      "seconds": 0.40979832992888987,
+      "usage": {
+        "prompt_tokens": 35,
+        "total_tokens": 38,
+        "completion_tokens": 3,
+        "prompt_tokens_details": null,
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      }
+    }
+  ],
+  "max_configured_model_length": 1048576,
+  "largest_tested_prompt_tokens": 64481,
+  "one_million_token_request_tested": false,
+  "loaded_model_memory_GiB_per_node_from_engine": 83.62,
+  "memory": {
+    "head": {
+      "startup_min_host_available_bytes": 752766976,
+      "test_window_min_host_available_bytes": 12580474880,
+      "host_available_after_shutdown_bytes": 125944819712,
+      "host_swap_in_pages_during_attempt": 259662,
+      "host_swap_out_pages_during_attempt": 167258,
+      "sample_count": 836,
+      "final_container_state": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 0,
+        "Error": "",
+        "StartedAt": "2026-10-17T18:19:42.521174783Z",
+        "FinishedAt": "2026-10-17T18:33:37.733044817Z"
+      }
+    },
+    "worker": {
+      "startup_min_host_available_bytes": 4396806144,
+      "test_window_min_host_available_bytes": 15505498112,
+      "host_available_after_shutdown_bytes": 126406033408,
+      "host_swap_in_pages_during_attempt": 0,
+      "host_swap_out_pages_during_attempt": 347,
+      "sample_count": 846,
+      "final_container_state": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 0,
+        "Error": "",
+        "StartedAt": "2026-10-17T18:19:42.20227682Z",
+        "FinishedAt": "2026-10-17T18:33:50.855025361Z"
+      }
+    }
+  },
+  "startup_notes": {
+    "initial_attempt": "Stopped by the task-owned host-memory guard during weight postprocessing; no runtime prompts were attempted.",
+    "successful_attempt": "Used PYTORCH_ALLOC_CONF=backend:native,garbage_collection_threshold:0.7; unchanged weight files and unchanged memory guard.",
+    "limitation": "Cold-start postprocessing briefly reduced head host MemAvailable below 1 GiB and caused some host swapping. Runtime smoke checks completed with the memory headroom recorded above.",
+    "allocator_documentation": "https://docs.pytorch.org/docs/stable/notes/cuda"
+  },
+  "report_sha256": "30cd1213f49f262924f66a88facfda13f57170b050e693686f6c66a38b340933",
+  "protocol_sha256": "132d9c3fb60d93e4c25b3b246147745a48ef027f05d305d8723924dae9fe8074",
+  "runtime_configuration_sha256": "87589ba90599047bacbd6a18c20488757347d81dd9b6ace061554ff5335e8367",
+  "completion": {
+    "time": 1792262193.982892,
+    "production_talk_configuration_unchanged": true,
+    "running_containers_unchanged": {
+      "head": true,
+      "worker": true
+    },
+    "temporary_model_copy_removed": true,
+    "temporary_rail_addresses_removed": true,
+    "old_models": {
+      "nvidia/GLM-5.3-Flash-NVFP4": {
+        "unchanged": true,
+        "checked_files": 44,
+        "mismatches": []
+      },
+      "edp1096/Huihui-GLM-5.3-Flash-abliterated-NVFP4": {
+        "unchanged": true,
+        "checked_files": 48,
+        "mismatches": []
+      }
+    },
+    "new_model": {
+      "path": "/home/edp1096/.cache/huggingface/edp1096/Huihui-GLM-5.3-Flash-abliterated-FP4-Local",
+      "runtime_validated": true,
+      "runtime_status": "passed",
+      "shards": 42,
+      "weight_bytes": 177463841024,
+      "total_bytes": 177520702179,
+      "transfer_manifest_sha256": "1764605cc97c001b2e1a0a1f4c37ef118ab39ecd606e040bfdf7122a8f442e25"
+    }
+  }
+}

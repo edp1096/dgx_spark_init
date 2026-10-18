@@ -173,7 +173,10 @@ func Open(path string) (*DB, error) {
 	if strings.Contains(dsn, "?") {
 		separator = "&"
 	}
-	dsn += separator + "_pragma=foreign_keys(1)&_pragma=busy_timeout(5000)"
+	// Reserve a writer before reading its checkpoint. A deferred read snapshot
+	// cannot be upgraded after another writer commits, even with busy_timeout.
+	// Snapshot-only consumers explicitly use ReadOnly transactions below.
+	dsn += separator + "_pragma=foreign_keys(1)&_pragma=busy_timeout(5000)&_txlock=immediate"
 	conn, err := sql.Open("sqlite", dsn)
 	if err != nil {
 		return nil, err

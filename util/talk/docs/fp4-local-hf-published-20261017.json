@@ -1,0 +1,19 @@
+{
+  "status": "complete",
+  "repo_id": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-FP4-Local",
+  "revision": "d1ec8b01dd859336d7905db2ad2ceb725146008c",
+  "commit_url": "https://huggingface.co/edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-FP4-Local/commit/d1ec8b01dd859336d7905db2ad2ceb725146008c",
+  "url": "https://huggingface.co/edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-FP4-Local",
+  "private": false,
+  "verified_files": 55,
+  "verified_weight_shards": 21,
+  "total_bytes": 102267494007,
+  "runtime_qualification_status": "completed_with_findings",
+  "completed_at": 1792171063.6274576,
+  "anonymous_access_verified": true,
+  "anonymous_metadata_hashes_verified": 55,
+  "anonymous_downloads_verified": [
+    "README.md",
+    "runtime-qualification.json"
+  ]
+}

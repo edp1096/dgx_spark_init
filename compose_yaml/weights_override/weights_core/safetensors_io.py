@@ -87,8 +87,11 @@ class Checkpoint:
         if not shards:
             raise ValueError(f'No local safetensors: {self.root}')
         for shard in shards:
-            # HF snapshot symlinks are legitimate; index path traversal is not.
-            if Path(shard).name != shard or not shard.endswith('.safetensors'):
+            # HF checkpoints may use a tensors/ subdirectory, and snapshot
+            # symlinks are legitimate. Index path traversal is never allowed.
+            if (not isinstance(shard, str) or '\\' in shard or ':' in shard
+                    or any(part in ('', '.', '..') for part in shard.split('/'))
+                    or not shard.endswith('.safetensors')):
                 raise ValueError(f'Invalid shard filename: {shard}')
             header, start = read_header(self.root / shard)
             for name, tensor in header.items():

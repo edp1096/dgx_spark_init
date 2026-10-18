@@ -319,6 +319,10 @@ func (c *Config) Normalize() {
 	if c.Runtime.BuiltinRevision < 42 {
 		c.Runtime.BuiltinRevision = 42
 	}
+	if c.Runtime.BuiltinRevision < 43 {
+		c.addQwenFP4LocalSet()
+		c.Runtime.BuiltinRevision = 43
+	}
 	c.removeRetiredRuntimes()
 	c.normalizeRuntimeDisplayNames()
 	if catalog, err := orchestrator.ValidateCatalog(*c.Runtime.Catalog); err == nil {
@@ -345,7 +349,7 @@ func (c *Config) Normalize() {
 	c.Model.DefaultModel = strings.TrimSpace(c.Model.DefaultModel)
 	c.Model.ModelType = strings.ToLower(strings.TrimSpace(c.Model.ModelType))
 	switch c.Model.ModelType {
-	case "qwen3.5", "qwen3.8", "qwen3.8-gguf", "qwen38fn_exl3", "gemma4", "gemma4-vllm", "glm5.3", "deepseek-v4", "generic":
+	case "qwen3.5", "qwen3.8", "qwen3.8-vllm", "qwen3.8-gguf", "qwen38fn_exl3", "gemma4", "gemma4-vllm", "glm5.3", "deepseek-v4", "generic":
 	default:
 		c.Model.ModelType = "generic"
 	}

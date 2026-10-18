@@ -600,7 +600,7 @@ func normalizeReasoningEffort(modelType, value string) string {
 		default:
 			return "max"
 		}
-	case "qwen3.8":
+	case "qwen3.8", "qwen3.8-vllm":
 		switch value {
 		case "none", "low", "medium", "xhigh":
 			return value
@@ -609,7 +609,7 @@ func normalizeReasoningEffort(modelType, value string) string {
 		case "0", "0.0", "off", "false", "no_think", "disabled":
 			return "none"
 		default:
-			return "low"
+			return "medium"
 		}
 	case "qwen3.8-gguf", "qwen38fn_exl3":
 		switch value {
@@ -620,7 +620,7 @@ func normalizeReasoningEffort(modelType, value string) string {
 		case "on", "high":
 			return "xhigh" // Legacy on used the template's xhigh default.
 		default:
-			return "low"
+			return "medium"
 		}
 	case "gemma4", "gemma4-vllm", "qwen3.5":
 		switch value {

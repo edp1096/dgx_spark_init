@@ -35,7 +35,9 @@ func TestEXL3Q4MigrationAndProfile(t *testing.T) {
 	for i, b := range cfg.Runtime.Catalog.Bundles {
 		pos[b.ID] = i
 	}
-	if pos["qwen38fn_exl3_q4"] != pos["qwen38fn_exl3"]+1 || pos["flash-next-radixark"] != pos["qwen38fn_exl3_q4"]+1 {
+	if pos["qwen38fn_exl3_q4"] != pos["qwen38fn_exl3"]+1 ||
+		pos["flash-next-fp4-local"] != pos["qwen38fn_exl3_q4"]+1 ||
+		pos["flash-next-radixark"] != pos["flash-next-fp4-local"]+1 {
 		t.Fatal("selector order", pos)
 	}
 	old, _ := cfg.Runtime.Catalog.Bundle("qwen38fn_exl3")

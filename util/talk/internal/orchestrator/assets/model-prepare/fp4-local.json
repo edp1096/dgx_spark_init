@@ -1,0 +1,14 @@
+{
+  "repo": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-FP4-Local",
+  "path": "/hf/edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-FP4-Local",
+  "local_only": true,
+  "sha256": {
+    "config.json": "b50dbc52a0c83b0cd2a44a372c1fb6b5e0e6827d22f2611c97d4d030f92f6b28",
+    "model.safetensors.index.json": "5fa166bbb1cf25adda455117563efa72a2072272001f459eedece131ffc913e1",
+    "tokenizer.json": "0997f410c57a1f4e53b09e4be8f4a172d90edd9564368fb0847030937229b9f3",
+    "tokenizer_config.json": "b11349aafa7cdc6a320767cf7ceb29ed82f7eda5d65e8e0819e76f0ce947bf27",
+    "chat_template.jinja": "c3cf9e34abf4f9e36c2d72165aa9c132d3e2a725b6c2586aaa3a8af9d7a81041",
+    "source-audit.json": "e0d0bc38b1fe300ab92264035e5f8bf7c3e850c0f0ede6f7918d94893361f281",
+    "qualification/build-transfer-manifest.json": "a8964de5b214ef02fe55091ee5952a126f75d96b66bc37ad30f90863b5caa075"
+  }
+}

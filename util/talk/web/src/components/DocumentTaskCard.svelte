@@ -24,15 +24,15 @@
   $: elapsed = (task.elapsed_seconds || 0) + (active ? Math.max(0, (now - new Date(run.updated).getTime()) / 1000) || 0 : 0);
   $: sourceTitle = Object.values(task.source_titles || {}).join(' · ');
   $: activity = ({ waiting: '모델 응답 대기 중', retrying: '구간 재시도 준비 중', reasoning: '모델 추론 중', answer: '결과 생성 중' })[task.activity] || '처리 중';
-  $: phase = ({ translate: '원문 번역 중', review: '원문 대조 검수 중', repair: '문제 문단 교정 중', synthesis: '결과 종합 중', export: '결과 파일 생성 중', convert: '문서 형식 변환 중' })[task.phase];
+  $: phase = ({ language_check: '번역 언어 확인 중', language_verify: '번역 어휘 교정 확인 중', terms_extract: '원문과 표기 대조 중', terms_decide: '표기 충돌 확인 중', terms_repair: '표기 교정 중', terms_verify: '교정 결과 확인 중', translate: '원문 번역 중', review: '원문 대조 검수 중', repair: '문제 문단 교정 중', synthesis: '결과 종합 중', export: '결과 파일 생성 중', convert: '문서 형식 변환 중' })[task.phase];
   $: base = `/api/document-tasks/${encodeURIComponent(run.id)}`;
   $: query = `session_id=${encodeURIComponent(sessionId)}`;
   $: draft = task.pipeline && !task.publication && !!task.draft_publication;
   $: exported = task.pipeline ? !!task.publication || draft : run.current >= 2;
   $: downloadBase = draft ? `${base}/draft` : base;
   $: finishedAt = task.finished_at || run.updated;
-  $: progressDone = task.pipeline ? task.completed + (task.reviewed || 0) : task.completed;
-  $: progressTotal = task.pipeline ? task.total + (task.review_total || 0) : task.total;
+  $: progressDone = task.terms ? task.completed + task.terms.checked + (task.terms.language?.checked || 0) : task.pipeline ? task.completed + (task.reviewed || 0) : task.completed;
+  $: progressTotal = task.terms ? task.total + (task.terms.cases?.length || 0) + (task.terms.language?.records?.length || 0) : task.pipeline ? task.total + (task.review_total || 0) : task.total;
   $: budgetReached = task.elapsed_seconds >= task.max_seconds || task.calls >= task.max_calls || task.output_tokens >= task.max_output_tokens;
   $: percent = progressTotal > 0 ? Math.min(100, Math.max(0, Math.floor(progressDone * 100 / progressTotal))) : 0;
 
@@ -80,7 +80,7 @@
       <strong>{labels[task.kind] || task.kind}</strong>
       {#if sourceTitle}<p class="source-title" title={sourceTitle}>{sourceTitle}</p>{/if}
     </div>
-    <span class="task-status" class:attention={!active && run.status !== 'canceled' && (!finished || task.pipeline && task.quality_status !== 'reviewed')}>{finished ? documentTaskCompletionLabel(run) : states[run.status] || run.status}</span>
+    <span class="task-status" class:attention={!active && run.status !== 'canceled' && (!finished || (task.terms ? task.terms.unresolved > 0 : task.pipeline && task.quality_status !== 'reviewed'))}>{finished ? documentTaskCompletionLabel(run) : states[run.status] || run.status}</span>
   </header>
 
   <div class="task-progress-label">
@@ -88,7 +88,9 @@
     {#if !finished}<span>{percent}%</span>{/if}
   </div>
   {#if !finished}<progress value={progressDone} max={Math.max(1, progressTotal)} aria-label="문서 처리 진행"></progress>{/if}
-  {#if task.pipeline}<p class="muted">검수 {task.reviewed || 0}/{task.review_total || 0}문단{#if task.unresolved} · 확인 필요 {task.unresolved}건{/if}</p>{/if}
+  {#if task.pipeline && !task.terms}<p class="muted">검수 {task.reviewed || 0}/{task.review_total || 0}문단{#if task.unresolved} · 확인 필요 {task.unresolved}건{/if}</p>{/if}
+  {#if task.terms}<p class="muted">표기 확인 {task.terms.checked}/{task.terms.cases?.length || 0}항목 · 교정 {task.terms.changed}문단{#if task.terms.unresolved} · 확인 필요 {task.terms.unresolved}곳{/if}{#if task.terms.layout_blocks} · 산문 줄바꿈 정리 {task.terms.layout_blocks}문단{/if}</p>{/if}
+  {#if task.terms?.language?.records?.length}<p class="muted">번역 언어 확인 {task.terms.language.checked}/{task.terms.language.records.length}문단</p>{/if}
   {#if active}<p class="task-activity" role="status"><span class="activity-dot" aria-hidden="true"></span>{phase || activity}{#if task.active_units?.length}<span class="muted"> · {task.active_units.join(', ')}구간</span>{/if}</p>{/if}
   {#if active && task.current_chapter}<p class="chapter" title={task.current_chapter}>{task.current_chapter}</p>{/if}
   <div class="document-timing">
@@ -100,6 +102,17 @@
     {#if task.last_performance}<div class="document-performance-last"><span class="speed-label">{active ? '직전 호출' : '최근 호출'}</span><InferenceMetrics performance={task.last_performance} /></div>{/if}
   </div>
 
+  {#if task.terms?.language?.records?.some(item => item.status === 'repaired' || item.status === 'uncertain')}
+    <details class="quality-results"><summary>번역 어휘 확인 결과</summary>
+      {#each task.terms.language.records.filter(item => item.status === 'repaired' || item.status === 'uncertain') as item}
+        <p><b>{item.ordinal + 1}구간 · {item.status === 'repaired' ? '교정' : '확인 필요'}</b></p>
+        {#each item.mentions as mention}
+          {#if item.checks?.[mention.id]?.status === 'translate'}<p>{mention.text} → {item.checks[mention.id].after}</p>{/if}
+        {/each}
+        <p class="muted">{item.reason}</p>
+      {/each}
+    </details>
+  {/if}
   {#if task.error}<p class="task-error" role="alert">{task.error}</p>{/if}
   {#if error}<p class="task-error" role="alert">{error}</p>{/if}
   {#if busy}<p class="muted" role="status">{operation === 'export' ? '문서 파일을 만드는 중입니다…' : '요청을 처리하는 중입니다…'}</p>{/if}
@@ -108,6 +121,7 @@
       <a class="primary" href={`${downloadBase}/output.zip?${query}`} download title="HTML 문서와 삽화를 ZIP으로 받기">{draft ? '본문 결과 받기' : '결과 받기'} <span class="file-type">ZIP</span></a>
       <button disabled={busy} aria-expanded={showFormats} aria-controls={`formats-${run.id}`} onclick={() => showFormats = !showFormats}>다른 형식 <span aria-hidden="true">{showFormats ? '⌃' : '⌄'}</span></button>
     {/if}
+    {#if finished && task.kind === 'translate'}<button disabled={busy || converting} title="이름 표기, 번역 언어 혼입, 산문 줄바꿈을 확인합니다" onclick={() => action('repair_terms')}>표기·어휘 교정</button>{/if}
     {#if active}<button disabled={busy} onclick={() => action('pause')}>일시정지</button>
     {:else if !finished && run.status !== 'canceled'}<button class="primary" disabled={busy} onclick={() => action('resume', budgetReached ? { extend_budget: true } : {})}>{run.status === 'conversion_failed' ? '파일 변환 재시도' : budgetReached ? '한도 연장 후 재개' : '재개'}</button>{/if}
     {#if !finished && run.status !== 'canceled'}<button class="quiet" disabled={busy} onclick={() => action('cancel')}>취소</button>{/if}
@@ -154,8 +168,17 @@
     </details>
   {/if}
 
-  {#if task.pipeline && finished && task.quality_status !== 'reviewed'}
+  {#if task.pipeline && !task.terms && finished && task.quality_status !== 'reviewed'}
     <div class="task-error"><p>검수에서 확인하지 못했거나 해결하지 못한 항목이 있습니다. 구간 결과에서 원문 근거와 지적 내용을 확인할 수 있습니다.</p><button disabled={busy} onclick={() => action('retry_quality')}>새 개정판으로 재검수</button></div>
+  {/if}
+  {#if task.terms?.cases?.length}
+    <details class="task-disclosure term-results"><summary>표기 확인 결과</summary>
+      <p class="muted">같은 대상을 가리키는 이름의 표기와 교정 결과입니다. 문서 전체의 의미 검수 결과와는 구분됩니다.</p>
+      {#each task.terms.cases as item}<details><summary>{item.source} · {item.status === 'unresolved' ? '확인 필요' : item.status === 'complete' ? '확인 완료' : '진행 중'}</summary>
+        {#each item.decisions || [] as decision}<p>선택한 표기: {decision.canonical || '판단 보류'}</p>{/each}
+        {#each item.references.filter(ref => ref.status === 'repaired' || ref.status === 'uncertain') as ref}<div class="review-finding"><p>구간 {ref.ordinal + 1} · {ref.forms?.join(' / ') || '표기 확인 중'} · {ref.status === 'repaired' ? '교정됨' : '확인 필요'}</p><blockquote>{ref.evidence}</blockquote>{#if ref.status === 'uncertain'}<p>{ref.reason}</p>{/if}{#each ref.patches || [] as patch}{#if ref.status === 'repaired'}<p>{patch.before} → {patch.after}</p>{/if}{/each}</div>{/each}
+      </details>{/each}
+    </details>
   {/if}
   <details class="task-disclosure task-details">
     <summary>작업 상세</summary>
@@ -163,7 +186,7 @@
       <div><dt>모델</dt><dd>{task.model}</dd></div>
       <div><dt>모델 호출</dt><dd>{task.calls}회</dd></div>
       {#if task.parent}<div><dt>이전 개정판</dt><dd><a href={`#document-task-${task.parent}`}>기존 결과 보기</a></dd></div>{/if}
-      {#each Object.entries(task.stage_metrics || {}) as [stage, metrics]}<div><dt>{{ translate: '번역', review: '검수', repair: '교정' }[stage] || stage}</dt><dd>{metrics.calls}회 · {formatElapsed(metrics.seconds)}{#if metrics.performance}<InferenceMetrics performance={metrics.performance} />{/if}</dd></div>{/each}
+      {#each Object.entries(task.stage_metrics || {}) as [stage, metrics]}<div><dt>{{ translate: '번역', review: '검수', repair: '교정', terms_extract: '표기 수집', terms_decide: '표기 판정', terms_repair: '표기 교정', terms_verify: '교정 확인', language_check: '번역 언어 확인', language_verify: '번역 어휘 검증' }[stage] || stage}</dt><dd>{metrics.calls}회 · {formatElapsed(metrics.seconds)}{#if metrics.performance}<InferenceMetrics performance={metrics.performance} />{/if}</dd></div>{/each}
       {#if task.profiles}<div><dt>단계별 추론</dt><dd>번역 {efforts[task.profiles.translate.effort] || task.profiles.translate.effort} · 검수 {efforts[task.profiles.review.effort] || task.profiles.review.effort} · 교정 {efforts[task.profiles.repair.effort] || task.profiles.repair.effort}</dd></div>{:else}<div><dt>추론 설정</dt><dd>{efforts[task.effort] || task.effort}{#if task.reasoning_budget_tokens} · 예산 {task.reasoning_budget_tokens.toLocaleString('ko-KR')}토큰{/if}</dd></div>{/if}
       {#if active && task.reasoning_chars}<div><dt>현재 추론</dt><dd>{task.reasoning_chars.toLocaleString('ko-KR')}자</dd></div>{/if}
       {#if active && task.content_chars}<div><dt>현재 출력</dt><dd>{task.content_chars.toLocaleString('ko-KR')}자</dd></div>{/if}

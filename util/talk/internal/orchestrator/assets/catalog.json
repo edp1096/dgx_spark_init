@@ -303,6 +303,23 @@
       "model": "google/embeddinggemma-2",
       "keep_resident": true,
       "start_after_llm": true
+    },
+    {
+      "id": "flash-next-fp4-local",
+      "name": "Qwen 3.8 Flash-Next FP4-Local",
+      "role": "llm",
+      "container": "vllm-qwen38-fp4-local",
+      "health_url": "http://127.0.0.1:18004/health",
+      "endpoint": "http://127.0.0.1:18004",
+      "port": 18004,
+      "model": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-FP4-Local",
+      "memory_gib": 103,
+      "startup_memory_gib": 116,
+      "workspace_memory_gib": 3,
+      "startup_timeout_seconds": 1800,
+      "compose_asset": "compose.qwen-fp4-local.yaml",
+      "progress_kind": "b12x",
+      "auto_address": true
     }
   ],
   "bundles": [
@@ -373,6 +390,41 @@
         "nemotron-asr": {
           "start_after_llm": true,
           "keep_resident": true
+        }
+      },
+      "workload_swap": true
+    },
+    {
+      "id": "flash-next-fp4-local",
+      "name": "Qwen 3.8 Flash-Next FP4-Local",
+      "description": "1× DGX Spark · FP4-Local · FP8 KV 1M · MTP 4 · ASR·TTS·Extra",
+      "model_type": "qwen3.8-vllm",
+      "model_id": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-FP4-Local",
+      "context_tokens": 1048576,
+      "components": [
+        "flash-next-fp4-local",
+        "nemotron-asr",
+        "qwen3-tts",
+        "extra-media",
+        "extra-ssh",
+        "extra-collector",
+        "extra-documents",
+        "extra-embedding"
+      ],
+      "bindings": {
+        "extra-embedding": {
+          "start_after_llm": true,
+          "keep_resident": false
+        },
+        "nemotron-asr": {
+          "start_after_llm": true,
+          "keep_resident": false
+        },
+        "qwen3-tts": {
+          "start_after_llm": true,
+          "keep_resident": false,
+          "memory_gib": 4,
+          "startup_memory_gib": 3
         }
       },
       "workload_swap": true

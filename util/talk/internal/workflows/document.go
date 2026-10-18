@@ -19,6 +19,7 @@ func (r Run) DocumentFinished() bool {
 // DocumentTask is the repeatable, read-only document phase of a workflow.
 // Effectful commands remain in the existing tool/approval workflow runner.
 type DocumentTask struct {
+	Terms                 *DocumentTerms                 `json:"terms,omitempty"`
 	Sampling              *llm.SamplingParameters        `json:"sampling,omitempty"`
 	OutputOnly            bool                           `json:"output_only,omitempty"`
 	FinishedAt            string                         `json:"finished_at,omitempty"`

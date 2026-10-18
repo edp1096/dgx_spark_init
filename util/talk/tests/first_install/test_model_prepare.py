@@ -68,4 +68,30 @@ class PreparationTests(unittest.TestCase):
             p.write_bytes(b'error page');self.assertFalse(mod.complete(root,item))
             p.write_bytes(b'GGUFdata');self.assertTrue(mod.complete(root,item))
 
+    def test_nested_fp4_local_shards_and_release_manifest(self):
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d);checkpoint(root)
+            (root/'tensors').mkdir();(root/'qualification').mkdir()
+            (root/'model.safetensors').rename(root/'tensors/model.safetensors')
+            index=root/'model.safetensors.index.json'
+            index.write_text(json.dumps({'weight_map':{'w':'tensors/model.safetensors'}}))
+            receipt=root/'qualification/build-transfer-manifest.json';receipt.write_text('{"verified":true}')
+            item={'path':str(root),'repo':'test/fp4','local_only':True,'sha256':{
+                'qualification/build-transfer-manifest.json':hashlib.sha256(receipt.read_bytes()).hexdigest()}}
+            with patch.dict('sys.modules',{'huggingface_hub':None}):
+                mod.prepare(item,'')
+            self.assertTrue(mod.complete(root,item))
+            data=(root/'tensors/model.safetensors').read_bytes()
+            (root/'tensors/model.safetensors').write_bytes(data[:-1])
+            self.assertFalse(mod.complete(root,item))
+            with self.assertRaisesRegex(RuntimeError,'Local-only'):
+                mod.prepare(item,'')
+            (root/'tensors/model.safetensors').write_bytes(data)
+            for unsafe in ['/model.safetensors','../model.safetensors','tensors/../model.safetensors',
+                           'tensors//model.safetensors','./tensors/model.safetensors',
+                           'C:/model.safetensors','tensors\\model.safetensors']:
+                with self.subTest(path=unsafe):
+                    index.write_text(json.dumps({'weight_map':{'w':unsafe}}))
+                    self.assertFalse(mod.complete(root,item))
+
 if __name__=='__main__':unittest.main()

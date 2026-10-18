@@ -5,7 +5,7 @@ const THINKING_OFF_VALUES = new Set(['', '0', '0.0', 'none', 'off', 'false', 'no
 
 export function modelCapabilities(modelType) {
   const inputType = String(modelType || '').trim().toLowerCase();
-  const type = inputType === 'qwen3.8-exl3' ? 'qwen38fn_exl3' : inputType;
+  const type = inputType === 'qwen3.8-exl3' ? 'qwen38fn_exl3' : inputType === 'qwen3.8-vllm' ? 'qwen3.8' : inputType;
   if (type === 'gemma4' || type === 'gemma4-vllm' || type === 'qwen3.5') {
     return { family: type === 'gemma4-vllm' ? 'gemma4' : type, reasoning: 'toggle', reasoningLevels: ['on', 'none'] };
   }
@@ -26,16 +26,16 @@ export function normalizeReasoningEffort(modelType, value) {
   const profile = modelCapabilities(modelType);
   const normalized = String(value || '').trim().toLowerCase();
   if (profile.family === 'qwen38fn_exl3') {
-    if (!normalized) return 'low';
+    if (!normalized) return 'medium';
     if (THINKING_OFF_VALUES.has(normalized)) return 'none';
     if (normalized === 'on' || normalized === 'high') return 'xhigh';
-    return profile.reasoningLevels.includes(normalized) ? normalized : 'low';
+    return profile.reasoningLevels.includes(normalized) ? normalized : 'medium';
   }
   if (profile.family === 'qwen3.8') {
-    if (!normalized) return 'low';
+    if (!normalized) return 'medium';
     if (THINKING_OFF_VALUES.has(normalized)) return 'none';
     if (normalized === 'on' || normalized === 'high') return 'medium';
-    return profile.reasoningLevels.includes(normalized) ? normalized : 'low';
+    return profile.reasoningLevels.includes(normalized) ? normalized : 'medium';
   }
   if (profile.family === 'glm5.3' || profile.family === 'deepseek-v4') {
     if (THINKING_OFF_VALUES.has(normalized)) return 'off';

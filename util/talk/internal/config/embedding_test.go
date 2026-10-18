@@ -27,6 +27,7 @@ func TestEmbeddingMigrationPreservesCoreAndScopesSearch(t *testing.T) {
 			}
 		}
 		b.Components = ids
+		delete(b.Bindings, "extra-embedding") // The simulated pre-embedding catalog has no binding either.
 	}
 	c.Normalize()
 	c.Normalize()

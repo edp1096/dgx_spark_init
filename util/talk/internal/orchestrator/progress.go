@@ -22,6 +22,8 @@ var structuredWeightProgressPattern = regexp.MustCompile(`(?m)^SGLANG_WEIGHT_PRO
 
 func inferProgress(component Component, logs string) progressInfo {
 	switch component.ProgressKind {
+	case "b12x":
+		return inferB12XProgress(logs)
 	case "vllm":
 		return inferVLLMProgress(logs)
 	case "sglang":

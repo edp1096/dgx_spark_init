@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sparktalk/internal/workflows"
 	"strconv"
 	"strings"
 )
@@ -26,6 +27,9 @@ func (s *Server) documentTaskAPI(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		a.Action = "start"
+		if a.Kind == "translate" {
+			a.Pipeline = workflows.DocumentTermsVersion
+		}
 		a.Key = r.Header.Get("Idempotency-Key")
 		run, e := s.documentAction(r.Context(), session, a)
 		if e != nil {

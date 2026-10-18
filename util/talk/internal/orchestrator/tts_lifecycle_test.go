@@ -178,3 +178,32 @@ func TestTTSIdleReclaimProtectsNativeAndTalkQueues(t *testing.T) {
 		})
 	}
 }
+
+func TestTTSColdAdmissionUsesQualifiedBudgetWithResidentPeers(t *testing.T) {
+	cat, err := LoadCatalog()
+	if err != nil {
+		t.Fatal(err)
+	}
+	tts, _ := cat.Component("qwen3-tts")
+	memory := SystemMemory{AvailableGiB: 18, FreeGiB: 6.5}
+	plan := memoryPlan{NeededGiB: tts.MemoryGiB, RequiresCUDAStart: true, MinimumCUDAFreeGiB: managedColdCUDAFreeGiB(tts)}
+	if err := validateMemoryHeadroom(memory, plan, 1.5); err != nil {
+		t.Fatalf("TTS inherited image bootstrap floor: %v", err)
+	}
+	memory.FreeGiB = 2
+	var cold *cudaStartMemoryError
+	if err := validateMemoryHeadroom(memory, plan, 1.5); !errors.As(err, &cold) {
+		t.Fatalf("unsafe cold CUDA admitted: %v", err)
+	}
+	memory.FreeGiB = 6.5
+	image, _ := cat.Component("qwim-mmh3")
+	plan.MinimumCUDAFreeGiB = managedColdCUDAFreeGiB(image)
+	if err := validateMemoryHeadroom(memory, plan, 1.5); !errors.As(err, &cold) {
+		t.Fatalf("image cold guard was relaxed: %v", err)
+	}
+	plan.RequiresCUDAStart = false
+	memory.AvailableGiB = 4
+	if err := validateMemoryHeadroom(memory, plan, 1.5); err == nil {
+		t.Fatal("serving headroom guard bypassed")
+	}
+}

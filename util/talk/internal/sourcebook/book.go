@@ -14,7 +14,7 @@ const MaxText = 4_000_000
 const MaxAssetBytes = 8 << 20
 const MaxAssetsBytes = 48 << 20
 const MaxAssets = 256
-const SnapshotVersion = 5
+const SnapshotVersion = 6
 
 type Block struct {
 	ID      string `json:"id"`
@@ -121,6 +121,7 @@ func Parse(data []byte, mime, base string, load Loader) (*Book, error) {
 			return nil, fmt.Errorf("source is not supported readable text")
 		}
 		s := strings.ReplaceAll(string(data), "\r\n", "\n")
+		b.Metadata = map[string]any{"source_format": "text"}
 		lines := strings.Split(s, "\n")
 		for _, line := range lines[:min(120, len(lines))] {
 			key, value, ok := strings.Cut(line, ":")
@@ -155,7 +156,7 @@ func Parse(data []byte, mime, base string, load Loader) (*Book, error) {
 			if b.Title == "" {
 				b.Title = line
 			}
-			b.Root.Children = append(b.Root.Children, &Node{Tag: kind, Whitespace: "pre-wrap", Children: []*Node{{Block: b.add(p, kind, chapter)}}})
+			b.Root.Children = append(b.Root.Children, &Node{Tag: kind, Whitespace: plainTextWhitespace(p, kind), Children: []*Node{{Block: b.add(p, kind, chapter)}}})
 		}
 	}
 	b.Text = b.builder.String()

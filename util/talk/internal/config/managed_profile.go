@@ -16,8 +16,8 @@ func (c *Config) SelectManagedBundle(bundle string) {
 	changed := c.Runtime.ActiveBundle != bundle
 	c.Runtime.ActiveBundle = bundle
 	c.Normalize()
-	if changed && (c.Model.ModelType == "qwen3.8" || c.Model.ModelType == "qwen38fn_exl3") {
-		c.Model.ReasoningEffort = "low"
+	if changed && (c.Model.ModelType == "qwen3.8" || c.Model.ModelType == "qwen3.8-vllm" || c.Model.ModelType == "qwen38fn_exl3") {
+		c.Model.ReasoningEffort = "medium"
 	}
 }
 

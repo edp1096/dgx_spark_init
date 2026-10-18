@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"crypto/sha256"
 	"database/sql"
 	"encoding/hex"
@@ -117,7 +118,7 @@ func artifactInTx(tx *sql.Tx, session, id string, version int) (Artifact, error)
 	return a, nil
 }
 func (d *DB) Artifact(session, id string, version int) (Artifact, error) {
-	tx, err := d.conn.Begin()
+	tx, err := d.conn.BeginTx(context.Background(), &sql.TxOptions{ReadOnly: true})
 	if err != nil {
 		return Artifact{}, err
 	}

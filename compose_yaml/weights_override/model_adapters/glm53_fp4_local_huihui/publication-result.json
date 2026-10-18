@@ -1,0 +1,23 @@
+{
+  "status": "complete",
+  "repo_id": "edp1096/Huihui-GLM-5.3-Flash-abliterated-FP4-Local",
+  "revision": "feb1505124fe89439565dc0c07d6462b99f1dad1",
+  "url": "https://huggingface.co/edp1096/Huihui-GLM-5.3-Flash-abliterated-FP4-Local",
+  "commit_url": "https://huggingface.co/edp1096/Huihui-GLM-5.3-Flash-abliterated-FP4-Local/commit/feb1505124fe89439565dc0c07d6462b99f1dad1",
+  "private": false,
+  "verified_files": 62,
+  "verified_weight_shards": 42,
+  "total_bytes": 177520701798,
+  "runtime_qualification_status": "passed",
+  "anonymous_access_verified": true,
+  "anonymous_metadata_hashes_verified": 62,
+  "anonymous_downloads_verified": [
+    "README.md",
+    "runtime-qualification.json"
+  ],
+  "unexpected_remote_files": [],
+  "huggingface_hub_version": "1.27.0",
+  "hf_xet_version": "1.6.0",
+  "started": 1792293670.4213104,
+  "completed_at": 1792294121.08888
+}

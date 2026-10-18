@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/sha256"
 	"database/sql"
@@ -212,7 +213,7 @@ func (d *DB) DocumentConversions(session, run string) ([]workflows.DocumentConve
 // Resolve the current file in one read transaction. Replacement may prune the
 // previous row concurrently, so listing IDs and fetching later is not sufficient.
 func (d *DB) ConvertedDocumentOutput(session, run, name string) ([]byte, string, error) {
-	tx, err := d.conn.Begin()
+	tx, err := d.conn.BeginTx(context.Background(), &sql.TxOptions{ReadOnly: true})
 	if err != nil {
 		return nil, "", err
 	}

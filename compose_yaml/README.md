@@ -10,3 +10,6 @@ SparkTalk 기본 세트는 `qwen38_fn_sglang`의 Flash Next다. Qwen 27B EXL3는
 `zzz_not_use/qwen38_27b_exl3`, GGUF 구성과 검사 기록은
 `zzz_not_use/qwen38_27b_gsq_rco_gguf`, NVFP4/SGLang은
 `zzz_not_use/sglang_qwen38_27b`에 보관한다. 보관한 27B 구성은 SparkTalk 모델 목록에 포함하지 않는다.
+
+Huihui v2 FP4-Local은 [qwen38_fn_fp4_local_vllm](qwen38_fn_fp4_local_vllm/README.md)에 있다.
+SparkTalk에서는 `Qwen 3.8 Flash-Next FP4-Local` 세트로 선택한다.
