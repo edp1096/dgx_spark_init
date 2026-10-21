@@ -1,0 +1,20 @@
+{
+  "date": "2026-10-22T03:55:31.337616+09:00",
+  "service": "Extra Media",
+  "local": "sparktalk-extra-media:0.1.3",
+  "remote": "ghcr.io/edp1096/sparktalk-extra-media:0.1.3",
+  "remote_digest": "sha256:f656d99053d4c8f1475e441002c8b8c8d5559add1169cbbe85e415068219b185",
+  "arm64_manifest_digest": "sha256:c3289d9c194b77716c0805c40a2d97b7be39177122f5a4dec393ff77dbf9c5b6",
+  "config_digest": "sha256:718e551f1a0ab7e786d24d5f0f656f7761722a2a1e6346b2e2a88b8a6614791f",
+  "architecture": "linux/arm64",
+  "layer_bytes": 283518704,
+  "remote_rootfs_matches_verified_local_image": true,
+  "previous_tag_0_1_0_preserved": true,
+  "reason": "Publish original-audio selection, X/HLS import fixes and per-stream download progress that were available only in local 0.1.1-0.1.3 builds.",
+  "new_repositories_published": [],
+  "other_images_changed": false,
+  "asr_image_update_required": false,
+  "asr_reason": "ASR enablement was a local Talk setting change; the ASR runtime image was unchanged and full-length transcription was verified.",
+  "validation": "util/talk/docs/media-download-progress-20261022.json",
+  "deployment": "Existing running containers unchanged; local Dockerfile build recipes retained."
+}
