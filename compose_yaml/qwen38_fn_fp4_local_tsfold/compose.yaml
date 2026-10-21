@@ -36,7 +36,6 @@ services:
       TF_FLASHNEXT_DEPTH: '4'
       TF_FLASHNEXT_PRODUCT_STREAMS: '1'
       TF_FLASHNEXT_PREFILL_TAIL: '512'
-      TF_FLASHNEXT_PREFILL_ROWS: '4096'
       TF_FLASHNEXT_PROMPT_EXPERT_TILE: '2'
       TENSORFOLD_MAX_IMAGES: '50'
       TENSORFOLD_IMAGE_TOKENS: '16384'
@@ -61,9 +60,9 @@ services:
     - --temperature
     - '0'
     - --top-p
-    - '1'
+    - '0.95'
     - --top-k
-    - '0'
+    - '20'
     - --no-thinking
     - --kv-dtype
     - fp8

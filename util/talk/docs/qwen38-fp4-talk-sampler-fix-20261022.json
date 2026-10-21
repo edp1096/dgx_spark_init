@@ -1,0 +1,418 @@
+{
+  "task": "Roll back FP4 prefill tuning and fix ordinary Talk sampler defaults",
+  "finished_at": "2026-10-22T03:07:34.062031+09:00",
+  "root_cause": "Ordinary Talk sends temperature=0.7 and omits top_k/top_p. The recipe had explicitly overridden checkpoint defaults with top_k=0, top_p=1. Native TensorFold takes a full-vocabulary CPU download/sort/Gumbel path for top_k=0. Earlier throughput testing used greedy decoding or explicit top_k=20/top_p=0.95, so its conditions did not match ordinary Talk. A tiny arithmetic smoke test only checked positive TG and failed to detect this deployment regression.",
+  "rollback": {
+    "prefill_rows": 2048,
+    "removed_override": "TF_FLASHNEXT_PREFILL_ROWS=4096",
+    "image_unchanged": "local/sparktalk-qwen38-fp4-tensorfold:db281878-ko2",
+    "mtp_max": 4,
+    "context": 1048576,
+    "kv_dtype": "fp8",
+    "vocabulary_unchanged": true,
+    "weights_changed": false,
+    "host60_contacted": false
+  },
+  "sampler_fix": {
+    "old_recipe": {
+      "top_k": 0,
+      "top_p": 1
+    },
+    "restored_checkpoint_defaults": {
+      "top_k": 20,
+      "top_p": 0.95
+    },
+    "source_file": "generation_config.json in the existing local Huihui FP4-Local checkpoint",
+    "source_sha256": "e70c136c1b78ddc1fb0905bac8e733a4dc448d4f852a5dd75143fffc70be550e",
+    "talk_temperature_unchanged": 0.7,
+    "note": "Top-20 sampling is not output-equivalent to unrestricted top_k=0. This restores the checkpoint sampler defaults; it does not claim identical stochastic outputs."
+  },
+  "direct_reproduction": {
+    "prefill": "2K restored for every arm",
+    "same_prompt": true,
+    "seed": 99,
+    "max_tokens": 128,
+    "note": "Diagnostic API comparison only, distinct from actual Talk verification below. top_k=0/top_p omitted inherits old recipe values; top_k=20/top_p=.95 matches checkpoint defaults.",
+    "rows": [
+      {
+        "mode": "off",
+        "top_k": 0,
+        "top_p": "omitted/default 1",
+        "native": {
+          "enable_thinking": false,
+          "reasoning_effort": "none",
+          "engine": "lanes",
+          "tokens_per_second": 11.330484872454234,
+          "seconds": 11.389475384,
+          "prefill_seconds": 0.180629382,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.181566954,
+          "sampling": "exact",
+          "drafts": true,
+          "token_sha": "11543d368642",
+          "min_rows": 2
+        },
+        "usage": {
+          "prompt_tokens": 40,
+          "completion_tokens": 128,
+          "total_tokens": 168,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "speculative": {
+          "rounds": 70,
+          "drafted": 99,
+          "accepted": 57,
+          "acceptance_rate": 0.5757575757575758,
+          "tokens_per_round": 1.8285714285714285
+        },
+        "wall_s": 11.410566203994676
+      },
+      {
+        "mode": "off",
+        "top_k": 20,
+        "top_p": 0.95,
+        "native": {
+          "enable_thinking": false,
+          "reasoning_effort": "none",
+          "engine": "lanes",
+          "tokens_per_second": 38.92004478313194,
+          "seconds": 3.456645192,
+          "prefill_seconds": 0.193506599,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.194336442,
+          "sampling": "exact",
+          "drafts": true,
+          "token_sha": "09dc5ac1ee56",
+          "min_rows": 2
+        },
+        "usage": {
+          "prompt_tokens": 40,
+          "completion_tokens": 128,
+          "total_tokens": 168,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "speculative": {
+          "rounds": 65,
+          "drafted": 102,
+          "accepted": 63,
+          "acceptance_rate": 0.6176470588235294,
+          "tokens_per_round": 1.9692307692307693
+        },
+        "wall_s": 3.458582335006213
+      },
+      {
+        "mode": "medium",
+        "top_k": 0,
+        "top_p": "omitted/default 1",
+        "native": {
+          "enable_thinking": true,
+          "reasoning_effort": "medium",
+          "engine": "lanes",
+          "tokens_per_second": 13.689612006513576,
+          "seconds": 9.452175463,
+          "prefill_seconds": 0.175025869,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.175528927,
+          "sampling": "exact",
+          "drafts": true,
+          "token_sha": "1b5786a72223",
+          "min_rows": 2
+        },
+        "usage": {
+          "prompt_tokens": 38,
+          "completion_tokens": 128,
+          "total_tokens": 166,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 128
+          }
+        },
+        "speculative": {
+          "rounds": 38,
+          "drafted": 122,
+          "accepted": 89,
+          "acceptance_rate": 0.7295081967213115,
+          "tokens_per_round": 3.3684210526315788
+        },
+        "wall_s": 9.454079888004344
+      },
+      {
+        "mode": "medium",
+        "top_k": 20,
+        "top_p": 0.95,
+        "native": {
+          "enable_thinking": true,
+          "reasoning_effort": "medium",
+          "engine": "lanes",
+          "tokens_per_second": 52.99315415907833,
+          "seconds": 2.587355658,
+          "prefill_seconds": 0.190786138,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.191697789,
+          "sampling": "exact",
+          "drafts": true,
+          "token_sha": "2c9f82eba0ca",
+          "min_rows": 2
+        },
+        "usage": {
+          "prompt_tokens": 38,
+          "completion_tokens": 128,
+          "total_tokens": 166,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 128
+          }
+        },
+        "speculative": {
+          "rounds": 40,
+          "drafted": 134,
+          "accepted": 87,
+          "acceptance_rate": 0.6492537313432836,
+          "tokens_per_round": 3.2
+        },
+        "wall_s": 2.5895173469907604
+      }
+    ]
+  },
+  "actual_talk_verification": [
+    {
+      "case": "original-identity-replay",
+      "mode": "medium",
+      "tools_enabled": true,
+      "transport": "Actual running Talk /api/chat; no temperature, sampler, seed, output-limit or system-prompt overrides.",
+      "user_text_sha256": "3af3b0cd4e0e528658f61d0d93583ec44bcf493abed979d7faa0ca149a2542d4",
+      "answer_sha256": "cf2fb057064eceea49b8e7e59d01326e57ebc1a96ea41ab641019e5a5cbe68ac",
+      "answer_chars": 127,
+      "reasoning_chars": 135,
+      "performance": {
+        "totals": {
+          "prefill_tokens": 14152,
+          "prefill_seconds": 7.441702622,
+          "decode_tokens": 106,
+          "decode_seconds": 3.506424119
+        },
+        "elapsed_seconds": 27.407036305,
+        "finished_at": "2026-10-21T18:02:06.991291881Z",
+        "finish_status": "completed",
+        "pp": 1901.7153357031846,
+        "tg": 30.230227833999223,
+        "ttft": 7.488861702,
+        "prompt_tokens": 14152,
+        "cached_tokens": 0,
+        "output_tokens": 107,
+        "calls": 1
+      },
+      "events": [
+        "context",
+        "delta",
+        "done",
+        "performance",
+        "reasoning",
+        "turn_started"
+      ],
+      "before": {
+        "totals": {
+          "prefill_tokens": 251,
+          "prefill_seconds": 0.48969549,
+          "decode_tokens": 100,
+          "decode_seconds": 10.651857281
+        },
+        "elapsed_seconds": 19.112443519,
+        "finished_at": "2026-10-21T17:50:15.029897892Z",
+        "finish_status": "completed",
+        "pp": 512.5634299797207,
+        "tg": 9.388034157984134,
+        "ttft": 0.54429748,
+        "prompt_tokens": 14141,
+        "cached_tokens": 13890,
+        "output_tokens": 101,
+        "calls": 1
+      },
+      "comparison_scope": "Same original user text/model/reasoning mode replayed in a new disposable Talk session. Same current user settings; cache/memory context and stochastic outputs can differ. Original conversation untouched."
+    },
+    {
+      "case": "prose-off",
+      "mode": "off",
+      "tools_enabled": true,
+      "transport": "Actual running Talk /api/chat; no temperature, sampler, seed, output-limit or system-prompt overrides.",
+      "user_text_sha256": "7504747d5aa7268d500c7120e4144ec48c834469e8cd48215ac2a6159ad9926a",
+      "answer_sha256": "bea8b11b2c47e8216e797cf079d77bb28b87f46bd83b03184aa5d5d56ead5d60",
+      "answer_chars": 966,
+      "reasoning_chars": 0,
+      "performance": {
+        "totals": {
+          "prefill_tokens": 15330,
+          "prefill_seconds": 7.937164279,
+          "decode_tokens": 489,
+          "decode_seconds": 13.476057237000001
+        },
+        "elapsed_seconds": 22.313032405,
+        "finished_at": "2026-10-21T18:02:29.326402565Z",
+        "finish_status": "completed",
+        "pp": 1931.4202731773898,
+        "tg": 36.2865778469237,
+        "ttft": 8.398334007,
+        "prompt_tokens": 15330,
+        "cached_tokens": 0,
+        "output_tokens": 490,
+        "calls": 1
+      },
+      "events": [
+        "context",
+        "delta",
+        "done",
+        "performance",
+        "turn_started"
+      ]
+    },
+    {
+      "case": "prose-medium",
+      "mode": "medium",
+      "tools_enabled": true,
+      "transport": "Actual running Talk /api/chat; no temperature, sampler, seed, output-limit or system-prompt overrides.",
+      "user_text_sha256": "7504747d5aa7268d500c7120e4144ec48c834469e8cd48215ac2a6159ad9926a",
+      "answer_sha256": "68243ef46da44917a64c87ce90f091b427140db90c51deab8ac41c15ea939819",
+      "answer_chars": 948,
+      "reasoning_chars": 634,
+      "performance": {
+        "totals": {
+          "prefill_tokens": 30512,
+          "prefill_seconds": 15.808974707,
+          "decode_tokens": 665,
+          "decode_seconds": 17.785788986
+        },
+        "elapsed_seconds": 34.504216855,
+        "finished_at": "2026-10-21T18:03:03.849050679Z",
+        "finish_status": "completed",
+        "pp": 1930.042938615728,
+        "tg": 37.389401196846066,
+        "ttft": 8.476863923,
+        "prompt_tokens": 30512,
+        "cached_tokens": 0,
+        "output_tokens": 667,
+        "calls": 2
+      },
+      "events": [
+        "context",
+        "delta",
+        "done",
+        "performance",
+        "reasoning",
+        "session_title",
+        "tool_result",
+        "tool_start",
+        "turn_started"
+      ]
+    },
+    {
+      "case": "original-identity-warm-replay",
+      "mode": "medium",
+      "tools_enabled": true,
+      "transport": "Actual running Talk /api/chat; no temperature, sampler, seed, output-limit or system-prompt overrides.",
+      "user_text_sha256": "3af3b0cd4e0e528658f61d0d93583ec44bcf493abed979d7faa0ca149a2542d4",
+      "answer_sha256": "aeffb316160563a3f75dfafcbbf75fee9b5a3ee834ecf10cef6e55c847840289",
+      "answer_chars": 107,
+      "reasoning_chars": 136,
+      "performance": {
+        "totals": {
+          "prefill_tokens": 14154,
+          "prefill_seconds": 7.18922952,
+          "decode_tokens": 101,
+          "decode_seconds": 3.217039867
+        },
+        "elapsed_seconds": 10.662843458,
+        "finished_at": "2026-10-21T18:04:54.930172004Z",
+        "finish_status": "completed",
+        "pp": 1968.7784289852525,
+        "tg": 31.395321219374868,
+        "ttft": 7.236946263,
+        "prompt_tokens": 14154,
+        "cached_tokens": 0,
+        "output_tokens": 102,
+        "calls": 1
+      },
+      "events": [
+        "context",
+        "delta",
+        "done",
+        "performance",
+        "reasoning",
+        "turn_started"
+      ],
+      "before": {
+        "totals": {
+          "prefill_tokens": 251,
+          "prefill_seconds": 0.48969549,
+          "decode_tokens": 100,
+          "decode_seconds": 10.651857281
+        },
+        "elapsed_seconds": 19.112443519,
+        "finished_at": "2026-10-21T17:50:15.029897892Z",
+        "finish_status": "completed",
+        "pp": 512.5634299797207,
+        "tg": 9.388034157984134,
+        "ttft": 0.54429748,
+        "prompt_tokens": 14141,
+        "cached_tokens": 13890,
+        "output_tokens": 101,
+        "calls": 1
+      },
+      "comparison_scope": "Same original user text/model/reasoning mode replayed in a new disposable Talk session. Same current user settings; cache/memory context and stochastic outputs can differ. Original conversation untouched."
+    }
+  ],
+  "throughput_gate": {
+    "request_path": "Running Talk /api/chat",
+    "tools_enabled": true,
+    "modes": [
+      "off",
+      "medium"
+    ],
+    "minimum_output_tokens": 128,
+    "minimum_prompt_tokens": 5000,
+    "minimum_tg": 25,
+    "passed": true,
+    "overrides": "No sampler, temperature, seed, output-limit or user system-prompt overrides in actual Talk tests."
+  },
+  "latency_caveat": "The first post-restart identity replay was cold: 27.4 seconds total despite 30.2 tok/s decode; model/embedding/prefix preparation is included in end-to-end time. Its warm-service repeat was 10.7 seconds and 31.4 tok/s. The original observation was 19.1 seconds and 9.4 tok/s. Prompt/cache context and stochastic outputs differ; all detailed counters are retained. Do not present these as byte-identical complete requests.",
+  "validation": [
+    "Support assets:109 files verified",
+    "go test ./internal/config ./internal/llm ./internal/orchestrator passed",
+    "Linux arm64 Talk rebuilt and deployed",
+    "Live Docker command matches checkpoint sampler defaults; 2K default restored; healthy",
+    "Original user conversations untouched; all four disposable test conversations deleted"
+  ],
+  "sources": [
+    "util/talk/internal/llm/client.go: ordinary Stream request defaults",
+    "TensorFold db281878ddb836fd0df510d8771ecb7e0fe47d26 zig/src/families/flashnext/cuda_engine.zig drawRows",
+    "TensorFold zig/src/families/flashnext/cuda_nucleus.zig sampleRows/drawShares",
+    "compose_yaml/qwen38_fn_fp4_local_tsfold/compose.yaml"
+  ],
+  "raw_archive": {
+    "path": "util/talk/docs/qwen38-fp4-talk-sampler-fix-20261022.tar.gz",
+    "sha256": "50681cb376afe1f1fe1602c1cb5dd2cc3af2a18d892cc0f6aff7565d75d2b2af"
+  },
+  "cleanup": {
+    "temporary_test_directory_removed": true,
+    "test_chats_deleted": 4,
+    "original_chats_modified": false,
+    "temporary_binaries_removed": true
+  }
+}

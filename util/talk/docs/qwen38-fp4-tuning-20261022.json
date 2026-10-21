@@ -1,7 +1,7 @@
 {
   "task": "Qwen 3.8 Flash-Next FP4-Local PP/TG tuning on DGX Spark 61",
   "finished_at": "2026-10-22T02:33:44.959508+09:00",
-  "outcome": "Verified PP improvement; no additional TG improvement adopted.",
+  "outcome": "Production tuning withdrawn: direct API benchmark sampler did not match ordinary Talk defaults. Historical measurements retained; see qwen38-fp4-talk-sampler-fix-20261022.json.",
   "selected": {
     "label": "qualify-4k",
     "environment": {
@@ -1800,5 +1800,7 @@
     "binary_backup_removed": true,
     "new_model_downloads": 0,
     "host60_contacted": false
-  }
+  },
+  "withdrawn": true,
+  "superseded_by": "qwen38-fp4-talk-sampler-fix-20261022.json"
 }
