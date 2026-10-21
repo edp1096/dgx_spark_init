@@ -1,83 +1,57 @@
 package config
 
 import (
-	"encoding/json"
+	"path/filepath"
 	"sparktalk/internal/orchestrator"
 	"testing"
 )
 
-func TestEXL3Q4MigrationAndProfile(t *testing.T) {
-	cat, _ := orchestrator.LoadCatalog()
-	for i, b := range cat.Bundles {
-		if b.ID == "qwen38fn_exl3_q4" {
-			cat.Bundles = append(cat.Bundles[:i], cat.Bundles[i+1:]...)
-			break
+func TestEXL3Q4RetirementPersistsWithoutStartingReplacement(t *testing.T) {
+	for _, revision := range []int{39, 45} {
+		for _, renamed := range []bool{false, true} {
+			cat, err := orchestrator.LoadCatalog()
+			if err != nil {
+				t.Fatal(err)
+			}
+			if _, ok := cat.Bundle("qwen38fn_exl3_q4"); ok {
+				t.Fatal("retired set in defaults")
+			}
+			if _, ok := cat.Component("qwen38fn_exl3_q4"); ok {
+				t.Fatal("retired component in defaults")
+			}
+			id := "qwen38fn_exl3_q4"
+			if renamed {
+				id = "old-q4-copy"
+			}
+			cat.Components = append(cat.Components, orchestrator.Component{ID: id, ComposeAsset: "compose.qwen38fn_exl3_q4.yaml"})
+			cat.Bundles = append(cat.Bundles, orchestrator.Bundle{ID: id, Components: []string{id, "extra-ssh"}})
+			cfg := Config{Runtime: RuntimeConfig{Mode: "managed", Catalog: &cat, BuiltinRevision: revision, Bundle: id, ActiveBundle: "flash-next-fp4-local", AutoStart: true}}
+			cfg.Normalize()
+			if cfg.Runtime.AutoStart || cfg.Runtime.Bundle != "flash-next-fp4-local" || cfg.Runtime.ActiveBundle != "flash-next-fp4-local" {
+				t.Fatal("unsafe fallback")
+			}
+			for _, survivor := range []string{"qwen38fn_exl3", "flash-next-fp4-local"} {
+				if _, ok := cfg.Runtime.Catalog.Bundle(survivor); !ok {
+					t.Fatal("surviving set lost", survivor)
+				}
+			}
+			if _, ok := cfg.Runtime.Catalog.Component("extra-ssh"); !ok {
+				t.Fatal("shared service lost")
+			}
+			path := filepath.Join(t.TempDir(), "sparktalk.yaml")
+			if err := Save(path, cfg); err != nil {
+				t.Fatal(err)
+			}
+			loaded, _, err := Load(path)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if _, ok := loaded.Runtime.Catalog.Bundle(id); ok {
+				t.Fatal("retired set returned after reload")
+			}
+			if _, ok := loaded.Runtime.Catalog.Component(id); ok {
+				t.Fatal("retired component returned after reload")
+			}
 		}
-	}
-	for i, x := range cat.Components {
-		if x.ID == "qwen38fn_exl3_q4" {
-			cat.Components = append(cat.Components[:i], cat.Components[i+1:]...)
-			break
-		}
-	}
-	for i := range cat.Bundles {
-		if cat.Bundles[i].ID == "qwen38fn_exl3" {
-			cat.Bundles[i].Name = "Qwen 3.8 Flash-Next EXL3"
-			cat.Bundles[i].ContextTokens = 524288
-		}
-	}
-	cfg := Config{Runtime: RuntimeConfig{Mode: "managed", BuiltinRevision: 39, Bundle: "flash-next-radixark", ActiveBundle: "flash-next-radixark", Catalog: &cat}}
-	cfg.Normalize()
-	if cfg.Runtime.Bundle != "flash-next-radixark" || cfg.Runtime.ActiveBundle != "flash-next-radixark" || cfg.Runtime.AutoStart {
-		t.Fatal("selection changed")
-	}
-	pos := map[string]int{}
-	for i, b := range cfg.Runtime.Catalog.Bundles {
-		pos[b.ID] = i
-	}
-	if pos["qwen38fn_exl3_q4"] != pos["qwen38fn_exl3"]+1 ||
-		pos["flash-next-fp4-local"] != pos["qwen38fn_exl3_q4"]+1 ||
-		pos["flash-next-radixark"] != pos["flash-next-fp4-local"]+1 {
-		t.Fatal("selector order", pos)
-	}
-	old, _ := cfg.Runtime.Catalog.Bundle("qwen38fn_exl3")
-	if old.Name != "Qwen 3.8 Flash-Next EXL3 3bit" || old.ContextTokens != 524288 {
-		t.Fatal("3bit settings changed", old)
-	}
-	before, _ := json.Marshal(cfg)
-	cfg.Normalize()
-	after, _ := json.Marshal(cfg)
-	if string(before) != string(after) {
-		t.Fatal("not idempotent")
-	}
-	cfg.ASR.Enabled = true
-	cfg.Runtime.ActiveBundle = "qwen38fn_exl3_q4"
-	cfg.Model.ReasoningEffort = "medium"
-	cfg.Normalize()
-	if cfg.Model.DefaultModel != "qwen38fn_exl3_q4" || cfg.Model.Endpoint != "http://127.0.0.1:18004" || cfg.Context.WindowTokens != 1048576 || cfg.Model.ModelType != "qwen38fn_exl3" || cfg.Model.ReasoningEffort != "medium" {
-		t.Fatal("Q4 profile", cfg.Model)
-	}
-	if cfg.Image.Enabled || cfg.TTS.Enabled || !cfg.ASR.Enabled {
-		t.Fatal("Q4 auxiliary wiring")
-	}
-	for _, id := range []string{"nemotron-asr", "extra-embedding"} {
-		x, ok := cfg.Runtime.Catalog.ResolveComponent("qwen38fn_exl3_q4", id)
-		if !ok || !x.KeepResident || !x.StartAfterLLM {
-			t.Fatal("resident auxiliary", x)
-		}
-	}
-	if cfg.Runtime.Bundle != "flash-next-radixark" {
-		t.Fatal("switch altered startup default")
-	}
-	for i, b := range cfg.Runtime.Catalog.Bundles {
-		if b.ID == "qwen38fn_exl3_q4" {
-			cfg.Runtime.Catalog.Bundles = append(cfg.Runtime.Catalog.Bundles[:i], cfg.Runtime.Catalog.Bundles[i+1:]...)
-			break
-		}
-	}
-	cfg.Runtime.ActiveBundle = "flash-next-radixark"
-	cfg.Normalize()
-	if _, ok := cfg.Runtime.Catalog.Bundle("qwen38fn_exl3_q4"); ok {
-		t.Fatal("user removal undone")
 	}
 }

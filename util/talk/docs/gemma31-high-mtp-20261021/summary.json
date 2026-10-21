@@ -1,0 +1,146 @@
+{
+  "9": {
+    "depth": 9,
+    "requests": 8,
+    "replacement_characters": 0,
+    "kernel_traces": [
+      "GEMMA31_SPLITKV_ENABLED topk=1",
+      "Capturing batches (bs=1 avail_mem=66.14 GB):   0%|          | 0/1 [00:00<?, ?it/s]GEMMA31_SPLITKV_BUILD {'hq': 32, 'hkv': 16, 'dim': 256, 'width': 10, 'splits': 4, 'block_n': 32, 'warps': 4}",
+      "GEMMA31_SPLITKV_BUILD {'hq': 32, 'hkv': 4, 'dim': 512, 'width': 10, 'splits': 8, 'block_n': 16, 'warps': 4}"
+    ],
+    "ko": {
+      "tg_median": 32.22005244099673,
+      "tg_values": [
+        34.82943452185134,
+        32.22005244099673,
+        30.95751243424
+      ],
+      "accepted": 1144,
+      "proposed": 3573,
+      "acceptance": 0.32017912118667785,
+      "accepted_per_verify": 2.881612090680101,
+      "ttft_median_s": 0.22582052001962438
+    },
+    "code": {
+      "tg_median": 41.11534154086075,
+      "tg_values": [
+        41.11534154086075,
+        43.07890380592152,
+        39.83293421954907
+      ],
+      "accepted": 1226,
+      "proposed": 2817,
+      "acceptance": 0.4352147674831381,
+      "accepted_per_verify": 3.916932907348243,
+      "ttft_median_s": 0.22786917598568834
+    }
+  },
+  "18": {
+    "depth": 18,
+    "requests": 8,
+    "replacement_characters": 0,
+    "kernel_traces": [
+      "GEMMA31_SPLITKV_ENABLED topk=1",
+      "Capturing batches (bs=1 avail_mem=65.14 GB):   0%|          | 0/1 [00:00<?, ?it/s]GEMMA31_SPLITKV_BUILD {'hq': 32, 'hkv': 16, 'dim': 256, 'width': 19, 'splits': 4, 'block_n': 32, 'warps': 4}",
+      "GEMMA31_SPLITKV_BUILD {'hq': 32, 'hkv': 4, 'dim': 512, 'width': 19, 'splits': 8, 'block_n': 16, 'warps': 4}"
+    ],
+    "ko": {
+      "tg_median": 25.062683023361675,
+      "tg_values": [
+        24.500001077316504,
+        25.062683023361675,
+        26.864092676074627
+      ],
+      "accepted": 1163,
+      "proposed": 6966,
+      "acceptance": 0.16695377548090726,
+      "accepted_per_verify": 3.005167958656331,
+      "ttft_median_s": 0.2636434680025559
+    },
+    "code": {
+      "tg_median": 32.20784277256147,
+      "tg_values": [
+        32.20784277256147,
+        30.606250253906083,
+        33.718288117934215
+      ],
+      "accepted": 1234,
+      "proposed": 5508,
+      "acceptance": 0.22403776325344954,
+      "accepted_per_verify": 4.032679738562091,
+      "ttft_median_s": 0.26487783499760553
+    }
+  },
+  "21": {
+    "depth": 21,
+    "requests": 8,
+    "replacement_characters": 0,
+    "kernel_traces": [
+      "GEMMA31_SPLITKV_ENABLED topk=1",
+      "Capturing batches (bs=1 avail_mem=64.68 GB):   0%|          | 0/1 [00:00<?, ?it/s]GEMMA31_SPLITKV_BUILD {'hq': 32, 'hkv': 16, 'dim': 256, 'width': 22, 'splits': 4, 'block_n': 32, 'warps': 4}",
+      "GEMMA31_SPLITKV_BUILD {'hq': 32, 'hkv': 4, 'dim': 512, 'width': 22, 'splits': 8, 'block_n': 16, 'warps': 4}"
+    ],
+    "ko": {
+      "tg_median": 24.316755464029562,
+      "tg_values": [
+        24.316755464029562,
+        24.06829784822189,
+        25.86416794731511
+      ],
+      "accepted": 1168,
+      "proposed": 8043,
+      "acceptance": 0.14521944548054208,
+      "accepted_per_verify": 3.049608355091384,
+      "ttft_median_s": 0.27132187399547547
+    },
+    "code": {
+      "tg_median": 30.945241534230203,
+      "tg_values": [
+        30.945241534230203,
+        29.4525882631067,
+        32.484668445942276
+      ],
+      "accepted": 1234,
+      "proposed": 6426,
+      "acceptance": 0.19203236850295674,
+      "accepted_per_verify": 4.032679738562091,
+      "ttft_median_s": 0.2715286279853899
+    }
+  },
+  "24": {
+    "depth": 24,
+    "requests": 8,
+    "replacement_characters": 0,
+    "kernel_traces": [
+      "GEMMA31_SPLITKV_ENABLED topk=1",
+      "Capturing batches (bs=1 avail_mem=64.70 GB):   0%|          | 0/1 [00:00<?, ?it/s]GEMMA31_SPLITKV_BUILD {'hq': 32, 'hkv': 16, 'dim': 256, 'width': 25, 'splits': 4, 'block_n': 32, 'warps': 4}",
+      "GEMMA31_SPLITKV_BUILD {'hq': 32, 'hkv': 4, 'dim': 512, 'width': 25, 'splits': 8, 'block_n': 16, 'warps': 4}"
+    ],
+    "ko": {
+      "tg_median": 23.353282170838245,
+      "tg_values": [
+        23.353282170838245,
+        23.174883870289882,
+        24.829954259399777
+      ],
+      "accepted": 1168,
+      "proposed": 9192,
+      "acceptance": 0.12706701479547433,
+      "accepted_per_verify": 3.049608355091384,
+      "ttft_median_s": 0.27685474601457827
+    },
+    "code": {
+      "tg_median": 29.737078662261123,
+      "tg_values": [
+        29.737078662261123,
+        28.307000383688898,
+        31.151261143717484
+      ],
+      "accepted": 1234,
+      "proposed": 7344,
+      "acceptance": 0.16802832244008714,
+      "accepted_per_verify": 4.032679738562091,
+      "ttft_median_s": 0.27719619098934345
+    }
+  }
+}

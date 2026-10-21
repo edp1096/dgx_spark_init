@@ -30,12 +30,24 @@ type responseTimings struct {
 	PredictedMS float64 `json:"predicted_ms"`
 }
 
+type tensorFoldTimings struct {
+	PrefillSeconds   *float64 `json:"prefill_seconds"`
+	TokensPerSecond  *float64 `json:"tokens_per_second"`
+	TimeToFirstToken *float64 `json:"time_to_first_token"`
+	// The qualified DeepSeek engine defaults to the Spark response surface.
+	SparkPrefillSeconds *float64 `json:"prefill_s"`
+	SparkDecodeSeconds  *float64 `json:"decode_s"`
+	SparkTTFT           *float64 `json:"ttft_s"`
+	SparkCompletion     *int     `json:"completion"`
+}
+
 type streamPerformance struct {
 	started, first, last, published time.Time
 	estimated, firstEstimated       float64
 	usage                           Usage
 	metrics                         *responseMetrics
 	timings                         *responseTimings
+	tensorfold                      *tensorFoldTimings
 	report                          func(performance.Sample)
 }
 
@@ -119,6 +131,40 @@ func (p *streamPerformance) sample() performance.Sample {
 		}
 		if t.PredictedN > 0 && finitePositive(t.PredictedMS) {
 			s.DecodeTokens, s.DecodeSeconds = float64(t.PredictedN), t.PredictedMS/1000
+			s.TGEstimated = false
+		}
+	}
+	if t := p.tensorfold; t != nil {
+		if t.PrefillSeconds != nil && finitePositive(*t.PrefillSeconds) {
+			s.PrefillTokens = float64(max(0, s.PromptTokens-s.CachedTokens))
+			s.PrefillSeconds, s.PPEstimated = *t.PrefillSeconds, !cacheKnown
+		}
+		if t.TimeToFirstToken != nil && finitePositive(*t.TimeToFirstToken) {
+			seconds := *t.TimeToFirstToken
+			s.TTFT, s.TTFTEstimated = &seconds, false
+		}
+		if t.TokensPerSecond != nil && finitePositive(*t.TokensPerSecond) && p.usage.CompletionTokens > 1 {
+			// The pinned Zig server reports decode-only (generated-1)/decode_s.
+			// Represent that native rate as a token/time pair for aggregation;
+			// tensorfold.seconds includes prefill and must not become decode time.
+			s.DecodeTokens = float64(p.usage.CompletionTokens - 1)
+			s.DecodeSeconds = s.DecodeTokens / *t.TokensPerSecond
+			s.TGEstimated = false
+		}
+		if t.SparkPrefillSeconds != nil && finitePositive(*t.SparkPrefillSeconds) {
+			s.PrefillTokens = float64(max(0, s.PromptTokens-s.CachedTokens))
+			s.PrefillSeconds, s.PPEstimated = *t.SparkPrefillSeconds, !cacheKnown
+		}
+		if t.SparkTTFT != nil && finitePositive(*t.SparkTTFT) {
+			seconds := *t.SparkTTFT
+			s.TTFT, s.TTFTEstimated = &seconds, false
+		}
+		if t.SparkDecodeSeconds != nil && finitePositive(*t.SparkDecodeSeconds) && t.SparkCompletion != nil && *t.SparkCompletion > 0 {
+			// DeepSeek's prompt finalization produces the first token before
+			// the prefilled event starts decode_s. Spark completion includes it;
+			// exclude it, matching the native wire's (generated-1)/decode_s.
+			s.DecodeTokens = float64(max(0, *t.SparkCompletion-1))
+			s.DecodeSeconds = *t.SparkDecodeSeconds
 			s.TGEstimated = false
 		}
 	}

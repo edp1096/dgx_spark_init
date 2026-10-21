@@ -26,6 +26,22 @@ func contextToolsEnabled(ctx context.Context, fallback bool) bool {
 	return fallback
 }
 
+// Preserve completed DeepSeek reasoning when reconstructing a tool-enabled
+// conversation from storage. Other model families and text-only requests keep
+// their existing history policy. Abandoned thoughts must not seed a new turn.
+func savedModelReasoning(ctx context.Context, item db.Message, cfg config.Config) string {
+	if cfg.Model.ModelType != "deepseek-v4" {
+		return ""
+	}
+	if !contextToolsEnabled(ctx, cfg.Tools.Enabled) || item.Role != "assistant" {
+		return ""
+	}
+	if item.Status != "" && item.Status != db.MessageCompleted {
+		return ""
+	}
+	return item.Reasoning
+}
+
 // Estimate the assembled payload, excluding transport-only base64/URLs. Image
 // and video costs remain estimates until the backend returns usage.
 func estimateModelInput(messages []llm.Message, tools []llm.Tool, imageTokens int) int {
@@ -66,7 +82,7 @@ func estimateModelInput(messages []llm.Message, tools []llm.Tool, imageTokens in
 	return total
 }
 
-func (s *Server) previewContextMessages(items []db.Message, cfg config.Config) ([]llm.Message, bool) {
+func (s *Server) previewContextMessages(ctx context.Context, items []db.Message, cfg config.Config) ([]llm.Message, bool) {
 	out := make([]llm.Message, 0, len(items))
 	incomplete := false
 	for _, item := range items {
@@ -96,7 +112,7 @@ func (s *Server) previewContextMessages(items []db.Message, cfg config.Config) (
 				incomplete = true
 			}
 		}
-		out = append(out, llm.Message{Role: item.Role, Content: parts})
+		out = append(out, llm.Message{Role: item.Role, Content: parts, ReasoningContent: savedModelReasoning(ctx, item, cfg)})
 	}
 	return out, incomplete
 }

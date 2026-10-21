@@ -1,36 +1,47 @@
 package config
 
-import "testing"
+import (
+	"path/filepath"
+	"sparktalk/internal/orchestrator"
+	"testing"
+)
 
-func TestSingleSparkMoEMigration(t *testing.T) {
-	c := Config{}
-	c.Normalize()
-	c.Runtime.BuiltinRevision = 4
-	c.Runtime.Bundle = "flash-next"
-	for i := range c.Runtime.Catalog.Components {
-		if c.Runtime.Catalog.Components[i].ID == "ornith35" {
-			c.Runtime.Catalog.Components[i].Name = "Custom Ornith"
-		}
-	}
-	c.Normalize()
-	c.Normalize()
-	for _, id := range []string{"ornith35"} {
-		b, ok := c.Runtime.Catalog.Bundle(id)
-		if !ok || b.ContextTokens != 1048576 {
-			t.Fatalf("Missing 1M TP1 bundle: %s", id)
-		}
-		count := 0
-		for _, x := range c.Runtime.Catalog.Components {
-			if x.ID == id {
-				count++
+func TestOrnithRetirementSurvivesLegacyMigrationAndReload(t *testing.T) {
+	for _, id := range []string{"ornith35", "custom-ornith-copy"} {
+		t.Run(id, func(t *testing.T) {
+			c := Config{}
+			c.Normalize()
+			c.Runtime.Catalog.Components = append(c.Runtime.Catalog.Components, orchestrator.Component{ID: id, ComposeAsset: "compose.ornith35.yaml"})
+			c.Runtime.Catalog.Bundles = append(c.Runtime.Catalog.Bundles, orchestrator.Bundle{ID: id, Components: []string{id, "extra-embedding", "extra-ssh"}})
+			c.Runtime.Bundle = "ds41"
+			c.Runtime.ActiveBundle = id
+			c.Runtime.AutoStart = true
+			c.Runtime.BuiltinRevision = 4
+			c.Normalize()
+			if c.Runtime.ActiveBundle != "ds41" || c.Runtime.Bundle != "ds41" || c.Runtime.AutoStart {
+				t.Fatal("retired selection or automatic launch survived")
 			}
-		}
-		if count != 1 {
-			t.Fatalf("Duplicate component: %s", id)
-		}
-	}
-	item, _ := c.Runtime.Catalog.Component("ornith35")
-	if item.Name != "Custom Ornith" || c.Runtime.Bundle != "flash-next" {
-		t.Fatal("Custom settings overwritten")
+			p := filepath.Join(t.TempDir(), "talk.yaml")
+			if err := Save(p, c); err != nil {
+				t.Fatal(err)
+			}
+			loaded, _, err := Load(p)
+			if err != nil {
+				t.Fatal(err)
+			}
+			for _, x := range []string{id, "ornith35"} {
+				if _, ok := loaded.Runtime.Catalog.Component(x); ok {
+					t.Fatal("retired component returned")
+				}
+				if _, ok := loaded.Runtime.Catalog.Bundle(x); ok {
+					t.Fatal("retired set returned")
+				}
+			}
+			for _, x := range []string{"flash-next-fp4-local", "qwen38fn_exl3", "extra-embedding", "extra-ssh"} {
+				if _, ok := loaded.Runtime.Catalog.Component(x); !ok {
+					t.Fatalf("shared/surviving component removed: %s", x)
+				}
+			}
+		})
 	}
 }

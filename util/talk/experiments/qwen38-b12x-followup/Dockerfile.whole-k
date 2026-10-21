@@ -1,0 +1,2 @@
+FROM local/qwen38-b12x-followup:dependencies
+COPY b12x-source/moe/_shared/kernels/w4a16/kernel.py /usr/local/lib/python3.12/dist-packages/flashinfer/experimental/b12x/moe/_shared/kernels/w4a16/kernel.py

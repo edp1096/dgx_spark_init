@@ -1,6 +1,6 @@
 services:
   runtime:
-    image: dgx-sglang-gemma4-31b-exl3mtp:2ef0fe4-exl3mtp1
+    image: dgx-sglang-gemma4-31b-exl3mtp:2ef0fe4-exl3mtp9-splitkv1
     build:
       context: ${SPARKTALK_BUILD_DIR:?Gemma build assets required}
       dockerfile: Dockerfile.exl3
@@ -18,6 +18,7 @@ services:
       PYTHONUNBUFFERED: "1"
       HF_HUB_OFFLINE: "1"
       SPARKTALK_GEMMA_ASSISTANT_EXL3: "1"
+      GEMMA31_VERIFY_SPLITKV: "1"
       HF_XET_HIGH_PERFORMANCE: "1"
       PYTORCH_CUDA_ALLOC_CONF: expandable_segments:True
       TORCHINDUCTOR_CACHE_DIR: /root/.cache/sglang/inductor
@@ -46,7 +47,7 @@ services:
       - --max-total-tokens
       - "262144"
       - --swa-full-tokens-ratio
-      - "0.016"
+      - "0.006"
       - --mem-fraction-static
       - "0.55"
       - --attention-backend
@@ -76,17 +77,15 @@ services:
       - --speculative-draft-model-revision
       - 359650d0d9386fbe42b820c74eefa8075017ebc6
       - --speculative-num-steps
-      - "7"
+      - "9"
       - --speculative-num-draft-tokens
-      - "8"
+      - "10"
       - --speculative-eagle-topk
       - "1"
       - --speculative-draft-model-quantization
       - unquant
       - --max-running-requests
       - "1"
+      - --disable-radix-cache
       - --skip-server-warmup
-      - --num-continuous-decode-steps
-      - "2"
-      - --sleep-on-idle
       - --enable-metrics

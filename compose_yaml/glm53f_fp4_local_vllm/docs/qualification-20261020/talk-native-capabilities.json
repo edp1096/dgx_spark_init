@@ -1,0 +1,121 @@
+[
+  {
+    "case": "auto-tool-call",
+    "passed": true,
+    "response": {
+      "id": "chatcmpl-b778e97e412dffc2",
+      "object": "chat.completion",
+      "created": 1792477808,
+      "model": "glm-5.3-flash",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": null,
+            "refusal": null,
+            "annotations": null,
+            "audio": null,
+            "function_call": null,
+            "tool_calls": [
+              {
+                "id": "chatcmpl-tool-b683a9ebfdaaa10d",
+                "type": "function",
+                "function": {
+                  "name": "get_weather",
+                  "arguments": "{\"city\": \"서울\", \"date\": \"2026-10-21\"}"
+                }
+              }
+            ],
+            "reasoning": null
+          },
+          "logprobs": null,
+          "finish_reason": "tool_calls",
+          "stop_reason": 154829,
+          "token_ids": null,
+          "routed_experts": null
+        }
+      ],
+      "service_tier": null,
+      "system_fingerprint": "vllm-0.1.dev21830+g8244d1c44.d20261015-tp2-d5221640",
+      "usage": {
+        "prompt_tokens": 214,
+        "total_tokens": 237,
+        "completion_tokens": 23,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "created_cache_tokens": 0,
+          "multimodal_tokens": null
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "prompt_logprobs": null,
+      "prompt_token_ids": null,
+      "prompt_text": null,
+      "kv_transfer_params": null,
+      "ec_transfer_params": null,
+      "metrics": null
+    }
+  },
+  {
+    "case": "tool-result-continuation",
+    "passed": true,
+    "response": {
+      "id": "chatcmpl-93ed3cdf381c46e2",
+      "object": "chat.completion",
+      "created": 1792477809,
+      "model": "glm-5.3-flash",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "서울의 내일(2026-10-21) 날씨를 조회했습니다.\n\n- **날씨**: 맑음 ☀️\n- **기온**: 21°C\n\n쾌적한 날씨가 예상되니 외출하기 좋은 하루가 될 것 같습니다!",
+            "refusal": null,
+            "annotations": null,
+            "audio": null,
+            "function_call": null,
+            "reasoning": null
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "stop_reason": 154827,
+          "token_ids": null,
+          "routed_experts": null
+        }
+      ],
+      "service_tier": null,
+      "system_fingerprint": "vllm-0.1.dev21830+g8244d1c44.d20261015-tp2-d5221640",
+      "usage": {
+        "prompt_tokens": 275,
+        "total_tokens": 348,
+        "completion_tokens": 73,
+        "prompt_tokens_details": {
+          "cached_tokens": 236,
+          "created_cache_tokens": 0,
+          "multimodal_tokens": null
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "prompt_logprobs": null,
+      "prompt_token_ids": null,
+      "prompt_text": null,
+      "kv_transfer_params": null,
+      "ec_transfer_params": null,
+      "metrics": null
+    }
+  },
+  {
+    "case": "worker-tts",
+    "passed": true,
+    "bytes": 218924,
+    "duration_s": 4.56,
+    "sample_rate": 24000,
+    "elapsed_s": 1.1576377720048185,
+    "sha256": "b8c9b17fe2ce15e93690849169fd4ecfe03db27079e652647d8b1179ea0c9e08"
+  }
+]

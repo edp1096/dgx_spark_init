@@ -1,12 +1,6 @@
 package orchestrator
 
 import (
-	"bytes"
-	"crypto/sha256"
-	"encoding/hex"
-	"encoding/json"
-	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 
@@ -19,14 +13,14 @@ func TestFP4LocalUsesSeparatePinnedRuntimeAndLocalWeights(t *testing.T) {
 		t.Fatal(err)
 	}
 	b, ok := cat.Bundle("flash-next-fp4-local")
-	if !ok || b.ModelID != QwenFP4Local || b.ModelType != "qwen3.8-vllm" || b.ContextTokens != 1048576 {
+	if !ok || b.ModelID != QwenFP4Local || b.ModelType != "qwen3.8-tensorfold" || b.ContextTokens != 1048576 {
 		t.Fatalf("incorrect FP4-Local profile: %+v", b)
 	}
 	x, ok := cat.ResolveComponent(b.ID, b.ID)
-	if !ok || x.ComposeAsset != "compose.qwen-fp4-local.yaml" || x.Port != 18004 || x.StartupMemoryGiB < 115.4 || x.ProgressKind != "b12x" {
+	if !ok || x.ComposeAsset != "compose.qwen-fp4-local.yaml" || x.Port != 18004 || x.StartupMemoryGiB != 103 || x.ProgressKind != "tensorfold" {
 		t.Fatalf("incorrect deployment: %+v", x)
 	}
-	if x.ModelPresentation == nil || x.ModelPresentation.Weights[0].Format != "FP4-Local" {
+	if x.ModelPresentation == nil || x.ModelPresentation.Weights[0].Format != "FP4-Local · TensorFold" {
 		t.Fatal("missing actual weight format")
 	}
 	changed := x
@@ -60,28 +54,30 @@ func TestFP4LocalUsesSeparatePinnedRuntimeAndLocalWeights(t *testing.T) {
 	}
 }
 
-func TestFP4LocalComposeMatchesStandaloneAndQualifiedRoPE(t *testing.T) {
+func TestFP4LocalEmbeddedComposeUsesQualifiedRoPE(t *testing.T) {
 	raw, err := assets.ReadFile("assets/compose.qwen-fp4-local.yaml")
 	if err != nil {
 		t.Fatal(err)
-	}
-	standalone, err := os.ReadFile(filepath.Join("../../../../compose_yaml/qwen38_fn_fp4_local_vllm/compose.yaml"))
-	if err != nil || !bytes.Equal(raw, standalone) {
-		t.Fatal("managed and standalone compose differ", err)
 	}
 	var doc map[string]any
 	if err := yaml.Unmarshal(raw, &doc); err != nil {
 		t.Fatal(err)
 	}
 	s := doc["services"].(map[string]any)["runtime"].(map[string]any)
-	if s["environment"].(map[string]any)["PYTORCH_ALLOC_CONF"] != "backend:native,garbage_collection_threshold:0.7" {
-		t.Fatal("qualified UMA allocator setting is missing")
+	env := s["environment"].(map[string]any)
+	for key, want := range map[string]string{"TF_FLASHNEXT_YARN": "4", "TF_FLASHNEXT_DEPTH": "4", "TENSORFOLD_MEMORY_RESERVE_GIB": "4"} {
+		if env[key] != want {
+			t.Fatalf("%s = %v, want %s", key, env[key], want)
+		}
 	}
-	if s["image"] != "local/qwen38-fp4-local:csf-yarn-20261016" || s["pull_policy"] != "never" {
+	if _, present := env["TF_B12X_BRIDGE"]; present {
+		t.Fatal("unqualified hybrid is enabled")
+	}
+	if s["image"] != "local/sparktalk-qwen38-fp4-tensorfold:db281878-ko2" || s["pull_policy"] != "never" {
 		t.Fatal("wrong runtime image")
 	}
 	if s["network_mode"] != "bridge" {
-		t.Fatal("single-service runtime should reuse the qualified Docker bridge without allocating another subnet")
+		t.Fatal("single runtime must use Docker bridge")
 	}
 	command := s["command"].([]any)
 	args := map[string]string{}
@@ -91,33 +87,13 @@ func TestFP4LocalComposeMatchesStandaloneAndQualifiedRoPE(t *testing.T) {
 			args[flag], _ = command[i+1].(string)
 		}
 	}
-	for flag, want := range map[string]string{"--served-model-name": QwenFP4Local, "--max-model-len": "1048576", "--quantization": "modelopt_mixed", "--load-format": "b12x", "--kv-cache-dtype": "fp8", "--gpu-memory-utilization": "0.8", "--max-num-seqs": "1"} {
+	for flag, want := range map[string]string{"--name": QwenFP4Local, "--context": "1048576", "--kv-dtype": "fp8", "--parallel": "1", "--vision-max-images": "50"} {
 		if args[flag] != want {
 			t.Errorf("%s = %q, want %q", flag, args[flag], want)
 		}
 	}
-	var speculative map[string]any
-	if err := json.Unmarshal([]byte(args["--speculative-config"]), &speculative); err != nil || speculative["method"] != "mtp" || speculative["num_speculative_tokens"] != float64(4) {
-		t.Fatal("MTP configuration changed", err)
-	}
-	config, err := assets.ReadFile("assets/qwen-fp4-local/runtime-config.json")
-	if err != nil {
-		t.Fatal(err)
-	}
-	hash := sha256.Sum256(config)
-	// This config is the identical overlay used for the completed 1M tests.
-	want, err := os.ReadFile(filepath.Join("../../../../compose_yaml/qwen38_fn_fp4_local_vllm/runtime-config.json"))
-	if err != nil || !bytes.Equal(config, want) || hex.EncodeToString(hash[:]) != "e80038e1bf8879e3d022c8c68c33fe1105e521849230213e253e83a9856a26e8" {
-		t.Fatal("runtime overlay drift", err)
-	}
-	var cfg map[string]any
-	if err := json.Unmarshal(config, &cfg); err != nil {
-		t.Fatal(err)
-	}
-	text := cfg["text_config"].(map[string]any)
-	rope := text["rope_parameters"].(map[string]any)
-	if text["max_position_embeddings"] != float64(1048576) || rope["rope_type"] != "yarn" || rope["factor"] != float64(4) || rope["original_max_position_embeddings"] != float64(262144) {
-		t.Fatal("wrong YaRN settings")
+	if strings.Contains(string(raw), "vllm") || strings.Contains(string(raw), "b12x") {
+		t.Fatal("retired engine in active compose")
 	}
 }
 

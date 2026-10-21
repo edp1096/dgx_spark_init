@@ -1,0 +1,128 @@
+diff --git a/zig/src/cuda/tp_watch.zig b/zig/src/cuda/tp_watch.zig
+index 7afca13..42ced53 100644
+--- a/zig/src/cuda/tp_watch.zig
++++ b/zig/src/cuda/tp_watch.zig
+@@ -49,6 +49,15 @@ fn socket() !posix.socket_t {
+ 
+ /// Rank 0 takes a line from each other rank within 5 minutes, and they connect to it; then every line is watched.
+ pub fn start(io: std.Io, rank: usize, world: usize) !void {
++    return startInner(io, rank, world, null);
++}
++
++/// Share the root's real NCCL unique ID before the liveness readers own the lines.
++pub fn startWithId(io: std.Io, rank: usize, world: usize, id: *[128]u8) !void {
++    return startInner(io, rank, world, id);
++}
++
++fn startInner(io: std.Io, rank: usize, world: usize, initial_id: ?*[128]u8) !void {
+     if (world < 2) return;
+     if (world > max_lines + 1) return error.TooManyRanks;
+     my_rank = rank;
+@@ -82,6 +91,9 @@ pub fn start(io: std.Io, rank: usize, world: usize) !void {
+             std.Io.sleep(io, .fromMilliseconds(100), .awake) catch {};
+         }
+     }
++    if (initial_id) |id| {
++        for (lines[0..line_count]) |fd| try transferId(fd, id, rank == 0);
++    }
+     for (lines[0..line_count], 0..) |fd, i| (try std.Thread.spawn(.{}, watch, .{ fd, i })).detach();
+ }
+ 
+@@ -263,3 +275,48 @@ test "a failing parent check still closes the line, kills and reaps the watcher'
+     var status: c_int = 0;
+     try std.testing.expectEqual(@as(c_int, -1), std.c.waitpid(ProcessTest.last_pid, &status, 1));
+ }
++
++// Fixed-width startup payload; no model weights, math or live collective is changed.
++fn transferId(fd: posix.socket_t, id: *[128]u8, sending: bool) !void {
++    var at: usize = 0;
++    while (at < id.len) {
++        var fds = [_]posix.pollfd{.{ .fd = fd, .events = if (sending) posix.POLL.OUT else posix.POLL.IN, .revents = 0 }};
++        if ((posix.poll(&fds, 300_000) catch 0) == 0) return error.BootstrapTimeout;
++        const rc = if (sending) posix.system.write(fd, id[at..].ptr, id.len - at) else posix.system.read(fd, id[at..].ptr, id.len - at);
++        switch (posix.errno(rc)) {
++            .SUCCESS => {
++                if (rc == 0) return error.BootstrapClosed;
++                at += @intCast(rc);
++            },
++            .INTR => {},
++            else => return error.BootstrapFailed,
++        }
++    }
++}
++
++test "NCCL startup ID transfers all 128 binary bytes before liveness records" {
++    var pair: [2]c_int = undefined;
++    if (ProcessTest.socketpair(posix.AF.UNIX, posix.SOCK.STREAM, 0, &pair) != 0) return error.SocketFailed;
++    defer _ = posix.system.close(pair[0]);
++    defer _ = posix.system.close(pair[1]);
++    var sent: [128]u8 = undefined;
++    for (&sent, 0..) |*b, i| b.* = @truncate(i * 37);
++    try transferId(pair[0], &sent, true);
++    const record: Record = .{ .kind = ready_kind, .rank = 1 };
++    _ = posix.system.write(pair[0], std.mem.asBytes(&record).ptr, @sizeOf(Record));
++    var received: [128]u8 = undefined;
++    try transferId(pair[1], &received, false);
++    try std.testing.expectEqualSlices(u8, &sent, &received);
++    var next: Record = undefined;
++    try std.testing.expectEqual(@as(isize, @sizeOf(Record)), posix.system.read(pair[1], std.mem.asBytes(&next).ptr, @sizeOf(Record)));
++    try std.testing.expectEqual(ready_kind, next.kind);
++}
++
++test "NCCL startup ID rejects a peer closed before its payload" {
++    var pair: [2]c_int = undefined;
++    if (ProcessTest.socketpair(posix.AF.UNIX, posix.SOCK.STREAM, 0, &pair) != 0) return error.SocketFailed;
++    defer _ = posix.system.close(pair[0]);
++    _ = posix.system.close(pair[1]);
++    var id: [128]u8 = undefined;
++    try std.testing.expectError(error.BootstrapClosed, transferId(pair[0], &id, false));
++}
+diff --git a/zig/src/families/glm/cuda_native.zig b/zig/src/families/glm/cuda_native.zig
+index 296b6b0..715982d 100644
+--- a/zig/src/families/glm/cuda_native.zig
++++ b/zig/src/families/glm/cuda_native.zig
+@@ -101,6 +101,7 @@ const Owned = struct {
+ };
+ 
+ extern "c" fn setenv(name: [*:0]const u8, value: [*:0]const u8, overwrite: c_int) c_int;
++extern "c" fn unsetenv(name: [*:0]const u8) c_int;
+ 
+ /// Every peer's send/recv connected now, before the weights fill memory (connected on first use, ibv_reg_mr can fail).
+ fn warmPeers(d: *const cuda.Driver, g: *const cuda.tp_group.Group) !void {
+@@ -141,7 +142,7 @@ pub fn open(gpa: std.mem.Allocator, io: std.Io, ctx: *const cuda.Context, dir: [
+         return err;
+     };
+     // the ranks' lines before NCCL (cuda/tp_watch.zig): a rank that fails, refuses or dies stops every rank
+-    if (p.world > 1) try cuda.tp_watch.start(io, p.rank, p.world);
++    // The liveness lines start with the root ID in openRank, before NCCL joins.
+     return openRank(gpa, io, ctx, dir, o, p, set, roce_bytes) catch |err| {
+         cuda.tp_watch.fail(@errorName(err)); // the other ranks stop with this rank's error
+         return err;
+@@ -159,10 +160,26 @@ fn openRank(gpa: std.mem.Allocator, io: std.Io, ctx: *const cuda.Context, dir: [
+     // NCCL's cuMem host buffers wore out GB10's driver pool under load (NV_ERR_NO_MEMORY; next ranks failed to start)
+     if (std.c.getenv("NCCL_CUMEM_HOST_ENABLE") == null) _ = setenv("NCCL_CUMEM_HOST_ENABLE", "0", 0);
+     if (std.c.getenv("NCCL_CUMEM_ENABLE") == null) _ = setenv("NCCL_CUMEM_ENABLE", "0", 0);
++    // NCCL's manual NCCL_COMM_ID subnet selection chose loopback on these hosts.
++    // Let NCCL honor NCCL_SOCKET_IFNAME and distribute its real root ID instead.
++    var endpoint_buffer: [256]u8 = undefined;
++    const endpoint: ?[:0]const u8 = if (std.c.getenv("NCCL_COMM_ID")) |raw| blk: {
++        const value = std.mem.span(raw);
++        if (value.len >= endpoint_buffer.len) return error.NoCommId;
++        @memcpy(endpoint_buffer[0..value.len], value);
++        endpoint_buffer[value.len] = 0;
++        break :blk endpoint_buffer[0..value.len :0];
++    } else null;
++    _ = unsetenv("NCCL_COMM_ID");
+     var lib = try cuda.nccl.Library.open();
+     errdefer lib.close();
+     var id: cuda.nccl.UniqueId = undefined;
+-    try lib.check(lib.api.ncclGetUniqueId(&id), "ncclGetUniqueId"); // NCCL_COMM_ID: the same id on every rank
++    if (p.rank == 0) try lib.check(lib.api.ncclGetUniqueId(&id), "ncclGetUniqueId");
++    if (p.world > 1) {
++        if (endpoint) |value| _ = setenv("NCCL_COMM_ID", value.ptr, 1) else return error.NoCommId;
++        defer _ = unsetenv("NCCL_COMM_ID");
++        try cuda.tp_watch.startWithId(io, p.rank, p.world, &id.internal);
++    }
+     var comm: cuda.nccl.Comm = null;
+     try lib.check(lib.api.ncclCommInitRank(&comm, @intCast(p.world), id, @intCast(p.rank)), "ncclCommInitRank");
+     own.group = .{ .lib = lib, .comm = comm, .rank = p.rank, .world = p.world };

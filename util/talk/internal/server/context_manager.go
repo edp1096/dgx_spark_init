@@ -112,7 +112,7 @@ func (s *Server) buildContext(ctx context.Context, sessionID string, items []db.
 	}
 	var messages []llm.Message
 	if preview {
-		messages, state.Incomplete = s.previewContextMessages(active, cfg)
+		messages, state.Incomplete = s.previewContextMessages(ctx, active, cfg)
 	} else {
 		messages, err = s.llmMessages(ctx, active, cfg)
 		if err != nil {

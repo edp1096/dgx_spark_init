@@ -1,0 +1,17 @@
+{
+  "status": "passed",
+  "route": "/api/chat",
+  "input_budget": 194560,
+  "output_reserve": 65536,
+  "window_tokens": 262144,
+  "answer": "449",
+  "completed": true,
+  "temporary_test_session_deleted": true,
+  "tests": {
+    "go_test_all": "passed",
+    "web_tests": 137,
+    "web_build": "passed"
+  },
+  "cause": "Manual 262144-token output reserve inherited from DS41 consumed the entire Gemma 262144-token context.",
+  "fix": "Bound oversized manual output reserve when normalizing/switching models; enforce the same fallback in runtime budgeting and the UI preview."
+}

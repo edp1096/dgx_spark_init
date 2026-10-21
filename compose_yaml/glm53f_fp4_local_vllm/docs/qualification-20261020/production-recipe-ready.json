@@ -1,0 +1,8 @@
+{
+  "ready": true,
+  "seconds": 602.0651309739915,
+  "containers": {
+    "head": "c42f73f8c1ed7bda8952fca26d3b7821bc1b44e24fab086c1392b1cc735c538d",
+    "worker": "f876f2e108ca60656bbfe6a3ee8b1f7cf2a4ad48eb2d0b19ae1a3dfccf40ae59"
+  }
+}

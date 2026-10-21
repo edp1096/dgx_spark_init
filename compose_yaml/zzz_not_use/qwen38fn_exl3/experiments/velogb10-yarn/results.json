@@ -1,0 +1,398 @@
+{
+  "source_commit": "a6ad23d60e082ff9cca2bb78adda4ecee771388c",
+  "context": 1048576,
+  "yarn_factor": 4,
+  "kv_cache": "q8",
+  "mtp_depth": 3,
+  "lanes": 1,
+  "ple": "ssd",
+  "final_three_recall_cases_passed": true,
+  "recall_comparison": {
+    "native-256k-a": [
+      {
+        "file": "/home/edp1096/.cache/model-download-jobs/velogb10-yarn-20261009/native-256k-a/recall-32k.json",
+        "prompt_tokens": 32768,
+        "output": "청록펭귄, 은빛해달, 자주빛고래",
+        "pass": true,
+        "seconds": 22.468411847017705,
+        "first_visible_token_seconds": 22.104570938972756,
+        "prefill_tps_including_delivery_overhead": 1482.4083258827911,
+        "server_usage": {
+          "prompt_tokens": 32768,
+          "completion_tokens": 17,
+          "total_tokens": 32785,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      }
+    ],
+    "yarn-1m": [
+      {
+        "file": "/home/edp1096/.cache/model-download-jobs/velogb10-yarn-20261009/yarn-1m/recall-32k.json",
+        "prompt_tokens": 32768,
+        "output": "청록, 은빛, 자주",
+        "pass": false,
+        "seconds": 22.53305441897828,
+        "first_visible_token_seconds": 22.281925572897308,
+        "prefill_tps_including_delivery_overhead": 1470.6089872168616,
+        "server_usage": {
+          "prompt_tokens": 32768,
+          "completion_tokens": 8,
+          "total_tokens": 32776,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      },
+      {
+        "file": "/home/edp1096/.cache/model-download-jobs/velogb10-yarn-20261009/yarn-1m/recall-270k.json",
+        "prompt_tokens": 269992,
+        "output": "청록색고래, 자주빛고래, 흰색상어",
+        "pass": false,
+        "seconds": 198.49597695597913,
+        "first_visible_token_seconds": 198.11840318294708,
+        "prefill_tps_including_delivery_overhead": 1362.7810221682596,
+        "server_usage": {
+          "prompt_tokens": 269992,
+          "completion_tokens": 16,
+          "total_tokens": 270008,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      }
+    ],
+    "yarn-1m-fresh": [
+      {
+        "file": "/home/edp1096/.cache/model-download-jobs/velogb10-yarn-20261009/yarn-1m-fresh/recall-32k.json",
+        "prompt_tokens": 32768,
+        "output": "청록, 은빛, 이",
+        "pass": false,
+        "seconds": 22.521828818018548,
+        "first_visible_token_seconds": 22.305826785042882,
+        "prefill_tps_including_delivery_overhead": 1469.0331954865042,
+        "server_usage": {
+          "prompt_tokens": 32768,
+          "completion_tokens": 8,
+          "total_tokens": 32776,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      }
+    ],
+    "yarn-64k-q8": [
+      {
+        "file": "/home/edp1096/.cache/model-download-jobs/velogb10-yarn-20261009/yarn-64k-q8/recall-32k.json",
+        "prompt_tokens": 32768,
+        "output": "청록펭귄, 은빛해달, 자주빛고래",
+        "pass": true,
+        "seconds": 22.543971430975944,
+        "first_visible_token_seconds": 22.209477858967148,
+        "prefill_tps_including_delivery_overhead": 1475.4061400308794,
+        "server_usage": {
+          "prompt_tokens": 32768,
+          "completion_tokens": 17,
+          "total_tokens": 32785,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      }
+    ],
+    "exllama-reference": [
+      {
+        "file": "/home/edp1096/.cache/model-download-jobs/velogb10-yarn-20261009/exllama-reference/recall-32k.json",
+        "prompt_tokens": 32768,
+        "output": "청록펭귄, 은빛해달, 자주빛고래",
+        "pass": true,
+        "seconds": 29.130448072915897,
+        "first_visible_token_seconds": 29.01337340392638,
+        "prefill_tps_including_delivery_overhead": 1129.4102048666118,
+        "server_usage": {
+          "prompt_tokens": 32768,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "prompt_time": 25.6,
+          "prompt_tokens_per_sec": 1280.0,
+          "completion_tokens": 17,
+          "completion_tokens_details": {
+            "accepted_prediction_tokens": 12,
+            "rejected_prediction_tokens": 3
+          },
+          "completion_time": 3.39,
+          "completion_tokens_per_sec": 5.02,
+          "total_tokens": 32785,
+          "total_time": 28.99
+        }
+      },
+      {
+        "file": "/home/edp1096/.cache/model-download-jobs/velogb10-yarn-20261009/exllama-reference/recall-270k.json",
+        "prompt_tokens": 269992,
+        "output": "청록펭귄, 은빛해달, 자주빛고래",
+        "pass": true,
+        "seconds": 221.80761800904293,
+        "first_visible_token_seconds": 221.6556867910549,
+        "prefill_tps_including_delivery_overhead": 1218.0693575189416,
+        "server_usage": {
+          "prompt_tokens": 269992,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "prompt_time": 220.42,
+          "prompt_tokens_per_sec": 1224.9,
+          "completion_tokens": 17,
+          "completion_tokens_details": {
+            "accepted_prediction_tokens": 12,
+            "rejected_prediction_tokens": 3
+          },
+          "completion_time": 0.32,
+          "completion_tokens_per_sec": 52.42,
+          "total_tokens": 270009,
+          "total_time": 220.75
+        }
+      }
+    ],
+    "yarn-1m-fixed": [
+      {
+        "file": "/home/edp1096/.cache/model-download-jobs/velogb10-yarn-20261009/yarn-1m-fixed/recall-32768.json",
+        "prompt_tokens": 32768,
+        "output": "청록펭귄, 은빛해달, 자주빛고래",
+        "pass": true,
+        "seconds": 22.664806858054362,
+        "first_visible_token_seconds": 22.325797716039233,
+        "prefill_tps_including_delivery_overhead": 1467.7191120682292,
+        "server_usage": {
+          "prompt_tokens": 32768,
+          "completion_tokens": 17,
+          "total_tokens": 32785,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      },
+      {
+        "file": "/home/edp1096/.cache/model-download-jobs/velogb10-yarn-20261009/yarn-1m-fixed/recall-270000.json",
+        "prompt_tokens": 269992,
+        "output": "청록펭귄, 은빛해달, 자주빛고래",
+        "pass": true,
+        "seconds": 198.69952937902417,
+        "first_visible_token_seconds": 198.3370857660193,
+        "prefill_tps_including_delivery_overhead": 1361.2784465256937,
+        "server_usage": {
+          "prompt_tokens": 269992,
+          "completion_tokens": 17,
+          "total_tokens": 270009,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      },
+      {
+        "file": "/home/edp1096/.cache/model-download-jobs/velogb10-yarn-20261009/yarn-1m-fixed/recall-1m.json",
+        "prompt_tokens": 1048380,
+        "output": "청록펭귄, 은빛해달, 자주빛고래",
+        "pass": true,
+        "seconds": 942.2529883160023,
+        "first_visible_token_seconds": 941.835922247963,
+        "prefill_tps_including_delivery_overhead": 1113.123820439699,
+        "server_usage": {
+          "prompt_tokens": 1048380,
+          "completion_tokens": 17,
+          "total_tokens": 1048397,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      }
+    ]
+  },
+  "memory": {
+    "native-256k-a": {
+      "peak_driver_gpu_GiB": 59.720703125,
+      "min_system_available_GiB": 52.33412551879883,
+      "max_process_swap_bytes": 0,
+      "max_container_swap_bytes": null,
+      "host_swap_write_MiB": 0.0,
+      "observed_seconds": 131.6783085729694
+    },
+    "yarn-1m": {
+      "peak_driver_gpu_GiB": 73.9560546875,
+      "min_system_available_GiB": 37.87836456298828,
+      "max_process_swap_bytes": 0,
+      "max_container_swap_bytes": null,
+      "host_swap_write_MiB": 0.96875,
+      "observed_seconds": 573.3815271130297
+    },
+    "yarn-1m-fresh": {
+      "peak_driver_gpu_GiB": 73.9560546875,
+      "min_system_available_GiB": 37.85646057128906,
+      "max_process_swap_bytes": 0,
+      "max_container_swap_bytes": null,
+      "host_swap_write_MiB": 0.00390625,
+      "observed_seconds": 249.22057844907977
+    },
+    "yarn-64k-q8": {
+      "peak_driver_gpu_GiB": 56.1748046875,
+      "min_system_available_GiB": 56.489601135253906,
+      "max_process_swap_bytes": 0,
+      "max_container_swap_bytes": null,
+      "host_swap_write_MiB": 0.0,
+      "observed_seconds": 105.3449006540468
+    },
+    "exllama-reference": {
+      "peak_driver_gpu_GiB": 67.884765625,
+      "min_system_available_GiB": 43.16901397705078,
+      "max_process_swap_bytes": null,
+      "max_container_swap_bytes": 0,
+      "host_swap_write_MiB": 0.0,
+      "observed_seconds": 353.5440793429734
+    },
+    "yarn-1m-fixed": {
+      "peak_driver_gpu_GiB": 73.9560546875,
+      "min_system_available_GiB": 37.80549240112305,
+      "max_process_swap_bytes": 0,
+      "max_container_swap_bytes": null,
+      "host_swap_write_MiB": 0.0,
+      "observed_seconds": 1575.5718288740609
+    }
+  },
+  "short_generation": [
+    {
+      "name": "arithmetic",
+      "decode_tps": 76.44471911884227,
+      "finish": "stop",
+      "usage": {
+        "prompt_tokens": 26,
+        "completion_tokens": 4,
+        "total_tokens": 30,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "json",
+      "decode_tps": 79.19910329889619,
+      "finish": "stop",
+      "usage": {
+        "prompt_tokens": 39,
+        "completion_tokens": 13,
+        "total_tokens": 52,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "korean",
+      "decode_tps": 40.41284636110013,
+      "finish": "length",
+      "usage": {
+        "prompt_tokens": 45,
+        "completion_tokens": 256,
+        "total_tokens": 301,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "code",
+      "decode_tps": 84.72122906088185,
+      "finish": "length",
+      "usage": {
+        "prompt_tokens": 41,
+        "completion_tokens": 256,
+        "total_tokens": 297,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "japanese",
+      "decode_tps": 33.965230154667545,
+      "finish": "stop",
+      "usage": {
+        "prompt_tokens": 30,
+        "completion_tokens": 6,
+        "total_tokens": 36,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "chinese",
+      "decode_tps": 53.810362635612314,
+      "finish": "stop",
+      "usage": {
+        "prompt_tokens": 27,
+        "completion_tokens": 11,
+        "total_tokens": 38,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      }
+    }
+  ],
+  "post_full_context_reuse": {
+    "target_tokens": 32768,
+    "actual_tokenize_count": 32768,
+    "input_bytes": 166197,
+    "filler_repetitions_per_half": 1257,
+    "started_wall": 1791547883.251513,
+    "text": "청록펭귄, 은빛해달, 자주빛고래",
+    "usage": {
+      "prompt_tokens": 32768,
+      "completion_tokens": 17,
+      "total_tokens": 32785,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    },
+    "finish": "stop",
+    "done": true,
+    "seconds": 22.620507812011056,
+    "ttft": 22.29563120205421,
+    "pass": true,
+    "prefill_tps": 1469.7049705854893
+  },
+  "over_limit_API": {
+    "status": 400,
+    "body": "prompt 1048577 tokens leaves no room within max_seq_len 1048576",
+    "health_after": 200
+  },
+  "verification": {
+    "GPU_cases": 93,
+    "Rust_unit_tests": 37,
+    "invalid_configurations_rejected": 7,
+    "patch_exact_reproduction_files": 16,
+    "rope_reference_comparison": {
+      "max_relative_frequency_error": 0.0,
+      "scale_error": 3.809308424251867e-10,
+      "row_max_abs_errors": {
+        "0": 0.0,
+        "1": 1.1920928955078125e-07,
+        "2048": 1.1920928955078125e-07,
+        "262143": 1.1920928955078125e-07,
+        "262144": 1.1920928955078125e-07,
+        "524287": 1.1920928955078125e-07,
+        "1048575": 1.1920928955078125e-07,
+        "1048576": 1.1920928955078125e-07
+      }
+    }
+  },
+  "failure_and_fix": "The old QSA 20-bit stride field decoded 1048577 as 1 and changed query pitch 640 to 641, corrupting sparse MTP verification. Expanding QSA geometry to 22/18/20 bits fixes this independently of the RoPE formula.",
+  "limits": [
+    "Single GB10, one existing checkpoint, one lane and MTP depth 3.",
+    "Recall is a three-position synthetic test, not a broad quality benchmark.",
+    "GPU memory includes the Velo vision tower; ancillary ASR/TTS/image/embedding services were stopped.",
+    "Real TP and YaRN image-input requests were not exercised.",
+    "Reference monitoring began during startup and can miss earlier loader peaks.",
+    "Short prose/code samples were capped at 256 tokens and are speed samples, not functional code-quality tests."
+  ]
+}

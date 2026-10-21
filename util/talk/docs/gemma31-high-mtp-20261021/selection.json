@@ -1,0 +1,13 @@
+{
+  "assistant_body_bits": 4,
+  "assistant_head_bits": 6,
+  "speculative_num_steps": 9,
+  "speculative_num_draft_tokens": 10,
+  "speculative_eagle_topk": 1,
+  "speculative_adaptive": false,
+  "splitkv": true,
+  "decision": "Confirmed by user after MTP18/21/24 tests; MTP15 extension cancelled during startup, before measured requests.",
+  "baseline_ko_tg": 32.22005244099673,
+  "baseline_code_tg": 41.11534154086075,
+  "time": "2026-10-21T21:12:42+0900"
+}

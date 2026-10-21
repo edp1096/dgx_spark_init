@@ -1,0 +1,99 @@
+{
+  "date": "2026-10-20",
+  "nodes": {
+    "head": {
+      "models": {
+        "edp1096/Huihui-RadixArk-Qwen3.8-Flash-Next-abliterated-NVFP4": {
+          "shards": 206,
+          "all_exist": true
+        },
+        "edp1096/Huihui-GLM-5.3-Flash-abliterated-FP4-Local": {
+          "shards": 42,
+          "all_exist": true
+        }
+      },
+      "disk": {
+        "total_bytes": 4031871553536,
+        "used_bytes": 3168125505536,
+        "available_bytes": 658905079808
+      },
+      "retired_qad_weights_exist": false,
+      "temporary_glm_nvfp4_exists": false,
+      "running_containers": [
+        "sparktalk-extra-ssh"
+      ],
+      "final_glm_state": {
+        "Running": false,
+        "ExitCode": 0,
+        "OOMKilled": false,
+        "FinishedAt": "2026-10-20T06:45:26.881651884Z"
+      }
+    },
+    "worker": {
+      "models": {
+        "edp1096/Huihui-RadixArk-Qwen3.8-Flash-Next-abliterated-NVFP4": {
+          "shards": 206,
+          "all_exist": true
+        },
+        "edp1096/Huihui-GLM-5.3-Flash-abliterated-FP4-Local": {
+          "shards": 42,
+          "all_exist": true
+        }
+      },
+      "disk": {
+        "total_bytes": 4031871553536,
+        "used_bytes": 3022068715520,
+        "available_bytes": 804961869824
+      },
+      "retired_qad_weights_exist": false,
+      "temporary_glm_nvfp4_exists": true,
+      "running_containers": [
+        "sparktalk-extra-collector",
+        "sparktalk-extra-ssh",
+        "sparktalk-extra-media"
+      ],
+      "final_glm_state": {
+        "Running": false,
+        "ExitCode": 0,
+        "OOMKilled": false,
+        "FinishedAt": "2026-10-20T06:45:39.636071081Z"
+      }
+    }
+  },
+  "talk": {
+    "builtin_revision": 46,
+    "auto_start": false,
+    "startup_default": "ds41",
+    "restored_selected_model": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-FP4-Local",
+    "retired_sets_absent": true,
+    "glm_component": {
+      "name": "GLM 5.3 Flash FP4-Local",
+      "controller": "glm53-fp4-cluster",
+      "progress_kind": "b12x",
+      "runtime_options": {
+        "HEAD_NCCL_HCA": "rocep1s0f1",
+        "HEAD_NCCL_IF": "enp1s0f1np1",
+        "HEAD_RAIL_IP": "10.200.0.1",
+        "MASTER_PORT": "29521",
+        "MAX_MODEL_LEN": "1048576",
+        "MAX_NUM_SEQS": "1",
+        "MODEL_VARIANT": "abliterated",
+        "MTP_TOKENS": "5",
+        "NCCL_SUBNET": "10.200.0.0/24",
+        "WORKER_NCCL_HCA": "rocep1s0f1",
+        "WORKER_NCCL_IF": "enp1s0f1np1",
+        "WORKER_RAIL_IP": "10.200.0.2"
+      },
+      "memory_gib": 108,
+      "worker_memory_gib": 108,
+      "startup_memory_gib": 115
+    },
+    "glm_bundle": {
+      "name": "GLM 5.3 Flash FP4-Local",
+      "description": "2× DGX Spark · FP4-Local · vLLM/B12X · FP8 KV 1M · MTP 5 · TTS·Extra",
+      "context_tokens": 1048576,
+      "model_type": "glm5.3"
+    },
+    "binary_sha256": "3a4c183a783fab64e8773e852df9d359a70335c37ea5199c390a88e56d30db86"
+  }
+}

@@ -34,7 +34,7 @@ func TestQwen38FNEXL3MigrationPreservesQADSelectionAndUserEdits(t *testing.T) {
 		t.Fatal("user edit replaced")
 	}
 	bundle, ok := cfg.Runtime.Catalog.Bundle(id)
-	if !ok || bundle.ContextTokens != 1048576 || bundle.ModelType != "qwen38fn_exl3" || !bundle.WorkloadSwap {
+	if !ok || bundle.ContextTokens != 1048576 || bundle.ModelType != "qwen3.8-tensorfold" || !bundle.WorkloadSwap {
 		t.Fatalf("native profile missing: %+v", bundle)
 	}
 	if _, retired := cfg.Runtime.Catalog.Bundle("flash-next-exl3"); retired {
@@ -63,7 +63,7 @@ func TestQwen38FNEXL3SwitchWiresItsProfileAndSharedServices(t *testing.T) {
 	catalog, _ := orchestrator.LoadCatalog()
 	cfg := Config{Runtime: RuntimeConfig{Mode: "managed", Catalog: &catalog, Bundle: "flash-next", ActiveBundle: "qwen38fn_exl3"}, Model: ModelConfig{ReasoningEffort: "medium"}}
 	cfg.Normalize()
-	if cfg.Model.DefaultModel != "qwen38fn_exl3" || cfg.Model.Endpoint != "http://127.0.0.1:18002" || cfg.Model.ModelType != "qwen38fn_exl3" || cfg.Context.WindowTokens != 1048576 || cfg.Model.ReasoningEffort != "medium" {
+	if cfg.Model.DefaultModel != "qwen38fn_exl3" || cfg.Model.Endpoint != "http://127.0.0.1:18002" || cfg.Model.ModelType != "qwen3.8-tensorfold" || cfg.Context.WindowTokens != 1048576 || cfg.Model.ReasoningEffort != "medium" {
 		t.Fatalf("native profile wiring incorrect: %+v", cfg.Model)
 	}
 	if cfg.Image.Endpoint != "http://127.0.0.1:8730" || cfg.Image.Mode != "basic" || cfg.ASR.Endpoint != "http://127.0.0.1:8693" || cfg.TTS.Endpoint != "http://127.0.0.1:8692" || cfg.Extra.SSHEndpoint != "http://127.0.0.1:8699" {

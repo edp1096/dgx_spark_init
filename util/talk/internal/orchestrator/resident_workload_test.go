@@ -38,8 +38,8 @@ func residentAuxiliaryController(t *testing.T) (*Controller, string) {
 	c.catalog = validated
 	base := c.client.Transport
 	c.client.Transport = auxiliaryTransport(func(r *http.Request) (*http.Response, error) {
-		if r.URL.Path == "/v1/model" {
-			return &http.Response{StatusCode: 200, Body: io.NopCloser(strings.NewReader(`{"id":"qwen38fn_exl3","parameters":{"max_seq_len":1048576,"cache_size":1048576,"cache_mode":"Q8","use_vision":true}}`))}, nil
+		if r.URL.Path == "/health" && r.URL.Host == "qwen38fn_exl3.test" {
+			return &http.Response{StatusCode: 200, Body: io.NopCloser(strings.NewReader(`{"ok":true,"backend":"tensorfold","context_length":1048576}`))}, nil
 		}
 		return base.RoundTrip(r)
 	})

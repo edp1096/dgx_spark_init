@@ -1,0 +1,4331 @@
+[
+  {
+    "name": "oracle",
+    "kind": "oracle",
+    "input_sha256": "69451b724f825cc3bbff6d54a55a396ab0da02802c0c0014c1d79e1f80e710d6",
+    "text": "4",
+    "prompt_tokens": 30,
+    "completion_tokens": 1,
+    "ttft_s": 0.32352947400067933,
+    "first_chunk_tokens": 1,
+    "total_s": 0.32365315401693806,
+    "request_tok_s": 3.089727344191634,
+    "tg_tok_s": null,
+    "pp_ttft_tok_s": 92.72725488972608,
+    "meta_info": {
+      "id": "f2c988e43fdf4473b4e9b868d677ac60",
+      "finish_reason": {
+        "type": "length",
+        "length": 1
+      },
+      "prompt_tokens": 30,
+      "weight_version": "default",
+      "num_retractions": 0,
+      "forward_entry_time": 1792583131.8548033,
+      "prefill_finished_time": 1792583131.978833,
+      "queue_time": 0.00021028518676757812,
+      "reasoning_tokens": 0,
+      "completion_tokens": 1,
+      "cached_tokens": 0,
+      "cached_tokens_details": null,
+      "dp_rank": null,
+      "e2e_latency": 0.32062432199018076,
+      "request_received_ts": 1792583131.7603433,
+      "api_server_dispatch_finish_ts": 1792583131.7605908,
+      "request_finished_ts": 1792583132.0809677,
+      "response_sent_to_client_ts": 1792583132.0811234
+    },
+    "events": [
+      {
+        "s": 0.32352947400067933,
+        "tokens": 1
+      }
+    ],
+    "replacement_characters": 0,
+    "prefill_s": 0.12402963638305664,
+    "pp_engine_tok_s": 241.8776743595954,
+    "arm": "control-b4-check-9"
+  },
+  {
+    "name": "arithmetic",
+    "kind": "quality",
+    "input_sha256": "56ee9add4c02977d2c47fd3cb36b681a448ff3a5d45d88e4cebc8ebdba85864c",
+    "text": "449",
+    "prompt_tokens": 29,
+    "completion_tokens": 4,
+    "ttft_s": 0.1303087249980308,
+    "first_chunk_tokens": 1,
+    "total_s": 0.25458416901528835,
+    "request_tok_s": 15.71189605179178,
+    "tg_tok_s": 24.139925821414923,
+    "pp_ttft_tok_s": 222.54841339624986,
+    "meta_info": {
+      "id": "272c16e34d634a13b74f0e05a970b9c8",
+      "finish_reason": {
+        "type": "stop",
+        "matched": 106
+      },
+      "prompt_tokens": 29,
+      "weight_version": "default",
+      "num_retractions": 0,
+      "forward_entry_time": 1792583132.084146,
+      "prefill_finished_time": 1792583132.2094789,
+      "queue_time": 0.00010514259338378906,
+      "reasoning_tokens": 0,
+      "completion_tokens": 4,
+      "cached_tokens": 0,
+      "cached_tokens_details": null,
+      "dp_rank": null,
+      "e2e_latency": 0.2521996409923304,
+      "spec_accept_rate": 0.4444444444444444,
+      "spec_accept_length": 4.0,
+      "spec_num_correct_drafts": 4,
+      "spec_num_proposed_drafts": 9,
+      "spec_verify_ct": 1,
+      "spec_accepted_drafts": 4,
+      "spec_proposed_drafts": 9,
+      "spec_correct_drafts_histogram": [
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "spec_accept_histogram": [
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "request_received_ts": 1792583132.0834508,
+      "api_server_dispatch_finish_ts": 1792583132.0835857,
+      "response_sent_to_client_ts": 1792583132.2118556,
+      "request_finished_ts": 1792583132.3356504,
+      "decode_throughput": 24.19750663481294
+    },
+    "events": [
+      {
+        "s": 0.1303087249980308,
+        "tokens": 1
+      },
+      {
+        "s": 0.2544021049980074,
+        "tokens": 4
+      }
+    ],
+    "replacement_characters": 0,
+    "prefill_s": 0.12533283233642578,
+    "pp_engine_tok_s": 231.38390363792698,
+    "arm": "control-b4-check-9"
+  },
+  {
+    "name": "json",
+    "kind": "quality",
+    "input_sha256": "9e03789de9716ebc4313143e6d012b7469fea548fdd311e9c4edeb14245a55d6",
+    "text": "```json\n{\n  \"name\": \"펭귄\",\n  \"count\": 3,\n  \"ok\": true\n}\n```",
+    "prompt_tokens": 47,
+    "completion_tokens": 32,
+    "ttft_s": 0.22894936497323215,
+    "first_chunk_tokens": 1,
+    "total_s": 0.7091798099863809,
+    "request_tok_s": 45.12254797639336,
+    "tg_tok_s": 64.5523421555483,
+    "pp_ttft_tok_s": 205.2855661141277,
+    "meta_info": {
+      "id": "6388f868bac64f8897bd61de81d47eb9",
+      "finish_reason": {
+        "type": "stop",
+        "matched": 106
+      },
+      "prompt_tokens": 47,
+      "weight_version": "default",
+      "num_retractions": 0,
+      "forward_entry_time": 1792583132.435516,
+      "prefill_finished_time": 1792583132.5646858,
+      "queue_time": 0.00024056434631347656,
+      "reasoning_tokens": 0,
+      "completion_tokens": 32,
+      "cached_tokens": 0,
+      "cached_tokens_details": null,
+      "dp_rank": null,
+      "e2e_latency": 0.7058883690042421,
+      "spec_accept_rate": 0.8055555555555556,
+      "spec_accept_length": 8.0,
+      "spec_num_correct_drafts": 29,
+      "spec_num_proposed_drafts": 36,
+      "spec_verify_ct": 4,
+      "spec_accepted_drafts": 29,
+      "spec_proposed_drafts": 36,
+      "spec_correct_drafts_histogram": [
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        3
+      ],
+      "spec_accept_histogram": [
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        3
+      ],
+      "request_received_ts": 1792583132.3404112,
+      "api_server_dispatch_finish_ts": 1792583132.340685,
+      "response_sent_to_client_ts": 1792583132.5666163,
+      "request_finished_ts": 1792583133.0462997,
+      "decode_throughput": 64.60095041331896
+    },
+    "events": [
+      {
+        "s": 0.22894936497323215,
+        "tokens": 1
+      },
+      {
+        "s": 0.3474275759945158,
+        "tokens": 11
+      },
+      {
+        "s": 0.467531242989935,
+        "tokens": 21
+      },
+      {
+        "s": 0.5875115179806016,
+        "tokens": 31
+      },
+      {
+        "s": 0.7090571699955035,
+        "tokens": 32
+      }
+    ],
+    "replacement_characters": 0,
+    "prefill_s": 0.12916970252990723,
+    "pp_engine_tok_s": 363.8624157171678,
+    "arm": "control-b4-check-9"
+  },
+  {
+    "name": "ko_instruction",
+    "kind": "quality",
+    "input_sha256": "b06d8a6f896a35188e722b6cf9003a36f7fc51ad4296a274851cd73a80457222",
+    "text": "해달은 바다 위에서 자유롭게 헤엄치며 조개를 까먹는 귀여운 동물입니다.\n펭귄은 얼음 위를 뒤뚱거리며 걷다가 바다 속에서는 빠르게 헤엄치는 새입니다.",
+    "prompt_tokens": 52,
+    "completion_tokens": 51,
+    "ttft_s": 0.23004863000824116,
+    "first_chunk_tokens": 1,
+    "total_s": 2.5202008769847453,
+    "request_tok_s": 20.23648212559078,
+    "tg_tok_s": 21.83260962934268,
+    "pp_ttft_tok_s": 226.0391639721444,
+    "meta_info": {
+      "id": "0f85e9fb56d049cf85929fcc1754573d",
+      "finish_reason": {
+        "type": "stop",
+        "matched": 106
+      },
+      "prompt_tokens": 52,
+      "weight_version": "default",
+      "num_retractions": 0,
+      "forward_entry_time": 1792583133.1475089,
+      "prefill_finished_time": 1792583133.2758822,
+      "queue_time": 0.00022530555725097656,
+      "reasoning_tokens": 0,
+      "completion_tokens": 51,
+      "cached_tokens": 0,
+      "cached_tokens_details": null,
+      "dp_rank": null,
+      "e2e_latency": 2.516740763996495,
+      "spec_accept_rate": 0.19298245614035087,
+      "spec_accept_length": 2.6842105263157894,
+      "spec_num_correct_drafts": 33,
+      "spec_num_proposed_drafts": 171,
+      "spec_verify_ct": 19,
+      "spec_accepted_drafts": 33,
+      "spec_proposed_drafts": 171,
+      "spec_correct_drafts_histogram": [
+        4,
+        6,
+        4,
+        2,
+        2,
+        1
+      ],
+      "spec_accept_histogram": [
+        4,
+        6,
+        4,
+        2,
+        2,
+        1
+      ],
+      "request_received_ts": 1792583133.0507298,
+      "api_server_dispatch_finish_ts": 1792583133.051023,
+      "response_sent_to_client_ts": 1792583133.2778695,
+      "request_finished_ts": 1792583135.5674706,
+      "decode_throughput": 21.83569640009399
+    },
+    "events": [
+      {
+        "s": 0.23004863000824116,
+        "tokens": 1
+      },
+      {
+        "s": 0.34789551398716867,
+        "tokens": 6
+      },
+      {
+        "s": 0.46773594999103807,
+        "tokens": 8
+      },
+      {
+        "s": 0.5870485129998997,
+        "tokens": 10
+      },
+      {
+        "s": 0.705939045001287,
+        "tokens": 14
+      },
+      {
+        "s": 0.8271233690029476,
+        "tokens": 16
+      },
+      {
+        "s": 0.9481858049985021,
+        "tokens": 19
+      },
+      {
+        "s": 1.069143314001849,
+        "tokens": 25
+      },
+      {
+        "s": 1.1896317180071492,
+        "tokens": 29
+      },
+      {
+        "s": 1.3135073719895445,
+        "tokens": 32
+      },
+      {
+        "s": 1.4342004159989301,
+        "tokens": 33
+      },
+      {
+        "s": 1.5551385169965215,
+        "tokens": 35
+      },
+      {
+        "s": 1.6758262339862995,
+        "tokens": 37
+      },
+      {
+        "s": 1.7962166859942954,
+        "tokens": 39
+      },
+      {
+        "s": 1.9162099869863596,
+        "tokens": 40
+      },
+      {
+        "s": 2.037409607990412,
+        "tokens": 43
+      },
+      {
+        "s": 2.157387580984505,
+        "tokens": 44
+      },
+      {
+        "s": 2.2779614419850986,
+        "tokens": 45
+      },
+      {
+        "s": 2.398702823003987,
+        "tokens": 48
+      },
+      {
+        "s": 2.5200656770030037,
+        "tokens": 51
+      }
+    ],
+    "replacement_characters": 0,
+    "prefill_s": 0.128373384475708,
+    "pp_engine_tok_s": 405.0683886879988,
+    "arm": "control-b4-check-9"
+  },
+  {
+    "name": "japanese",
+    "kind": "quality",
+    "input_sha256": "012becaa7c89a43a6648778c2804bb279651fa07b2794ac1d0d3aa49e57c6238",
+    "text": "そのペンギンは雪の上を走っています。",
+    "prompt_tokens": 28,
+    "completion_tokens": 11,
+    "ttft_s": 0.22774242400191724,
+    "first_chunk_tokens": 1,
+    "total_s": 0.7024790209834464,
+    "request_tok_s": 15.658830614756836,
+    "tg_tok_s": 21.06431242836978,
+    "pp_ttft_tok_s": 122.94591191215336,
+    "meta_info": {
+      "id": "1b7e95f2f84640e984eba9fc5aa030fb",
+      "finish_reason": {
+        "type": "stop",
+        "matched": 106
+      },
+      "prompt_tokens": 28,
+      "weight_version": "default",
+      "num_retractions": 0,
+      "forward_entry_time": 1792583135.6694076,
+      "prefill_finished_time": 1792583135.7948449,
+      "queue_time": 0.0006728172302246094,
+      "reasoning_tokens": 0,
+      "completion_tokens": 11,
+      "cached_tokens": 0,
+      "cached_tokens_details": null,
+      "dp_rank": null,
+      "e2e_latency": 0.6991826209996361,
+      "spec_accept_rate": 0.19444444444444445,
+      "spec_accept_length": 2.75,
+      "spec_num_correct_drafts": 7,
+      "spec_num_proposed_drafts": 36,
+      "spec_verify_ct": 4,
+      "spec_accepted_drafts": 7,
+      "spec_proposed_drafts": 36,
+      "spec_correct_drafts_histogram": [
+        2,
+        0,
+        1,
+        0,
+        0,
+        1
+      ],
+      "spec_accept_histogram": [
+        2,
+        0,
+        1,
+        0,
+        0,
+        1
+      ],
+      "request_received_ts": 1792583135.5720103,
+      "api_server_dispatch_finish_ts": 1792583135.572255,
+      "response_sent_to_client_ts": 1792583135.7970204,
+      "request_finished_ts": 1792583136.271193,
+      "decode_throughput": 21.080123743779087
+    },
+    "events": [
+      {
+        "s": 0.22774242400191724,
+        "tokens": 1
+      },
+      {
+        "s": 0.3467506369925104,
+        "tokens": 2
+      },
+      {
+        "s": 0.46627444998011924,
+        "tokens": 8
+      },
+      {
+        "s": 0.5842061360017397,
+        "tokens": 9
+      },
+      {
+        "s": 0.7022875330003444,
+        "tokens": 11
+      }
+    ],
+    "replacement_characters": 0,
+    "prefill_s": 0.12543725967407227,
+    "pp_engine_tok_s": 223.21916209548357,
+    "arm": "control-b4-check-9"
+  },
+  {
+    "name": "reasoning",
+    "kind": "quality",
+    "input_sha256": "9a77eb239f4273c68b5e6a013efe4d03c2064f332fe6462f344a3858596853b2",
+    "text": "**계산:**\n$\\frac{3}{5} \\times \\frac{2}{4} = \\frac{6}{20} = \\frac{3}{10}$\n\n**정답:**\n$\\frac{3}{10}$",
+    "prompt_tokens": 65,
+    "completion_tokens": 54,
+    "ttft_s": 0.24141013898770325,
+    "first_chunk_tokens": 1,
+    "total_s": 1.081091030006064,
+    "request_tok_s": 49.94954032658758,
+    "tg_tok_s": 63.11921655823543,
+    "pp_ttft_tok_s": 269.2513258662716,
+    "meta_info": {
+      "id": "e1b427a4fe314272ab2885c0f6d4aca5",
+      "finish_reason": {
+        "type": "stop",
+        "matched": 106
+      },
+      "prompt_tokens": 65,
+      "weight_version": "default",
+      "num_retractions": 0,
+      "forward_entry_time": 1792583136.3704503,
+      "prefill_finished_time": 1792583136.512689,
+      "queue_time": 0.00019812583923339844,
+      "reasoning_tokens": 0,
+      "completion_tokens": 54,
+      "cached_tokens": 0,
+      "cached_tokens_details": null,
+      "dp_rank": null,
+      "e2e_latency": 1.0772918289876543,
+      "spec_accept_rate": 0.746031746031746,
+      "spec_accept_length": 7.714285714285714,
+      "spec_num_correct_drafts": 47,
+      "spec_num_proposed_drafts": 63,
+      "spec_verify_ct": 7,
+      "spec_accepted_drafts": 47,
+      "spec_proposed_drafts": 63,
+      "spec_correct_drafts_histogram": [
+        0,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        4
+      ],
+      "spec_accept_histogram": [
+        0,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        4
+      ],
+      "request_received_ts": 1792583136.2769094,
+      "api_server_dispatch_finish_ts": 1792583136.2771792,
+      "response_sent_to_client_ts": 1792583136.515069,
+      "request_finished_ts": 1792583137.354201,
+      "decode_throughput": 63.14617284962464
+    },
+    "events": [
+      {
+        "s": 0.24141013898770325,
+        "tokens": 1
+      },
+      {
+        "s": 0.35983534500701353,
+        "tokens": 4
+      },
+      {
+        "s": 0.4798416389967315,
+        "tokens": 6
+      },
+      {
+        "s": 0.5996554520097561,
+        "tokens": 15
+      },
+      {
+        "s": 0.7195771539991256,
+        "tokens": 25
+      },
+      {
+        "s": 0.840618729009293,
+        "tokens": 35
+      },
+      {
+        "s": 0.9604715669993311,
+        "tokens": 45
+      },
+      {
+        "s": 1.0809677499928512,
+        "tokens": 54
+      }
+    ],
+    "replacement_characters": 0,
+    "prefill_s": 0.14223885536193848,
+    "pp_engine_tok_s": 456.9778056396907,
+    "arm": "control-b4-check-9"
+  },
+  {
+    "name": "tool_title",
+    "kind": "quality",
+    "input_sha256": "c420866b4d8fb6b551ee8260aaa8ab565575fcba35a50c960be3d88441f46dbd",
+    "text": "<|tool_call>call:set_session_title{title:<|\"|>261010 주요뉴스<|\"|>}<tool_call|>",
+    "prompt_tokens": 82,
+    "completion_tokens": 24,
+    "ttft_s": 0.24204694101354107,
+    "first_chunk_tokens": 1,
+    "total_s": 0.9632628690160345,
+    "request_tok_s": 24.9153172742097,
+    "tg_tok_s": 31.890587973703877,
+    "pp_ttft_tok_s": 338.7772621981312,
+    "meta_info": {
+      "id": "0a7b8846f1204aa4a7c3a286eb913087",
+      "finish_reason": {
+        "type": "stop",
+        "matched": 50
+      },
+      "prompt_tokens": 82,
+      "weight_version": "default",
+      "num_retractions": 0,
+      "forward_entry_time": 1792583137.455652,
+      "prefill_finished_time": 1792583137.5962873,
+      "queue_time": 0.00019407272338867188,
+      "reasoning_tokens": 0,
+      "completion_tokens": 24,
+      "cached_tokens": 0,
+      "cached_tokens_details": null,
+      "dp_rank": null,
+      "e2e_latency": 0.95984082101495,
+      "spec_accept_rate": 0.3333333333333333,
+      "spec_accept_length": 4.0,
+      "spec_num_correct_drafts": 18,
+      "spec_num_proposed_drafts": 54,
+      "spec_verify_ct": 6,
+      "spec_accepted_drafts": 18,
+      "spec_proposed_drafts": 54,
+      "spec_correct_drafts_histogram": [
+        1,
+        1,
+        2,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "spec_accept_histogram": [
+        1,
+        1,
+        2,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "request_received_ts": 1792583137.3589814,
+      "api_server_dispatch_finish_ts": 1792583137.3592525,
+      "response_sent_to_client_ts": 1792583137.598265,
+      "request_finished_ts": 1792583138.3188221,
+      "decode_throughput": 31.911747313763787
+    },
+    "events": [
+      {
+        "s": 0.24204694101354107,
+        "tokens": 1
+      },
+      {
+        "s": 0.36154409899609163,
+        "tokens": 4
+      },
+      {
+        "s": 0.4814427780220285,
+        "tokens": 14
+      },
+      {
+        "s": 0.6011413120140787,
+        "tokens": 19
+      },
+      {
+        "s": 0.7219719270069618,
+        "tokens": 20
+      },
+      {
+        "s": 0.8422488619980868,
+        "tokens": 22
+      },
+      {
+        "s": 0.9630989330180455,
+        "tokens": 24
+      }
+    ],
+    "replacement_characters": 0,
+    "prefill_s": 0.14063525199890137,
+    "pp_engine_tok_s": 583.0686036004727,
+    "arm": "control-b4-check-9"
+  },
+  {
+    "name": "code_unique",
+    "kind": "code",
+    "input_sha256": "78217d6a4df3c10852f37e434bed6b64cb9da3c17d5dc8f983fe58830b2f95ad",
+    "text": "```python\ndef stable_unique(xs):\n    seen = set()\n    result = []\n    for x in xs:\n        if x not in seen:\n            result.append(x)\n            seen.add(x)\n    return result\n```",
+    "prompt_tokens": 52,
+    "completion_tokens": 59,
+    "ttft_s": 0.2345124450221192,
+    "first_chunk_tokens": 1,
+    "total_s": 1.210050363006303,
+    "request_tok_s": 48.75830114493563,
+    "tg_tok_s": 59.45437786759647,
+    "pp_ttft_tok_s": 221.73663318846621,
+    "meta_info": {
+      "id": "30181b4385634fe3bae4257e5b46c981",
+      "finish_reason": {
+        "type": "stop",
+        "matched": 106
+      },
+      "prompt_tokens": 52,
+      "weight_version": "default",
+      "num_retractions": 0,
+      "forward_entry_time": 1792583138.4200873,
+      "prefill_finished_time": 1792583138.553286,
+      "queue_time": 0.0001881122589111328,
+      "reasoning_tokens": 0,
+      "completion_tokens": 59,
+      "cached_tokens": 0,
+      "cached_tokens_details": null,
+      "dp_rank": null,
+      "e2e_latency": 1.2067914670042228,
+      "spec_accept_rate": 0.7361111111111112,
+      "spec_accept_length": 7.375,
+      "spec_num_correct_drafts": 53,
+      "spec_num_proposed_drafts": 72,
+      "spec_verify_ct": 8,
+      "spec_accepted_drafts": 53,
+      "spec_proposed_drafts": 72,
+      "spec_correct_drafts_histogram": [
+        0,
+        0,
+        1,
+        0,
+        1,
+        1,
+        0,
+        0,
+        3,
+        2
+      ],
+      "spec_accept_histogram": [
+        0,
+        0,
+        1,
+        0,
+        1,
+        1,
+        0,
+        0,
+        3,
+        2
+      ],
+      "request_received_ts": 1792583138.3237019,
+      "api_server_dispatch_finish_ts": 1792583138.3239543,
+      "response_sent_to_client_ts": 1792583138.555565,
+      "request_finished_ts": 1792583139.5304935,
+      "decode_throughput": 59.478248720983345
+    },
+    "events": [
+      {
+        "s": 0.2345124450221192,
+        "tokens": 1
+      },
+      {
+        "s": 0.3584088369971141,
+        "tokens": 10
+      },
+      {
+        "s": 0.4884798220009543,
+        "tokens": 13
+      },
+      {
+        "s": 0.6083220690197777,
+        "tokens": 19
+      },
+      {
+        "s": 0.7282348120061215,
+        "tokens": 28
+      },
+      {
+        "s": 0.8478667230228893,
+        "tokens": 38
+      },
+      {
+        "s": 0.9682617869984824,
+        "tokens": 47
+      },
+      {
+        "s": 1.088549171021441,
+        "tokens": 57
+      },
+      {
+        "s": 1.2099427790089976,
+        "tokens": 59
+      }
+    ],
+    "replacement_characters": 0,
+    "prefill_s": 0.13319873809814453,
+    "pp_engine_tok_s": 390.39408888157,
+    "arm": "control-b4-check-9"
+  },
+  {
+    "name": "code_chunks",
+    "kind": "code",
+    "input_sha256": "ffcbedadcf7d5da391a2d82459c23dd2d271f07dc6e11d19532e8a2b0ce04775",
+    "text": "```python\ndef chunks(xs, n):\n    if n <= 0:\n        raise ValueError(\"n must be greater than 0\")\n    return [xs[i:i + n] for i in range(0, len(xs), n)]\n```",
+    "prompt_tokens": 62,
+    "completion_tokens": 59,
+    "ttft_s": 0.23557995099690743,
+    "first_chunk_tokens": 1,
+    "total_s": 1.093415259005269,
+    "request_tok_s": 53.95937134961429,
+    "tg_tok_s": 67.61204564388792,
+    "pp_ttft_tok_s": 263.1802907574843,
+    "meta_info": {
+      "id": "e66c707c8c334a828775e26c60c84681",
+      "finish_reason": {
+        "type": "stop",
+        "matched": 106
+      },
+      "prompt_tokens": 62,
+      "weight_version": "default",
+      "num_retractions": 0,
+      "forward_entry_time": 1792583139.6318178,
+      "prefill_finished_time": 1792583139.7660859,
+      "queue_time": 0.00019097328186035156,
+      "reasoning_tokens": 0,
+      "completion_tokens": 59,
+      "cached_tokens": 0,
+      "cached_tokens_details": null,
+      "dp_rank": null,
+      "e2e_latency": 1.0899654339882545,
+      "spec_accept_rate": 0.8253968253968254,
+      "spec_accept_length": 8.428571428571429,
+      "spec_num_correct_drafts": 52,
+      "spec_num_proposed_drafts": 63,
+      "spec_verify_ct": 7,
+      "spec_accepted_drafts": 52,
+      "spec_proposed_drafts": 63,
+      "spec_correct_drafts_histogram": [
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        1,
+        4
+      ],
+      "spec_accept_histogram": [
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        1,
+        4
+      ],
+      "request_received_ts": 1792583139.5353358,
+      "api_server_dispatch_finish_ts": 1792583139.535604,
+      "response_sent_to_client_ts": 1792583139.767871,
+      "request_finished_ts": 1792583140.6253011,
+      "decode_throughput": 67.63067547977326
+    },
+    "events": [
+      {
+        "s": 0.23557995099690743,
+        "tokens": 1
+      },
+      {
+        "s": 0.36588251998182386,
+        "tokens": 10
+      },
+      {
+        "s": 0.48631631999160163,
+        "tokens": 20
+      },
+      {
+        "s": 0.6063585369847715,
+        "tokens": 27
+      },
+      {
+        "s": 0.7273180169868283,
+        "tokens": 37
+      },
+      {
+        "s": 0.8464544729795307,
+        "tokens": 40
+      },
+      {
+        "s": 0.9662708169780672,
+        "tokens": 50
+      },
+      {
+        "s": 1.0932250350015238,
+        "tokens": 59
+      }
+    ],
+    "replacement_characters": 0,
+    "prefill_s": 0.13426804542541504,
+    "pp_engine_tok_s": 461.7628848588592,
+    "arm": "control-b4-check-9"
+  },
+  {
+    "name": "speed_ko_0",
+    "kind": "speed_ko",
+    "input_sha256": "0855a18304ee26d3909f058b498df8150b83d79c821db0b39ffceda6bc082dce",
+    "text": "데이터베이스에서 **트랜잭션(Transaction)**이란 하나의 논리적 작업 단위를 의미합니다. 하지만 여러 사용자가 동시에 데이터베이스에 접근할 때, 각 트랜잭션이 서로 간섭하지 않고 독립적으로 실행되기를 원하는데, 이때 결정하는 것이 바로 **격리 수준(Isolation Level)**입니다.\n\n격리 수준이 낮으면 성능은 좋아지지만 데이터 일관성이 떨어질 수 있고, 격리 수준이 높으면 데이터 일관성은 완벽해지지만 성능(동시 처리량)이 떨어질 수 있습니다.\n\n다음은 **사례 번호 1**을 바탕으로 한 상세 설명입니다.\n\n---\n\n### 1. 동시성 문제 (Concurrency Problems)\n격리 수준을 이해하기 전, 여러 트랜잭션이 동시에 실행될 때 발생하는 세 가지 주요 문제가 있습니다.\n\n#### ① Dirty Read (더티 리드)\n*   **정의:** 다른 트랜잭션이 데이터를 수정했지만, 아직 **커밋(Commit)하지 않은 상태**에서 그 데이터를 읽었을 때 발생합니다.\n*   **예시:** \n    *   트랜잭션 A가 사용자의 잔액을 10,000원에서 20,000원으로 수정했습니다.\n    *   트랜잭션 B가 잔액을 조회하니 20,000원이 나옵니다.\n    *   그런데 트랜잭션 A에서 문제가 생겨 다시 **롤백(Rollback)**하여 10,000원으로 되돌렸습니다.\n    *   결과적으로 트랜잭션 B는 존재하지 않는 데이터(20,000원)를 읽은 셈이 됩니다.\n\n#### ② Non-Repeatable Read (반복 불가능한 읽기)\n*   **정의:** 한 트랜잭션 내에서 **같은 데이터를 두 번 조회했을 때 결과가 서로 다르게** 나타나는 현상입니다. (다른 트랜잭션이 데이터를 수정/삭제했기 때문)\n*   **예시:**\n    *   트랜잭션 A가 상품 재고를 조회했습니다. (결과: 10개)\n    *   그 사이 트랜잭션 B가 상품 1개를 구매하여 재고를 9개로 수정하고 커밋했습니다.\n    *   트랜잭션 A가 다시 재고를 조회하니",
+    "prompt_tokens": 48,
+    "completion_tokens": 512,
+    "ttft_s": 0.23707094401470385,
+    "first_chunk_tokens": 1,
+    "total_s": 15.91756624399568,
+    "request_tok_s": 32.165721326470575,
+    "tg_tok_s": 32.588256316152204,
+    "pp_ttft_tok_s": 202.47103751787859,
+    "meta_info": {
+      "id": "0e56346a016746a9b261724b68dbd3f2",
+      "finish_reason": {
+        "type": "length",
+        "length": 512
+      },
+      "prompt_tokens": 48,
+      "weight_version": "default",
+      "num_retractions": 0,
+      "forward_entry_time": 1792583140.7265785,
+      "prefill_finished_time": 1792583140.8623075,
+      "queue_time": 0.00021386146545410156,
+      "reasoning_tokens": 0,
+      "completion_tokens": 512,
+      "cached_tokens": 0,
+      "cached_tokens_details": null,
+      "dp_rank": null,
+      "e2e_latency": 15.914068771991879,
+      "spec_accept_rate": 0.35049683830171635,
+      "spec_accept_length": 4.162601626016261,
+      "spec_num_correct_drafts": 388,
+      "spec_num_proposed_drafts": 1107,
+      "spec_verify_ct": 123,
+      "spec_accepted_drafts": 388,
+      "spec_proposed_drafts": 1107,
+      "spec_correct_drafts_histogram": [
+        20,
+        25,
+        19,
+        14,
+        9,
+        9,
+        9,
+        5,
+        4,
+        9
+      ],
+      "spec_accept_histogram": [
+        20,
+        25,
+        19,
+        14,
+        9,
+        9,
+        9,
+        5,
+        4,
+        9
+      ],
+      "request_received_ts": 1792583140.6312864,
+      "api_server_dispatch_finish_ts": 1792583140.6315928,
+      "response_sent_to_client_ts": 1792583140.8649833,
+      "request_finished_ts": 1792583156.545355,
+      "decode_throughput": 32.5881252340695
+    },
+    "events": [
+      {
+        "s": 0.23707094401470385,
+        "tokens": 1
+      },
+      {
+        "s": 0.3635398969927337,
+        "tokens": 3
+      },
+      {
+        "s": 0.4835252980119549,
+        "tokens": 10
+      },
+      {
+        "s": 0.600771850993624,
+        "tokens": 12
+      },
+      {
+        "s": 0.7186409310088493,
+        "tokens": 13
+      },
+      {
+        "s": 0.8367824119923171,
+        "tokens": 14
+      },
+      {
+        "s": 0.9544130919966847,
+        "tokens": 16
+      },
+      {
+        "s": 1.0716049559996463,
+        "tokens": 17
+      },
+      {
+        "s": 1.1895097329979762,
+        "tokens": 18
+      },
+      {
+        "s": 1.3093736139999237,
+        "tokens": 20
+      },
+      {
+        "s": 1.429596086993115,
+        "tokens": 21
+      },
+      {
+        "s": 1.5648928680166136,
+        "tokens": 23
+      },
+      {
+        "s": 1.6880757740000263,
+        "tokens": 25
+      },
+      {
+        "s": 1.8087658000004012,
+        "tokens": 28
+      },
+      {
+        "s": 1.9287968010175973,
+        "tokens": 30
+      },
+      {
+        "s": 2.052313068008516,
+        "tokens": 32
+      },
+      {
+        "s": 2.173108053015312,
+        "tokens": 35
+      },
+      {
+        "s": 2.292883838992566,
+        "tokens": 36
+      },
+      {
+        "s": 2.4136685210105497,
+        "tokens": 42
+      },
+      {
+        "s": 2.533856210997328,
+        "tokens": 45
+      },
+      {
+        "s": 2.653573117015185,
+        "tokens": 48
+      },
+      {
+        "s": 2.7767611439921893,
+        "tokens": 50
+      },
+      {
+        "s": 2.912422469991725,
+        "tokens": 52
+      },
+      {
+        "s": 3.0331176960025914,
+        "tokens": 55
+      },
+      {
+        "s": 3.153658249997534,
+        "tokens": 65
+      },
+      {
+        "s": 3.27445064499625,
+        "tokens": 70
+      },
+      {
+        "s": 3.3944292630185373,
+        "tokens": 75
+      },
+      {
+        "s": 3.5251997399900574,
+        "tokens": 76
+      },
+      {
+        "s": 3.6540928250178695,
+        "tokens": 77
+      },
+      {
+        "s": 3.7748149480030406,
+        "tokens": 81
+      },
+      {
+        "s": 3.8952962229959667,
+        "tokens": 82
+      },
+      {
+        "s": 4.016561386000831,
+        "tokens": 86
+      },
+      {
+        "s": 4.143590679013869,
+        "tokens": 90
+      },
+      {
+        "s": 4.264815809990978,
+        "tokens": 97
+      },
+      {
+        "s": 4.38700924499426,
+        "tokens": 100
+      },
+      {
+        "s": 4.509387016994879,
+        "tokens": 105
+      },
+      {
+        "s": 4.631073861004552,
+        "tokens": 106
+      },
+      {
+        "s": 4.752920113009168,
+        "tokens": 107
+      },
+      {
+        "s": 4.891724528017221,
+        "tokens": 109
+      },
+      {
+        "s": 5.016581308998866,
+        "tokens": 110
+      },
+      {
+        "s": 5.139146617002552,
+        "tokens": 113
+      },
+      {
+        "s": 5.260843861004105,
+        "tokens": 119
+      },
+      {
+        "s": 5.38312462499016,
+        "tokens": 124
+      },
+      {
+        "s": 5.505779869010439,
+        "tokens": 129
+      },
+      {
+        "s": 5.628052329993807,
+        "tokens": 133
+      },
+      {
+        "s": 5.7519275750091765,
+        "tokens": 141
+      },
+      {
+        "s": 5.891777080018073,
+        "tokens": 150
+      },
+      {
+        "s": 6.015550821000943,
+        "tokens": 153
+      },
+      {
+        "s": 6.139381810004124,
+        "tokens": 157
+      },
+      {
+        "s": 6.268170016002841,
+        "tokens": 161
+      },
+      {
+        "s": 6.391548157000216,
+        "tokens": 169
+      },
+      {
+        "s": 6.515758713998366,
+        "tokens": 172
+      },
+      {
+        "s": 6.639522968005622,
+        "tokens": 175
+      },
+      {
+        "s": 6.763450422004098,
+        "tokens": 176
+      },
+      {
+        "s": 6.88797317101853,
+        "tokens": 181
+      },
+      {
+        "s": 7.01216931300587,
+        "tokens": 184
+      },
+      {
+        "s": 7.153642354998738,
+        "tokens": 185
+      },
+      {
+        "s": 7.279913184989709,
+        "tokens": 186
+      },
+      {
+        "s": 7.404321743000764,
+        "tokens": 190
+      },
+      {
+        "s": 7.529580494010588,
+        "tokens": 193
+      },
+      {
+        "s": 7.653418811998563,
+        "tokens": 202
+      },
+      {
+        "s": 7.778993546991842,
+        "tokens": 204
+      },
+      {
+        "s": 7.904593209008453,
+        "tokens": 207
+      },
+      {
+        "s": 8.045871996000642,
+        "tokens": 213
+      },
+      {
+        "s": 8.172614907001844,
+        "tokens": 218
+      },
+      {
+        "s": 8.303035146993352,
+        "tokens": 221
+      },
+      {
+        "s": 8.42824554501567,
+        "tokens": 231
+      },
+      {
+        "s": 8.55361765701673,
+        "tokens": 239
+      },
+      {
+        "s": 8.681384233001154,
+        "tokens": 245
+      },
+      {
+        "s": 8.807373607996851,
+        "tokens": 247
+      },
+      {
+        "s": 8.934189735999098,
+        "tokens": 248
+      },
+      {
+        "s": 9.073237210017396,
+        "tokens": 253
+      },
+      {
+        "s": 9.204463691014098,
+        "tokens": 259
+      },
+      {
+        "s": 9.331559482990997,
+        "tokens": 265
+      },
+      {
+        "s": 9.457563499017851,
+        "tokens": 267
+      },
+      {
+        "s": 9.58321380300913,
+        "tokens": 277
+      },
+      {
+        "s": 9.711064778995933,
+        "tokens": 279
+      },
+      {
+        "s": 9.83856375500909,
+        "tokens": 283
+      },
+      {
+        "s": 9.966624747990863,
+        "tokens": 285
+      },
+      {
+        "s": 10.095039933017688,
+        "tokens": 292
+      },
+      {
+        "s": 10.223197389015695,
+        "tokens": 300
+      },
+      {
+        "s": 10.357329152000602,
+        "tokens": 307
+      },
+      {
+        "s": 10.503958934015827,
+        "tokens": 311
+      },
+      {
+        "s": 10.631960822996916,
+        "tokens": 318
+      },
+      {
+        "s": 10.759855720010819,
+        "tokens": 327
+      },
+      {
+        "s": 10.888021065009525,
+        "tokens": 330
+      },
+      {
+        "s": 11.016455642995425,
+        "tokens": 340
+      },
+      {
+        "s": 11.14601774001494,
+        "tokens": 346
+      },
+      {
+        "s": 11.275696077995235,
+        "tokens": 348
+      },
+      {
+        "s": 11.406121728010476,
+        "tokens": 351
+      },
+      {
+        "s": 11.537214834999759,
+        "tokens": 360
+      },
+      {
+        "s": 11.67441632700502,
+        "tokens": 362
+      },
+      {
+        "s": 11.814007372013293,
+        "tokens": 372
+      },
+      {
+        "s": 11.94514854301815,
+        "tokens": 376
+      },
+      {
+        "s": 12.075277313007973,
+        "tokens": 378
+      },
+      {
+        "s": 12.204562675004127,
+        "tokens": 388
+      },
+      {
+        "s": 12.335448502009967,
+        "tokens": 396
+      },
+      {
+        "s": 12.471210905991029,
+        "tokens": 398
+      },
+      {
+        "s": 12.601433597999858,
+        "tokens": 401
+      },
+      {
+        "s": 12.731260656990344,
+        "tokens": 404
+      },
+      {
+        "s": 12.862834100000327,
+        "tokens": 406
+      },
+      {
+        "s": 12.995069911994506,
+        "tokens": 408
+      },
+      {
+        "s": 13.126874156005215,
+        "tokens": 409
+      },
+      {
+        "s": 13.258759838994592,
+        "tokens": 411
+      },
+      {
+        "s": 13.390706947015133,
+        "tokens": 418
+      },
+      {
+        "s": 13.522882407007273,
+        "tokens": 425
+      },
+      {
+        "s": 13.65418402699288,
+        "tokens": 429
+      },
+      {
+        "s": 13.786162192001939,
+        "tokens": 439
+      },
+      {
+        "s": 13.918671683990397,
+        "tokens": 449
+      },
+      {
+        "s": 14.050389287993312,
+        "tokens": 450
+      },
+      {
+        "s": 14.182253884006059,
+        "tokens": 451
+      },
+      {
+        "s": 14.314241809013765,
+        "tokens": 453
+      },
+      {
+        "s": 14.447209830017528,
+        "tokens": 454
+      },
+      {
+        "s": 14.584858860005625,
+        "tokens": 457
+      },
+      {
+        "s": 14.716569617012283,
+        "tokens": 464
+      },
+      {
+        "s": 14.84844155801693,
+        "tokens": 470
+      },
+      {
+        "s": 14.982576492009684,
+        "tokens": 472
+      },
+      {
+        "s": 15.116049441014184,
+        "tokens": 479
+      },
+      {
+        "s": 15.248743286007084,
+        "tokens": 484
+      },
+      {
+        "s": 15.381445467995945,
+        "tokens": 488
+      },
+      {
+        "s": 15.515741345996503,
+        "tokens": 492
+      },
+      {
+        "s": 15.648787432000972,
+        "tokens": 502
+      },
+      {
+        "s": 15.782571838004515,
+        "tokens": 508
+      },
+      {
+        "s": 15.917321348009864,
+        "tokens": 512
+      }
+    ],
+    "replacement_characters": 0,
+    "prefill_s": 0.13572907447814941,
+    "pp_engine_tok_s": 353.64567381417874,
+    "arm": "control-b4-check-9"
+  },
+  {
+    "name": "speed_code_0",
+    "kind": "speed_code",
+    "input_sha256": "646fd4044e2cce36083691f910d3375ae262c45d6b834ee2027675c7c2bf1194",
+    "text": "Python의 `asyncio` 라이브러리를 사용하여 구현한 **비동기 작업 큐(Asynchronous Task Queue)** 예제입니다.\n\n이 구현체는 단순히 큐에 넣고 빼는 것을 넘어, 작업 실패 시 **지수 백오프(Exponential Backoff)**를 통해 재시도하며, **타임아웃** 설정과 **우아한 종료(Graceful Shutdown)** 프로세스를 포함합니다.\n\n### 구현 예제 1: Async Task Queue with Backoff & Timeout\n\n```python\nimport asyncio\nimport random\nimport time\nfrom dataclasses import dataclass, field\nfrom typing import Callable, Any, Optional\n\n@dataclass\nclass Task:\n    id: str\n    func: Callable\n    args: tuple = field(default_factory=tuple)\n    retries: int = 0\n    max_retries: int = 3\n    backoff_factor: float = 2.0  # 지수 백오프 계수\n    timeout: float = 5.0        # 작업당 타임아웃\n\nclass AsyncQueue:\n    def __init__(self):\n        self.queue = asyncio.Queue()\n        self.running = False\n        self._workers = []\n\n    async def enqueue(self, task: Task):\n        await self.queue.put(task)\n\n    async def _worker(self, worker_id: int):\n        while self.running or not self.queue.empty():\n            try:\n                # 큐에서 작업을 가져오되, 종료 시 대기 시간을 위해 timeout 설정\n                task = await asyncio.wait_for(self.queue.get(), timeout=1.0)\n            except asyncio.TimeoutError:\n                continue\n\n            try:\n                print(f\"[Worker {worker_id}] Processing task {task.id} (Attempt {task.retries + 1})\")\n                \n                # 타임아웃과 함께 작업 실행\n                await asyncio.wait_for(task.func(*task.args), timeout=task.timeout)\n                \n                print(f\"[Worker {worker_id}] Task {task.id} completed successfully.\")\n                self.queue.task_done()\n            except Exception as e:\n                task.retries += 1\n                if task.retries <= task.max_retries:\n                    #",
+    "prompt_tokens": 57,
+    "completion_tokens": 512,
+    "ttft_s": 0.22591185598867014,
+    "first_chunk_tokens": 1,
+    "total_s": 13.404591864004033,
+    "request_tok_s": 38.19586640119176,
+    "tg_tok_s": 38.77474828201355,
+    "pp_ttft_tok_s": 252.3107950689345,
+    "meta_info": {
+      "id": "c91a65dd0c37477990908123f8699557",
+      "finish_reason": {
+        "type": "length",
+        "length": 512
+      },
+      "prompt_tokens": 57,
+      "weight_version": "default",
+      "num_retractions": 0,
+      "forward_entry_time": 1792583156.6599104,
+      "prefill_finished_time": 1792583156.7889445,
+      "queue_time": 0.0001766681671142578,
+      "reasoning_tokens": 0,
+      "completion_tokens": 512,
+      "cached_tokens": 0,
+      "cached_tokens_details": null,
+      "dp_rank": null,
+      "e2e_latency": 13.40021400700789,
+      "spec_accept_rate": 0.4401294498381877,
+      "spec_accept_length": 4.970873786407767,
+      "spec_num_correct_drafts": 408,
+      "spec_num_proposed_drafts": 927,
+      "spec_verify_ct": 103,
+      "spec_accepted_drafts": 408,
+      "spec_proposed_drafts": 927,
+      "spec_correct_drafts_histogram": [
+        10,
+        18,
+        8,
+        9,
+        19,
+        9,
+        10,
+        5,
+        4,
+        11
+      ],
+      "spec_accept_histogram": [
+        10,
+        18,
+        8,
+        9,
+        19,
+        9,
+        10,
+        5,
+        4,
+        11
+      ],
+      "request_received_ts": 1792583156.5680413,
+      "api_server_dispatch_finish_ts": 1792583156.5682387,
+      "response_sent_to_client_ts": 1792583156.7908216,
+      "request_finished_ts": 1792583169.9682553,
+      "decode_throughput": 38.77795784134574
+    },
+    "events": [
+      {
+        "s": 0.22591185598867014,
+        "tokens": 1
+      },
+      {
+        "s": 0.34413164999568835,
+        "tokens": 7
+      },
+      {
+        "s": 0.46272238800884224,
+        "tokens": 12
+      },
+      {
+        "s": 0.5831201350083575,
+        "tokens": 14
+      },
+      {
+        "s": 0.7085519630054478,
+        "tokens": 22
+      },
+      {
+        "s": 0.8277630700031295,
+        "tokens": 29
+      },
+      {
+        "s": 0.947572241013404,
+        "tokens": 34
+      },
+      {
+        "s": 1.067981203988893,
+        "tokens": 36
+      },
+      {
+        "s": 1.188100839004619,
+        "tokens": 37
+      },
+      {
+        "s": 1.3081011610047426,
+        "tokens": 39
+      },
+      {
+        "s": 1.428272396005923,
+        "tokens": 42
+      },
+      {
+        "s": 1.5493224959936924,
+        "tokens": 47
+      },
+      {
+        "s": 1.6695854119898286,
+        "tokens": 57
+      },
+      {
+        "s": 1.7896191909967456,
+        "tokens": 62
+      },
+      {
+        "s": 1.9096240740036592,
+        "tokens": 66
+      },
+      {
+        "s": 2.0313684300053865,
+        "tokens": 68
+      },
+      {
+        "s": 2.151398418005556,
+        "tokens": 69
+      },
+      {
+        "s": 2.273694853996858,
+        "tokens": 74
+      },
+      {
+        "s": 2.396901017986238,
+        "tokens": 81
+      },
+      {
+        "s": 2.519820894987788,
+        "tokens": 86
+      },
+      {
+        "s": 2.6415884679881856,
+        "tokens": 88
+      },
+      {
+        "s": 2.768998106010258,
+        "tokens": 93
+      },
+      {
+        "s": 2.8907859030005056,
+        "tokens": 99
+      },
+      {
+        "s": 3.01297139498638,
+        "tokens": 102
+      },
+      {
+        "s": 3.1349316720152274,
+        "tokens": 103
+      },
+      {
+        "s": 3.257373277010629,
+        "tokens": 113
+      },
+      {
+        "s": 3.3799939379969146,
+        "tokens": 118
+      },
+      {
+        "s": 3.5027587430085987,
+        "tokens": 121
+      },
+      {
+        "s": 3.624581515992759,
+        "tokens": 126
+      },
+      {
+        "s": 3.746300513012102,
+        "tokens": 134
+      },
+      {
+        "s": 3.8704575590090826,
+        "tokens": 136
+      },
+      {
+        "s": 3.993669660994783,
+        "tokens": 142
+      },
+      {
+        "s": 4.1169086580048315,
+        "tokens": 147
+      },
+      {
+        "s": 4.240849176014308,
+        "tokens": 153
+      },
+      {
+        "s": 4.365970223007025,
+        "tokens": 157
+      },
+      {
+        "s": 4.491647124988958,
+        "tokens": 159
+      },
+      {
+        "s": 4.615256012009922,
+        "tokens": 161
+      },
+      {
+        "s": 4.739230450009927,
+        "tokens": 162
+      },
+      {
+        "s": 4.868075209989911,
+        "tokens": 167
+      },
+      {
+        "s": 4.992224465007894,
+        "tokens": 175
+      },
+      {
+        "s": 5.116912998986663,
+        "tokens": 184
+      },
+      {
+        "s": 5.241785438003717,
+        "tokens": 194
+      },
+      {
+        "s": 5.365821988991229,
+        "tokens": 196
+      },
+      {
+        "s": 5.491270444006659,
+        "tokens": 199
+      },
+      {
+        "s": 5.615640163014177,
+        "tokens": 209
+      },
+      {
+        "s": 5.741601466987049,
+        "tokens": 218
+      },
+      {
+        "s": 5.866887985990616,
+        "tokens": 221
+      },
+      {
+        "s": 5.9943840590131,
+        "tokens": 223
+      },
+      {
+        "s": 6.120162737992359,
+        "tokens": 224
+      },
+      {
+        "s": 6.245876586006489,
+        "tokens": 225
+      },
+      {
+        "s": 6.371922513993923,
+        "tokens": 230
+      },
+      {
+        "s": 6.497529849992134,
+        "tokens": 232
+      },
+      {
+        "s": 6.622559122013627,
+        "tokens": 241
+      },
+      {
+        "s": 6.747783177997917,
+        "tokens": 245
+      },
+      {
+        "s": 6.877268228010507,
+        "tokens": 252
+      },
+      {
+        "s": 7.0059506529942155,
+        "tokens": 259
+      },
+      {
+        "s": 7.132323508994887,
+        "tokens": 263
+      },
+      {
+        "s": 7.259318333992269,
+        "tokens": 273
+      },
+      {
+        "s": 7.403520571999252,
+        "tokens": 280
+      },
+      {
+        "s": 7.534755222994136,
+        "tokens": 290
+      },
+      {
+        "s": 7.6634625289880205,
+        "tokens": 293
+      },
+      {
+        "s": 7.7905451619881205,
+        "tokens": 299
+      },
+      {
+        "s": 7.9190827239945065,
+        "tokens": 306
+      },
+      {
+        "s": 8.04762435000157,
+        "tokens": 310
+      },
+      {
+        "s": 8.175314966996666,
+        "tokens": 316
+      },
+      {
+        "s": 8.303878033009823,
+        "tokens": 323
+      },
+      {
+        "s": 8.431967851007357,
+        "tokens": 326
+      },
+      {
+        "s": 8.56330269400496,
+        "tokens": 328
+      },
+      {
+        "s": 8.708685446006712,
+        "tokens": 330
+      },
+      {
+        "s": 8.838428993010893,
+        "tokens": 333
+      },
+      {
+        "s": 8.972076189995278,
+        "tokens": 335
+      },
+      {
+        "s": 9.10232896899106,
+        "tokens": 337
+      },
+      {
+        "s": 9.231991348002339,
+        "tokens": 338
+      },
+      {
+        "s": 9.361779997998383,
+        "tokens": 348
+      },
+      {
+        "s": 9.492225049994886,
+        "tokens": 355
+      },
+      {
+        "s": 9.622212949005188,
+        "tokens": 360
+      },
+      {
+        "s": 9.751959777000593,
+        "tokens": 365
+      },
+      {
+        "s": 9.893344256008277,
+        "tokens": 370
+      },
+      {
+        "s": 10.03214441498858,
+        "tokens": 374
+      },
+      {
+        "s": 10.16287845899933,
+        "tokens": 380
+      },
+      {
+        "s": 10.292686086002504,
+        "tokens": 384
+      },
+      {
+        "s": 10.422851618001005,
+        "tokens": 391
+      },
+      {
+        "s": 10.553453903004993,
+        "tokens": 392
+      },
+      {
+        "s": 10.68374941899674,
+        "tokens": 393
+      },
+      {
+        "s": 10.815289240010316,
+        "tokens": 399
+      },
+      {
+        "s": 10.947108485008357,
+        "tokens": 400
+      },
+      {
+        "s": 11.087643668986857,
+        "tokens": 405
+      },
+      {
+        "s": 11.235860407003202,
+        "tokens": 415
+      },
+      {
+        "s": 11.368543171993224,
+        "tokens": 419
+      },
+      {
+        "s": 11.500110465014586,
+        "tokens": 421
+      },
+      {
+        "s": 11.63166436701431,
+        "tokens": 429
+      },
+      {
+        "s": 11.763360123994062,
+        "tokens": 433
+      },
+      {
+        "s": 11.895437466009753,
+        "tokens": 435
+      },
+      {
+        "s": 12.02799434401095,
+        "tokens": 437
+      },
+      {
+        "s": 12.16008149299887,
+        "tokens": 445
+      },
+      {
+        "s": 12.292573971004458,
+        "tokens": 450
+      },
+      {
+        "s": 12.43342590800603,
+        "tokens": 455
+      },
+      {
+        "s": 12.576504102005856,
+        "tokens": 465
+      },
+      {
+        "s": 12.710393476998433,
+        "tokens": 475
+      },
+      {
+        "s": 12.84418226001435,
+        "tokens": 482
+      },
+      {
+        "s": 12.977683234988945,
+        "tokens": 488
+      },
+      {
+        "s": 13.116654899000423,
+        "tokens": 497
+      },
+      {
+        "s": 13.26982452100492,
+        "tokens": 502
+      },
+      {
+        "s": 13.404350247990806,
+        "tokens": 512
+      }
+    ],
+    "replacement_characters": 0,
+    "prefill_s": 0.12903404235839844,
+    "pp_engine_tok_s": 441.74389144284635,
+    "arm": "control-b4-check-9"
+  },
+  {
+    "name": "speed_ko_1",
+    "kind": "speed_ko",
+    "input_sha256": "55984418bc7a585cae0c292e824459a07e556e050ec6345d7375623b648e8d91",
+    "text": "데이터베이스 트랜잭션의 **격리 수준(Isolation Level)**과 **동시성 문제(Concurrency Problem)**는 여러 사용자가 동시에 데이터베이스에 접근할 때, 서로의 작업이 얼마나 독립적으로 처리되는지를 결정하는 개념입니다.\n\n쉽게 말해, \"내가 데이터를 수정하는 동안 다른 사람이 그 데이터를 건드리지 못하게 얼마나 꽁꽁 묶어둘 것인가?\"에 대한 설정입니다.\n\n---\n\n### 1. 동시성 문제 (Concurrency Problems)\n격리 수준을 배우기 전, 먼저 어떤 문제가 발생하는지 알아야 합니다. 동시성 문제는 주로 **'여러 트랜잭션이 같은 데이터에 동시에 접근'**할 때 발생하며, 크게 3가지 사례가 있습니다.\n\n#### ① Dirty Read (더티 리드)\n- **정의:** 다른 트랜잭션이 수정했지만 **아직 커밋(Commit)하지 않은 데이터**를 읽었을 때 발생합니다.\n- **예시:** \n    - 트랜잭션 A가 사용자의 잔액을 10,000원에서 20,000원으로 수정했습니다.\n    - 트랜잭션 B가 이 잔액을 조회하여 20,000원임을 확인했습니다.\n    - 그런데 트랜잭션 A에서 문제가 생겨 **롤백(Rollback)**을 하여 다시 10,000원으로 되돌렸습니다.\n    - 결과적으로 트랜잭션 B는 존재하지 않는 데이터인 20,000원을 읽은 셈이 됩니다. (더러운 읽기)\n\n#### ② Non-Repeatable Read (반복 불가능한 읽기)\n- **정의:** 한 트랜잭션 내에서 **같은 레코드를 두 번 조회했을 때 값이 서로 다르게** 나타나는 현상입니다.\n- **예시:**\n    - 트랜잭션 A가 상품의 가격을 조회했습니다. (결과: 1,000원)\n    - 그 사이 트랜잭션 B가 해당 상품의 가격을 2,000원으로 수정하고 커밋했습니다.\n    - 트랜잭션 A가 다시 동일한 상품의 가격을 조회합니다. (결과: 2,000원)\n    - 하나의 트랜잭션 안에서 같은 데이터를 두 번 읽었는데 값이 바뀌어, \"반복해서 읽을",
+    "prompt_tokens": 48,
+    "completion_tokens": 512,
+    "ttft_s": 0.23857593999127857,
+    "first_chunk_tokens": 1,
+    "total_s": 17.585131364001427,
+    "request_tok_s": 29.115506128553392,
+    "tg_tok_s": 29.458298060299736,
+    "pp_ttft_tok_s": 201.19380018687005,
+    "meta_info": {
+      "id": "bdf43ca46d7449e6a64c247bf5ace1be",
+      "finish_reason": {
+        "type": "length",
+        "length": 512
+      },
+      "prompt_tokens": 48,
+      "weight_version": "default",
+      "num_retractions": 0,
+      "forward_entry_time": 1792583170.082522,
+      "prefill_finished_time": 1792583170.2092466,
+      "queue_time": 0.0002281665802001953,
+      "reasoning_tokens": 0,
+      "completion_tokens": 512,
+      "cached_tokens": 0,
+      "cached_tokens_details": null,
+      "dp_rank": null,
+      "e2e_latency": 17.581067713996163,
+      "spec_accept_rate": 0.309640522875817,
+      "spec_accept_length": 3.764705882352941,
+      "spec_num_correct_drafts": 379,
+      "spec_num_proposed_drafts": 1224,
+      "spec_verify_ct": 136,
+      "spec_accepted_drafts": 379,
+      "spec_proposed_drafts": 1224,
+      "spec_correct_drafts_histogram": [
+        36,
+        26,
+        18,
+        12,
+        9,
+        9,
+        7,
+        4,
+        5,
+        10
+      ],
+      "spec_accept_histogram": [
+        36,
+        26,
+        18,
+        12,
+        9,
+        9,
+        7,
+        4,
+        5,
+        10
+      ],
+      "request_received_ts": 1792583169.976775,
+      "api_server_dispatch_finish_ts": 1792583169.9770792,
+      "response_sent_to_client_ts": 1792583170.2120764,
+      "request_finished_ts": 1792583187.5578425,
+      "decode_throughput": 29.45922404312861
+    },
+    "events": [
+      {
+        "s": 0.23857593999127857,
+        "tokens": 1
+      },
+      {
+        "s": 0.3540119010140188,
+        "tokens": 3
+      },
+      {
+        "s": 0.47201355898869224,
+        "tokens": 7
+      },
+      {
+        "s": 0.5915982740116306,
+        "tokens": 15
+      },
+      {
+        "s": 0.7243080649932381,
+        "tokens": 22
+      },
+      {
+        "s": 0.8484160609950777,
+        "tokens": 24
+      },
+      {
+        "s": 0.968426487990655,
+        "tokens": 27
+      },
+      {
+        "s": 1.0886218269879464,
+        "tokens": 28
+      },
+      {
+        "s": 1.207575309992535,
+        "tokens": 31
+      },
+      {
+        "s": 1.3284250010037795,
+        "tokens": 38
+      },
+      {
+        "s": 1.4487418929929845,
+        "tokens": 39
+      },
+      {
+        "s": 1.576804083015304,
+        "tokens": 40
+      },
+      {
+        "s": 1.7070542740111705,
+        "tokens": 43
+      },
+      {
+        "s": 1.832325150986435,
+        "tokens": 45
+      },
+      {
+        "s": 1.95316177100176,
+        "tokens": 48
+      },
+      {
+        "s": 2.0733779100119136,
+        "tokens": 58
+      },
+      {
+        "s": 2.1932792979932856,
+        "tokens": 59
+      },
+      {
+        "s": 2.313921549997758,
+        "tokens": 60
+      },
+      {
+        "s": 2.4342012259876356,
+        "tokens": 61
+      },
+      {
+        "s": 2.5596108559984714,
+        "tokens": 67
+      },
+      {
+        "s": 2.693332072987687,
+        "tokens": 71
+      },
+      {
+        "s": 2.8138887730019633,
+        "tokens": 72
+      },
+      {
+        "s": 2.9355256329872645,
+        "tokens": 74
+      },
+      {
+        "s": 3.054959548986517,
+        "tokens": 75
+      },
+      {
+        "s": 3.1747993050084915,
+        "tokens": 76
+      },
+      {
+        "s": 3.2954508060065564,
+        "tokens": 78
+      },
+      {
+        "s": 3.4157366110011935,
+        "tokens": 81
+      },
+      {
+        "s": 3.536035022989381,
+        "tokens": 84
+      },
+      {
+        "s": 3.658383500005584,
+        "tokens": 85
+      },
+      {
+        "s": 3.7801245219889097,
+        "tokens": 87
+      },
+      {
+        "s": 3.911486874014372,
+        "tokens": 97
+      },
+      {
+        "s": 4.048144605010748,
+        "tokens": 105
+      },
+      {
+        "s": 4.170932762994198,
+        "tokens": 110
+      },
+      {
+        "s": 4.293246424989775,
+        "tokens": 114
+      },
+      {
+        "s": 4.4143715419922955,
+        "tokens": 117
+      },
+      {
+        "s": 4.536870612006169,
+        "tokens": 119
+      },
+      {
+        "s": 4.659751074010273,
+        "tokens": 123
+      },
+      {
+        "s": 4.782281839987263,
+        "tokens": 126
+      },
+      {
+        "s": 4.9045032460126095,
+        "tokens": 127
+      },
+      {
+        "s": 5.0267634199990425,
+        "tokens": 129
+      },
+      {
+        "s": 5.167091842013178,
+        "tokens": 131
+      },
+      {
+        "s": 5.291345136996824,
+        "tokens": 136
+      },
+      {
+        "s": 5.412927119003143,
+        "tokens": 137
+      },
+      {
+        "s": 5.535652846010635,
+        "tokens": 139
+      },
+      {
+        "s": 5.657802380010253,
+        "tokens": 141
+      },
+      {
+        "s": 5.781406074995175,
+        "tokens": 146
+      },
+      {
+        "s": 5.9048602980037685,
+        "tokens": 148
+      },
+      {
+        "s": 6.03415047499584,
+        "tokens": 149
+      },
+      {
+        "s": 6.1589373869937845,
+        "tokens": 152
+      },
+      {
+        "s": 6.28306381899165,
+        "tokens": 161
+      },
+      {
+        "s": 6.425816994014895,
+        "tokens": 162
+      },
+      {
+        "s": 6.551783058006549,
+        "tokens": 163
+      },
+      {
+        "s": 6.676303890009876,
+        "tokens": 164
+      },
+      {
+        "s": 6.799488402000861,
+        "tokens": 168
+      },
+      {
+        "s": 6.923082529014209,
+        "tokens": 170
+      },
+      {
+        "s": 7.046903153008316,
+        "tokens": 179
+      },
+      {
+        "s": 7.171927857998526,
+        "tokens": 180
+      },
+      {
+        "s": 7.295737762004137,
+        "tokens": 181
+      },
+      {
+        "s": 7.419080257997848,
+        "tokens": 182
+      },
+      {
+        "s": 7.542184754012851,
+        "tokens": 184
+      },
+      {
+        "s": 7.670419380010571,
+        "tokens": 194
+      },
+      {
+        "s": 7.8097825389995705,
+        "tokens": 195
+      },
+      {
+        "s": 7.9344056750123855,
+        "tokens": 198
+      },
+      {
+        "s": 8.060589725006139,
+        "tokens": 204
+      },
+      {
+        "s": 8.188905566988979,
+        "tokens": 207
+      },
+      {
+        "s": 8.313568048004527,
+        "tokens": 211
+      },
+      {
+        "s": 8.439612626010785,
+        "tokens": 217
+      },
+      {
+        "s": 8.565919651999138,
+        "tokens": 219
+      },
+      {
+        "s": 8.693584374996135,
+        "tokens": 220
+      },
+      {
+        "s": 8.824045866000233,
+        "tokens": 225
+      },
+      {
+        "s": 8.950784315995406,
+        "tokens": 231
+      },
+      {
+        "s": 9.077162269997643,
+        "tokens": 237
+      },
+      {
+        "s": 9.202839920006227,
+        "tokens": 238
+      },
+      {
+        "s": 9.330153171002166,
+        "tokens": 239
+      },
+      {
+        "s": 9.456134934007423,
+        "tokens": 249
+      },
+      {
+        "s": 9.582785223989049,
+        "tokens": 250
+      },
+      {
+        "s": 9.708567658992251,
+        "tokens": 254
+      },
+      {
+        "s": 9.83509868499823,
+        "tokens": 263
+      },
+      {
+        "s": 9.961209055996733,
+        "tokens": 266
+      },
+      {
+        "s": 10.08863941099844,
+        "tokens": 271
+      },
+      {
+        "s": 10.220762584009208,
+        "tokens": 277
+      },
+      {
+        "s": 10.347876571991947,
+        "tokens": 281
+      },
+      {
+        "s": 10.475736494990997,
+        "tokens": 287
+      },
+      {
+        "s": 10.603769331006333,
+        "tokens": 289
+      },
+      {
+        "s": 10.731645735009806,
+        "tokens": 290
+      },
+      {
+        "s": 10.859698154992657,
+        "tokens": 300
+      },
+      {
+        "s": 10.987434270005906,
+        "tokens": 308
+      },
+      {
+        "s": 11.116672898991965,
+        "tokens": 315
+      },
+      {
+        "s": 11.244675975001883,
+        "tokens": 317
+      },
+      {
+        "s": 11.372940252011176,
+        "tokens": 318
+      },
+      {
+        "s": 11.50092780799605,
+        "tokens": 319
+      },
+      {
+        "s": 11.62937414899352,
+        "tokens": 327
+      },
+      {
+        "s": 11.757777818012983,
+        "tokens": 329
+      },
+      {
+        "s": 11.885912989993813,
+        "tokens": 330
+      },
+      {
+        "s": 12.014486547006527,
+        "tokens": 335
+      },
+      {
+        "s": 12.144028120004805,
+        "tokens": 336
+      },
+      {
+        "s": 12.277596511994489,
+        "tokens": 339
+      },
+      {
+        "s": 12.407718900998589,
+        "tokens": 345
+      },
+      {
+        "s": 12.537649386998964,
+        "tokens": 347
+      },
+      {
+        "s": 12.668281152989948,
+        "tokens": 351
+      },
+      {
+        "s": 12.798462918988662,
+        "tokens": 353
+      },
+      {
+        "s": 12.92828993301373,
+        "tokens": 363
+      },
+      {
+        "s": 13.058948115009116,
+        "tokens": 370
+      },
+      {
+        "s": 13.189487210009247,
+        "tokens": 372
+      },
+      {
+        "s": 13.319456992991036,
+        "tokens": 374
+      },
+      {
+        "s": 13.44999171901145,
+        "tokens": 377
+      },
+      {
+        "s": 13.580523614014965,
+        "tokens": 380
+      },
+      {
+        "s": 13.71069336499204,
+        "tokens": 382
+      },
+      {
+        "s": 13.841234635008732,
+        "tokens": 383
+      },
+      {
+        "s": 13.971490258001722,
+        "tokens": 384
+      },
+      {
+        "s": 14.103064472990809,
+        "tokens": 385
+      },
+      {
+        "s": 14.233393264992628,
+        "tokens": 389
+      },
+      {
+        "s": 14.369130890001543,
+        "tokens": 399
+      },
+      {
+        "s": 14.499444880988449,
+        "tokens": 408
+      },
+      {
+        "s": 14.630823001003591,
+        "tokens": 409
+      },
+      {
+        "s": 14.761639392003417,
+        "tokens": 412
+      },
+      {
+        "s": 14.893167288013501,
+        "tokens": 416
+      },
+      {
+        "s": 15.02542083201115,
+        "tokens": 421
+      },
+      {
+        "s": 15.158247640996706,
+        "tokens": 430
+      },
+      {
+        "s": 15.289745682006469,
+        "tokens": 431
+      },
+      {
+        "s": 15.422181609988911,
+        "tokens": 438
+      },
+      {
+        "s": 15.554249298991635,
+        "tokens": 448
+      },
+      {
+        "s": 15.686197339993669,
+        "tokens": 451
+      },
+      {
+        "s": 15.818352708010934,
+        "tokens": 456
+      },
+      {
+        "s": 15.950459293002496,
+        "tokens": 466
+      },
+      {
+        "s": 16.084879270987585,
+        "tokens": 473
+      },
+      {
+        "s": 16.218883936991915,
+        "tokens": 480
+      },
+      {
+        "s": 16.352511867007706,
+        "tokens": 490
+      },
+      {
+        "s": 16.49207543101511,
+        "tokens": 495
+      },
+      {
+        "s": 16.626653009996517,
+        "tokens": 497
+      },
+      {
+        "s": 16.760294876003172,
+        "tokens": 501
+      },
+      {
+        "s": 16.893869685009122,
+        "tokens": 503
+      },
+      {
+        "s": 17.028217807994224,
+        "tokens": 504
+      },
+      {
+        "s": 17.1664404119947,
+        "tokens": 507
+      },
+      {
+        "s": 17.316176190011902,
+        "tokens": 508
+      },
+      {
+        "s": 17.450518408993958,
+        "tokens": 510
+      },
+      {
+        "s": 17.585018259997014,
+        "tokens": 512
+      }
+    ],
+    "replacement_characters": 0,
+    "prefill_s": 0.1267247200012207,
+    "pp_engine_tok_s": 378.7737704177814,
+    "arm": "control-b4-check-9"
+  },
+  {
+    "name": "speed_code_1",
+    "kind": "speed_code",
+    "input_sha256": "d021bc20d77e1ed2f648f5b4731cfe8163550a17092c47a8407050d59ef64e07",
+    "text": "Python의 `asyncio` 라이브러리를 사용하여 구현한 **비동기 작업 큐(Asynchronous Task Queue)** 예제입니다.\n\n이 구현체는 단순히 큐에 넣고 빼는 것을 넘어, 작업 실패 시 **지수 백오프(Exponential Backoff)**를 통해 재시도하고, **타임아웃**으로 무한 대기를 방지하며, **우아한 종료(Graceful Shutdown)**를 통해 진행 중인 작업을 안전하게 마무리합니다.\n\n### 구현 코드 (예제 번호 2)\n\n```python\nimport asyncio\nimport random\nimport time\nfrom typing import Callable, Any\n\nclass AsyncTaskQueue:\n    def __init__(self, max_retries=3, base_delay=1.0):\n        self.queue = asyncio.Queue()\n        self.max_retries = max_retries  # 최대 재시도 횟수\n        self.base_delay = base_delay    # 지수 백오프 기본 지연 시간\n        self.running = False\n\n    async def enqueue(self, task_fn: Callable, *args, **kwargs):\n        \"\"\"작업(함수)과 인자를 큐에 넣습니다.\"\"\"\n        await self.queue.put((task_fn, args, kwargs))\n\n    async def _process_task(self, task_fn, args, kwargs):\n        \"\"\"개별 작업을 처리하며 재시도 및 지수 백오프를 적용합니다.\"\"\"\n        retries = 0\n        while retries <= self.max_retries:\n            try:\n                # 타임아웃 설정: 작업이 너무 오래 걸리는 것을 방지\n                return await asyncio.wait_for(task_fn(*args, **kwargs), timeout=5.0)\n            except Exception as e:\n                retries += 1\n                if retries > self.max_retries:\n                    print(f\"❌ 작업 실패 (최종): {task_fn.__name__} - 에러: {e}\")\n                    raise e\n                \n                # 지수 백오프 계산: base_delay * (2^retries) + random jitter\n                delay = self.base_delay * (2 ** (retries - 1)) + random.uniform(0, 1)\n                print(f\"⚠️ {task_fn.__",
+    "prompt_tokens": 57,
+    "completion_tokens": 512,
+    "ttft_s": 0.23976962501183152,
+    "first_chunk_tokens": 1,
+    "total_s": 13.566621411009692,
+    "request_tok_s": 37.7396836315118,
+    "tg_tok_s": 38.34363945856237,
+    "pp_ttft_tok_s": 237.7281942914467,
+    "meta_info": {
+      "id": "9a6a710da2f94bf99169683fade094fb",
+      "finish_reason": {
+        "type": "length",
+        "length": 512
+      },
+      "prompt_tokens": 57,
+      "weight_version": "default",
+      "num_retractions": 0,
+      "forward_entry_time": 1792583187.6715918,
+      "prefill_finished_time": 1792583187.8001766,
+      "queue_time": 0.00018644332885742188,
+      "reasoning_tokens": 0,
+      "completion_tokens": 512,
+      "cached_tokens": 0,
+      "cached_tokens_details": null,
+      "dp_rank": null,
+      "e2e_latency": 13.562790497002425,
+      "spec_accept_rate": 0.44336569579288027,
+      "spec_accept_length": 4.970873786407767,
+      "spec_num_correct_drafts": 411,
+      "spec_num_proposed_drafts": 927,
+      "spec_verify_ct": 103,
+      "spec_accepted_drafts": 411,
+      "spec_proposed_drafts": 927,
+      "spec_correct_drafts_histogram": [
+        16,
+        15,
+        5,
+        6,
+        22,
+        7,
+        8,
+        7,
+        5,
+        12
+      ],
+      "spec_accept_histogram": [
+        16,
+        15,
+        5,
+        6,
+        22,
+        7,
+        8,
+        7,
+        5,
+        12
+      ],
+      "request_received_ts": 1792583187.5644786,
+      "api_server_dispatch_finish_ts": 1792583187.5646386,
+      "response_sent_to_client_ts": 1792583187.8017128,
+      "request_finished_ts": 1792583201.1272693,
+      "decode_throughput": 38.34677187535527
+    },
+    "events": [
+      {
+        "s": 0.23976962501183152,
+        "tokens": 1
+      },
+      {
+        "s": 0.35933833400486037,
+        "tokens": 7
+      },
+      {
+        "s": 0.47834582600626163,
+        "tokens": 12
+      },
+      {
+        "s": 0.5984187430003658,
+        "tokens": 14
+      },
+      {
+        "s": 0.7191422530158889,
+        "tokens": 22
+      },
+      {
+        "s": 0.8562030809989665,
+        "tokens": 29
+      },
+      {
+        "s": 0.9834936980041675,
+        "tokens": 34
+      },
+      {
+        "s": 1.1034569350013044,
+        "tokens": 36
+      },
+      {
+        "s": 1.2235347160021774,
+        "tokens": 37
+      },
+      {
+        "s": 1.3440169940004125,
+        "tokens": 39
+      },
+      {
+        "s": 1.4661712240194902,
+        "tokens": 41
+      },
+      {
+        "s": 1.587806030001957,
+        "tokens": 47
+      },
+      {
+        "s": 1.7078453480207827,
+        "tokens": 57
+      },
+      {
+        "s": 1.8291726979950909,
+        "tokens": 62
+      },
+      {
+        "s": 1.9665446480212267,
+        "tokens": 69
+      },
+      {
+        "s": 2.0889660630200524,
+        "tokens": 74
+      },
+      {
+        "s": 2.210865108994767,
+        "tokens": 75
+      },
+      {
+        "s": 2.332159692014102,
+        "tokens": 77
+      },
+      {
+        "s": 2.4541253299976233,
+        "tokens": 78
+      },
+      {
+        "s": 2.576935018005315,
+        "tokens": 88
+      },
+      {
+        "s": 2.6988714250037447,
+        "tokens": 94
+      },
+      {
+        "s": 2.820934535993729,
+        "tokens": 95
+      },
+      {
+        "s": 2.943409152008826,
+        "tokens": 98
+      },
+      {
+        "s": 3.082823119009845,
+        "tokens": 99
+      },
+      {
+        "s": 3.21131322500878,
+        "tokens": 106
+      },
+      {
+        "s": 3.3339874730154406,
+        "tokens": 107
+      },
+      {
+        "s": 3.4561392400064506,
+        "tokens": 108
+      },
+      {
+        "s": 3.578716368007008,
+        "tokens": 111
+      },
+      {
+        "s": 3.7010036240099,
+        "tokens": 121
+      },
+      {
+        "s": 3.823546352010453,
+        "tokens": 124
+      },
+      {
+        "s": 3.946143128006952,
+        "tokens": 129
+      },
+      {
+        "s": 4.0689310879970435,
+        "tokens": 134
+      },
+      {
+        "s": 4.192256520997034,
+        "tokens": 136
+      },
+      {
+        "s": 4.330705000000307,
+        "tokens": 143
+      },
+      {
+        "s": 4.455534225009615,
+        "tokens": 149
+      },
+      {
+        "s": 4.5796582190087065,
+        "tokens": 154
+      },
+      {
+        "s": 4.70334997199825,
+        "tokens": 156
+      },
+      {
+        "s": 4.826837421016535,
+        "tokens": 161
+      },
+      {
+        "s": 4.964393356000073,
+        "tokens": 168
+      },
+      {
+        "s": 5.098121386021376,
+        "tokens": 178
+      },
+      {
+        "s": 5.224195476010209,
+        "tokens": 187
+      },
+      {
+        "s": 5.348328718013363,
+        "tokens": 189
+      },
+      {
+        "s": 5.47274979899521,
+        "tokens": 199
+      },
+      {
+        "s": 5.5975496339960955,
+        "tokens": 207
+      },
+      {
+        "s": 5.723958845017478,
+        "tokens": 209
+      },
+      {
+        "s": 5.849649111012695,
+        "tokens": 214
+      },
+      {
+        "s": 5.975913361995481,
+        "tokens": 221
+      },
+      {
+        "s": 6.114595090999501,
+        "tokens": 224
+      },
+      {
+        "s": 6.2489730740198866,
+        "tokens": 229
+      },
+      {
+        "s": 6.375179213006049,
+        "tokens": 234
+      },
+      {
+        "s": 6.5009247760172,
+        "tokens": 239
+      },
+      {
+        "s": 6.625867794995429,
+        "tokens": 248
+      },
+      {
+        "s": 6.753152287012199,
+        "tokens": 250
+      },
+      {
+        "s": 6.880657627014443,
+        "tokens": 251
+      },
+      {
+        "s": 7.007989367004484,
+        "tokens": 256
+      },
+      {
+        "s": 7.137454259995138,
+        "tokens": 260
+      },
+      {
+        "s": 7.283532681001816,
+        "tokens": 270
+      },
+      {
+        "s": 7.414480566018028,
+        "tokens": 279
+      },
+      {
+        "s": 7.542520290997345,
+        "tokens": 284
+      },
+      {
+        "s": 7.67024249600945,
+        "tokens": 285
+      },
+      {
+        "s": 7.797810429008678,
+        "tokens": 294
+      },
+      {
+        "s": 7.9255807459994685,
+        "tokens": 302
+      },
+      {
+        "s": 8.054877543007024,
+        "tokens": 304
+      },
+      {
+        "s": 8.183193461009068,
+        "tokens": 306
+      },
+      {
+        "s": 8.311489218001952,
+        "tokens": 310
+      },
+      {
+        "s": 8.461838057002751,
+        "tokens": 316
+      },
+      {
+        "s": 8.590815464005573,
+        "tokens": 317
+      },
+      {
+        "s": 8.718857316998765,
+        "tokens": 327
+      },
+      {
+        "s": 8.846948210994015,
+        "tokens": 332
+      },
+      {
+        "s": 8.97697470500134,
+        "tokens": 339
+      },
+      {
+        "s": 9.1067962560046,
+        "tokens": 345
+      },
+      {
+        "s": 9.236857214011252,
+        "tokens": 347
+      },
+      {
+        "s": 9.373000991996378,
+        "tokens": 355
+      },
+      {
+        "s": 9.5049189600104,
+        "tokens": 358
+      },
+      {
+        "s": 9.652248886995949,
+        "tokens": 359
+      },
+      {
+        "s": 9.783121718995972,
+        "tokens": 364
+      },
+      {
+        "s": 9.912826437997865,
+        "tokens": 369
+      },
+      {
+        "s": 10.043006580992369,
+        "tokens": 375
+      },
+      {
+        "s": 10.172898276010528,
+        "tokens": 383
+      },
+      {
+        "s": 10.303710324020358,
+        "tokens": 393
+      },
+      {
+        "s": 10.43565405200934,
+        "tokens": 401
+      },
+      {
+        "s": 10.569825909013161,
+        "tokens": 406
+      },
+      {
+        "s": 10.719990687008249,
+        "tokens": 416
+      },
+      {
+        "s": 10.852506144001381,
+        "tokens": 420
+      },
+      {
+        "s": 10.984083969000494,
+        "tokens": 425
+      },
+      {
+        "s": 11.116314033017261,
+        "tokens": 426
+      },
+      {
+        "s": 11.248589954018826,
+        "tokens": 431
+      },
+      {
+        "s": 11.386009174020728,
+        "tokens": 435
+      },
+      {
+        "s": 11.516981574008241,
+        "tokens": 436
+      },
+      {
+        "s": 11.648813078994863,
+        "tokens": 444
+      },
+      {
+        "s": 11.781596873013768,
+        "tokens": 454
+      },
+      {
+        "s": 11.932408788008615,
+        "tokens": 456
+      },
+      {
+        "s": 12.065230453998083,
+        "tokens": 458
+      },
+      {
+        "s": 12.19903675999376,
+        "tokens": 468
+      },
+      {
+        "s": 12.332813226006692,
+        "tokens": 469
+      },
+      {
+        "s": 12.46628505201079,
+        "tokens": 470
+      },
+      {
+        "s": 12.601336224004626,
+        "tokens": 475
+      },
+      {
+        "s": 12.734722082997905,
+        "tokens": 484
+      },
+      {
+        "s": 12.868704118009191,
+        "tokens": 494
+      },
+      {
+        "s": 13.003362121002283,
+        "tokens": 499
+      },
+      {
+        "s": 13.13934214101755,
+        "tokens": 503
+      },
+      {
+        "s": 13.28447222901741,
+        "tokens": 507
+      },
+      {
+        "s": 13.428696796996519,
+        "tokens": 508
+      },
+      {
+        "s": 13.566491395002231,
+        "tokens": 512
+      }
+    ],
+    "replacement_characters": 0,
+    "prefill_s": 0.1285848617553711,
+    "pp_engine_tok_s": 443.2870185639801,
+    "arm": "control-b4-check-9"
+  },
+  {
+    "name": "speed_ko_2",
+    "kind": "speed_ko",
+    "input_sha256": "cf22b18fee932baddae39ddccf7be6623924c5b000ea581b6c041e639761404e",
+    "text": "데이터베이스에서 **트랜잭션(Transaction)**이란 하나의 논리적 작업 단위를 의미합니다. 여러 사용자가 동시에 데이터베이스에 접근할 때, 각 트랜잭션이 서로 얼마나 독립적으로 실행되는지를 결정하는 것이 바로 **격리 수준(Isolation Level)**입니다.\n\n격리 수준이 낮을수록 동시 처리 속도는 빠르지만 데이터 불일치 가능성이 높고, 격리 수준이 높을수록 데이터 일관성은 보장되지만 처리 속도가 느려질 수 있습니다.\n\n아래에서 **3가지 주요 동시성 문제**와 그에 따른 **4가지 격리 수준**을 구체적인 사례와 함께 설명하겠습니다.\n\n---\n\n### 1. 동시성 문제 (Concurrency Problems)\n격리 수준을 이해하기 전, 어떤 문제가 발생하는지 먼저 알아야 합니다. 주로 다음 3가지 현상이 나타납니다.\n\n#### ① Dirty Read (더티 리드)\n- **정의:** 다른 트랜잭션이 수정 중인 데이터를 읽었는데, 그 트랜잭션이 최종적으로 **롤백(Rollback)**되어 결과적으로 '가짜 데이터'를 읽게 되는 현상입니다.\n- **사례:** \n    - 트랜잭션 A가 사용자의 잔액을 10,000원에서 20,000원으로 수정했습니다.\n    - 트랜잭션 B가 이 잔액을 조회하여 20,000원으로 읽었습니다.\n    - 그런데 트랜잭션 A에서 오류가 발생해 다시 10,000원으로 롤백했습니다.\n    - 결과적으로 트랜잭션 B는 존재하지도 않는 20,000원이라는 데이터를 읽은 셈이 됩니다.\n\n#### ② Non-Repeatable Read (반복 불가능한 읽기)\n- **정의:** 한 트랜잭션 내에서 **같은 데이터를 두 번 조회했는데 값이 서로 다른** 현상입니다. (다른 트랜잭션이 데이터를 수정/삭제했기 때문)\n- **사례:** \n    - 트랜잭션 A가 상품의 가격을 조회했습니다. (결과: 1,000원)\n    - 그 사이 트랜잭션 B가 해당 상품의 가격을 2,000원으로 수정하고 커밋(Commit)했습니다.\n    - 트랜잭션 A가 다시 가격",
+    "prompt_tokens": 48,
+    "completion_tokens": 512,
+    "ttft_s": 0.2403987129800953,
+    "first_chunk_tokens": 1,
+    "total_s": 16.95303718498326,
+    "request_tok_s": 30.201078096703625,
+    "tg_tok_s": 30.575662894642388,
+    "pp_ttft_tok_s": 199.66829025400955,
+    "meta_info": {
+      "id": "0738db69b776442aa0e522bcf120523b",
+      "finish_reason": {
+        "type": "length",
+        "length": 512
+      },
+      "prompt_tokens": 48,
+      "weight_version": "default",
+      "num_retractions": 0,
+      "forward_entry_time": 1792583201.2414522,
+      "prefill_finished_time": 1792583201.368621,
+      "queue_time": 0.0002231597900390625,
+      "reasoning_tokens": 0,
+      "completion_tokens": 512,
+      "cached_tokens": 0,
+      "cached_tokens_details": null,
+      "dp_rank": null,
+      "e2e_latency": 16.94968726299703,
+      "spec_accept_rate": 0.31902356902356904,
+      "spec_accept_length": 3.878787878787879,
+      "spec_num_correct_drafts": 379,
+      "spec_num_proposed_drafts": 1188,
+      "spec_verify_ct": 132,
+      "spec_accepted_drafts": 379,
+      "spec_proposed_drafts": 1188,
+      "spec_correct_drafts_histogram": [
+        32,
+        26,
+        20,
+        9,
+        10,
+        8,
+        6,
+        8,
+        3,
+        10
+      ],
+      "spec_accept_histogram": [
+        32,
+        26,
+        20,
+        9,
+        10,
+        8,
+        6,
+        8,
+        3,
+        10
+      ],
+      "request_received_ts": 1792583201.1344047,
+      "api_server_dispatch_finish_ts": 1792583201.1346958,
+      "response_sent_to_client_ts": 1792583201.371391,
+      "request_finished_ts": 1792583218.084092,
+      "decode_throughput": 30.575129891968952
+    },
+    "events": [
+      {
+        "s": 0.2403987129800953,
+        "tokens": 1
+      },
+      {
+        "s": 0.35765077199903317,
+        "tokens": 3
+      },
+      {
+        "s": 0.4770311359898187,
+        "tokens": 11
+      },
+      {
+        "s": 0.5964380599907599,
+        "tokens": 12
+      },
+      {
+        "s": 0.7155262010055594,
+        "tokens": 13
+      },
+      {
+        "s": 0.8347709809895605,
+        "tokens": 14
+      },
+      {
+        "s": 0.9543937289854512,
+        "tokens": 17
+      },
+      {
+        "s": 1.0737819659989327,
+        "tokens": 18
+      },
+      {
+        "s": 1.1944630520010833,
+        "tokens": 20
+      },
+      {
+        "s": 1.3147022810007911,
+        "tokens": 21
+      },
+      {
+        "s": 1.4361797829915304,
+        "tokens": 24
+      },
+      {
+        "s": 1.5576705809799023,
+        "tokens": 27
+      },
+      {
+        "s": 1.6775700020079967,
+        "tokens": 37
+      },
+      {
+        "s": 1.7985621749830898,
+        "tokens": 41
+      },
+      {
+        "s": 1.919886140996823,
+        "tokens": 44
+      },
+      {
+        "s": 2.045270685979631,
+        "tokens": 49
+      },
+      {
+        "s": 2.164587034989381,
+        "tokens": 59
+      },
+      {
+        "s": 2.2847560409863945,
+        "tokens": 65
+      },
+      {
+        "s": 2.4060579589859117,
+        "tokens": 71
+      },
+      {
+        "s": 2.527073108998593,
+        "tokens": 72
+      },
+      {
+        "s": 2.6477326909953263,
+        "tokens": 74
+      },
+      {
+        "s": 2.768427425005939,
+        "tokens": 77
+      },
+      {
+        "s": 2.8890035029908177,
+        "tokens": 78
+      },
+      {
+        "s": 3.010549822007306,
+        "tokens": 81
+      },
+      {
+        "s": 3.1316008610010613,
+        "tokens": 83
+      },
+      {
+        "s": 3.253556812007446,
+        "tokens": 86
+      },
+      {
+        "s": 3.3758108119945973,
+        "tokens": 93
+      },
+      {
+        "s": 3.498489082994638,
+        "tokens": 94
+      },
+      {
+        "s": 3.6202164579881355,
+        "tokens": 97
+      },
+      {
+        "s": 3.742293528979644,
+        "tokens": 101
+      },
+      {
+        "s": 3.865800297993701,
+        "tokens": 106
+      },
+      {
+        "s": 3.9882342019991484,
+        "tokens": 111
+      },
+      {
+        "s": 4.1151797880011145,
+        "tokens": 113
+      },
+      {
+        "s": 4.237561916001141,
+        "tokens": 115
+      },
+      {
+        "s": 4.359863132005557,
+        "tokens": 117
+      },
+      {
+        "s": 4.4833491329918616,
+        "tokens": 118
+      },
+      {
+        "s": 4.605788557004416,
+        "tokens": 123
+      },
+      {
+        "s": 4.728155516000697,
+        "tokens": 128
+      },
+      {
+        "s": 4.850351692002732,
+        "tokens": 135
+      },
+      {
+        "s": 4.9718431159853935,
+        "tokens": 137
+      },
+      {
+        "s": 5.0938284609874245,
+        "tokens": 147
+      },
+      {
+        "s": 5.21758631800185,
+        "tokens": 157
+      },
+      {
+        "s": 5.341812095983187,
+        "tokens": 160
+      },
+      {
+        "s": 5.46625964899431,
+        "tokens": 163
+      },
+      {
+        "s": 5.590556898998329,
+        "tokens": 164
+      },
+      {
+        "s": 5.71479869200266,
+        "tokens": 168
+      },
+      {
+        "s": 5.8389416379795875,
+        "tokens": 170
+      },
+      {
+        "s": 5.963350840000203,
+        "tokens": 172
+      },
+      {
+        "s": 6.090531083988026,
+        "tokens": 177
+      },
+      {
+        "s": 6.217215326993028,
+        "tokens": 178
+      },
+      {
+        "s": 6.341322736989241,
+        "tokens": 179
+      },
+      {
+        "s": 6.466301011998439,
+        "tokens": 182
+      },
+      {
+        "s": 6.590308597980766,
+        "tokens": 184
+      },
+      {
+        "s": 6.715082919981796,
+        "tokens": 192
+      },
+      {
+        "s": 6.839979515003506,
+        "tokens": 194
+      },
+      {
+        "s": 6.964289564988576,
+        "tokens": 195
+      },
+      {
+        "s": 7.09022064099554,
+        "tokens": 196
+      },
+      {
+        "s": 7.214329010981601,
+        "tokens": 200
+      },
+      {
+        "s": 7.339377494994551,
+        "tokens": 202
+      },
+      {
+        "s": 7.463507592998212,
+        "tokens": 211
+      },
+      {
+        "s": 7.589527261006879,
+        "tokens": 212
+      },
+      {
+        "s": 7.715251183981309,
+        "tokens": 214
+      },
+      {
+        "s": 7.84152344398899,
+        "tokens": 215
+      },
+      {
+        "s": 7.9693140409945045,
+        "tokens": 216
+      },
+      {
+        "s": 8.09534831700148,
+        "tokens": 219
+      },
+      {
+        "s": 8.225952243985375,
+        "tokens": 224
+      },
+      {
+        "s": 8.35208533599507,
+        "tokens": 227
+      },
+      {
+        "s": 8.479140684998129,
+        "tokens": 233
+      },
+      {
+        "s": 8.605852017994039,
+        "tokens": 234
+      },
+      {
+        "s": 8.731661637983052,
+        "tokens": 236
+      },
+      {
+        "s": 8.858380378980655,
+        "tokens": 237
+      },
+      {
+        "s": 8.985746880003717,
+        "tokens": 241
+      },
+      {
+        "s": 9.110797811998054,
+        "tokens": 243
+      },
+      {
+        "s": 9.236543976992834,
+        "tokens": 244
+      },
+      {
+        "s": 9.363859662000323,
+        "tokens": 252
+      },
+      {
+        "s": 9.490733235987136,
+        "tokens": 255
+      },
+      {
+        "s": 9.61693930500769,
+        "tokens": 259
+      },
+      {
+        "s": 9.743160669982899,
+        "tokens": 265
+      },
+      {
+        "s": 9.869429618993308,
+        "tokens": 267
+      },
+      {
+        "s": 9.997655273007695,
+        "tokens": 268
+      },
+      {
+        "s": 10.123283661989262,
+        "tokens": 273
+      },
+      {
+        "s": 10.251697956991848,
+        "tokens": 279
+      },
+      {
+        "s": 10.382815708988346,
+        "tokens": 285
+      },
+      {
+        "s": 10.51124240399804,
+        "tokens": 286
+      },
+      {
+        "s": 10.639114633988356,
+        "tokens": 287
+      },
+      {
+        "s": 10.767336752993288,
+        "tokens": 297
+      },
+      {
+        "s": 10.894855302991346,
+        "tokens": 299
+      },
+      {
+        "s": 11.0245291510073,
+        "tokens": 302
+      },
+      {
+        "s": 11.152106421999633,
+        "tokens": 311
+      },
+      {
+        "s": 11.280536812992068,
+        "tokens": 312
+      },
+      {
+        "s": 11.408610740007134,
+        "tokens": 318
+      },
+      {
+        "s": 11.537541867990512,
+        "tokens": 324
+      },
+      {
+        "s": 11.665751122985967,
+        "tokens": 325
+      },
+      {
+        "s": 11.794892346981214,
+        "tokens": 328
+      },
+      {
+        "s": 11.922252210002625,
+        "tokens": 329
+      },
+      {
+        "s": 12.052296123001724,
+        "tokens": 337
+      },
+      {
+        "s": 12.179309986007866,
+        "tokens": 338
+      },
+      {
+        "s": 12.310108234989457,
+        "tokens": 346
+      },
+      {
+        "s": 12.444937638007104,
+        "tokens": 354
+      },
+      {
+        "s": 12.574879438994685,
+        "tokens": 356
+      },
+      {
+        "s": 12.704371016006917,
+        "tokens": 358
+      },
+      {
+        "s": 12.834310943988385,
+        "tokens": 366
+      },
+      {
+        "s": 12.964603305998025,
+        "tokens": 368
+      },
+      {
+        "s": 13.095826275995933,
+        "tokens": 370
+      },
+      {
+        "s": 13.22531385300681,
+        "tokens": 380
+      },
+      {
+        "s": 13.35566286998801,
+        "tokens": 384
+      },
+      {
+        "s": 13.486782608000794,
+        "tokens": 386
+      },
+      {
+        "s": 13.616783657984342,
+        "tokens": 396
+      },
+      {
+        "s": 13.74749990698183,
+        "tokens": 403
+      },
+      {
+        "s": 13.879185022000456,
+        "tokens": 405
+      },
+      {
+        "s": 14.011923976999242,
+        "tokens": 408
+      },
+      {
+        "s": 14.145633829000872,
+        "tokens": 411
+      },
+      {
+        "s": 14.276934063993394,
+        "tokens": 412
+      },
+      {
+        "s": 14.412840428994969,
+        "tokens": 413
+      },
+      {
+        "s": 14.548549978004303,
+        "tokens": 415
+      },
+      {
+        "s": 14.680219028989086,
+        "tokens": 420
+      },
+      {
+        "s": 14.811837760003982,
+        "tokens": 427
+      },
+      {
+        "s": 14.944363963993965,
+        "tokens": 431
+      },
+      {
+        "s": 15.077634440007387,
+        "tokens": 441
+      },
+      {
+        "s": 15.210210243996698,
+        "tokens": 451
+      },
+      {
+        "s": 15.342231439979514,
+        "tokens": 452
+      },
+      {
+        "s": 15.474210939981276,
+        "tokens": 453
+      },
+      {
+        "s": 15.60758791200351,
+        "tokens": 455
+      },
+      {
+        "s": 15.740612003981369,
+        "tokens": 459
+      },
+      {
+        "s": 15.872418671991909,
+        "tokens": 464
+      },
+      {
+        "s": 16.006635981990257,
+        "tokens": 473
+      },
+      {
+        "s": 16.1394847779884,
+        "tokens": 474
+      },
+      {
+        "s": 16.27326692000497,
+        "tokens": 481
+      },
+      {
+        "s": 16.40742365299957,
+        "tokens": 491
+      },
+      {
+        "s": 16.546779030002654,
+        "tokens": 494
+      },
+      {
+        "s": 16.68269078800222,
+        "tokens": 497
+      },
+      {
+        "s": 16.816339249984594,
+        "tokens": 505
+      },
+      {
+        "s": 16.952806048997445,
+        "tokens": 512
+      }
+    ],
+    "replacement_characters": 0,
+    "prefill_s": 0.12716889381408691,
+    "pp_engine_tok_s": 377.45079445428723,
+    "arm": "control-b4-check-9"
+  },
+  {
+    "name": "speed_code_2",
+    "kind": "speed_code",
+    "input_sha256": "fc1eb3a32878dee21362126c777a6316af7aec57227cf888bd27e5d5f921f9e2",
+    "text": "Python의 `asyncio`를 활용하여 구현한 **비동기 작업 큐(Async Task Queue)** 예제입니다. 이 구현체는 단순히 큐에 넣고 빼는 것을 넘어, 실무에서 필요한 **재시도(Retry), 지수 백오프(Exponential Backoff), 타임아웃(Timeout), 우아한 종료(Graceful Shutdown)** 기능을 모두 포함하고 있습니다.\n\n### 구현 예제 번호 3: `AsyncWorkerQueue`\n\n```python\nimport asyncio\nimport random\nimport time\nfrom typing import Callable, Any, Optional\n\nclass AsyncWorkerQueue:\n    def __init__(self, max_retries: int = 3, base_delay: float = 1.0):\n        self.queue = asyncio.Queue()\n        self.max_retries = max_retries  # 최대 재시도 횟수\n        self.base_delay = base_delay    # 지수 백오프 기본 지연 시간\n        self._shutdown_event = asyncio.Event()\n        self.workers = []\n\n    async def enqueue(self, task_fn: Callable, *args, **kwargs):\n        \"\"\"작업을 큐에 추가합니다.\"\"\"\n        await self.queue.put((task_fn, args, kwargs))\n\n    async def _process_task(self, worker_id: int):\n        \"\"\"워커가 작업을 처리하는 핵심 로직\"\"\"\n        while not self._shutdown_event.is_set() or not self.queue.empty():\n            try:\n                # 큐에서 작업을 가져오되, 종료 이벤트가 설정되면 타임아웃으로 빠져나옴\n                task_fn, args, kwargs = await asyncio.wait_for(self.queue.get(), timeout=1.0)\n            except asyncio.TimeoutError:\n                continue\n\n            retries = 0\n            success = False\n            \n            while retries <= self.max_retries:\n                try:\n                    # 1. 타임아웃 설정: 작업 자체가 너무 오래 걸리는 것을 방지\n                    # 여기서는 예시로 작업당 5초 타임아웃을 설정 (작업 특성에 따라 조절 가능)\n                    await asyncio.wait_for(self._execute_task(worker_id, task_fn, args, kwargs), timeout=5.0",
+    "prompt_tokens": 57,
+    "completion_tokens": 512,
+    "ttft_s": 0.2400696119875647,
+    "first_chunk_tokens": 1,
+    "total_s": 14.238658752001356,
+    "request_tok_s": 35.95844306108076,
+    "tg_tok_s": 36.5036786842575,
+    "pp_ttft_tok_s": 237.43113311214302,
+    "meta_info": {
+      "id": "79d74acd82784710879ab035f91673ff",
+      "finish_reason": {
+        "type": "length",
+        "length": 512
+      },
+      "prompt_tokens": 57,
+      "weight_version": "default",
+      "num_retractions": 0,
+      "forward_entry_time": 1792583218.1981738,
+      "prefill_finished_time": 1792583218.32795,
+      "queue_time": 0.0001933574676513672,
+      "reasoning_tokens": 0,
+      "completion_tokens": 512,
+      "cached_tokens": 0,
+      "cached_tokens_details": null,
+      "dp_rank": null,
+      "e2e_latency": 14.234587579994695,
+      "spec_accept_rate": 0.40606060606060607,
+      "spec_accept_length": 4.654545454545454,
+      "spec_num_correct_drafts": 402,
+      "spec_num_proposed_drafts": 990,
+      "spec_verify_ct": 110,
+      "spec_accepted_drafts": 402,
+      "spec_proposed_drafts": 990,
+      "spec_correct_drafts_histogram": [
+        12,
+        24,
+        12,
+        9,
+        15,
+        9,
+        8,
+        6,
+        3,
+        12
+      ],
+      "spec_accept_histogram": [
+        12,
+        24,
+        12,
+        9,
+        15,
+        9,
+        8,
+        6,
+        3,
+        12
+      ],
+      "request_received_ts": 1792583218.0939689,
+      "api_server_dispatch_finish_ts": 1792583218.094253,
+      "response_sent_to_client_ts": 1792583218.3309329,
+      "request_finished_ts": 1792583232.3285565,
+      "decode_throughput": 36.505689708989976
+    },
+    "events": [
+      {
+        "s": 0.2400696119875647,
+        "tokens": 1
+      },
+      {
+        "s": 0.35792649700306356,
+        "tokens": 8
+      },
+      {
+        "s": 0.4775268390076235,
+        "tokens": 10
+      },
+      {
+        "s": 0.5969178199884482,
+        "tokens": 12
+      },
+      {
+        "s": 0.7174114419904072,
+        "tokens": 20
+      },
+      {
+        "s": 0.8383887769887224,
+        "tokens": 24
+      },
+      {
+        "s": 0.9611254239862319,
+        "tokens": 28
+      },
+      {
+        "s": 1.0816541670064908,
+        "tokens": 30
+      },
+      {
+        "s": 1.202647245983826,
+        "tokens": 32
+      },
+      {
+        "s": 1.3239145650004502,
+        "tokens": 33
+      },
+      {
+        "s": 1.4439817079983186,
+        "tokens": 35
+      },
+      {
+        "s": 1.5644316659891047,
+        "tokens": 38
+      },
+      {
+        "s": 1.6902520599833224,
+        "tokens": 43
+      },
+      {
+        "s": 1.8106349949957803,
+        "tokens": 46
+      },
+      {
+        "s": 1.9317246339924168,
+        "tokens": 51
+      },
+      {
+        "s": 2.0525784179917537,
+        "tokens": 59
+      },
+      {
+        "s": 2.1709740399965085,
+        "tokens": 69
+      },
+      {
+        "s": 2.290895213984186,
+        "tokens": 71
+      },
+      {
+        "s": 2.4101443569816183,
+        "tokens": 81
+      },
+      {
+        "s": 2.5325756289821584,
+        "tokens": 83
+      },
+      {
+        "s": 2.6545599259843584,
+        "tokens": 87
+      },
+      {
+        "s": 2.7773111980059184,
+        "tokens": 88
+      },
+      {
+        "s": 2.8989403900050092,
+        "tokens": 91
+      },
+      {
+        "s": 3.022423071990488,
+        "tokens": 96
+      },
+      {
+        "s": 3.1444458159967326,
+        "tokens": 99
+      },
+      {
+        "s": 3.266097968997201,
+        "tokens": 102
+      },
+      {
+        "s": 3.388887145993067,
+        "tokens": 109
+      },
+      {
+        "s": 3.5129740519914776,
+        "tokens": 114
+      },
+      {
+        "s": 3.6351681249798276,
+        "tokens": 115
+      },
+      {
+        "s": 3.7632109689875506,
+        "tokens": 119
+      },
+      {
+        "s": 3.8871422589872964,
+        "tokens": 129
+      },
+      {
+        "s": 4.009125515993219,
+        "tokens": 136
+      },
+      {
+        "s": 4.13295904599363,
+        "tokens": 140
+      },
+      {
+        "s": 4.257414144987706,
+        "tokens": 146
+      },
+      {
+        "s": 4.381576668005437,
+        "tokens": 148
+      },
+      {
+        "s": 4.505421477981145,
+        "tokens": 154
+      },
+      {
+        "s": 4.630426288989838,
+        "tokens": 161
+      },
+      {
+        "s": 4.7544383149943314,
+        "tokens": 166
+      },
+      {
+        "s": 4.8786983900063206,
+        "tokens": 176
+      },
+      {
+        "s": 5.003351441002451,
+        "tokens": 180
+      },
+      {
+        "s": 5.128748396993615,
+        "tokens": 182
+      },
+      {
+        "s": 5.253669416997582,
+        "tokens": 192
+      },
+      {
+        "s": 5.378095747990301,
+        "tokens": 200
+      },
+      {
+        "s": 5.503021854994586,
+        "tokens": 202
+      },
+      {
+        "s": 5.629180955991615,
+        "tokens": 207
+      },
+      {
+        "s": 5.755016663984861,
+        "tokens": 208
+      },
+      {
+        "s": 5.887559159978991,
+        "tokens": 214
+      },
+      {
+        "s": 6.013346260995604,
+        "tokens": 215
+      },
+      {
+        "s": 6.139457680983469,
+        "tokens": 217
+      },
+      {
+        "s": 6.265017373982118,
+        "tokens": 221
+      },
+      {
+        "s": 6.39096420299029,
+        "tokens": 223
+      },
+      {
+        "s": 6.519130233005853,
+        "tokens": 233
+      },
+      {
+        "s": 6.645362341980217,
+        "tokens": 234
+      },
+      {
+        "s": 6.7720000830013305,
+        "tokens": 239
+      },
+      {
+        "s": 6.897983631992247,
+        "tokens": 244
+      },
+      {
+        "s": 7.024620252981549,
+        "tokens": 247
+      },
+      {
+        "s": 7.152303435985232,
+        "tokens": 253
+      },
+      {
+        "s": 7.278482120978879,
+        "tokens": 255
+      },
+      {
+        "s": 7.405092439003056,
+        "tokens": 259
+      },
+      {
+        "s": 7.5316876839788165,
+        "tokens": 261
+      },
+      {
+        "s": 7.659007267007837,
+        "tokens": 270
+      },
+      {
+        "s": 7.786668992979685,
+        "tokens": 278
+      },
+      {
+        "s": 7.919838083005743,
+        "tokens": 283
+      },
+      {
+        "s": 8.049316530989017,
+        "tokens": 284
+      },
+      {
+        "s": 8.177269217994763,
+        "tokens": 290
+      },
+      {
+        "s": 8.304961457004538,
+        "tokens": 299
+      },
+      {
+        "s": 8.433708992000902,
+        "tokens": 302
+      },
+      {
+        "s": 8.562127071985742,
+        "tokens": 303
+      },
+      {
+        "s": 8.690482158999657,
+        "tokens": 305
+      },
+      {
+        "s": 8.819106702983845,
+        "tokens": 306
+      },
+      {
+        "s": 8.94711697398452,
+        "tokens": 308
+      },
+      {
+        "s": 9.077595887007192,
+        "tokens": 318
+      },
+      {
+        "s": 9.205242575000739,
+        "tokens": 328
+      },
+      {
+        "s": 9.33406407898292,
+        "tokens": 336
+      },
+      {
+        "s": 9.464234576007584,
+        "tokens": 338
+      },
+      {
+        "s": 9.59265000000596,
+        "tokens": 341
+      },
+      {
+        "s": 9.721938528004102,
+        "tokens": 343
+      },
+      {
+        "s": 9.852821857988602,
+        "tokens": 346
+      },
+      {
+        "s": 9.987891573982779,
+        "tokens": 347
+      },
+      {
+        "s": 10.11821439198684,
+        "tokens": 349
+      },
+      {
+        "s": 10.248698393988889,
+        "tokens": 350
+      },
+      {
+        "s": 10.378245675005019,
+        "tokens": 355
+      },
+      {
+        "s": 10.509898988995701,
+        "tokens": 365
+      },
+      {
+        "s": 10.63998479899601,
+        "tokens": 373
+      },
+      {
+        "s": 10.77005492898752,
+        "tokens": 380
+      },
+      {
+        "s": 10.901328082982218,
+        "tokens": 386
+      },
+      {
+        "s": 11.032246660994133,
+        "tokens": 390
+      },
+      {
+        "s": 11.161737446993357,
+        "tokens": 395
+      },
+      {
+        "s": 11.29490873098257,
+        "tokens": 404
+      },
+      {
+        "s": 11.426506605988834,
+        "tokens": 409
+      },
+      {
+        "s": 11.558947825978976,
+        "tokens": 414
+      },
+      {
+        "s": 11.69123011798365,
+        "tokens": 419
+      },
+      {
+        "s": 11.823489320988301,
+        "tokens": 426
+      },
+      {
+        "s": 11.955962876992999,
+        "tokens": 432
+      },
+      {
+        "s": 12.094528916990384,
+        "tokens": 442
+      },
+      {
+        "s": 12.226201096986188,
+        "tokens": 444
+      },
+      {
+        "s": 12.358830557001056,
+        "tokens": 446
+      },
+      {
+        "s": 12.491661729989573,
+        "tokens": 448
+      },
+      {
+        "s": 12.624706533999415,
+        "tokens": 455
+      },
+      {
+        "s": 12.756905769987497,
+        "tokens": 457
+      },
+      {
+        "s": 12.890413023007568,
+        "tokens": 460
+      },
+      {
+        "s": 13.024728468997637,
+        "tokens": 465
+      },
+      {
+        "s": 13.160104235983454,
+        "tokens": 471
+      },
+      {
+        "s": 13.293935344991041,
+        "tokens": 472
+      },
+      {
+        "s": 13.427255558985053,
+        "tokens": 474
+      },
+      {
+        "s": 13.561689820984611,
+        "tokens": 484
+      },
+      {
+        "s": 13.695722803007811,
+        "tokens": 487
+      },
+      {
+        "s": 13.829716167994775,
+        "tokens": 490
+      },
+      {
+        "s": 13.963550285989186,
+        "tokens": 496
+      },
+      {
+        "s": 14.101297574990895,
+        "tokens": 506
+      },
+      {
+        "s": 14.238500559993554,
+        "tokens": 512
+      }
+    ],
+    "replacement_characters": 0,
+    "prefill_s": 0.1297762393951416,
+    "pp_engine_tok_s": 439.21753524115366,
+    "arm": "control-b4-check-9"
+  },
+  {
+    "name": "recall_4k",
+    "kind": "recall",
+    "input_sha256": "4a0a2fe943131e0c9db2b54601d53c45052dcfce726699b66af6f872f9206fde",
+    "text": "청록펭귄",
+    "prompt_tokens": 2591,
+    "completion_tokens": 5,
+    "ttft_s": 2.512239503004821,
+    "first_chunk_tokens": 1,
+    "total_s": 2.665997748001246,
+    "request_tok_s": 1.8754704514467817,
+    "tg_tok_s": 26.014865089628262,
+    "pp_ttft_tok_s": 1031.3507119448507,
+    "meta_info": {
+      "id": "f12f7ff452794df49e5effe1cf6c07b7",
+      "finish_reason": {
+        "type": "stop",
+        "matched": 106
+      },
+      "prompt_tokens": 2591,
+      "weight_version": "default",
+      "num_retractions": 0,
+      "forward_entry_time": 1792583232.4426408,
+      "prefill_finished_time": 1792583234.8453474,
+      "queue_time": 0.00024271011352539062,
+      "reasoning_tokens": 0,
+      "completion_tokens": 5,
+      "cached_tokens": 0,
+      "cached_tokens_details": null,
+      "dp_rank": null,
+      "e2e_latency": 2.6623052489885595,
+      "spec_accept_rate": 0.5555555555555556,
+      "spec_accept_length": 5.0,
+      "spec_num_correct_drafts": 5,
+      "spec_num_proposed_drafts": 9,
+      "spec_verify_ct": 1,
+      "spec_accepted_drafts": 5,
+      "spec_proposed_drafts": 9,
+      "spec_correct_drafts_histogram": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "spec_accept_histogram": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "request_received_ts": 1792583232.339523,
+      "api_server_dispatch_finish_ts": 1792583232.3398347,
+      "response_sent_to_client_ts": 1792583234.8483438,
+      "request_finished_ts": 1792583235.0018282,
+      "decode_throughput": 26.018024650469556
+    },
+    "events": [
+      {
+        "s": 2.512239503004821,
+        "tokens": 1
+      },
+      {
+        "s": 2.6658118600025773,
+        "tokens": 5
+      }
+    ],
+    "replacement_characters": 0,
+    "prefill_s": 2.4027066230773926,
+    "pp_engine_tok_s": 1078.3671943607667,
+    "arm": "control-b4-check-9"
+  },
+  {
+    "name": "recall_9k",
+    "kind": "recall",
+    "input_sha256": "dcfd94dad07f8c8e4dbb26c1ae98cc974c5a6aa8458a28dc59ce4a6a52036d67",
+    "text": "청록펭귄",
+    "prompt_tokens": 9041,
+    "completion_tokens": 5,
+    "ttft_s": 10.730686388007598,
+    "first_chunk_tokens": 1,
+    "total_s": 10.909563506022096,
+    "request_tok_s": 0.45831347855851357,
+    "tg_tok_s": 22.361719846558614,
+    "pp_ttft_tok_s": 842.536970431271,
+    "meta_info": {
+      "id": "5b60d68a774243ef98282726ecfac698",
+      "finish_reason": {
+        "type": "stop",
+        "matched": 106
+      },
+      "prompt_tokens": 9041,
+      "weight_version": "default",
+      "num_retractions": 0,
+      "forward_entry_time": 1792583235.135638,
+      "prefill_finished_time": 1792583245.737525,
+      "queue_time": 0.0002129077911376953,
+      "reasoning_tokens": 0,
+      "completion_tokens": 5,
+      "cached_tokens": 0,
+      "cached_tokens_details": null,
+      "dp_rank": null,
+      "e2e_latency": 10.90538464000565,
+      "spec_accept_rate": 0.5555555555555556,
+      "spec_accept_length": 5.0,
+      "spec_num_correct_drafts": 5,
+      "spec_num_proposed_drafts": 9,
+      "spec_verify_ct": 1,
+      "spec_accepted_drafts": 5,
+      "spec_proposed_drafts": 9,
+      "spec_correct_drafts_histogram": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "spec_accept_histogram": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "request_received_ts": 1792583235.013322,
+      "api_server_dispatch_finish_ts": 1792583235.0137603,
+      "response_sent_to_client_ts": 1792583245.7403154,
+      "request_finished_ts": 1792583245.918707,
+      "decode_throughput": 22.39688244390455
+    },
+    "events": [
+      {
+        "s": 10.730686388007598,
+        "tokens": 1
+      },
+      {
+        "s": 10.909376994008198,
+        "tokens": 5
+      }
+    ],
+    "replacement_characters": 0,
+    "prefill_s": 10.601886987686157,
+    "pp_engine_tok_s": 852.772719658388,
+    "arm": "control-b4-check-9"
+  }
+]

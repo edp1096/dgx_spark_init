@@ -1,0 +1,50 @@
+{
+  "original-9": {
+    "kernel": [
+      "GEMMA31_SPLITKV_ENABLED topk=1",
+      "Capturing batches (bs=1 avail_mem=66.67 GB):   0%|          | 0/1 [00:00<?, ?it/s]GEMMA31_SPLITKV_BUILD {'hq': 32, 'hkv': 16, 'dim': 256, 'width': 10, 'splits': 4, 'block_n': 32, 'warps': 4}",
+      "GEMMA31_SPLITKV_BUILD {'hq': 32, 'hkv': 4, 'dim': 512, 'width': 10, 'splits': 8, 'block_n': 16, 'warps': 4}"
+    ],
+    "graph_decode_examples": [
+      "[2026-10-21 11:19:36] Decode batch, #running-req: 1, #full token: 49, full token usage: 0.00, #swa token: 49, swa token usage: 0.01, accept len: 4.30, accept rate: 0.37, cuda graph: True, gen throughput (token/s): 18.10, #queue-req: 0",
+      "[2026-10-21 11:19:42] Decode batch, #running-req: 1, #full token: 74, full token usage: 0.00, #swa token: 74, swa token usage: 0.02, accept len: 5.28, accept rate: 0.47, cuda graph: True, gen throughput (token/s): 33.17, #queue-req: 0",
+      "[2026-10-21 11:19:48] Decode batch, #running-req: 1, #full token: 230, full token usage: 0.00, #swa token: 230, swa token usage: 0.07, accept len: 3.73, accept rate: 0.30, cuda graph: True, gen throughput (token/s): 25.64, #queue-req: 0"
+    ]
+  },
+  "splitdflash-15": {
+    "kernel": [
+      "GEMMA31_SPLITKV_ENABLED topk=1",
+      "Capturing batches (bs=1 avail_mem=58.37 GB):   0%|          | 0/1 [00:00<?, ?it/s]GEMMA31_SPLITKV_BUILD {'hq': 32, 'hkv': 16, 'dim': 256, 'width': 16, 'splits': 4, 'block_n': 32, 'warps': 4}",
+      "GEMMA31_SPLITKV_BUILD {'hq': 32, 'hkv': 4, 'dim': 512, 'width': 16, 'splits': 8, 'block_n': 16, 'warps': 4}"
+    ],
+    "graph_decode_examples": [
+      "[2026-10-21 11:29:55] Decode batch, #running-req: 1, #full token: 88, full token usage: 0.00, #swa token: 88, swa token usage: 0.02, accept len: 2.85, accept rate: 0.12, cuda graph: True, gen throughput (token/s): 12.41, #queue-req: 0",
+      "[2026-10-21 11:30:01] Decode batch, #running-req: 1, #full token: 97, full token usage: 0.00, #swa token: 97, swa token usage: 0.02, accept len: 1.48, accept rate: 0.03, cuda graph: True, gen throughput (token/s): 11.01, #queue-req: 0",
+      "[2026-10-21 11:30:06] Decode batch, #running-req: 1, #full token: 115, full token usage: 0.00, #swa token: 115, swa token usage: 0.03, accept len: 5.58, accept rate: 0.30, cuda graph: True, gen throughput (token/s): 39.82, #queue-req: 0"
+    ]
+  },
+  "splitkv-b4-9": {
+    "kernel": [
+      "GEMMA31_SPLITKV_ENABLED topk=1",
+      "Capturing batches (bs=1 avail_mem=65.91 GB):   0%|          | 0/1 [00:00<?, ?it/s]GEMMA31_SPLITKV_BUILD {'hq': 32, 'hkv': 16, 'dim': 256, 'width': 10, 'splits': 4, 'block_n': 32, 'warps': 4}",
+      "GEMMA31_SPLITKV_BUILD {'hq': 32, 'hkv': 4, 'dim': 512, 'width': 10, 'splits': 8, 'block_n': 16, 'warps': 4}"
+    ],
+    "graph_decode_examples": [
+      "[2026-10-21 11:10:08] Decode batch, #running-req: 1, #full token: 48, full token usage: 0.00, #swa token: 48, swa token usage: 0.01, accept len: 4.12, accept rate: 0.35, cuda graph: True, gen throughput (token/s): 20.98, #queue-req: 0",
+      "[2026-10-21 11:10:13] Decode batch, #running-req: 1, #full token: 70, full token usage: 0.00, #swa token: 70, swa token usage: 0.02, accept len: 5.17, accept rate: 0.46, cuda graph: True, gen throughput (token/s): 39.48, #queue-req: 0",
+      "[2026-10-21 11:10:18] Decode batch, #running-req: 1, #full token: 227, full token usage: 0.00, #swa token: 227, swa token usage: 0.07, accept len: 3.90, accept rate: 0.32, cuda graph: True, gen throughput (token/s): 33.23, #queue-req: 0"
+    ]
+  },
+  "splitkv-b4-check-9": {
+    "kernel": [
+      "GEMMA31_SPLITKV_ENABLED topk=1",
+      "Capturing batches (bs=1 avail_mem=66.29 GB):   0%|          | 0/1 [00:00<?, ?it/s]GEMMA31_SPLITKV_BUILD {'hq': 32, 'hkv': 16, 'dim': 256, 'width': 10, 'splits': 4, 'block_n': 32, 'warps': 4}",
+      "GEMMA31_SPLITKV_BUILD {'hq': 32, 'hkv': 4, 'dim': 512, 'width': 10, 'splits': 8, 'block_n': 16, 'warps': 4}"
+    ],
+    "graph_decode_examples": [
+      "[2026-10-21 11:41:10] Decode batch, #running-req: 1, #full token: 48, full token usage: 0.00, #swa token: 48, swa token usage: 0.01, accept len: 4.12, accept rate: 0.35, cuda graph: True, gen throughput (token/s): 18.52, #queue-req: 0",
+      "[2026-10-21 11:41:16] Decode batch, #running-req: 1, #full token: 70, full token usage: 0.00, #swa token: 70, swa token usage: 0.02, accept len: 5.17, accept rate: 0.46, cuda graph: True, gen throughput (token/s): 39.46, #queue-req: 0",
+      "[2026-10-21 11:41:20] Decode batch, #running-req: 1, #full token: 227, full token usage: 0.00, #swa token: 227, swa token usage: 0.07, accept len: 3.90, accept rate: 0.32, cuda graph: True, gen throughput (token/s): 33.20, #queue-req: 0"
+    ]
+  }
+}

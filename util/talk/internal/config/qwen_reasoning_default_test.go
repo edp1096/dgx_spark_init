@@ -17,7 +17,7 @@ func TestQwenReasoningDefaultSurvivesBundleSwitchSaveAndReload(t *testing.T) {
 		t.Fatal("new installation did not default to medium")
 	}
 	startup := cfg.Runtime.Bundle
-	for _, id := range []string{"qwen38fn_exl3", "qwen38fn_exl3_q4", "flash-next-radixark", "flash-next-fp4-local", "flash-next", "flash-next-tp2"} {
+	for _, id := range []string{"qwen38fn_exl3", "flash-next-fp4-local", "flash-next", "flash-next-tp2"} {
 		t.Run(id, func(t *testing.T) {
 			cfg.SelectManagedBundle("glm53-worker-extra")
 			cfg.Model.ReasoningEffort = "max"

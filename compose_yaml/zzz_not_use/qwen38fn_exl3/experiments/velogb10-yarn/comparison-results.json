@@ -1,0 +1,1748 @@
+{
+  "conditions": {
+    "checkpoint": "alesha-pro/Huihui-Qwen3.8-Flash-Next-abliterated-exl3-3bit-hq_h6_ng6",
+    "revision": "3b585c458f9fcf3322e76cff2c635c2cb81c5869",
+    "context": 1048576,
+    "yarn_factor": 4,
+    "KV": "Q8",
+    "MTP_depth": 3,
+    "lanes": 1,
+    "CPU_affinity": "5-9,15-19",
+    "PLE": "SSD",
+    "MTP_policy": {
+      "exllama": "Static depth 3, dynamic_draft false",
+      "velo": "Depth 3, DDS disabled; built-in profitability controller can disable MTP per request"
+    },
+    "draft_vocabulary": {
+      "exllama": "Full 248320 tokens",
+      "velo": "Leading 65536 tokens; not the Korean-aware ko64k shortlist"
+    },
+    "vision": "GPU resident",
+    "prefix_cache": "on",
+    "checkpoint_cap_GiB": 4,
+    "cache_placement": {
+      "exllama": "CPU RAM",
+      "velo": "GPU"
+    },
+    "reference_image": "sparktalk-qwen38fn_exl3:1.5.4-managed1",
+    "velo_commit": "a6ad23d60e082ff9cca2bb78adda4ecee771388c plus local YaRN patch"
+  },
+  "exllama": {
+    "summary": {
+      "model": "qwen38fn_exl3",
+      "cases": 39,
+      "quality_checks_passed": 28,
+      "quality_checks_total": 31,
+      "korean_decode_median": 48.50888428125581,
+      "code_decode_median": 66.58073289946884,
+      "failed_cases": [
+        "quoted_xml_0",
+        "quoted_xml_1",
+        "quoted_xml_2"
+      ]
+    },
+    "memory": {
+      "peak_GPU_GiB": 67.900390625,
+      "min_system_available_GiB": 39.50092315673828,
+      "max_process_swap_bytes": null,
+      "max_container_swap_bytes": 0,
+      "host_swap_write_MiB": 0.0,
+      "observed_seconds": 1647.8874817419564,
+      "OOM_observed": false
+    },
+    "decode_tokens_per_second": {
+      "korean": {
+        "median": 48.50888428125581,
+        "min": 46.51986528297651,
+        "max": 51.430808007445656,
+        "n": 3
+      },
+      "code": {
+        "median": 66.58073289946884,
+        "min": 66.55397690066495,
+        "max": 67.90867558739326,
+        "n": 3
+      }
+    },
+    "cold_TTFT_seconds": {
+      "1k": {
+        "median": 1.203897636034526,
+        "min": 1.1341533809900284,
+        "max": 5.471512775984593,
+        "n": 3
+      },
+      "8k": {
+        "median": 6.6211276249960065,
+        "min": 6.596037958981469,
+        "max": 7.273639634018764,
+        "n": 3
+      },
+      "32k": {
+        "median": 27.26018786104396,
+        "min": 26.879949586000293,
+        "max": 27.72672249202151,
+        "n": 3
+      }
+    },
+    "checks": {
+      "basic": {
+        "passed": 6,
+        "total": 6,
+        "failed": []
+      },
+      "tool_calls_and_returns": {
+        "passed": 8,
+        "total": 8,
+        "failed": []
+      },
+      "literal_tool_documentation": {
+        "passed": 0,
+        "total": 3,
+        "failed": [
+          "quoted_xml_0",
+          "quoted_xml_1",
+          "quoted_xml_2"
+        ]
+      },
+      "vision": {
+        "passed": 2,
+        "total": 2,
+        "failed": []
+      },
+      "cold_prefill_and_prefix_cache": {
+        "passed": 12,
+        "total": 12,
+        "failed": []
+      }
+    },
+    "cache_16k": {
+      "cache_first": {
+        "ttft": 14.668076490983367,
+        "cached_tokens": 0,
+        "text": "READY",
+        "pass": true,
+        "usage": {
+          "prompt_tokens": 16367,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "prompt_time": 13.92,
+          "prompt_tokens_per_sec": 1175.79,
+          "completion_tokens": 2,
+          "completion_tokens_details": {
+            "accepted_prediction_tokens": 1,
+            "rejected_prediction_tokens": 2
+          },
+          "completion_time": 0.06,
+          "completion_tokens_per_sec": 34.12,
+          "total_tokens": 16369,
+          "total_time": 13.99
+        }
+      },
+      "cache_repeat": {
+        "ttft": 0.7412982230307534,
+        "cached_tokens": 16128,
+        "text": "READY",
+        "pass": true,
+        "usage": {
+          "prompt_tokens": 16367,
+          "prompt_tokens_details": {
+            "cached_tokens": 16128
+          },
+          "prompt_time": 0.41,
+          "prompt_tokens_per_sec": 582.93,
+          "completion_tokens": 2,
+          "completion_tokens_details": {
+            "accepted_prediction_tokens": 1,
+            "rejected_prediction_tokens": 2
+          },
+          "completion_time": 0.06,
+          "completion_tokens_per_sec": 34.69,
+          "total_tokens": 16369,
+          "total_time": 0.48
+        }
+      },
+      "cache_followup": {
+        "ttft": 2.9214460770599544,
+        "cached_tokens": 16128,
+        "text": "391",
+        "pass": true,
+        "usage": {
+          "prompt_tokens": 16396,
+          "prompt_tokens_details": {
+            "cached_tokens": 16128
+          },
+          "prompt_time": 2.57,
+          "prompt_tokens_per_sec": 104.28,
+          "completion_tokens": 4,
+          "completion_tokens_details": {
+            "accepted_prediction_tokens": 3,
+            "rejected_prediction_tokens": 0
+          },
+          "completion_time": 0.06,
+          "completion_tokens_per_sec": 66.27,
+          "total_tokens": 16400,
+          "total_time": 2.64
+        }
+      }
+    },
+    "recall-1m": {
+      "target_tokens": 1048384,
+      "actual_tokenize_count": null,
+      "input_bytes": 5322381,
+      "filler_repetitions_per_half": 40319,
+      "started_wall": 1791548992.2077067,
+      "text": "청록펭귄, 은빛해달, 자주빛고래",
+      "usage": {
+        "prompt_tokens": 1048380,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "prompt_time": 920.09,
+        "prompt_tokens_per_sec": 1139.43,
+        "completion_tokens": 17,
+        "completion_tokens_details": {
+          "accepted_prediction_tokens": 12,
+          "rejected_prediction_tokens": 3
+        },
+        "completion_time": 0.33,
+        "completion_tokens_per_sec": 51.74,
+        "total_tokens": 1048397,
+        "total_time": 920.43
+      },
+      "finish": "stop",
+      "done": true,
+      "seconds": 924.9287296240218,
+      "ttft": 924.7826519319788,
+      "pass": true,
+      "prefill_tps": 1133.650158564082
+    },
+    "full-cache-repeat": {
+      "text": "청록펭귄, 은빛해달, 자주빛고래",
+      "reasoning": "",
+      "calls": [],
+      "usage": {
+        "prompt_tokens": 1048380,
+        "prompt_tokens_details": {
+          "cached_tokens": 1048320
+        },
+        "prompt_time": 0.27,
+        "prompt_tokens_per_sec": 222.22,
+        "completion_tokens": 17,
+        "completion_tokens_details": {
+          "accepted_prediction_tokens": 12,
+          "rejected_prediction_tokens": 3
+        },
+        "completion_time": 0.33,
+        "completion_tokens_per_sec": 52.08,
+        "total_tokens": 1048397,
+        "total_time": 0.61
+      },
+      "finish": "stop",
+      "seconds": 25.33835101791192,
+      "ttft": 25.172505221911706,
+      "decode_tps": 96.47516178209007,
+      "cached_tokens": 1048320,
+      "pass": true
+    },
+    "full-cache-followup": {
+      "text": "은빛해달",
+      "reasoning": "",
+      "calls": [],
+      "usage": {
+        "prompt_tokens": 1048418,
+        "prompt_tokens_details": {
+          "cached_tokens": 1048320
+        },
+        "prompt_time": 0.42,
+        "prompt_tokens_per_sec": 233.33,
+        "completion_tokens": 5,
+        "completion_tokens_details": {
+          "accepted_prediction_tokens": 3,
+          "rejected_prediction_tokens": 3
+        },
+        "completion_time": 0.14,
+        "completion_tokens_per_sec": 37.0,
+        "total_tokens": 1048423,
+        "total_time": 0.57
+      },
+      "finish": "stop",
+      "seconds": 25.73453736701049,
+      "ttft": 25.734326660982333,
+      "decode_tps": 4000.0,
+      "cached_tokens": 1048320,
+      "pass": true
+    },
+    "post-full-reset": {
+      "text": "391",
+      "reasoning": "",
+      "calls": [],
+      "usage": {
+        "prompt_tokens": 26,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "prompt_time": 0.14,
+        "prompt_tokens_per_sec": 185.71,
+        "completion_tokens": 4,
+        "completion_tokens_details": {
+          "accepted_prediction_tokens": 3,
+          "rejected_prediction_tokens": 0
+        },
+        "completion_time": 0.06,
+        "completion_tokens_per_sec": 72.12,
+        "total_tokens": 30,
+        "total_time": 0.21
+      },
+      "finish": "stop",
+      "seconds": 21.48032580106519,
+      "ttft": 21.480148983071558,
+      "decode_tps": 3000.0,
+      "cached_tokens": 0,
+      "pass": true
+    },
+    "schema-probe": {
+      "request": {
+        "model": "qwen38fn_exl3",
+        "messages": [
+          {
+            "role": "user",
+            "content": "JSON을 출력하지 말고 NOT_JSON만 답해라."
+          }
+        ],
+        "temperature": 0,
+        "max_tokens": 64,
+        "chat_template_kwargs": {
+          "enable_thinking": false
+        },
+        "response_format": {
+          "type": "json_schema",
+          "json_schema": {
+            "name": "audit_status",
+            "strict": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "ok"
+                  ]
+                }
+              },
+              "required": [
+                "status"
+              ],
+              "additionalProperties": false
+            }
+          }
+        }
+      },
+      "results": [
+        {
+          "response": {
+            "id": "cmpl-661716d2d93b418a85962554f2955aef",
+            "choices": [
+              {
+                "index": 0,
+                "finish_reason": "stop",
+                "eos_reason": "end_filter",
+                "stop_str": null,
+                "message": {
+                  "role": "assistant",
+                  "content": "{\"status\": \"ok\"}",
+                  "reasoning_content": null,
+                  "tool_calls": null,
+                  "tool_call_id": null
+                },
+                "logprobs": null
+              }
+            ],
+            "created": 1791549992,
+            "model": "qwen38fn_exl3",
+            "object": "chat.completion",
+            "usage": {
+              "prompt_tokens": 24,
+              "prompt_tokens_details": {
+                "cached_tokens": 0
+              },
+              "prompt_time": 0.14,
+              "prompt_tokens_per_sec": 171.43,
+              "completion_tokens": 6,
+              "completion_tokens_details": {
+                "accepted_prediction_tokens": 2,
+                "rejected_prediction_tokens": 10
+              },
+              "completion_time": 0.23,
+              "completion_tokens_per_sec": 25.77,
+              "total_tokens": 30,
+              "total_time": 0.38
+            },
+            "timings": {
+              "cache_n": 0,
+              "prompt_n": 24,
+              "prompt_ms": 140.0,
+              "prompt_per_token_ms": 5.833333333333333,
+              "prompt_per_second": 171.42857142857144,
+              "predicted_n": 6,
+              "predicted_ms": 230.0,
+              "predicted_per_token_ms": 38.333333333333336,
+              "predicted_per_second": 26.08695652173913,
+              "draft_n": 12,
+              "draft_n_accepted": 2
+            }
+          },
+          "headers": {
+            "date": "Fri, 09 Oct 2026 12:45:42 GMT",
+            "server": "uvicorn",
+            "content-length": "972",
+            "content-type": "application/json",
+            "connection": "close"
+          },
+          "pass": true
+        },
+        {
+          "response": {
+            "id": "cmpl-60e025c6bf4545358878dfefb018c16c",
+            "choices": [
+              {
+                "index": 0,
+                "finish_reason": "stop",
+                "eos_reason": "end_filter",
+                "stop_str": null,
+                "message": {
+                  "role": "assistant",
+                  "content": "{\"status\": \"ok\"}",
+                  "reasoning_content": null,
+                  "tool_calls": null,
+                  "tool_call_id": null
+                },
+                "logprobs": null
+              }
+            ],
+            "created": 1791549992,
+            "model": "qwen38fn_exl3",
+            "object": "chat.completion",
+            "usage": {
+              "prompt_tokens": 24,
+              "prompt_tokens_details": {
+                "cached_tokens": 0
+              },
+              "prompt_time": 0.13,
+              "prompt_tokens_per_sec": 184.62,
+              "completion_tokens": 6,
+              "completion_tokens_details": {
+                "accepted_prediction_tokens": 2,
+                "rejected_prediction_tokens": 10
+              },
+              "completion_time": 0.22,
+              "completion_tokens_per_sec": 26.76,
+              "total_tokens": 30,
+              "total_time": 0.36
+            },
+            "timings": {
+              "cache_n": 0,
+              "prompt_n": 24,
+              "prompt_ms": 130.0,
+              "prompt_per_token_ms": 5.416666666666667,
+              "prompt_per_second": 184.6153846153846,
+              "predicted_n": 6,
+              "predicted_ms": 220.0,
+              "predicted_per_token_ms": 36.666666666666664,
+              "predicted_per_second": 27.272727272727273,
+              "draft_n": 12,
+              "draft_n_accepted": 2
+            }
+          },
+          "headers": {
+            "date": "Fri, 09 Oct 2026 12:46:32 GMT",
+            "server": "uvicorn",
+            "content-length": "972",
+            "content-type": "application/json",
+            "connection": "close"
+          },
+          "pass": true
+        }
+      ]
+    }
+  },
+  "velo": {
+    "summary": {
+      "model": "velo-yarn-audit",
+      "cases": 39,
+      "quality_checks_passed": 28,
+      "quality_checks_total": 31,
+      "korean_decode_median": 39.56721093509494,
+      "code_decode_median": 89.54145976671484,
+      "failed_cases": [
+        "quoted_xml_0",
+        "quoted_xml_1",
+        "quoted_xml_2"
+      ]
+    },
+    "memory": {
+      "peak_GPU_GiB": 77.9892578125,
+      "min_system_available_GiB": 32.9583740234375,
+      "max_process_swap_bytes": 0,
+      "max_container_swap_bytes": null,
+      "host_swap_write_MiB": 12.2890625,
+      "observed_seconds": 1219.3259867170127,
+      "OOM_observed": false
+    },
+    "decode_tokens_per_second": {
+      "korean": {
+        "median": 39.56721093509494,
+        "min": 38.36271230880349,
+        "max": 44.5495630392066,
+        "n": 3
+      },
+      "code": {
+        "median": 89.54145976671484,
+        "min": 88.91782234241168,
+        "max": 90.38135697926656,
+        "n": 3
+      }
+    },
+    "cold_TTFT_seconds": {
+      "1k": {
+        "median": 0.748395370086655,
+        "min": 0.7466969529632479,
+        "max": 0.7573137120343745,
+        "n": 3
+      },
+      "8k": {
+        "median": 5.727974749985151,
+        "min": 5.71301508997567,
+        "max": 5.859563342994079,
+        "n": 3
+      },
+      "32k": {
+        "median": 22.3790112050483,
+        "min": 22.374899487011135,
+        "max": 22.490075436071493,
+        "n": 3
+      }
+    },
+    "checks": {
+      "basic": {
+        "passed": 6,
+        "total": 6,
+        "failed": []
+      },
+      "tool_calls_and_returns": {
+        "passed": 8,
+        "total": 8,
+        "failed": []
+      },
+      "literal_tool_documentation": {
+        "passed": 0,
+        "total": 3,
+        "failed": [
+          "quoted_xml_0",
+          "quoted_xml_1",
+          "quoted_xml_2"
+        ]
+      },
+      "vision": {
+        "passed": 2,
+        "total": 2,
+        "failed": []
+      },
+      "cold_prefill_and_prefix_cache": {
+        "passed": 12,
+        "total": 12,
+        "failed": []
+      }
+    },
+    "cache_16k": {
+      "cache_first": {
+        "ttft": 11.079066834994592,
+        "cached_tokens": 0,
+        "text": "READY",
+        "pass": true,
+        "usage": {
+          "prompt_tokens": 16367,
+          "completion_tokens": 2,
+          "total_tokens": 16369,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      },
+      "cache_repeat": {
+        "ttft": 0.06981275905855,
+        "cached_tokens": 16366,
+        "text": "READY",
+        "pass": true,
+        "usage": {
+          "prompt_tokens": 16367,
+          "completion_tokens": 2,
+          "total_tokens": 16369,
+          "prompt_tokens_details": {
+            "cached_tokens": 16366
+          }
+        }
+      },
+      "cache_followup": {
+        "ttft": 0.2188692290801555,
+        "cached_tokens": 16366,
+        "text": "391",
+        "pass": true,
+        "usage": {
+          "prompt_tokens": 16396,
+          "completion_tokens": 4,
+          "total_tokens": 16400,
+          "prompt_tokens_details": {
+            "cached_tokens": 16366
+          }
+        }
+      }
+    },
+    "recall-1m": {
+      "target_tokens": 1048384,
+      "actual_tokenize_count": null,
+      "input_bytes": 5322381,
+      "filler_repetitions_per_half": 40319,
+      "started_wall": 1791550259.733987,
+      "text": "청록펭귄, 은빛해달, 자주빛고래",
+      "usage": {
+        "prompt_tokens": 1048380,
+        "completion_tokens": 17,
+        "total_tokens": 1048397,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "finish": "stop",
+      "done": true,
+      "seconds": 949.9445612879936,
+      "ttft": 949.5184374450473,
+      "pass": true,
+      "prefill_tps": 1104.117580719094
+    },
+    "full-cache-repeat": {
+      "text": "청록펭귄, 은빛해달, 자주빛고래",
+      "reasoning": "",
+      "calls": [],
+      "usage": {
+        "prompt_tokens": 1048380,
+        "completion_tokens": 17,
+        "total_tokens": 1048397,
+        "prompt_tokens_details": {
+          "cached_tokens": 1048379
+        }
+      },
+      "finish": "stop",
+      "seconds": 3.004327878006734,
+      "ttft": 2.616241590003483,
+      "decode_tps": 41.22794464685124,
+      "cached_tokens": 1048379,
+      "pass": true
+    },
+    "full-cache-followup": {
+      "text": "은빛해달",
+      "reasoning": "",
+      "calls": [],
+      "usage": {
+        "prompt_tokens": 1048418,
+        "completion_tokens": 5,
+        "total_tokens": 1048423,
+        "prompt_tokens_details": {
+          "cached_tokens": 1048379
+        }
+      },
+      "finish": "stop",
+      "seconds": 2.9656310320133343,
+      "ttft": 2.7981088761007413,
+      "decode_tps": 23.87743864809772,
+      "cached_tokens": 1048379,
+      "pass": true
+    },
+    "post-full-reset": {
+      "text": "391",
+      "reasoning": "",
+      "calls": [],
+      "usage": {
+        "prompt_tokens": 26,
+        "completion_tokens": 4,
+        "total_tokens": 30,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "finish": "stop",
+      "seconds": 0.19752064801286906,
+      "ttft": 0.15960591193288565,
+      "decode_tps": 79.12490788993809,
+      "cached_tokens": 0,
+      "pass": true
+    },
+    "schema-probe": {
+      "request": {
+        "model": "velo-yarn-audit",
+        "messages": [
+          {
+            "role": "user",
+            "content": "JSON을 출력하지 말고 NOT_JSON만 답해라."
+          }
+        ],
+        "temperature": 0,
+        "max_tokens": 64,
+        "chat_template_kwargs": {
+          "enable_thinking": false
+        },
+        "response_format": {
+          "type": "json_schema",
+          "json_schema": {
+            "name": "audit_status",
+            "strict": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "ok"
+                  ]
+                }
+              },
+              "required": [
+                "status"
+              ],
+              "additionalProperties": false
+            }
+          }
+        }
+      },
+      "results": [
+        {
+          "response": {
+            "id": "chatcmpl-51a38dc8-f3d2-41fb-9542-88dd3bc59a73",
+            "object": "chat.completion",
+            "created": 1791551216,
+            "model": "velo-yarn-audit",
+            "choices": [
+              {
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "NOT_JSON"
+                },
+                "finish_reason": "stop"
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 24,
+              "completion_tokens": 3,
+              "total_tokens": 27,
+              "prompt_tokens_details": {
+                "cached_tokens": 0
+              }
+            },
+            "timings": {
+              "prompt_ms": 171.421878,
+              "predicted_ms": 42.492012,
+              "prompt_per_second": 140.00546651344,
+              "predicted_per_second": 70.60150505464415
+            }
+          },
+          "headers": {
+            "content-type": "application/json",
+            "x-json-schema-enforced": "none",
+            "vary": "origin, access-control-request-method, access-control-request-headers",
+            "access-control-allow-origin": "*",
+            "content-length": "477",
+            "connection": "close",
+            "date": "Fri, 09 Oct 2026 13:06:56 GMT"
+          },
+          "pass": false
+        },
+        {
+          "response": {
+            "id": "chatcmpl-09f84c92-e3b5-4d4c-a2b8-4fb046a1f3ea",
+            "object": "chat.completion",
+            "created": 1791551216,
+            "model": "velo-yarn-audit",
+            "choices": [
+              {
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "NOT_JSON"
+                },
+                "finish_reason": "stop"
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 24,
+              "completion_tokens": 3,
+              "total_tokens": 27,
+              "prompt_tokens_details": {
+                "cached_tokens": 23
+              }
+            },
+            "timings": {
+              "prompt_ms": 29.011498,
+              "predicted_ms": 37.020719,
+              "prompt_per_second": 827.2582132780597,
+              "predicted_per_second": 81.03570327739988
+            }
+          },
+          "headers": {
+            "content-type": "application/json",
+            "x-json-schema-enforced": "none",
+            "vary": "origin, access-control-request-method, access-control-request-headers",
+            "access-control-allow-origin": "*",
+            "content-length": "479",
+            "connection": "close",
+            "date": "Fri, 09 Oct 2026 13:06:56 GMT"
+          },
+          "pass": false
+        }
+      ]
+    }
+  },
+  "request_audit": {
+    "common_requests": 39,
+    "differing_requests": [
+      "tool_folder_return.request.json",
+      "tool_title_return.request.json"
+    ],
+    "note": "Tool-return and vision/cache followup requests include each engine’s preceding output; speed and cold-prefill prompts must match exactly."
+  },
+  "limits": [
+    "Single GB10 and single existing checkpoint; other model services were stopped.",
+    "Three short speed samples per workload; 512-token caps, some outputs may stop earlier.",
+    "Both use the same full tokenizer; neither uses the ko64k draft-vocabulary shortlist.",
+    "MTP is configured at depth 3 in both, but Velo’s built-in profitability controller remains active.",
+    "TTFT and decode rates measured at the client including HTTP/SSE overhead.",
+    "Full-context quality is three-position synthetic recall, not a broad language benchmark.",
+    "GPU allocation and system MemAvailable are separate views of unified memory; never add them or add GPU allocation to process RSS.",
+    "No concurrent ASR/TTS/image/embedding residency qualification in this comparison.",
+    "Production profiles and original model weights remain unchanged.",
+    "The full-draft-vocabulary control re-ran short/320K checks with 1M preallocated KV and a saturated checkpoint cap, not the full 1M recall. Disabling the pruned draft head also disables its DHEAD screen/rescore path.",
+    "The 319990-token control reused 8192 tokens from its preceding 32K recall. Its raw total-prompt/TTFT ratio is not a fresh-prefill throughput comparison."
+  ],
+  "artifacts": "/home/edp1096/.cache/model-download-jobs/velogb10-exllama-comparison-20261009",
+  "velo_full_vocabulary_control": {
+    "summary": {
+      "model": "velo-yarn-audit",
+      "cases": 39,
+      "quality_checks_passed": 28,
+      "quality_checks_total": 31,
+      "korean_decode_median": 54.54743180357179,
+      "code_decode_median": 78.2031155592811,
+      "failed_cases": [
+        "quoted_xml_0",
+        "quoted_xml_1",
+        "quoted_xml_2"
+      ]
+    },
+    "memory": {
+      "peak_GPU_GiB": 77.8330078125,
+      "min_system_available_GiB": 33.83244705200195,
+      "max_process_swap_bytes": 0,
+      "max_container_swap_bytes": null,
+      "host_swap_write_MiB": 0.01953125,
+      "observed_seconds": 513.1905084199971,
+      "OOM_observed": false
+    },
+    "decode_tokens_per_second": {
+      "korean": {
+        "median": 54.54743180357179,
+        "min": 50.39284542920385,
+        "max": 56.16642143936071,
+        "n": 3
+      },
+      "code": {
+        "median": 78.2031155592811,
+        "min": 76.09141268471834,
+        "max": 79.5680985393827,
+        "n": 3
+      }
+    },
+    "cold_TTFT_seconds": {
+      "1k": {
+        "median": 0.7461145179113373,
+        "min": 0.74476050096564,
+        "max": 0.7468574319500476,
+        "n": 3
+      },
+      "8k": {
+        "median": 5.675870697014034,
+        "min": 5.6754245379706845,
+        "max": 5.681150334072299,
+        "n": 3
+      },
+      "32k": {
+        "median": 22.219198446022347,
+        "min": 22.20636160101276,
+        "max": 22.22704591799993,
+        "n": 3
+      }
+    },
+    "checks": {
+      "basic": {
+        "passed": 6,
+        "total": 6,
+        "failed": []
+      },
+      "tool_calls_and_returns": {
+        "passed": 8,
+        "total": 8,
+        "failed": []
+      },
+      "literal_tool_documentation": {
+        "passed": 0,
+        "total": 3,
+        "failed": [
+          "quoted_xml_0",
+          "quoted_xml_1",
+          "quoted_xml_2"
+        ]
+      },
+      "vision": {
+        "passed": 2,
+        "total": 2,
+        "failed": []
+      },
+      "cold_prefill_and_prefix_cache": {
+        "passed": 12,
+        "total": 12,
+        "failed": []
+      }
+    },
+    "cache_16k": {
+      "cache_first": {
+        "ttft": 11.003828578977846,
+        "cached_tokens": 0,
+        "text": "READY",
+        "pass": true,
+        "usage": {
+          "prompt_tokens": 16367,
+          "completion_tokens": 2,
+          "total_tokens": 16369,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      },
+      "cache_repeat": {
+        "ttft": 0.06800614192616194,
+        "cached_tokens": 16366,
+        "text": "READY",
+        "pass": true,
+        "usage": {
+          "prompt_tokens": 16367,
+          "completion_tokens": 2,
+          "total_tokens": 16369,
+          "prompt_tokens_details": {
+            "cached_tokens": 16366
+          }
+        }
+      },
+      "cache_followup": {
+        "ttft": 0.2129877790575847,
+        "cached_tokens": 16366,
+        "text": "391",
+        "pass": true,
+        "usage": {
+          "prompt_tokens": 16396,
+          "completion_tokens": 4,
+          "total_tokens": 16400,
+          "prompt_tokens_details": {
+            "cached_tokens": 16366
+          }
+        }
+      }
+    },
+    "recall-32k": {
+      "target_tokens": 32768,
+      "actual_tokenize_count": null,
+      "input_bytes": 166197,
+      "filler_repetitions_per_half": 1257,
+      "started_wall": 1791551477.484843,
+      "text": "청록펭귄, 은빛해달, 자주빛고래",
+      "usage": {
+        "prompt_tokens": 32768,
+        "completion_tokens": 17,
+        "total_tokens": 32785,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "finish": "stop",
+      "done": true,
+      "seconds": 22.59305690508336,
+      "ttft": 22.379195529036224,
+      "pass": true,
+      "prefill_tps": 1464.217065241897
+    },
+    "recall-320k": {
+      "target_tokens": 320000,
+      "actual_tokenize_count": null,
+      "input_bytes": 1624401,
+      "filler_repetitions_per_half": 12304,
+      "started_wall": 1791551485.6757295,
+      "text": "청록펭귄, 은빛해달, 자주빛고래",
+      "usage": {
+        "prompt_tokens": 319990,
+        "completion_tokens": 17,
+        "total_tokens": 320007,
+        "prompt_tokens_details": {
+          "cached_tokens": 8192
+        }
+      },
+      "finish": "stop",
+      "done": true,
+      "seconds": 248.1391733760247,
+      "ttft": 247.94045694894157,
+      "pass": true,
+      "prefill_tps": 1290.5921201310668
+    }
+  },
+  "draft_vocabulary_control": {
+    "only_launch_flag_changed": "--exl3-mtp-head-n 0",
+    "same_visible_speed_outputs": {
+      "korean_0": true,
+      "code_0": true,
+      "korean_1": true,
+      "code_1": true,
+      "korean_2": true,
+      "code_2": true
+    },
+    "MTP_stats": {
+      "velo": [
+        {
+          "case": "korean_0",
+          "drafted": 270,
+          "accepted": 63,
+          "raw": "[mtp-stats] slot=0 finish=length gen=512 rounds=90 drafted=270 accepted=63 (23.3%) tok/round=1.70 ms/round=42.8 plain_steps=357 temp=0 ctrl=1"
+        },
+        {
+          "case": "code_0",
+          "drafted": 327,
+          "accepted": 290,
+          "raw": "[mtp-stats] slot=0 finish=stop gen=400 rounds=109 drafted=327 accepted=290 (88.7%) tok/round=3.66 ms/round=40.9 plain_steps=0 temp=0 ctrl=0"
+        },
+        {
+          "case": "korean_1",
+          "drafted": 845,
+          "accepted": 227,
+          "raw": "[mtp-stats] slot=0 finish=length gen=512 rounds=282 drafted=845 accepted=227 (26.9%) tok/round=1.80 ms/round=40.5 plain_steps=0 temp=0 ctrl=2"
+        },
+        {
+          "case": "code_1",
+          "drafted": 443,
+          "accepted": 363,
+          "raw": "[mtp-stats] slot=0 finish=length gen=512 rounds=148 drafted=443 accepted=363 (81.9%) tok/round=3.45 ms/round=38.8 plain_steps=0 temp=0 ctrl=0"
+        },
+        {
+          "case": "korean_2",
+          "drafted": 192,
+          "accepted": 41,
+          "raw": "[mtp-stats] slot=0 finish=length gen=512 rounds=64 drafted=192 accepted=41 (21.4%) tok/round=1.64 ms/round=39.4 plain_steps=406 temp=0 ctrl=0"
+        },
+        {
+          "case": "code_2",
+          "drafted": 439,
+          "accepted": 363,
+          "raw": "[mtp-stats] slot=0 finish=length gen=512 rounds=147 drafted=439 accepted=363 (82.7%) tok/round=3.47 ms/round=38.3 plain_steps=0 temp=0 ctrl=1"
+        }
+      ],
+      "velo-full-vocab": [
+        {
+          "case": "korean_0",
+          "drafted": 567,
+          "accepted": 319,
+          "raw": "[mtp-stats] slot=0 finish=length gen=512 rounds=189 drafted=567 accepted=319 (56.3%) tok/round=2.69 ms/round=47.7 plain_steps=1 temp=0 ctrl=2"
+        },
+        {
+          "case": "code_0",
+          "drafted": 324,
+          "accepted": 293,
+          "raw": "[mtp-stats] slot=0 finish=stop gen=400 rounds=108 drafted=324 accepted=293 (90.4%) tok/round=3.71 ms/round=46.4 plain_steps=0 temp=0 ctrl=0"
+        },
+        {
+          "case": "korean_1",
+          "drafted": 596,
+          "accepted": 311,
+          "raw": "[mtp-stats] slot=0 finish=length gen=512 rounds=199 drafted=596 accepted=311 (52.2%) tok/round=2.56 ms/round=46.9 plain_steps=0 temp=0 ctrl=1"
+        },
+        {
+          "case": "code_1",
+          "drafted": 437,
+          "accepted": 365,
+          "raw": "[mtp-stats] slot=0 finish=length gen=512 rounds=146 drafted=437 accepted=365 (83.5%) tok/round=3.50 ms/round=46.0 plain_steps=0 temp=0 ctrl=0"
+        },
+        {
+          "case": "korean_2",
+          "drafted": 525,
+          "accepted": 259,
+          "raw": "[mtp-stats] slot=0 finish=length gen=512 rounds=175 drafted=525 accepted=259 (49.3%) tok/round=2.48 ms/round=46.7 plain_steps=76 temp=0 ctrl=1"
+        },
+        {
+          "case": "code_2",
+          "drafted": 433,
+          "accepted": 366,
+          "raw": "[mtp-stats] slot=0 finish=length gen=512 rounds=145 drafted=433 accepted=366 (84.5%) tok/round=3.52 ms/round=45.1 plain_steps=0 temp=0 ctrl=0"
+        }
+      ]
+    }
+  },
+  "mtp-comparison.json": [
+    {
+      "case": "korean_0",
+      "exllama": {
+        "accepted": 324,
+        "rejected": 240,
+        "acceptance_ratio": 0.574468085106383
+      },
+      "velo": {
+        "accepted": 63,
+        "drafted": 270,
+        "acceptance_ratio": 0.23333333333333334,
+        "raw_stat": "[mtp-stats] slot=0 finish=length gen=512 rounds=90 drafted=270 accepted=63 (23.3%) tok/round=1.70 ms/round=42.8 plain_steps=357 temp=0 ctrl=1"
+      },
+      "input_tokens": {
+        "exllama": 53,
+        "velo": 53
+      },
+      "decode_tps": {
+        "exllama": 48.50888428125581,
+        "velo": 38.36271230880349
+      }
+    },
+    {
+      "case": "code_0",
+      "exllama": {
+        "accepted": 294,
+        "rejected": 24,
+        "acceptance_ratio": 0.9245283018867925
+      },
+      "velo": {
+        "accepted": 290,
+        "drafted": 327,
+        "acceptance_ratio": 0.8868501529051988,
+        "raw_stat": "[mtp-stats] slot=0 finish=stop gen=400 rounds=109 drafted=327 accepted=290 (88.7%) tok/round=3.66 ms/round=40.9 plain_steps=0 temp=0 ctrl=0"
+      },
+      "input_tokens": {
+        "exllama": 48,
+        "velo": 48
+      },
+      "decode_tps": {
+        "exllama": 67.90867558739326,
+        "velo": 89.54145976671484
+      }
+    },
+    {
+      "case": "korean_1",
+      "exllama": {
+        "accepted": 316,
+        "rejected": 272,
+        "acceptance_ratio": 0.5374149659863946
+      },
+      "velo": {
+        "accepted": 227,
+        "drafted": 845,
+        "acceptance_ratio": 0.2686390532544379,
+        "raw_stat": "[mtp-stats] slot=0 finish=length gen=512 rounds=282 drafted=845 accepted=227 (26.9%) tok/round=1.80 ms/round=40.5 plain_steps=0 temp=0 ctrl=2"
+      },
+      "input_tokens": {
+        "exllama": 53,
+        "velo": 53
+      },
+      "decode_tps": {
+        "exllama": 46.51986528297651,
+        "velo": 44.5495630392066
+      }
+    },
+    {
+      "case": "code_1",
+      "exllama": {
+        "accepted": 374,
+        "rejected": 40,
+        "acceptance_ratio": 0.9033816425120773
+      },
+      "velo": {
+        "accepted": 363,
+        "drafted": 443,
+        "acceptance_ratio": 0.8194130925507901,
+        "raw_stat": "[mtp-stats] slot=0 finish=length gen=512 rounds=148 drafted=443 accepted=363 (81.9%) tok/round=3.45 ms/round=38.8 plain_steps=0 temp=0 ctrl=0"
+      },
+      "input_tokens": {
+        "exllama": 48,
+        "velo": 48
+      },
+      "decode_tps": {
+        "exllama": 66.55397690066495,
+        "velo": 88.91782234241168
+      }
+    },
+    {
+      "case": "korean_2",
+      "exllama": {
+        "accepted": 333,
+        "rejected": 204,
+        "acceptance_ratio": 0.6201117318435754
+      },
+      "velo": {
+        "accepted": 41,
+        "drafted": 192,
+        "acceptance_ratio": 0.21354166666666666,
+        "raw_stat": "[mtp-stats] slot=0 finish=length gen=512 rounds=64 drafted=192 accepted=41 (21.4%) tok/round=1.64 ms/round=39.4 plain_steps=406 temp=0 ctrl=0"
+      },
+      "input_tokens": {
+        "exllama": 53,
+        "velo": 53
+      },
+      "decode_tps": {
+        "exllama": 51.430808007445656,
+        "velo": 39.56721093509494
+      }
+    },
+    {
+      "case": "code_2",
+      "exllama": {
+        "accepted": 373,
+        "rejected": 44,
+        "acceptance_ratio": 0.894484412470024
+      },
+      "velo": {
+        "accepted": 363,
+        "drafted": 439,
+        "acceptance_ratio": 0.826879271070615,
+        "raw_stat": "[mtp-stats] slot=0 finish=length gen=512 rounds=147 drafted=439 accepted=363 (82.7%) tok/round=3.47 ms/round=38.3 plain_steps=0 temp=0 ctrl=1"
+      },
+      "input_tokens": {
+        "exllama": 48,
+        "velo": 48
+      },
+      "decode_tps": {
+        "exllama": 66.58073289946884,
+        "velo": 90.38135697926656
+      }
+    }
+  ],
+  "vocab-coverage.json": {
+    "tokenizer_sha256": "0997f410c57a1f4e53b09e4be8f4a172d90edd9564368fb0847030937229b9f3",
+    "ko64k_tokenizer_match": true,
+    "ko64k_set_size": 65536,
+    "cases": [
+      {
+        "engine": "exllama",
+        "case": "korean_0",
+        "visible_tokens": 512,
+        "outside_leading_64k": 140,
+        "leading_64k_coverage": 0.7265625,
+        "ko64k_coverage": 0.986328125,
+        "outside_examples": [
+          [
+            77792,
+            "와"
+          ],
+          [
+            156037,
+            " 의미"
+          ],
+          [
+            173376,
+            " 검색"
+          ],
+          [
+            185739,
+            " 하이"
+          ],
+          [
+            213945,
+            "브리"
+          ],
+          [
+            153784,
+            " 활용"
+          ],
+          [
+            175665,
+            " 왜"
+          ],
+          [
+            159173,
+            " 함께"
+          ],
+          [
+            207289,
+            " 쓰는"
+          ],
+          [
+            151314,
+            "확"
+          ],
+          [
+            204667,
+            " 키워"
+          ],
+          [
+            150050,
+            " 매"
+          ]
+        ]
+      },
+      {
+        "engine": "exllama",
+        "case": "code_0",
+        "visible_tokens": 399,
+        "outside_leading_64k": 3,
+        "leading_64k_coverage": 0.9924812030075187,
+        "ko64k_coverage": 0.9974937343358395,
+        "outside_examples": [
+          [
+            71093,
+            "```"
+          ],
+          [
+            67921,
+            "[Any"
+          ]
+        ]
+      },
+      {
+        "engine": "exllama",
+        "case": "korean_1",
+        "visible_tokens": 512,
+        "outside_leading_64k": 141,
+        "leading_64k_coverage": 0.724609375,
+        "ko64k_coverage": 0.98046875,
+        "outside_examples": [
+          [
+            77792,
+            "와"
+          ],
+          [
+            156037,
+            " 의미"
+          ],
+          [
+            173376,
+            " 검색"
+          ],
+          [
+            197984,
+            " 결합"
+          ],
+          [
+            175665,
+            " 왜"
+          ],
+          [
+            171280,
+            " 그리고"
+          ],
+          [
+            173152,
+            " 어떻게"
+          ],
+          [
+            180802,
+            " 핵심"
+          ],
+          [
+            153791,
+            " 이유"
+          ],
+          [
+            78952,
+            "SQLite"
+          ],
+          [
+            150206,
+            "키"
+          ],
+          [
+            232584,
+            "워드"
+          ]
+        ]
+      },
+      {
+        "engine": "exllama",
+        "case": "code_1",
+        "visible_tokens": 512,
+        "outside_leading_64k": 11,
+        "leading_64k_coverage": 0.978515625,
+        "ko64k_coverage": 0.978515625,
+        "outside_examples": [
+          [
+            71093,
+            "```"
+          ],
+          [
+            71483,
+            ".\"\"\""
+          ],
+          [
+            67921,
+            "[Any"
+          ],
+          [
+            84642,
+            "Retrieve"
+          ],
+          [
+            76940,
+            "makes"
+          ]
+        ]
+      },
+      {
+        "engine": "exllama",
+        "case": "korean_2",
+        "visible_tokens": 512,
+        "outside_leading_64k": 133,
+        "leading_64k_coverage": 0.740234375,
+        "ko64k_coverage": 0.9765625,
+        "outside_examples": [
+          [
+            77792,
+            "와"
+          ],
+          [
+            156037,
+            " 의미"
+          ],
+          [
+            173376,
+            " 검색"
+          ],
+          [
+            197984,
+            " 결합"
+          ],
+          [
+            175665,
+            " 왜"
+          ],
+          [
+            159173,
+            " 함께"
+          ],
+          [
+            181388,
+            " 사용하는"
+          ],
+          [
+            78952,
+            "SQLite"
+          ],
+          [
+            150206,
+            "키"
+          ],
+          [
+            232584,
+            "워드"
+          ],
+          [
+            160870,
+            " 기반"
+          ],
+          [
+            199102,
+            " 정확한"
+          ]
+        ]
+      },
+      {
+        "engine": "exllama",
+        "case": "code_2",
+        "visible_tokens": 512,
+        "outside_leading_64k": 11,
+        "leading_64k_coverage": 0.978515625,
+        "ko64k_coverage": 0.978515625,
+        "outside_examples": [
+          [
+            71093,
+            "```"
+          ],
+          [
+            71483,
+            ".\"\"\""
+          ],
+          [
+            67921,
+            "[Any"
+          ],
+          [
+            84642,
+            "Retrieve"
+          ],
+          [
+            76940,
+            "makes"
+          ]
+        ]
+      },
+      {
+        "engine": "velo",
+        "case": "korean_0",
+        "visible_tokens": 512,
+        "outside_leading_64k": 168,
+        "leading_64k_coverage": 0.671875,
+        "ko64k_coverage": 0.98828125,
+        "outside_examples": [
+          [
+            77792,
+            "와"
+          ],
+          [
+            156037,
+            " 의미"
+          ],
+          [
+            173376,
+            " 검색"
+          ],
+          [
+            197984,
+            " 결합"
+          ],
+          [
+            175665,
+            " 왜"
+          ],
+          [
+            171280,
+            " 그리고"
+          ],
+          [
+            173152,
+            " 어떻게"
+          ],
+          [
+            180802,
+            " 핵심"
+          ],
+          [
+            153791,
+            " 이유"
+          ],
+          [
+            151314,
+            "확"
+          ],
+          [
+            204667,
+            " 키워"
+          ],
+          [
+            78176,
+            "적"
+          ]
+        ]
+      },
+      {
+        "engine": "velo",
+        "case": "code_0",
+        "visible_tokens": 399,
+        "outside_leading_64k": 3,
+        "leading_64k_coverage": 0.9924812030075187,
+        "ko64k_coverage": 0.9974937343358395,
+        "outside_examples": [
+          [
+            71093,
+            "```"
+          ],
+          [
+            67921,
+            "[Any"
+          ]
+        ]
+      },
+      {
+        "engine": "velo",
+        "case": "korean_1",
+        "visible_tokens": 512,
+        "outside_leading_64k": 224,
+        "leading_64k_coverage": 0.5625,
+        "ko64k_coverage": 0.984375,
+        "outside_examples": [
+          [
+            78952,
+            "SQLite"
+          ],
+          [
+            77792,
+            "와"
+          ],
+          [
+            156037,
+            " 의미"
+          ],
+          [
+            173376,
+            " 검색"
+          ],
+          [
+            159173,
+            " 함께"
+          ],
+          [
+            181388,
+            " 사용하는"
+          ],
+          [
+            191863,
+            " 이유는"
+          ],
+          [
+            151314,
+            "확"
+          ],
+          [
+            204667,
+            " 키워"
+          ],
+          [
+            150050,
+            " 매"
+          ],
+          [
+            169099,
+            "칭"
+          ],
+          [
+            68297,
+            " Matching"
+          ]
+        ]
+      },
+      {
+        "engine": "velo",
+        "case": "code_1",
+        "visible_tokens": 512,
+        "outside_leading_64k": 9,
+        "leading_64k_coverage": 0.982421875,
+        "ko64k_coverage": 0.982421875,
+        "outside_examples": [
+          [
+            71093,
+            "```"
+          ],
+          [
+            71483,
+            ".\"\"\""
+          ],
+          [
+            67921,
+            "[Any"
+          ],
+          [
+            84642,
+            "Retrieve"
+          ]
+        ]
+      },
+      {
+        "engine": "velo",
+        "case": "korean_2",
+        "visible_tokens": 512,
+        "outside_leading_64k": 172,
+        "leading_64k_coverage": 0.6640625,
+        "ko64k_coverage": 0.986328125,
+        "outside_examples": [
+          [
+            77792,
+            "와"
+          ],
+          [
+            156037,
+            " 의미"
+          ],
+          [
+            173376,
+            " 검색"
+          ],
+          [
+            197984,
+            " 결합"
+          ],
+          [
+            175665,
+            " 왜"
+          ],
+          [
+            159173,
+            " 함께"
+          ],
+          [
+            181388,
+            " 사용하는"
+          ],
+          [
+            78952,
+            "SQLite"
+          ],
+          [
+            150206,
+            "키"
+          ],
+          [
+            232584,
+            "워드"
+          ],
+          [
+            160870,
+            " 기반"
+          ],
+          [
+            156964,
+            " 정확"
+          ]
+        ]
+      },
+      {
+        "engine": "velo",
+        "case": "code_2",
+        "visible_tokens": 512,
+        "outside_leading_64k": 10,
+        "leading_64k_coverage": 0.98046875,
+        "ko64k_coverage": 0.98046875,
+        "outside_examples": [
+          [
+            71093,
+            "```"
+          ],
+          [
+            71483,
+            ".\"\"\""
+          ],
+          [
+            67921,
+            "[Any"
+          ],
+          [
+            84642,
+            "Retrieve"
+          ],
+          [
+            66203,
+            "-used"
+          ]
+        ]
+      }
+    ]
+  },
+  "exllama/logging-probe.json": [
+    {
+      "name": "full_messages",
+      "bytes": 5403150,
+      "format_seconds": 5.75221451499965,
+      "total_seconds": 11.353525181068107
+    },
+    {
+      "name": "summary_only",
+      "bytes": 104,
+      "format_seconds": 0.023758520954288542,
+      "total_seconds": 0.02456220705062151
+    }
+  ]
+}

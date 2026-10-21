@@ -230,10 +230,7 @@ func TestQwenQADLegacyLocalNameMigration(t *testing.T) {
 }
 
 func TestRadixArkUsesNativeQuantizationAndOfflineCache(t *testing.T) {
-	catalog, err := LoadCatalog()
-	if err != nil {
-		t.Fatal(err)
-	}
+	catalog := legacyRadixArkCatalog(t)
 	x, ok := catalog.ResolveComponent("flash-next-radixark", "flash-next-radixark")
 	if !ok {
 		t.Fatal("missing RadixArk")

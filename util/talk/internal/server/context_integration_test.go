@@ -96,6 +96,45 @@ func TestContinuousToolsBudgetArchivesAndReplaysWithoutLosingLatest(t *testing.T
 	}
 }
 
+func TestInheritedLargeOutputReserveDoesNotBlockGemmaRequest(t *testing.T) {
+	store, err := db.Open(filepath.Join(t.TempDir(), "switch.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer store.Close()
+	store.CreateSession("s", "test", "gemma", "none")
+	user, _ := store.AddMessage("s", "user", strings.Repeat("신길동 날씨를 확인하세요. ", 3000), "", nil, nil)
+	calls := 0
+	backend := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		calls++
+		var payload struct {
+			Limit int `json:"max_completion_tokens"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			t.Error(err)
+		}
+		if payload.Limit != 65536 {
+			t.Errorf("oversized inherited reserve reached backend: %d", payload.Limit)
+		}
+		w.Header().Set("Content-Type", "text/event-stream")
+		fmt.Fprint(w, "data: {\"choices\":[{\"delta\":{\"content\":\"done\"},\"finish_reason\":\"stop\"}]}\n\ndata: [DONE]\n\n")
+	}))
+	defer backend.Close()
+	cfg := config.Config{Context: config.ContextConfig{Enabled: true, WindowTokens: 262144, OutputReserve: 262144, SafetyMargin: 2048, CompactAtPercent: 80, RecentTokens: 8192, ImageTokens: 2048}, Tools: config.ToolsConfig{MaxRounds: 3}}
+	s := &Server{db: store, cfg: cfg}
+	budget := 0
+	emit := func(event string, value any) error {
+		if event == "context" {
+			budget = value.(contextState).InputBudget
+		}
+		return nil
+	}
+	result, err := s.runContextCompletion(context.Background(), "s", []db.Message{user}, "gemma", "none", cfg, llm.New(backend.URL, "gemma", "", "gemma4"), false, emit, nil)
+	if err != nil || calls != 1 || result.Content != "done" || budget != 194560 {
+		t.Fatalf("request blocked after model switch: calls=%d budget=%d error=%v", calls, budget, err)
+	}
+}
+
 func TestRejectedSummaryKeepsCheckpointAndOriginalTranscript(t *testing.T) {
 	store, err := db.Open(filepath.Join(t.TempDir(), "summary.db"))
 	if err != nil {

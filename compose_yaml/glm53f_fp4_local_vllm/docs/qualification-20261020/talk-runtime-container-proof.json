@@ -1,0 +1,98 @@
+{
+  "head": {
+    "image": "eugr/spark-vllm-b12x@sha256:03a956544e9f9b4b7ba91690469fbe7848bdbef29a7d2e0f5788368467bb3595",
+    "image_id": "sha256:03a956544e9f9b4b7ba91690469fbe7848bdbef29a7d2e0f5788368467bb3595",
+    "container_id": "f02e76560dfbe2c251bb8f3d2973e4903602a86ea751fa8bf27b8c4b190f0de5",
+    "entrypoint": [
+      "python3",
+      "/opt/glm53/entrypoint.py"
+    ],
+    "memory": 120259084288,
+    "memory_swap": 137438953472,
+    "mounts": [
+      {
+        "Source": "/home/edp1096/.local/share/sparktalk/runtime/recipes/glm53-fp4-d00c282afc6b183a/prepare_chat_template.py",
+        "Destination": "/opt/glm53/prepare_chat_template.py",
+        "RW": false
+      },
+      {
+        "Source": "/home/edp1096/.cache/huggingface",
+        "Destination": "/home/edp1096/.cache/huggingface",
+        "RW": false
+      },
+      {
+        "Source": "/home/edp1096/.local/share/sparktalk/runtime/recipes/glm53-fp4-d00c282afc6b183a/serve-args.json",
+        "Destination": "/opt/glm53/serve-args.json",
+        "RW": false
+      },
+      {
+        "Source": "/home/edp1096/.cache/glm53-fp4-local",
+        "Destination": "/root/.cache",
+        "RW": true
+      },
+      {
+        "Source": "/home/edp1096/.cache/glm53-fp4-local/triton",
+        "Destination": "/root/.triton",
+        "RW": true
+      },
+      {
+        "Source": "/home/edp1096/.local/share/sparktalk/runtime/recipes/glm53-fp4-d00c282afc6b183a/entrypoint.py",
+        "Destination": "/opt/glm53/entrypoint.py",
+        "RW": false
+      },
+      {
+        "Source": "/home/edp1096/.local/share/sparktalk/runtime/recipes/glm53-fp4-d00c282afc6b183a/check_models.py",
+        "Destination": "/opt/glm53/check_models.py",
+        "RW": false
+      }
+    ]
+  },
+  "worker": {
+    "image": "eugr/spark-vllm-b12x@sha256:03a956544e9f9b4b7ba91690469fbe7848bdbef29a7d2e0f5788368467bb3595",
+    "image_id": "sha256:03a956544e9f9b4b7ba91690469fbe7848bdbef29a7d2e0f5788368467bb3595",
+    "container_id": "703f74a6a648a0a8ef60823a24dd691b8a41b9e5d1200cfe04d5e5dce3682429",
+    "entrypoint": [
+      "python3",
+      "/opt/glm53/entrypoint.py"
+    ],
+    "memory": 120259084288,
+    "memory_swap": 137438953472,
+    "mounts": [
+      {
+        "Source": "/home/edp1096/.cache/glm53-fp4-local/triton",
+        "Destination": "/root/.triton",
+        "RW": true
+      },
+      {
+        "Source": "/home/edp1096/.local/share/sparktalk/runtime/recipes/glm53-fp4-d00c282afc6b183a/entrypoint.py",
+        "Destination": "/opt/glm53/entrypoint.py",
+        "RW": false
+      },
+      {
+        "Source": "/home/edp1096/.local/share/sparktalk/runtime/recipes/glm53-fp4-d00c282afc6b183a/check_models.py",
+        "Destination": "/opt/glm53/check_models.py",
+        "RW": false
+      },
+      {
+        "Source": "/home/edp1096/.local/share/sparktalk/runtime/recipes/glm53-fp4-d00c282afc6b183a/prepare_chat_template.py",
+        "Destination": "/opt/glm53/prepare_chat_template.py",
+        "RW": false
+      },
+      {
+        "Source": "/home/edp1096/.local/share/sparktalk/runtime/recipes/glm53-fp4-d00c282afc6b183a/serve-args.json",
+        "Destination": "/opt/glm53/serve-args.json",
+        "RW": false
+      },
+      {
+        "Source": "/home/edp1096/.cache/huggingface",
+        "Destination": "/home/edp1096/.cache/huggingface",
+        "RW": false
+      },
+      {
+        "Source": "/home/edp1096/.cache/glm53-fp4-local",
+        "Destination": "/root/.cache",
+        "RW": true
+      }
+    ]
+  }
+}

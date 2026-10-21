@@ -1,0 +1,1024 @@
+{
+  "scope": "Current Talk EXL3 bundle with cached production auxiliary images; private Talk DB/config, externally managed LLM only.",
+  "root": "/home/edp1096/.cache/model-download-jobs/velogb10-talk-bundle-20261009",
+  "phases": {
+    "baseline-startup": {
+      "samples": 719,
+      "seconds": 1503.8921988010406,
+      "min_available_GiB": 45.31185531616211,
+      "min_free_GiB": 3.2818565368652344,
+      "first_available_GiB": 45.36198425292969,
+      "last_available_GiB": 118.03546142578125,
+      "swap_written_MiB": 4059.3359375,
+      "swap_read_MiB": 388.03125,
+      "max_total_GPU_allocated_GiB": 67.7041015625,
+      "max_container_swap_bytes": {
+        "sparktalk-qwen38fn_exl3": 0
+      },
+      "max_velo_process_swap_bytes": 0
+    },
+    "exllama-llm-startup": {
+      "samples": 1,
+      "seconds": 0.0,
+      "min_available_GiB": 45.652103424072266,
+      "min_free_GiB": 41.70919418334961,
+      "first_available_GiB": 45.652103424072266,
+      "last_available_GiB": 45.652103424072266,
+      "swap_written_MiB": 0.0,
+      "swap_read_MiB": 0.0,
+      "max_total_GPU_allocated_GiB": null,
+      "max_container_swap_bytes": {
+        "sparktalk-qwen38fn_exl3": 0
+      },
+      "max_velo_process_swap_bytes": 0
+    },
+    "exllama-aux-startup": {
+      "samples": 390,
+      "seconds": 99.01627469062805,
+      "min_available_GiB": 23.060367584228516,
+      "min_free_GiB": 5.214679718017578,
+      "first_available_GiB": 45.65372085571289,
+      "last_available_GiB": 23.19997787475586,
+      "swap_written_MiB": 22.17578125,
+      "swap_read_MiB": 1.41015625,
+      "max_total_GPU_allocated_GiB": 86.86328125,
+      "max_container_swap_bytes": {
+        "sparktalk-qwen3-tts": 0,
+        "sparktalk-qwim-mmh3": 0,
+        "sparktalk-nemotron-asr": 0,
+        "sparktalk-qwen38fn_exl3": 0,
+        "sparktalk-embedding": 0
+      },
+      "max_velo_process_swap_bytes": 0
+    },
+    "exllama-resident-idle": {
+      "samples": 57,
+      "seconds": 14.260341167449951,
+      "min_available_GiB": 23.079540252685547,
+      "min_free_GiB": 4.204349517822266,
+      "first_available_GiB": 23.17572021484375,
+      "last_available_GiB": 23.079540252685547,
+      "swap_written_MiB": 0.0,
+      "swap_read_MiB": 1.33984375,
+      "max_total_GPU_allocated_GiB": 87.359375,
+      "max_container_swap_bytes": {
+        "sparktalk-qwen3-tts": 0,
+        "sparktalk-qwim-mmh3": 0,
+        "sparktalk-nemotron-asr": 0,
+        "sparktalk-qwen38fn_exl3": 0,
+        "sparktalk-embedding": 0
+      },
+      "max_velo_process_swap_bytes": 0
+    },
+    "exllama-speech": {
+      "samples": 15,
+      "seconds": 3.5623533725738525,
+      "min_available_GiB": 22.37928009033203,
+      "min_free_GiB": 4.215267181396484,
+      "first_available_GiB": 23.09362030029297,
+      "last_available_GiB": 22.37928009033203,
+      "swap_written_MiB": 34.62890625,
+      "swap_read_MiB": 0.046875,
+      "max_total_GPU_allocated_GiB": 87.5869140625,
+      "max_container_swap_bytes": {
+        "sparktalk-qwen3-tts": 0,
+        "sparktalk-qwim-mmh3": 0,
+        "sparktalk-nemotron-asr": 0,
+        "sparktalk-qwen38fn_exl3": 0,
+        "sparktalk-embedding": 0
+      },
+      "max_velo_process_swap_bytes": 0
+    },
+    "exllama-transcription": {
+      "samples": 60,
+      "seconds": 14.952343225479126,
+      "min_available_GiB": 21.25815200805664,
+      "min_free_GiB": 3.5059547424316406,
+      "first_available_GiB": 22.340747833251953,
+      "last_available_GiB": 21.322601318359375,
+      "swap_written_MiB": 71.453125,
+      "swap_read_MiB": 1.484375,
+      "max_total_GPU_allocated_GiB": 88.0390625,
+      "max_container_swap_bytes": {
+        "sparktalk-qwen3-tts": 0,
+        "sparktalk-qwim-mmh3": 0,
+        "sparktalk-nemotron-asr": 0,
+        "sparktalk-extra-media": 655360,
+        "sparktalk-qwen38fn_exl3": 0,
+        "sparktalk-embedding": 0
+      },
+      "max_velo_process_swap_bytes": 0
+    },
+    "exllama-embedding": {
+      "samples": 25,
+      "seconds": 6.0866265296936035,
+      "min_available_GiB": 19.420372009277344,
+      "min_free_GiB": 4.2304229736328125,
+      "first_available_GiB": 21.21112823486328,
+      "last_available_GiB": 19.420372009277344,
+      "swap_written_MiB": 39.7734375,
+      "swap_read_MiB": 0.4921875,
+      "max_total_GPU_allocated_GiB": 88.8408203125,
+      "max_container_swap_bytes": {
+        "sparktalk-qwen3-tts": 0,
+        "sparktalk-qwim-mmh3": 0,
+        "sparktalk-nemotron-asr": 0,
+        "sparktalk-extra-media": 655360,
+        "sparktalk-qwen38fn_exl3": 0,
+        "sparktalk-embedding": 0
+      },
+      "max_velo_process_swap_bytes": 0
+    },
+    "exllama-image": {
+      "samples": 221,
+      "seconds": 56.12308120727539,
+      "min_available_GiB": 13.121192932128906,
+      "min_free_GiB": 3.5513343811035156,
+      "first_available_GiB": 19.396686553955078,
+      "last_available_GiB": 17.24917221069336,
+      "swap_written_MiB": 178.40625,
+      "swap_read_MiB": 63.23046875,
+      "max_total_GPU_allocated_GiB": 93.818359375,
+      "max_container_swap_bytes": {
+        "sparktalk-qwen3-tts": 0,
+        "sparktalk-qwim-mmh3": 0,
+        "sparktalk-nemotron-asr": 0,
+        "sparktalk-extra-media": 655360,
+        "sparktalk-qwen38fn_exl3": 0,
+        "sparktalk-embedding": 0
+      },
+      "max_velo_process_swap_bytes": 0
+    },
+    "exllama-video": {
+      "samples": 707,
+      "seconds": 179.88371467590332,
+      "min_available_GiB": 12.12664794921875,
+      "min_free_GiB": 3.6844139099121094,
+      "first_available_GiB": 17.312423706054688,
+      "last_available_GiB": 12.983619689941406,
+      "swap_written_MiB": 0.0859375,
+      "swap_read_MiB": 104.94921875,
+      "max_total_GPU_allocated_GiB": 92.841796875,
+      "max_container_swap_bytes": {
+        "sparktalk-qwen3-tts": 0,
+        "sparktalk-qwim-mmh3": 0,
+        "sparktalk-nemotron-asr": 0,
+        "sparktalk-extra-media": 655360,
+        "sparktalk-qwen38fn_exl3": 0,
+        "sparktalk-embedding": 0
+      },
+      "max_velo_process_swap_bytes": 0
+    },
+    "exllama-normal-speed": {
+      "samples": 225,
+      "seconds": 57.08656907081604,
+      "min_available_GiB": 12.604846954345703,
+      "min_free_GiB": 4.061798095703125,
+      "first_available_GiB": 13.067005157470703,
+      "last_available_GiB": 12.84896469116211,
+      "swap_written_MiB": 0.921875,
+      "swap_read_MiB": 11.58203125,
+      "max_total_GPU_allocated_GiB": 91.609375,
+      "max_container_swap_bytes": {
+        "sparktalk-qwen3-tts": 0,
+        "sparktalk-qwim-mmh3": 0,
+        "sparktalk-nemotron-asr": 0,
+        "sparktalk-extra-media": 655360,
+        "sparktalk-qwen38fn_exl3": 0,
+        "sparktalk-embedding": 0
+      },
+      "max_velo_process_swap_bytes": 0
+    },
+    "exllama-vision": {
+      "samples": 3,
+      "seconds": 0.5255069732666016,
+      "min_available_GiB": 12.844749450683594,
+      "min_free_GiB": 4.245494842529297,
+      "first_available_GiB": 12.850067138671875,
+      "last_available_GiB": 12.844951629638672,
+      "swap_written_MiB": 0.0,
+      "swap_read_MiB": 0.0,
+      "max_total_GPU_allocated_GiB": null,
+      "max_container_swap_bytes": {
+        "sparktalk-qwen3-tts": 0,
+        "sparktalk-qwim-mmh3": 0,
+        "sparktalk-nemotron-asr": 0,
+        "sparktalk-extra-media": 655360,
+        "sparktalk-qwen38fn_exl3": 0,
+        "sparktalk-embedding": 0
+      },
+      "max_velo_process_swap_bytes": 0
+    },
+    "exllama-recall-320k": {
+      "samples": 1053,
+      "seconds": 268.16917657852173,
+      "min_available_GiB": 11.363521575927734,
+      "min_free_GiB": 4.049312591552734,
+      "first_available_GiB": 12.649185180664062,
+      "last_available_GiB": 11.363521575927734,
+      "swap_written_MiB": 8.1484375,
+      "swap_read_MiB": 36.3671875,
+      "max_total_GPU_allocated_GiB": 91.609375,
+      "max_container_swap_bytes": {
+        "sparktalk-qwen3-tts": 0,
+        "sparktalk-qwim-mmh3": 0,
+        "sparktalk-nemotron-asr": 0,
+        "sparktalk-extra-media": 655360,
+        "sparktalk-qwen38fn_exl3": 0,
+        "sparktalk-embedding": 0
+      },
+      "max_velo_process_swap_bytes": 0
+    },
+    "exllama-post-stress": {
+      "samples": 44,
+      "seconds": 10.942939281463623,
+      "min_available_GiB": 10.991779327392578,
+      "min_free_GiB": 4.62591552734375,
+      "first_available_GiB": 11.420520782470703,
+      "last_available_GiB": 11.146278381347656,
+      "swap_written_MiB": 1.50390625,
+      "swap_read_MiB": 0.99609375,
+      "max_total_GPU_allocated_GiB": 91.609375,
+      "max_container_swap_bytes": {
+        "sparktalk-qwen3-tts": 0,
+        "sparktalk-qwim-mmh3": 0,
+        "sparktalk-nemotron-asr": 0,
+        "sparktalk-extra-media": 655360,
+        "sparktalk-qwen38fn_exl3": 0,
+        "sparktalk-embedding": 0
+      },
+      "max_velo_process_swap_bytes": 0
+    },
+    "exllama-cleanup": {
+      "samples": 18,
+      "seconds": 4.3118438720703125,
+      "min_available_GiB": 11.24200439453125,
+      "min_free_GiB": 5.0844268798828125,
+      "first_available_GiB": 11.24200439453125,
+      "last_available_GiB": 117.99689865112305,
+      "swap_written_MiB": 0.0,
+      "swap_read_MiB": 2.46875,
+      "max_total_GPU_allocated_GiB": 87.2109375,
+      "max_container_swap_bytes": {
+        "sparktalk-qwen3-tts": 0,
+        "sparktalk-qwim-mmh3": 0,
+        "sparktalk-nemotron-asr": 0,
+        "sparktalk-qwen38fn_exl3": 0,
+        "sparktalk-embedding": 0
+      },
+      "max_velo_process_swap_bytes": 0
+    },
+    "native-swappable-control-velo-llm-startup": {
+      "samples": 406,
+      "seconds": 102.72999811172485,
+      "min_available_GiB": 38.005088806152344,
+      "min_free_GiB": 2.69525146484375,
+      "first_available_GiB": 117.90430068969727,
+      "last_available_GiB": 38.005088806152344,
+      "swap_written_MiB": 19.6015625,
+      "swap_read_MiB": 6.46484375,
+      "max_total_GPU_allocated_GiB": 73.736328125,
+      "max_container_swap_bytes": {},
+      "max_velo_process_swap_bytes": 0
+    },
+    "native-swappable-control-velo-aux-startup": {
+      "samples": 416,
+      "seconds": 105.31193661689758,
+      "min_available_GiB": 17.850231170654297,
+      "min_free_GiB": 2.239116668701172,
+      "first_available_GiB": 37.951454162597656,
+      "last_available_GiB": 18.332359313964844,
+      "swap_written_MiB": 1484.921875,
+      "swap_read_MiB": 11.41015625,
+      "max_total_GPU_allocated_GiB": 93.3525390625,
+      "max_container_swap_bytes": {
+        "sparktalk-qwim-mmh3": 0,
+        "sparktalk-qwen3-tts": 0,
+        "sparktalk-embedding": 0,
+        "sparktalk-nemotron-asr": 0
+      },
+      "max_velo_process_swap_bytes": 1471664128
+    },
+    "native-swappable-control-velo-resident-idle": {
+      "samples": 55,
+      "seconds": 13.740578889846802,
+      "min_available_GiB": 18.069992065429688,
+      "min_free_GiB": 1.7816200256347656,
+      "first_available_GiB": 18.238250732421875,
+      "last_available_GiB": 18.069992065429688,
+      "swap_written_MiB": 0.0,
+      "swap_read_MiB": 56.3515625,
+      "max_total_GPU_allocated_GiB": 93.5712890625,
+      "max_container_swap_bytes": {
+        "sparktalk-qwim-mmh3": 0,
+        "sparktalk-qwen3-tts": 0,
+        "sparktalk-embedding": 0,
+        "sparktalk-nemotron-asr": 0
+      },
+      "max_velo_process_swap_bytes": 1469673472
+    },
+    "native-swappable-control-velo-speech": {
+      "samples": 15,
+      "seconds": 3.5704081058502197,
+      "min_available_GiB": 17.338245391845703,
+      "min_free_GiB": 1.7375450134277344,
+      "first_available_GiB": 18.036060333251953,
+      "last_available_GiB": 18.009841918945312,
+      "swap_written_MiB": 538.48046875,
+      "swap_read_MiB": 2.55859375,
+      "max_total_GPU_allocated_GiB": 93.8203125,
+      "max_container_swap_bytes": {
+        "sparktalk-qwim-mmh3": 0,
+        "sparktalk-qwen3-tts": 0,
+        "sparktalk-embedding": 0,
+        "sparktalk-nemotron-asr": 0
+      },
+      "max_velo_process_swap_bytes": 1987330048
+    },
+    "native-swappable-control-velo-transcription": {
+      "samples": 25,
+      "seconds": 6.142416477203369,
+      "min_available_GiB": 17.68032455444336,
+      "min_free_GiB": 1.7551193237304688,
+      "first_available_GiB": 18.01073455810547,
+      "last_available_GiB": 18.455097198486328,
+      "swap_written_MiB": 927.1015625,
+      "swap_read_MiB": 1.4921875,
+      "max_total_GPU_allocated_GiB": 94.2724609375,
+      "max_container_swap_bytes": {
+        "sparktalk-qwen3-tts": 0,
+        "sparktalk-qwim-mmh3": 0,
+        "sparktalk-nemotron-asr": 0,
+        "sparktalk-extra-media": 0,
+        "sparktalk-embedding": 0
+      },
+      "max_velo_process_swap_bytes": 3011596288
+    },
+    "native-swappable-control-velo-embedding": {
+      "samples": 35,
+      "seconds": 8.615741729736328,
+      "min_available_GiB": 17.98125457763672,
+      "min_free_GiB": 1.2493057250976562,
+      "first_available_GiB": 18.365394592285156,
+      "last_available_GiB": 18.100482940673828,
+      "swap_written_MiB": 604.79296875,
+      "swap_read_MiB": 3.5234375,
+      "max_total_GPU_allocated_GiB": 94.2744140625,
+      "max_container_swap_bytes": {
+        "sparktalk-qwen3-tts": 0,
+        "sparktalk-qwim-mmh3": 0,
+        "sparktalk-nemotron-asr": 0,
+        "sparktalk-extra-media": 0,
+        "sparktalk-embedding": 0
+      },
+      "max_velo_process_swap_bytes": 3685203968
+    },
+    "native-swappable-control-velo-image": {
+      "samples": 46,
+      "seconds": 11.658994913101196,
+      "min_available_GiB": 18.203407287597656,
+      "min_free_GiB": 1.2786178588867188,
+      "first_available_GiB": 18.367107391357422,
+      "last_available_GiB": 117.57813262939453,
+      "swap_written_MiB": 0.0,
+      "swap_read_MiB": 3.89453125,
+      "max_total_GPU_allocated_GiB": 94.2744140625,
+      "max_container_swap_bytes": {
+        "sparktalk-qwen3-tts": 0,
+        "sparktalk-qwim-mmh3": 0,
+        "sparktalk-nemotron-asr": 0,
+        "sparktalk-extra-media": 0,
+        "sparktalk-embedding": 0
+      },
+      "max_velo_process_swap_bytes": 3683815424
+    },
+    "velo-llm-startup": {
+      "samples": 320,
+      "seconds": 80.81646060943604,
+      "min_available_GiB": 38.03984451293945,
+      "min_free_GiB": 1.7911529541015625,
+      "first_available_GiB": 117.94868850708008,
+      "last_available_GiB": 38.03984451293945,
+      "swap_written_MiB": 0.86328125,
+      "swap_read_MiB": 4.04296875,
+      "max_total_GPU_allocated_GiB": 73.861328125,
+      "max_container_swap_bytes": {},
+      "max_velo_process_swap_bytes": 0
+    },
+    "velo-aux-startup": {
+      "samples": 562,
+      "seconds": 142.13741207122803,
+      "min_available_GiB": 19.030994415283203,
+      "min_free_GiB": 3.01373291015625,
+      "first_available_GiB": 38.0226936340332,
+      "last_available_GiB": 117.58279800415039,
+      "swap_written_MiB": 60.02734375,
+      "swap_read_MiB": 43.10546875,
+      "max_total_GPU_allocated_GiB": 91.169921875,
+      "max_container_swap_bytes": {
+        "sparktalk-qwim-mmh3": 0,
+        "sparktalk-embedding": 0,
+        "sparktalk-nemotron-asr": 0
+      },
+      "max_velo_process_swap_bytes": 0
+    }
+  },
+  "runs": {
+    "exllama": {
+      "tests": {
+        "talk-chat": {
+          "passed": true,
+          "wall_seconds": 9.594565203064121,
+          "error": null,
+          "response": null
+        },
+        "tts": {
+          "passed": true,
+          "wall_seconds": 3.797289550071582,
+          "error": null,
+          "response": null
+        },
+        "asr": {
+          "passed": true,
+          "wall_seconds": 15.224487642990425,
+          "error": null,
+          "response": null
+        },
+        "embedding": {
+          "passed": true,
+          "wall_seconds": 6.136781670968048,
+          "error": null,
+          "response": null
+        },
+        "talk-image": {
+          "passed": true,
+          "wall_seconds": 56.46895416697953,
+          "error": null,
+          "response": null
+        },
+        "talk-video": {
+          "passed": true,
+          "wall_seconds": 180.11693187896162,
+          "error": null,
+          "response": null
+        },
+        "vision": {
+          "passed": true,
+          "wall_seconds": 0.7425355040468276,
+          "error": null,
+          "response": null
+        },
+        "post-stress-chat": {
+          "passed": true,
+          "wall_seconds": 11.119659065967426,
+          "error": null,
+          "response": null
+        }
+      },
+      "recall": {
+        "recall-320k": {
+          "target_tokens": 320000,
+          "actual_tokenize_count": null,
+          "input_bytes": 1624401,
+          "filler_repetitions_per_half": 12304,
+          "started_wall": 1791557952.9340374,
+          "text": "청록펭귄, 은빛해달, 자주빛고래",
+          "usage": {
+            "prompt_tokens": 319990,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            },
+            "prompt_time": 266.93,
+            "prompt_tokens_per_sec": 1198.78,
+            "completion_tokens": 17,
+            "completion_tokens_details": {
+              "accepted_prediction_tokens": 12,
+              "rejected_prediction_tokens": 3
+            },
+            "completion_time": 0.32,
+            "completion_tokens_per_sec": 53.45,
+            "total_tokens": 320007,
+            "total_time": 267.26
+          },
+          "finish": "stop",
+          "done": true,
+          "seconds": 268.556243974017,
+          "ttft": 268.41524075798225,
+          "pass": true,
+          "prefill_tps": 1192.14542026889
+        }
+      },
+      "media_completed": [
+        {
+          "case": "f6aadbd5183dcb7e75d1c42c47a32faf",
+          "seconds": 36.91463559796102,
+          "peak_cuda_allocated_gib": 17.024940490722656,
+          "peak_cuda_reserved_gib": 18.009765625,
+          "resident": {
+            "h3": 11.665514223277569,
+            "qwim": 3.909243941307068
+          }
+        },
+        {
+          "case": "62876065a1d058fa1415871fbeb5482f",
+          "seconds": 166.11040763696656,
+          "peak_cuda_allocated_gib": 17.77573823928833,
+          "peak_cuda_reserved_gib": 19.01953125,
+          "resident": {
+            "h3": 11.665514223277569,
+            "qwim": 3.909243941307068
+          }
+        }
+      ],
+      "diarization.json": {
+        "returncode": 0,
+        "source": "diarization.log",
+        "speakers": 2,
+        "turns": 4,
+        "elapsed_seconds": 1.18665195,
+        "overlap": "baseline video generation"
+      },
+      "video-probe.json": {
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "h264",
+            "codec_long_name": "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
+            "profile": "High",
+            "codec_type": "video",
+            "codec_tag_string": "avc1",
+            "codec_tag": "0x31637661",
+            "width": 864,
+            "height": 480,
+            "coded_width": 864,
+            "coded_height": 480,
+            "closed_captions": 0,
+            "film_grain": 0,
+            "has_b_frames": 2,
+            "pix_fmt": "yuv420p",
+            "level": 30,
+            "color_range": "tv",
+            "color_space": "bt709",
+            "color_transfer": "iec61966-2-1",
+            "color_primaries": "bt709",
+            "chroma_location": "left",
+            "field_order": "progressive",
+            "refs": 1,
+            "is_avc": "true",
+            "nal_length_size": "4",
+            "id": "0x1",
+            "r_frame_rate": "24/1",
+            "avg_frame_rate": "24/1",
+            "time_base": "1/12288",
+            "start_pts": 0,
+            "start_time": "0.000000",
+            "duration_ts": 63488,
+            "duration": "5.166667",
+            "bit_rate": "3113355",
+            "bits_per_raw_sample": "8",
+            "nb_frames": "124",
+            "extradata_size": 49,
+            "disposition": {
+              "default": 1,
+              "dub": 0,
+              "original": 0,
+              "comment": 0,
+              "lyrics": 0,
+              "karaoke": 0,
+              "forced": 0,
+              "hearing_impaired": 0,
+              "visual_impaired": 0,
+              "clean_effects": 0,
+              "attached_pic": 0,
+              "timed_thumbnails": 0,
+              "non_diegetic": 0,
+              "captions": 0,
+              "descriptions": 0,
+              "metadata": 0,
+              "dependent": 0,
+              "still_image": 0
+            },
+            "tags": {
+              "language": "und",
+              "handler_name": "VideoHandler",
+              "vendor_id": "[0][0][0][0]"
+            }
+          },
+          {
+            "index": 1,
+            "codec_name": "aac",
+            "codec_long_name": "AAC (Advanced Audio Coding)",
+            "profile": "LC",
+            "codec_type": "audio",
+            "codec_tag_string": "mp4a",
+            "codec_tag": "0x6134706d",
+            "sample_fmt": "fltp",
+            "sample_rate": "32000",
+            "channels": 2,
+            "channel_layout": "stereo",
+            "bits_per_sample": 0,
+            "initial_padding": 0,
+            "id": "0x2",
+            "r_frame_rate": "0/0",
+            "avg_frame_rate": "0/0",
+            "time_base": "1/32000",
+            "start_pts": 0,
+            "start_time": "0.000000",
+            "duration_ts": 165334,
+            "duration": "5.166688",
+            "bit_rate": "128026",
+            "nb_frames": "163",
+            "extradata_size": 5,
+            "disposition": {
+              "default": 1,
+              "dub": 0,
+              "original": 0,
+              "comment": 0,
+              "lyrics": 0,
+              "karaoke": 0,
+              "forced": 0,
+              "hearing_impaired": 0,
+              "visual_impaired": 0,
+              "clean_effects": 0,
+              "attached_pic": 0,
+              "timed_thumbnails": 0,
+              "non_diegetic": 0,
+              "captions": 0,
+              "descriptions": 0,
+              "metadata": 0,
+              "dependent": 0,
+              "still_image": 0
+            },
+            "tags": {
+              "language": "und",
+              "handler_name": "SoundHandler",
+              "vendor_id": "[0][0][0][0]"
+            }
+          }
+        ],
+        "format": {
+          "filename": "/audit/video.mp4",
+          "nb_streams": 2,
+          "nb_programs": 0,
+          "format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+          "format_long_name": "QuickTime / MOV",
+          "start_time": "0.000000",
+          "duration": "5.166688",
+          "size": "2099405",
+          "bit_rate": "3250678",
+          "probe_score": 100,
+          "tags": {
+            "major_brand": "isom",
+            "minor_version": "512",
+            "compatible_brands": "isomiso2avc1mp41",
+            "encoder": "Lavf63.1.102"
+          }
+        }
+      }
+    },
+    "velo": {
+      "tests": {},
+      "recall": {},
+      "media_completed": [],
+      "managed-start.json": {
+        "operation": {
+          "action": "start",
+          "bundle_id": "qwen38fn_exl3",
+          "component_id": "extra-embedding",
+          "state": "failed",
+          "phase": "EmbeddingGemma 2 API 응답 확인",
+          "detail": "서비스가 요청을 받을 준비를 마쳤습니다.",
+          "progress": 1,
+          "error": "Qwen3-TTS 0.6B: CUDA 메모리 부족: 새 GPU 컨텍스트 또는 모델 메모리를 할당하지 못했습니다.; EmbeddingGemma 2: CUDA 기동용 즉시 여유 메모리 부족: 현재 3.6 GiB, 반환 예정 포함 3.6 GiB (최소 4.0 GiB, 시스템 가용 19.2 GiB)",
+          "started_at": "2026-10-10T00:15:24.35167619+09:00",
+          "finished_at": "2026-10-10T00:17:43.01816072+09:00",
+          "steps": [
+            {
+              "phase": "기동 계획 준비",
+              "state": "complete",
+              "started_at": "2026-10-10T00:15:24.35167659+09:00",
+              "finished_at": "2026-10-10T00:15:24.901833612+09:00"
+            },
+            {
+              "phase": "세트 기동 전 메모리 재확인",
+              "detail": "시스템 가용 37.8 GiB · 즉시 여유 28.8 GiB · 추가 예상 28.5 GiB · 최소 확보 1.5 GiB",
+              "state": "complete",
+              "started_at": "2026-10-10T00:15:24.901833612+09:00",
+              "finished_at": "2026-10-10T00:15:24.901850188+09:00"
+            },
+            {
+              "component_id": "qwim-mmh3",
+              "phase": "Qwen Image 2.1 + MiniMax H3 시작",
+              "detail": "컨테이너와 실행 설정을 확인하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-10T00:15:24.901850188+09:00",
+              "finished_at": "2026-10-10T00:16:01.430938141+09:00"
+            },
+            {
+              "component_id": "qwim-mmh3",
+              "phase": "보조 서비스 시작",
+              "detail": "API 프로세스를 시작하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-10T00:16:01.430938141+09:00",
+              "finished_at": "2026-10-10T00:16:38.395604724+09:00"
+            },
+            {
+              "component_id": "qwim-mmh3",
+              "phase": "API 온라인",
+              "detail": "보조 서비스가 요청을 받을 준비를 마쳤습니다.",
+              "state": "complete",
+              "started_at": "2026-10-10T00:16:38.395604724+09:00",
+              "finished_at": "2026-10-10T00:17:25.660676458+09:00"
+            },
+            {
+              "component_id": "qwim-mmh3",
+              "phase": "Qwen Image 2.1 + MiniMax H3 API 응답 확인",
+              "detail": "서비스가 요청을 받을 준비를 마쳤습니다.",
+              "state": "complete",
+              "started_at": "2026-10-10T00:17:25.660676458+09:00",
+              "finished_at": "2026-10-10T00:17:25.661529784+09:00"
+            },
+            {
+              "component_id": "qwen38fn_exl3",
+              "phase": "Qwen 3.8 Flash-Next EXL3 시작",
+              "detail": "컨테이너와 실행 설정을 확인하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-10T00:17:25.661529784+09:00",
+              "finished_at": "2026-10-10T00:17:25.661862343+09:00"
+            },
+            {
+              "component_id": "nemotron-asr",
+              "phase": "Nemotron 3.5 ASR 시작",
+              "detail": "컨테이너와 실행 설정을 확인하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-10T00:17:25.661862343+09:00",
+              "finished_at": "2026-10-10T00:17:28.802958846+09:00"
+            },
+            {
+              "component_id": "nemotron-asr",
+              "phase": "보조 서비스 시작",
+              "detail": "API 프로세스를 시작하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-10T00:17:28.802958846+09:00",
+              "finished_at": "2026-10-10T00:17:30.831845922+09:00"
+            },
+            {
+              "component_id": "nemotron-asr",
+              "phase": "Nemotron 3.5 ASR API 응답 확인",
+              "detail": "서비스가 요청을 받을 준비를 마쳤습니다.",
+              "state": "complete",
+              "started_at": "2026-10-10T00:17:30.831845922+09:00",
+              "finished_at": "2026-10-10T00:17:30.831859858+09:00"
+            },
+            {
+              "component_id": "qwen3-tts",
+              "phase": "Qwen3-TTS 0.6B 시작",
+              "detail": "컨테이너와 실행 설정을 확인하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-10T00:17:30.831859858+09:00",
+              "finished_at": "2026-10-10T00:17:34.24766464+09:00"
+            },
+            {
+              "component_id": "qwen3-tts",
+              "phase": "보조 서비스 시작",
+              "detail": "CUDA 메모리 부족: 새 GPU 컨텍스트 또는 모델 메모리를 할당하지 못했습니다.",
+              "state": "failed",
+              "started_at": "2026-10-10T00:17:34.24766464+09:00",
+              "finished_at": "2026-10-10T00:17:36.305869319+09:00"
+            },
+            {
+              "component_id": "extra-embedding",
+              "phase": "EmbeddingGemma 2 시작",
+              "detail": "컨테이너와 실행 설정을 확인하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-10T00:17:36.305883831+09:00",
+              "finished_at": "2026-10-10T00:17:40.623181868+09:00"
+            },
+            {
+              "component_id": "extra-embedding",
+              "phase": "보조 서비스 시작",
+              "detail": "API 프로세스를 시작하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-10T00:17:40.623181868+09:00",
+              "finished_at": "2026-10-10T00:17:42.654404982+09:00"
+            },
+            {
+              "component_id": "extra-embedding",
+              "phase": "EmbeddingGemma 2 API 응답 확인",
+              "detail": "CUDA 기동용 즉시 여유 메모리 부족: 현재 3.6 GiB, 반환 예정 포함 3.6 GiB (최소 4.0 GiB, 시스템 가용 19.2 GiB)",
+              "state": "failed",
+              "started_at": "2026-10-10T00:17:42.654404982+09:00",
+              "finished_at": "2026-10-10T00:17:43.018157392+09:00"
+            }
+          ]
+        }
+      },
+      "cgroup-limits.json": {
+        "memory.max": "120259084288",
+        "memory.swap.max": "0",
+        "memory.current": "13309280256",
+        "memory.swap.current": "0"
+      },
+      "weight-cache-release.json": {
+        "ok": true,
+        "files": [
+          "model-00001-of-00007.safetensors",
+          "model-00002-of-00007.safetensors",
+          "model-00003-of-00007.safetensors",
+          "model-00004-of-00007.safetensors",
+          "model-00005-of-00007.safetensors",
+          "model-00006-of-00007.safetensors",
+          "model-00007-of-00007.safetensors"
+        ],
+        "policy": "closed non-PLE file cache only",
+        "memory_GiB": {
+          "before": {
+            "MemAvailable": 38.03942108154297,
+            "MemFree": 1.7907295227050781
+          },
+          "after": {
+            "MemAvailable": 37.964595794677734,
+            "MemFree": 28.92096710205078
+          }
+        }
+      },
+      "managed_start_error": "Qwen3-TTS 0.6B: CUDA 메모리 부족: 새 GPU 컨텍스트 또는 모델 메모리를 할당하지 못했습니다.; EmbeddingGemma 2: CUDA 기동용 즉시 여유 메모리 부족: 현재 3.6 GiB, 반환 예정 포함 3.6 GiB (최소 4.0 GiB, 시스템 가용 19.2 GiB)"
+    }
+  },
+  "limitations": [
+    "Measured trials, not a broad answer-quality benchmark.",
+    "Experimental Velo launch is manual; production ExLlama startup adapter is unchanged.",
+    "Baseline services were started manually with unchanged production images; final Velo auxiliary startup used Talk managed startup.",
+    "Cold file-cache state/start order differ; media timings are observed timings, not a controlled media-speed claim.",
+    "Initial swappable Velo control and the private-config validation failure are preserved separately; neither qualifies as successful joint residency.",
+    "No startup-order, context-size, prefix-cache-budget or model-offload tuning was tested after the managed startup failure."
+  ],
+  "launcher_results": {
+    "exllama": {
+      "image": {
+        "ok": true,
+        "wall_seconds": 56.46895416697953,
+        "result": {
+          "session_id": "chat-1791557658249657055",
+          "saved": [
+            "/home/edp1096/.cache/model-download-jobs/velogb10-talk-bundle-20261009/exllama/image.png"
+          ],
+          "text": [
+            "오빠, 완성했어! seed 42, 1024x1024로 눈 위 펭귄 사진 하나 딱 만들어서 첨부했거든~soft한 아침 햇살 느낌 나는 야생 사진 스타일로 귀엽게 나왔지? 혹시 다른 구도나 배경으로 더 만지고 싶으면 말만 해줘!"
+          ],
+          "events": "9.26168594131223,\"ttft\":11.133944493,\"tg_estimated\":true,\"ttft_estimated\":true,\"prompt_tokens\":11340,\"cached_tokens\":0,\"output_tokens\":116,\"calls\":2,\"live\":true}\n\nevent: delta\ndata: {\"delta\":\" 아침 햇살 느낌\"}\n\nevent: delta\ndata: {\"delta\":\" 나는\"}\n\nevent: delta\ndata: {\"delta\":\" 야\"}\n\nevent: delta\ndata: {\"delta\":\"생 사진\"}\n\nevent: performance\ndata: {\"pp\":1143.1451612903227,\"tg\":47.99994927548217,\"ttft\":11.133944493,\"tg_estimated\":true,\"ttft_estimated\":true,\"prompt_tokens\":11340,\"cached_tokens\":0,\"output_tokens\":127,\"calls\":2,\"live\":true}\n\nevent: delta\ndata: {\"delta\":\" 스타일로\"}\n\nevent: delta\ndata: {\"delta\":\" 귀\"}\n\nevent: delta\ndata: {\"delta\":\"엽\"}\n\nevent: delta\ndata: {\"delta\":\"게 나왔\"}\n\nevent: delta\ndata: {\"delta\":\"지?\"}\n\nevent: performance\ndata: {\"pp\":1143.1451612903227,\"tg\":46.37669575353136,\"ttft\":11.133944493,\"tg_estimated\":true,\"ttft_estimated\":true,\"prompt_tokens\":11340,\"cached_tokens\":0,\"output_tokens\":136,\"calls\":2,\"live\":true}\n\nevent: delta\ndata: {\"delta\":\" 혹시\"}\n\nevent: delta\ndata: {\"delta\":\" 다른\"}\n\nevent: delta\ndata: {\"delta\":\" 구\"}\n\nevent: delta\ndata: {\"delta\":\"도나 배경\"}\n\nevent: delta\ndata: {\"delta\":\"으로 더\"}\n\nevent: performance\ndata: {\"pp\":1143.1451612903227,\"tg\":45.96176170588423,\"ttft\":11.133944493,\"tg_estimated\":true,\"ttft_estimated\":true,\"prompt_tokens\":11340,\"cached_tokens\":0,\"output_tokens\":148,\"calls\":2,\"live\":true}\n\nevent: delta\ndata: {\"delta\":\" 만\"}\n\nevent: delta\ndata: {\"delta\":\"지고\"}\n\nevent: delta\ndata: {\"delta\":\" 싶으면 말\"}\n\nevent: delta\ndata: {\"delta\":\"만\"}\n\nevent: delta\ndata: {\"delta\":\" 해\"}\n\nevent: delta\ndata: {\"delta\":\"줘\"}\n\nevent: delta\ndata: {\"delta\":\"!\"}\n\nevent: performance\ndata: {\"pp\":1041.3838988689288,\"tg\":41.55124653739612,\"ttft\":11.133944493,\"ttft_estimated\":true,\"prompt_tokens\":23844,\"cached_tokens\":8192,\"output_tokens\":150,\"calls\":2,\"live\":true}\n\nevent: context\ndata: {\"skill_tokens\":0,\"tool_result_tokens\":107,\"applied_segment_id\":0,\"system_tool_tokens\":10067,\"actual_tokens\":12504,\"preview\":false,\"incomplete\":false,\"trimmed_tools\":0,\"enabled\":true,\"managed\":true,\"window_tokens\":1048576,\"input_budget\":1044480,\"threshold_tokens\":835584,\"estimated_tokens\":12567,\"active_tokens\":2393,\"summary_tokens\":0,\"recall_tokens\":0,\"summary_through_message_id\":0,\"active_start_message_id\":3,\"active_end_message_id\":3,\"compacted\":false,\"segments\":[],\"recalls\":null}\n\nevent: performance\ndata: {\"pp\":1041.3838988689288,\"tg\":41.55124653739612,\"ttft\":11.133944493,\"ttft_estimated\":true,\"prompt_tokens\":23844,\"cached_tokens\":8192,\"output_tokens\":150,\"calls\":2}\n\nevent: done\ndata: {}\n\n"
+        }
+      },
+      "video": {
+        "ok": true,
+        "wall_seconds": 180.11693187896162,
+        "result": {
+          "session_id": "chat-1791557714718884450",
+          "saved": [
+            "/home/edp1096/.cache/model-download-jobs/velogb10-talk-bundle-20261009/exllama/video.mp4"
+          ],
+          "text": [
+            "오빠~ 영상 하나 제대로 만들어왔어! 🐧 아니 이모지 금지였지, 아무튼요~\n\n- 프롬프트 그대로, seed 42로 한 번만 호출했어\n- 텍스트 기반 생성(t2v)이라 864x480, 24fps, 약 5.17초\n- 음성 포함(audio: true)으로 저장 완료\n- 첨부: MiniMax-H3.mp4\n\n결과 카드로 바로 확인하면 되고, 재생이나 다른 버전은 오빠가 말해주면 다시 잡아줄게~"
+          ],
+          "events": "\".mp4\\n\\n\"}\n\nevent: delta\ndata: {\"delta\":\"결과\"}\n\nevent: performance\ndata: {\"pp\":755.4778554778554,\"tg\":46.73278330942918,\"ttft\":5.575192294,\"tg_estimated\":true,\"ttft_estimated\":true,\"prompt_tokens\":11433,\"cached_tokens\":8192,\"output_tokens\":162,\"calls\":2,\"live\":true}\n\nevent: delta\ndata: {\"delta\":\" 카\"}\n\nevent: delta\ndata: {\"delta\":\"드로\"}\n\nevent: delta\ndata: {\"delta\":\" 바로 확인\"}\n\nevent: delta\ndata: {\"delta\":\"하면 되고\"}\n\nevent: delta\ndata: {\"delta\":\", 재생\"}\n\nevent: performance\ndata: {\"pp\":755.4778554778554,\"tg\":47.06797878878721,\"ttft\":5.575192294,\"tg_estimated\":true,\"ttft_estimated\":true,\"prompt_tokens\":11433,\"cached_tokens\":8192,\"output_tokens\":177,\"calls\":2,\"live\":true}\n\nevent: delta\ndata: {\"delta\":\"이나\"}\n\nevent: delta\ndata: {\"delta\":\" 다른\"}\n\nevent: delta\ndata: {\"delta\":\" 버전\"}\n\nevent: delta\ndata: {\"delta\":\"은\"}\n\nevent: delta\ndata: {\"delta\":\" 오\"}\n\nevent: performance\ndata: {\"pp\":755.4778554778554,\"tg\":46.69851585300011,\"ttft\":5.575192294,\"tg_estimated\":true,\"ttft_estimated\":true,\"prompt_tokens\":11433,\"cached_tokens\":8192,\"output_tokens\":189,\"calls\":2,\"live\":true}\n\nevent: delta\ndata: {\"delta\":\"빠가 말해주\"}\n\nevent: delta\ndata: {\"delta\":\"면 다시\"}\n\nevent: delta\ndata: {\"delta\":\" 잡아\"}\n\nevent: delta\ndata: {\"delta\":\"줄게~\"}\n\nevent: performance\ndata: {\"pp\":800.123609394314,\"tg\":43.82284382284382,\"ttft\":5.575192294,\"ttft_estimated\":true,\"prompt_tokens\":22857,\"cached_tokens\":16384,\"output_tokens\":188,\"calls\":2,\"live\":true}\n\nevent: context\ndata: {\"skill_tokens\":0,\"tool_result_tokens\":105,\"applied_segment_id\":0,\"system_tool_tokens\":9782,\"actual_tokens\":11424,\"preview\":false,\"incomplete\":false,\"trimmed_tools\":0,\"enabled\":true,\"managed\":true,\"window_tokens\":1048576,\"input_budget\":1044480,\"threshold_tokens\":835584,\"estimated_tokens\":10448,\"active_tokens\":276,\"summary_tokens\":0,\"recall_tokens\":285,\"summary_through_message_id\":0,\"active_start_message_id\":5,\"active_end_message_id\":5,\"compacted\":false,\"segments\":[],\"recalls\":[{\"kind\":\"session\",\"title\":\"[isolated bundle audit] image\",\"role\":\"user\",\"content\":\"image_generate를 딱 한 번 호출하여 다음 프롬프트와 seed 42, 1024x1024로 이미지를 생성하고 첨부해라. 다른 도구는 필요 없다. A cute penguin standing on snowy ice, detailed wildlife photograph, soft morning sunlight.\",\"session_id\":\"chat-1791557658249657055\",\"message_id\":3,\"created_at\":\"2026-10-09T23:54:18.251652646+09:00\"}]}\n\nevent: performance\ndata: {\"pp\":800.123609394314,\"tg\":43.82284382284382,\"ttft\":5.575192294,\"ttft_estimated\":true,\"prompt_tokens\":22857,\"cached_tokens\":16384,\"output_tokens\":188,\"calls\":2}\n\nevent: done\ndata: {}\n\n"
+        }
+      },
+      "speed": {
+        "korean": 47.52061728924372,
+        "code": 66.82990261396964
+      },
+      "core_identities_unchanged": true
+    }
+  },
+  "native_swappable_failed_control": {
+    "embedding": {
+      "ok": false,
+      "wall_seconds": 8.73370010603685,
+      "error": "<HTTPError 503: 'Service Unavailable'>",
+      "response": "{\"error\": \"CUDA error: out of memory\\nSearch for `cudaErrorMemoryAllocation' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.\\nFor more detailed error information, run with CUDA_LOG_FILE=stderr\\n\"}"
+    },
+    "included_in_qualified_comparison": false
+  },
+  "cleanup.json": {
+    "sparktalk-qwen38fn_exl3": {
+      "id": "855cdd44f1e194412316d1353eef05f406acf628af9fa6db61b0fe95b4ed0cf9",
+      "pid": 0,
+      "running": false,
+      "oom": false
+    },
+    "sparktalk-qwim-mmh3": {
+      "id": "f07041d7cf587a5a4f06b3033de358fa4a51317b14d2639e305e152bb2f3aa15",
+      "pid": 0,
+      "running": false,
+      "oom": false
+    },
+    "sparktalk-nemotron-asr": {
+      "id": "20daa6eeb0595063730dc374bbf213fdc9359ce0c38ffb70c6a527ca6a07f515",
+      "pid": 0,
+      "running": false,
+      "oom": false
+    },
+    "sparktalk-qwen3-tts": {
+      "id": "6eb47051eabf4d252ac8ece8e92a41b56248eee1a23f529bccd839d098669a98",
+      "pid": 0,
+      "running": false,
+      "oom": false
+    },
+    "sparktalk-embedding": {
+      "id": "c3aeb17490eaf4ec0343aef996a24fe2a245397bf4d8534b84524b7cc1637f27",
+      "pid": 0,
+      "running": false,
+      "oom": false
+    },
+    "sparktalk-extra-media": {
+      "id": "28a88ebded321d7b77ffec8f9ceac89654d64ef37ecb9c9c2691dc3729e3a709",
+      "pid": 0,
+      "running": false,
+      "oom": false
+    }
+  },
+  "candidate_cleanup.json": {
+    "sparktalk-qwen38fn_exl3": {
+      "id": "855cdd44f1e194412316d1353eef05f406acf628af9fa6db61b0fe95b4ed0cf9",
+      "pid": 0,
+      "running": false,
+      "oom": false
+    },
+    "sparktalk-qwim-mmh3": {
+      "id": "5b6ed69836536382f71df9d843bfe89801a79564ea2f138e5d960ac92bfef4c4",
+      "pid": 0,
+      "running": false,
+      "oom": false
+    },
+    "sparktalk-nemotron-asr": {
+      "id": "97c0d9fe82e134ff19be7c14f7485b0436e8041e019077be29cafe245b08631b",
+      "pid": 0,
+      "running": false,
+      "oom": false
+    },
+    "sparktalk-qwen3-tts": {
+      "id": "104c31f506c5f9b207386137aa042210690a775f538a0325ddfc16ec6737590c",
+      "pid": 0,
+      "running": false,
+      "oom": false
+    },
+    "sparktalk-embedding": {
+      "id": "c0a787a709f7e6eb20a9624e7d96097f5d98309a4a4879961ae8410eb106e2c1",
+      "pid": 0,
+      "running": false,
+      "oom": false
+    },
+    "sparktalk-extra-media": {
+      "id": "28a88ebded321d7b77ffec8f9ceac89654d64ef37ecb9c9c2691dc3729e3a709",
+      "pid": 0,
+      "running": false,
+      "oom": false
+    }
+  },
+  "conclusion": {
+    "status": "Current bundle/start order is not a drop-in Velo replacement",
+    "exllama": "All current resident components retained; Talk chat/TTS/ASR/two-speaker diarization/embedding/image/video/vision/320K recall passed.",
+    "velo": "No-swap Velo plus identical closed weight-file cache advice: managed auxiliary startup failed at TTS CUDA initialization and embedding immediate-free admission.",
+    "not_run": "Joint-resident Velo media, 320K and 1M recall were not run because mandatory resident services failed startup.",
+    "candidate_qualified": false
+  },
+  "startup_adapter": {
+    "production_changed": false,
+    "private_overlay": "/home/edp1096/.cache/model-download-jobs/velogb10-talk-bundle-20261009/talk-overlay.json",
+    "change": "Skip Tabby-only capacity/cache hook for the already running external Velo process; auxiliary startup/admission unchanged. Velo context/KV settings independently recorded from CLI/logs.",
+    "native_guard_test_passed": true
+  },
+  "production_config_unchanged": true,
+  "cleanup_note": "Only the pre-existing Collector and SSH remain running. Other named model/Media services restored stopped; equivalent container configurations verified, ignoring generated hostname and unordered environment/mount order.",
+  "cleanup_verification": {
+    "production_config_unchanged": true,
+    "model_containers_stopped": true,
+    "GPU_processes": 0,
+    "states": {
+      "/sparktalk-qwen38fn_exl3": {
+        "running": false,
+        "OOMKilled": false
+      },
+      "/sparktalk-qwim-mmh3": {
+        "running": false,
+        "OOMKilled": false
+      },
+      "/sparktalk-nemotron-asr": {
+        "running": false,
+        "OOMKilled": false
+      },
+      "/sparktalk-qwen3-tts": {
+        "running": false,
+        "OOMKilled": false
+      },
+      "/sparktalk-embedding": {
+        "running": false,
+        "OOMKilled": false
+      },
+      "/sparktalk-extra-media": {
+        "running": false,
+        "OOMKilled": false
+      }
+    }
+  }
+}

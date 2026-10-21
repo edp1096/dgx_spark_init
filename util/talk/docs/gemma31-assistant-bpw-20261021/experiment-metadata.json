@@ -1,0 +1,60 @@
+{
+  "passed": true,
+  "variants": [
+    {
+      "arm": "b2",
+      "bytes": 252605636,
+      "matrices": 23,
+      "body_nmse_mean": 0.06851212714206088,
+      "head_sha256": "2a161b1b27f8cbb228b5972f22ca3dffa92dcc671dddfbf5308c1ba2d0fc8a3e",
+      "norms_sha256": "4be01b37d8a7a5adf048e9a91e3c7a82b68bd4b22003e8923e8a79b9c45f302d"
+    },
+    {
+      "arm": "b3",
+      "bytes": 277738692,
+      "matrices": 23,
+      "body_nmse_mean": 0.017430514012548057,
+      "head_sha256": "2a161b1b27f8cbb228b5972f22ca3dffa92dcc671dddfbf5308c1ba2d0fc8a3e",
+      "norms_sha256": "4be01b37d8a7a5adf048e9a91e3c7a82b68bd4b22003e8923e8a79b9c45f302d"
+    },
+    {
+      "arm": "b4",
+      "bytes": 302871748,
+      "matrices": 23,
+      "body_nmse_mean": 0.004467842359603806,
+      "head_sha256": "2a161b1b27f8cbb228b5972f22ca3dffa92dcc671dddfbf5308c1ba2d0fc8a3e",
+      "norms_sha256": "4be01b37d8a7a5adf048e9a91e3c7a82b68bd4b22003e8923e8a79b9c45f302d"
+    }
+  ],
+  "source_revisions": {
+    "original": "627c5ec1458b9086b841a91e0512fd31fd2fbbf1",
+    "b4": "359650d0d9386fbe42b820c74eefa8075017ebc6",
+    "target": "985633e8001d0bfd9b621738234394744b992907"
+  },
+  "configuration": {
+    "sglang_commit": "2ef0fe46693d1b88271943de5eb49a2848a512d8",
+    "exllamav3_commit": "16a49792a3c93d8432d72e6c4bce800841566577",
+    "original_dtype": "bfloat16",
+    "target_quantization": "NVFP4",
+    "mtp_steps": 7,
+    "mtp_draft_tokens": 8,
+    "context_capacity": 262144,
+    "max_evaluated_prompt_tokens": 9041,
+    "kv_dtype": "bfloat16",
+    "tp": 1,
+    "radix_cache": false,
+    "temperature": 0,
+    "seed": 42,
+    "purpose": "private experiment; no Talk integration or publication"
+  },
+  "script_sha256": {
+    "download.py": "3d87a759c1cc13b83d364cd309e56a18a9db5e1a779fc363e2fce260e969f5d0",
+    "quantize.py": "fe2a07b074e5580097f4261579bc182a5358678e7107eb1035db0e648e9dc970",
+    "benchmark.py": "b63bcb7a3b3bca15ca4e64bb6fd5c579f4bc1aa847e61a092eb53fdc847c0448",
+    "benchmark-original.py": "e0a4a7c5e9d17eef33b72f3fae6324cb64d4ac0e63a29d46e06e6eca13a6a891",
+    "evaluate.py": "2a0b3c7b42b107ef2c86b3609a6901dbf57f9256ed7556c360955916cb1ac74e",
+    "summarize.py": "c168f3bece73f426e6389554d680d8af3d0d1623a3093a64ef16dacbe590181a",
+    "recipe/exl3_assistant/sglang_gemma_exl3.py": "fd0da8566f637bd4a48ab49fda7f3abbc40cf1f79df2d79565056acc7595ab2c",
+    "write_report.py": "850c9b054e211b9015156a9332b5c047e0e74ce96257d71ccd435b1c49d30724"
+  }
+}

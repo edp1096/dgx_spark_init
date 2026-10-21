@@ -140,10 +140,10 @@ func TestLoadExistingConfigDoesNotInjectDefaultPromptPresets(t *testing.T) {
 }
 
 func TestManagedDefaultBundleAndActiveModelCanDiffer(t *testing.T) {
-	cfg := Config{Runtime: RuntimeConfig{Mode: "managed", Bundle: "ornith35", ActiveBundle: "flash-next"}}
+	cfg := Config{Runtime: RuntimeConfig{Mode: "managed", Bundle: "ds41", ActiveBundle: "flash-next"}}
 	cfg.Normalize()
 
-	if cfg.Runtime.Bundle != "ornith35" {
+	if cfg.Runtime.Bundle != "ds41" {
 		t.Fatalf("active model changed startup default: %q", cfg.Runtime.Bundle)
 	}
 	if cfg.Runtime.ActiveBundle != "flash-next" {

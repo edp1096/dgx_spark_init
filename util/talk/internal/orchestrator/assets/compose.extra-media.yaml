@@ -29,7 +29,7 @@ services:
                 - /usr/local/bin/sparktalk-extra-media
                 - -healthcheck
             timeout: 5s
-        image: sparktalk-extra-media:0.1.1
+        image: sparktalk-extra-media:0.1.2
         init: true
         mem_limit: 2g
         pids_limit: 128

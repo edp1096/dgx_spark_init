@@ -536,6 +536,10 @@ func (c *Controller) finishOperation(state, message string) {
 
 func (c *Controller) runBundleStart(bundle Bundle, reserveGiB float64) {
 	ctx := context.Background()
+	if err := c.stopUnselectedManagedImages(ctx, bundle); err != nil {
+		c.finishOperation("failed", err.Error())
+		return
+	}
 	if err := c.stopUnselectedEmbedding(ctx, bundle); err != nil {
 		c.finishOperation("failed", err.Error())
 		return
@@ -634,10 +638,6 @@ func (c *Controller) runBundleStart(bundle Bundle, reserveGiB float64) {
 				}
 			}
 		}
-	}
-	if err := c.prepareQwenFP4Startup(ctx, bundle, c.localMemoryReserve(bundle, reserveGiB)); err != nil {
-		c.finishOperation("failed", err.Error())
-		return
 	}
 	if err := c.waitForBundleHeadroom(bundle, reserveGiB, "세트 기동 전 메모리 재확인", 15*time.Second); err != nil {
 		c.failCurrentStep(err.Error())
@@ -869,6 +869,25 @@ func (c *Controller) httpHealthy(ctx context.Context, component Component) bool 
 		return false
 	}
 	defer response.Body.Close()
+	if component.ProgressKind == "tensorfold" {
+		var state struct {
+			OK      bool   `json:"ok"`
+			Backend string `json:"backend"`
+			Context int    `json:"context_length"`
+			Status  string `json:"status"`
+			Model   string `json:"model"`
+			Warming bool   `json:"warming"`
+		}
+		if response.StatusCode != http.StatusOK || json.NewDecoder(response.Body).Decode(&state) != nil {
+			return false
+		}
+		switch component.ComposeAsset {
+		case "compose.qwen38fn_exl3.yaml":
+			return state.OK && state.Backend == "tensorfold" && state.Context == 1048576
+		case "compose.qwen-fp4-local.yaml":
+			return state.Status == "ok" && state.Model == component.Model && !state.Warming
+		}
+	}
 	if component.ComposeAsset == "compose.qwim-mmh3.yaml" {
 		var state struct {
 			Status     string `json:"status"`
@@ -1064,7 +1083,7 @@ func (e *cudaStartMemoryError) Error() string { return e.message }
 func (c *Controller) reclaimGLMStartupCache(ctx context.Context, bundle Bundle) (bool, error) {
 	hosts := map[string]bool{}
 	for _, component := range c.Catalog().ModelComponents(bundle.ID) {
-		if component.Controller == "glm53-cluster" {
+		if component.Controller == "glm53-cluster" || component.Controller == "glm53-fp4-cluster" {
 			hosts[component.Host] = true
 			hosts[component.WorkerHost] = true
 		}

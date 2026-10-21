@@ -136,7 +136,6 @@ func (c *Config) Normalize() {
 		c.Runtime.BuiltinRevision = 4
 	}
 	if c.Runtime.BuiltinRevision < 5 {
-		c.addSingleSparkMoEModels()
 		c.Runtime.BuiltinRevision = 5
 	}
 	if c.Runtime.BuiltinRevision < 9 {
@@ -307,7 +306,6 @@ func (c *Config) Normalize() {
 		c.Runtime.BuiltinRevision = 39
 	}
 	if c.Runtime.BuiltinRevision < 40 {
-		c.addQwen38FNEXL3Q4Set()
 		c.Runtime.BuiltinRevision = 40
 	}
 	if c.Runtime.BuiltinRevision < 41 {
@@ -323,7 +321,35 @@ func (c *Config) Normalize() {
 		c.addQwenFP4LocalSet()
 		c.Runtime.BuiltinRevision = 43
 	}
+	if c.Runtime.BuiltinRevision < 44 {
+		c.upgradeDS41TensorFold()
+		c.Runtime.BuiltinRevision = 44
+	}
+	if c.Runtime.BuiltinRevision < 45 {
+		c.upgradeQwenTensorFold()
+		c.Runtime.BuiltinRevision = 45
+	}
+	if c.Runtime.BuiltinRevision < 46 {
+		c.upgradeGLMFP4Local()
+		c.Runtime.BuiltinRevision = 46
+	}
+	if c.Runtime.BuiltinRevision < 47 {
+		c.Runtime.BuiltinRevision = 47
+	}
+	if c.Runtime.BuiltinRevision < 48 {
+		c.Runtime.BuiltinRevision = 48
+	}
+	if c.Runtime.BuiltinRevision < 49 {
+		c.Runtime.BuiltinRevision = 49
+	}
+	if c.Runtime.BuiltinRevision < 50 {
+		c.Runtime.BuiltinRevision = 50
+	}
+	if c.Runtime.BuiltinRevision < 51 {
+		c.Runtime.BuiltinRevision = 51
+	}
 	c.removeRetiredRuntimes()
+	c.refreshQwenEXL3TuningDescription()
 	c.normalizeRuntimeDisplayNames()
 	if catalog, err := orchestrator.ValidateCatalog(*c.Runtime.Catalog); err == nil {
 		c.Runtime.Catalog = &catalog
@@ -349,7 +375,7 @@ func (c *Config) Normalize() {
 	c.Model.DefaultModel = strings.TrimSpace(c.Model.DefaultModel)
 	c.Model.ModelType = strings.ToLower(strings.TrimSpace(c.Model.ModelType))
 	switch c.Model.ModelType {
-	case "qwen3.5", "qwen3.8", "qwen3.8-vllm", "qwen3.8-gguf", "qwen38fn_exl3", "gemma4", "gemma4-vllm", "glm5.3", "deepseek-v4", "generic":
+	case "qwen3.5", "qwen3.8", "qwen3.8-vllm", "qwen3.8-tensorfold", "qwen3.8-gguf", "qwen38fn_exl3", "gemma4", "gemma4-vllm", "glm5.3", "deepseek-v4", "generic":
 	default:
 		c.Model.ModelType = "generic"
 	}
@@ -522,6 +548,9 @@ func (c *Config) Normalize() {
 	}
 	if c.Context.ImageTokens <= 0 {
 		c.Context.ImageTokens = 2048
+	}
+	if !c.Context.OutputAuto && c.Context.WindowTokens > 0 {
+		c.Context.OutputReserve = c.Context.EffectiveOutputReserve(c.Context.WindowTokens)
 	}
 	if c.Memory.MaxResults <= 0 {
 		c.Memory.MaxResults = 5

@@ -1,0 +1,107 @@
+{
+  "status": "complete",
+  "scope": "Current NVFP4 set: 1M KV, LLM + ASR/diarization + CUDA embedding resident. Image-generation and TTS excluded.",
+  "runs": {
+    "nvfp4-1m": {
+      "runtime": "SGLang",
+      "context_tokens": 1048576,
+      "korean_tok_per_s": 28.774182525640878,
+      "code_tok_per_s": 45.301615653349636,
+      "GPU_total_max_sampled_GiB": 100.4609375,
+      "system_available_min_GiB": 6.552326202392578,
+      "cold_32k_TTFT_median_seconds": 13.72522019292228,
+      "cached_16k_TTFT_seconds": 0.2956429399782792,
+      "full_context_input_tokens": 1048380,
+      "full_context_TTFT_seconds": 912.5382626299979,
+      "full_context_recall_pass": true,
+      "long_vision_input_tokens": 130127,
+      "long_vision_TTFT_seconds": 58.0909038890386,
+      "long_vision_pass": true,
+      "code_tasks_passed": 5,
+      "code_assertions_passed": 54,
+      "vision_checks": {
+        "passed": 3,
+        "total": 3
+      },
+      "common_checks_passed": 28,
+      "common_checks_total": 31,
+      "failed_common_cases": [
+        "quoted_xml_0",
+        "quoted_xml_1",
+        "quoted_xml_2"
+      ],
+      "schema_pass": true,
+      "diarization_pass": true,
+      "hybrid_retrieval_pass": true,
+      "resident_container_ids_and_pids_unchanged": true,
+      "model_swap_max_bytes": 0,
+      "OOM_events": 0,
+      "host_swap_out_MiB": 4.4453125
+    },
+    "q4-1m": {
+      "runtime": "VeloGB10 0.7.3 + qualified YaRN/schema patches",
+      "context_tokens": 1048576,
+      "korean_tok_per_s": 48.29593102451299,
+      "code_tok_per_s": 72.10486684513799,
+      "GPU_total_max_sampled_GiB": 95.05859375,
+      "system_available_min_GiB": 12.84488296508789,
+      "cold_32k_TTFT_median_seconds": 21.760108342044987,
+      "cached_16k_TTFT_seconds": 0.07074382691644132,
+      "full_context_input_tokens": 1048380,
+      "full_context_TTFT_seconds": 927.8244141399628,
+      "full_context_recall_pass": true,
+      "long_vision_input_tokens": 130127,
+      "long_vision_TTFT_seconds": 89.74922639294527,
+      "long_vision_pass": true,
+      "code_tasks_passed": 5,
+      "code_assertions_passed": 54,
+      "vision_checks": {
+        "passed": 3,
+        "total": 3
+      },
+      "common_checks_passed": 28,
+      "common_checks_total": 31,
+      "failed_common_cases": [
+        "quoted_xml_0",
+        "quoted_xml_1",
+        "quoted_xml_2"
+      ],
+      "schema_pass": true,
+      "diarization_pass": true,
+      "hybrid_retrieval_pass": true,
+      "resident_container_ids_and_pids_unchanged": true,
+      "model_swap_max_bytes": 0,
+      "OOM_events": 0,
+      "host_swap_out_MiB": 0.0
+    }
+  },
+  "quality_scope": "Greedy nonthinking, single request; 3 speed repeats. Long-context tests run once. Different weight correction and quantization formats are part of this configuration comparison.",
+  "ngram_EXL3_Q3_Q4": "Identical K6 (6-bit), SSD on-demand; not BF16.",
+  "secondary_512k": "Cancelled by user before launch. Existing QAD / EXL3 3bit sets unchanged.",
+  "artifacts": "/home/edp1096/.cache/model-download-jobs/velogb10-q4-vs-nvfp4-20261010",
+  "cleanup": {
+    "production_config_unchanged": true,
+    "production_active_bundle": "flash-next-radixark",
+    "original_NVFP4_container_unchanged_and_stopped": true,
+    "temporary_container_removed": "cfbb1354f8f230d07ed59e0fd1aa1ccbb067f3dab0495aa5899b0ab18bb6c7c0",
+    "open_trial_ports": {
+      "18586": false,
+      "19330": false,
+      "19333": false,
+      "19334": false
+    },
+    "running_containers": [
+      "sparktalk-extra-collector",
+      "sparktalk-extra-ssh"
+    ],
+    "secondary_512k_cancelled_before_launch": true,
+    "finished": 1791569807.45769
+  },
+  "deltas": {
+    "Q4_code_faster_percent": 59.166214725956465,
+    "Q4_korean_faster_percent": 67.84466763382815,
+    "Q4_GPU_reduction_GiB": 5.40234375,
+    "Q4_system_headroom_increase_GiB": 6.2925567626953125
+  },
+  "cached_token_reporting_note": "SGLang did not expose cached token counts in OpenAI usage; server logs confirm 16320 cached tokens for repeated 16K input. Velo reported 16366. TTFT values are directly measured."
+}

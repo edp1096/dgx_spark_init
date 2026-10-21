@@ -1,0 +1,149 @@
+[
+  {
+    "case": "json-schema",
+    "passed": true,
+    "expected": {
+      "answer": 391
+    },
+    "actual": {
+      "answer": 391
+    },
+    "elapsed_s": 0.3831088680017274,
+    "ttft_s": 0.21005243400577456,
+    "decode_client_s": 0.12697869600378908,
+    "tg_client": 55.127357740318246,
+    "pp_ttft": 138.06076629039566,
+    "usage": {
+      "prompt_tokens": 29,
+      "completion_tokens": 8,
+      "total_tokens": 37,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "{\"answer\": 391}",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": [
+      {
+        "tensorfold": {
+          "enable_thinking": false,
+          "reasoning_effort": "none",
+          "engine": "lanes",
+          "tokens_per_second": 40.44041647112281,
+          "seconds": 0.173094162,
+          "prefill_seconds": 0.185352859,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.190395218,
+          "sampling": "greedy",
+          "drafts": true,
+          "token_sha": "f7cfe4d313c6",
+          "token_sha256": "f7cfe4d313c628ab6f008872a570ec5305d6999838e908ee16568294fea61a79",
+          "min_rows": 1
+        }
+      }
+    ]
+  },
+  {
+    "case": "image-digits",
+    "passed": false,
+    "expected": "5829",
+    "actual": {
+      "digits": "5829"
+    },
+    "elapsed_s": 0.9269916249904782,
+    "ttft_s": 0.6468893540004501,
+    "decode_client_s": 0.2243693469936261,
+    "tg_client": 35.65549442111299,
+    "pp_ttft": 366.3686819613901,
+    "usage": {
+      "prompt_tokens": 237,
+      "completion_tokens": 9,
+      "total_tokens": 246,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "{\"digits\": \"5829\"}",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": [
+      {
+        "tensorfold": {
+          "enable_thinking": false,
+          "reasoning_effort": "none",
+          "engine": "lanes",
+          "tokens_per_second": 28.54155321027631,
+          "seconds": 0.280293085,
+          "prefill_seconds": 0.636214049,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.645174041,
+          "sampling": "greedy",
+          "drafts": true,
+          "token_sha": "643e7b9e49a7",
+          "token_sha256": "643e7b9e49a7e901059e6751047679a99c7405243a3f2c9c692da5880d64615c",
+          "min_rows": 2
+        }
+      }
+    ],
+    "image_content_correct": true,
+    "requested_format_passed": false,
+    "note": "The four digits were recognized correctly. The requested JSON string was returned as an object; raw strict result is preserved."
+  },
+  {
+    "case": "multi-turn",
+    "passed": true,
+    "expected": "orchard-7294",
+    "actual": "orchard-7294",
+    "elapsed_s": 0.4065261299983831,
+    "ttft_s": 0.21817842399468645,
+    "decode_client_s": 0.18820332300674636,
+    "tg_client": 42.507219703624635,
+    "pp_ttft": 192.5029947096092,
+    "usage": {
+      "prompt_tokens": 42,
+      "completion_tokens": 9,
+      "total_tokens": 51,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "\"orchard-7294\"",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": [
+      {
+        "tensorfold": {
+          "enable_thinking": false,
+          "reasoning_effort": "none",
+          "engine": "lanes",
+          "tokens_per_second": 42.44351901656669,
+          "seconds": 0.188485785,
+          "prefill_seconds": 0.216560405,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.217201472,
+          "sampling": "greedy",
+          "drafts": true,
+          "token_sha": "416884c19d8c",
+          "token_sha256": "416884c19d8c37007cf344e884275531ee8ffe47af43b94dd54e1bb8d8d4aee2",
+          "min_rows": 3
+        }
+      }
+    ]
+  }
+]

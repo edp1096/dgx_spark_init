@@ -1,0 +1,4 @@
+FROM dgx-sglang-qwen38-fn:sm121-b12x-head-v1
+COPY patches/tp2_vocab.py /sgl-workspace/sglang/python/sglang/srt/speculative/tp_vocab.py
+COPY patches/install_tp2_vocab.py /tmp/install-tp-vocab.py
+RUN python3 /tmp/install-tp-vocab.py

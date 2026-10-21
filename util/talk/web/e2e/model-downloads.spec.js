@@ -6,15 +6,15 @@ test('stores download credentials separately and exposes embedded model preparat
   await page.locator('.settings-button').click();
   await page.getByRole('tab', { name: '시스템' }).click();
   await page.getByRole('button', { name: '모델 준비', exact: true }).click();
-  await selectOption(page.getByRole('combobox', { name: '모델', exact: true }), 'ds4fve');
+  await selectOption(page.getByRole('combobox', { name: '모델', exact: true }), 'ds41');
   await selectOption(page.getByRole('combobox', { name: '가중치', exact: true }), 'abliterated');
-  await expect(page.getByRole('link', { name: /drowzeys\/keys-DeepSeek/ })).toHaveAttribute('href', 'https://huggingface.co/drowzeys/keys-DeepSeekV4Flash-Vision-EXP-ablit');
+  await expect(page.getByRole('link', { name: /drowzeys\/keys-DeepSeek/ })).toHaveAttribute('href', 'https://huggingface.co/drowzeys/keys-DeepSeek-V4.1-Flash-1017-Abliterated');
   await selectOption(page.getByRole('combobox', { name: '모델', exact: true }), 'glm53');
   await selectOption(page.getByRole('combobox', { name: '가중치', exact: true }), 'abliterated');
   await expect(page.getByRole('link', { name: /edp1096\/Huihui-GLM/ })).toBeVisible();
   await selectOption(page.getByRole('combobox', { name: '가중치', exact: true }), 'official');
   await expect(page.getByRole('link', { name: /edp1096\/Huihui-GLM/ })).toHaveCount(0);
-  for (const id of ['qwen27-exl3', 'qwen27-gguf']) {
+  for (const id of ['qwen27-exl3', 'qwen27-gguf', 'ds4fve', 'ds4fve_exl3']) {
     await expect(page.getByRole('combobox', { name: '모델', exact: true }).locator(`option[value="${id}"]`)).toHaveCount(0);
   }
   const token = 'hf_ui_test_download_credential';
@@ -33,7 +33,7 @@ test('stores download credentials separately and exposes embedded model preparat
 });
 
 test('shows live preparation output and elapsed time without inventing a percentage', async ({ page }) => {
-  await page.route('**/api/models/prepare', route => route.fulfill({json: {state:'running',component:'ds4fve',detail:'워커 모델 동기화 시작',logs:['[파일 완료 2/4] 50% (파일 개수 기준)','워커 모델 동기화 시작'],started_at:new Date(Date.now()-65000).toISOString()}}));
+  await page.route('**/api/models/prepare', route => route.fulfill({json: {state:'running',component:'ds41',detail:'워커 모델 동기화 시작',logs:['[파일 완료 2/4] 50% (파일 개수 기준)','워커 모델 동기화 시작'],started_at:new Date(Date.now()-65000).toISOString()}}));
   await page.goto('/');
   await page.locator('.settings-button').click();
   await page.getByRole('tab', { name: '시스템' }).click();

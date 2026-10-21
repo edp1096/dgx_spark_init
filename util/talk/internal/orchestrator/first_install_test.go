@@ -94,10 +94,6 @@ func TestEveryFirstInstallBuildInputIsEmbedded(t *testing.T) {
 				}
 			}
 			for name, data := range files {
-				// DSpark pulls a pinned published image; upstream overlay Dockerfiles are not build inputs of its install path.
-				if recipeID(c) == "ds4fve" && strings.HasPrefix(name, "upstream/") {
-					continue
-				}
 				if !strings.HasPrefix(path.Base(name), "Dockerfile") {
 					continue
 				}

@@ -1,0 +1,10 @@
+{
+  "repo": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-NVFP4-QAD",
+  "revision": "d8a260c0792cf2db93c5aaf8d397fd837b69901b",
+  "sha256": {
+    "config.json": "0e96c926477aa607b38761a7786255f16f4d7e7efb1867bd6d3779343045b9b0",
+    "model.safetensors.index.json": "394f64cdfaa94bb8ad858117bd04d6e1a6507b83f32f85cd764b798d39d7c527",
+    "hf_quant_config.json": "369953bc72fbe6d5af5558fae1a4492b61bad9429110d471163eaedf55644673",
+    "transfer-manifest.json": "a2960652c14e2d4fa1a0b97ba23a972c8e74e2934704d96dbf4e1c22954e1d0c"
+  }
+}

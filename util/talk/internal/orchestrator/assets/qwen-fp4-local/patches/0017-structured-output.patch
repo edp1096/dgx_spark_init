@@ -1,0 +1,300 @@
+diff --git a/zig/src/core/engine_api.zig b/zig/src/core/engine_api.zig
+index ec26b4a..446ab71 100644
+--- a/zig/src/core/engine_api.zig
++++ b/zig/src/core/engine_api.zig
+@@ -41,13 +41,7 @@ pub const CallLex = struct {
+ };
+ 
+ /// response_format and the guided_* fields: every token keeps the reply inside this grammar.
+-pub const Structure = struct {
+-    kind: enum { json, json_schema, regex, choice, grammar },
+-    /// The schema (JSON text), regex, choices (a JSON array) or EBNF; empty for any JSON object.
+-    text: []const u8 = "",
+-    /// With thinking on, the grammar starts after this token.
+-    after: ?u32 = null,
+-};
++pub const Structure = lanes.constraint.Spec;
+ 
+ /// A prompt's images and video frames, prepared by the vision frontend (rows, rotary positions, features).
+ pub const Media = lanes.Media;
+diff --git a/zig/src/core/lane_host.zig b/zig/src/core/lane_host.zig
+index 96d8f07..667a96d 100644
+--- a/zig/src/core/lane_host.zig
++++ b/zig/src/core/lane_host.zig
+@@ -337,6 +337,7 @@ pub const LaneHost = struct {
+             .chunks = r.chunks,
+             .reuse = reuse,
+             .media = r.media,
++            .structure = r.structure,
+         }) catch {
+             job.proposer.deinit();
+             return h.droppedJob(job, "out of memory");
+diff --git a/zig/src/core/lanes/constraint.zig b/zig/src/core/lanes/constraint.zig
+new file mode 100644
+index 0000000..bdc46f2
+--- /dev/null
++++ b/zig/src/core/lanes/constraint.zig
+@@ -0,0 +1,63 @@
++//! CPU grammar state for explicitly structured requests; ordinary lanes never load Python.
++const std = @import("std");
++const Allocator = std.mem.Allocator;
++pub const Spec = struct {
++    kind: enum { json, json_schema, regex, choice, grammar },
++    text: []const u8 = "",
++    after: ?u32 = null,
++};
++const Create = *const fn ([*:0]const u8, [*:0]const u8, [*:0]const u8) callconv(.c) ?*anyopaque;
++const Mask = *const fn (*anyopaque, [*]const u32, usize, [*]u32, usize) callconv(.c) c_int;
++const Free = *const fn (*anyopaque) callconv(.c) void;
++const Bridge = struct { lib: std.DynLib, create: Create, mask: Mask, free: Free };
++// LaneHost owns one engine thread. Keep the interpreter/library alive until process exit.
++var library: ?Bridge = null;
++fn bridge() !*Bridge {
++    if (library == null) {
++        const path = std.c.getenv("TENSORFOLD_STRUCTURE_BRIDGE") orelse return error.StructureLibraryMissing;
++        var lib = try std.DynLib.open(std.mem.span(path));
++        errdefer lib.close();
++        library = .{ .lib = lib, .create = lib.lookup(Create, "tf_structure_create") orelse return error.StructureSymbolMissing, .mask = lib.lookup(Mask, "tf_structure_mask") orelse return error.StructureSymbolMissing, .free = lib.lookup(Free, "tf_structure_free") orelse return error.StructureSymbolMissing };
++    }
++    return &library.?;
++}
++pub const Constraint = struct {
++    gpa: Allocator,
++    state: *anyopaque,
++    bits: []u32,
++    pending: std.ArrayList(u32) = .empty,
++    after: ?u32,
++    active: bool,
++    pub fn init(gpa: Allocator, spec: Spec) !Constraint {
++        const lib = try bridge();
++        const model = std.c.getenv("TENSORFOLD_STRUCTURE_MODEL") orelse return error.StructureModelMissing;
++        const text = try gpa.dupeSentinel(u8, spec.text, 0);
++        defer gpa.free(text);
++        const kind = try gpa.dupeSentinel(u8, @tagName(spec.kind), 0);
++        defer gpa.free(kind);
++        const state = lib.create(model, kind, text) orelse return error.InvalidStructure;
++        errdefer lib.free(state);
++        // Refuse oversized vocabularies rather than truncating their mask.
++        const bits = try gpa.alloc(u32, 32768);
++        return .{ .gpa = gpa, .state = state, .bits = bits, .after = spec.after, .active = spec.after == null };
++    }
++    pub fn deinit(c: *Constraint) void {
++        library.?.free(c.state);
++        c.gpa.free(c.bits);
++        c.pending.deinit(c.gpa);
++    }
++    pub fn accept(c: *Constraint, token: u32) !void {
++        if (!c.active) {
++            if (c.after == token) c.active = true;
++            return;
++        }
++        try c.pending.append(c.gpa, token);
++    }
++    pub fn mask(c: *Constraint) !?[]const u32 {
++        if (!c.active) return null;
++        const words = library.?.mask(c.state, c.pending.items.ptr, c.pending.items.len, c.bits.ptr, c.bits.len);
++        if (words <= 0 or words > c.bits.len) return error.GrammarMaskFailed;
++        c.pending.clearRetainingCapacity();
++        return c.bits[0..@intCast(words)];
++    }
++};
+diff --git a/zig/src/core/lanes/lanes.zig b/zig/src/core/lanes/lanes.zig
+index c524d81..d8d421b 100644
+--- a/zig/src/core/lanes/lanes.zig
++++ b/zig/src/core/lanes/lanes.zig
+@@ -14,6 +14,7 @@ pub const gpu_full = @import("gpu_full.zig");
+ pub const depth = @import("depth.zig");
+ pub const config = @import("config.zig");
+ pub const stream = @import("stream.zig");
++pub const constraint = @import("constraint.zig");
+ pub const backend = @import("backend.zig");
+ pub const events = @import("events.zig");
+ pub const windows = @import("windows.zig");
+diff --git a/zig/src/core/lanes/stream.zig b/zig/src/core/lanes/stream.zig
+index 1e3c65f..3692217 100644
+--- a/zig/src/core/lanes/stream.zig
++++ b/zig/src/core/lanes/stream.zig
+@@ -7,6 +7,7 @@ const Proposer = @import("proposer.zig").Proposer;
+ const Sampling = @import("sampling.zig").Sampling;
+ const State = @import("depth.zig").State;
+ const call_gate = @import("call_gate.zig");
++const constrained = @import("constraint.zig");
+ 
+ pub const Reason = enum {
+     none,
+@@ -163,6 +164,7 @@ pub const Spec = struct {
+         lex: call_gate.Lex,
+     } = null,
+     media: ?*const Media = null,
++    structure: ?constrained.Spec = null,
+ };
+ 
+ pub const Stream = struct {
+@@ -220,6 +222,7 @@ pub const Stream = struct {
+     granted: ?u32 = null,
+     copy_width: ?u32 = null,
+     gate: ?call_gate.Gate = null,
++    constraint: ?constrained.Constraint = null,
+ 
+     pub fn init(gpa: Allocator, spec: Spec) !Stream {
+         var s: Stream = .{
+@@ -228,8 +231,8 @@ pub const Stream = struct {
+             .max_new = spec.max_new,
+             .eos = spec.eos,
+             .sampling = spec.sampling,
+-            .drafts = spec.drafts,
+-            .proposer = if (spec.drafts) spec.proposer else null,
++            .drafts = spec.drafts and spec.structure == null,
++            .proposer = if (spec.drafts and spec.structure == null) spec.proposer else null,
+             .stop_check = spec.stop_check,
+             .cancel_check = spec.cancel_check,
+             .think_budget = spec.think_budget,
+@@ -245,11 +248,14 @@ pub const Stream = struct {
+             s.gate = call_gate.Gate.afterPrompt(spec.prompt, c.opener, c.think_open, c.think_end, c.lex, c.lead, c.names, c.tail);
+         }
+         try s.context.appendSlice(gpa, spec.prompt);
++        errdefer s.context.deinit(gpa);
++        if (spec.structure) |specification| s.constraint = try constrained.Constraint.init(gpa, specification);
+         return s;
+     }
+ 
+     pub fn deinit(s: *Stream, gpa: Allocator) void {
+         if (s.gate) |*g| g.deinit(gpa);
++        if (s.constraint) |*c| c.deinit();
+         s.context.deinit(gpa);
+         s.force.deinit(gpa);
+         s.dropRoundState(gpa);
+@@ -340,6 +346,7 @@ pub const Stream = struct {
+         for (tokens) |t| {
+             if (s.finished) break;
+             try s.context.append(gpa, t);
++            if (s.constraint) |*c| try c.accept(t);
+             landed += 1;
+             if (s.gate) |*g| g.observe(gpa, t) catch return error.OutOfMemory;
+             if (@as(i64, t) == s.think_end) s.think_open = false;
+diff --git a/zig/src/families/flashnext/cuda_engine.zig b/zig/src/families/flashnext/cuda_engine.zig
+index 5ca0bb8..67fa873 100644
+--- a/zig/src/families/flashnext/cuda_engine.zig
++++ b/zig/src/families/flashnext/cuda_engine.zig
+@@ -1434,6 +1434,42 @@ pub const Engine = struct {
+         try e.drawRows(e.buf.b.logits, e.buf.b.cand_all, total, sg.a0, sg.a1 - sg.a0, sg.seq.st.pos + 1, smp, out);
+     }
+ 
++    // Structured requests use serial verification. Restore logits after every
++    // masked draw so neither prompt reuse nor another request inherits a mask.
++    fn maskedDraw(e: *Engine, logits: u64, position: u64, sampling: ?lanes.Sampling, bits: []const u32, out: []u32) !void {
++        if (e.world != 1 or out.len != 1) return error.StructureRequiresSerialTP1;
++        const width = e.g.head_n;
++        if (bits.len * 32 < width) return error.GrammarVocabularyMismatch;
++        const original = try e.gpa.alloc(u16, width);
++        defer e.gpa.free(original);
++        try e.read(logits, std.mem.sliceAsBytes(original));
++        const masked = try e.gpa.dupe(u16, original);
++        defer e.gpa.free(masked);
++        var any = false;
++        for (masked, 0..) |*value, id| {
++            const allowed = (bits[id / 32] & (@as(u32, 1) << @as(u5, @intCast(id % 32)))) != 0;
++            if (!allowed) value.* = 0xff80 else any = true;
++        }
++        if (!any) return error.EmptyGrammarMask;
++        const device: cuda.DeviceBuffer = .{ .d = e.ctx.d, .ptr = logits, .len = width * 2 };
++        try device.upload(0, std.mem.sliceAsBytes(masked));
++        errdefer device.upload(0, std.mem.sliceAsBytes(original)) catch {};
++        const s = if (sampling) |x| (if (x.temperature > 0) sampling else null) else null;
++        try e.drawRows(logits, 0, 1, 0, 1, position, s, out);
++        try device.upload(0, std.mem.sliceAsBytes(original));
++    }
++    pub fn sampleFirstMasked(e: *Engine, sampling: ?lanes.Sampling, position: u64, bits: []const u32) !u32 {
++        var token: [1]u32 = undefined;
++        try e.maskedDraw(e.last_logits, position, sampling, bits, &token);
++        return token[0];
++    }
++    pub fn sampleWindowMasked(e: *Engine, i: usize, sampling: ?lanes.Sampling, out: []u32, bits: []const u32) !void {
++        if (i >= e.round_n) return error.NoSuchWindow;
++        const sg = e.round_segs[i];
++        if (sg.a1 - sg.a0 != 1) return error.StructureRequiresSerialTP1;
++        try e.maskedDraw(e.buf.b.logits + sg.a0 * e.g.head_n * 2, sg.seq.st.pos + 1, sampling, bits, out);
++    }
++
+     /// Keep window `i`'s first `keep` rows (its stream's commit, at its rows of the shared window).
+     pub fn commitWindow(e: *Engine, i: usize, keep: usize) !void {
+         if (i >= e.round_n) return error.NoSuchWindow;
+diff --git a/zig/src/families/flashnext/cuda_lanes.zig b/zig/src/families/flashnext/cuda_lanes.zig
+index 9e56f2d..4ff40e1 100644
+--- a/zig/src/families/flashnext/cuda_lanes.zig
++++ b/zig/src/families/flashnext/cuda_lanes.zig
+@@ -908,6 +908,13 @@ pub fn Lanes(comptime E: type) type {
+         fn firstFn(ptr: *anyopaque, s: *lanes.Stream, position: u64) anyerror!u64 {
+             const self = of(ptr);
+             if (position != s.prompt_len) return error.PositionMismatch;
++            if (s.constraint) |*constraint| if (try constraint.mask()) |bits| {
++                if (comptime @hasDecl(E, "sampleFirstMasked")) {
++                    const token = try self.e.sampleFirstMasked(s.sampling, position, bits);
++                    if (self.lanes.get(s)) |l| l.first = null;
++                    return self.take(token);
++                } else return error.StructureUnsupported;
++            };
+             if (self.lanes.get(s)) |l| if (l.first) |h| {
+                 l.first = null;
+                 return h;
+@@ -968,7 +975,13 @@ pub fn Lanes(comptime E: type) type {
+             self.round += 1;
+             for (windows, out, ls[0..n], 0..) |w, o, l, i| {
+                 const rows = w.rows();
+-                e.sampleWindow(i, w.stream.sampling, o.sampled[0..rows]) catch |err| return self.lost("a window's draws", err);
++                if (w.stream.constraint) |*constraint| {
++                    if (try constraint.mask()) |bits| {
++                        if (comptime @hasDecl(E, "sampleWindowMasked")) {
++                            try e.sampleWindowMasked(i, w.stream.sampling, o.sampled[0..rows], bits);
++                        } else return error.StructureUnsupported;
++                    } else try e.sampleWindow(i, w.stream.sampling, o.sampled[0..rows]);
++                } else e.sampleWindow(i, w.stream.sampling, o.sampled[0..rows]) catch |err| return self.lost("a window's draws", err);
+                 @memcpy(o.drafts[0 .. rows - 1], ids[i][1..rows]);
+                 l.held_n = 0;
+                 l.pending_rows = rows;
+diff --git a/zig/src/native/cuda.zig b/zig/src/native/cuda.zig
+index e00b222..3d26313 100644
+--- a/zig/src/native/cuda.zig
++++ b/zig/src/native/cuda.zig
+@@ -285,7 +285,7 @@ fn openWith(comptime F: type, a: Allocator, gpa: Allocator, io: std.Io, o: api.O
+     h.clock = .{ .io = io };
+     h.core = lanes.Engine.init(gpa, &h.cfg, h.backend(), h.clock.clock());
+     errdefer h.core.deinit();
+-    h.host = api.LaneHost.init(gpa, io, &h.core, .{ .lanes = o.lanes, .context_window = @intCast(window), .prefill_step = F.prefill_step, .call_gates = true, .media = @hasDecl(F, "media") and F.media });
++    h.host = api.LaneHost.init(gpa, io, &h.core, .{ .lanes = o.lanes, .context_window = @intCast(window), .prefill_step = F.prefill_step, .call_gates = true, .structures = o.tp == 1 and o.lanes == 1 and std.mem.eql(u8, o.model_type, "qwen4_exp") and std.c.getenv("TENSORFOLD_STRUCTURE_BRIDGE") != null, .media = @hasDecl(F, "media") and F.media });
+     h.store = null;
+     if (@hasField(@TypeOf(loaded), "cache")) if (loaded.cache) |c| if (c.budget > 0) {
+         // the family keeps and restores the states; the store picks them (exact reuse, core/prompt_cache.zig)
+diff --git a/zig/src/server/chat.zig b/zig/src/server/chat.zig
+index 81b63c1..f5f208a 100644
+--- a/zig/src/server/chat.zig
++++ b/zig/src/server/chat.zig
+@@ -190,11 +190,14 @@ pub fn prepare(srv: *Server, cx: *Cx, input: Input, gone: anytype) Failure!Prepa
+         if (srv.think_close.len > 0) request.loop_guard = srv.config.loop_guard;
+         if ((budget > 0 or request.loop_guard) and srv.think_close.len > 0) {
+             if (budget > 0) request.think_budget = @intCast(@min(budget, std.math.maxInt(u32)));
+-            request.think_close = srv.think_close;
++            request.think_close = if (request.structure != null and srv.think_close_end != null)
++                try a.dupe(u32, &.{srv.think_close_end.?})
++            else
++                srv.think_close;
+             request.think_end = srv.think_close_end;
+         }
+     }
+-    return .{ .input = input, .request = request, .prompt_len = rendered.ids.len, .received = received, .thinking = thinking, .effort = effort, .sampled = sampling != null, .drafts = drafts, .stops = stops_opt, .preparing = preparing };
++    return .{ .input = input, .request = request, .prompt_len = rendered.ids.len, .received = received, .thinking = thinking, .effort = effort, .sampled = sampling != null, .drafts = request.drafts, .stops = stops_opt, .preparing = preparing };
+ }
+ 
+ /// Submit a prepared request and collect its reply; ``sink`` hears the stream (null: not streamed).
+diff --git a/zig/src/server/server.zig b/zig/src/server/server.zig
+index d383b62..9df2407 100644
+--- a/zig/src/server/server.zig
++++ b/zig/src/server/server.zig
+@@ -152,6 +152,7 @@ pub const Server = struct {
+         if (try grammar.spec(cx, f)) |s| {
+             if (!srv.info.structures) return cx.refuse("structured output (response_format and the guided_* fields) is not supported by this engine yet");
+             request.structure = .{ .kind = s.kind, .text = s.text, .after = if (thinking) srv.text.tokenId(srv.markers.close) else null };
++            request.drafts = false;
+         }
+     }
+ 

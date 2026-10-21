@@ -1,0 +1,302 @@
+{
+  "date": "2026-10-21",
+  "hardware": "One DGX Spark / SM121 per serving arm, host61; isolated kernel tests on host60",
+  "job_directory": "/home/edp1096/.cache/model-download-jobs/gemma31-spec-opt-20261021-183237",
+  "baseline_experiment": "/home/edp1096/.cache/model-download-jobs/gemma31-assistant-bpw-20261021-174321",
+  "models": {
+    "target": {
+      "repo": "lyf/Huihui-gemma-4-31B-it-abliterated-v2-NVFP4",
+      "revision": "985633e8001d0bfd9b621738234394744b992907"
+    },
+    "original_assistant": {
+      "repo": "google/gemma-4-31B-it-assistant",
+      "revision": "627c5ec1458b9086b841a91e0512fd31fd2fbbf1"
+    },
+    "exl3_assistants": [
+      {
+        "arm": "b2",
+        "bytes": 252605636,
+        "matrices": 23,
+        "body_nmse_mean": 0.06851212714206088,
+        "head_sha256": "2a161b1b27f8cbb228b5972f22ca3dffa92dcc671dddfbf5308c1ba2d0fc8a3e",
+        "norms_sha256": "4be01b37d8a7a5adf048e9a91e3c7a82b68bd4b22003e8923e8a79b9c45f302d"
+      },
+      {
+        "arm": "b3",
+        "bytes": 277738692,
+        "matrices": 23,
+        "body_nmse_mean": 0.017430514012548057,
+        "head_sha256": "2a161b1b27f8cbb228b5972f22ca3dffa92dcc671dddfbf5308c1ba2d0fc8a3e",
+        "norms_sha256": "4be01b37d8a7a5adf048e9a91e3c7a82b68bd4b22003e8923e8a79b9c45f302d"
+      },
+      {
+        "arm": "b4",
+        "bytes": 302871748,
+        "matrices": 23,
+        "body_nmse_mean": 0.004467842359603806,
+        "head_sha256": "2a161b1b27f8cbb228b5972f22ca3dffa92dcc671dddfbf5308c1ba2d0fc8a3e",
+        "norms_sha256": "4be01b37d8a7a5adf048e9a91e3c7a82b68bd4b22003e8923e8a79b9c45f302d"
+      }
+    ],
+    "dflash": {
+      "repo": "z-lab/gemma-4-31B-it-DFlash",
+      "revision": "eabd648301ce28583cc14757912e5e0f84e152e1",
+      "files": [
+        {
+          "file": "README.md",
+          "bytes": 4417,
+          "sha256": "cb3d8c064bfe9e18dcf6ae65c4010e1c1f1d0d5e21ba5082e9ab9602061ddf71"
+        },
+        {
+          "file": "config.json",
+          "bytes": 1096,
+          "sha256": "325f2a18894994b19f916e551b6f13a6904e961ae59a818d2b1dec18458e97f8"
+        },
+        {
+          "file": "model.safetensors",
+          "bytes": 3071941240,
+          "sha256": "b3f28580103d6e8a0a1d9389646957b9309df5982558afd754b9810357f425b7"
+        }
+      ],
+      "verified": true
+    }
+  },
+  "runtime": {
+    "sglang_commit": "2ef0fe46693d1b88271943de5eb49a2848a512d8",
+    "exllamav3_commit": "16a49792a3c93d8432d72e6c4bce800841566577",
+    "torch": "2.13.0+cu130",
+    "triton": "3.7.1",
+    "tp": 1,
+    "active_requests": 1,
+    "attention_backend": "triton",
+    "kv_dtype": "bfloat16",
+    "context_capacity": 262144,
+    "swa_full_tokens_ratio": 0.006,
+    "static_memory_fraction": 0.55,
+    "chunked_prefill_tokens": 512,
+    "prefill_graph": false,
+    "decode_graph_max_bs": 1,
+    "radix_cache": false,
+    "temperature": 0,
+    "thinking": false,
+    "seed": 42,
+    "max_evaluated_prompt_tokens": 65527
+  },
+  "metrics": {
+    "tg": "(completion_tokens-first_stream_chunk_tokens)/(stream_end-first_chunk_time); median of three matched 512-token prompt variants per language",
+    "pp": "prompt_tokens/(prefill_finished_time-forward_entry_time), separate from TG and TTFT",
+    "strict_acceptance": "sum(correct_drafts)/sum(proposed_drafts); bonus tokens excluded",
+    "mtp_depth": "N sequential proposals, verify width N+1",
+    "dflash_depth": "N parallel proposals, block/verify width N+1",
+    "selection": "geometric mean of Korean and code median TG; basic checks must pass"
+  },
+  "input_validation": [
+    {
+      "arm": "assistant-3",
+      "matched_input_hashes": true,
+      "speed_requests": 6,
+      "speed_output_tokens": 512,
+      "speculative_counter_checks": 16
+    },
+    {
+      "arm": "assistant-5",
+      "matched_input_hashes": true,
+      "speed_requests": 6,
+      "speed_output_tokens": 512,
+      "speculative_counter_checks": 16
+    },
+    {
+      "arm": "assistant-7",
+      "matched_input_hashes": true,
+      "speed_requests": 6,
+      "speed_output_tokens": 512,
+      "speculative_counter_checks": 16
+    },
+    {
+      "arm": "assistant-b2-15",
+      "matched_input_hashes": true,
+      "speed_requests": 6,
+      "speed_output_tokens": 512,
+      "speculative_counter_checks": 16
+    },
+    {
+      "arm": "assistant-b2-3",
+      "matched_input_hashes": true,
+      "speed_requests": 6,
+      "speed_output_tokens": 512,
+      "speculative_counter_checks": 16
+    },
+    {
+      "arm": "assistant-b2-5",
+      "matched_input_hashes": true,
+      "speed_requests": 6,
+      "speed_output_tokens": 512,
+      "speculative_counter_checks": 16
+    },
+    {
+      "arm": "assistant-b2-7",
+      "matched_input_hashes": true,
+      "speed_requests": 6,
+      "speed_output_tokens": 512,
+      "speculative_counter_checks": 16
+    },
+    {
+      "arm": "assistant-b2-9",
+      "matched_input_hashes": true,
+      "speed_requests": 6,
+      "speed_output_tokens": 512,
+      "speculative_counter_checks": 16
+    },
+    {
+      "arm": "assistant-b3-15",
+      "matched_input_hashes": true,
+      "speed_requests": 6,
+      "speed_output_tokens": 512,
+      "speculative_counter_checks": 16
+    },
+    {
+      "arm": "assistant-b3-3",
+      "matched_input_hashes": true,
+      "speed_requests": 6,
+      "speed_output_tokens": 512,
+      "speculative_counter_checks": 16
+    },
+    {
+      "arm": "assistant-b3-5",
+      "matched_input_hashes": true,
+      "speed_requests": 6,
+      "speed_output_tokens": 512,
+      "speculative_counter_checks": 16
+    },
+    {
+      "arm": "assistant-b3-7",
+      "matched_input_hashes": true,
+      "speed_requests": 6,
+      "speed_output_tokens": 512,
+      "speculative_counter_checks": 16
+    },
+    {
+      "arm": "assistant-b3-9",
+      "matched_input_hashes": true,
+      "speed_requests": 6,
+      "speed_output_tokens": 512,
+      "speculative_counter_checks": 16
+    },
+    {
+      "arm": "assistant-b4-15",
+      "matched_input_hashes": true,
+      "speed_requests": 6,
+      "speed_output_tokens": 512,
+      "speculative_counter_checks": 16
+    },
+    {
+      "arm": "assistant-b4-9",
+      "matched_input_hashes": true,
+      "speed_requests": 6,
+      "speed_output_tokens": 512,
+      "speculative_counter_checks": 16
+    },
+    {
+      "arm": "control-b4-9",
+      "matched_input_hashes": true,
+      "speed_requests": 6,
+      "speed_output_tokens": 512,
+      "speculative_counter_checks": 18
+    },
+    {
+      "arm": "control-b4-check-9",
+      "matched_input_hashes": true,
+      "speed_requests": 6,
+      "speed_output_tokens": 512,
+      "speculative_counter_checks": 16
+    },
+    {
+      "arm": "dflash-15",
+      "matched_input_hashes": true,
+      "speed_requests": 6,
+      "speed_output_tokens": 512,
+      "speculative_counter_checks": 16
+    },
+    {
+      "arm": "dflash-8",
+      "matched_input_hashes": true,
+      "speed_requests": 6,
+      "speed_output_tokens": 512,
+      "speculative_counter_checks": 16
+    },
+    {
+      "arm": "original-9",
+      "matched_input_hashes": true,
+      "speed_requests": 6,
+      "speed_output_tokens": 512,
+      "speculative_counter_checks": 18
+    },
+    {
+      "arm": "splitdflash-15",
+      "matched_input_hashes": true,
+      "speed_requests": 6,
+      "speed_output_tokens": 512,
+      "speculative_counter_checks": 18
+    },
+    {
+      "arm": "splitkv-b4-9",
+      "matched_input_hashes": true,
+      "speed_requests": 6,
+      "speed_output_tokens": 512,
+      "speculative_counter_checks": 18
+    },
+    {
+      "arm": "splitkv-b4-check-9",
+      "matched_input_hashes": true,
+      "speed_requests": 6,
+      "speed_output_tokens": 512,
+      "speculative_counter_checks": 16
+    }
+  ],
+  "kernel": {
+    "base_commit": "2ef0fe46693d1b88271943de5eb49a2848a512d8",
+    "reference_pr": 44830,
+    "reference_head": "de05c34b9dd10eb7f6bbb79dd330f2371fa8034a",
+    "upstream_status": "open/unmerged when inspected",
+    "private_changes": "Opt-in Gemma31/SM121 TP1 target only; BF16 KV; causal topk1 verify widths4/6/8/9/10/16; fallback elsewhere",
+    "tiles": {
+      "swa_32q_16kv_d256": [
+        4,
+        32,
+        4
+      ],
+      "global_32q_4kv_d512": [
+        8,
+        16,
+        4
+      ]
+    },
+    "tile_format": [
+      "splits",
+      "block_n",
+      "warps"
+    ],
+    "correctness": "FP32 reference and unchanged pinned extend baseline; absmax<0.04 and relativeL2<0.015; noncontiguous physical KV indices; empty/mixed prefixes; SWA edges; graph replay with changed queries and prefix lengths",
+    "qualification": {
+      "entries": 124,
+      "settings": 294,
+      "max_abs": 0.008069276809692383,
+      "max_relative_l2": 0.002238796791061759
+    },
+    "trace_logs": {
+      "original-9": "/home/edp1096/.cache/model-download-jobs/gemma31-spec-opt-20261021-183237/original-9/server.log",
+      "splitdflash-15": "/home/edp1096/.cache/model-download-jobs/gemma31-spec-opt-20261021-183237/splitdflash-15/server.log",
+      "splitkv-b4-9": "/home/edp1096/.cache/model-download-jobs/gemma31-spec-opt-20261021-183237/splitkv-b4-9/server.log",
+      "splitkv-b4-check-9": "/home/edp1096/.cache/model-download-jobs/gemma31-spec-opt-20261021-183237/splitkv-b4-check-9/server.log"
+    }
+  },
+  "limits": [
+    "A small basic-check suite is not a general quality benchmark.",
+    "Different verify shapes and reduction orders may change greedy text; no lossless output identity claim.",
+    "This does not validate the full 262144-token context.",
+    "Long 512-token speed cases ignore EOS for a fixed work budget.",
+    "Depth selection is the best tested grid, not an exhaustive universal optimum.",
+    "Kernel-only timings are not end-to-end serving throughput."
+  ],
+  "publication": "Only the explicitly requested short model card was pushed to HF; no new weights or Talk sets published."
+}

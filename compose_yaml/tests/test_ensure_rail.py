@@ -33,8 +33,8 @@ class RailTest(unittest.TestCase):
         if mode=='missing':
             self.assertEqual([a[-3] for _,a in mutations],['10.222.3.1/24','10.222.3.2/24'])
         if mode in ('existing','missing'):self.assertEqual(sum(a[0]=='ping' for _,a in calls),2)
-    def test_both_recipes(self):
-        for recipe in ('qwen38_fn_sglang','ds4fve_vllm'):
+    def test_supported_recipe(self):
+        for recipe in ('qwen38_fn_sglang',):
             for mode in ('missing','existing','conflict','down'):
                 with self.subTest(recipe=recipe,mode=mode):self.scenario(recipe,mode)
 

@@ -1,0 +1,2286 @@
+{
+  "scope": "Current Talk EXL3 bundle with cached production auxiliary images; private Talk DB/config, externally managed LLM only.",
+  "root": "/home/edp1096/.cache/model-download-jobs/velogb10-talk-512k-20261010",
+  "phases": {
+    "baseline-startup": {
+      "samples": 5,
+      "seconds": 1.0046610832214355,
+      "min_available_GiB": 117.98458099365234,
+      "min_free_GiB": 101.59402847290039,
+      "first_available_GiB": 117.98458099365234,
+      "last_available_GiB": 117.99533081054688,
+      "swap_written_MiB": 0.0,
+      "swap_read_MiB": 0.0,
+      "max_total_GPU_allocated_GiB": 0.0,
+      "max_container_swap_bytes": {},
+      "max_velo_process_swap_bytes": 0
+    },
+    "exllama-llm-startup": {
+      "samples": 352,
+      "seconds": 89.06925821304321,
+      "min_available_GiB": 54.283145904541016,
+      "min_free_GiB": 3.0792312622070312,
+      "first_available_GiB": 117.97642517089844,
+      "last_available_GiB": 54.66316223144531,
+      "swap_written_MiB": 0.0,
+      "swap_read_MiB": 0.73828125,
+      "max_total_GPU_allocated_GiB": 58.7626953125,
+      "max_container_swap_bytes": {
+        "velogb10-exllama-512k-comparison": 0
+      },
+      "max_velo_process_swap_bytes": 0
+    },
+    "exllama-aux-startup": {
+      "samples": 588,
+      "seconds": 149.00323939323425,
+      "min_available_GiB": 29.730350494384766,
+      "min_free_GiB": 8.080890655517578,
+      "first_available_GiB": 54.67046356201172,
+      "last_available_GiB": 29.730350494384766,
+      "swap_written_MiB": 0.0,
+      "swap_read_MiB": 2.35546875,
+      "max_total_GPU_allocated_GiB": 78.701171875,
+      "max_container_swap_bytes": {
+        "sparktalk-qwen3-tts": 0,
+        "sparktalk-embedding": 0,
+        "sparktalk-nemotron-asr": 0,
+        "velogb10-exllama-512k-comparison": 0,
+        "sparktalk-qwim-mmh3": 0
+      },
+      "max_velo_process_swap_bytes": 0
+    },
+    "exllama-resident-idle": {
+      "samples": 74,
+      "seconds": 18.599199056625366,
+      "min_available_GiB": 29.2701416015625,
+      "min_free_GiB": 7.320278167724609,
+      "first_available_GiB": 29.754878997802734,
+      "last_available_GiB": 29.28314971923828,
+      "swap_written_MiB": 0.0,
+      "swap_read_MiB": 0.0078125,
+      "max_total_GPU_allocated_GiB": 79.2294921875,
+      "max_container_swap_bytes": {
+        "sparktalk-qwen3-tts": 0,
+        "sparktalk-embedding": 0,
+        "sparktalk-nemotron-asr": 0,
+        "velogb10-exllama-512k-comparison": 0,
+        "sparktalk-qwim-mmh3": 0
+      },
+      "max_velo_process_swap_bytes": 0
+    },
+    "exllama-speech": {
+      "samples": 12,
+      "seconds": 2.7914645671844482,
+      "min_available_GiB": 28.66724395751953,
+      "min_free_GiB": 6.604480743408203,
+      "first_available_GiB": 29.285057067871094,
+      "last_available_GiB": 28.675674438476562,
+      "swap_written_MiB": 0.0,
+      "swap_read_MiB": 0.18359375,
+      "max_total_GPU_allocated_GiB": 79.4462890625,
+      "max_container_swap_bytes": {
+        "sparktalk-qwen3-tts": 0,
+        "sparktalk-embedding": 0,
+        "sparktalk-nemotron-asr": 0,
+        "velogb10-exllama-512k-comparison": 0,
+        "sparktalk-qwim-mmh3": 0
+      },
+      "max_velo_process_swap_bytes": 0
+    },
+    "exllama-transcription": {
+      "samples": 26,
+      "seconds": 6.3733460903167725,
+      "min_available_GiB": 27.896568298339844,
+      "min_free_GiB": 5.672157287597656,
+      "first_available_GiB": 28.667800903320312,
+      "last_available_GiB": 27.896568298339844,
+      "swap_written_MiB": 0.0,
+      "swap_read_MiB": 0.15625,
+      "max_total_GPU_allocated_GiB": 79.4716796875,
+      "max_container_swap_bytes": {
+        "sparktalk-qwen3-tts": 0,
+        "sparktalk-embedding": 0,
+        "sparktalk-nemotron-asr": 0,
+        "velogb10-exllama-512k-comparison": 0,
+        "sparktalk-extra-media": 0,
+        "sparktalk-qwim-mmh3": 0
+      },
+      "max_velo_process_swap_bytes": 0
+    },
+    "exllama-diarization": {
+      "samples": 21,
+      "seconds": 5.076041221618652,
+      "min_available_GiB": 27.660511016845703,
+      "min_free_GiB": 5.346290588378906,
+      "first_available_GiB": 27.930469512939453,
+      "last_available_GiB": 27.660511016845703,
+      "swap_written_MiB": 0.0,
+      "swap_read_MiB": 0.02734375,
+      "max_total_GPU_allocated_GiB": 79.953125,
+      "max_container_swap_bytes": {
+        "sparktalk-qwen3-tts": 0,
+        "sparktalk-embedding": 0,
+        "sparktalk-nemotron-asr": 0,
+        "velogb10-exllama-512k-comparison": 0,
+        "sparktalk-extra-media": 0,
+        "sparktalk-qwim-mmh3": 0
+      },
+      "max_velo_process_swap_bytes": 0
+    },
+    "exllama-hybrid-retrieval": {
+      "samples": 8,
+      "seconds": 1.7816624641418457,
+      "min_available_GiB": 27.657840728759766,
+      "min_free_GiB": 5.213443756103516,
+      "first_available_GiB": 27.694480895996094,
+      "last_available_GiB": 27.714176177978516,
+      "swap_written_MiB": 0.0,
+      "swap_read_MiB": 0.05859375,
+      "max_total_GPU_allocated_GiB": 79.953125,
+      "max_container_swap_bytes": {
+        "sparktalk-qwen3-tts": 0,
+        "sparktalk-embedding": 0,
+        "sparktalk-nemotron-asr": 0,
+        "velogb10-exllama-512k-comparison": 0,
+        "sparktalk-extra-media": 0,
+        "sparktalk-qwim-mmh3": 0
+      },
+      "max_velo_process_swap_bytes": 0
+    },
+    "exllama-image": {
+      "samples": 225,
+      "seconds": 57.14879322052002,
+      "min_available_GiB": 21.47491455078125,
+      "min_free_GiB": 3.1731605529785156,
+      "first_available_GiB": 27.741371154785156,
+      "last_available_GiB": 25.625492095947266,
+      "swap_written_MiB": 62.99609375,
+      "swap_read_MiB": 19.0390625,
+      "max_total_GPU_allocated_GiB": 84.92578125,
+      "max_container_swap_bytes": {
+        "sparktalk-qwen3-tts": 0,
+        "sparktalk-embedding": 0,
+        "sparktalk-nemotron-asr": 0,
+        "velogb10-exllama-512k-comparison": 0,
+        "sparktalk-extra-media": 0,
+        "sparktalk-qwim-mmh3": 0
+      },
+      "max_velo_process_swap_bytes": 0
+    },
+    "exllama-video": {
+      "samples": 704,
+      "seconds": 179.19576263427734,
+      "min_available_GiB": 21.007904052734375,
+      "min_free_GiB": 3.3991317749023438,
+      "first_available_GiB": 25.690166473388672,
+      "last_available_GiB": 21.89846420288086,
+      "swap_written_MiB": 3.51953125,
+      "swap_read_MiB": 16.39453125,
+      "max_total_GPU_allocated_GiB": 84.2109375,
+      "max_container_swap_bytes": {
+        "sparktalk-qwen3-tts": 0,
+        "sparktalk-embedding": 0,
+        "sparktalk-nemotron-asr": 0,
+        "velogb10-exllama-512k-comparison": 0,
+        "sparktalk-extra-media": 0,
+        "sparktalk-qwim-mmh3": 0
+      },
+      "max_velo_process_swap_bytes": 0
+    },
+    "exllama-normal-speed": {
+      "samples": 220,
+      "seconds": 55.8692831993103,
+      "min_available_GiB": 21.573707580566406,
+      "min_free_GiB": 3.771686553955078,
+      "first_available_GiB": 21.940284729003906,
+      "last_available_GiB": 21.80182647705078,
+      "swap_written_MiB": 0.0,
+      "swap_read_MiB": 5.5703125,
+      "max_total_GPU_allocated_GiB": 82.66796875,
+      "max_container_swap_bytes": {
+        "sparktalk-qwen3-tts": 0,
+        "sparktalk-embedding": 0,
+        "sparktalk-nemotron-asr": 0,
+        "velogb10-exllama-512k-comparison": 0,
+        "sparktalk-extra-media": 0,
+        "sparktalk-qwim-mmh3": 0
+      },
+      "max_velo_process_swap_bytes": 0
+    },
+    "exllama-vision": {
+      "samples": 10,
+      "seconds": 2.28672194480896,
+      "min_available_GiB": 21.664386749267578,
+      "min_free_GiB": 3.780200958251953,
+      "first_available_GiB": 21.790996551513672,
+      "last_available_GiB": 21.664386749267578,
+      "swap_written_MiB": 0.0,
+      "swap_read_MiB": 0.04296875,
+      "max_total_GPU_allocated_GiB": 82.66796875,
+      "max_container_swap_bytes": {
+        "sparktalk-qwen3-tts": 0,
+        "sparktalk-embedding": 0,
+        "sparktalk-nemotron-asr": 0,
+        "velogb10-exllama-512k-comparison": 0,
+        "sparktalk-extra-media": 0,
+        "sparktalk-qwim-mmh3": 0
+      },
+      "max_velo_process_swap_bytes": 0
+    },
+    "exllama-schema": {
+      "samples": 21,
+      "seconds": 5.0895116329193115,
+      "min_available_GiB": 21.555835723876953,
+      "min_free_GiB": 3.498638153076172,
+      "first_available_GiB": 21.643306732177734,
+      "last_available_GiB": 21.555835723876953,
+      "swap_written_MiB": 0.0,
+      "swap_read_MiB": 1.71484375,
+      "max_total_GPU_allocated_GiB": 82.669921875,
+      "max_container_swap_bytes": {
+        "sparktalk-qwen3-tts": 0,
+        "sparktalk-embedding": 0,
+        "sparktalk-nemotron-asr": 0,
+        "velogb10-exllama-512k-comparison": 0,
+        "sparktalk-extra-media": 0,
+        "sparktalk-qwim-mmh3": 0
+      },
+      "max_velo_process_swap_bytes": 0
+    },
+    "exllama-recall-512k": {
+      "samples": 1753,
+      "seconds": 446.53550696372986,
+      "min_available_GiB": 19.150672912597656,
+      "min_free_GiB": 3.2163734436035156,
+      "first_available_GiB": 21.399700164794922,
+      "last_available_GiB": 19.150672912597656,
+      "swap_written_MiB": 0.0625,
+      "swap_read_MiB": 13.90625,
+      "max_total_GPU_allocated_GiB": 82.669921875,
+      "max_container_swap_bytes": {
+        "sparktalk-qwen3-tts": 0,
+        "sparktalk-embedding": 0,
+        "sparktalk-nemotron-asr": 0,
+        "velogb10-exllama-512k-comparison": 0,
+        "sparktalk-extra-media": 270336,
+        "sparktalk-qwim-mmh3": 0
+      },
+      "max_velo_process_swap_bytes": 0
+    },
+    "exllama-image-after-full-context": {
+      "samples": 226,
+      "seconds": 57.32762312889099,
+      "min_available_GiB": 18.028152465820312,
+      "min_free_GiB": 3.0614967346191406,
+      "first_available_GiB": 19.29175567626953,
+      "last_available_GiB": 20.419986724853516,
+      "swap_written_MiB": 0.0,
+      "swap_read_MiB": 1.421875,
+      "max_total_GPU_allocated_GiB": 84.296875,
+      "max_container_swap_bytes": {
+        "sparktalk-qwen3-tts": 0,
+        "sparktalk-embedding": 0,
+        "sparktalk-nemotron-asr": 0,
+        "velogb10-exllama-512k-comparison": 0,
+        "sparktalk-extra-media": 270336,
+        "sparktalk-qwim-mmh3": 0
+      },
+      "max_velo_process_swap_bytes": 0
+    },
+    "exllama-speech-after-full-context": {
+      "samples": 14,
+      "seconds": 3.3253915309906006,
+      "min_available_GiB": 20.400989532470703,
+      "min_free_GiB": 5.401676177978516,
+      "first_available_GiB": 20.472843170166016,
+      "last_available_GiB": 20.41250228881836,
+      "swap_written_MiB": 0.0,
+      "swap_read_MiB": 0.0,
+      "max_total_GPU_allocated_GiB": 82.669921875,
+      "max_container_swap_bytes": {
+        "sparktalk-qwen3-tts": 0,
+        "sparktalk-embedding": 0,
+        "sparktalk-nemotron-asr": 0,
+        "velogb10-exllama-512k-comparison": 0,
+        "sparktalk-extra-media": 270336,
+        "sparktalk-qwim-mmh3": 0
+      },
+      "max_velo_process_swap_bytes": 0
+    },
+    "exllama-post-stress": {
+      "samples": 38,
+      "seconds": 9.441347360610962,
+      "min_available_GiB": 20.156478881835938,
+      "min_free_GiB": 5.107578277587891,
+      "first_available_GiB": 20.40267562866211,
+      "last_available_GiB": 20.158782958984375,
+      "swap_written_MiB": 0.0,
+      "swap_read_MiB": 0.0,
+      "max_total_GPU_allocated_GiB": 82.669921875,
+      "max_container_swap_bytes": {
+        "sparktalk-qwen3-tts": 0,
+        "sparktalk-embedding": 0,
+        "sparktalk-nemotron-asr": 0,
+        "velogb10-exllama-512k-comparison": 0,
+        "sparktalk-extra-media": 270336,
+        "sparktalk-qwim-mmh3": 0
+      },
+      "max_velo_process_swap_bytes": 0
+    },
+    "exllama-cleanup": {
+      "samples": 17,
+      "seconds": 4.061624526977539,
+      "min_available_GiB": 23.86611557006836,
+      "min_free_GiB": 8.808712005615234,
+      "first_available_GiB": 23.86611557006836,
+      "last_available_GiB": 117.86119842529297,
+      "swap_written_MiB": 0.0,
+      "swap_read_MiB": 0.65234375,
+      "max_total_GPU_allocated_GiB": 58.9453125,
+      "max_container_swap_bytes": {
+        "sparktalk-qwen3-tts": 0,
+        "sparktalk-embedding": 0,
+        "sparktalk-nemotron-asr": 0,
+        "velogb10-exllama-512k-comparison": 0,
+        "sparktalk-qwim-mmh3": 0
+      },
+      "max_velo_process_swap_bytes": 0
+    },
+    "velo-llm-startup": {
+      "samples": 409,
+      "seconds": 103.36088538169861,
+      "min_available_GiB": 47.540523529052734,
+      "min_free_GiB": 2.7062950134277344,
+      "first_available_GiB": 117.86400985717773,
+      "last_available_GiB": 47.551780700683594,
+      "swap_written_MiB": 0.0,
+      "swap_read_MiB": 5.953125,
+      "max_total_GPU_allocated_GiB": 64.392578125,
+      "max_container_swap_bytes": {},
+      "max_velo_process_swap_bytes": 0
+    },
+    "velo-aux-startup": {
+      "samples": 583,
+      "seconds": 147.55651140213013,
+      "min_available_GiB": 23.072208404541016,
+      "min_free_GiB": 2.9579849243164062,
+      "first_available_GiB": 47.53401184082031,
+      "last_available_GiB": 23.600048065185547,
+      "swap_written_MiB": 0.0,
+      "swap_read_MiB": 2.984375,
+      "max_total_GPU_allocated_GiB": 84.6865234375,
+      "max_container_swap_bytes": {
+        "sparktalk-qwen3-tts": 0,
+        "sparktalk-embedding": 0,
+        "sparktalk-nemotron-asr": 0,
+        "sparktalk-qwim-mmh3": 0
+      },
+      "max_velo_process_swap_bytes": 0
+    },
+    "velo-resident-idle": {
+      "samples": 54,
+      "seconds": 13.437053203582764,
+      "min_available_GiB": 22.996307373046875,
+      "min_free_GiB": 2.8908538818359375,
+      "first_available_GiB": 23.750354766845703,
+      "last_available_GiB": 23.499343872070312,
+      "swap_written_MiB": 0.0,
+      "swap_read_MiB": 0.0859375,
+      "max_total_GPU_allocated_GiB": 84.8115234375,
+      "max_container_swap_bytes": {
+        "sparktalk-qwen3-tts": 0,
+        "sparktalk-embedding": 0,
+        "sparktalk-nemotron-asr": 0,
+        "sparktalk-qwim-mmh3": 0
+      },
+      "max_velo_process_swap_bytes": 0
+    },
+    "velo-speech": {
+      "samples": 11,
+      "seconds": 2.541334629058838,
+      "min_available_GiB": 22.966201782226562,
+      "min_free_GiB": 3.0431060791015625,
+      "first_available_GiB": 23.418087005615234,
+      "last_available_GiB": 22.977611541748047,
+      "swap_written_MiB": 0.0,
+      "swap_read_MiB": 0.046875,
+      "max_total_GPU_allocated_GiB": 85.154296875,
+      "max_container_swap_bytes": {
+        "sparktalk-qwen3-tts": 0,
+        "sparktalk-embedding": 0,
+        "sparktalk-nemotron-asr": 0,
+        "sparktalk-qwim-mmh3": 0
+      },
+      "max_velo_process_swap_bytes": 0
+    },
+    "velo-transcription": {
+      "samples": 17,
+      "seconds": 4.068391561508179,
+      "min_available_GiB": 21.90142822265625,
+      "min_free_GiB": 3.0166053771972656,
+      "first_available_GiB": 22.968868255615234,
+      "last_available_GiB": 21.90142822265625,
+      "swap_written_MiB": 0.2421875,
+      "swap_read_MiB": 0.09765625,
+      "max_total_GPU_allocated_GiB": 85.6279296875,
+      "max_container_swap_bytes": {
+        "sparktalk-qwen3-tts": 0,
+        "sparktalk-embedding": 0,
+        "sparktalk-nemotron-asr": 0,
+        "sparktalk-extra-media": 147456,
+        "sparktalk-qwim-mmh3": 0
+      },
+      "max_velo_process_swap_bytes": 0
+    },
+    "velo-diarization": {
+      "samples": 21,
+      "seconds": 5.077929735183716,
+      "min_available_GiB": 21.425453186035156,
+      "min_free_GiB": 3.084606170654297,
+      "first_available_GiB": 22.383934020996094,
+      "last_available_GiB": 21.425453186035156,
+      "swap_written_MiB": 7.71484375,
+      "swap_read_MiB": 0.0390625,
+      "max_total_GPU_allocated_GiB": 85.6318359375,
+      "max_container_swap_bytes": {
+        "sparktalk-qwen3-tts": 0,
+        "sparktalk-embedding": 0,
+        "sparktalk-nemotron-asr": 0,
+        "sparktalk-extra-media": 147456,
+        "sparktalk-qwim-mmh3": 0
+      },
+      "max_velo_process_swap_bytes": 0
+    },
+    "velo-hybrid-retrieval": {
+      "samples": 9,
+      "seconds": 2.027594566345215,
+      "min_available_GiB": 21.978557586669922,
+      "min_free_GiB": 3.1038436889648438,
+      "first_available_GiB": 22.099029541015625,
+      "last_available_GiB": 21.978557586669922,
+      "swap_written_MiB": 6.17578125,
+      "swap_read_MiB": 0.0,
+      "max_total_GPU_allocated_GiB": 85.6611328125,
+      "max_container_swap_bytes": {
+        "sparktalk-qwen3-tts": 0,
+        "sparktalk-embedding": 0,
+        "sparktalk-nemotron-asr": 0,
+        "sparktalk-extra-media": 147456,
+        "sparktalk-qwim-mmh3": 0
+      },
+      "max_velo_process_swap_bytes": 0
+    },
+    "velo-image": {
+      "samples": 222,
+      "seconds": 56.265974044799805,
+      "min_available_GiB": 16.37653350830078,
+      "min_free_GiB": 2.8032608032226562,
+      "first_available_GiB": 21.97060775756836,
+      "last_available_GiB": 20.124664306640625,
+      "swap_written_MiB": 192.69921875,
+      "swap_read_MiB": 77.92578125,
+      "max_total_GPU_allocated_GiB": 90.6279296875,
+      "max_container_swap_bytes": {
+        "sparktalk-qwen3-tts": 0,
+        "sparktalk-embedding": 0,
+        "sparktalk-nemotron-asr": 0,
+        "sparktalk-extra-media": 827392,
+        "sparktalk-qwim-mmh3": 0
+      },
+      "max_velo_process_swap_bytes": 0
+    },
+    "velo-video": {
+      "samples": 712,
+      "seconds": 181.30743956565857,
+      "min_available_GiB": 15.618476867675781,
+      "min_free_GiB": 3.069171905517578,
+      "first_available_GiB": 20.063385009765625,
+      "last_available_GiB": 16.278045654296875,
+      "swap_written_MiB": 0.0,
+      "swap_read_MiB": 40.22265625,
+      "max_total_GPU_allocated_GiB": 89.8818359375,
+      "max_container_swap_bytes": {
+        "sparktalk-qwen3-tts": 0,
+        "sparktalk-embedding": 0,
+        "sparktalk-nemotron-asr": 0,
+        "sparktalk-extra-media": 827392,
+        "sparktalk-qwim-mmh3": 0
+      },
+      "max_velo_process_swap_bytes": 0
+    },
+    "velo-normal-speed": {
+      "samples": 185,
+      "seconds": 46.89362120628357,
+      "min_available_GiB": 16.151241302490234,
+      "min_free_GiB": 3.2323265075683594,
+      "first_available_GiB": 16.46143341064453,
+      "last_available_GiB": 16.361949920654297,
+      "swap_written_MiB": 0.0,
+      "swap_read_MiB": 3.671875,
+      "max_total_GPU_allocated_GiB": 88.8876953125,
+      "max_container_swap_bytes": {
+        "sparktalk-qwen3-tts": 0,
+        "sparktalk-embedding": 0,
+        "sparktalk-nemotron-asr": 0,
+        "sparktalk-extra-media": 827392,
+        "sparktalk-qwim-mmh3": 0
+      },
+      "max_velo_process_swap_bytes": 0
+    },
+    "velo-vision": {
+      "samples": 3,
+      "seconds": 0.5024547576904297,
+      "min_available_GiB": 16.321304321289062,
+      "min_free_GiB": 3.45068359375,
+      "first_available_GiB": 16.34335708618164,
+      "last_available_GiB": 16.321304321289062,
+      "swap_written_MiB": 0.0,
+      "swap_read_MiB": 0.05078125,
+      "max_total_GPU_allocated_GiB": null,
+      "max_container_swap_bytes": {
+        "sparktalk-qwen3-tts": 0,
+        "sparktalk-embedding": 0,
+        "sparktalk-nemotron-asr": 0,
+        "sparktalk-extra-media": 827392,
+        "sparktalk-qwim-mmh3": 0
+      },
+      "max_velo_process_swap_bytes": 0
+    },
+    "velo-schema": {
+      "samples": 2,
+      "seconds": 0.25203609466552734,
+      "min_available_GiB": 16.17263412475586,
+      "min_free_GiB": 3.2156524658203125,
+      "first_available_GiB": 16.17263412475586,
+      "last_available_GiB": 16.2427978515625,
+      "swap_written_MiB": 0.0,
+      "swap_read_MiB": 0.1953125,
+      "max_total_GPU_allocated_GiB": 88.8876953125,
+      "max_container_swap_bytes": {
+        "sparktalk-qwen3-tts": 0,
+        "sparktalk-embedding": 0,
+        "sparktalk-nemotron-asr": 0,
+        "sparktalk-extra-media": 827392,
+        "sparktalk-qwim-mmh3": 0
+      },
+      "max_velo_process_swap_bytes": 0
+    },
+    "velo-recall-512k": {
+      "samples": 1643,
+      "seconds": 417.9901821613312,
+      "min_available_GiB": 11.826873779296875,
+      "min_free_GiB": 2.493946075439453,
+      "first_available_GiB": 16.169513702392578,
+      "last_available_GiB": 12.389907836914062,
+      "swap_written_MiB": 5.83984375,
+      "swap_read_MiB": 26.6328125,
+      "max_total_GPU_allocated_GiB": 92.4501953125,
+      "max_container_swap_bytes": {
+        "sparktalk-qwen3-tts": 0,
+        "sparktalk-embedding": 0,
+        "sparktalk-nemotron-asr": 0,
+        "sparktalk-extra-media": 827392,
+        "sparktalk-qwim-mmh3": 0
+      },
+      "max_velo_process_swap_bytes": 0
+    },
+    "velo-image-after-full-context": {
+      "samples": 188,
+      "seconds": 47.66052436828613,
+      "min_available_GiB": 10.105712890625,
+      "min_free_GiB": 3.1984405517578125,
+      "first_available_GiB": 12.375328063964844,
+      "last_available_GiB": 12.862567901611328,
+      "swap_written_MiB": 1.46875,
+      "swap_read_MiB": 1.61328125,
+      "max_total_GPU_allocated_GiB": 94.9208984375,
+      "max_container_swap_bytes": {
+        "sparktalk-qwen3-tts": 0,
+        "sparktalk-embedding": 0,
+        "sparktalk-nemotron-asr": 0,
+        "sparktalk-extra-media": 827392,
+        "sparktalk-qwim-mmh3": 0
+      },
+      "max_velo_process_swap_bytes": 0
+    },
+    "velo-speech-after-full-context": {
+      "samples": 11,
+      "seconds": 2.5435073375701904,
+      "min_available_GiB": 12.865192413330078,
+      "min_free_GiB": 6.212779998779297,
+      "first_available_GiB": 12.87246322631836,
+      "last_available_GiB": 12.872196197509766,
+      "swap_written_MiB": 0.0,
+      "swap_read_MiB": 0.28515625,
+      "max_total_GPU_allocated_GiB": 92.4814453125,
+      "max_container_swap_bytes": {
+        "sparktalk-qwen3-tts": 0,
+        "sparktalk-embedding": 0,
+        "sparktalk-nemotron-asr": 0,
+        "sparktalk-extra-media": 827392,
+        "sparktalk-qwim-mmh3": 0
+      },
+      "max_velo_process_swap_bytes": 0
+    },
+    "velo-post-stress": {
+      "samples": 32,
+      "seconds": 7.865774631500244,
+      "min_available_GiB": 12.575759887695312,
+      "min_free_GiB": 5.916584014892578,
+      "first_available_GiB": 12.894947052001953,
+      "last_available_GiB": 12.66790771484375,
+      "swap_written_MiB": 0.0,
+      "swap_read_MiB": 0.24609375,
+      "max_total_GPU_allocated_GiB": 92.4814453125,
+      "max_container_swap_bytes": {
+        "sparktalk-qwen3-tts": 0,
+        "sparktalk-embedding": 0,
+        "sparktalk-nemotron-asr": 0,
+        "sparktalk-extra-media": 827392,
+        "sparktalk-qwim-mmh3": 0
+      },
+      "max_velo_process_swap_bytes": 0
+    },
+    "velo-cleanup": {
+      "samples": 9,
+      "seconds": 2.0263469219207764,
+      "min_available_GiB": 17.847599029541016,
+      "min_free_GiB": 11.168895721435547,
+      "first_available_GiB": 17.847599029541016,
+      "last_available_GiB": 87.84820175170898,
+      "swap_written_MiB": 0.0,
+      "swap_read_MiB": 1.33984375,
+      "max_total_GPU_allocated_GiB": 89.9873046875,
+      "max_container_swap_bytes": {
+        "sparktalk-qwen3-tts": 0,
+        "sparktalk-embedding": 0,
+        "sparktalk-nemotron-asr": 0,
+        "sparktalk-qwim-mmh3": 0
+      },
+      "max_velo_process_swap_bytes": 0
+    }
+  },
+  "runs": {
+    "exllama": {
+      "tests": {
+        "talk-chat": {
+          "passed": true,
+          "wall_seconds": 14.01739385991823,
+          "error": null,
+          "response": null
+        },
+        "tts": {
+          "passed": true,
+          "wall_seconds": 3.0173676760168746,
+          "error": null,
+          "response": null
+        },
+        "asr": {
+          "passed": true,
+          "wall_seconds": 6.472910393029451,
+          "error": null,
+          "response": null
+        },
+        "embedding": {
+          "passed": true,
+          "wall_seconds": 0.025540712056681514,
+          "error": null,
+          "response": null
+        },
+        "diarization": {
+          "passed": true,
+          "wall_seconds": 5.324029244016856,
+          "error": null,
+          "response": null
+        },
+        "hybrid-retrieval": {
+          "passed": true,
+          "wall_seconds": 2.167614549980499,
+          "error": null,
+          "response": null
+        },
+        "talk-image": {
+          "passed": true,
+          "wall_seconds": 57.38150796107948,
+          "error": null,
+          "response": null
+        },
+        "talk-video": {
+          "passed": true,
+          "wall_seconds": 179.34014071302954,
+          "error": null,
+          "response": null
+        },
+        "vision": {
+          "passed": true,
+          "wall_seconds": 2.471678987960331,
+          "error": null,
+          "response": null
+        },
+        "schema": {
+          "passed": true,
+          "wall_seconds": 5.235006536007859,
+          "error": null,
+          "response": null
+        },
+        "talk-image-after-full-context": {
+          "passed": true,
+          "wall_seconds": 57.408779617981054,
+          "error": null,
+          "response": null
+        },
+        "tts-after-full-context": {
+          "passed": true,
+          "wall_seconds": 3.595702873892151,
+          "error": null,
+          "response": null
+        },
+        "post-stress-chat": {
+          "passed": true,
+          "wall_seconds": 9.670206565991975,
+          "error": null,
+          "response": null
+        }
+      },
+      "recall": {
+        "recall-512k": {
+          "target_tokens": 524064,
+          "actual_tokenize_count": null,
+          "input_bytes": 2660469,
+          "filler_repetitions_per_half": 20153,
+          "started_wall": 1791562414.2651515,
+          "text": "청록펭귄, 은빛해달, 자주빛고래",
+          "usage": {
+            "prompt_tokens": 524064,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            },
+            "prompt_time": 444.2,
+            "prompt_tokens_per_sec": 1179.79,
+            "completion_tokens": 17,
+            "completion_tokens_details": {
+              "accepted_prediction_tokens": 12,
+              "rejected_prediction_tokens": 3
+            },
+            "completion_time": 0.32,
+            "completion_tokens_per_sec": 53.8,
+            "total_tokens": 524081,
+            "total_time": 444.52
+          },
+          "finish": "stop",
+          "done": true,
+          "seconds": 446.8523783959681,
+          "ttft": 446.69399227492977,
+          "pass": true,
+          "prefill_tps": 1173.20583903768
+        }
+      },
+      "media_completed": [
+        {
+          "case": "703cc8dde4c61f10d774bf734d32fa8e",
+          "seconds": 36.6202158810338,
+          "peak_cuda_allocated_gib": 17.024940490722656,
+          "peak_cuda_reserved_gib": 18.009765625,
+          "resident": {
+            "h3": 11.665514223277569,
+            "qwim": 3.909243941307068
+          }
+        },
+        {
+          "case": "13af5f0983145b794212e8f1562bad6a",
+          "seconds": 165.74353810900357,
+          "peak_cuda_allocated_gib": 17.77573823928833,
+          "peak_cuda_reserved_gib": 19.01953125,
+          "resident": {
+            "h3": 11.665514223277569,
+            "qwim": 3.909243941307068
+          }
+        },
+        {
+          "case": "de7946d23059ca50392ddda28b51c785",
+          "seconds": 28.178133097011596,
+          "peak_cuda_allocated_gib": 17.024940490722656,
+          "peak_cuda_reserved_gib": 18.009765625,
+          "resident": {
+            "h3": 11.665514223277569,
+            "qwim": 3.909243941307068
+          }
+        }
+      ],
+      "managed-start.json": {
+        "operation": {
+          "action": "start",
+          "bundle_id": "qwen38fn_exl3",
+          "component_id": "extra-embedding",
+          "state": "complete",
+          "phase": "준비 완료",
+          "detail": "선택한 구성을 사용할 수 있습니다.",
+          "progress": 1,
+          "started_at": "2026-10-10T01:05:29.523545312+09:00",
+          "finished_at": "2026-10-10T01:07:56.72187779+09:00",
+          "steps": [
+            {
+              "phase": "세트 기동 전 메모리 재확인",
+              "detail": "시스템 가용 54.5 GiB · 즉시 여유 43.2 GiB · 추가 예상 28.5 GiB · 최소 확보 1.5 GiB",
+              "state": "complete",
+              "started_at": "2026-10-10T01:05:30.065777462+09:00",
+              "finished_at": "2026-10-10T01:05:30.06579055+09:00"
+            },
+            {
+              "component_id": "qwim-mmh3",
+              "phase": "Qwen Image 2.1 + MiniMax H3 시작",
+              "detail": "컨테이너와 실행 설정을 확인하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-10T01:05:30.06579055+09:00",
+              "finished_at": "2026-10-10T01:06:05.941900581+09:00"
+            },
+            {
+              "component_id": "qwim-mmh3",
+              "phase": "보조 서비스 시작",
+              "detail": "API 프로세스를 시작하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-10T01:06:05.941900581+09:00",
+              "finished_at": "2026-10-10T01:06:40.867755869+09:00"
+            },
+            {
+              "component_id": "qwim-mmh3",
+              "phase": "API 온라인",
+              "detail": "보조 서비스가 요청을 받을 준비를 마쳤습니다.",
+              "state": "complete",
+              "started_at": "2026-10-10T01:06:40.867755869+09:00",
+              "finished_at": "2026-10-10T01:07:28.077777181+09:00"
+            },
+            {
+              "component_id": "qwim-mmh3",
+              "phase": "Qwen Image 2.1 + MiniMax H3 API 응답 확인",
+              "detail": "서비스가 요청을 받을 준비를 마쳤습니다.",
+              "state": "complete",
+              "started_at": "2026-10-10T01:07:28.077777181+09:00",
+              "finished_at": "2026-10-10T01:07:28.07974128+09:00"
+            },
+            {
+              "component_id": "qwen38fn_exl3",
+              "phase": "Qwen 3.8 Flash-Next EXL3 시작",
+              "detail": "컨테이너와 실행 설정을 확인하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-10T01:07:28.07974128+09:00",
+              "finished_at": "2026-10-10T01:07:28.080451947+09:00"
+            },
+            {
+              "component_id": "nemotron-asr",
+              "phase": "Nemotron 3.5 ASR 시작",
+              "detail": "컨테이너와 실행 설정을 확인하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-10T01:07:28.080451947+09:00",
+              "finished_at": "2026-10-10T01:07:31.051464354+09:00"
+            },
+            {
+              "component_id": "nemotron-asr",
+              "phase": "보조 서비스 시작",
+              "detail": "API 프로세스를 시작하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-10T01:07:31.051464354+09:00",
+              "finished_at": "2026-10-10T01:07:33.07936438+09:00"
+            },
+            {
+              "component_id": "nemotron-asr",
+              "phase": "Nemotron 3.5 ASR API 응답 확인",
+              "detail": "서비스가 요청을 받을 준비를 마쳤습니다.",
+              "state": "complete",
+              "started_at": "2026-10-10T01:07:33.07936438+09:00",
+              "finished_at": "2026-10-10T01:07:33.079378428+09:00"
+            },
+            {
+              "component_id": "qwen3-tts",
+              "phase": "Qwen3-TTS 0.6B 시작",
+              "detail": "컨테이너와 실행 설정을 확인하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-10T01:07:33.079378428+09:00",
+              "finished_at": "2026-10-10T01:07:35.421302038+09:00"
+            },
+            {
+              "component_id": "qwen3-tts",
+              "phase": "보조 서비스 시작",
+              "detail": "API 프로세스를 시작하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-10T01:07:35.421302038+09:00",
+              "finished_at": "2026-10-10T01:07:39.499185243+09:00"
+            },
+            {
+              "component_id": "qwen3-tts",
+              "phase": "Qwen3-TTS 0.6B API 응답 확인",
+              "detail": "서비스가 요청을 받을 준비를 마쳤습니다.",
+              "state": "complete",
+              "started_at": "2026-10-10T01:07:39.499185243+09:00",
+              "finished_at": "2026-10-10T01:07:39.499196859+09:00"
+            },
+            {
+              "component_id": "extra-embedding",
+              "phase": "EmbeddingGemma 2 시작",
+              "detail": "컨테이너와 실행 설정을 확인하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-10T01:07:39.499196859+09:00",
+              "finished_at": "2026-10-10T01:07:42.622583483+09:00"
+            },
+            {
+              "component_id": "extra-embedding",
+              "phase": "보조 서비스 시작",
+              "detail": "API 프로세스를 시작하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-10T01:07:42.622583483+09:00",
+              "finished_at": "2026-10-10T01:07:44.655997602+09:00"
+            },
+            {
+              "component_id": "extra-embedding",
+              "phase": "EmbeddingGemma 2 API 응답 확인",
+              "detail": "서비스가 요청을 받을 준비를 마쳤습니다.",
+              "state": "complete",
+              "started_at": "2026-10-10T01:07:44.655997602+09:00",
+              "finished_at": "2026-10-10T01:07:45.003321454+09:00"
+            },
+            {
+              "component_id": "extra-embedding",
+              "phase": "의미 검색 모델 GPU 적재",
+              "state": "complete",
+              "started_at": "2026-10-10T01:07:45.003321454+09:00",
+              "finished_at": "2026-10-10T01:07:56.72187779+09:00"
+            }
+          ]
+        }
+      },
+      "capacity.json": {
+        "id": "qwen38fn_exl3",
+        "object": "model",
+        "created": 1791561926,
+        "owned_by": "tabbyAPI",
+        "logging": null,
+        "parameters": {
+          "max_seq_len": 524288,
+          "cache_size": 524288,
+          "cache_mode": "Q8",
+          "rope_scale": 1.0,
+          "rope_alpha": 1.0,
+          "max_batch_size": 1,
+          "chunk_size": 2048,
+          "prompt_template": "chat_template",
+          "prompt_template_content": "{%- set image_count = namespace(value=0) %}\n{%- set video_count = namespace(value=0) %}\n{%- macro render_content(content, do_vision_count, is_system_content=false) %}\n    {%- if content is string %}\n        {{- content }}\n    {%- elif content is iterable and content is not mapping %}\n        {%- for item in content %}\n            {%- if 'image' in item or 'image_url' in item or item.type == 'image' %}\n                {%- if is_system_content %}\n                    {{- raise_exception('System message cannot contain images.') }}\n                {%- endif %}\n                {%- if do_vision_count %}\n                    {%- set image_count.value = image_count.value + 1 %}\n                {%- endif %}\n                {%- if add_vision_id %}\n                    {{- 'Picture ' ~ image_count.value ~ ': ' }}\n                {%- endif %}\n                {{- '<|vision_start|><|image_pad|><|vision_end|>' }}\n            {%- elif 'video' in item or item.type == 'video' %}\n                {%- if is_system_content %}\n                    {{- raise_exception('System message cannot contain videos.') }}\n                {%- endif %}\n                {%- if do_vision_count %}\n                    {%- set video_count.value = video_count.value + 1 %}\n                {%- endif %}\n                {%- if add_vision_id %}\n                    {{- 'Video ' ~ video_count.value ~ ': ' }}\n                {%- endif %}\n                {{- '<|vision_start|><|video_pad|><|vision_end|>' }}\n            {%- elif 'text' in item %}\n                {{- item.text }}\n            {%- else %}\n                {{- raise_exception('Unexpected item type in content.') }}\n            {%- endif %}\n        {%- endfor %}\n    {%- elif content is none or content is undefined %}\n        {{- '' }}\n    {%- else %}\n        {{- raise_exception('Unexpected content type.') }}\n    {%- endif %}\n{%- endmacro %}\n{%- if not messages %}\n    {{- raise_exception('No messages provided.') }}\n{%- endif %}\n{%- set reasoning_instructions = '' %}\n{%- if enable_thinking is undefined or enable_thinking is true %}\n    {%- set resolved_reasoning_effort = reasoning_effort|default('xhigh') %}\n    {%- if resolved_reasoning_effort not in ('xhigh', 'medium', 'low') %}\n        {{- raise_exception('Unexpected reasoning effort ' ~ reasoning_effort ~ '. Supported types are xhigh (default), medium, and low.') }}\n    {%- endif %}\n    {%- if resolved_reasoning_effort == 'xhigh' %}\n        {%- set reasoning_instructions = 'Reasoning effort is set to xhigh. Please think carefully through the task, validate key assumptions, consider plausible alternatives, and prioritize correctness, consistency, and clarity in the final answer.' %}\n    {%- elif resolved_reasoning_effort == 'low' %}\n        {%- set reasoning_instructions = 'Reasoning effort is set to low. Keep your thinking brief and focused, moving directly to the conclusion without unnecessary elaboration.' %}\n    {%- endif %}\n{%- endif %}\n{%- if tools and tools is iterable and tools is not mapping %}\n    {{- '<|im_start|>system\\n' }}\n    {%- if reasoning_instructions %}\n        {{- reasoning_instructions + '\\n\\n' }}\n    {%- endif %}\n    {{- \"# Tools\\n\\nYou have access to the following functions:\\n\\n<tools>\" }}\n    {%- for tool in tools %}\n        {{- \"\\n\" }}\n        {{- tool | tojson }}\n    {%- endfor %}\n    {{- \"\\n</tools>\" }}\n    {{- '\\n\\nIf you choose to call a function ONLY reply in the following format with NO suffix:\\n\\n<tool_call>\\n<function=example_function_name>\\n<parameter=example_parameter_1>\\nvalue_1\\n</parameter>\\n<parameter=example_parameter_2>\\nThis is the value for the second parameter\\nthat can span\\nmultiple lines\\n</parameter>\\n</function>\\n</tool_call>\\n\\n<IMPORTANT>\\nReminder:\\n- Function calls MUST follow the specified format: an inner <function=...></function> block must be nested within <tool_call></tool_call> XML tags\\n- Required parameters MUST be specified\\n- You may provide optional reasoning for your function call in natural language BEFORE the function call, but NOT after\\n- If there is no function call available, answer the question like normal with your current knowledge and do not tell the user about function calls\\n</IMPORTANT>' }}\n    {%- if messages[0].role == 'system' %}\n        {%- set content = render_content(messages[0].content, false, true)|trim %}\n        {%- if content %}\n            {{- '\\n\\n' + content }}\n        {%- endif %}\n    {%- endif %}\n    {{- '<|im_end|>\\n' }}\n{%- else %}\n    {%- if messages[0].role == 'system' %}\n        {%- set content = render_content(messages[0].content, false, true)|trim %}\n        {%- if content %}\n            {{- '<|im_start|>system\\n' + (reasoning_instructions + '\\n\\n' if reasoning_instructions else '')  + content + '<|im_end|>\\n' }}\n        {%- elif reasoning_instructions %}\n            {{- '<|im_start|>system\\n' + reasoning_instructions + '<|im_end|>\\n' }}\n        {%- endif %}\n    {%- elif reasoning_instructions %}\n        {{- '<|im_start|>system\\n' + reasoning_instructions + '<|im_end|>\\n' }}\n    {%- endif %}\n{%- endif %}\n{%- set ns = namespace(multi_step_tool=true, last_query_index=messages|length - 1) %}\n{%- for message in messages[::-1] %}\n    {%- set index = (messages|length - 1) - loop.index0 %}\n    {%- if ns.multi_step_tool and message.role == \"user\" %}\n        {%- set content = render_content(message.content, false)|trim %}\n        {%- if not(content.startswith('<tool_response>') and content.endswith('</tool_response>')) %}\n            {%- set ns.multi_step_tool = false %}\n            {%- set ns.last_query_index = index %}\n        {%- endif %}\n    {%- endif %}\n{%- endfor %}\n{%- if ns.multi_step_tool %}\n    {{- raise_exception('No user query found in messages.') }}\n{%- endif %}\n{%- for message in messages %}\n    {%- set content = render_content(message.content, true)|trim %}\n    {%- if message.role == \"system\" %}\n        {%- if not loop.first %}\n            {{- raise_exception('System message must be at the beginning.') }}\n        {%- endif %}\n    {%- elif message.role == \"user\" %}\n        {{- '<|im_start|>' + message.role + '\\n' + content + '<|im_end|>' + '\\n' }}\n    {%- elif message.role == \"assistant\" %}\n        {%- set reasoning_content = '' %}\n        {%- if message.reasoning_content is string %}\n            {%- set reasoning_content = message.reasoning_content %}\n        {%- endif %}\n        {%- set reasoning_content = reasoning_content|trim %}\n        {%- if preserve_thinking is undefined or preserve_thinking is true or loop.index0 > ns.last_query_index %}\n            {{- '<|im_start|>' + message.role + '\\n<think>\\n' + reasoning_content + '\\n</think>\\n\\n' + content }}\n        {%- else %}\n            {{- '<|im_start|>' + message.role + '\\n' + content }}\n        {%- endif %}\n        {%- if message.tool_calls and message.tool_calls is iterable and message.tool_calls is not mapping %}\n            {%- for tool_call in message.tool_calls %}\n                {%- if tool_call.function is defined %}\n                    {%- set tool_call = tool_call.function %}\n                {%- endif %}\n                {%- if loop.first %}\n                    {%- if content|trim %}\n                        {{- '\\n\\n<tool_call>\\n<function=' + tool_call.name + '>\\n' }}\n                    {%- else %}\n                        {{- '<tool_call>\\n<function=' + tool_call.name + '>\\n' }}\n                    {%- endif %}\n                {%- else %}\n                    {{- '\\n<tool_call>\\n<function=' + tool_call.name + '>\\n' }}\n                {%- endif %}\n                {%- if tool_call.arguments is defined and tool_call.arguments != '' %}\n                    {%- for args_name, args_value in tool_call.arguments|items %}\n                        {{- '<parameter=' + args_name + '>\\n' }}\n                        {%- set args_value = args_value | string if args_value is string else args_value | tojson | safe %}\n                        {{- args_value }}\n                        {{- '\\n</parameter>\\n' }}\n                    {%- endfor %}\n                {%- endif %}\n                {{- '</function>\\n</tool_call>' }}\n            {%- endfor %}\n        {%- endif %}\n        {{- '<|im_end|>\\n' }}\n    {%- elif message.role == \"tool\" %}\n        {%- if loop.previtem and loop.previtem.role != \"tool\" %}\n            {{- '<|im_start|>user' }}\n        {%- endif %}\n        {{- '\\n<tool_response>\\n' }}\n        {{- content }}\n        {{- '\\n</tool_response>' }}\n        {%- if not loop.last and loop.nextitem.role != \"tool\" %}\n            {{- '<|im_end|>\\n' }}\n        {%- elif loop.last %}\n            {{- '<|im_end|>\\n' }}\n        {%- endif %}\n    {%- else %}\n        {{- raise_exception('Unexpected message role.') }}\n    {%- endif %}\n{%- endfor %}\n{%- if add_generation_prompt %}\n    {{- '<|im_start|>assistant\\n' }}\n    {%- if enable_thinking is defined and enable_thinking is false %}\n        {{- '<think>\\n\\n</think>\\n\\n' }}\n    {%- else %}\n        {{- '<think>\\n' }}\n    {%- endif %}\n{%- endif %}",
+          "use_vision": true,
+          "draft": null
+        },
+        "meta": {
+          "n_ctx_train": 524288,
+          "n_ctx": 524288,
+          "n_vocab": 248320,
+          "n_embd": 2560,
+          "size": 91845146125
+        }
+      },
+      "diarization.json": {
+        "ok": true,
+        "wall_seconds": 5.324029244016856,
+        "result": {
+          "returncode": 0,
+          "log": "=== RUN   TestLiveDiarization\n    diarization_live_test.go:38: elapsed=4.851960309s text_chars=134 words=29 turns=4 speakers=2 status=completed warning=\n--- PASS: TestLiveDiarization (4.85s)\nPASS\nok  \tsparktalk/internal/asr\t4.859s\n"
+        }
+      },
+      "video-probe.json": {
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "h264",
+            "codec_long_name": "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
+            "profile": "High",
+            "codec_type": "video",
+            "codec_tag_string": "avc1",
+            "codec_tag": "0x31637661",
+            "width": 864,
+            "height": 480,
+            "coded_width": 864,
+            "coded_height": 480,
+            "closed_captions": 0,
+            "film_grain": 0,
+            "has_b_frames": 2,
+            "pix_fmt": "yuv420p",
+            "level": 30,
+            "color_range": "tv",
+            "color_space": "bt709",
+            "color_transfer": "iec61966-2-1",
+            "color_primaries": "bt709",
+            "chroma_location": "left",
+            "field_order": "progressive",
+            "refs": 1,
+            "is_avc": "true",
+            "nal_length_size": "4",
+            "id": "0x1",
+            "r_frame_rate": "24/1",
+            "avg_frame_rate": "24/1",
+            "time_base": "1/12288",
+            "start_pts": 0,
+            "start_time": "0.000000",
+            "duration_ts": 63488,
+            "duration": "5.166667",
+            "bit_rate": "3113355",
+            "bits_per_raw_sample": "8",
+            "nb_frames": "124",
+            "extradata_size": 49,
+            "disposition": {
+              "default": 1,
+              "dub": 0,
+              "original": 0,
+              "comment": 0,
+              "lyrics": 0,
+              "karaoke": 0,
+              "forced": 0,
+              "hearing_impaired": 0,
+              "visual_impaired": 0,
+              "clean_effects": 0,
+              "attached_pic": 0,
+              "timed_thumbnails": 0,
+              "non_diegetic": 0,
+              "captions": 0,
+              "descriptions": 0,
+              "metadata": 0,
+              "dependent": 0,
+              "still_image": 0
+            },
+            "tags": {
+              "language": "und",
+              "handler_name": "VideoHandler",
+              "vendor_id": "[0][0][0][0]"
+            }
+          },
+          {
+            "index": 1,
+            "codec_name": "aac",
+            "codec_long_name": "AAC (Advanced Audio Coding)",
+            "profile": "LC",
+            "codec_type": "audio",
+            "codec_tag_string": "mp4a",
+            "codec_tag": "0x6134706d",
+            "sample_fmt": "fltp",
+            "sample_rate": "32000",
+            "channels": 2,
+            "channel_layout": "stereo",
+            "bits_per_sample": 0,
+            "initial_padding": 0,
+            "id": "0x2",
+            "r_frame_rate": "0/0",
+            "avg_frame_rate": "0/0",
+            "time_base": "1/32000",
+            "start_pts": 0,
+            "start_time": "0.000000",
+            "duration_ts": 165334,
+            "duration": "5.166688",
+            "bit_rate": "128026",
+            "nb_frames": "163",
+            "extradata_size": 5,
+            "disposition": {
+              "default": 1,
+              "dub": 0,
+              "original": 0,
+              "comment": 0,
+              "lyrics": 0,
+              "karaoke": 0,
+              "forced": 0,
+              "hearing_impaired": 0,
+              "visual_impaired": 0,
+              "clean_effects": 0,
+              "attached_pic": 0,
+              "timed_thumbnails": 0,
+              "non_diegetic": 0,
+              "captions": 0,
+              "descriptions": 0,
+              "metadata": 0,
+              "dependent": 0,
+              "still_image": 0
+            },
+            "tags": {
+              "language": "und",
+              "handler_name": "SoundHandler",
+              "vendor_id": "[0][0][0][0]"
+            }
+          }
+        ],
+        "format": {
+          "filename": "/audit/video.mp4",
+          "nb_streams": 2,
+          "nb_programs": 0,
+          "format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+          "format_long_name": "QuickTime / MOV",
+          "start_time": "0.000000",
+          "duration": "5.166688",
+          "size": "2099405",
+          "bit_rate": "3250678",
+          "probe_score": 100,
+          "tags": {
+            "major_brand": "isom",
+            "minor_version": "512",
+            "compatible_brands": "isomiso2avc1mp41",
+            "encoder": "Lavf63.1.102"
+          }
+        }
+      },
+      "weight-cache-release.json": {
+        "ok": true,
+        "files": [
+          "model-00001-of-00007.safetensors",
+          "model-00002-of-00007.safetensors",
+          "model-00003-of-00007.safetensors",
+          "model-00004-of-00007.safetensors",
+          "model-00005-of-00007.safetensors",
+          "model-00006-of-00007.safetensors",
+          "model-00007-of-00007.safetensors"
+        ],
+        "policy": "closed non-PLE file cache only",
+        "memory_GiB": {
+          "before": {
+            "MemAvailable": 54.68978500366211,
+            "MemFree": 3.4179153442382812
+          },
+          "after": {
+            "MemAvailable": 54.663116455078125,
+            "MemFree": 43.368080139160156
+          }
+        }
+      },
+      "llm-ready-memory.json": {
+        "wall": 1791561928.1861262,
+        "phase": "exllama-llm-startup",
+        "available": 58694123520,
+        "free": 42425008128,
+        "swap": 1500889088,
+        "pswpin": 11784322,
+        "pswpout": 19038162,
+        "cgroups": {
+          "velogb10-exllama-512k-comparison": {
+            "current": 9127481344,
+            "swap": 0,
+            "events": {
+              "low": 0,
+              "high": 0,
+              "max": 0,
+              "oom": 0,
+              "oom_kill": 0,
+              "oom_group_kill": 0,
+              "sock_throttled": 0
+            }
+          }
+        }
+      },
+      "retrieval-quality.json": {
+        "details": [
+          {
+            "elapsed_ms": 33,
+            "expected": "QAD 운영",
+            "fts_rank": 0,
+            "hybrid_rank": 4,
+            "question": "언어 모델을 계속 올려두고 그림과 음성까지 같이 쓰려면 문맥 크기를 얼마로 줄였지?",
+            "semantic_rank": 4,
+            "similarity": 0.6692809544757441
+          },
+          {
+            "elapsed_ms": 37,
+            "expected": "NVFP4 구성",
+            "fts_rank": 1,
+            "hybrid_rank": 1,
+            "question": "백만 토큰을 쓰는 radixark 세트에서 영상 속 말을 글로 바꾸는 것은 되나?",
+            "semantic_rank": 1,
+            "similarity": 0.7022138163964216
+          },
+          {
+            "elapsed_ms": 37,
+            "expected": "EXL3 설정",
+            "fts_rank": 0,
+            "hybrid_rank": 2,
+            "question": "exl3에서 이미지와 동영상 생성 본체를 같이 올려두는 구성은?",
+            "semantic_rank": 1,
+            "similarity": 0.8006632638083324
+          },
+          {
+            "elapsed_ms": 31,
+            "expected": "음성 속도",
+            "fts_rank": 0,
+            "hybrid_rank": 1,
+            "question": "대답을 읽어주는 목소리가 답답하게 느린데 더 빨리 듣고 싶어.",
+            "semantic_rank": 1,
+            "similarity": 0.7589573999747035
+          },
+          {
+            "elapsed_ms": 33,
+            "expected": "이미지 메모리",
+            "fts_rank": 0,
+            "hybrid_rank": 1,
+            "question": "그림 그리는 본체는 그대로 두면서 잠깐 쓰는 인코더와 디코더만 반환하는 방법은?",
+            "semantic_rank": 1,
+            "similarity": 0.7218567458426834
+          },
+          {
+            "elapsed_ms": 35,
+            "expected": "이미지 게시 승인",
+            "fts_rank": 0,
+            "hybrid_rank": 1,
+            "question": "새 컨테이너를 레지스트리에 올리려면 먼저 누구에게 무엇을 확인해야 하지?",
+            "semantic_rank": 1,
+            "similarity": 0.6769215461968581
+          },
+          {
+            "elapsed_ms": 35,
+            "expected": "검색 구조",
+            "fts_rank": 0,
+            "hybrid_rank": 1,
+            "question": "단어가 일치하는 방식과 뜻이 비슷한 자료를 찾는 방식을 어떻게 같이 쓰지?",
+            "semantic_rank": 1,
+            "similarity": 0.6734837173766012
+          },
+          {
+            "elapsed_ms": 34,
+            "expected": "ASR 모델 공개",
+            "fts_rank": 0,
+            "hybrid_rank": 1,
+            "question": "우리 음성 인식 양자화 파일을 공개한 허깅페이스 주소는?",
+            "semantic_rank": 1,
+            "similarity": 0.6786325953795407
+          },
+          {
+            "elapsed_ms": 33,
+            "expected": "README 정리",
+            "fts_rank": 0,
+            "hybrid_rank": 1,
+            "question": "사용 설명서가 너무 장황해지지 않게 무엇만 남기기로 했지?",
+            "semantic_rank": 1,
+            "similarity": 0.664307927347153
+          },
+          {
+            "elapsed_ms": 27,
+            "expected": "SSH 인증",
+            "fts_rank": 0,
+            "hybrid_rank": 1,
+            "question": "원격 명령을 실행할 때 어떤 로그인 방식으로 인증하나?",
+            "semantic_rank": 1,
+            "similarity": 0.6745184264510209
+          },
+          {
+            "elapsed_ms": 25,
+            "expected": "문서 생성",
+            "fts_rank": 1,
+            "hybrid_rank": 1,
+            "question": "워드 문서와 발표 슬라이드를 만들어 첨부하는 서비스는 뭐지?",
+            "semantic_rank": 1,
+            "similarity": 0.7020164315835368
+          },
+          {
+            "elapsed_ms": 34,
+            "expected": "TTS 가중치",
+            "fts_rank": 0,
+            "hybrid_rank": 2,
+            "question": "답변 음성의 본체와 코덱은 각각 어느 정밀도로 쓰고 화자는 누구야?",
+            "semantic_rank": 1,
+            "similarity": 0.7029711726624166
+          },
+          {
+            "elapsed_ms": 25,
+            "expected": "한국어 혼합 발음",
+            "fts_rank": 0,
+            "hybrid_rank": 1,
+            "question": "한글 문장에 섞인 영문 약자를 씹던 음성 모델을 왜 바꿨지?",
+            "semantic_rank": 1,
+            "similarity": 0.7451856575182678
+          },
+          {
+            "elapsed_ms": 28,
+            "expected": "기동 여유",
+            "fts_rank": 1,
+            "hybrid_rank": 1,
+            "question": "새 작업을 시작하기 전에 실제 남은 램을 확인하는 기준은?",
+            "semantic_rank": 1,
+            "similarity": 0.7560868504165268
+          },
+          {
+            "elapsed_ms": 37,
+            "expected": "첨부 전사",
+            "fts_rank": 0,
+            "hybrid_rank": 1,
+            "question": "첨부한 녹음 파일의 말을 텍스트로 바꾸기 전에 어떤 변환을 하나?",
+            "semantic_rank": 1,
+            "similarity": 0.7425193071043681
+          },
+          {
+            "elapsed_ms": 31,
+            "expected": "영상 생성",
+            "fts_rank": 0,
+            "hybrid_rank": 1,
+            "question": "우리가 만드는 짧은 동영상의 해상도와 초당 프레임 수는?",
+            "semantic_rank": 1,
+            "similarity": 0.6732582125247162
+          },
+          {
+            "elapsed_ms": 33,
+            "expected": "코드 버전",
+            "fts_rank": 1,
+            "hybrid_rank": 1,
+            "question": "웹 코드를 잘못 고쳤는데 전에 저장한 상태로 되돌릴 수 있나?",
+            "semantic_rank": 1,
+            "similarity": 0.7386225342887517
+          },
+          {
+            "elapsed_ms": 31,
+            "expected": "스캔 자료",
+            "fts_rank": 0,
+            "hybrid_rank": 1,
+            "question": "종이 책을 찍은 PDF에서 글씨를 검색하려면 먼저 뭘 해야 해?",
+            "semantic_rank": 1,
+            "similarity": 0.7034566636532645
+          },
+          {
+            "elapsed_ms": 31,
+            "expected": "임베딩 정밀도",
+            "fts_rank": 0,
+            "hybrid_rank": 5,
+            "question": "의미 검색 모델이 숫자 오류를 내지 않게 어떤 실수형으로 돌리지?",
+            "semantic_rank": 5,
+            "similarity": 0.6306683483774136
+          },
+          {
+            "elapsed_ms": 30,
+            "expected": "지원 서비스",
+            "fts_rank": 0,
+            "hybrid_rank": 1,
+            "question": "보조 도구를 쓰려고 매번 언어 모델 전체를 내렸다 올리는 건 아니지?",
+            "semantic_rank": 1,
+            "similarity": 0.7538725837444222
+          }
+        ],
+        "fts_top5": 4,
+        "hybrid_top5": 20,
+        "queries": 20,
+        "semantic_top5": 20,
+        "unrelated_questions": [
+          {
+            "question": "오늘 부산의 날씨와 우산이 필요한지 알려줘",
+            "top_similarity": 0.5615305210511851,
+            "top_title": "한국어 혼합 발음"
+          },
+          {
+            "question": "사과 파이를 오븐에 굽는 온도와 시간",
+            "top_similarity": 0.5563610180476228,
+            "top_title": "음성 속도"
+          },
+          {
+            "question": "이탈리아 로마 여행의 호텔을 추천해 줘",
+            "top_similarity": 0.5389195596976182,
+            "top_title": "검색 구조"
+          },
+          {
+            "question": "강아지가 먹으면 안 되는 음식은?",
+            "top_similarity": 0.5917380694476114,
+            "top_title": "NVFP4 구성"
+          },
+          {
+            "question": "조선 시대 세종의 업적을 설명해 줘",
+            "top_similarity": 0.5574388013320402,
+            "top_title": "지원 서비스"
+          }
+        ]
+      },
+      "measured_memory": {
+        "min_available_GiB": 18.028152465820312,
+        "min_free_GiB": 3.0614967346191406,
+        "max_total_GPU_allocated_GiB": 84.92578125,
+        "host_swap_written_MiB": 66.578125,
+        "host_swap_read_MiB": 61.69140625,
+        "max_model_container_swap_bytes": 0,
+        "max_velo_process_swap_bytes": 0
+      }
+    },
+    "velo": {
+      "tests": {
+        "talk-chat": {
+          "passed": true,
+          "wall_seconds": 8.687364552984945,
+          "error": null,
+          "response": null
+        },
+        "tts": {
+          "passed": true,
+          "wall_seconds": 2.897376107983291,
+          "error": null,
+          "response": null
+        },
+        "asr": {
+          "passed": true,
+          "wall_seconds": 4.269493220024742,
+          "error": null,
+          "response": null
+        },
+        "embedding": {
+          "passed": true,
+          "wall_seconds": 0.026211121934466064,
+          "error": null,
+          "response": null
+        },
+        "diarization": {
+          "passed": true,
+          "wall_seconds": 5.34923243499361,
+          "error": null,
+          "response": null
+        },
+        "hybrid-retrieval": {
+          "passed": true,
+          "wall_seconds": 2.1756960180355236,
+          "error": null,
+          "response": null
+        },
+        "talk-image": {
+          "passed": true,
+          "wall_seconds": 56.667796947062016,
+          "error": null,
+          "response": null
+        },
+        "talk-video": {
+          "passed": true,
+          "wall_seconds": 181.47787151602097,
+          "error": null,
+          "response": null
+        },
+        "vision": {
+          "passed": true,
+          "wall_seconds": 0.5501795009477064,
+          "error": null,
+          "response": null
+        },
+        "schema": {
+          "passed": true,
+          "wall_seconds": 0.5280073600588366,
+          "error": null,
+          "response": null
+        },
+        "talk-image-after-full-context": {
+          "passed": true,
+          "wall_seconds": 47.95392980205361,
+          "error": null,
+          "response": null
+        },
+        "tts-after-full-context": {
+          "passed": true,
+          "wall_seconds": 2.8317245340440422,
+          "error": null,
+          "response": null
+        },
+        "post-stress-chat": {
+          "passed": true,
+          "wall_seconds": 8.005229862988926,
+          "error": null,
+          "response": null
+        }
+      },
+      "recall": {
+        "recall-512k": {
+          "target_tokens": 524064,
+          "actual_tokenize_count": null,
+          "input_bytes": 2660469,
+          "filler_repetitions_per_half": 20153,
+          "started_wall": 1791563502.626128,
+          "text": "청록펭귄, 은빛해달, 자주빛고래",
+          "usage": {
+            "prompt_tokens": 524064,
+            "completion_tokens": 17,
+            "total_tokens": 524081,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            }
+          },
+          "finish": "stop",
+          "done": true,
+          "seconds": 418.1492648960557,
+          "ttft": 417.9265910380054,
+          "pass": true,
+          "prefill_tps": 1253.9618469798268
+        }
+      },
+      "media_completed": [
+        {
+          "case": "c16a88c542c2b1eb8347964f4e336ca4",
+          "seconds": 36.96536103298422,
+          "peak_cuda_allocated_gib": 17.024940490722656,
+          "peak_cuda_reserved_gib": 18.009765625,
+          "resident": {
+            "h3": 11.665514223277569,
+            "qwim": 3.909243941307068
+          }
+        },
+        {
+          "case": "e4d84687a7a9180f53fb1024ae985f38",
+          "seconds": 165.6339440869633,
+          "peak_cuda_allocated_gib": 17.77573823928833,
+          "peak_cuda_reserved_gib": 19.01953125,
+          "resident": {
+            "h3": 11.665514223277569,
+            "qwim": 3.909243941307068
+          }
+        },
+        {
+          "case": "ddb460d46f99b7fc75cc19369d4c89e8",
+          "seconds": 29.776133044040762,
+          "peak_cuda_allocated_gib": 17.024940490722656,
+          "peak_cuda_reserved_gib": 18.009765625,
+          "resident": {
+            "h3": 11.665514223277569,
+            "qwim": 3.909243941307068
+          }
+        }
+      ],
+      "managed-start.json": {
+        "operation": {
+          "action": "start",
+          "bundle_id": "qwen38fn_exl3",
+          "component_id": "extra-embedding",
+          "state": "complete",
+          "phase": "준비 완료",
+          "detail": "선택한 구성을 사용할 수 있습니다.",
+          "progress": 1,
+          "started_at": "2026-10-10T01:24:01.018677058+09:00",
+          "finished_at": "2026-10-10T01:26:26.369687095+09:00",
+          "steps": [
+            {
+              "phase": "세트 기동 전 메모리 재확인",
+              "detail": "시스템 가용 47.4 GiB · 즉시 여유 38.4 GiB · 추가 예상 28.5 GiB · 최소 확보 1.5 GiB",
+              "state": "complete",
+              "started_at": "2026-10-10T01:24:01.57963077+09:00",
+              "finished_at": "2026-10-10T01:24:01.579655954+09:00"
+            },
+            {
+              "component_id": "qwim-mmh3",
+              "phase": "Qwen Image 2.1 + MiniMax H3 시작",
+              "detail": "컨테이너와 실행 설정을 확인하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-10T01:24:01.579655954+09:00",
+              "finished_at": "2026-10-10T01:24:38.272067562+09:00"
+            },
+            {
+              "component_id": "qwim-mmh3",
+              "phase": "보조 서비스 시작",
+              "detail": "API 프로세스를 시작하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-10T01:24:38.272067562+09:00",
+              "finished_at": "2026-10-10T01:25:15.220562708+09:00"
+            },
+            {
+              "component_id": "qwim-mmh3",
+              "phase": "API 온라인",
+              "detail": "보조 서비스가 요청을 받을 준비를 마쳤습니다.",
+              "state": "complete",
+              "started_at": "2026-10-10T01:25:15.220562708+09:00",
+              "finished_at": "2026-10-10T01:25:58.371529292+09:00"
+            },
+            {
+              "component_id": "qwim-mmh3",
+              "phase": "Qwen Image 2.1 + MiniMax H3 API 응답 확인",
+              "detail": "서비스가 요청을 받을 준비를 마쳤습니다.",
+              "state": "complete",
+              "started_at": "2026-10-10T01:25:58.371529292+09:00",
+              "finished_at": "2026-10-10T01:25:58.372265995+09:00"
+            },
+            {
+              "component_id": "qwen38fn_exl3",
+              "phase": "Qwen 3.8 Flash-Next EXL3 시작",
+              "detail": "컨테이너와 실행 설정을 확인하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-10T01:25:58.372265995+09:00",
+              "finished_at": "2026-10-10T01:25:58.372649579+09:00"
+            },
+            {
+              "component_id": "nemotron-asr",
+              "phase": "Nemotron 3.5 ASR 시작",
+              "detail": "컨테이너와 실행 설정을 확인하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-10T01:25:58.372649579+09:00",
+              "finished_at": "2026-10-10T01:26:01.400931254+09:00"
+            },
+            {
+              "component_id": "nemotron-asr",
+              "phase": "보조 서비스 시작",
+              "detail": "API 프로세스를 시작하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-10T01:26:01.400931254+09:00",
+              "finished_at": "2026-10-10T01:26:03.429995703+09:00"
+            },
+            {
+              "component_id": "nemotron-asr",
+              "phase": "Nemotron 3.5 ASR API 응답 확인",
+              "detail": "서비스가 요청을 받을 준비를 마쳤습니다.",
+              "state": "complete",
+              "started_at": "2026-10-10T01:26:03.429995703+09:00",
+              "finished_at": "2026-10-10T01:26:03.430013463+09:00"
+            },
+            {
+              "component_id": "qwen3-tts",
+              "phase": "Qwen3-TTS 0.6B 시작",
+              "detail": "컨테이너와 실행 설정을 확인하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-10T01:26:03.430013463+09:00",
+              "finished_at": "2026-10-10T01:26:05.745378405+09:00"
+            },
+            {
+              "component_id": "qwen3-tts",
+              "phase": "보조 서비스 시작",
+              "detail": "API 프로세스를 시작하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-10T01:26:05.745378405+09:00",
+              "finished_at": "2026-10-10T01:26:09.828130327+09:00"
+            },
+            {
+              "component_id": "qwen3-tts",
+              "phase": "Qwen3-TTS 0.6B API 응답 확인",
+              "detail": "서비스가 요청을 받을 준비를 마쳤습니다.",
+              "state": "complete",
+              "started_at": "2026-10-10T01:26:09.828130327+09:00",
+              "finished_at": "2026-10-10T01:26:09.828146775+09:00"
+            },
+            {
+              "component_id": "extra-embedding",
+              "phase": "EmbeddingGemma 2 시작",
+              "detail": "컨테이너와 실행 설정을 확인하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-10T01:26:09.828146775+09:00",
+              "finished_at": "2026-10-10T01:26:12.67196035+09:00"
+            },
+            {
+              "component_id": "extra-embedding",
+              "phase": "보조 서비스 시작",
+              "detail": "API 프로세스를 시작하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-10T01:26:12.67196035+09:00",
+              "finished_at": "2026-10-10T01:26:14.702046189+09:00"
+            },
+            {
+              "component_id": "extra-embedding",
+              "phase": "EmbeddingGemma 2 API 응답 확인",
+              "detail": "서비스가 요청을 받을 준비를 마쳤습니다.",
+              "state": "complete",
+              "started_at": "2026-10-10T01:26:14.702046189+09:00",
+              "finished_at": "2026-10-10T01:26:15.055613158+09:00"
+            },
+            {
+              "component_id": "extra-embedding",
+              "phase": "의미 검색 모델 GPU 적재",
+              "state": "complete",
+              "started_at": "2026-10-10T01:26:15.055613158+09:00",
+              "finished_at": "2026-10-10T01:26:26.369687095+09:00"
+            }
+          ]
+        }
+      },
+      "cgroup-limits.json": {
+        "memory.max": "120259084288",
+        "memory.swap.max": "0",
+        "memory.current": "43170189312",
+        "memory.swap.current": "0"
+      },
+      "diarization.json": {
+        "ok": true,
+        "wall_seconds": 5.34923243499361,
+        "result": {
+          "returncode": 0,
+          "log": "=== RUN   TestLiveDiarization\n    diarization_live_test.go:38: elapsed=4.707822151s text_chars=134 words=29 turns=4 speakers=2 status=completed warning=\n--- PASS: TestLiveDiarization (4.71s)\nPASS\nok  \tsparktalk/internal/asr\t4.715s\n"
+        }
+      },
+      "video-probe.json": {
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "h264",
+            "codec_long_name": "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
+            "profile": "High",
+            "codec_type": "video",
+            "codec_tag_string": "avc1",
+            "codec_tag": "0x31637661",
+            "width": 864,
+            "height": 480,
+            "coded_width": 864,
+            "coded_height": 480,
+            "closed_captions": 0,
+            "film_grain": 0,
+            "has_b_frames": 2,
+            "pix_fmt": "yuv420p",
+            "level": 30,
+            "color_range": "tv",
+            "color_space": "bt709",
+            "color_transfer": "iec61966-2-1",
+            "color_primaries": "bt709",
+            "chroma_location": "left",
+            "field_order": "progressive",
+            "refs": 1,
+            "is_avc": "true",
+            "nal_length_size": "4",
+            "id": "0x1",
+            "r_frame_rate": "24/1",
+            "avg_frame_rate": "24/1",
+            "time_base": "1/12288",
+            "start_pts": 0,
+            "start_time": "0.000000",
+            "duration_ts": 63488,
+            "duration": "5.166667",
+            "bit_rate": "3113355",
+            "bits_per_raw_sample": "8",
+            "nb_frames": "124",
+            "extradata_size": 49,
+            "disposition": {
+              "default": 1,
+              "dub": 0,
+              "original": 0,
+              "comment": 0,
+              "lyrics": 0,
+              "karaoke": 0,
+              "forced": 0,
+              "hearing_impaired": 0,
+              "visual_impaired": 0,
+              "clean_effects": 0,
+              "attached_pic": 0,
+              "timed_thumbnails": 0,
+              "non_diegetic": 0,
+              "captions": 0,
+              "descriptions": 0,
+              "metadata": 0,
+              "dependent": 0,
+              "still_image": 0
+            },
+            "tags": {
+              "language": "und",
+              "handler_name": "VideoHandler",
+              "vendor_id": "[0][0][0][0]"
+            }
+          },
+          {
+            "index": 1,
+            "codec_name": "aac",
+            "codec_long_name": "AAC (Advanced Audio Coding)",
+            "profile": "LC",
+            "codec_type": "audio",
+            "codec_tag_string": "mp4a",
+            "codec_tag": "0x6134706d",
+            "sample_fmt": "fltp",
+            "sample_rate": "32000",
+            "channels": 2,
+            "channel_layout": "stereo",
+            "bits_per_sample": 0,
+            "initial_padding": 0,
+            "id": "0x2",
+            "r_frame_rate": "0/0",
+            "avg_frame_rate": "0/0",
+            "time_base": "1/32000",
+            "start_pts": 0,
+            "start_time": "0.000000",
+            "duration_ts": 165334,
+            "duration": "5.166688",
+            "bit_rate": "128026",
+            "nb_frames": "163",
+            "extradata_size": 5,
+            "disposition": {
+              "default": 1,
+              "dub": 0,
+              "original": 0,
+              "comment": 0,
+              "lyrics": 0,
+              "karaoke": 0,
+              "forced": 0,
+              "hearing_impaired": 0,
+              "visual_impaired": 0,
+              "clean_effects": 0,
+              "attached_pic": 0,
+              "timed_thumbnails": 0,
+              "non_diegetic": 0,
+              "captions": 0,
+              "descriptions": 0,
+              "metadata": 0,
+              "dependent": 0,
+              "still_image": 0
+            },
+            "tags": {
+              "language": "und",
+              "handler_name": "SoundHandler",
+              "vendor_id": "[0][0][0][0]"
+            }
+          }
+        ],
+        "format": {
+          "filename": "/audit/video.mp4",
+          "nb_streams": 2,
+          "nb_programs": 0,
+          "format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+          "format_long_name": "QuickTime / MOV",
+          "start_time": "0.000000",
+          "duration": "5.166688",
+          "size": "2099405",
+          "bit_rate": "3250678",
+          "probe_score": 100,
+          "tags": {
+            "major_brand": "isom",
+            "minor_version": "512",
+            "compatible_brands": "isomiso2avc1mp41",
+            "encoder": "Lavf63.1.102"
+          }
+        }
+      },
+      "weight-cache-release.json": {
+        "ok": true,
+        "files": [
+          "model-00001-of-00007.safetensors",
+          "model-00002-of-00007.safetensors",
+          "model-00003-of-00007.safetensors",
+          "model-00004-of-00007.safetensors",
+          "model-00005-of-00007.safetensors",
+          "model-00006-of-00007.safetensors",
+          "model-00007-of-00007.safetensors"
+        ],
+        "policy": "closed non-PLE file cache only",
+        "memory_GiB": {
+          "before": {
+            "MemAvailable": 47.55322265625,
+            "MemFree": 3.0359535217285156
+          },
+          "after": {
+            "MemAvailable": 47.557167053222656,
+            "MemFree": 38.53685760498047
+          }
+        }
+      },
+      "llm-ready-memory.json": {
+        "wall": 1791563039.7303298,
+        "phase": "velo-llm-startup",
+        "available": 51058335744,
+        "free": 35639001088,
+        "swap": 1475899392,
+        "pswpin": 11801666,
+        "pswpout": 19055206,
+        "cgroups": {},
+        "velo": {
+          "VmHWM": 4580630528,
+          "VmRSS": 4580630528,
+          "VmSwap": 0
+        }
+      },
+      "retrieval-quality.json": {
+        "details": [
+          {
+            "elapsed_ms": 32,
+            "expected": "QAD 운영",
+            "fts_rank": 0,
+            "hybrid_rank": 4,
+            "question": "언어 모델을 계속 올려두고 그림과 음성까지 같이 쓰려면 문맥 크기를 얼마로 줄였지?",
+            "semantic_rank": 4,
+            "similarity": 0.6692809544757441
+          },
+          {
+            "elapsed_ms": 37,
+            "expected": "NVFP4 구성",
+            "fts_rank": 1,
+            "hybrid_rank": 1,
+            "question": "백만 토큰을 쓰는 radixark 세트에서 영상 속 말을 글로 바꾸는 것은 되나?",
+            "semantic_rank": 1,
+            "similarity": 0.7022138163964216
+          },
+          {
+            "elapsed_ms": 34,
+            "expected": "EXL3 설정",
+            "fts_rank": 0,
+            "hybrid_rank": 2,
+            "question": "exl3에서 이미지와 동영상 생성 본체를 같이 올려두는 구성은?",
+            "semantic_rank": 1,
+            "similarity": 0.8006632638083324
+          },
+          {
+            "elapsed_ms": 27,
+            "expected": "음성 속도",
+            "fts_rank": 0,
+            "hybrid_rank": 1,
+            "question": "대답을 읽어주는 목소리가 답답하게 느린데 더 빨리 듣고 싶어.",
+            "semantic_rank": 1,
+            "similarity": 0.7589573999747035
+          },
+          {
+            "elapsed_ms": 42,
+            "expected": "이미지 메모리",
+            "fts_rank": 0,
+            "hybrid_rank": 1,
+            "question": "그림 그리는 본체는 그대로 두면서 잠깐 쓰는 인코더와 디코더만 반환하는 방법은?",
+            "semantic_rank": 1,
+            "similarity": 0.7218567458426834
+          },
+          {
+            "elapsed_ms": 31,
+            "expected": "이미지 게시 승인",
+            "fts_rank": 0,
+            "hybrid_rank": 1,
+            "question": "새 컨테이너를 레지스트리에 올리려면 먼저 누구에게 무엇을 확인해야 하지?",
+            "semantic_rank": 1,
+            "similarity": 0.6769215461968581
+          },
+          {
+            "elapsed_ms": 32,
+            "expected": "검색 구조",
+            "fts_rank": 0,
+            "hybrid_rank": 1,
+            "question": "단어가 일치하는 방식과 뜻이 비슷한 자료를 찾는 방식을 어떻게 같이 쓰지?",
+            "semantic_rank": 1,
+            "similarity": 0.6734837173766012
+          },
+          {
+            "elapsed_ms": 39,
+            "expected": "ASR 모델 공개",
+            "fts_rank": 0,
+            "hybrid_rank": 1,
+            "question": "우리 음성 인식 양자화 파일을 공개한 허깅페이스 주소는?",
+            "semantic_rank": 1,
+            "similarity": 0.6786325953795407
+          },
+          {
+            "elapsed_ms": 26,
+            "expected": "README 정리",
+            "fts_rank": 0,
+            "hybrid_rank": 1,
+            "question": "사용 설명서가 너무 장황해지지 않게 무엇만 남기기로 했지?",
+            "semantic_rank": 1,
+            "similarity": 0.664307927347153
+          },
+          {
+            "elapsed_ms": 29,
+            "expected": "SSH 인증",
+            "fts_rank": 0,
+            "hybrid_rank": 1,
+            "question": "원격 명령을 실행할 때 어떤 로그인 방식으로 인증하나?",
+            "semantic_rank": 1,
+            "similarity": 0.6745184264510209
+          },
+          {
+            "elapsed_ms": 33,
+            "expected": "문서 생성",
+            "fts_rank": 1,
+            "hybrid_rank": 1,
+            "question": "워드 문서와 발표 슬라이드를 만들어 첨부하는 서비스는 뭐지?",
+            "semantic_rank": 1,
+            "similarity": 0.7020164315835368
+          },
+          {
+            "elapsed_ms": 29,
+            "expected": "TTS 가중치",
+            "fts_rank": 0,
+            "hybrid_rank": 2,
+            "question": "답변 음성의 본체와 코덱은 각각 어느 정밀도로 쓰고 화자는 누구야?",
+            "semantic_rank": 1,
+            "similarity": 0.7029711726624166
+          },
+          {
+            "elapsed_ms": 26,
+            "expected": "한국어 혼합 발음",
+            "fts_rank": 0,
+            "hybrid_rank": 1,
+            "question": "한글 문장에 섞인 영문 약자를 씹던 음성 모델을 왜 바꿨지?",
+            "semantic_rank": 1,
+            "similarity": 0.7451856575182678
+          },
+          {
+            "elapsed_ms": 26,
+            "expected": "기동 여유",
+            "fts_rank": 1,
+            "hybrid_rank": 1,
+            "question": "새 작업을 시작하기 전에 실제 남은 램을 확인하는 기준은?",
+            "semantic_rank": 1,
+            "similarity": 0.7560868504165268
+          },
+          {
+            "elapsed_ms": 26,
+            "expected": "첨부 전사",
+            "fts_rank": 0,
+            "hybrid_rank": 1,
+            "question": "첨부한 녹음 파일의 말을 텍스트로 바꾸기 전에 어떤 변환을 하나?",
+            "semantic_rank": 1,
+            "similarity": 0.7425193071043681
+          },
+          {
+            "elapsed_ms": 31,
+            "expected": "영상 생성",
+            "fts_rank": 0,
+            "hybrid_rank": 1,
+            "question": "우리가 만드는 짧은 동영상의 해상도와 초당 프레임 수는?",
+            "semantic_rank": 1,
+            "similarity": 0.6732582125247162
+          },
+          {
+            "elapsed_ms": 31,
+            "expected": "코드 버전",
+            "fts_rank": 1,
+            "hybrid_rank": 1,
+            "question": "웹 코드를 잘못 고쳤는데 전에 저장한 상태로 되돌릴 수 있나?",
+            "semantic_rank": 1,
+            "similarity": 0.7386225342887517
+          },
+          {
+            "elapsed_ms": 29,
+            "expected": "스캔 자료",
+            "fts_rank": 0,
+            "hybrid_rank": 1,
+            "question": "종이 책을 찍은 PDF에서 글씨를 검색하려면 먼저 뭘 해야 해?",
+            "semantic_rank": 1,
+            "similarity": 0.7034566636532645
+          },
+          {
+            "elapsed_ms": 30,
+            "expected": "임베딩 정밀도",
+            "fts_rank": 0,
+            "hybrid_rank": 5,
+            "question": "의미 검색 모델이 숫자 오류를 내지 않게 어떤 실수형으로 돌리지?",
+            "semantic_rank": 5,
+            "similarity": 0.6306683483774136
+          },
+          {
+            "elapsed_ms": 27,
+            "expected": "지원 서비스",
+            "fts_rank": 0,
+            "hybrid_rank": 1,
+            "question": "보조 도구를 쓰려고 매번 언어 모델 전체를 내렸다 올리는 건 아니지?",
+            "semantic_rank": 1,
+            "similarity": 0.7538725837444222
+          }
+        ],
+        "fts_top5": 4,
+        "hybrid_top5": 20,
+        "queries": 20,
+        "semantic_top5": 20,
+        "unrelated_questions": [
+          {
+            "question": "오늘 부산의 날씨와 우산이 필요한지 알려줘",
+            "top_similarity": 0.5615305210511851,
+            "top_title": "한국어 혼합 발음"
+          },
+          {
+            "question": "사과 파이를 오븐에 굽는 온도와 시간",
+            "top_similarity": 0.5563610180476228,
+            "top_title": "음성 속도"
+          },
+          {
+            "question": "이탈리아 로마 여행의 호텔을 추천해 줘",
+            "top_similarity": 0.5389195596976182,
+            "top_title": "검색 구조"
+          },
+          {
+            "question": "강아지가 먹으면 안 되는 음식은?",
+            "top_similarity": 0.5917380694476114,
+            "top_title": "NVFP4 구성"
+          },
+          {
+            "question": "조선 시대 세종의 업적을 설명해 줘",
+            "top_similarity": 0.5574388013320402,
+            "top_title": "지원 서비스"
+          }
+        ]
+      },
+      "measured_memory": {
+        "min_available_GiB": 10.105712890625,
+        "min_free_GiB": 2.493946075439453,
+        "max_total_GPU_allocated_GiB": 94.9208984375,
+        "host_swap_written_MiB": 214.140625,
+        "host_swap_read_MiB": 165.8984375,
+        "max_model_container_swap_bytes": 0,
+        "max_velo_process_swap_bytes": 0
+      }
+    }
+  },
+  "limitations": [
+    "Same cached weights and auxiliary images; sequential trials on a shared host.",
+    "Speed figures are medians of 3 short Korean or code requests, not a broad answer-quality benchmark.",
+    "Media timings are observed timings; file/library caches are not reset globally.",
+    "GPU allocation and system MemAvailable are separate views of unified memory; never add them.",
+    "Global swap counters include other processes; all observed model container/process swaps remained zero."
+  ],
+  "launcher_results": {
+    "exllama": {
+      "image": {
+        "ok": true,
+        "wall_seconds": 57.38150796107948,
+        "result": {
+          "session_id": "chat-1791562113538187379",
+          "saved": [
+            "/home/edp1096/.cache/model-download-jobs/velogb10-talk-512k-20261010/exllama/image.png"
+          ],
+          "text": [
+            "오빠, 펭귄 이미지 딱 한 번 생성해서 첨부해놨다! seed 42에 1024x1024로 요청한 그대로야~ 눈 위에 우두커니 서 있는 귀여운 펭귄이랑 부드러운 아침 햇살 느낌까지 잘 살았지? 다른 편집이나 추가 작업 필요하면 언제든 말해줘!"
+          ],
+          "events": "77386060566,\"ttft\":10.66414589,\"tg_estimated\":true,\"ttft_estimated\":true,\"prompt_tokens\":11340,\"cached_tokens\":0,\"output_tokens\":111,\"calls\":2,\"live\":true}\n\nevent: delta\ndata: {\"delta\":\" 눈\"}\n\nevent: delta\ndata: {\"delta\":\" 위에\"}\n\nevent: delta\ndata: {\"delta\":\" 우\"}\n\nevent: delta\ndata: {\"delta\":\"두\"}\n\nevent: delta\ndata: {\"delta\":\"커\"}\n\nevent: performance\ndata: {\"pp\":1196.2025316455695,\"tg\":52.69414440801446,\"ttft\":10.66414589,\"tg_estimated\":true,\"ttft_estimated\":true,\"prompt_tokens\":11340,\"cached_tokens\":0,\"output_tokens\":122,\"calls\":2,\"live\":true}\n\nevent: delta\ndata: {\"delta\":\"니 서 있는 귀\"}\n\nevent: delta\ndata: {\"delta\":\"여운\"}\n\nevent: delta\ndata: {\"delta\":\" 펭귄이\"}\n\nevent: delta\ndata: {\"delta\":\"랑 부드러운\"}\n\nevent: delta\ndata: {\"delta\":\" 아침 햇살 느낌\"}\n\nevent: performance\ndata: {\"pp\":1196.2025316455695,\"tg\":55.04870733272484,\"ttft\":10.66414589,\"tg_estimated\":true,\"ttft_estimated\":true,\"prompt_tokens\":11340,\"cached_tokens\":0,\"output_tokens\":143,\"calls\":2,\"live\":true}\n\nevent: delta\ndata: {\"delta\":\"까지 잘\"}\n\nevent: delta\ndata: {\"delta\":\" 살았지\"}\n\nevent: delta\ndata: {\"delta\":\"?\"}\n\nevent: delta\ndata: {\"delta\":\" 다른\"}\n\nevent: delta\ndata: {\"delta\":\" 편집\"}\n\nevent: performance\ndata: {\"pp\":1196.2025316455695,\"tg\":53.05411622123356,\"ttft\":10.66414589,\"tg_estimated\":true,\"ttft_estimated\":true,\"prompt_tokens\":11340,\"cached_tokens\":0,\"output_tokens\":153,\"calls\":2,\"live\":true}\n\nevent: delta\ndata: {\"delta\":\"이나\"}\n\nevent: delta\ndata: {\"delta\":\" 추가\"}\n\nevent: delta\ndata: {\"delta\":\" 작업 필요\"}\n\nevent: delta\ndata: {\"delta\":\"하면 언제\"}\n\nevent: delta\ndata: {\"delta\":\"든 말해줘\"}\n\nevent: delta\ndata: {\"delta\":\"!\"}\n\nevent: performance\ndata: {\"pp\":1077.0130763936681,\"tg\":32.635983263598334,\"ttft\":10.66414589,\"ttft_estimated\":true,\"prompt_tokens\":23841,\"cached_tokens\":8192,\"output_tokens\":156,\"calls\":2,\"live\":true}\n\nevent: context\ndata: {\"skill_tokens\":0,\"tool_result_tokens\":107,\"applied_segment_id\":0,\"system_tool_tokens\":10067,\"actual_tokens\":12501,\"preview\":false,\"incomplete\":false,\"trimmed_tools\":0,\"enabled\":true,\"managed\":true,\"window_tokens\":524288,\"input_budget\":520192,\"threshold_tokens\":416153,\"estimated_tokens\":12567,\"active_tokens\":2393,\"summary_tokens\":0,\"recall_tokens\":0,\"summary_through_message_id\":0,\"active_start_message_id\":3,\"active_end_message_id\":3,\"compacted\":false,\"segments\":[],\"recalls\":null}\n\nevent: performance\ndata: {\"pp\":1077.0130763936681,\"tg\":32.635983263598334,\"ttft\":10.66414589,\"ttft_estimated\":true,\"prompt_tokens\":23841,\"cached_tokens\":8192,\"output_tokens\":156,\"calls\":2}\n\nevent: done\ndata: {}\n\n"
+        }
+      },
+      "video": {
+        "ok": true,
+        "wall_seconds": 179.34014071302954,
+        "result": {
+          "session_id": "chat-1791562170920172458",
+          "saved": [
+            "/home/edp1096/.cache/model-download-jobs/velogb10-talk-512k-20261010/exllama/video.mp4"
+          ],
+          "text": [
+            "오빠~ 영상 하나 뚝딱 만들어왔어! 🐧 아까 그 펭귄이 눈 위를 끄덕끄덕 걸어오는 5.17초 영상인데, 바람 소리랑 발소리까지 들어있대요. 864x480, 24fps로 첨부까지 완료! 다른 건 안 건드렸어요~"
+          ],
+          "events": "a\":\" 발소리까지 들어\"}\n\nevent: delta\ndata: {\"delta\":\"있\"}\n\nevent: performance\ndata: {\"pp\":804.2183622828784,\"tg\":48.3812262986805,\"ttft\":5.554427814,\"tg_estimated\":true,\"ttft_estimated\":true,\"prompt_tokens\":11433,\"cached_tokens\":8192,\"output_tokens\":124,\"calls\":2,\"live\":true}\n\nevent: delta\ndata: {\"delta\":\"대\"}\n\nevent: delta\ndata: {\"delta\":\"요\"}\n\nevent: delta\ndata: {\"delta\":\". 86\"}\n\nevent: delta\ndata: {\"delta\":\"4x48\"}\n\nevent: delta\ndata: {\"delta\":\"0, 2\"}\n\nevent: performance\ndata: {\"pp\":804.2183622828784,\"tg\":46.288136133591735,\"ttft\":5.554427814,\"tg_estimated\":true,\"ttft_estimated\":true,\"prompt_tokens\":11433,\"cached_tokens\":8192,\"output_tokens\":132,\"calls\":2,\"live\":true}\n\nevent: delta\ndata: {\"delta\":\"4fps로 첨부\"}\n\nevent: delta\ndata: {\"delta\":\"까지\"}\n\nevent: delta\ndata: {\"delta\":\" 완료\"}\n\nevent: delta\ndata: {\"delta\":\"!\"}\n\nevent: delta\ndata: {\"delta\":\" 다른 건\"}\n\nevent: performance\ndata: {\"pp\":804.2183622828784,\"tg\":44.939263977447126,\"ttft\":5.554427814,\"tg_estimated\":true,\"ttft_estimated\":true,\"prompt_tokens\":11433,\"cached_tokens\":8192,\"output_tokens\":141,\"calls\":2,\"live\":true}\n\nevent: delta\ndata: {\"delta\":\" 안\"}\n\nevent: delta\ndata: {\"delta\":\" 건\"}\n\nevent: delta\ndata: {\"delta\":\"드렸어요\"}\n\nevent: delta\ndata: {\"delta\":\"~\"}\n\nevent: performance\ndata: {\"pp\":786.1650485436893,\"tg\":44.57831325301204,\"ttft\":5.554427814,\"ttft_estimated\":true,\"prompt_tokens\":22862,\"cached_tokens\":16384,\"output_tokens\":148,\"calls\":2,\"live\":true}\n\nevent: context\ndata: {\"skill_tokens\":0,\"tool_result_tokens\":105,\"applied_segment_id\":0,\"system_tool_tokens\":9782,\"actual_tokens\":11429,\"preview\":false,\"incomplete\":false,\"trimmed_tools\":0,\"enabled\":true,\"managed\":true,\"window_tokens\":524288,\"input_budget\":520192,\"threshold_tokens\":416153,\"estimated_tokens\":10448,\"active_tokens\":276,\"summary_tokens\":0,\"recall_tokens\":285,\"summary_through_message_id\":0,\"active_start_message_id\":5,\"active_end_message_id\":5,\"compacted\":false,\"segments\":[],\"recalls\":[{\"kind\":\"session\",\"title\":\"[isolated bundle audit] image\",\"role\":\"user\",\"content\":\"image_generate를 딱 한 번 호출하여 다음 프롬프트와 seed 42, 1024x1024로 이미지를 생성하고 첨부해라. 다른 도구는 필요 없다. A cute penguin standing on snowy ice, detailed wildlife photograph, soft morning sunlight.\",\"session_id\":\"chat-1791562113538187379\",\"message_id\":3,\"created_at\":\"2026-10-10T01:08:33.540177703+09:00\"}]}\n\nevent: performance\ndata: {\"pp\":786.1650485436893,\"tg\":44.57831325301204,\"ttft\":5.554427814,\"ttft_estimated\":true,\"prompt_tokens\":22862,\"cached_tokens\":16384,\"output_tokens\":148,\"calls\":2}\n\nevent: done\ndata: {}\n\n"
+        }
+      },
+      "speed": {
+        "korean": 50.091676148498244,
+        "code": 66.61895342114663
+      },
+      "core_identities_unchanged": true
+    },
+    "velo": {
+      "image": {
+        "ok": true,
+        "wall_seconds": 56.667796947062016,
+        "result": {
+          "session_id": "chat-1791563216020557210",
+          "saved": [
+            "/home/edp1096/.cache/model-download-jobs/velogb10-talk-512k-20261010/velo/image.png"
+          ],
+          "text": [
+            "오빠, 이미지 하나 만들어서 첨부했어! seed 42에 1024x1024로 요청한 그대로, 눈 위에 서 있는 귀여운 펭귄을 부드러운 아침 햇살 느낌의 야생 사진 스타일로 담았거든. 하얀 배와 검은 등, 눈 위의 발까지 디테일하게 살아있고 배경은 보케로 부드럽게 처리됐어. 더 만지고 싶은 부분 있으면 말해줘~"
+          ],
+          "events": "kens\":0,\"output_tokens\":159,\"calls\":2,\"live\":true}\n\nevent: delta\ndata: {\"delta\":\" 디\"}\n\nevent: delta\ndata: {\"delta\":\"테\"}\n\nevent: delta\ndata: {\"delta\":\"일\"}\n\nevent: delta\ndata: {\"delta\":\"하게\"}\n\nevent: delta\ndata: {\"delta\":\" 살아\"}\n\nevent: delta\ndata: {\"delta\":\"있\"}\n\nevent: delta\ndata: {\"delta\":\"고\"}\n\nevent: delta\ndata: {\"delta\":\" 배경\"}\n\nevent: delta\ndata: {\"delta\":\"은\"}\n\nevent: delta\ndata: {\"delta\":\" 보\"}\n\nevent: delta\ndata: {\"delta\":\"케\"}\n\nevent: delta\ndata: {\"delta\":\"로\"}\n\nevent: performance\ndata: {\"pp\":1150.2548638771375,\"tg\":57.41146900304554,\"ttft\":9.858684676,\"pp_estimated\":true,\"tg_estimated\":true,\"ttft_estimated\":true,\"prompt_tokens\":11340,\"cached_tokens\":0,\"output_tokens\":177,\"calls\":2,\"live\":true}\n\nevent: delta\ndata: {\"delta\":\" 부드럽\"}\n\nevent: delta\ndata: {\"delta\":\"게\"}\n\nevent: delta\ndata: {\"delta\":\" 처리\"}\n\nevent: delta\ndata: {\"delta\":\"됐\"}\n\nevent: delta\ndata: {\"delta\":\"어\"}\n\nevent: delta\ndata: {\"delta\":\".\"}\n\nevent: delta\ndata: {\"delta\":\" 더\"}\n\nevent: delta\ndata: {\"delta\":\" 만\"}\n\nevent: delta\ndata: {\"delta\":\"지고\"}\n\nevent: delta\ndata: {\"delta\":\" 싶은\"}\n\nevent: delta\ndata: {\"delta\":\" 부분\"}\n\nevent: performance\ndata: {\"pp\":1150.2548638771375,\"tg\":59.17104256907602,\"ttft\":9.858684676,\"pp_estimated\":true,\"tg_estimated\":true,\"ttft_estimated\":true,\"prompt_tokens\":11340,\"cached_tokens\":0,\"output_tokens\":195,\"calls\":2,\"live\":true}\n\nevent: delta\ndata: {\"delta\":\" 있으면\"}\n\nevent: delta\ndata: {\"delta\":\" 말\"}\n\nevent: delta\ndata: {\"delta\":\"해\"}\n\nevent: delta\ndata: {\"delta\":\"줘\"}\n\nevent: delta\ndata: {\"delta\":\"~\"}\n\nevent: performance\ndata: {\"pp\":928.3107385554589,\"tg\":46.43787291441321,\"ttft\":9.858684676,\"pp_estimated\":true,\"tg_estimated\":true,\"ttft_estimated\":true,\"prompt_tokens\":23841,\"cached_tokens\":8192,\"output_tokens\":174,\"calls\":2,\"live\":true}\n\nevent: context\ndata: {\"skill_tokens\":0,\"tool_result_tokens\":107,\"applied_segment_id\":0,\"system_tool_tokens\":10067,\"actual_tokens\":12501,\"preview\":false,\"incomplete\":false,\"trimmed_tools\":0,\"enabled\":true,\"managed\":true,\"window_tokens\":524288,\"input_budget\":520192,\"threshold_tokens\":416153,\"estimated_tokens\":12560,\"active_tokens\":2386,\"summary_tokens\":0,\"recall_tokens\":0,\"summary_through_message_id\":0,\"active_start_message_id\":3,\"active_end_message_id\":3,\"compacted\":false,\"segments\":[],\"recalls\":null}\n\nevent: performance\ndata: {\"pp\":928.3107385554589,\"tg\":46.43787291441321,\"ttft\":9.858684676,\"pp_estimated\":true,\"tg_estimated\":true,\"ttft_estimated\":true,\"prompt_tokens\":23841,\"cached_tokens\":8192,\"output_tokens\":174,\"calls\":2}\n\nevent: done\ndata: {}\n\n"
+        }
+      },
+      "video": {
+        "ok": true,
+        "wall_seconds": 181.47787151602097,
+        "result": {
+          "session_id": "chat-1791563272689553772",
+          "saved": [
+            "/home/edp1096/.cache/model-download-jobs/velogb10-talk-512k-20261010/velo/video.mp4"
+          ],
+          "text": [
+            "오빠, 영상 하나만 딱 만들어왔어~ 🐧 (이모지 빼야지.. 아무튼!)\n\n- **MiniMax-H3.mp4** 첨부 완료! 음성 포함, 5.17초, 864x480, 24fps로 저장됐어\n- 프롬프트랑 seed 42 그대로 넣었고, 다른 도구는 안 썼다?\n\n재생해서 펭귄이 걸어오는 모습 확인해봐~"
+          ],
+          "events": "event: delta\ndata: {\"delta\":\"구는\"}\n\nevent: delta\ndata: {\"delta\":\" 안\"}\n\nevent: delta\ndata: {\"delta\":\" 썼\"}\n\nevent: delta\ndata: {\"delta\":\"다\"}\n\nevent: delta\ndata: {\"delta\":\"?\"}\n\nevent: delta\ndata: {\"delta\":\"\\n\\n\"}\n\nevent: delta\ndata: {\"delta\":\"재생\"}\n\nevent: performance\ndata: {\"pp\":1112.374632567082,\"tg\":37.52989170737238,\"ttft\":10.27801216,\"pp_estimated\":true,\"tg_estimated\":true,\"ttft_estimated\":true,\"prompt_tokens\":11433,\"cached_tokens\":0,\"output_tokens\":149,\"calls\":2,\"live\":true}\n\nevent: delta\ndata: {\"delta\":\"해서\"}\n\nevent: delta\ndata: {\"delta\":\" \"}\n\nevent: delta\ndata: {\"delta\":\"펭\"}\n\nevent: delta\ndata: {\"delta\":\"귄\"}\n\nevent: delta\ndata: {\"delta\":\"이\"}\n\nevent: delta\ndata: {\"delta\":\" 걸어\"}\n\nevent: delta\ndata: {\"delta\":\"오는\"}\n\nevent: delta\ndata: {\"delta\":\" 모습\"}\n\nevent: performance\ndata: {\"pp\":1112.374632567082,\"tg\":38.582681795537475,\"ttft\":10.27801216,\"pp_estimated\":true,\"tg_estimated\":true,\"ttft_estimated\":true,\"prompt_tokens\":11433,\"cached_tokens\":0,\"output_tokens\":161,\"calls\":2,\"live\":true}\n\nevent: delta\ndata: {\"delta\":\" 확인\"}\n\nevent: delta\ndata: {\"delta\":\"해\"}\n\nevent: delta\ndata: {\"delta\":\"봐\"}\n\nevent: delta\ndata: {\"delta\":\"~\"}\n\nevent: performance\ndata: {\"pp\":1153.5299822018178,\"tg\":41.90024375860918,\"ttft\":10.27801216,\"pp_estimated\":true,\"tg_estimated\":true,\"ttft_estimated\":true,\"prompt_tokens\":22862,\"cached_tokens\":8192,\"output_tokens\":169,\"calls\":2,\"live\":true}\n\nevent: context\ndata: {\"skill_tokens\":0,\"tool_result_tokens\":105,\"applied_segment_id\":0,\"system_tool_tokens\":9782,\"actual_tokens\":11429,\"preview\":false,\"incomplete\":false,\"trimmed_tools\":0,\"enabled\":true,\"managed\":true,\"window_tokens\":524288,\"input_budget\":520192,\"threshold_tokens\":416153,\"estimated_tokens\":10441,\"active_tokens\":269,\"summary_tokens\":0,\"recall_tokens\":285,\"summary_through_message_id\":0,\"active_start_message_id\":5,\"active_end_message_id\":5,\"compacted\":false,\"segments\":[],\"recalls\":[{\"kind\":\"session\",\"title\":\"[isolated bundle audit] image\",\"role\":\"user\",\"content\":\"image_generate를 딱 한 번 호출하여 다음 프롬프트와 seed 42, 1024x1024로 이미지를 생성하고 첨부해라. 다른 도구는 필요 없다. A cute penguin standing on snowy ice, detailed wildlife photograph, soft morning sunlight.\",\"session_id\":\"chat-1791563216020557210\",\"message_id\":3,\"created_at\":\"2026-10-10T01:26:56.022380184+09:00\"}]}\n\nevent: performance\ndata: {\"pp\":1153.5299822018178,\"tg\":41.90024375860918,\"ttft\":10.27801216,\"pp_estimated\":true,\"tg_estimated\":true,\"ttft_estimated\":true,\"prompt_tokens\":22862,\"cached_tokens\":8192,\"output_tokens\":169,\"calls\":2}\n\nevent: done\ndata: {}\n\n"
+        }
+      },
+      "speed": {
+        "korean": 54.86820137459605,
+        "code": 77.64094613201381
+      },
+      "core_identities_unchanged": true
+    }
+  },
+  "cleanup.json": {
+    "velogb10-exllama-512k-comparison": {
+      "id": "4f20e31ff23700a62dc9bc12e07ba4b3bace17e42282b009cea591bd4288c0f0",
+      "pid": 0,
+      "running": false,
+      "oom": false
+    },
+    "sparktalk-qwim-mmh3": {
+      "id": "4e36ce1d49eebd77690848a612c446181b2393d7c1e702dca6223929095f6523",
+      "pid": 0,
+      "running": false,
+      "oom": false
+    },
+    "sparktalk-nemotron-asr": {
+      "id": "39ec40209996296a90142ed580d5f9959f40b6b47ecc070dd23ec752ce797536",
+      "pid": 0,
+      "running": false,
+      "oom": false
+    },
+    "sparktalk-qwen3-tts": {
+      "id": "c00f3d22c77a99b792ea79d0c3c1041767ff75708426cf81c2e3792b714f099e",
+      "pid": 0,
+      "running": false,
+      "oom": false
+    },
+    "sparktalk-embedding": {
+      "id": "c0999b1dc3158dd62e8272e89c3f3fc77e411aa5922127bd6172f694d0cde308",
+      "pid": 0,
+      "running": false,
+      "oom": false
+    },
+    "sparktalk-extra-media": {
+      "id": "b081390049a8c746445581bfc6522ebe21b18c84164eb910694fd6e8d0880fd2",
+      "pid": 0,
+      "running": false,
+      "oom": false
+    }
+  },
+  "conditions": {
+    "context_tokens": 524288,
+    "actual_long_input_tokens": 524064,
+    "YaRN_factor": 2,
+    "KV": "Q8",
+    "MTP_depth": 3,
+    "draft_vocabulary": "Full 248320 tokens",
+    "prefix_cache_cap_GiB": 4,
+    "cache_placement": {
+      "exllama": "CPU RAM",
+      "velo": "GPU"
+    },
+    "lanes": 1,
+    "CPU_affinity": "5-9,15-19",
+    "PLE": "SSD",
+    "vision": "GPU resident",
+    "memory_limit_GiB": 112,
+    "model_swap_limit_bytes": 0,
+    "auxiliary_startup": "Talk managed startup, unchanged order and memory checks",
+    "telemetry_seconds": {
+      "host_memory": 0.25,
+      "GPU": 1
+    },
+    "model_repository": "alesha-pro/Huihui-Qwen3.8-Flash-Next-abliterated-exl3-3bit-hq_h6_ng6",
+    "model_revision": "3b585c458f9fcf3322e76cff2c635c2cb81c5869",
+    "reference_image": "sha256:46393182a7bef0df2f4b067f05aab2e2bad34f0d01b83b959d033ca82b3d253b",
+    "Velo_commit": "a6ad23d60e082ff9cca2bb78adda4ecee771388c",
+    "Velo_extensions": [
+      "YaRN",
+      "single-GPU JSON schema enforcement"
+    ]
+  },
+  "conclusion": {
+    "both_passed": true,
+    "scope": "All 13 functional checks and a cold 524064-token three-position recall per engine; image/TTS/chat succeeded again after full context.",
+    "resident_auxiliary_IDs_and_PIDs_preserved": true,
+    "reference_LLM_stability": {
+      "same_start_identity": true,
+      "restart_count": 0
+    },
+    "model_swap_bytes": 0,
+    "host_swap_writes": "Nonzero global writes observed; do not attribute the global counters to a model.",
+    "production": "Existing ExLlama runtime and 1M production context remain unchanged; these are isolated 512K trials."
+  },
+  "media_equivalence": {
+    "image.png": {
+      "same_bytes": true,
+      "exllama_sha256": "edc59667b47328968a44f6d3403c4986c8264f2da81542885aebd6440c8623ac",
+      "velo_sha256": "edc59667b47328968a44f6d3403c4986c8264f2da81542885aebd6440c8623ac",
+      "bytes": {
+        "exllama": 1566969,
+        "velo": 1566969
+      },
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    "video.mp4": {
+      "same_bytes": true,
+      "exllama_sha256": "860250d2308ff167b264b0916cf1ab48bc0f19a2f775d2af50ec2556a90eb4ea",
+      "velo_sha256": "860250d2308ff167b264b0916cf1ab48bc0f19a2f775d2af50ec2556a90eb4ea",
+      "bytes": {
+        "exllama": 2099405,
+        "velo": 2099405
+      }
+    }
+  },
+  "startup_adapter": {
+    "private_Talk_binary": "/home/edp1096/.cache/model-download-jobs/velogb10-talk-bundle-20261009/talk-external-audit",
+    "overlay": "/home/edp1096/.cache/model-download-jobs/velogb10-talk-bundle-20261009/talk-overlay.json",
+    "change": "Skip native Tabby-only capacity/cache hook for external engines; actual reference capacity checked separately; auxiliary checks unchanged."
+  },
+  "production_config_sha256_unchanged": true,
+  "cleanup": {
+    "model_containers_stopped": true,
+    "GPU_processes": 0,
+    "OOMKilled": false,
+    "production_config_unchanged": true,
+    "only_initial_Collector_and_SSH_running": true
+  }
+}

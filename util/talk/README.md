@@ -35,7 +35,9 @@ Private keys and state backups remain separate from the executable and source.
 외부 모델 서버를 연결하거나 세트·실행 호스트를 바꾸려면 [AI 세트 설정](examples/README.md)을 참고하세요.
 
 `Qwen 3.8 Flash-Next FP4-Local`은 로컬에서 제작한 Huihui v2 체크포인트를 사용합니다.
-[Compose 구성과 준비 조건](../../compose_yaml/qwen38_fn_fp4_local_vllm/README.md)을 참고하세요.
+[Compose 구성과 준비 조건](../../compose_yaml/qwen38_fn_fp4_local_tsfold/README.md)을 참고하세요.
+
+The Qwen FP4-Local and EXL3 3bit TensorFold deployments use Talk-owned embedded Compose files and build contexts. The recipes under `compose_yaml` are independent standalone deployments; Talk neither copies them during packaging nor reads them at runtime.
 
 - **라이브러리**: 기억·문서 지식·스킬·작업 절차를 관리합니다.
 - **도구 메뉴**: 웹검색·음성대기·대화별 SSH 허용을 설정합니다.
@@ -67,3 +69,7 @@ npm run dev
 
 개발 화면은 `http://127.0.0.1:5173`입니다.
 DGX Spark 자동기동용 [systemd 서비스](deploy/systemd/sparktalk.service)는 실제 설치 경로에 맞춰 사용합니다.
+
+GLM 5.3 Flash FP4-Local uses the independently packaged `recipe_sources/glm53-fp4` runtime: two Sparks, vLLM/B12X, FP8 KV, 1M context, MTP 5 and Huihui abliterated weights by default. MTP 1 is selectable for Korean decode. Talk never reads `compose_yaml` at runtime. The standalone recipe and comparison evidence are in [glm53f_fp4_local_vllm](../../compose_yaml/glm53f_fp4_local_vllm/README.md).
+
+Source: the active recipe's pinned model/runtime references and local qualification records.

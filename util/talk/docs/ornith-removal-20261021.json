@@ -1,0 +1,59 @@
+{
+  "status": "completed",
+  "talk_revision": 51,
+  "active_model": "qwen38fn_exl3",
+  "compose_archive": "compose_yaml/zzz_not_use/ornith35_vllm",
+  "preserved": [
+    "Qwen EXL3 running container and start time",
+    "Qwen weights and shared base images",
+    "EmbeddingGemma and support services",
+    "Conversation history",
+    "Archived Compose source"
+  ],
+  "validation": {
+    "go_tests": "go test ./... passed",
+    "support_assets": "109 files verified",
+    "recipe_assets": "all four recipes verified",
+    "ornith_in_talk_catalog": false,
+    "qwen_container_unchanged": true
+  },
+  "hosts": {
+    "61": {
+      "removed_paths": [
+        "/home/edp1096/.cache/model-download-jobs/ornith-gemma26",
+        "/home/edp1096/.cache/huggingface/hub/models--jzinno--Ornith-1.5-35B-A3B-DFlash2",
+        "/home/edp1096/.cache/docushore/models/ornith",
+        "/home/edp1096/.cache/huggingface/edp1096/Huihui-Ornith-1.5-35B-A3B-NVFP4",
+        "/home/edp1096/.cache/huggingface/hub/models--ornith-ai--Ornith-1.5-35B-A3B-NVFP4",
+        "/home/edp1096/.local/share/sparktalk/cache/vllm-ornith35",
+        "/home/edp1096/.cache/huggingface/hub/.locks/models--ornith-ai--Ornith-1.5-35B-A3B",
+        "/home/edp1096/.cache/huggingface/hub/.locks/models--huihui-ai--Huihui-Ornith-1.5-35B-A3B-abliterated",
+        "/home/edp1096/.cache/huggingface/hub/.locks/models--ornith-ai--Ornith-1.5-35B-A3B-NVFP4",
+        "/home/edp1096/.local/share/sparktalk/runtime/ornith35",
+        "/home/edp1096/.cache/huggingface/hub/.locks/models--jzinno--Ornith-1.5-35B-A3B-DFlash2"
+      ],
+      "freed_gib": 45.04,
+      "available_gib": 679.42,
+      "ornith_containers": 0,
+      "ornith_image_tags": 0
+    },
+    "60": {
+      "removed_paths": [
+        "/home/edp1096/.cache/model-download-jobs/ornith-gemma26",
+        "/home/edp1096/.cache/huggingface/validation/ornith-dflash2",
+        "/home/edp1096/.cache/huggingface/edp1096/Huihui-Ornith-1.5-35B-A3B-NVFP4",
+        "/home/edp1096/.cache/huggingface/validation/ornith-nvfp4-base",
+        "/home/edp1096/.local/share/sparktalk/cache/vllm-ornith35"
+      ],
+      "freed_gib": 44.86,
+      "available_gib": 1131.36,
+      "ornith_containers": 0,
+      "ornith_image_tags": 0
+    }
+  },
+  "sources": [
+    "internal/config/retired_runtime.go",
+    "internal/orchestrator/assets/catalog.json",
+    "/tmp/ornith-cleanup.json on hosts 60 and 61"
+  ]
+}

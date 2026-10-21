@@ -14,7 +14,7 @@ import (
 )
 
 func TestEmbeddedRecipesContainNoPrivateEnvironment(t *testing.T) {
-	for _, id := range []string{"glm53", "ds4fve", "ds41", "qwen38-tp2"} {
+	for _, id := range []string{"glm53", "glm53-fp4", "ds41", "qwen38-tp2"} {
 		data, err := assets.ReadFile("assets/recipes/" + id + ".tar.gz")
 		if err != nil {
 			t.Fatal(err)
@@ -54,7 +54,7 @@ func TestEmbeddedRecipeMaterializesInAppDataDirectory(t *testing.T) {
 	c := newController(cat)
 	data, cache := t.TempDir(), t.TempDir()
 	c.ConfigurePaths(data, cache)
-	for _, id := range []string{"glm53", "ds4fve", "ds41"} {
+	for _, id := range []string{"glm53", "ds41"} {
 		component, ok := cat.Component(id)
 		if !ok {
 			t.Fatal(id)
@@ -75,7 +75,7 @@ func TestEmbeddedRecipeMaterializesInAppDataDirectory(t *testing.T) {
 		}
 		if id == "glm53" {
 			for _, value := range []string{
-				"GLM53_CACHE_PATH=" + shellQuote(filepath.Join(filepath.Dir(cache), "glm53-nvfp4")),
+				"GLM53_CACHE_PATH=" + shellQuote(filepath.Join(filepath.Dir(cache), "glm53-fp4-local")),
 				"VLLM_BIND='127.0.0.1'",
 			} {
 				if !strings.Contains(string(env), value) {
@@ -89,52 +89,6 @@ func TestEmbeddedRecipeMaterializesInAppDataDirectory(t *testing.T) {
 		info, _ := os.Stat(filepath.Join(dir, ".env"))
 		if info.Mode().Perm() != 0600 {
 			t.Fatal("environment is not private")
-		}
-	}
-}
-
-func TestDeepSeekRecoveryOptionsAreValidatedAndMaterialized(t *testing.T) {
-	cat, err := LoadCatalog()
-	if err != nil {
-		t.Fatal(err)
-	}
-	component, ok := cat.Component("ds4fve")
-	if !ok {
-		t.Fatal("missing DeepSeek component")
-	}
-	for _, key := range []string{"DSPARK_ENABLE_DSML_RECOVERY", "DSPARK_ENABLE_DSPARK_SWA_PREFIX"} {
-		for _, value := range []string{"0", "1"} {
-			item := component
-			item.RuntimeOptions = map[string]string{key: value}
-			if err := validateRecipeOptions(item); err != nil {
-				t.Fatal(err)
-			}
-			controller := newController(cat)
-			controller.ConfigurePaths(t.TempDir(), t.TempDir())
-			dir, err := controller.materializeRecipe(context.Background(), item)
-			if err != nil {
-				t.Fatal(err)
-			}
-			data, err := os.ReadFile(filepath.Join(dir, ".env"))
-			if err != nil {
-				t.Fatal(err)
-			}
-			if !strings.Contains(string(data), key+"="+shellQuote(value)) {
-				t.Fatalf("option did not reach recipe: %s", key)
-			}
-		}
-		for _, value := range []string{"", "true", "2", "1\nBAD=1"} {
-			item := component
-			item.RuntimeOptions = map[string]string{key: value}
-			if validateRecipeOptions(item) == nil {
-				t.Fatalf("accepted invalid %s=%q", key, value)
-			}
-		}
-		item := component
-		item.Controller = "glm53-cluster"
-		item.RuntimeOptions = map[string]string{key: "1"}
-		if validateRecipeOptions(item) == nil {
-			t.Fatal("accepted DeepSeek option for GLM")
 		}
 	}
 }
@@ -172,7 +126,7 @@ func TestGLMEmbeddedRecipeMatchesIndependentSources(t *testing.T) {
 		if !bytes.Equal(packed, source) {
 			t.Errorf("repack GLM recipe: %s differs from independent source", h.Name)
 		}
-		standalone, err := os.ReadFile(filepath.Join("..", "..", "..", "..", "compose_yaml", "glm53f_sglang", h.Name))
+		standalone, err := os.ReadFile(filepath.Join("..", "..", "..", "..", "compose_yaml", "zzz_not_use", "glm53f_sglang", h.Name))
 		if err != nil || !bytes.Equal(source, standalone) {
 			t.Errorf("GLM standalone/embedded source mismatch: %s: %v", h.Name, err)
 		}
@@ -180,146 +134,97 @@ func TestGLMEmbeddedRecipeMatchesIndependentSources(t *testing.T) {
 	}
 }
 
-func TestPackagedModelPatchesMatchStandalone(t *testing.T) {
-	for id, folder := range map[string]string{"ds4fve": "ds4fve_vllm"} {
-		data, err := assets.ReadFile("assets/recipes/" + id + ".tar.gz")
-		if err != nil {
-			t.Fatal(err)
-		}
-		gz, err := gzip.NewReader(bytes.NewReader(data))
-		if err != nil {
-			t.Fatal(err)
-		}
-		tr := tar.NewReader(gz)
-		for {
-			h, err := tr.Next()
-			if err == io.EOF {
-				break
-			}
-			if err != nil {
-				t.Fatal(err)
-			}
-			if h.Typeflag != tar.TypeReg {
-				continue
-			}
-			packed, err := io.ReadAll(tr)
-			if err != nil {
-				t.Fatal(err)
-			}
-			sourcePath := filepath.Join("../../../../compose_yaml", folder, h.Name)
-			source, err := os.ReadFile(sourcePath)
-			if err != nil {
-				t.Fatal(err)
-			}
-			if !bytes.Equal(packed, source) {
-				t.Errorf("repack %s: %s differs", id, h.Name)
-			}
-		}
-		gz.Close()
-	}
-}
-
-func TestDS41StreamingBundle(t *testing.T) {
+func TestDS41TensorFoldBundle(t *testing.T) {
 	cat, err := LoadCatalog()
 	if err != nil {
 		t.Fatal(err)
 	}
-	bundle, ok := cat.Bundle("ds41")
-	if !ok {
-		t.Fatal("missing DS41 bundle")
-	}
-	if bundle.ContextTokens != 65536 || !bundle.StartSupport {
-		t.Fatal("wrong DS41 startup defaults")
-	}
-	if len(cat.StartBundleMembers(bundle).Components) != 7 {
-		t.Fatal("ASR, TTS and all four Extra services must start with DS41")
-	}
-	if len(cat.ModelBundle(bundle).Components) != 3 {
-		t.Fatal("stopping a set must preserve shared Extra services")
-	}
-	for _, id := range []string{"nemotron-asr", "extra-media", "extra-ssh", "extra-collector", "extra-documents"} {
-		c, ok := cat.ResolveComponent("ds41", id)
-		want := "local"
-		if id == "nemotron-asr" {
-			want = "worker"
-		}
-		if !ok || c.Host != want {
-			t.Fatalf("wrong service binding: %s", id)
-		}
-	}
+	b, _ := cat.Bundle("ds41")
 	c, _ := cat.Component("ds41")
-	if !c.isCluster() || recipeID(c) != "ds41" {
-		t.Fatal("DS41 must manage both ranks")
+	if b.ContextTokens != 1048576 || !b.StartSupport || !b.WorkloadSwap || c.Model != "DeepSeek-V4.1-Flash-TF" || !c.isCluster() {
+		t.Fatalf("wrong TensorFold profile: %+v", b)
 	}
-	data, _ := assets.ReadFile("assets/recipes/ds41.tar.gz")
-	gz, err := gzip.NewReader(bytes.NewReader(data))
+	for _, id := range []string{"nemotron-asr", "qwen3-tts"} {
+		x, ok := cat.ResolveComponent("ds41", id)
+		if !ok || x.Host != "local" || !x.StartAfterLLM || x.KeepResident || workloadGroup(id) == "" {
+			t.Fatalf("speech must defer to the local memory-checked workload lease: %+v", x)
+		}
+	}
+	controller := newController(cat)
+	controller.ConfigurePaths(t.TempDir(), t.TempDir())
+	dir, err := controller.materializeRecipe(context.Background(), c)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer gz.Close()
-	tr := tar.NewReader(gz)
-	root := filepath.Join("..", "..", "..", "..", "compose_yaml", "ds41f_vllm")
-	seenDenseProfile := false
-	for {
-		h, err := tr.Next()
-		if err == io.EOF {
-			break
-		}
+	for _, file := range []string{"profile.env", "pfdense-table.json", "launch.sh", "models.sh", "runtime.sh"} {
+		got, err := os.ReadFile(filepath.Join(dir, file))
 		if err != nil {
 			t.Fatal(err)
 		}
-		if h.Name == "dense-prefill-profile.json" {
-			seenDenseProfile = true
-		}
-		if h.Name != "launch.sh" && h.Name != "expert-hot-profile.json" && h.Name != "dense-prefill-profile.json" && !strings.HasSuffix(h.Name, ".py") && !strings.HasPrefix(h.Name, "patches/") {
-			continue
-		}
-		want, err := os.ReadFile(filepath.Join(root, h.Name))
-		if err != nil {
-			t.Fatal(err)
-		}
-		got, err := io.ReadAll(tr)
-		if err != nil {
-			t.Fatal(err)
-		}
+		want, _ := os.ReadFile(filepath.Join("recipe_sources", "ds41", file))
 		if !bytes.Equal(got, want) {
-			t.Fatalf("DS41 package differs from tested runtime: %s", h.Name)
+			t.Fatal("embedded TensorFold source differs", file)
 		}
 	}
-	if !seenDenseProfile {
-		t.Fatal("DS41 recipe must include the qualified dense prefill profile")
+	profile, _ := os.ReadFile(filepath.Join(dir, "profile.env"))
+	for _, setting := range []string{"TF_DSV41_CONTEXT=1048576", "TF_DSV41_POOL_TOKENS=2100000", "TF_DSV41_SLOTS=4", "TF_DSV41_FLOOR_HARD_GIB=4", "TF_DSV41_IMAGES=native", "TF_DSV41_LOOKUP=1", "TF_DSV41_ENGRAM_PREFETCH=1"} {
+		if !strings.Contains(string(profile), setting) {
+			t.Fatal("qualified engine setting lost", setting)
+		}
 	}
 }
 
-func TestDS41PreloadOption(t *testing.T) {
+func TestDS41TensorFoldOptions(t *testing.T) {
 	cat, _ := LoadCatalog()
-	component, _ := cat.Component("ds41")
-	for _, value := range []string{"0", "128", "224"} {
-		component.RuntimeOptions = map[string]string{"DSV41_PRELOAD_COUNT": value}
-		if err := validateRecipeOptions(component); err != nil {
+	c, _ := cat.Component("ds41")
+	if c.RuntimeOptions["MODEL_VARIANT"] != "abliterated" || modelPresentation(c).SelectedVariant != "abliterated" {
+		t.Fatal("Abliterated must be the default; original must remain selectable")
+	}
+	for _, variant := range []string{"official", "abliterated"} {
+		c.RuntimeOptions = map[string]string{"MODEL_VARIANT": variant, "MAX_MODEL_LEN": "1048576"}
+		if err := validateRecipeOptions(c); err != nil {
 			t.Fatal(err)
 		}
-		c := newController(cat)
-		c.ConfigurePaths(t.TempDir(), t.TempDir())
-		dir, err := c.materializeRecipe(context.Background(), component)
-		if err != nil {
+		if modelPresentation(c).SelectedVariant != variant {
+			t.Fatal("variant presentation mismatch")
+		}
+	}
+	for _, value := range []string{"auto", "1", "2", "3", "4", "5"} {
+		c.RuntimeOptions = map[string]string{"MTP_TOKENS": value}
+		if err := validateRecipeOptions(c); err != nil {
 			t.Fatal(err)
 		}
-		env, _ := os.ReadFile(filepath.Join(dir, ".env"))
-		if !strings.Contains(string(env), "DSV41_PRELOAD_COUNT="+shellQuote(value)) {
-			t.Fatal("preload override lost")
+	}
+	for _, value := range []string{"0", "6", "01", "1.0", "static", "1\nBAD=1"} {
+		c.RuntimeOptions = map[string]string{"MTP_TOKENS": value}
+		if validateRecipeOptions(c) == nil {
+			t.Fatal("invalid MTP depth accepted", value)
 		}
 	}
-	for _, value := range []string{"-1", "225", "1.5", "x", "01"} {
-		component.RuntimeOptions = map[string]string{"DSV41_PRELOAD_COUNT": value}
-		if validateRecipeOptions(component) == nil {
-			t.Fatal("invalid preload count accepted", value)
+	for _, options := range []map[string]string{{"MAX_MODEL_LEN": "65536"}, {"DSV41_PRELOAD_COUNT": "224"}, {"MODEL_VARIANT": "unknown"}, {"MAX_NUM_SEQS": "8"}, {"MTP_TOKENS": "0"}} {
+		c.RuntimeOptions = options
+		if validateRecipeOptions(c) == nil {
+			t.Fatal("unqualified TensorFold settings accepted", options)
 		}
 	}
-	component.Controller = "dspark-cluster"
-	component.RuntimeOptions = map[string]string{"DSV41_PRELOAD_COUNT": "128"}
-	if validateRecipeOptions(component) == nil {
-		t.Fatal("preload option accepted for another engine")
+}
+
+func TestDS41MissingVariantUsesTheSameDefaultInPresentationAndRecipe(t *testing.T) {
+	cat, _ := LoadCatalog()
+	x, _ := cat.Component("ds41")
+	x.RuntimeOptions = nil
+	if modelPresentation(x).SelectedVariant != "abliterated" {
+		t.Fatal("wrong presentation default")
+	}
+	c := newController(cat)
+	c.ConfigurePaths(t.TempDir(), t.TempDir())
+	dir, err := c.materializeRecipe(context.Background(), x)
+	if err != nil {
+		t.Fatal(err)
+	}
+	env, err := os.ReadFile(filepath.Join(dir, ".env"))
+	if err != nil || !strings.Contains(string(env), "MODEL_VARIANT='abliterated'") {
+		t.Fatal("materialized recipe disagrees with default weight selector", err)
 	}
 }
 
@@ -368,39 +273,6 @@ with tempfile.TemporaryDirectory() as folder:
 
 // runtime.sh's network/start actions require this helper in a freshly extracted
 // package, not merely in the developer's standalone checkout.
-func TestDS4FVERailHelperIsPackaged(t *testing.T) {
-	data, err := assets.ReadFile("assets/recipes/ds4fve.tar.gz")
-	if err != nil {
-		t.Fatal(err)
-	}
-	gz, err := gzip.NewReader(bytes.NewReader(data))
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer gz.Close()
-	tr := tar.NewReader(gz)
-	found := false
-	for {
-		h, err := tr.Next()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			t.Fatal(err)
-		}
-		if h.Name == "ensure_rail.py" && h.Typeflag == tar.TypeReg {
-			body, err := io.ReadAll(tr)
-			if err != nil || len(body) == 0 {
-				t.Fatal("empty rail helper", err)
-			}
-			found = true
-		}
-	}
-	if !found {
-		t.Fatal("DS4FVE start/network depends on missing ensure_rail.py")
-	}
-}
-
 func TestGLMNVFP4ModelSelectionIgnoresRetiredPaths(t *testing.T) {
 	script, err := filepath.Abs(filepath.Join("recipe_sources", "glm53", "select_model.sh"))
 	if err != nil {

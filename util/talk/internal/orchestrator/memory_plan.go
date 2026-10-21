@@ -13,6 +13,18 @@ func normalizedMemoryReserve(reserveGiB float64) float64 {
 	return reserveGiB
 }
 
+// The qualified TensorFold pool requires the same 4 GiB hard floor for LLM
+// startup and auxiliary admission, even when another runtime uses a lower reserve.
+func (c Catalog) minimumBundleReserve(bundle Bundle, reserve float64) float64 {
+	reserve = normalizedMemoryReserve(reserve)
+	for _, id := range bundle.Components {
+		if x, ok := c.ResolveComponent(bundle.ID, id); ok && (x.Controller == "ds41-cluster" || x.ProgressKind == "tensorfold") {
+			return max(4, reserve)
+		}
+	}
+	return reserve
+}
+
 // The catalog is a cold-start estimate. A running allocation must never be
 // displayed as smaller than it actually is. For alternating auxiliaries,
 // account for both the largest workload and all currently retained services.
@@ -193,6 +205,11 @@ func (c *Controller) bundleMemoryPlan(ctx context.Context, bundle Bundle) memory
 			continue
 		}
 		if component.ServiceRole() == "embedding" && running {
+			plan.FreedGiB += gpuMemory + containerHostResidentMemoryGiB(ctx, component.Container)
+		}
+		if running && c.unselectedManagedImage(bundle, component) {
+			// runBundleStart quiesces this deployment before stopping the old
+			// LLM. Never credit an image retained by the requested set.
 			plan.FreedGiB += gpuMemory + containerHostResidentMemoryGiB(ctx, component.Container)
 		}
 		if component.Role == "llm" && running {

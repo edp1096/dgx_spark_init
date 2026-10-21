@@ -1,0 +1,577 @@
+{
+  "original": {
+    "groups": {
+      "speed_ko": {
+        "n": 3,
+        "tg_median": 25.98620645466187,
+        "tg_values": [
+          26.276832037655502,
+          25.98620645466187,
+          24.86496786759633
+        ],
+        "request_median": 25.70119502944352,
+        "pp_engine_median": 330.33276999865456,
+        "acceptance": 0.3897664835164835,
+        "accepted_drafts": 1135,
+        "proposed_drafts": 2912,
+        "end_markers": 0
+      },
+      "speed_code": {
+        "n": 3,
+        "tg_median": 32.26215948658305,
+        "tg_values": [
+          31.683207359894514,
+          33.8298517279603,
+          32.26215948658305
+        ],
+        "request_median": 31.811117586510917,
+        "pp_engine_median": 388.31228012045256,
+        "acceptance": 0.5316732197466142,
+        "accepted_drafts": 1217,
+        "proposed_drafts": 2289,
+        "end_markers": 0
+      },
+      "recall": {
+        "n": 2,
+        "tg_median": 21.996783834182104,
+        "tg_values": [
+          23.45197101207425,
+          20.541596656289958
+        ],
+        "request_median": 1.1545396961615297,
+        "pp_engine_median": 963.9094621804447,
+        "acceptance": 0.7142857142857143,
+        "accepted_drafts": 10,
+        "proposed_drafts": 14,
+        "end_markers": 0
+      }
+    },
+    "quality": {
+      "passed": 10,
+      "total": 10,
+      "checks": [
+        {
+          "name": "arithmetic",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "name": "json",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "name": "ko_instruction",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "name": "japanese",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "name": "reasoning",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "name": "tool_title",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "name": "code_unique",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "name": "code_chunks",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "name": "recall_4k",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "name": "recall_9k",
+          "passed": true,
+          "detail": null
+        }
+      ]
+    },
+    "pp_9041_tok_s": 858.3903045162423,
+    "replacement_characters": 0,
+    "text_equal_to_off": {
+      "matched": 9,
+      "total": 10
+    },
+    "text_equal_to_original": {
+      "matched": 10,
+      "total": 10
+    },
+    "weights_mib": 895.540771484375
+  },
+  "b4": {
+    "groups": {
+      "speed_ko": {
+        "n": 3,
+        "tg_median": 30.34457534130429,
+        "tg_values": [
+          30.34457534130429,
+          29.83236523592307,
+          31.36992451448766
+        ],
+        "request_median": 30.00542161398185,
+        "pp_engine_median": 389.6671369925851,
+        "acceptance": 0.38716356107660455,
+        "accepted_drafts": 1122,
+        "proposed_drafts": 2898,
+        "end_markers": 0
+      },
+      "speed_code": {
+        "n": 3,
+        "tg_median": 37.36812281679041,
+        "tg_values": [
+          37.36812281679041,
+          39.147232181478984,
+          34.167218380389116
+        ],
+        "request_median": 36.80995028673479,
+        "pp_engine_median": 452.91513074514216,
+        "acceptance": 0.4997905320485966,
+        "accepted_drafts": 1193,
+        "proposed_drafts": 2387,
+        "end_markers": 0
+      },
+      "recall": {
+        "n": 2,
+        "tg_median": 24.67776873097597,
+        "tg_values": [
+          26.425047828628873,
+          22.93048963332307
+        ],
+        "request_median": 0.8343019477092933,
+        "pp_engine_median": 763.9008559942413,
+        "acceptance": 0.7142857142857143,
+        "accepted_drafts": 10,
+        "proposed_drafts": 14,
+        "end_markers": 0
+      }
+    },
+    "quality": {
+      "passed": 10,
+      "total": 10,
+      "checks": [
+        {
+          "name": "arithmetic",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "name": "json",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "name": "ko_instruction",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "name": "japanese",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "name": "reasoning",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "name": "tool_title",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "name": "code_unique",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "name": "code_chunks",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "name": "recall_4k",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "name": "recall_9k",
+          "passed": true,
+          "detail": null
+        }
+      ]
+    },
+    "pp_9041_tok_s": 861.9128748146336,
+    "replacement_characters": 0,
+    "text_equal_to_off": {
+      "matched": 9,
+      "total": 10
+    },
+    "text_equal_to_original": {
+      "matched": 10,
+      "total": 10
+    },
+    "weights_mib": 288.841007232666
+  },
+  "b3": {
+    "groups": {
+      "speed_ko": {
+        "n": 3,
+        "tg_median": 29.449317604793446,
+        "tg_values": [
+          28.264026340699115,
+          30.79698010093672,
+          29.449317604793446
+        ],
+        "request_median": 29.114763801198084,
+        "pp_engine_median": 389.9569651293196,
+        "acceptance": 0.37162837162837165,
+        "accepted_drafts": 1116,
+        "proposed_drafts": 3003,
+        "end_markers": 0
+      },
+      "speed_code": {
+        "n": 3,
+        "tg_median": 37.130886203671075,
+        "tg_values": [
+          37.130886203671075,
+          38.78656251317015,
+          35.758110760391446
+        ],
+        "request_median": 36.57732434486194,
+        "pp_engine_median": 458.4061848079519,
+        "acceptance": 0.5080304311073541,
+        "accepted_drafts": 1202,
+        "proposed_drafts": 2366,
+        "end_markers": 0
+      },
+      "recall": {
+        "n": 2,
+        "tg_median": 25.119533388382422,
+        "tg_values": [
+          27.015903778822157,
+          23.223162997942687
+        ],
+        "request_median": 1.17683923276693,
+        "pp_engine_median": 967.5386323497889,
+        "acceptance": 0.7142857142857143,
+        "accepted_drafts": 10,
+        "proposed_drafts": 14,
+        "end_markers": 0
+      }
+    },
+    "quality": {
+      "passed": 10,
+      "total": 10,
+      "checks": [
+        {
+          "name": "arithmetic",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "name": "json",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "name": "ko_instruction",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "name": "japanese",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "name": "reasoning",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "name": "tool_title",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "name": "code_unique",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "name": "code_chunks",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "name": "recall_4k",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "name": "recall_9k",
+          "passed": true,
+          "detail": null
+        }
+      ]
+    },
+    "pp_9041_tok_s": 856.7244088824048,
+    "replacement_characters": 0,
+    "text_equal_to_off": {
+      "matched": 9,
+      "total": 10
+    },
+    "text_equal_to_original": {
+      "matched": 9,
+      "total": 10
+    },
+    "weights_mib": 264.872257232666
+  },
+  "b2": {
+    "groups": {
+      "speed_ko": {
+        "n": 3,
+        "tg_median": 28.906712746874785,
+        "tg_values": [
+          28.257399715062444,
+          28.906712746874785,
+          29.04086961238071
+        ],
+        "request_median": 28.612981289711705,
+        "pp_engine_median": 393.8251983537034,
+        "acceptance": 0.35585003232062057,
+        "accepted_drafts": 1101,
+        "proposed_drafts": 3094,
+        "end_markers": 0
+      },
+      "speed_code": {
+        "n": 3,
+        "tg_median": 32.70512423580683,
+        "tg_values": [
+          31.94400200794691,
+          34.962320991767136,
+          32.70512423580683
+        ],
+        "request_median": 32.29345984705539,
+        "pp_engine_median": 462.87844459890374,
+        "acceptance": 0.4330590875093493,
+        "accepted_drafts": 1158,
+        "proposed_drafts": 2674,
+        "end_markers": 0
+      },
+      "recall": {
+        "n": 2,
+        "tg_median": 25.0854834458365,
+        "tg_values": [
+          26.963222383910168,
+          23.20774450776283
+        ],
+        "request_median": 1.176902076782429,
+        "pp_engine_median": 973.7244532385066,
+        "acceptance": 0.7142857142857143,
+        "accepted_drafts": 10,
+        "proposed_drafts": 14,
+        "end_markers": 0
+      }
+    },
+    "quality": {
+      "passed": 10,
+      "total": 10,
+      "checks": [
+        {
+          "name": "arithmetic",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "name": "json",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "name": "ko_instruction",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "name": "japanese",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "name": "reasoning",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "name": "tool_title",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "name": "code_unique",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "name": "code_chunks",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "name": "recall_4k",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "name": "recall_9k",
+          "passed": true,
+          "detail": null
+        }
+      ]
+    },
+    "pp_9041_tok_s": 861.5864603832412,
+    "replacement_characters": 0,
+    "text_equal_to_off": {
+      "matched": 9,
+      "total": 10
+    },
+    "text_equal_to_original": {
+      "matched": 9,
+      "total": 10
+    },
+    "weights_mib": 240.90350723266602
+  },
+  "off": {
+    "groups": {
+      "speed_ko": {
+        "n": 3,
+        "tg_median": 10.402184718218198,
+        "tg_values": [
+          10.425230708072421,
+          10.402184718218198,
+          10.384321464221063
+        ],
+        "request_median": 10.383205666590223,
+        "pp_engine_median": 437.12010421755417,
+        "acceptance": null,
+        "accepted_drafts": 0,
+        "proposed_drafts": 0,
+        "end_markers": 0
+      },
+      "speed_code": {
+        "n": 3,
+        "tg_median": 10.391221426073953,
+        "tg_values": [
+          10.404678648155866,
+          10.391221426073953,
+          10.371384938917426
+        ],
+        "request_median": 10.370449073106899,
+        "pp_engine_median": 514.2698872619562,
+        "acceptance": null,
+        "accepted_drafts": 0,
+        "proposed_drafts": 0,
+        "end_markers": 0
+      },
+      "recall": {
+        "n": 2,
+        "tg_median": 10.007895510399536,
+        "tg_values": [
+          10.314607600470234,
+          9.701183420328835
+        ],
+        "request_median": 1.0571986356762528,
+        "pp_engine_median": 913.3289222733456,
+        "acceptance": null,
+        "accepted_drafts": 0,
+        "proposed_drafts": 0,
+        "end_markers": 0
+      }
+    },
+    "quality": {
+      "passed": 10,
+      "total": 10,
+      "checks": [
+        {
+          "name": "arithmetic",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "name": "json",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "name": "ko_instruction",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "name": "japanese",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "name": "reasoning",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "name": "tool_title",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "name": "code_unique",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "name": "code_chunks",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "name": "recall_4k",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "name": "recall_9k",
+          "passed": true,
+          "detail": null
+        }
+      ]
+    },
+    "pp_9041_tok_s": 766.7181744810792,
+    "replacement_characters": 0,
+    "text_equal_to_off": {
+      "matched": 10,
+      "total": 10
+    },
+    "text_equal_to_original": {
+      "matched": 9,
+      "total": 10
+    },
+    "weights_mib": 0
+  }
+}

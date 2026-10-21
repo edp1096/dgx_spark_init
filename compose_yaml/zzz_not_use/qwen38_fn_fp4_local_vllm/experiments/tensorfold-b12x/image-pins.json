@@ -1,0 +1,23 @@
+[
+  {
+    "tag": "local/qwen38-fp4-local:csf-yarn-20261016",
+    "id": "sha256:6f7fa43422080b2957b1d669ff21406240db77627ee3e42fc32bf5860a392bed",
+    "repo_digests": [
+      "local/qwen38-fp4-local@sha256:6f7fa43422080b2957b1d669ff21406240db77627ee3e42fc32bf5860a392bed"
+    ]
+  },
+  {
+    "tag": "local/qwen38-tensorfold-dev:20261020",
+    "id": "sha256:e855b72f0c35f9329601893fe11eeb960bd20985064482a6d226a9c697606409",
+    "repo_digests": [
+      "local/qwen38-tensorfold-dev@sha256:e855b72f0c35f9329601893fe11eeb960bd20985064482a6d226a9c697606409"
+    ]
+  },
+  {
+    "tag": "local/qwen38-tensorfold:tp1-c0a2df4c680d",
+    "id": "sha256:2c4e0dbee6df8c56b6213d813f4a06854ed7caf92dfbc99b85888fffada79582",
+    "repo_digests": [
+      "local/qwen38-tensorfold@sha256:2c4e0dbee6df8c56b6213d813f4a06854ed7caf92dfbc99b85888fffada79582"
+    ]
+  }
+]

@@ -65,5 +65,5 @@ if __name__ == '__main__':
             continue
         output.append(key)
         i += 1
-    print('GEMMA31_SGLANG_EXL3_MTP context=262144 draft=7 target=NVFP4 assistant=EXL3-body4-head6 gpu=1', flush=True)
+    print('GEMMA31_SGLANG_EXL3_MTP context=262144 draft=9 splitkv=1 target=NVFP4 assistant=EXL3-body4-head6 gpu=1', flush=True)
     os.execv(sys.executable, [sys.executable, '-m', 'sglang.launch_server', *output])

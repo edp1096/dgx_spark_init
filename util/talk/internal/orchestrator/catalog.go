@@ -158,8 +158,6 @@ func ValidateCatalog(catalog Catalog) (Catalog, error) {
 			bundle.Name = "Flash-Next EXL3"
 		case "GLM 5.3 Flash EXL3 + 워커 Extra":
 			bundle.Name = "GLM 5.3 Flash EXL3"
-		case "DeepSeek V4 Flash Vision Exp + 워커 Extra·ASR":
-			bundle.Name = "DeepSeek V4 Flash Vision Exp"
 		}
 
 		for id, binding := range bundle.Bindings {
@@ -217,12 +215,12 @@ func ValidateCatalog(catalog Catalog) (Catalog, error) {
 			qualified := false
 			for _, id := range bundle.Components {
 				x := bundle.Bindings[id].Apply(catalog.byComponent[id])
-				if x.ServiceRole() == "llm" && (x.ComposeAsset == "compose.flash-next.yaml" || x.ComposeAsset == "compose.qwen-fp4-local.yaml" || x.ComposeAsset == "compose.qwen38fn_exl3.yaml" || x.ComposeAsset == "compose.qwen38fn_exl3_q4.yaml") {
+				if x.ServiceRole() == "llm" && (x.Controller == "ds41-cluster" || x.ComposeAsset == "compose.flash-next.yaml" || x.ComposeAsset == "compose.qwen-fp4-local.yaml" || x.ComposeAsset == "compose.qwen38fn_exl3.yaml" || x.ComposeAsset == "compose.qwen38fn_exl3_q4.yaml") {
 					qualified = true
 				}
 			}
 			if !qualified {
-				return Catalog{}, fmt.Errorf("workload swap requires a qualified Flash-Next runtime")
+				return Catalog{}, fmt.Errorf("workload swap requires a qualified runtime with local auxiliary services")
 			}
 			groups := map[string]float64{}
 			resident := 0.0
@@ -318,7 +316,7 @@ func validateDeployment(catalog Catalog, component Component) error {
 		if _, err := composeAsset(component.ComposeAsset); err != nil {
 			return fmt.Errorf("component %q: unknown compose recipe", component.ID)
 		}
-	case "glm53-cluster", "dspark-cluster", "ds41-cluster", "qwen38-cluster":
+	case "glm53-cluster", "glm53-fp4-cluster", "ds41-cluster", "qwen38-cluster":
 		if component.WorkerContainer == "" || component.WorkerHost == component.Host {
 			return fmt.Errorf("component %q: cluster requires a distinct worker", component.ID)
 		}
@@ -343,5 +341,5 @@ func validateDeployment(catalog Catalog, component Component) error {
 }
 
 func (c Component) isCluster() bool {
-	return c.Controller == "qwen38-cluster" || c.Controller == "glm53-cluster" || c.Controller == "dspark-cluster" || c.Controller == "ds41-cluster"
+	return c.Controller == "qwen38-cluster" || c.Controller == "glm53-cluster" || c.Controller == "glm53-fp4-cluster" || c.Controller == "ds41-cluster"
 }

@@ -194,7 +194,7 @@
         <fieldset>
           <legend>현재 AI 세트</legend>
           {#if externalMode}
-            <div class="settings-bundle-card"><span><strong>{(modelProfile.family === 'glm5.3' || modelProfile.family === 'deepseek-v4') ? (modelProfile.family === 'deepseek-v4' ? 'DeepSeek V4 Flash Vision Exp' : 'GLM-5.3 Flash') : '외부 모델'}</strong><small>{settings.model.endpoint}</small></span><div><b>{settings.model.default_model}</b><small>{settings.context.window_tokens ? `${Math.round(settings.context.window_tokens / 1024)}K context` : 'context 자동 감지'}</small></div></div>
+            <div class="settings-bundle-card"><span><strong>{(modelProfile.family === 'glm5.3' || modelProfile.family === 'deepseek-v4') ? (modelProfile.family === 'deepseek-v4' ? 'DeepSeek V4.1 Flash' : 'GLM-5.3 Flash') : '외부 모델'}</strong><small>{settings.model.endpoint}</small></span><div><b>{settings.model.default_model}</b><small>{settings.context.window_tokens ? `${Math.round(settings.context.window_tokens / 1024)}K context` : 'context 자동 감지'}</small></div></div>
             <small>외부 API는 SparkTalk가 기동하거나 중지하지 않습니다.</small>
           {:else}
             <div class="settings-bundle-card"><span><strong>{currentBundle?.name || '관리형 세트'}</strong><small>{currentBundle?.description || modelDisplayName(settings.model.default_model, settings.runtime.catalog)}</small></span><div><b>{modelWeightSummary(currentLLM) || modelDisplayName(currentBundle?.model_id || settings.model.default_model, settings.runtime.catalog, currentBundle?.id)}</b><small>{currentBundle?.context_tokens ? `${Math.round(currentBundle.context_tokens / 1024)}K context` : ''}</small></div></div>
@@ -336,7 +336,7 @@
           <button type="button" onclick={() => { activeTab = "system"; systemSection = "services"; }}>웹·미디어 서비스 상태·실행 관리</button>
           <label class="check"><input type="checkbox" bind:checked={settings.tools.enabled} /> web_search / web_fetch 활성화</label>
           <label class="check"><input type="checkbox" bind:checked={settings.tools.media_import_enabled} /> URL 미디어 자동 가져오기</label>
-          <label class="settings-field-row"><span>현재 모델의 영상 전달 방식</span><Select value={settings.model.video_inputs?.[videoDeploymentKey] || (settings.model.model_type === 'deepseek-v4' ? 'frames' : 'native')} onchange={(event)=>{settings.model.video_inputs={...settings.model.video_inputs,[videoDeploymentKey]:event.currentTarget.value};}}><option value="frames">대표 프레임 이미지 + 음성 전사</option><option value="native">원본 영상 (모델 서버의 영상 입력 허용 필요)</option></Select></label>
+          <label class="settings-field-row"><span>현재 모델의 영상 전달 방식</span><Select value={settings.model.video_inputs?.[videoDeploymentKey] || (modelProfile.family === 'deepseek-v4' ? 'frames' : 'native')} onchange={(event)=>{settings.model.video_inputs={...settings.model.video_inputs,[videoDeploymentKey]:event.currentTarget.value};}}><option value="frames">대표 프레임 이미지 + 음성 전사</option><option value="native">원본 영상 (모델 서버의 영상 입력 허용 필요)</option></Select></label>
           <small>서버 주소·모델명별로 저장됩니다. 대표 프레임은 시간순 8장을 사용합니다. 음성 전사는 음성 인식 설정이 활성화되어 있어야 합니다.</small>
           <MediaRuntimeSettings />
           <label class="check"><input type="checkbox" bind:checked={settings.extra.collector_enabled} /> 격리 브라우저 Collector 활성화</label>
@@ -386,7 +386,7 @@
           {#if externalMode}
             <label class="settings-field-row"><span>모델 API 주소</span><input bind:value={settings.model.endpoint} placeholder="http://서버주소:8000" /></label>
             <label class="settings-field-row"><span>모델 ID</span><input bind:value={settings.model.default_model} /></label>
-            <label class="settings-field-row"><span>모델 유형</span><Select value={settings.model.model_type} onchange={selectExternalModelType}><option value="glm5.3">GLM-5.3 Flash</option><option value="qwen3.5">Qwen3.5 / Ornith</option><option value="qwen3.8">Qwen3.8</option><option value="qwen3.8-vllm">Qwen 3.8 (vLLM)</option><option value="gemma4">Gemma 4 (SGLang)</option><option value="gemma4-vllm">Gemma 4 (vLLM)</option><option value="deepseek-v4">DeepSeek V4</option><option value="generic">일반 OpenAI 호환</option></Select></label>
+            <label class="settings-field-row"><span>모델 유형</span><Select value={settings.model.model_type} onchange={selectExternalModelType}><option value="glm5.3">GLM-5.3 Flash</option><option value="qwen3.5">Qwen3.5 / Ornith</option><option value="qwen3.8">Qwen3.8</option><option value="qwen3.8-tensorfold">Qwen 3.8 (TensorFold)</option><option value="qwen3.8-vllm">Qwen 3.8 (vLLM)</option><option value="gemma4">Gemma 4 (SGLang)</option><option value="gemma4-vllm">Gemma 4 (vLLM)</option><option value="deepseek-v4">DeepSeek V4.1</option><option value="generic">일반 OpenAI 호환</option></Select></label>
             <label class="settings-field-row"><span>API 키</span><input type="password" bind:value={settingsAPIKey} autocomplete="new-password" placeholder={settings.api_key_set ? '저장된 키 유지' : '필요한 경우 입력'} /></label>
             {#if settings.api_key_set}<label class="check"><input type="checkbox" bind:checked={clearAPIKey} /> 저장된 API 키 삭제</label>{/if}
             <small>GLM-5.3 Flash를 선택하면 512K 문맥과 Max 리즈닝을 적용합니다. ASR·TTS·이미지 생성·Extra 등 부가 기능은 각 설정에서 개별 관리합니다.</small>

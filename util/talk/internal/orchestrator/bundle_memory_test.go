@@ -60,13 +60,13 @@ func TestEXL3ColdStartBesideHealthyResidentImage(t *testing.T) {
 	}
 	b, _ := c.Catalog().Bundle("qwen38fn_exl3")
 	plan := c.bundleMemoryPlan(context.Background(), b)
-	if math.Abs(plan.NeededGiB-96) > .001 || plan.FreedGiB != 0 || !plan.RequiresCUDAStart {
-		t.Fatalf("expected LLM85 + ASR3.5 + TTS3 + image0.5 + embedding4, got %+v", plan)
+	if math.Abs(plan.NeededGiB-81) > .001 || plan.FreedGiB != 0 || !plan.RequiresCUDAStart {
+		t.Fatalf("expected LLM70 + ASR3.5 + TTS3 + image0.5 + embedding4, got %+v", plan)
 	}
-	if err := validateMemoryHeadroom(SystemMemory{AvailableGiB: 100, FreeGiB: 71}, plan, 1.5); err != nil {
-		t.Fatalf("reported incident must now pass startup admission: %v", err)
+	if err := validateMemoryHeadroom(SystemMemory{AvailableGiB: 85, FreeGiB: 71}, plan, 1.5); err != nil {
+		t.Fatalf("qualified TensorFold estimate must pass startup admission: %v", err)
 	}
-	if err := validateMemoryHeadroom(SystemMemory{AvailableGiB: 93, FreeGiB: 71}, plan, 1.5); err == nil {
+	if err := validateMemoryHeadroom(SystemMemory{AvailableGiB: 82, FreeGiB: 71}, plan, 4); err == nil {
 		t.Fatal("actual startup shortage must still be rejected")
 	}
 }

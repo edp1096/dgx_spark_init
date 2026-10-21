@@ -1,0 +1,1379 @@
+{
+  "status": "deployed-and-validated",
+  "host": "DGX Spark 61 only",
+  "remote60": {
+    "powered_off": true,
+    "trial_transfer": "SSH connection failed before remote execution; rsync received 0 bytes",
+    "new_trial_files_or_containers": false
+  },
+  "weights": {
+    "repository": "alesha-pro/Huihui-Qwen3.8-Flash-Next-abliterated-exl3-3bit-hq_h6_ng6",
+    "revision": "3b585c458f9fcf3322e76cff2c635c2cb81c5869",
+    "changed": false,
+    "duplicated": false
+  },
+  "sources": [
+    "https://github.com/ashhart/TensorFold/tree/db281878ddb836fd0df510d8771ecb7e0fe47d26"
+  ],
+  "conditions": {
+    "context": 1048576,
+    "rope": "YaRN 4",
+    "kv": "int8",
+    "vision": true,
+    "streams": 2,
+    "cpuset": "5-9,15-19",
+    "temperature": 0.7,
+    "top_k": 20,
+    "top_p": 0.95,
+    "reasoning": [
+      "off",
+      "medium"
+    ],
+    "timing": "TG excludes first-token interval; reasoning tokens count as generated tokens. PP subtracts cached tokens; all measured PP requests assert zero cache reuse. KV growth and graph captures are recorded, not subtracted. Short TG measurements use warmed graphs.",
+    "scope": "Same existing pack and pinned Python CUDA engine; local routing adapters and MTP settings only. Not a quality comparison between quantizations.",
+    "auxiliaries": "Stopped for all controlled before/after measurements. Final managed restoration starts the original bundle members; isolated-engine TPS is not an end-to-end mixed-workload claim."
+  },
+  "prefill": [
+    {
+      "name": "pp-4096",
+      "input_tokens": 4096,
+      "before_pp": 744.7408134693358,
+      "after_pp": 895.6725197349718,
+      "gain_percent": 20.266340119393856,
+      "output_ids_identical": true,
+      "cached_tokens": 0
+    },
+    {
+      "name": "pp-16384",
+      "input_tokens": 16384,
+      "before_pp": 747.1214573975694,
+      "after_pp": 892.6129522585004,
+      "gain_percent": 19.47360679048331,
+      "output_ids_identical": true,
+      "cached_tokens": 0
+    },
+    {
+      "name": "pp-65536",
+      "input_tokens": 65536,
+      "before_pp": 719.8617745884488,
+      "after_pp": 870.5227573106988,
+      "gain_percent": 20.92915446279726,
+      "output_ids_identical": true,
+      "cached_tokens": 0
+    },
+    {
+      "name": "pp-131072",
+      "input_tokens": 131072,
+      "before_pp": 696.0178847369064,
+      "after_pp": 831.4366691786366,
+      "gain_percent": 19.456221946497585,
+      "output_ids_identical": true,
+      "cached_tokens": 0
+    },
+    {
+      "name": "pp-4096-repeat",
+      "input_tokens": 4096,
+      "before_pp": 742.2306786264382,
+      "after_pp": 891.2485312676793,
+      "gain_percent": 20.077026850602753,
+      "output_ids_identical": true,
+      "cached_tokens": 0
+    },
+    {
+      "name": "pp-16384-repeat",
+      "input_tokens": 16384,
+      "before_pp": 745.4490028982606,
+      "after_pp": 889.7191389534505,
+      "gain_percent": 19.35345482981081,
+      "output_ids_identical": true,
+      "cached_tokens": 0
+    }
+  ],
+  "screen": {
+    "d4-c025": {
+      "settings": {
+        "depth": 4,
+        "confidence": 0.25,
+        "vocab": "current",
+        "context": 1048576,
+        "kv": "int8",
+        "streams": 2,
+        "vision": true,
+        "kept_prefixes": 1,
+        "torch": "2.13.0+cu130",
+        "gpu": "NVIDIA GB10",
+        "suite": "screen",
+        "tuning": "none"
+      },
+      "summary": {
+        "off": {
+          "weighted_tg": 68.60555839543706,
+          "mean_tg": 68.8789254188273,
+          "accepted": 688,
+          "drafted": 1112,
+          "captures": 0
+        },
+        "medium": {
+          "weighted_tg": 72.99896942631399,
+          "mean_tg": 73.217414254749,
+          "accepted": 715,
+          "drafted": 1071,
+          "captures": 0
+        }
+      }
+    },
+    "d1-fixed": {
+      "settings": {
+        "depth": 1,
+        "confidence": 0.0,
+        "vocab": "current",
+        "context": 1048576,
+        "kv": "int8",
+        "streams": 2,
+        "vision": true,
+        "kept_prefixes": 1,
+        "torch": "2.13.0+cu130",
+        "gpu": "NVIDIA GB10",
+        "suite": "screen"
+      },
+      "summary": {
+        "off": {
+          "weighted_tg": 53.86821300125165,
+          "mean_tg": 53.88385325015293,
+          "accepted": 459,
+          "drafted": 561,
+          "captures": 0
+        },
+        "medium": {
+          "weighted_tg": 54.670582938490234,
+          "mean_tg": 54.6842963070303,
+          "accepted": 469,
+          "drafted": 551,
+          "captures": 0
+        }
+      }
+    },
+    "d6-c04": {
+      "settings": {
+        "depth": 6,
+        "confidence": 0.4,
+        "vocab": "current",
+        "context": 1048576,
+        "kv": "int8",
+        "streams": 2,
+        "vision": true,
+        "kept_prefixes": 1,
+        "torch": "2.13.0+cu130",
+        "gpu": "NVIDIA GB10",
+        "suite": "screen",
+        "tuning": "none",
+        "source_sha256": {
+          "run-arm.py": "ba4fb616f70f5965c1b9807761e94a5cbdf11b3f65ff69ace8bd59f497deabb7",
+          "tune_runtime.py": "d926850fbb1f0c62c754f268246db0d861441e74d0b7f02f6950c7d569d029cf",
+          "compact_experts.py": "b0cd69254b00295c6d0c24cd22d749a1f63fa47bf8080c900e294c6c2acc7e4d"
+        }
+      },
+      "summary": {
+        "off": {
+          "weighted_tg": 67.49736958780284,
+          "mean_tg": 67.79536976307729,
+          "accepted": 700,
+          "drafted": 1240,
+          "captures": 0
+        },
+        "medium": {
+          "weighted_tg": 73.11932787566847,
+          "mean_tg": 73.59589085137736,
+          "accepted": 740,
+          "drafted": 1231,
+          "captures": 0
+        }
+      }
+    },
+    "d3-mix96": {
+      "settings": {
+        "depth": 3,
+        "confidence": 0.0,
+        "vocab": "mix96",
+        "context": 1048576,
+        "kv": "int8",
+        "streams": 2,
+        "vision": true,
+        "kept_prefixes": 1,
+        "torch": "2.13.0+cu130",
+        "gpu": "NVIDIA GB10",
+        "suite": "screen",
+        "tuning": "none"
+      },
+      "summary": {
+        "off": {
+          "weighted_tg": 65.50849362576668,
+          "mean_tg": 65.69468393980385,
+          "accepted": 659,
+          "drafted": 1080,
+          "captures": 0
+        },
+        "medium": {
+          "weighted_tg": 71.77791069983464,
+          "mean_tg": 72.1344582663475,
+          "accepted": 693,
+          "drafted": 979,
+          "captures": 0
+        }
+      }
+    },
+    "d3-mix64": {
+      "settings": {
+        "depth": 3,
+        "confidence": 0.0,
+        "vocab": "mix64",
+        "context": 1048576,
+        "kv": "int8",
+        "streams": 2,
+        "vision": true,
+        "kept_prefixes": 1,
+        "torch": "2.13.0+cu130",
+        "gpu": "NVIDIA GB10",
+        "suite": "screen",
+        "tuning": "none"
+      },
+      "summary": {
+        "off": {
+          "weighted_tg": 64.13521211778243,
+          "mean_tg": 64.4866799217517,
+          "accepted": 645,
+          "drafted": 1124,
+          "captures": 0
+        },
+        "medium": {
+          "weighted_tg": 71.77083992991788,
+          "mean_tg": 72.16399358464493,
+          "accepted": 687,
+          "drafted": 997,
+          "captures": 0
+        }
+      }
+    },
+    "d4-fixed": {
+      "settings": {
+        "depth": 4,
+        "confidence": 0.0,
+        "vocab": "current",
+        "context": 1048576,
+        "kv": "int8",
+        "streams": 2,
+        "vision": true,
+        "kept_prefixes": 1,
+        "torch": "2.13.0+cu130",
+        "gpu": "NVIDIA GB10",
+        "suite": "screen"
+      },
+      "summary": {
+        "off": {
+          "weighted_tg": 66.84667208430545,
+          "mean_tg": 67.20634955646925,
+          "accepted": 695,
+          "drafted": 1295,
+          "captures": 0
+        },
+        "medium": {
+          "weighted_tg": 72.01609771596003,
+          "mean_tg": 72.2895823395538,
+          "accepted": 721,
+          "drafted": 1188,
+          "captures": 0
+        }
+      }
+    },
+    "compact-qualify": {
+      "settings": {
+        "depth": 3,
+        "confidence": 0.0,
+        "vocab": "current",
+        "context": 1048576,
+        "kv": "int8",
+        "streams": 2,
+        "vision": true,
+        "kept_prefixes": 1,
+        "torch": "2.13.0+cu130",
+        "gpu": "NVIDIA GB10",
+        "suite": "qualify",
+        "tuning": "parallel2k",
+        "source_sha256": {
+          "run-arm.py": "49a895e259f2f8657d4f696f62bf63b380accf137b6e25dd9346fb1af301d266",
+          "tune_runtime.py": "6c8e203b0da39545e4f874effa2cb6629afef447c166047bf391c84147cad0a5",
+          "compact_experts.py": "8eb4e3c9030110470068bd84f7ac7c2ec86420f872463a08750353bc4f7e79b2",
+          "parallel_group.py": "940c651860312f8a91a552b5885892a80721ef9f7282daad0548d91a4fab91bb"
+        }
+      },
+      "summary": {
+        "off": {
+          "weighted_tg": 65.33896187919979,
+          "mean_tg": 65.51546175101225,
+          "accepted": 658,
+          "drafted": 1083,
+          "captures": 0
+        },
+        "medium": {
+          "weighted_tg": 71.41106871565093,
+          "mean_tg": 71.83797917275545,
+          "accepted": 690,
+          "drafted": 988,
+          "captures": 0
+        }
+      }
+    },
+    "baseline-d3-r3": {
+      "settings": {
+        "depth": 3,
+        "confidence": 0.0,
+        "vocab": "current",
+        "context": 1048576,
+        "kv": "int8",
+        "streams": 2,
+        "vision": true,
+        "kept_prefixes": 1,
+        "torch": "2.13.0+cu130",
+        "gpu": "NVIDIA GB10",
+        "suite": "baseline"
+      },
+      "summary": {
+        "off": {
+          "weighted_tg": 65.81961553601043,
+          "mean_tg": 66.0130083740869,
+          "accepted": 658,
+          "drafted": 1083,
+          "captures": 0
+        },
+        "medium": {
+          "weighted_tg": 71.66192433343872,
+          "mean_tg": 72.09567416078772,
+          "accepted": 690,
+          "drafted": 988,
+          "captures": 0
+        }
+      }
+    },
+    "d2-fixed": {
+      "settings": {
+        "depth": 2,
+        "confidence": 0.0,
+        "vocab": "current",
+        "context": 1048576,
+        "kv": "int8",
+        "streams": 2,
+        "vision": true,
+        "kept_prefixes": 1,
+        "torch": "2.13.0+cu130",
+        "gpu": "NVIDIA GB10",
+        "suite": "screen",
+        "tuning": "none"
+      },
+      "summary": {
+        "off": {
+          "weighted_tg": 62.62971104370571,
+          "mean_tg": 62.70706108426436,
+          "accepted": 597,
+          "drafted": 845,
+          "captures": 0
+        },
+        "medium": {
+          "weighted_tg": 65.0535097006263,
+          "mean_tg": 65.12011418292559,
+          "accepted": 615,
+          "drafted": 810,
+          "captures": 0
+        }
+      }
+    },
+    "sample-d3": {
+      "settings": {
+        "depth": 3,
+        "confidence": 0.0,
+        "vocab": "current",
+        "context": 1048576,
+        "kv": "int8",
+        "streams": 2,
+        "vision": true,
+        "kept_prefixes": 1,
+        "torch": "2.13.0+cu130",
+        "gpu": "NVIDIA GB10",
+        "suite": "qualify",
+        "tuning": "sample"
+      },
+      "summary": {
+        "off": {
+          "weighted_tg": 65.58515460735711,
+          "mean_tg": 65.77985428149711,
+          "accepted": 658,
+          "drafted": 1083,
+          "captures": 0
+        },
+        "medium": {
+          "weighted_tg": 71.39457401237506,
+          "mean_tg": 71.81480970218917,
+          "accepted": 690,
+          "drafted": 988,
+          "captures": 0
+        }
+      }
+    },
+    "d3-mix128": {
+      "settings": {
+        "depth": 3,
+        "confidence": 0.0,
+        "vocab": "mix128",
+        "context": 1048576,
+        "kv": "int8",
+        "streams": 2,
+        "vision": true,
+        "kept_prefixes": 1,
+        "torch": "2.13.0+cu130",
+        "gpu": "NVIDIA GB10",
+        "suite": "screen",
+        "tuning": "none"
+      },
+      "summary": {
+        "off": {
+          "weighted_tg": 64.40003788237523,
+          "mean_tg": 64.5811857754207,
+          "accepted": 659,
+          "drafted": 1080,
+          "captures": 0
+        },
+        "medium": {
+          "weighted_tg": 70.58042016108944,
+          "mean_tg": 70.93423047789207,
+          "accepted": 693,
+          "drafted": 979,
+          "captures": 0
+        }
+      }
+    },
+    "d5-fixed": {
+      "settings": {
+        "depth": 5,
+        "confidence": 0.0,
+        "vocab": "current",
+        "context": 1048576,
+        "kv": "int8",
+        "streams": 2,
+        "vision": true,
+        "kept_prefixes": 1,
+        "torch": "2.13.0+cu130",
+        "gpu": "NVIDIA GB10",
+        "suite": "screen"
+      },
+      "summary": {
+        "off": {
+          "weighted_tg": 64.61708044826516,
+          "mean_tg": 64.95915886945994,
+          "accepted": 711,
+          "drafted": 1537,
+          "captures": 0
+        },
+        "medium": {
+          "weighted_tg": 71.86540033255362,
+          "mean_tg": 72.31289066923678,
+          "accepted": 744,
+          "drafted": 1365,
+          "captures": 0
+        }
+      }
+    },
+    "d6-fixed": {
+      "settings": {
+        "depth": 6,
+        "confidence": 0.0,
+        "vocab": "current",
+        "context": 1048576,
+        "kv": "int8",
+        "streams": 2,
+        "vision": true,
+        "kept_prefixes": 1,
+        "torch": "2.13.0+cu130",
+        "gpu": "NVIDIA GB10",
+        "suite": "screen"
+      },
+      "summary": {
+        "off": {
+          "weighted_tg": 62.80517465380186,
+          "mean_tg": 63.279752878020645,
+          "accepted": 724,
+          "drafted": 1767,
+          "captures": 0
+        },
+        "medium": {
+          "weighted_tg": 69.27841773527494,
+          "mean_tg": 69.56575146739578,
+          "accepted": 754,
+          "drafted": 1578,
+          "captures": 0
+        }
+      }
+    },
+    "d5-c04": {
+      "settings": {
+        "depth": 5,
+        "confidence": 0.4,
+        "vocab": "current",
+        "context": 1048576,
+        "kv": "int8",
+        "streams": 2,
+        "vision": true,
+        "kept_prefixes": 1,
+        "torch": "2.13.0+cu130",
+        "gpu": "NVIDIA GB10",
+        "suite": "screen",
+        "tuning": "none"
+      },
+      "summary": {
+        "off": {
+          "weighted_tg": 67.98730903564667,
+          "mean_tg": 68.25819933579604,
+          "accepted": 690,
+          "drafted": 1143,
+          "captures": 0
+        },
+        "medium": {
+          "weighted_tg": 74.79267031830881,
+          "mean_tg": 75.1918456282958,
+          "accepted": 733,
+          "drafted": 1119,
+          "captures": 0
+        }
+      }
+    }
+  },
+  "holdout": {
+    "baseline": {
+      "off": {
+        "weighted_tg": 64.08889669271193,
+        "mean_tg": 66.19508711576783,
+        "accepted": 1298,
+        "drafted": 2231,
+        "captures": 0
+      },
+      "medium": {
+        "weighted_tg": 64.24743434597433,
+        "mean_tg": 65.97468438164012,
+        "accepted": 1309,
+        "drafted": 2202,
+        "captures": 0
+      }
+    },
+    "holdout-candidate-a": {
+      "off": {
+        "weighted_tg": 67.21451096839537,
+        "mean_tg": 70.03134906556876,
+        "accepted": 1354,
+        "drafted": 2165,
+        "captures": 0
+      },
+      "medium": {
+        "weighted_tg": 67.61741247614039,
+        "mean_tg": 69.72752980265288,
+        "accepted": 1379,
+        "drafted": 2215,
+        "captures": 0
+      }
+    },
+    "holdout-candidate-b": {
+      "off": {
+        "weighted_tg": 67.30946547590821,
+        "mean_tg": 70.10571004451126,
+        "accepted": 1354,
+        "drafted": 2165,
+        "captures": 0
+      },
+      "medium": {
+        "weighted_tg": 67.6727077691182,
+        "mean_tg": 69.7665538583251,
+        "accepted": 1379,
+        "drafted": 2215,
+        "captures": 0
+      }
+    },
+    "combined": {
+      "off": {
+        "before_tg": 64.08889669271193,
+        "after_tg": 67.26195471006446,
+        "gain_percent": 4.951026123240099,
+        "all_output_ids_identical": true
+      },
+      "medium": {
+        "before_tg": 64.24743434597433,
+        "after_tg": 67.64504882258232,
+        "gain_percent": 5.288327092272271,
+        "all_output_ids_identical": true
+      }
+    }
+  },
+  "deployment": {
+    "holdout": {
+      "holdout-candidate-a": {
+        "gains": {
+          "off": 4.876998102604069,
+          "medium": 5.245311605781211
+        },
+        "output_ids_identical": true,
+        "before": {
+          "off": {
+            "weighted_tg": 64.08889669271193,
+            "mean_tg": 66.19508711576783,
+            "accepted": 1298,
+            "drafted": 2231,
+            "captures": 0
+          },
+          "medium": {
+            "weighted_tg": 64.24743434597433,
+            "mean_tg": 65.97468438164012,
+            "accepted": 1309,
+            "drafted": 2202,
+            "captures": 0
+          }
+        },
+        "after": {
+          "off": {
+            "weighted_tg": 67.21451096839537,
+            "mean_tg": 70.03134906556876,
+            "accepted": 1354,
+            "drafted": 2165,
+            "captures": 0
+          },
+          "medium": {
+            "weighted_tg": 67.61741247614039,
+            "mean_tg": 69.72752980265288,
+            "accepted": 1379,
+            "drafted": 2215,
+            "captures": 0
+          }
+        }
+      },
+      "holdout-candidate-b": {
+        "gains": {
+          "off": 5.025158723886292,
+          "medium": 5.331377755411482
+        },
+        "output_ids_identical": true,
+        "before": {
+          "off": {
+            "weighted_tg": 64.08889669271193,
+            "mean_tg": 66.19508711576783,
+            "accepted": 1298,
+            "drafted": 2231,
+            "captures": 0
+          },
+          "medium": {
+            "weighted_tg": 64.24743434597433,
+            "mean_tg": 65.97468438164012,
+            "accepted": 1309,
+            "drafted": 2202,
+            "captures": 0
+          }
+        },
+        "after": {
+          "off": {
+            "weighted_tg": 67.30946547590821,
+            "mean_tg": 70.10571004451126,
+            "accepted": 1354,
+            "drafted": 2165,
+            "captures": 0
+          },
+          "medium": {
+            "weighted_tg": 67.6727077691182,
+            "mean_tg": 69.7665538583251,
+            "accepted": 1379,
+            "drafted": 2215,
+            "captures": 0
+          }
+        }
+      }
+    },
+    "binary_sha256": "b9895ec7f8bf4b54628d9a418f6755bc308b46b2f9d368dceafd7dd07ef18eec",
+    "operation": {
+      "action": "start",
+      "bundle_id": "qwen38fn_exl3",
+      "state": "complete",
+      "phase": "준비 완료",
+      "detail": "선택한 구성을 사용할 수 있습니다.",
+      "error": null,
+      "progress": 1
+    },
+    "image": "sha256:3ca74beaf9d842c9bb0b8be784523f4650b31ca8fbc9f5633c83e2cda94a4d7d",
+    "runtime_profile": {
+      "model": "qwen38fn_exl3",
+      "context": 1048576,
+      "kv": "int8",
+      "depth": 5,
+      "vision": true,
+      "confidence": 0.4,
+      "draft_vocabulary": 86218,
+      "expert_tiles": "compact-parallel-v1",
+      "moe_window": 2048,
+      "source_sha256": {
+        "compact_experts.py": "8eb4e3c9030110470068bd84f7ac7c2ec86420f872463a08750353bc4f7e79b2",
+        "parallel_group.py": "940c651860312f8a91a552b5885892a80721ef9f7282daad0548d91a4fab91bb"
+      }
+    },
+    "selected_bundle": "qwen38fn_exl3",
+    "final_health": {
+      "ok": true,
+      "backend": "tensorfold",
+      "context_length": 1048576
+    },
+    "final_operation": "complete"
+  },
+  "finished_utc": "2026-10-21T15:16:33.820219+00:00",
+  "api_checks": {
+    "tools_and_images": {
+      "status": [
+        {
+          "kind": "tools",
+          "mode": "off",
+          "exit_code": 0
+        },
+        {
+          "kind": "tools",
+          "mode": "medium",
+          "exit_code": 0
+        },
+        {
+          "kind": "vision",
+          "image": "red",
+          "mode": "off",
+          "exit_code": 0
+        },
+        {
+          "kind": "vision",
+          "image": "red",
+          "mode": "medium",
+          "exit_code": 0
+        },
+        {
+          "kind": "vision",
+          "image": "ocr",
+          "mode": "off",
+          "exit_code": 0
+        },
+        {
+          "kind": "vision",
+          "image": "ocr",
+          "mode": "medium",
+          "exit_code": 0
+        }
+      ],
+      "responses": [
+        {
+          "kind": "tool",
+          "mode": "off",
+          "stream": false,
+          "content": "",
+          "reasoning": "",
+          "tool_calls": [
+            {
+              "id": "call_8e81cb50ca9b485cb2c1a18d",
+              "name": "add_tags",
+              "arguments": "{\"doc_id\":42,\"tags\":[\"urgent\",\"finance\",\"q3\"]}"
+            }
+          ],
+          "finish_reason": "tool_calls",
+          "usage": {
+            "prompt_tokens": 341,
+            "completion_tokens": 49,
+            "total_tokens": 390,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "native": {
+            "prefill_s": 1.2097,
+            "decode_s": 0.5139,
+            "rounds": 9,
+            "drafts": true,
+            "cached": 0,
+            "min_rows": 6,
+            "drafted": 45,
+            "accepted": 39,
+            "token_sha": "a5d1eae74c8a"
+          }
+        },
+        {
+          "kind": "tool",
+          "mode": "off",
+          "stream": true,
+          "content": "",
+          "reasoning": "",
+          "tool_calls": [
+            {
+              "id": "call_b1d976fb48c44ea282de3d75",
+              "name": "add_tags",
+              "arguments": "{\"doc_id\":42,\"tags\":[\"urgent\", \"finance\", \"q3\"]}"
+            }
+          ],
+          "finish_reason": "tool_calls",
+          "usage": {
+            "prompt_tokens": 341,
+            "completion_tokens": 49,
+            "total_tokens": 390,
+            "prompt_tokens_details": {
+              "cached_tokens": 340
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "native": {
+            "prefill_s": 0.0459,
+            "decode_s": 0.4743,
+            "rounds": 9,
+            "drafts": true,
+            "cached": 340,
+            "min_rows": 6,
+            "drafted": 45,
+            "accepted": 39,
+            "token_sha": "a5d1eae74c8a"
+          }
+        },
+        {
+          "kind": "tool",
+          "mode": "off",
+          "stream": false,
+          "content": "The confirmation code returned by the tool is: **TAGGED-58213-KESTREL**",
+          "reasoning": "",
+          "tool_calls": [],
+          "finish_reason": "stop",
+          "usage": {
+            "prompt_tokens": 444,
+            "completion_tokens": 24,
+            "total_tokens": 468,
+            "prompt_tokens_details": {
+              "cached_tokens": 340
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "native": {
+            "prefill_s": 0.2061,
+            "decode_s": 0.2954,
+            "rounds": 5,
+            "drafts": true,
+            "cached": 340,
+            "min_rows": 6,
+            "drafted": 25,
+            "accepted": 18,
+            "token_sha": "1e5082c1348b"
+          }
+        },
+        {
+          "kind": "tool",
+          "mode": "medium",
+          "stream": false,
+          "content": "",
+          "reasoning": "We need to call add_tags. Then report confirmation code returned. Need be careful: tool result not known until call. We can call now.\n",
+          "tool_calls": [
+            {
+              "id": "call_377def71956c468f88ea51fb",
+              "name": "add_tags",
+              "arguments": "{\"doc_id\":42,\"tags\":[\"urgent\",\"finance\",\"q3\"]}"
+            }
+          ],
+          "finish_reason": "tool_calls",
+          "usage": {
+            "prompt_tokens": 339,
+            "completion_tokens": 81,
+            "total_tokens": 420,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 31
+            }
+          },
+          "native": {
+            "prefill_s": 0.5052,
+            "decode_s": 1.0927,
+            "rounds": 21,
+            "drafts": true,
+            "cached": 0,
+            "min_rows": 2,
+            "drafted": 76,
+            "accepted": 59,
+            "token_sha": "53b49059cd0e"
+          }
+        },
+        {
+          "kind": "tool",
+          "mode": "medium",
+          "stream": true,
+          "content": "",
+          "reasoning": "We need to call add_tags. Then report confirmation code returned. Need be careful: tool result not known until call. We can call now.\n",
+          "tool_calls": [
+            {
+              "id": "call_71e37e78d93543bd91ba643d",
+              "name": "add_tags",
+              "arguments": "{\"doc_id\":42,\"tags\":[\"urgent\", \"finance\", \"q3\"]}"
+            }
+          ],
+          "finish_reason": "tool_calls",
+          "usage": {
+            "prompt_tokens": 339,
+            "completion_tokens": 81,
+            "total_tokens": 420,
+            "prompt_tokens_details": {
+              "cached_tokens": 338
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 31
+            }
+          },
+          "native": {
+            "prefill_s": 0.0461,
+            "decode_s": 1.0069,
+            "rounds": 21,
+            "drafts": true,
+            "cached": 338,
+            "min_rows": 2,
+            "drafted": 76,
+            "accepted": 59,
+            "token_sha": "53b49059cd0e"
+          }
+        },
+        {
+          "kind": "tool",
+          "mode": "medium",
+          "stream": false,
+          "content": "The document has been tagged successfully. The confirmation code returned by the tool is:\n\n**TAGGED-58213-KESTREL**",
+          "reasoning": "The tool returned a confirmation code. I need to report it.\n",
+          "tool_calls": [],
+          "finish_reason": "stop",
+          "usage": {
+            "prompt_tokens": 442,
+            "completion_tokens": 48,
+            "total_tokens": 490,
+            "prompt_tokens_details": {
+              "cached_tokens": 338
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 15
+            }
+          },
+          "native": {
+            "prefill_s": 0.1426,
+            "decode_s": 0.5846,
+            "rounds": 10,
+            "drafts": true,
+            "cached": 338,
+            "min_rows": 4,
+            "drafted": 48,
+            "accepted": 37,
+            "token_sha": "f715c668be5f"
+          }
+        },
+        {
+          "kind": "vision",
+          "image": "red",
+          "mode": "off",
+          "content": "RED",
+          "reasoning": "",
+          "usage": {
+            "prompt_tokens": 222,
+            "completion_tokens": 2,
+            "total_tokens": 224,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "native": {
+            "prefill_s": 0.7146,
+            "decode_s": 0.0626,
+            "rounds": 1,
+            "drafts": true,
+            "cached": 0,
+            "min_rows": 6,
+            "drafted": 5,
+            "accepted": 0,
+            "token_sha": "3c90ce23b4ca"
+          },
+          "passed": true
+        },
+        {
+          "kind": "vision",
+          "image": "red",
+          "mode": "medium",
+          "content": "RED",
+          "reasoning": "The user wants the solid color name of the image, restricted to \"RED\" or \"BLUE\". The image is a uniform red field. No ambiguity here. The answer must be exactly \"RED\".\n",
+          "usage": {
+            "prompt_tokens": 220,
+            "completion_tokens": 45,
+            "total_tokens": 265,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 42
+            }
+          },
+          "native": {
+            "prefill_s": 0.7237,
+            "decode_s": 0.9266,
+            "rounds": 14,
+            "drafts": true,
+            "cached": 0,
+            "min_rows": 2,
+            "drafted": 63,
+            "accepted": 30,
+            "token_sha": "b74b0ede89ae"
+          },
+          "passed": true
+        },
+        {
+          "kind": "vision",
+          "image": "ocr",
+          "mode": "off",
+          "content": "SPARK 7319",
+          "reasoning": "",
+          "usage": {
+            "prompt_tokens": 185,
+            "completion_tokens": 8,
+            "total_tokens": 193,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "native": {
+            "prefill_s": 0.5923,
+            "decode_s": 0.1356,
+            "rounds": 2,
+            "drafts": true,
+            "cached": 0,
+            "min_rows": 6,
+            "drafted": 10,
+            "accepted": 5,
+            "token_sha": "71ec6e139e3d"
+          },
+          "passed": true
+        },
+        {
+          "kind": "vision",
+          "image": "ocr",
+          "mode": "medium",
+          "content": "SPARK 7319",
+          "reasoning": "The user wants the exact text from the image. The image clearly displays \"SPARK 7319\" in bold black text on a white background. I need to provide just this text without extra explanation.\n",
+          "usage": {
+            "prompt_tokens": 183,
+            "completion_tokens": 54,
+            "total_tokens": 237,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 45
+            }
+          },
+          "native": {
+            "prefill_s": 0.5688,
+            "decode_s": 0.7576,
+            "rounds": 12,
+            "drafts": true,
+            "cached": 0,
+            "min_rows": 4,
+            "drafted": 58,
+            "accepted": 41,
+            "token_sha": "1075681b64d9"
+          },
+          "passed": true
+        }
+      ]
+    },
+    "schema_resume_cancel": [
+      {
+        "kind": "schema",
+        "mode": "off",
+        "answer": "{\n  \"answer\": 391\n}",
+        "reasoning": "",
+        "usage": {
+          "prompt_tokens": 27,
+          "completion_tokens": 13,
+          "total_tokens": 40,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "passed": true
+      },
+      {
+        "kind": "schema",
+        "mode": "medium",
+        "answer": "{\"answer\": 391}",
+        "reasoning": "The user wants me to calculate 17 × 23 and return the result as JSON with an integer answer property.\n\n17 × 2\n",
+        "usage": {
+          "prompt_tokens": 25,
+          "completion_tokens": 42,
+          "total_tokens": 67,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 33
+          }
+        },
+        "passed": true
+      },
+      {
+        "kind": "conversation-resume",
+        "answer": "ZW9137",
+        "usage": {
+          "prompt_tokens": 56,
+          "completion_tokens": 6,
+          "total_tokens": 62,
+          "prompt_tokens_details": {
+            "cached_tokens": 27
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "passed": true
+      },
+      {
+        "kind": "cancel-and-recover",
+        "answer": "391",
+        "usage": {
+          "prompt_tokens": 25,
+          "completion_tokens": 4,
+          "total_tokens": 29,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "passed": true
+      }
+    ]
+  },
+  "grouping_reference": {
+    "passed": true,
+    "reference": "Independent NumPy stable membership including ignored out-of-range experts",
+    "checks": [
+      {
+        "rows": 128,
+        "slots": 11,
+        "experts": 513,
+        "passed": true
+      },
+      {
+        "rows": 129,
+        "slots": 11,
+        "experts": 513,
+        "passed": true
+      },
+      {
+        "rows": 511,
+        "slots": 11,
+        "experts": 513,
+        "passed": true
+      },
+      {
+        "rows": 512,
+        "slots": 11,
+        "experts": 513,
+        "passed": true
+      },
+      {
+        "rows": 1023,
+        "slots": 11,
+        "experts": 513,
+        "passed": true
+      },
+      {
+        "rows": 1024,
+        "slots": 11,
+        "experts": 513,
+        "passed": true
+      },
+      {
+        "rows": 2047,
+        "slots": 11,
+        "experts": 513,
+        "passed": true
+      },
+      {
+        "rows": 2048,
+        "slots": 11,
+        "experts": 513,
+        "passed": true
+      }
+    ]
+  },
+  "exactness": {
+    "baseline-d3-r3": [
+      {
+        "name": "ko-off",
+        "serial_draft_equal": true,
+        "cached_equal": true,
+        "cached_tokens": 57
+      },
+      {
+        "name": "greedy-ko-off",
+        "serial_draft_equal": true,
+        "cached_equal": true,
+        "cached_tokens": 57
+      },
+      {
+        "name": "code-medium",
+        "serial_draft_equal": true,
+        "cached_equal": true,
+        "cached_tokens": 61
+      },
+      {
+        "name": "greedy-ko-medium",
+        "serial_draft_equal": true,
+        "cached_equal": true,
+        "cached_tokens": 55
+      }
+    ],
+    "compact-qualify": [
+      {
+        "name": "ko-off",
+        "serial_draft_equal": true,
+        "cached_equal": true,
+        "cached_tokens": 57
+      },
+      {
+        "name": "greedy-ko-off",
+        "serial_draft_equal": true,
+        "cached_equal": true,
+        "cached_tokens": 57
+      },
+      {
+        "name": "code-medium",
+        "serial_draft_equal": true,
+        "cached_equal": true,
+        "cached_tokens": 61
+      },
+      {
+        "name": "greedy-ko-medium",
+        "serial_draft_equal": true,
+        "cached_equal": true,
+        "cached_tokens": 55
+      }
+    ],
+    "holdout-candidate-b": [
+      {
+        "name": "holdout-ko-off",
+        "serial_draft_equal": true,
+        "cached_equal": true,
+        "cached_tokens": 49
+      },
+      {
+        "name": "holdout-code-off",
+        "serial_draft_equal": true,
+        "cached_equal": true,
+        "cached_tokens": 41
+      },
+      {
+        "name": "holdout-ko-medium",
+        "serial_draft_equal": true,
+        "cached_equal": true,
+        "cached_tokens": 47
+      },
+      {
+        "name": "holdout-code-medium",
+        "serial_draft_equal": true,
+        "cached_equal": true,
+        "cached_tokens": 39
+      }
+    ]
+  },
+  "production_profile": {
+    "image": "local/sparktalk-qwen38-exl3-tensorfold:db281878-tune1",
+    "mtp_max": 5,
+    "confidence": 0.4,
+    "draft_tokens": 86218,
+    "moe_window": 2048,
+    "expert_tiles": "compact-parallel-v1",
+    "reserve_gib": 4,
+    "ngram": "Existing packed table; warm reclaimable OS cache, not mlocked",
+    "prefixes": 1
+  },
+  "rejected_changes": [
+    "MTP depths 1 and 2; fixed 5 and 6 regressed. Fixed 4 was within noise.",
+    "Draft vocabularies 65,536, 98,304 and 131,072 did not improve the combined workload. Keep the existing Korean-expanded 86,218 IDs.",
+    "Fused sampling readbacks and alternative dense/expert tile settings did not improve full-model throughput.",
+    "A 2048-row expert window with compaction alone lost to 1024. Combined stable parallel grouping plus compact tiles won."
+  ],
+  "limits": [
+    "Synthetic cold-prefix prompts; absolute TPS depends on the prompt. No claim of a universal TPS value.",
+    "PP was measured through 131,072 tokens. The existing 1M configuration, KV codec and weights remain; this run did not repeat the earlier full 1M retrieval test.",
+    "The powered-off host 60 was not inventoried again; the no-new-residue statement covers these failed transfer attempts only."
+  ],
+  "checks": [
+    "go test ./internal/config ./internal/orchestrator",
+    "Python first-install Qwen EXL3 tests: 3 passed",
+    "Support assets: 109 verified; recipe assets: 4 verified",
+    "Linux arm64 executable and pinned Docker image built successfully",
+    "Managed Talk startup and model/vision/profile verification passed"
+  ],
+  "independent_build_files": [
+    {
+      "file": "Dockerfile",
+      "same_content": true,
+      "separate_files": true,
+      "sha256": "099e5cdc1b559e2e2d597d681cee6b81ff4ccfc970c903aa0d937180b23966b3"
+    },
+    {
+      "file": "launch.py",
+      "same_content": true,
+      "separate_files": true,
+      "sha256": "80cd063c47e7ef7954847838fb8705c4f918fe4c6821dbdcb52816e11f274943"
+    },
+    {
+      "file": "prepare_vision.py",
+      "same_content": true,
+      "separate_files": true,
+      "sha256": "952b95de3a167371bb34f3b33fd02fdfebaf2c82a57c50c16c55ce8871119c33"
+    },
+    {
+      "file": "compact_experts.py",
+      "same_content": true,
+      "separate_files": true,
+      "sha256": "8eb4e3c9030110470068bd84f7ac7c2ec86420f872463a08750353bc4f7e79b2"
+    },
+    {
+      "file": "parallel_group.py",
+      "same_content": true,
+      "separate_files": true,
+      "sha256": "940c651860312f8a91a552b5885892a80721ef9f7282daad0548d91a4fab91bb"
+    }
+  ],
+  "artifacts": {
+    "file": "util/talk/docs/qwen38-exl3-tuning-20261021.tar.gz",
+    "sha256": "e587f7f8f2bac9a5b0315e1f1684a7d07a0c3a8257d46f3aed52b12b88605cfa",
+    "bytes": 1406788,
+    "contains": "Successful arm measurements, token IDs, timing/capture counts, microbenchmarks, profiler summaries, harness and synthetic inputs. No weights, credentials or compiled caches."
+  },
+  "cleanup": {
+    "trial_container_removed": true,
+    "trial_directory_removed": true,
+    "compiled_trial_cache_removed": true,
+    "temporary_private_backup_removed": true,
+    "active_model_weights_and_production_cache_retained": true,
+    "remote60_new_artifacts": false
+  }
+}

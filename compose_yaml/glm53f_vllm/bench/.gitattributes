@@ -1,3 +1,0 @@
-# Preserve diagnostic logs and patch context bytes.
-*.log -whitespace
-*.patch -whitespace

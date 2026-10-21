@@ -1,0 +1,66 @@
+{
+  "tensorfold_revision": "db281878ddb836fd0df510d8771ecb7e0fe47d26",
+  "base": "Qualified native TensorFold source with the 17 patches from the independent FP4-Local recipe; apply hybrid-source.patch after those patches.",
+  "native_image": "local/sparktalk-qwen38-fp4-tensorfold:db281878-ko2",
+  "native_image_id": "sha256:0a70046966c0129d949775e582478f55400094148401c25660ac1d1517ac8878",
+  "b12x_source_image": "local/qwen38-fp4-local:csf-yarn-20261016",
+  "b12x_source_image_id": "sha256:6f7fa43422080b2957b1d669ff21406240db77627ee3e42fc32bf5860a392bed",
+  "checkpoint_revision": "d1ec8b01dd859336d7905db2ad2ceb725146008c",
+  "context": 1048576,
+  "tp": 1,
+  "kv": "fp8",
+  "mtp": 4,
+  "vocabulary_sha256": "b156ebc6276e87fa273c799ee858e1fe41a0263b18b0950d27b7638e087f6911",
+  "experimental_controls": {
+    "TF_B12X_LAYOUT": "mma_packed",
+    "TF_B12X_ROUTE_MODE": "packed",
+    "TF_B12X_TILE": "32,128,32,128",
+    "TF_B12X_BLOCK": "8",
+    "TF_B12X_WHOLE_K": "1",
+    "B12X_W4A16_FP32_TOPK_WEIGHTS": "1",
+    "B12X_W4A16_A4_PREFILL": "0"
+  },
+  "private_evidence_directory": "/home/edp1096/.cache/model-download-jobs/qwen-b12x-followup-20261020",
+  "workload_sha256": "92ace8b852c23e408d1344fdb4ead77887b3d4a7c688da3f2ca105e793320f98",
+  "artifacts": {
+    "install/native/bin/tensorfold-native": {
+      "sha256": "22cf50af89ecd58773a24c08227794bafd0c5368a0c6c4963a26cfcb535e32e2",
+      "size": 25057608
+    },
+    "libtf_b12x.so": {
+      "sha256": "7b977fbdf0cba50ed3ab218fd6a4a8a5462952367ed961c328e31e4a483f10f5",
+      "size": 72728
+    },
+    "bridge.cc": {
+      "sha256": "20bab6c112b0a8a24b235c827e6f3b2e2494cc4d73e0830bccd8106ecee7b84c",
+      "size": 3667
+    },
+    "b12x_bridge.py": {
+      "sha256": "4dac049a43217c4209a222f6ee9d530cb64dab82ecce7051b5db08457d30df89",
+      "size": 7720
+    },
+    "hybrid-source.patch": {
+      "sha256": "a1aa650ccccf80fc4a283a1126983cbf1532f1db68305d8509abc832e5c0e9f1",
+      "size": 7170
+    },
+    "b12x-whole-k.patch": {
+      "sha256": "41dc264ce8ab1a6a7657de92ce6c033e6c00cfde1037a7f3ebca6f7cd74e4d78",
+      "size": 1461
+    },
+    "vllm-control-trim.patch": {
+      "sha256": "3ba48c17ae4c6b308db148b161bf4c8f911977c910aa6fe55a04a6d78077ae33",
+      "size": 1494
+    },
+    "vllm-loader-utils-original.py": {
+      "sha256": "aa398e74ee835537403e60186f2e9a81e8741a4b35fec68b47df6537716a45b7",
+      "size": 12141
+    },
+    "vllm-loader-utils-trim.py": {
+      "sha256": "938541758ab7f1963a37cd4051bcb7ae3e5345d9f65dfd5a6962f5b9bec1c840",
+      "size": 13127
+    },
+    "draft_vocabulary_matches_production": true
+  },
+  "production_adopted": false,
+  "startup_control_patch": "control/vllm-control-trim.patch"
+}

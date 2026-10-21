@@ -1,0 +1,8 @@
+{
+  "nvidia/GLM-5.3-Flash-FP4-Local": {
+    "revision": "76348ddb2be2e35e39ecfc00e75dc07703f4f3d5"
+  },
+  "edp1096/Huihui-GLM-5.3-Flash-abliterated-FP4-Local": {
+    "revision": "bbaaa926e0fc3b16fa604fa284010030f8279bb7"
+  }
+}

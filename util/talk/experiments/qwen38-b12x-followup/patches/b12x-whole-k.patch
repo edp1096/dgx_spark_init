@@ -1,0 +1,28 @@
+--- a/moe/_shared/kernels/w4a16/kernel.py
++++ b/moe/_shared/kernels/w4a16/kernel.py
+@@ -1566,9 +1566,12 @@
+             self.schedule_whole_tiles
+             and not self.direct_topk_routes
+             and not self.weight_layout_trellis256
++            and not (os.environ.get("TF_B12X_WHOLE_K", "0") == "1"
++                     and weight_layout in {"packed", "modelopt"}
++                     and scale_format == "e4m3_k16")
+         ):
+             raise ValueError(
+-                "schedule_whole_tiles requires direct_topk_routes or trellis_t256"
++                "schedule_whole_tiles requires direct_topk_routes, trellis_t256, or the experimental NVFP4 whole-K opt-in"
+             )
+         if self.fused_topk_sum and self.fused_sum_topk < 1:
+             raise ValueError("fused_sum_topk must be >= 1")
+@@ -6793,7 +6796,10 @@
+         if self.use_expert_map and not self.direct_topk_routes:
+             raise ValueError("use_expert_map requires direct_topk_routes")
+         self.schedule_whole_tiles = bool(
+-            (schedule_whole_tiles or weight_layout == "trellis_t256")
++            (schedule_whole_tiles or weight_layout == "trellis_t256"
++             or (os.environ.get("TF_B12X_WHOLE_K", "0") == "1"
++                 and weight_layout in {"packed", "modelopt"}
++                 and scale_format == "e4m3_k16"))
+             and not self.small_m_splitk
+         )
+         self.intermediate_rotation = bool(intermediate_rotation)

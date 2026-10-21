@@ -1,0 +1,1268 @@
+[
+  {
+    "kind": "quality-tg",
+    "case": "arithmetic",
+    "mode": "off",
+    "rep": 0,
+    "passed": true,
+    "check_detail": "exact JSON value",
+    "input_sha256": "08fef33f5d54332d16158e07ee707d1786f900c77e9c95573824412d2e009d21",
+    "elapsed_s": 0.2624907060089754,
+    "ttft_s": 0.20212576400081161,
+    "decode_client_s": 0.06025719700846821,
+    "tg_client": 33.191055994837114,
+    "pp_ttft": 173.15951864433998,
+    "usage": {
+      "prompt_tokens": 35,
+      "completion_tokens": 3,
+      "total_tokens": 38,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "391",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": [
+      {
+        "tensorfold": {
+          "enable_thinking": false,
+          "reasoning_effort": "none",
+          "engine": "lanes",
+          "tokens_per_second": 32.96690943169103,
+          "seconds": 0.060666894,
+          "prefill_seconds": 0.200329487,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.201165505,
+          "sampling": "greedy",
+          "drafts": true,
+          "token_sha": "081fad44a944",
+          "token_sha256": "081fad44a94486f19f5f4ca6a76d5460a0d96c4f5dd2b840bcf96450fe3c2c65",
+          "min_rows": 3
+        }
+      }
+    ]
+  },
+  {
+    "kind": "quality-tg",
+    "case": "ko-extract",
+    "mode": "off",
+    "rep": 0,
+    "passed": true,
+    "check_detail": "exact JSON value",
+    "input_sha256": "347cb9ad313aae84425aeb459b04f5cfbe9df12713294e6f75ce6f97afbf383d",
+    "elapsed_s": 1.4349908539879834,
+    "ttft_s": 0.27952317098970525,
+    "decode_client_s": 1.1553035390097648,
+    "tg_client": 47.606536414786426,
+    "pp_ttft": 264.7365502401423,
+    "usage": {
+      "prompt_tokens": 74,
+      "completion_tokens": 56,
+      "total_tokens": 130,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "[\n  {\n    \"name\": \"민수\",\n    \"item\": \"사과\",\n    \"count\": 3\n  },\n  {\n    \"name\": \"지연\",\n    \"item\": \"배\",\n    \"count\": 5\n  }\n]",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": [
+      {
+        "tensorfold": {
+          "enable_thinking": false,
+          "reasoning_effort": "none",
+          "engine": "lanes",
+          "tokens_per_second": 47.60135672936901,
+          "seconds": 1.155429252,
+          "prefill_seconds": 0.278010174,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.278703952,
+          "sampling": "greedy",
+          "drafts": true,
+          "token_sha": "507f0068f820",
+          "token_sha256": "507f0068f82092a5230bfc0838234e97fb43a49a8038f7c7de95ba142eb3cab8",
+          "min_rows": 3
+        }
+      }
+    ]
+  },
+  {
+    "kind": "quality-tg",
+    "case": "ko-sort",
+    "mode": "off",
+    "rep": 0,
+    "passed": false,
+    "check_detail": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+    "input_sha256": "90a33c7d1cc867d7cb07aab6b6e4c44ee8e1452f98d4825827d24792d1b0cd46",
+    "elapsed_s": 2.625453742002719,
+    "ttft_s": 0.2841666720050853,
+    "decode_client_s": 2.3411793569976,
+    "tg_client": 45.70346124067149,
+    "pp_ttft": 281.5249213974268,
+    "usage": {
+      "prompt_tokens": 80,
+      "completion_tokens": 108,
+      "total_tokens": 188,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "**정렬 결과:**\n\n```json\n[\"지연\", \"가람\", \"민수\", \"현우\"]\n```\n\n**정렬 과정:**\n1. 점수 내림차순: 지연(95) → 민수(82), 가람(82) → 현우(70)\n2. 점수가 같은 민수와 가람은 이름 오름차순(가나다순)으로: 가람 → 민수",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": [
+      {
+        "tensorfold": {
+          "enable_thinking": false,
+          "reasoning_effort": "none",
+          "engine": "lanes",
+          "tokens_per_second": 45.694776228912055,
+          "seconds": 2.341624335,
+          "prefill_seconds": 0.28229817,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.283261053,
+          "sampling": "greedy",
+          "drafts": true,
+          "token_sha": "4d682e0aae19",
+          "token_sha256": "4d682e0aae19887396ec23f93740e3ce7297bbea0b941f7a4137d748ff646bd7",
+          "min_rows": 2
+        }
+      }
+    ]
+  },
+  {
+    "kind": "quality-tg",
+    "case": "ko-logic",
+    "mode": "off",
+    "rep": 0,
+    "passed": false,
+    "check_detail": "exact JSON value",
+    "input_sha256": "9bbe39a08adf0a0a7ff34766d5b445c7f404afde8bd1b5c009f8e65a1ae953f1",
+    "elapsed_s": 0.43762581500050146,
+    "ttft_s": 0.25753769899893086,
+    "decode_client_s": 0.12609485800203402,
+    "tg_client": 55.51376250320282,
+    "pp_ttft": 244.62438021651167,
+    "usage": {
+      "prompt_tokens": 63,
+      "completion_tokens": 8,
+      "total_tokens": 71,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "```json\n[\"C\"]\n```",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": [
+      {
+        "tensorfold": {
+          "enable_thinking": false,
+          "reasoning_effort": "none",
+          "engine": "lanes",
+          "tokens_per_second": 38.84801969306013,
+          "seconds": 0.180189365,
+          "prefill_seconds": 0.255420364,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.256153295,
+          "sampling": "greedy",
+          "drafts": true,
+          "token_sha": "5ea01d6a90a1",
+          "token_sha256": "5ea01d6a90a12a9a4ce64c1ac4c2a82e2fad3d08c3a1c217b99c507e930cf750",
+          "min_rows": 3
+        }
+      }
+    ]
+  },
+  {
+    "kind": "quality-tg",
+    "case": "code-unique",
+    "mode": "off",
+    "rep": 0,
+    "passed": false,
+    "check_detail": "capped before completion",
+    "input_sha256": "d5c00891a9aa2999e7d88940e802fe4894e3efa8d520c4d8f033451706e72f4f",
+    "elapsed_s": 13.074261481000576,
+    "ttft_s": 0.2391752620023908,
+    "decode_client_s": 12.83499978701002,
+    "tg_client": 39.81301195790983,
+    "pp_ttft": 188.1465483648145,
+    "usage": {
+      "prompt_tokens": 45,
+      "completion_tokens": 512,
+      "total_tokens": 557,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "def unique_in_order(xs):\n    result = []\n    for x in xs:\n        if not result or result[-1] != x:\n            result.append(x)\n    result = []\n    seen = set()\n    for x in xs:\n        if x not in seen:\n            seen.add(x)\n            result.append(x)\n    return result\n\nThe user asked for code defining `unique_in_order(xs)` that returns each value once, preserving its first appearance. Values are integers. No imports, examples, or Markdown.\n\nWait — there's a subtle ambiguity here. \"Return each value once, preserving its first appearance\" — this is the classic \"unique in order\" kata, but the classic kata (from Codewars) actually collapses *consecutive* duplicates while keeping non-adjacent duplicates. However, the phrasing here says \"Return each value once, preserving its first appearance\" — that means each value appears exactly once in the output, at the position of its first occurrence. That's the dedup-by-first-appearance semantics, not the consecutive-collapse semantics.\n\nSo the correct implementation is: iterate through xs, keep a set of seen values, append to result only if not seen before.\n\nThe user said \"No imports\" — so I can't use `dict.fromkeys` trick? Actually `dict.fromkeys(xs)` doesn't require imports, and in Python 3.7+ dicts preserve insertion order. But using a set-based loop is clearer and definitely import-free. Either works. Let me use the set-based approach.\n\nAlso \"No examples, or Markdown\" — so I should output only the code, no code fences, no explanation, no example usage.\n\nLet me write clean code:\n\n```python\ndef unique_in_order(xs):\n    seen = set()\n    result = []\n    for x in xs:\n        if x not in seen:\n            seen.add(x)\n            result.append(x)\n    return result\n```\n\nThat's it. No imports, no examples, no markdown fences. Just the function definition.\n\nOne consideration: should I handle the case where xs might be a string? The problem says \"Values are integers\", so xs is presumably a list/iterable of integers. The set approach works for any hashable values anyway.\n\nEdge cases: empty list returns empty list. Duplicates anywhere (not just consecutive) are removed, keeping first occurrence. That matches \"Return each value once, preserving its first appearance.\"\n\nFinal answer: just the code block content without markdown fences.</think>def unique_in_order(xs",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "length",
+    "extras": [
+      {
+        "tensorfold": {
+          "enable_thinking": false,
+          "reasoning_effort": "none",
+          "engine": "lanes",
+          "tokens_per_second": 39.81233197818835,
+          "seconds": 12.835219004,
+          "prefill_seconds": 0.237728954,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.238163212,
+          "sampling": "greedy",
+          "drafts": true,
+          "token_sha": "e2c36b870e82",
+          "token_sha256": "e2c36b870e82242ab62e898a6c440ed16e2d3d7ee571c227965d77b6f7d3ac48",
+          "min_rows": 2
+        }
+      }
+    ]
+  },
+  {
+    "kind": "quality-tg",
+    "case": "code-intervals",
+    "mode": "off",
+    "rep": 0,
+    "passed": true,
+    "check_detail": "restricted Python functional cases",
+    "input_sha256": "fb92deaa1ae8b2287a0fb3407fc94defa3ae29b77538a27eabcf26ca5ed56d4f",
+    "elapsed_s": 2.1405013360054,
+    "ttft_s": 0.273616384001798,
+    "decode_client_s": 1.8668077680049464,
+    "tg_client": 47.13929388350758,
+    "pp_ttft": 230.24936986078293,
+    "usage": {
+      "prompt_tokens": 63,
+      "completion_tokens": 89,
+      "total_tokens": 152,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "```python\ndef merge_intervals(intervals):\n    if not intervals:\n        return []\n    intervals = sorted(intervals)\n    merged = [list(intervals[0])]\n    for start, end in intervals[1:]:\n        if start <= merged[-1][1]:\n            merged[-1][1] = max(merged[-1][1], end)\n        else:\n            merged.append([start, end])\n    return merged\n```",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": [
+      {
+        "tensorfold": {
+          "enable_thinking": false,
+          "reasoning_effort": "none",
+          "engine": "lanes",
+          "tokens_per_second": 47.13120635072868,
+          "seconds": 1.867128105,
+          "prefill_seconds": 0.271891963,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.272666973,
+          "sampling": "greedy",
+          "drafts": true,
+          "token_sha": "f60eb6d22b50",
+          "token_sha256": "f60eb6d22b50b9c6b46a6e1a92a268e0eaba8a5ab065ad787e6a45fe27691236",
+          "min_rows": 3
+        }
+      }
+    ]
+  },
+  {
+    "kind": "quality-tg",
+    "case": "code-intervals",
+    "mode": "off",
+    "rep": 1,
+    "passed": true,
+    "check_detail": "restricted Python functional cases",
+    "input_sha256": "fb92deaa1ae8b2287a0fb3407fc94defa3ae29b77538a27eabcf26ca5ed56d4f",
+    "elapsed_s": 2.1408136560057756,
+    "ttft_s": 0.27323841500037815,
+    "decode_client_s": 1.867470584998955,
+    "tg_client": 47.12256284349948,
+    "pp_ttft": 230.56787238321817,
+    "usage": {
+      "prompt_tokens": 63,
+      "completion_tokens": 89,
+      "total_tokens": 152,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "```python\ndef merge_intervals(intervals):\n    if not intervals:\n        return []\n    intervals = sorted(intervals)\n    merged = [list(intervals[0])]\n    for start, end in intervals[1:]:\n        if start <= merged[-1][1]:\n            merged[-1][1] = max(merged[-1][1], end)\n        else:\n            merged.append([start, end])\n    return merged\n```",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": [
+      {
+        "tensorfold": {
+          "enable_thinking": false,
+          "reasoning_effort": "none",
+          "engine": "lanes",
+          "tokens_per_second": 47.1162932627788,
+          "seconds": 1.867719082,
+          "prefill_seconds": 0.271320442,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.272000651,
+          "sampling": "greedy",
+          "drafts": true,
+          "token_sha": "f60eb6d22b50",
+          "token_sha256": "f60eb6d22b50b9c6b46a6e1a92a268e0eaba8a5ab065ad787e6a45fe27691236",
+          "min_rows": 3
+        }
+      }
+    ]
+  },
+  {
+    "kind": "quality-tg",
+    "case": "tool-weather",
+    "mode": "off",
+    "rep": 0,
+    "passed": true,
+    "check_detail": "tool name and typed arguments",
+    "input_sha256": "076fe8d37a0445656cdb108f0ede36d647563b824600ab9323d94ce529944368",
+    "elapsed_s": 1.342374692991143,
+    "ttft_s": 1.3422489989898168,
+    "decode_client_s": 2.2415013518184423e-05,
+    "tg_client": 981485.0203927944,
+    "pp_ttft": 151.9837229556747,
+    "usage": {
+      "prompt_tokens": 204,
+      "completion_tokens": 23,
+      "total_tokens": 227,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "",
+    "reasoning": "",
+    "tool_calls": [
+      {
+        "name": "get_weather",
+        "arguments": "{\"city\":\"서울\",\"date\":\"2026-10-21\"}"
+      }
+    ],
+    "finish_reason": "tool_calls",
+    "extras": [
+      {
+        "tensorfold": {
+          "enable_thinking": false,
+          "reasoning_effort": "none",
+          "engine": "lanes",
+          "tokens_per_second": 47.94142830088638,
+          "seconds": 0.458893295,
+          "prefill_seconds": 0.434365151,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.88230058,
+          "sampling": "greedy",
+          "drafts": true,
+          "token_sha": "0e217ae5f519",
+          "token_sha256": "0e217ae5f519044e444c58cade622d00800fc47abe41a0ef1a5e543d2d0b6a33",
+          "min_rows": 1
+        }
+      }
+    ]
+  },
+  {
+    "kind": "quality-tg",
+    "case": "ko-prose",
+    "mode": "off",
+    "rep": 0,
+    "passed": true,
+    "check_detail": "required substrings",
+    "input_sha256": "36794a10e4f9c18116fd9a08dc989271838d96a1d9fe159b57d5429f046558b5",
+    "elapsed_s": 4.543360993004171,
+    "ttft_s": 0.28774888400221244,
+    "decode_client_s": 4.255470830001286,
+    "tg_client": 36.893684922745095,
+    "pp_ttft": 291.92120167998337,
+    "usage": {
+      "prompt_tokens": 84,
+      "completion_tokens": 158,
+      "total_tokens": 242,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "프롬프트 입력 처리(PP)는 사용자가 입력한 프롬프트 전체를 한 번에 읽어들이는 과정으로, 병렬 처리가 가능해 상대적으로 빠릅니다. 반면 답변 토큰 생성(TG)은 이전에 생성된 토큰을 참조하며 한 토큰씩 순차적으로 만들어내는 과정이라 속도가 느립니다. 생각 토큰(thinking tokens)은 최종 답변 출력 전에 모델이 내부적으로 생성하는 토큰이므로 TG에 속합니다.",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": [
+      {
+        "tensorfold": {
+          "enable_thinking": false,
+          "reasoning_effort": "none",
+          "engine": "lanes",
+          "tokens_per_second": 36.890679380231795,
+          "seconds": 4.25581753,
+          "prefill_seconds": 0.28545584,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.286414852,
+          "sampling": "greedy",
+          "drafts": true,
+          "token_sha": "991e0e0d7d78",
+          "token_sha256": "991e0e0d7d78aca4bb5a5dc6bf48220ce9831adb3092e20d0edeb4f670b918ce",
+          "min_rows": 2
+        }
+      }
+    ]
+  },
+  {
+    "kind": "quality-tg",
+    "case": "ko-prose",
+    "mode": "off",
+    "rep": 1,
+    "passed": true,
+    "check_detail": "required substrings",
+    "input_sha256": "36794a10e4f9c18116fd9a08dc989271838d96a1d9fe159b57d5429f046558b5",
+    "elapsed_s": 4.540110069006914,
+    "ttft_s": 0.2860014640027657,
+    "decode_client_s": 4.2539865910075605,
+    "tg_client": 36.90655732951298,
+    "pp_ttft": 293.7047902635481,
+    "usage": {
+      "prompt_tokens": 84,
+      "completion_tokens": 158,
+      "total_tokens": 242,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "프롬프트 입력 처리(PP)는 사용자가 입력한 프롬프트 전체를 한 번에 읽어들이는 과정으로, 병렬 처리가 가능해 상대적으로 빠릅니다. 반면 답변 토큰 생성(TG)은 이전에 생성된 토큰을 참조하며 한 토큰씩 순차적으로 만들어내는 과정이라 속도가 느립니다. 생각 토큰(thinking tokens)은 최종 답변 출력 전에 모델이 내부적으로 생성하는 토큰이므로 TG에 속합니다.",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": [
+      {
+        "tensorfold": {
+          "enable_thinking": false,
+          "reasoning_effort": "none",
+          "engine": "lanes",
+          "tokens_per_second": 36.900543242041444,
+          "seconds": 4.25467991,
+          "prefill_seconds": 0.283798547,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.284878486,
+          "sampling": "greedy",
+          "drafts": true,
+          "token_sha": "991e0e0d7d78",
+          "token_sha256": "991e0e0d7d78aca4bb5a5dc6bf48220ce9831adb3092e20d0edeb4f670b918ce",
+          "min_rows": 2
+        }
+      }
+    ]
+  },
+  {
+    "kind": "pp",
+    "case": "pp-4096",
+    "mode": "off",
+    "input_sha256": "95c2ae1cc044f6ea4f1075ffff8a209d7ba3387ee7749c38f7f4987955791af4",
+    "elapsed_s": 4.043520870996872,
+    "ttft_s": 4.043411751990789,
+    "decode_client_s": 0.0,
+    "tg_client": null,
+    "pp_ttft": 1281.5909726355776,
+    "usage": {
+      "prompt_tokens": 5182,
+      "completion_tokens": 1,
+      "total_tokens": 5183,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "OK",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "length",
+    "extras": [
+      {
+        "tensorfold": {
+          "enable_thinking": false,
+          "reasoning_effort": "none",
+          "engine": "lanes",
+          "tokens_per_second": 0.0,
+          "seconds": 0.000128527,
+          "prefill_seconds": 4.039641542,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 4.042508435,
+          "sampling": "greedy",
+          "drafts": true,
+          "token_sha": "6686fc4c7490",
+          "token_sha256": "6686fc4c74906865248b0f2fcf5c246709215eda68cab15f8a70bb2e63f5bf7d",
+          "min_rows": 0
+        }
+      }
+    ]
+  },
+  {
+    "kind": "pp",
+    "case": "pp-16384",
+    "mode": "off",
+    "input_sha256": "085057fd43bd3f0cb97a2255689137ac47186a5bc304cee5a3817e1a49b4f3f7",
+    "elapsed_s": 15.042759395990288,
+    "ttft_s": 15.0426442619937,
+    "decode_client_s": 0.0,
+    "tg_client": null,
+    "pp_ttft": 1365.4514221210266,
+    "usage": {
+      "prompt_tokens": 20540,
+      "completion_tokens": 1,
+      "total_tokens": 20541,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "OK",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "length",
+    "extras": [
+      {
+        "tensorfold": {
+          "enable_thinking": false,
+          "reasoning_effort": "none",
+          "engine": "lanes",
+          "tokens_per_second": 0.0,
+          "seconds": 0.000231165,
+          "prefill_seconds": 15.026204429,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 15.040620494,
+          "sampling": "greedy",
+          "drafts": true,
+          "token_sha": "6686fc4c7490",
+          "token_sha256": "6686fc4c74906865248b0f2fcf5c246709215eda68cab15f8a70bb2e63f5bf7d",
+          "min_rows": 0
+        }
+      }
+    ]
+  },
+  {
+    "kind": "pp",
+    "case": "pp-65536",
+    "mode": "off",
+    "input_sha256": "90ccb7aecd788d11cf2543f7fe1c1744c0c9217027ec13f69f91abb32dc41d8c",
+    "elapsed_s": 59.85977294300392,
+    "ttft_s": 59.859679424000205,
+    "decode_client_s": 0.0,
+    "tg_client": null,
+    "pp_ttft": 1369.48611801506,
+    "usage": {
+      "prompt_tokens": 81977,
+      "completion_tokens": 1,
+      "total_tokens": 81978,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "OK",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "length",
+    "extras": [
+      {
+        "tensorfold": {
+          "enable_thinking": false,
+          "reasoning_effort": "none",
+          "engine": "lanes",
+          "tokens_per_second": 0.0,
+          "seconds": 0.000241358,
+          "prefill_seconds": 59.811251546,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 59.856245368,
+          "sampling": "greedy",
+          "drafts": true,
+          "token_sha": "6686fc4c7490",
+          "token_sha256": "6686fc4c74906865248b0f2fcf5c246709215eda68cab15f8a70bb2e63f5bf7d",
+          "min_rows": 0
+        }
+      }
+    ]
+  },
+  {
+    "kind": "quality-tg",
+    "case": "arithmetic",
+    "mode": "on-low",
+    "rep": 0,
+    "passed": true,
+    "check_detail": "exact JSON value",
+    "input_sha256": "38d36c0faea74ddf322381d3abfb0cacb3a022871d95e805acded9fe364b46ba",
+    "elapsed_s": 0.45305234199622646,
+    "ttft_s": 0.1991252519947011,
+    "decode_client_s": 0.2537923560012132,
+    "tg_client": 43.342518952570096,
+    "pp_ttft": 170.7468021228406,
+    "usage": {
+      "prompt_tokens": 34,
+      "completion_tokens": 12,
+      "total_tokens": 46,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 9
+      }
+    },
+    "content": "391",
+    "reasoning": "23 × 17 = 391",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": [
+      {
+        "tensorfold": {
+          "enable_thinking": true,
+          "reasoning_effort": "low",
+          "engine": "lanes",
+          "tokens_per_second": 43.296553619522605,
+          "seconds": 0.254061792,
+          "prefill_seconds": 0.197457542,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.198095967,
+          "sampling": "greedy",
+          "drafts": true,
+          "token_sha": "5aecc8343b21",
+          "token_sha256": "5aecc8343b21c087a1e43bff1f5e862082cd3ce424b6facab4f6afd3ad1d5cd1",
+          "min_rows": 3
+        }
+      }
+    ]
+  },
+  {
+    "kind": "quality-tg",
+    "case": "ko-extract",
+    "mode": "on-low",
+    "rep": 0,
+    "passed": true,
+    "check_detail": "exact JSON value",
+    "input_sha256": "5969b6155a093efef2b1abe7efb1db1556669ef9274923792c12bad0cce6704f",
+    "elapsed_s": 1.2030866059940308,
+    "ttft_s": 0.339736822003033,
+    "decode_client_s": 0.8631955939927138,
+    "tg_client": 55.6073273937554,
+    "pp_ttft": 214.87220481313707,
+    "usage": {
+      "prompt_tokens": 73,
+      "completion_tokens": 49,
+      "total_tokens": 122,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 1
+      }
+    },
+    "content": "```json\n[\n  {\"name\": \"민수\", \"item\": \"사과\", \"count\": 3},\n  {\"name\": \"지연\", \"item\": \"배\", \"count\": 5}\n]\n```",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": [
+      {
+        "tensorfold": {
+          "enable_thinking": true,
+          "reasoning_effort": "low",
+          "engine": "lanes",
+          "tokens_per_second": 51.82126421469828,
+          "seconds": 0.926260691,
+          "prefill_seconds": 0.275200683,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.276214192,
+          "sampling": "greedy",
+          "drafts": true,
+          "token_sha": "4d11c6ee5c25",
+          "token_sha256": "4d11c6ee5c2550d2f1341590f8c4c73e4c6bb58ace1b3baa92645d8f64ea1892",
+          "min_rows": 3
+        }
+      }
+    ]
+  },
+  {
+    "kind": "quality-tg",
+    "case": "ko-sort",
+    "mode": "on-low",
+    "rep": 0,
+    "passed": false,
+    "check_detail": "JSONDecodeError: Extra data: line 1 column 22 (char 21)",
+    "input_sha256": "fd294f7986b1e207361703038553d4745ef510ad142589e4ce33919efda98495",
+    "elapsed_s": 6.476262526994105,
+    "ttft_s": 0.2807787789934082,
+    "decode_client_s": 6.135026021001977,
+    "tg_client": 39.60863395984636,
+    "pp_ttft": 281.36029468898954,
+    "usage": {
+      "prompt_tokens": 79,
+      "completion_tokens": 244,
+      "total_tokens": 323,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 141
+      }
+    },
+    "content": "[\"지연\",\"가람\",\"민수\",\"현우\"]<|assistant|>We need answer Korean. Need sort by score desc, tie name asc. Names: 민수82, 지연95, 가람82, 현우70. Desc: 지연95. 82 tie: name ascending Korean? 가람 before 민수 (가 < 민). Then 현우70. Output only JSON array names.</think>[\"지연\", \"가람\", \"민수\", \"현우\"]",
+    "reasoning": "We need answer in Korean likely. Need parse task: sort list by score descending, tie by name ascending. Output only names JSON array. Names: 민수 82, 지연 95, 가람 82, 현우 70. Sort: 지연 95 first. Scores 82 tie 민수 and 가람; name ascending Korean? Need determine ordering of Korean names. \"가람\" vs \"민수\": ascending likely dictionary order: 가 < 민, so 가람 before 민수. Then 현우 70. Output JSON array only: [\"지연\",\"가람\",\"민수\",\"현우\"]. Need no extra. Ensure JSON valid.",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": [
+      {
+        "tensorfold": {
+          "enable_thinking": true,
+          "reasoning_effort": "low",
+          "engine": "lanes",
+          "tokens_per_second": 39.2225956482165,
+          "seconds": 6.195408437,
+          "prefill_seconds": 0.279330825,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.279877764,
+          "sampling": "greedy",
+          "drafts": true,
+          "token_sha": "44365c1ff8eb",
+          "token_sha256": "44365c1ff8eb13ab6b5914fb0198406817e8bc0a4edb0a4d98b88e4564b634c4",
+          "min_rows": 2
+        }
+      }
+    ]
+  },
+  {
+    "kind": "quality-tg",
+    "case": "ko-logic",
+    "mode": "on-low",
+    "rep": 0,
+    "passed": false,
+    "check_detail": "exact JSON value",
+    "input_sha256": "9d9136c6ee3cfafa6493351fe39174cad171c9446551946d528f863d8b96b34e",
+    "elapsed_s": 1.057570881996071,
+    "ttft_s": 0.2549188690027222,
+    "decode_client_s": 0.802577405993361,
+    "tg_client": 34.887600611362856,
+    "pp_ttft": 243.21463625879306,
+    "usage": {
+      "prompt_tokens": 62,
+      "completion_tokens": 29,
+      "total_tokens": 91,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 21
+      }
+    },
+    "content": "```json\n[\"C\"]\n```",
+    "reasoning": "Boxes: A apples only, B pears only, C both. Exactly two kinds: C.",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": [
+      {
+        "tensorfold": {
+          "enable_thinking": true,
+          "reasoning_effort": "low",
+          "engine": "lanes",
+          "tokens_per_second": 34.86742737273338,
+          "seconds": 0.803041753,
+          "prefill_seconds": 0.252532044,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.253473972,
+          "sampling": "greedy",
+          "drafts": true,
+          "token_sha": "1011e49fe3c1",
+          "token_sha256": "1011e49fe3c16509eeb04364eba1912b4948463d6372f2927487ba35d0eb04b1",
+          "min_rows": 2
+        }
+      }
+    ]
+  },
+  {
+    "kind": "quality-tg",
+    "case": "code-unique",
+    "mode": "on-low",
+    "rep": 0,
+    "passed": false,
+    "check_detail": "restricted Python functional cases",
+    "input_sha256": "1861c35b41b9934b57ab4633a8784010fcede450a0dc617dae81fb59ab718600",
+    "elapsed_s": 2.5578469699976267,
+    "ttft_s": 0.24072741699637845,
+    "decode_client_s": 2.317041137997876,
+    "tg_client": 37.5478875075889,
+    "pp_ttft": 182.77934665274103,
+    "usage": {
+      "prompt_tokens": 44,
+      "completion_tokens": 88,
+      "total_tokens": 132,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 51
+      }
+    },
+    "content": "def unique_in_order(xs):\n    result = []\n    for x in xs:\n        if not result or result[-1] != x:\n            result.append(x)\n    return result",
+    "reasoning": "Return list preserving first appearance, dedupe consecutive? \"unique_in_order\" classic: collapse consecutive duplicates. But \"each value once, preserving its first appearance\" — could be global dedupe. Classic kata: consecutive. I'll do consecutive collapse.",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": [
+      {
+        "tensorfold": {
+          "enable_thinking": true,
+          "reasoning_effort": "low",
+          "engine": "lanes",
+          "tokens_per_second": 37.54070425292779,
+          "seconds": 2.317484494,
+          "prefill_seconds": 0.239003819,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.239867634,
+          "sampling": "greedy",
+          "drafts": true,
+          "token_sha": "79abe41d6b7b",
+          "token_sha256": "79abe41d6b7bc25453ba6fab478e9164f8c00ee9faa9d35de5ba42ac78f94e25",
+          "min_rows": 2
+        }
+      }
+    ]
+  },
+  {
+    "kind": "quality-tg",
+    "case": "code-intervals",
+    "mode": "on-low",
+    "rep": 0,
+    "passed": true,
+    "check_detail": "restricted Python functional cases",
+    "input_sha256": "bb24db8174330d13bc0d92eadbd84beababcfab63dfbc59b68228688f53b43b2",
+    "elapsed_s": 2.163760141993407,
+    "ttft_s": 0.3306792689982103,
+    "decode_client_s": 1.8329939139948692,
+    "tg_client": 50.191110454640345,
+    "pp_ttft": 187.49285429300846,
+    "usage": {
+      "prompt_tokens": 62,
+      "completion_tokens": 93,
+      "total_tokens": 155,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 1
+      }
+    },
+    "content": "def merge_intervals(intervals):\n    if not intervals:\n        return []\n    intervals = sorted(intervals, key=lambda x: x[0])\n    merged = [list(intervals[0])]\n    for start, end in intervals[1:]:\n        if start <= merged[-1][1]:\n            merged[-1][1] = max(merged[-1][1], end)\n        else:\n            merged.append([start, end])\n    return merged",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": [
+      {
+        "tensorfold": {
+          "enable_thinking": true,
+          "reasoning_effort": "low",
+          "engine": "lanes",
+          "tokens_per_second": 48.64210565669145,
+          "seconds": 1.89136549,
+          "prefill_seconds": 0.270907131,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.271788963,
+          "sampling": "greedy",
+          "drafts": true,
+          "token_sha": "8ba08958497d",
+          "token_sha256": "8ba08958497df4e227d38ec4bd0e172dc5dd3096a5a86e0e3ea029d30d890a56",
+          "min_rows": 2
+        }
+      }
+    ]
+  },
+  {
+    "kind": "quality-tg",
+    "case": "code-intervals",
+    "mode": "on-low",
+    "rep": 1,
+    "passed": true,
+    "check_detail": "restricted Python functional cases",
+    "input_sha256": "bb24db8174330d13bc0d92eadbd84beababcfab63dfbc59b68228688f53b43b2",
+    "elapsed_s": 2.17765389799024,
+    "ttft_s": 0.33099198499985505,
+    "decode_client_s": 1.8465641059883637,
+    "tg_client": 49.82226162722766,
+    "pp_ttft": 187.31571400445588,
+    "usage": {
+      "prompt_tokens": 62,
+      "completion_tokens": 93,
+      "total_tokens": 155,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 1
+      }
+    },
+    "content": "def merge_intervals(intervals):\n    if not intervals:\n        return []\n    intervals = sorted(intervals, key=lambda x: x[0])\n    merged = [list(intervals[0])]\n    for start, end in intervals[1:]:\n        if start <= merged[-1][1]:\n            merged[-1][1] = max(merged[-1][1], end)\n        else:\n            merged.append([start, end])\n    return merged",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": [
+      {
+        "tensorfold": {
+          "enable_thinking": true,
+          "reasoning_effort": "low",
+          "engine": "lanes",
+          "tokens_per_second": 48.27321109527855,
+          "seconds": 1.90581894,
+          "prefill_seconds": 0.270512922,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.271449506,
+          "sampling": "greedy",
+          "drafts": true,
+          "token_sha": "8ba08958497d",
+          "token_sha256": "8ba08958497df4e227d38ec4bd0e172dc5dd3096a5a86e0e3ea029d30d890a56",
+          "min_rows": 2
+        }
+      }
+    ]
+  },
+  {
+    "kind": "quality-tg",
+    "case": "tool-weather",
+    "mode": "on-low",
+    "rep": 0,
+    "passed": true,
+    "check_detail": "tool name and typed arguments",
+    "input_sha256": "f840ce98954fafc4cf3250e445824edbcd20ac24af9bbe3581daf6e20d439337",
+    "elapsed_s": 0.9514485459949356,
+    "ttft_s": 0.9513169629935874,
+    "decode_client_s": 2.0976003725081682e-05,
+    "tg_client": 1096491.0333467457,
+    "pp_ttft": 213.38839513720347,
+    "usage": {
+      "prompt_tokens": 203,
+      "completion_tokens": 24,
+      "total_tokens": 227,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 1
+      }
+    },
+    "content": "",
+    "reasoning": "",
+    "tool_calls": [
+      {
+        "name": "get_weather",
+        "arguments": "{\"city\":\"서울\",\"date\":\"2026-10-21\"}"
+      }
+    ],
+    "finish_reason": "tool_calls",
+    "extras": [
+      {
+        "tensorfold": {
+          "enable_thinking": true,
+          "reasoning_effort": "low",
+          "engine": "lanes",
+          "tokens_per_second": 44.58173041579195,
+          "seconds": 0.515906399,
+          "prefill_seconds": 0.432761918,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.434299454,
+          "sampling": "greedy",
+          "drafts": true,
+          "token_sha": "8b664e607745",
+          "token_sha256": "8b664e60774554c07b5ac33ad3b7c0b960db5c00f45f4c1c7956b64a1272cb0b",
+          "min_rows": 2
+        }
+      }
+    ]
+  },
+  {
+    "kind": "quality-tg",
+    "case": "ko-prose",
+    "mode": "on-low",
+    "rep": 0,
+    "passed": true,
+    "check_detail": "required substrings",
+    "input_sha256": "5c61d74cd3cafb806afcbf195e334c8093fa8250721949044887d677c6e95dec",
+    "elapsed_s": 5.1227948010055115,
+    "ttft_s": 0.3477213610021863,
+    "decode_client_s": 4.77491611399455,
+    "tg_client": 40.21013048528273,
+    "pp_ttft": 238.69686855239857,
+    "usage": {
+      "prompt_tokens": 83,
+      "completion_tokens": 193,
+      "total_tokens": 276,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 1
+      }
+    },
+    "content": "프롬프트 입력 처리(PP, Prompt Processing)는 사용자가 입력한 프롬프트 전체를 한 번에 읽어들이며 각 토큰을 병렬로 처리해 문맥을 파악하는 단계입니다. 반면 답변 토큰 생성(TG, Token Generation)은 문맥을 바탕으로 토큰을 하나씩 순차적으로 생성하는 단계로, 이 과정에서 모델의 내부 사고에 해당하는 생각(thinking) 토큰들도 TG 단계에서 생성됩니다. 즉, PP는 병렬 처리로 입력을 이해하는 단계이고, TG는 순차 생성으로 답변과 생각 토큰을 만들어내는 단계입니다.",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": [
+      {
+        "tensorfold": {
+          "enable_thinking": true,
+          "reasoning_effort": "low",
+          "engine": "lanes",
+          "tokens_per_second": 39.695579644354034,
+          "seconds": 4.83681059,
+          "prefill_seconds": 0.284022406,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.285024204,
+          "sampling": "greedy",
+          "drafts": true,
+          "token_sha": "5e62ebd62725",
+          "token_sha256": "5e62ebd627258920a580f6d7828b6c03313467e8b98cc083066488828c9f44b0",
+          "min_rows": 2
+        }
+      }
+    ]
+  },
+  {
+    "kind": "quality-tg",
+    "case": "ko-prose",
+    "mode": "on-low",
+    "rep": 1,
+    "passed": true,
+    "check_detail": "required substrings",
+    "input_sha256": "5c61d74cd3cafb806afcbf195e334c8093fa8250721949044887d677c6e95dec",
+    "elapsed_s": 5.120151912997244,
+    "ttft_s": 0.3471060919982847,
+    "decode_client_s": 4.772955180989811,
+    "tg_client": 40.226650517213365,
+    "pp_ttft": 239.1199748819452,
+    "usage": {
+      "prompt_tokens": 83,
+      "completion_tokens": 193,
+      "total_tokens": 276,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 1
+      }
+    },
+    "content": "프롬프트 입력 처리(PP, Prompt Processing)는 사용자가 입력한 프롬프트 전체를 한 번에 읽어들이며 각 토큰을 병렬로 처리해 문맥을 파악하는 단계입니다. 반면 답변 토큰 생성(TG, Token Generation)은 문맥을 바탕으로 토큰을 하나씩 순차적으로 생성하는 단계로, 이 과정에서 모델의 내부 사고에 해당하는 생각(thinking) 토큰들도 TG 단계에서 생성됩니다. 즉, PP는 병렬 처리로 입력을 이해하는 단계이고, TG는 순차 생성으로 답변과 생각 토큰을 만들어내는 단계입니다.",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": [
+      {
+        "tensorfold": {
+          "enable_thinking": true,
+          "reasoning_effort": "low",
+          "engine": "lanes",
+          "tokens_per_second": 39.71173608183819,
+          "seconds": 4.834842768,
+          "prefill_seconds": 0.283887494,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.284419201,
+          "sampling": "greedy",
+          "drafts": true,
+          "token_sha": "5e62ebd62725",
+          "token_sha256": "5e62ebd627258920a580f6d7828b6c03313467e8b98cc083066488828c9f44b0",
+          "min_rows": 2
+        }
+      }
+    ]
+  },
+  {
+    "kind": "pp",
+    "case": "pp-4096",
+    "mode": "on-low",
+    "input_sha256": "450fc6e5f3ca88c8c08dc21b35467dea5106c593c7a20d8a517a197f4f557cad",
+    "elapsed_s": 4.045555845994386,
+    "ttft_s": null,
+    "decode_client_s": null,
+    "tg_client": null,
+    "pp_ttft": null,
+    "usage": {
+      "prompt_tokens": 5176,
+      "completion_tokens": 1,
+      "total_tokens": 5177,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 1
+      }
+    },
+    "content": "",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "length",
+    "extras": [
+      {
+        "tensorfold": {
+          "enable_thinking": true,
+          "reasoning_effort": "low",
+          "engine": "lanes",
+          "tokens_per_second": 0.0,
+          "seconds": 0.000727289,
+          "prefill_seconds": 4.038298476,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 4.043914694,
+          "sampling": "greedy",
+          "drafts": true,
+          "token_sha": "7f010f389bae",
+          "token_sha256": "7f010f389bae040ef947774ca27ef7705c9cd0a047e9787f7b2e1c9fe4cec0c4",
+          "min_rows": 0
+        }
+      }
+    ]
+  },
+  {
+    "kind": "pp",
+    "case": "pp-16384",
+    "mode": "on-low",
+    "input_sha256": "c319b2a9f1d2b5e8f46ff9b194f7983a7d514dfa0d5af923ea8c3b2159b9e2f6",
+    "elapsed_s": 15.085998804992414,
+    "ttft_s": null,
+    "decode_client_s": null,
+    "tg_client": null,
+    "pp_ttft": null,
+    "usage": {
+      "prompt_tokens": 20543,
+      "completion_tokens": 1,
+      "total_tokens": 20544,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 1
+      }
+    },
+    "content": "",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "length",
+    "extras": [
+      {
+        "tensorfold": {
+          "enable_thinking": true,
+          "reasoning_effort": "low",
+          "engine": "lanes",
+          "tokens_per_second": 0.0,
+          "seconds": 0.000483595,
+          "prefill_seconds": 15.068523197,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 15.084153079,
+          "sampling": "greedy",
+          "drafts": true,
+          "token_sha": "7f010f389bae",
+          "token_sha256": "7f010f389bae040ef947774ca27ef7705c9cd0a047e9787f7b2e1c9fe4cec0c4",
+          "min_rows": 0
+        }
+      }
+    ]
+  },
+  {
+    "kind": "pp",
+    "case": "pp-65536",
+    "mode": "on-low",
+    "input_sha256": "1291f2eeb49e684e88780631128f543f00f7ba49095f21b03eeacb5c78702cf0",
+    "elapsed_s": 59.852857260993915,
+    "ttft_s": null,
+    "decode_client_s": null,
+    "tg_client": null,
+    "pp_ttft": null,
+    "usage": {
+      "prompt_tokens": 81979,
+      "completion_tokens": 1,
+      "total_tokens": 81980,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 1
+      }
+    },
+    "content": "",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "length",
+    "extras": [
+      {
+        "tensorfold": {
+          "enable_thinking": true,
+          "reasoning_effort": "low",
+          "engine": "lanes",
+          "tokens_per_second": 0.0,
+          "seconds": 0.000120255,
+          "prefill_seconds": 59.801484185,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 59.849504459,
+          "sampling": "greedy",
+          "drafts": true,
+          "token_sha": "7f010f389bae",
+          "token_sha256": "7f010f389bae040ef947774ca27ef7705c9cd0a047e9787f7b2e1c9fe4cec0c4",
+          "min_rows": 0
+        }
+      }
+    ]
+  }
+]

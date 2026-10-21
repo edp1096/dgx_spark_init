@@ -1,0 +1,24 @@
+--- a/vllm/model_executor/model_loader/utils.py
++++ b/vllm/model_executor/model_loader/utils.py
+@@ -142,6 +142,21 @@
+             # Repacking transients above can leave large amounts of memory in
+             # the caching allocator, which starves the OS on UMA devices.
+             release_device_memory_under_pressure(target_device)
++            if (__import__("os").environ.get("VLLM_CONTROL_TRIM_CACHE") == "1"
++                    and target_device.type == "cuda"):
++                allocated = torch.accelerator.memory_allocated(target_device)
++                reserved = torch.accelerator.memory_reserved(target_device)
++                before_available = __import__("psutil").virtual_memory().available
++                torch.accelerator.synchronize(target_device)
++                torch.accelerator.empty_cache()
++                print("CONTROL_POSTLOAD " + __import__("json").dumps({
++                    "layer": name, "allocated_gib": allocated / 2**30,
++                    "reserved_before_gib": reserved / 2**30,
++                    "reserved_after_gib": torch.accelerator.memory_reserved(target_device) / 2**30,
++                    "available_before_gib": before_available / 2**30,
++                    "available_after_gib": __import__("psutil").virtual_memory().available / 2**30,
++                }), flush=True)
++
+ 
+     # Initialize post-load attention weights for any attention layer and MM
+     # encoder. NOTE: Happens after other modules so we can easily decompress

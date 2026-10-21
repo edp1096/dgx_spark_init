@@ -1,0 +1,75 @@
+{
+  "status": "completed",
+  "tool_call_logic": "Reverted only the web-search and historical-recall guidance added in this attempt.",
+  "talk": "Gemma LLM components, bundles, embedded Compose and build inputs removed; retirement migration revision 50.",
+  "compose_archive": "compose_yaml/zzz_not_use/gemma4_31b_sglang",
+  "preserved": [
+    "Qwen weights and shared runtime images",
+    "EmbeddingGemma",
+    "Existing conversations",
+    "Archived Compose source"
+  ],
+  "experiments": "Vocabulary trials stopped; unpublished experimental weights removed.",
+  "hosts": {
+    "61": {
+      "removed_paths": 115,
+      "files_freed_gib": 45.5,
+      "deleted_model_paths": [
+        "/home/edp1096/.litert-lm/models/huihui-gemma4-e2b",
+        "/home/edp1096/.cache/huggingface/hub/models--lyf--Huihui-gemma-4-31B-it-abliterated-v2-NVFP4",
+        "/home/edp1096/.cache/huggingface/hub/models--edp1096--gemma-4-31B-it-assistant-exl3",
+        "/home/edp1096/.cache/huggingface/hub/.locks/models--turboderp--gemma-4-31b-it-exl3",
+        "/home/edp1096/.cache/huggingface/hub/.locks/models--lyf--Huihui-gemma-4-31B-it-abliterated-v2-NVFP4",
+        "/home/edp1096/.cache/huggingface/hub/.locks/models--google--gemma-4-31B-it-assistant",
+        "/home/edp1096/.cache/huggingface/hub/.locks/models--huihui-ai--Huihui-gemma-4-26B-A4B-it-abliterated",
+        "/home/edp1096/.cache/huggingface/hub/.locks/models--turboderp--gemma4-31b-it-DFlash-exl3",
+        "/home/edp1096/.cache/huggingface/hub/.locks/models--Hikari07jp--DSpark-Gemma-4-31B-draft",
+        "/home/edp1096/.cache/huggingface/hub/.locks/models--bg-digitalservices--Gemma-4-26B-A4B-it-NVFP4",
+        "/home/edp1096/.cache/huggingface/hub/.locks/models--sakamakismile--Huihui-gemma-4-26B-A4B-it-qat-abliterated-MTP-NVFP4",
+        "/home/edp1096/.cache/huggingface/hub/.locks/models--google--gemma-4-26B-A4B-it",
+        "/home/edp1096/.cache/huggingface/hub/.locks/models--RedHatAI--gemma-4-31B-it-speculator.dspark",
+        "/home/edp1096/.cache/huggingface/hub/.locks/models--google--gemma-4-26B-A4B-it-assistant",
+        "/home/edp1096/.cache/huggingface/hub/.locks/models--google--gemma-4-31B-it-qat-q4_0-unquantized-assistant"
+      ],
+      "total_freed_gib": 45.99,
+      "available_gib": 634.08
+    },
+    "60": {
+      "removed_paths": 11,
+      "files_freed_gib": 87.85,
+      "deleted_model_paths": [
+        "/home/edp1096/.cache/huggingface/sakamakismile/Huihui-gemma-4-26B-A4B-it-qat-abliterated-MTP-NVFP4",
+        "/home/edp1096/.cache/huggingface/validation/gemma-assistant",
+        "/home/edp1096/.cache/huggingface/sakamakismile/Huihui-gemma-4-26B-A4B-it-abliterated-NVFP4-vLLM",
+        "/home/edp1096/.cache/huggingface/google/gemma-4-26B-A4B-it-assistant",
+        "/home/edp1096/.cache/huggingface/validation/gemma-nvfp4-base",
+        "/home/edp1096/.cache/huggingface/edp1096/Huihui-Gemma-4-26B-A4B-it-NVFP4"
+      ],
+      "total_freed_gib": 130.85,
+      "available_gib": 1086.22
+    }
+  },
+  "sources": [
+    "internal/config/retired_runtime.go",
+    "internal/orchestrator/assets/catalog.json",
+    "/tmp/retired-model-cleanup.json on hosts 60 and 61"
+  ],
+  "validation": {
+    "tests": "go test ./... passed; support assets 115; all four recipe checks passed",
+    "hosts": {
+      "61": {
+        "gemma_containers": [],
+        "gemma_image_tags": []
+      },
+      "60": {
+        "gemma_containers": [],
+        "gemma_image_tags": []
+      }
+    },
+    "talk_gemma_sets": [],
+    "talk_revision": 50,
+    "tool_policy_diff_empty": true,
+    "archive_exists": true,
+    "active_compose_absent": true
+  }
+}

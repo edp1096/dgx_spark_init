@@ -9,14 +9,14 @@ func (c *Config) applyManagedRuntime() {
 	c.ApplyManagedBundle(c.Runtime.ActiveBundle)
 }
 
-// A newly selected Qwen set starts at the family default. Normalization and
+// A newly selected set starts at its model default. Normalization and
 // restarting the same set retain an explicitly chosen setting.
 func (c *Config) SelectManagedBundle(bundle string) {
 	bundle = strings.ToLower(strings.TrimSpace(bundle))
 	changed := c.Runtime.ActiveBundle != bundle
 	c.Runtime.ActiveBundle = bundle
 	c.Normalize()
-	if changed && (c.Model.ModelType == "qwen3.8" || c.Model.ModelType == "qwen3.8-vllm" || c.Model.ModelType == "qwen38fn_exl3") {
+	if changed && (c.Model.ModelType == "qwen3.8" || c.Model.ModelType == "qwen3.8-vllm" || c.Model.ModelType == "qwen3.8-tensorfold" || c.Model.ModelType == "qwen38fn_exl3") {
 		c.Model.ReasoningEffort = "medium"
 	}
 }

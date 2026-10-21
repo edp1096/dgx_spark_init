@@ -1,0 +1,1330 @@
+{
+  "assistant-b2-7": {
+    "passed": 10,
+    "total": 10,
+    "checks": [
+      {
+        "name": "arithmetic",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "json",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "ko_instruction",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "japanese",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "reasoning",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "tool_title",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "code_unique",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "code_chunks",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "recall_4k",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "recall_9k",
+        "passed": true,
+        "detail": null
+      }
+    ]
+  },
+  "assistant-b2-5": {
+    "passed": 10,
+    "total": 10,
+    "checks": [
+      {
+        "name": "arithmetic",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "json",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "ko_instruction",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "japanese",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "reasoning",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "tool_title",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "code_unique",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "code_chunks",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "recall_4k",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "recall_9k",
+        "passed": true,
+        "detail": null
+      }
+    ]
+  },
+  "assistant-b2-3": {
+    "passed": 10,
+    "total": 10,
+    "checks": [
+      {
+        "name": "arithmetic",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "json",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "ko_instruction",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "japanese",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "reasoning",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "tool_title",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "code_unique",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "code_chunks",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "recall_4k",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "recall_9k",
+        "passed": true,
+        "detail": null
+      }
+    ]
+  },
+  "assistant-b4-9": {
+    "passed": 10,
+    "total": 10,
+    "checks": [
+      {
+        "name": "arithmetic",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "json",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "ko_instruction",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "japanese",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "reasoning",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "tool_title",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "code_unique",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "code_chunks",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "recall_4k",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "recall_9k",
+        "passed": true,
+        "detail": null
+      }
+    ]
+  },
+  "assistant-5": {
+    "passed": 10,
+    "total": 10,
+    "checks": [
+      {
+        "name": "arithmetic",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "json",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "ko_instruction",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "japanese",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "reasoning",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "tool_title",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "code_unique",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "code_chunks",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "recall_4k",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "recall_9k",
+        "passed": true,
+        "detail": null
+      }
+    ]
+  },
+  "assistant-b2-15": {
+    "passed": 10,
+    "total": 10,
+    "checks": [
+      {
+        "name": "arithmetic",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "json",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "ko_instruction",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "japanese",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "reasoning",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "tool_title",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "code_unique",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "code_chunks",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "recall_4k",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "recall_9k",
+        "passed": true,
+        "detail": null
+      }
+    ]
+  },
+  "assistant-b3-5": {
+    "passed": 10,
+    "total": 10,
+    "checks": [
+      {
+        "name": "arithmetic",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "json",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "ko_instruction",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "japanese",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "reasoning",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "tool_title",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "code_unique",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "code_chunks",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "recall_4k",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "recall_9k",
+        "passed": true,
+        "detail": null
+      }
+    ]
+  },
+  "assistant-b3-9": {
+    "passed": 10,
+    "total": 10,
+    "checks": [
+      {
+        "name": "arithmetic",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "json",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "ko_instruction",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "japanese",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "reasoning",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "tool_title",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "code_unique",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "code_chunks",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "recall_4k",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "recall_9k",
+        "passed": true,
+        "detail": null
+      }
+    ]
+  },
+  "assistant-b3-3": {
+    "passed": 10,
+    "total": 10,
+    "checks": [
+      {
+        "name": "arithmetic",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "json",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "ko_instruction",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "japanese",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "reasoning",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "tool_title",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "code_unique",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "code_chunks",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "recall_4k",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "recall_9k",
+        "passed": true,
+        "detail": null
+      }
+    ]
+  },
+  "assistant-b3-15": {
+    "passed": 10,
+    "total": 10,
+    "checks": [
+      {
+        "name": "arithmetic",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "json",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "ko_instruction",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "japanese",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "reasoning",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "tool_title",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "code_unique",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "code_chunks",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "recall_4k",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "recall_9k",
+        "passed": true,
+        "detail": null
+      }
+    ]
+  },
+  "assistant-b2-9": {
+    "passed": 10,
+    "total": 10,
+    "checks": [
+      {
+        "name": "arithmetic",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "json",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "ko_instruction",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "japanese",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "reasoning",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "tool_title",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "code_unique",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "code_chunks",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "recall_4k",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "recall_9k",
+        "passed": true,
+        "detail": null
+      }
+    ]
+  },
+  "dflash-15": {
+    "passed": 10,
+    "total": 10,
+    "checks": [
+      {
+        "name": "arithmetic",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "json",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "ko_instruction",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "japanese",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "reasoning",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "tool_title",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "code_unique",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "code_chunks",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "recall_4k",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "recall_9k",
+        "passed": true,
+        "detail": null
+      }
+    ]
+  },
+  "assistant-7": {
+    "passed": 10,
+    "total": 10,
+    "checks": [
+      {
+        "name": "arithmetic",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "json",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "ko_instruction",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "japanese",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "reasoning",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "tool_title",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "code_unique",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "code_chunks",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "recall_4k",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "recall_9k",
+        "passed": true,
+        "detail": null
+      }
+    ]
+  },
+  "assistant-b4-15": {
+    "passed": 10,
+    "total": 10,
+    "checks": [
+      {
+        "name": "arithmetic",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "json",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "ko_instruction",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "japanese",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "reasoning",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "tool_title",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "code_unique",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "code_chunks",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "recall_4k",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "recall_9k",
+        "passed": true,
+        "detail": null
+      }
+    ]
+  },
+  "assistant-3": {
+    "passed": 10,
+    "total": 10,
+    "checks": [
+      {
+        "name": "arithmetic",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "json",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "ko_instruction",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "japanese",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "reasoning",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "tool_title",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "code_unique",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "code_chunks",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "recall_4k",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "recall_9k",
+        "passed": true,
+        "detail": null
+      }
+    ]
+  },
+  "assistant-b3-7": {
+    "passed": 10,
+    "total": 10,
+    "checks": [
+      {
+        "name": "arithmetic",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "json",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "ko_instruction",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "japanese",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "reasoning",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "tool_title",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "code_unique",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "code_chunks",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "recall_4k",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "recall_9k",
+        "passed": true,
+        "detail": null
+      }
+    ]
+  },
+  "dflash-8": {
+    "passed": 10,
+    "total": 10,
+    "checks": [
+      {
+        "name": "arithmetic",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "json",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "ko_instruction",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "japanese",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "reasoning",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "tool_title",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "code_unique",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "code_chunks",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "recall_4k",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "recall_9k",
+        "passed": true,
+        "detail": null
+      }
+    ]
+  },
+  "control-b4-9": {
+    "passed": 12,
+    "total": 12,
+    "checks": [
+      {
+        "name": "arithmetic",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "json",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "ko_instruction",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "japanese",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "reasoning",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "tool_title",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "code_unique",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "code_chunks",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "recall_4k",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "recall_9k",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "long_ko_32k",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "long_ko_64k",
+        "passed": true,
+        "detail": null
+      }
+    ]
+  },
+  "splitkv-b4-9": {
+    "passed": 12,
+    "total": 12,
+    "checks": [
+      {
+        "name": "arithmetic",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "json",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "ko_instruction",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "japanese",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "reasoning",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "tool_title",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "code_unique",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "code_chunks",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "recall_4k",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "recall_9k",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "long_ko_32k",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "long_ko_64k",
+        "passed": true,
+        "detail": null
+      }
+    ]
+  },
+  "control-b4-check-9": {
+    "passed": 10,
+    "total": 10,
+    "checks": [
+      {
+        "name": "arithmetic",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "json",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "ko_instruction",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "japanese",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "reasoning",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "tool_title",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "code_unique",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "code_chunks",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "recall_4k",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "recall_9k",
+        "passed": true,
+        "detail": null
+      }
+    ]
+  },
+  "original-9": {
+    "passed": 12,
+    "total": 12,
+    "checks": [
+      {
+        "name": "arithmetic",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "json",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "ko_instruction",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "japanese",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "reasoning",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "tool_title",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "code_unique",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "code_chunks",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "recall_4k",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "recall_9k",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "long_ko_32k",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "long_ko_64k",
+        "passed": true,
+        "detail": null
+      }
+    ]
+  },
+  "splitdflash-15": {
+    "passed": 12,
+    "total": 12,
+    "checks": [
+      {
+        "name": "arithmetic",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "json",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "ko_instruction",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "japanese",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "reasoning",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "tool_title",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "code_unique",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "code_chunks",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "recall_4k",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "recall_9k",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "long_ko_32k",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "long_ko_64k",
+        "passed": true,
+        "detail": null
+      }
+    ]
+  },
+  "splitkv-b4-check-9": {
+    "passed": 10,
+    "total": 10,
+    "checks": [
+      {
+        "name": "arithmetic",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "json",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "ko_instruction",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "japanese",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "reasoning",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "tool_title",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "code_unique",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "code_chunks",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "recall_4k",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "recall_9k",
+        "passed": true,
+        "detail": null
+      }
+    ]
+  }
+}

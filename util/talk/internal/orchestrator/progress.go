@@ -21,7 +21,12 @@ var progressETAPattern = regexp.MustCompile(`\[[0-9:]+<([0-9:]+)(?:,|\])`)
 var structuredWeightProgressPattern = regexp.MustCompile(`(?m)^SGLANG_WEIGHT_PROGRESS current=(\d+) total=(\d+) elapsed_seconds=([0-9.]+) eta_seconds=([0-9.]+)$`)
 
 func inferProgress(component Component, logs string) progressInfo {
+	if component.Controller == "ds41-cluster" {
+		return inferTensorFoldProgress(logs)
+	}
 	switch component.ProgressKind {
+	case "tensorfold":
+		return inferQwenTensorFoldProgress(logs)
 	case "b12x":
 		return inferB12XProgress(logs)
 	case "vllm":
@@ -43,6 +48,22 @@ func inferProgress(component Component, logs string) progressInfo {
 	default:
 		return inferServiceProgress(logs)
 	}
+}
+
+func inferTensorFoldProgress(logs string) progressInfo {
+	if strings.Contains(logs, "[tensorfold] serving DeepSeek-") {
+		return progressInfo{Key: "api", Phase: "TensorFold API 온라인", Detail: "두 대의 모델 준비를 마치고 요청을 받고 있습니다.", Progress: 1}
+	}
+	if hasAny(logs, "dsv41 calib", "dsv41 draft costs:", "graph cache row graphs:") {
+		return progressInfo{Key: "calibration", Phase: "TensorFold 추론 경로 준비", Detail: "MTP·추론 그래프와 보정 값을 확인합니다.", Progress: .9}
+	}
+	if hasAny(logs, "kv: before the pool:", "boot growth", "dsv41 load: weights") {
+		return progressInfo{Key: "pool", Phase: "TensorFold 가중치 적재 완료", Detail: "1M 컨텍스트용 FP8 KV와 비전·엔그램을 연결합니다.", Progress: .8}
+	}
+	if strings.Contains(logs, "rank 0 of 2 up") {
+		return progressInfo{Key: "weights", Phase: "TensorFold EXL3 가중치 적재", Detail: "두 대의 연결을 확인했습니다. 준비된 1017 가중치를 읽습니다.", Progress: .25}
+	}
+	return progressInfo{Key: "container", Phase: "TensorFold 두 대 연결", Detail: "엔진과 CX7 통신을 준비합니다.", Progress: .05}
 }
 
 func inferEXL3Progress(logs string) progressInfo {
@@ -100,7 +121,7 @@ func inferVLLMProgress(logs string) progressInfo {
 		return progressInfo{Key: "ple-mmap", Phase: "SSD PLE·ngram 연결", Detail: "대형 예측 테이블을 RAM에 복사하지 않고 SSD에서 mmap으로 연결합니다.", Progress: .14}
 	}
 	if hasAny(logs, "Detected ModelOpt NVFP4 checkpoint", "Resolved architecture") {
-		return progressInfo{Key: "architecture", Phase: "모델 구조·NVFP4 확인", Detail: "모델 구조와 양자화 구성을 확인했습니다.", Progress: .11}
+		return progressInfo{Key: "architecture", Phase: "모델 구조·양자화 확인", Detail: "모델 구조와 양자화 구성을 확인했습니다.", Progress: .11}
 	}
 	if hasAny(logs, "Initializing a V1 LLM engine", "non-default args") {
 		return progressInfo{Key: "engine", Phase: "vLLM 엔진 구성", Detail: "실행 옵션과 메모리 계획을 적용하고 있습니다.", Progress: .07}
@@ -389,4 +410,17 @@ func hasAny(value string, needles ...string) bool {
 		}
 	}
 	return false
+}
+
+func inferQwenTensorFoldProgress(logs string) progressInfo {
+	if hasAny(logs, "[tensorfold] serving ", "SPARKTALK_QWEN_TENSORFOLD_READY") {
+		return progressInfo{Key: "api", Phase: "TensorFold API 온라인", Progress: 1}
+	}
+	if hasAny(logs, "vision:", "prompt kernels warmed", "sequence memory:") {
+		return progressInfo{Key: "warmup", Phase: "TensorFold 추론 준비", Detail: "비전·KV 캐시·MTP 경로를 준비합니다.", Progress: .9}
+	}
+	if hasAny(logs, "startup estimate", "weights:", "loading") {
+		return progressInfo{Key: "weights", Phase: "TensorFold 가중치 적재", Progress: .25}
+	}
+	return progressInfo{Key: "engine", Phase: "TensorFold 엔진 시작", Progress: .05}
 }

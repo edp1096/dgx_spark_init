@@ -152,6 +152,9 @@ func (c *Controller) stopWorkloads(ctx context.Context, b Bundle) error {
 // because request cancellation does not guarantee GPU/server work has stopped.
 func (c *Controller) AcquireWorkload(ctx context.Context, bundleID, target string, reserve float64, requestedPeak ...float64) (func() error, error) {
 	b, ok := c.Catalog().Bundle(bundleID)
+	if ok {
+		reserve = c.Catalog().minimumBundleReserve(b, reserve)
+	}
 	noop := func() error { return nil }
 	if target == "extra-embedding" {
 		if _, member := c.Catalog().ResolveComponent(bundleID, target); !ok || !member {

@@ -1,0 +1,771 @@
+{
+  "scope": "Qwen3.8 Flash Next EXL3 3bit; no 4bit checkpoint experiment.",
+  "model": {
+    "repository": "alesha-pro/Huihui-Qwen3.8-Flash-Next-abliterated-exl3-3bit-hq_h6_ng6",
+    "revision": "3b585c458f9fcf3322e76cff2c635c2cb81c5869",
+    "achieved_bpw": 3.05,
+    "head_bits": 6,
+    "mtp_bits": 4,
+    "ngram_bits": 6,
+    "weights_changed": false
+  },
+  "conditions": {
+    "host": "DGX Spark 61",
+    "tp": 1,
+    "context": 262144,
+    "rope": "native",
+    "kv_bits": 8,
+    "prefill_chunk": 2048,
+    "concurrency": 1,
+    "vision": false,
+    "temperature": 0,
+    "reasoning_efforts": [
+      "off",
+      "medium"
+    ],
+    "mtp_depth": 3,
+    "dynamic_draft": false,
+    "cpu_affinity": "5-9,15-19",
+    "identical_input_ids_verified": true,
+    "timing": "Direct engines without TabbyAPI or HTTP transport. TG excludes the first token interval; reasoning counts as generated tokens. PP subtracts cached prompt tokens.",
+    "comparison_limits": "Same stored target weights, different engine arithmetic, KV codecs and draft-head implementation. Not a quality equivalence study or a 1M/vision qualification."
+  },
+  "engines": {
+    "tensorfold-ko": {
+      "implementation": "TensorFold Python CUDA; not the native Zig loader",
+      "revision": "db281878ddb836fd0df510d8771ecb7e0fe47d26",
+      "existing_upstream_exl3_support": true,
+      "ngram": "All 36.36 GiB of packed rows memory-mapped and locked",
+      "draft_vocabulary": 86218,
+      "stock_vocabulary": 79591,
+      "draft_head": "Upstream loader decodes selected rows of the existing EXL3 head into its affine 4bit MTP-only head. Target weights remain unchanged."
+    },
+    "exllama-disk": {
+      "implementation": "ExLlamaV3 1.5.4 direct Generator",
+      "revision": "16a49792a3c93d8432d72e6c4bce800841566577",
+      "ngram_ram": false,
+      "ngram_stream": true,
+      "draft_vocabulary": "Engine default"
+    },
+    "exllama-ram": {
+      "implementation": "ExLlamaV3 1.5.4 direct Generator",
+      "revision": "16a49792a3c93d8432d72e6c4bce800841566577",
+      "ngram_ram": true,
+      "draft_vocabulary": "Engine default"
+    }
+  },
+  "measurements": {
+    "tensorfold-ko": {
+      "tg": {
+        "off": {
+          "weighted_tps": 47.41607929093151,
+          "cases": 4,
+          "min_tps": 45.41892277001995,
+          "max_tps": 48.49734118227286
+        },
+        "medium": {
+          "weighted_tps": 52.489470035033705,
+          "cases": 4,
+          "min_tps": 48.20740222821237,
+          "max_tps": 55.455706380362294
+        }
+      },
+      "pp": {
+        "off": {
+          "4096": 701.8626090234583,
+          "16384": 694.1196407388578
+        },
+        "medium": {
+          "4096": 704.8822041336109,
+          "16384": 694.5109725442654
+        }
+      },
+      "per_case": [
+        {
+          "case": "warmup-off",
+          "kind": "warmup",
+          "mode": "off",
+          "input_tokens": 30,
+          "output_tokens": 4,
+          "input_sha256": "1ddf9f6c8f04a22b6b75bd320715687ef7037ba76f165ba5b9af73a9d4623bac",
+          "pp_tps": 132.21683561040106,
+          "tg_tps": 67.87330316742081,
+          "has_reasoning_end": false
+        },
+        {
+          "case": "warmup-medium",
+          "kind": "warmup",
+          "mode": "medium",
+          "input_tokens": 28,
+          "output_tokens": 89,
+          "input_sha256": "da118e71e937453568d079b5257b30e893969d56d5aee2c774c2b6c1c5dc5cc9",
+          "pp_tps": 188.55218855218857,
+          "tg_tps": 81.57211716722284,
+          "has_reasoning_end": true
+        },
+        {
+          "case": "tg-explain-off-0",
+          "kind": "tg",
+          "mode": "off",
+          "input_tokens": 88,
+          "output_tokens": 214,
+          "input_sha256": "a1a97b1619b5f7e3023578c5f6416903e8ddc93554b616538907296f7874a270",
+          "pp_tps": 373.03942348452733,
+          "tg_tps": 46.59506048607617,
+          "has_reasoning_end": false
+        },
+        {
+          "case": "tg-prose-off-0",
+          "kind": "tg",
+          "mode": "off",
+          "input_tokens": 82,
+          "output_tokens": 256,
+          "input_sha256": "565697df8c40957d6700beed1227ec9e746f56773073b79e5f1a6cb6163ba9e7",
+          "pp_tps": 350.72711719418305,
+          "tg_tps": 45.41892277001995,
+          "has_reasoning_end": false
+        },
+        {
+          "case": "tg-practical-off-0",
+          "kind": "tg",
+          "mode": "off",
+          "input_tokens": 88,
+          "output_tokens": 250,
+          "input_sha256": "0fce051b61e8cd7d72f9793e4b4f18a827b29e4749c503674bbbc4a1795b3389",
+          "pp_tps": 368.8181056160939,
+          "tg_tps": 47.01306547843818,
+          "has_reasoning_end": false
+        },
+        {
+          "case": "tg-long-off-0",
+          "kind": "tg",
+          "mode": "off",
+          "input_tokens": 155,
+          "output_tokens": 768,
+          "input_sha256": "e066ecfbae1c17aee089d67b96afef4a6586191ab0a365be13a74039cf8fae3c",
+          "pp_tps": 480.17348203221815,
+          "tg_tps": 48.49734118227286,
+          "has_reasoning_end": false
+        },
+        {
+          "case": "tg-explain-medium-0",
+          "kind": "tg",
+          "mode": "medium",
+          "input_tokens": 88,
+          "output_tokens": 470,
+          "input_sha256": "f096c81551709cbdd625650c10b5952c6830878af0080d012b37496be6e59a4d",
+          "pp_tps": 369.9033207229929,
+          "tg_tps": 55.455706380362294,
+          "has_reasoning_end": true
+        },
+        {
+          "case": "tg-prose-medium-0",
+          "kind": "tg",
+          "mode": "medium",
+          "input_tokens": 85,
+          "output_tokens": 525,
+          "input_sha256": "77381498004d115eb87eeaad6bc30e02c552aadbd2c6f4bf19a097f63fb19516",
+          "pp_tps": 361.2409689757756,
+          "tg_tps": 48.20740222821237,
+          "has_reasoning_end": true
+        },
+        {
+          "case": "tg-practical-medium-0",
+          "kind": "tg",
+          "mode": "medium",
+          "input_tokens": 86,
+          "output_tokens": 398,
+          "input_sha256": "2f2def640485b6a71b8376a3e9064cba83cdb622e49d184df9d5e9e6773d238f",
+          "pp_tps": 362.25779275484416,
+          "tg_tps": 52.8122173149577,
+          "has_reasoning_end": true
+        },
+        {
+          "case": "tg-long-medium-0",
+          "kind": "tg",
+          "mode": "medium",
+          "input_tokens": 159,
+          "output_tokens": 2048,
+          "input_sha256": "afc63f20e9a9b7d8459e30fe5b6190596f32fb47b8b6298fb2d365bd480349b7",
+          "pp_tps": 489.98459167950693,
+          "tg_tps": 52.98208651583898,
+          "has_reasoning_end": true
+        },
+        {
+          "case": "pp-4096-off",
+          "kind": "pp",
+          "mode": "off",
+          "input_tokens": 4096,
+          "output_tokens": 16,
+          "input_sha256": "42667d2b68f7dfe679d7ed20c31c1c4c26f5808e3f2abd7b12392151a29af94c",
+          "pp_tps": 701.8626090234583,
+          "tg_tps": 69.63788300835654,
+          "has_reasoning_end": false
+        },
+        {
+          "case": "pp-16384-off",
+          "kind": "pp",
+          "mode": "off",
+          "input_tokens": 16384,
+          "output_tokens": 16,
+          "input_sha256": "ef6e0783b081d994c4c9538c4b266fba02b1888516fd006a5922f5b4a5cb7b50",
+          "pp_tps": 694.1196407388578,
+          "tg_tps": 11.810093693409968,
+          "has_reasoning_end": false
+        },
+        {
+          "case": "pp-4096-medium",
+          "kind": "pp",
+          "mode": "medium",
+          "input_tokens": 4096,
+          "output_tokens": 16,
+          "input_sha256": "11c1010a0dbeb7057f110c6ac7830a5d38b6b171bc9f24324fc7280f4b7754c2",
+          "pp_tps": 704.8822041336109,
+          "tg_tps": 60.75334143377886,
+          "has_reasoning_end": false
+        },
+        {
+          "case": "pp-16384-medium",
+          "kind": "pp",
+          "mode": "medium",
+          "input_tokens": 16384,
+          "output_tokens": 16,
+          "input_sha256": "7fd736ae9958306bbdf13d8b0d855db484c84672d43b1b7be3390e0577d9cd92",
+          "pp_tps": 694.5109725442654,
+          "tg_tps": 39.46329913180742,
+          "has_reasoning_end": false
+        }
+      ]
+    },
+    "exllama-disk": {
+      "tg": {
+        "off": {
+          "weighted_tps": 37.99651918769297,
+          "cases": 4,
+          "min_tps": 35.25672978049631,
+          "max_tps": 39.53933796622874
+        },
+        "medium": {
+          "weighted_tps": 41.42218920014136,
+          "cases": 4,
+          "min_tps": 38.508267220013906,
+          "max_tps": 44.755036499966906
+        }
+      },
+      "pp": {
+        "off": {
+          "4096": 890.9905330238457,
+          "16384": 1087.6710148725265
+        },
+        "medium": {
+          "4096": 918.2098696340499,
+          "16384": 1109.3117313353087
+        }
+      },
+      "per_case": [
+        {
+          "case": "warmup-off",
+          "kind": "warmup",
+          "mode": "off",
+          "input_tokens": 30,
+          "output_tokens": 4,
+          "input_sha256": "1ddf9f6c8f04a22b6b75bd320715687ef7037ba76f165ba5b9af73a9d4623bac",
+          "pp_tps": 4.933315481321156,
+          "tg_tps": 1.9418880197341526,
+          "has_reasoning_end": false
+        },
+        {
+          "case": "warmup-medium",
+          "kind": "warmup",
+          "mode": "medium",
+          "input_tokens": 28,
+          "output_tokens": 89,
+          "input_sha256": "da118e71e937453568d079b5257b30e893969d56d5aee2c774c2b6c1c5dc5cc9",
+          "pp_tps": 187.24750555649447,
+          "tg_tps": 31.237749615091396,
+          "has_reasoning_end": true
+        },
+        {
+          "case": "tg-explain-off-0",
+          "kind": "tg",
+          "mode": "off",
+          "input_tokens": 88,
+          "output_tokens": 180,
+          "input_sha256": "a1a97b1619b5f7e3023578c5f6416903e8ddc93554b616538907296f7874a270",
+          "pp_tps": 76.31046285935919,
+          "tg_tps": 37.910666647276585,
+          "has_reasoning_end": false
+        },
+        {
+          "case": "tg-prose-off-0",
+          "kind": "tg",
+          "mode": "off",
+          "input_tokens": 82,
+          "output_tokens": 256,
+          "input_sha256": "565697df8c40957d6700beed1227ec9e746f56773073b79e5f1a6cb6163ba9e7",
+          "pp_tps": 315.1467899155352,
+          "tg_tps": 35.25672978049631,
+          "has_reasoning_end": false
+        },
+        {
+          "case": "tg-practical-off-0",
+          "kind": "tg",
+          "mode": "off",
+          "input_tokens": 88,
+          "output_tokens": 231,
+          "input_sha256": "0fce051b61e8cd7d72f9793e4b4f18a827b29e4749c503674bbbc4a1795b3389",
+          "pp_tps": 332.6769471491625,
+          "tg_tps": 36.457857118778044,
+          "has_reasoning_end": false
+        },
+        {
+          "case": "tg-long-off-0",
+          "kind": "tg",
+          "mode": "off",
+          "input_tokens": 155,
+          "output_tokens": 768,
+          "input_sha256": "e066ecfbae1c17aee089d67b96afef4a6586191ab0a365be13a74039cf8fae3c",
+          "pp_tps": 227.96657139380653,
+          "tg_tps": 39.53933796622874,
+          "has_reasoning_end": false
+        },
+        {
+          "case": "tg-explain-medium-0",
+          "kind": "tg",
+          "mode": "medium",
+          "input_tokens": 88,
+          "output_tokens": 430,
+          "input_sha256": "f096c81551709cbdd625650c10b5952c6830878af0080d012b37496be6e59a4d",
+          "pp_tps": 336.44906211430373,
+          "tg_tps": 44.755036499966906,
+          "has_reasoning_end": true
+        },
+        {
+          "case": "tg-prose-medium-0",
+          "kind": "tg",
+          "mode": "medium",
+          "input_tokens": 85,
+          "output_tokens": 436,
+          "input_sha256": "77381498004d115eb87eeaad6bc30e02c552aadbd2c6f4bf19a097f63fb19516",
+          "pp_tps": 331.7117613344548,
+          "tg_tps": 38.508267220013906,
+          "has_reasoning_end": true
+        },
+        {
+          "case": "tg-practical-medium-0",
+          "kind": "tg",
+          "mode": "medium",
+          "input_tokens": 86,
+          "output_tokens": 437,
+          "input_sha256": "2f2def640485b6a71b8376a3e9064cba83cdb622e49d184df9d5e9e6773d238f",
+          "pp_tps": 327.46551722572696,
+          "tg_tps": 41.98956270195971,
+          "has_reasoning_end": true
+        },
+        {
+          "case": "tg-long-medium-0",
+          "kind": "tg",
+          "mode": "medium",
+          "input_tokens": 159,
+          "output_tokens": 2048,
+          "input_sha256": "afc63f20e9a9b7d8459e30fe5b6190596f32fb47b8b6298fb2d365bd480349b7",
+          "pp_tps": 448.6586787834916,
+          "tg_tps": 41.32283014407309,
+          "has_reasoning_end": true
+        },
+        {
+          "case": "pp-4096-off",
+          "kind": "pp",
+          "mode": "off",
+          "input_tokens": 4096,
+          "output_tokens": 16,
+          "input_sha256": "42667d2b68f7dfe679d7ed20c31c1c4c26f5808e3f2abd7b12392151a29af94c",
+          "pp_tps": 890.9905330238457,
+          "tg_tps": 20.039004906668197,
+          "has_reasoning_end": false
+        },
+        {
+          "case": "pp-16384-off",
+          "kind": "pp",
+          "mode": "off",
+          "input_tokens": 16384,
+          "output_tokens": 16,
+          "input_sha256": "ef6e0783b081d994c4c9538c4b266fba02b1888516fd006a5922f5b4a5cb7b50",
+          "pp_tps": 1087.6710148725265,
+          "tg_tps": 14.408715232419024,
+          "has_reasoning_end": false
+        },
+        {
+          "case": "pp-4096-medium",
+          "kind": "pp",
+          "mode": "medium",
+          "input_tokens": 4096,
+          "output_tokens": 16,
+          "input_sha256": "11c1010a0dbeb7057f110c6ac7830a5d38b6b171bc9f24324fc7280f4b7754c2",
+          "pp_tps": 918.2098696340499,
+          "tg_tps": 15.01212980936144,
+          "has_reasoning_end": false
+        },
+        {
+          "case": "pp-16384-medium",
+          "kind": "pp",
+          "mode": "medium",
+          "input_tokens": 16384,
+          "output_tokens": 16,
+          "input_sha256": "7fd736ae9958306bbdf13d8b0d855db484c84672d43b1b7be3390e0577d9cd92",
+          "pp_tps": 1109.3117313353087,
+          "tg_tps": 15.803302703623268,
+          "has_reasoning_end": false
+        }
+      ]
+    },
+    "exllama-ram": {
+      "tg": {
+        "off": {
+          "weighted_tps": 38.40713313380695,
+          "cases": 4,
+          "min_tps": 36.34932839873818,
+          "max_tps": 40.13310648929078
+        },
+        "medium": {
+          "weighted_tps": 42.444732668407504,
+          "cases": 4,
+          "min_tps": 37.79255207688075,
+          "max_tps": 48.446368455962606
+        }
+      },
+      "pp": {
+        "off": {
+          "4096": 843.639059587692,
+          "16384": 1088.8212842478652
+        },
+        "medium": {
+          "4096": 942.2108396533603,
+          "16384": 1089.7551976977193
+        }
+      },
+      "per_case": [
+        {
+          "case": "warmup-off",
+          "kind": "warmup",
+          "mode": "off",
+          "input_tokens": 30,
+          "output_tokens": 4,
+          "input_sha256": "1ddf9f6c8f04a22b6b75bd320715687ef7037ba76f165ba5b9af73a9d4623bac",
+          "pp_tps": 6.735325754009281,
+          "tg_tps": 1.9305974291866395,
+          "has_reasoning_end": false
+        },
+        {
+          "case": "warmup-medium",
+          "kind": "warmup",
+          "mode": "medium",
+          "input_tokens": 28,
+          "output_tokens": 89,
+          "input_sha256": "da118e71e937453568d079b5257b30e893969d56d5aee2c774c2b6c1c5dc5cc9",
+          "pp_tps": 185.2262987391923,
+          "tg_tps": 31.748679664200882,
+          "has_reasoning_end": true
+        },
+        {
+          "case": "tg-explain-off-0",
+          "kind": "tg",
+          "mode": "off",
+          "input_tokens": 88,
+          "output_tokens": 214,
+          "input_sha256": "a1a97b1619b5f7e3023578c5f6416903e8ddc93554b616538907296f7874a270",
+          "pp_tps": 92.74707202458924,
+          "tg_tps": 37.25747675314166,
+          "has_reasoning_end": false
+        },
+        {
+          "case": "tg-prose-off-0",
+          "kind": "tg",
+          "mode": "off",
+          "input_tokens": 82,
+          "output_tokens": 256,
+          "input_sha256": "565697df8c40957d6700beed1227ec9e746f56773073b79e5f1a6cb6163ba9e7",
+          "pp_tps": 317.122152720406,
+          "tg_tps": 36.660783263709504,
+          "has_reasoning_end": false
+        },
+        {
+          "case": "tg-practical-off-0",
+          "kind": "tg",
+          "mode": "off",
+          "input_tokens": 88,
+          "output_tokens": 253,
+          "input_sha256": "0fce051b61e8cd7d72f9793e4b4f18a827b29e4749c503674bbbc4a1795b3389",
+          "pp_tps": 331.66862140047124,
+          "tg_tps": 36.34932839873818,
+          "has_reasoning_end": false
+        },
+        {
+          "case": "tg-long-off-0",
+          "kind": "tg",
+          "mode": "off",
+          "input_tokens": 155,
+          "output_tokens": 768,
+          "input_sha256": "e066ecfbae1c17aee089d67b96afef4a6586191ab0a365be13a74039cf8fae3c",
+          "pp_tps": 412.4598288917298,
+          "tg_tps": 40.13310648929078,
+          "has_reasoning_end": false
+        },
+        {
+          "case": "tg-explain-medium-0",
+          "kind": "tg",
+          "mode": "medium",
+          "input_tokens": 88,
+          "output_tokens": 455,
+          "input_sha256": "f096c81551709cbdd625650c10b5952c6830878af0080d012b37496be6e59a4d",
+          "pp_tps": 334.8071355615182,
+          "tg_tps": 48.446368455962606,
+          "has_reasoning_end": true
+        },
+        {
+          "case": "tg-prose-medium-0",
+          "kind": "tg",
+          "mode": "medium",
+          "input_tokens": 85,
+          "output_tokens": 548,
+          "input_sha256": "77381498004d115eb87eeaad6bc30e02c552aadbd2c6f4bf19a097f63fb19516",
+          "pp_tps": 329.1432960690127,
+          "tg_tps": 37.79255207688075,
+          "has_reasoning_end": true
+        },
+        {
+          "case": "tg-practical-medium-0",
+          "kind": "tg",
+          "mode": "medium",
+          "input_tokens": 86,
+          "output_tokens": 393,
+          "input_sha256": "2f2def640485b6a71b8376a3e9064cba83cdb622e49d184df9d5e9e6773d238f",
+          "pp_tps": 328.5192042171681,
+          "tg_tps": 42.296642085829475,
+          "has_reasoning_end": true
+        },
+        {
+          "case": "tg-long-medium-0",
+          "kind": "tg",
+          "mode": "medium",
+          "input_tokens": 159,
+          "output_tokens": 2048,
+          "input_sha256": "afc63f20e9a9b7d8459e30fe5b6190596f32fb47b8b6298fb2d365bd480349b7",
+          "pp_tps": 445.3027710634206,
+          "tg_tps": 42.70476937321842,
+          "has_reasoning_end": true
+        },
+        {
+          "case": "pp-4096-off",
+          "kind": "pp",
+          "mode": "off",
+          "input_tokens": 4096,
+          "output_tokens": 16,
+          "input_sha256": "42667d2b68f7dfe679d7ed20c31c1c4c26f5808e3f2abd7b12392151a29af94c",
+          "pp_tps": 843.639059587692,
+          "tg_tps": 21.76012882888772,
+          "has_reasoning_end": false
+        },
+        {
+          "case": "pp-16384-off",
+          "kind": "pp",
+          "mode": "off",
+          "input_tokens": 16384,
+          "output_tokens": 16,
+          "input_sha256": "ef6e0783b081d994c4c9538c4b266fba02b1888516fd006a5922f5b4a5cb7b50",
+          "pp_tps": 1088.8212842478652,
+          "tg_tps": 16.724549279349375,
+          "has_reasoning_end": false
+        },
+        {
+          "case": "pp-4096-medium",
+          "kind": "pp",
+          "mode": "medium",
+          "input_tokens": 4096,
+          "output_tokens": 16,
+          "input_sha256": "11c1010a0dbeb7057f110c6ac7830a5d38b6b171bc9f24324fc7280f4b7754c2",
+          "pp_tps": 942.2108396533603,
+          "tg_tps": 16.1630336516637,
+          "has_reasoning_end": false
+        },
+        {
+          "case": "pp-16384-medium",
+          "kind": "pp",
+          "mode": "medium",
+          "input_tokens": 16384,
+          "output_tokens": 16,
+          "input_sha256": "7fd736ae9958306bbdf13d8b0d855db484c84672d43b1b7be3390e0577d9cd92",
+          "pp_tps": 1089.7551976977193,
+          "tg_tps": 20.999659543788677,
+          "has_reasoning_end": false
+        }
+      ]
+    }
+  },
+  "tg_relative_gain": {
+    "exllama-disk": {
+      "off": 0.24790586886941823,
+      "medium": 0.2671824219965315
+    },
+    "exllama-ram": {
+      "off": 0.23456440046535665,
+      "medium": 0.23665450893751783
+    }
+  },
+  "validation": {
+    "upstream_cuda_tests_passed": 17,
+    "test_adapter": "Added ExLlamaV3 1.5.4 ngram_dequant rotate=False argument; retained all numerical bounds and bit-equality assertions.",
+    "full_model": [
+      {
+        "case": "tg-explain-off-0",
+        "serial_draft_equal": true,
+        "cold_repeat_equal": true,
+        "tokens": 128
+      },
+      {
+        "case": "tg-explain-medium-0",
+        "serial_draft_equal": true,
+        "cold_repeat_equal": true,
+        "tokens": 128
+      }
+    ],
+    "api": [
+      {
+        "mode": "off",
+        "stream": false,
+        "arithmetic": "391",
+        "usage": {
+          "prompt_tokens": 30,
+          "completion_tokens": 4,
+          "total_tokens": 34,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        }
+      },
+      {
+        "mode": "off",
+        "stream": false,
+        "tool_name": "get_temperature",
+        "arguments": {
+          "city": "Seoul"
+        },
+        "finish_reason": "tool_calls"
+      },
+      {
+        "mode": "off",
+        "stream": true,
+        "arithmetic": "391",
+        "usage": {
+          "prompt_tokens": 30,
+          "completion_tokens": 4,
+          "total_tokens": 34,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        }
+      },
+      {
+        "mode": "off",
+        "stream": true,
+        "tool_name": "get_temperature",
+        "arguments": {
+          "city": "Seoul"
+        },
+        "finish_reason": "tool_calls"
+      },
+      {
+        "mode": "medium",
+        "stream": false,
+        "arithmetic": "391",
+        "usage": {
+          "prompt_tokens": 28,
+          "completion_tokens": 89,
+          "total_tokens": 117,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 84
+          }
+        }
+      },
+      {
+        "mode": "medium",
+        "stream": false,
+        "tool_name": "get_temperature",
+        "arguments": {
+          "city": "Seoul"
+        },
+        "finish_reason": "tool_calls"
+      },
+      {
+        "mode": "medium",
+        "stream": true,
+        "arithmetic": "391",
+        "usage": {
+          "prompt_tokens": 28,
+          "completion_tokens": 89,
+          "total_tokens": 117,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 84
+          }
+        }
+      },
+      {
+        "mode": "medium",
+        "stream": true,
+        "tool_name": "get_temperature",
+        "arguments": {
+          "city": "Seoul"
+        },
+        "finish_reason": "tool_calls"
+      }
+    ],
+    "restoration": {
+      "restored": false,
+      "skipped_by_user": true,
+      "request": "Do not restore DeepSeek; user will start it later.",
+      "utc": "2026-10-19T17:40:33Z"
+    },
+    "stopped_state": {
+      "spark61_memory_GiB": {
+        "MemFree": 68.80986785888672,
+        "MemAvailable": 117.34582901000977
+      },
+      "spark60_memory_GiB": {
+        "MemFree": 58.37908172607422,
+        "MemAvailable": 117.57715225219727
+      },
+      "spark61_deepseek_stopped": true,
+      "spark60_deepseek_stopped": true,
+      "talk_operation": {
+        "action": "stop",
+        "state": "complete",
+        "error": null
+      },
+      "automatic_restoration": "terminated per user instruction"
+    },
+    "exllama_disk_ram_output_comparison": {
+      "matching_cases": 8,
+      "total_cases": 14,
+      "interpretation": "Generated outputs can vary between engine configurations despite greedy decoding. These are throughput measurements with identical prompts, not proof of output/quality equivalence or a causal isolation of ngram I/O."
+    }
+  },
+  "adoption": "Experimental. Existing Talk recipe/default unchanged. 1M, images/video and full agent quality have not been qualified for this candidate.",
+  "sources": [
+    "https://github.com/ashhart/TensorFold/tree/db281878ddb836fd0df510d8771ecb7e0fe47d26/src/tensorfold/families/qwen4_exp/cuda",
+    "https://huggingface.co/alesha-pro/Huihui-Qwen3.8-Flash-Next-abliterated-exl3-3bit-hq_h6_ng6/tree/3b585c458f9fcf3322e76cff2c635c2cb81c5869",
+    "https://github.com/turboderp-org/exllamav3/tree/16a49792a3c93d8432d72e6c4bce800841566577",
+    "https://github.com/jayleaton/qwen38-flash-next-exl3-spark/blob/88f89698f68f322d9d2bc1abf6328d2e3d20d354/docs/FINDINGS.md"
+  ]
+}

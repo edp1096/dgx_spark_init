@@ -1,0 +1,732 @@
+{
+  "base_commit": "a6ad23d60e082ff9cca2bb78adda4ecee771388c",
+  "patches": [
+    "velogb10-exl3-yarn.patch",
+    "velogb10-exl3-schema.patch"
+  ],
+  "enabled": "By default on EXL3 single-GPU when response_format requests a supported JSON schema or json_object",
+  "implementation": {
+    "selection": "fp16 logits masked on GPU after penalties, before greedy or stochastic selection",
+    "emission": "Every token checked before HTTP/SSE emission; stop only on completed JSON, length on exhausted budget",
+    "ordinary_requests": "Existing CUDA graphs and MTP retained; no schema upload",
+    "schema_requests": "Plain eager GPU decode, MTP bypassed, reasoning disabled, compact structural syntax",
+    "tokenizer": "Same raw byte table as the streaming decoder; special-token pieces excluded",
+    "unsupported": "Unsupported schema/topology, contradictory constraints, forced tool calls and stop strings return HTTP 400"
+  },
+  "scope": {
+    "GPU": "one GB10",
+    "single_context": 1048576,
+    "batch_test_context": 65536,
+    "KV": "Q8",
+    "draft_vocabulary": "full",
+    "prefix_checkpoint_cap_GiB": 4,
+    "supported_schema_keywords": [
+      "type",
+      "properties",
+      "required",
+      "additionalProperties",
+      "items",
+      "minItems",
+      "maxItems",
+      "minLength",
+      "maxLength",
+      "minimum",
+      "maximum",
+      "exclusiveMinimum",
+      "exclusiveMaximum",
+      "enum (strings/integers)"
+    ],
+    "limitations": [
+      "No real TP constraint support; requests explicitly rejected.",
+      "$ref, pattern, oneOf/anyOf/allOf and other unsupported keywords return 400.",
+      "Schema requests use non-reasoning plain GPU decode, not speculative decoding.",
+      "Bounded numeric generation chooses decimal spellings; successful output is schema-valid but not every equivalent spelling is generated.",
+      "Exhausted max_tokens can return incomplete JSON with finish_reason length."
+    ]
+  },
+  "runs": {
+    "single": {
+      "HTTP": {
+        "passed": 86,
+        "total": 86,
+        "failed": []
+      },
+      "memory": {
+        "peak_GPU_GiB": 77.8330078125,
+        "min_system_available_GiB": 34.207122802734375,
+        "max_process_swap_bytes": 0,
+        "max_container_swap_bytes": null,
+        "host_swap_write_MiB": 0.0,
+        "observed_seconds": 578.1637796110008,
+        "OOM_observed": false
+      },
+      "command": [
+        "taskset",
+        "-c",
+        "5-9,15-19",
+        "/home/edp1096/.cache/model-download-jobs/velogb10-schema-20261009/source/target/release/gb10_inference",
+        "--server",
+        "--model-dir",
+        "/home/edp1096/.cache/huggingface/hub/models--alesha-pro--Huihui-Qwen3.8-Flash-Next-abliterated-exl3-3bit-hq_h6_ng6/snapshots/3b585c458f9fcf3322e76cff2c635c2cb81c5869",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "19320",
+        "--model-name",
+        "velo-yarn-audit",
+        "--max-seq-len",
+        "1048576",
+        "--rope-yarn-factor",
+        "4.0",
+        "--max-batch",
+        "1",
+        "--ple-ram",
+        "ssd",
+        "--kv-cache",
+        "q8",
+        "--exl3-mtp-k",
+        "3",
+        "--draft-confidence",
+        "0",
+        "--prefix-cache",
+        "on",
+        "--prefix-ckpt-mem-gb",
+        "4.0",
+        "--prefill-chunk",
+        "2048",
+        "--tune-table",
+        "off",
+        "--reasoning-effort",
+        "none",
+        "--thinking",
+        "off",
+        "--exl3-pdl",
+        "0",
+        "--exl3-mtp-head-n",
+        "0"
+      ],
+      "exit": {
+        "code": -15,
+        "seconds": 580.7700746479677
+      },
+      "normal_complete_schema_latency_seconds": {
+        "median": 1.0522470829309896,
+        "min": 0.16773533390369266,
+        "max": 7.666831898968667
+      },
+      "memory_after_schema": {
+        "seconds": 172.21557388699148,
+        "host": {
+          "MemAvailable": 41178816512,
+          "MemFree": 2196746240,
+          "SwapTotal": 17179865088,
+          "SwapFree": 15815213056
+        },
+        "swap_io_pages": {
+          "pswpin": 11657797,
+          "pswpout": 17983384
+        },
+        "process": {
+          "VmHWM": 4719374336,
+          "VmRSS": 4600324096,
+          "VmSwap": 0
+        },
+        "gpu_processes": "3781187, 75650"
+      }
+    },
+    "batched": {
+      "HTTP": {
+        "passed": 12,
+        "total": 12,
+        "failed": []
+      },
+      "memory": {
+        "peak_GPU_GiB": 57.4189453125,
+        "min_system_available_GiB": 54.448333740234375,
+        "max_process_swap_bytes": 0,
+        "max_container_swap_bytes": null,
+        "host_swap_write_MiB": 0.0,
+        "observed_seconds": 115.44806908094324,
+        "OOM_observed": false
+      },
+      "command": [
+        "taskset",
+        "-c",
+        "5-9,15-19",
+        "/home/edp1096/.cache/model-download-jobs/velogb10-schema-20261009/source/target/release/gb10_inference",
+        "--server",
+        "--model-dir",
+        "/home/edp1096/.cache/huggingface/hub/models--alesha-pro--Huihui-Qwen3.8-Flash-Next-abliterated-exl3-3bit-hq_h6_ng6/snapshots/3b585c458f9fcf3322e76cff2c635c2cb81c5869",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "19321",
+        "--model-name",
+        "velo-yarn-audit",
+        "--max-seq-len",
+        "65536",
+        "--rope-yarn-factor",
+        "4.0",
+        "--max-batch",
+        "2",
+        "--ple-ram",
+        "ssd",
+        "--kv-cache",
+        "q8",
+        "--exl3-mtp-k",
+        "3",
+        "--draft-confidence",
+        "0",
+        "--prefix-cache",
+        "on",
+        "--prefix-ckpt-mem-gb",
+        "4.0",
+        "--prefill-chunk",
+        "2048",
+        "--tune-table",
+        "off",
+        "--reasoning-effort",
+        "none",
+        "--thinking",
+        "off",
+        "--exl3-pdl",
+        "1",
+        "--exl3-mtp-head-n",
+        "0"
+      ],
+      "exit": {
+        "code": -15,
+        "seconds": 116.85841467196587
+      },
+      "normal_complete_schema_latency_seconds": {
+        "median": 4.264238693984225,
+        "min": 2.955851846956648,
+        "max": 6.498135702917352
+      },
+      "memory_after_schema": {
+        "seconds": 113.41809612396173,
+        "host": {
+          "MemAvailable": 59132002304,
+          "MemFree": 3547873280,
+          "SwapTotal": 17179865088,
+          "SwapFree": 15815380992
+        },
+        "swap_io_pages": {
+          "pswpin": 11657871,
+          "pswpout": 17983384
+        },
+        "process": {
+          "VmHWM": 4747939840,
+          "VmRSS": 4730335232,
+          "VmSwap": 0
+        },
+        "gpu_processes": "3799674, 58797"
+      }
+    }
+  },
+  "tests": {
+    "unit-json-schema-compact.log": {
+      "passed": 24,
+      "failed": 0
+    },
+    "final-exl3_schema__tests.log": {
+      "passed": 2,
+      "failed": 0
+    },
+    "final-tokenizer__tests.log": {
+      "passed": 14,
+      "failed": 0
+    },
+    "final-server__.log": {
+      "passed": 25,
+      "failed": 0
+    },
+    "final-exl3_serve__.log": {
+      "passed": 29,
+      "failed": 0
+    },
+    "final-exl3_rope__.log": {
+      "passed": 3,
+      "failed": 0
+    },
+    "tokenizer-oracle-compact.log": {
+      "passed": 2,
+      "failed": 0
+    },
+    "gpu-mask.log": {
+      "passed": 1,
+      "failed": 0
+    },
+    "gpu-yarn.log": {
+      "passed": 3,
+      "failed": 0
+    }
+  },
+  "GPU_sampled_rows": 144,
+  "YaRN_GPU_regression_cases": 93,
+  "byte_level_random_paths": 100,
+  "real_BPE_random_paths": 32,
+  "ordinary_regression": {
+    "summary": {
+      "model": "velo-yarn-audit",
+      "cases": 39,
+      "quality_checks_passed": 28,
+      "quality_checks_total": 31,
+      "korean_decode_median": 55.0829127603398,
+      "code_decode_median": 77.28336723463147,
+      "failed_cases": [
+        "quoted_xml_0",
+        "quoted_xml_1",
+        "quoted_xml_2"
+      ]
+    },
+    "same_visible_speed_outputs": {
+      "korean_0": true,
+      "code_0": true,
+      "korean_1": true,
+      "code_1": true,
+      "korean_2": true,
+      "code_2": true
+    },
+    "speed": {
+      "korean_": {
+        "baseline": 54.54743180357179,
+        "new": 55.22408476058763
+      },
+      "code_": {
+        "baseline": 78.2031155592811,
+        "new": 78.17464691196002
+      }
+    },
+    "clean_speed_run": "Fresh process, same initial warmups, same saved request bodies, no concurrent HTTP requests.",
+    "primary_speed_run_limit": "Supplemental type probes overlapped the first suite speed cases; use clean-speed metrics for comparison.",
+    "known_unfixed": "The pre-existing literal XML tool-example requests still generate calls; unchanged by response_format enforcement."
+  },
+  "long_context": {
+    "target_tokens": 320000,
+    "actual_tokenize_count": null,
+    "input_bytes": 1624401,
+    "filler_repetitions_per_half": 12304,
+    "started_wall": 1791555681.6887186,
+    "text": "청록펭귄, 은빛해달, 자주빛고래",
+    "usage": {
+      "prompt_tokens": 319990,
+      "completion_tokens": 17,
+      "total_tokens": 320007,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    },
+    "finish": "stop",
+    "done": true,
+    "seconds": 240.47823202097788,
+    "ttft": 240.27258424798492,
+    "pass": true,
+    "prefill_tps": 1331.7790750098184
+  },
+  "extra_type_checks": [
+    {
+      "name": "untyped-enum",
+      "request": {
+        "model": "velo-yarn-audit",
+        "messages": [
+          {
+            "role": "user",
+            "content": "NOT_JSON만 답해라."
+          }
+        ],
+        "response_format": {
+          "type": "json_schema",
+          "json_schema": {
+            "name": "gpu_audit",
+            "strict": true,
+            "schema": {
+              "enum": [
+                "ready"
+              ]
+            }
+          }
+        },
+        "max_tokens": 96,
+        "temperature": 0.7,
+        "stream": true,
+        "stream_options": {
+          "include_usage": true
+        },
+        "chat_template_kwargs": {
+          "enable_thinking": false
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "text/event-stream",
+          "cache-control": "no-cache",
+          "x-json-schema-enforced": "gpu",
+          "x-json-schema-decoding": "plain",
+          "vary": "origin, access-control-request-method, access-control-request-headers",
+          "access-control-allow-origin": "*",
+          "connection": "close",
+          "transfer-encoding": "chunked",
+          "date": "Fri, 09 Oct 2026 14:18:41 GMT"
+        },
+        "text": "\"r\\u0065\\u0061\\u0064\\u0079\"",
+        "reasoning": "",
+        "calls": [],
+        "finish": "stop",
+        "usage": {
+          "prompt_tokens": 19,
+          "completion_tokens": 24,
+          "total_tokens": 43,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "done": true,
+        "errors": [],
+        "ttft": 7.399243481922895,
+        "seconds": 8.140746827004477
+      },
+      "pass": true
+    },
+    {
+      "name": "null",
+      "request": {
+        "model": "velo-yarn-audit",
+        "messages": [
+          {
+            "role": "user",
+            "content": "missing을 null로 출력해라."
+          }
+        ],
+        "response_format": {
+          "type": "json_schema",
+          "json_schema": {
+            "name": "gpu_audit",
+            "strict": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "missing": {
+                  "type": "null"
+                }
+              },
+              "required": [
+                "missing"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "max_tokens": 96,
+        "temperature": 0.7,
+        "stream": true,
+        "stream_options": {
+          "include_usage": true
+        },
+        "chat_template_kwargs": {
+          "enable_thinking": false
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "text/event-stream",
+          "cache-control": "no-cache",
+          "x-json-schema-enforced": "gpu",
+          "x-json-schema-decoding": "plain",
+          "vary": "origin, access-control-request-method, access-control-request-headers",
+          "access-control-allow-origin": "*",
+          "connection": "close",
+          "transfer-encoding": "chunked",
+          "date": "Fri, 09 Oct 2026 14:18:49 GMT"
+        },
+        "text": "{\"missing\":null}",
+        "reasoning": "",
+        "calls": [],
+        "finish": "stop",
+        "usage": {
+          "prompt_tokens": 20,
+          "completion_tokens": 6,
+          "total_tokens": 26,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "done": true,
+        "errors": [],
+        "ttft": 5.448237212956883,
+        "seconds": 5.606612600036897
+      },
+      "pass": true
+    },
+    {
+      "name": "integer-bound",
+      "request": {
+        "model": "velo-yarn-audit",
+        "messages": [
+          {
+            "role": "user",
+            "content": "숫자 1만 출력해라."
+          }
+        ],
+        "response_format": {
+          "type": "json_schema",
+          "json_schema": {
+            "name": "gpu_audit",
+            "strict": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 20,
+              "maximum": 30
+            }
+          }
+        },
+        "max_tokens": 96,
+        "temperature": 0.7,
+        "stream": true,
+        "stream_options": {
+          "include_usage": true
+        },
+        "chat_template_kwargs": {
+          "enable_thinking": false
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "text/event-stream",
+          "cache-control": "no-cache",
+          "x-json-schema-enforced": "gpu",
+          "x-json-schema-decoding": "plain",
+          "vary": "origin, access-control-request-method, access-control-request-headers",
+          "access-control-allow-origin": "*",
+          "connection": "close",
+          "transfer-encoding": "chunked",
+          "date": "Fri, 09 Oct 2026 14:18:55 GMT"
+        },
+        "text": "20",
+        "reasoning": "",
+        "calls": [],
+        "finish": "stop",
+        "usage": {
+          "prompt_tokens": 21,
+          "completion_tokens": 2,
+          "total_tokens": 23,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "done": true,
+        "errors": [],
+        "ttft": 9.744889089954086,
+        "seconds": 9.778377331909724
+      },
+      "pass": true
+    },
+    {
+      "name": "spaces-in-key-and-value",
+      "request": {
+        "model": "velo-yarn-audit",
+        "messages": [
+          {
+            "role": "user",
+            "content": "출력해라."
+          }
+        ],
+        "response_format": {
+          "type": "json_schema",
+          "json_schema": {
+            "name": "gpu_audit",
+            "strict": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "first name": {
+                  "type": "string",
+                  "enum": [
+                    "a b"
+                  ]
+                }
+              },
+              "required": [
+                "first name"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "max_tokens": 96,
+        "temperature": 0.7,
+        "stream": true,
+        "stream_options": {
+          "include_usage": true
+        },
+        "chat_template_kwargs": {
+          "enable_thinking": false
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "text/event-stream",
+          "cache-control": "no-cache",
+          "x-json-schema-enforced": "gpu",
+          "x-json-schema-decoding": "plain",
+          "vary": "origin, access-control-request-method, access-control-request-headers",
+          "access-control-allow-origin": "*",
+          "connection": "close",
+          "transfer-encoding": "chunked",
+          "date": "Fri, 09 Oct 2026 14:19:05 GMT"
+        },
+        "text": "{\"first name\":\"a b\"}",
+        "reasoning": "",
+        "calls": [],
+        "finish": "stop",
+        "usage": {
+          "prompt_tokens": 17,
+          "completion_tokens": 9,
+          "total_tokens": 26,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "done": true,
+        "errors": [],
+        "ttft": 7.175004658056423,
+        "seconds": 7.422952837077901
+      },
+      "pass": true
+    },
+    {
+      "name": "japanese-chinese",
+      "request": {
+        "model": "velo-yarn-audit",
+        "messages": [
+          {
+            "role": "user",
+            "content": "출력해라."
+          }
+        ],
+        "response_format": {
+          "type": "json_schema",
+          "json_schema": {
+            "name": "gpu_audit",
+            "strict": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "word": {
+                  "type": "string",
+                  "enum": [
+                    "日本語 中文"
+                  ]
+                }
+              },
+              "required": [
+                "word"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "max_tokens": 96,
+        "temperature": 0.7,
+        "stream": true,
+        "stream_options": {
+          "include_usage": true
+        },
+        "chat_template_kwargs": {
+          "enable_thinking": false
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "text/event-stream",
+          "cache-control": "no-cache",
+          "x-json-schema-enforced": "gpu",
+          "x-json-schema-decoding": "plain",
+          "vary": "origin, access-control-request-method, access-control-request-headers",
+          "access-control-allow-origin": "*",
+          "connection": "close",
+          "transfer-encoding": "chunked",
+          "date": "Fri, 09 Oct 2026 14:19:12 GMT"
+        },
+        "text": "{\"word\":\"日本語 中文\"}",
+        "reasoning": "",
+        "calls": [],
+        "finish": "stop",
+        "usage": {
+          "prompt_tokens": 17,
+          "completion_tokens": 11,
+          "total_tokens": 28,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "done": true,
+        "errors": [],
+        "ttft": 9.881012805039063,
+        "seconds": 10.1948277130723
+      },
+      "pass": true
+    }
+  ],
+  "baseline_memory": {
+    "peak_GPU_GiB": 77.8330078125,
+    "min_system_available_GiB": 33.83244705200195,
+    "max_process_swap_bytes": 0,
+    "max_container_swap_bytes": null,
+    "host_swap_write_MiB": 0.01953125,
+    "observed_seconds": 513.1905084199971,
+    "OOM_observed": false
+  },
+  "reproduction": {
+    "files": {
+      "kernels/exl3_bench.cu": "0724d3757839124ed5b10b1ad1651d799ab7da69e264357095e9f7af54fe9a9e",
+      "src/exl3_bench.rs": "fa92e08cec10ba8fabc57e4c2b1bdb52b1dde4c3100a8f04ff809d3a397cd98f",
+      "src/exl3_forward.rs": "e92784288fd9dc14f1a64a81fd08c04c196db642c716b74146e709f81facfd90",
+      "src/exl3_serve.rs": "8688522067c3a28b7cef26e26e755f0e528924e3a3d9460e9310f7ba72568654",
+      "src/server.rs": "b8898084ba267e30e8207ae93da56b1b4f6c235d31daa93a1bd999b5c7dba2eb",
+      "src/main.rs": "e49f36fa60d8be132f1bcefa3a8f6eec37cb2d06c5d4ae7013496efc5ca53baa",
+      "src/lib.rs": "217a4922d5fb6532b44946448e6ad47c3ae74c1426ef0eab13c15fede2f5f847",
+      "src/tokenizer.rs": "a69017df0b768f8703436c08c0d10a7c23f8703f34f03cda76718444ca48d7d3",
+      "src/json_schema.rs": "f8f82a49ad9648cfbd058f116b0b6ae2b86214e79e51e1eade923bfadfd03e98",
+      "src/exl3_schema.rs": "ef723d0c64369bc9364a048514d461c718e744926411a73f6c3466c60036e74e",
+      "tests/exl3_schema_gpu.rs": "8ec1c95f112c8c1957b7dbde3a5e77fc6b1f8f93a8bc2df4b72df31e72199a91",
+      "tests/exl3_schema_tokenizer.rs": "0f159404ef8f5669d885990e4ac8c456271b9c03ae8149d2a4c7b1f915b48b02"
+    },
+    "exact": true,
+    "schema_patch_sha256": "735870ea104b15e23c5d414454b922dceb22c0aa59e11d8310dc13a2db165aec"
+  },
+  "binary_and_PTX_sha256": {
+    "target/release/gb10_inference": "8c0be1659a7b37eda72d6c00127efc3e86bb572d776f5aae05708b2ce9c9a300",
+    "src/ptx/exl3_bench.ptx": "784824345e4ff456c7c151adb55a83829751ddc05bf488701a83aa0054876d8d",
+    "src/ptx/exl3_bench_k6.ptx": "67ac022bd5422baa1fe11d44e27004adc3ad7affa853e975c83a5c94be54f1b7",
+    "src/ptx/fused_decode.ptx": "e9ef06516a91e9e71499ecf5bb96d6898d768e056a4a01ee29c896ff56454ba6",
+    "src/ptx/gemm_nvfp4.ptx": "7f4e49f51bf36888044c1be7e1374144deba0d786be8968bf0080c8ed86c5aee",
+    "src/ptx/gpu_batch.ptx": "eff9c5a9fcf5d18693204145889619d043c2e52f62667a66d7cc2a516f6bb248",
+    "src/ptx/gpu_batch_b3.ptx": "dd388b54206d34ceea20163b370045000a9b8541e54328c502c042a668c73089",
+    "src/ptx/gpu_dflash.ptx": "a6bc37e7365cceb4eab103cd179d2995ad0b5ec719cf8343d749472cb3a29039",
+    "src/ptx/gpu_dspark.ptx": "8fc359cc701f933247d12548609dd4f98513756a070ec89218b46725e318a192",
+    "src/ptx/gpu_dsv4.ptx": "4fa73faae3585844f5da5e9f259d88afa27e354116821fabe087ce7e5e772fa5",
+    "src/ptx/gpu_dsv4_attn.ptx": "b5f7a823f9e8779fc495b575ef90c73672156515326788c3054d0d5d15dd1cb7",
+    "src/ptx/gpu_dsv4_comp.ptx": "a99e02e38becf1eef7397e035dcd5fb31d94a71caa692ebbcc585935ff88fc87",
+    "src/ptx/gpu_kernels.ptx": "3cd84d5a1e87151a875c3f26cc92e9aa8b9a53f90e2ded07f5615d91bc17aec7",
+    "src/ptx/gpu_mxfp4.ptx": "def2a206337f16f96658df4f55a129667bba31222210d564e954512d4a51e862",
+    "src/ptx/gpu_mxfp4_moe.ptx": "9d710cb2f50f637a570199bdf8a1ac0b0a6103505c3fca704cf431abef6b87de",
+    "src/ptx/gpu_vision.ptx": "d2ef4488cf9cce1c69b1ff2558c75e20ef3900d501f1abf5f37de95eef2a5b58",
+    "src/ptx/gpu_w4a4.ptx": "03d8ebe82b6a03961213aa8649219a2e9c95e8540336603fd03ad9e5a24d5dea",
+    "src/ptx/mxfp4_bench.ptx": "11858dba90bc87e2fe5ca3d6e11dfaf0267054c518c2964d8a9f839f03937b8f",
+    "src/ptx/rms_norm.ptx": "e80422381c976cac649c475d47e28f48eeda0cbef9d4a9a8c7adae105105944b",
+    "src/ptx/silu_gate.ptx": "c1ec901e01f03820fc9a6c2ca56e9b0df26cde0ff560c2f57f34b6d8c9f920c5"
+  },
+  "initial_failed_controls": [
+    "single-initial-registration (missing runtime kernel registration, fixed)",
+    "single-initial-fsm (non-viable JSON prefixes, fixed)",
+    "single-initial-whitespace (whitespace budget exhaustion, fixed)"
+  ],
+  "artifacts": "/home/edp1096/.cache/model-download-jobs/velogb10-schema-20261009",
+  "production": "Existing Talk/ExLlama configuration and original model weights unchanged"
+}

@@ -1,0 +1,50 @@
+{
+  "metric": "geometric mean of Korean and code median TG; basic checks must pass",
+  "bybit": {
+    "4": {
+      "arm": "assistant-b4-9",
+      "depth": 9,
+      "ko": 30.70493662871484,
+      "code": 39.172142340163205,
+      "geomean": 34.681092084386684,
+      "tested": {
+        "3": "assistant-3",
+        "5": "assistant-5",
+        "7": "assistant-7",
+        "9": "assistant-b4-9",
+        "15": "assistant-b4-15"
+      }
+    },
+    "3": {
+      "arm": "assistant-b3-7",
+      "depth": 7,
+      "ko": 29.419157326655267,
+      "code": 37.100713890218586,
+      "geomean": 33.03742936227885,
+      "tested": {
+        "3": "assistant-b3-3",
+        "5": "assistant-b3-5",
+        "7": "assistant-b3-7",
+        "9": "assistant-b3-9",
+        "15": "assistant-b3-15"
+      }
+    },
+    "2": {
+      "arm": "assistant-b2-9",
+      "depth": 9,
+      "ko": 30.227679466798435,
+      "code": 31.705706470073896,
+      "geomean": 30.957873512981976,
+      "tested": {
+        "3": "assistant-b2-3",
+        "5": "assistant-b2-5",
+        "7": "assistant-b2-7",
+        "9": "assistant-b2-9",
+        "15": "assistant-b2-15"
+      }
+    }
+  },
+  "assistant_bits": 4,
+  "assistant_depth": 9,
+  "dflash": "dflash-15"
+}

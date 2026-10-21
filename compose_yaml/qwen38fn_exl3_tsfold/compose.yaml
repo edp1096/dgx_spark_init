@@ -1,0 +1,63 @@
+services:
+  runtime:
+    pull_policy: never
+    init: true
+    restart: unless-stopped
+    ipc: host
+    network_mode: bridge
+    gpus: all
+    mem_limit: 112g
+    memswap_limit: 112g
+    build:
+      context: ${SPARKTALK_BUILD_DIR:-.}
+    security_opt:
+    - seccomp=unconfined
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      stack:
+        soft: 67108864
+        hard: 67108864
+    image: local/sparktalk-qwen38-exl3-tensorfold:db281878-tune1
+    container_name: sparktalk-qwen38fn_exl3
+    cpuset: 5-9,15-19
+    ports:
+    - ${SPARKTALK_BIND_ADDR:-127.0.0.1}:${SPARKTALK_PORT:-18002}:30000
+    environment:
+      PYTHONUNBUFFERED: '1'
+      HF_HUB_OFFLINE: '1'
+      TRANSFORMERS_OFFLINE: '1'
+      TENSORFOLD_NO_UPDATE_CHECK: '1'
+      TENSORFOLD_MEMORY_RESERVE_GIB: '4'
+      OMP_NUM_THREADS: '4'
+      TORCH_EXTENSIONS_DIR: /runtime/torch-extensions
+      TRITON_CACHE_DIR: /runtime/triton
+      MAX_JOBS: '1'
+      TORCH_CUDA_ARCH_LIST: '12.1'
+    volumes:
+    - ${SPARKTALK_HF_CACHE:-${HOME}/.cache/huggingface}:/hf:ro
+    - ${SPARKTALK_DATA_DIR:-${HOME}/.local/share/sparktalk}/cache/qwen38-exl3-tensorfold:/runtime
+    command:
+    - /hf/hub/models--alesha-pro--Huihui-Qwen3.8-Flash-Next-abliterated-exl3-3bit-hq_h6_ng6/snapshots/3b585c458f9fcf3322e76cff2c635c2cb81c5869
+    - --host
+    - 0.0.0.0
+    - --port
+    - '30000'
+    - --name
+    - qwen38fn_exl3
+    - --cache
+    - /runtime
+    - --kept-prefixes
+    - '1'
+    healthcheck:
+      test:
+      - CMD
+      - python3
+      - -c
+      - import urllib.request; urllib.request.urlopen('http://127.0.0.1:30000/health',
+        timeout=5)
+      interval: 15s
+      timeout: 10s
+      retries: 120
+      start_period: 30m

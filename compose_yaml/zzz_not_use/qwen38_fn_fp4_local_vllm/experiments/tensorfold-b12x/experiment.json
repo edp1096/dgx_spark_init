@@ -1,0 +1,71 @@
+{
+  "status": "experimental; not deployed",
+  "checkpoint_revision": "d1ec8b01dd859336d7905db2ad2ceb725146008c",
+  "tensorfold_revision": "db281878ddb836fd0df510d8771ecb7e0fe47d26",
+  "mia_recipe_revision": "656879fd752749bbd11a6e1a065a326c00940911",
+  "sources": [
+    "https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Single-DGX-Spark-TensorFold",
+    "https://github.com/greatyingzi/Qwen3.8-Flash-Next-CJK-DGX-Sparks-TensorFold",
+    "https://github.com/local-inference-lab/b12x",
+    "https://github.com/flashinfer-ai/flashinfer"
+  ],
+  "model_weights_included": false,
+  "stock_draft_vocabulary_ids": 79591,
+  "korean_draft_vocabulary_ids": 86232,
+  "steps": [
+    "Apply the pinned Mia recipe patches to the pinned TensorFold source.",
+    "Save its cuda_draft_vocab.txt as draft-vocab-stock.txt in the experiment directory.",
+    "Run analyze-vocab.py with /bridge mounted to this directory and /model mounted read-only to the checkpoint.",
+    "Copy draft-vocab-korean.txt over engine/zig/src/families/flashnext/cuda_draft_vocab.txt.",
+    "Apply native-adapter.patch; build the native binary.",
+    "Compile bridge.cc against the pinned B12X container Python 3.12 and CUDA 13.",
+    "Set TF_B12X_BRIDGE=/bridge/libtf_b12x.so only for the experimental hybrid. Unset it for the native TensorFold control."
+  ],
+  "limits": [
+    "The hybrid with cache enabled fails cold/replayed-output exactness. With cache disabled and FP32 router weights it passes four drafted/plain/repeated-plain cases, but its matched TG screen is slower than the native Korean-vocabulary candidate. Not adopted.",
+    "Korean vocabulary expansion is tested separately and is not evidence that the B12X hybrid is faster.",
+    "Native 256K benchmark results do not qualify 1M context, images, tools, or agent quality."
+  ],
+  "work_directory": "/home/edp1096/.cache/model-download-jobs/qwen-b12x-tensorfold-20261020",
+  "independent_korean_candidate": "Apply only korean-vocab.patch and regenerate cuda_draft_vocab.txt to test vocabulary expansion without the B12X adapter. native-adapter.patch already includes these cardinality updates; do not apply both patches.",
+  "build_commands": {
+    "native": "cd /work/engine && /opt/zig/zig build -Dnvcc=/usr/local/cuda/bin/nvcc -Doptimize=fast -j1 --prefix /work/install-ko native",
+    "bridge": "g++ -O2 -shared -fPIC /bridge/bridge.cc -o /bridge/libtf_b12x.so $(python3-config --includes --embed --ldflags) -I/usr/local/cuda/include -L/usr/local/cuda/lib64 -lcudart -ldl -Wl,-rpath,/usr/local/cuda/lib64"
+  },
+  "launch_template": "launch-template.json records the actual tested mounts and settings. Update local source paths when replaying on another checkout. trial-launch.py reads tensorfold-launch.json in the experiment directory; copy the launch template to that filename before using it.",
+  "required_mounts": {
+    "/work": "experiment directory in the development container",
+    "/bridge": "experiment directory in the B12X runtime container",
+    "/model": "pinned model checkpoint, read-only",
+    "/opt/tensorfold": "pinned Mia build, including CUDA kernels and vision helper"
+  },
+  "vocabulary_result": "Full 24-request Korean candidate and fresh vLLM benchmarks completed. TG: Thinking off 36.2311 vs 30.9590 tok/s (+17.03%); Medium 40.4663 vs 34.5507 (+17.12%). All 16 candidate answer/reasoning sequences match stock native TensorFold. All 16 fresh vLLM answer/reasoning sequences match its prior run. Six tool smoke checks passed.",
+  "attribution": {
+    "native_adapter_patch": "Changes to pinned TensorFold plus MiaAI-Lab recipe code. Original notices and license texts are included.",
+    "korean_vocabulary_method": "Inspired by greatyingzi CJK-DRAFT-VOCAB; Hangul IDs regenerated from the actual local tokenizer, not copied from the Chinese vocabulary.",
+    "b12x": "Runtime dependency provided by the pinned vLLM/B12X image. No B12X source code is redistributed in this directory."
+  },
+  "hybrid_result": "Actual B12X CUDA graphs execute all 48 main routed-expert layers inside TensorFold graphs. No token-time Python call or host activation copy. This prototype is a source-native W4A16 MoE adapter, not a port of every vLLM/B12X optimization; calibrated W4A4 prefill remains disabled.",
+  "runtime_dependencies": {
+    "container": "Exact runtime image ID in image-pins.json",
+    "python": "Python 3.12, torch 2.13.0+cu130, bundled B12X/FlashInfer, Triton, numpy, safetensors from that image",
+    "vision_helper": "Pinned Mia helper and CUDA cubins under /opt/tensorfold. B12X image uses transformers 5.19.0; the tower startup fingerprint is in the audit. Image correctness is not claimed.",
+    "missing_optional_video_package": "The experiment installed av==19.0.1 with --no-deps into /bridge/vendor; no other dependency upgrade."
+  },
+  "fixed_runtime_options": {
+    "B12X_W4A16_A4_PREFILL": "0",
+    "B12X_W4A16_FP32_TOPK_WEIGHTS": "1 for revised hybrid",
+    "native_control": "TF_B12X_BRIDGE must be unset, not an empty string",
+    "hybrid_without_cache": "--prompt-cache-gib 0"
+  },
+  "vllm_vocab": "The installed vLLM native Qwen4Exp MTP head uses config.vocab_size=248320. TensorFold shortlist coverage repair is not an equivalent missing-token fix for vLLM.",
+  "trial_completed": true,
+  "production_deployed": false,
+  "restoration": {
+    "rank0": "true",
+    "rank1": "true",
+    "context_length": 1048576,
+    "health_ok": true,
+    "talk_smoke": "391"
+  }
+}

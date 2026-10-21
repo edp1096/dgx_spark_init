@@ -1,4 +1,4 @@
-# TP2 alternative; TP1 compose.yaml remains unchanged. Use manage_tp2.py.
+# TP2 alternative. Use manage_tp2.py; the standalone QAD TP1 recipe is archived.
 name: sglang_qwen38_fn_tp2
 services:
   sglang:

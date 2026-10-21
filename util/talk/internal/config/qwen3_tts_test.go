@@ -42,6 +42,7 @@ func TestQwenTTSMigrationReplacesLegacyAndPreservesUserState(t *testing.T) {
 			delete(b.Bindings, "magpie-tts")
 		}
 		if b.ID == "ds41" {
+			b.WorkloadSwap = false // Custom remote TTS uses its owner-managed lifecycle.
 			host, endpoint, mem := "worker", "http://192.168.100.60:8792", 8.0
 			binding := b.Bindings["magpie-tts"]
 			binding.Host, binding.Endpoint, binding.MemoryGiB = &host, &endpoint, &mem

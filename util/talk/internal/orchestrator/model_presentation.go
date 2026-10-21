@@ -10,17 +10,15 @@ type runtimeName struct {
 }
 
 var runtimeNames = map[string]runtimeName{
-	"ornith35":             {"Ornith 1.5 35B", []string{"Huihui Ornith 1.5 35B"}},
 	"qwen38fn_exl3":        {"Qwen 3.8 Flash-Next EXL3 3bit", []string{"Qwen 3.8 Flash-Next EXL3", "Qwen3.8 Flash-Next EXL3", "Huihui Qwen3.8 EXL3", "Huihui Qwen3.8 Native EXL3", "Qwen3.8 EXL3", "Qwen3.8 Native EXL3", "Flash-Next EXL3", "Flash-Next EXL3 세트"}},
 	"flash-next":           {"Qwen 3.8 Flash-Next QAD", []string{"Flash-Next", "Flash-Next 세트", "Qwen3.8 Flash-Next", "Qwen3.8 Flash-Next QAD", "Huihui-RadixArk Qwen3.8 Flash-Next"}},
 	"qwen38fn_exl3_q4":     {"Qwen 3.8 Flash-Next EXL3 4bit", nil},
 	"flash-next-radixark":  {"Qwen 3.8 Flash-Next NVFP4", nil},
 	"flash-next-fp4-local": {"Qwen 3.8 Flash-Next FP4-Local", nil},
 	"flash-next-tp2":       {"Qwen 3.8 Flash-Next TP2", []string{"Qwen3.8 Flash-Next TP2", "Huihui-RadixArk Qwen3.8 Flash-Next TP2"}},
-	"glm53":                {"GLM 5.3 Flash", []string{"GLM 5.3 Flash NVFP4"}},
-	"glm53-worker-extra":   {"GLM 5.3 Flash", []string{"GLM 5.3 Flash NVFP4"}},
-	"ds4fve":               {"DeepSeek V4 Flash Vision Exp", []string{"DeepSeek V4 Flash VE", "DeepSeek V4 Flash Vision Exp + 워커 Extra·ASR"}},
-	"ds41":                 {"DeepSeek V4.1 Flash", nil},
+	"glm53":                {"GLM 5.3 Flash FP4-Local TP2", []string{"GLM 5.3 Flash", "GLM 5.3 Flash NVFP4", "GLM 5.3 Flash FP4-Local"}},
+	"glm53-worker-extra":   {"GLM 5.3 Flash FP4-Local TP2", []string{"GLM 5.3 Flash", "GLM 5.3 Flash NVFP4", "GLM 5.3 Flash FP4-Local"}},
+	"ds41":                 {"DeepSeek V4.1 Flash 1017 EXL3 2bit TP2", []string{"DeepSeek V4.1 Flash 1017 EXL3 2bit", "DeepSeek V4.1 Flash", "DeepSeek V4.1 Flash 1017 · TensorFold 2.8bit"}},
 	"flux2":                {"Qwen Image 2.1", nil},
 	"dreamlite":            {"DreamLite Mobile (시험)", nil},
 	"nemotron-asr":         {"Nemotron 3.5 ASR", []string{"Nemotron ASR", "Nemotron ASR Q5_K"}},
@@ -73,20 +71,30 @@ func modelPresentation(c Component) *ModelPresentation {
 			{ID: "abliterated", Label: "Abliterated", Format: "NVFP4", ModelID: QwenQADAbliterated, Repositories: []string{QwenQADAbliterated}},
 			{ID: "huihui_lil", Label: "Abliterated · QAD", Format: "NVFP4 QAD", ModelID: QwenQADHuihuiLIL, Repositories: []string{QwenQADHuihuiLIL}},
 		}
+	case c.Controller == "glm53-fp4-cluster":
+		selected = c.RuntimeOptions["MODEL_VARIANT"]
+		if selected == "" {
+			selected = "abliterated"
+		}
+		weights = []ModelWeightOption{
+			{ID: "official", Label: "원본", Format: "FP4-Local", Repositories: []string{"nvidia/GLM-5.3-Flash-FP4-Local"}},
+			{ID: "abliterated", Label: "Abliterated", Format: "FP4-Local", Repositories: []string{"edp1096/Huihui-GLM-5.3-Flash-abliterated-FP4-Local"}},
+		}
 	case c.Controller == "glm53-cluster":
 		selected = c.RuntimeOptions["MODEL_VARIANT"]
 		if selected == "" {
 			selected = "official"
 		}
 		weights = []ModelWeightOption{{ID: "official", Label: "원본", Format: "NVFP4", Repositories: []string{"nvidia/GLM-5.3-Flash-NVFP4"}}, {ID: "abliterated", Label: "Abliterated", Format: "NVFP4", Repositories: []string{"edp1096/Huihui-GLM-5.3-Flash-abliterated-NVFP4"}}}
-	case c.Controller == "dspark-cluster":
+	case c.Controller == "ds41-cluster":
 		selected = c.RuntimeOptions["MODEL_VARIANT"]
 		if selected == "" {
-			selected = "official"
+			selected = "abliterated"
 		}
-		weights = []ModelWeightOption{{ID: "official", Label: "원본", Repositories: []string{"deepseek-ai/DeepSeek-V4-Flash-Vision-Exp"}}, {ID: "abliterated", Label: "Abliterated", Repositories: []string{"drowzeys/keys-DeepSeekV4Flash-Vision-EXP-ablit"}}}
-	case c.Controller == "ds41-cluster":
-		weights = []ModelWeightOption{{ID: "official", Label: "원본", Format: "SSD expert streaming", Repositories: []string{"deepseek-ai/DeepSeek-V4.1-Flash"}}}
+		weights = []ModelWeightOption{
+			{ID: "official", Label: "원본 · 1017", Format: "EXL3 2.8bit · TensorFold", ModelID: c.Model, Repositories: []string{"jayleaton/DeepSeek-V4.1-Flash-1017-EXL3-2.8bpw", "deepseek-ai/DeepSeek-V4.1-Flash-1017"}},
+			{ID: "abliterated", Label: "Abliterated · L10–35", Format: "EXL3 2.8bit · TensorFold", ModelID: c.Model, Repositories: []string{"jayleaton/DeepSeek-V4.1-Flash-1017-EXL3-2.8bpw", "drowzeys/keys-DeepSeek-V4.1-Flash-1017-Abliterated"}},
+		}
 	case c.Controller == "qwen38-cluster":
 		selected = "abliterated"
 		weights = []ModelWeightOption{{ID: selected, Label: "Abliterated", Format: "NVFP4", ModelID: c.Model, Repositories: []string{"edp1096/Huihui-RadixArk-Qwen3.8-Flash-Next-abliterated-NVFP4"}}}
@@ -96,11 +104,9 @@ func modelPresentation(c Component) *ModelPresentation {
 		case "compose.qwen38fn_exl3_q4.yaml":
 			selected, label, format = "abliterated", "Abliterated", "EXL3 4bit HQ h6 ng6 · VeloGB10"
 		case "compose.qwen38fn_exl3.yaml":
-			selected, label, format = "abliterated", "Abliterated", "EXL3 3bit HQ h6 ng6"
-		case "compose.ornith35.yaml":
-			selected, label, format = "abliterated", "Abliterated", "NVFP4"
+			selected, label, format = "abliterated", "Abliterated", "EXL3 3bit HQ h6 ng6 · TensorFold"
 		case "compose.qwen-fp4-local.yaml":
-			selected, label, format = "abliterated", "Abliterated v2", "FP4-Local"
+			selected, label, format = "abliterated", "Abliterated v2", "FP4-Local · TensorFold"
 		case "compose.qwen-image21.yaml":
 			label, format = "Uncensored", "NVFP4 · W4A8 · BF16 VAE"
 		case "compose.nemotron-asr.yaml":

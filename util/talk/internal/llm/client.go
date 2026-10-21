@@ -31,10 +31,10 @@ func (e *HTTPError) Error() string {
 type reasoningBudgetKey struct{}
 
 // WithReasoningBudget scopes the requested reasoning budget to this one call.
-// SupportsReasoningBudget identifies the managed TabbyAPI runtime. The EXL3 Q4
+// SupportsReasoningBudget identifies TensorFold and the legacy TabbyAPI type. The EXL3 Q4
 // set uses VeloGB10 despite sharing a model type; do not claim the same API there.
 func SupportsReasoningBudget(model, modelType string) bool {
-	return modelidentity.CanonicalID(modelType) == "qwen38fn_exl3" && modelidentity.CanonicalID(model) == "qwen38fn_exl3"
+	return modelidentity.CanonicalID(modelType) == "qwen3.8-tensorfold" || modelidentity.CanonicalID(modelType) == "qwen38fn_exl3" && modelidentity.CanonicalID(model) == "qwen38fn_exl3"
 }
 
 // The managed Velo schema2 runtime can cap reasoning only while enforcing a
@@ -165,7 +165,7 @@ func applyReasoningOptions(payload map[string]any, modelType, effort string) {
 		}
 		return
 	}
-	if modelType == "qwen3.8-vllm" || modelType == "qwen3.8-gguf" || modelType == "qwen38fn_exl3" {
+	if modelType == "qwen3.8-vllm" || modelType == "qwen3.8-tensorfold" || modelType == "qwen3.8-gguf" || modelType == "qwen38fn_exl3" {
 		options := map[string]any{"enable_thinking": effort != "none"}
 		if effort != "none" {
 			// Pass directly to the model template; top-level forwarding varies by server version.
@@ -197,7 +197,7 @@ func NormalizeReasoningEffort(modelType, effort string) string {
 		default:
 			return "max"
 		}
-	case "qwen3.8", "qwen3.8-vllm":
+	case "qwen3.8", "qwen3.8-vllm", "qwen3.8-tensorfold":
 		switch effort {
 		case "none", "low", "medium", "xhigh":
 			return effort
@@ -324,7 +324,11 @@ func (c *Client) Stream(ctx context.Context, messages []Message, model, reasonin
 	if tokens, ok := ctx.Value(reasoningBudgetKey{}).(int); ok && tokens > 0 && budgetSupported && NormalizeReasoningEffort(c.modelType, reasoningEffort) != "none" {
 		// Managed runtimes accept this outside the chat template. Ordinary chat calls
 		// omit the context value and retain their original reasoning settings.
-		payload["reasoning_budget_tokens"] = tokens
+		if c.modelType == "qwen3.8-tensorfold" {
+			payload["thinking_budget"] = tokens
+		} else {
+			payload["reasoning_budget_tokens"] = tokens
+		}
 	}
 	if c.modelType == "deepseek-v4" {
 		for _, message := range messages {
@@ -391,11 +395,12 @@ func (c *Client) Stream(ctx context.Context, messages []Message, model, reasonin
 			continue
 		}
 		var chunk struct {
-			Error   json.RawMessage  `json:"error"`
-			Usage   Usage            `json:"usage"`
-			Metrics *responseMetrics `json:"metrics"`
-			Timings *responseTimings `json:"timings"`
-			Choices []struct {
+			Error      json.RawMessage    `json:"error"`
+			Usage      Usage              `json:"usage"`
+			Metrics    *responseMetrics   `json:"metrics"`
+			Timings    *responseTimings   `json:"timings"`
+			TensorFold *tensorFoldTimings `json:"tensorfold"`
+			Choices    []struct {
 				FinishReason string `json:"finish_reason"`
 				Delta        struct {
 					Content          string `json:"content"`
@@ -428,6 +433,9 @@ func (c *Client) Stream(ctx context.Context, messages []Message, model, reasonin
 		}
 		if chunk.Timings != nil {
 			measurement.timings = chunk.Timings
+		}
+		if chunk.TensorFold != nil {
+			measurement.tensorfold = chunk.TensorFold
 		}
 		if len(chunk.Choices) == 0 {
 			continue

@@ -1,0 +1,62 @@
+{
+  "scope": "Qwen3.8 Flash Next EXL3 3bit only. EXL3 4bit excluded per user instruction.",
+  "current_recipe": {
+    "model": "alesha-pro/Huihui-Qwen3.8-Flash-Next-abliterated-exl3-3bit-hq_h6_ng6",
+    "revision": "3b585c458f9fcf3322e76cff2c635c2cb81c5869",
+    "engine": "ExLlamaV3 1.5.4 + TabbyAPI",
+    "image": "sparktalk-qwen38fn_exl3:1.5.4-managed1",
+    "context": 1048576,
+    "rope": "YaRN 4",
+    "kv": "Q8",
+    "mtp_depth": 3,
+    "dynamic_draft": false,
+    "ngram_ram": false,
+    "ngram_stream": true,
+    "ngram_file_GiB": 36.35903277248144,
+    "source_files": [
+      "compose_yaml/qwen38fn_exl3/launch.py",
+      "compose_yaml/qwen38fn_exl3/compose.yaml"
+    ],
+    "ngram_layout": "One safetensors file containing 128 trellis tensor segments; not the single unsegmented tensor layout described in the external example."
+  },
+  "tested_tensorfold_build": {
+    "engine_revision": "db281878ddb836fd0df510d8771ecb7e0fe47d26",
+    "mia_recipe_revision": "656879fd752749bbd11a6e1a065a326c00940911",
+    "flashnext_cuda_formats": [
+      "ModelOpt NVFP4/FP4-Local",
+      "GPTQ INT4-AutoRound"
+    ],
+    "direct_exl3_loading": "Not supported by the pinned native Zig Flash Next CUDA loader. This limitation does not apply to the separate Python CUDA loader in the same revision.",
+    "source": "zig/src/families/flashnext/cuda_config.zig: Quant enum and Config.check",
+    "implementation": "Native Zig Flash Next CUDA loader"
+  },
+  "external_80_tps_example": {
+    "source": "https://github.com/jayleaton/qwen38-flash-next-exl3-spark",
+    "engine": "vcruz305/exllamav3@523ecd3 + TabbyAPI",
+    "model": "Lygodactylus/Qwen3.8-Flash-Next-Uncensored-exl3-3bpw",
+    "context": 262144,
+    "workload": "Code generation, greedy, 400 new tokens",
+    "reported_tg": 79.6,
+    "mtp_depth": 5,
+    "dynamic_draft": true,
+    "ngram_ram": true,
+    "comparison_limit": "Different checkpoint and workload. Not a Korean 1M result or a TensorFold result.",
+    "measurement_entrypoint": "Direct ExLlamaV3 chat.py; TabbyAPI is an optional serving layer, not required for the reported TG."
+  },
+  "status": "Comparison complete: all three direct engine configurations measured, 17 CUDA tests and 8 HTTP checks passed. DeepSeek restoration interrupted and both ranks stopped at user request; automatic restoration supervisor terminated.",
+  "assessment": "TensorFold Python CUDA is a working text/tools candidate for this unchanged EXL3 checkpoint. Measured Korean TG exceeds current ExLlamaV3, while PP is slower. 1M and vision remain outside qualification. The native Zig loader limitation remains unchanged.",
+  "python_tensorfold_candidate": {
+    "engine_revision": "db281878ddb836fd0df510d8771ecb7e0fe47d26",
+    "implementation": "TensorFold Python CUDA engine, not ExLlamaV3 inference",
+    "existing_upstream_support": true,
+    "source_files": [
+      "src/tensorfold/families/qwen4_exp/cuda/exl3.py",
+      "src/tensorfold/families/qwen4_exp/cuda/exl3_pack.py",
+      "src/tensorfold/cuda/exl3/experts.py"
+    ],
+    "preflight": "Current checkpoint loaded; 17 CUDA tests, full-model cold/serial/drafted checks and 8 HTTP arithmetic/tool checks passed.",
+    "source": "https://github.com/ashhart/TensorFold/tree/db281878ddb836fd0df510d8771ecb7e0fe47d26/src/tensorfold/families/qwen4_exp/cuda"
+  },
+  "comparison_report": "util/talk/docs/qwen38-exl3-tensorfold-comparison-20261020.json",
+  "experimental_recipe": "compose_yaml/qwen38fn_exl3/experiments/tensorfold"
+}

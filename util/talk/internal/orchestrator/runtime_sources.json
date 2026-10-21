@@ -16,30 +16,6 @@
     "target": "nemotron-asr/scripts/prepare_q5.py"
   },
   {
-    "source": "compose_yaml/ornith35_vllm/Dockerfile",
-    "target": "ornith35/Dockerfile"
-  },
-  {
-    "source": "compose_yaml/ornith35_vllm/launch.py",
-    "target": "ornith35/launch.py"
-  },
-  {
-    "source": "compose_yaml/ornith35_vllm/patch_runtime.py",
-    "target": "ornith35/patch_runtime.py"
-  },
-  {
-    "source": "compose_yaml/ornith35_vllm/draft_vocab/install_shortlist.py",
-    "target": "ornith35/draft_vocab/install_shortlist.py"
-  },
-  {
-    "source": "compose_yaml/ornith35_vllm/draft_vocab/draft_shortlist.py",
-    "target": "ornith35/draft_vocab/draft_shortlist.py"
-  },
-  {
-    "source": "compose_yaml/ornith35_vllm/draft_vocab/ornith-ko64k.json",
-    "target": "ornith35/draft_vocab/ornith-ko64k.json"
-  },
-  {
     "source": "compose_yaml/qwen-image21/Dockerfile",
     "target": "qwen-image21/Dockerfile"
   },
@@ -58,26 +34,6 @@
   {
     "source": "compose_yaml/qwen-image21/run_comfy.py",
     "target": "qwen-image21/run_comfy.py"
-  },
-  {
-    "source": "compose_yaml/qwen38fn_exl3/Dockerfile",
-    "target": "qwen38fn_exl3/Dockerfile"
-  },
-  {
-    "source": "compose_yaml/qwen38fn_exl3/constraints.txt",
-    "target": "qwen38fn_exl3/constraints.txt"
-  },
-  {
-    "source": "compose_yaml/qwen38fn_exl3/launch.py",
-    "target": "qwen38fn_exl3/launch.py"
-  },
-  {
-    "source": "compose_yaml/qwen38fn_exl3/release_weight_cache.py",
-    "target": "qwen38fn_exl3/release_weight_cache.py"
-  },
-  {
-    "source": "compose_yaml/qwen38fn_exl3/compose.yaml",
-    "target": "compose.qwen38fn_exl3.yaml"
   },
   {
     "source": "compose_yaml/qwim_mmh3_service/prepare_models.py",
@@ -174,29 +130,5 @@
   {
     "source": "compose_yaml/sparktalk_extra/embedding/prepare.py",
     "target": "embedding/prepare.py"
-  },
-  {
-    "source": "compose_yaml/qwen38fn_exl3_q4/Dockerfile",
-    "target": "qwen38fn_exl3_q4/Dockerfile"
-  },
-  {
-    "source": "compose_yaml/qwen38fn_exl3_q4/launch.py",
-    "target": "qwen38fn_exl3_q4/launch.py"
-  },
-  {
-    "source": "compose_yaml/qwen38fn_exl3_q4/release_weight_cache.py",
-    "target": "qwen38fn_exl3_q4/release_weight_cache.py"
-  },
-  {
-    "source": "compose_yaml/qwen38fn_exl3_q4/velogb10-exl3-yarn.patch",
-    "target": "qwen38fn_exl3_q4/velogb10-exl3-yarn.patch"
-  },
-  {
-    "source": "compose_yaml/qwen38fn_exl3_q4/velogb10-exl3-schema.patch",
-    "target": "qwen38fn_exl3_q4/velogb10-exl3-schema.patch"
-  },
-  {
-    "source": "compose_yaml/qwen38fn_exl3_q4/compose.yaml",
-    "target": "compose.qwen38fn_exl3_q4.yaml"
   }
 ]

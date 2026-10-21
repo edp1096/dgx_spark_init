@@ -11,6 +11,8 @@ USER root
 COPY --from=source /tmp/sglang-main/python/sglang/ /sgl-workspace/sglang/python/sglang/
 COPY chat_template.jinja patch_tool_index.py patch_image_chunks.py /opt/gemma4/
 RUN python3 /opt/gemma4/patch_tool_index.py && python3 /opt/gemma4/patch_image_chunks.py
+COPY verify_splitkv.patch /opt/gemma4/
+RUN cd /sgl-workspace/sglang && git apply --check /opt/gemma4/verify_splitkv.patch && git apply /opt/gemma4/verify_splitkv.patch
 
 # First installation builds the pinned extension without loading model weights.
 FROM base AS exl3-build
@@ -29,11 +31,11 @@ COPY --from=exl3-reuse /usr/local/lib/python3.12/dist-packages/exllamav3_ext.cpy
 COPY --from=exl3-reuse /usr/local/lib/python3.12/dist-packages/exllamav3-1.5.4.dist-info /usr/local/lib/python3.12/dist-packages/exllamav3-1.5.4.dist-info
 COPY exl3_assistant/ /opt/gemma4/exl3_assistant/
 COPY launch_exl3.py /opt/gemma4/
-ENV PYTHONPATH=/opt/gemma4/exl3_assistant SPARKTALK_GEMMA_ASSISTANT_EXL3=1 PYTHONUNBUFFERED=1 HF_HUB_OFFLINE=1
+ENV PYTHONPATH=/opt/gemma4/exl3_assistant SPARKTALK_GEMMA_ASSISTANT_EXL3=1 GEMMA31_VERIFY_SPLITKV=1 PYTHONUNBUFFERED=1 HF_HUB_OFFLINE=1
 ENTRYPOINT ["python3", "/opt/gemma4/launch_exl3.py"]
 
 FROM exl3-build AS runtime
 COPY exl3_assistant/ /opt/gemma4/exl3_assistant/
 COPY launch_exl3.py /opt/gemma4/
-ENV PYTHONPATH=/opt/gemma4/exl3_assistant SPARKTALK_GEMMA_ASSISTANT_EXL3=1 PYTHONUNBUFFERED=1 HF_HUB_OFFLINE=1
+ENV PYTHONPATH=/opt/gemma4/exl3_assistant SPARKTALK_GEMMA_ASSISTANT_EXL3=1 GEMMA31_VERIFY_SPLITKV=1 PYTHONUNBUFFERED=1 HF_HUB_OFFLINE=1
 ENTRYPOINT ["python3", "/opt/gemma4/launch_exl3.py"]

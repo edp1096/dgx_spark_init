@@ -20,7 +20,7 @@ func TestSavedGemmaRetirementPreservesQwenAndSharedServices(t *testing.T) {
 			components := append([]orchestrator.Component(nil), c.Runtime.Catalog.Components...)
 			bundles := append([]orchestrator.Bundle(nil), c.Runtime.Catalog.Bundles...)
 			c.Runtime.BuiltinRevision = revision
-			for _, id := range []string{"gemma26", "gemma31"} {
+			for _, id := range []string{"gemma26"} {
 				c.Runtime.Catalog.Components = append(c.Runtime.Catalog.Components, orchestrator.Component{ID: id, Role: "llm", ComposeAsset: "compose." + id + ".yaml"})
 				c.Runtime.Catalog.Bundles = append(c.Runtime.Catalog.Bundles, orchestrator.Bundle{ID: id, Components: []string{id, "extra-ssh", "extra-embedding"}})
 			}
@@ -81,7 +81,7 @@ func TestActualSavedGemmaRetirement(t *testing.T) {
 		t.Fatal("active configuration changed during retirement")
 	}
 	for _, c := range after.Runtime.Catalog.Components {
-		if c.ID == "gemma26" || c.ID == "gemma31" {
+		if c.ID == "gemma26" {
 			t.Fatal("retired Gemma remained")
 		}
 	}

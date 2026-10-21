@@ -1,0 +1,29 @@
+{
+  "passed": true,
+  "variants": [
+    {
+      "arm": "b2",
+      "bytes": 252605636,
+      "matrices": 23,
+      "body_nmse_mean": 0.06851212714206088,
+      "head_sha256": "2a161b1b27f8cbb228b5972f22ca3dffa92dcc671dddfbf5308c1ba2d0fc8a3e",
+      "norms_sha256": "4be01b37d8a7a5adf048e9a91e3c7a82b68bd4b22003e8923e8a79b9c45f302d"
+    },
+    {
+      "arm": "b3",
+      "bytes": 277738692,
+      "matrices": 23,
+      "body_nmse_mean": 0.017430514012548057,
+      "head_sha256": "2a161b1b27f8cbb228b5972f22ca3dffa92dcc671dddfbf5308c1ba2d0fc8a3e",
+      "norms_sha256": "4be01b37d8a7a5adf048e9a91e3c7a82b68bd4b22003e8923e8a79b9c45f302d"
+    },
+    {
+      "arm": "b4",
+      "bytes": 302871748,
+      "matrices": 23,
+      "body_nmse_mean": 0.004467842359603806,
+      "head_sha256": "2a161b1b27f8cbb228b5972f22ca3dffa92dcc671dddfbf5308c1ba2d0fc8a3e",
+      "norms_sha256": "4be01b37d8a7a5adf048e9a91e3c7a82b68bd4b22003e8923e8a79b9c45f302d"
+    }
+  ]
+}

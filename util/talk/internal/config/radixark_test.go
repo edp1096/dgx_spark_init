@@ -1,116 +1,42 @@
 package config
 
 import (
-	"reflect"
+	"path/filepath"
+	"sparktalk/internal/orchestrator"
 	"testing"
 )
 
-func TestRadixArkMigrationPreservesQADAndSelection(t *testing.T) {
-	c := Config{}
-	c.Normalize()
-	c.Runtime.BuiltinRevision = 33
-	c.Runtime.ActiveBundle = "flash-next"
-	before, _ := c.Runtime.Catalog.Bundle("flash-next")
-	components := c.Runtime.Catalog.Components[:0]
-	for _, x := range c.Runtime.Catalog.Components {
-		if x.ID != "flash-next-radixark" {
-			components = append(components, x)
-		}
+func TestRetiredRadixArkPreservesSharedTP2AndDoesNotRestart(t *testing.T) {
+	cat, err := orchestrator.LoadCatalog()
+	if err != nil {
+		t.Fatal(err)
 	}
-	c.Runtime.Catalog.Components = components
-	bundles := c.Runtime.Catalog.Bundles[:0]
-	for _, b := range c.Runtime.Catalog.Bundles {
-		if b.ID != "flash-next-radixark" {
-			bundles = append(bundles, b)
-		}
+	if _, ok := cat.Bundle("flash-next-radixark"); ok {
+		t.Fatal("retired default remains")
 	}
-	c.Runtime.Catalog.Bundles = bundles
-	c.Normalize()
-	c.Normalize()
-	after, _ := c.Runtime.Catalog.Bundle("flash-next")
-	if !reflect.DeepEqual(before, after) || c.Runtime.ActiveBundle != "flash-next" {
-		t.Fatal("QAD profile/selection changed")
+	cat.Components = append(cat.Components, orchestrator.Component{ID: "flash-next-radixark", ComposeAsset: "compose.flash-next.yaml"})
+	cat.Bundles = append(cat.Bundles, orchestrator.Bundle{ID: "flash-next-radixark", Components: []string{"flash-next-radixark"}})
+	cfg := Config{Runtime: RuntimeConfig{Catalog: &cat, Mode: "managed", BuiltinRevision: 33, Bundle: "flash-next-radixark", ActiveBundle: "flash-next-tp2", AutoStart: true}}
+	cfg.Normalize()
+	if cfg.Runtime.AutoStart || cfg.Runtime.Bundle != "flash-next-tp2" || cfg.Runtime.ActiveBundle != "flash-next-tp2" {
+		t.Fatal("unsafe fallback")
 	}
-	b, ok := c.Runtime.Catalog.Bundle("flash-next-radixark")
-	if !ok || b.ContextTokens != 1048576 {
-		t.Fatal("missing 1M RadixArk")
+	if _, ok := cfg.Runtime.Catalog.Bundle("flash-next-radixark"); ok {
+		t.Fatal("retired set returned")
 	}
-	count := 0
-	for _, b := range c.Runtime.Catalog.Bundles {
-		if b.ID == "flash-next-radixark" {
-			count++
-		}
+	x, ok := cfg.Runtime.Catalog.Component("flash-next-tp2")
+	if !ok || x.Model != orchestrator.QwenRadixArk {
+		t.Fatal("shared TP2 model changed")
 	}
-	if count != 1 {
-		t.Fatal("non-idempotent migration")
+	path := filepath.Join(t.TempDir(), "sparktalk.yaml")
+	if err := Save(path, cfg); err != nil {
+		t.Fatal(err)
 	}
-}
-
-func TestRadixArkWithExtrasSurvivesLegacyTTSMigration(t *testing.T) {
-	c := Config{}
-	c.Normalize()
-	c.Runtime.BuiltinRevision = 31
-	c.Normalize()
-	c.ApplyManagedBundle("flash-next-radixark")
-	b, ok := c.Runtime.Catalog.Bundle("flash-next-radixark")
-	if !ok || !reflect.DeepEqual(b.Components, []string{"flash-next-radixark", "nemotron-asr", "extra-media", "extra-ssh", "extra-collector", "extra-documents", "extra-embedding"}) || c.ASR.Enabled || c.TTS.Enabled || c.Image.Enabled || c.Context.WindowTokens != 1048576 {
-		t.Fatalf("LLM/Extra profile changed: %+v", b)
+	loaded, _, err := Load(path)
+	if err != nil {
+		t.Fatal(err)
 	}
-}
-
-func TestRadixArkExtraUpgradePreservesBindingsAndLLM(t *testing.T) {
-	c := Config{}
-	c.Normalize()
-	c.Runtime.BuiltinRevision = 34
-	for i := range c.Runtime.Catalog.Bundles {
-		b := &c.Runtime.Catalog.Bundles[i]
-		if b.ID == "flash-next-radixark" {
-			b.Components = []string{"flash-next-radixark"}
-			b.WorkloadSwap = false
-		}
-	}
-	core, _ := c.Runtime.Catalog.ResolveComponent("flash-next-radixark", "flash-next-radixark")
-	c.Normalize()
-	c.Normalize()
-	after, _ := c.Runtime.Catalog.ResolveComponent("flash-next-radixark", "flash-next-radixark")
-	if !reflect.DeepEqual(core, after) {
-		t.Fatal("Extra upgrade changed running LLM")
-	}
-	b, _ := c.Runtime.Catalog.Bundle("flash-next-radixark")
-	if !b.WorkloadSwap || len(b.Components) != 7 {
-		t.Fatalf("Extra lease/membership missing: %+v", b)
-	}
-}
-
-func TestRadixArkASRUpgradeKeepsLLMAndUserPreferences(t *testing.T) {
-	c := Config{}
-	c.Normalize()
-	c.Runtime.BuiltinRevision = 35
-	c.ASR.Enabled = false
-	for i := range c.Runtime.Catalog.Bundles {
-		b := &c.Runtime.Catalog.Bundles[i]
-		if b.ID == "flash-next-radixark" {
-			members := []string{}
-			for _, id := range b.Components {
-				if id != "nemotron-asr" {
-					members = append(members, id)
-				}
-			}
-			b.Components = members
-			delete(b.Bindings, "nemotron-asr")
-		}
-	}
-	core, _ := c.Runtime.Catalog.ResolveComponent("flash-next-radixark", "flash-next-radixark")
-	c.Normalize()
-	c.Normalize()
-	after, _ := c.Runtime.Catalog.ResolveComponent("flash-next-radixark", "flash-next-radixark")
-	asr, ok := c.Runtime.Catalog.ResolveComponent("flash-next-radixark", "nemotron-asr")
-	if !reflect.DeepEqual(core, after) || !ok || !asr.StartAfterLLM || !asr.KeepResident || c.ASR.Enabled {
-		t.Fatal("ASR migration changed LLM, user toggle or resident policy")
-	}
-	c.ASR.Enabled = true
-	c.ApplyManagedBundle("flash-next-radixark")
-	if !c.ASR.Enabled || c.TTS.Enabled || c.Image.Enabled || c.Context.WindowTokens != 1048576 {
-		t.Fatal("wrong live feature profile")
+	if _, ok := loaded.Runtime.Catalog.Bundle("flash-next-radixark"); ok {
+		t.Fatal("retired set returned after reload")
 	}
 }

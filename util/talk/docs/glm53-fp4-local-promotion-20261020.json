@@ -1,0 +1,153 @@
+{
+  "summary": {
+    "status": "complete",
+    "date": "2026-10-20",
+    "selected_profile": "Huihui GLM 5.3 Flash FP4-Local / vLLM B12X / TP2 / MTP5 / FP8 KV / 1M",
+    "llm_ready_from_talk_request_s": 311.699335,
+    "full_bundle_ready_s_including_first_worker_tts_image_build": 1449.0013761640002,
+    "full_1m_input_passed": true,
+    "actual_1m_prompt_tokens": 1047005,
+    "1m_request_seconds": 628.527235949,
+    "standalone_capability_cases_passed": 7,
+    "talk_agent_and_worker_tts_passed": true,
+    "talk_stop_passed": true,
+    "models_left_stopped": true,
+    "prior_qwen_fp4_selection_restored": true,
+    "tests": {
+      "go_all_packages": "pass",
+      "frontend_unit_tests": 136,
+      "frontend_unit_status": "pass",
+      "frontend_build": "pass",
+      "model_catalog_playwright": "pass",
+      "first_install_tests": 10,
+      "first_install_status": "pass",
+      "recovery_tests": 8,
+      "recovery_status": "pass",
+      "embedded_recipe_check": "pass",
+      "support_assets_check": "pass",
+      "git_diff_check": "pass"
+    },
+    "memory": {
+      "head": {
+        "minimum_available_gib": 0.7732276916503906,
+        "last_available_gib": 117.28933334350586,
+        "swap_out_mib": 707.28125,
+        "longest_sampled_period_under_1_5_gib_s": 1.0,
+        "samples": 3054
+      },
+      "worker": {
+        "minimum_available_gib": 4.503582000732422,
+        "last_available_gib": 117.7031135559082,
+        "swap_out_mib": 0.0,
+        "longest_sampled_period_under_1_5_gib_s": 0.0,
+        "samples": 3054
+      },
+      "note": "Whole-host 0.5-second samples through Talk bundle start, first worker TTS build, synthesis and stop. Head had a transient low-memory sample; startup headroom is not guaranteed by one successful trial."
+    },
+    "sources": [
+      "https://huggingface.co/nvidia/GLM-5.3-Flash-FP4-Local",
+      "https://github.com/eugr/spark-vllm-docker",
+      "https://github.com/local-inference-lab/b12x",
+      "https://github.com/ashhart/TensorFold/pull/1050"
+    ]
+  },
+  "audit": {
+    "date": "2026-10-20",
+    "nodes": {
+      "head": {
+        "models": {
+          "edp1096/Huihui-RadixArk-Qwen3.8-Flash-Next-abliterated-NVFP4": {
+            "shards": 206,
+            "all_exist": true
+          },
+          "edp1096/Huihui-GLM-5.3-Flash-abliterated-FP4-Local": {
+            "shards": 42,
+            "all_exist": true
+          }
+        },
+        "disk": {
+          "total_bytes": 4031871553536,
+          "used_bytes": 3168125505536,
+          "available_bytes": 658905079808
+        },
+        "retired_qad_weights_exist": false,
+        "temporary_glm_nvfp4_exists": false,
+        "running_containers": [
+          "sparktalk-extra-ssh"
+        ],
+        "final_glm_state": {
+          "Running": false,
+          "ExitCode": 0,
+          "OOMKilled": false,
+          "FinishedAt": "2026-10-20T06:45:26.881651884Z"
+        }
+      },
+      "worker": {
+        "models": {
+          "edp1096/Huihui-RadixArk-Qwen3.8-Flash-Next-abliterated-NVFP4": {
+            "shards": 206,
+            "all_exist": true
+          },
+          "edp1096/Huihui-GLM-5.3-Flash-abliterated-FP4-Local": {
+            "shards": 42,
+            "all_exist": true
+          }
+        },
+        "disk": {
+          "total_bytes": 4031871553536,
+          "used_bytes": 3022068715520,
+          "available_bytes": 804961869824
+        },
+        "retired_qad_weights_exist": false,
+        "temporary_glm_nvfp4_exists": true,
+        "running_containers": [
+          "sparktalk-extra-collector",
+          "sparktalk-extra-ssh",
+          "sparktalk-extra-media"
+        ],
+        "final_glm_state": {
+          "Running": false,
+          "ExitCode": 0,
+          "OOMKilled": false,
+          "FinishedAt": "2026-10-20T06:45:39.636071081Z"
+        }
+      }
+    },
+    "talk": {
+      "builtin_revision": 46,
+      "auto_start": false,
+      "startup_default": "ds41",
+      "restored_selected_model": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-FP4-Local",
+      "retired_sets_absent": true,
+      "glm_component": {
+        "name": "GLM 5.3 Flash FP4-Local",
+        "controller": "glm53-fp4-cluster",
+        "progress_kind": "b12x",
+        "runtime_options": {
+          "HEAD_NCCL_HCA": "rocep1s0f1",
+          "HEAD_NCCL_IF": "enp1s0f1np1",
+          "HEAD_RAIL_IP": "10.200.0.1",
+          "MASTER_PORT": "29521",
+          "MAX_MODEL_LEN": "1048576",
+          "MAX_NUM_SEQS": "1",
+          "MODEL_VARIANT": "abliterated",
+          "MTP_TOKENS": "5",
+          "NCCL_SUBNET": "10.200.0.0/24",
+          "WORKER_NCCL_HCA": "rocep1s0f1",
+          "WORKER_NCCL_IF": "enp1s0f1np1",
+          "WORKER_RAIL_IP": "10.200.0.2"
+        },
+        "memory_gib": 108,
+        "worker_memory_gib": 108,
+        "startup_memory_gib": 115
+      },
+      "glm_bundle": {
+        "name": "GLM 5.3 Flash FP4-Local",
+        "description": "2× DGX Spark · FP4-Local · vLLM/B12X · FP8 KV 1M · MTP 5 · TTS·Extra",
+        "context_tokens": 1048576,
+        "model_type": "glm5.3"
+      },
+      "binary_sha256": "3a4c183a783fab64e8773e852df9d359a70335c37ea5199c390a88e56d30db86"
+    }
+  }
+}

@@ -1,0 +1,93 @@
+name: ${GLM53_PROJECT_NAME:-glm53-fp4-local}
+services:
+  glm53:
+    image: ${GLM53_IMAGE:-eugr/spark-vllm-b12x@sha256:03a956544e9f9b4b7ba91690469fbe7848bdbef29a7d2e0f5788368467bb3595}
+    init: true
+    restart: 'no'
+    network_mode: host
+    ipc: host
+    privileged: true
+    shm_size: 16gb
+    mem_limit: 112g
+    memswap_limit: 128g
+    oom_score_adj: 1000
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      stack:
+        soft: 67108864
+        hard: 67108864
+      core: 0
+    devices:
+    - /dev/infiniband:/dev/infiniband
+    deploy:
+      resources:
+        reservations:
+          devices:
+          - driver: nvidia
+            count: all
+            capabilities:
+            - gpu
+    environment:
+      NCCL_IB_DISABLE: '0'
+      NCCL_DEBUG: WARN
+      OMP_NUM_THREADS: '4'
+      HF_HUB_OFFLINE: '1'
+      PYTHONUNBUFFERED: '1'
+      NCCL_NET: IB
+      NCCL_IB_ROCE_VERSION_NUM: '2'
+      NCCL_IB_ADDR_FAMILY: AF_INET
+      NCCL_IB_ADDR_RANGE: ${NCCL_SUBNET:-10.200.0.0/24}
+      NCCL_NVLS_ENABLE: '0'
+      NCCL_CROSS_NIC: '0'
+      NCCL_IB_MERGE_NICS: '0'
+      NCCL_CUMEM_ENABLE: '0'
+      NCCL_IGNORE_CPU_AFFINITY: '1'
+      NCCL_MIN_NCHANNELS: '8'
+      NCCL_MAX_NCHANNELS: '8'
+      CUTE_DSL_ARCH: sm_121a
+      SAFETENSORS_FAST_GPU: '1'
+      VLLM_ENABLE_ROCE_ALLREDUCE: '1'
+      VLLM_ROCE_ALLREDUCE_MAX_SIZE: 2MB
+      NCCL_BUFFSIZE: '1048576'
+      NCCL_MAX_CTAS: '8'
+      VLLM_WORKER_MULTIPROC_METHOD: spawn
+      VLLM_SSM_CONV_STATE_LAYOUT: DS
+      VLLM_USE_V2_MODEL_RUNNER: '1'
+      VLLM_ENABLE_PCIE_ALLREDUCE: '0'
+      B12X_POLICY_MODE: auto
+      VLLM_B12X_MOE_FP4_FORCE_A16: '1'
+      B12X_W4A16_A4_PREFILL: '1'
+      PYTORCH_ALLOC_CONF: backend:native,garbage_collection_threshold:0.7
+      VLLM_USE_AOT_COMPILE: '1'
+      VLLM_USE_MEGA_AOT_ARTIFACT: '1'
+      MAX_JOBS: '2'
+      MASTER_PORT: ${MASTER_PORT:-29521}
+      API_PORT: ${API_PORT:-8000}
+      MTP_TOKENS: ${MTP_TOKENS:-5}
+      SERVED_MODEL_NAME: ${SERVED_MODEL_NAME:-glm-5.3-flash}
+      NCCL_IB_GID_INDEX: ${NCCL_IB_GID_INDEX:-}
+      HEAD_RAIL_IP: ${HEAD_RAIL_IP:?set head rail}
+      API_BIND: ${VLLM_BIND:-127.0.0.1}
+      MODEL_HOST_PATH: ${MODEL_HOST_PATH:?select FP4-Local checkpoint}
+      MAX_MODEL_LEN: '1048576'
+      MAX_NUM_SEQS: '1'
+      GLM53_HOST_IP: ${HEAD_RAIL_IP}
+      HEAD_IP: ${HEAD_RAIL_IP}
+    volumes:
+    - type: bind
+      source: ${HF_CACHE:-${HOME}/.cache/huggingface}
+      target: ${HF_CACHE:-${HOME}/.cache/huggingface}
+      read_only: true
+      bind:
+        create_host_path: false
+    - ${GLM53_CACHE_PATH:-${HOME}/.cache/glm53-fp4-local}:/root/.cache
+    - ${GLM53_CACHE_PATH:-${HOME}/.cache/glm53-fp4-local}/triton:/root/.triton
+    - ./entrypoint.py:/opt/glm53/entrypoint.py:ro
+    - ./check_models.py:/opt/glm53/check_models.py:ro
+    - ./prepare_chat_template.py:/opt/glm53/prepare_chat_template.py:ro
+    - ./serve-args.json:/opt/glm53/serve-args.json:ro
+    entrypoint:
+    - python3
+    - /opt/glm53/entrypoint.py

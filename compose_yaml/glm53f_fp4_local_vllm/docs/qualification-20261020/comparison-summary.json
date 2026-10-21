@@ -1,0 +1,472 @@
+{
+  "sgl-nvfp4": {
+    "rows": 26,
+    "modes": {
+      "off": {
+        "checks_passed": 8,
+        "checks_total": 10,
+        "tg": {
+          "ko-prose": {
+            "median_tps": 22.102448371504565,
+            "samples": 2,
+            "source": "visible SSE stream; tool cases excluded"
+          },
+          "code-intervals": {
+            "median_tps": 47.40293053023436,
+            "samples": 2,
+            "source": "visible SSE stream; tool cases excluded"
+          }
+        },
+        "pp": [
+          {
+            "prompt_tokens": 5182,
+            "request_seconds": 4.033544775011251,
+            "tokens_per_request_second": 1284.7260385216737
+          },
+          {
+            "prompt_tokens": 20540,
+            "request_seconds": 10.813155965006445,
+            "tokens_per_request_second": 1899.5379393834312
+          },
+          {
+            "prompt_tokens": 81977,
+            "request_seconds": 42.49479149200488,
+            "tokens_per_request_second": 1929.1070063356692
+          }
+        ],
+        "failures": [
+          {
+            "case": "ko-logic",
+            "reason": "exact JSON value"
+          },
+          {
+            "case": "code-unique",
+            "reason": "restricted Python functional cases"
+          }
+        ]
+      },
+      "on-low": {
+        "checks_passed": 7,
+        "checks_total": 10,
+        "tg": {
+          "ko-prose": {
+            "median_tps": 25.904975619777872,
+            "samples": 2,
+            "source": "visible SSE stream; tool cases excluded"
+          },
+          "code-intervals": {
+            "median_tps": 50.13872285804773,
+            "samples": 2,
+            "source": "visible SSE stream; tool cases excluded"
+          }
+        },
+        "pp": [
+          {
+            "prompt_tokens": 5176,
+            "request_seconds": 2.989358569000615,
+            "tokens_per_request_second": 1731.4751243543228
+          },
+          {
+            "prompt_tokens": 20543,
+            "request_seconds": 10.841077513003256,
+            "tokens_per_request_second": 1894.9223428538205
+          },
+          {
+            "prompt_tokens": 81979,
+            "request_seconds": 42.30267418199219,
+            "tokens_per_request_second": 1937.915311153015
+          }
+        ],
+        "failures": [
+          {
+            "case": "ko-sort",
+            "reason": "JSONDecodeError: Extra data: line 2 column 1 (char 25)"
+          },
+          {
+            "case": "ko-logic",
+            "reason": "exact JSON value"
+          },
+          {
+            "case": "code-unique",
+            "reason": "restricted Python functional cases"
+          }
+        ]
+      }
+    },
+    "head_memory": {
+      "min_available_gib": 2.0896682739257812,
+      "swap_out_mib": 5789.74609375,
+      "swap_in_mib": 3254.6875,
+      "samples": 1183
+    },
+    "worker_memory": {
+      "min_available_gib": 3.0139694213867188,
+      "swap_out_mib": 3039.3125,
+      "swap_in_mib": 1604.0234375,
+      "samples": 1183
+    },
+    "basic_smokes": [
+      {
+        "case": "json-schema",
+        "content_correct": true,
+        "requested_format_correct": true
+      },
+      {
+        "case": "image-digits",
+        "content_correct": true,
+        "requested_format_correct": false
+      },
+      {
+        "case": "multi-turn",
+        "content_correct": true,
+        "requested_format_correct": false
+      }
+    ]
+  },
+  "tf-fp4": {
+    "rows": 26,
+    "modes": {
+      "off": {
+        "checks_passed": 7,
+        "checks_total": 10,
+        "tg": {
+          "ko-prose": {
+            "median_tps": 36.89561131113662,
+            "samples": 2,
+            "source": "backend decode metadata"
+          },
+          "code-intervals": {
+            "median_tps": 47.123749806753736,
+            "samples": 2,
+            "source": "backend decode metadata"
+          }
+        },
+        "pp": [
+          {
+            "prompt_tokens": 5182,
+            "request_seconds": 4.043520870996872,
+            "tokens_per_request_second": 1281.5563874466789
+          },
+          {
+            "prompt_tokens": 20540,
+            "request_seconds": 15.042759395990288,
+            "tokens_per_request_second": 1365.4409712539193
+          },
+          {
+            "prompt_tokens": 81977,
+            "request_seconds": 59.85977294300392,
+            "tokens_per_request_second": 1369.4839784650574
+          }
+        ],
+        "failures": [
+          {
+            "case": "ko-sort",
+            "reason": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)"
+          },
+          {
+            "case": "ko-logic",
+            "reason": "exact JSON value"
+          },
+          {
+            "case": "code-unique",
+            "reason": "capped before completion"
+          }
+        ]
+      },
+      "on-low": {
+        "checks_passed": 7,
+        "checks_total": 10,
+        "tg": {
+          "ko-prose": {
+            "median_tps": 39.70365786309611,
+            "samples": 2,
+            "source": "backend decode metadata"
+          },
+          "code-intervals": {
+            "median_tps": 48.457658375985,
+            "samples": 2,
+            "source": "backend decode metadata"
+          }
+        },
+        "pp": [
+          {
+            "prompt_tokens": 5176,
+            "request_seconds": 4.045555845994386,
+            "tokens_per_request_second": 1279.4286365184892
+          },
+          {
+            "prompt_tokens": 20543,
+            "request_seconds": 15.085998804992414,
+            "tokens_per_request_second": 1361.7262115387216
+          },
+          {
+            "prompt_tokens": 81979,
+            "request_seconds": 59.852857260993915,
+            "tokens_per_request_second": 1369.6756303967745
+          }
+        ],
+        "failures": [
+          {
+            "case": "ko-sort",
+            "reason": "JSONDecodeError: Extra data: line 1 column 22 (char 21)"
+          },
+          {
+            "case": "ko-logic",
+            "reason": "exact JSON value"
+          },
+          {
+            "case": "code-unique",
+            "reason": "restricted Python functional cases"
+          }
+        ]
+      }
+    },
+    "head_memory": {
+      "min_available_gib": 9.269538879394531,
+      "swap_out_mib": 0.0,
+      "swap_in_mib": 30.765625,
+      "samples": 1256
+    },
+    "worker_memory": {
+      "min_available_gib": 10.451370239257812,
+      "swap_out_mib": 0.0,
+      "swap_in_mib": 15.875,
+      "samples": 1255
+    },
+    "basic_smokes": [
+      {
+        "case": "json-schema",
+        "content_correct": true,
+        "requested_format_correct": true
+      },
+      {
+        "case": "image-digits",
+        "content_correct": true,
+        "requested_format_correct": false
+      },
+      {
+        "case": "multi-turn",
+        "content_correct": true,
+        "requested_format_correct": true
+      }
+    ]
+  },
+  "vllm-fp4": {
+    "rows": 26,
+    "modes": {
+      "off": {
+        "checks_passed": 8,
+        "checks_total": 10,
+        "tg": {
+          "ko-prose": {
+            "median_tps": 34.920577313174846,
+            "samples": 2,
+            "source": "visible SSE stream; tool cases excluded"
+          },
+          "code-intervals": {
+            "median_tps": 36.05834616452025,
+            "samples": 2,
+            "source": "visible SSE stream; tool cases excluded"
+          }
+        },
+        "pp": [
+          {
+            "prompt_tokens": 5182,
+            "request_seconds": 2.624285459998646,
+            "tokens_per_request_second": 1974.6327444129017
+          },
+          {
+            "prompt_tokens": 20540,
+            "request_seconds": 9.534655864990782,
+            "tokens_per_request_second": 2154.2466021682535
+          },
+          {
+            "prompt_tokens": 81977,
+            "request_seconds": 37.451798470006906,
+            "tokens_per_request_second": 2188.866846158293
+          }
+        ],
+        "failures": [
+          {
+            "case": "ko-logic",
+            "reason": "exact JSON value"
+          },
+          {
+            "case": "code-unique",
+            "reason": "restricted Python functional cases"
+          }
+        ]
+      },
+      "on-low": {
+        "checks_passed": 7,
+        "checks_total": 10,
+        "tg": {
+          "ko-prose": {
+            "median_tps": 34.91073026192653,
+            "samples": 2,
+            "source": "visible SSE stream; tool cases excluded"
+          },
+          "code-intervals": {
+            "median_tps": 37.66283258831069,
+            "samples": 2,
+            "source": "visible SSE stream; tool cases excluded"
+          }
+        },
+        "pp": [
+          {
+            "prompt_tokens": 5176,
+            "request_seconds": 2.6287934809952276,
+            "tokens_per_request_second": 1968.9641036542866
+          },
+          {
+            "prompt_tokens": 20543,
+            "request_seconds": 9.53423087100964,
+            "tokens_per_request_second": 2154.6572846756094
+          },
+          {
+            "prompt_tokens": 81979,
+            "request_seconds": 37.36541237900383,
+            "tokens_per_request_second": 2193.980871092037
+          }
+        ],
+        "failures": [
+          {
+            "case": "ko-sort",
+            "reason": "JSONDecodeError: Extra data: line 1 column 22 (char 21)"
+          },
+          {
+            "case": "ko-logic",
+            "reason": "exact JSON value"
+          },
+          {
+            "case": "code-unique",
+            "reason": "restricted Python functional cases"
+          }
+        ]
+      }
+    },
+    "head_memory": {
+      "min_available_gib": 0.5801963806152344,
+      "swap_out_mib": 332.21484375,
+      "swap_in_mib": 346.15625,
+      "samples": 1445
+    },
+    "worker_memory": {
+      "min_available_gib": 2.720855712890625,
+      "swap_out_mib": 0.0,
+      "swap_in_mib": 10.40234375,
+      "samples": 1472
+    },
+    "basic_smokes": [
+      {
+        "case": "json-schema",
+        "content_correct": true,
+        "requested_format_correct": true
+      },
+      {
+        "case": "image-digits",
+        "content_correct": true,
+        "requested_format_correct": false
+      },
+      {
+        "case": "multi-turn",
+        "content_correct": true,
+        "requested_format_correct": true
+      }
+    ]
+  },
+  "vllm-fp4-mtp5": {
+    "rows": 21,
+    "modes": {
+      "off": {
+        "checks_passed": 8,
+        "checks_total": 10,
+        "tg": {
+          "ko-prose": {
+            "median_tps": 30.005098666468896,
+            "samples": 2,
+            "source": "visible SSE stream; tool cases excluded"
+          },
+          "code-intervals": {
+            "median_tps": 48.421367426193996,
+            "samples": 2,
+            "source": "visible SSE stream; tool cases excluded"
+          }
+        },
+        "pp": [
+          {
+            "prompt_tokens": 81977,
+            "request_seconds": 37.216132064990234,
+            "tokens_per_request_second": 2202.727566014765
+          }
+        ],
+        "failures": [
+          {
+            "case": "ko-logic",
+            "reason": "exact JSON value"
+          },
+          {
+            "case": "code-unique",
+            "reason": "restricted Python functional cases"
+          }
+        ]
+      },
+      "on-low": {
+        "checks_passed": 8,
+        "checks_total": 10,
+        "tg": {
+          "ko-prose": {
+            "median_tps": 31.494879210318405,
+            "samples": 2,
+            "source": "visible SSE stream; tool cases excluded"
+          },
+          "code-intervals": {
+            "median_tps": 49.30730299462465,
+            "samples": 2,
+            "source": "visible SSE stream; tool cases excluded"
+          }
+        },
+        "pp": [],
+        "failures": [
+          {
+            "case": "ko-sort",
+            "reason": "JSONDecodeError: Extra data: line 1 column 22 (char 21)"
+          },
+          {
+            "case": "ko-logic",
+            "reason": "exact JSON value"
+          }
+        ]
+      }
+    },
+    "head_memory": {
+      "min_available_gib": 0.6882362365722656,
+      "swap_out_mib": 386.19921875,
+      "swap_in_mib": 525.0625,
+      "samples": 2808
+    },
+    "worker_memory": {
+      "min_available_gib": 3.113525390625,
+      "swap_out_mib": 0.00390625,
+      "swap_in_mib": 7.296875,
+      "samples": 2836
+    },
+    "basic_smokes": [
+      {
+        "case": "json-schema",
+        "content_correct": true,
+        "requested_format_correct": true
+      },
+      {
+        "case": "image-digits",
+        "content_correct": true,
+        "requested_format_correct": false
+      },
+      {
+        "case": "multi-turn",
+        "content_correct": true,
+        "requested_format_correct": true
+      }
+    ]
+  }
+}

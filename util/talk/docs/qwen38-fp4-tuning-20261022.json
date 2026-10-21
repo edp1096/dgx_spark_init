@@ -1,0 +1,1804 @@
+{
+  "task": "Qwen 3.8 Flash-Next FP4-Local PP/TG tuning on DGX Spark 61",
+  "finished_at": "2026-10-22T02:33:44.959508+09:00",
+  "outcome": "Verified PP improvement; no additional TG improvement adopted.",
+  "selected": {
+    "label": "qualify-4k",
+    "environment": {
+      "TF_FLASHNEXT_PREFILL_ROWS": "4096"
+    },
+    "reason": "PP improves 6.6-7.7% across 4K/16K/128K cold inputs, reproduced in short screening and final qualification. 8K uses roughly 3 GiB more memory with equal 128K and lower final 16K throughput. No new TG optimization adopted; production matched-prompt TG measured -0.68% under the documented network/cache conditions. MTP 4, vocabulary and weights unchanged. Production feature and Talk checks passed."
+  },
+  "unchanged": {
+    "image": "local/sparktalk-qwen38-fp4-tensorfold:db281878-ko2",
+    "engine": "TensorFold native Zig/CUDA",
+    "tensor_parallel": 1,
+    "context_tokens": 1048576,
+    "kv_dtype": "FP8",
+    "yarn": 4,
+    "mtp_max": 4,
+    "mtp_confidence": "running product 0.4",
+    "draft_vocabulary_count": 86232,
+    "draft_vocabulary_sha256": "b156ebc6276e87fa273c799ee858e1fe41a0263b18b0950d27b7638e087f6911",
+    "weights": "Existing Huihui FP4-Local checkpoint, mounted read-only; no downloads or conversions.",
+    "vision": true,
+    "thinking": [
+      "off",
+      "medium"
+    ]
+  },
+  "method": {
+    "pp": "input tokens / backend prefill_seconds; cache disabled and cached_tokens == 0; identical complete input token IDs.",
+    "tg": "(completion_tokens - 1) / backend decode time; reasoning tokens included; separate off/medium aggregates.",
+    "screen": "Greedy, seed 99, four prompts, 256 output tokens. Same 16K PP and Korean decode warmup before each arm.",
+    "holdout": "Eight fresh Korean/English/code/mixed prompts, seed 99, temperature 0.7, top_k 20, top_p 0.95, 512 tokens with ignore_eos. Each full case warmed and repeated; throughput test, not a task-quality score.",
+    "cold_definition": "Prompt cache disabled; existing OS page cache and compiled CUDA cache retained.",
+    "timing_interference": "No native/Go builds or Go tests ran concurrently with timed GPU requests.",
+    "equality": "Full answer/reasoning text SHA256 plus backend output token hash; input token IDs checked in full. API provides a 12-character output token hash, not full output IDs.",
+    "memory": "0.2-second monitor, 2 GiB MemAvailable floor; all successful arms remained above the floor.",
+    "scope": "Host 61 only. Host 60 remained off and was not contacted. New cold-input tests reach 131072 tokens; 1M limit preserved, previous same-image 1M qualification not repeated here."
+  },
+  "pp": [
+    {
+      "input_tokens": 4096,
+      "before": 2246.177180276612,
+      "after": 2395.503855420169,
+      "improvement_percent": 6.648036337238894,
+      "cached_tokens_before": 0,
+      "cached_tokens_after": 0
+    },
+    {
+      "input_tokens": 16384,
+      "before": 2186.99045676894,
+      "after": 2355.1431785203463,
+      "improvement_percent": 7.688772542694822,
+      "cached_tokens_before": 0,
+      "cached_tokens_after": 0
+    },
+    {
+      "input_tokens": 131072,
+      "before": 1966.7647517366104,
+      "after": 2117.5764518834726,
+      "improvement_percent": 7.668009100412165,
+      "cached_tokens_before": 0,
+      "cached_tokens_after": 0
+    }
+  ],
+  "managed_tg": {
+    "results": {
+      "off": {
+        "before": 45.126287137866264,
+        "after": 44.87594993237373,
+        "change_percent": -0.5547480667481564
+      },
+      "medium": {
+        "before": 46.61123197955419,
+        "after": 46.22989673071309,
+        "change_percent": -0.8181187937885359
+      },
+      "all": {
+        "before": 45.85674124164612,
+        "after": 45.54286266035777,
+        "change_percent": -0.6844764211096921
+      }
+    },
+    "note": "Four matched Korean/code prompts at 512 tokens, each warmed then repeated. The production runtime uses Docker bridge and its default enabled prompt cache; the control used host networking with prompt cache disabled. All measured managed requests nevertheless reported zero cached input tokens. The small observed decrease is reported as measured; this is not a controlled attribution to prefill chunk size or a TG improvement claim.",
+    "cases": [
+      {
+        "name": "holdout-ko-off",
+        "tg": 37.4933143789128,
+        "cached_tokens": 0,
+        "text_equal_control": true,
+        "tokens_equal_control": true
+      },
+      {
+        "name": "holdout-code-off",
+        "tg": 55.878783358567766,
+        "cached_tokens": 0,
+        "text_equal_control": true,
+        "tokens_equal_control": true
+      },
+      {
+        "name": "holdout-ko-medium",
+        "tg": 43.56023371673452,
+        "cached_tokens": 0,
+        "text_equal_control": true,
+        "tokens_equal_control": true
+      },
+      {
+        "name": "holdout-code-medium",
+        "tg": 49.248153588490695,
+        "cached_tokens": 0,
+        "text_equal_control": true,
+        "tokens_equal_control": true
+      }
+    ]
+  },
+  "selected_case_equality": [
+    {
+      "case": "ko-off",
+      "text_equal": true,
+      "token_hash_equal": true,
+      "input_ids_equal": true
+    },
+    {
+      "case": "code-off",
+      "text_equal": true,
+      "token_hash_equal": true,
+      "input_ids_equal": true
+    },
+    {
+      "case": "ko-medium",
+      "text_equal": true,
+      "token_hash_equal": true,
+      "input_ids_equal": true
+    },
+    {
+      "case": "code-medium",
+      "text_equal": true,
+      "token_hash_equal": true,
+      "input_ids_equal": true
+    },
+    {
+      "case": "pp-4096",
+      "text_equal": true,
+      "token_hash_equal": true,
+      "input_ids_equal": true
+    },
+    {
+      "case": "pp-16384",
+      "text_equal": true,
+      "token_hash_equal": true,
+      "input_ids_equal": true
+    },
+    {
+      "case": "pp-131072",
+      "text_equal": true,
+      "token_hash_equal": true,
+      "input_ids_equal": true
+    }
+  ],
+  "sampled_holdout_equality": {
+    "holdout-ko-off": {
+      "text_equal": true,
+      "token_hash_equal": true,
+      "input_equal": true,
+      "pp_ratio": 0.9929616936593944,
+      "tg_ratio": 0.9965615313463092
+    },
+    "holdout-reason-off": {
+      "text_equal": true,
+      "token_hash_equal": true,
+      "input_equal": true,
+      "pp_ratio": 0.9975758834480263,
+      "tg_ratio": 0.9997406713962862
+    },
+    "holdout-code-off": {
+      "text_equal": true,
+      "token_hash_equal": true,
+      "input_equal": true,
+      "pp_ratio": 0.9939526321200198,
+      "tg_ratio": 0.9981689559285809
+    },
+    "holdout-mixed-off": {
+      "text_equal": true,
+      "token_hash_equal": true,
+      "input_equal": true,
+      "pp_ratio": 0.9934010829414024,
+      "tg_ratio": 0.9944390086642098
+    },
+    "holdout-ko-medium": {
+      "text_equal": true,
+      "token_hash_equal": true,
+      "input_equal": true,
+      "pp_ratio": 0.9959928347744236,
+      "tg_ratio": 0.9963518932028183
+    },
+    "holdout-reason-medium": {
+      "text_equal": true,
+      "token_hash_equal": true,
+      "input_equal": true,
+      "pp_ratio": 0.9926715598475813,
+      "tg_ratio": 0.9958496250022073
+    },
+    "holdout-code-medium": {
+      "text_equal": true,
+      "token_hash_equal": true,
+      "input_equal": true,
+      "pp_ratio": 0.9894454687498808,
+      "tg_ratio": 0.9970356050873052
+    },
+    "holdout-mixed-medium": {
+      "text_equal": true,
+      "token_hash_equal": true,
+      "input_equal": true,
+      "pp_ratio": 0.9926215832359551,
+      "tg_ratio": 0.9966009793746017
+    },
+    "pp-4096": {
+      "text_equal": true,
+      "token_hash_equal": true,
+      "input_equal": true,
+      "pp_ratio": 1.0732135230480717,
+      "tg_ratio": 0.9741663883736174
+    },
+    "pp-16384": {
+      "text_equal": true,
+      "token_hash_equal": true,
+      "input_equal": true,
+      "pp_ratio": 1.035047015009192,
+      "tg_ratio": 0.9923550256747785
+    },
+    "pp-131072": {
+      "text_equal": true,
+      "token_hash_equal": true,
+      "input_equal": true,
+      "pp_ratio": 1.0770212369041194,
+      "tg_ratio": 1.0651708411863237
+    }
+  },
+  "screening": [
+    {
+      "label": "baseline-after",
+      "tg": {
+        "off": 44.11542543118582,
+        "medium": 48.9537306985737
+      },
+      "pp": {
+        "pp-4096": 2251.5342518374964,
+        "pp-16384": 2193.2809210865717
+      },
+      "monitor": {
+        "minimum_available_gib": 37.71453857421875,
+        "failure": [],
+        "elapsed_s": 113.00758813900757
+      },
+      "equality": {
+        "ko-off": {
+          "text_equal": true,
+          "token_hash_equal": true
+        },
+        "code-off": {
+          "text_equal": true,
+          "token_hash_equal": true
+        },
+        "ko-medium": {
+          "text_equal": true,
+          "token_hash_equal": true
+        },
+        "code-medium": {
+          "text_equal": true,
+          "token_hash_equal": true
+        },
+        "pp-4096": {
+          "text_equal": true,
+          "token_hash_equal": true
+        },
+        "pp-16384": {
+          "text_equal": true,
+          "token_hash_equal": true
+        }
+      }
+    },
+    {
+      "label": "baseline-final",
+      "tg": {
+        "off": 44.241512532050535,
+        "medium": 48.89529678179478
+      },
+      "pp": {
+        "pp-4096": 2243.191177087472,
+        "pp-16384": 2188.5940951730245
+      },
+      "monitor": {
+        "minimum_available_gib": 37.53120803833008,
+        "failure": [],
+        "elapsed_s": 109.99850454000989
+      },
+      "equality": {
+        "ko-off": {
+          "text_equal": true,
+          "token_hash_equal": true
+        },
+        "code-off": {
+          "text_equal": true,
+          "token_hash_equal": true
+        },
+        "ko-medium": {
+          "text_equal": true,
+          "token_hash_equal": true
+        },
+        "code-medium": {
+          "text_equal": true,
+          "token_hash_equal": true
+        },
+        "pp-4096": {
+          "text_equal": true,
+          "token_hash_equal": true
+        },
+        "pp-16384": {
+          "text_equal": true,
+          "token_hash_equal": true
+        }
+      }
+    },
+    {
+      "label": "baseline00",
+      "tg": {
+        "off": 44.326932837707005,
+        "medium": 48.510559231125065
+      },
+      "pp": {
+        "pp-4096": 2255.866454653332,
+        "pp-16384": 2197.3867266663256
+      },
+      "monitor": {
+        "minimum_available_gib": 38.32304000854492,
+        "failure": [],
+        "elapsed_s": 115.83326406800188
+      }
+    },
+    {
+      "label": "cpu-performance",
+      "tg": {
+        "off": 44.207862154023324,
+        "medium": 48.859062219709294
+      },
+      "pp": {
+        "pp-4096": 2260.500701258532,
+        "pp-16384": 2204.3225965328943
+      },
+      "monitor": {
+        "minimum_available_gib": 37.8044319152832,
+        "failure": [],
+        "elapsed_s": 112.77678279901738
+      },
+      "equality": {
+        "ko-off": {
+          "text_equal": true,
+          "token_hash_equal": true
+        },
+        "code-off": {
+          "text_equal": true,
+          "token_hash_equal": true
+        },
+        "ko-medium": {
+          "text_equal": true,
+          "token_hash_equal": true
+        },
+        "code-medium": {
+          "text_equal": true,
+          "token_hash_equal": true
+        },
+        "pp-4096": {
+          "text_equal": true,
+          "token_hash_equal": true
+        },
+        "pp-16384": {
+          "text_equal": true,
+          "token_hash_equal": true
+        }
+      }
+    },
+    {
+      "label": "d3-prod04",
+      "tg": {
+        "off": 43.7757039211622,
+        "medium": 46.530484045091434
+      },
+      "pp": {},
+      "monitor": {
+        "minimum_available_gib": 38.150001525878906,
+        "failure": [],
+        "elapsed_s": 103.84392958600074
+      },
+      "equality": {
+        "ko-off": {
+          "text_equal": true,
+          "token_hash_equal": true
+        },
+        "code-off": {
+          "text_equal": true,
+          "token_hash_equal": true
+        },
+        "ko-medium": {
+          "text_equal": true,
+          "token_hash_equal": true
+        },
+        "code-medium": {
+          "text_equal": true,
+          "token_hash_equal": true
+        }
+      }
+    },
+    {
+      "label": "d4-prod06",
+      "tg": {
+        "off": 44.01142307165759,
+        "medium": 47.489882402072475
+      },
+      "pp": {},
+      "monitor": {
+        "minimum_available_gib": 38.17654037475586,
+        "failure": [],
+        "elapsed_s": 104.4411627999798
+      },
+      "equality": {
+        "ko-off": {
+          "text_equal": true,
+          "token_hash_equal": true
+        },
+        "code-off": {
+          "text_equal": true,
+          "token_hash_equal": true
+        },
+        "ko-medium": {
+          "text_equal": true,
+          "token_hash_equal": true
+        },
+        "code-medium": {
+          "text_equal": true,
+          "token_hash_equal": true
+        }
+      }
+    },
+    {
+      "label": "d5-prod04",
+      "tg": {
+        "off": 43.37754550136796,
+        "medium": 48.62338703194624
+      },
+      "pp": {},
+      "monitor": {
+        "minimum_available_gib": 38.04170608520508,
+        "failure": [],
+        "elapsed_s": 104.54030203999719
+      },
+      "equality": {
+        "ko-off": {
+          "text_equal": true,
+          "token_hash_equal": true
+        },
+        "code-off": {
+          "text_equal": true,
+          "token_hash_equal": true
+        },
+        "ko-medium": {
+          "text_equal": true,
+          "token_hash_equal": true
+        },
+        "code-medium": {
+          "text_equal": true,
+          "token_hash_equal": true
+        }
+      }
+    },
+    {
+      "label": "d6-each04",
+      "tg": {
+        "off": 43.7903786412624,
+        "medium": 47.74347498741166
+      },
+      "pp": {},
+      "monitor": {
+        "minimum_available_gib": 37.85803985595703,
+        "failure": [],
+        "elapsed_s": 102.63445574598154
+      },
+      "equality": {
+        "ko-off": {
+          "text_equal": true,
+          "token_hash_equal": true
+        },
+        "code-off": {
+          "text_equal": true,
+          "token_hash_equal": true
+        },
+        "ko-medium": {
+          "text_equal": true,
+          "token_hash_equal": true
+        },
+        "code-medium": {
+          "text_equal": true,
+          "token_hash_equal": true
+        }
+      }
+    },
+    {
+      "label": "d6-prod02",
+      "tg": {
+        "off": 43.300284812632604,
+        "medium": 48.47520524285464
+      },
+      "pp": {},
+      "monitor": {
+        "minimum_available_gib": 37.58816146850586,
+        "failure": [],
+        "elapsed_s": 100.73048510900117
+      },
+      "equality": {
+        "ko-off": {
+          "text_equal": true,
+          "token_hash_equal": true
+        },
+        "code-off": {
+          "text_equal": true,
+          "token_hash_equal": true
+        },
+        "ko-medium": {
+          "text_equal": true,
+          "token_hash_equal": true
+        },
+        "code-medium": {
+          "text_equal": true,
+          "token_hash_equal": true
+        }
+      }
+    },
+    {
+      "label": "d6-prod04",
+      "tg": {
+        "off": 43.772662753273664,
+        "medium": 48.54312326580162
+      },
+      "pp": {},
+      "monitor": {
+        "minimum_available_gib": 38.23103332519531,
+        "failure": [],
+        "elapsed_s": 101.60175603302196
+      },
+      "equality": {
+        "ko-off": {
+          "text_equal": true,
+          "token_hash_equal": true
+        },
+        "code-off": {
+          "text_equal": true,
+          "token_hash_equal": true
+        },
+        "ko-medium": {
+          "text_equal": true,
+          "token_hash_equal": true
+        },
+        "code-medium": {
+          "text_equal": true,
+          "token_hash_equal": true
+        }
+      }
+    },
+    {
+      "label": "d8-prod04",
+      "tg": {
+        "off": 42.74518555437085,
+        "medium": 47.86478425046763
+      },
+      "pp": {},
+      "monitor": {
+        "minimum_available_gib": 37.438270568847656,
+        "failure": [],
+        "elapsed_s": 106.01496692301589
+      },
+      "equality": {
+        "ko-off": {
+          "text_equal": true,
+          "token_hash_equal": true
+        },
+        "code-off": {
+          "text_equal": true,
+          "token_hash_equal": true
+        },
+        "ko-medium": {
+          "text_equal": true,
+          "token_hash_equal": true
+        },
+        "code-medium": {
+          "text_equal": true,
+          "token_hash_equal": true
+        }
+      }
+    },
+    {
+      "label": "mtp-q4-all",
+      "tg": {
+        "off": 44.065926789064854,
+        "medium": 47.22261114414964
+      },
+      "pp": {},
+      "monitor": {
+        "minimum_available_gib": 37.81713104248047,
+        "failure": [],
+        "elapsed_s": 103.97742910200031
+      },
+      "equality": {
+        "ko-off": {
+          "text_equal": true,
+          "token_hash_equal": true
+        },
+        "code-off": {
+          "text_equal": true,
+          "token_hash_equal": true
+        },
+        "ko-medium": {
+          "text_equal": true,
+          "token_hash_equal": true
+        },
+        "code-medium": {
+          "text_equal": true,
+          "token_hash_equal": true
+        }
+      }
+    },
+    {
+      "label": "mtp-q4-fc",
+      "tg": {
+        "off": 44.654849377774596,
+        "medium": 49.112398157165536
+      },
+      "pp": {},
+      "monitor": {
+        "minimum_available_gib": 37.4661979675293,
+        "failure": [],
+        "elapsed_s": 103.22222994599724
+      },
+      "equality": {
+        "ko-off": {
+          "text_equal": true,
+          "token_hash_equal": true
+        },
+        "code-off": {
+          "text_equal": true,
+          "token_hash_equal": true
+        },
+        "ko-medium": {
+          "text_equal": true,
+          "token_hash_equal": true
+        },
+        "code-medium": {
+          "text_equal": true,
+          "token_hash_equal": true
+        }
+      }
+    },
+    {
+      "label": "pp-4k",
+      "tg": {},
+      "pp": {
+        "pp-4096": 2403.200025584693,
+        "pp-16384": 2368.2944859016397
+      },
+      "monitor": {
+        "minimum_available_gib": 36.99594497680664,
+        "failure": [],
+        "elapsed_s": 89.41347220999887
+      },
+      "equality": {
+        "pp-4096": {
+          "text_equal": true,
+          "token_hash_equal": true
+        },
+        "pp-16384": {
+          "text_equal": true,
+          "token_hash_equal": true
+        }
+      }
+    },
+    {
+      "label": "pp-8k",
+      "tg": {},
+      "pp": {
+        "pp-4096": 2412.843839200999,
+        "pp-16384": 2392.0344491317323
+      },
+      "monitor": {
+        "minimum_available_gib": 34.33454513549805,
+        "failure": [],
+        "elapsed_s": 86.0341951919836
+      },
+      "equality": {
+        "pp-4096": {
+          "text_equal": true,
+          "token_hash_equal": true
+        },
+        "pp-16384": {
+          "text_equal": true,
+          "token_hash_equal": true
+        }
+      }
+    },
+    {
+      "label": "pp-gu2",
+      "tg": {},
+      "pp": {
+        "pp-4096": 2039.5397840022108,
+        "pp-16384": 1999.3540873310883
+      },
+      "monitor": {
+        "minimum_available_gib": 37.407955169677734,
+        "failure": [],
+        "elapsed_s": 93.1166255470016
+      },
+      "equality": {
+        "pp-4096": {
+          "text_equal": true,
+          "token_hash_equal": true
+        },
+        "pp-16384": {
+          "text_equal": true,
+          "token_hash_equal": true
+        }
+      }
+    },
+    {
+      "label": "pp-t128",
+      "tg": {},
+      "pp": {
+        "pp-4096": 2109.053388948735,
+        "pp-16384": 2071.815534328795
+      },
+      "monitor": {
+        "minimum_available_gib": 38.103172302246094,
+        "failure": [],
+        "elapsed_s": 92.67574851299287
+      },
+      "equality": {
+        "pp-4096": {
+          "text_equal": true,
+          "token_hash_equal": true
+        },
+        "pp-16384": {
+          "text_equal": true,
+          "token_hash_equal": true
+        }
+      }
+    },
+    {
+      "label": "pp-t128gu2",
+      "tg": {},
+      "pp": {
+        "pp-4096": 1920.7713787845146,
+        "pp-16384": 1879.9295620776716
+      },
+      "monitor": {
+        "minimum_available_gib": 37.25965881347656,
+        "failure": [],
+        "elapsed_s": 89.23295920301462
+      },
+      "equality": {
+        "pp-4096": {
+          "text_equal": true,
+          "token_hash_equal": true
+        },
+        "pp-16384": {
+          "text_equal": true,
+          "token_hash_equal": true
+        }
+      }
+    },
+    {
+      "label": "profile",
+      "tg": {},
+      "pp": {
+        "pp-16384": 2162.872105464475
+      },
+      "monitor": {
+        "minimum_available_gib": 38.28533172607422,
+        "failure": [],
+        "elapsed_s": 84.65935185499256
+      },
+      "equality": {
+        "pp-16384": {
+          "text_equal": true,
+          "token_hash_equal": true
+        }
+      }
+    },
+    {
+      "label": "qualify-4k",
+      "tg": {
+        "off": 43.61407977283904,
+        "medium": 48.39679696624978
+      },
+      "pp": {
+        "pp-4096": 2395.503855420169,
+        "pp-16384": 2355.1431785203463,
+        "pp-131072": 2117.5764518834726
+      },
+      "monitor": {
+        "minimum_available_gib": 35.1827392578125,
+        "failure": [],
+        "elapsed_s": 175.93722724201507
+      }
+    },
+    {
+      "label": "qualify-candidate",
+      "tg": {
+        "off": 46.664759114658395,
+        "medium": 48.658513779756106
+      },
+      "pp": {
+        "pp-4096": 2410.6277250348467,
+        "pp-16384": 2263.6379441322806,
+        "pp-131072": 2118.2474056147876
+      },
+      "monitor": {
+        "minimum_available_gib": 32.535945892333984,
+        "failure": [],
+        "elapsed_s": 331.47673234099057
+      }
+    },
+    {
+      "label": "qualify-control",
+      "tg": {
+        "off": 46.80432375768177,
+        "medium": 48.831431163391514
+      },
+      "pp": {
+        "pp-4096": 2246.177180276612,
+        "pp-16384": 2186.99045676894,
+        "pp-131072": 1966.7647517366104
+      },
+      "monitor": {
+        "minimum_available_gib": 36.88934326171875,
+        "failure": [],
+        "elapsed_s": 338.33951871001045
+      }
+    },
+    {
+      "label": "shared-inline",
+      "tg": {
+        "off": 41.24789715490664,
+        "medium": 46.265631388773414
+      },
+      "pp": {},
+      "monitor": {
+        "minimum_available_gib": 37.75236129760742,
+        "failure": [],
+        "elapsed_s": 105.17090691599878
+      },
+      "equality": {
+        "ko-off": {
+          "text_equal": true,
+          "token_hash_equal": true
+        },
+        "code-off": {
+          "text_equal": true,
+          "token_hash_equal": true
+        },
+        "ko-medium": {
+          "text_equal": true,
+          "token_hash_equal": true
+        },
+        "code-medium": {
+          "text_equal": true,
+          "token_hash_equal": true
+        }
+      }
+    }
+  ],
+  "excluded_diagnostic": {
+    "label": "baseline",
+    "reason": "Initial harness token-boundary assertion (4097 vs 4096) before any timed result; fixed case preparation, then restarted as baseline00."
+  },
+  "correctness": [
+    {
+      "kind": "serial-draft-cache",
+      "mode": "off",
+      "name": "arithmetic",
+      "passed": true,
+      "cached_tokens": [
+        0,
+        0,
+        33
+      ],
+      "prompt_tokens": 34,
+      "output_hashes": [
+        "b81a4a004a2ba9b118d0d21f6faaae1629a80832001d63455556c7f8af256de8",
+        "b81a4a004a2ba9b118d0d21f6faaae1629a80832001d63455556c7f8af256de8",
+        "b81a4a004a2ba9b118d0d21f6faaae1629a80832001d63455556c7f8af256de8"
+      ],
+      "answers": [
+        "391",
+        "391",
+        "391"
+      ],
+      "native": [
+        {
+          "enable_thinking": false,
+          "reasoning_effort": "none",
+          "engine": "lanes",
+          "tokens_per_second": 20.301653059393473,
+          "seconds": 0.287995909,
+          "prefill_seconds": 0.13986254,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.141166968,
+          "sampling": "greedy",
+          "drafts": false,
+          "token_sha": "559657976e04",
+          "min_rows": 1
+        },
+        {
+          "enable_thinking": false,
+          "reasoning_effort": "none",
+          "engine": "lanes",
+          "tokens_per_second": 32.9248714028604,
+          "seconds": 0.282838521,
+          "prefill_seconds": 0.191686503,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.19284784,
+          "sampling": "greedy",
+          "drafts": true,
+          "token_sha": "559657976e04",
+          "min_rows": 5
+        },
+        {
+          "enable_thinking": false,
+          "reasoning_effort": "none",
+          "engine": "lanes",
+          "tokens_per_second": 20.094662471829963,
+          "seconds": 0.223455838,
+          "prefill_seconds": 0.074126798,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.074879853,
+          "sampling": "greedy",
+          "drafts": false,
+          "token_sha": "559657976e04",
+          "min_rows": 1
+        }
+      ]
+    },
+    {
+      "kind": "serial-draft-cache",
+      "mode": "off",
+      "name": "prose",
+      "passed": true,
+      "cached_tokens": [
+        0,
+        0,
+        31
+      ],
+      "prompt_tokens": 32,
+      "output_hashes": [
+        "f706fa29fbd83cd134538ead8c98d7d2acef0b41c7206768c4f474118c15d5e9",
+        "f706fa29fbd83cd134538ead8c98d7d2acef0b41c7206768c4f474118c15d5e9",
+        "f706fa29fbd83cd134538ead8c98d7d2acef0b41c7206768c4f474118c15d5e9"
+      ],
+      "answers": [
+        "KV 캐시는 대형 언어 모델이 텍스트를 생성할 때 이전 토큰들의 키(Key)와 값(Value) 벡터를 메모리에 저장하는 기술입니다.\n이러한 캐싱 메커니즘은 매번 모든 이전 토큰을 다시 계산해야 하는 중복 연산을 효과적으로 제거합니다.\n그 결과, 추론 속도가 크게 향상되어 사용자에게 더 빠른 응답 시간을 제공할 수 있습니다.\n또한 불필요한 연산이 줄어들면서 GPU의 계산 자원 사용량과 전력 소비도 절감됩니다.\n다만, 긴 문맥을 처리할수록 캐시 크기가 기하급수적으로 증가하여 메모리 사용량이 급증하는 단점이 있습니다.\n따라서 KV 캐시는 성능과 메모리 효율성 사이의 균형을 맞추는 데 핵심적인 역할을 수행합니다.",
+        "KV 캐시는 대형 언어 모델이 텍스트를 생성할 때 이전 토큰들의 키(Key)와 값(Value) 벡터를 메모리에 저장하는 기술입니다.\n이러한 캐싱 메커니즘은 매번 모든 이전 토큰을 다시 계산해야 하는 중복 연산을 효과적으로 제거합니다.\n그 결과, 추론 속도가 크게 향상되어 사용자에게 더 빠른 응답 시간을 제공할 수 있습니다.\n또한 불필요한 연산이 줄어들면서 GPU의 계산 자원 사용량과 전력 소비도 절감됩니다.\n다만, 긴 문맥을 처리할수록 캐시 크기가 기하급수적으로 증가하여 메모리 사용량이 급증하는 단점이 있습니다.\n따라서 KV 캐시는 성능과 메모리 효율성 사이의 균형을 맞추는 데 핵심적인 역할을 수행합니다.",
+        "KV 캐시는 대형 언어 모델이 텍스트를 생성할 때 이전 토큰들의 키(Key)와 값(Value) 벡터를 메모리에 저장하는 기술입니다.\n이러한 캐싱 메커니즘은 매번 모든 이전 토큰을 다시 계산해야 하는 중복 연산을 효과적으로 제거합니다.\n그 결과, 추론 속도가 크게 향상되어 사용자에게 더 빠른 응답 시간을 제공할 수 있습니다.\n또한 불필요한 연산이 줄어들면서 GPU의 계산 자원 사용량과 전력 소비도 절감됩니다.\n다만, 긴 문맥을 처리할수록 캐시 크기가 기하급수적으로 증가하여 메모리 사용량이 급증하는 단점이 있습니다.\n따라서 KV 캐시는 성능과 메모리 효율성 사이의 균형을 맞추는 데 핵심적인 역할을 수행합니다."
+      ],
+      "native": [
+        {
+          "enable_thinking": false,
+          "reasoning_effort": "none",
+          "engine": "lanes",
+          "tokens_per_second": 25.49522203711355,
+          "seconds": 6.919539544,
+          "prefill_seconds": 0.133921675,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.134376948,
+          "sampling": "greedy",
+          "drafts": false,
+          "token_sha": "a647336005a0",
+          "min_rows": 1
+        },
+        {
+          "enable_thinking": false,
+          "reasoning_effort": "none",
+          "engine": "lanes",
+          "tokens_per_second": 42.90836621632307,
+          "seconds": 4.222537515,
+          "prefill_seconds": 0.190493036,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.191510193,
+          "sampling": "greedy",
+          "drafts": true,
+          "token_sha": "a647336005a0",
+          "min_rows": 2
+        },
+        {
+          "enable_thinking": false,
+          "reasoning_effort": "none",
+          "engine": "lanes",
+          "tokens_per_second": 26.788582365965144,
+          "seconds": 6.529808092,
+          "prefill_seconds": 0.071791936,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.072719875,
+          "sampling": "greedy",
+          "drafts": false,
+          "token_sha": "a647336005a0",
+          "min_rows": 1
+        }
+      ]
+    },
+    {
+      "kind": "serial-draft-cache",
+      "mode": "off",
+      "name": "code",
+      "passed": true,
+      "cached_tokens": [
+        0,
+        0,
+        28
+      ],
+      "prompt_tokens": 29,
+      "output_hashes": [
+        "e5065936aa4526ad8aa15e8299199af5ca9cc197161a22c9ec682b881b53fdde",
+        "e5065936aa4526ad8aa15e8299199af5ca9cc197161a22c9ec682b881b53fdde",
+        "e5065936aa4526ad8aa15e8299199af5ca9cc197161a22c9ec682b881b53fdde"
+      ],
+      "answers": [
+        "```python\ndef merge_sorted_lists(list1: list[int], list2: list[int]) -> list[int]:\n    \"\"\"\n    Merges two sorted integer lists into a single sorted list.\n    \n    Args:\n        list1: First sorted list of integers.\n        list2: Second sorted list of integers.\n    \n    Returns:\n        A new sorted list containing all elements from both input lists.\n    \"\"\"\n    merged = []\n    i, j = 0, 0\n    \n    while i < len(list1) and j < len(list2):\n        if list1[i] <= list2[j]:\n            merged.append(list1[i])\n            i += 1\n        else:\n            merged.append(list2[j])\n            j += 1\n    \n    # Append remaining elements\n    while i < len(list1):\n        merged.append(list1[i])\n        i",
+        "```python\ndef merge_sorted_lists(list1: list[int], list2: list[int]) -> list[int]:\n    \"\"\"\n    Merges two sorted integer lists into a single sorted list.\n    \n    Args:\n        list1: First sorted list of integers.\n        list2: Second sorted list of integers.\n    \n    Returns:\n        A new sorted list containing all elements from both input lists.\n    \"\"\"\n    merged = []\n    i, j = 0, 0\n    \n    while i < len(list1) and j < len(list2):\n        if list1[i] <= list2[j]:\n            merged.append(list1[i])\n            i += 1\n        else:\n            merged.append(list2[j])\n            j += 1\n    \n    # Append remaining elements\n    while i < len(list1):\n        merged.append(list1[i])\n        i",
+        "```python\ndef merge_sorted_lists(list1: list[int], list2: list[int]) -> list[int]:\n    \"\"\"\n    Merges two sorted integer lists into a single sorted list.\n    \n    Args:\n        list1: First sorted list of integers.\n        list2: Second sorted list of integers.\n    \n    Returns:\n        A new sorted list containing all elements from both input lists.\n    \"\"\"\n    merged = []\n    i, j = 0, 0\n    \n    while i < len(list1) and j < len(list2):\n        if list1[i] <= list2[j]:\n            merged.append(list1[i])\n            i += 1\n        else:\n            merged.append(list2[j])\n            j += 1\n    \n    # Append remaining elements\n    while i < len(list1):\n        merged.append(list1[i])\n        i"
+      ],
+      "native": [
+        {
+          "enable_thinking": false,
+          "reasoning_effort": "none",
+          "engine": "lanes",
+          "tokens_per_second": 25.136245448339697,
+          "seconds": 7.729995053,
+          "prefill_seconds": 0.131371419,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.132244877,
+          "sampling": "greedy",
+          "drafts": false,
+          "token_sha": "ed17259a0819",
+          "min_rows": 1
+        },
+        {
+          "enable_thinking": false,
+          "reasoning_effort": "none",
+          "engine": "lanes",
+          "tokens_per_second": 70.17685327212584,
+          "seconds": 2.906413347,
+          "prefill_seconds": 0.1846009,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.185456564,
+          "sampling": "greedy",
+          "drafts": true,
+          "token_sha": "ed17259a0819",
+          "min_rows": 3
+        },
+        {
+          "enable_thinking": false,
+          "reasoning_effort": "none",
+          "engine": "lanes",
+          "tokens_per_second": 25.49963441641408,
+          "seconds": 7.561626198,
+          "prefill_seconds": 0.071263886,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.072331795,
+          "sampling": "greedy",
+          "drafts": false,
+          "token_sha": "ed17259a0819",
+          "min_rows": 1
+        }
+      ]
+    },
+    {
+      "kind": "serial-draft-cache",
+      "mode": "off",
+      "name": "long-prefix",
+      "passed": true,
+      "cached_tokens": [
+        0,
+        15117,
+        15123
+      ],
+      "prompt_tokens": 15124,
+      "output_hashes": [
+        "0d292c2335e8f6b133f48bb77e3d51426e225c7da133a2cb4e095219a296ca03",
+        "0d292c2335e8f6b133f48bb77e3d51426e225c7da133a2cb4e095219a296ca03",
+        "0d292c2335e8f6b133f48bb77e3d51426e225c7da133a2cb4e095219a296ca03"
+      ],
+      "answers": [
+        "KESTREL-9351",
+        "KESTREL-9351",
+        "KESTREL-9351"
+      ],
+      "native": [
+        {
+          "enable_thinking": false,
+          "reasoning_effort": "none",
+          "engine": "lanes",
+          "tokens_per_second": 21.893172402096297,
+          "seconds": 6.903797319,
+          "prefill_seconds": 6.538188383,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 6.555976238,
+          "sampling": "greedy",
+          "drafts": false,
+          "token_sha": "897a9b617f50",
+          "min_rows": 1
+        },
+        {
+          "enable_thinking": false,
+          "reasoning_effort": "none",
+          "engine": "lanes",
+          "tokens_per_second": 46.44039239507691,
+          "seconds": 0.328310651,
+          "prefill_seconds": 0.155688842,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.179724975,
+          "sampling": "greedy",
+          "drafts": true,
+          "token_sha": "897a9b617f50",
+          "min_rows": 5
+        },
+        {
+          "enable_thinking": false,
+          "reasoning_effort": "none",
+          "engine": "lanes",
+          "tokens_per_second": 24.105504029923512,
+          "seconds": 0.416006163,
+          "prefill_seconds": 0.083928242,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.105514054,
+          "sampling": "greedy",
+          "drafts": false,
+          "token_sha": "897a9b617f50",
+          "min_rows": 1
+        }
+      ]
+    },
+    {
+      "kind": "tool-call-stream-result",
+      "mode": "off",
+      "passed": true
+    },
+    {
+      "kind": "json-schema",
+      "mode": "off",
+      "passed": true,
+      "answer": "{\n \"answer\": 391\n}"
+    },
+    {
+      "kind": "vision-red",
+      "mode": "off",
+      "answer": "RED",
+      "passed": true
+    },
+    {
+      "kind": "vision-ocr",
+      "mode": "off",
+      "answer": "SPARK 7319",
+      "passed": true
+    },
+    {
+      "kind": "serial-draft-cache",
+      "mode": "medium",
+      "name": "arithmetic",
+      "passed": true,
+      "cached_tokens": [
+        0,
+        0,
+        31
+      ],
+      "prompt_tokens": 32,
+      "output_hashes": [
+        "0694e4a3cd07b3259a20f036aa50969add4a2a0eddc5cb64965e5262d8b81702",
+        "0694e4a3cd07b3259a20f036aa50969add4a2a0eddc5cb64965e5262d8b81702",
+        "0694e4a3cd07b3259a20f036aa50969add4a2a0eddc5cb64965e5262d8b81702"
+      ],
+      "answers": [
+        "391",
+        "391",
+        "391"
+      ],
+      "native": [
+        {
+          "enable_thinking": true,
+          "reasoning_effort": "medium",
+          "engine": "lanes",
+          "tokens_per_second": 25.859216836284094,
+          "seconds": 2.530736785,
+          "prefill_seconds": 0.133018189,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.133873709,
+          "sampling": "greedy",
+          "drafts": false,
+          "token_sha": "83d2f9279a56",
+          "min_rows": 1
+        },
+        {
+          "enable_thinking": true,
+          "reasoning_effort": "medium",
+          "engine": "lanes",
+          "tokens_per_second": 69.314992562451,
+          "seconds": 1.084296422,
+          "prefill_seconds": 0.189794734,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.190357353,
+          "sampling": "greedy",
+          "drafts": true,
+          "token_sha": "83d2f9279a56",
+          "min_rows": 5
+        },
+        {
+          "enable_thinking": true,
+          "reasoning_effort": "medium",
+          "engine": "lanes",
+          "tokens_per_second": 26.553780504045097,
+          "seconds": 2.407178909,
+          "prefill_seconds": 0.072168834,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.073021251,
+          "sampling": "greedy",
+          "drafts": false,
+          "token_sha": "83d2f9279a56",
+          "min_rows": 1
+        }
+      ]
+    },
+    {
+      "kind": "serial-draft-cache",
+      "mode": "medium",
+      "name": "prose",
+      "passed": true,
+      "cached_tokens": [
+        0,
+        0,
+        29
+      ],
+      "prompt_tokens": 30,
+      "output_hashes": [
+        "dc6294aae9f1ad66adb89c037b5a40ba2083bcd7b551834a978d0d37283bff87",
+        "dc6294aae9f1ad66adb89c037b5a40ba2083bcd7b551834a978d0d37283bff87",
+        "dc6294aae9f1ad66adb89c037b5a40ba2083bcd7b551834a978d0d37283bff87"
+      ],
+      "answers": [
+        "KV 캐시는 트랜스포머 기반 언어 모델이 텍스트를 생성할 때, 이전 토큰들의 Key와 Value 벡터를 메모리에 저장해 두는 기법입니다. 이를 통해 매 생성 단계마다 모든 이전 토큰에 대한 어텐션 계산을 처음부터 다시 수행하지 않아도 됩니다. 결과적으로 연산량이 O(n²)에서 O(n)으로 줄어 추론 속도가 크게 향상됩니다. 특히 긴 문맥을 처리할 때 재계산에 드는 GPU 연산 자원을 절약하여 처리량(throughput)을 높이는 핵심 역할을 합니다. 다만 저장해야 할 Key·Value 벡터의 크기가 시퀀스 길이에 비례하여 증가하므로, GPU 메모리 사용량이 주요 병목이 될 수 있습니다. 이러한 메모리 부담을 완화하기 위해 PagedAttention, 양자화, 슬라이딩 윈도우 등 다양한 최적화 기법이 KV 캐시와 함께 활용됩니다.",
+        "KV 캐시는 트랜스포머 기반 언어 모델이 텍스트를 생성할 때, 이전 토큰들의 Key와 Value 벡터를 메모리에 저장해 두는 기법입니다. 이를 통해 매 생성 단계마다 모든 이전 토큰에 대한 어텐션 계산을 처음부터 다시 수행하지 않아도 됩니다. 결과적으로 연산량이 O(n²)에서 O(n)으로 줄어 추론 속도가 크게 향상됩니다. 특히 긴 문맥을 처리할 때 재계산에 드는 GPU 연산 자원을 절약하여 처리량(throughput)을 높이는 핵심 역할을 합니다. 다만 저장해야 할 Key·Value 벡터의 크기가 시퀀스 길이에 비례하여 증가하므로, GPU 메모리 사용량이 주요 병목이 될 수 있습니다. 이러한 메모리 부담을 완화하기 위해 PagedAttention, 양자화, 슬라이딩 윈도우 등 다양한 최적화 기법이 KV 캐시와 함께 활용됩니다.",
+        "KV 캐시는 트랜스포머 기반 언어 모델이 텍스트를 생성할 때, 이전 토큰들의 Key와 Value 벡터를 메모리에 저장해 두는 기법입니다. 이를 통해 매 생성 단계마다 모든 이전 토큰에 대한 어텐션 계산을 처음부터 다시 수행하지 않아도 됩니다. 결과적으로 연산량이 O(n²)에서 O(n)으로 줄어 추론 속도가 크게 향상됩니다. 특히 긴 문맥을 처리할 때 재계산에 드는 GPU 연산 자원을 절약하여 처리량(throughput)을 높이는 핵심 역할을 합니다. 다만 저장해야 할 Key·Value 벡터의 크기가 시퀀스 길이에 비례하여 증가하므로, GPU 메모리 사용량이 주요 병목이 될 수 있습니다. 이러한 메모리 부담을 완화하기 위해 PagedAttention, 양자화, 슬라이딩 윈도우 등 다양한 최적화 기법이 KV 캐시와 함께 활용됩니다."
+      ],
+      "native": [
+        {
+          "enable_thinking": true,
+          "reasoning_effort": "medium",
+          "engine": "lanes",
+          "tokens_per_second": 25.468834013238762,
+          "seconds": 11.713194072,
+          "prefill_seconds": 0.130378562,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.131092271,
+          "sampling": "greedy",
+          "drafts": false,
+          "token_sha": "d3e847e68caf",
+          "min_rows": 1
+        },
+        {
+          "enable_thinking": true,
+          "reasoning_effort": "medium",
+          "engine": "lanes",
+          "tokens_per_second": 43.77350400584163,
+          "seconds": 6.927922996,
+          "prefill_seconds": 0.188524704,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.18927987,
+          "sampling": "greedy",
+          "drafts": true,
+          "token_sha": "d3e847e68caf",
+          "min_rows": 2
+        },
+        {
+          "enable_thinking": true,
+          "reasoning_effort": "medium",
+          "engine": "lanes",
+          "tokens_per_second": 26.897901633202252,
+          "seconds": 11.039619193,
+          "prefill_seconds": 0.072067571,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.072643054,
+          "sampling": "greedy",
+          "drafts": false,
+          "token_sha": "d3e847e68caf",
+          "min_rows": 1
+        }
+      ]
+    },
+    {
+      "kind": "serial-draft-cache",
+      "mode": "medium",
+      "name": "code",
+      "passed": true,
+      "cached_tokens": [
+        0,
+        0,
+        26
+      ],
+      "prompt_tokens": 27,
+      "output_hashes": [
+        "e57b0bd9bacfe42ab0a9b4c84461e3e63cfa21703bfeabcd4589e41da0a99c67",
+        "e57b0bd9bacfe42ab0a9b4c84461e3e63cfa21703bfeabcd4589e41da0a99c67",
+        "e57b0bd9bacfe42ab0a9b4c84461e3e63cfa21703bfeabcd4589e41da0a99c67"
+      ],
+      "answers": [
+        "```python\ndef merge_sorted(*lists):\n    \"\"\"Merge multiple sorted integer lists into one sorted list.\"\"\"\n    result = []\n    pointers = [0] * len(lists)\n\n    while True:\n        # Find the smallest current element across all lists\n        min_val = None\n        min_idx = -1\n        for i, lst in enumerate(lists):\n            if pointers[i] < len(lst):\n                if min_val is None or lst[pointers[i]] < min_val:\n                    min_val = lst[pointers[i]]\n                    min_idx = i\n\n        if min_idx == -1:\n            break  # All lists exhausted\n\n        result.append(min_val)\n        pointers[min_idx] += 1\n\n    return result\n```\n\n**Usage:**\n\n```python\na = [1, 3, 5, 7]\nb = [2, 4, 6]\nc = [0, 8, 9]\n\nprint(merge_sorted(a, b, c))\n# [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]\n```\n\n**How it works:**\n\n| Step | Detail |\n|------|--------|\n| **Pointers** | One index per input list tracks the next unread element. |\n| **Selection** | Each iteration scans the current heads of all lists and picks the smallest. |\n| **Advance** | The chosen list's pointer moves forward by one. |\n| **Termination** | When every pointer has passed its list's end, the loop exits. |\n\nTime complexity is **O(k · n)** where *k* is the number of lists and *n* is the total element count. For a large number of lists you could swap the inner scan for a min-heap (`heapq`) to get **O(n log k)**.",
+        "```python\ndef merge_sorted(*lists):\n    \"\"\"Merge multiple sorted integer lists into one sorted list.\"\"\"\n    result = []\n    pointers = [0] * len(lists)\n\n    while True:\n        # Find the smallest current element across all lists\n        min_val = None\n        min_idx = -1\n        for i, lst in enumerate(lists):\n            if pointers[i] < len(lst):\n                if min_val is None or lst[pointers[i]] < min_val:\n                    min_val = lst[pointers[i]]\n                    min_idx = i\n\n        if min_idx == -1:\n            break  # All lists exhausted\n\n        result.append(min_val)\n        pointers[min_idx] += 1\n\n    return result\n```\n\n**Usage:**\n\n```python\na = [1, 3, 5, 7]\nb = [2, 4, 6]\nc = [0, 8, 9]\n\nprint(merge_sorted(a, b, c))\n# [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]\n```\n\n**How it works:**\n\n| Step | Detail |\n|------|--------|\n| **Pointers** | One index per input list tracks the next unread element. |\n| **Selection** | Each iteration scans the current heads of all lists and picks the smallest. |\n| **Advance** | The chosen list's pointer moves forward by one. |\n| **Termination** | When every pointer has passed its list's end, the loop exits. |\n\nTime complexity is **O(k · n)** where *k* is the number of lists and *n* is the total element count. For a large number of lists you could swap the inner scan for a min-heap (`heapq`) to get **O(n log k)**.",
+        "```python\ndef merge_sorted(*lists):\n    \"\"\"Merge multiple sorted integer lists into one sorted list.\"\"\"\n    result = []\n    pointers = [0] * len(lists)\n\n    while True:\n        # Find the smallest current element across all lists\n        min_val = None\n        min_idx = -1\n        for i, lst in enumerate(lists):\n            if pointers[i] < len(lst):\n                if min_val is None or lst[pointers[i]] < min_val:\n                    min_val = lst[pointers[i]]\n                    min_idx = i\n\n        if min_idx == -1:\n            break  # All lists exhausted\n\n        result.append(min_val)\n        pointers[min_idx] += 1\n\n    return result\n```\n\n**Usage:**\n\n```python\na = [1, 3, 5, 7]\nb = [2, 4, 6]\nc = [0, 8, 9]\n\nprint(merge_sorted(a, b, c))\n# [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]\n```\n\n**How it works:**\n\n| Step | Detail |\n|------|--------|\n| **Pointers** | One index per input list tracks the next unread element. |\n| **Selection** | Each iteration scans the current heads of all lists and picks the smallest. |\n| **Advance** | The chosen list's pointer moves forward by one. |\n| **Termination** | When every pointer has passed its list's end, the loop exits. |\n\nTime complexity is **O(k · n)** where *k* is the number of lists and *n* is the total element count. For a large number of lists you could swap the inner scan for a min-heap (`heapq`) to get **O(n log k)**."
+      ],
+      "native": [
+        {
+          "enable_thinking": true,
+          "reasoning_effort": "medium",
+          "engine": "lanes",
+          "tokens_per_second": 25.630864063113656,
+          "seconds": 19.908324435,
+          "prefill_seconds": 0.127434393,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.12824948,
+          "sampling": "greedy",
+          "drafts": false,
+          "token_sha": "0f9fe9f50871",
+          "min_rows": 1
+        },
+        {
+          "enable_thinking": true,
+          "reasoning_effort": "medium",
+          "engine": "lanes",
+          "tokens_per_second": 59.14954464807462,
+          "seconds": 8.755064873,
+          "prefill_seconds": 0.183540171,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.184109717,
+          "sampling": "greedy",
+          "drafts": true,
+          "token_sha": "0f9fe9f50871",
+          "min_rows": 2
+        },
+        {
+          "enable_thinking": true,
+          "reasoning_effort": "medium",
+          "engine": "lanes",
+          "tokens_per_second": 26.98818064350212,
+          "seconds": 18.858004592,
+          "prefill_seconds": 0.071865934,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.072664172,
+          "sampling": "greedy",
+          "drafts": false,
+          "token_sha": "0f9fe9f50871",
+          "min_rows": 1
+        }
+      ]
+    },
+    {
+      "kind": "serial-draft-cache",
+      "mode": "medium",
+      "name": "long-prefix",
+      "passed": true,
+      "cached_tokens": [
+        15117,
+        15117,
+        15121
+      ],
+      "prompt_tokens": 15122,
+      "output_hashes": [
+        "ebbc714855bbc4056beee8e36e4ee8148358f94f4b14d6ad0f5ac9a2a84f52a7",
+        "ebbc714855bbc4056beee8e36e4ee8148358f94f4b14d6ad0f5ac9a2a84f52a7",
+        "ebbc714855bbc4056beee8e36e4ee8148358f94f4b14d6ad0f5ac9a2a84f52a7"
+      ],
+      "answers": [
+        "KESTREL-9351",
+        "KESTREL-9351",
+        "KESTREL-9351"
+      ],
+      "native": [
+        {
+          "enable_thinking": true,
+          "reasoning_effort": "medium",
+          "engine": "lanes",
+          "tokens_per_second": 25.037468664207303,
+          "seconds": 2.531170783,
+          "prefill_seconds": 0.094666521,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.111223008,
+          "sampling": "greedy",
+          "drafts": false,
+          "token_sha": "4d3c227f7ee8",
+          "min_rows": 1
+        },
+        {
+          "enable_thinking": true,
+          "reasoning_effort": "medium",
+          "engine": "lanes",
+          "tokens_per_second": 42.928040365633265,
+          "seconds": 1.584873722,
+          "prefill_seconds": 0.163785052,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.180259792,
+          "sampling": "greedy",
+          "drafts": true,
+          "token_sha": "4d3c227f7ee8",
+          "min_rows": 2
+        },
+        {
+          "enable_thinking": true,
+          "reasoning_effort": "medium",
+          "engine": "lanes",
+          "tokens_per_second": 26.3046474582389,
+          "seconds": 2.405326781,
+          "prefill_seconds": 0.086043487,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.10343125,
+          "sampling": "greedy",
+          "drafts": false,
+          "token_sha": "4d3c227f7ee8",
+          "min_rows": 1
+        }
+      ]
+    },
+    {
+      "kind": "tool-call-stream-result",
+      "mode": "medium",
+      "passed": true
+    },
+    {
+      "kind": "json-schema",
+      "mode": "medium",
+      "passed": true,
+      "answer": "{\"answer\": 391}"
+    },
+    {
+      "kind": "vision-red",
+      "mode": "medium",
+      "answer": "RED",
+      "passed": true
+    },
+    {
+      "kind": "vision-ocr",
+      "mode": "medium",
+      "answer": "SPARK 7319",
+      "passed": true
+    },
+    {
+      "kind": "conversation-resume",
+      "passed": true,
+      "answer": "WQ9826"
+    },
+    {
+      "kind": "cancel-recover",
+      "passed": true,
+      "answer": "391"
+    }
+  ],
+  "talk_chat": [
+    {
+      "model": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-FP4-Local",
+      "mode": "off",
+      "answer": "391",
+      "reasoning_chars": 0,
+      "reasoning_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "performance": {
+        "totals": {
+          "prefill_tokens": 16231,
+          "prefill_seconds": 9.513264793,
+          "decode_tokens": 3,
+          "decode_seconds": 0.323916609
+        },
+        "elapsed_seconds": 28.118736481,
+        "finished_at": "2026-10-21T17:30:51.496151917Z",
+        "finish_status": "completed",
+        "pp": 1706.144037107325,
+        "tg": 9.261643017508867,
+        "ttft": 9.554496785,
+        "prompt_tokens": 16231,
+        "cached_tokens": 0,
+        "output_tokens": 4,
+        "calls": 1
+      },
+      "events": [
+        "context",
+        "delta",
+        "done",
+        "performance",
+        "turn_started"
+      ],
+      "passed": true
+    },
+    {
+      "model": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-FP4-Local",
+      "mode": "medium",
+      "answer": "391",
+      "reasoning_chars": 15,
+      "reasoning_sha256": "c1d59dacb2cac16b2be55523543908e2ba0e8e889ab878220d19190cab617778",
+      "performance": {
+        "totals": {
+          "prefill_tokens": 16229,
+          "prefill_seconds": 7.932119571,
+          "decode_tokens": 18,
+          "decode_seconds": 1.636774608
+        },
+        "elapsed_seconds": 12.158095737,
+        "finished_at": "2026-10-21T17:31:03.705234603Z",
+        "finish_status": "completed",
+        "pp": 2045.9852949435574,
+        "tg": 10.997238050994984,
+        "ttft": 10.337762204,
+        "prompt_tokens": 16229,
+        "cached_tokens": 0,
+        "output_tokens": 19,
+        "calls": 1
+      },
+      "events": [
+        "context",
+        "delta",
+        "done",
+        "performance",
+        "reasoning",
+        "turn_started"
+      ],
+      "passed": true
+    }
+  ],
+  "deployment": {
+    "before_binary_sha256": "f3b8fb51b6478e0cd5a7073a6f96eb90fbc2765bed1f14e346543858a1ae4df8",
+    "after_binary_sha256": "f45b3725d5e55548f5b418aaebdcd0f02a2f58e1b5665efe75b0971153b902c1",
+    "host": "61",
+    "host60_contacted": false,
+    "checks": [
+      {
+        "label": "correctness",
+        "passed": true
+      },
+      {
+        "label": "managed-holdout",
+        "passed": true
+      },
+      {
+        "label": "talk-chat",
+        "passed": true
+      }
+    ],
+    "start_operation": {
+      "action": "start",
+      "bundle_id": "flash-next-fp4-local",
+      "component_id": "flash-next-fp4-local",
+      "state": "complete",
+      "phase": "준비 완료",
+      "detail": "선택한 구성을 사용할 수 있습니다.",
+      "progress": 1,
+      "started_at": "2026-10-22T02:25:03.346390103+09:00",
+      "finished_at": "2026-10-22T02:26:12.604727626+09:00",
+      "steps": [
+        {
+          "phase": "기동 계획 준비",
+          "state": "complete",
+          "started_at": "2026-10-22T02:25:03.346390343+09:00",
+          "finished_at": "2026-10-22T02:25:04.675449857+09:00"
+        },
+        {
+          "component_id": "qwen3-tts",
+          "phase": "Qwen3-TTS 0.6B 최초 자산 확인·준비",
+          "state": "complete",
+          "started_at": "2026-10-22T02:25:04.675449857+09:00",
+          "finished_at": "2026-10-22T02:25:06.663123273+09:00"
+        },
+        {
+          "phase": "세트 기동 전 메모리 재확인",
+          "detail": "시스템 가용 117.7 GiB · 즉시 여유 96.2 GiB · 추가 예상 103.0 GiB · 최소 확보 1.5 GiB",
+          "state": "complete",
+          "started_at": "2026-10-22T02:25:06.663123273+09:00",
+          "finished_at": "2026-10-22T02:25:06.849957881+09:00"
+        },
+        {
+          "phase": "언어 모델 기동 직전 메모리 확인",
+          "detail": "시스템 가용 117.7 GiB · 즉시 여유 96.2 GiB · 추가 예상 103.0 GiB · 최소 확보 1.5 GiB",
+          "state": "complete",
+          "started_at": "2026-10-22T02:25:06.849957881+09:00",
+          "finished_at": "2026-10-22T02:25:06.849958681+09:00"
+        },
+        {
+          "component_id": "flash-next-fp4-local",
+          "phase": "Qwen 3.8 Flash-Next FP4-Local 시작",
+          "detail": "컨테이너와 실행 설정을 확인하고 있습니다.",
+          "state": "complete",
+          "started_at": "2026-10-22T02:25:06.849958681+09:00",
+          "finished_at": "2026-10-22T02:25:08.93158845+09:00"
+        },
+        {
+          "component_id": "flash-next-fp4-local",
+          "phase": "TensorFold 엔진 시작",
+          "state": "complete",
+          "started_at": "2026-10-22T02:25:08.93158845+09:00",
+          "finished_at": "2026-10-22T02:25:21.272886732+09:00"
+        },
+        {
+          "component_id": "flash-next-fp4-local",
+          "phase": "TensorFold 추론 준비",
+          "detail": "비전·KV 캐시·MTP 경로를 준비합니다.",
+          "state": "complete",
+          "started_at": "2026-10-22T02:25:21.272886732+09:00",
+          "finished_at": "2026-10-22T02:26:12.604393011+09:00"
+        },
+        {
+          "component_id": "flash-next-fp4-local",
+          "phase": "Qwen 3.8 Flash-Next FP4-Local API 응답 확인",
+          "detail": "서비스가 요청을 받을 준비를 마쳤습니다.",
+          "state": "complete",
+          "started_at": "2026-10-22T02:26:12.604393011+09:00",
+          "finished_at": "2026-10-22T02:26:12.604727626+09:00"
+        }
+      ]
+    },
+    "runtime": {
+      "image": "local/sparktalk-qwen38-fp4-tensorfold:db281878-ko2",
+      "image_id": "sha256:0a70046966c0129d949775e582478f55400094148401c25660ac1d1517ac8878",
+      "command": [
+        "serve",
+        "/model",
+        "--name",
+        "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-FP4-Local",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8000",
+        "--context",
+        "1048576",
+        "--parallel",
+        "1",
+        "--max-tokens",
+        "4096",
+        "--temperature",
+        "0",
+        "--top-p",
+        "1",
+        "--top-k",
+        "0",
+        "--no-thinking",
+        "--kv-dtype",
+        "fp8",
+        "--vision",
+        "--vision-max-images",
+        "50",
+        "--vision-max-videos",
+        "4",
+        "--vision-image-tokens",
+        "16384"
+      ],
+      "environment": {
+        "TF_FLASHNEXT_PREFILL_ROWS": "4096",
+        "TENSORFOLD_MEMORY_RESERVE_GIB": "4",
+        "TF_FLASHNEXT_DEPTH": "4",
+        "TENSORFOLD_IMAGE_TOKENS": "16384",
+        "TENSORFOLD_MAX_IMAGES": "50",
+        "TF_FLASHNEXT_PRODUCT_STREAMS": "1",
+        "TF_FLASHNEXT_PREFILL_TAIL": "512",
+        "TF_FLASHNEXT_PROMPT_EXPERT_TILE": "2",
+        "TENSORFOLD_NO_UPDATE_CHECK": "1",
+        "TENSORFOLD_CUDA_KERNELS": "/opt/tensorfold/share/tensorfold/cuda/sm121",
+        "TF_FLASHNEXT_YARN": "4",
+        "TENSORFOLD_VISION_PYTHONPATH": "/opt/tensorfold/python",
+        "TENSORFOLD_STRUCTURE_BRIDGE": "/opt/tf-structure/libtf_structure.so",
+        "TENSORFOLD_STRUCTURE_MODEL": "/model"
+      },
+      "model_readonly": true
+    },
+    "container_state": {
+      "running": true,
+      "health": "healthy"
+    },
+    "talk_model": {
+      "default_model": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-FP4-Local",
+      "endpoint": "http://127.0.0.1:18004",
+      "model_type": "qwen3.8-tensorfold"
+    },
+    "passed": true,
+    "monitor": {
+      "minimum_available_gib": 25.972030639648438,
+      "failure": [],
+      "elapsed_s": 360.3998417039984
+    }
+  },
+  "checks": [
+    {
+      "label": "support-assets",
+      "command": "go run ./cmd/package-support --check",
+      "status": "fulfilled",
+      "value": {
+        "chunk_id": "bbe2f5",
+        "wall_time_seconds": 1.6928e-05,
+        "exit_code": 0,
+        "original_token_count": 9,
+        "output": "Support assets verified: 109 files\n"
+      }
+    },
+    {
+      "label": "recipe-assets",
+      "command": "go run ./cmd/package-recipes --check",
+      "status": "fulfilled",
+      "value": {
+        "chunk_id": "f9b3d0",
+        "wall_time_seconds": 8.24e-06,
+        "exit_code": 0,
+        "original_token_count": 36,
+        "output": "Recipe verified: glm53 (16 files)\nRecipe verified: ds41 (11 files)\nRecipe verified: qwen38-tp2 (42 files)\nRecipe verified: glm53-fp4 (13 files)\n"
+      }
+    },
+    {
+      "label": "config-orchestrator-tests",
+      "command": "go test ./internal/config ./internal/orchestrator",
+      "status": "fulfilled",
+      "value": {
+        "exit_code": 0,
+        "output": "ok sparktalk/internal/config 7.144s\nok sparktalk/internal/orchestrator 6.445s\n"
+      }
+    },
+    {
+      "label": "compose-validation",
+      "command": "docker compose config --quiet; separate-file content/inode validation",
+      "status": "fulfilled",
+      "value": {
+        "exit_code": 0,
+        "output": "Compose: valid YAML, equal content, separate regular files"
+      }
+    },
+    {
+      "label": "linux-arm64-build",
+      "command": "CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -trimpath -ldflags='-s -w' -o JOB/sparktalk ./cmd/chat",
+      "status": "fulfilled",
+      "value": {
+        "exit_code": 0
+      }
+    },
+    {
+      "label": "diff-whitespace-check",
+      "command": "git diff --check -- changed Compose files and README",
+      "status": "fulfilled",
+      "value": {
+        "exit_code": 0
+      }
+    }
+  ],
+  "compose": {
+    "standalone": "compose_yaml/qwen38_fn_fp4_local_tsfold/compose.yaml",
+    "embedded": "util/talk/internal/orchestrator/assets/compose.qwen-fp4-local.yaml",
+    "equal_content_separate_files": true,
+    "sha256": "bfab1381d49be1d99d6d0ba2cf3a8ae966e111fc562d002bacd56c23239ead4f"
+  },
+  "sources": [
+    "https://github.com/ashhart/TensorFold/tree/db281878ddb836fd0df510d8771ecb7e0fe47d26",
+    "https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Single-DGX-Spark-TensorFold",
+    "compose_yaml/qwen38_fn_fp4_local_tsfold/compose.yaml"
+  ],
+  "raw_archive": {
+    "path": "util/talk/docs/qwen38-fp4-tuning-20261022.tar.gz",
+    "sha256": "7a81e7847f19fd2d9b1cbcafcdfbba902157d6ea29c6532d96e8c8d9da0d782b",
+    "bytes": 229429
+  },
+  "cleanup": {
+    "temporary_job_removed": "/home/edp1096/.cache/model-download-jobs/qwen38-fp4-tune-20261022",
+    "trial_container_removed": true,
+    "temporary_talk_chats_removed": true,
+    "binary_backup_removed": true,
+    "new_model_downloads": 0,
+    "host60_contacted": false
+  }
+}

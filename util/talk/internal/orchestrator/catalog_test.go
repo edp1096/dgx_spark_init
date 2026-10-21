@@ -10,7 +10,7 @@ func TestEmbeddedCatalogIsComplete(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, id := range []string{"flash-next", "qwen38fn_exl3", "qwen38fn_exl3_q4", "flash-next-radixark"} {
+	for _, id := range []string{"flash-next", "qwen38fn_exl3"} {
 		bundle, ok := catalog.Bundle(id)
 		if !ok || bundle.MemoryGiB <= 0 || bundle.ModelID == "" {
 			t.Fatalf("invalid bundle %q: %+v", id, bundle)
@@ -73,12 +73,12 @@ func TestRetired27BEXL3IsNotEmbedded(t *testing.T) {
 	}
 }
 
-func TestRetiredGemmaRuntimesHaveNoEmbeddedAssets(t *testing.T) {
+func TestRetiredLLMRuntimesHaveNoEmbeddedAssets(t *testing.T) {
 	catalog, err := LoadCatalog()
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, id := range []string{"gemma", "gemma26", "gemma31"} {
+	for _, id := range []string{"gemma", "gemma26", "gemma31", "ornith35"} {
 		if _, ok := catalog.Component(id); ok {
 			t.Fatalf("retired component: %s", id)
 		}
@@ -86,7 +86,7 @@ func TestRetiredGemmaRuntimesHaveNoEmbeddedAssets(t *testing.T) {
 			t.Fatalf("retired bundle: %s", id)
 		}
 	}
-	for _, asset := range []string{"compose.gemma26.yaml", "compose.gemma31.yaml"} {
+	for _, asset := range []string{"compose.gemma26.yaml", "compose.gemma31.yaml", "compose.ornith35.yaml"} {
 		if _, err := composeAsset(asset); err == nil {
 			t.Fatalf("retired compose still available: %s", asset)
 		}
@@ -94,7 +94,7 @@ func TestRetiredGemmaRuntimesHaveNoEmbeddedAssets(t *testing.T) {
 			t.Fatalf("retired preparation: %s", asset)
 		}
 	}
-	for _, path := range []string{"assets/gemma26/Dockerfile", "assets/gemma31/Dockerfile.exl3", "assets/gemma31/launch_exl3.py"} {
+	for _, path := range []string{"assets/gemma26/Dockerfile", "assets/gemma31/Dockerfile.exl3", "assets/ornith35/Dockerfile"} {
 		if _, err := assets.ReadFile(path); err == nil {
 			t.Fatalf("retired build input embedded: %s", path)
 		}

@@ -4,7 +4,6 @@ import os
 from pathlib import Path
 import tempfile
 import unittest
-from unittest.mock import patch
 
 assets = Path(__file__).resolve().parents[2] / 'internal/orchestrator/assets/qwen38fn_exl3'
 
@@ -17,7 +16,6 @@ def module(name):
 
 
 launch = module('launch')
-release = module('release_weight_cache')
 
 
 def checkpoint(root):
@@ -36,7 +34,7 @@ class Qwen38FNEXL3Tests(unittest.TestCase):
             base = Path(directory);source = base / 'original';checkpoint(source)
             original = (source / 'config.json').read_bytes()
             path = launch.prepare_runtime(source, base / 'runtime')
-            view = base / 'runtime/models' / launch.MODEL
+            view = base / 'runtime/model-yarn4'
             cfg = json.loads((view / 'config.json').read_text());rope = cfg['text_config']['rope_parameters']
             self.assertEqual(cfg['max_position_embeddings'], 1048576)
             self.assertEqual(rope['factor'], 4)
@@ -45,24 +43,33 @@ class Qwen38FNEXL3Tests(unittest.TestCase):
             self.assertEqual(rope['partial_rotary_factor'], .25)
             self.assertEqual((source / 'config.json').read_bytes(), original)
             self.assertEqual((view / 'ngram_embedding.safetensors').resolve(), (source / 'ngram_embedding.safetensors').resolve())
-            self.assertTrue(path.is_file())
+            self.assertTrue(path.is_dir())
             launch.prepare_runtime(source, base / 'runtime')
             with self.assertRaises(ValueError):launch.prepare_runtime(source, base / 'other', 2097152)
 
-    @unittest.skipUnless(hasattr(os, 'posix_fadvise'), 'Linux file cache advice')
-    def test_open_checkpoint_rejects_advice_and_ple_is_never_advised(self):
+    def test_incomplete_checkpoint_and_unexpected_view_file_are_rejected(self):
         with tempfile.TemporaryDirectory() as directory:
             base = Path(directory);source = base / 'original';checkpoint(source)
-            process = base / 'proc';process.mkdir();(process / 'fd').mkdir();(process / 'maps').write_text('')
-            descriptor = process / 'fd/1';descriptor.symlink_to(source / 'model-00001-of-00007.safetensors')
-            with patch.object(release.os, 'posix_fadvise') as advise:
-                with self.assertRaises(RuntimeError):release.release_cache(source, process)
-                advise.assert_not_called()
-                descriptor.unlink()
-                descriptor.symlink_to(source / 'ngram_embedding.safetensors')
-                result = release.release_cache(source, process)
-                self.assertEqual(advise.call_count, 7)
-                self.assertNotIn('ngram_embedding.safetensors', result['files'])
+            view = launch.prepare_runtime(source, base / 'runtime')
+            target = view / 'tokenizer.json';target.unlink();target.write_text('user data')
+            with self.assertRaises(RuntimeError):launch.prepare_runtime(source, base / 'runtime')
+            self.assertEqual(target.read_text(), 'user data')
+            (source / 'ngram_embedding.safetensors').unlink()
+            with self.assertRaises(RuntimeError):launch.prepare_runtime(source, base / 'missing')
+
+    @unittest.skipUnless(os.name == 'posix', 'Linux runtime lock')
+    def test_restart_recovers_stale_build_lock_without_stealing_live_cache(self):
+        with tempfile.TemporaryDirectory() as directory:
+            cache = Path(directory);locks = cache / 'torch-extensions/fixture';locks.mkdir(parents=True)
+            stale = locks / 'lock';stale.touch()
+            first = launch.acquire_runtime(cache)
+            self.assertFalse(stale.exists())
+            stale.touch()
+            try:
+                with self.assertRaises(RuntimeError):launch.acquire_runtime(cache)
+                self.assertTrue(stale.exists())
+            finally:first.close()
+            with launch.acquire_runtime(cache):self.assertFalse(stale.exists())
 
 
 if __name__ == '__main__':unittest.main()

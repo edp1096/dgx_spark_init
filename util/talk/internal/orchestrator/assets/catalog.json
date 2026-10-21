@@ -4,18 +4,6 @@
   },
   "components": [
     {
-      "id": "ornith35",
-      "role": "llm",
-      "container": "vllm-ornith35",
-      "health_url": "http://127.0.0.1:8000/health",
-      "model": "edp1096/Huihui-Ornith-1.5-35B-A3B-NVFP4",
-      "memory_gib": 70.0,
-      "startup_timeout_seconds": 1200,
-      "compose_asset": "compose.ornith35.yaml",
-      "progress_kind": "vllm",
-      "auto_address": true
-    },
-    {
       "id": "qwen38fn_exl3",
       "role": "llm",
       "host": "local",
@@ -26,30 +14,13 @@
       "container": "sparktalk-qwen38fn_exl3",
       "health_url": "http://127.0.0.1:18002/health",
       "model": "qwen38fn_exl3",
-      "memory_gib": 85,
+      "memory_gib": 80,
       "startup_timeout_seconds": 1800,
       "compose_asset": "compose.qwen38fn_exl3.yaml",
-      "progress_kind": "exl3",
-      "auto_address": true
-    },
-    {
-      "id": "qwen38fn_exl3_q4",
-      "name": "Qwen 3.8 Flash-Next EXL3 4bit",
-      "role": "llm",
-      "host": "local",
-      "controller": "compose",
-      "endpoint": "http://127.0.0.1:18004",
-      "bind_address": "127.0.0.1",
-      "port": 18004,
-      "container": "sparktalk-qwen38fn-exl3-q4",
-      "health_url": "http://127.0.0.1:18004/health",
-      "model": "qwen38fn_exl3_q4",
-      "memory_gib": 100,
-      "workspace_memory_gib": 4,
-      "startup_timeout_seconds": 1800,
-      "compose_asset": "compose.qwen38fn_exl3_q4.yaml",
-      "progress_kind": "service",
-      "auto_address": true
+      "progress_kind": "tensorfold",
+      "auto_address": true,
+      "startup_memory_gib": 70,
+      "workspace_memory_gib": 4
     },
     {
       "id": "flash-next",
@@ -189,43 +160,26 @@
       "id": "glm53",
       "role": "llm",
       "host": "local",
-      "controller": "glm53-cluster",
+      "controller": "glm53-fp4-cluster",
       "endpoint": "http://127.0.0.1:8000",
       "health_url": "http://127.0.0.1:8000/health",
       "container": "glm53-head",
       "worker_host": "worker",
       "worker_container": "glm53-worker",
       "model": "glm-5.3-flash",
-      "memory_gib": 113,
-      "worker_memory_gib": 113,
+      "memory_gib": 108,
+      "worker_memory_gib": 108,
       "startup_timeout_seconds": 3600,
-      "progress_kind": "sglang",
+      "progress_kind": "b12x",
       "auto_address": true,
       "runtime_options": {
         "MAX_MODEL_LEN": "1048576",
         "MAX_NUM_SEQS": "1",
-        "MTP_TOKENS": "0",
-        "MODEL_VARIANT": "official",
-        "DFLASH_TOKENS": "5"
-      }
-    },
-    {
-      "id": "ds4fve",
-      "role": "llm",
-      "host": "local",
-      "controller": "dspark-cluster",
-      "endpoint": "http://127.0.0.1:8888",
-      "port": 8888,
-      "health_url": "http://127.0.0.1:8888/health",
-      "container": "deepseek-v4-flash-vllm-dspark-1",
-      "worker_host": "worker",
-      "worker_container": "deepseek-v4-flash-vllm-dspark-1",
-      "model": "deepseek-v4-flash-vision-exp",
-      "memory_gib": 111,
-      "worker_memory_gib": 109,
-      "startup_timeout_seconds": 3600,
-      "progress_kind": "service",
-      "auto_address": true
+        "MTP_TOKENS": "5",
+        "MODEL_VARIANT": "official"
+      },
+      "name": "GLM 5.3 Flash FP4-Local TP2",
+      "startup_memory_gib": 115
     },
     {
       "id": "ds41",
@@ -235,15 +189,21 @@
       "endpoint": "http://127.0.0.1:8010",
       "port": 8010,
       "health_url": "http://127.0.0.1:8010/health",
-      "container": "ds41-stream-0",
+      "container": "sparktalk-ds41-tf-r0",
       "worker_host": "worker",
-      "worker_container": "ds41-stream-1",
-      "model": "deepseek-v4.1-flash",
-      "memory_gib": 108,
-      "worker_memory_gib": 107,
+      "worker_container": "sparktalk-ds41-tf-r1",
+      "model": "DeepSeek-V4.1-Flash-TF",
+      "memory_gib": 112,
+      "worker_memory_gib": 112,
       "startup_timeout_seconds": 3600,
       "progress_kind": "service",
-      "auto_address": true
+      "auto_address": true,
+      "runtime_options": {
+        "MODEL_VARIANT": "abliterated",
+        "MAX_MODEL_LEN": "1048576",
+        "MTP_TOKENS": "auto"
+      },
+      "name": "DeepSeek V4.1 Flash 1017 EXL3 2bit TP2"
     },
     {
       "id": "qwim-mmh3",
@@ -263,27 +223,6 @@
       "progress_kind": "service",
       "auto_address": true,
       "keep_resident": true
-    },
-    {
-      "id": "flash-next-radixark",
-      "role": "llm",
-      "container": "sglang-qwen38-fn-radixark",
-      "health_url": "http://127.0.0.1:18003/health",
-      "model": "edp1096/Huihui-RadixArk-Qwen3.8-Flash-Next-abliterated-NVFP4",
-      "memory_gib": 110,
-      "startup_timeout_seconds": 1800,
-      "compose_asset": "compose.flash-next.yaml",
-      "progress_kind": "sglang",
-      "auto_address": true,
-      "runtime_options": {
-        "MODEL_VARIANT": "radixark",
-        "MTP_TOKENS": "3",
-        "MAX_MODEL_LEN": "1048576"
-      },
-      "endpoint": "http://127.0.0.1:18003",
-      "port": 18003,
-      "name": "Qwen 3.8 Flash-Next NVFP4",
-      "workspace_memory_gib": 8
     },
     {
       "id": "extra-embedding",
@@ -308,41 +247,25 @@
       "id": "flash-next-fp4-local",
       "name": "Qwen 3.8 Flash-Next FP4-Local",
       "role": "llm",
-      "container": "vllm-qwen38-fp4-local",
+      "container": "sparktalk-qwen38-fp4-local",
       "health_url": "http://127.0.0.1:18004/health",
       "endpoint": "http://127.0.0.1:18004",
       "port": 18004,
       "model": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-FP4-Local",
       "memory_gib": 103,
-      "startup_memory_gib": 116,
-      "workspace_memory_gib": 3,
+      "startup_memory_gib": 103,
+      "workspace_memory_gib": 4,
       "startup_timeout_seconds": 1800,
       "compose_asset": "compose.qwen-fp4-local.yaml",
-      "progress_kind": "b12x",
+      "progress_kind": "tensorfold",
       "auto_address": true
     }
   ],
   "bundles": [
     {
-      "id": "ornith35",
-      "description": "1× DGX Spark · 1M YaRN · FP8 KV · 이미지·ASR·TTS·Extra",
-      "model_type": "qwen3.5",
-      "model_id": "edp1096/Huihui-Ornith-1.5-35B-A3B-NVFP4",
-      "context_tokens": 1048576,
-      "components": [
-        "ornith35",
-        "flux2",
-        "nemotron-asr",
-        "qwen3-tts",
-        "extra-media",
-        "extra-ssh",
-        "extra-collector"
-      ]
-    },
-    {
       "id": "qwen38fn_exl3",
-      "description": "EXL3 1M·MTP 3 · QWIM/MMH3 공동 DiT 상주 · 텍스트→이미지 1024² · 텍스트→영상 864×480·5.2초·음성 포함",
-      "model_type": "qwen38fn_exl3",
+      "description": "TensorFold · EXL3 3bit HQ h6 ng6 · Q8 KV 1M·YaRN 4·MTP 1–5 · 이미지·ASR·TTS·Extra",
+      "model_type": "qwen3.8-tensorfold",
       "model_id": "qwen38fn_exl3",
       "context_tokens": 1048576,
       "components": [
@@ -371,34 +294,10 @@
       "name": "Qwen 3.8 Flash-Next EXL3 3bit"
     },
     {
-      "id": "qwen38fn_exl3_q4",
-      "name": "Qwen 3.8 Flash-Next EXL3 4bit",
-      "description": "VeloGB10 · EXL3 4bit HQ h6 ng6 · Q8 KV 1M·YaRN 4·MTP 3 · ASR·임베딩 상주 · Extra",
-      "model_type": "qwen38fn_exl3",
-      "model_id": "qwen38fn_exl3_q4",
-      "context_tokens": 1048576,
-      "components": [
-        "qwen38fn_exl3_q4",
-        "nemotron-asr",
-        "extra-media",
-        "extra-ssh",
-        "extra-collector",
-        "extra-documents",
-        "extra-embedding"
-      ],
-      "bindings": {
-        "nemotron-asr": {
-          "start_after_llm": true,
-          "keep_resident": true
-        }
-      },
-      "workload_swap": true
-    },
-    {
       "id": "flash-next-fp4-local",
       "name": "Qwen 3.8 Flash-Next FP4-Local",
-      "description": "1× DGX Spark · FP4-Local · FP8 KV 1M · MTP 4 · ASR·TTS·Extra",
-      "model_type": "qwen3.8-vllm",
+      "description": "1× DGX Spark · TensorFold · FP4-Local · FP8 KV 1M · MTP 4 · ASR·TTS·Extra",
+      "model_type": "qwen3.8-tensorfold",
       "model_id": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-FP4-Local",
       "context_tokens": 1048576,
       "components": [
@@ -427,30 +326,6 @@
           "startup_memory_gib": 3
         }
       },
-      "workload_swap": true
-    },
-    {
-      "id": "flash-next-radixark",
-      "description": "1× DGX Spark · RadixArk NVFP4 · FP8 KV 1M · MTP 3 · ASR·Extra",
-      "model_type": "qwen3.8",
-      "model_id": "edp1096/Huihui-RadixArk-Qwen3.8-Flash-Next-abliterated-NVFP4",
-      "context_tokens": 1048576,
-      "components": [
-        "flash-next-radixark",
-        "nemotron-asr",
-        "extra-media",
-        "extra-ssh",
-        "extra-collector",
-        "extra-documents",
-        "extra-embedding"
-      ],
-      "bindings": {
-        "nemotron-asr": {
-          "start_after_llm": true,
-          "keep_resident": true
-        }
-      },
-      "name": "Qwen 3.8 Flash-Next NVFP4",
       "workload_swap": true
     },
     {
@@ -515,65 +390,11 @@
       "start_support": true
     },
     {
-      "id": "ds4fve",
-      "description": "2× DGX Spark · 공식 Vision Exp · DSpark TP2 + 헤드 Extra 도구 · 워커 ASR·TTS",
-      "model_type": "deepseek-v4",
-      "model_id": "deepseek-v4-flash-vision-exp",
-      "context_tokens": 1048576,
-      "components": [
-        "ds4fve",
-        "extra-media",
-        "extra-ssh",
-        "extra-collector",
-        "nemotron-asr",
-        "qwen3-tts"
-      ],
-      "bindings": {
-        "extra-media": {
-          "host": "local",
-          "endpoint": "http://127.0.0.1:8690",
-          "health_url": "http://127.0.0.1:8690/health",
-          "bind_address": "127.0.0.1",
-          "port": 8690
-        },
-        "extra-ssh": {
-          "host": "local",
-          "endpoint": "http://127.0.0.1:8699",
-          "health_url": "http://127.0.0.1:8699/health",
-          "bind_address": "127.0.0.1",
-          "port": 8699
-        },
-        "extra-collector": {
-          "host": "local",
-          "endpoint": "http://127.0.0.1:8695",
-          "health_url": "http://127.0.0.1:8695/health",
-          "bind_address": "127.0.0.1",
-          "port": 8695
-        },
-        "nemotron-asr": {
-          "host": "worker",
-          "endpoint": "http://192.168.100.60:8693",
-          "health_url": "http://192.168.100.60:8693/ready",
-          "bind_address": "192.168.100.60",
-          "port": 8693
-        },
-        "qwen3-tts": {
-          "host": "worker",
-          "endpoint": "http://192.168.100.60:8692",
-          "health_url": "http://192.168.100.60:8692/ready",
-          "bind_address": "192.168.100.60",
-          "port": 8692,
-          "memory_gib": 4,
-          "startup_memory_gib": 3
-        }
-      }
-    },
-    {
       "id": "ds41",
-      "description": "2× DGX Spark · SSD expert streaming · 64K · 워커 ASR·헤드 Extra 도구 · 워커 Qwen3-TTS Q8",
+      "description": "2× DGX Spark · TensorFold EXL3 2.8bit · FP8 KV 1M · MTP · ASR·TTS 요청 시 실행",
       "model_type": "deepseek-v4",
-      "model_id": "deepseek-v4.1-flash",
-      "context_tokens": 65536,
+      "model_id": "DeepSeek-V4.1-Flash-TF",
+      "context_tokens": 1048576,
       "components": [
         "ds41",
         "extra-media",
@@ -606,11 +427,13 @@
           "port": 8695
         },
         "nemotron-asr": {
-          "host": "worker",
-          "endpoint": "http://192.168.100.60:8693",
-          "health_url": "http://192.168.100.60:8693/ready",
-          "bind_address": "192.168.100.60",
-          "port": 8693
+          "host": "local",
+          "endpoint": "http://127.0.0.1:8693",
+          "health_url": "http://127.0.0.1:8693/ready",
+          "bind_address": "127.0.0.1",
+          "port": 8693,
+          "start_after_llm": true,
+          "keep_resident": false
         },
         "extra-documents": {
           "host": "local",
@@ -620,21 +443,24 @@
           "port": 8696
         },
         "qwen3-tts": {
-          "host": "worker",
-          "endpoint": "http://192.168.100.60:8692",
-          "health_url": "http://192.168.100.60:8692/ready",
-          "bind_address": "192.168.100.60",
+          "host": "local",
+          "endpoint": "http://127.0.0.1:8692",
+          "health_url": "http://127.0.0.1:8692/ready",
+          "bind_address": "127.0.0.1",
           "port": 8692,
           "memory_gib": 4,
           "start_after_llm": true,
-          "startup_memory_gib": 3
+          "startup_memory_gib": 3,
+          "keep_resident": false
         }
       },
-      "start_support": true
+      "start_support": true,
+      "workload_swap": true,
+      "name": "DeepSeek V4.1 Flash 1017 EXL3 2bit TP2"
     },
     {
       "id": "glm53-worker-extra",
-      "description": "NVFP4 TP2 · SGLang · DFlash2 · 1M 문맥",
+      "description": "2× DGX Spark · FP4-Local · vLLM/B12X · FP8 KV 1M · MTP 5 · TTS·Extra",
       "model_type": "glm5.3",
       "model_id": "glm-5.3-flash",
       "context_tokens": 1048576,
@@ -677,7 +503,8 @@
           "startup_memory_gib": 3,
           "start_after_llm": true
         }
-      }
+      },
+      "name": "GLM 5.3 Flash FP4-Local TP2"
     }
   ],
   "hosts": {

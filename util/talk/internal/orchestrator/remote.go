@@ -218,16 +218,6 @@ func (c *Controller) prepareOrStartComponent(ctx context.Context, component Comp
 		}
 	}
 	service["container_name"] = component.Container
-	if component.ComposeAsset == "compose.ornith35.yaml" {
-		for _, key := range []string{"MTP_TOKENS", "DRAFT_VOCAB"} {
-			if value, ok := component.RuntimeOptions[key]; ok {
-				if (key == "MTP_TOKENS" && value != "0" && value != "1" && value != "3") || (key == "DRAFT_VOCAB" && value != "off" && value != "ko64k") {
-					return fmt.Errorf("invalid %s: %s", key, value)
-				}
-				service["environment"].(map[string]any)[key] = value
-			}
-		}
-	}
 	if component.ComposeAsset == "compose.flash-next.yaml" {
 		mode := component.RuntimeOptions["DRAFT_VOCAB"]
 		if mode != "" && mode != "off" && mode != "ko64k" {
@@ -492,6 +482,7 @@ func (c *Controller) checkRemoteMemory(ctx context.Context, bundle Bundle, defau
 		if reserve <= 0 {
 			reserve = normalizedMemoryReserve(defaultReserve)
 		}
+		reserve = catalog.minimumBundleReserve(bundle, reserve)
 		if err := validateMemoryHeadroom(memory, plan, reserve); err != nil {
 			return fmt.Errorf("호스트 %s: %w", hostID, err)
 		}
@@ -528,10 +519,10 @@ func (c *Controller) localMemoryReserve(bundle Bundle, fallback float64) float64
 		component, _ := catalog.ResolveComponent(bundle.ID, id)
 		host := catalog.Hosts[component.Host]
 		if component.Controller != "external" && host.Address == "" && host.MemoryReserveGiB > 0 {
-			return host.MemoryReserveGiB
+			return catalog.minimumBundleReserve(bundle, host.MemoryReserveGiB)
 		}
 	}
-	return normalizedMemoryReserve(fallback)
+	return catalog.minimumBundleReserve(bundle, fallback)
 }
 
 // A missing container after Compose failure does not imply missing model weights.

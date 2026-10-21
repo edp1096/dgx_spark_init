@@ -1,0 +1,52 @@
+{
+  "status": "complete",
+  "date": "2026-10-20",
+  "selected_profile": "Huihui GLM 5.3 Flash FP4-Local / vLLM B12X / TP2 / MTP5 / FP8 KV / 1M",
+  "llm_ready_from_talk_request_s": 311.699335,
+  "full_bundle_ready_s_including_first_worker_tts_image_build": 1449.0013761640002,
+  "full_1m_input_passed": true,
+  "actual_1m_prompt_tokens": 1047005,
+  "1m_request_seconds": 628.527235949,
+  "standalone_capability_cases_passed": 7,
+  "talk_agent_and_worker_tts_passed": true,
+  "talk_stop_passed": true,
+  "models_left_stopped": true,
+  "prior_qwen_fp4_selection_restored": true,
+  "tests": {
+    "go_all_packages": "pass",
+    "frontend_unit_tests": 136,
+    "frontend_unit_status": "pass",
+    "frontend_build": "pass",
+    "model_catalog_playwright": "pass",
+    "first_install_tests": 10,
+    "first_install_status": "pass",
+    "recovery_tests": 8,
+    "recovery_status": "pass",
+    "embedded_recipe_check": "pass",
+    "support_assets_check": "pass",
+    "git_diff_check": "pass"
+  },
+  "memory": {
+    "head": {
+      "minimum_available_gib": 0.7732276916503906,
+      "last_available_gib": 117.28933334350586,
+      "swap_out_mib": 707.28125,
+      "longest_sampled_period_under_1_5_gib_s": 1.0,
+      "samples": 3054
+    },
+    "worker": {
+      "minimum_available_gib": 4.503582000732422,
+      "last_available_gib": 117.7031135559082,
+      "swap_out_mib": 0.0,
+      "longest_sampled_period_under_1_5_gib_s": 0.0,
+      "samples": 3054
+    },
+    "note": "Whole-host 0.5-second samples through Talk bundle start, first worker TTS build, synthesis and stop. Head had a transient low-memory sample; startup headroom is not guaranteed by one successful trial."
+  },
+  "sources": [
+    "https://huggingface.co/nvidia/GLM-5.3-Flash-FP4-Local",
+    "https://github.com/eugr/spark-vllm-docker",
+    "https://github.com/local-inference-lab/b12x",
+    "https://github.com/ashhart/TensorFold/pull/1050"
+  ]
+}

@@ -20,3 +20,17 @@ func TestAutomaticOutputFollowsContextSize(t *testing.T) {
 		t.Fatalf("manual budget changed: %d", got)
 	}
 }
+
+func TestManualOutputFromLargerModelCannotConsumeInputWindow(t *testing.T) {
+	c := ContextConfig{OutputReserve: 262144, SafetyMargin: 2048}
+	if got := c.EffectiveOutputReserve(1048576); got != 262144 {
+		t.Fatalf("valid manual reserve changed: %d", got)
+	}
+	if got := c.EffectiveOutputReserve(262144); got != 65536 {
+		t.Fatalf("oversized inherited reserve was not bounded: %d", got)
+	}
+	c.OutputReserve = 262144 - c.SafetyMargin
+	if got := c.EffectiveOutputReserve(262144); got != 65536 {
+		t.Fatalf("zero-input boundary was not bounded: %d", got)
+	}
+}

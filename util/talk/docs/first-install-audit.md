@@ -9,7 +9,6 @@
 - QAD 공개 Huihui 모델, Ornith·Gemma26 본체/draft, ASR·화자 GGUF, TTS 모델/코덱/토크나이저 준비를 연결했다. 기존 정상 가중치는 재사용한다.
 - FLUX 로컬 베이스 의존성을 제거하고 최초 텍스트 인코더 변환·본체·VAE·LoRA·rembg 준비를 연결했다. 신규 세트 콜드 스타트에서는 큰 LLM 적재 전에 FLUX 준비를 수행한다.
 - Qwen TP2와 DS41에 이미지 빌드·다운로드·워커 전달 경로를 추가했다. DS41은 양쪽 rank의 expert packing을 수행한다.
-- DS4FVE ablit은 빈 캐시에서 원본을 먼저 받는다. 토큰 미등록 시 range 요청 문자열 오류를 수정했다.
 - 클러스터 4종을 동일 패키징 manifest에서 관리·검사한다. ASR·Ornith·Gemma26 빌드 자산도 정규 소스와 동기화 검사한다.
 - Extra SSH와 일반 모델 다운로드·TTS 변환은 실행 호스트 UID/GID를 사용한다. 배포 바이너리는 정식 Makefile의 CGO_ENABLED=0 경로로 빌드한다.
 - 초기 다운로드/빌드 대기 시간을 확장하고 모델 준비 화면에 모든 모델 서비스를 노출했다. 호스트 드라이버·Docker·권한·SSH 준비는 별도 전제이며 앱이 임의 설치하지 않는다.
@@ -29,7 +28,6 @@
 - 12개 단일 서비스: Go에 실제 내장된 자산을 임시 폴더에 풀고 `docker compose config --quiet` 전부 통과. 모델 기동 성공을 뜻하지 않는다.
 - 클러스터 패키지 4개 모두 해제·검토. 내장 shell 54개 `bash -n`, Python 201개 AST 파싱 통과.
 - 실제 Go EmbedFiles 기준 Dockerfile COPY 입력 39개 검사: FLUX의 `phased/` 누락 발견.
-- `package-support --check` 70개 파일 통과. `package-recipes --check`는 GLM 16개·DS4FVE 240개 파일만 검사한다. DS41·Qwen TP2 아카이브는 존재하지만 이 동기화 검사 manifest에는 없다.
 - `go test ./...` 통과. 모델 통합 시험은 opt-in이므로 이것으로 빈 캐시 모델 기동 성공을 주장하지 않는다.
 - Huihui QAD의 빈 경로 검증을 실행해 로컬 변환본 요구 오류 재현. DS41·Qwen TP2 `runtime.sh setup`을 실행해 exit 2 재현.
 - 운영 모델·호스트 설정·이미지·가중치를 삭제하거나 다시 구축하지 않았다. 대규모 다운로드, 외부 레지스트리 가용성, 실제 포맷 OS에서의 모든 모델 기동은 수행하지 않았다.
@@ -44,7 +42,6 @@
 | Gemma 26B | pull_policy never, build 자산 매핑 없음 | 본체와 assistant 로컬 경로, offline 모드 | 이미지·본체·draft 사전 준비 필요 |
 | Gemma 31B | 내장 Dockerfile.dflash로 빌드 | 본체·DFlash Hub ID/revision 지정, 실행 시 로딩/다운로드 | 준비 경로 존재, 전체 cold build/추론 미검증 |
 | GLM 5.3 | 전체 준비에서 내장 Dockerfile 빌드, worker 전달 | 공식·Huihui와 DFlash 다운로드 후 rsync | 전체 준비 경로 존재, 두 호스트 전제. model-only는 서빙 이미지가 먼저 필요 |
-| DeepSeek V4 Flash Vision | 공개 이미지 pull 및 worker pull | 공식 다운로드·동기화; ablit은 원본 shard를 이용한 선택 패치 | 공식 준비 경로 존재. 빈 캐시에서 ablit부터 선택하면 원본 shard 부족으로 실패 |
 | DeepSeek V4.1 | 준비된 b12x8 이미지 요구 | pinned checkpoint 및 rank별 packed expert 요구 | setup/model/image 자동 준비 미지원, exit 2 |
 | FLUX | 내장 paint 빌드는 로컬 dgx-flux2-klein-nvfp4:4b에 의존 | 베이스 이미지의 준비 스크립트에 의존 | 로컬 베이스 자동 준비 없음 + phased COPY 자산 누락 |
 | DreamLite | NGC PyTorch 기반 내장 Dockerfile | 고정 Hub revision from_pretrained | 경로 존재, cold build/다운로드 미검증; 기본 세트에는 미포함 |
@@ -62,7 +59,6 @@
 - ornith35 / gemma26: 본체 이미지·가중치 및 공통 부가 모델 준비 문제.
 - gemma: 본체 준비 경로 존재; FLUX·ASR·TTS 준비 문제로 세트 전체는 초기 설치 통과 아님.
 - glm53-worker-extra: 이미지·가중치·워커 Extra 준비 경로 존재. SSH·Docker·GPU 런타임·네트워크 전제가 있으며 전체 cold 설치는 미검증.
-- ds4fve: 공식 본체 준비 경로 존재. ablit 원본 의존성 및 worker ASR/TTS 준비 문제.
 - ds41: 본체 준비 미지원 및 worker ASR/TTS 준비 문제.
 
 ## 확인된 구현상 누락
@@ -72,7 +68,6 @@
 3. `build_assets.go`에 ASR·Ornith·Gemma26 빌드 매핑이 없다. ASR은 `ensureLocalServiceImage`에서 선빌드를 요구하며 나머지 둘은 `pull_policy: never`로 막힌다.
 4. TTS Dockerfile에 converter stage는 있지만 Talk가 이를 실행하거나 필요한 가중치를 다운로드하는 경로가 없다.
 5. DS41/Qwen TP2 archive의 runtime.sh는 자동 준비 요청을 명시적으로 거부한다.
-6. DS4FVE ablit downloader는 원본 shard가 이미 있어야 동작한다. 토큰이 없으면 일부 range 요청에서 `'Bearer '+token`도 TypeError 가능성이 있다.
 7. 패키징 검증은 등록된 모든 recipe를 포괄하지 않는다. 기존 `TestEmbeddedCatalogIsComplete`도 flash-next와 gemma 두 세트만 순회한다.
 8. README는 GLM EXL3, 과거 이미지 태그 및 준비 설명이 남아 실제 catalog/동작과 일치하지 않는다.
 

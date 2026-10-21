@@ -1,0 +1,50 @@
+{
+  "standalone_compose": "/home/edp1096/workspace/dgx_spark_init/compose_yaml/gemma4_31b_sglang/compose.yaml",
+  "talk_compose": "/home/edp1096/workspace/dgx_spark_init/util/talk/internal/orchestrator/assets/compose.gemma31.yaml",
+  "independent_regular_files": true,
+  "rendered_model_commands_identical": true,
+  "image": "dgx-sglang-gemma4-31b-exl3mtp:2ef0fe4-exl3mtp9-splitkv1",
+  "image_id": "sha256:380163690b1cb8eb25401e401653f15e81e8b377798e609ef9600b7451dd064f",
+  "runtime_settings": {
+    "--speculative-num-steps": "9",
+    "--speculative-num-draft-tokens": "10",
+    "--speculative-eagle-topk": "1",
+    "--context-length": "262144",
+    "--swa-full-tokens-ratio": "0.006"
+  },
+  "splitkv_enabled": true,
+  "container_project": "sparktalk-gemma31",
+  "tests": {
+    "go_test_all": "passed",
+    "support_assets_check": "passed (115 files)",
+    "recipe_assets_check": "passed (4 recipes)"
+  },
+  "status": "complete",
+  "selected_bundle": "gemma31",
+  "components_online": [
+    "gemma31",
+    "flux2",
+    "nemotron-asr",
+    "qwen3-tts",
+    "extra-embedding"
+  ],
+  "smoke_checks": {
+    "openai_chat_arithmetic": true,
+    "openai_structured_json": true
+  },
+  "assistant_vocab_size": 262144,
+  "ko64k": false,
+  "kernel_runtime_proof": [
+    "[2026-10-21 12:27:21] GEMMA_ASSISTANT_EXL3_READY matrices=23 body_bits=4 head_bits=6 gpu=1 dense_head=0",
+    "GEMMA31_SPLITKV_ENABLED topk=1",
+    "GEMMA31_SPLITKV_BUILD {'hq': 32, 'hkv': 16, 'dim': 256, 'width': 10, 'splits': 4, 'block_n': 32, 'warps': 4}",
+    "GEMMA31_SPLITKV_BUILD {'hq': 32, 'hkv': 4, 'dim': 512, 'width': 10, 'splits': 8, 'block_n': 16, 'warps': 4}"
+  ],
+  "startup_default": "ds41",
+  "sources": {
+    "target": "https://huggingface.co/lyf/Huihui-gemma-4-31B-it-abliterated-v2-NVFP4/tree/985633e8001d0bfd9b621738234394744b992907",
+    "assistant": "https://huggingface.co/edp1096/gemma-4-31B-it-assistant-exl3/tree/359650d0d9386fbe42b820c74eefa8075017ebc6",
+    "kernel": "https://github.com/sgl-project/sglang/pull/44830",
+    "measurements": "gemma31-high-mtp-20261021/README.md"
+  }
+}

@@ -171,7 +171,7 @@ func TestGLMSetMemoryDoesNotChargeWorkerExtrasToHead(t *testing.T) {
 	bundle, _ := c.Catalog().Bundle("glm53-worker-extra")
 	plan := c.bundleMemoryPlan(context.Background(), bundle)
 	component, _ := c.Catalog().Component("glm53")
-	if plan.NeededGiB != component.MemoryGiB {
+	if plan.NeededGiB != component.StartupMemoryGiB {
 		t.Fatalf("head charged remote RAM: %+v", plan)
 	}
 	// Confirm JSON export includes all public host information, but no internal indexes.

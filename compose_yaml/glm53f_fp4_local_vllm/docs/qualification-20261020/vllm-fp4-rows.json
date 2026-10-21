@@ -1,0 +1,696 @@
+[
+  {
+    "kind": "quality-tg",
+    "case": "arithmetic",
+    "mode": "off",
+    "rep": 0,
+    "passed": true,
+    "check_detail": "exact JSON value",
+    "input_sha256": "08fef33f5d54332d16158e07ee707d1786f900c77e9c95573824412d2e009d21",
+    "elapsed_s": 0.591156555005,
+    "ttft_s": 0.537354852000135,
+    "decode_client_s": 0.053677510004490614,
+    "tg_client": 37.25955246122038,
+    "pp_ttft": 65.13386800123507,
+    "usage": {
+      "prompt_tokens": 35,
+      "total_tokens": 38,
+      "completion_tokens": 3,
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "391",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "kind": "quality-tg",
+    "case": "ko-extract",
+    "mode": "off",
+    "rep": 0,
+    "passed": true,
+    "check_detail": "exact JSON value",
+    "input_sha256": "347cb9ad313aae84425aeb459b04f5cfbe9df12713294e6f75ce6f97afbf383d",
+    "elapsed_s": 2.167588923010044,
+    "ttft_s": 0.40666788500675466,
+    "decode_client_s": 1.6558167850016616,
+    "tg_client": 35.63196153971877,
+    "pp_ttft": 181.96666795749283,
+    "usage": {
+      "prompt_tokens": 74,
+      "total_tokens": 134,
+      "completion_tokens": 60,
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "```json\n[\n  {\n    \"name\": \"민수\",\n    \"item\": \"사과\",\n    \"count\": 3\n  },\n  {\n    \"name\": \"지연\",\n    \"item\": \"배\",\n    \"count\": 5\n  }\n]\n```",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "kind": "quality-tg",
+    "case": "ko-sort",
+    "mode": "off",
+    "rep": 0,
+    "passed": true,
+    "check_detail": "exact JSON value",
+    "input_sha256": "90a33c7d1cc867d7cb07aab6b6e4c44ee8e1452f98d4825827d24792d1b0cd46",
+    "elapsed_s": 0.948721429987927,
+    "ttft_s": 0.3988342499942519,
+    "decode_client_s": 0.5497379159933189,
+    "tg_client": 32.74287524351651,
+    "pp_ttft": 200.58457868438578,
+    "usage": {
+      "prompt_tokens": 80,
+      "total_tokens": 99,
+      "completion_tokens": 19,
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "[ \"지연\", \"가람\", \"민수\", \"현우\" ]",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "kind": "quality-tg",
+    "case": "ko-logic",
+    "mode": "off",
+    "rep": 0,
+    "passed": false,
+    "check_detail": "exact JSON value",
+    "input_sha256": "9bbe39a08adf0a0a7ff34766d5b445c7f404afde8bd1b5c009f8e65a1ae953f1",
+    "elapsed_s": 0.5945919990044786,
+    "ttft_s": 0.3811158600001363,
+    "decode_client_s": 0.10966881499916781,
+    "tg_client": 63.82853685483077,
+    "pp_ttft": 165.30406265427388,
+    "usage": {
+      "prompt_tokens": 63,
+      "total_tokens": 71,
+      "completion_tokens": 8,
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "```json\n[\"C\"]\n```",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "kind": "quality-tg",
+    "case": "code-unique",
+    "mode": "off",
+    "rep": 0,
+    "passed": false,
+    "check_detail": "restricted Python functional cases",
+    "input_sha256": "d5c00891a9aa2999e7d88940e802fe4894e3efa8d520c4d8f033451706e72f4f",
+    "elapsed_s": 1.3602369209984317,
+    "ttft_s": 0.36690228499355726,
+    "decode_client_s": 0.9932631160045275,
+    "tg_client": 36.244172787581796,
+    "pp_ttft": 122.64845938691876,
+    "usage": {
+      "prompt_tokens": 45,
+      "total_tokens": 82,
+      "completion_tokens": 37,
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "def unique_in_order(xs):\n    result = []\n    for x in xs:\n        if not result or result[-1] != x:\n            result.append(x)\n    return result",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "kind": "quality-tg",
+    "case": "code-intervals",
+    "mode": "off",
+    "rep": 0,
+    "passed": true,
+    "check_detail": "restricted Python functional cases",
+    "input_sha256": "fb92deaa1ae8b2287a0fb3407fc94defa3ae29b77538a27eabcf26ca5ed56d4f",
+    "elapsed_s": 2.869592921997537,
+    "ttft_s": 0.3520040559960762,
+    "decode_client_s": 2.4133123890060233,
+    "tg_client": 36.464404857360705,
+    "pp_ttft": 178.97521044672922,
+    "usage": {
+      "prompt_tokens": 63,
+      "total_tokens": 152,
+      "completion_tokens": 89,
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "```python\ndef merge_intervals(intervals):\n    if not intervals:\n        return []\n    intervals = sorted(intervals)\n    merged = [list(intervals[0])]\n    for start, end in intervals[1:]:\n        if start <= merged[-1][1]:\n            merged[-1][1] = max(merged[-1][1], end)\n        else:\n            merged.append([start, end])\n    return merged\n```",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "kind": "quality-tg",
+    "case": "code-intervals",
+    "mode": "off",
+    "rep": 1,
+    "passed": true,
+    "check_detail": "restricted Python functional cases",
+    "input_sha256": "fb92deaa1ae8b2287a0fb3407fc94defa3ae29b77538a27eabcf26ca5ed56d4f",
+    "elapsed_s": 2.6869680840027286,
+    "ttft_s": 0.11489488200459164,
+    "decode_client_s": 2.4682848209922668,
+    "tg_client": 35.6522874716798,
+    "pp_ttft": 548.3272962278884,
+    "usage": {
+      "prompt_tokens": 63,
+      "total_tokens": 152,
+      "completion_tokens": 89,
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "```python\ndef merge_intervals(intervals):\n    if not intervals:\n        return []\n    intervals = sorted(intervals)\n    merged = [list(intervals[0])]\n    for start, end in intervals[1:]:\n        if start <= merged[-1][1]:\n            merged[-1][1] = max(merged[-1][1], end)\n        else:\n            merged.append([start, end])\n    return merged\n```",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "kind": "quality-tg",
+    "case": "tool-weather",
+    "mode": "off",
+    "rep": 0,
+    "passed": true,
+    "check_detail": "tool name and typed arguments",
+    "input_sha256": "076fe8d37a0445656cdb108f0ede36d647563b824600ab9323d94ce529944368",
+    "elapsed_s": 1.6893212380091427,
+    "ttft_s": 1.2009984150063246,
+    "decode_client_s": 0.488191447002464,
+    "tg_client": 45.064288067891866,
+    "pp_ttft": 169.85867545789034,
+    "usage": {
+      "prompt_tokens": 204,
+      "total_tokens": 227,
+      "completion_tokens": 23,
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "",
+    "reasoning": "",
+    "tool_calls": [
+      {
+        "name": "get_weather",
+        "arguments": "{\"city\": \"서울\", \"date\": \"2026-10-21\"}"
+      }
+    ],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "kind": "quality-tg",
+    "case": "ko-prose",
+    "mode": "off",
+    "rep": 0,
+    "passed": true,
+    "check_detail": "required substrings",
+    "input_sha256": "36794a10e4f9c18116fd9a08dc989271838d96a1d9fe159b57d5429f046558b5",
+    "elapsed_s": 6.169177378993481,
+    "ttft_s": 0.4393729619914666,
+    "decode_client_s": 5.623583153996151,
+    "tg_client": 34.31975569932723,
+    "pp_ttft": 191.18154112002784,
+    "usage": {
+      "prompt_tokens": 84,
+      "total_tokens": 278,
+      "completion_tokens": 194,
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "프롬프트 입력 처리(PP)는 사용자가 입력한 프롬프트 전체를 한 번에 읽어들이고 처리하는 단계이고, 답변 토큰 생성(TG)은 모델이 답변을 한 토큰씩 순차적으로 만들어내는 단계입니다. PP는 입력 토큰 수에 비례하여 병렬 처리가 가능하지만, TG는 이전 토큰이 생성되어야 다음 토큰을 만들 수 있어 순차적(자기회귀적)으로 진행됩니다. 생각 토큰(thinking tokens)은 최종 답변 앞에서 모델이 생성하는 토큰이므로 TG에 속합니다.",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "kind": "quality-tg",
+    "case": "ko-prose",
+    "mode": "off",
+    "rep": 1,
+    "passed": true,
+    "check_detail": "required substrings",
+    "input_sha256": "36794a10e4f9c18116fd9a08dc989271838d96a1d9fe159b57d5429f046558b5",
+    "elapsed_s": 4.831141122995177,
+    "ttft_s": 0.02198690599470865,
+    "decode_client_s": 4.701391416005208,
+    "tg_client": 35.52139892702246,
+    "pp_ttft": 3820.4556848614975,
+    "usage": {
+      "prompt_tokens": 84,
+      "total_tokens": 252,
+      "completion_tokens": 168,
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "프롬프트 입력 처리(PP)는 사용자가 입력한 프롬프트 전체를 한 번에 읽어들이는 과정으로, 병렬 처리가 가능해 상대적으로 빠릅니다. 답변 토큰 생성(TG)은 이전에 생성된 토큰에 기반해 다음 토큰을 하나씩 순차적으로 만들어내는 과정으로, 병렬화가 어려워 상대적으로 느립니다. 생각 토큰(thinking tokens)은 최종 답변에 앞서 모델이 내부적으로 생성하는 토큰이므로 TG에 속합니다.",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "kind": "pp",
+    "case": "pp-4096",
+    "mode": "off",
+    "input_sha256": "95c2ae1cc044f6ea4f1075ffff8a209d7ba3387ee7749c38f7f4987955791af4",
+    "elapsed_s": 2.624285459998646,
+    "ttft_s": 2.624176195997279,
+    "decode_client_s": 0.0,
+    "tg_client": null,
+    "pp_ttft": 1974.714963082217,
+    "usage": {
+      "prompt_tokens": 5182,
+      "total_tokens": 5183,
+      "completion_tokens": 1,
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "OK",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "length",
+    "extras": []
+  },
+  {
+    "kind": "pp",
+    "case": "pp-16384",
+    "mode": "off",
+    "input_sha256": "085057fd43bd3f0cb97a2255689137ac47186a5bc304cee5a3817e1a49b4f3f7",
+    "elapsed_s": 9.534655864990782,
+    "ttft_s": 9.534537849001936,
+    "decode_client_s": 0.0,
+    "tg_client": null,
+    "pp_ttft": 2154.273266863176,
+    "usage": {
+      "prompt_tokens": 20540,
+      "total_tokens": 20541,
+      "completion_tokens": 1,
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "OK",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "length",
+    "extras": []
+  },
+  {
+    "kind": "pp",
+    "case": "pp-65536",
+    "mode": "off",
+    "input_sha256": "90ccb7aecd788d11cf2543f7fe1c1744c0c9217027ec13f69f91abb32dc41d8c",
+    "elapsed_s": 37.451798470006906,
+    "ttft_s": 37.4517050620052,
+    "decode_client_s": 0.0,
+    "tg_client": null,
+    "pp_ttft": 2188.8723053938006,
+    "usage": {
+      "prompt_tokens": 81977,
+      "total_tokens": 81978,
+      "completion_tokens": 1,
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "OK",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "length",
+    "extras": []
+  },
+  {
+    "kind": "quality-tg",
+    "case": "arithmetic",
+    "mode": "on-low",
+    "rep": 0,
+    "passed": true,
+    "check_detail": "exact JSON value",
+    "input_sha256": "38d36c0faea74ddf322381d3abfb0cacb3a022871d95e805acded9fe364b46ba",
+    "elapsed_s": 0.6771007049974287,
+    "ttft_s": 0.3004308910021791,
+    "decode_client_s": 0.27137992999632843,
+    "tg_client": 40.53357962082465,
+    "pp_ttft": 113.17078575569444,
+    "usage": {
+      "prompt_tokens": 34,
+      "total_tokens": 46,
+      "completion_tokens": 12,
+      "completion_tokens_details": {
+        "reasoning_tokens": 8
+      }
+    },
+    "content": "391",
+    "reasoning": "23 × 17 = 391",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "kind": "quality-tg",
+    "case": "ko-extract",
+    "mode": "on-low",
+    "rep": 0,
+    "passed": true,
+    "check_detail": "exact JSON value",
+    "input_sha256": "5969b6155a093efef2b1abe7efb1db1556669ef9274923792c12bad0cce6704f",
+    "elapsed_s": 1.7103024160023779,
+    "ttft_s": 0.3545273380004801,
+    "decode_client_s": 1.250792057995568,
+    "tg_client": 38.37568338651066,
+    "pp_ttft": 205.90795737140346,
+    "usage": {
+      "prompt_tokens": 73,
+      "total_tokens": 122,
+      "completion_tokens": 49,
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "```json\n[\n  {\"name\": \"민수\", \"item\": \"사과\", \"count\": 3},\n  {\"name\": \"지연\", \"item\": \"배\", \"count\": 5}\n]\n```",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "kind": "quality-tg",
+    "case": "ko-sort",
+    "mode": "on-low",
+    "rep": 0,
+    "passed": false,
+    "check_detail": "JSONDecodeError: Extra data: line 1 column 22 (char 21)",
+    "input_sha256": "fd294f7986b1e207361703038553d4745ef510ad142589e4ce33919efda98495",
+    "elapsed_s": 9.674079910997534,
+    "ttft_s": 0.35718940499646123,
+    "decode_client_s": 9.316767306008842,
+    "tg_client": 33.81001045253551,
+    "pp_ttft": 221.1711738784152,
+    "usage": {
+      "prompt_tokens": 79,
+      "total_tokens": 395,
+      "completion_tokens": 316,
+      "completion_tokens_details": {
+        "reasoning_tokens": 211
+      }
+    },
+    "content": "[\"지연\",\"가람\",\"민수\",\"현우\"]We need answer Korean. Need sort by score desc, tie name asc. Data: 민수82, 지연95, 가람82, 현우70. Desc: 지연95, then 82 tie names ascending Korean? 가람 before 민수 (가 < 민). then 현우. Output names only JSON array.[\"지연\", \"가람\", \"민수\", \"현우\"]",
+    "reasoning": "We need answer in Korean likely. Need parse task: \"다음 목록을 점수 내림차순으로 정렬하고, 점수가 같으면 이름 오름차순으로 정렬하세요. 이름만 JSON 배열로 출력하세요. 민수 82, 지연 95, 가람 82, 현우 70.\"\n\nNeed output names only JSON array. Sort by score desc, tie name asc. Scores: 지연 95, 민수 82, 가람 82, 현우 70. Tie between 민수 and 가람: name ascending Korean dictionary? 가람 before 민수 (가 < 민). So array [\"가람\",\"지연\",\"민수\",\"현우\"]? Wait order: score desc: 95 지연, 82 tie sorted name asc: 가람 then 민수, 70 현우. So [\"지연\",\"가람\",\"민수\",\"현우\"]. Need JSON array only. final no markdown.",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "kind": "quality-tg",
+    "case": "ko-logic",
+    "mode": "on-low",
+    "rep": 0,
+    "passed": false,
+    "check_detail": "exact JSON value",
+    "input_sha256": "9d9136c6ee3cfafa6493351fe39174cad171c9446551946d528f863d8b96b34e",
+    "elapsed_s": 1.1945502940070583,
+    "ttft_s": 0.3340267860039603,
+    "decode_client_s": 0.7543893349939026,
+    "tg_client": 37.116113260305184,
+    "pp_ttft": 185.61385672604385,
+    "usage": {
+      "prompt_tokens": 62,
+      "total_tokens": 91,
+      "completion_tokens": 29,
+      "completion_tokens_details": {
+        "reasoning_tokens": 20
+      }
+    },
+    "content": "```json\n[\"C\"]\n```",
+    "reasoning": "Boxes: A apples only, B pears only, C both. Exactly two kinds: C.",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "kind": "quality-tg",
+    "case": "code-unique",
+    "mode": "on-low",
+    "rep": 0,
+    "passed": false,
+    "check_detail": "restricted Python functional cases",
+    "input_sha256": "1861c35b41b9934b57ab4633a8784010fcede450a0dc617dae81fb59ab718600",
+    "elapsed_s": 1.5762043430004269,
+    "ttft_s": 0.32791777499369346,
+    "decode_client_s": 1.1424292260053335,
+    "tg_client": 38.51442084850391,
+    "pp_ttft": 134.17997850481333,
+    "usage": {
+      "prompt_tokens": 44,
+      "total_tokens": 89,
+      "completion_tokens": 45,
+      "completion_tokens_details": {
+        "reasoning_tokens": 2
+      }
+    },
+    "content": "```python\ndef unique_in_order(xs):\n    result = []\n    for x in xs:\n        if not result or result[-1] != x:\n            result.append(x)\n    return result\n```",
+    "reasoning": "Simple.",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "kind": "quality-tg",
+    "case": "code-intervals",
+    "mode": "on-low",
+    "rep": 0,
+    "passed": true,
+    "check_detail": "restricted Python functional cases",
+    "input_sha256": "bb24db8174330d13bc0d92eadbd84beababcfab63dfbc59b68228688f53b43b2",
+    "elapsed_s": 2.694150263996562,
+    "ttft_s": 0.35379084599844646,
+    "decode_client_s": 2.2317401220061583,
+    "tg_client": 37.63879099170858,
+    "pp_ttft": 175.24478290281215,
+    "usage": {
+      "prompt_tokens": 62,
+      "total_tokens": 147,
+      "completion_tokens": 85,
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "def merge_intervals(intervals):\n    if not intervals:\n        return []\n    intervals = sorted(intervals)\n    merged = [list(intervals[0])]\n    for start, end in intervals[1:]:\n        if start <= merged[-1][1]:\n            merged[-1][1] = max(merged[-1][1], end)\n        else:\n            merged.append([start, end])\n    return merged",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "kind": "quality-tg",
+    "case": "code-intervals",
+    "mode": "on-low",
+    "rep": 1,
+    "passed": true,
+    "check_detail": "restricted Python functional cases",
+    "input_sha256": "bb24db8174330d13bc0d92eadbd84beababcfab63dfbc59b68228688f53b43b2",
+    "elapsed_s": 2.4125250169890933,
+    "ttft_s": 0.0771218849986326,
+    "decode_client_s": 2.2288927329936996,
+    "tg_client": 37.6868741849128,
+    "pp_ttft": 803.9222589165097,
+    "usage": {
+      "prompt_tokens": 62,
+      "total_tokens": 147,
+      "completion_tokens": 85,
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "def merge_intervals(intervals):\n    if not intervals:\n        return []\n    intervals = sorted(intervals)\n    merged = [list(intervals[0])]\n    for start, end in intervals[1:]:\n        if start <= merged[-1][1]:\n            merged[-1][1] = max(merged[-1][1], end)\n        else:\n            merged.append([start, end])\n    return merged",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "kind": "quality-tg",
+    "case": "tool-weather",
+    "mode": "on-low",
+    "rep": 0,
+    "passed": true,
+    "check_detail": "tool name and typed arguments",
+    "input_sha256": "f840ce98954fafc4cf3250e445824edbcd20ac24af9bbe3581daf6e20d439337",
+    "elapsed_s": 1.1332793080073316,
+    "ttft_s": 0.5845412720082095,
+    "decode_client_s": 0.4940053789905505,
+    "tg_client": 46.55819749776439,
+    "pp_ttft": 347.28086744429055,
+    "usage": {
+      "prompt_tokens": 203,
+      "total_tokens": 227,
+      "completion_tokens": 24,
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "",
+    "reasoning": "",
+    "tool_calls": [
+      {
+        "name": "get_weather",
+        "arguments": "{\"city\": \"서울\", \"date\": \"2026-10-21\"}"
+      }
+    ],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "kind": "quality-tg",
+    "case": "ko-prose",
+    "mode": "on-low",
+    "rep": 0,
+    "passed": true,
+    "check_detail": "required substrings",
+    "input_sha256": "5c61d74cd3cafb806afcbf195e334c8093fa8250721949044887d677c6e95dec",
+    "elapsed_s": 6.616683924003155,
+    "ttft_s": 0.4377859870000975,
+    "decode_client_s": 6.073577154005761,
+    "tg_client": 35.06994224310103,
+    "pp_ttft": 189.59035342531763,
+    "usage": {
+      "prompt_tokens": 83,
+      "total_tokens": 297,
+      "completion_tokens": 214,
+      "completion_tokens_details": {
+        "reasoning_tokens": 12
+      }
+    },
+    "content": "프롬프트 입력 처리(PP, Prompt Processing)는 사용자가 입력한 프롬프트 전체를 한 번에 읽어들이고 문맥을 계산하는 단계로, 주로 GPU 연산에 유리한 병렬 처리 방식으로 수행됩니다. 반면 답변 토큰 생성(TG, Token Generation)은 이전에 계산된 문맥을 바탕으로 토큰을 하나씩 순차적으로 생성하는 단계이며, 메모리 대역폭이 병목이 되는 특성이 있습니다. 생각 토큰(thinking tokens)은 모델이 최종 답변 전에 중간 추론 과정을 출력하는 토큰으로, 최종 답변과 마찬가지로 TG 단계에서 생성됩니다.",
+    "reasoning": "Explain PP vs TG in Korean, ≤3 sentences.",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "kind": "quality-tg",
+    "case": "ko-prose",
+    "mode": "on-low",
+    "rep": 1,
+    "passed": true,
+    "check_detail": "required substrings",
+    "input_sha256": "5c61d74cd3cafb806afcbf195e334c8093fa8250721949044887d677c6e95dec",
+    "elapsed_s": 6.167348846996902,
+    "ttft_s": 0.018394555008853786,
+    "decode_client_s": 6.0429014440014726,
+    "tg_client": 34.75151828075203,
+    "pp_ttft": 4512.204832356635,
+    "usage": {
+      "prompt_tokens": 83,
+      "total_tokens": 294,
+      "completion_tokens": 211,
+      "completion_tokens_details": {
+        "reasoning_tokens": 12
+      }
+    },
+    "content": "프롬프트 입력 처리(PP, Prompt Processing)는 사용자가 입력한 프롬프트 전체를 한 번에 읽어들이고 문맥을 계산하는 단계로, 주로 GPU 연산에 유리한 병렬 처리 방식으로 수행됩니다. 반면 답변 토큰 생성(TG, Token Generation)은 이전에 계산된 문맥을 바탕으로 토큰을 하나씩 순차적으로 생성하는 단계이며, 메모리 대역폭이 병목이 되는 특성이 있습니다. 생각 토큰(thinking tokens)은 모델이 최종 답변 전에 중간 추론 과정을 출력하는 토큰으로, 이는 TG 단계에서 생성되는 토큰에 해당합니다.",
+    "reasoning": "Explain PP vs TG in Korean, ≤3 sentences.",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "kind": "pp",
+    "case": "pp-4096",
+    "mode": "on-low",
+    "input_sha256": "450fc6e5f3ca88c8c08dc21b35467dea5106c593c7a20d8a517a197f4f557cad",
+    "elapsed_s": 2.6287934809952276,
+    "ttft_s": null,
+    "decode_client_s": null,
+    "tg_client": null,
+    "pp_ttft": null,
+    "usage": {
+      "prompt_tokens": 5176,
+      "total_tokens": 5177,
+      "completion_tokens": 1,
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "length",
+    "extras": []
+  },
+  {
+    "kind": "pp",
+    "case": "pp-16384",
+    "mode": "on-low",
+    "input_sha256": "c319b2a9f1d2b5e8f46ff9b194f7983a7d514dfa0d5af923ea8c3b2159b9e2f6",
+    "elapsed_s": 9.53423087100964,
+    "ttft_s": null,
+    "decode_client_s": null,
+    "tg_client": null,
+    "pp_ttft": null,
+    "usage": {
+      "prompt_tokens": 20543,
+      "total_tokens": 20544,
+      "completion_tokens": 1,
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "length",
+    "extras": []
+  },
+  {
+    "kind": "pp",
+    "case": "pp-65536",
+    "mode": "on-low",
+    "input_sha256": "1291f2eeb49e684e88780631128f543f00f7ba49095f21b03eeacb5c78702cf0",
+    "elapsed_s": 37.36541237900383,
+    "ttft_s": null,
+    "decode_client_s": null,
+    "tg_client": null,
+    "pp_ttft": null,
+    "usage": {
+      "prompt_tokens": 81979,
+      "total_tokens": 81980,
+      "completion_tokens": 1,
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "length",
+    "extras": []
+  }
+]

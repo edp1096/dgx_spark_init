@@ -1,0 +1,17 @@
+{
+  "head": {
+    "minimum_available_gib": 1.9309959411621094,
+    "last_available_gib": 13.287334442138672,
+    "swap_out_mib": 2279.484375,
+    "swap_in_mib": 1144.72265625,
+    "samples": 1373
+  },
+  "worker": {
+    "minimum_available_gib": 2.50201416015625,
+    "last_available_gib": 14.680362701416016,
+    "swap_out_mib": 0.0,
+    "swap_in_mib": 6.1171875,
+    "samples": 1372
+  },
+  "note": "Full fresh-cache standalone startup, including all checkpoint loading and first kernel tuning; CPU swap permitted by final Compose. Minimum headroom and swap counters measure the whole host."
+}

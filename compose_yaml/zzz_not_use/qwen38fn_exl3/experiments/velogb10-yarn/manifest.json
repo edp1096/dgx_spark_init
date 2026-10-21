@@ -1,0 +1,68 @@
+{
+  "source_repository": "https://github.com/sf-stav/veloGB10",
+  "source_commit": "a6ad23d60e082ff9cca2bb78adda4ecee771388c",
+  "source_version": "0.7.3",
+  "license": "Apache-2.0",
+  "patch_sha256": "21a45192574738ff6543f4a6560f0ea9b3d9979158eb8ad8287d78f99485f751",
+  "model_repository": "alesha-pro/Huihui-Qwen3.8-Flash-Next-abliterated-exl3-3bit-hq_h6_ng6",
+  "model_revision": "3b585c458f9fcf3322e76cff2c635c2cb81c5869",
+  "context": 1048576,
+  "yarn_factor": 4,
+  "original_context": 262144,
+  "kv_cache": "q8",
+  "mtp_depth": 3,
+  "lanes": 1,
+  "ple": "ssd",
+  "changes": [
+    "Static YaRN frequencies and attention scaling shared by trunk, indexer, MTP and mRoPE",
+    "Actual runtime context used for QSA scratch allocations",
+    "64-bit prefill KV and slot/position geometry",
+    "Shared QSA geometry expanded from 20/20/20 to 22/18/20 bits; associated NVFP4 caller updated"
+  ],
+  "artifacts_directory": "/home/edp1096/.cache/model-download-jobs/velogb10-yarn-20261009",
+  "deployment": "isolated experiments; Talk runtime configuration unchanged",
+  "status": "TP1 EXL3 YaRN4: GPU boundary tests and 32K/270K/1M real-input recall passed",
+  "verification": {
+    "gpu_cases": 93,
+    "rust_unit_tests": 37,
+    "invalid_configurations_rejected": 7,
+    "over_limit_HTTP_rejected": true,
+    "real_input_token_counts": [
+      32768,
+      269992,
+      1048380
+    ],
+    "all_recall_passed": true,
+    "post_1m_reuse_passed": true
+  },
+  "quality_scope": "Synthetic three-position recall plus short arithmetic/JSON/translations; not a broad model-quality benchmark.",
+  "results": "results.json",
+  "schema_extension": {
+    "patch": "velogb10-exl3-schema.patch",
+    "sha256": "735870ea104b15e23c5d414454b922dceb22c0aa59e11d8310dc13a2db165aec",
+    "results": "schema-results.json",
+    "status": "EXL3 single-GPU JSON schema enforcement qualified on GPU",
+    "HTTP_checks": 103,
+    "artifacts_directory": "/home/edp1096/.cache/model-download-jobs/velogb10-schema-20261009",
+    "topology": "Single GB10, up to 2 serving lanes tested; TP schema requests rejected",
+    "decode": "Plain eager GPU decoding for schema requests; ordinary MTP unchanged",
+    "unsupported": "V1 schema subset; unsupported rules and contradictory constraints return 400"
+  },
+  "bundle_trial": {
+    "results": "bundle-results.json",
+    "artifacts_directory": "/home/edp1096/.cache/model-download-jobs/velogb10-talk-bundle-20261009",
+    "status": "Current resident bundle replacement failed at TTS/embedding startup; production ExLlama unchanged",
+    "candidate_swap_limit_bytes": 0,
+    "candidate_memory_limit_GiB": 112,
+    "private_Talk_adapter": "/home/edp1096/.cache/model-download-jobs/velogb10-talk-bundle-20261009/talk-overlay.json",
+    "context_tokens": 1048576
+  },
+  "bundle_512k_trial": {
+    "results": "bundle-512k-results.json",
+    "artifacts_directory": "/home/edp1096/.cache/model-download-jobs/velogb10-talk-512k-20261010",
+    "context_tokens": 524288,
+    "actual_input_tokens": 524064,
+    "status": "Both ExLlama and Velo passed resident bundle startup, all 13 functional checks, full-context recall and post-context reuse",
+    "production_changed": false
+  }
+}

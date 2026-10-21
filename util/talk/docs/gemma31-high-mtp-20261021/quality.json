@@ -1,0 +1,66 @@
+{
+  "splitkv-b4-high-9": {
+    "passed": 2,
+    "total": 2,
+    "checks": [
+      {
+        "name": "arithmetic",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "json",
+        "passed": true,
+        "detail": null
+      }
+    ]
+  },
+  "splitkv-b4-high-18": {
+    "passed": 2,
+    "total": 2,
+    "checks": [
+      {
+        "name": "arithmetic",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "json",
+        "passed": true,
+        "detail": null
+      }
+    ]
+  },
+  "splitkv-b4-high-21": {
+    "passed": 2,
+    "total": 2,
+    "checks": [
+      {
+        "name": "arithmetic",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "json",
+        "passed": true,
+        "detail": null
+      }
+    ]
+  },
+  "splitkv-b4-high-24": {
+    "passed": 2,
+    "total": 2,
+    "checks": [
+      {
+        "name": "arithmetic",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "json",
+        "passed": true,
+        "detail": null
+      }
+    ]
+  }
+}

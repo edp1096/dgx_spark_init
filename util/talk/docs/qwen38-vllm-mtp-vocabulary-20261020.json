@@ -1,0 +1,27 @@
+{
+  "image_id": "sha256:6f7fa43422080b2957b1d669ff21406240db77627ee3e42fc32bf5860a392bed",
+  "source_in_image": "/usr/local/lib/python3.12/dist-packages/vllm/models/qwen4_exp/nvidia/mtp.py",
+  "source_sha256": "2bac99d13eb2690cf25db1f32538d900bc8321369b47cce64eb59d20be7dfc77",
+  "checkpoint_text_config_vocab_size": 248320,
+  "source_evidence": [
+    {
+      "line": 780,
+      "excerpt": "            self.lm_head = ParallelLMHead(\n                config.vocab_size,\n                config.hidden_size,\n                quant_config=self.quant_config,\n                prefix=maybe_prefix(prefix, \"lm_head\"),\n                lm_head_quantization=\"nvfp4\" if self.has_own_lm_head else None,\n            )\n            self.has_own_lm_head = self.lm_head.runtime_lm_head_quantization == \"nvfp4\"\n            if config.tie_word_embeddings:"
+    },
+    {
+      "line": 793,
+      "excerpt": "        self.logits_processor = LogitsProcessor(\n            config.vocab_size,\n            lm_head=self.lm_head,\n        )\n        self.make_empty_intermediate_tensors = (\n            self.model.make_empty_intermediate_tensors"
+    },
+    {
+      "line": 826,
+      "excerpt": "    def compute_logits(\n        self,\n        hidden_states: torch.Tensor,\n        spec_step_idx: int = 0,\n    ) -> torch.Tensor | None:\n        return self.logits_processor(self.lm_head, hidden_states)"
+    }
+  ],
+  "finding": "The native Qwen4Exp MTP class builds its LM head and LogitsProcessor from config.vocab_size and returns those logits directly. The installed checkpoint has 248320 vocabulary rows. No TensorFold-style 79591-ID draft shortlist is present in this model path.",
+  "tensorfold_control": {
+    "stock_draft_ids": 79591,
+    "korean_draft_ids": 86232,
+    "hangul_ids_added": 6641
+  },
+  "conclusion": "The measured Korean vocabulary gain fixes TensorFold-specific draft coverage. It does not imply the same gain can be applied to vLLM, whose MTP head already covers the full vocabulary. A Korean-focused vLLM shortlist would be a different, unmeasured optimization."
+}

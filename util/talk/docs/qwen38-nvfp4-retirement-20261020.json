@@ -1,0 +1,58 @@
+{
+  "removed_set": "flash-next-radixark",
+  "protected_shared_set": "flash-next-tp2",
+  "protected_checkpoint": "edp1096/Huihui-RadixArk-Qwen3.8-Flash-Next-abliterated-NVFP4",
+  "head_disk_before": {
+    "total": 4031871553536,
+    "used": 3172075745280,
+    "free": 654954840064
+  },
+  "live_catalog_updated": true,
+  "head_removed_paths": [
+    "/home/edp1096/.cache/huggingface/edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-NVFP4-QAD",
+    "/home/edp1096/.cache/huggingface/hub/models--edp1096--Huihui-Qwen3.8-Flash-Next-abliterated-NVFP4-QAD",
+    "/home/edp1096/.cache/huggingface/hub/models--edp1096--Huihui-RadixArk-Qwen3.8-Flash-Next-abliterated-NVFP4",
+    "/home/edp1096/.local/share/sparktalk/cache/sglang-flash-next-qad"
+  ],
+  "shared_head_shards_verified": 206,
+  "head_removed_stale_lock_metadata": [
+    "models--RadixArk--Qwen3.8-27B-NVFP4",
+    "models--dealignai--Qwen3.8-Flash-Next-ABLITERATED-NVFP4",
+    "models--RadixArk--Qwen3.8-Flash-Next-NVFP4",
+    "models--huginnfork--Qwen3.8-Flash-Next-NVFP4-Abliterated"
+  ],
+  "worker_shared_shards_verified": 206,
+  "worker_unused_nvfp4_weights_found": false,
+  "remaining_nvfp4_checkpoint_on_each_node": "edp1096/Huihui-RadixArk-Qwen3.8-Flash-Next-abliterated-NVFP4",
+  "shared_reason": "Required by the retained flash-next-tp2 model set",
+  "head_removed_large_data_estimate_gib": 147,
+  "source_catalog_retired": true,
+  "standalone_archive": "compose_yaml/zzz_not_use/qwen38_fn_radixark_nvfp4",
+  "binary_deployment_pending": false,
+  "additional_unused_caches_removed": [
+    {
+      "path": "/home/edp1096/.cache/sglang-qwen38",
+      "allocated_gib_estimate": 2.637
+    },
+    {
+      "path": "/home/edp1096/.local/share/sparktalk/cache/vllm-flash-next",
+      "allocated_size_not_recorded": true
+    }
+  ],
+  "binary_deployed_revision": 46,
+  "live_readback_retired_set_absent": true,
+  "final_storage": {
+    "head": {
+      "total_bytes": 4031871553536,
+      "used_bytes": 3168125505536,
+      "available_bytes": 658905079808
+    },
+    "worker": {
+      "total_bytes": 4031871553536,
+      "used_bytes": 3022068715520,
+      "available_bytes": 804961869824
+    }
+  },
+  "final_shared_checkpoint_shards_verified_both_nodes": 206,
+  "final_talk_readback_verified": true
+}

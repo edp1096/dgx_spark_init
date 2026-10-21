@@ -1,0 +1,5 @@
+FROM local/sparktalk-qwen38-fp4-tensorfold:db281878-ko2
+RUN pip install --no-cache-dir --no-deps nvidia-cutlass-dsl==4.7.0 flashinfer-python==0.7.1
+COPY --from=local/qwen38-fp4-local:csf-yarn-20261016 /usr/local/lib/python3.12/dist-packages/flashinfer/experimental/b12x /usr/local/lib/python3.12/dist-packages/flashinfer/experimental/b12x
+COPY --from=local/qwen38-fp4-local:csf-yarn-20261016 /usr/local/lib/python3.12/dist-packages/b12x /usr/local/lib/python3.12/dist-packages/b12x
+RUN python3 -c 'import b12x,cutlass; print(b12x.__file__)'

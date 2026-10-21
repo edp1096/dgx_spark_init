@@ -1,0 +1,279 @@
+{
+  "status": "complete-and-restored",
+  "host": "61 only; host 60 untouched",
+  "finished_utc": "2026-10-21T16:00:14.745415+00:00",
+  "conditions": {
+    "image": "local/sparktalk-qwen38-exl3-tensorfold:db281878-tune1",
+    "weights_changed": false,
+    "draft_vocabulary_changed": false,
+    "draft_vocabulary": 86218,
+    "context": 1048576,
+    "kv": "int8",
+    "vision": true,
+    "streams": 2,
+    "expert_tiles": "compact-parallel-v1",
+    "moe_window": 2048,
+    "temperature": 0.7,
+    "top_k": 20,
+    "top_p": 0.95,
+    "seed": 99,
+    "cases": "Korean explanation and English code, each thinking off and medium",
+    "output_tokens_per_case": 256,
+    "stop_eos": false,
+    "timing": "TG=(output_tokens-1)/native decode_s; all cold-prefix; all measured graph captures zero",
+    "isolation": "Bundle auxiliaries stopped, shared weights loaded once, decoder and CUDA graphs rebuilt for each depth; confidence changed between arms at the same depth",
+    "warmup": "768-token discarded run per arm, repeat measured case if capture occurred"
+  },
+  "baseline_bracket_weighted_tg": {
+    "off": 57.66654040332657,
+    "medium": 61.35522872868358
+  },
+  "results": [
+    {
+      "label": "baseline-before",
+      "depth": 5,
+      "confidence": 0.4,
+      "modes": {
+        "off": {
+          "tg": 57.73933520514446,
+          "accepted": 296,
+          "drafted": 570,
+          "gain_percent_vs_bracketed_baseline": 0.1262340367720105
+        },
+        "medium": {
+          "tg": 61.33051132810621,
+          "accepted": 324,
+          "drafted": 587,
+          "gain_percent_vs_bracketed_baseline": -0.040285728029254564
+        }
+      },
+      "all_output_ids_identical": true,
+      "measured_graph_captures": 0
+    },
+    {
+      "label": "fixed7",
+      "depth": 7,
+      "confidence": 0.0,
+      "modes": {
+        "off": {
+          "tg": 45.97701149425288,
+          "accepted": 314,
+          "drafted": 1360,
+          "gain_percent_vs_bracketed_baseline": -20.27090376380437
+        },
+        "medium": {
+          "tg": 51.99253754167049,
+          "accepted": 344,
+          "drafted": 1145,
+          "gain_percent_vs_bracketed_baseline": -15.259809768480304
+        }
+      },
+      "all_output_ids_identical": true,
+      "measured_graph_captures": 0
+    },
+    {
+      "label": "gated7",
+      "depth": 7,
+      "confidence": 0.4,
+      "modes": {
+        "off": {
+          "tg": 56.93743580583218,
+          "accepted": 302,
+          "drafted": 642,
+          "gain_percent_vs_bracketed_baseline": -1.2643460009824525
+        },
+        "medium": {
+          "tg": 61.148146371876656,
+          "accepted": 334,
+          "drafted": 665,
+          "gain_percent_vs_bracketed_baseline": -0.33751378830751966
+        }
+      },
+      "all_output_ids_identical": true,
+      "measured_graph_captures": 0
+    },
+    {
+      "label": "fixed8",
+      "depth": 8,
+      "confidence": 0.0,
+      "modes": {
+        "off": {
+          "tg": 43.63151050578331,
+          "accepted": 316,
+          "drafted": 1536,
+          "gain_percent_vs_bracketed_baseline": -24.338255423995626
+        },
+        "medium": {
+          "tg": 49.35404267673102,
+          "accepted": 346,
+          "drafted": 1289,
+          "gain_percent_vs_bracketed_baseline": -19.560168384380905
+        }
+      },
+      "all_output_ids_identical": true,
+      "measured_graph_captures": 0
+    },
+    {
+      "label": "gated8",
+      "depth": 8,
+      "confidence": 0.4,
+      "modes": {
+        "off": {
+          "tg": 56.11672278338945,
+          "accepted": 303,
+          "drafted": 670,
+          "gain_percent_vs_bracketed_baseline": -2.68755089016528
+        },
+        "medium": {
+          "tg": 59.97953639346576,
+          "accepted": 334,
+          "drafted": 701,
+          "gain_percent_vs_bracketed_baseline": -2.2421761987086897
+        }
+      },
+      "all_output_ids_identical": true,
+      "measured_graph_captures": 0
+    },
+    {
+      "label": "fixed9",
+      "depth": 9,
+      "confidence": 0.0,
+      "modes": {
+        "off": {
+          "tg": 41.342412451361874,
+          "accepted": 316,
+          "drafted": 1726,
+          "gain_percent_vs_bracketed_baseline": -28.307798313878074
+        },
+        "medium": {
+          "tg": 46.2660570433268,
+          "accepted": 344,
+          "drafted": 1459,
+          "gain_percent_vs_bracketed_baseline": -24.593130851295452
+        }
+      },
+      "all_output_ids_identical": true,
+      "measured_graph_captures": 0
+    },
+    {
+      "label": "gated9",
+      "depth": 9,
+      "confidence": 0.4,
+      "modes": {
+        "off": {
+          "tg": 55.613107246060736,
+          "accepted": 304,
+          "drafted": 696,
+          "gain_percent_vs_bracketed_baseline": -3.560874543372783
+        },
+        "medium": {
+          "tg": 58.914585403045066,
+          "accepted": 333,
+          "drafted": 729,
+          "gain_percent_vs_bracketed_baseline": -3.9778897026546467
+        }
+      },
+      "all_output_ids_identical": true,
+      "measured_graph_captures": 0
+    },
+    {
+      "label": "baseline-after",
+      "depth": 5,
+      "confidence": 0.4,
+      "modes": {
+        "off": {
+          "tg": 57.59392892231595,
+          "accepted": 296,
+          "drafted": 570,
+          "gain_percent_vs_bracketed_baseline": -0.1259161387223262
+        },
+        "medium": {
+          "tg": 61.37996606048936,
+          "accepted": 324,
+          "drafted": 587,
+          "gain_percent_vs_bracketed_baseline": 0.04031821300050087
+        }
+      },
+      "all_output_ids_identical": true,
+      "measured_graph_captures": 0
+    }
+  ],
+  "vocabulary_identity": {
+    "count": 86218,
+    "same_as_previous": true,
+    "sha256": "122228762cd76804ba7e74d229db95d041a89aaa92a3ece546d8174a3e9d9fc1"
+  },
+  "production_restored": {
+    "mtp_max": 5,
+    "confidence": 0.4,
+    "selected_bundle": "qwen38fn_exl3",
+    "operation_state": "complete",
+    "components": [
+      {
+        "id": "qwen38fn_exl3",
+        "status": "running",
+        "health": "online"
+      },
+      {
+        "id": "qwim-mmh3",
+        "status": "running",
+        "health": "online"
+      },
+      {
+        "id": "nemotron-asr",
+        "status": "running",
+        "health": "online"
+      },
+      {
+        "id": "qwen3-tts",
+        "status": "running",
+        "health": "online"
+      },
+      {
+        "id": "extra-embedding",
+        "status": "running",
+        "health": "online"
+      }
+    ],
+    "runtime_profile": {
+      "model": "qwen38fn_exl3",
+      "context": 1048576,
+      "kv": "int8",
+      "depth": 5,
+      "vision": true,
+      "confidence": 0.4,
+      "draft_vocabulary": 86218,
+      "expert_tiles": "compact-parallel-v1",
+      "moe_window": 2048,
+      "source_sha256": {
+        "compact_experts.py": "8eb4e3c9030110470068bd84f7ac7c2ec86420f872463a08750353bc4f7e79b2",
+        "parallel_group.py": "940c651860312f8a91a552b5885892a80721ef9f7282daad0548d91a4fab91bb"
+      }
+    }
+  },
+  "limits": [
+    "Short TG screening, 4 cases per arm, not a long-context or universal speed claim.",
+    "One sample per candidate case, current profile measured before and after. Small differences are not conclusive."
+  ],
+  "artifact": {
+    "file": "util/talk/docs/qwen38-exl3-mtp789-20261022.tar.gz",
+    "sha256": "274dd0c73ea85373fc23e9fe5eef6e834e89bc8aff9392c1da2ac8fddc3b3469",
+    "bytes": 18010
+  },
+  "source": "https://github.com/ashhart/TensorFold/tree/db281878ddb836fd0df510d8771ecb7e0fe47d26",
+  "checks": {
+    "production_generation": "17*23 -> 391",
+    "production_health": {
+      "ok": true,
+      "backend": "tensorfold"
+    },
+    "all_bundle_components_online": true,
+    "all_32_measured_outputs_identical": true
+  },
+  "cleanup": {
+    "trial_directory_removed": true,
+    "trial_container_removed": true,
+    "model_and_vocabulary_unchanged": true,
+    "production_settings_restored": true
+  }
+}

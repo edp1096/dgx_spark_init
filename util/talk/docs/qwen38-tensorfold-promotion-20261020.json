@@ -1,0 +1,2649 @@
+{
+  "updated_utc": "2026-10-19T20:19:01Z",
+  "status": "managed-qualification-passed",
+  "scope": "Promote only the existing Huihui Qwen FP4-Local and EXL3 3bit packs to TensorFold; preserve original weights and existing set IDs, hosts, endpoints and startup default. Leave EXL3 4bit and DeepSeek runtime state unchanged.",
+  "ownership": {
+    "standalone": "compose_yaml recipes own their files and build from their own directories.",
+    "talk": "Talk owns embedded Compose/build files and materializes them under its own data_dir/runtime/<component>. Neither Qwen recipe is copied from compose_yaml during packaging or read from it during runtime.",
+    "no_automatic_source_copy_mappings": true,
+    "no_cross_source_equality_requirement": true,
+    "compose_files": [
+      {
+        "standalone": "compose_yaml/qwen38_fn_fp4_local_tsfold/compose.yaml",
+        "talk": "util/talk/internal/orchestrator/assets/compose.qwen-fp4-local.yaml",
+        "same_content_at_qualification": true,
+        "independent_regular_files": true,
+        "sha256": "3c920b7a3e9f3895d42d12b3dea8c0d08d344d475efe8052d62c4fa49c076f2d"
+      },
+      {
+        "standalone": "compose_yaml/qwen38fn_exl3_tsfold/compose.yaml",
+        "talk": "util/talk/internal/orchestrator/assets/compose.qwen38fn_exl3.yaml",
+        "same_content_at_qualification": true,
+        "independent_regular_files": true,
+        "sha256": "752d39fc7f1adb9babd1ce6952d3c279c1e102ec80d0e8271b7d711faac3370b"
+      }
+    ],
+    "build_context_files": [
+      {
+        "profile": "fp4",
+        "build_files": [
+          {
+            "file": "test_structure.py",
+            "same_content": true,
+            "independent_file": true
+          },
+          {
+            "file": "TENSORFOLD_LICENSE",
+            "same_content": true,
+            "independent_file": true
+          },
+          {
+            "file": "MIAAI_LICENSE",
+            "same_content": true,
+            "independent_file": true
+          },
+          {
+            "file": "TENSORFOLD_NOTICE",
+            "same_content": true,
+            "independent_file": true
+          },
+          {
+            "file": "draft-vocab-korean.txt",
+            "same_content": true,
+            "independent_file": true
+          },
+          {
+            "file": "tf_structure.py",
+            "same_content": true,
+            "independent_file": true
+          },
+          {
+            "file": "TENSORFOLD_THIRD_PARTY_NOTICES.md",
+            "same_content": true,
+            "independent_file": true
+          },
+          {
+            "file": "Dockerfile",
+            "same_content": true,
+            "independent_file": true
+          },
+          {
+            "file": "structure_bridge.cc",
+            "same_content": true,
+            "independent_file": true
+          },
+          {
+            "file": "patches/0010-system-memory-cache.patch",
+            "same_content": true,
+            "independent_file": true
+          },
+          {
+            "file": "patches/0013-engine-tune.patch",
+            "same_content": true,
+            "independent_file": true
+          },
+          {
+            "file": "patches/0014-engine-prompt-expert-tile.patch",
+            "same_content": true,
+            "independent_file": true
+          },
+          {
+            "file": "patches/0001-build-registry-server.patch",
+            "same_content": true,
+            "independent_file": true
+          },
+          {
+            "file": "patches/0015-engine-fair-prefill.patch",
+            "same_content": true,
+            "independent_file": true
+          },
+          {
+            "file": "patches/0012-engine-nvidia-fp4.patch",
+            "same_content": true,
+            "independent_file": true
+          },
+          {
+            "file": "patches/0009-vision-python.patch",
+            "same_content": true,
+            "independent_file": true
+          },
+          {
+            "file": "patches/0007-serving.patch",
+            "same_content": true,
+            "independent_file": true
+          },
+          {
+            "file": "patches/0017-structured-output.patch",
+            "same_content": true,
+            "independent_file": true
+          },
+          {
+            "file": "patches/0008-kernel-spec-tools.patch",
+            "same_content": true,
+            "independent_file": true
+          },
+          {
+            "file": "patches/0005-engine.patch",
+            "same_content": true,
+            "independent_file": true
+          },
+          {
+            "file": "patches/0006-two-ranks.patch",
+            "same_content": true,
+            "independent_file": true
+          },
+          {
+            "file": "patches/0003-config-weights.patch",
+            "same_content": true,
+            "independent_file": true
+          },
+          {
+            "file": "patches/0011-vision-nvidia-fp4.patch",
+            "same_content": true,
+            "independent_file": true
+          },
+          {
+            "file": "patches/0002-kernels.patch",
+            "same_content": true,
+            "independent_file": true
+          },
+          {
+            "file": "patches/0016-korean-vocab.patch",
+            "same_content": true,
+            "independent_file": true
+          },
+          {
+            "file": "patches/0004-triton-replay-torch-ops.patch",
+            "same_content": true,
+            "independent_file": true
+          }
+        ]
+      },
+      {
+        "profile": "exl3",
+        "build_files": [
+          {
+            "file": "prepare_vision.py",
+            "same_content": true,
+            "independent_file": true
+          },
+          {
+            "file": "TENSORFOLD_LICENSE",
+            "same_content": true,
+            "independent_file": true
+          },
+          {
+            "file": "TENSORFOLD_NOTICE",
+            "same_content": true,
+            "independent_file": true
+          },
+          {
+            "file": "launch.py",
+            "same_content": true,
+            "independent_file": true
+          },
+          {
+            "file": "TENSORFOLD_THIRD_PARTY_NOTICES.md",
+            "same_content": true,
+            "independent_file": true
+          },
+          {
+            "file": "Dockerfile",
+            "same_content": true,
+            "independent_file": true
+          }
+        ]
+      }
+    ]
+  },
+  "profiles": {
+    "flash-next-fp4-local": {
+      "image": "local/sparktalk-qwen38-fp4-tensorfold:db281878-ko2",
+      "engine": "TensorFold native CUDA",
+      "tp": 1,
+      "context": 1048576,
+      "rope": "YaRN 4",
+      "kv": "FP8",
+      "mtp": 4,
+      "draft_vocabulary": "Korean-expanded 86232 tokens",
+      "memory_gib": 103,
+      "startup_memory_gib": 103,
+      "workspace_memory_gib": 4,
+      "b12x_bridge": false,
+      "structured_output": {
+        "implementation": "XGrammar 0.2.1 CPU grammar state with allowed-token masks applied to the native CUDA logits before sampling; no output repair or retry fallback",
+        "verification": "Serial TP1 for explicitly structured requests, MTP remains 4 for ordinary chat",
+        "thinking_budget": "Structured budget closure uses only the think-end token so no forced whitespace escapes the grammar"
+      },
+      "native_binary_sha256": "7b62f8bf41c8793f6b39b4b82edff33d11c0aca06db99420f6c7d94c96e48701",
+      "language_weights": "Existing local Huihui v2 FP4-Local, unchanged"
+    },
+    "qwen38fn_exl3": {
+      "image": "local/sparktalk-qwen38-exl3-tensorfold:db281878-vision2",
+      "engine": "TensorFold Python CUDA EXL3",
+      "tp": 1,
+      "context": 1048576,
+      "rope": "YaRN 4",
+      "kv": "Q8",
+      "mtp": 3,
+      "draft_vocabulary": "Korean-expanded 86218 tokens",
+      "memory_gib": 80,
+      "startup_memory_gib": 70,
+      "workspace_memory_gib": 4,
+      "kept_prefixes": 1,
+      "ngram": "Warm reclaimable OS file cache; not mlocked",
+      "vision": "Upstream EXL3 converter, derived F16 tower stored in hashed runtime cache; original pack read-only",
+      "language_weights": "alesha-pro/Huihui-Qwen3.8-Flash-Next-abliterated-exl3-3bit-hq_h6_ng6",
+      "weight_revision": "3b585c458f9fcf3322e76cff2c635c2cb81c5869"
+    }
+  },
+  "validation": {
+    "exl3_1m": {
+      "pass_check": false,
+      "strict_json_passed": false,
+      "retrieval_passed": true,
+      "usage": {
+        "prompt_tokens": 1000019,
+        "completion_tokens": 70,
+        "total_tokens": 1000089,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "ttft_s": 2117.8116229309962,
+      "elapsed_s": 2121.1942036659966,
+      "finish_reason": "stop"
+    },
+    "exl3_1m_schema_cached": {
+      "pass_check": true,
+      "strict_json_passed": true,
+      "retrieval_passed": true,
+      "usage": {
+        "prompt_tokens": 1000019,
+        "completion_tokens": 65,
+        "total_tokens": 1000084,
+        "prompt_tokens_details": {
+          "cached_tokens": 1000018
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "ttft_s": 2.0526592599999276,
+      "elapsed_s": 3.2838556630013045,
+      "finish_reason": "stop"
+    },
+    "exl3_1m_note": "The uncached 1,000,019-token request retrieved all three keys correctly but wrapped JSON in a Markdown code fence, failing the unconstrained strict-format check. A separate strict JSON-schema request passed using 1,000,018 cached prompt tokens. The cached request is not another prefill speed measurement. Original results are retained.",
+    "exl3_post_1m_advanced": [
+      {
+        "kind": "schema",
+        "mode": "off",
+        "usage": {
+          "prompt_tokens": 27,
+          "completion_tokens": 13,
+          "total_tokens": 40,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "passed": true
+      },
+      {
+        "kind": "schema",
+        "mode": "medium",
+        "usage": {
+          "prompt_tokens": 25,
+          "completion_tokens": 42,
+          "total_tokens": 67,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 33
+          }
+        },
+        "passed": true
+      },
+      {
+        "kind": "conversation-resume",
+        "mode": null,
+        "usage": {
+          "prompt_tokens": 56,
+          "completion_tokens": 6,
+          "total_tokens": 62,
+          "prompt_tokens_details": {
+            "cached_tokens": 27
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "passed": true
+      },
+      {
+        "kind": "cancel-and-recover",
+        "mode": null,
+        "usage": {
+          "prompt_tokens": 25,
+          "completion_tokens": 4,
+          "total_tokens": 29,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "passed": true
+      }
+    ],
+    "fp4_initial_1m": {
+      "pass_check": true,
+      "strict_json_passed": true,
+      "retrieval_passed": true,
+      "usage": {
+        "prompt_tokens": 1000019,
+        "completion_tokens": 65,
+        "total_tokens": 1000084,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "ttft_s": 955.7520666260025,
+      "elapsed_s": 957.4538281440036,
+      "finish_reason": "stop"
+    },
+    "fp4_initial_1m_note": "Earlier native build included an inactive optional B12X adapter; final production binary removes it. The final clean-image result is separately recorded below.",
+    "fp4_final_clean_1m": {
+      "pass_check": true,
+      "strict_json_passed": true,
+      "retrieval_passed": true,
+      "usage": {
+        "prompt_tokens": 1000019,
+        "completion_tokens": 65,
+        "total_tokens": 1000084,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "ttft_s": 956.726528524996,
+      "elapsed_s": 958.4184622940011,
+      "finish_reason": "stop"
+    },
+    "exl3_tools_images": {
+      "checks": [
+        {
+          "kind": "tools",
+          "mode": "off",
+          "exit_code": 0
+        },
+        {
+          "kind": "tools",
+          "mode": "medium",
+          "exit_code": 0
+        },
+        {
+          "kind": "vision",
+          "image": "red",
+          "mode": "off",
+          "exit_code": 0
+        },
+        {
+          "kind": "vision",
+          "image": "red",
+          "mode": "medium",
+          "exit_code": 0
+        },
+        {
+          "kind": "vision",
+          "image": "ocr",
+          "mode": "off",
+          "exit_code": 0
+        },
+        {
+          "kind": "vision",
+          "image": "ocr",
+          "mode": "medium",
+          "exit_code": 0
+        }
+      ],
+      "passed": true
+    },
+    "fp4_tools_images": {
+      "checks": [
+        {
+          "kind": "tools",
+          "mode": "off",
+          "exit_code": 0
+        },
+        {
+          "kind": "tools",
+          "mode": "medium",
+          "exit_code": 0
+        },
+        {
+          "kind": "vision",
+          "image": "red",
+          "mode": "off",
+          "exit_code": 0
+        },
+        {
+          "kind": "vision",
+          "image": "red",
+          "mode": "medium",
+          "exit_code": 0
+        },
+        {
+          "kind": "vision",
+          "image": "ocr",
+          "mode": "off",
+          "exit_code": 0
+        },
+        {
+          "kind": "vision",
+          "image": "ocr",
+          "mode": "medium",
+          "exit_code": 0
+        }
+      ],
+      "passed": true
+    },
+    "exl3_video": {
+      "content": "RED BLUE",
+      "usage": {
+        "prompt_tokens": 847,
+        "completion_tokens": 3,
+        "total_tokens": 850,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "native": {
+        "prefill_s": 1.0207,
+        "decode_s": 0.0442,
+        "rounds": 1,
+        "drafts": true,
+        "cached": 0,
+        "min_rows": 4,
+        "drafted": 3,
+        "accepted": 1,
+        "token_sha": "ef81fcf988d0"
+      },
+      "passed": true
+    },
+    "fp4_video": {
+      "content": "RED BLUE",
+      "usage": {
+        "prompt_tokens": 847,
+        "completion_tokens": 3,
+        "total_tokens": 850,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "native": {
+        "enable_thinking": false,
+        "reasoning_effort": "none",
+        "engine": "lanes",
+        "tokens_per_second": 25.240375772152,
+        "seconds": 0.635284697,
+        "prefill_seconds": 0.55586059,
+        "prefill_widths": [],
+        "prefill_raised": [],
+        "time_to_first_token": 0.749923982,
+        "sampling": "greedy",
+        "drafts": true,
+        "token_sha": "ef81fcf988d0",
+        "min_rows": 5
+      },
+      "passed": true
+    },
+    "exl3_advanced": [
+      {
+        "kind": "schema",
+        "mode": "off",
+        "usage": {
+          "prompt_tokens": 27,
+          "completion_tokens": 13,
+          "total_tokens": 40,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "passed": true
+      },
+      {
+        "kind": "schema",
+        "mode": "medium",
+        "usage": {
+          "prompt_tokens": 25,
+          "completion_tokens": 42,
+          "total_tokens": 67,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 33
+          }
+        },
+        "passed": true
+      },
+      {
+        "kind": "conversation-resume",
+        "mode": null,
+        "usage": {
+          "prompt_tokens": 56,
+          "completion_tokens": 6,
+          "total_tokens": 62,
+          "prompt_tokens_details": {
+            "cached_tokens": 27
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "passed": true
+      },
+      {
+        "kind": "cancel-and-recover",
+        "mode": null,
+        "usage": {
+          "prompt_tokens": 25,
+          "completion_tokens": 4,
+          "total_tokens": 29,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "passed": true
+      }
+    ],
+    "exl3_managed_advanced": [
+      {
+        "kind": "schema",
+        "mode": "off",
+        "usage": {
+          "prompt_tokens": 27,
+          "completion_tokens": 13,
+          "total_tokens": 40,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "passed": true
+      },
+      {
+        "kind": "schema",
+        "mode": "medium",
+        "usage": {
+          "prompt_tokens": 25,
+          "completion_tokens": 42,
+          "total_tokens": 67,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 33
+          }
+        },
+        "passed": true
+      },
+      {
+        "kind": "conversation-resume",
+        "mode": null,
+        "usage": {
+          "prompt_tokens": 56,
+          "completion_tokens": 6,
+          "total_tokens": 62,
+          "prompt_tokens_details": {
+            "cached_tokens": 27
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "passed": true
+      },
+      {
+        "kind": "cancel-and-recover",
+        "mode": null,
+        "usage": {
+          "prompt_tokens": 25,
+          "completion_tokens": 4,
+          "total_tokens": 29,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "passed": true
+      }
+    ],
+    "fp4_managed_advanced": [
+      {
+        "kind": "schema",
+        "mode": "off",
+        "usage": {
+          "prompt_tokens": 27,
+          "completion_tokens": 13,
+          "total_tokens": 40,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "passed": true
+      },
+      {
+        "kind": "schema",
+        "mode": "medium",
+        "usage": {
+          "prompt_tokens": 25,
+          "completion_tokens": 45,
+          "total_tokens": 70,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 32
+          }
+        },
+        "passed": true
+      },
+      {
+        "kind": "conversation-resume",
+        "mode": null,
+        "usage": {
+          "prompt_tokens": 56,
+          "completion_tokens": 6,
+          "total_tokens": 62,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "passed": true
+      },
+      {
+        "kind": "cancel-and-recover",
+        "mode": null,
+        "usage": {
+          "prompt_tokens": 25,
+          "completion_tokens": 4,
+          "total_tokens": 29,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "passed": true
+      }
+    ],
+    "fp4_structured_advanced": [
+      {
+        "kind": "schema",
+        "mode": "off",
+        "usage": {
+          "prompt_tokens": 27,
+          "completion_tokens": 13,
+          "total_tokens": 40,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "passed": true
+      },
+      {
+        "kind": "schema",
+        "mode": "medium",
+        "usage": {
+          "prompt_tokens": 25,
+          "completion_tokens": 45,
+          "total_tokens": 70,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 32
+          }
+        },
+        "passed": true
+      },
+      {
+        "kind": "conversation-resume",
+        "mode": null,
+        "usage": {
+          "prompt_tokens": 56,
+          "completion_tokens": 6,
+          "total_tokens": 62,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "passed": true
+      },
+      {
+        "kind": "cancel-and-recover",
+        "mode": null,
+        "usage": {
+          "prompt_tokens": 25,
+          "completion_tokens": 4,
+          "total_tokens": 29,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "passed": true
+      }
+    ],
+    "fp4_structured_isolation": [
+      {
+        "kind": "same-prefix-different-schema",
+        "type": "integer",
+        "passed": true,
+        "usage": {
+          "prompt_tokens": 72,
+          "completion_tokens": 13,
+          "total_tokens": 85,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "native": {
+          "enable_thinking": false,
+          "reasoning_effort": "none",
+          "engine": "lanes",
+          "tokens_per_second": 24.42492506204007,
+          "seconds": 0.723879922,
+          "prefill_seconds": 0.232270389,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.233679955,
+          "sampling": "greedy",
+          "drafts": false,
+          "token_sha": "e688a5044b94",
+          "min_rows": 1
+        }
+      },
+      {
+        "kind": "same-prefix-different-schema",
+        "type": "string",
+        "passed": true,
+        "usage": {
+          "prompt_tokens": 72,
+          "completion_tokens": 16,
+          "total_tokens": 88,
+          "prompt_tokens_details": {
+            "cached_tokens": 71
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "native": {
+          "enable_thinking": false,
+          "reasoning_effort": "none",
+          "engine": "lanes",
+          "tokens_per_second": 24.795211267126493,
+          "seconds": 0.725394112,
+          "prefill_seconds": 0.071024899,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.121082429,
+          "sampling": "greedy",
+          "drafts": false,
+          "token_sha": "3c843ed3388c",
+          "min_rows": 1
+        }
+      },
+      {
+        "kind": "same-prefix-different-schema",
+        "type": "integer",
+        "passed": true,
+        "usage": {
+          "prompt_tokens": 72,
+          "completion_tokens": 13,
+          "total_tokens": 85,
+          "prompt_tokens_details": {
+            "cached_tokens": 71
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "native": {
+          "enable_thinking": false,
+          "reasoning_effort": "none",
+          "engine": "lanes",
+          "tokens_per_second": 25.09030780624439,
+          "seconds": 0.55029843,
+          "prefill_seconds": 0.071650227,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.073176929,
+          "sampling": "greedy",
+          "drafts": false,
+          "token_sha": "e688a5044b94",
+          "min_rows": 1
+        }
+      },
+      {
+        "kind": "plain-output-unchanged-after-masks",
+        "passed": true,
+        "before": "{\n  \"answer\": 391\n}",
+        "after": "{\n  \"answer\": 391\n}",
+        "usage": {
+          "prompt_tokens": 72,
+          "completion_tokens": 13,
+          "total_tokens": 85,
+          "prompt_tokens_details": {
+            "cached_tokens": 71
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        }
+      },
+      {
+        "kind": "document-nested-refs-enums",
+        "mode": "off",
+        "value": {
+          "entries": [
+            {
+              "id": "a",
+              "text": "Hello.",
+              "status": "done"
+            },
+            {
+              "id": "b",
+              "text": "Goodbye.",
+              "status": "done"
+            }
+          ]
+        },
+        "passed": true,
+        "usage": {
+          "prompt_tokens": 67,
+          "completion_tokens": 69,
+          "total_tokens": 136,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "native": {
+          "enable_thinking": false,
+          "reasoning_effort": "none",
+          "engine": "lanes",
+          "tokens_per_second": 25.537695215090153,
+          "seconds": 2.849833516,
+          "prefill_seconds": 0.178488927,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.187827669,
+          "sampling": "greedy",
+          "drafts": false,
+          "token_sha": "10acc4ab683f",
+          "min_rows": 1
+        }
+      },
+      {
+        "kind": "document-nested-refs-enums",
+        "mode": "medium",
+        "value": {
+          "entries": [
+            {
+              "id": "a",
+              "text": "Hello.",
+              "status": "done"
+            },
+            {
+              "id": "b",
+              "text": "Goodbye.",
+              "status": "done"
+            }
+          ]
+        },
+        "passed": true,
+        "usage": {
+          "prompt_tokens": 65,
+          "completion_tokens": 84,
+          "total_tokens": 149,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 32
+          }
+        },
+        "native": {
+          "enable_thinking": true,
+          "reasoning_effort": "medium",
+          "engine": "lanes",
+          "tokens_per_second": 25.552744500527552,
+          "seconds": 3.424892165,
+          "prefill_seconds": 0.176418754,
+          "prefill_widths": [],
+          "prefill_raised": [],
+          "time_to_first_token": 0.177547937,
+          "sampling": "greedy",
+          "drafts": false,
+          "token_sha": "e8f213f07a6c",
+          "min_rows": 1
+        }
+      },
+      {
+        "kind": "structured-cancel-and-recover",
+        "passed": true,
+        "usage": {
+          "prompt_tokens": 23,
+          "completion_tokens": 4,
+          "total_tokens": 27,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        }
+      },
+      {
+        "kind": "invalid-schema-refused",
+        "passed": true,
+        "error": "the stream reported an error: out of memory"
+      },
+      {
+        "kind": "recovery-after-invalid-schema",
+        "passed": true
+      }
+    ],
+    "fp4_normal_output_regression": [
+      {
+        "case": "warmup-off",
+        "answer_equal": true,
+        "reasoning_equal": true
+      },
+      {
+        "case": "warmup-medium",
+        "answer_equal": true,
+        "reasoning_equal": true
+      },
+      {
+        "case": "tg-explain-off-0",
+        "answer_equal": true,
+        "reasoning_equal": true
+      },
+      {
+        "case": "tg-prose-off-0",
+        "answer_equal": true,
+        "reasoning_equal": true
+      },
+      {
+        "case": "tg-explain-medium-0",
+        "answer_equal": true,
+        "reasoning_equal": true
+      },
+      {
+        "case": "tg-prose-medium-0",
+        "answer_equal": true,
+        "reasoning_equal": true
+      },
+      {
+        "case": "pp-4096-off",
+        "answer_equal": true,
+        "reasoning_equal": true
+      },
+      {
+        "case": "pp-4096-medium",
+        "answer_equal": true,
+        "reasoning_equal": true
+      }
+    ],
+    "fp4_structured_cpu_checks": "6 Python grammar tests and 3 standalone C ABI state lifecycle checks passed; TensorFold host tests passed",
+    "fp4_post_1m_advanced": [
+      {
+        "kind": "schema",
+        "mode": "off",
+        "usage": {
+          "prompt_tokens": 27,
+          "completion_tokens": 13,
+          "total_tokens": 40,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "passed": true
+      },
+      {
+        "kind": "schema",
+        "mode": "medium",
+        "usage": {
+          "prompt_tokens": 25,
+          "completion_tokens": 45,
+          "total_tokens": 70,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 32
+          }
+        },
+        "passed": true
+      },
+      {
+        "kind": "conversation-resume",
+        "mode": null,
+        "usage": {
+          "prompt_tokens": 56,
+          "completion_tokens": 6,
+          "total_tokens": 62,
+          "prompt_tokens_details": {
+            "cached_tokens": 27
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "passed": true
+      },
+      {
+        "kind": "cancel-and-recover",
+        "mode": null,
+        "usage": {
+          "prompt_tokens": 25,
+          "completion_tokens": 4,
+          "total_tokens": 29,
+          "prompt_tokens_details": {
+            "cached_tokens": 24
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "passed": true
+      }
+    ],
+    "managed_start_stop_switch": [
+      {
+        "model": "qwen38fn_exl3",
+        "action": "start",
+        "elapsed_s": 254.60750263999944,
+        "operation": {
+          "action": "start",
+          "bundle_id": "qwen38fn_exl3",
+          "component_id": "qwen3-tts",
+          "state": "complete",
+          "phase": "준비 완료",
+          "detail": "선택한 구성을 사용할 수 있습니다.",
+          "progress": 1,
+          "started_at": "2026-10-20T04:13:05.987399068+09:00",
+          "finished_at": "2026-10-20T04:17:19.437819056+09:00",
+          "steps": [
+            {
+              "component_id": "qwen38fn_exl3",
+              "phase": "Qwen 3.8 Flash-Next EXL3 3bit 시작",
+              "detail": "컨테이너와 실행 설정을 확인하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T04:15:59.658273763+09:00",
+              "finished_at": "2026-10-20T04:16:01.396133442+09:00"
+            },
+            {
+              "component_id": "qwen38fn_exl3",
+              "phase": "TensorFold 엔진 시작",
+              "state": "complete",
+              "started_at": "2026-10-20T04:16:01.396133442+09:00",
+              "finished_at": "2026-10-20T04:16:09.600951558+09:00"
+            },
+            {
+              "component_id": "qwen38fn_exl3",
+              "phase": "TensorFold 가중치 적재",
+              "state": "complete",
+              "started_at": "2026-10-20T04:16:09.600951558+09:00",
+              "finished_at": "2026-10-20T04:16:36.309677212+09:00"
+            },
+            {
+              "component_id": "qwen38fn_exl3",
+              "phase": "TensorFold 추론 준비",
+              "detail": "비전·KV 캐시·MTP 경로를 준비합니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T04:16:36.309677212+09:00",
+              "finished_at": "2026-10-20T04:16:50.670318842+09:00"
+            },
+            {
+              "component_id": "qwen38fn_exl3",
+              "phase": "Qwen 3.8 Flash-Next EXL3 3bit API 응답 확인",
+              "detail": "서비스가 요청을 받을 준비를 마쳤습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T04:16:50.670318842+09:00",
+              "finished_at": "2026-10-20T04:16:50.757315189+09:00"
+            },
+            {
+              "component_id": "qwen38fn_exl3",
+              "phase": "TensorFold EXL3 1M 준비 완료",
+              "detail": "실제 문맥·Q8 KV 1M·MTP 3·비전을 확인했습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T04:16:50.757315189+09:00",
+              "finished_at": "2026-10-20T04:16:50.757404948+09:00"
+            },
+            {
+              "component_id": "nemotron-asr",
+              "phase": "Nemotron 3.5 ASR 시작",
+              "detail": "컨테이너와 실행 설정을 확인하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T04:16:50.757404948+09:00",
+              "finished_at": "2026-10-20T04:16:53.542594661+09:00"
+            },
+            {
+              "component_id": "nemotron-asr",
+              "phase": "보조 서비스 시작",
+              "detail": "API 프로세스를 시작하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T04:16:53.542594661+09:00",
+              "finished_at": "2026-10-20T04:16:55.564651527+09:00"
+            },
+            {
+              "component_id": "nemotron-asr",
+              "phase": "Nemotron 3.5 ASR API 응답 확인",
+              "detail": "서비스가 요청을 받을 준비를 마쳤습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T04:16:55.564651527+09:00",
+              "finished_at": "2026-10-20T04:16:55.564668311+09:00"
+            },
+            {
+              "component_id": "extra-embedding",
+              "phase": "EmbeddingGemma 2 시작",
+              "detail": "컨테이너와 실행 설정을 확인하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T04:16:55.564668311+09:00",
+              "finished_at": "2026-10-20T04:16:58.679271908+09:00"
+            },
+            {
+              "component_id": "extra-embedding",
+              "phase": "보조 서비스 시작",
+              "detail": "API 프로세스를 시작하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T04:16:58.679271908+09:00",
+              "finished_at": "2026-10-20T04:17:00.707845226+09:00"
+            },
+            {
+              "component_id": "extra-embedding",
+              "phase": "EmbeddingGemma 2 API 응답 확인",
+              "detail": "서비스가 요청을 받을 준비를 마쳤습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T04:17:00.707845226+09:00",
+              "finished_at": "2026-10-20T04:17:00.996687425+09:00"
+            },
+            {
+              "component_id": "extra-embedding",
+              "phase": "의미 검색 모델 GPU 적재",
+              "state": "complete",
+              "started_at": "2026-10-20T04:17:00.996687425+09:00",
+              "finished_at": "2026-10-20T04:17:12.846635703+09:00"
+            },
+            {
+              "component_id": "qwen3-tts",
+              "phase": "Qwen3-TTS 0.6B 시작",
+              "detail": "컨테이너와 실행 설정을 확인하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T04:17:12.846635703+09:00",
+              "finished_at": "2026-10-20T04:17:15.356577432+09:00"
+            },
+            {
+              "component_id": "qwen3-tts",
+              "phase": "보조 서비스 시작",
+              "detail": "API 프로세스를 시작하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T04:17:15.356577432+09:00",
+              "finished_at": "2026-10-20T04:17:19.437065065+09:00"
+            },
+            {
+              "component_id": "qwen3-tts",
+              "phase": "Qwen3-TTS 0.6B API 응답 확인",
+              "detail": "서비스가 요청을 받을 준비를 마쳤습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T04:17:19.437065065+09:00",
+              "finished_at": "2026-10-20T04:17:19.437819056+09:00"
+            }
+          ]
+        },
+        "passed": true
+      },
+      {
+        "model": "qwen38fn_exl3",
+        "action": "stop",
+        "elapsed_s": 4.891189655005292,
+        "operation": {
+          "action": "stop",
+          "bundle_id": "qwen38fn_exl3",
+          "component_id": "qwen38fn_exl3",
+          "state": "complete",
+          "phase": "중지 완료",
+          "detail": "선택한 구성을 사용할 수 있습니다.",
+          "progress": 1,
+          "started_at": "2026-10-20T04:17:24.497331005+09:00",
+          "finished_at": "2026-10-20T04:17:28.810162416+09:00",
+          "steps": [
+            {
+              "phase": "세트 중지",
+              "state": "complete",
+              "started_at": "2026-10-20T04:17:24.497331357+09:00",
+              "finished_at": "2026-10-20T04:17:24.497527738+09:00"
+            },
+            {
+              "component_id": "extra-embedding",
+              "phase": "EmbeddingGemma 2 중지",
+              "detail": "컨테이너를 안전하게 종료하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T04:17:24.497527738+09:00",
+              "finished_at": "2026-10-20T04:17:24.952029959+09:00"
+            },
+            {
+              "component_id": "qwen3-tts",
+              "phase": "Qwen3-TTS 0.6B 중지",
+              "detail": "컨테이너를 안전하게 종료하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T04:17:24.952029959+09:00",
+              "finished_at": "2026-10-20T04:17:25.473824498+09:00"
+            },
+            {
+              "component_id": "nemotron-asr",
+              "phase": "Nemotron 3.5 ASR 중지",
+              "detail": "컨테이너를 안전하게 종료하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T04:17:25.473824498+09:00",
+              "finished_at": "2026-10-20T04:17:25.843564125+09:00"
+            },
+            {
+              "component_id": "qwim-mmh3",
+              "phase": "Qwen Image 2.1 + MiniMax H3 중지",
+              "detail": "컨테이너를 안전하게 종료하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T04:17:25.843564125+09:00",
+              "finished_at": "2026-10-20T04:17:26.40007799+09:00"
+            },
+            {
+              "component_id": "qwen38fn_exl3",
+              "phase": "Qwen 3.8 Flash-Next EXL3 3bit 중지",
+              "detail": "컨테이너를 안전하게 종료하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T04:17:26.40007799+09:00",
+              "finished_at": "2026-10-20T04:17:28.810162416+09:00"
+            }
+          ]
+        },
+        "passed": true
+      },
+      {
+        "model": "qwen38fn_exl3",
+        "action": "start",
+        "elapsed_s": 220.22787905200676,
+        "operation": {
+          "action": "start",
+          "bundle_id": "qwen38fn_exl3",
+          "component_id": "qwen3-tts",
+          "state": "complete",
+          "phase": "준비 완료",
+          "detail": "선택한 구성을 사용할 수 있습니다.",
+          "progress": 1,
+          "started_at": "2026-10-20T04:17:29.389265146+09:00",
+          "finished_at": "2026-10-20T04:21:07.731121151+09:00",
+          "steps": [
+            {
+              "component_id": "qwen38fn_exl3",
+              "phase": "Qwen 3.8 Flash-Next EXL3 3bit 시작",
+              "detail": "컨테이너와 실행 설정을 확인하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T04:19:48.353551871+09:00",
+              "finished_at": "2026-10-20T04:19:50.15186005+09:00"
+            },
+            {
+              "component_id": "qwen38fn_exl3",
+              "phase": "TensorFold 엔진 시작",
+              "state": "complete",
+              "started_at": "2026-10-20T04:19:50.15186005+09:00",
+              "finished_at": "2026-10-20T04:19:58.35885945+09:00"
+            },
+            {
+              "component_id": "qwen38fn_exl3",
+              "phase": "TensorFold 가중치 적재",
+              "state": "complete",
+              "started_at": "2026-10-20T04:19:58.35885945+09:00",
+              "finished_at": "2026-10-20T04:20:25.063786409+09:00"
+            },
+            {
+              "component_id": "qwen38fn_exl3",
+              "phase": "TensorFold 추론 준비",
+              "detail": "비전·KV 캐시·MTP 경로를 준비합니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T04:20:25.063786409+09:00",
+              "finished_at": "2026-10-20T04:20:39.418773165+09:00"
+            },
+            {
+              "component_id": "qwen38fn_exl3",
+              "phase": "Qwen 3.8 Flash-Next EXL3 3bit API 응답 확인",
+              "detail": "서비스가 요청을 받을 준비를 마쳤습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T04:20:39.418773165+09:00",
+              "finished_at": "2026-10-20T04:20:39.504131353+09:00"
+            },
+            {
+              "component_id": "qwen38fn_exl3",
+              "phase": "TensorFold EXL3 1M 준비 완료",
+              "detail": "실제 문맥·Q8 KV 1M·MTP 3·비전을 확인했습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T04:20:39.504131353+09:00",
+              "finished_at": "2026-10-20T04:20:39.504217112+09:00"
+            },
+            {
+              "component_id": "nemotron-asr",
+              "phase": "Nemotron 3.5 ASR 시작",
+              "detail": "컨테이너와 실행 설정을 확인하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T04:20:39.504217112+09:00",
+              "finished_at": "2026-10-20T04:20:42.368702791+09:00"
+            },
+            {
+              "component_id": "nemotron-asr",
+              "phase": "보조 서비스 시작",
+              "detail": "API 프로세스를 시작하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T04:20:42.368702791+09:00",
+              "finished_at": "2026-10-20T04:20:44.396695427+09:00"
+            },
+            {
+              "component_id": "nemotron-asr",
+              "phase": "Nemotron 3.5 ASR API 응답 확인",
+              "detail": "서비스가 요청을 받을 준비를 마쳤습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T04:20:44.396695427+09:00",
+              "finished_at": "2026-10-20T04:20:44.396708579+09:00"
+            },
+            {
+              "component_id": "extra-embedding",
+              "phase": "EmbeddingGemma 2 시작",
+              "detail": "컨테이너와 실행 설정을 확인하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T04:20:44.396708579+09:00",
+              "finished_at": "2026-10-20T04:20:47.333796205+09:00"
+            },
+            {
+              "component_id": "extra-embedding",
+              "phase": "보조 서비스 시작",
+              "detail": "API 프로세스를 시작하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T04:20:47.333796205+09:00",
+              "finished_at": "2026-10-20T04:20:49.362420686+09:00"
+            },
+            {
+              "component_id": "extra-embedding",
+              "phase": "EmbeddingGemma 2 API 응답 확인",
+              "detail": "서비스가 요청을 받을 준비를 마쳤습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T04:20:49.362420686+09:00",
+              "finished_at": "2026-10-20T04:20:49.666773166+09:00"
+            },
+            {
+              "component_id": "extra-embedding",
+              "phase": "의미 검색 모델 GPU 적재",
+              "state": "complete",
+              "started_at": "2026-10-20T04:20:49.666773166+09:00",
+              "finished_at": "2026-10-20T04:21:01.503786399+09:00"
+            },
+            {
+              "component_id": "qwen3-tts",
+              "phase": "Qwen3-TTS 0.6B 시작",
+              "detail": "컨테이너와 실행 설정을 확인하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T04:21:01.503786399+09:00",
+              "finished_at": "2026-10-20T04:21:03.646557048+09:00"
+            },
+            {
+              "component_id": "qwen3-tts",
+              "phase": "보조 서비스 시작",
+              "detail": "API 프로세스를 시작하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T04:21:03.646557048+09:00",
+              "finished_at": "2026-10-20T04:21:07.730740514+09:00"
+            },
+            {
+              "component_id": "qwen3-tts",
+              "phase": "Qwen3-TTS 0.6B API 응답 확인",
+              "detail": "서비스가 요청을 받을 준비를 마쳤습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T04:21:07.730740514+09:00",
+              "finished_at": "2026-10-20T04:21:07.731121151+09:00"
+            }
+          ]
+        },
+        "passed": true
+      },
+      {
+        "model": "flash-next-fp4-local",
+        "action": "start",
+        "elapsed_s": 73.40596952400665,
+        "operation": {
+          "action": "start",
+          "bundle_id": "flash-next-fp4-local",
+          "component_id": "flash-next-fp4-local",
+          "state": "complete",
+          "phase": "준비 완료",
+          "detail": "선택한 구성을 사용할 수 있습니다.",
+          "progress": 1,
+          "started_at": "2026-10-20T04:25:24.605771715+09:00",
+          "finished_at": "2026-10-20T04:26:36.381103577+09:00",
+          "steps": [
+            {
+              "phase": "기동 계획 준비",
+              "state": "complete",
+              "started_at": "2026-10-20T04:25:24.605772243+09:00",
+              "finished_at": "2026-10-20T04:25:25.0569059+09:00"
+            },
+            {
+              "component_id": "qwim-mmh3",
+              "phase": "Qwen Image 2.1 + MiniMax H3 중지",
+              "detail": "다음 세트에 포함되지 않은 이미지 모델의 메모리를 반환합니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T04:25:25.0569059+09:00",
+              "finished_at": "2026-10-20T04:25:25.638663429+09:00"
+            },
+            {
+              "component_id": "qwen38fn_exl3",
+              "phase": "Qwen 3.8 Flash-Next EXL3 3bit 중지",
+              "detail": "기존 언어 모델의 메모리를 반환하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T04:25:25.638663429+09:00",
+              "finished_at": "2026-10-20T04:25:28.344507767+09:00"
+            },
+            {
+              "component_id": "nemotron-asr",
+              "phase": "Nemotron 3.5 ASR 기동 대기",
+              "detail": "언어 모델 준비 후 다시 시작합니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T04:25:28.344507767+09:00",
+              "finished_at": "2026-10-20T04:25:28.864982466+09:00"
+            },
+            {
+              "component_id": "qwen3-tts",
+              "phase": "Qwen3-TTS 0.6B 기동 대기",
+              "detail": "언어 모델 준비 후 다시 시작합니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T04:25:28.864982466+09:00",
+              "finished_at": "2026-10-20T04:25:29.261238189+09:00"
+            },
+            {
+              "component_id": "extra-embedding",
+              "phase": "EmbeddingGemma 2 기동 대기",
+              "detail": "언어 모델 준비 후 다시 시작합니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T04:25:29.261238189+09:00",
+              "finished_at": "2026-10-20T04:25:29.965016809+09:00"
+            },
+            {
+              "component_id": "qwen3-tts",
+              "phase": "Qwen3-TTS 0.6B 최초 자산 확인·준비",
+              "state": "complete",
+              "started_at": "2026-10-20T04:25:29.965016809+09:00",
+              "finished_at": "2026-10-20T04:25:31.567390259+09:00"
+            },
+            {
+              "phase": "세트 기동 전 메모리 재확인",
+              "detail": "시스템 가용 117.1 GiB · 즉시 여유 81.1 GiB · 추가 예상 103.0 GiB · 최소 확보 1.5 GiB",
+              "state": "complete",
+              "started_at": "2026-10-20T04:25:31.567390259+09:00",
+              "finished_at": "2026-10-20T04:25:31.842417762+09:00"
+            },
+            {
+              "phase": "언어 모델 기동 직전 메모리 확인",
+              "detail": "시스템 가용 117.0 GiB · 즉시 여유 81.1 GiB · 추가 예상 103.0 GiB · 최소 확보 1.5 GiB",
+              "state": "complete",
+              "started_at": "2026-10-20T04:25:31.842417762+09:00",
+              "finished_at": "2026-10-20T04:25:31.842420514+09:00"
+            },
+            {
+              "component_id": "flash-next-fp4-local",
+              "phase": "Qwen 3.8 Flash-Next FP4-Local 시작",
+              "detail": "컨테이너와 실행 설정을 확인하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T04:25:31.842420514+09:00",
+              "finished_at": "2026-10-20T04:25:34.788435315+09:00"
+            },
+            {
+              "component_id": "flash-next-fp4-local",
+              "phase": "TensorFold 엔진 시작",
+              "state": "complete",
+              "started_at": "2026-10-20T04:25:34.788435315+09:00",
+              "finished_at": "2026-10-20T04:25:49.159937653+09:00"
+            },
+            {
+              "component_id": "flash-next-fp4-local",
+              "phase": "TensorFold 추론 준비",
+              "detail": "비전·KV 캐시·MTP 경로를 준비합니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T04:25:49.159937653+09:00",
+              "finished_at": "2026-10-20T04:26:36.380713163+09:00"
+            },
+            {
+              "component_id": "flash-next-fp4-local",
+              "phase": "Qwen 3.8 Flash-Next FP4-Local API 응답 확인",
+              "detail": "서비스가 요청을 받을 준비를 마쳤습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T04:26:36.380713163+09:00",
+              "finished_at": "2026-10-20T04:26:36.381103577+09:00"
+            }
+          ]
+        },
+        "passed": true
+      },
+      {
+        "model": "flash-next-fp4-local",
+        "action": "start",
+        "elapsed_s": 68.961359713001,
+        "operation": {
+          "action": "start",
+          "bundle_id": "flash-next-fp4-local",
+          "component_id": "flash-next-fp4-local",
+          "state": "complete",
+          "phase": "준비 완료",
+          "detail": "선택한 구성을 사용할 수 있습니다.",
+          "progress": 1,
+          "started_at": "2026-10-20T05:05:52.086696862+09:00",
+          "finished_at": "2026-10-20T05:07:00.522817247+09:00",
+          "steps": [
+            {
+              "phase": "기동 계획 준비",
+              "state": "complete",
+              "started_at": "2026-10-20T05:05:52.086697246+09:00",
+              "finished_at": "2026-10-20T05:05:52.623426899+09:00"
+            },
+            {
+              "component_id": "qwen3-tts",
+              "phase": "Qwen3-TTS 0.6B 최초 자산 확인·준비",
+              "state": "complete",
+              "started_at": "2026-10-20T05:05:52.623426899+09:00",
+              "finished_at": "2026-10-20T05:05:54.534222682+09:00"
+            },
+            {
+              "phase": "세트 기동 전 메모리 재확인",
+              "detail": "시스템 가용 117.1 GiB · 즉시 여유 99.6 GiB · 추가 예상 103.0 GiB · 최소 확보 1.5 GiB",
+              "state": "complete",
+              "started_at": "2026-10-20T05:05:54.534222682+09:00",
+              "finished_at": "2026-10-20T05:05:54.805083866+09:00"
+            },
+            {
+              "phase": "언어 모델 기동 직전 메모리 확인",
+              "detail": "시스템 가용 117.1 GiB · 즉시 여유 99.5 GiB · 추가 예상 103.0 GiB · 최소 확보 1.5 GiB",
+              "state": "complete",
+              "started_at": "2026-10-20T05:05:54.805083866+09:00",
+              "finished_at": "2026-10-20T05:05:54.805085034+09:00"
+            },
+            {
+              "component_id": "flash-next-fp4-local",
+              "phase": "Qwen 3.8 Flash-Next FP4-Local 시작",
+              "detail": "컨테이너와 실행 설정을 확인하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T05:05:54.805085034+09:00",
+              "finished_at": "2026-10-20T05:05:56.839355372+09:00"
+            },
+            {
+              "component_id": "flash-next-fp4-local",
+              "phase": "TensorFold 엔진 시작",
+              "state": "complete",
+              "started_at": "2026-10-20T05:05:56.839355372+09:00",
+              "finished_at": "2026-10-20T05:06:11.212483008+09:00"
+            },
+            {
+              "component_id": "flash-next-fp4-local",
+              "phase": "TensorFold 추론 준비",
+              "detail": "비전·KV 캐시·MTP 경로를 준비합니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T05:06:11.212483008+09:00",
+              "finished_at": "2026-10-20T05:07:00.522383615+09:00"
+            },
+            {
+              "component_id": "flash-next-fp4-local",
+              "phase": "Qwen 3.8 Flash-Next FP4-Local API 응답 확인",
+              "detail": "서비스가 요청을 받을 준비를 마쳤습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T05:07:00.522383615+09:00",
+              "finished_at": "2026-10-20T05:07:00.522817247+09:00"
+            }
+          ]
+        },
+        "passed": true
+      },
+      {
+        "model": "flash-next-fp4-local",
+        "action": "stop",
+        "elapsed_s": 2.530037557000469,
+        "operation": {
+          "action": "stop",
+          "bundle_id": "flash-next-fp4-local",
+          "component_id": "flash-next-fp4-local",
+          "state": "complete",
+          "phase": "중지 완료",
+          "detail": "선택한 구성을 사용할 수 있습니다.",
+          "progress": 1,
+          "started_at": "2026-10-20T05:07:07.679571904+09:00",
+          "finished_at": "2026-10-20T05:07:09.749840974+09:00",
+          "steps": [
+            {
+              "phase": "세트 중지",
+              "state": "complete",
+              "started_at": "2026-10-20T05:07:07.679572368+09:00",
+              "finished_at": "2026-10-20T05:07:07.679794976+09:00"
+            },
+            {
+              "component_id": "extra-embedding",
+              "phase": "EmbeddingGemma 2 중지",
+              "detail": "컨테이너를 안전하게 종료하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T05:07:07.679794976+09:00",
+              "finished_at": "2026-10-20T05:07:07.707927833+09:00"
+            },
+            {
+              "component_id": "qwen3-tts",
+              "phase": "Qwen3-TTS 0.6B 중지",
+              "detail": "컨테이너를 안전하게 종료하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T05:07:07.707927833+09:00",
+              "finished_at": "2026-10-20T05:07:07.730451382+09:00"
+            },
+            {
+              "component_id": "nemotron-asr",
+              "phase": "Nemotron 3.5 ASR 중지",
+              "detail": "컨테이너를 안전하게 종료하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T05:07:07.730451382+09:00",
+              "finished_at": "2026-10-20T05:07:07.752621492+09:00"
+            },
+            {
+              "component_id": "flash-next-fp4-local",
+              "phase": "Qwen 3.8 Flash-Next FP4-Local 중지",
+              "detail": "컨테이너를 안전하게 종료하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T05:07:07.752621492+09:00",
+              "finished_at": "2026-10-20T05:07:09.749840974+09:00"
+            }
+          ]
+        },
+        "passed": true
+      },
+      {
+        "model": "flash-next-fp4-local",
+        "action": "start",
+        "elapsed_s": 2.7333905839986983,
+        "operation": {
+          "action": "start",
+          "bundle_id": "flash-next-fp4-local",
+          "component_id": "flash-next-fp4-local",
+          "state": "complete",
+          "phase": "준비 완료",
+          "detail": "선택한 구성을 사용할 수 있습니다.",
+          "progress": 1,
+          "started_at": "2026-10-20T05:12:14.040061892+09:00",
+          "finished_at": "2026-10-20T05:12:14.780664944+09:00",
+          "steps": [
+            {
+              "phase": "기동 계획 준비",
+              "state": "complete",
+              "started_at": "2026-10-20T05:12:14.040062404+09:00",
+              "finished_at": "2026-10-20T05:12:14.727187435+09:00"
+            },
+            {
+              "phase": "세트 기동 전 메모리 재확인",
+              "detail": "시스템 가용 32.0 GiB · 즉시 여유 13.0 GiB · 추가 예상 0.0 GiB · 최소 확보 1.5 GiB",
+              "state": "complete",
+              "started_at": "2026-10-20T05:12:14.727187435+09:00",
+              "finished_at": "2026-10-20T05:12:14.751963383+09:00"
+            },
+            {
+              "component_id": "flash-next-fp4-local",
+              "phase": "Qwen 3.8 Flash-Next FP4-Local 시작",
+              "detail": "컨테이너와 실행 설정을 확인하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T05:12:14.751963383+09:00",
+              "finished_at": "2026-10-20T05:12:14.780664944+09:00"
+            }
+          ]
+        },
+        "passed": true
+      },
+      {
+        "model": "qwen38fn_exl3",
+        "action": "start",
+        "elapsed_s": 235.50053173899505,
+        "operation": {
+          "action": "start",
+          "bundle_id": "qwen38fn_exl3",
+          "component_id": "qwen3-tts",
+          "state": "complete",
+          "phase": "준비 완료",
+          "detail": "선택한 구성을 사용할 수 있습니다.",
+          "progress": 1,
+          "started_at": "2026-10-20T05:12:16.828943312+09:00",
+          "finished_at": "2026-10-20T05:16:11.502756686+09:00",
+          "steps": [
+            {
+              "component_id": "qwen38fn_exl3",
+              "phase": "Qwen 3.8 Flash-Next EXL3 3bit 시작",
+              "detail": "컨테이너와 실행 설정을 확인하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T05:14:51.423443651+09:00",
+              "finished_at": "2026-10-20T05:14:53.173908651+09:00"
+            },
+            {
+              "component_id": "qwen38fn_exl3",
+              "phase": "TensorFold 엔진 시작",
+              "state": "complete",
+              "started_at": "2026-10-20T05:14:53.173908651+09:00",
+              "finished_at": "2026-10-20T05:15:01.377471306+09:00"
+            },
+            {
+              "component_id": "qwen38fn_exl3",
+              "phase": "TensorFold 가중치 적재",
+              "state": "complete",
+              "started_at": "2026-10-20T05:15:01.377471306+09:00",
+              "finished_at": "2026-10-20T05:15:28.100939515+09:00"
+            },
+            {
+              "component_id": "qwen38fn_exl3",
+              "phase": "TensorFold 추론 준비",
+              "detail": "비전·KV 캐시·MTP 경로를 준비합니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T05:15:28.100939515+09:00",
+              "finished_at": "2026-10-20T05:15:42.495195394+09:00"
+            },
+            {
+              "component_id": "qwen38fn_exl3",
+              "phase": "Qwen 3.8 Flash-Next EXL3 3bit API 응답 확인",
+              "detail": "서비스가 요청을 받을 준비를 마쳤습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T05:15:42.495195394+09:00",
+              "finished_at": "2026-10-20T05:15:42.576817472+09:00"
+            },
+            {
+              "component_id": "qwen38fn_exl3",
+              "phase": "TensorFold EXL3 1M 준비 완료",
+              "detail": "실제 문맥·Q8 KV 1M·MTP 3·비전을 확인했습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T05:15:42.576817472+09:00",
+              "finished_at": "2026-10-20T05:15:42.576915088+09:00"
+            },
+            {
+              "component_id": "nemotron-asr",
+              "phase": "Nemotron 3.5 ASR 시작",
+              "detail": "컨테이너와 실행 설정을 확인하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T05:15:42.576915088+09:00",
+              "finished_at": "2026-10-20T05:15:45.816640469+09:00"
+            },
+            {
+              "component_id": "nemotron-asr",
+              "phase": "보조 서비스 시작",
+              "detail": "API 프로세스를 시작하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T05:15:45.816640469+09:00",
+              "finished_at": "2026-10-20T05:15:47.847032672+09:00"
+            },
+            {
+              "component_id": "nemotron-asr",
+              "phase": "Nemotron 3.5 ASR API 응답 확인",
+              "detail": "서비스가 요청을 받을 준비를 마쳤습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T05:15:47.847032672+09:00",
+              "finished_at": "2026-10-20T05:15:47.847048992+09:00"
+            },
+            {
+              "component_id": "extra-embedding",
+              "phase": "EmbeddingGemma 2 시작",
+              "detail": "컨테이너와 실행 설정을 확인하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T05:15:47.847048992+09:00",
+              "finished_at": "2026-10-20T05:15:50.895151198+09:00"
+            },
+            {
+              "component_id": "extra-embedding",
+              "phase": "보조 서비스 시작",
+              "detail": "API 프로세스를 시작하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T05:15:50.895151198+09:00",
+              "finished_at": "2026-10-20T05:15:52.925421689+09:00"
+            },
+            {
+              "component_id": "extra-embedding",
+              "phase": "EmbeddingGemma 2 API 응답 확인",
+              "detail": "서비스가 요청을 받을 준비를 마쳤습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T05:15:52.925421689+09:00",
+              "finished_at": "2026-10-20T05:15:53.270077174+09:00"
+            },
+            {
+              "component_id": "extra-embedding",
+              "phase": "의미 검색 모델 GPU 적재",
+              "state": "complete",
+              "started_at": "2026-10-20T05:15:53.270077174+09:00",
+              "finished_at": "2026-10-20T05:16:05.293251289+09:00"
+            },
+            {
+              "component_id": "qwen3-tts",
+              "phase": "Qwen3-TTS 0.6B 시작",
+              "detail": "컨테이너와 실행 설정을 확인하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T05:16:05.293251289+09:00",
+              "finished_at": "2026-10-20T05:16:07.423437557+09:00"
+            },
+            {
+              "component_id": "qwen3-tts",
+              "phase": "보조 서비스 시작",
+              "detail": "API 프로세스를 시작하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T05:16:07.423437557+09:00",
+              "finished_at": "2026-10-20T05:16:11.502378894+09:00"
+            },
+            {
+              "component_id": "qwen3-tts",
+              "phase": "Qwen3-TTS 0.6B API 응답 확인",
+              "detail": "서비스가 요청을 받을 준비를 마쳤습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T05:16:11.502378894+09:00",
+              "finished_at": "2026-10-20T05:16:11.502756686+09:00"
+            }
+          ]
+        },
+        "passed": true
+      },
+      {
+        "model": "flash-next-fp4-local",
+        "action": "start",
+        "elapsed_s": 76.02897373400629,
+        "operation": {
+          "action": "start",
+          "bundle_id": "flash-next-fp4-local",
+          "component_id": "flash-next-fp4-local",
+          "state": "complete",
+          "phase": "준비 완료",
+          "detail": "선택한 구성을 사용할 수 있습니다.",
+          "progress": 1,
+          "started_at": "2026-10-20T05:17:25.507236321+09:00",
+          "finished_at": "2026-10-20T05:18:40.966078733+09:00",
+          "steps": [
+            {
+              "phase": "기동 계획 준비",
+              "state": "complete",
+              "started_at": "2026-10-20T05:17:25.507236801+09:00",
+              "finished_at": "2026-10-20T05:17:26.149938193+09:00"
+            },
+            {
+              "component_id": "qwim-mmh3",
+              "phase": "Qwen Image 2.1 + MiniMax H3 중지",
+              "detail": "다음 세트에 포함되지 않은 이미지 모델의 메모리를 반환합니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T05:17:26.149938193+09:00",
+              "finished_at": "2026-10-20T05:17:26.825267543+09:00"
+            },
+            {
+              "component_id": "qwen38fn_exl3",
+              "phase": "Qwen 3.8 Flash-Next EXL3 3bit 중지",
+              "detail": "기존 언어 모델의 메모리를 반환하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T05:17:26.825267543+09:00",
+              "finished_at": "2026-10-20T05:17:29.456681848+09:00"
+            },
+            {
+              "component_id": "nemotron-asr",
+              "phase": "Nemotron 3.5 ASR 기동 대기",
+              "detail": "언어 모델 준비 후 다시 시작합니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T05:17:29.456681848+09:00",
+              "finished_at": "2026-10-20T05:17:29.988130705+09:00"
+            },
+            {
+              "component_id": "qwen3-tts",
+              "phase": "Qwen3-TTS 0.6B 기동 대기",
+              "detail": "언어 모델 준비 후 다시 시작합니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T05:17:29.988130705+09:00",
+              "finished_at": "2026-10-20T05:17:30.398110346+09:00"
+            },
+            {
+              "component_id": "extra-embedding",
+              "phase": "EmbeddingGemma 2 기동 대기",
+              "detail": "언어 모델 준비 후 다시 시작합니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T05:17:30.398110346+09:00",
+              "finished_at": "2026-10-20T05:17:31.103139353+09:00"
+            },
+            {
+              "component_id": "qwen3-tts",
+              "phase": "Qwen3-TTS 0.6B 최초 자산 확인·준비",
+              "state": "complete",
+              "started_at": "2026-10-20T05:17:31.103139353+09:00",
+              "finished_at": "2026-10-20T05:17:32.693623415+09:00"
+            },
+            {
+              "phase": "세트 기동 전 메모리 재확인",
+              "detail": "시스템 가용 117.1 GiB · 즉시 여유 82.4 GiB · 추가 예상 103.0 GiB · 최소 확보 1.5 GiB",
+              "state": "complete",
+              "started_at": "2026-10-20T05:17:32.693623415+09:00",
+              "finished_at": "2026-10-20T05:17:32.938618724+09:00"
+            },
+            {
+              "phase": "언어 모델 기동 직전 메모리 확인",
+              "detail": "시스템 가용 117.1 GiB · 즉시 여유 82.4 GiB · 추가 예상 103.0 GiB · 최소 확보 1.5 GiB",
+              "state": "complete",
+              "started_at": "2026-10-20T05:17:32.938618724+09:00",
+              "finished_at": "2026-10-20T05:17:32.938621252+09:00"
+            },
+            {
+              "component_id": "flash-next-fp4-local",
+              "phase": "Qwen 3.8 Flash-Next FP4-Local 시작",
+              "detail": "컨테이너와 실행 설정을 확인하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T05:17:32.938621252+09:00",
+              "finished_at": "2026-10-20T05:17:35.20641039+09:00"
+            },
+            {
+              "component_id": "flash-next-fp4-local",
+              "phase": "TensorFold 엔진 시작",
+              "state": "complete",
+              "started_at": "2026-10-20T05:17:35.20641039+09:00",
+              "finished_at": "2026-10-20T05:17:49.580970468+09:00"
+            },
+            {
+              "component_id": "flash-next-fp4-local",
+              "phase": "TensorFold 추론 준비",
+              "detail": "비전·KV 캐시·MTP 경로를 준비합니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T05:17:49.580970468+09:00",
+              "finished_at": "2026-10-20T05:18:40.965298589+09:00"
+            },
+            {
+              "component_id": "flash-next-fp4-local",
+              "phase": "Qwen 3.8 Flash-Next FP4-Local API 응답 확인",
+              "detail": "서비스가 요청을 받을 준비를 마쳤습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T05:18:40.965298589+09:00",
+              "finished_at": "2026-10-20T05:18:40.966078733+09:00"
+            }
+          ]
+        },
+        "passed": true
+      },
+      {
+        "model": "flash-next-fp4-local",
+        "action": "stop",
+        "elapsed_s": 2.5234122030014987,
+        "operation": {
+          "action": "stop",
+          "bundle_id": "flash-next-fp4-local",
+          "component_id": "flash-next-fp4-local",
+          "state": "complete",
+          "phase": "중지 완료",
+          "detail": "선택한 구성을 사용할 수 있습니다.",
+          "progress": 1,
+          "started_at": "2026-10-20T05:18:48.558726538+09:00",
+          "finished_at": "2026-10-20T05:18:50.697299078+09:00",
+          "steps": [
+            {
+              "phase": "세트 중지",
+              "state": "complete",
+              "started_at": "2026-10-20T05:18:48.558726778+09:00",
+              "finished_at": "2026-10-20T05:18:48.558816826+09:00"
+            },
+            {
+              "component_id": "extra-embedding",
+              "phase": "EmbeddingGemma 2 중지",
+              "detail": "컨테이너를 안전하게 종료하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T05:18:48.558816826+09:00",
+              "finished_at": "2026-10-20T05:18:48.588132306+09:00"
+            },
+            {
+              "component_id": "qwen3-tts",
+              "phase": "Qwen3-TTS 0.6B 중지",
+              "detail": "컨테이너를 안전하게 종료하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T05:18:48.588132306+09:00",
+              "finished_at": "2026-10-20T05:18:48.614429741+09:00"
+            },
+            {
+              "component_id": "nemotron-asr",
+              "phase": "Nemotron 3.5 ASR 중지",
+              "detail": "컨테이너를 안전하게 종료하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T05:18:48.614429741+09:00",
+              "finished_at": "2026-10-20T05:18:48.641167+09:00"
+            },
+            {
+              "component_id": "flash-next-fp4-local",
+              "phase": "Qwen 3.8 Flash-Next FP4-Local 중지",
+              "detail": "컨테이너를 안전하게 종료하고 있습니다.",
+              "state": "complete",
+              "started_at": "2026-10-20T05:18:48.641167+09:00",
+              "finished_at": "2026-10-20T05:18:50.697299078+09:00"
+            }
+          ]
+        },
+        "passed": true
+      }
+    ],
+    "fp4_final_managed_advanced": [
+      {
+        "kind": "schema",
+        "mode": "off",
+        "usage": {
+          "prompt_tokens": 27,
+          "completion_tokens": 13,
+          "total_tokens": 40,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "passed": true
+      },
+      {
+        "kind": "schema",
+        "mode": "medium",
+        "usage": {
+          "prompt_tokens": 25,
+          "completion_tokens": 45,
+          "total_tokens": 70,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 32
+          }
+        },
+        "passed": true
+      },
+      {
+        "kind": "conversation-resume",
+        "mode": null,
+        "usage": {
+          "prompt_tokens": 56,
+          "completion_tokens": 6,
+          "total_tokens": 62,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "passed": true
+      },
+      {
+        "kind": "cancel-and-recover",
+        "mode": null,
+        "usage": {
+          "prompt_tokens": 25,
+          "completion_tokens": 4,
+          "total_tokens": 29,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "passed": true
+      }
+    ],
+    "exl3_final_managed_advanced": [
+      {
+        "kind": "schema",
+        "mode": "off",
+        "usage": {
+          "prompt_tokens": 27,
+          "completion_tokens": 13,
+          "total_tokens": 40,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "passed": true
+      },
+      {
+        "kind": "schema",
+        "mode": "medium",
+        "usage": {
+          "prompt_tokens": 25,
+          "completion_tokens": 42,
+          "total_tokens": 67,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 33
+          }
+        },
+        "passed": true
+      },
+      {
+        "kind": "conversation-resume",
+        "mode": null,
+        "usage": {
+          "prompt_tokens": 56,
+          "completion_tokens": 6,
+          "total_tokens": 62,
+          "prompt_tokens_details": {
+            "cached_tokens": 27
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "passed": true
+      },
+      {
+        "kind": "cancel-and-recover",
+        "mode": null,
+        "usage": {
+          "prompt_tokens": 25,
+          "completion_tokens": 4,
+          "total_tokens": 29,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "passed": true
+      }
+    ],
+    "live_talk_chat": {
+      "fp4": [
+        {
+          "model": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-FP4-Local",
+          "mode": "off",
+          "answer": "391",
+          "reasoning_chars": 0,
+          "reasoning_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "performance": {
+            "totals": {
+              "prefill_tokens": 16232,
+              "prefill_seconds": 8.999092031,
+              "decode_tokens": 3,
+              "decode_seconds": 0.345764246
+            },
+            "elapsed_seconds": 26.602241649,
+            "finished_at": "2026-10-19T20:08:45.130885819Z",
+            "finish_status": "completed",
+            "pp": 1803.7375264175694,
+            "tg": 8.676432091246358,
+            "ttft": 9.047181623,
+            "prompt_tokens": 16232,
+            "cached_tokens": 0,
+            "output_tokens": 4,
+            "calls": 1
+          },
+          "events": [
+            "context",
+            "delta",
+            "done",
+            "performance",
+            "turn_started"
+          ],
+          "passed": true
+        },
+        {
+          "model": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-FP4-Local",
+          "mode": "medium",
+          "answer": "391",
+          "reasoning_chars": 113,
+          "reasoning_sha256": "36de165fe8b4ea44842e947ef9828c559bc419a9b665aa16e242675bf85a6c9f",
+          "performance": {
+            "totals": {
+              "prefill_tokens": 16230,
+              "prefill_seconds": 9.264894437,
+              "decode_tokens": 29,
+              "decode_seconds": 2.444781662
+            },
+            "elapsed_seconds": 11.901620264,
+            "finished_at": "2026-10-19T20:11:49.200460122Z",
+            "finish_status": "completed",
+            "pp": 1751.7738718300304,
+            "tg": 11.86199996946803,
+            "ttft": 9.309201904,
+            "prompt_tokens": 16230,
+            "cached_tokens": 0,
+            "output_tokens": 30,
+            "calls": 1
+          },
+          "events": [
+            "context",
+            "delta",
+            "done",
+            "performance",
+            "reasoning",
+            "turn_started"
+          ],
+          "passed": true
+        }
+      ],
+      "exl3": [
+        {
+          "model": "qwen38fn_exl3",
+          "mode": "off",
+          "answer": "391",
+          "reasoning_chars": 0,
+          "reasoning_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "performance": {
+            "totals": {
+              "prefill_tokens": 16718,
+              "prefill_seconds": 38.1337,
+              "decode_tokens": 3,
+              "decode_seconds": 0.297578579
+            },
+            "elapsed_seconds": 38.978603512,
+            "finished_at": "2026-10-19T20:16:55.524762238Z",
+            "finish_status": "completed",
+            "pp": 438.40487547759597,
+            "tg": 10.081370809960081,
+            "ttft": 38.230461708,
+            "tg_estimated": true,
+            "ttft_estimated": true,
+            "prompt_tokens": 16718,
+            "cached_tokens": 0,
+            "output_tokens": 4,
+            "calls": 1
+          },
+          "events": [
+            "context",
+            "delta",
+            "done",
+            "performance",
+            "turn_started"
+          ],
+          "passed": true
+        },
+        {
+          "model": "qwen38fn_exl3",
+          "mode": "medium",
+          "answer": "391",
+          "reasoning_chars": 19,
+          "reasoning_sha256": "9c0510eeaf87e56c365318ffb21749696f9f8afdf2576dad256e3935b8c3e11e",
+          "performance": {
+            "totals": {
+              "prefill_tokens": 16716,
+              "prefill_seconds": 17.2909,
+              "decode_tokens": 14,
+              "decode_seconds": 3.892729444
+            },
+            "elapsed_seconds": 29.913831193,
+            "finished_at": "2026-10-19T20:17:25.489114495Z",
+            "finish_status": "completed",
+            "pp": 966.751296924972,
+            "tg": 3.596448250874124,
+            "ttft": 25.816371161,
+            "tg_estimated": true,
+            "ttft_estimated": true,
+            "prompt_tokens": 16716,
+            "cached_tokens": 0,
+            "output_tokens": 15,
+            "calls": 1
+          },
+          "events": [
+            "context",
+            "delta",
+            "done",
+            "performance",
+            "reasoning",
+            "turn_started"
+          ],
+          "passed": true
+        }
+      ],
+      "note": "Tiny end-to-end math smoke requests validate Talk integration and recorded PP/TG, not benchmark speed."
+    },
+    "user_queue_clear": {
+      "reason": "User confirmed accidental Clear Queue during live Talk Medium smoke; cancelled test retried only. Long-context and prior benchmark results unaffected.",
+      "superseded_driver_pid": 3225664
+    },
+    "live_runtime_receipts": [
+      {
+        "bundle": "flash-next-fp4-local",
+        "container": "sparktalk-qwen38-fp4-local",
+        "image": "local/sparktalk-qwen38-fp4-tensorfold:db281878-ko2",
+        "image_id": "sha256:0a70046966c0129d949775e582478f55400094148401c25660ac1d1517ac8878",
+        "compose_paths": {
+          "com.docker.compose.project.config_files": "/home/edp1096/.local/share/sparktalk/runtime/flash-next-fp4-local/compose.yaml",
+          "com.docker.compose.project.working_dir": "/home/edp1096/.local/share/sparktalk/runtime/flash-next-fp4-local"
+        },
+        "model": {
+          "endpoint": "http://127.0.0.1:18004",
+          "default_model": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-FP4-Local",
+          "model_type": "qwen3.8-tensorfold"
+        },
+        "auto_start": false,
+        "builtin_revision": 45,
+        "native_binary_sha256": "7b62f8bf41c8793f6b39b4b82edff33d11c0aca06db99420f6c7d94c96e48701"
+      },
+      {
+        "bundle": "qwen38fn_exl3",
+        "container": "sparktalk-qwen38fn_exl3",
+        "image": "local/sparktalk-qwen38-exl3-tensorfold:db281878-vision2",
+        "image_id": "sha256:63e934e38dd00a99efa489ccad932185664c21e3d61ef61ad0f643ff4aa43f50",
+        "compose_paths": {
+          "com.docker.compose.project.config_files": "/home/edp1096/.local/share/sparktalk/runtime/qwen38fn_exl3/compose.yaml",
+          "com.docker.compose.project.working_dir": "/home/edp1096/.local/share/sparktalk/runtime/qwen38fn_exl3"
+        },
+        "model": {
+          "endpoint": "http://127.0.0.1:18002",
+          "default_model": "qwen38fn_exl3",
+          "model_type": "qwen3.8-tensorfold"
+        },
+        "auto_start": false,
+        "builtin_revision": 45
+      },
+      {
+        "bundle": "flash-next-fp4-local",
+        "container": "sparktalk-qwen38-fp4-local",
+        "image": "local/sparktalk-qwen38-fp4-tensorfold:db281878-ko2",
+        "image_id": "sha256:0a70046966c0129d949775e582478f55400094148401c25660ac1d1517ac8878",
+        "compose_paths": {
+          "com.docker.compose.project.config_files": "/home/edp1096/.local/share/sparktalk/runtime/flash-next-fp4-local/compose.yaml",
+          "com.docker.compose.project.working_dir": "/home/edp1096/.local/share/sparktalk/runtime/flash-next-fp4-local"
+        },
+        "model": {
+          "endpoint": "http://127.0.0.1:18004",
+          "default_model": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-FP4-Local",
+          "model_type": "qwen3.8-tensorfold"
+        },
+        "auto_start": false,
+        "builtin_revision": 45,
+        "native_binary_sha256": "7b62f8bf41c8793f6b39b4b82edff33d11c0aca06db99420f6c7d94c96e48701"
+      }
+    ],
+    "runtime_context_ownership": [
+      {
+        "component": "flash-next-fp4-local",
+        "runtime_compose": "/home/edp1096/.local/share/sparktalk/runtime/flash-next-fp4-local/compose.yaml",
+        "build_contexts": [
+          "/home/edp1096/.local/share/sparktalk/runtime/flash-next-fp4-local/build"
+        ],
+        "materialized_files": 26,
+        "content_matches_own_embedded_assets": true,
+        "independent_regular_files": true
+      },
+      {
+        "component": "qwen38fn_exl3",
+        "runtime_compose": "/home/edp1096/.local/share/sparktalk/runtime/qwen38fn_exl3/compose.yaml",
+        "build_contexts": [
+          "/home/edp1096/.local/share/sparktalk/runtime/qwen38fn_exl3/build"
+        ],
+        "materialized_files": 6,
+        "content_matches_own_embedded_assets": true,
+        "independent_regular_files": true
+      }
+    ],
+    "final_runtime_state": {
+      "recorded_utc": "2026-10-19T20:19:01Z",
+      "model_states": {
+        "sparktalk-qwen38-fp4-local": "exited",
+        "sparktalk-qwen38fn_exl3": "exited"
+      },
+      "runtime": {
+        "bundle": "ds41",
+        "active_bundle": "flash-next-fp4-local",
+        "auto_start": false,
+        "builtin_revision": 45
+      },
+      "deepseek_start_requested": false,
+      "temporary_trial_containers_removed": true
+    },
+    "switch_fix": "Direct EXL3-to-FP4 switch initially refused admission because the old set retained QWIM/H3 outside the new set. Startup now quiesces unselected local managed Qwen image deployments before replacing the LLM, and credits only their measured allocations. Busy/queued image work blocks switching before the old LLM is stopped; selected image deployments remain resident. Lifecycle and memory-plan regression tests passed.",
+    "vision_converter_real_linears": [
+      {
+        "group": "blocks.0.attn.q_proj",
+        "logical_shape": [
+          1152,
+          1152
+        ],
+        "padded_shape": [
+          1152,
+          1152
+        ],
+        "max_abs_error": 0.0008726795158652267,
+        "passed": true
+      },
+      {
+        "group": "blocks.0.mlp.linear_fc1",
+        "logical_shape": [
+          4304,
+          1152
+        ],
+        "padded_shape": [
+          4352,
+          1152
+        ],
+        "max_abs_error": 0.0008687783475682664,
+        "passed": true
+      },
+      {
+        "group": "blocks.0.mlp.linear_fc2",
+        "logical_shape": [
+          1152,
+          4304
+        ],
+        "padded_shape": [
+          1152,
+          4352
+        ],
+        "max_abs_error": 0.0012686744904701897,
+        "passed": true
+      }
+    ],
+    "checks": [
+      "go test ./... passed",
+      "npm test passed",
+      "npm run build passed",
+      "Playwright: EXL3 set, reasoning controls, quantization set order passed",
+      "Python first-install tests: 10 passed",
+      "Upstream EXL3 vision converter tests: 5 passed",
+      "package-recipes --check passed",
+      "package-support --check passed (121 remaining generated files)",
+      "Talk-owned Qwen context materialization and no source-copy linkage test passed",
+      "git diff --check passed"
+    ]
+  },
+  "deployment_spot_measurements": {
+    "exl3_after_vision": [
+      {
+        "case": "tg-explain-off-0",
+        "mode": "off",
+        "prompt_tokens": 88,
+        "completion_tokens": 214,
+        "pp": 654.2750929368029,
+        "tg": 46.38905828033801,
+        "reasoning_tokens": 0
+      },
+      {
+        "case": "tg-prose-off-0",
+        "mode": "off",
+        "prompt_tokens": 82,
+        "completion_tokens": 256,
+        "pp": 622.154779969651,
+        "tg": 45.54140696158448,
+        "reasoning_tokens": 0
+      },
+      {
+        "case": "tg-explain-medium-0",
+        "mode": "medium",
+        "prompt_tokens": 88,
+        "completion_tokens": 470,
+        "pp": 652.8189910979229,
+        "tg": 55.42621459044872,
+        "reasoning_tokens": 163
+      },
+      {
+        "case": "tg-prose-medium-0",
+        "mode": "medium",
+        "prompt_tokens": 85,
+        "completion_tokens": 525,
+        "pp": 636.2275449101796,
+        "tg": 48.23047540153712,
+        "reasoning_tokens": 139
+      }
+    ],
+    "fp4": [
+      {
+        "case": "warmup-off",
+        "mode": "off",
+        "prompt_tokens": 30,
+        "completion_tokens": 4,
+        "pp": 243.2261911151418,
+        "tg": 40.056544886936926,
+        "reasoning_tokens": 0
+      },
+      {
+        "case": "warmup-medium",
+        "mode": "medium",
+        "prompt_tokens": 28,
+        "completion_tokens": 75,
+        "pp": 227.9552682725768,
+        "tg": 72.12030202797378,
+        "reasoning_tokens": 70
+      },
+      {
+        "case": "tg-explain-off-0",
+        "mode": "off",
+        "prompt_tokens": 88,
+        "completion_tokens": 171,
+        "pp": 466.08216784985336,
+        "tg": 36.85366866991135,
+        "reasoning_tokens": 0
+      },
+      {
+        "case": "tg-prose-off-0",
+        "mode": "off",
+        "prompt_tokens": 82,
+        "completion_tokens": 189,
+        "pp": 448.029347014984,
+        "tg": 33.80579106338422,
+        "reasoning_tokens": 0
+      },
+      {
+        "case": "tg-explain-medium-0",
+        "mode": "medium",
+        "prompt_tokens": 88,
+        "completion_tokens": 492,
+        "pp": 475.8340461065996,
+        "tg": 44.70792734742109,
+        "reasoning_tokens": 162
+      },
+      {
+        "case": "tg-prose-medium-0",
+        "mode": "medium",
+        "prompt_tokens": 85,
+        "completion_tokens": 424,
+        "pp": 458.0310068239292,
+        "tg": 35.69854339208079,
+        "reasoning_tokens": 131
+      },
+      {
+        "case": "pp-4096-off",
+        "mode": "off",
+        "prompt_tokens": 4096,
+        "completion_tokens": 16,
+        "pp": 2090.8781142082794,
+        "tg": 31.185703914477788,
+        "reasoning_tokens": 0
+      },
+      {
+        "case": "pp-4096-medium",
+        "mode": "medium",
+        "prompt_tokens": 4096,
+        "completion_tokens": 16,
+        "pp": 2097.6684412714635,
+        "tg": 51.17389974998241,
+        "reasoning_tokens": 16
+      }
+    ],
+    "note": "Deployment spot checks at the promoted 1M profile. The separate benchmark reports contain fair engine comparisons; do not treat these few spot rows as a new full comparative benchmark. PP and TG are separate; TG includes generated reasoning."
+  },
+  "performance_notes": [
+    "EXL3 keeps one recent prefix. Eight retained prefixes with two dynamic slots caused repeated CUDA graph capture and approximately one second of avoidable overhead per short request. With kept-prefixes=1, graph captures remain at 12 across repeated off/Medium requests, including after vision and cancellation.",
+    "Earlier controlled comparisons: native TensorFold FP4 Korean draft vocabulary improves TG by about 17% versus vLLM B12X; 128K PP is about 10% lower. EXL3 TensorFold improves TG by about 25% versus ExLlama; 16K PP is about 36% lower. See linked full reports for conditions.",
+    "External 67/80 tok/s claims use different packs, prompts or stacks. These numbers are not reproduced claims.",
+    "Do not deploy the optional B12X hybrid: the tested hybrid failed exactness with prompt/prefix caching; the FP32-router, cache-disabled prototype was slower in a short screen. The source of the slowdown was not isolated, so this does not rule out an optimized correct B12X integration."
+  ],
+  "limitations": [
+    "The 1M functional checks use three synthetic retrieval keys; they are not a broad long-context quality benchmark.",
+    "The long-context checks isolate each LLM rather than retaining every custom auxiliary model concurrently. Memory admission still applies to the selected set and requested work.",
+    "Structured FP4 generation currently uses serial verification; ordinary chat retains the measured Korean MTP path.",
+    "The B12X prototype slowdown was not decomposed into routing, cache and adapter costs. An optimized correct integration remains untested."
+  ],
+  "comparison_reports": [
+    "qwen38-fp4-local-vllm-tensorfold-tp1-20261020.json",
+    "qwen38-fp4-local-tensorfold-b12x-20261020.json",
+    "qwen38-exl3-tensorfold-comparison-20261020.json",
+    "qwen38-exl3-3bit-tensorfold-status-20261020.json"
+  ],
+  "sources": {
+    "tensorfold": "https://github.com/ashhart/TensorFold/tree/db281878ddb836fd0df510d8771ecb7e0fe47d26",
+    "fp4_recipe": "https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Single-DGX-Spark-TensorFold/tree/656879fd752749bbd11a6e1a065a326c00940911",
+    "exl3_reference": "https://github.com/jayleaton/qwen38-flash-next-exl3-spark",
+    "local_evidence_directory": "/home/edp1096/.cache/model-download-jobs/qwen38-tensorfold-promotion-20261020"
+  }
+}

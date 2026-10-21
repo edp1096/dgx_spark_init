@@ -1,0 +1,6 @@
+from pathlib import Path
+p=Path("/usr/local/lib/python3.12/dist-packages/vllm/model_executor/model_loader/utils.py")
+s=p.read_text()
+needle='            release_device_memory_under_pressure(target_device)'
+assert s.count(needle)==1
+p.write_text(s.replace(needle,'            release_device_memory_under_pressure(target_device)\n            if (__import__("os").environ.get("VLLM_CONTROL_TRIM_CACHE") == "1"\n                    and target_device.type == "cuda"):\n                allocated = torch.accelerator.memory_allocated(target_device)\n                reserved = torch.accelerator.memory_reserved(target_device)\n                before_available = __import__("psutil").virtual_memory().available\n                torch.accelerator.synchronize(target_device)\n                torch.accelerator.empty_cache()\n                print("CONTROL_POSTLOAD " + __import__("json").dumps({\n                    "layer": name, "allocated_gib": allocated / 2**30,\n                    "reserved_before_gib": reserved / 2**30,\n                    "reserved_after_gib": torch.accelerator.memory_reserved(target_device) / 2**30,\n                    "available_before_gib": before_available / 2**30,\n                    "available_after_gib": __import__("psutil").virtual_memory().available / 2**30,\n                }), flush=True)\n'))

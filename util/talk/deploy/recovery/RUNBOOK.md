@@ -292,7 +292,7 @@ its paths, then use `systemctl --user daemon-reload` and `systemctl --user enabl
 2. Check **Settings → System → Support services**. Prepare any missing image
    on the host where the service is placed; start the services you need.
 3. Check **Settings → System → Model preparation** for each required set. Restored
-   images and weights are reused. See the [FP4-Local preparation notes](../../../../compose_yaml/qwen38_fn_fp4_local_vllm/README.md)
+   images and weights are reused. See the [FP4-Local preparation notes](../../../../compose_yaml/qwen38_fn_fp4_local_tsfold/README.md)
    in the repository for its local checkpoint path and pinned revision.
 4. Start the required set. Send a short chat and test semantic search, voice
    and any other features you actually use. A chat-only check does not validate

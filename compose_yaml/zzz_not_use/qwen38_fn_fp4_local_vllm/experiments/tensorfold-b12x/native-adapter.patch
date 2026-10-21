@@ -1,0 +1,153 @@
+--- a/zig/src/families/flashnext/cuda_weights.zig
++++ b/zig/src/families/flashnext/cuda_weights.zig
+@@ -36,7 +36,7 @@
+ 
+ pub const Mode = enum { device, hash, count };
+ 
+-/// The default draft vocabulary (qwen4_exp/cuda/draft_vocab.txt, 79,591 ids), embedded.
++/// The default draft vocabulary (qwen4_exp/cuda/draft_vocab.txt, 86,232 ids), embedded.
+ pub const draft_vocab = @embedFile("cuda_draft_vocab.txt");
+ 
+ /// What the loader takes beside the checkpoint and its Config.
+@@ -68,7 +68,7 @@
+ /// up_scale [E, 2] fp32, down_scale [E, 1] fp32.
+ pub const Experts4 = struct { up: u64 = 0, down: u64 = 0, up_scale: u64 = 0, down_scale: u64 = 0, count: u32 = 0, width: u32 = 0, dims: u32 = 0 };
+ /// nvfp4_moe.MoE4 with MoEW's router: [E + 1, D] bf16, the shared expert's gate row last.
+-pub const MoE = struct { router: u64 = 0, routed: Experts4 = .{}, shared: Expert4 = .{}, int4: ?int4.Experts = null, shared8: ?Shared8 = null };
++pub const MoE = struct { b12x: u64 = 0, router: u64 = 0, routed: Experts4 = .{}, shared: Expert4 = .{}, int4: ?int4.Experts = null, shared8: ?Shared8 = null };
+ /// INT4-AutoRound's fast-fp8 variant: `down8` / `up8` block FP8 (then `down` holds only the bf16 inject rows).
+ pub const Hc = struct {
+     down: Rows = .{},
+@@ -862,6 +862,36 @@
+         }
+ 
+         m.routed = .{ .count = e, .width = @intCast(ni), .dims = d };
++        if (@import("cuda_b12x.zig").enabled() and !mtp) {
++            if (world != 1 or L.o.mode != .device) return error.B12xScope;
++            // The bridge owns the device allocation; keep native checkpoint accounting and shape validation.
++            const Proj = struct { key: []const u8, n: usize, k: usize };
++            for (0..e) |expert| for ([_]Proj{
++                .{ .key = "gate_proj", .n = ni, .k = d },
++                .{ .key = "up_proj", .n = ni, .k = d },
++                .{ .key = "down_proj", .n = d, .k = ni },
++            }) |proj| {
++                const base = try std.fmt.allocPrint(L.gpa, "{s}.experts.{d}.{s}", .{ name, expert, proj.key });
++                defer L.gpa.free(base);
++                _ = try L.expect(try L.nameOf("{s}.weight", .{base}), .u8, &.{ proj.n, proj.k / 2 });
++                const sf = try L.nameOf("{s}.weight_scale", .{base});
++                if (L.has(try L.nameOf("{s}{s}", .{ L.prefix, sf }))) {
++                    _ = try L.expect(sf, .f8_e4m3, &.{ proj.n, proj.k / 16 });
++                } else {
++                    _ = try L.expect(try L.nameOf("{s}.weight_scale{s}", .{ base, csf.fixed_suffix }), .u8, &.{ proj.n / 16, 16 * (1 + proj.k / 32) });
++                    const exc = try L.get(try L.nameOf("{s}.weight_scale{s}", .{ base, csf.exceptions_suffix }));
++                    if (exc.dtype != .u32 or exc.rank != 1) return error.UnexpectedTensor;
++                }
++                _ = try L.expect(try L.nameOf("{s}.weight_scale_2", .{base}), .f32, &.{});
++                const calibration = try L.nameOf("{s}.input_scale", .{base});
++                if (L.has(try L.nameOf("{s}{s}", .{ L.prefix, calibration }))) {
++                    _ = try L.expect(calibration, .f32, &.{});
++                    L.out.w.skipped += 1;
++                }
++            };
++            m.b12x = try @import("cuda_b12x.zig").load(try L.nameOf("{s}", .{name}));
++            return m;
++        }
+         var b2: [192]u8 = undefined;
+         if (mtp and !(try L.nvfp4Experts(name))) {
+             try L.mtpExperts(path, name, &m.routed, lo, hi);
+@@ -1943,21 +1973,21 @@
+     _ = &digests;
+ }
+ 
+-test "the default draft vocabulary: 79,591 ids, split as np.array_split" {
++test "the default draft vocabulary: 86,232 ids, split as np.array_split" {
+     const a = std.testing.allocator;
+     const all = try draftIds(a, draft_vocab, 248320, 0, 1);
+     defer a.free(all);
+-    try std.testing.expectEqual(@as(usize, 79591), all.len);
++    try std.testing.expectEqual(@as(usize, 86232), all.len);
+     try std.testing.expectEqual(@as(u32, 0), all[0]);
+     try std.testing.expectEqual(@as(u32, 248076), all[all.len - 1]);
+     const r0 = try draftIds(a, draft_vocab, 248320, 0, 2);
+     defer a.free(r0);
+     const r1 = try draftIds(a, draft_vocab, 248320, 1, 2);
+     defer a.free(r1);
+-    try std.testing.expectEqual(@as(usize, 39796), r0.len);
+-    try std.testing.expectEqual(@as(usize, 39795), r1.len);
+-    try std.testing.expectEqualSlices(u32, all[0..39796], r0);
+-    try std.testing.expectEqualSlices(u32, all[39796..], r1);
++    try std.testing.expectEqual(@as(usize, 43116), r0.len);
++    try std.testing.expectEqual(@as(usize, 43116), r1.len);
++    try std.testing.expectEqualSlices(u32, all[0..43116], r0);
++    try std.testing.expectEqualSlices(u32, all[43116..], r1);
+     const small = try draftIds(a, "5 3 3 9 1", 6, 0, 1);
+     defer a.free(small);
+     try std.testing.expectEqualSlices(u32, &.{ 1, 3, 5 }, small);
+--- a/zig/src/families/flashnext/cuda_forward.zig
++++ b/zig/src/families/flashnext/cuda_forward.zig
+@@ -1886,7 +1886,9 @@
+         const dn_tx: ?*const moet.Tile4 = if (f.tx) |q| (if (q.use_down and R >= @max(moep.min_rows, q.down_rows)) q else null) else null;
+         const gu_tile: usize = if (gu_tx) |q| q.tile else if (gu_px) |q| q.tile else kern.plan_tile;
+         const dn_tile: usize = if (dn_tx) |q| q.tile else if (dn_px) |q| q.tile else kern.plan_tile;
++        if (m.b12x == 0) {
+         if (gu_tx) |q| try q.plan(f.ops, pick, R * slots, E + 1, plan) else if (gu_px) |q| try q.plan(f.ops, pick, R * slots, E + 1, plan) else try f.ops.plan(pick, R * slots, E + 1, kern.plan_tile, plan);
++        }
+         const ex: kern.Experts4 = .{ .up = m.routed.up, .down = m.routed.down, .up_scale = m.routed.up_scale, .down_scale = m.routed.down_scale, .width = m.routed.width, .dims = m.routed.dims };
+         if (ex.width != ni or ex.dims != D) return error.ExpertShape;
+         const skip: c_int = @intCast(E);
+@@ -1921,7 +1923,11 @@
+             try th2.slotCopy(f.sc.shared_y, D * es, y + top * D * es, slots * D * es, D * es, R);
+             try sd.join.record(sd.s);
+         };
++        if (m.b12x != 0) {
++            try @import("cuda_b12x.zig").run(m.b12x, f.s.handle, xin, pick, b.moe_wts + a0 * slots * 4, y, R, D, top, es);
++        } else {
+         if (gu_tx) |q| try q.gateUp(f.s, xin, D, ex, plan, slots, E + 1, act, R, skip) else if (gu_px) |q| try q.gateUp(f.s, xin, D, ex, plan, slots, E + 1, act, R, skip) else try f.ops.nvfp4GateUp(xin, D, ex, plan, slots, E + 1, act, R, skip);
++        }
+         try f.mark(.experts_gate_up);
+         if (f.side == null) {
+             if (sh8) |sh| {
+@@ -1933,10 +1939,12 @@
+             }
+             try f.mark(.shared_swiglu);
+         }
+-        if (gu_tile != dn_tile) {
++        if (m.b12x == 0 and gu_tile != dn_tile) {
+             if (dn_tx) |q| try q.plan(f.ops, pick, R * slots, E + 1, plan) else if (dn_px) |q| try q.plan(f.ops, pick, R * slots, E + 1, plan) else try f.ops.plan(pick, R * slots, E + 1, kern.plan_tile, plan);
+         }
++        if (m.b12x == 0) {
+         if (dn_tx) |q| try q.down(f.s, act, ni, ex, plan, slots, E + 1, y, x.y_f32, R, skip) else if (dn_px) |q| try q.down(f.s, act, ni, ex, plan, slots, E + 1, y, x.y_f32, R, skip) else try f.ops.nvfp4Down(act, ni, ex, plan, slots, E + 1, y, x.y_f32, R, skip);
++        }
+         try f.mark(.experts_down);
+         if (f.side) |sd| {
+             try f.s.wait(sd.join);
+--- /dev/null
++++ b/zig/src/families/flashnext/cuda_b12x.zig
+@@ -0,0 +1,27 @@
++//! Experimental B12X bridge. Disabled unless TF_B12X_BRIDGE names a shared library.
++const std = @import("std");
++const Load = *const fn ([*:0]const u8) callconv(.c) u64;
++const Run = *const fn (u64, u64, u64, u64, u64, u64, c_int, c_int, c_int, c_int) callconv(.c) c_int;
++var lib: ?std.DynLib = null;
++var load_fn: ?Load = null;
++var run_fn: ?Run = null;
++pub fn enabled() bool { return std.c.getenv("TF_B12X_BRIDGE") != null; }
++pub fn load(name: []const u8) !u64 {
++    if (lib == null) {
++        const path = std.c.getenv("TF_B12X_BRIDGE") orelse return error.B12xDisabled;
++        lib = try std.DynLib.open(std.mem.span(path));
++        load_fn = lib.?.lookup(Load, "tf_b12x_load") orelse return error.B12xSymbol;
++        run_fn = lib.?.lookup(Run, "tf_b12x_run") orelse return error.B12xSymbol;
++    }
++    var buf: [512]u8 = undefined;
++    if (name.len >= buf.len) return error.B12xName;
++    @memcpy(buf[0..name.len], name);
++    buf[name.len] = 0;
++    const id = load_fn.?(@ptrCast(&buf));
++    if (id == 0) return error.B12xLoad;
++    return id;
++}
++pub fn run(id: u64, stream: ?*anyopaque, x: u64, picks: u64, wts: u64, y: u64, rows: usize, hidden: usize, top: usize, es: usize) !void {
++    const rc = run_fn.?(id, @intFromPtr(stream), x, picks, wts, y, @intCast(rows), @intCast(hidden), @intCast(top), @intCast(es));
++    if (rc != 0) { std.log.err("B12X run failed code={d}", .{rc}); return error.B12xRun; }
++}

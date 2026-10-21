@@ -15,7 +15,7 @@ func documentRequestBatch(run workflows.Run, units []workflows.DocumentUnit, ind
 	combined := units[index]
 	combined.Inputs = documentRequestInputs(combined)
 	indices := []int{index}
-	if run.Document.Kind != "translate" || (run.Document.ModelType != "qwen38fn_exl3" && run.Document.ModelType != "qwen3.8" && run.Document.ModelType != "qwen3.8-vllm") || combined.Stage != "process" || len(combined.Attempts) > combined.RetryBase {
+	if run.Document.Kind != "translate" || (run.Document.ModelType != "qwen38fn_exl3" && run.Document.ModelType != "qwen3.8" && run.Document.ModelType != "qwen3.8-vllm" && run.Document.ModelType != "qwen3.8-tensorfold") || combined.Stage != "process" || len(combined.Attempts) > combined.RetryBase {
 		return combined, indices
 	}
 	chars := 0

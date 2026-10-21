@@ -1,0 +1,101 @@
+{
+  "status": "diagnosed; no code or runtime configuration changed",
+  "session": {
+    "id": "chat-1792424936723080750",
+    "title": "x.com 비디오 취득",
+    "messages_reviewed": [
+      2934,
+      2935,
+      2936,
+      2937,
+      2947,
+      2950
+    ]
+  },
+  "host": "61 only; no model services restarted",
+  "source_url": "https://x.com/dedene/status/2111106268593336652/video/1",
+  "probe": {
+    "tool": "Extra Media image and active yt-dlp executable, metadata only",
+    "yt_dlp_version": "2026.08.19",
+    "duration": 56,
+    "formats": [
+      {
+        "format_id": "http-288",
+        "ext": "mp4",
+        "width": 480,
+        "height": 270,
+        "tbr": 288,
+        "filesize_approx": 2016000
+      },
+      {
+        "format_id": "hls-37",
+        "ext": "mp4",
+        "width": 480,
+        "height": 270,
+        "tbr": 37.785,
+        "acodec": "none",
+        "vcodec": "avc1.4D4015"
+      },
+      {
+        "format_id": "http-832",
+        "ext": "mp4",
+        "width": 640,
+        "height": 360,
+        "tbr": 832,
+        "filesize_approx": 5824000
+      },
+      {
+        "format_id": "hls-93",
+        "ext": "mp4",
+        "width": 640,
+        "height": 360,
+        "tbr": 93.645,
+        "acodec": "none",
+        "vcodec": "avc1.4D401E"
+      },
+      {
+        "format_id": "http-2176",
+        "ext": "mp4",
+        "width": 1280,
+        "height": 720,
+        "tbr": 2176,
+        "filesize_approx": 15232000
+      },
+      {
+        "format_id": "hls-238",
+        "ext": "mp4",
+        "width": 1280,
+        "height": 720,
+        "tbr": 238.353,
+        "acodec": "none",
+        "vcodec": "avc1.64001F"
+      },
+      {
+        "format_id": "http-10368",
+        "ext": "mp4",
+        "width": 1920,
+        "height": 1080,
+        "tbr": 10368,
+        "filesize_approx": 72576000
+      },
+      {
+        "format_id": "hls-511",
+        "ext": "mp4",
+        "width": 1920,
+        "height": 1080,
+        "tbr": 511.466,
+        "acodec": "none",
+        "vcodec": "avc1.640032"
+      }
+    ]
+  },
+  "findings": [
+    "Historical media_import calls all failed with HTTP 413; only web text was fetched.",
+    "Current yt-dlp metadata identifies 56 seconds, not 2 minutes 45 seconds. Historical fetched page said 2:45 PM, the posting time.",
+    "720p progressive MP4 has filesize_approx 15,232,000 bytes (14.53 MiB), below 256 MiB. Other smaller renditions exist.",
+    "Progressive MP4 format records omit audio/video codec fields; HLS records explicitly declare acodec=none. sourceAudioCandidates is therefore empty.",
+    "selectDownloadFormat only accepts muxed video with a declared allowed audio codec or video with a separately selectable audio track. It has no video-only branch, so all these formats are rejected despite fitting the height/size limits."
+  ],
+  "fix_scope": "Handle video-only sources and progressive MP4 entries with incomplete codec metadata; keep actual download size enforcement. Not simply raising the size limit.",
+  "cleanup": "Both temporary metadata probe containers automatically removed; no video or model downloaded."
+}

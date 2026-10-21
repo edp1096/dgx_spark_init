@@ -48,7 +48,7 @@ func TestManagedModelSwitchPreservesVideoOverrides(t *testing.T) {
 	}
 	c.Model.VideoInputs = map[string]string{"http://server-a:8000\nornith": "frames"}
 	c.ApplyManagedBundle("flash-next")
-	c.ApplyManagedBundle("ornith35")
+	c.ApplyManagedBundle("flash-next-fp4-local")
 	if c.Model.VideoInputs["http://server-a:8000\nornith"] != "frames" {
 		t.Fatal("model switch discarded video override")
 	}

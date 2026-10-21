@@ -1,0 +1,7 @@
+{
+  "removed_task_only_control_checkpoint": "/home/edp1096/.cache/huggingface/edp1096/Huihui-GLM-5.3-Flash-abliterated-NVFP4",
+  "logical_bytes": 204477037906,
+  "allocated_bytes_estimate": 204477272064,
+  "kept_worker_nvfp4_rollback": true,
+  "kept_production_fp4_local_both_nodes": true
+}

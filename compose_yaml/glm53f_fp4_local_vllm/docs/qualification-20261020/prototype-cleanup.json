@@ -1,0 +1,50 @@
+{
+  "removed_prototype_tags": [
+    {
+      "node": "head",
+      "image": "local/glm53-fp4-tsfold:pr1050",
+      "removed": true,
+      "detail": ""
+    },
+    {
+      "node": "head",
+      "image": "local/glm53-fp4-tsfold:pr1050-bootstrap1",
+      "removed": true,
+      "detail": ""
+    },
+    {
+      "node": "worker",
+      "image": "local/glm53-fp4-tsfold:pr1050",
+      "removed": true,
+      "detail": ""
+    },
+    {
+      "node": "worker",
+      "image": "local/glm53-fp4-tsfold:pr1050-bootstrap1",
+      "removed": true,
+      "detail": ""
+    }
+  ],
+  "removed_build_directories": [
+    "/home/edp1096/.cache/model-download-jobs/glm53-fp4-comparison-20261020/tensorfold-source",
+    "/home/edp1096/.cache/model-download-jobs/glm53-fp4-comparison-20261020/zig-aarch64-linux-0.17.0",
+    "/home/edp1096/.cache/model-download-jobs/glm53-fp4-comparison-20261020/native-install",
+    "/home/edp1096/.cache/model-download-jobs/glm53-fp4-comparison-20261020/xgrammar",
+    "/home/edp1096/.cache/model-download-jobs/glm53-fp4-comparison-20261020/draft-head"
+  ],
+  "removed_worker_build_directories": [
+    "/home/edp1096/.cache/model-download-jobs/glm53-fp4-comparison-20261020/native-install"
+  ],
+  "removed_stopped_trial_containers": [
+    {
+      "node": "head",
+      "id": "c42f73f8c1ed7bda8952fca26d3b7821bc1b44e24fab086c1392b1cc735c538d",
+      "name": "glm53-compare-head-20261020"
+    },
+    {
+      "node": "worker",
+      "id": "f876f2e108ca60656bbfe6a3ee8b1f7cf2a4ad48eb2d0b19ae1a3dfccf40ae59",
+      "name": "glm53-compare-worker-20261020"
+    }
+  ]
+}

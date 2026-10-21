@@ -1,0 +1,7 @@
+# Qualified base: sha256:ecb60e9705433d3cf4172567ff084c586c1b89a158288b8251c93d812d0fca50
+ARG BASE_IMAGE=dgx-sglang-qwen38-fn:sm121-vocab1
+FROM ${BASE_IMAGE}
+# Retain the base's Torch 2.13/CUDA13 and CuTe DSL 4.6.2 dependencies.
+RUN python3 -m pip install --no-deps https://github.com/local-inference-lab/b12x/archive/ce419b52681b7922bb0972d4b58b590a3fd005b2.tar.gz
+COPY patches/b12x-lm-head.py /opt/sparktalk-flash-next/patches/b12x-lm-head.py
+RUN python3 /opt/sparktalk-flash-next/patches/b12x-lm-head.py

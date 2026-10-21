@@ -81,3 +81,9 @@ test('Gemma vLLM preserves the Gemma thinking controls', () => {
   assert.deepEqual(modelCapabilities('gemma4-vllm'),modelCapabilities('gemma4'));
   assert.equal(normalizeReasoningEffort('gemma4-vllm','high'),'on');
 });
+
+test("TensorFold retains Qwen reasoning controls", () => {
+  assert.deepEqual(modelCapabilities("qwen3.8-tensorfold"), modelCapabilities("qwen3.8"));
+  assert.equal(normalizeReasoningEffort("qwen3.8-tensorfold", "off"), "none");
+  assert.equal(normalizeReasoningEffort("qwen3.8-tensorfold", "medium"), "medium");
+});

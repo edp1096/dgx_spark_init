@@ -1,0 +1,14 @@
+{
+  "repo_id": "edp1096/gemma-4-31B-it-assistant-exl3",
+  "branch": "main",
+  "parent_commit": "5821efa5bee136c8359432384d94d9a4cde3e99c",
+  "commit": "8553d193040fbd97458b7eae5f5d26683b11fea8",
+  "commit_url": "https://huggingface.co/edp1096/gemma-4-31B-it-assistant-exl3/commit/8553d193040fbd97458b7eae5f5d26683b11fea8",
+  "files": [
+    "README.md"
+  ],
+  "sha256": "9301d2460c04525239088c2a4bac5a6be5232cda053278301a01979b259b772c",
+  "readback_verified": true,
+  "before_bytes": 3530,
+  "after_bytes": 554
+}

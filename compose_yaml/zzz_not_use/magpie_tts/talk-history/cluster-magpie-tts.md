@@ -7,7 +7,6 @@
 | 세트 | TTS 위치 | 시작 순서 |
 |---|---|---|
 | GLM 5.3 Flash EXL3 | 워커 | TTS → LLM |
-| DeepSeek V4 Flash Vision Exp | 워커 | ASR·TTS → LLM |
 | DeepSeek V4.1 Flash | 워커 | ASR·Extra → LLM → TTS |
 
 DS41의 TTS binding은 `start_after_llm: true`다. 기동 직전 요구하는 워커

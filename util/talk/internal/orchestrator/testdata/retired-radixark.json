@@ -1,0 +1,51 @@
+{
+  "components": [
+    {
+      "id": "flash-next-radixark",
+      "role": "llm",
+      "container": "sglang-qwen38-fn-radixark",
+      "health_url": "http://127.0.0.1:18003/health",
+      "model": "edp1096/Huihui-RadixArk-Qwen3.8-Flash-Next-abliterated-NVFP4",
+      "memory_gib": 110,
+      "startup_timeout_seconds": 1800,
+      "compose_asset": "compose.flash-next.yaml",
+      "progress_kind": "sglang",
+      "auto_address": true,
+      "runtime_options": {
+        "MODEL_VARIANT": "radixark",
+        "MTP_TOKENS": "3",
+        "MAX_MODEL_LEN": "1048576"
+      },
+      "endpoint": "http://127.0.0.1:18003",
+      "port": 18003,
+      "name": "Qwen 3.8 Flash-Next NVFP4",
+      "workspace_memory_gib": 8
+    }
+  ],
+  "bundles": [
+    {
+      "id": "flash-next-radixark",
+      "description": "1× DGX Spark · RadixArk NVFP4 · FP8 KV 1M · MTP 3 · ASR·Extra",
+      "model_type": "qwen3.8",
+      "model_id": "edp1096/Huihui-RadixArk-Qwen3.8-Flash-Next-abliterated-NVFP4",
+      "context_tokens": 1048576,
+      "components": [
+        "flash-next-radixark",
+        "nemotron-asr",
+        "extra-media",
+        "extra-ssh",
+        "extra-collector",
+        "extra-documents",
+        "extra-embedding"
+      ],
+      "bindings": {
+        "nemotron-asr": {
+          "start_after_llm": true,
+          "keep_resident": true
+        }
+      },
+      "name": "Qwen 3.8 Flash-Next NVFP4",
+      "workload_swap": true
+    }
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "base_job": "/home/edp1096/.cache/model-download-jobs/gemma31-spec-opt-20261021-183237",
+  "base_report": "/home/edp1096/workspace/dgx_spark_init/util/talk/docs/gemma31-spec-opt-20261021",
+  "depths": [
+    9,
+    18,
+    21,
+    24
+  ],
+  "scope": "short 512-output-token Korean/code; three matched variants each; arithmetic and JSON smoke checks; no long-context sweep",
+  "kernel_change": "Only qualify and add verify widths 19,22,25; all other code/tile policy unchanged",
+  "sha256": {
+    "verify-work/verify_splitkv_sm121.py": "a4dddfea4f10c746543e44e8b2ebe1c0fd0e10f9c17fd798373c17534f23f97a",
+    "verify-work/extend_attention.py": "8aa8d01f0a73a144f51a8b7e8dae94a96c227b1dc6b6397ab8ff03116514dfd9",
+    "verify-work/triton_backend_sm121.py": "ad2f6e8caf7932c404d9cfc681a8bc6e3d01274d90864efe9543642654557c4a",
+    "verify-work/test-high-width.py": "de12bfcdeb02893472a519419d7519e11c0a8093f773586c96b2ca771dfb9092"
+  },
+  "serving_image": "sha256:2e4a2a699c76f085d2723fac78d3149344859041eaf0bba0f0fc09554e247bda",
+  "smoke_checks_per_depth": [
+    "arithmetic",
+    "json"
+  ],
+  "pp_scope": "No dedicated prefill benchmark in this extension; only TG and short-prompt TTFT.",
+  "kernel_qualification": {
+    "entries": 30,
+    "verify_widths": [
+      19,
+      22,
+      25
+    ],
+    "dtype": "BF16",
+    "hardware": "SM121 host61",
+    "reference": "FP32 attention and unchanged pinned SGLang extend kernel",
+    "cuda_graph_replay": true,
+    "length_cases": [
+      [
+        0
+      ],
+      [
+        17
+      ],
+      [
+        1025
+      ],
+      [
+        8193
+      ],
+      [
+        37,
+        1027
+      ]
+    ]
+  },
+  "mtp15_reason": "Cancelled during startup at user request, before measured requests; fixed MTP9 selected.",
+  "speculative_depth_policy": {
+    "mode": "fixed",
+    "runtime_algorithm": "FROZEN_KV_MTP; NEXTN alias",
+    "auto_adaptive": false,
+    "runtime_support": "Pinned Gemma Frozen-KV worker explicitly rejects speculative_adaptive",
+    "drafting": "sequential with CUDA Graph; target verifies a block",
+    "source": "https://github.com/sgl-project/sglang/blob/2ef0fe46693d1b88271943de5eb49a2848a512d8/python/sglang/srt/speculative/frozen_kv_mtp_worker_v2.py#L721-L725"
+  }
+}

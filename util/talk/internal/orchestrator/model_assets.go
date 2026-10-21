@@ -64,8 +64,6 @@ func componentModelAssets(c Component) []modelAsset {
 		return []modelAsset{{Repo: repo, Revision: rev, Path: "/hf/hub/models--" + strings.ReplaceAll(repo, "/", "--") + "/snapshots/" + rev, HubCache: true}}
 	case "compose.dreamlite.yaml":
 		return []modelAsset{{Repo: "carlofkl/DreamLite-mobile", Revision: "6695c3f4be230f0493fa5dbf78be3bc4d3bb2ab4", Path: "/hf/hub/models--carlofkl--DreamLite-mobile/snapshots/6695c3f4be230f0493fa5dbf78be3bc4d3bb2ab4", HubCache: true, Pipeline: true}}
-	case "compose.ornith35.yaml":
-		return []modelAsset{{Repo: "edp1096/Huihui-Ornith-1.5-35B-A3B-NVFP4", Revision: "4ca22bf685b6afe269ebbceb3c297ddeade912ca", Path: "/hf/edp1096/Huihui-Ornith-1.5-35B-A3B-NVFP4"}}
 	case "compose.nemotron-asr.yaml":
 		return []modelAsset{{Repo: "nvidia/nemotron-3.5-asr-streaming-0.6b", Revision: "ea30d66debe3740a08b573244286791d423d6b3e", Path: "/tmp/models", Files: []string{"nemotron-3.5-asr-streaming-0.6b.q8_0.gguf"}, SHA256: map[string]string{"nemotron-3.5-asr-streaming-0.6b.q8_0.gguf": "3fc991d3badad7277c11030a7519832cddaf2057aafed6d4b25147e953a070b1"}}, {Repo: "nvidia/Nemotron-3-Diarization", Revision: "f667ed73aee57d40cc39428eb768b4fd87a0a29e", Path: "/tmp/models", Files: []string{"Nemotron-3-Diarization.q8_0.gguf"}, SHA256: map[string]string{"Nemotron-3-Diarization.q8_0.gguf": "08456d9e22cd9a323c0364d98375f3746d6e68507ebb705cd46438c534c7a3a1"}}}
 	case "compose.qwen3-tts.yaml":

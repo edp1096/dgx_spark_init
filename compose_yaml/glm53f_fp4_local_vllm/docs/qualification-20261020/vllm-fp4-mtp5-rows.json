@@ -1,0 +1,660 @@
+[
+  {
+    "kind": "quality-tg",
+    "case": "arithmetic",
+    "mode": "off",
+    "rep": 0,
+    "passed": true,
+    "check_detail": "exact JSON value",
+    "input_sha256": "08fef33f5d54332d16158e07ee707d1786f900c77e9c95573824412d2e009d21",
+    "elapsed_s": 0.4130189290008275,
+    "ttft_s": 0.3322357059951173,
+    "decode_client_s": 0.08066519000567496,
+    "tg_client": 24.79384229875732,
+    "pp_ttft": 105.34689489550041,
+    "usage": {
+      "prompt_tokens": 35,
+      "total_tokens": 38,
+      "completion_tokens": 3,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "created_cache_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "391",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "kind": "quality-tg",
+    "case": "ko-extract",
+    "mode": "off",
+    "rep": 0,
+    "passed": true,
+    "check_detail": "exact JSON value",
+    "input_sha256": "347cb9ad313aae84425aeb459b04f5cfbe9df12713294e6f75ce6f97afbf383d",
+    "elapsed_s": 1.5672187699965434,
+    "ttft_s": 0.4085530559968902,
+    "decode_client_s": 1.0095344110013684,
+    "tg_client": 58.44278249166093,
+    "pp_ttft": 181.12702600996644,
+    "usage": {
+      "prompt_tokens": 74,
+      "total_tokens": 134,
+      "completion_tokens": 60,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "created_cache_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "```json\n[\n  {\n    \"name\": \"민수\",\n    \"item\": \"사과\",\n    \"count\": 3\n  },\n  {\n    \"name\": \"지연\",\n    \"item\": \"배\",\n    \"count\": 5\n  }\n]\n```",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "kind": "quality-tg",
+    "case": "ko-sort",
+    "mode": "off",
+    "rep": 0,
+    "passed": true,
+    "check_detail": "exact JSON value",
+    "input_sha256": "90a33c7d1cc867d7cb07aab6b6e4c44ee8e1452f98d4825827d24792d1b0cd46",
+    "elapsed_s": 0.9305195269989781,
+    "ttft_s": 0.4124700539978221,
+    "decode_client_s": 0.517925792009919,
+    "tg_client": 34.75401356272923,
+    "pp_ttft": 193.9534742573637,
+    "usage": {
+      "prompt_tokens": 80,
+      "total_tokens": 99,
+      "completion_tokens": 19,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "created_cache_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "[ \"지연\", \"가람\", \"민수\", \"현우\" ]",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "kind": "quality-tg",
+    "case": "ko-logic",
+    "mode": "off",
+    "rep": 0,
+    "passed": false,
+    "check_detail": "exact JSON value",
+    "input_sha256": "9bbe39a08adf0a0a7ff34766d5b445c7f404afde8bd1b5c009f8e65a1ae953f1",
+    "elapsed_s": 0.6980802949983627,
+    "ttft_s": 0.3802222150115995,
+    "decode_client_s": 0.16841292000026442,
+    "tg_client": 41.564507046068734,
+    "pp_ttft": 165.6925805823262,
+    "usage": {
+      "prompt_tokens": 63,
+      "total_tokens": 71,
+      "completion_tokens": 8,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "created_cache_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "```json\n[\"C\"]\n```",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "kind": "quality-tg",
+    "case": "code-unique",
+    "mode": "off",
+    "rep": 0,
+    "passed": false,
+    "check_detail": "restricted Python functional cases",
+    "input_sha256": "d5c00891a9aa2999e7d88940e802fe4894e3efa8d520c4d8f033451706e72f4f",
+    "elapsed_s": 1.0244095429952722,
+    "ttft_s": 0.3751696020044619,
+    "decode_client_s": 0.6491231079999125,
+    "tg_client": 55.459433744276524,
+    "pp_ttft": 119.94575189347246,
+    "usage": {
+      "prompt_tokens": 45,
+      "total_tokens": 82,
+      "completion_tokens": 37,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "created_cache_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "def unique_in_order(xs):\n    result = []\n    for x in xs:\n        if not result or result[-1] != x:\n            result.append(x)\n    return result",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "kind": "quality-tg",
+    "case": "code-intervals",
+    "mode": "off",
+    "rep": 0,
+    "passed": true,
+    "check_detail": "restricted Python functional cases",
+    "input_sha256": "fb92deaa1ae8b2287a0fb3407fc94defa3ae29b77538a27eabcf26ca5ed56d4f",
+    "elapsed_s": 2.4028993579995586,
+    "ttft_s": 0.4004593860008754,
+    "decode_client_s": 1.8542885060014669,
+    "tg_client": 47.45755566902618,
+    "pp_ttft": 157.31932426191725,
+    "usage": {
+      "prompt_tokens": 63,
+      "total_tokens": 152,
+      "completion_tokens": 89,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "created_cache_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "```python\ndef merge_intervals(intervals):\n    if not intervals:\n        return []\n    intervals = sorted(intervals)\n    merged = [list(intervals[0])]\n    for start, end in intervals[1:]:\n        if start <= merged[-1][1]:\n            merged[-1][1] = max(merged[-1][1], end)\n        else:\n            merged.append([start, end])\n    return merged\n```",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "kind": "quality-tg",
+    "case": "code-intervals",
+    "mode": "off",
+    "rep": 1,
+    "passed": true,
+    "check_detail": "restricted Python functional cases",
+    "input_sha256": "fb92deaa1ae8b2287a0fb3407fc94defa3ae29b77538a27eabcf26ca5ed56d4f",
+    "elapsed_s": 1.9972057739942102,
+    "ttft_s": 0.06505338399438187,
+    "decode_client_s": 1.7819111210119445,
+    "tg_client": 49.385179183361814,
+    "pp_ttft": 968.4354007693249,
+    "usage": {
+      "prompt_tokens": 63,
+      "total_tokens": 152,
+      "completion_tokens": 89,
+      "prompt_tokens_details": {
+        "cached_tokens": 63,
+        "created_cache_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "```python\ndef merge_intervals(intervals):\n    if not intervals:\n        return []\n    intervals = sorted(intervals)\n    merged = [list(intervals[0])]\n    for start, end in intervals[1:]:\n        if start <= merged[-1][1]:\n            merged[-1][1] = max(merged[-1][1], end)\n        else:\n            merged.append([start, end])\n    return merged\n```",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "kind": "quality-tg",
+    "case": "tool-weather",
+    "mode": "off",
+    "rep": 0,
+    "passed": true,
+    "check_detail": "tool name and typed arguments",
+    "input_sha256": "076fe8d37a0445656cdb108f0ede36d647563b824600ab9323d94ce529944368",
+    "elapsed_s": 1.457009065998136,
+    "ttft_s": 1.096770688003744,
+    "decode_client_s": 0.3599803599936422,
+    "tg_client": 61.11444524470322,
+    "pp_ttft": 186.00059450102992,
+    "usage": {
+      "prompt_tokens": 204,
+      "total_tokens": 227,
+      "completion_tokens": 23,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "created_cache_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "",
+    "reasoning": "",
+    "tool_calls": [
+      {
+        "name": "get_weather",
+        "arguments": "{\"city\": \"서울\", \"date\": \"2026-10-21\"}"
+      }
+    ],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "kind": "quality-tg",
+    "case": "ko-prose",
+    "mode": "off",
+    "rep": 0,
+    "passed": true,
+    "check_detail": "required substrings",
+    "input_sha256": "36794a10e4f9c18116fd9a08dc989271838d96a1d9fe159b57d5429f046558b5",
+    "elapsed_s": 5.720843892995617,
+    "ttft_s": 0.4757751049910439,
+    "decode_client_s": 5.089076464995742,
+    "tg_client": 31.24338985543874,
+    "pp_ttft": 176.5540044420383,
+    "usage": {
+      "prompt_tokens": 84,
+      "total_tokens": 244,
+      "completion_tokens": 160,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "created_cache_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "프롬프트 입력 처리(PP)는 사용자가 입력한 프롬프트 전체를 한 번에 읽어들이는 과정으로, 병렬 처리가 가능해 상대적으로 빠릅니다. 답변 토큰 생성(TG)은 이전에 생성된 토큰을 참조하며 한 토큰씩 순차적으로 만들어내는 과정이라 속도가 느립니다. 생각 토큰(thinking tokens)은 최종 답변 앞에서 모델이 내부적으로 추론하며 생성하는 토큰이므로 TG에 속합니다.",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "kind": "quality-tg",
+    "case": "ko-prose",
+    "mode": "off",
+    "rep": 1,
+    "passed": true,
+    "check_detail": "required substrings",
+    "input_sha256": "36794a10e4f9c18116fd9a08dc989271838d96a1d9fe159b57d5429f046558b5",
+    "elapsed_s": 5.9311728719912935,
+    "ttft_s": 0.040463581986841746,
+    "decode_client_s": 5.735777254012646,
+    "tg_client": 28.766807477499057,
+    "pp_ttft": 2075.940781202113,
+    "usage": {
+      "prompt_tokens": 84,
+      "total_tokens": 250,
+      "completion_tokens": 166,
+      "prompt_tokens_details": {
+        "cached_tokens": 84,
+        "created_cache_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "프롬프트 입력 처리(PP)는 사용자가 입력한 프롬프트 전체를 한 번에 읽어들이는 과정으로, 병렬 처리가 가능해 상대적으로 빠릅니다. 답변 토큰 생성(TG)은 이전에 생성된 토큰을 참조하며 한 토큰씩 순차적으로 만들어내는 과정이라 속도가 느립니다. 생각 토큰(thinking tokens)은 최종 답변 앞에서 모델의 추론 과정을 담는 토큰으로, TG 단계에서 생성되므로 TG에 속합니다.",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "kind": "pp",
+    "case": "pp-65536",
+    "mode": "off",
+    "input_sha256": "90ccb7aecd788d11cf2543f7fe1c1744c0c9217027ec13f69f91abb32dc41d8c",
+    "elapsed_s": 37.216132064990234,
+    "ttft_s": 37.21602201600035,
+    "decode_client_s": 0.0,
+    "tg_client": null,
+    "pp_ttft": 2202.7340795519594,
+    "usage": {
+      "prompt_tokens": 81977,
+      "total_tokens": 81978,
+      "completion_tokens": 1,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "created_cache_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "OK",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "length",
+    "extras": []
+  },
+  {
+    "kind": "quality-tg",
+    "case": "arithmetic",
+    "mode": "on-low",
+    "rep": 0,
+    "passed": true,
+    "check_detail": "exact JSON value",
+    "input_sha256": "38d36c0faea74ddf322381d3abfb0cacb3a022871d95e805acded9fe364b46ba",
+    "elapsed_s": 0.7164499619975686,
+    "ttft_s": 0.3254827040072996,
+    "decode_client_s": 0.239940874002059,
+    "tg_client": 45.844627538972816,
+    "pp_ttft": 104.4602357710457,
+    "usage": {
+      "prompt_tokens": 34,
+      "total_tokens": 46,
+      "completion_tokens": 12,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "created_cache_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 8
+      }
+    },
+    "content": "391",
+    "reasoning": "23 × 17 = 391",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "kind": "quality-tg",
+    "case": "ko-extract",
+    "mode": "on-low",
+    "rep": 0,
+    "passed": true,
+    "check_detail": "exact JSON value",
+    "input_sha256": "5969b6155a093efef2b1abe7efb1db1556669ef9274923792c12bad0cce6704f",
+    "elapsed_s": 1.2742547629895853,
+    "ttft_s": 0.40212837999570183,
+    "decode_client_s": 0.8720099509955617,
+    "tg_client": 55.04524340026059,
+    "pp_ttft": 181.53406631180883,
+    "usage": {
+      "prompt_tokens": 73,
+      "total_tokens": 122,
+      "completion_tokens": 49,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "created_cache_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "```json\n[\n  {\"name\": \"민수\", \"item\": \"사과\", \"count\": 3},\n  {\"name\": \"지연\", \"item\": \"배\", \"count\": 5}\n]\n```",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "kind": "quality-tg",
+    "case": "ko-sort",
+    "mode": "on-low",
+    "rep": 0,
+    "passed": false,
+    "check_detail": "JSONDecodeError: Extra data: line 1 column 22 (char 21)",
+    "input_sha256": "fd294f7986b1e207361703038553d4745ef510ad142589e4ce33919efda98495",
+    "elapsed_s": 8.834051910002017,
+    "ttft_s": 0.40395966899814084,
+    "decode_client_s": 8.28157866699621,
+    "tg_client": 36.82872701740884,
+    "pp_ttft": 195.56407746329643,
+    "usage": {
+      "prompt_tokens": 79,
+      "total_tokens": 385,
+      "completion_tokens": 306,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "created_cache_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 204
+      }
+    },
+    "content": "[\"지연\",\"가람\",\"민수\",\"현우\"]We need answer Korean. Need sort by score desc, tie name asc. Data: 민수82, 지연95, 가람82, 현우70. Sorted: 지연95, tie 82 names ascending Korean? 가람 before 민수 (가 < 민). then 현우. Output names only JSON array.[\"지연\", \"가람\", \"민수\", \"현우\"]",
+    "reasoning": "We need answer in Korean likely. Need parse task: \"다음 목록을 점수 내림차순으로 정렬하고, 점수가 같으면 이름 오름차순으로 정렬하세요. 이름만 JSON 배열로 출력하세요. 이름만 JSON 배열로 출력하세요. 민수 82, 지연 95, 가람 82, 현우 70.\"\n\nNeed output names only JSON array sorted by score desc, tie name asc. Scores: 지연 95, 민수 82, 가람 82, 현우 70. Tie between 민수 and 가람: name ascending Korean dictionary? 가람 before 민수? Need determine \"이름 오름차순\" likely lexicographic Korean alphabetical order: 가, 나, 다... So 가람 < 민수. Thus names: [\"지연\",\"가람\",\"민수\",\"현우\"]. Need JSON array only. final no markdown.",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "kind": "quality-tg",
+    "case": "ko-logic",
+    "mode": "on-low",
+    "rep": 0,
+    "passed": false,
+    "check_detail": "exact JSON value",
+    "input_sha256": "9d9136c6ee3cfafa6493351fe39174cad171c9446551946d528f863d8b96b34e",
+    "elapsed_s": 1.4345154059992637,
+    "ttft_s": 0.40351404101238586,
+    "decode_client_s": 0.882796256992151,
+    "tg_client": 31.71739773274656,
+    "pp_ttft": 153.65016752439826,
+    "usage": {
+      "prompt_tokens": 62,
+      "total_tokens": 91,
+      "completion_tokens": 29,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "created_cache_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 20
+      }
+    },
+    "content": "```json\n[\"C\"]\n```",
+    "reasoning": "Boxes: A apples only, B pears only, C both. Exactly two kinds: C.",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "kind": "quality-tg",
+    "case": "code-unique",
+    "mode": "on-low",
+    "rep": 0,
+    "passed": true,
+    "check_detail": "restricted Python functional cases",
+    "input_sha256": "1861c35b41b9934b57ab4633a8784010fcede450a0dc617dae81fb59ab718600",
+    "elapsed_s": 1.3681529320019763,
+    "ttft_s": 0.3726137240009848,
+    "decode_client_s": 0.9954517830046825,
+    "tg_client": 49.22388089164687,
+    "pp_ttft": 118.08475417261793,
+    "usage": {
+      "prompt_tokens": 44,
+      "total_tokens": 94,
+      "completion_tokens": 50,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "created_cache_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 2
+      }
+    },
+    "content": "```python\ndef unique_in_order(xs):\n    result = []\n    seen = set()\n    for x in xs:\n        if x not in seen:\n            seen.add(x)\n            result.append(x)\n    return result\n```",
+    "reasoning": "Simple.",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "kind": "quality-tg",
+    "case": "code-intervals",
+    "mode": "on-low",
+    "rep": 0,
+    "passed": true,
+    "check_detail": "restricted Python functional cases",
+    "input_sha256": "bb24db8174330d13bc0d92eadbd84beababcfab63dfbc59b68228688f53b43b2",
+    "elapsed_s": 2.343012994999299,
+    "ttft_s": 0.3994940400007181,
+    "decode_client_s": 1.9433846980100498,
+    "tg_client": 49.39835128798753,
+    "pp_ttft": 155.19630780946957,
+    "usage": {
+      "prompt_tokens": 62,
+      "total_tokens": 159,
+      "completion_tokens": 97,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "created_cache_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "def merge_intervals(intervals):\n    if not intervals:\n        return []\n    sorted_intervals = sorted(intervals, key=lambda x: x[0])\n    merged = [list(sorted_intervals[0])]\n    for start, end in sorted_intervals[1:]:\n        if start <= merged[-1][1]:\n            if end > merged[-1][1]:\n                merged[-1][1] = end\n        else:\n            merged.append([start, end])\n    return merged",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "kind": "quality-tg",
+    "case": "code-intervals",
+    "mode": "on-low",
+    "rep": 1,
+    "passed": true,
+    "check_detail": "restricted Python functional cases",
+    "input_sha256": "bb24db8174330d13bc0d92eadbd84beababcfab63dfbc59b68228688f53b43b2",
+    "elapsed_s": 2.0757133909937693,
+    "ttft_s": 0.12499570200452581,
+    "decode_client_s": 1.950575080991257,
+    "tg_client": 49.21625470126177,
+    "pp_ttft": 496.0170550324612,
+    "usage": {
+      "prompt_tokens": 62,
+      "total_tokens": 159,
+      "completion_tokens": 97,
+      "prompt_tokens_details": {
+        "cached_tokens": 62,
+        "created_cache_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "def merge_intervals(intervals):\n    if not intervals:\n        return []\n    sorted_intervals = sorted(intervals, key=lambda x: x[0])\n    merged = [list(sorted_intervals[0])]\n    for start, end in sorted_intervals[1:]:\n        if start <= merged[-1][1]:\n            if end > merged[-1][1]:\n                merged[-1][1] = end\n        else:\n            merged.append([start, end])\n    return merged",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "kind": "quality-tg",
+    "case": "tool-weather",
+    "mode": "on-low",
+    "rep": 0,
+    "passed": true,
+    "check_detail": "tool name and typed arguments",
+    "input_sha256": "f840ce98954fafc4cf3250e445824edbcd20ac24af9bbe3581daf6e20d439337",
+    "elapsed_s": 0.9106714530062163,
+    "ttft_s": 0.5539459989959141,
+    "decode_client_s": 0.3565295650041662,
+    "tg_client": 64.51077907026094,
+    "pp_ttft": 366.46171353879083,
+    "usage": {
+      "prompt_tokens": 203,
+      "total_tokens": 227,
+      "completion_tokens": 24,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "created_cache_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "",
+    "reasoning": "",
+    "tool_calls": [
+      {
+        "name": "get_weather",
+        "arguments": "{\"city\": \"서울\", \"date\": \"2026-10-21\"}"
+      }
+    ],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "kind": "quality-tg",
+    "case": "ko-prose",
+    "mode": "on-low",
+    "rep": 0,
+    "passed": true,
+    "check_detail": "required substrings",
+    "input_sha256": "5c61d74cd3cafb806afcbf195e334c8093fa8250721949044887d677c6e95dec",
+    "elapsed_s": 6.786614829004975,
+    "ttft_s": 0.47594111900252756,
+    "decode_client_s": 6.310603741003433,
+    "tg_client": 31.534225276575125,
+    "pp_ttft": 174.39132003124786,
+    "usage": {
+      "prompt_tokens": 83,
+      "total_tokens": 283,
+      "completion_tokens": 200,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "created_cache_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 12
+      }
+    },
+    "content": "프롬프트 입력 처리(PP, Prompt Processing)는 사용자가 입력한 프롬프트 전체를 한 번에 읽어들이며 문맥을 계산하는 단계로, 병렬 처리가 가능해 처리량이 높습니다. 답변 토큰 생성(TG, Token Generation)은 이전에 계산된 문맥을 바탕으로 토큰을 하나씩 순차적으로 생성하는 단계로, 자기회귀적 특성 때문에 속도가 PP보다 느립니다. 모델이 내놓는 생각(reasoning) 토큰도 최종 답변과 마찬가지로 한 토큰씩 생성되므로 TG 단계에 속합니다.",
+    "reasoning": "Explain PP vs TG in Korean, ≤3 sentences.",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "kind": "quality-tg",
+    "case": "ko-prose",
+    "mode": "on-low",
+    "rep": 1,
+    "passed": true,
+    "check_detail": "required substrings",
+    "input_sha256": "5c61d74cd3cafb806afcbf195e334c8093fa8250721949044887d677c6e95dec",
+    "elapsed_s": 6.351482031008345,
+    "ttft_s": 0.037615692999679595,
+    "decode_client_s": 6.167436397008714,
+    "tg_client": 31.455533144061686,
+    "pp_ttft": 2206.525877396622,
+    "usage": {
+      "prompt_tokens": 83,
+      "total_tokens": 278,
+      "completion_tokens": 195,
+      "prompt_tokens_details": {
+        "cached_tokens": 83,
+        "created_cache_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 12
+      }
+    },
+    "content": "프롬프트 입력 처리(PP, Prompt Processing)는 사용자가 입력한 프롬프트 전체를 한 번에 읽어들이며 문맥을 계산하는 단계로, 병렬 처리가 가능해 처리량이 높습니다. 답변 토큰 생성(TG, Token Generation)은 이전에 계산된 문맥을 바탕으로 토큰을 하나씩 순차적으로 생성하는 단계로, 자기회귀적 특성 때문에 속도가 PP보다 느립니다. 모델이 내놓는 생각(reasoning) 토큰도 최종 답변과 마찬가지로 TG 단계에서 생성되는 토큰에 해당합니다.",
+    "reasoning": "Explain PP vs TG in Korean, ≤3 sentences.",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": []
+  }
+]

@@ -1,0 +1,38 @@
+{
+  "stop_elapsed_s": 16.06727930800116,
+  "operation": {
+    "action": "stop",
+    "bundle_id": "glm53-worker-extra",
+    "component_id": "glm53",
+    "state": "complete",
+    "phase": "중지 완료",
+    "detail": "선택한 구성을 사용할 수 있습니다.",
+    "progress": 1,
+    "started_at": "2026-10-20T15:45:24.149558507+09:00",
+    "finished_at": "2026-10-20T15:45:39.754125162+09:00",
+    "steps": [
+      {
+        "phase": "세트 중지",
+        "state": "complete",
+        "started_at": "2026-10-20T15:45:24.149558939+09:00",
+        "finished_at": "2026-10-20T15:45:24.149697355+09:00"
+      },
+      {
+        "component_id": "qwen3-tts",
+        "phase": "Qwen3-TTS 0.6B 중지",
+        "detail": "컨테이너를 안전하게 종료하고 있습니다.",
+        "state": "complete",
+        "started_at": "2026-10-20T15:45:24.149697355+09:00",
+        "finished_at": "2026-10-20T15:45:25.042750439+09:00"
+      },
+      {
+        "component_id": "glm53",
+        "phase": "GLM 5.3 Flash FP4-Local 중지",
+        "detail": "컨테이너를 안전하게 종료하고 있습니다.",
+        "state": "complete",
+        "started_at": "2026-10-20T15:45:25.042750439+09:00",
+        "finished_at": "2026-10-20T15:45:39.754125162+09:00"
+      }
+    ]
+  }
+}

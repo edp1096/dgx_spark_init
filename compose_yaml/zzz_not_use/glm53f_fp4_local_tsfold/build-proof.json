@@ -1,0 +1,18 @@
+{
+  "source_revision": "c595d643019b5590c97746463a08fbbb18844f4b",
+  "optimize": "safe",
+  "sm": "121",
+  "zig": "0.17.0",
+  "image_id": "sha256:7e17fada33cae18cd55c62f7e02ecfaf505af8990e7ac0d8b609a3fcbc7ce909",
+  "same_image_on_worker": false,
+  "binary_sha256": "9d42825691b68b42982d725a3493dc4730cfa4257ea6b5d7dbf1bcec7adf80e8",
+  "worker_image_id": "sha256:aa3c284a392439a5323c69161d3bad5e34a2af1c6910df07b7cf16b4b2b9d111",
+  "same_layers_on_worker": false,
+  "patch_sha256": "42855a631efe17de9b033bd5483b02b3302b1cc5bb5abb40a5fb984db4404e72",
+  "bootstrap_tests": 5,
+  "same_binary_on_worker": true,
+  "binary_in_image_sha256": "9d42825691b68b42982d725a3493dc4730cfa4257ea6b5d7dbf1bcec7adf80e8",
+  "base_image_id": "sha256:8566f13bbaa6ab5111bd06f742fc1246047a7d9232070083c8682008a22d6238",
+  "same_base_on_worker": true,
+  "image_id_difference": "Separate Docker build metadata and COPY layers; base image and actual executable hashes are identical."
+}

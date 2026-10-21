@@ -21,10 +21,10 @@ func recipeID(c Component) string {
 		return "qwen38-tp2"
 	case "glm53-cluster":
 		return "glm53"
+	case "glm53-fp4-cluster":
+		return "glm53-fp4"
 	case "ds41-cluster":
 		return "ds41"
-	case "dspark-cluster":
-		return "ds4fve"
 	}
 	return ""
 }
@@ -35,7 +35,6 @@ var recipeOptionNames = map[string]bool{
 	"NCCL_SUBNET": true, "MASTER_PORT": true, "MAX_MODEL_LEN": true, "MAX_NUM_SEQS": true,
 	"GPU_MEMORY_UTILIZATION": true, "GPU_MEMORY_UTILIZATION_TEXT": true,
 	"DRAFT_VOCAB": true, "KV_CACHE_MEMORY": true, "CACHE_RAM_MIB": true, "MTP_TOKENS": true, "DFLASH_TOKENS": true,
-	"DSPARK_ENABLE_DSML_RECOVERY": true, "DSPARK_ENABLE_DSPARK_SWA_PREFIX": true,
 	"IMAGE_RESIDENCY": true,
 }
 
@@ -48,19 +47,46 @@ func validateRecipeOptions(c Component) error {
 		}
 	}
 
+	if c.Controller == "glm53-fp4-cluster" {
+		for key, value := range c.RuntimeOptions {
+			switch key {
+			case "MODEL_VARIANT", "HEAD_RAIL_IP", "WORKER_RAIL_IP", "HEAD_NCCL_IF", "WORKER_NCCL_IF", "HEAD_NCCL_HCA", "WORKER_NCCL_HCA", "NCCL_SUBNET", "MASTER_PORT":
+			case "MAX_MODEL_LEN":
+				if value != "1048576" {
+					return fmt.Errorf("GLM FP4-Local requires the qualified 1M context")
+				}
+			case "MAX_NUM_SEQS":
+				if value != "1" {
+					return fmt.Errorf("GLM FP4-Local requires one active request")
+				}
+			case "MTP_TOKENS":
+				if value != "1" && value != "5" {
+					return fmt.Errorf("GLM FP4-Local MTP must be 1 or 5")
+				}
+			default:
+				return fmt.Errorf("GLM FP4-Local uses a fixed qualified profile; unsupported option %s", key)
+			}
+		}
+	}
 	for k, v := range c.RuntimeOptions {
+		if c.Controller == "ds41-cluster" {
+			switch k {
+			case "MODEL_VARIANT", "MAX_MODEL_LEN", "MASTER_PORT", "HEAD_RAIL_IP", "WORKER_RAIL_IP", "HEAD_NCCL_IF", "WORKER_NCCL_IF", "HEAD_NCCL_HCA", "WORKER_NCCL_HCA", "NCCL_SUBNET", "MTP_TOKENS":
+			default:
+				return fmt.Errorf("TensorFold DS41 uses a fixed qualified serving profile; unsupported override %s", k)
+			}
+			if k == "MTP_TOKENS" && v != "auto" && v != "1" && v != "2" && v != "3" && v != "4" && v != "5" {
+				return fmt.Errorf("TensorFold MTP_TOKENS must be auto or a fixed depth 1..5")
+			}
+		}
 		if k == "IMAGE_RESIDENCY" && (c.ComposeAsset != "compose.qwen-image21.yaml" || (v != "legacy" && v != "dit") || (v == "dit" && !c.KeepResident)) {
 			return fmt.Errorf("%s: IMAGE_RESIDENCY requires the single Qwen Image service; dit requires KeepResident", c.ID)
 		}
 		if c.ComposeAsset == "compose.flash-next.yaml" && k == "MTP_TOKENS" && v != "0" && v != "3" {
 			return fmt.Errorf("QAD MTP_TOKENS must be 0 or 3")
 		}
-		moeTP1 := c.ComposeAsset == "compose.ornith35.yaml"
-		if k == "DRAFT_VOCAB" && ((!moeTP1 && c.ComposeAsset != "compose.flash-next.yaml") || (v != "off" && v != "ko64k")) {
+		if k == "DRAFT_VOCAB" && ((c.ComposeAsset != "compose.flash-next.yaml") || (v != "off" && v != "ko64k")) {
 			return fmt.Errorf("%s: DRAFT_VOCAB requires a supported model and off or ko64k", c.ID)
-		}
-		if moeTP1 && k == "MTP_TOKENS" && v != "0" && v != "1" && v != "3" {
-			return fmt.Errorf("%s: MTP_TOKENS must be 0, 1 or 3", c.ID)
 		}
 		if c.Controller == "qwen38-cluster" && ((k == "MAX_MODEL_LEN" && v != "262144" && v != "524288" && v != "1048576") || (k == "MODEL_VARIANT" && v != "abliterated")) {
 			return fmt.Errorf("Qwen TP2 requires the tested abliteration checkpoint and 256K/512K/1M context")
@@ -91,13 +117,8 @@ func validateRecipeOptions(c Component) error {
 		if k == "MODEL_VARIANT" && v != "official" && v != "abliterated" && !(c.ComposeAsset == "compose.flash-next.yaml" && (v == "huihui_lil" || v == "radixark")) {
 			return fmt.Errorf("invalid model variant")
 		}
-		if k == "MODEL_VARIANT" && c.Controller == "ds41-cluster" && v != "official" {
-			return fmt.Errorf("DS41 streaming supports original weights only")
-		}
-		if k == "DSPARK_ENABLE_DSML_RECOVERY" || k == "DSPARK_ENABLE_DSPARK_SWA_PREFIX" {
-			if c.Controller != "dspark-cluster" || (v != "0" && v != "1") {
-				return fmt.Errorf("%s: %s requires a DeepSeek service and value 0 or 1", c.ID, k)
-			}
+		if c.Controller == "ds41-cluster" && k == "MAX_MODEL_LEN" && v != "1048576" {
+			return fmt.Errorf("TensorFold DS41 requires the qualified 1M profile; legacy streaming preload options are unsupported")
 		}
 	}
 	return nil
@@ -135,6 +156,16 @@ func (c *Controller) materializeRecipe(ctx context.Context, component Component)
 	if id == "glm53" {
 		values["MODEL_HOST_PATH"] = filepath.Join(cache, "nvidia", "GLM-5.3-Flash-NVFP4")
 		values["GLM53_CACHE_PATH"] = filepath.Join(filepath.Dir(cache), "glm53-nvfp4")
+		values["VLLM_BIND"] = component.BindAddress
+		if values["VLLM_BIND"] == "" {
+			values["VLLM_BIND"] = "127.0.0.1"
+		}
+	}
+	if id == "glm53-fp4" {
+		values["GLM53_HEAD_CONTAINER"] = component.Container
+		values["GLM53_WORKER_CONTAINER"] = component.WorkerContainer
+		values["MODEL_HOST_PATH"] = filepath.Join(cache, "nvidia", "GLM-5.3-Flash-FP4-Local")
+		values["GLM53_CACHE_PATH"] = filepath.Join(filepath.Dir(cache), "glm53-fp4-local")
 		values["VLLM_BIND"] = component.BindAddress
 		if values["VLLM_BIND"] == "" {
 			values["VLLM_BIND"] = "127.0.0.1"
@@ -197,6 +228,9 @@ func (c *Controller) materializeRecipe(ctx context.Context, component Component)
 	variant := values["MODEL_VARIANT"]
 	if variant == "" {
 		variant = "official"
+		if id == "ds41" || id == "glm53-fp4" {
+			variant = "abliterated"
+		}
 		values["MODEL_VARIANT"] = variant
 	}
 	values["ABLIT"] = "0"
@@ -207,22 +241,6 @@ func (c *Controller) materializeRecipe(ctx context.Context, component Component)
 		values["ABLITERATED"] = "1"
 		values["ABLIT_LAMBDA"] = "1.5"
 	}
-	if id == "ds4fve" {
-		values["MASTER_ADDR"] = values["HEAD_RAIL_IP"]
-		values["VLLM_HOST_IP"] = values["HEAD_RAIL_IP"]
-		values["WORKER_VLLM_HOST_IP"] = values["WORKER_RAIL_IP"]
-		values["NCCL_IB_HCA"] = "=" + values["HEAD_NCCL_HCA"]
-		values["WORKER_NCCL_IB_HCA"] = "=" + values["WORKER_NCCL_HCA"]
-		for _, prefix := range []string{"NCCL", "TP", "GLOO"} {
-			values[prefix+"_SOCKET_IFNAME"] = values["HEAD_NCCL_IF"]
-			values["WORKER_"+prefix+"_SOCKET_IFNAME"] = values["WORKER_NCCL_IF"]
-		}
-		values["VLLM_HOST"] = "127.0.0.1"
-		if component.BindAddress != "" {
-			values["VLLM_HOST"] = component.BindAddress
-		}
-		values["DSPARK_REVISION_ABLITERATED"] = "48095b3452a17f3e3ae8f77892399389c45de9e1"
-	}
 	if id == "ds41" {
 		values["HEAD_CONTAINER"] = component.Container
 		values["WORKER_CONTAINER"] = component.WorkerContainer
@@ -231,7 +249,7 @@ func (c *Controller) materializeRecipe(ctx context.Context, component Component)
 			values["VLLM_HOST"] = "127.0.0.1"
 		}
 		if values["MAX_MODEL_LEN"] == "" {
-			values["MAX_MODEL_LEN"] = "65536"
+			values["MAX_MODEL_LEN"] = "1048576"
 		}
 	}
 	if id == "qwen38-tp2" {

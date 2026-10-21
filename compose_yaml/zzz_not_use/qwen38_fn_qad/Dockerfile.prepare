@@ -1,0 +1,4 @@
+FROM python:3.11-slim-bookworm
+RUN pip install --no-cache-dir huggingface-hub==0.36.2
+COPY prepare_model.py checkpoint.huihui-lil.json checkpoint.radixark.json /opt/model-prepare/
+ENTRYPOINT ["python", "-u", "/opt/model-prepare/prepare_model.py"]

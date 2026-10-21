@@ -299,9 +299,12 @@ func boundedIntLimit(requested, maximum int) int {
 func selectDownloadFormat(info sourceInfo, maxDownloadMB int64, maxHeight int) (string, int) {
 	limit := maxDownloadMB * 1024 * 1024 * 98 / 100
 	allowedAudio := sourceAudioCandidates(info)
+	hasAudio := hasSourceAudio(info)
 	hasVideo := false
 	for _, format := range info.Formats {
-		if format.Height > 0 && format.VideoCodec != "" && format.VideoCodec != "none" {
+		// Progressive MP4 entries from X can omit both codec fields even
+		// though their dimensions identify them as video.
+		if format.Height > 0 && format.VideoCodec != "none" {
 			hasVideo = true
 			break
 		}
@@ -327,7 +330,20 @@ func selectDownloadFormat(info sourceInfo, maxDownloadMB int64, maxHeight int) (
 	bestFormat, bestHeight, bestScore := "", 0, int64(-1)
 	for _, video := range info.Formats {
 		videoSize := sourceFormatSize(video, info.Duration)
-		if video.Height < 1 || video.Height > maxHeight || videoSize < 1 || video.VideoCodec == "none" {
+		if video.ID == "" || video.Height < 1 || video.Height > maxHeight || videoSize < 1 || video.VideoCodec == "none" {
+			continue
+		}
+		// A source with no declared audio needs no audio partner. This also
+		// permits progressive video with missing codec metadata; normalization
+		// inspects its actual streams. If audio exists anywhere in the source,
+		// keep the original-track and combined-size rules below: do not silently
+		// discard audio merely because it is ambiguous or will not fit.
+		if !hasAudio {
+			if videoSize <= limit {
+				if score := formatScore(video, sourceFormat{}); score > bestScore {
+					bestFormat, bestHeight, bestScore = video.ID, video.Height, score
+				}
+			}
 			continue
 		}
 		if video.AudioCodec != "" && video.AudioCodec != "none" {

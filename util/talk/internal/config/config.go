@@ -128,9 +128,10 @@ type ContextConfig struct {
 }
 
 // EffectiveOutputReserve chooses an output budget from the current context size.
-// An unknown context keeps the user's saved manual budget.
+// An unknown context keeps the user's saved manual budget. A manual budget
+// carried from a larger model must leave room for input in the current window.
 func (c ContextConfig) EffectiveOutputReserve(window int) int {
-	if !c.OutputAuto || window <= 0 {
+	if window <= 0 || (!c.OutputAuto && c.OutputReserve < window-c.SafetyMargin) {
 		return c.OutputReserve
 	}
 	for _, size := range []int{262144, 131072, 65536, 32768} {
@@ -600,7 +601,7 @@ func normalizeReasoningEffort(modelType, value string) string {
 		default:
 			return "max"
 		}
-	case "qwen3.8", "qwen3.8-vllm":
+	case "qwen3.8", "qwen3.8-vllm", "qwen3.8-tensorfold":
 		switch value {
 		case "none", "low", "medium", "xhigh":
 			return value

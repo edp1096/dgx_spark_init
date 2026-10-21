@@ -1,0 +1,80 @@
+[
+  {
+    "node": "head",
+    "name": "glm53-head",
+    "id": "640269de3dff12261c518fc7504988379a2e40a5b1393e79b4918c94cd21be45",
+    "state": {
+      "Status": "exited",
+      "Running": false,
+      "Paused": false,
+      "Restarting": false,
+      "OOMKilled": false,
+      "Dead": false,
+      "Pid": 0,
+      "ExitCode": 137,
+      "Error": "",
+      "StartedAt": "2026-09-27T18:39:10.653421093Z",
+      "FinishedAt": "2026-09-27T18:59:56.029305182Z",
+      "Health": {
+        "Status": "unhealthy",
+        "FailingStreak": 0,
+        "Log": [
+          {
+            "Start": "2026-09-28T03:57:42.846222938+09:00",
+            "End": "2026-09-28T03:57:43.976114772+09:00",
+            "ExitCode": 0,
+            "Output": ""
+          },
+          {
+            "Start": "2026-09-28T03:58:13.977452225+09:00",
+            "End": "2026-09-28T03:58:15.068401802+09:00",
+            "ExitCode": 0,
+            "Output": ""
+          },
+          {
+            "Start": "2026-09-28T03:58:45.069681475+09:00",
+            "End": "2026-09-28T03:58:46.194616018+09:00",
+            "ExitCode": 0,
+            "Output": ""
+          },
+          {
+            "Start": "2026-09-28T03:59:16.195527179+09:00",
+            "End": "2026-09-28T03:59:17.287832131+09:00",
+            "ExitCode": 0,
+            "Output": ""
+          },
+          {
+            "Start": "2026-09-28T03:59:47.288466586+09:00",
+            "End": "2026-09-28T03:59:48.399425854+09:00",
+            "ExitCode": 0,
+            "Output": ""
+          }
+        ]
+      }
+    },
+    "image": "dgx-sglang-glm53:sm121-dev6",
+    "compose_project": "glm5-3-flash",
+    "reason": "Stopped legacy container occupies the replacement profile name"
+  },
+  {
+    "node": "worker",
+    "name": "glm53-worker",
+    "id": "2776d51e4e5520a09915d42eaa9a48cdf95774901b776214980a35237d66ddb7",
+    "state": {
+      "Status": "exited",
+      "Running": false,
+      "Paused": false,
+      "Restarting": false,
+      "OOMKilled": false,
+      "Dead": false,
+      "Pid": 0,
+      "ExitCode": 137,
+      "Error": "",
+      "StartedAt": "2026-09-27T18:39:08.631476104Z",
+      "FinishedAt": "2026-09-27T18:59:52.978660661Z"
+    },
+    "image": "dgx-sglang-glm53:sm121-dev6",
+    "compose_project": "glm5-3-flash",
+    "reason": "Stopped legacy container occupies the replacement profile name"
+  }
+]

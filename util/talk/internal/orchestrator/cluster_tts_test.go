@@ -7,7 +7,7 @@ func TestClusterQwenTTSPlacementAndStartup(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, id := range []string{"ds4fve", "ds41", "glm53-worker-extra"} {
+	for _, id := range []string{"glm53-worker-extra"} {
 		b, _ := c.Bundle(id)
 		tts, ok := c.ResolveComponent(id, "qwen3-tts")
 		if !ok || tts.Host != "worker" || tts.Endpoint != "http://192.168.100.60:8692" || tts.MemoryGiB != 4 {
@@ -24,7 +24,7 @@ func TestClusterQwenTTSPlacementAndStartup(t *testing.T) {
 				ttsIndex = i
 			}
 		}
-		if llmIndex < 0 || ttsIndex < 0 || (ttsIndex > llmIndex) != (id != "ds4fve") {
+		if llmIndex < 0 || ttsIndex < 0 || ttsIndex <= llmIndex {
 			t.Fatalf("%s: wrong startup order: %v", id, order)
 		}
 	}

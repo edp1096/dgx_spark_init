@@ -1,0 +1,139 @@
+[
+  {
+    "case": "json-schema",
+    "passed": true,
+    "expected": {
+      "answer": 391
+    },
+    "actual": {
+      "answer": 391
+    },
+    "requested_format_passed": true,
+    "elapsed_s": 0.3976107009948464,
+    "ttft_s": 0.13351018499815837,
+    "decode_client_s": 0.17526532600459177,
+    "tg_client": 39.93944586515993,
+    "pp_ttft": 217.21189286345475,
+    "usage": {
+      "prompt_tokens": 29,
+      "total_tokens": 37,
+      "completion_tokens": 8,
+      "prompt_tokens_details": {
+        "cached_tokens": 29,
+        "created_cache_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "{\"answer\": 391}",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "case": "image-digits",
+    "passed": true,
+    "expected": "5829",
+    "actual": {
+      "digits": "5829"
+    },
+    "requested_format_passed": false,
+    "elapsed_s": 0.40877189399907365,
+    "ttft_s": 0.08866419599507935,
+    "decode_client_s": 0.17058707900287118,
+    "tg_client": 46.896869603267845,
+    "pp_ttft": 2673.006813405864,
+    "usage": {
+      "prompt_tokens": 237,
+      "total_tokens": 246,
+      "completion_tokens": 9,
+      "prompt_tokens_details": {
+        "cached_tokens": 237,
+        "created_cache_tokens": 0,
+        "multimodal_tokens": {
+          "image": 207
+        }
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "{\"digits\": \"5829\"}",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "case": "multi-turn",
+    "passed": true,
+    "expected": "orchard-7294",
+    "actual": "orchard-7294",
+    "requested_format_passed": true,
+    "elapsed_s": 0.370681809989037,
+    "ttft_s": 0.03773356899910141,
+    "decode_client_s": 0.1789342720003333,
+    "tg_client": 44.709154431774245,
+    "pp_ttft": 1113.0672532195456,
+    "usage": {
+      "prompt_tokens": 42,
+      "total_tokens": 51,
+      "completion_tokens": 9,
+      "prompt_tokens_details": {
+        "cached_tokens": 42,
+        "created_cache_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "\"orchard-7294\"",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "case": "1m-retrieval",
+    "passed": true,
+    "expected": {
+      "STONE": "8cf069d5238f",
+      "LARCH": "70b810ccf34f",
+      "RIVER": "a4be6ea055a2",
+      "CLOUD": "f4fbe8ca2f42",
+      "ORBIT": "548b59f2c172"
+    },
+    "actual": {
+      "STONE": "8cf069d5238f",
+      "LARCH": "70b810ccf34f",
+      "RIVER": "a4be6ea055a2",
+      "CLOUD": "f4fbe8ca2f42",
+      "ORBIT": "548b59f2c172"
+    },
+    "requested_format_passed": true,
+    "elapsed_s": 628.5272359490045,
+    "ttft_s": 627.7837579960033,
+    "decode_client_s": 0.5716193130065221,
+    "tg_client": 143.45211600480752,
+    "pp_ttft": 1667.7796879330313,
+    "usage": {
+      "prompt_tokens": 1047005,
+      "total_tokens": 1047088,
+      "completion_tokens": 83,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "created_cache_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "```json\n{\n  \"STONE\": \"8cf069d5238f\",\n  \"LARCH\": \"70b810ccf34f\",\n  \"RIVER\": \"a4be6ea055a2\",\n  \"CLOUD\": \"f4fbe8ca2f42\",\n  \"ORBIT\": \"548b59f2c172\"\n}\n```",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": []
+  }
+]

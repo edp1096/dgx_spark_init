@@ -1,0 +1,98 @@
+[
+  {
+    "case": "json-schema",
+    "passed": true,
+    "expected": {
+      "answer": 391
+    },
+    "actual": {
+      "answer": 391
+    },
+    "requested_format_passed": true,
+    "elapsed_s": 0.6542909890122246,
+    "ttft_s": 0.3071838100004243,
+    "decode_client_s": 0.25683133301208727,
+    "tg_client": 27.25524147659413,
+    "pp_ttft": 94.40601703572837,
+    "usage": {
+      "prompt_tokens": 29,
+      "total_tokens": 37,
+      "completion_tokens": 8,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "created_cache_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "{\"answer\": 391}",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "case": "image-digits",
+    "passed": true,
+    "expected": "5829",
+    "actual": {
+      "digits": "5829"
+    },
+    "requested_format_passed": false,
+    "elapsed_s": 0.8903250590083189,
+    "ttft_s": 0.6645511880051345,
+    "decode_client_s": 0.07898084499174729,
+    "tg_client": 101.29038250775767,
+    "pp_ttft": 356.63167003196884,
+    "usage": {
+      "prompt_tokens": 237,
+      "total_tokens": 246,
+      "completion_tokens": 9,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "created_cache_tokens": 0,
+        "multimodal_tokens": {
+          "image": 207
+        }
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "{\"digits\": \"5829\"}",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "case": "multi-turn",
+    "passed": true,
+    "expected": "orchard-7294",
+    "actual": "orchard-7294",
+    "requested_format_passed": true,
+    "elapsed_s": 0.6364011099940399,
+    "ttft_s": 0.3985276599996723,
+    "decode_client_s": 0.0823334760061698,
+    "tg_client": 97.1658235272431,
+    "pp_ttft": 105.38791711479834,
+    "usage": {
+      "prompt_tokens": 42,
+      "total_tokens": 51,
+      "completion_tokens": 9,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "created_cache_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "\"orchard-7294\"",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": []
+  }
+]

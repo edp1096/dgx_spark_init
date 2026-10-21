@@ -13,60 +13,25 @@ import (
 	"time"
 )
 
-func TestFP4GuardedAdmissionKeepsCapacityAndUserReserve(t *testing.T) {
+func TestTensorFoldAdmissionKeepsFourGiBFloor(t *testing.T) {
 	c, _, _ := offlineAuxiliaryController(t)
-	b, _ := c.Catalog().Bundle("flash-next-fp4-local")
-	plan := memoryPlan{NeededGiB: 116, RequiresCUDAStart: true}
-	for _, tc := range []struct {
-		name                   string
-		total, available, free float64
-		reserve                float64
-		allow                  bool
-	}{
-		{"reported failure", 121.6, 116.8, 112.9, 1.5, true},
-		{"larger shortage", 121.6, 115, 112, 1.5, false},
-		{"larger user reserve", 121.6, 116.8, 112.9, 4, false},
-		{"not enough physical memory", 116, 115.9, 114, 1.5, false},
-		{"immediate CUDA shortage", 121.6, 116.8, .5, 1.5, false},
-	} {
-		t.Run(tc.name, func(t *testing.T) {
-			m := SystemMemory{TotalGiB: tc.total, AvailableGiB: tc.available, FreeGiB: tc.free}
-			if got := c.validateBundleStartupMemory(b, m, plan, tc.reserve); (got == nil) != tc.allow {
-				t.Fatalf("allow=%v, error=%v", tc.allow, got)
+	for _, id := range []string{"flash-next-fp4-local", "qwen38fn_exl3"} {
+		b, _ := c.Catalog().Bundle(id)
+		plan := memoryPlan{NeededGiB: 103, RequiresCUDAStart: true}
+		for _, available := range []float64{106.9, 107} {
+			m := SystemMemory{TotalGiB: 121.6, AvailableGiB: available, FreeGiB: 112}
+			if err := c.validateBundleStartupMemory(b, m, plan, 1.5); (err == nil) != (available >= 107) {
+				t.Fatalf("%s available=%v err=%v", id, available, err)
 			}
-		})
-	}
-	m := SystemMemory{TotalGiB: 121.6, AvailableGiB: 116.8, FreeGiB: 112.9}
-	other, _ := c.Catalog().Bundle("flash-next-radixark")
-	if c.validateBundleStartupMemory(other, m, plan, 1.5) == nil {
-		t.Fatal("guarded exception escaped into an unrelated model")
-	}
-	x, _ := c.Catalog().Component(b.ID)
-	x.StartupMemoryGiB = 117
-	if c.guardedQwenFP4Local(x) {
-		t.Fatal("custom startup reservation was relaxed")
-	}
-	x, _ = c.Catalog().Component(b.ID)
-	x.Host = "worker"
-	if c.guardedQwenFP4Local(x) {
-		t.Fatal("remote startup used a local memory watchdog")
-	}
-	cat := c.Catalog()
-	for i := range cat.Bundles {
-		if cat.Bundles[i].ID == b.ID {
-			keep := true
-			binding := cat.Bundles[i].Bindings["nemotron-asr"]
-			binding.KeepResident = &keep
-			cat.Bundles[i].Bindings["nemotron-asr"] = binding
 		}
-	}
-	custom, err := NewControllerWithCatalog(cat)
-	if err != nil {
-		t.Fatal(err)
-	}
-	b, _ = custom.Catalog().Bundle(b.ID)
-	if custom.validateBundleStartupMemory(b, m, plan, 1.5) == nil {
-		t.Fatal("custom resident auxiliary profile was relaxed")
+		x, _ := c.Catalog().Component(id)
+		if !c.managedQwenTensorFold(x) {
+			t.Fatal("watchdog missing", id)
+		}
+		x.Host = "worker"
+		if c.managedQwenTensorFold(x) {
+			t.Fatal("remote runtime uses local watchdog")
+		}
 	}
 }
 
@@ -116,34 +81,6 @@ esac
 	return c, x, dir
 }
 
-func TestFP4StartButtonAutomaticallyRecoversAndRetriesOnce(t *testing.T) {
-	c, x, dir := fp4StartupTestController(t, true)
-	// The reported 116.8 GiB case must pass through the public start path.
-	if err := c.CheckBundleStart(context.Background(), x.ID, 1.5); err != nil {
-		t.Fatal(err)
-	}
-	if actions, _ := os.ReadFile(filepath.Join(dir, "actions")); len(actions) != 0 {
-		t.Fatalf("a read-only probe mutated runtime state: %s", actions)
-	}
-	if err := c.StartBundle(context.Background(), x.ID, 1.5); err != nil {
-		t.Fatal(err)
-	}
-	deadline := time.Now().Add(15 * time.Second)
-	for c.Operation().State == "running" && time.Now().Before(deadline) {
-		time.Sleep(10 * time.Millisecond)
-	}
-	if op := c.Operation(); op.State != "complete" {
-		t.Fatalf("automatic startup did not finish: %+v", op)
-	}
-	actions, _ := os.ReadFile(filepath.Join(dir, "actions"))
-	if strings.Count(string(actions), "start "+x.Container) != 2 || strings.Count(string(actions), "stop "+x.Container) != 1 {
-		t.Fatalf("expected one cleaned attempt and one successful retry: %s", actions)
-	}
-	if _, err := os.Stat(filepath.Join(dir, x.Container)); err != nil {
-		t.Fatal("successful retry was stopped", err)
-	}
-}
-
 func TestFP4PersistentPressureStopsOnlyItsModelAndDoesNotLoop(t *testing.T) {
 	c, x, dir := fp4StartupTestController(t, false)
 	seedAuxiliary(t, dir, "protected-service")
@@ -153,7 +90,7 @@ func TestFP4PersistentPressureStopsOnlyItsModelAndDoesNotLoop(t *testing.T) {
 		t.Fatalf("expected measured pressure failure, got %v", err)
 	}
 	data, _ := os.ReadFile(filepath.Join(dir, "actions"))
-	if strings.Count(string(data), "start "+x.Container) != 2 || strings.Count(string(data), "stop "+x.Container) != 2 {
+	if strings.Count(string(data), "start "+x.Container) != 1 || strings.Count(string(data), "stop "+x.Container) != 1 {
 		t.Fatalf("retry count is not bounded: %s", data)
 	}
 	if _, err := os.Stat(filepath.Join(dir, x.Container)); !os.IsNotExist(err) {

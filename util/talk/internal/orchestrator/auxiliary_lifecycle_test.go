@@ -3,6 +3,7 @@ package orchestrator
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -32,6 +33,7 @@ for arg in "$@"; do
  prev="$arg"; last="$arg"
 done
 case "$*" in
+ *runtime-profile.json*) printf '%s' '{"model":"qwen38fn_exl3","context":1048576,"kv":"int8","depth":5,"confidence":0.4,"draft_vocabulary":86218,"expert_tiles":"compact-parallel-v1","moe_window":2048,"vision":true}';;
  *" config") cat;;
  *State.Pid*) if test -f "$AUX_TEST_ROOT/$last"; then printf 'running|0'; else printf 'exited|0'; fi;;
  *State.Status*) if test -f "$AUX_TEST_ROOT/$last"; then printf running; else printf exited; fi;;
@@ -43,10 +45,7 @@ esac
 		t.Fatal(err)
 	}
 	fakeQualifiedNemotronModel(t, dir)
-	cat, err := LoadCatalog()
-	if err != nil {
-		t.Fatal(err)
-	}
+	cat := legacyRadixArkCatalog(t)
 	for i := range cat.Components {
 
 		if cat.Components[i].ID == "flux2" {
@@ -70,15 +69,17 @@ esac
 	actions := []string{}
 	transport := auxiliaryTransport(func(r *http.Request) (*http.Response, error) {
 		// A stopped fake container must not look healthy before startup.
+		model := ""
 		if r.URL.Path == "/health" {
 			id := strings.TrimSuffix(r.URL.Host, ".test")
 			x, _ := c.Catalog().Component(id)
+			model = x.Model
 			if _, e := os.Stat(filepath.Join(dir, x.Container)); e != nil {
 				return nil, errors.New("not running")
 			}
 		}
 		actions = append(actions, r.Method+" "+r.URL.Path)
-		return &http.Response{StatusCode: 200, Header: make(http.Header), Body: io.NopCloser(strings.NewReader(`{"status":"ok","core_ready":true,"ready":true,"busy":false,"active":0,"workspace_gib":4.5}`))}, nil
+		return &http.Response{StatusCode: 200, Header: make(http.Header), Body: io.NopCloser(strings.NewReader(fmt.Sprintf(`{"status":"ok","model":%q,"ok":true,"backend":"tensorfold","context_length":1048576,"core_ready":true,"ready":true,"busy":false,"active":0,"workspace_gib":4.5}`, model)))}, nil
 	})
 	c.client.Transport = transport
 	previous := http.DefaultClient

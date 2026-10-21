@@ -61,7 +61,6 @@ import sys,os,tempfile
 from pathlib import Path
 p=Path(sys.argv[1]);kind,variant=sys.argv[2:];updates={'MODEL_VARIANT':variant}
 # GLM selects an independent NVFP4 checkpoint in select_model.sh.
-if kind=='ds4fve': updates['ABLITERATED']='1' if variant=='abliterated' else '0'
 if kind=='flash-next-exl3': updates['ABLIT_LAMBDA']='1.5' if variant=='abliterated' else '0'
 lines=p.read_text().splitlines()
 for k,v in updates.items():
@@ -71,7 +70,7 @@ with os.fdopen(fd,'w') as f:f.write('\n'.join(lines)+'\n')
 os.replace(name,p)
 PYENV
 fi
-if [[ "$log_host" == worker && "$MODEL_KIND" != glm53 && "$MODEL_KIND" != ds4fve ]]; then echo 'This recipe has no worker' >&2; exit 2; fi
+if [[ "$log_host" == worker && "$MODEL_KIND" != glm53 ]]; then echo 'This recipe has no worker' >&2; exit 2; fi
 export RUNTIME_HF_TOKEN="${HF_TOKEN-}"
 args=("$action")
 [[ -z "$log_host" ]] || args+=("$log_host")

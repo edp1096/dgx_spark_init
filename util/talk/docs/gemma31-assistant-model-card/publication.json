@@ -1,0 +1,13 @@
+{
+  "repo": "edp1096/gemma-4-31B-it-assistant-exl3",
+  "previous_revision": "359650d0d9386fbe42b820c74eefa8075017ebc6",
+  "revision": "5821efa5bee136c8359432384d94d9a4cde3e99c",
+  "commit_url": "https://huggingface.co/edp1096/gemma-4-31B-it-assistant-exl3/commit/5821efa5bee136c8359432384d94d9a4cde3e99c",
+  "changed_files": [
+    "README.md"
+  ],
+  "non_readme_files_unchanged": 32,
+  "readme_sha256": "7b655e18afc4534050e73e6dc580264f2ad5079b4f89c0426b10d10baeed58ab",
+  "published_utc": "2026-10-21T08:41:42.387682+00:00",
+  "discussion_reply_posted": false
+}

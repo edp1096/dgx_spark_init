@@ -40,6 +40,33 @@ func isQwenImage21(x Component) bool {
 	return x.ComposeAsset == "compose.qwen-image21.yaml" || x.ComposeAsset == "compose.qwim-mmh3.yaml"
 }
 
+// Residency belongs to the selected set. An image deployment absent from the
+// next set must release its weights even when that set has no image member.
+func (c *Controller) unselectedManagedImage(b Bundle, x Component) bool {
+	if !isQwenImage21(x) || x.Controller != "compose" || !c.local(x) {
+		return false
+	}
+	for _, desired := range c.Catalog().BundleComponents(b.ID) {
+		if desired.DeploymentKey() == x.DeploymentKey() {
+			return false
+		}
+	}
+	return true
+}
+
+func (c *Controller) stopUnselectedManagedImages(ctx context.Context, b Bundle) error {
+	for _, x := range c.Catalog().Deployments(b.ID) {
+		if !c.unselectedManagedImage(b, x) || !c.componentRunning(ctx, x) {
+			continue
+		}
+		c.updateOperation(x.ID, progressInfo{Key: "replace:" + x.ID, Phase: x.Name + " 중지", Detail: "다음 세트에 포함되지 않은 이미지 모델의 메모리를 반환합니다."})
+		if err := c.stopIdleWorkload(ctx, x); err != nil {
+			return fmt.Errorf("%s 종료: %w", x.Name, err)
+		}
+	}
+	return nil
+}
+
 type idleWorkloadState struct {
 	Status    string   `json:"status"`
 	Ready     *bool    `json:"ready"`

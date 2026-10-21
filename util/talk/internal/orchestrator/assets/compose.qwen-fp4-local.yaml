@@ -1,15 +1,15 @@
 services:
   runtime:
-    build:
-      context: ${SPARKTALK_BUILD_DIR:-.}
-    image: local/qwen38-fp4-local:csf-yarn-20261016
     pull_policy: never
-    container_name: vllm-qwen38-fp4-local
     init: true
     restart: unless-stopped
     ipc: host
     network_mode: bridge
     gpus: all
+    mem_limit: 112g
+    memswap_limit: 112g
+    build:
+      context: ${SPARKTALK_BUILD_DIR:-.}
     security_opt:
     - seccomp=unconfined
     ulimits:
@@ -19,89 +19,61 @@ services:
       stack:
         soft: 67108864
         hard: 67108864
+    image: local/sparktalk-qwen38-fp4-tensorfold:db281878-ko2
+    container_name: sparktalk-qwen38-fp4-local
     ports:
     - ${SPARKTALK_BIND_ADDR:-127.0.0.1}:${SPARKTALK_PORT:-18004}:8000
     environment:
+      PYTHONUNBUFFERED: '1'
       HF_HUB_OFFLINE: '1'
       TRANSFORMERS_OFFLINE: '1'
-      VLLM_NO_USAGE_STATS: '1'
-      VLLM_PLE_TABLE_MEMORY: disk
-      B12X_DISK_BACKEND: io_uring
-      CUTE_DSL_ARCH: sm_121a
-      SAFETENSORS_FAST_GPU: '1'
-      VLLM_WORKER_MULTIPROC_METHOD: spawn
-      VLLM_SSM_CONV_STATE_LAYOUT: DS
-      VLLM_USE_AOT_COMPILE: '1'
-      VLLM_USE_MEGA_AOT_ARTIFACT: '1'
-      VLLM_USE_V2_MODEL_RUNNER: '1'
-      B12X_POLICY_MODE: auto
-      VLLM_MXFP8_LM_HEAD: '1'
-      VLLM_B12X_MOE_FP4_LAYER_MAX_INPUT_SCALE: w13
-      VLLM_B12X_MOE_FP4_FORCE_A16: '1'
-      B12X_W4A16_A4_PREFILL: '1'
-      PYTHONUNBUFFERED: '1'
-      PYTORCH_ALLOC_CONF: backend:native,garbage_collection_threshold:0.7
-      OMP_NUM_THREADS: '8'
+      TENSORFOLD_NO_UPDATE_CHECK: '1'
+      TENSORFOLD_MEMORY_RESERVE_GIB: '4'
+      OMP_NUM_THREADS: '4'
+      TENSORFOLD_CUDA_KERNELS: /opt/tensorfold/share/tensorfold/cuda/sm121
+      TENSORFOLD_VISION_PYTHONPATH: /opt/tensorfold/python
+      TF_FLASHNEXT_YARN: '4'
+      TF_FLASHNEXT_DEPTH: '4'
+      TF_FLASHNEXT_PRODUCT_STREAMS: '1'
+      TF_FLASHNEXT_PREFILL_TAIL: '512'
+      TF_FLASHNEXT_PREFILL_ROWS: '4096'
+      TF_FLASHNEXT_PROMPT_EXPERT_TILE: '2'
+      TENSORFOLD_MAX_IMAGES: '50'
+      TENSORFOLD_IMAGE_TOKENS: '16384'
     volumes:
     - ${SPARKTALK_HF_CACHE:-${HOME}/.cache/huggingface}/edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-FP4-Local:/model:ro
-    - ${SPARKTALK_BUILD_DIR:-.}/runtime-config.json:/model/config.json:ro
-    - ${SPARKTALK_DATA_DIR:-${HOME}/.local/share/sparktalk}/cache/qwen38-fp4-local:/root/.cache
-    - ${SPARKTALK_DATA_DIR:-${HOME}/.local/share/sparktalk}/cache/qwen38-fp4-local-triton:/root/.triton
-    entrypoint:
-    - vllm
+    - ${SPARKTALK_DATA_DIR:-${HOME}/.local/share/sparktalk}/cache/qwen38-fp4-tensorfold:/cache
     command:
     - serve
     - /model
-    - --served-model-name
+    - --name
     - edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-FP4-Local
     - --host
     - 0.0.0.0
     - --port
     - '8000'
-    - --tensor-parallel-size
-    - '1'
-    - --pipeline-parallel-size
-    - '1'
-    - --mamba-cache-mode
-    - align
-    - --enable-prefix-caching
-    - --enable-chunked-prefill
-    - --dtype
-    - bfloat16
-    - --kv-cache-dtype
-    - fp8
-    - --quantization
-    - modelopt_mixed
-    - --block-size
-    - '16'
-    - --load-format
-    - b12x
-    - --max-model-len
+    - --context
     - '1048576'
-    - --max-num-seqs
+    - --parallel
     - '1'
-    - --max-num-batched-tokens
+    - --max-tokens
     - '4096'
-    - --speculative-config
-    - '{"method":"mtp","num_speculative_tokens":4}'
-    - --gdn-decode-kernel
-    - b12x
-    - --linear-backend
-    - b12x
-    - --moe-backend
-    - b12x
-    - --no-enable-flashinfer-autotune
-    - --mm-encoder-tp-mode
-    - data
-    - --reasoning-parser
-    - qwen3
-    - --tool-call-parser
-    - qwen3_xml
-    - --enable-auto-tool-choice
-    - --compilation-config
-    - '{"pass_config":{"fuse_act_quant":true}}'
-    - --gpu-memory-utilization
-    - '0.8'
+    - --temperature
+    - '0'
+    - --top-p
+    - '1'
+    - --top-k
+    - '0'
+    - --no-thinking
+    - --kv-dtype
+    - fp8
+    - --vision
+    - --vision-max-images
+    - '50'
+    - --vision-max-videos
+    - '4'
+    - --vision-image-tokens
+    - '16384'
     healthcheck:
       test:
       - CMD

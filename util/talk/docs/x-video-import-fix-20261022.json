@@ -1,0 +1,87 @@
+{
+  "status": "fixed-deployed-and-live-validated",
+  "finished_utc": "2026-10-21T16:21:32.613696+00:00",
+  "host": "61; host 60 powered off and untouched",
+  "change": "Video sources without declared audio can select a bounded video-only rendition; dimensions identify video when codec fields are absent. Original audio and combined size checks remain required whenever audio is declared.",
+  "deployment": {
+    "image": "sparktalk-extra-media:0.1.2",
+    "image_id": "sha256:0564bca84c472d8b7b15954ed96520c0706c63ec93a3f2e4665c5b900a663c21",
+    "talk_binary_sha256": "f3b8fb51b6478e0cd5a7073a6f96eb90fbc2765bed1f14e346543858a1ae4df8",
+    "standalone_and_talk_assets_updated": true,
+    "model_services_restarted": false
+  },
+  "live": {
+    "url": "https://x.com/dedene/status/2111106268593336652/video/1",
+    "selected_format": "hls-238",
+    "download_bytes": 1662422,
+    "duration_seconds": 56.0,
+    "streams": [
+      {
+        "codec_type": "video",
+        "codec_name": "h264",
+        "width": 1280,
+        "height": 720,
+        "r_frame_rate": "30/1"
+      }
+    ],
+    "frame_sheet_bytes": 125707,
+    "frame_sheet_frames": 8,
+    "frame_sheet_visually_inspected": true,
+    "media_import": "downloaded and added to the model input",
+    "attachment_read": "loaded from SparkTalk storage into model input",
+    "conversation_completion": "completed",
+    "model_answer": "오빠, 영상 잘 가져왔어! 1.6MB짜리 mp4로 첨부돼 있고, 프레임도 다 읽었어.\n\n화면에 실제로 보이는 것만 말하면, 어두운 남색 배경의 애니메이션 인포그래픽이 \"Qwen3.8 Flash Next · two builds, one DGX Spark\" 제목 아래 초록(NVIDIA FP4-Local)과 주황(TensorFold MLX 4-bit) 두 색상으로 Agentic Score 81.2% vs 75.0%, Prompt Injection Attacks resisted 99.0% vs 97.0%, BFCL 도구 호출 Single-turn 82.4% vs 71.8%·Multi-turn 54.5% vs 43.0%, 8단계 에이전트 루프 34.7초 vs 22.9초(1.5x faster), 메모리 사용량 약 97GB vs 약 103GB 같은 막대·꺾은선 그래프가 순서대로 나타나는 식으로 비교하다가 마지막에 \"NVIDIA's build acts better. TensorFold's runs faster.\"라는 문구로 끝나는 화면이야.\n\n소리는 프레임만으로는 확인할 수 없어서 단정할 수 없어 — 이 영상은 음성 해설이나 효과음이 없는 무음 클립으로 보이지만, 첨부된 전사 결과가 따로 제공되지 않아서 오빠가 원하면 음성 추출까지 다시 확인해볼게!"
+  },
+  "checks": [
+    "go test ./cmd/media (standalone)",
+    "Dockerfile.media build: go test ./... and native binary build",
+    "go test ./internal/orchestrator (Talk)",
+    "Support assets: 109 verified",
+    "Recipe assets: 4 verified",
+    "Linux arm64 Talk binary built and deployed",
+    "Real Talk chat: media_import and attachment_read succeeded; final answer completed",
+    "ffprobe: 56 seconds, 1280x720 H.264 30fps, no audio stream",
+    "Eight-frame JPEG sheet extracted and inspected",
+    "git diff --check"
+  ],
+  "scope": "No changes to LLM tool selection or prompts, model settings, download/height caps, or original user conversation.",
+  "runtime_after": {
+    "selected_bundle": "qwen38fn_exl3",
+    "components": [
+      {
+        "id": "qwen38fn_exl3",
+        "status": "running",
+        "health": "online"
+      },
+      {
+        "id": "qwim-mmh3",
+        "status": "running",
+        "health": "online"
+      },
+      {
+        "id": "nemotron-asr",
+        "status": "running",
+        "health": "online"
+      },
+      {
+        "id": "qwen3-tts",
+        "status": "running",
+        "health": "online"
+      },
+      {
+        "id": "extra-embedding",
+        "status": "running",
+        "health": "online"
+      }
+    ]
+  },
+  "cleanup": {
+    "verification_chat_deleted": true,
+    "verification_media_files_deleted": [
+      "ff72c6fff927813935955bbd0801b7f6"
+    ],
+    "temporary_directory_deleted": true,
+    "temporary_binary_backup_deleted": true,
+    "original_conversation_retained": true
+  }
+}

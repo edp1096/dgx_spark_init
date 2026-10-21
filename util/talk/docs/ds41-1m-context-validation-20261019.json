@@ -1,0 +1,346 @@
+{
+  "timestamp_utc": "2026-10-19T14:39:29.665668+00:00",
+  "model_display_name": "DeepSeek V4.1 Flash 1017 EXL3 2bit",
+  "model_api_id": "DeepSeek-V4.1-Flash-TF",
+  "weights": "DeepSeek-V4.1-Flash-1017 EXL3 2.8bpw, Abliterated L10-35",
+  "mtp": "cost-based auto, cap 5",
+  "context_capacity": 1048576,
+  "inference_capacity_passed": true,
+  "final_serving_check_passed": true,
+  "method": {
+    "active_test_streams": 1,
+    "temperature": 0,
+    "thinking": false,
+    "prefill_probe_tokens": [
+      131072,
+      1048064
+    ],
+    "retrieval": "Exact random 12-character values at approximately 1%, 50%, and 95% of a synthetic Korean operations document",
+    "full_window": "Append prior assistant answer and a long Korean follow-up, then generate exactly the remaining context budget",
+    "overflow": "Same 1048064-token prompt requesting 513 output tokens must return HTTP 400; no silent truncation",
+    "pp_formula": "(prompt_tokens - cached_tokens) / tensorfold.prefill_s",
+    "tg_formula": "(completion_tokens - 1) / tensorfold.decode_s",
+    "memory_sampling_interval_seconds": 10,
+    "request_route": "Native OpenAI-compatible /v1/chat/completions for the full-context requests; /api/chat for the subsequent Talk smoke test"
+  },
+  "results": [
+    {
+      "case": "128k",
+      "prompt_tokens": 131072,
+      "requested_prompt_tokens": 131072,
+      "completion_tokens": 34,
+      "max_tokens": 512,
+      "finish_reason": "stop",
+      "elapsed_s": 57.090900520001014,
+      "ttft_s": 56.72074852300284,
+      "native": {
+        "prompt": 131072,
+        "cached": 0,
+        "ttft_s": 56.7119,
+        "finish": "done",
+        "completion": 34,
+        "prefill_s": 56.6503,
+        "decode_s": 0.4304,
+        "rounds": 8,
+        "drafted": 33,
+        "accepted": 27
+      },
+      "usage": {
+        "prompt_tokens": 131072,
+        "completion_tokens": 34,
+        "total_tokens": 131106,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "pp": 2313.7035461418564,
+      "tg": 76.6728624535316,
+      "expected": {
+        "START": "24E29BDB9E23",
+        "MIDDLE": "3722A107AA68",
+        "END": "EDC1C2028DEA"
+      },
+      "answer": "{\"START\":\"24E29BDB9E23\",\"MIDDLE\":\"3722A107AA68\",\"END\":\"EDC1C2028DEA\"}",
+      "exact_match": true,
+      "markers": {
+        "START": true,
+        "MIDDLE": true,
+        "END": true
+      },
+      "count_exact": true
+    },
+    {
+      "case": "1m",
+      "prompt_tokens": 1048064,
+      "requested_prompt_tokens": 1048064,
+      "completion_tokens": 31,
+      "max_tokens": 512,
+      "finish_reason": "stop",
+      "elapsed_s": 796.9714167400016,
+      "ttft_s": 796.5787462990011,
+      "native": {
+        "prompt": 1048064,
+        "cached": 0,
+        "ttft_s": 796.5133,
+        "finish": "done",
+        "completion": 31,
+        "prefill_s": 796.4369,
+        "decode_s": 0.4556,
+        "rounds": 7,
+        "drafted": 25,
+        "accepted": 24
+      },
+      "usage": {
+        "prompt_tokens": 1048064,
+        "completion_tokens": 31,
+        "total_tokens": 1048095,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "pp": 1315.941036885659,
+      "tg": 65.84723441615452,
+      "expected": {
+        "START": "6D59095D2481",
+        "MIDDLE": "0D870174FD39",
+        "END": "12A49070384F"
+      },
+      "answer": "{\"START\":\"6D59095D2481\",\"MIDDLE\":\"0D870174FD39\",\"END\":\"12A49070384F\"}",
+      "exact_match": true,
+      "markers": {
+        "START": true,
+        "MIDDLE": true,
+        "END": true
+      },
+      "count_exact": true
+    },
+    {
+      "case": "1m-boundary-decode",
+      "prompt_tokens": 1048184,
+      "completion_tokens": 392,
+      "max_tokens": 392,
+      "total_tokens": 1048576,
+      "finish_reason": "length",
+      "elapsed_s": 10.052563837998605,
+      "ttft_s": 0.8276841309998417,
+      "native": {
+        "prompt": 1048184,
+        "cached": 1048048,
+        "ttft_s": 0.7579,
+        "finish": "done",
+        "completion": 392,
+        "prefill_s": 0.6979,
+        "decode_s": 9.269,
+        "rounds": 198,
+        "drafted": 370,
+        "accepted": 194
+      },
+      "usage": {
+        "prompt_tokens": 1048184,
+        "completion_tokens": 392,
+        "total_tokens": 1048576,
+        "prompt_tokens_details": {
+          "cached_tokens": 1048048
+        }
+      },
+      "pp": 194.8703252614988,
+      "tg": 42.18362282878412,
+      "answer": "# 대규모 언어 모델에서 긴 문서 처리와 메모리·네트워크·정확도의 관계\n\n## 1. 들어가며: 긴 문서를 다룬다는 것의 의미\n\n대규모 언어 모델이 긴 문서를 처리한다는 것은 단순히 입력창에 많은 글자를 넣을 수 있다는 뜻이 아닙니다. 문서가 길어진다는 것은 모델이 한 번에 고려해야 하는 정보의 양이 늘어난다는 것이고, 그 정보를 어떻게 기억하고, 어떤 순서로 참조하며, 어느 부분에 주의를 기울일지를 스스로 조정해야 한다는 뜻입니다. 초보자 입장에서는 \"많이 넣으면 많이 읽는 것 아닌가\"라고 생각하기 쉽지만, 실제로는 읽는 양이 늘어날수록 기억해야 할 것도 늘고, 그 기억을 유지하는 비용도 함께 늘어납니다. 이 글에서는 그 과정을 메모리, 네트워크, 정확도라는 세 가지 축으로 나누어 차근차근 설명하겠습니다.\n\n## 2. 언어 모델이 문서를 \"읽는\" 방식의 기초\n\n언어 모델은 사람처럼 눈으로 글자를 훑는 것이 아니라, 문서를 잘게 나눈 토큰이라는 단위로 변환해 숫자들의 집합으로 처리합니다. 이 숫자들은 모델 내부의 여러 층을 거치면서 서로 관계를 맺고, 다음에 올 토큰을 예측하거나 질문에 답하기 위한 표현으로 바뀝니다. 이때 문서가 길면 토큰의 수가 많아지고, 그 많은 토큰 사이의 관계를 계산",
+      "reached_exact_context_boundary": true,
+      "count_exact": true
+    }
+  ],
+  "over_limit": {
+    "rejected": true,
+    "http_status": 400,
+    "body": "{\"error\": {\"message\": \"This model's maximum context length is 1048576 tokens. However, you requested 1048577 tokens (1048064 in the messages, 513 in the completion). Please reduce the length of the messages or completion. (This TensorFold server was started with --context 1048576 (CONTEXT); restart both ranks with CONTEXT=1048577 or more to serve it.)\", \"type\": \"invalid_request_error\", \"code\": \"context_length_exceeded\", \"param\": \"messages\"}}"
+  },
+  "memory": {
+    "61": {
+      "min_sampled_available_GiB": 6.000057220458984,
+      "max_sampled_swap_used_GiB": 0.40460968017578125,
+      "first_sample_swap_used_GiB": 0.40460968017578125,
+      "last_sample_available_GiB": 8.407623291015625
+    },
+    "60": {
+      "min_sampled_available_GiB": 7.070545196533203,
+      "max_sampled_swap_used_GiB": 0.00016021728515625,
+      "first_sample_swap_used_GiB": 0.00016021728515625,
+      "last_sample_available_GiB": 9.582172393798828
+    }
+  },
+  "containers_after": {
+    "61": {
+      "running": true,
+      "oom_killed": false,
+      "started_at": "2026-10-19T13:48:45.148356726Z",
+      "restart_count": 0,
+      "variant": "abliterated",
+      "engine_image_id": "sha256:d2ebc3b9cdefdbddd5e4f2fcae9cd4c018508d0a3c5a3484b328e701e282adf2",
+      "depth_policy": "cost",
+      "draft_depth_cap": "5"
+    },
+    "60": {
+      "running": true,
+      "oom_killed": false,
+      "started_at": "2026-10-19T13:48:44.840252244Z",
+      "restart_count": 0,
+      "variant": "abliterated",
+      "engine_image_id": "sha256:d2ebc3b9cdefdbddd5e4f2fcae9cd4c018508d0a3c5a3484b328e701e282adf2",
+      "depth_policy": "cost",
+      "draft_depth_cap": "5"
+    }
+  },
+  "health_after": {
+    "ok": true,
+    "mode": "basic",
+    "uptime_s": 2926.2,
+    "inflight": 0,
+    "oldest_s": 0.0,
+    "idle_s": 14.7,
+    "requests": 18,
+    "errors": 0,
+    "backend": "tensorfold",
+    "busy": false,
+    "requests_running": 0,
+    "requests_total": 18,
+    "prompt_tokens_total": 2493367,
+    "completion_tokens_total": 23992,
+    "prefill_seconds_total": 947.241747,
+    "decode_seconds_total": 299.488548,
+    "cached_tokens_total": 1124848,
+    "rounds_total": 7759,
+    "drafted_total": 23618,
+    "accepted_total": 16244,
+    "streams": {
+      "decoding": 0,
+      "prefilling": 0,
+      "max": 4
+    },
+    "context_length": 1048576,
+    "queued": 0,
+    "oldest_queued_s": 0.0,
+    "graphs": {
+      "row graphs": {
+        "held": 96,
+        "captured": 254,
+        "replayed": 15270,
+        "eager": 0,
+        "floor_hits": 0,
+        "under_floor": false
+      },
+      "draft passes": {
+        "held": 1,
+        "captured": 1,
+        "replayed": 7768,
+        "eager": 0,
+        "floor_hits": 0,
+        "under_floor": false
+      }
+    },
+    "rounds": {
+      "last_age_s": 14.7,
+      "last_s": 0.048,
+      "decode_s": 0.0453,
+      "decode_base_s": 0.0454,
+      "prefill_rows_s": 867.7,
+      "prefill_base_rows_s": 976.7,
+      "slow_s": 0.0
+    }
+  },
+  "talk_after": {
+    "answer": "391",
+    "performance": {
+      "totals": {
+        "prefill_tokens": 13179,
+        "prefill_seconds": 6.2897,
+        "decode_tokens": 1,
+        "decode_seconds": 0.0558
+      },
+      "elapsed_seconds": 6.367364307,
+      "finished_at": "2026-10-19T14:39:13.671931399Z",
+      "finish_status": "completed",
+      "pp": 2095.330460912285,
+      "tg": 17.921146953405017,
+      "ttft": 6.3458,
+      "prompt_tokens": 13179,
+      "cached_tokens": 0,
+      "output_tokens": 2,
+      "calls": 1
+    },
+    "mtp": "auto",
+    "variant": "abliterated",
+    "events": [
+      "context",
+      "delta",
+      "done",
+      "performance",
+      "turn_started"
+    ]
+  },
+  "health_probe_anomalies": [
+    {
+      "utc": "2026-10-19T14:24:40Z",
+      "case": null,
+      "stage": null,
+      "health_error": "HTTP Error 503: Service Unavailable"
+    }
+  ],
+  "limitations": [
+    "Single-stream inference; not a multiuser stress test",
+    "Three exact-match markers are a retrieval smoke test, not a comprehensive long-context quality benchmark",
+    "Memory minima are observed at 10-second intervals, not a hardware peak measurement",
+    "The initial health-probe HTTP 503 response body was not retained; no root cause is asserted from that event alone",
+    "The full 1M conversation was not entered through the Talk UI; the backend full-context test and Talk post-test response were verified separately"
+  ],
+  "local_artifacts": "/home/edp1096/.cache/model-download-jobs/deepseek-1m-validation-20261019",
+  "prompt_metadata": {
+    "128k": {
+      "prompt_tokens": 131072,
+      "max_tokens": 512,
+      "nonce": "e36871fa54d64e4b",
+      "expected": {
+        "START": "24E29BDB9E23",
+        "MIDDLE": "3722A107AA68",
+        "END": "EDC1C2028DEA"
+      },
+      "sha256": "b192b2a134680dd110608f1440108c2ae300880a567a1bd978554f7b67f43054",
+      "bytes": 433106,
+      "records": 2009,
+      "approx_marker_fractions": [
+        0.01,
+        0.5,
+        0.95
+      ]
+    },
+    "1m": {
+      "prompt_tokens": 1048064,
+      "max_tokens": 512,
+      "nonce": "879d3428134e4b51",
+      "expected": {
+        "START": "6D59095D2481",
+        "MIDDLE": "0D870174FD39",
+        "END": "12A49070384F"
+      },
+      "sha256": "c174d189909566bf18beff0d7aab06983c8c6db3747840ddf8b2c56e878bba9d",
+      "bytes": 3465868,
+      "records": 16119,
+      "approx_marker_fractions": [
+        0.01,
+        0.5,
+        0.95
+      ]
+    }
+  },
+  "sources": [
+    "https://github.com/jayleaton/deepseek-v41-tensorfold-spark/tree/853310dab967480013eda7cef4e79c2fd041629a",
+    "https://huggingface.co/jayleaton/DeepSeek-V4.1-Flash-1017-EXL3-2.8bpw/tree/859396591c340195526aaf61f94b4ad5323a5e18",
+    "https://huggingface.co/drowzeys/keys-DeepSeek-V4.1-Flash-1017-Abliterated"
+  ],
+  "local_scripts": {
+    "validate.py": "0833155aaad23fc4cacc0e48cd320a2ee08f39b2acb7da423f74a062584311c8",
+    "boundary-decode.py": "7e77367977fed5426be37d815ba995b1553fd8daeaac8254ce477e56cd307f61",
+    "talk-smoke.py": "af38233a42270a8afd3dbec0ea4e09808e46fcf8245135ed5e55031d34351a5a",
+    "finalize.py": "3892bfb7fa03123509ab77a10398460a2f895d7c47a2709be98d81e17b0a1f2c"
+  }
+}

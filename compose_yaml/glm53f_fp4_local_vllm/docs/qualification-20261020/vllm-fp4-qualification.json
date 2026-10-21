@@ -1,0 +1,83 @@
+[
+  {
+    "case": "json-schema",
+    "passed": true,
+    "expected": {
+      "answer": 391
+    },
+    "actual": {
+      "answer": 391
+    },
+    "requested_format_passed": true,
+    "elapsed_s": 0.624935612999252,
+    "ttft_s": 0.2821063220035285,
+    "decode_client_s": 0.28649894800037146,
+    "tg_client": 24.432899488311296,
+    "pp_ttft": 102.79812162322715,
+    "usage": {
+      "prompt_tokens": 29,
+      "total_tokens": 37,
+      "completion_tokens": 8,
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "{\"answer\": 391}",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "case": "image-digits",
+    "passed": true,
+    "expected": "5829",
+    "actual": {
+      "digits": "5829"
+    },
+    "requested_format_passed": false,
+    "elapsed_s": 0.9197111120010959,
+    "ttft_s": 0.6516987360082567,
+    "decode_client_s": 0.1627350079943426,
+    "tg_client": 49.159674360160516,
+    "pp_ttft": 363.6649680366993,
+    "usage": {
+      "prompt_tokens": 237,
+      "total_tokens": 246,
+      "completion_tokens": 9,
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "{\"digits\": \"5829\"}",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "case": "multi-turn",
+    "passed": true,
+    "expected": "orchard-7294",
+    "actual": "orchard-7294",
+    "requested_format_passed": true,
+    "elapsed_s": 0.6172546640009386,
+    "ttft_s": 0.3417769549996592,
+    "decode_client_s": 0.16778013099974487,
+    "tg_client": 47.68145043355679,
+    "pp_ttft": 122.88716189200609,
+    "usage": {
+      "prompt_tokens": 42,
+      "total_tokens": 51,
+      "completion_tokens": 9,
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "\"orchard-7294\"",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": []
+  }
+]

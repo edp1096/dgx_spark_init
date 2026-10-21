@@ -1,0 +1,108 @@
+# Archived QAD recipe
+
+Removed from the current Talk model-set list. This directory preserves the standalone QAD build context; active RadixArk/TP2 recipes remain in `compose_yaml/qwen38_fn_sglang`.
+
+# Qwen3.8 Flash-Next · 독립 SGLang TP1 Compose
+
+이 디렉터리만으로 모델 다운로드·검증·이미지 빌드·실행을 할 수 있습니다.
+Talk 설치, Talk YAML, `util/talk` 소스나 변환 작업 디렉터리는 필요하지 않습니다.
+Docker Compose와 NVIDIA GPU 런타임이 준비된 DGX Spark 1대를 사용합니다.
+런타임 이미지는 `dgx-sglang-qwen38-qad:sm121-v5-memory`입니다.
+
+## 모델 선택
+
+| 선택 파일 | 모델 | 고정 리비전 |
+| --- | --- | --- |
+| `model.official.env` | `local-inference-lab/Qwen3.8-Flash-Next-NVFP4` (기본값) | `7c4f1bc1a2d6847e0cbc01ac6b823f00251de8dd` |
+| `model.abliterated.env` | `huginnfork/Qwen3.8-Flash-Next-NVFP4-Abliterated` | `93a1b466ce773185f21a49d1649b7933ce0fc910` |
+| `model.huihui-lil.env` | `edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-NVFP4-QAD` | `d8a260c0792cf2db93c5aaf8d397fd837b69901b` · **step-5500** |
+
+Huihui는 [공개된 step-5500 체크포인트](https://huggingface.co/edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-NVFP4-QAD/commit/d8a260c0792cf2db93c5aaf8d397fd837b69901b)를 내려받습니다.
+별도 로컬 변환 작업은 필요하지 않습니다. 모델 ID·리비전·컨테이너 모델 경로는
+선택한 env 파일 하나로 지정하며, 다운로드와 런타임에 동일하게 전달합니다.
+
+## 준비·다운로드·빌드
+
+**Dockerfile만 받지 말고 이 디렉터리 전체를 준비**한 뒤 여기에서 실행합니다.
+아래 예시는 Huihui step-5500입니다. 다른 모델은 env 파일만 바꿉니다.
+
+```sh
+cd compose_yaml/zzz_not_use/qwen38_fn_qad
+export QWEN_UID="$(id -u)" QWEN_GID="$(id -g)"
+export QWEN_HF_CACHE="${QWEN_HF_CACHE:-$HOME/.cache/huggingface}"
+mkdir -p "$QWEN_HF_CACHE"
+docker compose --env-file model.huihui-lil.env build model-prepare
+docker compose --env-file model.huihui-lil.env run --rm model-prepare
+docker compose --env-file model.huihui-lil.env build sglang
+```
+
+`model-prepare`는 GPU 없이 실행하는 이 디렉터리 자체 다운로드 도구입니다.
+HF CLI나 호스트 Python 패키지 설치도 필요하지 않습니다. 런타임을 `up`할 때도
+먼저 준비 서비스가 성공해야 GPU 서비스가 기동됩니다.
+
+Huihui 파일 위치는 `$QWEN_HF_CACHE/edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-NVFP4-QAD`입니다.
+`checkpoint.huihui-lil.json`에 고정한 config·가중치 인덱스·양자화 설정·변환 기록의
+SHA-256과 인덱스에 포함된 모든 safetensors 파일의 구조·크기를 확인합니다.
+이전 리비전의 파일이 남아 있거나 샤드가 누락·잘린 상태를 준비 완료로 처리하지 않습니다.
+검증된 step-5500이 이미 있으면 네트워크 없이 재사용합니다.
+다운로드 없이 확인만 하려면:
+
+```sh
+docker compose --env-file model.huihui-lil.env run --rm model-prepare --check
+```
+
+`env.sample`의 캐시 위치를 바꾸려면 해당 변수를 export하거나,
+`--env-file .env --env-file model.huihui-lil.env`처럼 두 설정 파일을 지정합니다.
+독립 런타임 캐시 기본값은 `~/.local/share/qwen38-fn/`입니다.
+기존 `SPARKTALK_HF_CACHE`·`SPARKTALK_DATA_DIR` 변수는 명시적으로 설정된 경우에만
+호환용 대체 값으로 사용하며, Talk 서비스나 설정 파일을 읽지 않습니다.
+
+## 실행
+
+| 구성 | 컨텍스트 | 동시 요청 | MTP |
+| --- | --- | --- | --- |
+| 기본 `compose.yaml` | 64K | 2 | 사용 |
+| `compose.context1m.yaml` 추가 | 1M | 1 | 사용 · LLM 우선 |
+| `compose.context1m.shared.yaml` 추가 | 1M | 1 | 끔 · 과거 동시 상주용 대안 |
+
+**기본 64K — Huihui step-5500:**
+
+```sh
+docker compose --env-file model.huihui-lil.env up -d sglang
+```
+
+**1M + MTP — Huihui step-5500:**
+
+```sh
+docker compose --env-file model.huihui-lil.env \
+  -f compose.yaml -f compose.context1m.yaml up -d sglang
+```
+
+현재 권장 구성은 위의 **1M + MTP**입니다. `shared` 파일은 과거에 여러 GPU
+서비스를 동시 상주시킬 때 사용한 MTP-off 대안이며, 현재 Talk의 작업 교대
+방식과는 별개입니다. 이를 명시적으로 선택하려는 경우에만 추가 파일을 `compose.context1m.shared.yaml`로
+바꿉니다. 두 1M 파일을 동시에 넣지 않습니다. 기본 구성으로 돌아가려면 추가
+`-f` 없이 실행합니다. 이 Compose는 Qwen과 CPU 모델 준비 서비스만 관리합니다.
+다른 GPU 서비스의 실행 순서·메모리 확보는 별도로 관리합니다.
+
+## 확인·종료
+
+```sh
+docker compose --env-file model.huihui-lil.env logs -f sglang
+curl http://127.0.0.1:8000/health
+curl http://127.0.0.1:8000/v1/models
+curl http://127.0.0.1:8000/server_info
+docker compose --env-file model.huihui-lil.env down
+```
+
+API 요청의 `model`에는 선택한 모델 ID를 넣습니다. 첫 기동은 적재·컴파일로
+수 분 걸립니다. 1M 구성은 `/server_info`의 `max_total_num_tokens`가 실제로
+`1048576` 이상인지 확인합니다. 컨텍스트 상한과 할당된 KV 용량은 다릅니다.
+
+기본 MTP는 한국어 초안 어휘 `ko64k`를 사용합니다. 전체 어휘를 쓰려면:
+
+```sh
+SPARKTALK_FLASH_NEXT_DRAFT_VOCAB=off docker compose --env-file model.huihui-lil.env up -d sglang
+```
+
+공유 1M 구성은 MTP와 초안 어휘 제한을 모두 끕니다.

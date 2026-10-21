@@ -362,7 +362,7 @@ func (s *Server) llmMessages(ctx context.Context, items []db.Message, cfg config
 		item.Content = userTurnContent(item)
 		item.Content += contextToolEvidence(item)
 		if len(item.Attachments) == 0 {
-			messages = append(messages, llm.Message{Role: item.Role, Content: item.Content})
+			messages = append(messages, llm.Message{Role: item.Role, Content: item.Content, ReasoningContent: savedModelReasoning(ctx, item, cfg)})
 			continue
 		}
 		parts := make([]map[string]any, 0, len(item.Attachments)+1)
@@ -448,7 +448,7 @@ func (s *Server) llmMessages(ctx context.Context, items []db.Message, cfg config
 			textParts = append(textParts, transcriptBlock(attachment, cached))
 		}
 		parts = append(parts, map[string]any{"type": "text", "text": strings.Join(textParts, "\n\n")})
-		messages = append(messages, llm.Message{Role: item.Role, Content: parts})
+		messages = append(messages, llm.Message{Role: item.Role, Content: parts, ReasoningContent: savedModelReasoning(ctx, item, cfg)})
 	}
 	return messages, nil
 }

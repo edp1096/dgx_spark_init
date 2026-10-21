@@ -16,8 +16,6 @@ func embeddedBuildAsset(compose string) string {
 	switch compose {
 	case "compose.nemotron-asr.yaml":
 		return "nemotron-asr"
-	case "compose.ornith35.yaml":
-		return "ornith35"
 	case "compose.qwen-fp4-local.yaml":
 		return "qwen-fp4-local"
 	case "compose.flux2.yaml":

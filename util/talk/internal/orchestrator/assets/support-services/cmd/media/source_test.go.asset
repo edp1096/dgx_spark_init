@@ -36,6 +36,70 @@ func TestSelectHLSWithBitrateAndDuration(t *testing.T) {
 	}
 }
 
+func TestSelectSilentXVideo(t *testing.T) {
+	// Reduced live metadata from the X video that incorrectly returned 413.
+	// HTTP MP4s omit codec fields; HLS variants explicitly have no audio.
+	var info sourceInfo
+	if err := json.Unmarshal([]byte(`{"duration":56,"formats":[
+		{"format_id":"http-832","ext":"mp4","height":360,"tbr":832,"filesize_approx":5824000},
+		{"format_id":"http-2176","ext":"mp4","height":720,"tbr":2176,"filesize_approx":15232000},
+		{"format_id":"hls-93","ext":"mp4","height":360,"tbr":93.645,"acodec":"none","vcodec":"avc1.4D401E"},
+		{"format_id":"hls-238","ext":"mp4","height":720,"tbr":238.353,"acodec":"none","vcodec":"avc1.64001F"},
+		{"format_id":"hls-511","ext":"mp4","height":1080,"tbr":511.466,"acodec":"none","vcodec":"avc1.640032"}
+	]}`), &info); err != nil {
+		t.Fatal(err)
+	}
+	for _, tc := range []struct {
+		name      string
+		mb        int64
+		maxHeight int
+		want      string
+		height    int
+	}{
+		{"720p", 256, 720, "hls-238", 720},
+		{"height-limit", 256, 360, "hls-93", 360},
+		{"size-limit", 1, 720, "hls-93", 360},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			format, height := selectDownloadFormat(info, tc.mb, tc.maxHeight)
+			if format != tc.want || height != tc.height {
+				t.Fatalf("selected %q/%d, want %q/%d", format, height, tc.want, tc.height)
+			}
+		})
+	}
+	info.Formats = info.Formats[:2]
+	if format, height := selectDownloadFormat(info, 256, 720); format != "http-2176" || height != 720 {
+		t.Fatalf("codec-less MP4 selected %q/%d", format, height)
+	}
+	if !sourceNeedsVideoNormalization(info, "http-2176") {
+		t.Fatal("unknown codecs must be normalized rather than assumed model-safe")
+	}
+	if format, _ := selectDownloadFormat(info, 1, 720); format != "" {
+		t.Fatalf("accepted oversized MP4: %q", format)
+	}
+	for i := range info.Formats {
+		info.Formats[i].FileSizeApprox, info.Formats[i].Bitrate = 0, 0
+	}
+	if format, _ := selectDownloadFormat(info, 256, 720); format != "" {
+		t.Fatalf("accepted unbounded video: %q", format)
+	}
+}
+
+func TestVideoOnlyFallbackDoesNotDropKnownAudio(t *testing.T) {
+	info := sourceInfo{Formats: []sourceFormat{
+		{ID: "unknown-mp4", Extension: "mp4", Height: 720, FileSize: 8 << 20},
+		{ID: "silent", VideoCodec: "avc1", AudioCodec: "none", Height: 720, FileSize: 8 << 20},
+		{ID: "original", VideoCodec: "none", AudioCodec: "mp4a", LanguagePref: 10, FileSize: 80 << 20},
+	}}
+	if format, _ := selectDownloadFormat(info, 64, 720); format != "" {
+		t.Fatalf("dropped known audio to fit the limit: %q", format)
+	}
+	info.Formats[2].FileSize = 4 << 20
+	if format, _ := selectDownloadFormat(info, 64, 720); format != "silent+original" {
+		t.Fatalf("did not preserve original audio: %q", format)
+	}
+}
+
 func TestHLSSizeEstimateBounds(t *testing.T) {
 	if got := sourceFormatSize(sourceFormat{Bitrate: 128}, 35); got != 616000 {
 		t.Fatalf("estimate = %d", got)

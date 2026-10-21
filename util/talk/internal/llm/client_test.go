@@ -340,3 +340,24 @@ func TestVeloReasoningBudgetRequiresStructuredOutput(t *testing.T) {
 		t.Fatal("incorrect schema runtime capability")
 	}
 }
+
+func TestTensorFoldReasoningBudgetUsesTheServingAPI(t *testing.T) {
+	var payload map[string]any
+	backend := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		json.NewDecoder(r.Body).Decode(&payload)
+		fmt.Fprint(w, "data: [DONE]\n\n")
+	}))
+	defer backend.Close()
+	c := New(backend.URL, "qwen38fn_exl3", "", "qwen3.8-tensorfold")
+	_, err := c.Stream(WithReasoningBudget(context.Background(), 2048), []Message{{Role: "user", Content: "test"}}, "qwen38fn_exl3", "medium", nil, func(string, string) error { return nil })
+	if err != nil {
+		t.Fatal(err)
+	}
+	if payload["thinking_budget"] != float64(2048) || payload["reasoning_budget_tokens"] != nil {
+		t.Fatal("TensorFold received legacy Tabby budget fields", payload)
+	}
+	options := payload["chat_template_kwargs"].(map[string]any)
+	if options["enable_thinking"] != true || options["reasoning_effort"] != "medium" {
+		t.Fatal("thinking settings lost", options)
+	}
+}

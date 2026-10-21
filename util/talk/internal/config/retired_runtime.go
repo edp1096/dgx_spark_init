@@ -10,16 +10,20 @@ func (c *Config) removeRetiredRuntimes() {
 	}
 	removed := map[string]bool{
 		"flash-next-exl3": true, "qwen27": true, "qwen27-gguf": true, "qwen27-exl3": true,
-		"gemma": true, "gemma26": true, "gemma31": true,
+		"gemma": true, "gemma26": true, "gemma31": true, "ornith35": true,
+		"qwen38fn_exl3_q4": true, "flash-next-radixark": true,
+		"ds4fve": true, "ds4fve_exl3": true,
 	}
 	retiredAssets := map[string]bool{
 		"compose.flash-next-exl3.yaml": true, "compose.qwen27.yaml": true,
 		"compose.qwen27-gguf.yaml": true, "compose.qwen27-exl3.yaml": true,
-		"compose.gemma.yaml": true, "compose.gemma26.yaml": true, "compose.gemma31.yaml": true,
+		"compose.gemma.yaml": true, "compose.gemma26.yaml": true, "compose.gemma31.yaml": true, "compose.ornith35.yaml": true,
+		"compose.qwen38fn_exl3_q4.yaml": true,
+		"compose.ds4fve_exl3.yaml":      true,
 	}
 	components := make([]orchestrator.Component, 0, len(catalog.Components))
 	for _, component := range catalog.Components {
-		if removed[component.ID] || retiredAssets[component.ComposeAsset] {
+		if removed[component.ID] || retiredAssets[component.ComposeAsset] || component.Controller == "dspark-cluster" {
 			removed[component.ID] = true
 		} else {
 			components = append(components, component)
@@ -27,11 +31,13 @@ func (c *Config) removeRetiredRuntimes() {
 	}
 	removedBundles := map[string]bool{
 		"flash-next-exl3": true, "qwen27": true, "qwen27-gguf": true, "qwen27-exl3": true,
-		"gemma": true, "gemma26": true, "gemma31": true,
+		"gemma": true, "gemma26": true, "gemma31": true, "ornith35": true,
+		"qwen38fn_exl3_q4": true, "flash-next-radixark": true,
+		"ds4fve": true, "ds4fve_exl3": true,
 	}
 	bundles := make([]orchestrator.Bundle, 0, len(catalog.Bundles))
 	for _, bundle := range catalog.Bundles {
-		retired := removedBundles[bundle.ID]
+		retired := removedBundles[bundle.ID] || bundle.ModelType == "deepseek-v4-exl3"
 		for _, id := range bundle.Components {
 			if removed[id] {
 				retired = true
@@ -56,7 +62,11 @@ func (c *Config) removeRetiredRuntimes() {
 	// Changing a retired selection must never automatically launch its replacement.
 	c.Runtime.AutoStart = false
 	fallback := ""
-	for _, preferred := range []string{c.Runtime.ActiveBundle, c.Runtime.Bundle, "flash-next"} {
+	preferences := []string{c.Runtime.ActiveBundle, c.Runtime.Bundle, "flash-next"}
+	if removedBundles[c.Runtime.ActiveBundle] && (c.Runtime.ActiveBundle == "ds4fve" || c.Runtime.ActiveBundle == "ds4fve_exl3") {
+		preferences = []string{c.Runtime.Bundle, "ds41", "flash-next"}
+	}
+	for _, preferred := range preferences {
 		for _, bundle := range bundles {
 			if bundle.ID == preferred {
 				fallback = preferred

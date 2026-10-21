@@ -1,0 +1,17 @@
+{
+  "head": {
+    "minimum_available_gib": 0.7732276916503906,
+    "last_available_gib": 117.28933334350586,
+    "swap_out_mib": 707.28125,
+    "longest_sampled_period_under_1_5_gib_s": 1.0,
+    "samples": 3054
+  },
+  "worker": {
+    "minimum_available_gib": 4.503582000732422,
+    "last_available_gib": 117.7031135559082,
+    "swap_out_mib": 0.0,
+    "longest_sampled_period_under_1_5_gib_s": 0.0,
+    "samples": 3054
+  },
+  "note": "Whole-host 0.5-second samples through Talk bundle start, first worker TTS build, synthesis and stop. Head had a transient low-memory sample; startup headroom is not guaranteed by one successful trial."
+}

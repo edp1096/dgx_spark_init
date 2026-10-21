@@ -13,7 +13,7 @@ func TestEmbeddingFailureKeepsOriginalCauseDuringCleanup(t *testing.T) {
 	c, dir, _ := offlineAuxiliaryController(t)
 	t.Cleanup(c.Close)
 	x, _ := c.Catalog().ResolveComponent("flash-next-fp4-local", "extra-embedding")
-	seedAuxiliary(t, dir, x.Container, "vllm-qwen38-fp4-local")
+	seedAuxiliary(t, dir, x.Container, "sparktalk-qwen38-fp4-local")
 	ctx, cancel := context.WithCancelCause(context.Background())
 	release, err := c.AcquireWorkload(ctx, "flash-next-fp4-local", x.ID, 1.5)
 	if err != nil {
@@ -27,7 +27,7 @@ func TestEmbeddingFailureKeepsOriginalCauseDuringCleanup(t *testing.T) {
 	if op := c.Operation(); op.State != "failed" || op.Error != cause.Error() {
 		t.Fatalf("actual worker error was masked during cleanup: %+v", op)
 	}
-	if _, err = os.Stat(filepath.Join(dir, "vllm-qwen38-fp4-local")); err != nil {
+	if _, err = os.Stat(filepath.Join(dir, "sparktalk-qwen38-fp4-local")); err != nil {
 		t.Fatal("embedding cleanup stopped the LLM")
 	}
 }

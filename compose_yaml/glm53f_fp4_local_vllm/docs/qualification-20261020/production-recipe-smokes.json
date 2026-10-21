@@ -1,0 +1,197 @@
+[
+  {
+    "case": "tool-off",
+    "passed": true,
+    "elapsed_s": 0.6444637000095099,
+    "ttft_s": 0.28469521600345615,
+    "decode_client_s": 0.35957878800400067,
+    "tg_client": 61.18269690523354,
+    "pp_ttft": 716.5557709881696,
+    "usage": {
+      "prompt_tokens": 204,
+      "total_tokens": 227,
+      "completion_tokens": 23,
+      "prompt_tokens_details": {
+        "cached_tokens": 204,
+        "created_cache_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "",
+    "reasoning": "",
+    "tool_calls": [
+      {
+        "name": "get_weather",
+        "arguments": "{\"city\": \"서울\", \"date\": \"2026-10-21\"}"
+      }
+    ],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "case": "tool-on-low",
+    "passed": true,
+    "elapsed_s": 0.5578445029968861,
+    "ttft_s": 0.20639914099592716,
+    "decode_client_s": 0.3507086080062436,
+    "tg_client": 65.58150976320073,
+    "pp_ttft": 983.531225083954,
+    "usage": {
+      "prompt_tokens": 203,
+      "total_tokens": 227,
+      "completion_tokens": 24,
+      "prompt_tokens_details": {
+        "cached_tokens": 203,
+        "created_cache_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "",
+    "reasoning": "",
+    "tool_calls": [
+      {
+        "name": "get_weather",
+        "arguments": "{\"city\": \"서울\", \"date\": \"2026-10-21\"}"
+      }
+    ],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "case": "thinking-off",
+    "passed": true,
+    "elapsed_s": 3.629381763996207,
+    "ttft_s": 0.44105216598836705,
+    "decode_client_s": 3.032717225010856,
+    "tg_client": 34.62241686566216,
+    "pp_ttft": 61.21724839395106,
+    "usage": {
+      "prompt_tokens": 27,
+      "total_tokens": 133,
+      "completion_tokens": 106,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "created_cache_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "# Calculating 23 × 17\n\n**Method: Breaking down the numbers**\n\nI'll split 17 into 10 + 7:\n\n- 23 × 10 = 230\n- 23 × 7 = 161\n\n**Adding the parts:**\n230 + 161 = **391**\n\n**Alternative check:** 23 × 17 = 23 × 20 − 23 × 3 = 460 − 69 = 391 ✓\n\n## Result: **391**",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "case": "thinking-on-low",
+    "passed": true,
+    "elapsed_s": 2.7715917419991456,
+    "ttft_s": 0.33993468100379687,
+    "decode_client_s": 2.28181164500711,
+    "tg_client": 35.49810966090832,
+    "pp_ttft": 76.4852821819307,
+    "usage": {
+      "prompt_tokens": 26,
+      "total_tokens": 108,
+      "completion_tokens": 82,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "created_cache_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 8
+      }
+    },
+    "content": "**23 × 17 = 391**\n\nQuick method: 23 × 17 = 23 × (20 − 3) = 460 − 69 = 391.\n\nOr: 23 × 10 = 230, plus 23 × 7 = 161, and 230 + 161 = 391.",
+    "reasoning": "23×17 = 391.",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "case": "native-video",
+    "passed": true,
+    "elapsed_s": 0.8391880489944015,
+    "ttft_s": 0.7695988880004734,
+    "decode_client_s": 0.06949552899459377,
+    "tg_client": 43.16824468281085,
+    "pp_ttft": 591.217070469208,
+    "usage": {
+      "prompt_tokens": 455,
+      "total_tokens": 459,
+      "completion_tokens": 4,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "created_cache_tokens": 0,
+        "multimodal_tokens": {
+          "video": 428
+        }
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "5829",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "case": "prefix-repeat-0",
+    "passed": true,
+    "elapsed_s": 8.733036431993241,
+    "ttft_s": 8.654380804000539,
+    "decode_client_s": 0.0,
+    "tg_client": null,
+    "pp_ttft": 2006.498257156991,
+    "usage": {
+      "prompt_tokens": 17365,
+      "total_tokens": 17372,
+      "completion_tokens": 7,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "created_cache_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "willow-8632",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "case": "prefix-repeat-1",
+    "passed": true,
+    "elapsed_s": 0.33529430400813,
+    "ttft_s": 0.1263793170073768,
+    "decode_client_s": 0.05907646600098815,
+    "tg_client": 101.56328579132747,
+    "pp_ttft": 137403.81267439827,
+    "usage": {
+      "prompt_tokens": 17365,
+      "total_tokens": 17372,
+      "completion_tokens": 7,
+      "prompt_tokens_details": {
+        "cached_tokens": 17365,
+        "created_cache_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "content": "willow-8632",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": []
+  }
+]

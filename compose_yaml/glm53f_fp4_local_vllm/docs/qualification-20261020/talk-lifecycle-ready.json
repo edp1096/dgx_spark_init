@@ -1,0 +1,136 @@
+{
+  "elapsed_s": 1449.0013761640002,
+  "operation": {
+    "action": "start",
+    "bundle_id": "glm53-worker-extra",
+    "component_id": "qwen3-tts",
+    "state": "complete",
+    "phase": "준비 완료",
+    "detail": "선택한 구성을 사용할 수 있습니다.",
+    "progress": 1,
+    "started_at": "2026-10-20T15:20:17.911144282+09:00",
+    "finished_at": "2026-10-20T15:44:20.99396097+09:00",
+    "steps": [
+      {
+        "phase": "기동 계획 준비",
+        "state": "complete",
+        "started_at": "2026-10-20T15:20:17.911144506+09:00",
+        "finished_at": "2026-10-20T15:20:21.323604866+09:00"
+      },
+      {
+        "phase": "세트 기동 전 메모리 재확인",
+        "detail": "시스템 가용 117.4 GiB · 즉시 여유 113.5 GiB · 추가 예상 115.0 GiB · 최소 확보 1.5 GiB",
+        "state": "complete",
+        "started_at": "2026-10-20T15:20:21.323604866+09:00",
+        "finished_at": "2026-10-20T15:20:22.777237217+09:00"
+      },
+      {
+        "phase": "언어 모델 기동 직전 메모리 확인",
+        "detail": "시스템 가용 117.4 GiB · 즉시 여유 113.5 GiB · 추가 예상 115.0 GiB · 최소 확보 1.5 GiB",
+        "state": "complete",
+        "started_at": "2026-10-20T15:20:22.777237217+09:00",
+        "finished_at": "2026-10-20T15:20:22.777240001+09:00"
+      },
+      {
+        "component_id": "glm53",
+        "phase": "GLM 5.3 Flash FP4-Local 시작",
+        "detail": "컨테이너와 실행 설정을 확인하고 있습니다.",
+        "state": "complete",
+        "started_at": "2026-10-20T15:20:22.777240001+09:00",
+        "finished_at": "2026-10-20T15:20:34.829471502+09:00"
+      },
+      {
+        "component_id": "glm53",
+        "phase": "vLLM 컨테이너 시작",
+        "detail": "vLLM 프로세스의 첫 로그를 기다리고 있습니다.",
+        "state": "complete",
+        "started_at": "2026-10-20T15:20:34.829471502+09:00",
+        "finished_at": "2026-10-20T15:20:49.747638993+09:00"
+      },
+      {
+        "component_id": "glm53",
+        "phase": "모델 구조·NVFP4 확인",
+        "detail": "모델 구조와 양자화 구성을 확인했습니다.",
+        "state": "complete",
+        "started_at": "2026-10-20T15:20:49.747638993+09:00",
+        "finished_at": "2026-10-20T15:21:16.696480661+09:00"
+      },
+      {
+        "component_id": "glm53",
+        "phase": "FP4-Local 가중치 적재",
+        "detail": "40/42 샤드 · SSD에서 통합메모리로 읽는 중",
+        "state": "complete",
+        "started_at": "2026-10-20T15:21:16.696480661+09:00",
+        "finished_at": "2026-10-20T15:23:26.328434751+09:00"
+      },
+      {
+        "component_id": "glm53",
+        "phase": "모델 가중치 적재 완료",
+        "detail": "체크포인트 적재를 마치고 추론 메모리를 구성합니다.",
+        "state": "complete",
+        "started_at": "2026-10-20T15:23:26.328434751+09:00",
+        "finished_at": "2026-10-20T15:24:40.222928912+09:00"
+      },
+      {
+        "component_id": "glm53",
+        "phase": "가중치 변환·커널 준비",
+        "detail": "146/146 커널 준비 완료 · 첫 실행에서는 컴파일에 시간이 걸립니다.",
+        "state": "complete",
+        "started_at": "2026-10-20T15:24:40.222928912+09:00",
+        "finished_at": "2026-10-20T15:25:09.955267206+09:00"
+      },
+      {
+        "component_id": "glm53",
+        "phase": "긴 문맥 커널 준비",
+        "detail": "140/140 커널 준비 완료",
+        "state": "complete",
+        "started_at": "2026-10-20T15:25:09.955267206+09:00",
+        "finished_at": "2026-10-20T15:25:14.889845497+09:00"
+      },
+      {
+        "component_id": "glm53",
+        "phase": "추론 경로 예열",
+        "detail": "가중치와 KV 캐시 준비를 마치고 마지막 커널을 예열합니다.",
+        "state": "complete",
+        "started_at": "2026-10-20T15:25:14.889845497+09:00",
+        "finished_at": "2026-10-20T15:25:29.610464682+09:00"
+      },
+      {
+        "component_id": "glm53",
+        "phase": "GLM 5.3 Flash FP4-Local API 응답 확인",
+        "detail": "서비스가 요청을 받을 준비를 마쳤습니다.",
+        "state": "complete",
+        "started_at": "2026-10-20T15:25:29.610464682+09:00",
+        "finished_at": "2026-10-20T15:25:29.610479322+09:00"
+      },
+      {
+        "component_id": "qwen3-tts",
+        "phase": "Qwen3-TTS 0.6B 시작",
+        "detail": "컨테이너와 실행 설정을 확인하고 있습니다.",
+        "state": "complete",
+        "started_at": "2026-10-20T15:25:29.610479322+09:00",
+        "finished_at": "2026-10-20T15:44:18.214308695+09:00"
+      },
+      {
+        "component_id": "qwen3-tts",
+        "phase": "보조 서비스 시작",
+        "detail": "API 프로세스를 시작하고 있습니다.",
+        "state": "complete",
+        "started_at": "2026-10-20T15:44:18.214308695+09:00",
+        "finished_at": "2026-10-20T15:44:20.99362641+09:00"
+      },
+      {
+        "component_id": "qwen3-tts",
+        "phase": "Qwen3-TTS 0.6B API 응답 확인",
+        "detail": "서비스가 요청을 받을 준비를 마쳤습니다.",
+        "state": "complete",
+        "started_at": "2026-10-20T15:44:20.99362641+09:00",
+        "finished_at": "2026-10-20T15:44:20.99396097+09:00"
+      }
+    ]
+  },
+  "containers": {
+    "head": "f02e76560dfbe2c251bb8f3d2973e4903602a86ea751fa8bf27b8c4b190f0de5",
+    "worker": "703f74a6a648a0a8ef60823a24dd691b8a41b9e5d1200cfe04d5e5dce3682429"
+  }
+}

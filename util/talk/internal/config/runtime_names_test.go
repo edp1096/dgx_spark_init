@@ -13,7 +13,7 @@ func TestDisplayNamesPreserveCustomNamesBindingsAndRuntimeIdentity(t *testing.T)
 			cat.Components[i].Name = "Huihui Qwen3.8 Native EXL3"
 		case "nemotron-asr":
 			cat.Components[i].Name = "Nemotron ASR Q5_K"
-		case "ornith35":
+		case "flash-next-fp4-local":
 			cat.Components[i].Name = "내 문서 모델"
 		}
 	}
@@ -38,7 +38,7 @@ func TestDisplayNamesPreserveCustomNamesBindingsAndRuntimeIdentity(t *testing.T)
 			if c.Name != "Nemotron 3.5 ASR" {
 				t.Fatal(c)
 			}
-		case "ornith35":
+		case "flash-next-fp4-local":
 			if c.Name != "내 문서 모델" {
 				t.Fatal("custom name overwritten")
 			}
@@ -47,6 +47,24 @@ func TestDisplayNamesPreserveCustomNamesBindingsAndRuntimeIdentity(t *testing.T)
 	for _, b := range cfg.Runtime.Catalog.Bundles {
 		if b.ID == "qwen38fn_exl3" && (*b.Bindings["nemotron-asr"].Name != "Nemotron 3.5 ASR" || !*b.Bindings["nemotron-asr"].KeepResident) {
 			t.Fatal("name migration changed residency or missed bindings")
+		}
+	}
+}
+
+func TestTP2NamesMigrateOnlyShippedNames(t *testing.T) {
+	for id, before := range map[string]string{
+		"ds41":               "DeepSeek V4.1 Flash 1017 EXL3 2bit",
+		"glm53":              "GLM 5.3 Flash FP4-Local",
+		"glm53-worker-extra": "GLM 5.3 Flash FP4-Local",
+	} {
+		if got := orchestrator.RuntimeDisplayName(id, before); got != before+" TP2" {
+			t.Fatal(id, got)
+		}
+		if got := orchestrator.RuntimeDisplayName(id, before+" TP2"); got != before+" TP2" {
+			t.Fatal("non-idempotent", id, got)
+		}
+		if got := orchestrator.RuntimeDisplayName(id, "내 모델"); got != "내 모델" {
+			t.Fatal("custom name overwritten", id)
 		}
 	}
 }

@@ -1,0 +1,33 @@
+services:
+  tensorfold-exl3:
+    profiles: [experiment]
+    build:
+      context: .
+    image: local/qwen38-exl3-tensorfold:db281878-text-trial
+    container_name: qwen38-exl3-tensorfold-text-trial
+    restart: "no"
+    init: true
+    gpus: all
+    cpuset: "5-9,15-19"
+    mem_limit: 112g
+    memswap_limit: 112g
+    ipc: host
+    ulimits:
+      memlock: -1
+      stack: 67108864
+    ports:
+      - "127.0.0.1:18024:8080"
+    volumes:
+      - "${HF_HUB_CACHE_HOST:-${HOME}/.cache/huggingface/hub}:/hf/hub:ro"
+      - tensorfold-cache:/cache
+    command:
+      - /hf/hub/models--alesha-pro--Huihui-Qwen3.8-Flash-Next-abliterated-exl3-3bit-hq_h6_ng6/snapshots/3b585c458f9fcf3322e76cff2c635c2cb81c5869
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8080"
+      - --cache
+      - /cache
+
+volumes:
+  tensorfold-cache:

@@ -1,0 +1,208 @@
+[
+  {
+    "id": "arithmetic",
+    "prompt": "23 × 17의 값을 JSON 숫자 하나로만 답하세요. 설명하지 마세요.",
+    "check": "json",
+    "expected": 391
+  },
+  {
+    "id": "ko-extract",
+    "prompt": "다음 문장에서 이름과 수량을 추출하세요. \"민수는 사과 3개, 지연은 배 5개를 샀다.\" 키가 name,item,count인 객체 두 개를 문장 순서대로 JSON 배열로만 출력하세요.",
+    "check": "json",
+    "expected": [
+      {
+        "name": "민수",
+        "item": "사과",
+        "count": 3
+      },
+      {
+        "name": "지연",
+        "item": "배",
+        "count": 5
+      }
+    ]
+  },
+  {
+    "id": "ko-sort",
+    "prompt": "다음 목록을 점수 내림차순으로 정렬하고, 점수가 같으면 이름 오름차순으로 정렬하세요. 이름만 JSON 배열로 출력하세요. 민수 82, 지연 95, 가람 82, 현우 70.",
+    "check": "json",
+    "expected": [
+      "지연",
+      "가람",
+      "민수",
+      "현우"
+    ]
+  },
+  {
+    "id": "ko-logic",
+    "prompt": "상자 A에는 사과만, B에는 배만, C에는 사과와 배가 들어 있습니다. 과일 종류가 정확히 두 가지인 상자의 이름만 JSON 문자열로 답하세요.",
+    "check": "json",
+    "expected": "C"
+  },
+  {
+    "id": "code-unique",
+    "prompt": "Write only Python code defining unique_in_order(xs). Return each value once, preserving its first appearance. Values are integers. No imports, examples, or Markdown.",
+    "check": "python",
+    "expected": null,
+    "function": "unique_in_order",
+    "tests": [
+      [
+        [
+          [
+            3,
+            1,
+            3,
+            2,
+            1
+          ]
+        ],
+        [
+          3,
+          1,
+          2
+        ]
+      ],
+      [
+        [
+          []
+        ],
+        []
+      ],
+      [
+        [
+          [
+            1,
+            1,
+            1
+          ]
+        ],
+        [
+          1
+        ]
+      ]
+    ]
+  },
+  {
+    "id": "code-intervals",
+    "prompt": "Write only Python code defining merge_intervals(intervals). Input is a list of [start,end] integer pairs, unsorted. Merge overlapping or touching intervals and return a sorted list of [start,end] pairs. No imports, examples, or Markdown.",
+    "check": "python",
+    "expected": null,
+    "function": "merge_intervals",
+    "tests": [
+      [
+        [
+          [
+            [
+              5,
+              7
+            ],
+            [
+              1,
+              3
+            ],
+            [
+              3,
+              4
+            ],
+            [
+              10,
+              11
+            ]
+          ]
+        ],
+        [
+          [
+            1,
+            4
+          ],
+          [
+            5,
+            7
+          ],
+          [
+            10,
+            11
+          ]
+        ]
+      ],
+      [
+        [
+          []
+        ],
+        []
+      ],
+      [
+        [
+          [
+            [
+              1,
+              10
+            ],
+            [
+              2,
+              3
+            ]
+          ]
+        ],
+        [
+          [
+            1,
+            10
+          ]
+        ]
+      ]
+    ]
+  },
+  {
+    "id": "tool-weather",
+    "prompt": "서울의 내일 날씨를 도구로 조회하세요. 날짜는 2026-10-21입니다.",
+    "check": "tool",
+    "expected": {
+      "name": "get_weather",
+      "arguments": {
+        "city": "서울",
+        "date": "2026-10-21"
+      }
+    },
+    "tools": [
+      {
+        "type": "function",
+        "function": {
+          "name": "get_weather",
+          "description": "Look up weather by city and date",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "city": {
+                "type": "string"
+              },
+              "date": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "city",
+              "date"
+            ],
+            "additionalProperties": false
+          }
+        }
+      }
+    ],
+    "tool_choice": {
+      "type": "function",
+      "function": {
+        "name": "get_weather"
+      }
+    }
+  },
+  {
+    "id": "ko-prose",
+    "prompt": "프롬프트 입력 처리와 답변 토큰 생성의 차이를 한국어로 설명하세요. PP와 TG를 각각 언급하고, 생각 토큰은 TG에 속한다는 점도 포함하세요. 세 문장 이내로 답하세요.",
+    "check": "contains",
+    "expected": [
+      "PP",
+      "TG"
+    ]
+  }
+]

@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-20",
+  "retired_talk_set": "flash-next-radixark",
+  "protected_talk_set": "flash-next-tp2",
+  "protected_checkpoint": "edp1096/Huihui-RadixArk-Qwen3.8-Flash-Next-abliterated-NVFP4",
+  "protected_shards_per_node": 206,
+  "removed_head_checkpoint": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-NVFP4-QAD",
+  "removed_head_runtime_cache": "sglang-flash-next-qad",
+  "removed_head_data_estimate_gib": 147,
+  "worker_unused_weights_found": false,
+  "note": "Storage estimate is gross removal; subsequent GLM model provisioning is separate. Shared weights and TP2 runtime caches are retained.",
+  "additional_removed_unused_caches": [
+    ".cache/sglang-qwen38",
+    ".local/share/sparktalk/cache/vllm-flash-next"
+  ],
+  "additional_known_allocated_gib_estimate": 2.637,
+  "deployed_talk_revision": 46,
+  "live_readback_retired_set_absent": true,
+  "final_free_gib": {
+    "head": 613.65,
+    "worker": 749.68
+  },
+  "final_shared_shards_verified_both_nodes": 206
+}

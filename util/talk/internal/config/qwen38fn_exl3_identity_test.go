@@ -44,7 +44,7 @@ func TestQwen38FNEXL3IdentityMigrationPreservesSelectionAndCustomSettings(t *tes
 	}
 	cfg := Config{Runtime: RuntimeConfig{Mode: "managed", BuiltinRevision: 28, Bundle: "flash-next", ActiveBundle: modelidentity.LegacyQwenRuntime, Catalog: &cat}, Model: ModelConfig{DefaultModel: modelidentity.LegacyQwenModel, ModelType: modelidentity.LegacyQwenType, ReasoningEffort: "medium"}}
 	cfg.Normalize()
-	if cfg.Runtime.ActiveBundle != modelidentity.Qwen38FNEXL3 || cfg.Runtime.Bundle != "flash-next" || cfg.Runtime.AutoStart || cfg.Model.DefaultModel != modelidentity.Qwen38FNEXL3 || cfg.Model.ModelType != modelidentity.Qwen38FNEXL3 || cfg.Model.ReasoningEffort != "medium" {
+	if cfg.Runtime.ActiveBundle != modelidentity.Qwen38FNEXL3 || cfg.Runtime.Bundle != "flash-next" || cfg.Runtime.AutoStart || cfg.Model.DefaultModel != modelidentity.Qwen38FNEXL3 || cfg.Model.ModelType != "qwen3.8-tensorfold" || cfg.Model.ReasoningEffort != "medium" {
 		t.Fatal("selection or preferences changed")
 	}
 	c, _ := cfg.Runtime.Catalog.ResolveComponent(modelidentity.Qwen38FNEXL3, modelidentity.Qwen38FNEXL3)

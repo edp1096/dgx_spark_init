@@ -42,8 +42,11 @@ func (c *Controller) checkLocalComponentStart(ctx context.Context, target Compon
 	if reserve <= 0 {
 		reserve = normalizedMemoryReserve(reserveGiB)
 	}
+	if bundle, ok := c.Catalog().Bundle(bundleID); ok {
+		reserve = c.Catalog().minimumBundleReserve(bundle, reserve)
+	}
 	memory := c.startupMemory()
-	if err := validateMemoryHeadroom(memory, plan, reserve); err != nil && !(c.guardedQwenFP4Local(target) && qwenFP4GuardedHeadroom(memory, plan, reserve)) {
+	if err := validateMemoryHeadroom(memory, plan, reserve); err != nil {
 		return fmt.Errorf("%s 개별 기동: %w", target.Name, err)
 	}
 	return nil

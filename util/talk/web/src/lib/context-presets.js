@@ -19,9 +19,10 @@ export function applyOutputPreset(context, preset) {
 // Preview only: the server computes the same budget after context detection.
 export function effectiveOutputReserve(context) {
   const window = Number(context?.window_tokens);
-  if (!context?.output_auto || !(window > 0)) return context?.output_reserve;
+  const margin = Number(context?.safety_margin) || 0;
+  if (!(window > 0) || (!context?.output_auto && Number(context?.output_reserve) < window - margin)) return context?.output_reserve;
   for (const size of [262144, 131072, 65536, 32768]) {
-    if (window >= size) return Math.min(size / 4, Math.max(1, Math.floor((window - context.safety_margin) / 2)));
+    if (window >= size) return Math.min(size / 4, Math.max(1, Math.floor((window - margin) / 2)));
   }
-  return Math.max(1, Math.floor((window - context.safety_margin) / 4));
+  return Math.max(1, Math.floor((window - margin) / 4));
 }

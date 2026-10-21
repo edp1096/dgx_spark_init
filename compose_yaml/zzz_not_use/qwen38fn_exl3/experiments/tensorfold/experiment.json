@@ -1,0 +1,36 @@
+{
+  "status": "Experimental standalone text server; not selected as the Talk production recipe.",
+  "engine": "TensorFold Python CUDA EXL3 at db281878ddb836fd0df510d8771ecb7e0fe47d26. No TabbyAPI process.",
+  "source_weights": "alesha-pro/Huihui-Qwen3.8-Flash-Next-abliterated-exl3-3bit-hq_h6_ng6 at 3b585c458f9fcf3322e76cff2c635c2cb81c5869",
+  "runtime": {
+    "context": 262144,
+    "rope": "native",
+    "kv": "int8",
+    "mtp_depth": 3,
+    "mtp_confidence": 0,
+    "parallel": 1,
+    "vision": false,
+    "draft_vocabulary": "All upstream stock IDs plus every tokenizer ID decoding to a Hangul syllable; target head unchanged."
+  },
+  "endpoint": "http://127.0.0.1:18024/v1",
+  "model_id": "qwen38fn_exl3_tensorfold",
+  "prerequisites": [
+    "Build the existing qwen38fn_exl3 base image first if sparktalk-qwen38fn_exl3:1.5.4-managed1 is missing.",
+    "The pinned checkpoint is already present under the Hugging Face hub cache. Set HF_HUB_CACHE_HOST when that directory is elsewhere.",
+    "Stop the active model set in Talk before starting this GPU experiment."
+  ],
+  "commands": {
+    "build": "docker compose -f compose_yaml/qwen38fn_exl3/experiments/tensorfold/compose.yaml --profile experiment build",
+    "start": "docker compose -f compose_yaml/qwen38fn_exl3/experiments/tensorfold/compose.yaml --profile experiment up -d",
+    "health": "curl --fail http://127.0.0.1:18024/health",
+    "stop": "docker compose -f compose_yaml/qwen38fn_exl3/experiments/tensorfold/compose.yaml --profile experiment down"
+  },
+  "startup": "The first CUDA extension build took about 7 minutes on this Spark with MAX_JOBS=1. The persistent cache reuses compiled extensions on later starts.",
+  "validation": "17 upstream CUDA checks, two full-model serial/drafted cold-repeat comparisons, and 8 HTTP arithmetic/tool-call checks across streaming/nonstreaming and thinking off/medium passed. Benchmark comparison is recorded in util/talk/docs/qwen38-exl3-tensorfold-comparison-20261020.json.",
+  "qualification": "Text and tools at native 262K. 1M and image/video input are outside this experiment. Unsupported image input is refused by the upstream text-only server.",
+  "storage": "Only the hub cache is mounted read-only. Kernel caches use a separate Docker volume. No credential is embedded in this recipe.",
+  "sources": [
+    "https://github.com/ashhart/TensorFold/tree/db281878ddb836fd0df510d8771ecb7e0fe47d26/src/tensorfold/families/qwen4_exp/cuda",
+    "https://github.com/jayleaton/qwen38-flash-next-exl3-spark/blob/main/docs/FINDINGS.md"
+  ]
+}

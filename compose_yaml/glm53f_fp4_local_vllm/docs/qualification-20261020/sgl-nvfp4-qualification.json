@@ -1,0 +1,87 @@
+[
+  {
+    "case": "json-schema",
+    "passed": true,
+    "expected": {
+      "answer": 391
+    },
+    "actual": {
+      "answer": 391
+    },
+    "requested_format_passed": true,
+    "elapsed_s": 0.6388301130064065,
+    "ttft_s": 0.3041544400039129,
+    "decode_client_s": 0.3344809539994458,
+    "tg_client": 20.92794796325413,
+    "pp_ttft": 95.34629841217152,
+    "usage": {
+      "prompt_tokens": 29,
+      "total_tokens": 37,
+      "completion_tokens": 8,
+      "prompt_tokens_details": null,
+      "reasoning_tokens": 0
+    },
+    "content": "{\"answer\": 391}",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "case": "image-digits",
+    "passed": true,
+    "expected": "5829",
+    "actual": {
+      "digits": "5829"
+    },
+    "requested_format_passed": false,
+    "elapsed_s": 2.604704273995594,
+    "ttft_s": 2.29978219899931,
+    "decode_client_s": 0.21129964300780557,
+    "tg_client": 37.86092530077996,
+    "pp_ttft": 103.0532369991925,
+    "usage": {
+      "prompt_tokens": 237,
+      "total_tokens": 246,
+      "completion_tokens": 9,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "image_tokens": 207
+      },
+      "reasoning_tokens": 0
+    },
+    "content": "{\"digits\": \"5829\"}",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": []
+  },
+  {
+    "case": "multi-turn",
+    "passed": false,
+    "expected": "orchard-7294",
+    "actual": {
+      "code": "orchard-7294"
+    },
+    "requested_format_passed": false,
+    "elapsed_s": 0.6714552430057665,
+    "ttft_s": 0.3468471960077295,
+    "decode_client_s": 0.3244215680024354,
+    "tg_client": 33.90650032219012,
+    "pp_ttft": 121.09078719224827,
+    "usage": {
+      "prompt_tokens": 42,
+      "total_tokens": 54,
+      "completion_tokens": 12,
+      "prompt_tokens_details": null,
+      "reasoning_tokens": 0
+    },
+    "content": "{\"code\": \"orchard-7294\"}",
+    "reasoning": "",
+    "tool_calls": [],
+    "finish_reason": "stop",
+    "extras": [],
+    "memory_content_correct": true,
+    "note": "The remembered code is correct, but a JSON object was returned instead of the requested string. Raw strict result is preserved."
+  }
+]

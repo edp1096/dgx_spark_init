@@ -1,0 +1,42 @@
+import pathlib,json,datetime,statistics,shutil
+r=pathlib.Path(__file__).parent;old=r.parent/'qwen-fp4-tensorfold-tp1-20261019'
+repo=pathlib.Path('/home/edp1096/workspace/dgx_spark_init')
+def read(name,root=r):
+ p=root/name;return json.loads(p.read_text()) if p.exists() else None
+def summarize(rows):
+ if not rows:return None
+ result={}
+ for mode in ['off','medium']:
+  a=[x for x in rows if x['kind']=='tg' and x['mode']==mode]
+  pp=[x for x in rows if x['kind']=='pp' and x['mode']==mode]
+  result[mode]={'tg_requests':len(a),'tg_weighted':sum(x['completion_tokens']-1 for x in a)/sum(x['decode_s'] for x in a) if a else None,'pp':{str(x['prompt_tokens']):x['pp'] for x in pp},'final_answers':sum(x['has_final_answer'] for x in a),'output_caps_reached':sum(x['finish_reason']=='length' for x in a),'ttft_median_s':statistics.median(x['ttft_s'] for x in a) if a else None,'ttfa_median_s':statistics.median(x['ttfa_s'] for x in a if x['ttfa_s'] is not None) if a and any(x['ttfa_s'] is not None for x in a) else None}
+ return result
+stock=read('tensorfold-rows.json',old);ko=read('korean-tensorfold-rows.json');fresh=read('vllm-rows.json');hybrid=read('hybrid-fp32-nocache-rows.json')
+if ko and stock:
+ lookup={x['case']:x for x in stock}
+ matches=[{'case':x['case'],'answer_equal':x['answer_sha256']==lookup[x['case']]['answer_sha256'],'reasoning_equal':x['reasoning_sha256']==lookup[x['case']]['reasoning_sha256'],'token_sha_equal':x['native']['token_sha']==lookup[x['case']]['native']['token_sha']} for x in ko if x['kind']=='tg']
+else:matches=[]
+summary={'prior_vllm':summarize(read('vllm-rows.json',old)),'prior_tensorfold_stock_vocabulary':summarize(stock),'tensorfold_korean_vocabulary':summarize(ko),'fresh_vllm':summarize(fresh),'b12x_hybrid_fp32_router_no_cache_screen':summarize(hybrid)}
+comparisons={}
+if fresh and len(fresh)==24:
+ for mode in ['off','medium']:
+  a=summary['tensorfold_korean_vocabulary'][mode];b=summary['fresh_vllm'][mode]
+  comparisons[mode]={'tg_gain_percent':100*(a['tg_weighted']/b['tg_weighted']-1),'pp_relative':{k:a['pp'][k]/b['pp'][k] for k in a['pp']}}
+report={'updated_utc':datetime.datetime.now(datetime.timezone.utc).isoformat(),'status':'in progress; restoration and final decision must be verified','production_changes':False,'experiment':read('experiment.json'),'method':{'hardware':'Sequential TP1 trials on Spark 61 / GB10; Spark 60 is not used for Qwen TP1','checkpoint':'edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-FP4-Local@d1ec8b01dd859336d7905db2ad2ceb725146008c','window_tokens':262144,'rope':'native; no YaRN','kv':'FP8','vision':'enabled, original tower loaded; image correctness is outside this benchmark','temperature':0,'parallel_requests':1,'modes':['off','medium'],'mtp':'Both cap depth at 4. vLLM uses fixed 4; TensorFold uses confidence/product gating up to 4.','rendered_input_identity':'Every request asserted the exact token count and token ID SHA256 from the prior vLLM workload.','tg_formula':'sum(completion_tokens - 1) / sum(backend_decode_seconds); reasoning tokens included','pp_formula':'(prompt_tokens - cached_tokens) / backend_prefill_seconds','tensorfold_timing':'Final SSE native prefill_seconds and tokens_per_second; decode_s=(completion_tokens-1)/native_TPS','vllm_timing':'Per-request deltas of Prometheus request_decode_time_seconds_sum and request_prefill_time_seconds_sum','generation_workload':'4 synthetic Korean tasks x 2 repetitions x off/Medium. Warmups excluded. Long generation caps can truncate answers.','prefill_workload':'Cold synthetic 4K,16K,128K token prompts x off/Medium; 16 output tokens; not used as a final-answer quality test.','production_profile':'The existing vLLM 1M/YaRN profile is unchanged. No TensorFold 1M qualification is claimed.'},'summary':summary,'relative_to_fresh_vllm':comparisons,'vocabulary':read('vocab-analysis.json'),'drafted_plain_exactness':{'stock_control':read('stock-exactness.json'),'korean_control':read('korean-exactness.json'),'initial_hybrid':read('hybrid-draft-correctness.json'),'fp32_router_hybrid':read('hybrid-fp32-exactness.json'),'fp32_router_hybrid_no_cache':read('hybrid-fp32-nocache-exactness.json')},'unchanged_outputs_after_korean_vocabulary_expansion':matches,'tool_smoke':read('korean-tool-smoke.json'),'mtp_acceptance':read('mtp-acceptance-comparison.json'),'hybrid_screen_scope':{'prompts':'Only the explanation task, two repetitions each for off/Medium. Short screen, not the full Korean suite.','cache':'Disabled explicitly with --prompt-cache-gib 0. FP32 router weights enabled.','decision':'Not adopted: slower than the native Korean-vocabulary TensorFold candidate on the matched screen; cached mode fails exactness.'},'single_layer_diagnostics':{'original_checkpoint_reference':read('micro-native-result.json'),'width_before_fp32':read('width-before-fp32-result.json'),'width_fp32_router':read('width-fp32-result.json'),'width_stress':read('width-stress-result.json')},'rows':{'tensorfold_korean':ko,'fresh_vllm':fresh,'b12x_hybrid_fp32_router_no_cache_screen':hybrid},'image_pins':read('image-pins.json'),'restoration':read('supervisor-result.json'),'talk_restoration_smoke':read('restore-talk-smoke.json'),'limitations':['Exploratory performance benchmark, not a broad agent/quality evaluation.','Matching native TensorFold outputs after vocabulary expansion does not establish parity with vLLM on every tool or quality benchmark.','No 1M, long-context image, concurrency, or production recovery qualification for this candidate.','The external 67/80 tok/s figures use different quantizations and workloads; they are not a Korean result reproduced here.','Memory monitor began during the prefill phase, so it does not cover the entire first candidate startup.'],'sources':['https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Single-DGX-Spark-TensorFold/tree/656879fd752749bbd11a6e1a065a326c00940911','https://github.com/greatyingzi/Qwen3.8-Flash-Next-CJK-DGX-Sparks-TensorFold','https://github.com/local-inference-lab/b12x','https://github.com/jayleaton/glm53-tensorfold-spark','https://huggingface.co/edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-FP4-Local/tree/d1ec8b01dd859336d7905db2ad2ceb725146008c'],'local_artifacts':str(r)}
+if hybrid:
+ ids={x['case'] for x in hybrid if x['kind']=='tg'}
+ report['hybrid_matched_screen']={'native_korean_tensorfold':summarize([x for x in ko if x['case'] in ids]),'b12x_hybrid_cache_disabled':summarize(hybrid),'fresh_vllm':summarize([x for x in fresh if x['case'] in ids]) if fresh else None}
+report['artifact_hashes']=read('artifact-hashes.json')
+report['vllm_mtp_vocabulary_evidence']=read('vllm-mtp-vocabulary-evidence.json')
+report['fresh_vllm_output_repeatability']=read('fresh-vllm-repeatability.json')
+report['final_restoration']=read('final-restoration.json')
+report['system_paging_counters']={'before_control_ready':read('vmstat-before-vllm-bench.json'),'during_control_benchmark':read('vmstat-mid-vllm-bench.json'),'after_control_stopped':read('vmstat-after-vllm-bench.json'),'note':'System-wide counters include startup and unrelated CPU processes; no assertion of zero paging is made.'}
+memory=read('memory-watch.json')
+if memory:report['partial_memory_monitor']={'first_utc':memory[0]['utc'],'last_utc':memory[-1]['utc'],'minimum_MemAvailable_GiB':min(x['MemAvailable'] for x in memory)/2**30,'samples':len(memory),'coverage':'Begins during the Korean candidate prefill benchmark; misses its startup and generation portion.'}
+if fresh and len(fresh)==24:
+ assert all(x['cached_tokens']==0 for x in fresh+ko if x['kind']=='pp')
+ report['prefill_cache_check']='All six PP cases in each full benchmark were cold (cached_tokens == 0).'
+if report['restoration'] and report['restoration'].get('deepseek_restored') and report['talk_restoration_smoke'] and fresh and len(fresh)==24:
+ report['status']='complete: native 256K performance experiment; production profile unchanged and DeepSeek restored'
+ report['decision']={'native_korean_tensorfold':'Measured Korean TG improvement over fresh vLLM control; cold PP remains slower. Candidate only; no production migration or 1M qualification.','b12x_hybrid':'Not adopted: slower on the matched explanation screen, and its cache-enabled path fails exactness. Cache-disabled drafted/plain checks pass.'}
+out=repo/'util/talk/docs/qwen38-fp4-local-tensorfold-b12x-20261020.json';out.write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n');print(json.dumps({'report':str(out),'summary':summary,'relative_to_fresh_vllm':comparisons},indent=2))

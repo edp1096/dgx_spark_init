@@ -27,10 +27,10 @@ func TestFP4LocalMigrationPreservesSelectionAndCustomDeployment(t *testing.T) {
 		}
 	}
 	cfg.Runtime.Catalog.Components, cfg.Runtime.Catalog.Bundles = components, bundles
-	cfg.Runtime.Bundle, cfg.Runtime.ActiveBundle = "flash-next-radixark", "qwen38fn_exl3"
+	cfg.Runtime.Bundle, cfg.Runtime.ActiveBundle = "ds41", "qwen38fn_exl3"
 	cfg.Runtime.BuiltinRevision = 42
 	cfg.Normalize()
-	if cfg.Runtime.Bundle != "flash-next-radixark" || cfg.Runtime.ActiveBundle != "qwen38fn_exl3" || cfg.Runtime.BuiltinRevision != 43 {
+	if cfg.Runtime.Bundle != "ds41" || cfg.Runtime.ActiveBundle != "qwen38fn_exl3" || cfg.Runtime.BuiltinRevision != 51 {
 		t.Fatal("migration changed selected/default set")
 	}
 	if _, ok := cfg.Runtime.Catalog.Bundle(id); !ok {
@@ -56,7 +56,7 @@ func TestFP4LocalMigrationPreservesSelectionAndCustomDeployment(t *testing.T) {
 		t.Fatal(err)
 	}
 	loaded.SelectManagedBundle(id)
-	if loaded.Model.DefaultModel != orchestrator.QwenFP4Local || loaded.Model.ModelType != "qwen3.8-vllm" || loaded.Context.WindowTokens != 1048576 || loaded.Model.ReasoningEffort != "medium" || loaded.Runtime.Bundle != "flash-next-radixark" {
+	if loaded.Model.DefaultModel != orchestrator.QwenFP4Local || loaded.Model.ModelType != "qwen3.8-tensorfold" || loaded.Context.WindowTokens != 1048576 || loaded.Model.ReasoningEffort != "medium" || loaded.Runtime.Bundle != "ds41" {
 		t.Fatalf("selected profile is incorrect: %+v", loaded.Model)
 	}
 }
