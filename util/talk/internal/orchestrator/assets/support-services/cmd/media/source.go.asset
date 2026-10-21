@@ -133,7 +133,23 @@ func (a *api) probeSource(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *api) downloadSource(w http.ResponseWriter, r *http.Request) {
+	id := r.Header.Get("X-Media-Download-ID")
+	if id != "" && !validProgressID(id) {
+		http.Error(w, "invalid download ID", 400)
+		return
+	}
+	if !a.beginDownload(id) {
+		http.Error(w, "download ID already in use", 409)
+		return
+	}
+	complete := false
+	defer func() {
+		if !complete {
+			a.downloadStage(id, "failed")
+		}
+	}()
 	a.withSource(w, r, func(ctx context.Context, request sourceRequest, rawURL, dir string) error {
+		a.downloadStage(id, "metadata")
 		maxDownloadMB := boundedLimit(request.MaxDownloadMB, a.cfg.MaxDownloadMB)
 		maxDurationSec := boundedLimit(request.MaxDurationSeconds, a.cfg.MaxDurationSec)
 		maxHeight := boundedIntLimit(request.MaxHeight, a.cfg.MaxVideoHeight)
@@ -156,18 +172,21 @@ func (a *api) downloadSource(w http.ResponseWriter, r *http.Request) {
 			return &httpError{Status: http.StatusRequestEntityTooLarge, Message: fmt.Sprintf("no downloadable video/audio combination with known size fits %d MiB and height %d; retrying unchanged limits will not help", maxDownloadMB, maxHeight)}
 		}
 		log.Printf("yt-dlp selected format=%s height=%d source=%s", format, selectedHeight, info.ID)
+		a.selectDownloadStreams(id, info, format)
 		outputTemplate := filepath.Join(dir, "source.%(ext)s")
 		maxSize := strconv.FormatInt(maxDownloadMB, 10) + "M"
-		_, stderr, err := run(ctx, a.currentYtdlp(),
-			"--no-playlist", "--no-progress", "--no-warnings", "--no-part",
+		args := append(downloadProgressArgs(),
+			"--no-playlist", "--no-warnings", "--no-part",
 			"--max-filesize", maxSize,
 			"--format", format,
 			"--merge-output-format", "mp4",
 			"--output", outputTemplate,
 			"--", rawURL)
+		stderr, err := a.runDownload(ctx, id, args...)
 		if err != nil {
 			return processError("yt-dlp", err, stderr)
 		}
+		a.downloadStage(id, "processing")
 		path, err := downloadedSourcePath(dir)
 		if err != nil {
 			return err
@@ -211,7 +230,12 @@ func (a *api) downloadSource(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		}
-		return serveFile(w, path, contentType, filepath.Base(path))
+		if err := serveFile(w, path, contentType, filepath.Base(path)); err != nil {
+			return err
+		}
+		complete = true
+		a.downloadStage(id, "downloaded")
+		return nil
 	})
 }
 

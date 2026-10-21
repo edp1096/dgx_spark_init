@@ -19,11 +19,13 @@ import (
 )
 
 type api struct {
-	updateMu  sync.Mutex
-	cfg       config
-	sem       chan struct{}
-	ffmpegVer string
-	ytDLPVer  string
+	updateMu   sync.Mutex
+	progressMu sync.Mutex
+	downloads  map[string]downloadProgress
+	cfg        config
+	sem        chan struct{}
+	ffmpegVer  string
+	ytDLPVer   string
 }
 
 func newAPI(cfg config) (*api, error) {
@@ -68,6 +70,7 @@ func (a *api) routes() http.Handler {
 	mux.HandleFunc("POST /v1/video/frames", a.videoFrames)
 	mux.HandleFunc("POST /v1/source/probe", a.probeSource)
 	mux.HandleFunc("POST /v1/source/download", a.downloadSource)
+	mux.HandleFunc("GET /v1/source/progress", a.sourceProgress)
 	return requestLog(mux)
 }
 

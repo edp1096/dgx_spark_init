@@ -250,6 +250,13 @@ func newCompletionToolRegistryForContext(ctx context.Context, server *Server, se
 
 		if mediaSink != nil && cfg.MediaImportEnabled {
 			registry.register(mediaImportToolDefinition(), func(ctx context.Context, call llm.ToolCall, conversation []llm.Message, emit eventEmitter) (registeredToolResult, error) {
+				sink := mediaProgressSink(func(progress mediaDownloadProgress) error {
+					return emit("tool_output", map[string]any{"id": call.ID, "progress": progress})
+				})
+				ctx = context.WithValue(ctx, mediaProgressKey{}, sink)
+				if err := sink(mediaDownloadProgress{Stage: "preparing"}); err != nil {
+					return registeredToolResult{}, err
+				}
 				execution, err := server.executeMediaImportTool(ctx, call, conversation, func(item db.Attachment) error {
 					if err := mediaSink(item); err != nil {
 						return err

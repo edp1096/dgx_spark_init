@@ -39,6 +39,8 @@ func (s *Server) uploadSource(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) importMediaSource(ctx context.Context, rawURL string) (output db.Attachment, resultErr error) {
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
 	parsed, err := url.Parse(strings.TrimSpace(rawURL))
 	if err != nil || (parsed.Scheme != "http" && parsed.Scheme != "https") || parsed.Host == "" {
 		return db.Attachment{}, fmt.Errorf("media URL must use http or https")
@@ -63,6 +65,15 @@ func (s *Server) importMediaSource(ctx context.Context, rawURL string) (output d
 		return db.Attachment{}, err
 	}
 	request.Header.Set("Content-Type", "application/json")
+	if sink := mediaProgressFrom(ctx); sink != nil {
+		id, err := newMediaDownloadID()
+		if err != nil {
+			return db.Attachment{}, err
+		}
+		request.Header.Set("X-Media-Download-ID", id)
+		stop := pollMediaDownload(ctx, endpoint, id, sink, cancel)
+		defer stop()
+	}
 	timeout, _ := time.ParseDuration(cfg.ASR.Timeout)
 	if timeout <= 0 {
 		timeout = 30 * time.Minute

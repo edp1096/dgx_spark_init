@@ -1,0 +1,148 @@
+{
+  "task": "Show per-stream media download progress and restore enabled audio transcription",
+  "date": "2026-10-22T03:44:00.985624+09:00",
+  "cause": {
+    "download_progress": "yt-dlp was invoked with --no-progress; the binary response started only after downloading and remuxing. No progress API or chat UI existed.",
+    "audio_transcription": "Live configuration had asr.enabled=false; video preparation explicitly skipped ASR and instructed the model to analyze visible frames only."
+  },
+  "implementation": {
+    "progress": "Request-local random 128-bit ID; native structured yt-dlp output; bounded progress registry and one-second polling through existing tool_output SSE; separate video/audio rows visible with tool trace collapsed.",
+    "display": [
+      "per-stream percent using fragments when available",
+      "received bytes and total or approximate total",
+      "download speed",
+      "current-file remaining time",
+      "queued, metadata, merge/convert, downloaded and analysis stages",
+      "remove speed and ETA after 15 seconds without updates"
+    ],
+    "compatibility": "Binary download API and original audio selection remain unchanged. Unknown totals remain indeterminate. A file ETA is not presented as the combined download+analysis ETA.",
+    "service_image": "sparktalk-extra-media:0.1.3",
+    "asr_setting_change": [
+      "asr.enabled: false -> true"
+    ]
+  },
+  "verification": {
+    "native_ytdlp": "PASS: installed production yt-dlp downloads two streams from local HTTP with the exact production flags/template; both progress streams finish with correct byte counts.",
+    "native_race_tests": "go test -race ./cmd/media (YTDLP_TEST_BINARY set): passed",
+    "talk_race_tests": "go test -race ./internal/server -run TestMediaDownloadProgress|TestImportedAudio: passed",
+    "talk_tests": "go test ./internal/server ./internal/orchestrator: passed",
+    "frontend_tests": "139 passed",
+    "browser_tests": "Two Playwright tests passed against isolated real Talk: separate progress/ETA before binary response; media preserved across processing failure, completion and reload.",
+    "assets": "111 embedded support files verified",
+    "real_deployed_download": {
+      "test": "deployed Extra Media real remote download",
+      "progress_samples": [
+        {
+          "stage": "queued",
+          "streams": [],
+          "elapsed_seconds": 6.9072e-05
+        },
+        {
+          "stage": "metadata",
+          "streams": [],
+          "elapsed_seconds": 1.00265464
+        },
+        {
+          "stage": "downloading",
+          "streams": [
+            {
+              "id": "hls-93",
+              "kind": "video",
+              "status": "queued",
+              "downloaded_bytes": 0,
+              "estimated": true,
+              "eta_seconds": null
+            }
+          ],
+          "elapsed_seconds": 2.005194039
+        },
+        {
+          "stage": "downloading",
+          "streams": [
+            {
+              "id": "hls-93",
+              "kind": "video",
+              "status": "downloading",
+              "downloaded_bytes": 898,
+              "total_bytes": 17062,
+              "estimated": true,
+              "fragments": 19,
+              "speed_bps": 1617.2132283593658,
+              "eta_seconds": null
+            }
+          ],
+          "elapsed_seconds": 4.009611528
+        },
+        {
+          "stage": "downloading",
+          "streams": [
+            {
+              "id": "hls-93",
+              "kind": "video",
+              "status": "downloading",
+              "downloaded_bytes": 264482,
+              "total_bytes": 602533,
+              "estimated": true,
+              "fragment": 9,
+              "fragments": 19,
+              "speed_bps": 138111.46595515875,
+              "eta_seconds": 2.6264607787758587
+            }
+          ],
+          "elapsed_seconds": 5.011717329
+        },
+        {
+          "stage": "downloading",
+          "streams": [
+            {
+              "id": "hls-93",
+              "kind": "video",
+              "status": "downloading",
+              "downloaded_bytes": 434928,
+              "total_bytes": 622198,
+              "estimated": true,
+              "fragment": 13,
+              "fragments": 19,
+              "speed_bps": 149289.91730564547,
+              "eta_seconds": 2.266906235190584
+            }
+          ],
+          "elapsed_seconds": 6.014332448
+        }
+      ],
+      "completed": true,
+      "bytes_received": 656794,
+      "http_status": 200,
+      "elapsed_seconds": 8.06
+    }
+  },
+  "sources": [
+    "compose_yaml/sparktalk_extra/cmd/media/source_progress.go",
+    "util/talk/internal/server/media_download_progress.go",
+    "util/talk/web/src/components/MediaDownloadProgress.svelte",
+    "util/talk/web/e2e/media-download-progress.spec.js",
+    "util/talk/internal/server/chat_handlers.go"
+  ],
+  "full_video_transcription": {
+    "state": "completed",
+    "input": "existing saved 63-minute video; no repeat download",
+    "method": "actual running Talk /api/chat, disposable session with original attachment; ASR enabled, tools disabled",
+    "elapsed_seconds_including_model_answer": 198.52,
+    "transcript_characters": 56178,
+    "speaker_turns": 629,
+    "last_speech_end_seconds": 3786.16,
+    "language": "en-US",
+    "diarization_status": "completed",
+    "saved_cache_matches_current_transcription_settings": true,
+    "model_prompt_tokens": 45122,
+    "model_finish_status": "completed",
+    "temporary_session_deleted": true,
+    "original_existing_messages_unchanged": true
+  },
+  "deployment": {
+    "talk": "running updated Linux arm64 binary",
+    "extra_media": "sparktalk-extra-media:0.1.3 healthy",
+    "asr_enabled": true,
+    "qwen_model_and_sampler_settings_changed": false
+  }
+}

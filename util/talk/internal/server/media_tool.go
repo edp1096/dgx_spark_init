@@ -98,6 +98,11 @@ func (s *Server) executeMediaImportTool(ctx context.Context, call llm.ToolCall, 
 		}
 	}
 	cfg, _ := s.snapshot()
+	if sink := mediaProgressFrom(ctx); sink != nil {
+		if err := sink(mediaDownloadProgress{Stage: "analyzing"}); err != nil {
+			return mediaToolExecution{Attachment: item}, err
+		}
+	}
 	followups, err := s.llmMessages(ctx, []db.Message{{
 		Role: "user", Content: fmt.Sprintf("Media imported for the user request from %s. Use this attachment ID for requested document images or analyze its contents.", args.URL), Attachments: []db.Attachment{item},
 	}}, cfg)

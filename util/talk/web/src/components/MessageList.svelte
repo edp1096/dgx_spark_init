@@ -1,5 +1,7 @@
 <script>
   import { isGenerationTool, generationProgressLabel } from '../lib/generation-progress.js';
+  import { mediaDownloadLabel } from '../lib/media-download-progress.js';
+  import MediaDownloadProgress from './MediaDownloadProgress.svelte';
   import { browserToolPreview } from '../lib/browser-tools.js';
   import { onDestroy, tick } from 'svelte';
   import DOMPurify from 'dompurify';
@@ -485,13 +487,16 @@
           <div class="message-skills" title="모델이 읽은 작업 지침입니다. 실제 도구 실행 여부는 아래 기록에서 확인하세요."><small>불러온 지침: {Array.from(new Set(message.tool_trace.filter(tool => tool.name === 'skill_view' && !tool.error && tool.result).map(tool => { try { return JSON.parse(tool.arguments).name; } catch { return ''; } }).filter(Boolean))).join(' · ')}</small></div>
         {/if}
         {#if message.tool_trace?.length}
+          {#each message.tool_trace.filter(tool => tool.name === 'media_import' && tool.running) as tool}
+            <MediaDownloadProgress {tool} />
+          {/each}
           <details class="tool-trace">
-            <summary><span class="activity-label" class:activity-scanner={running && (message.activity === 'tool' || message.tool_trace.some((tool) => tool.running))}>{message.tool_trace.some((tool) => tool.running) ? (message.tool_trace.find(tool => tool.running && isGenerationTool(tool)) ? generationProgressLabel(message.tool_trace.find(tool => tool.running && isGenerationTool(tool))) : '도구 실행 중…') : `도구 ${message.tool_trace.length}회`}</span></summary>
+            <summary><span class="activity-label" class:activity-scanner={running && (message.activity === 'tool' || message.tool_trace.some((tool) => tool.running))}>{message.tool_trace.some((tool) => tool.running) ? (message.tool_trace.find(tool => tool.running && tool.name === 'media_import') ? mediaDownloadLabel(message.tool_trace.find(tool => tool.running && tool.name === 'media_import')) : message.tool_trace.find(tool => tool.running && isGenerationTool(tool)) ? generationProgressLabel(message.tool_trace.find(tool => tool.running && isGenerationTool(tool))) : '도구 실행 중…') : `도구 ${message.tool_trace.length}회`}</span></summary>
             <div class="tool-list">
               {#each message.tool_trace as tool}
                 <div class="tool-item">
                   <div class="tool-heading"><strong>{toolLabel(tool)}</strong><span>{toolArgument(tool)}</span></div>
-                  {#if tool.running && tool.progress}
+                  {#if tool.running && tool.progress && isGenerationTool(tool)}
                     <div class="generation-progress" role="status">
                       <small>{generationProgressLabel(tool)}</small>
                       {#if tool.progress.total > 0 && tool.progress.step !== null}<progress max={tool.progress.total} value={tool.progress.step} aria-label="현재 생성 단계 진행률"></progress>{/if}

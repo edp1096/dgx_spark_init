@@ -35,7 +35,7 @@ export function markToolExecution(message, data) {
 export function appendToolOutput(message, data) {
   updateTool(message, data, (tool) => ({
     ...tool,
-    ...(data.progress ? { progress: data.progress } : {}),
+    ...(data.progress ? { progress: tool.name === 'media_import' ? { ...tool.progress, ...data.progress } : data.progress } : {}),
     output: `${tool.output || ''}${data.delta || ''}`,
     streams: { ...(tool.streams || {}), [data.stream || 'stdout']: `${tool.streams?.[data.stream || 'stdout'] || ''}${data.delta || ''}` },
   }));
