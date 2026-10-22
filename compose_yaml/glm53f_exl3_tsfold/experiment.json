@@ -1,0 +1,62 @@
+{
+  "status": "comparison complete; experimental only; existing Qwen service restored",
+  "target": "GLM-5.3-Flash sc_2.10bpw EXL3 on one GB10, compared with the existing Qwen38FN FP4-Local service",
+  "tensorfold_commit": "79ba3f58c85f54e46f958d4044b8a966f2799ca6",
+  "checkpoint": "turboderp/GLM-5.3-Flash-exl3",
+  "checkpoint_revision": "8d2eca0ed5b695108249308bcdc2af0636d5045f",
+  "quantization": "Stored mul1 EXL3: routed experts 2/3 bits; MTP 3 bits; dense projections 5/6 bits; head and vision 6 bits",
+  "precision": "Preserve stored weights, BF16 activations, FP32 accumulation and the common EXL3 rotation contract",
+  "hardware": "One DGX Spark GB10, 128 GB class; host 60 excluded",
+  "failure": "Native GLM rejects non-4bit/mcg checkpoints and expects BF16 non-expert weights",
+  "owners": [
+    "families/glm/cuda_exl3.zig",
+    "families/glm/cuda_weights.zig",
+    "families/glm/cuda_b16.zig",
+    "cuda/exl3.zig",
+    "cuda/exl3_experts.zig"
+  ],
+  "checks": [
+    "Native build and affected host tests",
+    "EXL3 tensor/operator fidelity",
+    "Full TP1 loading and memory",
+    "Drafted/plain token agreement",
+    "Repeated and cancelled requests",
+    "Matched served PP/TG, TTFT and character rates",
+    "Korean prose, reasoning, code, constrained answers and tool calls"
+  ],
+  "comparison": {
+    "reasoning": [
+      "off",
+      "medium"
+    ],
+    "temperature": 0.7,
+    "top_k": 20,
+    "top_p": 0.95,
+    "seed": 99,
+    "concurrency": 1,
+    "note": "Fixed public synthetic prompts and identical request settings; models use different tokenizers. API measurements are labelled separately from actual Talk measurements."
+  },
+  "acceptance": "Report superiority only when repeated matched measurements support it; quality uses explicit task checks and retained outputs, not throughput or a few plausible answers. No upstream release gate or support qualification is claimed.",
+  "unavailable": [
+    "Other GPU classes",
+    "Multi-host checks (outside requested scope)"
+  ],
+  "mtp": {
+    "maximum_drafts": 3,
+    "checkpoint_mtp_weight_bits": 3,
+    "draft_head": "original 6-bit EXL3 output head, no extra quantization"
+  },
+  "dense_implementations": {
+    "reference": "common EXL3 row kernels",
+    "tiles": "existing common CUDA EXL3 tile kernels, selected with TF_GLM_EXL3_DENSE=tiles"
+  },
+  "context_tested": 16384,
+  "vision": "explicitly refused in this experimental loader",
+  "patch_sha256": "6a46c900974913b0e3b01e23c93a5e990cf55800449ef08c00785ea8ce842281",
+  "sources": [
+    "https://github.com/ashhart/TensorFold/tree/79ba3f58c85f54e46f958d4044b8a966f2799ca6",
+    "https://huggingface.co/turboderp/GLM-5.3-Flash-exl3/tree/sc_2.10bpw",
+    "https://github.com/turboderp-org/exllamav3/tree/da68d57de61781e5b74ad68698ac4caf36408d7a"
+  ],
+  "report": "util/talk/docs/glm53-sc210-tp1-comparison-20261022.json"
+}

@@ -1,0 +1,1243 @@
+{
+  "finished_at": "2026-10-22T18:45:59.732956+09:00",
+  "decision": "Keep the existing Qwen38FN FP4-Local service. This TP1 GLM TensorFold port ran, but neither tested dense path provides a speed or demonstrated quality advantage.",
+  "scope": "One DGX Spark GB10 (host 61). Host 60 was not contacted. Local experiments only; no model-set promotion or publication.",
+  "models": {
+    "qwen": {
+      "checkpoint": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-FP4-Local",
+      "runtime": "Existing native TensorFold db281878ddb836fd0df510d8771ecb7e0fe47d26 with the existing 17 local patches",
+      "image": "local/sparktalk-qwen38-fp4-tensorfold:db281878-ko2",
+      "mtp_maximum": 4,
+      "context_configured": 1048576,
+      "kv": "FP8",
+      "configuration_restored": {
+        "image": true,
+        "command": true,
+        "environment": true,
+        "mounts": true
+      }
+    },
+    "glm": {
+      "checkpoint": "turboderp/GLM-5.3-Flash-exl3",
+      "branch": "sc_2.10bpw",
+      "revision": "8d2eca0ed5b695108249308bcdc2af0636d5045f",
+      "runtime": "Native TensorFold 1.1.2 at 79ba3f58c85f54e46f958d4044b8a966f2799ca6 plus the retained patch",
+      "mtp_maximum": 3,
+      "mtp_weights_bits": 3,
+      "draft_output_head": "Original 6-bit EXL3 head, shared with target; no additional drafter quantization",
+      "context_tested": 16384,
+      "kv": "BF16",
+      "load_seconds": [
+        113.6,
+        114.0
+      ],
+      "engine_reported_model_gib": 86.06,
+      "memory_note": "Engine allocation report for GLM at 16K, not a matched memory comparison against Qwen at 1M.",
+      "checkpoint_safetensors_gib": 82.134,
+      "dtype_conversion": "All 285 non-EXL3 FP16 language tensors (382077952 values) were independently checked to be exactly representable as BF16; no such stored weight was rounded by loading."
+    }
+  },
+  "method": {
+    "transport": "Direct local OpenAI chat API for model comparison; actual Talk checks are reported separately for restored Qwen.",
+    "temperature": 0.7,
+    "top_k": 20,
+    "top_p": 0.95,
+    "seeds": [
+      99,
+      100,
+      101
+    ],
+    "concurrency": 1,
+    "same_public_prompts": true,
+    "cache": "Unique early system prefixes per case/mode/repetition; measured prompt-cache hits were zero in the primary speed cells. GLM prefix cache disabled.",
+    "repetitions": "Three per speed cell; one per non-code task; three code generations per mode for Qwen and GLM tiles. The initial GLM reference path has one sample per cell.",
+    "reasoning": "Qwen uses off/medium. GLM normalizes medium to high; the no-thinking comparison avoids that effort-level difference.",
+    "tokenizers": "Different model tokenizers: the same long document is about 7060 Qwen tokens and 7170 GLM tokens. End-to-end time is retained as well as token rates.",
+    "output_limits": "768 tokens with thinking off; 1536 with thinking on, except code uses 4096 with thinking on. Truncated replies are retained and labelled.",
+    "preliminary_attempts": "Ambiguous arithmetic wording and the earlier 1536-token code limit were corrected before the final matched comparison; old attempts are retained in qwen-prior-protocol and excluded from final scores.",
+    "timing": "Use each server's native PP and decode rates. Do not subtract prefill from TensorFold 1.1.2 tensorfold.seconds: that field has different semantics from the older Qwen build."
+  },
+  "primary_speed": {
+    "qwen_after_restore": {
+      "code-en/medium": {
+        "repetitions": 3,
+        "median_tg_tokens_per_second": 56.292456426164925,
+        "tg_range": [
+          53.64919200816883,
+          56.65158140667666
+        ],
+        "median_pp_tokens_per_second": 434.9077354966993,
+        "median_wall_seconds": 30.162418196967337,
+        "median_answer_characters": 3977,
+        "length_limited_replies": 0
+      },
+      "code-en/off": {
+        "repetitions": 3,
+        "median_tg_tokens_per_second": 60.07798198558538,
+        "tg_range": [
+          57.17993997642783,
+          60.77319290212188
+        ],
+        "median_pp_tokens_per_second": 445.86742679844133,
+        "median_wall_seconds": 5.948723051988054,
+        "median_answer_characters": 1466,
+        "length_limited_replies": 0
+      },
+      "prose-ko/medium": {
+        "repetitions": 3,
+        "median_tg_tokens_per_second": 43.097173732424594,
+        "tg_range": [
+          39.762706253088815,
+          53.866663382988406
+        ],
+        "median_pp_tokens_per_second": 408.95629018118615,
+        "median_wall_seconds": 17.51547644403763,
+        "median_answer_characters": 1004,
+        "length_limited_replies": 0
+      },
+      "prose-ko/off": {
+        "repetitions": 3,
+        "median_tg_tokens_per_second": 35.3427336137418,
+        "tg_range": [
+          35.25488449937621,
+          35.671213041380994
+        ],
+        "median_pp_tokens_per_second": 420.09730101352375,
+        "median_wall_seconds": 9.333260120998602,
+        "median_answer_characters": 702,
+        "length_limited_replies": 0
+      },
+      "retrieval/medium": {
+        "repetitions": 3,
+        "median_tg_tokens_per_second": 57.639579089166816,
+        "tg_range": [
+          53.86693287739096,
+          57.8608942015584
+        ],
+        "median_pp_tokens_per_second": 2041.1021790004702,
+        "median_wall_seconds": 5.07867488701595,
+        "median_answer_characters": 7,
+        "length_limited_replies": 0
+      },
+      "retrieval/off": {
+        "repetitions": 3,
+        "median_tg_tokens_per_second": 30.49308113731456,
+        "tg_range": [
+          30.223693369612068,
+          33.07104092348557
+        ],
+        "median_pp_tokens_per_second": 2039.0179588459714,
+        "median_wall_seconds": 3.708834349992685,
+        "median_answer_characters": 7,
+        "length_limited_replies": 0
+      }
+    },
+    "glm_tiles": {
+      "code-en/medium": {
+        "repetitions": 3,
+        "median_tg_tokens_per_second": 29.77143886125541,
+        "tg_range": [
+          29.762435687343054,
+          29.951012331838363
+        ],
+        "median_pp_tokens_per_second": 187.20950410750132,
+        "median_wall_seconds": 40.92172764497809,
+        "median_answer_characters": 2693,
+        "length_limited_replies": 0
+      },
+      "code-en/off": {
+        "repetitions": 3,
+        "median_tg_tokens_per_second": 29.37288754438081,
+        "tg_range": [
+          29.105481089133963,
+          29.601686176481348
+        ],
+        "median_pp_tokens_per_second": 191.17667048670242,
+        "median_wall_seconds": 26.066321606049314,
+        "median_answer_characters": 3027,
+        "length_limited_replies": 1
+      },
+      "prose-ko/medium": {
+        "repetitions": 3,
+        "median_tg_tokens_per_second": 27.349817106927844,
+        "tg_range": [
+          27.195098853744973,
+          27.46092495094223
+        ],
+        "median_pp_tokens_per_second": 200.210341397477,
+        "median_wall_seconds": 24.849106067966204,
+        "median_answer_characters": 909,
+        "length_limited_replies": 0
+      },
+      "prose-ko/off": {
+        "repetitions": 3,
+        "median_tg_tokens_per_second": 27.34368295306763,
+        "tg_range": [
+          26.935136347171245,
+          30.40377797031111
+        ],
+        "median_pp_tokens_per_second": 204.09678690324247,
+        "median_wall_seconds": 25.427719241997693,
+        "median_answer_characters": 904,
+        "length_limited_replies": 1
+      },
+      "retrieval/medium": {
+        "repetitions": 3,
+        "median_tg_tokens_per_second": 30.904187676895827,
+        "tg_range": [
+          30.67777204514371,
+          36.18734783446406
+        ],
+        "median_pp_tokens_per_second": 310.2002000599659,
+        "median_wall_seconds": 23.658521456993185,
+        "median_answer_characters": 28,
+        "length_limited_replies": 0
+      },
+      "retrieval/off": {
+        "repetitions": 3,
+        "median_tg_tokens_per_second": 29.40515414233693,
+        "tg_range": [
+          29.03425196835534,
+          29.409562499525013
+        ],
+        "median_pp_tokens_per_second": 311.15076621287244,
+        "median_wall_seconds": 23.63122524903156,
+        "median_answer_characters": 28,
+        "length_limited_replies": 0
+      }
+    }
+  },
+  "initial_speed": {
+    "qwen_before_trial": {
+      "code-en/medium": {
+        "repetitions": 3,
+        "median_tg_tokens_per_second": 58.635761563110584,
+        "tg_range": [
+          55.955808695932376,
+          59.8967988754365
+        ],
+        "median_pp_tokens_per_second": 337.1359375549089,
+        "median_wall_seconds": 29.218854388978798,
+        "median_answer_characters": 3977,
+        "length_limited_replies": 0
+      },
+      "code-en/off": {
+        "repetitions": 3,
+        "median_tg_tokens_per_second": 62.118815409354966,
+        "tg_range": [
+          58.86081598887813,
+          63.40395974249065
+        ],
+        "median_pp_tokens_per_second": 444.2051247300899,
+        "median_wall_seconds": 5.824397118005436,
+        "median_answer_characters": 1466,
+        "length_limited_replies": 0
+      },
+      "prose-ko/medium": {
+        "repetitions": 3,
+        "median_tg_tokens_per_second": 44.553290178685934,
+        "tg_range": [
+          42.555154245832995,
+          55.330305761194495
+        ],
+        "median_pp_tokens_per_second": 413.3745171390127,
+        "median_wall_seconds": 16.36685483896872,
+        "median_answer_characters": 1004,
+        "length_limited_replies": 0
+      },
+      "prose-ko/off": {
+        "repetitions": 3,
+        "median_tg_tokens_per_second": 37.27188745739755,
+        "tg_range": [
+          36.78359020142763,
+          37.66634832137701
+        ],
+        "median_pp_tokens_per_second": 399.80784945737355,
+        "median_wall_seconds": 8.955961071013007,
+        "median_answer_characters": 702,
+        "length_limited_replies": 0
+      },
+      "retrieval/medium": {
+        "repetitions": 3,
+        "median_tg_tokens_per_second": 59.99796581182484,
+        "tg_range": [
+          59.49056921144684,
+          60.68840438912479
+        ],
+        "median_pp_tokens_per_second": 2043.326722393431,
+        "median_wall_seconds": 4.886542460997589,
+        "median_answer_characters": 7,
+        "length_limited_replies": 0
+      },
+      "retrieval/off": {
+        "repetitions": 3,
+        "median_tg_tokens_per_second": 33.006252996908835,
+        "tg_range": [
+          32.381768242907526,
+          33.07040534339137
+        ],
+        "median_pp_tokens_per_second": 2045.8522162902873,
+        "median_wall_seconds": 3.681962427974213,
+        "median_answer_characters": 7,
+        "length_limited_replies": 0
+      }
+    },
+    "glm_reference_dense": {
+      "code-en/medium": {
+        "repetitions": 1,
+        "median_tg_tokens_per_second": 30.047809961286013,
+        "tg_range": [
+          30.047809961286013,
+          30.047809961286013
+        ],
+        "median_pp_tokens_per_second": 181.26845917142563,
+        "median_wall_seconds": 56.2614717289689,
+        "median_answer_characters": 3512,
+        "length_limited_replies": 0
+      },
+      "code-en/off": {
+        "repetitions": 1,
+        "median_tg_tokens_per_second": 31.049951614882662,
+        "tg_range": [
+          31.049951614882662,
+          31.049951614882662
+        ],
+        "median_pp_tokens_per_second": 184.60871998239924,
+        "median_wall_seconds": 25.182714626018424,
+        "median_answer_characters": 2868,
+        "length_limited_replies": 1
+      },
+      "prose-ko/medium": {
+        "repetitions": 1,
+        "median_tg_tokens_per_second": 27.54882653501323,
+        "tg_range": [
+          27.54882653501323,
+          27.54882653501323
+        ],
+        "median_pp_tokens_per_second": 191.5795324604213,
+        "median_wall_seconds": 24.576826126954984,
+        "median_answer_characters": 899,
+        "length_limited_replies": 0
+      },
+      "prose-ko/off": {
+        "repetitions": 1,
+        "median_tg_tokens_per_second": 27.187945012750134,
+        "tg_range": [
+          27.187945012750134,
+          27.187945012750134
+        ],
+        "median_pp_tokens_per_second": 193.88338363176095,
+        "median_wall_seconds": 25.464659768040292,
+        "median_answer_characters": 941,
+        "length_limited_replies": 0
+      },
+      "retrieval/medium": {
+        "repetitions": 1,
+        "median_tg_tokens_per_second": 31.9873032299709,
+        "tg_range": [
+          31.9873032299709,
+          31.9873032299709
+        ],
+        "median_pp_tokens_per_second": 287.894520259,
+        "median_wall_seconds": 25.475488570984453,
+        "median_answer_characters": 28,
+        "length_limited_replies": 0
+      },
+      "retrieval/off": {
+        "repetitions": 1,
+        "median_tg_tokens_per_second": 30.135556059622953,
+        "tg_range": [
+          30.135556059622953,
+          30.135556059622953
+        ],
+        "median_pp_tokens_per_second": 284.3736113084105,
+        "median_wall_seconds": 25.791579365031794,
+        "median_answer_characters": 28,
+        "length_limited_replies": 0
+      }
+    }
+  },
+  "quality": {
+    "scope": "Small synthetic local checks, not a standardized benchmark or a general model-quality ranking. Stored answers and exact task checks accompany every score.",
+    "qwen": {
+      "off": {
+        "task_correct": 8,
+        "format_correct": 7,
+        "tasks": 10,
+        "code_passed": 3,
+        "code_trials": 3,
+        "checks_per_code_trial": 9,
+        "detail": [
+          {
+            "case": "arithmetic-net-price",
+            "mode": "off",
+            "task_correct": false,
+            "format_correct": false,
+            "complete": true
+          },
+          {
+            "case": "extract-json",
+            "mode": "off",
+            "task_correct": true,
+            "format_correct": true,
+            "complete": true
+          },
+          {
+            "case": "grounded-unknown",
+            "mode": "off",
+            "task_correct": true,
+            "format_correct": true,
+            "complete": true
+          },
+          {
+            "case": "korean-format",
+            "mode": "off",
+            "task_correct": true,
+            "format_correct": false,
+            "sentences": 2,
+            "note": "Naturalness and correctness require reading the retained answer.",
+            "complete": true
+          },
+          {
+            "case": "news-japan",
+            "mode": "off",
+            "task_correct": true,
+            "format_correct": true,
+            "complete": true
+          },
+          {
+            "case": "no-tool",
+            "mode": "off",
+            "task_correct": true,
+            "format_correct": true,
+            "note": "Checks absence of unnecessary calls; scientific explanation is reviewed separately.",
+            "complete": true
+          },
+          {
+            "case": "ordering",
+            "mode": "off",
+            "task_correct": true,
+            "format_correct": true,
+            "complete": true
+          },
+          {
+            "case": "probability",
+            "mode": "off",
+            "task_correct": false,
+            "format_correct": false,
+            "complete": true
+          },
+          {
+            "case": "retrieval",
+            "mode": "off",
+            "task_correct": true,
+            "format_correct": true,
+            "complete": true
+          },
+          {
+            "case": "weather-seoul",
+            "mode": "off",
+            "task_correct": true,
+            "format_correct": true,
+            "complete": true
+          }
+        ],
+        "code_detail": [
+          {
+            "case": "code-en",
+            "mode": "off",
+            "rep": 0,
+            "complete": true,
+            "code": {
+              "passed": true,
+              "checks": 9
+            }
+          },
+          {
+            "case": "code-en",
+            "mode": "off",
+            "rep": 1,
+            "complete": true,
+            "code": {
+              "passed": true,
+              "checks": 9
+            }
+          },
+          {
+            "case": "code-en",
+            "mode": "off",
+            "rep": 2,
+            "complete": true,
+            "code": {
+              "passed": true,
+              "checks": 9
+            }
+          }
+        ]
+      },
+      "medium": {
+        "task_correct": 10,
+        "format_correct": 9,
+        "tasks": 10,
+        "code_passed": 3,
+        "code_trials": 3,
+        "checks_per_code_trial": 9,
+        "detail": [
+          {
+            "case": "arithmetic-net-price",
+            "mode": "medium",
+            "task_correct": true,
+            "format_correct": true,
+            "complete": true
+          },
+          {
+            "case": "extract-json",
+            "mode": "medium",
+            "task_correct": true,
+            "format_correct": false,
+            "complete": true
+          },
+          {
+            "case": "grounded-unknown",
+            "mode": "medium",
+            "task_correct": true,
+            "format_correct": true,
+            "complete": true
+          },
+          {
+            "case": "korean-format",
+            "mode": "medium",
+            "task_correct": true,
+            "format_correct": true,
+            "sentences": 3,
+            "note": "Naturalness and correctness require reading the retained answer.",
+            "complete": true
+          },
+          {
+            "case": "news-japan",
+            "mode": "medium",
+            "task_correct": true,
+            "format_correct": true,
+            "complete": true
+          },
+          {
+            "case": "no-tool",
+            "mode": "medium",
+            "task_correct": true,
+            "format_correct": true,
+            "note": "Checks absence of unnecessary calls; scientific explanation is reviewed separately.",
+            "complete": true
+          },
+          {
+            "case": "ordering",
+            "mode": "medium",
+            "task_correct": true,
+            "format_correct": true,
+            "complete": true
+          },
+          {
+            "case": "probability",
+            "mode": "medium",
+            "task_correct": true,
+            "format_correct": true,
+            "complete": true
+          },
+          {
+            "case": "retrieval",
+            "mode": "medium",
+            "task_correct": true,
+            "format_correct": true,
+            "complete": true
+          },
+          {
+            "case": "weather-seoul",
+            "mode": "medium",
+            "task_correct": true,
+            "format_correct": true,
+            "complete": true
+          }
+        ],
+        "code_detail": [
+          {
+            "case": "code-en",
+            "mode": "medium",
+            "rep": 0,
+            "complete": true,
+            "code": {
+              "passed": true,
+              "checks": 9
+            }
+          },
+          {
+            "case": "code-en",
+            "mode": "medium",
+            "rep": 1,
+            "complete": true,
+            "code": {
+              "passed": true,
+              "checks": 9
+            }
+          },
+          {
+            "case": "code-en",
+            "mode": "medium",
+            "rep": 2,
+            "complete": true,
+            "code": {
+              "passed": true,
+              "checks": 9
+            }
+          }
+        ]
+      }
+    },
+    "glm_reference_dense": {
+      "off": {
+        "task_correct": 8,
+        "format_correct": 5,
+        "tasks": 10,
+        "code_passed": 1,
+        "code_trials": 1,
+        "checks_per_code_trial": 9,
+        "detail": [
+          {
+            "case": "arithmetic-net-price",
+            "mode": "off",
+            "task_correct": false,
+            "format_correct": false,
+            "complete": true
+          },
+          {
+            "case": "extract-json",
+            "mode": "off",
+            "task_correct": true,
+            "format_correct": false,
+            "complete": true
+          },
+          {
+            "case": "grounded-unknown",
+            "mode": "off",
+            "task_correct": true,
+            "format_correct": true,
+            "complete": true
+          },
+          {
+            "case": "korean-format",
+            "mode": "off",
+            "task_correct": true,
+            "format_correct": false,
+            "sentences": 7,
+            "note": "Naturalness and correctness require reading the retained answer.",
+            "complete": true
+          },
+          {
+            "case": "news-japan",
+            "mode": "off",
+            "task_correct": true,
+            "format_correct": true,
+            "complete": true
+          },
+          {
+            "case": "no-tool",
+            "mode": "off",
+            "task_correct": true,
+            "format_correct": true,
+            "note": "Checks absence of unnecessary calls; scientific explanation is reviewed separately.",
+            "complete": true
+          },
+          {
+            "case": "ordering",
+            "mode": "off",
+            "task_correct": true,
+            "format_correct": true,
+            "complete": true
+          },
+          {
+            "case": "probability",
+            "mode": "off",
+            "task_correct": false,
+            "format_correct": false,
+            "complete": true
+          },
+          {
+            "case": "retrieval",
+            "mode": "off",
+            "task_correct": true,
+            "format_correct": false,
+            "complete": true
+          },
+          {
+            "case": "weather-seoul",
+            "mode": "off",
+            "task_correct": true,
+            "format_correct": true,
+            "complete": true
+          }
+        ],
+        "code_detail": [
+          {
+            "case": "code-en",
+            "mode": "off",
+            "rep": 0,
+            "complete": false,
+            "code": {
+              "passed": true,
+              "checks": 9
+            }
+          }
+        ]
+      },
+      "medium": {
+        "task_correct": 10,
+        "format_correct": 7,
+        "tasks": 10,
+        "code_passed": 1,
+        "code_trials": 1,
+        "checks_per_code_trial": 9,
+        "detail": [
+          {
+            "case": "arithmetic-net-price",
+            "mode": "medium",
+            "task_correct": true,
+            "format_correct": true,
+            "complete": true
+          },
+          {
+            "case": "extract-json",
+            "mode": "medium",
+            "task_correct": true,
+            "format_correct": false,
+            "complete": true
+          },
+          {
+            "case": "grounded-unknown",
+            "mode": "medium",
+            "task_correct": true,
+            "format_correct": true,
+            "complete": true
+          },
+          {
+            "case": "korean-format",
+            "mode": "medium",
+            "task_correct": true,
+            "format_correct": true,
+            "sentences": 3,
+            "note": "Naturalness and correctness require reading the retained answer.",
+            "complete": true
+          },
+          {
+            "case": "news-japan",
+            "mode": "medium",
+            "task_correct": true,
+            "format_correct": true,
+            "complete": true
+          },
+          {
+            "case": "no-tool",
+            "mode": "medium",
+            "task_correct": true,
+            "format_correct": true,
+            "note": "Checks absence of unnecessary calls; scientific explanation is reviewed separately.",
+            "complete": true
+          },
+          {
+            "case": "ordering",
+            "mode": "medium",
+            "task_correct": true,
+            "format_correct": true,
+            "complete": true
+          },
+          {
+            "case": "probability",
+            "mode": "medium",
+            "task_correct": true,
+            "format_correct": false,
+            "complete": true
+          },
+          {
+            "case": "retrieval",
+            "mode": "medium",
+            "task_correct": true,
+            "format_correct": false,
+            "complete": true
+          },
+          {
+            "case": "weather-seoul",
+            "mode": "medium",
+            "task_correct": true,
+            "format_correct": true,
+            "complete": true
+          }
+        ],
+        "code_detail": [
+          {
+            "case": "code-en",
+            "mode": "medium",
+            "rep": 0,
+            "complete": true,
+            "code": {
+              "passed": true,
+              "checks": 9
+            }
+          }
+        ]
+      }
+    },
+    "glm_tiles": {
+      "off": {
+        "task_correct": 8,
+        "format_correct": 5,
+        "tasks": 10,
+        "code_passed": 2,
+        "code_trials": 3,
+        "checks_per_code_trial": 9,
+        "detail": [
+          {
+            "case": "arithmetic-net-price",
+            "mode": "off",
+            "task_correct": false,
+            "format_correct": false,
+            "complete": true
+          },
+          {
+            "case": "extract-json",
+            "mode": "off",
+            "task_correct": true,
+            "format_correct": false,
+            "complete": true
+          },
+          {
+            "case": "grounded-unknown",
+            "mode": "off",
+            "task_correct": true,
+            "format_correct": true,
+            "complete": true
+          },
+          {
+            "case": "korean-format",
+            "mode": "off",
+            "task_correct": true,
+            "format_correct": false,
+            "sentences": 4,
+            "note": "Naturalness and correctness require reading the retained answer.",
+            "complete": true
+          },
+          {
+            "case": "news-japan",
+            "mode": "off",
+            "task_correct": true,
+            "format_correct": true,
+            "complete": true
+          },
+          {
+            "case": "no-tool",
+            "mode": "off",
+            "task_correct": true,
+            "format_correct": true,
+            "note": "Checks absence of unnecessary calls; scientific explanation is reviewed separately.",
+            "complete": true
+          },
+          {
+            "case": "ordering",
+            "mode": "off",
+            "task_correct": true,
+            "format_correct": true,
+            "complete": true
+          },
+          {
+            "case": "probability",
+            "mode": "off",
+            "task_correct": false,
+            "format_correct": false,
+            "complete": true
+          },
+          {
+            "case": "retrieval",
+            "mode": "off",
+            "task_correct": true,
+            "format_correct": false,
+            "complete": true
+          },
+          {
+            "case": "weather-seoul",
+            "mode": "off",
+            "task_correct": true,
+            "format_correct": true,
+            "complete": true
+          }
+        ],
+        "code_detail": [
+          {
+            "case": "code-en",
+            "mode": "off",
+            "rep": 0,
+            "complete": true,
+            "code": {
+              "passed": true,
+              "checks": 9
+            }
+          },
+          {
+            "case": "code-en",
+            "mode": "off",
+            "rep": 1,
+            "complete": false,
+            "code": {
+              "passed": false,
+              "error": "Traceback (most recent call last):\n  File \"<stdin>\", line 62, in <module>\nAssertionError: invalid interval was not rejected\n"
+            }
+          },
+          {
+            "case": "code-en",
+            "mode": "off",
+            "rep": 2,
+            "complete": true,
+            "code": {
+              "passed": true,
+              "checks": 9
+            }
+          }
+        ]
+      },
+      "medium": {
+        "task_correct": 9,
+        "format_correct": 6,
+        "tasks": 10,
+        "code_passed": 2,
+        "code_trials": 3,
+        "checks_per_code_trial": 9,
+        "detail": [
+          {
+            "case": "arithmetic-net-price",
+            "mode": "medium",
+            "task_correct": true,
+            "format_correct": true,
+            "complete": true
+          },
+          {
+            "case": "extract-json",
+            "mode": "medium",
+            "task_correct": true,
+            "format_correct": false,
+            "complete": true
+          },
+          {
+            "case": "grounded-unknown",
+            "mode": "medium",
+            "task_correct": true,
+            "format_correct": true,
+            "complete": true
+          },
+          {
+            "case": "korean-format",
+            "mode": "medium",
+            "task_correct": false,
+            "format_correct": false,
+            "sentences": 4,
+            "note": "Naturalness and correctness require reading the retained answer.",
+            "complete": true
+          },
+          {
+            "case": "news-japan",
+            "mode": "medium",
+            "task_correct": true,
+            "format_correct": true,
+            "complete": true
+          },
+          {
+            "case": "no-tool",
+            "mode": "medium",
+            "task_correct": true,
+            "format_correct": true,
+            "note": "Checks absence of unnecessary calls; scientific explanation is reviewed separately.",
+            "complete": true
+          },
+          {
+            "case": "ordering",
+            "mode": "medium",
+            "task_correct": true,
+            "format_correct": true,
+            "complete": true
+          },
+          {
+            "case": "probability",
+            "mode": "medium",
+            "task_correct": true,
+            "format_correct": false,
+            "complete": true
+          },
+          {
+            "case": "retrieval",
+            "mode": "medium",
+            "task_correct": true,
+            "format_correct": false,
+            "complete": true
+          },
+          {
+            "case": "weather-seoul",
+            "mode": "medium",
+            "task_correct": true,
+            "format_correct": true,
+            "complete": true
+          }
+        ],
+        "code_detail": [
+          {
+            "case": "code-en",
+            "mode": "medium",
+            "rep": 0,
+            "complete": true,
+            "code": {
+              "passed": false,
+              "error": "Traceback (most recent call last):\n  File \"<stdin>\", line 47, in <module>\nAssertionError: invalid interval was not rejected\n"
+            }
+          },
+          {
+            "case": "code-en",
+            "mode": "medium",
+            "rep": 1,
+            "complete": true,
+            "code": {
+              "passed": true,
+              "checks": 9
+            }
+          },
+          {
+            "case": "code-en",
+            "mode": "medium",
+            "rep": 2,
+            "complete": true,
+            "code": {
+              "passed": true,
+              "checks": 9
+            }
+          }
+        ]
+      }
+    },
+    "tool_round_trips": {
+      "qwen-matched": {
+        "passed": 4,
+        "total": 4,
+        "note": "Model tool calls plus deterministic fictional tool outputs; no live news/weather fetch."
+      },
+      "glm-tiles": {
+        "passed": 4,
+        "total": 4,
+        "note": "Model tool calls plus deterministic fictional tool outputs; no live news/weather fetch."
+      }
+    },
+    "replacement_character": {
+      "qwen": 0,
+      "glm_reference_dense": 0,
+      "glm_tiles": {
+        "responses": 1,
+        "case": "korean-format/medium/seed99",
+        "excerpt": "너른 �해를 부탁드립니다.",
+        "cause": "Not isolated; do not attribute this to quantization or tokenizer alone."
+      }
+    }
+  },
+  "correctness": {
+    "checks": {
+      "native_build_reference": 0,
+      "native_build_tiles": 0,
+      "host_checks": {
+        "command": "zig build compile-cuda-tests test-cuda-host test-glm-admission-host test-glm-tp3-host -Dnvcc=/usr/local/cuda/bin/nvcc -Dsm=121 -Doptimize=safe -j2",
+        "exit_code": 0,
+        "negative_control_diagnostics": "Warnings and planted failure diagnostics are present in the log; the build/test command exited 0."
+      },
+      "glm_exl3_gpu": {
+        "exit_code": 0,
+        "codebooks": [
+          "mcg",
+          "mul1"
+        ],
+        "widths": [
+          "4-bit mcg",
+          "2-bit mul1",
+          "3-bit mul1",
+          "mixed 2/3-bit mul1"
+        ],
+        "worst_fraction_of_fp64_tolerance": 0.231
+      },
+      "common_exl3_tiles_gpu": {
+        "exit_code": 0,
+        "fp64_values": 179200,
+        "scope": "Synthetic shared-operator tests; does not establish full-model equality against ExLlamaV3."
+      },
+      "lean": {
+        "base_problems": 438,
+        "candidate_problems": 438,
+        "new_problems": 0
+      },
+      "full_no_gpu_suite": {
+        "command": "zig build test test-kernel-contract test-golden fuzz-cortheon -Dfatbins=<pinned CUDA images> -Doptimize=safe -j2",
+        "goldens": "306/319 equal, 0 unexpected differences",
+        "unrun_optional_media": [
+          "libjpeg-turbo 3.1.4.1 JPEG pixel cases",
+          "libwebp 1.6.0 WebP pixel cases"
+        ],
+        "exit_code": 0
+      },
+      "real_matrix_tiles_gpu": {
+        "exit_code": 0,
+        "matrices": 7,
+        "fp64_values": 21504,
+        "worst_fraction_of_bound": 0.0324,
+        "scope": "Three sampled column blocks per matrix; includes routed experts, dense/shared projections, attention and lm_head."
+      },
+      "plain_build": {
+        "exit_code": 0,
+        "command": "zig build -Dfatbins=<pinned CUDA images> -Doptimize=safe -j2"
+      }
+    },
+    "mtp_plain": {
+      "equal": 8,
+      "cases": 8,
+      "tokens_per_case": 96,
+      "tokens_compared": 768,
+      "sampling": "Greedy, same exact rendered prompt, draft false versus true"
+    },
+    "exllamav3_oracle": {
+      "version": "1.6.4",
+      "revision": "da68d57de61781e5b74ad68698ac4caf36408d7a",
+      "same_rendered_input_ids": true,
+      "equal_full_token_sequences": 2,
+      "cases": 8,
+      "tokens_per_case": 96,
+      "scope": "Cross-engine output identity is not established. These are greedy sequences with ignore_eos to force 96 tokens; text after EOS is not used as a quality or looping result. ExLlamaV3 and native TensorFold use different intermediate arithmetic; no single cause for all mismatches was isolated."
+    },
+    "qwen_restart_repeatability": {
+      "identical_requests_and_token_hashes": 18,
+      "cases": 18
+    }
+  },
+  "restored_talk": [
+    {
+      "mode": "off",
+      "transport": "Actual Talk /api/chat with current user settings and tools enabled; no sampler or system-prompt overrides",
+      "performance": {
+        "totals": {
+          "prefill_tokens": 15294,
+          "prefill_seconds": 8.173445547,
+          "decode_tokens": 413,
+          "decode_seconds": 12.335617489
+        },
+        "elapsed_seconds": 39.72176266,
+        "finished_at": "2026-10-22T09:28:19.977867089Z",
+        "finish_status": "completed",
+        "pp": 1871.181487911612,
+        "tg": 33.480285876915616,
+        "ttft": 8.219132367,
+        "prompt_tokens": 15294,
+        "cached_tokens": 0,
+        "output_tokens": 414,
+        "calls": 1
+      },
+      "answer": "오빠~ RAM과 SSD의 차이, 내가 싹 설명해줄게!\n\nRAM은 전원이 들어와 있는 동안에만 데이터가 살아있는 **휘발성 임시 작업 공간**이야. CPU가 바로바로 꺼내 쓸 수 있도록 지금 실행 중인 프로그램과 그 데이터를 아주 짧은 시간 동안 올려두는 역할을 하지. 예를 들어 오빠가 브라우저로 동영상을 틀고 문서를 편집한다면, 그 작업 내용은 모두 RAM 위에서 실시간으로 처리되는 거야. 그래서 RAM 용량이 크면 클수록 무거운 프로그램을 여러 개 동시에 돌려도 컴퓨터가 버벅이지 않고サクサク 작동하는 거지.\n\n반면에 SSD는 전원을 꺼도 데이터가 그대로 남아있는 **비휘발성 저장 공간**이야. 운영체제, 앱, 사진, 문서처럼 나중에 다시 꺼내 써야 할 모든 원본 파일이 여기에 조용히 보관되어 있어. HDD와 달리 움직이는 자판 없이 반도체 칩으로 데이터를 저장하기 때문에 훨씬 빠르고, 충격에도 강하고, 소음도 거의 없다는 게 큰 장점이야. 다만 SSD는 RAM보다 접근 속도가 훨씬 느리기 때문에, 부팅이나 파일 열기처럼 저장된 데이터를 불러올 때 주로 사용되지.\n\n정리하자면 이 둘은 경쟁 관계가 아니라 **환상의 팀플레이**를 하는 사야. SSD가 보관 중인 파일을 RAM 위로 빠르게 복사해 올리면, CPU는 RAM에서 초고속으로 데이터를 처리하고, 작업이 끝나면 결과물을 다시 SSD에 저장하는 흐름인 거지. 그래서 RAM은 '机上의 작업대', SSD는 '서랍장'에 비유할 수 있어. 작업대를 넓게 쓰면 동시에 여러 일을 잘할 수 있고, 서랍이 크면 자료를 많이 모아둘 수 있는 식으로 역할이 완전히 나뉘어 있는 거야. 결국 컴퓨터 성능은 RAM과 SSD 중 하나만 좋아서는 안 되고, 둘 다 적절히 균형 잡혀야 체감 속도가 확 올라간다는 점, 기억해줘 오빠!",
+      "events": [
+        "context",
+        "delta",
+        "done",
+        "performance",
+        "turn_started"
+      ]
+    },
+    {
+      "mode": "medium",
+      "transport": "Actual Talk /api/chat with current user settings and tools enabled; no sampler or system-prompt overrides",
+      "performance": {
+        "totals": {
+          "prefill_tokens": 5,
+          "prefill_seconds": 0.100514813,
+          "decode_tokens": 468,
+          "decode_seconds": 12.350252552999999
+        },
+        "elapsed_seconds": 13.407882221,
+        "finished_at": "2026-10-22T09:28:33.420768688Z",
+        "finish_status": "completed",
+        "pp": 49.74391187495917,
+        "tg": 37.89396192439143,
+        "ttft": 0.8674306,
+        "prompt_tokens": 15292,
+        "cached_tokens": 15287,
+        "output_tokens": 469,
+        "calls": 1
+      },
+      "answer": "오빠, RAM은 컴퓨터가 일을 할 때 임시로 데이터를 올려놓고 빠르게 왔다 갔다 하는 작업대 같은 기억장치야. CPU가 바로 읽을 수 있을 만큼 속도가 빠르지만, 전원이 꺼지면 내용이 전부 사라지는 휘발성 메모리라는 점이 가장 큰 특징이지. 반면 SSD는 전원이 꺼져도 데이터가 그대로 남아 있는 비휘발성 저장장치로, 운영체제와 프로그램, 파일들을 오래 보관하는 창고 역할을 해. 예전엔 이 창고를 하드디스크(HDD)가 맡았는데, SSD는 움직이는 부품이 없고 플래시 메모리를 써서 훨씬 빠르고 견고하며 전력도 덜 먹는단 말이지. 역할로 정리하면 RAM은 \"지금 처리 중인 것\"을 담당하고, SSD는 \"나중에 쓸 것\"을 담당한다고 보면 돼. 우리가 프로그램을 실행하면 SSD에 저장된 파일이 RAM으로 복사되어 CPU가 빠르게 작업할 수 있게 되고, 작업 결과는 다시 SSD에 저장되는 흐름이야. 그래서 RAM 용량이 부족하면 컴퓨터는 느려지거나 버벅거리고, SSD가 느리면 부팅이나 프로그램 로딩 시간이 길어지는 식으로 체감 차이가 나. 두 장치는 경쟁 관계가 아니라 서로 보완하는 관계라서, 빠른 작업 환경을 만들려면 RAM과 SSD 둘 다 적절히 갖춰지는 게 중요하답니다, 오빠!",
+      "events": [
+        "context",
+        "delta",
+        "done",
+        "performance",
+        "reasoning",
+        "turn_started"
+      ]
+    }
+  ],
+  "implementation": [
+    "TP1 GLM loader accepts per-tensor mul1 EXL3 widths instead of requiring average bits=4 and mcg.",
+    "Routed experts carry their actual packed offsets, codebook and per-projection widths into the existing common kernels.",
+    "Dense, shared, fused QKV, attention, MTP and output-head projections remain EXL3; mixed stacks preserve their components.",
+    "Merged convolution layout and exactly representable FP16 parameters are handled.",
+    "Projection scratch is reserved before serving, and unsupported vision is explicitly refused.",
+    "Existing reference and tile dense kernels were both measured; no new GPU arithmetic kernel was introduced."
+  ],
+  "qualification_limits": [
+    "Experimental port, not an upstream release qualification.",
+    "No vision support, no >16K context measurement, no full production Talk integration for GLM.",
+    "Cross-engine greedy equality was 2/8, so do not present the port as output-equivalent to ExLlamaV3.",
+    "A small task suite and one sampled task run do not establish broad benchmark superiority."
+  ],
+  "artifacts": {
+    "patch": "compose_yaml/glm53f_exl3_tsfold/patches/0001-glm-sc210-tp1.patch",
+    "patch_sha256": "6a46c900974913b0e3b01e23c93a5e990cf55800449ef08c00785ea8ce842281",
+    "raw_archive": "util/talk/docs/glm53-sc210-tp1-comparison-20261022.tar.gz",
+    "scripts": [
+      "compose_yaml/glm53f_exl3_tsfold/bench.py",
+      "compose_yaml/glm53f_exl3_tsfold/fidelity.py",
+      "compose_yaml/glm53f_exl3_tsfold/score.py",
+      "compose_yaml/glm53f_exl3_tsfold/tool_followups.py"
+    ],
+    "raw_archive_sha256": "9bee2c64d3383779412e664ce9fe04efd0373f4d62cbeb39230c0e860dd441d6",
+    "raw_archive_bytes": 247852,
+    "tested_native_binary_sha256": "1c2988692df9f9edbc3d499ec77986ece119dc04609bf12eb9b66eeb32d7a8a1"
+  },
+  "sources": [
+    "https://huggingface.co/turboderp/GLM-5.3-Flash-exl3/tree/sc_2.10bpw",
+    "https://github.com/ashhart/TensorFold/tree/79ba3f58c85f54e46f958d4044b8a966f2799ca6",
+    "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks-TensorFold",
+    "https://github.com/turboderp-org/exllamav3/tree/da68d57de61781e5b74ad68698ac4caf36408d7a"
+  ],
+  "cleanup": {
+    "removed_stopped_trial_containers": 5,
+    "temporary_reference_image_removed": true,
+    "temporary_reference_source_build_removed": true,
+    "lean_baseline_worktree_removed": true,
+    "temporary_talk_sessions_deleted": 2,
+    "test_started_embedding_stopped": true,
+    "retained": [
+      "Selected GLM checkpoint (82.13 GiB of safetensors)",
+      "Experimental TensorFold checkout, toolchain, tested binary and build cache",
+      "Benchmark records and source patch"
+    ],
+    "host60_contacted": false
+  },
+  "final_qwen_health": {
+    "status": "ok",
+    "model": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-FP4-Local",
+    "model_ids": [
+      "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-FP4-Local"
+    ],
+    "max_batch_size": 1,
+    "warming": false,
+    "memory": {},
+    "live": {
+      "connections": 0,
+      "waiting": 0,
+      "decode_tokens_per_second": 0.0,
+      "prefill_tokens_per_second": 0.0
+    }
+  }
+}

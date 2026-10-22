@@ -1,0 +1,416 @@
+{
+  "date": "2026-10-22T04:07:47.481439+09:00",
+  "task": "Assess TensorFold 1.1.1 upgrade for current Qwen3.8 Flash Next FP4-Local; do not replace running service",
+  "release": {
+    "version": "1.1.1",
+    "tag_commit": "b10231b94f8adf3d4132acebdc0a1ac87e53a838",
+    "source_archive_sha256": "4639fb2788b6f609124a9eb2e6793e0c4bce11a9543faea72a1d4eb0ce54ba55"
+  },
+  "current": {
+    "base_commit": "db281878ddb836fd0df510d8771ecb7e0fe47d26",
+    "image": "local/sparktalk-qwen38-fp4-tensorfold:db281878-ko2",
+    "python_metadata_version": "0.6.5",
+    "engine": "custom native Zig CUDA with 17 patches; Python metadata is not its complete engine identity",
+    "context": 1048576,
+    "kv_cache": "fp8",
+    "mtp_depth": 4,
+    "draft_vocabulary": 86232,
+    "temperature_in_Talk": 0.7,
+    "top_k": 20,
+    "top_p": 0.95,
+    "prefill_rows": 2048
+  },
+  "verdict": {
+    "direct_version_ref_change": "NOT COMPATIBLE",
+    "production_replacement": "Keep current deployment; a full replacement requires explicit porting and matched validation.",
+    "pp_tg_improvement": "Not measured and not established for the current exact FP4-Local checkpoint. The release Qwen DFlash improvements target qwen3_5/qwen27, not Flash Next CUDA.",
+    "recommended_scope": "Prefer selected transferable fixes first; evaluate a separately built candidate only after retaining current FP4 formats, 1M/FP8 KV, Korean draft vocabulary, MTP settings, vision and structured output."
+  },
+  "confirmed_differences": [
+    {
+      "item": "Context",
+      "current": 1048576,
+      "release": 262144,
+      "source": "zig/src/families/flashnext/cuda_prompt_wt.zig window; cuda_lanes_load.zig rejects ContextOverWindow"
+    },
+    {
+      "item": "FP8 KV",
+      "current": "supported and configured",
+      "release": "Flash Next CUDA Options has no kv8; native/cuda_refusal.zig rejects FP8 KV for this family"
+    },
+    {
+      "item": "Build inputs",
+      "release": "src/tensorfold, tools/zig/flashnext_aot.py, kernels.json and jit.json used by current Dockerfile are absent"
+    },
+    {
+      "item": "MTP controls",
+      "current": "TF_FLASHNEXT_DEPTH=4; product-stream behavior from custom engine",
+      "release": "TF_FLASHNEXT_DRAFTS default 6 and TF_FLASHNEXT_CONFIDENCE default 0.60; old variables do not configure the new family"
+    },
+    {
+      "item": "Draft vocabulary",
+      "current": 86232,
+      "release": 79591,
+      "current_extra_tokens_absent_from_release": 6641,
+      "release_tokens_not_in_current": 0
+    },
+    {
+      "item": "FP4 formats",
+      "release": "Experimental ModelOpt NVFP4 routed/CSF experts and MXFP8 projection loaders exist. Release notes say general FP4-Local full loading remains separate; do not equate foundations with qualification of this checkpoint."
+    },
+    {
+      "item": "Vision",
+      "current": "Python vision helper plus custom mixed-format loader",
+      "release": "Native CUDA vision experimental in recipe; exact local NVFP4/MXFP8 vision and MTP require separate checks."
+    }
+  ],
+  "potential_benefits": [
+    "Tokenizer memo for repeated long text segments (CPU preparation / TTFT)",
+    "Prompt-cache retention for retries, edited replies and branches (avoid repeated prefill)",
+    "Accepted-connection TCP_NODELAY",
+    "Pre-token SSE keepalive and graceful draining",
+    "Request-owned timing/seed diagnostics",
+    "Separate research: checkpoint-precision FP4/FP8 MMA; not validated on current checkpoint"
+  ],
+  "patch_checks": {
+    "method": "Each patch checked independently against unmodified v1.1.1 source with git apply --check. Later patches normally depend on earlier ones. Failures include already-upstream files, renamed/deleted paths and changed contexts; counts are not the number of required manual rewrites.",
+    "results": [
+      {
+        "patch": "0001-build-registry-server.patch",
+        "applies_cleanly_to_1_1_1": false,
+        "diagnostics": [
+          "error: tests/test_native_contract.py: No such file or directory",
+          "error: patch failed: zig/build/cuda.zig:25",
+          "error: zig/build/cuda.zig: patch does not apply",
+          "error: patch failed: zig/src/cli/cuda_main.zig:8",
+          "error: zig/src/cli/cuda_main.zig: patch does not apply",
+          "error: patch failed: zig/src/core/engine_api.zig:39",
+          "error: zig/src/core/engine_api.zig: patch does not apply"
+        ],
+        "total_diagnostic_lines": 37
+      },
+      {
+        "patch": "0002-kernels.patch",
+        "applies_cleanly_to_1_1_1": false,
+        "diagnostics": [
+          "error: zig/tests/cuda/copies.py: No such file or directory"
+        ],
+        "total_diagnostic_lines": 1
+      },
+      {
+        "patch": "0003-config-weights.patch",
+        "applies_cleanly_to_1_1_1": false,
+        "diagnostics": [
+          "error: patch failed: zig/src/core/safetensors.zig:17",
+          "error: zig/src/core/safetensors.zig: patch does not apply",
+          "error: zig/src/families/flashnext/cuda_config.zig: already exists in working directory"
+        ],
+        "total_diagnostic_lines": 3
+      },
+      {
+        "patch": "0004-triton-replay-torch-ops.patch",
+        "applies_cleanly_to_1_1_1": true,
+        "diagnostics": [],
+        "total_diagnostic_lines": 0
+      },
+      {
+        "patch": "0005-engine.patch",
+        "applies_cleanly_to_1_1_1": false,
+        "diagnostics": [
+          "error: zig/src/families/flashnext/cuda_mtp.zig: already exists in working directory",
+          "error: zig/src/families/flashnext/cuda_prompt.zig: already exists in working directory"
+        ],
+        "total_diagnostic_lines": 2
+      },
+      {
+        "patch": "0006-two-ranks.patch",
+        "applies_cleanly_to_1_1_1": false,
+        "diagnostics": [
+          "error: patch failed: zig/src/cuda/nccl.zig:21",
+          "error: zig/src/cuda/nccl.zig: patch does not apply",
+          "error: zig/src/cuda/roce.zig: already exists in working directory",
+          "error: patch failed: zig/src/cuda/root.zig:17",
+          "error: zig/src/cuda/root.zig: patch does not apply"
+        ],
+        "total_diagnostic_lines": 5
+      },
+      {
+        "patch": "0007-serving.patch",
+        "applies_cleanly_to_1_1_1": false,
+        "diagnostics": [
+          "error: patch failed: zig/src/core/lane_host.zig:81",
+          "error: zig/src/core/lane_host.zig: patch does not apply",
+          "error: patch failed: zig/src/core/lane_host_reuse_test.zig:197",
+          "error: zig/src/core/lane_host_reuse_test.zig: patch does not apply",
+          "error: patch failed: zig/src/core/lanes/backend.zig:4",
+          "error: zig/src/core/lanes/backend.zig: patch does not apply",
+          "error: patch failed: zig/src/core/lanes/config.zig:29"
+        ],
+        "total_diagnostic_lines": 21
+      },
+      {
+        "patch": "0008-kernel-spec-tools.patch",
+        "applies_cleanly_to_1_1_1": false,
+        "diagnostics": [
+          "error: src/tensorfold/families/qwen4_exp/cuda/forward.py: No such file or directory",
+          "error: zig/tests/cuda/flashnext/capture.py: already exists in working directory"
+        ],
+        "total_diagnostic_lines": 2
+      },
+      {
+        "patch": "0009-vision-python.patch",
+        "applies_cleanly_to_1_1_1": false,
+        "diagnostics": [
+          "error: src/tensorfold/cli.py: No such file or directory",
+          "error: src/tensorfold/cli_args.py: No such file or directory",
+          "error: src/tensorfold/cuda/capacity.py: No such file or directory",
+          "error: src/tensorfold/cuda/server.py: No such file or directory",
+          "error: src/tensorfold/families/qwen4_exp/__init__.py: No such file or directory",
+          "error: src/tensorfold/families/qwen4_exp/cuda/engine.py: No such file or directory",
+          "error: src/tensorfold/families/qwen4_exp/cuda/kvcache.py: No such file or directory"
+        ],
+        "total_diagnostic_lines": 10
+      },
+      {
+        "patch": "0010-system-memory-cache.patch",
+        "applies_cleanly_to_1_1_1": false,
+        "diagnostics": [
+          "error: patch failed: zig/src/cuda/memory.zig:9",
+          "error: zig/src/cuda/memory.zig: patch does not apply",
+          "error: patch failed: zig/src/cuda/root.zig:4",
+          "error: zig/src/cuda/root.zig: patch does not apply",
+          "error: zig/src/families/flashnext/cuda_engine.zig: No such file or directory",
+          "error: zig/src/families/flashnext/cuda_forward.zig: No such file or directory",
+          "error: zig/src/families/flashnext/cuda_state.zig: No such file or directory"
+        ],
+        "total_diagnostic_lines": 8
+      },
+      {
+        "patch": "0011-vision-nvidia-fp4.patch",
+        "applies_cleanly_to_1_1_1": false,
+        "diagnostics": [
+          "error: src/tensorfold/families/qwen4_exp/__init__.py: No such file or directory",
+          "error: src/tensorfold/vision/qwen_checkpoint.py: No such file or directory",
+          "error: src/tensorfold/vision/qwen_cuda.py: No such file or directory"
+        ],
+        "total_diagnostic_lines": 3
+      },
+      {
+        "patch": "0012-engine-nvidia-fp4.patch",
+        "applies_cleanly_to_1_1_1": false,
+        "diagnostics": [
+          "error: tools/zig/flashnext_qmmf_ld.py: No such file or directory",
+          "error: patch failed: zig/build/cuda.zig:40",
+          "error: zig/build/cuda.zig: patch does not apply",
+          "error: zig/kernels/cuda/fn_qmmf.cu: No such file or directory",
+          "error: zig/kernels/cuda/fn_qmmf_ld.cu: No such file or directory",
+          "error: zig/src/cli/flashnext_cuda.zig: No such file or directory",
+          "error: patch failed: zig/src/cuda/kernels.zig:41"
+        ],
+        "total_diagnostic_lines": 17
+      },
+      {
+        "patch": "0013-engine-tune.patch",
+        "applies_cleanly_to_1_1_1": false,
+        "diagnostics": [
+          "error: patch failed: zig/src/core/lane_host.zig:37",
+          "error: zig/src/core/lane_host.zig: patch does not apply",
+          "error: patch failed: zig/src/core/prompt_cache.zig:39",
+          "error: zig/src/core/prompt_cache.zig: patch does not apply",
+          "error: patch failed: zig/src/core/prompt_cache_test.zig:370",
+          "error: zig/src/core/prompt_cache_test.zig: patch does not apply",
+          "error: patch failed: zig/src/families/flashnext/cuda_lanes.zig:119"
+        ],
+        "total_diagnostic_lines": 11
+      },
+      {
+        "patch": "0014-engine-prompt-expert-tile.patch",
+        "applies_cleanly_to_1_1_1": false,
+        "diagnostics": [
+          "error: patch failed: zig/build/cuda.zig:37",
+          "error: zig/build/cuda.zig: patch does not apply",
+          "error: zig/src/cli/flashnext_cuda.zig: No such file or directory",
+          "error: patch failed: zig/src/cuda/kernels.zig:39",
+          "error: zig/src/cuda/kernels.zig: patch does not apply",
+          "error: zig/src/families/flashnext/cuda.zig: No such file or directory",
+          "error: zig/src/families/flashnext/cuda_engine.zig: No such file or directory"
+        ],
+        "total_diagnostic_lines": 8
+      },
+      {
+        "patch": "0015-engine-fair-prefill.patch",
+        "applies_cleanly_to_1_1_1": false,
+        "diagnostics": [
+          "error: zig/src/families/flashnext/cuda_engine.zig: No such file or directory",
+          "error: patch failed: zig/src/families/flashnext/cuda_lanes.zig:87",
+          "error: zig/src/families/flashnext/cuda_lanes.zig: patch does not apply",
+          "error: zig/src/families/flashnext/cuda_native.zig: No such file or directory"
+        ],
+        "total_diagnostic_lines": 4
+      },
+      {
+        "patch": "0016-korean-vocab.patch",
+        "applies_cleanly_to_1_1_1": false,
+        "diagnostics": [
+          "error: zig/src/families/flashnext/cuda_weights.zig: No such file or directory"
+        ],
+        "total_diagnostic_lines": 1
+      },
+      {
+        "patch": "0017-structured-output.patch",
+        "applies_cleanly_to_1_1_1": false,
+        "diagnostics": [
+          "error: patch failed: zig/src/core/engine_api.zig:41",
+          "error: zig/src/core/engine_api.zig: patch does not apply",
+          "error: patch failed: zig/src/core/lane_host.zig:337",
+          "error: zig/src/core/lane_host.zig: patch does not apply",
+          "error: patch failed: zig/src/core/lanes/lanes.zig:14",
+          "error: zig/src/core/lanes/lanes.zig: patch does not apply",
+          "error: patch failed: zig/src/core/lanes/stream.zig:7"
+        ],
+        "total_diagnostic_lines": 17
+      }
+    ]
+  },
+  "validation_scope": "All cumulative v1.1.1 CHANGELOG sections after 0.6.5 screened, separate 0.6.6 release checked, commit subjects inventoried, current 17-patch source reconstructed, selected relevant source compared. Not every commit implementation audited. No image build, weight loading, GPU inference or PP/TG comparison.",
+  "production_changes": false,
+  "sources": [
+    "https://github.com/ashhart/TensorFold/releases/tag/v1.1.1",
+    "https://github.com/ashhart/TensorFold/blob/v1.1.1/CHANGELOG.md",
+    "https://github.com/ashhart/TensorFold/blob/v1.1.1/docs/recipes/flash-next-cuda.md",
+    "https://github.com/ashhart/TensorFold/blob/v1.1.1/zig/src/families/flashnext/cuda_lanes_load.zig",
+    "https://github.com/ashhart/TensorFold/blob/v1.1.1/zig/src/native/cuda_refusal.zig",
+    "compose_yaml/qwen38_fn_fp4_local_tsfold/Dockerfile",
+    "https://github.com/ashhart/TensorFold/releases/tag/v0.6.6"
+  ],
+  "cumulative_review": {
+    "reviewed_at": "2026-10-22T04:21:45.814083+09:00",
+    "earlier_answer_scope": "The earlier answer covered 1.1.1 and selected 1.1.0 changes, not the whole cumulative range.",
+    "coverage": {
+      "changelog_sections_after_0_6_5": {
+        "1.1.1": 36,
+        "1.1.0": 97,
+        "1.0.12": 97,
+        "1.0.11": 18,
+        "1.0.10": 15,
+        "1.0.9": 40,
+        "1.0.8": 48,
+        "1.0.7": 4,
+        "1.0.6": 20,
+        "1.0.5": 54,
+        "1.0.4": 2,
+        "1.0.3": 26,
+        "1.0.2": 5,
+        "1.0.1": 1,
+        "1.0.0": 10
+      },
+      "bullet_entries_screened": 473,
+      "caveat": "Release bullets include held work and known issues, not only shipped changes. Every entry was screened for relevance; relevant entries and selected source paths were examined in detail. This is not a line-by-line audit of every commit.",
+      "separate_0_6_6_release": {
+        "commit": "cb2ebf0540f42604e2759b2ddef497861e928248",
+        "feature": "Python CUDA server --name-priority for background aliases",
+        "checked": true,
+        "ancestor_of_current_base": false,
+        "note": "Separate legacy release; missing from the cumulative 1.1.1 CHANGELOG headings. Native request priority already exists in the current custom source; this release alone is not a throughput improvement."
+      },
+      "commit_records_current_base_to_1_1_1": 3174,
+      "commit_count_caveat": "Includes merges and branch ancestry; inventoried subjects, not 3174 individually audited implementations.",
+      "commits_v0_6_5_to_current_base": 253,
+      "current_reconstruction": "Downloaded exact db281878 source and successfully applied all 17 local patches in lexical order. Compared selected resulting source paths against exact v1.1.1 source."
+    },
+    "candidates": [
+      {
+        "item": "Tokenizer long-piece memo",
+        "release": "1.0.9",
+        "current_status": "Absent from reconstructed tokenizer and server",
+        "latest_sources": [
+          "zig/src/core/tokenizer/memo.zig",
+          "zig/src/core/tokenizer/tokenizer.zig",
+          "zig/src/server/hf_text.zig"
+        ],
+        "decision": "Add to selected backport candidates",
+        "effect": "Avoid repeated CPU tokenization of long chat/tool text; may reduce request preparation/TTFT. Does not itself increase GPU PP/TG. Latest server bounds memo at 64 MiB.",
+        "validation_needed": "Token IDs must match fresh encoding, including segment-first handling, special tokens, concurrent use and bounded memory."
+      },
+      {
+        "item": "Prompt-cache branch retention and turn-history lifetime",
+        "release": [
+          "1.0.9",
+          "1.0.10"
+        ],
+        "current_status": "Current cache has custom repeat_min/seen_keys and shared cuts, but no branched field; old victimBut preferentially evicts extended histories. Latest branch-point/lifetime policy differs.",
+        "latest_sources": [
+          "zig/src/core/prompt_cache.zig",
+          "zig/src/core/prompt_cache_branch_test.zig",
+          "zig/src/core/prompt_cache_lifetime_test.zig"
+        ],
+        "decision": "Candidate for careful logic backport, not wholesale cache replacement",
+        "effect": "Can avoid re-prefill on retries/edits/forks when cache is under pressure; not a demonstrated cold PP or steady-state TG gain.",
+        "validation_needed": "Retain current FP8/1M family snapshots, custom repeated-prompt policy and memory accounting; compare resumed-token counts and cache-off-equivalent output."
+      },
+      {
+        "item": "Accepted HTTP TCP_NODELAY",
+        "release": "1.1.0",
+        "current_status": "Absent from current server/listener.zig; rank transport socket tuning is separate.",
+        "decision": "Keep selected backport candidate",
+        "effect": "Streaming transport latency; no demonstrated GPU throughput gain."
+      },
+      {
+        "item": "Pre-token SSE keepalive and graceful draining",
+        "release": "1.1.1",
+        "current_status": "No TF_SSE_KEEPALIVE_S or TF_DRAIN_S in reconstructed source",
+        "decision": "Keep selected backport candidates",
+        "effect": "Connection stability and controlled shutdown, not GPU PP/TG."
+      },
+      {
+        "item": "Request-owned queue/decode/elapsed timing and seed logs",
+        "release": "1.1.1",
+        "current_status": "Current Talk already separates PP/TG; newer per-request logging is an observability candidate.",
+        "decision": "Keep selected backport candidate without redefining current speed metrics",
+        "effect": "Diagnosis and attribution, not measured acceleration."
+      },
+      {
+        "item": "Checkpoint-precision hardware FP4/FP8 activation MMA",
+        "release": "1.0.12",
+        "current_status": "Current FlashNext uses custom ModelOpt kernels; the cited --precision checkpoint/full result is for Super VL/Nemotron, not this model.",
+        "decision": "Separate development/benchmark candidate; not a safe automatic backport or proof of current-model speedup.",
+        "effect": "Possible GPU prefill acceleration requires adapting exact mixed-format layers and validating quality; activation math changes. Published decode in that example is slower in checkpoint mode.",
+        "validation_needed": "Matched Talk sampler/context/MTP, PP/TG/TTFT and output-quality comparison on this exact checkpoint; retain baseline."
+      },
+      {
+        "item": "Shared add_rms_h and Nemotron expert prompt kernel micro-optimizations",
+        "release": [
+          "1.0.10",
+          "1.0.12"
+        ],
+        "current_status": "Current FlashNext source does not call add_rms_h; current routed-expert prompt path uses custom fn_experts_prompt/fn_experts_tile kernels.",
+        "decision": "Research references only; no direct same-operator drop-in or proven gain."
+      },
+      {
+        "item": "Linear template namespace accumulation",
+        "release": "1.1.0",
+        "current_status": "Current template uses namespace integer counters/flags, not growing namespace strings.",
+        "decision": "Remove from current-model priority candidates; generic correctness/performance option only."
+      },
+      {
+        "item": "DFlash and MLX/Metal benchmark improvements",
+        "current_status": "Different family, quantization or backend from current FlashNext FP4 CUDA",
+        "decision": "Do not transfer their speed claims to the running model."
+      },
+      {
+        "item": "First-token-before-drafting and fair prefill",
+        "current_status": "Current custom engine already has corresponding scheduling paths; release wrapper flags/API differ.",
+        "decision": "Do not count as newly available speedup without a concrete missing-path comparison."
+      }
+    ],
+    "corrected_conclusion": "Earlier four server-side items were not an exhaustive candidate list. Add tokenizer memo and prompt-cache branch/lifetime policy. GPU kernel/activation work remains a separate engineering experiment; no current-model PP/TG gain has been measured.",
+    "applied": false,
+    "gpu_benchmark_performed": false,
+    "operating_service_modified": false,
+    "review_input_hashes": {
+      "release_items_sha256": "59a3ad61627418d7eca5bc94834a1f2a307599eb83b15a351e7655fe2722176d",
+      "commit_subject_inventory_sha256": "5c47be50fdc26e625406e15dea44a9c3972e43b406bb5e92a4422038a26a3075"
+    },
+    "temporary_source_worktrees": "Removed after recording this assessment; no model weights or serving images were downloaded for this review."
+  }
+}

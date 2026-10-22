@@ -1,0 +1,157 @@
+{
+  "assessment_date": "2026-10-22",
+  "scope": {
+    "host": "61",
+    "gpus": 1,
+    "tensor_parallel": 1,
+    "host60": "excluded",
+    "method": "Source inspection and HTTP Range reads of all 12 safetensors headers; no model inference"
+  },
+  "conclusion": {
+    "drop_in_supported": false,
+    "reason": "The GLM CUDA EXL3 path only admits 4-bit mcg routed experts with BF16 elsewhere. This checkpoint uses mul1 at mixed widths and EXL3 dense, MTP, output-head and vision tensors.",
+    "engineering_direction": "Adapt upstream native GLM loading and operations to the existing generic EXL3 mul1 and variable-width kernels, with a TP1 launcher. This is an implementation recommendation, not runtime validation.",
+    "performance_claim": null,
+    "full_model_loaded": false,
+    "benchmark_run": false
+  },
+  "pins": {
+    "checkpoint": {
+      "repo": "turboderp/GLM-5.3-Flash-exl3",
+      "branch": "sc_2.10bpw",
+      "revision": "8d2eca0ed5b695108249308bcdc2af0636d5045f"
+    },
+    "mia_recipe": "3fd60dfc836fab0f1ed0fd4f0afaf2a1d62b2aab",
+    "mia_base": "v0.6.0",
+    "tensorfold_1_1_1": "b10231b94f8adf3d4132acebdc0a1ac87e53a838",
+    "tensorfold_main": "79ba3f58c85f54e46f958d4044b8a966f2799ca6"
+  },
+  "checkpoint": {
+    "shards": 12,
+    "tensor_count": 151554,
+    "index_and_headers_agree": true,
+    "tensor_payload_bytes": 88170795224,
+    "safetensors_files_gib_approx": 82.134,
+    "quantization": {
+      "quant_method": "exl3",
+      "version": "1.6.1",
+      "bits": 2.1,
+      "head_bits": 6,
+      "out_scales": "auto",
+      "codebook": "mul1",
+      "vision_bits": 6,
+      "mtp_bits": 3
+    },
+    "trellis_tensor_counts_by_bits": {
+      "backbone_dense_attention_shared": {
+        "5.0": 132,
+        "6.0": 126
+      },
+      "backbone_routed_experts": {
+        "3.0": 864,
+        "2.0": 35424
+      },
+      "output_head": {
+        "6.0": 1
+      },
+      "mtp": {
+        "3.0": 873
+      },
+      "vision": {
+        "6.0": 172
+      }
+    },
+    "missing_bf16_keys": [
+      "lm_head.weight",
+      "model.language_model.layers.0.mlp.down_proj.weight",
+      "model.language_model.layers.45.eh_proj.weight"
+    ],
+    "header_sha256": {
+      "model-00001-of-00012.safetensors": "733eab6201edad2723cda5879a202cd4ac7098530d4011e3a7af7645c16f471a",
+      "model-00002-of-00012.safetensors": "336c69a148cc2478d06c9f2ee8f81277bcf0de59a3a75429e7cfb9d8c780ae83",
+      "model-00003-of-00012.safetensors": "db2ebe2af17288af16bce60d56febd03b1ba754eb91a15d5fb6b08a72d5ebd93",
+      "model-00004-of-00012.safetensors": "e392d700ff080e301a3b204d2bf60c82c51137f09ae8b21e13992a2a1459de40",
+      "model-00005-of-00012.safetensors": "c0b4a6d491f094153fb9bc9c87cc115e6fd6842fb828cd2c9af565cf823f2aeb",
+      "model-00006-of-00012.safetensors": "c5ec795671c1c3838f7df74d48311fe90adc0e660b0c761cd595cd311a010885",
+      "model-00007-of-00012.safetensors": "be2812d951c94fca906b7cea1068df7e03e5c00b8445a31cd8963065bded0fca",
+      "model-00008-of-00012.safetensors": "0446e5168ad4dd158aedf157d179915c1c47485913a3c198b5c5541b50f5fdef",
+      "model-00009-of-00012.safetensors": "06dbdb4ff9d2c7865c99a3c54ae6730d04f792ee73e5600194203608954bb4ba",
+      "model-00010-of-00012.safetensors": "cef5b4de4117064f7aadce74593fa12acaa14775e507420782358d8d6ed56ad3",
+      "model-00011-of-00012.safetensors": "56e8cdcd13693fc3937d27a2b89b3fbfa18699bf1030017b31ca8f8184a23c25",
+      "model-00012-of-00012.safetensors": "c326db205fe575bea94d7bbd84e72cd21434d79ceac02d2fbf3fddc590688289"
+    },
+    "metadata_file_sha256": {
+      "model-config.json": "011302eb7c56cb37dcc52710f79a1fe17d0b7c6af22ce4d7a8688f0923c75e5a",
+      "model-index.json": "31fc706a61092296d5fe05591ca8e7ee775533c9676267031821c4abf2973a68"
+    }
+  },
+  "blockers": [
+    {
+      "component": "Mia launcher",
+      "source": "scripts/nodes.sh:20",
+      "finding": "TP is restricted to 2 or 3; TP1 is rejected."
+    },
+    {
+      "component": "Native GLM EXL3 admission",
+      "source": "zig/src/families/glm/cuda_exl3.zig:26",
+      "finding": "Both v1.1.1 and audited main require integer bits=4 and codebook=mcg. SC 2.10 fails this admission."
+    },
+    {
+      "component": "Native GLM expert packing",
+      "source": "zig/src/families/glm/cuda_exl3.zig:80",
+      "finding": "Requires int16 trellis last dimension 64 and .mcg marker; selected model has .mul1 and mixed 2/3-bit routed experts."
+    },
+    {
+      "component": "Native GLM dense and MTP loading",
+      "source": "zig/src/families/glm/cuda_weights.zig",
+      "finding": "EXL3 branch loads non-routed linear projections as BF16 .weight; selected model stores these projections as EXL3. Removing admission alone is insufficient."
+    },
+    {
+      "component": "Native GLM vision loading",
+      "source": "zig/src/families/glm/cuda_vision.zig",
+      "finding": "Existing floating-point/fused-qkv loading needs adaptation for selected quantized, split-projection vision tensors if vision is enabled."
+    }
+  ],
+  "reusable_components": [
+    {
+      "source": "zig/src/core/exl3_load.zig",
+      "finding": "Common loader understands inst3/mcg/mul1 and multiple bit widths."
+    },
+    {
+      "source": "zig/src/cuda/exl3.zig",
+      "finding": "Common dense CUDA kernels include mul1 and whole-bit/half-bit variants."
+    },
+    {
+      "source": "zig/src/cuda/exl3_experts.zig",
+      "finding": "Common expert kernels carry per-projection widths and codebook dispatch."
+    },
+    {
+      "source": "zig/src/families/glm/cuda_native.zig:67",
+      "finding": "Rank 0 / world 1 is admitted; this establishes a TP1 code path, not successful full-model TP1 inference."
+    }
+  ],
+  "required_validation_after_implementation": [
+    "Tensor decode and logits agreement against an EXL3 reference before speed optimization",
+    "TP1 full-model loading and measured peak memory including KV/cache/workspaces",
+    "MTP off/on correctness, acceptance and throughput",
+    "Matched Korean and English thinking and non-thinking PP/TG measurements",
+    "Multi-turn tool calls, streaming/cancellation, and vision if enabled",
+    "Context lengths qualified separately; 1M is not established by file size"
+  ],
+  "limitations": [
+    "No full checkpoint download, service start, code patch or benchmark was performed.",
+    "Mia published TP2/4bpw/DFlash results do not establish TP1 SC 2.10 performance.",
+    "Mia patch files were inspected, not all applied to reconstruct a runtime.",
+    "The native GLM documentation contains stale backend claims; actual source was used for the assessment.",
+    "Weight file size alone is not the runtime memory requirement."
+  ],
+  "production_changes": [],
+  "sources": [
+    "https://huggingface.co/turboderp/GLM-5.3-Flash-exl3/blob/sc_2.10bpw/config.json",
+    "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks-TensorFold/blob/3fd60dfc836fab0f1ed0fd4f0afaf2a1d62b2aab/scripts/nodes.sh",
+    "https://github.com/ashhart/TensorFold/blob/79ba3f58c85f54e46f958d4044b8a966f2799ca6/zig/src/families/glm/cuda_exl3.zig",
+    "https://github.com/ashhart/TensorFold/blob/79ba3f58c85f54e46f958d4044b8a966f2799ca6/zig/src/families/glm/cuda_weights.zig",
+    "https://github.com/ashhart/TensorFold/blob/79ba3f58c85f54e46f958d4044b8a966f2799ca6/zig/src/cuda/exl3.zig",
+    "https://github.com/ashhart/TensorFold/blob/79ba3f58c85f54e46f958d4044b8a966f2799ca6/zig/src/cuda/exl3_experts.zig"
+  ]
+}

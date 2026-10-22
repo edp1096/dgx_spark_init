@@ -1,0 +1,838 @@
+{
+  "method": "Offline retokenization of existing public synthetic benchmark content/reasoning fields; not original generation token IDs or per-step rejection tracing. No inference/service changes.",
+  "draft_vocab_count": 86232,
+  "stock_vocab_count": 79591,
+  "rows": [
+    {
+      "file": "code-en-medium-0.json",
+      "case": "code-en",
+      "mode": "medium",
+      "speculative": {
+        "rounds": 437,
+        "drafted": 1445,
+        "accepted": 1048,
+        "acceptance_rate": 0.7252595155709343,
+        "tokens_per_round": 3.398169336384439
+      },
+      "usage": {
+        "prompt_tokens": 89,
+        "completion_tokens": 1485,
+        "total_tokens": 1574,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 244
+        }
+      },
+      "tg": 56.292456426164925,
+      "fields": {
+        "content": {
+          "tokens": 1239,
+          "draft_missing": 4,
+          "stock_missing": 4,
+          "missing_ids": [
+            {
+              "id": 75605,
+              "text": "apses",
+              "count": 1
+            },
+            {
+              "id": 91938,
+              "text": "-contained",
+              "count": 1
+            },
+            {
+              "id": 86914,
+              "text": " absorbs",
+              "count": 1
+            },
+            {
+              "id": 75035,
+              "text": "Rejected",
+              "count": 1
+            }
+          ]
+        },
+        "reasoning_content": {
+          "tokens": 242,
+          "draft_missing": 0,
+          "stock_missing": 0,
+          "missing_ids": []
+        }
+      }
+    },
+    {
+      "file": "code-en-medium-1.json",
+      "case": "code-en",
+      "mode": "medium",
+      "speculative": {
+        "rounds": 656,
+        "drafted": 2080,
+        "accepted": 1429,
+        "acceptance_rate": 0.6870192307692308,
+        "tokens_per_round": 3.1753048780487805
+      },
+      "usage": {
+        "prompt_tokens": 89,
+        "completion_tokens": 2083,
+        "total_tokens": 2172,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 947
+        }
+      },
+      "tg": 53.64919200816883,
+      "fields": {
+        "content": {
+          "tokens": 1134,
+          "draft_missing": 2,
+          "stock_missing": 2,
+          "missing_ids": [
+            {
+              "id": 77719,
+              "text": "|--",
+              "count": 1
+            },
+            {
+              "id": 197005,
+              "text": "**—",
+              "count": 1
+            }
+          ]
+        },
+        "reasoning_content": {
+          "tokens": 945,
+          "draft_missing": 0,
+          "stock_missing": 0,
+          "missing_ids": []
+        }
+      }
+    },
+    {
+      "file": "code-en-medium-2.json",
+      "case": "code-en",
+      "mode": "medium",
+      "speculative": {
+        "rounds": 517,
+        "drafted": 1620,
+        "accepted": 1183,
+        "acceptance_rate": 0.730246913580247,
+        "tokens_per_round": 3.2843326885880075
+      },
+      "usage": {
+        "prompt_tokens": 89,
+        "completion_tokens": 1698,
+        "total_tokens": 1787,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 463
+        }
+      },
+      "tg": 56.65158140667666,
+      "fields": {
+        "content": {
+          "tokens": 1233,
+          "draft_missing": 0,
+          "stock_missing": 0,
+          "missing_ids": []
+        },
+        "reasoning_content": {
+          "tokens": 461,
+          "draft_missing": 1,
+          "stock_missing": 1,
+          "missing_ids": [
+            {
+              "id": 79091,
+              "text": " Explain",
+              "count": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "file": "code-en-off-0.json",
+      "case": "code-en",
+      "mode": "off",
+      "speculative": {
+        "rounds": 88,
+        "drafted": 286,
+        "accepted": 234,
+        "acceptance_rate": 0.8181818181818182,
+        "tokens_per_round": 3.6704545454545454
+      },
+      "usage": {
+        "prompt_tokens": 91,
+        "completion_tokens": 323,
+        "total_tokens": 414,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "tg": 60.07798198558538,
+      "fields": {
+        "content": {
+          "tokens": 322,
+          "draft_missing": 0,
+          "stock_missing": 0,
+          "missing_ids": []
+        }
+      }
+    },
+    {
+      "file": "code-en-off-1.json",
+      "case": "code-en",
+      "mode": "off",
+      "speculative": {
+        "rounds": 110,
+        "drafted": 350,
+        "accepted": 265,
+        "acceptance_rate": 0.7571428571428571,
+        "tokens_per_round": 3.390909090909091
+      },
+      "usage": {
+        "prompt_tokens": 91,
+        "completion_tokens": 373,
+        "total_tokens": 464,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "tg": 57.17993997642783,
+      "fields": {
+        "content": {
+          "tokens": 372,
+          "draft_missing": 0,
+          "stock_missing": 0,
+          "missing_ids": []
+        }
+      }
+    },
+    {
+      "file": "code-en-off-2.json",
+      "case": "code-en",
+      "mode": "off",
+      "speculative": {
+        "rounds": 96,
+        "drafted": 340,
+        "accepted": 256,
+        "acceptance_rate": 0.7529411764705882,
+        "tokens_per_round": 3.6458333333333335
+      },
+      "usage": {
+        "prompt_tokens": 91,
+        "completion_tokens": 350,
+        "total_tokens": 441,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "tg": 60.77319290212188,
+      "fields": {
+        "content": {
+          "tokens": 349,
+          "draft_missing": 0,
+          "stock_missing": 0,
+          "missing_ids": []
+        }
+      }
+    },
+    {
+      "file": "prose-ko-medium-0.json",
+      "case": "prose-ko",
+      "mode": "medium",
+      "speculative": {
+        "rounds": 315,
+        "drafted": 651,
+        "accepted": 375,
+        "acceptance_rate": 0.576036866359447,
+        "tokens_per_round": 2.187301587301587
+      },
+      "usage": {
+        "prompt_tokens": 81,
+        "completion_tokens": 689,
+        "total_tokens": 770,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 181
+        }
+      },
+      "tg": 39.762706253088815,
+      "fields": {
+        "content": {
+          "tokens": 506,
+          "draft_missing": 2,
+          "stock_missing": 285,
+          "missing_ids": [
+            {
+              "id": 154389,
+              "text": " �",
+              "count": 1
+            },
+            {
+              "id": 154554,
+              "text": "��",
+              "count": 1
+            }
+          ]
+        },
+        "reasoning_content": {
+          "tokens": 179,
+          "draft_missing": 0,
+          "stock_missing": 0,
+          "missing_ids": []
+        }
+      }
+    },
+    {
+      "file": "prose-ko-medium-1.json",
+      "case": "prose-ko",
+      "mode": "medium",
+      "speculative": {
+        "rounds": 437,
+        "drafted": 1156,
+        "accepted": 848,
+        "acceptance_rate": 0.7335640138408305,
+        "tokens_per_round": 2.94279176201373
+      },
+      "usage": {
+        "prompt_tokens": 81,
+        "completion_tokens": 1286,
+        "total_tokens": 1367,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 794
+        }
+      },
+      "tg": 53.866663382988406,
+      "fields": {
+        "content": {
+          "tokens": 490,
+          "draft_missing": 2,
+          "stock_missing": 260,
+          "missing_ids": [
+            {
+              "id": 76490,
+              "text": " �",
+              "count": 1
+            },
+            {
+              "id": 164083,
+              "text": "��",
+              "count": 1
+            }
+          ]
+        },
+        "reasoning_content": {
+          "tokens": 792,
+          "draft_missing": 2,
+          "stock_missing": 259,
+          "missing_ids": [
+            {
+              "id": 76490,
+              "text": " �",
+              "count": 1
+            },
+            {
+              "id": 164083,
+              "text": "��",
+              "count": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "file": "prose-ko-medium-2.json",
+      "case": "prose-ko",
+      "mode": "medium",
+      "speculative": {
+        "rounds": 313,
+        "drafted": 682,
+        "accepted": 405,
+        "acceptance_rate": 0.593841642228739,
+        "tokens_per_round": 2.297124600638978
+      },
+      "usage": {
+        "prompt_tokens": 81,
+        "completion_tokens": 719,
+        "total_tokens": 800,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 206
+        }
+      },
+      "tg": 43.097173732424594,
+      "fields": {
+        "content": {
+          "tokens": 511,
+          "draft_missing": 1,
+          "stock_missing": 251,
+          "missing_ids": [
+            {
+              "id": 154389,
+              "text": " �",
+              "count": 1
+            }
+          ]
+        },
+        "reasoning_content": {
+          "tokens": 204,
+          "draft_missing": 1,
+          "stock_missing": 1,
+          "missing_ids": [
+            {
+              "id": 80187,
+              "text": "saving",
+              "count": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "file": "prose-ko-off-0.json",
+      "case": "prose-ko",
+      "mode": "off",
+      "speculative": {
+        "rounds": 166,
+        "drafted": 270,
+        "accepted": 145,
+        "acceptance_rate": 0.5370370370370371,
+        "tokens_per_round": 1.8674698795180722
+      },
+      "usage": {
+        "prompt_tokens": 83,
+        "completion_tokens": 310,
+        "total_tokens": 393,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "tg": 35.3427336137418,
+      "fields": {
+        "content": {
+          "tokens": 309,
+          "draft_missing": 3,
+          "stock_missing": 201,
+          "missing_ids": [
+            {
+              "id": 154554,
+              "text": "��",
+              "count": 1
+            },
+            {
+              "id": 76490,
+              "text": " �",
+              "count": 1
+            },
+            {
+              "id": 164083,
+              "text": "��",
+              "count": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "file": "prose-ko-off-1.json",
+      "case": "prose-ko",
+      "mode": "off",
+      "speculative": {
+        "rounds": 210,
+        "drafted": 342,
+        "accepted": 179,
+        "acceptance_rate": 0.5233918128654971,
+        "tokens_per_round": 1.8428571428571427
+      },
+      "usage": {
+        "prompt_tokens": 83,
+        "completion_tokens": 387,
+        "total_tokens": 470,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "tg": 35.671213041380994,
+      "fields": {
+        "content": {
+          "tokens": 386,
+          "draft_missing": 1,
+          "stock_missing": 233,
+          "missing_ids": [
+            {
+              "id": 95234,
+              "text": "��",
+              "count": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "file": "prose-ko-off-2.json",
+      "case": "prose-ko",
+      "mode": "off",
+      "speculative": {
+        "rounds": 177,
+        "drafted": 292,
+        "accepted": 145,
+        "acceptance_rate": 0.4965753424657534,
+        "tokens_per_round": 1.8248587570621468
+      },
+      "usage": {
+        "prompt_tokens": 83,
+        "completion_tokens": 323,
+        "total_tokens": 406,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "tg": 35.25488449937621,
+      "fields": {
+        "content": {
+          "tokens": 322,
+          "draft_missing": 2,
+          "stock_missing": 200,
+          "missing_ids": [
+            {
+              "id": 164270,
+              "text": "��",
+              "count": 1
+            },
+            {
+              "id": 157024,
+              "text": " �",
+              "count": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "file": "retrieval-medium-0.json",
+      "case": "retrieval",
+      "mode": "medium",
+      "speculative": {
+        "rounds": 25,
+        "drafted": 88,
+        "accepted": 68,
+        "acceptance_rate": 0.7727272727272727,
+        "tokens_per_round": 3.76
+      },
+      "usage": {
+        "prompt_tokens": 7061,
+        "completion_tokens": 94,
+        "total_tokens": 7155,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 85
+        }
+      },
+      "tg": 57.8608942015584,
+      "fields": {
+        "content": {
+          "tokens": 7,
+          "draft_missing": 0,
+          "stock_missing": 0,
+          "missing_ids": []
+        },
+        "reasoning_content": {
+          "tokens": 83,
+          "draft_missing": 0,
+          "stock_missing": 14,
+          "missing_ids": []
+        }
+      }
+    },
+    {
+      "file": "retrieval-medium-1.json",
+      "case": "retrieval",
+      "mode": "medium",
+      "speculative": {
+        "rounds": 23,
+        "drafted": 78,
+        "accepted": 59,
+        "acceptance_rate": 0.7564102564102564,
+        "tokens_per_round": 3.608695652173913
+      },
+      "usage": {
+        "prompt_tokens": 7061,
+        "completion_tokens": 83,
+        "total_tokens": 7144,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 74
+        }
+      },
+      "tg": 57.639579089166816,
+      "fields": {
+        "content": {
+          "tokens": 7,
+          "draft_missing": 0,
+          "stock_missing": 0,
+          "missing_ids": []
+        },
+        "reasoning_content": {
+          "tokens": 72,
+          "draft_missing": 0,
+          "stock_missing": 12,
+          "missing_ids": []
+        }
+      }
+    },
+    {
+      "file": "retrieval-medium-2.json",
+      "case": "retrieval",
+      "mode": "medium",
+      "speculative": {
+        "rounds": 23,
+        "drafted": 84,
+        "accepted": 61,
+        "acceptance_rate": 0.7261904761904762,
+        "tokens_per_round": 3.6956521739130435
+      },
+      "usage": {
+        "prompt_tokens": 7061,
+        "completion_tokens": 85,
+        "total_tokens": 7146,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 76
+        }
+      },
+      "tg": 53.86693287739096,
+      "fields": {
+        "content": {
+          "tokens": 7,
+          "draft_missing": 0,
+          "stock_missing": 0,
+          "missing_ids": []
+        },
+        "reasoning_content": {
+          "tokens": 74,
+          "draft_missing": 0,
+          "stock_missing": 12,
+          "missing_ids": []
+        }
+      }
+    },
+    {
+      "file": "retrieval-off-0.json",
+      "case": "retrieval",
+      "mode": "off",
+      "speculative": {
+        "rounds": 3,
+        "drafted": 10,
+        "accepted": 8,
+        "acceptance_rate": 0.8,
+        "tokens_per_round": 2.6666666666666665
+      },
+      "usage": {
+        "prompt_tokens": 7063,
+        "completion_tokens": 8,
+        "total_tokens": 7071,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "tg": 30.49308113731456,
+      "fields": {
+        "content": {
+          "tokens": 7,
+          "draft_missing": 0,
+          "stock_missing": 0,
+          "missing_ids": []
+        }
+      }
+    },
+    {
+      "file": "retrieval-off-1.json",
+      "case": "retrieval",
+      "mode": "off",
+      "speculative": {
+        "rounds": 3,
+        "drafted": 9,
+        "accepted": 8,
+        "acceptance_rate": 0.8888888888888888,
+        "tokens_per_round": 2.6666666666666665
+      },
+      "usage": {
+        "prompt_tokens": 7063,
+        "completion_tokens": 8,
+        "total_tokens": 7071,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "tg": 30.223693369612068,
+      "fields": {
+        "content": {
+          "tokens": 7,
+          "draft_missing": 0,
+          "stock_missing": 0,
+          "missing_ids": []
+        }
+      }
+    },
+    {
+      "file": "retrieval-off-2.json",
+      "case": "retrieval",
+      "mode": "off",
+      "speculative": {
+        "rounds": 3,
+        "drafted": 9,
+        "accepted": 8,
+        "acceptance_rate": 0.8888888888888888,
+        "tokens_per_round": 2.6666666666666665
+      },
+      "usage": {
+        "prompt_tokens": 7063,
+        "completion_tokens": 8,
+        "total_tokens": 7071,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "tg": 33.07104092348557,
+      "fields": {
+        "content": {
+          "tokens": 7,
+          "draft_missing": 0,
+          "stock_missing": 0,
+          "missing_ids": []
+        }
+      }
+    }
+  ],
+  "groups": [
+    {
+      "case": "prose-ko",
+      "mode": "off",
+      "repeats": 3,
+      "accepted": 469,
+      "drafted": 904,
+      "acceptance_rate": 0.5188053097345132,
+      "tokens_per_round": 1.8444846292947559,
+      "tg_median": 35.3427336137418,
+      "retokenized_count": 1017,
+      "draft_missing": 6,
+      "stock_missing": 634
+    },
+    {
+      "case": "prose-ko",
+      "mode": "medium",
+      "repeats": 3,
+      "accepted": 1628,
+      "drafted": 2489,
+      "acceptance_rate": 0.6540779429489755,
+      "tokens_per_round": 2.5295774647887326,
+      "tg_median": 43.097173732424594,
+      "retokenized_count": 2682,
+      "draft_missing": 8,
+      "stock_missing": 1056
+    },
+    {
+      "case": "code-en",
+      "mode": "off",
+      "repeats": 3,
+      "accepted": 755,
+      "drafted": 976,
+      "acceptance_rate": 0.7735655737704918,
+      "tokens_per_round": 3.557823129251701,
+      "tg_median": 60.07798198558538,
+      "retokenized_count": 1043,
+      "draft_missing": 0,
+      "stock_missing": 0
+    },
+    {
+      "case": "code-en",
+      "mode": "medium",
+      "repeats": 3,
+      "accepted": 3660,
+      "drafted": 5145,
+      "acceptance_rate": 0.7113702623906706,
+      "tokens_per_round": 3.270807453416149,
+      "tg_median": 56.292456426164925,
+      "retokenized_count": 5254,
+      "draft_missing": 7,
+      "stock_missing": 7
+    },
+    {
+      "case": "retrieval",
+      "mode": "off",
+      "repeats": 3,
+      "accepted": 24,
+      "drafted": 28,
+      "acceptance_rate": 0.8571428571428571,
+      "tokens_per_round": 2.6666666666666665,
+      "tg_median": 30.49308113731456,
+      "retokenized_count": 21,
+      "draft_missing": 0,
+      "stock_missing": 0
+    },
+    {
+      "case": "retrieval",
+      "mode": "medium",
+      "repeats": 3,
+      "accepted": 188,
+      "drafted": 250,
+      "acceptance_rate": 0.752,
+      "tokens_per_round": 3.6901408450704225,
+      "tg_median": 57.639579089166816,
+      "retokenized_count": 250,
+      "draft_missing": 0,
+      "stock_missing": 38
+    }
+  ],
+  "sources": {
+    "records": "/home/edp1096/.cache/sparktalk/experiments/glm53-sc210-tp1/results/qwen-confirmed",
+    "vocabulary": "/home/edp1096/workspace/dgx_spark_init/compose_yaml/qwen38_fn_fp4_local_tsfold/draft-vocab-korean.txt",
+    "tokenizer": "/home/edp1096/.cache/huggingface/edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-FP4-Local/tokenizer.json"
+  }
+}

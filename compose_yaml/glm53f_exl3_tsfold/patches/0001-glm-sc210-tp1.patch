@@ -1,0 +1,929 @@
+diff --git a/zig/src/families/glm/cuda_b16.zig b/zig/src/families/glm/cuda_b16.zig
+index 77e6fb61..99eaab0f 100644
+--- a/zig/src/families/glm/cuda_b16.zig
++++ b/zig/src/families/glm/cuda_b16.zig
+@@ -55,6 +55,12 @@ pub fn partBytes(m: usize, n: usize, k: usize) usize {
+ 
+ /// qmm.matmul for a B16 weight: out [m][n] bf16 (fp32 with `wide`) = x . w; 128+ rows sum in registers, else `part`.
+ pub fn matmul(set: glue.Set, stream: cuda.Stream, x: u64, x_stride: usize, w: u64, out: u64, part: u64, m: usize, n: usize, k: usize, wide: bool) !void {
++    if (set.exl3) |runtime| if (@import("cuda_exl3_dense.zig").find(runtime.entries, w)) |entry|
++        return runtime.run(set, stream, entry, x, x_stride, out, part, m, n, k, wide);
++    return rawMatmul(set, stream, x, x_stride, w, out, part, m, n, k, wide);
++}
++
++pub fn rawMatmul(set: glue.Set, stream: cuda.Stream, x: u64, x_stride: usize, w: u64, out: u64, part: u64, m: usize, n: usize, k: usize, wide: bool) !void {
+     if (k % bk != 0) return error.KNotMultipleOf64;
+     if (set.mm) |mk| { // tiled weights, packed or bf16
+         const t: mm.Tiled = if (set.packs) |p| p.tiled(w, n, k) else .{ .w = w, .n = n, .k = k };
+diff --git a/zig/src/families/glm/cuda_engine.zig b/zig/src/families/glm/cuda_engine.zig
+index 3e9da659..7e51e43c 100644
+--- a/zig/src/families/glm/cuda_engine.zig
++++ b/zig/src/families/glm/cuda_engine.zig
+@@ -56,6 +56,7 @@ pub const Engine = struct {
+     comm: cuda.nccl.Comm,
+     group: ?*const cuda.tp_group.Group = null, // the main stream's all-gathers (RoCE on two ranks); null: lib and comm
+     images: ?*images_mod.Images = null, // --vision: a prompt pass's image rows (rank 0 encodes, the others receive)
++    xdense: ?@import("cuda_exl3_dense.zig").Runtime = null,
+     packs: mm_mod.Packed = .{}, // the linears packed at load and their bits (TF_GLM_DENSE_BITS, _HEAD_BITS)
+     drafter: ?*dflash.Drafter = null, // --drafter: DFlash2 (every rank runs its passes; rank 0 selects the drafts)
+     profs: [fw.window_rows]?*prof_mod.Prof = @splat(null), // TF_GLM_PROF=1: verify sections' GPU time, by rows
+@@ -109,6 +110,7 @@ pub const Engine = struct {
+             return err;
+         };
+         const c = try config.parse(gpa, text);
++        if (c.exl3 and o.vision != null) return error.Exl3VisionUnqualified;
+         var stream = try cuda.Stream.init(d, false);
+         errdefer stream.deinit();
+         const config_hash = try ranks.hashFile(a, io, cfg_path);
+@@ -163,6 +165,11 @@ pub const Engine = struct {
+             gpa.free(e.packs.bits);
+         }
+         e.m.mm.prompt_fixed_k = o.settings.prompt_fixed_k;
++        if (e.w.xlinears.items.len > 0) {
++            e.xdense = try @import("cuda_exl3_dense.zig").Runtime.init(d, e.w.xlinears.items);
++            e.m.xdense = &e.xdense.?;
++        }
++        errdefer if (e.xdense) |*x| x.deinit();
+         e.m.tiled = o.settings.tiled;
+         if (o.settings.tiled) e.m.packs = &e.packs;
+         try e.bind(0);
+@@ -202,6 +209,7 @@ pub const Engine = struct {
+ 
+     pub fn deinit(e: *Engine) void {
+         e.stream.synchronize() catch {};
++        if (e.xdense) |*x| x.deinit();
+         e.gpa.free(e.packs.ptrs);
+         e.gpa.free(e.packs.bits);
+         if (e.drafter) |dr| dr.deinit();
+diff --git a/zig/src/families/glm/cuda_exl3.zig b/zig/src/families/glm/cuda_exl3.zig
+index f70c0f33..aacecb5c 100644
+--- a/zig/src/families/glm/cuda_exl3.zig
++++ b/zig/src/families/glm/cuda_exl3.zig
+@@ -31,16 +31,13 @@ pub fn admit(gpa: std.mem.Allocator, config_json: []const u8, why: *modelopt.Why
+         why.set("no quantization_config", .{});
+         return error.UnsupportedQuant;
+     };
+-    const bits = q.get("bits") orelse std.json.Value{ .null = {} };
+-    if (bits != .integer or bits.integer != 4) {
+-        why.set("EXL3 at {f} bits: the CUDA family reads 4-bit EXL3 experts", .{std.json.fmt(bits, .{})});
+-        return error.UnsupportedQuant;
+-    }
+     const book = q.get("codebook") orelse std.json.Value{ .null = {} };
+-    if (book != .string or !std.mem.eql(u8, book.string, "mcg")) {
+-        why.set("EXL3 codebook {f}: the CUDA family reads \"mcg\"", .{std.json.fmt(book, .{})});
++    if (book != .string or (!std.mem.eql(u8, book.string, "mcg") and !std.mem.eql(u8, book.string, "mul1"))) {
++        why.set("GLM CUDA EXL3 requires mcg or mul1", .{});
+         return error.UnsupportedQuant;
+     }
++    // Per-tensor trellis geometry determines the width; the config's bits is a model-wide average.
++
+ }
+ 
+ /// One layer's EXL3 experts on a rank: trellis words [E][K/16][N/16][32] and fp16 scales (suh [E][K], svh [E][N]).
+@@ -54,18 +51,29 @@ pub const Experts = struct {
+     svh_u: u64,
+     suh_d: u64,
+     svh_d: u64,
+-    k2: u64, // independent per-expert projection widths in the common module
++    gk2: u64,
++    uk2: u64,
++    dk2: u64,
++    codebook: common.Codebook = .mcg,
++    uniform_k2: u32 = 0,
+     shx: bool, // every expert's gate and up share one input rotation: a prompt rotates a row once, not once a pick
+ };
+ 
+-const tile = 128; // a 16 x 16 tile's bytes at 4 bits
+-
+ /// Layer `i`'s EXL3 experts through `L` (cuda_weights' loader): gate, up by `cut`'s tile columns, down by its rows.
+ pub fn load(L: anytype, i: u32, count: usize, dims: usize, inter: usize, cut: Span) !Experts {
+     if (dims % 128 != 0 or cut.lo % 128 != 0 or cut.hi % 128 != 0) return error.NotExl3Mcg4;
+     const width = cut.len();
+     var out: Experts = undefined;
+     out.shx = true;
++    out.uniform_k2 = 0;
++    out.codebook = .mcg;
++    var first_width: ?u32 = null;
++    var uniform = true;
++    var first_book: ?common.Codebook = null;
++    const offsets = try L.gpa.alloc(usize, count);
++    defer L.gpa.free(offsets);
++    const widths = try L.gpa.alloc(i32, count);
++    defer L.gpa.free(widths);
+     const Mat = struct { k: usize, n: usize, by_cols: bool };
+     const mats = [_]Mat{
+         .{ .k = dims, .n = inter, .by_cols = true },
+@@ -77,12 +85,28 @@ pub fn load(L: anytype, i: u32, count: usize, dims: usize, inter: usize, cut: Sp
+         const kt = (if (m.by_cols) m.k else width) / 16; // the rank's tiles
+         const nt = (if (m.by_cols) width else m.n) / 16;
+         for (0..count) |e| {
++            offsets[e] = L.host.items.len;
+             const t = try L.get("layers.{d}.mlp.experts.{d}." ++ proj ++ ".trellis", .{ i, e });
+-            if (t.dtype != .i16 or t.rank != 3 or t.dim(0) != m.k / 16 or t.dim(1) != m.n / 16 or t.dim(2) != 64) return error.NotExl3Mcg4;
+-            const marker = L.get("layers.{d}.mlp.experts.{d}." ++ proj ++ ".mcg", .{ i, e }) catch return error.NotExl3Mcg4;
+-            if (marker.dtype != .i32 or marker.numel() != 1 or marker.bytes.len != 4 or
+-                std.mem.readInt(u32, marker.bytes[0..4], .little) != @import("core").exl3_load.markers[0].value)
+-                return error.NotExl3Mcg4;
++            if (t.dtype != .i16 or t.rank != 3 or t.dim(0) != m.k / 16 or t.dim(1) != m.n / 16 or
++                t.dim(2) % 8 != 0 or t.dim(2) < 16 or t.dim(2) > 128) return error.BadExl3Trellis;
++            const halves: u32 = @intCast(t.dim(2) / 8);
++            const marker = L.get("layers.{d}.mlp.experts.{d}." ++ proj ++ ".mul1", .{ i, e }) catch
++                try L.get("layers.{d}.mlp.experts.{d}." ++ proj ++ ".mcg", .{ i, e });
++            if (marker.dtype != .i32 or marker.bytes.len != 4) return error.BadExl3Codebook;
++            const book: common.Codebook = switch (std.mem.readInt(u32, marker.bytes[0..4], .little)) {
++                0x83DCD12D => .mul1,
++                0xCBAC1FED => .mcg,
++                else => return error.BadExl3Codebook,
++            };
++            if (halves % 2 != 0 and book != .mul1) return error.BadExl3Trellis;
++            if (first_book) |v| {
++                if (v != book) return error.MixedExl3Codebooks;
++            } else first_book = book;
++            if (first_width) |v| {
++                if (v != halves) uniform = false;
++            } else first_width = halves;
++            widths[e] = @intCast(halves);
++            const tile = t.dim(2) * 2;
+             if (m.by_cols) { // every tile row, the rank's tile columns
+                 const row = (m.n / 16) * tile;
+                 for (0..kt) |r| try L.host.appendSlice(L.gpa, t.bytes[r * row + (cut.lo / 16) * tile ..][0 .. nt * tile]);
+@@ -90,10 +114,15 @@ pub fn load(L: anytype, i: u32, count: usize, dims: usize, inter: usize, cut: Sp
+         }
+         const base = try L.put("layers.{d}.moe.exl3." ++ tw, .{i});
+         for (0..count) |e| {
+-            const ptr = base + e * kt * nt * tile;
++            const ptr = base + offsets[e];
+             try L.host.appendSlice(L.gpa, std.mem.asBytes(&ptr));
+         }
+         @field(out, tw) = try L.put("layers.{d}.moe.exl3." ++ tw ++ "_ptrs", .{i});
++        try L.host.appendSlice(L.gpa, std.mem.sliceAsBytes(widths));
++        const width_ptr = try L.put("layers.{d}.moe.exl3." ++ tw ++ "_widths", .{i});
++        if (comptime std.mem.eql(u8, tw, "gt")) out.gk2 = width_ptr;
++        if (comptime std.mem.eql(u8, tw, "ut")) out.uk2 = width_ptr;
++        if (comptime std.mem.eql(u8, tw, "dt")) out.dk2 = width_ptr;
+         for (0..count) |e| { // suh: the input's scales (gate, up: every input; down: the rank's)
+             const t = try L.get("layers.{d}.mlp.experts.{d}." ++ proj ++ ".suh", .{ i, e });
+             if (t.dtype != .f16 or t.numel() != m.k) return error.NotExl3Mcg4;
+@@ -113,11 +142,8 @@ pub fn load(L: anytype, i: u32, count: usize, dims: usize, inter: usize, cut: Sp
+         }
+         @field(out, sv) = try L.put("layers.{d}.moe.exl3." ++ sv, .{i});
+     }
+-    for (0..count) |_| {
+-        const bits: i32 = 8;
+-        try L.host.appendSlice(L.gpa, std.mem.asBytes(&bits));
+-    }
+-    out.k2 = try L.put("layers.{d}.moe.exl3.k2", .{i});
++    out.codebook = first_book orelse return error.BadExl3Codebook;
++    out.uniform_k2 = if (uniform) first_width.? else 0;
+     return out;
+ }
+ 
+@@ -129,10 +155,10 @@ pub const top_k = 8;
+ /// Rows a call to the common experts takes: each call reads every expert's weights, so a prompt pass needs few calls.
+ pub const chunk_rows = 1024;
+ fn layer(w: Experts, count: usize, dims: usize, width: usize, limit: f32) common.Layer {
+-    return .{ .gate = w.gt, .up = w.ut, .down = w.dt, .gate_k2 = w.k2, .up_k2 = w.k2, .down_k2 = w.k2, .suh_g = w.suh_g, .suh_u = w.suh_u, .svh_g = w.svh_g, .svh_u = w.svh_u, .suh_d = w.suh_d, .svh_d = w.svh_d, .experts = count, .dims = dims, .width = width, .codebook = .mcg, .limit = limit, .act_mode = 0, .uniform_k2 = 8, .shared_input = w.shx };
++    return .{ .gate = w.gt, .up = w.ut, .down = w.dt, .gate_k2 = w.gk2, .up_k2 = w.uk2, .down_k2 = w.dk2, .suh_g = w.suh_g, .suh_u = w.suh_u, .svh_g = w.svh_g, .svh_u = w.svh_u, .suh_d = w.suh_d, .svh_d = w.svh_d, .experts = count, .dims = dims, .width = width, .codebook = w.codebook, .limit = limit, .act_mode = 0, .uniform_k2 = w.uniform_k2, .shared_input = w.shx };
+ }
+ fn shape(dims: usize, width: usize) common.Layer {
+-    const w: Experts = .{ .gt = 0, .ut = 0, .dt = 0, .k2 = 0, .suh_g = 0, .suh_u = 0, .svh_g = 0, .svh_u = 0, .suh_d = 0, .svh_d = 0, .shx = false };
++    const w: Experts = .{ .gt = 0, .ut = 0, .dt = 0, .gk2 = 0, .uk2 = 0, .dk2 = 0, .suh_g = 0, .suh_u = 0, .svh_g = 0, .svh_u = 0, .suh_d = 0, .svh_d = 0, .shx = false };
+     return layer(w, cuda.grouped.max_experts, dims, width, 0);
+ }
+ /// A chunk's compacted picks ahead of the common scratch, 256-aligned; the usize keeps @min from narrowing to u7.
+@@ -144,7 +170,9 @@ pub fn scratchBytes(rows: usize, dims: usize, width: usize, prefill: bool, shx:
+     const n: usize = @min(rows, chunk_rows);
+     var l = shape(dims, width);
+     l.shared_input = shx;
+-    if (prefill and common.prompt.eligible(l)) return .{ picksBytes(rows) + (common.prompt.bytes(l, n, top_k) catch unreachable), 4, 4, 4 };
++    l.uniform_k2 = 8;
++    const general = common.scratchBytes(l, n, top_k) catch unreachable;
++    if (prefill and common.prompt.eligible(l)) return .{ picksBytes(rows) + @max(general, common.prompt.bytes(l, n, top_k) catch unreachable), 4, 4, 4 };
+     return .{ picksBytes(rows) + (common.scratchBytes(shape(dims, width), n, top_k) catch unreachable), 4, 4, 4 };
+ }
+ /// `height` rows of `width` bytes, `spitch` apart at `src`, to `dpitch` apart at `dst`, in one call.
+@@ -177,20 +205,12 @@ pub fn run(k: *const Kernels, ek: *const experts.Kernels, stream: cuda.Stream, w
+     }
+ }
+ 
+-test "EXL3 admission: Mia-AiLab's block passes; other widths and codebooks are refused by name" {
+-    const gpa = std.testing.allocator;
+-    const mia =
+-        \\{"quantization_config": {"quant_method": "exl3", "bits": 4, "codebook": "mcg", "head_bits": 16}}
+-    ;
+-    try std.testing.expect(isExl3(gpa, mia));
++test "GLM EXL3 admission accepts model-average bits and validates codebooks" {
++    const a = std.testing.allocator;
+     var why: modelopt.Why = .{};
+-    try admit(gpa, mia, &why);
+-    try std.testing.expect(!isExl3(gpa, "{\"quantization_config\": {\"quant_method\": \"modelopt\"}}"));
+-    try std.testing.expect(!isExl3(gpa, "{}"));
+-    try std.testing.expectError(error.UnsupportedQuant, admit(gpa, "{\"quantization_config\": {\"quant_method\": \"exl3\", \"bits\": 3, \"codebook\": \"mcg\"}}", &why));
+-    try std.testing.expectEqualStrings("EXL3 at 3 bits: the CUDA family reads 4-bit EXL3 experts", why.text());
+-    try std.testing.expectError(error.UnsupportedQuant, admit(gpa, "{\"text_config\": {\"quantization_config\": {\"quant_method\": \"exl3\", \"bits\": 4, \"codebook\": \"mul1\"}}}", &why));
+-    try std.testing.expectEqualStrings("EXL3 codebook \"mul1\": the CUDA family reads \"mcg\"", why.text());
++    try admit(a, "{\"quantization_config\":{\"quant_method\":\"exl3\",\"bits\":2.1,\"codebook\":\"mul1\"}}", &why);
++    try admit(a, "{\"quantization_config\":{\"quant_method\":\"exl3\",\"bits\":4,\"codebook\":\"mcg\"}}", &why);
++    try std.testing.expectError(error.UnsupportedQuant, admit(a, "{\"quantization_config\":{\"codebook\":\"invalid\"}}", &why));
+ }
+ 
+ test "a chunk's compacted picks end before the common scratch at every row count" {
+diff --git a/zig/src/families/glm/cuda_exl3_dense.zig b/zig/src/families/glm/cuda_exl3_dense.zig
+new file mode 100644
+index 00000000..e3e5e816
+--- /dev/null
++++ b/zig/src/families/glm/cuda_exl3_dense.zig
+@@ -0,0 +1,131 @@
++//! Stored EXL3 projections and mixed output stacks for GLM's TP1 CUDA path.
++const std = @import("std");
++const cuda = @import("cuda");
++const glue = @import("cuda_glue.zig");
++const b16 = @import("cuda_b16.zig");
++
++pub const Part = union(enum) {
++    bf16: struct { ptr: u64, n: usize, k: usize },
++    exl3: cuda.exl3.Weight,
++
++    pub fn n(p: Part) usize {
++        return switch (p) {
++            .bf16 => |v| v.n,
++            .exl3 => |v| v.n,
++        };
++    }
++    pub fn k(p: Part) usize {
++        return switch (p) {
++            .bf16 => |v| v.k,
++            .exl3 => |v| v.k,
++        };
++    }
++};
++
++pub const Entry = struct {
++    handle: u64,
++    parts: [4]Part,
++    count: usize,
++    n: usize,
++    k: usize,
++};
++
++pub fn find(entries: []const Entry, handle: u64) ?*const Entry {
++    const base: u64 = 0x1000000000000000;
++    if (handle < base or handle - base >= entries.len) return null;
++    const e = &entries[@intCast(handle - base)];
++    return if (e.handle == handle) e else null;
++}
++
++fn copyRows(s: cuda.Stream, dst: u64, dp: usize, src: u64, sp: usize, width: usize, rows: usize) !void {
++    const m: cuda.abi.Memcpy2D = .{ .src = src, .src_pitch = sp, .dst = dst, .dst_pitch = dp, .width = width, .height = rows };
++    try s.d.check(s.d.api.cuMemcpy2DAsync_v2(&m, s.handle), "GLM EXL3 projection rows");
++}
++
++pub const Runtime = struct {
++    entries: []const Entry,
++    dense: cuda.exl3.Dense,
++    input: cuda.DeviceBuffer,
++    output: cuda.DeviceBuffer,
++
++    pub fn init(d: *const cuda.Driver, entries: []const Entry) !Runtime {
++        var dense = try cuda.exl3.Dense.load(d);
++        errdefer dense.unload();
++        var max_k: usize = 128;
++        var max_n: usize = 128;
++        var z: usize = 256;
++        var counters: usize = 256;
++        for (entries) |e| for (e.parts[0..e.count]) |part| {
++            max_k = @max(max_k, part.k());
++            max_n = @max(max_n, part.n());
++            if (part == .exl3) {
++                z = @max(z, cuda.exl3.Linear.zBytes(part.exl3, 128));
++                counters = @max(counters, cuda.exl3.Linear.counterBytes(part.exl3));
++            }
++        };
++        // Reserve every served projection before graph capture; calls never grow or invalidate scratch.
++        dense.xh = try cuda.DeviceBuffer.alloc(d, 128 * max_k * 2);
++        dense.z = try cuda.DeviceBuffer.alloc(d, z);
++        dense.counters = try cuda.DeviceBuffer.alloc(d, counters);
++        var input = try cuda.DeviceBuffer.alloc(d, 128 * max_k * 2);
++        errdefer input.free();
++        var output = try cuda.DeviceBuffer.alloc(d, 128 * max_n * 4);
++        errdefer output.free();
++        if (std.c.getenv("TF_GLM_EXL3_DENSE")) |v| {
++            const mode = std.mem.span(v);
++            if (std.mem.eql(u8, mode, "tiles")) {
++                var mod = try cuda.Module.load(d, cuda.kernels.exl3_candidate);
++                errdefer mod.unload();
++                dense.candidate_k = try cuda.exl3_candidate.Kernels.resolve(d, mod, max_k);
++                dense.candidate_mod = mod;
++                dense.implementation = .tiles;
++            } else if (!std.mem.eql(u8, mode, "reference")) return error.BadExl3DenseMode;
++        }
++        return .{ .entries = entries, .dense = dense, .input = input, .output = output };
++    }
++
++    pub fn deinit(r: *Runtime) void {
++        r.dense.unload();
++        r.input.free();
++        r.output.free();
++    }
++
++    pub fn run(r: *Runtime, set: glue.Set, s: cuda.Stream, e: *const Entry, x: u64, stride: usize, out: u64, partial: u64, rows: usize, n: usize, k: usize, wide: bool) !void {
++        if (n != e.n or k != e.k or stride < k) return error.Exl3ProjectionShape;
++        const element: usize = if (wide) 4 else 2;
++        var at: usize = 0;
++        while (at < rows) : (at += 128) {
++            const count = @min(rows - at, 128);
++            var source = x + at * stride * 2;
++            if (stride != k) {
++                try copyRows(s, r.input.ptr, k * 2, source, stride * 2, k * 2, count);
++                source = r.input.ptr;
++            }
++            var column: usize = 0;
++            for (e.parts[0..e.count]) |part| {
++                const dest = if (e.count == 1) out + at * n * element else r.output.ptr;
++                switch (part) {
++                    .exl3 => |w| {
++                        if (set.prompt) try r.dense.prompt(s, w, source, .bf16, count, dest, if (wide) .f32 else .bf16) else try r.dense.decode(s, w, source, .bf16, count, dest, if (wide) .f32 else .bf16);
++                    },
++                    .bf16 => |w| {
++                        var raw = set;
++                        raw.exl3 = null;
++                        raw.mm = null; // Mixed stacks keep their small BF16 components in row-major order.
++                        try b16.rawMatmul(raw, s, source, k, w.ptr, dest, partial, count, w.n, w.k, wide);
++                    },
++                }
++                if (e.count > 1)
++                    try copyRows(s, out + (at * n + column) * element, n * element, dest, part.n() * element, part.n() * element, count);
++                column += part.n();
++            }
++        }
++    }
++};
++
++test "projection handles identify owned descriptors and reject ordinary device pointers" {
++    const e = [_]Entry{.{ .handle = 0x1000000000000000, .parts = undefined, .count = 0, .n = 128, .k = 128 }};
++    try std.testing.expect(find(&e, 0x1000000000000000) != null);
++    try std.testing.expect(find(&e, 0x1000000000000001) == null);
++    try std.testing.expect(find(&e, 0x12340000) == null);
++}
+diff --git a/zig/src/families/glm/cuda_exl3_dense_load.zig b/zig/src/families/glm/cuda_exl3_dense_load.zig
+new file mode 100644
+index 00000000..64fa3ea8
+--- /dev/null
++++ b/zig/src/families/glm/cuda_exl3_dense_load.zig
+@@ -0,0 +1,77 @@
++//! GLM TP1 projections loaded in their stored EXL3 precision; source tensors remain unchanged.
++const std = @import("std");
++const core = @import("core");
++const cuda = @import("cuda");
++const dense = @import("cuda_exl3_dense.zig");
++
++fn tensor(ck: *core.Checkpoint, name: []const u8, suffix: []const u8) !core.checkpoint.Tensor {
++    var buf: [256]u8 = undefined;
++    return ck.get(try std.fmt.bufPrint(&buf, "{s}.{s}", .{ name, suffix }));
++}
++
++fn has(ck: *core.Checkpoint, name: []const u8, suffix: []const u8) bool {
++    var buf: [256]u8 = undefined;
++    return ck.has(std.fmt.bufPrint(&buf, "{s}.{s}", .{ name, suffix }) catch return false);
++}
++
++fn upload(L: anytype, t: core.checkpoint.Tensor, name: []const u8, suffix: []const u8) !u64 {
++    try L.host.appendSlice(L.gpa, t.bytes);
++    return L.put("exl3.{s}.{s}", .{ name, suffix });
++}
++
++fn part(L: anytype, ck: *core.Checkpoint, name: []const u8) !dense.Part {
++    if (has(ck, name, "weight")) {
++        const t = try tensor(ck, name, "weight");
++        if ((t.dtype != .bf16 and t.dtype != .f16) or t.rank != 2) return error.Exl3ProjectionShape;
++        try L.whole(t, .bf16); // The loader refuses FP16 values that cannot be represented exactly as BF16.
++        return .{ .bf16 = .{ .ptr = try L.put("exl3.{s}.weight", .{name}), .n = t.dim(0), .k = t.dim(1) } };
++    }
++    const t = try tensor(ck, name, "trellis");
++    if (t.dtype != .i16 or t.rank != 3 or t.dim(2) % 8 != 0) return error.BadExl3Trellis;
++    const k = t.dim(0) * 16;
++    const n = t.dim(1) * 16;
++    const halves = t.dim(2) / 8;
++    if (k % 128 != 0 or n % 128 != 0 or halves < 2 or halves > 16) return error.BadExl3Trellis;
++    var cb: cuda.exl3.Codebook = .inst3;
++    var found = false;
++    for (core.exl3_load.markers) |marker| if (has(ck, name, marker.name)) {
++        if (found) return error.BadExl3Codebook;
++        found = true;
++        const m = try tensor(ck, name, marker.name);
++        if (m.dtype != .i32 or m.bytes.len != 4 or std.mem.readInt(u32, m.bytes[0..4], .little) != marker.value)
++            return error.BadExl3Codebook;
++        cb = switch (marker.codebook) {
++            .inst3 => .inst3,
++            .mcg => .mcg,
++            .mul1 => .mul1,
++        };
++    };
++    if (halves % 2 != 0 and cb != .mul1) return error.BadExl3Trellis;
++    const su = try tensor(ck, name, "suh");
++    const sv = try tensor(ck, name, "svh");
++    if (su.dtype != .f16 or su.numel() != k or sv.dtype != .f16 or sv.numel() != n) return error.BadExl3Scales;
++    const st = cuda.exl3.strides(k, n, halves, false);
++    var w: cuda.exl3.Weight = .{ .trellis = try upload(L, t, name, "trellis"), .suh = try upload(L, su, name, "suh"), .svh = try upload(L, sv, name, "svh"), .k = @intCast(k), .n = @intCast(n), .halves = @intCast(halves), .codebook = cb, .stride_k = st.k, .stride_nb = st.nb };
++    if (has(ck, name, "bias")) {
++        const b = try tensor(ck, name, "bias");
++        if (b.dtype != .f16 or b.numel() != n) return error.BadExl3Bias;
++        w.bias = try upload(L, b, name, "bias");
++    }
++    return .{ .exl3 = w };
++}
++
++pub fn load(L: anytype, ck: *core.Checkpoint, name: []const u8, suffixes: []const []const u8) !u64 {
++    if (L.w.share.world != 1) return error.Exl3DenseRequiresTp1;
++    if (suffixes.len == 0 or suffixes.len > 4 or L.host.items.len != 0) return error.Exl3ProjectionShape;
++    var e: dense.Entry = .{ .handle = 0x1000000000000000 + L.w.xlinears.items.len, .parts = undefined, .count = suffixes.len, .n = 0, .k = 0 };
++    for (suffixes, 0..) |suffix, i| {
++        var buf: [256]u8 = undefined;
++        const full = if (suffix.len == 0) name else try std.fmt.bufPrint(&buf, "{s}.{s}", .{ name, suffix });
++        e.parts[i] = try part(L, ck, full);
++        if (i == 0) e.k = e.parts[i].k();
++        if (e.parts[i].k() != e.k) return error.Exl3ProjectionShape;
++        e.n += e.parts[i].n();
++    }
++    try L.w.xlinears.append(L.gpa, e);
++    return e.handle;
++}
+diff --git a/zig/src/families/glm/cuda_forward.zig b/zig/src/families/glm/cuda_forward.zig
+index aa873697..814f43ae 100644
+--- a/zig/src/families/glm/cuda_forward.zig
++++ b/zig/src/families/glm/cuda_forward.zig
+@@ -39,6 +39,7 @@ pub const Modules = struct {
+     experts: experts.Kernels,
+     exl3: exl3.Kernels, // an EXL3 checkpoint's routed experts
+     mm: mm_mod.Kernels, // glm_mm: the bf16 linears on tiled weights
++    xdense: ?*@import("cuda_exl3_dense.zig").Runtime = null,
+     tiled: bool = false, // eligible bf16 linears are tiled; KDA inputs with uneven strides retain their row-major path
+     packs: ?*const mm_mod.Packed = null, // the linears packed to 4, 6 or 8 bits (TF_GLM_DENSE_BITS, _HEAD_BITS)
+     copy_rows: cuda.Function,
+@@ -72,6 +73,7 @@ pub const Modules = struct {
+         m.exl3 = try exl3.Kernels.load(d);
+         errdefer m.exl3.unload();
+         m.mm = try mm_mod.Kernels.load(m.mods[7]);
++        m.xdense = null;
+         m.tiled = false;
+         m.packs = null; // `m` starts undefined: the field default does not apply
+         return m;
+@@ -183,7 +185,7 @@ pub const Forward = struct {
+     taps: ?taps_mod.Taps = null, // DFlash2 (--drafter): the tapped layers' rows, after each such layer
+ 
+     pub fn set(f: *const Forward) glue.Set {
+-        return .{ .glue = &f.m.glue, .mm = if (f.m.tiled) &f.m.mm else null, .packs = f.m.packs, .prompt = f.ranks[0].b.prefill };
++        return .{ .exl3 = f.m.xdense, .glue = &f.m.glue, .mm = if (f.m.tiled) &f.m.mm else null, .packs = f.m.packs, .prompt = f.ranks[0].b.prefill };
+     }
+ 
+     /// reduce.sums' gather: every rank's partial of `rows` rows into every rank's gathered buffer, rank order.
+@@ -498,7 +500,11 @@ pub const Forward = struct {
+             const b = r.b;
+             try glue.residualAdd(f.set(), f.stream, b.mx, b.mx, b.gathered, n, D, r.w.share.world);
+             try glue.rmsnorm(f.set(), f.stream, b.mx + (n - 1) * D * 2, D, m.norm, b.fnormed, D, b.fxs, c.eps, 1, D);
+-            if (!b.prefill) try q4.matmul(&f.m.q4, f.stream, b.fnormed, D, b.fxs, m.draft, b.logits, 1);
++            if (!b.prefill) {
++                if (m.draft.w == 0) {
++                    try b16.matmul(f.set(), f.stream, b.fnormed, D, r.w.head, b.logits, b.kda.mm_part, 1, r.w.share.vocab.len(), D, false);
++                } else try q4.matmul(&f.m.q4, f.stream, b.fnormed, D, b.fxs, m.draft, b.logits, 1);
++            }
+         }
+     }
+ 
+diff --git a/zig/src/families/glm/cuda_glue.zig b/zig/src/families/glm/cuda_glue.zig
+index e091a933..248d88cb 100644
+--- a/zig/src/families/glm/cuda_glue.zig
++++ b/zig/src/families/glm/cuda_glue.zig
+@@ -5,7 +5,7 @@ const cuda = @import("cuda");
+ const mm_mod = @import("cuda_mm.zig");
+ 
+ /// What the forward's kernels launch from: our glue's functions.
+-pub const Set = struct { glue: *const Kernels, mm: ?*const mm_mod.Kernels = null, packs: ?*const mm_mod.Packed = null, prompt: bool = false }; // mm: linears tiled at load
++pub const Set = struct { exl3: ?*@import("cuda_exl3_dense.zig").Runtime = null, glue: *const Kernels, mm: ?*const mm_mod.Kernels = null, packs: ?*const mm_mod.Packed = null, prompt: bool = false }; // mm: linears tiled at load
+ 
+ /// Our glm_glue.cu's functions.
+ pub const Kernels = struct {
+diff --git a/zig/src/families/glm/cuda_native.zig b/zig/src/families/glm/cuda_native.zig
+index c55edd63..a065fa32 100644
+--- a/zig/src/families/glm/cuda_native.zig
++++ b/zig/src/families/glm/cuda_native.zig
+@@ -15,7 +15,7 @@ const dflash = @import("dflash.zig");
+ const dflash_load = @import("dflash_load.zig");
+ 
+ pub const model_type = "glm5_next";
+-pub const formats: []const []const u8 = &.{"modelopt-nvfp4"};
++pub const formats: []const []const u8 = &.{ "modelopt-nvfp4", "exl3" };
+ // cc-defer: a fixed window; the Python family sizes it from free memory (capacity.admit), port that when serving needs
+ pub const default_context: i64 = 8192;
+ pub const max_segments: u32 = 1;
+@@ -311,6 +311,8 @@ fn close(ptr: *anyopaque) void {
+ /// The server's words for this family's refusals.
+ pub fn explain(_: ?*anyopaque, err: anyerror) ?[]const u8 {
+     return switch (err) {
++        error.Exl3VisionUnqualified => "GLM EXL3 vision is not implemented in this experiment; omit --vision",
++        error.Exl3DenseRequiresTp1 => "This mixed-bit GLM EXL3 loader requires TF_GLM_WORLD=1",
+         error.BadRoceCap => "TF_ROCE_MAX_KB: give an integer from 1 through 4194303 KiB, or unset it for 4096 KiB",
+         error.NoRank => "GLM-5.3-Flash runs at TP over hosts: set TF_GLM_RANK and TF_GLM_WORLD on every host (WORLD 1: one GPU, with TF_GLM_LAYERS for a thin model)",
+         error.NoCommId => "GLM-5.3-Flash's ranks meet over NCCL: with TF_GLM_WORLD 2 or more, set NCCL_COMM_ID to rank 0's address:port on every host",
+diff --git a/zig/src/families/glm/cuda_tile.zig b/zig/src/families/glm/cuda_tile.zig
+index 882ef34c..52fd113b 100644
+--- a/zig/src/families/glm/cuda_tile.zig
++++ b/zig/src/families/glm/cuda_tile.zig
+@@ -86,7 +86,10 @@ pub fn tileLinears(gpa: std.mem.Allocator, w: *Weights, mk: *const mm_mod.Kernel
+     defer list.deinit(w.gpa);
+     try linears(w, &list);
+     var most: usize = 0;
+-    for (list.items) |e| most = @max(most, e.n * e.k * 2);
++    for (list.items) |e| {
++        if (@import("cuda_exl3_dense.zig").find(w.xlinears.items, e.field.*) == null)
++            most = @max(most, e.n * e.k * 2);
++    }
+     var tmp = try cuda.DeviceBuffer.alloc(d, most);
+     defer tmp.free();
+     errdefer @import("cuda_load_owner.zig").drain(s, d);
+@@ -105,6 +108,7 @@ pub fn tileLinears(gpa: std.mem.Allocator, w: *Weights, mk: *const mm_mod.Kernel
+         const n = e.n;
+         const k = e.k;
+         const ptr = e.field.*;
++        if (@import("cuda_exl3_dense.zig").find(w.xlinears.items, ptr) != null) continue;
+         const bits = if (i + 1 == list.items.len) head_bits else dense_bits;
+         if (bits == 16) {
+             try mm_mod.tile(mk, s, ptr, tmp.ptr, n, k);
+diff --git a/zig/src/families/glm/cuda_weights.zig b/zig/src/families/glm/cuda_weights.zig
+index 0ab39ac1..fd6f8657 100644
+--- a/zig/src/families/glm/cuda_weights.zig
++++ b/zig/src/families/glm/cuda_weights.zig
+@@ -13,7 +13,8 @@ const moe = @import("cuda_moe.zig");
+ const quant = @import("cuda_quant.zig");
+ const q4 = @import("cuda_q4.zig");
+ const exl3 = @import("cuda_exl3.zig");
+-const mm_mod = @import("cuda_mm.zig");
++const xlinear = @import("cuda_exl3_dense.zig");
++const xload = @import("cuda_exl3_dense_load.zig");
+ 
+ const Tensor = core.checkpoint.Tensor;
+ const prefix = "model.language_model.";
+@@ -44,6 +45,7 @@ pub const Weights = struct {
+     norm: u64 = 0,
+     head: u64 = 0, // bf16 [share.vocab][dims]
+     mtp: ?Mtp = null,
++    xlinears: std.ArrayList(xlinear.Entry) = .empty,
+     exl3_shx: bool = true, // EXL3: every layer's gate and up share one input rotation (a prompt rotates each row once)
+     buffers: std.ArrayList(cuda.DeviceBuffer) = .empty,
+     named: std.ArrayList(Named) = .empty,
+@@ -52,6 +54,7 @@ pub const Weights = struct {
+         for (w.buffers.items) |*b| b.free();
+         for (w.named.items) |n| w.gpa.free(n.name);
+         w.buffers.deinit(w.gpa);
++        w.xlinears.deinit(w.gpa);
+         w.named.deinit(w.gpa);
+         w.gpa.free(w.layers);
+         w.* = undefined;
+@@ -82,6 +85,15 @@ const Loader = struct {
+     host: std.ArrayList(u8) = .empty,
+     name_buf: [192]u8 = undefined,
+ 
++    fn lowbit(L: *Loader) bool {
++        return L.ck.has(prefix ++ "layers.0.self_attn.qkv_proj.trellis");
++    }
++
++    fn project(L: *Loader, comptime fmt: []const u8, args: anytype, suffixes: []const []const u8) !u64 {
++        var name: [192]u8 = undefined;
++        return xload.load(L, L.ck, try std.fmt.bufPrint(&name, prefix ++ fmt, args), suffixes);
++    }
++
+     pub fn get(L: *Loader, comptime fmt: []const u8, args: anytype) !Tensor {
+         const name = try std.fmt.bufPrint(&L.name_buf, prefix ++ fmt, args);
+         return L.ck.get(name);
+@@ -105,9 +117,14 @@ const Loader = struct {
+         for (lo..hi) |i| {
+             const v: f32 = switch (t.dtype) {
+                 .bf16 => @bitCast(@as(u32, std.mem.readInt(u16, t.bytes[2 * i ..][0..2], .little)) << 16),
++                .f16 => @floatCast(@as(f16, @bitCast(std.mem.readInt(u16, t.bytes[2 * i ..][0..2], .little)))),
+                 .f32 => std.mem.bytesToValue(f32, t.bytes[4 * i ..][0..4]),
+                 else => return error.UnexpectedTensor,
+             };
++            if (t.dtype == .f16 and to == .bf16) {
++                const exact: f32 = @bitCast(@as(u32, toBf16(v)) << 16);
++                if (exact != v) return error.Fp16WeightNotExactlyBf16;
++            }
+             switch (to) {
+                 .f32 => try L.host.appendSlice(L.gpa, std.mem.asBytes(&v)),
+                 .bf16 => try L.host.appendSlice(L.gpa, std.mem.asBytes(&toBf16(v))),
+@@ -123,7 +140,7 @@ const Loader = struct {
+         try L.add(t, lo * per, hi * per, to);
+     }
+ 
+-    fn whole(L: *Loader, t: Tensor, to: core.checkpoint.DType) !void {
++    pub fn whole(L: *Loader, t: Tensor, to: core.checkpoint.DType) !void {
+         try L.add(t, 0, t.numel(), to);
+     }
+ 
+@@ -149,15 +166,21 @@ const Loader = struct {
+         const h = L.w.share.kda;
+         const dk = c.kda_dim;
+         const all = c.kda_heads * dk;
+-        inline for (.{ "q", "k", "v" }) |x| try L.rows(try L.get("layers.{d}.self_attn." ++ x ++ "_proj.weight", .{i}), h.lo * dk, h.hi * dk, all, .bf16);
+-        inline for (.{ "f_a", "g_a" }) |x| try L.whole(try L.get("layers.{d}.self_attn." ++ x ++ "_proj.weight", .{i}), .bf16);
+-        try L.rows(try L.get("layers.{d}.self_attn.b_proj.weight", .{i}), h.lo, h.hi, c.kda_heads, .bf16);
+-        const proj = try L.put("layers.{d}.kda.proj", .{i});
++        const proj = if (L.lowbit()) try L.project("layers.{d}.self_attn", .{i}, &.{ "qkv_proj", "f_a_proj", "g_a_proj", "b_proj" }) else plain: {
++            inline for (.{ "q", "k", "v" }) |x| try L.rows(try L.get("layers.{d}.self_attn." ++ x ++ "_proj.weight", .{i}), h.lo * dk, h.hi * dk, all, .bf16);
++            inline for (.{ "f_a", "g_a" }) |x| try L.whole(try L.get("layers.{d}.self_attn." ++ x ++ "_proj.weight", .{i}), .bf16);
++            try L.rows(try L.get("layers.{d}.self_attn.b_proj.weight", .{i}), h.lo, h.hi, c.kda_heads, .bf16);
++            break :plain try L.put("layers.{d}.kda.proj", .{i});
++        };
+         try L.rows(try L.get("layers.{d}.self_attn.f_b_proj.weight", .{i}), h.lo * dk, h.hi * dk, all, .bf16);
+         const fb = try L.put("layers.{d}.kda.fb", .{i});
+         try L.rows(try L.get("layers.{d}.self_attn.g_b_proj.weight", .{i}), h.lo * dk, h.hi * dk, all, .bf16);
+         const gb = try L.put("layers.{d}.kda.gb", .{i});
+-        inline for (.{ "q", "k", "v" }) |x| try L.rows(try L.get("layers.{d}.self_attn." ++ x ++ "_conv1d.weight", .{i}), h.lo * dk, h.hi * dk, all, .f32);
++        if (L.lowbit()) {
++            try L.whole(try L.get("layers.{d}.self_attn.conv1d.weight", .{i}), .f32);
++        } else {
++            inline for (.{ "q", "k", "v" }) |x| try L.rows(try L.get("layers.{d}.self_attn." ++ x ++ "_conv1d.weight", .{i}), h.lo * dk, h.hi * dk, all, .f32);
++        }
+         const conv = try L.put("layers.{d}.kda.conv", .{i});
+         try L.rows(try L.get("layers.{d}.self_attn.A_log", .{i}), h.lo, h.hi, c.kda_heads, .f32);
+         const a_log = try L.put("layers.{d}.kda.a_log", .{i});
+@@ -165,8 +188,10 @@ const Loader = struct {
+         const dt = try L.put("layers.{d}.kda.dt_bias", .{i});
+         try L.whole(try L.get("layers.{d}.self_attn.o_norm.weight", .{i}), .bf16);
+         const norm = try L.put("layers.{d}.kda.norm", .{i});
+-        try L.cols(try L.get("layers.{d}.self_attn.o_proj.weight", .{i}), h.lo * dk, h.hi * dk, .bf16);
+-        const o = try L.put("layers.{d}.kda.o", .{i});
++        const o = if (L.lowbit()) try L.project("layers.{d}.self_attn.o_proj", .{i}, &.{""}) else plain: {
++            try L.cols(try L.get("layers.{d}.self_attn.o_proj.weight", .{i}), h.lo * dk, h.hi * dk, .bf16);
++            break :plain try L.put("layers.{d}.kda.o", .{i});
++        };
+         return .{ .proj = proj, .fb = fb, .gb = gb, .o = o, .conv_w = conv, .a_log = a_log, .dt_bias = dt, .norm_w = norm, .eps = c.eps, .lower = c.lower_bound, .heads = h.len(), .dims = c.hidden };
+     }
+ 
+@@ -175,14 +200,18 @@ const Loader = struct {
+         const c = &L.w.config;
+         const h = L.w.share.mla;
+         const qk = c.nope;
+-        inline for (.{ "q_a_proj", "kv_a_proj_with_mqa" }) |x| try L.whole(try L.get("layers.{d}.self_attn." ++ x ++ ".weight", .{i}), .bf16);
+-        const proj = try L.put("layers.{d}.dsa.proj", .{i});
++        const proj = if (L.lowbit()) try L.project("layers.{d}.self_attn", .{i}, &.{ "q_a_proj", "kv_a_proj_with_mqa" }) else plain: {
++            inline for (.{ "q_a_proj", "kv_a_proj_with_mqa" }) |x| try L.whole(try L.get("layers.{d}.self_attn." ++ x ++ ".weight", .{i}), .bf16);
++            break :plain try L.put("layers.{d}.dsa.proj", .{i});
++        };
+         try L.whole(try L.get("layers.{d}.self_attn.q_a_layernorm.weight", .{i}), .bf16);
+         const q_norm = try L.put("layers.{d}.dsa.q_norm", .{i});
+         try L.whole(try L.get("layers.{d}.self_attn.kv_a_layernorm.weight", .{i}), .bf16);
+         const kv_norm = try L.put("layers.{d}.dsa.kv_norm", .{i});
+-        try L.rows(try L.get("layers.{d}.self_attn.q_b_proj.weight", .{i}), h.lo * qk, h.hi * qk, c.mla_heads * qk, .bf16);
+-        const q_b = try L.put("layers.{d}.dsa.q_b", .{i});
++        const q_b = if (L.lowbit()) try L.project("layers.{d}.self_attn.q_b_proj", .{i}, &.{""}) else plain: {
++            try L.rows(try L.get("layers.{d}.self_attn.q_b_proj.weight", .{i}), h.lo * qk, h.hi * qk, c.mla_heads * qk, .bf16);
++            break :plain try L.put("layers.{d}.dsa.q_b", .{i});
++        };
+         const kv_b = try L.get("layers.{d}.self_attn.kv_b_proj.weight", .{i});
+         const per = qk + c.v_dim; // a head's kv_b rows: its keys, then its values
+         const total = c.mla_heads * per;
+@@ -190,12 +219,16 @@ const Loader = struct {
+         const wk = try L.put("layers.{d}.dsa.absorb.wk", .{i});
+         for (h.lo..h.hi) |head| try L.rows(kv_b, head * per + qk, (head + 1) * per, total, .bf16);
+         const wv = try L.put("layers.{d}.dsa.absorb.wv", .{i});
+-        try L.cols(try L.get("layers.{d}.self_attn.o_proj.weight", .{i}), h.lo * c.v_dim, h.hi * c.v_dim, .bf16);
+-        const o = try L.put("layers.{d}.dsa.o", .{i});
++        const o = if (L.lowbit()) try L.project("layers.{d}.self_attn.o_proj", .{i}, &.{""}) else plain: {
++            try L.cols(try L.get("layers.{d}.self_attn.o_proj.weight", .{i}), h.lo * c.v_dim, h.hi * c.v_dim, .bf16);
++            break :plain try L.put("layers.{d}.dsa.o", .{i});
++        };
+         inline for (.{ "wk", "weights_proj" }) |x| try L.whole(try L.get("layers.{d}.self_attn.indexer." ++ x ++ ".weight", .{i}), .bf16);
+         const kw = try L.put("layers.{d}.dsa.index.kw", .{i});
+-        try L.whole(try L.get("layers.{d}.self_attn.indexer.wq_b.weight", .{i}), .bf16);
+-        const qb = try L.put("layers.{d}.dsa.index.qb", .{i});
++        const qb = if (L.lowbit()) try L.project("layers.{d}.self_attn.indexer.wq_b", .{i}, &.{""}) else plain: {
++            try L.whole(try L.get("layers.{d}.self_attn.indexer.wq_b.weight", .{i}), .bf16);
++            break :plain try L.put("layers.{d}.dsa.index.qb", .{i});
++        };
+         try L.whole(try L.get("layers.{d}.self_attn.indexer.k_norm.weight", .{i}), .bf16);
+         const ln_w = try L.put("layers.{d}.dsa.index.ln_w", .{i});
+         try L.whole(try L.get("layers.{d}.self_attn.indexer.k_norm.bias", .{i}), .bf16);
+@@ -261,7 +294,10 @@ const Loader = struct {
+         const c = &L.w.config;
+         const s = L.w.share.dense;
+         const d = c.hidden;
+-        const w: mlp.Weights = if (c.exl3) bf16: { // an EXL3 checkpoint keeps its dense layers bf16
++        const w: mlp.Weights = if (L.lowbit()) .{ .bf16 = .{
++            .gu = try L.project("layers.{d}.mlp", .{i}, &.{ "gate_proj", "up_proj" }),
++            .down = try L.project("layers.{d}.mlp.down_proj", .{i}, &.{""}),
++        } } else if (c.exl3) bf16: { // an EXL3 checkpoint keeps its dense layers bf16
+             inline for (.{ "gate_proj", "up_proj" }) |x| try L.rows(try L.get("layers.{d}.mlp." ++ x ++ ".weight", .{i}), s.lo, s.hi, c.dense_inter, .bf16);
+             const gu = try L.put("layers.{d}.mlp.gu", .{i});
+             try L.cols(try L.get("layers.{d}.mlp.down_proj.weight", .{i}), s.lo, s.hi, .bf16);
+@@ -362,10 +398,15 @@ const Loader = struct {
+             if (!x3.?.shx) L.w.exl3_shx = false;
+         } else routed = try L.nvfp4Experts(i);
+         const sh = L.w.share.shared;
+-        inline for (.{ "gate_proj", "up_proj" }) |x| try L.rows(try L.get("layers.{d}.mlp.shared_experts." ++ x ++ ".weight", .{i}), sh.lo, sh.hi, c.shared_inter, .bf16);
+-        const gu = try L.put("layers.{d}.moe.shared.gu", .{i});
+-        try L.cols(try L.get("layers.{d}.mlp.shared_experts.down_proj.weight", .{i}), sh.lo, sh.hi, .bf16);
+-        const sd = try L.put("layers.{d}.moe.shared.down", .{i});
++        const gu, const sd = if (L.lowbit()) .{
++            try L.project("layers.{d}.mlp.shared_experts", .{i}, &.{ "gate_proj", "up_proj" }),
++            try L.project("layers.{d}.mlp.shared_experts.down_proj", .{i}, &.{""}),
++        } else plain: {
++            inline for (.{ "gate_proj", "up_proj" }) |x| try L.rows(try L.get("layers.{d}.mlp.shared_experts." ++ x ++ ".weight", .{i}), sh.lo, sh.hi, c.shared_inter, .bf16);
++            const gu = try L.put("layers.{d}.moe.shared.gu", .{i});
++            try L.cols(try L.get("layers.{d}.mlp.shared_experts.down_proj.weight", .{i}), sh.lo, sh.hi, .bf16);
++            break :plain .{ gu, try L.put("layers.{d}.moe.shared.down", .{i}) };
++        };
+         return .{
+             .router = router,
+             .bias = bias,
+@@ -443,9 +484,14 @@ const Loader = struct {
+         L.ck.release();
+         var out: [4]u64 = undefined;
+         for (&out, [_][]const u8{ "enorm.weight", "hnorm.weight", "eh_proj.weight", "shared_head.norm.weight" }, [_][]const u8{ "enorm", "hnorm", "eh", "norm" }) |*p, name, what| {
+-            try L.whole(try L.ck.get(try std.fmt.bufPrint(&L.name_buf, prefix ++ "layers.{d}.{s}", .{ i, name })), .bf16);
+-            p.* = try L.put("mtp.{s}", .{what});
++            if (L.lowbit() and std.mem.eql(u8, what, "eh")) {
++                p.* = try L.project("layers.{d}.eh_proj", .{i}, &.{""});
++            } else {
++                try L.whole(try L.ck.get(try std.fmt.bufPrint(&L.name_buf, prefix ++ "layers.{d}.{s}", .{ i, name })), .bf16);
++                p.* = try L.put("mtp.{s}", .{what});
++            }
+         }
++        if (L.lowbit()) return .{ .enorm = out[0], .hnorm = out[1], .eh = out[2], .norm = out[3], .layer = layer_w, .draft = .{ .w = 0, .s = 0, .b = 0, .n = c.vocab, .k = c.hidden, .npad = q4.npadOf(c.vocab) } };
+         // the draft head: quantize4 of the BF16 head's rows, then make_q4's tiling
+         const qk = L.tools.quant orelse return error.NoQuantizer;
+         const tk = L.tools.q4 orelse return error.NoQuantizer;
+@@ -513,8 +559,12 @@ pub fn load(gpa: std.mem.Allocator, io: std.Io, d: *const cuda.Driver, stream: c
+     w.embed = try L.put("embed", .{});
+     try L.whole(try L.get("norm.weight", .{}), .bf16);
+     w.norm = try L.put("norm", .{});
+-    try L.rows(try head_ck.get("lm_head.weight"), share.vocab.lo, share.vocab.hi, c.vocab, .bf16);
+-    w.head = try L.put("head", .{});
++    if (L.lowbit()) {
++        w.head = try xload.load(&L, &head_ck, "lm_head", &.{""});
++    } else {
++        try L.rows(try head_ck.get("lm_head.weight"), share.vocab.lo, share.vocab.hi, c.vocab, .bf16);
++        w.head = try L.put("head", .{});
++    }
+     if (with_mtp and c.mtp > 0) w.mtp = try L.mtp();
+     return w;
+ }
+diff --git a/zig/tests/cuda/glm_exl3_tests.zig b/zig/tests/cuda/glm_exl3_tests.zig
+index 1dddfb62..159b66e8 100644
+--- a/zig/tests/cuda/glm_exl3_tests.zig
++++ b/zig/tests/cuda/glm_exl3_tests.zig
+@@ -30,12 +30,18 @@ const Set = struct {
+     svh_d: u64,
+     k2: u64,
+     shx: bool,
++    mode: usize,
+     wg: []f64, // [E][D][N]
+     wu: []f64,
+     wd: []f64, // [E][N][D]
+ 
+     fn experts(s: Set) glm.exl3.Experts {
+-        return .{ .k2 = s.k2, .gt = s.gt, .ut = s.ut, .dt = s.dt, .suh_g = s.suh_g, .suh_u = s.suh_u, .svh_g = s.svh_g, .svh_u = s.svh_u, .suh_d = s.suh_d, .svh_d = s.svh_d, .shx = s.shx };
++        return .{ .gk2 = s.k2, .uk2 = s.k2, .dk2 = s.k2, .uniform_k2 = switch (s.mode) {
++            0 => 8,
++            1 => 4,
++            2 => 6,
++            else => 0,
++        }, .codebook = if (s.mode == 0) .mcg else .mul1, .gt = s.gt, .ut = s.ut, .dt = s.dt, .suh_g = s.suh_g, .suh_u = s.suh_u, .svh_g = s.svh_g, .svh_u = s.svh_u, .suh_d = s.suh_d, .svh_d = s.svh_d, .shx = s.shx };
+     }
+ };
+ 
+@@ -46,9 +52,14 @@ fn signs(r: *Rig, n: usize, scale: f16) ![]f16 {
+ }
+ 
+ /// `E` random K x N matrices: trellis words, suh (shared by every expert when `one`), svh; device copies and float64.
+-fn matrices(r: *Rig, k: usize, n: usize, shared_suh: ?[]const f16, out_suh: *u64, out_svh: *u64, w: []f64) !u64 {
+-    const words = k / 16 * (n / 16) * 64;
+-    const tr = try r.a.alloc(i16, E * words);
++fn matrices(r: *Rig, mode: usize, k: usize, n: usize, shared_suh: ?[]const f16, out_suh: *u64, out_svh: *u64, w: []f64) !u64 {
++    var offsets: [E]usize = undefined;
++    var total: usize = 0;
++    for (0..E) |e| {
++        offsets[e] = total;
++        total += k / 16 * (n / 16) * width(mode, e) * 8;
++    }
++    const tr = try r.a.alloc(i16, total);
+     for (tr) |*v| v.* = r.rng.int(i16);
+     const suh = try r.a.alloc(f16, E * k);
+     const svh = try r.a.alloc(f16, E * n);
+@@ -56,28 +67,41 @@ fn matrices(r: *Rig, k: usize, n: usize, shared_suh: ?[]const f16, out_suh: *u64
+     for (0..E) |e| {
+         if (shared_suh) |s| @memcpy(suh[e * k ..][0..k], s) else @memcpy(suh[e * k ..][0..k], try signs(r, k, 1.0));
+         @memcpy(svh[e * n ..][0..n], try signs(r, n, 0.02));
+-        fmt.dequantize(.{ .halves = 8 }, .mcg, tr[e * words ..][0..words], k / 16, n / 16, suh[e * k ..][0..k], svh[e * n ..][0..n], w[e * k * n ..][0 .. k * n], scratch);
++        const halves = width(mode, e);
++        const words = k / 16 * (n / 16) * halves * 8;
++        fmt.dequantize(.{ .halves = @intCast(halves) }, if (mode == 0) .mcg else .mul1, tr[offsets[e]..][0..words], k / 16, n / 16, suh[e * k ..][0..k], svh[e * n ..][0..n], w[e * k * n ..][0 .. k * n], scratch);
+     }
+     out_suh.* = try r.dev(std.mem.sliceAsBytes(suh));
+     out_svh.* = try r.dev(std.mem.sliceAsBytes(svh));
+     const base = try r.dev(std.mem.sliceAsBytes(tr));
+     const ptrs = try r.a.alloc(u64, E);
+-    for (ptrs, 0..) |*ptr, e| ptr.* = base + e * words * 2;
++    for (ptrs, 0..) |*ptr, e| ptr.* = base + offsets[e] * 2;
+     return r.dev(std.mem.sliceAsBytes(ptrs));
+ }
+ 
+-fn weights(r: *Rig, one: bool) !Set {
++fn width(mode: usize, e: usize) usize {
++    return switch (mode) {
++        0 => 8,
++        1 => 4,
++        2 => 6,
++        else => 4 + 2 * (e % 2),
++    };
++}
++
++fn weights(r: *Rig, one: bool, mode: usize) !Set {
+     var s: Set = undefined;
+     s.shx = one;
+-    const k2: [E]i32 = @splat(8);
++    s.mode = mode;
++    var k2: [E]i32 = undefined;
++    for (&k2, 0..) |*v, e| v.* = @intCast(width(mode, e));
+     s.k2 = try r.dev(std.mem.sliceAsBytes(&k2));
+     s.wg = try r.a.alloc(f64, E * D * N);
+     s.wu = try r.a.alloc(f64, E * D * N);
+     s.wd = try r.a.alloc(f64, E * N * D);
+     const rot = if (one) try signs(r, D, 1.0) else null; // one input rotation for every gate and up
+-    s.gt = try matrices(r, D, N, rot, &s.suh_g, &s.svh_g, s.wg);
+-    s.ut = try matrices(r, D, N, rot, &s.suh_u, &s.svh_u, s.wu);
+-    s.dt = try matrices(r, N, D, null, &s.suh_d, &s.svh_d, s.wd);
++    s.gt = try matrices(r, mode, D, N, rot, &s.suh_g, &s.svh_g, s.wg);
++    s.ut = try matrices(r, mode, D, N, rot, &s.suh_u, &s.svh_u, s.wu);
++    s.dt = try matrices(r, mode, N, D, null, &s.suh_d, &s.svh_d, s.wd);
+     return s;
+ }
+ 
+@@ -202,39 +226,42 @@ pub fn run_(gpu: Gpu) !void {
+     defer k.unload();
+     var ek = try glm.experts.Kernels.load(gpu.d, pm, @intCast(try gpu.ctx.attribute(.multiprocessor_count)));
+     defer ek.unload();
+-    for ([_]bool{ true, false }) |one| {
+-        const s = try weights(&r, one);
+-        for ([_]usize{ 1, 3, 8 }) |rows| { // decode windows
+-            const x = try r.bfs(rows * D, 1.0);
+-            const pk = try picks(&r, rows);
+-            const got = try run(&r, &k, &ek, s, x, pk, rows, false);
+-            try expect(&r, if (one) "glm-exl3 decode, one rotation" else "glm-exl3 decode, a rotation an expert", got, s, x, pk);
+-            if (rows > 1) { // every row's bits as alone
+-                const all = try r.back(got.ey, rows * slots * D * 4);
+-                for (0..rows) |row| {
+-                    const alone = try run(&r, &k, &ek, s, x[row * D ..][0..D], pk[row * slots ..][0..slots], 1, false);
+-                    const mine = try r.back(alone.ey, slots * D * 4);
+-                    try check.expect(std.mem.eql(u8, mine[0 .. (slots - 1) * D * 4], all[row * slots * D * 4 ..][0 .. (slots - 1) * D * 4]), "glm-exl3 decode: row {d} of {d} equals the row alone", .{ row, rows });
++    for (0..4) |mode| {
++        for ([_]bool{ true, false }) |one| {
++            std.debug.print("FORMAT mode={d} shared_rotation={}\n", .{ mode, one });
++            const s = try weights(&r, one, mode);
++            for ([_]usize{ 1, 3, 8 }) |rows| { // decode windows
++                const x = try r.bfs(rows * D, 1.0);
++                const pk = try picks(&r, rows);
++                const got = try run(&r, &k, &ek, s, x, pk, rows, false);
++                try expect(&r, if (one) "glm-exl3 decode, one rotation" else "glm-exl3 decode, a rotation an expert", got, s, x, pk);
++                if (rows > 1) { // every row's bits as alone
++                    const all = try r.back(got.ey, rows * slots * D * 4);
++                    for (0..rows) |row| {
++                        const alone = try run(&r, &k, &ek, s, x[row * D ..][0..D], pk[row * slots ..][0..slots], 1, false);
++                        const mine = try r.back(alone.ey, slots * D * 4);
++                        try check.expect(std.mem.eql(u8, mine[0 .. (slots - 1) * D * 4], all[row * slots * D * 4 ..][0 .. (slots - 1) * D * 4]), "glm-exl3 decode: row {d} of {d} equals the row alone", .{ row, rows });
++                    }
+                 }
+             }
+-        }
+-        for ([_]usize{ 1, 40, 200, glm.exl3.chunk_rows + 6 }) |rows| { // prompt chunks, the last in two calls
+-            const x = try r.bfs(rows * D, 1.0);
+-            const pk = try picks(&r, rows);
+-            const got = try run(&r, &k, &ek, s, x, pk, rows, true);
+-            try expect(&r, if (one) "glm-exl3 prompt, one rotation" else "glm-exl3 prompt, a rotation an expert", got, s, x, pk);
+-            if (rows > glm.exl3.chunk_rows) { // the rows either side of the calls' boundary keep their bits as alone
+-                const all = try r.back(got.ey, rows * slots * D * 4);
+-                for ([_]usize{ 0, glm.exl3.chunk_rows - 1, glm.exl3.chunk_rows, rows - 1 }) |row| {
+-                    const alone = try run(&r, &k, &ek, s, x[row * D ..][0..D], pk[row * slots ..][0..slots], 1, true);
+-                    const mine = try r.back(alone.ey, slots * D * 4);
+-                    try check.expect(std.mem.eql(u8, mine[0 .. (slots - 1) * D * 4], all[row * slots * D * 4 ..][0 .. (slots - 1) * D * 4]), "glm-exl3 prompt: row {d} of {d} equals the row alone", .{ row, rows });
++            for ([_]usize{ 1, 40, 200, glm.exl3.chunk_rows + 6 }) |rows| { // prompt chunks, the last in two calls
++                const x = try r.bfs(rows * D, 1.0);
++                const pk = try picks(&r, rows);
++                const got = try run(&r, &k, &ek, s, x, pk, rows, true);
++                try expect(&r, if (one) "glm-exl3 prompt, one rotation" else "glm-exl3 prompt, a rotation an expert", got, s, x, pk);
++                if (rows > glm.exl3.chunk_rows) { // the rows either side of the calls' boundary keep their bits as alone
++                    const all = try r.back(got.ey, rows * slots * D * 4);
++                    for ([_]usize{ 0, glm.exl3.chunk_rows - 1, glm.exl3.chunk_rows, rows - 1 }) |row| {
++                        const alone = try run(&r, &k, &ek, s, x[row * D ..][0..D], pk[row * slots ..][0..slots], 1, true);
++                        const mine = try r.back(alone.ey, slots * D * 4);
++                        try check.expect(std.mem.eql(u8, mine[0 .. (slots - 1) * D * 4], all[row * slots * D * 4 ..][0 .. (slots - 1) * D * 4]), "glm-exl3 prompt: row {d} of {d} equals the row alone", .{ row, rows });
++                    }
+                 }
+             }
+         }
+     }
+     { // a NaN in one row's input: that row's routed slots NaN, every other row finite
+-        const s = try weights(&r, true);
++        const s = try weights(&r, true, 3);
+         const rows = 4;
+         const x = try r.bfs(rows * D, 1.0);
+         x[2 * D + 17] = 0x7fc0;
