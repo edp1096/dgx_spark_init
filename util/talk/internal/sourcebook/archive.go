@@ -3,7 +3,6 @@ package sourcebook
 import (
 	"archive/zip"
 	"bytes"
-	"encoding/xml"
 	"fmt"
 	"io"
 	"mime"
@@ -12,7 +11,7 @@ import (
 	"strings"
 )
 
-func (b *Book) archive(data []byte, external Loader) error {
+func (b *Book) archive(data []byte, external Loader, epub bool) error {
 	z, e := zip.NewReader(bytes.NewReader(data), int64(len(data)))
 	if e != nil {
 		return e
@@ -27,10 +26,10 @@ func (b *Book) archive(data []byte, external Loader) error {
 		if strings.HasPrefix(name, "/") || path.Clean(name) != strings.TrimSuffix(name, "/") || strings.Contains(name, "../") {
 			return fmt.Errorf("unsafe archive path %q", name)
 		}
-		expanded += f.UncompressedSize64
-		if expanded > 128<<20 {
+		if f.UncompressedSize64 > (128<<20)-expanded {
 			return fmt.Errorf("archive expands beyond limit")
 		}
+		expanded += f.UncompressedSize64
 		if !f.FileInfo().IsDir() {
 			if files[name] != nil {
 				return fmt.Errorf("duplicate archive path")
@@ -38,10 +37,14 @@ func (b *Book) archive(data []byte, external Loader) error {
 			files[name] = f
 		}
 	}
+	encrypted := map[string]bool{}
 	read := func(name string) ([]byte, error) {
 		f := files[path.Clean(name)]
 		if f == nil {
 			return nil, fmt.Errorf("archive entry missing: %s", name)
+		}
+		if encrypted[path.Clean(name)] || f.Flags&1 != 0 {
+			return nil, fmt.Errorf("encrypted EPUB resource %q cannot be read; an unencrypted copy is required", name)
 		}
 		if f.UncompressedSize64 > MaxBytes {
 			return nil, fmt.Errorf("archive entry too large")
@@ -57,76 +60,24 @@ func (b *Book) archive(data []byte, external Loader) error {
 		}
 		return v, e
 	}
-	order := []string{}
-	if files["META-INF/container.xml"] != nil {
-		raw, e := read("META-INF/container.xml")
-		if e != nil {
-			return e
-		}
-		var container struct {
-			Roots []struct {
-				Path string `xml:"full-path,attr"`
-			} `xml:"rootfiles>rootfile"`
-		}
-		if e = xml.Unmarshal(raw, &container); e != nil || len(container.Roots) == 0 {
-			return fmt.Errorf("invalid EPUB container")
-		}
-		opf := container.Roots[0].Path
-		raw, e = read(opf)
-		if e != nil {
-			return e
-		}
-		var pack struct {
-			Title    string `xml:"metadata>title"`
-			Author   string `xml:"metadata>creator"`
-			Language string `xml:"metadata>language"`
-			Manifest []struct {
-				ID   string `xml:"id,attr"`
-				Href string `xml:"href,attr"`
-				MIME string `xml:"media-type,attr"`
-			} `xml:"manifest>item"`
-			Spine []struct {
-				ID     string `xml:"idref,attr"`
-				Linear string `xml:"linear,attr"`
-			} `xml:"spine>itemref"`
-		}
-		if e = xml.Unmarshal(raw, &pack); e != nil {
-			return e
-		}
-		if pack.Title != "" {
-			b.Title = pack.Title
-		}
-		if b.Metadata == nil {
-			b.Metadata = map[string]any{}
-		}
-		if pack.Author != "" {
-			b.Metadata["author"] = pack.Author
-		}
-		if pack.Language != "" {
-			b.Metadata["language"] = pack.Language
-		}
-		items := map[string]string{}
-		for _, it := range pack.Manifest {
-			if strings.Contains(it.MIME, "html") {
-				u, e := url.PathUnescape(strings.SplitN(it.Href, "#", 2)[0])
-				if e != nil {
-					return e
-				}
-				items[it.ID] = path.Clean(path.Join(path.Dir(opf), u))
+	var docs []archiveDocument
+	if epub || files["META-INF/container.xml"] != nil {
+		if files["META-INF/encryption.xml"] != nil {
+			raw, err := read("META-INF/encryption.xml")
+			if err != nil {
+				return err
+			}
+			encrypted, err = epubEncryptedPaths(raw)
+			if err != nil {
+				return err
 			}
 		}
-		for _, it := range pack.Spine {
-
-			name := items[it.ID]
-			if name == "" {
-				return fmt.Errorf("unsupported EPUB spine item %s", it.ID)
-			}
-			order = append(order, name)
-		}
-		if len(order) == 0 {
-			return fmt.Errorf("EPUB has no readable spine")
+		docs, e = b.epubDocuments(read)
+		if e != nil {
+			return e
 		}
 	} else {
+		var order []string
 		for name := range files {
 			ext := strings.ToLower(path.Ext(name))
 			if ext == ".html" || ext == ".xhtml" || ext == ".htm" {
@@ -137,17 +88,23 @@ func (b *Book) archive(data []byte, external Loader) error {
 		if err != nil {
 			return err
 		}
-		order = ordered
+		for _, name := range ordered {
+			docs = append(docs, archiveDocument{Name: name, MIME: "application/xhtml+xml"})
+		}
 		if !complete {
 			b.Warnings = append(b.Warnings, "HTML ZIP reading order is not fully specified by its index; unmatched documents require review")
 		}
 	}
-	if len(order) == 0 {
+	if len(docs) == 0 {
 		return fmt.Errorf("archive has no HTML documents")
 	}
 	prefixes := map[string]string{}
-	for i, name := range order {
-		prefixes[name] = fmt.Sprintf("d%d-", i+1)
+	for i, doc := range docs {
+		prefix := fmt.Sprintf("d%d-", i+1)
+		prefixes[doc.Name] = prefix
+		for _, alias := range doc.Aliases {
+			prefixes[alias] = prefix
+		}
 	}
 	load := func(target string) ([]byte, string, error) {
 		u, e := url.Parse(target)
@@ -160,21 +117,19 @@ func (b *Book) archive(data []byte, external Loader) error {
 			}
 			return nil, "", fmt.Errorf("external archive resource unavailable")
 		}
-		name, e := url.PathUnescape(strings.TrimPrefix(u.Path, "/"))
-		if e != nil {
-			return nil, "", e
-		}
+		name := strings.TrimPrefix(u.Path, "/")
 		v, e := read(name)
 		return v, mime.TypeByExtension(path.Ext(name)), e
 	}
 	start := len(b.Root.Children)
-	for _, name := range order {
+	for _, doc := range docs {
+		name := doc.Name
 		raw, e := read(name)
 		if e != nil {
 			return e
 		}
 		u := url.URL{Scheme: "https", Host: "archive.invalid", Path: "/" + name}
-		if e = b.html(raw, u.String(), prefixes[name], "application/xhtml+xml; charset=utf-8", load); e != nil {
+		if e = b.html(raw, u.String(), prefixes[name], doc.MIME+"; charset=utf-8", load); e != nil {
 			return e
 		}
 	}
@@ -183,7 +138,7 @@ func (b *Book) archive(data []byte, external Loader) error {
 		if n.Tag == "a" {
 			u, e := url.Parse(n.Attr["href"])
 			if e == nil && u.Host == "archive.invalid" {
-				name, _ := url.PathUnescape(strings.TrimPrefix(u.Path, "/"))
+				name := strings.TrimPrefix(u.Path, "/")
 				if p, ok := prefixes[name]; ok {
 					n.Attr["href"] = "#" + p + u.Fragment
 				} else {

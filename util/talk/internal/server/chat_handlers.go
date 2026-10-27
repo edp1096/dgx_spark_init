@@ -345,9 +345,14 @@ func (s *Server) llmMessages(ctx context.Context, items []db.Message, cfg config
 			item.Content = cleanInternalEvidence(item.Content)
 		}
 		item.Content = userTurnContent(item)
+		var userRequest *string
+		if item.Role == "user" {
+			text := item.Content
+			userRequest = &text
+		}
 		item.Content += contextToolEvidence(item)
 		if len(item.Attachments) == 0 {
-			messages = append(messages, llm.Message{Role: item.Role, Content: item.Content, ReasoningContent: savedModelReasoning(ctx, item, cfg)})
+			messages = append(messages, llm.Message{Role: item.Role, Content: item.Content, ReasoningContent: savedModelReasoning(ctx, item, cfg), UserRequest: userRequest})
 			continue
 		}
 		parts := make([]map[string]any, 0, len(item.Attachments)+1)
@@ -446,11 +451,11 @@ func (s *Server) llmMessages(ctx context.Context, items []db.Message, cfg config
 		if item.Role == "assistant" && len(parts) > 0 {
 			messages = append(messages, llm.Message{Role: "assistant", Content: strings.Join(textParts, "\n\n"), ReasoningContent: savedModelReasoning(ctx, item, cfg)})
 			parts = append([]map[string]any{{"type": "text", "text": "Historical assistant image attachments from the preceding reply, supplied by SparkTalk as visual context. These are assistant outputs, not a new user request or user-uploaded originals. Follow the actual user request."}}, parts...)
-			messages = append(messages, llm.Message{Role: "user", Content: parts})
+			messages = append(messages, llm.Message{Role: "user", Content: parts, ReferenceContext: true})
 			continue
 		}
 		parts = append(parts, map[string]any{"type": "text", "text": strings.Join(textParts, "\n\n")})
-		messages = append(messages, llm.Message{Role: item.Role, Content: parts, ReasoningContent: savedModelReasoning(ctx, item, cfg)})
+		messages = append(messages, llm.Message{Role: item.Role, Content: parts, ReasoningContent: savedModelReasoning(ctx, item, cfg), UserRequest: userRequest})
 	}
 	return messages, nil
 }

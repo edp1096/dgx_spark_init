@@ -106,7 +106,13 @@ func (s *Server) openURLSource(ctx context.Context, session, target string) (str
 	return id, b, e
 }
 func (s *Server) attachmentSource(ctx context.Context, session string, a db.Attachment) (string, *sourcebook.Book, error) {
-	hash := sha256.Sum256([]byte(session + "\x00" + a.ID))
+	key := session + "\x00" + a.ID
+	if strings.Contains(strings.ToLower(a.MIME), "epub") || strings.HasSuffix(strings.ToLower(a.Name), ".epub") {
+		// New reads use the corrected EPUB parser; existing translation runs
+		// keep their original immutable snapshots and block IDs.
+		key += "\x00epub-v2"
+	}
+	hash := sha256.Sum256([]byte(key))
 	sourceID := hex.EncodeToString(hash[:16])
 	if book, err := s.db.Source(session, sourceID, false); err == nil {
 		return sourceID, book, nil

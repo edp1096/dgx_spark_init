@@ -73,7 +73,9 @@ func (b *Book) html(data []byte, base, prefix, contentType string, load Loader) 
 				if b.Metadata == nil {
 					b.Metadata = map[string]any{}
 				}
-				b.Metadata["author"] = attr(n, "content")
+				if b.Metadata["source_format"] != "epub" || b.Metadata["author"] == nil {
+					b.Metadata["author"] = attr(n, "content")
+				}
 			}
 			if n.Data == "title" && b.Title == "" {
 				b.Title = textOf(n)
@@ -115,6 +117,9 @@ func (b *Book) html(data []byte, base, prefix, contentType string, load Loader) 
 		}
 	}
 	chapter := ""
+	svgStack := map[string]bool{}
+	svgLoads := 0
+	svgBytes := 0
 	var visit func(*html.Node, string) *Node
 	visit = func(n *html.Node, kind string) *Node {
 		if n == preferred {
@@ -138,9 +143,15 @@ func (b *Book) html(data []byte, base, prefix, contentType string, load Loader) 
 		}
 		switch n.Data {
 		case "svg":
-			b.Warnings = append(b.Warnings, "inline SVG illustration is not preserved in this export")
-			return &Node{Tag: "span", Text: "", Children: []*Node{{Text: "[삽화 미확보: SVG]"}}}
-		case "script", "style", "noscript", "iframe", "object", "embed", "template", "head":
+			b.warnSVG()
+			return visit(svgReadingNode(n), kind)
+		case "object":
+			// Object fallback prose belongs to the book too. SVG objects are
+			// read as static content, never executed or embedded in the output.
+			if svgReference(attr(n, "data")) || attr(n, "type") == "image/svg+xml" {
+				return visit(&html.Node{Type: html.ElementNode, Data: "img", Attr: []html.Attribute{{Key: "src", Val: attr(n, "data")}, {Key: "type", Val: attr(n, "type")}, {Key: "id", Val: attr(n, "id")}}}, kind)
+			}
+		case "script", "style", "noscript", "iframe", "embed", "template", "head":
 			return nil
 		}
 		if n.Data == "picture" { // Choose its fallback image; srcset is handled on img below.
@@ -188,7 +199,9 @@ func (b *Book) html(data []byte, base, prefix, contentType string, load Loader) 
 		if tag == "a" {
 			href := attr(n, "href")
 			if strings.HasPrefix(href, "#") {
-				x.Attr["href"] = "#" + prefix + strings.TrimPrefix(href, "#")
+				if u, err := url.Parse(href); err == nil {
+					x.Attr["href"] = "#" + prefix + u.Fragment
+				}
 			} else if u, e := baseURL.Parse(href); href != "" && e == nil && (u.Scheme == "http" || u.Scheme == "https") {
 				x.Attr["href"] = u.String()
 			}
@@ -214,7 +227,46 @@ func (b *Book) html(data []byte, base, prefix, contentType string, load Loader) 
 				}
 			}
 			if u, e := baseURL.Parse(src); e == nil && src != "" {
-				x.Asset = b.asset(u.String(), load)
+				if (svgReference(u.Path) || attr(n, "type") == "image/svg+xml") && load != nil {
+					target := u.String()
+					var svg *html.Node
+					var err error
+					if svgStack[target] || len(svgStack) >= 8 || svgLoads >= MaxAssets {
+						err = fmt.Errorf("recursive SVG or SVG resource limit exceeded")
+					} else {
+						svgLoads++
+						var data []byte
+						data, _, err = load(target)
+						if err == nil {
+							svgBytes += len(data)
+							if svgBytes > MaxAssetsBytes {
+								err = fmt.Errorf("SVG resource size budget exceeded")
+							} else {
+								svg, err = svgDocument(data)
+							}
+						}
+					}
+					if err == nil {
+						// Relative raster references inside the SVG use its URL.
+						previous := baseURL
+						baseURL = u
+						svgStack[target] = true
+						converted := visit(svg, kind)
+						delete(svgStack, target)
+						baseURL = previous
+						converted = &Node{Tag: "figure", Attr: x.Attr, Children: []*Node{converted}}
+						if alt := attr(n, "alt"); alt != "" {
+							converted.Children = append(converted.Children, &Node{Tag: "figcaption", Children: []*Node{{Block: b.add(alt, "alt", chapter)}}})
+						}
+						return converted
+					}
+					b.Incomplete = true
+					b.Warnings = append(b.Warnings, "SVG "+target+": "+err.Error())
+					// Preserve the failure without loading the same resource again.
+					x.Asset = b.asset(target, func(string) ([]byte, string, error) { return nil, "", err })
+				} else {
+					x.Asset = b.asset(u.String(), load)
+				}
 			}
 			if alt := attr(n, "alt"); alt != "" {
 				x.Alt = b.add(alt, "alt", chapter)
@@ -235,6 +287,9 @@ func (b *Book) html(data []byte, base, prefix, contentType string, load Loader) 
 		return x
 	}
 	start := len(b.Root.Children)
+	if id := attr(body, "id"); id != "" {
+		b.Root.Children = append(b.Root.Children, &Node{Tag: "span", Attr: map[string]string{"id": prefix + id}})
+	}
 	for c := body.FirstChild; c != nil; c = c.NextSibling {
 		if x := visit(c, "p"); x != nil {
 			b.Root.Children = append(b.Root.Children, x)

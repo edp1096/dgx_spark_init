@@ -41,11 +41,6 @@ func extractArchiveDocument(path, mimeType string) ([]Page, error) {
 		})
 	case "application/vnd.oasis.opendocument.text", "application/vnd.oasis.opendocument.presentation", "application/vnd.oasis.opendocument.spreadsheet":
 		return extractXMLArchivePages(archive.File, func(name string) bool { return name == "content.xml" })
-	case "application/epub+zip":
-		return extractXMLArchivePages(archive.File, func(name string) bool {
-			extension := strings.ToLower(filepath.Ext(name))
-			return extension == ".xhtml" || extension == ".html" || extension == ".htm"
-		})
 	default:
 		return nil, fmt.Errorf("unsupported archive document type %s", mimeType)
 	}

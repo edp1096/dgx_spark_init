@@ -98,6 +98,9 @@ func matchesCurrentUserRequest(ctx context.Context, quote string, messages []llm
 func currentTitleRequestText(messages []llm.Message) string {
 	for i := len(messages) - 1; i >= 0; i-- {
 		if messages[i].Role == "user" && !messages[i].ReferenceContext {
+			if messages[i].UserRequest != nil {
+				return *messages[i].UserRequest
+			}
 			return strings.Join(userContentTexts(messages[i].Content), "\n")
 		}
 	}

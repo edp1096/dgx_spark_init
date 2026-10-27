@@ -14,6 +14,8 @@ import (
 	"github.com/klippa-app/go-pdfium/requests"
 	"github.com/klippa-app/go-pdfium/webassembly"
 	"golang.org/x/net/html"
+
+	"sparktalk/internal/sourcebook"
 )
 
 var ErrOCRRequired = errors.New("document has no usable embedded text and requires OCR")
@@ -42,17 +44,41 @@ func (e *Extractor) Extract(path, mimeType string) ([]Page, error) {
 		return e.extractPDF(path)
 	case "text/html":
 		return extractHTML(path)
+	case "application/epub+zip":
+		return extractEPUB(path)
 	case "image/png", "image/jpeg", "image/webp":
 		return nil, ErrOCRRequired
 	case "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 		"application/vnd.openxmlformats-officedocument.presentationml.presentation",
 		"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 		"application/vnd.oasis.opendocument.text", "application/vnd.oasis.opendocument.presentation",
-		"application/vnd.oasis.opendocument.spreadsheet", "application/epub+zip", "application/vnd.hancom.hwpx":
+		"application/vnd.oasis.opendocument.spreadsheet", "application/vnd.hancom.hwpx":
 		return extractArchiveDocument(path, mimeType)
 	default:
 		return extractText(path)
 	}
+}
+
+// Share the translation parser so previews and knowledge ingestion use the
+// package spine, not ZIP filenames, and never include scripts or unused files.
+func extractEPUB(path string) ([]Page, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+	raw, err := io.ReadAll(io.LimitReader(file, sourcebook.MaxBytes+1))
+	if err != nil {
+		return nil, err
+	}
+	book, err := sourcebook.Parse(raw, "application/epub+zip", "", nil)
+	if err != nil {
+		return nil, err
+	}
+	if book.Incomplete {
+		return nil, fmt.Errorf("EPUB text extraction is incomplete: %s", strings.Join(book.Warnings, "; "))
+	}
+	return []Page{{Number: 1, Text: book.Text}}, nil
 }
 
 func (e *Extractor) extractPDF(path string) ([]Page, error) {

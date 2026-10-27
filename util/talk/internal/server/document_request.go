@@ -17,7 +17,7 @@ func documentTextHash(text string) string {
 
 func (s *Server) bindDocumentRequest(ctx context.Context, session string, a *documentStart) error {
 	if len(a.Instructions) > 16000 {
-		return fmt.Errorf("document task instructions exceed 16000 UTF-8 bytes")
+		return fmt.Errorf("document task instructions exceed 16000 UTF-8 bytes; tool instructions contain %d bytes", len(a.Instructions))
 	}
 	request, bound := ctx.Value(sessionTitleRequestKey{}).(string)
 	if !bound || strings.TrimSpace(request) == "" {
@@ -72,7 +72,7 @@ func (s *Server) bindDocumentRequest(ctx context.Context, session string, a *doc
 		request = strings.Join(earlier, "\n\n") + "\n\nCurrent user request (takes precedence):\n" + request
 	}
 	if len(request) > 16000 {
-		return fmt.Errorf("explicit document instructions exceed 16000 UTF-8 bytes")
+		return fmt.Errorf("explicit document instructions exceed 16000 UTF-8 bytes; selected user messages contain %d bytes (attachment contents are excluded)", len(request))
 	}
 	spec.UserText, spec.Hash = request, documentTextHash(request)
 	a.RequestSpec = spec

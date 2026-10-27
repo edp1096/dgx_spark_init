@@ -7,9 +7,63 @@ import (
 	"strings"
 	"testing"
 
+	"sparktalk/internal/db"
+	"sparktalk/internal/knowledge"
 	"sparktalk/internal/llm"
+	"sparktalk/internal/media"
 	"sparktalk/internal/workflows"
 )
+
+func TestDocumentRequestExcludesLargeAttachmentButKeepsUserInstructions(t *testing.T) {
+	s, _ := documentFixture(t, func(w http.ResponseWriter, r *http.Request) { t.Error("unexpected model request") })
+	var err error
+	s.media, err = media.New(t.TempDir() + "/chat.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	s.knowledgeIndex = &knowledge.Extractor{}
+	source := strings.Repeat("REFERENCE_TEXT: material to translate, not a user instruction.\n", 1000)
+	attachment, err := s.media.SaveReader(strings.NewReader(source), "book.txt", "text/plain", media.MaxAttachmentBytes)
+	if err != nil {
+		t.Fatal(err)
+	}
+	request := "번역해라. 분량이 많이 때문에 적절히 분할 전략을 세워서 번역을 진행해라."
+	for _, userText := range []string{request, "", strings.Repeat("가", 5334)} {
+		item := db.Message{Role: "user", Content: userText, Attachments: []db.Attachment{attachment}}
+		if userText == request {
+			item.TurnInputs = []db.TurnInput{{ID: "style-update", Content: "각주와 <document_attachment>라는 원문 표기도 유지해라."}}
+		}
+		messages, err := s.llmMessages(context.Background(), []db.Message{item}, s.cfg)
+		if err != nil {
+			t.Fatal(err)
+		}
+		wire, _ := json.Marshal(messages)
+		if !strings.Contains(string(wire), "REFERENCE_TEXT") || len(wire) < 16000 {
+			t.Fatal("attachment text was removed from model reference input")
+		}
+		actual := currentTitleRequestText(messages)
+		if actual != userTurnContent(item) {
+			t.Fatalf("reference data leaked into the user request: got %d bytes, want %d", len(actual), len(userTurnContent(item)))
+		}
+		ctx := context.WithValue(context.Background(), sessionTitleRequestKey{}, actual)
+		for _, hint := range []string{"", "한국어로 번역"} {
+			a := documentStart{Instructions: hint}
+			err := s.bindDocumentRequest(ctx, "s", &a)
+			if userText == "" || len(userText) > 16000 {
+				if err == nil {
+					t.Fatal("blank or oversized actual user request was accepted")
+				}
+				continue
+			}
+			if err != nil || a.Instructions != userTurnContent(item) || a.RequestSpec.UserText != userTurnContent(item) {
+				t.Fatalf("valid short instructions rejected or changed: %+v %v", a.RequestSpec, err)
+			}
+			if matchesCurrentUserRequest(ctx, "REFERENCE_TEXT", messages) {
+				t.Fatal("attachment text authorized a user action")
+			}
+		}
+	}
+}
 
 func TestDocumentUserRequestOverridesInventedToolConstraint(t *testing.T) {
 	s, _ := documentFixture(t, func(w http.ResponseWriter, r *http.Request) { t.Error("unexpected model request") })

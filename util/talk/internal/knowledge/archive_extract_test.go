@@ -45,6 +45,26 @@ func TestExtractXLSXSharedStrings(t *testing.T) {
 	}
 }
 
+func TestExtractEPUBUsesSpineAndSVGText(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "book.epub")
+	writeKnowledgeArchive(t, path, map[string]string{
+		"mimetype":               "application/epub+zip",
+		"META-INF/container.xml": `<container><rootfiles><rootfile full-path="OPS/package.opf"/></rootfiles></container>`,
+		"OPS/package.opf":        `<package version="3.0"><manifest><item id="first" href="z.xhtml" media-type="application/xhtml+xml"/><item id="last" href="a.svg" media-type="image/svg+xml"/></manifest><spine><itemref idref="first"/><itemref idref="last"/></spine></package>`,
+		"OPS/z.xhtml":            `<html><head><style>STYLE_SENTINEL</style></head><body><p>FIRST CHAPTER &nbsp; text</p><script>SCRIPT_SENTINEL</script></body></html>`,
+		"OPS/a.svg":              `<svg xmlns="http://www.w3.org/2000/svg"><text>LAST CHAPTER</text></svg>`,
+		"OPS/unused.xhtml":       `<p>UNUSED_SENTINEL</p>`,
+	})
+	pages, err := (&Extractor{}).Extract(path, "application/epub+zip")
+	if err != nil || len(pages) != 1 {
+		t.Fatalf("EPUB extraction failed: %+v %v", pages, err)
+	}
+	text := pages[0].Text
+	if !strings.Contains(text, "FIRST CHAPTER") || !strings.Contains(text, "LAST CHAPTER") || strings.Index(text, "FIRST") > strings.Index(text, "LAST") || strings.Contains(text, "SENTINEL") {
+		t.Fatalf("preview differs from translation source: %q", text)
+	}
+}
+
 func writeKnowledgeArchive(t *testing.T, path string, entries map[string]string) {
 	t.Helper()
 	output, err := os.Create(path)

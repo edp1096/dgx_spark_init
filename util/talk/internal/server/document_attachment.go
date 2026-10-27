@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	documentExtractionFingerprint = "sparktalk-document-v1"
+	documentExtractionFingerprint = "sparktalk-document-v2-epub"
 	maxDocumentPromptRunes        = 256000
 	maxDocumentCacheRunes         = 4_000_000
 )

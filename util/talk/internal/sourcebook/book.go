@@ -113,7 +113,7 @@ func Parse(data []byte, mime, base string, load Loader) (*Book, error) {
 	var err error
 	switch {
 	case strings.Contains(lower, "zip"), strings.Contains(lower, "epub"), len(data) > 4 && string(data[:2]) == "PK":
-		err = b.archive(data, load)
+		err = b.archive(data, load, strings.Contains(lower, "epub"))
 	case strings.Contains(lower, "html"), strings.Contains(strings.ToLower(string(data[:min(512, len(data))])), "<html"):
 		err = b.html(data, base, "", mime, load)
 	default:

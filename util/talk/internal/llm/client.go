@@ -50,7 +50,10 @@ func WithReasoningBudget(ctx context.Context, tokens int) context.Context {
 
 type Message struct {
 	// ReferenceContext marks ephemeral recall/checkpoint data, never API input.
-	ReferenceContext bool       `json:"-"`
+	ReferenceContext bool `json:"-"`
+	// UserRequest is the original user text before attachments and tool evidence
+	// are added to Content. A non-nil empty value still excludes that evidence.
+	UserRequest      *string    `json:"-"`
 	ReasoningContent string     `json:"reasoning_content,omitempty"`
 	Role             string     `json:"role"`
 	Content          any        `json:"content,omitempty"`
