@@ -1,0 +1,23 @@
+services:
+    runtime:
+        build:
+            context: ${SPARKTALK_BUILD_DIR:?Embedded build assets required}
+            dockerfile: Dockerfile.ace
+        container_name: sparktalk-music-ace
+        environment:
+            ACESTEP_CHECKPOINTS_DIR: /models/ace
+            HF_HUB_OFFLINE: "1"
+            MUSIC_BACKEND: ace
+            MUSIC_PORT: "8727"
+            TRANSFORMERS_OFFLINE: "1"
+        gpus: all
+        image: sparktalk-music-ace:0.1.1
+        init: true
+        ipc: host
+        mem_limit: 32g
+        memswap_limit: 32g
+        network_mode: host
+        pull_policy: never
+        restart: "no"
+        volumes:
+            - ${SPARKTALK_HF_CACHE:-${HOME}/.cache/huggingface}/edp1096/music-studio:/models:ro

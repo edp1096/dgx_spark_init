@@ -71,7 +71,7 @@ test('shows runtime-specific startup stages without duplicating shard updates', 
   await expect(panel.getByText('118/206 샤드 · SSD에서 통합메모리로 읽는 중').first()).toBeVisible();
   await expect(panel.getByRole('list', { name: '진행 단계' })).toContainText('vLLM 엔진 구성');
   await expect(panel.getByText('예상 00:20 남음', { exact: true })).toBeVisible();
-  await expect(panel.getByRole('button', { name: '처리 중' })).toBeDisabled();
+  await expect(panel.getByRole('button', { name: '기동 중' })).toBeDisabled();
 });
 
 test('keeps managed model controls reachable by touch scrolling on mobile', async ({ page }) => {
@@ -114,4 +114,95 @@ test('shared Extra occupancy is visible on mobile without changing model startup
   await expect(panel.getByRole('button', { name: '실행 중', exact: true })).toBeDisabled();
   const drawer = page.getByRole('dialog', { name: 'DGX Spark 운영 상태' });
   expect(await drawer.evaluate(node => node.scrollWidth <= node.clientWidth)).toBe(true);
+});
+
+test('groups music and speech models together and keeps tools in Extra', async ({ page }) => {
+  const snapshot = structuredClone(runtimeSnapshot);
+  snapshot.support_services = [
+    { id: 'extra-fish', name: 'Fish Drama3 KoEn160', role: 'tts', status: 'exited' },
+    { id: 'extra-music-ace', name: 'ACE-Step 1.5', role: 'tool', status: 'exited' },
+    { id: 'extra-ssh', name: 'Extra SSH', role: 'tool', status: 'running', health: 'online' },
+  ];
+  await routeManagedRuntime(page, snapshot);
+  await page.goto('/');
+  await page.locator('.status').click();
+  const models = page.getByRole('group', { name: '모델', exact: true });
+  await expect(models.getByRole('group', { name: 'ACE-Step 1.5', exact: true })).toContainText('음악 생성');
+  await expect(models.getByRole('group', { name: 'ACE-Step 1.5', exact: true })).toContainText('요청 시 실행');
+  await expect(models.getByRole('group', { name: 'Fish Drama3 KoEn160', exact: true })).toContainText('음성 합성');
+  const extra = page.getByRole('region', { name: 'Extra 서비스', exact: true });
+  await expect(extra).toContainText('Extra SSH');
+  await expect(extra).not.toContainText('ACE-Step');
+  await expect(extra).not.toContainText('Fish');
+});
+
+for (const bundleID of ['flash-next-fp4-local', 'flash-next-tp2', 'glm53-worker-extra', 'ds41']) {
+  test(`excluded audio stays hidden for ${bundleID}`, async ({ page }) => {
+    const snapshot = structuredClone(runtimeSnapshot);
+    snapshot.selected_bundle = bundleID;
+    snapshot.bundles = [{ ...snapshot.bundles[1], id: bundleID, disabled_support: ['extra-fish', 'extra-music-ace'] }];
+    snapshot.support_services = [
+      { id: 'extra-fish', name: 'Fish Drama3 KoEn160', role: 'tts', status: 'exited' },
+      { id: 'extra-music-ace', name: 'ACE-Step 1.5', role: 'tool', status: 'exited' },
+      { id: 'extra-ssh', name: 'Extra SSH', role: 'tool', status: 'running', health: 'online' },
+    ];
+    await routeManagedRuntime(page, snapshot);
+    await page.goto('/');
+    await page.locator('.status').click();
+    const panel = page.getByRole('region', { name: 'DGX Spark 운영' });
+    await expect(panel.getByText('메모리 확보를 위해 Fish 음성·ACE-Step 음악 생성 제외')).toBeVisible();
+    await expect(panel.getByRole('group', { name: 'ACE-Step 1.5', exact: true })).toHaveCount(0);
+    await expect(panel.getByRole('group', { name: 'Fish Drama3 KoEn160', exact: true })).toHaveCount(0);
+    await expect(panel.getByRole('region', { name: 'Extra 서비스' })).toContainText('Extra SSH');
+  });
+}
+
+
+test('keeps EmbeddingGemma in models despite its internal tool role', async ({ page }) => {
+  const snapshot = structuredClone(runtimeSnapshot);
+  snapshot.bundles[1].components.push('extra-embedding');
+  snapshot.components.push({ id: 'extra-embedding', name: 'EmbeddingGemma 2', role: 'tool', status: 'exited' });
+  snapshot.support_services = [{ id: 'extra-ssh', name: 'Extra SSH', role: 'tool', status: 'running', health: 'online' }];
+  await routeManagedRuntime(page, snapshot);
+  await page.goto('/');
+  await page.locator('.status').click();
+  await expect(page.getByRole('group', { name: '모델', exact: true }).getByRole('group', { name: 'EmbeddingGemma 2', exact: true })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Extra 서비스', exact: true })).not.toContainText('EmbeddingGemma');
+});
+
+test('a stopped set shows Extra workers stopped without online lights', async ({ page }) => {
+  const snapshot = structuredClone(runtimeSnapshot);
+  snapshot.bundles[1].workload_swap = true;
+  snapshot.components = snapshot.components.map(c => ({ ...c, status: 'exited', health: 'offline' }));
+  snapshot.support_services = [
+    { id: 'extra-shorts', name: 'Extra Shorts', role: 'tool', status: 'exited', health: 'offline' },
+    { id: 'extra-fish', name: 'Fish Drama3 KoEn160', role: 'tts', status: 'exited', health: 'offline' },
+  ];
+  await routeManagedRuntime(page, snapshot);
+  await page.goto('/');
+  await page.locator('.status').click();
+  const panel = page.getByRole('region', { name: 'DGX Spark 운영' });
+  await expect(panel.getByRole('group', { name: 'Extra Shorts', exact: true })).toContainText('중지됨');
+  await expect(panel.getByRole('group', { name: 'Fish Drama3 KoEn160', exact: true })).toContainText('중지됨');
+  await expect(panel.locator('.runtime-component > span.online')).toHaveCount(0);
+});
+
+test('model status stays running during embedding work and distinguishes startup', async ({ page }) => {
+  const snapshot = structuredClone(runtimeSnapshot);
+  snapshot.operation = { action: 'workload', state: 'running', bundle_id: 'flash-next', component_id: 'extra-embedding', phase: '임베딩 작업' };
+  await routeManagedRuntime(page, snapshot);
+  await page.goto('/');
+  await expect(page.locator('.chat-header .status')).toHaveText('● 실행 중');
+  await expect(page.locator('.chat-header .status')).not.toHaveClass(/starting/);
+  snapshot.operation = { action: 'start', state: 'running', bundle_id: 'flash-next', component_id: 'flash-next', phase: '모델 적재' };
+  snapshot.components[0].health = 'starting';
+  await page.reload();
+  await expect(page.locator('.chat-header .status')).toHaveText('● 기동 중');
+  snapshot.operation = { action: 'stop', state: 'running', bundle_id: 'flash-next' };
+  await page.reload();
+  await expect(page.locator('.chat-header .status')).toHaveText('● 중지 중');
+  snapshot.operation = { action: 'stop', state: 'complete', bundle_id: 'flash-next' };
+  snapshot.components[0].health = 'offline'; snapshot.components[0].status = 'exited';
+  await page.reload();
+  await expect(page.locator('.chat-header .status')).toHaveText('● 중지됨');
 });

@@ -1,0 +1,2779 @@
+{
+  "created_at": "2026-10-24T04:14:01.990036+09:00",
+  "model": "watchpen/drama-3-int4-koen160",
+  "revision": "fd0147b1bb988ea26718ee75e95de8b07a07c156",
+  "reference": {
+    "id": "serena",
+    "name": "Serena",
+    "description": "부드럽고 온화한 여성 목소리",
+    "native_language": "중국어",
+    "reference_file": "voices/references/serena.wav",
+    "reference_sha256": "3dc211c75942fa96cabd50d8a04de9e7918648a4c6c7a33eae8f02d5d7ded053",
+    "reference_text": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어 주세요. 지금부터 차근차근 살펴보겠습니다.",
+    "reference_duration_seconds": 12.08,
+    "reference_asr": {
+      "character_error_rate": 0,
+      "expected": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어 주세요. 지금부터 차근차근 살펴보겠습니다.",
+      "passed": true,
+      "transcript": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어주세요. 지금부터 차근차근 살펴보겠습니다."
+    },
+    "cache_version": 3,
+    "reference_source": "Synthetic Qwen3-TTS 0.6B CustomVoice Q8",
+    "selected_candidate": "serena-long-42.json",
+    "preview_file": "voices/previews/serena.wav",
+    "preview_sha256": "890a3d21481cb5d3a76139a49db0a36c58d803d28b4131daefa6f6a910f1cac0",
+    "preview_text": "이 목소리로 영상의 이야기를 전해 드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해 보세요.",
+    "preview_duration_seconds": 6.96,
+    "preview_asr": {
+      "character_error_rate": 0,
+      "expected": "이 목소리로 영상의 이야기를 전해 드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해 보세요.",
+      "passed": true,
+      "transcript": "이 목소리로 영상의 이야기를 전해드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해보세요."
+    },
+    "validated_korean": true,
+    "preview_raw_sha256": "3a830bcd1f308ef8a3f65c82cc35ce23efb9d95aa8068b3b9ff319c1fa6eca37",
+    "preview_normalized": true,
+    "preview_loudness_target_lufs": -18
+  },
+  "test_design": "Same Korean text, same Serena reference, seven conditions, two takes each. Inputs remained one wrapper chunk. Sampling is the production temperature=1.0, top_p=0.9, codebook top_k=30; seed is unsupported. No model training or production-code changes.",
+  "results": [
+    {
+      "condition": "neutral",
+      "repeat": 1,
+      "input": "지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+      "expected": "지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+      "target": "중요한 내용은 우리끼리만 알고 있어요",
+      "generation": {
+        "duration": 7.8,
+        "records": [
+          {
+            "sentence": "지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+            "attempt": 1,
+            "accepted": true,
+            "generation_seconds": 4.488770653959364,
+            "duration_seconds": 7.848344671201814,
+            "longest_internal_silence": 0.72,
+            "voiced_seconds": 5.96,
+            "hit_cap": false,
+            "trim_start_sample": 0,
+            "trim_end_sample": 343980
+          }
+        ],
+        "segments": [
+          {
+            "text": "지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+            "start": 0.0,
+            "end": 7.8
+          }
+        ],
+        "sample_rate": 44100,
+        "text": "지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+        "voice_preset": "serena",
+        "reference_sha256": "3dc211c75942fa96cabd50d8a04de9e7918648a4c6c7a33eae8f02d5d7ded053"
+      },
+      "sha256": "d3ae899aded6b7272a2188683dd34069ea217c6226240aca1df071603f22e718",
+      "asr": {
+        "character_error_rate": 0,
+        "expected": "지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+        "passed": true,
+        "transcript": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다."
+      },
+      "tag_word_detected_by_asr": false,
+      "word_alignment": {
+        "duration": 7.800000190734863,
+        "language": "ko-KR",
+        "task": "transcribe",
+        "text": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다.",
+        "words": [
+          {
+            "confidence": 1,
+            "end": 0.64,
+            "start": 0.32,
+            "word": "지금부터"
+          },
+          {
+            "confidence": 1,
+            "end": 1.44,
+            "start": 0.96,
+            "word": "이야기를"
+          },
+          {
+            "confidence": 1,
+            "end": 1.76,
+            "start": 1.44,
+            "word": "시작합니다."
+          },
+          {
+            "confidence": 1,
+            "end": 3.28,
+            "start": 2.88,
+            "word": "중요한"
+          },
+          {
+            "confidence": 1,
+            "end": 3.68,
+            "start": 3.36,
+            "word": "내용은"
+          },
+          {
+            "confidence": 1,
+            "end": 4.56,
+            "start": 3.92,
+            "word": "우리끼리만"
+          },
+          {
+            "confidence": 1,
+            "end": 4.8,
+            "start": 4.64,
+            "word": "알고"
+          },
+          {
+            "confidence": 1,
+            "end": 4.88,
+            "start": 4.8,
+            "word": "있어요."
+          },
+          {
+            "confidence": 1,
+            "end": 6.16,
+            "start": 6.08,
+            "word": "이제"
+          },
+          {
+            "confidence": 1,
+            "end": 6.96,
+            "start": 6.48,
+            "word": "평소처럼"
+          },
+          {
+            "confidence": 1,
+            "end": 7.68,
+            "start": 7.2,
+            "word": "마무리합니다."
+          }
+        ]
+      },
+      "phrase_bounds": {
+        "prefix": [
+          0.32,
+          1.76
+        ],
+        "target": [
+          2.88,
+          4.88
+        ],
+        "suffix": [
+          6.08,
+          7.68
+        ]
+      },
+      "acoustics": {
+        "whole": {
+          "duration": 7.8,
+          "rms_dbfs": -27.046333077514344,
+          "active_seconds": 5.36,
+          "periodicity_median": 0.9003815633755963,
+          "voiced_fraction": 0.9123134328358209,
+          "f0_median_hz": 275.86206896551727,
+          "f0_iqr_hz": 91.50326797385623,
+          "high_band_fraction": 0.001867628729380906
+        },
+        "prefix": {
+          "duration": 1.44,
+          "rms_dbfs": -25.330207663995413,
+          "active_seconds": 1.21,
+          "periodicity_median": 0.9032580818332168,
+          "voiced_fraction": 0.8677685950413223,
+          "f0_median_hz": 296.2962962962963,
+          "f0_iqr_hz": 57.70491803278691,
+          "high_band_fraction": 0.003599726694544101
+        },
+        "target": {
+          "duration": 2.0,
+          "rms_dbfs": -26.05994759293907,
+          "active_seconds": 1.7,
+          "periodicity_median": 0.9245731041637821,
+          "voiced_fraction": 0.9470588235294117,
+          "f0_median_hz": 290.90909090909093,
+          "f0_iqr_hz": 71.30124777183602,
+          "high_band_fraction": 0.0010957838642268445
+        },
+        "suffix": {
+          "duration": 1.6,
+          "rms_dbfs": -25.55850281861793,
+          "active_seconds": 1.3900000000000001,
+          "periodicity_median": 0.9001096893009044,
+          "voiced_fraction": 0.9280575539568345,
+          "f0_median_hz": 271.1864406779661,
+          "f0_iqr_hz": 100.82191780821918,
+          "high_band_fraction": 0.001930047380546778
+        }
+      },
+      "prefix_to_target_gap_seconds": 1.1199999999999999,
+      "file": "serena-tags-20261024/neutral-1.wav"
+    },
+    {
+      "condition": "whisper",
+      "repeat": 1,
+      "input": "[whisper] 지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+      "expected": "지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+      "target": "중요한 내용은 우리끼리만 알고 있어요",
+      "generation": {
+        "duration": 10.36,
+        "records": [
+          {
+            "sentence": "[whisper] 지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+            "attempt": 1,
+            "accepted": true,
+            "generation_seconds": 5.358530082041398,
+            "duration_seconds": 10.402539682539683,
+            "longest_internal_silence": 1.32,
+            "voiced_seconds": 6.2,
+            "hit_cap": false,
+            "trim_start_sample": 0,
+            "trim_end_sample": 456876
+          }
+        ],
+        "segments": [
+          {
+            "text": "[whisper] 지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+            "start": 0.0,
+            "end": 10.36
+          }
+        ],
+        "sample_rate": 44100,
+        "text": "[whisper] 지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+        "voice_preset": "serena",
+        "reference_sha256": "3dc211c75942fa96cabd50d8a04de9e7918648a4c6c7a33eae8f02d5d7ded053"
+      },
+      "sha256": "7c13689fdc28e3fb2d3999d480c367048b79a1bf1dd582efdb756d369f1cb0fb",
+      "asr": {
+        "character_error_rate": 0,
+        "expected": "지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+        "passed": true,
+        "transcript": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다."
+      },
+      "tag_word_detected_by_asr": false,
+      "word_alignment": {
+        "duration": 10.359999656677246,
+        "language": "ko-KR",
+        "task": "transcribe",
+        "text": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다.",
+        "words": [
+          {
+            "confidence": 1,
+            "end": 0.88,
+            "start": 0.4,
+            "word": "지금부터"
+          },
+          {
+            "confidence": 1,
+            "end": 2.08,
+            "start": 1.6,
+            "word": "이야기를"
+          },
+          {
+            "confidence": 1,
+            "end": 2.64,
+            "start": 2.32,
+            "word": "시작합니다."
+          },
+          {
+            "confidence": 1,
+            "end": 4.88,
+            "start": 4.48,
+            "word": "중요한"
+          },
+          {
+            "confidence": 1,
+            "end": 5.2,
+            "start": 4.88,
+            "word": "내용은"
+          },
+          {
+            "confidence": 1,
+            "end": 6.48,
+            "start": 5.76,
+            "word": "우리끼리만"
+          },
+          {
+            "confidence": 1,
+            "end": 6.72,
+            "start": 6.48,
+            "word": "알고"
+          },
+          {
+            "confidence": 1,
+            "end": 6.8,
+            "start": 6.72,
+            "word": "있어요."
+          },
+          {
+            "confidence": 1,
+            "end": 8.72,
+            "start": 8.64,
+            "word": "이제"
+          },
+          {
+            "confidence": 1,
+            "end": 9.36,
+            "start": 8.96,
+            "word": "평소처럼"
+          },
+          {
+            "confidence": 1,
+            "end": 10.16,
+            "start": 9.6,
+            "word": "마무리합니다."
+          }
+        ]
+      },
+      "phrase_bounds": {
+        "prefix": [
+          0.4,
+          2.64
+        ],
+        "target": [
+          4.48,
+          6.8
+        ],
+        "suffix": [
+          8.64,
+          10.16
+        ]
+      },
+      "acoustics": {
+        "whole": {
+          "duration": 10.36,
+          "rms_dbfs": -36.589391568878796,
+          "active_seconds": 6.08,
+          "periodicity_median": 0.8204165243484947,
+          "voiced_fraction": 0.7368421052631579,
+          "f0_median_hz": 211.9298245614035,
+          "f0_iqr_hz": 43.68401892974154,
+          "high_band_fraction": 0.00263925227557214
+        },
+        "prefix": {
+          "duration": 2.24,
+          "rms_dbfs": -39.3537004738318,
+          "active_seconds": 1.5,
+          "periodicity_median": 0.6105030941414242,
+          "voiced_fraction": 0.5933333333333334,
+          "f0_median_hz": 213.33333333333334,
+          "f0_iqr_hz": 35.29411764705881,
+          "high_band_fraction": 0.0074241057297619786
+        },
+        "target": {
+          "duration": 2.32,
+          "rms_dbfs": -34.4037920445487,
+          "active_seconds": 1.75,
+          "periodicity_median": 0.8865322692395893,
+          "voiced_fraction": 0.8342857142857143,
+          "f0_median_hz": 216.21621621621622,
+          "f0_iqr_hz": 41.27510595172288,
+          "high_band_fraction": 0.0011656834449359633
+        },
+        "suffix": {
+          "duration": 1.52,
+          "rms_dbfs": -33.50246520892351,
+          "active_seconds": 1.42,
+          "periodicity_median": 0.8680039983182088,
+          "voiced_fraction": 0.8028169014084507,
+          "f0_median_hz": 238.80597014925374,
+          "f0_iqr_hz": 62.3403366650154,
+          "high_band_fraction": 0.0028215427784164413
+        }
+      },
+      "prefix_to_target_gap_seconds": 1.8400000000000003,
+      "file": "serena-tags-20261024/whisper-1.wav"
+    },
+    {
+      "condition": "happy",
+      "repeat": 1,
+      "input": "[happy] 지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+      "expected": "지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+      "target": "중요한 내용은 우리끼리만 알고 있어요",
+      "generation": {
+        "duration": 9.34,
+        "records": [
+          {
+            "sentence": "[happy] 지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+            "attempt": 1,
+            "accepted": true,
+            "generation_seconds": 4.920470372017007,
+            "duration_seconds": 9.47374149659864,
+            "longest_internal_silence": 1.04,
+            "voiced_seconds": 6.92,
+            "hit_cap": false,
+            "trim_start_sample": 0,
+            "trim_end_sample": 411894
+          }
+        ],
+        "segments": [
+          {
+            "text": "[happy] 지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+            "start": 0.0,
+            "end": 9.34
+          }
+        ],
+        "sample_rate": 44100,
+        "text": "[happy] 지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+        "voice_preset": "serena",
+        "reference_sha256": "3dc211c75942fa96cabd50d8a04de9e7918648a4c6c7a33eae8f02d5d7ded053"
+      },
+      "sha256": "a0b578a17b33e09031103522d02a00637760a912baca20195efeeb6b2a70fa03",
+      "asr": {
+        "character_error_rate": 0,
+        "expected": "지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+        "passed": true,
+        "transcript": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다."
+      },
+      "tag_word_detected_by_asr": false,
+      "word_alignment": {
+        "duration": 9.34000015258789,
+        "language": "ko-KR",
+        "task": "transcribe",
+        "text": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다.",
+        "words": [
+          {
+            "confidence": 1,
+            "end": 0.88,
+            "start": 0.32,
+            "word": "지금부터"
+          },
+          {
+            "confidence": 1,
+            "end": 1.84,
+            "start": 1.28,
+            "word": "이야기를"
+          },
+          {
+            "confidence": 1,
+            "end": 2.32,
+            "start": 1.92,
+            "word": "시작합니다."
+          },
+          {
+            "confidence": 1,
+            "end": 4.56,
+            "start": 4.16,
+            "word": "중요한"
+          },
+          {
+            "confidence": 1,
+            "end": 4.88,
+            "start": 4.56,
+            "word": "내용은"
+          },
+          {
+            "confidence": 1,
+            "end": 5.92,
+            "start": 5.44,
+            "word": "우리끼리만"
+          },
+          {
+            "confidence": 1,
+            "end": 6.16,
+            "start": 6,
+            "word": "알고"
+          },
+          {
+            "confidence": 1,
+            "end": 6.48,
+            "start": 6.4,
+            "word": "있어요."
+          },
+          {
+            "confidence": 1,
+            "end": 7.76,
+            "start": 7.68,
+            "word": "이제"
+          },
+          {
+            "confidence": 1,
+            "end": 8.48,
+            "start": 8,
+            "word": "평소처럼"
+          },
+          {
+            "confidence": 1,
+            "end": 9.12,
+            "start": 8.64,
+            "word": "마무리합니다."
+          }
+        ]
+      },
+      "phrase_bounds": {
+        "prefix": [
+          0.32,
+          2.32
+        ],
+        "target": [
+          4.16,
+          6.48
+        ],
+        "suffix": [
+          7.68,
+          9.12
+        ]
+      },
+      "acoustics": {
+        "whole": {
+          "duration": 9.34,
+          "rms_dbfs": -26.04806944229493,
+          "active_seconds": 6.23,
+          "periodicity_median": 0.9340868067848104,
+          "voiced_fraction": 0.9117174959871589,
+          "f0_median_hz": 301.8867924528302,
+          "f0_iqr_hz": 84.36911487758942,
+          "high_band_fraction": 0.002488773182406855
+        },
+        "prefix": {
+          "duration": 2.0,
+          "rms_dbfs": -23.186711451235468,
+          "active_seconds": 1.73,
+          "periodicity_median": 0.9531272818393672,
+          "voiced_fraction": 0.9075144508670521,
+          "f0_median_hz": 372.09302325581393,
+          "f0_iqr_hz": 40.52684903748735,
+          "high_band_fraction": 0.002074672802726418
+        },
+        "target": {
+          "duration": 2.32,
+          "rms_dbfs": -27.075024261296527,
+          "active_seconds": 1.9100000000000001,
+          "periodicity_median": 0.9232029590499651,
+          "voiced_fraction": 0.9685863874345549,
+          "f0_median_hz": 280.70175438596493,
+          "f0_iqr_hz": 62.33766233766235,
+          "high_band_fraction": 0.0024247956629352037
+        },
+        "suffix": {
+          "duration": 1.44,
+          "rms_dbfs": -24.838787322421148,
+          "active_seconds": 1.23,
+          "periodicity_median": 0.9071611867143511,
+          "voiced_fraction": 0.8861788617886179,
+          "f0_median_hz": 301.8867924528302,
+          "f0_iqr_hz": 101.67224080267559,
+          "high_band_fraction": 0.0012516686095335845
+        }
+      },
+      "prefix_to_target_gap_seconds": 1.8400000000000003,
+      "file": "serena-tags-20261024/happy-1.wav"
+    },
+    {
+      "condition": "sad",
+      "repeat": 1,
+      "input": "[sad] 지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+      "expected": "지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+      "target": "중요한 내용은 우리끼리만 알고 있어요",
+      "generation": {
+        "duration": 10.077460317460318,
+        "records": [
+          {
+            "sentence": "[sad] 지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+            "attempt": 1,
+            "accepted": true,
+            "generation_seconds": 5.209142267995048,
+            "duration_seconds": 10.077460317460318,
+            "longest_internal_silence": 1.0,
+            "voiced_seconds": 7.72,
+            "hit_cap": false,
+            "trim_start_sample": 0,
+            "trim_end_sample": 444416
+          }
+        ],
+        "segments": [
+          {
+            "text": "[sad] 지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+            "start": 0.0,
+            "end": 10.077460317460318
+          }
+        ],
+        "sample_rate": 44100,
+        "text": "[sad] 지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+        "voice_preset": "serena",
+        "reference_sha256": "3dc211c75942fa96cabd50d8a04de9e7918648a4c6c7a33eae8f02d5d7ded053"
+      },
+      "sha256": "22082b79fe7170e891814a1731cb80551a8c66f5c4c1f27e6032adbf5b4bb48e",
+      "asr": {
+        "character_error_rate": 0,
+        "expected": "지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+        "passed": true,
+        "transcript": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다."
+      },
+      "tag_word_detected_by_asr": false,
+      "word_alignment": {
+        "duration": 10.077500343322754,
+        "language": "ko-KR",
+        "task": "transcribe",
+        "text": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다.",
+        "words": [
+          {
+            "confidence": 1,
+            "end": 0.88,
+            "start": 0.4,
+            "word": "지금부터"
+          },
+          {
+            "confidence": 1,
+            "end": 2.4,
+            "start": 1.92,
+            "word": "이야기를"
+          },
+          {
+            "confidence": 1,
+            "end": 2.72,
+            "start": 2.4,
+            "word": "시작합니다."
+          },
+          {
+            "confidence": 1,
+            "end": 4.88,
+            "start": 4.48,
+            "word": "중요한"
+          },
+          {
+            "confidence": 1,
+            "end": 5.28,
+            "start": 4.88,
+            "word": "내용은"
+          },
+          {
+            "confidence": 1,
+            "end": 6.24,
+            "start": 5.52,
+            "word": "우리끼리만"
+          },
+          {
+            "confidence": 1,
+            "end": 6.4,
+            "start": 6.24,
+            "word": "알고"
+          },
+          {
+            "confidence": 1,
+            "end": 6.8,
+            "start": 6.72,
+            "word": "있어요."
+          },
+          {
+            "confidence": 1,
+            "end": 8.08,
+            "start": 8,
+            "word": "이제"
+          },
+          {
+            "confidence": 1,
+            "end": 9.04,
+            "start": 8.64,
+            "word": "평소처럼"
+          },
+          {
+            "confidence": 1,
+            "end": 9.76,
+            "start": 9.28,
+            "word": "마무리합니다."
+          }
+        ]
+      },
+      "phrase_bounds": {
+        "prefix": [
+          0.4,
+          2.72
+        ],
+        "target": [
+          4.48,
+          6.8
+        ],
+        "suffix": [
+          8.0,
+          9.76
+        ]
+      },
+      "acoustics": {
+        "whole": {
+          "duration": 10.0775,
+          "rms_dbfs": -25.80798631787376,
+          "active_seconds": 6.2700000000000005,
+          "periodicity_median": 0.9085538749801325,
+          "voiced_fraction": 0.8532695374800638,
+          "f0_median_hz": 258.06451612903226,
+          "f0_iqr_hz": 29.708222811671106,
+          "high_band_fraction": 0.0031244920010849906
+        },
+        "prefix": {
+          "duration": 2.32,
+          "rms_dbfs": -27.892318108369754,
+          "active_seconds": 1.6300000000000001,
+          "periodicity_median": 0.8778598416589383,
+          "voiced_fraction": 0.6993865030674846,
+          "f0_median_hz": 280.70175438596493,
+          "f0_iqr_hz": 41.30397678784777,
+          "high_band_fraction": 0.006244903448619659
+        },
+        "target": {
+          "duration": 2.32,
+          "rms_dbfs": -24.311650446732322,
+          "active_seconds": 2.12,
+          "periodicity_median": 0.9223319305869861,
+          "voiced_fraction": 0.9386792452830188,
+          "f0_median_hz": 258.06451612903226,
+          "f0_iqr_hz": 25.032594524119958,
+          "high_band_fraction": 0.0007955293414419217
+        },
+        "suffix": {
+          "duration": 1.76,
+          "rms_dbfs": -21.95706997637183,
+          "active_seconds": 1.54,
+          "periodicity_median": 0.9004057182498675,
+          "voiced_fraction": 0.9025974025974026,
+          "f0_median_hz": 266.6666666666667,
+          "f0_iqr_hz": 59.46255002858777,
+          "high_band_fraction": 0.003872723551948601
+        }
+      },
+      "prefix_to_target_gap_seconds": 1.7600000000000002,
+      "file": "serena-tags-20261024/sad-1.wav"
+    },
+    {
+      "condition": "scoped_whisper",
+      "repeat": 1,
+      "input": "지금부터 이야기를 시작합니다 <whisper>중요한 내용은 우리끼리만 알고 있어요</whisper> 이제 평소처럼 마무리합니다.",
+      "expected": "지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+      "target": "중요한 내용은 우리끼리만 알고 있어요",
+      "generation": {
+        "duration": 8.96,
+        "records": [
+          {
+            "sentence": "지금부터 이야기를 시작합니다 <whisper>중요한 내용은 우리끼리만 알고 있어요</whisper> 이제 평소처럼 마무리합니다.",
+            "attempt": 1,
+            "accepted": true,
+            "generation_seconds": 4.817940549983177,
+            "duration_seconds": 9.287981859410431,
+            "longest_internal_silence": 1.08,
+            "voiced_seconds": 6.1,
+            "hit_cap": false,
+            "trim_start_sample": 0,
+            "trim_end_sample": 395136
+          }
+        ],
+        "segments": [
+          {
+            "text": "지금부터 이야기를 시작합니다 <whisper>중요한 내용은 우리끼리만 알고 있어요</whisper> 이제 평소처럼 마무리합니다.",
+            "start": 0.0,
+            "end": 8.96
+          }
+        ],
+        "sample_rate": 44100,
+        "text": "지금부터 이야기를 시작합니다 <whisper>중요한 내용은 우리끼리만 알고 있어요</whisper> 이제 평소처럼 마무리합니다.",
+        "voice_preset": "serena",
+        "reference_sha256": "3dc211c75942fa96cabd50d8a04de9e7918648a4c6c7a33eae8f02d5d7ded053"
+      },
+      "sha256": "f0afe3eb7c97fd696d9f4cf79be2ad25c32bb312caecde6d3f8b22ccc7ab86b8",
+      "asr": {
+        "character_error_rate": 0,
+        "expected": "지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+        "passed": true,
+        "transcript": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다."
+      },
+      "tag_word_detected_by_asr": false,
+      "word_alignment": {
+        "duration": 8.960000038146973,
+        "language": "ko-KR",
+        "task": "transcribe",
+        "text": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다.",
+        "words": [
+          {
+            "confidence": 1,
+            "end": 0.64,
+            "start": 0.32,
+            "word": "지금부터"
+          },
+          {
+            "confidence": 1,
+            "end": 1.44,
+            "start": 0.96,
+            "word": "이야기를"
+          },
+          {
+            "confidence": 1,
+            "end": 1.84,
+            "start": 1.52,
+            "word": "시작합니다."
+          },
+          {
+            "confidence": 1,
+            "end": 3.68,
+            "start": 3.2,
+            "word": "중요한"
+          },
+          {
+            "confidence": 1,
+            "end": 4.08,
+            "start": 3.68,
+            "word": "내용은"
+          },
+          {
+            "confidence": 1,
+            "end": 5.2,
+            "start": 4.48,
+            "word": "우리끼리만"
+          },
+          {
+            "confidence": 1,
+            "end": 5.36,
+            "start": 5.2,
+            "word": "알고"
+          },
+          {
+            "confidence": 1,
+            "end": 5.52,
+            "start": 5.44,
+            "word": "있어요."
+          },
+          {
+            "confidence": 1,
+            "end": 7.12,
+            "start": 7.04,
+            "word": "이제"
+          },
+          {
+            "confidence": 1,
+            "end": 8.08,
+            "start": 7.68,
+            "word": "평소처럼"
+          },
+          {
+            "confidence": 1,
+            "end": 8.8,
+            "start": 8.32,
+            "word": "마무리합니다."
+          }
+        ]
+      },
+      "phrase_bounds": {
+        "prefix": [
+          0.32,
+          1.84
+        ],
+        "target": [
+          3.2,
+          5.52
+        ],
+        "suffix": [
+          7.04,
+          8.8
+        ]
+      },
+      "acoustics": {
+        "whole": {
+          "duration": 8.96,
+          "rms_dbfs": -27.33272269542435,
+          "active_seconds": 5.5,
+          "periodicity_median": 0.891423364111464,
+          "voiced_fraction": 0.8672727272727273,
+          "f0_median_hz": 250.0,
+          "f0_iqr_hz": 72.38095238095238,
+          "high_band_fraction": 0.002774558028122749
+        },
+        "prefix": {
+          "duration": 1.52,
+          "rms_dbfs": -25.355320437250946,
+          "active_seconds": 1.29,
+          "periodicity_median": 0.86716867430768,
+          "voiced_fraction": 0.8294573643410853,
+          "f0_median_hz": 253.96825396825398,
+          "f0_iqr_hz": 52.0083584861853,
+          "high_band_fraction": 0.00414369567962795
+        },
+        "target": {
+          "duration": 2.32,
+          "rms_dbfs": -26.61411744690932,
+          "active_seconds": 1.81,
+          "periodicity_median": 0.9268175854824143,
+          "voiced_fraction": 0.9281767955801105,
+          "f0_median_hz": 262.2950819672131,
+          "f0_iqr_hz": 66.5926748057714,
+          "high_band_fraction": 0.0014246697188996286
+        },
+        "suffix": {
+          "duration": 1.76,
+          "rms_dbfs": -25.218748755215728,
+          "active_seconds": 1.48,
+          "periodicity_median": 0.8922839362264369,
+          "voiced_fraction": 0.8648648648648649,
+          "f0_median_hz": 256.0163850486431,
+          "f0_iqr_hz": 92.04400366267299,
+          "high_band_fraction": 0.0035603076870842475
+        }
+      },
+      "prefix_to_target_gap_seconds": 1.36,
+      "file": "serena-tags-20261024/scoped_whisper-1.wav"
+    },
+    {
+      "condition": "scoped_slow",
+      "repeat": 1,
+      "input": "지금부터 이야기를 시작합니다 <slow>중요한 내용은 우리끼리만 알고 있어요</slow> 이제 평소처럼 마무리합니다.",
+      "expected": "지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+      "target": "중요한 내용은 우리끼리만 알고 있어요",
+      "generation": {
+        "duration": 8.777142857142858,
+        "records": [
+          {
+            "sentence": "지금부터 이야기를 시작합니다 <slow>중요한 내용은 우리끼리만 알고 있어요</slow> 이제 평소처럼 마무리합니다.",
+            "attempt": 1,
+            "accepted": true,
+            "generation_seconds": 4.5055754000204615,
+            "duration_seconds": 8.777142857142858,
+            "longest_internal_silence": 1.1,
+            "voiced_seconds": 6.26,
+            "hit_cap": false,
+            "trim_start_sample": 0,
+            "trim_end_sample": 387072
+          }
+        ],
+        "segments": [
+          {
+            "text": "지금부터 이야기를 시작합니다 <slow>중요한 내용은 우리끼리만 알고 있어요</slow> 이제 평소처럼 마무리합니다.",
+            "start": 0.0,
+            "end": 8.777142857142858
+          }
+        ],
+        "sample_rate": 44100,
+        "text": "지금부터 이야기를 시작합니다 <slow>중요한 내용은 우리끼리만 알고 있어요</slow> 이제 평소처럼 마무리합니다.",
+        "voice_preset": "serena",
+        "reference_sha256": "3dc211c75942fa96cabd50d8a04de9e7918648a4c6c7a33eae8f02d5d7ded053"
+      },
+      "sha256": "d6b54ebdd2217897b1214e58b1c7199b3fab8b9c043e49680ff3378e26e67d2a",
+      "asr": {
+        "character_error_rate": 0.04878048780487805,
+        "expected": "지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+        "passed": true,
+        "transcript": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 병서처럼 마무리합니다."
+      },
+      "tag_word_detected_by_asr": false,
+      "word_alignment": {
+        "duration": 8.77718734741211,
+        "language": "ko-KR",
+        "task": "transcribe",
+        "text": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 병서처럼 마무리합니다.",
+        "words": [
+          {
+            "confidence": 1,
+            "end": 0.64,
+            "start": 0.32,
+            "word": "지금부터"
+          },
+          {
+            "confidence": 1,
+            "end": 1.6,
+            "start": 1.12,
+            "word": "이야기를"
+          },
+          {
+            "confidence": 1,
+            "end": 2,
+            "start": 1.68,
+            "word": "시작합니다."
+          },
+          {
+            "confidence": 1,
+            "end": 3.92,
+            "start": 3.52,
+            "word": "중요한"
+          },
+          {
+            "confidence": 1,
+            "end": 4.24,
+            "start": 3.92,
+            "word": "내용은"
+          },
+          {
+            "confidence": 1,
+            "end": 5.2,
+            "start": 4.64,
+            "word": "우리끼리만"
+          },
+          {
+            "confidence": 1,
+            "end": 5.44,
+            "start": 5.28,
+            "word": "알고"
+          },
+          {
+            "confidence": 1,
+            "end": 5.52,
+            "start": 5.44,
+            "word": "있어요."
+          },
+          {
+            "confidence": 1,
+            "end": 6.96,
+            "start": 6.88,
+            "word": "이제"
+          },
+          {
+            "confidence": 1,
+            "end": 7.84,
+            "start": 7.36,
+            "word": "병서처럼"
+          },
+          {
+            "confidence": 1,
+            "end": 8.64,
+            "start": 8.08,
+            "word": "마무리합니다."
+          }
+        ]
+      },
+      "phrase_bounds": {
+        "prefix": [
+          0.32,
+          2.0
+        ],
+        "target": [
+          3.52,
+          5.52
+        ],
+        "suffix": [
+          6.88,
+          8.64
+        ]
+      },
+      "acoustics": {
+        "whole": {
+          "duration": 8.7771875,
+          "rms_dbfs": -27.071632978516746,
+          "active_seconds": 5.41,
+          "periodicity_median": 0.8888123169993419,
+          "voiced_fraction": 0.9001848428835489,
+          "f0_median_hz": 266.6666666666667,
+          "f0_iqr_hz": 85.67057623661398,
+          "high_band_fraction": 0.001637914543134844
+        },
+        "prefix": {
+          "duration": 1.68,
+          "rms_dbfs": -24.791499488646256,
+          "active_seconds": 1.27,
+          "periodicity_median": 0.8939555528674213,
+          "voiced_fraction": 0.8661417322834646,
+          "f0_median_hz": 285.7142857142857,
+          "f0_iqr_hz": 35.22012578616352,
+          "high_band_fraction": 0.0021776626510269415
+        },
+        "target": {
+          "duration": 2.0,
+          "rms_dbfs": -26.6857615256906,
+          "active_seconds": 1.6,
+          "periodicity_median": 0.927744941903184,
+          "voiced_fraction": 0.975,
+          "f0_median_hz": 296.2962962962963,
+          "f0_iqr_hz": 71.30124777183602,
+          "high_band_fraction": 0.0017537218169175102
+        },
+        "suffix": {
+          "duration": 1.76,
+          "rms_dbfs": -24.98252915869571,
+          "active_seconds": 1.57,
+          "periodicity_median": 0.8656328658303607,
+          "voiced_fraction": 0.8726114649681529,
+          "f0_median_hz": 242.42424242424244,
+          "f0_iqr_hz": 80.71025020177564,
+          "high_band_fraction": 0.0007774859411571531
+        }
+      },
+      "prefix_to_target_gap_seconds": 1.52,
+      "file": "serena-tags-20261024/scoped_slow-1.wav"
+    },
+    {
+      "condition": "pause",
+      "repeat": 1,
+      "input": "지금부터 이야기를 시작합니다 [pause] 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+      "expected": "지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+      "target": "중요한 내용은 우리끼리만 알고 있어요",
+      "generation": {
+        "duration": 7.46,
+        "records": [
+          {
+            "sentence": "지금부터 이야기를 시작합니다 [pause] 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+            "attempt": 1,
+            "accepted": true,
+            "generation_seconds": 3.8910671629710123,
+            "duration_seconds": 7.476825396825397,
+            "longest_internal_silence": 0.86,
+            "voiced_seconds": 5.56,
+            "hit_cap": false,
+            "trim_start_sample": 0,
+            "trim_end_sample": 328986
+          }
+        ],
+        "segments": [
+          {
+            "text": "지금부터 이야기를 시작합니다 [pause] 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+            "start": 0.0,
+            "end": 7.46
+          }
+        ],
+        "sample_rate": 44100,
+        "text": "지금부터 이야기를 시작합니다 [pause] 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+        "voice_preset": "serena",
+        "reference_sha256": "3dc211c75942fa96cabd50d8a04de9e7918648a4c6c7a33eae8f02d5d7ded053"
+      },
+      "sha256": "7466da86142fb94fd453a698ed907add53d172a1ca0257e4ae897a20ba8977a2",
+      "asr": {
+        "character_error_rate": 0,
+        "expected": "지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+        "passed": true,
+        "transcript": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다."
+      },
+      "tag_word_detected_by_asr": false,
+      "word_alignment": {
+        "duration": 7.460000038146973,
+        "language": "ko-KR",
+        "task": "transcribe",
+        "text": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다.",
+        "words": [
+          {
+            "confidence": 1,
+            "end": 0.56,
+            "start": 0.16,
+            "word": "지금부터"
+          },
+          {
+            "confidence": 1,
+            "end": 1.44,
+            "start": 0.96,
+            "word": "이야기를"
+          },
+          {
+            "confidence": 1,
+            "end": 1.84,
+            "start": 1.52,
+            "word": "시작합니다."
+          },
+          {
+            "confidence": 1,
+            "end": 3.36,
+            "start": 2.96,
+            "word": "중요한"
+          },
+          {
+            "confidence": 1,
+            "end": 3.76,
+            "start": 3.44,
+            "word": "내용은"
+          },
+          {
+            "confidence": 1,
+            "end": 4.56,
+            "start": 4,
+            "word": "우리끼리만"
+          },
+          {
+            "confidence": 1,
+            "end": 4.8,
+            "start": 4.64,
+            "word": "알고"
+          },
+          {
+            "confidence": 1,
+            "end": 4.88,
+            "start": 4.8,
+            "word": "있어요."
+          },
+          {
+            "confidence": 1,
+            "end": 5.92,
+            "start": 5.84,
+            "word": "이제"
+          },
+          {
+            "confidence": 1,
+            "end": 6.72,
+            "start": 6.24,
+            "word": "평소처럼"
+          },
+          {
+            "confidence": 1,
+            "end": 7.36,
+            "start": 6.88,
+            "word": "마무리합니다."
+          }
+        ]
+      },
+      "phrase_bounds": {
+        "prefix": [
+          0.16,
+          1.84
+        ],
+        "target": [
+          2.96,
+          4.88
+        ],
+        "suffix": [
+          5.84,
+          7.36
+        ]
+      },
+      "acoustics": {
+        "whole": {
+          "duration": 7.46,
+          "rms_dbfs": -31.43931692069299,
+          "active_seconds": 4.78,
+          "periodicity_median": 0.9064603305716665,
+          "voiced_fraction": 0.9121338912133892,
+          "f0_median_hz": 285.7142857142857,
+          "f0_iqr_hz": 98.0392156862745,
+          "high_band_fraction": 0.001585851080158716
+        },
+        "prefix": {
+          "duration": 1.68,
+          "rms_dbfs": -31.799978341167776,
+          "active_seconds": 1.45,
+          "periodicity_median": 0.9050038312985781,
+          "voiced_fraction": 0.8344827586206897,
+          "f0_median_hz": 285.7142857142857,
+          "f0_iqr_hz": 35.22012578616352,
+          "high_band_fraction": 0.0036185345697897974
+        },
+        "target": {
+          "duration": 1.92,
+          "rms_dbfs": -27.93303193650299,
+          "active_seconds": 1.52,
+          "periodicity_median": 0.9386340265445485,
+          "voiced_fraction": 0.9736842105263158,
+          "f0_median_hz": 326.53061224489795,
+          "f0_iqr_hz": 64.56346294937634,
+          "high_band_fraction": 0.0011857519768527485
+        },
+        "suffix": {
+          "duration": 1.52,
+          "rms_dbfs": -32.49981396635944,
+          "active_seconds": 1.3800000000000001,
+          "periodicity_median": 0.8879991124359798,
+          "voiced_fraction": 0.8695652173913043,
+          "f0_median_hz": 260.1797990481227,
+          "f0_iqr_hz": 141.9819311123659,
+          "high_band_fraction": 0.0012464021659454568
+        }
+      },
+      "prefix_to_target_gap_seconds": 1.1199999999999999,
+      "file": "serena-tags-20261024/pause-1.wav"
+    },
+    {
+      "condition": "neutral",
+      "repeat": 2,
+      "input": "지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+      "expected": "지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+      "target": "중요한 내용은 우리끼리만 알고 있어요",
+      "generation": {
+        "duration": 8.12,
+        "records": [
+          {
+            "sentence": "지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+            "attempt": 1,
+            "accepted": true,
+            "generation_seconds": 4.358137978008017,
+            "duration_seconds": 8.452063492063493,
+            "longest_internal_silence": 0.72,
+            "voiced_seconds": 5.82,
+            "hit_cap": false,
+            "trim_start_sample": 0,
+            "trim_end_sample": 358092
+          }
+        ],
+        "segments": [
+          {
+            "text": "지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+            "start": 0.0,
+            "end": 8.12
+          }
+        ],
+        "sample_rate": 44100,
+        "text": "지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+        "voice_preset": "serena",
+        "reference_sha256": "3dc211c75942fa96cabd50d8a04de9e7918648a4c6c7a33eae8f02d5d7ded053"
+      },
+      "sha256": "b97a1e133855a99a5b81a4a3a9bcc85455a6099b6b15a88a688d7006caf89f86",
+      "asr": {
+        "character_error_rate": 0,
+        "expected": "지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+        "passed": true,
+        "transcript": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다."
+      },
+      "tag_word_detected_by_asr": false,
+      "word_alignment": {
+        "duration": 8.119999885559082,
+        "language": "ko-KR",
+        "task": "transcribe",
+        "text": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다.",
+        "words": [
+          {
+            "confidence": 1,
+            "end": 0.72,
+            "start": 0.32,
+            "word": "지금부터"
+          },
+          {
+            "confidence": 1,
+            "end": 1.6,
+            "start": 1.2,
+            "word": "이야기를"
+          },
+          {
+            "confidence": 1,
+            "end": 2,
+            "start": 1.68,
+            "word": "시작합니다."
+          },
+          {
+            "confidence": 1,
+            "end": 3.36,
+            "start": 2.96,
+            "word": "중요한"
+          },
+          {
+            "confidence": 1,
+            "end": 3.76,
+            "start": 3.44,
+            "word": "내용은"
+          },
+          {
+            "confidence": 1,
+            "end": 4.56,
+            "start": 3.92,
+            "word": "우리끼리만"
+          },
+          {
+            "confidence": 1,
+            "end": 4.72,
+            "start": 4.56,
+            "word": "알고"
+          },
+          {
+            "confidence": 1,
+            "end": 4.88,
+            "start": 4.8,
+            "word": "있어요."
+          },
+          {
+            "confidence": 1,
+            "end": 6.16,
+            "start": 6.08,
+            "word": "이제"
+          },
+          {
+            "confidence": 1,
+            "end": 7.04,
+            "start": 6.48,
+            "word": "평소처럼"
+          },
+          {
+            "confidence": 1,
+            "end": 8,
+            "start": 7.44,
+            "word": "마무리합니다."
+          }
+        ]
+      },
+      "phrase_bounds": {
+        "prefix": [
+          0.32,
+          2.0
+        ],
+        "target": [
+          2.96,
+          4.88
+        ],
+        "suffix": [
+          6.08,
+          8.0
+        ]
+      },
+      "acoustics": {
+        "whole": {
+          "duration": 8.12,
+          "rms_dbfs": -29.401466175872105,
+          "active_seconds": 5.2,
+          "periodicity_median": 0.8934034121778516,
+          "voiced_fraction": 0.8961538461538462,
+          "f0_median_hz": 246.15384615384616,
+          "f0_iqr_hz": 52.0083584861853,
+          "high_band_fraction": 0.0024887950886010248
+        },
+        "prefix": {
+          "duration": 1.68,
+          "rms_dbfs": -26.80837048166729,
+          "active_seconds": 1.35,
+          "periodicity_median": 0.886358169932541,
+          "voiced_fraction": 0.837037037037037,
+          "f0_median_hz": 275.86206896551727,
+          "f0_iqr_hz": 48.4848484848485,
+          "high_band_fraction": 0.003010475304327461
+        },
+        "target": {
+          "duration": 1.92,
+          "rms_dbfs": -28.286972334669997,
+          "active_seconds": 1.59,
+          "periodicity_median": 0.9030141976805645,
+          "voiced_fraction": 0.9433962264150944,
+          "f0_median_hz": 244.28904428904428,
+          "f0_iqr_hz": 29.493087557603673,
+          "high_band_fraction": 0.002346973239422516
+        },
+        "suffix": {
+          "duration": 1.92,
+          "rms_dbfs": -30.486108601726688,
+          "active_seconds": 1.3900000000000001,
+          "periodicity_median": 0.8925093120655831,
+          "voiced_fraction": 0.8992805755395683,
+          "f0_median_hz": 250.0,
+          "f0_iqr_hz": 68.65479510834587,
+          "high_band_fraction": 0.0017273638772676231
+        }
+      },
+      "prefix_to_target_gap_seconds": 0.96,
+      "file": "serena-tags-20261024/neutral-2.wav"
+    },
+    {
+      "condition": "whisper",
+      "repeat": 2,
+      "input": "[whisper] 지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+      "expected": "지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+      "target": "중요한 내용은 우리끼리만 알고 있어요",
+      "generation": {
+        "duration": 9.5,
+        "records": [
+          {
+            "sentence": "[whisper] 지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+            "attempt": 1,
+            "accepted": true,
+            "generation_seconds": 4.9638308040448464,
+            "duration_seconds": 9.613061224489796,
+            "longest_internal_silence": 1.76,
+            "voiced_seconds": 5.54,
+            "hit_cap": false,
+            "trim_start_sample": 0,
+            "trim_end_sample": 418950
+          }
+        ],
+        "segments": [
+          {
+            "text": "[whisper] 지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+            "start": 0.0,
+            "end": 9.5
+          }
+        ],
+        "sample_rate": 44100,
+        "text": "[whisper] 지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+        "voice_preset": "serena",
+        "reference_sha256": "3dc211c75942fa96cabd50d8a04de9e7918648a4c6c7a33eae8f02d5d7ded053"
+      },
+      "sha256": "cb50347a1d572b580963c06757a28ec36235043758080112dd31e9e4ea644335",
+      "asr": {
+        "character_error_rate": 0,
+        "expected": "지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+        "passed": true,
+        "transcript": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다."
+      },
+      "tag_word_detected_by_asr": false,
+      "word_alignment": {
+        "duration": 9.5,
+        "language": "ko-KR",
+        "task": "transcribe",
+        "text": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다.",
+        "words": [
+          {
+            "confidence": 1,
+            "end": 0.8,
+            "start": 0.32,
+            "word": "지금부터"
+          },
+          {
+            "confidence": 1,
+            "end": 1.76,
+            "start": 1.28,
+            "word": "이야기를"
+          },
+          {
+            "confidence": 1,
+            "end": 2.16,
+            "start": 1.84,
+            "word": "시작합니다."
+          },
+          {
+            "confidence": 1,
+            "end": 4.24,
+            "start": 3.84,
+            "word": "중요한"
+          },
+          {
+            "confidence": 1,
+            "end": 4.64,
+            "start": 4.24,
+            "word": "내용은"
+          },
+          {
+            "confidence": 1,
+            "end": 5.52,
+            "start": 4.88,
+            "word": "우리끼리만"
+          },
+          {
+            "confidence": 1,
+            "end": 5.84,
+            "start": 5.6,
+            "word": "알고"
+          },
+          {
+            "confidence": 1,
+            "end": 5.92,
+            "start": 5.84,
+            "word": "있어요."
+          },
+          {
+            "confidence": 1,
+            "end": 8.08,
+            "start": 8,
+            "word": "이제"
+          },
+          {
+            "confidence": 1,
+            "end": 8.72,
+            "start": 8.32,
+            "word": "평소처럼"
+          },
+          {
+            "confidence": 1,
+            "end": 9.36,
+            "start": 8.96,
+            "word": "마무리합니다."
+          }
+        ]
+      },
+      "phrase_bounds": {
+        "prefix": [
+          0.32,
+          2.16
+        ],
+        "target": [
+          3.84,
+          5.92
+        ],
+        "suffix": [
+          8.0,
+          9.36
+        ]
+      },
+      "acoustics": {
+        "whole": {
+          "duration": 9.5,
+          "rms_dbfs": -35.57286242310817,
+          "active_seconds": 5.17,
+          "periodicity_median": 0.7484093293195236,
+          "voiced_fraction": 0.6382978723404256,
+          "f0_median_hz": 225.35211267605635,
+          "f0_iqr_hz": 24.76780185758514,
+          "high_band_fraction": 0.005616356506779397
+        },
+        "prefix": {
+          "duration": 1.84,
+          "rms_dbfs": -35.40996041933386,
+          "active_seconds": 1.41,
+          "periodicity_median": 0.5289561404860763,
+          "voiced_fraction": 0.5106382978723404,
+          "f0_median_hz": 216.21621621621622,
+          "f0_iqr_hz": 33.79186602870814,
+          "high_band_fraction": 0.011865055431833305
+        },
+        "target": {
+          "duration": 2.08,
+          "rms_dbfs": -33.91565423448151,
+          "active_seconds": 1.71,
+          "periodicity_median": 0.8588637178194595,
+          "voiced_fraction": 0.7368421052631579,
+          "f0_median_hz": 225.35211267605635,
+          "f0_iqr_hz": 21.35774218154083,
+          "high_band_fraction": 0.0015537673763514265
+        },
+        "suffix": {
+          "duration": 1.36,
+          "rms_dbfs": -35.48951063213234,
+          "active_seconds": 1.27,
+          "periodicity_median": 0.7875602195374395,
+          "voiced_fraction": 0.6771653543307087,
+          "f0_median_hz": 228.57142857142858,
+          "f0_iqr_hz": 46.880041634139985,
+          "high_band_fraction": 0.006188312639224081
+        }
+      },
+      "prefix_to_target_gap_seconds": 1.6799999999999997,
+      "file": "serena-tags-20261024/whisper-2.wav"
+    },
+    {
+      "condition": "happy",
+      "repeat": 2,
+      "input": "[happy] 지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+      "expected": "지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+      "target": "중요한 내용은 우리끼리만 알고 있어요",
+      "generation": {
+        "duration": 8.0,
+        "records": [
+          {
+            "sentence": "[happy] 지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+            "attempt": 1,
+            "accepted": true,
+            "generation_seconds": 4.17930310301017,
+            "duration_seconds": 8.080544217687075,
+            "longest_internal_silence": 0.78,
+            "voiced_seconds": 6.02,
+            "hit_cap": false,
+            "trim_start_sample": 0,
+            "trim_end_sample": 352800
+          }
+        ],
+        "segments": [
+          {
+            "text": "[happy] 지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+            "start": 0.0,
+            "end": 8.0
+          }
+        ],
+        "sample_rate": 44100,
+        "text": "[happy] 지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+        "voice_preset": "serena",
+        "reference_sha256": "3dc211c75942fa96cabd50d8a04de9e7918648a4c6c7a33eae8f02d5d7ded053"
+      },
+      "sha256": "d8987b124bc0ad73719a398f78be9be75bbb3d30383b7385da8a36bfe1f639f4",
+      "asr": {
+        "character_error_rate": 0,
+        "expected": "지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+        "passed": true,
+        "transcript": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다."
+      },
+      "tag_word_detected_by_asr": false,
+      "word_alignment": {
+        "duration": 8,
+        "language": "ko-KR",
+        "task": "transcribe",
+        "text": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다.",
+        "words": [
+          {
+            "confidence": 1,
+            "end": 0.64,
+            "start": 0.32,
+            "word": "지금부터"
+          },
+          {
+            "confidence": 1,
+            "end": 1.68,
+            "start": 1.28,
+            "word": "이야기를"
+          },
+          {
+            "confidence": 1,
+            "end": 2,
+            "start": 1.68,
+            "word": "시작합니다."
+          },
+          {
+            "confidence": 1,
+            "end": 3.36,
+            "start": 2.88,
+            "word": "중요한"
+          },
+          {
+            "confidence": 1,
+            "end": 3.76,
+            "start": 3.44,
+            "word": "내용은"
+          },
+          {
+            "confidence": 1,
+            "end": 4.64,
+            "start": 4.16,
+            "word": "우리끼리만"
+          },
+          {
+            "confidence": 1,
+            "end": 4.88,
+            "start": 4.64,
+            "word": "알고"
+          },
+          {
+            "confidence": 1,
+            "end": 4.96,
+            "start": 4.88,
+            "word": "있어요."
+          },
+          {
+            "confidence": 1,
+            "end": 6.16,
+            "start": 6.08,
+            "word": "이제"
+          },
+          {
+            "confidence": 1,
+            "end": 7.12,
+            "start": 6.72,
+            "word": "평소처럼"
+          },
+          {
+            "confidence": 1,
+            "end": 7.92,
+            "start": 7.36,
+            "word": "마무리합니다."
+          }
+        ]
+      },
+      "phrase_bounds": {
+        "prefix": [
+          0.32,
+          2.0
+        ],
+        "target": [
+          2.88,
+          4.96
+        ],
+        "suffix": [
+          6.08,
+          7.92
+        ]
+      },
+      "acoustics": {
+        "whole": {
+          "duration": 8.0,
+          "rms_dbfs": -26.170760413751882,
+          "active_seconds": 5.4,
+          "periodicity_median": 0.8948230716032062,
+          "voiced_fraction": 0.8944444444444445,
+          "f0_median_hz": 266.6666666666667,
+          "f0_iqr_hz": 67.72486772486772,
+          "high_band_fraction": 0.0024914679947986617
+        },
+        "prefix": {
+          "duration": 1.68,
+          "rms_dbfs": -24.065330994130612,
+          "active_seconds": 1.32,
+          "periodicity_median": 0.8855805840382981,
+          "voiced_fraction": 0.8560606060606061,
+          "f0_median_hz": 285.7142857142857,
+          "f0_iqr_hz": 65.26806526806524,
+          "high_band_fraction": 0.004091805421838142
+        },
+        "target": {
+          "duration": 2.08,
+          "rms_dbfs": -24.775760434331048,
+          "active_seconds": 1.78,
+          "periodicity_median": 0.9181025310243078,
+          "voiced_fraction": 0.9550561797752809,
+          "f0_median_hz": 271.1864406779661,
+          "f0_iqr_hz": 51.198552691090015,
+          "high_band_fraction": 0.0017959316796851957
+        },
+        "suffix": {
+          "duration": 1.84,
+          "rms_dbfs": -26.088220174936993,
+          "active_seconds": 1.58,
+          "periodicity_median": 0.9029019266723319,
+          "voiced_fraction": 0.879746835443038,
+          "f0_median_hz": 266.6666666666667,
+          "f0_iqr_hz": 89.77225672877847,
+          "high_band_fraction": 0.002055837465248245
+        }
+      },
+      "prefix_to_target_gap_seconds": 0.8799999999999999,
+      "file": "serena-tags-20261024/happy-2.wav"
+    },
+    {
+      "condition": "sad",
+      "repeat": 2,
+      "input": "[sad] 지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+      "expected": "지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+      "target": "중요한 내용은 우리끼리만 알고 있어요",
+      "generation": {
+        "duration": 9.02,
+        "records": [
+          {
+            "sentence": "[sad] 지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+            "attempt": 1,
+            "accepted": true,
+            "generation_seconds": 4.8965340530266985,
+            "duration_seconds": 9.47374149659864,
+            "longest_internal_silence": 1.04,
+            "voiced_seconds": 6.34,
+            "hit_cap": false,
+            "trim_start_sample": 0,
+            "trim_end_sample": 397782
+          }
+        ],
+        "segments": [
+          {
+            "text": "[sad] 지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+            "start": 0.0,
+            "end": 9.02
+          }
+        ],
+        "sample_rate": 44100,
+        "text": "[sad] 지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+        "voice_preset": "serena",
+        "reference_sha256": "3dc211c75942fa96cabd50d8a04de9e7918648a4c6c7a33eae8f02d5d7ded053"
+      },
+      "sha256": "e7785a9a0dcfe2464d3e1eb6964bf847fb6b7f1403279c1bebeca440c28fac6c",
+      "asr": {
+        "character_error_rate": 0,
+        "expected": "지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+        "passed": true,
+        "transcript": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다."
+      },
+      "tag_word_detected_by_asr": false,
+      "word_alignment": {
+        "duration": 9.020000457763672,
+        "language": "ko-KR",
+        "task": "transcribe",
+        "text": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다.",
+        "words": [
+          {
+            "confidence": 1,
+            "end": 0.72,
+            "start": 0.32,
+            "word": "지금부터"
+          },
+          {
+            "confidence": 1,
+            "end": 1.92,
+            "start": 1.52,
+            "word": "이야기를"
+          },
+          {
+            "confidence": 1,
+            "end": 2.32,
+            "start": 2,
+            "word": "시작합니다."
+          },
+          {
+            "confidence": 1,
+            "end": 4.08,
+            "start": 3.84,
+            "word": "중요한"
+          },
+          {
+            "confidence": 1,
+            "end": 4.48,
+            "start": 4.16,
+            "word": "내용은"
+          },
+          {
+            "confidence": 1,
+            "end": 5.36,
+            "start": 4.8,
+            "word": "우리끼리만"
+          },
+          {
+            "confidence": 1,
+            "end": 5.6,
+            "start": 5.44,
+            "word": "알고"
+          },
+          {
+            "confidence": 1,
+            "end": 5.84,
+            "start": 5.76,
+            "word": "있어요."
+          },
+          {
+            "confidence": 1,
+            "end": 7.44,
+            "start": 7.36,
+            "word": "이제"
+          },
+          {
+            "confidence": 1,
+            "end": 8.16,
+            "start": 7.68,
+            "word": "평소처럼"
+          },
+          {
+            "confidence": 1,
+            "end": 8.88,
+            "start": 8.32,
+            "word": "마무리합니다."
+          }
+        ]
+      },
+      "phrase_bounds": {
+        "prefix": [
+          0.32,
+          2.32
+        ],
+        "target": [
+          3.84,
+          5.84
+        ],
+        "suffix": [
+          7.36,
+          8.88
+        ]
+      },
+      "acoustics": {
+        "whole": {
+          "duration": 9.02,
+          "rms_dbfs": -26.20244141774468,
+          "active_seconds": 5.63,
+          "periodicity_median": 0.8994934360352271,
+          "voiced_fraction": 0.8827708703374778,
+          "f0_median_hz": 290.90909090909093,
+          "f0_iqr_hz": 74.91952004682472,
+          "high_band_fraction": 0.0026826185625709836
+        },
+        "prefix": {
+          "duration": 2.0,
+          "rms_dbfs": -26.173312980565903,
+          "active_seconds": 1.3800000000000001,
+          "periodicity_median": 0.8901367945536998,
+          "voiced_fraction": 0.8695652173913043,
+          "f0_median_hz": 290.90909090909093,
+          "f0_iqr_hz": 53.724053724053704,
+          "high_band_fraction": 0.007511792151906589
+        },
+        "target": {
+          "duration": 2.0,
+          "rms_dbfs": -24.639340523244012,
+          "active_seconds": 1.68,
+          "periodicity_median": 0.9142984172773863,
+          "voiced_fraction": 0.9285714285714286,
+          "f0_median_hz": 296.2962962962963,
+          "f0_iqr_hz": 72.2058158405832,
+          "high_band_fraction": 0.001769370097383001
+        },
+        "suffix": {
+          "duration": 1.52,
+          "rms_dbfs": -25.005376982729818,
+          "active_seconds": 1.3800000000000001,
+          "periodicity_median": 0.9093212210936843,
+          "voiced_fraction": 0.8840579710144928,
+          "f0_median_hz": 290.90909090909093,
+          "f0_iqr_hz": 104.1763693708238,
+          "high_band_fraction": 0.0020055979519083794
+        }
+      },
+      "prefix_to_target_gap_seconds": 1.52,
+      "file": "serena-tags-20261024/sad-2.wav"
+    },
+    {
+      "condition": "scoped_whisper",
+      "repeat": 2,
+      "input": "지금부터 이야기를 시작합니다 <whisper>중요한 내용은 우리끼리만 알고 있어요</whisper> 이제 평소처럼 마무리합니다.",
+      "expected": "지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+      "target": "중요한 내용은 우리끼리만 알고 있어요",
+      "generation": {
+        "duration": 9.02,
+        "records": [
+          {
+            "sentence": "지금부터 이야기를 시작합니다 <whisper>중요한 내용은 우리끼리만 알고 있어요</whisper> 이제 평소처럼 마무리합니다.",
+            "attempt": 1,
+            "accepted": true,
+            "generation_seconds": 4.945695094007533,
+            "duration_seconds": 9.566621315192744,
+            "longest_internal_silence": 1.24,
+            "voiced_seconds": 5.9,
+            "hit_cap": false,
+            "trim_start_sample": 0,
+            "trim_end_sample": 397782
+          }
+        ],
+        "segments": [
+          {
+            "text": "지금부터 이야기를 시작합니다 <whisper>중요한 내용은 우리끼리만 알고 있어요</whisper> 이제 평소처럼 마무리합니다.",
+            "start": 0.0,
+            "end": 9.02
+          }
+        ],
+        "sample_rate": 44100,
+        "text": "지금부터 이야기를 시작합니다 <whisper>중요한 내용은 우리끼리만 알고 있어요</whisper> 이제 평소처럼 마무리합니다.",
+        "voice_preset": "serena",
+        "reference_sha256": "3dc211c75942fa96cabd50d8a04de9e7918648a4c6c7a33eae8f02d5d7ded053"
+      },
+      "sha256": "0da71af132e6276037d725441e1e50c0cfcc0331f2e45aac102a44eadef4430a",
+      "asr": {
+        "character_error_rate": 0,
+        "expected": "지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+        "passed": true,
+        "transcript": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다."
+      },
+      "tag_word_detected_by_asr": false,
+      "word_alignment": {
+        "duration": 9.020000457763672,
+        "language": "ko-KR",
+        "task": "transcribe",
+        "text": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다.",
+        "words": [
+          {
+            "confidence": 1,
+            "end": 0.64,
+            "start": 0.32,
+            "word": "지금부터"
+          },
+          {
+            "confidence": 1,
+            "end": 1.6,
+            "start": 1.12,
+            "word": "이야기를"
+          },
+          {
+            "confidence": 1,
+            "end": 2,
+            "start": 1.68,
+            "word": "시작합니다."
+          },
+          {
+            "confidence": 1,
+            "end": 4,
+            "start": 3.52,
+            "word": "중요한"
+          },
+          {
+            "confidence": 1,
+            "end": 4.4,
+            "start": 4.08,
+            "word": "내용은"
+          },
+          {
+            "confidence": 1,
+            "end": 5.44,
+            "start": 4.8,
+            "word": "우리끼리만"
+          },
+          {
+            "confidence": 1,
+            "end": 5.6,
+            "start": 5.44,
+            "word": "알고"
+          },
+          {
+            "confidence": 1,
+            "end": 5.84,
+            "start": 5.76,
+            "word": "있어요."
+          },
+          {
+            "confidence": 1,
+            "end": 7.44,
+            "start": 7.36,
+            "word": "이제"
+          },
+          {
+            "confidence": 1,
+            "end": 8.16,
+            "start": 7.68,
+            "word": "평소처럼"
+          },
+          {
+            "confidence": 1,
+            "end": 8.88,
+            "start": 8.4,
+            "word": "마무리합니다."
+          }
+        ]
+      },
+      "phrase_bounds": {
+        "prefix": [
+          0.32,
+          2.0
+        ],
+        "target": [
+          3.52,
+          5.84
+        ],
+        "suffix": [
+          7.36,
+          8.88
+        ]
+      },
+      "acoustics": {
+        "whole": {
+          "duration": 9.02,
+          "rms_dbfs": -28.745894675034968,
+          "active_seconds": 5.3,
+          "periodicity_median": 0.8936012163436899,
+          "voiced_fraction": 0.8660377358490566,
+          "f0_median_hz": 231.8840579710145,
+          "f0_iqr_hz": 72.90954659375714,
+          "high_band_fraction": 0.0020760340784492202
+        },
+        "prefix": {
+          "duration": 1.68,
+          "rms_dbfs": -27.137940384033694,
+          "active_seconds": 1.41,
+          "periodicity_median": 0.8365077622288427,
+          "voiced_fraction": 0.7801418439716312,
+          "f0_median_hz": 238.80597014925374,
+          "f0_iqr_hz": 69.47368421052636,
+          "high_band_fraction": 0.004753433585631398
+        },
+        "target": {
+          "duration": 2.32,
+          "rms_dbfs": -28.76354297911009,
+          "active_seconds": 1.8900000000000001,
+          "periodicity_median": 0.903459448707095,
+          "voiced_fraction": 0.9206349206349206,
+          "f0_median_hz": 220.7001522070015,
+          "f0_iqr_hz": 33.6777650210486,
+          "high_band_fraction": 0.000579714679351366
+        },
+        "suffix": {
+          "duration": 1.52,
+          "rms_dbfs": -26.661450706506553,
+          "active_seconds": 1.33,
+          "periodicity_median": 0.8926484665156796,
+          "voiced_fraction": 0.8721804511278195,
+          "f0_median_hz": 290.90909090909093,
+          "f0_iqr_hz": 104.5045045045045,
+          "high_band_fraction": 0.0020542253825128138
+        }
+      },
+      "prefix_to_target_gap_seconds": 1.52,
+      "file": "serena-tags-20261024/scoped_whisper-2.wav"
+    },
+    {
+      "condition": "scoped_slow",
+      "repeat": 2,
+      "input": "지금부터 이야기를 시작합니다 <slow>중요한 내용은 우리끼리만 알고 있어요</slow> 이제 평소처럼 마무리합니다.",
+      "expected": "지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+      "target": "중요한 내용은 우리끼리만 알고 있어요",
+      "generation": {
+        "duration": 9.22,
+        "records": [
+          {
+            "sentence": "지금부터 이야기를 시작합니다 <slow>중요한 내용은 우리끼리만 알고 있어요</slow> 이제 평소처럼 마무리합니다.",
+            "attempt": 1,
+            "accepted": true,
+            "generation_seconds": 4.914758930040989,
+            "duration_seconds": 9.520181405895691,
+            "longest_internal_silence": 1.22,
+            "voiced_seconds": 5.9,
+            "hit_cap": false,
+            "trim_start_sample": 0,
+            "trim_end_sample": 406602
+          }
+        ],
+        "segments": [
+          {
+            "text": "지금부터 이야기를 시작합니다 <slow>중요한 내용은 우리끼리만 알고 있어요</slow> 이제 평소처럼 마무리합니다.",
+            "start": 0.0,
+            "end": 9.22
+          }
+        ],
+        "sample_rate": 44100,
+        "text": "지금부터 이야기를 시작합니다 <slow>중요한 내용은 우리끼리만 알고 있어요</slow> 이제 평소처럼 마무리합니다.",
+        "voice_preset": "serena",
+        "reference_sha256": "3dc211c75942fa96cabd50d8a04de9e7918648a4c6c7a33eae8f02d5d7ded053"
+      },
+      "sha256": "c815cb5c24c9240b0dfdf90839451fd2fde3a3ef123fa24945a6473a3c01e632",
+      "asr": {
+        "character_error_rate": 0,
+        "expected": "지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+        "passed": true,
+        "transcript": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다."
+      },
+      "tag_word_detected_by_asr": false,
+      "word_alignment": {
+        "duration": 9.220000267028809,
+        "language": "ko-KR",
+        "task": "transcribe",
+        "text": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다.",
+        "words": [
+          {
+            "confidence": 1,
+            "end": 1.12,
+            "start": 0.72,
+            "word": "지금부터"
+          },
+          {
+            "confidence": 1,
+            "end": 1.92,
+            "start": 1.36,
+            "word": "이야기를"
+          },
+          {
+            "confidence": 1,
+            "end": 2.32,
+            "start": 1.92,
+            "word": "시작합니다."
+          },
+          {
+            "confidence": 1,
+            "end": 4.32,
+            "start": 3.84,
+            "word": "중요한"
+          },
+          {
+            "confidence": 1,
+            "end": 4.72,
+            "start": 4.4,
+            "word": "내용은"
+          },
+          {
+            "confidence": 1,
+            "end": 5.68,
+            "start": 5.12,
+            "word": "우리끼리만"
+          },
+          {
+            "confidence": 1,
+            "end": 5.84,
+            "start": 5.68,
+            "word": "알고"
+          },
+          {
+            "confidence": 1,
+            "end": 6.16,
+            "start": 6.08,
+            "word": "있어요."
+          },
+          {
+            "confidence": 1,
+            "end": 7.76,
+            "start": 7.68,
+            "word": "이제"
+          },
+          {
+            "confidence": 1,
+            "end": 8.4,
+            "start": 7.92,
+            "word": "평소처럼"
+          },
+          {
+            "confidence": 1,
+            "end": 9.12,
+            "start": 8.64,
+            "word": "마무리합니다."
+          }
+        ]
+      },
+      "phrase_bounds": {
+        "prefix": [
+          0.72,
+          2.32
+        ],
+        "target": [
+          3.84,
+          6.16
+        ],
+        "suffix": [
+          7.68,
+          9.12
+        ]
+      },
+      "acoustics": {
+        "whole": {
+          "duration": 9.22,
+          "rms_dbfs": -28.184145377353037,
+          "active_seconds": 5.23,
+          "periodicity_median": 0.8962978173391781,
+          "voiced_fraction": 0.8565965583173997,
+          "f0_median_hz": 258.06451612903226,
+          "f0_iqr_hz": 77.11821410451549,
+          "high_band_fraction": 0.002265516243125262
+        },
+        "prefix": {
+          "duration": 1.6,
+          "rms_dbfs": -26.18060291665197,
+          "active_seconds": 1.3900000000000001,
+          "periodicity_median": 0.8607594576542735,
+          "voiced_fraction": 0.7913669064748201,
+          "f0_median_hz": 307.6923076923077,
+          "f0_iqr_hz": 65.61804208863035,
+          "high_band_fraction": 0.005206961361843849
+        },
+        "target": {
+          "duration": 2.32,
+          "rms_dbfs": -26.5134959342284,
+          "active_seconds": 1.87,
+          "periodicity_median": 0.9187914746116816,
+          "voiced_fraction": 0.9625668449197861,
+          "f0_median_hz": 246.15384615384616,
+          "f0_iqr_hz": 48.22905096877702,
+          "high_band_fraction": 0.0009995426414117347
+        },
+        "suffix": {
+          "duration": 1.44,
+          "rms_dbfs": -25.961687619481502,
+          "active_seconds": 1.31,
+          "periodicity_median": 0.8992394119246752,
+          "voiced_fraction": 0.8702290076335878,
+          "f0_median_hz": 271.1864406779661,
+          "f0_iqr_hz": 119.99999999999997,
+          "high_band_fraction": 0.0021284084314434565
+        }
+      },
+      "prefix_to_target_gap_seconds": 1.52,
+      "file": "serena-tags-20261024/scoped_slow-2.wav"
+    },
+    {
+      "condition": "pause",
+      "repeat": 2,
+      "input": "지금부터 이야기를 시작합니다 [pause] 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+      "expected": "지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+      "target": "중요한 내용은 우리끼리만 알고 있어요",
+      "generation": {
+        "duration": 8.54,
+        "records": [
+          {
+            "sentence": "지금부터 이야기를 시작합니다 [pause] 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+            "attempt": 1,
+            "accepted": true,
+            "generation_seconds": 4.550629667995963,
+            "duration_seconds": 8.870022675736962,
+            "longest_internal_silence": 1.66,
+            "voiced_seconds": 5.88,
+            "hit_cap": false,
+            "trim_start_sample": 1764,
+            "trim_end_sample": 378378
+          }
+        ],
+        "segments": [
+          {
+            "text": "지금부터 이야기를 시작합니다 [pause] 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+            "start": 0.0,
+            "end": 8.54
+          }
+        ],
+        "sample_rate": 44100,
+        "text": "지금부터 이야기를 시작합니다 [pause] 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+        "voice_preset": "serena",
+        "reference_sha256": "3dc211c75942fa96cabd50d8a04de9e7918648a4c6c7a33eae8f02d5d7ded053"
+      },
+      "sha256": "01a125aab134e36282077f0d220ef6b9ed5c88972f38f515e5b166c62413e6eb",
+      "asr": {
+        "character_error_rate": 0,
+        "expected": "지금부터 이야기를 시작합니다 중요한 내용은 우리끼리만 알고 있어요 이제 평소처럼 마무리합니다.",
+        "passed": true,
+        "transcript": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다."
+      },
+      "tag_word_detected_by_asr": false,
+      "word_alignment": {
+        "duration": 8.539999961853027,
+        "language": "ko-KR",
+        "task": "transcribe",
+        "text": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다.",
+        "words": [
+          {
+            "confidence": 1,
+            "end": 0.8,
+            "start": 0.32,
+            "word": "지금부터"
+          },
+          {
+            "confidence": 1,
+            "end": 1.76,
+            "start": 1.28,
+            "word": "이야기를"
+          },
+          {
+            "confidence": 1,
+            "end": 2.08,
+            "start": 1.76,
+            "word": "시작합니다."
+          },
+          {
+            "confidence": 1,
+            "end": 4.56,
+            "start": 4.16,
+            "word": "중요한"
+          },
+          {
+            "confidence": 1,
+            "end": 4.88,
+            "start": 4.56,
+            "word": "내용은"
+          },
+          {
+            "confidence": 1,
+            "end": 5.76,
+            "start": 5.12,
+            "word": "우리끼리만"
+          },
+          {
+            "confidence": 1,
+            "end": 6,
+            "start": 5.84,
+            "word": "알고"
+          },
+          {
+            "confidence": 1,
+            "end": 6.16,
+            "start": 6.08,
+            "word": "있어요."
+          },
+          {
+            "confidence": 1,
+            "end": 7.12,
+            "start": 7.04,
+            "word": "이제"
+          },
+          {
+            "confidence": 1,
+            "end": 7.76,
+            "start": 7.28,
+            "word": "평소처럼"
+          },
+          {
+            "confidence": 1,
+            "end": 8.4,
+            "start": 8,
+            "word": "마무리합니다."
+          }
+        ]
+      },
+      "phrase_bounds": {
+        "prefix": [
+          0.32,
+          2.08
+        ],
+        "target": [
+          4.16,
+          6.16
+        ],
+        "suffix": [
+          7.04,
+          8.4
+        ]
+      },
+      "acoustics": {
+        "whole": {
+          "duration": 8.54,
+          "rms_dbfs": -27.10951499442381,
+          "active_seconds": 5.11,
+          "periodicity_median": 0.8888665970049783,
+          "voiced_fraction": 0.8884540117416829,
+          "f0_median_hz": 250.0,
+          "f0_iqr_hz": 63.39423288575833,
+          "high_band_fraction": 0.001823104050788798
+        },
+        "prefix": {
+          "duration": 1.76,
+          "rms_dbfs": -24.474951071964973,
+          "active_seconds": 1.37,
+          "periodicity_median": 0.8925529860850954,
+          "voiced_fraction": 0.8540145985401459,
+          "f0_median_hz": 250.0,
+          "f0_iqr_hz": 30.411023996198594,
+          "high_band_fraction": 0.002380251687143097
+        },
+        "target": {
+          "duration": 2.0,
+          "rms_dbfs": -26.220983530842517,
+          "active_seconds": 1.74,
+          "periodicity_median": 0.9158754303698273,
+          "voiced_fraction": 0.9022988505747126,
+          "f0_median_hz": 266.6666666666667,
+          "f0_iqr_hz": 52.13032581453635,
+          "high_band_fraction": 0.0016577080925455527
+        },
+        "suffix": {
+          "duration": 1.36,
+          "rms_dbfs": -25.775446790733916,
+          "active_seconds": 1.26,
+          "periodicity_median": 0.8859262583716103,
+          "voiced_fraction": 0.8650793650793651,
+          "f0_median_hz": 246.15384615384616,
+          "f0_iqr_hz": 80.71025020177564,
+          "high_band_fraction": 0.0008539178369186834
+        }
+      },
+      "prefix_to_target_gap_seconds": 2.08,
+      "file": "serena-tags-20261024/pause-2.wav"
+    }
+  ],
+  "groups": {
+    "neutral": {
+      "whole_duration_seconds": [
+        7.8,
+        8.12
+      ],
+      "whole_rms_dbfs": [
+        -27.046333077514344,
+        -29.401466175872105
+      ],
+      "whole_voiced_fraction": [
+        0.9123134328358209,
+        0.8961538461538462
+      ],
+      "whole_median_f0_hz": [
+        275.86206896551727,
+        246.15384615384616
+      ],
+      "target_duration_seconds": [
+        2.0,
+        1.92
+      ],
+      "target_rms_dbfs": [
+        -26.05994759293907,
+        -28.286972334669997
+      ],
+      "target_voiced_fraction": [
+        0.9470588235294117,
+        0.9433962264150944
+      ],
+      "gap_seconds": [
+        1.1199999999999999,
+        0.96
+      ]
+    },
+    "whisper": {
+      "whole_duration_seconds": [
+        10.36,
+        9.5
+      ],
+      "whole_rms_dbfs": [
+        -36.589391568878796,
+        -35.57286242310817
+      ],
+      "whole_voiced_fraction": [
+        0.7368421052631579,
+        0.6382978723404256
+      ],
+      "whole_median_f0_hz": [
+        211.9298245614035,
+        225.35211267605635
+      ],
+      "target_duration_seconds": [
+        2.32,
+        2.08
+      ],
+      "target_rms_dbfs": [
+        -34.4037920445487,
+        -33.91565423448151
+      ],
+      "target_voiced_fraction": [
+        0.8342857142857143,
+        0.7368421052631579
+      ],
+      "gap_seconds": [
+        1.8400000000000003,
+        1.6799999999999997
+      ]
+    },
+    "happy": {
+      "whole_duration_seconds": [
+        9.34,
+        8.0
+      ],
+      "whole_rms_dbfs": [
+        -26.04806944229493,
+        -26.170760413751882
+      ],
+      "whole_voiced_fraction": [
+        0.9117174959871589,
+        0.8944444444444445
+      ],
+      "whole_median_f0_hz": [
+        301.8867924528302,
+        266.6666666666667
+      ],
+      "target_duration_seconds": [
+        2.32,
+        2.08
+      ],
+      "target_rms_dbfs": [
+        -27.075024261296527,
+        -24.775760434331048
+      ],
+      "target_voiced_fraction": [
+        0.9685863874345549,
+        0.9550561797752809
+      ],
+      "gap_seconds": [
+        1.8400000000000003,
+        0.8799999999999999
+      ]
+    },
+    "sad": {
+      "whole_duration_seconds": [
+        10.0775,
+        9.02
+      ],
+      "whole_rms_dbfs": [
+        -25.80798631787376,
+        -26.20244141774468
+      ],
+      "whole_voiced_fraction": [
+        0.8532695374800638,
+        0.8827708703374778
+      ],
+      "whole_median_f0_hz": [
+        258.06451612903226,
+        290.90909090909093
+      ],
+      "target_duration_seconds": [
+        2.32,
+        2.0
+      ],
+      "target_rms_dbfs": [
+        -24.311650446732322,
+        -24.639340523244012
+      ],
+      "target_voiced_fraction": [
+        0.9386792452830188,
+        0.9285714285714286
+      ],
+      "gap_seconds": [
+        1.7600000000000002,
+        1.52
+      ]
+    },
+    "scoped_whisper": {
+      "whole_duration_seconds": [
+        8.96,
+        9.02
+      ],
+      "whole_rms_dbfs": [
+        -27.33272269542435,
+        -28.745894675034968
+      ],
+      "whole_voiced_fraction": [
+        0.8672727272727273,
+        0.8660377358490566
+      ],
+      "whole_median_f0_hz": [
+        250.0,
+        231.8840579710145
+      ],
+      "target_duration_seconds": [
+        2.32,
+        2.32
+      ],
+      "target_rms_dbfs": [
+        -26.61411744690932,
+        -28.76354297911009
+      ],
+      "target_voiced_fraction": [
+        0.9281767955801105,
+        0.9206349206349206
+      ],
+      "gap_seconds": [
+        1.36,
+        1.52
+      ]
+    },
+    "scoped_slow": {
+      "whole_duration_seconds": [
+        8.7771875,
+        9.22
+      ],
+      "whole_rms_dbfs": [
+        -27.071632978516746,
+        -28.184145377353037
+      ],
+      "whole_voiced_fraction": [
+        0.9001848428835489,
+        0.8565965583173997
+      ],
+      "whole_median_f0_hz": [
+        266.6666666666667,
+        258.06451612903226
+      ],
+      "target_duration_seconds": [
+        2.0,
+        2.32
+      ],
+      "target_rms_dbfs": [
+        -26.6857615256906,
+        -26.5134959342284
+      ],
+      "target_voiced_fraction": [
+        0.975,
+        0.9625668449197861
+      ],
+      "gap_seconds": [
+        1.52,
+        1.52
+      ]
+    },
+    "pause": {
+      "whole_duration_seconds": [
+        7.46,
+        8.54
+      ],
+      "whole_rms_dbfs": [
+        -31.43931692069299,
+        -27.10951499442381
+      ],
+      "whole_voiced_fraction": [
+        0.9121338912133892,
+        0.8884540117416829
+      ],
+      "whole_median_f0_hz": [
+        285.7142857142857,
+        250.0
+      ],
+      "target_duration_seconds": [
+        1.92,
+        2.0
+      ],
+      "target_rms_dbfs": [
+        -27.93303193650299,
+        -26.220983530842517
+      ],
+      "target_voiced_fraction": [
+        0.9736842105263158,
+        0.9022988505747126
+      ],
+      "gap_seconds": [
+        1.1199999999999999,
+        2.08
+      ]
+    }
+  },
+  "summary": {
+    "whole_whisper_average_rms_change_db": -7.857227369300261,
+    "scoped_whisper_target_average_rms_change_db": -0.5153702492051693,
+    "slow_target_duration_change_percent_by_repeat": [
+      0.0,
+      20.833333333333325
+    ],
+    "pause_gap_change_seconds_by_repeat": [
+      0.0,
+      1.12
+    ],
+    "exact_asr_matches": 13,
+    "tag_word_detections": 0,
+    "samples": 14
+  },
+  "conclusions": {
+    "whole_whisper": "Clear reproducible acoustic response: lower RMS, lower estimated periodic voicing, and altered pitch/prosody in both takes.",
+    "scoped_whisper": "No clear comparable whisper effect confined to the target phrase; target RMS changed only about half a dB and stayed highly periodic in both takes. Not validated as reliable scoped control.",
+    "scoped_slow": "Target duration changed by about 0% and 21% across two takes; not repeatably precise.",
+    "pause": "Inserted gap changed by about 0 and 1.12 seconds; not repeatably precise.",
+    "happy_sad": "Acoustic changes observed, but emotion correctness/naturalness cannot be established from these metrics alone; not marked as validated emotional performance."
+  },
+  "transport": {
+    "all_test_cases_single_chunk": true,
+    "cross_sentence_input": "<whisper>첫 번째 문장입니다. 두 번째 문장도 속삭입니다.</whisper>",
+    "long_scoped_input": "<slow>같은 목소리로 중요한 내용을 천천히 설명합니다 같은 목소리로 중요한 내용을 천천히 설명합니다 같은 목소리로 중요한 내용을 천천히 설명합니다 같은 목소리로 중요한 내용을 천천히 설명합니다 같은 목소리로 중요한 내용을 천천히 설명합니다 같은 목소리로 중요한 내용을 천천히 설명합니다 </slow>",
+    "cross_sentence_chunks": [
+      "<whisper>첫 번째 문장입니다.",
+      "두 번째 문장도 속삭입니다.</whisper>"
+    ],
+    "long_scoped_chunks": [
+      "<slow>같은 목소리로 중요한 내용을 천천히 설명합니다 같은 목소리로 중요한 내용을 천천히 설명합니다 같은 목소리로 중요한 내용을 천천히 설명합니다 같은",
+      "목소리로 중요한 내용을 천천히 설명합니다 같은 목소리로 중요한 내용을 천천히 설명합니다 같은 목소리로 중요한 내용을 천천히 설명합니다 </slow>"
+    ]
+  },
+  "method_limits": [
+    "These are ASR/acoustic measurements, not a human listening verdict.",
+    "Two takes per condition characterize this installed quantized runtime only, not all Drama 3 deployments.",
+    "ASR word timestamps are coarse, approximately 80 ms. Character alignment is used only to estimate phrase boundaries.",
+    "Pitch/periodic-voicing estimates use 40 ms Hann-window autocorrelation, 10 ms hop, 70–500 Hz, correlation >=0.5; they are diagnostic, not a perceptual emotion classifier.",
+    "Raw audio is exported without loudness normalization so tag-driven level changes remain audible.",
+    "The production wrapper splits multi-sentence/long paired tags across chunks; subtitle text and the delivery field are not a complete tag-control integration."
+  ],
+  "sources": [
+    "https://huggingface.co/fishaudio/drama-3",
+    "https://beta.fish.audio/drama-3/"
+  ],
+  "runtime_qwen_started_at": "2026-10-22T12:34:26.052328339Z"
+}

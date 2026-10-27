@@ -46,8 +46,26 @@ func (c Component) IsSupport() bool { _, ok := c.SupportSpec(); return ok }
 // Embedding uses the shared installer, but its model lifetime belongs to its set.
 func (c Component) IsModelService() bool { return !c.IsSupport() || c.ServiceRole() == "embedding" }
 
+// SupportDisabled also applies to shared services outside set membership.
+func (c Catalog) SupportDisabled(bundleID, id string) bool {
+	for _, b := range c.Bundles {
+		if b.ID == bundleID {
+			for _, disabled := range b.DisabledSupport {
+				if disabled == id {
+					return true
+				}
+			}
+			break
+		}
+	}
+	return false
+}
+
 // Resolve support outside a model set as a shared service; set bindings still win.
 func (c Catalog) ResolveSupport(bundleID, id string) (Component, bool) {
+	if c.SupportDisabled(bundleID, id) {
+		return Component{}, false
+	}
 	if x, ok := c.ResolveComponent(bundleID, id); ok {
 		return x, true
 	}
@@ -153,10 +171,53 @@ func (c *Controller) Operation() Operation {
 }
 
 // StartBundleMembers includes explicitly opted-in support services during startup.
-// Shared support services remain running when a model set is stopped.
+// Shared support services start on demand, but an explicit set stop also stops them.
 func (c Catalog) StartBundleMembers(bundle Bundle) Bundle {
 	if bundle.StartSupport {
+		ids := make([]string, 0, len(bundle.Components))
+		for _, id := range bundle.Components {
+			if !c.SupportDisabled(bundle.ID, id) {
+				ids = append(ids, id)
+			}
+		}
+		bundle.Components = ids
 		return bundle
 	}
 	return c.ModelBundle(bundle)
+}
+
+// StopBundleComponents includes managed shared services, including excluded
+// audio workers left over from a previous set. External endpoints are not owned.
+func (c Catalog) StopBundleComponents(bundleID string) []Component {
+	var out []Component
+	seen := map[string]bool{}
+	add := func(x Component) {
+		if x.Controller == "external" || seen[x.DeploymentKey()] {
+			return
+		}
+		seen[x.DeploymentKey()] = true
+		out = append(out, x)
+	}
+	for _, x := range c.BundleComponents(bundleID) {
+		add(x)
+	}
+	for _, x := range c.Components {
+		if !x.IsSupport() {
+			continue
+		}
+		// Resolve deployment overrides without applying the availability filter:
+		// exclusion prevents new work, not cleanup of a running container.
+		if resolved, ok := c.ResolveComponent(bundleID, x.ID); ok {
+			x = resolved
+		}
+		add(x)
+	}
+	// Stop the producer before its GPU workers (StopBundle traverses backwards).
+	for i, x := range out {
+		if x.ID == "extra-shorts" {
+			out = append(append(out[:i:i], out[i+1:]...), x)
+			break
+		}
+	}
+	return out
 }

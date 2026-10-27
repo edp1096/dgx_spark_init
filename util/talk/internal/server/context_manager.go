@@ -217,6 +217,9 @@ func (s *Server) runContextCompletion(
 	emit eventEmitter,
 	mediaSink mediaAttachmentSink,
 ) (answer completionResult, runErr error) {
+	if err := emit("response_status", map[string]string{"stage": "preparing", "label": "요청 접수 · 대화 준비 중"}); err != nil {
+		return completionResult{}, err
+	}
 	defer func() { answer.Content = cleanInternalEvidence(answer.Content) }()
 	var releaseTurn func()
 	var turnErr error

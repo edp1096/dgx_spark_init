@@ -2,8 +2,8 @@ package config
 
 import "sparktalk/internal/orchestrator"
 
-// Preserve the user's global preference across switches, but never call a
-// local embedding model that the selected managed set does not contain.
+// Respect the current feature switch, but never call a local embedding model
+// that the selected managed set does not contain.
 func (c Config) SemanticSearchEnabled() bool {
 	if !c.Embedding.Enabled {
 		return false

@@ -43,10 +43,14 @@ func (s *Server) transcribeAttachment(ctx context.Context, item db.Attachment, c
 	}
 	defer file.Close()
 	result, err := client.Transcribe(ctx, file, item.Name, item.MIME)
-	if err != nil {
+	if err != nil && !errors.Is(err, asr.ErrNoText) {
 		return media.TranscriptCache{}, fmt.Errorf("transcribe %s: %w", item.Name, err)
 	}
 	cached := media.TranscriptCache{Fingerprint: fingerprint, Text: result.Text, Language: result.Language, Turns: result.Turns, DiarizationStatus: result.DiarizationStatus, Warning: result.Warning}
+	if errors.Is(err, asr.ErrNoText) {
+		cached.Status = "no_text"
+		cached.Warning = "이 파일에서 인식된 대사가 없습니다."
+	}
 	if err := s.media.SaveTranscript(item.ID, cached); err != nil {
 		return media.TranscriptCache{}, fmt.Errorf("cache transcript for %s: %w", item.Name, err)
 	}

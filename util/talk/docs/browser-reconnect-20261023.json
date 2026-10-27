@@ -1,0 +1,47 @@
+{
+  "date": "2026-10-23",
+  "status": "deployed_and_verified",
+  "issue": "Browser request cancellation also canceled chat inference/tools; active progress could not be reattached after navigation.",
+  "changes": [
+    "Server-owned chat context for new, retried and edited messages",
+    "Private temporary SSE spool and live replay endpoint",
+    "Reconnect the selected conversation after reload, return or network recovery",
+    "Separate explicit stop API; explicit stop also cancels an active Shorts job",
+    "Session deletion cancels and drains its active chat before deleting history"
+  ],
+  "scope": "Browser disconnect/reload/tab closure while Talk remains running. Ordinary inference is not resumed across a Talk process restart. Shorts worker persistence is separate.",
+  "validation": {
+    "server_suite": "go test ./internal/server passed",
+    "race_checks": "disconnect/replay, retry/edit, explicit stop and Shorts cancellation passed",
+    "frontend_unit_tests": 140,
+    "browser_tests": [
+      "reload restores partial answer without restarting inference",
+      "closed tab does not cancel server work; finished answer is available on return",
+      "explicit stop after reload cancels the server task",
+      "Shorts progress resumes after reload with one job and one output attachment",
+      "follow-up after video attachment does not send assistant video_url"
+    ],
+    "live_qwen": {
+      "session_id": "chat-1792727504606970131",
+      "model": "qwen38fn_exl3",
+      "same_turn_after_reload_and_tab_close": true,
+      "initial_turn_id": "3ef9222cf3ca52bfb42b4df94e9ac447",
+      "after_reload_turn_id": "3ef9222cf3ca52bfb42b4df94e9ac447",
+      "after_close_turn_id": "3ef9222cf3ca52bfb42b4df94e9ac447",
+      "final_status": "completed",
+      "answer_characters": 1466,
+      "user_messages": 1,
+      "assistant_messages": 1
+    },
+    "temporary_live_conversation_deleted": true
+  },
+  "sources": [
+    "util/talk/internal/server/chat_stream.go",
+    "util/talk/internal/server/chat_handlers.go",
+    "util/talk/web/src/App.svelte",
+    "util/talk/web/src/api/chat.js",
+    "util/talk/internal/server/chat_stream_test.go",
+    "util/talk/web/e2e/chat-reconnect.spec.js",
+    "util/talk/web/e2e/shorts-chat.spec.js"
+  ]
+}

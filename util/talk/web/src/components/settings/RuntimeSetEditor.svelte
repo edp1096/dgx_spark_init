@@ -157,7 +157,7 @@
       <div class="service-picker">
         <small>이 세트에서 사용할 서비스를 선택하세요. 같은 역할은 하나만 선택합니다.</small>
         {#each catalog.components as component}
-          <div class="picker-row"><label class="check"><input type="checkbox" checked={bundle.components.includes(component.id)} onchange={(event) => toggle(component.id, event.currentTarget.checked)} /><span>{component.name}<small>{component.role === 'tool' ? 'Extra' : component.role}</small></span></label>
+          <div class="picker-row"><label class="check"><input type="checkbox" checked={bundle.components.includes(component.id)} disabled={bundle.disabled_support?.includes(component.id)} onchange={(event) => toggle(component.id, event.currentTarget.checked)} /><span>{component.name}<small>{bundle.disabled_support?.includes(component.id) ? '이 세트에서 제외됨' : (component.role === 'tool' ? 'Extra' : component.role)}</small></span></label>
           {#if !catalog.bundles.some(b => b.components.includes(component.id))}<button type="button" aria-label={component.name + ' 미사용 서비스 삭제'} onclick={() => { catalog.components = catalog.components.filter(c => c.id !== component.id); catalog = catalog; }}>삭제</button>{/if}</div>
         {/each}
         <button type="button" onclick={addComponent}>새 서비스 정의</button>

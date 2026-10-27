@@ -1,13 +1,13 @@
 services:
   runtime:
-    image: sparktalk-qwim-mmh3:nvfp4-sol-i2v1
+    image: sparktalk-qwim-mmh3:nvfp4-pdmd4-v7-edit
     build: .
     container_name: sparktalk-qwim-mmh3
     restart: "no"
     stop_grace_period: 10s
     init: true
-    mem_limit: "36g"
-    memswap_limit: "36g"
+    mem_limit: "40g"
+    memswap_limit: "40g"
     network_mode: host
     ipc: host
     gpus: all
@@ -18,7 +18,7 @@ services:
       HF_HOME: /hf
       HF_HUB_OFFLINE: "1"
       COMFY_KITCHEN_BACKEND: cuda
-      MMH3_ATTENTION: sol
+      MMH3_ATTENTION: dense
       API_PORT: "${MMH3_API_PORT:-8730}"
       API_HOST: "${MMH3_API_HOST:-127.0.0.1}"
     volumes:

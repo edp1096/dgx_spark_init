@@ -1,0 +1,14 @@
+FROM python:3.12-slim AS common
+ENV PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1
+RUN apt-get update && apt-get install -y --no-install-recommends git ffmpeg libsndfile1 libgomp1 && rm -rf /var/lib/apt/lists/*
+RUN pip install torch==2.10.0 torchaudio==2.10.0 torchvision==0.25.0 --index-url https://download.pytorch.org/whl/cu130
+RUN pip install fastapi uvicorn soundfile
+
+FROM common AS ace
+RUN git clone https://github.com/ace-step/ACE-Step-1.5.git /opt/ace && cd /opt/ace && git checkout ca1e85fe9430179831e6bc6be790c332190a3866
+WORKDIR /opt/ace
+RUN python -c "import tomllib; p=tomllib.load(open('pyproject.toml','rb')); print('\n'.join(x for x in p['project']['dependencies'] if not x.startswith(('torch==','torchaudio==','torchvision==','nano-vllm','torchao'))))" > /tmp/requirements.txt && pip install -r /tmp/requirements.txt 'torchao==0.16.0' && pip install --no-deps -e .
+
+
+COPY api.py generate.py /app/
+CMD ["python", "/app/api.py"]

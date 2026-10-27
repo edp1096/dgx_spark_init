@@ -1,0 +1,22 @@
+services:
+    runtime:
+        build:
+            context: ${SPARKTALK_BUILD_DIR:?Embedded build assets required}
+            dockerfile: Dockerfile
+        container_name: sparktalk-extra-shorts
+        cpus: 6
+        environment:
+            SHORTS_DATA_DIR: /data
+            SHORTS_TALK_ENDPOINT: ${SHORTS_TALK_ENDPOINT:-http://127.0.0.1:8585}
+            VOICE_LIBRARY_DIR: /voices
+        image: sparktalk-extra-shorts:0.4.1
+        init: true
+        mem_limit: 6g
+        network_mode: host
+        pids_limit: 512
+        pull_policy: never
+        restart: unless-stopped
+        shm_size: 512m
+        volumes:
+            - ${SPARKTALK_DATA_DIR:-${HOME}/.local/share/sparktalk}/shorts:/data
+            - ${SPARKTALK_DATA_DIR:-${HOME}/.local/share/sparktalk}/voices:/voices

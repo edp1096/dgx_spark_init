@@ -1,0 +1,238 @@
+{
+  "status": "deployed-and-verified",
+  "finished_utc": "2026-10-22T13:58:56.356727+00:00",
+  "host": "61 only; host 60 untouched",
+  "default": "PDMD 4NFE v6, BF16 residual over NVFP4, Euler, dense attention, video/audio shifts 12/3, strength 1.0",
+  "image": {
+    "image_id": "sha256:5c0a4a9c3c3086ee62707802c0ff7ca6916e667955ed28e64a395bc6c8714267",
+    "image_tag": "sparktalk-qwim-mmh3:nvfp4-pdmd4-v6",
+    "memory_limit": 42949672960,
+    "created": "2026-10-22T13:44:14.445343797Z"
+  },
+  "health": {
+    "status": "ok",
+    "features": {
+      "progress": true,
+      "eta": true,
+      "i2v": true,
+      "first_last_frames": true
+    },
+    "image_model": "qwen-image-2.1-uc-nvfp4",
+    "video_model": "minimax-h3-nvfp4",
+    "video": {
+      "width": 864,
+      "height": 480,
+      "frames": 124,
+      "fps": 24,
+      "audio": true,
+      "steps": 4,
+      "sampler": "euler",
+      "i2v_size": "source_aspect",
+      "max_pixel_area": 414720
+    },
+    "acceleration": {
+      "attention": "dense",
+      "steps": 4,
+      "sampler": "euler",
+      "video_shift": 12,
+      "audio_shift": 3,
+      "pdmd": {
+        "method": "bf16_residual",
+        "revision": "ae6ab62d28754b9ce052798b92d9567161568f28",
+        "sha256": "d1d7c9f08782492ebcaa57f9f823899541ee04c48a298692a229683c4b3dd8a1",
+        "modules": 208,
+        "called_modules": 0,
+        "adapter_bytes": 1956118528,
+        "base_weights_unchanged": true
+      }
+    }
+  },
+  "runtime_memory": {
+    "status": "ok",
+    "busy": false,
+    "active": 0,
+    "queued": 0,
+    "quiescing": false,
+    "idle_for_seconds": 303.3802079909947,
+    "core_ready": true,
+    "memory_gib": 30,
+    "workspace_gib": 6,
+    "keep_models_loaded": true
+  },
+  "adapter_verified_after_generation": {
+    "method": "bf16_residual",
+    "revision": "ae6ab62d28754b9ce052798b92d9567161568f28",
+    "sha256": "d1d7c9f08782492ebcaa57f9f823899541ee04c48a298692a229683c4b3dd8a1",
+    "modules": 208,
+    "called_modules": 208,
+    "adapter_bytes": 1956118528,
+    "base_weights_unchanged": true
+  },
+  "inference_versions": {
+    "torch": "2.13.0a0+9186a08b2c.nv26.7.59513937",
+    "transformers": "5.18.0",
+    "huggingface_hub": "1.33.0",
+    "comfy-kitchen": "0.2.37",
+    "comfy-aimdo": "0.5.5",
+    "av": "19.0.1",
+    "numpy": "2.1.0",
+    "safetensors": "0.8.0",
+    "tokenizers": "0.23.1"
+  },
+  "configuration": {
+    "builtin_revision": 52,
+    "selected_bundle": "qwen38fn_exl3",
+    "component_budget_gib": 30,
+    "startup_gib": 20,
+    "workspace_gib": 6,
+    "cgroup_gib": 40,
+    "standalone_and_talk_runtime_fields_equal": [
+      "image",
+      "container_name",
+      "mem_limit",
+      "memswap_limit",
+      "restart",
+      "stop_grace_period",
+      "network_mode",
+      "ipc"
+    ],
+    "recipe_environment_equal": true,
+    "talk_injected_environment": {
+      "SPARKTALK_KEEP_MODELS_LOADED": "1"
+    },
+    "separate_build_contexts": true,
+    "no_workspace_runtime_bind_mount": true,
+    "source_sha256": {
+      "worker.py": "8afdc81f3ca0a5371ab07063e026400b645eeded608be69858895fc57371694a",
+      "pdmd_lora.py": "a998677e07e5b1f55e4f53d89f72186fc8b2a9c62463226a19670d73a09203e1",
+      "prepare_models.py": "da7c2b40cb707a2f6fb999eb55812c93d6a044361850f664f6fdeb600c83f6ab",
+      "api.py": "05046dfe7e641423fb9b5a35401c03d62efe026980cb5fa68ec54d0a3881c7b5",
+      "generation_progress.py": "21ff29263c1e8ac414ea1a742846fd7e7d76b5e85416ad3c80bc1dc29d3cc72c",
+      "Dockerfile": "2fb1158f22fda7f5cb70058c7383f6c55907292806b9de84e60b11bdab3f1818",
+      "runtime-requirements.txt": "2671f3d836dd2aa8c97bb3a5cd41791481402b13a5660804759a290acea8aaa3"
+    }
+  },
+  "checks": {
+    "go": "internal/config, internal/orchestrator, internal/server passed",
+    "python": "14 API/progress/image-input tests passed",
+    "packaged_assets": "113 support assets verified; all four recipe checks passed",
+    "git_diff_check": "passed",
+    "progress_totals": [
+      4
+    ],
+    "new_eta_profiles": {
+      "h3-i2v-864x480-124-24-pdmd4-v6": [
+        {
+          "encode": 7.516400247986894,
+          "release_encoder": 0.28649946104269475,
+          "sample": 48.07711304404074,
+          "release_sample_workspace": 0.17932683799881488,
+          "decode_video": 14.762702481995802,
+          "release_video_vae": 0.158794910996221,
+          "decode_audio": 0.6505286910105497,
+          "release_audio_vae": 0.131726116000209,
+          "save": 2.052004514960572
+        }
+      ],
+      "h3-t2v-864x480-124-24-pdmd4-v6": [
+        {
+          "encode": 3.4681962839677,
+          "release_encoder": 0.19385650398908183,
+          "sample": 45.235871079028584,
+          "release_sample_workspace": 0.18246066395659,
+          "decode_video": 14.835602341976482,
+          "release_video_vae": 0.1597657899837941,
+          "decode_audio": 0.5698381990077905,
+          "release_audio_vae": 0.13010343996575102,
+          "save": 2.0963839890318923
+        },
+        {
+          "encode": 3.0371568349655718,
+          "release_encoder": 0.19122873398009688,
+          "sample": 45.00610660400707,
+          "release_sample_workspace": 0.17789444094523787,
+          "decode_video": 15.022716460982338,
+          "release_video_vae": 0.15876993397250772,
+          "decode_audio": 0.5352689900319092,
+          "release_audio_vae": 0.12914863700279966,
+          "save": 1.8881036849925295
+        }
+      ]
+    }
+  },
+  "production_i2v": {
+    "native_seconds": 73.82433144497918,
+    "fidelity": {
+      "files": [
+        {
+          "file": "/trial/job/output/aux-pdmd4-i2v.mp4",
+          "frames": 124,
+          "shape": [
+            480,
+            864,
+            3
+          ],
+          "decoded_rgb_sha256": "0c013ada6e25deeb07696c0b0f504ef93183a9fd4331297a0780cc69a3dedb2c"
+        },
+        {
+          "file": "/trial/deployment/production-i2v.mp4",
+          "frames": 124,
+          "shape": [
+            480,
+            864,
+            3
+          ],
+          "decoded_rgb_sha256": "0c013ada6e25deeb07696c0b0f504ef93183a9fd4331297a0780cc69a3dedb2c"
+        }
+      ],
+      "identical_decoded_frames": true,
+      "max_rgb_error": 0,
+      "mean_rgb_error": 0.0
+    },
+    "frame0_encoded": true,
+    "all_208_adapter_modules_executed": true
+  },
+  "talk_sample": {
+    "session_id": "chat-1792677146267019846",
+    "title": "PDMD4 적용 샘플 · 한국어 영상",
+    "seconds": 110.77810312603833,
+    "attachment": {
+      "id": "9455446aa44cb071cdd46e1cf271044c",
+      "name": "MiniMax-H3.mp4",
+      "mime": "video/mp4",
+      "size": 751014,
+      "url": "/api/files/9455446aa44cb071cdd46e1cf271044c/MiniMax-H3.mp4?type=video%2Fmp4"
+    },
+    "download_size_verified": true,
+    "range_playback_verified": true,
+    "identical_to_qualified_sample": true,
+    "sha256": "a43e092ada7901114305665abfc3e2123d3329df9e3a3d125590ad51353d0c3e",
+    "media": {
+      "frames": 124,
+      "fps": 24.0,
+      "width": 864,
+      "height": 480,
+      "video_seconds": 5.166666666666667,
+      "audio_seconds": 5.1666875,
+      "audio_rms": 0.03555620011045152,
+      "audio_clip_fraction": 0.0
+    },
+    "asr": {
+      "text": "안녕하세요. 좋은 하루 보내세요."
+    },
+    "native_generation_seconds": 66.15599008800928,
+    "whole_talk_turn_seconds": 107.761378187,
+    "progress_saved": true
+  },
+  "quality_scope": "One final Korean speech sample and one I2V reproduction. Both match qualified experimental output exactly. This does not establish universal speech/lip-sync quality. A preceding free-form Talk prompt had a one-syllable ASR mismatch; that trial conversation was removed after the final sample was verified. The final sample uses the qualified prompt unchanged.",
+  "sources": [
+    "https://huggingface.co/Iwannapose/minimax_h3_pdmd_4nfe_comfyui/tree/ae6ab62d28754b9ce052798b92d9567161568f28",
+    "https://huggingface.co/pdmd2026/pdmd_4NFE_lora",
+    "util/talk/docs/h3-pdmd-comparison-20261022.json"
+  ],
+  "archive": {
+    "path": "util/talk/docs/h3-pdmd-deployment-20261022.tar.gz",
+    "sha256": "d93e95adb06b7fc1070a3ae227483982a2284f47ad64897d0eb1eae6215b80ec",
+    "bytes": 13646
+  }
+}

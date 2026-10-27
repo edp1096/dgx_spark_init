@@ -2,6 +2,10 @@ import { appendToolOutput, finishTool, markToolExecution, requestToolApproval, r
 
 export function createStreamHandlers(message, publish) {
   return {
+    responseStatus(data) {
+      message.response_status = data;
+      publish();
+    },
     performance(data) {
       message.performance = data;
       publish();

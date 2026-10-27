@@ -22,7 +22,7 @@ services:
     image: local/sparktalk-qwen38-fp4-tensorfold:db281878-ko2
     container_name: sparktalk-qwen38-fp4-local
     ports:
-    - ${SPARKTALK_BIND_ADDR:-127.0.0.1}:${SPARKTALK_PORT:-18004}:8000
+    - ${SPARKTALK_BIND_ADDR:-0.0.0.0}:${SPARKTALK_PORT:-18004}:8000
     environment:
       PYTHONUNBUFFERED: '1'
       HF_HUB_OFFLINE: '1'

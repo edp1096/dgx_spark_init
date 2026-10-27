@@ -58,7 +58,7 @@ func TestMiniMaxH3ReplacesLegacyEXL3InPlace(t *testing.T) {
 		t.Fatal("former EXL3 image engine remains in set")
 	}
 	x, ok := c.Runtime.Catalog.ResolveComponent(b.ID, "qwim-mmh3")
-	if !ok || !x.KeepResident || x.MemoryGiB != 28 || c.Image.Endpoint != x.Endpoint || c.Image.Mode != "basic" {
+	if !ok || !x.KeepResident || x.MemoryGiB != 30 || c.Image.Endpoint != x.Endpoint || c.Image.Mode != "reference" {
 		t.Fatalf("joint runtime not applied: %+v", x)
 	}
 	if c.ASR.Endpoint != "http://127.0.0.1:8693" {
@@ -95,7 +95,7 @@ func TestMiniMaxH3ConsolidatesSelectedSetAndPreservesDeployments(t *testing.T) {
 			if b.ID != "qwen38fn_exl3" || b.Name != "Qwen 3.8 Flash-Next EXL3 3bit" || b.Description != paired.Description || b.ContextTokens != paired.ContextTokens {
 				t.Fatalf("paired set configuration or position lost: %+v", b)
 			}
-			if c.Image.Endpoint != "http://127.0.0.1:8731" || c.Image.Mode != "basic" {
+			if c.Image.Endpoint != "http://127.0.0.1:8731" || c.Image.Mode != "reference" {
 				t.Fatal("paired deployment lost")
 			}
 			if len(c.Runtime.Catalog.Bundles) != len(unrelated)+1 {

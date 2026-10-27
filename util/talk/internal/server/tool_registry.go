@@ -31,6 +31,7 @@ const sshToolSystemPrompt = "You can use ssh_exec only when the user explicitly 
 
 type registeredToolResult struct {
 	DeferredDocument  *workflows.Run
+	FinalContent      string
 	Result            string
 	Followups         []llm.Message
 	Attachment        *db.Attachment
@@ -155,6 +156,8 @@ func newCompletionToolRegistryForContext(ctx context.Context, server *Server, se
 	if server != nil {
 		serverCfg, _ := server.snapshot()
 		server.registerVideoTool(ctx, &registry, serverCfg, mediaSink)
+		server.registerShortsTool(&registry)
+		server.registerClipProduction(ctx, &registry)
 		if serverCfg.Extra.DocumentsEnabled && server.media != nil {
 			registry.register(documentToolDefinition(), func(ctx context.Context, call llm.ToolCall, _ []llm.Message, _ eventEmitter) (registeredToolResult, error) {
 				return server.executeDocumentGenerateForSession(ctx, sessionID, call)

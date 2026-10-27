@@ -1,0 +1,1887 @@
+{
+  "generated_at": "2026-10-24T01:11:42.205474+09:00",
+  "scope": "Native photo editing and image-to-video with bounded automatic image/video review and repair. Face/person swap and existing-video restyling excluded.",
+  "cases": [
+    {
+      "name": "person",
+      "job_id": "04e59ed2a25f4765a0c874e3cf761564",
+      "status": "completed",
+      "error": "",
+      "artifact_directory": "/home/edp1096/.local/share/sparktalk/shorts/_clips/04e59ed2a25f4765a0c874e3cf761564",
+      "project": {
+        "session_id": "chat-1792766735823676894",
+        "source_image_id": "0a647b8ddcbdad19eac3c2beab4ac1c9",
+        "brief": "이 사진을 따뜻한 손그림 만화(핸드드rawn 카툰/일러스트) 스타일로 스타일라이징하고, 같은 인물·같은 배경(따뜻한 실내, 창가, 책장, 식물)과 같은 옷(베이지 롱슬리브)을 유지한 채 인물이 미소 지으며 오른손을 가볍게 흔드는 짧은 영상을 만들어줘. 손가락 형태와 얼굴이 자연스럽게 유지되어야 하고, 소리는 없이 무음으로.",
+        "user_request": "이 사진을 따뜻한 손그림 만화 스타일로 바꾸고, 인물이 미소 지으며 오른손을 가볍게 흔드는 짧은 영상으로 만들어줘. 배경과 옷은 유지하고 소리는 빼줘.",
+        "resolution": "480p",
+        "request_key": "4433143cb18697fa55af6197af3c1bbef1e9b59d4a4d3ea658d95f6dce329741",
+        "seed": 2265861906356225835,
+        "source_sha256": "12dcd41d6974bfd73cfa948f36302ca89686dc78ec0869424f0b64d73fe416df",
+        "admitted_sha256": "a62e6bbaf49a87347ee9937263e93f54f04a2432977fdb330c76f05c7532eb65"
+      },
+      "report": {
+        "passed": true,
+        "plan": {
+          "title": "Warm Cartoon Style Elderly Man Waving",
+          "scope": "image_to_video",
+          "unsupported_reason": "",
+          "edit_required": true,
+          "image_prompt": "Transform the source photo into a warm, hand-drawn cartoon/illustration style with soft lines and cozy coloring. Retain the exact subject: an elderly Asian man with grey hair wearing a beige long-sleeve shirt. Keep the background identical in layout: a warm indoor room with a window on the left, a bookshelf in the background, and houseplants on the tables. The man is smiling gently. His hands are raised in front of his chest, fingers interlaced, poised to transition into a wave.",
+          "motion_prompt": "The elderly man maintains his smiling expression and gently waves his right hand (his left from the viewer's perspective, or the hand currently on top/side depending on interpretation of 'right hand' in source context, likely the one slightly more prominent) in a friendly greeting gesture. The hand movement is smooth and natural, transitioning from the clasped position into a gentle side-to-side wave. The rest of the body remains relatively still, with only subtle breathing motion. The background elements remain static.",
+          "requested_motion": "Smile gently and wave right hand lightly.",
+          "preserve": [
+            "Subject identity (elderly Asian man)",
+            "Clothing (beige long-sleeve shirt)",
+            "Background (window, bookshelf, plants)",
+            "Composition (centered subject)",
+            "Silent audio"
+          ],
+          "style": "Warm hand-drawn cartoon/illustration",
+          "audio": "mute",
+          "inspect_regions": [
+            {
+              "label": "Face",
+              "box": [
+                420,
+                20,
+                700,
+                420
+              ]
+            },
+            {
+              "label": "Hands",
+              "box": [
+                280,
+                340,
+                480,
+                680
+              ]
+            }
+          ]
+        },
+        "source_image_id": "0a647b8ddcbdad19eac3c2beab4ac1c9",
+        "source_sha256": "12dcd41d6974bfd73cfa948f36302ca89686dc78ec0869424f0b64d73fe416df",
+        "final_image_sha256": "41547c295552ac1bd64529dde4dba000c2f7cbffd2e3e6dd6b49bf958594d7ed",
+        "final_video_sha256": "844b24636f168112375f86653d042573e2a87bb48db0866b76e11758e6809868",
+        "metadata": {
+          "width": 640,
+          "height": 640,
+          "frames": 124,
+          "fps": 24,
+          "duration": 5.167,
+          "has_audio": false
+        },
+        "image_attempts": [
+          {
+            "file": "image-0.png",
+            "generation": {
+              "input_fingerprint": "3a7d0a168600c9abf2067cf8dd7585dda0ab77f2448c9cc244097ee6aca30279",
+              "sha256": "41547c295552ac1bd64529dde4dba000c2f7cbffd2e3e6dd6b49bf958594d7ed",
+              "source_sha256": "12dcd41d6974bfd73cfa948f36302ca89686dc78ec0869424f0b64d73fe416df",
+              "source": "source.png",
+              "operation": "identity_edit",
+              "prompt": "Transform the source photo into a warm, hand-drawn cartoon/illustration style with soft lines and cozy coloring. Retain the exact subject: an elderly Asian man with grey hair wearing a beige long-sleeve shirt. Keep the background identical in layout: a warm indoor room with a window on the left, a bookshelf in the background, and houseplants on the tables. The man is smiling gently. His hands are raised in front of his chest, fingers interlaced, poised to transition into a wave.",
+              "mask_box": null,
+              "seed": 2265861906356225835
+            },
+            "review": {
+              "verdict": "pass",
+              "summary": "The candidate successfully transforms the photo into a warm, hand-drawn cartoon style while retaining the subject's identity, clothing, and background elements. The face is well-structured with a gentle smile, and the hand anatomy is plausible for an illustration, with correct finger counts and natural interlacing. The composition is preserved accurately.",
+              "issues": [],
+              "repair_prompt": ""
+            }
+          }
+        ],
+        "video_attempts": [
+          {
+            "file": "video-0.mp4",
+            "generation": {
+              "input_fingerprint": "931c34ffd6fc92e39b252bb84bcd479e4b18aeae1a6daa6c3d62c79079f19581",
+              "sha256": "ccaf0874f0157d1479d65eafa5d83e8caa3498db929356c7404109df6574bbf6",
+              "first_frame_sha256": "41547c295552ac1bd64529dde4dba000c2f7cbffd2e3e6dd6b49bf958594d7ed",
+              "first_frame_file": "image-0.png",
+              "seed": 2265861906356225843,
+              "prompt": "The elderly man maintains his smiling expression and gently waves his right hand (his left from the viewer's perspective, or the hand currently on top/side depending on interpretation of 'right hand' in source context, likely the one slightly more prominent) in a friendly greeting gesture. The hand movement is smooth and natural, transitioning from the clasped position into a gentle side-to-side wave. The rest of the body remains relatively still, with only subtle breathing motion. The background elements remain static.\nRequired action: Smile gently and wave right hand lightly.\nPreserve the starting image style and: Subject identity (elderly Asian man); Clothing (beige long-sleeve shirt); Background (window, bookshelf, plants); Composition (centered subject); Silent audio",
+              "metadata": {
+                "width": 640,
+                "height": 640,
+                "frames": 124,
+                "fps": 24,
+                "duration": 5.166688,
+                "has_audio": true
+              }
+            },
+            "review": {
+              "verdict": "pass",
+              "summary": "The video successfully transforms the source image into a warm, hand-drawn cartoon style while maintaining the subject's identity and background. The requested motion occurs effectively: the man smiles and transitions from a clasped hand position to raising and waving his hand (viewer's left). The hand anatomy remains natural, and the waving gesture is clearly visible in the later frames (2.75s-5.125s).",
+              "issues": [],
+              "repair_prompt": ""
+            },
+            "evidence": {
+              "times": [
+                0,
+                0.75,
+                1.75,
+                2.75,
+                3.75,
+                5.125
+              ],
+              "consecutive_times": [
+                1.1666666666666667,
+                1.2083333333333333,
+                1.25,
+                1.2916666666666667,
+                1.3333333333333333
+              ]
+            }
+          }
+        ],
+        "review_scope": "Local VLM compared full images and enlarged regions; inspected six video samples and five adjacent frames near the strongest sampled visual change. This is not every-frame inspection.",
+        "retries": {
+          "image": 0,
+          "video": 0
+        }
+      },
+      "state": {
+        "version": 1,
+        "images": [
+          {
+            "file": "image-0.png",
+            "generation": {
+              "input_fingerprint": "3a7d0a168600c9abf2067cf8dd7585dda0ab77f2448c9cc244097ee6aca30279",
+              "sha256": "41547c295552ac1bd64529dde4dba000c2f7cbffd2e3e6dd6b49bf958594d7ed",
+              "source_sha256": "12dcd41d6974bfd73cfa948f36302ca89686dc78ec0869424f0b64d73fe416df",
+              "source": "source.png",
+              "operation": "identity_edit",
+              "prompt": "Transform the source photo into a warm, hand-drawn cartoon/illustration style with soft lines and cozy coloring. Retain the exact subject: an elderly Asian man with grey hair wearing a beige long-sleeve shirt. Keep the background identical in layout: a warm indoor room with a window on the left, a bookshelf in the background, and houseplants on the tables. The man is smiling gently. His hands are raised in front of his chest, fingers interlaced, poised to transition into a wave.",
+              "mask_box": null,
+              "seed": 2265861906356225835
+            },
+            "review": {
+              "verdict": "pass",
+              "summary": "The candidate successfully transforms the photo into a warm, hand-drawn cartoon style while retaining the subject's identity, clothing, and background elements. The face is well-structured with a gentle smile, and the hand anatomy is plausible for an illustration, with correct finger counts and natural interlacing. The composition is preserved accurately.",
+              "issues": [],
+              "repair_prompt": ""
+            }
+          }
+        ],
+        "videos": [
+          {
+            "file": "video-0.mp4",
+            "generation": {
+              "input_fingerprint": "931c34ffd6fc92e39b252bb84bcd479e4b18aeae1a6daa6c3d62c79079f19581",
+              "sha256": "ccaf0874f0157d1479d65eafa5d83e8caa3498db929356c7404109df6574bbf6",
+              "first_frame_sha256": "41547c295552ac1bd64529dde4dba000c2f7cbffd2e3e6dd6b49bf958594d7ed",
+              "first_frame_file": "image-0.png",
+              "seed": 2265861906356225843,
+              "prompt": "The elderly man maintains his smiling expression and gently waves his right hand (his left from the viewer's perspective, or the hand currently on top/side depending on interpretation of 'right hand' in source context, likely the one slightly more prominent) in a friendly greeting gesture. The hand movement is smooth and natural, transitioning from the clasped position into a gentle side-to-side wave. The rest of the body remains relatively still, with only subtle breathing motion. The background elements remain static.\nRequired action: Smile gently and wave right hand lightly.\nPreserve the starting image style and: Subject identity (elderly Asian man); Clothing (beige long-sleeve shirt); Background (window, bookshelf, plants); Composition (centered subject); Silent audio",
+              "metadata": {
+                "width": 640,
+                "height": 640,
+                "frames": 124,
+                "fps": 24,
+                "duration": 5.166688,
+                "has_audio": true
+              }
+            },
+            "review": {
+              "verdict": "pass",
+              "summary": "The video successfully transforms the source image into a warm, hand-drawn cartoon style while maintaining the subject's identity and background. The requested motion occurs effectively: the man smiles and transitions from a clasped hand position to raising and waving his hand (viewer's left). The hand anatomy remains natural, and the waving gesture is clearly visible in the later frames (2.75s-5.125s).",
+              "issues": [],
+              "repair_prompt": ""
+            },
+            "evidence": {
+              "times": [
+                0,
+                0.75,
+                1.75,
+                2.75,
+                3.75,
+                5.125
+              ],
+              "consecutive_times": [
+                1.1666666666666667,
+                1.2083333333333333,
+                1.25,
+                1.2916666666666667,
+                1.3333333333333333
+              ]
+            }
+          }
+        ],
+        "selected_image": "image-0.png",
+        "image_feedback": null,
+        "video_feedback": null,
+        "accepted_video": "video-0.mp4"
+      },
+      "published": {
+        "attachment": {
+          "id": "899524304b0644cc7ba1c0eae0fe46f0",
+          "name": "Animated-photo.mp4",
+          "mime": "video/mp4",
+          "size": 1795903,
+          "url": "/api/files/899524304b0644cc7ba1c0eae0fe46f0/Animated-photo.mp4?type=video%2Fmp4",
+          "source_url": "/api/clip-production/04e59ed2a25f4765a0c874e3cf761564/files/final.mp4?session_id=chat-1792766735823676894"
+        },
+        "message_id": 3081
+      },
+      "ffprobe": {
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "h264",
+            "codec_long_name": "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
+            "profile": "High",
+            "codec_type": "video",
+            "codec_tag_string": "avc1",
+            "codec_tag": "0x31637661",
+            "width": 640,
+            "height": 640,
+            "coded_width": 640,
+            "coded_height": 640,
+            "closed_captions": 0,
+            "film_grain": 0,
+            "has_b_frames": 2,
+            "pix_fmt": "yuv420p",
+            "level": 30,
+            "color_range": "tv",
+            "color_space": "bt709",
+            "color_transfer": "iec61966-2-1",
+            "color_primaries": "bt709",
+            "chroma_location": "left",
+            "field_order": "progressive",
+            "refs": 4,
+            "is_avc": "true",
+            "nal_length_size": "4",
+            "id": "0x1",
+            "r_frame_rate": "24/1",
+            "avg_frame_rate": "24/1",
+            "time_base": "1/12288",
+            "start_pts": 0,
+            "start_time": "0.000000",
+            "duration_ts": 63488,
+            "duration": "5.166667",
+            "bit_rate": "2777060",
+            "bits_per_raw_sample": "8",
+            "nb_frames": "124",
+            "nb_read_frames": "124",
+            "extradata_size": 49,
+            "disposition": {
+              "default": 1,
+              "dub": 0,
+              "original": 0,
+              "comment": 0,
+              "lyrics": 0,
+              "karaoke": 0,
+              "forced": 0,
+              "hearing_impaired": 0,
+              "visual_impaired": 0,
+              "clean_effects": 0,
+              "attached_pic": 0,
+              "timed_thumbnails": 0,
+              "captions": 0,
+              "descriptions": 0,
+              "metadata": 0,
+              "dependent": 0,
+              "still_image": 0
+            },
+            "tags": {
+              "language": "und",
+              "handler_name": "VideoHandler",
+              "vendor_id": "[0][0][0][0]"
+            }
+          }
+        ],
+        "format": {
+          "filename": "/data/_clips/04e59ed2a25f4765a0c874e3cf761564/final.mp4",
+          "nb_streams": 1,
+          "nb_programs": 0,
+          "format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+          "format_long_name": "QuickTime / MOV",
+          "start_time": "0.000000",
+          "duration": "5.167000",
+          "size": "1795903",
+          "bit_rate": "2780573",
+          "probe_score": 100,
+          "tags": {
+            "major_brand": "isom",
+            "minor_version": "512",
+            "compatible_brands": "isomiso2avc1mp41",
+            "encoder": "Lavf59.27.100"
+          }
+        }
+      },
+      "delivery_sha256": "844b24636f168112375f86653d042573e2a87bb48db0866b76e11758e6809868",
+      "delivery_matches_final": true
+    },
+    {
+      "name": "animal",
+      "job_id": "309516d7c3624eb9b2adf982b4b829e7",
+      "status": "completed",
+      "error": "",
+      "artifact_directory": "/home/edp1096/.local/share/sparktalk/shorts/_clips/309516d7c3624eb9b2adf982b4b829e7",
+      "project": {
+        "session_id": "chat-1792767313418143344",
+        "source_image_id": "7c0b6c2c071c22ba536e5ec5eba11bad",
+        "brief": "주황색 고양이 사진 한 장이 있어. 이 고양이를 부드러운 수채화 만화 스타일로 변환해줘. 연한 워시 물감 번짐과 옅은 잉크 라인이 느껴지는 따뜻한 손그림 느낌이면 좋겠어. 고양이 한 마리와 초록 정원 배경, 나무 벤치 자세는 그대로 유지하고, 얼굴과 줄무늬, 눈 색도 원판과 동일하게 유지해줘. 변환 후에는 눈을 천천히 깜빡이고 귀를 살짝 움직이는 짧은 영상으로 만들어줘. 소리는 빼줘. 해상도는 720p로 부탁해.",
+        "user_request": "이 고양이 사진 수채화 만화 느낌으로 바꾸고, 눈을 천천히 깜빡이고 귀를 살짝 움직이는 영상으로 만들어줘. 고양이 한 마리와 정원 배경은 유지하고 720p로.",
+        "resolution": "720p",
+        "request_key": "d80d48a91f46752b4fbe6afec95aa873042de77b903a76d9bd3fd04e2edd2743",
+        "seed": 3363289798813595506,
+        "source_sha256": "ba51e768dafd831e9004003c75f61f67b9e8a69e57f7efe9284c84ca4aa26b4d",
+        "admitted_sha256": "ba51e768dafd831e9004003c75f61f67b9e8a69e57f7efe9284c84ca4aa26b4d"
+      },
+      "report": {
+        "passed": true,
+        "plan": {
+          "title": "Watercolor Style Orange Cat Animation",
+          "scope": "image_to_video",
+          "unsupported_reason": "",
+          "edit_required": true,
+          "image_prompt": "Transform the source photo into a soft watercolor cartoon illustration. Apply a warm hand-drawn aesthetic with light watercolor washes, soft paint bleeding edges, and faint ink outlines. The subject remains a single orange tabby cat sitting on a wooden bench with a green garden background. Strictly preserve the cat's facial structure, orange tabby stripes, and amber eye color exactly as they appear in the original photo. The style should be gentle and artistic, not photorealistic.",
+          "motion_prompt": "Animate the watercolor cat with subtle, natural movements. The cat slowly blinks its amber eyes and gently twitches its ears. The body remains seated and relatively still on the wooden bench, with no shifting of position or walking. The background foliage remains static.",
+          "requested_motion": "Slowly blinking eyes and slightly moving ears",
+          "preserve": [
+            "Orange tabby cat identity",
+            "Green garden background",
+            "Wooden bench setting",
+            "Sitting pose",
+            "Amber eye color",
+            "Tabby stripe pattern"
+          ],
+          "style": "Soft watercolor cartoon illustration with warm tones, light washes, and faint ink lines.",
+          "audio": "mute",
+          "inspect_regions": [
+            {
+              "label": "cat face",
+              "box": [
+                280,
+                100,
+                720,
+                420
+              ]
+            },
+            {
+              "label": "cat ears",
+              "box": [
+                280,
+                80,
+                720,
+                220
+              ]
+            }
+          ]
+        },
+        "source_image_id": "7c0b6c2c071c22ba536e5ec5eba11bad",
+        "source_sha256": "ba51e768dafd831e9004003c75f61f67b9e8a69e57f7efe9284c84ca4aa26b4d",
+        "final_image_sha256": "2e9a127abecb7ef0c68c3f71592ab59a6b51585578f6421ffcdfc719489c13d9",
+        "final_video_sha256": "a2f27c423cb312e8478b3213c41378257b62d77a796dd1464b6fa646a62c247f",
+        "metadata": {
+          "width": 832,
+          "height": 1088,
+          "frames": 124,
+          "fps": 24,
+          "duration": 5.167,
+          "has_audio": false
+        },
+        "image_attempts": [
+          {
+            "file": "image-0.png",
+            "generation": {
+              "input_fingerprint": "30051d20e21c8198ede7680bd23f451d394cdf837aa5630f3b76a8cb945ab7b9",
+              "sha256": "2e9a127abecb7ef0c68c3f71592ab59a6b51585578f6421ffcdfc719489c13d9",
+              "source_sha256": "ba51e768dafd831e9004003c75f61f67b9e8a69e57f7efe9284c84ca4aa26b4d",
+              "source": "source.png",
+              "operation": "identity_edit",
+              "prompt": "Transform the source photo into a soft watercolor cartoon illustration. Apply a warm hand-drawn aesthetic with light watercolor washes, soft paint bleeding edges, and faint ink outlines. The subject remains a single orange tabby cat sitting on a wooden bench with a green garden background. Strictly preserve the cat's facial structure, orange tabby stripes, and amber eye color exactly as they appear in the original photo. The style should be gentle and artistic, not photorealistic.",
+              "mask_box": null,
+              "seed": 3363289798813595506
+            },
+            "review": {
+              "verdict": "pass",
+              "summary": "The candidate successfully transforms the photo into a watercolor cartoon style while maintaining the requested subject identity. The composition (sitting cat, bench, garden background) is preserved perfectly. Facial structure, eye color, and ear positioning match the original source accurately. The watercolor texture is applied consistently.",
+              "issues": [],
+              "repair_prompt": ""
+            }
+          }
+        ],
+        "video_attempts": [
+          {
+            "file": "video-0.mp4",
+            "generation": {
+              "input_fingerprint": "d147954f1f7e5c76d09e35f7f4bbe1d79f7c6dfe9da2a81b4573c9daf2e44452",
+              "sha256": "102d5011ab8a340c4ef9a11a47bc5c22b996fbe32d78d49d11378f4bd1914817",
+              "first_frame_sha256": "2e9a127abecb7ef0c68c3f71592ab59a6b51585578f6421ffcdfc719489c13d9",
+              "first_frame_file": "image-0.png",
+              "seed": 3363289798813595514,
+              "prompt": "Animate the watercolor cat with subtle, natural movements. The cat slowly blinks its amber eyes and gently twitches its ears. The body remains seated and relatively still on the wooden bench, with no shifting of position or walking. The background foliage remains static.\nRequired action: Slowly blinking eyes and slightly moving ears\nPreserve the starting image style and: Orange tabby cat identity; Green garden background; Wooden bench setting; Sitting pose; Amber eye color; Tabby stripe pattern",
+              "metadata": {
+                "width": 832,
+                "height": 1088,
+                "frames": 124,
+                "fps": 24,
+                "duration": 5.166688,
+                "has_audio": true
+              }
+            },
+            "review": {
+              "verdict": "revise",
+              "summary": "The video successfully transforms the image into a watercolor style and animates the requested eye blink. However, the generated video introduces significant visual artifacts, including strange floating shapes and red color spots that flicker around the cat's head and body, which detracts from the quality.",
+              "issues": [
+                {
+                  "category": "temporal",
+                  "severity": "major",
+                  "evidence": "The video exhibits severe temporal artifacts. Throughout the clip, specifically from 0.75s to 3.75s, there are flickering black, white, and red blotches appearing around the cat's head and body. These floating artifacts are inconsistent and disrupt the visual integrity of the watercolor style.",
+                  "target": "video",
+                  "region": {
+                    "label": "background and subject artifacts",
+                    "box": [
+                      100,
+                      100,
+                      600,
+                      600
+                    ]
+                  },
+                  "times": [
+                    0.75,
+                    1.75,
+                    2.75,
+                    3.75
+                  ]
+                }
+              ],
+              "repair_prompt": "Animate the watercolor cat with a slow, natural blink and subtle ear movement. Ensure the background and the cat's fur remain completely static and clean, with absolutely no floating artifacts, flickering spots, or changing colors during the animation."
+            },
+            "evidence": {
+              "times": [
+                0,
+                0.75,
+                1.75,
+                2.75,
+                3.75,
+                5.125
+              ],
+              "consecutive_times": [
+                0.2916666666666667,
+                0.3333333333333333,
+                0.375,
+                0.4166666666666667,
+                0.4583333333333333
+              ]
+            }
+          },
+          {
+            "file": "video-1.mp4",
+            "generation": {
+              "input_fingerprint": "46669148f40a4bd7a3dca284178cf92039bbb372b5c3b06d00cef6b84407b3da",
+              "sha256": "6137397020d1bda7a006b2bfc9b561939636d190c2edbbe1f57e599f0d048663",
+              "first_frame_sha256": "2e9a127abecb7ef0c68c3f71592ab59a6b51585578f6421ffcdfc719489c13d9",
+              "first_frame_file": "image-0.png",
+              "seed": 3363289798813595515,
+              "prompt": "Animate the watercolor cat with subtle, natural movements. The cat slowly blinks its amber eyes and gently twitches its ears. The body remains seated and relatively still on the wooden bench, with no shifting of position or walking. The background foliage remains static.\nRequired correction: Animate the watercolor cat with a slow, natural blink and subtle ear movement. Ensure the background and the cat's fur remain completely static and clean, with absolutely no floating artifacts, flickering spots, or changing colors during the animation.\nRequired action: Slowly blinking eyes and slightly moving ears\nPreserve the starting image style and: Orange tabby cat identity; Green garden background; Wooden bench setting; Sitting pose; Amber eye color; Tabby stripe pattern",
+              "metadata": {
+                "width": 832,
+                "height": 1088,
+                "frames": 124,
+                "fps": 24,
+                "duration": 5.166688,
+                "has_audio": true
+              }
+            },
+            "review": {
+              "verdict": "pass",
+              "summary": "The video successfully converts the source image into a watercolor style and animates the cat with the requested actions. The cat performs a slow, natural blink sequence (visible from 0.75s to 2.75s) and exhibits subtle ear movements. The composition remains stable, preserving the subject, background, and pose without major deformation.",
+              "issues": [],
+              "repair_prompt": ""
+            },
+            "evidence": {
+              "times": [
+                0,
+                0.75,
+                1.75,
+                2.75,
+                3.75,
+                5.125
+              ],
+              "consecutive_times": [
+                0.2916666666666667,
+                0.3333333333333333,
+                0.375,
+                0.4166666666666667,
+                0.4583333333333333
+              ]
+            }
+          }
+        ],
+        "review_scope": "Local VLM compared full images and enlarged regions; inspected six video samples and five adjacent frames near the strongest sampled visual change. This is not every-frame inspection.",
+        "retries": {
+          "image": 0,
+          "video": 1
+        }
+      },
+      "state": {
+        "version": 1,
+        "images": [
+          {
+            "file": "image-0.png",
+            "generation": {
+              "input_fingerprint": "30051d20e21c8198ede7680bd23f451d394cdf837aa5630f3b76a8cb945ab7b9",
+              "sha256": "2e9a127abecb7ef0c68c3f71592ab59a6b51585578f6421ffcdfc719489c13d9",
+              "source_sha256": "ba51e768dafd831e9004003c75f61f67b9e8a69e57f7efe9284c84ca4aa26b4d",
+              "source": "source.png",
+              "operation": "identity_edit",
+              "prompt": "Transform the source photo into a soft watercolor cartoon illustration. Apply a warm hand-drawn aesthetic with light watercolor washes, soft paint bleeding edges, and faint ink outlines. The subject remains a single orange tabby cat sitting on a wooden bench with a green garden background. Strictly preserve the cat's facial structure, orange tabby stripes, and amber eye color exactly as they appear in the original photo. The style should be gentle and artistic, not photorealistic.",
+              "mask_box": null,
+              "seed": 3363289798813595506
+            },
+            "review": {
+              "verdict": "pass",
+              "summary": "The candidate successfully transforms the photo into a watercolor cartoon style while maintaining the requested subject identity. The composition (sitting cat, bench, garden background) is preserved perfectly. Facial structure, eye color, and ear positioning match the original source accurately. The watercolor texture is applied consistently.",
+              "issues": [],
+              "repair_prompt": ""
+            }
+          }
+        ],
+        "videos": [
+          {
+            "file": "video-0.mp4",
+            "generation": {
+              "input_fingerprint": "d147954f1f7e5c76d09e35f7f4bbe1d79f7c6dfe9da2a81b4573c9daf2e44452",
+              "sha256": "102d5011ab8a340c4ef9a11a47bc5c22b996fbe32d78d49d11378f4bd1914817",
+              "first_frame_sha256": "2e9a127abecb7ef0c68c3f71592ab59a6b51585578f6421ffcdfc719489c13d9",
+              "first_frame_file": "image-0.png",
+              "seed": 3363289798813595514,
+              "prompt": "Animate the watercolor cat with subtle, natural movements. The cat slowly blinks its amber eyes and gently twitches its ears. The body remains seated and relatively still on the wooden bench, with no shifting of position or walking. The background foliage remains static.\nRequired action: Slowly blinking eyes and slightly moving ears\nPreserve the starting image style and: Orange tabby cat identity; Green garden background; Wooden bench setting; Sitting pose; Amber eye color; Tabby stripe pattern",
+              "metadata": {
+                "width": 832,
+                "height": 1088,
+                "frames": 124,
+                "fps": 24,
+                "duration": 5.166688,
+                "has_audio": true
+              }
+            },
+            "review": {
+              "verdict": "revise",
+              "summary": "The video successfully transforms the image into a watercolor style and animates the requested eye blink. However, the generated video introduces significant visual artifacts, including strange floating shapes and red color spots that flicker around the cat's head and body, which detracts from the quality.",
+              "issues": [
+                {
+                  "category": "temporal",
+                  "severity": "major",
+                  "evidence": "The video exhibits severe temporal artifacts. Throughout the clip, specifically from 0.75s to 3.75s, there are flickering black, white, and red blotches appearing around the cat's head and body. These floating artifacts are inconsistent and disrupt the visual integrity of the watercolor style.",
+                  "target": "video",
+                  "region": {
+                    "label": "background and subject artifacts",
+                    "box": [
+                      100,
+                      100,
+                      600,
+                      600
+                    ]
+                  },
+                  "times": [
+                    0.75,
+                    1.75,
+                    2.75,
+                    3.75
+                  ]
+                }
+              ],
+              "repair_prompt": "Animate the watercolor cat with a slow, natural blink and subtle ear movement. Ensure the background and the cat's fur remain completely static and clean, with absolutely no floating artifacts, flickering spots, or changing colors during the animation."
+            },
+            "evidence": {
+              "times": [
+                0,
+                0.75,
+                1.75,
+                2.75,
+                3.75,
+                5.125
+              ],
+              "consecutive_times": [
+                0.2916666666666667,
+                0.3333333333333333,
+                0.375,
+                0.4166666666666667,
+                0.4583333333333333
+              ]
+            }
+          },
+          {
+            "file": "video-1.mp4",
+            "generation": {
+              "input_fingerprint": "46669148f40a4bd7a3dca284178cf92039bbb372b5c3b06d00cef6b84407b3da",
+              "sha256": "6137397020d1bda7a006b2bfc9b561939636d190c2edbbe1f57e599f0d048663",
+              "first_frame_sha256": "2e9a127abecb7ef0c68c3f71592ab59a6b51585578f6421ffcdfc719489c13d9",
+              "first_frame_file": "image-0.png",
+              "seed": 3363289798813595515,
+              "prompt": "Animate the watercolor cat with subtle, natural movements. The cat slowly blinks its amber eyes and gently twitches its ears. The body remains seated and relatively still on the wooden bench, with no shifting of position or walking. The background foliage remains static.\nRequired correction: Animate the watercolor cat with a slow, natural blink and subtle ear movement. Ensure the background and the cat's fur remain completely static and clean, with absolutely no floating artifacts, flickering spots, or changing colors during the animation.\nRequired action: Slowly blinking eyes and slightly moving ears\nPreserve the starting image style and: Orange tabby cat identity; Green garden background; Wooden bench setting; Sitting pose; Amber eye color; Tabby stripe pattern",
+              "metadata": {
+                "width": 832,
+                "height": 1088,
+                "frames": 124,
+                "fps": 24,
+                "duration": 5.166688,
+                "has_audio": true
+              }
+            },
+            "review": {
+              "verdict": "pass",
+              "summary": "The video successfully converts the source image into a watercolor style and animates the cat with the requested actions. The cat performs a slow, natural blink sequence (visible from 0.75s to 2.75s) and exhibits subtle ear movements. The composition remains stable, preserving the subject, background, and pose without major deformation.",
+              "issues": [],
+              "repair_prompt": ""
+            },
+            "evidence": {
+              "times": [
+                0,
+                0.75,
+                1.75,
+                2.75,
+                3.75,
+                5.125
+              ],
+              "consecutive_times": [
+                0.2916666666666667,
+                0.3333333333333333,
+                0.375,
+                0.4166666666666667,
+                0.4583333333333333
+              ]
+            }
+          }
+        ],
+        "selected_image": "image-0.png",
+        "image_feedback": null,
+        "video_feedback": {
+          "verdict": "revise",
+          "summary": "The video successfully transforms the image into a watercolor style and animates the requested eye blink. However, the generated video introduces significant visual artifacts, including strange floating shapes and red color spots that flicker around the cat's head and body, which detracts from the quality.",
+          "issues": [
+            {
+              "category": "temporal",
+              "severity": "major",
+              "evidence": "The video exhibits severe temporal artifacts. Throughout the clip, specifically from 0.75s to 3.75s, there are flickering black, white, and red blotches appearing around the cat's head and body. These floating artifacts are inconsistent and disrupt the visual integrity of the watercolor style.",
+              "target": "video",
+              "region": {
+                "label": "background and subject artifacts",
+                "box": [
+                  100,
+                  100,
+                  600,
+                  600
+                ]
+              },
+              "times": [
+                0.75,
+                1.75,
+                2.75,
+                3.75
+              ]
+            }
+          ],
+          "repair_prompt": "Animate the watercolor cat with a slow, natural blink and subtle ear movement. Ensure the background and the cat's fur remain completely static and clean, with absolutely no floating artifacts, flickering spots, or changing colors during the animation."
+        },
+        "accepted_video": "video-1.mp4"
+      },
+      "published": {
+        "attachment": {
+          "id": "519170e741b268d0aed06c83fc4ca71c",
+          "name": "Animated-photo.mp4",
+          "mime": "video/mp4",
+          "size": 5144130,
+          "url": "/api/files/519170e741b268d0aed06c83fc4ca71c/Animated-photo.mp4?type=video%2Fmp4",
+          "source_url": "/api/clip-production/309516d7c3624eb9b2adf982b4b829e7/files/final.mp4?session_id=chat-1792767313418143344"
+        },
+        "message_id": 3084
+      },
+      "ffprobe": {
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "h264",
+            "codec_long_name": "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
+            "profile": "High",
+            "codec_type": "video",
+            "codec_tag_string": "avc1",
+            "codec_tag": "0x31637661",
+            "width": 832,
+            "height": 1088,
+            "coded_width": 832,
+            "coded_height": 1088,
+            "closed_captions": 0,
+            "film_grain": 0,
+            "has_b_frames": 2,
+            "pix_fmt": "yuv420p",
+            "level": 31,
+            "color_range": "tv",
+            "color_space": "bt709",
+            "color_transfer": "iec61966-2-1",
+            "color_primaries": "bt709",
+            "chroma_location": "left",
+            "field_order": "progressive",
+            "refs": 4,
+            "is_avc": "true",
+            "nal_length_size": "4",
+            "id": "0x1",
+            "r_frame_rate": "24/1",
+            "avg_frame_rate": "24/1",
+            "time_base": "1/12288",
+            "start_pts": 0,
+            "start_time": "0.000000",
+            "duration_ts": 63488,
+            "duration": "5.166667",
+            "bit_rate": "7961512",
+            "bits_per_raw_sample": "8",
+            "nb_frames": "124",
+            "nb_read_frames": "124",
+            "extradata_size": 48,
+            "disposition": {
+              "default": 1,
+              "dub": 0,
+              "original": 0,
+              "comment": 0,
+              "lyrics": 0,
+              "karaoke": 0,
+              "forced": 0,
+              "hearing_impaired": 0,
+              "visual_impaired": 0,
+              "clean_effects": 0,
+              "attached_pic": 0,
+              "timed_thumbnails": 0,
+              "captions": 0,
+              "descriptions": 0,
+              "metadata": 0,
+              "dependent": 0,
+              "still_image": 0
+            },
+            "tags": {
+              "language": "und",
+              "handler_name": "VideoHandler",
+              "vendor_id": "[0][0][0][0]"
+            }
+          }
+        ],
+        "format": {
+          "filename": "/data/_clips/309516d7c3624eb9b2adf982b4b829e7/final.mp4",
+          "nb_streams": 1,
+          "nb_programs": 0,
+          "format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+          "format_long_name": "QuickTime / MOV",
+          "start_time": "0.000000",
+          "duration": "5.167000",
+          "size": "5144130",
+          "bit_rate": "7964590",
+          "probe_score": 100,
+          "tags": {
+            "major_brand": "isom",
+            "minor_version": "512",
+            "compatible_brands": "isomiso2avc1mp41",
+            "encoder": "Lavf59.27.100"
+          }
+        }
+      },
+      "delivery_sha256": "a2f27c423cb312e8478b3213c41378257b62d77a796dd1464b6fa646a62c247f",
+      "delivery_matches_final": true
+    },
+    {
+      "name": "object_original",
+      "job_id": "6cbd2517e5e64fa99a8dabb5f4d5c46a",
+      "status": "failed",
+      "error": "영상 재생성 2회를 마쳤지만 검수를 통과하지 못했습니다. 실패 결과를 완성본으로 전달하지 않았습니다.",
+      "artifact_directory": "/home/edp1096/.local/share/sparktalk/shorts/_clips/6cbd2517e5e64fa99a8dabb5f4d5c46a",
+      "project": {
+        "session_id": "chat-1792768411442133633",
+        "source_image_id": "d6b51649545ce552f6c7e08aad632a1f",
+        "brief": "이 빨간 장난감 자동차 사진을 굵은 외곽선의 코믹북(만화책) 스타일로 변환하고, 차가 나무 테이블 위에서 오른쪽으로 조금 굴러가는 짧은 영상으로 만들어줘. 카메라는 고정하고, 차 한 대와 배경(나무 테이블, 베이지 벽)은 그대로 유지해줘. 차가 화면 밖으로 나가지 않게 살짝만 움직이게. 작은 바퀴가 구르는 소리를 넣어줘.",
+        "user_request": "이 장난감 자동차 사진을 굵은 외곽선의 코믹북 스타일로 바꾸고, 차가 테이블 위에서 오른쪽으로 조금 굴러가는 짧은 영상으로 만들어줘. 카메라는 고정하고 차 한 대와 배경을 유지해줘. 차가 화면 밖으로 나가지 않게 하고 작은 바퀴 굴러가는 소리도 넣어줘.",
+        "resolution": "480p",
+        "request_key": "ec15eea9187c8af1a5f35e594f4ae4070b8383b9c6259b4a13a1b19bd8ffb46f",
+        "seed": 1975352038717624530,
+        "source_sha256": "47b1b1d43d37c1c80a7f0fc6a6e4506ef39871eec4cd3d570a3cbfa3f5b2de2b",
+        "admitted_sha256": "47b1b1d43d37c1c80a7f0fc6a6e4506ef39871eec4cd3d570a3cbfa3f5b2de2b"
+      },
+      "state": {
+        "version": 1,
+        "images": [
+          {
+            "file": "image-0.png",
+            "generation": {
+              "input_fingerprint": "f67057bd7b9984f4740cfacab2d8e1b669dccc6cc41745430d76657903884897",
+              "sha256": "954b9f6bb163d5820403517419906482da4c9311c62158a6c3ad91e424ed1d33",
+              "source_sha256": "47b1b1d43d37c1c80a7f0fc6a6e4506ef39871eec4cd3d570a3cbfa3f5b2de2b",
+              "source": "source.png",
+              "operation": "identity_edit",
+              "prompt": "Transform the photo into a comic book illustration style. Apply thick, bold black outlines around all edges of the car and the horizon line. Use cel-shading with vibrant colors and halftone dot patterns (Ben-Day dots) in the shadows and background to simulate printed comic ink. Keep the red toy car, the wooden table texture, and the beige wall background intact but stylized with high contrast and graphic definition.",
+              "mask_box": null,
+              "seed": 1975352038717624530
+            },
+            "review": {
+              "verdict": "pass",
+              "summary": "The candidate image successfully transforms the original photo into the requested comic book style, featuring thick black outlines, cel-shading, and distinct halftone dot patterns on the table and background. The subject (the red car) and the composition are preserved accurately without distortion or identity swapping. The stylization is consistent across the car body and wheels, meeting all visual requirements for the animation.",
+              "issues": [],
+              "repair_prompt": ""
+            }
+          }
+        ],
+        "videos": [
+          {
+            "file": "video-0.mp4",
+            "generation": {
+              "input_fingerprint": "dc6a8f7cba137732a96e277beafe27d24877d0052417a371b78a4aa8b728a62a",
+              "sha256": "dcafea99c285a044055df34f9eaf1ad80bd40b013e7a0989d5f186ef4de41dda",
+              "first_frame_sha256": "954b9f6bb163d5820403517419906482da4c9311c62158a6c3ad91e424ed1d33",
+              "first_frame_file": "image-0.png",
+              "seed": 1975352038717624538,
+              "prompt": "The camera remains completely static. The red toy car rolls slightly to the right across the wooden table surface. The wheels rotate realistically to match the movement. The car stays within the frame, moving only a short distance. The background and table remain stationary.\nRequired action: Car rolls slightly to the right on the table, wheels turning, camera static.\nPreserve the starting image style and: The single red toy car; The wooden table surface; The beige wall background; The camera angle and framing",
+              "metadata": {
+                "width": 672,
+                "height": 512,
+                "frames": 124,
+                "fps": 24,
+                "duration": 5.166688,
+                "has_audio": true
+              }
+            },
+            "review": {
+              "verdict": "revise",
+              "summary": "The video successfully transforms the photo into a comic book style and maintains the requested subject and background. The car moves slightly to the right as requested. However, there is a significant temporal inconsistency: starting from the 0.75s mark, large, unrequested white cloud-like shapes appear and float in the background. These were not present in the accepted starting image and violate the instruction to keep the background intact.",
+              "issues": [
+                {
+                  "category": "temporal",
+                  "severity": "major",
+                  "evidence": "The accepted starting image shows a clean beige wall and wood table with a halftone texture. In the video, starting at 0.75s and persisting through 5.125s, large white blob/cloud shapes randomly appear in the background, creating a flickering and inconsistent effect that was not requested.",
+                  "target": "video",
+                  "region": {
+                    "label": "Background Artifacts",
+                    "box": [
+                      0,
+                      0,
+                      1000,
+                      1000
+                    ]
+                  },
+                  "times": [
+                    0.75,
+                    1.75,
+                    2.75,
+                    3.75,
+                    5.125
+                  ]
+                }
+              ],
+              "repair_prompt": "Transform the photo into a comic book illustration style with thick, bold black outlines and cel-shading. The red toy car rolls slightly to the right across the wooden table. The background (beige wall and wood table) must remain completely static and consistent with the original texture; do not introduce any floating white clouds, blobs, or moving background elements. Keep the camera fixed."
+            },
+            "evidence": {
+              "times": [
+                0,
+                0.75,
+                1.75,
+                2.75,
+                3.75,
+                5.125
+              ],
+              "consecutive_times": [
+                4.333333333333334,
+                4.375,
+                4.416666666666667,
+                4.458333333333334,
+                4.5
+              ]
+            }
+          },
+          {
+            "file": "video-1.mp4",
+            "generation": {
+              "input_fingerprint": "a35826d8ead4f5f068e3d89955c3ab351efeb7dbc81ab690808a7ef4801187a2",
+              "sha256": "0f6764be44ae1b36caff5fbb6432cbcab770cdb2794c5b7f162ba050d153b326",
+              "first_frame_sha256": "954b9f6bb163d5820403517419906482da4c9311c62158a6c3ad91e424ed1d33",
+              "first_frame_file": "image-0.png",
+              "seed": 1975352038717624539,
+              "prompt": "The camera remains completely static. The red toy car rolls slightly to the right across the wooden table surface. The wheels rotate realistically to match the movement. The car stays within the frame, moving only a short distance. The background and table remain stationary.\nRequired correction: Transform the photo into a comic book illustration style with thick, bold black outlines and cel-shading. The red toy car rolls slightly to the right across the wooden table. The background (beige wall and wood table) must remain completely static and consistent with the original texture; do not introduce any floating white clouds, blobs, or moving background elements. Keep the camera fixed.\nRequired action: Car rolls slightly to the right on the table, wheels turning, camera static.\nPreserve the starting image style and: The single red toy car; The wooden table surface; The beige wall background; The camera angle and framing",
+              "metadata": {
+                "width": 672,
+                "height": 512,
+                "frames": 124,
+                "fps": 24,
+                "duration": 5.166688,
+                "has_audio": true
+              }
+            },
+            "review": {
+              "verdict": "revise",
+              "summary": "The video successfully applies the requested comic book style and maintains the subject and setting. However, the motion generated is excessive and incorrect. Instead of the car rolling slightly to the right, the model generates large, obstructive clouds of smoke or dust (appearing as white bubbles) that surround the car from 0.75s to 3.75s. These clouds cover a significant portion of the subject and background, and the car's movement is largely obscured and appears static relative to the frame while the clouds expand.",
+              "issues": [
+                {
+                  "category": "motion",
+                  "severity": "major",
+                  "evidence": "The requested action was a slight roll to the right. The generated video creates massive clouds of smoke/bubbles (visible from 0.75s to 3.75s) that obscure the car and background. The car does not appear to move significantly to the right; rather, it is enveloped by the generated effects.",
+                  "target": "video",
+                  "region": {
+                    "label": "Obscuring Smoke Clouds",
+                    "box": [
+                      0,
+                      0,
+                      1000,
+                      1000
+                    ]
+                  },
+                  "times": [
+                    0.75,
+                    1.75,
+                    2.75,
+                    3.75
+                  ]
+                }
+              ],
+              "repair_prompt": "Transform the photo into a comic book illustration style with thick black outlines and cel-shading. Animate the red toy car rolling gently and smoothly to the right across the wooden table surface. Ensure the wheels rotate to match the movement. Keep the movement subtle and contained within the frame. Do not generate any smoke, dust clouds, bubbles, or speed lines. The camera must remain completely static."
+            },
+            "evidence": {
+              "times": [
+                0,
+                0.75,
+                1.75,
+                2.75,
+                3.75,
+                5.125
+              ],
+              "consecutive_times": [
+                2.1666666666666665,
+                2.2083333333333335,
+                2.25,
+                2.2916666666666665,
+                2.3333333333333335
+              ]
+            }
+          },
+          {
+            "file": "video-2.mp4",
+            "generation": {
+              "input_fingerprint": "0d695adcdadbf8ca9e90db7680fa79cc3fb40de04682cc41f8c54db16f5bc970",
+              "sha256": "46265cbed17446c046495ab6717d092029d10f5e1f40d3b74ccbe285380dfdd4",
+              "first_frame_sha256": "954b9f6bb163d5820403517419906482da4c9311c62158a6c3ad91e424ed1d33",
+              "first_frame_file": "image-0.png",
+              "seed": 1975352038717624540,
+              "prompt": "The camera remains completely static. The red toy car rolls slightly to the right across the wooden table surface. The wheels rotate realistically to match the movement. The car stays within the frame, moving only a short distance. The background and table remain stationary.\nRequired correction: Transform the photo into a comic book illustration style with thick black outlines and cel-shading. Animate the red toy car rolling gently and smoothly to the right across the wooden table surface. Ensure the wheels rotate to match the movement. Keep the movement subtle and contained within the frame. Do not generate any smoke, dust clouds, bubbles, or speed lines. The camera must remain completely static.\nRequired action: Car rolls slightly to the right on the table, wheels turning, camera static.\nPreserve the starting image style and: The single red toy car; The wooden table surface; The beige wall background; The camera angle and framing",
+              "metadata": {
+                "width": 672,
+                "height": 512,
+                "frames": 124,
+                "fps": 24,
+                "duration": 5.166688,
+                "has_audio": true
+              }
+            },
+            "review": {
+              "verdict": "revise",
+              "summary": "The video successfully applies the comic book style and keeps the car within the frame. However, the requested motion of the car rolling is not achieved. The car remains stationary relative to the table texture throughout the video. Instead, the model generates white, swirling abstract lines that move across the background and the car, which appears to be an unintended visual effect rather than a representation of movement.",
+              "issues": [
+                {
+                  "category": "motion",
+                  "severity": "major",
+                  "evidence": "The car does not translate across the table surface. Comparing the car's position at 0.000s and 5.125s, it remains in the exact same location relative to the wood grain texture. There is no forward rolling motion.",
+                  "target": "video",
+                  "region": {
+                    "label": "Toy Car",
+                    "box": [
+                      155,
+                      445,
+                      790,
+                      760
+                    ]
+                  },
+                  "times": [
+                    0.0,
+                    5.125
+                  ]
+                },
+                {
+                  "category": "temporal",
+                  "severity": "major",
+                  "evidence": "Strange white, fluid-like lines appear and swirl across the frame starting around 0.750s. These artifacts move independently of the car and do not represent the requested motion or the static background.",
+                  "target": "video",
+                  "region": null,
+                  "times": [
+                    0.75,
+                    4.375,
+                    5.125
+                  ]
+                }
+              ],
+              "repair_prompt": "Remove the white swirling abstract lines and artifacts. Ensure the red toy car physically translates across the wooden table surface to the right. The background texture should pass underneath the car to indicate movement. The car must stay within the frame but should actually move position."
+            },
+            "evidence": {
+              "times": [
+                0,
+                0.75,
+                1.75,
+                2.75,
+                3.75,
+                5.125
+              ],
+              "consecutive_times": [
+                4.333333333333334,
+                4.375,
+                4.416666666666667,
+                4.458333333333334,
+                4.5
+              ]
+            }
+          }
+        ],
+        "selected_image": "image-0.png",
+        "image_feedback": null,
+        "video_feedback": {
+          "verdict": "revise",
+          "summary": "The video successfully applies the comic book style and keeps the car within the frame. However, the requested motion of the car rolling is not achieved. The car remains stationary relative to the table texture throughout the video. Instead, the model generates white, swirling abstract lines that move across the background and the car, which appears to be an unintended visual effect rather than a representation of movement.",
+          "issues": [
+            {
+              "category": "motion",
+              "severity": "major",
+              "evidence": "The car does not translate across the table surface. Comparing the car's position at 0.000s and 5.125s, it remains in the exact same location relative to the wood grain texture. There is no forward rolling motion.",
+              "target": "video",
+              "region": {
+                "label": "Toy Car",
+                "box": [
+                  155,
+                  445,
+                  790,
+                  760
+                ]
+              },
+              "times": [
+                0.0,
+                5.125
+              ]
+            },
+            {
+              "category": "temporal",
+              "severity": "major",
+              "evidence": "Strange white, fluid-like lines appear and swirl across the frame starting around 0.750s. These artifacts move independently of the car and do not represent the requested motion or the static background.",
+              "target": "video",
+              "region": null,
+              "times": [
+                0.75,
+                4.375,
+                5.125
+              ]
+            }
+          ],
+          "repair_prompt": "Remove the white swirling abstract lines and artifacts. Ensure the red toy car physically translates across the wooden table surface to the right. The background texture should pass underneath the car to indicate movement. The car must stay within the frame but should actually move position."
+        }
+      },
+      "unpublished_final_http_status": 409
+    },
+    {
+      "name": "object_new_version",
+      "job_id": "4f4c617e211340bcac19cc44230dd1b6",
+      "status": "completed",
+      "error": "",
+      "artifact_directory": "/home/edp1096/.local/share/sparktalk/shorts/_clips/4f4c617e211340bcac19cc44230dd1b6",
+      "project": {
+        "session_id": "chat-1792768411442133633",
+        "source_image_id": "d6b51649545ce552f6c7e08aad632a1f",
+        "brief": "같은 원본 사진으로 새 버전을 다시 만들어줘. 만화 스타일은 유지하고 카메라는 고정해. 빨간 장난감 자동차가 화면 안에서 오른쪽으로 조금 굴러가는 짧은 영상으로 만들고 소리는 빼줘.",
+        "user_request": "같은 원본 사진으로 새 버전을 다시 만들어줘. 만화 스타일은 유지하고 카메라는 고정해. 빨간 장난감 자동차가 화면 안에서 오른쪽으로 조금 굴러가는 짧은 영상으로 만들고 소리는 빼줘.",
+        "resolution": "480p",
+        "request_key": "69371fafbc219bc0d2713a484d87bcb3b4a731b9689b695d090f521fe078fd96",
+        "seed": 3310911414896575299,
+        "source_sha256": "47b1b1d43d37c1c80a7f0fc6a6e4506ef39871eec4cd3d570a3cbfa3f5b2de2b",
+        "admitted_sha256": "47b1b1d43d37c1c80a7f0fc6a6e4506ef39871eec4cd3d570a3cbfa3f5b2de2b"
+      },
+      "report": {
+        "passed": true,
+        "plan": {
+          "title": "Cartoon Toy Car Rolling Right",
+          "scope": "image_to_video",
+          "unsupported_reason": "",
+          "edit_required": false,
+          "image_prompt": "A red toy coupe car resting on a wooden table with a beige wall background, rendered in a clean, stylized cartoon aesthetic with bold outlines and vibrant colors.",
+          "motion_prompt": "The red toy car rolls forward towards the right side of the frame across the wooden surface, with wheels rotating naturally. The camera remains completely fixed, keeping the background and perspective static.",
+          "requested_motion": "Red toy car rolls slightly to the right within the frame.",
+          "preserve": [
+            "Red toy car subject",
+            "Wooden table surface",
+            "Beige background wall",
+            "Cartoon style"
+          ],
+          "style": "Cartoon",
+          "audio": "mute",
+          "inspect_regions": [
+            {
+              "label": "Car wheels",
+              "box": [
+                200,
+                580,
+                640,
+                760
+              ]
+            }
+          ]
+        },
+        "source_image_id": "d6b51649545ce552f6c7e08aad632a1f",
+        "source_sha256": "47b1b1d43d37c1c80a7f0fc6a6e4506ef39871eec4cd3d570a3cbfa3f5b2de2b",
+        "final_image_sha256": "a2777e3e87c794fb2fb8c29637bdf87e596be6dd86d1d6dae2012d2b26218a9c",
+        "final_video_sha256": "af449838d9f2a526062c53c57ad34a2ce2b74d055ce33f298730b7a769a75fa7",
+        "metadata": {
+          "width": 672,
+          "height": 512,
+          "frames": 124,
+          "fps": 24,
+          "duration": 5.167,
+          "has_audio": false
+        },
+        "image_attempts": [
+          {
+            "file": "source.png",
+            "generation": {
+              "operation": "reuse_original",
+              "sha256": "47b1b1d43d37c1c80a7f0fc6a6e4506ef39871eec4cd3d570a3cbfa3f5b2de2b"
+            },
+            "review": {
+              "verdict": "revise",
+              "summary": "The candidate image preserves the subject and composition but completely fails to apply the requested cartoon style. The user explicitly requested to maintain a cartoon style, but the candidate is a photorealistic image identical to the source, lacking the bold outlines and flat colors associated with cartoons.",
+              "issues": [
+                {
+                  "category": "style",
+                  "severity": "major",
+                  "evidence": "The user requested a cartoon style ('만화 스타일'). The candidate image is photorealistic, identical to the source, and lacks the required stylized aesthetic (e.g., bold outlines, flat colors).",
+                  "target": "image",
+                  "region": null,
+                  "times": []
+                }
+              ],
+              "repair_prompt": "A red toy coupe car resting on a wooden table with a beige wall background, rendered in a clean, stylized cartoon aesthetic with bold outlines and vibrant colors."
+            }
+          },
+          {
+            "file": "image-1.png",
+            "generation": {
+              "input_fingerprint": "476e58bb05eb30f7bc629e2d82f93460b052754515f1ad55569c6a8940a7471a",
+              "sha256": "a2777e3e87c794fb2fb8c29637bdf87e596be6dd86d1d6dae2012d2b26218a9c",
+              "source_sha256": "47b1b1d43d37c1c80a7f0fc6a6e4506ef39871eec4cd3d570a3cbfa3f5b2de2b",
+              "source": "source.png",
+              "operation": "identity_edit",
+              "prompt": "A red toy coupe car resting on a wooden table with a beige wall background, rendered in a clean, stylized cartoon aesthetic with bold outlines and vibrant colors.\nRequired correction: A red toy coupe car resting on a wooden table with a beige wall background, rendered in a clean, stylized cartoon aesthetic with bold outlines and vibrant colors.\nKeep the requested style and: Red toy car subject; Wooden table surface; Beige background wall; Cartoon style",
+              "mask_box": null,
+              "seed": 3310911414896575300
+            },
+            "review": {
+              "verdict": "pass",
+              "summary": "The candidate image successfully converts the original photo into the requested cartoon style while preserving the subject (red coupe), setting (wooden table, beige wall), and composition. The visual elements required for the animation (wheels, car body) are clearly defined and structurally intact.",
+              "issues": [],
+              "repair_prompt": ""
+            }
+          }
+        ],
+        "video_attempts": [
+          {
+            "file": "video-0.mp4",
+            "generation": {
+              "input_fingerprint": "18f88acdf47c0a5d83aa124e2a41792c8ce0abadb9aeb3ea80441fe95c60e844",
+              "sha256": "ca31307312ddf97a9b007173bf31b0a1e05a989336c2e09de7d4bc7679450ac7",
+              "first_frame_sha256": "a2777e3e87c794fb2fb8c29637bdf87e596be6dd86d1d6dae2012d2b26218a9c",
+              "first_frame_file": "image-1.png",
+              "seed": 3310911414896575307,
+              "prompt": "The red toy car rolls forward towards the right side of the frame across the wooden surface, with wheels rotating naturally. The camera remains completely fixed, keeping the background and perspective static.\nRequired action: Red toy car rolls slightly to the right within the frame.\nPreserve the starting image style and: Red toy car subject; Wooden table surface; Beige background wall; Cartoon style",
+              "metadata": {
+                "width": 672,
+                "height": 512,
+                "frames": 124,
+                "fps": 24,
+                "duration": 5.166688,
+                "has_audio": true
+              }
+            },
+            "review": {
+              "verdict": "pass",
+              "summary": "The video successfully meets the user's requirements. The cartoon style and subject (red toy car) are preserved perfectly. The camera remains fixed with a static background. The car moves slightly to the right across the wooden surface, fulfilling the motion request. While the wheel rotation is not explicitly visible in the provided stills, the translation of the car is clear and sufficient for the requested 'slight rolling' action.",
+              "issues": [],
+              "repair_prompt": ""
+            },
+            "evidence": {
+              "times": [
+                0,
+                0.75,
+                1.75,
+                2.75,
+                3.75,
+                5.125
+              ],
+              "consecutive_times": [
+                4.333333333333334,
+                4.375,
+                4.416666666666667,
+                4.458333333333334,
+                4.5
+              ]
+            }
+          }
+        ],
+        "review_scope": "Local VLM compared full images and enlarged regions; inspected six video samples and five adjacent frames near the strongest sampled visual change. This is not every-frame inspection.",
+        "retries": {
+          "image": 1,
+          "video": 0
+        }
+      },
+      "state": {
+        "version": 1,
+        "images": [
+          {
+            "file": "source.png",
+            "generation": {
+              "operation": "reuse_original",
+              "sha256": "47b1b1d43d37c1c80a7f0fc6a6e4506ef39871eec4cd3d570a3cbfa3f5b2de2b"
+            },
+            "review": {
+              "verdict": "revise",
+              "summary": "The candidate image preserves the subject and composition but completely fails to apply the requested cartoon style. The user explicitly requested to maintain a cartoon style, but the candidate is a photorealistic image identical to the source, lacking the bold outlines and flat colors associated with cartoons.",
+              "issues": [
+                {
+                  "category": "style",
+                  "severity": "major",
+                  "evidence": "The user requested a cartoon style ('만화 스타일'). The candidate image is photorealistic, identical to the source, and lacks the required stylized aesthetic (e.g., bold outlines, flat colors).",
+                  "target": "image",
+                  "region": null,
+                  "times": []
+                }
+              ],
+              "repair_prompt": "A red toy coupe car resting on a wooden table with a beige wall background, rendered in a clean, stylized cartoon aesthetic with bold outlines and vibrant colors."
+            }
+          },
+          {
+            "file": "image-1.png",
+            "generation": {
+              "input_fingerprint": "476e58bb05eb30f7bc629e2d82f93460b052754515f1ad55569c6a8940a7471a",
+              "sha256": "a2777e3e87c794fb2fb8c29637bdf87e596be6dd86d1d6dae2012d2b26218a9c",
+              "source_sha256": "47b1b1d43d37c1c80a7f0fc6a6e4506ef39871eec4cd3d570a3cbfa3f5b2de2b",
+              "source": "source.png",
+              "operation": "identity_edit",
+              "prompt": "A red toy coupe car resting on a wooden table with a beige wall background, rendered in a clean, stylized cartoon aesthetic with bold outlines and vibrant colors.\nRequired correction: A red toy coupe car resting on a wooden table with a beige wall background, rendered in a clean, stylized cartoon aesthetic with bold outlines and vibrant colors.\nKeep the requested style and: Red toy car subject; Wooden table surface; Beige background wall; Cartoon style",
+              "mask_box": null,
+              "seed": 3310911414896575300
+            },
+            "review": {
+              "verdict": "pass",
+              "summary": "The candidate image successfully converts the original photo into the requested cartoon style while preserving the subject (red coupe), setting (wooden table, beige wall), and composition. The visual elements required for the animation (wheels, car body) are clearly defined and structurally intact.",
+              "issues": [],
+              "repair_prompt": ""
+            }
+          }
+        ],
+        "videos": [
+          {
+            "file": "video-0.mp4",
+            "generation": {
+              "input_fingerprint": "18f88acdf47c0a5d83aa124e2a41792c8ce0abadb9aeb3ea80441fe95c60e844",
+              "sha256": "ca31307312ddf97a9b007173bf31b0a1e05a989336c2e09de7d4bc7679450ac7",
+              "first_frame_sha256": "a2777e3e87c794fb2fb8c29637bdf87e596be6dd86d1d6dae2012d2b26218a9c",
+              "first_frame_file": "image-1.png",
+              "seed": 3310911414896575307,
+              "prompt": "The red toy car rolls forward towards the right side of the frame across the wooden surface, with wheels rotating naturally. The camera remains completely fixed, keeping the background and perspective static.\nRequired action: Red toy car rolls slightly to the right within the frame.\nPreserve the starting image style and: Red toy car subject; Wooden table surface; Beige background wall; Cartoon style",
+              "metadata": {
+                "width": 672,
+                "height": 512,
+                "frames": 124,
+                "fps": 24,
+                "duration": 5.166688,
+                "has_audio": true
+              }
+            },
+            "review": {
+              "verdict": "pass",
+              "summary": "The video successfully meets the user's requirements. The cartoon style and subject (red toy car) are preserved perfectly. The camera remains fixed with a static background. The car moves slightly to the right across the wooden surface, fulfilling the motion request. While the wheel rotation is not explicitly visible in the provided stills, the translation of the car is clear and sufficient for the requested 'slight rolling' action.",
+              "issues": [],
+              "repair_prompt": ""
+            },
+            "evidence": {
+              "times": [
+                0,
+                0.75,
+                1.75,
+                2.75,
+                3.75,
+                5.125
+              ],
+              "consecutive_times": [
+                4.333333333333334,
+                4.375,
+                4.416666666666667,
+                4.458333333333334,
+                4.5
+              ]
+            }
+          }
+        ],
+        "selected_image": "image-1.png",
+        "image_feedback": null,
+        "video_feedback": null,
+        "accepted_video": "video-0.mp4"
+      },
+      "published": {
+        "attachment": {
+          "id": "999a793acb284cc8626a8bd414bc7b47",
+          "name": "Animated-photo.mp4",
+          "mime": "video/mp4",
+          "size": 737031,
+          "url": "/api/files/999a793acb284cc8626a8bd414bc7b47/Animated-photo.mp4?type=video%2Fmp4",
+          "source_url": "/api/clip-production/4f4c617e211340bcac19cc44230dd1b6/files/final.mp4?session_id=chat-1792768411442133633"
+        },
+        "message_id": 3097
+      },
+      "ffprobe": {
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "h264",
+            "codec_long_name": "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
+            "profile": "High",
+            "codec_type": "video",
+            "codec_tag_string": "avc1",
+            "codec_tag": "0x31637661",
+            "width": 672,
+            "height": 512,
+            "coded_width": 672,
+            "coded_height": 512,
+            "closed_captions": 0,
+            "film_grain": 0,
+            "has_b_frames": 2,
+            "pix_fmt": "yuv420p",
+            "level": 30,
+            "color_range": "tv",
+            "color_space": "bt709",
+            "color_transfer": "iec61966-2-1",
+            "color_primaries": "bt709",
+            "chroma_location": "left",
+            "field_order": "progressive",
+            "refs": 4,
+            "is_avc": "true",
+            "nal_length_size": "4",
+            "id": "0x1",
+            "r_frame_rate": "24/1",
+            "avg_frame_rate": "24/1",
+            "time_base": "1/12288",
+            "start_pts": 0,
+            "start_time": "0.000000",
+            "duration_ts": 63488,
+            "duration": "5.166667",
+            "bit_rate": "1137553",
+            "bits_per_raw_sample": "8",
+            "nb_frames": "124",
+            "nb_read_frames": "124",
+            "extradata_size": 49,
+            "disposition": {
+              "default": 1,
+              "dub": 0,
+              "original": 0,
+              "comment": 0,
+              "lyrics": 0,
+              "karaoke": 0,
+              "forced": 0,
+              "hearing_impaired": 0,
+              "visual_impaired": 0,
+              "clean_effects": 0,
+              "attached_pic": 0,
+              "timed_thumbnails": 0,
+              "captions": 0,
+              "descriptions": 0,
+              "metadata": 0,
+              "dependent": 0,
+              "still_image": 0
+            },
+            "tags": {
+              "language": "und",
+              "handler_name": "VideoHandler",
+              "vendor_id": "[0][0][0][0]"
+            }
+          }
+        ],
+        "format": {
+          "filename": "/data/_clips/4f4c617e211340bcac19cc44230dd1b6/final.mp4",
+          "nb_streams": 1,
+          "nb_programs": 0,
+          "format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+          "format_long_name": "QuickTime / MOV",
+          "start_time": "0.000000",
+          "duration": "5.167000",
+          "size": "737031",
+          "bit_rate": "1141135",
+          "probe_score": 100,
+          "tags": {
+            "major_brand": "isom",
+            "minor_version": "512",
+            "compatible_brands": "isomiso2avc1mp41",
+            "encoder": "Lavf59.27.100"
+          }
+        }
+      },
+      "delivery_sha256": "af449838d9f2a526062c53c57ad34a2ce2b74d055ce33f298730b7a769a75fa7",
+      "delivery_matches_final": true,
+      "manual_observation": "Viewed repaired cartoon image and six final video frames: subject retained, fixed background, small rightward movement. Still samples do not conclusively establish wheel rotation."
+    }
+  ],
+  "cancel_resume": {
+    "job_id": "6cbd2517e5e64fa99a8dabb5f4d5c46a",
+    "session_id": "chat-1792768411442133633",
+    "image_sha256": "954b9f6bb163d5820403517419906482da4c9311c62158a6c3ad91e424ed1d33",
+    "stage_before_cancel": "검수한 사진으로 영상 생성 1/3",
+    "state_before_cancel": {
+      "version": 1,
+      "images": [
+        {
+          "file": "image-0.png",
+          "generation": {
+            "input_fingerprint": "f67057bd7b9984f4740cfacab2d8e1b669dccc6cc41745430d76657903884897",
+            "sha256": "954b9f6bb163d5820403517419906482da4c9311c62158a6c3ad91e424ed1d33",
+            "source_sha256": "47b1b1d43d37c1c80a7f0fc6a6e4506ef39871eec4cd3d570a3cbfa3f5b2de2b",
+            "source": "source.png",
+            "operation": "identity_edit",
+            "prompt": "Transform the photo into a comic book illustration style. Apply thick, bold black outlines around all edges of the car and the horizon line. Use cel-shading with vibrant colors and halftone dot patterns (Ben-Day dots) in the shadows and background to simulate printed comic ink. Keep the red toy car, the wooden table texture, and the beige wall background intact but stylized with high contrast and graphic definition.",
+            "mask_box": null,
+            "seed": 1975352038717624530
+          },
+          "review": {
+            "verdict": "pass",
+            "summary": "The candidate image successfully transforms the original photo into the requested comic book style, featuring thick black outlines, cel-shading, and distinct halftone dot patterns on the table and background. The subject (the red car) and the composition are preserved accurately without distortion or identity swapping. The stylization is consistent across the car body and wheels, meeting all visual requirements for the animation.",
+            "issues": [],
+            "repair_prompt": ""
+          }
+        }
+      ],
+      "videos": [],
+      "selected_image": "image-0.png",
+      "image_feedback": null,
+      "video_feedback": null
+    },
+    "container_started": "2026-10-23T14:43:46.024049725Z",
+    "cancel_response": {
+      "id": "6cbd2517e5e64fa99a8dabb5f4d5c46a",
+      "session_id": "chat-1792768411442133633",
+      "request_key": "ec15eea9187c8af1a5f35e594f4ae4070b8383b9c6259b4a13a1b19bd8ffb46f",
+      "project": {
+        "session_id": "chat-1792768411442133633",
+        "source_image_id": "d6b51649545ce552f6c7e08aad632a1f",
+        "brief": "이 빨간 장난감 자동차 사진을 굵은 외곽선의 코믹북(만화책) 스타일로 변환하고, 차가 나무 테이블 위에서 오른쪽으로 조금 굴러가는 짧은 영상으로 만들어줘. 카메라는 고정하고, 차 한 대와 배경(나무 테이블, 베이지 벽)은 그대로 유지해줘. 차가 화면 밖으로 나가지 않게 살짝만 움직이게. 작은 바퀴가 구르는 소리를 넣어줘.",
+        "user_request": "이 장난감 자동차 사진을 굵은 외곽선의 코믹북 스타일로 바꾸고, 차가 테이블 위에서 오른쪽으로 조금 굴러가는 짧은 영상으로 만들어줘. 카메라는 고정하고 차 한 대와 배경을 유지해줘. 차가 화면 밖으로 나가지 않게 하고 작은 바퀴 굴러가는 소리도 넣어줘.",
+        "resolution": "480p",
+        "request_key": "ec15eea9187c8af1a5f35e594f4ae4070b8383b9c6259b4a13a1b19bd8ffb46f",
+        "seed": 1975352038717624530,
+        "source_sha256": "47b1b1d43d37c1c80a7f0fc6a6e4506ef39871eec4cd3d570a3cbfa3f5b2de2b",
+        "admitted_sha256": "47b1b1d43d37c1c80a7f0fc6a6e4506ef39871eec4cd3d570a3cbfa3f5b2de2b",
+        "cancel_turn_key": "797179319492eba7c5955a82985ac6f5ff5b54a2ebc3a6d94f710424d3df70cb"
+      },
+      "status": "running",
+      "stage": "중지 요청",
+      "progress": 48.0,
+      "error": "",
+      "canceled": 1,
+      "created": 1792768438.1024387,
+      "updated": 1792768502.3682842,
+      "output_ready": false
+    },
+    "canceled_status": "canceled",
+    "cancel_turn_key": "797179319492eba7c5955a82985ac6f5ff5b54a2ebc3a6d94f710424d3df70cb",
+    "backend_after_cancel": {
+      "status": "ok",
+      "busy": false,
+      "active": 0,
+      "queued": 0,
+      "quiescing": false,
+      "idle_for_seconds": 0.3004651939845644,
+      "core_ready": true,
+      "memory_gib": 30,
+      "workspace_gib": 6,
+      "keep_models_loaded": true
+    },
+    "canceled_at": 1792768503.386205,
+    "status_question_kept_canceled": true,
+    "seconds_still_canceled": 278.93098878860474,
+    "after_app_and_worker_restart": "canceled",
+    "image_preserved_after_restart": true,
+    "backend_start_after_restart": "2026-10-23T14:43:46.024049725Z",
+    "explicit_resume_same_job": true,
+    "image_sha256_after_resume": "954b9f6bb163d5820403517419906482da4c9311c62158a6c3ad91e424ed1d33",
+    "accepted_image_reused": true,
+    "gpu_container_retained": true,
+    "after_resume": "Motion generation continued from the accepted image. Three video attempts failed visual review; no final video was published.",
+    "no_failed_video_published": true
+  },
+  "inpaint_control": {
+    "created": 1792769059,
+    "seed": 28716,
+    "operation": "inpaint",
+    "reference_sha256": [
+      "d60173c1196ffbbe81b1f88e4fd8f75013384a0a748b6f28849155530ee6f407",
+      "0a20a79d46e1447c58caa5cc87c14213f1198d14b01183b377ce131bc39f6808"
+    ],
+    "outside_mask_preserved": true,
+    "mask_box": [
+      76,
+      51,
+      410,
+      410
+    ],
+    "outside_mask_pixels_identical": true,
+    "input_sha256": "d60173c1196ffbbe81b1f88e4fd8f75013384a0a748b6f28849155530ee6f407",
+    "output_sha256": "b67a9b6f461aaddd5c2ba3a1e642366c4009605209f3f93ecf4b436d224965f6"
+  },
+  "qa_control_caveat": "Five- and six-finger schematic controls were classified pass/revise; six-finger review also included an inaccurate secondary thumb diagnosis. Repaired output passed and outside-mask RGB pixels were identical.",
+  "review_scope": "Full image and enlarged region review; six video samples plus five adjacent frames around largest sampled change. Not exhaustive all-frame review.",
+  "runtime_files": [
+    {
+      "source": "compose_yaml/qwim_mmh3_service/prepare_models.py",
+      "embedded": "util/talk/internal/orchestrator/assets/qwim-mmh3/prepare_models.py",
+      "container": "sparktalk-qwim-mmh3",
+      "sha256": [
+        "da7c2b40cb707a2f6fb999eb55812c93d6a044361850f664f6fdeb600c83f6ab",
+        "da7c2b40cb707a2f6fb999eb55812c93d6a044361850f664f6fdeb600c83f6ab",
+        "da7c2b40cb707a2f6fb999eb55812c93d6a044361850f664f6fdeb600c83f6ab"
+      ],
+      "all_match": true
+    },
+    {
+      "source": "compose_yaml/qwim_mmh3_service/api.py",
+      "embedded": "util/talk/internal/orchestrator/assets/qwim-mmh3/api.py",
+      "container": "sparktalk-qwim-mmh3",
+      "sha256": [
+        "15b4e295b27e0c6a4b42fd743cbd440b3897f992088dabdb4018f3d254abe3c1",
+        "15b4e295b27e0c6a4b42fd743cbd440b3897f992088dabdb4018f3d254abe3c1",
+        "15b4e295b27e0c6a4b42fd743cbd440b3897f992088dabdb4018f3d254abe3c1"
+      ],
+      "all_match": true
+    },
+    {
+      "source": "compose_yaml/qwim_mmh3_service/worker.py",
+      "embedded": "util/talk/internal/orchestrator/assets/qwim-mmh3/worker.py",
+      "container": "sparktalk-qwim-mmh3",
+      "sha256": [
+        "bb29d5e56fd52da2f19e73dbae82abffe0293a5cf4879ff75fc6f98700552dd8",
+        "bb29d5e56fd52da2f19e73dbae82abffe0293a5cf4879ff75fc6f98700552dd8",
+        "bb29d5e56fd52da2f19e73dbae82abffe0293a5cf4879ff75fc6f98700552dd8"
+      ],
+      "all_match": true
+    },
+    {
+      "source": "compose_yaml/qwim_mmh3_service/sol_runtime.py",
+      "embedded": "util/talk/internal/orchestrator/assets/qwim-mmh3/sol_runtime.py",
+      "container": "sparktalk-qwim-mmh3",
+      "sha256": [
+        "261559302c3cfc27dc170011bfd3d8336c6e45bf38683a3cb082b5acbbdd2ae3",
+        "261559302c3cfc27dc170011bfd3d8336c6e45bf38683a3cb082b5acbbdd2ae3",
+        "261559302c3cfc27dc170011bfd3d8336c6e45bf38683a3cb082b5acbbdd2ae3"
+      ],
+      "all_match": true
+    },
+    {
+      "source": "compose_yaml/qwim_mmh3_service/pdmd_lora.py",
+      "embedded": "util/talk/internal/orchestrator/assets/qwim-mmh3/pdmd_lora.py",
+      "container": "sparktalk-qwim-mmh3",
+      "sha256": [
+        "a998677e07e5b1f55e4f53d89f72186fc8b2a9c62463226a19670d73a09203e1",
+        "a998677e07e5b1f55e4f53d89f72186fc8b2a9c62463226a19670d73a09203e1",
+        "a998677e07e5b1f55e4f53d89f72186fc8b2a9c62463226a19670d73a09203e1"
+      ],
+      "all_match": true
+    },
+    {
+      "source": "compose_yaml/qwim_mmh3_service/image_inputs.py",
+      "embedded": "util/talk/internal/orchestrator/assets/qwim-mmh3/image_inputs.py",
+      "container": "sparktalk-qwim-mmh3",
+      "sha256": [
+        "082af46c9d9510fc1429e9df30af14ecc8ce08074991a4f074abbb0d18305eb9",
+        "082af46c9d9510fc1429e9df30af14ecc8ce08074991a4f074abbb0d18305eb9",
+        "082af46c9d9510fc1429e9df30af14ecc8ce08074991a4f074abbb0d18305eb9"
+      ],
+      "all_match": true
+    },
+    {
+      "source": "compose_yaml/qwim_mmh3_service/generation_progress.py",
+      "embedded": "util/talk/internal/orchestrator/assets/qwim-mmh3/generation_progress.py",
+      "container": "sparktalk-qwim-mmh3",
+      "sha256": [
+        "21ff29263c1e8ac414ea1a742846fd7e7d76b5e85416ad3c80bc1dc29d3cc72c",
+        "21ff29263c1e8ac414ea1a742846fd7e7d76b5e85416ad3c80bc1dc29d3cc72c",
+        "21ff29263c1e8ac414ea1a742846fd7e7d76b5e85416ad3c80bc1dc29d3cc72c"
+      ],
+      "all_match": true
+    },
+    {
+      "source": "compose_yaml/qwim_mmh3_service/ClipProj/clipproj_projection.py",
+      "embedded": "util/talk/internal/orchestrator/assets/qwim-mmh3/ClipProj/clipproj_projection.py",
+      "container": "sparktalk-qwim-mmh3",
+      "sha256": [
+        "7991e2eecdf3e731ec31084298d84d9b5eda1403a6105fc2e8edc8bcced50673",
+        "7991e2eecdf3e731ec31084298d84d9b5eda1403a6105fc2e8edc8bcced50673",
+        "7991e2eecdf3e731ec31084298d84d9b5eda1403a6105fc2e8edc8bcced50673"
+      ],
+      "all_match": true
+    },
+    {
+      "source": "compose_yaml/qwim_mmh3_service/ClipProj/clipproj_pinning.py",
+      "embedded": "util/talk/internal/orchestrator/assets/qwim-mmh3/ClipProj/clipproj_pinning.py",
+      "container": "sparktalk-qwim-mmh3",
+      "sha256": [
+        "3a7fb8d2b6a028355c48c5e6c0cdcfdce42144031dac84d831c1508cbe137d61",
+        "3a7fb8d2b6a028355c48c5e6c0cdcfdce42144031dac84d831c1508cbe137d61",
+        "3a7fb8d2b6a028355c48c5e6c0cdcfdce42144031dac84d831c1508cbe137d61"
+      ],
+      "all_match": true
+    },
+    {
+      "source": "compose_yaml/qwim_mmh3_service/ClipProj/clipproj_nodes.py",
+      "embedded": "util/talk/internal/orchestrator/assets/qwim-mmh3/ClipProj/clipproj_nodes.py",
+      "container": "sparktalk-qwim-mmh3",
+      "sha256": [
+        "b5dcbf4bea47692c24fd504a95cdafc714c255df3d740a0496bcb0cb3ce9494a",
+        "b5dcbf4bea47692c24fd504a95cdafc714c255df3d740a0496bcb0cb3ce9494a",
+        "b5dcbf4bea47692c24fd504a95cdafc714c255df3d740a0496bcb0cb3ce9494a"
+      ],
+      "all_match": true
+    },
+    {
+      "source": "compose_yaml/qwim_mmh3_service/ClipProj/__init__.py",
+      "embedded": "util/talk/internal/orchestrator/assets/qwim-mmh3/ClipProj/__init__.py",
+      "container": "sparktalk-qwim-mmh3",
+      "sha256": [
+        "481bfa1098f87d393fdcc0c0821a786bbd2bc99ead0cc579e7797a07cd4d5d25",
+        "481bfa1098f87d393fdcc0c0821a786bbd2bc99ead0cc579e7797a07cd4d5d25",
+        "481bfa1098f87d393fdcc0c0821a786bbd2bc99ead0cc579e7797a07cd4d5d25"
+      ],
+      "all_match": true
+    },
+    {
+      "source": "compose_yaml/extra_shorts_service/api.py",
+      "embedded": "util/talk/internal/orchestrator/assets/extra-shorts/api.py",
+      "container": "sparktalk-extra-shorts",
+      "sha256": [
+        "77cd369f46d88494cbba30b0c6233fcf0d2d79bad49b6bc2def876423efb7b3a",
+        "77cd369f46d88494cbba30b0c6233fcf0d2d79bad49b6bc2def876423efb7b3a",
+        "77cd369f46d88494cbba30b0c6233fcf0d2d79bad49b6bc2def876423efb7b3a"
+      ],
+      "all_match": true
+    },
+    {
+      "source": "compose_yaml/extra_shorts_service/composition.py",
+      "embedded": "util/talk/internal/orchestrator/assets/extra-shorts/composition.py",
+      "container": "sparktalk-extra-shorts",
+      "sha256": [
+        "2e2745e15120df4691b921536cb894bd4bf2a640c43fe1f758d12cc1b983e56c",
+        "2e2745e15120df4691b921536cb894bd4bf2a640c43fe1f758d12cc1b983e56c",
+        "2e2745e15120df4691b921536cb894bd4bf2a640c43fe1f758d12cc1b983e56c"
+      ],
+      "all_match": true
+    },
+    {
+      "source": "compose_yaml/extra_shorts_service/manim_scene.py",
+      "embedded": "util/talk/internal/orchestrator/assets/extra-shorts/manim_scene.py",
+      "container": "sparktalk-extra-shorts",
+      "sha256": [
+        "a4f8c091b796edf245e3f206182174a2d019a7868e269a092e2197a80b7e3e97",
+        "a4f8c091b796edf245e3f206182174a2d019a7868e269a092e2197a80b7e3e97",
+        "a4f8c091b796edf245e3f206182174a2d019a7868e269a092e2197a80b7e3e97"
+      ],
+      "all_match": true
+    },
+    {
+      "source": "compose_yaml/extra_shorts_service/render.py",
+      "embedded": "util/talk/internal/orchestrator/assets/extra-shorts/render.py",
+      "container": "sparktalk-extra-shorts",
+      "sha256": [
+        "15510d9b01a8b0d5dcf844600631a9a84c4423d8c07bbf5ab04d781a0495ef7d",
+        "15510d9b01a8b0d5dcf844600631a9a84c4423d8c07bbf5ab04d781a0495ef7d",
+        "15510d9b01a8b0d5dcf844600631a9a84c4423d8c07bbf5ab04d781a0495ef7d"
+      ],
+      "all_match": true
+    },
+    {
+      "source": "compose_yaml/extra_shorts_service/speech.py",
+      "embedded": "util/talk/internal/orchestrator/assets/extra-shorts/speech.py",
+      "container": "sparktalk-extra-shorts",
+      "sha256": [
+        "b8f8f432cf815882678343fe5e98ddf10c07f145ce461bec964b874a70f622ea",
+        "b8f8f432cf815882678343fe5e98ddf10c07f145ce461bec964b874a70f622ea",
+        "b8f8f432cf815882678343fe5e98ddf10c07f145ce461bec964b874a70f622ea"
+      ],
+      "all_match": true
+    },
+    {
+      "source": "compose_yaml/extra_shorts_service/store.py",
+      "embedded": "util/talk/internal/orchestrator/assets/extra-shorts/store.py",
+      "container": "sparktalk-extra-shorts",
+      "sha256": [
+        "88b62d9a421a3a694faa2f7a15e34b0f27a75f1b161201df8b9798adf0e1c4e2",
+        "88b62d9a421a3a694faa2f7a15e34b0f27a75f1b161201df8b9798adf0e1c4e2",
+        "88b62d9a421a3a694faa2f7a15e34b0f27a75f1b161201df8b9798adf0e1c4e2"
+      ],
+      "all_match": true
+    },
+    {
+      "source": "compose_yaml/extra_shorts_service/assets.py",
+      "embedded": "util/talk/internal/orchestrator/assets/extra-shorts/assets.py",
+      "container": "sparktalk-extra-shorts",
+      "sha256": [
+        "ca9ff473ab261d1e53897374aeb4a05c8c6fc2635c7c3a655672a2a78a3521ad",
+        "ca9ff473ab261d1e53897374aeb4a05c8c6fc2635c7c3a655672a2a78a3521ad",
+        "ca9ff473ab261d1e53897374aeb4a05c8c6fc2635c7c3a655672a2a78a3521ad"
+      ],
+      "all_match": true
+    },
+    {
+      "source": "compose_yaml/extra_shorts_service/spec.py",
+      "embedded": "util/talk/internal/orchestrator/assets/extra-shorts/spec.py",
+      "container": "sparktalk-extra-shorts",
+      "sha256": [
+        "b018c1fb1db0f99433cc6964858737c42915cc041e5a16c8c942566f10bff594",
+        "b018c1fb1db0f99433cc6964858737c42915cc041e5a16c8c942566f10bff594",
+        "b018c1fb1db0f99433cc6964858737c42915cc041e5a16c8c942566f10bff594"
+      ],
+      "all_match": true
+    },
+    {
+      "source": "compose_yaml/extra_shorts_service/authoring.py",
+      "embedded": "util/talk/internal/orchestrator/assets/extra-shorts/authoring.py",
+      "container": "sparktalk-extra-shorts",
+      "sha256": [
+        "3f81d6a8360f2306a07af3aa11638d638e28c88a39341db067d0e188a348bcbe",
+        "3f81d6a8360f2306a07af3aa11638d638e28c88a39341db067d0e188a348bcbe",
+        "3f81d6a8360f2306a07af3aa11638d638e28c88a39341db067d0e188a348bcbe"
+      ],
+      "all_match": true
+    },
+    {
+      "source": "compose_yaml/extra_shorts_service/audio_mix.py",
+      "embedded": "util/talk/internal/orchestrator/assets/extra-shorts/audio_mix.py",
+      "container": "sparktalk-extra-shorts",
+      "sha256": [
+        "5bea9f63a43f7b1c8faa9005ff52f50882ee375e231fec082c703a1b52b5c4a8",
+        "5bea9f63a43f7b1c8faa9005ff52f50882ee375e231fec082c703a1b52b5c4a8",
+        "5bea9f63a43f7b1c8faa9005ff52f50882ee375e231fec082c703a1b52b5c4a8"
+      ],
+      "all_match": true
+    },
+    {
+      "source": "compose_yaml/extra_shorts_service/pipeline.py",
+      "embedded": "util/talk/internal/orchestrator/assets/extra-shorts/pipeline.py",
+      "container": "sparktalk-extra-shorts",
+      "sha256": [
+        "09db5c63473f6cc2f84965224277cb3d78961e7c2ef5d07dc2f5c8050371a8ba",
+        "09db5c63473f6cc2f84965224277cb3d78961e7c2ef5d07dc2f5c8050371a8ba",
+        "09db5c63473f6cc2f84965224277cb3d78961e7c2ef5d07dc2f5c8050371a8ba"
+      ],
+      "all_match": true
+    },
+    {
+      "source": "compose_yaml/extra_shorts_service/music.py",
+      "embedded": "util/talk/internal/orchestrator/assets/extra-shorts/music.py",
+      "container": "sparktalk-extra-shorts",
+      "sha256": [
+        "74d6d133371cf9e8d6040042ce200e62826523034d95cd35bcf021a4a93a73f2",
+        "74d6d133371cf9e8d6040042ce200e62826523034d95cd35bcf021a4a93a73f2",
+        "74d6d133371cf9e8d6040042ce200e62826523034d95cd35bcf021a4a93a73f2"
+      ],
+      "all_match": true
+    },
+    {
+      "source": "compose_yaml/qwim_mmh3_service/edit_inputs.py",
+      "embedded": "util/talk/internal/orchestrator/assets/qwim-mmh3/edit_inputs.py",
+      "container": "sparktalk-qwim-mmh3",
+      "sha256": [
+        "7f9efa9eb6100992f2201fcab4d9e6f8016ac39fdf56e6e0f749231c685c4a9c",
+        "7f9efa9eb6100992f2201fcab4d9e6f8016ac39fdf56e6e0f749231c685c4a9c",
+        "7f9efa9eb6100992f2201fcab4d9e6f8016ac39fdf56e6e0f749231c685c4a9c"
+      ],
+      "all_match": true
+    },
+    {
+      "source": "compose_yaml/extra_shorts_service/clip_store.py",
+      "embedded": "util/talk/internal/orchestrator/assets/extra-shorts/clip_store.py",
+      "container": "sparktalk-extra-shorts",
+      "sha256": [
+        "26e78ea718038ae9daae2c62f65aefb955115e72997ef9610df9d2906f3a222a",
+        "26e78ea718038ae9daae2c62f65aefb955115e72997ef9610df9d2906f3a222a",
+        "26e78ea718038ae9daae2c62f65aefb955115e72997ef9610df9d2906f3a222a"
+      ],
+      "all_match": true
+    },
+    {
+      "source": "compose_yaml/extra_shorts_service/clip_pipeline.py",
+      "embedded": "util/talk/internal/orchestrator/assets/extra-shorts/clip_pipeline.py",
+      "container": "sparktalk-extra-shorts",
+      "sha256": [
+        "457700a49210916718feb0b625e70043ac082929f44589a52346faf13dd1dcff",
+        "457700a49210916718feb0b625e70043ac082929f44589a52346faf13dd1dcff",
+        "457700a49210916718feb0b625e70043ac082929f44589a52346faf13dd1dcff"
+      ],
+      "all_match": true
+    },
+    {
+      "source": "compose_yaml/extra_shorts_service/clip_render.py",
+      "embedded": "util/talk/internal/orchestrator/assets/extra-shorts/clip_render.py",
+      "container": "sparktalk-extra-shorts",
+      "sha256": [
+        "421b3a2a35bbdb156b5cd527d79cc67e012373dfd048c2e795e6a9d7cc5b05d3",
+        "421b3a2a35bbdb156b5cd527d79cc67e012373dfd048c2e795e6a9d7cc5b05d3",
+        "421b3a2a35bbdb156b5cd527d79cc67e012373dfd048c2e795e6a9d7cc5b05d3"
+      ],
+      "all_match": true
+    }
+  ],
+  "application_binary_sha256": [
+    "f1204cdf0e66ff2042334f771dfb1b2ac4f6a50d8aff36164e773b844be8b3e8",
+    "f1204cdf0e66ff2042334f771dfb1b2ac4f6a50d8aff36164e773b844be8b3e8",
+    "f1204cdf0e66ff2042334f771dfb1b2ac4f6a50d8aff36164e773b844be8b3e8"
+  ],
+  "application_binary_all_match": true,
+  "container_started_at": {
+    "sparktalk-qwim-mmh3": "2026-10-23T14:43:46.024049725Z",
+    "sparktalk-extra-shorts": "2026-10-23T15:36:50.858399165Z",
+    "sparktalk-qwen38fn_exl3": "2026-10-22T12:34:26.052328339Z"
+  },
+  "backend_memory_evidence": "clip-production-20261024/backend-memory-events.json",
+  "backend_observed_events": [
+    "attention_complete",
+    "conditioning_cache_hit",
+    "decode_audio_end",
+    "decode_audio_start",
+    "decode_video_end",
+    "decode_video_start",
+    "encode_end",
+    "encode_start",
+    "idle",
+    "keyframe_loaded",
+    "keyframes_encoded",
+    "load_h3_dit_end",
+    "load_h3_dit_start",
+    "load_qwim_dit_end",
+    "load_qwim_dit_start",
+    "pdmd_loaded",
+    "progress",
+    "ready",
+    "references_encoded",
+    "release_audio_vae_end",
+    "release_audio_vae_start",
+    "release_encoder_end",
+    "release_encoder_start",
+    "release_sample_workspace_end",
+    "release_sample_workspace_start",
+    "release_video_vae_end",
+    "release_video_vae_start",
+    "sample_end",
+    "sample_start",
+    "save_end",
+    "save_start"
+  ],
+  "test_logs": {
+    "go-tests.log": "ok  \tsparktalk/internal/server\t56.542s\nok  \tsparktalk/internal/config\t(cached)\nok  \tsparktalk/internal/orchestrator\t(cached)\nok  \tsparktalk/internal/imagegen\t(cached)\n",
+    "backend-tests.log": "/usr/local/lib/python3.12/dist-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.\n  from starlette.testclient import TestClient as TestClient  # noqa\n......................................\n----------------------------------------------------------------------\nRan 38 tests in 5.568s\n\nOK\n",
+    "worker-tests.log": ".............................\n----------------------------------------------------------------------\nRan 29 tests in 10.323s\n\nOK\n",
+    "browser-tests.log": "npm notice run sparktalk-web@0.1.0 npx\nnpm notice run 'playwright' test e2e/clip-production.spec.js e2e/chat-reconnect.spec.js\n\nRunning 2 tests using 1 worker\n\n(node:3006516) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n  ✓  1 e2e/chat-reconnect.spec.js:6:1 › reload and closed tabs preserve work; explicit stop still cancels the server task (4.4s)\n(node:3007166) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n  ✓  2 e2e/clip-production.spec.js:6:1 › photo-to-video keeps one job across reload and publishes only its reviewed result (4.6s)\n\n  2 passed (13.1s)\n",
+    "live-routing.log": "=== RUN   TestClipNaturalLanguageRoutingLive\n=== RUN   TestClipNaturalLanguageRoutingLive/이_사진_만화처럼_바꾸고_웃으면서_손_흔들게_해줘.\n    clip_routing_live_test.go:60: clip_produce {\"source_image_id\":\"0ed2bbdff39eedad75f087a2ad93fe43\",\"brief\":\"이 사진을 만화(카툰/애니메이션) 스타일로 스타일라이징하고, 인물이 미소를 지으며 손을 흔드는 자연스러운 모션을 추가해 주세요. 얼굴 표정은 밝고 친근한 웃음, 손 흔들기 동작은 부드럽고 사실적으로. 배경은 원본雰囲気を 유지하되 카툰 톤으로 정리.\"}\n=== RUN   TestClipNaturalLanguageRoutingLive/이_사진_자연스럽게_움직이게_해줘._720p로.\n    clip_routing_live_test.go:60: clip_produce {\"source_image_id\":\"0ed2bbdff39eedad75f087a2ad93fe43\",\"brief\":\"이 사진을 자연스럽게 움직이게 해줘. 720p로.\",\"resolution\":\"720p\"}\n=== RUN   TestClipNaturalLanguageRoutingLive/그_사진_영상_작업_어디까지_됐어?\n    clip_routing_live_test.go:60: clip_manage {\"action\":\"status\"}\n=== RUN   TestClipNaturalLanguageRoutingLive/아까_사진_영상_만들던_거_중지해.\n    clip_routing_live_test.go:60: clip_manage {\"action\":\"cancel\"}\n=== RUN   TestClipNaturalLanguageRoutingLive/만화_사진만_만들어줘._영상은_만들지_마.\n    clip_routing_live_test.go:60: image_generate {\"operation\":\"identity_edit\",\"source_image_id\":\"0ed2bbdff39eedad75f087a2ad93fe43\",\"source_image_description\":\"1x1px placeholder image named source.png uploaded by the user.\",\"prompt\":\"Convert the photo into a high-quality anime/manga style illustration. Preserve the subject's identity, pose, expression and composition exactly. Clean cel-shaded coloring, crisp line art, vibrant colors, soft background detail, no text or watermark.\"}\n--- PASS: TestClipNaturalLanguageRoutingLive (34.51s)\n    --- PASS: TestClipNaturalLanguageRoutingLive/이_사진_만화처럼_바꾸고_웃으면서_손_흔들게_해줘. (9.90s)\n    --- PASS: TestClipNaturalLanguageRoutingLive/이_사진_자연스럽게_움직이게_해줘._720p로. (6.10s)\n    --- PASS: TestClipNaturalLanguageRoutingLive/그_사진_영상_작업_어디까지_됐어? (5.46s)\n    --- PASS: TestClipNaturalLanguageRoutingLive/아까_사진_영상_만들던_거_중지해. (5.34s)\n    --- PASS: TestClipNaturalLanguageRoutingLive/만화_사진만_만들어줘._영상은_만들지_마. (7.61s)\nPASS\nok  \tsparktalk/internal/server\t34.526s\n",
+    "live-intent-routing.log": "=== RUN   TestClipIntentRouterLive\n=== RUN   TestClipIntentRouterLive/같은_원본_사진으로_새_버전을_다시_만들어줘._차가_조금_굴러가는_영상으로.\n    clip_routing_live_test.go:103: clip_produce {\"source_image_id\":\"79f816666905969929b8090b3a3f33da\",\"brief\":\"새 버전을 다시 만들어줘. 차가 조금 굴러가는 영상으로.\",\"resolution\":\"480p\"}\n=== RUN   TestClipIntentRouterLive/이_사진_만화로_바꾸고_자연스럽게_움직이는_영상으로_만들어줘.\n    clip_routing_live_test.go:103: clip_produce {\"source_image_id\":\"79f816666905969929b8090b3a3f33da\",\"brief\":\"이 사진을 만화 스타일로 변경하고 자연스럽게 움직이는 영상으로 만들어주세요.\",\"resolution\":\"480p\"}\n=== RUN   TestClipIntentRouterLive/사진만_만화로_바꿔줘._영상은_만들지_마.\n=== RUN   TestClipIntentRouterLive/이_사진을_영상으로_만들_수_있는지_방식만_설명해줘.\n--- PASS: TestClipIntentRouterLive (7.92s)\n    --- PASS: TestClipIntentRouterLive/같은_원본_사진으로_새_버전을_다시_만들어줘._차가_조금_굴러가는_영상으로. (3.13s)\n    --- PASS: TestClipIntentRouterLive/이_사진_만화로_바꾸고_자연스럽게_움직이는_영상으로_만들어줘. (2.20s)\n    --- PASS: TestClipIntentRouterLive/사진만_만화로_바꿔줘._영상은_만들지_마. (1.32s)\n    --- PASS: TestClipIntentRouterLive/이_사진을_영상으로_만들_수_있는지_방식만_설명해줘. (1.18s)\nPASS\nok  \tsparktalk/internal/server\t7.933s\n"
+  },
+  "support_assets_verified": 161,
+  "comparisons": [
+    "clip-production-20261024/person.jpg",
+    "clip-production-20261024/automatic-video-repair.jpg",
+    "clip-production-20261024/hand-repair.jpg",
+    "clip-production-20261024/object.jpg"
+  ]
+}

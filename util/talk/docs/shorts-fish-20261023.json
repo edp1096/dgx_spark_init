@@ -1,0 +1,459 @@
+{
+  "status": "complete",
+  "host": "61",
+  "model": "watchpen/drama-3-int4-koen160",
+  "revision": "fd0147b1bb988ea26718ee75e95de8b07a07c156",
+  "omni_base": "1240a6993c8073593aa0ad074859ccee2797adff",
+  "sampling_backport": "ca9e8789fcd84ed6f7272276cb99447eec751787",
+  "diagnosis": [
+    "Previous uncapped semantic top-k also affected acoustic codebooks in the pinned runtime.",
+    "Previous top-p filtering removed the crossing token.",
+    "Previous temperature=0.8/top_p=0.8 differed from upstream defaults.",
+    "The adapter sent a whole paragraph per request; sentence chunking is now explicit."
+  ],
+  "parameters": {
+    "temperature": 1.0,
+    "top_p": 0.9,
+    "semantic_top_k": 2147483647,
+    "acoustic_top_k": 30,
+    "max_new_tokens": 900,
+    "chunk_characters": 90,
+    "max_internal_silence_seconds": 1.8,
+    "max_attempts_per_chunk": 3
+  },
+  "sentence_test": {
+    "requests": 12,
+    "sentences": 30,
+    "attempts": 30,
+    "rejected_attempts": 0,
+    "generation_cap_hits": 0,
+    "max_internal_silence_seconds": 0.9,
+    "mean_generation_rtf": 0.6213734240596966,
+    "transcripts": [
+      {
+        "name": "short",
+        "repeat": 0,
+        "expected": "안녕하세요. 좋은 하루 보내세요.",
+        "transcript": "안녕하세요. 초나르 보내세요."
+      },
+      {
+        "name": "numbers",
+        "repeat": 0,
+        "expected": "오늘은 이천이십육년 시월 이십삼일입니다. 오후 세 시 삼십 분에 도착하며, 가격은 만 이천삼백 원입니다.",
+        "transcript": "오늘은 이천이십육년 시월 이십삼일입니다. 오후 세시 삼십분에 도착하며 가격은 만이천삼백원입니다."
+      },
+      {
+        "name": "mixed",
+        "repeat": 0,
+        "expected": "새로운 인공지능 모델을 DGX Spark에서 실행했습니다. GPU 메모리와 API 응답 속도를 함께 확인합니다.",
+        "transcript": "새로운 인공지능 모델을 뒤지엑스 스파크에서 실행했습니다. 지피유 메모리와 에이 피 아이 응답속도를 함께 확인합니다."
+      },
+      {
+        "name": "narration",
+        "repeat": 0,
+        "expected": "숲속의 작은 씨앗은 어떻게 거대한 나무가 될까요? 따뜻한 햇빛과 물을 만나면 씨앗 안에서 뿌리가 자라기 시작합니다. 뿌리는 땅속의 물과 영양분을 빨아들이고, 줄기는 햇빛을 향해 천천히 올라갑니다. 드디어 첫 번째 잎이 펼쳐지면, 작은 식물은 스스로 살아갈 준비를 마칩니다.",
+        "transcript": "숲속에 작은 씨앗은 어떻게 거대한 나무가 될까요? 따뜻한의 빛과 물을 만나면 시야단에서 뿌리가 잘하기 시작합니다. 뿌리는 땅속에 물과 영양분을 빨아들이고 즐기는 햇빛을 향해 천천히 올라갑니다. 드디어 첫번째의 비펼쳐지면 작은 식물은 스스로 살아갈 준비를 마칩니다."
+      },
+      {
+        "name": "short",
+        "repeat": 1,
+        "expected": "안녕하세요. 좋은 하루 보내세요.",
+        "transcript": "안녕하세요. 좋은 하루 보내세요."
+      },
+      {
+        "name": "numbers",
+        "repeat": 1,
+        "expected": "오늘은 이천이십육년 시월 이십삼일입니다. 오후 세 시 삼십 분에 도착하며, 가격은 만 이천삼백 원입니다.",
+        "transcript": "오늘은 이천이십육년 시월 이십삼일입니다. 오후 세시삼십분에 도착하며 가격은 만이천삼백원입니다."
+      },
+      {
+        "name": "mixed",
+        "repeat": 1,
+        "expected": "새로운 인공지능 모델을 DGX Spark에서 실행했습니다. GPU 메모리와 API 응답 속도를 함께 확인합니다.",
+        "transcript": "새로운 인공지능 모델을 뒤치엑스 스파크에서 실행했습니다. 지 피 유 메모리와 에이 피 아이 응답속도를 함께 확인합니다."
+      },
+      {
+        "name": "narration",
+        "repeat": 1,
+        "expected": "숲속의 작은 씨앗은 어떻게 거대한 나무가 될까요? 따뜻한 햇빛과 물을 만나면 씨앗 안에서 뿌리가 자라기 시작합니다. 뿌리는 땅속의 물과 영양분을 빨아들이고, 줄기는 햇빛을 향해 천천히 올라갑니다. 드디어 첫 번째 잎이 펼쳐지면, 작은 식물은 스스로 살아갈 준비를 마칩니다.",
+        "transcript": "숲속에 작은 씨앗은 어떻게 거대한 나무가 될까요? 따뜻한 해빛과 물을 만나면 씨앗 안에서 뿌리가 잘하기 시작합니다. 뿌리는 땅속에 물과 영양분을 빨아들이고 줄기는 햇빛을 향해 천천히 올라갑니다. 드디어 첫 번째 잎이 펼쳐지면 작은 식물은 스스로 살아갈 준비를 마칩니다."
+      },
+      {
+        "name": "short",
+        "repeat": 2,
+        "expected": "안녕하세요. 좋은 하루 보내세요.",
+        "transcript": "안녕하세요. 좋은 하루 보내세요."
+      },
+      {
+        "name": "numbers",
+        "repeat": 2,
+        "expected": "오늘은 이천이십육년 시월 이십삼일입니다. 오후 세 시 삼십 분에 도착하며, 가격은 만 이천삼백 원입니다.",
+        "transcript": "오늘은 이천이십육년 시월 이십삼일입니다. 오후 셋시 삼십분에 도착하며 가격은 만이천삼백원입니다."
+      },
+      {
+        "name": "mixed",
+        "repeat": 2,
+        "expected": "새로운 인공지능 모델을 DGX Spark에서 실행했습니다. GPU 메모리와 API 응답 속도를 함께 확인합니다.",
+        "transcript": "새로운 인공지능 모델을 디지엑스 스파크에서 실행했습니다. 지피유 메모리와 에이 피 아이 의 응답 속도를 함께 확인합니다."
+      },
+      {
+        "name": "narration",
+        "repeat": 2,
+        "expected": "숲속의 작은 씨앗은 어떻게 거대한 나무가 될까요? 따뜻한 햇빛과 물을 만나면 씨앗 안에서 뿌리가 자라기 시작합니다. 뿌리는 땅속의 물과 영양분을 빨아들이고, 줄기는 햇빛을 향해 천천히 올라갑니다. 드디어 첫 번째 잎이 펼쳐지면, 작은 식물은 스스로 살아갈 준비를 마칩니다.",
+        "transcript": "숲속에 작은 씨앗은 어떻게 거대한 나무가 될까요? 따뜻한 햇빛과 물을 만나면 시야단에서 뿌리가 잘하기 시작합니다. 뿌리는 땅속에 물과 영양분을 빨아들이고 즐기는 햇빛을 향해 찬찬히 올라갑니다. 드디어 첫번째 입이 펼쳐지면 작은 식물은 스스로 살아갈 준비를 마칩니다."
+      }
+    ],
+    "scope": "Silence/EOS regression plus automatic transcription; not a human listening score."
+  },
+  "tests": {
+    "upstream_sampler_tests": "93 passed, 1 skipped",
+    "worker_tests": "5 passed",
+    "go_packages": [
+      "config",
+      "orchestrator",
+      "server"
+    ],
+    "frontend_unit": "139 passed"
+  },
+  "sample_session": "chat-1792689381708313299",
+  "sample_job": "c8cb874481234d2ea6b2ad41c9e90d30",
+  "sources": [
+    "https://github.com/sgl-project/sglang-omni/blob/ca9e8789fcd84ed6f7272276cb99447eec751787/sglang_omni/models/fishaudio_drama3/speech_request.py",
+    "https://github.com/sgl-project/sglang-omni/blob/ca9e8789fcd84ed6f7272276cb99447eec751787/sglang_omni/models/fishaudio_drama3/audio_decoder.py",
+    "https://huggingface.co/watchpen/drama-3-int4-koen160",
+    "https://github.com/heygen-com/hyperframes",
+    "https://github.com/ManimCommunity/manim"
+  ],
+  "sample": {
+    "quality": {
+      "passed": true,
+      "width": 720,
+      "height": 1280,
+      "fps": "24/1",
+      "duration": "31.292000",
+      "final_audio": {
+        "duration_seconds": 31.296,
+        "longest_internal_silence": 0.0,
+        "voiced_seconds": 30.94,
+        "hit_cap": false,
+        "trim_start_sample": 960,
+        "trim_end_sample": 499840
+      },
+      "speech": [
+        {
+          "character_error_rate": 0.037037037037037035,
+          "expected": "자주 읽는 책을 책상 위에 두면 손이 닿죠? 캐시도 비슷한 원리입니다.",
+          "passed": true,
+          "transcript": "자주 있는 책을 책상위에 두면 손이 닿죠. 캐시도 비슷한 원리입니다."
+        },
+        {
+          "character_error_rate": 0,
+          "expected": "컴퓨터는 필요한 데이터가 가까운 캐시에 있는지 먼저 확인합니다. 멀리서 가져오는 시간을 줄이는 거죠.",
+          "passed": true,
+          "transcript": "컴퓨터는 필요한 데이터가 가까운 캐시에 있는지 먼저 확인합니다. 멀리서 가져오는 시간을 줄이는 거죠."
+        },
+        {
+          "character_error_rate": 0,
+          "expected": "캐시에 있으면 빠르게 가져옵니다. 없으면 메모리에서 읽고, 다음에 쓸 수 있게 일부를 저장합니다.",
+          "passed": true,
+          "transcript": "캐시에 있으면 빠르게 가져옵니다. 없으면 메모리에서 읽고 다음에 쓸 수 있게 일부를 저장합니다."
+        },
+        {
+          "character_error_rate": 0,
+          "expected": "캐시는 빠르지만 공간이 작습니다. 자주 쓰는 데이터를 잘 골라 담을 때 효과가 커집니다.",
+          "passed": true,
+          "transcript": "캐시는 빠르지만 공간이 작습니다. 자주 쓰는 데이터를 잘 골라담을 때 효과가 커집니다."
+        }
+      ],
+      "speech_attempts": [
+        [
+          {
+            "sentence": "자주 읽는 책을 책상 위에 두면 손이 닿죠?",
+            "attempt": 1,
+            "accepted": true,
+            "generation_seconds": 2.7071147579699755,
+            "duration_seconds": 4.365351473922902,
+            "longest_internal_silence": 0.08,
+            "voiced_seconds": 3.18,
+            "hit_cap": false,
+            "trim_start_sample": 0,
+            "trim_end_sample": 153468
+          },
+          {
+            "sentence": "캐시도 비슷한 원리입니다.",
+            "attempt": 1,
+            "accepted": true,
+            "generation_seconds": 1.4983944870182313,
+            "duration_seconds": 2.6006349206349206,
+            "longest_internal_silence": 0.08,
+            "voiced_seconds": 1.66,
+            "hit_cap": false,
+            "trim_start_sample": 0,
+            "trim_end_sample": 83790
+          }
+        ],
+        [
+          {
+            "sentence": "컴퓨터는 필요한 데이터가 가까운 캐시에 있는지 먼저 확인합니다.",
+            "attempt": 1,
+            "accepted": true,
+            "generation_seconds": 2.606083949038293,
+            "duration_seconds": 4.783310657596372,
+            "longest_internal_silence": 0.12,
+            "voiced_seconds": 4.24,
+            "hit_cap": false,
+            "trim_start_sample": 0,
+            "trim_end_sample": 201978
+          },
+          {
+            "sentence": "멀리서 가져오는 시간을 줄이는 거죠.",
+            "attempt": 1,
+            "accepted": true,
+            "generation_seconds": 1.9040140149882063,
+            "duration_seconds": 3.3436734693877552,
+            "longest_internal_silence": 0.0,
+            "voiced_seconds": 2.36,
+            "hit_cap": false,
+            "trim_start_sample": 0,
+            "trim_end_sample": 111132
+          }
+        ],
+        [
+          {
+            "sentence": "캐시에 있으면 빠르게 가져옵니다.",
+            "attempt": 1,
+            "accepted": true,
+            "generation_seconds": 1.4790926260175183,
+            "duration_seconds": 2.5541950113378684,
+            "longest_internal_silence": 0.04,
+            "voiced_seconds": 2.18,
+            "hit_cap": false,
+            "trim_start_sample": 0,
+            "trim_end_sample": 104958
+          },
+          {
+            "sentence": "없으면 메모리에서 읽고, 다음에 쓸 수 있게 일부를 저장합니다.",
+            "attempt": 1,
+            "accepted": true,
+            "generation_seconds": 2.9017336369724944,
+            "duration_seconds": 5.433469387755102,
+            "longest_internal_silence": 0.26,
+            "voiced_seconds": 4.18,
+            "hit_cap": false,
+            "trim_start_sample": 0,
+            "trim_end_sample": 224910
+          }
+        ],
+        [
+          {
+            "sentence": "캐시는 빠르지만 공간이 작습니다.",
+            "attempt": 1,
+            "accepted": true,
+            "generation_seconds": 2.1762681820546277,
+            "duration_seconds": 3.947392290249433,
+            "longest_internal_silence": 0.24,
+            "voiced_seconds": 2.36,
+            "hit_cap": false,
+            "trim_start_sample": 0,
+            "trim_end_sample": 127890
+          },
+          {
+            "sentence": "자주 쓰는 데이터를 잘 골라 담을 때 효과가 커집니다.",
+            "attempt": 1,
+            "accepted": true,
+            "generation_seconds": 2.6366206419770606,
+            "duration_seconds": 4.876190476190477,
+            "longest_internal_silence": 0.1,
+            "voiced_seconds": 3.7,
+            "hit_cap": false,
+            "trim_start_sample": 0,
+            "trim_end_sample": 185220
+          }
+        ]
+      ],
+      "elapsed_seconds": 64.31500503997086,
+      "elapsed_scope": "Latest worker process after the deliberate restart; not total time from the initial request."
+    },
+    "publication": {
+      "attachment": {
+        "id": "2e07fe4ece739de648ea1db9681ec9eb",
+        "name": "Shorts.mp4",
+        "mime": "video/mp4",
+        "size": 2711165,
+        "url": "/api/files/2e07fe4ece739de648ea1db9681ec9eb/Shorts.mp4?type=video%2Fmp4",
+        "source_url": "/api/shorts/c8cb874481234d2ea6b2ad41c9e90d30/files/final.mp4?session_id=chat-1792689381708313299"
+      },
+      "message_id": 3058
+    },
+    "final_mix_transcription": {
+      "character_error_rate": 0.006993006993006993,
+      "expected": "자주 읽는 책을 책상 위에 두면 손이 닿죠? 캐시도 비슷한 원리입니다. 컴퓨터는 필요한 데이터가 가까운 캐시에 있는지 먼저 확인합니다. 멀리서 가져오는 시간을 줄이는 거죠. 캐시에 있으면 빠르게 가져옵니다. 없으면 메모리에서 읽고, 다음에 쓸 수 있게 일부를 저장합니다. 캐시는 빠르지만 공간이 작습니다. 자주 쓰는 데이터를 잘 골라 담을 때 효과가 커집니다.",
+      "passed": true,
+      "transcript": "자주 있는 책을 책상위에 두면 손이 닿죠. 캐시도 비슷한 원리입니다. 컴퓨터는 필요한 데이터가 가까운 캐시에 있는지 먼저 확인합니다. 멀리서 가져오는 시간을 줄이는 거죠. 캐시에 있으면 빠르게 가져옵니다. 없으면 메모리에서 읽고 다음에 쓸 수 있게 일부를 저장합니다. 캐시는 빠르지만 공간이 작습니다. 자주 쓰는 데이터를 잘 골라담을 때 효과가 커집니다."
+    },
+    "worker_restart": {
+      "job": "c8cb874481234d2ea6b2ad41c9e90d30",
+      "restarted": true,
+      "before": {
+        "voice-0.wav": 1792690991425001235,
+        "asset-0.png": 1792691187610712073,
+        "scene-2.json": 1792691190158720235,
+        "scene-2.mp4": 1792691192549032510,
+        "scene-3.mp4": 1792691194654530402,
+        "asset-0.json": 1792691187612013293,
+        "voice-1.wav": 1792690991426564649,
+        "voice-2.wav": 1792690991427573037,
+        "scene-1.mp4": 1792691190156720229,
+        "scene-3.json": 1792691192550997716,
+        "scene-1.json": 1792691187613951075,
+        "voice-3.wav": 1792690991428538785,
+        "speech.json": 1792690991430019031,
+        "coverage.json": 1792690998461165467
+      },
+      "restarted_at": 1792691195.1030877,
+      "final_status": "completed",
+      "error": "",
+      "preserved_stages_unchanged": true
+    },
+    "ui_playback": {
+      "chatVideos": 1,
+      "playback": {
+        "width": 720,
+        "height": 1280,
+        "duration": 31.291667,
+        "readyState": 4,
+        "currentTime": 0.549485,
+        "error": null
+      },
+      "range": {
+        "status": 206,
+        "contentRange": "bytes 0-255/2711165",
+        "bytes": 256
+      },
+      "mobile": {
+        "width": 374,
+        "scrollWidth": 372,
+        "overflow": false
+      }
+    },
+    "sha256": "e60de14e34089984174ebb0017582227c109e2446de11160051fd6504bdb6aba",
+    "review": "Representative frames of all four scenes inspected; text, diagram layout and source image checked. Transcription is automatic, not a human voice-quality score."
+  },
+  "runtime_versions": {
+    "torch": "2.13.0+cu130",
+    "triton": "3.7.1",
+    "sglang": "0.5.21",
+    "sglang-kernel": "0.4.7",
+    "flashinfer": "0.6.18",
+    "transformers": "5.12.1",
+    "hyperframes": "0.8.185",
+    "manim": "0.22.0"
+  },
+  "image_constraint_fix": "Use the configured image backend default size (joint QWIM/H3: 1024x1024), rather than forcing a portrait image request.",
+  "memory_budget_review": {
+    "configured_budget_gib": 40,
+    "meaning": "Conservative admission budget for startup and synthesis, not measured resident usage or a demonstrated minimum.",
+    "production_engine_pre_kv_gib": 13.44,
+    "kv_tokens": 8192,
+    "kv_cache_gib": 0.36,
+    "scope_note": "Engine-only figures exclude reference preprocessing, vocoder and other process/graph allocations. Do not sum CUDA and cgroup counters on unified memory.",
+    "earlier_trial_system_available_decrease_gib": 29.622390747070312,
+    "trial_scope_note": "Whole-host change over a 1678-second trial; not attributable solely to Fish.",
+    "trial_trace": "/home/edp1096/.cache/sparktalk/experiments/drama3-koen160-20261023/fix-20261023/patched-memory.jsonl",
+    "budget_changed": false
+  },
+  "ui_navigation": {
+    "dedicated_header_button": false,
+    "dedicated_menu_entry": false,
+    "dedicated_modal": false,
+    "entry": "Natural language in the conversation",
+    "progress": "Existing tool execution trace",
+    "output": "MP4 attachment in the same conversation",
+    "management": "shorts_manage: status / wait / cancel / retry",
+    "fish_location": "model section",
+    "fish_role": "tts",
+    "fish_lifecycle": "on demand"
+  },
+  "chat_workflow_checks": {
+    "frontend_tests_passed": 140,
+    "handler_checks": [
+      "progress streaming",
+      "single publication",
+      "owning conversation enforced",
+      "cancel/retry latest existing job",
+      "yield to additional chat input"
+    ],
+    "live_model_tool_routing": {
+      "model": "qwen38fn_exl3",
+      "create": "shorts_generate",
+      "status": "shorts_manage/status",
+      "cancel": "shorts_manage/cancel",
+      "retry": "shorts_manage/retry",
+      "note": "Only model tool selection tested live; no additional GPU render started."
+    },
+    "isolated_browser_e2e": {
+      "passed": true,
+      "checks": [
+        "no dedicated header/menu/modal",
+        "chat tool progress and progress bar",
+        "one final MP4 attachment",
+        "one create request"
+      ],
+      "note": "Mock model/worker in an isolated Talk instance; production Qwen tool routing tested separately."
+    }
+  },
+  "video_history_fix": {
+    "cause": "Generated assistant video attachments were resent as video_url in assistant history, rejected by TensorFold.",
+    "change": "Only user attachments are eligible for native video input; generated videos remain attachment references. Generated history does not displace the latest user video or trigger automatic ASR.",
+    "validation": [
+      "Full internal/server suite passed",
+      "Regression: generated-only video history",
+      "Regression: user video retained when assistant output is newer",
+      "Browser: send another chat turn after completed video attachment",
+      "Retry branch replacement restores only completed jobs from the current tool trace, idempotently"
+    ],
+    "duration_handling": "Requested duration is passed to the worker; remaining whole frames are distributed across scenes without cutting or time-stretching narration. Excess narration is rejected.",
+    "duration_tests": "6 worker tests passed, including exact 1440 frames for 60 seconds and refusal to cut long narration.",
+    "live_retry": {
+      "session_id": "chat-1792689381708313299",
+      "assistant_message_id": 3060,
+      "job_id": "119bff11b854472989d96318960f17b5",
+      "requested_seconds": 60,
+      "status": "completed",
+      "video_stream_seconds": 60.0,
+      "container_seconds": 60.01,
+      "frames": 1440,
+      "fps": 24,
+      "width": 720,
+      "height": 1280,
+      "speech_coverage_passed": true,
+      "narration_seconds": 29.2,
+      "delivery": {
+        "attachment": {
+          "id": "c8ede40c9c9bcf760e7cda0b99986b3a",
+          "name": "Shorts.mp4",
+          "mime": "video/mp4",
+          "size": 20479711,
+          "url": "/api/files/c8ede40c9c9bcf760e7cda0b99986b3a/Shorts.mp4?type=video%2Fmp4",
+          "source_url": "/api/shorts/119bff11b854472989d96318960f17b5/files/final.mp4?session_id=chat-1792689381708313299"
+        },
+        "message_id": 3062
+      },
+      "visual_review": [
+        "review-start.png",
+        "review-end.png"
+      ],
+      "artifacts": "/home/edp1096/.local/share/sparktalk/shorts/119bff11b854472989d96318960f17b5",
+      "browser_playback": {
+        "duration": 60.01,
+        "width": 720,
+        "height": 1280,
+        "ready_state": 4,
+        "playback_advanced": true,
+        "error": null,
+        "matching_attachments": 1,
+        "retry_message_status": "completed"
+      }
+    }
+  }
+}

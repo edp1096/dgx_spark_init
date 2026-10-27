@@ -33,8 +33,15 @@ func TestNetworkRoleReversal(t *testing.T) {
 	found := 0
 	for _, b := range reversed.Bundles {
 		for _, c := range reversed.BundleComponents(b.ID) {
+			if c.Role == "llm" && c.AutoAddress && c.BindAddress != "0.0.0.0" {
+				t.Errorf("%s LLM bind changed after network remapping: %s", c.ID, c.BindAddress)
+			}
 			if c.Host == "worker" && c.AutoAddress {
-				if c.BindAddress != second.Address {
+				expectedBind := second.Address
+				if c.Role == "llm" {
+					expectedBind = "0.0.0.0"
+				}
+				if c.BindAddress != expectedBind {
 					t.Errorf("%s not remapped: %s", c.ID, c.BindAddress)
 				}
 			}

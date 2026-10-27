@@ -50,7 +50,7 @@ func TestGLMFP4UpgradePersistsDeploymentAndSelection(t *testing.T) {
 	if x.MemoryGiB != 108 || x.WorkerMemoryGiB != 108 || x.StartupMemoryGiB != 115 {
 		t.Fatal("incorrect qualified memory plan", x)
 	}
-	if loaded.Runtime.AutoStart || loaded.Runtime.Bundle != "ds41" || loaded.Runtime.ActiveBundle != "flash-next-fp4-local" || loaded.Runtime.BuiltinRevision != 51 {
+	if loaded.Runtime.AutoStart || loaded.Runtime.Bundle != "ds41" || loaded.Runtime.ActiveBundle != "flash-next-fp4-local" || loaded.Runtime.BuiltinRevision != 52 {
 		t.Fatal("selection changed")
 	}
 }

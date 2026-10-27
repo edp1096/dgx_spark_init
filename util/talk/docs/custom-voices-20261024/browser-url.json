@@ -1,0 +1,19 @@
+{
+  "errors": [],
+  "audio": [
+    {
+      "label": null,
+      "src": "http://127.0.0.1:8585/api/files/9fbf0a9180e9f629d7572d0928a1a39b/%EC%82%AC%EC%9A%A9%ED%95%9C%20%EC%B0%B8%EC%A1%B0%20%EA%B5%AC%EA%B0%84.wav?type=audio%2Fwav",
+      "duration": 9.519002,
+      "time": 0.206002,
+      "error": null
+    },
+    {
+      "label": null,
+      "src": "http://127.0.0.1:8585/api/files/d420fd6ab59006653bb577813e89b35e/%EC%83%9D%EC%84%B1%20%EC%9D%8C%EC%84%B1.wav?type=audio%2Fwav",
+      "duration": 3.430794,
+      "time": 0.199897,
+      "error": null
+    }
+  ]
+}

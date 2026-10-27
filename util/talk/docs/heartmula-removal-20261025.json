@@ -1,0 +1,69 @@
+{
+  "status": "completed",
+  "remaining_models": [
+    "ace-turbo",
+    "ace-xl"
+  ],
+  "default_model": "ace-turbo",
+  "removed_weights": {
+    "path": "/home/edp1096/.cache/huggingface/edp1096/music-studio/heart",
+    "disk_bytes": 22400286720,
+    "files": 52,
+    "removed": true
+  },
+  "heart_image_and_container_absent": true,
+  "generated_audio_preserved": {
+    "path": "/home/edp1096/.cache/sparktalk/music-validation-20261023/heartmula-30/music.wav",
+    "sha256": "5caff419f477694eaadce564194150215b4f1e529598c9294d3a5a7d22db8d35"
+  },
+  "live_api": {
+    "ace_health": {
+      "status": "ok",
+      "backend": "ace",
+      "busy": false
+    },
+    "models": [
+      "ace-turbo",
+      "ace-xl"
+    ],
+    "removed_model_status": 422,
+    "runtime_selection": {
+      "mode": "managed",
+      "active_bundle": null,
+      "bundle": "ds41",
+      "auto_start": false
+    },
+    "shorts_music_capabilities": [
+      "none",
+      "generated: ACE-Step Turbo / XL Base",
+      "explicit legacy synth_keys / synth_pad"
+    ]
+  },
+  "config_migration": {
+    "removed_ids": [
+      "extra-music-heart"
+    ],
+    "selection_preserved": {
+      "bundle": "ds41",
+      "active_bundle": "flash-next-fp4-local",
+      "auto_start": false
+    }
+  },
+  "tests": {
+    "music_worker": 4,
+    "shorts_worker": 42,
+    "go": [
+      "internal/config",
+      "internal/orchestrator",
+      "internal/server"
+    ],
+    "support_assets": 207
+  },
+  "deployment": {
+    "binary_sha256": "fa927fec31196b23c39362c75702e4225b9fe50c4e611b236353295589e7a236",
+    "main_model_id": "/sparktalk-qwen38-fp4-local",
+    "main_model_started_at_unchanged": "2026-10-24T13:40:57.854924671Z",
+    "ace_image": "sparktalk-music-ace:0.1.1",
+    "shorts_image": "sparktalk-extra-shorts:0.4.1"
+  }
+}

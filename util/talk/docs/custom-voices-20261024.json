@@ -1,0 +1,3069 @@
+{
+  "generated_at": "2026-10-24T04:37:21.996277+00:00",
+  "implementation": "Reference-conditioned custom voices; no weight training",
+  "jobs": {
+    "live": {
+      "session": "chat-1792814674123604091",
+      "jobs": [
+        {
+          "id": "afa3f56f91c04230a29e3c6921684d90",
+          "session_id": "chat-1792814674123604091",
+          "request": {
+            "session_id": "chat-1792814674123604091",
+            "action": "prepare",
+            "name": "짧은 샘플 검증",
+            "scope": "temporary",
+            "voice_id": null,
+            "revision": null,
+            "target_voice_id": null,
+            "text": "",
+            "instructions": "",
+            "source_attachment": {
+              "id": "68c8e22e8084a5a9275251279a776bc6",
+              "name": "짧은-무음-검증.wav",
+              "mime": "audio/wav",
+              "size": 9644,
+              "url": "/api/files/68c8e22e8084a5a9275251279a776bc6/%EC%A7%A7%EC%9D%80-%EB%AC%B4%EC%9D%8C-%EA%B2%80%EC%A6%9D.wav?type=audio%2Fwav"
+            },
+            "source_url": "",
+            "source_name": "짧은-무음-검증.wav",
+            "source_mime": "audio/wav",
+            "source_sha256": "6e00afcc0bfb3f0faf04f3e8ff8c1582fcdefd7a438c57db561f24d5fb205d89",
+            "start": null,
+            "end": null,
+            "track": null,
+            "channel": null,
+            "transcript": "",
+            "candidate": null,
+            "source_job_id": "",
+            "idempotency_key": "c8a8731134f233278f3a35fb5de2a633ca40531252944774458beffbe67a1a7c"
+          },
+          "status": "needs_input",
+          "stage": "참조할 발화가 너무 짧습니다. 말이 이어지는 샘플을 더 올려 주세요.",
+          "progress": 50.0,
+          "result": {
+            "source": {
+              "duration_seconds": 0.3,
+              "format": "wav",
+              "streams": [
+                {
+                  "index": 0,
+                  "codec": "pcm_s16le",
+                  "sample_rate": 16000,
+                  "channels": 1,
+                  "language": ""
+                }
+              ],
+              "bytes": 9644
+            },
+            "selection": "more_audio",
+            "question": "참조할 발화가 너무 짧습니다. 말이 이어지는 샘플을 더 올려 주세요.",
+            "files": []
+          },
+          "error": "",
+          "canceled": 0,
+          "version": 1,
+          "published_version": 1,
+          "created": 1792815363.6541092,
+          "updated": 1792816133.0124896,
+          "idempotency_key": "c8a8731134f233278f3a35fb5de2a633ca40531252944774458beffbe67a1a7c",
+          "delivery_pending": false
+        },
+        {
+          "id": "494a188bfd6d44ebad75d6cff662c450",
+          "session_id": "chat-1792814674123604091",
+          "request": {
+            "session_id": "chat-1792814674123604091",
+            "action": "prepare",
+            "name": "검증용 소희 참조",
+            "scope": "persistent",
+            "voice_id": null,
+            "revision": null,
+            "target_voice_id": "voice_d96208ac1bec4261aa99d6bd0efe7a4a",
+            "text": "",
+            "instructions": "",
+            "source_attachment": {},
+            "source_url": "",
+            "source_name": "",
+            "source_mime": "",
+            "source_sha256": "",
+            "start": 1.0,
+            "end": 9.9,
+            "track": null,
+            "channel": null,
+            "transcript": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어 주세요.",
+            "candidate": null,
+            "source_job_id": "c3594c3c743e4f12ab8f6cd8b1492ce2",
+            "idempotency_key": "verify-reference-range-revision-2"
+          },
+          "status": "completed",
+          "stage": "음성 준비 완료 · 대화 게시 대기",
+          "progress": 100.0,
+          "result": {
+            "committed_revision": 2,
+            "committed_voice_id": "voice_d96208ac1bec4261aa99d6bd0efe7a4a",
+            "source": {
+              "duration_seconds": 10.4,
+              "format": "flac",
+              "streams": [
+                {
+                  "index": 0,
+                  "codec": "flac",
+                  "sample_rate": 24000,
+                  "channels": 1,
+                  "language": ""
+                }
+              ],
+              "bytes": 215637
+            },
+            "source_attachment": {},
+            "source_url": "",
+            "candidates": [
+              {
+                "start": 1.0,
+                "end": 9.9,
+                "track": 0,
+                "channel": 0,
+                "duration_seconds": 8.9,
+                "speech_seconds": 6.5920000000000005,
+                "rms_dbfs": -23.58810169401492,
+                "clipped_fraction": 0.0,
+                "boundary_uncertain": false,
+                "score": 8.814022471910114,
+                "warnings": [],
+                "vad_analysis_gain_db": 4.404363632202148,
+                "index": 0,
+                "file": "candidate-0.wav",
+                "transcript": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어주세요.",
+                "language": "ko-KR",
+                "diarization_status": "completed",
+                "speaker_count": 1,
+                "speaker_turns": [
+                  {
+                    "start": 0.72,
+                    "end": 4.8,
+                    "speakers": [
+                      1
+                    ],
+                    "text": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다."
+                  },
+                  {
+                    "start": 6.4,
+                    "end": 8.56,
+                    "speakers": [
+                      1
+                    ],
+                    "text": "편안한 마음으로 끝까지 들어주세요."
+                  }
+                ],
+                "overlapping": false
+              }
+            ],
+            "files": [
+              {
+                "file": "reference.wav",
+                "name": "사용한 참조 구간.wav",
+                "sha256": "b1801d0a1be0fe67de8ef8c09f56657f2c2d361dcb8d2dd909d0bb240a7d8885",
+                "bytes": 785058
+              },
+              {
+                "file": "preview.wav",
+                "name": "등록 미리 듣기.wav",
+                "sha256": "c09b3e27bd582e026d6cdd466949091755b0cc550b314e26121006c9f5427bc6",
+                "bytes": 335408
+              }
+            ],
+            "staged_voice_id": "voice_04d9d31b16ad4ae392e8de9174e0dea6",
+            "reference": {
+              "start": 1.0,
+              "end": 9.9,
+              "track": 0,
+              "channel": 0,
+              "duration_seconds": 8.9,
+              "speech_seconds": 6.5920000000000005,
+              "rms_dbfs": -23.58810169401492,
+              "clipped_fraction": 0.0,
+              "boundary_uncertain": false,
+              "score": 8.814022471910114,
+              "warnings": [
+                "원본 전체의 화자 동일성을 확인한 결과는 아닙니다. 후보 안의 화자 정보만 사용했습니다."
+              ],
+              "vad_analysis_gain_db": 4.404363632202148,
+              "index": 0,
+              "file": "reference.wav",
+              "transcript": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어 주세요.",
+              "language": "ko-KR",
+              "diarization_status": "completed",
+              "speaker_count": 1,
+              "speaker_turns": [
+                {
+                  "start": 0.72,
+                  "end": 4.8,
+                  "speakers": [
+                    1
+                  ],
+                  "text": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다."
+                },
+                {
+                  "start": 6.4,
+                  "end": 8.56,
+                  "speakers": [
+                    1
+                  ],
+                  "text": "편안한 마음으로 끝까지 들어주세요."
+                }
+              ],
+              "overlapping": false,
+              "source_sha256": "c8da5ed498d3fffb852d6c5bb239aa10ea92bd9536da9fdeb69da7111ea93cf2",
+              "source_name": "",
+              "source_attachment": {},
+              "source_url": "",
+              "transcript_source": "user",
+              "job_id": "494a188bfd6d44ebad75d6cff662c450",
+              "sha256": "b1801d0a1be0fe67de8ef8c09f56657f2c2d361dcb8d2dd909d0bb240a7d8885"
+            },
+            "warnings": [
+              "원본 전체의 화자 동일성을 확인한 결과는 아닙니다. 후보 안의 화자 정보만 사용했습니다."
+            ],
+            "voice": {
+              "id": "voice_d96208ac1bec4261aa99d6bd0efe7a4a",
+              "name": "검증용 소희 참조",
+              "kind": "custom",
+              "scope": "persistent",
+              "revision": 2,
+              "status": "ready",
+              "reference_sha256": "b1801d0a1be0fe67de8ef8c09f56657f2c2d361dcb8d2dd909d0bb240a7d8885",
+              "reference_source": "사용자가 제공한 음성 샘플",
+              "expires_at": null,
+              "warnings": [
+                "원본 전체의 화자 동일성을 확인한 결과는 아닙니다. 후보 안의 화자 정보만 사용했습니다."
+              ]
+            },
+            "voice_id": "voice_d96208ac1bec4261aa99d6bd0efe7a4a",
+            "generation": {
+              "fingerprint": "28ca71f92e993653bda4a121b3c1fc0a076ac23054252a53b94756ecaed29248",
+              "sha256": "c09b3e27bd582e026d6cdd466949091755b0cc550b314e26121006c9f5427bc6",
+              "generation": {
+                "duration": 3.8023129251700682,
+                "records": [
+                  {
+                    "sentence": "안녕하세요.",
+                    "attempt": 1,
+                    "accepted": true,
+                    "rejection_reasons": [],
+                    "generation_seconds": 0.879155003989581,
+                    "duration_seconds": 0.8823582766439909,
+                    "longest_internal_silence": 0.0,
+                    "voiced_seconds": 0.84,
+                    "hit_cap": false,
+                    "trailing_silence_seconds": 0.04235827664399093,
+                    "activity_threshold_dbfs": -68.01282536271182,
+                    "trim_start_sample": 0,
+                    "trim_end_sample": 38912
+                  },
+                  {
+                    "sentence": "이 목소리로 새로운 이야기를 전해 드립니다.",
+                    "attempt": 1,
+                    "accepted": true,
+                    "rejection_reasons": [],
+                    "generation_seconds": 1.5739475750015117,
+                    "duration_seconds": 2.7399546485260773,
+                    "longest_internal_silence": 0.02,
+                    "voiced_seconds": 2.58,
+                    "hit_cap": false,
+                    "trailing_silence_seconds": 0.1199546485260771,
+                    "activity_threshold_dbfs": -69.70687151474836,
+                    "trim_start_sample": 0,
+                    "trim_end_sample": 120832
+                  }
+                ],
+                "segments": [
+                  {
+                    "text": "안녕하세요.",
+                    "start": 0.0,
+                    "end": 0.8823582766439909
+                  },
+                  {
+                    "text": "이 목소리로 새로운 이야기를 전해 드립니다.",
+                    "start": 1.062358276643991,
+                    "end": 3.8023129251700682
+                  }
+                ],
+                "sample_rate": 44100,
+                "text": "안녕하세요. 이 목소리로 새로운 이야기를 전해 드립니다.",
+                "spoken_text": "안녕하세요. 이 목소리로 새로운 이야기를 전해 드립니다.",
+                "native_tags": false,
+                "voice_preset": "voice_04d9d31b16ad4ae392e8de9174e0dea6",
+                "reference_sha256": "b1801d0a1be0fe67de8ef8c09f56657f2c2d361dcb8d2dd909d0bb240a7d8885",
+                "reference_revision": 1
+              },
+              "attempt": 1,
+              "file": "preview.wav",
+              "text": "안녕하세요. 이 목소리로 새로운 이야기를 전해 드립니다.",
+              "model_input": "안녕하세요. 이 목소리로 새로운 이야기를 전해 드립니다.",
+              "validation": {
+                "expected": "안녕하세요. 이 목소리로 새로운 이야기를 전해 드립니다.",
+                "transcript": "안녕하세요. 이 목소리로 새로운 이야기를 전해드립니다.",
+                "character_error_rate": 0.0,
+                "exact": true,
+                "clauses": [
+                  {
+                    "text": "안녕하세요",
+                    "coverage": 1.0,
+                    "characters": 5
+                  },
+                  {
+                    "text": "이 목소리로 새로운 이야기를 전해 드립니다",
+                    "coverage": 1.0,
+                    "characters": 18
+                  }
+                ],
+                "passed": true,
+                "interpretation": "ASR comparison; discrepancies may be recognition errors, not proven omissions.",
+                "audio_sha256": "c09b3e27bd582e026d6cdd466949091755b0cc550b314e26121006c9f5427bc6",
+                "asr": {
+                  "words": [
+                    {
+                      "word": "안녕하세요.",
+                      "start": 0.32,
+                      "end": 0.8
+                    },
+                    {
+                      "word": "이",
+                      "start": 1.28,
+                      "end": 1.36
+                    },
+                    {
+                      "word": "목소리로",
+                      "start": 1.6,
+                      "end": 2.08
+                    },
+                    {
+                      "word": "새로운",
+                      "start": 2.24,
+                      "end": 2.56
+                    },
+                    {
+                      "word": "이야기를",
+                      "start": 2.64,
+                      "end": 3.04
+                    },
+                    {
+                      "word": "전해드립니다.",
+                      "start": 3.2,
+                      "end": 3.6
+                    }
+                  ],
+                  "turns": [
+                    {
+                      "start": 0.32,
+                      "end": 3.6,
+                      "speakers": [
+                        1
+                      ],
+                      "text": "안녕하세요. 이 목소리로 새로운 이야기를 전해드립니다."
+                    }
+                  ],
+                  "diarization_status": "completed",
+                  "text": "안녕하세요. 이 목소리로 새로운 이야기를 전해드립니다.",
+                  "language": "ko-KR"
+                }
+              },
+              "requested_instructions": "",
+              "reference_revision": 1,
+              "tag_effect_verified": false
+            },
+            "registered": true,
+            "temporary": false,
+            "limitations": [
+              "샘플 참조 방식이며 모델을 재학습하지 않습니다.",
+              "대사 검사와 감정·음색의 주관적 품질은 다른 항목입니다.",
+              "일회성 참조의 정리와 대화 원본·생성 파일의 보관은 별개입니다."
+            ]
+          },
+          "error": "",
+          "canceled": 0,
+          "version": 1,
+          "published_version": 1,
+          "created": 1792815244.2274013,
+          "updated": 1792815768.9478962,
+          "idempotency_key": "verify-reference-range-revision-2",
+          "delivery_pending": false
+        },
+        {
+          "id": "c3594c3c743e4f12ab8f6cd8b1492ce2",
+          "session_id": "chat-1792814674123604091",
+          "request": {
+            "session_id": "chat-1792814674123604091",
+            "action": "prepare",
+            "name": "검증용 소희 참조",
+            "scope": "persistent",
+            "voice_id": null,
+            "revision": null,
+            "target_voice_id": null,
+            "text": "",
+            "instructions": "",
+            "source_attachment": {
+              "id": "a9883c225c6b555216191048ab8eb66f",
+              "name": "소희-합성참조-검증.flac",
+              "mime": "audio/flac",
+              "size": 215637,
+              "url": "/api/files/a9883c225c6b555216191048ab8eb66f/%EC%86%8C%ED%9D%AC-%ED%95%A9%EC%84%B1%EC%B0%B8%EC%A1%B0-%EA%B2%80%EC%A6%9D.flac?type=audio%2Fflac"
+            },
+            "source_url": "",
+            "source_name": "소희-합성참조-검증.flac",
+            "source_mime": "audio/flac",
+            "source_sha256": "c8da5ed498d3fffb852d6c5bb239aa10ea92bd9536da9fdeb69da7111ea93cf2",
+            "start": null,
+            "end": null,
+            "track": null,
+            "channel": null,
+            "transcript": "",
+            "candidate": null,
+            "source_job_id": "",
+            "idempotency_key": "81f2e6d11619dc0909bc46697336135fa40ca61c66cfa32d91e96a9e097a88a2"
+          },
+          "status": "completed",
+          "stage": "음성 준비 완료 · 대화 게시 대기",
+          "progress": 100.0,
+          "result": {
+            "committed_revision": 1,
+            "committed_voice_id": "voice_d96208ac1bec4261aa99d6bd0efe7a4a",
+            "source": {
+              "duration_seconds": 10.4,
+              "format": "flac",
+              "streams": [
+                {
+                  "index": 0,
+                  "codec": "flac",
+                  "sample_rate": 24000,
+                  "channels": 1,
+                  "language": ""
+                }
+              ],
+              "bytes": 215637
+            },
+            "source_attachment": {
+              "id": "a9883c225c6b555216191048ab8eb66f",
+              "name": "소희-합성참조-검증.flac",
+              "mime": "audio/flac",
+              "size": 215637,
+              "url": "/api/files/a9883c225c6b555216191048ab8eb66f/%EC%86%8C%ED%9D%AC-%ED%95%A9%EC%84%B1%EC%B0%B8%EC%A1%B0-%EA%B2%80%EC%A6%9D.flac?type=audio%2Fflac"
+            },
+            "source_url": "",
+            "candidates": [
+              {
+                "start": 1.2560000000000002,
+                "end": 6.008,
+                "track": 0,
+                "channel": 0,
+                "duration_seconds": 4.752,
+                "speech_seconds": 4.32,
+                "rms_dbfs": -22.746142213810884,
+                "clipped_fraction": 0.0,
+                "boundary_uncertain": false,
+                "score": 7.047272727272728,
+                "warnings": [
+                  "실제 발화가 5초 미만인 짧은 참조입니다. 미리 듣기로 확인해 주세요."
+                ],
+                "vad_analysis_gain_db": 4.404363632202148,
+                "index": 0,
+                "file": "candidate-0.wav",
+                "transcript": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다.",
+                "language": "ko-KR",
+                "diarization_status": "completed",
+                "speaker_count": 1,
+                "speaker_turns": [
+                  {
+                    "start": 0.32,
+                    "end": 4.56,
+                    "speakers": [
+                      1
+                    ],
+                    "text": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다."
+                  }
+                ],
+                "overlapping": false
+              },
+              {
+                "start": 7.048,
+                "end": 9.655999999999999,
+                "track": 0,
+                "channel": 0,
+                "duration_seconds": 2.6079999999999988,
+                "speech_seconds": 2.368,
+                "rms_dbfs": -22.793846228384602,
+                "clipped_fraction": 0.0,
+                "boundary_uncertain": false,
+                "score": 5.091926380368099,
+                "warnings": [
+                  "실제 발화가 5초 미만인 짧은 참조입니다. 미리 듣기로 확인해 주세요."
+                ],
+                "vad_analysis_gain_db": 4.404363632202148,
+                "index": 1,
+                "file": "candidate-1.wav",
+                "transcript": "편안한 마음으로 끝까지 들어주세요.",
+                "language": "ko-KR",
+                "diarization_status": "completed",
+                "speaker_count": 1,
+                "speaker_turns": [
+                  {
+                    "start": 0.32,
+                    "end": 2.56,
+                    "speakers": [
+                      1
+                    ],
+                    "text": "편안한 마음으로 끝까지 들어주세요."
+                  }
+                ],
+                "overlapping": false
+              }
+            ],
+            "files": [
+              {
+                "file": "reference.wav",
+                "name": "사용한 참조 구간.wav",
+                "sha256": "7e3da69a9e5e32675be4e0c4668d3086ec03baef148956876e7e8b68cb1a14d6",
+                "bytes": 419204
+              },
+              {
+                "file": "preview.wav",
+                "name": "등록 미리 듣기.wav",
+                "sha256": "4cdbb21d7c56eec3eadf3ad73c459384ffcb96ecf5379543537ddbda547ee541",
+                "bytes": 302640
+              }
+            ],
+            "staged_voice_id": "voice_d96208ac1bec4261aa99d6bd0efe7a4a",
+            "reference": {
+              "start": 1.2560000000000002,
+              "end": 6.008,
+              "track": 0,
+              "channel": 0,
+              "duration_seconds": 4.752,
+              "speech_seconds": 4.32,
+              "rms_dbfs": -22.746142213810884,
+              "clipped_fraction": 0.0,
+              "boundary_uncertain": false,
+              "score": 7.047272727272728,
+              "warnings": [
+                "실제 발화가 5초 미만인 짧은 참조입니다. 미리 듣기로 확인해 주세요.",
+                "원본 전체의 화자 동일성을 확인한 결과는 아닙니다. 후보 안의 화자 정보만 사용했습니다."
+              ],
+              "vad_analysis_gain_db": 4.404363632202148,
+              "index": 0,
+              "file": "reference.wav",
+              "transcript": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다.",
+              "language": "ko-KR",
+              "diarization_status": "completed",
+              "speaker_count": 1,
+              "speaker_turns": [
+                {
+                  "start": 0.32,
+                  "end": 4.56,
+                  "speakers": [
+                    1
+                  ],
+                  "text": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다."
+                }
+              ],
+              "overlapping": false,
+              "source_sha256": "c8da5ed498d3fffb852d6c5bb239aa10ea92bd9536da9fdeb69da7111ea93cf2",
+              "source_name": "소희-합성참조-검증.flac",
+              "source_attachment": {
+                "id": "a9883c225c6b555216191048ab8eb66f",
+                "name": "소희-합성참조-검증.flac",
+                "mime": "audio/flac",
+                "size": 215637,
+                "url": "/api/files/a9883c225c6b555216191048ab8eb66f/%EC%86%8C%ED%9D%AC-%ED%95%A9%EC%84%B1%EC%B0%B8%EC%A1%B0-%EA%B2%80%EC%A6%9D.flac?type=audio%2Fflac"
+              },
+              "source_url": "",
+              "transcript_source": "asr",
+              "job_id": "c3594c3c743e4f12ab8f6cd8b1492ce2",
+              "sha256": "7e3da69a9e5e32675be4e0c4668d3086ec03baef148956876e7e8b68cb1a14d6"
+            },
+            "warnings": [
+              "실제 발화가 5초 미만인 짧은 참조입니다. 미리 듣기로 확인해 주세요.",
+              "원본 전체의 화자 동일성을 확인한 결과는 아닙니다. 후보 안의 화자 정보만 사용했습니다."
+            ],
+            "voice": {
+              "id": "voice_d96208ac1bec4261aa99d6bd0efe7a4a",
+              "name": "검증용 소희 참조",
+              "kind": "custom",
+              "scope": "persistent",
+              "revision": 1,
+              "status": "ready",
+              "reference_sha256": "7e3da69a9e5e32675be4e0c4668d3086ec03baef148956876e7e8b68cb1a14d6",
+              "reference_source": "사용자가 제공한 음성 샘플",
+              "expires_at": null,
+              "warnings": [
+                "실제 발화가 5초 미만인 짧은 참조입니다. 미리 듣기로 확인해 주세요.",
+                "원본 전체의 화자 동일성을 확인한 결과는 아닙니다. 후보 안의 화자 정보만 사용했습니다."
+              ]
+            },
+            "voice_id": "voice_d96208ac1bec4261aa99d6bd0efe7a4a",
+            "generation": {
+              "fingerprint": "f296eda89d64791d8c0a47e2c46e1be2de6bd3139cfa75476b56f66486612981",
+              "sha256": "4cdbb21d7c56eec3eadf3ad73c459384ffcb96ecf5379543537ddbda547ee541",
+              "generation": {
+                "duration": 3.430793650793651,
+                "records": [
+                  {
+                    "sentence": "안녕하세요.",
+                    "attempt": 1,
+                    "accepted": true,
+                    "rejection_reasons": [],
+                    "generation_seconds": 0.8655868230271153,
+                    "duration_seconds": 0.9752380952380952,
+                    "longest_internal_silence": 0.0,
+                    "voiced_seconds": 0.86,
+                    "hit_cap": false,
+                    "trailing_silence_seconds": 0.07523809523809524,
+                    "activity_threshold_dbfs": -66.71702912982055,
+                    "trim_start_sample": 0,
+                    "trim_end_sample": 43008
+                  },
+                  {
+                    "sentence": "이 목소리로 새로운 이야기를 전해 드립니다.",
+                    "attempt": 1,
+                    "accepted": true,
+                    "rejection_reasons": [],
+                    "generation_seconds": 1.3499416509876028,
+                    "duration_seconds": 2.2755555555555556,
+                    "longest_internal_silence": 0.0,
+                    "voiced_seconds": 2.24,
+                    "hit_cap": false,
+                    "trailing_silence_seconds": 0.015555555555555555,
+                    "activity_threshold_dbfs": -68.40100768569141,
+                    "trim_start_sample": 0,
+                    "trim_end_sample": 100352
+                  }
+                ],
+                "segments": [
+                  {
+                    "text": "안녕하세요.",
+                    "start": 0.0,
+                    "end": 0.9752380952380952
+                  },
+                  {
+                    "text": "이 목소리로 새로운 이야기를 전해 드립니다.",
+                    "start": 1.1552380952380952,
+                    "end": 3.4307936507936505
+                  }
+                ],
+                "sample_rate": 44100,
+                "text": "안녕하세요. 이 목소리로 새로운 이야기를 전해 드립니다.",
+                "spoken_text": "안녕하세요. 이 목소리로 새로운 이야기를 전해 드립니다.",
+                "native_tags": false,
+                "voice_preset": "voice_d96208ac1bec4261aa99d6bd0efe7a4a",
+                "reference_sha256": "7e3da69a9e5e32675be4e0c4668d3086ec03baef148956876e7e8b68cb1a14d6",
+                "reference_revision": 1
+              },
+              "attempt": 1,
+              "file": "preview.wav",
+              "text": "안녕하세요. 이 목소리로 새로운 이야기를 전해 드립니다.",
+              "model_input": "안녕하세요. 이 목소리로 새로운 이야기를 전해 드립니다.",
+              "validation": {
+                "expected": "안녕하세요. 이 목소리로 새로운 이야기를 전해 드립니다.",
+                "transcript": "안녕하세요. 이 목소리로 새로운 이야기를 전해드립니다.",
+                "character_error_rate": 0.0,
+                "exact": true,
+                "clauses": [
+                  {
+                    "text": "안녕하세요",
+                    "coverage": 1.0,
+                    "characters": 5
+                  },
+                  {
+                    "text": "이 목소리로 새로운 이야기를 전해 드립니다",
+                    "coverage": 1.0,
+                    "characters": 18
+                  }
+                ],
+                "passed": true,
+                "interpretation": "ASR comparison; discrepancies may be recognition errors, not proven omissions.",
+                "audio_sha256": "4cdbb21d7c56eec3eadf3ad73c459384ffcb96ecf5379543537ddbda547ee541",
+                "asr": {
+                  "words": [
+                    {
+                      "word": "안녕하세요.",
+                      "start": 0.32,
+                      "end": 0.96
+                    },
+                    {
+                      "word": "이",
+                      "start": 1.36,
+                      "end": 1.44
+                    },
+                    {
+                      "word": "목소리로",
+                      "start": 1.6,
+                      "end": 2.16
+                    },
+                    {
+                      "word": "새로운",
+                      "start": 2.16,
+                      "end": 2.48
+                    },
+                    {
+                      "word": "이야기를",
+                      "start": 2.56,
+                      "end": 2.88
+                    },
+                    {
+                      "word": "전해드립니다.",
+                      "start": 2.96,
+                      "end": 3.44
+                    }
+                  ],
+                  "turns": [
+                    {
+                      "start": 0.32,
+                      "end": 3.44,
+                      "speakers": [
+                        1
+                      ],
+                      "text": "안녕하세요. 이 목소리로 새로운 이야기를 전해드립니다."
+                    }
+                  ],
+                  "diarization_status": "completed",
+                  "text": "안녕하세요. 이 목소리로 새로운 이야기를 전해드립니다.",
+                  "language": "ko-KR"
+                }
+              },
+              "requested_instructions": "",
+              "reference_revision": 1,
+              "tag_effect_verified": false
+            },
+            "registered": true,
+            "temporary": false,
+            "limitations": [
+              "샘플 참조 방식이며 모델을 재학습하지 않습니다.",
+              "대사 검사와 감정·음색의 주관적 품질은 다른 항목입니다.",
+              "일회성 참조의 정리와 대화 원본·생성 파일의 보관은 별개입니다."
+            ]
+          },
+          "error": "",
+          "canceled": 0,
+          "version": 1,
+          "published_version": 1,
+          "created": 1792814718.7629333,
+          "updated": 1792815049.5426147,
+          "idempotency_key": "81f2e6d11619dc0909bc46697336135fa40ca61c66cfa32d91e96a9e097a88a2",
+          "delivery_pending": false
+        }
+      ]
+    },
+    "generation": {
+      "session": "chat-1792815096199718952",
+      "jobs": [
+        {
+          "id": "30c48051c4af4d529ed3da5c76904b3d",
+          "session_id": "chat-1792815096199718952",
+          "request": {
+            "session_id": "chat-1792815096199718952",
+            "action": "prepare",
+            "name": "파일 디코딩 검증",
+            "scope": "temporary",
+            "voice_id": null,
+            "revision": null,
+            "target_voice_id": null,
+            "text": "",
+            "instructions": "",
+            "source_attachment": {
+              "id": "0a0706bd0e835e70cc665d50e97958f6",
+              "name": "잘린-파일-검증.wav",
+              "mime": "audio/wav",
+              "size": 80,
+              "url": "/api/files/0a0706bd0e835e70cc665d50e97958f6/%EC%9E%98%EB%A6%B0-%ED%8C%8C%EC%9D%BC-%EA%B2%80%EC%A6%9D.wav?type=audio%2Fwav"
+            },
+            "source_url": "",
+            "source_name": "잘린-파일-검증.wav",
+            "source_mime": "audio/wav",
+            "source_sha256": "7fbb31a636cc936684a116b2396b0eedf4d762cbddec8dbf3335093cf3334934",
+            "start": null,
+            "end": null,
+            "track": null,
+            "channel": null,
+            "transcript": "",
+            "candidate": null,
+            "source_job_id": "",
+            "idempotency_key": "4c35ff50a99cec4ae3d837bbc91b385e30cc8a4f64f2267e5bf02531ffaf2892"
+          },
+          "status": "failed",
+          "stage": "음성 처리 실패",
+          "progress": 0.0,
+          "result": {
+            "files": []
+          },
+          "error": "음성 파일을 디코딩하지 못했습니다: /data/voice-jobs/30c48051c4af4d529ed3da5c76904b3d/source.bin: Invalid data found when processing input\n",
+          "canceled": 0,
+          "version": 1,
+          "published_version": 1,
+          "created": 1792816625.665244,
+          "updated": 1792816626.234558,
+          "idempotency_key": "4c35ff50a99cec4ae3d837bbc91b385e30cc8a4f64f2267e5bf02531ffaf2892",
+          "delivery_pending": false
+        },
+        {
+          "id": "dc06556643ec4ff89a3d9ff36422a5fe",
+          "session_id": "chat-1792815096199718952",
+          "request": {
+            "session_id": "chat-1792815096199718952",
+            "action": "generate",
+            "name": "",
+            "scope": "temporary",
+            "voice_id": "voice_d96208ac1bec4261aa99d6bd0efe7a4a",
+            "revision": 1,
+            "target_voice_id": null,
+            "text": "안녕하세요. 등록한 목소리로 다시 인사드립니다.",
+            "instructions": "차분하고 또렷하게",
+            "source_attachment": {},
+            "source_url": "",
+            "source_name": "",
+            "source_mime": "",
+            "source_sha256": "",
+            "start": null,
+            "end": null,
+            "track": null,
+            "channel": null,
+            "transcript": "",
+            "candidate": null,
+            "source_job_id": "",
+            "idempotency_key": "9bb1ade596cad6d1ec0f5eba7ea3ace223e828384b506a4c4e87e9467d69332f"
+          },
+          "status": "completed",
+          "stage": "음성 준비 완료 · 대화 게시 대기",
+          "progress": 100.0,
+          "result": {
+            "voice": {
+              "id": "voice_d96208ac1bec4261aa99d6bd0efe7a4a",
+              "name": "검증용 소희 참조",
+              "kind": "custom",
+              "scope": "persistent",
+              "revision": 1,
+              "status": "ready",
+              "reference_sha256": "7e3da69a9e5e32675be4e0c4668d3086ec03baef148956876e7e8b68cb1a14d6",
+              "reference_source": "사용자가 제공한 음성 샘플",
+              "expires_at": null,
+              "warnings": [
+                "실제 발화가 5초 미만인 짧은 참조입니다. 미리 듣기로 확인해 주세요.",
+                "원본 전체의 화자 동일성을 확인한 결과는 아닙니다. 후보 안의 화자 정보만 사용했습니다."
+              ]
+            },
+            "voice_id": "voice_d96208ac1bec4261aa99d6bd0efe7a4a",
+            "generation": {
+              "fingerprint": "580891aecc805e89add49d4d40d9a5a4c78162fe4dca583b1c39281f66cf8137",
+              "sha256": "0f4e8a7f957eec4d6ab8e4124b7386bafa99a07892ddf264a655c0b340961d42",
+              "generation": {
+                "duration": 3.436553287981859,
+                "records": [
+                  {
+                    "sentence": "[차분하고 또렷하게] 안녕하세요. 등록한 목소리로 다시 인사드립니다.",
+                    "attempt": 1,
+                    "accepted": true,
+                    "rejection_reasons": [],
+                    "generation_seconds": 2.128722774970811,
+                    "duration_seconds": 3.436553287981859,
+                    "longest_internal_silence": 0.02,
+                    "voiced_seconds": 3.3,
+                    "hit_cap": false,
+                    "trailing_silence_seconds": 0.1165532879818594,
+                    "activity_threshold_dbfs": -64.15002460672221,
+                    "trim_start_sample": 0,
+                    "trim_end_sample": 151552
+                  }
+                ],
+                "segments": [
+                  {
+                    "text": "안녕하세요. 등록한 목소리로 다시 인사드립니다.",
+                    "start": 0.0,
+                    "end": 3.436553287981859
+                  }
+                ],
+                "sample_rate": 44100,
+                "text": "[차분하고 또렷하게] 안녕하세요. 등록한 목소리로 다시 인사드립니다.",
+                "spoken_text": "안녕하세요. 등록한 목소리로 다시 인사드립니다.",
+                "native_tags": true,
+                "voice_preset": "voice_d96208ac1bec4261aa99d6bd0efe7a4a",
+                "reference_sha256": "7e3da69a9e5e32675be4e0c4668d3086ec03baef148956876e7e8b68cb1a14d6",
+                "reference_revision": 1
+              },
+              "attempt": 1,
+              "file": "output.wav",
+              "text": "안녕하세요. 등록한 목소리로 다시 인사드립니다.",
+              "model_input": "[차분하고 또렷하게] 안녕하세요. 등록한 목소리로 다시 인사드립니다.",
+              "validation": {
+                "expected": "안녕하세요. 등록한 목소리로 다시 인사드립니다.",
+                "transcript": "안녕하세요. 등록한 목소리로 다시 인사드립니다.",
+                "character_error_rate": 0.0,
+                "exact": true,
+                "clauses": [
+                  {
+                    "text": "안녕하세요",
+                    "coverage": 1.0,
+                    "characters": 5
+                  },
+                  {
+                    "text": "등록한 목소리로 다시 인사드립니다",
+                    "coverage": 1.0,
+                    "characters": 15
+                  }
+                ],
+                "passed": true,
+                "interpretation": "ASR comparison; discrepancies may be recognition errors, not proven omissions.",
+                "audio_sha256": "0f4e8a7f957eec4d6ab8e4124b7386bafa99a07892ddf264a655c0b340961d42",
+                "asr": {
+                  "words": [
+                    {
+                      "word": "안녕하세요.",
+                      "start": 0.32,
+                      "end": 0.96
+                    },
+                    {
+                      "word": "등록한",
+                      "start": 1.28,
+                      "end": 1.76
+                    },
+                    {
+                      "word": "목소리로",
+                      "start": 1.76,
+                      "end": 2.32
+                    },
+                    {
+                      "word": "다시",
+                      "start": 2.4,
+                      "end": 2.48
+                    },
+                    {
+                      "word": "인사드립니다.",
+                      "start": 2.72,
+                      "end": 3.28
+                    }
+                  ],
+                  "turns": [
+                    {
+                      "start": 0.32,
+                      "end": 3.28,
+                      "speakers": [
+                        1
+                      ],
+                      "text": "안녕하세요. 등록한 목소리로 다시 인사드립니다."
+                    }
+                  ],
+                  "diarization_status": "completed",
+                  "text": "안녕하세요. 등록한 목소리로 다시 인사드립니다.",
+                  "language": "ko-KR"
+                }
+              },
+              "requested_instructions": "차분하고 또렷하게",
+              "reference_revision": 1,
+              "tag_effect_verified": false
+            },
+            "files": [
+              {
+                "file": "output.wav",
+                "name": "생성 음성.wav",
+                "sha256": "0f4e8a7f957eec4d6ab8e4124b7386bafa99a07892ddf264a655c0b340961d42",
+                "bytes": 303148
+              }
+            ],
+            "registered": false,
+            "temporary": false,
+            "limitations": [
+              "샘플 참조 방식이며 모델을 재학습하지 않습니다.",
+              "대사 검사와 감정·음색의 주관적 품질은 다른 항목입니다.",
+              "일회성 참조의 정리와 대화 원본·생성 파일의 보관은 별개입니다."
+            ]
+          },
+          "error": "",
+          "canceled": 0,
+          "version": 1,
+          "published_version": 1,
+          "created": 1792815103.8846,
+          "updated": 1792815440.590092,
+          "idempotency_key": "9bb1ade596cad6d1ec0f5eba7ea3ace223e828384b506a4c4e87e9467d69332f",
+          "delivery_pending": false
+        }
+      ]
+    },
+    "url": {
+      "session": "chat-1792815175274227030",
+      "jobs": [
+        {
+          "id": "e86db44881304d5e9af4ff16e581154f",
+          "session_id": "chat-1792815175274227030",
+          "request": {
+            "session_id": "chat-1792815175274227030",
+            "action": "generate",
+            "name": "",
+            "scope": "temporary",
+            "voice_id": null,
+            "revision": null,
+            "target_voice_id": null,
+            "text": "Hello. This is a temporary voice sample.",
+            "instructions": "",
+            "source_attachment": {
+              "id": "e608517c02bfd856721c5e13e7317ae9",
+              "name": "LJ001-0001.wav",
+              "mime": "audio/wav",
+              "size": 425830,
+              "url": "/api/files/e608517c02bfd856721c5e13e7317ae9/LJ001-0001.wav?type=audio%2Fwav",
+              "source_url": "https://raw.githubusercontent.com/coqui-ai/TTS/dev/tests/data/ljspeech/wavs/LJ001-0001.wav",
+              "source_audio_format": "wav"
+            },
+            "source_url": "https://raw.githubusercontent.com/coqui-ai/TTS/dev/tests/data/ljspeech/wavs/LJ001-0001.wav",
+            "source_name": "LJ001-0001.wav",
+            "source_mime": "audio/wav",
+            "source_sha256": "4d2bd83ff0f7fe33491b03193abdf623f1b4cc2d8103972b33638d3607d86dc5",
+            "start": null,
+            "end": null,
+            "track": null,
+            "channel": null,
+            "transcript": "",
+            "candidate": null,
+            "source_job_id": "",
+            "idempotency_key": "d9b72ab22aae727b3d2a3673d7b04d61cb48b1ef62993c9b1ce795088269d92a"
+          },
+          "status": "completed",
+          "stage": "음성 준비 완료 · 대화 게시 대기",
+          "progress": 100.0,
+          "result": {
+            "committed_revision": 1,
+            "committed_voice_id": "voice_1b1765ddb1ef4922af04e2e670880939",
+            "source": {
+              "duration_seconds": 9.655011,
+              "format": "wav",
+              "streams": [
+                {
+                  "index": 0,
+                  "codec": "pcm_s16le",
+                  "sample_rate": 22050,
+                  "channels": 1,
+                  "language": ""
+                }
+              ],
+              "bytes": 425830
+            },
+            "source_attachment": {
+              "id": "e608517c02bfd856721c5e13e7317ae9",
+              "name": "LJ001-0001.wav",
+              "mime": "audio/wav",
+              "size": 425830,
+              "url": "/api/files/e608517c02bfd856721c5e13e7317ae9/LJ001-0001.wav?type=audio%2Fwav",
+              "source_url": "https://raw.githubusercontent.com/coqui-ai/TTS/dev/tests/data/ljspeech/wavs/LJ001-0001.wav",
+              "source_audio_format": "wav"
+            },
+            "source_url": "https://raw.githubusercontent.com/coqui-ai/TTS/dev/tests/data/ljspeech/wavs/LJ001-0001.wav",
+            "candidates": [
+              {
+                "start": 0.136,
+                "end": 9.6550625,
+                "track": 0,
+                "channel": 0,
+                "duration_seconds": 9.5190625,
+                "speech_seconds": 8.832,
+                "rms_dbfs": -20.44878752194398,
+                "clipped_fraction": 0.0,
+                "boundary_uncertain": false,
+                "score": 11.615467384524475,
+                "warnings": [],
+                "vad_analysis_gain_db": 0.0,
+                "index": 0,
+                "file": "candidate-0.wav",
+                "transcript": "In the only sense with which we are at present concerned differs from most if not from all the arts and crafts represented in the exhibition",
+                "language": "auto",
+                "diarization_status": "completed",
+                "speaker_count": 1,
+                "speaker_turns": [
+                  {
+                    "start": 1.44,
+                    "end": 9.36,
+                    "speakers": [
+                      1
+                    ],
+                    "text": "In the only sense with which we are at present concerned differs from most if not from all the arts and crafts represented in the exhibition"
+                  }
+                ],
+                "overlapping": false
+              }
+            ],
+            "files": [
+              {
+                "file": "reference.wav",
+                "name": "사용한 참조 구간.wav",
+                "sha256": "c3b185660361f7e66a685fec87ecf1dce5501fa4550b7a8ecd9870d28639b3b1",
+                "bytes": 839654
+              },
+              {
+                "file": "output.wav",
+                "name": "생성 음성.wav",
+                "sha256": "7155219f0de6b635b4432f8c40e3f12267f7f2c877cfe23b9159f431650ec883",
+                "bytes": 302640
+              }
+            ],
+            "staged_voice_id": "voice_1b1765ddb1ef4922af04e2e670880939",
+            "reference": {
+              "start": 0.136,
+              "end": 9.6550625,
+              "track": 0,
+              "channel": 0,
+              "duration_seconds": 9.5190625,
+              "speech_seconds": 8.832,
+              "rms_dbfs": -20.44878752194398,
+              "clipped_fraction": 0.0,
+              "boundary_uncertain": false,
+              "score": 11.615467384524475,
+              "warnings": [
+                "원본 전체의 화자 동일성을 확인한 결과는 아닙니다. 후보 안의 화자 정보만 사용했습니다."
+              ],
+              "vad_analysis_gain_db": 0.0,
+              "index": 0,
+              "file": "reference.wav",
+              "transcript": "In the only sense with which we are at present concerned differs from most if not from all the arts and crafts represented in the exhibition",
+              "language": "auto",
+              "diarization_status": "completed",
+              "speaker_count": 1,
+              "speaker_turns": [
+                {
+                  "start": 1.44,
+                  "end": 9.36,
+                  "speakers": [
+                    1
+                  ],
+                  "text": "In the only sense with which we are at present concerned differs from most if not from all the arts and crafts represented in the exhibition"
+                }
+              ],
+              "overlapping": false,
+              "source_sha256": "4d2bd83ff0f7fe33491b03193abdf623f1b4cc2d8103972b33638d3607d86dc5",
+              "source_name": "LJ001-0001.wav",
+              "source_attachment": {
+                "id": "e608517c02bfd856721c5e13e7317ae9",
+                "name": "LJ001-0001.wav",
+                "mime": "audio/wav",
+                "size": 425830,
+                "url": "/api/files/e608517c02bfd856721c5e13e7317ae9/LJ001-0001.wav?type=audio%2Fwav",
+                "source_url": "https://raw.githubusercontent.com/coqui-ai/TTS/dev/tests/data/ljspeech/wavs/LJ001-0001.wav",
+                "source_audio_format": "wav"
+              },
+              "source_url": "https://raw.githubusercontent.com/coqui-ai/TTS/dev/tests/data/ljspeech/wavs/LJ001-0001.wav",
+              "transcript_source": "asr",
+              "job_id": "e86db44881304d5e9af4ff16e581154f",
+              "sha256": "c3b185660361f7e66a685fec87ecf1dce5501fa4550b7a8ecd9870d28639b3b1"
+            },
+            "warnings": [
+              "원본 전체의 화자 동일성을 확인한 결과는 아닙니다. 후보 안의 화자 정보만 사용했습니다."
+            ],
+            "voice": {
+              "id": "voice_1b1765ddb1ef4922af04e2e670880939",
+              "name": "임시 음성",
+              "kind": "custom",
+              "scope": "temporary",
+              "revision": 1,
+              "status": "ready",
+              "reference_sha256": "c3b185660361f7e66a685fec87ecf1dce5501fa4550b7a8ecd9870d28639b3b1",
+              "reference_source": "사용자가 제공한 음성 샘플",
+              "expires_at": 1792902857.9562342,
+              "warnings": [
+                "원본 전체의 화자 동일성을 확인한 결과는 아닙니다. 후보 안의 화자 정보만 사용했습니다."
+              ]
+            },
+            "voice_id": "voice_1b1765ddb1ef4922af04e2e670880939",
+            "generation": {
+              "fingerprint": "e1e33aab33e43304c480f5d4ccecd23cd0e3a41ccffcd1ac0987ba770fa1394b",
+              "sha256": "7155219f0de6b635b4432f8c40e3f12267f7f2c877cfe23b9159f431650ec883",
+              "generation": {
+                "duration": 3.430793650793651,
+                "records": [
+                  {
+                    "sentence": "Hello.",
+                    "attempt": 1,
+                    "accepted": true,
+                    "rejection_reasons": [],
+                    "generation_seconds": 0.8890947540057823,
+                    "duration_seconds": 0.7430385487528345,
+                    "longest_internal_silence": 0.0,
+                    "voiced_seconds": 0.72,
+                    "hit_cap": false,
+                    "trailing_silence_seconds": 0.023038548752834467,
+                    "activity_threshold_dbfs": -60.7496694115574,
+                    "trim_start_sample": 0,
+                    "trim_end_sample": 32768
+                  },
+                  {
+                    "sentence": "This is a temporary voice sample.",
+                    "attempt": 1,
+                    "accepted": true,
+                    "rejection_reasons": [],
+                    "generation_seconds": 1.5086241720127873,
+                    "duration_seconds": 2.507755102040816,
+                    "longest_internal_silence": 0.0,
+                    "voiced_seconds": 2.48,
+                    "hit_cap": false,
+                    "trailing_silence_seconds": 0.027755102040816326,
+                    "activity_threshold_dbfs": -64.73402926657215,
+                    "trim_start_sample": 0,
+                    "trim_end_sample": 110592
+                  }
+                ],
+                "segments": [
+                  {
+                    "text": "Hello.",
+                    "start": 0.0,
+                    "end": 0.7430385487528345
+                  },
+                  {
+                    "text": "This is a temporary voice sample.",
+                    "start": 0.9230385487528345,
+                    "end": 3.4307936507936505
+                  }
+                ],
+                "sample_rate": 44100,
+                "text": "Hello. This is a temporary voice sample.",
+                "spoken_text": "Hello. This is a temporary voice sample.",
+                "native_tags": false,
+                "voice_preset": "voice_1b1765ddb1ef4922af04e2e670880939",
+                "reference_sha256": "c3b185660361f7e66a685fec87ecf1dce5501fa4550b7a8ecd9870d28639b3b1",
+                "reference_revision": 1
+              },
+              "attempt": 1,
+              "file": "output.wav",
+              "text": "Hello. This is a temporary voice sample.",
+              "model_input": "Hello. This is a temporary voice sample.",
+              "validation": {
+                "expected": "Hello. This is a temporary voice sample.",
+                "transcript": "Hello, this is a temporary voice samp",
+                "character_error_rate": 0.0625,
+                "exact": false,
+                "clauses": [
+                  {
+                    "text": "Hello",
+                    "coverage": 1.0,
+                    "characters": 5
+                  },
+                  {
+                    "text": "This is a temporary voice sample",
+                    "coverage": 0.9259259259259259,
+                    "characters": 27
+                  }
+                ],
+                "passed": true,
+                "interpretation": "ASR comparison; discrepancies may be recognition errors, not proven omissions.",
+                "audio_sha256": "7155219f0de6b635b4432f8c40e3f12267f7f2c877cfe23b9159f431650ec883",
+                "asr": {
+                  "words": [
+                    {
+                      "word": "Hello,",
+                      "start": 1.28,
+                      "end": 1.52
+                    },
+                    {
+                      "word": "this",
+                      "start": 1.92,
+                      "end": 2
+                    },
+                    {
+                      "word": "is",
+                      "start": 2.08,
+                      "end": 2.16
+                    },
+                    {
+                      "word": "a",
+                      "start": 2.16,
+                      "end": 2.24
+                    },
+                    {
+                      "word": "temporary",
+                      "start": 2.32,
+                      "end": 2.72
+                    },
+                    {
+                      "word": "voice",
+                      "start": 2.88,
+                      "end": 3.2
+                    },
+                    {
+                      "word": "samp",
+                      "start": 3.28,
+                      "end": 3.52
+                    }
+                  ],
+                  "turns": [
+                    {
+                      "start": 1.28,
+                      "end": 3.52,
+                      "speakers": [
+                        1
+                      ],
+                      "text": "Hello, this is a temporary voice samp"
+                    }
+                  ],
+                  "diarization_status": "completed",
+                  "text": "Hello, this is a temporary voice samp",
+                  "language": "auto"
+                }
+              },
+              "requested_instructions": "",
+              "reference_revision": 1,
+              "tag_effect_verified": false
+            },
+            "registered": false,
+            "temporary": true,
+            "limitations": [
+              "샘플 참조 방식이며 모델을 재학습하지 않습니다.",
+              "대사 검사와 감정·음색의 주관적 품질은 다른 항목입니다.",
+              "일회성 참조의 정리와 대화 원본·생성 파일의 보관은 별개입니다."
+            ]
+          },
+          "error": "",
+          "canceled": 0,
+          "version": 1,
+          "published_version": 1,
+          "created": 1792815439.1408918,
+          "updated": 1792816457.9593022,
+          "idempotency_key": "d9b72ab22aae727b3d2a3673d7b04d61cb48b1ef62993c9b1ce795088269d92a",
+          "delivery_pending": false
+        }
+      ]
+    }
+  },
+  "browser": {
+    "browser-voice": {
+      "errors": [],
+      "audio": [
+        {
+          "label": null,
+          "src": "http://127.0.0.1:8585/api/files/a9883c225c6b555216191048ab8eb66f/%EC%86%8C%ED%9D%AC-%ED%95%A9%EC%84%B1%EC%B0%B8%EC%A1%B0-%EA%B2%80%EC%A6%9D.flac?type=audio%2Fflac",
+          "duration": 10.4,
+          "time": 0.211724,
+          "error": null
+        },
+        {
+          "label": null,
+          "src": "http://127.0.0.1:8585/api/files/1b4d473a413a5fefef5396df5ff7b5a6/%EC%82%AC%EC%9A%A9%ED%95%9C%20%EC%B0%B8%EC%A1%B0%20%EA%B5%AC%EA%B0%84.wav?type=audio%2Fwav",
+          "duration": 4.751995,
+          "time": 0.202721,
+          "error": null
+        },
+        {
+          "label": null,
+          "src": "http://127.0.0.1:8585/api/files/ab444c6875ecddf24bbfad2be2e24969/%EB%93%B1%EB%A1%9D%20%EB%AF%B8%EB%A6%AC%20%EB%93%A3%EA%B8%B0.wav?type=audio%2Fwav",
+          "duration": 3.430794,
+          "time": 0.216763,
+          "error": null
+        }
+      ]
+    },
+    "browser-generated": {
+      "errors": [],
+      "audio": [
+        {
+          "label": null,
+          "src": "http://127.0.0.1:8585/api/files/e8d2bcb90cbc26a1a0fb6938435738e0/%EC%83%9D%EC%84%B1%20%EC%9D%8C%EC%84%B1.wav?type=audio%2Fwav",
+          "duration": 3.436553,
+          "time": 0.200718,
+          "error": null
+        }
+      ]
+    },
+    "browser-url": {
+      "errors": [],
+      "audio": [
+        {
+          "label": null,
+          "src": "http://127.0.0.1:8585/api/files/9fbf0a9180e9f629d7572d0928a1a39b/%EC%82%AC%EC%9A%A9%ED%95%9C%20%EC%B0%B8%EC%A1%B0%20%EA%B5%AC%EA%B0%84.wav?type=audio%2Fwav",
+          "duration": 9.519002,
+          "time": 0.206002,
+          "error": null
+        },
+        {
+          "label": null,
+          "src": "http://127.0.0.1:8585/api/files/d420fd6ab59006653bb577813e89b35e/%EC%83%9D%EC%84%B1%20%EC%9D%8C%EC%84%B1.wav?type=audio%2Fwav",
+          "duration": 3.430794,
+          "time": 0.199897,
+          "error": null
+        }
+      ]
+    },
+    "browser-revised": {
+      "errors": [],
+      "audio": [
+        {
+          "label": null,
+          "src": "http://127.0.0.1:8585/api/files/a9883c225c6b555216191048ab8eb66f/%EC%86%8C%ED%9D%AC-%ED%95%A9%EC%84%B1%EC%B0%B8%EC%A1%B0-%EA%B2%80%EC%A6%9D.flac?type=audio%2Fflac",
+          "duration": 10.4,
+          "time": 0.20202,
+          "error": null
+        },
+        {
+          "label": null,
+          "src": "http://127.0.0.1:8585/api/files/1b4d473a413a5fefef5396df5ff7b5a6/%EC%82%AC%EC%9A%A9%ED%95%9C%20%EC%B0%B8%EC%A1%B0%20%EA%B5%AC%EA%B0%84.wav?type=audio%2Fwav",
+          "duration": 4.751995,
+          "time": 0.216751,
+          "error": null
+        },
+        {
+          "label": null,
+          "src": "http://127.0.0.1:8585/api/files/ab444c6875ecddf24bbfad2be2e24969/%EB%93%B1%EB%A1%9D%20%EB%AF%B8%EB%A6%AC%20%EB%93%A3%EA%B8%B0.wav?type=audio%2Fwav",
+          "duration": 3.430794,
+          "time": 0.206377,
+          "error": null
+        },
+        {
+          "label": null,
+          "src": "http://127.0.0.1:8585/api/files/68c8e22e8084a5a9275251279a776bc6/%EC%A7%A7%EC%9D%80-%EB%AC%B4%EC%9D%8C-%EA%B2%80%EC%A6%9D.wav?type=audio%2Fwav",
+          "duration": 0.3,
+          "time": 0.19123,
+          "error": null
+        },
+        {
+          "label": null,
+          "src": "http://127.0.0.1:8585/api/files/84ead62d272ccbf12ac1a93b7d64e911/%EC%82%AC%EC%9A%A9%ED%95%9C%20%EC%B0%B8%EC%A1%B0%20%EA%B5%AC%EA%B0%84.wav?type=audio%2Fwav",
+          "duration": 8.9,
+          "time": 0.192237,
+          "error": null
+        },
+        {
+          "label": null,
+          "src": "http://127.0.0.1:8585/api/files/455f078ef99c97a862ad60033e3d4b2c/%EB%93%B1%EB%A1%9D%20%EB%AF%B8%EB%A6%AC%20%EB%93%A3%EA%B8%B0.wav?type=audio%2Fwav",
+          "duration": 3.802313,
+          "time": 0.202944,
+          "error": null
+        }
+      ]
+    },
+    "browser-video": {
+      "errors": [],
+      "audio": [
+        {
+          "label": "Shorts.mp4",
+          "src": "http://127.0.0.1:8585/api/files/c941ca56d506dd8b3b00b9efbc722fee/Shorts.mp4?type=video%2Fmp4",
+          "duration": 15,
+          "time": 0.197233,
+          "error": null
+        },
+        {
+          "label": "Shorts.mp4",
+          "src": "http://127.0.0.1:8585/api/files/78299509a2fd4ded4aeb45c4ed85c351/Shorts.mp4?type=video%2Fmp4",
+          "duration": 15,
+          "time": 0.214473,
+          "error": null
+        },
+        {
+          "label": "Shorts.mp4",
+          "src": "http://127.0.0.1:8585/api/files/2087f7b3df29aade041c744af827bc4f/Shorts.mp4?type=video%2Fmp4",
+          "duration": 15,
+          "time": 0.20449,
+          "error": null
+        }
+      ]
+    }
+  },
+  "format_tests": {
+    "report": [
+      {
+        "file": "sample.wav",
+        "codec": "pcm_s16le",
+        "decoded": true
+      },
+      {
+        "file": "sample.mp3",
+        "codec": "mp3",
+        "decoded": true
+      },
+      {
+        "file": "sample.flac",
+        "codec": "flac",
+        "decoded": true
+      },
+      {
+        "file": "sample.ogg",
+        "codec": "vorbis",
+        "decoded": true
+      },
+      {
+        "file": "sample.opus",
+        "codec": "opus",
+        "decoded": true
+      },
+      {
+        "file": "sample.aac",
+        "codec": "aac",
+        "decoded": true
+      },
+      {
+        "file": "sample.m4a",
+        "codec": "aac",
+        "decoded": true
+      },
+      {
+        "file": "sample.aiff",
+        "codec": "pcm_s16be",
+        "decoded": true
+      },
+      {
+        "file": "sample.wma",
+        "codec": "wmav2",
+        "decoded": true
+      },
+      {
+        "file": "sample.caf",
+        "codec": "pcm_s16le",
+        "decoded": true
+      },
+      {
+        "file": "sample.mka",
+        "codec": "flac",
+        "decoded": true
+      },
+      {
+        "file": "sample.alac.m4a",
+        "codec": "alac",
+        "decoded": true
+      }
+    ],
+    "analysis-report": [
+      {
+        "file": "sample.aac",
+        "candidates": [
+          {
+            "start": 1.3199999999999998,
+            "end": 6.04,
+            "speech_seconds": 4.288,
+            "duration_seconds": 4.720000000000001
+          },
+          {
+            "start": 7.08,
+            "end": 9.687999999999999,
+            "speech_seconds": 2.368,
+            "duration_seconds": 2.6079999999999988
+          }
+        ]
+      },
+      {
+        "file": "sample.aiff",
+        "candidates": [
+          {
+            "start": 1.2560000000000002,
+            "end": 6.008,
+            "speech_seconds": 4.32,
+            "duration_seconds": 4.752
+          },
+          {
+            "start": 7.048,
+            "end": 9.655999999999999,
+            "speech_seconds": 2.368,
+            "duration_seconds": 2.6079999999999988
+          }
+        ]
+      },
+      {
+        "file": "sample.alac.m4a",
+        "candidates": [
+          {
+            "start": 1.2560000000000002,
+            "end": 6.008,
+            "speech_seconds": 4.32,
+            "duration_seconds": 4.752
+          },
+          {
+            "start": 7.048,
+            "end": 9.655999999999999,
+            "speech_seconds": 2.368,
+            "duration_seconds": 2.6079999999999988
+          }
+        ]
+      },
+      {
+        "file": "sample.caf",
+        "candidates": [
+          {
+            "start": 1.2560000000000002,
+            "end": 6.008,
+            "speech_seconds": 4.32,
+            "duration_seconds": 4.752
+          },
+          {
+            "start": 7.048,
+            "end": 9.655999999999999,
+            "speech_seconds": 2.368,
+            "duration_seconds": 2.6079999999999988
+          }
+        ]
+      },
+      {
+        "file": "sample.flac",
+        "candidates": [
+          {
+            "start": 1.2560000000000002,
+            "end": 6.008,
+            "speech_seconds": 4.32,
+            "duration_seconds": 4.752
+          },
+          {
+            "start": 7.048,
+            "end": 9.655999999999999,
+            "speech_seconds": 2.368,
+            "duration_seconds": 2.6079999999999988
+          }
+        ]
+      },
+      {
+        "file": "sample.m4a",
+        "candidates": [
+          {
+            "start": 1.2560000000000002,
+            "end": 6.008,
+            "speech_seconds": 4.32,
+            "duration_seconds": 4.752
+          },
+          {
+            "start": 7.048,
+            "end": 9.655999999999999,
+            "speech_seconds": 2.368,
+            "duration_seconds": 2.6079999999999988
+          }
+        ]
+      },
+      {
+        "file": "sample.mka",
+        "candidates": [
+          {
+            "start": 1.2560000000000002,
+            "end": 6.008,
+            "speech_seconds": 4.32,
+            "duration_seconds": 4.752
+          },
+          {
+            "start": 7.048,
+            "end": 9.655999999999999,
+            "speech_seconds": 2.368,
+            "duration_seconds": 2.6079999999999988
+          }
+        ]
+      },
+      {
+        "file": "sample.mp3",
+        "candidates": [
+          {
+            "start": 1.2560000000000002,
+            "end": 6.008,
+            "speech_seconds": 4.32,
+            "duration_seconds": 4.752
+          },
+          {
+            "start": 7.048,
+            "end": 9.655999999999999,
+            "speech_seconds": 2.368,
+            "duration_seconds": 2.6079999999999988
+          }
+        ]
+      },
+      {
+        "file": "sample.ogg",
+        "candidates": [
+          {
+            "start": 1.2560000000000002,
+            "end": 6.008,
+            "speech_seconds": 4.32,
+            "duration_seconds": 4.752
+          },
+          {
+            "start": 7.048,
+            "end": 9.655999999999999,
+            "speech_seconds": 2.368,
+            "duration_seconds": 2.6079999999999988
+          }
+        ]
+      },
+      {
+        "file": "sample.opus",
+        "candidates": [
+          {
+            "start": 1.2560000000000002,
+            "end": 6.008,
+            "speech_seconds": 4.32,
+            "duration_seconds": 4.752
+          },
+          {
+            "start": 7.048,
+            "end": 9.655999999999999,
+            "speech_seconds": 2.368,
+            "duration_seconds": 2.6079999999999988
+          }
+        ]
+      },
+      {
+        "file": "sample.wav",
+        "candidates": [
+          {
+            "start": 1.2560000000000002,
+            "end": 6.008,
+            "speech_seconds": 4.32,
+            "duration_seconds": 4.752
+          },
+          {
+            "start": 7.048,
+            "end": 9.655999999999999,
+            "speech_seconds": 2.368,
+            "duration_seconds": 2.6079999999999988
+          }
+        ]
+      },
+      {
+        "file": "sample.wma",
+        "candidates": [
+          {
+            "start": 1.1920000000000002,
+            "end": 5.912,
+            "speech_seconds": 4.288,
+            "duration_seconds": 4.72
+          },
+          {
+            "start": 6.952,
+            "end": 9.559999999999999,
+            "speech_seconds": 2.368,
+            "duration_seconds": 2.6079999999999988
+          }
+        ]
+      },
+      {
+        "file": "long-reference.flac",
+        "candidates": [
+          {
+            "start": 31.272,
+            "end": 35.992,
+            "track": 0,
+            "channel": 0,
+            "duration_seconds": 4.719999999999999,
+            "speech_seconds": 4.288,
+            "rms_dbfs": -22.71679791175151,
+            "clipped_fraction": 0.0,
+            "boundary_uncertain": false,
+            "score": 7.01342372881356,
+            "warnings": [
+              "실제 발화가 5초 미만인 짧은 참조입니다. 미리 듣기로 확인해 주세요."
+            ],
+            "vad_analysis_gain_db": 4.404363632202148,
+            "index": 0,
+            "file": "candidate-0.wav"
+          },
+          {
+            "start": 37.064,
+            "end": 39.64,
+            "track": 0,
+            "channel": 0,
+            "duration_seconds": 2.5760000000000005,
+            "speech_seconds": 2.336,
+            "rms_dbfs": -22.740229752074246,
+            "clipped_fraction": 0.0,
+            "boundary_uncertain": false,
+            "score": 5.056496894409937,
+            "warnings": [
+              "실제 발화가 5초 미만인 짧은 참조입니다. 미리 듣기로 확인해 주세요."
+            ],
+            "vad_analysis_gain_db": 4.404363632202148,
+            "index": 1,
+            "file": "candidate-1.wav"
+          }
+        ]
+      }
+    ]
+  },
+  "checks": {
+    "lifecycle-proof": {
+      "job": {
+        "id": "e86db44881304d5e9af4ff16e581154f",
+        "session_id": "chat-1792815175274227030",
+        "request": {
+          "session_id": "chat-1792815175274227030",
+          "action": "generate",
+          "name": "",
+          "scope": "temporary",
+          "voice_id": null,
+          "revision": null,
+          "target_voice_id": null,
+          "text": "Hello. This is a temporary voice sample.",
+          "instructions": "",
+          "source_attachment": {
+            "id": "e608517c02bfd856721c5e13e7317ae9",
+            "name": "LJ001-0001.wav",
+            "mime": "audio/wav",
+            "size": 425830,
+            "url": "/api/files/e608517c02bfd856721c5e13e7317ae9/LJ001-0001.wav?type=audio%2Fwav",
+            "source_url": "https://raw.githubusercontent.com/coqui-ai/TTS/dev/tests/data/ljspeech/wavs/LJ001-0001.wav",
+            "source_audio_format": "wav"
+          },
+          "source_url": "https://raw.githubusercontent.com/coqui-ai/TTS/dev/tests/data/ljspeech/wavs/LJ001-0001.wav",
+          "source_name": "LJ001-0001.wav",
+          "source_mime": "audio/wav",
+          "source_sha256": "4d2bd83ff0f7fe33491b03193abdf623f1b4cc2d8103972b33638d3607d86dc5",
+          "start": null,
+          "end": null,
+          "track": null,
+          "channel": null,
+          "transcript": "",
+          "candidate": null,
+          "source_job_id": "",
+          "idempotency_key": "d9b72ab22aae727b3d2a3673d7b04d61cb48b1ef62993c9b1ce795088269d92a"
+        },
+        "status": "completed",
+        "stage": "음성 준비 완료 · 대화 게시 대기",
+        "progress": 100.0,
+        "result": {
+          "committed_revision": 1,
+          "committed_voice_id": "voice_1b1765ddb1ef4922af04e2e670880939",
+          "source": {
+            "duration_seconds": 9.655011,
+            "format": "wav",
+            "streams": [
+              {
+                "index": 0,
+                "codec": "pcm_s16le",
+                "sample_rate": 22050,
+                "channels": 1,
+                "language": ""
+              }
+            ],
+            "bytes": 425830
+          },
+          "source_attachment": {
+            "id": "e608517c02bfd856721c5e13e7317ae9",
+            "name": "LJ001-0001.wav",
+            "mime": "audio/wav",
+            "size": 425830,
+            "url": "/api/files/e608517c02bfd856721c5e13e7317ae9/LJ001-0001.wav?type=audio%2Fwav",
+            "source_url": "https://raw.githubusercontent.com/coqui-ai/TTS/dev/tests/data/ljspeech/wavs/LJ001-0001.wav",
+            "source_audio_format": "wav"
+          },
+          "source_url": "https://raw.githubusercontent.com/coqui-ai/TTS/dev/tests/data/ljspeech/wavs/LJ001-0001.wav",
+          "candidates": [
+            {
+              "start": 0.136,
+              "end": 9.6550625,
+              "track": 0,
+              "channel": 0,
+              "duration_seconds": 9.5190625,
+              "speech_seconds": 8.832,
+              "rms_dbfs": -20.44878752194398,
+              "clipped_fraction": 0.0,
+              "boundary_uncertain": false,
+              "score": 11.615467384524475,
+              "warnings": [],
+              "vad_analysis_gain_db": 0.0,
+              "index": 0,
+              "file": "candidate-0.wav",
+              "transcript": "In the only sense with which we are at present concerned differs from most if not from all the arts and crafts represented in the exhibition",
+              "language": "auto",
+              "diarization_status": "completed",
+              "speaker_count": 1,
+              "speaker_turns": [
+                {
+                  "start": 1.44,
+                  "end": 9.36,
+                  "speakers": [
+                    1
+                  ],
+                  "text": "In the only sense with which we are at present concerned differs from most if not from all the arts and crafts represented in the exhibition"
+                }
+              ],
+              "overlapping": false
+            }
+          ],
+          "files": [
+            {
+              "file": "reference.wav",
+              "name": "사용한 참조 구간.wav",
+              "sha256": "c3b185660361f7e66a685fec87ecf1dce5501fa4550b7a8ecd9870d28639b3b1",
+              "bytes": 839654
+            },
+            {
+              "file": "output.wav",
+              "name": "생성 음성.wav",
+              "sha256": "7155219f0de6b635b4432f8c40e3f12267f7f2c877cfe23b9159f431650ec883",
+              "bytes": 302640
+            }
+          ],
+          "staged_voice_id": "voice_1b1765ddb1ef4922af04e2e670880939",
+          "reference": {
+            "start": 0.136,
+            "end": 9.6550625,
+            "track": 0,
+            "channel": 0,
+            "duration_seconds": 9.5190625,
+            "speech_seconds": 8.832,
+            "rms_dbfs": -20.44878752194398,
+            "clipped_fraction": 0.0,
+            "boundary_uncertain": false,
+            "score": 11.615467384524475,
+            "warnings": [
+              "원본 전체의 화자 동일성을 확인한 결과는 아닙니다. 후보 안의 화자 정보만 사용했습니다."
+            ],
+            "vad_analysis_gain_db": 0.0,
+            "index": 0,
+            "file": "reference.wav",
+            "transcript": "In the only sense with which we are at present concerned differs from most if not from all the arts and crafts represented in the exhibition",
+            "language": "auto",
+            "diarization_status": "completed",
+            "speaker_count": 1,
+            "speaker_turns": [
+              {
+                "start": 1.44,
+                "end": 9.36,
+                "speakers": [
+                  1
+                ],
+                "text": "In the only sense with which we are at present concerned differs from most if not from all the arts and crafts represented in the exhibition"
+              }
+            ],
+            "overlapping": false,
+            "source_sha256": "4d2bd83ff0f7fe33491b03193abdf623f1b4cc2d8103972b33638d3607d86dc5",
+            "source_name": "LJ001-0001.wav",
+            "source_attachment": {
+              "id": "e608517c02bfd856721c5e13e7317ae9",
+              "name": "LJ001-0001.wav",
+              "mime": "audio/wav",
+              "size": 425830,
+              "url": "/api/files/e608517c02bfd856721c5e13e7317ae9/LJ001-0001.wav?type=audio%2Fwav",
+              "source_url": "https://raw.githubusercontent.com/coqui-ai/TTS/dev/tests/data/ljspeech/wavs/LJ001-0001.wav",
+              "source_audio_format": "wav"
+            },
+            "source_url": "https://raw.githubusercontent.com/coqui-ai/TTS/dev/tests/data/ljspeech/wavs/LJ001-0001.wav",
+            "transcript_source": "asr",
+            "job_id": "e86db44881304d5e9af4ff16e581154f",
+            "sha256": "c3b185660361f7e66a685fec87ecf1dce5501fa4550b7a8ecd9870d28639b3b1"
+          },
+          "warnings": [
+            "원본 전체의 화자 동일성을 확인한 결과는 아닙니다. 후보 안의 화자 정보만 사용했습니다."
+          ],
+          "voice": {
+            "id": "voice_1b1765ddb1ef4922af04e2e670880939",
+            "name": "임시 음성",
+            "kind": "custom",
+            "scope": "temporary",
+            "revision": 1,
+            "status": "ready",
+            "reference_sha256": "c3b185660361f7e66a685fec87ecf1dce5501fa4550b7a8ecd9870d28639b3b1",
+            "reference_source": "사용자가 제공한 음성 샘플",
+            "expires_at": 1792902857.9562342,
+            "warnings": [
+              "원본 전체의 화자 동일성을 확인한 결과는 아닙니다. 후보 안의 화자 정보만 사용했습니다."
+            ]
+          },
+          "voice_id": "voice_1b1765ddb1ef4922af04e2e670880939",
+          "generation": {
+            "fingerprint": "e1e33aab33e43304c480f5d4ccecd23cd0e3a41ccffcd1ac0987ba770fa1394b",
+            "sha256": "7155219f0de6b635b4432f8c40e3f12267f7f2c877cfe23b9159f431650ec883",
+            "generation": {
+              "duration": 3.430793650793651,
+              "records": [
+                {
+                  "sentence": "Hello.",
+                  "attempt": 1,
+                  "accepted": true,
+                  "rejection_reasons": [],
+                  "generation_seconds": 0.8890947540057823,
+                  "duration_seconds": 0.7430385487528345,
+                  "longest_internal_silence": 0.0,
+                  "voiced_seconds": 0.72,
+                  "hit_cap": false,
+                  "trailing_silence_seconds": 0.023038548752834467,
+                  "activity_threshold_dbfs": -60.7496694115574,
+                  "trim_start_sample": 0,
+                  "trim_end_sample": 32768
+                },
+                {
+                  "sentence": "This is a temporary voice sample.",
+                  "attempt": 1,
+                  "accepted": true,
+                  "rejection_reasons": [],
+                  "generation_seconds": 1.5086241720127873,
+                  "duration_seconds": 2.507755102040816,
+                  "longest_internal_silence": 0.0,
+                  "voiced_seconds": 2.48,
+                  "hit_cap": false,
+                  "trailing_silence_seconds": 0.027755102040816326,
+                  "activity_threshold_dbfs": -64.73402926657215,
+                  "trim_start_sample": 0,
+                  "trim_end_sample": 110592
+                }
+              ],
+              "segments": [
+                {
+                  "text": "Hello.",
+                  "start": 0.0,
+                  "end": 0.7430385487528345
+                },
+                {
+                  "text": "This is a temporary voice sample.",
+                  "start": 0.9230385487528345,
+                  "end": 3.4307936507936505
+                }
+              ],
+              "sample_rate": 44100,
+              "text": "Hello. This is a temporary voice sample.",
+              "spoken_text": "Hello. This is a temporary voice sample.",
+              "native_tags": false,
+              "voice_preset": "voice_1b1765ddb1ef4922af04e2e670880939",
+              "reference_sha256": "c3b185660361f7e66a685fec87ecf1dce5501fa4550b7a8ecd9870d28639b3b1",
+              "reference_revision": 1
+            },
+            "attempt": 1,
+            "file": "output.wav",
+            "text": "Hello. This is a temporary voice sample.",
+            "model_input": "Hello. This is a temporary voice sample.",
+            "validation": {
+              "expected": "Hello. This is a temporary voice sample.",
+              "transcript": "Hello, this is a temporary voice samp",
+              "character_error_rate": 0.0625,
+              "exact": false,
+              "clauses": [
+                {
+                  "text": "Hello",
+                  "coverage": 1.0,
+                  "characters": 5
+                },
+                {
+                  "text": "This is a temporary voice sample",
+                  "coverage": 0.9259259259259259,
+                  "characters": 27
+                }
+              ],
+              "passed": true,
+              "interpretation": "ASR comparison; discrepancies may be recognition errors, not proven omissions.",
+              "audio_sha256": "7155219f0de6b635b4432f8c40e3f12267f7f2c877cfe23b9159f431650ec883",
+              "asr": {
+                "words": [
+                  {
+                    "word": "Hello,",
+                    "start": 1.28,
+                    "end": 1.52
+                  },
+                  {
+                    "word": "this",
+                    "start": 1.92,
+                    "end": 2
+                  },
+                  {
+                    "word": "is",
+                    "start": 2.08,
+                    "end": 2.16
+                  },
+                  {
+                    "word": "a",
+                    "start": 2.16,
+                    "end": 2.24
+                  },
+                  {
+                    "word": "temporary",
+                    "start": 2.32,
+                    "end": 2.72
+                  },
+                  {
+                    "word": "voice",
+                    "start": 2.88,
+                    "end": 3.2
+                  },
+                  {
+                    "word": "samp",
+                    "start": 3.28,
+                    "end": 3.52
+                  }
+                ],
+                "turns": [
+                  {
+                    "start": 1.28,
+                    "end": 3.52,
+                    "speakers": [
+                      1
+                    ],
+                    "text": "Hello, this is a temporary voice samp"
+                  }
+                ],
+                "diarization_status": "completed",
+                "text": "Hello, this is a temporary voice samp",
+                "language": "auto"
+              }
+            },
+            "requested_instructions": "",
+            "reference_revision": 1,
+            "tag_effect_verified": false
+          },
+          "registered": false,
+          "temporary": true,
+          "limitations": [
+            "샘플 참조 방식이며 모델을 재학습하지 않습니다.",
+            "대사 검사와 감정·음색의 주관적 품질은 다른 항목입니다.",
+            "일회성 참조의 정리와 대화 원본·생성 파일의 보관은 별개입니다."
+          ]
+        },
+        "error": "",
+        "canceled": 0,
+        "version": 1,
+        "published_version": 1,
+        "created": 1792815439.1408918,
+        "updated": 1792816457.9593022,
+        "idempotency_key": "d9b72ab22aae727b3d2a3673d7b04d61cb48b1ef62993c9b1ce795088269d92a",
+        "delivery_pending": false
+      },
+      "cross_session_inspect_status": 422,
+      "renamed": {
+        "voice_id": "voice_1b1765ddb1ef4922af04e2e670880939",
+        "name": "URL 임시 음성 검증",
+        "scope": "temporary",
+        "status": "ready",
+        "existing_outputs_preserved": true
+      },
+      "promoted": {
+        "voice_id": "voice_1b1765ddb1ef4922af04e2e670880939",
+        "name": "URL 영구 전환 검증",
+        "scope": "persistent",
+        "status": "ready",
+        "existing_outputs_preserved": true
+      },
+      "deleted": {
+        "voice_id": "voice_1b1765ddb1ef4922af04e2e670880939",
+        "name": "URL 영구 전환 검증",
+        "scope": "persistent",
+        "status": "deleted",
+        "existing_outputs_preserved": true
+      },
+      "output_survives_delete_bytes": 302640
+    },
+    "revision-proof": {
+      "before": {
+        "id": "voice_d96208ac1bec4261aa99d6bd0efe7a4a",
+        "name": "검증용 소희 참조",
+        "kind": "custom",
+        "scope": "persistent",
+        "revision": 1,
+        "status": "ready",
+        "reference_sha256": "7e3da69a9e5e32675be4e0c4668d3086ec03baef148956876e7e8b68cb1a14d6",
+        "reference_source": "사용자가 제공한 음성 샘플",
+        "expires_at": null,
+        "warnings": [
+          "실제 발화가 5초 미만인 짧은 참조입니다. 미리 듣기로 확인해 주세요.",
+          "원본 전체의 화자 동일성을 확인한 결과는 아닙니다. 후보 안의 화자 정보만 사용했습니다."
+        ]
+      },
+      "after": {
+        "id": "494a188bfd6d44ebad75d6cff662c450",
+        "session_id": "chat-1792814674123604091",
+        "request": {
+          "session_id": "chat-1792814674123604091",
+          "action": "prepare",
+          "name": "검증용 소희 참조",
+          "scope": "persistent",
+          "voice_id": null,
+          "revision": null,
+          "target_voice_id": "voice_d96208ac1bec4261aa99d6bd0efe7a4a",
+          "text": "",
+          "instructions": "",
+          "source_attachment": {},
+          "source_url": "",
+          "source_name": "",
+          "source_mime": "",
+          "source_sha256": "",
+          "start": 1.0,
+          "end": 9.9,
+          "track": null,
+          "channel": null,
+          "transcript": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어 주세요.",
+          "candidate": null,
+          "source_job_id": "c3594c3c743e4f12ab8f6cd8b1492ce2",
+          "idempotency_key": "verify-reference-range-revision-2"
+        },
+        "status": "completed",
+        "stage": "음성 준비 완료 · 대화 게시 대기",
+        "progress": 100.0,
+        "result": {
+          "committed_revision": 2,
+          "committed_voice_id": "voice_d96208ac1bec4261aa99d6bd0efe7a4a",
+          "source": {
+            "duration_seconds": 10.4,
+            "format": "flac",
+            "streams": [
+              {
+                "index": 0,
+                "codec": "flac",
+                "sample_rate": 24000,
+                "channels": 1,
+                "language": ""
+              }
+            ],
+            "bytes": 215637
+          },
+          "source_attachment": {},
+          "source_url": "",
+          "candidates": [
+            {
+              "start": 1.0,
+              "end": 9.9,
+              "track": 0,
+              "channel": 0,
+              "duration_seconds": 8.9,
+              "speech_seconds": 6.5920000000000005,
+              "rms_dbfs": -23.58810169401492,
+              "clipped_fraction": 0.0,
+              "boundary_uncertain": false,
+              "score": 8.814022471910114,
+              "warnings": [],
+              "vad_analysis_gain_db": 4.404363632202148,
+              "index": 0,
+              "file": "candidate-0.wav",
+              "transcript": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어주세요.",
+              "language": "ko-KR",
+              "diarization_status": "completed",
+              "speaker_count": 1,
+              "speaker_turns": [
+                {
+                  "start": 0.72,
+                  "end": 4.8,
+                  "speakers": [
+                    1
+                  ],
+                  "text": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다."
+                },
+                {
+                  "start": 6.4,
+                  "end": 8.56,
+                  "speakers": [
+                    1
+                  ],
+                  "text": "편안한 마음으로 끝까지 들어주세요."
+                }
+              ],
+              "overlapping": false
+            }
+          ],
+          "files": [
+            {
+              "file": "reference.wav",
+              "name": "사용한 참조 구간.wav",
+              "sha256": "b1801d0a1be0fe67de8ef8c09f56657f2c2d361dcb8d2dd909d0bb240a7d8885",
+              "bytes": 785058
+            },
+            {
+              "file": "preview.wav",
+              "name": "등록 미리 듣기.wav",
+              "sha256": "c09b3e27bd582e026d6cdd466949091755b0cc550b314e26121006c9f5427bc6",
+              "bytes": 335408
+            }
+          ],
+          "staged_voice_id": "voice_04d9d31b16ad4ae392e8de9174e0dea6",
+          "reference": {
+            "start": 1.0,
+            "end": 9.9,
+            "track": 0,
+            "channel": 0,
+            "duration_seconds": 8.9,
+            "speech_seconds": 6.5920000000000005,
+            "rms_dbfs": -23.58810169401492,
+            "clipped_fraction": 0.0,
+            "boundary_uncertain": false,
+            "score": 8.814022471910114,
+            "warnings": [
+              "원본 전체의 화자 동일성을 확인한 결과는 아닙니다. 후보 안의 화자 정보만 사용했습니다."
+            ],
+            "vad_analysis_gain_db": 4.404363632202148,
+            "index": 0,
+            "file": "reference.wav",
+            "transcript": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어 주세요.",
+            "language": "ko-KR",
+            "diarization_status": "completed",
+            "speaker_count": 1,
+            "speaker_turns": [
+              {
+                "start": 0.72,
+                "end": 4.8,
+                "speakers": [
+                  1
+                ],
+                "text": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다."
+              },
+              {
+                "start": 6.4,
+                "end": 8.56,
+                "speakers": [
+                  1
+                ],
+                "text": "편안한 마음으로 끝까지 들어주세요."
+              }
+            ],
+            "overlapping": false,
+            "source_sha256": "c8da5ed498d3fffb852d6c5bb239aa10ea92bd9536da9fdeb69da7111ea93cf2",
+            "source_name": "",
+            "source_attachment": {},
+            "source_url": "",
+            "transcript_source": "user",
+            "job_id": "494a188bfd6d44ebad75d6cff662c450",
+            "sha256": "b1801d0a1be0fe67de8ef8c09f56657f2c2d361dcb8d2dd909d0bb240a7d8885"
+          },
+          "warnings": [
+            "원본 전체의 화자 동일성을 확인한 결과는 아닙니다. 후보 안의 화자 정보만 사용했습니다."
+          ],
+          "voice": {
+            "id": "voice_d96208ac1bec4261aa99d6bd0efe7a4a",
+            "name": "검증용 소희 참조",
+            "kind": "custom",
+            "scope": "persistent",
+            "revision": 2,
+            "status": "ready",
+            "reference_sha256": "b1801d0a1be0fe67de8ef8c09f56657f2c2d361dcb8d2dd909d0bb240a7d8885",
+            "reference_source": "사용자가 제공한 음성 샘플",
+            "expires_at": null,
+            "warnings": [
+              "원본 전체의 화자 동일성을 확인한 결과는 아닙니다. 후보 안의 화자 정보만 사용했습니다."
+            ]
+          },
+          "voice_id": "voice_d96208ac1bec4261aa99d6bd0efe7a4a",
+          "generation": {
+            "fingerprint": "28ca71f92e993653bda4a121b3c1fc0a076ac23054252a53b94756ecaed29248",
+            "sha256": "c09b3e27bd582e026d6cdd466949091755b0cc550b314e26121006c9f5427bc6",
+            "generation": {
+              "duration": 3.8023129251700682,
+              "records": [
+                {
+                  "sentence": "안녕하세요.",
+                  "attempt": 1,
+                  "accepted": true,
+                  "rejection_reasons": [],
+                  "generation_seconds": 0.879155003989581,
+                  "duration_seconds": 0.8823582766439909,
+                  "longest_internal_silence": 0.0,
+                  "voiced_seconds": 0.84,
+                  "hit_cap": false,
+                  "trailing_silence_seconds": 0.04235827664399093,
+                  "activity_threshold_dbfs": -68.01282536271182,
+                  "trim_start_sample": 0,
+                  "trim_end_sample": 38912
+                },
+                {
+                  "sentence": "이 목소리로 새로운 이야기를 전해 드립니다.",
+                  "attempt": 1,
+                  "accepted": true,
+                  "rejection_reasons": [],
+                  "generation_seconds": 1.5739475750015117,
+                  "duration_seconds": 2.7399546485260773,
+                  "longest_internal_silence": 0.02,
+                  "voiced_seconds": 2.58,
+                  "hit_cap": false,
+                  "trailing_silence_seconds": 0.1199546485260771,
+                  "activity_threshold_dbfs": -69.70687151474836,
+                  "trim_start_sample": 0,
+                  "trim_end_sample": 120832
+                }
+              ],
+              "segments": [
+                {
+                  "text": "안녕하세요.",
+                  "start": 0.0,
+                  "end": 0.8823582766439909
+                },
+                {
+                  "text": "이 목소리로 새로운 이야기를 전해 드립니다.",
+                  "start": 1.062358276643991,
+                  "end": 3.8023129251700682
+                }
+              ],
+              "sample_rate": 44100,
+              "text": "안녕하세요. 이 목소리로 새로운 이야기를 전해 드립니다.",
+              "spoken_text": "안녕하세요. 이 목소리로 새로운 이야기를 전해 드립니다.",
+              "native_tags": false,
+              "voice_preset": "voice_04d9d31b16ad4ae392e8de9174e0dea6",
+              "reference_sha256": "b1801d0a1be0fe67de8ef8c09f56657f2c2d361dcb8d2dd909d0bb240a7d8885",
+              "reference_revision": 1
+            },
+            "attempt": 1,
+            "file": "preview.wav",
+            "text": "안녕하세요. 이 목소리로 새로운 이야기를 전해 드립니다.",
+            "model_input": "안녕하세요. 이 목소리로 새로운 이야기를 전해 드립니다.",
+            "validation": {
+              "expected": "안녕하세요. 이 목소리로 새로운 이야기를 전해 드립니다.",
+              "transcript": "안녕하세요. 이 목소리로 새로운 이야기를 전해드립니다.",
+              "character_error_rate": 0.0,
+              "exact": true,
+              "clauses": [
+                {
+                  "text": "안녕하세요",
+                  "coverage": 1.0,
+                  "characters": 5
+                },
+                {
+                  "text": "이 목소리로 새로운 이야기를 전해 드립니다",
+                  "coverage": 1.0,
+                  "characters": 18
+                }
+              ],
+              "passed": true,
+              "interpretation": "ASR comparison; discrepancies may be recognition errors, not proven omissions.",
+              "audio_sha256": "c09b3e27bd582e026d6cdd466949091755b0cc550b314e26121006c9f5427bc6",
+              "asr": {
+                "words": [
+                  {
+                    "word": "안녕하세요.",
+                    "start": 0.32,
+                    "end": 0.8
+                  },
+                  {
+                    "word": "이",
+                    "start": 1.28,
+                    "end": 1.36
+                  },
+                  {
+                    "word": "목소리로",
+                    "start": 1.6,
+                    "end": 2.08
+                  },
+                  {
+                    "word": "새로운",
+                    "start": 2.24,
+                    "end": 2.56
+                  },
+                  {
+                    "word": "이야기를",
+                    "start": 2.64,
+                    "end": 3.04
+                  },
+                  {
+                    "word": "전해드립니다.",
+                    "start": 3.2,
+                    "end": 3.6
+                  }
+                ],
+                "turns": [
+                  {
+                    "start": 0.32,
+                    "end": 3.6,
+                    "speakers": [
+                      1
+                    ],
+                    "text": "안녕하세요. 이 목소리로 새로운 이야기를 전해드립니다."
+                  }
+                ],
+                "diarization_status": "completed",
+                "text": "안녕하세요. 이 목소리로 새로운 이야기를 전해드립니다.",
+                "language": "ko-KR"
+              }
+            },
+            "requested_instructions": "",
+            "reference_revision": 1,
+            "tag_effect_verified": false
+          },
+          "registered": true,
+          "temporary": false,
+          "limitations": [
+            "샘플 참조 방식이며 모델을 재학습하지 않습니다.",
+            "대사 검사와 감정·음색의 주관적 품질은 다른 항목입니다.",
+            "일회성 참조의 정리와 대화 원본·생성 파일의 보관은 별개입니다."
+          ]
+        },
+        "error": "",
+        "canceled": 0,
+        "version": 1,
+        "published_version": 1,
+        "created": 1792815244.2274013,
+        "updated": 1792815768.9478962,
+        "idempotency_key": "verify-reference-range-revision-2",
+        "delivery_pending": false
+      },
+      "old_reference_unchanged": true
+    },
+    "video-proof": {
+      "source": "bfab09ae97c24943b1f1d33271a7eabc",
+      "new_job": "bdd6cb66a7a34d1e840a53628cee5a69",
+      "original_files_unchanged": 41,
+      "words_and_artwork_unchanged": true,
+      "voice_revision": 1,
+      "quality": {
+        "passed": true,
+        "applied": {
+          "duration_seconds": 15.0,
+          "scene_count": 2,
+          "scene_kinds": [
+            "typography",
+            "typography"
+          ],
+          "template": {
+            "template_sha256": "39e409eb0beafbb3759764d304036c6f0762332ef15391985499b8b9410b0430",
+            "author": "local_model",
+            "name": "Voice Atmosphere Comparison (Fixed)"
+          },
+          "template_id": "",
+          "design_mode": "preserve",
+          "headline": {
+            "mode": "opening",
+            "text": "같은 말,\n다른 온도",
+            "duration_seconds": 3.5,
+            "min_font_px": 64,
+            "max_lines": 2,
+            "safe_left": 0.08,
+            "safe_right": 0.86,
+            "safe_top": 0.1,
+            "safe_bottom": 0.9
+          },
+          "headline_styles": [
+            {
+              "text": "같은 말,다른 온도",
+              "font_family": "\"Noto Sans CJK KR\", sans-serif",
+              "font_size": 68,
+              "font_weight": "900",
+              "color": "rgb(255, 255, 255)",
+              "background": "rgba(0, 0, 0, 0)",
+              "lines": 2,
+              "x": 58,
+              "y": 256,
+              "width": 562,
+              "height": 196.390625,
+              "opacity": "1"
+            },
+            {
+              "text": "같은 말,다른 온도",
+              "font_family": "\"Noto Sans CJK KR\", sans-serif",
+              "font_size": 68,
+              "font_weight": "900",
+              "color": "rgb(255, 255, 255)",
+              "background": "rgba(0, 0, 0, 0)",
+              "lines": 2,
+              "x": 58,
+              "y": 256,
+              "width": 562,
+              "height": 196.390625,
+              "opacity": "1"
+            },
+            {
+              "text": "같은 말,다른 온도",
+              "font_family": "\"Noto Sans CJK KR\", sans-serif",
+              "font_size": 68,
+              "font_weight": "900",
+              "color": "rgb(255, 255, 255)",
+              "background": "rgba(0, 0, 0, 0)",
+              "lines": 2,
+              "x": 58,
+              "y": 256,
+              "width": 562,
+              "height": 196.390625,
+              "opacity": "1"
+            },
+            {
+              "text": "같은 말,다른 온도",
+              "font_family": "\"Noto Sans CJK KR\", sans-serif",
+              "font_size": 68,
+              "font_weight": "900",
+              "color": "rgb(255, 255, 255)",
+              "background": "rgba(0, 0, 0, 0)",
+              "lines": 2,
+              "x": 58,
+              "y": 256,
+              "width": 562,
+              "height": 196.390625,
+              "opacity": "1"
+            }
+          ],
+          "caption_styles": [
+            {
+              "id": "caption-0-0",
+              "font_family": "\"Noto Sans CJK KR\", sans-serif",
+              "font_size": 42,
+              "color": "rgb(255, 255, 255)",
+              "background": "rgba(0, 0, 0, 0)",
+              "background_before": "rgba(0, 0, 0, 0)",
+              "emphasis_styles": [],
+              "x": 58,
+              "y": 876.8125,
+              "width": 604,
+              "height": 121.1875,
+              "lines": 2,
+              "highlights": 0
+            },
+            {
+              "id": "caption-0-0",
+              "font_family": "\"Noto Sans CJK KR\", sans-serif",
+              "font_size": 42,
+              "color": "rgb(255, 255, 255)",
+              "background": "rgba(0, 0, 0, 0)",
+              "background_before": "rgba(0, 0, 0, 0)",
+              "emphasis_styles": [],
+              "x": 58,
+              "y": 876.8125,
+              "width": 604,
+              "height": 121.1875,
+              "lines": 2,
+              "highlights": 0
+            },
+            {
+              "id": "caption-0-0",
+              "font_family": "\"Noto Sans CJK KR\", sans-serif",
+              "font_size": 42,
+              "color": "rgb(255, 255, 255)",
+              "background": "rgba(0, 0, 0, 0)",
+              "background_before": "rgba(0, 0, 0, 0)",
+              "emphasis_styles": [],
+              "x": 58,
+              "y": 876.8125,
+              "width": 604,
+              "height": 121.1875,
+              "lines": 2,
+              "highlights": 0
+            },
+            {
+              "id": "caption-0-0",
+              "font_family": "\"Noto Sans CJK KR\", sans-serif",
+              "font_size": 42,
+              "color": "rgb(255, 255, 255)",
+              "background": "rgba(0, 0, 0, 0)",
+              "background_before": "rgba(0, 0, 0, 0)",
+              "emphasis_styles": [],
+              "x": 58,
+              "y": 876.8125,
+              "width": 604,
+              "height": 121.1875,
+              "lines": 2,
+              "highlights": 0
+            },
+            {
+              "id": "caption-0-1",
+              "font_family": "\"Noto Sans CJK KR\", sans-serif",
+              "font_size": 42,
+              "color": "rgb(255, 255, 255)",
+              "background": "rgba(0, 0, 0, 0)",
+              "background_before": "rgba(0, 0, 0, 0)",
+              "emphasis_styles": [
+                {
+                  "text": "달라집니다",
+                  "color": "rgb(255, 215, 0)",
+                  "font_weight": "900"
+                }
+              ],
+              "x": 58,
+              "y": 876.8125,
+              "width": 604,
+              "height": 121.1875,
+              "lines": 2,
+              "highlights": 1
+            },
+            {
+              "id": "caption-0-1",
+              "font_family": "\"Noto Sans CJK KR\", sans-serif",
+              "font_size": 42,
+              "color": "rgb(255, 255, 255)",
+              "background": "rgba(0, 0, 0, 0)",
+              "background_before": "rgba(0, 0, 0, 0)",
+              "emphasis_styles": [
+                {
+                  "text": "달라집니다",
+                  "color": "rgb(255, 215, 0)",
+                  "font_weight": "900"
+                }
+              ],
+              "x": 58,
+              "y": 876.8125,
+              "width": 604,
+              "height": 121.1875,
+              "lines": 2,
+              "highlights": 1
+            },
+            {
+              "id": "caption-0-1",
+              "font_family": "\"Noto Sans CJK KR\", sans-serif",
+              "font_size": 42,
+              "color": "rgb(255, 255, 255)",
+              "background": "rgba(0, 0, 0, 0)",
+              "background_before": "rgba(0, 0, 0, 0)",
+              "emphasis_styles": [
+                {
+                  "text": "달라집니다",
+                  "color": "rgb(255, 215, 0)",
+                  "font_weight": "900"
+                }
+              ],
+              "x": 58,
+              "y": 876.8125,
+              "width": 604,
+              "height": 121.1875,
+              "lines": 2,
+              "highlights": 1
+            },
+            {
+              "id": "caption-1-0",
+              "font_family": "\"Noto Sans CJK KR\", sans-serif",
+              "font_size": 42,
+              "color": "rgb(255, 255, 255)",
+              "background": "rgba(0, 0, 0, 0)",
+              "background_before": "rgba(0, 0, 0, 0)",
+              "emphasis_styles": [],
+              "x": 58,
+              "y": 876.8125,
+              "width": 604,
+              "height": 121.1875,
+              "lines": 2,
+              "highlights": 0
+            }
+          ],
+          "voice_preset": "voice_d96208ac1bec4261aa99d6bd0efe7a4a",
+          "voice_speed": 1.0,
+          "sentence_pause": 0.25,
+          "narration_seconds": 13.274421768707484,
+          "narration_coverage": 0.8849614512471656,
+          "longest_narration_gap": 1.04,
+          "music_kind": "none",
+          "music_gain": 0.12,
+          "music": {
+            "kind": "none",
+            "notes": [],
+            "source": "None"
+          },
+          "animation_assets": []
+        },
+        "verification": {
+          "browser_layout": true,
+          "animation_visible_pixels": [],
+          "visual_review": {
+            "passed": true,
+            "issues": [],
+            "summary": "Original approved artwork, scene inputs and text are unchanged. Fresh browser layout/media/caption timing checks passed for this voice revision.",
+            "reused_from": "bfab09ae97c24943b1f1d33271a7eabc",
+            "scope": "Unchanged source visual review reused; new output timing audited in the browser."
+          },
+          "speech_coverage": true,
+          "narration_track": {
+            "duration_seconds": 15.0,
+            "longest_internal_silence": 1.04,
+            "trailing_silence_seconds": 0.72,
+            "activity_threshold_dbfs": -60.0,
+            "trim_start_sample": 0,
+            "trim_end_sample": 635040,
+            "energy_active_seconds": 12.06
+          },
+          "duration_fit": {
+            "status": "fit",
+            "narration_seconds": 13.274421768707484,
+            "duration_seconds": 15,
+            "narration_coverage": 0.8849614512471656,
+            "desired_narration_seconds": 13.9,
+            "rewrite_length_multiplier": 1.0471265899330715,
+            "explicit_silent_seconds": 0
+          },
+          "caption_timing": "sentence timestamps with proportional phrase timing",
+          "final_file": {
+            "duration": "15.000000",
+            "frames": "360",
+            "audio": true
+          }
+        },
+        "limitations": [
+          "No external media assets used per brief.",
+          "Emphasis relies on color and scale changes within the existing DOM structure."
+        ],
+        "speech": [
+          {
+            "character_error_rate": 0,
+            "expected": "같은 문장이라도, 어떤 목소리로 읽느냐에 따라 청자가 받는 느낌은 완전히 달라집니다.",
+            "passed": true,
+            "transcript": "같은 문장이라도 어떤 목소리로 읽느냐에 따라 청자가 받는 느낌은 완전히 달라집니다.",
+            "fingerprint": "8989a8f51800d390585ecab0511b60153eb2e8f544b558fe3441e38468c16892"
+          },
+          {
+            "character_error_rate": 0,
+            "expected": "따뜻한 목소리는 편안함을, 낮은 목소리는 신뢰감을 줍니다. 목소리 하나가 전체 분위기를 결정합니다.",
+            "passed": true,
+            "transcript": "따뜻한 목소리는 편안함을 낮은 목소리는 신뢰감을 줍니다. 목소리 하나가 전체 분위기를 결정합니다.",
+            "fingerprint": "321e52162670c911680c3d06d05ed2b296c8a3cb9821f88a2d8ef171ad112bc4"
+          }
+        ],
+        "elapsed_seconds": 361.64687660499476,
+        "duration": "15.000000",
+        "width": 720,
+        "height": 1280,
+        "fps": "24/1"
+      },
+      "speech": {
+        "items": [
+          {
+            "duration": 5.972947845804988,
+            "records": [
+              {
+                "sentence": "같은 문장이라도, 어떤 목소리로 읽느냐에 따라 청자가 받는 느낌은 완전히 달라집니다.",
+                "attempt": 1,
+                "accepted": true,
+                "rejection_reasons": [],
+                "generation_seconds": 3.3714662029524334,
+                "duration_seconds": 5.990748299319728,
+                "longest_internal_silence": 0.06,
+                "voiced_seconds": 5.56,
+                "hit_cap": false,
+                "trailing_silence_seconds": 0.1307482993197279,
+                "activity_threshold_dbfs": -67.38317823813561,
+                "trim_start_sample": 0,
+                "trim_end_sample": 263718
+              }
+            ],
+            "segments": [
+              {
+                "text": "같은 문장이라도, 어떤 목소리로 읽느냐에 따라 청자가 받는 느낌은 완전히 달라집니다.",
+                "start": 0.0,
+                "end": 5.972947845804988
+              }
+            ],
+            "sample_rate": 44100,
+            "text": "같은 문장이라도, 어떤 목소리로 읽느냐에 따라 청자가 받는 느낌은 완전히 달라집니다.",
+            "spoken_text": "같은 문장이라도, 어떤 목소리로 읽느냐에 따라 청자가 받는 느낌은 완전히 달라집니다.",
+            "native_tags": false,
+            "voice_preset": "voice_d96208ac1bec4261aa99d6bd0efe7a4a",
+            "reference_sha256": "7e3da69a9e5e32675be4e0c4668d3086ec03baef148956876e7e8b68cb1a14d6",
+            "reference_revision": 1,
+            "raw_duration": 5.98,
+            "speed": 1.0,
+            "native_gain_preserved": false,
+            "fingerprint": "8989a8f51800d390585ecab0511b60153eb2e8f544b558fe3441e38468c16892"
+          },
+          {
+            "duration": 7.3014739229024945,
+            "records": [
+              {
+                "sentence": "따뜻한 목소리는 편안함을, 낮은 목소리는 신뢰감을 줍니다.",
+                "attempt": 1,
+                "accepted": true,
+                "rejection_reasons": [],
+                "generation_seconds": 2.342365227988921,
+                "duration_seconds": 4.272471655328798,
+                "longest_internal_silence": 0.3,
+                "voiced_seconds": 3.78,
+                "hit_cap": false,
+                "trailing_silence_seconds": 0.07247165532879818,
+                "activity_threshold_dbfs": -64.88636196846917,
+                "trim_start_sample": 0,
+                "trim_end_sample": 188416
+              },
+              {
+                "sentence": "목소리 하나가 전체 분위기를 결정합니다.",
+                "attempt": 1,
+                "accepted": true,
+                "rejection_reasons": [],
+                "generation_seconds": 1.5868845080258325,
+                "duration_seconds": 2.786394557823129,
+                "longest_internal_silence": 0.12,
+                "voiced_seconds": 2.64,
+                "hit_cap": false,
+                "trailing_silence_seconds": 0.006394557823129252,
+                "activity_threshold_dbfs": -65.65148627887405,
+                "trim_start_sample": 0,
+                "trim_end_sample": 122880
+              }
+            ],
+            "segments": [
+              {
+                "text": "따뜻한 목소리는 편안함을, 낮은 목소리는 신뢰감을 줍니다.",
+                "start": 0.0,
+                "end": 4.268150417309441
+              },
+              {
+                "text": "목소리 하나가 전체 분위기를 결정합니다.",
+                "start": 4.517897563787641,
+                "end": 7.301473922902494
+              }
+            ],
+            "sample_rate": 44100,
+            "text": "따뜻한 목소리는 편안함을, 낮은 목소리는 신뢰감을 줍니다. 목소리 하나가 전체 분위기를 결정합니다.",
+            "spoken_text": "따뜻한 목소리는 편안함을, 낮은 목소리는 신뢰감을 줍니다. 목소리 하나가 전체 분위기를 결정합니다.",
+            "native_tags": false,
+            "voice_preset": "voice_d96208ac1bec4261aa99d6bd0efe7a4a",
+            "reference_sha256": "7e3da69a9e5e32675be4e0c4668d3086ec03baef148956876e7e8b68cb1a14d6",
+            "reference_revision": 1,
+            "raw_duration": 7.308866213151927,
+            "speed": 1.0,
+            "native_gain_preserved": false,
+            "fingerprint": "321e52162670c911680c3d06d05ed2b296c8a3cb9821f88a2d8ef171ad112bc4"
+          }
+        ],
+        "voice": {
+          "preset": "voice_d96208ac1bec4261aa99d6bd0efe7a4a",
+          "reference_revision": 1,
+          "instructions": "",
+          "speed": 1.0,
+          "sentence_pause": 0.25,
+          "max_gap_seconds": 1.5,
+          "min_coverage": 0.85,
+          "delivery": "Clear, rhythmic, and engaging delivery to demonstrate the 'atmosphere' of the voice."
+        },
+        "reference_source": "사용자가 제공한 음성 샘플",
+        "reference_sha256": "7e3da69a9e5e32675be4e0c4668d3086ec03baef148956876e7e8b68cb1a14d6",
+        "reference_revision": 1
+      },
+      "served_video_sha256": "6c0876e126254f46c94dd8d4b7209ad7dfe672fdbdee8a81a9b61cac81bbf76c",
+      "visual_review": {
+        "passed": true,
+        "issues": [],
+        "summary": "Original approved artwork, scene inputs and text are unchanged. Fresh browser layout/media/caption timing checks passed for this voice revision.",
+        "reused_from": "bfab09ae97c24943b1f1d33271a7eabc",
+        "scope": "Unchanged source visual review reused; new output timing audited in the browser."
+      },
+      "media_probe": {
+        "duration_seconds": 15,
+        "width": 720,
+        "height": 1280,
+        "frames": 360,
+        "audio": true
+      },
+      "browser_engine": "Google Chrome; bundled Chromium lacks H264 support"
+    },
+    "deployment-proof": {
+      "binary_sha256": "5c52c5aa2c818e7db45ebbbba01a9423b38e41913e9871d34155ac45e418e554",
+      "running_pid": "899704",
+      "worker_files_checked": 51,
+      "worker_sha256": {
+        "/opt/shorts/Dockerfile": "14ed88a59a39b7684510ce2172f9d647fa143c5f07b38197b0be65b433a066aa",
+        "/opt/shorts/api.py": "6cff25656f25683ed22edabf3e1641dbe6800cd6d3ce4d4224b7716d75284a8b",
+        "/opt/shorts/composition.py": "2e2745e15120df4691b921536cb894bd4bf2a640c43fe1f758d12cc1b983e56c",
+        "/opt/shorts/manim_scene.py": "a4f8c091b796edf245e3f206182174a2d019a7868e269a092e2197a80b7e3e97",
+        "/opt/shorts/package.json": "de67eb1c361fd63bf37ee32913f5ba8cc15acde56bc833a7edcbdc8c594aa859",
+        "/opt/shorts/render.py": "15510d9b01a8b0d5dcf844600631a9a84c4423d8c07bbf5ab04d781a0495ef7d",
+        "/opt/shorts/requirements.txt": "f499a682efd4b0de19ef4c634d104024084071be3bc43024c2dfb357251b8b51",
+        "/opt/shorts/speech.py": "fa4325a0997acf75380378b445b13ab8e17d85ac83809fb2bdf89d453db49229",
+        "/opt/shorts/store.py": "77b7465d2c3f5cbaaf525487e7ac23118c17b5dd758b1efa545848ed53b495d7",
+        "/opt/shorts/package-lock.json": "17b408b5a00e57dad73ae61aa6fb53dfac28a8dafa1fd87793b779fdb16cd045",
+        "/opt/shorts/assets.py": "ca9ff473ab261d1e53897374aeb4a05c8c6fc2635c7c3a655672a2a78a3521ad",
+        "/opt/shorts/spec.py": "f00a6d92640e85aa6e3fdb72a97a5dbd34cb9392cde6dce5982cecd16eb96e7b",
+        "/opt/shorts/authoring.py": "3f81d6a8360f2306a07af3aa11638d638e28c88a39341db067d0e188a348bcbe",
+        "/opt/shorts/audit.mjs": "bc4c22807e4ec69b69ce1cf9f2ea2c1697a833dfc9bbca18a010594017d6a7e4",
+        "/opt/shorts/audio_mix.py": "a4acacd646d3ef849ebc0922b682bdb4c04c576a230688aef6d849f649d8ff05",
+        "/opt/shorts/pipeline.py": "261e7aa13073c31abfe686cb68d3563e94e087d0ec2980fdacdd8787f9f8080c",
+        "/opt/shorts/music.py": "74d6d133371cf9e8d6040042ce200e62826523034d95cd35bcf021a4a93a73f2",
+        "/opt/shorts/design_reference.json": "fecf5895e43d65487334579bd325884fc3723a1d8b48c5fed6d19054ab5fe64f",
+        "/opt/shorts/clip_store.py": "26e78ea718038ae9daae2c62f65aefb955115e72997ef9610df9d2906f3a222a",
+        "/opt/shorts/clip_pipeline.py": "457700a49210916718feb0b625e70043ac082929f44589a52346faf13dd1dcff",
+        "/opt/shorts/clip_render.py": "421b3a2a35bbdb156b5cd527d79cc67e012373dfd048c2e795e6a9d7cc5b05d3",
+        "/opt/shorts/voice_catalog.py": "ada388cf82e5c5e7226d10dcb81af06c57a9e9f3d79499a32f70fa277a931fea",
+        "/opt/shorts/voices/catalog.json": "5a0859fbe07b90bc920d1c1ea3059e64b6dde4963496d71c7f17f081b3a598a9",
+        "/opt/shorts/voices/references/vivian.wav": "f44735e7946b1e0a814b42a0490ef546fed23b6f681df0b2d51ef49445c8fa51",
+        "/opt/shorts/voices/references/serena.wav": "3dc211c75942fa96cabd50d8a04de9e7918648a4c6c7a33eae8f02d5d7ded053",
+        "/opt/shorts/voices/references/dylan.wav": "b953fd3f6ccea566b70191ee9d97e86ab97ece222f88e6c7e0eac417699a0277",
+        "/opt/shorts/voices/references/eric.wav": "68f1764619252e83add5dbb51f97b34dd62968eb4290b041d5a36b3102c0d190",
+        "/opt/shorts/voices/references/ryan.wav": "22696d434b6b97d81845c4b19075232801eac1f874c4416c61dc8977722b4d24",
+        "/opt/shorts/voices/references/aiden.wav": "94a35cfcfc57ee1c5c35de85ef98c5b998629f1af6f1adbd40a6f203e4def35c",
+        "/opt/shorts/voices/references/ono_anna.wav": "a4b717d69eb1ca81b31cf0fe59cfb03ce5071b4ffeed699f9f67671db8e8fe37",
+        "/opt/shorts/voices/previews/sohee.wav": "e2873a48c607ceb5977f5eb7a74888d92481e113245718e7889f9e4639528a84",
+        "/opt/shorts/voices/previews/uncle_fu.wav": "95bcf03b22f6618bb5f715d1e738bf08b460a2e67fca9668cf473dd8b0f909f4",
+        "/opt/shorts/voices/previews/vivian.wav": "00677931cad477282702d1444b6f997324230cb6e7d0431b881fa35af06a02e8",
+        "/opt/shorts/voices/previews/serena.wav": "890a3d21481cb5d3a76139a49db0a36c58d803d28b4131daefa6f6a910f1cac0",
+        "/opt/shorts/voices/previews/dylan.wav": "2576ee1c3388927802d1e80eee5ff3205dead0233f5d2a19a3f10842dd10c396",
+        "/opt/shorts/voices/previews/eric.wav": "88a07c07576d92c98423f16d9c19184dd1a750f999fab9cb3e4becc64f9926f1",
+        "/opt/shorts/voices/previews/ryan.wav": "6c4846d281b93712cd1e4f877c48fcd545741d4f9564ef8b1e82ebc3b65d4ed2",
+        "/opt/shorts/voices/previews/aiden.wav": "efa2937b5e6ec294a2b68558f7b976433f8896a4227161508fcd5db05e23b079",
+        "/opt/shorts/voices/previews/ono_anna.wav": "3bf993b89081ffc90df899965c05de195024345a7ad539668c438bb1a24c6327",
+        "/opt/shorts/reference.wav": "58bfb593012f0e53cb498a0f48c726b553b6b9df502df3fede6f602453641604",
+        "/opt/shorts/reference-uncle-fu.wav": "a9b3a7fc902802d5f121f36fa64d6c4bd590b822d6e401d16eaea2022414c803",
+        "/opt/shorts/voice_tools.py": "3a79ee6f536152b32f621d7f1cb13d4dab7fd41379c164e7533a4a09796f1746",
+        "/opt/shorts/voice_jobs.py": "a361e4a31b303b173b4e6e85f22d5021f05dd7debd97e3cf6a260f3f36385eb4",
+        "/opt/shorts/voice_library.py": "e0ecfa03296fdf1646a1bda907afd14fdeb611adb239c881f8a209c5665ebf45",
+        "/opt/shorts/voice_analysis.py": "ee5e157fb1ac1f3d25fe443c7a9db5bd295f9cb7f7bba442c70424bf5e19e68a",
+        "/opt/shorts/voice_quality.py": "dbf44d4f68b2840224e0c85f449bed5949415ffa43901263a9fcb17f242dda62",
+        "/opt/shorts/voice_runner.py": "311cf175298d49158702a76a0ad654803ab4498809df6d850df3ecf0fa391662",
+        "/opt/shorts/voice_api.py": "06917c304a9ae614e1ee6e273de65281e1b1fa34ee871f1406e020d2e3e5d552",
+        "/opt/shorts/vad/silero_vad_16k_op15.onnx": "7ed98ddbad84ccac4cd0aeb3099049280713df825c610a8ed34543318f1b2c49",
+        "/opt/shorts/vad/LICENSE": "2e63e9a38b6e8fc0c7bc37ce174caca1862870856c6daf5697cfb785e925520b",
+        "/opt/shorts/vad/UPSTREAM.md": "b54de9add7c7a1d967a35465b05e43c0839ac2e3c521d7b94b4a1060797c8f5d"
+      },
+      "persistent_voice_after_restart": {
+        "description": "사용자 참조 음성",
+        "expires_at": null,
+        "id": "voice_d96208ac1bec4261aa99d6bd0efe7a4a",
+        "kind": "custom",
+        "name": "검증용 소희 참조",
+        "native_language": "ko-KR",
+        "preview_duration_seconds": 3.8023129251700682,
+        "preview_sha256": "c09b3e27bd582e026d6cdd466949091755b0cc550b314e26121006c9f5427bc6",
+        "preview_text": "안녕하세요. 이 목소리로 새로운 이야기를 전해 드립니다.",
+        "reference_duration_seconds": 8.9,
+        "reference_sha256": "b1801d0a1be0fe67de8ef8c09f56657f2c2d361dcb8d2dd909d0bb240a7d8885",
+        "reference_source": "사용자가 제공한 음성 샘플",
+        "revision": 2,
+        "scope": "persistent",
+        "status": "ready",
+        "warnings": [
+          "원본 전체의 화자 동일성을 확인한 결과는 아닙니다. 후보 안의 화자 정보만 사용했습니다."
+        ]
+      },
+      "main_qwen_started_at_unchanged": "2026-10-22T12:34:26.052328339Z",
+      "capabilities_formats": [
+        "mp3",
+        "wav",
+        "flac",
+        "ogg",
+        "oga",
+        "opus",
+        "aac",
+        "m4a",
+        "alac",
+        "aiff",
+        "aif",
+        "caf",
+        "wma",
+        "amr",
+        "ape",
+        "mka",
+        "mp4",
+        "mov",
+        "webm"
+      ]
+    },
+    "broken-proof": {
+      "id": "30c48051c4af4d529ed3da5c76904b3d",
+      "session_id": "chat-1792815096199718952",
+      "request": {
+        "session_id": "chat-1792815096199718952",
+        "action": "prepare",
+        "name": "파일 디코딩 검증",
+        "scope": "temporary",
+        "voice_id": null,
+        "revision": null,
+        "target_voice_id": null,
+        "text": "",
+        "instructions": "",
+        "source_attachment": {
+          "id": "0a0706bd0e835e70cc665d50e97958f6",
+          "name": "잘린-파일-검증.wav",
+          "mime": "audio/wav",
+          "size": 80,
+          "url": "/api/files/0a0706bd0e835e70cc665d50e97958f6/%EC%9E%98%EB%A6%B0-%ED%8C%8C%EC%9D%BC-%EA%B2%80%EC%A6%9D.wav?type=audio%2Fwav"
+        },
+        "source_url": "",
+        "source_name": "잘린-파일-검증.wav",
+        "source_mime": "audio/wav",
+        "source_sha256": "7fbb31a636cc936684a116b2396b0eedf4d762cbddec8dbf3335093cf3334934",
+        "start": null,
+        "end": null,
+        "track": null,
+        "channel": null,
+        "transcript": "",
+        "candidate": null,
+        "source_job_id": "",
+        "idempotency_key": "4c35ff50a99cec4ae3d837bbc91b385e30cc8a4f64f2267e5bf02531ffaf2892"
+      },
+      "status": "failed",
+      "stage": "음성 처리 실패",
+      "progress": 0.0,
+      "result": {
+        "files": []
+      },
+      "error": "음성 파일을 디코딩하지 못했습니다: /data/voice-jobs/30c48051c4af4d529ed3da5c76904b3d/source.bin: Invalid data found when processing input\n",
+      "canceled": 0,
+      "version": 1,
+      "published_version": 1,
+      "created": 1792816625.665244,
+      "updated": 1792816626.234558,
+      "idempotency_key": "4c35ff50a99cec4ae3d837bbc91b385e30cc8a4f64f2267e5bf02531ffaf2892",
+      "delivery_pending": false
+    }
+  },
+  "validation": {
+    "worker_foundation_fault_tests": 13,
+    "worker_suite_prior": 51,
+    "fish_tests": 9,
+    "web_tests": 142,
+    "go": "server, db, media, asr, orchestrator passed; real format fixtures passed; support assets 209 verified",
+    "limitations": [
+      "ASR coverage does not prove voice identity or emotional fidelity.",
+      "No claim of exhaustive performance across all possible audio inputs."
+    ]
+  }
+}

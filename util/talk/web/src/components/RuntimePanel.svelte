@@ -1,5 +1,6 @@
 <script>
   import Select from './Select.svelte';
+  import { runtimeOperationLabel } from '../lib/runtime-state.js';
   import RuntimeComponent from './RuntimeComponent.svelte';
   export let runtime = null;
   export let busy = false;
@@ -14,11 +15,15 @@
     targetBundle = selectedBundle.id;
   }
   $: selectedComponents = (runtime?.components || []).filter((component) => selectedBundle?.components?.includes(component.id));
+  $: sharedModels = (runtime?.support_services || []).filter(isModel);
+  $: panelComponents = [...selectedComponents, ...(runtime?.support_services || []).filter(component => !selectedComponents.some(selected => selected.id === component.id))].filter(component => !selectedBundle?.disabled_support?.includes(component.id));
+  $: displayedModels = panelComponents.filter(isModel);
+  $: extraServices = panelComponents.filter(component => !isModel(component));
   $: residentServices = selectedComponents.filter(c => c.keep_resident).map(c => c.id === 'extra-embedding' ? '의미 검색' : ({ image: '이미지', asr: 'ASR', tts: 'TTS' }[c.role] || c.name));
   $: operationRunning = runtime?.operation?.state === 'running';
   $: selectedBundleOnline = selectedComponents.length > 0 && selectedComponents.every((component) => component.health === 'online' || isOnDemand(component));
   $: targetIsSelected = targetBundle === runtime?.selected_bundle;
-  $: primaryLabel = operationRunning ? '처리 중' : !targetIsSelected ? '전환' : selectedBundleOnline ? '실행 중' : '시작';
+  $: primaryLabel = operationRunning ? runtimeOperationLabel(runtime.operation) : !targetIsSelected ? '전환' : selectedBundleOnline ? '실행 중' : '시작';
   $: memoryPercent = runtime?.memory?.total_gib ? Math.min(100, Math.max(0, runtime.memory.used_gib / runtime.memory.total_gib * 100)) : 0;
   $: operationSteps = (runtime?.operation?.steps || []).slice(-7);
   $: operationETA = /^\d+(?::\d+){1,2}$/.test(runtime?.operation?.eta || '') ? runtime.operation.eta : '';
@@ -28,13 +33,19 @@
   }
 
   function isOnDemand(component) {
+    if (!selectedComponents.some(model => model.role === 'llm' && ['online', 'starting'].includes(model.health))) return false;
+    if (!component.keep_resident && sharedModels.some(model => model.id === component.id)) return true;
     return selectedBundle?.workload_swap && !component.keep_resident && ['nemotron-asr', 'qwen3-tts', 'extra-embedding', 'extra-media', 'extra-documents', 'extra-collector'].includes(component.id);
+  }
+
+  function isModel(component) {
+    return ['extra-music-ace', 'extra-embedding'].includes(component.id) || ['llm', 'asr', 'tts', 'image', 'embedding', 'music'].includes(component.role);
   }
 
   function stateLabel(component) {
     if (component.busy === true) return '작업 중';
     if (component.core_ready === false) return '본체 미적재';
-    if (component.health === 'online') return '온라인';
+    if (component.health === 'online') return '실행 중';
     if (component.health === 'starting') return '기동 중';
     if (component.health === 'unresponsive') return component.phase || '연결 이상';
     if (component.health === 'failed') return '실패';
@@ -88,17 +99,20 @@
     <p class="runtime-error">{runtime.operation.error}</p>
   {/if}
 
-  <div class="runtime-components">
-    {#each selectedComponents as component}
+  {#if selectedBundle?.disabled_support?.includes('extra-fish') && selectedBundle?.disabled_support?.includes('extra-music-ace')}
+    <small class="runtime-workload-note">메모리 확보를 위해 Fish 음성·ACE-Step 음악 생성 제외</small>
+  {/if}
+  <div class="runtime-components" role="group" aria-label="모델">
+    {#each displayedModels as component (component.id)}
       <RuntimeComponent {component} state={stateLabel(component)} />
     {/each}
   </div>
 
-  {#if runtime?.support_services?.length}
+  {#if extraServices.length}
     <section class="runtime-support" aria-label="Extra 서비스">
       <strong>Extra 서비스</strong>
       <div class="runtime-components">
-        {#each runtime.support_services as component (component.id)}
+        {#each extraServices as component (component.id)}
           <RuntimeComponent {component} state={stateLabel(component)} />
         {/each}
       </div>

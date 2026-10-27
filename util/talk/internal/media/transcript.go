@@ -10,6 +10,7 @@ import (
 )
 
 type TranscriptCache struct {
+	Status            string     `json:"status,omitempty"`
 	Turns             []asr.Turn `json:"turns,omitempty"`
 	DiarizationStatus string     `json:"diarization_status,omitempty"`
 	Warning           string     `json:"warning,omitempty"`
@@ -33,7 +34,7 @@ func (s *Store) LoadTranscript(id, fingerprint string) (TranscriptCache, bool, e
 	if err := json.Unmarshal(data, &cached); err != nil {
 		return TranscriptCache{}, false, err
 	}
-	if (fingerprint != "" && cached.Fingerprint != fingerprint) || strings.TrimSpace(cached.Text) == "" {
+	if (fingerprint != "" && cached.Fingerprint != fingerprint) || (strings.TrimSpace(cached.Text) == "" && cached.Status != "no_text") {
 		return TranscriptCache{}, false, nil
 	}
 	return cached, true, nil

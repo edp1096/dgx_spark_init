@@ -1,0 +1,10 @@
+{
+  "name": "sparktalk-extra-shorts",
+  "private": true,
+  "version": "0.1.0",
+  "dependencies": {
+    "hyperframes": "0.8.185",
+    "gsap": "3.15.0",
+    "lottie-web": "5.13.0"
+  }
+}

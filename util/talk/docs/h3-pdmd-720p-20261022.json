@@ -1,0 +1,112 @@
+{
+  "date": "2026-10-22",
+  "status": "deployed_and_tested",
+  "issue": {
+    "conversation_id": "chat-1792677146267019846",
+    "title": "PDMD4 적용 샘플 · 한국어 영상",
+    "cause": "Talk video tool and HTTP bridge only exposed a fixed 864x480 profile; not a demonstrated PDMD4 model ceiling."
+  },
+  "profiles": {
+    "default_t2v": [
+      864,
+      480
+    ],
+    "720p_t2v": [
+      1280,
+      720
+    ],
+    "i2v": "Source aspect within selected pixel budget; 32-pixel alignment, actual dimensions returned.",
+    "frames": 124,
+    "fps": 24,
+    "upscaling": false
+  },
+  "direct_trial": {
+    "seconds": 185.4573261999758,
+    "stages": {
+      "encode": 3.3215384840150364,
+      "release_encoder": 0.1912946259835735,
+      "sample": 149.9665199049632,
+      "release_sample_workspace": 0.2586786469910294,
+      "decode_video": 27.381624138972256,
+      "release_video_vae": 0.16487805504584685,
+      "decode_audio": 0.5379300659988075,
+      "release_audio_vae": 0.1375975399860181,
+      "save": 3.48756737500662
+    },
+    "peak_cuda_allocated_gib": 24.026473999023438,
+    "peak_cuda_reserved_gib": 29.6328125,
+    "media": {
+      "width": 1280,
+      "height": 720,
+      "frames": 124,
+      "fps": 24.0,
+      "video_seconds": 5.166666666666667,
+      "audio_seconds": 5.1666875,
+      "bytes": 1906147,
+      "sha256": "33c9d138fbd5e9bb9ca4d2d0328cdb5ff9a0da0e3ef2ef0348f34e76b55d1be7"
+    }
+  },
+  "talk_sample": {
+    "session_id": "chat-1792677146267019846",
+    "title": "PDMD4 적용 샘플 · 한국어 영상",
+    "seconds": 259.46328784601064,
+    "attachment": {
+      "id": "d7410c49a88d0ae30301eef98c6667bc",
+      "name": "MiniMax-H3.mp4",
+      "mime": "video/mp4",
+      "size": 2016358,
+      "url": "/api/files/d7410c49a88d0ae30301eef98c6667bc/MiniMax-H3.mp4?type=video%2Fmp4"
+    },
+    "native_generation_seconds": 192.11464990401873,
+    "media": {
+      "width": 1280,
+      "height": 720,
+      "frames": 124,
+      "fps": 24.0,
+      "video_seconds": 5.166666666666667,
+      "audio_seconds": 5.1666875,
+      "bytes": 2016358,
+      "sha256": "ac393c35011805f9d9b5ba825cba51debd9d3aa3192369f36db3bdcf8181301c"
+    },
+    "resolution_argument": "720p",
+    "steps": 4,
+    "adapter_called_modules": 208
+  },
+  "i2v_validation": {
+    "seconds": 163.89410611096537,
+    "width": 1216,
+    "height": 672,
+    "bytes": 3688255
+  },
+  "pronunciation": {
+    "user_feedback": "Previous 480p sample sounded like 하세요 → 히세요.",
+    "prompt_change": "Explicit ha/hi distinction and slower complete syllables.",
+    "talk_asr": {
+      "text": "안녕히세요 좋은 하루 보내세요."
+    },
+    "direct_trial_asr": {
+      "text": "안녕하세요 좋은 하루 보세요."
+    },
+    "limitation": "ASR is a transcription check, not proof of phonetic correctness; no direct listening claim."
+  },
+  "deployment": {
+    "image": "sparktalk-qwim-mmh3:nvfp4-pdmd4-v6-720p",
+    "image_id": "sha256:4d3626cc69b9dad826321e9d7ff8c559eabd36a168d409e504c201c51ae1255f",
+    "talk_binary_sha256": "9b85a57d3b85de1d0252ed352f64b23cf45b44a005eae93b421034b4eb217545",
+    "selected_bundle": "qwen38fn_exl3",
+    "host": "61 only"
+  },
+  "checks": [
+    "Python 18 tests passed (17 full-suite plus new ETA isolation test).",
+    "Go config, orchestrator and server packages passed; final video tool tests passed after resolution validation changes.",
+    "Embedded support and recipe packaging verified.",
+    "720p without resolution confirmation or with 480p substitution is rejected.",
+    "Existing 480p default retained.",
+    "Separate resolution-specific ETA histories."
+  ],
+  "source_files": [
+    "compose_yaml/qwim_mmh3_service/api.py",
+    "compose_yaml/qwim_mmh3_service/image_inputs.py",
+    "util/talk/internal/server/video_tool.go"
+  ]
+}

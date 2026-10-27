@@ -18,7 +18,7 @@
   import { createStreamHandlers } from './lib/chat-stream.js';
   import { createChatSessionController } from './lib/chat-session-controller.js';
   import {
-    listSessions, createSession, deleteSession, deleteSessions, renameSession, listMessages, streamChat, steerChat,
+    listSessions, createSession, deleteSession, deleteSessions, renameSession, listMessages, streamChat, steerChat, getActiveChat, resumeChat, cancelChat,
     getHealth, getModels, getConfig, retryMessage, editMessage as editChatMessage, uploadAttachment, uploadMediaURL,
     setSessionGroup, listGroups, createGroup, renameGroup, moveGroup, deleteGroup,
     getContextState, compactContext, clearContext, answerToolApproval, transcribeVoice,
@@ -155,6 +155,8 @@
     onRuns: (runs) => { sessionRuns = runs; scrollBottom(); },
     onError: (message) => { error = message; },
   });
+  const recoveringChats = new Set();
+  let chatRecoveryDisposed = false;
 
   const speechController = createSpeechController({
     stream: streamSpeech,
@@ -230,12 +232,25 @@
     load();
     const healthTimer = setInterval(refreshHealth, 15000);
     const runtimeTimer = setInterval(refreshRuntime, 3000);
+    const recoveryTimer = setInterval(() => recoverActiveChat(), 3000);
+    const resumeVisibleChat = () => {
+      if (document.visibilityState === 'hidden') return;
+      const run = chatController.getRun(activeId);
+      if (run && performance.now() - (run.lastEventAt || run.startedAt) > 10000) run.controller.abort();
+      recoverActiveChat(true);
+    };
+    window.addEventListener('online', resumeVisibleChat);
+    document.addEventListener('visibilitychange', resumeVisibleChat);
     window.addEventListener('dragenter', onWindowDragEnter, true);
     window.addEventListener('dragover', onWindowDragOver, true);
     window.addEventListener('dragleave', onWindowDragLeave, true);
     window.addEventListener('drop', onWindowDrop, true);
     return () => {
+      chatRecoveryDisposed = true;
       chatController.dispose();
+      clearInterval(recoveryTimer);
+      window.removeEventListener('online', resumeVisibleChat);
+      document.removeEventListener('visibilitychange', resumeVisibleChat);
       clearInterval(healthTimer);
       clearInterval(runtimeTimer);
       clearTimeout(dragResetTimer);
@@ -432,6 +447,7 @@
     selectedModel = resolveAvailableModel(models, session?.model, settings?.model?.default_model || selectedModel);
     if (session?.reasoning_effort && (reasoningBaseline === undefined || reasoningEffort === reasoningBaseline)) reasoningEffort = normalizeReasoningEffort(modelType, session.reasoning_effort);
     await Promise.all([refreshContext(id), refreshSSHGrants(id), refreshCodeProjects(id)]);
+    recoverActiveChat(true);
     await tick();
     const pendingApproval = document.querySelector('[data-approval-id]:not([data-approval-id=""])');
     if (pendingApproval) pendingApproval.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -787,7 +803,56 @@
     await voiceController.stopContinuous();
   }
 
-  function stop() { chatController.abort(activeId); }
+  async function stop() {
+    const sessionId = activeId, run = chatController.getRun(sessionId);
+    if (!run) return;
+    try {
+      let turnId = run.serverTurnId || run.turnId;
+      if (!turnId) turnId = (await getActiveChat(sessionId)).turn_id;
+      if (turnId) await cancelChat(sessionId, turnId);
+      run.controller.abort();
+    } catch (e) { setSessionError(sessionId, `작업 중지 요청 실패: ${e.message}`); }
+  }
+
+  async function recoverActiveChat(refreshIdle = false) {
+    const sessionId = activeId;
+    if (chatRecoveryDisposed || !sessionId || chatController.isRunning(sessionId) || recoveringChats.has(sessionId)) return;
+    recoveringChats.add(sessionId);
+    let run;
+    try {
+      const state = await getActiveChat(sessionId);
+      if (chatRecoveryDisposed || activeId !== sessionId || chatController.isRunning(sessionId)) return;
+      if (!state.active) {
+        if (refreshIdle || chatController.getMessages(sessionId).some(message => message.status === 'pending')) {
+          const loaded = hydrateMessages(await listMessages(sessionId));
+          if (!chatRecoveryDisposed && !chatController.isRunning(sessionId)) publishMessages(sessionId, loaded);
+        }
+        return;
+      }
+      if (!state.ready) return;
+      const loaded = hydrateMessages(await listMessages(sessionId));
+      if (chatRecoveryDisposed || activeId !== sessionId || chatController.isRunning(sessionId)) return;
+      const anchor = loaded.findIndex(message => message.id === state.message_id);
+      if (anchor < 0) return;
+      const replyIndex = state.operation === 'retry' ? anchor : anchor + 1;
+      const restored = loaded.slice(0, replyIndex);
+      if (state.operation === 'edit') restored[anchor] = { ...restored[anchor], content: state.input };
+      restored.push({ role: 'assistant', status: 'pending', content: '', reasoning_content: '', attachments: [], tool_trace: [], activity: '' });
+      const elapsed = Math.max(0, Date.now() - Date.parse(state.started_at));
+      run = chatController.start(sessionId, restored, replyIndex, { startedAt: performance.now() - elapsed, turnId: state.turn_id, serverTurnId: state.turn_id });
+      setSessionError(sessionId, '');
+      await resumeChat(sessionId, state.turn_id, run.controller.signal, streamHandlersFor(run.messages[replyIndex], sessionId, run.messages));
+      run.completed = true;
+    } catch (e) {
+      if (run && e.name !== 'AbortError') setSessionError(sessionId, e.message);
+    } finally {
+      if (run && !chatRecoveryDisposed) {
+        try { publishMessages(sessionId, hydrateMessages(await listMessages(sessionId))); await refreshSessions(); } catch { /* Reconnect on the next tick. */ }
+        await finishSessionRun(sessionId, run);
+      }
+      recoveringChats.delete(sessionId);
+    }
+  }
   async function retry(message, index) {
     if (running || !message.id) return;
     if (index < messages.length - 1 && !confirm('이 답변을 재시도하면 이후 대화가 제거됩니다. 계속할까요?')) return;
@@ -898,6 +963,7 @@
     stopReplySpeech();
     const extra = { startedAt: performance.now() };
     runMessages[runRetryingIndex].responseStartedAt = extra.startedAt;
+    runMessages[runRetryingIndex].response_status = { stage: 'sending', label: '요청 전송 중' };
     if (continuousVoiceEnabled && settings?.tts?.enabled && settings.tts.auto_play) {
       extra.speechChunker = createSpeechChunker({ omitParentheticals: settings?.tts?.omit_parentheticals === true });
       extra.speechBatcher = createSpeechBatcher();
@@ -980,7 +1046,11 @@
     messages = messages;
   }
   function streamHandlersFor(message, sessionId = activeId, messageList = messages) {
-    const handlers = createStreamHandlers(message, () => publishMessages(sessionId, messageList));
+    const handlers = createStreamHandlers(message, () => {
+      const run = sessionRuns[sessionId];
+      if (run) run.lastEventAt = performance.now();
+      publishMessages(sessionId, messageList);
+    });
     handlers.sessionTitle = data => {
       if (data.session_id !== sessionId || !data.changed || typeof data.title !== 'string') return;
       refreshSessions().catch(() => {});
@@ -1004,6 +1074,7 @@
     handlers.submissionDelayMS = () => ownerRun ? Math.max(0, performance.now() - ownerRun.startedAt) : 0;
     handlers.turnStarted = (data) => {
       if (ownerRun && sessionRuns[sessionId] === ownerRun) {
+        ownerRun.serverTurnId = data.turn_id || ownerRun.serverTurnId;
         ownerRun.turnId = data.accepting ? data.turn_id : null;
         sessionRuns = { ...sessionRuns };
       }
@@ -1366,7 +1437,7 @@
       onJump={jumpToMessage}
       onRecall={openRecalledItem}
     />
-    {#if error}<div class="error">{error}</div>{/if}
+    {#if error}<div class="error chat-error" role="alert"><span>{error}</span><button type="button" aria-label="오류 알림 닫기" onclick={() => { if (activeId) setSessionError(activeId, ''); error = ''; }}>×</button></div>{/if}
     <WorkflowRuns sessionId={activeId} version={workflowVersion} {running} onResume={(id)=>{input=`@resume:${id}\n${input || '이어서 진행해.'}`;}} />
     <Composer
       onManageWorkflows={() => openLibrary('workflows')}

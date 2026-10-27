@@ -1,0 +1,68 @@
+[
+  {
+    "repo": "ACE-Step/Ace-Step1.5",
+    "revision": "19671f406d603126926c1b7e2adc169acbcade22",
+    "path": "/hf/edp1096/music-studio/ace",
+    "files": [
+      ".gitattributes",
+      "Qwen3-Embedding-0.6B/added_tokens.json",
+      "Qwen3-Embedding-0.6B/chat_template.jinja",
+      "Qwen3-Embedding-0.6B/config.json",
+      "Qwen3-Embedding-0.6B/merges.txt",
+      "Qwen3-Embedding-0.6B/model.safetensors",
+      "Qwen3-Embedding-0.6B/special_tokens_map.json",
+      "Qwen3-Embedding-0.6B/tokenizer.json",
+      "Qwen3-Embedding-0.6B/tokenizer_config.json",
+      "Qwen3-Embedding-0.6B/vocab.json",
+      "README.md",
+      "acestep-5Hz-lm-1.7B/added_tokens.json",
+      "acestep-5Hz-lm-1.7B/chat_template.jinja",
+      "acestep-5Hz-lm-1.7B/config.json",
+      "acestep-5Hz-lm-1.7B/merges.txt",
+      "acestep-5Hz-lm-1.7B/model.safetensors",
+      "acestep-5Hz-lm-1.7B/special_tokens_map.json",
+      "acestep-5Hz-lm-1.7B/tokenizer.json",
+      "acestep-5Hz-lm-1.7B/tokenizer_config.json",
+      "acestep-5Hz-lm-1.7B/vocab.json",
+      "acestep-v15-turbo/config.json",
+      "acestep-v15-turbo/configuration_acestep_v15.py",
+      "acestep-v15-turbo/model.safetensors",
+      "acestep-v15-turbo/modeling_acestep_v15_turbo.py",
+      "acestep-v15-turbo/silence_latent.pt",
+      "config.json",
+      "vae/config.json",
+      "vae/diffusion_pytorch_model.safetensors"
+    ],
+    "sha256": {
+      "Qwen3-Embedding-0.6B/config.json": "bb23c1607cfe059a58d8f0196cf1cebb52082b1056b8e358a579da80a5759420",
+      "Qwen3-Embedding-0.6B/tokenizer_config.json": "443bfa629eb16387a12edbf92a76f6a6f10b2af3b53d87ba1550adfcf45f7fa0",
+      "acestep-5Hz-lm-1.7B/config.json": "73515ca4bfd86a5b56f28bf680311d1911e159c85d7f7ceb2188e310007c9010",
+      "acestep-5Hz-lm-1.7B/tokenizer_config.json": "6cd70cdd89425971794f5235562edcc608b0629a6c4686ae51a8b8c8b8ba5e95",
+      "acestep-v15-turbo/config.json": "74745ff704ea49164c3d2d1c99fc0670f3fc635a869f0aec2d1311e6a52d400a",
+      "config.json": "74745ff704ea49164c3d2d1c99fc0670f3fc635a869f0aec2d1311e6a52d400a",
+      "vae/config.json": "14e019904df567f26df750317a70e2bd08f9f8f3c40ff4a24c97d1cd3f20ccd2"
+    }
+  },
+  {
+    "repo": "ACE-Step/acestep-v15-xl-base",
+    "revision": "220c1166efbdd9583eafcb12eb160594bbfcb241",
+    "path": "/hf/edp1096/music-studio/ace/acestep-v15-xl-base",
+    "files": [
+      ".gitattributes",
+      "README.md",
+      "apg_guidance.py",
+      "config.json",
+      "configuration_acestep_v15.py",
+      "model-00001-of-00004.safetensors",
+      "model-00002-of-00004.safetensors",
+      "model-00003-of-00004.safetensors",
+      "model-00004-of-00004.safetensors",
+      "model.safetensors.index.json",
+      "modeling_acestep_v15_xl_base.py",
+      "silence_latent.pt"
+    ],
+    "sha256": {
+      "config.json": "174cf8c4afc2c41212546b4dca9afb11e7958f8b1e1a770d7cd009a82d72a6f1"
+    }
+  }
+]

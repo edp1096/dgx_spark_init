@@ -59,7 +59,7 @@ python3 /opt/glm53/prepare_chat_template.py "$MODEL_HOST_PATH" /root/.cache/glm5
 exec python3 -m sglang.launch_server \
  --model-path "$MODEL_HOST_PATH" --served-model-name "${SERVED_MODEL_NAME:-glm-5.3-flash}" --dtype bfloat16 \
  --chat-template /root/.cache/glm53-chat.jinja \
- --host "${API_BIND:-127.0.0.1}" --port "${API_PORT:-8000}" \
+ --host "${API_BIND:-0.0.0.0}" --port "${API_PORT:-8000}" \
  --tp-size 2 --nnodes 2 --node-rank "$NODE_RANK" \
  --dist-init-addr "$HEAD_RAIL_IP:${MASTER_PORT:-29531}" \
  --context-length "${MAX_MODEL_LEN:-1048576}" --max-total-tokens "${MAX_TOTAL_TOKENS:-${MAX_MODEL_LEN:-1048576}}" \

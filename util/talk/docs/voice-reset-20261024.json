@@ -1,0 +1,728 @@
+{
+  "original_failure": {
+    "session_id": "chat-1792821673232425691",
+    "user_message_id": 3210,
+    "assistant_message_id": 3211,
+    "error": "음성 동작을 요청 원문에서 확인하지 못했습니다",
+    "admitted_worker_job": false,
+    "limitation": "The failing classifier quote was not persisted; a later read-only replay succeeded. The fix addresses brittle exact matching and missing bounded quote correction."
+  },
+  "changes": [
+    "Compare quoted evidence after whitespace normalization without changing words.",
+    "Retry the classifier once when its evidence is not in the latest request; reject invented authorization.",
+    "Use new source URL with existing target voice ID; reject conflicting selectors and prepare with voice_id.",
+    "Inherit the existing registered name when the update request omits a name."
+  ],
+  "tests": {
+    "server_suite": "passed, 59.334s",
+    "final_voice_tests": "passed",
+    "worker_tests": 15
+  },
+  "job": {
+    "id": "0746fa4dfe594575a94cc319348bd897",
+    "session_id": "chat-1792821673232425691",
+    "request": {
+      "session_id": "chat-1792821673232425691",
+      "action": "prepare",
+      "name": "제라툴 목소리의 비밀 - 김기현 성우 인터뷰 (스타2 공허의 유산)",
+      "scope": "persistent",
+      "voice_id": null,
+      "revision": null,
+      "target_voice_id": "voice_668d5a1ca976402fa7671396ef06f014",
+      "text": "",
+      "instructions": "",
+      "continuous": false,
+      "source_attachment": {
+        "id": "ad798c637a2bb97ab23ff5f9cd8bf9ee",
+        "name": "제라툴 목소리의 비밀 - 김기현 성우 인터뷰 (스타2 공허의 유산).mp4",
+        "mime": "video/mp4",
+        "size": 49831251,
+        "url": "/api/files/ad798c637a2bb97ab23ff5f9cd8bf9ee/%EC%A0%9C%EB%9D%BC%ED%88%B4%20%EB%AA%A9%EC%86%8C%EB%A6%AC%EC%9D%98%20%EB%B9%84%EB%B0%80%20-%20%EA%B9%80%EA%B8%B0%ED%98%84%20%EC%84%B1%EC%9A%B0%20%EC%9D%B8%ED%84%B0%EB%B7%B0%20%28%EC%8A%A4%ED%83%802%20%EA%B3%B5%ED%97%88%EC%9D%98%20%EC%9C%A0%EC%82%B0%29.mp4?type=video%2Fmp4",
+        "source_url": "https://www.youtube.com/watch?v=mme_JyKGd5I",
+        "source_audio_language": "ko",
+        "source_audio_format": "140-1",
+        "source_audio_original": true
+      },
+      "source_url": "https://www.youtube.com/watch?v=mme_JyKGd5I",
+      "source_name": "제라툴 목소리의 비밀 - 김기현 성우 인터뷰 (스타2 공허의 유산).mp4",
+      "source_mime": "video/mp4",
+      "source_sha256": "2306e59a9ee03321f841ae67ed48c7eb67a3d727b3009ae161dcccaecc17f911",
+      "start": null,
+      "end": null,
+      "track": null,
+      "channel": null,
+      "transcript": "",
+      "candidate": null,
+      "source_job_id": "",
+      "idempotency_key": "f6608b01f390b6c1415a12eacd177bff91c7fe937dd4e7829feb1f7dcbb51294"
+    },
+    "status": "completed",
+    "stage": "음성 준비 완료 · 대화 게시 대기",
+    "progress": 100.0,
+    "result": {
+      "committed_revision": 3,
+      "committed_voice_id": "voice_668d5a1ca976402fa7671396ef06f014",
+      "source": {
+        "duration_seconds": 340.541,
+        "format": "mov,mp4,m4a,3gp,3g2,mj2",
+        "streams": [
+          {
+            "index": 1,
+            "codec": "aac",
+            "sample_rate": 44100,
+            "channels": 2,
+            "language": "eng"
+          }
+        ],
+        "bytes": 49831251
+      },
+      "source_attachment": {
+        "id": "ad798c637a2bb97ab23ff5f9cd8bf9ee",
+        "name": "제라툴 목소리의 비밀 - 김기현 성우 인터뷰 (스타2 공허의 유산).mp4",
+        "mime": "video/mp4",
+        "size": 49831251,
+        "url": "/api/files/ad798c637a2bb97ab23ff5f9cd8bf9ee/%EC%A0%9C%EB%9D%BC%ED%88%B4%20%EB%AA%A9%EC%86%8C%EB%A6%AC%EC%9D%98%20%EB%B9%84%EB%B0%80%20-%20%EA%B9%80%EA%B8%B0%ED%98%84%20%EC%84%B1%EC%9A%B0%20%EC%9D%B8%ED%84%B0%EB%B7%B0%20%28%EC%8A%A4%ED%83%802%20%EA%B3%B5%ED%97%88%EC%9D%98%20%EC%9C%A0%EC%82%B0%29.mp4?type=video%2Fmp4",
+        "source_url": "https://www.youtube.com/watch?v=mme_JyKGd5I",
+        "source_audio_language": "ko",
+        "source_audio_format": "140-1",
+        "source_audio_original": true
+      },
+      "source_url": "https://www.youtube.com/watch?v=mme_JyKGd5I",
+      "candidates": [
+        {
+          "start": 34.184000000000005,
+          "end": 48.952,
+          "track": 1,
+          "channel": 0,
+          "duration_seconds": 14.767999999999994,
+          "speech_seconds": 13.792,
+          "rms_dbfs": -22.2822081434264,
+          "clipped_fraction": 0.0,
+          "boundary_uncertain": false,
+          "score": 14.801733477789817,
+          "warnings": [],
+          "vad_analysis_gain_db": 0.0,
+          "index": 0,
+          "file": "candidate-0.wav",
+          "transcript": "꼭 해보고 싶었던 영화친 것 같은 그런 느낌이 들었어요. 어쨌든 어떻게 해서 나한테 그 역할을 내가 맡기게 되는지 모르겠지만 말 직업해주신도 참고 맞고 감사합니다. 제가 들어올 때 내가 그 성격을 잡기를",
+          "language": "ko-KR",
+          "diarization_status": "completed",
+          "speaker_count": 1,
+          "speaker_turns": [
+            {
+              "start": 0.64,
+              "end": 12.24,
+              "speakers": [
+                1
+              ],
+              "text": "꼭 해보고 싶었던 영화친 것 같은 그런 느낌이 들었어요. 어쨌든 어떻게 해서 나한테 그 역할을 내가 맡기게 되는지 모르겠지만 말 직업해주신도 참고 맞고 감사합니다. 제가"
+            },
+            {
+              "start": 12.56,
+              "end": 14.88,
+              "speakers": [
+                1
+              ],
+              "text": "들어올 때 내가 그 성격을 잡기를"
+            }
+          ],
+          "overlapping": false
+        },
+        {
+          "start": 34.184000000000005,
+          "end": 48.952,
+          "track": 1,
+          "channel": 1,
+          "duration_seconds": 14.767999999999994,
+          "speech_seconds": 13.728,
+          "rms_dbfs": -22.28000506785247,
+          "clipped_fraction": 0.0,
+          "boundary_uncertain": false,
+          "score": 14.788732394366198,
+          "warnings": [],
+          "vad_analysis_gain_db": 0.0,
+          "index": 1,
+          "file": "candidate-1.wav",
+          "transcript": "꼭 해보고 싶었던 영화 찍은 것 같은 그런 느낌이 들었어요. 어쨌든 어떻게 해서 나한테 그 역할을 내가 맡기게 되는지 모르겠지만 말 피곱해주신도 참 고맙고 감사합니다. 제가 들어올 때 내가 그 성격을 잡기를",
+          "language": "ko-KR",
+          "diarization_status": "completed",
+          "speaker_count": 1,
+          "speaker_turns": [
+            {
+              "start": 0.64,
+              "end": 12.24,
+              "speakers": [
+                1
+              ],
+              "text": "꼭 해보고 싶었던 영화 찍은 것 같은 그런 느낌이 들었어요. 어쨌든 어떻게 해서 나한테 그 역할을 내가 맡기게 되는지 모르겠지만 말 피곱해주신도 참 고맙고 감사합니다. 제가"
+            },
+            {
+              "start": 12.56,
+              "end": 14.88,
+              "speakers": [
+                1
+              ],
+              "text": "들어올 때 내가 그 성격을 잡기를"
+            }
+          ],
+          "overlapping": false
+        },
+        {
+          "start": 155.272,
+          "end": 169.848,
+          "track": 1,
+          "channel": 0,
+          "duration_seconds": 14.576000000000022,
+          "speech_seconds": 12.992,
+          "rms_dbfs": -19.433268257988505,
+          "clipped_fraction": 0.00016722694840834248,
+          "boundary_uncertain": false,
+          "score": 14.657261937431391,
+          "warnings": [],
+          "vad_analysis_gain_db": 0.0,
+          "index": 2,
+          "file": "candidate-2.wav",
+          "transcript": "그게 사실 한번 쭉 읽고 나가면 뭐 한 삼십분 일건 날겠죠. 근데 내가 나 녹음할 수 나도 느낌이 오거든요. 요거 괜찮다 하는 것이 나올 때까지 두번 세번 세번 네번하거든요. 이스타 것이 이제 우리 말이 제일 익숙하지만",
+          "language": "ko-KR",
+          "diarization_status": "completed",
+          "speaker_count": 1,
+          "speaker_turns": [
+            {
+              "start": 0.4,
+              "end": 11.6,
+              "speakers": [
+                1
+              ],
+              "text": "그게 사실 한번 쭉 읽고 나가면 뭐 한 삼십분 일건 날겠죠. 근데 내가 나 녹음할 수 나도 느낌이 오거든요. 요거 괜찮다 하는 것이 나올 때까지 두번 세번 세번 네번하거든요."
+            },
+            {
+              "start": 12.16,
+              "end": 14.64,
+              "speakers": [
+                1
+              ],
+              "text": "이스타 것이 이제 우리 말이 제일 익숙하지만"
+            }
+          ],
+          "overlapping": false
+        }
+      ],
+      "files": [
+        {
+          "file": "reference.wav",
+          "name": "사용한 참조 구간.wav",
+          "sha256": "a41c2fab09e4e08bc2f16227444bbb531bc48f47cb6843952f9441e8c4ca661b",
+          "bytes": 1302616
+        },
+        {
+          "file": "preview.wav",
+          "name": "등록 미리 듣기.wav",
+          "sha256": "5d309ee3cd3135948ffc660ae54496a0e86a10034f32961c0abf0e22ed9c52fe",
+          "bytes": 376876
+        }
+      ],
+      "staged_voice_id": "voice_601cc89209194b4eafcfdffa1af32c22",
+      "reference": {
+        "start": 34.184000000000005,
+        "end": 48.952,
+        "track": 1,
+        "channel": 0,
+        "duration_seconds": 14.767999999999994,
+        "speech_seconds": 13.792,
+        "rms_dbfs": -22.2822081434264,
+        "clipped_fraction": 0.0,
+        "boundary_uncertain": false,
+        "score": 14.801733477789817,
+        "warnings": [
+          "원본 전체의 화자 동일성을 확인한 결과는 아닙니다. 후보 안의 화자 정보만 사용했습니다."
+        ],
+        "vad_analysis_gain_db": 0.0,
+        "index": 0,
+        "file": "reference.wav",
+        "transcript": "꼭 해보고 싶었던 영화친 것 같은 그런 느낌이 들었어요. 어쨌든 어떻게 해서 나한테 그 역할을 내가 맡기게 되는지 모르겠지만 말 직업해주신도 참고 맞고 감사합니다. 제가 들어올 때 내가 그 성격을 잡기를",
+        "language": "ko-KR",
+        "diarization_status": "completed",
+        "speaker_count": 1,
+        "speaker_turns": [
+          {
+            "start": 0.64,
+            "end": 12.24,
+            "speakers": [
+              1
+            ],
+            "text": "꼭 해보고 싶었던 영화친 것 같은 그런 느낌이 들었어요. 어쨌든 어떻게 해서 나한테 그 역할을 내가 맡기게 되는지 모르겠지만 말 직업해주신도 참고 맞고 감사합니다. 제가"
+          },
+          {
+            "start": 12.56,
+            "end": 14.88,
+            "speakers": [
+              1
+            ],
+            "text": "들어올 때 내가 그 성격을 잡기를"
+          }
+        ],
+        "overlapping": false,
+        "source_sha256": "2306e59a9ee03321f841ae67ed48c7eb67a3d727b3009ae161dcccaecc17f911",
+        "source_name": "제라툴 목소리의 비밀 - 김기현 성우 인터뷰 (스타2 공허의 유산).mp4",
+        "source_attachment": {
+          "id": "ad798c637a2bb97ab23ff5f9cd8bf9ee",
+          "name": "제라툴 목소리의 비밀 - 김기현 성우 인터뷰 (스타2 공허의 유산).mp4",
+          "mime": "video/mp4",
+          "size": 49831251,
+          "url": "/api/files/ad798c637a2bb97ab23ff5f9cd8bf9ee/%EC%A0%9C%EB%9D%BC%ED%88%B4%20%EB%AA%A9%EC%86%8C%EB%A6%AC%EC%9D%98%20%EB%B9%84%EB%B0%80%20-%20%EA%B9%80%EA%B8%B0%ED%98%84%20%EC%84%B1%EC%9A%B0%20%EC%9D%B8%ED%84%B0%EB%B7%B0%20%28%EC%8A%A4%ED%83%802%20%EA%B3%B5%ED%97%88%EC%9D%98%20%EC%9C%A0%EC%82%B0%29.mp4?type=video%2Fmp4",
+          "source_url": "https://www.youtube.com/watch?v=mme_JyKGd5I",
+          "source_audio_language": "ko",
+          "source_audio_format": "140-1",
+          "source_audio_original": true
+        },
+        "source_url": "https://www.youtube.com/watch?v=mme_JyKGd5I",
+        "transcript_source": "asr",
+        "job_id": "0746fa4dfe594575a94cc319348bd897",
+        "sha256": "a41c2fab09e4e08bc2f16227444bbb531bc48f47cb6843952f9441e8c4ca661b"
+      },
+      "warnings": [
+        "원본 전체의 화자 동일성을 확인한 결과는 아닙니다. 후보 안의 화자 정보만 사용했습니다."
+      ],
+      "voice": {
+        "id": "voice_668d5a1ca976402fa7671396ef06f014",
+        "name": "제라툴 목소리의 비밀 - 김기현 성우 인터뷰 (스타2 공허의 유산)",
+        "kind": "custom",
+        "scope": "persistent",
+        "revision": 3,
+        "status": "ready",
+        "reference_sha256": "a41c2fab09e4e08bc2f16227444bbb531bc48f47cb6843952f9441e8c4ca661b",
+        "reference_source": "사용자가 제공한 음성 샘플",
+        "expires_at": null,
+        "warnings": [
+          "원본 전체의 화자 동일성을 확인한 결과는 아닙니다. 후보 안의 화자 정보만 사용했습니다."
+        ]
+      },
+      "voice_id": "voice_668d5a1ca976402fa7671396ef06f014",
+      "generation": {
+        "fingerprint": "dbf7994bf3ccb989c23c6a0257cd1c481405b5b55fe30a68eb27d32728906abf",
+        "sha256": "5d309ee3cd3135948ffc660ae54496a0e86a10034f32961c0abf0e22ed9c52fe",
+        "generation": {
+          "duration": 4.272471655328798,
+          "records": [
+            {
+              "sentence": "안녕하세요. 이 목소리로 새로운 이야기를 전해 드립니다.",
+              "attempt": 1,
+              "accepted": true,
+              "rejection_reasons": [],
+              "generation_seconds": 2.893401299021207,
+              "duration_seconds": 4.272471655328798,
+              "longest_internal_silence": 0.0,
+              "voiced_seconds": 4.28,
+              "hit_cap": false,
+              "trailing_silence_seconds": 0.0,
+              "activity_threshold_dbfs": -69.09221360746537,
+              "trim_start_sample": 0,
+              "trim_end_sample": 188416
+            }
+          ],
+          "segments": [
+            {
+              "text": "안녕하세요. 이 목소리로 새로운 이야기를 전해 드립니다.",
+              "start": 0.0,
+              "end": 4.272471655328798
+            }
+          ],
+          "sample_rate": 44100,
+          "text": "안녕하세요. 이 목소리로 새로운 이야기를 전해 드립니다.",
+          "spoken_text": "안녕하세요. 이 목소리로 새로운 이야기를 전해 드립니다.",
+          "native_tags": false,
+          "continuous": true,
+          "voice_preset": "voice_601cc89209194b4eafcfdffa1af32c22",
+          "reference_sha256": "a41c2fab09e4e08bc2f16227444bbb531bc48f47cb6843952f9441e8c4ca661b",
+          "reference_revision": 1
+        },
+        "attempt": 1,
+        "file": "preview.wav",
+        "text": "안녕하세요. 이 목소리로 새로운 이야기를 전해 드립니다.",
+        "model_input": "안녕하세요. 이 목소리로 새로운 이야기를 전해 드립니다.",
+        "validation": {
+          "expected": "안녕하세요. 이 목소리로 새로운 이야기를 전해 드립니다.",
+          "transcript": "안녕하세요. 이 목소리로 새로운 이야기를 전해드립니다.",
+          "character_error_rate": 0.0,
+          "exact": true,
+          "clauses": [
+            {
+              "text": "안녕하세요",
+              "coverage": 1.0,
+              "characters": 5
+            },
+            {
+              "text": "이 목소리로 새로운 이야기를 전해 드립니다",
+              "coverage": 1.0,
+              "characters": 18
+            }
+          ],
+          "passed": true,
+          "interpretation": "ASR comparison; discrepancies may be recognition errors, not proven omissions.",
+          "audio_sha256": "5d309ee3cd3135948ffc660ae54496a0e86a10034f32961c0abf0e22ed9c52fe",
+          "asr": {
+            "words": [
+              {
+                "word": "안녕하세요.",
+                "start": 0.32,
+                "end": 0.96
+              },
+              {
+                "word": "이",
+                "start": 1.12,
+                "end": 1.2
+              },
+              {
+                "word": "목소리로",
+                "start": 1.28,
+                "end": 1.76
+              },
+              {
+                "word": "새로운",
+                "start": 1.84,
+                "end": 2.16
+              },
+              {
+                "word": "이야기를",
+                "start": 2.16,
+                "end": 2.64
+              },
+              {
+                "word": "전해드립니다.",
+                "start": 2.88,
+                "end": 3.44
+              }
+            ],
+            "turns": [
+              {
+                "start": 0.32,
+                "end": 3.44,
+                "speakers": [
+                  1
+                ],
+                "text": "안녕하세요. 이 목소리로 새로운 이야기를 전해드립니다."
+              }
+            ],
+            "diarization_status": "completed",
+            "text": "안녕하세요. 이 목소리로 새로운 이야기를 전해드립니다.",
+            "language": "ko-KR"
+          }
+        },
+        "requested_instructions": "",
+        "reference_revision": 1,
+        "tag_effect_verified": false
+      },
+      "registered": true,
+      "temporary": false,
+      "limitations": [
+        "샘플 참조 방식이며 모델을 재학습하지 않습니다.",
+        "대사 검사와 감정·음색의 주관적 품질은 다른 항목입니다.",
+        "일회성 참조의 정리와 대화 원본·생성 파일의 보관은 별개입니다."
+      ]
+    },
+    "error": "",
+    "canceled": 0,
+    "version": 1,
+    "published_version": 1,
+    "created": 1792844155.420129,
+    "updated": 1792844489.367366,
+    "idempotency_key": "f6608b01f390b6c1415a12eacd177bff91c7fe937dd4e7829feb1f7dcbb51294",
+    "delivery_pending": false
+  },
+  "current_voice": {
+    "id": "voice_668d5a1ca976402fa7671396ef06f014",
+    "revision": 3,
+    "kind": "custom",
+    "name": "장태완 장포스",
+    "description": "사용자 참조 음성",
+    "native_language": "ko-KR",
+    "reference_text": "꼭 해보고 싶었던 영화친 것 같은 그런 느낌이 들었어요. 어쨌든 어떻게 해서 나한테 그 역할을 내가 맡기게 되는지 모르겠지만 말 직업해주신도 참고 맞고 감사합니다. 제가 들어올 때 내가 그 성격을 잡기를",
+    "reference_text_sha256": "158603466acbb648329cbadbec30384bb3bebaa87c392852be6fb901aa0a773e",
+    "reference_sha256": "a41c2fab09e4e08bc2f16227444bbb531bc48f47cb6843952f9441e8c4ca661b",
+    "reference_source": "사용자가 제공한 음성 샘플",
+    "reference_duration_seconds": 14.767999999999994,
+    "source": {
+      "start": 34.184000000000005,
+      "end": 48.952,
+      "track": 1,
+      "channel": 0,
+      "duration_seconds": 14.767999999999994,
+      "speech_seconds": 13.792,
+      "rms_dbfs": -22.2822081434264,
+      "clipped_fraction": 0.0,
+      "boundary_uncertain": false,
+      "score": 14.801733477789817,
+      "warnings": [
+        "원본 전체의 화자 동일성을 확인한 결과는 아닙니다. 후보 안의 화자 정보만 사용했습니다."
+      ],
+      "vad_analysis_gain_db": 0.0,
+      "index": 0,
+      "file": "candidate-0.wav",
+      "transcript": "꼭 해보고 싶었던 영화친 것 같은 그런 느낌이 들었어요. 어쨌든 어떻게 해서 나한테 그 역할을 내가 맡기게 되는지 모르겠지만 말 직업해주신도 참고 맞고 감사합니다. 제가 들어올 때 내가 그 성격을 잡기를",
+      "language": "ko-KR",
+      "diarization_status": "completed",
+      "speaker_count": 1,
+      "speaker_turns": [
+        {
+          "start": 0.64,
+          "end": 12.24,
+          "speakers": [
+            1
+          ],
+          "text": "꼭 해보고 싶었던 영화친 것 같은 그런 느낌이 들었어요. 어쨌든 어떻게 해서 나한테 그 역할을 내가 맡기게 되는지 모르겠지만 말 직업해주신도 참고 맞고 감사합니다. 제가"
+        },
+        {
+          "start": 12.56,
+          "end": 14.88,
+          "speakers": [
+            1
+          ],
+          "text": "들어올 때 내가 그 성격을 잡기를"
+        }
+      ],
+      "overlapping": false,
+      "source_sha256": "2306e59a9ee03321f841ae67ed48c7eb67a3d727b3009ae161dcccaecc17f911",
+      "source_name": "제라툴 목소리의 비밀 - 김기현 성우 인터뷰 (스타2 공허의 유산).mp4",
+      "source_attachment": {
+        "id": "ad798c637a2bb97ab23ff5f9cd8bf9ee",
+        "name": "제라툴 목소리의 비밀 - 김기현 성우 인터뷰 (스타2 공허의 유산).mp4",
+        "mime": "video/mp4",
+        "size": 49831251,
+        "url": "/api/files/ad798c637a2bb97ab23ff5f9cd8bf9ee/%EC%A0%9C%EB%9D%BC%ED%88%B4%20%EB%AA%A9%EC%86%8C%EB%A6%AC%EC%9D%98%20%EB%B9%84%EB%B0%80%20-%20%EA%B9%80%EA%B8%B0%ED%98%84%20%EC%84%B1%EC%9A%B0%20%EC%9D%B8%ED%84%B0%EB%B7%B0%20%28%EC%8A%A4%ED%83%802%20%EA%B3%B5%ED%97%88%EC%9D%98%20%EC%9C%A0%EC%82%B0%29.mp4?type=video%2Fmp4",
+        "source_url": "https://www.youtube.com/watch?v=mme_JyKGd5I",
+        "source_audio_language": "ko",
+        "source_audio_format": "140-1",
+        "source_audio_original": true
+      },
+      "source_url": "https://www.youtube.com/watch?v=mme_JyKGd5I",
+      "transcript_source": "asr",
+      "job_id": "0746fa4dfe594575a94cc319348bd897"
+    },
+    "preview_text": "안녕하세요. 이 목소리로 새로운 이야기를 전해 드립니다.",
+    "preview_sha256": "5d309ee3cd3135948ffc660ae54496a0e86a10034f32961c0abf0e22ed9c52fe",
+    "warnings": [
+      "원본 전체의 화자 동일성을 확인한 결과는 아닙니다. 후보 안의 화자 정보만 사용했습니다."
+    ],
+    "staged_voice_id": "voice_601cc89209194b4eafcfdffa1af32c22",
+    "preview_duration_seconds": 4.272471655328798,
+    "preview_validation": {
+      "expected": "안녕하세요. 이 목소리로 새로운 이야기를 전해 드립니다.",
+      "transcript": "안녕하세요. 이 목소리로 새로운 이야기를 전해드립니다.",
+      "character_error_rate": 0.0,
+      "exact": true,
+      "clauses": [
+        {
+          "text": "안녕하세요",
+          "coverage": 1.0,
+          "characters": 5
+        },
+        {
+          "text": "이 목소리로 새로운 이야기를 전해 드립니다",
+          "coverage": 1.0,
+          "characters": 18
+        }
+      ],
+      "passed": true,
+      "interpretation": "ASR comparison; discrepancies may be recognition errors, not proven omissions.",
+      "audio_sha256": "5d309ee3cd3135948ffc660ae54496a0e86a10034f32961c0abf0e22ed9c52fe",
+      "asr": {
+        "words": [
+          {
+            "word": "안녕하세요.",
+            "start": 0.32,
+            "end": 0.96
+          },
+          {
+            "word": "이",
+            "start": 1.12,
+            "end": 1.2
+          },
+          {
+            "word": "목소리로",
+            "start": 1.28,
+            "end": 1.76
+          },
+          {
+            "word": "새로운",
+            "start": 1.84,
+            "end": 2.16
+          },
+          {
+            "word": "이야기를",
+            "start": 2.16,
+            "end": 2.64
+          },
+          {
+            "word": "전해드립니다.",
+            "start": 2.88,
+            "end": 3.44
+          }
+        ],
+        "turns": [
+          {
+            "start": 0.32,
+            "end": 3.44,
+            "speakers": [
+              1
+            ],
+            "text": "안녕하세요. 이 목소리로 새로운 이야기를 전해드립니다."
+          }
+        ],
+        "diarization_status": "completed",
+        "text": "안녕하세요. 이 목소리로 새로운 이야기를 전해드립니다.",
+        "language": "ko-KR"
+      }
+    },
+    "scope": "persistent",
+    "status": "ready",
+    "expires_at": null
+  },
+  "name_correction": {
+    "voice_id": "voice_668d5a1ca976402fa7671396ef06f014",
+    "name": "장태완 장포스",
+    "scope": "persistent",
+    "status": "ready",
+    "existing_outputs_preserved": true
+  },
+  "old_revision_2_preserved": true,
+  "deployment": {
+    "binary_sha256": "07307346ead20a3869b94eac8fb4b3ebe2b48b18b573264a5abb73105953debf",
+    "worker_files_checked": 51,
+    "main_qwen_started_at_unchanged": "2026-10-22T12:34:26.052328339Z"
+  },
+  "retried_user_message": {
+    "id": 3210,
+    "session_id": "chat-1792821673232425691",
+    "role": "user",
+    "status": "completed",
+    "content": "https://www.youtube.com/watch?v=mme_JyKGd5I   장포스 이걸로 다시 세팅해봐라.",
+    "variants": [
+      {
+        "content": "https://www.youtube.com/watch?v=mme_JyKGd5I   장포스 이걸로 다시 세팅해봐라.",
+        "created_at": "2026-10-24T20:57:36.361825157+09:00"
+      }
+    ],
+    "created_at": "2026-10-24T20:57:36.361825157+09:00"
+  },
+  "retried_assistant_message": {
+    "performance": {
+      "totals": {
+        "prefill_tokens": 7845,
+        "prefill_seconds": 9.3031,
+        "decode_tokens": 111,
+        "decode_seconds": 1.070826763
+      },
+      "elapsed_seconds": 354.516812382,
+      "finished_at": "2026-10-24T12:21:29.486809147Z",
+      "finish_status": "completed",
+      "pp": 843.2672979974417,
+      "tg": 103.65822356645751,
+      "ttft": 9.384466699,
+      "tg_estimated": true,
+      "ttft_estimated": true,
+      "prompt_tokens": 7845,
+      "cached_tokens": 0,
+      "output_tokens": 112,
+      "calls": 1
+    },
+    "id": 3211,
+    "session_id": "chat-1792821673232425691",
+    "role": "assistant",
+    "status": "completed",
+    "content": "음성 작업 결과를 이 대화에 게시했습니다.",
+    "tool_trace": [
+      {
+        "archive_id": 2472,
+        "name": "voice_tools",
+        "arguments": "{\"action\":\"prepare\",\"scope\":\"persistent\",\"source_url\":\"https://www.youtube.com/watch?v=mme_JyKGd5I\",\"target_voice_id\":\"voice_668d5a1ca976402fa7671396ef06f014\"}",
+        "result": "{\"job\":{\"id\":\"0746fa4dfe594575a94cc319348bd897\",\"session_id\":\"chat-1792821673232425691\",\"status\":\"completed\",\"stage\":\"음성 준비 완료 · 대화 게시 대기\",\"progress\":100,\"version\":1,\"created\":1792844155.420129,\"error\":\"\",\"delivery_pending\":true,\"request\":{\"session_id\":\"chat-1792821673232425691\",\"action\":\"prepare\",\"name\":\"제라툴 목소리의 비밀 - 김기현 성우 인터뷰 (스타2 공허의 유산)\",\"scope\":\"persistent\",\"voice_id\":null,\"revision\":null,\"target_voice_id\":\"voice_668d5a1ca976402fa7671396ef06f014\",\"text\":\"\",\"instructions\":\"\",\"continuous\":false,\"source_attachment\":{\"id\":\"ad798c637a2bb97ab23ff5f9cd8bf9ee\",\"name\":\"제라툴 목소리의 비밀 - 김기현 성우 인터뷰 (스타2 공허의 유산).mp4\",\"mime\":\"video/mp4\",\"size\":49831251,\"url\":\"/api/files/ad798c637a2bb97ab23ff5f9cd8bf9ee/%EC%A0%9C%EB%9D%BC%ED%88%B4%20%EB%AA%A9%EC%86%8C%EB%A6%AC%EC%9D%98%20%EB%B9%84%EB%B0%80%20-%20%EA%B9%80%EA%B8%B0%ED%98%84%20%EC%84%B1%EC%9A%B0%20%EC%9D%B8%ED%84%B0%EB%B7%B0%20%28%EC%8A%A4%ED%83%802%20%EA%B3%B5%ED%97%88%EC%9D%98%20%EC%9C%A0%EC%82%B0%29.mp4?type=video%2Fmp4\",\"source_url\":\"https://www.youtube.com/watch?v=mme_JyKGd5I\",\"source_audio_language\":\"ko\",\"source_audio_format\":\"140-1\",\"source_audio_original\":true},\"source_url\":\"https://www.youtube.com/watch?v=mme_JyKGd5I\",\"source_name\":\"제라툴 목소리의 비밀 - 김기현 성우 인터뷰 (스타2 공허의 유산).mp4\",\"source_mime\":\"video/mp4\",\"source_sha256\":\"2306e59a9ee03321f841ae67ed48c7eb67a3d727b3009ae161dcccaecc17f911\",\"start\":null,\"end\":null,\"track\":null,\"channel\":null,\"transcript\":\"\",\"candidate\":null,\"source_job_id\":\"\",\"idempotency_key\":\"f6608b01f390b6c1415a12eacd177bff91c7fe937dd4e7829feb1f7dcbb51294\"},\"result\":{\"question\":\"\",\"registered\":true,\"temporary\":false,\"warnings\":[\"원본 전체의 화자 동일성을 확인한 결과는 아닙니다. 후보 안의 화자 정보만 사용했습니다.\"],\"limitations\":[\"샘플 참조 방식이며 모델을 재학습하지 않습니다.\",\"대사 검사와 감정·음색의 주관적 품질은 다른 항목입니다.\",\"일회성 참조의 정리와 대화 원본·생성 파일의 보관은 별개입니다.\"],\"files\":[{\"file\":\"reference.wav\",\"name\":\"사용한 참조 구간.wav\",\"sha256\":\"a41c2fab09e4e08bc2f16227444bbb531bc48f47cb6843952f9441e8c4ca661b\",\"bytes\":1302616},{\"file\":\"preview.wav\",\"name\":\"등록 미리 듣기.wav\",\"sha256\":\"5d309ee3cd3135948ffc660ae54496a0e86a10034f32961c0abf0e22ed9c52fe\",\"bytes\":376876}],\"voice\":{\"id\":\"voice_668d5a1ca976402fa7671396ef06f014\",\"name\":\"제라툴 목소리의 비밀 - 김기현 성우 인터뷰 (스타2 공허의 유산)\",\"scope\":\"persistent\",\"status\":\"ready\",\"revision\":3},\"reference\":{\"start\":34.184000000000005,\"end\":48.952,\"transcript\":\"꼭 해보고 싶었던 영화친 것 같은 그런 느낌이 들었어요. 어쨌든 어떻게 해서 나한테 그 역할을 내가 맡기게 되는지 모르겠지만 말 직업해주신도 참고 맞고 감사합니다. 제가 들어올 때 내가 그 성격을 잡기를\",\"transcript_source\":\"asr\"},\"candidates\":[{\"index\":0,\"start\":34.184000000000005,\"end\":48.952,\"transcript\":\"꼭 해보고 싶었던 영화친 것 같은 그런 느낌이 들었어요. 어쨌든 어떻게 해서 나한테 그 역할을 내가 맡기게 되는지 모르겠지만 말 직업해주신도 참고 맞고 감사합니다. 제가 들어올 때 내가 그 성격을 잡기를\",\"speaker_count\":1,\"diarization_status\":\"completed\"},{\"index\":1,\"start\":34.184000000000005,\"end\":48.952,\"transcript\":\"꼭 해보고 싶었던 영화 찍은 것 같은 그런 느낌이 들었어요. 어쨌든 어떻게 해서 나한테 그 역할을 내가 맡기게 되는지 모르겠지만 말 피곱해주신도 참 고맙고 감사합니다. 제가 들어올 때 내가 그 성격을 잡기를\",\"speaker_count\":1,\"diarization_status\":\"completed\"},{\"index\":2,\"start\":155.272,\"end\":169.848,\"transcript\":\"그게 사실 한번 쭉 읽고 나가면 뭐 한 삼십분 일건 날겠죠. 근데 내가 나 녹음할 수 나도 느낌이 오거든요. 요거 괜찮다 하는 것이 나올 때까지 두번 세번 세번 네번하거든요. 이스타 것이 이제 우리 말이 제일 익숙하지만\",\"speaker_count\":1,\"diarization_status\":\"completed\"}],\"source\":{\"streams\":[{\"index\":1,\"channels\":2,\"codec\":\"aac\"}]},\"generation\":{\"text\":\"안녕하세요. 이 목소리로 새로운 이야기를 전해 드립니다.\",\"model_input\":\"안녕하세요. 이 목소리로 새로운 이야기를 전해 드립니다.\",\"requested_instructions\":\"\",\"validation\":{\"passed\":true,\"exact\":true,\"character_error_rate\":0,\"diagnostic_recovery\":null}}}},\"published_message_id\":3212}"
+      }
+    ],
+    "variants": [
+      {
+        "performance": {
+          "totals": {
+            "prefill_tokens": 7722,
+            "prefill_seconds": 9.4203,
+            "decode_tokens": 106,
+            "decode_seconds": 1.221428082
+          },
+          "elapsed_seconds": 11.185079333000001,
+          "finished_at": "2026-10-24T11:57:47.523595082Z",
+          "finish_status": "failed",
+          "pp": 819.7191172255662,
+          "tg": 86.78366050535917,
+          "ttft": 9.529594072,
+          "tg_estimated": true,
+          "ttft_estimated": true,
+          "prompt_tokens": 7722,
+          "cached_tokens": 0,
+          "output_tokens": 107,
+          "calls": 1
+        },
+        "content": "",
+        "created_at": "2026-10-24T20:57:47.523894234+09:00"
+      },
+      {
+        "performance": {
+          "totals": {
+            "prefill_tokens": 7845,
+            "prefill_seconds": 9.3031,
+            "decode_tokens": 111,
+            "decode_seconds": 1.070826763
+          },
+          "elapsed_seconds": 354.516812382,
+          "finished_at": "2026-10-24T12:21:29.486809147Z",
+          "finish_status": "completed",
+          "pp": 843.2672979974417,
+          "tg": 103.65822356645751,
+          "ttft": 9.384466699,
+          "tg_estimated": true,
+          "ttft_estimated": true,
+          "prompt_tokens": 7845,
+          "cached_tokens": 0,
+          "output_tokens": 112,
+          "calls": 1
+        },
+        "content": "음성 작업 결과를 이 대화에 게시했습니다.",
+        "tool_trace": [
+          {
+            "archive_id": 2472,
+            "name": "voice_tools",
+            "arguments": "{\"action\":\"prepare\",\"scope\":\"persistent\",\"source_url\":\"https://www.youtube.com/watch?v=mme_JyKGd5I\",\"target_voice_id\":\"voice_668d5a1ca976402fa7671396ef06f014\"}",
+            "result": "{\"job\":{\"id\":\"0746fa4dfe594575a94cc319348bd897\",\"session_id\":\"chat-1792821673232425691\",\"status\":\"completed\",\"stage\":\"음성 준비 완료 · 대화 게시 대기\",\"progress\":100,\"version\":1,\"created\":1792844155.420129,\"error\":\"\",\"delivery_pending\":true,\"request\":{\"session_id\":\"chat-1792821673232425691\",\"action\":\"prepare\",\"name\":\"제라툴 목소리의 비밀 - 김기현 성우 인터뷰 (스타2 공허의 유산)\",\"scope\":\"persistent\",\"voice_id\":null,\"revision\":null,\"target_voice_id\":\"voice_668d5a1ca976402fa7671396ef06f014\",\"text\":\"\",\"instructions\":\"\",\"continuous\":false,\"source_attachment\":{\"id\":\"ad798c637a2bb97ab23ff5f9cd8bf9ee\",\"name\":\"제라툴 목소리의 비밀 - 김기현 성우 인터뷰 (스타2 공허의 유산).mp4\",\"mime\":\"video/mp4\",\"size\":49831251,\"url\":\"/api/files/ad798c637a2bb97ab23ff5f9cd8bf9ee/%EC%A0%9C%EB%9D%BC%ED%88%B4%20%EB%AA%A9%EC%86%8C%EB%A6%AC%EC%9D%98%20%EB%B9%84%EB%B0%80%20-%20%EA%B9%80%EA%B8%B0%ED%98%84%20%EC%84%B1%EC%9A%B0%20%EC%9D%B8%ED%84%B0%EB%B7%B0%20%28%EC%8A%A4%ED%83%802%20%EA%B3%B5%ED%97%88%EC%9D%98%20%EC%9C%A0%EC%82%B0%29.mp4?type=video%2Fmp4\",\"source_url\":\"https://www.youtube.com/watch?v=mme_JyKGd5I\",\"source_audio_language\":\"ko\",\"source_audio_format\":\"140-1\",\"source_audio_original\":true},\"source_url\":\"https://www.youtube.com/watch?v=mme_JyKGd5I\",\"source_name\":\"제라툴 목소리의 비밀 - 김기현 성우 인터뷰 (스타2 공허의 유산).mp4\",\"source_mime\":\"video/mp4\",\"source_sha256\":\"2306e59a9ee03321f841ae67ed48c7eb67a3d727b3009ae161dcccaecc17f911\",\"start\":null,\"end\":null,\"track\":null,\"channel\":null,\"transcript\":\"\",\"candidate\":null,\"source_job_id\":\"\",\"idempotency_key\":\"f6608b01f390b6c1415a12eacd177bff91c7fe937dd4e7829feb1f7dcbb51294\"},\"result\":{\"question\":\"\",\"registered\":true,\"temporary\":false,\"warnings\":[\"원본 전체의 화자 동일성을 확인한 결과는 아닙니다. 후보 안의 화자 정보만 사용했습니다.\"],\"limitations\":[\"샘플 참조 방식이며 모델을 재학습하지 않습니다.\",\"대사 검사와 감정·음색의 주관적 품질은 다른 항목입니다.\",\"일회성 참조의 정리와 대화 원본·생성 파일의 보관은 별개입니다.\"],\"files\":[{\"file\":\"reference.wav\",\"name\":\"사용한 참조 구간.wav\",\"sha256\":\"a41c2fab09e4e08bc2f16227444bbb531bc48f47cb6843952f9441e8c4ca661b\",\"bytes\":1302616},{\"file\":\"preview.wav\",\"name\":\"등록 미리 듣기.wav\",\"sha256\":\"5d309ee3cd3135948ffc660ae54496a0e86a10034f32961c0abf0e22ed9c52fe\",\"bytes\":376876}],\"voice\":{\"id\":\"voice_668d5a1ca976402fa7671396ef06f014\",\"name\":\"제라툴 목소리의 비밀 - 김기현 성우 인터뷰 (스타2 공허의 유산)\",\"scope\":\"persistent\",\"status\":\"ready\",\"revision\":3},\"reference\":{\"start\":34.184000000000005,\"end\":48.952,\"transcript\":\"꼭 해보고 싶었던 영화친 것 같은 그런 느낌이 들었어요. 어쨌든 어떻게 해서 나한테 그 역할을 내가 맡기게 되는지 모르겠지만 말 직업해주신도 참고 맞고 감사합니다. 제가 들어올 때 내가 그 성격을 잡기를\",\"transcript_source\":\"asr\"},\"candidates\":[{\"index\":0,\"start\":34.184000000000005,\"end\":48.952,\"transcript\":\"꼭 해보고 싶었던 영화친 것 같은 그런 느낌이 들었어요. 어쨌든 어떻게 해서 나한테 그 역할을 내가 맡기게 되는지 모르겠지만 말 직업해주신도 참고 맞고 감사합니다. 제가 들어올 때 내가 그 성격을 잡기를\",\"speaker_count\":1,\"diarization_status\":\"completed\"},{\"index\":1,\"start\":34.184000000000005,\"end\":48.952,\"transcript\":\"꼭 해보고 싶었던 영화 찍은 것 같은 그런 느낌이 들었어요. 어쨌든 어떻게 해서 나한테 그 역할을 내가 맡기게 되는지 모르겠지만 말 피곱해주신도 참 고맙고 감사합니다. 제가 들어올 때 내가 그 성격을 잡기를\",\"speaker_count\":1,\"diarization_status\":\"completed\"},{\"index\":2,\"start\":155.272,\"end\":169.848,\"transcript\":\"그게 사실 한번 쭉 읽고 나가면 뭐 한 삼십분 일건 날겠죠. 근데 내가 나 녹음할 수 나도 느낌이 오거든요. 요거 괜찮다 하는 것이 나올 때까지 두번 세번 세번 네번하거든요. 이스타 것이 이제 우리 말이 제일 익숙하지만\",\"speaker_count\":1,\"diarization_status\":\"completed\"}],\"source\":{\"streams\":[{\"index\":1,\"channels\":2,\"codec\":\"aac\"}]},\"generation\":{\"text\":\"안녕하세요. 이 목소리로 새로운 이야기를 전해 드립니다.\",\"model_input\":\"안녕하세요. 이 목소리로 새로운 이야기를 전해 드립니다.\",\"requested_instructions\":\"\",\"validation\":{\"passed\":true,\"exact\":true,\"character_error_rate\":0,\"diagnostic_recovery\":null}}}},\"published_message_id\":3212}"
+          }
+        ],
+        "created_at": "2026-10-24T21:21:29.486963564+09:00"
+      }
+    ],
+    "created_at": "2026-10-24T21:21:29.486963564+09:00"
+  },
+  "delivery": [
+    {
+      "label": "jang",
+      "session_id": "chat-1792821673232425691",
+      "attachment": {
+        "id": "6eea0b6d861ef8e16664d531b677bd9e",
+        "name": "voice_668d5a1ca976402fa7671396ef06f014-Fish-preview.wav",
+        "mime": "audio/wav",
+        "size": 376876,
+        "url": "/api/files/6eea0b6d861ef8e16664d531b677bd9e/voice_668d5a1ca976402fa7671396ef06f014-Fish-preview.wav?type=audio%2Fwav",
+        "source_url": "/api/shorts/voices/voice_668d5a1ca976402fa7671396ef06f014/preview.wav?sha256=5d309ee3cd3135948ffc660ae54496a0e86a10034f32961c0abf0e22ed9c52fe"
+      },
+      "sha256": "5d309ee3cd3135948ffc660ae54496a0e86a10034f32961c0abf0e22ed9c52fe"
+    }
+  ],
+  "browser": [
+    {
+      "label": "jang",
+      "errors": [],
+      "audio": {
+        "src": "http://127.0.0.1:8585/api/files/6eea0b6d861ef8e16664d531b677bd9e/voice_668d5a1ca976402fa7671396ef06f014-Fish-preview.wav?type=audio%2Fwav",
+        "duration": 4.272472,
+        "currentTime": 0.351398,
+        "error": null
+      }
+    }
+  ]
+}

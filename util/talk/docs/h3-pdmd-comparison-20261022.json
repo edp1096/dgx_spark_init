@@ -1,0 +1,621 @@
+{
+  "status": "comparison-complete-production-restored",
+  "finished_utc": "2026-10-22T13:27:59.319194+00:00",
+  "host": "61 only; host 60 untouched",
+  "recommendation": "PDMD 4 NFE is the preferred adoption candidate. 2 NFE is not recommended as the default after a Korean ASR mismatch and large audio level changes. No production promotion performed.",
+  "method": {
+    "samples": "One generation per arm for each of two text-to-video prompts and one image-to-video prompt; nine successful clips. Preliminary screening, not a comprehensive quality benchmark.",
+    "identical": "Same prompt and seed within each case; identical base NVFP4 checkpoint, ClipProj encoder, VAEs, 864x480, 124 frames, 24fps, audio enabled; Qwen EXL3 remained online.",
+    "cold_conditioning": true,
+    "total_seconds": "Includes encoder, sampling, video/audio VAE decoding, cleanup and MP4 saving. Excludes model startup and adapter installation. Compilation encountered during the first generation is included.",
+    "baseline": "Current production 20-step res_multistep + Sol-Attn, video/audio shifts 12/3.",
+    "pdmd4": "4 Euler evaluations, dense attention, video/audio shifts 12/3, LoRA scale 1.",
+    "pdmd2": "2 Euler evaluations, dense attention, video/audio shifts 12/6 per current original-author recommendation, LoRA scale 1.",
+    "adapter": "BF16 low-rank residual branch added to the original NVFP4 layer output. No LoRA merging/requantization or base-weight modification. All 208 modules/624 keys validated; all 208 modules exercised.",
+    "startup_retries": "Two harness setup errors were corrected: adapter key suffix assumption and admitted-image path. No failed generation entered speed/quality scores; completed baseline clips were retained.",
+    "processes": "Baseline T2V, 4-NFE T2V, and remaining arms ran in three separate instances of the same image after setup fixes."
+  },
+  "base": {
+    "image_id": "sha256:6ed764f91663f5020974050e1658c602771d638ba15327484a01856db71d799e",
+    "checkpoint": "lilcheaty/MiniMax-H3-NVFP4",
+    "revision": "8c5abfed61e1b6a170240792b65253fba1a65b7b",
+    "filename": "minimax_h3_fl2va_pruned_nvfp4.safetensors",
+    "sha256": "72fa9269ce551fb63ff42a32d9b46d0c122e84b4b2c511e22fa698287b088f70"
+  },
+  "lora_files": [
+    {
+      "repo": "Iwannapose/minimax_h3_pdmd_4nfe_comfyui",
+      "revision": "ae6ab62d28754b9ce052798b92d9567161568f28",
+      "file": "minimax_h3_pdmd_4nfe_comfyui_v6.safetensors",
+      "sha256": "d1d7c9f08782492ebcaa57f9f823899541ee04c48a298692a229683c4b3dd8a1",
+      "bytes": 1956194168
+    },
+    {
+      "repo": "Iwannapose/minimax_h3_pdmd_2nfe_comfyui",
+      "revision": "3acb11d6f9bc65e68bb907a5c6b596cd719c4360",
+      "file": "minimax_h3_pdmd_2nfe_comfyui.safetensors",
+      "sha256": "5feaeef13df31f98f36364a95e7ce9e8ff0afd71570d1c53d7c3be599e3a0f22",
+      "bytes": 1956194168
+    }
+  ],
+  "results": [
+    {
+      "request": {
+        "case": "aux-pdmd2-i2v",
+        "kind": "h3",
+        "arm": "pdmd2",
+        "prompt": "integrated_multimodal_description: Continue naturally from the provided first frame. Keep the same orange tabby cat, wooden fence, and garden. The cat looks toward the camera, then walks slowly to the right, its tail gently moving. One continuous stationary-camera shot. Preserve the cat identity and the background. No text or subtitles.\noverall_soundscape: Soft bird chirps, gentle rustling leaves, one quiet cat meow.\nnon_diegetic_music: None.",
+        "seed": 123,
+        "width": 864,
+        "height": 480,
+        "first_frame": "/job/inputs/aux-pdmd2-i2v-first.image",
+        "first_frame_sha256": "4c580a8017f80ecd5d71a39fd9b483f112f0072d4a03e3b651b19ff7730c65bc"
+      },
+      "seconds": 45.92837476800196,
+      "stages": {
+        "encode": 3.5681020140182227,
+        "release_encoder": 0.23299321997910738,
+        "sample": 23.772268294997048,
+        "release_sample_workspace": 0.2047723499708809,
+        "decode_video": 14.96955226996215,
+        "release_video_vae": 0.18450079299509525,
+        "decode_audio": 0.5674723869888112,
+        "release_audio_vae": 0.15207665303023532,
+        "save": 2.2629197140340693
+      },
+      "file": "/job/output/aux-pdmd2-i2v.mp4",
+      "pid": 1,
+      "status": "success",
+      "peak_cuda_allocated_gib": 20.653231620788574,
+      "peak_cuda_reserved_gib": 23.267578125,
+      "arm": {
+        "steps": 2,
+        "sampler": "euler",
+        "attention": "dense",
+        "audio_shift": 6.0,
+        "lora": "minimax_h3_pdmd_2nfe_comfyui.safetensors"
+      },
+      "adapter_modules_called": 208
+    },
+    {
+      "request": {
+        "case": "aux-pdmd4-i2v",
+        "kind": "h3",
+        "arm": "pdmd4",
+        "prompt": "integrated_multimodal_description: Continue naturally from the provided first frame. Keep the same orange tabby cat, wooden fence, and garden. The cat looks toward the camera, then walks slowly to the right, its tail gently moving. One continuous stationary-camera shot. Preserve the cat identity and the background. No text or subtitles.\noverall_soundscape: Soft bird chirps, gentle rustling leaves, one quiet cat meow.\nnon_diegetic_music: None.",
+        "seed": 123,
+        "width": 864,
+        "height": 480,
+        "first_frame": "/job/inputs/aux-pdmd4-i2v-first.image",
+        "first_frame_sha256": "4c580a8017f80ecd5d71a39fd9b483f112f0072d4a03e3b651b19ff7730c65bc"
+      },
+      "seconds": 68.2177181590232,
+      "stages": {
+        "encode": 2.4715306329890154,
+        "release_encoder": 0.22844072699081153,
+        "sample": 47.1068817890482,
+        "release_sample_workspace": 0.20332893094746396,
+        "decode_video": 15.005541495978832,
+        "release_video_vae": 0.18297927599633113,
+        "decode_audio": 0.5553835349855945,
+        "release_audio_vae": 0.15193958795862272,
+        "save": 2.2954931660206057
+      },
+      "file": "/job/output/aux-pdmd4-i2v.mp4",
+      "pid": 1,
+      "status": "success",
+      "peak_cuda_allocated_gib": 20.653231620788574,
+      "peak_cuda_reserved_gib": 23.267578125,
+      "arm": {
+        "steps": 4,
+        "sampler": "euler",
+        "attention": "dense",
+        "audio_shift": 3.0,
+        "lora": "minimax_h3_pdmd_4nfe_comfyui_v6.safetensors"
+      },
+      "adapter_modules_called": 208
+    },
+    {
+      "request": {
+        "case": "baseline20-cat",
+        "kind": "h3",
+        "arm": "baseline20",
+        "prompt": "integrated_multimodal_description: A single continuous medium-wide shot in a sunlit garden. One orange tabby cat walks from left to right along a low wooden fence, pauses, then turns its head toward the camera. The camera remains stationary. Natural realistic fur, coherent paws, clear motion, leafy plants behind the fence. No text or subtitles.\noverall_soundscape: Soft birds chirping and gentle rustling leaves, followed by one clear cat meow as the cat turns its head.\nnon_diegetic_music: None.",
+        "seed": 42,
+        "width": 864,
+        "height": 480
+      },
+      "seconds": 171.8472733629751,
+      "stages": {
+        "encode": 5.2739641279913485,
+        "release_encoder": 0.18770202196901664,
+        "sample": 146.78753129398683,
+        "release_sample_workspace": 0.16514840198215097,
+        "decode_video": 16.255906972975936,
+        "release_video_vae": 0.1452052879612893,
+        "decode_audio": 0.7055125629995018,
+        "release_audio_vae": 0.14758321701083332,
+        "save": 2.1456375360139646
+      },
+      "file": "/job/output/baseline20-cat.mp4",
+      "pid": 1,
+      "status": "success",
+      "peak_cuda_allocated_gib": 17.788407802581787,
+      "peak_cuda_reserved_gib": 19.0,
+      "arm": {
+        "steps": 20,
+        "sampler": "res_multistep",
+        "attention": "sol",
+        "audio_shift": 3.0,
+        "lora": null
+      }
+    },
+    {
+      "request": {
+        "case": "baseline20-i2v",
+        "kind": "h3",
+        "arm": "baseline20",
+        "prompt": "integrated_multimodal_description: Continue naturally from the provided first frame. Keep the same orange tabby cat, wooden fence, and garden. The cat looks toward the camera, then walks slowly to the right, its tail gently moving. One continuous stationary-camera shot. Preserve the cat identity and the background. No text or subtitles.\noverall_soundscape: Soft bird chirps, gentle rustling leaves, one quiet cat meow.\nnon_diegetic_music: None.",
+        "seed": 123,
+        "width": 864,
+        "height": 480,
+        "first_frame": "/job/inputs/baseline20-i2v-first.image",
+        "first_frame_sha256": "4c580a8017f80ecd5d71a39fd9b483f112f0072d4a03e3b651b19ff7730c65bc"
+      },
+      "seconds": 178.59806401201058,
+      "stages": {
+        "encode": 4.499193813011516,
+        "release_encoder": 0.20800843002507463,
+        "sample": 157.07300845498685,
+        "release_sample_workspace": 0.17033201397862285,
+        "decode_video": 13.895181269966997,
+        "release_video_vae": 0.18206856295000762,
+        "decode_audio": 0.4440150980371982,
+        "release_audio_vae": 0.14925648499047384,
+        "save": 1.962430591986049
+      },
+      "file": "/job/output/baseline20-i2v.mp4",
+      "pid": 1,
+      "status": "success",
+      "peak_cuda_allocated_gib": 17.897050857543945,
+      "peak_cuda_reserved_gib": 19.056640625,
+      "arm": {
+        "steps": 20,
+        "sampler": "res_multistep",
+        "attention": "sol",
+        "audio_shift": 3.0,
+        "lora": null
+      }
+    },
+    {
+      "request": {
+        "case": "baseline20-speech-ko",
+        "kind": "h3",
+        "arm": "baseline20",
+        "prompt": "integrated_multimodal_description: One continuous eye-level medium close-up of an adult Korean man in a plain blue shirt, seated in a bright quiet room. He looks directly at the camera, smiles gently and says clearly in Korean: \"안녕하세요. 좋은 하루 보내세요.\" His lips move naturally in sync with the spoken words. He gives a small friendly wave with one hand. Realistic face, natural skin, stable camera. No subtitles, no text.\noverall_soundscape: One calm male voice saying exactly \"안녕하세요. 좋은 하루 보내세요.\" in Korean, with faint quiet indoor room tone.\nnon_diegetic_music: None.",
+        "seed": 99,
+        "width": 864,
+        "height": 480
+      },
+      "seconds": 165.8723228359595,
+      "stages": {
+        "encode": 3.5156907649943605,
+        "release_encoder": 0.21181566797895357,
+        "sample": 144.0614405979868,
+        "release_sample_workspace": 0.16516236896859482,
+        "decode_video": 15.081993599014822,
+        "release_video_vae": 0.1794225339544937,
+        "decode_audio": 0.5926405780483037,
+        "release_audio_vae": 0.15261678298702464,
+        "save": 1.8823022110154852
+      },
+      "file": "/job/output/baseline20-speech-ko.mp4",
+      "pid": 1,
+      "status": "success",
+      "peak_cuda_allocated_gib": 17.78999614715576,
+      "peak_cuda_reserved_gib": 18.935546875,
+      "arm": {
+        "steps": 20,
+        "sampler": "res_multistep",
+        "attention": "sol",
+        "audio_shift": 3.0,
+        "lora": null
+      }
+    },
+    {
+      "request": {
+        "case": "pdmd2-cat",
+        "kind": "h3",
+        "arm": "pdmd2",
+        "prompt": "integrated_multimodal_description: A single continuous medium-wide shot in a sunlit garden. One orange tabby cat walks from left to right along a low wooden fence, pauses, then turns its head toward the camera. The camera remains stationary. Natural realistic fur, coherent paws, clear motion, leafy plants behind the fence. No text or subtitles.\noverall_soundscape: Soft birds chirping and gentle rustling leaves, followed by one clear cat meow as the cat turns its head.\nnon_diegetic_music: None.",
+        "seed": 42,
+        "width": 864,
+        "height": 480
+      },
+      "seconds": 46.41425799601711,
+      "stages": {
+        "encode": 4.978373551974073,
+        "release_encoder": 0.1929793450399302,
+        "sample": 22.578946209978312,
+        "release_sample_workspace": 0.17262803501216695,
+        "decode_video": 15.231519758002833,
+        "release_video_vae": 0.12397690903162584,
+        "decode_audio": 0.7368401120183989,
+        "release_audio_vae": 0.12544908799463883,
+        "save": 2.2574636740027927
+      },
+      "file": "/job/output/pdmd2-cat.mp4",
+      "pid": 1,
+      "status": "success",
+      "peak_cuda_allocated_gib": 20.504882335662842,
+      "peak_cuda_reserved_gib": 22.88671875,
+      "arm": {
+        "steps": 2,
+        "sampler": "euler",
+        "attention": "dense",
+        "audio_shift": 6.0,
+        "lora": "minimax_h3_pdmd_2nfe_comfyui.safetensors"
+      },
+      "adapter_modules_called": 208
+    },
+    {
+      "request": {
+        "case": "pdmd2-speech-ko",
+        "kind": "h3",
+        "arm": "pdmd2",
+        "prompt": "integrated_multimodal_description: One continuous eye-level medium close-up of an adult Korean man in a plain blue shirt, seated in a bright quiet room. He looks directly at the camera, smiles gently and says clearly in Korean: \"안녕하세요. 좋은 하루 보내세요.\" His lips move naturally in sync with the spoken words. He gives a small friendly wave with one hand. Realistic face, natural skin, stable camera. No subtitles, no text.\noverall_soundscape: One calm male voice saying exactly \"안녕하세요. 좋은 하루 보내세요.\" in Korean, with faint quiet indoor room tone.\nnon_diegetic_music: None.",
+        "seed": 99,
+        "width": 864,
+        "height": 480
+      },
+      "seconds": 43.814185813011136,
+      "stages": {
+        "encode": 3.017723325989209,
+        "release_encoder": 0.18628305097809061,
+        "sample": 22.930933300987817,
+        "release_sample_workspace": 0.17539076902903616,
+        "decode_video": 14.53869253495941,
+        "release_video_vae": 0.16158862703014165,
+        "decode_audio": 0.5707600839668885,
+        "release_audio_vae": 0.12984248402062804,
+        "save": 2.0889473049901426
+      },
+      "file": "/job/output/pdmd2-speech-ko.mp4",
+      "pid": 1,
+      "status": "success",
+      "peak_cuda_allocated_gib": 20.507732391357422,
+      "peak_cuda_reserved_gib": 22.810546875,
+      "arm": {
+        "steps": 2,
+        "sampler": "euler",
+        "attention": "dense",
+        "audio_shift": 6.0,
+        "lora": "minimax_h3_pdmd_2nfe_comfyui.safetensors"
+      },
+      "adapter_modules_called": 208
+    },
+    {
+      "request": {
+        "case": "pdmd4-cat",
+        "kind": "h3",
+        "arm": "pdmd4",
+        "prompt": "integrated_multimodal_description: A single continuous medium-wide shot in a sunlit garden. One orange tabby cat walks from left to right along a low wooden fence, pauses, then turns its head toward the camera. The camera remains stationary. Natural realistic fur, coherent paws, clear motion, leafy plants behind the fence. No text or subtitles.\noverall_soundscape: Soft birds chirping and gentle rustling leaves, followed by one clear cat meow as the cat turns its head.\nnon_diegetic_music: None.",
+        "seed": 42,
+        "width": 864,
+        "height": 480
+      },
+      "seconds": 69.2980699550244,
+      "stages": {
+        "encode": 4.983637865050696,
+        "release_encoder": 0.19643183203879744,
+        "sample": 45.1426508440054,
+        "release_sample_workspace": 0.17479775799438357,
+        "decode_video": 15.540734562033322,
+        "release_video_vae": 0.12639579101232812,
+        "decode_audio": 0.686021970002912,
+        "release_audio_vae": 0.12740939302602783,
+        "save": 2.289600246003829
+      },
+      "file": "/job/output/pdmd4-cat.mp4",
+      "pid": 1,
+      "status": "success",
+      "peak_cuda_allocated_gib": 20.504882335662842,
+      "peak_cuda_reserved_gib": 22.88671875,
+      "arm": {
+        "steps": 4,
+        "sampler": "euler",
+        "attention": "dense",
+        "audio_shift": 3.0,
+        "lora": "minimax_h3_pdmd_4nfe_comfyui_v6.safetensors"
+      },
+      "adapter_modules_called": 208
+    },
+    {
+      "request": {
+        "case": "pdmd4-speech-ko",
+        "kind": "h3",
+        "arm": "pdmd4",
+        "prompt": "integrated_multimodal_description: One continuous eye-level medium close-up of an adult Korean man in a plain blue shirt, seated in a bright quiet room. He looks directly at the camera, smiles gently and says clearly in Korean: \"안녕하세요. 좋은 하루 보내세요.\" His lips move naturally in sync with the spoken words. He gives a small friendly wave with one hand. Realistic face, natural skin, stable camera. No subtitles, no text.\noverall_soundscape: One calm male voice saying exactly \"안녕하세요. 좋은 하루 보내세요.\" in Korean, with faint quiet indoor room tone.\nnon_diegetic_music: None.",
+        "seed": 99,
+        "width": 864,
+        "height": 480
+      },
+      "seconds": 66.1687173199607,
+      "stages": {
+        "encode": 3.3611086180317216,
+        "release_encoder": 0.18515267298789695,
+        "sample": 44.76215568499174,
+        "release_sample_workspace": 0.17420815001241863,
+        "decode_video": 14.772318948991597,
+        "release_video_vae": 0.1578972589923069,
+        "decode_audio": 0.5661148790386505,
+        "release_audio_vae": 0.1288376529701054,
+        "save": 2.0189837050274946
+      },
+      "file": "/job/output/pdmd4-speech-ko.mp4",
+      "pid": 1,
+      "status": "success",
+      "peak_cuda_allocated_gib": 20.507732391357422,
+      "peak_cuda_reserved_gib": 22.810546875,
+      "arm": {
+        "steps": 4,
+        "sampler": "euler",
+        "attention": "dense",
+        "audio_shift": 3.0,
+        "lora": "minimax_h3_pdmd_4nfe_comfyui_v6.safetensors"
+      },
+      "adapter_modules_called": 208
+    }
+  ],
+  "preflight": [
+    {
+      "file": "minimax_h3_pdmd_2nfe_comfyui.safetensors",
+      "matched_modules": 208,
+      "matched_tensor_keys": 624,
+      "all_scales": 1.0
+    },
+    {
+      "file": "minimax_h3_pdmd_4nfe_comfyui_v6.safetensors",
+      "matched_modules": 208,
+      "matched_tensor_keys": 624,
+      "all_scales": 1.0
+    }
+  ],
+  "adapter_validation": {
+    "pdmd4": {
+      "modules": 208,
+      "called_modules": 208,
+      "original_weight_objects_unchanged": true,
+      "max_normalized_fp64_error": 0.009702674584529452,
+      "allowed_max_normalized_error": 0.025,
+      "scope": "Independent FP64 reassociation of low-rank residuals on two synthetic input rows and sixteen output columns per module; not a full-checkpoint equivalence proof."
+    },
+    "pdmd2": {
+      "modules": 208,
+      "called_modules": 208,
+      "original_weight_objects_unchanged": true,
+      "max_normalized_fp64_error": 0.005492810884219013,
+      "allowed_max_normalized_error": 0.025,
+      "scope": "Independent FP64 reassociation of low-rank residuals on two synthetic input rows and sixteen output columns per module; not a full-checkpoint equivalence proof."
+    }
+  },
+  "media": [
+    {
+      "case": "aux-pdmd2-i2v",
+      "bytes": 3382917,
+      "fps": 24.0,
+      "frames": 124,
+      "width": 864,
+      "height": 480,
+      "video_seconds": 5.166666666666667,
+      "audio_seconds": 5.1666875,
+      "audio_rms": 0.18219072802732666,
+      "audio_peak": 0.4398193359375,
+      "audio_clipping_fraction": 0.0
+    },
+    {
+      "case": "aux-pdmd4-i2v",
+      "bytes": 2305830,
+      "fps": 24.0,
+      "frames": 124,
+      "width": 864,
+      "height": 480,
+      "video_seconds": 5.166666666666667,
+      "audio_seconds": 5.1666875,
+      "audio_rms": 0.00794006545829658,
+      "audio_peak": 0.04925537109375,
+      "audio_clipping_fraction": 0.0
+    },
+    {
+      "case": "baseline20-cat",
+      "bytes": 2050806,
+      "fps": 24.0,
+      "frames": 124,
+      "width": 864,
+      "height": 480,
+      "video_seconds": 5.166666666666667,
+      "audio_seconds": 5.1666875,
+      "audio_rms": 0.005748104097220939,
+      "audio_peak": 0.05987548828125,
+      "audio_clipping_fraction": 0.0
+    },
+    {
+      "case": "baseline20-i2v",
+      "bytes": 1887122,
+      "fps": 24.0,
+      "frames": 124,
+      "width": 864,
+      "height": 480,
+      "video_seconds": 5.166666666666667,
+      "audio_seconds": 5.1666875,
+      "audio_rms": 0.00714201143011266,
+      "audio_peak": 0.0584716796875,
+      "audio_clipping_fraction": 0.0
+    },
+    {
+      "case": "baseline20-speech-ko",
+      "bytes": 547400,
+      "fps": 24.0,
+      "frames": 124,
+      "width": 864,
+      "height": 480,
+      "video_seconds": 5.166666666666667,
+      "audio_seconds": 5.1666875,
+      "audio_rms": 0.15089170544492242,
+      "audio_peak": 0.935577392578125,
+      "audio_clipping_fraction": 0.0
+    },
+    {
+      "case": "pdmd2-cat",
+      "bytes": 2368841,
+      "fps": 24.0,
+      "frames": 124,
+      "width": 864,
+      "height": 480,
+      "video_seconds": 5.166666666666667,
+      "audio_seconds": 5.1666875,
+      "audio_rms": 0.1839044230078031,
+      "audio_peak": 0.6959228515625,
+      "audio_clipping_fraction": 0.0
+    },
+    {
+      "case": "pdmd2-speech-ko",
+      "bytes": 1008782,
+      "fps": 24.0,
+      "frames": 124,
+      "width": 864,
+      "height": 480,
+      "video_seconds": 5.166666666666667,
+      "audio_seconds": 5.1666875,
+      "audio_rms": 0.17796687938712807,
+      "audio_peak": 0.736114501953125,
+      "audio_clipping_fraction": 0.0
+    },
+    {
+      "case": "pdmd4-cat",
+      "bytes": 2111079,
+      "fps": 24.0,
+      "frames": 124,
+      "width": 864,
+      "height": 480,
+      "video_seconds": 5.166666666666667,
+      "audio_seconds": 5.1666875,
+      "audio_rms": 0.00511066507072078,
+      "audio_peak": 0.04156494140625,
+      "audio_clipping_fraction": 0.0
+    },
+    {
+      "case": "pdmd4-speech-ko",
+      "bytes": 751014,
+      "fps": 24.0,
+      "frames": 124,
+      "width": 864,
+      "height": 480,
+      "video_seconds": 5.166666666666667,
+      "audio_seconds": 5.1666875,
+      "audio_rms": 0.03555620011045152,
+      "audio_peak": 0.41229248046875,
+      "audio_clipping_fraction": 0.0
+    }
+  ],
+  "korean_asr": [
+    {
+      "case": "baseline20-speech-ko",
+      "reference": "안녕하세요. 좋은 하루 보내세요.",
+      "response": {
+        "text": "안녕하세요 좋은 하루 보내세요."
+      },
+      "seconds": 0.6111903190030716,
+      "normalized_exact_match": true,
+      "normalized_character_error_rate": 0.0
+    },
+    {
+      "case": "pdmd2-speech-ko",
+      "reference": "안녕하세요. 좋은 하루 보내세요.",
+      "response": {
+        "text": "안녕하세요. 좋은 하루 보도세요."
+      },
+      "seconds": 0.11131649202434346,
+      "normalized_exact_match": false,
+      "normalized_character_error_rate": 0.07692307692307693
+    },
+    {
+      "case": "pdmd4-speech-ko",
+      "reference": "안녕하세요. 좋은 하루 보내세요.",
+      "response": {
+        "text": "안녕하세요. 좋은 하루 보내세요."
+      },
+      "seconds": 0.04835379199357703,
+      "normalized_exact_match": true,
+      "normalized_character_error_rate": 0.0
+    }
+  ],
+  "visual_review": {
+    "method": "Manual inspection of frames at 0,1.25,2.5,3.75,5 seconds, not a full temporal or lip-sync metric.",
+    "observations": "All variants produce recognizable scenes and coherent subject identity in sampled frames. 4-NFE T2V cat walks and turns toward the camera; the person remains visually coherent. I2V retains the cat/garden and produces rightward movement in all arms. Scenes differ between T2V arms despite equal seeds.",
+    "audio_limits": "ASR checks the requested words, not subjective voice/sound quality. An ASR mismatch alone does not establish the exact pronunciation. No direct audio listening was available in this assistant environment. 2-NFE cat and I2V RMS levels are substantially higher than the baseline and 4-NFE."
+  },
+  "restored": {
+    "health": {
+      "status": "ok",
+      "features": {
+        "progress": true,
+        "eta": true,
+        "i2v": true,
+        "first_last_frames": true
+      },
+      "image_model": "qwen-image-2.1-uc-nvfp4",
+      "video_model": "minimax-h3-nvfp4",
+      "video": {
+        "width": 864,
+        "height": 480,
+        "frames": 124,
+        "fps": 24,
+        "audio": true,
+        "i2v_size": "source_aspect",
+        "max_pixel_area": 414720
+      },
+      "acceleration": {
+        "attention": "sol",
+        "spectrum": false,
+        "fbc": false,
+        "tau": 1.0,
+        "dense_first_steps": 4,
+        "dense_last_steps": 2,
+        "dense_first_blocks": 2,
+        "dense_text_audio_queries": true
+      }
+    },
+    "memory": {
+      "status": "ok",
+      "busy": false,
+      "active": 0,
+      "queued": 0,
+      "quiescing": false,
+      "idle_for_seconds": 301.5783700149623,
+      "core_ready": true,
+      "memory_gib": 28,
+      "workspace_gib": 6,
+      "keep_models_loaded": true
+    },
+    "image_same": true,
+    "mounts_same": true,
+    "running_containers_same": true
+  },
+  "production_files_changed": false,
+  "sources": [
+    "https://huggingface.co/pdmd2026/pdmd_2NFE_lora",
+    "https://huggingface.co/pdmd2026/pdmd_4NFE_lora",
+    "https://huggingface.co/Iwannapose/minimax_h3_pdmd_4nfe_comfyui",
+    "https://huggingface.co/Iwannapose/minimax_h3_pdmd_2nfe_comfyui",
+    "https://github.com/ZeamoxWang/pdmd",
+    "https://pdmd2026.github.io/"
+  ],
+  "retained_models": "Two pinned BF16 LoRAs, 3,912,388,336 bytes, in the private experiment directory; no full base checkpoint or FP32 LoRA downloaded.",
+  "raw_directory": "/home/edp1096/.cache/sparktalk/experiments/h3-pdmd",
+  "archive": {
+    "path": "util/talk/docs/h3-pdmd-comparison-20261022.tar.gz",
+    "sha256": "f643fccedc25e6badabf31bb74ea97b2cf9f664eb581376e06976c15facc1f2b",
+    "bytes": 56106
+  }
+}

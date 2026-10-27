@@ -56,7 +56,8 @@ func (s *Server) chat(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	turnCtx, releaseTurn, turnErr := s.claimTurn(r.Context(), req.SessionID)
+	browserContext := r.Context()
+	turnCtx, releaseTurn, turnErr := s.claimBrowserTurn(r.Context(), req.SessionID, "chat", 0, req.Content)
 	if turnErr != nil {
 		http.Error(w, turnErr.Error(), http.StatusConflict)
 		return
@@ -69,6 +70,7 @@ func (s *Server) chat(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), 500)
 		return
 	}
+	setChatStreamMessage(r.Context(), pending.ID)
 	_ = s.db.UpdateSession(req.SessionID, "", req.Model, req.ReasoningEffort)
 	history, err := s.db.Messages(req.SessionID)
 	if err != nil {
@@ -78,19 +80,12 @@ func (s *Server) chat(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("X-Accel-Buffering", "no")
-	flusher, ok := w.(http.Flusher)
+	_, ok := w.(http.Flusher)
 	if !ok {
 		http.Error(w, "streaming unsupported", 500)
 		return
 	}
-	emit := func(kind string, payload any) error {
-		data, _ := json.Marshal(payload)
-		if _, err := fmt.Fprintf(w, "event: %s\ndata: %s\n\n", kind, data); err != nil {
-			return err
-		}
-		flusher.Flush()
-		return nil
-	}
+	emit := browserTurnEmitter(w, browserContext, r.Context())
 	mediaSink := s.persistMediaAttachments(pending.ID, 0, attachments, nil)
 	result, err := s.runContextCompletion(r.Context(), req.SessionID, modelHistory(history, pending.ID), req.Model, req.ReasoningEffort, cfg, client, req.ToolsEnabled, emit, mediaSink)
 	if err != nil {
@@ -103,22 +98,19 @@ func (s *Server) chat(w http.ResponseWriter, r *http.Request) {
 		result.Performance = performance.Finish(result.Performance, started, status)
 		_ = emit("performance", result.Performance)
 		_ = s.db.FailPendingTurn(pending.ID, status, failure, result.Content, result.Reasoning, result.ToolTrace, result.Performance)
-		payload, _ := json.Marshal(map[string]string{"error": failure})
-		fmt.Fprintf(w, "event: error\ndata: %s\n\n", payload)
+		_ = emit("error", map[string]string{"error": failure})
 	} else {
 		result.Performance = performance.Finish(result.Performance, started, db.MessageCompleted)
 		if _, completeErr := s.db.CompletePendingTurnWithAttachments(pending.ID, result.Content, result.Reasoning, result.ToolTrace, result.Attachments, result.Performance); completeErr != nil {
 			result.Performance.FinishStatus = db.MessageFailed
 			_ = s.db.FailPendingTurn(pending.ID, db.MessageFailed, compactHistoryText(completeErr.Error(), 2000), result.Content, result.Reasoning, result.ToolTrace, result.Performance)
-			payload, _ := json.Marshal(map[string]string{"error": completeErr.Error()})
-			fmt.Fprintf(w, "event: error\ndata: %s\n\n", payload)
+			_ = emit("error", map[string]string{"error": completeErr.Error()})
 			err = completeErr
 		} else {
 			_ = emit("performance", result.Performance)
-			fmt.Fprint(w, "event: done\ndata: {}\n\n")
+			_ = emit("done", map[string]any{})
 		}
 	}
-	flusher.Flush()
 
 	if err == nil && count == 0 && !hasSessionTitleTool(result.ToolTrace) {
 		userText, sessionID, model := req.Content, req.SessionID, req.Model
@@ -164,7 +156,8 @@ func (s *Server) messageAction(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	turnCtx, releaseTurn, turnErr := s.claimTurn(r.Context(), target.SessionID)
+	browserContext := r.Context()
+	turnCtx, releaseTurn, turnErr := s.claimBrowserTurn(r.Context(), target.SessionID, "retry", target.ID, "")
 	if turnErr != nil {
 		http.Error(w, turnErr.Error(), http.StatusConflict)
 		return
@@ -182,19 +175,12 @@ func (s *Server) messageAction(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("X-Accel-Buffering", "no")
-	flusher, ok := w.(http.Flusher)
+	_, ok := w.(http.Flusher)
 	if !ok {
 		http.Error(w, "streaming unsupported", 500)
 		return
 	}
-	emit := func(kind string, payload any) error {
-		data, _ := json.Marshal(payload)
-		if _, err := fmt.Fprintf(w, "event: %s\ndata: %s\n\n", kind, data); err != nil {
-			return err
-		}
-		flusher.Flush()
-		return nil
-	}
+	emit := browserTurnEmitter(w, browserContext, r.Context())
 	parent := history[len(history)-1]
 	selectedUserVariant := userVariant
 	if selectedUserVariant < 0 {
@@ -205,16 +191,17 @@ func (s *Server) messageAction(w http.ResponseWriter, r *http.Request) {
 	if err == nil {
 		result.Performance = performance.Finish(result.Performance, started, db.MessageCompleted)
 		err = s.db.ReplaceAssistantWithAttachments(target.ID, result.Content, result.Reasoning, result.ToolTrace, result.Attachments, userVariant, result.Performance)
+		if err == nil {
+			err = s.restoreShortsDeliveries(r.Context(), target.SessionID, result.ToolTrace)
+		}
 		_ = s.db.UpdateSession(target.SessionID, "", req.Model, req.ReasoningEffort)
 	}
 	if err != nil {
-		payload, _ := json.Marshal(map[string]string{"error": err.Error()})
-		fmt.Fprintf(w, "event: error\ndata: %s\n\n", payload)
+		_ = emit("error", map[string]string{"error": err.Error()})
 	} else {
 		_ = emit("performance", result.Performance)
-		fmt.Fprint(w, "event: done\ndata: {}\n\n")
+		_ = emit("done", map[string]any{})
 	}
-	flusher.Flush()
 }
 
 func (s *Server) editMessage(w http.ResponseWriter, r *http.Request, messageID int64) {
@@ -242,7 +229,8 @@ func (s *Server) editMessage(w http.ResponseWriter, r *http.Request, messageID i
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	turnCtx, releaseTurn, turnErr := s.claimTurn(r.Context(), target.SessionID)
+	browserContext := r.Context()
+	turnCtx, releaseTurn, turnErr := s.claimBrowserTurn(r.Context(), target.SessionID, "edit", target.ID, req.Content)
 	if turnErr != nil {
 		http.Error(w, turnErr.Error(), http.StatusConflict)
 		return
@@ -269,19 +257,12 @@ func (s *Server) editMessage(w http.ResponseWriter, r *http.Request, messageID i
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("X-Accel-Buffering", "no")
-	flusher, ok := w.(http.Flusher)
+	_, ok := w.(http.Flusher)
 	if !ok {
 		http.Error(w, "streaming unsupported", http.StatusInternalServerError)
 		return
 	}
-	emit := func(kind string, payload any) error {
-		data, _ := json.Marshal(payload)
-		if _, err := fmt.Fprintf(w, "event: %s\ndata: %s\n\n", kind, data); err != nil {
-			return err
-		}
-		flusher.Flush()
-		return nil
-	}
+	emit := browserTurnEmitter(w, browserContext, r.Context())
 	mediaSink := func(item db.Attachment) error {
 		validated, validateErr := s.media.Validate(append(append([]db.Attachment{}, attachments...), item))
 		if validateErr != nil {
@@ -294,19 +275,20 @@ func (s *Server) editMessage(w http.ResponseWriter, r *http.Request, messageID i
 	if err == nil {
 		result.Performance = performance.Finish(result.Performance, started, db.MessageCompleted)
 		err = s.db.AppendEditedBranchWithAnswerAttachments(messageID, req.Content, attachments, result.Content, result.Reasoning, result.ToolTrace, result.Attachments, result.Performance)
+		if err == nil {
+			err = s.restoreShortsDeliveries(r.Context(), target.SessionID, result.ToolTrace)
+		}
 		_ = s.db.UpdateSession(target.SessionID, "", req.Model, req.ReasoningEffort)
 	}
 	if err != nil {
-		payload, _ := json.Marshal(map[string]string{"error": err.Error()})
-		fmt.Fprintf(w, "event: error\ndata: %s\n\n", payload)
+		_ = emit("error", map[string]string{"error": err.Error()})
 	} else {
 		_ = emit("performance", result.Performance)
-		fmt.Fprint(w, "event: done\ndata: {}\n\n")
+		_ = emit("done", map[string]any{})
 		if len(history) == 0 && !hasSessionTitleTool(result.ToolTrace) {
 			s.scheduleTitle(client, target.SessionID, req.Model, req.Content)
 		}
 	}
-	flusher.Flush()
 }
 
 // Titles outlive the requesting browser, but are drained before the DB closes.
@@ -349,6 +331,9 @@ func (s *Server) llmMessages(ctx context.Context, items []db.Message, cfg config
 	messages := make([]llm.Message, 0, len(items))
 	latestVideoItem, latestVideoAttachment := -1, -1
 	for itemIndex, item := range items {
+		if item.Role != "user" {
+			continue
+		}
 		for attachmentIndex, attachment := range item.Attachments {
 			if strings.HasPrefix(attachment.MIME, "video/") {
 				latestVideoItem, latestVideoAttachment = itemIndex, attachmentIndex
@@ -373,13 +358,21 @@ func (s *Server) llmMessages(ctx context.Context, items []db.Message, cfg config
 			isImage := strings.HasPrefix(attachment.MIME, "image/")
 			isDocument := isDocumentAttachment(attachment)
 			isLatestVideo := isVideo && itemIndex == latestVideoItem && attachmentIndex == latestVideoAttachment
-			if isVideo && !isLatestVideo {
+			if (isVideo && (item.Role != "user" || !isLatestVideo)) || (isAudio && item.Role == "assistant") {
 				fingerprint := transcriptFingerprint(cfg.ASR)
 				if cached, ok, cacheErr := s.media.LoadTranscript(attachment.ID, fingerprint); cacheErr == nil && ok {
 					textParts = append(textParts, transcriptBlock(attachment, cached))
 				} else {
-					textParts = append(textParts, fmt.Sprintf("<media_reference filename=%q type=%q status=%q>Historical video retained in the visible conversation; raw frames omitted from this model request.</media_reference>", attachment.Name, attachment.MIME, "historical"))
+					mediaKind := "video"
+					if isAudio {
+						mediaKind = "audio"
+					}
+					textParts = append(textParts, fmt.Sprintf("<media_reference attachment_id=%q filename=%q type=%q origin=%q status=%q>Historical %s retained in the visible conversation; raw audio/video omitted from this model request. Use attachment_read with this ID if the user explicitly asks to inspect it.</media_reference>", attachment.ID, attachment.Name, attachment.MIME, item.Role, "historical", mediaKind))
 				}
+				continue
+			}
+			if (isAudio || isVideo) && item.Role == "user" && voiceReferenceIntent(item.Content) {
+				textParts = append(textParts, fmt.Sprintf("<media_reference attachment_id=%q filename=%q type=%q>Voice reference source; use voice_tools to analyze candidate excerpts.</media_reference>", attachment.ID, attachment.Name, attachment.MIME))
 				continue
 			}
 			if isDocument {
@@ -446,6 +439,15 @@ func (s *Server) llmMessages(ctx context.Context, items []db.Message, cfg config
 				return nil, err
 			}
 			textParts = append(textParts, transcriptBlock(attachment, cached))
+		}
+		// Generated images remain visible evidence on later turns, but image
+		// parts are not valid assistant content in the model API. Preserve the
+		// original reply and carry its images in a separately labelled input.
+		if item.Role == "assistant" && len(parts) > 0 {
+			messages = append(messages, llm.Message{Role: "assistant", Content: strings.Join(textParts, "\n\n"), ReasoningContent: savedModelReasoning(ctx, item, cfg)})
+			parts = append([]map[string]any{{"type": "text", "text": "Historical assistant image attachments from the preceding reply, supplied by SparkTalk as visual context. These are assistant outputs, not a new user request or user-uploaded originals. Follow the actual user request."}}, parts...)
+			messages = append(messages, llm.Message{Role: "user", Content: parts})
+			continue
 		}
 		parts = append(parts, map[string]any{"type": "text", "text": strings.Join(textParts, "\n\n")})
 		messages = append(messages, llm.Message{Role: item.Role, Content: parts, ReasoningContent: savedModelReasoning(ctx, item, cfg)})

@@ -1,0 +1,26 @@
+{
+  "errors": [],
+  "audio": [
+    {
+      "label": "Shorts.mp4",
+      "src": "http://127.0.0.1:8585/api/files/c941ca56d506dd8b3b00b9efbc722fee/Shorts.mp4?type=video%2Fmp4",
+      "duration": 15,
+      "time": 0.197233,
+      "error": null
+    },
+    {
+      "label": "Shorts.mp4",
+      "src": "http://127.0.0.1:8585/api/files/78299509a2fd4ded4aeb45c4ed85c351/Shorts.mp4?type=video%2Fmp4",
+      "duration": 15,
+      "time": 0.214473,
+      "error": null
+    },
+    {
+      "label": "Shorts.mp4",
+      "src": "http://127.0.0.1:8585/api/files/2087f7b3df29aade041c744af827bc4f/Shorts.mp4?type=video%2Fmp4",
+      "duration": 15,
+      "time": 0.20449,
+      "error": null
+    }
+  ]
+}

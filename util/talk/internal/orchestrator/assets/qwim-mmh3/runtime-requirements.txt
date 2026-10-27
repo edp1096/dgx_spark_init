@@ -1,0 +1,10 @@
+# Inference versions used by the qualified H3 PDMD comparison.
+torch==2.13.0a0+9186a08b2c.nv26.7.59513937
+transformers==5.18.0
+huggingface-hub==1.33.0
+comfy-kitchen==0.2.37
+comfy-aimdo==0.5.5
+av==19.0.1
+numpy==2.1.0
+safetensors==0.8.0
+tokenizers==0.23.1

@@ -8,6 +8,16 @@ const port = Number(process.env.SPARKTALK_E2E_PORT || 18585);
 const workDir = await mkdtemp(join(tmpdir(), 'sparktalk-e2e-'));
 const binary = join(workDir, 'sparktalk-e2e');
 
+// Managed-mode UI tests must not discover or reconfigure the host's real models.
+const isolatedCatalog = process.env.SPARKTALK_E2E_MINIMAL_CATALOG ? {
+  hosts: { local: {} },
+  components: [
+    { id: 'chat-test-llm', name: 'Test model', role: 'llm', controller: 'external', endpoint: 'http://127.0.0.1:9', health_url: 'http://127.0.0.1:9/health', model: 'test-model' },
+    ...['shorts', 'fish'].map(key => ({ id: `extra-${key}`, name: key, role: key === 'fish' ? 'tts' : 'tool', controller: 'external', endpoint: 'http://127.0.0.1:9', health_url: 'http://127.0.0.1:9/health', compose_asset: `compose.extra-${key}.yaml` })),
+  ],
+  bundles: [{ id: 'shorts-chat-test', name: 'Test', model_id: 'test-model', model_type: 'qwen3.8', context_tokens: 65536, components: ['chat-test-llm'] }],
+} : null;
+
 await new Promise((resolveBuild, rejectBuild) => {
   const build = spawn('go', ['build', '-o', binary, './cmd/chat'], { cwd: projectRoot, stdio: 'inherit' });
   build.once('error', rejectBuild);
@@ -21,6 +31,7 @@ runtime:
   bundle: flash-next
   auto_start: false
   memory_reserve_gib: 8
+${isolatedCatalog ? `  builtin_revision: 52\n  catalog: ${JSON.stringify(isolatedCatalog)}\n` : ''}\
 server:
   listen_addr: 127.0.0.1:${port}
   database: ${join(workDir, 'sparktalk.db')}

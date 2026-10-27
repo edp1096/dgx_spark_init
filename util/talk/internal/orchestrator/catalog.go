@@ -53,17 +53,18 @@ type Component struct {
 }
 
 type Bundle struct {
-	WorkloadSwap  bool                  `json:"workload_swap,omitempty" yaml:"workload_swap,omitempty"`
-	StartSupport  bool                  `json:"start_support,omitempty" yaml:"start_support,omitempty"`
-	Bindings      map[string]Deployment `json:"bindings,omitempty" yaml:"bindings,omitempty"`
-	ID            string                `json:"id" yaml:"id"`
-	Name          string                `json:"name" yaml:"name"`
-	Description   string                `json:"description" yaml:"description"`
-	ModelType     string                `json:"model_type" yaml:"model_type"`
-	ModelID       string                `json:"model_id" yaml:"model_id"`
-	ContextTokens int                   `json:"context_tokens" yaml:"context_tokens"`
-	Components    []string              `json:"components" yaml:"components"`
-	MemoryGiB     float64               `json:"memory_gib" yaml:"memory_gib"`
+	DisabledSupport []string              `json:"disabled_support,omitempty" yaml:"disabled_support,omitempty"`
+	WorkloadSwap    bool                  `json:"workload_swap,omitempty" yaml:"workload_swap,omitempty"`
+	StartSupport    bool                  `json:"start_support,omitempty" yaml:"start_support,omitempty"`
+	Bindings        map[string]Deployment `json:"bindings,omitempty" yaml:"bindings,omitempty"`
+	ID              string                `json:"id" yaml:"id"`
+	Name            string                `json:"name" yaml:"name"`
+	Description     string                `json:"description" yaml:"description"`
+	ModelType       string                `json:"model_type" yaml:"model_type"`
+	ModelID         string                `json:"model_id" yaml:"model_id"`
+	ContextTokens   int                   `json:"context_tokens" yaml:"context_tokens"`
+	Components      []string              `json:"components" yaml:"components"`
+	MemoryGiB       float64               `json:"memory_gib" yaml:"memory_gib"`
 }
 
 type Catalog struct {

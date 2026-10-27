@@ -23,7 +23,7 @@ services:
     container_name: sparktalk-qwen38fn_exl3
     cpuset: 5-9,15-19
     ports:
-    - ${SPARKTALK_BIND_ADDR:-127.0.0.1}:${SPARKTALK_PORT:-18002}:30000
+    - ${SPARKTALK_BIND_ADDR:-0.0.0.0}:${SPARKTALK_PORT:-18002}:30000
     environment:
       PYTHONUNBUFFERED: '1'
       HF_HUB_OFFLINE: '1'

@@ -13,6 +13,7 @@
   import AvatarSettings from './settings/AvatarSettings.svelte';
   import ThemeSettings from './settings/ThemeSettings.svelte';
   import SupportServices from './settings/SupportServices.svelte';
+  import ModelAPISettings from './settings/ModelAPISettings.svelte';
   import ModelDownloads from './settings/ModelDownloads.svelte';
   import RuntimeSetEditor from './settings/RuntimeSetEditor.svelte';
   import SSHSettings from './settings/SSHSettings.svelte';
@@ -380,6 +381,7 @@
           <button type="button" aria-pressed={systemSection === 'storage'} onclick={() => { systemSection = 'storage'; }}>앱·저장소</button>
         </div>
         <div class="settings-section" hidden={systemSection !== 'connection'}>
+        {#if activeTab === 'system' && systemSection === 'connection'}<ModelAPISettings />{/if}
         <fieldset>
           <legend><span>모델 연결</span> <SettingsHelp title="모델 연결"><p>외부 API 주소에는 /v1을 붙이지 않습니다. 모델 유형에 맞는 응답 제어를 사용합니다.</p><p>세트 관리형에서는 기본 세트와 자동 기동을 설정합니다. 실행 중 세트 전환은 운영 패널에서 진행합니다.</p><p>최소 확보 메모리는 새 엔진을 올릴 때 남겨둘 통합메모리 GiB입니다.</p></SettingsHelp></legend>
           <label class="settings-field-row"><span>실행 방식</span><Select bind:value={settings.runtime.mode}><option value="managed">세트 관리형 (로컬·원격)</option><option value="external">외부 OpenAI 호환 API</option></Select></label>

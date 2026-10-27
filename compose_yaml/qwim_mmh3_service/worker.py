@@ -52,6 +52,7 @@ from comfy_api.latest import Types
 from PIL import Image, ImageOps
 import numpy as np
 import sol_runtime
+from pdmd_lora import PDMDAdapter, FILENAME as PDMD_FILENAME
 
 if AUX_DYNAMIC:
     if not comfy_aimdo.control.init_devices((d.index, 0) for d in mm.get_all_torch_devices()):
@@ -74,9 +75,17 @@ EVENTS = (ROOT / 'events.jsonl').open('a', buffering=1)
 CASE = 'startup'
 TIMINGS = {}
 TRACKER = None
+PDMD = None
+H3_STEPS = 4
+
+
+class JobCanceled(Exception):
+    pass
 
 
 def emit(event, **data):
+    if CASE != 'startup' and event != 'idle' and (ROOT / 'cancel' / CASE).exists():
+        raise JobCanceled(CASE)
     torch.cuda.synchronize()
     memory = {k: int(v.split()[0]) * 1024 for k, v in
               (line.split(':', 1) for line in Path('/proc/meminfo').read_text().splitlines())}
@@ -174,13 +183,32 @@ def encode(kind, prompt, request):
                  width=request['width'], height=request['height'])
         return result[0]
     clip = nodes.CLIPLoader().load_clip('qwen3vl_8b_w4a8.safetensors', 'qwen_image')[0]
-    encoded = TextEncodeQwenImage21.execute(clip, prompt, '', resolution=1024)
-    return encoded[0], encoded[1]
+    images = {}
+    files, hashes = request.get('reference_files', []), request.get('reference_hashes', [])
+    if len(files) != len(hashes) or len(files) > 4:
+        raise ValueError('Invalid reference image manifest')
+    for index, (filename, digest) in enumerate(zip(files, hashes)):
+        path = Path(filename)
+        if path.parent != ROOT / 'inputs' or path.name != f"{request['case']}-reference-{index}.png":
+            raise ValueError('Invalid reference image path')
+        if hashlib.sha256(path.read_bytes()).hexdigest() != digest:
+            raise ValueError('Reference bytes do not match admitted image')
+        with Image.open(path) as image:
+            images[f'image_{index+1}'] = torch.from_numpy(np.asarray(image.convert('RGB')).copy()).float().div_(255).unsqueeze(0)
+    vae = nodes.VAELoader().load_vae('qwen_image_2.1_vae_bf16.safetensors')[0] if images else None
+    encoded = TextEncodeQwenImage21.execute(clip, prompt, '', vae=vae, resolution=1024, images=images)
+    if images:
+        actual = encoded[0][0][1].get('reference_latents', [])
+        if len(actual) != len(images):
+            raise RuntimeError('Reference images were not encoded into Qwen conditioning')
+        emit('references_encoded', reference_sha256=hashes, count=len(actual))
+    return encoded[0], encoded[1], encoded[2]
 
 
 def conditioning(kind, prompt, request):
     key = (kind, prompt, request['width'], request['height'],
-           request.get('first_frame_sha256'), request.get('last_frame_sha256'))
+           request.get('first_frame_sha256'), request.get('last_frame_sha256'),
+           tuple(request.get('reference_hashes', [])), request.get('operation'))
     if key in CONDITIONING:
         CONDITIONING.move_to_end(key)
         emit('conditioning_cache_hit')
@@ -197,16 +225,18 @@ def sample(kind, cond, seed, request):
     if kind == 'h3':
         from comfy_extras.nodes_minimax_h3 import _empty_av_latent
         latent, _ = _empty_av_latent(request['width'], request['height'], 124)
-        # The guider copies model options, so install attention before creating it.
-        with sol_runtime.sampling(model, 20) as acceleration:
-            guider = BasicGuider.execute(model, cond)[0]
-            sigmas = BasicScheduler.execute(model, 'simple', 20, 1.0)[0]
-            result = SamplerCustomAdvanced.execute(RandomNoise.execute(seed)[0], guider,
-                        comfy.samplers.sampler_object('res_multistep'), sigmas, latent)[0]
-        emit('attention_complete', acceleration=(acceleration.statistics() if acceleration
-                                                 else sol_runtime.configuration()))
+        guider = BasicGuider.execute(model, cond)[0]
+        sigmas = BasicScheduler.execute(model, 'simple', H3_STEPS, 1.0)[0]
+        result = SamplerCustomAdvanced.execute(RandomNoise.execute(seed)[0], guider,
+                    comfy.samplers.sampler_object('euler'), sigmas, latent)[0]
+        adapter = PDMD.report()
+        if adapter['called_modules'] != 208:
+            raise RuntimeError('PDMD did not execute all 208 target layers')
+        emit('attention_complete', acceleration={'attention': 'dense', 'steps': H3_STEPS,
+             'sampler': 'euler', 'video_shift': 12, 'audio_shift': 3, 'pdmd': adapter})
         return result
-    latent = nodes.EmptyLatentImage().generate(1024, 1024, 1)[0]
+    latent = (cond[2] if request.get('reference_files') and request.get('operation') != 'reference_generate'
+              else nodes.EmptyLatentImage().generate(request['width'], request['height'], 1)[0])
     return nodes.KSampler().sample(model, seed, 40, 1.0, 'euler', 'simple',
                                   cond[0], cond[1], latent, denoise=1.0)[0]
 
@@ -235,8 +265,10 @@ def generate(request):
     if kind not in DITS:
         raise ValueError('kind must be h3 or qwim')
     from generation_progress import Tracker
-    profile = (f"h3-i2v-{request['width']}x{request['height']}-124-24-20-sol-v1"
-               if kind == 'h3' and (request.get('first_frame') or request.get('last_frame')) else None)
+    profile = None
+    if kind == 'h3':
+        mode = 'i2v' if request.get('first_frame') or request.get('last_frame') else 't2v'
+        profile = f"h3-{mode}-{request['width']}x{request['height']}-124-24-pdmd4-v6"
     TRACKER = Tracker(ROOT, os.getenv('STATE_DIR', '/job/state'), request.get('progress_id', CASE), kind, profile=profile)
     start = time.monotonic()
     with stage('encode'):
@@ -279,9 +311,15 @@ with torch.inference_mode():
                 model.model_options['transformer_options']['qwen_image21_cache'] = {'device': 'auto', 'dtype': 'int8'}
             mm.load_models_gpu([model])
             DITS[kind] = model
+            if kind == 'h3':
+                PDMD = PDMDAdapter(model, str(Path('/opt/ComfyUI/models/loras') / PDMD_FILENAME))
+                model.model.model_sampling.set_parameters(shift=12.0, audio_shift=3.0)
+                emit('pdmd_loaded', adapter=PDMD.report())
             del model
             cleanup()
-(ROOT / 'ready.json').write_text(json.dumps(emit('ready', acceleration=sol_runtime.configuration()), indent=2))
+(ROOT / 'ready.json').write_text(json.dumps(emit('ready', acceleration={
+    'attention': 'dense', 'steps': H3_STEPS, 'sampler': 'euler',
+    'video_shift': 12, 'audio_shift': 3, 'pdmd': PDMD.report()}), indent=2))
 while not (ROOT / 'stop').exists():
     requests = sorted((ROOT / 'requests').glob('*.json'))
     if not requests:
@@ -301,6 +339,13 @@ while not (ROOT / 'stop').exists():
                               peak_cuda_allocated_gib=result['peak_cuda_allocated_gib'],
                               peak_cuda_reserved_gib=result['peak_cuda_reserved_gib'])
         TRACKER = None
+    except JobCanceled:
+        cleanup()
+        result = dict(status='canceled', request=request)
+        if TRACKER is not None:
+            TRACKER.record('canceled')
+        TRACKER = None
+        emit('idle', canceled=True)
     except Exception:
         result = dict(status='error', error=traceback.format_exc(), request=request)
         if TRACKER is not None:

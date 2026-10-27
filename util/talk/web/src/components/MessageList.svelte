@@ -296,6 +296,14 @@
     if (tool.name === 'document_generate') return '문서 생성';
     if (tool.name === 'media_import') return '미디어 가져오기';
     if (tool.name === 'video_generate') return '영상 생성';
+    if (tool.name === 'clip_produce') return '사진 편집·영상 제작';
+    if (tool.name === 'clip_manage') return '사진 영상 작업 관리';
+    if (tool.name === 'shorts_generate') return '쇼츠 제작';
+    if (tool.name === 'shorts_manage') return '쇼츠 작업 확인·관리';
+    if (tool.name === 'shorts_voices') return '영상 음성 목록·선택';
+    if (tool.name === 'shorts_project') return '쇼츠 구성·미리보기';
+    if (tool.name === 'shorts_assets') return '쇼츠 소재';
+    if (tool.name === 'shorts_templates') return '쇼츠 템플릿 제작';
     if (tool.name === 'memory_propose') return '기억 제안';
     if (tool.name === 'memory_manage') return '기억 관리';
 		if (tool.name === 'knowledge_import') return '지식 가져오기';
@@ -555,7 +563,11 @@
           {#if message.role === 'user'}
             <UserInput content={message.content} {render} />
           {:else}
+            {#if running && (index === messages.length - 1 || index === retryingIndex) && !message.content && !message.reasoning_content && !message.tool_trace?.length && !['failed', 'cancelled'].includes(message.status)}
+              <div class="response-stage" role="status"><span class="activity-label activity-scanner">{message.response_status?.label || '요청 전송 중'}</span></div>
+            {:else}
             <div class="bubble prose" use:markdownView={render(visibleAssistantContent(message.content || (running && (index === messages.length - 1 || index === retryingIndex) ? '▍' : '')))}></div>
+            {/if}
           {/if}
           {#if message.role === 'user'}
             {#each message.turn_inputs || [] as extra (extra.id)}
@@ -621,6 +633,7 @@
 </section>
 
 <style>
+.response-stage { padding: 10px 0; color: var(--muted, #777); font-size: 13px; }
 .generation-progress {display:grid;gap:6px;margin:8px 0}.generation-progress progress {width:100%;height:7px;accent-color:#648de5}
   .message-actions { flex-wrap: wrap; align-items: center; }
   .copy-feedback { font-size: 12px; color: inherit; }

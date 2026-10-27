@@ -1,0 +1,37 @@
+{
+  "cause": "Image switch forced off in a set without an image model was carried into the image-capable set; video tool substituted for a still-image request.",
+  "changes": [
+    "Reset model and allowed shared-service feature switches to set defaults on a different managed-set selection",
+    "Preserve explicit switches on normalization and same-set restart",
+    "Reject explicit still-image requests before video generation"
+  ],
+  "current_bundle": "qwen38fn_exl3",
+  "current_feature_flags": {
+    "asr": true,
+    "tts": true,
+    "image": true,
+    "embedding": true
+  },
+  "validation": {
+    "packages": [
+      "internal/config",
+      "internal/server"
+    ],
+    "status": "passed",
+    "real_retry": {
+      "session": "chat-1792927564179611495",
+      "assistant_message": 3260,
+      "tool": "image_generate",
+      "mime": "image/png",
+      "size": [
+        1024,
+        768
+      ],
+      "attachment_id": "ebe2d1bdd0920d2717727898fe6cd5a1",
+      "elapsed_seconds": 114.515,
+      "original_video_preserved_in_history": true
+    },
+    "main_model_restarted": false
+  },
+  "excluded_fp4_and_tp2_audio_unchanged": true
+}

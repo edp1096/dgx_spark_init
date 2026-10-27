@@ -1,0 +1,24 @@
+services:
+    runtime:
+        build:
+            context: ${SPARKTALK_BUILD_DIR:?Embedded build assets required}
+            dockerfile: Dockerfile
+        container_name: sparktalk-fish-drama3
+        environment:
+            DRAMA3_HADAMARD8: "1"
+            HF_HOME: /hf
+            HF_HUB_OFFLINE: "1"
+            VOICE_LIBRARY_DIR: /opt/fish/user-voices
+        gpus: all
+        image: sparktalk-fish-drama3:0.4.0
+        init: true
+        ipc: host
+        mem_limit: 42g
+        memswap_limit: 42g
+        network_mode: host
+        pull_policy: never
+        restart: "no"
+        volumes:
+            - ${SPARKTALK_HF_CACHE:-${HOME}/.cache/huggingface}:/hf:ro
+            - ${SPARKTALK_DATA_DIR:-${HOME}/.local/share/sparktalk}/fish-kernels:/root/.cache/sglang
+            - ${SPARKTALK_DATA_DIR:-${HOME}/.local/share/sparktalk}/voices:/opt/fish/user-voices:ro

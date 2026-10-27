@@ -1,0 +1,18 @@
+{
+  "attachment_id": "a38e80348f897961f47001aec7ab0ef2",
+  "filename": "MiniMax-H3.mp4",
+  "live_transcript": {
+    "status": "no_text",
+    "warning": "이 파일에서 인식된 대사가 없습니다.",
+    "fingerprint": "b0de0856ef7d6c0d7f389d2919fa9edcaddfca9f9691cc02dc94ca592fe4868e",
+    "text": "",
+    "language": "auto"
+  },
+  "http_status": 200,
+  "validation": {
+    "real_asr_result": "zero recognized characters; empty result cached and read again",
+    "regression": "empty success cached; malformed and 500 responses remain uncached errors",
+    "asr_media_server_tests": "passed",
+    "error_dismiss_browser_test": "passed"
+  }
+}

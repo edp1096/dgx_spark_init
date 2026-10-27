@@ -30,7 +30,7 @@ func TestFP4LocalMigrationPreservesSelectionAndCustomDeployment(t *testing.T) {
 	cfg.Runtime.Bundle, cfg.Runtime.ActiveBundle = "ds41", "qwen38fn_exl3"
 	cfg.Runtime.BuiltinRevision = 42
 	cfg.Normalize()
-	if cfg.Runtime.Bundle != "ds41" || cfg.Runtime.ActiveBundle != "qwen38fn_exl3" || cfg.Runtime.BuiltinRevision != 51 {
+	if cfg.Runtime.Bundle != "ds41" || cfg.Runtime.ActiveBundle != "qwen38fn_exl3" || cfg.Runtime.BuiltinRevision != 52 {
 		t.Fatal("migration changed selected/default set")
 	}
 	if _, ok := cfg.Runtime.Catalog.Bundle(id); !ok {

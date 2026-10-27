@@ -1,4 +1,4 @@
-"""Verify the three qualified checkpoints and link them into ComfyUI."""
+"""Verify the qualified checkpoints and PDMD v6; link them into ComfyUI."""
 import argparse
 import hashlib
 import json
@@ -12,6 +12,7 @@ FILES = [
     ("Comfy-Org/Qwen-Image-2.1", "cb504a4090723e43f17ad01cec0359490e2de613", "text_encoders/qwen3vl_8b_w4a8.safetensors", "7754425e55e7bea2bfde4dde59a4cc236cb44e5ee9c215ea66ef8d47012824eb", "text_encoders/qwen3vl_8b_w4a8.safetensors"),
     ("Comfy-Org/Qwen-Image-2.1", "cb504a4090723e43f17ad01cec0359490e2de613", "vae/qwen_image_2.1_vae_bf16.safetensors", "bb21f7473051e1ac368515dd3f2e15cd44d7a11748ee8823e1ddca3e4876b7c9", "vae/qwen_image_2.1_vae_bf16.safetensors"),
     ('lilcheaty/MiniMax-H3-NVFP4', '8c5abfed61e1b6a170240792b65253fba1a65b7b', 'minimax_h3_fl2va_pruned_nvfp4.safetensors', '72fa9269ce551fb63ff42a32d9b46d0c122e84b4b2c511e22fa698287b088f70', 'diffusion_models/minimax_h3_fl2va_pruned_nvfp4.safetensors'),
+    ('Iwannapose/minimax_h3_pdmd_4nfe_comfyui', 'ae6ab62d28754b9ce052798b92d9567161568f28', 'minimax_h3_pdmd_4nfe_comfyui_v6.safetensors', 'd1d7c9f08782492ebcaa57f9f823899541ee04c48a298692a229683c4b3dd8a1', 'loras/minimax_h3_pdmd_4nfe_comfyui_v6.safetensors'),
     ('Comfy-Org/Krea-2', 'eb1eddd3983a54678545a9b2c178c5853b30f7be', 'text_encoders/qwen3vl_4b_fp8_scaled.safetensors', '54bd5144df0bbc25dd6ccadfcb826b521445a1b06ae5a42570bdd2974ca87094', 'text_encoders/qwen3vl_4b_fp8_scaled.safetensors'),
     ('NicoLab28/ClipProj-MiniMax-H3', '2ebdbcdc27a29a9607efdb221a9afcb9a0cdd808', 'mmh3-4b-ClipProj-v3.1.safetensors', '0184e5c8d666a131962506d21949c2d8a8c6f33445b7b5e347e9a7e0a5baa819', 'clip_projections/mmh3-4b-ClipProj-v3.1.safetensors'),
     ('Comfy-Org/MiniMax-H3', 'e5eb578a89295337b8ff433a035929ce0279e0b6', 'vae/minimax_h3_video_vae_int8_convrot.safetensors', '52a2c8c73583c86e4f41cdcce3a6ad0ea562987bc0bf3d60a0cef5f5c8e60c0e', 'vae/minimax_h3_video_vae_int8_convrot.safetensors'),

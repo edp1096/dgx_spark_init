@@ -58,5 +58,41 @@
     "version": "0.1.1",
     "build_asset": "embedding",
     "dockerfile": "Dockerfile"
+  },
+  {
+    "key": "shorts",
+    "id": "extra-shorts",
+    "name": "쇼츠",
+    "description": "대본·음성·애니메이션 세로 영상",
+    "port": 8725,
+    "internal_port": 8725,
+    "image": "sparktalk-extra-shorts:0.4.1",
+    "version": "0.4.1",
+    "build_asset": "extra-shorts",
+    "dockerfile": "Dockerfile"
+  },
+  {
+    "key": "fish",
+    "id": "extra-fish",
+    "name": "Fish Drama3",
+    "description": "태그를 보존하는 쇼츠 음성 합성",
+    "port": 8726,
+    "internal_port": 8726,
+    "image": "sparktalk-fish-drama3:0.4.0",
+    "version": "0.4.0",
+    "build_asset": "extra-fish",
+    "dockerfile": "Dockerfile"
+  },
+  {
+    "key": "music-ace",
+    "id": "extra-music-ace",
+    "name": "ACE-Step 1.5",
+    "description": "무보컬 음악 생성",
+    "port": 8727,
+    "internal_port": 8727,
+    "image": "sparktalk-music-ace:0.1.1",
+    "version": "0.1.1",
+    "build_asset": "music-studio",
+    "dockerfile": "Dockerfile.ace"
   }
 ]

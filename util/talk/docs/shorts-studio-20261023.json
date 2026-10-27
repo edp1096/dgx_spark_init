@@ -1,0 +1,594 @@
+{
+  "job_id": "bfbb917aabc345f8b1dd51f73ec2eb44",
+  "session_id": "chat-1792689381708313299",
+  "state": "completed",
+  "tool_names": [
+    "shorts_assets",
+    "shorts_templates",
+    "shorts_project",
+    "shorts_generate",
+    "shorts_manage"
+  ],
+  "authoring": "Selected local model writes CSS, HTML/SVG and GSAP; no fixed visual theme",
+  "narration": {
+    "narration_seconds": 53.98065759637189,
+    "narration_coverage": 0.8996776266061982,
+    "longest_narration_gap": 1.16,
+    "voice_preset": "uncle_fu",
+    "voice_speed": 0.95,
+    "sentence_pause": 0.25
+  },
+  "browser_audit": true,
+  "visual_review": {
+    "passed": true,
+    "issues": [],
+    "summary": "The video layout meets the design specifications. The vertical 720x1280 aspect ratio is maintained with cinematic imagery filling the screen. The title '60대가 가져야 할 마음가짐' is correctly positioned at the top. Captions are centered (45-60% height), utilize the requested rounded semi-transparent black background with white bold text (approx 44px), and strictly adhere to the maximum 2-line constraint with yellow highlighting on key words. The Lottie animation (red hearts) is visible in the bottom-right area of the third frame, serving as a subtle accent as requested. The visual hierarchy is clear, and contrast is sufficient for readability."
+  },
+  "asset_pixels": [
+    {
+      "asset_id": "39652212b40a4c8abdce64850b6d70e2",
+      "time": 4.625,
+      "changed_pixels": 250
+    },
+    {
+      "asset_id": "39652212b40a4c8abdce64850b6d70e2",
+      "time": 14.208,
+      "changed_pixels": 0
+    },
+    {
+      "asset_id": "39652212b40a4c8abdce64850b6d70e2",
+      "time": 24,
+      "changed_pixels": 0
+    },
+    {
+      "asset_id": "39652212b40a4c8abdce64850b6d70e2",
+      "time": 34.042,
+      "changed_pixels": 0
+    },
+    {
+      "asset_id": "39652212b40a4c8abdce64850b6d70e2",
+      "time": 44.708,
+      "changed_pixels": 452
+    },
+    {
+      "asset_id": "39652212b40a4c8abdce64850b6d70e2",
+      "time": 55.083,
+      "changed_pixels": 652
+    }
+  ],
+  "reference_check": {
+    "character_error_rate": 0,
+    "expected": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어 주세요.",
+    "passed": true,
+    "transcript": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어주세요."
+  },
+  "tests": {
+    "worker_tests": 9,
+    "go_packages": [
+      "internal/server",
+      "internal/orchestrator",
+      "internal/config"
+    ],
+    "live_tool_routes": 7
+  },
+  "independent_layouts": [
+    {
+      "name": "cinema",
+      "author": "local_model",
+      "sha256": "70671fb4df9596177cc28aaa5fcbdafa1c0759a56d9242a1ac758abcbea3d88c",
+      "browser_passed": true
+    },
+    {
+      "name": "editorial",
+      "author": "local_model",
+      "sha256": "dc88faa472bd57d3b93bbdea4a3df5160237d388bf504f41eec1a19c610f5297",
+      "browser_passed": true
+    }
+  ],
+  "quality": {
+    "passed": true,
+    "applied": {
+      "duration_seconds": 60.0,
+      "scene_count": 6,
+      "scene_kinds": [
+        "image",
+        "image",
+        "image",
+        "image",
+        "image",
+        "image"
+      ],
+      "template": {
+        "template_sha256": "27da4a1ad2f4d9a4d5e006387f3181b9364047331e39437cb0bd7def0c4cc2d8",
+        "author": "local_model",
+        "name": "60s Mindset Cinematic Short - Visual Repair"
+      },
+      "template_id": "",
+      "caption_styles": [
+        {
+          "id": "caption-0-0",
+          "font_family": "\"Noto Sans CJK KR\", sans-serif",
+          "font_size": 44,
+          "color": "rgb(255, 255, 255)",
+          "background": "rgba(0, 0, 0, 0)",
+          "background_before": "rgba(0, 0, 0, 0.6)",
+          "emphasis_styles": [
+            {
+              "text": "예순",
+              "color": "rgb(255, 215, 0)",
+              "font_weight": "800"
+            }
+          ],
+          "x": 110,
+          "y": 603.40625,
+          "width": 500,
+          "height": 124.375,
+          "lines": 2,
+          "highlights": 1
+        },
+        {
+          "id": "caption-0-1",
+          "font_family": "\"Noto Sans CJK KR\", sans-serif",
+          "font_size": 44,
+          "color": "rgb(255, 255, 255)",
+          "background": "rgba(0, 0, 0, 0)",
+          "background_before": "rgba(0, 0, 0, 0.6)",
+          "emphasis_styles": [
+            {
+              "text": "깊이",
+              "color": "rgb(255, 215, 0)",
+              "font_weight": "800"
+            }
+          ],
+          "x": 110,
+          "y": 603.40625,
+          "width": 500,
+          "height": 124.375,
+          "lines": 2,
+          "highlights": 1
+        },
+        {
+          "id": "caption-0-1",
+          "font_family": "\"Noto Sans CJK KR\", sans-serif",
+          "font_size": 44,
+          "color": "rgb(255, 255, 255)",
+          "background": "rgba(0, 0, 0, 0)",
+          "background_before": "rgba(0, 0, 0, 0.6)",
+          "emphasis_styles": [
+            {
+              "text": "깊이",
+              "color": "rgb(255, 215, 0)",
+              "font_weight": "800"
+            }
+          ],
+          "x": 110,
+          "y": 603.40625,
+          "width": 500,
+          "height": 124.375,
+          "lines": 2,
+          "highlights": 1
+        },
+        {
+          "id": "caption-1-0",
+          "font_family": "\"Noto Sans CJK KR\", sans-serif",
+          "font_size": 44,
+          "color": "rgb(255, 255, 255)",
+          "background": "rgba(0, 0, 0, 0)",
+          "background_before": "rgba(0, 0, 0, 0.6)",
+          "emphasis_styles": [
+            {
+              "text": "비교",
+              "color": "rgb(255, 215, 0)",
+              "font_weight": "800"
+            }
+          ],
+          "x": 110,
+          "y": 603.40625,
+          "width": 500,
+          "height": 124.375,
+          "lines": 2,
+          "highlights": 1
+        },
+        {
+          "id": "caption-1-1",
+          "font_family": "\"Noto Sans CJK KR\", sans-serif",
+          "font_size": 44,
+          "color": "rgb(255, 255, 255)",
+          "background": "rgba(0, 0, 0, 0)",
+          "background_before": "rgba(0, 0, 0, 0.6)",
+          "emphasis_styles": [
+            {
+              "text": "마음",
+              "color": "rgb(255, 215, 0)",
+              "font_weight": "800"
+            }
+          ],
+          "x": 110,
+          "y": 603.40625,
+          "width": 500,
+          "height": 124.375,
+          "lines": 2,
+          "highlights": 1
+        },
+        {
+          "id": "caption-1-1",
+          "font_family": "\"Noto Sans CJK KR\", sans-serif",
+          "font_size": 44,
+          "color": "rgb(255, 255, 255)",
+          "background": "rgba(0, 0, 0, 0)",
+          "background_before": "rgba(0, 0, 0, 0.6)",
+          "emphasis_styles": [
+            {
+              "text": "마음",
+              "color": "rgb(255, 215, 0)",
+              "font_weight": "800"
+            }
+          ],
+          "x": 110,
+          "y": 603.40625,
+          "width": 500,
+          "height": 124.375,
+          "lines": 2,
+          "highlights": 1
+        },
+        {
+          "id": "caption-1-2",
+          "font_family": "\"Noto Sans CJK KR\", sans-serif",
+          "font_size": 44,
+          "color": "rgb(255, 255, 255)",
+          "background": "rgba(0, 0, 0, 0)",
+          "background_before": "rgba(0, 0, 0, 0.6)",
+          "emphasis_styles": [],
+          "x": 110,
+          "y": 637,
+          "width": 500,
+          "height": 57.1875,
+          "lines": 1,
+          "highlights": 0
+        },
+        {
+          "id": "caption-2-0",
+          "font_family": "\"Noto Sans CJK KR\", sans-serif",
+          "font_size": 44,
+          "color": "rgb(255, 255, 255)",
+          "background": "rgba(0, 0, 0, 0)",
+          "background_before": "rgba(0, 0, 0, 0.6)",
+          "emphasis_styles": [
+            {
+              "text": "몸",
+              "color": "rgb(255, 215, 0)",
+              "font_weight": "800"
+            }
+          ],
+          "x": 110,
+          "y": 637,
+          "width": 500,
+          "height": 57.1875,
+          "lines": 1,
+          "highlights": 1
+        }
+      ],
+      "voice_preset": "uncle_fu",
+      "voice_speed": 0.95,
+      "sentence_pause": 0.25,
+      "narration_seconds": 53.98065759637189,
+      "narration_coverage": 0.8996776266061982,
+      "longest_narration_gap": 1.16,
+      "music_kind": "synth_keys",
+      "music_gain": 0.15,
+      "animation_assets": [
+        {
+          "id": "39652212b40a4c8abdce64850b6d70e2",
+          "name": "Free love line art Animation by Sharmin | LottieFiles",
+          "kind": "lottie",
+          "source_url": "https://lottiefiles.com/free-animation/love-line-art-IPImkpKimZ",
+          "license": "Lottie Simple License",
+          "license_url": "https://lottiefiles.com/page/license",
+          "creator": "Sharmin  Akter"
+        }
+      ]
+    },
+    "verification": {
+      "browser_layout": true,
+      "animation_visible_pixels": [
+        {
+          "asset_id": "39652212b40a4c8abdce64850b6d70e2",
+          "time": 4.625,
+          "changed_pixels": 250
+        },
+        {
+          "asset_id": "39652212b40a4c8abdce64850b6d70e2",
+          "time": 14.208,
+          "changed_pixels": 0
+        },
+        {
+          "asset_id": "39652212b40a4c8abdce64850b6d70e2",
+          "time": 24,
+          "changed_pixels": 0
+        },
+        {
+          "asset_id": "39652212b40a4c8abdce64850b6d70e2",
+          "time": 34.042,
+          "changed_pixels": 0
+        },
+        {
+          "asset_id": "39652212b40a4c8abdce64850b6d70e2",
+          "time": 44.708,
+          "changed_pixels": 452
+        },
+        {
+          "asset_id": "39652212b40a4c8abdce64850b6d70e2",
+          "time": 55.083,
+          "changed_pixels": 652
+        }
+      ],
+      "visual_review": {
+        "passed": true,
+        "issues": [],
+        "summary": "The video layout meets the design specifications. The vertical 720x1280 aspect ratio is maintained with cinematic imagery filling the screen. The title '60대가 가져야 할 마음가짐' is correctly positioned at the top. Captions are centered (45-60% height), utilize the requested rounded semi-transparent black background with white bold text (approx 44px), and strictly adhere to the maximum 2-line constraint with yellow highlighting on key words. The Lottie animation (red hearts) is visible in the bottom-right area of the third frame, serving as a subtle accent as requested. The visual hierarchy is clear, and contrast is sufficient for readability."
+      },
+      "speech_coverage": true,
+      "narration_track": {
+        "duration_seconds": 60.0,
+        "longest_internal_silence": 1.16,
+        "trim_start_sample": 882,
+        "trim_end_sample": 2607192,
+        "energy_active_seconds": 38.64
+      },
+      "duration_fit": {
+        "status": "fit",
+        "narration_seconds": 53.98065759637189,
+        "duration_seconds": 60,
+        "narration_coverage": 0.8996776266061982,
+        "desired_narration_seconds": 56.7,
+        "rewrite_length_multiplier": 1.0503762370581213,
+        "explicit_silent_seconds": 0
+      },
+      "caption_timing": "sentence timestamps with proportional phrase timing",
+      "final_file": {
+        "duration": "60.000000",
+        "frames": "1440",
+        "audio": true
+      }
+    },
+    "limitations": [
+      "Synth keys are original synthetic notes, not acoustic piano recordings.",
+      "Voice is synthetic reference (uncle_fu), not a human recording.",
+      "Lottie playback relies on the renderer's local player integration.",
+      "Font rendering depends on local availability of 'Noto Sans CJK KR'.",
+      "Audio synchronization is handled by the renderer's audio tracks."
+    ],
+    "speech": [
+      {
+        "character_error_rate": 0.15151515151515152,
+        "expected": "예순, 인생의 새로운 장이 열립니다. 나이 듦은 잃음이 아닌, 채워온 삶의 깊이입니다.",
+        "passed": true,
+        "transcript": "예순 인생의 새로운 장이 열립니다. 나의 들문 이름이 아닌 채워온 삶의 깊이입니다.",
+        "fingerprint": "49efa7a2f0c455c2ea88bb3a6887c591394669a4b8cfb1762b8b364b36806fd0"
+      },
+      {
+        "character_error_rate": 0.0625,
+        "expected": "첫째, 비교를 내려놓으세요. 남의 삶보다 오늘 내 마음이 편안한 게 더 중요합니다.",
+        "passed": true,
+        "transcript": "첫째 비교를 내려놓으세요. 남의 사안보다 오늘 내 마음이 편안한게 더 중요합니다.",
+        "fingerprint": "3e172eaf9047e18320c2b40869c5de0f5d56d4c23ae4a408539449d57cb3d1ff"
+      },
+      {
+        "character_error_rate": 0,
+        "expected": "둘째, 몸을 아끼세요. 오래 걷고 싶다면 지금부터 근육과 자세를 돌봐야 합니다.",
+        "passed": true,
+        "transcript": "둘째 몸을 아끼세요. 오래 걷고 싶다면 지금부터 근육과 자세를 돌봐야 합니다.",
+        "fingerprint": "a205ba63909611bd7f15a436612bc51ec9518feeaeff49a5c0a24828406981d2"
+      },
+      {
+        "character_error_rate": 0,
+        "expected": "셋째, 중요한 이십 퍼센트에만 집중하세요. 함께 식사하고 걷는 몸이면 충분합니다.",
+        "passed": true,
+        "transcript": "셋째 중요한 이십퍼센트에만 집중하세요. 함께 식사하고 걷는 몸이면 충분합니다.",
+        "fingerprint": "29d0b99ac8c2f28d4e1e21190f48b0dce988aa628528c395a55b6dd3a379ad3a"
+      },
+      {
+        "character_error_rate": 0,
+        "expected": "넷째, 혼자를 즐기세요. 혼자 걷고 읽으며 돌아보면 고독은 평온으로 바뀝니다.",
+        "passed": true,
+        "transcript": "넷째 혼자를 즐기세요. 혼자 걷고 읽으며 돌아보면 고독은 평온으로 바뀝니다.",
+        "fingerprint": "1dc1da917cfb0d7cb9e9b13a3e831955af59c1a82cef462a194148af07a713e5"
+      },
+      {
+        "character_error_rate": 0.0625,
+        "expected": "그리고 자신을 용서하세요. 잘 살아왔다고요. 황혼은 끝이 아니라 새 출발입니다.",
+        "passed": true,
+        "transcript": "그리고 자신을 용서하세요. 잘 살아왔다고요. 황우는 끝이 아니라 새 출발입니다.",
+        "fingerprint": "c83c1ffc43655c2e0cfa28516535abaac93275cf10b4d1ffd9c3fb0d43908b22"
+      }
+    ],
+    "elapsed_seconds": 152.64364720199956,
+    "duration": "60.000000",
+    "width": 720,
+    "height": 1280,
+    "fps": "24/1"
+  },
+  "delivery": {
+    "attachment": {
+      "id": "7f4f7143798469f5169bf762c2e6ba5e",
+      "name": "Shorts.mp4",
+      "mime": "video/mp4",
+      "size": 21382774,
+      "url": "/api/files/7f4f7143798469f5169bf762c2e6ba5e/Shorts.mp4?type=video%2Fmp4",
+      "source_url": "/api/shorts/bfbb917aabc345f8b1dd51f73ec2eb44/files/final.mp4?session_id=chat-1792689381708313299"
+    },
+    "message_id": 3072
+  },
+  "template": {
+    "id": "43f498b3dd50433ca636b4341176a39f",
+    "name": "따뜻한 사진·중앙 강조 자막 · 60초",
+    "source_job_id": "bfbb917aabc345f8b1dd51f73ec2eb44"
+  },
+  "probe": {
+    "streams": [
+      {
+        "index": 0,
+        "codec_name": "h264",
+        "codec_long_name": "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
+        "profile": "High",
+        "codec_type": "video",
+        "codec_tag_string": "avc1",
+        "codec_tag": "0x31637661",
+        "width": 720,
+        "height": 1280,
+        "coded_width": 720,
+        "coded_height": 1280,
+        "closed_captions": 0,
+        "film_grain": 0,
+        "has_b_frames": 0,
+        "sample_aspect_ratio": "1:1",
+        "display_aspect_ratio": "9:16",
+        "pix_fmt": "yuv420p",
+        "level": 31,
+        "color_range": "tv",
+        "color_space": "bt709",
+        "color_transfer": "bt709",
+        "color_primaries": "bt709",
+        "chroma_location": "center",
+        "field_order": "progressive",
+        "refs": 1,
+        "is_avc": "true",
+        "nal_length_size": "4",
+        "id": "0x1",
+        "r_frame_rate": "24/1",
+        "avg_frame_rate": "24/1",
+        "time_base": "1/12288",
+        "start_pts": 0,
+        "start_time": "0.000000",
+        "duration_ts": 737280,
+        "duration": "60.000000",
+        "bit_rate": "2771858",
+        "bits_per_raw_sample": "8",
+        "nb_frames": "1440",
+        "extradata_size": 51,
+        "disposition": {
+          "default": 1,
+          "dub": 0,
+          "original": 0,
+          "comment": 0,
+          "lyrics": 0,
+          "karaoke": 0,
+          "forced": 0,
+          "hearing_impaired": 0,
+          "visual_impaired": 0,
+          "clean_effects": 0,
+          "attached_pic": 0,
+          "timed_thumbnails": 0,
+          "captions": 0,
+          "descriptions": 0,
+          "metadata": 0,
+          "dependent": 0,
+          "still_image": 0
+        },
+        "tags": {
+          "language": "und",
+          "handler_name": "VideoHandler",
+          "vendor_id": "[0][0][0][0]",
+          "encoder": "Lavc59.37.100 libx264"
+        }
+      },
+      {
+        "index": 1,
+        "codec_name": "aac",
+        "codec_long_name": "AAC (Advanced Audio Coding)",
+        "profile": "LC",
+        "codec_type": "audio",
+        "codec_tag_string": "mp4a",
+        "codec_tag": "0x6134706d",
+        "sample_fmt": "fltp",
+        "sample_rate": "22050",
+        "channels": 1,
+        "channel_layout": "mono",
+        "bits_per_sample": 0,
+        "id": "0x2",
+        "r_frame_rate": "0/0",
+        "avg_frame_rate": "0/0",
+        "time_base": "1/22050",
+        "start_pts": 0,
+        "start_time": "0.000000",
+        "duration_ts": 1323000,
+        "duration": "60.000000",
+        "bit_rate": "75616",
+        "nb_frames": "1293",
+        "extradata_size": 5,
+        "disposition": {
+          "default": 1,
+          "dub": 0,
+          "original": 0,
+          "comment": 0,
+          "lyrics": 0,
+          "karaoke": 0,
+          "forced": 0,
+          "hearing_impaired": 0,
+          "visual_impaired": 0,
+          "clean_effects": 0,
+          "attached_pic": 0,
+          "timed_thumbnails": 0,
+          "captions": 0,
+          "descriptions": 0,
+          "metadata": 0,
+          "dependent": 0,
+          "still_image": 0
+        },
+        "tags": {
+          "language": "und",
+          "handler_name": "SoundHandler",
+          "vendor_id": "[0][0][0][0]"
+        }
+      }
+    ],
+    "format": {
+      "filename": "/data/bfbb917aabc345f8b1dd51f73ec2eb44/final.mp4",
+      "nb_streams": 2,
+      "nb_programs": 0,
+      "format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+      "format_long_name": "QuickTime / MOV",
+      "start_time": "0.000000",
+      "duration": "60.000000",
+      "size": "21382774",
+      "bit_rate": "2851036",
+      "probe_score": 100,
+      "tags": {
+        "major_brand": "isom",
+        "minor_version": "512",
+        "compatible_brands": "isomiso2avc1mp41",
+        "encoder": "Lavf59.27.100"
+      }
+    }
+  },
+  "final_audio": {
+    "duration_decoded_seconds": 60.000375,
+    "rms_dbfs": -18.72855104979061,
+    "peak_dbfs": -1.9466203861103653
+  },
+  "deployment": {
+    "source_embedded_live_hashes_match": true,
+    "source_sha256": {
+      "api.py": "6cfb2841522040dcc72392919c59b1f85c11b95ea024a898c82c6da69c0bb8ef",
+      "assets.py": "ca9ff473ab261d1e53897374aeb4a05c8c6fc2635c7c3a655672a2a78a3521ad",
+      "spec.py": "0112bc17d644f40f27f6958418482e7d3153fc8dc576727464eb6a7c2d622c54",
+      "authoring.py": "1c4e848f9cc19ed01edb643f7756e3ce480a58fe05f91594166a75f7c839dea7",
+      "audit.mjs": "0c653a18af975233a1042f0135c979a65077269d31b53fe096f0b91a8d7f5f2a",
+      "audio_mix.py": "d6b88bc460f26b0e2448f10ba634305b3dcd5d037a517494cffd21a421668f5c",
+      "pipeline.py": "701ad7093e84cc756e86440fa085441d8e5442f480a8fd43440862988c10191d",
+      "render.py": "15510d9b01a8b0d5dcf844600631a9a84c4423d8c07bbf5ab04d781a0495ef7d",
+      "store.py": "30381b96517b55176b4dc4a3b9262d2be10a6d97fa22f4f7b7d631f42c168e82",
+      "manim_scene.py": "a4f8c091b796edf245e3f206182174a2d019a7868e269a092e2197a80b7e3e97"
+    },
+    "mp4_range_http": 206,
+    "template_persisted": {
+      "templates": [
+        {
+          "id": "43f498b3dd50433ca636b4341176a39f",
+          "name": "따뜻한 사진·중앙 강조 자막 · 60초",
+          "source_job_id": "bfbb917aabc345f8b1dd51f73ec2eb44"
+        }
+      ]
+    }
+  }
+}

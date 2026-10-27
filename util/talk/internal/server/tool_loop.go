@@ -196,6 +196,11 @@ func runCompletionLoopForSessionWithMedia(
 					return llm.StreamResult{}, err
 				}
 				copy(messages, prepared)
+				if server != nil {
+					if err := emit("response_status", map[string]string{"stage": "model_wait", "label": "모델 첫 응답 대기 중"}); err != nil {
+						return llm.StreamResult{}, err
+					}
+				}
 				result, err := client.Stream(requestCtx, prepared, model, effort, definitions, receiver)
 				emitContextUsage(requestCtx, result.Usage, emit)
 				return result, err
@@ -220,6 +225,28 @@ func runCompletionLoopForSessionWithMedia(
 	procedureRounds := 0
 	recovery := &mediaRecovery{inputs: len(turnFrom(ctx).appliedInputs())}
 	execute := recovery.execute(registry.execute)
+	var routedClip *llm.ToolCall
+	if !inStage && server != nil && registry.handlers["voice_tools"] != nil {
+		var err error
+		routedClip, err = server.routeVoiceIntent(ctx, sessionID, messages, client, model)
+		if err != nil {
+			return completionResult{}, err
+		}
+	}
+	if !inStage && server != nil && routedClip == nil && registry.handlers["clip_produce"] != nil {
+		var err error
+		routedClip, err = server.routeClipIntent(ctx, sessionID, messages, client, model)
+		if err != nil {
+			return completionResult{}, err
+		}
+	}
+	if !inStage && server != nil && routedClip == nil && registry.handlers["shorts_generate"] != nil {
+		var err error
+		routedClip, err = server.routeShortsIntent(ctx, sessionID, messages, client, model)
+		if err != nil {
+			return completionResult{}, err
+		}
+	}
 	for {
 		if pendingHeadCall(ctx) == nil {
 			if notice := headPlanFailureNotice(ctx); notice != "" {
@@ -303,7 +330,14 @@ func runCompletionLoopForSessionWithMedia(
 				return emit(kind, map[string]string{"delta": text})
 			}
 		}
-		result, err := request(conversation, reasoningEffort, definitions, modelEmitter)
+		var result llm.StreamResult
+		var err error
+		if routedClip != nil {
+			result.ToolCalls = []llm.ToolCall{*routedClip}
+			routedClip = nil
+		} else {
+			result, err = request(conversation, reasoningEffort, definitions, modelEmitter)
+		}
 		if err != nil {
 			if allReasoning.Len() > 0 && result.Reasoning != "" {
 				allReasoning.WriteString("\n\n")
@@ -395,6 +429,7 @@ func runCompletionLoopForSessionWithMedia(
 		toolFollowups := make([]llm.Message, 0, 1)
 		deferred := []*workflows.Run{}
 		deferredEvidence := []string{}
+		finalToolContent := ""
 		for _, call := range result.ToolCalls {
 			if err := emit("tool_start", map[string]any{
 				"id": call.ID, "name": call.Function.Name, "arguments": call.Function.Arguments,
@@ -418,6 +453,9 @@ func runCompletionLoopForSessionWithMedia(
 				return emit(event, payload)
 			}
 			execution, toolErr := executeTurnTool(ctx, call, conversation, toolEmit, execute)
+			if toolErr == nil && len(result.ToolCalls) == 1 && !inStage {
+				finalToolContent = execution.FinalContent
+			}
 			if toolErr == nil && execution.DeferredDocument != nil {
 				deferred = append(deferred, execution.DeferredDocument)
 				deferredEvidence = append(deferredEvidence, call.ID)
@@ -474,6 +512,12 @@ func runCompletionLoopForSessionWithMedia(
 			conversation = append(conversation, llm.Message{
 				Role: "tool", Content: toolResult, ToolCallID: call.ID,
 			})
+		}
+		if finalToolContent != "" && !turnFrom(ctx).hasPending() {
+			if err := emit("delta", map[string]string{"delta": finalToolContent}); err != nil {
+				return completionResult{}, err
+			}
+			return completionResult{Content: finalToolContent, Reasoning: allReasoning.String(), ToolTrace: trace, Attachments: outputAttachments}, nil
 		}
 		if len(deferred) > 0 {
 			label := "문서 처리"
@@ -550,7 +594,7 @@ func retainLatestVideoInput(messages []llm.Message) []llm.Message {
 		for partIndex := len(parts) - 1; partIndex >= 0; partIndex-- {
 			part := parts[partIndex]
 			if part["type"] == "video_url" {
-				if keptVideo {
+				if out[messageIndex].Role != "user" || keptVideo {
 					continue
 				}
 				keptVideo = true

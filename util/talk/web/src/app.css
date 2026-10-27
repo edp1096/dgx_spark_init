@@ -972,3 +972,7 @@ html[data-theme="light"] .sidebar { --sidebar-surface: #fff; }
 .artifact-versions button.active { border-color: #5479dc; }
 .artifact-versions small { display: block; opacity: .65; }
 .artifact-history-error { padding: 8px; color: #f99; font-size: 12px; }
+
+.chat-error { display: flex; align-items: flex-start; gap: 12px; }
+.chat-error > span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.chat-error > button { flex: none; background: transparent; color: inherit; border: 0; cursor: pointer; font-size: 20px; line-height: 1; }

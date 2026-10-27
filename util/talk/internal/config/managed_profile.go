@@ -16,6 +16,9 @@ func (c *Config) SelectManagedBundle(bundle string) {
 	changed := c.Runtime.ActiveBundle != bundle
 	c.Runtime.ActiveBundle = bundle
 	c.Normalize()
+	if changed {
+		c.ApplyManagedFeatureDefaults(bundle)
+	}
 	if changed && (c.Model.ModelType == "qwen3.8" || c.Model.ModelType == "qwen3.8-vllm" || c.Model.ModelType == "qwen3.8-tensorfold" || c.Model.ModelType == "qwen38fn_exl3") {
 		c.Model.ReasoningEffort = "medium"
 	}
@@ -56,7 +59,7 @@ func (c *Config) ApplyManagedBundle(bundle string) {
 			if component.ComposeAsset == "compose.qwen-image21.yaml" {
 				c.Image.Mode = "qwen-image21"
 			} else if component.ComposeAsset == "compose.qwim-mmh3.yaml" {
-				c.Image.Mode = "basic"
+				c.Image.Mode = "reference"
 			}
 		case "media":
 			c.Extra.MediaEndpoint, c.ASR.FFmpegEndpoint = endpoint, endpoint
@@ -98,4 +101,40 @@ func (c *Config) ApplyManagedBundle(bundle string) {
 		}
 	}
 	c.Model.ReasoningEffort = normalizeReasoningEffort(c.Model.ModelType, c.Model.ReasoningEffort)
+}
+
+// A set switch resets feature defaults from its actual components and allowed
+// shared services. Normalization of the same set preserves explicit switches.
+func (c *Config) ApplyManagedFeatureDefaults(id string) {
+	if c.Runtime.Mode != "managed" {
+		return
+	}
+	catalog, err := orchestrator.LoadCatalog()
+	if c.Runtime.Catalog != nil {
+		catalog, err = orchestrator.ValidateCatalog(*c.Runtime.Catalog)
+	}
+	if err != nil {
+		return
+	}
+	if _, ok := catalog.Bundle(id); !ok {
+		return
+	}
+	roles := map[string]bool{}
+	for _, x := range catalog.BundleComponents(id) {
+		roles[x.ServiceRole()] = true
+	}
+	c.ASR.Enabled = roles["asr"]
+	c.TTS.Enabled = roles["tts"]
+	c.Image.Enabled = roles["image"]
+	c.Embedding.Enabled = roles["embedding"]
+	support := map[string]bool{}
+	for _, x := range catalog.SupportComponents(id) {
+		if spec, ok := x.SupportSpec(); ok {
+			support[spec.Key] = true
+		}
+	}
+	c.Tools.MediaImportEnabled = support["media"]
+	c.Extra.CollectorEnabled = support["collector"]
+	c.Extra.DocumentsEnabled = support["documents"]
+	c.Extra.SSHEnabled = support["ssh"]
 }

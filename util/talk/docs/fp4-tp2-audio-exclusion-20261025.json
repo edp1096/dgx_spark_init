@@ -1,0 +1,104 @@
+{
+  "date": "2026-10-25",
+  "outcome": "Fish and ACE excluded from FP4 Local and all registered TP2 sets",
+  "excluded_bundles": [
+    "flash-next-fp4-local",
+    "flash-next-tp2",
+    "glm53-worker-extra",
+    "ds41"
+  ],
+  "disabled_support": [
+    "extra-fish",
+    "extra-music-ace"
+  ],
+  "enforcement": [
+    "saved config normalization",
+    "shared service resolution and panel",
+    "tool registry",
+    "workload admission",
+    "direct generation HTTP 409",
+    "explicit support startup filtering"
+  ],
+  "qualification": {
+    "baseline": {
+      "ace-xl": {
+        "metadata": {
+          "model": "ace-xl",
+          "prompt": "Calm gentle solo piano instrumental. Soft sustained chords and delicate melody. No vocals, no drums, no percussion. Background music for a reflective short video.",
+          "duration_seconds": 75,
+          "seed": 42,
+          "bpm": 80,
+          "backend": "ace-step",
+          "config": "acestep-v15-xl-base",
+          "thinking": true,
+          "inference_steps": 50,
+          "guidance_scale": 7.0,
+          "source_revision": "ca1e85fe9430179831e6bc6be790c332190a3866",
+          "weights_revision": "220c1166efbdd9583eafcb12eb160594bbfcb241",
+          "generation_seconds": 96.48001091502374,
+          "duration_actual": 75.0,
+          "sample_rate": 48000,
+          "channels": 2,
+          "peak": 0.891265869140625,
+          "rms": 0.13686159541799883,
+          "clipping_fraction": 0.0,
+          "longest_internal_silence_seconds": 0.0,
+          "sha256": "230785bcfae4b682b698b31f763ebcf7acc8b09789717514f5b7185a6e21cb70",
+          "cuda_peak_allocated_gib": 18.506237983703613,
+          "cuda_peak_reserved_gib": 18.650390625
+        },
+        "seconds": 103.180381701
+      },
+      "fish": {
+        "error": "Fish Drama3 KoEn160 작업 전 메모리 확인: 통합메모리 부족 예상: 시스템 가용 37.9 GiB, 반환 예정 0.0 GiB, 추가 예상 40.0 GiB, 기동 후 약 -2.1 GiB (최소 여유 4.0 GiB)",
+        "seconds": 0.453679868
+      }
+    },
+    "reduced_fish_trial": {
+      "config": "tts fraction .165; vocoder .055; preprocessing4GiB",
+      "budget_gib": 33,
+      "startup_seconds": 165.5635978319915,
+      "status": "success"
+    },
+    "reduced_fish_min_available_gib": 4.552639007568359,
+    "xl_retry_after_coding": {
+      "ace-xl": {
+        "error": "ACE-Step 1.5 작업 전 메모리 확인: 통합메모리 부족 예상: 시스템 가용 35.4 GiB, 반환 예정 0.0 GiB, 추가 예상 32.0 GiB, 기동 후 약 3.4 GiB (최소 여유 4.0 GiB)",
+        "seconds": 0.123724328
+      }
+    }
+  },
+  "validation": {
+    "runtime_panel_tests_passed": 9,
+    "go_packages_passed": [
+      "internal/config",
+      "internal/orchestrator",
+      "internal/server"
+    ],
+    "live_generation_rejection": [
+      {
+        "path": "/api/shorts/music",
+        "status": 409,
+        "message": "현재 모델 세트에서는 Fish·ACE-Step 생성을 제외했습니다"
+      },
+      {
+        "path": "/api/shorts/speech",
+        "status": 409,
+        "message": "현재 모델 세트에서는 Fish·ACE-Step 생성을 제외했습니다"
+      },
+      {
+        "path": "/api/voices",
+        "status": 409,
+        "message": "현재 모델 세트에서는 Fish 음성 생성을 제외했습니다"
+      }
+    ],
+    "coding_api_after_exclusion": "actual FP4 code reply succeeded"
+  },
+  "limitations": [
+    "TP2 media coexistence was not tested; no unqualified shared audio workers are offered in those sets.",
+    "ACE 75-second generation succeeded after a fresh FP4 start but subsequent XL admission failed after coding requests.",
+    "Experimental reduced Fish config is not deployed; original production voice model/config preserved.",
+    "Host reboot observed during implementation; no assumption made about its cause."
+  ],
+  "fp4_coding_settings_changed": false
+}

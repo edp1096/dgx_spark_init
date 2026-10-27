@@ -36,6 +36,7 @@ printf '%s\n' "$*" >> "$MOCK_LOG"
 case "$*" in
  "image inspect "*) exit 0;;
  *" config") cat;;
+ *"State.Status}}|{{.State.Pid"*) printf 'running|123';;
  *inspect*) printf 'running';;
 esac
 `
@@ -44,7 +45,7 @@ esac
 	}
 	return log
 }
-func TestModelStopLeavesSharedServicesRunning(t *testing.T) {
+func TestModelStopAlsoStopsManagedSharedServices(t *testing.T) {
 	log := fakeSupportDocker(t)
 	cat, _ := LoadCatalog()
 	for i := range cat.Bundles {
@@ -59,8 +60,10 @@ func TestModelStopLeavesSharedServicesRunning(t *testing.T) {
 	if !strings.Contains(string(raw), "sglang-qwen38-fn") {
 		t.Fatal("model was not stopped")
 	}
-	if strings.Contains(string(raw), "sparktalk-extra-") {
-		t.Fatalf("shared service touched: %s", raw)
+	for _, name := range []string{"sparktalk-extra-shorts", "sparktalk-extra-ssh", "sparktalk-fish-drama3", "sparktalk-music-ace"} {
+		if !strings.Contains(string(raw), "stop -t 30 "+name) {
+			t.Fatalf("shared service was not stopped: %s\n%s", name, raw)
+		}
 	}
 }
 func TestPreparingDocumentImageDoesNotRestartRunningService(t *testing.T) {
@@ -124,5 +127,39 @@ func TestSupportInventoryIncludesGlobalDocumentsAndSetBindings(t *testing.T) {
 		if r.Key == "documents" && r.Host != "local" {
 			t.Fatal("global document binding lost")
 		}
+	}
+}
+
+func TestSetStopIncludesExcludedWorkersOnceAndSkipsExternalServices(t *testing.T) {
+	cat, _ := LoadCatalog()
+	for i := range cat.Components {
+		if cat.Components[i].ID == "extra-documents" {
+			cat.Components[i].Controller = "external"
+		}
+	}
+	var err error
+	cat, err = ValidateCatalog(cat)
+	if err != nil {
+		t.Fatal(err)
+	}
+	seen := map[string]bool{}
+	targets := cat.StopBundleComponents("flash-next-fp4-local")
+	for _, x := range targets {
+		if x.Controller == "external" || x.ID == "extra-documents" {
+			t.Fatal("external service targeted", x.ID)
+		}
+		if seen[x.DeploymentKey()] {
+			t.Fatal("duplicate stop", x.DeploymentKey())
+		}
+		seen[x.DeploymentKey()] = true
+	}
+	for _, id := range []string{"extra-shorts", "extra-fish", "extra-music-ace", "extra-embedding"} {
+		x, _ := cat.Component(id)
+		if !seen[x.DeploymentKey()] {
+			t.Fatal("missing stop", id)
+		}
+	}
+	if targets[len(targets)-1].ID != "extra-shorts" {
+		t.Fatal("shorts producer must stop first")
 	}
 }

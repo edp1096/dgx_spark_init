@@ -1,0 +1,417 @@
+{
+  "scope": "Repair only the greeting in two registered previews. Original following sentence PCM preserved exactly. Future registration previews use continuous synthesis.",
+  "voices": [
+    {
+      "label": "jang",
+      "name": "장태완 장포스",
+      "refresh": {
+        "label": "jang",
+        "completed": true,
+        "voice_id": "voice_668d5a1ca976402fa7671396ef06f014",
+        "revision": 2,
+        "reference_sha256": "142a7fb41eab464e8489541303d48ef771696caa7ac542d4750cfcbc8b835240",
+        "reference_text_sha256": "cce6d2e95297b597b139cdd6f2dd97621766c2b6420d27d45a27a89eefb6ba62",
+        "preview_sha256": "3a4dba834905eb91217634f4e288b7b74d1cd43d2fa58c31161320d644dc3cd7",
+        "source_job_id": "063f238126134feb8367393b30174e68",
+        "staged_voice_id": "voice_025b15300b824b0cbe7c4fb49a2a0eae",
+        "original_revision_preserved": true
+      },
+      "repair": {
+        "expected": "안녕하세요. 이 목소리로 새로운 이야기를 전해 드립니다.",
+        "transcript": "안녕하세요. 이 목소리로 새로운 이야기를 전해드립니다.",
+        "character_error_rate": 0.0,
+        "exact": true,
+        "passed": true,
+        "audio_sha256": "3a4dba834905eb91217634f4e288b7b74d1cd43d2fa58c31161320d644dc3cd7",
+        "asr": {
+          "text": "안녕하세요. 이 목소리로 새로운 이야기를 전해드립니다.",
+          "language": ""
+        },
+        "greeting_asr": {
+          "text": "안녕하세요.",
+          "language": ""
+        },
+        "following_sentence_asr": {
+          "text": "이 목소리로 새로운 이야기를 전해드립니다.",
+          "language": ""
+        },
+        "repair": {
+          "method": "Context-generated greeting with bit-identical original following sentence",
+          "continuous_source_sha256": "5f1080906c9d26f71957451ca7171edf039cf8c5886de12948518c9dd15ea61a",
+          "original_preview_sha256": "c378ec1083e4ea1f87fdc1c87f0b75ff2d00680d7208cb73e33461693a4a0444",
+          "greeting_cut_seconds": 0.7,
+          "quiet_gap_seconds": [
+            0.58,
+            1.24
+          ],
+          "quiet_threshold_dbfs": -60.0,
+          "original_tail_start_seconds": 1.0745578231292516,
+          "original_gap_samples": 7938,
+          "quiet_prefix_fade_samples": 0,
+          "original_tail_pcm_sha256": "bb878fea7145f740eda1288e1cba76ccc1aeecfb08d7ab6bdd7e0fdf8ddd4c41",
+          "new_tail_pcm_sha256": "bb878fea7145f740eda1288e1cba76ccc1aeecfb08d7ab6bdd7e0fdf8ddd4c41",
+          "original_tail_unchanged": true,
+          "subjective_naturalness_verified": false
+        }
+      },
+      "source_generation": {
+        "fingerprint": "2a0bc6bffecf9a55a497bf15d14570739853d755ae7faabd8c5fa1da2e0e0785",
+        "sha256": "5f1080906c9d26f71957451ca7171edf039cf8c5886de12948518c9dd15ea61a",
+        "generation": {
+          "duration": 5.897868480725624,
+          "records": [
+            {
+              "sentence": "안녕하세요. 이 목소리로 새로운 이야기를 전해 드립니다.",
+              "attempt": 1,
+              "accepted": true,
+              "rejection_reasons": [],
+              "generation_seconds": 3.458891924994532,
+              "duration_seconds": 5.897868480725624,
+              "longest_internal_silence": 0.12,
+              "voiced_seconds": 5.16,
+              "hit_cap": false,
+              "trailing_silence_seconds": 0.0,
+              "activity_threshold_dbfs": -77.97415580476778,
+              "trim_start_sample": 0,
+              "trim_end_sample": 260096
+            }
+          ],
+          "segments": [
+            {
+              "text": "안녕하세요. 이 목소리로 새로운 이야기를 전해 드립니다.",
+              "start": 0.0,
+              "end": 5.897868480725624
+            }
+          ],
+          "sample_rate": 44100,
+          "text": "안녕하세요. 이 목소리로 새로운 이야기를 전해 드립니다.",
+          "spoken_text": "안녕하세요. 이 목소리로 새로운 이야기를 전해 드립니다.",
+          "native_tags": false,
+          "continuous": true,
+          "voice_preset": "voice_668d5a1ca976402fa7671396ef06f014",
+          "reference_sha256": "142a7fb41eab464e8489541303d48ef771696caa7ac542d4750cfcbc8b835240",
+          "reference_revision": 1
+        },
+        "attempt": 1,
+        "file": "output.wav",
+        "text": "안녕하세요. 이 목소리로 새로운 이야기를 전해 드립니다.",
+        "model_input": "안녕하세요. 이 목소리로 새로운 이야기를 전해 드립니다.",
+        "validation": {
+          "expected": "안녕하세요. 이 목소리로 새로운 이야기를 전해 드립니다.",
+          "transcript": "안녕하세요. 이 목소리로 새로운 이야기를 전해드립니다.",
+          "character_error_rate": 0.0,
+          "exact": true,
+          "clauses": [
+            {
+              "text": "안녕하세요",
+              "coverage": 1.0,
+              "characters": 5
+            },
+            {
+              "text": "이 목소리로 새로운 이야기를 전해 드립니다",
+              "coverage": 1.0,
+              "characters": 18
+            }
+          ],
+          "passed": true,
+          "interpretation": "ASR comparison; discrepancies may be recognition errors, not proven omissions.",
+          "audio_sha256": "5f1080906c9d26f71957451ca7171edf039cf8c5886de12948518c9dd15ea61a",
+          "asr": {
+            "words": [
+              {
+                "word": "안녕하세요.",
+                "start": 0.32,
+                "end": 0.96
+              },
+              {
+                "word": "이",
+                "start": 2.56,
+                "end": 2.64
+              },
+              {
+                "word": "목소리로",
+                "start": 2.72,
+                "end": 3.28
+              },
+              {
+                "word": "새로운",
+                "start": 3.6,
+                "end": 4
+              },
+              {
+                "word": "이야기를",
+                "start": 4.08,
+                "end": 4.48
+              },
+              {
+                "word": "전해드립니다.",
+                "start": 4.48,
+                "end": 5.04
+              }
+            ],
+            "turns": [
+              {
+                "start": 0.32,
+                "end": 0.96,
+                "speakers": [
+                  1
+                ],
+                "text": "안녕하세요."
+              },
+              {
+                "start": 2.56,
+                "end": 5.04,
+                "speakers": [
+                  1
+                ],
+                "text": "이 목소리로 새로운 이야기를 전해드립니다."
+              }
+            ],
+            "diarization_status": "completed",
+            "text": "안녕하세요. 이 목소리로 새로운 이야기를 전해드립니다.",
+            "language": "ko-KR"
+          }
+        },
+        "requested_instructions": "",
+        "reference_revision": 1,
+        "tag_effect_verified": false
+      }
+    },
+    {
+      "label": "pororo",
+      "name": "뽀로로 참조",
+      "refresh": {
+        "label": "pororo",
+        "completed": true,
+        "voice_id": "voice_abfe04145678459a996c081f2bfa2430",
+        "revision": 2,
+        "reference_sha256": "c16f80e31f7887eb2add556b651811c497134b56764bf3bdcdbfe8c0056b652f",
+        "reference_text_sha256": "038b08155b6df4a3963363555d06759da037adcad75c086337d8fa85cfa14460",
+        "preview_sha256": "9511ebbe5e7b658c88e974c1cf5a7296eb1bd95d5f81e072770f53ab97c65c78",
+        "source_job_id": "fbe5d6e1303b4b0fa9aa21a626173fea",
+        "staged_voice_id": "voice_5c27df5283a243009742b605283b1712",
+        "original_revision_preserved": true
+      },
+      "repair": {
+        "expected": "안녕하세요. 이 목소리로 새로운 이야기를 전해 드립니다.",
+        "transcript": "안녕하세요. 이 목소리로 새로운 이야기를 전해드립니다.",
+        "character_error_rate": 0.0,
+        "exact": true,
+        "passed": true,
+        "audio_sha256": "9511ebbe5e7b658c88e974c1cf5a7296eb1bd95d5f81e072770f53ab97c65c78",
+        "asr": {
+          "text": "안녕하세요. 이 목소리로 새로운 이야기를 전해드립니다.",
+          "language": ""
+        },
+        "greeting_asr": {
+          "text": "안녕하세요.",
+          "language": ""
+        },
+        "following_sentence_asr": {
+          "text": "이 목소리로 새로운 이야기를 전해드립니다.",
+          "language": ""
+        },
+        "repair": {
+          "method": "Context-generated greeting with bit-identical original following sentence",
+          "continuous_source_sha256": "5dc6a6042c7df8b20523d44dbeccacbd7289ef18c4d266052bdd5b0a3fef2f74",
+          "original_preview_sha256": "5625a1563fe6f19a5b18a572c085c9391d09cfbe87c917be728136c1067ed9cb",
+          "greeting_cut_seconds": 1.1099999999999999,
+          "quiet_gap_seconds": [
+            1.0,
+            1.22
+          ],
+          "quiet_threshold_dbfs": -43.0,
+          "original_tail_start_seconds": 1.2016780045351474,
+          "original_gap_samples": 7938,
+          "quiet_prefix_fade_samples": 441,
+          "original_tail_pcm_sha256": "9a00798760bf5470de261433669803bcf82b853689659bf8655f46704991f28c",
+          "new_tail_pcm_sha256": "9a00798760bf5470de261433669803bcf82b853689659bf8655f46704991f28c",
+          "original_tail_unchanged": true,
+          "subjective_naturalness_verified": false
+        }
+      },
+      "source_generation": {
+        "fingerprint": "16edf1444a491924671945f2a80a31e75dc969838119dfd7f81f4504d0cd2450",
+        "sha256": "5dc6a6042c7df8b20523d44dbeccacbd7289ef18c4d266052bdd5b0a3fef2f74",
+        "generation": {
+          "duration": 3.7616326530612243,
+          "records": [
+            {
+              "sentence": "안녕하세요. 이 목소리로 새로운 이야기를 전해 드립니다.",
+              "attempt": 1,
+              "accepted": true,
+              "rejection_reasons": [],
+              "generation_seconds": 2.338403275993187,
+              "duration_seconds": 3.7616326530612243,
+              "longest_internal_silence": 0.0,
+              "voiced_seconds": 3.78,
+              "hit_cap": false,
+              "trailing_silence_seconds": 0.0,
+              "activity_threshold_dbfs": -68.85338014018271,
+              "trim_start_sample": 0,
+              "trim_end_sample": 165888
+            }
+          ],
+          "segments": [
+            {
+              "text": "안녕하세요. 이 목소리로 새로운 이야기를 전해 드립니다.",
+              "start": 0.0,
+              "end": 3.7616326530612243
+            }
+          ],
+          "sample_rate": 44100,
+          "text": "안녕하세요. 이 목소리로 새로운 이야기를 전해 드립니다.",
+          "spoken_text": "안녕하세요. 이 목소리로 새로운 이야기를 전해 드립니다.",
+          "native_tags": false,
+          "continuous": true,
+          "voice_preset": "voice_abfe04145678459a996c081f2bfa2430",
+          "reference_sha256": "c16f80e31f7887eb2add556b651811c497134b56764bf3bdcdbfe8c0056b652f",
+          "reference_revision": 1
+        },
+        "attempt": 1,
+        "file": "output.wav",
+        "text": "안녕하세요. 이 목소리로 새로운 이야기를 전해 드립니다.",
+        "model_input": "안녕하세요. 이 목소리로 새로운 이야기를 전해 드립니다.",
+        "validation": {
+          "expected": "안녕하세요. 이 목소리로 새로운 이야기를 전해 드립니다.",
+          "transcript": "안녕하세요. 이 목소리로 새로운 이야기를 전해드립니다.",
+          "character_error_rate": 0.0,
+          "exact": true,
+          "clauses": [
+            {
+              "text": "안녕하세요",
+              "coverage": 1.0,
+              "characters": 5
+            },
+            {
+              "text": "이 목소리로 새로운 이야기를 전해 드립니다",
+              "coverage": 1.0,
+              "characters": 18
+            }
+          ],
+          "passed": true,
+          "interpretation": "ASR comparison; discrepancies may be recognition errors, not proven omissions.",
+          "audio_sha256": "5dc6a6042c7df8b20523d44dbeccacbd7289ef18c4d266052bdd5b0a3fef2f74",
+          "asr": {
+            "words": [
+              {
+                "word": "안녕하세요.",
+                "start": 0.72,
+                "end": 1.36
+              },
+              {
+                "word": "이",
+                "start": 1.6,
+                "end": 1.68
+              },
+              {
+                "word": "목소리로",
+                "start": 1.76,
+                "end": 2.32
+              },
+              {
+                "word": "새로운",
+                "start": 2.32,
+                "end": 2.56
+              },
+              {
+                "word": "이야기를",
+                "start": 2.64,
+                "end": 3.04
+              },
+              {
+                "word": "전해드립니다.",
+                "start": 3.2,
+                "end": 3.68
+              }
+            ],
+            "turns": [
+              {
+                "start": 0.72,
+                "end": 3.68,
+                "speakers": [
+                  1
+                ],
+                "text": "안녕하세요. 이 목소리로 새로운 이야기를 전해드립니다."
+              }
+            ],
+            "diarization_status": "completed",
+            "text": "안녕하세요. 이 목소리로 새로운 이야기를 전해드립니다.",
+            "language": "ko-KR"
+          }
+        },
+        "requested_instructions": "",
+        "reference_revision": 1,
+        "tag_effect_verified": false
+      }
+    }
+  ],
+  "limits": [
+    "ASR and waveform checks verify words and preservation, not subjective naturalness. No subjective listening claim."
+  ],
+  "tests": {
+    "fish": 10,
+    "worker": 14,
+    "go": "Voice/ShortsSpeech targeted tests passed"
+  },
+  "deployment": {
+    "worker_files": 51,
+    "fish_files": {
+      "/opt/fish/api.py": "5b4b23a7a67ac0772efc81869aa9fe04f142106f97c1366625897402de04a3f5",
+      "/opt/fish/speech.py": "e5efb598f2dc7ebc3cb9e6350f1532ab2d9c19dd69249c00e7c9c1f219412a39",
+      "/opt/fish/voice_catalog.py": "ada388cf82e5c5e7226d10dcb81af06c57a9e9f3d79499a32f70fa277a931fea"
+    },
+    "binary_sha256": "10d20dfbe879a4587160778f0b5ccf60dc07b12058825f483e06da51bcc0125d",
+    "main_qwen_started_at": "2026-10-22T12:34:26.052328339Z"
+  },
+  "delivery": [
+    {
+      "label": "jang",
+      "session_id": "chat-1792821673232425691",
+      "attachment": {
+        "id": "d02b2684e88f573273f72152b288e555",
+        "name": "voice_668d5a1ca976402fa7671396ef06f014-Fish-preview.wav",
+        "mime": "audio/wav",
+        "size": 315228,
+        "url": "/api/files/d02b2684e88f573273f72152b288e555/voice_668d5a1ca976402fa7671396ef06f014-Fish-preview.wav?type=audio%2Fwav",
+        "source_url": "/api/shorts/voices/voice_668d5a1ca976402fa7671396ef06f014/preview.wav?sha256=3a4dba834905eb91217634f4e288b7b74d1cd43d2fa58c31161320d644dc3cd7"
+      },
+      "sha256": "3a4dba834905eb91217634f4e288b7b74d1cd43d2fa58c31161320d644dc3cd7"
+    },
+    {
+      "label": "pororo",
+      "session_id": "chat-1792830397459489187",
+      "attachment": {
+        "id": "6545982dcfacd50b942959d5dd9112d1",
+        "name": "voice_abfe04145678459a996c081f2bfa2430-Fish-preview.wav",
+        "mime": "audio/wav",
+        "size": 404638,
+        "url": "/api/files/6545982dcfacd50b942959d5dd9112d1/voice_abfe04145678459a996c081f2bfa2430-Fish-preview.wav?type=audio%2Fwav",
+        "source_url": "/api/shorts/voices/voice_abfe04145678459a996c081f2bfa2430/preview.wav?sha256=9511ebbe5e7b658c88e974c1cf5a7296eb1bd95d5f81e072770f53ab97c65c78"
+      },
+      "sha256": "9511ebbe5e7b658c88e974c1cf5a7296eb1bd95d5f81e072770f53ab97c65c78"
+    }
+  ],
+  "browser": [
+    {
+      "label": "jang",
+      "errors": [],
+      "audio": {
+        "src": "http://127.0.0.1:8585/api/files/d02b2684e88f573273f72152b288e555/voice_668d5a1ca976402fa7671396ef06f014-Fish-preview.wav?type=audio%2Fwav",
+        "duration": 3.573515,
+        "currentTime": 0.337007,
+        "error": null
+      }
+    },
+    {
+      "label": "pororo",
+      "errors": [],
+      "audio": {
+        "src": "http://127.0.0.1:8585/api/files/6545982dcfacd50b942959d5dd9112d1/voice_abfe04145678459a996c081f2bfa2430-Fish-preview.wav?type=audio%2Fwav",
+        "duration": 4.587234,
+        "currentTime": 0.379497,
+        "error": null
+      }
+    }
+  ]
+}

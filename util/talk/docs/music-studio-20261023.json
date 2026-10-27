@@ -1,0 +1,971 @@
+{
+  "status": "completed",
+  "host": "local DGX Spark GB10",
+  "source_date": "2026-10-23",
+  "models": {
+    "ace-turbo": {
+      "model": "ace-turbo",
+      "prompt": "Instrumental solo acoustic piano, warm intimate felt piano tone, gentle flowing arpeggios and a clear lyrical melody, calm reflective mood, natural room ambience, 80 BPM, no vocals, no singing, no drums, suitable under spoken narration.",
+      "duration_seconds": 30,
+      "seed": 42,
+      "bpm": 80,
+      "backend": "ace-step",
+      "config": "acestep-v15-turbo",
+      "thinking": true,
+      "inference_steps": 8,
+      "guidance_scale": 1.0,
+      "source_revision": "ca1e85fe9430179831e6bc6be790c332190a3866",
+      "weights_revision": "19671f406d603126926c1b7e2adc169acbcade22",
+      "generation_seconds": 78.38073709100718,
+      "duration_actual": 30.0,
+      "sample_rate": 48000,
+      "channels": 2,
+      "peak": 0.891265869140625,
+      "rms": 0.11091274868175498,
+      "clipping_fraction": 0.0,
+      "longest_internal_silence_seconds": 0.0,
+      "sha256": "9b768eccc921fcafeb12c8433ae24aee310c6863e76ac13ace14ba97492ec7ad",
+      "cuda_peak_allocated_gib": 13.627888679504395,
+      "cuda_peak_reserved_gib": 13.76953125
+    },
+    "ace-xl": {
+      "model": "ace-xl",
+      "prompt": "Instrumental solo acoustic piano, warm intimate felt piano tone, gentle flowing arpeggios and a clear lyrical melody, calm reflective mood, natural room ambience, 80 BPM, no vocals, no singing, no drums, suitable under spoken narration.",
+      "duration_seconds": 30,
+      "seed": 42,
+      "bpm": 80,
+      "backend": "ace-step",
+      "config": "acestep-v15-xl-base",
+      "thinking": true,
+      "inference_steps": 50,
+      "guidance_scale": 7.0,
+      "source_revision": "ca1e85fe9430179831e6bc6be790c332190a3866",
+      "weights_revision": "220c1166efbdd9583eafcb12eb160594bbfcb241",
+      "generation_seconds": 88.39255764900008,
+      "duration_actual": 30.0,
+      "sample_rate": 48000,
+      "channels": 2,
+      "peak": 0.8912353515625,
+      "rms": 0.08810763891923339,
+      "clipping_fraction": 0.0,
+      "longest_internal_silence_seconds": 0.0,
+      "sha256": "a32063b6c415d38789b2a06e4f937540656aa04abb1511768db3b0de3e46dcde",
+      "cuda_peak_allocated_gib": 18.506237983703613,
+      "cuda_peak_reserved_gib": 18.65234375
+    },
+    "heartmula": {
+      "model": "heartmula",
+      "prompt": "Instrumental solo acoustic piano, warm intimate felt piano tone, gentle flowing arpeggios and a clear lyrical melody, calm reflective mood, natural room ambience, 80 BPM, no vocals, no singing, no drums, suitable under spoken narration.",
+      "duration_seconds": 30,
+      "seed": 42,
+      "bpm": 80,
+      "backend": "heartmula",
+      "config": "HeartMuLa-oss-3B-happy-new-year",
+      "lazy_load": true,
+      "cfg_scale": 3.0,
+      "normalization_db": -1.0,
+      "raw_peak": 1.0276330709457397,
+      "source_revision": "5858ca8f1ffe58d62be7c007ea55f1033c5ca456",
+      "weights_revision": "41f6fc68490e11dc43fdabaa6b5767946408c903",
+      "codec_revision": "f889dab0532cfa4bf459f2a3367eb6d346b8eeda",
+      "generation_seconds": 102.3731311460142,
+      "duration_actual": 30.08,
+      "sample_rate": 48000,
+      "channels": 2,
+      "peak": 0.891265869140625,
+      "rms": 0.18429657361223342,
+      "clipping_fraction": 0.0,
+      "longest_internal_silence_seconds": 0.0,
+      "sha256": "5caff419f477694eaadce564194150215b4f1e529598c9294d3a5a7d22db8d35",
+      "cuda_peak_allocated_gib": 12.719419956207275,
+      "cuda_peak_reserved_gib": 14.337890625
+    }
+  },
+  "benchmark_conditions": {
+    "prompt_type": "solo acoustic piano instrumental",
+    "seed": 42,
+    "bpm": 80,
+    "notes": "Single runs, initialization included; cache warmth varies. These are execution measurements, not a subjective quality ranking."
+  },
+  "limitations": [
+    "Instrumental prompting does not guarantee absence of vocals.",
+    "HeartMuLa length is an upper bound; Shorts refuses insufficient duration.",
+    "Production requests can add image offload/restoration time."
+  ],
+  "artifacts": {
+    "ace-turbo": "/home/edp1096/.cache/sparktalk/music-validation-20261023/ace-turbo-30/music.wav",
+    "ace-xl": "/home/edp1096/.cache/sparktalk/music-validation-20261023/ace-xl-30/music.wav",
+    "heartmula": "/home/edp1096/.cache/sparktalk/music-validation-20261023/heartmula-30/music.wav",
+    "final_video": "/home/edp1096/.local/share/sparktalk/shorts/7902a4fe38684cb0a4d8740e31a6d65c/final.mp4",
+    "verified_frame": "/home/edp1096/.local/share/sparktalk/shorts/7902a4fe38684cb0a4d8740e31a6d65c/verified-frame.png"
+  },
+  "downloads": [
+    {
+      "repo": "ACE-Step/Ace-Step1.5",
+      "revision": "19671f406d603126926c1b7e2adc169acbcade22",
+      "files": 28,
+      "bytes": 10092102593,
+      "sha256_verified": true
+    },
+    {
+      "repo": "ACE-Step/acestep-v15-xl-base",
+      "revision": "220c1166efbdd9583eafcb12eb160594bbfcb241",
+      "files": 12,
+      "bytes": 19953389529,
+      "sha256_verified": true
+    },
+    {
+      "repo": "HeartMuLa/HeartMuLaGen",
+      "revision": "2e18e01702011f4f7dc8642b6260967df62417ea",
+      "files": 5,
+      "bytes": 9089265,
+      "sha256_verified": true
+    },
+    {
+      "repo": "HeartMuLa/HeartMuLa-oss-3B-happy-new-year",
+      "revision": "41f6fc68490e11dc43fdabaa6b5767946408c903",
+      "files": 8,
+      "bytes": 15752512758,
+      "sha256_verified": true
+    },
+    {
+      "repo": "HeartMuLa/HeartCodec-oss-20260123",
+      "revision": "f889dab0532cfa4bf459f2a3367eb6d346b8eeda",
+      "files": 6,
+      "bytes": 6638470314,
+      "sha256_verified": true
+    }
+  ],
+  "tests": {
+    "music_worker_api": 3,
+    "shorts_worker": 13,
+    "go_packages": [
+      "internal/orchestrator",
+      "internal/config",
+      "internal/server"
+    ],
+    "live_local_llm_routing": "music_generate model=ace-xl duration_seconds=30"
+  },
+  "shorts_job": "7902a4fe38684cb0a4d8740e31a6d65c",
+  "rejected_background_trials": [
+    {
+      "fingerprint": "70cd1571190fb469a3adf31ca63bbcf19b4da7e8e152378bdb84e1e20996ad95",
+      "request": {
+        "model": "ace-turbo",
+        "prompt": "Instrumental solo acoustic piano, warm intimate felt piano tone, gentle flowing arpeggios and a clear lyrical melody, calm reflective mood, natural room ambience, 80 BPM, no vocals, no singing, no drums, suitable under spoken narration. Continuous background music throughout all 60 seconds, keep playing without silent breaks; do not end or fade early.",
+        "seed": 42,
+        "bpm": 80,
+        "duration_seconds": 60
+      },
+      "metadata": {
+        "model": "ace-turbo",
+        "prompt": "Instrumental solo acoustic piano, warm intimate felt piano tone, gentle flowing arpeggios and a clear lyrical melody, calm reflective mood, natural room ambience, 80 BPM, no vocals, no singing, no drums, suitable under spoken narration. Continuous background music throughout all 60 seconds, keep playing without silent breaks; do not end or fade early.",
+        "duration_seconds": 60,
+        "seed": 42,
+        "bpm": 80,
+        "backend": "ace-step",
+        "config": "acestep-v15-turbo",
+        "thinking": true,
+        "inference_steps": 8,
+        "guidance_scale": 1.0,
+        "source_revision": "ca1e85fe9430179831e6bc6be790c332190a3866",
+        "weights_revision": "19671f406d603126926c1b7e2adc169acbcade22",
+        "generation_seconds": 75.00692518200958,
+        "duration_actual": 60.0,
+        "sample_rate": 48000,
+        "channels": 2,
+        "peak": 0.8912353515625,
+        "rms": 0.08210979987671393,
+        "clipping_fraction": 0.0,
+        "longest_internal_silence_seconds": 5.3,
+        "sha256": "72f52abb75f96c36a045020ff82f01f029b4dbf63bb3ac7d19e99a4c31164b6a",
+        "cuda_peak_allocated_gib": 13.627888679504395,
+        "cuda_peak_reserved_gib": 13.771484375
+      },
+      "accepted": false,
+      "error": "생성 음악이 중간 또는 끝에서 너무 일찍 비어 있습니다: {\"duration\": 60.0, \"active_fraction\": 0.85, \"rms\": 0.08210980147123337, \"leading_quiet_seconds\": 0.0, \"trailing_quiet_seconds\": 9.0, \"longest_internal_quiet_seconds\": 0.0}"
+    },
+    {
+      "fingerprint": "70cd1571190fb469a3adf31ca63bbcf19b4da7e8e152378bdb84e1e20996ad95",
+      "request": {
+        "model": "ace-turbo",
+        "prompt": "Instrumental solo acoustic piano, warm intimate felt piano tone, gentle flowing arpeggios and a clear lyrical melody, calm reflective mood, natural room ambience, 80 BPM, no vocals, no singing, no drums, suitable under spoken narration. Continuous background music throughout all 60 seconds, keep playing without silent breaks; do not end or fade early.",
+        "seed": 43,
+        "bpm": 80,
+        "duration_seconds": 60
+      },
+      "metadata": {
+        "model": "ace-turbo",
+        "prompt": "Instrumental solo acoustic piano, warm intimate felt piano tone, gentle flowing arpeggios and a clear lyrical melody, calm reflective mood, natural room ambience, 80 BPM, no vocals, no singing, no drums, suitable under spoken narration. Continuous background music throughout all 60 seconds, keep playing without silent breaks; do not end or fade early.",
+        "duration_seconds": 60,
+        "seed": 43,
+        "bpm": 80,
+        "backend": "ace-step",
+        "config": "acestep-v15-turbo",
+        "thinking": true,
+        "inference_steps": 8,
+        "guidance_scale": 1.0,
+        "source_revision": "ca1e85fe9430179831e6bc6be790c332190a3866",
+        "weights_revision": "19671f406d603126926c1b7e2adc169acbcade22",
+        "generation_seconds": 73.56353781698272,
+        "duration_actual": 60.0,
+        "sample_rate": 48000,
+        "channels": 2,
+        "peak": 0.891265869140625,
+        "rms": 0.12230111859076573,
+        "clipping_fraction": 0.0,
+        "longest_internal_silence_seconds": 4.4,
+        "sha256": "33a12d6f2a85bf70e554138e6adddbe8ed7b74ff41fa6fd0c60bd3f3763ee803",
+        "cuda_peak_allocated_gib": 13.627888679504395,
+        "cuda_peak_reserved_gib": 13.771484375
+      },
+      "accepted": false,
+      "error": "생성 음악이 중간 또는 끝에서 너무 일찍 비어 있습니다: {\"duration\": 60.0, \"active_fraction\": 0.87, \"rms\": 0.1223011165857315, \"leading_quiet_seconds\": 0.0, \"trailing_quiet_seconds\": 7.8, \"longest_internal_quiet_seconds\": 0.0}"
+    },
+    {
+      "fingerprint": "70cd1571190fb469a3adf31ca63bbcf19b4da7e8e152378bdb84e1e20996ad95",
+      "request": {
+        "model": "ace-turbo",
+        "prompt": "Instrumental solo acoustic piano, warm intimate felt piano tone, gentle flowing arpeggios and a clear lyrical melody, calm reflective mood, natural room ambience, 80 BPM, no vocals, no singing, no drums, suitable under spoken narration. Continuous background music throughout all 60 seconds, keep playing without silent breaks; do not end or fade early.",
+        "seed": 44,
+        "bpm": 80,
+        "duration_seconds": 60
+      },
+      "metadata": {
+        "model": "ace-turbo",
+        "prompt": "Instrumental solo acoustic piano, warm intimate felt piano tone, gentle flowing arpeggios and a clear lyrical melody, calm reflective mood, natural room ambience, 80 BPM, no vocals, no singing, no drums, suitable under spoken narration. Continuous background music throughout all 60 seconds, keep playing without silent breaks; do not end or fade early.",
+        "duration_seconds": 60,
+        "seed": 44,
+        "bpm": 80,
+        "backend": "ace-step",
+        "config": "acestep-v15-turbo",
+        "thinking": true,
+        "inference_steps": 8,
+        "guidance_scale": 1.0,
+        "source_revision": "ca1e85fe9430179831e6bc6be790c332190a3866",
+        "weights_revision": "19671f406d603126926c1b7e2adc169acbcade22",
+        "generation_seconds": 66.97718810103834,
+        "duration_actual": 60.0,
+        "sample_rate": 48000,
+        "channels": 2,
+        "peak": 0.891265869140625,
+        "rms": 0.08995285611958137,
+        "clipping_fraction": 0.0,
+        "longest_internal_silence_seconds": 11.7,
+        "sha256": "98ddde0c1b14654dcf1d6cff492a576cc2721c3d6baff5f5b89f9ab6112c1d98",
+        "cuda_peak_allocated_gib": 13.627888679504395,
+        "cuda_peak_reserved_gib": 13.771484375
+      },
+      "accepted": false,
+      "error": "생성 음악이 중간 또는 끝에서 너무 일찍 비어 있습니다: {\"duration\": 60.0, \"active_fraction\": 0.8016666666666666, \"rms\": 0.08995285630226135, \"leading_quiet_seconds\": 0.0, \"trailing_quiet_seconds\": 11.9, \"longest_internal_quiet_seconds\": 0.0}"
+    }
+  ],
+  "continuous_bgm_policy": {
+    "active_fraction_min": 0.92,
+    "leading_quiet_max_seconds": 1.5,
+    "trailing_quiet_max_seconds": 2.5,
+    "internal_quiet_max_seconds": 2.5,
+    "max_attempts": 3,
+    "source_duration_factors": [
+      1.25,
+      1.5,
+      1.75
+    ],
+    "source_duration_cap": 120,
+    "no_synthetic_substitution": true,
+    "no_padding": true,
+    "no_looping": true
+  },
+  "production": {
+    "job_id": "7902a4fe38684cb0a4d8740e31a6d65c",
+    "quality": {
+      "passed": true,
+      "applied": {
+        "duration_seconds": 60.0,
+        "scene_count": 6,
+        "scene_kinds": [
+          "image",
+          "image",
+          "image",
+          "image",
+          "image",
+          "image"
+        ],
+        "template": {
+          "template_sha256": "27da4a1ad2f4d9a4d5e006387f3181b9364047331e39437cb0bd7def0c4cc2d8",
+          "author": "local_model",
+          "name": "60s Mindset Cinematic Short - Visual Repair"
+        },
+        "template_id": "43f498b3dd50433ca636b4341176a39f",
+        "caption_styles": [
+          {
+            "id": "caption-0-0",
+            "font_family": "\"Noto Sans CJK KR\", sans-serif",
+            "font_size": 44,
+            "color": "rgb(255, 255, 255)",
+            "background": "rgba(0, 0, 0, 0)",
+            "background_before": "rgba(0, 0, 0, 0.6)",
+            "emphasis_styles": [
+              {
+                "text": "예순",
+                "color": "rgb(255, 215, 0)",
+                "font_weight": "800"
+              }
+            ],
+            "x": 110,
+            "y": 603.40625,
+            "width": 500,
+            "height": 124.375,
+            "lines": 2,
+            "highlights": 1
+          },
+          {
+            "id": "caption-0-1",
+            "font_family": "\"Noto Sans CJK KR\", sans-serif",
+            "font_size": 44,
+            "color": "rgb(255, 255, 255)",
+            "background": "rgba(0, 0, 0, 0)",
+            "background_before": "rgba(0, 0, 0, 0.6)",
+            "emphasis_styles": [
+              {
+                "text": "깊이",
+                "color": "rgb(255, 215, 0)",
+                "font_weight": "800"
+              }
+            ],
+            "x": 110,
+            "y": 603.40625,
+            "width": 500,
+            "height": 124.375,
+            "lines": 2,
+            "highlights": 1
+          },
+          {
+            "id": "caption-0-1",
+            "font_family": "\"Noto Sans CJK KR\", sans-serif",
+            "font_size": 44,
+            "color": "rgb(255, 255, 255)",
+            "background": "rgba(0, 0, 0, 0)",
+            "background_before": "rgba(0, 0, 0, 0.6)",
+            "emphasis_styles": [
+              {
+                "text": "깊이",
+                "color": "rgb(255, 215, 0)",
+                "font_weight": "800"
+              }
+            ],
+            "x": 110,
+            "y": 603.40625,
+            "width": 500,
+            "height": 124.375,
+            "lines": 2,
+            "highlights": 1
+          },
+          {
+            "id": "caption-1-0",
+            "font_family": "\"Noto Sans CJK KR\", sans-serif",
+            "font_size": 44,
+            "color": "rgb(255, 255, 255)",
+            "background": "rgba(0, 0, 0, 0)",
+            "background_before": "rgba(0, 0, 0, 0.6)",
+            "emphasis_styles": [
+              {
+                "text": "비교",
+                "color": "rgb(255, 215, 0)",
+                "font_weight": "800"
+              }
+            ],
+            "x": 110,
+            "y": 603.40625,
+            "width": 500,
+            "height": 124.375,
+            "lines": 2,
+            "highlights": 1
+          },
+          {
+            "id": "caption-1-1",
+            "font_family": "\"Noto Sans CJK KR\", sans-serif",
+            "font_size": 44,
+            "color": "rgb(255, 255, 255)",
+            "background": "rgba(0, 0, 0, 0)",
+            "background_before": "rgba(0, 0, 0, 0.6)",
+            "emphasis_styles": [
+              {
+                "text": "마음",
+                "color": "rgb(255, 215, 0)",
+                "font_weight": "800"
+              }
+            ],
+            "x": 110,
+            "y": 603.40625,
+            "width": 500,
+            "height": 124.375,
+            "lines": 2,
+            "highlights": 1
+          },
+          {
+            "id": "caption-1-1",
+            "font_family": "\"Noto Sans CJK KR\", sans-serif",
+            "font_size": 44,
+            "color": "rgb(255, 255, 255)",
+            "background": "rgba(0, 0, 0, 0)",
+            "background_before": "rgba(0, 0, 0, 0.6)",
+            "emphasis_styles": [
+              {
+                "text": "마음",
+                "color": "rgb(255, 215, 0)",
+                "font_weight": "800"
+              }
+            ],
+            "x": 110,
+            "y": 603.40625,
+            "width": 500,
+            "height": 124.375,
+            "lines": 2,
+            "highlights": 1
+          },
+          {
+            "id": "caption-1-2",
+            "font_family": "\"Noto Sans CJK KR\", sans-serif",
+            "font_size": 44,
+            "color": "rgb(255, 255, 255)",
+            "background": "rgba(0, 0, 0, 0)",
+            "background_before": "rgba(0, 0, 0, 0.6)",
+            "emphasis_styles": [],
+            "x": 110,
+            "y": 637,
+            "width": 500,
+            "height": 57.1875,
+            "lines": 1,
+            "highlights": 0
+          },
+          {
+            "id": "caption-2-0",
+            "font_family": "\"Noto Sans CJK KR\", sans-serif",
+            "font_size": 44,
+            "color": "rgb(255, 255, 255)",
+            "background": "rgba(0, 0, 0, 0)",
+            "background_before": "rgba(0, 0, 0, 0.6)",
+            "emphasis_styles": [
+              {
+                "text": "몸",
+                "color": "rgb(255, 215, 0)",
+                "font_weight": "800"
+              }
+            ],
+            "x": 110,
+            "y": 637,
+            "width": 500,
+            "height": 57.1875,
+            "lines": 1,
+            "highlights": 1
+          }
+        ],
+        "voice_preset": "uncle_fu",
+        "voice_speed": 0.95,
+        "sentence_pause": 0.25,
+        "narration_seconds": 53.98065759637189,
+        "narration_coverage": 0.8996776266061982,
+        "longest_narration_gap": 1.16,
+        "music_kind": "generated",
+        "music_gain": 0.12,
+        "music": {
+          "kind": "generated",
+          "source": "Model-generated instrumental music",
+          "fingerprint": "70cd1571190fb469a3adf31ca63bbcf19b4da7e8e152378bdb84e1e20996ad95",
+          "request": {
+            "model": "ace-turbo",
+            "prompt": "Instrumental solo acoustic piano, warm intimate felt piano tone, gentle flowing arpeggios and a clear lyrical melody, calm reflective mood, natural room ambience, 80 BPM, no vocals, no singing, no drums, suitable under spoken narration. Continuous background music throughout all 75 seconds, keep playing without silent breaks; do not end or fade early.",
+            "seed": 42,
+            "bpm": 80,
+            "duration_seconds": 75
+          },
+          "metadata": {
+            "model": "ace-turbo",
+            "prompt": "Instrumental solo acoustic piano, warm intimate felt piano tone, gentle flowing arpeggios and a clear lyrical melody, calm reflective mood, natural room ambience, 80 BPM, no vocals, no singing, no drums, suitable under spoken narration. Continuous background music throughout all 75 seconds, keep playing without silent breaks; do not end or fade early.",
+            "duration_seconds": 75,
+            "seed": 42,
+            "bpm": 80,
+            "backend": "ace-step",
+            "config": "acestep-v15-turbo",
+            "thinking": true,
+            "inference_steps": 8,
+            "guidance_scale": 1.0,
+            "source_revision": "ca1e85fe9430179831e6bc6be790c332190a3866",
+            "weights_revision": "19671f406d603126926c1b7e2adc169acbcade22",
+            "generation_seconds": 93.9221363660181,
+            "duration_actual": 75.0,
+            "sample_rate": 48000,
+            "channels": 2,
+            "peak": 0.8912353515625,
+            "rms": 0.1500378507954794,
+            "clipping_fraction": 0.0,
+            "longest_internal_silence_seconds": 3.8,
+            "sha256": "acf20c703359bbea7a79df613c851f9ec66847aee791326dbcd03c9b0800f535",
+            "cuda_peak_allocated_gib": 13.627888679504395,
+            "cuda_peak_reserved_gib": 13.771484375
+          },
+          "used_duration_seconds": 60.0,
+          "quality": {
+            "duration": 75.0,
+            "active_fraction": 1.0,
+            "rms": 0.1522756814956665,
+            "leading_quiet_seconds": 0.0,
+            "trailing_quiet_seconds": 0.0,
+            "longest_internal_quiet_seconds": 0.0
+          },
+          "attempts": [
+            {
+              "fingerprint": "70cd1571190fb469a3adf31ca63bbcf19b4da7e8e152378bdb84e1e20996ad95",
+              "request": {
+                "model": "ace-turbo",
+                "prompt": "Instrumental solo acoustic piano, warm intimate felt piano tone, gentle flowing arpeggios and a clear lyrical melody, calm reflective mood, natural room ambience, 80 BPM, no vocals, no singing, no drums, suitable under spoken narration. Continuous background music throughout all 75 seconds, keep playing without silent breaks; do not end or fade early.",
+                "seed": 42,
+                "bpm": 80,
+                "duration_seconds": 75
+              },
+              "metadata": {
+                "model": "ace-turbo",
+                "prompt": "Instrumental solo acoustic piano, warm intimate felt piano tone, gentle flowing arpeggios and a clear lyrical melody, calm reflective mood, natural room ambience, 80 BPM, no vocals, no singing, no drums, suitable under spoken narration. Continuous background music throughout all 75 seconds, keep playing without silent breaks; do not end or fade early.",
+                "duration_seconds": 75,
+                "seed": 42,
+                "bpm": 80,
+                "backend": "ace-step",
+                "config": "acestep-v15-turbo",
+                "thinking": true,
+                "inference_steps": 8,
+                "guidance_scale": 1.0,
+                "source_revision": "ca1e85fe9430179831e6bc6be790c332190a3866",
+                "weights_revision": "19671f406d603126926c1b7e2adc169acbcade22",
+                "generation_seconds": 93.9221363660181,
+                "duration_actual": 75.0,
+                "sample_rate": 48000,
+                "channels": 2,
+                "peak": 0.8912353515625,
+                "rms": 0.1500378507954794,
+                "clipping_fraction": 0.0,
+                "longest_internal_silence_seconds": 3.8,
+                "sha256": "acf20c703359bbea7a79df613c851f9ec66847aee791326dbcd03c9b0800f535",
+                "cuda_peak_allocated_gib": 13.627888679504395,
+                "cuda_peak_reserved_gib": 13.771484375
+              },
+              "accepted": true,
+              "quality": {
+                "duration": 75.0,
+                "active_fraction": 1.0,
+                "rms": 0.1522756814956665,
+                "leading_quiet_seconds": 0.0,
+                "trailing_quiet_seconds": 0.0,
+                "longest_internal_quiet_seconds": 0.0
+              }
+            }
+          ]
+        },
+        "animation_assets": []
+      },
+      "verification": {
+        "browser_layout": true,
+        "animation_visible_pixels": [],
+        "visual_review": {
+          "passed": true,
+          "issues": [],
+          "summary": "The vertical video frames correctly implement the requested layout and typography. The title text is positioned at the top, and the main captions are centrally placed (within the 45-75% height range) with the specified font size, white color, yellow keyword highlights, and a rounded semi-transparent black background box. The images are high-quality, cinematic, and fill the screen. The Lottie asset is not visible in these specific stills, which is acceptable given the brief allows for blank frames in animated assets."
+        },
+        "speech_coverage": true,
+        "narration_track": {
+          "duration_seconds": 60.0,
+          "longest_internal_silence": 1.16,
+          "trim_start_sample": 882,
+          "trim_end_sample": 2607192,
+          "energy_active_seconds": 38.64
+        },
+        "duration_fit": {
+          "status": "fit",
+          "narration_seconds": 53.98065759637189,
+          "duration_seconds": 60,
+          "narration_coverage": 0.8996776266061982,
+          "desired_narration_seconds": 56.7,
+          "rewrite_length_multiplier": 1.0503762370581213,
+          "explicit_silent_seconds": 0
+        },
+        "caption_timing": "sentence timestamps with proportional phrase timing",
+        "final_file": {
+          "duration": "60.000000",
+          "frames": "1440",
+          "audio": true
+        }
+      },
+      "limitations": [
+        "Synth keys are original synthetic notes, not acoustic piano recordings.",
+        "Voice is synthetic reference (uncle_fu), not a human recording.",
+        "Lottie playback relies on the renderer's local player integration.",
+        "Font rendering depends on local availability of 'Noto Sans CJK KR'.",
+        "Audio synchronization is handled by the renderer's audio tracks."
+      ],
+      "speech": [
+        {
+          "character_error_rate": 0.15151515151515152,
+          "expected": "예순, 인생의 새로운 장이 열립니다. 나이 듦은 잃음이 아닌, 채워온 삶의 깊이입니다.",
+          "passed": true,
+          "transcript": "예순 인생의 새로운 장이 열립니다. 나의 들문 이름이 아닌 채워온 삶의 깊이입니다.",
+          "fingerprint": "49efa7a2f0c455c2ea88bb3a6887c591394669a4b8cfb1762b8b364b36806fd0"
+        },
+        {
+          "character_error_rate": 0.0625,
+          "expected": "첫째, 비교를 내려놓으세요. 남의 삶보다 오늘 내 마음이 편안한 게 더 중요합니다.",
+          "passed": true,
+          "transcript": "첫째 비교를 내려놓으세요. 남의 사안보다 오늘 내 마음이 편안한게 더 중요합니다.",
+          "fingerprint": "3e172eaf9047e18320c2b40869c5de0f5d56d4c23ae4a408539449d57cb3d1ff"
+        },
+        {
+          "character_error_rate": 0,
+          "expected": "둘째, 몸을 아끼세요. 오래 걷고 싶다면 지금부터 근육과 자세를 돌봐야 합니다.",
+          "passed": true,
+          "transcript": "둘째 몸을 아끼세요. 오래 걷고 싶다면 지금부터 근육과 자세를 돌봐야 합니다.",
+          "fingerprint": "a205ba63909611bd7f15a436612bc51ec9518feeaeff49a5c0a24828406981d2"
+        },
+        {
+          "character_error_rate": 0,
+          "expected": "셋째, 중요한 이십 퍼센트에만 집중하세요. 함께 식사하고 걷는 몸이면 충분합니다.",
+          "passed": true,
+          "transcript": "셋째 중요한 이십퍼센트에만 집중하세요. 함께 식사하고 걷는 몸이면 충분합니다.",
+          "fingerprint": "29d0b99ac8c2f28d4e1e21190f48b0dce988aa628528c395a55b6dd3a379ad3a"
+        },
+        {
+          "character_error_rate": 0,
+          "expected": "넷째, 혼자를 즐기세요. 혼자 걷고 읽으며 돌아보면 고독은 평온으로 바뀝니다.",
+          "passed": true,
+          "transcript": "넷째 혼자를 즐기세요. 혼자 걷고 읽으며 돌아보면 고독은 평온으로 바뀝니다.",
+          "fingerprint": "1dc1da917cfb0d7cb9e9b13a3e831955af59c1a82cef462a194148af07a713e5"
+        },
+        {
+          "character_error_rate": 0.0625,
+          "expected": "그리고 자신을 용서하세요. 잘 살아왔다고요. 황혼은 끝이 아니라 새 출발입니다.",
+          "passed": true,
+          "transcript": "그리고 자신을 용서하세요. 잘 살아왔다고요. 황우는 끝이 아니라 새 출발입니다.",
+          "fingerprint": "c83c1ffc43655c2e0cfa28516535abaac93275cf10b4d1ffd9c3fb0d43908b22"
+        }
+      ],
+      "elapsed_seconds": 257.2352070080233,
+      "duration": "60.000000",
+      "width": 720,
+      "height": 1280,
+      "fps": "24/1"
+    },
+    "music": {
+      "kind": "generated",
+      "source": "Model-generated instrumental music",
+      "fingerprint": "70cd1571190fb469a3adf31ca63bbcf19b4da7e8e152378bdb84e1e20996ad95",
+      "request": {
+        "model": "ace-turbo",
+        "prompt": "Instrumental solo acoustic piano, warm intimate felt piano tone, gentle flowing arpeggios and a clear lyrical melody, calm reflective mood, natural room ambience, 80 BPM, no vocals, no singing, no drums, suitable under spoken narration. Continuous background music throughout all 75 seconds, keep playing without silent breaks; do not end or fade early.",
+        "seed": 42,
+        "bpm": 80,
+        "duration_seconds": 75
+      },
+      "metadata": {
+        "model": "ace-turbo",
+        "prompt": "Instrumental solo acoustic piano, warm intimate felt piano tone, gentle flowing arpeggios and a clear lyrical melody, calm reflective mood, natural room ambience, 80 BPM, no vocals, no singing, no drums, suitable under spoken narration. Continuous background music throughout all 75 seconds, keep playing without silent breaks; do not end or fade early.",
+        "duration_seconds": 75,
+        "seed": 42,
+        "bpm": 80,
+        "backend": "ace-step",
+        "config": "acestep-v15-turbo",
+        "thinking": true,
+        "inference_steps": 8,
+        "guidance_scale": 1.0,
+        "source_revision": "ca1e85fe9430179831e6bc6be790c332190a3866",
+        "weights_revision": "19671f406d603126926c1b7e2adc169acbcade22",
+        "generation_seconds": 93.9221363660181,
+        "duration_actual": 75.0,
+        "sample_rate": 48000,
+        "channels": 2,
+        "peak": 0.8912353515625,
+        "rms": 0.1500378507954794,
+        "clipping_fraction": 0.0,
+        "longest_internal_silence_seconds": 3.8,
+        "sha256": "acf20c703359bbea7a79df613c851f9ec66847aee791326dbcd03c9b0800f535",
+        "cuda_peak_allocated_gib": 13.627888679504395,
+        "cuda_peak_reserved_gib": 13.771484375
+      },
+      "used_duration_seconds": 60.0,
+      "quality": {
+        "duration": 75.0,
+        "active_fraction": 1.0,
+        "rms": 0.1522756814956665,
+        "leading_quiet_seconds": 0.0,
+        "trailing_quiet_seconds": 0.0,
+        "longest_internal_quiet_seconds": 0.0
+      },
+      "attempts": [
+        {
+          "fingerprint": "70cd1571190fb469a3adf31ca63bbcf19b4da7e8e152378bdb84e1e20996ad95",
+          "request": {
+            "model": "ace-turbo",
+            "prompt": "Instrumental solo acoustic piano, warm intimate felt piano tone, gentle flowing arpeggios and a clear lyrical melody, calm reflective mood, natural room ambience, 80 BPM, no vocals, no singing, no drums, suitable under spoken narration. Continuous background music throughout all 75 seconds, keep playing without silent breaks; do not end or fade early.",
+            "seed": 42,
+            "bpm": 80,
+            "duration_seconds": 75
+          },
+          "metadata": {
+            "model": "ace-turbo",
+            "prompt": "Instrumental solo acoustic piano, warm intimate felt piano tone, gentle flowing arpeggios and a clear lyrical melody, calm reflective mood, natural room ambience, 80 BPM, no vocals, no singing, no drums, suitable under spoken narration. Continuous background music throughout all 75 seconds, keep playing without silent breaks; do not end or fade early.",
+            "duration_seconds": 75,
+            "seed": 42,
+            "bpm": 80,
+            "backend": "ace-step",
+            "config": "acestep-v15-turbo",
+            "thinking": true,
+            "inference_steps": 8,
+            "guidance_scale": 1.0,
+            "source_revision": "ca1e85fe9430179831e6bc6be790c332190a3866",
+            "weights_revision": "19671f406d603126926c1b7e2adc169acbcade22",
+            "generation_seconds": 93.9221363660181,
+            "duration_actual": 75.0,
+            "sample_rate": 48000,
+            "channels": 2,
+            "peak": 0.8912353515625,
+            "rms": 0.1500378507954794,
+            "clipping_fraction": 0.0,
+            "longest_internal_silence_seconds": 3.8,
+            "sha256": "acf20c703359bbea7a79df613c851f9ec66847aee791326dbcd03c9b0800f535",
+            "cuda_peak_allocated_gib": 13.627888679504395,
+            "cuda_peak_reserved_gib": 13.771484375
+          },
+          "accepted": true,
+          "quality": {
+            "duration": 75.0,
+            "active_fraction": 1.0,
+            "rms": 0.1522756814956665,
+            "leading_quiet_seconds": 0.0,
+            "trailing_quiet_seconds": 0.0,
+            "longest_internal_quiet_seconds": 0.0
+          }
+        }
+      ]
+    },
+    "probe": {
+      "streams": [
+        {
+          "index": 0,
+          "codec_name": "h264",
+          "codec_long_name": "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
+          "profile": "High",
+          "codec_type": "video",
+          "codec_tag_string": "avc1",
+          "codec_tag": "0x31637661",
+          "width": 720,
+          "height": 1280,
+          "coded_width": 720,
+          "coded_height": 1280,
+          "closed_captions": 0,
+          "film_grain": 0,
+          "has_b_frames": 0,
+          "sample_aspect_ratio": "1:1",
+          "display_aspect_ratio": "9:16",
+          "pix_fmt": "yuv420p",
+          "level": 31,
+          "color_range": "tv",
+          "color_space": "bt709",
+          "color_transfer": "bt709",
+          "color_primaries": "bt709",
+          "chroma_location": "center",
+          "field_order": "progressive",
+          "refs": 1,
+          "is_avc": "true",
+          "nal_length_size": "4",
+          "id": "0x1",
+          "r_frame_rate": "24/1",
+          "avg_frame_rate": "24/1",
+          "time_base": "1/12288",
+          "start_pts": 0,
+          "start_time": "0.000000",
+          "duration_ts": 737280,
+          "duration": "60.000000",
+          "bit_rate": "2755729",
+          "bits_per_raw_sample": "8",
+          "nb_frames": "1440",
+          "extradata_size": 51,
+          "disposition": {
+            "default": 1,
+            "dub": 0,
+            "original": 0,
+            "comment": 0,
+            "lyrics": 0,
+            "karaoke": 0,
+            "forced": 0,
+            "hearing_impaired": 0,
+            "visual_impaired": 0,
+            "clean_effects": 0,
+            "attached_pic": 0,
+            "timed_thumbnails": 0,
+            "captions": 0,
+            "descriptions": 0,
+            "metadata": 0,
+            "dependent": 0,
+            "still_image": 0
+          },
+          "tags": {
+            "language": "und",
+            "handler_name": "VideoHandler",
+            "vendor_id": "[0][0][0][0]",
+            "encoder": "Lavc59.37.100 libx264"
+          }
+        },
+        {
+          "index": 1,
+          "codec_name": "aac",
+          "codec_long_name": "AAC (Advanced Audio Coding)",
+          "profile": "LC",
+          "codec_type": "audio",
+          "codec_tag_string": "mp4a",
+          "codec_tag": "0x6134706d",
+          "sample_fmt": "fltp",
+          "sample_rate": "44100",
+          "channels": 2,
+          "channel_layout": "stereo",
+          "bits_per_sample": 0,
+          "id": "0x2",
+          "r_frame_rate": "0/0",
+          "avg_frame_rate": "0/0",
+          "time_base": "1/44100",
+          "start_pts": 0,
+          "start_time": "0.000000",
+          "duration_ts": 2646000,
+          "duration": "60.000000",
+          "bit_rate": "131198",
+          "nb_frames": "2585",
+          "extradata_size": 5,
+          "disposition": {
+            "default": 1,
+            "dub": 0,
+            "original": 0,
+            "comment": 0,
+            "lyrics": 0,
+            "karaoke": 0,
+            "forced": 0,
+            "hearing_impaired": 0,
+            "visual_impaired": 0,
+            "clean_effects": 0,
+            "attached_pic": 0,
+            "timed_thumbnails": 0,
+            "captions": 0,
+            "descriptions": 0,
+            "metadata": 0,
+            "dependent": 0,
+            "still_image": 0
+          },
+          "tags": {
+            "language": "und",
+            "handler_name": "SoundHandler",
+            "vendor_id": "[0][0][0][0]"
+          }
+        }
+      ],
+      "format": {
+        "filename": "/data/7902a4fe38684cb0a4d8740e31a6d65c/final.mp4",
+        "nb_streams": 2,
+        "nb_programs": 0,
+        "format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+        "format_long_name": "QuickTime / MOV",
+        "start_time": "0.000000",
+        "duration": "60.000000",
+        "size": "21688535",
+        "bit_rate": "2891804",
+        "probe_score": 100,
+        "tags": {
+          "major_brand": "isom",
+          "minor_version": "512",
+          "compatible_brands": "isomiso2avc1mp41",
+          "encoder": "Lavf59.27.100"
+        }
+      }
+    },
+    "audio": {
+      "samples": 5292032,
+      "nonfinite": 0,
+      "peak": 0.576164722442627,
+      "rms": 0.08171870559453964,
+      "clipping_fraction": 0.0
+    },
+    "narration_all_six_files_identical_to_source": true,
+    "unrequested_heart_removed": true,
+    "file_sha256": "55c365a7f87a8db34b3cc4157ff42eeea737308f5372d10c9154b88262cfc443"
+  },
+  "delivery": {
+    "session_id": "chat-1792689381708313299",
+    "message_id": 3073,
+    "attachments": [
+      {
+        "id": "05f34ab727346b867c51232c76d94aa4",
+        "name": "Shorts.mp4",
+        "mime": "video/mp4",
+        "size": 21688535,
+        "url": "/api/files/05f34ab727346b867c51232c76d94aa4/Shorts.mp4?type=video%2Fmp4",
+        "source_url": "/api/shorts/7902a4fe38684cb0a4d8740e31a6d65c/files/final.mp4?session_id=chat-1792689381708313299"
+      }
+    ],
+    "range_status": 206,
+    "range_bytes": 1024
+  },
+  "runtime_hashes": [
+    {
+      "file": "music-studio/api.py",
+      "sha256": "3f1913e9ec841d4905493937f392114461bad594576fae01b4e2b2396b89a2ed",
+      "source_embedded_deployed_match": true
+    },
+    {
+      "file": "music-studio/generate.py",
+      "sha256": "990bd25b2690fc22fcadc2e5355d45b74221b672fd2e629752ffd4f3f3bb7ce3",
+      "source_embedded_deployed_match": true
+    },
+    {
+      "file": "extra-shorts/music.py",
+      "sha256": "74d6d133371cf9e8d6040042ce200e62826523034d95cd35bcf021a4a93a73f2",
+      "source_embedded_deployed_match": true
+    },
+    {
+      "file": "extra-shorts/pipeline.py",
+      "sha256": "5c0d5a9eeded1f3c985a1f498eb9aa2a833e7f2b265fe3850c250406cef8f611",
+      "source_embedded_deployed_match": true
+    },
+    {
+      "file": "extra-shorts/spec.py",
+      "sha256": "01254542a96181d5dca9b1eb32c35c2c9875b85de6f61f867ecc781c9a12cff9",
+      "source_embedded_deployed_match": true
+    },
+    {
+      "file": "extra-shorts/audio_mix.py",
+      "sha256": "5bea9f63a43f7b1c8faa9005ff52f50882ee375e231fec082c703a1b52b5c4a8",
+      "source_embedded_deployed_match": true
+    },
+    {
+      "file": "extra-shorts/api.py",
+      "sha256": "d482c509b114f73206ea0fbea45c901e74a54b82de6fe6f39a8b026c1c01e353",
+      "source_embedded_deployed_match": true
+    }
+  ],
+  "resident_models": {
+    "sparktalk-qwen38fn_exl3": {
+      "Status": "running",
+      "StartedAt": "2026-10-22T12:34:26.052328339Z"
+    },
+    "sparktalk-qwim-mmh3": {
+      "Status": "running",
+      "StartedAt": "2026-10-23T09:47:08.119069832Z"
+    }
+  },
+  "admission_budget_gib": {
+    "ace-turbo": 24,
+    "ace-xl": 32,
+    "heartmula": 36
+  },
+  "live_binary_sha256": "44fd261ec8251f54f1e5aa43f87d2625598e1c26706a7ef44ad95bee6a596b05",
+  "deployed_binary_matches": true,
+  "validation_notes": [
+    "The first installation check assumed a single checkpoint root; explicit nested file manifests fixed bundled models.",
+    "Some 60-second generations ended early. They were rejected before delivery. Extended-source generation and actual-excerpt continuity validation now guard Shorts BGM.",
+    "Turbo admission now uses a measured 24 GiB budget; the successful 75-second source generation retained both the conversation and image models.",
+    "Durations and waveform checks were measured; subjective musical quality and absence of vocals have not been independently certified."
+  ]
+}

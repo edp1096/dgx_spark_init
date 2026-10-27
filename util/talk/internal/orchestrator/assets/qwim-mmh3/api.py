@@ -9,11 +9,13 @@ import re
 from generation_progress import append_event, read_events, prune
 import signal
 import time
+from typing import Literal
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse
 from starlette.background import BackgroundTask
 from pydantic import BaseModel, ConfigDict, Field
-from image_inputs import decode_keyframe, video_size
+from image_inputs import decode_keyframe, video_size, VIDEO_PROFILES
+import edit_inputs
 
 ROOT = Path(os.getenv('JOB_DIR', '/job'))
 app = FastAPI()
@@ -32,8 +34,15 @@ class Generate(BaseModel):
     response_format: str = 'b64_json'
     n: int = 1
     output_format: str = 'png'
+    resolution: Literal['480p', '720p'] | None = None
     first_frame: str | None = Field(default=None, min_length=1, max_length=44739320)
     last_frame: str | None = Field(default=None, min_length=1, max_length=44739320)
+    operation: Literal['generate', 'identity_edit', 'reference_generate', 'inpaint'] = 'generate'
+    source_image: str | None = Field(default=None, max_length=44739320)
+    anypaint_image: str | None = Field(default=None, max_length=44739320)
+    anypaint_mask: str | None = Field(default=None, max_length=44739320)
+    reference_images: list[str] = Field(default_factory=list, max_length=4)
+    mask_box: list[int] | None = Field(default=None, min_length=4, max_length=4)
 
 
 def clean_job(case):
@@ -41,6 +50,9 @@ def clean_job(case):
         (ROOT/folder/(case+suffix)).unlink(missing_ok=True)
     for label in ('first', 'last'):
         (ROOT / 'inputs' / (case + '-' + label + '.image')).unlink(missing_ok=True)
+    for index in range(4):
+        (ROOT / 'inputs' / f'{case}-reference-{index}.png').unlink(missing_ok=True)
+    (ROOT / 'cancel' / case).unlink(missing_ok=True)
 
 def ready():
     return (ROOT / 'ready.json').exists() and not (ROOT / 'stop').exists()
@@ -49,11 +61,11 @@ def ready():
 def health():
     if not ready(): raise HTTPException(503, 'Models are loading')
     acceleration = json.loads((ROOT / 'ready.json').read_text()).get('acceleration', {'attention': 'dense', 'spectrum': False, 'fbc': False})
-    return {'status': 'ok', 'features':{'progress':True,'eta':True,'i2v':True,'first_last_frames':True}, 'image_model': 'qwen-image-2.1-uc-nvfp4', 'video_model': 'minimax-h3-nvfp4', 'video': {'width':864,'height':480,'frames':124,'fps':24,'audio':True,'i2v_size':'source_aspect','max_pixel_area':864*480}, 'acceleration': acceleration}
+    return {'status': 'ok', 'features':{'progress':True,'eta':True,'i2v':True,'first_last_frames':True,'image_edit':True,'inpaint':True}, 'image_operations':edit_inputs.OPERATIONS, 'image_model': 'qwen-image-2.1-uc-nvfp4', 'video_model': 'minimax-h3-nvfp4', 'video': {'width':864,'height':480,'resolutions':VIDEO_PROFILES,'frames':124,'fps':24,'audio':True,'steps':acceleration.get('steps'),'sampler':acceleration.get('sampler'),'i2v_size':'source_aspect','max_pixel_area':1280*720}, 'acceleration': acceleration}
 
 @app.get('/v1/runtime/memory')
 def memory():
-    return {'status':'ok','busy':bool(active or queued),'active':active,'queued':queued,'quiescing':quiescing,'idle_for_seconds':time.monotonic()-last_used,'core_ready':ready(),'memory_gib':28,'workspace_gib':6,'keep_models_loaded':True}
+    return {'status':'ok','busy':bool(active or queued),'active':active,'queued':queued,'quiescing':quiescing,'idle_for_seconds':time.monotonic()-last_used,'core_ready':ready(),'memory_gib':30,'workspace_gib':6,'keep_models_loaded':True}
 
 @app.get('/v1/runtime/progress/{request_id}')
 def progress(request_id: str, after: int = 0):
@@ -88,10 +100,31 @@ def cancel():
         except ProcessLookupError: pass
     return {'status':'ok'}
 
+
+async def cancel_request(case):
+    folder = ROOT / 'cancel'; folder.mkdir(exist_ok=True)
+    (folder / case).touch()
+    # Keep the queue lease and input files until the worker has stopped using
+    # them. Cooperative cancellation keeps the two resident DiTs loaded.
+    deadline = time.monotonic() + 120
+    while ready() and not (ROOT / 'results' / (case+'.json')).exists():
+        if time.monotonic() > deadline:
+            cancel()
+            break
+        await asyncio.sleep(.2)
+
 async def generate(body, kind, request):
     global active,queued,last_used
     if quiescing or not ready(): raise HTTPException(503,'Generation service is unavailable')
     if not body.prompt.strip(): raise HTTPException(400,'prompt cannot be blank')
+    prepared = None
+    if kind == 'qwim':
+        try:
+            prepared = edit_inputs.prepare(body)
+        except ValueError as error:
+            raise HTTPException(400, str(error)) from error
+    elif body.operation != 'generate' or body.source_image or body.reference_images or body.anypaint_image or body.anypaint_mask or body.mask_box:
+        raise HTTPException(400, 'Image editing fields are not video inputs')
     keyframes = {}
     for label, value in (('first', body.first_frame), ('last', body.last_frame)):
         if value is not None:
@@ -100,12 +133,13 @@ async def generate(body, kind, request):
                 keyframes[label] = decode_keyframe(value)
             except ValueError as error:
                 raise HTTPException(400, str(error)) from error
-    width, height = (864, 480) if kind == 'h3' else (1024, 1024)
+    if kind != 'h3' and body.resolution is not None:
+        raise HTTPException(400, 'resolution is supported only by video generation')
+    resolution = body.resolution or '480p'
+    width, height = VIDEO_PROFILES[resolution] if kind == 'h3' else prepared['size']
     if keyframes:
         dimensions = keyframes.get('first', keyframes.get('last'))[1]
-        width, height = video_size(dimensions['width'], dimensions['height'])
-    if kind=='qwim' and (body.size!='1024x1024' or body.n!=1 or body.response_format!='b64_json' or body.output_format!='png'):
-        raise HTTPException(400,'This joint set supports one 1024x1024 text-generated image')
+        width, height = video_size(dimensions['width'], dimensions['height'], resolution)
     progress_id = request.headers.get('X-SparkTalk-Request-ID', secrets.token_hex(16))
     if not re.fullmatch(r'[a-f0-9]{32}', progress_id): raise HTTPException(400, 'Invalid request ID')
     prune(ROOT)
@@ -121,6 +155,15 @@ async def generate(body, kind, request):
             try:
                 payload={'case':case,'kind':kind,'prompt':body.prompt,'seed':body.seed,'progress_id':progress_id}
                 payload.update(width=width, height=height)
+                if prepared:
+                    folder = ROOT / 'inputs'; folder.mkdir(exist_ok=True)
+                    files = []
+                    for index, raw in enumerate(prepared['references']):
+                        path = folder / f'{case}-reference-{index}.png'
+                        path.write_bytes(raw)
+                        files.append(str(path))
+                    payload.update(prompt=prepared['prompt'], operation=prepared['operation'],
+                                   reference_files=files, reference_hashes=prepared['hashes'])
                 for label, (raw, info) in keyframes.items():
                     folder = ROOT / 'inputs'; folder.mkdir(exist_ok=True)
                     path = folder / (case + '-' + label + '.image')
@@ -131,8 +174,12 @@ async def generate(body, kind, request):
                 deadline=time.monotonic()+1800
                 result_path=ROOT/'results'/(case+'.json')
                 while not result_path.exists():
-                    if await request.is_disconnected(): cancel();raise HTTPException(499,'Generation canceled')
-                    if time.monotonic()>deadline: cancel();raise HTTPException(504,'Generation timed out')
+                    if await request.is_disconnected():
+                        await cancel_request(case)
+                        raise HTTPException(499,'Generation canceled')
+                    if time.monotonic()>deadline:
+                        await cancel_request(case)
+                        raise HTTPException(504,'Generation timed out')
                     if not ready(): raise HTTPException(503,'Worker stopped during generation')
                     await asyncio.sleep(.2)
                 result=json.loads(result_path.read_text())
@@ -140,14 +187,19 @@ async def generate(body, kind, request):
                 output=ROOT/'output'/(case+('.mp4' if kind=='h3' else '.png'))
                 if not output.is_file() or output.stat().st_size==0:raise HTTPException(502,'Worker produced no media')
                 if kind=='h3':return FileResponse(output,media_type='video/mp4',filename='MiniMax-H3-'+case+'.mp4',headers={'X-Video-Width':str(width),'X-Video-Height':str(height),'X-Video-Input-Mode':'i2v' if keyframes else 't2v'},background=BackgroundTask(clean_job,case))
-                encoded=base64.b64encode(output.read_bytes()).decode();clean_job(case)
-                return {'created':int(time.time()),'seed':body.seed,'data':[{'b64_json':encoded}]}
+                encoded=base64.b64encode(edit_inputs.finish(output.read_bytes(),prepared)).decode();clean_job(case)
+                return {'created':int(time.time()),'seed':body.seed,'data':[{'b64_json':encoded}],
+                        'operation':body.operation,'reference_sha256':prepared['hashes'],
+                        'outside_mask_preserved':prepared['mask'] is not None}
             finally:
                 active-=1;last_used=time.monotonic()
                 # The worker has finished or was canceled. User keyframes are
                 # no longer needed even if generation failed.
                 for label in ('first', 'last'):
                     (ROOT / 'inputs' / (case + '-' + label + '.image')).unlink(missing_ok=True)
+                for index in range(4):
+                    (ROOT / 'inputs' / f'{case}-reference-{index}.png').unlink(missing_ok=True)
+                (ROOT / 'cancel' / case).unlink(missing_ok=True)
     finally:
         if not entered:queued-=1
 
@@ -156,3 +208,34 @@ async def video(body:Generate,request:Request):return await generate(body,'h3',r
 
 @app.post('/v1/images/generations')
 async def image(body:Generate,request:Request):return await generate(body,'qwim',request)
+
+
+@app.post('/v1/images/edits')
+async def edit(request: Request):
+    async with request.form(max_files=4, max_fields=10) as form:
+        references = []
+        for key, value in form.multi_items():
+            if key not in ('image', 'image[]') or not hasattr(value, 'read'):
+                continue
+            raw = await value.read(32 * 1024**2 + 1)
+            if len(raw) > 32 * 1024**2:
+                raise HTTPException(413, 'Each reference must be at most 32 MiB')
+            import io
+            from PIL import Image
+            try:
+                with Image.open(io.BytesIO(raw)) as picture:
+                    mime = {'PNG':'image/png','JPEG':'image/jpeg','WEBP':'image/webp'}[picture.format]
+            except (OSError, KeyError) as error:
+                raise HTTPException(400, 'Invalid reference image') from error
+            references.append('data:'+mime+';base64,'+base64.b64encode(raw).decode())
+        if not references:
+            raise HTTPException(400, 'At least one image is required')
+        try:
+            body = Generate(prompt=form.get('prompt',''), model=form.get('model'),
+                            size=form.get('size','1024x1024'), operation=form.get('operation','identity_edit'),
+                            seed=int(form.get('seed',secrets.randbelow(2**63))), reference_images=references)
+        except ValueError as error:
+            raise HTTPException(400, 'Invalid image edit arguments') from error
+        if body.operation not in ('identity_edit','reference_generate'):
+            raise HTTPException(400, 'Multipart edits support identity_edit or reference_generate')
+        return await generate(body,'qwim',request)

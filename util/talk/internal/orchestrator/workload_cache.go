@@ -80,8 +80,12 @@ func (c *Controller) auxiliaryCacheScopes(ctx context.Context, b Bundle) ([]stri
 			scope = "flux"
 		case x.ComposeAsset == "compose.nemotron-asr.yaml":
 			scope = "asr"
+		case x.ComposeAsset == "compose.extra-fish.yaml":
+			scope = "fish"
 		case isManagedTTS(x):
 			scope = "tts"
+		case isManagedMusic(x):
+			scope = "music"
 		default:
 			continue
 		}
@@ -116,7 +120,7 @@ func (c *Controller) auxiliaryCacheScopes(ctx context.Context, b Bundle) ([]stri
 		}
 	}
 	var scopes []string
-	for _, scope := range []string{"flux", "image", "asr", "tts"} {
+	for _, scope := range []string{"flux", "image", "asr", "tts", "music", "fish"} {
 		if !blocked[scope] {
 			scopes = append(scopes, scope)
 		}
@@ -189,6 +193,8 @@ const auxiliaryCacheAdvice = `import os,sys
 from pathlib import Path
 scopes=set(sys.argv[1].split(','))
 roots=[]
+if 'music' in scopes:
+ roots.append(Path('/qwen-image-cache/edp1096/music-studio'))
 if 'flux' in scopes:
  roots.append(Path('/cache/local/flux2-klein-4b-uncensored-nvfp4'))
  for name in ('models--black-forest-labs--FLUX.2-klein-4b-nvfp4','models--Comfy-Org--flux2-klein-4B','models--fal--flux-2-klein-4B-outpaint-lora','models--fal--flux-2-klein-4B-object-remove-lora','models--fal--flux-2-klein-4B-background-remove-lora'):
@@ -197,6 +203,17 @@ if 'image' in scopes:
  for repo, revision in (('models--abenzerps--Qwen-Image-2.1-Uncensored-GGUF','6b34e59458d3eb7ba6a6f86a116aed5253dc02c3'),('models--Comfy-Org--Qwen-Image-2.1','cb504a4090723e43f17ad01cec0359490e2de613')):
   roots.append(Path('/qwen-image-cache/hub')/repo/'snapshots'/revision)
 paths=[]
+if 'image' in scopes:
+ for repo, revision in (
+  ('models--lilcheaty--MiniMax-H3-NVFP4','8c5abfed61e1b6a170240792b65253fba1a65b7b'),
+  ('models--Iwannapose--minimax_h3_pdmd_4nfe_comfyui','ae6ab62d28754b9ce052798b92d9567161568f28'),
+  ('models--Comfy-Org--Krea-2','eb1eddd3983a54678545a9b2c178c5853b30f7be'),
+  ('models--NicoLab28--ClipProj-MiniMax-H3','2ebdbcdc27a29a9607efdb221a9afcb9a0cdd808'),
+  ('models--Comfy-Org--MiniMax-H3','e5eb578a89295337b8ff433a035929ce0279e0b6')):
+  roots.append(Path('/qwen-image-cache/hub')/repo/'snapshots'/revision)
+if 'fish' in scopes:
+ root=Path('/qwen-image-cache/hub/models--watchpen--drama-3-int4-koen160/snapshots/fd0147b1bb988ea26718ee75e95de8b07a07c156')
+ roots.append(root);paths.append(root/'codec.pth')
 if 'asr' in scopes:
  paths.extend([Path('/asr/nemotron-3.5-asr-streaming-0.6b.q5_k.gguf'),Path('/asr/nemotron-3.5-asr-streaming-0.6b.q8_0.gguf'),Path('/asr/Nemotron-3-Diarization.q8_0.gguf')])
 if 'tts' in scopes:

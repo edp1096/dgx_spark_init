@@ -8,7 +8,7 @@ import time
 
 STAGES = ['encode', 'release_encoder', 'sample', 'release_sample_workspace',
           'decode_video', 'release_video_vae', 'decode_audio', 'release_audio_vae', 'save']
-PROFILE = {'h3': 'h3-864x480-124-24-20-v1', 'qwim': 'qwim-1024x1024-40-v1'}
+PROFILE = {'h3': 'h3-t2v-864x480-124-24-pdmd4-v6', 'qwim': 'qwim-1024x1024-40-v1'}
 
 
 def stages(kind):

@@ -1,0 +1,40 @@
+{
+  "config_cls": "Drama3PipelineConfig",
+  "model_path": "/hf/hub/models--watchpen--drama-3-int4-koen160/snapshots/fd0147b1bb988ea26718ee75e95de8b07a07c156",
+  "stages": {
+    "preprocessing": {
+      "total_reserve_bytes": "4GiB",
+      "factory": {
+        "max_concurrency": 1,
+        "max_reference_audio_seconds": 15,
+        "reference_encode_dtype": "float32"
+      }
+    },
+    "tts_engine": {
+      "gpu_memory_fraction": 0.24,
+      "factory": {
+        "context_length": 4096,
+        "max_running_requests": 1,
+        "max_new_tokens": 900,
+        "max_prompt_rows": 2048,
+        "first_frame_cuda_graph_max_requests": 1
+      },
+      "engine": {
+        "attention_backend": "triton",
+        "random_seed": 42,
+        "cuda_graph_max_bs": 1,
+        "max_total_tokens": 8192,
+        "cuda_graph_max_bs_prefill": 512
+      }
+    },
+    "vocoder": {
+      "gpu_memory_fraction": 0.08,
+      "factory": {
+        "codec_path": "/hf/hub/models--watchpen--drama-3-int4-koen160/snapshots/fd0147b1bb988ea26718ee75e95de8b07a07c156",
+        "max_batch_size": 1,
+        "window_cuda_graphs": false,
+        "decode_dtype": "float32"
+      }
+    }
+  }
+}

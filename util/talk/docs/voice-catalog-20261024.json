@@ -1,0 +1,4267 @@
+{
+  "generated_at": "2026-10-24T03:23:25.468462+09:00",
+  "scope": "All nine Qwen3-TTS 0.6B CustomVoice synthetic references registered for local Fish video narration. No training or weight changes.",
+  "voices": [
+    {
+      "id": "sohee",
+      "name": "Sohee",
+      "description": "따뜻한 여성 목소리",
+      "native_language": "한국어",
+      "reference_file": "reference.wav",
+      "reference_sha256": "58bfb593012f0e53cb498a0f48c726b553b6b9df502df3fede6f602453641604",
+      "reference_text": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어 주세요.",
+      "reference_duration_seconds": 10.4,
+      "reference_asr": {
+        "character_error_rate": 0,
+        "expected": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어 주세요.",
+        "passed": true,
+        "transcript": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어주세요."
+      },
+      "cache_version": 2,
+      "reference_source": "Synthetic Qwen3-TTS 0.6B CustomVoice Q8",
+      "selected_candidate": "sohee-existing.json",
+      "preview_file": "voices/previews/sohee.wav",
+      "preview_sha256": "e2873a48c607ceb5977f5eb7a74888d92481e113245718e7889f9e4639528a84",
+      "preview_text": "이 목소리로 영상의 이야기를 전해 드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해 보세요.",
+      "preview_duration_seconds": 7.5,
+      "preview_asr": {
+        "character_error_rate": 0,
+        "expected": "이 목소리로 영상의 이야기를 전해 드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해 보세요.",
+        "passed": true,
+        "transcript": "이 목소리로 영상의 이야기를 전해드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해보세요."
+      },
+      "validated_korean": true,
+      "preview_raw_sha256": "29375bb2e1002c1c82c4d7ac931e5375df77bc849261fe3d867866297b76acda",
+      "preview_normalized": true,
+      "preview_loudness_target_lufs": -18
+    },
+    {
+      "id": "uncle_fu",
+      "name": "Uncle Fu",
+      "description": "낮고 차분한 중년 남성 목소리",
+      "native_language": "중국어",
+      "reference_file": "reference-uncle-fu.wav",
+      "reference_sha256": "a9b3a7fc902802d5f121f36fa64d6c4bd590b822d6e401d16eaea2022414c803",
+      "reference_text": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어 주세요.",
+      "reference_duration_seconds": 12.88,
+      "reference_asr": {
+        "character_error_rate": 0,
+        "expected": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어 주세요.",
+        "passed": true,
+        "transcript": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어주세요."
+      },
+      "cache_version": 2,
+      "reference_source": "Synthetic Qwen3-TTS 0.6B CustomVoice Q8",
+      "selected_candidate": "uncle_fu-existing.json",
+      "preview_file": "voices/previews/uncle_fu.wav",
+      "preview_sha256": "95bcf03b22f6618bb5f715d1e738bf08b460a2e67fca9668cf473dd8b0f909f4",
+      "preview_text": "이 목소리로 영상의 이야기를 전해 드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해 보세요.",
+      "preview_duration_seconds": 9.939591836734694,
+      "preview_asr": {
+        "character_error_rate": 0,
+        "expected": "이 목소리로 영상의 이야기를 전해 드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해 보세요.",
+        "passed": true,
+        "transcript": "이 목소리로 영상의 이야기를 전해드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해보세요."
+      },
+      "validated_korean": true,
+      "preview_raw_sha256": "68832545d24b566074e06de911d1db7d7e81205d776130786410235ed3d2fb6c",
+      "preview_normalized": true,
+      "preview_loudness_target_lufs": -18
+    },
+    {
+      "id": "vivian",
+      "name": "Vivian",
+      "description": "밝은 젊은 여성 목소리",
+      "native_language": "중국어",
+      "reference_file": "voices/references/vivian.wav",
+      "reference_sha256": "f44735e7946b1e0a814b42a0490ef546fed23b6f681df0b2d51ef49445c8fa51",
+      "reference_text": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어 주세요. 지금부터 차근차근 살펴보겠습니다.",
+      "reference_duration_seconds": 11.36,
+      "reference_asr": {
+        "character_error_rate": 0,
+        "expected": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어 주세요. 지금부터 차근차근 살펴보겠습니다.",
+        "passed": true,
+        "transcript": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어주세요. 지금부터 차근차근 살펴보겠습니다."
+      },
+      "cache_version": 3,
+      "reference_source": "Synthetic Qwen3-TTS 0.6B CustomVoice Q8",
+      "selected_candidate": "vivian-long-137.json",
+      "preview_file": "voices/previews/vivian.wav",
+      "preview_sha256": "00677931cad477282702d1444b6f997324230cb6e7d0431b881fa35af06a02e8",
+      "preview_text": "이 목소리로 영상의 이야기를 전해 드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해 보세요.",
+      "preview_duration_seconds": 6.635147392290249,
+      "preview_asr": {
+        "character_error_rate": 0,
+        "expected": "이 목소리로 영상의 이야기를 전해 드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해 보세요.",
+        "passed": true,
+        "transcript": "이 목소리로 영상의 이야기를 전해드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해보세요."
+      },
+      "validated_korean": true,
+      "preview_raw_sha256": "2319a7113db0595ad62f0258a3b2c2069e8b538e02f4458a493de5e52383c847",
+      "preview_normalized": true,
+      "preview_loudness_target_lufs": -18
+    },
+    {
+      "id": "serena",
+      "name": "Serena",
+      "description": "부드럽고 온화한 여성 목소리",
+      "native_language": "중국어",
+      "reference_file": "voices/references/serena.wav",
+      "reference_sha256": "3dc211c75942fa96cabd50d8a04de9e7918648a4c6c7a33eae8f02d5d7ded053",
+      "reference_text": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어 주세요. 지금부터 차근차근 살펴보겠습니다.",
+      "reference_duration_seconds": 12.08,
+      "reference_asr": {
+        "character_error_rate": 0,
+        "expected": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어 주세요. 지금부터 차근차근 살펴보겠습니다.",
+        "passed": true,
+        "transcript": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어주세요. 지금부터 차근차근 살펴보겠습니다."
+      },
+      "cache_version": 3,
+      "reference_source": "Synthetic Qwen3-TTS 0.6B CustomVoice Q8",
+      "selected_candidate": "serena-long-42.json",
+      "preview_file": "voices/previews/serena.wav",
+      "preview_sha256": "890a3d21481cb5d3a76139a49db0a36c58d803d28b4131daefa6f6a910f1cac0",
+      "preview_text": "이 목소리로 영상의 이야기를 전해 드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해 보세요.",
+      "preview_duration_seconds": 6.96,
+      "preview_asr": {
+        "character_error_rate": 0,
+        "expected": "이 목소리로 영상의 이야기를 전해 드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해 보세요.",
+        "passed": true,
+        "transcript": "이 목소리로 영상의 이야기를 전해드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해보세요."
+      },
+      "validated_korean": true,
+      "preview_raw_sha256": "3a830bcd1f308ef8a3f65c82cc35ce23efb9d95aa8068b3b9ff319c1fa6eca37",
+      "preview_normalized": true,
+      "preview_loudness_target_lufs": -18
+    },
+    {
+      "id": "dylan",
+      "name": "Dylan",
+      "description": "젊은 남성 목소리",
+      "native_language": "중국어·베이징",
+      "reference_file": "voices/references/dylan.wav",
+      "reference_sha256": "b953fd3f6ccea566b70191ee9d97e86ab97ece222f88e6c7e0eac417699a0277",
+      "reference_text": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어 주세요. 지금부터 차근차근 살펴보겠습니다.",
+      "reference_duration_seconds": 12.08,
+      "reference_asr": {
+        "character_error_rate": 0,
+        "expected": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어 주세요. 지금부터 차근차근 살펴보겠습니다.",
+        "passed": true,
+        "transcript": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어주세요. 지금부터 차근차근 살펴보겠습니다."
+      },
+      "cache_version": 3,
+      "reference_source": "Synthetic Qwen3-TTS 0.6B CustomVoice Q8",
+      "selected_candidate": "dylan-long-42.json",
+      "preview_file": "voices/previews/dylan.wav",
+      "preview_sha256": "2576ee1c3388927802d1e80eee5ff3205dead0233f5d2a19a3f10842dd10c396",
+      "preview_text": "이 목소리로 영상의 이야기를 전해 드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해 보세요.",
+      "preview_duration_seconds": 8.217233560090703,
+      "preview_asr": {
+        "character_error_rate": 0,
+        "expected": "이 목소리로 영상의 이야기를 전해 드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해 보세요.",
+        "passed": true,
+        "transcript": "이 목소리로 영상의 이야기를 전해드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해보세요."
+      },
+      "validated_korean": true,
+      "preview_raw_sha256": "0fe4ca040faf1b100c87710a21cd988f6efd2c6aa3eb9190e62811ccc948560a",
+      "preview_normalized": true,
+      "preview_loudness_target_lufs": -18
+    },
+    {
+      "id": "eric",
+      "name": "Eric",
+      "description": "활기찬 남성 목소리",
+      "native_language": "중국어·쓰촨",
+      "reference_file": "voices/references/eric.wav",
+      "reference_sha256": "68f1764619252e83add5dbb51f97b34dd62968eb4290b041d5a36b3102c0d190",
+      "reference_text": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어 주세요. 지금부터 차근차근 살펴보겠습니다.",
+      "reference_duration_seconds": 10.4,
+      "reference_asr": {
+        "character_error_rate": 0,
+        "expected": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어 주세요. 지금부터 차근차근 살펴보겠습니다.",
+        "passed": true,
+        "transcript": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어주세요. 지금부터 차근차근 살펴보겠습니다."
+      },
+      "cache_version": 3,
+      "reference_source": "Synthetic Qwen3-TTS 0.6B CustomVoice Q8",
+      "selected_candidate": "eric-long-42.json",
+      "preview_file": "voices/previews/eric.wav",
+      "preview_sha256": "88a07c07576d92c98423f16d9c19184dd1a750f999fab9cb3e4becc64f9926f1",
+      "preview_text": "이 목소리로 영상의 이야기를 전해 드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해 보세요.",
+      "preview_duration_seconds": 5.96,
+      "preview_asr": {
+        "character_error_rate": 0,
+        "expected": "이 목소리로 영상의 이야기를 전해 드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해 보세요.",
+        "passed": true,
+        "transcript": "이 목소리로 영상의 이야기를 전해드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해보세요."
+      },
+      "validated_korean": true,
+      "preview_raw_sha256": "23e92034002e6900a747d8f0c01ed6688305721b08e4e01b9c6cebdce6c5e7e8",
+      "preview_normalized": true,
+      "preview_loudness_target_lufs": -18
+    },
+    {
+      "id": "ryan",
+      "name": "Ryan",
+      "description": "리듬감 있는 남성 목소리",
+      "native_language": "영어",
+      "reference_file": "voices/references/ryan.wav",
+      "reference_sha256": "22696d434b6b97d81845c4b19075232801eac1f874c4416c61dc8977722b4d24",
+      "reference_text": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어 주세요. 지금부터 차근차근 살펴보겠습니다.",
+      "reference_duration_seconds": 10.8,
+      "reference_asr": {
+        "character_error_rate": 0,
+        "expected": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어 주세요. 지금부터 차근차근 살펴보겠습니다.",
+        "passed": true,
+        "transcript": "안녕하세요 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어주세요. 지금부터 차근차근 살펴보겠습니다."
+      },
+      "cache_version": 3,
+      "reference_source": "Synthetic Qwen3-TTS 0.6B CustomVoice Q8",
+      "selected_candidate": "ryan-long-42.json",
+      "preview_file": "voices/previews/ryan.wav",
+      "preview_sha256": "6c4846d281b93712cd1e4f877c48fcd545741d4f9564ef8b1e82ebc3b65d4ed2",
+      "preview_text": "이 목소리로 영상의 이야기를 전해 드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해 보세요.",
+      "preview_duration_seconds": 6.06843537414966,
+      "preview_asr": {
+        "character_error_rate": 0,
+        "expected": "이 목소리로 영상의 이야기를 전해 드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해 보세요.",
+        "passed": true,
+        "transcript": "이 목소리로 영상의 이야기를 전해드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해보세요."
+      },
+      "validated_korean": true,
+      "preview_raw_sha256": "9b72a8350450944b0399a3e9a9474d47c872f5d3663f2e9090aefac02ea2ea54",
+      "preview_normalized": true,
+      "preview_loudness_target_lufs": -18
+    },
+    {
+      "id": "aiden",
+      "name": "Aiden",
+      "description": "밝은 미국식 남성 목소리",
+      "native_language": "영어",
+      "reference_file": "voices/references/aiden.wav",
+      "reference_sha256": "94a35cfcfc57ee1c5c35de85ef98c5b998629f1af6f1adbd40a6f203e4def35c",
+      "reference_text": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어 주세요. 지금부터 차근차근 살펴보겠습니다.",
+      "reference_duration_seconds": 10.32,
+      "reference_asr": {
+        "character_error_rate": 0,
+        "expected": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어 주세요. 지금부터 차근차근 살펴보겠습니다.",
+        "passed": true,
+        "transcript": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어주세요. 지금부터 차근차근 살펴보겠습니다."
+      },
+      "cache_version": 3,
+      "reference_source": "Synthetic Qwen3-TTS 0.6B CustomVoice Q8",
+      "selected_candidate": "aiden-long-137.json",
+      "preview_file": "voices/previews/aiden.wav",
+      "preview_sha256": "efa2937b5e6ec294a2b68558f7b976433f8896a4227161508fcd5db05e23b079",
+      "preview_text": "이 목소리로 영상의 이야기를 전해 드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해 보세요.",
+      "preview_duration_seconds": 6.21718820861678,
+      "preview_asr": {
+        "character_error_rate": 0,
+        "expected": "이 목소리로 영상의 이야기를 전해 드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해 보세요.",
+        "passed": true,
+        "transcript": "이 목소리로 영상의 이야기를 전해드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해보세요."
+      },
+      "validated_korean": true,
+      "preview_raw_sha256": "0bea66d79859c78535a704ab7778ebe44c1eea4ee9d04977be2c1bdef08052ef",
+      "preview_normalized": true,
+      "preview_loudness_target_lufs": -18
+    },
+    {
+      "id": "ono_anna",
+      "name": "Ono Anna",
+      "description": "경쾌한 여성 목소리",
+      "native_language": "일본어",
+      "reference_file": "voices/references/ono_anna.wav",
+      "reference_sha256": "a4b717d69eb1ca81b31cf0fe59cfb03ce5071b4ffeed699f9f67671db8e8fe37",
+      "reference_text": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어 주세요.",
+      "reference_duration_seconds": 12.0,
+      "reference_asr": {
+        "character_error_rate": 0,
+        "expected": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어 주세요.",
+        "passed": true,
+        "transcript": "안녕하세요 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어주세요."
+      },
+      "cache_version": 3,
+      "reference_source": "Synthetic Qwen3-TTS 0.6B CustomVoice Q8",
+      "selected_candidate": "ono_anna-42.json",
+      "preview_file": "voices/previews/ono_anna.wav",
+      "preview_sha256": "3bf993b89081ffc90df899965c05de195024345a7ad539668c438bb1a24c6327",
+      "preview_text": "이 목소리로 영상의 이야기를 전해 드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해 보세요.",
+      "preview_duration_seconds": 7.6,
+      "preview_asr": {
+        "character_error_rate": 0,
+        "expected": "이 목소리로 영상의 이야기를 전해 드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해 보세요.",
+        "passed": true,
+        "transcript": "이 목소리로 영상의 이야기를 전해드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해보세요."
+      },
+      "validated_korean": true,
+      "preview_raw_sha256": "63e5666d0426984484a7761f274d6e476b48eb4284e158eeae0eb306d2c6dd8a",
+      "preview_normalized": true,
+      "preview_loudness_target_lufs": -18
+    }
+  ],
+  "reference_checks": "All chosen reference clips passed Korean ASR with normalized character error rate 0. Existing Sohee and Uncle Fu WAV bytes retained.",
+  "preview_checks": "All registered Fish previews passed Korean ASR; normalized to -18 LUFS target with -2 dB true peak limit, matching narration processing.",
+  "rejected_sample": {
+    "voice": "eric",
+    "item": {
+      "duration": 9.88,
+      "records": [
+        {
+          "sentence": "이 목소리로 영상의 이야기를 전해 드립니다.",
+          "attempt": 1,
+          "accepted": true,
+          "generation_seconds": 3.3684560260153376,
+          "duration_seconds": 5.990748299319728,
+          "longest_internal_silence": 0.58,
+          "voiced_seconds": 4.32,
+          "hit_cap": false,
+          "trim_start_sample": 0,
+          "trim_end_sample": 261954
+        },
+        {
+          "sentence": "오늘도 작은 발견과 함께 기분 좋은 하루를 시작해 보세요.",
+          "attempt": 1,
+          "accepted": true,
+          "generation_seconds": 2.213656179024838,
+          "duration_seconds": 3.9938321995464854,
+          "longest_internal_silence": 0.08,
+          "voiced_seconds": 3.5,
+          "hit_cap": false,
+          "trim_start_sample": 0,
+          "trim_end_sample": 165816
+        }
+      ],
+      "segments": [
+        {
+          "text": "이 목소리로 영상의 이야기를 전해 드립니다.",
+          "start": 0.0,
+          "end": 5.94
+        },
+        {
+          "text": "오늘도 작은 발견과 함께 기분 좋은 하루를 시작해 보세요.",
+          "start": 6.12,
+          "end": 9.879999999999999
+        }
+      ],
+      "sample_rate": 44100,
+      "text": "이 목소리로 영상의 이야기를 전해 드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해 보세요.",
+      "voice_preset": "eric",
+      "reference_sha256": "68f1764619252e83add5dbb51f97b34dd62968eb4290b041d5a36b3102c0d190"
+    },
+    "asr": {
+      "character_error_rate": 0.36585365853658536,
+      "expected": "이 목소리로 영상의 이야기를 전해 드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해 보세요.",
+      "passed": false,
+      "transcript": "一 okay I'll totally 이야기를 전해드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해보세요."
+    },
+    "reference_sha256": "68f1764619252e83add5dbb51f97b34dd62968eb4290b041d5a36b3102c0d190",
+    "sha256": "9a76cb01ac229cad288842cd19fce875eb4e902898fb6e3f8c8fbf5ca2d640e4"
+  },
+  "eric_retry_checks": [
+    {
+      "voice": "eric",
+      "item": {
+        "duration": 5.96,
+        "records": [
+          {
+            "sentence": "이 목소리로 영상의 이야기를 전해 드립니다.",
+            "attempt": 1,
+            "accepted": true,
+            "generation_seconds": 2.0276377400150523,
+            "duration_seconds": 2.461315192743764,
+            "longest_internal_silence": 0.0,
+            "voiced_seconds": 2.14,
+            "hit_cap": false,
+            "trim_start_sample": 0,
+            "trim_end_sample": 101430
+          },
+          {
+            "sentence": "오늘도 작은 발견과 함께 기분 좋은 하루를 시작해 보세요.",
+            "attempt": 1,
+            "accepted": true,
+            "generation_seconds": 1.9842591939959675,
+            "duration_seconds": 3.5294331065759637,
+            "longest_internal_silence": 0.08,
+            "voiced_seconds": 3.16,
+            "hit_cap": false,
+            "trim_start_sample": 0,
+            "trim_end_sample": 153468
+          }
+        ],
+        "segments": [
+          {
+            "text": "이 목소리로 영상의 이야기를 전해 드립니다.",
+            "start": 0.0,
+            "end": 2.3
+          },
+          {
+            "text": "오늘도 작은 발견과 함께 기분 좋은 하루를 시작해 보세요.",
+            "start": 2.48,
+            "end": 5.96
+          }
+        ],
+        "sample_rate": 44100,
+        "text": "이 목소리로 영상의 이야기를 전해 드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해 보세요.",
+        "voice_preset": "eric",
+        "reference_sha256": "68f1764619252e83add5dbb51f97b34dd62968eb4290b041d5a36b3102c0d190"
+      },
+      "asr": {
+        "character_error_rate": 0,
+        "expected": "이 목소리로 영상의 이야기를 전해 드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해 보세요.",
+        "passed": true,
+        "transcript": "이 목소리로 영상의 이야기를 전해드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해보세요."
+      },
+      "reference_sha256": "68f1764619252e83add5dbb51f97b34dd62968eb4290b041d5a36b3102c0d190",
+      "sha256": "23e92034002e6900a747d8f0c01ed6688305721b08e4e01b9c6cebdce6c5e7e8",
+      "attempt": 2
+    },
+    {
+      "voice": "eric",
+      "item": {
+        "duration": 6.06,
+        "records": [
+          {
+            "sentence": "이 목소리로 영상의 이야기를 전해 드립니다.",
+            "attempt": 1,
+            "accepted": true,
+            "generation_seconds": 1.4925492519978434,
+            "duration_seconds": 2.6006349206349206,
+            "longest_internal_silence": 0.02,
+            "voiced_seconds": 2.4,
+            "hit_cap": false,
+            "trim_start_sample": 0,
+            "trim_end_sample": 113778
+          },
+          {
+            "sentence": "오늘도 작은 발견과 함께 기분 좋은 하루를 시작해 보세요.",
+            "attempt": 1,
+            "accepted": true,
+            "generation_seconds": 1.9189635370275937,
+            "duration_seconds": 3.3901133786848074,
+            "longest_internal_silence": 0.04,
+            "voiced_seconds": 3.04,
+            "hit_cap": false,
+            "trim_start_sample": 0,
+            "trim_end_sample": 145530
+          }
+        ],
+        "segments": [
+          {
+            "text": "이 목소리로 영상의 이야기를 전해 드립니다.",
+            "start": 0.0,
+            "end": 2.58
+          },
+          {
+            "text": "오늘도 작은 발견과 함께 기분 좋은 하루를 시작해 보세요.",
+            "start": 2.7600000000000002,
+            "end": 6.0600000000000005
+          }
+        ],
+        "sample_rate": 44100,
+        "text": "이 목소리로 영상의 이야기를 전해 드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해 보세요.",
+        "voice_preset": "eric",
+        "reference_sha256": "68f1764619252e83add5dbb51f97b34dd62968eb4290b041d5a36b3102c0d190"
+      },
+      "asr": {
+        "character_error_rate": 0,
+        "expected": "이 목소리로 영상의 이야기를 전해 드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해 보세요.",
+        "passed": true,
+        "transcript": "이 목소리로 영상의 이야기를 전해드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해보세요."
+      },
+      "reference_sha256": "68f1764619252e83add5dbb51f97b34dd62968eb4290b041d5a36b3102c0d190",
+      "sha256": "03678b8100935b82ce056bf1b1d01afbe5f0251487a13b5c6c8e0063d81b8ac5",
+      "attempt": 3
+    }
+  ],
+  "test_logs": {
+    "worker-tests.log": "........................................\n----------------------------------------------------------------------\nRan 40 tests in 16.029s\n\nOK\n",
+    "fish-tests.log": "...\n----------------------------------------------------------------------\nRan 3 tests in 0.259s\n\nOK\n",
+    "go-tests.log": "ok  \tsparktalk/internal/server\t56.997s\nok  \tsparktalk/internal/orchestrator\t(cached)\nok  \tsparktalk/internal/config\t(cached)\nok  \tsparktalk/internal/llm\t(cached)\n",
+    "browser-tests.log": "npm notice run sparktalk-web@0.1.0 npx\nnpm notice run 'playwright' test e2e/voices.spec.js e2e/shorts-chat.spec.js --reporter=line\n\nRunning 2 tests using 1 worker\n\n(node:3529988) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n\n\n[1/2] e2e/shorts-chat.spec.js:6:1 › natural language creates a short with inline progress and one attachment, without a separate screen\n(node:3530528) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n\n\n[2/2] e2e/voices.spec.js:5:1 › voice catalog has nine playable samples; reload and selection do not create a video\n  2 passed (16.9s)\n",
+    "routing-tests.log": "=== RUN   TestShortsNaturalLanguageRoutingLive\n=== RUN   TestShortsNaturalLanguageRoutingLive/voices\n    shorts_chat_test.go:63: fish에는 영상생성에 사용가능한 TTS 음성이 몇명 그리고 뭐뭐 있냐? → shorts_voices {\"action\":\"list\"}\n=== RUN   TestShortsNaturalLanguageRoutingLive/voice_preview\n    shorts_chat_test.go:63: Ryan 목소리만 들어볼래. 영상 만들지 마. → shorts_voices {\"action\":\"preview\",\"voice_id\":\"ryan\"}\n=== RUN   TestShortsNaturalLanguageRoutingLive/voice_select\n    shorts_chat_test.go:63: 앞으로 만드는 영상의 기본 음성을 Ryan으로 선택해. → shorts_voices {\"action\":\"select\",\"voice_id\":\"ryan\"}\n=== RUN   TestShortsNaturalLanguageRoutingLive/voice_apply\n    shorts_chat_test.go:63: 기존 영상에 Ryan 음성을 적용해. 화면은 그대로 둬. → shorts_voices {\"action\":\"apply\",\"voice_id\":\"ryan\"}\n--- PASS: TestShortsNaturalLanguageRoutingLive (20.58s)\n    --- PASS: TestShortsNaturalLanguageRoutingLive/voices (6.92s)\n    --- PASS: TestShortsNaturalLanguageRoutingLive/voice_preview (4.66s)\n    --- PASS: TestShortsNaturalLanguageRoutingLive/voice_select (4.24s)\n    --- PASS: TestShortsNaturalLanguageRoutingLive/voice_apply (4.68s)\nPASS\nok  \tsparktalk/internal/server\t20.588s\n",
+    "intent-routing-tests.log": "=== RUN   TestShortsIntentRoutingLive\n=== RUN   TestShortsIntentRoutingLive/선택한_기본_음성으로_15초짜리_쇼츠를_만들어줘._배경음악_없이_내레이션만_넣어._남색_단색_배경에_흰_글씨_두_장면으로_해줘.\n=== RUN   TestShortsIntentRoutingLive/기존_영상에_Aiden_음성을_적용해._나머지는_그대로_둬.\n=== RUN   TestShortsIntentRoutingLive/영상_생성에_쓸_Fish_음성_목록을_보여줘.\n=== RUN   TestShortsIntentRoutingLive/쇼츠를_만들지_말고_지원하는_음성_목록만_알려줘.\n=== RUN   TestShortsIntentRoutingLive/쇼츠를_만들_수_있는_기능이_있는지_설명만_해줘.\n=== RUN   TestShortsIntentRoutingLive/preview_then_apply_reference\n--- PASS: TestShortsIntentRoutingLive (10.30s)\n    --- PASS: TestShortsIntentRoutingLive/선택한_기본_음성으로_15초짜리_쇼츠를_만들어줘._배경음악_없이_내레이션만_넣어._남색_단색_배경에_흰_글씨_두_장면으로_해줘. (2.93s)\n    --- PASS: TestShortsIntentRoutingLive/기존_영상에_Aiden_음성을_적용해._나머지는_그대로_둬. (1.91s)\n    --- PASS: TestShortsIntentRoutingLive/영상_생성에_쓸_Fish_음성_목록을_보여줘. (1.32s)\n    --- PASS: TestShortsIntentRoutingLive/쇼츠를_만들지_말고_지원하는_음성_목록만_알려줘. (1.35s)\n    --- PASS: TestShortsIntentRoutingLive/쇼츠를_만들_수_있는_기능이_있는지_설명만_해줘. (1.11s)\n    --- PASS: TestShortsIntentRoutingLive/preview_then_apply_reference (1.57s)\nPASS\nok  \tsparktalk/internal/server\t10.313s\n"
+  },
+  "deployment": {
+    "files": [
+      {
+        "source": "compose_yaml/extra_shorts_service/Dockerfile",
+        "target": "extra-shorts/Dockerfile",
+        "sha256": "8b7e55ff5cfc7f5402b9b8cfd9ca78416552a76eb1ae4a08c440d5c452b8f35f",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/extra_shorts_service/api.py",
+        "target": "extra-shorts/api.py",
+        "sha256": "69676c77e10fd3814d46f68c280df412cf5ea552578f71bfc6d9bf90383dec34",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/extra_shorts_service/composition.py",
+        "target": "extra-shorts/composition.py",
+        "sha256": "2e2745e15120df4691b921536cb894bd4bf2a640c43fe1f758d12cc1b983e56c",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/extra_shorts_service/manim_scene.py",
+        "target": "extra-shorts/manim_scene.py",
+        "sha256": "a4f8c091b796edf245e3f206182174a2d019a7868e269a092e2197a80b7e3e97",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/extra_shorts_service/package.json",
+        "target": "extra-shorts/package.json",
+        "sha256": "de67eb1c361fd63bf37ee32913f5ba8cc15acde56bc833a7edcbdc8c594aa859",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/extra_shorts_service/render.py",
+        "target": "extra-shorts/render.py",
+        "sha256": "15510d9b01a8b0d5dcf844600631a9a84c4423d8c07bbf5ab04d781a0495ef7d",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/extra_shorts_service/requirements.txt",
+        "target": "extra-shorts/requirements.txt",
+        "sha256": "aee81c52ab01933d0dcbfd4d314a7a89eefab6d320fc973f85c9c65f43346ddf",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/extra_shorts_service/speech.py",
+        "target": "extra-shorts/speech.py",
+        "sha256": "b8f8f432cf815882678343fe5e98ddf10c07f145ce461bec964b874a70f622ea",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/extra_shorts_service/store.py",
+        "target": "extra-shorts/store.py",
+        "sha256": "e0e4ef6c20d246240c6af0ba42eb3d0b33ea4a4ff8ac487918ffbcd5803e65c7",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/extra_shorts_service/package-lock.json",
+        "target": "extra-shorts/package-lock.json",
+        "sha256": "17b408b5a00e57dad73ae61aa6fb53dfac28a8dafa1fd87793b779fdb16cd045",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/extra_shorts_service/assets.py",
+        "target": "extra-shorts/assets.py",
+        "sha256": "ca9ff473ab261d1e53897374aeb4a05c8c6fc2635c7c3a655672a2a78a3521ad",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/extra_shorts_service/spec.py",
+        "target": "extra-shorts/spec.py",
+        "sha256": "7a49497c3cdc9fa8b482177d39b72fb59c684548516946df050d802b234df59c",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/extra_shorts_service/authoring.py",
+        "target": "extra-shorts/authoring.py",
+        "sha256": "3f81d6a8360f2306a07af3aa11638d638e28c88a39341db067d0e188a348bcbe",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/extra_shorts_service/audit.mjs",
+        "target": "extra-shorts/audit.mjs",
+        "sha256": "bc4c22807e4ec69b69ce1cf9f2ea2c1697a833dfc9bbca18a010594017d6a7e4",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/extra_shorts_service/audio_mix.py",
+        "target": "extra-shorts/audio_mix.py",
+        "sha256": "212ba001e79719787c7af15b93ae839b7636c9b543c97257120ba3cea8703878",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/extra_shorts_service/pipeline.py",
+        "target": "extra-shorts/pipeline.py",
+        "sha256": "b4d07de8ff7926eeae9b988389dadca5bc06e27e392ab463cfc70b81e4e62342",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/extra_shorts_service/music.py",
+        "target": "extra-shorts/music.py",
+        "sha256": "74d6d133371cf9e8d6040042ce200e62826523034d95cd35bcf021a4a93a73f2",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/extra_shorts_service/design_reference.json",
+        "target": "extra-shorts/design_reference.json",
+        "sha256": "fecf5895e43d65487334579bd325884fc3723a1d8b48c5fed6d19054ab5fe64f",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/extra_shorts_service/clip_store.py",
+        "target": "extra-shorts/clip_store.py",
+        "sha256": "26e78ea718038ae9daae2c62f65aefb955115e72997ef9610df9d2906f3a222a",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/extra_shorts_service/clip_pipeline.py",
+        "target": "extra-shorts/clip_pipeline.py",
+        "sha256": "457700a49210916718feb0b625e70043ac082929f44589a52346faf13dd1dcff",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/extra_shorts_service/clip_render.py",
+        "target": "extra-shorts/clip_render.py",
+        "sha256": "421b3a2a35bbdb156b5cd527d79cc67e012373dfd048c2e795e6a9d7cc5b05d3",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/fish_drama3/voice_catalog.py",
+        "target": "extra-shorts/voice_catalog.py",
+        "sha256": "980f167c1199be038fb8142b9d5696c805db906c22ff443c39eca34279215c64",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/fish_drama3/voices/catalog.json",
+        "target": "extra-shorts/voices/catalog.json",
+        "sha256": "5a0859fbe07b90bc920d1c1ea3059e64b6dde4963496d71c7f17f081b3a598a9",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/fish_drama3/voices/references/vivian.wav",
+        "target": "extra-shorts/voices/references/vivian.wav",
+        "sha256": "f44735e7946b1e0a814b42a0490ef546fed23b6f681df0b2d51ef49445c8fa51",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/fish_drama3/voices/references/serena.wav",
+        "target": "extra-shorts/voices/references/serena.wav",
+        "sha256": "3dc211c75942fa96cabd50d8a04de9e7918648a4c6c7a33eae8f02d5d7ded053",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/fish_drama3/voices/references/dylan.wav",
+        "target": "extra-shorts/voices/references/dylan.wav",
+        "sha256": "b953fd3f6ccea566b70191ee9d97e86ab97ece222f88e6c7e0eac417699a0277",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/fish_drama3/voices/references/eric.wav",
+        "target": "extra-shorts/voices/references/eric.wav",
+        "sha256": "68f1764619252e83add5dbb51f97b34dd62968eb4290b041d5a36b3102c0d190",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/fish_drama3/voices/references/ryan.wav",
+        "target": "extra-shorts/voices/references/ryan.wav",
+        "sha256": "22696d434b6b97d81845c4b19075232801eac1f874c4416c61dc8977722b4d24",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/fish_drama3/voices/references/aiden.wav",
+        "target": "extra-shorts/voices/references/aiden.wav",
+        "sha256": "94a35cfcfc57ee1c5c35de85ef98c5b998629f1af6f1adbd40a6f203e4def35c",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/fish_drama3/voices/references/ono_anna.wav",
+        "target": "extra-shorts/voices/references/ono_anna.wav",
+        "sha256": "a4b717d69eb1ca81b31cf0fe59cfb03ce5071b4ffeed699f9f67671db8e8fe37",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/fish_drama3/voices/previews/sohee.wav",
+        "target": "extra-shorts/voices/previews/sohee.wav",
+        "sha256": "e2873a48c607ceb5977f5eb7a74888d92481e113245718e7889f9e4639528a84",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/fish_drama3/voices/previews/uncle_fu.wav",
+        "target": "extra-shorts/voices/previews/uncle_fu.wav",
+        "sha256": "95bcf03b22f6618bb5f715d1e738bf08b460a2e67fca9668cf473dd8b0f909f4",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/fish_drama3/voices/previews/vivian.wav",
+        "target": "extra-shorts/voices/previews/vivian.wav",
+        "sha256": "00677931cad477282702d1444b6f997324230cb6e7d0431b881fa35af06a02e8",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/fish_drama3/voices/previews/serena.wav",
+        "target": "extra-shorts/voices/previews/serena.wav",
+        "sha256": "890a3d21481cb5d3a76139a49db0a36c58d803d28b4131daefa6f6a910f1cac0",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/fish_drama3/voices/previews/dylan.wav",
+        "target": "extra-shorts/voices/previews/dylan.wav",
+        "sha256": "2576ee1c3388927802d1e80eee5ff3205dead0233f5d2a19a3f10842dd10c396",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/fish_drama3/voices/previews/eric.wav",
+        "target": "extra-shorts/voices/previews/eric.wav",
+        "sha256": "88a07c07576d92c98423f16d9c19184dd1a750f999fab9cb3e4becc64f9926f1",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/fish_drama3/voices/previews/ryan.wav",
+        "target": "extra-shorts/voices/previews/ryan.wav",
+        "sha256": "6c4846d281b93712cd1e4f877c48fcd545741d4f9564ef8b1e82ebc3b65d4ed2",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/fish_drama3/voices/previews/aiden.wav",
+        "target": "extra-shorts/voices/previews/aiden.wav",
+        "sha256": "efa2937b5e6ec294a2b68558f7b976433f8896a4227161508fcd5db05e23b079",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/fish_drama3/voices/previews/ono_anna.wav",
+        "target": "extra-shorts/voices/previews/ono_anna.wav",
+        "sha256": "3bf993b89081ffc90df899965c05de195024345a7ad539668c438bb1a24c6327",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/fish_drama3/reference.wav",
+        "target": "extra-shorts/reference.wav",
+        "sha256": "58bfb593012f0e53cb498a0f48c726b553b6b9df502df3fede6f602453641604",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/fish_drama3/reference-uncle-fu.wav",
+        "target": "extra-shorts/reference-uncle-fu.wav",
+        "sha256": "a9b3a7fc902802d5f121f36fa64d6c4bd590b822d6e401d16eaea2022414c803",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/extra_shorts_service/voice_tools.py",
+        "target": "extra-shorts/voice_tools.py",
+        "sha256": "c4b29197aab6b482576ab788b6fa593063fda7c4d5c31f940d9abbdbb3997759",
+        "matches": true
+      }
+    ],
+    "binary_sha256": [
+      "589f5abd47958f08be49cfeea7aec75b7b7932e929b4822b186d5d231c3f167f",
+      "589f5abd47958f08be49cfeea7aec75b7b7932e929b4822b186d5d231c3f167f",
+      "589f5abd47958f08be49cfeea7aec75b7b7932e929b4822b186d5d231c3f167f"
+    ],
+    "binary_matches": true,
+    "qwen_started_at": "2026-10-22T12:34:26.052328339Z",
+    "fish_files": [
+      {
+        "source": "compose_yaml/fish_drama3/api.py",
+        "sha256": "c6c53880dcf57b8bc14096f63620b8d3a480a95db41d74e272d75a11106eade2",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/fish_drama3/config.json",
+        "sha256": "cf18878095443930fff6b4d79640f74d095c2913308a311b2930a24d36769c96",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/fish_drama3/patches/audio_decoder.py",
+        "sha256": "35882b2740aebc26b557eb5bf40a5513d73974f39c11a43ae4b6d81772035bf3",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/fish_drama3/patches/hadamard8.py",
+        "sha256": "a96ecc648520876c2c7bcd555160fd2ea93ce0afa3cdd26002a680ec1d0089f5",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/fish_drama3/patches/sampling.py",
+        "sha256": "32f74356bfca5e03cbf7505a919eb61d6db7ea16490ffed7698026abef59e789",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/fish_drama3/patches/sampling_kernels.py",
+        "sha256": "40b60c486d1bdbe9e4a06e50b0f1c4277473e343325123fb19f1f23dea48d666",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/fish_drama3/patches/sampling_selection.py",
+        "sha256": "35e3308db5c29f109000c90643db51fe767a553fec93b787b9118032a27d10a3",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/fish_drama3/patches/sglang_model.py",
+        "sha256": "e4473cfae262c2a0ccb0d4dedca9408b76e0256a1fdba8f8761d55cb5822b881",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/fish_drama3/patches/speech_request.py",
+        "sha256": "ef4c4193e416c6a57f7efbf9be50028ea876462a46afdd6460a2a989ebedabfe",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/fish_drama3/patches/weights.py",
+        "sha256": "aa5aebe630d52a6bf40ba6b9f8c5c9a0e537af8ca8010984627a01aec0d5d9b9",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/fish_drama3/reference.wav",
+        "sha256": "58bfb593012f0e53cb498a0f48c726b553b6b9df502df3fede6f602453641604",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/fish_drama3/speech.py",
+        "sha256": "3f9881817c42c582385c942374d44aa39fcddd5304c63fddd6d4f00c6cba6665",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/fish_drama3/reference-uncle-fu.wav",
+        "sha256": "a9b3a7fc902802d5f121f36fa64d6c4bd590b822d6e401d16eaea2022414c803",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/fish_drama3/voice_catalog.py",
+        "sha256": "980f167c1199be038fb8142b9d5696c805db906c22ff443c39eca34279215c64",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/fish_drama3/voices/catalog.json",
+        "sha256": "5a0859fbe07b90bc920d1c1ea3059e64b6dde4963496d71c7f17f081b3a598a9",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/fish_drama3/voices/references/vivian.wav",
+        "sha256": "f44735e7946b1e0a814b42a0490ef546fed23b6f681df0b2d51ef49445c8fa51",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/fish_drama3/voices/references/serena.wav",
+        "sha256": "3dc211c75942fa96cabd50d8a04de9e7918648a4c6c7a33eae8f02d5d7ded053",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/fish_drama3/voices/references/dylan.wav",
+        "sha256": "b953fd3f6ccea566b70191ee9d97e86ab97ece222f88e6c7e0eac417699a0277",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/fish_drama3/voices/references/eric.wav",
+        "sha256": "68f1764619252e83add5dbb51f97b34dd62968eb4290b041d5a36b3102c0d190",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/fish_drama3/voices/references/ryan.wav",
+        "sha256": "22696d434b6b97d81845c4b19075232801eac1f874c4416c61dc8977722b4d24",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/fish_drama3/voices/references/aiden.wav",
+        "sha256": "94a35cfcfc57ee1c5c35de85ef98c5b998629f1af6f1adbd40a6f203e4def35c",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/fish_drama3/voices/references/ono_anna.wav",
+        "sha256": "a4b717d69eb1ca81b31cf0fe59cfb03ce5071b4ffeed699f9f67671db8e8fe37",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/fish_drama3/voices/previews/sohee.wav",
+        "sha256": "e2873a48c607ceb5977f5eb7a74888d92481e113245718e7889f9e4639528a84",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/fish_drama3/voices/previews/uncle_fu.wav",
+        "sha256": "95bcf03b22f6618bb5f715d1e738bf08b460a2e67fca9668cf473dd8b0f909f4",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/fish_drama3/voices/previews/vivian.wav",
+        "sha256": "00677931cad477282702d1444b6f997324230cb6e7d0431b881fa35af06a02e8",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/fish_drama3/voices/previews/serena.wav",
+        "sha256": "890a3d21481cb5d3a76139a49db0a36c58d803d28b4131daefa6f6a910f1cac0",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/fish_drama3/voices/previews/dylan.wav",
+        "sha256": "2576ee1c3388927802d1e80eee5ff3205dead0233f5d2a19a3f10842dd10c396",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/fish_drama3/voices/previews/eric.wav",
+        "sha256": "88a07c07576d92c98423f16d9c19184dd1a750f999fab9cb3e4becc64f9926f1",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/fish_drama3/voices/previews/ryan.wav",
+        "sha256": "6c4846d281b93712cd1e4f877c48fcd545741d4f9564ef8b1e82ebc3b65d4ed2",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/fish_drama3/voices/previews/aiden.wav",
+        "sha256": "efa2937b5e6ec294a2b68558f7b976433f8896a4227161508fcd5db05e23b079",
+        "matches": true
+      },
+      {
+        "source": "compose_yaml/fish_drama3/voices/previews/ono_anna.wav",
+        "sha256": "3bf993b89081ffc90df899965c05de195024345a7ad539668c438bb1a24c6327",
+        "matches": true
+      }
+    ],
+    "fish_image": "sparktalk-fish-drama3:0.2.0",
+    "qwen_started_at_final": "2026-10-22T12:34:26.052328339Z"
+  },
+  "prepared_support_assets": 200,
+  "test_session_id": "chat-1792774396992608039",
+  "quality_scope": "ASR content, clipping, silence, duration and exact reference/preview hashes were checked; no claim of perfect accent or speaker similarity in every future synthesis.",
+  "video_cases": [
+    {
+      "id": "bfab09ae97c24943b1f1d33271a7eabc",
+      "status": "completed",
+      "error": "",
+      "project": {
+        "session_id": "chat-1792774396992608039",
+        "title": "Voice Atmosphere Comparison",
+        "brief": "Change narration voice to aiden. Preserve words, images, music and visual design.",
+        "scenes": [],
+        "bgm": false,
+        "duration_seconds": 15,
+        "source_job_id": "1398c211d42743d6b56b99a3d02aae77",
+        "template_id": "",
+        "design_mode": "preserve",
+        "asset_ids": [],
+        "preview_only": false,
+        "plan": {
+          "version": 3,
+          "title": "Voice Atmosphere Comparison",
+          "design_brief": "Visuals: Two scenes with solid navy (#000080) background and large white text. No photos, videos, or complex diagrams. Scene 1: Opening hook with the headline '같은 말, 다른 온도'. Scene 2: Core message explaining how voice changes atmosphere, with key words highlighted. Typography: Clean, bold sans-serif (e.g., Noto Sans KR Bold) for high readability against the dark background. Animation: Subtle fade-in for text elements to maintain focus on the narration. No background music, only narration.",
+          "scenes": [
+            {
+              "title": "Opening Hook",
+              "narration": "같은 문장이라도, 어떤 목소리로 읽느냐에 따라 청자가 받는 느낌은 완전히 달라집니다.",
+              "visual": "typography",
+              "image_prompt": "",
+              "attachment_id": "",
+              "points": [],
+              "emphasis": [
+                "달라집니다"
+              ],
+              "reuse_scene": 0,
+              "asset_id": "",
+              "duration_seconds": 5.0,
+              "manim": {}
+            },
+            {
+              "title": "Core Message",
+              "narration": "따뜻한 목소리는 편안함을, 낮은 목소리는 신뢰감을 줍니다. 목소리 하나가 전체 분위기를 결정합니다.",
+              "visual": "typography",
+              "image_prompt": "",
+              "attachment_id": "",
+              "points": [],
+              "emphasis": [
+                "분위기를 결정합니다"
+              ],
+              "reuse_scene": 1,
+              "asset_id": "",
+              "duration_seconds": 10.0,
+              "manim": {}
+            }
+          ],
+          "captions": {
+            "enabled": true,
+            "max_chars_per_line": 14,
+            "max_lines": 2,
+            "lead_seconds": 0.15,
+            "min_font_px": 38,
+            "safe_x": 0.08,
+            "safe_top": 0.15,
+            "safe_bottom": 0.78
+          },
+          "headline": {
+            "mode": "opening",
+            "text": "같은 말,\n다른 온도",
+            "duration_seconds": 3.5,
+            "min_font_px": 64,
+            "max_lines": 2,
+            "safe_left": 0.08,
+            "safe_right": 0.86,
+            "safe_top": 0.1,
+            "safe_bottom": 0.9
+          },
+          "voice": {
+            "preset": "aiden",
+            "speed": 1.0,
+            "sentence_pause": 0.25,
+            "max_gap_seconds": 1.5,
+            "min_coverage": 0.85,
+            "delivery": "Clear, rhythmic, and engaging delivery to demonstrate the 'atmosphere' of the voice."
+          },
+          "music": {
+            "kind": "none",
+            "gain": 0.12,
+            "notes": [],
+            "description": "",
+            "model": "ace-turbo",
+            "prompt": "",
+            "seed": 42,
+            "bpm": null
+          },
+          "asset_ids": [],
+          "lottie_queries": [],
+          "sources": [],
+          "limitations": [],
+          "verbatim_narration": true
+        },
+        "voice_preset": "aiden",
+        "voice_only": true
+      },
+      "artifact_directory": "/home/edp1096/.local/share/sparktalk/shorts/bfab09ae97c24943b1f1d33271a7eabc",
+      "quality": {
+        "passed": true,
+        "applied": {
+          "duration_seconds": 15.0,
+          "scene_count": 2,
+          "scene_kinds": [
+            "typography",
+            "typography"
+          ],
+          "template": {
+            "template_sha256": "39e409eb0beafbb3759764d304036c6f0762332ef15391985499b8b9410b0430",
+            "author": "local_model",
+            "name": "Voice Atmosphere Comparison (Fixed)"
+          },
+          "template_id": "",
+          "design_mode": "preserve",
+          "headline": {
+            "mode": "opening",
+            "text": "같은 말,\n다른 온도",
+            "duration_seconds": 3.5,
+            "min_font_px": 64,
+            "max_lines": 2,
+            "safe_left": 0.08,
+            "safe_right": 0.86,
+            "safe_top": 0.1,
+            "safe_bottom": 0.9
+          },
+          "headline_styles": [
+            {
+              "text": "같은 말,다른 온도",
+              "font_family": "\"Noto Sans CJK KR\", sans-serif",
+              "font_size": 68,
+              "font_weight": "900",
+              "color": "rgb(255, 255, 255)",
+              "background": "rgba(0, 0, 0, 0)",
+              "lines": 2,
+              "x": 58,
+              "y": 256,
+              "width": 562,
+              "height": 196.390625,
+              "opacity": "1"
+            },
+            {
+              "text": "같은 말,다른 온도",
+              "font_family": "\"Noto Sans CJK KR\", sans-serif",
+              "font_size": 68,
+              "font_weight": "900",
+              "color": "rgb(255, 255, 255)",
+              "background": "rgba(0, 0, 0, 0)",
+              "lines": 2,
+              "x": 58,
+              "y": 256,
+              "width": 562,
+              "height": 196.390625,
+              "opacity": "1"
+            },
+            {
+              "text": "같은 말,다른 온도",
+              "font_family": "\"Noto Sans CJK KR\", sans-serif",
+              "font_size": 68,
+              "font_weight": "900",
+              "color": "rgb(255, 255, 255)",
+              "background": "rgba(0, 0, 0, 0)",
+              "lines": 2,
+              "x": 58,
+              "y": 256,
+              "width": 562,
+              "height": 196.390625,
+              "opacity": "1"
+            },
+            {
+              "text": "같은 말,다른 온도",
+              "font_family": "\"Noto Sans CJK KR\", sans-serif",
+              "font_size": 68,
+              "font_weight": "900",
+              "color": "rgb(255, 255, 255)",
+              "background": "rgba(0, 0, 0, 0)",
+              "lines": 2,
+              "x": 58,
+              "y": 256,
+              "width": 562,
+              "height": 196.390625,
+              "opacity": "1"
+            }
+          ],
+          "caption_styles": [
+            {
+              "id": "caption-0-0",
+              "font_family": "\"Noto Sans CJK KR\", sans-serif",
+              "font_size": 42,
+              "color": "rgb(255, 255, 255)",
+              "background": "rgba(0, 0, 0, 0)",
+              "background_before": "rgba(0, 0, 0, 0)",
+              "emphasis_styles": [],
+              "x": 58,
+              "y": 876.8125,
+              "width": 604,
+              "height": 121.1875,
+              "lines": 2,
+              "highlights": 0
+            },
+            {
+              "id": "caption-0-0",
+              "font_family": "\"Noto Sans CJK KR\", sans-serif",
+              "font_size": 42,
+              "color": "rgb(255, 255, 255)",
+              "background": "rgba(0, 0, 0, 0)",
+              "background_before": "rgba(0, 0, 0, 0)",
+              "emphasis_styles": [],
+              "x": 58,
+              "y": 876.8125,
+              "width": 604,
+              "height": 121.1875,
+              "lines": 2,
+              "highlights": 0
+            },
+            {
+              "id": "caption-0-0",
+              "font_family": "\"Noto Sans CJK KR\", sans-serif",
+              "font_size": 42,
+              "color": "rgb(255, 255, 255)",
+              "background": "rgba(0, 0, 0, 0)",
+              "background_before": "rgba(0, 0, 0, 0)",
+              "emphasis_styles": [],
+              "x": 58,
+              "y": 876.8125,
+              "width": 604,
+              "height": 121.1875,
+              "lines": 2,
+              "highlights": 0
+            },
+            {
+              "id": "caption-0-0",
+              "font_family": "\"Noto Sans CJK KR\", sans-serif",
+              "font_size": 42,
+              "color": "rgb(255, 255, 255)",
+              "background": "rgba(0, 0, 0, 0)",
+              "background_before": "rgba(0, 0, 0, 0)",
+              "emphasis_styles": [],
+              "x": 58,
+              "y": 876.8125,
+              "width": 604,
+              "height": 121.1875,
+              "lines": 2,
+              "highlights": 0
+            },
+            {
+              "id": "caption-0-1",
+              "font_family": "\"Noto Sans CJK KR\", sans-serif",
+              "font_size": 42,
+              "color": "rgb(255, 255, 255)",
+              "background": "rgba(0, 0, 0, 0)",
+              "background_before": "rgba(0, 0, 0, 0)",
+              "emphasis_styles": [
+                {
+                  "text": "달라집니다",
+                  "color": "rgb(255, 215, 0)",
+                  "font_weight": "900"
+                }
+              ],
+              "x": 58,
+              "y": 876.8125,
+              "width": 604,
+              "height": 121.1875,
+              "lines": 2,
+              "highlights": 1
+            },
+            {
+              "id": "caption-0-1",
+              "font_family": "\"Noto Sans CJK KR\", sans-serif",
+              "font_size": 42,
+              "color": "rgb(255, 255, 255)",
+              "background": "rgba(0, 0, 0, 0)",
+              "background_before": "rgba(0, 0, 0, 0)",
+              "emphasis_styles": [
+                {
+                  "text": "달라집니다",
+                  "color": "rgb(255, 215, 0)",
+                  "font_weight": "900"
+                }
+              ],
+              "x": 58,
+              "y": 876.8125,
+              "width": 604,
+              "height": 121.1875,
+              "lines": 2,
+              "highlights": 1
+            },
+            {
+              "id": "caption-0-1",
+              "font_family": "\"Noto Sans CJK KR\", sans-serif",
+              "font_size": 42,
+              "color": "rgb(255, 255, 255)",
+              "background": "rgba(0, 0, 0, 0)",
+              "background_before": "rgba(0, 0, 0, 0)",
+              "emphasis_styles": [
+                {
+                  "text": "달라집니다",
+                  "color": "rgb(255, 215, 0)",
+                  "font_weight": "900"
+                }
+              ],
+              "x": 58,
+              "y": 876.8125,
+              "width": 604,
+              "height": 121.1875,
+              "lines": 2,
+              "highlights": 1
+            },
+            {
+              "id": "caption-1-0",
+              "font_family": "\"Noto Sans CJK KR\", sans-serif",
+              "font_size": 42,
+              "color": "rgb(255, 255, 255)",
+              "background": "rgba(0, 0, 0, 0)",
+              "background_before": "rgba(0, 0, 0, 0)",
+              "emphasis_styles": [],
+              "x": 58,
+              "y": 876.8125,
+              "width": 604,
+              "height": 121.1875,
+              "lines": 2,
+              "highlights": 0
+            }
+          ],
+          "voice_preset": "aiden",
+          "voice_speed": 1.0,
+          "sentence_pause": 0.25,
+          "narration_seconds": 13.36326530612245,
+          "narration_coverage": 0.8908843537414967,
+          "longest_narration_gap": 0.96,
+          "music_kind": "none",
+          "music_gain": 0.12,
+          "music": {
+            "kind": "none",
+            "notes": [],
+            "source": "None"
+          },
+          "animation_assets": []
+        },
+        "verification": {
+          "browser_layout": true,
+          "animation_visible_pixels": [],
+          "visual_review": {
+            "passed": true,
+            "issues": [],
+            "summary": "Original approved artwork, scene inputs and text are unchanged. Fresh browser layout/media/caption timing checks passed for this voice revision.",
+            "reused_from": "1398c211d42743d6b56b99a3d02aae77",
+            "scope": "Unchanged source visual review reused; new output timing audited in the browser."
+          },
+          "speech_coverage": true,
+          "narration_track": {
+            "duration_seconds": 15.0,
+            "longest_internal_silence": 0.96,
+            "trim_start_sample": 4410,
+            "trim_end_sample": 631512,
+            "energy_active_seconds": 11.54
+          },
+          "duration_fit": {
+            "status": "fit",
+            "narration_seconds": 13.36326530612245,
+            "duration_seconds": 15,
+            "narration_coverage": 0.8908843537414967,
+            "desired_narration_seconds": 13.9,
+            "rewrite_length_multiplier": 1.0401649358582772,
+            "explicit_silent_seconds": 0
+          },
+          "caption_timing": "sentence timestamps with proportional phrase timing",
+          "final_file": {
+            "duration": "15.000000",
+            "frames": "360",
+            "audio": true
+          }
+        },
+        "limitations": [
+          "No external media assets used per brief.",
+          "Emphasis relies on color and scale changes within the existing DOM structure."
+        ],
+        "speech": [
+          {
+            "character_error_rate": 0.02857142857142857,
+            "expected": "같은 문장이라도, 어떤 목소리로 읽느냐에 따라 청자가 받는 느낌은 완전히 달라집니다.",
+            "passed": true,
+            "transcript": "같은 문장이라도 어떤 목소리로 있느냐에 따라 청자가 받는 느낌은 완전히 달라집니다.",
+            "fingerprint": "685f3a3facc055f3fd121b00853e4f906ddf299243abdd640e573880a49e1e8b"
+          },
+          {
+            "character_error_rate": 0,
+            "expected": "따뜻한 목소리는 편안함을, 낮은 목소리는 신뢰감을 줍니다. 목소리 하나가 전체 분위기를 결정합니다.",
+            "passed": true,
+            "transcript": "따뜻한 목소리는 편안함을 낮은 목소리는 신뢰감을 줍니다. 목소리 하나가 전체 분위기를 결정합니다.",
+            "fingerprint": "f928f4d4790142f5dce95d57d296c0b6783cd00d855482f463456f51ce8e5a05"
+          }
+        ],
+        "elapsed_seconds": 39.82888180599548,
+        "duration": "15.000000",
+        "width": 720,
+        "height": 1280,
+        "fps": "24/1"
+      },
+      "speech": {
+        "items": [
+          {
+            "duration": 6.116122448979592,
+            "records": [
+              {
+                "sentence": "같은 문장이라도, 어떤 목소리로 읽느냐에 따라 청자가 받는 느낌은 완전히 달라집니다.",
+                "attempt": 1,
+                "accepted": true,
+                "generation_seconds": 4.089901588973589,
+                "duration_seconds": 6.965986394557823,
+                "longest_internal_silence": 0.08,
+                "voiced_seconds": 5.52,
+                "hit_cap": false,
+                "trim_start_sample": 30870,
+                "trim_end_sample": 300762
+              }
+            ],
+            "segments": [
+              {
+                "text": "같은 문장이라도, 어떤 목소리로 읽느냐에 따라 청자가 받는 느낌은 완전히 달라집니다.",
+                "start": 0.0,
+                "end": 6.116122448979592
+              }
+            ],
+            "sample_rate": 44100,
+            "text": "같은 문장이라도, 어떤 목소리로 읽느냐에 따라 청자가 받는 느낌은 완전히 달라집니다.",
+            "voice_preset": "aiden",
+            "reference_sha256": "94a35cfcfc57ee1c5c35de85ef98c5b998629f1af6f1adbd40a6f203e4def35c",
+            "raw_duration": 6.12,
+            "speed": 1.0,
+            "fingerprint": "685f3a3facc055f3fd121b00853e4f906ddf299243abdd640e573880a49e1e8b"
+          },
+          {
+            "duration": 7.247142857142857,
+            "records": [
+              {
+                "sentence": "따뜻한 목소리는 편안함을, 낮은 목소리는 신뢰감을 줍니다.",
+                "attempt": 1,
+                "accepted": true,
+                "generation_seconds": 2.491577901993878,
+                "duration_seconds": 4.597551020408163,
+                "longest_internal_silence": 0.52,
+                "voiced_seconds": 3.56,
+                "hit_cap": false,
+                "trim_start_sample": 0,
+                "trim_end_sample": 186984
+              },
+              {
+                "sentence": "목소리 하나가 전체 분위기를 결정합니다.",
+                "attempt": 1,
+                "accepted": true,
+                "generation_seconds": 1.673996586992871,
+                "duration_seconds": 2.972154195011338,
+                "longest_internal_silence": 0.18,
+                "voiced_seconds": 2.42,
+                "hit_cap": false,
+                "trim_start_sample": 0,
+                "trim_end_sample": 121716
+              }
+            ],
+            "segments": [
+              {
+                "text": "따뜻한 목소리는 편안함을, 낮은 목소리는 신뢰감을 줍니다.",
+                "start": 0.0,
+                "end": 4.23832906403941
+              },
+              {
+                "text": "목소리 하나가 전체 분위기를 결정합니다.",
+                "start": 4.488230541871921,
+                "end": 7.247142857142857
+              }
+            ],
+            "sample_rate": 44100,
+            "text": "따뜻한 목소리는 편안함을, 낮은 목소리는 신뢰감을 줍니다. 목소리 하나가 전체 분위기를 결정합니다.",
+            "voice_preset": "aiden",
+            "reference_sha256": "94a35cfcfc57ee1c5c35de85ef98c5b998629f1af6f1adbd40a6f203e4def35c",
+            "raw_duration": 7.25,
+            "speed": 1.0,
+            "fingerprint": "f928f4d4790142f5dce95d57d296c0b6783cd00d855482f463456f51ce8e5a05"
+          }
+        ],
+        "voice": {
+          "preset": "aiden",
+          "speed": 1.0,
+          "sentence_pause": 0.25,
+          "max_gap_seconds": 1.5,
+          "min_coverage": 0.85,
+          "delivery": "Clear, rhythmic, and engaging delivery to demonstrate the 'atmosphere' of the voice."
+        },
+        "reference_source": "Synthetic Qwen3-TTS aiden",
+        "reference_sha256": "94a35cfcfc57ee1c5c35de85ef98c5b998629f1af6f1adbd40a6f203e4def35c"
+      },
+      "storyboard": {
+        "version": 3,
+        "title": "Voice Atmosphere Comparison",
+        "design_brief": "Visuals: Two scenes with solid navy (#000080) background and large white text. No photos, videos, or complex diagrams. Scene 1: Opening hook with the headline '같은 말, 다른 온도'. Scene 2: Core message explaining how voice changes atmosphere, with key words highlighted. Typography: Clean, bold sans-serif (e.g., Noto Sans KR Bold) for high readability against the dark background. Animation: Subtle fade-in for text elements to maintain focus on the narration. No background music, only narration.",
+        "scenes": [
+          {
+            "title": "Opening Hook",
+            "narration": "같은 문장이라도, 어떤 목소리로 읽느냐에 따라 청자가 받는 느낌은 완전히 달라집니다.",
+            "visual": "typography",
+            "image_prompt": "",
+            "attachment_id": "",
+            "points": [],
+            "emphasis": [
+              "달라집니다"
+            ],
+            "reuse_scene": 0,
+            "asset_id": "",
+            "duration_seconds": 5.0,
+            "manim": {}
+          },
+          {
+            "title": "Core Message",
+            "narration": "따뜻한 목소리는 편안함을, 낮은 목소리는 신뢰감을 줍니다. 목소리 하나가 전체 분위기를 결정합니다.",
+            "visual": "typography",
+            "image_prompt": "",
+            "attachment_id": "",
+            "points": [],
+            "emphasis": [
+              "분위기를 결정합니다"
+            ],
+            "reuse_scene": 1,
+            "asset_id": "",
+            "duration_seconds": 10.0,
+            "manim": {}
+          }
+        ],
+        "captions": {
+          "enabled": true,
+          "max_chars_per_line": 14,
+          "max_lines": 2,
+          "lead_seconds": 0.15,
+          "min_font_px": 38,
+          "safe_x": 0.08,
+          "safe_top": 0.15,
+          "safe_bottom": 0.78
+        },
+        "headline": {
+          "mode": "opening",
+          "text": "같은 말,\n다른 온도",
+          "duration_seconds": 3.5,
+          "min_font_px": 64,
+          "max_lines": 2,
+          "safe_left": 0.08,
+          "safe_right": 0.86,
+          "safe_top": 0.1,
+          "safe_bottom": 0.9
+        },
+        "voice": {
+          "preset": "aiden",
+          "speed": 1.0,
+          "sentence_pause": 0.25,
+          "max_gap_seconds": 1.5,
+          "min_coverage": 0.85,
+          "delivery": "Clear, rhythmic, and engaging delivery to demonstrate the 'atmosphere' of the voice."
+        },
+        "music": {
+          "kind": "none",
+          "gain": 0.12,
+          "notes": [],
+          "description": "",
+          "model": "ace-turbo",
+          "prompt": "",
+          "seed": 42,
+          "bpm": null
+        },
+        "asset_ids": [],
+        "lottie_queries": [],
+        "sources": [],
+        "limitations": [],
+        "verbatim_narration": true
+      },
+      "published": {
+        "attachment": {
+          "id": "78299509a2fd4ded4aeb45c4ed85c351",
+          "name": "Shorts.mp4",
+          "mime": "video/mp4",
+          "size": 356303,
+          "url": "/api/files/78299509a2fd4ded4aeb45c4ed85c351/Shorts.mp4?type=video%2Fmp4",
+          "source_url": "/api/shorts/bfab09ae97c24943b1f1d33271a7eabc/files/final.mp4?session_id=chat-1792774396992608039"
+        },
+        "message_id": 3116
+      },
+      "duration-fit": [
+        {
+          "status": "fit",
+          "narration_seconds": 13.36326530612245,
+          "duration_seconds": 15,
+          "narration_coverage": 0.8908843537414967,
+          "desired_narration_seconds": 13.9,
+          "rewrite_length_multiplier": 1.0401649358582772,
+          "explicit_silent_seconds": 0
+        }
+      ],
+      "final_sha256": "6ad73fa2c0313da24cd65cbf84807b8d5407ebe8f5a85739b0aa2d682c19c83f",
+      "artwork_sha256": "c78138b150d538ccb71775e4d6cb18e05c5976cb512d5847d05b9320a283bb1b"
+    },
+    {
+      "id": "1398c211d42743d6b56b99a3d02aae77",
+      "status": "completed",
+      "error": "",
+      "project": {
+        "session_id": "chat-1792774396992608039",
+        "title": "Voice Atmosphere Comparison",
+        "brief": "선택한 기본 음성으로 15초짜리 음성 비교용 쇼츠를 만들어줘. 배경음악 없이 내레이션만 넣어. 남색 단색 배경과 큰 흰 글씨로 두 장면을 구성하고, 사진이나 다른 생성 영상은 쓰지 마. 내용은 같은 이야기라도 목소리에 따라 분위기가 달라진다는 짧은 설명으로 해줘. 대본에는 음성 이름을 넣지 마.",
+        "scenes": [],
+        "bgm": false,
+        "duration_seconds": 15,
+        "source_job_id": "",
+        "template_id": "",
+        "design_mode": "redesign",
+        "asset_ids": [],
+        "preview_only": false,
+        "plan": null,
+        "voice_preset": "ryan",
+        "voice_only": false
+      },
+      "artifact_directory": "/home/edp1096/.local/share/sparktalk/shorts/1398c211d42743d6b56b99a3d02aae77",
+      "quality": {
+        "passed": true,
+        "applied": {
+          "duration_seconds": 15.0,
+          "scene_count": 2,
+          "scene_kinds": [
+            "typography",
+            "typography"
+          ],
+          "template": {
+            "template_sha256": "39e409eb0beafbb3759764d304036c6f0762332ef15391985499b8b9410b0430",
+            "author": "local_model",
+            "name": "Voice Atmosphere Comparison (Fixed)"
+          },
+          "template_id": "",
+          "design_mode": "redesign",
+          "headline": {
+            "mode": "opening",
+            "text": "같은 말,\n다른 온도",
+            "duration_seconds": 3.5,
+            "min_font_px": 64,
+            "max_lines": 2,
+            "safe_left": 0.08,
+            "safe_right": 0.86,
+            "safe_top": 0.1,
+            "safe_bottom": 0.9
+          },
+          "headline_styles": [
+            {
+              "text": "같은 말,다른 온도",
+              "font_family": "\"Noto Sans CJK KR\", sans-serif",
+              "font_size": 68,
+              "font_weight": "700",
+              "color": "rgb(0, 0, 0)",
+              "background": "rgba(0, 0, 0, 0)",
+              "lines": 2,
+              "x": 58,
+              "y": 256,
+              "width": 562,
+              "height": 196.390625,
+              "opacity": "1"
+            },
+            {
+              "text": "같은 말,다른 온도",
+              "font_family": "\"Noto Sans CJK KR\", sans-serif",
+              "font_size": 68,
+              "font_weight": "700",
+              "color": "rgb(0, 0, 0)",
+              "background": "rgba(0, 0, 0, 0)",
+              "lines": 2,
+              "x": 58,
+              "y": 256,
+              "width": 562,
+              "height": 196.390625,
+              "opacity": "1"
+            },
+            {
+              "text": "같은 말,다른 온도",
+              "font_family": "\"Noto Sans CJK KR\", sans-serif",
+              "font_size": 68,
+              "font_weight": "700",
+              "color": "rgb(0, 0, 0)",
+              "background": "rgba(0, 0, 0, 0)",
+              "lines": 2,
+              "x": 58,
+              "y": 256,
+              "width": 562,
+              "height": 196.390625,
+              "opacity": "1"
+            },
+            {
+              "text": "같은 말,다른 온도",
+              "font_family": "\"Noto Sans CJK KR\", sans-serif",
+              "font_size": 68,
+              "font_weight": "700",
+              "color": "rgb(0, 0, 0)",
+              "background": "rgba(0, 0, 0, 0)",
+              "lines": 2,
+              "x": 58,
+              "y": 256,
+              "width": 562,
+              "height": 196.390625,
+              "opacity": "0.3894"
+            }
+          ],
+          "caption_styles": [
+            {
+              "id": "caption-0-0",
+              "font_family": "\"Noto Sans CJK KR\", sans-serif",
+              "font_size": 42,
+              "color": "rgb(255, 255, 255)",
+              "background": "rgba(0, 0, 0, 0)",
+              "background_before": "rgba(0, 0, 0, 0)",
+              "emphasis_styles": [],
+              "x": 58,
+              "y": 876.8125,
+              "width": 604,
+              "height": 121.1875,
+              "lines": 2,
+              "highlights": 0
+            },
+            {
+              "id": "caption-0-0",
+              "font_family": "\"Noto Sans CJK KR\", sans-serif",
+              "font_size": 42,
+              "color": "rgb(255, 255, 255)",
+              "background": "rgba(0, 0, 0, 0)",
+              "background_before": "rgba(0, 0, 0, 0)",
+              "emphasis_styles": [],
+              "x": 58,
+              "y": 876.8125,
+              "width": 604,
+              "height": 121.1875,
+              "lines": 2,
+              "highlights": 0
+            },
+            {
+              "id": "caption-0-0",
+              "font_family": "\"Noto Sans CJK KR\", sans-serif",
+              "font_size": 42,
+              "color": "rgb(255, 255, 255)",
+              "background": "rgba(0, 0, 0, 0)",
+              "background_before": "rgba(0, 0, 0, 0)",
+              "emphasis_styles": [],
+              "x": 58,
+              "y": 876.8125,
+              "width": 604,
+              "height": 121.1875,
+              "lines": 2,
+              "highlights": 0
+            },
+            {
+              "id": "caption-0-1",
+              "font_family": "\"Noto Sans CJK KR\", sans-serif",
+              "font_size": 42,
+              "color": "rgb(255, 255, 255)",
+              "background": "rgba(0, 0, 0, 0)",
+              "background_before": "rgba(0, 0, 0, 0)",
+              "emphasis_styles": [
+                {
+                  "text": "달라집니다",
+                  "color": "rgb(255, 215, 0)",
+                  "font_weight": "900"
+                }
+              ],
+              "x": 58,
+              "y": 876.8796997070312,
+              "width": 604,
+              "height": 121.1875,
+              "lines": 2,
+              "highlights": 1
+            },
+            {
+              "id": "caption-0-1",
+              "font_family": "\"Noto Sans CJK KR\", sans-serif",
+              "font_size": 42,
+              "color": "rgb(255, 255, 255)",
+              "background": "rgba(0, 0, 0, 0)",
+              "background_before": "rgba(0, 0, 0, 0)",
+              "emphasis_styles": [
+                {
+                  "text": "달라집니다",
+                  "color": "rgb(255, 215, 0)",
+                  "font_weight": "900"
+                }
+              ],
+              "x": 58,
+              "y": 876.8125,
+              "width": 604,
+              "height": 121.1875,
+              "lines": 2,
+              "highlights": 1
+            },
+            {
+              "id": "caption-0-1",
+              "font_family": "\"Noto Sans CJK KR\", sans-serif",
+              "font_size": 42,
+              "color": "rgb(255, 255, 255)",
+              "background": "rgba(0, 0, 0, 0)",
+              "background_before": "rgba(0, 0, 0, 0)",
+              "emphasis_styles": [
+                {
+                  "text": "달라집니다",
+                  "color": "rgb(255, 215, 0)",
+                  "font_weight": "900"
+                }
+              ],
+              "x": 58,
+              "y": 876.8125,
+              "width": 604,
+              "height": 121.1875,
+              "lines": 2,
+              "highlights": 1
+            },
+            {
+              "id": "caption-1-0",
+              "font_family": "\"Noto Sans CJK KR\", sans-serif",
+              "font_size": 42,
+              "color": "rgb(255, 255, 255)",
+              "background": "rgba(0, 0, 0, 0)",
+              "background_before": "rgba(0, 0, 0, 0)",
+              "emphasis_styles": [],
+              "x": 58,
+              "y": 876.8125,
+              "width": 604,
+              "height": 121.1875,
+              "lines": 2,
+              "highlights": 0
+            },
+            {
+              "id": "caption-1-1",
+              "font_family": "\"Noto Sans CJK KR\", sans-serif",
+              "font_size": 42,
+              "color": "rgb(255, 255, 255)",
+              "background": "rgba(0, 0, 0, 0)",
+              "background_before": "rgba(0, 0, 0, 0)",
+              "emphasis_styles": [],
+              "x": 58,
+              "y": 943.40625,
+              "width": 604,
+              "height": 54.59375,
+              "lines": 1,
+              "highlights": 0
+            }
+          ],
+          "voice_preset": "ryan",
+          "voice_speed": 1.0,
+          "sentence_pause": 0.25,
+          "narration_seconds": 13.68671201814059,
+          "narration_coverage": 0.9124474678760393,
+          "longest_narration_gap": 0.82,
+          "music_kind": "none",
+          "music_gain": 0.12,
+          "music": {
+            "kind": "none",
+            "notes": [],
+            "source": "None"
+          },
+          "animation_assets": []
+        },
+        "verification": {
+          "browser_layout": true,
+          "animation_visible_pixels": [],
+          "visual_review": {
+            "passed": true,
+            "issues": [],
+            "summary": "The video correctly implements the design brief. It features a solid navy blue background with no extraneous images or videos. The layout consists of two main scenes: an opening hook with the large headline '같은 말, 다른 온도' and a second scene displaying the core message with the keyword '달라집니다' highlighted in yellow. The typography is legible and high-contrast. The final frame shows a transition state (fading text), which is consistent with the requested animation."
+          },
+          "speech_coverage": true,
+          "narration_track": {
+            "duration_seconds": 15.0,
+            "longest_internal_silence": 0.82,
+            "trim_start_sample": 0,
+            "trim_end_sample": 644742,
+            "energy_active_seconds": 13.14
+          },
+          "duration_fit": {
+            "status": "fit",
+            "narration_seconds": 13.68671201814059,
+            "duration_seconds": 15,
+            "narration_coverage": 0.9124474678760393,
+            "desired_narration_seconds": 13.9,
+            "rewrite_length_multiplier": 1.0155835807443538,
+            "explicit_silent_seconds": 0
+          },
+          "caption_timing": "sentence timestamps with proportional phrase timing",
+          "final_file": {
+            "duration": "15.000000",
+            "frames": "360",
+            "audio": true
+          }
+        },
+        "limitations": [
+          "No external media assets used per brief.",
+          "Emphasis relies on color and scale changes within the existing DOM structure."
+        ],
+        "speech": [
+          {
+            "character_error_rate": 0.02857142857142857,
+            "expected": "같은 문장이라도, 어떤 목소리로 읽느냐에 따라 청자가 받는 느낌은 완전히 달라집니다.",
+            "passed": true,
+            "transcript": "같은 문장이라도 어떤 목소리로 있느냐에 따라 청자가 받는 느낌은 완전히 달라집니다.",
+            "fingerprint": "c32e66bfa7494ba665c9407473fa26678f0684aa0f08dbddb9d808c15c415e6e"
+          },
+          {
+            "character_error_rate": 0,
+            "expected": "따뜻한 목소리는 편안함을, 낮은 목소리는 신뢰감을 줍니다. 목소리 하나가 전체 분위기를 결정합니다.",
+            "passed": true,
+            "transcript": "따뜻한 목소리는 편안함을 낮은 목소리는 신뢰감을 줍니다. 목소리 하나가 전체 분위기를 결정합니다.",
+            "fingerprint": "4f9e63e06b5f2f5040ff6a8442467dfb3b9da9cfcfe8cdd4bcad5119b3fe776b"
+          }
+        ],
+        "elapsed_seconds": 747.050568784005,
+        "duration": "15.000000",
+        "width": 720,
+        "height": 1280,
+        "fps": "24/1"
+      },
+      "speech": {
+        "items": [
+          {
+            "duration": 5.691882086167801,
+            "records": [
+              {
+                "sentence": "같은 문장이라도, 어떤 목소리로 읽느냐에 따라 청자가 받는 느낌은 완전히 달라집니다.",
+                "attempt": 1,
+                "accepted": true,
+                "generation_seconds": 3.6149922360200435,
+                "duration_seconds": 6.03718820861678,
+                "longest_internal_silence": 0.06,
+                "voiced_seconds": 5.32,
+                "hit_cap": false,
+                "trim_start_sample": 0,
+                "trim_end_sample": 251370
+              }
+            ],
+            "segments": [
+              {
+                "text": "같은 문장이라도, 어떤 목소리로 읽느냐에 따라 청자가 받는 느낌은 완전히 달라집니다.",
+                "start": 0.0,
+                "end": 5.691882086167801
+              }
+            ],
+            "sample_rate": 44100,
+            "text": "같은 문장이라도, 어떤 목소리로 읽느냐에 따라 청자가 받는 느낌은 완전히 달라집니다.",
+            "voice_preset": "ryan",
+            "reference_sha256": "22696d434b6b97d81845c4b19075232801eac1f874c4416c61dc8977722b4d24",
+            "raw_duration": 5.7,
+            "speed": 1.0,
+            "fingerprint": "c32e66bfa7494ba665c9407473fa26678f0684aa0f08dbddb9d808c15c415e6e"
+          },
+          {
+            "duration": 7.994829931972789,
+            "records": [
+              {
+                "sentence": "따뜻한 목소리는 편안함을, 낮은 목소리는 신뢰감을 줍니다.",
+                "attempt": 1,
+                "accepted": true,
+                "generation_seconds": 2.450817161996383,
+                "duration_seconds": 4.504671201814059,
+                "longest_internal_silence": 0.04,
+                "voiced_seconds": 4.14,
+                "hit_cap": false,
+                "trim_start_sample": 0,
+                "trim_end_sample": 198450
+              },
+              {
+                "sentence": "목소리 하나가 전체 분위기를 결정합니다.",
+                "attempt": 1,
+                "accepted": true,
+                "generation_seconds": 1.849770319997333,
+                "duration_seconds": 3.250793650793651,
+                "longest_internal_silence": 0.04,
+                "voiced_seconds": 3.12,
+                "hit_cap": false,
+                "trim_start_sample": 0,
+                "trim_end_sample": 143360
+              }
+            ],
+            "segments": [
+              {
+                "text": "따뜻한 목소리는 편안함을, 낮은 목소리는 신뢰감을 줍니다.",
+                "start": 0.0,
+                "end": 4.496645740927062
+              },
+              {
+                "text": "목소리 하나가 전체 분위기를 결정합니다.",
+                "start": 4.746459393200787,
+                "end": 7.994829931972787
+              }
+            ],
+            "sample_rate": 44100,
+            "text": "따뜻한 목소리는 편안함을, 낮은 목소리는 신뢰감을 줍니다. 목소리 하나가 전체 분위기를 결정합니다.",
+            "voice_preset": "ryan",
+            "reference_sha256": "22696d434b6b97d81845c4b19075232801eac1f874c4416c61dc8977722b4d24",
+            "raw_duration": 8.000793650793652,
+            "speed": 1.0,
+            "fingerprint": "4f9e63e06b5f2f5040ff6a8442467dfb3b9da9cfcfe8cdd4bcad5119b3fe776b"
+          }
+        ],
+        "voice": {
+          "preset": "ryan",
+          "speed": 1.0,
+          "sentence_pause": 0.25,
+          "max_gap_seconds": 1.5,
+          "min_coverage": 0.85,
+          "delivery": "Clear, rhythmic, and engaging delivery to demonstrate the 'atmosphere' of the voice."
+        },
+        "reference_source": "Synthetic Qwen3-TTS ryan",
+        "reference_sha256": "22696d434b6b97d81845c4b19075232801eac1f874c4416c61dc8977722b4d24"
+      },
+      "storyboard": {
+        "version": 3,
+        "title": "Voice Atmosphere Comparison",
+        "design_brief": "Visuals: Two scenes with solid navy (#000080) background and large white text. No photos, videos, or complex diagrams. Scene 1: Opening hook with the headline '같은 말, 다른 온도'. Scene 2: Core message explaining how voice changes atmosphere, with key words highlighted. Typography: Clean, bold sans-serif (e.g., Noto Sans KR Bold) for high readability against the dark background. Animation: Subtle fade-in for text elements to maintain focus on the narration. No background music, only narration.",
+        "scenes": [
+          {
+            "title": "Opening Hook",
+            "narration": "같은 문장이라도, 어떤 목소리로 읽느냐에 따라 청자가 받는 느낌은 완전히 달라집니다.",
+            "visual": "typography",
+            "image_prompt": "",
+            "attachment_id": "",
+            "points": [],
+            "emphasis": [
+              "달라집니다"
+            ],
+            "reuse_scene": null,
+            "asset_id": "",
+            "duration_seconds": 5.0,
+            "manim": {}
+          },
+          {
+            "title": "Core Message",
+            "narration": "따뜻한 목소리는 편안함을, 낮은 목소리는 신뢰감을 줍니다. 목소리 하나가 전체 분위기를 결정합니다.",
+            "visual": "typography",
+            "image_prompt": "",
+            "attachment_id": "",
+            "points": [],
+            "emphasis": [
+              "분위기를 결정합니다"
+            ],
+            "reuse_scene": null,
+            "asset_id": "",
+            "duration_seconds": 10.0,
+            "manim": {}
+          }
+        ],
+        "captions": {
+          "enabled": true,
+          "max_chars_per_line": 14,
+          "max_lines": 2,
+          "lead_seconds": 0.15,
+          "min_font_px": 38,
+          "safe_x": 0.08,
+          "safe_top": 0.15,
+          "safe_bottom": 0.78
+        },
+        "headline": {
+          "mode": "opening",
+          "text": "같은 말,\n다른 온도",
+          "duration_seconds": 3.5,
+          "min_font_px": 64,
+          "max_lines": 2,
+          "safe_left": 0.08,
+          "safe_right": 0.86,
+          "safe_top": 0.1,
+          "safe_bottom": 0.9
+        },
+        "voice": {
+          "preset": "ryan",
+          "speed": 1.0,
+          "sentence_pause": 0.25,
+          "max_gap_seconds": 1.5,
+          "min_coverage": 0.85,
+          "delivery": "Clear, rhythmic, and engaging delivery to demonstrate the 'atmosphere' of the voice."
+        },
+        "music": {
+          "kind": "none",
+          "gain": 0.12,
+          "notes": [],
+          "description": "",
+          "model": "ace-turbo",
+          "prompt": "",
+          "seed": 42,
+          "bpm": null
+        },
+        "asset_ids": [],
+        "lottie_queries": [],
+        "sources": [],
+        "limitations": [],
+        "verbatim_narration": false
+      },
+      "published": {
+        "attachment": {
+          "id": "c941ca56d506dd8b3b00b9efbc722fee",
+          "name": "Shorts.mp4",
+          "mime": "video/mp4",
+          "size": 368283,
+          "url": "/api/files/c941ca56d506dd8b3b00b9efbc722fee/Shorts.mp4?type=video%2Fmp4",
+          "source_url": "/api/shorts/1398c211d42743d6b56b99a3d02aae77/files/final.mp4?session_id=chat-1792774396992608039"
+        },
+        "message_id": 3113
+      },
+      "duration-fit": [
+        {
+          "status": "too_short",
+          "narration_seconds": 12.59092970521542,
+          "duration_seconds": 15,
+          "narration_coverage": 0.8393953136810279,
+          "desired_narration_seconds": 13.9,
+          "rewrite_length_multiplier": 1.1039693116738105,
+          "explicit_silent_seconds": 0
+        },
+        {
+          "status": "fit",
+          "narration_seconds": 13.68671201814059,
+          "duration_seconds": 15,
+          "narration_coverage": 0.9124474678760393,
+          "desired_narration_seconds": 13.9,
+          "rewrite_length_multiplier": 1.0155835807443538,
+          "explicit_silent_seconds": 0
+        }
+      ],
+      "final_sha256": "eebafe2a7584477481ce22848d14dcb33aa3b3ecb69d523718bda2f8fc77006b",
+      "artwork_sha256": "c78138b150d538ccb71775e4d6cb18e05c5976cb512d5847d05b9320a283bb1b"
+    }
+  ],
+  "final_proof": {
+    "cases": [
+      {
+        "voice": "ryan",
+        "job_id": "1398c211d42743d6b56b99a3d02aae77",
+        "final_sha256": "eebafe2a7584477481ce22848d14dcb33aa3b3ecb69d523718bda2f8fc77006b",
+        "audio_sha256": [
+          "027d61d601d7c16e291494cf43cfa3d46c66970da67ccebda2627b551852109a",
+          "d49a963afd1149807b295b0aafc8bcf58e1c8fcee84b40ce657aa054c0d26cf6"
+        ],
+        "artwork_sha256": "c78138b150d538ccb71775e4d6cb18e05c5976cb512d5847d05b9320a283bb1b",
+        "metadata": {
+          "streams": [
+            {
+              "index": 0,
+              "codec_name": "h264",
+              "codec_long_name": "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
+              "profile": "High",
+              "codec_type": "video",
+              "codec_tag_string": "avc1",
+              "codec_tag": "0x31637661",
+              "width": 720,
+              "height": 1280,
+              "coded_width": 720,
+              "coded_height": 1280,
+              "closed_captions": 0,
+              "film_grain": 0,
+              "has_b_frames": 0,
+              "sample_aspect_ratio": "1:1",
+              "display_aspect_ratio": "9:16",
+              "pix_fmt": "yuv420p",
+              "level": 31,
+              "color_range": "tv",
+              "color_space": "bt709",
+              "color_transfer": "bt709",
+              "color_primaries": "bt709",
+              "chroma_location": "center",
+              "field_order": "progressive",
+              "refs": 3,
+              "is_avc": "true",
+              "nal_length_size": "4",
+              "id": "0x1",
+              "r_frame_rate": "24/1",
+              "avg_frame_rate": "24/1",
+              "time_base": "1/12288",
+              "start_pts": 0,
+              "start_time": "0.000000",
+              "duration_ts": 184320,
+              "duration": "15.000000",
+              "bit_rate": "122966",
+              "bits_per_raw_sample": "8",
+              "nb_frames": "360",
+              "nb_read_frames": "360",
+              "extradata_size": 51,
+              "disposition": {
+                "default": 1,
+                "dub": 0,
+                "original": 0,
+                "comment": 0,
+                "lyrics": 0,
+                "karaoke": 0,
+                "forced": 0,
+                "hearing_impaired": 0,
+                "visual_impaired": 0,
+                "clean_effects": 0,
+                "attached_pic": 0,
+                "timed_thumbnails": 0,
+                "captions": 0,
+                "descriptions": 0,
+                "metadata": 0,
+                "dependent": 0,
+                "still_image": 0
+              },
+              "tags": {
+                "language": "und",
+                "handler_name": "VideoHandler",
+                "vendor_id": "[0][0][0][0]",
+                "encoder": "Lavc59.37.100 libx264"
+              }
+            },
+            {
+              "index": 1,
+              "codec_name": "aac",
+              "codec_long_name": "AAC (Advanced Audio Coding)",
+              "profile": "LC",
+              "codec_type": "audio",
+              "codec_tag_string": "mp4a",
+              "codec_tag": "0x6134706d",
+              "sample_fmt": "fltp",
+              "sample_rate": "44100",
+              "channels": 1,
+              "channel_layout": "mono",
+              "bits_per_sample": 0,
+              "id": "0x2",
+              "r_frame_rate": "0/0",
+              "avg_frame_rate": "0/0",
+              "time_base": "1/44100",
+              "start_pts": 0,
+              "start_time": "0.000000",
+              "duration_ts": 661500,
+              "duration": "15.000000",
+              "bit_rate": "67937",
+              "nb_frames": "647",
+              "nb_read_frames": "646",
+              "extradata_size": 5,
+              "disposition": {
+                "default": 1,
+                "dub": 0,
+                "original": 0,
+                "comment": 0,
+                "lyrics": 0,
+                "karaoke": 0,
+                "forced": 0,
+                "hearing_impaired": 0,
+                "visual_impaired": 0,
+                "clean_effects": 0,
+                "attached_pic": 0,
+                "timed_thumbnails": 0,
+                "captions": 0,
+                "descriptions": 0,
+                "metadata": 0,
+                "dependent": 0,
+                "still_image": 0
+              },
+              "tags": {
+                "language": "und",
+                "handler_name": "SoundHandler",
+                "vendor_id": "[0][0][0][0]"
+              }
+            }
+          ],
+          "format": {
+            "filename": "/data/1398c211d42743d6b56b99a3d02aae77/final.mp4",
+            "nb_streams": 2,
+            "nb_programs": 0,
+            "format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+            "format_long_name": "QuickTime / MOV",
+            "start_time": "0.000000",
+            "duration": "15.000000",
+            "size": "368283",
+            "bit_rate": "196417",
+            "probe_score": 100,
+            "tags": {
+              "major_brand": "isom",
+              "minor_version": "512",
+              "compatible_brands": "isomiso2avc1mp41",
+              "encoder": "Lavf59.27.100"
+            }
+          }
+        },
+        "speech_checks": [
+          {
+            "character_error_rate": 0.02857142857142857,
+            "expected": "같은 문장이라도, 어떤 목소리로 읽느냐에 따라 청자가 받는 느낌은 완전히 달라집니다.",
+            "passed": true,
+            "transcript": "같은 문장이라도 어떤 목소리로 있느냐에 따라 청자가 받는 느낌은 완전히 달라집니다.",
+            "fingerprint": "c32e66bfa7494ba665c9407473fa26678f0684aa0f08dbddb9d808c15c415e6e"
+          },
+          {
+            "character_error_rate": 0,
+            "expected": "따뜻한 목소리는 편안함을, 낮은 목소리는 신뢰감을 줍니다. 목소리 하나가 전체 분위기를 결정합니다.",
+            "passed": true,
+            "transcript": "따뜻한 목소리는 편안함을 낮은 목소리는 신뢰감을 줍니다. 목소리 하나가 전체 분위기를 결정합니다.",
+            "fingerprint": "4f9e63e06b5f2f5040ff6a8442467dfb3b9da9cfcfe8cdd4bcad5119b3fe776b"
+          }
+        ],
+        "visual_review": {
+          "passed": true,
+          "issues": [],
+          "summary": "The video correctly implements the design brief. It features a solid navy blue background with no extraneous images or videos. The layout consists of two main scenes: an opening hook with the large headline '같은 말, 다른 온도' and a second scene displaying the core message with the keyword '달라집니다' highlighted in yellow. The typography is legible and high-contrast. The final frame shows a transition state (fading text), which is consistent with the requested animation."
+        },
+        "voice_reference_sha256": "22696d434b6b97d81845c4b19075232801eac1f874c4416c61dc8977722b4d24",
+        "delivered_attachment_id": "c941ca56d506dd8b3b00b9efbc722fee",
+        "served_file_matches_final": true,
+        "export": "voice-catalog-20261024/ryan.mp4"
+      },
+      {
+        "voice": "aiden",
+        "job_id": "bfab09ae97c24943b1f1d33271a7eabc",
+        "final_sha256": "6ad73fa2c0313da24cd65cbf84807b8d5407ebe8f5a85739b0aa2d682c19c83f",
+        "audio_sha256": [
+          "10c7591fb8f254de294dc276d7574a224336f58c774297a4d1f8dde3c40a0787",
+          "4f9b9f3b6b7b281bf3ff52b681a6413e509a5ba87f9fab2136639a271bf58a40"
+        ],
+        "artwork_sha256": "c78138b150d538ccb71775e4d6cb18e05c5976cb512d5847d05b9320a283bb1b",
+        "metadata": {
+          "streams": [
+            {
+              "index": 0,
+              "codec_name": "h264",
+              "codec_long_name": "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
+              "profile": "High",
+              "codec_type": "video",
+              "codec_tag_string": "avc1",
+              "codec_tag": "0x31637661",
+              "width": 720,
+              "height": 1280,
+              "coded_width": 720,
+              "coded_height": 1280,
+              "closed_captions": 0,
+              "film_grain": 0,
+              "has_b_frames": 0,
+              "sample_aspect_ratio": "1:1",
+              "display_aspect_ratio": "9:16",
+              "pix_fmt": "yuv420p",
+              "level": 31,
+              "color_range": "tv",
+              "color_space": "bt709",
+              "color_transfer": "bt709",
+              "color_primaries": "bt709",
+              "chroma_location": "center",
+              "field_order": "progressive",
+              "refs": 3,
+              "is_avc": "true",
+              "nal_length_size": "4",
+              "id": "0x1",
+              "r_frame_rate": "24/1",
+              "avg_frame_rate": "24/1",
+              "time_base": "1/12288",
+              "start_pts": 0,
+              "start_time": "0.000000",
+              "duration_ts": 184320,
+              "duration": "15.000000",
+              "bit_rate": "119288",
+              "bits_per_raw_sample": "8",
+              "nb_frames": "360",
+              "nb_read_frames": "360",
+              "extradata_size": 51,
+              "disposition": {
+                "default": 1,
+                "dub": 0,
+                "original": 0,
+                "comment": 0,
+                "lyrics": 0,
+                "karaoke": 0,
+                "forced": 0,
+                "hearing_impaired": 0,
+                "visual_impaired": 0,
+                "clean_effects": 0,
+                "attached_pic": 0,
+                "timed_thumbnails": 0,
+                "captions": 0,
+                "descriptions": 0,
+                "metadata": 0,
+                "dependent": 0,
+                "still_image": 0
+              },
+              "tags": {
+                "language": "und",
+                "handler_name": "VideoHandler",
+                "vendor_id": "[0][0][0][0]",
+                "encoder": "Lavc59.37.100 libx264"
+              }
+            },
+            {
+              "index": 1,
+              "codec_name": "aac",
+              "codec_long_name": "AAC (Advanced Audio Coding)",
+              "profile": "LC",
+              "codec_type": "audio",
+              "codec_tag_string": "mp4a",
+              "codec_tag": "0x6134706d",
+              "sample_fmt": "fltp",
+              "sample_rate": "44100",
+              "channels": 1,
+              "channel_layout": "mono",
+              "bits_per_sample": 0,
+              "id": "0x2",
+              "r_frame_rate": "0/0",
+              "avg_frame_rate": "0/0",
+              "time_base": "1/44100",
+              "start_pts": 0,
+              "start_time": "0.000000",
+              "duration_ts": 661500,
+              "duration": "15.000000",
+              "bit_rate": "65231",
+              "nb_frames": "647",
+              "nb_read_frames": "646",
+              "extradata_size": 5,
+              "disposition": {
+                "default": 1,
+                "dub": 0,
+                "original": 0,
+                "comment": 0,
+                "lyrics": 0,
+                "karaoke": 0,
+                "forced": 0,
+                "hearing_impaired": 0,
+                "visual_impaired": 0,
+                "clean_effects": 0,
+                "attached_pic": 0,
+                "timed_thumbnails": 0,
+                "captions": 0,
+                "descriptions": 0,
+                "metadata": 0,
+                "dependent": 0,
+                "still_image": 0
+              },
+              "tags": {
+                "language": "und",
+                "handler_name": "SoundHandler",
+                "vendor_id": "[0][0][0][0]"
+              }
+            }
+          ],
+          "format": {
+            "filename": "/data/bfab09ae97c24943b1f1d33271a7eabc/final.mp4",
+            "nb_streams": 2,
+            "nb_programs": 0,
+            "format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+            "format_long_name": "QuickTime / MOV",
+            "start_time": "0.000000",
+            "duration": "15.000000",
+            "size": "356303",
+            "bit_rate": "190028",
+            "probe_score": 100,
+            "tags": {
+              "major_brand": "isom",
+              "minor_version": "512",
+              "compatible_brands": "isomiso2avc1mp41",
+              "encoder": "Lavf59.27.100"
+            }
+          }
+        },
+        "speech_checks": [
+          {
+            "character_error_rate": 0.02857142857142857,
+            "expected": "같은 문장이라도, 어떤 목소리로 읽느냐에 따라 청자가 받는 느낌은 완전히 달라집니다.",
+            "passed": true,
+            "transcript": "같은 문장이라도 어떤 목소리로 있느냐에 따라 청자가 받는 느낌은 완전히 달라집니다.",
+            "fingerprint": "685f3a3facc055f3fd121b00853e4f906ddf299243abdd640e573880a49e1e8b"
+          },
+          {
+            "character_error_rate": 0,
+            "expected": "따뜻한 목소리는 편안함을, 낮은 목소리는 신뢰감을 줍니다. 목소리 하나가 전체 분위기를 결정합니다.",
+            "passed": true,
+            "transcript": "따뜻한 목소리는 편안함을 낮은 목소리는 신뢰감을 줍니다. 목소리 하나가 전체 분위기를 결정합니다.",
+            "fingerprint": "f928f4d4790142f5dce95d57d296c0b6783cd00d855482f463456f51ce8e5a05"
+          }
+        ],
+        "visual_review": {
+          "passed": true,
+          "issues": [],
+          "summary": "Original approved artwork, scene inputs and text are unchanged. Fresh browser layout/media/caption timing checks passed for this voice revision.",
+          "reused_from": "1398c211d42743d6b56b99a3d02aae77",
+          "scope": "Unchanged source visual review reused; new output timing audited in the browser."
+        },
+        "voice_reference_sha256": "94a35cfcfc57ee1c5c35de85ef98c5b998629f1af6f1adbd40a6f203e4def35c",
+        "delivered_attachment_id": "78299509a2fd4ded4aeb45c4ed85c351",
+        "served_file_matches_final": true,
+        "export": "voice-catalog-20261024/aiden.mp4"
+      }
+    ],
+    "original_files_unchanged": true,
+    "same_script": true,
+    "same_artwork": true,
+    "same_caption_and_headline_rules": true,
+    "same_music_setting": true,
+    "different_generated_audio": true,
+    "cached_aiden_audio_reused_after_visual_check_fix": true,
+    "new_job_preserves_original": true
+  },
+  "voice_only_visual_validation": "Original approved artwork and visual content must match exactly before its VLM review can be reused. Every voice revision still runs a fresh browser layout/media/caption-timing audit. Actual child headline text styles are measured, and only a short opacity exit at the end of an opening title is permitted. Unchanged visual choices are not re-authored.",
+  "delivery_proof": {
+    "audio_files": [
+      {
+        "voice": "sohee",
+        "attachment_id": "37c4390458446f6e5252b47953a4a9ff",
+        "sha256": "e2873a48c607ceb5977f5eb7a74888d92481e113245718e7889f9e4639528a84"
+      },
+      {
+        "voice": "uncle_fu",
+        "attachment_id": "8d588def448a8aeefad929d1344f942d",
+        "sha256": "95bcf03b22f6618bb5f715d1e738bf08b460a2e67fca9668cf473dd8b0f909f4"
+      },
+      {
+        "voice": "vivian",
+        "attachment_id": "1868687dd50551cdac0d35df30919ab5",
+        "sha256": "00677931cad477282702d1444b6f997324230cb6e7d0431b881fa35af06a02e8"
+      },
+      {
+        "voice": "serena",
+        "attachment_id": "250c0f5f4b7867362c3689f6f9a39357",
+        "sha256": "890a3d21481cb5d3a76139a49db0a36c58d803d28b4131daefa6f6a910f1cac0"
+      },
+      {
+        "voice": "dylan",
+        "attachment_id": "eec51758738c25028d70b38a101c69fb",
+        "sha256": "2576ee1c3388927802d1e80eee5ff3205dead0233f5d2a19a3f10842dd10c396"
+      },
+      {
+        "voice": "eric",
+        "attachment_id": "4671f6b2eb713c78365686871d4951ba",
+        "sha256": "88a07c07576d92c98423f16d9c19184dd1a750f999fab9cb3e4becc64f9926f1"
+      },
+      {
+        "voice": "ryan",
+        "attachment_id": "d3975d01f0e2c033ab788971acef87b5",
+        "sha256": "6c4846d281b93712cd1e4f877c48fcd545741d4f9564ef8b1e82ebc3b65d4ed2"
+      },
+      {
+        "voice": "aiden",
+        "attachment_id": "91a571850d1cc801557a86f3ba45e49e",
+        "sha256": "efa2937b5e6ec294a2b68558f7b976433f8896a4227161508fcd5db05e23b079"
+      },
+      {
+        "voice": "ono_anna",
+        "attachment_id": "bde99490a54fbd91ae9829836c2c35fe",
+        "sha256": "3bf993b89081ffc90df899965c05de195024345a7ad539668c438bb1a24c6327"
+      }
+    ],
+    "preview_reuses_listed_attachment": true,
+    "list_preview_select_created_no_video_jobs": true
+  },
+  "execution_guard": "A real new-video request initially returned a false completion without a tool call. A local intent router now dispatches production actions through the normal tool registry; completion summaries use actual job/file state. Unit, live intent and browser regression checks passed.",
+  "cold_start_fix": "A real Fish cold start after chat prefill failed CUDA initialization. Cold Fish now reserves 16 GiB immediate free and advises only closed pinned auxiliary checkpoint files (including Fish/native H3). Running Fish, Qwen TTS and language-model weights are excluded. Main Qwen service was not restarted.",
+  "memory_retry_samples": [
+    {
+      "time": 1792777612.8069785,
+      "status": "queued",
+      "stage": "이어서 대기 중",
+      "free_gib": 5.409294128417969,
+      "available_gib": 34.962913513183594
+    },
+    {
+      "time": 1792777615.8252017,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 40.53773880004883,
+      "available_gib": 54.47040557861328
+    },
+    {
+      "time": 1792777618.844889,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 40.16328048706055,
+      "available_gib": 54.29195022583008
+    },
+    {
+      "time": 1792777621.8626978,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 39.44472885131836,
+      "available_gib": 53.93661117553711
+    },
+    {
+      "time": 1792777624.8804119,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 39.15209197998047,
+      "available_gib": 53.83938980102539
+    },
+    {
+      "time": 1792777627.9032128,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 37.98857116699219,
+      "available_gib": 52.73649597167969
+    },
+    {
+      "time": 1792777630.920582,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 36.593597412109375,
+      "available_gib": 51.37871170043945
+    },
+    {
+      "time": 1792777633.9414845,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 35.85686492919922,
+      "available_gib": 50.866825103759766
+    },
+    {
+      "time": 1792777636.9591675,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 33.78144454956055,
+      "available_gib": 48.8322639465332
+    },
+    {
+      "time": 1792777639.9753695,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 32.294349670410156,
+      "available_gib": 47.61613845825195
+    },
+    {
+      "time": 1792777642.9948628,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 31.108436584472656,
+      "available_gib": 46.83436965942383
+    },
+    {
+      "time": 1792777646.0147715,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 29.933536529541016,
+      "available_gib": 46.0537109375
+    },
+    {
+      "time": 1792777649.0345895,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 28.665592193603516,
+      "available_gib": 45.18540954589844
+    },
+    {
+      "time": 1792777652.0528967,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 28.514842987060547,
+      "available_gib": 45.46554946899414
+    },
+    {
+      "time": 1792777655.1972966,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 17.266231536865234,
+      "available_gib": 34.24758529663086
+    },
+    {
+      "time": 1792777658.2152882,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 15.6466064453125,
+      "available_gib": 32.62801742553711
+    },
+    {
+      "time": 1792777661.2320025,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 12.144664764404297,
+      "available_gib": 30.089122772216797
+    },
+    {
+      "time": 1792777664.2517834,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 9.8953857421875,
+      "available_gib": 30.066890716552734
+    },
+    {
+      "time": 1792777667.2699864,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 7.600055694580078,
+      "available_gib": 29.804977416992188
+    },
+    {
+      "time": 1792777670.2866297,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 6.279315948486328,
+      "available_gib": 29.12741470336914
+    },
+    {
+      "time": 1792777673.3045542,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 5.4356689453125,
+      "available_gib": 28.662025451660156
+    },
+    {
+      "time": 1792777676.3203876,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 4.240505218505859,
+      "available_gib": 27.906513214111328
+    },
+    {
+      "time": 1792777679.3401163,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 3.1375198364257812,
+      "available_gib": 27.139713287353516
+    },
+    {
+      "time": 1792777682.3604052,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 1.9518623352050781,
+      "available_gib": 26.363304138183594
+    },
+    {
+      "time": 1792777685.3828583,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 6.204662322998047,
+      "available_gib": 30.22344207763672
+    },
+    {
+      "time": 1792777688.4065726,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 5.174674987792969,
+      "available_gib": 29.51021957397461
+    },
+    {
+      "time": 1792777691.4263327,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 4.198650360107422,
+      "available_gib": 28.835487365722656
+    },
+    {
+      "time": 1792777694.4448845,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 2.4034423828125,
+      "available_gib": 27.646503448486328
+    },
+    {
+      "time": 1792777697.4660292,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 2.164459228515625,
+      "available_gib": 27.42348861694336
+    },
+    {
+      "time": 1792777700.486941,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 2.3945159912109375,
+      "available_gib": 26.849529266357422
+    },
+    {
+      "time": 1792777703.503966,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 4.463253021240234,
+      "available_gib": 29.360980987548828
+    },
+    {
+      "time": 1792777706.5231636,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 3.4918365478515625,
+      "available_gib": 28.70085906982422
+    },
+    {
+      "time": 1792777709.543363,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 2.3646011352539062,
+      "available_gib": 27.942935943603516
+    },
+    {
+      "time": 1792777712.5585582,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 2.2252044677734375,
+      "available_gib": 27.619674682617188
+    },
+    {
+      "time": 1792777715.575232,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 2.1162757873535156,
+      "available_gib": 27.056537628173828
+    },
+    {
+      "time": 1792777718.5919147,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 2.0073699951171875,
+      "available_gib": 26.474063873291016
+    },
+    {
+      "time": 1792777721.6138132,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 4.598506927490234,
+      "available_gib": 26.362194061279297
+    },
+    {
+      "time": 1792777724.630483,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 7.483829498291016,
+      "available_gib": 26.26236343383789
+    },
+    {
+      "time": 1792777727.652925,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 9.003181457519531,
+      "available_gib": 25.923763275146484
+    },
+    {
+      "time": 1792777730.6751812,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 9.130218505859375,
+      "available_gib": 25.503215789794922
+    },
+    {
+      "time": 1792777733.694319,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 10.337249755859375,
+      "available_gib": 27.288524627685547
+    },
+    {
+      "time": 1792777736.715251,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 9.27035903930664,
+      "available_gib": 26.77078628540039
+    },
+    {
+      "time": 1792777739.734822,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 8.07882308959961,
+      "available_gib": 26.168094635009766
+    },
+    {
+      "time": 1792777742.753796,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 12.244319915771484,
+      "available_gib": 30.77435302734375
+    },
+    {
+      "time": 1792777745.7785141,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 12.5545654296875,
+      "available_gib": 31.40359115600586
+    },
+    {
+      "time": 1792777748.7971606,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 12.229991912841797,
+      "available_gib": 31.08185577392578
+    },
+    {
+      "time": 1792777751.8228703,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 11.861576080322266,
+      "available_gib": 30.720314025878906
+    },
+    {
+      "time": 1792777754.8437252,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 10.255195617675781,
+      "available_gib": 29.21265411376953
+    },
+    {
+      "time": 1792777757.8613257,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 9.537433624267578,
+      "available_gib": 28.345897674560547
+    },
+    {
+      "time": 1792777760.8780203,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 8.454708099365234,
+      "available_gib": 27.572509765625
+    },
+    {
+      "time": 1792777763.8954725,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 7.822132110595703,
+      "available_gib": 26.941570281982422
+    },
+    {
+      "time": 1792777766.9109397,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 6.985301971435547,
+      "available_gib": 26.10483169555664
+    },
+    {
+      "time": 1792777769.9324703,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 7.719661712646484,
+      "available_gib": 26.842918395996094
+    },
+    {
+      "time": 1792777772.95274,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 6.954319000244141,
+      "available_gib": 26.110279083251953
+    },
+    {
+      "time": 1792777775.980607,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 6.753131866455078,
+      "available_gib": 25.91849136352539
+    },
+    {
+      "time": 1792777779.0094123,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 6.773590087890625,
+      "available_gib": 25.938983917236328
+    },
+    {
+      "time": 1792777782.0248718,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 35.862083435058594,
+      "available_gib": 55.01885223388672
+    },
+    {
+      "time": 1792777785.0450368,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 33.9672737121582,
+      "available_gib": 55.048946380615234
+    },
+    {
+      "time": 1792777788.0614073,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 33.923927307128906,
+      "available_gib": 55.06744384765625
+    },
+    {
+      "time": 1792777791.0771148,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 33.94059371948242,
+      "available_gib": 55.08029556274414
+    },
+    {
+      "time": 1792777794.0972393,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 33.933292388916016,
+      "available_gib": 55.069053649902344
+    },
+    {
+      "time": 1792777797.1135802,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 33.944114685058594,
+      "available_gib": 55.07469940185547
+    },
+    {
+      "time": 1792777800.130168,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 33.912471771240234,
+      "available_gib": 55.03860092163086
+    },
+    {
+      "time": 1792777803.146774,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 33.951812744140625,
+      "available_gib": 55.07313537597656
+    },
+    {
+      "time": 1792777806.1672862,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 33.980918884277344,
+      "available_gib": 55.097618103027344
+    },
+    {
+      "time": 1792777809.1840796,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 33.99944305419922,
+      "available_gib": 55.113460540771484
+    },
+    {
+      "time": 1792777812.2015164,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 33.99726104736328,
+      "available_gib": 55.11128234863281
+    },
+    {
+      "time": 1792777815.2204573,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 34.008544921875,
+      "available_gib": 55.12290954589844
+    },
+    {
+      "time": 1792777818.2371655,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 34.011871337890625,
+      "available_gib": 55.12531280517578
+    },
+    {
+      "time": 1792777821.2543619,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 34.00166320800781,
+      "available_gib": 55.1152229309082
+    },
+    {
+      "time": 1792777824.2719607,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 34.02039337158203,
+      "available_gib": 55.134010314941406
+    },
+    {
+      "time": 1792777827.289131,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 33.89862823486328,
+      "available_gib": 55.11328125
+    },
+    {
+      "time": 1792777830.307225,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 31.815628051757812,
+      "available_gib": 55.09230422973633
+    },
+    {
+      "time": 1792777833.3277862,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 33.7351188659668,
+      "available_gib": 55.04996109008789
+    },
+    {
+      "time": 1792777836.3473642,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 31.576313018798828,
+      "available_gib": 55.08138656616211
+    },
+    {
+      "time": 1792777839.3645086,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 29.611248016357422,
+      "available_gib": 55.08893966674805
+    },
+    {
+      "time": 1792777842.381896,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 33.5143928527832,
+      "available_gib": 55.09419631958008
+    },
+    {
+      "time": 1792777845.4010067,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 31.82665252685547,
+      "available_gib": 55.09043884277344
+    },
+    {
+      "time": 1792777848.4218657,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 29.59777069091797,
+      "available_gib": 55.08890151977539
+    },
+    {
+      "time": 1792777851.4421408,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 27.667522430419922,
+      "available_gib": 55.102142333984375
+    },
+    {
+      "time": 1792777854.4590874,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 25.589588165283203,
+      "available_gib": 55.08987808227539
+    },
+    {
+      "time": 1792777857.4759448,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 23.220664978027344,
+      "available_gib": 55.10664749145508
+    },
+    {
+      "time": 1792777860.4966056,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 32.80059814453125,
+      "available_gib": 54.98262023925781
+    },
+    {
+      "time": 1792777863.5130641,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 32.385013580322266,
+      "available_gib": 55.028072357177734
+    },
+    {
+      "time": 1792777866.5342028,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 30.189342498779297,
+      "available_gib": 55.057369232177734
+    },
+    {
+      "time": 1792777869.5513642,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 32.95555877685547,
+      "available_gib": 55.0833625793457
+    },
+    {
+      "time": 1792777872.5722167,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 35.41484832763672,
+      "available_gib": 54.814170837402344
+    },
+    {
+      "time": 1792777875.5913088,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 34.61431121826172,
+      "available_gib": 54.40155029296875
+    },
+    {
+      "time": 1792777878.6089993,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 34.55289077758789,
+      "available_gib": 54.375118255615234
+    },
+    {
+      "time": 1792777881.625876,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 30.486915588378906,
+      "available_gib": 52.22158432006836
+    },
+    {
+      "time": 1792777884.642706,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 28.729354858398438,
+      "available_gib": 51.316917419433594
+    },
+    {
+      "time": 1792777887.6637993,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 25.971694946289062,
+      "available_gib": 49.787105560302734
+    },
+    {
+      "time": 1792777890.6812367,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 24.44225311279297,
+      "available_gib": 48.925315856933594
+    },
+    {
+      "time": 1792777893.697592,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 22.965370178222656,
+      "available_gib": 48.13985824584961
+    },
+    {
+      "time": 1792777896.7163274,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 21.455337524414062,
+      "available_gib": 47.29802703857422
+    },
+    {
+      "time": 1792777899.7334938,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 18.869548797607422,
+      "available_gib": 45.91642379760742
+    },
+    {
+      "time": 1792777902.7536511,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 17.423370361328125,
+      "available_gib": 45.144187927246094
+    },
+    {
+      "time": 1792777905.7698934,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 15.752235412597656,
+      "available_gib": 44.203697204589844
+    },
+    {
+      "time": 1792777908.7860568,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 13.573532104492188,
+      "available_gib": 43.061500549316406
+    },
+    {
+      "time": 1792777911.80583,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 12.122901916503906,
+      "available_gib": 42.290687561035156
+    },
+    {
+      "time": 1792777914.8205378,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 10.200756072998047,
+      "available_gib": 41.22951126098633
+    },
+    {
+      "time": 1792777917.83934,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 8.642593383789062,
+      "available_gib": 40.288970947265625
+    },
+    {
+      "time": 1792777920.8623564,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 7.2913665771484375,
+      "available_gib": 39.3519287109375
+    },
+    {
+      "time": 1792777923.8827617,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 6.084083557128906,
+      "available_gib": 38.541873931884766
+    },
+    {
+      "time": 1792777926.9030812,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 5.444816589355469,
+      "available_gib": 38.31035614013672
+    },
+    {
+      "time": 1792777929.9239113,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 4.166374206542969,
+      "available_gib": 37.43966293334961
+    },
+    {
+      "time": 1792777932.941309,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 3.440277099609375,
+      "available_gib": 36.76765823364258
+    },
+    {
+      "time": 1792777935.967871,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 9.125442504882812,
+      "available_gib": 36.1650276184082
+    },
+    {
+      "time": 1792777938.9867873,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 1/3",
+      "free_gib": 9.083244323730469,
+      "available_gib": 35.617671966552734
+    },
+    {
+      "time": 1792777942.0062869,
+      "status": "running",
+      "stage": "실측 음성 길이에 맞춰 로컬 모델이 대본 수정",
+      "free_gib": 8.042373657226562,
+      "available_gib": 35.586490631103516
+    },
+    {
+      "time": 1792777945.027601,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 33.6637077331543,
+      "available_gib": 55.08845138549805
+    },
+    {
+      "time": 1792777948.044813,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 52.743263244628906,
+      "available_gib": 55.0924072265625
+    },
+    {
+      "time": 1792777951.065146,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 52.291927337646484,
+      "available_gib": 54.915645599365234
+    },
+    {
+      "time": 1792777954.0863469,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 51.678009033203125,
+      "available_gib": 54.63528060913086
+    },
+    {
+      "time": 1792777957.1024282,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 51.3475456237793,
+      "available_gib": 54.52206039428711
+    },
+    {
+      "time": 1792777960.1241767,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 50.107601165771484,
+      "available_gib": 53.28223419189453
+    },
+    {
+      "time": 1792777963.143669,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 48.7443962097168,
+      "available_gib": 51.986488342285156
+    },
+    {
+      "time": 1792777966.1607075,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 47.97014236450195,
+      "available_gib": 51.41950225830078
+    },
+    {
+      "time": 1792777969.1826372,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 45.3082275390625,
+      "available_gib": 48.792442321777344
+    },
+    {
+      "time": 1792777972.200383,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 44.354591369628906,
+      "available_gib": 48.17142868041992
+    },
+    {
+      "time": 1792777975.2185287,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 43.13218307495117,
+      "available_gib": 47.345726013183594
+    },
+    {
+      "time": 1792777978.2380226,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 41.93107604980469,
+      "available_gib": 46.534000396728516
+    },
+    {
+      "time": 1792777981.2558177,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 40.79113006591797,
+      "available_gib": 45.77678298950195
+    },
+    {
+      "time": 1792777984.2772472,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 40.83538818359375,
+      "available_gib": 46.256927490234375
+    },
+    {
+      "time": 1792777987.2939422,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 28.966873168945312,
+      "available_gib": 34.4149169921875
+    },
+    {
+      "time": 1792777990.3126671,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 27.57391357421875,
+      "available_gib": 33.022037506103516
+    },
+    {
+      "time": 1792777993.3283772,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 23.83144760131836,
+      "available_gib": 30.26721954345703
+    },
+    {
+      "time": 1792777996.3457685,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 22.059410095214844,
+      "available_gib": 30.308998107910156
+    },
+    {
+      "time": 1792777999.3664994,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 20.196796417236328,
+      "available_gib": 30.280616760253906
+    },
+    {
+      "time": 1792778002.3850703,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 18.16971206665039,
+      "available_gib": 29.443923950195312
+    },
+    {
+      "time": 1792778005.4084394,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 17.26761245727539,
+      "available_gib": 28.962966918945312
+    },
+    {
+      "time": 1792778008.426024,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 16.016307830810547,
+      "available_gib": 28.178142547607422
+    },
+    {
+      "time": 1792778011.4435182,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 14.792034149169922,
+      "available_gib": 27.364089965820312
+    },
+    {
+      "time": 1792778014.4644878,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 13.496246337890625,
+      "available_gib": 26.478836059570312
+    },
+    {
+      "time": 1792778017.4840958,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 12.537250518798828,
+      "available_gib": 25.8218994140625
+    },
+    {
+      "time": 1792778020.5045605,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 14.874324798583984,
+      "available_gib": 28.455184936523438
+    },
+    {
+      "time": 1792778023.5283086,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 13.948612213134766,
+      "available_gib": 27.84632110595703
+    },
+    {
+      "time": 1792778026.5492833,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 12.631515502929688,
+      "available_gib": 27.09033966064453
+    },
+    {
+      "time": 1792778029.568852,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 11.552753448486328,
+      "available_gib": 26.3616943359375
+    },
+    {
+      "time": 1792778032.5898573,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 10.645336151123047,
+      "available_gib": 25.762496948242188
+    },
+    {
+      "time": 1792778035.6084578,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 12.841480255126953,
+      "available_gib": 28.411911010742188
+    },
+    {
+      "time": 1792778038.630193,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 11.788276672363281,
+      "available_gib": 27.688800811767578
+    },
+    {
+      "time": 1792778041.6461115,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 10.660205841064453,
+      "available_gib": 26.932857513427734
+    },
+    {
+      "time": 1792778044.6637108,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 9.462181091308594,
+      "available_gib": 26.18108367919922
+    },
+    {
+      "time": 1792778047.683447,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 8.189727783203125,
+      "available_gib": 25.339656829833984
+    },
+    {
+      "time": 1792778050.7033944,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 7.194637298583984,
+      "available_gib": 24.689449310302734
+    },
+    {
+      "time": 1792778053.724701,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 6.309093475341797,
+      "available_gib": 24.209503173828125
+    },
+    {
+      "time": 1792778056.7438421,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 5.436229705810547,
+      "available_gib": 23.746315002441406
+    },
+    {
+      "time": 1792778059.7648273,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 5.97216796875,
+      "available_gib": 24.926712036132812
+    },
+    {
+      "time": 1792778062.7854402,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 5.465183258056641,
+      "available_gib": 24.989303588867188
+    },
+    {
+      "time": 1792778065.8067389,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 4.481723785400391,
+      "available_gib": 24.57345199584961
+    },
+    {
+      "time": 1792778068.825839,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 3.622509002685547,
+      "available_gib": 24.224346160888672
+    },
+    {
+      "time": 1792778071.8466372,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 9.038505554199219,
+      "available_gib": 29.94756317138672
+    },
+    {
+      "time": 1792778074.8680077,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 8.67474365234375,
+      "available_gib": 29.586063385009766
+    },
+    {
+      "time": 1792778077.8862505,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 8.505409240722656,
+      "available_gib": 29.42168426513672
+    },
+    {
+      "time": 1792778080.90866,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 7.061931610107422,
+      "available_gib": 27.997817993164062
+    },
+    {
+      "time": 1792778083.9260256,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 5.379459381103516,
+      "available_gib": 26.31549835205078
+    },
+    {
+      "time": 1792778086.945146,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 4.640052795410156,
+      "available_gib": 25.576122283935547
+    },
+    {
+      "time": 1792778089.9648447,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 5.233592987060547,
+      "available_gib": 26.169761657714844
+    },
+    {
+      "time": 1792778092.9847784,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 4.186378479003906,
+      "available_gib": 25.124160766601562
+    },
+    {
+      "time": 1792778096.0040948,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 5.68585205078125,
+      "available_gib": 25.55794906616211
+    },
+    {
+      "time": 1792778099.0333617,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 5.304569244384766,
+      "available_gib": 25.188392639160156
+    },
+    {
+      "time": 1792778102.0491297,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 34.22629165649414,
+      "available_gib": 54.28312301635742
+    },
+    {
+      "time": 1792778105.064213,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 32.43229293823242,
+      "available_gib": 54.296321868896484
+    },
+    {
+      "time": 1792778108.0802178,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 32.43524169921875,
+      "available_gib": 54.293540954589844
+    },
+    {
+      "time": 1792778111.1009183,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 32.46351623535156,
+      "available_gib": 54.31681442260742
+    },
+    {
+      "time": 1792778114.1178493,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 32.49266815185547,
+      "available_gib": 54.34011459350586
+    },
+    {
+      "time": 1792778117.1380365,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 32.50809860229492,
+      "available_gib": 54.35140609741211
+    },
+    {
+      "time": 1792778120.1592767,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 32.52071762084961,
+      "available_gib": 54.35974884033203
+    },
+    {
+      "time": 1792778123.1810653,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 32.53437423706055,
+      "available_gib": 54.369102478027344
+    },
+    {
+      "time": 1792778126.203061,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 32.54933166503906,
+      "available_gib": 54.37919235229492
+    },
+    {
+      "time": 1792778129.2272882,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 32.55338668823242,
+      "available_gib": 54.38252639770508
+    },
+    {
+      "time": 1792778132.2437718,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 32.565223693847656,
+      "available_gib": 54.39386749267578
+    },
+    {
+      "time": 1792778135.2631025,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 32.56376647949219,
+      "available_gib": 54.39242172241211
+    },
+    {
+      "time": 1792778138.2797246,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 32.54379653930664,
+      "available_gib": 54.37239456176758
+    },
+    {
+      "time": 1792778141.3001308,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 32.54792404174805,
+      "available_gib": 54.37706756591797
+    },
+    {
+      "time": 1792778144.3190248,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 32.54750442504883,
+      "available_gib": 54.376426696777344
+    },
+    {
+      "time": 1792778147.3390417,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 31.41667938232422,
+      "available_gib": 54.33383560180664
+    },
+    {
+      "time": 1792778150.363122,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 29.509784698486328,
+      "available_gib": 54.32377624511719
+    },
+    {
+      "time": 1792778153.383244,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 31.42312240600586,
+      "available_gib": 54.3282470703125
+    },
+    {
+      "time": 1792778156.3987544,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 29.41910171508789,
+      "available_gib": 54.3088493347168
+    },
+    {
+      "time": 1792778159.4165342,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 27.146469116210938,
+      "available_gib": 54.267398834228516
+    },
+    {
+      "time": 1792778162.4333174,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 31.487262725830078,
+      "available_gib": 54.297019958496094
+    },
+    {
+      "time": 1792778165.450655,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 29.58777618408203,
+      "available_gib": 54.34478759765625
+    },
+    {
+      "time": 1792778168.4690475,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 27.628921508789062,
+      "available_gib": 54.365692138671875
+    },
+    {
+      "time": 1792778171.4863136,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 25.55746841430664,
+      "available_gib": 54.34138107299805
+    },
+    {
+      "time": 1792778174.5094686,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 23.273277282714844,
+      "available_gib": 54.35343933105469
+    },
+    {
+      "time": 1792778177.525209,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 22.06545639038086,
+      "available_gib": 55.25230407714844
+    },
+    {
+      "time": 1792778180.5450652,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 31.789405822753906,
+      "available_gib": 55.16444778442383
+    },
+    {
+      "time": 1792778183.5608404,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 31.573593139648438,
+      "available_gib": 55.13606643676758
+    },
+    {
+      "time": 1792778186.575856,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 29.54572296142578,
+      "available_gib": 55.12505340576172
+    },
+    {
+      "time": 1792778189.5922394,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 32.34031677246094,
+      "available_gib": 55.12355422973633
+    },
+    {
+      "time": 1792778192.6137223,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 34.37085723876953,
+      "available_gib": 55.11542892456055
+    },
+    {
+      "time": 1792778195.6518228,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 33.56303787231445,
+      "available_gib": 54.50916290283203
+    },
+    {
+      "time": 1792778198.6688912,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 33.44917297363281,
+      "available_gib": 54.43683624267578
+    },
+    {
+      "time": 1792778201.6885295,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 29.616626739501953,
+      "available_gib": 52.495662689208984
+    },
+    {
+      "time": 1792778204.7064793,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 27.729427337646484,
+      "available_gib": 51.43117141723633
+    },
+    {
+      "time": 1792778207.723097,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 24.842636108398438,
+      "available_gib": 49.82208251953125
+    },
+    {
+      "time": 1792778210.7399955,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 23.30602264404297,
+      "available_gib": 48.97837829589844
+    },
+    {
+      "time": 1792778213.7584183,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 21.712936401367188,
+      "available_gib": 48.10103225708008
+    },
+    {
+      "time": 1792778216.7757325,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 20.19830322265625,
+      "available_gib": 47.275753021240234
+    },
+    {
+      "time": 1792778219.7978792,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 17.54401397705078,
+      "available_gib": 45.82797622680664
+    },
+    {
+      "time": 1792778222.8146682,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 15.98635482788086,
+      "available_gib": 44.949161529541016
+    },
+    {
+      "time": 1792778225.831902,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 14.596389770507812,
+      "available_gib": 44.21232986450195
+    },
+    {
+      "time": 1792778228.8489444,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 12.454566955566406,
+      "available_gib": 43.11285400390625
+    },
+    {
+      "time": 1792778231.8654547,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 11.01211929321289,
+      "available_gib": 42.34449768066406
+    },
+    {
+      "time": 1792778234.8862119,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 9.547428131103516,
+      "available_gib": 41.72563552856445
+    },
+    {
+      "time": 1792778237.9078817,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 7.862342834472656,
+      "available_gib": 40.6995735168457
+    },
+    {
+      "time": 1792778240.9298522,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 6.5738372802734375,
+      "available_gib": 39.837425231933594
+    },
+    {
+      "time": 1792778243.9466329,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 5.306385040283203,
+      "available_gib": 39.01214599609375
+    },
+    {
+      "time": 1792778246.9625387,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 3.9545059204101562,
+      "available_gib": 38.090423583984375
+    },
+    {
+      "time": 1792778249.9805806,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 2.68670654296875,
+      "available_gib": 37.25016784667969
+    },
+    {
+      "time": 1792778253.0057552,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 5.394538879394531,
+      "available_gib": 37.4846305847168
+    },
+    {
+      "time": 1792778256.0297568,
+      "status": "running",
+      "stage": "Fish 음성 합성·길이 확인 2/3",
+      "free_gib": 8.954376220703125,
+      "available_gib": 36.273948669433594
+    },
+    {
+      "time": 1792778259.0495336,
+      "status": "running",
+      "stage": "음성 전사·대본 누락 검사",
+      "free_gib": 9.885623931884766,
+      "available_gib": 35.704280853271484
+    },
+    {
+      "time": 1792778262.06615,
+      "status": "running",
+      "stage": "음성 전사·대본 누락 검사",
+      "free_gib": 9.596065521240234,
+      "available_gib": 35.64140701293945
+    },
+    {
+      "time": 1792778265.087042,
+      "status": "running",
+      "stage": "로컬 모델 템플릿 작성·검사 1/3",
+      "free_gib": 8.75930404663086,
+      "available_gib": 35.2979736328125
+    },
+    {
+      "time": 1792778268.105349,
+      "status": "running",
+      "stage": "로컬 모델 템플릿 작성·검사 1/3",
+      "free_gib": 7.403141021728516,
+      "available_gib": 34.84108352661133
+    },
+    {
+      "time": 1792778271.1405728,
+      "status": "running",
+      "stage": "로컬 모델 템플릿 작성·검사 1/3",
+      "free_gib": 6.139305114746094,
+      "available_gib": 34.97499465942383
+    },
+    {
+      "time": 1792778274.1586294,
+      "status": "running",
+      "stage": "로컬 모델 템플릿 작성·검사 1/3",
+      "free_gib": 5.353515625,
+      "available_gib": 34.960899353027344
+    },
+    {
+      "time": 1792778277.1865773,
+      "status": "running",
+      "stage": "로컬 모델 템플릿 작성·검사 1/3",
+      "free_gib": 5.077648162841797,
+      "available_gib": 34.868072509765625
+    },
+    {
+      "time": 1792778280.2146277,
+      "status": "running",
+      "stage": "로컬 모델 템플릿 작성·검사 1/3",
+      "free_gib": 4.8748016357421875,
+      "available_gib": 34.817447662353516
+    },
+    {
+      "time": 1792778283.2442741,
+      "status": "running",
+      "stage": "로컬 모델 템플릿 작성·검사 1/3",
+      "free_gib": 4.747890472412109,
+      "available_gib": 34.87823486328125
+    },
+    {
+      "time": 1792778286.2703273,
+      "status": "running",
+      "stage": "로컬 모델 템플릿 작성·검사 1/3",
+      "free_gib": 4.530921936035156,
+      "available_gib": 34.901763916015625
+    },
+    {
+      "time": 1792778289.2981346,
+      "status": "running",
+      "stage": "로컬 모델 템플릿 작성·검사 1/3",
+      "free_gib": 4.148460388183594,
+      "available_gib": 34.80958938598633
+    },
+    {
+      "time": 1792778292.3157618,
+      "status": "running",
+      "stage": "로컬 모델 템플릿 작성·검사 2/3",
+      "free_gib": 3.7952308654785156,
+      "available_gib": 34.74883270263672
+    },
+    {
+      "time": 1792778295.350286,
+      "status": "running",
+      "stage": "로컬 모델 템플릿 작성·검사 2/3",
+      "free_gib": 3.518474578857422,
+      "available_gib": 35.07783508300781
+    },
+    {
+      "time": 1792778298.385673,
+      "status": "running",
+      "stage": "로컬 모델 템플릿 작성·검사 2/3",
+      "free_gib": 3.4228553771972656,
+      "available_gib": 35.053348541259766
+    },
+    {
+      "time": 1792778301.412974,
+      "status": "running",
+      "stage": "로컬 모델 템플릿 작성·검사 2/3",
+      "free_gib": 3.425323486328125,
+      "available_gib": 35.06716537475586
+    },
+    {
+      "time": 1792778304.4431078,
+      "status": "running",
+      "stage": "로컬 모델 템플릿 작성·검사 2/3",
+      "free_gib": 3.477283477783203,
+      "available_gib": 35.21634292602539
+    },
+    {
+      "time": 1792778307.4727514,
+      "status": "running",
+      "stage": "로컬 모델 템플릿 작성·검사 2/3",
+      "free_gib": 3.3089218139648438,
+      "available_gib": 35.02373123168945
+    },
+    {
+      "time": 1792778310.5014248,
+      "status": "running",
+      "stage": "로컬 모델 템플릿 작성·검사 2/3",
+      "free_gib": 3.3828887939453125,
+      "available_gib": 35.19165802001953
+    },
+    {
+      "time": 1792778313.5198612,
+      "status": "running",
+      "stage": "로컬 모델 템플릿 작성·검사 2/3",
+      "free_gib": 3.2242088317871094,
+      "available_gib": 35.18232345581055
+    },
+    {
+      "time": 1792778316.5412264,
+      "status": "running",
+      "stage": "로컬 모델 템플릿 작성·검사 2/3",
+      "free_gib": 2.9796676635742188,
+      "available_gib": 34.8798713684082
+    },
+    {
+      "time": 1792778319.5605834,
+      "status": "running",
+      "stage": "로컬 모델 템플릿 작성·검사 2/3",
+      "free_gib": 2.989757537841797,
+      "available_gib": 34.9671516418457
+    },
+    {
+      "time": 1792778322.582615,
+      "status": "running",
+      "stage": "로컬 모델 템플릿 작성·검사 2/3",
+      "free_gib": 3.0267601013183594,
+      "available_gib": 34.943336486816406
+    },
+    {
+      "time": 1792778325.6034675,
+      "status": "running",
+      "stage": "로컬 모델 템플릿 작성·검사 2/3",
+      "free_gib": 3.0007858276367188,
+      "available_gib": 34.919559478759766
+    },
+    {
+      "time": 1792778328.624505,
+      "status": "running",
+      "stage": "로컬 모델 템플릿 작성·검사 2/3",
+      "free_gib": 2.8943405151367188,
+      "available_gib": 34.81919479370117
+    },
+    {
+      "time": 1792778331.6556063,
+      "status": "running",
+      "stage": "로컬 비전 모델이 실제 미리보기 검사",
+      "free_gib": 3.4016189575195312,
+      "available_gib": 35.17749786376953
+    },
+    {
+      "time": 1792778334.6955023,
+      "status": "running",
+      "stage": "로컬 비전 모델이 실제 미리보기 검사",
+      "free_gib": 2.6481170654296875,
+      "available_gib": 35.03992462158203
+    },
+    {
+      "time": 1792778337.723989,
+      "status": "running",
+      "stage": "로컬 비전 모델이 실제 미리보기 검사",
+      "free_gib": 2.647796630859375,
+      "available_gib": 35.16565704345703
+    },
+    {
+      "time": 1792778340.7440004,
+      "status": "running",
+      "stage": "세로 영상 렌더링 1/360프레임",
+      "free_gib": 2.251300811767578,
+      "available_gib": 34.80818176269531
+    },
+    {
+      "time": 1792778343.7651868,
+      "status": "running",
+      "stage": "세로 영상 렌더링 46/360프레임 · 약 16초 남음",
+      "free_gib": 2.1604995727539062,
+      "available_gib": 34.79933547973633
+    },
+    {
+      "time": 1792778346.787385,
+      "status": "running",
+      "stage": "세로 영상 렌더링 108/360프레임 · 약 13초 남음",
+      "free_gib": 1.8518218994140625,
+      "available_gib": 34.410945892333984
+    },
+    {
+      "time": 1792778349.8110266,
+      "status": "running",
+      "stage": "세로 영상 렌더링 176/360프레임 · 약 10초 남음",
+      "free_gib": 1.6758499145507812,
+      "available_gib": 34.316802978515625
+    },
+    {
+      "time": 1792778352.8330855,
+      "status": "running",
+      "stage": "세로 영상 렌더링 222/360프레임 · 약 7초 남음",
+      "free_gib": 1.7766227722167969,
+      "available_gib": 34.33640670776367
+    },
+    {
+      "time": 1792778355.8543894,
+      "status": "running",
+      "stage": "세로 영상 렌더링 294/360프레임 · 약 4초 남음",
+      "free_gib": 1.7970733642578125,
+      "available_gib": 34.357051849365234
+    },
+    {
+      "time": 1792778358.8746724,
+      "status": "running",
+      "stage": "세로 영상 렌더링 360/360프레임",
+      "free_gib": 2.4268646240234375,
+      "available_gib": 34.98468780517578
+    },
+    {
+      "time": 1792778361.894838,
+      "status": "completed",
+      "stage": "완료",
+      "free_gib": 2.567333221435547,
+      "available_gib": 35.15342712402344
+    }
+  ],
+  "list_result": {
+    "status": "completed",
+    "content": "현재 영상 제작에 사용할 수 있는 Fish 음성은 9개입니다. Qwen3-TTS로 만든 참조 음성을 사용하며, 아래에 실제 Fish 미리 듣기를 첨부했습니다.\n\n| 음성 ID | 이름·특징 | 기본 언어 |\n|---|---|---|\n| `sohee` | Sohee — 따뜻한 여성 목소리 | 한국어 |\n| `uncle_fu` | Uncle Fu — 낮고 차분한 중년 남성 목소리 | 중국어 |\n| `vivian` | Vivian — 밝은 젊은 여성 목소리 | 중국어 |\n| `serena` | Serena — 부드럽고 온화한 여성 목소리 | 중국어 |\n| `dylan` | Dylan — 젊은 남성 목소리 | 중국어·베이징 |\n| `eric` | Eric — 활기찬 남성 목소리 | 중국어·쓰촨 |\n| `ryan` | Ryan — 리듬감 있는 남성 목소리 | 영어 |\n| `aiden` | Aiden — 밝은 미국식 남성 목소리 | 영어 |\n| `ono_anna` | Ono Anna — 경쾌한 여성 목소리 | 일본어 |\n\n한국어로 검증한 샘플이며, 음성별 억양은 다릅니다. ‘Ryan을 기본 음성으로 선택해’ 또는 ‘기존 영상에 Ryan을 적용해’처럼 요청하세요.",
+    "attachments": [
+      {
+        "id": "37c4390458446f6e5252b47953a4a9ff",
+        "name": "sohee-Fish-preview.wav",
+        "url": "/api/files/37c4390458446f6e5252b47953a4a9ff/sohee-Fish-preview.wav?type=audio%2Fwav"
+      },
+      {
+        "id": "8d588def448a8aeefad929d1344f942d",
+        "name": "uncle_fu-Fish-preview.wav",
+        "url": "/api/files/8d588def448a8aeefad929d1344f942d/uncle_fu-Fish-preview.wav?type=audio%2Fwav"
+      },
+      {
+        "id": "1868687dd50551cdac0d35df30919ab5",
+        "name": "vivian-Fish-preview.wav",
+        "url": "/api/files/1868687dd50551cdac0d35df30919ab5/vivian-Fish-preview.wav?type=audio%2Fwav"
+      },
+      {
+        "id": "250c0f5f4b7867362c3689f6f9a39357",
+        "name": "serena-Fish-preview.wav",
+        "url": "/api/files/250c0f5f4b7867362c3689f6f9a39357/serena-Fish-preview.wav?type=audio%2Fwav"
+      },
+      {
+        "id": "eec51758738c25028d70b38a101c69fb",
+        "name": "dylan-Fish-preview.wav",
+        "url": "/api/files/eec51758738c25028d70b38a101c69fb/dylan-Fish-preview.wav?type=audio%2Fwav"
+      },
+      {
+        "id": "4671f6b2eb713c78365686871d4951ba",
+        "name": "eric-Fish-preview.wav",
+        "url": "/api/files/4671f6b2eb713c78365686871d4951ba/eric-Fish-preview.wav?type=audio%2Fwav"
+      },
+      {
+        "id": "d3975d01f0e2c033ab788971acef87b5",
+        "name": "ryan-Fish-preview.wav",
+        "url": "/api/files/d3975d01f0e2c033ab788971acef87b5/ryan-Fish-preview.wav?type=audio%2Fwav"
+      },
+      {
+        "id": "91a571850d1cc801557a86f3ba45e49e",
+        "name": "aiden-Fish-preview.wav",
+        "url": "/api/files/91a571850d1cc801557a86f3ba45e49e/aiden-Fish-preview.wav?type=audio%2Fwav"
+      },
+      {
+        "id": "bde99490a54fbd91ae9829836c2c35fe",
+        "name": "ono_anna-Fish-preview.wav",
+        "url": "/api/files/bde99490a54fbd91ae9829836c2c35fe/ono_anna-Fish-preview.wav?type=audio%2Fwav"
+      }
+    ]
+  },
+  "preview_result": {
+    "status": "completed",
+    "content": "ryan의 저장된 Fish 미리 듣기입니다.",
+    "attachments": [
+      {
+        "id": "d3975d01f0e2c033ab788971acef87b5",
+        "name": "ryan-Fish-preview.wav",
+        "url": "/api/files/d3975d01f0e2c033ab788971acef87b5/ryan-Fish-preview.wav?type=audio%2Fwav"
+      }
+    ]
+  },
+  "select_result": {
+    "status": "completed",
+    "content": "이 대화에서 앞으로 새로 만드는 영상의 기본 음성을 ryan로 선택했습니다. 기존 영상은 그대로입니다.",
+    "attachments": []
+  }
+}

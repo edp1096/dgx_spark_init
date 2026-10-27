@@ -17,6 +17,7 @@ type generationProgress struct {
 	Event    string   `json:"event"`
 	Stage    string   `json:"stage"`
 	Kind     string   `json:"kind"`
+	Detail   string   `json:"detail,omitempty"`
 	Step     *int     `json:"step"`
 	Total    *int     `json:"total"`
 	Elapsed  float64  `json:"elapsed_seconds"`

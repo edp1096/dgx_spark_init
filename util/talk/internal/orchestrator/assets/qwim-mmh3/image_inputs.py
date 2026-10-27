@@ -10,6 +10,7 @@ from PIL import Image
 MAX_IMAGE_BYTES = 32 * 1024**2
 MAX_IMAGE_PIXELS = 16 * 1024**2
 MAX_VIDEO_PIXELS = 864 * 480
+VIDEO_PROFILES = {'480p': (864, 480), '720p': (1280, 720)}
 
 
 def decode_keyframe(value):
@@ -39,11 +40,16 @@ def decode_keyframe(value):
     return raw, {'width': width, 'height': height, 'sha256': hashlib.sha256(raw).hexdigest()}
 
 
-def video_size(width, height):
+def video_size(width, height, resolution='480p'):
+    canvas = VIDEO_PROFILES[resolution]
+    max_pixels = canvas[0] * canvas[1]
+    # Image conditioning requires even latent axes (32 pixels), unlike T2V
+    # where H3 pads odd axes internally. Preserve the existing 480p choices.
+    grid, max_edge = 32, 1024 if resolution == '480p' else 1280
     ratio = width / height
     candidates = [(abs(math.log((w / h) / ratio)), w * h, w, h)
-                  for w in range(128, 1025, 32) for h in range(128, 1025, 32)
-                  if w * h <= MAX_VIDEO_PIXELS]
+                  for w in range(128, max_edge + 1, grid) for h in range(128, max_edge + 1, grid)
+                  if w * h <= max_pixels]
     closest = min(row[0] for row in candidates)
     # Allow <= about 1% aspect error beyond the closest grid fit, then maximize
     # detail without exceeding the already-qualified landscape pixel budget.

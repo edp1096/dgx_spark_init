@@ -1,0 +1,303 @@
+{
+  "version": 1,
+  "training": false,
+  "voices": [
+    {
+      "id": "sohee",
+      "name": "Sohee",
+      "description": "따뜻한 여성 목소리",
+      "native_language": "한국어",
+      "reference_file": "reference.wav",
+      "reference_sha256": "58bfb593012f0e53cb498a0f48c726b553b6b9df502df3fede6f602453641604",
+      "reference_text": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어 주세요.",
+      "reference_duration_seconds": 10.4,
+      "reference_asr": {
+        "character_error_rate": 0,
+        "expected": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어 주세요.",
+        "passed": true,
+        "transcript": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어주세요."
+      },
+      "cache_version": 2,
+      "reference_source": "Synthetic Qwen3-TTS 0.6B CustomVoice Q8",
+      "selected_candidate": "sohee-existing.json",
+      "preview_file": "voices/previews/sohee.wav",
+      "preview_sha256": "e2873a48c607ceb5977f5eb7a74888d92481e113245718e7889f9e4639528a84",
+      "preview_text": "이 목소리로 영상의 이야기를 전해 드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해 보세요.",
+      "preview_duration_seconds": 7.5,
+      "preview_asr": {
+        "character_error_rate": 0,
+        "expected": "이 목소리로 영상의 이야기를 전해 드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해 보세요.",
+        "passed": true,
+        "transcript": "이 목소리로 영상의 이야기를 전해드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해보세요."
+      },
+      "validated_korean": true,
+      "preview_raw_sha256": "29375bb2e1002c1c82c4d7ac931e5375df77bc849261fe3d867866297b76acda",
+      "preview_normalized": true,
+      "preview_loudness_target_lufs": -18
+    },
+    {
+      "id": "uncle_fu",
+      "name": "Uncle Fu",
+      "description": "낮고 차분한 중년 남성 목소리",
+      "native_language": "중국어",
+      "reference_file": "reference-uncle-fu.wav",
+      "reference_sha256": "a9b3a7fc902802d5f121f36fa64d6c4bd590b822d6e401d16eaea2022414c803",
+      "reference_text": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어 주세요.",
+      "reference_duration_seconds": 12.88,
+      "reference_asr": {
+        "character_error_rate": 0,
+        "expected": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어 주세요.",
+        "passed": true,
+        "transcript": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어주세요."
+      },
+      "cache_version": 2,
+      "reference_source": "Synthetic Qwen3-TTS 0.6B CustomVoice Q8",
+      "selected_candidate": "uncle_fu-existing.json",
+      "preview_file": "voices/previews/uncle_fu.wav",
+      "preview_sha256": "95bcf03b22f6618bb5f715d1e738bf08b460a2e67fca9668cf473dd8b0f909f4",
+      "preview_text": "이 목소리로 영상의 이야기를 전해 드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해 보세요.",
+      "preview_duration_seconds": 9.939591836734694,
+      "preview_asr": {
+        "character_error_rate": 0,
+        "expected": "이 목소리로 영상의 이야기를 전해 드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해 보세요.",
+        "passed": true,
+        "transcript": "이 목소리로 영상의 이야기를 전해드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해보세요."
+      },
+      "validated_korean": true,
+      "preview_raw_sha256": "68832545d24b566074e06de911d1db7d7e81205d776130786410235ed3d2fb6c",
+      "preview_normalized": true,
+      "preview_loudness_target_lufs": -18
+    },
+    {
+      "id": "vivian",
+      "name": "Vivian",
+      "description": "밝은 젊은 여성 목소리",
+      "native_language": "중국어",
+      "reference_file": "voices/references/vivian.wav",
+      "reference_sha256": "f44735e7946b1e0a814b42a0490ef546fed23b6f681df0b2d51ef49445c8fa51",
+      "reference_text": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어 주세요. 지금부터 차근차근 살펴보겠습니다.",
+      "reference_duration_seconds": 11.36,
+      "reference_asr": {
+        "character_error_rate": 0,
+        "expected": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어 주세요. 지금부터 차근차근 살펴보겠습니다.",
+        "passed": true,
+        "transcript": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어주세요. 지금부터 차근차근 살펴보겠습니다."
+      },
+      "cache_version": 3,
+      "reference_source": "Synthetic Qwen3-TTS 0.6B CustomVoice Q8",
+      "selected_candidate": "vivian-long-137.json",
+      "preview_file": "voices/previews/vivian.wav",
+      "preview_sha256": "00677931cad477282702d1444b6f997324230cb6e7d0431b881fa35af06a02e8",
+      "preview_text": "이 목소리로 영상의 이야기를 전해 드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해 보세요.",
+      "preview_duration_seconds": 6.635147392290249,
+      "preview_asr": {
+        "character_error_rate": 0,
+        "expected": "이 목소리로 영상의 이야기를 전해 드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해 보세요.",
+        "passed": true,
+        "transcript": "이 목소리로 영상의 이야기를 전해드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해보세요."
+      },
+      "validated_korean": true,
+      "preview_raw_sha256": "2319a7113db0595ad62f0258a3b2c2069e8b538e02f4458a493de5e52383c847",
+      "preview_normalized": true,
+      "preview_loudness_target_lufs": -18
+    },
+    {
+      "id": "serena",
+      "name": "Serena",
+      "description": "부드럽고 온화한 여성 목소리",
+      "native_language": "중국어",
+      "reference_file": "voices/references/serena.wav",
+      "reference_sha256": "3dc211c75942fa96cabd50d8a04de9e7918648a4c6c7a33eae8f02d5d7ded053",
+      "reference_text": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어 주세요. 지금부터 차근차근 살펴보겠습니다.",
+      "reference_duration_seconds": 12.08,
+      "reference_asr": {
+        "character_error_rate": 0,
+        "expected": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어 주세요. 지금부터 차근차근 살펴보겠습니다.",
+        "passed": true,
+        "transcript": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어주세요. 지금부터 차근차근 살펴보겠습니다."
+      },
+      "cache_version": 3,
+      "reference_source": "Synthetic Qwen3-TTS 0.6B CustomVoice Q8",
+      "selected_candidate": "serena-long-42.json",
+      "preview_file": "voices/previews/serena.wav",
+      "preview_sha256": "890a3d21481cb5d3a76139a49db0a36c58d803d28b4131daefa6f6a910f1cac0",
+      "preview_text": "이 목소리로 영상의 이야기를 전해 드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해 보세요.",
+      "preview_duration_seconds": 6.96,
+      "preview_asr": {
+        "character_error_rate": 0,
+        "expected": "이 목소리로 영상의 이야기를 전해 드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해 보세요.",
+        "passed": true,
+        "transcript": "이 목소리로 영상의 이야기를 전해드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해보세요."
+      },
+      "validated_korean": true,
+      "preview_raw_sha256": "3a830bcd1f308ef8a3f65c82cc35ce23efb9d95aa8068b3b9ff319c1fa6eca37",
+      "preview_normalized": true,
+      "preview_loudness_target_lufs": -18
+    },
+    {
+      "id": "dylan",
+      "name": "Dylan",
+      "description": "젊은 남성 목소리",
+      "native_language": "중국어·베이징",
+      "reference_file": "voices/references/dylan.wav",
+      "reference_sha256": "b953fd3f6ccea566b70191ee9d97e86ab97ece222f88e6c7e0eac417699a0277",
+      "reference_text": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어 주세요. 지금부터 차근차근 살펴보겠습니다.",
+      "reference_duration_seconds": 12.08,
+      "reference_asr": {
+        "character_error_rate": 0,
+        "expected": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어 주세요. 지금부터 차근차근 살펴보겠습니다.",
+        "passed": true,
+        "transcript": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어주세요. 지금부터 차근차근 살펴보겠습니다."
+      },
+      "cache_version": 3,
+      "reference_source": "Synthetic Qwen3-TTS 0.6B CustomVoice Q8",
+      "selected_candidate": "dylan-long-42.json",
+      "preview_file": "voices/previews/dylan.wav",
+      "preview_sha256": "2576ee1c3388927802d1e80eee5ff3205dead0233f5d2a19a3f10842dd10c396",
+      "preview_text": "이 목소리로 영상의 이야기를 전해 드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해 보세요.",
+      "preview_duration_seconds": 8.217233560090703,
+      "preview_asr": {
+        "character_error_rate": 0,
+        "expected": "이 목소리로 영상의 이야기를 전해 드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해 보세요.",
+        "passed": true,
+        "transcript": "이 목소리로 영상의 이야기를 전해드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해보세요."
+      },
+      "validated_korean": true,
+      "preview_raw_sha256": "0fe4ca040faf1b100c87710a21cd988f6efd2c6aa3eb9190e62811ccc948560a",
+      "preview_normalized": true,
+      "preview_loudness_target_lufs": -18
+    },
+    {
+      "id": "eric",
+      "name": "Eric",
+      "description": "활기찬 남성 목소리",
+      "native_language": "중국어·쓰촨",
+      "reference_file": "voices/references/eric.wav",
+      "reference_sha256": "68f1764619252e83add5dbb51f97b34dd62968eb4290b041d5a36b3102c0d190",
+      "reference_text": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어 주세요. 지금부터 차근차근 살펴보겠습니다.",
+      "reference_duration_seconds": 10.4,
+      "reference_asr": {
+        "character_error_rate": 0,
+        "expected": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어 주세요. 지금부터 차근차근 살펴보겠습니다.",
+        "passed": true,
+        "transcript": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어주세요. 지금부터 차근차근 살펴보겠습니다."
+      },
+      "cache_version": 3,
+      "reference_source": "Synthetic Qwen3-TTS 0.6B CustomVoice Q8",
+      "selected_candidate": "eric-long-42.json",
+      "preview_file": "voices/previews/eric.wav",
+      "preview_sha256": "88a07c07576d92c98423f16d9c19184dd1a750f999fab9cb3e4becc64f9926f1",
+      "preview_text": "이 목소리로 영상의 이야기를 전해 드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해 보세요.",
+      "preview_duration_seconds": 5.96,
+      "preview_asr": {
+        "character_error_rate": 0,
+        "expected": "이 목소리로 영상의 이야기를 전해 드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해 보세요.",
+        "passed": true,
+        "transcript": "이 목소리로 영상의 이야기를 전해드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해보세요."
+      },
+      "validated_korean": true,
+      "preview_raw_sha256": "23e92034002e6900a747d8f0c01ed6688305721b08e4e01b9c6cebdce6c5e7e8",
+      "preview_normalized": true,
+      "preview_loudness_target_lufs": -18
+    },
+    {
+      "id": "ryan",
+      "name": "Ryan",
+      "description": "리듬감 있는 남성 목소리",
+      "native_language": "영어",
+      "reference_file": "voices/references/ryan.wav",
+      "reference_sha256": "22696d434b6b97d81845c4b19075232801eac1f874c4416c61dc8977722b4d24",
+      "reference_text": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어 주세요. 지금부터 차근차근 살펴보겠습니다.",
+      "reference_duration_seconds": 10.8,
+      "reference_asr": {
+        "character_error_rate": 0,
+        "expected": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어 주세요. 지금부터 차근차근 살펴보겠습니다.",
+        "passed": true,
+        "transcript": "안녕하세요 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어주세요. 지금부터 차근차근 살펴보겠습니다."
+      },
+      "cache_version": 3,
+      "reference_source": "Synthetic Qwen3-TTS 0.6B CustomVoice Q8",
+      "selected_candidate": "ryan-long-42.json",
+      "preview_file": "voices/previews/ryan.wav",
+      "preview_sha256": "6c4846d281b93712cd1e4f877c48fcd545741d4f9564ef8b1e82ebc3b65d4ed2",
+      "preview_text": "이 목소리로 영상의 이야기를 전해 드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해 보세요.",
+      "preview_duration_seconds": 6.06843537414966,
+      "preview_asr": {
+        "character_error_rate": 0,
+        "expected": "이 목소리로 영상의 이야기를 전해 드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해 보세요.",
+        "passed": true,
+        "transcript": "이 목소리로 영상의 이야기를 전해드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해보세요."
+      },
+      "validated_korean": true,
+      "preview_raw_sha256": "9b72a8350450944b0399a3e9a9474d47c872f5d3663f2e9090aefac02ea2ea54",
+      "preview_normalized": true,
+      "preview_loudness_target_lufs": -18
+    },
+    {
+      "id": "aiden",
+      "name": "Aiden",
+      "description": "밝은 미국식 남성 목소리",
+      "native_language": "영어",
+      "reference_file": "voices/references/aiden.wav",
+      "reference_sha256": "94a35cfcfc57ee1c5c35de85ef98c5b998629f1af6f1adbd40a6f203e4def35c",
+      "reference_text": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어 주세요. 지금부터 차근차근 살펴보겠습니다.",
+      "reference_duration_seconds": 10.32,
+      "reference_asr": {
+        "character_error_rate": 0,
+        "expected": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어 주세요. 지금부터 차근차근 살펴보겠습니다.",
+        "passed": true,
+        "transcript": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어주세요. 지금부터 차근차근 살펴보겠습니다."
+      },
+      "cache_version": 3,
+      "reference_source": "Synthetic Qwen3-TTS 0.6B CustomVoice Q8",
+      "selected_candidate": "aiden-long-137.json",
+      "preview_file": "voices/previews/aiden.wav",
+      "preview_sha256": "efa2937b5e6ec294a2b68558f7b976433f8896a4227161508fcd5db05e23b079",
+      "preview_text": "이 목소리로 영상의 이야기를 전해 드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해 보세요.",
+      "preview_duration_seconds": 6.21718820861678,
+      "preview_asr": {
+        "character_error_rate": 0,
+        "expected": "이 목소리로 영상의 이야기를 전해 드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해 보세요.",
+        "passed": true,
+        "transcript": "이 목소리로 영상의 이야기를 전해드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해보세요."
+      },
+      "validated_korean": true,
+      "preview_raw_sha256": "0bea66d79859c78535a704ab7778ebe44c1eea4ee9d04977be2c1bdef08052ef",
+      "preview_normalized": true,
+      "preview_loudness_target_lufs": -18
+    },
+    {
+      "id": "ono_anna",
+      "name": "Ono Anna",
+      "description": "경쾌한 여성 목소리",
+      "native_language": "일본어",
+      "reference_file": "voices/references/ono_anna.wav",
+      "reference_sha256": "a4b717d69eb1ca81b31cf0fe59cfb03ce5071b4ffeed699f9f67671db8e8fe37",
+      "reference_text": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어 주세요.",
+      "reference_duration_seconds": 12.0,
+      "reference_asr": {
+        "character_error_rate": 0,
+        "expected": "안녕하세요. 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어 주세요.",
+        "passed": true,
+        "transcript": "안녕하세요 오늘은 여러분과 함께 새로운 이야기를 시작하려고 합니다. 편안한 마음으로 끝까지 들어주세요."
+      },
+      "cache_version": 3,
+      "reference_source": "Synthetic Qwen3-TTS 0.6B CustomVoice Q8",
+      "selected_candidate": "ono_anna-42.json",
+      "preview_file": "voices/previews/ono_anna.wav",
+      "preview_sha256": "3bf993b89081ffc90df899965c05de195024345a7ad539668c438bb1a24c6327",
+      "preview_text": "이 목소리로 영상의 이야기를 전해 드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해 보세요.",
+      "preview_duration_seconds": 7.6,
+      "preview_asr": {
+        "character_error_rate": 0,
+        "expected": "이 목소리로 영상의 이야기를 전해 드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해 보세요.",
+        "passed": true,
+        "transcript": "이 목소리로 영상의 이야기를 전해드립니다. 오늘도 작은 발견과 함께 기분 좋은 하루를 시작해보세요."
+      },
+      "validated_korean": true,
+      "preview_raw_sha256": "63e5666d0426984484a7761f274d6e476b48eb4284e158eeae0eb306d2c6dd8a",
+      "preview_normalized": true,
+      "preview_loudness_target_lufs": -18
+    }
+  ]
+}

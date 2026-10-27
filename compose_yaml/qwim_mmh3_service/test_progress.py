@@ -46,3 +46,19 @@ class Estimates(unittest.TestCase):
         rows=json.loads((self.root/'state/timings.json').read_text())
         self.assertEqual(rows[PROFILE['h3']][0]['encode'],1)
         self.assertEqual(rows['h3-i2v-512x768'][0]['encode'],2)
+    def test_pdmd_does_not_reuse_20_step_history(self):
+        state=self.root/'state';state.mkdir()
+        (state/'timings.json').write_text(json.dumps({'h3-864x480-124-24-20-v1':[{s:200 for s in stages('h3')}]}))
+        t=self.tracker()
+        self.assertEqual(t.expected,{})
+        t.record('sample_start');self.now=11
+        progress=t.record('progress',step=1,total=4)
+        self.assertEqual((progress['eta_seconds'],progress['eta_scope']),(33,'stage'))
+    def test_720p_does_not_reuse_480p_eta(self):
+        self.tracker().remember({s:1 for s in stages('h3')})
+        high=Tracker(self.root,self.root/'state','b'*32,'h3',clock=lambda:self.now,profile='h3-t2v-1280x720-124-24-pdmd4-v6')
+        self.assertEqual(high.expected,{})
+        high.remember({s:3 for s in stages('h3')})
+        high=Tracker(self.root,self.root/'state','c'*32,'h3',clock=lambda:self.now,profile=high.profile)
+        self.assertEqual(high.expected['sample'],3)
+        self.assertEqual(self.tracker().expected['sample'],1)

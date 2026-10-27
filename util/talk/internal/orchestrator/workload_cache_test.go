@@ -184,3 +184,67 @@ func TestResidentImageCacheQuiesceAndResume(t *testing.T) {
 		})
 	}
 }
+
+func TestFishCacheScopeIsIndependentOfResidentQwenTTS(t *testing.T) {
+	c, dir, _ := offlineAuxiliaryController(t)
+	defer c.Close()
+	tts, _ := c.Catalog().Component("qwen3-tts")
+	fish, _ := c.Catalog().Component("extra-fish")
+	seedAuxiliary(t, dir, tts.Container)
+	b, _ := c.Catalog().Bundle("qwen38fn_exl3")
+	scopes, _, err := c.auxiliaryCacheScopes(context.Background(), b)
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := strings.Join(scopes, ",")
+	if strings.Contains(got, "tts") || !strings.Contains(got, "fish") {
+		t.Fatal(scopes)
+	}
+	seedAuxiliary(t, dir, fish.Container)
+	scopes, _, err = c.auxiliaryCacheScopes(context.Background(), b)
+	if err != nil || strings.Contains(strings.Join(scopes, ","), "fish") {
+		t.Fatal("running Fish weights must be protected", scopes, err)
+	}
+}
+
+func TestStoppedNativeH3AndFishCacheAdviceExcludesLanguageModel(t *testing.T) {
+	python, err := exec.LookPath("python3")
+	if err != nil {
+		t.Skip("Python unavailable")
+	}
+	root := t.TempDir()
+	files := []string{
+		"hub/models--lilcheaty--MiniMax-H3-NVFP4/snapshots/8c5abfed61e1b6a170240792b65253fba1a65b7b/native.safetensors",
+		"hub/models--watchpen--drama-3-int4-koen160/snapshots/fd0147b1bb988ea26718ee75e95de8b07a07c156/model-00001.safetensors",
+		"hub/models--watchpen--drama-3-int4-koen160/snapshots/fd0147b1bb988ea26718ee75e95de8b07a07c156/codec.pth",
+		"hub/models--watchpen--drama-3-int4-koen160/snapshots/unrelated/model.safetensors",
+		"hub/models--Qwen--Qwen3.8/snapshots/resident/model.safetensors",
+	}
+	for _, name := range files {
+		p := filepath.Join(root, name)
+		os.MkdirAll(filepath.Dir(p), 0700)
+		os.WriteFile(p, []byte("fixture"), 0600)
+	}
+	script := strings.ReplaceAll(auxiliaryCacheAdvice, "/qwen-image-cache", root)
+	prefix := "import os,json\nrecorded=[]\nos.posix_fadvise=lambda fd,*args:recorded.append(os.readlink('/proc/self/fd/'+str(fd)))\n"
+	out, err := exec.Command(python, "-c", prefix+script+"\nprint(json.dumps(recorded))", "fish,image").CombinedOutput()
+	if err != nil {
+		t.Fatal(err, string(out))
+	}
+	lines := strings.Split(strings.TrimSpace(string(out)), "\n")
+	var paths []string
+	if err = json.Unmarshal([]byte(lines[len(lines)-1]), &paths); err != nil {
+		t.Fatal(err)
+	}
+	if len(paths) != 3 {
+		t.Fatal(paths)
+	}
+	for _, p := range paths {
+		if strings.Contains(p, "unrelated") || strings.Contains(p, "Qwen3.8") {
+			t.Fatal("protected weights advised", p)
+		}
+	}
+	if managedColdCUDAFreeGiB(Component{ComposeAsset: "compose.extra-fish.yaml"}) < 16 {
+		t.Fatal("insufficient multi-process bootstrap reserve")
+	}
+}

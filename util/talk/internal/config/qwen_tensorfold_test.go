@@ -45,7 +45,7 @@ func TestQwenTensorFoldUpgradePreservesDeploymentAndSelection(t *testing.T) {
 		t.Fatal("retired 4bit deployment returned")
 	}
 	cfg.Normalize()
-	if cfg.Runtime.BuiltinRevision != 51 {
+	if cfg.Runtime.BuiltinRevision != 52 {
 		t.Fatal("migration did not settle")
 	}
 }

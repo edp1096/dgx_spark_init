@@ -1,0 +1,721 @@
+[
+  {
+    "time": 1792766801.8998108,
+    "case": "ddd6b079c966a3e2e3b71e6d1499e180",
+    "event": "references_encoded",
+    "available_GiB": 27.378551483154297,
+    "allocated_GiB": 17.58274745941162,
+    "reserved_GiB": 18.720703125,
+    "loaded_models": [
+      "QwenImage21TEModel_",
+      "WanVAE",
+      "QwenImage21",
+      "MiniMaxH3"
+    ],
+    "resident": {
+      "h3": 11.665514223277569,
+      "qwim": 3.909243941307068
+    },
+    "reference_sha256": [
+      "12dcd41d6974bfd73cfa948f36302ca89686dc78ec0869424f0b64d73fe416df"
+    ],
+    "count": 1
+  },
+  {
+    "time": 1792766837.9131532,
+    "case": "ddd6b079c966a3e2e3b71e6d1499e180",
+    "event": "idle",
+    "available_GiB": 33.71229934692383,
+    "allocated_GiB": 17.613038063049316,
+    "reserved_GiB": 17.935546875,
+    "loaded_models": [
+      "QwenImage21",
+      "MiniMaxH3"
+    ],
+    "resident": {
+      "h3": 11.665514223277569,
+      "qwim": 3.909243941307068
+    },
+    "seconds": 52.91079827299109,
+    "peak_cuda_allocated_gib": 19.239829540252686,
+    "peak_cuda_reserved_gib": 19.8125
+  },
+  {
+    "time": 1792766849.7315557,
+    "case": "03282abe84b86376511f1a92aaba6af6",
+    "event": "keyframe_loaded",
+    "available_GiB": 33.433021545410156,
+    "allocated_GiB": 17.613038063049316,
+    "reserved_GiB": 17.935546875,
+    "loaded_models": [
+      "QwenImage21",
+      "MiniMaxH3"
+    ],
+    "resident": {
+      "h3": 11.665514223277569,
+      "qwim": 3.909243941307068
+    },
+    "label": "first",
+    "source_sha256": "41547c295552ac1bd64529dde4dba000c2f7cbffd2e3e6dd6b49bf958594d7ed",
+    "source_width": 1024,
+    "source_height": 1024,
+    "resolved_frame_index": 0
+  },
+  {
+    "time": 1792766855.0220988,
+    "case": "03282abe84b86376511f1a92aaba6af6",
+    "event": "keyframes_encoded",
+    "available_GiB": 26.750320434570312,
+    "allocated_GiB": 17.614619731903076,
+    "reserved_GiB": 18.19921875,
+    "loaded_models": [
+      "MiniMaxH3VideoVAE",
+      "Krea2TEModel_",
+      "QwenImage21",
+      "MiniMaxH3"
+    ],
+    "resident": {
+      "h3": 11.665514223277569,
+      "qwim": 3.909243941307068
+    },
+    "frame_indices": [
+      0
+    ],
+    "width": 640,
+    "height": 640
+  },
+  {
+    "time": 1792766916.4171505,
+    "case": "03282abe84b86376511f1a92aaba6af6",
+    "event": "idle",
+    "available_GiB": 32.67852783203125,
+    "allocated_GiB": 17.613038063049316,
+    "reserved_GiB": 17.935546875,
+    "loaded_models": [
+      "MiniMaxH3",
+      "QwenImage21"
+    ],
+    "resident": {
+      "h3": 11.665514223277569,
+      "qwim": 3.909243941307068
+    },
+    "seconds": 66.9201953309821,
+    "peak_cuda_allocated_gib": 20.619929313659668,
+    "peak_cuda_reserved_gib": 23.421875
+  },
+  {
+    "time": 1792767205.7038898,
+    "case": "960c6281fc3eca9dfc8514d4fe6ab343",
+    "event": "idle",
+    "available_GiB": 32.295997619628906,
+    "allocated_GiB": 17.613038063049316,
+    "reserved_GiB": 17.935546875,
+    "loaded_models": [
+      "QwenImage21",
+      "MiniMaxH3"
+    ],
+    "resident": {
+      "h3": 11.665514223277569,
+      "qwim": 3.909243941307068
+    },
+    "seconds": 27.899690495978575,
+    "peak_cuda_allocated_gib": 18.613506317138672,
+    "peak_cuda_reserved_gib": 19.623046875
+  },
+  {
+    "time": 1792767369.2788203,
+    "case": "b9e78a15dd9fe569b9b6c2fac6d80709",
+    "event": "references_encoded",
+    "available_GiB": 25.412181854248047,
+    "allocated_GiB": 17.614005088806152,
+    "reserved_GiB": 18.953125,
+    "loaded_models": [
+      "QwenImage21TEModel_",
+      "WanVAE",
+      "QwenImage21",
+      "MiniMaxH3"
+    ],
+    "resident": {
+      "h3": 11.665514223277569,
+      "qwim": 3.909243941307068
+    },
+    "reference_sha256": [
+      "ba51e768dafd831e9004003c75f61f67b9e8a69e57f7efe9284c84ca4aa26b4d"
+    ],
+    "count": 1
+  },
+  {
+    "time": 1792767404.959718,
+    "case": "b9e78a15dd9fe569b9b6c2fac6d80709",
+    "event": "idle",
+    "available_GiB": 32.47700119018555,
+    "allocated_GiB": 17.613038063049316,
+    "reserved_GiB": 17.935546875,
+    "loaded_models": [
+      "QwenImage21",
+      "MiniMaxH3"
+    ],
+    "resident": {
+      "h3": 11.665514223277569,
+      "qwim": 3.909243941307068
+    },
+    "seconds": 49.15881937701488,
+    "peak_cuda_allocated_gib": 19.26812982559204,
+    "peak_cuda_reserved_gib": 19.830078125
+  },
+  {
+    "time": 1792767413.1217709,
+    "case": "fe941dccf281c6228de917710e013301",
+    "event": "keyframe_loaded",
+    "available_GiB": 32.35208511352539,
+    "allocated_GiB": 17.613038063049316,
+    "reserved_GiB": 17.935546875,
+    "loaded_models": [
+      "QwenImage21",
+      "MiniMaxH3"
+    ],
+    "resident": {
+      "h3": 11.665514223277569,
+      "qwim": 3.909243941307068
+    },
+    "label": "first",
+    "source_sha256": "2e9a127abecb7ef0c68c3f71592ab59a6b51585578f6421ffcdfc719489c13d9",
+    "source_width": 896,
+    "source_height": 1184,
+    "resolved_frame_index": 0
+  },
+  {
+    "time": 1792767417.7815974,
+    "case": "fe941dccf281c6228de917710e013301",
+    "event": "keyframes_encoded",
+    "available_GiB": 26.61627197265625,
+    "allocated_GiB": 17.614619731903076,
+    "reserved_GiB": 18.34765625,
+    "loaded_models": [
+      "MiniMaxH3VideoVAE",
+      "Krea2TEModel_",
+      "QwenImage21",
+      "MiniMaxH3"
+    ],
+    "resident": {
+      "h3": 11.665514223277569,
+      "qwim": 3.909243941307068
+    },
+    "frame_indices": [
+      0
+    ],
+    "width": 832,
+    "height": 1088
+  },
+  {
+    "time": 1792767512.9564583,
+    "case": "fe941dccf281c6228de917710e013301",
+    "event": "idle",
+    "available_GiB": 32.184444427490234,
+    "allocated_GiB": 17.693424224853516,
+    "reserved_GiB": 18.03125,
+    "loaded_models": [
+      "MiniMaxH3",
+      "QwenImage21"
+    ],
+    "resident": {
+      "h3": 11.665514223277569,
+      "qwim": 3.909243941307068
+    },
+    "canceled": true
+  },
+  {
+    "time": 1792767720.4928725,
+    "case": "28abf5168817f27b095ca7dbed73da74",
+    "event": "idle",
+    "available_GiB": 31.28533935546875,
+    "allocated_GiB": 17.613038063049316,
+    "reserved_GiB": 17.935546875,
+    "loaded_models": [
+      "MiniMaxH3",
+      "QwenImage21"
+    ],
+    "resident": {
+      "h3": 11.665514223277569,
+      "qwim": 3.909243941307068
+    },
+    "seconds": 188.0084029409918,
+    "peak_cuda_allocated_gib": 24.114659309387207,
+    "peak_cuda_reserved_gib": 29.79296875
+  },
+  {
+    "time": 1792767737.4468873,
+    "case": "43e88b3ad1e2040cc44d8c05e8857eca",
+    "event": "keyframe_loaded",
+    "available_GiB": 31.551555633544922,
+    "allocated_GiB": 17.613038063049316,
+    "reserved_GiB": 17.935546875,
+    "loaded_models": [
+      "MiniMaxH3",
+      "QwenImage21"
+    ],
+    "resident": {
+      "h3": 11.665514223277569,
+      "qwim": 3.909243941307068
+    },
+    "label": "first",
+    "source_sha256": "2e9a127abecb7ef0c68c3f71592ab59a6b51585578f6421ffcdfc719489c13d9",
+    "source_width": 896,
+    "source_height": 1184,
+    "resolved_frame_index": 0
+  },
+  {
+    "time": 1792767742.1227355,
+    "case": "43e88b3ad1e2040cc44d8c05e8857eca",
+    "event": "keyframes_encoded",
+    "available_GiB": 25.81298828125,
+    "allocated_GiB": 17.614619731903076,
+    "reserved_GiB": 18.34765625,
+    "loaded_models": [
+      "MiniMaxH3VideoVAE",
+      "Krea2TEModel_",
+      "MiniMaxH3",
+      "QwenImage21"
+    ],
+    "resident": {
+      "h3": 11.665514223277569,
+      "qwim": 3.909243941307068
+    },
+    "frame_indices": [
+      0
+    ],
+    "width": 832,
+    "height": 1088
+  },
+  {
+    "time": 1792767939.881931,
+    "case": "43e88b3ad1e2040cc44d8c05e8857eca",
+    "event": "idle",
+    "available_GiB": 32.06037902832031,
+    "allocated_GiB": 17.613038063049316,
+    "reserved_GiB": 17.935546875,
+    "loaded_models": [
+      "MiniMaxH3",
+      "QwenImage21"
+    ],
+    "resident": {
+      "h3": 11.665514223277569,
+      "qwim": 3.909243941307068
+    },
+    "seconds": 202.59359527996276,
+    "peak_cuda_allocated_gib": 24.125528812408447,
+    "peak_cuda_reserved_gib": 29.8203125
+  },
+  {
+    "time": 1792768244.598642,
+    "case": "39911e7039b5f25a31a365608b426790",
+    "event": "idle",
+    "available_GiB": 31.799209594726562,
+    "allocated_GiB": 17.613038063049316,
+    "reserved_GiB": 17.935546875,
+    "loaded_models": [
+      "QwenImage21",
+      "MiniMaxH3"
+    ],
+    "resident": {
+      "h3": 11.665514223277569,
+      "qwim": 3.909243941307068
+    },
+    "seconds": 26.15518795204116,
+    "peak_cuda_allocated_gib": 18.61453628540039,
+    "peak_cuda_reserved_gib": 19.62890625
+  },
+  {
+    "time": 1792768458.387604,
+    "case": "fa09373dfd63293fafbe3bafcb7d2c4c",
+    "event": "references_encoded",
+    "available_GiB": 25.111278533935547,
+    "allocated_GiB": 17.614005088806152,
+    "reserved_GiB": 18.953125,
+    "loaded_models": [
+      "QwenImage21TEModel_",
+      "WanVAE",
+      "QwenImage21",
+      "MiniMaxH3"
+    ],
+    "resident": {
+      "h3": 11.665514223277569,
+      "qwim": 3.909243941307068
+    },
+    "reference_sha256": [
+      "47b1b1d43d37c1c80a7f0fc6a6e4506ef39871eec4cd3d570a3cbfa3f5b2de2b"
+    ],
+    "count": 1
+  },
+  {
+    "time": 1792768493.8946323,
+    "case": "fa09373dfd63293fafbe3bafcb7d2c4c",
+    "event": "idle",
+    "available_GiB": 32.191829681396484,
+    "allocated_GiB": 17.613038063049316,
+    "reserved_GiB": 17.935546875,
+    "loaded_models": [
+      "QwenImage21",
+      "MiniMaxH3"
+    ],
+    "resident": {
+      "h3": 11.665514223277569,
+      "qwim": 3.909243941307068
+    },
+    "seconds": 42.92295048199594,
+    "peak_cuda_allocated_gib": 19.26807737350464,
+    "peak_cuda_reserved_gib": 19.9140625
+  },
+  {
+    "time": 1792768503.0076911,
+    "case": "81f6c0053ab4d70a09c50dc2230471a9",
+    "event": "idle",
+    "available_GiB": 31.67664337158203,
+    "allocated_GiB": 17.613038063049316,
+    "reserved_GiB": 17.935546875,
+    "loaded_models": [
+      "QwenImage21",
+      "MiniMaxH3"
+    ],
+    "resident": {
+      "h3": 11.665514223277569,
+      "qwim": 3.909243941307068
+    },
+    "canceled": true
+  },
+  {
+    "time": 1792768931.4240782,
+    "case": "dcc6129e1371616b6b132b919f952844",
+    "event": "keyframe_loaded",
+    "available_GiB": 32.64657974243164,
+    "allocated_GiB": 17.613038063049316,
+    "reserved_GiB": 17.935546875,
+    "loaded_models": [
+      "QwenImage21",
+      "MiniMaxH3"
+    ],
+    "resident": {
+      "h3": 11.665514223277569,
+      "qwim": 3.909243941307068
+    },
+    "label": "first",
+    "source_sha256": "954b9f6bb163d5820403517419906482da4c9311c62158a6c3ad91e424ed1d33",
+    "source_width": 1184,
+    "source_height": 896,
+    "resolved_frame_index": 0
+  },
+  {
+    "time": 1792768935.7901647,
+    "case": "dcc6129e1371616b6b132b919f952844",
+    "event": "keyframes_encoded",
+    "available_GiB": 26.610408782958984,
+    "allocated_GiB": 17.614619731903076,
+    "reserved_GiB": 18.171875,
+    "loaded_models": [
+      "MiniMaxH3VideoVAE",
+      "Krea2TEModel_",
+      "QwenImage21",
+      "MiniMaxH3"
+    ],
+    "resident": {
+      "h3": 11.665514223277569,
+      "qwim": 3.909243941307068
+    },
+    "frame_indices": [
+      0
+    ],
+    "width": 672,
+    "height": 512
+  },
+  {
+    "time": 1792768989.9645815,
+    "case": "dcc6129e1371616b6b132b919f952844",
+    "event": "idle",
+    "available_GiB": 32.04335021972656,
+    "allocated_GiB": 17.613038063049316,
+    "reserved_GiB": 17.935546875,
+    "loaded_models": [
+      "MiniMaxH3",
+      "QwenImage21"
+    ],
+    "resident": {
+      "h3": 11.665514223277569,
+      "qwim": 3.909243941307068
+    },
+    "seconds": 58.78769262396963,
+    "peak_cuda_allocated_gib": 20.147926330566406,
+    "peak_cuda_reserved_gib": 22.5546875
+  },
+  {
+    "time": 1792769010.3673236,
+    "case": "072f65ee8e9e10ab79b9fe2087adacf1",
+    "event": "references_encoded",
+    "available_GiB": 24.614315032958984,
+    "allocated_GiB": 17.614005088806152,
+    "reserved_GiB": 19.09765625,
+    "loaded_models": [
+      "QwenImage21TEModel_",
+      "WanVAE",
+      "MiniMaxH3",
+      "QwenImage21"
+    ],
+    "resident": {
+      "h3": 11.665514223277569,
+      "qwim": 3.909243941307068
+    },
+    "reference_sha256": [
+      "d60173c1196ffbbe81b1f88e4fd8f75013384a0a748b6f28849155530ee6f407",
+      "0a20a79d46e1447c58caa5cc87c14213f1198d14b01183b377ce131bc39f6808"
+    ],
+    "count": 2
+  },
+  {
+    "time": 1792769059.0163808,
+    "case": "072f65ee8e9e10ab79b9fe2087adacf1",
+    "event": "idle",
+    "available_GiB": 32.02705383300781,
+    "allocated_GiB": 17.613038063049316,
+    "reserved_GiB": 17.935546875,
+    "loaded_models": [
+      "QwenImage21",
+      "MiniMaxH3"
+    ],
+    "resident": {
+      "h3": 11.665514223277569,
+      "qwim": 3.909243941307068
+    },
+    "seconds": 68.7344040760072,
+    "peak_cuda_allocated_gib": 20.656321048736572,
+    "peak_cuda_reserved_gib": 21.4609375
+  },
+  {
+    "time": 1792769059.9245417,
+    "case": "1d1956015d54b334d341c0fa3c85a29e",
+    "event": "keyframe_loaded",
+    "available_GiB": 32.19786071777344,
+    "allocated_GiB": 17.613038063049316,
+    "reserved_GiB": 17.935546875,
+    "loaded_models": [
+      "QwenImage21",
+      "MiniMaxH3"
+    ],
+    "resident": {
+      "h3": 11.665514223277569,
+      "qwim": 3.909243941307068
+    },
+    "label": "first",
+    "source_sha256": "954b9f6bb163d5820403517419906482da4c9311c62158a6c3ad91e424ed1d33",
+    "source_width": 1184,
+    "source_height": 896,
+    "resolved_frame_index": 0
+  },
+  {
+    "time": 1792769064.961183,
+    "case": "1d1956015d54b334d341c0fa3c85a29e",
+    "event": "keyframes_encoded",
+    "available_GiB": 26.14737319946289,
+    "allocated_GiB": 17.614619731903076,
+    "reserved_GiB": 18.171875,
+    "loaded_models": [
+      "MiniMaxH3VideoVAE",
+      "Krea2TEModel_",
+      "QwenImage21",
+      "MiniMaxH3"
+    ],
+    "resident": {
+      "h3": 11.665514223277569,
+      "qwim": 3.909243941307068
+    },
+    "frame_indices": [
+      0
+    ],
+    "width": 672,
+    "height": 512
+  },
+  {
+    "time": 1792769118.9602172,
+    "case": "1d1956015d54b334d341c0fa3c85a29e",
+    "event": "idle",
+    "available_GiB": 31.608013153076172,
+    "allocated_GiB": 17.613038063049316,
+    "reserved_GiB": 17.935546875,
+    "loaded_models": [
+      "MiniMaxH3",
+      "QwenImage21"
+    ],
+    "resident": {
+      "h3": 11.665514223277569,
+      "qwim": 3.909243941307068
+    },
+    "seconds": 59.22084200399695,
+    "peak_cuda_allocated_gib": 20.163071155548096,
+    "peak_cuda_reserved_gib": 22.595703125
+  },
+  {
+    "time": 1792769135.2725296,
+    "case": "7cbbe365762142a9f7dc7196dc547992",
+    "event": "keyframe_loaded",
+    "available_GiB": 31.652454376220703,
+    "allocated_GiB": 17.613038063049316,
+    "reserved_GiB": 17.935546875,
+    "loaded_models": [
+      "MiniMaxH3",
+      "QwenImage21"
+    ],
+    "resident": {
+      "h3": 11.665514223277569,
+      "qwim": 3.909243941307068
+    },
+    "label": "first",
+    "source_sha256": "954b9f6bb163d5820403517419906482da4c9311c62158a6c3ad91e424ed1d33",
+    "source_width": 1184,
+    "source_height": 896,
+    "resolved_frame_index": 0
+  },
+  {
+    "time": 1792769137.8465595,
+    "case": "7cbbe365762142a9f7dc7196dc547992",
+    "event": "keyframes_encoded",
+    "available_GiB": 25.642467498779297,
+    "allocated_GiB": 17.614619731903076,
+    "reserved_GiB": 18.171875,
+    "loaded_models": [
+      "MiniMaxH3VideoVAE",
+      "Krea2TEModel_",
+      "MiniMaxH3",
+      "QwenImage21"
+    ],
+    "resident": {
+      "h3": 11.665514223277569,
+      "qwim": 3.909243941307068
+    },
+    "frame_indices": [
+      0
+    ],
+    "width": 672,
+    "height": 512
+  },
+  {
+    "time": 1792769191.2624955,
+    "case": "7cbbe365762142a9f7dc7196dc547992",
+    "event": "idle",
+    "available_GiB": 31.525623321533203,
+    "allocated_GiB": 17.613038063049316,
+    "reserved_GiB": 17.935546875,
+    "loaded_models": [
+      "MiniMaxH3",
+      "QwenImage21"
+    ],
+    "resident": {
+      "h3": 11.665514223277569,
+      "qwim": 3.909243941307068
+    },
+    "seconds": 56.18070476897992,
+    "peak_cuda_allocated_gib": 20.163162231445312,
+    "peak_cuda_reserved_gib": 22.599609375
+  },
+  {
+    "time": 1792771778.9487867,
+    "case": "45c980bb308345890cffdb6024fbe453",
+    "event": "references_encoded",
+    "available_GiB": 25.312049865722656,
+    "allocated_GiB": 17.614005088806152,
+    "reserved_GiB": 18.953125,
+    "loaded_models": [
+      "QwenImage21TEModel_",
+      "WanVAE",
+      "MiniMaxH3",
+      "QwenImage21"
+    ],
+    "resident": {
+      "h3": 11.665514223277569,
+      "qwim": 3.909243941307068
+    },
+    "reference_sha256": [
+      "47b1b1d43d37c1c80a7f0fc6a6e4506ef39871eec4cd3d570a3cbfa3f5b2de2b"
+    ],
+    "count": 1
+  },
+  {
+    "time": 1792771814.7771993,
+    "case": "45c980bb308345890cffdb6024fbe453",
+    "event": "idle",
+    "available_GiB": 32.42029571533203,
+    "allocated_GiB": 17.613038063049316,
+    "reserved_GiB": 17.935546875,
+    "loaded_models": [
+      "QwenImage21",
+      "MiniMaxH3"
+    ],
+    "resident": {
+      "h3": 11.665514223277569,
+      "qwim": 3.909243941307068
+    },
+    "seconds": 46.05104128498351,
+    "peak_cuda_allocated_gib": 19.268101692199707,
+    "peak_cuda_reserved_gib": 19.9140625
+  },
+  {
+    "time": 1792771821.0424163,
+    "case": "35011a53e916d4b794f338df57880dea",
+    "event": "keyframe_loaded",
+    "available_GiB": 32.490028381347656,
+    "allocated_GiB": 17.613038063049316,
+    "reserved_GiB": 17.935546875,
+    "loaded_models": [
+      "QwenImage21",
+      "MiniMaxH3"
+    ],
+    "resident": {
+      "h3": 11.665514223277569,
+      "qwim": 3.909243941307068
+    },
+    "label": "first",
+    "source_sha256": "a2777e3e87c794fb2fb8c29637bdf87e596be6dd86d1d6dae2012d2b26218a9c",
+    "source_width": 1184,
+    "source_height": 896,
+    "resolved_frame_index": 0
+  },
+  {
+    "time": 1792771825.4724853,
+    "case": "35011a53e916d4b794f338df57880dea",
+    "event": "keyframes_encoded",
+    "available_GiB": 26.515281677246094,
+    "allocated_GiB": 17.614619731903076,
+    "reserved_GiB": 18.171875,
+    "loaded_models": [
+      "MiniMaxH3VideoVAE",
+      "Krea2TEModel_",
+      "QwenImage21",
+      "MiniMaxH3"
+    ],
+    "resident": {
+      "h3": 11.665514223277569,
+      "qwim": 3.909243941307068
+    },
+    "frame_indices": [
+      0
+    ],
+    "width": 672,
+    "height": 512
+  },
+  {
+    "time": 1792771879.8843818,
+    "case": "35011a53e916d4b794f338df57880dea",
+    "event": "idle",
+    "available_GiB": 32.56045150756836,
+    "allocated_GiB": 17.613038063049316,
+    "reserved_GiB": 17.935546875,
+    "loaded_models": [
+      "MiniMaxH3",
+      "QwenImage21"
+    ],
+    "resident": {
+      "h3": 11.665514223277569,
+      "qwim": 3.909243941307068
+    },
+    "seconds": 59.04390660399804,
+    "peak_cuda_allocated_gib": 20.142173767089844,
+    "peak_cuda_reserved_gib": 22.53515625
+  }
+]

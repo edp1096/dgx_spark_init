@@ -1,0 +1,19 @@
+services:
+  runtime:
+    image: sparktalk-extra-shorts:0.4.1
+    build: .
+    container_name: sparktalk-extra-shorts
+    restart: unless-stopped
+    init: true
+    network_mode: host
+    cpus: 6
+    mem_limit: 6g
+    pids_limit: 512
+    shm_size: 512m
+    environment:
+      SHORTS_DATA_DIR: /data
+      SHORTS_TALK_ENDPOINT: ${SHORTS_TALK_ENDPOINT:-http://127.0.0.1:8585}
+      VOICE_LIBRARY_DIR: /voices
+    volumes:
+      - ${SHORTS_DATA_DIR:-${HOME}/.local/share/sparktalk/shorts}:/data
+      - ${SPARKTALK_DATA_DIR:-${HOME}/.local/share/sparktalk}/voices:/voices

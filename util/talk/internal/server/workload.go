@@ -5,10 +5,14 @@ import (
 	"fmt"
 	"math"
 	"sparktalk/internal/asr"
+	"strings"
 )
 
 func (s *Server) acquireWorkload(ctx context.Context, target string, peak ...float64) (func(...error) error, error) {
 	cfg, _ := s.snapshot()
+	if cfg.SupportDisabled(strings.TrimPrefix(target, "extra-")) {
+		return nil, fmt.Errorf("현재 모델 세트에서는 Fish·ACE-Step 생성을 제외했습니다")
+	}
 	if s.runtime == nil || cfg.Runtime.Mode != "managed" {
 		return func(...error) error { return nil }, nil
 	}

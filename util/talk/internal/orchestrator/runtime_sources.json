@@ -60,6 +60,10 @@
     "target": "qwim-mmh3/sol_runtime.py"
   },
   {
+    "source": "compose_yaml/qwim_mmh3_service/pdmd_lora.py",
+    "target": "qwim-mmh3/pdmd_lora.py"
+  },
+  {
     "source": "compose_yaml/qwim_mmh3_service/image_inputs.py",
     "target": "qwim-mmh3/image_inputs.py"
   },
@@ -70,6 +74,10 @@
   {
     "source": "compose_yaml/qwim_mmh3_service/Dockerfile",
     "target": "qwim-mmh3/Dockerfile"
+  },
+  {
+    "source": "compose_yaml/qwim_mmh3_service/runtime-requirements.txt",
+    "target": "qwim-mmh3/runtime-requirements.txt"
   },
   {
     "source": "compose_yaml/qwim_mmh3_service/ClipProj/clipproj_projection.py",
@@ -130,5 +138,369 @@
   {
     "source": "compose_yaml/sparktalk_extra/embedding/prepare.py",
     "target": "embedding/prepare.py"
+  },
+  {
+    "source": "compose_yaml/extra_shorts_service/Dockerfile",
+    "target": "extra-shorts/Dockerfile"
+  },
+  {
+    "source": "compose_yaml/extra_shorts_service/api.py",
+    "target": "extra-shorts/api.py"
+  },
+  {
+    "source": "compose_yaml/extra_shorts_service/composition.py",
+    "target": "extra-shorts/composition.py"
+  },
+  {
+    "source": "compose_yaml/extra_shorts_service/manim_scene.py",
+    "target": "extra-shorts/manim_scene.py"
+  },
+  {
+    "source": "compose_yaml/extra_shorts_service/package.json",
+    "target": "extra-shorts/package.json"
+  },
+  {
+    "source": "compose_yaml/extra_shorts_service/render.py",
+    "target": "extra-shorts/render.py"
+  },
+  {
+    "source": "compose_yaml/extra_shorts_service/requirements.txt",
+    "target": "extra-shorts/requirements.txt"
+  },
+  {
+    "source": "compose_yaml/extra_shorts_service/speech.py",
+    "target": "extra-shorts/speech.py"
+  },
+  {
+    "source": "compose_yaml/extra_shorts_service/store.py",
+    "target": "extra-shorts/store.py"
+  },
+  {
+    "source": "compose_yaml/fish_drama3/Dockerfile",
+    "target": "extra-fish/Dockerfile"
+  },
+  {
+    "source": "compose_yaml/fish_drama3/UPSTREAM.md",
+    "target": "extra-fish/UPSTREAM.md"
+  },
+  {
+    "source": "compose_yaml/fish_drama3/api.py",
+    "target": "extra-fish/api.py"
+  },
+  {
+    "source": "compose_yaml/fish_drama3/config.json",
+    "target": "extra-fish/config.json"
+  },
+  {
+    "source": "compose_yaml/fish_drama3/patches/audio_decoder.py",
+    "target": "extra-fish/patches/audio_decoder.py"
+  },
+  {
+    "source": "compose_yaml/fish_drama3/patches/hadamard8.py",
+    "target": "extra-fish/patches/hadamard8.py"
+  },
+  {
+    "source": "compose_yaml/fish_drama3/patches/sampling.py",
+    "target": "extra-fish/patches/sampling.py"
+  },
+  {
+    "source": "compose_yaml/fish_drama3/patches/sampling_kernels.py",
+    "target": "extra-fish/patches/sampling_kernels.py"
+  },
+  {
+    "source": "compose_yaml/fish_drama3/patches/sampling_selection.py",
+    "target": "extra-fish/patches/sampling_selection.py"
+  },
+  {
+    "source": "compose_yaml/fish_drama3/patches/sglang_model.py",
+    "target": "extra-fish/patches/sglang_model.py"
+  },
+  {
+    "source": "compose_yaml/fish_drama3/patches/speech_request.py",
+    "target": "extra-fish/patches/speech_request.py"
+  },
+  {
+    "source": "compose_yaml/fish_drama3/patches/weights.py",
+    "target": "extra-fish/patches/weights.py"
+  },
+  {
+    "source": "compose_yaml/fish_drama3/reference.wav",
+    "target": "extra-fish/reference.wav"
+  },
+  {
+    "source": "compose_yaml/fish_drama3/speech.py",
+    "target": "extra-fish/speech.py"
+  },
+  {
+    "source": "compose_yaml/extra_shorts_service/package-lock.json",
+    "target": "extra-shorts/package-lock.json"
+  },
+  {
+    "source": "compose_yaml/extra_shorts_service/assets.py",
+    "target": "extra-shorts/assets.py"
+  },
+  {
+    "source": "compose_yaml/extra_shorts_service/spec.py",
+    "target": "extra-shorts/spec.py"
+  },
+  {
+    "source": "compose_yaml/extra_shorts_service/authoring.py",
+    "target": "extra-shorts/authoring.py"
+  },
+  {
+    "source": "compose_yaml/extra_shorts_service/audit.mjs",
+    "target": "extra-shorts/audit.mjs"
+  },
+  {
+    "source": "compose_yaml/extra_shorts_service/audio_mix.py",
+    "target": "extra-shorts/audio_mix.py"
+  },
+  {
+    "source": "compose_yaml/extra_shorts_service/pipeline.py",
+    "target": "extra-shorts/pipeline.py"
+  },
+  {
+    "source": "compose_yaml/fish_drama3/reference-uncle-fu.wav",
+    "target": "extra-fish/reference-uncle-fu.wav"
+  },
+  {
+    "source": "compose_yaml/music_studio/Dockerfile.ace",
+    "target": "music-studio/Dockerfile.ace"
+  },
+  {
+    "source": "compose_yaml/music_studio/api.py",
+    "target": "music-studio/api.py"
+  },
+  {
+    "source": "compose_yaml/music_studio/generate.py",
+    "target": "music-studio/generate.py"
+  },
+  {
+    "source": "compose_yaml/extra_shorts_service/music.py",
+    "target": "extra-shorts/music.py"
+  },
+  {
+    "source": "compose_yaml/music_studio/README.md",
+    "target": "music-studio/README.md"
+  },
+  {
+    "source": "compose_yaml/music_studio/.dockerignore",
+    "target": "music-studio/.dockerignore"
+  },
+  {
+    "source": "compose_yaml/music_studio/models.json",
+    "target": "music-studio/models.json"
+  },
+  {
+    "source": "compose_yaml/extra_shorts_service/design_reference.json",
+    "target": "extra-shorts/design_reference.json"
+  },
+  {
+    "source": "compose_yaml/qwim_mmh3_service/edit_inputs.py",
+    "target": "qwim-mmh3/edit_inputs.py"
+  },
+  {
+    "source": "compose_yaml/extra_shorts_service/clip_store.py",
+    "target": "extra-shorts/clip_store.py"
+  },
+  {
+    "source": "compose_yaml/extra_shorts_service/clip_pipeline.py",
+    "target": "extra-shorts/clip_pipeline.py"
+  },
+  {
+    "source": "compose_yaml/extra_shorts_service/clip_render.py",
+    "target": "extra-shorts/clip_render.py"
+  },
+  {
+    "source": "compose_yaml/fish_drama3/voice_catalog.py",
+    "target": "extra-fish/voice_catalog.py"
+  },
+  {
+    "source": "compose_yaml/fish_drama3/voices/catalog.json",
+    "target": "extra-fish/voices/catalog.json"
+  },
+  {
+    "source": "compose_yaml/fish_drama3/voices/references/vivian.wav",
+    "target": "extra-fish/voices/references/vivian.wav"
+  },
+  {
+    "source": "compose_yaml/fish_drama3/voices/references/serena.wav",
+    "target": "extra-fish/voices/references/serena.wav"
+  },
+  {
+    "source": "compose_yaml/fish_drama3/voices/references/dylan.wav",
+    "target": "extra-fish/voices/references/dylan.wav"
+  },
+  {
+    "source": "compose_yaml/fish_drama3/voices/references/eric.wav",
+    "target": "extra-fish/voices/references/eric.wav"
+  },
+  {
+    "source": "compose_yaml/fish_drama3/voices/references/ryan.wav",
+    "target": "extra-fish/voices/references/ryan.wav"
+  },
+  {
+    "source": "compose_yaml/fish_drama3/voices/references/aiden.wav",
+    "target": "extra-fish/voices/references/aiden.wav"
+  },
+  {
+    "source": "compose_yaml/fish_drama3/voices/references/ono_anna.wav",
+    "target": "extra-fish/voices/references/ono_anna.wav"
+  },
+  {
+    "source": "compose_yaml/fish_drama3/voices/previews/sohee.wav",
+    "target": "extra-fish/voices/previews/sohee.wav"
+  },
+  {
+    "source": "compose_yaml/fish_drama3/voices/previews/uncle_fu.wav",
+    "target": "extra-fish/voices/previews/uncle_fu.wav"
+  },
+  {
+    "source": "compose_yaml/fish_drama3/voices/previews/vivian.wav",
+    "target": "extra-fish/voices/previews/vivian.wav"
+  },
+  {
+    "source": "compose_yaml/fish_drama3/voices/previews/serena.wav",
+    "target": "extra-fish/voices/previews/serena.wav"
+  },
+  {
+    "source": "compose_yaml/fish_drama3/voices/previews/dylan.wav",
+    "target": "extra-fish/voices/previews/dylan.wav"
+  },
+  {
+    "source": "compose_yaml/fish_drama3/voices/previews/eric.wav",
+    "target": "extra-fish/voices/previews/eric.wav"
+  },
+  {
+    "source": "compose_yaml/fish_drama3/voices/previews/ryan.wav",
+    "target": "extra-fish/voices/previews/ryan.wav"
+  },
+  {
+    "source": "compose_yaml/fish_drama3/voices/previews/aiden.wav",
+    "target": "extra-fish/voices/previews/aiden.wav"
+  },
+  {
+    "source": "compose_yaml/fish_drama3/voices/previews/ono_anna.wav",
+    "target": "extra-fish/voices/previews/ono_anna.wav"
+  },
+  {
+    "source": "compose_yaml/fish_drama3/voice_catalog.py",
+    "target": "extra-shorts/voice_catalog.py"
+  },
+  {
+    "source": "compose_yaml/fish_drama3/voices/catalog.json",
+    "target": "extra-shorts/voices/catalog.json"
+  },
+  {
+    "source": "compose_yaml/fish_drama3/voices/references/vivian.wav",
+    "target": "extra-shorts/voices/references/vivian.wav"
+  },
+  {
+    "source": "compose_yaml/fish_drama3/voices/references/serena.wav",
+    "target": "extra-shorts/voices/references/serena.wav"
+  },
+  {
+    "source": "compose_yaml/fish_drama3/voices/references/dylan.wav",
+    "target": "extra-shorts/voices/references/dylan.wav"
+  },
+  {
+    "source": "compose_yaml/fish_drama3/voices/references/eric.wav",
+    "target": "extra-shorts/voices/references/eric.wav"
+  },
+  {
+    "source": "compose_yaml/fish_drama3/voices/references/ryan.wav",
+    "target": "extra-shorts/voices/references/ryan.wav"
+  },
+  {
+    "source": "compose_yaml/fish_drama3/voices/references/aiden.wav",
+    "target": "extra-shorts/voices/references/aiden.wav"
+  },
+  {
+    "source": "compose_yaml/fish_drama3/voices/references/ono_anna.wav",
+    "target": "extra-shorts/voices/references/ono_anna.wav"
+  },
+  {
+    "source": "compose_yaml/fish_drama3/voices/previews/sohee.wav",
+    "target": "extra-shorts/voices/previews/sohee.wav"
+  },
+  {
+    "source": "compose_yaml/fish_drama3/voices/previews/uncle_fu.wav",
+    "target": "extra-shorts/voices/previews/uncle_fu.wav"
+  },
+  {
+    "source": "compose_yaml/fish_drama3/voices/previews/vivian.wav",
+    "target": "extra-shorts/voices/previews/vivian.wav"
+  },
+  {
+    "source": "compose_yaml/fish_drama3/voices/previews/serena.wav",
+    "target": "extra-shorts/voices/previews/serena.wav"
+  },
+  {
+    "source": "compose_yaml/fish_drama3/voices/previews/dylan.wav",
+    "target": "extra-shorts/voices/previews/dylan.wav"
+  },
+  {
+    "source": "compose_yaml/fish_drama3/voices/previews/eric.wav",
+    "target": "extra-shorts/voices/previews/eric.wav"
+  },
+  {
+    "source": "compose_yaml/fish_drama3/voices/previews/ryan.wav",
+    "target": "extra-shorts/voices/previews/ryan.wav"
+  },
+  {
+    "source": "compose_yaml/fish_drama3/voices/previews/aiden.wav",
+    "target": "extra-shorts/voices/previews/aiden.wav"
+  },
+  {
+    "source": "compose_yaml/fish_drama3/voices/previews/ono_anna.wav",
+    "target": "extra-shorts/voices/previews/ono_anna.wav"
+  },
+  {
+    "source": "compose_yaml/fish_drama3/reference.wav",
+    "target": "extra-shorts/reference.wav"
+  },
+  {
+    "source": "compose_yaml/fish_drama3/reference-uncle-fu.wav",
+    "target": "extra-shorts/reference-uncle-fu.wav"
+  },
+  {
+    "source": "compose_yaml/extra_shorts_service/voice_tools.py",
+    "target": "extra-shorts/voice_tools.py"
+  },
+  {
+    "source": "compose_yaml/extra_shorts_service/voice_jobs.py",
+    "target": "extra-shorts/voice_jobs.py"
+  },
+  {
+    "source": "compose_yaml/extra_shorts_service/voice_library.py",
+    "target": "extra-shorts/voice_library.py"
+  },
+  {
+    "source": "compose_yaml/extra_shorts_service/voice_analysis.py",
+    "target": "extra-shorts/voice_analysis.py"
+  },
+  {
+    "source": "compose_yaml/extra_shorts_service/voice_quality.py",
+    "target": "extra-shorts/voice_quality.py"
+  },
+  {
+    "source": "compose_yaml/extra_shorts_service/voice_runner.py",
+    "target": "extra-shorts/voice_runner.py"
+  },
+  {
+    "source": "compose_yaml/extra_shorts_service/voice_api.py",
+    "target": "extra-shorts/voice_api.py"
+  },
+  {
+    "source": "compose_yaml/extra_shorts_service/vad/silero_vad_16k_op15.onnx",
+    "target": "extra-shorts/vad/silero_vad_16k_op15.onnx"
+  },
+  {
+    "source": "compose_yaml/extra_shorts_service/vad/LICENSE",
+    "target": "extra-shorts/vad/LICENSE"
+  },
+  {
+    "source": "compose_yaml/extra_shorts_service/vad/UPSTREAM.md",
+    "target": "extra-shorts/vad/UPSTREAM.md"
   }
 ]

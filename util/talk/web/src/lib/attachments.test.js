@@ -9,7 +9,12 @@ test('accepts supported media and document files with MIME or extension fallback
 	assert.equal(isSupportedAttachmentFile({ name: 'notes.txt', type: 'text/plain' }), true);
 	assert.equal(isSupportedAttachmentFile({ name: 'manual.pdf', type: 'application/pdf' }), true);
 	assert.equal(isSupportedAttachmentFile({ name: 'slides.pptx', type: '' }), true);
-	assert.equal(isSupportedAttachmentFile({ name: 'legacy.hwp', type: 'application/octet-stream' }), false);
+	assert.equal(isSupportedAttachmentFile({ name: 'audio-without-extension', type: 'application/octet-stream' }), true);
+});
+
+test('accepts reference audio containers and delegates unknown bytes to server validation', () => {
+  for (const name of ['voice.flac','voice.oga','voice.opus','voice.aac','voice.aiff','voice.amr','voice.ape','voice.mka']) assert.equal(isSupportedAttachmentFile({name,type:''}),true);
+  assert.equal(isSupportedAttachmentFile({name:'program.exe',type:'application/x-msdownload'}),false);
 });
 
 test('recognizes file drags without depending on a file input change event', () => {

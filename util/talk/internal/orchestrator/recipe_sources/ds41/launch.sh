@@ -43,7 +43,7 @@ args=(docker run -d --init --name "$container" --gpus all --ipc=host --network h
  -e "TF_TP_MASTER=$TF_TP_MASTER" -e "TF_TP_PORT=$TF_TP_PORT" -e TF_COMM_BACKEND=roce
  -e TF_TP_KERNEL_IMAGE=/opt/tensorfold/share/tp_mailbox.fatbin "$DSV41_IMAGE")
 if [[ $rank == 0 ]]; then
- args+=(tensorfold-dsv41 serve /model --host "${VLLM_HOST:-127.0.0.1}" --port "$API_PORT"
+ args+=(tensorfold-dsv41 serve /model --host "${VLLM_HOST:-0.0.0.0}" --port "$API_PORT"
   --parallel "$TF_DSV41_SLOTS" --context "$TF_DSV41_CONTEXT" --name "$SERVED_MODEL_NAME" --max-tokens 32768)
 else
  args+=(tf-dsv41-m1 follow /model /assets)

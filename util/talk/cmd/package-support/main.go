@@ -161,6 +161,9 @@ func run(check bool) error {
 		service["build"] = map[string]any{"context": "${SPARKTALK_BUILD_DIR:?Embedded build assets required}", "dockerfile": s.Dockerfile}
 		service["pull_policy"] = "never"
 		service["ports"] = []string{fmt.Sprintf("${SPARKTALK_BIND_ADDR:-127.0.0.1}:${SPARKTALK_PORT:-%d}:%d", s.Port, s.InternalPort)}
+		if service["network_mode"] == "host" {
+			delete(service, "ports")
+		}
 		if s.Key == "ssh" {
 			service["volumes"] = []string{"${SPARKTALK_DATA_DIR:-${HOME}/.local/share/sparktalk}/extra/ssh/keys:/run/sparktalk-extra/keys", "${SPARKTALK_DATA_DIR:-${HOME}/.local/share/sparktalk}/extra/ssh/state:/var/lib/sparktalk-extra"}
 		}

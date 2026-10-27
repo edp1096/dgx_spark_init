@@ -25,6 +25,7 @@ type activeTurn struct {
 	applied         []db.TurnInput
 	cancelInference context.CancelFunc
 	ctx             context.Context
+	stream          *chatStream
 }
 
 func (s *Server) claimTurn(ctx context.Context, session string) (context.Context, func(), error) {

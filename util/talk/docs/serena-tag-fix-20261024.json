@@ -1,0 +1,3252 @@
+{
+  "date": "2026-10-24",
+  "status": "implemented_and_deployed",
+  "changes": [
+    "Tagged narration is validated and sent in one native model request; maximum 160 spoken characters. Plain narration retains sentence chunking.",
+    "Caption text and ASR expected text exclude direction markup.",
+    "Internal silence is preserved for tagged speech. Unexpected trailing silence over 2 seconds is rejected before trimming, with at most three attempts. An explicit final pause is preserved. Quiet voiced tails use an adaptive activity floor.",
+    "Tagged voice preparation bypasses loudness normalization and preserves the original WAV exactly at speed1. Explicit global speed changes still use atempo only.",
+    "Tagged narration uses speech cache version4 and is not automatically rewritten to fit duration."
+  ],
+  "tests": {
+    "fish_unit_tests": 9,
+    "worker_targeted_tests": 20,
+    "go_packages_passed": [
+      "internal/config",
+      "internal/orchestrator",
+      "internal/server"
+    ],
+    "packaged_assets_verified": 200,
+    "historical_outputs_replayed": 176,
+    "known_silent_tail_failures_rejected": 5,
+    "known_quiet_valid_outputs_preserved": 2,
+    "live_generations": 8,
+    "live_asr_exact": 8,
+    "live_tagged_atomic_and_byte_identical": 7
+  },
+  "live": [
+    {
+      "id": "neutral",
+      "input": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다.",
+      "expected": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다.",
+      "tagged": false,
+      "generation": {
+        "duration": 7.1039909297052155,
+        "records": [
+          {
+            "sentence": "지금부터 이야기를 시작합니다.",
+            "attempt": 1,
+            "accepted": true,
+            "rejection_reasons": [],
+            "generation_seconds": 1.7361809120047837,
+            "duration_seconds": 2.3219954648526078,
+            "longest_internal_silence": 0.04,
+            "voiced_seconds": 1.86,
+            "hit_cap": false,
+            "trailing_silence_seconds": 0.34199546485260773,
+            "activity_threshold_dbfs": -65.59502667458739,
+            "trim_start_sample": 0,
+            "trim_end_sample": 92610
+          },
+          {
+            "sentence": "중요한 내용은 우리끼리만 알고 있어요.",
+            "attempt": 1,
+            "accepted": true,
+            "rejection_reasons": [],
+            "generation_seconds": 1.4210793050006032,
+            "duration_seconds": 2.414875283446712,
+            "longest_internal_silence": 0.06,
+            "voiced_seconds": 2.24,
+            "hit_cap": false,
+            "trailing_silence_seconds": 0.07487528344671202,
+            "activity_threshold_dbfs": -70.61535576182143,
+            "trim_start_sample": 0,
+            "trim_end_sample": 106496
+          },
+          {
+            "sentence": "이제 평소처럼 마무리합니다.",
+            "attempt": 1,
+            "accepted": true,
+            "rejection_reasons": [],
+            "generation_seconds": 1.3421097790123895,
+            "duration_seconds": 2.2291156462585033,
+            "longest_internal_silence": 0.04,
+            "voiced_seconds": 2.1,
+            "hit_cap": false,
+            "trailing_silence_seconds": 0.0891156462585034,
+            "activity_threshold_dbfs": -70.61133595380132,
+            "trim_start_sample": 0,
+            "trim_end_sample": 98304
+          }
+        ],
+        "segments": [
+          {
+            "text": "지금부터 이야기를 시작합니다.",
+            "start": 0.0,
+            "end": 2.1
+          },
+          {
+            "text": "중요한 내용은 우리끼리만 알고 있어요.",
+            "start": 2.2800000000000002,
+            "end": 4.694875283446713
+          },
+          {
+            "text": "이제 평소처럼 마무리합니다.",
+            "start": 4.874875283446713,
+            "end": 7.1039909297052155
+          }
+        ],
+        "sample_rate": 44100,
+        "text": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다.",
+        "spoken_text": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다.",
+        "native_tags": false,
+        "voice_preset": "serena",
+        "reference_sha256": "3dc211c75942fa96cabd50d8a04de9e7918648a4c6c7a33eae8f02d5d7ded053"
+      },
+      "audio_sha256": "1fb26520bf689591848b4c944b1b1c50a3d8d6856284a378ee950258ca90307f",
+      "asr": {
+        "character_error_rate": 0,
+        "expected": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다.",
+        "passed": true,
+        "transcript": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다."
+      },
+      "audio_file": "serena-tag-fix-20261024/neutral.wav"
+    },
+    {
+      "id": "global-whisper-1",
+      "input": "[whisper] 지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다.",
+      "expected": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다.",
+      "tagged": true,
+      "generation": {
+        "duration": 9.7059410430839,
+        "records": [
+          {
+            "sentence": "[whisper] 지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다.",
+            "attempt": 1,
+            "accepted": true,
+            "rejection_reasons": [],
+            "generation_seconds": 5.038805760035757,
+            "duration_seconds": 9.7059410430839,
+            "longest_internal_silence": 1.18,
+            "voiced_seconds": 7.04,
+            "hit_cap": false,
+            "trailing_silence_seconds": 0.10594104308390023,
+            "activity_threshold_dbfs": -66.70471516490592,
+            "trim_start_sample": 0,
+            "trim_end_sample": 428032
+          }
+        ],
+        "segments": [
+          {
+            "text": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다.",
+            "start": 0.0,
+            "end": 9.7059410430839
+          }
+        ],
+        "sample_rate": 44100,
+        "text": "[whisper] 지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다.",
+        "spoken_text": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다.",
+        "native_tags": true,
+        "voice_preset": "serena",
+        "reference_sha256": "3dc211c75942fa96cabd50d8a04de9e7918648a4c6c7a33eae8f02d5d7ded053"
+      },
+      "audio_sha256": "fa26e9b9307ba73977ca9eb7e41604a5ae8d2a8e3bf9681a7f04c1ce323f826d",
+      "asr": {
+        "character_error_rate": 0,
+        "expected": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다.",
+        "passed": true,
+        "transcript": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다."
+      },
+      "audio_file": "serena-tag-fix-20261024/global-whisper-1.wav"
+    },
+    {
+      "id": "global-whisper-2",
+      "input": "[whisper] 지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다.",
+      "expected": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다.",
+      "tagged": true,
+      "generation": {
+        "duration": 8.498503401360544,
+        "records": [
+          {
+            "sentence": "[whisper] 지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다.",
+            "attempt": 1,
+            "accepted": true,
+            "rejection_reasons": [],
+            "generation_seconds": 4.422356611001305,
+            "duration_seconds": 8.498503401360544,
+            "longest_internal_silence": 0.52,
+            "voiced_seconds": 6.26,
+            "hit_cap": false,
+            "trailing_silence_seconds": 0.4185034013605442,
+            "activity_threshold_dbfs": -72.53043557532857,
+            "trim_start_sample": 0,
+            "trim_end_sample": 361620
+          }
+        ],
+        "segments": [
+          {
+            "text": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다.",
+            "start": 0.0,
+            "end": 8.498503401360544
+          }
+        ],
+        "sample_rate": 44100,
+        "text": "[whisper] 지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다.",
+        "spoken_text": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다.",
+        "native_tags": true,
+        "voice_preset": "serena",
+        "reference_sha256": "3dc211c75942fa96cabd50d8a04de9e7918648a4c6c7a33eae8f02d5d7ded053"
+      },
+      "audio_sha256": "6bc7b9dd5b66c6a8405d1bf6053676252a929c7b270f47b8f7ef0c8eac37abd3",
+      "asr": {
+        "character_error_rate": 0,
+        "expected": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다.",
+        "passed": true,
+        "transcript": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다."
+      },
+      "audio_file": "serena-tag-fix-20261024/global-whisper-2.wav"
+    },
+    {
+      "id": "scope-multiple-sentences",
+      "input": "지금부터 이야기를 시작합니다. <whisper>중요한 내용은 우리끼리만 알고 있어요. 이 이야기는 비밀로 해 주세요.</whisper> 이제 평소처럼 마무리합니다.",
+      "expected": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이 이야기는 비밀로 해 주세요. 이제 평소처럼 마무리합니다.",
+      "tagged": true,
+      "generation": {
+        "duration": 10.588299319727891,
+        "records": [
+          {
+            "sentence": "지금부터 이야기를 시작합니다. <whisper>중요한 내용은 우리끼리만 알고 있어요. 이 이야기는 비밀로 해 주세요.</whisper> 이제 평소처럼 마무리합니다.",
+            "attempt": 1,
+            "accepted": true,
+            "rejection_reasons": [],
+            "generation_seconds": 5.456043971993495,
+            "duration_seconds": 10.588299319727891,
+            "longest_internal_silence": 0.9,
+            "voiced_seconds": 8.1,
+            "hit_cap": false,
+            "trailing_silence_seconds": 0.30829931972789115,
+            "activity_threshold_dbfs": -65.98776949943478,
+            "trim_start_sample": 0,
+            "trim_end_sample": 458640
+          }
+        ],
+        "segments": [
+          {
+            "text": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이 이야기는 비밀로 해 주세요. 이제 평소처럼 마무리합니다.",
+            "start": 0.0,
+            "end": 10.588299319727891
+          }
+        ],
+        "sample_rate": 44100,
+        "text": "지금부터 이야기를 시작합니다. <whisper>중요한 내용은 우리끼리만 알고 있어요. 이 이야기는 비밀로 해 주세요.</whisper> 이제 평소처럼 마무리합니다.",
+        "spoken_text": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이 이야기는 비밀로 해 주세요. 이제 평소처럼 마무리합니다.",
+        "native_tags": true,
+        "voice_preset": "serena",
+        "reference_sha256": "3dc211c75942fa96cabd50d8a04de9e7918648a4c6c7a33eae8f02d5d7ded053"
+      },
+      "audio_sha256": "efd4b1f2ff7f423c9e426b7652d4e7bb7534c9b4252f7c2f1bdfa5e4572864fd",
+      "asr": {
+        "character_error_rate": 0,
+        "expected": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이 이야기는 비밀로 해 주세요. 이제 평소처럼 마무리합니다.",
+        "passed": true,
+        "transcript": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이 이야기는 비밀로 해주세요. 이제 평소처럼 마무리합니다."
+      },
+      "audio_file": "serena-tag-fix-20261024/scope-multiple-sentences.wav"
+    },
+    {
+      "id": "scoped-slow",
+      "input": "지금부터 이야기를 시작합니다. <slow>중요한 내용은 우리끼리만 알고 있어요.</slow> 이제 평소처럼 마무리합니다.",
+      "expected": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다.",
+      "tagged": true,
+      "generation": {
+        "duration": 9.241541950113378,
+        "records": [
+          {
+            "sentence": "지금부터 이야기를 시작합니다. <slow>중요한 내용은 우리끼리만 알고 있어요.</slow> 이제 평소처럼 마무리합니다.",
+            "attempt": 1,
+            "accepted": true,
+            "rejection_reasons": [],
+            "generation_seconds": 4.812420131987892,
+            "duration_seconds": 9.241541950113378,
+            "longest_internal_silence": 1.16,
+            "voiced_seconds": 6.62,
+            "hit_cap": false,
+            "trailing_silence_seconds": 0.2015419501133787,
+            "activity_threshold_dbfs": -70.6677266920553,
+            "trim_start_sample": 0,
+            "trim_end_sample": 403956
+          }
+        ],
+        "segments": [
+          {
+            "text": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다.",
+            "start": 0.0,
+            "end": 9.241541950113378
+          }
+        ],
+        "sample_rate": 44100,
+        "text": "지금부터 이야기를 시작합니다. <slow>중요한 내용은 우리끼리만 알고 있어요.</slow> 이제 평소처럼 마무리합니다.",
+        "spoken_text": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다.",
+        "native_tags": true,
+        "voice_preset": "serena",
+        "reference_sha256": "3dc211c75942fa96cabd50d8a04de9e7918648a4c6c7a33eae8f02d5d7ded053"
+      },
+      "audio_sha256": "eaa11c4503a6bd5b491a78e80d6f061aa060ef88cb03f81c4fdaad5cd050ed75",
+      "asr": {
+        "character_error_rate": 0,
+        "expected": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다.",
+        "passed": true,
+        "transcript": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다."
+      },
+      "audio_file": "serena-tag-fix-20261024/scoped-slow.wav"
+    },
+    {
+      "id": "internal-pause",
+      "input": "지금부터 이야기를 시작합니다. [pause] 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다.",
+      "expected": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다.",
+      "tagged": true,
+      "generation": {
+        "duration": 7.801904761904762,
+        "records": [
+          {
+            "sentence": "지금부터 이야기를 시작합니다. [pause] 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다.",
+            "attempt": 1,
+            "accepted": true,
+            "rejection_reasons": [],
+            "generation_seconds": 4.077688767982181,
+            "duration_seconds": 7.801904761904762,
+            "longest_internal_silence": 1.16,
+            "voiced_seconds": 5.74,
+            "hit_cap": false,
+            "trailing_silence_seconds": 0.2219047619047619,
+            "activity_threshold_dbfs": -68.66506937445139,
+            "trim_start_sample": 0,
+            "trim_end_sample": 339570
+          }
+        ],
+        "segments": [
+          {
+            "text": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다.",
+            "start": 0.0,
+            "end": 7.801904761904762
+          }
+        ],
+        "sample_rate": 44100,
+        "text": "지금부터 이야기를 시작합니다. [pause] 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다.",
+        "spoken_text": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다.",
+        "native_tags": true,
+        "voice_preset": "serena",
+        "reference_sha256": "3dc211c75942fa96cabd50d8a04de9e7918648a4c6c7a33eae8f02d5d7ded053"
+      },
+      "audio_sha256": "e7d61eb16caa23bda7975c62c95484990581fa42edca4fa7a35ad6d365d4e1fe",
+      "asr": {
+        "character_error_rate": 0,
+        "expected": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다.",
+        "passed": true,
+        "transcript": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다."
+      },
+      "audio_file": "serena-tag-fix-20261024/internal-pause.wav"
+    },
+    {
+      "id": "directions-over-old-limit",
+      "input": "지금부터 이야기를 시작합니다. [whispering quietly] 중요한 내용은 우리끼리만 알고 있어요. [normal speaking voice] 이제 평소처럼 마무리합니다.",
+      "expected": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다.",
+      "tagged": true,
+      "generation": {
+        "duration": 8.498503401360544,
+        "records": [
+          {
+            "sentence": "지금부터 이야기를 시작합니다. [whispering quietly] 중요한 내용은 우리끼리만 알고 있어요. [normal speaking voice] 이제 평소처럼 마무리합니다.",
+            "attempt": 1,
+            "accepted": true,
+            "rejection_reasons": [],
+            "generation_seconds": 4.394299412961118,
+            "duration_seconds": 8.498503401360544,
+            "longest_internal_silence": 0.64,
+            "voiced_seconds": 6.5,
+            "hit_cap": false,
+            "trailing_silence_seconds": 0.3585034013605442,
+            "activity_threshold_dbfs": -69.65156731612188,
+            "trim_start_sample": 0,
+            "trim_end_sample": 364266
+          }
+        ],
+        "segments": [
+          {
+            "text": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다.",
+            "start": 0.0,
+            "end": 8.498503401360544
+          }
+        ],
+        "sample_rate": 44100,
+        "text": "지금부터 이야기를 시작합니다. [whispering quietly] 중요한 내용은 우리끼리만 알고 있어요. [normal speaking voice] 이제 평소처럼 마무리합니다.",
+        "spoken_text": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다.",
+        "native_tags": true,
+        "voice_preset": "serena",
+        "reference_sha256": "3dc211c75942fa96cabd50d8a04de9e7918648a4c6c7a33eae8f02d5d7ded053"
+      },
+      "audio_sha256": "f7a578442a06a19cb2a719bac3c6af849a9049c962a2ceccde138975c0a374ef",
+      "asr": {
+        "character_error_rate": 0,
+        "expected": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다.",
+        "passed": true,
+        "transcript": "지금부터 이야기를 시작합니다. 중요한 내용은 우리끼리만 알고 있어요. 이제 평소처럼 마무리합니다."
+      },
+      "audio_file": "serena-tag-fix-20261024/directions-over-old-limit.wav"
+    },
+    {
+      "id": "explicit-final-pause",
+      "input": "<whisper>오늘 이야기는 여기까지입니다. [pause]</whisper>",
+      "expected": "오늘 이야기는 여기까지입니다.",
+      "tagged": true,
+      "generation": {
+        "duration": 2.2755555555555556,
+        "records": [
+          {
+            "sentence": "<whisper>오늘 이야기는 여기까지입니다. [pause]</whisper>",
+            "attempt": 1,
+            "accepted": true,
+            "rejection_reasons": [],
+            "generation_seconds": 1.3462997159804218,
+            "duration_seconds": 2.2755555555555556,
+            "longest_internal_silence": 0.02,
+            "voiced_seconds": 1.8,
+            "hit_cap": false,
+            "trailing_silence_seconds": 0.43555555555555553,
+            "activity_threshold_dbfs": -67.60720205610774,
+            "trim_start_sample": 0,
+            "trim_end_sample": 86436
+          }
+        ],
+        "segments": [
+          {
+            "text": "오늘 이야기는 여기까지입니다.",
+            "start": 0.0,
+            "end": 2.2755555555555556
+          }
+        ],
+        "sample_rate": 44100,
+        "text": "<whisper>오늘 이야기는 여기까지입니다. [pause]</whisper>",
+        "spoken_text": "오늘 이야기는 여기까지입니다.",
+        "native_tags": true,
+        "voice_preset": "serena",
+        "reference_sha256": "3dc211c75942fa96cabd50d8a04de9e7918648a4c6c7a33eae8f02d5d7ded053"
+      },
+      "audio_sha256": "f8d49312707416c8062bd23c84add76f66b0b9fbae77ed1bf49c1156ba612d95",
+      "asr": {
+        "character_error_rate": 0,
+        "expected": "오늘 이야기는 여기까지입니다.",
+        "passed": true,
+        "transcript": "오늘 이야기는 여기까지입니다."
+      },
+      "audio_file": "serena-tag-fix-20261024/explicit-final-pause.wav"
+    }
+  ],
+  "delivery": [
+    {
+      "id": "neutral",
+      "tagged": false,
+      "output_matches_native_wav": false,
+      "caption_text": "지금부터 이야기를\n시작합니다. 중요한 내용은 우리끼리만\n알고 있어요. 이제 평소처럼\n마무리합니다.",
+      "coverage_passed": null,
+      "asr_provenance": null,
+      "processed_sha256": "1ca69e3abbe07d83b31e9b5a59c0f076c7f0854261585e9aa729069d989d33cc"
+    },
+    {
+      "id": "global-whisper-1",
+      "tagged": true,
+      "output_matches_native_wav": true,
+      "caption_text": "지금부터 이야기를\n시작합니다. 중요한 내용은 우리끼리만 알고 있어요.\n이제 평소처럼 마무리합니다.",
+      "coverage_passed": true,
+      "asr_provenance": "Reused live ASR for byte-identical original/processed audio",
+      "processed_sha256": "fa26e9b9307ba73977ca9eb7e41604a5ae8d2a8e3bf9681a7f04c1ce323f826d"
+    },
+    {
+      "id": "global-whisper-2",
+      "tagged": true,
+      "output_matches_native_wav": true,
+      "caption_text": "지금부터 이야기를\n시작합니다. 중요한 내용은 우리끼리만 알고 있어요.\n이제 평소처럼 마무리합니다.",
+      "coverage_passed": true,
+      "asr_provenance": "Reused live ASR for byte-identical original/processed audio",
+      "processed_sha256": "6bc7b9dd5b66c6a8405d1bf6053676252a929c7b270f47b8f7ef0c8eac37abd3"
+    },
+    {
+      "id": "scope-multiple-sentences",
+      "tagged": true,
+      "output_matches_native_wav": true,
+      "caption_text": "지금부터 이야기를\n시작합니다. 중요한 내용은 우리끼리만 알고 있어요.\n이 이야기는 비밀로 해 주세요. 이제 평소처럼\n마무리합니다.",
+      "coverage_passed": true,
+      "asr_provenance": "Reused live ASR for byte-identical original/processed audio",
+      "processed_sha256": "efd4b1f2ff7f423c9e426b7652d4e7bb7534c9b4252f7c2f1bdfa5e4572864fd"
+    },
+    {
+      "id": "scoped-slow",
+      "tagged": true,
+      "output_matches_native_wav": true,
+      "caption_text": "지금부터 이야기를\n시작합니다. 중요한 내용은 우리끼리만 알고 있어요.\n이제 평소처럼 마무리합니다.",
+      "coverage_passed": true,
+      "asr_provenance": "Reused live ASR for byte-identical original/processed audio",
+      "processed_sha256": "eaa11c4503a6bd5b491a78e80d6f061aa060ef88cb03f81c4fdaad5cd050ed75"
+    },
+    {
+      "id": "internal-pause",
+      "tagged": true,
+      "output_matches_native_wav": true,
+      "caption_text": "지금부터 이야기를\n시작합니다. 중요한 내용은 우리끼리만 알고 있어요.\n이제 평소처럼 마무리합니다.",
+      "coverage_passed": true,
+      "asr_provenance": "Reused live ASR for byte-identical original/processed audio",
+      "processed_sha256": "e7d61eb16caa23bda7975c62c95484990581fa42edca4fa7a35ad6d365d4e1fe"
+    },
+    {
+      "id": "directions-over-old-limit",
+      "tagged": true,
+      "output_matches_native_wav": true,
+      "caption_text": "지금부터 이야기를\n시작합니다. 중요한 내용은 우리끼리만 알고 있어요.\n이제 평소처럼 마무리합니다.",
+      "coverage_passed": true,
+      "asr_provenance": "Reused live ASR for byte-identical original/processed audio",
+      "processed_sha256": "f7a578442a06a19cb2a719bac3c6af849a9049c962a2ceccde138975c0a374ef"
+    },
+    {
+      "id": "explicit-final-pause",
+      "tagged": true,
+      "output_matches_native_wav": true,
+      "caption_text": "오늘 이야기는\n여기까지입니다.",
+      "coverage_passed": true,
+      "asr_provenance": "Reused live ASR for byte-identical original/processed audio",
+      "processed_sha256": "f8d49312707416c8062bd23c84add76f66b0b9fbae77ed1bf49c1156ba612d95"
+    }
+  ],
+  "runtime": {
+    "image": "sparktalk-fish-drama3:0.3.0",
+    "health": {
+      "status": "ok",
+      "model": "watchpen/drama-3-int4-koen160",
+      "sampler": "ca9e878-codebook30-crossing-token",
+      "speech_policy": "native-tags-v1"
+    }
+  },
+  "deployment": {
+    "files": [
+      {
+        "source": "/home/edp1096/workspace/dgx_spark_init/compose_yaml/fish_drama3/speech.py",
+        "sha256": "62bac750cbf4926346251a648d122fcddb3d92ed93ccc6e5d6ce3cbfb2ef45fd",
+        "embedded_matches": true,
+        "live_matches": true
+      },
+      {
+        "source": "/home/edp1096/workspace/dgx_spark_init/compose_yaml/fish_drama3/api.py",
+        "sha256": "f435838e8a190e96d1c7cd8c922078a69b73d23733989cb0f0c483a9b6c56702",
+        "embedded_matches": true,
+        "live_matches": true
+      },
+      {
+        "source": "/home/edp1096/workspace/dgx_spark_init/compose_yaml/extra_shorts_service/speech.py",
+        "sha256": "62bac750cbf4926346251a648d122fcddb3d92ed93ccc6e5d6ce3cbfb2ef45fd",
+        "embedded_matches": true,
+        "live_matches": true
+      },
+      {
+        "source": "/home/edp1096/workspace/dgx_spark_init/compose_yaml/extra_shorts_service/audio_mix.py",
+        "sha256": "a4acacd646d3ef849ebc0922b682bdb4c04c576a230688aef6d849f649d8ff05",
+        "embedded_matches": true,
+        "live_matches": true
+      },
+      {
+        "source": "/home/edp1096/workspace/dgx_spark_init/compose_yaml/extra_shorts_service/pipeline.py",
+        "sha256": "3534557824c84fea4907dac2ad274cbf63da7f00c5f879973d9cee713b7e0382",
+        "embedded_matches": true,
+        "live_matches": true
+      },
+      {
+        "source": "/home/edp1096/workspace/dgx_spark_init/compose_yaml/extra_shorts_service/api.py",
+        "sha256": "d4820959fea001a55d0399f88af626968ca04e659d16b5aa68caffc1f3dcf33e",
+        "embedded_matches": true,
+        "live_matches": true
+      }
+    ],
+    "app_binary_sha256": "b4691b066c34011776693a3d867d4b3cad371e7f8779ecd53f3919f697dc8209",
+    "app_pid": "97399",
+    "fish_image": "sparktalk-fish-drama3:0.3.0",
+    "worker_image": "sparktalk-extra-shorts:0.3.0"
+  },
+  "historical_replay": {
+    "records": [
+      {
+        "run": "sampling",
+        "id": "base-scoped_slow-1",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 8.6378231292517,
+          "longest_internal_silence": 1.22,
+          "voiced_seconds": 6.04,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.45782312925170066,
+          "activity_threshold_dbfs": -66.80059487565761,
+          "trim_start_sample": 0,
+          "trim_end_sample": 366030
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "base-global_whisper-1",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 9.102222222222222,
+          "longest_internal_silence": 0.72,
+          "voiced_seconds": 7.12,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.06222222222222222,
+          "activity_threshold_dbfs": -76.13168561412961,
+          "trim_start_sample": 0,
+          "trim_end_sample": 401408
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "base-pause-1",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 8.916462585034013,
+          "longest_internal_silence": 0.78,
+          "voiced_seconds": 6.86,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.0964625850340136,
+          "activity_threshold_dbfs": -67.44550768884596,
+          "trim_start_sample": 0,
+          "trim_end_sample": 393216
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "temperature07-scoped_whisper-1",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 9.752380952380953,
+          "longest_internal_silence": 1.3,
+          "voiced_seconds": 5.92,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.6123809523809524,
+          "activity_threshold_dbfs": -70.62858857561298,
+          "trim_start_sample": 0,
+          "trim_end_sample": 408366
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "topp07-pause-1",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 14.953650793650795,
+          "longest_internal_silence": 6.3,
+          "voiced_seconds": 6.94,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.6536507936507937,
+          "activity_threshold_dbfs": -68.48482947079535,
+          "trim_start_sample": 0,
+          "trim_end_sample": 635922
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "temperature07-pause-1",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 8.498503401360544,
+          "longest_internal_silence": 1.26,
+          "voiced_seconds": 5.92,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.45850340136054424,
+          "activity_threshold_dbfs": -66.34554534913813,
+          "trim_start_sample": 0,
+          "trim_end_sample": 359856
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "temperature07-scoped_slow-1",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 17.740045351473924,
+          "longest_internal_silence": 9.1,
+          "voiced_seconds": 6.36,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.1000453514739229,
+          "activity_threshold_dbfs": -66.61340443790331,
+          "trim_start_sample": 0,
+          "trim_end_sample": 782336
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "both07-scoped_whisper-1",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 10.7740589569161,
+          "longest_internal_silence": 1.76,
+          "voiced_seconds": 6.14,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.4140589569160998,
+          "activity_threshold_dbfs": -70.15618570293347,
+          "trim_start_sample": 0,
+          "trim_end_sample": 462168
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "both07-scoped_slow-1",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 13.142494331065759,
+          "longest_internal_silence": 3.64,
+          "voiced_seconds": 6.46,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.5424943310657596,
+          "activity_threshold_dbfs": -65.10924397199445,
+          "trim_start_sample": 0,
+          "trim_end_sample": 560952
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "base-directed_whisper-1",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 11.00625850340136,
+          "longest_internal_silence": 2.16,
+          "voiced_seconds": 6.38,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.36625850340136057,
+          "activity_threshold_dbfs": -62.838859146007174,
+          "trim_start_sample": 0,
+          "trim_end_sample": 474516
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "base-neutral-1",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 7.9412244897959186,
+          "longest_internal_silence": 0.62,
+          "voiced_seconds": 6.12,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.48122448979591836,
+          "activity_threshold_dbfs": -70.1327489730607,
+          "trim_start_sample": 0,
+          "trim_end_sample": 334278
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "both07-global_whisper-1",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 8.870022675736962,
+          "longest_internal_silence": 0.98,
+          "voiced_seconds": 6.18,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.37002267573696146,
+          "activity_threshold_dbfs": -71.97205833959602,
+          "trim_start_sample": 0,
+          "trim_end_sample": 380142
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "topp07-scoped_slow-1",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 11.19201814058957,
+          "longest_internal_silence": 2.42,
+          "voiced_seconds": 6.54,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.09201814058956916,
+          "activity_threshold_dbfs": -67.19530194721379,
+          "trim_start_sample": 0,
+          "trim_end_sample": 493568
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "both07-pause-1",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 9.334421768707482,
+          "longest_internal_silence": 1.26,
+          "voiced_seconds": 6.14,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.734421768707483,
+          "activity_threshold_dbfs": -67.81054125289509,
+          "trim_start_sample": 0,
+          "trim_end_sample": 384552
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "topp07-directed_whisper-1",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 9.798820861678005,
+          "longest_internal_silence": 1.24,
+          "voiced_seconds": 6.22,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.7788208616780046,
+          "activity_threshold_dbfs": -65.39897729568831,
+          "trim_start_sample": 0,
+          "trim_end_sample": 403074
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "temperature07-directed_whisper-1",
+        "rejection_reasons": [
+          "trailing_silence"
+        ],
+        "metrics": {
+          "duration_seconds": 19.22612244897959,
+          "longest_internal_silence": 0.04,
+          "voiced_seconds": 1.9,
+          "hit_cap": false,
+          "trailing_silence_seconds": 17.26612244897959,
+          "activity_threshold_dbfs": -70.85623955280619,
+          "trim_start_sample": 0,
+          "trim_end_sample": 91728
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "both07-directed_whisper-1",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 10.12390022675737,
+          "longest_internal_silence": 1.28,
+          "voiced_seconds": 6.2,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.4439002267573696,
+          "activity_threshold_dbfs": -63.71354190977555,
+          "trim_start_sample": 0,
+          "trim_end_sample": 432180
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "base-scoped_whisper-1",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 7.9412244897959186,
+          "longest_internal_silence": 0.74,
+          "voiced_seconds": 6.08,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.3212244897959184,
+          "activity_threshold_dbfs": -67.74522764021926,
+          "trim_start_sample": 0,
+          "trim_end_sample": 341334
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "topp07-scoped_whisper-1",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 10.913378684807256,
+          "longest_internal_silence": 2.48,
+          "voiced_seconds": 6.84,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.5533786848072563,
+          "activity_threshold_dbfs": -69.71050267388318,
+          "trim_start_sample": 0,
+          "trim_end_sample": 462168
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "both07-neutral-1",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 7.9412244897959186,
+          "longest_internal_silence": 0.78,
+          "voiced_seconds": 5.9,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.5612244897959183,
+          "activity_threshold_dbfs": -67.12191544122147,
+          "trim_start_sample": 0,
+          "trim_end_sample": 330750
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "temperature07-neutral-1",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 8.730702947845804,
+          "longest_internal_silence": 0.96,
+          "voiced_seconds": 6.36,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.530702947845805,
+          "activity_threshold_dbfs": -67.39491217897073,
+          "trim_start_sample": 0,
+          "trim_end_sample": 366912
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "temperature07-global_whisper-1",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 8.684263038548753,
+          "longest_internal_silence": 0.98,
+          "voiced_seconds": 6.06,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.08426303854875283,
+          "activity_threshold_dbfs": -74.06136640871294,
+          "trim_start_sample": 0,
+          "trim_end_sample": 382976
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "topp07-neutral-1",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 8.266303854875284,
+          "longest_internal_silence": 0.86,
+          "voiced_seconds": 6.24,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.24630385487528345,
+          "activity_threshold_dbfs": -65.26887029243022,
+          "trim_start_sample": 0,
+          "trim_end_sample": 358974
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "topp07-global_whisper-1",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 10.077460317460318,
+          "longest_internal_silence": 1.22,
+          "voiced_seconds": 6.12,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.43746031746031744,
+          "activity_threshold_dbfs": -87.03362147285335,
+          "trim_start_sample": 0,
+          "trim_end_sample": 430416
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "both07-pause-2",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 9.984580498866213,
+          "longest_internal_silence": 1.98,
+          "voiced_seconds": 6.16,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.8045804988662132,
+          "activity_threshold_dbfs": -68.18760730878242,
+          "trim_start_sample": 0,
+          "trim_end_sample": 410130
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "base-global_whisper-2",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 9.845260770975056,
+          "longest_internal_silence": 1.5,
+          "voiced_seconds": 5.88,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.3852607709750567,
+          "activity_threshold_dbfs": -76.51982941511082,
+          "trim_start_sample": 0,
+          "trim_end_sample": 422478
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "topp07-scoped_whisper-2",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 10.448979591836734,
+          "longest_internal_silence": 2.5,
+          "voiced_seconds": 6.18,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.7289795918367347,
+          "activity_threshold_dbfs": -62.7797845363693,
+          "trim_start_sample": 0,
+          "trim_end_sample": 433944
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "both07-global_whisper-2",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 10.263219954648527,
+          "longest_internal_silence": 1.38,
+          "voiced_seconds": 6.46,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.6632199546485261,
+          "activity_threshold_dbfs": -77.55810477926191,
+          "trim_start_sample": 0,
+          "trim_end_sample": 428652
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "both07-neutral-2",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 7.9412244897959186,
+          "longest_internal_silence": 0.82,
+          "voiced_seconds": 5.94,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.4412244897959184,
+          "activity_threshold_dbfs": -68.00953621549203,
+          "trim_start_sample": 0,
+          "trim_end_sample": 336042
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "topp07-pause-2",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 8.498503401360544,
+          "longest_internal_silence": 1.02,
+          "voiced_seconds": 6.4,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.1785034013605442,
+          "activity_threshold_dbfs": -65.83163922936092,
+          "trim_start_sample": 0,
+          "trim_end_sample": 372204
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "temperature07-scoped_whisper-2",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 8.962902494331066,
+          "longest_internal_silence": 1.04,
+          "voiced_seconds": 6.52,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.48290249433106575,
+          "activity_threshold_dbfs": -67.72533312127733,
+          "trim_start_sample": 0,
+          "trim_end_sample": 379260
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "both07-scoped_whisper-2",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 12.72453514739229,
+          "longest_internal_silence": 2.72,
+          "voiced_seconds": 6.22,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.40453514739229024,
+          "activity_threshold_dbfs": -68.53796806599323,
+          "trim_start_sample": 0,
+          "trim_end_sample": 548604
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "both07-directed_whisper-2",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 10.588299319727891,
+          "longest_internal_silence": 1.48,
+          "voiced_seconds": 6.4,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.5682993197278912,
+          "activity_threshold_dbfs": -67.0566711539277,
+          "trim_start_sample": 0,
+          "trim_end_sample": 447174
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "temperature07-pause-2",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 8.40562358276644,
+          "longest_internal_silence": 0.94,
+          "voiced_seconds": 5.9,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.52562358276644,
+          "activity_threshold_dbfs": -66.13676288462189,
+          "trim_start_sample": 0,
+          "trim_end_sample": 352800
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "temperature07-directed_whisper-2",
+        "rejection_reasons": [
+          "trailing_silence"
+        ],
+        "metrics": {
+          "duration_seconds": 8.962902494331066,
+          "longest_internal_silence": 0.04,
+          "voiced_seconds": 1.98,
+          "hit_cap": false,
+          "trailing_silence_seconds": 6.902902494331066,
+          "activity_threshold_dbfs": -69.40377259540726,
+          "trim_start_sample": 0,
+          "trim_end_sample": 96138
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "base-directed_whisper-2",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 9.287981859410431,
+          "longest_internal_silence": 1.56,
+          "voiced_seconds": 6.18,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.08798185941043084,
+          "activity_threshold_dbfs": -67.24638120119059,
+          "trim_start_sample": 0,
+          "trim_end_sample": 409600
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "temperature07-scoped_slow-2",
+        "rejection_reasons": [
+          "trailing_silence"
+        ],
+        "metrics": {
+          "duration_seconds": 23.870113378684806,
+          "longest_internal_silence": 5.52,
+          "voiced_seconds": 4.44,
+          "hit_cap": false,
+          "trailing_silence_seconds": 13.590113378684807,
+          "activity_threshold_dbfs": -68.40822809253159,
+          "trim_start_sample": 0,
+          "trim_end_sample": 458640
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "temperature07-neutral-2",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 8.870022675736962,
+          "longest_internal_silence": 0.92,
+          "voiced_seconds": 6.22,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.11002267573696145,
+          "activity_threshold_dbfs": -66.86116627144693,
+          "trim_start_sample": 0,
+          "trim_end_sample": 391168
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "topp07-global_whisper-2",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 10.402539682539683,
+          "longest_internal_silence": 1.2,
+          "voiced_seconds": 6.22,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.40253968253968253,
+          "activity_threshold_dbfs": -73.87395323922557,
+          "trim_start_sample": 37926,
+          "trim_end_sample": 446292
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "base-neutral-2",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 9.427301587301587,
+          "longest_internal_silence": 1.14,
+          "voiced_seconds": 6.78,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.2073015873015873,
+          "activity_threshold_dbfs": -69.65967210785551,
+          "trim_start_sample": 0,
+          "trim_end_sample": 411894
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "base-scoped_whisper-2",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 9.241541950113378,
+          "longest_internal_silence": 1.02,
+          "voiced_seconds": 6.32,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.6415419501133787,
+          "activity_threshold_dbfs": -67.4346655586441,
+          "trim_start_sample": 0,
+          "trim_end_sample": 384552
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "topp07-directed_whisper-2",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 12.399455782312925,
+          "longest_internal_silence": 2.76,
+          "voiced_seconds": 6.18,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.43945578231292515,
+          "activity_threshold_dbfs": -63.243201894469635,
+          "trim_start_sample": 0,
+          "trim_end_sample": 532728
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "topp07-neutral-2",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 8.080544217687075,
+          "longest_internal_silence": 0.82,
+          "voiced_seconds": 5.94,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.12054421768707484,
+          "activity_threshold_dbfs": -64.25071104208932,
+          "trim_start_sample": 0,
+          "trim_end_sample": 356328
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "topp07-scoped_slow-2",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 10.216780045351474,
+          "longest_internal_silence": 1.44,
+          "voiced_seconds": 6.8,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.47678004535147395,
+          "activity_threshold_dbfs": -70.0327065009268,
+          "trim_start_sample": 0,
+          "trim_end_sample": 434826
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "base-pause-2",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 8.452063492063493,
+          "longest_internal_silence": 1.18,
+          "voiced_seconds": 6.02,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.4120634920634921,
+          "activity_threshold_dbfs": -65.72226678468152,
+          "trim_start_sample": 0,
+          "trim_end_sample": 359856
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "both07-scoped_slow-2",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 9.148662131519274,
+          "longest_internal_silence": 1.08,
+          "voiced_seconds": 6.38,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.5486621315192743,
+          "activity_threshold_dbfs": -67.99718368212038,
+          "trim_start_sample": 0,
+          "trim_end_sample": 384552
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "temperature07-global_whisper-2",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 10.95981859410431,
+          "longest_internal_silence": 0.6,
+          "voiced_seconds": 7.68,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.5398185941043084,
+          "activity_threshold_dbfs": -76.59896810803006,
+          "trim_start_sample": 0,
+          "trim_end_sample": 464814
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "base-scoped_slow-2",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 9.659501133786849,
+          "longest_internal_silence": 0.98,
+          "voiced_seconds": 6.58,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.09950113378684808,
+          "activity_threshold_dbfs": -68.46002696589572,
+          "trim_start_sample": 0,
+          "trim_end_sample": 425984
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "both07-scoped_slow-3",
+        "rejection_reasons": [
+          "trailing_silence"
+        ],
+        "metrics": {
+          "duration_seconds": 21.687437641723356,
+          "longest_internal_silence": 0.04,
+          "voiced_seconds": 1.96,
+          "hit_cap": false,
+          "trailing_silence_seconds": 19.647437641723357,
+          "activity_threshold_dbfs": -68.46115971998637,
+          "trim_start_sample": 0,
+          "trim_end_sample": 95256
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "temperature07-scoped_slow-3",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 9.427301587301587,
+          "longest_internal_silence": 1.3,
+          "voiced_seconds": 6.96,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.0873015873015873,
+          "activity_threshold_dbfs": -70.03377810365618,
+          "trim_start_sample": 0,
+          "trim_end_sample": 415744
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "base-scoped_whisper-3",
+        "rejection_reasons": [
+          "trailing_silence"
+        ],
+        "metrics": {
+          "duration_seconds": 11.145578231292516,
+          "longest_internal_silence": 0.04,
+          "voiced_seconds": 1.82,
+          "hit_cap": false,
+          "trailing_silence_seconds": 9.245578231292518,
+          "activity_threshold_dbfs": -72.5009777749749,
+          "trim_start_sample": 0,
+          "trim_end_sample": 89082
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "temperature07-pause-3",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 9.566621315192744,
+          "longest_internal_silence": 1.84,
+          "voiced_seconds": 6.12,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.6866213151927437,
+          "activity_threshold_dbfs": -68.91725284254574,
+          "trim_start_sample": 0,
+          "trim_end_sample": 396900
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "topp07-neutral-3",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 7.523265306122449,
+          "longest_internal_silence": 0.66,
+          "voiced_seconds": 6.02,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.10326530612244898,
+          "activity_threshold_dbfs": -67.5965379140128,
+          "trim_start_sample": 0,
+          "trim_end_sample": 331776
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "topp07-pause-3",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 8.962902494331066,
+          "longest_internal_silence": 1.0,
+          "voiced_seconds": 6.16,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.7629024943310657,
+          "activity_threshold_dbfs": -66.81658413848058,
+          "trim_start_sample": 0,
+          "trim_end_sample": 366912
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "base-directed_whisper-3",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 10.216780045351474,
+          "longest_internal_silence": 2.16,
+          "voiced_seconds": 6.08,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.45678004535147393,
+          "activity_threshold_dbfs": -66.4253568193046,
+          "trim_start_sample": 0,
+          "trim_end_sample": 435708
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "both07-pause-3",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 13.839092970521541,
+          "longest_internal_silence": 6.26,
+          "voiced_seconds": 6.26,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.5590929705215419,
+          "activity_threshold_dbfs": -67.93465208080049,
+          "trim_start_sample": 0,
+          "trim_end_sample": 590940
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "topp07-directed_whisper-3",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 10.95981859410431,
+          "longest_internal_silence": 2.0,
+          "voiced_seconds": 6.52,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.3598185941043084,
+          "activity_threshold_dbfs": -73.86349581610669,
+          "trim_start_sample": 0,
+          "trim_end_sample": 472752
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "temperature07-scoped_whisper-3",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 13.049614512471654,
+          "longest_internal_silence": 2.84,
+          "voiced_seconds": 6.38,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.18961451247165534,
+          "activity_threshold_dbfs": -68.45930644175479,
+          "trim_start_sample": 0,
+          "trim_end_sample": 572418
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "temperature07-directed_whisper-3",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 9.520181405895691,
+          "longest_internal_silence": 1.26,
+          "voiced_seconds": 6.24,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.6001814058956916,
+          "activity_threshold_dbfs": -67.25146959222093,
+          "trim_start_sample": 0,
+          "trim_end_sample": 398664
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "both07-neutral-3",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 8.359183673469389,
+          "longest_internal_silence": 0.9,
+          "voiced_seconds": 6.1,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.5391836734693878,
+          "activity_threshold_dbfs": -66.6932230833198,
+          "trim_start_sample": 0,
+          "trim_end_sample": 350154
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "topp07-scoped_slow-3",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 9.752380952380953,
+          "longest_internal_silence": 1.62,
+          "voiced_seconds": 6.5,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.17238095238095238,
+          "activity_threshold_dbfs": -67.96226434136818,
+          "trim_start_sample": 0,
+          "trim_end_sample": 427770
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "topp07-scoped_whisper-3",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 15.882448979591837,
+          "longest_internal_silence": 6.6,
+          "voiced_seconds": 6.46,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.6424489795918368,
+          "activity_threshold_dbfs": -69.69256013218951,
+          "trim_start_sample": 0,
+          "trim_end_sample": 677376
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "base-neutral-3",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 7.476825396825397,
+          "longest_internal_silence": 0.6,
+          "voiced_seconds": 6.14,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.11682539682539683,
+          "activity_threshold_dbfs": -69.97388409385643,
+          "trim_start_sample": 0,
+          "trim_end_sample": 329728
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "temperature07-global_whisper-3",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 10.495419501133787,
+          "longest_internal_silence": 1.14,
+          "voiced_seconds": 6.06,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.09541950113378685,
+          "activity_threshold_dbfs": -73.80132867920709,
+          "trim_start_sample": 0,
+          "trim_end_sample": 462848
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "base-scoped_slow-3",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 9.93814058956916,
+          "longest_internal_silence": 1.78,
+          "voiced_seconds": 6.32,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.338140589569161,
+          "activity_threshold_dbfs": -67.5481232302577,
+          "trim_start_sample": 0,
+          "trim_end_sample": 428652
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "topp07-global_whisper-3",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 12.910294784580499,
+          "longest_internal_silence": 3.12,
+          "voiced_seconds": 6.22,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.09029478458049886,
+          "activity_threshold_dbfs": -68.34408778933933,
+          "trim_start_sample": 0,
+          "trim_end_sample": 569344
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "both07-scoped_whisper-3",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 10.820498866213152,
+          "longest_internal_silence": 2.06,
+          "voiced_seconds": 6.1,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.740498866213152,
+          "activity_threshold_dbfs": -65.71556905448936,
+          "trim_start_sample": 0,
+          "trim_end_sample": 449820
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "both07-global_whisper-3",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 19.922721088435374,
+          "longest_internal_silence": 7.3,
+          "voiced_seconds": 6.04,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.20272108843537415,
+          "activity_threshold_dbfs": -80.05317777880136,
+          "trim_start_sample": 0,
+          "trim_end_sample": 874944
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "temperature07-neutral-3",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 8.452063492063493,
+          "longest_internal_silence": 0.82,
+          "voiced_seconds": 6.34,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.39206349206349206,
+          "activity_threshold_dbfs": -65.63340811066215,
+          "trim_start_sample": 0,
+          "trim_end_sample": 360738
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "both07-directed_whisper-3",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 13.885532879818594,
+          "longest_internal_silence": 2.6,
+          "voiced_seconds": 6.7,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.1855328798185941,
+          "activity_threshold_dbfs": -69.78402474720679,
+          "trim_start_sample": 0,
+          "trim_end_sample": 609462
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "base-global_whisper-3",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 8.591383219954649,
+          "longest_internal_silence": 0.98,
+          "voiced_seconds": 6.28,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.5113832199546485,
+          "activity_threshold_dbfs": -73.13396865682039,
+          "trim_start_sample": 0,
+          "trim_end_sample": 361620
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "base-pause-3",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 8.870022675736962,
+          "longest_internal_silence": 1.4,
+          "voiced_seconds": 6.2,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.5900226757369614,
+          "activity_threshold_dbfs": -71.0440192086912,
+          "trim_start_sample": 0,
+          "trim_end_sample": 370440
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "base-directed_whisper-4",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 9.613061224489796,
+          "longest_internal_silence": 1.14,
+          "voiced_seconds": 6.58,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.2530612244897959,
+          "activity_threshold_dbfs": -67.04182698190947,
+          "trim_start_sample": 0,
+          "trim_end_sample": 418068
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "base-scoped_whisper-4",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 8.40562358276644,
+          "longest_internal_silence": 1.12,
+          "voiced_seconds": 6.0,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.06562358276643991,
+          "activity_threshold_dbfs": -71.62207071626987,
+          "trim_start_sample": 0,
+          "trim_end_sample": 370688
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "both07-directed_whisper-4",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 9.891700680272109,
+          "longest_internal_silence": 1.74,
+          "voiced_seconds": 6.24,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.4717006802721088,
+          "activity_threshold_dbfs": -67.01926724764802,
+          "trim_start_sample": 0,
+          "trim_end_sample": 420714
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "temperature07-scoped_whisper-4",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 9.984580498866213,
+          "longest_internal_silence": 1.7,
+          "voiced_seconds": 6.22,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.5445804988662132,
+          "activity_threshold_dbfs": -69.14100335205427,
+          "trim_start_sample": 0,
+          "trim_end_sample": 421596
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "both07-pause-4",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 17.136326530612244,
+          "longest_internal_silence": 10.24,
+          "voiced_seconds": 6.26,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.2163265306122449,
+          "activity_threshold_dbfs": -68.98673291245076,
+          "trim_start_sample": 0,
+          "trim_end_sample": 751464
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "temperature07-directed_whisper-4",
+        "rejection_reasons": [
+          "trailing_silence"
+        ],
+        "metrics": {
+          "duration_seconds": 25.402630385487527,
+          "longest_internal_silence": 3.26,
+          "voiced_seconds": 4.66,
+          "hit_cap": false,
+          "trailing_silence_seconds": 15.882630385487529,
+          "activity_threshold_dbfs": -72.536668856866,
+          "trim_start_sample": 0,
+          "trim_end_sample": 425124
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "topp07-scoped_whisper-4",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 8.6378231292517,
+          "longest_internal_silence": 1.04,
+          "voiced_seconds": 5.68,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.39782312925170066,
+          "activity_threshold_dbfs": -67.56253126354368,
+          "trim_start_sample": 0,
+          "trim_end_sample": 368676
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "topp07-neutral-4",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 8.17342403628118,
+          "longest_internal_silence": 0.92,
+          "voiced_seconds": 5.7,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.5134240362811792,
+          "activity_threshold_dbfs": -66.52399940017867,
+          "trim_start_sample": 0,
+          "trim_end_sample": 343098
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "temperature07-pause-4",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 10.031020408163265,
+          "longest_internal_silence": 2.3,
+          "voiced_seconds": 6.14,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.5310204081632653,
+          "activity_threshold_dbfs": -68.50611334735086,
+          "trim_start_sample": 0,
+          "trim_end_sample": 424242
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "temperature07-scoped_slow-4",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 9.752380952380953,
+          "longest_internal_silence": 1.36,
+          "voiced_seconds": 6.4,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.09238095238095238,
+          "activity_threshold_dbfs": -68.22582991234823,
+          "trim_start_sample": 22050,
+          "trim_end_sample": 430080
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "base-scoped_slow-4",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 8.870022675736962,
+          "longest_internal_silence": 1.24,
+          "voiced_seconds": 6.22,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.11002267573696145,
+          "activity_threshold_dbfs": -67.92461658871065,
+          "trim_start_sample": 0,
+          "trim_end_sample": 391168
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "temperature07-global_whisper-4",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 14.582131519274377,
+          "longest_internal_silence": 2.92,
+          "voiced_seconds": 6.06,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.2621315192743764,
+          "activity_threshold_dbfs": -75.0405797237863,
+          "trim_start_sample": 0,
+          "trim_end_sample": 636804
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "base-neutral-4",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 8.544943310657596,
+          "longest_internal_silence": 0.94,
+          "voiced_seconds": 6.06,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.6249433106575963,
+          "activity_threshold_dbfs": -70.27749446234269,
+          "trim_start_sample": 0,
+          "trim_end_sample": 354564
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "topp07-pause-4",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 8.823582766439909,
+          "longest_internal_silence": 1.08,
+          "voiced_seconds": 6.2,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.5835827664399093,
+          "activity_threshold_dbfs": -68.67742626037358,
+          "trim_start_sample": 0,
+          "trim_end_sample": 368676
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "topp07-global_whisper-4",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 11.19201814058957,
+          "longest_internal_silence": 1.28,
+          "voiced_seconds": 6.84,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.37201814058956917,
+          "activity_threshold_dbfs": -77.18862066412363,
+          "trim_start_sample": 0,
+          "trim_end_sample": 482454
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "base-pause-4",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 8.916462585034013,
+          "longest_internal_silence": 1.36,
+          "voiced_seconds": 6.06,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.6164625850340136,
+          "activity_threshold_dbfs": -69.30858103961113,
+          "trim_start_sample": 0,
+          "trim_end_sample": 371322
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "topp07-scoped_slow-4",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 8.498503401360544,
+          "longest_internal_silence": 1.0,
+          "voiced_seconds": 6.24,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.2585034013605442,
+          "activity_threshold_dbfs": -66.67888702850794,
+          "trim_start_sample": 0,
+          "trim_end_sample": 368676
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "both07-scoped_whisper-4",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 11.795736961451247,
+          "longest_internal_silence": 2.24,
+          "voiced_seconds": 6.14,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.6757369614512472,
+          "activity_threshold_dbfs": -65.69649681705498,
+          "trim_start_sample": 0,
+          "trim_end_sample": 495684
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "temperature07-neutral-4",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 8.730702947845804,
+          "longest_internal_silence": 0.8,
+          "voiced_seconds": 6.14,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.830702947845805,
+          "activity_threshold_dbfs": -67.67633747816726,
+          "trim_start_sample": 0,
+          "trim_end_sample": 353682
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "both07-scoped_slow-4",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 9.798820861678005,
+          "longest_internal_silence": 1.58,
+          "voiced_seconds": 6.46,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.49882086167800455,
+          "activity_threshold_dbfs": -69.54779256870212,
+          "trim_start_sample": 0,
+          "trim_end_sample": 415422
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "base-global_whisper-4",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 9.334421768707482,
+          "longest_internal_silence": 1.06,
+          "voiced_seconds": 6.36,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.39442176870748297,
+          "activity_threshold_dbfs": -71.52155898431698,
+          "trim_start_sample": 0,
+          "trim_end_sample": 399546
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "both07-neutral-4",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 8.777142857142858,
+          "longest_internal_silence": 0.88,
+          "voiced_seconds": 6.36,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.5971428571428572,
+          "activity_threshold_dbfs": -68.91508616122945,
+          "trim_start_sample": 0,
+          "trim_end_sample": 366030
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "topp07-directed_whisper-4",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 9.380861678004536,
+          "longest_internal_silence": 1.18,
+          "voiced_seconds": 6.66,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.16086167800453516,
+          "activity_threshold_dbfs": -68.26564212492151,
+          "trim_start_sample": 0,
+          "trim_end_sample": 411894
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "both07-global_whisper-4",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 8.730702947845804,
+          "longest_internal_silence": 0.52,
+          "voiced_seconds": 6.9,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.270702947845805,
+          "activity_threshold_dbfs": -75.33702338350768,
+          "trim_start_sample": 0,
+          "trim_end_sample": 378378
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "unpunct-neutral-1",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 7.523265306122449,
+          "longest_internal_silence": 0.64,
+          "voiced_seconds": 6.26,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.08326530612244898,
+          "activity_threshold_dbfs": -67.66243143101194,
+          "trim_start_sample": 0,
+          "trim_end_sample": 331776
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "unpunct-scoped_whisper-1",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 8.498503401360544,
+          "longest_internal_silence": 0.74,
+          "voiced_seconds": 6.04,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.09850340136054422,
+          "activity_threshold_dbfs": -66.79994329637842,
+          "trim_start_sample": 0,
+          "trim_end_sample": 374784
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "unpunct-scoped_slow-1",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 8.17342403628118,
+          "longest_internal_silence": 0.72,
+          "voiced_seconds": 6.04,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.11342403628117914,
+          "activity_threshold_dbfs": -67.21474509655927,
+          "trim_start_sample": 7056,
+          "trim_end_sample": 360448
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "unpunct-pause-1",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 10.820498866213152,
+          "longest_internal_silence": 2.46,
+          "voiced_seconds": 6.34,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.26049886621315194,
+          "activity_threshold_dbfs": -64.07558103804456,
+          "trim_start_sample": 0,
+          "trim_end_sample": 470988
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "unpunct-neutral-2",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 7.616145124716553,
+          "longest_internal_silence": 0.68,
+          "voiced_seconds": 6.04,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.1961451247165533,
+          "activity_threshold_dbfs": -72.3388649392029,
+          "trim_start_sample": 0,
+          "trim_end_sample": 332514
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "unpunct-scoped_whisper-2",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 7.987664399092971,
+          "longest_internal_silence": 1.0,
+          "voiced_seconds": 5.92,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.04766439909297052,
+          "activity_threshold_dbfs": -66.63100053134198,
+          "trim_start_sample": 0,
+          "trim_end_sample": 352256
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "unpunct-scoped_slow-2",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 9.148662131519274,
+          "longest_internal_silence": 0.96,
+          "voiced_seconds": 6.72,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.08866213151927438,
+          "activity_threshold_dbfs": -66.73861164340975,
+          "trim_start_sample": 0,
+          "trim_end_sample": 403456
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "unpunct-pause-2",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 9.798820861678005,
+          "longest_internal_silence": 1.38,
+          "voiced_seconds": 6.98,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.43882086167800455,
+          "activity_threshold_dbfs": -65.86611753563125,
+          "trim_start_sample": 0,
+          "trim_end_sample": 418068
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "unpunct-neutral-3",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 7.75546485260771,
+          "longest_internal_silence": 0.56,
+          "voiced_seconds": 6.1,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.39546485260770975,
+          "activity_threshold_dbfs": -67.34061443942798,
+          "trim_start_sample": 0,
+          "trim_end_sample": 329868
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "unpunct-scoped_whisper-3",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 9.195102040816327,
+          "longest_internal_silence": 0.92,
+          "voiced_seconds": 6.36,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.7151020408163266,
+          "activity_threshold_dbfs": -68.61369121887519,
+          "trim_start_sample": 0,
+          "trim_end_sample": 379260
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "unpunct-scoped_slow-3",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 9.334421768707482,
+          "longest_internal_silence": 1.3,
+          "voiced_seconds": 6.22,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.374421768707483,
+          "activity_threshold_dbfs": -70.75908044566954,
+          "trim_start_sample": 0,
+          "trim_end_sample": 400428
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "unpunct-pause-3",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 9.148662131519274,
+          "longest_internal_silence": 0.74,
+          "voiced_seconds": 6.92,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.18866213151927438,
+          "activity_threshold_dbfs": -68.13958193010285,
+          "trim_start_sample": 0,
+          "trim_end_sample": 400428
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "unpunct-neutral-4",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 7.523265306122449,
+          "longest_internal_silence": 0.66,
+          "voiced_seconds": 6.34,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.10326530612244898,
+          "activity_threshold_dbfs": -65.51839334970526,
+          "trim_start_sample": 0,
+          "trim_end_sample": 331776
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "unpunct-scoped_whisper-4",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 9.891700680272109,
+          "longest_internal_silence": 1.52,
+          "voiced_seconds": 6.2,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.6917006802721088,
+          "activity_threshold_dbfs": -71.40740352455526,
+          "trim_start_sample": 0,
+          "trim_end_sample": 411012
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "unpunct-scoped_slow-4",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 8.870022675736962,
+          "longest_internal_silence": 0.92,
+          "voiced_seconds": 6.38,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.5100226757369615,
+          "activity_threshold_dbfs": -69.14710443577553,
+          "trim_start_sample": 0,
+          "trim_end_sample": 373968
+        }
+      },
+      {
+        "run": "sampling",
+        "id": "unpunct-pause-4",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 8.17342403628118,
+          "longest_internal_silence": 0.76,
+          "voiced_seconds": 6.4,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.21342403628117915,
+          "activity_threshold_dbfs": -70.29251413425975,
+          "trim_start_sample": 0,
+          "trim_end_sample": 356328
+        }
+      },
+      {
+        "run": "holdout",
+        "id": "a-korean_reset-1",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 9.195102040816327,
+          "longest_internal_silence": 0.84,
+          "voiced_seconds": 7.02,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.2951020408163265,
+          "activity_threshold_dbfs": -68.97477052463353,
+          "trim_start_sample": 0,
+          "trim_end_sample": 397782
+        }
+      },
+      {
+        "run": "holdout",
+        "id": "b-korean_reset-1",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 12.956734693877552,
+          "longest_internal_silence": 2.08,
+          "voiced_seconds": 8.08,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.456734693877551,
+          "activity_threshold_dbfs": -67.94165119320488,
+          "trim_start_sample": 0,
+          "trim_end_sample": 556542
+        }
+      },
+      {
+        "run": "holdout",
+        "id": "b-neutral-1",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 9.566621315192744,
+          "longest_internal_silence": 0.78,
+          "voiced_seconds": 7.76,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.22662131519274376,
+          "activity_threshold_dbfs": -64.95666018677471,
+          "trim_start_sample": 0,
+          "trim_end_sample": 417186
+        }
+      },
+      {
+        "run": "holdout",
+        "id": "b-point_reset-1",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 12.213696145124716,
+          "longest_internal_silence": 1.32,
+          "voiced_seconds": 8.28,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.29369614512471653,
+          "activity_threshold_dbfs": -67.87639388179387,
+          "trim_start_sample": 0,
+          "trim_end_sample": 530964
+        }
+      },
+      {
+        "run": "holdout",
+        "id": "a-scoped_whisper-1",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 10.634739229024943,
+          "longest_internal_silence": 0.88,
+          "voiced_seconds": 7.86,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.5747392290249433,
+          "activity_threshold_dbfs": -68.28926192029401,
+          "trim_start_sample": 0,
+          "trim_end_sample": 448938
+        }
+      },
+      {
+        "run": "holdout",
+        "id": "a-directed_whisper-1",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 9.798820861678005,
+          "longest_internal_silence": 0.86,
+          "voiced_seconds": 7.66,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.41882086167800453,
+          "activity_threshold_dbfs": -63.358610617560856,
+          "trim_start_sample": 0,
+          "trim_end_sample": 418950
+        }
+      },
+      {
+        "run": "holdout",
+        "id": "b-directed_whisper-1",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 11.099138321995465,
+          "longest_internal_silence": 1.22,
+          "voiced_seconds": 7.72,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.5191383219954648,
+          "activity_threshold_dbfs": -68.03113150606995,
+          "trim_start_sample": 0,
+          "trim_end_sample": 471870
+        }
+      },
+      {
+        "run": "holdout",
+        "id": "a-point_reset-1",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 9.566621315192744,
+          "longest_internal_silence": 0.98,
+          "voiced_seconds": 7.64,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.22662131519274376,
+          "activity_threshold_dbfs": -68.36218977475083,
+          "trim_start_sample": 0,
+          "trim_end_sample": 417186
+        }
+      },
+      {
+        "run": "holdout",
+        "id": "b-scoped_whisper-1",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 11.19201814058957,
+          "longest_internal_silence": 1.32,
+          "voiced_seconds": 8.18,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.37201814058956917,
+          "activity_threshold_dbfs": -69.66642013387163,
+          "trim_start_sample": 0,
+          "trim_end_sample": 482454
+        }
+      },
+      {
+        "run": "holdout",
+        "id": "a-neutral-1",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 8.870022675736962,
+          "longest_internal_silence": 0.48,
+          "voiced_seconds": 7.6,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.09002267573696145,
+          "activity_threshold_dbfs": -70.08480868146955,
+          "trim_start_sample": 0,
+          "trim_end_sample": 391168
+        }
+      },
+      {
+        "run": "holdout",
+        "id": "b-neutral-2",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 10.12390022675737,
+          "longest_internal_silence": 1.08,
+          "voiced_seconds": 7.76,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.4439002267573696,
+          "activity_threshold_dbfs": -66.62931617449357,
+          "trim_start_sample": 0,
+          "trim_end_sample": 432180
+        }
+      },
+      {
+        "run": "holdout",
+        "id": "b-korean_reset-2",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 13.003174603174603,
+          "longest_internal_silence": 2.14,
+          "voiced_seconds": 7.92,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.44317460317460317,
+          "activity_threshold_dbfs": -68.1796375074244,
+          "trim_start_sample": 0,
+          "trim_end_sample": 559188
+        }
+      },
+      {
+        "run": "holdout",
+        "id": "b-scoped_whisper-2",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 11.935056689342403,
+          "longest_internal_silence": 1.32,
+          "voiced_seconds": 8.74,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.41505668934240364,
+          "activity_threshold_dbfs": -68.8671751344246,
+          "trim_start_sample": 0,
+          "trim_end_sample": 513324
+        }
+      },
+      {
+        "run": "holdout",
+        "id": "a-korean_reset-2",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 10.402539682539683,
+          "longest_internal_silence": 1.08,
+          "voiced_seconds": 7.9,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.42253968253968255,
+          "activity_threshold_dbfs": -68.4846165812287,
+          "trim_start_sample": 0,
+          "trim_end_sample": 445410
+        }
+      },
+      {
+        "run": "holdout",
+        "id": "a-neutral-2",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 10.913378684807256,
+          "longest_internal_silence": 1.22,
+          "voiced_seconds": 8.24,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.03337868480725623,
+          "activity_threshold_dbfs": -65.11741312005283,
+          "trim_start_sample": 0,
+          "trim_end_sample": 481280
+        }
+      },
+      {
+        "run": "holdout",
+        "id": "b-point_reset-2",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 18.715283446712018,
+          "longest_internal_silence": 6.8,
+          "voiced_seconds": 8.72,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.6752834467120181,
+          "activity_threshold_dbfs": -70.37360173270237,
+          "trim_start_sample": 0,
+          "trim_end_sample": 800856
+        }
+      },
+      {
+        "run": "holdout",
+        "id": "a-point_reset-2",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 9.102222222222222,
+          "longest_internal_silence": 0.82,
+          "voiced_seconds": 7.0,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.3422222222222222,
+          "activity_threshold_dbfs": -62.912563342206134,
+          "trim_start_sample": 0,
+          "trim_end_sample": 391608
+        }
+      },
+      {
+        "run": "holdout",
+        "id": "b-directed_whisper-2",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 12.399455782312925,
+          "longest_internal_silence": 1.66,
+          "voiced_seconds": 8.96,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.4794557823129252,
+          "activity_threshold_dbfs": -65.55728386591106,
+          "trim_start_sample": 0,
+          "trim_end_sample": 530964
+        }
+      },
+      {
+        "run": "holdout",
+        "id": "a-directed_whisper-2",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 10.95981859410431,
+          "longest_internal_silence": 1.78,
+          "voiced_seconds": 7.18,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.6398185941043084,
+          "activity_threshold_dbfs": -67.58343655495851,
+          "trim_start_sample": 0,
+          "trim_end_sample": 460404
+        }
+      },
+      {
+        "run": "holdout",
+        "id": "a-scoped_whisper-2",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 9.845260770975056,
+          "longest_internal_silence": 0.9,
+          "voiced_seconds": 7.66,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.3652607709750567,
+          "activity_threshold_dbfs": -67.65697339978901,
+          "trim_start_sample": 0,
+          "trim_end_sample": 423360
+        }
+      },
+      {
+        "run": "holdout",
+        "id": "a-directed_whisper-3",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 10.12390022675737,
+          "longest_internal_silence": 1.2,
+          "voiced_seconds": 6.44,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.3439002267573696,
+          "activity_threshold_dbfs": -67.66911608016115,
+          "trim_start_sample": 0,
+          "trim_end_sample": 436590
+        }
+      },
+      {
+        "run": "holdout",
+        "id": "b-point_reset-3",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 12.26013605442177,
+          "longest_internal_silence": 1.14,
+          "voiced_seconds": 8.84,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.5001360544217687,
+          "activity_threshold_dbfs": -66.16266709109756,
+          "trim_start_sample": 0,
+          "trim_end_sample": 523908
+        }
+      },
+      {
+        "run": "holdout",
+        "id": "b-directed_whisper-3",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 11.145578231292516,
+          "longest_internal_silence": 0.62,
+          "voiced_seconds": 8.4,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.085578231292517,
+          "activity_threshold_dbfs": -67.82158545583833,
+          "trim_start_sample": 0,
+          "trim_end_sample": 491520
+        }
+      },
+      {
+        "run": "holdout",
+        "id": "a-korean_reset-3",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 9.520181405895691,
+          "longest_internal_silence": 0.82,
+          "voiced_seconds": 7.5,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.3201814058956916,
+          "activity_threshold_dbfs": -69.18230199574822,
+          "trim_start_sample": 0,
+          "trim_end_sample": 411012
+        }
+      },
+      {
+        "run": "holdout",
+        "id": "b-neutral-3",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 10.541859410430838,
+          "longest_internal_silence": 1.06,
+          "voiced_seconds": 7.9,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.501859410430839,
+          "activity_threshold_dbfs": -63.704843917605075,
+          "trim_start_sample": 0,
+          "trim_end_sample": 448056
+        }
+      },
+      {
+        "run": "holdout",
+        "id": "a-point_reset-3",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 9.380861678004536,
+          "longest_internal_silence": 0.74,
+          "voiced_seconds": 7.26,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.28086167800453515,
+          "activity_threshold_dbfs": -65.97950198861611,
+          "trim_start_sample": 0,
+          "trim_end_sample": 406602
+        }
+      },
+      {
+        "run": "holdout",
+        "id": "b-scoped_whisper-3",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 11.470657596371883,
+          "longest_internal_silence": 1.16,
+          "voiced_seconds": 8.5,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.4306575963718821,
+          "activity_threshold_dbfs": -70.04240091314641,
+          "trim_start_sample": 0,
+          "trim_end_sample": 492156
+        }
+      },
+      {
+        "run": "holdout",
+        "id": "a-neutral-3",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 8.40562358276644,
+          "longest_internal_silence": 0.42,
+          "voiced_seconds": 7.4,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.1056235827664399,
+          "activity_threshold_dbfs": -73.13337584042057,
+          "trim_start_sample": 0,
+          "trim_end_sample": 370688
+        }
+      },
+      {
+        "run": "holdout",
+        "id": "a-scoped_whisper-3",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 9.7059410430839,
+          "longest_internal_silence": 1.12,
+          "voiced_seconds": 7.12,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.16594104308390023,
+          "activity_threshold_dbfs": -68.57652747022173,
+          "trim_start_sample": 0,
+          "trim_end_sample": 426006
+        }
+      },
+      {
+        "run": "holdout",
+        "id": "b-korean_reset-3",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 11.888616780045352,
+          "longest_internal_silence": 0.68,
+          "voiced_seconds": 9.76,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.18861678004535148,
+          "activity_threshold_dbfs": -65.4506216469569,
+          "trim_start_sample": 0,
+          "trim_end_sample": 521262
+        }
+      },
+      {
+        "run": "holdout",
+        "id": "b-korean_reset-4",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 10.634739229024943,
+          "longest_internal_silence": 1.16,
+          "voiced_seconds": 7.64,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.5547392290249433,
+          "activity_threshold_dbfs": -64.47866776680195,
+          "trim_start_sample": 0,
+          "trim_end_sample": 449820
+        }
+      },
+      {
+        "run": "holdout",
+        "id": "a-neutral-4",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 10.634739229024943,
+          "longest_internal_silence": 1.22,
+          "voiced_seconds": 7.8,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.5947392290249434,
+          "activity_threshold_dbfs": -66.58258702650569,
+          "trim_start_sample": 0,
+          "trim_end_sample": 448056
+        }
+      },
+      {
+        "run": "holdout",
+        "id": "b-neutral-4",
+        "rejection_reasons": [
+          "internal_silence"
+        ],
+        "metrics": {
+          "duration_seconds": 19.086802721088436,
+          "longest_internal_silence": 8.06,
+          "voiced_seconds": 7.78,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.42680272108843537,
+          "activity_threshold_dbfs": -65.09508884064226,
+          "trim_start_sample": 0,
+          "trim_end_sample": 828198
+        }
+      },
+      {
+        "run": "holdout",
+        "id": "a-directed_whisper-4",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 9.05578231292517,
+          "longest_internal_silence": 0.88,
+          "voiced_seconds": 6.92,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.07578231292517007,
+          "activity_threshold_dbfs": -66.86953415571121,
+          "trim_start_sample": 0,
+          "trim_end_sample": 399360
+        }
+      },
+      {
+        "run": "holdout",
+        "id": "b-scoped_whisper-4",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 8.452063492063493,
+          "longest_internal_silence": 1.48,
+          "voiced_seconds": 5.2,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.07206349206349207,
+          "activity_threshold_dbfs": -68.7203901044592,
+          "trim_start_sample": 0,
+          "trim_end_sample": 372736
+        }
+      },
+      {
+        "run": "holdout",
+        "id": "b-point_reset-4",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 12.07437641723356,
+          "longest_internal_silence": 1.36,
+          "voiced_seconds": 7.9,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.7343764172335601,
+          "activity_threshold_dbfs": -67.57913937714963,
+          "trim_start_sample": 0,
+          "trim_end_sample": 505386
+        }
+      },
+      {
+        "run": "holdout",
+        "id": "b-directed_whisper-4",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 13.003174603174603,
+          "longest_internal_silence": 1.72,
+          "voiced_seconds": 8.36,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.5231746031746032,
+          "activity_threshold_dbfs": -67.45568220976861,
+          "trim_start_sample": 0,
+          "trim_end_sample": 555660
+        }
+      },
+      {
+        "run": "holdout",
+        "id": "a-scoped_whisper-4",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 10.12390022675737,
+          "longest_internal_silence": 0.86,
+          "voiced_seconds": 7.72,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.46390022675736964,
+          "activity_threshold_dbfs": -69.42014128387454,
+          "trim_start_sample": 0,
+          "trim_end_sample": 431298
+        }
+      },
+      {
+        "run": "holdout",
+        "id": "a-korean_reset-4",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 9.148662131519274,
+          "longest_internal_silence": 0.86,
+          "voiced_seconds": 6.98,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.4086621315192744,
+          "activity_threshold_dbfs": -68.85200385703169,
+          "trim_start_sample": 0,
+          "trim_end_sample": 390726
+        }
+      },
+      {
+        "run": "holdout",
+        "id": "a-point_reset-4",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 10.356099773242631,
+          "longest_internal_silence": 0.92,
+          "voiced_seconds": 7.86,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.4360997732426304,
+          "activity_threshold_dbfs": -68.41330655432506,
+          "trim_start_sample": 0,
+          "trim_end_sample": 442764
+        }
+      },
+      {
+        "run": "unpruned",
+        "id": "base-scoped_slow-1",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 17.08988662131519,
+          "longest_internal_silence": 8.16,
+          "voiced_seconds": 6.28,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.10988662131519275,
+          "activity_threshold_dbfs": -68.71483970352091,
+          "trim_start_sample": 0,
+          "trim_end_sample": 753664
+        }
+      },
+      {
+        "run": "unpruned",
+        "id": "base-global_whisper-1",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 8.126984126984127,
+          "longest_internal_silence": 0.48,
+          "voiced_seconds": 6.2,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.146984126984127,
+          "activity_threshold_dbfs": -75.3043110312537,
+          "trim_start_sample": 0,
+          "trim_end_sample": 357210
+        }
+      },
+      {
+        "run": "unpruned",
+        "id": "base-pause-1",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 8.40562358276644,
+          "longest_internal_silence": 0.98,
+          "voiced_seconds": 6.14,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.44562358276643993,
+          "activity_threshold_dbfs": -69.1671325110441,
+          "trim_start_sample": 0,
+          "trim_end_sample": 356328
+        }
+      },
+      {
+        "run": "unpruned",
+        "id": "base-directed_whisper-1",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 9.334421768707482,
+          "longest_internal_silence": 0.9,
+          "voiced_seconds": 6.42,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.474421768707483,
+          "activity_threshold_dbfs": -65.12551176912893,
+          "trim_start_sample": 0,
+          "trim_end_sample": 396018
+        }
+      },
+      {
+        "run": "unpruned",
+        "id": "base-neutral-1",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 7.987664399092971,
+          "longest_internal_silence": 0.68,
+          "voiced_seconds": 6.0,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.46766439909297053,
+          "activity_threshold_dbfs": -66.44784493068909,
+          "trim_start_sample": 0,
+          "trim_end_sample": 336924
+        }
+      },
+      {
+        "run": "unpruned",
+        "id": "base-scoped_whisper-1",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 8.962902494331066,
+          "longest_internal_silence": 1.08,
+          "voiced_seconds": 6.2,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.04290249433106576,
+          "activity_threshold_dbfs": -70.47164754799506,
+          "trim_start_sample": 0,
+          "trim_end_sample": 395264
+        }
+      },
+      {
+        "run": "unpruned",
+        "id": "base-global_whisper-2",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 9.47374149659864,
+          "longest_internal_silence": 1.36,
+          "voiced_seconds": 6.34,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.09374149659863945,
+          "activity_threshold_dbfs": -72.99776927076425,
+          "trim_start_sample": 0,
+          "trim_end_sample": 417792
+        }
+      },
+      {
+        "run": "unpruned",
+        "id": "base-directed_whisper-2",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 6.548027210884354,
+          "longest_internal_silence": 1.5,
+          "voiced_seconds": 4.44,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.048027210884353744,
+          "activity_threshold_dbfs": -65.06625465774195,
+          "trim_start_sample": 0,
+          "trim_end_sample": 288768
+        }
+      },
+      {
+        "run": "unpruned",
+        "id": "base-neutral-2",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 8.452063492063493,
+          "longest_internal_silence": 0.88,
+          "voiced_seconds": 6.44,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.4720634920634921,
+          "activity_threshold_dbfs": -68.73032745046044,
+          "trim_start_sample": 0,
+          "trim_end_sample": 357210
+        }
+      },
+      {
+        "run": "unpruned",
+        "id": "base-scoped_whisper-2",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 8.359183673469389,
+          "longest_internal_silence": 1.1,
+          "voiced_seconds": 6.06,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.37918367346938775,
+          "activity_threshold_dbfs": -65.83379032979971,
+          "trim_start_sample": 0,
+          "trim_end_sample": 357210
+        }
+      },
+      {
+        "run": "unpruned",
+        "id": "base-pause-2",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 8.777142857142858,
+          "longest_internal_silence": 1.12,
+          "voiced_seconds": 6.38,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.3171428571428571,
+          "activity_threshold_dbfs": -69.08639167478144,
+          "trim_start_sample": 0,
+          "trim_end_sample": 378378
+        }
+      },
+      {
+        "run": "unpruned",
+        "id": "base-scoped_slow-2",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 8.452063492063493,
+          "longest_internal_silence": 0.78,
+          "voiced_seconds": 6.28,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.39206349206349206,
+          "activity_threshold_dbfs": -65.79383678580567,
+          "trim_start_sample": 0,
+          "trim_end_sample": 360738
+        }
+      },
+      {
+        "run": "unpruned",
+        "id": "base-scoped_whisper-3",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 8.452063492063493,
+          "longest_internal_silence": 0.76,
+          "voiced_seconds": 6.38,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.19206349206349208,
+          "activity_threshold_dbfs": -69.8686726359518,
+          "trim_start_sample": 0,
+          "trim_end_sample": 369558
+        }
+      },
+      {
+        "run": "unpruned",
+        "id": "base-directed_whisper-3",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 9.05578231292517,
+          "longest_internal_silence": 0.96,
+          "voiced_seconds": 6.26,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.29578231292517004,
+          "activity_threshold_dbfs": -64.97094508192953,
+          "trim_start_sample": 0,
+          "trim_end_sample": 391608
+        }
+      },
+      {
+        "run": "unpruned",
+        "id": "base-neutral-3",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 8.312743764172335,
+          "longest_internal_silence": 0.78,
+          "voiced_seconds": 6.24,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.3127437641723356,
+          "activity_threshold_dbfs": -66.87869471264355,
+          "trim_start_sample": 17640,
+          "trim_end_sample": 358092
+        }
+      },
+      {
+        "run": "unpruned",
+        "id": "base-scoped_slow-3",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 9.891700680272109,
+          "longest_internal_silence": 2.58,
+          "voiced_seconds": 6.06,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.17170068027210883,
+          "activity_threshold_dbfs": -64.86505463323543,
+          "trim_start_sample": 0,
+          "trim_end_sample": 433944
+        }
+      },
+      {
+        "run": "unpruned",
+        "id": "base-global_whisper-3",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 8.452063492063493,
+          "longest_internal_silence": 0.82,
+          "voiced_seconds": 6.36,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.49206349206349204,
+          "activity_threshold_dbfs": -74.37829488700976,
+          "trim_start_sample": 0,
+          "trim_end_sample": 356328
+        }
+      },
+      {
+        "run": "unpruned",
+        "id": "base-pause-3",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 8.823582766439909,
+          "longest_internal_silence": 1.5,
+          "voiced_seconds": 6.14,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.18358276643990928,
+          "activity_threshold_dbfs": -66.95894452184439,
+          "trim_start_sample": 0,
+          "trim_end_sample": 386316
+        }
+      },
+      {
+        "run": "unpruned",
+        "id": "base-directed_whisper-4",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 8.359183673469389,
+          "longest_internal_silence": 1.0,
+          "voiced_seconds": 5.88,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.13918367346938776,
+          "activity_threshold_dbfs": -68.7908947944648,
+          "trim_start_sample": 0,
+          "trim_end_sample": 367794
+        }
+      },
+      {
+        "run": "unpruned",
+        "id": "base-scoped_whisper-4",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 9.287981859410431,
+          "longest_internal_silence": 0.98,
+          "voiced_seconds": 6.14,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.46798185941043086,
+          "activity_threshold_dbfs": -68.83810855447906,
+          "trim_start_sample": 0,
+          "trim_end_sample": 394254
+        }
+      },
+      {
+        "run": "unpruned",
+        "id": "base-scoped_slow-4",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 10.216780045351474,
+          "longest_internal_silence": 1.24,
+          "voiced_seconds": 6.34,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.7167800453514739,
+          "activity_threshold_dbfs": -69.2302337618323,
+          "trim_start_sample": 0,
+          "trim_end_sample": 424242
+        }
+      },
+      {
+        "run": "unpruned",
+        "id": "base-neutral-4",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 8.916462585034013,
+          "longest_internal_silence": 0.94,
+          "voiced_seconds": 6.06,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.7564625850340136,
+          "activity_threshold_dbfs": -68.30851910596063,
+          "trim_start_sample": 0,
+          "trim_end_sample": 365148
+        }
+      },
+      {
+        "run": "unpruned",
+        "id": "base-pause-4",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 7.7090249433106575,
+          "longest_internal_silence": 0.74,
+          "voiced_seconds": 6.0,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.1490249433106576,
+          "activity_threshold_dbfs": -66.22143850305518,
+          "trim_start_sample": 0,
+          "trim_end_sample": 338688
+        }
+      },
+      {
+        "run": "unpruned",
+        "id": "base-global_whisper-4",
+        "rejection_reasons": [],
+        "metrics": {
+          "duration_seconds": 8.777142857142858,
+          "longest_internal_silence": 0.82,
+          "voiced_seconds": 6.26,
+          "hit_cap": false,
+          "trailing_silence_seconds": 0.27714285714285714,
+          "activity_threshold_dbfs": -70.32596256698737,
+          "trim_start_sample": 0,
+          "trim_end_sample": 380142
+        }
+      }
+    ],
+    "known_truncated_silent_outputs_rejected": 5,
+    "known_quiet_valid_outputs_retained": 2
+  },
+  "completion": {
+    "worker_idle": {
+      "status": "ok",
+      "busy": false,
+      "queued": 0,
+      "memory_gib": 6
+    },
+    "main_model_health": "healthy",
+    "main_model_started_at": "2026-10-22T12:34:26.052328339Z",
+    "main_model_restarted": false
+  },
+  "limitations": [
+    "These changes fix delivery and rejection of malformed or stalled output; they do not guarantee the model follows every emotional/prosodic tag consistently.",
+    "This test verifies ASR content and waveform preservation, not perceptual emotion quality or a newly rendered video.",
+    "Existing video ASR checks remain responsible for transcript coverage; a clean early stop cannot always be inferred from waveform activity alone.",
+    "The original sampling settings and model checkpoint were retained."
+  ],
+  "validation_notes": [
+    "The first test monitor observed the outgoing stopped 0.2.0 container during replacement. Independent checks confirmed the running 0.3.0 image, native-tags-v1 health, and source/embedded/live hashes before accepting results."
+  ]
+}

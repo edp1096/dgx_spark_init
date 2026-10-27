@@ -66,7 +66,7 @@ func TestQwen38FNEXL3SwitchWiresItsProfileAndSharedServices(t *testing.T) {
 	if cfg.Model.DefaultModel != "qwen38fn_exl3" || cfg.Model.Endpoint != "http://127.0.0.1:18002" || cfg.Model.ModelType != "qwen3.8-tensorfold" || cfg.Context.WindowTokens != 1048576 || cfg.Model.ReasoningEffort != "medium" {
 		t.Fatalf("native profile wiring incorrect: %+v", cfg.Model)
 	}
-	if cfg.Image.Endpoint != "http://127.0.0.1:8730" || cfg.Image.Mode != "basic" || cfg.ASR.Endpoint != "http://127.0.0.1:8693" || cfg.TTS.Endpoint != "http://127.0.0.1:8692" || cfg.Extra.SSHEndpoint != "http://127.0.0.1:8699" {
+	if cfg.Image.Endpoint != "http://127.0.0.1:8730" || cfg.Image.Mode != "reference" || cfg.ASR.Endpoint != "http://127.0.0.1:8693" || cfg.TTS.Endpoint != "http://127.0.0.1:8692" || cfg.Extra.SSHEndpoint != "http://127.0.0.1:8699" {
 		t.Fatal("shared service wiring incorrect")
 	}
 	if cfg.Runtime.Bundle != "flash-next" {

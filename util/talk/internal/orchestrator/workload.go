@@ -21,6 +21,10 @@ func workloadGroup(id string) string {
 		return "image"
 	case "qwen3-tts":
 		return "tts"
+	case "extra-fish":
+		return "fish"
+	case "extra-music-ace":
+		return id
 	case "nemotron-asr", "extra-media":
 		return "speech"
 	case "extra-embedding":
@@ -128,7 +132,7 @@ func (c *Controller) stopWorkloads(ctx context.Context, b Bundle) error {
 			}
 		}
 		var stopErr error
-		if isManagedTTS(x) || x.ComposeAsset == "compose.extra-embedding.yaml" {
+		if isManagedTTS(x) || isManagedMusic(x) || x.ComposeAsset == "compose.extra-embedding.yaml" {
 			stopErr = c.stopIdleWorkload(ctx, x)
 		} else {
 			stopErr = c.stopComponent(ctx, x)
@@ -151,6 +155,9 @@ func (c *Controller) stopWorkloads(ctx context.Context, b Bundle) error {
 // cleanup. A canceled waiter never starts a service. Cleanup uses its own context
 // because request cancellation does not guarantee GPU/server work has stopped.
 func (c *Controller) AcquireWorkload(ctx context.Context, bundleID, target string, reserve float64, requestedPeak ...float64) (func() error, error) {
+	if c.Catalog().SupportDisabled(bundleID, target) {
+		return nil, fmt.Errorf("현재 모델 세트에서는 %s 생성 기능을 사용하지 않습니다", target)
+	}
 	b, ok := c.Catalog().Bundle(bundleID)
 	if ok {
 		reserve = c.Catalog().minimumBundleReserve(b, reserve)
@@ -162,7 +169,7 @@ func (c *Controller) AcquireWorkload(ctx context.Context, bundleID, target strin
 		}
 	}
 	if ok {
-		if image, found := c.Catalog().ResolveSupport(b.ID, target); found && ((image.ComposeAsset == "compose.extra-embedding.yaml" && c.local(image)) || isQwenImage21(image) || (isManagedTTS(image) && c.local(image))) && image.Controller == "compose" {
+		if image, found := c.Catalog().ResolveSupport(b.ID, target); found && ((image.ComposeAsset == "compose.extra-embedding.yaml" && c.local(image)) || isQwenImage21(image) || ((isManagedTTS(image) || isManagedMusic(image)) && c.local(image))) && image.Controller == "compose" {
 			return c.acquireManagedWorkload(ctx, c.workloadBundle(b), image, reserve, requestedPeak...)
 		}
 	}
@@ -513,7 +520,7 @@ func (c *Controller) reclaimIdleAuxiliary(ctx context.Context, b Bundle, target 
 		if x.KeepResident || !c.local(x) || x.Controller != "compose" || !c.componentRunning(ctx, x) {
 			continue
 		}
-		if isManagedTTS(x) || x.ComposeAsset == "compose.extra-embedding.yaml" {
+		if isManagedTTS(x) || isManagedMusic(x) || x.ComposeAsset == "compose.extra-embedding.yaml" {
 			if err := c.stopIdleWorkload(ctx, x); err != nil {
 				continue
 			}
@@ -602,6 +609,9 @@ func liveWorkspaceMemory(ctx context.Context, component Component, requested ...
 func (c *Controller) OnDemandIdle(ctx context.Context, bundleID, id string) bool {
 	b, ok := c.Catalog().Bundle(bundleID)
 	if !ok || (!b.WorkloadSwap && id != "extra-embedding") || workloadGroup(id) == "" {
+		return false
+	}
+	if !c.embeddingCoreRunning(ctx, b) {
 		return false
 	}
 	for _, member := range c.workloadBundle(b).Components {

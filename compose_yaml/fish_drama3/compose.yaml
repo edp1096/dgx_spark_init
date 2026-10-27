@@ -1,0 +1,21 @@
+services:
+  runtime:
+    image: sparktalk-fish-drama3:0.4.0
+    build: .
+    container_name: sparktalk-fish-drama3
+    gpus: all
+    ipc: host
+    network_mode: host
+    init: true
+    restart: "no"
+    mem_limit: 42g
+    memswap_limit: 42g
+    environment:
+      HF_HOME: /hf
+      HF_HUB_OFFLINE: "1"
+      DRAMA3_HADAMARD8: "1"
+      VOICE_LIBRARY_DIR: /opt/fish/user-voices
+    volumes:
+      - ${SPARKTALK_HF_CACHE:-${HOME}/.cache/huggingface}:/hf:ro
+      - ${SPARKTALK_DATA_DIR:-${HOME}/.local/share/sparktalk}/fish-kernels:/root/.cache/sglang
+      - ${SPARKTALK_DATA_DIR:-${HOME}/.local/share/sparktalk}/voices:/opt/fish/user-voices:ro

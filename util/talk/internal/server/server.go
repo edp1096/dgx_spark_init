@@ -28,6 +28,7 @@ import (
 )
 
 type Server struct {
+	shortsPublishMu    sync.Mutex
 	docAssetMu         sync.Mutex
 	docExportMu        sync.Mutex
 	docTaskMu          sync.Mutex
@@ -66,6 +67,7 @@ type Server struct {
 	compactionMu       sync.Mutex
 	asrMu              sync.Mutex
 	ttsMu              sync.Mutex
+	voicePublishMu     sync.Mutex
 	documentMu         sync.Mutex
 	knowledgeJobMu     sync.Mutex
 	knowledgeJobs      map[string]*knowledgeJobRun

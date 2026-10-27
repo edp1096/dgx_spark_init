@@ -76,7 +76,7 @@ func TestEmbeddedRecipeMaterializesInAppDataDirectory(t *testing.T) {
 		if id == "glm53" {
 			for _, value := range []string{
 				"GLM53_CACHE_PATH=" + shellQuote(filepath.Join(filepath.Dir(cache), "glm53-fp4-local")),
-				"VLLM_BIND='127.0.0.1'",
+				"VLLM_BIND='0.0.0.0'",
 			} {
 				if !strings.Contains(string(env), value) {
 					t.Errorf("GLM recipe missing %s", value)

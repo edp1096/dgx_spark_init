@@ -1,0 +1,56 @@
+{
+  "policy": "Explicit model-set stop includes managed shared Extra services; external endpoints are not controlled",
+  "live_bundle": "flash-next-fp4-local",
+  "operation": "complete",
+  "status_read_http": 503,
+  "status_read_message": "모델 세트가 중지되어 있습니다. 세트를 시작한 뒤 쇼츠 기능을 사용하세요",
+  "services": [
+    {
+      "id": "flash-next-fp4-local",
+      "status": "exited",
+      "health": "offline"
+    },
+    {
+      "id": "nemotron-asr",
+      "status": "exited",
+      "health": "offline"
+    },
+    {
+      "id": "qwen3-tts",
+      "status": "exited",
+      "health": "offline"
+    },
+    {
+      "id": "extra-embedding",
+      "status": "exited",
+      "health": "offline"
+    },
+    {
+      "id": "extra-media",
+      "status": "exited",
+      "health": "offline"
+    },
+    {
+      "id": "extra-ssh",
+      "status": "exited",
+      "health": "offline"
+    },
+    {
+      "id": "extra-collector",
+      "status": "exited",
+      "health": "offline"
+    },
+    {
+      "id": "extra-documents",
+      "status": "exited",
+      "health": "offline"
+    },
+    {
+      "id": "extra-shorts",
+      "status": "exited",
+      "health": "offline"
+    }
+  ],
+  "browser": "Extra Shorts shows 중지됨; no online indicator",
+  "runtime_panel_tests_passed": 11
+}

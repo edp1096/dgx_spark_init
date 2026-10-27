@@ -190,6 +190,10 @@ func (s *Server) session(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if len(parts) == 1 && r.Method == http.MethodDelete {
+		if err := s.cancelSessionChat(r.Context(), id); err != nil {
+			http.Error(w, err.Error(), 409)
+			return
+		}
 		if err := s.cancelSessionDocuments(r.Context(), id); err != nil {
 			http.Error(w, err.Error(), 409)
 			return
@@ -198,6 +202,7 @@ func (s *Server) session(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), 500)
 			return
 		}
+		s.cancelDeletedSessionVoices(id)
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
@@ -299,6 +304,10 @@ func (s *Server) bulkDeleteSessions(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	for _, id := range ids {
+		if err := s.cancelSessionChat(r.Context(), id); err != nil {
+			http.Error(w, err.Error(), 409)
+			return
+		}
 		if err := s.cancelSessionDocuments(r.Context(), id); err != nil {
 			http.Error(w, err.Error(), 409)
 			return
@@ -307,6 +316,9 @@ func (s *Server) bulkDeleteSessions(w http.ResponseWriter, r *http.Request) {
 	if err := s.db.DeleteSessions(ids); err != nil {
 		http.Error(w, err.Error(), 500)
 		return
+	}
+	for _, id := range ids {
+		s.cancelDeletedSessionVoices(id)
 	}
 	w.WriteHeader(http.StatusNoContent)
 }

@@ -64,6 +64,7 @@ type imageGenerationArgs struct {
 	PreserveSource         bool                  `json:"preserve_source,omitempty"`
 	MaskBox                []int                 `json:"mask_box,omitempty"`
 	NativeQwenImage        bool                  `json:"-"`
+	ExplicitOperation      bool                  `json:"-"`
 	PaintMode              bool                  `json:"-"`
 	Operation              string                `json:"operation"`
 	Prompt                 string                `json:"prompt"`
@@ -234,6 +235,11 @@ func (s *Server) executeImageGenerateTool(ctx context.Context, sessionID string,
 		args.Operation = "generate"
 	}
 	args.NativeQwenImage = cfg.Mode == "qwen-image21"
+	if current, _ := s.snapshot(); cfg.Mode == "reference" {
+		if endpoint, ok := videoRuntime(current); ok && endpoint == strings.TrimRight(cfg.Endpoint, "/") {
+			args.ExplicitOperation = true
+		}
+	}
 	args.PaintMode = cfg.Mode == "paint" || args.NativeQwenImage
 	if args.NativeQwenImage && (args.BackgroundMethod != "" || args.HeadSwapStrength != nil) {
 		return registeredToolResult{}, errors.New("Qwen Image 2.1 uses native editing without background_method or head_swap_strength")
@@ -644,7 +650,7 @@ func (s *Server) generateSingleImage(ctx context.Context, client *imagegen.Clien
 
 func commonImagePayload(args imageGenerationArgs, extended bool) map[string]any {
 	payload := map[string]any{"prompt": args.Prompt, "size": args.Size}
-	if args.PaintMode {
+	if args.PaintMode || args.ExplicitOperation {
 		payload["operation"] = args.Operation
 		if args.Operation == "outpaint" {
 			payload["preserve_source"] = args.PreserveSource

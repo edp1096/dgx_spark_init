@@ -342,17 +342,17 @@ func (c *Controller) StopBundle(bundleID string) error {
 	if !ok {
 		return fmt.Errorf("unknown bundle %q", bundleID)
 	}
-	bundle = c.Catalog().ModelBundle(bundle)
+	components := c.Catalog().StopBundleComponents(bundle.ID)
 	if err := c.begin(Operation{Action: "stop", BundleID: bundleID, State: "running", Phase: "세트 중지", StartedAt: time.Now()}); err != nil {
 		return err
 	}
 	go func() {
 		var failures []string
-		for index := len(bundle.Components) - 1; index >= 0; index-- {
-			component, _ := c.Catalog().ResolveComponent(bundle.ID, bundle.Components[index])
+		for index := len(components) - 1; index >= 0; index-- {
+			component := components[index]
 			c.updateOperation(component.ID, progressInfo{
 				Key: "stop:" + component.ID, Phase: component.Name + " 중지", Detail: "컨테이너를 안전하게 종료하고 있습니다.",
-				Progress: float64(len(bundle.Components)-1-index) / float64(len(bundle.Components)),
+				Progress: float64(len(components)-1-index) / float64(len(components)),
 			})
 			if err := c.stopComponent(context.Background(), component); err != nil && !isMissingContainer(err) {
 				failures = append(failures, component.Name+": "+err.Error())
@@ -892,12 +892,20 @@ func (c *Controller) httpHealthy(ctx context.Context, component Component) bool 
 		var state struct {
 			Status     string `json:"status"`
 			VideoModel string `json:"video_model"`
-			Features   struct {
+			Video      struct {
+				Steps int `json:"steps"`
+			} `json:"video"`
+			Acceleration struct {
+				PDMD struct {
+					Modules int `json:"modules"`
+				} `json:"pdmd"`
+			} `json:"acceleration"`
+			Features struct {
 				Progress bool `json:"progress"`
 				ETA      bool `json:"eta"`
 			} `json:"features"`
 		}
-		return response.StatusCode == 200 && json.NewDecoder(response.Body).Decode(&state) == nil && state.Status == "ok" && state.VideoModel == "minimax-h3-nvfp4" && state.Features.Progress && state.Features.ETA
+		return response.StatusCode == 200 && json.NewDecoder(response.Body).Decode(&state) == nil && state.Status == "ok" && state.VideoModel == "minimax-h3-nvfp4" && state.Features.Progress && state.Features.ETA && state.Video.Steps == 4 && state.Acceleration.PDMD.Modules == 208
 	}
 	return response.StatusCode >= 200 && response.StatusCode < 300
 }

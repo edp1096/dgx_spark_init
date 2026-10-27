@@ -23,6 +23,15 @@ type modelAsset struct {
 
 func componentModelAssets(c Component) []modelAsset {
 	switch c.ComposeAsset {
+	case "compose.extra-music-ace.yaml":
+		var items []modelAsset
+		raw, err := assets.ReadFile("assets/music-studio/models.json")
+		if err != nil || json.Unmarshal(raw, &items) != nil {
+			panic("invalid embedded music model manifest")
+		}
+		return items
+	case "compose.extra-fish.yaml":
+		return []modelAsset{{Repo: "watchpen/drama-3-int4-koen160", Revision: "fd0147b1bb988ea26718ee75e95de8b07a07c156", Path: "/hf/hub/models--watchpen--drama-3-int4-koen160/snapshots/fd0147b1bb988ea26718ee75e95de8b07a07c156", HubCache: true}}
 	case "compose.qwen-fp4-local.yaml":
 		return []modelAsset{qwenFP4LocalRelease}
 	case "compose.extra-embedding.yaml":
@@ -36,6 +45,7 @@ func componentModelAssets(c Component) []modelAsset {
 		assets := componentModelAssets(Component{ComposeAsset: "compose.qwen-image21.yaml"})
 		return append(assets,
 			modelAsset{Repo: "lilcheaty/MiniMax-H3-NVFP4", Revision: "8c5abfed61e1b6a170240792b65253fba1a65b7b", Path: "/hf/hub/models--lilcheaty--MiniMax-H3-NVFP4/snapshots/8c5abfed61e1b6a170240792b65253fba1a65b7b", HubCache: true, Files: []string{"minimax_h3_fl2va_pruned_nvfp4.safetensors"}, SHA256: map[string]string{"minimax_h3_fl2va_pruned_nvfp4.safetensors": "72fa9269ce551fb63ff42a32d9b46d0c122e84b4b2c511e22fa698287b088f70"}},
+			modelAsset{Repo: "Iwannapose/minimax_h3_pdmd_4nfe_comfyui", Revision: "ae6ab62d28754b9ce052798b92d9567161568f28", Path: "/hf/hub/models--Iwannapose--minimax_h3_pdmd_4nfe_comfyui/snapshots/ae6ab62d28754b9ce052798b92d9567161568f28", HubCache: true, Files: []string{"minimax_h3_pdmd_4nfe_comfyui_v6.safetensors"}, SHA256: map[string]string{"minimax_h3_pdmd_4nfe_comfyui_v6.safetensors": "d1d7c9f08782492ebcaa57f9f823899541ee04c48a298692a229683c4b3dd8a1"}},
 			modelAsset{Repo: "Comfy-Org/Krea-2", Revision: "eb1eddd3983a54678545a9b2c178c5853b30f7be", Path: "/hf/hub/models--Comfy-Org--Krea-2/snapshots/eb1eddd3983a54678545a9b2c178c5853b30f7be", HubCache: true, Files: []string{"text_encoders/qwen3vl_4b_fp8_scaled.safetensors"}, SHA256: map[string]string{"text_encoders/qwen3vl_4b_fp8_scaled.safetensors": "54bd5144df0bbc25dd6ccadfcb826b521445a1b06ae5a42570bdd2974ca87094"}},
 			modelAsset{Repo: "NicoLab28/ClipProj-MiniMax-H3", Revision: "2ebdbcdc27a29a9607efdb221a9afcb9a0cdd808", Path: "/hf/hub/models--NicoLab28--ClipProj-MiniMax-H3/snapshots/2ebdbcdc27a29a9607efdb221a9afcb9a0cdd808", HubCache: true, Files: []string{"mmh3-4b-ClipProj-v3.1.safetensors"}, SHA256: map[string]string{"mmh3-4b-ClipProj-v3.1.safetensors": "0184e5c8d666a131962506d21949c2d8a8c6f33445b7b5e347e9a7e0a5baa819"}},
 			modelAsset{Repo: "Comfy-Org/MiniMax-H3", Revision: "e5eb578a89295337b8ff433a035929ce0279e0b6", Path: "/hf/hub/models--Comfy-Org--MiniMax-H3/snapshots/e5eb578a89295337b8ff433a035929ce0279e0b6", HubCache: true, Files: []string{"vae/minimax_h3_video_vae_int8_convrot.safetensors"}, SHA256: map[string]string{"vae/minimax_h3_video_vae_int8_convrot.safetensors": "52a2c8c73583c86e4f41cdcce3a6ad0ea562987bc0bf3d60a0cef5f5c8e60c0e"}},

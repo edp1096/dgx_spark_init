@@ -141,8 +141,8 @@ func TestResidentBundleMemoryIncludesRetainedModelsAndOneWorkspace(t *testing.T)
 	}
 	b, _ := catalog.Bundle("qwen38fn_exl3")
 	core, _ := catalog.ResolveComponent(b.ID, "qwen38fn_exl3")
-	// Joint image/video startup floor 18 + ASR 3.5 + TTS 2.5 + embedding 4 + workspace 10.
-	if b.MemoryGiB != core.MemoryGiB+38 {
+	// Joint image/video startup floor 20 + ASR 3.5 + TTS 2.5 + embedding 4 + workspace 10.
+	if b.MemoryGiB != core.MemoryGiB+40 {
 		t.Fatalf("resident stack not reserved: %+v", b)
 	}
 	var states []ComponentStatus

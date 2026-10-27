@@ -261,6 +261,16 @@ func (c *Controller) prepareOrStartComponent(ctx context.Context, component Comp
 		return err
 	}
 	env := runtimePathEnvironment(component, dataDir, modelCache)
+	if component.ID == "extra-shorts" {
+		if _, err := executeHost(ctx, host, nil, "mkdir", "-p", filepath.Join(dataDir, "shorts")); err != nil {
+			return err
+		}
+	}
+	if component.ID == "extra-shorts" || component.ID == "extra-fish" {
+		if _, err := executeHost(ctx, host, nil, "mkdir", "-p", filepath.Join(dataDir, "voices")); err != nil {
+			return err
+		}
+	}
 	if component.ServiceRole() == "ssh" || component.ServiceRole() == "embedding" {
 		ids, idErr := executeHost(ctx, host, nil, "sh", "-c", "printf '%s:%s' \"$(id -u)\" \"$(id -g)\"")
 		if idErr != nil {

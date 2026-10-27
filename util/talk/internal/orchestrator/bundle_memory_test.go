@@ -34,7 +34,9 @@ func TestAlreadyHealthySetStartHasNoNewAllocation(t *testing.T) {
 }
 
 func TestEXL3ColdStartBesideHealthyResidentImage(t *testing.T) {
-	api := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(200) }))
+	api := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte(`{"status":"ok","video_model":"minimax-h3-nvfp4","features":{"progress":true,"eta":true},"video":{"steps":4},"acceleration":{"pdmd":{"modules":208}}}`))
+	}))
 	defer api.Close()
 	dir := t.TempDir()
 	t.Setenv("PATH", dir+":"+os.Getenv("PATH"))
@@ -60,8 +62,8 @@ func TestEXL3ColdStartBesideHealthyResidentImage(t *testing.T) {
 	}
 	b, _ := c.Catalog().Bundle("qwen38fn_exl3")
 	plan := c.bundleMemoryPlan(context.Background(), b)
-	if math.Abs(plan.NeededGiB-81) > .001 || plan.FreedGiB != 0 || !plan.RequiresCUDAStart {
-		t.Fatalf("expected LLM70 + ASR3.5 + TTS3 + image0.5 + embedding4, got %+v", plan)
+	if math.Abs(plan.NeededGiB-83) > .001 || plan.FreedGiB != 0 || !plan.RequiresCUDAStart {
+		t.Fatalf("expected LLM70 + ASR3.5 + TTS3 + image2.5 + embedding4, got %+v", plan)
 	}
 	if err := validateMemoryHeadroom(SystemMemory{AvailableGiB: 85, FreeGiB: 71}, plan, 1.5); err != nil {
 		t.Fatalf("qualified TensorFold estimate must pass startup admission: %v", err)

@@ -20,6 +20,9 @@ import (
 
 var ErrNoAudio = errors.New("media has no audio stream")
 
+// A successful recognizer response with no recognized text, not an API failure.
+var ErrNoText = errors.New("ASR returned empty text")
+
 type Result struct {
 	Words             []Word      `json:"words,omitempty"`
 	Turns             []Turn      `json:"turns,omitempty"`
@@ -116,7 +119,13 @@ func (c *Client) TranscribeVoice(ctx context.Context, source io.Reader, filename
 	return c.transcribe(ctx, source, filename, mimeType, c.cfg.VoiceLanguage, false)
 }
 
-func (c *Client) transcribe(ctx context.Context, source io.Reader, filename, mimeType, language string, diarize bool) (Result, error) {
+// Reference preparation needs word boundaries even when speaker separation is
+// disabled or unavailable. Keep the user's diarization preference unchanged.
+func (c *Client) TranscribeReference(ctx context.Context, source io.Reader, filename, mimeType string) (Result, error) {
+	return c.transcribe(ctx, source, filename, mimeType, c.cfg.MediaLanguage, c.cfg.Diarization, true)
+}
+
+func (c *Client) transcribe(ctx context.Context, source io.Reader, filename, mimeType, language string, diarize bool, timestamps ...bool) (Result, error) {
 	if !c.cfg.Enabled {
 		return Result{}, errors.New("ASR is disabled")
 	}
@@ -172,7 +181,7 @@ func (c *Client) transcribe(ctx context.Context, source io.Reader, filename, mim
 	multipartWriter := multipart.NewWriter(pipeWriter)
 	writeDone := make(chan error, 1)
 	go func() {
-		err := writeASRMultipart(multipartWriter, audio, filename, c.cfg.Model, language, c.cfg.Prompt, diarize)
+		err := writeASRMultipart(multipartWriter, audio, filename, c.cfg.Model, language, c.cfg.Prompt, diarize || (len(timestamps) > 0 && timestamps[0]))
 		if closeErr := multipartWriter.Close(); err == nil {
 			err = closeErr
 		}
@@ -202,13 +211,20 @@ func (c *Client) transcribe(ctx context.Context, source io.Reader, filename, mim
 		detail, _ := io.ReadAll(io.LimitReader(asrResp.Body, 64<<10))
 		return Result{}, fmt.Errorf("ASR API HTTP %d: %s", asrResp.StatusCode, strings.TrimSpace(string(detail)))
 	}
-	var result Result
-	if err := json.NewDecoder(io.LimitReader(asrResp.Body, 8<<20)).Decode(&result); err != nil {
+	var payload struct {
+		Result
+		Text *string `json:"text"`
+	}
+	if err := json.NewDecoder(io.LimitReader(asrResp.Body, 8<<20)).Decode(&payload); err != nil {
 		return Result{}, fmt.Errorf("decode ASR response: %w", err)
 	}
-	result.Text = strings.TrimSpace(result.Text)
+	if payload.Text == nil {
+		return Result{}, errors.New("ASR response is missing text")
+	}
+	result := payload.Result
+	result.Text = strings.TrimSpace(*payload.Text)
 	if result.Text == "" {
-		return Result{}, errors.New("ASR returned empty text")
+		return result, ErrNoText
 	}
 	if diarize {
 		result.DiarizationStatus = "unavailable"

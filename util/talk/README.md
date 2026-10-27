@@ -26,6 +26,12 @@ Private keys and state backups remain separate from the executable and source.
 
 ## 모델과 설정
 
+다른 세트로 전환하면 탑재된 ASR·TTS·이미지·임베딩과 허용된 공유 Extra 기능의 기본 스위치를 켭니다. 없는 기능은 꺼지며, 같은 세트에서 직접 바꾼 스위치는 저장·재시작 시 유지됩니다.
+
+`모델 세트 중지`는 모델과 Talk가 관리하는 공유 Extra 서비스도 함께 종료합니다. 세트가 중지된 동안 Shorts 상태 조회로 작업 서비스가 자동 재기동되지 않습니다.
+
+FP4 Local과 TP2 세트(Flash Next·GLM·DeepSeek)는 Fish 음성 합성 및 ACE-Step 음악 생성을 제외합니다. `disabled_support` 정책은 공유 서비스 노출, 도구 등록, 직접 생성 요청과 세트 기동에 함께 적용되며, 기존 저장 설정에도 반영됩니다. FP4의 1M 문맥·KV·프롬프트 캐시 설정은 유지합니다.
+
 1. **설정 → 시스템 → 모델 준비**에서 사용할 모델을 선택하고 **전체 준비**를 실행합니다.
 2. 준비가 끝나면 상단 모델 메뉴에서 세트를 선택해 시작합니다.
 3. Extra Media·Collector·Documents·SSH는 **설정 → 시스템 → 지원 서비스**에서 준비합니다.
@@ -44,6 +50,17 @@ The Qwen FP4-Local and EXL3 3bit TensorFold deployments use Talk-owned embedded 
 - **설정 → 음성 → 답변 음성**: 언어·화자·자동 읽기·속도를 설정합니다. 속도는 기본 `1.0`이며 `1.2~1.3`으로 올릴 수 있습니다.
 
 마이크는 HTTPS 또는 localhost에서 사용할 수 있습니다. HTTP 접속 설정은 앱의 **마이크 사용 방법**을 참고하세요.
+
+## 외부 툴 공통 API
+
+설정 → 시스템 → 시작·연결의 **외부 툴 연결**에서 공통 API 주소를 복사합니다.
+Base URL은 `http://서버주소:8585/v1`, 고정 모델 ID는 `sparktalk`입니다.
+모델 세트를 전환하면 새 요청은 새 활성 모델로 전달됩니다. 진행 중인 요청은 기존 대상에 유지되며, 모델 서버를 중지하면 해당 요청이 종료될 수 있습니다.
+
+`GET /v1/models`, `POST /v1/chat/completions`, `POST /v1/completions`, `POST /v1/responses`를 제공합니다.
+생성 요청의 도구 정의·멀티모달 입력·스트리밍과 서버 오류는 그대로 전달하며, Responses API를 포함한 기능 지원 여부는 모델 서버에 따릅니다. Talk의 기억·내장 도구 실행 루프는 사용하지 않습니다.
+공통 API에 별도 키는 필요하지 않으며, 클라이언트가 키 입력을 요구하면 임의 값을 사용합니다. 업스트림 인증에는 Talk에 저장된 모델 API 키를 사용합니다.
+`GET /api/model-api`는 공통 경로와 현재 연결 대상 모델 ID를 반환합니다.
 
 ## 개발·빌드
 

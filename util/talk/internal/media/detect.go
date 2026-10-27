@@ -41,6 +41,9 @@ func classifyMedia(data []byte, name, declared string, imageOnly bool) (string, 
 	}
 	ext := strings.ToLower(filepath.Ext(name))
 	declared = strings.ToLower(strings.TrimSpace(strings.Split(declared, ";")[0]))
+	if kind := classifyAudioHeader(data, ext, declared); kind != "" {
+		return kind, nil
+	}
 	if mimeType := classifyDocument(data, ext, declared); mimeType != "" {
 		return mimeType, nil
 	}
@@ -81,7 +84,44 @@ func classifyMedia(data []byte, name, declared string, imageOnly bool) (string, 
 			return "video/webm", nil
 		}
 	}
-	return "", fmt.Errorf("supported attachment types: PNG, JPEG, WebP, MP3, WAV, OGG, AVI, MOV, MP4, WMV, WebM, ZIP, PDF, text/markup/data files, DOCX, PPTX, XLSX, ODF, EPUB, HWPX")
+	return "", fmt.Errorf("supported attachment types: PNG, JPEG, WebP, MP3, MP2, WAV, FLAC, OGG/Opus, AAC, M4A/ALAC, AIFF, WMA, AMR, APE, CAF, MKA, AVI, MOV, MP4, WMV, WebM, ZIP, PDF, text/markup/data files, DOCX, PPTX, XLSX, ODF, EPUB, HWPX; raw PCM needs sample format information")
+}
+
+// Sniff audio containers independently of the extension. This is admission,
+// not a decoding verdict: voice preparation must still probe/decode the file.
+func classifyAudioHeader(data []byte, ext, declared string) string {
+	switch {
+	case hasPrefix(data, "fLaC"):
+		return "audio/flac"
+	case isRIFF(data, "WAVE"):
+		return "audio/wav"
+	case hasPrefix(data, "OggS"):
+		if ext == ".ogv" || strings.HasPrefix(declared, "video/") {
+			return "video/ogg"
+		}
+		return "audio/ogg"
+	case len(data) >= 12 && hasPrefix(data, "FORM") && (string(data[8:12]) == "AIFF" || string(data[8:12]) == "AIFC"):
+		return "audio/aiff"
+	case hasPrefix(data, "#!AMR-WB\n"):
+		return "audio/amr-wb"
+	case hasPrefix(data, "#!AMR\n"):
+		return "audio/amr"
+	case hasPrefix(data, "MAC "):
+		return "audio/x-ape"
+	case hasPrefix(data, "caff"):
+		return "audio/x-caf"
+	case len(data) >= 3 && data[0] == 0xff && data[1]&0xf6 == 0xf0:
+		return "audio/aac"
+	case isMP3Frame(data) || (len(data) >= 10 && hasPrefix(data, "ID3") && data[3] >= 2 && data[3] <= 4):
+		return "audio/mpeg"
+	case isISOBaseMedia(data) && (ext == ".m4a" || ext == ".m4b" || ext == ".alac" || (len(data) >= 12 && (string(data[8:12]) == "M4A " || string(data[8:12]) == "M4B "))):
+		return "audio/mp4"
+	case bytes.HasPrefix(data, []byte{0x30, 0x26, 0xb2, 0x75, 0x8e, 0x66, 0xcf, 0x11, 0xa6, 0xd9, 0x00, 0xaa, 0x00, 0x62, 0xce, 0x6c}) && (ext == ".wma" || strings.HasPrefix(declared, "audio/")):
+		return "audio/x-ms-wma"
+	case bytes.HasPrefix(data, []byte{0x1a, 0x45, 0xdf, 0xa3}) && (ext == ".mka" || strings.HasPrefix(declared, "audio/")):
+		return "audio/x-matroska"
+	}
+	return ""
 }
 
 func classifyDocument(data []byte, extension, declared string) string {

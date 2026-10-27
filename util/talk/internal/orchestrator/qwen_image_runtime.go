@@ -20,6 +20,11 @@ const managedWorkloadIdleGrace = 2 * time.Minute
 const managedAuxiliaryCUDAFreeGiB = 10.0
 
 func managedColdCUDAFreeGiB(x Component) float64 {
+	if x.ComposeAsset == "compose.extra-fish.yaml" {
+		// Fish starts three Python/CUDA workers. Keep bootstrap pages beyond
+		// their imports; the previous 10 GiB allowance did not protect chat-prefilled GB10.
+		return 16
+	}
 	if isManagedTTS(x) {
 		// GB10 with EXL3 1M + both DiTs + ASR + embedding resident: cudaSetDevice
 		// failed at 1.8 GiB free, but full Q8 TTS loaded in 3.9 s at 5.6 GiB.
@@ -33,7 +38,11 @@ func managedColdCUDAFreeGiB(x Component) float64 {
 }
 
 func isManagedTTS(x Component) bool {
-	return x.ComposeAsset == "compose.qwen3-tts.yaml" && x.Model == "qwen3-tts-0.6b-q8"
+	return x.ComposeAsset == "compose.extra-fish.yaml" || (x.ComposeAsset == "compose.qwen3-tts.yaml" && x.Model == "qwen3-tts-0.6b-q8")
+}
+
+func isManagedMusic(x Component) bool {
+	return x.ComposeAsset == "compose.extra-music-ace.yaml"
 }
 
 func isQwenImage21(x Component) bool {
@@ -313,9 +322,10 @@ func (c *Controller) acquireManagedWorkload(ctx context.Context, b Bundle, x Com
 	}
 	var once sync.Once
 	var failure, cleanupErr error
+	var displaced []Component
 	release := func() error {
 		once.Do(func() {
-			cleanupCtx, cancel := context.WithTimeout(context.Background(), time.Minute)
+			cleanupCtx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 			defer cancel()
 			if failure == nil {
 				failure = context.Cause(ctx)
@@ -324,11 +334,19 @@ func (c *Controller) acquireManagedWorkload(ctx context.Context, b Bundle, x Com
 			if c.memoryProbe != nil {
 				memory = c.memoryProbe()
 			}
-			if !x.KeepResident && c.componentRunning(cleanupCtx, x) && (failure != nil || memory.AvailableGiB < normalizedMemoryReserve(reserve)) {
+			if !x.KeepResident && c.componentRunning(cleanupCtx, x) && (len(displaced) > 0 || failure != nil || memory.AvailableGiB < normalizedMemoryReserve(reserve)) {
 				cleanupErr = c.stopIdleWorkload(cleanupCtx, x, 1)
+			}
+			for _, image := range displaced {
+				if cleanupErr == nil {
+					cleanupErr = c.startAndWaitContext(cleanupCtx, image)
+				}
 			}
 			if cleanupErr != nil {
 				c.finishOperation("failed", cleanupErr.Error())
+			} else if x.ComposeAsset == "compose.extra-fish.yaml" && errors.Is(failure, context.Canceled) {
+				c.updateOperation(x.ID, progressInfo{Key: "workload:canceled", Phase: "쇼츠 음성 작업 취소·복구 완료"})
+				c.finishOperation("complete", "")
 			} else if failure != nil {
 				c.finishOperation("failed", failure.Error())
 			} else {
@@ -387,6 +405,15 @@ func (c *Controller) acquireManagedWorkload(ctx context.Context, b Bundle, x Com
 		coldFree := managedColdCUDAFreeGiB(x)
 		err := validateMemoryHeadroom(memory, memoryPlan{NeededGiB: needed, RequiresCUDAStart: !running, MinimumCUDAFreeGiB: coldFree}, normalizedMemoryReserve(reserve))
 		if err == nil {
+			if x.ComposeAsset == "compose.extra-fish.yaml" && !running && !cacheReclaimed {
+				// Clean closed Fish/H3 checkpoint pages before the three CUDA
+				// workers start. The resident language model is never targeted.
+				if err := c.reclaimAuxiliaryFileCache(ctx, b); err != nil {
+					return fail(err)
+				}
+				cacheReclaimed = true
+				continue
+			}
 			break
 		}
 		reclaimed, reclaimErr := c.reclaimIdleAuxiliary(ctx, b, x.ID, true)
@@ -395,6 +422,35 @@ func (c *Controller) acquireManagedWorkload(ctx context.Context, b Bundle, x Com
 		}
 		if reclaimed {
 			continue
+		}
+		// Music cold starts may only lack immediate pages after downloading
+		// weights. Reclaim closed file pages before displacing a resident image.
+		if isManagedMusic(x) && !running && !cacheReclaimed && memory.AvailableGiB >= needed+normalizedMemoryReserve(reserve) {
+			var cold *cudaStartMemoryError
+			if errors.As(err, &cold) {
+				cacheReclaimed = true
+				if e := c.reclaimAuxiliaryFileCache(ctx, b); e != nil {
+					return fail(e)
+				}
+				continue
+			}
+		}
+		// Fish's larger cold footprint may temporarily displace an idle image
+		// model. This applies only to this lease; KeepResident remains unchanged.
+		if x.ComposeAsset == "compose.extra-fish.yaml" || isManagedMusic(x) {
+			didDisplace := false
+			for _, image := range c.Catalog().BundleComponents(b.ID) {
+				if isQwenImage21(image) && image.KeepResident && c.local(image) && c.componentRunning(ctx, image) {
+					if e := c.stopIdleWorkload(ctx, image); e != nil {
+						return fail(e)
+					}
+					displaced = append(displaced, image)
+					didDisplace = true
+				}
+			}
+			if didDisplace {
+				continue
+			}
 		}
 		if x.ID != "flux2" {
 			if image, ok := c.Catalog().ResolveComponent(b.ID, "flux2"); ok && !image.KeepResident && isQwenImage21(image) && c.componentRunning(ctx, image) {
@@ -458,7 +514,7 @@ func (c *Controller) AdoptIdleWorkloads(bundleID string) {
 	}
 	for _, id := range c.workloadBundle(b).Components {
 		x, found := c.Catalog().ResolveSupport(bundleID, id)
-		if found && (x.ComposeAsset == "compose.extra-embedding.yaml" || isQwenImage21(x) || (isManagedTTS(x) && c.local(x))) {
+		if found && (x.ComposeAsset == "compose.extra-embedding.yaml" || isQwenImage21(x) || ((isManagedTTS(x) || isManagedMusic(x)) && c.local(x))) {
 			c.workloadActivity(x)()
 		}
 	}

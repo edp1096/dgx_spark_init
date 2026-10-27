@@ -1,0 +1,26 @@
+{
+  "errors": [],
+  "audio": [
+    {
+      "label": null,
+      "src": "http://127.0.0.1:8585/api/files/a9883c225c6b555216191048ab8eb66f/%EC%86%8C%ED%9D%AC-%ED%95%A9%EC%84%B1%EC%B0%B8%EC%A1%B0-%EA%B2%80%EC%A6%9D.flac?type=audio%2Fflac",
+      "duration": 10.4,
+      "time": 0.211724,
+      "error": null
+    },
+    {
+      "label": null,
+      "src": "http://127.0.0.1:8585/api/files/1b4d473a413a5fefef5396df5ff7b5a6/%EC%82%AC%EC%9A%A9%ED%95%9C%20%EC%B0%B8%EC%A1%B0%20%EA%B5%AC%EA%B0%84.wav?type=audio%2Fwav",
+      "duration": 4.751995,
+      "time": 0.202721,
+      "error": null
+    },
+    {
+      "label": null,
+      "src": "http://127.0.0.1:8585/api/files/ab444c6875ecddf24bbfad2be2e24969/%EB%93%B1%EB%A1%9D%20%EB%AF%B8%EB%A6%AC%20%EB%93%A3%EA%B8%B0.wav?type=audio%2Fwav",
+      "duration": 3.430794,
+      "time": 0.216763,
+      "error": null
+    }
+  ]
+}

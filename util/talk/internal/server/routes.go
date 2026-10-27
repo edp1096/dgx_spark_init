@@ -7,6 +7,14 @@ import (
 
 func (s *Server) routes(web fs.FS) *http.ServeMux {
 	mux := http.NewServeMux()
+	mux.HandleFunc("/v1/", s.modelAPI)
+	mux.HandleFunc("/api/model-api", s.modelAPIInfo)
+	mux.HandleFunc("/api/voices", s.voicesAPI)
+	mux.HandleFunc("/api/voices/", s.voicesAPI)
+	mux.HandleFunc("/api/shorts", s.shortsAPI)
+	mux.HandleFunc("/api/shorts/", s.shortsAPI)
+	mux.HandleFunc("/api/clip-production", s.clipProductionAPI)
+	mux.HandleFunc("/api/clip-production/", s.clipProductionAPI)
 	mux.HandleFunc("/api/document-tasks", s.documentTaskAPI)
 	mux.HandleFunc("/api/document-tasks/", s.documentTaskAPI)
 	mux.HandleFunc("/api/sources/", s.sourceAPI)
@@ -70,6 +78,8 @@ func (s *Server) routes(web fs.FS) *http.ServeMux {
 	mux.HandleFunc("/api/sessions/bulk-delete", s.bulkDeleteSessions)
 	mux.HandleFunc("/api/sessions/", s.session)
 	mux.HandleFunc("/api/chat", s.chat)
+	mux.HandleFunc("/api/chat/active", s.activeChat)
+	mux.HandleFunc("/api/chat/active/", s.activeChat)
 	mux.HandleFunc("/api/chat/steer", s.steerChat)
 	mux.Handle("/", spaHandler(web))
 

@@ -1,3 +1,17 @@
+export async function getActiveChat(sessionId) {
+  const response = await fetch(`/api/chat/active?session_id=${encodeURIComponent(sessionId)}`, { signal: AbortSignal.timeout(5000) });
+  if (!response.ok) throw new Error(await response.text());
+  return response.json();
+}
+export async function resumeChat(sessionId, turnId, signal, handlers) {
+  const response = await fetch(`/api/chat/active/events?session_id=${encodeURIComponent(sessionId)}&turn_id=${encodeURIComponent(turnId)}`, { signal });
+  if (response.status === 404) return; // Completed between discovery and subscription.
+  return consumeSSE(response, handlers);
+}
+export async function cancelChat(sessionId, turnId) {
+  const response = await fetch('/api/chat/active/cancel', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: sessionId, turn_id: turnId }), signal: AbortSignal.timeout(5000) });
+  if (!response.ok && response.status !== 404) throw new Error(await response.text());
+}
 export async function streamChat(sessionId, content, attachments, model, reasoningEffort, toolsEnabled, signal, handlers) {
   const response = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ submission_delay_ms: handlers.submissionDelayMS?.() || 0, session_id: sessionId, content, attachments, model, reasoning_effort: reasoningEffort, tools_enabled: toolsEnabled }), signal });
   return consumeSSE(response, handlers);
@@ -27,6 +41,7 @@ export async function consumeSSE(response, handlers) {
       const raw = block.match(/^data:\s*(.+)$/m)?.[1];
       if (!raw) continue;
       const data = JSON.parse(raw);
+      if (event === 'response_status') handlers.responseStatus?.(data);
       if (event === 'turn_started') handlers.turnStarted?.(data);
       if (event === 'session_title') handlers.sessionTitle?.(data);
       if (event === 'session_folder') handlers.sessionFolder?.(data);

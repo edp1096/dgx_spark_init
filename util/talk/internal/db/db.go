@@ -429,6 +429,10 @@ func Open(path string) (*DB, error) {
 		conn.Close()
 		return nil, err
 	}
+	if err := d.initVoicePublications(); err != nil {
+		conn.Close()
+		return nil, err
+	}
 	return d, nil
 }
 

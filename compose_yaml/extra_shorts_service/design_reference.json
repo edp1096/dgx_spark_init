@@ -1,0 +1,38 @@
+{
+  "purpose": "Art-direction guidance, not a fixed template or a claim about ranking algorithms.",
+  "reviewed": "2026-10-23",
+  "references": [
+    {
+      "source": "Ali Abdaal — This Man Changed Productivity Forever",
+      "url": "https://www.youtube.com/shorts/8BZMuF5uV_w",
+      "evidence": "Actual public video sampled across its duration.",
+      "observations": "Large concept words and illustrative scenes carry emphasis; small dialogue captions serve a separate role. The visual treatment changes with the idea rather than displaying a permanent project-name label."
+    },
+    {
+      "source": "TikTok World — designer Wesley Phung",
+      "url": "https://www.wesleyphung.com/work-1/tiktok",
+      "evidence": "Public creator-published stills and animated sequences; not a claim about a current TikTok feed.",
+      "observations": "Large typography, size contrast and timed reveals create hierarchy. Words and creator footage alternate in prominence. Adapt the principle to the audience; an older reflective audience does not need this campaign's rapid motion or neon colors."
+    },
+    {
+      "source": "Meta — New Ways to Create Content on Instagram",
+      "url": "https://about.fb.com/news/2023/11/new-ways-to-create-content-on-instagram/",
+      "evidence": "Official Reels editing and typography screenshots; some individual Instagram reels were inaccessible without login.",
+      "observations": "Weight, font character, outline and placement can establish readable text over footage. A translucent rectangle is one option, not the default treatment for every text role."
+    },
+    {
+      "source": "TikTok creative best practices",
+      "url": "https://ads.tiktok.com/resources/help/article/creative-best-practices",
+      "evidence": "Official platform guidance.",
+      "observations": "Keep important content readable within the interface safe area. Safe areas depend on format and UI; the supplied project bounds are a conservative production choice, not a universal official pixel specification."
+    }
+  ],
+  "design_decisions_required": [
+    "State a visual concept suited to the actual subject and audience. Select a coherent type hierarchy, palette, contrast method and motion pace.",
+    "Separate project metadata from the audience-facing hook. Write a short readable headline with intentional line breaks, decide its display interval, and give it enough visual prominence.",
+    "Give headline, narration captions and optional chapter words distinct roles. Avoid repeating the same long sentence in multiple layers or leaving a small title badge on every frame by habit.",
+    "Inspect the supplied media contact sheet. Place text in negative space and preserve the subject's face or meaningful action.",
+    "Use restrained emphasis and purposeful motion. Different content can use cinematic type, editorial composition or bold explainers; no single layout is mandatory.",
+    "For a redesign, describe concrete changes from the previous result and implement them. Reused media does not authorize reusing a rejected layout."
+  ]
+}

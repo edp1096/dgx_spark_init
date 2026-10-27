@@ -113,6 +113,8 @@ func modelPresentation(c Component) *ModelPresentation {
 			format = "Q5_K · 화자 구분 Q8_0"
 		case "compose.qwen3-tts.yaml":
 			format = "Q8_0 본체 · Q8_0 오디오 codec"
+		case "compose.extra-fish.yaml":
+			label, format = "경량화", "INT4 · KoEn160"
 		case "compose.extra-embedding.yaml":
 			format = "BF16 · 텍스트 270M · 768차원"
 		case "compose.dreamlite.yaml":

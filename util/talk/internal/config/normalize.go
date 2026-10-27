@@ -37,6 +37,7 @@ func (c *Config) Normalize() {
 		c.Runtime.Catalog = &catalog
 	}
 	c.migrateQwen38FNEXL3Identity()
+	c.removeRetiredMusicSupport()
 	c.removeRetiredRuntimes()
 	if c.Runtime.BuiltinRevision < 1 {
 		// Offer the new optional service without changing any existing set membership.
@@ -348,8 +349,15 @@ func (c *Config) Normalize() {
 	if c.Runtime.BuiltinRevision < 51 {
 		c.Runtime.BuiltinRevision = 51
 	}
+	if c.Runtime.BuiltinRevision < 52 {
+		c.upgradeMiniMaxPDMD()
+		c.Runtime.BuiltinRevision = 52
+	}
+	c.removeRetiredMusicSupport()
 	c.removeRetiredRuntimes()
 	c.refreshQwenEXL3TuningDescription()
+	c.ensureShortsSupport()
+	c.restrictConstrainedAudioSupport()
 	c.normalizeRuntimeDisplayNames()
 	if catalog, err := orchestrator.ValidateCatalog(*c.Runtime.Catalog); err == nil {
 		c.Runtime.Catalog = &catalog

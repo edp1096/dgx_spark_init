@@ -158,7 +158,7 @@ func (c *Controller) materializeRecipe(ctx context.Context, component Component)
 		values["GLM53_CACHE_PATH"] = filepath.Join(filepath.Dir(cache), "glm53-nvfp4")
 		values["VLLM_BIND"] = component.BindAddress
 		if values["VLLM_BIND"] == "" {
-			values["VLLM_BIND"] = "127.0.0.1"
+			values["VLLM_BIND"] = "0.0.0.0"
 		}
 	}
 	if id == "glm53-fp4" {
@@ -168,7 +168,7 @@ func (c *Controller) materializeRecipe(ctx context.Context, component Component)
 		values["GLM53_CACHE_PATH"] = filepath.Join(filepath.Dir(cache), "glm53-fp4-local")
 		values["VLLM_BIND"] = component.BindAddress
 		if values["VLLM_BIND"] == "" {
-			values["VLLM_BIND"] = "127.0.0.1"
+			values["VLLM_BIND"] = "0.0.0.0"
 		}
 	}
 	values["CONTEXT_SIZE"] = component.RuntimeOptions["MAX_MODEL_LEN"]
@@ -246,7 +246,7 @@ func (c *Controller) materializeRecipe(ctx context.Context, component Component)
 		values["WORKER_CONTAINER"] = component.WorkerContainer
 		values["VLLM_HOST"] = component.BindAddress
 		if values["VLLM_HOST"] == "" {
-			values["VLLM_HOST"] = "127.0.0.1"
+			values["VLLM_HOST"] = "0.0.0.0"
 		}
 		if values["MAX_MODEL_LEN"] == "" {
 			values["MAX_MODEL_LEN"] = "1048576"
@@ -259,7 +259,7 @@ func (c *Controller) materializeRecipe(ctx context.Context, component Component)
 		values["QWEN_TP2_WORKER_CACHE"] = filepath.Join(c.host(component.WorkerHost).DataDir, "cache", "sglang-flash-next-tp2")
 		values["QWEN_TP2_BIND"] = component.BindAddress
 		if values["QWEN_TP2_BIND"] == "" {
-			values["QWEN_TP2_BIND"] = "127.0.0.1"
+			values["QWEN_TP2_BIND"] = "0.0.0.0"
 		}
 		if values["MAX_MODEL_LEN"] == "" {
 			values["MAX_MODEL_LEN"] = "1048576"

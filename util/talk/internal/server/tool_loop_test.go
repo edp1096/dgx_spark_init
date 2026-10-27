@@ -193,11 +193,15 @@ func TestRetainLatestVideoInputRemovesOlderRawVideos(t *testing.T) {
 			{"type": "video_url", "video_url": map[string]string{"url": "data:video/mp4;base64,new"}},
 			{"type": "text", "text": "현재 영상 분석해라"},
 		}},
+		{Role: "assistant", Content: []map[string]any{
+			{"type": "video_url", "video_url": map[string]string{"url": "data:video/mp4;base64,generated"}},
+			{"type": "text", "text": "생성된 영상"},
+		}},
 	}
 	filtered := retainLatestVideoInput(messages)
 	payload, _ := json.Marshal(filtered)
 	text := string(payload)
-	if strings.Count(text, `"type":"video_url"`) != 1 || strings.Contains(text, "base64,old") || !strings.Contains(text, "base64,new") {
+	if strings.Count(text, `"type":"video_url"`) != 1 || strings.Contains(text, "base64,old") || strings.Contains(text, "base64,generated") || !strings.Contains(text, "base64,new") {
 		t.Fatalf("unexpected video filtering: %s", text)
 	}
 	for _, instruction := range []string{"이전 영상 질문", "현재 영상 분석해라"} {

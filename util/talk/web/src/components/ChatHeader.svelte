@@ -1,5 +1,6 @@
 <script>
   import Select from './Select.svelte';
+  import { modelRuntimeState } from '../lib/runtime-state.js';
   import MicrophoneHelp from './MicrophoneHelp.svelte';
   import { tick } from 'svelte';
   import { modelCapabilities, normalizeReasoningEffort, thinkingToggleValue, reasoningEffortLabel } from '../lib/model-capabilities.js';
@@ -107,7 +108,7 @@
   $: voiceModeActive = continuousVoiceEnabled || !['off', 'error', 'stopping'].includes(continuousVoiceState);
   $: displayCatalog = runtime ? {...catalog, ...runtime, components:[...(runtime.components || []), ...(catalog?.components || [])]} : catalog;
   $: selectedModelLabel = modelDisplayName(selectedModel, displayCatalog, runtime?.selected_bundle);
-  $: runtimeStarting = runtime?.operation?.state === 'running';
+  $: runtimeModelState = modelRuntimeState(runtime, health);
   $: modelProfile = modelCapabilities(modelType);
   $: gemmaThinkingValue = thinkingToggleValue(reasoningEffort);
   $: if (modelProfile.family === 'qwen3.8' || modelProfile.family === 'qwen38fn_exl3' || (modelProfile.family === 'glm5.3' || modelProfile.family === 'deepseek-v4')) reasoningEffort = normalizeReasoningEffort(modelType, reasoningEffort);
@@ -178,7 +179,7 @@
       도구{#if webToolsEnabled || voiceModeActive || sshGrants.length}<i class="tool-active-dot" aria-label="사용 중인 기능 있음"></i>{/if}<span aria-hidden="true">⌄</span>
     </button>
     <div class="connection-menu">
-      <button bind:this={statusTrigger} class:starting={runtimeStarting} class:offline={!runtimeStarting && health.status !== 'ok'} class="status" onclick={toggleStatus} aria-expanded={statusOpen} aria-haspopup="dialog">● {runtimeStarting ? '기동 중' : health.status === 'ok' ? '연결됨' : '연결 오류'}</button>
+      <button bind:this={statusTrigger} class:starting={runtimeModelState.pending} class:offline={!runtimeModelState.pending && !runtimeModelState.online} class="status" onclick={toggleStatus} aria-expanded={statusOpen} aria-haspopup="dialog">● {runtimeModelState.label}</button>
       {#if statusOpen}
         <div class="connection-popover" role="dialog" aria-label="DGX Spark 운영 상태" tabindex="-1">
           {#if runtime}

@@ -1,0 +1,341 @@
+{
+  "date": "2026-10-23",
+  "status": "completed",
+  "source_job_id": "7902a4fe38684cb0a4d8740e31a6d65c",
+  "redesign_job_id": "faf16d49bd1b4d31acad649e3cf30a68",
+  "reference_evidence": {
+    "sources": [
+      {
+        "source": "Ali Abdaal — This Man Changed Productivity Forever",
+        "url": "https://www.youtube.com/shorts/8BZMuF5uV_w",
+        "evidence": "Actual public video sampled across its duration.",
+        "observations": "Large concept words and illustrative scenes carry emphasis; small dialogue captions serve a separate role. The visual treatment changes with the idea rather than displaying a permanent project-name label."
+      },
+      {
+        "source": "TikTok World — designer Wesley Phung",
+        "url": "https://www.wesleyphung.com/work-1/tiktok",
+        "evidence": "Public creator-published stills and animated sequences; not a claim about a current TikTok feed.",
+        "observations": "Large typography, size contrast and timed reveals create hierarchy. Words and creator footage alternate in prominence. Adapt the principle to the audience; an older reflective audience does not need this campaign's rapid motion or neon colors."
+      },
+      {
+        "source": "Meta — New Ways to Create Content on Instagram",
+        "url": "https://about.fb.com/news/2023/11/new-ways-to-create-content-on-instagram/",
+        "evidence": "Official Reels editing and typography screenshots; some individual Instagram reels were inaccessible without login.",
+        "observations": "Weight, font character, outline and placement can establish readable text over footage. A translucent rectangle is one option, not the default treatment for every text role."
+      },
+      {
+        "source": "TikTok creative best practices",
+        "url": "https://ads.tiktok.com/resources/help/article/creative-best-practices",
+        "evidence": "Official platform guidance.",
+        "observations": "Keep important content readable within the interface safe area. Safe areas depend on format and UI; the supplied project bounds are a conservative production choice, not a universal official pixel specification."
+      }
+    ],
+    "local_model_analysis": "{\n  \"observed_principles\": [\n    \"Text hierarchy is strictly separated: large, bold, static titles (e.g., '1955', 'WORK EXPANSION') act as anchors, while dialogue is relegated to small, pill-shaped or outlined captions at the bottom.\",\n    \"Visual pacing relies on 'B-roll' intercuts (archival photos, simple motion graphics) to break up talking heads, using text as a label rather than a subtitle.\",\n    \"Typography is used for emphasis and contrast: heavy sans-serifs for impact, typewriter fonts for historical context, and outlined text for legibility over busy backgrounds.\",\n    \"Color blocking is used to isolate concepts (e.g., the solid olive green background) allowing for minimal, centered text without clutter.\",\n    \"Captions are transient and bottom-anchored, ensuring they do not compete with the main subject's face or the primary visual focal point.\"\n  ],\n  \"adapt_for_korean_senior_reflective_video\": [\n    \"Replace the rejected persistent title box with a 'Chapter Card' approach: use a full-screen or large static text overlay (like the '1955' reference) that appears only during scene transitions.\",\n    \"For dialogue, adopt the 'pill-box' style (from Reference 1) but increase font size to 32px+ and use a high-contrast solid background (dark grey/black) for senior readability.\",\n    \"Use the 'Heavy' sans-serif style (from Reference 3) for key concept words (e.g., 'Reflection', 'Memory') to anchor the viewer's attention during pauses.\",\n    \"Implement the 'Typewriter' aesthetic (from Reference 1) for historical or nostalgic context, using a serif font to evoke a sense of time and reflection.\",\n    \"Ensure captions are bottom-anchored and transient (appearing only when spoken) to avoid the clutter of the rejected persistent design.\"\n  ],\n  \"avoid\": [\n    \"Persistent, small, thin white text in a rounded box that remains on screen for the entire duration (the rejected design).\",\n    \"Centered, large captions that obscure the speaker's face or body language during reflective moments.\",\n    \"Overly decorative or 'Bubble' style fonts that may reduce legibility for older viewers.\"\n  ]\n}",
+    "files": [
+      {
+        "name": "youtube-ali.mp4",
+        "bytes": 7085129,
+        "sha256": "06e833ab65e33ac6a9333a9bcb046d05effdd90f48b5cdc1b12683d2912a5b06"
+      },
+      {
+        "name": "youtube-contact.jpg",
+        "bytes": 47371,
+        "sha256": "c2a9f72313059e6591b26e983071caaddd5abf9f682b47729f643a4a08564519"
+      },
+      {
+        "name": "tiktok-0.png",
+        "bytes": 147261,
+        "sha256": "b058e86d6734403e31fdfda8667ee436310135fe762c0fabd36fe5ec9002b518"
+      },
+      {
+        "name": "tiktok-2.gif",
+        "bytes": 18454372,
+        "sha256": "b3e7d9b5dfde4c82dfcc1fe360e63cfad137d6b18dbe6805e24c4414b0516d98"
+      },
+      {
+        "name": "tiktok-contact.jpg",
+        "bytes": 62982,
+        "sha256": "93294c613fb3a416bfa223af8ac58b4b3660a161643a9fc2cabaefdfd31bd868"
+      },
+      {
+        "name": "reels-9.jpg",
+        "bytes": 100408,
+        "sha256": "4b0749fe3487fae6ce01d149ca6f5ba17ee7433fa5759ead1bcefe2b025a2e17"
+      }
+    ],
+    "access_limits": [
+      "Direct TikTok video request did not return extractable media. Used creator-published TikTok World animated examples.",
+      "Direct Instagram reel returned empty media; no login bypass attempted. Used official Meta Reels editing examples."
+    ]
+  },
+  "reference_analysis_file": "/home/edp1096/.cache/sparktalk/design-validation-20261023/local-reference-analysis-response.json",
+  "changes": [
+    "Fresh model-authored design by default; preserve requires explicit selection",
+    "Version 3 opening headline specification; headline font, bounds, overlap and duration browser checks",
+    "Actual source image contact sheet supplied to local designer",
+    "Reference guide for hierarchy, contrast, motion and visual review",
+    "Reject unchanged visual brief; do not seed fresh redesign with rejected CSS",
+    "Aggregate highlight validation feedback and retain failed-design repair feedback across retry",
+    "Hide internal scene metadata titles by default; reset h1 margin; verify actual rendered frames"
+  ],
+  "before": {
+    "headline_font_px": 28,
+    "headline": "small persistent dark badge",
+    "caption_background": "dark rounded box"
+  },
+  "after": {
+    "headline": {
+      "mode": "opening",
+      "text": "60대에게\n진짜 필요한 것",
+      "duration_seconds": 4.0,
+      "min_font_px": 72,
+      "max_lines": 2,
+      "safe_left": 0.1,
+      "safe_right": 0.9,
+      "safe_top": 0.4,
+      "safe_bottom": 0.6
+    },
+    "headline_styles": [
+      {
+        "text": "60대에게진짜 필요한 것",
+        "font_family": "\"Times New Roman\"",
+        "font_size": 72,
+        "font_weight": "700",
+        "color": "rgb(0, 0, 0)",
+        "background": "rgba(0, 0, 0, 0)",
+        "lines": 2,
+        "x": 72,
+        "y": 512,
+        "width": 576,
+        "height": 256,
+        "opacity": "1"
+      },
+      {
+        "text": "60대에게진짜 필요한 것",
+        "font_family": "\"Times New Roman\"",
+        "font_size": 72,
+        "font_weight": "700",
+        "color": "rgb(0, 0, 0)",
+        "background": "rgba(0, 0, 0, 0)",
+        "lines": 2,
+        "x": 72,
+        "y": 512,
+        "width": 576,
+        "height": 256,
+        "opacity": "1"
+      },
+      {
+        "text": "60대에게진짜 필요한 것",
+        "font_family": "\"Times New Roman\"",
+        "font_size": 72,
+        "font_weight": "700",
+        "color": "rgb(0, 0, 0)",
+        "background": "rgba(0, 0, 0, 0)",
+        "lines": 2,
+        "x": 72,
+        "y": 512,
+        "width": 576,
+        "height": 256,
+        "opacity": "1"
+      }
+    ],
+    "visual_review": {
+      "passed": true,
+      "issues": [],
+      "summary": "The redesign successfully implements the requested changes. The opening hook is a large, legible headline ('60대에게 진짜 필요한 것') that replaces the rejected small title style, though the text color is black rather than the specified white. The headline does not obstruct the subject's face and fades out in subsequent frames, allowing focus on the content. Captions are correctly centered, bold, and feature the requested yellow highlights on key words. There are no persistent top titles, extraneous graphics, or layout errors."
+    }
+  },
+  "tests": {
+    "worker": "................\n----------------------------------------------------------------------\nRan 16 tests in 9.360s\n\nOK\n",
+    "go": "ok  \tsparktalk/internal/server\t54.537s\nok  \tsparktalk/internal/orchestrator\t7.839s\nok  \tsparktalk/internal/config\t11.849s\n",
+    "package_assets": 157,
+    "diff_check": "passed"
+  },
+  "runtime_files": [
+    {
+      "file": "pipeline.py",
+      "source": "09db5c63473f6cc2f84965224277cb3d78961e7c2ef5d07dc2f5c8050371a8ba",
+      "embedded": "09db5c63473f6cc2f84965224277cb3d78961e7c2ef5d07dc2f5c8050371a8ba",
+      "live": "09db5c63473f6cc2f84965224277cb3d78961e7c2ef5d07dc2f5c8050371a8ba"
+    },
+    {
+      "file": "spec.py",
+      "source": "b018c1fb1db0f99433cc6964858737c42915cc041e5a16c8c942566f10bff594",
+      "embedded": "b018c1fb1db0f99433cc6964858737c42915cc041e5a16c8c942566f10bff594",
+      "live": "b018c1fb1db0f99433cc6964858737c42915cc041e5a16c8c942566f10bff594"
+    },
+    {
+      "file": "authoring.py",
+      "source": "3f81d6a8360f2306a07af3aa11638d638e28c88a39341db067d0e188a348bcbe",
+      "embedded": "3f81d6a8360f2306a07af3aa11638d638e28c88a39341db067d0e188a348bcbe",
+      "live": "3f81d6a8360f2306a07af3aa11638d638e28c88a39341db067d0e188a348bcbe"
+    },
+    {
+      "file": "audit.mjs",
+      "source": "982563a895e5d2626c371177123e0abbf5d3e802fbc754312df71e813bc058d1",
+      "embedded": "982563a895e5d2626c371177123e0abbf5d3e802fbc754312df71e813bc058d1",
+      "live": "982563a895e5d2626c371177123e0abbf5d3e802fbc754312df71e813bc058d1"
+    },
+    {
+      "file": "design_reference.json",
+      "source": "fecf5895e43d65487334579bd325884fc3723a1d8b48c5fed6d19054ab5fe64f",
+      "embedded": "fecf5895e43d65487334579bd325884fc3723a1d8b48c5fed6d19054ab5fe64f",
+      "live": "fecf5895e43d65487334579bd325884fc3723a1d8b48c5fed6d19054ab5fe64f"
+    },
+    {
+      "file": "store.py",
+      "source": "88b62d9a421a3a694faa2f7a15e34b0f27a75f1b161201df8b9798adf0e1c4e2",
+      "embedded": "88b62d9a421a3a694faa2f7a15e34b0f27a75f1b161201df8b9798adf0e1c4e2",
+      "live": "88b62d9a421a3a694faa2f7a15e34b0f27a75f1b161201df8b9798adf0e1c4e2"
+    },
+    {
+      "file": "api.py",
+      "source": "8c8b58b4d41d6ea6526945d3cac36fcfaa485a725ca285361894c3f6684f95e8",
+      "embedded": "8c8b58b4d41d6ea6526945d3cac36fcfaa485a725ca285361894c3f6684f95e8",
+      "live": "8c8b58b4d41d6ea6526945d3cac36fcfaa485a725ca285361894c3f6684f95e8"
+    }
+  ],
+  "reused_media": [
+    {
+      "file": "bgm.wav",
+      "original": "16d9eb56457cfcccfa14feb3364f58e957854d135beedd8266f6686984ababc7",
+      "redesign": "16d9eb56457cfcccfa14feb3364f58e957854d135beedd8266f6686984ababc7",
+      "identical": true
+    },
+    {
+      "file": "voice-0.wav",
+      "original": "b44a395cc78f21f5420095d28f03f4350bb1afa2cbea396c442f1efdd0f979ee",
+      "redesign": "b44a395cc78f21f5420095d28f03f4350bb1afa2cbea396c442f1efdd0f979ee",
+      "identical": true
+    },
+    {
+      "file": "voice-1.wav",
+      "original": "738bf2fec08ada84fefd7cfe15abd48cbc9ea133d7b1470fe398b841ebc1be52",
+      "redesign": "738bf2fec08ada84fefd7cfe15abd48cbc9ea133d7b1470fe398b841ebc1be52",
+      "identical": true
+    },
+    {
+      "file": "voice-2.wav",
+      "original": "2e77e14693036680180c956cdbe24a4bb1c8544f8c46a0ec8ae48c867334cdf0",
+      "redesign": "2e77e14693036680180c956cdbe24a4bb1c8544f8c46a0ec8ae48c867334cdf0",
+      "identical": true
+    },
+    {
+      "file": "voice-3.wav",
+      "original": "e429961c04c7169153605cdfcc21a942e202787ace15af1ab6aea05b64ec748e",
+      "redesign": "e429961c04c7169153605cdfcc21a942e202787ace15af1ab6aea05b64ec748e",
+      "identical": true
+    },
+    {
+      "file": "voice-4.wav",
+      "original": "c9a7857ce70d3e4bc0581d9bb393d0be78c52141302b2c602bb0ce4c2448258e",
+      "redesign": "c9a7857ce70d3e4bc0581d9bb393d0be78c52141302b2c602bb0ce4c2448258e",
+      "identical": true
+    },
+    {
+      "file": "voice-5.wav",
+      "original": "65fb8c3a6ac6d06bc371348feacc403f24fd2d74822e83827dc96b90d3848f7d",
+      "redesign": "65fb8c3a6ac6d06bc371348feacc403f24fd2d74822e83827dc96b90d3848f7d",
+      "identical": true
+    },
+    {
+      "file": "asset-0.png",
+      "original": "0e3596ce6246c9b65d30f187c56c25ad8488861cb7241193e63475bed16b36fe",
+      "redesign": "0e3596ce6246c9b65d30f187c56c25ad8488861cb7241193e63475bed16b36fe",
+      "identical": true
+    },
+    {
+      "file": "asset-1.png",
+      "original": "7b7face3705d6da857b248cbecb784fcbd2531388732dfc64ff10ad89bb929b8",
+      "redesign": "7b7face3705d6da857b248cbecb784fcbd2531388732dfc64ff10ad89bb929b8",
+      "identical": true
+    },
+    {
+      "file": "asset-2.png",
+      "original": "a62e6bbaf49a87347ee9937263e93f54f04a2432977fdb330c76f05c7532eb65",
+      "redesign": "a62e6bbaf49a87347ee9937263e93f54f04a2432977fdb330c76f05c7532eb65",
+      "identical": true
+    },
+    {
+      "file": "asset-3.png",
+      "original": "983f13d30136befe974e1bb63af545021529851150de5928ad6ab23e5b18df14",
+      "redesign": "983f13d30136befe974e1bb63af545021529851150de5928ad6ab23e5b18df14",
+      "identical": true
+    },
+    {
+      "file": "asset-4.png",
+      "original": "eeb74f7b3ec70d28f42ea5391eef4d56844854e95aaad86d75449729426b3080",
+      "redesign": "eeb74f7b3ec70d28f42ea5391eef4d56844854e95aaad86d75449729426b3080",
+      "identical": true
+    },
+    {
+      "file": "asset-5.png",
+      "original": "9f082e11c08e7901617db0dce991d4bcb6c2232c22972ad2b00e0bceb2912d4f",
+      "redesign": "9f082e11c08e7901617db0dce991d4bcb6c2232c22972ad2b00e0bceb2912d4f",
+      "identical": true
+    }
+  ],
+  "notes": [
+    "Layout passed after several model repair failures; human supplied precise geometry corrections. This does not establish autonomous quality on every future prompt.",
+    "No original third-party media included in delivered video; references informed original design instructions.",
+    "Temporary app restart failure during executable replacement recovered; current application healthy."
+  ],
+  "comparison": "shorts-design-20261023/before-after.jpg",
+  "delivery": {
+    "attachment": {
+      "id": "afd5cc453d04c501915654f9e7fb6ce1",
+      "name": "Shorts.mp4",
+      "mime": "video/mp4",
+      "size": 22089992,
+      "url": "/api/files/afd5cc453d04c501915654f9e7fb6ce1/Shorts.mp4?type=video%2Fmp4",
+      "source_url": "/api/shorts/faf16d49bd1b4d31acad649e3cf30a68/files/final.mp4?session_id=chat-1792689381708313299"
+    },
+    "message_id": 3074
+  },
+  "final_video": {
+    "path": "/home/edp1096/.local/share/sparktalk/shorts/faf16d49bd1b4d31acad649e3cf30a68/final.mp4",
+    "sha256": "e10f38f76c5195f01ca738f1f6cc3f0dbe4486944db446daf6759a291188860a",
+    "duration": 60,
+    "width": 720,
+    "height": 1280,
+    "fps": 24,
+    "size_bytes": 22089992
+  },
+  "verification": {
+    "browser_layout": true,
+    "animation_visible_pixels": [],
+    "visual_review": {
+      "passed": true,
+      "issues": [],
+      "summary": "The redesign successfully implements the requested changes. The opening hook is a large, legible headline ('60대에게 진짜 필요한 것') that replaces the rejected small title style, though the text color is black rather than the specified white. The headline does not obstruct the subject's face and fades out in subsequent frames, allowing focus on the content. Captions are correctly centered, bold, and feature the requested yellow highlights on key words. There are no persistent top titles, extraneous graphics, or layout errors."
+    },
+    "speech_coverage": true,
+    "narration_track": {
+      "duration_seconds": 60.0,
+      "longest_internal_silence": 1.16,
+      "trim_start_sample": 882,
+      "trim_end_sample": 2607192,
+      "energy_active_seconds": 38.64
+    },
+    "duration_fit": {
+      "status": "fit",
+      "narration_seconds": 53.98065759637189,
+      "duration_seconds": 60,
+      "narration_coverage": 0.8996776266061982,
+      "desired_narration_seconds": 56.7,
+      "rewrite_length_multiplier": 1.0503762370581213,
+      "explicit_silent_seconds": 0
+    },
+    "caption_timing": "sentence timestamps with proportional phrase timing",
+    "final_file": {
+      "duration": "60.000000",
+      "frames": "1440",
+      "audio": true
+    },
+    "actual_mp4_frames": {
+      "opening_0_8s": "headline visible, face unobscured, no internal scene label",
+      "body_5s": "headline absent, white/yellow caption visible",
+      "attachment_sha256_matches": true
+    }
+  }
+}

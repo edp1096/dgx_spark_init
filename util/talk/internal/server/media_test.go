@@ -13,13 +13,96 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"sparktalk/internal/asr"
 	"sparktalk/internal/config"
 	"sparktalk/internal/db"
 	"sparktalk/internal/knowledge"
+	"sparktalk/internal/llm"
 	"sparktalk/internal/media"
 )
+
+func TestAssistantImageHistoryUsesLabelledVisualContext(t *testing.T) {
+	s, photo := testImageServer(t)
+	const question = "fish에는 영상생성에 사용가능한 TTS 음성이 몇명 그리고 뭐뭐 있냐?"
+	items := []db.Message{{Role: "user", Content: "원본", Attachments: []db.Attachment{photo}}, {Role: "assistant", Content: "미리보기입니다", Attachments: []db.Attachment{photo, photo}}, {Role: "user", Content: question}}
+	messages, err := s.llmMessages(context.Background(), items, config.Config{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(messages) != 4 || messages[1].Role != "assistant" || messages[1].Content != "미리보기입니다" || messages[3].Content != question {
+		t.Fatalf("history changed: %+v", messages)
+	}
+	images := 0
+	for _, m := range messages {
+		parts, _ := m.Content.([]map[string]any)
+		for _, p := range parts {
+			if p["type"] == "image_url" {
+				images++
+				if m.Role != "user" && m.Role != "tool" {
+					t.Fatalf("invalid image role %s", m.Role)
+				}
+			}
+		}
+	}
+	if images != 3 {
+		t.Fatalf("lost images: %d", images)
+	}
+	raw, _ := json.Marshal(messages[2].Content)
+	if !strings.Contains(string(raw), "Historical assistant image attachments") || !strings.Contains(string(raw), `origin=\"assistant\"`) || !strings.Contains(string(raw), photo.ID) {
+		t.Fatalf("lost provenance: %s", raw)
+	}
+}
+
+// Read-only reproduction using the original conversation and installed model.
+func TestLiveAssistantImageHistoryFishQuestion(t *testing.T) {
+	if os.Getenv("TALK_LIVE_ASSISTANT_IMAGE_HISTORY") != "1" {
+		t.Skip("opt-in local model regression")
+	}
+	cfg, _, err := config.Load("../../dist/sparktalk.yaml")
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp, err := http.Get("http://127.0.0.1:8585/api/sessions/chat-1792689381708313299/messages")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != 200 {
+		t.Fatal(resp.Status)
+	}
+	var items []db.Message
+	if err = json.NewDecoder(resp.Body).Decode(&items); err != nil {
+		t.Fatal(err)
+	}
+	var history []db.Message
+	for _, item := range items {
+		if item.ID <= 3091 {
+			history = append(history, item)
+		}
+	}
+	store, err := media.New("../../dist/sparktalk.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	s := &Server{media: store, knowledgeIndex: &knowledge.Extractor{}}
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
+	defer cancel()
+	messages, err := s.llmMessages(ctx, modelHistory(history, 3091), cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	client := llm.New(cfg.Model.Endpoint, cfg.Model.DefaultModel, cfg.Model.APIKey, cfg.Model.ModelType)
+	result, err := client.Stream(llm.WithOutputLimit(ctx, 2048), messages, cfg.Model.DefaultModel, "none", nil, func(string, string) error { return nil })
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.TrimSpace(result.Content) == "" {
+		t.Fatal("empty response")
+	}
+	t.Logf("Original history accepted; response: %s", result.Content)
+}
 
 func TestLLMMessagesExtractsDocumentAttachment(t *testing.T) {
 	store, err := media.New(t.TempDir() + "/chat.db")
@@ -38,6 +121,49 @@ func TestLLMMessagesExtractsDocumentAttachment(t *testing.T) {
 	data, _ := json.Marshal(messages[0].Content)
 	if !strings.Contains(string(data), "document_attachment") || !strings.Contains(string(data), "10킬로옴") || strings.Contains(string(data), "data:text") {
 		t.Fatalf("unexpected document prompt: %s", data)
+	}
+}
+
+func TestGeneratedVideoHistoryIsAReferenceNotAssistantVideoInput(t *testing.T) {
+	store, err := media.New(t.TempDir() + "/chat.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	video, err := store.SaveAttachment(testFileHeader(t, "short.mp4", "video/mp4", append([]byte{0, 0, 0, 12}, []byte("ftypisomvideo")...)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	s := &Server{media: store}
+	for _, withUserVideo := range []bool{false, true} {
+		items := []db.Message{}
+		if withUserVideo {
+			items = append(items, db.Message{Role: "user", Content: "내 영상", Attachments: []db.Attachment{video}})
+		}
+		items = append(items, db.Message{Role: "assistant", Content: "완성 영상", Attachments: []db.Attachment{video}}, db.Message{Role: "user", Content: "60대 마음가짐으로 새 쇼츠 만들어라"})
+		messages, err := s.llmMessages(context.Background(), items, config.Config{ASR: config.ASRConfig{Enabled: !withUserVideo, Endpoint: "http://127.0.0.1:1", FFmpegEndpoint: "http://127.0.0.1:1"}})
+		if err != nil {
+			t.Fatal("generated video must not trigger media decoding/transcription", err)
+		}
+		videos := 0
+		for _, m := range messages {
+			raw, _ := json.Marshal(m.Content)
+			if strings.Contains(string(raw), `"type":"video_url"`) {
+				videos++
+				if m.Role != "user" {
+					t.Fatal("assistant video_url")
+				}
+			}
+			if m.Role == "assistant" && (!strings.Contains(string(raw), video.ID) || !strings.Contains(string(raw), "media_reference")) {
+				t.Fatal("generated attachment reference lost", string(raw))
+			}
+		}
+		want := 0
+		if withUserVideo {
+			want = 1
+		}
+		if videos != want {
+			t.Fatal("generated video displaced user video", videos, want)
+		}
 	}
 }
 

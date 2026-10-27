@@ -1,0 +1,12 @@
+{
+  "errors": [],
+  "audio": [
+    {
+      "label": null,
+      "src": "http://127.0.0.1:8585/api/files/e8d2bcb90cbc26a1a0fb6938435738e0/%EC%83%9D%EC%84%B1%20%EC%9D%8C%EC%84%B1.wav?type=audio%2Fwav",
+      "duration": 3.436553,
+      "time": 0.200718,
+      "error": null
+    }
+  ]
+}

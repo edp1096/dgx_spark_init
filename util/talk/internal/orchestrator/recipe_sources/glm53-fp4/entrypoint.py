@@ -14,7 +14,7 @@ mtp=e.get('MTP_TOKENS','5')
 if mtp not in ['1','5']:raise ValueError('Qualified MTP depths: 1 or 5')
 subprocess.run([sys.executable,'/opt/glm53/check_models.py',e['MODEL_HOST_PATH']],check=True)
 subprocess.run([sys.executable,'/opt/glm53/prepare_chat_template.py',e['MODEL_HOST_PATH'],'/root/.cache/glm53-chat.jinja'],check=True)
-defaults={'SERVED_MODEL_NAME':'glm-5.3-flash','API_BIND':'127.0.0.1','API_PORT':'8000','MASTER_PORT':'29521'}
+defaults={'SERVED_MODEL_NAME':'glm-5.3-flash','API_BIND':'0.0.0.0','API_PORT':'8000','MASTER_PORT':'29521'}
 args=json.loads(Path('/opt/glm53/serve-args.json').read_text())
 args=[e.get(x[1:-1],defaults.get(x[1:-1],'')) if x.startswith('@') and x.endswith('@') else x for x in args]
 i=args.index('--speculative-config')+1

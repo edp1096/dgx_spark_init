@@ -498,6 +498,9 @@ func MapNetwork(source Catalog, head, worker NetworkNode) (Catalog, error) {
 		c.Endpoint = mapURL(c.Endpoint, address, c.Port)
 		c.HealthURL = mapURL(c.HealthURL, address, c.Port)
 		c.BindAddress = address
+		if c.Role == "llm" {
+			c.BindAddress = "0.0.0.0"
+		}
 		if c.isCluster() && c.Host == "local" && c.WorkerHost == "worker" {
 			options := map[string]string{}
 			for k, v := range c.RuntimeOptions {

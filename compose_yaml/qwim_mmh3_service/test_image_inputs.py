@@ -29,6 +29,16 @@ class Keyframes(unittest.TestCase):
             with self.assertRaises(ValueError):
                 decode_keyframe(value)
 
+    def test_720p_image_budget_preserves_aspect_and_patch_alignment(self):
+        w,h=video_size(1920,1080,'720p')
+        self.assertLess(abs(w/h/(1920/1080)-1),.02)
+        self.assertEqual(video_size(1080,1920,'720p'),(h,w))
+        for width,height in [(935,1400),(1024,1024),(3000,1000)]:
+            w,h=video_size(width,height,'720p')
+            self.assertLessEqual(w*h,1280*720)
+            self.assertLessEqual(max(w,h),1280)
+            self.assertEqual((w%32,h%32),(0,0))
+
     def test_exif_rotation_controls_output_orientation(self):
         buffer = io.BytesIO(); image = Image.new('RGB', (1400, 935))
         exif = Image.Exif(); exif[274] = 6

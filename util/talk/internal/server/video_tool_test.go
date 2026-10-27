@@ -19,6 +19,8 @@ import (
 func TestVideoToolPersistsBeforeEventAndRejectsUnknownFields(t *testing.T) {
 	s, _ := testImageServer(t)
 	var calls atomic.Int32
+	var confirmed720 atomic.Bool
+	var substituted480 atomic.Bool
 	backend := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "POST" {
 			w.Header().Set("Content-Type", "application/json")
@@ -26,6 +28,20 @@ func TestVideoToolPersistsBeforeEventAndRejectsUnknownFields(t *testing.T) {
 			return
 		}
 		calls.Add(1)
+		var payload map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			t.Error(err)
+		}
+		if payload["resolution"] == "720p" && confirmed720.Load() {
+			w.Header().Set("X-Video-Width", "1280")
+			w.Header().Set("X-Video-Height", "720")
+			w.Header().Set("X-Video-Input-Mode", "t2v")
+		}
+		if payload["resolution"] == "720p" && substituted480.Load() {
+			w.Header().Set("X-Video-Width", "864")
+			w.Header().Set("X-Video-Height", "480")
+			w.Header().Set("X-Video-Input-Mode", "t2v")
+		}
 		w.Header().Set("Content-Type", "video/mp4")
 		w.Write(importTestVideo)
 	}))
@@ -88,6 +104,23 @@ func TestVideoToolPersistsBeforeEventAndRejectsUnknownFields(t *testing.T) {
 	}
 	if !strings.Contains(result.Result, "video/mp4") {
 		t.Fatal("no original MP4 attachment")
+	}
+	if _, err := handler(context.Background(), llm.ToolCall{Function: llm.FunctionCall{Arguments: `{"prompt":"car","resolution":"1080p"}`}}, nil, nil); err == nil || calls.Load() != 1 {
+		t.Fatal("invalid resolution reached backend")
+	}
+	request720 := llm.ToolCall{Function: llm.FunctionCall{Arguments: `{"prompt":"car","resolution":"720p"}`}}
+	if _, err := handler(context.Background(), request720, nil, nil); err == nil {
+		t.Fatal("720p accepted without backend dimension confirmation")
+	}
+	substituted480.Store(true)
+	if _, err := handler(context.Background(), request720, nil, nil); err == nil {
+		t.Fatal("720p request silently substituted with 480p")
+	}
+	substituted480.Store(false)
+	confirmed720.Store(true)
+	result, err = handler(context.Background(), request720, nil, nil)
+	if err != nil || !strings.Contains(result.Result, `"width":1280`) || !strings.Contains(result.Result, `"height":720`) {
+		t.Fatalf("native 720p result: %s %v", result.Result, err)
 	}
 }
 
@@ -180,5 +213,31 @@ func TestVideoToolUsesActualBranchImagesAndReportsPortraitSize(t *testing.T) {
 	}
 	if info.InputMode != "i2v" || info.First != source.ID || info.Width != 512 || info.Height != 768 || calls.Load() != 2 {
 		t.Fatalf("wrong I2V result: %s", result.Result)
+	}
+}
+
+func TestVideoDoesNotSubstituteForAnExplicitStillImage(t *testing.T) {
+	for _, request := range []string{"개미가 연상되는 여자 얼굴 이미지 그려라.", "여자 얼굴 사진 만들어줘", "영상 말고 정지 이미지로 그려줘", "Draw a portrait, not a video", "Draw an ant-like woman", "애니메이션풍 여자 얼굴 이미지 그려줘"} {
+		if !standaloneImageRequest(request) {
+			t.Fatal("missed image request", request)
+		}
+	}
+	for _, request := range []string{"이 이미지로 5초 영상 만들어", "Animate this image", "여자 얼굴이 움직이는 영상", "Make a video of a woman", "조금 더 밝게 해줘"} {
+		if standaloneImageRequest(request) {
+			t.Fatal("blocked video or ambiguous follow-up", request)
+		}
+	}
+	s, _ := testImageServer(t)
+	cat, _ := orchestrator.LoadCatalog()
+	s.cfg = config.Config{Runtime: config.RuntimeConfig{Mode: "managed", ActiveBundle: "qwen38fn_exl3", Catalog: &cat}}
+	reg := completionToolRegistry{sessionID: "session", handlers: map[string]registeredToolHandler{}}
+	s.registerVideoTool(context.Background(), &reg, s.cfg, func(db.Attachment) error { t.Fatal("video attached for an image request"); return nil })
+	handler := reg.handlers["video_generate"]
+	if handler == nil {
+		t.Fatal("video tool missing")
+	}
+	_, err := handler(context.Background(), llm.ToolCall{Function: llm.FunctionCall{Arguments: `{"prompt":"ant-like woman","resolution":"720p"}`}}, []llm.Message{{Role: "user", Content: "개미가 연상되는 여자 얼굴 이미지 그려라."}}, nil)
+	if err == nil || !strings.Contains(err.Error(), "정지 이미지") {
+		t.Fatal("image request reached video backend", err)
 	}
 }

@@ -337,7 +337,7 @@ func (s *Server) generateWithReferences(ctx context.Context, client *imagegen.Cl
 	}
 	mapping.WriteString("Keep the reference identities and their assigned roles distinct.\nRequested scene/edit: " + args.Prompt)
 	var operation []string
-	if args.NativeQwenImage {
+	if args.NativeQwenImage || args.ExplicitOperation {
 		operation = []string{args.Operation}
 	}
 	result, err := client.Edit(ctx, images, mapping.String(), args.Size, args.Seed, operation...)

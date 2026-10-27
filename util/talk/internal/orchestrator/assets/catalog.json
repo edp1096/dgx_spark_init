@@ -9,7 +9,7 @@
       "host": "local",
       "controller": "compose",
       "endpoint": "http://127.0.0.1:18002",
-      "bind_address": "127.0.0.1",
+      "bind_address": "0.0.0.0",
       "port": 18002,
       "container": "sparktalk-qwen38fn_exl3",
       "health_url": "http://127.0.0.1:18002/health",
@@ -35,7 +35,8 @@
       "auto_address": true,
       "runtime_options": {
         "MTP_TOKENS": "0"
-      }
+      },
+      "bind_address": "0.0.0.0"
     },
     {
       "id": "flash-next-tp2",
@@ -56,7 +57,8 @@
       "auto_address": true,
       "runtime_options": {
         "MAX_MODEL_LEN": "1048576"
-      }
+      },
+      "bind_address": "0.0.0.0"
     },
     {
       "id": "flux2",
@@ -179,7 +181,8 @@
         "MODEL_VARIANT": "official"
       },
       "name": "GLM 5.3 Flash FP4-Local TP2",
-      "startup_memory_gib": 115
+      "startup_memory_gib": 115,
+      "bind_address": "0.0.0.0"
     },
     {
       "id": "ds41",
@@ -203,11 +206,12 @@
         "MAX_MODEL_LEN": "1048576",
         "MTP_TOKENS": "auto"
       },
-      "name": "DeepSeek V4.1 Flash 1017 EXL3 2bit TP2"
+      "name": "DeepSeek V4.1 Flash 1017 EXL3 2bit TP2",
+      "bind_address": "0.0.0.0"
     },
     {
       "id": "qwim-mmh3",
-      "name": "Qwen Image 2.1 + MiniMax H3",
+      "name": "Qwen Image 2.1 + MiniMax H3 PDMD4",
       "role": "image",
       "host": "local",
       "controller": "compose",
@@ -215,9 +219,9 @@
       "endpoint": "http://127.0.0.1:8730",
       "health_url": "http://127.0.0.1:8730/health",
       "model": "qwen-image-2.1-uc-nvfp4",
-      "memory_gib": 28,
+      "memory_gib": 30,
       "workspace_memory_gib": 6,
-      "startup_memory_gib": 18,
+      "startup_memory_gib": 20,
       "startup_timeout_seconds": 900,
       "compose_asset": "compose.qwim-mmh3.yaml",
       "progress_kind": "service",
@@ -258,7 +262,53 @@
       "startup_timeout_seconds": 1800,
       "compose_asset": "compose.qwen-fp4-local.yaml",
       "progress_kind": "tensorfold",
-      "auto_address": true
+      "auto_address": true,
+      "bind_address": "0.0.0.0"
+    },
+    {
+      "id": "extra-shorts",
+      "name": "Extra Shorts",
+      "role": "tool",
+      "host": "local",
+      "controller": "compose",
+      "container": "sparktalk-extra-shorts",
+      "endpoint": "http://127.0.0.1:8725",
+      "health_url": "http://127.0.0.1:8725/health",
+      "memory_gib": 6,
+      "startup_timeout_seconds": 180,
+      "compose_asset": "compose.extra-shorts.yaml",
+      "progress_kind": "service",
+      "model": ""
+    },
+    {
+      "id": "extra-fish",
+      "name": "Fish Drama3 KoEn160",
+      "role": "tts",
+      "host": "local",
+      "controller": "compose",
+      "container": "sparktalk-fish-drama3",
+      "endpoint": "http://127.0.0.1:8726",
+      "health_url": "http://127.0.0.1:8726/health",
+      "memory_gib": 40,
+      "startup_timeout_seconds": 600,
+      "compose_asset": "compose.extra-fish.yaml",
+      "progress_kind": "service",
+      "model": "drama-3-int4-koen160"
+    },
+    {
+      "id": "extra-music-ace",
+      "name": "ACE-Step 1.5",
+      "role": "tool",
+      "host": "local",
+      "controller": "compose",
+      "container": "sparktalk-music-ace",
+      "endpoint": "http://127.0.0.1:8727",
+      "health_url": "http://127.0.0.1:8727/health",
+      "memory_gib": 24,
+      "startup_timeout_seconds": 120,
+      "compose_asset": "compose.extra-music-ace.yaml",
+      "progress_kind": "service",
+      "model": "ACE-Step 1.5"
     }
   ],
   "bundles": [
@@ -326,7 +376,11 @@
           "startup_memory_gib": 3
         }
       },
-      "workload_swap": true
+      "workload_swap": true,
+      "disabled_support": [
+        "extra-fish",
+        "extra-music-ace"
+      ]
     },
     {
       "id": "flash-next",
@@ -387,7 +441,11 @@
           "startup_memory_gib": 3
         }
       },
-      "start_support": true
+      "start_support": true,
+      "disabled_support": [
+        "extra-fish",
+        "extra-music-ace"
+      ]
     },
     {
       "id": "ds41",
@@ -456,7 +514,11 @@
       },
       "start_support": true,
       "workload_swap": true,
-      "name": "DeepSeek V4.1 Flash 1017 EXL3 2bit TP2"
+      "name": "DeepSeek V4.1 Flash 1017 EXL3 2bit TP2",
+      "disabled_support": [
+        "extra-fish",
+        "extra-music-ace"
+      ]
     },
     {
       "id": "glm53-worker-extra",
@@ -504,7 +566,11 @@
           "start_after_llm": true
         }
       },
-      "name": "GLM 5.3 Flash FP4-Local TP2"
+      "name": "GLM 5.3 Flash FP4-Local TP2",
+      "disabled_support": [
+        "extra-fish",
+        "extra-music-ace"
+      ]
     }
   ],
   "hosts": {

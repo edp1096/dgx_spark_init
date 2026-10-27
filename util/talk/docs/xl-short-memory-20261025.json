@@ -1,0 +1,45 @@
+{
+  "status": "blocked_before_model_load",
+  "test": "75-second ACE-Step XL Base BGM request for a 60-second short, through actual Talk music_generate tool",
+  "request": {
+    "session_id": "chat-1792903965420795781",
+    "content": "ACE-Step XL Base로 60초 쇼츠에 쓸 75초 길이의 잔잔한 피아노 배경음악 WAV를 만들어줘. 80 BPM, 보컬 없이 피아노만. 이번에는 음악 파일만 생성해줘.",
+    "model": "edp1096/Huihui-Qwen3.8-Flash-Next-abliterated-FP4-Local"
+  },
+  "result": {
+    "arguments": "{\"model\":\"ace-xl\",\"prompt\":\"Calm, gentle solo piano instrumental. Soft sustained chords, slow delicate melody, minimal and peaceful, intimate close-mic piano tone. No vocals, no lyrics, no drums, no percussion. Quiet background music suitable for a reflective short video.\",\"duration_seconds\":75,\"bpm\":80}",
+    "error": "ACE-Step 1.5 작업 전 메모리 확인: 통합메모리 부족 예상: 시스템 가용 28.6 GiB, 반환 예정 0.0 GiB, 추가 예상 32.0 GiB, 기동 후 약 -3.4 GiB (최소 여유 4.0 GiB)",
+    "id": "call_d275164a18f3f738a31be778",
+    "name": "music_generate",
+    "result": ""
+  },
+  "memory_budget_gib": 32,
+  "effective_minimum_reserve_gib": 4,
+  "required_available_gib": 36,
+  "admission_available_gib": 28.6,
+  "shortfall_gib": 7.4,
+  "observed_system_available_min_gib": 25.435028076171875,
+  "observed_system_available_max_gib": 33.644073486328125,
+  "main_before": {
+    "id": "9eac86209b10fe7dd55cf1aa541390e421d87ae8cd39c3e99690a19b2106b50e",
+    "started_at": "2026-10-24T13:40:57.854924671Z",
+    "oom_killed": false
+  },
+  "main_after": {
+    "id": "9eac86209b10fe7dd55cf1aa541390e421d87ae8cd39c3e99690a19b2106b50e",
+    "started_at": "2026-10-24T13:40:57.854924671Z",
+    "oom_killed": false,
+    "running": true
+  },
+  "ace_container_started_at": "2026-10-24T19:08:18.762265634Z",
+  "ace_container_oom_killed": false,
+  "elapsed": {
+    "seconds": 108.2358486809535
+  },
+  "limitations": [
+    "XL synthesis did not start; synthesis peak memory and runtime were not measured.",
+    "No completed short was generated because the BGM prerequisite was blocked.",
+    "The test chat follow-up was stopped after the admission failure, without approving remote-host operations."
+  ],
+  "defaults_changed": false
+}

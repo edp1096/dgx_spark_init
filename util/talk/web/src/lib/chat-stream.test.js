@@ -81,3 +81,15 @@ test('session folder events stay separate from the assistant answer', async () =
   assert.deepEqual(folder, { session_id: 'chat-one', group_id: 'news', changed: true });
   assert.equal(answer, '뉴스 폴더로 옮겼습니다.');
 });
+
+test('pre-token status is separate from generated text and performance', async () => {
+  const message = { content: '', reasoning_content: '', tool_trace: [] };
+  const handlers = createStreamHandlers(message, () => {});
+  await consumeSSE(response('event: response_status\ndata: {"stage":"model_wait","label":"모델 첫 응답 대기 중"}\n\nevent: done\ndata: {}\n\n'), handlers);
+  assert.equal(message.response_status.stage, 'model_wait');
+  assert.equal(message.content, '');
+  assert.equal(message.reasoning_content, '');
+  assert.equal(message.performance, undefined);
+  handlers.reasoning('생각 시작');
+  assert.equal(message.activity, 'reasoning');
+});
